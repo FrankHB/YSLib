@@ -32,10 +32,12 @@
     <ClInclude Include="include\ystdex\cstdio.h" />
     <ClInclude Include="include\ystdex\cstring.h" />
     <ClInclude Include="include\ystdex\cwctype.h" />
+    <ClInclude Include="include\ystdex\deref_op.hpp" />
     <ClInclude Include="include\ystdex\examiner.hpp" />
     <ClInclude Include="include\ystdex\exception.h" />
     <ClInclude Include="include\ystdex\functional.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
+    <ClInclude Include="include\ystdex\iterator_op.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />
     <ClInclude Include="include\ystdex\mixin.hpp" />
     <ClInclude Include="include\ystdex\operators.hpp" />

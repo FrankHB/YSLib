@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,19 +11,22 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1633
+\version r1720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2014-10-06 12:08 +0800
+	2015-02-10 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Operators
-\note 用法同 Boost.Operators ，但迭代器相关部分参数有所删减。
 \see http://www.boost.org/doc/libs/1_54_0/boost/operators.hpp 。
+\see https://github.com/d-frey/operators/tree/master/include/df/operators 。
+
+用法同 Boost.Operators ，但迭代器相关部分参数有所删减。
+引入部分 df.operators 特性。
 */
 
 
@@ -31,18 +34,26 @@
 #define YB_INC_ystdex_operators_hpp_ 1
 
 #include "../ydef.h"
+#include <memory> // for std::addressof;
 
 namespace ystdex
 {
 
-#define YB_Impl_Operators_friend(_op, _tRet, _expr, ...) \
+#define YB_Impl_Operators_friend(_op, _tRet, _spec, _expr, ...) \
 	friend yconstfn _tRet \
-	operator _op (__VA_ARGS__) \
+	operator _op (__VA_ARGS__) ynoexcept(_spec) \
 	{ \
 		return (_expr); \
 	}
+#define YB_Impl_Operators_friend_s(_op, _tRet, _expr, ...) \
+	YB_Impl_Operators_friend(_op, _tRet, noexcept(_expr), _expr, __VA_ARGS__)
+#define YB_Impl_Operators_friend_lr(_op, _type, _type2) \
+	YB_Impl_Operators_friend_s(_op, _type, x _op##= y, _type x, \
+		const _type2& y) \
+	YB_Impl_Operators_friend_s(_op, _type, x _op##= std::move(y), _type x, \
+		_type2&& y)
 #define YB_Impl_Operators_TmplHead2(_name) \
-	template<class _type, class _type2, class _tBase = empty_base<_type>> \
+	template<class _type, typename _type2, class _tBase = empty_base<_type>> \
 	struct _name
 #define YB_Impl_Operators_TmplHead1(_name) \
 	template<class _type, class _tBase = empty_base<_type>> \
@@ -53,10 +64,10 @@ namespace details
 {
 
 #define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
-	YB_Impl_Operators_friend(_op, bool, _expr, const _param_type& x, \
+	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
 		const _param_type2& y)
 #define YB_Impl_Operators_Compare1(_op, _expr, _param_type) \
-	YB_Impl_Operators_friend(_op, bool, _expr, const _param_type& x, \
+	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
 		const _param_type& y)
 
 
@@ -126,32 +137,32 @@ YB_Impl_Operators_TmplHead1(partially_ordered1) : _tBase
 #define YB_Impl_Operators_Commutative(_name, _op) \
 	YB_Impl_Operators_TmplHead2(_name##2) : _tBase \
 	{ \
-		YB_Impl_Operators_friend(_op, _type, x _op##= y, _type x, \
-			const _type2& y) \
-		YB_Impl_Operators_friend(_op, _type, y _op##= x, const _type2& x, \
+		YB_Impl_Operators_friend_lr(_op, _type, _type2) \
+		YB_Impl_Operators_friend_s(_op, _type, y _op##= x, const _type2& x, \
 			_type y) \
+		YB_Impl_Operators_friend_s(_op, _type, y _op##= std::move(x), \
+			_type2&& x, _type y) \
 	}; \
 	YB_Impl_Operators_TmplHead1(_name##1) : _tBase \
 	{ \
-		YB_Impl_Operators_friend(_op, _type, x _op##= y, _type x, \
-			const _type& y) \
+		YB_Impl_Operators_friend_lr(_op, _type, _type) \
 	};
 
 #define YB_Impl_Operators_NonCommutative(_name, _op) \
 	YB_Impl_Operators_TmplHead2(_name##2) : _tBase \
 	{ \
-		YB_Impl_Operators_friend(_op, _type, x _op##= y, _type x, \
-			const _type2& y) \
+		YB_Impl_Operators_friend_lr(_op, _type, _type2) \
 	}; \
 	YB_Impl_Operators_TmplHead2(_name##2##_##left) : _tBase \
 	{ \
-		YB_Impl_Operators_friend(_op, _type, _type(x) _op##= y, \
+		YB_Impl_Operators_friend_s(_op, _type, _type(x) _op##= y, \
 			const _type2& x, const _type& y) \
+		YB_Impl_Operators_friend_s(_op, _type, _type(x) _op##= std::move(y), \
+			const _type2& x, _type&& y) \
 	}; \
 	YB_Impl_Operators_TmplHead1(_name##1) : _tBase \
 	{ \
-		YB_Impl_Operators_friend(_op, _type, x _op##= y, _type x, \
-			const _type& y) \
+		YB_Impl_Operators_friend_lr(_op, _type, _type) \
 	};
 
 YB_Impl_Operators_Commutative(multipliable, *)
@@ -170,13 +181,11 @@ YB_Impl_Operators_Commutative(orable, |)
 #define YB_Impl_Operators_Binary(_name, _op) \
 	YB_Impl_Operators_TmplHead2(_name##2) : _tBase \
 	{ \
-		YB_Impl_Operators_friend(_op, _type, x _op##= y, _type x, \
-			const _type2& y) \
+		YB_Impl_Operators_friend_lr(_op, _type, _type2) \
 	}; \
 	YB_Impl_Operators_TmplHead1(_name##1) : _tBase \
 	{ \
-		YB_Impl_Operators_friend(_op, _type, x _op##= y, _type x, \
-			const _type& y) \
+		YB_Impl_Operators_friend_lr(_op, _type, _type) \
 	};
 
 	YB_Impl_Operators_Binary(left_shiftable, <<)
@@ -186,8 +195,10 @@ YB_Impl_Operators_Commutative(orable, |)
 
 YB_Impl_Operators_TmplHead1(incrementable) : _tBase
 {
+	//! \since build 576
 	friend _type
-	operator++(_type& x, int)
+	operator++(_type& x, int) ynoexcept(noexcept(_type(x)) && noexcept(++x)
+		&& noexcept(_type(std::declval<_type>())))
 	{
 		_type t(x);
 
@@ -198,8 +209,10 @@ YB_Impl_Operators_TmplHead1(incrementable) : _tBase
 
 YB_Impl_Operators_TmplHead1(decrementable) : _tBase
 {
+	//! \since build 576
 	friend _type
-	operator--(_type& x, int)
+	operator--(_type& x, int) ynoexcept(noexcept(_type(x)) && noexcept(--x)
+		&& noexcept(_type(std::declval<_type>())))
 	{
 		_type t(x);
 
@@ -208,20 +221,24 @@ YB_Impl_Operators_TmplHead1(decrementable) : _tBase
 	}
 };
 
-YB_Impl_Operators_TmplHead1(dereferenceable) : _tBase
+//! \since build 576
+YB_Impl_Operators_TmplHead2(dereferenceable) : _tBase
 {
-	auto
-	operator->() const -> decltype(&*std::declval<const _type&>())
+	yconstfn _type2
+	operator->() const ynoexcept(noexcept(*std::declval<const _type&>()))
 	{
-		return &*static_cast<const _type&>(*this);
+		return std::addressof(*static_cast<const _type&>(*this));
 	}
 };
 
-YB_Impl_Operators_TmplHead2(indexable) : _tBase
+//! \since build 576
+template<class _type, typename _type2, typename _tRet,
+	class _tBase = empty_base<_type>>
+struct indexable : _tBase
 {
-	auto
+	yconstfn _tRet
 	operator[](_type2 n) const
-		-> decltype(*(std::declval<const _type&>() + n))
+		ynoexcept(noexcept(*(std::declval<const _type&>() + n)))
 	{
 		return *(static_cast<const _type&>(*this) + n);
 	}
@@ -363,32 +380,46 @@ YB_Impl_Operators_TmplHead1(ordered_euclidean_ring_operators1)
 {};
 
 
-YB_Impl_Operators_TmplHead1(input_iteratable) : equality_comparable1<_type,
-	incrementable<_type, dereferenceable<_type, _tBase>>>
+//! \since build 576
+YB_Impl_Operators_TmplHead2(input_iteratable) : equality_comparable1<_type,
+	incrementable<_type, dereferenceable<_type, _type2, _tBase>>>
 {};
 
 
-YB_Impl_Operators_TmplHead1(output_iteratable) : incrementable<_type, _tBase>
+YB_Impl_Operators_TmplHead1(output_iteratable)
+	: incrementable<_type, _tBase>
 {};
 
 
-YB_Impl_Operators_TmplHead1(forward_iteratable)
-	: input_iteratable<_type, _tBase>
+//! \since build 576
+//@{
+YB_Impl_Operators_TmplHead2(forward_iteratable)
+	: input_iteratable<_type, _type2, _tBase>
 {};
 
 
-YB_Impl_Operators_TmplHead1(bidirectional_iteratable)
-	: forward_iteratable<_type, decrementable<_type, _tBase>>
+YB_Impl_Operators_TmplHead2(bidirectional_iteratable)
+	: forward_iteratable<_type, _type2, decrementable<_type, _tBase>>
 {};
 
 
-YB_Impl_Operators_TmplHead2(random_access_iteratable)
-	: bidirectional_iteratable<_type, less_than_comparable1<_type,
-	additive2<_type, _type2, indexable<_type, _type2, _tBase>>>>
+template<class _type, typename _tDiff, typename _tRef,
+	class _tBase = empty_base<_type>>
+struct random_access_iteratable
+	: bidirectional_iteratable<_type, _tRef, less_than_comparable1<_type,
+	additive2<_type, _tDiff, indexable<_type, _tDiff, _type, _tBase>>>>
 {};
+//@}
 
 } // namespace details;
 
+
+/*!
+\brief 实现命名空间：作为 ADL 边界。
+\since build 576
+*/
+namespace operators_impl
+{
 
 template<class>
 struct is_chained_base : false_type
@@ -397,7 +428,7 @@ struct is_chained_base : false_type
 
 # define YB_Impl_Operators_Chain2(_name) \
 	using ystdex::details::_name; \
-	template<class _type, class _type2, class _tBase> \
+	template<class _type, typename _type2, class _tBase> \
 	struct is_chained_base<_name<_type, _type2, _tBase>> : true_type \
 	{};
 
@@ -409,13 +440,13 @@ struct is_chained_base : false_type
 
 #define YB_Impl_Operators_Chain(_name) \
 	using ystdex::details::_name##2; \
-	template<class _type, class _type2 = _type, class \
+	template<class _type, typename _type2 = _type, class \
 		_tBase = empty_base<_type>, bool _b = is_chained_base<_type2>::value> \
 	struct _name : _name##2<_type, _type2, _tBase> \
 	{}; \
 	\
 	using ystdex::details::_name##1; \
-	template<class _type, class _type2, class _tBase> \
+	template<class _type, typename _type2, class _tBase> \
 	struct _name<_type, _type2, _tBase, true> : _name##1<_type, _type2> \
 	{}; \
 	\
@@ -423,7 +454,7 @@ struct is_chained_base : false_type
 	struct _name<_type, _type, _tBase, false> : _name##1<_type, _tBase> \
 	{}; \
 	\
-	template<class _type, class _type2, class _tBase, bool _b> \
+	template<class _type, typename _type2, class _tBase, bool _b> \
 	struct is_chained_base<_name<_type, _type2, _tBase, _b>> \
 		: true_type \
 	{}; \
@@ -484,13 +515,13 @@ YB_Impl_Operators_Chain2(random_access_iteratable)
 
 //! \since build 439
 //@{
-template<class _type, class _type2>
+template<class _type, typename _type2>
 struct operators2 : public totally_ordered2<_type, _type2,
 	integer_arithmetic2<_type, _type2, bitwise2<_type, _type2>>>
 {};
 
 
-template<class _type, class _type2 = _type>
+template<class _type, typename _type2 = _type>
 struct operators : public operators2<_type, _type2>
 {};
 
@@ -502,7 +533,14 @@ struct operators<_type, _type> : totally_ordered<_type,
 
 #undef YB_Impl_Operators_TmplHead1
 #undef YB_Impl_Operators_TmplHead2
+#undef YB_Impl_Operators_friend_lr
+#undef YB_Impl_Operators_friend_s
 #undef YB_Impl_Operators_friend
+
+} // namespace operators_impl;
+
+//! \since build 576
+using namespace operators_impl;
 
 } // namespace ystdex;
 

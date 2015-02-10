@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1372
+\version r1374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-12-16 23:40 +0800
+	2015-02-10 10:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,6 +270,7 @@ Cairo: rejected.
 	Reasons: http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf .
 // $2013-08.
 df.operators(https://github.com/d-frey/operators): considerable, shelved.
+	// $2015-02: partially merged.
 // $2013-10.
 libmagic(https://github.com/glensc/file): rejected.
 	This library implements a DSL(with BNF provided among the source files) for querying magic number database. It is heavyweight and too complex for freestanding implementations.

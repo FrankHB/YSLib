@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r4232
+\version r4827
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-02-09 07:16 +0800
+	2015-02-10 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,11 @@
 #ifndef YB_INC_ystdex_iterator_hpp_
 #define YB_INC_ystdex_iterator_hpp_ 1
 
-#include "type_op.hpp" // for ystdex::remove_reference_t, ystdex::*_tag;
-#include "cassert.h"
-#include <iterator> // for std::make_move_iterator, std::iterator,
-//	std::iterator_traits;
-#include <utility> // for std::make_pair;
-#include <memory> // for std::addressof;
+#include "iterator_op.hpp" // for std::reverse_iterator, std::pair,
+//	std::make_move_iterator, std::iterator_traits, yconstraint, yassume,
+//	ystdex::*_tag, ystdex::is_undereferenceable;
+#include "operators.hpp" // for ystdex::random_access_iteratable,
+//	std::addressof;
 
 namespace ystdex
 {
@@ -46,94 +45,6 @@ namespace ystdex
 \ingroup iterators
 \brief 迭代器适配器。
 */
-
-
-/*!
-\ingroup metafunctions
-\brief 选择迭代器类型的特定重载避免和其它类型冲突。
-\sa enable_if_t
-\since build 483
-*/
-template<typename _tParam, typename = yimpl(std::pair<
-	decltype(*std::declval<_tParam&>()), decltype(++std::declval<_tParam&>())>)>
-using enable_for_iterator_t = enable_if_t<
-	is_same<decltype(++std::declval<_tParam&>()), _tParam&>::value, int>;
-
-
-/*!	\defgroup iterator_operations Iterator Operations
-\ingroup iterators
-\brief 迭代器操作。
-\since build 375
-*/
-//@{
-
-/*!	\defgroup is_undereferenceable Is Undereferenceable Iterator
-\brief 判断迭代器实例是否不可解引用。
-\tparam _tIter 迭代器类型。
-\note 注意返回 \c false 不表示参数实际可解引用。
-\since build 461
-*/
-//@{
-template<typename _tIter>
-yconstfn bool
-is_undereferenceable(const _tIter&) ynothrow
-{
-	return {};
-}
-template<typename _type>
-yconstfn bool
-is_undereferenceable(_type* p) ynothrow
-{
-	return !p;
-}
-//@}
-
-/*!
-\brief 迭代器指向的值满足条件时取邻接迭代器，否则取原值。
-\param i 指定的迭代器。
-\pre 迭代器可解引用，蕴含断言：<tt>!is_undereferenceable(i)</tt> 。
-*/
-//@{
-template<typename _tIn, typename _fPred>
-_tIn
-next_if(_tIn i, _fPred f,
-	typename std::iterator_traits<_tIn>::difference_type n = 1)
-{
-	yconstraint(!is_undereferenceable(i));
-	return f(*i) ? std::next(i, n) : i;
-}
-template<typename _tIn, typename _type>
-_tIn
-next_if_eq(_tIn i, const _type& val,
-	typename std::iterator_traits<_tIn>::difference_type n = 1)
-{
-	yconstraint(!is_undereferenceable(i));
-	return *i == val ? std::next(i, n) : i;
-}
-//@}
-
-/*!
-\brief 迭代器指向的值满足条件时取反向邻接迭代器，否则取原值。
-\pre 迭代器可解引用。
-*/
-//@{
-template<typename _tBi, typename _fPred>
-_tBi
-prev_if(_tBi i, _fPred f,
-	typename std::iterator_traits<_tBi>::difference_type n = 1)
-{
-	return f(*i) ? std::prev(i, n) : i;
-}
-template<typename _tBi, typename _type>
-_tBi
-prev_if_eq(_tBi i, const _type& val,
-	typename std::iterator_traits<_tBi>::difference_type n = 1)
-{
-	return *i == val ? std::prev(i, n) : i;
-}
-//@}
-
-//@}
 
 
 //! \ingroup helper_functions
@@ -182,6 +93,60 @@ make_move_iterator_pair(_tRange& c)
 //@}
 
 
+//! \since build 576
+namespace details
+{
+
+template<typename _tIter, typename _tTraits,
+	typename _tTag = typename _tTraits::iterator_category>
+struct iterator_operators;
+
+template<typename _tIter, typename _tTraits>
+struct iterator_operators<_tIter, _tTraits, std::input_iterator_tag>
+{
+	using type = input_iteratable<_tIter, typename _tTraits::reference>;
+};
+
+template<typename _tIter, typename _tTraits>
+struct iterator_operators<_tIter, _tTraits, std::output_iterator_tag>
+{
+	using type = output_iteratable<_tIter, typename _tTraits::reference>;
+};
+
+template<typename _tIter, typename _tTraits>
+struct iterator_operators<_tIter, _tTraits, std::forward_iterator_tag>
+{
+	using type = forward_iteratable<_tIter, typename _tTraits::reference>;
+};
+
+template<typename _tIter, typename _tTraits>
+struct iterator_operators<_tIter, _tTraits, std::bidirectional_iterator_tag>
+{
+	using type = bidirectional_iteratable<_tIter, typename _tTraits::reference>;
+};
+
+template<typename _tIter, typename _tTraits>
+struct iterator_operators<_tIter, _tTraits, std::random_access_iterator_tag>
+{
+	using type = random_access_iteratable<_tIter,
+		typename _tTraits::difference_type, typename _tTraits::reference>;
+};
+
+} // namespace details;
+
+
+/*!
+\ingroup metafunctions
+\brief 按迭代器类别取可实现迭代器的重载操作符集合的实现。
+\note 仅使用第二参数的特定成员，可以是兼容 std::iterator 的实例的类型。
+\warning 实例作为实现迭代器的基类时不应使用默认参数，因为此时无法访问成员类型。
+\since build 576
+*/
+template<typename _tIter, typename _tTraits = std::iterator_traits<_tIter>>
+using iterator_operators_t
+	= typename details::iterator_operators<_tIter, _tTraits>::type;
+
+
 /*!
 \ingroup iterator_adaptors
 \brief 指针迭代器。
@@ -193,7 +158,8 @@ make_move_iterator_pair(_tRange& c)
 \todo 和 std::pointer_traits 交互。
 */
 template<typename _type>
-class pointer_iterator
+class pointer_iterator : public iterator_operators_t<pointer_iterator<_type>,
+	std::iterator_traits<_type*>>
 {
 public:
 	using iterator_type = _type*;
@@ -249,12 +215,6 @@ public:
 		return *raw;
 	}
 
-	yconstfn pointer
-	operator->() const
-	{
-		return raw;
-	}
-
 	inline pointer_iterator&
 	operator++()
 	{
@@ -262,33 +222,12 @@ public:
 		++raw;
 		return *this;
 	}
-	//! \since build 415
-	pointer_iterator
-	operator++(int)
-	{
-		return raw++;
-	}
 
 	inline pointer_iterator&
 	operator--()
 	{
 		--raw;
 		return *this;
-	}
-	//! \since build 415
-	pointer_iterator
-	operator--(int)
-	{
-		return raw--;
-	}
-
-	//! \since build 356
-	reference
-	operator[](difference_type n) const
-	{
-		yconstraint(raw);
-
-		return raw[n];
 	}
 
 	yconstfn
@@ -302,7 +241,6 @@ public:
 \relates pointer_iterator
 \since build 356
 */
-//@{
 template<typename _type>
 inline bool
 operator==(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
@@ -311,32 +249,6 @@ operator==(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
 
 	return pointer(x) == pointer(y);
 }
-
-template<typename _type>
-inline bool
-operator!=(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
-{
-	return !(x == y);
-}
-
-//! \since build 575
-template<typename _type>
-yconstfn pointer_iterator<_type>
-operator+(const pointer_iterator<_type>& x,
-	typename pointer_iterator<_type>::difference_type n)
-{
-	return pointer_iterator<_type>(x.pointer() + n);
-}
-
-//! \since build 575
-template<typename _type>
-yconstfn pointer_iterator<_type>
-operator-(const pointer_iterator<_type>& x,
-	typename pointer_iterator<_type>::difference_type n)
-{
-	return pointer_iterator<_type>(x.pointer() - n);
-}
-//@}
 
 
 /*!
@@ -365,12 +277,14 @@ struct pointer_classify<_type*>
 \ingroup iterator_adaptors
 \brief 伪迭代器。
 \warning 非虚析构。
+\since build 189
 
 总是返回单一值的迭代器适配器。
 */
 template<typename _type, typename _tIter = _type*,
 	typename _tTraits = std::iterator_traits<_tIter>>
-class pseudo_iterator
+class pseudo_iterator : public iterator_operators_t<
+	pseudo_iterator<_type, _tIter, _tTraits>, _tTraits>
 {
 public:
 	using iterator_type = _tIter;
@@ -440,49 +354,18 @@ public:
 		return value;
 	}
 
-	yconstfn pointer
-	operator->() const
-	{
-		return this;
-	}
-
 	pseudo_iterator&
 	operator++()
 	{
 		return *this;
 	}
-	pseudo_iterator
-	operator++(int)
-	{
-		return *this;
-	}
-	//@}
 
 	//! \brief 满足双向迭代器要求。
-	//@{
 	yconstfn pseudo_iterator&
 	operator--() const
 	{
 		return *this;
 	}
-	yconstfn pseudo_iterator
-	operator--(int) const
-	{
-		return *this;
-	}
-	//@}
-
-	/*!
-	\brief 满足随机访问迭代器要求。
-	\since build 356
-	*/
-	//@{
-	yconstfn reference
-	operator[](difference_type n) const
-	{
-		return this[n];
-	}
-	//@}
 };
 
 /*!
@@ -490,7 +373,6 @@ public:
 \relates pseudo_iterator
 \since build 356
 */
-//@{
 template<typename _type, typename _tIter, typename _tTraits>
 inline bool
 operator==(const pseudo_iterator<_type, _tIter, _tTraits>& x,
@@ -499,37 +381,25 @@ operator==(const pseudo_iterator<_type, _tIter, _tTraits>& x,
 	return x.value == y.value;
 }
 
-template<typename _type, typename _tIter, typename _tTraits>
-inline bool
-operator!=(const pseudo_iterator<_type, _tIter, _tTraits>& x,
-	const pseudo_iterator<_type, _tIter, _tTraits>& y)
-{
-	return !(x == y);
-}
-//@}
 
-/*!
-\brief 满足随机迭代器要求。
-\relates pseudo_iterator
-\since build 575
-*/
-//@{
-template<typename _type, typename _tIter, typename _tTraits>
-yconstfn pseudo_iterator<_type, _tIter, _tTraits>
-operator+(const pseudo_iterator<_type, _tIter, _tTraits>& i,
-	typename pseudo_iterator<_type, _tIter, _tTraits>::difference_type)
+namespace details
 {
-	return i;
-}
 
-template<typename _type, typename _tIter, typename _tTraits>
-yconstfn pseudo_iterator<_type, _tIter, _tTraits>
-operator-(const pseudo_iterator<_type, _tIter, _tTraits>& i,
-	typename pseudo_iterator<_type, _tIter, _tTraits>::difference_type)
+//! \since build 576
+template<typename _tIter, typename _fTransformer, typename _tReference>
+struct transit_traits
 {
-	return i;
-}
-//@}
+	using iterator_type = typename pointer_classify<_tIter>::type;
+	using iterator_category
+		= typename std::iterator_traits<iterator_type>::iterator_category;
+	using transformed_type = result_of_t<_fTransformer&(_tIter&)>;
+	using difference_type
+		= typename std::iterator_traits<iterator_type>::difference_type;
+	using reference = conditional_t<is_same<_tReference, void>::value,
+		transformed_type, _tReference>;
+};
+
+} // namespace details;
 
 
 /*!
@@ -544,31 +414,36 @@ operator-(const pseudo_iterator<_type, _tIter, _tTraits>& i,
 被替代的原始类型是迭代器类型，或除间接操作（可以不存在）外符合迭代器要求的类型。
 */
 template<typename _tIter, typename _fTransformer, typename _tReference = void>
-class transformed_iterator : public pointer_classify<_tIter>::type
+class transformed_iterator : public pointer_classify<_tIter>::type,
+	public iterator_operators_t<transformed_iterator<_tIter, _fTransformer,
+	_tReference>,
+	yimpl(details::transit_traits<_tIter, _fTransformer, _tReference>)>
 {
 	//! \since build 529
 	static_assert(is_decayed<_tIter>::value, "Invalid type found.");
 	//! \since build 529
 	static_assert(is_decayed<_fTransformer>::value, "Invalid type found.");
 
+private:
+	//! \since build 576
+	using impl_traits
+		= details::transit_traits<_tIter, _fTransformer, _tReference>;
 public:
 	/*!
 	\brief 原迭代器类型。
 	\since build 290
 	*/
-	using iterator_type = typename pointer_classify<_tIter>::type;
+	using iterator_type = typename impl_traits::iterator_type;
 	using transformer_type = _fTransformer;
 	//! \since build 439
-	using transformed_type = result_of_t<transformer_type&(_tIter&)>;
+	using transformed_type = typename impl_traits::transformed_type;
 	//! \since build 415
-	using difference_type
-		= typename std::iterator_traits<iterator_type>::difference_type;
+	using difference_type = typename impl_traits::difference_type;
 	/*!
 	\note 仅当参数 _tReference 为引用时可符合 ISO C++ 对 ForwardIterator 的要求。
 	\since build 357
 	*/
-	using reference = conditional_t<is_same<_tReference, void>::value,
-		transformed_type, _tReference>;
+	using reference = typename impl_traits::reference;
 
 protected:
 	//! \note 当为空类时作为第一个成员可启用空基类优化。
@@ -609,15 +484,6 @@ public:
 	operator*() const
 	{
 		return transformer(get());
-	}
-
-	//! \since build 575
-	template<typename _tDiff>
-	yimpl(enable_if_convertible_t<decltype(
-		std::declval<iterator_type&>()[_tDiff()]), reference, reference>)
-	operator[](_tDiff n)
-	{
-		return get()[difference_type(n)];
 	}
 
 	/*!
@@ -680,7 +546,6 @@ public:
 \relates transformed_iterator
 \since build 356
 */
-//@{
 template<typename _type, typename _fTransformer>
 inline bool
 operator==(const transformed_iterator<_type, _fTransformer>& x,
@@ -688,15 +553,6 @@ operator==(const transformed_iterator<_type, _fTransformer>& x,
 {
 	return x.get() == y.get();
 }
-
-template<typename _type, typename _fTransformer>
-inline bool
-operator!=(const transformed_iterator<_type, _fTransformer>& x,
-	const transformed_iterator<_type, _fTransformer>& y)
-{
-	return !(x == y);
-}
-//@}
 
 /*!
 \brief 满足随机迭代器要求。
@@ -728,59 +584,6 @@ operator<(const transformed_iterator<_type, _fTransformer>& x,
 	const transformed_iterator<_type, _fTransformer>& y)
 {
 	return bool(x.get() < y.get());
-}
-
-template<typename _type, typename _fTransformer>
-inline bool
-operator<=(const transformed_iterator<_type, _fTransformer>& x,
-	const transformed_iterator<_type, _fTransformer>& y)
-{
-	return !(y < x);
-}
-
-template<typename _type, typename _fTransformer>
-inline bool
-operator>(const transformed_iterator<_type, _fTransformer>& x,
-	const transformed_iterator<_type, _fTransformer>& y)
-{
-	return y < x;
-}
-
-template<typename _type, typename _fTransformer>
-inline bool
-operator>=(const transformed_iterator<_type, _fTransformer>& x,
-	const transformed_iterator<_type, _fTransformer>& y)
-{
-	return !(x < y);
-}
-
-template<typename _type, typename _fTransformer>
-transformed_iterator<_type, _fTransformer>
-operator+(const transformed_iterator<_type, _fTransformer>& i,
-	typename transformed_iterator<_type, _fTransformer>::difference_type n)
-{
-	auto it(i);
-
-	it += n;
-	return it;
-}
-
-template<typename _type, typename _fTransformer>
-transformed_iterator<_type, _fTransformer>
-operator-(const transformed_iterator<_type, _fTransformer>& i,
-	typename transformed_iterator<_type, _fTransformer>::difference_type n)
-{
-	auto it(i);
-
-	it -= n;
-	return it;
-}
-template<typename _type, typename _fTransformer>
-typename transformed_iterator<_type, _fTransformer>::difference_type
-operator-(const transformed_iterator<_type, _fTransformer>& x,
-	const transformed_iterator<_type, _fTransformer>& y)
-{
-	return x.get() - y.get();
 }
 //@}
 
@@ -908,7 +711,8 @@ operator|(_tIter&& i, get_tag)
 */
 template<typename _tMaster, typename _tSlave,
 	class _tTraits = std::iterator_traits<_tMaster>>
-class pair_iterator : private std::pair<_tMaster, _tSlave>
+class pair_iterator : private std::pair<_tMaster, _tSlave>, public
+	iterator_operators_t<pair_iterator<_tMaster, _tSlave, _tTraits>, _tTraits>
 {
 public:
 	using pair_type = std::pair<_tMaster, _tSlave>;
@@ -971,18 +775,12 @@ public:
 		return *this;
 	}
 
-	//! \brief 满足前向迭代器要求。
+	//! \brief 满足输入迭代器要求。
 	//@{
 	yconstfn reference
 	operator*() const
 	{
 		return *this->first;
-	}
-
-	yconstfn pointer
-	operator->() const
-	{
-		return this->first;
 	}
 
 	pair_iterator&
@@ -991,63 +789,15 @@ public:
 		yunseq(++this->first, ++this->second);
 		return *this;
 	}
-	pair_iterator
-	operator++(int)
-	{
-		auto i(*this);
-
-		++*this;
-		return i;
-	}
 	//@}
 
 	//! \brief 满足双向迭代器要求。
-	//@{
 	pair_iterator&
 	operator--()
 	{
 		yunseq(--this->first, --this->second);
 		return *this;
 	}
-	pair_iterator
-	operator--(int)
-	{
-		auto i(*this);
-
-		--*this;
-		return i;
-	}
-	//@}
-
-	/*!
-	\brief 满足随机访问迭代器要求。
-	\since build 356
-	*/
-	//@{
-	yconstfn reference
-	operator[](difference_type n) const
-	{
-		return this->first[n];
-	}
-
-	pair_iterator
-	operator+(difference_type n) const
-	{
-		auto i(*this);
-
-		yunseq(i.first += n, i.second += n);
-		return i;
-	}
-
-	pair_iterator
-	operator-(difference_type n) const
-	{
-		auto i(*this);
-
-		yunseq(i.first -= n, i.second -= n);
-		return i;
-	}
-	//@}
 
 	//! \since build 575
 	template<typename _tFirst, typename _tSecond,
@@ -1069,7 +819,6 @@ public:
 \relates pair_iterator
 \since build 356
 */
-//@{
 template<typename _tMaster, typename _tSlave>
 bool
 operator==(const pair_iterator<_tMaster, _tSlave>& x,
@@ -1079,15 +828,6 @@ operator==(const pair_iterator<_tMaster, _tSlave>& x,
 		&& x.base().second == y.base().second();
 }
 
-template<typename _tMaster, typename _tSlave>
-inline bool
-operator!=(const pair_iterator<_tMaster, _tSlave>& x,
-	const pair_iterator<_tMaster, _tSlave>& y)
-{
-	return !(x == y);
-}
-//@}
-
 
 /*!
 \ingroup iterator_adaptors
@@ -1096,7 +836,8 @@ operator!=(const pair_iterator<_tMaster, _tSlave>& x,
 \since build 412
 */
 template<typename _tIter>
-class indirect_input_iterator
+class indirect_input_iterator : public iterator_operators_t<
+	indirect_input_iterator<_tIter>, std::iterator_traits<_tIter>>
 {
 public:
 	using iterator_type = _tIter;
@@ -1155,12 +896,6 @@ public:
 		return **iter;
 	}
 
-	pointer
-	operator->() const
-	{
-		return (*iter).operator->();
-	}
-
 	/*!
 	\brief 迭代：向后遍历。
 	\pre 断言：<tt>!is_undereferenceable(iter)</tt> 。
@@ -1171,14 +906,6 @@ public:
 		yconstraint(!is_undereferenceable(iter));
 		++*iter;
 		return *this;
-	}
-	indirect_input_iterator
-	operator++(int)
-	{
-		const auto i(*this);
-
-		++*this;
-		return i;
 	}
 
 	friend bool
@@ -1231,7 +958,8 @@ operator!=(const indirect_input_iterator<_tIter>& x,
 <tt>i[x * w + y] = j[y * w + x]</tt> ，其中 <tt>x < w && y < h</tt>。
 */
 template<typename _tIter>
-class transposed_iterator
+class transposed_iterator : public iterator_operators_t<
+	transposed_iterator<_tIter>, std::iterator_traits<_tIter>>
 {
 public:
 	using iterator_type = _tIter;
@@ -1304,12 +1032,6 @@ public:
 		return *get();
 	}
 
-	pointer
-	operator->() const
-	{
-		return std::addressof(**this);
-	}
-
 	transposed_iterator&
 	operator++()
 	{
@@ -1317,14 +1039,6 @@ public:
 		if(++row == height)
 			yunseq(row = 0, ++col);
 		return *this;
-	}
-	transposed_iterator
-	operator++(int)
-	{
-		const auto i(*this);
-
-		++*this;
-		return i;
 	}
 
 	transposed_iterator&
@@ -1334,21 +1048,6 @@ public:
 		if(row-- == 0)
 			yunseq(row = height - 1, --col);
 		return *this;
-	}
-	transposed_iterator
-	operator--(int)
-	{
-		const auto i(*this);
-
-		--*this;
-		return i;
-	}
-
-	//! \since build 496
-	reference
-	operator[](difference_type n)
-	{
-		return *(transposed_iterator(*this) += n);
 	}
 
 	friend bool
@@ -1452,60 +1151,6 @@ operator==(const transposed_iterator<_tIter>& x,
 	return x.base() == y.base() && x.get_index() == y.get_index();
 }
 
-template<typename _tIter>
-inline bool
-operator!=(const transposed_iterator<_tIter>& x,
-	const transposed_iterator<_tIter>& y)
-{
-	return !(x == y);
-}
-
-template<typename _tIter>
-inline bool
-operator<=(const transposed_iterator<_tIter>& x,
-	const transposed_iterator<_tIter>& y)
-{
-	return !(y < x);
-}
-
-template<typename _tIter>
-inline bool
-operator>(const transposed_iterator<_tIter>& x,
-	const transposed_iterator<_tIter>& y)
-{
-	return y < x;
-}
-
-template<typename _tIter>
-inline bool
-operator>=(const transposed_iterator<_tIter>& x,
-	const transposed_iterator<_tIter>& y)
-{
-	return !(x < y);
-}
-
-template<typename _tIter>
-transposed_iterator<_tIter>
-operator+(const transposed_iterator<_tIter>& i,
-	typename transposed_iterator<_tIter>::difference_type n)
-{
-	auto it(i);
-
-	it += n;
-	return it;
-}
-
-template<typename _tIter>
-transposed_iterator<_tIter>
-operator-(const transposed_iterator<_tIter>& i,
-	typename transposed_iterator<_tIter>::difference_type n)
-{
-	auto it(i);
-
-	it -= n;
-	return it;
-}
-
 //! \ingroup helper_functions
 template<typename _tIter, typename _tSize = make_unsigned_t<
 	typename std::iterator_traits<decay_t<_tIter>>::difference_type>>
@@ -1532,7 +1177,8 @@ make_transposed(_tIter&& i, _tSize w, _tSize h, _tIndex idx)
 \since build 522
 */
 template<typename _type, typename _fUpdater>
-class prototyped_iterator
+class prototyped_iterator : public iterator_operators_t<
+	prototyped_iterator<_type, _fUpdater>, std::iterator_traits<yimpl(_type*)>>
 {
 public:
 	using updater_type = _fUpdater;
@@ -1576,25 +1222,11 @@ public:
 		return proto_ref;
 	}
 
-	pointer
-	operator->() const
-	{
-		return std::addressof(**this);
-	}
-
 	prototyped_iterator&
 	operator++() ynothrow
 	{
 		++idx;
 		return *this;
-	}
-	prototyped_iterator
-	operator++(int) ynothrow
-	{
-		auto i(*this);
-
-		++*this;
-		return i;
 	}
 
 	prototyped_iterator
@@ -1602,38 +1234,6 @@ public:
 	{
 		--idx;
 		return *this;
-	}
-	prototyped_iterator
-	operator--(int) ynothrow
-	{
-		auto i(*this);
-
-		--*this;
-		return i;
-	}
-
-	reference
-	operator[](difference_type n) const
-	{
-		yassume(!(idx + n < 0));
-		updater(proto_ref.get(), idx + n);
-		return proto_ref;
-	}
-
-	//! \since build 575
-	friend prototyped_iterator
-	operator+(const prototyped_iterator& i, difference_type n)
-	{
-		yassume(!(i.idx + n < 0));
-		return prototyped_iterator(i.proto_ref, i.idx + n, i.updater);
-	}
-
-	//! \since build 575
-	friend prototyped_iterator
-	operator-(const prototyped_iterator& i, difference_type n)
-	{
-		yassume(!(i.idx + n < 0));
-		return prototyped_iterator(i.proto_ref, i.idx - n, i.updater);
 	}
 
 	bool
@@ -1656,15 +1256,6 @@ operator==(const prototyped_iterator<_type, _fUpdater>& x,
 	const prototyped_iterator<_type, _fUpdater>& y) ynothrow
 {
 	return x.equals(y);
-}
-
-//! \brief 比较原型迭代器的不等性。
-template<typename _type, typename _fUpdater>
-bool
-operator!=(const prototyped_iterator<_type, _fUpdater>& x,
-	const prototyped_iterator<_type, _fUpdater>& y) ynothrow
-{
-	return !(x == y);
 }
 
 /*!
@@ -1690,7 +1281,10 @@ make_prototyped_iterator(_type& proto, size_t i, _fUpdater f)
 */
 template<class _tCon, typename _type, typename _tDifference = ptrdiff_t,
 	typename _tPointer = _type*, typename _tReference = _type&>
-class subscriptive_iterator
+class subscriptive_iterator : public iterator_operators_t<
+	subscriptive_iterator<_tCon, _type, _tDifference, _tPointer, _type>,
+	yimpl(std::iterator<std::random_access_iterator_tag, _type, _tDifference,
+	_tPointer, _tReference>)>
 {
 public:
 	//! \since build 356
@@ -1746,25 +1340,11 @@ public:
 		return (*container_ptr)[index];
 	}
 
-	pointer
-	operator->() const ynothrowv
-	{
-		return std::addressof(**this);
-	}
-
 	subscriptive_iterator&
 	operator++() ynothrow
 	{
 		++index;
 		return *this;
-	}
-	subscriptive_iterator
-	operator++(int) ynothrow
-	{
-		auto i(*this);
-
-		++*this;
-		return i;
 	}
 
 	subscriptive_iterator
@@ -1772,40 +1352,6 @@ public:
 	{
 		--index;
 		return *this;
-	}
-	subscriptive_iterator
-	operator--(int) ynothrow
-	{
-		auto i(*this);
-
-		--*this;
-		return i;
-	}
-	//@}
-
-	//! \since build 356
-	//@{
-	reference
-	operator[](difference_type n) const ynothrowv
-	{
-		yassume(!(index + n < 0));
-		return (*container_ptr)[index + n];
-	}
-
-	//! \since build 575
-	friend subscriptive_iterator
-	operator+(const subscriptive_iterator& i, difference_type n) ynothrowv
-	{
-		yassume(!(i.index + n < 0));
-		return subscriptive_iterator(*i.container_ptr, i.index + n);
-	}
-
-	//! \since build 575
-	friend subscriptive_iterator
-	operator-(const subscriptive_iterator& i, difference_type n) ynothrowv
-	{
-		yassume(!(i.index + n < 0));
-		return subscriptive_iterator(*i.container_ptr, i.index - n);
 	}
 	//@}
 
@@ -1862,17 +1408,6 @@ operator==(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
 	return x.equals(y);
 }
 
-//! \brief 比较成员下标迭代器的不等性。
-template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
-	typename _tReference>
-inline bool
-operator!=(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
-	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
-	_tPointer, _tReference>& y) ynothrow
-{
-	return !(x == y);
-}
-
 template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
 	typename _tReference>
 inline bool
@@ -1881,36 +1416,6 @@ operator<(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
 	_tPointer, _tReference>& y) ynothrow
 {
 	return x.less(y);
-}
-
-template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
-	typename _tReference>
-inline bool
-operator<=(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
-	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
-	_tPointer, _tReference>& y) ynothrow
-{
-	return !(y < x);
-}
-
-template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
-	typename _tReference>
-inline bool
-operator>(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
-	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
-	_tPointer, _tReference>& y) ynothrow
-{
-	return y < x;
-}
-
-template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
-	typename _tReference>
-inline bool
-operator>=(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
-	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
-	_tPointer, _tReference>& y) ynothrow
-{
-	return !(x < y);
 }
 
 template<class _tCon, typename _type, typename _tDifference, typename _tPointer,

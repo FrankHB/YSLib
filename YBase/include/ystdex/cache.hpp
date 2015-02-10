@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r294
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2014-12-19 14:04 +0800
+	2015-02-10 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YB_INC_ystdex_cache_hpp_
 #define YB_INC_ystdex_cache_hpp_ 1
 
-#include <ystdex/iterator.hpp> // for ystdex::is_undereferenceable;
+#include "deref_op.hpp" // for std::pair, ystdex::is_undereferenceable;
 #include <unordered_map> // for std::unordered_map;
 #include <list> // for std::list;
+#include <stdexcept> // for std::runtime_error;
 
 namespace ystdex
 {

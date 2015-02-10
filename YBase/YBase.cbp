@@ -73,10 +73,12 @@
 		<Unit filename="include/ystdex/cstdio.h" />
 		<Unit filename="include/ystdex/cstring.h" />
 		<Unit filename="include/ystdex/cwctype.h" />
+		<Unit filename="include/ystdex/deref_op.hpp" />
 		<Unit filename="include/ystdex/examiner.hpp" />
 		<Unit filename="include/ystdex/exception.h" />
 		<Unit filename="include/ystdex/functional.hpp" />
 		<Unit filename="include/ystdex/iterator.hpp" />
+		<Unit filename="include/ystdex/iterator_op.hpp" />
 		<Unit filename="include/ystdex/memory.hpp" />
 		<Unit filename="include/ystdex/mixin.hpp" />
 		<Unit filename="include/ystdex/operators.hpp" />

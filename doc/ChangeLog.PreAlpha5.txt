@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9972
+\version r10097
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-09 07:23 +0800
+	2015-02-10 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,132 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		(
+		+ %IteratorOperation;
+		/ "metafunction %enable_for_iterator_t, function templates \
+			%(next_if, next_if_eq, prev_if, prev_if_eq)"
+			@ %Iterator >> %IteratorOperation
+		)
+		(
+		+ %DereferenceOperation;
+		/ "function templates %is_undereferenceable"
+			@ %Iterator >> %DereferenceOperation
+		),
+		/ $lib @ "namespace %ystdex" @ %Operators $=
+		(
+			// See https://github.com/d-frey/operators/blob/master/include/df/operators .
+			(
+			/ "wrapped all implementation within namespace %operators_impl";
+			+ 'using namespace operators_impl'
+			);
+			+ "move support for 2nd parameters"
+				@ "binary operations other than comparing",
+				// There are 2 differences with df.operatos. Unifying \
+					initialization like unifying assignment is used so the \
+					1st parameter is the (possibly non-reference) type. \
+					The return types are always the same without '&&' \
+					qualified, to coordinate with the standard library style.
+			+ "noexcept exception specifications",
+			/ "implemented function %operator->" @ "struct %dereferenceable"
+				^ "%std::iterator" ~ '&',
+			/ DLD "class-key for '_type2'" -> 'typename' ~ 'class',
+				// This can be a non-class type, e.g. parameter of %operator[].
+			/ @ "class templates %(dereferenceable, indexable)" $=
+			(
+				/ "return type of function specified by template paremter"
+					~ 'auto',
+					// To avoid some type inferring failure when directly \
+						inherited. Now they are also compatible with \
+						Boost.Operators.
+				+ 'yconstfn' @ "member function"
+			),
+			+ "2nd template parameter for result of %operator*"
+				@ "class templates %(input_iteratable, \
+				forward_iteratable, bidirectional_iteratable, \
+				random_access_iteratable)"
+				// To meet the change of %dereferenceable. Note \
+					%random_access_iteratable uses standard library iterator \
+					categories which guarantee the return type of '+' is the \
+					iterator type itself, so this parameter is omitted. Other \
+					templates are now compatible with Boost.Operators.
+		),
+		* "strict ISO C++ code compatibility" $since b532
+			$= (* "missing including <iterator>" @ %Array),
+		/ "simplified iterator interface" @ %Iterator ^ %Operators $=
+		(
+			+ "metafunction %iterator_operators_t";
+			/ @ "class template %pointer_iterator" $=
+			(
+				/ "functions (postfix %operator(++, --), %operator(->, []))"
+					-> "base class of %iterator_operators_t result";
+				+ $comp "assertion implemented by %operator*" @ "%operator->"
+			),
+			- "function template %operator(+, -, !=) for %pointer_iterator",
+			/ @ "class template %pseudo_iterator" $=
+			(
+				/ "functions (postfix %operator(++, --), %operator(->, []))"
+					-> "base class of instance of %random_access_iteratable";
+				* $comp "wrong result" @ "%operator->" $since b189,
+				* $comp "wrong result" @ "%operator[]" $since b189
+			),
+			- "function template %operator(+, -, !=) for %pseudo_iterator",
+			/ "function %operator[]" -> "base class of %iterator_operators_t \
+				result" @ "class template %transformed_iterator",
+			- "function template %operator(+, 2 -, !=, <=, >, >=) for \
+				%transformed_iterator",
+			/ "functions (postfix %operator(++, --), %operator(->, [], +, -))"
+				-> "base class of %iterator_operators_t result"
+				@ "class template %pair_iterator",
+			- "function template %operator!= for %pseudo_iterator",
+			/ "functions (postfix %operator++, %operator->)"
+				-> "base class of %iterator_operators_t result"
+				@ "class template %indirect_input_iterator",
+			/ "functions (postfix %operator(++, --), %operator(->, []))"
+				-> "base class of %iterator_operators_t result"
+				@ "class template %transposed_iterator",
+			- "function template %operator(+, -, !=, <=, >, >=) for \
+				%transposed_iterator",
+			/ @ "class template %prototyped_iterator" $=
+			(
+				/ "functions (postfix %operator(++, --), %operator(->, []))"
+					-> "base class of %iterator_operators_t result",
+				- "friend functions %operator(+, -)";
+				- $comp "direct boundary check assertion"
+					@ "called with function %operator([], +, -)"
+			),
+			- "function template %operator!= for %prototyped_iterator",
+			/ @ "class template %subscriptive_iterator" $=
+			(
+				/ "functions (postfix %operator(++, --), %operator(->, []))"
+					-> "base class of %iterator_operators_t result",
+				- "friend functions %operator(+, -)";
+				- $comp "direct boundary check assertion"
+					@ "called with function %operator([], +, -)"
+			),
+			- "function template %operator(!=, <=, >, >=) for \
+				%transposed_iterator"
+		)
+	),
+	/ %YFramework $=
+	(
+		+ DLD '{}' @ "array initializer list" @ "function %BindTimedTips"
+			@ %Helper.HostedUI,
+			// To eliminate Clang++ warning: [-Wmissing-braces]. Note G++ now \
+				does not complain it.
+		/ "return type" -> 'ImageScale' ~ 'float'
+			@ "member function %ImagePages::GetScale"
+			@ %YSLib.Service.ImageProcessing,
+	),
+	/ DLD "simplified noexcept specifications" $effective
+		(@ %YBase.YStandardEx.Utilities)
+		$= (- "check of %YB_HAS_NOEXCEPT");
+		// Since guarded by 'ynoexcept', no further check is needed.
+),
+
+b575
 (
 	/ %YFramework $=
 	(

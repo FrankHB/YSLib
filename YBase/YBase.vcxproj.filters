@@ -152,6 +152,12 @@
     <ClInclude Include="include\stdinc.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\iterator_op.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\deref_op.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

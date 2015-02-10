@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2846
+\version r2849
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-02-05 14:21 +0800
+	2015-02-09 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,7 @@ UI::YStyle 包含 <typeindex> 。
 <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。
 
 @1.2.7 本体头文件对 YBase 依赖性：
-"yblit.h" 依赖 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
+Service::YBlit 依赖 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
 
 @1.2.8 内部头文件依赖性：
 Core 的头文件仅包含 Adaptor 或 Core 的头文件。
@@ -432,8 +432,8 @@ Desktop 作为默认视图树的默认根节点类型。
 @5.1.2.1 顶层部件：
 视图树的根节点称为顶层部件。
 公共状态(@5.1.1) 可能保存当前操作的顶层部件。
-注意外部宿主可能使用类似视图树的数据结构，其中的顶层窗口不一定是宿主的根节点（根窗口或桌面），而可能指根节点以下和应用程序进程对应的顶层界面。
-宿主视图的根节点或顶层窗口之一和 YSLib 顶层部件对应。当宿主的顶层窗口和 YSLib 顶层部件直接关联时，部件在宿主上为根模式(root mode) 。
+注意外部宿主可能使用类似视图树的数据结构，其中的顶级窗口不一定是宿主的根节点（根窗口或桌面），而可能指根节点以下和应用程序进程对应的顶层界面。
+宿主视图的根节点或顶级窗口之一和 YSLib 顶层部件对应。当宿主的顶级窗口和 YSLib 顶层部件直接关联时，部件在宿主上为根模式(root mode) 。
 
 @5.1.3 部件的空间属性：
 本节约定部件和屏幕位置直接相关的属性和行为。

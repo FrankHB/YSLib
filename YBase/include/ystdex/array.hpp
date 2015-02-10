@@ -11,13 +11,13 @@
 /*!	\file array.hpp
 \ingroup YStandardEx
 \brief 数组操作。
-\version r137
+\version r138
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-01 18:39:25 +0800
 \par 修改时间:
-	2014-12-27 08:52 +0800
+	2015-02-10 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include <array> // for std::array;
 #include <algorithm> // for std::copy_n;
 #include <memory> // for std::addressof;
+#include <iterator> // for std::make_move_iterator;
 
 namespace ystdex
 {

@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1092
+\version r1095
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2015-02-08 12:20 +0800
+	2015-02-09 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,10 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "functional.hpp"
-#include "algorithm.hpp" // for ystdex::sort_unique, ystdex::make_transform,
+#include "algorithm.hpp" // for ystdex::sort_unique,
 //	ystdex::is_undereferenceable;
-#include <initializer_list> // for std::initializer_list;
-#include "utility.hpp" // for ystdex::arrlen;
+#include "iterator.hpp" // for ystdex::make_transform;
+#include "utility.hpp" // for std::initializer_list, ystdex::arrlen;
 
 namespace ystdex
 {
