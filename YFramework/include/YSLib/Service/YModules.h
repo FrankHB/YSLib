@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 服务模块配置文件。
-\version r78
+\version r79
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:26 +0800
 \par 修改时间:
-	2015-02-01 08:37 +0800
+	2015-02-19 13:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@
 #define YFM_YSLib_Service_YTimer <YSLib/Service/YTimer.h>
 #define YFM_YSLib_Service_YResource <YSLib/Service/yres.h>
 #define YFM_YSLib_Service_YPixel <YSLib/Service/YPixel.h>
-#define YFM_YSLib_Service_YBlit <YSLib/Service/yblit.h>
+#define YFM_YSLib_Service_YBlit <YSLib/Service/YBlit.h>
 #define YFM_YSLib_Service_YDraw <YSLib/Service/ydraw.h>
 #define YFM_YSLib_Service_YGDI <YSLib/Service/YGDI.h>
 //! \since build 555

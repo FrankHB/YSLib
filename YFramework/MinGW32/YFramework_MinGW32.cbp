@@ -271,6 +271,7 @@
 		<Unit filename="../include/YSLib/Adaptor/yref.hpp" />
 		<Unit filename="../include/YSLib/Core/Task.h" />
 		<Unit filename="../include/YSLib/Core/ValueNode.h" />
+		<Unit filename="../include/YSLib/Core/YApplication.h" />
 		<Unit filename="../include/YSLib/Core/YCoreUtilities.h" />
 		<Unit filename="../include/YSLib/Core/YEvent.hpp" />
 		<Unit filename="../include/YSLib/Core/YException.h" />
@@ -280,7 +281,6 @@
 		<Unit filename="../include/YSLib/Core/YObject.h" />
 		<Unit filename="../include/YSLib/Core/YShell.h" />
 		<Unit filename="../include/YSLib/Core/YStorage.hpp" />
-		<Unit filename="../include/YSLib/Core/yapp.h" />
 		<Unit filename="../include/YSLib/Core/ycounter.hpp" />
 		<Unit filename="../include/YSLib/Core/ydevice.h" />
 		<Unit filename="../include/YSLib/Core/ymsg.h" />
@@ -298,12 +298,12 @@
 		<Unit filename="../include/YSLib/Service/TextLayout.h" />
 		<Unit filename="../include/YSLib/Service/TextManager.h" />
 		<Unit filename="../include/YSLib/Service/TextRenderer.h" />
+		<Unit filename="../include/YSLib/Service/YBlit.h" />
 		<Unit filename="../include/YSLib/Service/YBrush.h" />
 		<Unit filename="../include/YSLib/Service/YGDI.h" />
 		<Unit filename="../include/YSLib/Service/YModules.h" />
 		<Unit filename="../include/YSLib/Service/YPixel.h" />
 		<Unit filename="../include/YSLib/Service/YTimer.h" />
-		<Unit filename="../include/YSLib/Service/yblit.h" />
 		<Unit filename="../include/YSLib/Service/ydraw.h" />
 		<Unit filename="../include/YSLib/Service/yftext.h" />
 		<Unit filename="../include/YSLib/Service/yres.h" />
@@ -380,8 +380,8 @@
 		<Unit filename="../source/YSLib/Adaptor/Image.cpp" />
 		<Unit filename="../source/YSLib/Adaptor/ynew.cpp" />
 		<Unit filename="../source/YSLib/Core/ValueNode.cpp" />
+		<Unit filename="../source/YSLib/Core/YApplication.cpp" />
 		<Unit filename="../source/YSLib/Core/YCoreUtilities.cpp" />
-		<Unit filename="../source/YSLib/Core/yapp.cpp" />
 		<Unit filename="../source/YSLib/Core/ydevice.cpp" />
 		<Unit filename="../source/YSLib/Core/yexcept.cpp" />
 		<Unit filename="../source/YSLib/Core/ygdibase.cpp" />

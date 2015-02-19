@@ -11,7 +11,7 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r4827
+\version r4949
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
@@ -799,6 +799,13 @@ public:
 		return *this;
 	}
 
+	//! \since build 577
+	friend bool
+	operator==(const pair_iterator& x, const pair_iterator& y)
+	{
+		return x.first == y.first && x.second == y.second();
+	}
+
 	//! \since build 575
 	template<typename _tFirst, typename _tSecond,
 		yimpl(typename = enable_if_convertible_t<_tMaster, _tFirst>,
@@ -814,19 +821,6 @@ public:
 		return *this;
 	}
 };
-
-/*!
-\relates pair_iterator
-\since build 356
-*/
-template<typename _tMaster, typename _tSlave>
-bool
-operator==(const pair_iterator<_tMaster, _tSlave>& x,
-	const pair_iterator<_tMaster, _tSlave>& y)
-{
-	return x.base().first == y.base().first
-		&& x.base().second == y.base().second();
-}
 
 
 /*!
@@ -892,7 +886,7 @@ public:
 	reference
 	operator*() const
 	{
-		yconstraint(!is_undereferenceable(iter));
+		yassume(!is_undereferenceable(iter));
 		return **iter;
 	}
 
@@ -903,7 +897,7 @@ public:
 	indirect_input_iterator&
 	operator++()
 	{
-		yconstraint(!is_undereferenceable(iter));
+		yassume(!is_undereferenceable(iter));
 		++*iter;
 		return *this;
 	}
@@ -933,18 +927,6 @@ public:
 		return iter;
 	}
 };
-
-/*!
-\relates indirect_input_iterator
-\since build 412
-*/
-template<typename _tIter>
-inline bool
-operator!=(const indirect_input_iterator<_tIter>& x,
-	const indirect_input_iterator<_tIter>& y)
-{
-	return !(x == y);
-}
 
 
 /*!
@@ -1012,6 +994,7 @@ public:
 	{
 		auto idx(col * height + row);
 
+		// See $2015-02 @ %Documentation::Workflow::Annual2015.
 		yassume(!(difference_type(idx) < -n)),
 		yassume(!(difference_type(width * height) < difference_type(idx) + n));
 		idx += n;
@@ -1048,6 +1031,15 @@ public:
 		if(row-- == 0)
 			yunseq(row = height - 1, --col);
 		return *this;
+	}
+
+	//! \since build 577
+	friend bool
+	operator==(const transposed_iterator& x, const transposed_iterator& y)
+	{
+		yconstraint(x.share_sequence(y));
+
+		return x.iter == y.iter && x.get_index() == y.get_index();
 	}
 
 	friend bool
@@ -1127,31 +1119,20 @@ public:
 	bool
 	share_sequence(const transposed_iterator& i) const ynothrow
 	{
-		yconstraint(!is_undereferenceable(*this)
+		yassume(!is_undereferenceable(*this)
 			|| (row == 0 && col == width)),
-		yconstraint(!is_undereferenceable(i)
+		yassume(!is_undereferenceable(i)
 			|| (i.row == 0 && i.col == i.width));
 		return iter == i.iter && width == i.width && height == i.height;
 	}
 };
 
 /*!
-\brief 满足输入迭代器要求。
+\ingroup helper_functions
 \relates transposed_iterator
 \since build 575
 */
 //@{
-template<typename _tIter>
-inline bool
-operator==(const transposed_iterator<_tIter>& x,
-	const transposed_iterator<_tIter>& y)
-{
-	yconstraint(x.share_sequence(y));
-
-	return x.base() == y.base() && x.get_index() == y.get_index();
-}
-
-//! \ingroup helper_functions
 template<typename _tIter, typename _tSize = make_unsigned_t<
 	typename std::iterator_traits<decay_t<_tIter>>::difference_type>>
 inline transposed_iterator<decay_t<_tIter>>
@@ -1159,7 +1140,6 @@ make_transposed(_tIter&& i, _tSize w, _tSize h)
 {
 	return transposed_iterator<decay_t<_tIter>>(yforward(i), w, h);
 }
-//! \ingroup helper_functions
 template<typename _tIter, typename _tSize = make_unsigned_t<
 	typename std::iterator_traits<decay_t<_tIter>>::difference_type>,
 	typename _tIndex = _tSize>
@@ -1236,31 +1216,21 @@ public:
 		return *this;
 	}
 
-	bool
-	equals(const prototyped_iterator& i) const ynothrow
+	//! \since build 577
+	friend bool
+	operator==(const prototyped_iterator& x, const prototyped_iterator& y)
+		ynothrow
 	{
-		return std::addressof(proto_ref.get())
-			== std::addressof(i.proto_ref.get()) && idx == i.idx;
+		return std::addressof(x.proto_ref.get())
+			== std::addressof(y.proto_ref.get()) && x.idx == y.idx;
 	}
 };
 
 /*!
-\relates prototyped_iterator
-\since build 522
-*/
-//@{
-//! \brief 比较原型迭代器的相等性。
-template<typename _type, typename _fUpdater>
-bool
-operator==(const prototyped_iterator<_type, _fUpdater>& x,
-	const prototyped_iterator<_type, _fUpdater>& y) ynothrow
-{
-	return x.equals(y);
-}
-
-/*!
 \ingroup helper_functions
 \brief 创建原型迭代器。
+\relates prototyped_iterator
+\since build 522
 */
 template<typename _type, typename _fUpdater>
 yconstfn prototyped_iterator<_type, _fUpdater>
@@ -1268,7 +1238,6 @@ make_prototyped_iterator(_type& proto, size_t i, _fUpdater f)
 {
 	return prototyped_iterator<_type, _fUpdater>(proto, i, f);
 }
-//@}
 
 
 /*!
@@ -1336,7 +1305,7 @@ public:
 	reference
 	operator*() const ynothrowv
 	{
-		yconstraint(!is_undereferenceable(*this));
+		yassume(!is_undereferenceable(*this));
 		return (*container_ptr)[index];
 	}
 
@@ -1355,19 +1324,29 @@ public:
 	}
 	//@}
 
+	//! \since build 577
+	friend bool
+	operator==(const subscriptive_iterator& x, const subscriptive_iterator& y)
+		ynothrow
+	{
+		yconstraint(x.container() == y.container());
+		return is_undereferenceable(y) || x.index == y.index;
+	}
+
+	//! \since build 577
+	friend bool
+	operator<(const subscriptive_iterator& x, const subscriptive_iterator& y)
+		ynothrow
+	{
+		yconstraint(x.container() == y.container());
+		return x.index < y.index;
+	}
+
 	//! \since build 461
 	yconstfn _tCon*
 	container() const ynothrow
 	{
 		return container_ptr;
-	}
-
-	//! \since build 461
-	bool
-	equals(const subscriptive_iterator& i) const ynothrow
-	{
-		yassume(container() == i.container());
-		return is_undereferenceable(i) || index == i.index;
 	}
 
 	yconstfn size_t
@@ -1382,42 +1361,12 @@ public:
 	{
 		return !i.container_ptr;
 	}
-
-	//! \since build 556
-	bool
-	less(const subscriptive_iterator& i) const ynothrow
-	{
-		yassume(container() == i.container());
-		return index < i.index;
-	}
 };
 
 /*!
 \relates subscriptive_iterator
 \since build 556
 */
-//@{
-//! \brief 比较成员下标迭代器的相等性。
-template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
-	typename _tReference>
-inline bool
-operator==(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
-	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
-	_tPointer, _tReference>& y) ynothrow
-{
-	return x.equals(y);
-}
-
-template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
-	typename _tReference>
-inline bool
-operator<(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
-	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
-	_tPointer, _tReference>& y) ynothrow
-{
-	return x.less(y);
-}
-
 template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
 	typename _tReference>
 inline _tDifference
@@ -1428,7 +1377,6 @@ operator-(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
 	yconstraint(x.container() == y.container());
 	return x.get_index() - y.get_index();
 }
-//@}
 
 } // namespace ystdex;
 

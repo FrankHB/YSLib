@@ -168,7 +168,7 @@
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
     <ClInclude Include="include\YSLib\Core\Task.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
-    <ClInclude Include="include\YSLib\Core\yapp.h" />
+    <ClInclude Include="include\YSLib\Core\YApplication.h" />
     <ClInclude Include="include\YSLib\Core\YCoreUtilities.h" />
     <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
     <ClInclude Include="include\YSLib\Core\ydevice.h" />
@@ -195,7 +195,7 @@
     <ClInclude Include="include\YSLib\Service\TextLayout.h" />
     <ClInclude Include="include\YSLib\Service\TextManager.h" />
     <ClInclude Include="include\YSLib\Service\TextRenderer.h" />
-    <ClInclude Include="include\YSLib\Service\yblit.h" />
+    <ClInclude Include="include\YSLib\Service\YBlit.h" />
     <ClInclude Include="include\YSLib\Service\YBrush.h" />
     <ClInclude Include="include\YSLib\Service\ydraw.h" />
     <ClInclude Include="include\YSLib\Service\YGDI.h" />
@@ -278,7 +278,7 @@
     <ClCompile Include="source\YSLib\Adaptor\Image.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp" />
     <ClCompile Include="source\YSLib\Core\ValueNode.cpp" />
-    <ClCompile Include="source\YSLib\Core\yapp.cpp" />
+    <ClCompile Include="source\YSLib\Core\YApplication.cpp" />
     <ClCompile Include="source\YSLib\Core\YCoreUtilities.cpp" />
     <ClCompile Include="source\YSLib\Core\ydevice.cpp" />
     <ClCompile Include="source\YSLib\Core\yexcept.cpp" />

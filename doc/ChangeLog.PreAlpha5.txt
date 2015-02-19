@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10097
+\version r10197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-10 18:43 +0800
+	2015-02-19 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,95 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx.Iterator $=
+	(
+		/ "function template %operator== for class templates %(pair_iterator, \
+			transposed_iterator, prototyped_iterator, subscriptive_iterator)"
+			-> ("friend function" @ "class definitions"),
+		- "function template %operator!= for %indirect_input_iterator",
+		- "function %equals"
+			@ "class template %(prototyped_iterator, subscriptive_iterator)"
+		/ "function template %operator< for class template \
+			%subscriptive_iterator" -> ("friend function" @ "class definition"),
+		- "function %less" @ "class template %subscriptive_iterator",
+		/ $design "all assertion about %is_undereference" ^ 'yassume'
+			~ 'yconstraint'
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Service.YBlit $=
+			(
+				* "strict ISO C++ code compatibility"
+					$= (* "out-of-bound pointer '+=' operations at end of loop \
+						when source iterator instantiated by pointers"
+						@ ("%operator()" @ "class template %BlitScannerLoop"
+						$since b437, "%operator()#1" @ "class template \
+						%RectTransformer" $since b451)),
+				+ "yconstfn function %BlitScaleRestricted",
+				/ @ "function template %BlitScaleComponent" $=
+				(
+					/ "merged specialization",
+					/ "accepted source offset" ^ $dep_from
+						"%BlitScaleRestricted",
+					* $comp "wrong value for when parameter is negative"
+						@ "function template specialization \
+						%BlitScaleComponent<true>" $since b445
+						// This would make a flaw between returned value for \
+							negative values and zero of first parameter.
+				),
+				/ @ "function template %Blit" $=
+				(
+					/ DLD "optimized implementation to use less '+' operations \
+						on iterators",
+					* "wrong left/top source alignment for %(_bSwapLR, \
+						_bSwapUD)" $orig (@ %Core.YGDI $since b189)
+						// This cause source image shifted unexpectedly when \
+							specified %(_bSwapLR, _bSwapUD) for partailly \
+							invalidation. Actually this behavior can be \
+							reasonale when the destination boundary is fixed \
+							and only parts of image is intended to be filpped, \
+							however this is not the original design.
+				)
+			),
+			/ %Core $=
+			(
+				/ %YGDIBase $=
+				(
+					/ "wrong rotation" @ "functions %(RotateCCW, RotateCW)"
+						$since b575,
+					+ "function %MakeRect",
+					+ "function templates %(TransposeCCW, TransposeCW) for \
+						%GBinaryGroup"
+					+ "functions %(TransposeCCW, TransposeCW) for %Rect",
+					+ "%operator- for %GBinaryGroup<_type> and %Size",
+					+ "function %Flip for %Rotation"
+				),
+				/ DLD "data members initialized" ^ "empty braced-init-list"
+					~ "ctor-initializer" @ "class %Application" @ %YApplication
+			)
+		),
+		/ @ "platform %Win32" $=
+		(
+			/ "returned invalid value immediately" ~ "throwing %Win32Exception"
+				@ "member function %Environment::MapCursor" %Helper.Environment;
+				// Note this function would be call frequently in a while, so \
+					there is no log for failure.
+			* $comp "unhandled %Win32Exception when cursor is not existed"
+				$since b568
+				// The message is "Access is denied" when recovered from \
+					screensaver. Seems can also occur on pressing Ctrl+Alt+Del.
+		)
+	)
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ (("%yblit.h" => "%YBlit.h")
+		@ %Service, ("yapp.h" => "%YApplication.h", "%yapp.cpp"
+		=> "%Label.YApplication") @ %Core) @ YFramework.YSLib
+),
+
+b576
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -458,7 +547,7 @@ b573
 		+ "tool tip for close button"
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective @ ("%yuicont.cpp"
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%yuicont.cpp"
 		=> "%YUIContainer.cpp", "label.h" => "%Label.h", "%label.cpp"
 		=> "%Label.cpp", "%menu.h" => "%Menu.h", "%menu.cpp" => "%Menu.cpp")
 		@ YFramework.YSLib.UI
@@ -579,7 +668,7 @@ b572
 		)
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective @ (("%ytimer.h" => "%YTimer.h",
+		name" @ !%YBase ^ 'hg mv' $effective @ (("%ytimer.h" => "%YTimer.h",
 		"%ytimer.cpp" => "%YTimer.cpp") @ %Service, ("%ygui.h" => "%YGUI.h",
 		"ygui.cpp" => "%YGUI.cpp", "%ycontrol.h" => "%YControl.h",
 		"%ywgtevt.h" => "%YWidgetEvent.h") @ %UI) @ YFramework.YSLib
@@ -692,7 +781,7 @@ b571
 			%YFramework.Helper.HostRenderer
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective @ ("%yfocus.h" => "%yfocus.h",
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%yfocus.h" => "%yfocus.h",
 		"%yfocus.cpp" => "%YFocus.cpp") @ YFramework.YSLib.UI
 ),
 
@@ -745,7 +834,7 @@ b570
 		)
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective
+		name" @ !%YBase ^ 'hg mv' $effective
 		@ ("%yrender.cpp" => "%YRenderer.cpp") @ YFramework.YSLib.UI;
 ),
 
@@ -813,7 +902,7 @@ b569
 		/ "class template %swap_guard" -> "alias template"
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective @ ("%ywidget.h"
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%ywidget.h"
 		=> "%YWidget.h", "%ywidget.cpp" => "%YWidget.cpp", "%scroll.cpp"
 		=> "%Scroll.cpp") @ %YSLib.UI, ("%yglobal.h" => "%YGlobal.h" @ %Helper)
 		@ YFramework
@@ -878,7 +967,7 @@ b568
 		)
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective
+		name" @ !%YBase ^ 'hg mv' $effective
 		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
 ),
 
@@ -980,7 +1069,7 @@ b567
 		%YFramework.(Helper.(Environment $orig (@ %Host $since b381)),
 		'Helper_(DS)'.DSMain $orig (@ %Helper.DSMain) $since b383)),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective
+		name" @ !%YBase ^ 'hg mv' $effective
 		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
 ),
 
@@ -1127,7 +1216,7 @@ b566
 			parameter" @ %Container
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective @ ("%yshell.h" => "%YShell.h"
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%yshell.h" => "%YShell.h"
 		@ Core, ("ygdi.h" => "YGDI.h", "ygdi.cpp" => "YGDI.cpp") @ Service, 
 		"yrender.h"=> "%yrenderer.h" @ %UI) @ %YFramework.YSLib
 ),
@@ -1253,7 +1342,7 @@ b565
 	* $dev $design "location for %Documentation::Workflow::Annual2015"
 		@ "filter of Visual C++ project" $since b564,
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective @ ("%chrproc.h"
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%chrproc.h"
 		=> "%Character.h" @ %YFramework.CHRLib)
 ),
 
@@ -1442,7 +1531,7 @@ b564
 		// Note that for %Android it is not actually effective.
 	+ $repo "pattern 'Tools/SHBuild/stdinc.h.gch'" @ "file '.hgignore'",
 	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg rename' $effective @ ("%yadaptor.h"
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%yadaptor.h"
 		=> "%YAdaptor.h" @ %YFramework.YSLib.Adaptor.YGDIBase)
 ),
 
@@ -1660,7 +1749,7 @@ b563
 		and non-definition declarations" @ "all functions %EnsureDirectory"
 		@ %YFramework.YSLib.Service.FileSystem $since b476,
 	/ $dev $repo "all edited file with module name not the same as base \
-		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg rename' $effective
+		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
 		@ (((("%ygdibase.h" => "%YGDIBase.h" @ %Core.YGDIBase, ("%textmgr.h"
 		=> "%TextManager.h", "%textmgr.cpp" => "%TextManager.cpp")
 		@ %Service.TextManager, "%yuicont.h" => "%YUIContainer.h"
@@ -2068,7 +2157,7 @@ b561
 				including 106 matches with '$2' is '/'"),
 	),
 	/ $dev $repo "all edited file with module name not the same as base \
-		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg rename' $effective
+		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
 		@ (((("%yobject.h" => "%YObject.h" @ %Core.YObject, (("%ystyle.h"
 		=> "%YStyle.h", "%ystyle.cpp" => "%YStyle.cpp") @ %YStyle),
 		"%button.cpp" => "%Button.cpp" @ %Button) @ %UI, "%ynew.h" => "%YNew.h"
