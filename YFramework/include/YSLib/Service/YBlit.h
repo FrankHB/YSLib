@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yblit.h
+/*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3085
+\version r3119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2014-12-07 19:34 +0800
+	2015-02-19 13:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,22 +141,25 @@ YF_API bool
 BlitBounds(const Point&, const Point&, const Size&, const Size&, const Size&,
 	SDst&, SDst&, SDst&, SDst&);
 
+
 /*!
 \brief 贴图偏移分量计算器。
-\since build 445
+\since build 577
 */
 //@{
-template<bool>
+//! \todo 使用 ISO C++14 constexpr \c std::max 。
 yconstfn size_t
-BlitScaleComponent(SPos d, SDst)
+BlitScaleRestricted(SPos d)
 {
 	return d < 0 ? 0 : d;
 }
-template<>
+
+//! \since build 577
+template<bool _bDec>
 yconstfn size_t
-BlitScaleComponent<true>(SPos d, SDst delta)
+BlitScaleComponent(SPos d, SPos s, SDst delta)
 {
-	return d < 0 ? 0 : d + delta - 1;
+	return BlitScaleRestricted(s < 0 ? d - s : d) + (_bDec ? delta - 1 : 0);
 }
 //@}
 
@@ -212,14 +215,15 @@ BlitScan(_fBlitLoop loop, _tOut dst, _tIn src, _tScalar d_width,
 \tparam _fBlitLoop 循环操作类型。
 \param loop 循环操作。
 \param dst 目标迭代器。
-\param ds 目标迭代器所在缓冲区大小。
 \param src 源迭代器。
+\param ds 目标迭代器所在缓冲区大小。
 \param ss 源迭代器所在缓冲区大小。
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
 \note 允许坐标分量越界。越上界时由 BlitBounds 过滤，越下界时修正为 0 。
-\sa Drawing::BlitBounds
+\sa BlitBounds
+\sa BlitScaleComponent
 \sa Drawing::BlitScan
 \since build 437
 
@@ -234,11 +238,11 @@ Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 	SDst min_x, min_y, delta_x, delta_y;
 
 	if(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, delta_x, delta_y))
-		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + BlitScaleComponent<_bSwapUD>(
-			dp.Y - (sp.Y < 0 ? sp.Y : 0), delta_y) * ds.Width
-			+ BlitScaleComponent<_bSwapLR>(dp.X - (sp.X < 0 ? sp.X : 0),
-			delta_x), src + min_y * ss.Width + min_x, ds.Width, ss.Width,
-			delta_x, delta_y);
+		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + (BlitScaleComponent<
+			_bSwapUD>(dp.Y, sp.Y, delta_y) * ds.Width + BlitScaleComponent<
+			_bSwapLR>(dp.X, sp.X, delta_x)), src + ((_bSwapUD ? ss.Height
+			- delta_y - min_y : min_y) * ss.Width + (_bSwapLR ? ss.Width
+			- delta_x - min_x : min_x)), ds.Width, ss.Width, delta_x, delta_y);
 }
 
 
@@ -248,7 +252,7 @@ Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 \sa BlitScan
 \since build 437
 */
-template<bool _bPositiveScan>
+template<bool _bDec>
 struct BlitScannerLoop
 {
 	//! \since build 445
@@ -260,8 +264,10 @@ struct BlitScannerLoop
 		while(delta_y-- > 0)
 		{
 			scanner(dst_iter, src_iter, delta_x);
-			src_iter += src_inc;
-			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
+			// NOTE: See $2015-02 @ %Documentation::Workflow::Annual2015.
+			if(YB_LIKELY(delta_y != 0))
+				yunseq(src_iter += src_inc,
+					ystdex::delta_assign<_bDec>(dst_iter, dst_inc));
 		}
 	}
 };
@@ -276,8 +282,8 @@ struct BlitScannerLoop
 \tparam _fBlitScanner 扫描线操作类型。
 \param scanner 扫描线操作。
 \param dst 目标迭代器。
-\param ds 目标迭代器所在缓冲区大小。
 \param src 源迭代器。
+\param ds 目标迭代器所在缓冲区大小。
 \param ss 源迭代器所在缓冲区大小。
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
@@ -308,7 +314,7 @@ BlitLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ds,
 \warning 不检查迭代器有效性。
 \since build 440
 */
-template<bool _bPositiveScan>
+template<bool _bDec>
 struct BlitLineLoop
 {
 	template<typename _tOut, typename _tIn, typename _fPixelShader>
@@ -320,7 +326,7 @@ struct BlitLineLoop
 		{
 			shader(dst_iter, src_iter);
 			++src_iter;
-			ystdex::xcrease<_bPositiveScan>(dst_iter);
+			ystdex::xcrease<_bDec>(dst_iter);
 		}
 	}
 };
@@ -335,8 +341,8 @@ struct BlitLineLoop
 \tparam _fPixelShader 像素着色器类型。
 \param shader 像素着色器。
 \param dst 目标迭代器。
-\param ds 目标迭代器所在缓冲区大小。
 \param src 源迭代器。
+\param ds 目标迭代器所在缓冲区大小。
 \param ss 源迭代器所在缓冲区大小。
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
@@ -384,7 +390,9 @@ struct RectTransformer
 			while(delta_y-- > 0)
 			{
 				tl(dst_iter, delta_x, tp);
-				dst_iter += dst_inc + delta_x;
+				// NOTE: See $2015-02 @ %Documentation::Workflow::Annual2015.
+				if(YB_LIKELY(delta_y != 0))
+					dst_iter += dst_inc + delta_x;
 			}
 		}, dst, dst, ds, ds, dp, dp, sc);
 	}
@@ -486,7 +494,7 @@ FillRectRaw(_tOut dst, SDst dw, SDst dh, SPos x, SPos y, SDst w, SDst h,
 \since build 438
 */
 //@{
-template<bool _bPositiveScan>
+template<bool _bDec>
 struct CopyLine
 {
 	template<typename _tOut, typename _tIn>
@@ -494,6 +502,8 @@ struct CopyLine
 	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x) const
 	{
 		std::copy_n(src_iter, delta_x, dst_iter);
+		// NOTE: Possible undefined behavior. See $2015-02
+		//	@ %Documentation::Workflow::Annual2015.
 		yunseq(src_iter += delta_x, dst_iter += delta_x);
 	}
 };

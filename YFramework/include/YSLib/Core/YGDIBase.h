@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1872
+\version r1940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-02-08 20:01 +0800
+	2014-02-15 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,6 +209,36 @@ operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 {
 	return GBinaryGroup<_type>(val.X * l, val.Y * l);
 }
+
+/*!
+\brief 转置。
+\since build 575
+*/
+template<class _tBinary>
+yconstfn _tBinary
+Transpose(const _tBinary& obj) ynothrow
+{
+	return _tBinary(obj.Y, obj.X);
+}
+
+//! \since build 577
+//@{
+//! \brief 转置变换：逆时针旋转直角。
+template<typename _type>
+yconstfn GBinaryGroup<_type>
+TransposeCCW(const GBinaryGroup<_type>& val) ynothrow
+{
+	return GBinaryGroup<_type>(val.Y, -val.X);
+}
+
+//! \brief 转置变换：顺时针旋转直角。
+template<typename _type>
+yconstfn GBinaryGroup<_type>
+TransposeCW(const GBinaryGroup<_type>& val) ynothrow
+{
+	return GBinaryGroup<_type>(-val.Y, val.X);
+}
+//@}
 
 /*!
 \brief 取分量。
@@ -437,21 +467,24 @@ operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 	return GBinaryGroup<_type>(val.X + s.Width, val.Y + s.Height);
 }
 
+/*!
+\brief 减法：使用屏幕二元组和屏幕区域大小分量对应相加构造屏幕二元组。
+\since build 577
+*/
+template<typename _type>
+yconstfn GBinaryGroup<_type>
+operator-(GBinaryGroup<_type> val, const Size& s) ynothrow
+{
+	return GBinaryGroup<_type>(val.X - s.Width, val.Y - s.Height);
+}
+
 
 /*!
 \brief 转置。
 \since build 575
 */
-//@{
-template<class _tBinary>
-yconstfn _tBinary
-Transpose(const _tBinary& obj) ynothrow
-{
-	return _tBinary(obj.Y, obj.X);
-}
 yconstfn PDefH(Size, Transpose, const Size& s) ynothrow
 	ImplRet({s.Height, s.Width})
-//@}
 
 
 /*!
@@ -745,6 +778,32 @@ inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
 		"Boundary is too small."),
 		yunseq(r.X += off1, r.Y += off1, r.Width -= off2, r.Height -= off2))
 
+//! \since build 577
+//@{
+/*!
+\brief 根据对角线上的两个顶点坐标出啊关键矩形。
+\note 可以是可以是主对角线或副对角线之一上的顶点。
+*/
+/*!
+\todo 使用 ISO C++14 constexpr \c min 和 \c max 简化实现。
+\todo 提取 abs 实现。
+*/
+yconstfn PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
+	ImplRet(Rect(pt1.X < pt2.X ? pt1.X : pt2.X, pt1.Y < pt2.Y ? pt1.Y : pt2.Y,
+		pt1.X < pt2.X ? pt2.X - pt1.X : pt1.X - pt2.X,
+		pt1.Y < pt2.Y ? pt2.Y - pt1.Y : pt1.Y - pt2.Y))
+
+//! \brief 转置变换：逆时针旋转直角。
+yconstfn PDefH(Rect, TransposeCCW, const Rect& r) ynothrow
+	ImplRet(MakeRect(TransposeCCW(Point(r.X + r.Width, r.Y)),
+		TransposeCCW(Point(r.X, r.Y + r.Height))))
+
+//! \brief 转置变换：顺时针旋转直角。
+yconstfn PDefH(Rect, TransposeCW, const Rect& r) ynothrow
+	ImplRet(MakeRect(TransposeCW(Point(r.X + r.Width, r.Y)),
+		TransposeCW(Point(r.X, r.Y + r.Height))))
+//@}
+
 /*!
 \brief 取分量。
 \since build 554
@@ -959,16 +1018,19 @@ enum Rotation : yimpl(size_t)
 	RDeg270 = 3
 };
 
-/*!
-\relates Roation
-\since build 575
-*/
+//! \relates Roation
 //@{
-yconstfn PDefH(Rotation, RotateCCW, Rotation rot)
-	ImplRet(Rotation((size_t(rot) - 1) % 4))
+//! \since build 577
+yconstfn PDefH(Rotation, Flip, Rotation rot)
+	ImplRet(Rotation((size_t(rot) + 2) % 4))
 
-yconstfn PDefH(Rotation, RotateCW, Rotation rot)
+//! \since build 575
+yconstfn PDefH(Rotation, RotateCCW, Rotation rot)
 	ImplRet(Rotation((size_t(rot) + 1) % 4))
+
+//! \since build 575
+yconstfn PDefH(Rotation, RotateCW, Rotation rot)
+	ImplRet(Rotation((size_t(rot) - 1) % 4))
 //@}
 
 

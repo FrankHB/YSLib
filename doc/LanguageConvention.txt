@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1405
+\version r1414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-02-02 08:00 +0800
+	2015-02-11 19:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,7 @@ ISO C++ ： ISO/IEC 14882 ；
 ISO C++98 ： ISO/IEC 14882:1998 ；
 ISO C++03 ： ISO/IEC 14882:2003 ；
 ISO C++11 ： ISO/IEC 14882:2011 。
+LWG ： WG21 Library Working Group (Issues) 。
 POSIX.1 ： IEEE Std 1003.1 ；
 POSIX.1-2004 ： IEEE Std 1003.1-2004 。
 SUS ： Single UNIX Specification 。
@@ -278,7 +279,10 @@ C++ 的类型包括 void 类型、对象类型、函数类型和引用类型。
 没有捕获的 lambda 表达式存在非 explicit (@5.12.1) 到函数指针的转换操作符。
 lambda 表达式转换的函数指针具有 C++ 语言链接(@5.5.5.3) [CWG1557, WG21 N3690] 。
 
-@5.2.6.1 比较操作：
+@5.2.6.2 算术操作：
+注意 ISO C++ [expr.add] 规定指针算术越界为未定义行为。
+
+@5.2.6.3 比较操作：
 内建比较操作对内建指针的结果只提供有限保证。
 注意在 ISO C 中，非同一聚集或联合对象内的元素且非超过数组末尾一个元素(one-past-end) 的指针不能比较，否则行为未定义，参见 ISO C11 6.5.8 和 ISO C11 J.2 。另见 https://www.securecoding.cert.org/confluence/display/seccode/ARR36-C.+Do+not+subtract+or+compare+two+pointers+that+do+not+refer+to+the+same+array 。
 在 ISO C++ 中，上述限制不适用，结果可能未指定但不导致未定义行为，参见 ISO C++11 5.9 。
@@ -1272,6 +1276,12 @@ ISO C++11 规定调用这些函数不引起数据竞争。
 @5.15.11 迭代器：
 注意迭代器类别(iterator category) 。
 注意 std::iterator 的继承应该为 public 继承，否则需要显式在派生类中声明类型名以免失效。对迭代器类模板，依赖名称(@5.3.3.2) 若作为 std::iterator 的参数，总是需要重新声明。
+
+@5.15.11.1 迭代器要求：
+注意迭代器要求。
+注意 ISO C++ 未完全定义所有相关概念，如 [LWG2035, LWG2038] ，应在文档中避免这些概念以及不清晰的表述。
+注意 ISO C++ 放宽了原始 SGI 迭代器的部分要求，如随机访问迭代器的 + 和 += 操作的范围检查。
+考虑 @5.2.6.2 ，如果泛型算法接口中未明确避免指针（以及类似具有检查要求的迭代器）作为实例，应假定这些附加要求存在。
 
 @5.15.12 算法：
 注意部分的算法复杂度和类型满足的要求相关。

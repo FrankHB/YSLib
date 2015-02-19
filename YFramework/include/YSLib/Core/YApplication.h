@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yapp.h
+/*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1669
+\version r1677
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2014-11-12 04:01 +0800
+	2015-02-15 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Core_yapp_h_
-#define YSL_INC_Core_yapp_h_ 1
+#ifndef YSL_INC_Core_YApplication_h_
+#define YSL_INC_Core_YApplication_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShell
@@ -47,19 +47,19 @@ private:
 	\brief 主消息队列互斥锁。
 	\since build 551
 	*/
-	recursive_mutex queue_mutex;
+	recursive_mutex queue_mutex{};
 
 protected:
 	/*
 	\brief 主消息队列。
 	\since build 481
 	*/
-	MessageQueue qMain;
+	MessageQueue qMain{};
 	/*!
 	\brief 当前 Shell 句柄：指示当前线程空间中运行的 Shell 。
 	\note 全局单线程，生存期与进程相同。
 	*/
-	shared_ptr<Shell> hShell;
+	shared_ptr<Shell> hShell{};
 
 public:
 	//标准程序实例事件。

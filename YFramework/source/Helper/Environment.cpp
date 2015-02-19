@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1569
+\version r1570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-01-29 19:50 +0800
+	2015-02-16 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,7 +161,7 @@ Environment::MapCursor() const
 	::POINT cursor;
 
 	if(YB_UNLIKELY(!::GetCursorPos(&cursor)))
-		YF_Raise_Win32Exception("GetCursorPos @ Environment::MapCursor");
+		return {{}, Point::Invalid};
 
 	const Point pt{cursor.x, cursor.y};
 
