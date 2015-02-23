@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Viewer.h
 \ingroup UI
 \brief 样式无关的视图。
-\version r684
+\version r686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2014-11-09 13:33 +0800
+	2015-02-19 14:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YComponent
-#include <ystdex/algorithm.hpp>
 
 namespace YSLib
 {

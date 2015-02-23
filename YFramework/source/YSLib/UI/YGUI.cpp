@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4221
+\version r4235
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-30 08:08 +0800
+	2015-02-22 23:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,8 @@ namespace
 IWidget*
 FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
 {
+	if(con.GetView().HitChildren(pt))
+		return {};
 	for(auto pr(con.GetChildren()); pr.first != pr.second; ++pr.first)
 	{
 		IWidget& wgt(*pr.first);
@@ -52,7 +54,7 @@ FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
 		if(Contains(wgt, pt) && IsEnabled(wgt) && IsVisible(wgt))
 			return &wgt;
 	}
-	return {};
+	return &con;
 }
 
 //! \since build 483
@@ -184,7 +186,7 @@ GUIState::RefreshTap(const Point& pt, size_t n, const Timers::Duration& delay)
 {
 	const auto taps(TapTimer.RefreshTap(tap_count, delay));
 
-	tap_count = taps < n ? std::max<size_t>(taps, 1) : 0;
+	tap_count = taps < n ? max<size_t>(taps, 1) : 0;
 	if(pt != Point::Invalid)
 	{
 		if(tap_count == 0 || taps == 0 || tap_location == Point::Invalid)
@@ -240,7 +242,16 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 
 		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*p_con, e));
 
-		if(!t || t == p_con)
+		if(!t)
+		{
+			if(op == TouchDown)
+			{
+				ClearFocusingOf(*p_con);
+				RequestFocusCascade(*p_con);
+			}
+			return;
+		}
+		if(t == p_con)
 		{
 			if(e.Handled)
 				return;

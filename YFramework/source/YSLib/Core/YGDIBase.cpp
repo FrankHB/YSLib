@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,10 +8,10 @@
 	understand and accept it fully.
 */
 
-/*!	\file ygdibase.cpp
+/*!	\file YGDIBase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r693
+\version r695
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
@@ -28,7 +28,6 @@
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Core_YCoreUtilities
-#include <ystdex/algorithm.hpp>
 
 namespace YSLib
 {

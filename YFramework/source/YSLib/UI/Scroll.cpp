@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3730
+\version r3731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2015-01-23 23:14 +0800
+	2015-02-19 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,6 @@
 #include YFM_YSLib_UI_Scroll
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_Core_YStorage
-#include <ystdex/algorithm.hpp>
 
 using namespace ystdex;
 

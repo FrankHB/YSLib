@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ymsg.cpp
+/*!	\file YMessage.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1238
+\version r1241
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-08-30 08:08 +0800
+	2015-02-19 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,6 @@
 
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_YMessage
-#include <ystdex/algorithm.hpp>
 
 namespace YSLib
 {

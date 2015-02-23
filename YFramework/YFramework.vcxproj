@@ -201,7 +201,7 @@
     <ClInclude Include="include\YSLib\Service\YGDI.h" />
     <ClInclude Include="include\YSLib\Service\YModules.h" />
     <ClInclude Include="include\YSLib\Service\YPixel.h" />
-    <ClInclude Include="include\YSLib\Service\yres.h" />
+    <ClInclude Include="include\YSLib\Service\YResource.h" />
     <ClInclude Include="include\YSLib\Service\YTimer.h" />
     <ClInclude Include="include\YSLib\UI\Animation.h" />
     <ClInclude Include="include\YSLib\UI\Border.h" />
@@ -282,10 +282,10 @@
     <ClCompile Include="source\YSLib\Core\YCoreUtilities.cpp" />
     <ClCompile Include="source\YSLib\Core\ydevice.cpp" />
     <ClCompile Include="source\YSLib\Core\yexcept.cpp" />
-    <ClCompile Include="source\YSLib\Core\ygdibase.cpp" />
+    <ClCompile Include="source\YSLib\Core\YGDIBase.cpp" />
     <ClCompile Include="source\YSLib\Core\yobject.cpp" />
     <ClCompile Include="source\YSLib\Core\yshell.cpp" />
-    <ClCompile Include="source\YSLib\Core\ymsg.cpp" />
+    <ClCompile Include="source\YSLib\Core\YMessage.cpp" />
     <ClCompile Include="source\YSLib\Core\ystring.cpp" />
     <ClCompile Include="source\YSLib\Service\CharRenderer.cpp" />
     <ClCompile Include="source\YSLib\Service\ContentType.cpp" />
@@ -326,7 +326,7 @@
     <ClCompile Include="source\YSLib\UI\YBrush.cpp" />
     <ClCompile Include="source\YSLib\UI\Console.cpp" />
     <ClCompile Include="source\YSLib\UI\YComponent.cpp" />
-    <ClCompile Include="source\YSLib\UI\ycontrol.cpp" />
+    <ClCompile Include="source\YSLib\UI\YControl.cpp" />
     <ClCompile Include="source\YSLib\UI\ydesktop.cpp" />
     <ClCompile Include="source\YSLib\UI\YFocus.cpp" />
     <ClCompile Include="source\YSLib\UI\YGUI.cpp" />

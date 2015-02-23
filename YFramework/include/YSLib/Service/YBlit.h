@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3119
+\version r3130
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-02-19 13:09 +0800
+	2015-02-19 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Core_YCoreUtilities
-#include <ystdex/algorithm.hpp>
 #include <ystdex/iterator.hpp>
 #include <ystdex/rational.hpp>
 
@@ -146,22 +145,12 @@ BlitBounds(const Point&, const Point&, const Size&, const Size&, const Size&,
 \brief 贴图偏移分量计算器。
 \since build 577
 */
-//@{
-//! \todo 使用 ISO C++14 constexpr \c std::max 。
-yconstfn size_t
-BlitScaleRestricted(SPos d)
-{
-	return d < 0 ? 0 : d;
-}
-
-//! \since build 577
 template<bool _bDec>
 yconstfn size_t
 BlitScaleComponent(SPos d, SPos s, SDst delta)
 {
-	return BlitScaleRestricted(s < 0 ? d - s : d) + (_bDec ? delta - 1 : 0);
+	return size_t(max<SPos>(0, s < 0 ? d - s : d)) + (_bDec ? delta - 1 : 0);
 }
-//@}
 
 
 /*!

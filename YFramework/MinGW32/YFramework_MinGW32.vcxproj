@@ -104,6 +104,7 @@
     <ClCompile Include="..\DS\source\Helper\DSScreen.cpp" />
     <ClCompile Include="..\DS\source\Helper\DSWindow.cpp" />
     <ClCompile Include="..\DS\source\Helper\shlds.cpp" />
+    <ClCompile Include="source\Helper\Win32Control.cpp" />
     <ClCompile Include="source\YCLib\Consoles.cpp" />
     <ClCompile Include="source\YCLib\MinGW32.cpp" />
     <ClCompile Include="source\YCLib\NLS.cpp" />

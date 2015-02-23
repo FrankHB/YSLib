@@ -256,7 +256,7 @@
     <ClInclude Include="include\YSLib\Service\YGDI.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Service\yres.h">
+    <ClInclude Include="include\YSLib\Service\YResource.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Service\YBlit.h">
@@ -834,7 +834,7 @@
     <ClCompile Include="source\YSLib\Service\YTimer.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Core\ygdibase.cpp">
+    <ClCompile Include="source\YSLib\Core\YGDIBase.cpp">
       <Filter>source\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\Button.cpp">
@@ -849,7 +849,7 @@
     <ClCompile Include="source\YSLib\UI\uicontx.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\ycontrol.cpp">
+    <ClCompile Include="source\YSLib\UI\YControl.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ydesktop.cpp">
@@ -879,7 +879,7 @@
     <ClCompile Include="source\YSLib\UI\ListControl.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Core\ymsg.cpp">
+    <ClCompile Include="source\YSLib\Core\YMessage.cpp">
       <Filter>source\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\YGDI.cpp">

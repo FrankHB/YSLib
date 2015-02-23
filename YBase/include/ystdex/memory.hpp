@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r666
+\version r690
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-02-09 07:17 +0800
+	2015-02-23 04:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,52 +181,30 @@ reset(std::shared_ptr<_type>& p) ynothrow
 \brief 使用指定类型指针构造 std::unique_ptr 实例。
 \tparam _type 被指向类型。
 \note 不检查指针是否有效。
-\since build 212
+\since build 578
 */
 //@{
-/*!
-\tparam _pSrc 指定指针类型。
-\pre 静态断言： _pSrc 是内建指针。
-*/
 template<typename _type, typename _pSrc>
 yconstfn std::unique_ptr<_type>
-unique_raw(const _pSrc& p)
+unique_raw(_pSrc* p) ynothrow
 {
-	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
-
-	return std::unique_ptr<_type>(p);
-}
-/*!
-\tparam _pSrc 指定指针类型。
-\pre 静态断言： _pSrc 是内建指针。
-*/
-template<typename _type, typename _pSrc>
-yconstfn std::unique_ptr<_type>
-unique_raw(_pSrc&& p)
-{
-	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
-
 	return std::unique_ptr<_type>(p);
 }
 template<typename _type>
 yconstfn std::unique_ptr<_type>
-unique_raw(_type* p)
+unique_raw(_type* p) ynothrow
 {
 	return std::unique_ptr<_type>(p);
 }
-//! \since build 562
 template<typename _type, typename _tDeleter, typename _pSrc>
 yconstfn std::unique_ptr<_type, _tDeleter>
-unique_raw(_pSrc&& p, _tDeleter&& d)
+unique_raw(_pSrc* p, _tDeleter&& d) ynothrow
 {
-	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
-
 	return std::unique_ptr<_type, _tDeleter>(p, yforward(d));
 }
-//! \since build 562
 template<typename _type, typename _tDeleter>
 yconstfn std::unique_ptr<_type, _tDeleter>
-unique_raw(_type* p, _tDeleter&& d)
+unique_raw(_type* p, _tDeleter&& d) ynothrow
 {
 	return std::unique_ptr<_type, _tDeleter>(p, yforward(d));
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r240
+\version r252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2014-10-30 18:45 +0800
+	2015-02-19 17:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ main()
 			return r;
 		})
 	);
-	// 2 cases covering: ystdex::transform_n.
+	// 6 cases covering: ystdex::transform_n, ystdex::min, ystdex::max.
 	seq_apply(make_guard("YStandard.Algorithm").get(pass, fail),
 		expect(vector<int>{-2, 5, 16, 16}, []{
 			vector<int> a{1, 2, 3, 4}, b{5, 4, 6, 5}, c{7, 3, 2, 4}, r(4);
@@ -167,7 +167,16 @@ main()
 				return a + b * 4;
 			}, r.begin(), 5, a.cbegin(), b.cbegin());
 			return r;
-		})
+		}),
+#if YB_HAS_CONSTEXPR
+		1 == sizeof(char[ystdex::min(1, 2)]),
+#else
+		1 == ystdex::min(1, 2),
+#endif
+		2.F == ystdex::max(1.F, 2.F),
+		4U == integral_constant<unsigned,
+			ystdex::min({5U, 6U, 7U, 8U, 4U})>::value,
+		4 == ystdex::max({4, -5, -6, -7})
 	);
 	// 11 cases covering: ystdex::string_length, ystdex::begins_with,
 	//	ystdex::ends_with.

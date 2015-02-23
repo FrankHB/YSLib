@@ -12,7 +12,7 @@
 \ingroup Helper
 \ingroup MinGW32
 \brief Win32 控件相关接口。
-\version r113
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 570
 \par 创建时间:
@@ -100,6 +100,10 @@ public:
 			WindowReference::Show(v ? SW_SHOWNORMAL : SW_HIDE)))
 
 #undef YF_Impl_TryWin32View
+
+	//! \since build 578
+	bool
+	HitChildren(const Point&) const override;
 
 	DefClone(const ImplI(AView), ControlView)
 };

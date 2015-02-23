@@ -75,5 +75,8 @@
     <ClCompile Include="source\YCLib\NLS.cpp">
       <Filter>source\YCLib</Filter>
     </ClCompile>
+    <ClCompile Include="source\Helper\Win32Control.cpp">
+      <Filter>source\Helper</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

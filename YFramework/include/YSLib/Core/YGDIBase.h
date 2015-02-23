@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1940
+\version r1947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-02-15 00:11 +0800
+	2014-02-15 15:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -414,8 +414,7 @@ yconstfn PDefHOp(bool, !=, const Size& a, const Size& b) ynothrow
 \since build 555
 */
 yconstfn PDefHOp(Size, &, const Size& a, const Size& b) ynothrow
-	ImplRet({a.Width < b.Width ? a.Width : b.Width,
-		a.Height < b.Height ? a.Height : b.Height})
+	ImplRet({min(a.Width, b.Width), min(a.Height, b.Height)})
 
 /*!
 \brief 求两个屏幕区域大小的并。
@@ -423,8 +422,7 @@ yconstfn PDefHOp(Size, &, const Size& a, const Size& b) ynothrow
 \since build 555
 */
 yconstfn PDefHOp(Size, |, const Size& a, const Size& b) ynothrow
-	ImplRet({a.Width < b.Width ? b.Width : a.Width,
-		a.Height < b.Height ? b.Height : a.Height})
+	ImplRet({max(a.Width, b.Width), max(a.Height, b.Height)})
 
 //! \brief 取面积。
 yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
@@ -492,7 +490,7 @@ yconstfn PDefH(Size, Transpose, const Size& s) ynothrow
 \since build 555
 */
 template<typename _tScalar = float>
-_tScalar
+yconstfn _tScalar
 ScaleMin(const Size& x, const Size& y, _tScalar threshold = 1.F)
 {
 	return YSLib::min({threshold,
@@ -785,11 +783,11 @@ inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
 \note 可以是可以是主对角线或副对角线之一上的顶点。
 */
 /*!
-\todo 使用 ISO C++14 constexpr \c min 和 \c max 简化实现。
+\todo 使用 ISO C++14 的带有 \c constexpr 的 \c std::minmax 。
 \todo 提取 abs 实现。
 */
 yconstfn PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
-	ImplRet(Rect(pt1.X < pt2.X ? pt1.X : pt2.X, pt1.Y < pt2.Y ? pt1.Y : pt2.Y,
+	ImplRet(Rect(min(pt1.X, pt2.X), min(pt1.Y, pt2.Y),
 		pt1.X < pt2.X ? pt2.X - pt1.X : pt1.X - pt2.X,
 		pt1.Y < pt2.Y ? pt2.Y - pt1.Y : pt1.Y - pt2.Y))
 

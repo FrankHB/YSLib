@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r779
+\version r786
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-26 05:45 +0800
+	2015-02-22 08:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,6 +146,14 @@ public:
 		ImplExpr(SetLocation(GetLocation().X, y))
 
 	DeclIEntry(void SetVisible(bool))
+
+	/*!
+	\brief 对外源子部件进行命中测试。
+	\return 指定位置在非 YSLib 部件边界内。
+	\since build 578
+	*/
+	virtual PDefH(bool, HitChildren, const Point&) const
+		ImplRet({})
 
 	DeclIEntry(AView* clone() const ImplI(ystdex::cloneable))
 
