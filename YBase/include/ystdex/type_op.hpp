@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1257
+\version r1317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-02-09 07:28 +0800
+	2015-02-23 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -290,6 +290,61 @@ using result_of_t = typename result_of<_type>::type;
 
 
 /*!
+\ingroup metafunctions
+\brief 逻辑操作元函数。
+\note 和 libstdc++ 实现以及 Boost.MPL 兼容。
+\since build 578
+*/
+//@{
+template<typename...>
+struct and_;
+
+template<>
+struct and_<> : true_type
+{};
+
+template<typename _b1>
+struct and_<_b1> : _b1
+{};
+
+template<typename _b1, typename _b2>
+struct and_<_b1, _b2> : conditional_t<_b1::value, _b2, _b1>
+{};
+
+template<typename _b1, typename _b2, typename _b3, typename... _bn>
+struct and_<_b1, _b2, _b3, _bn...>
+	: conditional_t<_b1::value, and_<_b2, _b3, _bn...>, _b1>
+{};
+
+
+template<typename...>
+struct or_;
+
+template<>
+struct or_<> : false_type
+{};
+
+template<typename _b1>
+struct or_<_b1> : _b1
+{};
+
+template<typename _b1, typename _b2>
+struct or_<_b1, _b2> : conditional_t<_b1::value, _b1, _b2>
+{};
+
+template<typename _b1, typename _b2, typename _b3, typename... _bn>
+struct or_<_b1, _b2, _b3, _bn...>
+	: conditional_t<_b1::value, _b1, or_<_b2, _b3, _bn...>>
+{};
+
+
+template<typename _b>
+struct not_ : integral_constant<bool, !_b::value>
+{};
+//@}
+
+
+/*!
 \ingroup unary_type_trait
 \brief 判断指定类型是否可作为返回值类型。
 \note 即排除数组类型、抽象类类型和函数类型的所有类型。
@@ -297,8 +352,8 @@ using result_of_t = typename result_of<_type>::type;
 \since build 333
 */
 template<typename _type>
-struct is_returnable : integral_constant<bool, !is_array<_type>::value
-	&& !is_abstract<_type>::value && !is_function<_type>::value>
+struct is_returnable
+	: not_<or_<is_array<_type>, is_abstract<_type>, is_function<_type>>>
 {};
 
 
@@ -308,8 +363,7 @@ struct is_returnable : integral_constant<bool, !is_array<_type>::value
 \since build 529
 */
 template<typename _type>
-struct is_decayed
-	: integral_constant<bool, is_same<decay_t<_type>, _type>::value>
+struct is_decayed : or_<is_same<decay_t<_type>, _type>>
 {};
 
 
@@ -319,31 +373,30 @@ struct is_decayed
 \since build 333
 */
 template<typename _type>
-struct is_class_pointer : integral_constant<bool, is_pointer<_type>::value
-	&& is_class<remove_pointer_t<_type>>::value>
+struct is_class_pointer
+	: and_<is_pointer<_type>, is_class<remove_pointer_t<_type>>>
 {};
 
 
 /*!
 \ingroup unary_type_trait
-\brief 判断指定类型是否是左值类类型引用。
+\brief 判断指定类型是否是类类型左值引用。
 \since build 333
 */
 template<typename _type>
-struct is_lvalue_class_reference : integral_constant<bool, !is_lvalue_reference<
-	_type>::value && is_class<remove_reference_t<_type>>::value>
+struct is_lvalue_class_reference
+	: and_<is_lvalue_reference<_type>, is_class<remove_reference_t<_type>>>
 {};
 
 
 /*!
 \ingroup unary_type_trait
-\brief 判断指定类型是否是右值类类型引用。
-\note 即排除数组和函数类型的所有类型。
+\brief 判断指定类型是否是类类型右值引用。
 \since build 333
 */
 template<typename _type>
-struct is_rvalue_class_reference : integral_constant<bool, !is_lvalue_reference<
-	_type>::value && is_class<typename remove_reference<_type>::type>::value>
+struct is_rvalue_class_reference
+	: and_<is_rvalue_reference<_type>, is_class<remove_reference_t<_type>>>
 {};
 
 
@@ -354,8 +407,7 @@ struct is_rvalue_class_reference : integral_constant<bool, !is_lvalue_reference<
 \since build 333
 */
 template<typename _type>
-struct is_pod_struct : integral_constant<bool,
-	is_pod<_type>::value && is_class<_type>::value>
+struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
 {};
 
 
@@ -366,8 +418,7 @@ struct is_pod_struct : integral_constant<bool,
 \since build 333
 */
 template<typename _type>
-struct is_pod_union : integral_constant<bool,
-	is_pod<_type>::value && is_union<_type>::value>
+struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
 {};
 
 
@@ -378,8 +429,7 @@ struct is_pod_union : integral_constant<bool,
 */
 template<typename _type1, typename _type2>
 struct is_interoperable
-	: integral_constant<bool, is_convertible<_type1, _type2>::value
-	|| is_convertible<_type2, _type1>::value>
+	: or_<is_convertible<_type1, _type2>, is_convertible<_type2, _type1>>
 {};
 
 

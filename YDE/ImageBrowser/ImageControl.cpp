@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r959
+\version r1021
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-07 12:52 +0800
+	2015-02-22 16:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "ImageControl.h"
+#include YFM_YSLib_Service_YPixel
 
 namespace ImageBrowser
 {
@@ -36,7 +37,8 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	min_panel_size(min_size), max_panel_size(max_size), btnClose({{}, 24, 24}),
 	hover_state(std::bind(TimedHoverState::LocateForOffset,
 	std::placeholders::_1, Point(0, 24))), border(*this, 8, min_size),
-	mnuContext({}, make_shared<Menu::ListType, String>({u"退出"}))
+	mnuContext({}, make_shared<Menu::ListType, String>(
+	{u"退出", u"翻转", u"顺时针旋转", u"逆时针旋转"}))
 {
 	*this += btnClose,
 	Host::SetupTimedTips(hover_state, btnClose, lblCloseTips, u"关闭"),
@@ -53,8 +55,25 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 		r = Rect(pt, GetSizeOf(e.GetSender()));
 	},
 	mnuContext.Confirmed += [this](IndexEventArgs&& e){
-		if(e.Value == 0)
+		switch(e.Value)
+		{
+		case 0:
 			YSLib::PostQuitMessage(0);
+			break;
+		case 1:
+			Flip();
+			UpdateBrush();
+			break;
+		case 2:
+			RotateCW();
+			UpdateBrush();
+			break;
+		case 3:
+			RotateCCW();
+			UpdateBrush();
+		default:
+			break;
+		}
 	},
 	FetchEvent<Resize>(*this) += [this]{
 		SetLocationOf(btnClose, CalcCloseButtonLocation());
@@ -110,11 +129,11 @@ ImagePanel::Load(ImagePages&& src)
 			// TODO: Allow user set minimal frame time.
 			auto d(std::chrono::milliseconds(20));
 
-			TryExpr(d = max(GetFrameTimeOf(bmp), d))
+			TryExpr(d = YSLib::max(GetFrameTimeOf(bmp), d))
 			CatchExpr(LoggedEvent& e,
 				YTraceDe(e.GetLevel(), "Invalid frame time found."))
 			YTraceDe(Informative, "Loaded frame time = %s milliseconds.",
-				std::to_string(d.count()).c_str());
+				to_string(d.count()).c_str());
 			frame_delays.push_back(d);
 		}
 
@@ -122,7 +141,7 @@ ImagePanel::Load(ImagePages&& src)
 			const auto d(get<3>(*session_ptr).at(GetPagesRef().GetIndex()));
 
 			YTraceDe(Informative, "Set frame time = %s ms.",
-				std::to_string(d.count()).c_str());
+				to_string(d.count()).c_str());
 			get<2>(*session_ptr).Interval = d;
 		});
 
@@ -148,6 +167,46 @@ void
 ImagePanel::Unload()
 {
 	session_ptr.reset();
+}
+
+void
+ImagePanel::UpdateBrush()
+{
+	using namespace Drawing::Shaders;
+	auto& update(GetPagesRef().Brush.Update);
+
+	switch(rot)
+	{
+	case RDeg0:
+		update = ImageBrush::UpdateComposite;
+		break;
+	case RDeg90:
+		update = [](const PaintContext& pc, const Image& img,
+			const Point& dst_offset, const Point& src_offset){
+			return UpdateTranposedPixels<BlitAlphaPoint, false, true>(
+				BlitAlphaPoint(), pc, img, dst_offset + RotateCenter(img),
+				src_offset);
+		};
+		break;
+	case RDeg180:
+		update = [](const PaintContext& pc, const Image& img,
+			const Point& dst_offset, const Point& src_offset){
+			return UpdatePixels<BlitAlphaPoint, true, true>(BlitAlphaPoint(),
+				pc, img, dst_offset, src_offset);
+		};
+		break;
+	case RDeg270:
+		update = [](const PaintContext& pc, const Image& img,
+			const Point& dst_offset, const Point& src_offset){
+			return UpdateTranposedPixels<BlitAlphaPoint, true, false>(
+				BlitAlphaPoint(), pc, img, dst_offset + RotateCenter(img),
+				src_offset);
+		};
+		break;
+	default:
+		break;
+	}
+	Invalidate(*this);
 }
 
 } // namespace ImageBrowser;

@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r610
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-02-10 13:20 +0800
+	2015-02-19 17:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "deref_op.hpp" // for ystdex::is_undereferenceable;
 #include <algorithm>
 #include <cstring> // for std::memcpy, std::memmove;
+#include "functional.hpp" // for std::bind, ystdex::less;
 
 namespace ystdex
 {
@@ -258,6 +259,49 @@ sort_unique(_tRandom first, _tRandom last)
 {
 	std::sort(first, last);
 	return std::unique(first, last);
+}
+
+
+/*!
+\brief 取较小的元素。
+\note 语义同 ISO C++14 std::min 的带 constexpr 的重载。
+\since build 578
+*/
+//@{
+template<typename _type, typename _fComp = less<_type>>
+yconstfn const _type&
+min(const _type& a, const _type& b, _fComp comp = less<_type>())
+{
+	return comp(b, a) ? b : a;
+}
+template<typename _type, typename _fComp = less<_type>>
+yconstfn const _type&
+min(std::initializer_list<_type> t, _fComp comp = less<_type>(),
+	yimpl(size_t n = 0))
+{
+	return n + 1 < t.size() ? ystdex::min(*(t.begin() + n),
+		ystdex::min(t, comp, n + 1)) : *(t.begin() + n);
+}
+//@}
+
+/*!
+\brief 取较大的元素。
+\note 语义同 ISO C++14 std::max 的带 constexpr 的重载。
+\since build 578
+*/
+template<typename _type, typename _fComp = less<_type>>
+yconstfn const _type&
+max(const _type& a, const _type& b, _fComp comp = less<_type>())
+{
+	return comp(a, b) ? b : a;
+}
+template<typename _type, typename _fComp = less<_type>>
+yconstfn const _type&
+max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
+	yimpl(size_t n = 0))
+{
+	return n + 1 < t.size() ? ystdex::max(*(t.begin() + n),
+		ystdex::max(t, comp, n + 1)) : *(t.begin() + n);
 }
 //@}
 //@}

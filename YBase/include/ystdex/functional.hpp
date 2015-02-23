@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1465
+\version r1525
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-02-09 07:13 +0800
+	2015-02-19 17:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -966,6 +966,7 @@ struct combined_hash<std::pair<_type1, _type2>>
 */
 
 /*!
+\ingroup functors
 \brief std::addressof 仿函数。
 \since build 537
 */
@@ -980,6 +981,7 @@ struct addressof_op
 };
 
 /*!
+\ingroup functors
 \brief 成员 get 操作。
 \since build 537
 */
@@ -1064,33 +1066,81 @@ struct ref_eq
 
 /*!
 \ingroup functors
-\note 支持 constexpr 。
-\brief 加法仿函数。
+\note 同 ISO WG21/N4296 对应标准库仿函数 ，但没有 \c is_transparent 支持。
+\since build 578
 */
-struct plus
-{
-	template<typename _type>
-	yconstfn auto
-	operator()(const _type& x, const _type& y) const -> decltype(x + y)
-	{
-		return x + y;
-	}
-};
+//@{
+#define YB_Impl_Functional_Ops2(_n, _op, _tRet) \
+	template<typename _type = void> \
+	struct _n \
+	{ \
+		using first_argument_type = _type; \
+		using second_argument_type = _type; \
+		using result_type = _tRet; \
+		\
+		yconstfn bool \
+		operator()(const _type& x, const _type& y) const \
+		{ \
+			return x _op y; \
+		} \
+	}; \
+	\
+	template<> \
+	struct _n<void> \
+	{ \
+		template<typename _type1, typename _type2> \
+		auto operator()(const _type1&& x, const _type2&& y) const \
+			-> decltype(yforward(x) < yforward(y)) \
+		{ \
+			return yforward(x) < yforward(y); \
+		} \
+	};
 
-/*!
-\ingroup functors
-\note 支持 constexpr 。
-\brief 乘法仿函数。
-*/
-struct multiply
-{
-	template<typename _type>
-	yconstfn auto
-	operator()(const _type& x, const _type& y) const -> decltype(x * y)
-	{
-		return x * y;
-	}
-};
+#define YB_Impl_Functional_Arithmetic(_n, _op) \
+	YB_Impl_Functional_Ops2(_n, _op, _type)
+
+//! \brief 加法仿函数。
+YB_Impl_Functional_Arithmetic(plus, +)
+
+//! \brief 减法仿函数。
+YB_Impl_Functional_Arithmetic(minus, -)
+
+//! \brief 乘法仿函数。
+YB_Impl_Functional_Arithmetic(multiplies, *)
+
+//! \brief 除法仿函数。
+YB_Impl_Functional_Arithmetic(devides, /)
+
+//! \brief 模运算仿函数。
+YB_Impl_Functional_Arithmetic(modulus, %)
+
+#undef YB_Impl_Functional_Arithmetic
+
+#define YB_Impl_Functional_Comparison(_n, _op) \
+	YB_Impl_Functional_Ops2(_n, _op, bool)
+
+//! \brief 等于关系仿函数。
+YB_Impl_Functional_Comparison(equal_to, ==)
+
+//! \brief 不等于关系仿函数。
+YB_Impl_Functional_Comparison(not_equal_to, !=)
+
+//! \brief 大于关系仿函数。
+YB_Impl_Functional_Comparison(greater, >)
+
+//! \brief 小于关系仿函数。
+YB_Impl_Functional_Comparison(less, <)
+
+//! \brief 大于等于关系仿函数。
+YB_Impl_Functional_Comparison(greater_equal, >=)
+
+//! \brief 小于等于关系仿函数。
+YB_Impl_Functional_Comparison(less_equal, <=)
+
+#undef YB_Impl_Functional_Comparison
+
+#undef YB_Impl_Functional_Ops2
+//@}
 
 /*!
 \ingroup functors

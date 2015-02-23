@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r611
+\version r634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-07 12:51 +0800
+	2015-02-19 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,6 +73,10 @@ protected:
 	//! \since build 575
 	Menu mnuContext;
 
+private:
+	//! \since build 575
+	Rotation rot = RDeg0;
+
 public:
 	//! \since build 555
 	explicit
@@ -82,13 +86,24 @@ public:
 private:
 	//! \since build 555
 	DefGetter(ynothrow, ImagePages&, PagesRef, get<0>(Deref(session_ptr)))
+
+public:
+	//! \since build 571
+	DefSetter(bool, RootMode, border.RootMode)
+
+private:
+	//! \since build 578
+	PDefH(void, AdjustCloseButton, )
+		ImplExpr(SetLocationOf(btnClose, CalcCloseButtonLocation()))
+
 	//! \since build 446
 	PDefH(Point, CalcCloseButtonLocation, ) const
 		ImplRet({GetWidth() - 8 - btnClose.GetWidth(), 8})
 
 public:
-	//! \since build 571
-	DefSetter(bool, RootMode, border.RootMode)
+	//! \since build 578
+	PDefH(void, Flip, )
+		ImplExpr(rot = UI::Flip(rot), UpdateBrush())
 
 	//! \since build 560
 	void
@@ -101,12 +116,25 @@ public:
 		Load(ImagePages(&arg[0], min_panel_size, max_panel_size));
 	}
 
+	//! \since build 578
+	PDefH(void, RotateCCW, )
+		ImplExpr(rot = UI::RotateCCW(rot), UpdateBrush())
+
+	//! \since build 578
+	PDefH(void, RotateCW, )
+		ImplExpr(rot = UI::RotateCW(rot), UpdateBrush())
+
 	//! \since build 575
 	void
 	SetupContextMenu();
 
 	void
 	Unload();
+
+private:
+	//! \since build 578
+	void
+	UpdateBrush();
 };
 
 } // namespace ImageBrowser;

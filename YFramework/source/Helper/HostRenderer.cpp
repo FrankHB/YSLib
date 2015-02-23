@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r469
+\version r472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-01-29 19:49 +0800
+	2015-02-22 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #	include YFM_Helper_Environment
 #	include YFM_MinGW32_Helper_Win32Control
 #endif
+#include <ystdex/cast.hpp> // for ystdex::pvoid;
 
 namespace YSLib
 {
@@ -80,6 +81,8 @@ WindowThread::~WindowThread()
 {
 	const auto p_wnd_val(Nonnull(GetWindowPtr()));
 
+	YTraceDe(Informative, "Ready to close window '%p' on leaving window"
+		" thread.", pvoid(p_wnd_val));
 	try
 	{
 #	if !YCL_Android

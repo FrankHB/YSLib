@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10197
+\version r10295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-19 13:29 +0800
+	2015-02-23 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,104 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "functors %(plus, multiply)" @ %Functional -> "WG21/N4296 compliant \
+			binary functors except for no %is_transparent support %(plus, \
+			minus, multiplies, divides, modulus, equal_to, not_equal_to, \
+			greater, less, greater_equal, less_equal)",
+		/ @ %Algorithm $=
+		(
+			+ "2 function templates %(min, max)" @ "namespace %ystdex" $dep_from
+				("%ystdex::less" @ %Functional),
+				// They should be used as %std::(min, max) with 'constexpr' \
+					in ISO C++14.
+  			* "strict ISO C++ code compatibility" $since b532
+				$= (* "missing including <functional>")
+		),
+		/ @ "function templates %unique_raw" %Memory $=
+		(
+			/ "merged pointer overloadings",
+			+ 'ynothrow' @ "all overloadings"
+		),
+		/ %TypeOperation $=
+		(
+			+ "logical metafunctions %(and_, or_, not_)";
+			/ "simplified inheritance of traits";
+			* "wrong base class" @ "traits %is_lvalue_class_reference" $since
+				b333
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ %YSLib $=
+		(
+			/ ('using std::min;', 'using std::max;') @ '!__cplusplus >= 201402L'
+				-> ('using ystdex::min;', 'using ystdex::max;') @ %Adaptor
+				$dep_from
+				("%ystdex::(min, max)" @ %YBase.YStandardEx.Algorithm),
+			- DLD "all name qualification before %(min, max) for values of \
+				types without ADL" $effective @ %UI.(YGUI, TextBox),
+			/ %Service $=
+			(
+				/ %YBlit $=
+				(
+					/ DLD "simplified implementation" @ "function template \
+						%BlitScaleComponent"
+						^ ("%max" $dep_from %Adaptor.YAdaptor)
+						~ "%BlitScaleRestricted";
+					- "function %BlitScaleRestricted",
+				),
+				+ "2 functions %RotateCenter" @ %YResource
+			),
+			/ @ %Core.YGDIBase $=
+			(
+				/ DLD "simplified implementation" @ "'yconstfn' functions"
+					^ ("%(min, max)" $dep_from %Adaptor.YAdaptor),
+				+ 'ScaleMin' @ "function template %ScaleMin"
+			),
+			/ %UI $=
+			(
+				+ "virtual member function %AView::HitChildren" @ %YWidgetView;
+				+ "support for non-YSLib widget hit test"
+					@ "member function %GUIState::ResponseCursor" @ %YGUI
+					// If non-YSLib widget detected, Call %(ClearFocusingOf, \
+						RequestFocusCascade) on %TouchDown for container and \
+						return.
+			)
+		),
+		/ %Helper $=
+		(
+			+ "support non-YSLib widget hit test overrider \
+				%ControlView::HitChildren" @ %Win32Control $dep_from
+				%YSLib.UI.YWidgetView;
+			* $comp "hit accepted even if there exist controls over tested \
+				hosted widgets on non-root mode" @ "platform %Win32" $dep_from
+				%YSLib.UI.YGUI $since b571,
+			+ "log before closing window" @ "destructor %WindowThread"
+				@ %Hostrenderer;
+		)
+	),
+	+ "4 test cases for %ystdex::(min, max)" @ %Test.YBase $dep_from
+		%YBase.YStandardEx.Algorithm,
+	/ @ "class %ImagePanel" @ %YDE.ImageBrowser $=
+	(
+		/ DLD "extracted and reused routine to adjust close button",
+		(
+		+ "rotation state";
+		+ "functions %(RotateCCW, RotateCW, Flip)";
+		+ "3 menu items to support flip and rotation"
+		)
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ (("%ygdibase.cpp"
+		=> "%YGDIBase.cpp", "%ymsg.cpp" => "%YMessage.cpp")
+		@ %Core, ("%ycontrol.cpp" => "%YControl.cpp") @ %UI,
+		("yres.h" => "%YResource.h") @ %Service) @ YFramework.YSLib
+),
+
+b577
 (
 	/ %YBase.YStandardEx.Iterator $=
 	(
@@ -112,7 +210,7 @@ $now
 				// The message is "Access is denied" when recovered from \
 					screensaver. Seems can also occur on pressing Ctrl+Alt+Del.
 		)
-	)
+	),
 	/ $dev $repo "all edited file with module name not the same as base file \
 		name" @ !%YBase ^ 'hg mv' $effective @ (("%yblit.h" => "%YBlit.h")
 		@ %Service, ("yapp.h" => "%YApplication.h", "%yapp.cpp"

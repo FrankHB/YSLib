@@ -11,7 +11,7 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r663
+\version r664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
@@ -269,7 +269,7 @@ TextBox::GetCaretPosition(const Point& pt)
 	}
 
 	const SDst w(FetchCharWidth(Font, MaskChar));
-	auto n(std::min<size_t>((max_w + w - 1U) / w, Text.length()));
+	auto n(min<size_t>((max_w + w - 1U) / w, Text.length()));
 
 	if(n > 0 && w / 2U + max_w < w)
 		--n;
@@ -339,7 +339,7 @@ TextBox::ReplaceSelection(const String& text)
 
 	Text = Text.substr(0, r.first.X) + text.substr(0, subst_len)
 		+ Text.substr(min<size_t>(len, r.second.X));
-	r.second.X = r.first.X + std::min(subst_len, text.length()),
+	r.second.X = r.first.X + min(subst_len, text.length()),
 	CollapseCaret();
 }
 

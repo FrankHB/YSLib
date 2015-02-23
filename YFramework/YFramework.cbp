@@ -228,9 +228,9 @@
 		<Unit filename="include/YSLib/Service/YModules.h" />
 		<Unit filename="include/YSLib/Service/YGDI.h" />
 		<Unit filename="include/YSLib/Service/YPixel.h" />
+		<Unit filename="include/YSLib/Service/YResource.h" />
 		<Unit filename="include/YSLib/Service/YTimer.h" />
 		<Unit filename="include/YSLib/Service/ydraw.h" />
-		<Unit filename="include/YSLib/Service/yres.h" />
 		<Unit filename="include/YSLib/UI/Animation.h" />
 		<Unit filename="include/YSLib/UI/Border.h" />
 		<Unit filename="include/YSLib/UI/ComboList.h" />
@@ -308,10 +308,10 @@
 		<Unit filename="source/YSLib/Core/ValueNode.cpp" />
 		<Unit filename="source/YSLib/Core/YApplication.cpp" />
 		<Unit filename="source/YSLib/Core/YCoreUtilities.cpp" />
+		<Unit filename="source/YSLib/Core/YGDIBase.cpp" />
+		<Unit filename="source/YSLib/Core/YMessage.cpp" />
 		<Unit filename="source/YSLib/Core/ydevice.cpp" />
 		<Unit filename="source/YSLib/Core/yexcept.cpp" />
-		<Unit filename="source/YSLib/Core/ygdibase.cpp" />
-		<Unit filename="source/YSLib/Core/ymsg.cpp" />
 		<Unit filename="source/YSLib/Core/yobject.cpp" />
 		<Unit filename="source/YSLib/Core/yshell.cpp" />
 		<Unit filename="source/YSLib/Core/ystring.cpp" />
@@ -349,6 +349,7 @@
 		<Unit filename="source/YSLib/UI/TreeView.cpp" />
 		<Unit filename="source/YSLib/UI/Viewer.cpp" />
 		<Unit filename="source/YSLib/UI/YComponent.cpp" />
+		<Unit filename="source/YSLib/UI/YControl.cpp" />
 		<Unit filename="source/YSLib/UI/YFocus.cpp" />
 		<Unit filename="source/YSLib/UI/YGUI.cpp" />
 		<Unit filename="source/YSLib/UI/YRenderer.cpp" />
@@ -360,7 +361,6 @@
 		<Unit filename="source/YSLib/UI/progress.cpp" />
 		<Unit filename="source/YSLib/UI/textarea.cpp" />
 		<Unit filename="source/YSLib/UI/uicontx.cpp" />
-		<Unit filename="source/YSLib/UI/ycontrol.cpp" />
 		<Unit filename="source/YSLib/UI/ydesktop.cpp" />
 		<Unit filename="source/YSLib/UI/ypanel.cpp" />
 		<Unit filename="source/YSLib/UI/ywgtevt.cpp" />

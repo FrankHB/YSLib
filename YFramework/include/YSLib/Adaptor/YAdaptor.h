@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1659
+\version r1668
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-01-19 09:12 +0800
+	2015-02-19 14:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,9 @@
 
 // 确保包含标准库必要部分。
 #include <libdefect/cmath.h>
-#include <algorithm> // for std::min, std::max;
 
 //包含 YStandardEx 公用部分。
+#include <ystdex/algorithm.hpp> // for ystdex::min, ystdex::max;
 #include <ystdex/functional.hpp>
 #include <ystdex/utility.hpp>
 #include <ystdex/string.hpp> // for std::to_string, ystdex::to_string;
@@ -91,8 +91,15 @@ using std::round;
 \since build 265
 */
 //@{
+#if __cplusplus >= 201402L
 using std::min;
 using std::max;
+#else
+//! \since build 578
+using ystdex::min;
+//! \since build 578
+using ystdex::max;
+#endif
 //}
 
 //! \brief 助手功能。
