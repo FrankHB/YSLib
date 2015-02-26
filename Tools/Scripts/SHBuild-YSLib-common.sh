@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# (C) 2014 FrankHB.
+# (C) 2014-2015 FrankHB.
 # Script for build YSLib using SHBuild.
 
 set -e
@@ -12,6 +12,7 @@ YSLib_BuildDir="$YSLib_BaseDir/build"
 export AR
 . $SHBuild_ToolDir/SHBuild-common-toolchain.sh
 
+mkdir -p "$YSLib_BuildDir"
 : ${SHBuild:="$SHBuild_BaseDir/SHBuild"}
 SHBuild_CheckUName
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then

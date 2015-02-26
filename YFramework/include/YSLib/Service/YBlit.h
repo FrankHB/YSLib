@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3130
+\version r3155
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-02-19 15:52 +0800
+	2015-02-23 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,7 +285,7 @@ struct BlitScannerLoop
 */
 template<bool _bSwapLR, bool _bSwapUD, typename _tOut, typename _tIn,
 	typename _fBlitScanner>
-void
+inline void
 BlitLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ds,
 	const Size& ss, const Point& dp, const Point& sp, const Size& sc)
 {
@@ -345,7 +345,7 @@ struct BlitLineLoop
 */
 template<bool _bSwapLR, bool _bSwapUD, typename _tOut, typename _tIn,
 	typename _fPixelShader>
-void
+inline void
 BlitPixels(_fPixelShader shader, _tOut dst, _tIn src, const Size& ds,
 	const Size& ss, const Point& dp, const Point& sp, const Size& sc)
 {
@@ -354,6 +354,32 @@ BlitPixels(_fPixelShader shader, _tOut dst, _tIn src, const Size& ds,
 			BlitLineLoop<!_bSwapLR>()(shader, dst_iter, src_iter, delta_x);
 		}, dst, src, ds, ss, dp, sp, sc);
 }
+
+
+/*!
+\brief 分派用于着色器更新的可能转置的图像。
+\since build 579
+
+第一个参数指定是否需要转置（原始图像旋转一个直角）。
+第二个参数指定更新器，接受可能转置的原迭代器、可能转置的源图像大小和转置偏移位置。
+未转置时，转置偏移位置为原点；否则使用 RotateCenter 指定。
+*/
+//@{
+template<typename _func>
+inline void
+DispatchTranspose(std::false_type, _func updater, const ConstGraphics& src)
+{
+	updater(src.GetBufferPtr(), src.GetSize(), Point());
+}
+template<typename _func>
+inline void
+DispatchTranspose(std::true_type, _func updater, const ConstGraphics& src)
+{
+	updater(ystdex::make_transposed(src.GetBufferPtr(), src.GetWidth(),
+		src.GetHeight(), 0), Transpose(src.GetSize()),
+		RotateCenter(src.GetSize()));
+}
+//@}
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file YResource.h
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r582
+\version r587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 578
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2015-02-22 08:47 +0800
+	2015-02-23 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,13 +74,8 @@ public:
 \brief 按指定图像大小旋转左上角坐标。
 \since build 578
 */
-//@{
-yconstfn PDefH(Point, RotateCenter, const Size& s)
-	ImplRet({(SPos(s.Width) - SPos(s.Height)) / 2,
-		(SPos(s.Height) - SPos(s.Width)) / 2})
 inline PDefH(Point, RotateCenter, const Image& img)
 	ImplRet(RotateCenter(img.GetSize()))
-//@}
 
 } // namespace Drawing;
 

@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r495
+\version r506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-01-16 03:40 +0800
+	2015-02-26 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,9 @@
 #include YFM_YCLib_Video // for platform::ColorSpace, platform::YConsoleInit;
 #include <cstdarg>
 #include <ystdex/string.hpp>
+#if YF_Multithread
+#	include <ystdex/concurrency.h>
+#endif
 #if YCL_Win32
 #	include <csignal>
 #	include <Windows.h>
@@ -96,7 +99,14 @@ Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 	if(lv <= Descriptions::Alert)
 		YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
 #endif
-	std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
+	std::fprintf(stderr, 
+#if YF_Multithread
+		"[%s:%#X]: %s\n",
+		ystdex::to_string(std::this_thread::get_id()).c_str(),
+#else
+		"[%#X]: %s\n",
+#endif
+		unsigned(lv), Nonnull(str));
 	std::fflush(stderr);
 }
 

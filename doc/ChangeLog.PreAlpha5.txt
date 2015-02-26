@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10295
+\version r10435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-23 13:04 +0800
+	2015-02-26 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,147 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ "function %RotateCenter for 'const Size&'" @ %YResource
+					>> %Core.YGDIBase;
+				+ "2 functions %DispatchTranspose" @ %YBlit;
+				+ "function templates %(UpdatePixelsWithRotation; \
+					UpdateRotatedBrush)" @ %YBrush,
+				/ %Service.ImageProcessing $dep_from %Core.YGDIBase $=
+				(
+					* $comp "wrong initial image scale calculated"
+						@ "class %ImagePages" @ $since b555,
+					/ "wrong scaled size when the any size component is too \
+						large" $since b554 $=
+					(
+						* "wrong size caused by invalid mod arithmetic on \
+							%ImageScale implementation when the size component \
+							is too large" @ "function %Zoom";
+						* @ "class %ImagePages"
+					)
+				)
+			),
+			/ %Core $=
+			(
+				/ "function template %CollectNodes with variadic parameters"
+					@ %ValueNode ^ "list initialization"
+					~ "%ystdex::seq_insert",
+				* "wrong implementation" @ "function template %ScaleMin"
+					@ %YGDIBase $since b555
+				+ "log with level 'Informative'" @ "function %PostQuitMessage"
+					@ %YApplication
+			),
+			/ "log level" @ "function %ParseRect" @ %UI.Loader -> 'Debug'
+				~ 'Informative',
+		),
+		/ %YCLib.Debug $=
+		(
+			+ "cast to level type for 1st argument" @ "macro %YCL_Log",
+			/ @ "class %Logger" $=
+			(
+				/ "default value initializing data member %FilterLevel"
+					@ '!defined(NDEBUG)' -> 'Descriptions::Debug'
+					~ 'Descriptions::Informative',
+				+ "output thread id" @ 'YF_Multithread'
+					@ "static function %DefaultSendLog"
+			)
+		),
+		/ %Helper $=
+		(
+			/ @ "destructor %WindowThread" @ %Helper.HostRenderer $=
+			(
+				/ @ "log before closing window" $=
+				(
+					* $build "missing 'ystdex::' before 'pvoid'" @ "logging",
+					/ "level" -> 'Debug' ~ 'Informative'
+				),
+				+ "log before joining thread with level 'Informative'",
+				+ "log after joining thread with level 'Debug'"
+			),
+			/ "all log with level 'Notice'" -> "level 'Informative'" $effective
+				@ ("member functions" \
+				("%Window::UpdateCandidateWindowLocationUnlocked"
+				@ %HostWindow, "WindowThread::WindowLoop" @ %HostRenderer)),
+			/ %ShellHelper $=
+			(
+				* DLD "ignored size parameter" @ "time printing implementation"
+					$since b307
+					$= (/ "implemented" ^ "%std::snprintf or %::snprintf"
+						~ "%std::printf") @ "!platform %DS",
+						// No %std::snprintf is declared on platforms \
+							%(Android, DS) that 'defined(__GLIBCXX__) && \
+							!defined(_GLIBCXX_USE_C99)', this is a workaround. \
+							No '%::snprintf' found on %DS.
+				/ "log level of debug timer" -> '0xF0' ~ "Debug"
+			),
+			+ "log with level 'Debug' after leaving window thread"
+				@ "member function %Environment::LeaveWindowThread"
+				@ 'YF_Multithread' @ %Environment,
+			/ "broke down lock granularity only on directly accessing queue"
+				@ "member function %GUIApplication::DealMessage"
+				@ %GUIApplication;
+				// This allowed concurrently pushing messages to the queue \
+					when a message is being processed, turning out slightly \
+					better performance in multithreaded implementation. It \
+					also allowed accessing queue in processing a message \
+					(e.g. %SM_Task) to reduce potentionally deadlock (e.g. \
+					'join()' for a thread performing %PostQuitMessage and thus \
+					waiting). It would still cause undefined behavior to \
+					remove a message being processed elsewhere, however now \
+					there are multiple threads could to do so without being \
+					checked.
+			/ @ "%WM_DESTROY handler" @ "platform %Win32"
+				@ "function %PrepareTopLevelPopupMenu" @ %HostedUI $=
+			(
+				* "non safety on accessing widget across threads" $dep_from
+					%GUIApplication $since b575,
+				+ "log with level 'Debug' before perform the operation"
+			)
+		),
+		- "log filter level setting" @ '!defined(NDEBUG)' @ "function \
+			%ANativeActivity_onCreate" @ %'Helper_(Android)'.AndroidHost
+			// After modification of class %Logger, now all platforms are \
+				the same: filter level 'Debug' as default in debug \
+				configurations, otherwise 'Informative'.
+	),
+	/ %YDE.ImageBrowser.ImageControl $=
+	(
+		/ DLD "simplified implementation" @ $dep_from
+			%YFramework.YSLib.Service.YBrush,
+		* $comp "probable wrong initial image scale calculated when size \
+			component is too large and scale enabled" $dep_from
+			%YFramework.YSLib.Service.ImageProcessing $since b554,
+		* "deadlock after directly closing window" $dep_from 575
+			// For example, click "close window" on Windows task bar.
+	),
+	/ %Tools.Scripts $=
+	(
+		* "missing creating build directory" @ "SHBuild-YSLib-common.sh" $since
+			b567,
+			// This would not be a problem if 'build' directory is retained, \
+				however currently it is not.
+		/ "quoted path when changing directory $YSLib_BuildDir"
+			@ ("%SHBuild-YSLib.sh", "%SHBuild-YSLib-debug.sh")
+	),
+	* $build "missing build directory" $since b478 $=
+	(
+		// This should fixes missing creating build directory for sysroot \
+			build, also for Code::Blocks and makefile output. The former is \
+			also resolved by the modification of scripts of current commit.
+		* $repo "build directory ignored" @ "file '.hgignore'" $since b478
+			$= ("glob pattern 'build/'" -> 'build/*/*/');
+		+ "file %Readme.en-US.txt"
+			// This file was created in time, but missed to commit and pushed.
+	)
+),
+
+b578
 (
 	/ %YBase.YStandardEx $=
 	(

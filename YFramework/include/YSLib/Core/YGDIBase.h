@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1947
+\version r1955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-02-15 15:51 +0800
+	2014-02-24 00:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -430,6 +430,14 @@ yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
 	ImplRet(s.Width * s.Height)
 
 /*!
+\brief 按指定图像大小旋转左上角坐标。
+\since build 578
+*/
+yconstfn PDefH(Point, RotateCenter, const Size& s)
+	ImplRet({(SPos(s.Width) - SPos(s.Height)) / 2,
+		(SPos(s.Height) - SPos(s.Width)) / 2})
+
+/*!
 \brief 取分量。
 \since build 554
 */
@@ -495,7 +503,7 @@ ScaleMin(const Size& x, const Size& y, _tScalar threshold = 1.F)
 {
 	return YSLib::min({threshold,
 		_tScalar(_tScalar(x.Width) / _tScalar(y.Width)),
-		_tScalar(_tScalar(x.Height) / _tScalar(y.Width))});
+		_tScalar(_tScalar(x.Height) / _tScalar(y.Height))});
 }
 
 

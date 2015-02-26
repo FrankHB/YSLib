@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r504
+\version r509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-12-05 17:01 +0800
+	2015-02-25 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,6 @@ using namespace UI;
 namespace Host
 {
 
-
 Window::Window(NativeWindowHandle h)
 	: Window(h, FetchEnvironment())
 {}
@@ -63,8 +62,8 @@ Window::Window(NativeWindowHandle h, Environment& e)
 		platform_ex::ClearKeyStates();
 	},
 	MessageMap[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param){
-		unsigned size(sizeof(::RAWINPUT));
 		byte lpb[sizeof(::RAWINPUT)]{};
+		unsigned size(sizeof(lpb));
 
 		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
 			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1)))
@@ -126,7 +125,7 @@ Window::UpdateCandidateWindowLocationUnlocked()
 {
 	if(YB_LIKELY(caret_location != Point::Invalid))
 	{
-		YTraceDe(Notice, "Update composition form position: %s.",
+		YTraceDe(Informative, "Update composition form position: %s.",
 			to_string(caret_location).c_str());
 
 		const auto h_wnd(Nonnull(GetNativeHandle()));
@@ -173,7 +172,7 @@ Window::UpdateFrom(Drawing::ConstBitmapPtr p_buf, ScreenRegionBuffer& rbuf)
 		rbuf.UpdatePremultipliedTo(h_wnd, Opacity);
 	}
 	else
-#endif
+#	endif
 	{
 		rbuf.UpdateFrom(p_buf);
 		rbuf.UpdateTo(h_wnd);

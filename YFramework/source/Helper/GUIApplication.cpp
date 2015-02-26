@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r347
+\version r371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2015-01-24 18:37 +0800
+	2015-02-26 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,25 +95,27 @@ GUIApplication::GetEnvironmentRef() const ynothrow
 bool
 GUIApplication::DealMessage()
 {
-	return AccessQueue([this](MessageQueue& mq)->bool{
-		using namespace Shells;
+	if(AccessQueue([](MessageQueue& mq){
+		return mq.empty();
+	}))
+	//	Idle(UIResponseLimit);
+		OnGotMessage(FetchIdleMessage());
+	else
+	{
+		const auto i(AccessQueue([](MessageQueue& mq){
+			return mq.cbegin();
+		}));
 
-		if(mq.empty())
-		//	Idle(UIResponseLimit);
-			OnGotMessage(FetchIdleMessage());
-		else
-		{
-			const auto i(mq.cbegin());
-
-			if(YB_UNLIKELY(i->second.GetMessageID() == SM_Quit))
-				return {};
-			if(i->first < UIResponseLimit)
-				Idle(UIResponseLimit);
-			OnGotMessage(i->second);
+		if(YB_UNLIKELY(i->second.GetMessageID() == SM_Quit))
+			return {};
+		if(i->first < UIResponseLimit)
+			Idle(UIResponseLimit);
+		OnGotMessage(i->second);
+		AccessQueue([i](MessageQueue& mq){
 			mq.erase(i);
-		}
-		return true;
-	});
+		});
+	}
+	return true;
 }
 
 

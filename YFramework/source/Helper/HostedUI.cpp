@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r310
+\version r320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-02-09 22:54 +0800
+	2015-02-26 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,10 @@
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_UI_YPanel
 #include YFM_Helper_Environment
+#if YCL_Win32
+#	include YFM_YSLib_Core_Task
+#	include <ystdex/cast.hpp> // for ystdex::pvoid;
+#endif
 
 namespace YSLib
 {
@@ -161,7 +165,12 @@ PrepareTopLevelPopupMenu(MenuHost& mh, Menu& mnu, Panel& root, Window* p_wnd)
 		WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST, SW_HIDE);
 	if(p_wnd)
 		p_wnd->MessageMap[WM_DESTROY] += [&]{
-			mnu.SetRenderer({});
+			PostTask([&]{
+				YTraceDe(Debug, "Ready to detach menu '%p' with host window"
+					" '%p' from the host.", ystdex::pvoid(&mnu),
+					ystdex::pvoid(GetWindowPtrOf(mnu)));
+				mnu.SetRenderer({});
+			}, 0xF8);
 		};
 #	else
 	yunused(p_wnd);

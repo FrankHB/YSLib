@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# (C) 2014 FrankHB.
+# (C) 2014-2015 FrankHB.
 # Script for build YSLib release configurations using SHBuild.
 
 set -e
@@ -7,7 +7,7 @@ SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 . $SHBuild_ToolDir/SHBuild-YSLib-common.sh
 
 SHBuild_Pushd
-cd $YSLib_BuildDir
+cd "$YSLib_BuildDir"
 
 unset CXXFLAGS_OPT_DBG
 
