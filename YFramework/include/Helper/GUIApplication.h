@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r373
+\version r375
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2015-01-24 18:37 +0800
+	2015-02-26 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,6 +81,8 @@ public:
 	\return 循环条件。
 	\note 线程安全：全局消息队列互斥访问。
 	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
+	\note 消息在响应消息后移除。
+	\warning 应保证不移除正在被响应的消息。
 
 	若主消息队列为空，处理空闲消息，否则从主消息队列取出并分发消息。
 	当取出的消息的标识为 SM_Quit 时视为终止循环。

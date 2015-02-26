@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r550
+\version r557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-01-18 20:31 +0800
+	2015-02-25 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,11 @@ public:
 	//! \note 通过 Logger 默认实现传递的第三参数非空。
 	using Sender = std::function<void(Level, Logger&, const char*)>;
 
+#ifdef NDEBUG
 	Level FilterLevel = Descriptions::Informative;
+#else
+	Level FilterLevel = Descriptions::Debug;
+#endif
 
 private:
 	//! \invariant <tt>bool(filter)</tt> 。
@@ -223,7 +227,9 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 \note 使用 FetchCommonLogger 保证串行输出。
 \since build 498
 */
-#define YCL_Log(_lv, ...) platform::FetchCommonLogger().Log(_lv, __VA_ARGS__)
+#define YCL_Log(_lv, ...) \
+	platform::FetchCommonLogger().Log( \
+		platform::Descriptions::RecordLevel(_lv), __VA_ARGS__)
 
 
 /*!

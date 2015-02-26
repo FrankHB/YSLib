@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r299
+\version r301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-11-12 04:34 +0800
+	2014-02-25 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ ParseRect(const string& str)
 
 	Rect res(buf[0], buf[1], buf[2], buf[3]);
 
-	YTraceDe(Informative, "ParseRect: %s.", to_string(res).c_str());
+	YTraceDe(Debug, "ParseRect: %s.", to_string(res).c_str());
 
 	return res;
 }

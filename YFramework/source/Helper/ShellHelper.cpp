@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r498
+\version r512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-12-31 07:53 +0800
+	2015-02-25 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace YSLib
 DebugTimer::DebugTimer(const std::string& str)
 	: event_info(str), base_tick()
 {
-	YTraceDe(Debug, "Start tick of [%s] :", event_info.c_str());
+	YTraceDe(0xF0, "Start tick of [%s] :", event_info.c_str());
 	base_tick = Timers::HighResolutionClock::now();
 }
 DebugTimer::~DebugTimer()
@@ -44,7 +44,7 @@ DebugTimer::~DebugTimer()
 	const double t((Timers::HighResolutionClock::now() - base_tick).count()
 		/ 1e6);
 
-	YTraceDe(Debug, "Performed [%s] in: %f milliseconds.",
+	YTraceDe(0xF0, "Performed [%s] in: %f milliseconds.",
 		event_info.c_str(), t);
 }
 #endif
@@ -66,14 +66,24 @@ namespace
 
 //! \since build 264
 inline void
-snftime(char* buf, size_t /*n*/, const std::tm& tm,
+snftime(char* buf, size_t n, const std::tm& tm,
 	const char* format = DefaultTimeFormat)
 {
 	// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
+#if YCL_DS
+	yunused(n);
 	///*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
 	//	tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	// FIXME: use std::snprintf;
 	std::sprintf(buf, format, tm.tm_year + 1900,
+#else
+#	ifdef __BIONIC__
+	::snprintf
+#	else
+	std::snprintf
+#	endif
+	(buf, n, format, tm.tm_year + 1900,
+#endif
 		tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
 

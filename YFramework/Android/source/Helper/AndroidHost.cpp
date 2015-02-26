@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r398
+\version r402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-12-31 11:41 +0800
+	2015-02-25 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -311,9 +311,6 @@ ANativeActivity_onCreate(::ANativeActivity* p_activity,
 	using namespace YSLib;
 	using namespace YSLib::Android;
 
-#ifndef NDEBUG
-	platform::FetchCommonLogger().FilterLevel = platform::Descriptions::Debug;
-#endif
 	YTraceDe(Debug, "Creating activity: %p.",
 		ystdex::pvoid(Nonnull(p_activity)));
 	p_activity->instance = ystdex::make_unique<NativeHost>(*p_activity,

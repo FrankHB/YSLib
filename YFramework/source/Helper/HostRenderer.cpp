@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r472
+\version r480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-02-22 14:30 +0800
+	2015-02-25 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,8 +81,8 @@ WindowThread::~WindowThread()
 {
 	const auto p_wnd_val(Nonnull(GetWindowPtr()));
 
-	YTraceDe(Informative, "Ready to close window '%p' on leaving window"
-		" thread.", pvoid(p_wnd_val));
+	YTraceDe(Debug, "Ready to close window '%p' on leaving window"
+		" thread.", ystdex::pvoid(p_wnd_val));
 	try
 	{
 #	if !YCL_Android
@@ -97,7 +97,11 @@ WindowThread::~WindowThread()
 		CatchIgnore(Exception&) // XXX: Use proper platform-dependent type.
 #		endif
 #	endif
+		YTraceDe(Informative, "Ready to join the window thread '%p' of closed"
+			" window '%p'.", ystdex::pvoid(&thrd), ystdex::pvoid(p_wnd_val));
 		thrd.join();
+		YTraceDe(Debug, "Window thread '%p' joined.",
+			ystdex::pvoid(&thrd));
 	}
 	CatchExpr(std::system_error& e, YTraceDe(Warning,
 		"Caught std::system_error: %s.", e.what()), yunused(e))
@@ -130,7 +134,7 @@ WindowThread::WindowLoop(Window& wnd)
 
 	env.EnterWindowThread();
 #	endif
-	YTraceDe(Notice, "Host loop began.");
+	YTraceDe(Informative, "Host loop began.");
 #	if YCL_HostedUI_XCB
 	// XXX: Exit on I/O error occurred?
 	// TODO: Log I/O error.
@@ -172,7 +176,7 @@ WindowThread::WindowLoop(Window& wnd)
 			::WaitMessage();
 	}
 #	endif
-	YTraceDe(Notice, "Host loop ended.");
+	YTraceDe(Informative, "Host loop ended.");
 #	if YF_Multithread
 	env.LeaveWindowThread();
 #	endif
@@ -200,6 +204,7 @@ HostRenderer::~HostRenderer()
 		"Unknown exception found @ HostRenderer::~HostRenderer."))
 #endif
 }
+
 void
 HostRenderer::SetSize(const Size& s)
 {

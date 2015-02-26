@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r428
+\version r470
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2015-02-08 20:02 +0800
+	2015-02-23 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Service_YResource
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent;
 #include YFM_YSLib_Service_YBlit // for Drawing::BlitPixels;
+#include YFM_YSLib_Service_YPixel // for Drawing::Shaders::BlitAlphaPoint;
 
 namespace YSLib
 {
@@ -176,6 +177,53 @@ UpdateTranposedPixels(_fPixelShader shader, const PaintContext& pc,
 		src.GetHeight(), 0), g.GetSize(), Transpose(src.GetSize()),
 		bounds.GetPoint(), bounds.GetPoint() + src_offset - dst_offset,
 		bounds.GetSize());
+}
+
+
+/*!
+\brief 更新：可能旋转源图像的像素操作。
+\sa Drawing::DispatchTranspose
+\sa Drawing::UpdatePixels
+\sa Drawing::UpdateTranposedPixels
+\since build 579
+*/
+template<Rotation _vRot = RDeg0,
+	typename _fPixelShader = Shaders::BlitAlphaPoint>
+void
+UpdatePixelsWithRotation(_fPixelShader shader, const PaintContext& pc,
+	const Drawing::Image& img, const Point& dst_offset, const Point& src_offset)
+{
+	using namespace ystdex;
+	using trans_t
+		= std::integral_constant<bool, _vRot == RDeg90 || _vRot == RDeg270>;
+
+	Drawing::DispatchTranspose(trans_t(), [&](conditional_t<trans_t::value,
+		transposed_iterator<ConstBitmapPtr>, ConstBitmapPtr> src_iter,
+		const Size& ss, const Point& dst_offset_ex){
+		const auto& g(pc.Target);
+		const Rect& bounds(pc.ClipArea);
+
+		Drawing::BlitPixels<_vRot == RDeg180 || _vRot == RDeg270,
+			_vRot == RDeg90 || _vRot == RDeg180>(shader, g.GetBufferPtr(),
+			src_iter, g.GetSize(), ss, bounds.GetPoint(), bounds.GetPoint()
+			+ src_offset - (dst_offset + dst_offset_ex), bounds.GetSize());
+	}, img.GetContext());
+}
+
+
+/*!
+\brief 使用默认构造的画刷更新：可能旋转源图像的像素操作。
+\sa Drawing::UpdateRotatedBrush
+\since build 579
+*/
+template<Rotation _vRot = RDeg0,
+	typename _fPixelShader = Shaders::BlitAlphaPoint>
+void
+UpdateRotatedBrush(const PaintContext& pc, const Drawing::Image& img,
+	const Point& dst_offset, const Point& src_offset)
+{
+	Drawing::UpdatePixelsWithRotation<_vRot, _fPixelShader>(_fPixelShader(),
+		pc, img, dst_offset, src_offset);
 }
 
 } // namespace Drawing;

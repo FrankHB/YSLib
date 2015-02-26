@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1021
+\version r1040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-22 16:42 +0800
+	2015-02-26 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@ void
 ImagePanel::SetupContextMenu()
 {
 	ResizeForContent(mnuContext);
-	Host::SetupTopLevelContextMenu(mhMain, mnuContext, *this, *this);
+	Host::SetupTopLevelContextMenu(mhMain, mnuContext, *this, *this, true);
 }
 
 void
@@ -181,28 +181,13 @@ ImagePanel::UpdateBrush()
 		update = ImageBrush::UpdateComposite;
 		break;
 	case RDeg90:
-		update = [](const PaintContext& pc, const Image& img,
-			const Point& dst_offset, const Point& src_offset){
-			return UpdateTranposedPixels<BlitAlphaPoint, false, true>(
-				BlitAlphaPoint(), pc, img, dst_offset + RotateCenter(img),
-				src_offset);
-		};
+ 		update = UpdateRotatedBrush<RDeg90>;
 		break;
 	case RDeg180:
-		update = [](const PaintContext& pc, const Image& img,
-			const Point& dst_offset, const Point& src_offset){
-			return UpdatePixels<BlitAlphaPoint, true, true>(BlitAlphaPoint(),
-				pc, img, dst_offset, src_offset);
-		};
+		update = UpdateRotatedBrush<RDeg180>;
 		break;
 	case RDeg270:
-		update = [](const PaintContext& pc, const Image& img,
-			const Point& dst_offset, const Point& src_offset){
-			return UpdateTranposedPixels<BlitAlphaPoint, true, false>(
-				BlitAlphaPoint(), pc, img, dst_offset + RotateCenter(img),
-				src_offset);
-		};
-		break;
+		update = UpdateRotatedBrush<RDeg270>;
 	default:
 		break;
 	}

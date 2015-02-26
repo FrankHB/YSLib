@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 画刷。
-\version r253
+\version r255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2014-11-19 15:52 +0800
+	2015-02-23 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,6 @@
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_Service_YBrush
 #include YFM_YSLib_Service_YDraw
-#include YFM_YSLib_Service_YPixel // for Drawing::Shaders::BlitAlphaPoint;
 
 namespace YSLib
 {

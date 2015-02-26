@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r236
+\version r239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2014-12-01 18:57 +0800
+	2015-02-24 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,8 +48,8 @@ Zoom(const HBitmap& bitmap, ImageScale ratio)
 	if(abs(ratio - 1) < std::numeric_limits<ImageScale>::epsilon())
 		return bitmap;
 
-	const Size zoomed_size(round(bmp_size.Width * ratio),
-		round(bmp_size.Height * ratio));
+	const Size zoomed_size(round(bmp_size.Width * float(ratio)),
+		round(bmp_size.Height * float(ratio)));
 
 	YTraceDe(Informative, "Zoomed image ratio = %f, with size = %s.",
 		float(ratio), to_string(zoomed_size).c_str());
