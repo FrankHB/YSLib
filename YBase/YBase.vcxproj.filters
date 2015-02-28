@@ -158,6 +158,9 @@
     <ClInclude Include="include\ystdex\deref_op.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\libdefect\cstdio.h">
+      <Filter>include\libdefect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

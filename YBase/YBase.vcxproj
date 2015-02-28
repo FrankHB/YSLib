@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\libdefect\cmath.h" />
+    <ClInclude Include="include\libdefect\cstdio.h" />
     <ClInclude Include="include\libdefect\exception.h" />
     <ClInclude Include="include\libdefect\string.h" />
     <ClInclude Include="include\stdinc.h" />

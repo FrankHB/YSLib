@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r512
+\version r526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2015-02-25 21:26 +0800
+	2015-02-26 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,20 +70,7 @@ snftime(char* buf, size_t n, const std::tm& tm,
 	const char* format = DefaultTimeFormat)
 {
 	// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
-#if YCL_DS
-	yunused(n);
-	///*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
-	//	tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-	// FIXME: use std::snprintf;
-	std::sprintf(buf, format, tm.tm_year + 1900,
-#else
-#	ifdef __BIONIC__
-	::snprintf
-#	else
-	std::snprintf
-#	endif
-	(buf, n, format, tm.tm_year + 1900,
-#endif
+	std::snprintf(buf, n, format, tm.tm_year + 1900,
 		tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
 

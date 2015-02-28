@@ -351,6 +351,7 @@
 		<Unit filename="../source/YSLib/UI/YStyle.cpp" />
 		<Unit filename="../source/YSLib/UI/YUIContainer.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidget.cpp" />
+		<Unit filename="../source/YSLib/UI/YWidgetEvent.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidgetView.cpp" />
 		<Unit filename="../source/YSLib/UI/form.cpp" />
 		<Unit filename="../source/YSLib/UI/progress.cpp" />
@@ -358,7 +359,6 @@
 		<Unit filename="../source/YSLib/UI/uicontx.cpp" />
 		<Unit filename="../source/YSLib/UI/ydesktop.cpp" />
 		<Unit filename="../source/YSLib/UI/ypanel.cpp" />
-		<Unit filename="../source/YSLib/UI/ywgtevt.cpp" />
 		<Unit filename="../source/YSLib/UI/ywindow.cpp" />
 		<Unit filename="Makefile" />
 		<Unit filename="include/Helper/DSMain.h" />

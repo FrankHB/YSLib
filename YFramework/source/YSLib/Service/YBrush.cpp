@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 画刷。
-\version r255
+\version r262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2015-02-23 18:54 +0800
+	2015-02-27 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,14 +62,6 @@ ImageBrush::DefaultUpdate(const PaintContext& pc, const Image& img,
 	BlitLines<false, false>(CopyLine<true>(), g.GetBufferPtr(),
 		src.GetBufferPtr(), g.GetSize(), src.GetSize(), bounds.GetPoint(),
 		bounds.GetPoint() + src_offset - dst_offset, bounds.GetSize());
-}
-
-void
-ImageBrush::UpdateComposite(const PaintContext& pc, const Image& img,
-	const Point& dst_offset, const Point& src_offset)
-{
-	return UpdatePixels(Shaders::BlitAlphaPoint(), pc, img, dst_offset,
-		src_offset);
 }
 
 } // namespace Drawing;

@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1591
+\version r1597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2015-01-22 18:37 +0800
+	2015-02-28 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,8 +110,13 @@ public:
 	//! \since build 529
 	using AMUnitList::GetViewPosition;
 
+	/*!
+	\brief 设置单元部件。
+	\throw std::invalid_argument 参数为空。
+	\since build 580
+	*/
 	void
-	SetUnit(unique_ptr<IWidget>&&);
+	SetUnit(unique_ptr<IWidget>);
 
 	/*!
 	\brief 构造共享子部件迭代器。

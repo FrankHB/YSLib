@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1631
+\version r1671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2015-02-01 08:12 +0800
+	2015-02-28 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,7 +313,7 @@ using HTextInputEvent = GHEvent<void(TextInputEventArgs&&)>;
 \brief 标准控件事件空间。
 \since build 416
 */
-enum VisualEvent
+enum VisualEvent : size_t
 {
 //	AutoSizeChanged,
 //	BackColorChanged,
@@ -367,11 +367,18 @@ enum VisualEvent
 
 	//边界事件。
 	Enter, //!< 控件进入。
-	Leave //!< 控件离开。
+	Leave, //!< 控件离开。
 //	TextChanged,
 //	FontChanged,
 //	FontColorChanged,
 //	FontSizeChanged,
+	/*!
+	\brief 事件边界。
+	\since build 580
+
+	仅用于标识枚举中的最大项，不作为实际的事件使用。
+	*/
+	MaxEvent
 };
 
 
@@ -480,23 +487,37 @@ public:
 	virtual DefDeDtor(AController)
 
 	DefPred(const ynothrow, Enabled, enabled)
+	/*!
+	\brief 判断指定事件是否启用。
+	\note 默认实现：仅启用 Paint 事件。
+	\since build 581
+	*/
+	virtual PDefH(bool, IsEventEnabled, VisualEvent id) const
+		ImplRet(id == Paint)
 
 	/*!
 	\brief 取事件项。
-	\since build 293
+	\since build 581
 	*/
-	DeclIEntry(EventMapping::ItemType& GetItem(const VisualEvent&))
+	DeclIEntry(EventMapping::ItemType& GetItem(VisualEvent) const)
 	/*!
 	\brief 取事件项，若不存在则用指定函数指针添加。
 	\note 派生类的实现可能抛出异常并忽略加入任何事件项。
+	\since build 581
 	*/
-	virtual EventMapping::ItemType&
-	GetItemRef(const VisualEvent& id, EventMapping::MappedType(&)())
-	{
-		return GetItem(id);
-	}
+	virtual PDefH(EventMapping::ItemType&, GetItemRef, VisualEvent id,
+		EventMapping::MappedType(&)()) const
+		ImplRet(GetItem(id))
 
 	DefSetter(bool, Enabled, enabled)
+	/*!
+	\brief 设置指定事件是否启用。
+	\throw ystdex::unsupported 不支持设置事件启用操作。
+	\note 默认实现：总是抛出异常。
+	\since build 581
+	*/
+	virtual PDefH(void, SetEventEnabled, VisualEvent, bool)
+		ImplThrow(ystdex::unsupported("AController::SetEventEnabled"))
 
 	/*
 	\brief 复制实例。
@@ -506,10 +527,10 @@ public:
 };
 
 
-//! \since build 413
+//! \since build 581
 template<class _tEventHandler>
 size_t
-DoEvent(AController& controller, const VisualEvent& id,
+DoEvent(AController& controller, VisualEvent id,
 	typename EventArgsHead<typename _tEventHandler::TupleType>::type&& e)
 {
 	TryRet(dynamic_cast<GEvent<typename _tEventHandler::FuncType>&>(
@@ -533,10 +554,10 @@ NewEvent()
 
 /*!
 \brief 在事件映射表中取指定 id 对应的事件。
+\since build 581
 */
 YF_API EventMapping::ItemType&
-GetEvent(EventMapping::MapType&, const VisualEvent&,
-	EventMapping::MappedType(&)());
+GetEvent(EventMapping::MapType&, VisualEvent, EventMapping::MappedType(&)());
 
 /*!
 \ingroup helper_functions
@@ -601,8 +622,8 @@ AddWidgetHandlerAdaptor(_tTarget&& target, _tWidget& wgt, _func&& f)
 class YF_API WidgetController : public AController
 {
 public:
-	//! \since build 572
-	GEventWrapper<GEvent<void(PaintEventArgs&&)>, UIEventArgs&&> Paint;
+	//! \since build 581
+	mutable GEventWrapper<GEvent<void(PaintEventArgs&&)>, UIEventArgs&&> Paint;
 
 	/*!
 	\brief 构造：使用指定可用性。
@@ -610,8 +631,9 @@ public:
 	explicit
 	WidgetController(bool = {});
 
+	//! \since build 581
 	EventMapping::ItemType&
-	GetItem(const VisualEvent&) ImplI(AController);
+	GetItem(VisualEvent) const ImplI(AController);
 
 	//! \since build 409
 	DefClone(const ImplI(AController), WidgetController)

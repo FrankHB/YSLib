@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2089
+\version r2094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2015-01-23 14:03 +0800
+	2015-02-28 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,9 +53,12 @@ AMUnitControlList::GetUnitRef() const
 }
 
 void
-AMUnitControlList::SetUnit(unique_ptr<IWidget>&& p)
+AMUnitControlList::SetUnit(unique_ptr<IWidget> p)
 {
-	p_unit = std::move(p);
+	if(p)
+		p_unit = std::move(p);
+	else
+		throw std::invalid_argument("Null widget pointer found.");
 }
 
 WidgetIterator

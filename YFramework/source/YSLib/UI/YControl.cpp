@@ -11,13 +11,13 @@
 /*!	\file YControl.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3966
+\version r3967
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2015-02-19 14:48 +0800
+	2015-02-28 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ TouchHeld_DragWidget(IWidget* p = {})
 
 
 EventMapping::ItemType&
-Controller::GetItemRef(const VisualEvent& id, EventMapping::MappedType(&f)())
+Controller::GetItemRef(VisualEvent id, EventMapping::MappedType(&f)()) const
 {
 	return GetEvent(EventMap, id, f);
 }
