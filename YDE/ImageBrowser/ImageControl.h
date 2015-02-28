@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r634
+\version r640
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-19 15:56 +0800
+	2015-02-27 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,6 +135,13 @@ private:
 	//! \since build 578
 	void
 	UpdateBrush();
+
+	//! \since build 580
+	void
+	UpdateMenuItem();
+	//! \since build 580
+	void
+	UpdateMenuItem(bool);
 };
 
 } // namespace ImageBrowser;

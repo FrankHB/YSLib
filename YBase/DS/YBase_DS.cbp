@@ -53,6 +53,7 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="../include/libdefect/cmath.h" />
+		<Unit filename="../include/libdefect/cstdio.h" />
 		<Unit filename="../include/libdefect/exception.h" />
 		<Unit filename="../include/libdefect/string.h" />
 		<Unit filename="../include/stdinc.h" />

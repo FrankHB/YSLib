@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4807
+\version r4831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2015-02-01 08:11 +0800
+	2015-02-28 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,8 +52,19 @@ using namespace Drawing;
 */
 class YF_API Controller : public AController
 {
-protected:
-	mutable EventMapping::MapType EventMap; //!< 事件映射表。
+public:
+	/*!
+	\brief 事件映射表。
+	\since build 580
+	*/
+	mutable EventMapping::MapType EventMap;
+
+private:
+	/*!
+	\brief 指定是否启用的掩码。
+	\since build 581
+	*/
+	std::bitset<MaxEvent> event_mask;
 
 public:
 	explicit
@@ -66,13 +77,23 @@ public:
 		: AController(b), EventMap(yforward(args)...)
 	{}
 
-	PDefH(EventMapping::ItemType&, GetItem, const VisualEvent& id)
+	//! \since build 581
+	//@{
+	PDefH(bool, IsEventEnabled, VisualEvent id) const ImplI(AController)
+		ImplRet(AController::IsEnabled() && !event_mask[id])
+
+	PDefH(EventMapping::ItemType&, GetItem, VisualEvent id) const
 		ImplI(AController)
 		ImplRet(EventMap.at(id))
 	EventMapping::ItemType&
-	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)()) override;
-	DefGetter(const ynothrow, EventMapping::MapType&, EventMap, EventMap) \
-		//!< 取事件映射表。
+	GetItemRef(VisualEvent, EventMapping::MappedType(&)()) const override;
+	//@}
+	//! \brief 取事件映射表。
+	DefGetter(const ynothrow, EventMapping::MapType&, EventMap, EventMap)
+
+	//! \since build 581
+	PDefH(void, SetEventEnabled, VisualEvent id, bool b) ImplI(AController)
+		ImplExpr(event_mask[id] = !b)
 
 	//! \since build 409
 	DefClone(const ImplI(AController), Controller)

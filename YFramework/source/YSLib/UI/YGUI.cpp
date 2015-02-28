@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4235
+\version r4291
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-02-22 23:13 +0800
+	2015-02-28 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,9 +41,10 @@ namespace UI
 namespace
 {
 
-//! \since build 359
+//! \since build 580
 IWidget*
-FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
+FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt,
+	VisualEvent id)
 {
 	if(con.GetView().HitChildren(pt))
 		return {};
@@ -51,7 +52,8 @@ FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
 	{
 		IWidget& wgt(*pr.first);
 
-		if(Contains(wgt, pt) && IsEnabled(wgt) && IsVisible(wgt))
+		if(Contains(wgt, pt) && IsVisible(wgt)
+			&& wgt.GetController().IsEventEnabled(id))
 			return &wgt;
 	}
 	return &con;
@@ -240,38 +242,65 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 			return;
 		p_con = &wgt_ref.get();
 
-		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*p_con, e));
+		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*p_con, e, op));
 
 		if(!t)
 		{
-			if(op == TouchDown)
+			// NOTE: Following code simulates a %Control at (0, 0) is
+			//	responsible directly without user-defined event handlers.
+			e.Strategy = RoutedEventArgs::Direct;
+			switch(op)
 			{
+				case TouchUp:
+				// NOTE: See %Wrap.
+				if(p_indp_focus)
+				{
+					e.SetSender(*p_indp_focus);
+					TryLeaving(std::move(e));
+				}
+				ResetHeldState(TouchHeldState, e.Keys),
+				DraggingOffset = Vec::Invalid;
+				if(p_indp_focus)
+					CallEvent<ClickAcross>(*p_indp_focus, e);
+				p_indp_focus = {};
+				break;
+			case TouchDown:
+				// NOTE: See %Wrap.
+				p_indp_focus = {};
+				// NOTE: See %OnTouchDown_RequestToFrontFocused.
 				ClearFocusingOf(*p_con);
-				RequestFocusCascade(*p_con);
+				break;
+			// TODO: %CursorOver.
+			case TouchHeld:
+				// NOTE: See %ResponseCursorBase.
+				if(p_indp_focus)
+					CallEvent<TouchHeld>(*p_indp_focus, e);
+				// TODO: Send %Leave event.
+			default:
+				break;
 			}
-			return;
-		}
-		if(t == p_con)
-		{
+			e.Strategy = RoutedEventArgs::Bubble;
 			if(e.Handled)
 				return;
-			else
-				break;
+			goto handle_bubbled;
 		}
+		if(t == p_con)
+			break;
 		e.SetSender(wgt_ref);
 		ResponseCursorBase(e, op);
 		e.Position -= GetLocationOf(wgt_ref = *t);
 	};
-	e.Strategy = UI::RoutedEventArgs::Direct;
+	e.Strategy = RoutedEventArgs::Direct;
 	e.SetSender(wgt_ref);
 	ResponseCursorBase(e, op);
 	if(op == TouchDown)
 		HandleCascade(e, wgt_ref);
-	e.Strategy = UI::RoutedEventArgs::Bubble;
+	e.Strategy = RoutedEventArgs::Bubble;
 	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref)))
 	{
 		e.Position += GetLocationOf(wgt_ref);
 		e.SetSender(wgt_ref = *p_con);
+handle_bubbled:
 		ResponseCursorBase(e, op);
 	}
 }
@@ -307,7 +336,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 	auto wgt_ref(ystdex::ref(e.GetSender()));
 	IWidget* p_con;
 
-	e.Strategy = UI::RoutedEventArgs::Tunnel;
+	e.Strategy = RoutedEventArgs::Tunnel;
 	while(true)
 	{
 		if(!(IsVisible(wgt_ref) && IsEnabled(wgt_ref)) || e.Handled)
@@ -317,22 +346,17 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 		const auto t(FetchVisibleEnabledFocusingPtr(*p_con));
 
 		if(!t || t == p_con)
-		{
-			if(e.Handled)
-				return;
-			else
-				break;
-		}
+			break;
 		e.SetSender(wgt_ref);
 		ResponseKeyBase(e, op);
 		wgt_ref = *t;
 	}
-	e.Strategy = UI::RoutedEventArgs::Direct;
+	e.Strategy = RoutedEventArgs::Direct;
 	e.SetSender(wgt_ref);
 	ResponseKeyBase(e, op);
 	if(op == KeyDown)
 		HandleCascade(e, wgt_ref);
-	e.Strategy = UI::RoutedEventArgs::Bubble;
+	e.Strategy = RoutedEventArgs::Bubble;
 	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref)))
 	{
 		e.SetSender(wgt_ref = *p_con);
@@ -442,7 +466,7 @@ GUIState::Wrap(IWidget& wgt)
 			{
 				e.SetSender(*p_indp_focus);
 				TryLeaving(std::move(e));
-				e.SetSender(e.GetSender());
+				e.SetSender(wgt);
 			}
 			ResetHeldState(TouchHeldState, e.Keys),
 			DraggingOffset = Vec::Invalid;

@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r470
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2015-02-23 18:54 +0800
+	2015-02-27 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,14 +128,6 @@ public:
 	static void
 	DefaultUpdate(const PaintContext&, const Drawing::Image&, const Point&,
 		const Point&);
-
-	/*!
-	\brief 更新：Alpha 组合图像。
-	\since build 448
-	*/
-	static void
-	UpdateComposite(const PaintContext&, const Drawing::Image&, const Point&,
-		const Point&);
 };
 
 
@@ -213,7 +205,7 @@ UpdatePixelsWithRotation(_fPixelShader shader, const PaintContext& pc,
 
 /*!
 \brief 使用默认构造的画刷更新：可能旋转源图像的像素操作。
-\sa Drawing::UpdateRotatedBrush
+\sa Drawing::UpdatePixelsWithRotation
 \since build 579
 */
 template<Rotation _vRot = RDeg0,
@@ -224,6 +216,37 @@ UpdateRotatedBrush(const PaintContext& pc, const Drawing::Image& img,
 {
 	Drawing::UpdatePixelsWithRotation<_vRot, _fPixelShader>(_fPixelShader(),
 		pc, img, dst_offset, src_offset);
+}
+
+
+/*!
+\brief 按指定的源图像旋转方向构造画刷。
+\sa UpdateRotatedBrush
+\since build 580
+*/
+template<typename _fPixelShader = Shaders::BlitAlphaPoint,
+	typename _tImage = Drawing::Image>
+GBrushUpdater<const _tImage&, const Point&, const Point&>
+DispatchRotatedBrush(Rotation rot)
+{
+	switch(rot)
+	{
+	case RDeg0:
+		return UpdateRotatedBrush<RDeg0, _fPixelShader>;
+		break;
+	case RDeg90:
+ 		return UpdateRotatedBrush<RDeg90, _fPixelShader>;
+		break;
+	case RDeg180:
+		return UpdateRotatedBrush<RDeg180, _fPixelShader>;
+		break;
+	case RDeg270:
+		return UpdateRotatedBrush<RDeg270, _fPixelShader>;
+	default:
+		break;
+	}
+	YAssert(false, "Invalid rotation found.");
+	return {};
 }
 
 } // namespace Drawing;

@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r239
+\version r256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2015-02-24 00:56 +0800
+	2015-02-27 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ ImagePages::ImagePages(ZoomedImageCache&& c, const Size& min_size,
 	LoadContent();
 //	YTraceDe(Informative, "Format = %d.", bitmap.GetFormat());
 	yunseq(view_size = min_size | Brush.ImagePtr->GetSize(),
-		Brush.Update = ImageBrush::UpdateComposite);
+		Brush.Update = Drawing::UpdateRotatedBrush<>);
 	AdjustOffset(view_size);
 }
 
@@ -157,8 +157,24 @@ bool
 ImagePages::Zoom(float delta, const Point& offset)
 {
 	YTraceDe(Informative, "Action: zoom, with delta = %f%%.", delta * 100.F);
+	return ZoomTo(scale + delta, offset);
+}
 
-	ImageScale new_scale(scale + delta);
+bool
+ImagePages::ZoomByRatio(float ratio, const Point& offset)
+{
+	YTraceDe(Informative, "Action: zoom, with ratio = %f%%.", ratio * 100.F);
+	if(ratio > 0)
+		return Zoom((ratio - 1.F) * scale, offset);
+	else
+		YTraceDe(Warning, "Invalid ratio found.");
+	return {};
+}
+
+bool
+ImagePages::ZoomTo(float dst_scale, const Point& offset)
+{
+	ImageScale new_scale(dst_scale);
 
 	RestrictInClosedInterval(new_scale, MinScale, MaxScale);
 	YTraceDe(Informative, "Requested zoomed ratio = %f, fixed offset = %s.",
@@ -173,17 +189,6 @@ ImagePages::Zoom(float delta, const Point& offset)
 		AdjustOffset(view_size);
 		return true;
 	}
-	return {};
-}
-
-bool
-ImagePages::ZoomByRatio(float ratio, const Point& offset)
-{
-	YTraceDe(Informative, "Action: zoom, with ratio = %f%%.", ratio * 100.F);
-	if(ratio > 0)
-		return Zoom((ratio - 1.F) * scale, offset);
-	else
-		YTraceDe(Warning, "Invalid ratio found.");
 	return {};
 }
 

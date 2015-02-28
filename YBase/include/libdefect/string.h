@@ -16,7 +16,7 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<string\> 修正。
-\version r612
+\version r647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
@@ -34,6 +34,7 @@
 #define YB_INC_libdefect_string_h_ 1
 
 #include <string>
+#include "cstdio.h" // for std::vsnprintf;
 
 // See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .
 // NOTE: Fixed @ 4.8 for MinGW-W64.
@@ -42,50 +43,45 @@
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& !(defined(_GLIBCXX_USE_C99) && !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF))
 
-#include <ext/string_conversions.h>
+#	include <ext/string_conversions.h>
 
 namespace std _GLIBCXX_VISIBILITY(default)
 {
 
-#ifndef _GLIBCXX_USE_C99
+#	ifndef _GLIBCXX_USE_C99
 
-#	ifndef __BIONIC__
+#		ifndef __BIONIC__
 extern "C" long long int
 (strtoll)(const char* __restrict, char** __restrict, int) throw();
 extern "C" unsigned long long int
 (strtoull)(const char* __restrict, char** __restrict, int) throw();
 using ::strtold;
-extern "C" int
-(vsnprintf)(char* __restrict, std::size_t, const char* __restrict,
-	__gnuc_va_list) throw();
-#	else
+#		else
 //! \since build 543
 using ::strtoll;
 //! \since build 543
 using ::strtoull;
-//! \since build 492
-using ::vsnprintf;
-#	endif
+#		endif
 
 using ::strtof;
 using ::wcstol;
 using ::wcstoul;
 using ::wcstod;
-#	ifndef __BIONIC__
+#		ifndef __BIONIC__
 using ::wcstoll;
 using ::wcstoull;
 using ::wcstof;
 using ::wcstold;
-#	endif
+#		endif
 
-#endif
+#	endif
 
 
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 // 21.4 Numeric Conversions [string.conversions].
 
-#define YB_LibDefect_String_stoi(_s, _n, _t, _cfname) \
+#	define YB_LibDefect_String_stoi(_s, _n, _t, _cfname) \
 	inline _t \
 	_n(const _s& __str, size_t* __idx = {}, int __base = 10) \
 	{ \
@@ -102,7 +98,7 @@ YB_LibDefect_String_stoi(string, stol, long, std::strtol)
 YB_LibDefect_String_stoi(string, stoul, unsigned long, std::strtoul)
 YB_LibDefect_String_stoi(string, stoll, long long, std::strtoll)
 YB_LibDefect_String_stoi(string, stoull, unsigned long long, std::strtoull)
-#ifdef _GLIBCXX_USE_WCHAR_T
+#	ifdef _GLIBCXX_USE_WCHAR_T
 inline int
 stoi(const wstring& __str, size_t* __idx = {}, int __base = 10)
 {
@@ -111,43 +107,43 @@ stoi(const wstring& __str, size_t* __idx = {}, int __base = 10)
 }
 YB_LibDefect_String_stoi(wstring, stol, long, std::wcstol)
 YB_LibDefect_String_stoi(wstring, stoul, unsigned long, std::wcstoul)
-#	ifndef __BIONIC__
+#		ifndef __BIONIC__
 YB_LibDefect_String_stoi(wstring, stoll, long long, std::wcstoll)
 YB_LibDefect_String_stoi(wstring, stoull, unsigned long long, std::wcstoull)
+#		endif
 #	endif
-#endif
 
-#undef YB_LibDefect_String_stoi
+#	undef YB_LibDefect_String_stoi
 
 
-#define YB_LibDefect_String_stof(_s, _n, _t, _cfname) \
+#	define YB_LibDefect_String_stof(_s, _n, _t, _cfname) \
 	inline _t \
 	_n(const _s& __str, size_t* __idx = {}) \
 	{ \
 		return __gnu_cxx::__stoa(&_cfname, #_n, __str.c_str(), __idx); \
 	}
 
-#if !(defined(__clang__) && defined(__BIONIC__))
+#	if !(defined(__clang__) && defined(__BIONIC__))
 // NOTE: Seems to be a bug of Clang++ 3.4.
 // NOTE: strtof vs strtod.
 YB_LibDefect_String_stof(string, stof, float, std::strtof)
 YB_LibDefect_String_stof(string, stod, double, std::strtod)
-#endif
-#if !defined(__BIONIC__)
+#	endif
+#	if !defined(__BIONIC__)
 YB_LibDefect_String_stof(string, stold, long double, std::strtold)
-#endif
-#if defined(_GLIBCXX_USE_WCHAR_T) && !defined(__BIONIC__)
+#	endif
+#	if defined(_GLIBCXX_USE_WCHAR_T) && !defined(__BIONIC__)
 // NOTE: wcstof vs wcstod.
 YB_LibDefect_String_stof(wstring, stof, float, std::wcstof)
 YB_LibDefect_String_stof(wstring, stod, double, std::wcstod)
 YB_LibDefect_String_stof(wstring, stold, long double, std::wcstold)
-#endif
+#	endif
 
-#undef YB_LibDefect_String_stof
+#	undef YB_LibDefect_String_stof
 
 
 // NOTE: (v)snprintf vs sprintf.
-#define YB_LibDefect_String_tostri(_s, _t, _fmt, _cfname) \
+#	define YB_LibDefect_String_tostri(_s, _t, _fmt, _cfname) \
 	inline _s \
 	to_##_s(_t __val) \
 	{ \
@@ -162,19 +158,19 @@ YB_LibDefect_String_tostri(string, long, "%ld", std::vsnprintf)
 YB_LibDefect_String_tostri(string, unsigned long, "%lu", std::vsnprintf)
 YB_LibDefect_String_tostri(string, long long, "%lld", std::vsnprintf)
 YB_LibDefect_String_tostri(string, unsigned long long, "%llu", std::vsnprintf)
-#if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) && defined(_GLIBCXX_USE_WCHAR_T)
+#	if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) && defined(_GLIBCXX_USE_WCHAR_T)
 YB_LibDefect_String_tostri(wstring, int, L"%d", std::vswprintf)
 YB_LibDefect_String_tostri(wstring, unsigned, L"%u", std::vswprintf)
 YB_LibDefect_String_tostri(wstring, long, L"%ld", std::vswprintf)
 YB_LibDefect_String_tostri(wstring, unsigned long, L"%lu", std::vswprintf)
 YB_LibDefect_String_tostri(wstring, long long, L"%lld", std::vswprintf)
 YB_LibDefect_String_tostri(wstring, unsigned long long, L"%llu", std::vswprintf)
-#endif
+#	endif
 
-#undef YB_LibDefect_String_tostri
+#	undef YB_LibDefect_String_tostri
 
 
-#define YB_LibDefect_String_tostrf(_s, _t, _fmt, _cfname) \
+#	define YB_LibDefect_String_tostrf(_s, _t, _fmt, _cfname) \
 	inline _s \
 	to_##_s(_t __val) \
 	{ \
@@ -186,13 +182,13 @@ YB_LibDefect_String_tostri(wstring, unsigned long long, L"%llu", std::vswprintf)
 YB_LibDefect_String_tostrf(string, float, "%f", std::vsnprintf)
 YB_LibDefect_String_tostrf(string, double, "%f", std::vsnprintf)
 YB_LibDefect_String_tostrf(string, long double, "%f", std::vsnprintf)
-#if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) && defined(_GLIBCXX_USE_WCHAR_T)
+#	if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) && defined(_GLIBCXX_USE_WCHAR_T)
 YB_LibDefect_String_tostrf(wstring, float, L"%f", std::vswprintf)
 YB_LibDefect_String_tostrf(wstring, double, L"%f", std::vswprintf)
 YB_LibDefect_String_tostrf(wstring, long double, L"%f", std::vswprintf)
-#endif
+#	endif
 
-#undef YB_LibDefect_String_tostrf
+#	undef YB_LibDefect_String_tostrf
 
 _GLIBCXX_END_NAMESPACE_VERSION
 

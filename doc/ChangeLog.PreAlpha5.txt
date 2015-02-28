@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10435
+\version r10567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-26 20:31 +0800
+	2015-02-28 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,138 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+
+	/ %YBase $=
+	(
+		/ %LibDefect $=
+		(
+			+ %CStandardIO
+				$= (+ "ISO C++ functions declarations from C99 %(snprintf, \
+					vfscanf, vscanf, vsscanf)" @ "namespace %std"
+					@ "using libstdc++ without C99 functions enabled");
+			/ "declaration %vsnprintf" @ %String >> %StandardIO
+			// Now platforms %(DS, Android) could use %std::snprintf, etc. See
+				http://stackoverflow.com/questions/24477228/stdc-version-not-defined-in-c11 \
+				for reason why C99 funtion declarations from newlib does not \
+				work.
+		)
+	),
+	/ %YFramework $=
+	(
+		/ $re_ex(b579) @ "time printing implementation" @ %Helper.ShellHelper $=
+		(
+			/ "simplified implementation" ^ "%std::snprintf" $dep_from
+				%YBase.LibDefect.CStandardIO;
+			* $comp "ignored size parameter" @ "platform %DS" $since b307
+		),
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ @ "class %GUIState" @ %YGUI $=
+				(
+					- DLD "redundant handled state check"
+						@ "functions %(ResponseCursor, ResponseKey)",
+					/ "better event handling for hit children"
+						@ "function %ResponseCursor" $=
+					(
+						+ "%Direct event simulation",
+						+ "%Bubble event handling"
+					),
+					* "set wrong sender after calling %TryLeave"
+						@ "wrapped %TouchUp" @ "function %Wrap" $since b422,
+						// This was expected to reset the sender, but actually \
+							no-op. Since it was at last priority, the effect \
+							was not obvious.
+					/ "supported filtered enabled visual event"
+						@ "%ResponseCursor" ^ $dep_from
+						("%AController::IsEventEnabled" @ %YWidgetEvent)
+						~ "%IsEnabled"
+				),
+				/ @ "member function %AMUnitControlList::SetUnit" @ %ListControl
+					$=
+				(
+					/ "parameter type" -> 'unique_ptr<IWidget>'
+						~ 'unique_ptr<IWidget>&&',
+					/ "threw %std::invalid_argument for null pointer"
+				),
+				/ %YWidgetEvent $=
+				(
+					/ @ "enum %VisualEvent" $=
+					(
+						/ "explicitly specified underlying type %size_t",
+						+ "enumerator %MaxEvent",
+					)
+					/ @ "class %AController" $=
+					(
+						/ DLD "implemented virtual member function \
+							%AController::GetItemRef"
+							^ "macro %(PDefH, ImplRet)",
+						+ "virtual member functions %(IsEventEnabled, \
+							SetEventEnabled)",
+					),
+					+ 'muable' @ "data member %WidgetEvent::Paint"
+				),
+				+ 'const' @ "virtual member functions %(GetItem, GetItemRef)"
+					$effective @ ("class %(AController, WidgetController)"
+					@ %YWidgetEvent, "class %Controller" @ %YControl),
+				/ "all function parameter 'const VisualEvent&'" -> 'VisualEvent'
+					$effective @ (("member functions %(AController::GetItem, \
+					AController::GetItemRef, WidgetController::GetItem)",
+					"function template %DoEvent", "function %GetEvent")
+					@ %YWidgetEvent, "member functions Controller::(GetItem, \
+					GetItemRef)" @ %YControl),
+				/ @ "class %Controller" @ %YControl $=
+				(
+					+ 'const'
+						@ "virtual member functions %(GetItem, GetItemRef)",
+					/ "access-specifier" @ "protected data member %EventMap"
+						-> 'public',
+					(
+					+ DLD "event mask";
+					+ "overrider %(IsEventEnalbed, SetEventEnabled)"
+					)
+				)
+			),
+			/ %Service $=
+			(
+				/ "class %ImagePages" @ %ImageProcessing $=
+				(
+					/ DLD "implemented default image brush" @ "constructor"
+						^ 'Drawing::UpdateRotatedBrush<>'
+						~ 'ImageBrush::UpdateComposite',
+					+ "function %ZoomTo"
+				),
+				/ %YBrush $=
+				(
+					+ "function template %DispatchRotatedBrush",
+					- $revert(b448) "static member function \
+						%ImageBrush::UpdateComposite" $dep_from %ImageProcessing
+				)
+			)
+		)
+	),
+	/ %YDE.ImageBrowser $=
+	(
+		* $comp "missing response for out-of-bounds host dragging" $effective
+			@ $since b578 $dep_from "%Direct event simulation"
+			@ "member function %GUIState::ResponseCursor" @ %YGUI;
+		/ "class %ImagePanel" @ %ImageControl $=
+		(
+			* $lib "redundant image update for rotation" $since b578,
+				// Unnecessary doubled operations led to performance digression.
+			/ "simplified implementation" @ "function %UpdateBrush" ^ $dep_from
+				("%DispatchRotatedBrush" @ %YFramework.YSLib.Service.YBrush),
+			+ "menu item for recovering to original size"
+		)
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%ywgtevent.cpp"
+		=> "%YWidgetEvent.cpp") @ YFramework.YSLib.UI
+),
+
+b579
 (
 	/ %YFramework $=
 	(
@@ -101,9 +233,9 @@ $now
 			/ %ShellHelper $=
 			(
 				* DLD "ignored size parameter" @ "time printing implementation"
-					$since b307
+					$since b307 @ "!platform %DS"
 					$= (/ "implemented" ^ "%std::snprintf or %::snprintf"
-						~ "%std::printf") @ "!platform %DS",
+						~ "%std::printf"),
 						// No %std::snprintf is declared on platforms \
 							%(Android, DS) that 'defined(__GLIBCXX__) && \
 							!defined(_GLIBCXX_USE_C99)', this is a workaround. \

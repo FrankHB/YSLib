@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1040
+\version r1089
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-26 19:55 +0800
+	2015-02-27 23:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,16 @@
 namespace ImageBrowser
 {
 
+//! \since build 581
+enum MenuItem : size_t
+{
+	Exit = 0,
+	OrigSize,
+	Flip,
+	RotateCW,
+	RotateCCW
+};
+
 ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	const Size& max_size)
 	: Panel(r),
@@ -38,7 +48,7 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	hover_state(std::bind(TimedHoverState::LocateForOffset,
 	std::placeholders::_1, Point(0, 24))), border(*this, 8, min_size),
 	mnuContext({}, make_shared<Menu::ListType, String>(
-	{u"退出", u"翻转", u"顺时针旋转", u"逆时针旋转"}))
+	{u"退出", u"查看原始大小", u"翻转", u"顺时针旋转", u"逆时针旋转"}))
 {
 	*this += btnClose,
 	Host::SetupTimedTips(hover_state, btnClose, lblCloseTips, u"关闭"),
@@ -57,20 +67,27 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	mnuContext.Confirmed += [this](IndexEventArgs&& e){
 		switch(e.Value)
 		{
-		case 0:
+		case MenuItem::Exit:
 			YSLib::PostQuitMessage(0);
 			break;
-		case 1:
+		case MenuItem::OrigSize:
+			if(session_ptr)
+			{
+				const auto& s(GetSizeOf(*this));
+
+				GetPagesRef().ZoomTo(1.F, Point(s.Width / 2, s.Height / 2));
+				Invalidate(*this);
+				UpdateMenuItem({});
+			}
+			break;
+		case MenuItem::Flip:
 			Flip();
-			UpdateBrush();
 			break;
-		case 2:
+		case MenuItem::RotateCW:
 			RotateCW();
-			UpdateBrush();
 			break;
-		case 3:
+		case MenuItem::RotateCCW:
 			RotateCCW();
-			UpdateBrush();
 		default:
 			break;
 		}
@@ -91,7 +108,10 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
 		if(session_ptr
 			&& GetPagesRef().ZoomByRatio(e.GetDelta() > 0 ? 1.2F : 0.8F, e))
+		{
 			Invalidate(*this);
+			UpdateMenuItem();
+		}
 	},
 	FetchEvent<Paint>(*this).Add([this](PaintEventArgs&& e){
 		if(session_ptr)
@@ -154,6 +174,7 @@ ImagePanel::Load(ImagePages&& src)
 			}
 		});
 	}
+	UpdateMenuItem();
 }
 
 void
@@ -172,26 +193,20 @@ ImagePanel::Unload()
 void
 ImagePanel::UpdateBrush()
 {
-	using namespace Drawing::Shaders;
-	auto& update(GetPagesRef().Brush.Update);
-
-	switch(rot)
-	{
-	case RDeg0:
-		update = ImageBrush::UpdateComposite;
-		break;
-	case RDeg90:
- 		update = UpdateRotatedBrush<RDeg90>;
-		break;
-	case RDeg180:
-		update = UpdateRotatedBrush<RDeg180>;
-		break;
-	case RDeg270:
-		update = UpdateRotatedBrush<RDeg270>;
-	default:
-		break;
-	}
+	GetPagesRef().Brush.Update = DispatchRotatedBrush(rot);
 	Invalidate(*this);
+}
+
+void
+ImagePanel::UpdateMenuItem()
+{
+	UpdateMenuItem(abs(GetPagesRef().GetScale() - 1.F)
+		< std::numeric_limits<ImageScale>::epsilon());
+}
+void
+ImagePanel::UpdateMenuItem(bool b)
+{
+	mnuContext.SetItemEnabled(MenuItem::OrigSize, b);
 }
 
 } // namespace ImageBrowser;

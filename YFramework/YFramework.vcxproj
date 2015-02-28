@@ -334,7 +334,7 @@
     <ClCompile Include="source\YSLib\UI\YRenderer.cpp" />
     <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\YUIContainer.cpp" />
-    <ClCompile Include="source\YSLib\UI\ywgtevt.cpp" />
+    <ClCompile Include="source\YSLib\UI\YWidgetEvent.cpp" />
 		<ClCompile Include="source\YSLib\UI\YWidget.cpp" />
 		<ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
 		<ClCompile Include="source\YSLib\UI\ywindow.cpp" />
