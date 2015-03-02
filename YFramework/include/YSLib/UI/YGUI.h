@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2395
+\version r2403
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-30 08:03 +0800
+	2015-03-02 15:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,6 +133,11 @@ public:
 	\since build 445
 	*/
 	Drawing::Point CursorLocation{Point::Invalid};
+	/*!
+	\brief 最近响应 CursorOver 事件时保存的旧的控件全局位置（相对顶层部件的坐标）。
+	\since build 581
+	*/
+	Drawing::Point CursorOverLocation{Point::Invalid};
 	Drawing::Vec DraggingOffset{Vec::Invalid}; //!< 拖放偏移量。
 	/*!
 	\brief 外部文本输入焦点部件指针。
@@ -201,7 +206,7 @@ private:
 	*/
 	size_t shared_wgt_id = size_t(-1);
 	/*!
-	\brief 光标设备指针对应的部件。
+	\brief 设备指针光标对应的部件。
 	\since build 422
 	*/
 	IWidget* p_CursorOver = {};
@@ -239,6 +244,8 @@ private:
 public:
 	//! \since build 422
 	DefPred(const ynothrow, Entered, entered)
+	//! \since build 581
+	DefPred(const ynothrow, CursorMoved, CursorLocation != CursorOverLocation)
 
 	//! \since build 487
 	DefGetter(const ynothrow, const KeyInput&, CheckedHeldKeys, checked_held)

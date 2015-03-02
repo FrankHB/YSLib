@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10567
+\version r10683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-28 14:46 +0800
+	2015-03-02 20:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,123 @@ $import $HISTORY;
 
 $now
 (
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ @ "functions %(IsEnabled, SetEnabledOf)" @ %YControl $=
+				(
+					- "try block and catch clause for %BadEvent",
+					/ DLD "simplified implementation"
+						^ "macros %(PDefH, ImplExpr, ImplRet)"
+				),
+				/ @ "class %AMUnitList" @ %Viewer $=
+				(
+					/ "virtual function %GetItemHeight"
+						-> "protected %GetItemHeightCore";
+					+ "non-virtual function %GetItemHeight"
+				),
+				/ %ListControl $=
+				(
+					/ "overrider %MTextList::GetItemHeight" -> ("protected \
+						%MTextList::GetItemHeightCore",
+						"public 'using AMUnitList::GetItemHeight;'"
+						@ "class %AMUnitControlList") $forced $dep_from
+						(%"AMUnitList:GetItemHeightCore" @ %Viewer),
+					(
+					+ "enum %SelectionOption";
+					+ "data member %SelectionOptions";
+					+ "%CursorOver handler for hover selecting on non-bubble \
+						event when %HoverSelect is set"
+						@ "constructor %TextList",
+						// Disabled menu item is still not allowed selected by \
+							%TouchDown but allowed by %KeyDown. This is now \
+							intended.
+					+ "handlers for unit control and %TextList for event %Leave"
+						$dep_from ("changed sender of event %Leave" @ %YGUI)
+					),
+					+ 'std::function<bool(IWidget&)> IsRelated{};'
+				),
+				/ @ "class %Menu" @ %Menu $=
+				(
+					+ "function %TryShowingSub",
+					+ "selection on hover" $dep_from
+						("%TextList::SelectionOptions" @ %ListControl) $=
+					(
+						+ "set 'SelectionOptions[SelectOnHover]'"
+							@ "constructor",
+						/ "set %Selected handler to show sub menu when \
+							'SelectionOptions[SelectOnHover]' set"
+					),
+					+ "set ('SelectionOptions[ClearSelectionOnConfirm]', \
+						'SelectionOptions[ClearSelectionOnLeave]')"
+						@ "constructor",
+					/ "set %IsRelated" @ "%Menu" $dep_from
+						("%TextList::IsRelated" @ %ListControl)
+				),
+				/ "class %GUIState" @ %YGUI $=
+				(
+					/ "changed sender of event %Leave" @ "%CursorOver handler"
+						@ "member function %Wrap",
+						// Now the sender should be triggring the event and \
+							the event position is relative to the subscriber. \
+							So the old %Leave handlers should be rewritten to \
+							take the right position coordinate.
+					* "missing reset of entered top level pointer",
+					(
+					+ "data member %CursorOverLocation";
+					/ "saved old %CursorLocation to %CursorOverLocation"
+						@ "function %ResponseCursor",
+					+ "function %IsCursorMoved"
+					)
+				)
+				- "function %OnHover_SetRenderer" @ %Hover $dep_from
+					%Helper.HostedUI
+			),
+			/ %Service $=
+			(
+				/ "last default argument" @ "class %ImagePages"
+					@ %ImageProcessing -> '{}' ~ '0.F',
+				+ "constructor with first 2 'float' parameters"
+					@ "classes %(HS; HSL, HSV)" @ %YStyle
+			)
+		),
+		* "missing declared alias %::LRESULT" @ "platform %Win64" @ %HostedGUI
+			$since b564
+			// This caused declaration of %::WNDPROC ill-formed.
+	),
+	/ @ "class template %fixed_point" @ %YBase.YStandardEx.Rational $=
+	(
+		+ DLD "'yimpl' for %enable_if_t parameters" @ "constructors",
+		(
+		+ 'explicit' @ "2 constructors with 1st floating pointer parameter"
+			$dep_from %YFramework.YSLib.Service.ImageProcessing;
+		* $comp "ambiguous overloadings for %operator(-, /) when first \
+			parameter is of floating point and second is of %fixed_point \
+			instance" $since b260
+		),
+		/ "user defined conversions" $=
+		(
+			* $re_ex(b276) "missing 'explicit' for conversions to integral \
+				types" $since b276
+				$= (/ "conversion operator template for arithmetic types"
+					-> "2 conversion operator templates with 'explicit' only \
+					for integral types"),
+			+ 'ynothrow'
+		),
+		+ "'ynothrow' for friend functions %(fabs, ceil, floor, round)"
+	),
+	/ "handlers for event %Leave" $effective @ ((("class %Thumb" @ %Button, \
+		"class %TreeList" @ %TreeView) @ %YSLib.UI, "function %BindTimedTips"
+		@ %Helper.HostedUI)) @ %YFramework, "class %ShlExplorer"
+		@ %YReader.ShlExplorer) $forced
+		$dep_from "member function %GUIState::Wrap" @ %YGUI
+),
 
+b580
+(
 	/ %YBase $=
 	(
 		/ %LibDefect $=

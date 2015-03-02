@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2094
+\version r2136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2015-02-28 02:57 +0800
+	2015-03-02 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ MTextList::MTextList(const shared_ptr<ListType>& h)
 }
 
 SDst
-MTextList::GetItemHeight() const
+MTextList::GetItemHeightCore() const
 {
 	const auto
 		item_h(LabelBrush.Font.GetHeight() + GetVerticalOf(LabelBrush.Margin));
@@ -118,6 +118,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	const pair<Color, Color>& hilight_pair)
 	: Control(r, MakeBlankBrush()), MTextList(h), MHilightText(hilight_pair)
 {
+	using namespace std::placeholders;
 	const auto invalidator([this]{
 		Invalidate(*this);
 	});
@@ -188,9 +189,22 @@ bound_select:
 		e.Handled = true;
 	},
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
+	FetchEvent<CursorOver>(*this) += [this](CursorEventArgs&& e){
+		if(SelectionOptions[SelectOnHover]
+			&& e.Strategy != RoutedEventArgs::Bubble
+			&& FetchGUIState().IsCursorMoved())
+		{
+			const auto idx(CheckPoint(GetSizeOf(*this), e));
+
+			if(idx != size_t(-1))
+				SetSelected(idx);
+		}
+	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
 	FetchEvent<GotFocus>(*this) += invalidator,
 	FetchEvent<LostFocus>(*this) += invalidator,
+	FetchEvent<Leave>(*this)
+		+= std::bind(&TextList::ClearSelectedOnLeave, this, _1),
 	FetchEvent<Click>(unit) += [this]{
 		InvokeConfirmed(idxShared);
 	},
@@ -211,9 +225,32 @@ bound_select:
 				HilightBackColor);
 		else
 			LabelBrush.ForeColor = ForeColor;
-	}, BackgroundPriority)
+	}, BackgroundPriority),
+	FetchEvent<Leave>(unit)
+		+= std::bind(&TextList::ClearSelectedOnLeave, this, _1)
 	);
 	AdjustViewLength();
+}
+
+void
+TextList::ClearSelectedOnLeave(CursorEventArgs&& e)
+{
+	if(SelectionOptions[ClearSelectionOnLeave])
+	{
+		auto& sender(e.GetSender());
+
+		if(&sender != this && &sender != &GetUnitRef()
+			&& !(IsRelated && IsRelated(sender)))
+		{
+			const auto old_off(vwList.GetOffset());
+
+			if(old_off != -1)
+			{
+				InvalidateSelected(old_off, 1);
+				ClearSelected();
+			}
+		}
+	}
 }
 
 void
@@ -284,7 +321,11 @@ void
 TextList::InvokeConfirmed(ListType::size_type idx)
 {
 	if(vwList.CheckSelected(idx))
+	{
 		Confirmed(IndexEventArgs(*this, idx));
+		if(SelectionOptions[ClearSelectionOnConfirm])
+			ClearSelected();
+	}
 }
 
 void
@@ -299,11 +340,11 @@ TextList::LocateViewPosition(SDst h)
 	{
 		const SDst item_h(GetItemHeight());
 
-		//先保证避免部分显示的项目使视图超长，再设置视图位置。
+		// NOTE: Prevent out-of-bounds partially displayed items first, then
+		//	adjust the view.
 		AdjustViewLength();
 		vwList.SetHeadIndex(h / item_h, GetList().size());
 		uTopOffset = h % item_h;
-		//更新视图。
 		UpdateView(*this, true);
 	}
 }

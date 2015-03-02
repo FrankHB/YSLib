@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1380
+\version r1429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2015-02-07 12:12 +0800
+	2015-03-02 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,30 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 	Background = SolidBrush(FetchGUIConfiguration().Colors[Styles::Panel]),
 	LabelBrush.Margin = Padding(6, 18, 4, 4),
 	CyclicTraverse = true,
+	SelectionOptions[ClearSelectionOnConfirm] = true,
+	SelectionOptions[ClearSelectionOnLeave] = true,
+	SelectionOptions[SelectOnHover] = true,
+	IsRelated = [this](IWidget& wgt){
+		if(pHost)
+		{
+			const auto idx(GetSelectedIndex());
+
+			if(idx != size_t(-1))
+			{
+				const auto i(mSubMenus.find(idx));
+
+				if(i != mSubMenus.end() && i->second
+					&& pHost->IsShowing(*i->second))
+					return true;
+			}
+		}
+
+		auto p_mnu = dynamic_cast<Menu*>(&wgt);
+
+		if(!p_mnu)
+			p_mnu = dynamic_cast<Menu*>(FetchContainerPtr(wgt));
+		return p_mnu ? p_mnu->GetParentPtr() == this : false;
+	},
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(pHost)
 		{
@@ -60,8 +84,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 				if(k[KeyCodes::Right])
 				{
 					if(IsSelected())
-						if(const auto p_mnu = ShowSub(GetSelectedIndex()))
-							p_mnu->SelectFirst();
+						TryShowingSub(GetSelectedIndex());
 				}
 				else if(k[KeyCodes::Left] || k[KeyCodes::Esc])
 				{
@@ -70,6 +93,20 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 					else if(k[KeyCodes::Esc])
 						Hide();
 				}
+			}
+		}
+	},
+	FetchEvent<CursorOver>(*this) += [this](CursorEventArgs&& e){
+		if(SelectionOptions[SelectOnHover]
+			&& e.Strategy != RoutedEventArgs::Bubble
+			&& FetchGUIState().IsCursorMoved())
+		{
+			const auto idx(CheckPoint(GetSizeOf(*this), e));
+
+			if(idx != size_t(-1))
+			{
+				RequestFocus(*this);
+				TryShowingSub(idx);
 			}
 		}
 	},
@@ -174,6 +211,17 @@ Menu::AdjustSize() const
 }
 
 bool
+Menu::Hide()
+{
+	if(pHost)
+	{
+		pHost->Hide(*this);
+		return true;
+	}
+	return {};
+}
+
+bool
 Menu::Show()
 {
 	if(pHost)
@@ -203,15 +251,11 @@ Menu::ShowSub(IndexType idx)
 	return {};
 }
 
-bool
-Menu::Hide()
+void
+Menu::TryShowingSub(IndexType idx)
 {
-	if(pHost)
-	{
-		pHost->Hide(*this);
-		return true;
-	}
-	return {};
+	if(const auto p_mnu = ShowSub(idx))
+		p_mnu->SelectFirst();
 }
 
 void

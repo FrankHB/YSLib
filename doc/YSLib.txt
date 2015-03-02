@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2849
+\version r2852
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-02-09 11:52 +0800
+	2015-03-01 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,7 +211,7 @@ Shell 定义 YShell ；
 
 @3.2 平台无关的基础对象 YObject ：
 包括值类型对象 ValueObject 类和相关接口。
-ValueObject 是以 ystdex::any([Documentation::YBase @@2.4.6.5]) 为基础实现的动态泛型值类型([Documentation::YFramework @@1.6.3.4]) ，增加了比较相等的泛型操作。
+ValueObject 是以 ystdex::any([Documentation::YBase @@2.4.6.5]) 为基础实现的动态泛型值类型([Documentation::YFramework @@3.4.4]) ，增加了比较相等的泛型操作。
 
 @3.3 对象计数器 YCounter
 
@@ -610,8 +610,8 @@ YSLib 的 UI 实现保证顶层部件(@5.1.2.1) 向下传递的 PaintContext 中
 
 @5.2.1.5 边界事件：
 包括 Enter 和 Leave 事件。
-事件发送者为被关注的边界所在的部件，参数中的坐标相对此部件。
-边界事件可能由不同的事件处理触发，默认通过 GUIState 实现。
+事件发送者为引起边界变化的部件，订阅者为被关注的边界所在的部件，参数中的坐标相对订阅者。
+边界事件可能由不同的事件处理触发，默认通过 GUIState 实现，只有处理 CursorOver 事件触发的 Leave 事件中的发送者和订阅者不同。
 指针设备作用于部件，触发 CursorOver 时改变光标所在的部件可以触发边界事件。此外，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入部件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 通过 CursorOver 的事件保证按键（参数的 Keys 数据成员）会被清空。据此可以判断边界事件的触发方式。（但注意不保证非 CursorOver 对应的 Keys 一定非空，用户的事件处理器可能会重新设置按键。）
 默认不对所有部件启用触发。通过 GUIState::Wrap 指定对部件启用触发， Control 类构造时自动指定启用。判断 CursorOver 、 TouchDown 和 TouchHeld 触发时使用最高事件优先级，判断 TouchUp 触发时使用最低事件优先级。

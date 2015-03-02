@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r320
+\version r325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-02-26 19:54 +0800
+	2015-03-01 20:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,18 +124,18 @@ ShowTopLevelDraggable(UI::Widget& wgt)
 #	endif
 
 array<GEvent<UI::HCursorEvent::FuncType>::iterator, 2>
-BindTimedTips(TimedHoverState& st, IWidget& sender, Widget& wgt)
+BindTimedTips(TimedHoverState& st, IWidget& wgt, Widget& target)
 {
-	auto& cursor_over(FetchEvent<CursorOver>(sender));
-	auto& leave(FetchEvent<Leave>(sender));
+	auto& cursor_over(FetchEvent<CursorOver>(wgt));
+	auto& leave(FetchEvent<Leave>(wgt));
 
 	return {{cursor_over.Insert([&](CursorEventArgs&& e){
 			if(st.CheckShow(e))
-				ActOnHover_ShowTopLevelAt(e.GetSender(), wgt,
+				ActOnHover_ShowTopLevelAt(e.GetSender(), target,
 					std::bind(st.Locate, std::ref(e)));
 		}), leave.Insert([&](CursorEventArgs&& e){
 			if(st.CheckHide(e))
-				OnHover_SetRenderer(std::move(e), wgt);
+				SetRendererOnHover(wgt, target);
 		})}};
 }
 

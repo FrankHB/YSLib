@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1374
+\version r1376
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-02-10 10:03 +0800
+	2015-03-01 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,6 +70,8 @@ $dep_all_from; // take all evaluation dependence from;
 $dep_to; // put evaluation dependence to;
 $effective; // only have effect on the given entity, e.g. a subset of the \
 	performed namespace;
+$forced; // modification mandated otherwise cause bugs (esp. ill-formed \
+	program or violation to the interface specification);
 $label; // label for locating in code portions;
 $orig; // original source;
 $since; // first revision involved.

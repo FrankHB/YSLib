@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r162
+\version r169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2015-02-03 00:39 +0800
+	2015-03-01 20:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,18 +75,14 @@ ActOnHover(IWidget& sender, _func f)
 //@{
 template<typename _func>
 inline void
-SetRendererOnHover(IWidget& sender, Widget& wgt, _func f)
+SetRendererOnHover(IWidget& wgt, Widget& target, _func f)
 {
-	UI::ActOnHover(sender, std::bind(&Widget::SetRenderer, std::ref(wgt),
+	UI::ActOnHover(wgt, std::bind(&Widget::SetRenderer, std::ref(target),
 		std::bind(f)));
 }
-inline PDefH(void, SetRendererOnHover, IWidget& sender, Widget& wgt)
-	ImplExpr(UI::SetRendererOnHover(sender, wgt, make_unique<Renderer>))
+inline PDefH(void, SetRendererOnHover, IWidget& wgt, Widget& target)
+	ImplExpr(UI::SetRendererOnHover(wgt, target, make_unique<Renderer>))
 //@}
-
-//! \brief 处理悬停事件：设置 Renderer 为渲染器。
-inline PDefH(void, OnHover_SetRenderer, CursorEventArgs&& e, Widget& wgt)
-	ImplExpr(UI::SetRendererOnHover(e.GetSender(), wgt))
 //@}
 
 

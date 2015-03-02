@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4291
+\version r4303
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-02-28 14:27 +0800
+	2015-03-02 15:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,6 +167,8 @@ GUIState::CleanupReferences(IWidget& wgt)
 		p_indp_focus = {};
 	if(p_cascade_focus == &wgt)
 		p_cascade_focus = {};
+	if(p_entered_toplevel == &wgt)
+		p_entered_toplevel = {};
 	if(ExternalTextInputFocusPtr == &wgt)
 		ExternalTextInputFocusPtr = {};
 }
@@ -209,11 +211,11 @@ GUIState::Reset()
 	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
 		DraggingOffset = Vec::Invalid),
 	HeldTimer.ResetInput(), TapTimer.ResetInput();
-	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
-		p_indp_focus = {}, p_cascade_focus = {}, entered = {},
-		checked_held = {}, master_key = 0, ExternalTextInputFocusPtr = {},
-		CaretLocation = Point::Invalid, tap_location = Point::Invalid,
-		tap_count = 0);
+	yunseq(CursorLocation = Point::Invalid, CursorOverLocation = Point::Invalid,
+		p_CursorOver = {}, p_cascade_focus = {}, p_entered_toplevel = {},
+		p_indp_focus = {}, entered = {}, checked_held = {}, master_key = 0,
+		ExternalTextInputFocusPtr = {}, CaretLocation = Point::Invalid,
+		tap_location = Point::Invalid, tap_count = 0);
 }
 
 void
@@ -230,6 +232,8 @@ GUIState::ResetHeldState(InputTimer::HeldStateType& s, const KeyInput& k)
 void
 GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 {
+	if(op == CursorOver)
+		CursorOverLocation = CursorLocation;
 	CursorLocation = e;
 
 	auto wgt_ref(ystdex::ref(e.GetSender()));
@@ -446,9 +450,8 @@ GUIState::Wrap(IWidget& wgt)
 					const auto p_toplevel(&FetchTopLevel(wgt, pt));
 
 					if(YB_LIKELY(p_toplevel == p_entered_toplevel))
-						CallEvent<Leave>(*p_CursorOver,
-							CursorEventArgs(*p_CursorOver, e.Keys,
-							e.Position - entered_top_location + pt));
+						CallEvent<Leave>(*p_CursorOver, CursorEventArgs(wgt,
+							e.Keys, e.Position - entered_top_location + pt));
 				}
 				CallEvent<Enter>(wgt, CursorEventArgs(e));
 				entered_top_location = {};
