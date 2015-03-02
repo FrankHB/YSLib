@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r259
+\version r260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2015-02-27 23:06 +0800
+	2015-02-28 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,7 +146,7 @@ public:
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<ImagePages, _type>)>
 	ImagePages(const _type& path, const Size& min_size, const Size& max_size,
-		ImageScale init_scale = 0.F)
+		ImageScale init_scale = {})
 		: ImagePages(ZoomedImageCache(path), min_size, max_size, init_scale)
 	{}
 	//! \brief 构造：使用指定缓存、显示区域下限、显示区域上限和起始缩放比例。

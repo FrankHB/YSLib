@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1020
+\version r1027
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2015-02-07 12:12 +0800
+	2015-03-01 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,6 +144,14 @@ public:
 	*/
 	Menu*
 	ShowSub(IndexType);
+
+	/*!
+	\brief 尝试显示索引指定的子菜单并选择子菜单的首个菜单项。
+	\note 若不存在子菜单，不进行操作。
+	\since build 581
+	*/
+	void
+	TryShowingSub(IndexType);
 
 	/*!
 	\brief 隐藏菜单。

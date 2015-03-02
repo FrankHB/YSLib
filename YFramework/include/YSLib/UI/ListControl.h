@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1597
+\version r1632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2015-02-28 02:57 +0800
+	2015-03-02 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,6 +104,8 @@ public:
 
 	//! \since build 529
 	using AMUnitList::GetFullViewHeight;
+	//! \since build 581
+	using AMUnitList::GetItemHeight;
 	//! \since build 527
 	IWidget&
 	GetUnitRef() const ImplI(AMUnitList);
@@ -166,12 +168,17 @@ public:
 	\since build 392
 	*/
 	DefGetter(ynothrow, ListType&, ListRef, *hList)
+
+protected:
 	/*!
-	\brief 取项目行高。
-	\since build 301
+	\brief 取项目行高：由字体和行距决定。
+	\note 实现：断言：结果非空。
+	\since build 581
 	*/
 	SDst
-	GetItemHeight() const override;
+	GetItemHeightCore() const override;
+
+public:
 	//! \since build 527
 	SDst
 	GetTotal() const ImplI(AMUnitList);
@@ -194,6 +201,25 @@ public:
 class YF_API TextList : public Control, public MTextList, protected MHilightText
 {
 public:
+	//! \since build 581
+	//@{
+	//! \brief 选择操作选项。
+	enum SelectionOption : size_t
+	{
+		//! \brief 确认时自动清空选择。
+		ClearSelectionOnConfirm,
+		//! \brief 离开时自动清空选择。
+		ClearSelectionOnLeave,
+		//! \brief 悬停时自动选择。
+		SelectOnHover,
+		SelectionOptionMax
+	};
+
+	//! \brief 选择操作选项。
+	std::bitset<SelectionOptionMax> SelectionOptions{};
+	//! \brief 判断是否为 Leave 目标时不取消选择的相关部件。
+	std::function<bool(IWidget&)> IsRelated{};
+	//@}
 	/*!
 	\brief 默认前景色。
 	\since build 525
@@ -270,6 +296,16 @@ private:
 public:
 	PDefH(void, ClearSelected, )
 		ImplExpr(vwList.ClearSelected())
+
+private:
+	/*!
+	\brief 当 ClearSelectionOnLeave 被设置时在 Leave 事件中清除已选择项。
+	\note 若 IsRelated 非空，使用 IsRelated 判端是否忽略。
+	\sa IsRelated
+	\since build 581
+	*/
+	void
+	ClearSelectedOnLeave(CursorEventArgs&&);
 
 protected:
 	/*!

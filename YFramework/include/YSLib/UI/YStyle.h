@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r823
+\version r836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-12-19 15:29 +0800
+	2015-02-28 20:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,6 +178,10 @@ public:
 	HS(Hue h = 0, float s = 0) ynothrow
 		: pair(h, s)
 	{}
+	//! \since build 581
+	HS(float h, float s = 0) ynothrow
+		: HS(Hue(h), s)
+	{}
 
 	DefGetter(const ynothrow, Hue, H, first)
 	DefGetter(const ynothrow, float, S, second)
@@ -206,6 +210,10 @@ private:
 
 public:
 	HSL(Hue h = 0, float s = 0, float l = 0) ynothrow
+		: HS{h, s}, lightness(l)
+	{}
+	//! \since build 581
+	HSL(float h, float s = 0, float l = 0) ynothrow
 		: HS{h, s}, lightness(l)
 	{}
 	//! \brief 构造：使用 RGB 颜色。
@@ -248,6 +256,10 @@ private:
 
 public:
 	HSV(Hue h = 0, float s = 0, float v = 0) ynothrow
+		: HS{h, s}, value(v)
+	{}
+	//! \since build 581
+	HSV(float h, float s = 0, float v = 0) ynothrow
 		: HS{h, s}, value(v)
 	{}
 	//! \brief 构造：使用 RGB 颜色。

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1032
+\version r1034
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-01-25 04:03 +0800
+	2015-02-28 21:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,8 +60,8 @@ using HWND = ::HWND__*;
 using LPARAM = long long;
 #		else
 using LPARAM = long;
-using LRESULT = ::LPARAM;
 #		endif
+using LRESULT = ::LPARAM;
 using WPARAM = std::uintptr_t;
 using WNDPROC = ::LRESULT(__stdcall*)(::HWND, unsigned, ::WPARAM, ::LPARAM);
 //@}
@@ -333,7 +333,7 @@ UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
 	const YSLib::Drawing::ConstGraphics&);
 #	elif YCL_Win32
 /*!
-\brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶层窗口。
+\brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶级窗口。
 \note 最后的默认参数分别为 \c WS_POPUP 和 \c WS_EX_LTRREADING 。
 \exception LoggedEvent 宽或高不大于 0 。
 \since build 564

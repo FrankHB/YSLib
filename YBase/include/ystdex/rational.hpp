@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1803
+\version r1852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2014-12-19 12:23 +0805
+	2015-02-28 21:11 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,33 +136,35 @@ public:
 	fixed_point() = default;
 
 	//! \since build 439
-	//@{
 	yconstfn
 	fixed_point(base_type v, raw_tag) ynothrow
 		: value(v)
 	{}
+	//! \since build 581
+	//@{
 	template<typename _tInt>
 	yconstfn
-	fixed_point(_tInt val, enable_if_t<is_integral<_tInt>::value, _tInt*> = {})
+	fixed_point(_tInt val,
+		yimpl(enable_if_t<is_integral<_tInt>::value, _tInt*> = {}))
 		ynothrow
 		: value(base_type(val) << frac_bit_n)
 	{}
 	template<typename _tFloat>
-	yconstfn
-	fixed_point(_tFloat val,
-		enable_if_t<is_floating_point<_tFloat>::value, _tFloat*> = {}) ynothrow
+	explicit yconstfn
+	fixed_point(_tFloat val, yimpl(enable_if_t<
+		is_floating_point<_tFloat>::value, _tFloat*> = {})) ynothrow
 		: value(std::llround(base_element() * val))
 	{}
 	template<typename _tFirst, typename _tSecond>
 	yconstfn
-	fixed_point(_tFirst x, _tSecond y, enable_if_t<is_integral<_tFirst>::value
-		&& !is_same<_tSecond, raw_tag>::value, _tFirst*> = {})
+	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<is_integral<
+		_tFirst>::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {}))
 		: value((x << frac_bit_n) / y)
 	{}
 	template<typename _tFirst, typename _tSecond>
-	yconstfn
-	fixed_point(_tFirst x, _tSecond y, enable_if_t<is_floating_point<_tFirst>
-		::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {})
+	explicit yconstfn
+	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<is_floating_point<
+		_tFirst>::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {}))
 		: fixed_point(x / y)
 	{}
 	//! \since build 260
@@ -171,31 +173,34 @@ public:
 	template<size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
-		enable_if_t<(_vOtherInt < int_bit_n), base_type*> = {}) ynothrow
+		yimpl(enable_if_t<(_vOtherInt < int_bit_n), base_type*> = {})) ynothrow
 		: value(f.value >> (int_bit_n - _vOtherInt))
 	{}
 	template<size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
-		enable_if_t<(int_bit_n < _vOtherInt), base_type*> = {}) ynothrow
+		yimpl(enable_if_t<(int_bit_n < _vOtherInt), base_type*> = {})) ynothrow
 		: value(f.value << (_vOtherInt - int_bit_n))
 	{}
 	template<typename _tOtherBase, size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<_tOtherBase, _vOtherInt, _vOtherFrac>& f,
-		enable_if_t<(frac_bit_n == _vOtherFrac), base_type*> = {}) ynothrow
+		yimpl(enable_if_t<(frac_bit_n == _vOtherFrac), base_type*> = {}))
+		ynothrow
 		: value(f.value)
 	{}
 	template<typename _tOtherBase, size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<_tOtherBase, _vOtherInt, _vOtherFrac>& f,
-		enable_if_t<(frac_bit_n < _vOtherFrac), base_type*> = {}) ynothrow
+		yimpl(enable_if_t<(frac_bit_n < _vOtherFrac), base_type*> = {}))
+		ynothrow
 		: value(f.value >> (_vOtherFrac - frac_bit_n))
 	{}
 	template<typename _tOtherBase, size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<_tOtherBase, _vOtherInt, _vOtherFrac>& f,
-		enable_if_t<(_vOtherFrac < frac_bit_n), base_type*> = {}) ynothrow
+		yimpl(enable_if_t<(_vOtherFrac < frac_bit_n), base_type*> = {}))
+		ynothrow
 		: value(f.value << (frac_bit_n - _vOtherFrac))
 	{}
 	//@}
@@ -286,14 +291,23 @@ public:
 		return *this;
 	}
 
-	//! \since build 439
+	//! \since build 581
+	//@{
 	template<typename _type,
-		typename = enable_if_t<is_arithmetic<_type>::value, _type>>
-	yconstfn
-	operator _type() const
+		yimpl(typename = enable_if_t<is_integral<_type>::value, _type>)>
+	explicit yconstfn
+	operator _type() const ynothrow
 	{
-		return this->cast<_type>();
+		return value >> frac_bit_n;
 	}
+	template<typename _type, yimpl(typename _type2 = _type,
+		typename = enable_if_t<is_floating_point<_type2>::value, _type>)>
+	yconstfn
+	operator _type() const ynothrow
+	{
+		return _type(value) / base_element();
+	}
+	//@}
 
 	//! \since build 439
 	yconstfn base_type
@@ -303,21 +317,6 @@ public:
 	}
 
 private:
-	//! \since build 439
-	template<typename _type>
-	yconstfn enable_if_t<is_integral<_type>::value, _type>
-	cast() const
-	{
-		return value >> frac_bit_n;
-	}
-	//! \since build 439
-	template<typename _type>
-	enable_if_t<is_floating_point<_type>::value, _type>
-	cast() const
-	{
-		return _type(value) / base_element();
-	}
-
 	template<size_t _vShiftBits>
 	static yconstfn base_type
 	mul(base_type x, base_type y, true_type)
@@ -367,26 +366,26 @@ public:
 	}
 
 	friend yconstfn fixed_point
-	fabs(fixed_point x)
+	fabs(fixed_point x) ynothrow
 	{
 		return x.value < 0 ? -x : x;
 	}
 
 	friend yconstfn fixed_point
-	ceil(fixed_point x)
+	ceil(fixed_point x) ynothrow
 	{
 		return fixed_point(
 			(x.value + base_element() - 1) & ~(base_element() - 1), raw_tag());
 	}
 
 	friend yconstfn fixed_point
-	floor(fixed_point x)
+	floor(fixed_point x) ynothrow
 	{
 		return fixed_point(x.value & ~(base_element() - 1), raw_tag());
 	}
 
 	friend yconstfn fixed_point
-	round(fixed_point x)
+	round(fixed_point x) ynothrow
 	{
 		return fixed_point((x.value + (base_element() >> 1))
 			& ~(base_element() - 1), raw_tag());

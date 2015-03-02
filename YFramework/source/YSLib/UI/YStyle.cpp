@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YStyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1053
+\version r1057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-12-19 08:38 +0800
+	2015-02-28 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -312,7 +312,7 @@ HSL::HSL(Color c) ynothrow
 		if(h < 0)
 			h += 0x6;
 	}
-	GetHRef() = h * 60;
+	GetHRef() = Hue(h * 60);
 }
 
 HSL::operator Color() const ynothrow
@@ -360,7 +360,7 @@ HSV::HSV(Color c) ynothrow
 
 	yunseq(GetSRef() = max_color == 0.F ? 0.F : delta / max_color,
 		value = max_color);
-	GetHRef() = (GetS() > 0.F ? [=]{
+	GetHRef() = Hue((GetS() > 0.F ? [=]{
 		float res(0);
 
 		if(r == max_color)
@@ -372,7 +372,7 @@ HSV::HSV(Color c) ynothrow
 		if(res < 0.F)
 			res += 6.F;
 		return res;
-	}() : -6.F) * 60.F;
+	}() : -6.F) * 60.F);
 }
 
 HSV::operator Color() const ynothrow

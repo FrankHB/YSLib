@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4831
+\version r4844
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2015-02-28 14:25 +0800
+	2015-02-28 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,23 +103,14 @@ public:
 /*!
 \brief 判断部件是否为可用的控件。
 */
-inline bool
-IsEnabled(const IWidget& wgt)
-{
-	TryRet(wgt.GetController().IsEnabled())
-	CatchIgnore(BadEvent&)
-	return {};
-}
+inline PDefH(bool, IsEnabled, const IWidget& wgt)
+	ImplRet(wgt.GetController().IsEnabled())
 
 /*!
 \brief 设置部件可用性。
 */
-inline void
-SetEnabledOf(IWidget& wgt, bool b)
-{
-	TryExpr(wgt.GetController().SetEnabled(b))
-	CatchIgnore(BadEvent&)
-}
+inline PDefH(void, SetEnabledOf, IWidget& wgt, bool b)
+	ImplExpr(wgt.GetController().SetEnabled(b))
 
 /*!
 \brief 设置部件可用性，且当可用性改变时无效化部件区域。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r275
+\version r284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2014-11-09 13:34 +0800
+	2015-03-01 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,6 +163,15 @@ AMUnitList::GetFullViewHeight() const
 }
 SDst
 AMUnitList::GetItemHeight() const
+{
+	const auto item_h(GetItemHeightCore());
+
+	if(item_h != 0)
+		return item_h;
+	throw LoggedEvent("Zero item height found.");
+}
+SDst
+AMUnitList::GetItemHeightCore() const
 {
 	return GetSizeOf(GetUnitRef()).Height;
 }

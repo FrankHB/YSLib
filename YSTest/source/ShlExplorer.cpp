@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1422
+\version r1426
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-02-05 19:52 +0800
+	2015-03-01 20:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -514,11 +514,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		btn.Text = u"Enter: " + String(to_string(e.Position));
 		Invalidate(btn);
 	},
-	FetchEvent<Leave>(btnEnterTest) += [](CursorEventArgs&& e){
-		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
-
-		btn.Text = u"Leave: " + String(to_string(e.Position));
-		Invalidate(btn);
+	FetchEvent<Leave>(btnEnterTest) += [&](CursorEventArgs&& e){
+		btnEnterTest.Text = u"Leave: " + String(to_string(e.Position));
+		Invalidate(btnEnterTest);
 	},
 	FetchEvent<Click>(btnMenu) += [this]{
 		auto& mnu(*p_m0);

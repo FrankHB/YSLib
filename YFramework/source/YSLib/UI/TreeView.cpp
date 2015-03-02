@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r687
+\version r689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2015-01-07 23:04 +0800
+	2015-03-01 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,11 +139,11 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 				Invalidate(e.GetSender(), box);
 		}
 	},
-	FetchEvent<Leave>(unit) += [this](CursorEventArgs&& e){
+	FetchEvent<Leave>(unit) += [this]{
 		if(idxCursorOver != size_t(-1)
 			&& CheckNodeState(idxCursorOver) != NodeState::None)
 		{
-			Invalidate(e.GetSender(), GetIndentBoxBounds(idxCursorOver));
+			Invalidate(GetUnitRef(), GetIndentBoxBounds(idxCursorOver));
 			idxCursorOver = size_t(-1);
 		}
 	},

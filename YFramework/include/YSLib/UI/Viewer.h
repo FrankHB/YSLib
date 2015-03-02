@@ -11,13 +11,13 @@
 /*!	\file Viewer.h
 \ingroup UI
 \brief 样式无关的视图。
-\version r686
+\version r699
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2015-02-19 14:45 +0800
+	2015-03-01 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,12 +219,24 @@ public:
 	SDst
 	GetFullViewHeight() const;
 	/*!
-	\brief 取项目行高。
-	\note 默认实现为取单元部件的高。
+	\brief 取项目行高：调用 GetItemHeightCore 取结果。
+	\return 非零的项目行高。
+	\throw LoggedEvent 调用 GetItemHeightCore 结果为 0 。
 	\since build 203
 	*/
-	virtual SDst
+	SDst
 	GetItemHeight() const;
+
+protected:
+	/*!
+	\brief 取默认行高：实现。
+	\note 默认实现为取单元部件的高。
+	\since build 581
+	*/
+	virtual SDst
+	GetItemHeightCore() const;
+
+public:
 	//! \since build 523
 	size_t
 	GetLastLabelIndexClipped(SPos, SDst) const;

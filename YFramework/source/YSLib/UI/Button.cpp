@@ -11,13 +11,13 @@
 /*!	\file Button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3299
+\version r3301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2015-01-23 16:03 +0800
+	2015-03-01 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,14 +107,14 @@ Thumb::Thumb(const Rect& r, ystdex::raw_tag)
 		if(!IsPressed() && e.Keys.any())
 		{
 			csCurrent = CursorState::Pressed;
-			Invalidate(e.GetSender());
+			Invalidate(*this);
 		}
 	},
 	FetchEvent<Leave>(*this) += [this](CursorEventArgs&& e){
 		if(csCurrent == CursorState::Over || (IsPressed() && e.Keys.any()))
 		{
 			csCurrent = CursorState::Outside;
-			Invalidate(e.GetSender());
+			Invalidate(*this);
 		}
 	},
 	FetchEvent<GotFocus>(*this) += invalidator,
