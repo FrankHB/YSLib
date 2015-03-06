@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r116
+\version r147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-02-11 19:18 +0800
+	2015-03-05 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,6 +115,40 @@ The '+' or '+=' expression concerned with random access iterators should be noti
 		Since the algorithms implemented to support random iterators are usually allowing pointers, it should be cautious to use these operations.
 		Unless otherwise explicitly specified, YSLib uses the strict strategy, i.e. the code shall not use these operations to perform undefined behavior, unless the pointers are prevented to be instantiated intentionally.
 		YBase also uses some strict boundary check (esp. assertions) on these operations in implementation of iterators.
+
+$2014-03:
+
+dep.merge:
+OpenImageIO(http://www.openimageio.org/): tentatively rejected.
+	This is a library focused on image I/O.
+		It actually does more, e.g. provides some ISO C99 math functions and POSIX math macros, implementation of 'array_view', etc.
+		It embeds some 3rd party code to support XML, SHA1, etc. 
+		It also encapsulates some system-dependent operations, e.g. threads.
+			The threading operations depend on Boost.Thread.
+		Its interface is in C++.
+			This is good to avoid name clash.
+			However, the quality is not always good.
+				Error handling totally bypassed exceptions (except for throwing 'std::out_of_range' from 'array_view', etc), and uses thread-specific state instead.
+					This is of generally bad style and can be hard to use.
+			Sometimes the interface is necessarily bloated, e.g. 'ParamValueList' can actually be an type alias rather than a class.
+		The headers are a bit mess.
+			There are multiple headers in the same directory doing different works. Not all of them are aiming to image I/O.
+			It is somewhat difficult to use it cleanly directly without referencing some use cases.
+	The license is 3-clause BSD-like.
+		Though 2-clause would be better, it is good to use.
+	The binary code of static library is even slightly larger than that of FreeImage for MSYS2.
+		It is in doubt to shrink without giving up some functionality.
+	It is lacks of GIF support, which is used by YFramework.
+		So at least at current, it can not replace FreeImage.
+
+report.impl:
+In general, the key state in the event argument of 'KeyDown' event should not be modified in the handler.
+	Call of 'GUIState::UpdateChar' would once modify it.
+		The key set was combined of multiple keys, which was modified by checked held state.
+		This was wrong for a 'KeyDown' event not called by 'KeyHeld' handler.
+		Class 'TextBox' was effected. It would occasionally behave normally if the key of least key index was pressed down at last.
+			Since the key was determined by the first key index in the key set through call of 'FindFirstKeyInCategroy'.
+			For example, right arrow after left arrow would be treated as left arrow but right arrow after left array would be normal, if the key index of the left arrow key is less than the one of right arrow key, which is the case of Win32 and many other platforms.
 
 ////
 
