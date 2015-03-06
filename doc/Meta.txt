@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1376
+\version r1399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-03-01 10:09 +0800
+	2015-03-04 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -299,6 +299,29 @@ tx-trie(https://code.google.com/p/tx-trie/): rejected.
 	There exists quality problems, e.g. macro names pollution, directly used unqualified-id of C standard library functions, memory allocation, etc.
 marisa-trie(https://code.google.com/p/marisa-trie/): considerable, tentatively shelved.
 	It has some similar problems of interface like tx-trie. However, it seems to be fit for other use.
+// $2015-03.
+dep.merge:
+OpenImageIO(http://www.openimageio.org/): tentatively rejected.
+	This is a library focused on image I/O.
+		It actually does more, e.g. provides some ISO C99 math functions and POSIX math macros, implementation of 'array_view', etc.
+		It embeds some 3rd party code to support XML, SHA1, etc. 
+		It also encapsulates some system-dependent operations, e.g. threads.
+			The threading operations depend on Boost.Thread.
+		Its interface is in C++.
+			This is good to avoid name clash.
+			However, the quality is not always good.
+				Error handling totally bypassed exceptions (except for throwing 'std::out_of_range' from 'array_view', etc), and uses thread-specific state instead.
+					This is of generally bad style and can be hard to use.
+			Sometimes the interface is necessarily bloated, e.g. 'ParamValueList' can actually be an type alias rather than a class.
+		The headers are a bit mess.
+			There are multiple headers in the same directory doing different works. Not all of them are aiming to image I/O.
+			It is somewhat difficult to use it cleanly directly without referencing some use cases.
+	The license is 3-clause BSD-like.
+		Though 2-clause would be better, it is good to use.
+	The binary code of static library is even slightly larger than that of FreeImage for MSYS2.
+		It is in doubt to shrink without giving up some functionality.
+	It is lacks of GIF support, which is used by YFramework.
+		So at least at current, it can not replace FreeImage.
 
 
 todo.ceased:

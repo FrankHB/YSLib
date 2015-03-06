@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4303
+\version r4307
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-02 15:24 +0800
+	2015-03-05 00:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -379,8 +379,8 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 bool
 GUIState::SendInput(const KeyInput& k, const String& str)
 {
-	return ExternalTextInputFocusPtr
-		? (UI::CallInputEvent(*ExternalTextInputFocusPtr, str, k), true) : false;
+	return ExternalTextInputFocusPtr ? (UI::CallInputEvent(
+		*ExternalTextInputFocusPtr, str, k), true) : false;
 }
 
 void
@@ -404,13 +404,13 @@ GUIState::TryLeaving(CursorEventArgs&& e)
 }
 
 char
-GUIState::UpdateChar(KeyInput& keys)
+GUIState::UpdateChar(const KeyInput& keys)
 {
 	if(keys != checked_held)
 	{
 		master_key = FindFirstKeyInCategroy(keys, KeyCategory::Character);
 
-		yunseq(keys = checked_held |= keys, KeyHeldState = InputTimer::Free);
+		yunseq(checked_held |= keys, KeyHeldState = InputTimer::Free);
 	}
 	return ExternalTextInputFocusPtr ? char()
 		: MapKeyChar(checked_held, master_key);

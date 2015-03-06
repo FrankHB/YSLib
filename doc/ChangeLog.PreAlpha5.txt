@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10683
+\version r10774
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-03-02 20:19 +0800
+	2015-03-06 23:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,96 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				* "missing check %IsRelated before call of %ClearSelect"
+					@ "member function %TextList::InvokeConfirmed"
+					@ %ListControl $since b581;
+				* $comp "selection cleared after submenu popped when no \
+					%CursorOver event is handled subsequently",
+					// Since %CursorOver event is triggered \
+						platform-dependently, this may behave differently on \
+						different platforms. Note that %TouchHeld for submenus \
+						is not directly supported, but similar differences \
+						exist for these platforms.
+				/ @ "member function %GUIState::UpdateChar with parameter \
+					'KeyInput&'" @ %YGUI $=
+				(
+					/ "key input no longer modified";
+					+ 'const' @ "parameter type"
+				),
+				/ %TextBox $=
+				(
+					/ @ "class %TextBox" $=
+					(
+						* $comp "wrong key scanned in fast input"
+							@ "class %TextBox" $dep_from
+							("%GUIState::UpdateChar" @ %YGUI) $since b489,
+							// See $2015-03 @ \
+								%Documentation::Workflow::Annual2013.
+						(
+						+ "function %GetPenOffset";
+						- "calculation of pen offset" @ "function \
+							%UpdateTextBoxClippedText" ^ "%GetPenOffset",
+						(
+						/ "offset" @ "function %GetCaretLocation"
+							^ "%GetPenOffset" ~ "%ptOffset",
+						* $comp "caret position not updated properly after \
+							font size changed" $since b516
+							// For example, when using %TextPlaceholder.
+						);
+						- "protected data member %ptOffset"
+						)
+					),
+					/ @ "constructor %Caret" $=
+					(
+						/ $forced "widget for animation" ^ "stored widget \
+							reference" ~ "sender from event argument";
+						* $comp "wrong widget used for %GotFocus handler when \
+							the sender is not the widget being invalidated"
+							$dep_from %YFocus $since b483
+							// This would lead to assertion failure when \
+								%TextBox::InvalidateDefaultCaret is called.
+					)
+				),
+				/ $re_ex(b486) %YFocus $=
+				(
+					/ "simplified cascaded focus releasing" $=
+					(
+						+ "releasing cascaded focuses with routed event \
+							arguments before releasing direct focus"
+							@ "function %ReleaseFocusFrom";
+						/ DLD "simplified implementation"
+							@ "function %DoRequestFocus" ^ "%ReleaseFocusFrom"
+					),
+					+ "requesting cascaded focuses with routed event arguments \
+						after requesting direct focus"
+						@ "function %RequestFocusFrom"
+				)
+			)
+		)
+		* "keyboard not response when cursor out of top level window and \
+			cursor mapped to top level window" @ "platform %Win32" @ %Helper
+			$since b571
+			$= (* "missing search for foreground host window if the window \
+				under cursor not found" @ "member function \
+				%Environment::MapTopLevelWindowPoint" @ %Environment)
+	),
+	+ $re_ex(b578) 'using is_transparent = yimpl(void)'
+		@ "specialized '<void>' functors" $effective @ %("plus, minus, \
+		multiplies, devides, modulus, equal_to, not_equal_to, greater, less, \
+		greater_equal, less_equal") @ %YBase.YStandardEx.Functinoal
+		// See WG21/N3657. This 'void' implementation is occasionally equal to \
+			that in libc++, and is also same with libstdc++ from the aspect of \
+			being an incomplete type.
+),
+
+b581
 (
 	/ %YFramework $=
 	(
@@ -1248,11 +1338,11 @@ b571
 			/ "function %Caret::Check" @ %TextBox $=
 			(
 				* "false positive of assertion failure" $since b483
-					$= (- "assertion for cascade focus");
+					$= (- "assertion for cascaded focus");
 					// Because the indirect parent widget focus can not \
 						detected efficiently and use of raw focus API should \
 						not be forbidden, the assertion here is not appropriate.
-				+ "call %Stop to stop caret when cascade focus check failed"
+				+ "call %Stop to stop caret when cascaded focus check failed"
 			)
 		)
 	),

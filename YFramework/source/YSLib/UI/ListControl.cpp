@@ -11,7 +11,7 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2136
+\version r2137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
@@ -323,7 +323,8 @@ TextList::InvokeConfirmed(ListType::size_type idx)
 	if(vwList.CheckSelected(idx))
 	{
 		Confirmed(IndexEventArgs(*this, idx));
-		if(SelectionOptions[ClearSelectionOnConfirm])
+		if(SelectionOptions[ClearSelectionOnConfirm]
+			&& !(IsRelated && IsRelated(*this)))
 			ClearSelected();
 	}
 }

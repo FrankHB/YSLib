@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1525
+\version r1530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-02-19 17:12 +0800
+	2015-03-05 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -731,7 +731,7 @@ struct thunk_caller
 	thunk_caller(caller_type f)
 		: caller(f)
 	{}
-	//! \todo 使用 ISO C++1y 通用 lambda 表达式以支持转移构造，避免不必要的复制。
+	//! \todo 使用 ISO C++14 通用 lambda 表达式以支持转移构造，避免不必要的复制。
 	thunk_caller(const value_type& arg)
 		: caller([arg]{
 			return std::forward<return_type>(arg);
@@ -824,7 +824,7 @@ make_thunk(_func&& f)
 {
 	return thunk<result_of_t<_func()>, decay_t<_func>>(yforward(f));
 }
-//! \todo 使用 ISO C++1y 返回值推导，直接以 lambda 表达式实现。
+//! \todo 使用 ISO C++14 返回值推导，直接以 lambda 表达式实现。
 template<typename _type>
 yimpl(enable_if_t<sizeof(result_of_t<_type()>) != 0,
 	details::thunk_call_proxy<_type>>)
@@ -1066,7 +1066,7 @@ struct ref_eq
 
 /*!
 \ingroup functors
-\note 同 ISO WG21/N4296 对应标准库仿函数 ，但没有 \c is_transparent 支持。
+\note 同 ISO WG21/N4296 对应标准库仿函数。
 \since build 578
 */
 //@{
@@ -1088,6 +1088,8 @@ struct ref_eq
 	template<> \
 	struct _n<void> \
 	{ \
+		using is_transparent = yimpl(void); \
+		\
 		template<typename _type1, typename _type2> \
 		auto operator()(const _type1&& x, const _type2&& y) const \
 			-> decltype(yforward(x) < yforward(y)) \

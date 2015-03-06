@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2403
+\version r2405
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-02 15:25 +0800
+	2015-03-05 00:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -406,10 +406,10 @@ public:
 	\note 一般用于响应 KeyDown 事件。通过参数区分是否由 KeyHeld 引起而按需更新。
 	\return 更新后的字符。
 	\sa KeyCodes::MapKeyChar
-	\since build 489
+	\since build 582
 	*/
 	char
-	UpdateChar(KeyInput&);
+	UpdateChar(const KeyInput&);
 
 	//! \brief 包装部件响应 Enter/Leave 事件。
 	void

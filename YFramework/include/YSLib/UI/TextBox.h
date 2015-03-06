@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r392
+\version r405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-11-21 12:42 +0800
+	2015-03-06 05:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,7 +145,7 @@ public:
 
 	/*!
 	\brief 构造：注册插入符光标动画的事件处理器和画刷。
-	\note 通过 GotFocus 事件启动动画，通过 OnLostFocus 停止动画。
+	\note 通过 GotFocus 事件启动动画，通过 LostFocus 事件停止动画。
 	\since build 484
 	*/
 	Caret(IWidget&, HBrush, InvalidationUpdater::Invalidator);
@@ -244,13 +244,6 @@ public:
 	*/
 	ucs4_t MaskChar = ucs4_t();
 
-protected:
-	/*!
-	\brief 最后调用 DrawClippedText 时起始的笔左上角位置相对部件的偏移位置。
-	\since build 515
-	*/
-	Point ptPenOffset{};
-
 private:
 	/*!
 	\brief 文字区域水平基准负偏移：文本内容在光标回退方向超出的未显示部分大小。
@@ -271,7 +264,7 @@ public:
 
 	/*!
 	\brief 取插入符光标的显示位置。
-	\note 使用 ptPenOffset 计算。
+	\note 使用 pen_offset 计算。
 	\return 插入符光标左上角相对部件左上角的偏移。
 	\since build 512
 	*/
@@ -285,6 +278,12 @@ public:
 	*/
 	TextSelection::Position
 	GetCaretPosition(const Point&);
+	/*!
+	\brief 取按字体和边距计算的起始笔偏移。
+	\since build 582
+	*/
+	Point
+	GetPenOffset() const;
 
 	/*!
 	\brief 折叠选择区域、重置插入符光标计时器并导出插入符位置。

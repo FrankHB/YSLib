@@ -11,13 +11,13 @@
 /*!	\file YFocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r644
+\version r666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-02-04 15:17 +0800
+	2015-03-07 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,19 +56,7 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 				YAssert(IsFocused(*p_focusing),
 					"Invalid focusing state found.");
 				if(release_event)
-				{
-					auto p(p_focusing);
-
-					while(const auto p_foc = FetchFocusingPtr(*p))
-						p = p_foc;
-					for(; p != p_focusing; p = FetchContainerPtr(*p))
-					{
-						YAssert(p, "Wrong child focus state found.");
-						if(DoReleaseFocus(*p))
-							CallEvent<LostFocus>(*p, RoutedEventArgs(wgt));
-					}
 					ReleaseFocusFrom(*p_focusing, wgt);
-				}
 			}
 			p_focusing = &wgt;
 			return true;
@@ -98,11 +86,23 @@ RequestFocusFrom(IWidget& dst, IWidget& src)
 {
 	if(DoRequestFocus(dst, true))
 		CallEvent<GotFocus>(dst, UIEventArgs(src));
+	for(auto p = FetchFocusingPtr(dst); p; p = FetchFocusingPtr(*p))
+		CallEvent<GotFocus>(*p, RoutedEventArgs(src));
 }
 
 void
 ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
+	auto p(&dst);
+
+	while(const auto p_foc = FetchFocusingPtr(*p))
+		p = p_foc;
+	for(; p != &dst; p = FetchContainerPtr(*p))
+	{
+		YAssert(p, "Wrong child focus state found.");
+		if(DoReleaseFocus(*p))
+			CallEvent<LostFocus>(*p, RoutedEventArgs(src));
+	}
 	if(DoReleaseFocus(dst))
 		CallEvent<LostFocus>(dst, UIEventArgs(src));
 }

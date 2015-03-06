@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r664
+\version r692
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-02-04 16:01 +0800
+	2015-03-07 01:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,11 +50,14 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 		if(Check(e.GetSender()))
 			CaretBrush(std::move(e));
 	},
-	FetchEvent<GotFocus>(wgt) += [this](UIEventArgs&& e){
-		// NOTE: Necessary cleanup.
-		Stop();
-		FetchGUIState().ExternalTextInputFocusPtr = &e.GetSender();
-		Restart(caret_animation, e.GetSender(), CursorInvalidator);
+	FetchEvent<GotFocus>(wgt) += [&, this](UIEventArgs&& e){
+		if(&e.GetSender() == &wgt)
+		{
+			// NOTE: Necessary cleanup.
+			Stop();
+			FetchGUIState().ExternalTextInputFocusPtr = &wgt;
+			Restart(caret_animation, wgt, CursorInvalidator);
+		}
 	},
 	FetchEvent<LostFocus>(wgt) += [this]{
 		Stop();
@@ -153,17 +156,15 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 							if(range.second.X == 0)
 								break;
 							--range.second.X;
-							if(shifted)
-								break;
 						}
 						else
 						{
 							if(range.second.X >= Text.length())
 								break;
 							++range.second.X;
-							if(shifted)
-								break;
 						}
+						if(shifted)
+							break;
 					}
 					else if(range.first.X != range.second.X)
 					{
@@ -248,10 +249,12 @@ TextBox::GetCaretLocation() const
 {
 	const auto& cur_pos(Selection.Range.second);
 	const auto lh(Font.GetHeight());
+	// TODO: Improve performance?
+	const auto& pen_offset(GetPenOffset());
 
-	return {ptPenOffset.X + (MaskChar == ucs4_t() ? FetchStringWidth(Font, Text,
+	return {pen_offset.X + (MaskChar == ucs4_t() ? FetchStringWidth(Font, Text,
 		cur_pos.X) : FetchCharWidth(Font, MaskChar) * cur_pos.X),
-		cur_pos.Y * lh + ptPenOffset.Y};
+		cur_pos.Y * lh + pen_offset.Y};
 }
 TextSelection::Position
 TextBox::GetCaretPosition(const Point& pt)
@@ -274,6 +277,13 @@ TextBox::GetCaretPosition(const Point& pt)
 	if(n > 0 && w / 2U + max_w < w)
 		--n;
 	return {n, 0};
+}
+Point
+TextBox::GetPenOffset() const
+{
+	// NOTE: See also implementation of %MLabel::DrawText.
+	return Point(Margin.Left, Margin.Top)
+		+ GetAlignedPenOffset(GetSizeOf(*this));
 }
 
 void
@@ -357,8 +367,6 @@ TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
 {
 	if(Text.empty())
 		return;
-	ptPenOffset
-		= Point(ts.Pen.X, ts.Pen.Y - ts.Font.GetAscender()) - pc.Location;
 
 	auto x1(Selection.Range.first.X), x2(Selection.Range.second.X);
 	const auto l(Text.length());
@@ -372,7 +380,7 @@ TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
 		if(x2 < x1)
 			std::swap(x1, x2);
 
-		// TODO: Use ISO C++1y lambda initializers to simplify implementation.
+		// TODO: Use ISO C++14 lambda initializers to simplify implementation.
 		auto p(&Text[0]);
 		const auto q1(p + x1), q2(p + x2);
 		const auto& g(pc.Target);

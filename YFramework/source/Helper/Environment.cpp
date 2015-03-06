@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1571
+\version r1577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-02-25 21:10 +0800
+	2015-03-03 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,7 +186,12 @@ Environment::MapTopLevelWindowPoint(const Point& pt) const
 
 	if(const auto h = ::ChildWindowFromPointEx(::GetDesktopWindow(),
 		cursor, CWP_SKIPINVISIBLE))
-		if(const auto p_wnd = FindWindow(h))
+	{
+		auto p_wnd = FindWindow(h);
+
+		if(!p_wnd)
+			p_wnd = GetForegroundWindow();
+		if(p_wnd)
 		{
 			if(YB_UNLIKELY(!::ScreenToClient(p_wnd->GetNativeHandle(),
 				&cursor)))
@@ -194,6 +199,7 @@ Environment::MapTopLevelWindowPoint(const Point& pt) const
 					"ScreenToClient @ Environment::MapCursor");
 			return {p_wnd, p_wnd->MapPoint({cursor.x, cursor.y})};
 		}
+	}
 	return {{}, Point::Invalid};
 }
 #	endif
