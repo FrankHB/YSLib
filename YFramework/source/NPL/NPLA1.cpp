@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r176
+\version r181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2015-01-29 19:50 +0800
+	2015-03-10 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,11 +88,10 @@ LoadNPLA1(ValueNode&& tree, std::function<NodeMapper> mapper)
 	ValueNode root;
 
 	TryExpr(root = TransformNPLA1(tree, mapper))
-	CatchExpr(ystdex::bad_any_cast& e,
-		// TODO: Avoid memory allocation.
-		throw LoggedEvent(ystdex::sfmt(
-			"Bad configuration found: cast failed from [%s] to [%s] .",
-			e.from(), e.to()), Warning))
+	// TODO: Avoid memory allocation.
+	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(ystdex::sfmt(
+		"Bad configuration found: cast failed from [%s] to [%s] .", e.from(),
+		e.to()), Warning))
 	return root;
 }
 

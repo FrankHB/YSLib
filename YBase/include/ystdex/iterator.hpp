@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r4949
+\version r4956
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-02-10 18:36 +0800
+	2015-03-12 15:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -281,7 +281,7 @@ struct pointer_classify<_type*>
 
 总是返回单一值的迭代器适配器。
 */
-template<typename _type, typename _tIter = _type*,
+template<typename _type, typename _tIter = const _type*,
 	typename _tTraits = std::iterator_traits<_tIter>>
 class pseudo_iterator : public iterator_operators_t<
 	pseudo_iterator<_type, _tIter, _tTraits>, _tTraits>
@@ -348,6 +348,12 @@ public:
 
 	//! \brief 满足前向迭代器要求。
 	//@{
+	//! \since build 583
+	reference
+	operator*()
+	{
+		return value;
+	}
 	yconstfn reference
 	operator*() const
 	{

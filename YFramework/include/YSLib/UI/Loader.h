@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r581
+\version r586
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2014-11-21 09:28 +0800
+	2015-03-11 00:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ ParseRect(const string&);
 /*!
 \brief 注册部件加载器：创建部件。
 \since build 433
-\todo 使用 ISO C++1y 多态 lambda 表达式代替。
+\todo 使用 ISO C++14 多态 lambda 表达式代替。
 */
 template<typename _tWidget, typename... _tParams>
 static unique_ptr<IWidget>
@@ -59,7 +59,7 @@ CreateUniqueWidget(_tParams&&... args)
 /*!
 \brief 注册部件加载器：添加部件引用。
 \since build 496
-\todo 使用 ISO C++1y 多态 lambda 表达式代替。
+\todo 使用 ISO C++14 多态 lambda 表达式代替。
 */
 template<typename _tWidget, typename... _tParams>
 static void
@@ -107,8 +107,8 @@ const ValueNode&
 AccessWidgetNode(const ValueNode& node, const string& name, _tParams&&... args)
 {
 	TryRet(AccessWidgetNode(node.at("$children").at(name), yforward(args)...))
-	CatchExpr(std::out_of_range&,
-		throw WidgetNotFound(node.GetName(), "Widget children not found."))
+	CatchThrow(std::out_of_range&,
+		WidgetNotFound(node.GetName(), "Widget children not found."))
 }
 //@}
 

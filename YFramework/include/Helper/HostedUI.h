@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r359
+\version r403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-02-07 13:04 +0800
+	2015-02-10 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,17 @@ GetWindowPtrOf(UI::IWidget& wgt)
 YF_API Window&
 WaitForHostWindow(UI::IWidget&);
 
+
 #	if !YCL_Android
+/*!
+\brief 附加指定部件到指定宿主窗口上。
+\since build 583
+\todo 非 Win32 宿主平台实现。
+
+保证当宿主窗口销毁时，部件被重置为默认渲染器而避免部件的渲染器滞留其它宿主窗口。
+*/
+YF_API void
+AttachToHost(UI::Widget&, Window&, Messaging::Priority = 0xF8);
 
 /*!
 \brief 按指针设备输入事件指定的光标位置移动宿主窗口。
@@ -113,6 +123,8 @@ ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long
 YF_API void
 ShowTopLevelDraggable(UI::Widget&);
 #	endif
+
+
 /*!
 \note 第一参数指定悬停时引起动作的部件。
 \note 第二参数指定显示为顶级窗口的部件。
@@ -173,45 +185,51 @@ YF_API array<GEvent<UI::HCursorEvent::FuncType>::iterator, 2>
 BindTimedTips(UI::TimedHoverState&, UI::IWidget&, UI::Widget&);
 
 /*!
-\brief 以参数指定的悬停状态，设置边框并调用 BindTimedTips 绑定悬停的标签。
-\sa UI::SetupContentsOf
-\sa BindTimedTips
-\since build 573
+\brief 准备宿主顶级窗口的弹出菜单。
+\note 非 Win32 平台：未实现宿主顶级窗口样式和销毁窗口的回调。
+\since build 575
+\todo 非 Win32 宿主平台实现。
+
+关联菜单宿主和菜单部件并设置菜单为具有适合显式为菜单的样式的宿主顶级窗口。
 */
 YF_API void
-SetupTimedTips(UI::TimedHoverState&, UI::IWidget&, UI::Label&,
-	const String&, const Drawing::Rect& = Drawing::Rect::Invalid,
+PrepareTopLevelPopupMenu(UI::MenuHost&, UI::Menu&, UI::Panel&);
+
+/*!
+\return 是否通过顶层部件的检查。
+\note 前两个参数分别指定顶层窗口对应的部件和在宿主桌面触发显示新顶层窗口的部件。
+\note 若第一个参数指定的不对应宿主的顶层窗口则不执行进一步操作。
+\note 在其它操作成功后，调用 AttachToHost 设置异步回调操作，
+	以保证销毁顶层窗口时同时设置菜单部件的默认渲染器。
+\sa AttachToHost
+\sa Environment::Desktop
+\since build 583
+*/
+//@{
+/*!
+\brief 设置顶级悬停标签。
+\sa BindTimedTips
+\sa UI::SetupContentsOf
+
+以参数指定的悬停状态，设置边框并调用 BindTimedTips 绑定悬停的标签。
+*/
+YF_API bool
+SetupTopLevelTimedTips(UI::Widget&, UI::IWidget&, UI::TimedHoverState&,
+	UI::Label&, const String&, const Drawing::Rect& = Drawing::Rect::Invalid,
 	const Drawing::Font& = {},
 	const Drawing::Padding& = Drawing::DefaultMargin * 2);
 
 /*!
-\brief 准备宿主顶级窗口的弹出菜单。
-\note 非 Win32 平台：未实现宿主顶级窗口样式和销毁窗口的回调。
-\since build 575
-\todo 支持非 Win32 平台。
-
-关联菜单宿主和菜单部件并设置菜单为具有适合显式为菜单的样式的宿主顶级窗口。
-当最后一个参数非空时设置此参数指定的窗口被销毁时同时设置菜单部件的默认渲染器，
-以避免作为宿主窗口显示的菜单影响程序正常退出。
-*/
-YF_API void
-PrepareTopLevelPopupMenu(UI::MenuHost&, UI::Menu&, UI::Panel&, Window* = {});
-
-/*!
 \brief 设置根模式的宿主顶级窗口中的部件的上下文菜单。
-\return 是否通过设置上下文菜单的检查。
-\sa Environment::Desktop
 \sa PrepareTopLevelPopupMenu
 \sa UI::BindTopLevelPopupMenu
-\since build 575
 
 第三参数指定宿主顶级窗口对应的部件。当且仅当此部件的父部件是对应的宿主环境桌面时，
 依次通过 PrepareTopLevelPopupMenu 和 UI::BindTopLevelPopupMenu 设置上下文菜单。
-最后一个参数指定是否要求销毁窗口时同时设置菜单部件的默认渲染器。
 */
 YF_API bool
-SetupTopLevelContextMenu(UI::MenuHost&, UI::Menu&, UI::Widget&, UI::IWidget&,
-	bool = {});
+SetupTopLevelContextMenu(UI::Widget&, UI::IWidget&, UI::MenuHost&, UI::Menu&);
+//@}
 
 } // namespace Host;
 #endif

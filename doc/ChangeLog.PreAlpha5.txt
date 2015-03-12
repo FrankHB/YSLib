@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10774
+\version r10890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-03-06 23:12 +0800
+	2015-03-07 02:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,123 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ @ "%build-YSTest.sh" @ %YStest $=
+	(
+		/ "quoted path for source and include directory at command line",
+			// Not necessary at now but good to be consistent.
+		- ($re_ex(b561) @ %Tools) "unnecessary curly braces around variables"
+	),
+	/ "quoted path for include directory" @ "exported variable \
+		%SHBuild_YSLib_Flags" @ "%SHBuild-BuildApp.sh" @ %Tools.Scripts
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ @ "class %Caret" @ %TextBox $=
+				(
+					/ "stopped caret at once when found disabled"
+						@ "function %Check",
+						// To improve performance.
+					* "caret not shown and input not allowed after lost focus \
+						through indirect parent and then focused even directly"
+						$since b571
+				),
+				+ "parameter pack support" @ "function template %ActOnHover"
+					@ %Hover,
+				+ "function %MoveToCenter" @ %YUIContainer
+			),
+			/ %Core.YGDIBase $=
+			(
+				+ "function %LocateCenter",
+				/ "implemented %RotateCenter" ^ "%HalfDifference"
+			),
+			/ %Service.YBlit $=
+			(
+				(
+				/ "function template %operator()"
+					@ "functors %(SequenceTransformer, VerticalLineTransfomer)"
+					^ "input iterator" ~ "pixel transformer functor",
+				/ DLD "implemented function templates %(FillPixel, \
+					FillVerticalLine, FillRectRaw)" ^ "%ystdex::pseudo_iterator"
+					~ "%PixelFiller";
+				- "functors %PixelFiller",
+				/ DLD "implemented function template %FillPixel"
+					^ "%CopyLine<true>" ~ "SequenceTransformer";
+				- "functor %SequenceTransformer"
+				),
+				(
+				/ DLD "implemented function templates %TransformRect"
+					^ "%Drawing::BlitPixels" ~ "%RectTransformer";
+				- "functors %RectTransformer"
+				),
+				/ "explicitly specified non-ADL %TransformRect call"
+					@ "%TransformRect#2",
+				/ @ "%CopyLine<true>" $=
+				(
+					+ "assertion for dereferenceable iterator when size is not \
+						zero" @ "%operator()",
+						// As %SequenceTransformer::operator().
+					+ "overloaded function template %operator() for instances \
+						of %ystdex::pseudo_iterator" ^ "%std::fill_n"
+				)
+			);
+		),
+		/ %Helper.HostedUI $=
+		(
+			* "tips not hidden on drag leave" @ "function %BindTimedTips"
+				$since b573,
+			+ "function %AttachToHost" @ "platform !%Android"
+				@ !"host platforms",
+			- "last parameter to determinate whether detach from host window"
+				@ "%PrepareTopLevelPopupMenu",
+			/ @ "function %SetupTopLevelContextMenu" $=
+			(
+				(
+				/ "always detached from window when the host window destroyed";
+				- "last parameter to determinate whether detach from host \
+					window"
+				),
+				/ "put 3rd and 4th parameter at front",
+					// As same as %SetupTopLevelTimedTips.
+				/ "implemented %SetupTopLevelContextMenu with slightly \
+					different trace message for detaching from host window"
+					@ "platform %Win32" ^ "%AttachToHost",
+				/ "set detaching window callback after other operations \
+					completed"
+					// Thus the host window would not be touched after an \
+						exception is thrown. Also to be same as \
+						%SetupTopLevelTimedTips.
+			),
+			/ "function %SetupTimedTips" -> "function %SetupTopLevelTimedTips"
+			* $comp "top level widget reserved when window destroyed" $since
+				b573
+				// For Win32, the window can be closed by Alt+F4 by default.
+		),
+		/ DLD "implemented throw expression in catch clauses" ^ "%CatchThrow"
+			~ "%CatchExpr" $effective @ %(YSLib.(UI.Loader, Service.YGDI),
+			Helper.HostRenderer, NPL.NPLA1, YCLib.FileSystem);
+	),
+	/ @ "class %ImageControl" %YDE.ImageBrowser $=
+	(
+		/ "zooming scales for %CursorWheel"
+			-> "'1.201F' and its reciprocal" ~ ('1.2F', '0.8F'),
+			// To get some smooth scaling ratios and precisely inversed \
+				behavior when the wheel is rolled towards a different direction.
+		* "wrong absolute error calculated for invalidating the context menu"
+			@ "function %UpdateMenuItem#1" $since b580
+	)
+	/ @ "function template %pseudo_iterator" @ %YBase.YStandardEx.Iterator $=
+	(
+		/ "default argument" @ "2nd template parameter"  -> 'const _type*'
+			~ '_type*',
+		+ "%operator* for non-const '*this'"
+	)
+),
+
+b582
 (
 	/ %YFramework $=
 	(

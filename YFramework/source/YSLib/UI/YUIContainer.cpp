@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1909
+\version r1921
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2015-02-04 15:45 +0800
+	2015-03-12 12:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,6 +123,20 @@ LocateForParentContainer(const IWidget& wgt)
 
 
 void
+MoveToBottom(IWidget& wgt)
+{
+	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, GetSizeOf(
+		Deref(FetchContainerPtr(wgt))).Height - GetSizeOf(wgt).Height));
+}
+
+void
+MoveToCenter(IWidget& wgt)
+{
+	SetLocationOf(wgt,
+		LocateCenter(GetSizeOf(Deref(FetchContainerPtr(wgt))), GetSizeOf(wgt)));
+}
+
+void
 MoveToLeft(IWidget& wgt)
 {
 	YAssertNonnull(FetchContainerPtr(wgt));
@@ -141,13 +155,6 @@ MoveToTop(IWidget& wgt)
 {
 	YAssertNonnull(FetchContainerPtr(wgt));
 	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, 0));
-}
-
-void
-MoveToBottom(IWidget& wgt)
-{
-	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, GetSizeOf(
-		Deref(FetchContainerPtr(wgt))).Height - GetSizeOf(wgt).Height));
 }
 
 

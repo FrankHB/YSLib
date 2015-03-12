@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# (C) 2014 FrankHB.
+# (C) 2014-2015 FrankHB.
 # Script for build YSLib applications using SHBuild.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
@@ -107,7 +107,7 @@ LIBS="$LIBS_RPATH -L\"`SHBuild_2w "$SHBuild_Bin/../lib"`\""
 
 if [[ "$SHBuild_Static" == '' ]]; then
 	export SHBuild_YSLib_Flags="$CXXFLAGS -DYF_DLL -DYB_DLL \
-		$SHBuild_YF_CFlags_freetype -I$SHBuild_Bin/../include"
+		$SHBuild_YF_CFlags_freetype -I\"$SHBuild_Bin/../include\""
 	export LIBS="$LIBS $SHBuild_YSLib_LibNames"
 else
 	export SHBuild_YSLib_Flags="$CXXFLAGS $SHBuild_YF_CFlags_freetype \

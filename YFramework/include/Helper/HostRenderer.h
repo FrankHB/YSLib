@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r383
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-01-26 05:30 +0800
+	2015-03-11 00:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -265,8 +265,7 @@ public:
 
 	//! \since build 409
 	YB_NORETURN PDefH(HostRenderer*, clone, ) const override
-		ImplExpr(
-			throw ystdex::unimplemented("HostRenderer::clone unimplemented."));
+		ImplThrow(ystdex::unimplemented("HostRenderer::clone unimplemented."));
 //	DefClone(const override, HostRenderer)
 };
 
