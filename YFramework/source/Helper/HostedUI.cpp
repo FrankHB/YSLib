@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r325
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-03-01 20:18 +0800
+	2015-03-10 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,15 +49,33 @@ namespace Host
 {
 
 Window&
-WaitForHostWindow(UI::IWidget& wgt)
+WaitForHostWindow(IWidget& wgt)
 {
 	return dynamic_cast<HostRenderer&>(wgt.GetRenderer()).Wait();
 }
 
 #	if !YCL_Android
+void
+AttachToHost(Widget& wgt, Window& wnd, Messaging::Priority prior)
+{
+#	if YCL_Win32
+	using ystdex::pvoid;
+
+	wnd.MessageMap[WM_DESTROY] += [&]{
+		PostTask([&, prior]{
+			YTraceDe(Debug, "Ready to reset renderer of widget '%p' from host"
+				" window '%p' from the host.", pvoid(&wgt),
+				pvoid(GetWindowPtrOf(wgt)));
+			wgt.SetRenderer({});
+		}, prior);
+	};
+#	else
+	yunused(wgt), yunused(wnd);
+#	endif
+}
 
 void
-DragWindow(Window& wnd, UI::CursorEventArgs&& e, bool root)
+DragWindow(Window& wnd, CursorEventArgs&& e, bool root)
 {
 	if(e.Strategy == RoutedEventArgs::Direct && !e.Handled)
 	{
@@ -90,7 +108,7 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e, bool root)
 #	if YCL_Win32
 
 HostRenderer&
-ShowTopLevel(UI::Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
+ShowTopLevel(Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
 	int n_cmd_show, const wchar_t* title)
 {
 	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, [=, &wgt]{
@@ -112,18 +130,19 @@ ShowTopLevel(UI::Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
 #	if !YCL_Android
 
 void
-ShowTopLevelDraggable(UI::Widget& wgt)
+ShowTopLevelDraggable(Widget& wgt)
 {
 #		if YCL_Win32
 	ShowTopLevel(wgt, WS_POPUP);
 #		endif
-	UI::FetchEvent<UI::TouchHeld>(wgt) += std::bind(Host::DragWindow,
+	FetchEvent<TouchHeld>(wgt) += std::bind(Host::DragWindow,
 		std::ref(WaitForHostWindow(wgt)), std::placeholders::_1,
 		std::ref(Deref(GetHostRendererPtrOf(wgt)).RootMode));
 }
 #	endif
 
-array<GEvent<UI::HCursorEvent::FuncType>::iterator, 2>
+
+array<GEvent<HCursorEvent::FuncType>::iterator, 2>
 BindTimedTips(TimedHoverState& st, IWidget& wgt, Widget& target)
 {
 	auto& cursor_over(FetchEvent<CursorOver>(wgt));
@@ -135,51 +154,28 @@ BindTimedTips(TimedHoverState& st, IWidget& wgt, Widget& target)
 					std::bind(st.Locate, std::ref(e)));
 		}), leave.Insert([&](CursorEventArgs&& e){
 			if(st.CheckHide(e))
-				SetRendererOnHover(wgt, target);
+				target.SetRenderer({});
 		})}};
 }
 
 void
-SetupTimedTips(UI::TimedHoverState& st, UI::IWidget& wgt, UI::Label& lbl,
-	const String& text, const Drawing::Rect& r, const Drawing::Font& fnt,
-	const Drawing::Padding& m)
-{
-	using namespace UI;
-
-	// NOTE: For tool tips, Control + MLabel can be used but is likely not good
-	//	enough, because the top level control boundary would likely behave
-	//	unexpectedly when the boundary is overlapped with underlying controls.
-	SetupContentsOf(lbl, text, r, fnt, m);
-	// TODO: Border style setting, font, background, allowing host shadow, etc.
-	FetchEvent<Paint>(lbl) += BorderBrush();
-	BindTimedTips(st, wgt, lbl);
-}
-
-void
-PrepareTopLevelPopupMenu(MenuHost& mh, Menu& mnu, Panel& root, Window* p_wnd)
+PrepareTopLevelPopupMenu(MenuHost& mh, Menu& mnu, Panel& root)
 {
 	mh += mnu;
 	root.Add(mnu, DefaultMenuZOrder);
 #	if YCL_Win32
 	ShowTopLevel(mnu, WS_POPUP,
 		WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST, SW_HIDE);
-	if(p_wnd)
-		p_wnd->MessageMap[WM_DESTROY] += [&]{
-			PostTask([&]{
-				YTraceDe(Debug, "Ready to detach menu '%p' with host window"
-					" '%p' from the host.", ystdex::pvoid(&mnu),
-					ystdex::pvoid(GetWindowPtrOf(mnu)));
-				mnu.SetRenderer({});
-			}, 0xF8);
-		};
-#	else
-	yunused(p_wnd);
 #	endif
 }
 
+//! \since build 583
+namespace
+{
+
+template<typename _func>
 bool
-SetupTopLevelContextMenu(MenuHost& mh, Menu& mnu, Widget& top, IWidget& wgt,
-	bool reset_renderer)
+DoSetupTopLevel(Widget& top, _func f)
 {
 	if(const auto p_wnd = GetWindowPtrOf(top))
 	{
@@ -188,18 +184,55 @@ SetupTopLevelContextMenu(MenuHost& mh, Menu& mnu, Widget& top, IWidget& wgt,
 
 		if(FetchContainerPtr(top) == &root)
 		{
-			PrepareTopLevelPopupMenu(mh, mnu, root,
-				reset_renderer ? p_wnd : nullptr);
-			UI::BindTopLevelPopupMenu(mh, mnu, wgt);
+			auto& wgt(f(root));
+
+			if(p_wnd)
+				AttachToHost(wgt, *p_wnd);
 			return true;
 		}
 #	else
-		yunused(mh), yunused(mnu), yunused(wgt), yunused(reset_renderer);
+		yunused(f);
 #	endif
 	}
 	return {};
 }
 
+} // unnamed namespace;
+
+bool
+SetupTopLevelTimedTips(Widget& top, IWidget& wgt, TimedHoverState& st,
+	Label& lbl, const String& text, const Rect& r, const Font& fnt,
+	const Padding& m)
+{
+	return DoSetupTopLevel(top, [&](Panel&)->Widget&{
+		using namespace UI;
+
+		SetupContentsOf(lbl, text, r, fnt, m);
+		// TODO: Border style setting, font, background, allowing host shadow,
+		//	etc.
+		FetchEvent<Paint>(lbl) += BorderBrush();
+#	if YCL_Win32
+		BindTimedTips(st, wgt, lbl);
+#	else
+		yunused(st), yunused(wgt);
+#	endif
+		return lbl;
+	});
+}
+
+bool
+SetupTopLevelContextMenu(Widget& top, IWidget& wgt, MenuHost& mh, Menu& mnu)
+{
+	return DoSetupTopLevel(top, [&](Panel& root)->Widget&{
+#	if YCL_Win32
+		PrepareTopLevelPopupMenu(mh, mnu, root);
+		BindTopLevelPopupMenu(mh, mnu, wgt);
+#	else
+		yunused(mh), yunused(mnu), yunused(root), yunused(wgt);
+#	endif
+		return mnu;
+	});
+}
 
 } // namespace Host;
 #endif

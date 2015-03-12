@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r169
+\version r184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2015-03-01 20:19 +0800
+	2015-03-10 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,18 +60,22 @@ public:
 };
 
 
-//! \since build 548
-//@{
-//! \brief 设置悬停动作。
-template<typename _func>
+/*!
+\brief 设置悬停动作。
+\since build 583
+*/
+template<typename _func, typename... _tParams>
 void
-ActOnHover(IWidget& sender, _func f)
+ActOnHover(IWidget& wgt, _func f, _tParams&&... args)
 {
-	if(&sender != FetchGUIState().GetIndependentFocusPtr())
-		f();
+	if(&wgt != FetchGUIState().GetIndependentFocusPtr())
+		f(yforward(args)...);
 }
 
-//! \brief 设置悬停操作渲染器。
+/*!
+\brief 设置悬停操作渲染器。
+\since build 548
+*/
 //@{
 template<typename _func>
 inline void
@@ -82,7 +86,6 @@ SetRendererOnHover(IWidget& wgt, Widget& target, _func f)
 }
 inline PDefH(void, SetRendererOnHover, IWidget& wgt, Widget& target)
 	ImplExpr(UI::SetRendererOnHover(wgt, target, make_unique<Renderer>))
-//@}
 //@}
 
 
@@ -154,11 +157,11 @@ public:
 	static Point
 	LocateForOffset(const CursorEventArgs&, const Point&);
 
-	bool
-	Update(const Point& pt) ynothrow;
-
 	PDefH(void, Reset, ) ynothrow
 		ImplExpr(state = Outside)
+
+	bool
+	Update(const Point& pt) ynothrow;
 };
 
 } // namespace UI;

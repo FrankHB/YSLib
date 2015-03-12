@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1089
+\version r1099
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-27 23:05 +0800
+	2015-03-10 23:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,9 @@ enum MenuItem : size_t
 	RotateCCW
 };
 
+//! \since build 583
+static yconstexpr float def_scale(1.201F), def_rscale(1 / def_scale);
+
 ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	const Size& max_size)
 	: Panel(r),
@@ -51,8 +54,9 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	{u"退出", u"查看原始大小", u"翻转", u"顺时针旋转", u"逆时针旋转"}))
 {
 	*this += btnClose,
-	Host::SetupTimedTips(hover_state, btnClose, lblCloseTips, u"关闭"),
 	yunseq(
+	Host::SetupTopLevelTimedTips(*this, btnClose, hover_state, lblCloseTips,
+		u"关闭"),
 	Background = SolidBrush({0x00, 0x00, 0x00, 0xC0}),
 	btnClose.Background = [this](PaintEventArgs&& e){
 		const auto& g(e.Target);
@@ -106,8 +110,8 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 			Invalidate(*this);
 	},
 	FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
-		if(session_ptr
-			&& GetPagesRef().ZoomByRatio(e.GetDelta() > 0 ? 1.2F : 0.8F, e))
+		if(session_ptr && GetPagesRef().ZoomByRatio(e.GetDelta() > 0 ? def_scale
+			: def_rscale, e))
 		{
 			Invalidate(*this);
 			UpdateMenuItem();
@@ -181,7 +185,7 @@ void
 ImagePanel::SetupContextMenu()
 {
 	ResizeForContent(mnuContext);
-	Host::SetupTopLevelContextMenu(mhMain, mnuContext, *this, *this, true);
+	Host::SetupTopLevelContextMenu(*this, *this, mhMain, mnuContext);
 }
 
 void
@@ -200,8 +204,8 @@ ImagePanel::UpdateBrush()
 void
 ImagePanel::UpdateMenuItem()
 {
-	UpdateMenuItem(abs(GetPagesRef().GetScale() - 1.F)
-		< std::numeric_limits<ImageScale>::epsilon());
+	UpdateMenuItem(!(std::fabs(GetPagesRef().GetScale() - 1.F)
+		< std::numeric_limits<ImageScale>::epsilon()));
 }
 void
 ImagePanel::UpdateMenuItem(bool b)

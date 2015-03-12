@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1955
+\version r1987
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-02-24 00:33 +0800
+	2014-03-12 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Core_YGDIBase_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YException
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib::GeneralEvent,
+//	YSLib::HalfDifference;
 #include <limits>
 #include <ystdex/utility.hpp> // for ystdex::cloneable;
 
@@ -161,9 +162,9 @@ const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid{
 */
 template<typename _type>
 yconstfn bool
-operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
+operator==(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 {
-	return a.X == b.X && a.Y == b.Y;
+	return x.X == y.X && x.Y == y.Y;
 }
 
 /*!
@@ -172,9 +173,9 @@ operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 */
 template<typename _type>
 yconstfn bool
-operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
+operator!=(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 {
-	return !(a == b);
+	return !(x == y);
 }
 
 /*!
@@ -183,9 +184,9 @@ operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 */
 template<typename _type>
 yconstfn GBinaryGroup<_type>
-operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
+operator+(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 {
-	return GBinaryGroup<_type>(a.X + b.X, a.Y + b.Y);
+	return GBinaryGroup<_type>(x.X + y.X, x.Y + y.Y);
 }
 
 /*!
@@ -194,9 +195,9 @@ operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 */
 template<typename _type>
 yconstfn GBinaryGroup<_type>
-operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
+operator-(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 {
-	return GBinaryGroup<_type>(a.X - b.X, a.Y - b.Y);
+	return GBinaryGroup<_type>(x.X - y.X, x.Y - y.Y);
 }
 
 /*!
@@ -401,28 +402,28 @@ public:
 */
 //@{
 //! \brief 比较：屏幕区域大小相等关系。
-yconstfn PDefHOp(bool, ==, const Size& a, const Size& b) ynothrow
-	ImplRet(a.Width == b.Width && a.Height == b.Height)
+yconstfn PDefHOp(bool, ==, const Size& x, const Size& y) ynothrow
+	ImplRet(x.Width == y.Width && x.Height == y.Height)
 
 //! \brief 比较：屏幕区域大小不等关系。
-yconstfn PDefHOp(bool, !=, const Size& a, const Size& b) ynothrow
-	ImplRet(!(a == b))
+yconstfn PDefHOp(bool, !=, const Size& x, const Size& y) ynothrow
+	ImplRet(!(x == y))
 
 /*!
 \brief 求两个屏幕区域大小的交。
 \sa Size::operator&=
 \since build 555
 */
-yconstfn PDefHOp(Size, &, const Size& a, const Size& b) ynothrow
-	ImplRet({min(a.Width, b.Width), min(a.Height, b.Height)})
+yconstfn PDefHOp(Size, &, const Size& x, const Size& y) ynothrow
+	ImplRet({min(x.Width, y.Width), min(x.Height, y.Height)})
 
 /*!
 \brief 求两个屏幕区域大小的并。
 \sa Size::operator|=
 \since build 555
 */
-yconstfn PDefHOp(Size, |, const Size& a, const Size& b) ynothrow
-	ImplRet({max(a.Width, b.Width), max(a.Height, b.Height)})
+yconstfn PDefHOp(Size, |, const Size& x, const Size& y) ynothrow
+	ImplRet({max(x.Width, y.Width), max(x.Height, y.Height)})
 
 //! \brief 取面积。
 yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
@@ -430,12 +431,20 @@ yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
 	ImplRet(s.Width * s.Height)
 
 /*!
-\brief 按指定图像大小旋转左上角坐标。
+\brief 计算第一参数和第二参数为大小的矩形中心重合时左上角相对于第一个矩形的位置。
+\since build 583
+*/
+yconstfn PDefH(Point, LocateCenter, const Size& x, const Size& y)
+	ImplRet({HalfDifference<SPos>(x.Width, y.Width),
+		HalfDifference<SPos>(x.Height, y.Height)})
+
+/*!
+\brief 计算按指定大小的矩形绕中心旋转一个直角后左上角的相对位置。
 \since build 578
 */
 yconstfn PDefH(Point, RotateCenter, const Size& s)
-	ImplRet({(SPos(s.Width) - SPos(s.Height)) / 2,
-		(SPos(s.Height) - SPos(s.Width)) / 2})
+	ImplRet({HalfDifference<SPos>(s.Width, s.Height),
+		HalfDifference<SPos>(s.Height, s.Width)})
 
 /*!
 \brief 取分量。
@@ -763,16 +772,16 @@ yconstfn PDefHOp(Rect, -, const Rect& r, const Vec& v) ynothrow
 \sa Rect::operator&=
 \since build 555
 */
-inline PDefHOp(Rect, &, const Rect& a, const Rect& b) ynothrow
-	ImplRet(Rect(a) &= b)
+inline PDefHOp(Rect, &, const Rect& x, const Rect& y) ynothrow
+	ImplRet(Rect(x) &= y)
 
 /*!
 \brief 求两个屏幕标准矩形的并。
 \sa Rect::operator|=
 \since build 555
 */
-inline PDefHOp(Rect, |, const Rect& a, const Rect& b) ynothrow
-	ImplRet(Rect(a) |= b)
+inline PDefHOp(Rect, |, const Rect& x, const Rect& y) ynothrow
+	ImplRet(Rect(x) |= y)
 
 /*!
 \brief 按指定大小缩小矩形。

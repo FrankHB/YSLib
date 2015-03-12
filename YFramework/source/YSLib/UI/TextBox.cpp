@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r692
+\version r704
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-03-07 01:24 +0800
+	2015-03-08 17:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,14 +50,11 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 		if(Check(e.GetSender()))
 			CaretBrush(std::move(e));
 	},
-	FetchEvent<GotFocus>(wgt) += [&, this](UIEventArgs&& e){
-		if(&e.GetSender() == &wgt)
-		{
-			// NOTE: Necessary cleanup.
-			Stop();
-			FetchGUIState().ExternalTextInputFocusPtr = &wgt;
-			Restart(caret_animation, wgt, CursorInvalidator);
-		}
+	FetchEvent<GotFocus>(wgt) += [&, this]{
+		// NOTE: Necessary cleanup.
+		Stop();
+		FetchGUIState().ExternalTextInputFocusPtr = &wgt;
+		Restart(caret_animation, wgt, CursorInvalidator);
 	},
 	FetchEvent<LostFocus>(wgt) += [this]{
 		Stop();
@@ -75,9 +72,8 @@ Caret::Check(IWidget& sender)
 	if(caret_animation.GetConnectionPtr()
 		&& caret_animation.GetConnectionRef().Ready)
 	{
-		if(IsFocusedCascade(sender))
-			return IsEnabled(sender)
-				&& CaretTimer.RefreshRemainder() < CaretTimer.Interval / 2;
+		if(IsEnabled(sender) && IsFocusedCascade(sender))
+			return CaretTimer.RefreshRemainder() < CaretTimer.Interval / 2;
 		else
 			Stop();
 	}
@@ -339,7 +335,7 @@ TextBox::ReplaceSelection(const String& text)
 {
 	auto& r(Selection.Range);
 
-	// XXX: Make it correct for multiline input.
+	// TODO: Support multiline input.
 	if(r.second.X < r.first.X)
 		std::swap(r.first, r.second);
 

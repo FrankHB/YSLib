@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3155
+\version r3302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-02-23 18:46 +0800
+	2015-03-12 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,63 +40,6 @@ namespace YSLib
 namespace Drawing
 {
 
-//基本仿函数。
-
-/*!
-\brief 像素填充器。
-\since build 182
-*/
-template<typename _tPixel>
-struct PixelFiller
-{
-	_tPixel Color;
-
-	/*!
-	\brief 构造：使用指定颜色。
-	*/
-	explicit inline
-	PixelFiller(_tPixel c)
-		: Color(c)
-	{}
-
-	/*!
-	\brief 像素填充函数。
-	\warning 无访问检查。
-	\since build 438
-	*/
-	template<typename _tOut>
-	inline void
-	operator()(_tOut dst)
-	{
-		*dst = Color;
-	}
-};
-
-/*!
-\brief 序列转换器。
-\since build 182
-*/
-struct SequenceTransformer
-{
-	/*!
-	\brief 渲染连续像素。
-	\tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
-	\pre 断言：对非零参数起始迭代器不能判定为不可解引用。
-	\since build 453
-	*/
-	template<typename _tOut, class _fTransformPixel>
-	void
-	operator()(_tOut dst, size_t n, _fTransformPixel tp) const
-	{
-		using ystdex::is_undereferenceable;
-
-		YAssert(n == 0 || !is_undereferenceable(dst),
-			"Invalid iterator found.");
-		for(const auto e(dst + n); dst != e; ++dst)
-			tp(dst);
-	}
-};
-
 /*!
 \brief 竖直线转换器。
 \since build 182
@@ -106,22 +49,22 @@ struct VerticalLineTransfomer
 	/*!
 	\brief 渲染竖直线上的像素。
 	\tparam _tOut 输出迭代器类型（需要支持 += 操作，一般应是随机迭代器）。
+	\tparam _tIn 输入迭代器类型。
 	\pre 断言：对非零参数起始迭代器不能判定为不可解引用。
-	\since build 453
+	\since build 583
 	*/
-	template<typename _tOut, class _fTransformPixel>
+	template<typename _tOut, typename _tIn>
 	void
-	operator()(_tOut dst, size_t n, SDst dw, _fTransformPixel tp) const
+	operator()(_tOut dst_iter, size_t n, SDst dw, _tIn src_iter) const
 	{
 		using ystdex::is_undereferenceable;
 
-		YAssert(n == 0 || !is_undereferenceable(dst),
+		YAssert(n == 0 || !is_undereferenceable(dst_iter),
 			"Invalid iterator found.");
-
 		while(n-- != 0)
 		{
-			tp(dst);
-			dst += dw;
+			*dst_iter = *src_iter;
+			yunseq(++src_iter, dst_iter += dw);
 		}
 	}
 };
@@ -383,52 +326,72 @@ DispatchTranspose(std::true_type, _func updater, const ConstGraphics& src)
 
 
 /*!
-\brief 标准矩形转换器。
-\since build 266
+\ingroup BlitScanner
+\brief 扫描线：按指定扫描顺序复制一行像素。
+\warning 不检查迭代器有效性。
+\since build 438
 */
-struct RectTransformer
+//@{
+template<bool _bDec>
+struct CopyLine
 {
 	/*!
-	\brief 渲染标准矩形内的像素。
-	\tparam _tOut 输出迭代器类型（需要支持 += 操作，一般应是随机迭代器）。
-	\note 不含右边界和下边界。
-	\since build 438
+	\brief 复制迭代器指定的一行像素。
+	\tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
+	\tparam _tIn 输入迭代器类型。
+	\pre 断言：对非零参数起始迭代器不能判定为不可解引用。
 	*/
 	//@{
-	template<typename _tOut, class _fTransformPixel, class _fTransformLine>
+	//! \since build 453
+	template<typename _tOut, typename _tIn>
 	void
-	operator()(_tOut dst, const Size& ds, const Point& dp, const Size& sc,
-		_fTransformPixel tp, _fTransformLine tl)
+	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x) const
 	{
-		Blit<false, false>([&](_tOut dst_iter, _tOut, SDst delta_x,
-			SDst delta_y, SPos dst_inc, SPos){
-			while(delta_y-- > 0)
-			{
-				tl(dst_iter, delta_x, tp);
-				// NOTE: See $2015-02 @ %Documentation::Workflow::Annual2015.
-				if(YB_LIKELY(delta_y != 0))
-					dst_iter += dst_inc + delta_x;
-			}
-		}, dst, dst, ds, ds, dp, dp, sc);
+		using ystdex::is_undereferenceable;
+
+		YAssert(delta_x == 0 || !is_undereferenceable(dst_iter),
+			"Invalid output iterator found."),
+		YAssert(delta_x == 0 || !is_undereferenceable(src_iter),
+			"Invalid input iterator found.");
+		std::copy_n(src_iter, delta_x, dst_iter);
+		// NOTE: Possible undefined behavior. See $2015-02
+		//	@ %Documentation::Workflow::Annual2015.
+		yunseq(src_iter += delta_x, dst_iter += delta_x);
 	}
-	template<typename _tOut, class _fTransformPixel, class _fTransformLine>
-	inline void
-	operator()(_tOut dst, const Size& ds, const Rect& r, _fTransformPixel tp,
-		_fTransformLine tl)
+	//! \since build 583
+	template<typename _tOut, typename _tPixel>
+	void
+	operator()(_tOut& dst_iter, ystdex::pseudo_iterator<_tPixel> src_iter,
+		SDst delta_x) const
 	{
-		operator()<_tOut, _fTransformPixel, _fTransformLine>(dst, ds,
-			r.GetPoint(), r.GetSize(), tp, tl);
-	}
-	template<typename _tOut, class _fTransformPixel, class _fTransformLine>
-	inline void
-	operator()(_tOut dst, SDst dw, SDst dh, SPos x, SPos y,
-		SDst w, SDst h, _fTransformPixel tp, _fTransformLine tl)
-	{
-		operator()<_tOut, _fTransformPixel, _fTransformLine>(dst, {dw, dh},
-			{x, y}, {w, h}, tp, tl);
+		using ystdex::is_undereferenceable;
+
+		YAssert(delta_x == 0 || !is_undereferenceable(dst_iter),
+			"Invalid output iterator found."),
+		std::fill_n(dst_iter, delta_x, Deref(src_iter));
+		// NOTE: Possible undefined behavior. See $2015-02
+		//	@ %Documentation::Workflow::Annual2015.
+		dst_iter += delta_x;
 	}
 	//@}
 };
+
+template<>
+struct CopyLine<false>
+{
+	/*!
+	\todo 增加对不支持前置 -- 操作的迭代器的支持。
+	\todo 平凡复制类型优化。
+	*/
+	template<typename _tOut, typename _tIn>
+	void
+	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x) const
+	{
+		while(delta_x-- > 0)
+			*dst_iter-- = *src_iter++;
+	}
+};
+//@}
 
 
 /*
@@ -455,9 +418,9 @@ ClearPixel(_tOut dst, size_t n) ynothrow
 */
 template<typename _tPixel, typename _tOut>
 inline void
-FillPixel(_tOut dst, size_t n, _tPixel c)
+FillPixel(_tOut dst_iter, size_t n, _tPixel c)
 {
-	SequenceTransformer()(dst, n, PixelFiller<_tPixel>(c));
+	CopyLine<true>()(dst_iter, ystdex::pseudo_iterator<_tPixel>(c), n);
 }
 
 /*!
@@ -467,7 +430,7 @@ template<typename _tPixel, typename _tOut>
 inline void
 FillVerticalLine(_tOut dst, size_t n, SDst dw, _tPixel c)
 {
-	VerticalLineTransfomer()(dst, n, dw, PixelFiller<_tPixel>(c));
+	VerticalLineTransfomer()(dst, n, dw, ystdex::pseudo_iterator<_tPixel>(c));
 }
 //@}
 
@@ -481,60 +444,22 @@ inline void
 FillRectRaw(_tOut dst, const Size& ds, const Point& sp, const Size& sc,
 	_tPixel c)
 {
-	RectTransformer()(dst, ds, sp, sc, PixelFiller<_tPixel>(c),
-		SequenceTransformer());
+	Drawing::BlitLines<false, false>(CopyLine<true>(), dst,
+		ystdex::pseudo_iterator<_tPixel>(c), ds, ds, sp, sp, sc);
 }
 template<typename _tPixel, typename _tOut>
 inline void
 FillRectRaw(_tOut dst, const Size& ds, const Rect& r, _tPixel c)
 {
-	RectTransformer()(dst, ds, r, PixelFiller<_tPixel>(c),
-		SequenceTransformer());
+	Drawing::FillRectRaw(dst, ds, r.GetPoint(), r.GetSize(), c);
 }
 template<typename _tPixel, typename _tOut>
 inline void
 FillRectRaw(_tOut dst, SDst dw, SDst dh, SPos x, SPos y, SDst w, SDst h,
 	_tPixel c)
 {
-	RectTransformer()(dst, dw, dh, x, y, w, h, PixelFiller<_tPixel>(c),
-		SequenceTransformer());
+	Drawing::FillRectRaw(dst, {dw, dh}, {x, y}, {w, h}, c);
 }
-//@}
-
-
-/*!
-\ingroup BlitScanner
-\brief 扫描线：按指定扫描顺序复制一行像素。
-\warning 不检查迭代器有效性。
-\since build 438
-*/
-//@{
-template<bool _bDec>
-struct CopyLine
-{
-	template<typename _tOut, typename _tIn>
-	void
-	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x) const
-	{
-		std::copy_n(src_iter, delta_x, dst_iter);
-		// NOTE: Possible undefined behavior. See $2015-02
-		//	@ %Documentation::Workflow::Annual2015.
-		yunseq(src_iter += delta_x, dst_iter += delta_x);
-	}
-};
-
-//! \todo 增加对不支持前置 -- 操作的迭代器的支持。
-template<>
-struct CopyLine<false>
-{
-	template<typename _tOut, typename _tIn>
-	void
-	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x) const
-	{
-		while(delta_x-- > 0)
-			*dst_iter-- = *src_iter++;
-	}
-};
 //@}
 
 
@@ -556,8 +481,11 @@ TransformRect(const Graphics& g, const Point& pt, const Size& s,
 {
 	if(YB_LIKELY(g))
 	{
-		RectTransformer()(g.GetBufferPtr(), g.GetSize(), pt, s, tp,
-			SequenceTransformer());
+		Drawing::BlitPixels<false, false>(
+			[tp](BitmapPtr dst_iter, ConstBitmapPtr){
+				tp(dst_iter);
+			}, g.GetBufferPtr(), g.GetBufferPtr(), g.GetSize(), g.GetSize(), pt,
+			pt, s);
 		return true;
 	}
 	return {};
@@ -570,7 +498,8 @@ template<class _fTransformPixel>
 inline bool
 TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 {
-	return TransformRect<_fTransformPixel>(g, r.GetPoint(), r.GetSize(), tp);
+	return Drawing::TransformRect<_fTransformPixel>(g, r.GetPoint(),
+		r.GetSize(), tp);
 }
 
 

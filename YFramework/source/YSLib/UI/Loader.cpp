@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r301
+\version r303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-02-25 20:14 +0800
+	2014-03-10 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,8 +66,8 @@ IWidget&
 AccessWidget(const ValueNode& node)
 {
 	TryRet(Deref(AccessChild<shared_ptr<IWidget>>(node, "$pointer")))
-	CatchExpr(std::out_of_range&,
-		throw WidgetNotFound(node.GetName(), "Widget pointer not found."))
+	CatchThrow(std::out_of_range&,
+		WidgetNotFound(node.GetName(), "Widget pointer not found."))
 }
 
 

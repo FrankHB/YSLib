@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2098
+\version r2117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2015-02-02 08:13 +0800
+	2015-03-11 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,36 +128,44 @@ LocateForParentContainer(const IWidget&);
 
 
 /*!
-\brief 移动部件 wgt 至容器左端。
-\pre 断言： <tt>FetchContainerPtr(wgt)</tt> 。
+\brief 移动部件至容器下端。
+\pre 间接断言：容器指针非空。
 \since build 171
 */
 YF_API void
-MoveToLeft(IWidget& wgt);
+MoveToBottom(IWidget&);
 
 /*!
-\brief 移动部件 wgt 至容器右端。
-\pre 间接断言： <tt>FetchContainerPtr(wgt)</tt> 。
-\since build 171
+\brief 移动部件至容器中心。
+\pre 间接断言：容器指针非空。
+\since build 583
 */
 YF_API void
-MoveToRight(IWidget& wgt);
+MoveToCenter(IWidget&);
 
 /*!
-\brief 移动部件 wgt 至容器上端。
-\pre 断言： <tt>FetchContainerPtr(wgt)</tt> 。
+\brief 移动部件至容器左端。
+\pre 断言：容器指针非空。
 \since build 171
 */
 YF_API void
-MoveToTop(IWidget& wgt);
+MoveToLeft(IWidget&);
 
 /*!
-\brief 移动部件 wgt 至容器下端。
-\pre 间接断言： <tt>FetchContainerPtr(wgt)</tt> 。
+\brief 移动部件至容器右端。
+\pre 间接断言：容器指针非空。
 \since build 171
 */
 YF_API void
-MoveToBottom(IWidget& wgt);
+MoveToRight(IWidget&);
+
+/*!
+\brief 移动部件至容器上端。
+\pre 断言：容器指针非空。
+\since build 171
+*/
+YF_API void
+MoveToTop(IWidget&);
 
 
 //! \since build 555

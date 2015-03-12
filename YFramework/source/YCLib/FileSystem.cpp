@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2117
+\version r2119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-01-19 10:09 +0800
+	2015-03-11 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -440,8 +440,7 @@ GetFileModificationTimeOf(int fd)
 	if(!::GetFileTime(::HANDLE(::_get_osfhandle(fd)), {}, {}, &file_time))
 		YF_Raise_Win32Exception("GetFileTime");
 	TryRet(platform_ex::ConvertTime(file_time))
-	CatchExpr(std::system_error& e,
-		throw FileOperationFailure(e.code(), std::string(
+	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
 		"Failed querying file modification time: ") + e.what() + "."))
 #else
 	// TODO: Get more precise time count.

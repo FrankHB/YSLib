@@ -11,13 +11,13 @@
 /*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2940
+\version r2944
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-01-18 14:42 +0800
+	2015-03-11 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,8 +121,8 @@ CompactPixmap::SetSize(const Size& s)
 	const auto area(GetAreaOf(s));
 
 	TryExpr(pBuffer.reset(YB_LIKELY(area != 0) ? new Pixel[area] : nullptr))
-	CatchExpr(std::bad_alloc&,
-		throw LoggedEvent("BitmapBuffer allocation failed.", Alert))
+	CatchThrow(std::bad_alloc&,
+		LoggedEvent("BitmapBuffer allocation failed.", Alert))
 	YAssert(bool(pBuffer) == (area != 0), "Buffer corrupted.");
 	sGraphics = s,
 	ClearImage();
@@ -175,8 +175,8 @@ CompactPixmapEx::SetSize(const Size& s)
 		yunseq(pBuffer = std::move(p_new),
 			pBufferAlpha = std::move(p_new_alpha));
 	}
-	CatchExpr(std::bad_alloc&,
-		throw LoggedEvent("CompactPixmapEx allocation failed.", Alert))
+	CatchThrow(std::bad_alloc&,
+		LoggedEvent("CompactPixmapEx allocation failed.", Alert))
 	YAssert(bool(pBuffer) == (area != 0), "Buffer corrupted."),
 	YAssert(bool(pBufferAlpha) == (area != 0), "Alpha buffer corrupted.");
 	sGraphics = s,
