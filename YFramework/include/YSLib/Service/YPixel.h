@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r835
+\version r903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2014-12-18 17:43 +0800
+	2015-03-17 06:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,33 +50,6 @@ namespace Drawing
 */
 namespace Shaders
 {
-
-/*!
-\ingroup PixelShaders
-\brief 像素迭代器透明操作。
-\warning 不检查迭代器有效性。
-\since build 440
-*/
-struct BlitTransparentPoint
-{
-	//! \note 使用源迭代器对应像素的第 15 位表示透明性。
-	template<typename _tOut, typename _tIn>
-	inline void
-	operator()(_tOut& dst_iter, _tIn& src_iter)
-	{
-		if(FetchAlpha(*src_iter))
-			*dst_iter = *src_iter;
-	}
-	//! \note 使用 Alpha 通道表示透明性。
-	template<typename _tOut>
-	inline void
-	operator()(_tOut& dst_iter, IteratorPair& src_iter)
-	{
-		*dst_iter = *src_iter.base().second & 0x80 ? FetchOpaque(*src_iter)
-			: FetchOpaque(Pixel());
-	}
-};
-
 
 /*!
 \brief 像素组合器。
@@ -702,54 +675,6 @@ Composite(const _tPixel& d, const _tPixel& s)
 //@}
 //@}
 //@}
-
-
-/*!
-\ingroup PixelShaders
-\brief 像素计算：Alpha 混合。
-\since build 440
-*/
-struct BlitAlphaPoint
-{
-private:
-	//! \since build 561
-	template<typename _type>
-	using ABitTrait = typename ystdex::decay_t<_type>::Trait;
-
-public:
-	template<typename _tOut>
-	inline void
-	operator()(_tOut dst_iter, IteratorPair src_iter)
-	{
-		static_assert(std::is_convertible<ystdex::remove_reference_t<
-			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
-
-		*dst_iter = Shaders::BlendAlpha<ABitTrait<decltype(*dst_iter)>::ABitsN,
-			8>(*dst_iter, *src_iter, AlphaType(*src_iter.base().second));
-	}
-	template<typename _tOut, typename _tIn>
-	inline void
-	operator()(_tOut dst_iter, ystdex::pair_iterator<
-		ystdex::pseudo_iterator<const Pixel>, _tIn> src_iter)
-	{
-		static_assert(std::is_convertible<ystdex::remove_reference_t<
-			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
-
-		*dst_iter = Shaders::BlendAlpha<ABitTrait<decltype(*dst_iter)>::ABitsN,
-			8>(*dst_iter, *src_iter, AlphaType(*src_iter.base().second));
-	}
-	//! \since build 448
-	template<typename _tOut, typename _tIn>
-	inline void
-	operator()(_tOut dst_iter, _tIn src_iter)
-	{
-		static_assert(std::is_convertible<ystdex::remove_reference_t<
-			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
-
-		*dst_iter = Shaders::Composite<ABitTrait<decltype(*dst_iter)>::ABitsN,
-			ABitTrait<decltype(*src_iter)>::ABitsN>(*dst_iter, *src_iter);
-	}
-};
 
 } // namespace Shaders;
 

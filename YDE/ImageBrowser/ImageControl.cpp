@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1099
+\version r1127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-03-10 23:18 +0800
+	2015-03-17 07:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,13 +48,17 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	const Size& max_size)
 	: Panel(r),
 	min_panel_size(min_size), max_panel_size(max_size), btnClose({{}, 24, 24}),
-	hover_state(std::bind(TimedHoverState::LocateForOffset,
+	lblCenter(Size(96, 32), Font(FetchDefaultTypeface().GetFontFamily(), 16,
+	FontStyle::Bold), SolidCompositeBrush({0x00, 0x00, 0x00, 0xA0}),
+	ColorSpace::White), hover_state(std::bind(TimedHoverState::LocateForOffset,
 	std::placeholders::_1, Point(0, 24))), border(*this, 8, min_size),
 	mnuContext({}, make_shared<Menu::ListType, String>(
 	{u"退出", u"查看原始大小", u"翻转", u"顺时针旋转", u"逆时针旋转"}))
 {
-	*this += btnClose,
+	AddWidgets(*this, btnClose, lblCenter),
+	SetVisibleOf(lblCenter, {}),
 	yunseq(
+	lblCenter.HorizontalAlignment = TextAlignment::Center,
 	Host::SetupTopLevelTimedTips(*this, btnClose, hover_state, lblCloseTips,
 		u"关闭"),
 	Background = SolidBrush({0x00, 0x00, 0x00, 0xC0}),
@@ -100,7 +104,9 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 		SetLocationOf(btnClose, CalcCloseButtonLocation());
 		if(session_ptr)
 		{
-			GetPagesRef().Resize(GetSizeOf(*this));
+			MoveToCenter(lblCenter),
+			GetPagesRef().Resize(GetSizeOf(*this)),
+			// TODO: Invalidate smaller area?
 			Invalidate(*this);
 		}
 	},
@@ -110,11 +116,23 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 			Invalidate(*this);
 	},
 	FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
-		if(session_ptr && GetPagesRef().ZoomByRatio(e.GetDelta() > 0 ? def_scale
-			: def_rscale, e))
+		if(session_ptr)
 		{
-			Invalidate(*this);
-			UpdateMenuItem();
+			auto& pages(GetPagesRef());
+
+			if(pages.ZoomByRatio(e.GetDelta() > 0 ? def_scale : def_rscale, e))
+			{
+				lblCenter.Text = ystdex::sfmt("%2u%%",
+					unsigned(std::round(pages.GetScale() * 100.F)));
+				if(!IsVisible(lblCenter))
+				{
+					MoveToCenter(lblCenter),
+					DisplayFor(lblCenter, TimeSpan(1000));
+				}
+				// TODO: Invalidate smaller area?
+				Invalidate(*this),
+				UpdateMenuItem();
+			}
 		}
 	},
 	FetchEvent<Paint>(*this).Add([this](PaintEventArgs&& e){
@@ -123,7 +141,8 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	}, BackgroundPriority),
 	FetchEvent<Click>(btnClose) += []{
 		YSLib::PostQuitMessage(0);
-	}
+	},
+	FetchEvent<Paint>(lblCenter) += BorderBrush(BorderStyle(ColorSpace::Gray))
 	);
 	SetLocationOf(btnClose, CalcCloseButtonLocation());
 }
@@ -151,7 +170,7 @@ ImagePanel::Load(ImagePages&& src)
 		for(const auto& bmp : bmps)
 		{
 			// TODO: Allow user set minimal frame time.
-			auto d(std::chrono::milliseconds(20));
+			TimeSpan d(20);
 
 			TryExpr(d = YSLib::max(GetFrameTimeOf(bmp), d))
 			CatchExpr(LoggedEvent& e,

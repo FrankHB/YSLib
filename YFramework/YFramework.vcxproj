@@ -169,6 +169,7 @@
     <ClInclude Include="include\YSLib\Core\Task.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
     <ClInclude Include="include\YSLib\Core\YApplication.h" />
+    <ClInclude Include="include\YSLib\Core\YClock.h" />
     <ClInclude Include="include\YSLib\Core\YCoreUtilities.h" />
     <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
     <ClInclude Include="include\YSLib\Core\ydevice.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="include\YSLib\Service\TextLayout.h" />
     <ClInclude Include="include\YSLib\Service\TextManager.h" />
     <ClInclude Include="include\YSLib\Service\TextRenderer.h" />
+    <ClInclude Include="include\YSLib\Service\YBlend.h" />
     <ClInclude Include="include\YSLib\Service\YBlit.h" />
     <ClInclude Include="include\YSLib\Service\YBrush.h" />
     <ClInclude Include="include\YSLib\Service\ydraw.h" />
@@ -297,9 +299,10 @@
     <ClCompile Include="source\YSLib\Service\TextLayout.cpp" />
     <ClCompile Include="source\YSLib\Service\TextManager.cpp" />
     <ClCompile Include="source\YSLib\Service\TextRenderer.cpp" />
+    <ClCompile Include="source\YSLib\Service\YBlend.cpp" />
     <ClCompile Include="source\YSLib\Service\yblit.cpp" />
     <ClCompile Include="source\YSLib\Service\YBrush.cpp" />
-    <ClCompile Include="source\YSLib\Service\ydraw.cpp" />
+    <ClCompile Include="source\YSLib\Service\YDraw.cpp" />
     <ClCompile Include="source\YSLib\Service\YGDI.cpp" />
     <ClCompile Include="source\YSLib\Service\yres.cpp" />
     <ClCompile Include="source\YSLib\Service\YTimer.cpp" />
@@ -313,7 +316,7 @@
     <ClCompile Include="source\YSLib\UI\Label.cpp" />
     <ClCompile Include="source\YSLib\UI\Loader.cpp" />
     <ClCompile Include="source\YSLib\UI\Menu.cpp" />
-    <ClCompile Include="source\YSLib\UI\progress.cpp" />
+    <ClCompile Include="source\YSLib\UI\Progress.cpp" />
     <ClCompile Include="source\YSLib\UI\Scroll.cpp" />
     <ClCompile Include="source\YSLib\UI\Selector.cpp" />
     <ClCompile Include="source\YSLib\UI\TabControl.cpp" />
@@ -335,9 +338,9 @@
     <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\YUIContainer.cpp" />
     <ClCompile Include="source\YSLib\UI\YWidgetEvent.cpp" />
-		<ClCompile Include="source\YSLib\UI\YWidget.cpp" />
-		<ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
-		<ClCompile Include="source\YSLib\UI\ywindow.cpp" />
+    <ClCompile Include="source\YSLib\UI\YWidget.cpp" />
+    <ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
+    <ClCompile Include="source\YSLib\UI\ywindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />

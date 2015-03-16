@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2852
+\version r2857
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-03-01 20:26 +0800
+	2015-03-17 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ YMessageDefinition 依赖 YMessage ；
 YShell 依赖 YMessageDefinition ；
 YApplication 依赖 YShell 和 Adaptor::YContainer 。
 在 Service 中，以下模块对应的头文件依赖关系是确定的：
-YTimer 依赖 Core::YShellDefinition ；
+YTimer 依赖 Core::YClock ；
 YBlit 、 YDraw 和 YGDI 依赖 Core::YGDIBase ；
 YBlit 依赖 Core::YCoreUtilities ；
 YBrush 依赖 YBlit 、 YResource 和 Core::YEvent ；
@@ -445,9 +445,9 @@ Desktop 作为默认视图树的默认根节点类型。
 部件的视图的包围盒([Documentation::YFramework @@1.6.2.2.2]) 定义了部件的有效区域，其边界是部件的边界。
 除了兼容宿主位置等，在部件边界外的点不参与渲染。
 
-@5.1.3.3 点击测试(hit test) ：
-点击测试是判断点是否在特定的可点击部件边界内的操作。
-可点击部件边界构成的区域应为包围盒的子集，即通过点击测试的点必在部件的包围盒内。
+@5.1.3.3 命中测试(hit test) ：
+命中测试是判断点是否在特定的可点击部件边界内的操作。
+可点击部件边界构成的区域应为包围盒的子集，即通过命中测试的点必在部件的包围盒内。
 
 @5.1.4 类组织：
 
@@ -712,7 +712,7 @@ UI::BufferedRenderer::Validate(IWidget&, IWidget&, const PaintContext&) 是默�
 
 @5.5.3 默认 GUI 绘制(@5.5.3.5) 逻辑：
 除非另行约定，所有默认 GUI 绘制操作具有强异常安全保证([Documentation::LanguageConvention @@5.10.5.1.2]) 。
-另见 [Documentation::LanguageConvention @@5.10.5.1.5] 。
+另见 [Documentation::LanguageConvention @@5.10.5.1.6] 。
 
 @5.5.3.1 渲染状态同步：
 部件通过与渲染器的交互保证渲染状态。

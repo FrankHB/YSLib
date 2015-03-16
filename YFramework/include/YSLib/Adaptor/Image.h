@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1292
+\version r1296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-12-17 22:21 +0800
+	2015-03-17 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Adaptor_YContainer
 #include <ystdex/exception.h> // for ystdex::unsupported;
+#include YFM_YSLib_Core_YClock // for TimeSpan;
 //#include <FreeImage.h>
 
 //! \since build 402
@@ -493,9 +494,9 @@ public:
 \return CheckNonnegativeScalar 检查后的元数据指定的被显示为帧的图像的时间间隔。
 \exception GeneralEvent 指定数据不存在。
 \exception LoggedEvent 数据小于 0 。
-\since build 557
+\since build 584
 */
-YF_API std::chrono::milliseconds
+YF_API Timers::TimeSpan
 GetFrameTimeOf(const HBitmap&);
 
 /*!
