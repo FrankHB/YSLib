@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 画刷。
-\version r262
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2015-02-27 19:06 +0800
+	2015-03-17 06:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,20 @@ void
 SolidBrush::operator()(const PaintContext& pc) const
 {
 	FillRect(pc.Target, pc.ClipArea, Color);
+}
+
+
+void
+SolidBlendBrush::operator()(const PaintContext& pc) const
+{
+	BlendRect(pc.Target, pc.ClipArea, Color);
+}
+
+
+void
+SolidCompositeBrush::operator()(const PaintContext& pc) const
+{
+	CompositeRect(pc.Target, pc.ClipArea, Color);
 }
 
 

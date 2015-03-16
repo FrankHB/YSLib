@@ -11,13 +11,13 @@
 /*!	\file YTimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r855
+\version r857
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2015-01-29 22:17 +0800
+	2015-03-16 16:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,9 +61,9 @@ GetTickPoint()
 } // unnamed namespace;
 
 void
-Delay(const TimeSpan& ms)
+Delay(TimeSpan delay)
 {
-	const auto end(GetTickPoint() + ms);
+	const auto end(GetTickPoint() + delay);
 
 	while(GetTickPoint() < end)
 		;

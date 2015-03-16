@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r422
+\version r436
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-12-01 09:06 +0800
+	2015-03-16 16:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_UI_YWidget
 #include YFM_YSLib_Core_Task
+#include YFM_YSLib_Service_YTimer // for Timers::TimeSpan;
 
 namespace YSLib
 {
@@ -218,6 +219,21 @@ SetupByTimer(_tAnimation& ani, IWidget& wgt, _tTimer&& timer, _func f)
 	}, f);
 }
 //@}
+
+
+/*!
+\brief 在一定时间后对部件进行操作。
+\since build 584
+*/
+YF_API void
+ActAfter(IWidget&, Timers::TimeSpan);
+
+/*!
+\brief 在一定时间内显示部件。
+\since build 584
+*/
+inline PDefH(void, DisplayFor, IWidget& wgt, Timers::TimeSpan delay)
+	ImplExpr(Show(wgt), ActAfter(wgt, delay))
 
 } // namespace UI;
 

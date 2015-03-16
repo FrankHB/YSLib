@@ -11,13 +11,13 @@
 /*!	\file YTimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1079
+\version r1118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2015-01-30 08:03 +0800
+	2015-03-17 02:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,36 +29,13 @@
 #define YSL_INC_Service_YTimer_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YShellDefinition
-#include <chrono>
+#include YFM_YSLib_Core_YClock
 
 namespace YSLib
 {
 
 namespace Timers
 {
-
-/*!
-\brief 高精度时钟。
-\since build 291
-*/
-class YF_API HighResolutionClock
-{
-public:
-	using duration = std::chrono::duration<
-		ystdex::make_signed_t<std::chrono::nanoseconds::rep>, std::nano>;
-	using rep = duration::rep;
-	using period = duration::period;
-	using time_point = std::chrono::time_point<HighResolutionClock,
-		std::chrono::nanoseconds>;
-
-	static yconstexpr bool is_steady = {};
-
-	//! \warning 首次调用前非线程安全。
-	static PDefH(time_point, now, ) ynothrow
-		ImplRet(time_point(std::chrono::nanoseconds(GetHighResolutionTicks())))
-};
-
 
 /*!
 \brief 取公共历元。
@@ -86,32 +63,11 @@ FetchElapsed()
 
 
 /*!
-\brief 高精度时间间隔。
-\note 单位为纳秒。
-\since build 291
-*/
-using Duration = HighResolutionClock::duration;
-
-/*!
-\brief 时刻。
-\since build 291
-*/
-using TimePoint = HighResolutionClock::time_point;
-
-/*!
-\brief 低精度时间间隔。
-\note 单位为毫秒。
-\since build 291
-*/
-using TimeSpan = std::chrono::milliseconds;
-
-
-/*!
 \brief 阻塞延时。
-\since build 291
+\since build 584
 */
 YF_API void
-Delay(const TimeSpan&);
+Delay(TimeSpan);
 
 
 /*!

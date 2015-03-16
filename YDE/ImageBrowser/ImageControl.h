@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r640
+\version r645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-27 22:50 +0800
+	2015-03-17 02:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,8 @@ namespace ImageBrowser
 
 using namespace YSLib;
 using namespace Drawing;
+//! \since build 584
+using namespace Timers;
 using namespace UI;
 
 //! \since build 555
@@ -46,7 +48,7 @@ class ImagePanel : public Panel
 {
 private:
 	using Session = tuple<ImagePages, GAnimationSession<InvalidationUpdater>,
-		Timers::Timer, vector<std::chrono::milliseconds>>;
+		Timer, vector<TimeSpan>>;
 
 	//! \since build 555
 	unique_ptr<Session> session_ptr{};
@@ -58,6 +60,8 @@ protected:
 	Thumb btnClose;
 	//! \since build 573
 	Label lblCloseTips{};
+	//! \since build 583
+	Label lblCenter;
 
 private:
 	//! \since build 448

@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1075
+\version r1079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-01-10 15:57 +0800
+	2015-03-17 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,9 @@
 
 namespace YSLib
 {
+
+//! \since build 584
+using Timers::TimeSpan;
 
 namespace Drawing
 {
@@ -412,10 +415,10 @@ HBitmap::SaveTo(const char16_t* filename, ImageFormat fmt,
 	SaveImage(fmt, GetDataPtr(), filename, flags);
 }
 
-std::chrono::milliseconds
+TimeSpan
 GetFrameTimeOf(const HBitmap& bmp)
 {
-	return std::chrono::milliseconds(CheckNonnegativeScalar<long>(ImageTag(bmp,
+	return TimeSpan(CheckNonnegativeScalar<long>(ImageTag(bmp,
 		ImageMetadataModel::Animation, "FrameTime").TryGetValue<long>(),
 		"frame time", Warning));
 }

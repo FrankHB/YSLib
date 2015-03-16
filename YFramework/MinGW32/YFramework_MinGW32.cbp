@@ -273,6 +273,7 @@
 		<Unit filename="../include/YSLib/Core/Task.h" />
 		<Unit filename="../include/YSLib/Core/ValueNode.h" />
 		<Unit filename="../include/YSLib/Core/YApplication.h" />
+		<Unit filename="../include/YSLib/Core/YClock.h" />
 		<Unit filename="../include/YSLib/Core/YCoreUtilities.h" />
 		<Unit filename="../include/YSLib/Core/YEvent.hpp" />
 		<Unit filename="../include/YSLib/Core/YException.h" />
@@ -299,6 +300,7 @@
 		<Unit filename="../include/YSLib/Service/TextLayout.h" />
 		<Unit filename="../include/YSLib/Service/TextManager.h" />
 		<Unit filename="../include/YSLib/Service/TextRenderer.h" />
+		<Unit filename="../include/YSLib/Service/YBlend.h" />
 		<Unit filename="../include/YSLib/Service/YBlit.h" />
 		<Unit filename="../include/YSLib/Service/YBrush.h" />
 		<Unit filename="../include/YSLib/Service/YGDI.h" />
@@ -400,11 +402,12 @@
 		<Unit filename="../source/YSLib/Service/TextLayout.cpp" />
 		<Unit filename="../source/YSLib/Service/TextManager.cpp" />
 		<Unit filename="../source/YSLib/Service/TextRenderer.cpp" />
+		<Unit filename="../source/YSLib/Service/YBlend.cpp" />
 		<Unit filename="../source/YSLib/Service/YBrush.cpp" />
+		<Unit filename="../source/YSLib/Service/YDraw.cpp" />
 		<Unit filename="../source/YSLib/Service/YGDI.cpp" />
 		<Unit filename="../source/YSLib/Service/YTimer.cpp" />
 		<Unit filename="../source/YSLib/Service/yblit.cpp" />
-		<Unit filename="../source/YSLib/Service/ydraw.cpp" />
 		<Unit filename="../source/YSLib/Service/yres.cpp" />
 		<Unit filename="../source/YSLib/UI/Animation.cpp" />
 		<Unit filename="../source/YSLib/UI/Border.cpp" />
@@ -417,6 +420,7 @@
 		<Unit filename="../source/YSLib/UI/ListControl.cpp" />
 		<Unit filename="../source/YSLib/UI/Loader.cpp" />
 		<Unit filename="../source/YSLib/UI/Menu.cpp" />
+		<Unit filename="../source/YSLib/UI/Progress.cpp" />
 		<Unit filename="../source/YSLib/UI/Scroll.cpp" />
 		<Unit filename="../source/YSLib/UI/Selector.cpp" />
 		<Unit filename="../source/YSLib/UI/TabControl.cpp" />
@@ -434,7 +438,6 @@
 		<Unit filename="../source/YSLib/UI/YWidgetEvent.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidgetView.cpp" />
 		<Unit filename="../source/YSLib/UI/form.cpp" />
-		<Unit filename="../source/YSLib/UI/progress.cpp" />
 		<Unit filename="../source/YSLib/UI/textarea.cpp" />
 		<Unit filename="../source/YSLib/UI/uicontx.cpp" />
 		<Unit filename="../source/YSLib/UI/ydesktop.cpp" />

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Animation.cpp
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r130
+\version r143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-10-06 22:12:10 +0800
 \par 修改时间:
-	2014-03-18 16:42 +0800
+	2015-03-16 16:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,21 @@ InvalidationUpdater::DefaultInvalidateControl(IWidget& wgt)
 	if(IsEnabled(wgt))
 		InvalidateVisible(wgt);
 	return true;
+}
+
+
+void
+ActAfter(IWidget& wgt, Timers::TimeSpan delay)
+{
+	auto p_ani(make_shared<GAnimationSession<InvalidationUpdater>>());
+	auto p_timer(make_shared<Timers::Timer>(delay));
+
+	SetupByTimer(*p_ani, wgt, *p_timer,
+		[p_ani, p_timer, &wgt](){
+		Hide(wgt);
+		YTraceDe(Debug, "Widget is hidden by UI::Display callback.");
+		p_ani->GetConnectionRef().Ready = {};
+	});
 }
 
 } // namespace UI;

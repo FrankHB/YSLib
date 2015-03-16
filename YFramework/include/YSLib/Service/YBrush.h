@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r507
+\version r546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2015-02-27 22:45 +0800
+	2015-03-17 06:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,8 @@
 #include "YModules.h"
 #include YFM_YSLib_Service_YResource
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent;
-#include YFM_YSLib_Service_YBlit // for Drawing::BlitPixels;
-#include YFM_YSLib_Service_YPixel // for Drawing::Shaders::BlitAlphaPoint;
+#include YFM_YSLib_Service_YBlend // for Drawing::BlitPixels,
+//	Drawing::Shaders::BlitAlphaPoint;
 
 namespace YSLib
 {
@@ -47,8 +47,12 @@ namespace Drawing
 
 /*!
 \ingroup UIBrushes
-\brief 单色画刷。
 \warning 非虚析构。
+*/
+//@{
+/*!
+\brief 单色画刷。
+\sa FillRect
 \since build 293
 */
 class YF_API SolidBrush
@@ -64,6 +68,45 @@ public:
 	void
 	operator()(const PaintContext&) const;
 };
+
+
+/*!
+\brief 单色 Alpha 混合画刷。
+\warning 非虚析构。
+\sa BlendRect
+\since build 584
+*/
+class YF_API SolidBlendBrush
+{
+public:
+	Drawing::Color Color;
+
+	SolidBlendBrush(Drawing::Color c)
+		: Color(c)
+	{}
+
+	void
+	operator()(const PaintContext&) const;
+};
+
+/*!
+\brief 单色 Alpha 组合画刷。
+\sa CompositeRect
+\since build 584
+*/
+class YF_API SolidCompositeBrush
+{
+public:
+	Drawing::Color Color;
+
+	SolidCompositeBrush(Drawing::Color c)
+		: Color(c)
+	{}
+
+	void
+	operator()(const PaintContext&) const;
+};
+//@}
 
 
 /*!
