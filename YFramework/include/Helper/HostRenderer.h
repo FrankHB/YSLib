@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r385
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-03-11 00:00 +0800
+	2015-03-19 12:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,8 +59,8 @@ private:
 public:
 	RenderWindow(HostRenderer&, NativeWindowHandle);
 	//! \since build 548
-	RenderWindow(HostRenderer& renderer, Host::WindowReference wnd_ref)
-		: RenderWindow(renderer, wnd_ref.GetNativeHandle())
+	RenderWindow(HostRenderer& r, Host::WindowReference wnd_ref)
+		: RenderWindow(r, wnd_ref.GetNativeHandle())
 	{}
 
 	DefGetter(const ynothrow, HostRenderer&, Renderer, renderer)

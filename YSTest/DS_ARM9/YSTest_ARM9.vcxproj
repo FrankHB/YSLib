@@ -32,7 +32,7 @@
     <ClCompile Include="..\source\ColorPicker.cpp" />
     <ClCompile Include="..\source\DSReader.cpp" />
     <ClCompile Include="..\source\HexBrowser.cpp" />
-    <ClCompile Include="..\source\main.cpp" />
+    <ClCompile Include="..\source\Main.cpp" />
     <ClCompile Include="..\source\ReaderSetting.cpp" />
     <ClCompile Include="..\source\ReaderSettingUI.cpp" />
     <ClCompile Include="..\source\ReadingList.cpp" />

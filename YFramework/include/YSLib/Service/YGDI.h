@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3872
+\version r3873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-01-31 21:57 +0800
+	2015-03-17 18:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_YGDI_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YGraphics
 
 namespace YSLib
 {

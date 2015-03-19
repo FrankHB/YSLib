@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3176
+\version r3181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-01-25 10:16 +0800
+	2015-03-19 12:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,12 +178,12 @@ bool
 #if YCL_DS
 InitConsole(Devices::Screen& scr, Drawing::Pixel fc, Drawing::Pixel bc)
 {
-	using namespace platform;
+	using namespace platform_ex;
 
 	if(&FetchGlobalInstance<DSApplication>().GetScreenUp() == &scr)
-		YConsoleInit(true, fc, bc);
+		DSConsoleInit(true, fc, bc);
 	else if(&FetchGlobalInstance<DSApplication>().GetScreenDown() == &scr)
-		YConsoleInit(false, fc, bc);
+		DSConsoleInit(false, fc, bc);
 	else
 		return {};
 #else
@@ -200,7 +200,8 @@ namespace Windows
 void
 TestFramework(size_t idx)
 {
-	YTraceDe(Notice, ("Test began, idx = " + to_string(idx) + " .").c_str());
+	YTraceDe(Notice, "%s",
+		("Test began, idx = " + to_string(idx) + " .").c_str());
 	YTraceDe(Notice, "Test ended.");
 	yunused(idx);
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r353
+\version r358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-12-19 05:21 +0800
+	2015-03-19 13:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ RectDrawSelector_Aoi(void(*f)(const PaintContext&, const Size&, const bool[],
 
 
 void
-RectDrawCheckBox_Aoi(const PaintContext& pc, CheckBox& cb)
+RectDrawCheckBox_Aoi(const PaintContext& pc_, CheckBox& cb)
 {
 	RectDrawSelector_Aoi([](const PaintContext& pc, const Size& s,
 		const bool cst[], const Color ccs[], size_t c_idx){
@@ -186,11 +186,11 @@ RectDrawCheckBox_Aoi(const PaintContext& pc, CheckBox& cb)
 			DrawTick(g, bounds, r, is_enabled ? Color(4, 34, 113)
 				: MakeGray(190), is_enabled ? Color(108, 166, 208)
 				: MakeGray(199));
-	}, pc, cb, cb.IsTicked());
+	}, pc_, cb, cb.IsTicked());
 }
 
 void
-RectDrawRadioBox_Aoi(const PaintContext& pc, RadioBox& rb)
+RectDrawRadioBox_Aoi(const PaintContext& pc_, RadioBox& rb)
 {
 	RectDrawSelector_Aoi([](const PaintContext& pc, const Size& s,
 		const bool cst[], const Color ccs[], size_t c_idx){
@@ -222,7 +222,7 @@ RectDrawRadioBox_Aoi(const PaintContext& pc, RadioBox& rb)
 		if(cst[ControlState_Ticked])
 			FillCircle(g, bounds, pt, rad - 2, is_enabled ? Color(11, 130, 199)
 				: MakeGray(190));
-	}, pc, rb, rb.IsSelected());
+	}, pc_, rb, rb.IsSelected());
 }
 //@}
 

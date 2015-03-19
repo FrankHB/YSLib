@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r869
+\version r870
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2015-01-23 22:53 +0800
+	2015-03-17 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_GUIApplication
-#include YFM_YCLib_Video
+#include YFM_DS_YCLib_DSVideo // for platform_ex::DSVideoState;
 #include YFM_YSLib_Service_YResource // for YSLib::Drawing::Image;
 
 namespace YSLib

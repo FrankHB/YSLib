@@ -1,5 +1,5 @@
 #
-#	(C) 2014 FrankHB.
+#	(C) 2014-2015 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r347
+# Version = r351
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2014-12-31 11:19 +0800
+# Updated = 2015-03-19 14:53 +0800
 # Encoding = ANSI
 
 
@@ -51,8 +51,9 @@ export SOURCES		:=	source data \
 	$(REFDIR)/source/YCLib $(REFDIR)/source/YSLib \
 	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
 	$(REFDIR)/source/YSLib/Service $(REFDIR)/source/YSLib/UI \
-	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
-	$(REFDIR)/DS/source/Helper $(REFDIR)/Android/source/YCLib \
+	$(REFDIR)/source/NPL $(REFDIR)/DS/source/YCLib \
+	$(REFDIR)/Android/source/YCLib $(REFDIR)/source/Helper \
+	$(REFDIR)/DS/source/Helper \
 	$(REFDIR)/Android/source/Helper
 export INCLUDES		:=	include data $(REFDIR)/Android/include \
 	$(REFDIR)/DS/include $(REFDIR)/DS/data ../../YBase/include \

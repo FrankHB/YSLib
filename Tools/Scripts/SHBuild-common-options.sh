@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# (C) 2014 FrankHB.
+# (C) 2014-2015 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
@@ -28,23 +28,23 @@ fi
 
 : ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC -pedantic-errors"}
 : ${C_CXXFLAGS_OPT_LV:='-O3'}
-
-: ${CFLAGS_STD:='-std=c11'}
-: ${CFLAGS_WARNING:=" \
+: ${C_CXXFLAGS_WARNING:=" \
 	-Wall \
 	-Wcast-align \
+	-Wdeprecated \
+	-Wdeprecated-declarations \
 	-Wextra \
-	-Winit-self \
+	-Wformat=2 \
 	-Winvalid-pch \
-	-Wmain \
 	-Wmissing-declarations \
 	-Wmissing-include-dirs \
+	-Wmultichar \
+	-Wno-format-nonliteral \
+	-Wpacked \
 	-Wredundant-decls \
+	-Wshadow \
 	-Wsign-promo \
-	-Wunreachable-code \
 	"}
-
-: ${CFLAGS_COMMON:="$C_CXXFLAGS_COMMON $CFLAGS_STD $CFLAGS_WARNING"}
 
 # TODO: BSD etc.
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
@@ -63,18 +63,35 @@ if echo "$CXX" | grep clang++ > /dev/null; then
 #	: ${CXXFLAGS_IMPL_OPT:='-flto'}
 	: ${LDFLAGS_IMPL_OPT:="$CXXFLAGS_IMPL_OPT"}
 elif echo "$CXX" | grep g++ > /dev/null; then
+	: ${C_CXXFLAGS_IMPL_WARNING:=" \
+		-Wdouble-promotion \
+		-Wlogical-op \
+		-Wtrampolines \
+		"}
 	: ${CXXFLAGS_IMPL_WARNING:=" \
+		-Wconditionally-supported \
+		-Wstrict-null-sentinel \
 		-Wzero-as-null-pointer-constant \
 		"}
 	: ${CXXFLAGS_IMPL_OPT:='-s -fexpensive-optimizations -flto=jobserver'}
 	: ${LDFLAGS_IMPL_OPT:='-s -fexpensive-optimizations -flto'}
 fi
+
+: ${CFLAGS_STD:='-std=c11'}
+: ${CFLAGS_WARNING:=" \
+	$C_CXXFLAGS_WARNING \
+	$C_CXXFLAGS_IMPL_WARNING \
+	"}
+: ${CFLAGS_COMMON:="$C_CXXFLAGS_COMMON $CFLAGS_STD $CFLAGS_WARNING"}
+
 : ${CXXFLAGS_IMPL_COMMON:="$CXXFLAGS_IMPL_COMMON_THRD_"}
 
 : ${CXXFLAGS_STD:='-std=c++11'}
 : ${CXXFLAGS_WARNING:=" $CFLAGS_WARNING \
 	-Wctor-dtor-privacy \
 	-Wnon-virtual-dtor \
+	-Woverloaded-virtual \
+	$C_CXXFLAGS_IMPL_WARNING \
 	$CXXFLAGS_IMPL_WARNING \
 	"}
 : ${CXXFLAGS_COMMON:=" $CXXFLAGS_STD \

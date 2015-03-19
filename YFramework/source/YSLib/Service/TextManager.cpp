@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3818
+\version r3823
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2014-12-31 08:40 +0800
+	2015-03-19 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,8 +168,8 @@ TextFileBuffer::operator[](size_t idx)
 			ystdex::ifile_iterator i(File.GetPtr());
 
 			while(n_byte < len)
-				n_byte += ConvertChar([&](ucs2_t c){
-					vec.push_back(c);
+				n_byte += ConvertChar([&](ucs2_t uc){
+					vec.push_back(uc);
 				}, pfun, i, c);
 			std::ungetc(*i, File.GetPtr()),
 			vec.shrink_to_fit();
@@ -246,13 +246,13 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 
 		YAssert(it <= mid, "Wrong iterator found.");
 
-		ystdex::ifile_iterator i(File.GetPtr());
+		ystdex::ifile_iterator i_cur(File.GetPtr());
 		size_t n_byte(0);
 
 		while(it != mid)
 			n_byte += ConvertChar([&]{
 				++it;
-			}, pfun, i);
+			}, pfun, i_cur);
 		return idx + n_byte;
 	}
 	return idx;

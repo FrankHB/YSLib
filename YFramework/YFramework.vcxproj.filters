@@ -126,6 +126,51 @@
     <Filter Include="include\3rdparty\freetype\internal\services">
       <UniqueIdentifier>{2e8d283b-d3e7-4e91-8ad1-0684e8a83950}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DS">
+      <UniqueIdentifier>{3749e041-a186-4f84-826a-661242e5012e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinGW32">
+      <UniqueIdentifier>{0e5005e9-87b6-4576-9884-77fc858c0472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Android">
+      <UniqueIdentifier>{a35fef3b-2e8c-4b4c-afa9-7dd40781c5a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinGW32\include">
+      <UniqueIdentifier>{45dcdbf7-03e1-45eb-aeb1-0bf2b1382fa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinGW32\include\YCLib">
+      <UniqueIdentifier>{916471ca-7f11-4cdb-b009-cf3d657a3534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinGW32\include\Helper">
+      <UniqueIdentifier>{285378e3-6e07-432d-9b99-bc595a793b56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinGW32\source">
+      <UniqueIdentifier>{2fbac2a1-b810-4c7e-ad53-58a74b1f9c5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinGW32\source\YCLib">
+      <UniqueIdentifier>{5d836d6d-e95b-47ec-964d-66f986013cc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinGW32\source\Helper">
+      <UniqueIdentifier>{30ded5ae-2711-465a-99cd-26c9cbcb12ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DS\include">
+      <UniqueIdentifier>{0caa2b76-064e-4170-b7e6-ac479ffaca4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DS\include\Helper">
+      <UniqueIdentifier>{73362306-945a-4e61-8867-b1a19baf9c78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DS\source">
+      <UniqueIdentifier>{def6c562-8691-4b7d-851a-cf51ac35497c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DS\source\Helper">
+      <UniqueIdentifier>{ac9510b2-d271-44f4-a73c-8fd01482bd8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DS\include\YCLib">
+      <UniqueIdentifier>{e11dfe24-d91b-4ade-8e7a-c07b4a20cea5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DS\source\YCLib">
+      <UniqueIdentifier>{4b8ca4d9-9290-40c6-bc9e-6072a99bd31f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\doc\CHRLib.txt">
@@ -181,7 +226,7 @@
     <ClInclude Include="include\YSLib\Core\ycounter.hpp">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ydevice.h">
+    <ClInclude Include="include\YSLib\Core\YDevice.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\YObject.h">
@@ -262,7 +307,7 @@
     <ClInclude Include="include\YSLib\Service\YBlit.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Service\ydraw.h">
+    <ClInclude Include="include\YSLib\Service\YDraw.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Service\YPixel.h">
@@ -814,6 +859,42 @@
     <ClInclude Include="include\YSLib\Service\YBlend.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
+    <ClInclude Include="MinGW32\include\YCLib\COM.h">
+      <Filter>MinGW32\include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MinGW32\include\YCLib\Consoles.h">
+      <Filter>MinGW32\include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MinGW32\include\YCLib\MinGW32.h">
+      <Filter>MinGW32\include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MinGW32\include\YCLib\NLS.h">
+      <Filter>MinGW32\include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MinGW32\include\Helper\Win32Control.h">
+      <Filter>MinGW32\include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="DS\include\Helper\DSMain.h">
+      <Filter>DS\include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="DS\include\Helper\shlds.h">
+      <Filter>DS\include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="DS\source\Helper\DSScreen.h">
+      <Filter>DS\source\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="DS\source\Helper\DSWindow.h">
+      <Filter>DS\source\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="DS\include\YCLib\DSVideo.h">
+      <Filter>DS\include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YConsole.h">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YGraphics.h">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -1109,6 +1190,33 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\YBlend.cpp">
       <Filter>source\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="MinGW32\source\YCLib\Consoles.cpp">
+      <Filter>MinGW32\source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MinGW32\source\YCLib\MinGW32.cpp">
+      <Filter>MinGW32\source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MinGW32\source\YCLib\NLS.cpp">
+      <Filter>MinGW32\source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MinGW32\source\Helper\Win32Control.cpp">
+      <Filter>MinGW32\source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="DS\source\Helper\DSMain.cpp">
+      <Filter>DS\source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="DS\source\Helper\DSScreen.cpp">
+      <Filter>DS\source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="DS\source\Helper\DSWindow.cpp">
+      <Filter>DS\source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="DS\source\Helper\shlds.cpp">
+      <Filter>DS\source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="DS\source\YCLib\DSVideo.cpp">
+      <Filter>DS\source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

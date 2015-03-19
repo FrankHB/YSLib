@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3308
+\version r3309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-17 06:44 +0800
+	2015-03-18 05:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
 {
 	YAssert(cbuf, "Invalid buffer found.");
 
-	const Shaders::BlitAlphaPoint bp;
+	const Shaders::BlitAlphaPoint bp{};
 	const auto dst(pc.Target.GetBufferPtr());
 
 	switch(fmt)

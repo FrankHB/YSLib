@@ -54,13 +54,13 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="../../3rdparty/include/FreeImage.h" />
 		<Unit filename="../../3rdparty/freetype/include/config/ftconfig.h" />
 		<Unit filename="../../3rdparty/freetype/include/config/ftheader.h" />
 		<Unit filename="../../3rdparty/freetype/include/config/ftmodule.h" />
 		<Unit filename="../../3rdparty/freetype/include/config/ftoption.h" />
 		<Unit filename="../../3rdparty/freetype/include/config/ftstdlib.h" />
 		<Unit filename="../../3rdparty/freetype/include/freetype.h" />
+		<Unit filename="../../3rdparty/freetype/include/ft2build.h" />
 		<Unit filename="../../3rdparty/freetype/include/ftadvanc.h" />
 		<Unit filename="../../3rdparty/freetype/include/ftautoh.h" />
 		<Unit filename="../../3rdparty/freetype/include/ftbbox.h" />
@@ -142,7 +142,17 @@
 		<Unit filename="../../3rdparty/freetype/include/tttables.h" />
 		<Unit filename="../../3rdparty/freetype/include/tttags.h" />
 		<Unit filename="../../3rdparty/freetype/include/ttunpat.h" />
-		<Unit filename="../../3rdparty/freetype/include/ft2build.h" />
+		<Unit filename="../../3rdparty/include/FreeImage.h" />
+		<Unit filename="../DS/include/Helper/DSMain.h" />
+		<Unit filename="../DS/include/Helper/shlds.h" />
+		<Unit filename="../DS/include/YCLib/DSVideo.h" />
+		<Unit filename="../DS/source/Helper/DSMain.cpp" />
+		<Unit filename="../DS/source/Helper/DSScreen.cpp" />
+		<Unit filename="../DS/source/Helper/DSScreen.h" />
+		<Unit filename="../DS/source/Helper/DSWindow.cpp" />
+		<Unit filename="../DS/source/Helper/DSWindow.h" />
+		<Unit filename="../DS/source/Helper/shlds.cpp" />
+		<Unit filename="../DS/source/YCLib/DSVideo.cpp" />
 		<Unit filename="../include/CHRLib/CharacterProcessing.h" />
 		<Unit filename="../include/CHRLib/Convert.hpp" />
 		<Unit filename="../include/CHRLib/MapEx.h" />
@@ -161,8 +171,8 @@
 		<Unit filename="../include/Helper/InputManager.h" />
 		<Unit filename="../include/Helper/ScreenBuffer.h" />
 		<Unit filename="../include/Helper/ShellHelper.h" />
-		<Unit filename="../include/Helper/YModules.h" />
 		<Unit filename="../include/Helper/YGlobal.h" />
+		<Unit filename="../include/Helper/YModules.h" />
 		<Unit filename="../include/NPL/Configuration.h" />
 		<Unit filename="../include/NPL/Lexical.h" />
 		<Unit filename="../include/NPL/NPL.h" />
@@ -189,11 +199,11 @@
 		<Unit filename="../include/YModules.h" />
 		<Unit filename="../include/YSLib/Adaptor/Font.h" />
 		<Unit filename="../include/YSLib/Adaptor/Image.h" />
+		<Unit filename="../include/YSLib/Adaptor/YAdaptor.h" />
 		<Unit filename="../include/YSLib/Adaptor/YModules.h" />
 		<Unit filename="../include/YSLib/Adaptor/YNew.h" />
 		<Unit filename="../include/YSLib/Adaptor/YTextBase.h" />
 		<Unit filename="../include/YSLib/Adaptor/config.h" />
-		<Unit filename="../include/YSLib/Adaptor/YAdaptor.h" />
 		<Unit filename="../include/YSLib/Adaptor/ycont.h" />
 		<Unit filename="../include/YSLib/Adaptor/yref.hpp" />
 		<Unit filename="../include/YSLib/Core/Task.h" />
@@ -201,6 +211,7 @@
 		<Unit filename="../include/YSLib/Core/YApplication.h" />
 		<Unit filename="../include/YSLib/Core/YClock.h" />
 		<Unit filename="../include/YSLib/Core/YCoreUtilities.h" />
+		<Unit filename="../include/YSLib/Core/YDevice.h" />
 		<Unit filename="../include/YSLib/Core/YEvent.hpp" />
 		<Unit filename="../include/YSLib/Core/YException.h" />
 		<Unit filename="../include/YSLib/Core/YFunc.hpp" />
@@ -210,7 +221,6 @@
 		<Unit filename="../include/YSLib/Core/YShell.h" />
 		<Unit filename="../include/YSLib/Core/YStorage.hpp" />
 		<Unit filename="../include/YSLib/Core/ycounter.hpp" />
-		<Unit filename="../include/YSLib/Core/ydevice.h" />
 		<Unit filename="../include/YSLib/Core/ymsg.h" />
 		<Unit filename="../include/YSLib/Core/ymsgdef.h" />
 		<Unit filename="../include/YSLib/Core/ysdef.h" />
@@ -226,15 +236,15 @@
 		<Unit filename="../include/YSLib/Service/TextLayout.h" />
 		<Unit filename="../include/YSLib/Service/TextManager.h" />
 		<Unit filename="../include/YSLib/Service/TextRenderer.h" />
-		<Unit filename="../include/YSLib/Service/YModules.h" />
 		<Unit filename="../include/YSLib/Service/YBlend.h" />
 		<Unit filename="../include/YSLib/Service/YBlit.h" />
 		<Unit filename="../include/YSLib/Service/YBrush.h" />
+		<Unit filename="../include/YSLib/Service/YDraw.h" />
 		<Unit filename="../include/YSLib/Service/YGDI.h" />
+		<Unit filename="../include/YSLib/Service/YModules.h" />
 		<Unit filename="../include/YSLib/Service/YPixel.h" />
 		<Unit filename="../include/YSLib/Service/YResource.h" />
 		<Unit filename="../include/YSLib/Service/YTimer.h" />
-		<Unit filename="../include/YSLib/Service/ydraw.h" />
 		<Unit filename="../include/YSLib/Service/yftext.h" />
 		<Unit filename="../include/YSLib/UI/Animation.h" />
 		<Unit filename="../include/YSLib/UI/Border.h" />
@@ -336,6 +346,7 @@
 		<Unit filename="../source/YSLib/Service/yres.cpp" />
 		<Unit filename="../source/YSLib/UI/Animation.cpp" />
 		<Unit filename="../source/YSLib/UI/Border.cpp" />
+		<Unit filename="../source/YSLib/UI/Button.cpp" />
 		<Unit filename="../source/YSLib/UI/ComboList.cpp" />
 		<Unit filename="../source/YSLib/UI/Console.cpp" />
 		<Unit filename="../source/YSLib/UI/ExStyle.cpp" />
@@ -359,7 +370,6 @@
 		<Unit filename="../source/YSLib/UI/YWidget.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidgetEvent.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidgetView.cpp" />
-		<Unit filename="../source/YSLib/UI/Button.cpp" />
 		<Unit filename="../source/YSLib/UI/form.cpp" />
 		<Unit filename="../source/YSLib/UI/textarea.cpp" />
 		<Unit filename="../source/YSLib/UI/uicontx.cpp" />

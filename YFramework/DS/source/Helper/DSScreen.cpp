@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r276
+\version r278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-12-29 05:24 +0800
+	2015-03-17 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,6 +27,7 @@
 
 
 #include "DSScreen.h"
+#include YFM_DS_YCLib_DSVideo
 
 namespace YSLib
 {

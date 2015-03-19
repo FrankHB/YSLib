@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r4956
+\version r5048
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-03-12 15:44 +0800
+	2015-03-19 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,18 +189,18 @@ public:
 	inline
 	pointer_iterator(const pointer_iterator&) = default;
 
-	//! \since build 356
+	//! \since build 585
+	//@{
 	pointer_iterator&
-	operator+=(difference_type n)
+	operator+=(difference_type n) ynothrowv
 	{
 		yconstraint(raw);
 		raw += n;
 		return *this;
 	}
 
-	//! \since build 356
 	pointer_iterator&
-	operator-=(difference_type n)
+	operator-=(difference_type n) ynothrowv
 	{
 		yconstraint(raw);
 		raw -= n;
@@ -216,7 +216,7 @@ public:
 	}
 
 	inline pointer_iterator&
-	operator++()
+	operator++() ynothrowv
 	{
 		yconstraint(raw);
 		++raw;
@@ -224,26 +224,28 @@ public:
 	}
 
 	inline pointer_iterator&
-	operator--()
+	operator--() ynothrowv
 	{
 		--raw;
 		return *this;
 	}
 
 	yconstfn
-	operator pointer() const
+	operator pointer() const ynothrow
 	{
 		return raw;
 	}
+	//@}
 };
 
 /*!
 \relates pointer_iterator
-\since build 356
+\since build 585
 */
 template<typename _type>
 inline bool
 operator==(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
+	ynothrow
 {
 	using pointer = typename pointer_iterator<_type>::pointer;
 
@@ -299,9 +301,7 @@ public:
 	value_type value;
 
 	yconstfn
-	pseudo_iterator()
-		: value()
-	{}
+	pseudo_iterator() = default;
 	explicit yconstfn
 	pseudo_iterator(value_type v)
 		: value(v)
@@ -332,16 +332,16 @@ public:
 	operator=(pseudo_iterator&&) = default;
 #endif
 
-	//! \since build 356
+	//! \since build 585
+	//@{
 	pseudo_iterator&
-	operator+=(difference_type)
+	operator+=(difference_type) ynothrow
 	{
 		return *this;
 	}
 
-	//! \since build 356
 	pseudo_iterator&
-	operator-=(difference_type)
+	operator-=(difference_type) ynothrow
 	{
 		return *this;
 	}
@@ -350,42 +350,64 @@ public:
 	//@{
 	//! \since build 583
 	reference
-	operator*()
+	operator*() ynothrow
 	{
 		return value;
 	}
 	yconstfn reference
-	operator*() const
+	operator*() const ynothrow
 	{
 		return value;
 	}
 
 	pseudo_iterator&
-	operator++()
+	operator++() ynothrow
 	{
 		return *this;
 	}
 
 	//! \brief 满足双向迭代器要求。
 	yconstfn pseudo_iterator&
-	operator--() const
+	operator--() const ynothrow
 	{
 		return *this;
 	}
+	//@}
 };
 
+//! \relates pseudo_iterator
+//@{
 /*!
 \brief 满足输入迭代器要求。
-\relates pseudo_iterator
-\since build 356
+\since build 585
 */
 template<typename _type, typename _tIter, typename _tTraits>
-inline bool
+yconstfn bool
 operator==(const pseudo_iterator<_type, _tIter, _tTraits>& x,
 	const pseudo_iterator<_type, _tIter, _tTraits>& y)
+	ynoexcept(noexcept(bool(x.value == y.value)))
 {
 	return x.value == y.value;
 }
+
+template<typename _type, typename _tIter, typename _tTraits>
+yconstfn bool
+operator<(const pseudo_iterator<_type, _tIter, _tTraits>& x,
+	const pseudo_iterator<_type, _tIter, _tTraits>& y)
+	ynoexcept(noexcept(bool(x.value < y.value)))
+{
+	return x.value < y.value;
+}
+
+template<typename _type, typename _tIter, typename _tTraits>
+inline yconstfn
+	typename pseudo_iterator<_type, _tIter, _tTraits>::difference_type
+operator-(const pseudo_iterator<_type, _tIter, _tTraits>&,
+	const pseudo_iterator<_type, _tIter, _tTraits>&) ynothrow
+{
+	return 0;
+}
+//@}
 
 
 namespace details
@@ -485,52 +507,52 @@ public:
 	transformed_iterator&
 	operator=(transformed_iterator&&) = default;
 
-	//! \since build 357
+	//! \since build 585
+	//@{
 	reference
 	operator*() const
+		ynoexcept(noexcept(reference(std::declval<transformed_iterator&>().
+		transformer(std::declval<transformed_iterator&>().get()))))
 	{
 		return transformer(get());
 	}
 
 	/*!
 	\brief 转换为原迭代器引用。
-	\since build 290
 	*/
 	inline
-	operator iterator_type&()
+	operator iterator_type&() ynothrow
 	{
 		return *this;
 	}
 
 	/*!
 	\brief 转换为原迭代器 const 引用。
-	\since build 290
 	*/
 	yconstfn
-	operator const iterator_type&() const
+	operator const iterator_type&() const ynothrow
 	{
 		return *this;
 	}
 
 	/*!
 	\brief 取原迭代器引用。
-	\since build 290
 	*/
 	iterator_type&
-	get()
+	get() ynothrow
 	{
 		return *this;
 	}
 
 	/*!
 	\brief 取原迭代器 const 引用。
-	\since build 290
 	*/
 	yconstfn const iterator_type&
-	get() const
+	get() const ynothrow
 	{
 		return *this;
 	}
+	//@}
 
 	//! \since build 412
 	//@{
@@ -547,15 +569,17 @@ public:
 	//@}
 };
 
+//! \since build 585
+//@{
 /*!
 \brief 满足输入迭代器要求。
 \relates transformed_iterator
-\since build 356
 */
 template<typename _type, typename _fTransformer>
 inline bool
 operator==(const transformed_iterator<_type, _fTransformer>& x,
 	const transformed_iterator<_type, _fTransformer>& y)
+	ynoexcept(noexcept(bool(x.get() == y.get())))
 {
 	return x.get() == y.get();
 }
@@ -563,13 +587,13 @@ operator==(const transformed_iterator<_type, _fTransformer>& x,
 /*!
 \brief 满足随机迭代器要求。
 \relates transformed_iterator
-\since build 496
 */
 //@{
 template<typename _type, typename _fTransformer>
 inline transformed_iterator<_type, _fTransformer>&
 operator+=(transformed_iterator<_type, _fTransformer>& i,
 	typename transformed_iterator<_type, _fTransformer>::difference_type n)
+	ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() += n))
 {
 	i.get() += n;
 	return i;
@@ -579,6 +603,7 @@ template<typename _type, typename _fTransformer>
 inline transformed_iterator<_type, _fTransformer>&
 operator-=(transformed_iterator<_type, _fTransformer>& i,
 	typename transformed_iterator<_type, _fTransformer>::difference_type n)
+	ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() -= n))
 {
 	i.get() -= n;
 	return i;
@@ -588,6 +613,7 @@ template<typename _type, typename _fTransformer>
 inline bool
 operator<(const transformed_iterator<_type, _fTransformer>& x,
 	const transformed_iterator<_type, _fTransformer>& y)
+	ynoexcept(noexcept(bool(x.get() < y.get())))
 {
 	return bool(x.get() < y.get());
 }
@@ -732,9 +758,7 @@ public:
 	using reference = typename traits_type::reference;
 
 	yconstfn
-	pair_iterator()
-		: std::pair<_tMaster, _tSlave>(_tMaster(), _tSlave())
-	{}
+	pair_iterator() = default;
 	explicit yconstfn
 	pair_iterator(const _tMaster& _i)
 		: std::pair<_tMaster, _tSlave>(_i, _tSlave())
@@ -765,17 +789,21 @@ public:
 	operator=(pair_iterator&&) = default;
 #endif
 
-	//! \since build 356
+	//! \since build 585
+	//@{
 	pair_iterator&
 	operator+=(difference_type n)
+		ynoexcept(noexcept(yunseq(std::declval<pair_iterator&>().first += n,
+		std::declval<pair_iterator&>().second += n)))
 	{
 		yunseq(this->first += n, this->second += n);
 		return *this;
 	}
 
-	//! \since build 356
 	pair_iterator&
 	operator-=(difference_type n)
+		ynoexcept(noexcept(yunseq(std::declval<pair_iterator&>().first -= n,
+		std::declval<pair_iterator&>().second -= n)))
 	{
 		yunseq(this->first -= n, this->second -= n);
 		return *this;
@@ -785,12 +813,14 @@ public:
 	//@{
 	yconstfn reference
 	operator*() const
+		ynoexcept(noexcept(reference(*std::declval<pair_iterator&>().first)))
 	{
 		return *this->first;
 	}
 
 	pair_iterator&
-	operator++()
+	operator++() ynoexcept(noexcept(yunseq(++std::declval<
+		pair_iterator&>().first, ++std::declval<pair_iterator&>().second)))
 	{
 		yunseq(++this->first, ++this->second);
 		return *this;
@@ -799,33 +829,37 @@ public:
 
 	//! \brief 满足双向迭代器要求。
 	pair_iterator&
-	operator--()
+	operator--() ynoexcept(noexcept(yunseq(--std::declval<
+		pair_iterator&>().first, --std::declval<pair_iterator&>().second)))
 	{
 		yunseq(--this->first, --this->second);
 		return *this;
 	}
 
-	//! \since build 577
 	friend bool
 	operator==(const pair_iterator& x, const pair_iterator& y)
+		ynoexcept(noexcept(bool(x.first == y.first && x.second == y.second())))
 	{
 		return x.first == y.first && x.second == y.second();
 	}
 
-	//! \since build 575
 	template<typename _tFirst, typename _tSecond,
 		yimpl(typename = enable_if_convertible_t<_tMaster, _tFirst>,
 		typename = enable_if_convertible_t<_tSlave, _tSecond>)>
-	operator std::pair<_tFirst, _tSecond>()
+	operator std::pair<_tFirst, _tSecond>() ynoexcept(
+		std::is_nothrow_copy_constructible<std::pair<_tFirst, _tSecond>()>
+		::value && noexcept(std::pair<_tFirst, _tSecond>(std::declval<
+		pair_iterator&>().first, std::declval<pair_iterator&>().second)))
 	{
 		return std::pair<_tFirst, _tSecond>(this->first, this->second);
 	}
 
 	yconstfn const pair_type&
-	base() const
+	base() const ynothrow
 	{
 		return *this;
 	}
+	//@}
 };
 
 

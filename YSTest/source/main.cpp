@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file main.cpp
+/*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1908
+\version r1913
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-11-21 12:39 +0800
+	2015-03-17 17:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,9 @@ OnExit_DebugMemory()
 {
 	using namespace platform;
 
-	YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
+#if YCL_DS
+	platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
+#endif
 	std::puts("Normal exit;");
 
 //	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));

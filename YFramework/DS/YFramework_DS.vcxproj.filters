@@ -10,45 +10,5 @@
     <Filter Include="data">
       <UniqueIdentifier>{1cb47ae8-72cc-4f9e-82ec-46f636fa4dd7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source">
-      <UniqueIdentifier>{542e0282-06b8-4f89-86cb-3292dd30bc64}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\Helper">
-      <UniqueIdentifier>{d922d56e-6c64-42e6-8ec7-831cb3540a3d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include">
-      <UniqueIdentifier>{cb7b7fb9-05f8-46a2-b5eb-9fe29ec7aac7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Helper">
-      <UniqueIdentifier>{c774825d-9879-4174-a4e8-18d6c02a6f4a}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\Helper\DSMain.h">
-      <Filter>include\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Helper\DSScreen.h">
-      <Filter>source\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Helper\DSWindow.h">
-      <Filter>source\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Helper\shlds.h">
-      <Filter>include\Helper</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="source\Helper\DSMain.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Helper\DSScreen.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Helper\DSWindow.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Helper\shlds.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

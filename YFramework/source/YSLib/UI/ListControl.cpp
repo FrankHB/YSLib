@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2137
+\version r2139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2015-03-02 19:35 +0800
+	2015-03-19 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -216,12 +216,12 @@ bound_select:
 			SetSelected(idxShared);
 	},
 	FetchEvent<Paint>(unit).Add([this](PaintEventArgs&& e){
-		auto& unit(GetUnitRef());
+		auto& u(GetUnitRef());
 
 		if(vwList.CheckSelected(idxShared))
 			LabelBrush.ForeColor = HilightTextColor,
 			FillRect(e.Target, e.ClipArea, Rect(e.Location.X + 1, e.Location.Y,
-				GetSizeOf(unit).Width - 2, GetSizeOf(unit).Height),
+				GetSizeOf(u).Width - 2, GetSizeOf(u).Height),
 				HilightBackColor);
 		else
 			LabelBrush.ForeColor = ForeColor;

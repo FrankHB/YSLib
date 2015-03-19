@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r147
+\version r159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-03-05 01:00 +0800
+	2015-03-17 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ dep.merge:
 OpenImageIO(http://www.openimageio.org/): tentatively rejected.
 	This is a library focused on image I/O.
 		It actually does more, e.g. provides some ISO C99 math functions and POSIX math macros, implementation of 'array_view', etc.
-		It embeds some 3rd party code to support XML, SHA1, etc. 
+		It embeds some 3rd party code to support XML, SHA1, etc.
 		It also encapsulates some system-dependent operations, e.g. threads.
 			The threading operations depend on Boost.Thread.
 		Its interface is in C++.
@@ -149,6 +149,17 @@ In general, the key state in the event argument of 'KeyDown' event should not be
 		Class 'TextBox' was effected. It would occasionally behave normally if the key of least key index was pressed down at last.
 			Since the key was determined by the first key index in the key set through call of 'FindFirstKeyInCategroy'.
 			For example, right arrow after left arrow would be treated as left arrow but right arrow after left array would be normal, if the key index of the left arrow key is less than the one of right arrow key, which is the case of Win32 and many other platforms.
+Be cautious with revision patcher script. Currently the pattern of reversion is hard coded.
+	Only certain version number pattern is supported.
+		Some versioned files like makefiles should still going to be maintained manully.
+	Be cautious with the lines area counts.
+		Most files are with the '\version' in first 20 lines, only 3 files are the exceptions: YBase::YDefinition, YFramework::YCLib::YModules, Tools::PredefinedMacroDetector::Main.
+		All of them are not touched since the script was used.
+		So nothing had been going wrong.
+		Set 'PatchEnd' variable when necessary.
+			The default value has been adjusted to '30' instead of '20' to cover all of current source files.
+	Now version number pattern is restricted to mandate a prefixed number character in the version number.
+		Thus the script it self would not be affected even the 'PatchEnd' is set to 30. It should also work for the readme file.
 
 ////
 

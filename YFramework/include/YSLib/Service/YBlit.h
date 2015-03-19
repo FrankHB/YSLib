@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3430
+\version r3431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-03-17 06:18 +0800
+	2015-03-17 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_YBlit_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YGraphics
 #include YFM_YSLib_Core_YCoreUtilities
 #include <ystdex/iterator.hpp>
 #include <ystdex/rational.hpp>

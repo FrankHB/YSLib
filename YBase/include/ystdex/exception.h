@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r176
+\version r180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2014-12-04 21:28 +0800
+	2015-03-19 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,7 @@ get_nested_exception_ptr(const _tEx& e)
 }
 
 /*!
-\brief 引起异常：若当前存在正在处理的异常则抛出嵌套异常，否则抛出异常。
+\brief 引发异常：若当前存在正在处理的异常则抛出嵌套异常，否则抛出异常。
 \since build 522
 */
 template<typename _type>
@@ -90,9 +90,9 @@ handle_nested(_tEx& e, _func&& f)
 	{
 		std::rethrow_if_nested(e);
 	}
-	catch(_tExCaught e)
+	catch(_tExCaught ex)
 	{
-		yforward(f)(e);
+		yforward(f)(ex);
 	}
 }
 

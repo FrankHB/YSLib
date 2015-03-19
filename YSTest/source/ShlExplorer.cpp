@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1426
+\version r1445
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-03-01 20:41 +0800
+	2015-03-19 14:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,9 +127,9 @@ CheckMenuKey(const KeyInput& k)
 }
 
 
-//! \since build 451
+//! \since build 585
 //@{
-yconstexpr auto PI = 3.14159265358979323;
+yconstexpr auto PI = 3.141592F;
 yconstexpr auto PI_2 = PI * 2;
 
 //! \since build 452
@@ -301,8 +301,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	{
 		DeclDynWidgetN(TreeView, tvNodes, node_pnlPage3)
 
-		tvNodes.GetExtractText() = [](const ValueNode& node)->String{
-			TryRet(TreeList::DefaultExtractText(node))
+		tvNodes.GetExtractText() = [](const ValueNode& nd)->String{
+			TryRet(TreeList::DefaultExtractText(nd))
 			CatchIgnore(ystdex::bad_any_cast&)
 			return "<NONE>";
 		};
@@ -415,9 +415,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	FetchEvent<Click>(btnOK) += [&]{
 		if(fbMain.IsSelected())
 		{
-			const auto& path(fbMain.GetPath());
-		//	const string s(path);
-			const auto category(ClassifyFile(path));
+			const auto& fb_path(fbMain.GetPath());
+		//	const string s(fb_path);
+			const auto category(ClassifyFile(fb_path));
 
 			if(category == FileCategory::Text
 				|| category == FileCategory::Binary)
@@ -431,10 +431,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 					ResetDSDesktops(*h_up, *h_dn);
 					if(b)
 						NowShellTo(
-							make_shared<ShlTextReader>(path, h_up, h_dn));
+							make_shared<ShlTextReader>(fb_path, h_up, h_dn));
 					else
 						NowShellTo(
-							make_shared<ShlHexBrowser>(path, h_up, h_dn));
+							make_shared<ShlHexBrowser>(fb_path, h_up, h_dn));
 				}, 0xF8);
 			}
 		}
@@ -478,7 +478,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			rad + PI);
 		if(ani.GetConnectionRef().Ready)
 		{
-			rad += 0.02;
+			rad += 0.02F;
 			if(rad > PI_2)
 				rad -= PI_2;
 		}
@@ -531,9 +531,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(mnu);
 	},
 	FetchEvent<Click>(btnPrevBackground) += [&]{
-		auto& dsk_m(GetMainDesktop());
-		auto& dsk_s(GetSubDesktop());
-
 		if(up_i > 0)
 		{
 			--up_i;
@@ -541,13 +538,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		}
 		if(up_i == 0)
 			Enable(btnPrevBackground, false);
-		dsk_m.Background = ImageBrush(FetchImage(up_i));
-		unseq_apply(SetInvalidationOf, dsk_m, dsk_s);
+		GetMainDesktop().Background = ImageBrush(FetchImage(up_i));
+		unseq_apply(SetInvalidationOf, GetMainDesktop(), GetSubDesktop());
 	},
 	FetchEvent<Click>(btnNextBackground) += [&]{
-		auto& dsk_m(GetMainDesktop());
-		auto& dsk_s(GetSubDesktop());
-
 		if(size_t(up_i + 1) < Image_N)
 		{
 			++up_i;
@@ -555,9 +549,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		}
 		if(size_t(up_i + 1) == Image_N)
 			Enable(btnNextBackground, false);
-		dsk_m.Background = ImageBrush(FetchImage(up_i));
-		SetInvalidationOf(dsk_m),
-		SetInvalidationOf(dsk_s);
+		GetMainDesktop().Background = ImageBrush(FetchImage(up_i));
+		SetInvalidationOf(GetMainDesktop()),
+		SetInvalidationOf(GetSubDesktop());
 	},
 	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e){
 		unseq_apply(bind(SetEnabledOf, _1, !e), cbFPS, rbTxt, rbHex);

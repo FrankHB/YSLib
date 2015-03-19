@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -21,13 +21,13 @@
 /*!	\file YModules.h
 \ingroup YCLib
 \brief YCLib 库模块配置文件。
-\version r83
+\version r86
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:20 +0800
 \par 修改时间:
-	2014-12-27 12:39 +0800
+	2015-03-17 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,6 +65,9 @@
 #define YFM_YCLib_JNI <YCLib/JNI.h>
 //! \since build 560
 #define YFM_YCLib_XCB <YCLib/XCB.h>
+
+//! \since build 585
+#define YFM_DS_YCLib_DSVideo <YCLib/DSVideo.h>
 
 #define YFM_MinGW32_YCLib_MinGW32 <YCLib/MinGW32.h>
 #define YFM_MinGW32_YCLib_COM <YCLib/COM.h>

@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1079
+\version r1081
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-03-17 02:21 +0800
+	2015-03-19 13:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -299,7 +299,7 @@ HBitmap::HBitmap(const ImageMemory& mem, ImageDecoderFlags flags)
 		throw GeneralEvent("Loading image failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
-	: p_bitmap([](::FIBITMAP* p_bmp, BitPerPixel bpp){
+	: p_bitmap([bpp](::FIBITMAP* p_bmp){
 		switch(bpp)
 		{
 		case 32:
@@ -315,7 +315,7 @@ HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
 		default:
 			throw UnsupportedImageFormat("Unsupported bit per pixel found.");
 		}
-	}(pixmap.p_bitmap, bpp))
+	}(pixmap.p_bitmap))
 {
 	if(!p_bitmap)
 		throw GeneralEvent("Converting bitmap failed.");
