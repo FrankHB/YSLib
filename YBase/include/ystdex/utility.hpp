@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2411
+\version r2413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-02-10 11:19 +0800
+	2015-03-19 10:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,11 +104,11 @@ arrlen(_type(&&)[_vN])
 
 /*!
 \brief 取枚举值的底层整数。
-\since build 548
+\since build 585
 */
 template<typename _type>
 yconstfn underlying_type_t<_type>
-underlying(_type val)
+underlying(_type val) ynothrow
 {
 	return underlying_type_t<_type>(val);
 }

@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r256
+\version r264
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2015-02-27 23:07 +0800
+	2015-03-19 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ Zoom(const HBitmap& bitmap, ImageScale ratio)
 
 	YAssert(!bmp_size.IsUnstrictlyEmpty(), "Invalid size found.");
 	YTraceDe(Informative, "Unscaled image size = %s, requested ratio = %f.",
-		to_string(bmp_size).c_str(), float(ratio));
+		to_string(bmp_size).c_str(), double(ratio));
 	if(abs(ratio - 1) < std::numeric_limits<ImageScale>::epsilon())
 		return bitmap;
 
@@ -52,7 +52,7 @@ Zoom(const HBitmap& bitmap, ImageScale ratio)
 		round(bmp_size.Height * float(ratio)));
 
 	YTraceDe(Informative, "Zoomed image ratio = %f, with size = %s.",
-		float(ratio), to_string(zoomed_size).c_str());
+		double(ratio), to_string(zoomed_size).c_str());
 	return HBitmap(bitmap, zoomed_size,
 		ratio < 2 ? SamplingFilter::Bilinear : SamplingFilter::Bicubic);
 }
@@ -106,8 +106,8 @@ ImagePages::AdjustOffset(const Size& cont_size)
 	auto& dst(Brush.DstOffset);
 	const auto& size(Brush.ImagePtr->GetSize());
 
-	YSLib::HalfDifferenceIfGreater<SPos>(dst.X, cont_size.Width, size.Width),
-	YSLib::HalfDifferenceIfGreater<SPos>(dst.Y, cont_size.Height, size.Height);
+	HalfDifferenceIfGreater<SPos>(dst.X, cont_size.Width, size.Width),
+	HalfDifferenceIfGreater<SPos>(dst.Y, cont_size.Height, size.Height);
 	YTraceDe(Informative, "Adjusted destination offset = %s.",
 		to_string(Brush.DstOffset).c_str());
 }
@@ -156,14 +156,16 @@ ImagePages::SwitchPage(size_t page)
 bool
 ImagePages::Zoom(float delta, const Point& offset)
 {
-	YTraceDe(Informative, "Action: zoom, with delta = %f%%.", delta * 100.F);
+	YTraceDe(Informative, "Action: zoom, with delta = %f%%.",
+		double(delta * 100.F));
 	return ZoomTo(scale + delta, offset);
 }
 
 bool
 ImagePages::ZoomByRatio(float ratio, const Point& offset)
 {
-	YTraceDe(Informative, "Action: zoom, with ratio = %f%%.", ratio * 100.F);
+	YTraceDe(Informative, "Action: zoom, with ratio = %f%%.",
+		double(ratio * 100.F));
 	if(ratio > 0)
 		return Zoom((ratio - 1.F) * scale, offset);
 	else

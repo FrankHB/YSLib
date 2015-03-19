@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3463
+\version r3466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-01-30 13:07 +0800
+	2015-03-19 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -526,10 +526,10 @@ Font::GetDescender() const
 CharBitmap
 Font::GetGlyph(ucs4_t c, ::FT_UInt flags) const
 {
-	const auto& typeface(GetTypeface());
+	const auto& face(GetTypeface());
 
-	return &typeface.LookupBitmap(Typeface::BitmapKey{flags,
-		typeface.LookupGlyphIndex(c), font_size, style}).sbit;
+	return &face.LookupBitmap(Typeface::BitmapKey{flags,
+		face.LookupGlyphIndex(c), font_size, style}).sbit;
 }
 FontSize
 Font::GetHeight() const ynothrow

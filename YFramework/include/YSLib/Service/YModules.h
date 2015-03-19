@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 服务模块配置文件。
-\version r82
+\version r83
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:26 +0800
 \par 修改时间:
-	2015-03-17 06:20 +0800
+	2015-03-17 18:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@
 #define YFM_YSLib_Service_YBlit <YSLib/Service/YBlit.h>
 //! \since build 584
 #define YFM_YSLib_Service_YBlend <YSLib/Service/YBlend.h>
-#define YFM_YSLib_Service_YDraw <YSLib/Service/ydraw.h>
+#define YFM_YSLib_Service_YDraw <YSLib/Service/YDraw.h>
 #define YFM_YSLib_Service_YGDI <YSLib/Service/YGDI.h>
 //! \since build 555
 #define YFM_YSLib_Service_YBrush <YSLib/Service/YBrush.h>

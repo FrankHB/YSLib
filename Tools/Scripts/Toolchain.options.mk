@@ -1,5 +1,5 @@
 #
-#	(C) 2014 FrankHB.
+#	(C) 2014-2015 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,32 +8,41 @@
 #	understand and accept it fully.
 #
 # Makefile specifying common toolchain options
-# Version = r52
+# Version = r65
 # Created = 2014-12-06 17:24:04 +0800
-# Updated = 2014-12-06 21:55 +0800
+# Updated = 2015-03-19 13:05 +0800
 # Encoding = ANSI
 
 
 # This makefile depends on G++.
 
 # See also %SHBuild-common-options.sh.
+# TODO: Add %C_CXXFLAGS_GC.
 
 C_CXXFLAGS_COMMON ?= -pipe -fdata-sections -ffunction-sections -pedantic-errors
 
+C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
+	-Wdeprecated-declarations -Wextra -Wformat=2 -Winvalid-pch \
+	-Wmissing-declarations -Wmissing-include-dirs -Wmultichar \
+	-Wno-format-nonliteral -Wpacked -Wredundant-decls -Wshadow -Wsign-promo
+
 CFLAGS_STD ?= -std=c11
-CFLAGS_WARNING ?= -Wall -Wcast-align -Wextra -Winit-self -Winvalid-pch \
-	-Wmain -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls \
-	-Wsign-promo -Wunreachable-code
+
+# TODO: Detect implementation.
+C_CXXFLAGS_IMPL_WARNING := -Wdouble-promotion -Wlogical-op -Wtrampolines 
+CXXFLAGS_IMPL_WARNING := -Wconditionally-supported -Wstrict-null-sentinel \
+	-Wzero-as-null-pointer-constant
+
+CFLAGS_WARNING ?= $(C_CXXFLAGS_WARNING) $(C_CXXFLAGS_IMPL_WARNING)
 
 CFLAGS_COMMON ?= $(C_CXXFLAGS_COMMON) $(CFLAGS_STD) $(CFLAGS_WARNING)
 
-CXXFLAGS_IMPL_WARNING := -Wzero-as-null-pointer-constant
 CXXFLAGS_IMPL_OPT ?= -s -fexpensive-optimizations -flto=jobserver
 LDFLAGS_IMPL_OPT ?= -s -fexpensive-optimizations -flto
 
 CXXFLAGS_STD ?= -std=c++11
 CXXFLAGS_WARNING ?= $(CFLAGS_WARNING) -Wctor-dtor-privacy -Wnon-virtual-dtor \
-	$(CXXFLAGS_IMPL_WARNING)
+	-Woverloaded-virtual $(C_CXXFLAGS_IMPL_WARNING) $(CXXFLAGS_IMPL_WARNING)
 
 CXXFLAGS_COMMON ?= $(C_CXXFLAGS_COMMON) $(CXXFLAGS_STD) \
 	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON)

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r10983
+\version r11202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-03-17 07:11 +0800
+	2015-03-19 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,214 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Iterator $=
+		(
+			+ 'yconstfn' @ "function template %operator== for %pseudo_iterator",
+			+ "function templates binary %operator(-, <) between \
+				%pseudo_iterator",
+				// It always returns zero for '-' and compares underlying \
+					value for '<'.
+			/ $re_ex(b461) @ "class template %pointer_iterator" $=
+			(
+				+ 'ynothrowv' @ "functions %operator(+=, -=, ++, --)"
+				+ 'ynothrow' @ "function %operator pointer"
+			),
+			+ $re_ex(b461) 'ynothrow'
+				@ "function template %operator== for %pointer_iterator",
+			/ @ "class template %pseudo_iterator" $=
+			(
+				/ "user-provided constructor"
+					-> "explicitly defaulted constructor",
+					// The member can be uninitialized now.
+				+ 'ynothrow' @ "functions %operator(+=, -=, 2 *, ++, --)"
+			),
+			+ "noexcept-specification" @ "function template %operator== for \
+				%pseudo_iterator",
+			/ @ "class template %pair_iterator" $=
+			(
+				/ "user-provided constructor"
+					-> "explicitly defaulted constructor",
+					// The member can be uninitialized now.
+				+ "noexcept-specification" @ "functions %operator(+=, -=, *, \
+					++, --), friend (function, function template) %operator==",
+				+ 'ynothrow' @ "function %base"
+			),
+			/ @ "class template %transformed_iterator" $=
+			(
+				+ "noexcept-specification" @ "functions %operator*",
+				+ 'ynothrow' @ "all 2 conversion functions, 2 functions %get"
+			),
+			+ "noexcept-specification" @ "functions templates \
+				%operator(==, +=, -=, <) for %transformed_iterator"
+		),
+		+ 'ynothrow' @ "function template %underlying" @ %Utilities
+	),
+	/ $dev "packed common target files to main project" @ "Visual C++ projects",
+		// Since there are some files are acutally used by multiple target \
+			platforms, put them in projects of particular platform is not \
+			reasonable.
+	* $dev "wrong paths of %Helper_(DS) source files"
+		@ "main Code::Block project" $since b431,
+	/ %YFramework $=
+	(
+		+ %'YCLib_(DS)'
+			$= (+ %DSVideo);
+		/ "namespace %platform_ex" @ %YCLib.Video >> %'YCLib_(DS)'.DSVideo
+		/ %YCLib $=
+		(
+			/ %Video $=
+			(
+				/ "function %platform::YConsoleInit" -> ("%platform_ex::DSInit"
+					@ "platform %DS") @ %'YCLib_(DS)'.DSVideo,
+				/ @ "class %Color" $=
+				(
+					/ DLD "all data members"
+						^ "brace-or-equal-initializer ' = 0'"";
+					/ "explicitly defaulted default constructor"
+				),
+				/ "namespace %Consoles" >> $dep_from %YSLib.Core.YConsole
+					$dep_to "console color set"
+			),
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				+ %YConsole $=
+				(
+					+ 'namespace ColorSpace = Drawing::ColorSpace;'
+						@ "namespace %Consoles" $dep_from "console color set";
+					/ "type" @ "%ConsoleColors" -> "array of %ColorSet"
+						~ "array of %Color"
+				),
+				+ %YGraphics,
+				/ %YGDIBase $=
+				(
+					/ @ "class template %GBinaryGroup" $=
+					(
+						/ DLD "all data members"
+							^ "brace-or-equal-initializer ' = 0'"";
+						/ "explicitly defaulted default constructor"
+					),
+					/ "class template %GGraphics, aliases %(BitmapPtr, \
+						ConstBitmapPtr, ConstGraphics, Graphics), interface \
+						%IImage, class %PaintContext, functions \
+						%(UpdateClipArea, UpdateClipSize)"
+						>> $dep_from %YGraphics
+				)
+			),
+			/ %Service $=
+			(
+				* DLB $re(b547) "strict ISO C++ code compatibility"
+					@ %CharRenderer $since b583
+					$= (* "missing user-provided default constructor for \
+						default initialized const object"
+						@ "function %RenderChar"
+						$= (/ $design ^ "list initialization"
+							~ "default initialization")),
+				/ DLD "implemented floating arguments for format '%f' by \
+					explicitly casting to 'double'" ~ "casting to 'float'"
+					@ %ImageProcessing;
+					// To eliminate G++ warning: [-Wdouble-promotion].
+			)
+		)
+	),
+	/ @ "call %YConsoleInit" @ "function %OnExit_DebugMemory only for \
+		platform %DS" @ %YSTest_(ARM9).Main,
+	/ "%RevisionPatcher.sh" @ %Tools.Scripts $=
+	(
+		// See $2015-03 @ %Documentation::Workflow::Annual2014.
+		/ "default value" @ "variable %PatchEnd" -> '30' ~ '20',
+		/ "restricted revision pattern with single prefixed number character"
+	),
+	* DLD "non-default search linker options relations"
+		@ "%Code::Blocks project %'YSTest_(MinGW32)'" $since b299,
+		// The default is "append". Though this has no effect currently, it \
+			was not intended.
+	/ DLD "implemented function" ^ "explicit format string" @ $effective @
+		("%FetchDBCSOffset" @ %'YCLib_(MinGW32)'.NLS, "%TestFramework"
+		@ "platform %Win32" @ %'Helper_(DS)'.DSMain @ %YFramework),
+		// To eliminate G++ warning: [-Wformat-security].
+	/ DLD $build "removed name shadowing" $effective @ $=
+	(
+		// To eliminate G++ warning: [-Wshadow].
+		/ "renamed parameter %wait" -> "%waiter" @ "functions"
+			@ "class template %thread_pool" @ %YBase.YStandardEx.Concurrency, 
+		/ "renamed local variable" @ (((("member functions %(TabBar::Refresh, \
+			TabControl::SwitchPage)" @ %TabControl, "constructor %DropDownList"
+			@ %ComboList, "constructor %TextList" @ %ListControl, "functions \
+			%(RectDrawCheckBox_Aoi, RectDrawRadioBox_Aoi)" @ %ExStyle "member \
+			function %GUIState::Wrap" @ %YGUI) @ %UI, ("member functions \
+			%TextFileBuffer::(operator[], GetPosition)" @ %TextManager,
+			"functions %(DrawCircle, FillCircle)" @ %YDraw) @ %Service,
+			"member function %Font::GetGlyph" @ %Adaptor.Font) @ YSLib,
+			("constructor %RenderWindow" @ %HostRenderer) @ %Helper)
+			@ %YFramework, ("function template %handle_nested" @ %Exception)
+			@ %YBase.YStandardEx.Exception, "constructor %ShlExplorer"
+			@ %YReader.ShlExplorer),
+		- "redundant local variable" @ "%TabControl::UpdateTabPages"
+			@ %YFramework.YSLib.UI,
+		/ "renamed local variable" @ "implementation"
+			@ (("function %ExtractException" @ %Helper.Initialization,
+			"member function %Logger::DoLogException" @ %YCLib.Debug,
+			"member functions %ValueNode::(operator[], at)"
+			@ %YSLib.Core.ValueNode), %Tools.SHBuild.Main),
+		/ "simplified constructor" ^ "lambda capture" @ (("class %Terminal"
+			@ %Host, "class %MappedFile" @ %MemoryMapping) @ %YCLib,
+			"class %HBitmap" @ %YSLib.Adaptor.Image) @ %YFramework
+	),
+	(
+	/ "build options" $effective ("%SHBuild-common-optioins.sh", \
+		"%Toolchain.options.mk") @ %Tools.Scripts $=
+	(
+		(
+		/ "variable %CFLAGS_WARNING" -> "variable %C_CXXFLAGS_FLAGS_WARNING" $=
+		(
+			- "'-Wunreachable-code' since it is ignored by GCC currently",
+				// See GCC source "gcc/common.opt". Also no need use for other \
+					implementations since they are mostly inteded to be \
+					compatible with GCC.
+			- "'-Winit-self -Wmain' since they are already enabled by '-Wall'",
+				// '-Wmain' is also enabled by pedantic modes.
+			+ '-Wdeprecated-declarations',
+			+ '-Wdiv-by-zero -Wmultichar -Wpacked -Wpragmas -Wshadow',
+			+ '-Wformat=2 -Wno-format-nonliteral'
+				// Like '-Wformat-security -Wformat-y2k'. There is also a \
+					'-Wformat-signedness' option with level 2 but it is not \
+					supported by G++ 4.9 yet.
+		),
+		+ "'-Wdouble-promotion -Wlogical-op -Wtrampolines' as default value of \
+			variable %C_CXXFLAGS_IMPL_WARNING" @ "G++ detected";
+		+ "variable %CFLAGS_WARNING with default value '$C_CXXFLAGS_WARNING \
+			$C_CXXFLAGS_IMPL_WARNING'",
+		+ '$C_CXXFLAGS_IMPL_WARNING' @ "default value"
+			@ "variable %CXXFLAGS_WARNING"
+		),
+		+ '-Woverloaded-virtual' @ "variable %CXXFLAGS_WARNING",
+		+ '-Wconditionally-supported' @ "variable C_CXXFLAGS_IMPL_WARNING"
+			@ "G++ detected"
+	);
+	/ "updated C++ options" @ "Code::Block projects" @ "platform %MinGW32"
+	),
+	/ %YReader $=
+	(
+		- "redundant protected member %SettingPanel::ddlScrollTiming"
+			@ %ReaderSettingUI;
+			// Also to eliminate G++ warning: [-Wshadow].
+		/ DLD "implemented floating point constant" @ %ShlExplorer ^ "%float"
+			~ "%double"
+			// To eliminate G++ warning: [-Wdouble-promotion].
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ "%main.cpp" => "%Main.cpp"
+		@ %YSTest.Main, ("%ydevice.h" => "%YDevice.h" @ %Core,
+		"%ydraw.h" => "%YDraw.h" @ %Service) @ %YFramework.YSLib
+),
+
+b584
 (
 	/ %YFramework.YSLib $=
 	(
@@ -79,7 +287,7 @@ $now
 					// Since %YPixel is designed without %YBlit support, there should be a \
 						declaration of %IteratorPair if used directly.
 				/ "functors %(BlitTransparentPoint, BlitAlphaPoint)"
-					>> ($dep_from %YBlend)
+					>> $dep_from %YBlend
 			),
 			/ %YBlit $=
 			(
@@ -1080,7 +1288,7 @@ b575
 		/ @ "class %ImageControl" @ %ImageControl $=
 		(
 			+ "protected data members %(mhMain, mnuContext)";
-			+ "context menu item to exit", 
+			+ "context menu item to exit",
 			+ "function %SetupContextMenu"
 		);
 		/ "function %::main" @ %Main $=
@@ -1429,7 +1637,7 @@ b572
 		),
 		/ $dev "all 'const Duration&' parameter" -> 'Duration'
 			$effective %(YSLib.Service.YTimer, UI.YGUI),
-			// See $2015-01 @ %Documentation::Workflow::Annual2015. 
+			// See $2015-01 @ %Documentation::Workflow::Annual2015.
 		/ $lib $design "simplified type of data member %Environment::MapPoint"
 			@ "platform %Android" @ %Helper.Environment ^ $dep_from \
 			("%ystdex::id_func_clr_t" @ %YBase.YStandardEx.Functional)
@@ -2002,7 +2210,7 @@ b566
 	),
 	/ $dev $repo "all edited file with module name not the same as base file \
 		name" @ !%YBase ^ 'hg mv' $effective @ ("%yshell.h" => "%YShell.h"
-		@ Core, ("ygdi.h" => "YGDI.h", "ygdi.cpp" => "YGDI.cpp") @ Service, 
+		@ Core, ("ygdi.h" => "YGDI.h", "ygdi.cpp" => "YGDI.cpp") @ Service,
 		"yrender.h"=> "%yrenderer.h" @ %UI) @ %YFramework.YSLib
 ),
 
@@ -2119,7 +2327,7 @@ b565
 	/ $repo @ "file '.hgignore'" $=
 	(
 		/ $re_ex(b564) "pattern 'Tools/SHBuild/stdinc.h.gch'"
-			-> 'Tools/SHBuild/stdinc.h*' 
+			-> 'Tools/SHBuild/stdinc.h*'
 			// To ignore %stdinc.h.
 		+ "pattern 'bak.patch'"
 			// To ignore revision patching backup file.
@@ -2219,7 +2427,7 @@ b564
 			/ $dev "all use of '::DWORD'" -> 'unsigned long',
 				// FreeImage use of 'DWORD' untouched.
 			/ $dev "removed all <Windows.h> dependency non platform extension \
-				other than %YCLib.NativeAPI" 
+				other than %YCLib.NativeAPI"
 		)
 	),
 	/ %YBase $=
@@ -2341,7 +2549,7 @@ b563
 		(
 			+ 'ynothrow' @ "function template %Nonnull" @ %Debug,
 				// Operand of 'noexcept' has trouble with 'yconstfn', so no \
-					change to %Deref. 
+					change to %Deref.
 			(
 			+ "macros %(YCL_HostedUI, YCL_HostedUI_XCB; YCL_HostedUI)"
 				@ %YCLib.Platform;
@@ -3238,7 +3446,7 @@ b559
 					// But not redir-op and prefix decimal number denoting \
 						file descriptor.
 			),
-			* "non-lowercase source file name of %YFramework.YCLib.YCommon" 
+			* "non-lowercase source file name of %YFramework.YCLib.YCommon"
 				@ "%SHBuild-bootstrap.sh" $since b540,
 			- $dep_from "getting off Shlwapi" '-lShlwapi' @ "%LIBS" $effective
 				@ ("SHBuild-bootstrap.sh", "SHBuild-YSLib.sh",
@@ -4154,7 +4362,7 @@ b554
 						attached to current thread. On android, this would \
 						cause log like \
 						'ERROR: detaching thread with interp frames \
-						(count=12)', and then the VM would be aborted and crash. 
+						(count=12)', and then the VM would be aborted and crash.
 				/ "explicitly specified throwing %JNIException on failure"
 					~ "%std::runtime_error" @ "constructor"
 			),
@@ -4178,10 +4386,10 @@ b554
 		/ DLB "explicitly truncated value" @ "implementation" %CHRLib $=
 		(
 			@ "function %UCS4ToUCS2" @ %CharacterProcessing,
-				// To eliminate warning C4244 on VC++ 2015 Preview with \
+				// To eliminate warning C4244 on Visual C++ 2015 Preview with \
 					warning level /W3.
 			@ "constructor %ConversionState" @ %CharacterMapping
-				// To eliminate warning C4267 on VC++ 2015 Preview with \
+				// To eliminate warning C4267 on Visual C++ 2015 Preview with \
 					warning level /W3.
 		),
 		/ @ %YSLib.Adaptor.YReference $dep_from %YBase.YStandardEx.Functional $=
@@ -4428,7 +4636,7 @@ b553
 		/ DLD "implemented inline functions %(IsNowShell, NowShellTo, \
 			SetShellTo, GenerateRandomColor, CreateSharedScreenImage)"
 			@ %Helper.ShellHelper ^ "macros %(PDefH, ImplRet)",
-		+ "assertion for swapped pointer" @ "argument" 
+		+ "assertion for swapped pointer" @ "argument"
 			"member function %ScreenBuffer::swap" @ %'YCLib_(Android)'.Android,
 		/ "function %MakePipe" @ "namespace %Windows" @ 'YCLib_(MinGW32)'
 			>> ("namespace %platform_ex" @ %Host),

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ydraw.h
+/*!	\file YDraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1237
+\version r1242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-11-12 04:14 +0800
+	2015-03-17 18:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,11 @@
 */
 
 
-#ifndef YSL_INC_Service_ydraw_h_
-#define YSL_INC_Service_ydraw_h_ 1
+#ifndef YSL_INC_Service_YDraw_h_
+#define YSL_INC_Service_YDraw_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YGraphics
 
 namespace YSLib
 {

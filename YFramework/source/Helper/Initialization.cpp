@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2193
+\version r2201
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-11-28 21:17 +0800
+	2015-03-19 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,9 @@
 #include <ystdex/exception.h> // for ystdex::handle_nested;
 #include <cerrno> // for errno;
 //#include <clocale>
-#if YCL_Android
+#if YCL_DS
+#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSInitConsole;
+#elif YCL_Android
 #	include <unistd.h> // for ::access, F_OK;
 #elif YCL_Win32
 #	include YFM_MinGW32_YCLib_NLS
@@ -207,8 +209,8 @@ ExtractException(const std::exception& e, string& res, size_t level = 0)
 	CatchIgnore(std::exception&)
 	CatchExpr(..., print("Unknown exception found @ ExtractException."))
 #if YCL_Win32
-	ystdex::handle_nested(e, [&, level](std::exception& e){
-		ExtractException(e, res, level + 1);
+	ystdex::handle_nested(e, [&, level](std::exception& ex){
+		ExtractException(ex, res, level + 1);
 	});
 #endif
 }
@@ -289,7 +291,7 @@ void
 HandleFatalError(const FatalError& e) ynothrow
 {
 #if YCL_DS
-	YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
+	platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
 
 	const char* line("--------------------------------");
 
@@ -403,7 +405,7 @@ InitializeEnvironment()
 	::defaultExceptionHandler();
 
 	//初始化主控制台。
-	platform::YConsoleInit(true, ColorSpace::Lime);
+	platform_ex::DSConsoleInit(true, ColorSpace::Lime);
 
 	//初始化文件系统。
 	//初始化 EFSLib 和 LibFAT 。

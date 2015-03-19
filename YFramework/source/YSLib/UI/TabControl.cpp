@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r279
+\version r290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2014-11-21 12:39 +0800
+	2015-03-19 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,18 +101,18 @@ TabBar::Refresh(PaintEventArgs&& e)
 			if(IsVisible(wgt))
 			{
 				PaintContext& pc(e);
-				PaintEventArgs e(wgt, pc);
+				PaintEventArgs e_new(wgt, pc);
 
-				if(Clip(e.ClipArea, Rect(e.Location += GetLocationOf(wgt),
-					GetSizeOf(wgt))))
+				if(Clip(e_new.ClipArea,
+					Rect(e_new.Location += GetLocationOf(wgt), GetSizeOf(wgt))))
 				{
 					if(PaintTabBackground)
-						PaintTabBackground(std::move(e));
-					wgt.GetRenderer().Paint(wgt, std::move(e));
+						PaintTabBackground(std::move(e_new));
+					wgt.GetRenderer().Paint(wgt, std::move(e_new));
 					if(PaintTabForeground)
-						PaintTabForeground(std::move(e));
+						PaintTabForeground(std::move(e_new));
 				}
-				pc.ClipArea |= e.ClipArea;
+				pc.ClipArea |= e_new.ClipArea;
 			}
 		}
 }
@@ -175,8 +175,8 @@ TabControl::SwitchPage(size_t idx)
 {
 	if(idx < tab_pages.size())
 	{
-		if(const auto p_page = tab_pages[idx])
-			return SwitchPage(*p_page);
+		if(const auto p = tab_pages[idx])
+			return SwitchPage(*p);
 	}
 	return {};
 }
@@ -206,7 +206,6 @@ TabControl::UpdateTabPages()
 
 	tb.PerformLayout();
 
-	auto pr(tb.GetChildren());
 	const auto tp_count(tab_pages.size());
 	size_t i(0);
 

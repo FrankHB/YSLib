@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r402
+\version r408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2015-01-29 19:50 +0800
+	2015-03-19 13:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,13 +54,13 @@ ValueNode::operator%=(const ValueNode&& node) const
 }
 
 const ValueNode&
-ValueNode::operator[](const string& name) const
+ValueNode::operator[](const string& n) const
 {
 	auto& con(CheckNodes());
-	auto i(con.lower_bound({0, name}));
+	auto i(con.lower_bound({0, n}));
 
-	if(i == con.end() || con.key_comp()({0, name}, *i))
-		i = con.emplace_hint(i, 0, name);
+	if(i == con.end() || con.key_comp()({0, n}, *i))
+		i = con.emplace_hint(i, 0, n);
 	return *i;
 }
 
@@ -120,9 +120,9 @@ ValueNode::Remove(const ValueNode& node) const
 }
 
 const ValueNode&
-ValueNode::at(const string& name) const
+ValueNode::at(const string& n) const
 {
-	return AccessNode(GetContainerRef(), name);
+	return AccessNode(GetContainerRef(), n);
 }
 
 void

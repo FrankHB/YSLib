@@ -72,19 +72,30 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wnon-virtual-dtor" />
+			<Add option="-Wshadow" />
 			<Add option="-Wredundant-decls" />
 			<Add option="-Wcast-align" />
-			<Add option="-Wunreachable-code" />
 			<Add option="-Wmissing-declarations" />
 			<Add option="-Wmissing-include-dirs" />
-			<Add option="-pedantic-errors" />
 			<Add option="-Wzero-as-null-pointer-constant" />
-			<Add option="-std=c++11" />
+			<Add option="-pedantic-errors" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-Wctor-dtor-privacy" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-Wsign-promo" />
+			<Add option="-Wdeprecated" />
+			<Add option="-Wdeprecated-declarations" />
+			<Add option="-Wformat=2" />
+			<Add option="-Wmultichar" />
+			<Add option="-Wno-format-nonliteral" />
+			<Add option="-Wpacked" />
+			<Add option="-Wdouble-promotion" />
+			<Add option="-Wlogical-op" />
+			<Add option="-Wtrampolines" />
+			<Add option="-Wconditionally-supported" />
+			<Add option="-Wstrict-null-sentinel" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
 			<Add option="-mthreads" />

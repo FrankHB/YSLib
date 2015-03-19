@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2857
+\version r2861
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-03-17 02:17 +0800
+	2015-03-17 18:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,8 @@ YShellDefinition 依赖 Adaptor::YAdaptor 和 Adaptor::YReference ；
 YCoreUtilities 和 YGDIBase 依赖 YException ；
 YObject 依赖 YCoreUtilities ；
 YDevice 、 YString 和 YMessage 依赖 YObject ；
-YDevice 依赖 YGDIBase ；
+YGraphics 依赖 YGDIBase ；
+YDevice 依赖 YGraphics ；
 YString 依赖 Adaptor::YTextBase ；
 YEvent 依赖 YObject 和 YFunc ；
 YMessageDefinition 依赖 YMessage ；
@@ -127,11 +128,11 @@ YShell 依赖 YMessageDefinition ；
 YApplication 依赖 YShell 和 Adaptor::YContainer 。
 在 Service 中，以下模块对应的头文件依赖关系是确定的：
 YTimer 依赖 Core::YClock ；
-YBlit 、 YDraw 和 YGDI 依赖 Core::YGDIBase ；
+YBlit 、 YDraw 和 YGDI 依赖 Core::YGraphics ；
 YBlit 依赖 Core::YCoreUtilities ；
 YBrush 依赖 YBlit 、 YResource 和 Core::YEvent ；
 在 UI 中，以下模块对应的头文件依赖关系是确定的：
-YComponent 依赖 Core::YGDIBase 、 Core::YFunc 、 Core::YMessageDefinition 和 Adaptor::YContainer ；
+YComponent 依赖 Core::YGraphics 、 Core::YFunc 、 Core::YMessageDefinition 和 Adaptor::YContainer ；
 除了 YComponent 外都直接或间接依赖 YComponent；
 YStyle 依赖 Service::YDraw ；
 YWidgetEvent 依赖 Core::YEvent ；

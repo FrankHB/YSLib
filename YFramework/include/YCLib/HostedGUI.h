@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1034
+\version r1035
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-02-28 21:13 +0800
+	2015-03-17 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include <ystdex/utility.hpp> // for ystdex::nptr;
-#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YGraphics
 #include YFM_YSLib_Core_YEvent
 #include <atomic>
 #if YCL_HostedUI_XCB

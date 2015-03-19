@@ -88,19 +88,30 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wnon-virtual-dtor" />
+			<Add option="-Wshadow" />
 			<Add option="-Wredundant-decls" />
 			<Add option="-Wcast-align" />
-			<Add option="-Wunreachable-code" />
 			<Add option="-Wmissing-declarations" />
 			<Add option="-Wmissing-include-dirs" />
-			<Add option="-pedantic-errors" />
 			<Add option="-Wzero-as-null-pointer-constant" />
-			<Add option="-std=c++11" />
+			<Add option="-pedantic-errors" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-Wctor-dtor-privacy" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-Wsign-promo" />
+			<Add option="-Wdeprecated" />
+			<Add option="-Wdeprecated-declarations" />
+			<Add option="-Wformat=2" />
+			<Add option="-Wmultichar" />
+			<Add option="-Wno-format-nonliteral" />
+			<Add option="-Wpacked" />
+			<Add option="-Wdouble-promotion" />
+			<Add option="-Wlogical-op" />
+			<Add option="-Wtrampolines" />
+			<Add option="-Wconditionally-supported" />
+			<Add option="-Wstrict-null-sentinel" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
 			<Add option="-mthreads" />
@@ -208,14 +219,14 @@
 		<Unit filename="../../3rdparty/include/FreeImage.h" />
 		<Unit filename="../DS/include/Helper/DSMain.h" />
 		<Unit filename="../DS/include/Helper/shlds.h" />
+		<Unit filename="../DS/include/YCLib/DSVideo.h" />
 		<Unit filename="../DS/source/Helper/DSMain.cpp" />
 		<Unit filename="../DS/source/Helper/DSScreen.cpp" />
 		<Unit filename="../DS/source/Helper/DSScreen.h" />
 		<Unit filename="../DS/source/Helper/DSWindow.cpp" />
 		<Unit filename="../DS/source/Helper/DSWindow.h" />
 		<Unit filename="../DS/source/Helper/shlds.cpp" />
-		<Unit filename="../MinGW32/include/Helper/Win32Control.h" />
-		<Unit filename="../MinGW32/source/Helper/Win32Control.cpp" />
+		<Unit filename="../DS/source/YCLib/DSVideo.cpp" />
 		<Unit filename="../include/CHRLib/CharacterProcessing.h" />
 		<Unit filename="../include/CHRLib/Convert.hpp" />
 		<Unit filename="../include/CHRLib/MapEx.h" />
@@ -234,8 +245,8 @@
 		<Unit filename="../include/Helper/InputManager.h" />
 		<Unit filename="../include/Helper/ScreenBuffer.h" />
 		<Unit filename="../include/Helper/ShellHelper.h" />
-		<Unit filename="../include/Helper/YModules.h" />
 		<Unit filename="../include/Helper/YGlobal.h" />
+		<Unit filename="../include/Helper/YModules.h" />
 		<Unit filename="../include/NPL/Configuration.h" />
 		<Unit filename="../include/NPL/Lexical.h" />
 		<Unit filename="../include/NPL/NPL.h" />
@@ -275,6 +286,7 @@
 		<Unit filename="../include/YSLib/Core/YApplication.h" />
 		<Unit filename="../include/YSLib/Core/YClock.h" />
 		<Unit filename="../include/YSLib/Core/YCoreUtilities.h" />
+		<Unit filename="../include/YSLib/Core/YDevice.h" />
 		<Unit filename="../include/YSLib/Core/YEvent.hpp" />
 		<Unit filename="../include/YSLib/Core/YException.h" />
 		<Unit filename="../include/YSLib/Core/YFunc.hpp" />
@@ -284,7 +296,6 @@
 		<Unit filename="../include/YSLib/Core/YShell.h" />
 		<Unit filename="../include/YSLib/Core/YStorage.hpp" />
 		<Unit filename="../include/YSLib/Core/ycounter.hpp" />
-		<Unit filename="../include/YSLib/Core/ydevice.h" />
 		<Unit filename="../include/YSLib/Core/ymsg.h" />
 		<Unit filename="../include/YSLib/Core/ymsgdef.h" />
 		<Unit filename="../include/YSLib/Core/ysdef.h" />
@@ -303,12 +314,12 @@
 		<Unit filename="../include/YSLib/Service/YBlend.h" />
 		<Unit filename="../include/YSLib/Service/YBlit.h" />
 		<Unit filename="../include/YSLib/Service/YBrush.h" />
+		<Unit filename="../include/YSLib/Service/YDraw.h" />
 		<Unit filename="../include/YSLib/Service/YGDI.h" />
 		<Unit filename="../include/YSLib/Service/YModules.h" />
 		<Unit filename="../include/YSLib/Service/YPixel.h" />
 		<Unit filename="../include/YSLib/Service/YResource.h" />
 		<Unit filename="../include/YSLib/Service/YTimer.h" />
-		<Unit filename="../include/YSLib/Service/ydraw.h" />
 		<Unit filename="../include/YSLib/Service/yftext.h" />
 		<Unit filename="../include/YSLib/UI/Animation.h" />
 		<Unit filename="../include/YSLib/UI/Border.h" />
@@ -443,10 +454,12 @@
 		<Unit filename="../source/YSLib/UI/ydesktop.cpp" />
 		<Unit filename="../source/YSLib/UI/ypanel.cpp" />
 		<Unit filename="../source/YSLib/UI/ywindow.cpp" />
+		<Unit filename="include/Helper/Win32Control.h" />
 		<Unit filename="include/YCLib/COM.h" />
 		<Unit filename="include/YCLib/Consoles.h" />
 		<Unit filename="include/YCLib/MinGW32.h" />
 		<Unit filename="include/YCLib/NLS.h" />
+		<Unit filename="source/Helper/Win32Control.cpp" />
 		<Unit filename="source/YCLib/Consoles.cpp" />
 		<Unit filename="source/YCLib/MinGW32.cpp" />
 		<Unit filename="source/YCLib/NLS.cpp" />

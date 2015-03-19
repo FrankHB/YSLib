@@ -88,27 +88,6 @@
       <Path>$(SolutionDir)build\MinGW32\$(Configuration)\$(MSBuildProjectName).log</Path>
     </BuildLog>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\DS\include\Helper\DSMain.h" />
-    <ClInclude Include="..\DS\include\Helper\shlds.h" />
-    <ClInclude Include="..\DS\source\Helper\DSScreen.h" />
-    <ClInclude Include="..\DS\source\Helper\DSWindow.h" />
-    <ClInclude Include="include\Helper\Win32Control.h" />
-    <ClInclude Include="include\YCLib\COM.h" />
-    <ClInclude Include="include\YCLib\Consoles.h" />
-    <ClInclude Include="include\YCLib\MinGW32.h" />
-    <ClInclude Include="include\YCLib\NLS.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\DS\source\Helper\DSMain.cpp" />
-    <ClCompile Include="..\DS\source\Helper\DSScreen.cpp" />
-    <ClCompile Include="..\DS\source\Helper\DSWindow.cpp" />
-    <ClCompile Include="..\DS\source\Helper\shlds.cpp" />
-    <ClCompile Include="source\Helper\Win32Control.cpp" />
-    <ClCompile Include="source\YCLib\Consoles.cpp" />
-    <ClCompile Include="source\YCLib\MinGW32.cpp" />
-    <ClCompile Include="source\YCLib\NLS.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r506
+\version r513
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-02-26 19:56 +0800
+	2015-03-19 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,9 @@
 #if YF_Multithread
 #	include <ystdex/concurrency.h>
 #endif
-#if YCL_Win32
+#if YCL_DS
+#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSInitConsole;
+#elif YCL_Win32
 #	include <csignal>
 #	include <Windows.h>
 #elif YCL_Android
@@ -97,9 +99,9 @@ Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 {
 #if YCL_DS
 	if(lv <= Descriptions::Alert)
-		YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
+		platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
 #endif
-	std::fprintf(stderr, 
+	std::fprintf(stderr,
 #if YF_Multithread
 		"[%s:%#X]: %s\n",
 		ystdex::to_string(std::this_thread::get_id()).c_str(),
@@ -154,7 +156,7 @@ Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 
 		DoLogRaw(lv, str);
 	}
-	CatchExpr(std::exception& e, do_log_excetpion_raw(e.what()))
+	CatchExpr(std::exception& ex, do_log_excetpion_raw(ex.what()))
 	CatchExpr(..., do_log_excetpion_raw({}))
 }
 
@@ -241,7 +243,7 @@ LogAssert(bool expr, const char* expr_str, const char* file, int line,
 			case IDABORT:
 				std::raise(SIGABRT);
 			default:
-				break;	
+				break;
 			}
 			std::terminate();
 		}

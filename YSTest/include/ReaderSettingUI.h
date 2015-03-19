@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.h
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r175
+\version r181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:26:48 +0800
 \par 修改时间:
-	2013-08-10 06:27 +0800
+	2015-03-19 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,11 +63,6 @@ protected:
 	\since build 280
 	*/
 	Label lblAreaUp, lblAreaDown;
-	/*!
-	\brief 下拉列表：自动滚屏时间设置。
-	\since build 292
-	*/
-	DropDownList ddlScrollTiming;
 	ColorBox boxColor;
 
 private:

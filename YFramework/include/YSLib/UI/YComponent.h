@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2398
+\version r2399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2015-02-04 08:24 +0800
+	2015-03-17 18:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_YComponent_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YGraphics
 #include YFM_YSLib_Core_YFunc
 #include YFM_YSLib_Core_YMessageDefinition
 #include YFM_YSLib_Adaptor_YContainer

@@ -72,13 +72,13 @@
 		<Unit filename="../source/ColorPicker.cpp" />
 		<Unit filename="../source/DSReader.cpp" />
 		<Unit filename="../source/HexBrowser.cpp" />
+		<Unit filename="../source/Main.cpp" />
 		<Unit filename="../source/ReaderSetting.cpp" />
 		<Unit filename="../source/ReaderSettingUI.cpp" />
 		<Unit filename="../source/ReadingList.cpp" />
 		<Unit filename="../source/Shells.cpp" />
 		<Unit filename="../source/ShlExplorer.cpp" />
 		<Unit filename="../source/ShlReader.cpp" />
-		<Unit filename="../source/main.cpp" />
 		<Unit filename="AndroidManifest.xml" />
 		<Unit filename="AndroidManifest.xml" />
 		<Unit filename="Makefile" />

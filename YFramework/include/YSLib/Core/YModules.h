@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 核心模块配置文件。
-\version r76
+\version r81
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:25 +0800
 \par 修改时间:
-	2015-03-17 02:16 +0800
+	2015-03-17 18:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,8 @@
 #define YFM_YSLib_Core_YShellDefinition <YSLib/Core/ysdef.h>
 //! \since build 584
 #define YFM_YSLib_Core_YClock <YSLib/Core/YClock.h>
+//! \since build 585
+#define YFM_YSLib_Core_YConsole <YSLib/Core/YConsole.h>
 #define YFM_YSLib_Core_YException <YSLib/Core/YException.h>
 #define YFM_YSLib_Core_YCoreUtilities <YSLib/Core/YCoreUtilities.h>
 #define YFM_YSLib_Core_YObject <YSLib/Core/YObject.h>
@@ -48,7 +50,9 @@
 #define YFM_YSLib_Core_YEvent <YSLib/Core/YEvent.hpp>
 #define YFM_YSLib_Core_YString <YSLib/Core/ystring.h>
 #define YFM_YSLib_Core_YGDIBase <YSLib/Core/YGDIBase.h>
-#define YFM_YSLib_Core_YDevice <YSLib/Core/ydevice.h>
+//! \since build 585
+#define YFM_YSLib_Core_YGraphics <YSLib/Core/YGraphics.h>
+#define YFM_YSLib_Core_YDevice <YSLib/Core/YDevice.h>
 #define YFM_YSLib_Core_YMessage <YSLib/Core/ymsg.h>
 #define YFM_YSLib_Core_YMessageDefinition <YSLib/Core/ymsgdef.h>
 #define YFM_YSLib_Core_YShell <YSLib/Core/YShell.h>

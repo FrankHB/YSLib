@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r277
+\version r281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-02-04 15:30 +0800
+	2015-03-19 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #	include <io.h> // for ::_isatty;
 #elif YF_Hosted
 #	include <fcntl.h>
+#	include YFM_YSLib_Core_YConsole
 #endif
 
 //! \since build 553
@@ -218,7 +219,7 @@ public:
 
 	PDefH(bool, UpdateForeColor, std::uint8_t c) ynothrow
 		ImplRet(ExecuteCommand("tput setaf " + to_string(cmap[c & 7]))
-			&& (c < ystdex::underlying(platform::Consoles::DarkGray)
+			&& (c < ystdex::underlying(YSLib::Consoles::DarkGray)
 			|| ExecuteCommand("tput bold")))
 };
 
@@ -236,7 +237,7 @@ TerminalData::ExecuteCommand(const std::string& cmd) const
 
 
 Terminal::Terminal(std::FILE* fp)
-	: p_term([](std::FILE* fp)->TerminalData*{
+	: p_term([fp]()->TerminalData*{
 #	if YCL_Win32
 		const int fd(::_fileno(Nonnull(fp)));
 
@@ -258,7 +259,7 @@ Terminal::Terminal(std::FILE* fp)
 			CatchExpr(Exception& e,
 				YTraceDe(Informative, "Creating console failed: %s.", e.what()))
 		return {};
-	}(fp))
+	}())
 {}
 
 Terminal::DefDeDtor(Terminal)

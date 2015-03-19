@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2014 FrankHB.
+#	(C) 2009-2015 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2067
+# Version = r2070
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-12-31 11:17 +0800
+# Updated = 2015-03-17 18:22 +0800
 # Encoding = ANSI
 
 
@@ -51,7 +51,7 @@ export SOURCES		:=	source data \
 	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
 	$(REFDIR)/source/YSLib/Service $(REFDIR)/source/YSLib/UI \
 	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
-	$(REFDIR)/DS/source/Helper
+	$(REFDIR)/DS/source/YCLib $(REFDIR)/DS/source/Helper
 export INCLUDES		:=	include data ../../YBase/include $(REFDIR)/include \
 	../../3rdparty/include ../../3rdparty/freetype/include
 export DATA			:=	data $(REFDIR)/data
@@ -66,7 +66,7 @@ CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
 #		-Wnoexcept -Wold-style-cast -Wsign-promo
 
 # any extra libraries we wish to link with the project
-LIBS	:=	#-lfreetype #-lfat -lnds9
+LIBS	:=	#
 
 # list of directories containing libraries, this must be the top level containing
 # include and lib

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2731
+\version r2740
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-01-21 13:38 +0800
+	2015-03-19 12:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,7 @@ See readme file for details.
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include <ystdex/exception.h> // for ystdex::raise_exception;
 #include YFM_NPL_SContext
+#include YFM_YSLib_Core_YConsole
 
 using namespace YSLib;
 using namespace IO;
@@ -106,13 +107,13 @@ PrintException(const std::exception& e, size_t level = 0)
 	const auto print(std::bind(PrintInfo, _1, Err, LogGroup::General));
 
 	TryExpr(print(string(level, ' ') + "ERROR: " + e.what()), throw)
-	CatchExpr(IntException& e,
-		print("IntException: " + to_string(unsigned(e)) + "."))
-	CatchExpr(FileOperationFailure& e, print("ERROR: File operation failure."))
+	CatchExpr(IntException& ex,
+		print("IntException: " + to_string(unsigned(ex)) + "."))
+	CatchExpr(FileOperationFailure&, print("ERROR: File operation failure."))
 	CatchIgnore(std::exception&)
 	CatchExpr(..., print("ERROR: PrintException."))
-	ystdex::handle_nested(e, [=](std::exception& e){
-		PrintException(e, level + 1);
+	ystdex::handle_nested(e, [=](std::exception& ex){
+		PrintException(ex, level + 1);
 	});
 }
 //@}
@@ -720,9 +721,9 @@ main(int argc, char* argv[])
 
 		LogDisabled.set(size_t(LogGroup::DepsCheck));
 		logger.FilterLevel = Logger::Level::Debug;
-		logger.SetFilter([](Logger::Level lv, Logger& logger){
+		logger.SetFilter([](Logger::Level lv, Logger& l){
 			return !ystdex::qualify(LogDisabled)[size_t(LastLogGroup)]
-				&& Logger::DefaultFilter(lv, logger);
+				&& Logger::DefaultFilter(lv, l);
 		});
 		logger.SetSender([&](Logger::Level lv, Logger&, const char* str){
 			const auto stream(lv <= Warning ? stderr : stdout);
@@ -737,7 +738,7 @@ main(int argc, char* argv[])
 			YAssertNonnull(str);
 			if(term_ref)
 			{
-				using namespace platform::Consoles;
+				using namespace Consoles;
 				static const Logger::Level
 					lvs[]{Err, Warning, Notice, Informative, Debug};
 				static const Color

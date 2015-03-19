@@ -11,13 +11,13 @@
 /*!	\file YDraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1065
+\version r1071
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2015-03-15 06:14 +0800
+	2015-03-19 14:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,8 +172,8 @@ PlotCircle(void(*plotter)(const Graphics&, const Rect&, SPos, SPos, SDst, SDst,
 } // unnamed namespace;
 
 void
-DrawCircle(const Graphics& g, const Rect& bounds, const Point& pt, SDst r,
-	Color c)
+DrawCircle(const Graphics& g_, const Rect& bounds_, const Point& pt, SDst r,
+	Color c_)
 {
 	PlotCircle([](const Graphics& g, const Rect& bounds, SPos x, SPos y,
 		SDst dx, SDst dy, Color c){
@@ -190,12 +190,12 @@ DrawCircle(const Graphics& g, const Rect& bounds, const Point& pt, SDst r,
 		plot(x - dy, y + dx),
 		plot(x - dy, y - dx),
 		plot(x + dy, y - dx);
-	}, g, bounds, pt, r, c);
+	}, g_, bounds_, pt, r, c_);
 }
 
 void
-FillCircle(const Graphics& g, const Rect& bounds, const Point& pt, SDst r,
-	Color c)
+FillCircle(const Graphics& g_, const Rect& bounds_, const Point& pt, SDst r,
+	Color c_)
 {
 	PlotCircle([](const Graphics& g, const Rect& bounds, SPos x, SPos y,
 		SDst dx, SDst dy, Color c){
@@ -208,7 +208,7 @@ FillCircle(const Graphics& g, const Rect& bounds, const Point& pt, SDst r,
 		plot(y - dy, x - dx, x + dx + 1),
 		plot(y + dx, x - dy, x + dy + 1),
 		plot(y - dx, x - dy, x + dy + 1);
-	}, g, bounds, pt, r, c);
+	}, g_, bounds_, pt, r, c_);
 }
 
 } // namespace Drawing;

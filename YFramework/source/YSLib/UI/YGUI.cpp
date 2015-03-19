@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4307
+\version r4327
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-05 00:48 +0800
+	2015-03-19 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -423,13 +423,13 @@ GUIState::Wrap(IWidget& wgt)
 
 	yunseq(
 	FetchEvent<KeyUp>(controller).Add([this](KeyEventArgs&& e){
-		auto& wgt(e.GetSender());
+		auto& sender(e.GetSender());
 
 		master_key
 			= FindFirstKeyInCategroy(checked_held, KeyCategory::Character);
 		ResetHeldState(KeyHeldState, e.Keys);
-		if(p_indp_focus == &wgt)
-			CallEvent<KeyPress>(wgt, e);
+		if(p_indp_focus == &sender)
+			CallEvent<KeyPress>(sender, e);
 		p_indp_focus = {};
 	}, 0x00),
 	FetchEvent<KeyDown>(controller).Add([this](KeyEventArgs&& e){
@@ -440,41 +440,42 @@ GUIState::Wrap(IWidget& wgt)
 		{
 			e.Keys.reset();
 
-			auto& wgt(e.GetSender());
+			auto& sender(e.GetSender());
 
-			if(p_CursorOver != &wgt || WidgetIdentity != shared_wgt_id)
+			if(p_CursorOver != &sender || WidgetIdentity != shared_wgt_id)
 			{
 				if(p_CursorOver)
 				{
 					Point pt;
-					const auto p_toplevel(&FetchTopLevel(wgt, pt));
+					const auto p_toplevel(&FetchTopLevel(sender, pt));
 
 					if(YB_LIKELY(p_toplevel == p_entered_toplevel))
-						CallEvent<Leave>(*p_CursorOver, CursorEventArgs(wgt,
+						CallEvent<Leave>(*p_CursorOver, CursorEventArgs(sender,
 							e.Keys, e.Position - entered_top_location + pt));
 				}
-				CallEvent<Enter>(wgt, CursorEventArgs(e));
+				CallEvent<Enter>(sender, CursorEventArgs(e));
 				entered_top_location = {};
-				p_entered_toplevel = &FetchTopLevel(wgt, entered_top_location);
-				yunseq(p_CursorOver = &wgt, shared_wgt_id = WidgetIdentity);
+				p_entered_toplevel
+					= &FetchTopLevel(sender, entered_top_location);
+				yunseq(p_CursorOver = &sender, shared_wgt_id = WidgetIdentity);
 			}
 		}
 	}, 0xFF),
 	FetchEvent<TouchUp>(controller).Add([this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
-			auto& wgt(e.GetSender());
+			auto& sender(e.GetSender());
 
 			if(p_indp_focus)
 			{
 				e.SetSender(*p_indp_focus);
 				TryLeaving(std::move(e));
-				e.SetSender(wgt);
+				e.SetSender(sender);
 			}
 			ResetHeldState(TouchHeldState, e.Keys),
 			DraggingOffset = Vec::Invalid;
-			if(p_indp_focus == &wgt)
-				CallEvent<Click>(wgt, e);
+			if(p_indp_focus == &sender)
+				CallEvent<Click>(sender, e);
 			else if(p_indp_focus)
 				CallEvent<ClickAcross>(*p_indp_focus, e);
 			p_indp_focus = {};
@@ -490,17 +491,18 @@ GUIState::Wrap(IWidget& wgt)
 	FetchEvent<TouchHeld>(controller).Add([this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
-			auto& wgt(e.GetSender());
+			auto& sender(e.GetSender());
 
-			if(p_indp_focus == &wgt)
+			if(p_indp_focus == &sender)
 				TryEntering(CursorEventArgs(e));
 		//	else
 		//		TryLeaving(CursorEventArgs(*p_indp_focus, e.Keys,
 		//			e.Position - LocateForWidget(wgt, *p_indp_focus)));
 			else if(entered)
 			{
-				CallEvent<Leave>(*p_indp_focus, CursorEventArgs(*p_indp_focus,
-					e.Keys, e.Position - LocateForWidget(wgt, *p_indp_focus)));
+				CallEvent<Leave>(*p_indp_focus,
+					CursorEventArgs(*p_indp_focus, e.Keys,
+					e.Position - LocateForWidget(sender, *p_indp_focus)));
 				entered = {};
 			}
 		}

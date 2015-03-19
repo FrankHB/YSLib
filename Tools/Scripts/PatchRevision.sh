@@ -9,7 +9,7 @@ SHBuild_CheckedCallSilent hg root
 SHBuild_CheckedCallSilent echo x | sed 's/x/x/g'
 
 : ${PatchBegin:="1"}
-: ${PatchEnd:="20"}
+: ${PatchEnd:="30"}
 : ${RevisionPatcher:="`which RevisionPatcher`"}
 SHBuild_CheckedCallSilent echo x | "$RevisionPatcher"
 
@@ -27,7 +27,7 @@ do
 		file=$var
 	else
 		sed -b -i \
-			"$PatchBegin,${PatchEnd}s/version r[^ \\r\\n]*/version r$var/g" \
+			"$PatchBegin,${PatchEnd}s/version r[0-9][^ \\r\\n]*/version r$var/g" \
 			"$file"
 		echo \"$file\" processed using revision number \"$var\".
 		file=''

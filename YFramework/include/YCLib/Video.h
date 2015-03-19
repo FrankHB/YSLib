@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1113
+\version r1216
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-01-02 09:20 +0800
+	2015-03-17 17:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -467,12 +467,12 @@ private:
 	\brief RGB 分量。
 	\since build 276
 	*/
-	MonoType r, g, b;
+	MonoType r = 0, g = 0, b = 0;
 	/*!
 	\brief Alpha 分量。
 	\since build 276
 	*/
-	AlphaType a;
+	AlphaType a = 0;
 
 public:
 	/*!
@@ -480,9 +480,7 @@ public:
 	\since build 319
 	*/
 	yconstfn
-	Color() ynothrow
-		: r(0), g(0), b(0), a(0)
-	{}
+	Color() = default;
 	/*!
 	\brief 构造：使用本机颜色对象。
 	\since build 319
@@ -568,60 +566,6 @@ public:
 
 
 /*!
-\brief 控制台接口。
-\since build 328
-*/
-namespace Consoles
-{
-
-/*!
-\brief 控制台颜色枚举。
-\since build 416
-*/
-enum Color
-{
-	Black = 0,
-	DarkBlue,
-	DarkGreen,
-	DarkCyan,
-	DarkRed,
-	DarkMagenta,
-	DarkYellow,
-	Gray,
-	DarkGray,
-	Blue,
-	Green,
-	Cyan,
-	Red,
-	Magenta,
-	Yellow,
-	White
-};
-
-/*!
-\brief 控制台颜色。
-\note 顺序和 Consoles::Color 对应。
-\since build 328
-*/
-yconstexpr platform::Color ConsoleColors[]{ColorSpace::Black, ColorSpace::Navy,
-	ColorSpace::Green, ColorSpace::Teal, ColorSpace::Maroon, ColorSpace::Purple,
-	ColorSpace::Olive, ColorSpace::Silver, ColorSpace::Gray, ColorSpace::Blue,
-	ColorSpace::Lime, ColorSpace::Aqua, ColorSpace::Red, ColorSpace::Yellow,
-	ColorSpace::Fuchsia, ColorSpace::White};
-
-} // namespace Consoles;
-
-/*!
-\brief 启动控制台。
-\note fc 为前景色，bc为背景色。
-\todo Win32 和 Android 实现。
-*/
-YF_API void
-YConsoleInit(std::uint8_t dspIndex, Color fc = ColorSpace::White,
-	Color bc = ColorSpace::Black);
-
-
-/*!
 \brief 初始化视频输出。
 \warning 不保证线程安全性。
 */
@@ -629,68 +573,6 @@ YF_API bool
 InitVideo();
 
 } // namespace platform;
-
-
-namespace platform_ex
-{
-
-#if YCL_DS
-/*!
-\brief 复位屏幕显示模式：清除背景寄存器，使用 ::vramDefault 复位，设置双屏 Mode 5 。
-*/
-YF_API void
-ResetVideo();
-
-
-/*!
-\brief 默认上屏初始化函数。
-\since build 564
-*/
-YF_API platform::Pixel*
-InitScrUp(int&);
-
-/*!
-\brief 默认下屏初始化函数。
-\since build 564
-*/
-YF_API platform::Pixel*
-InitScrDown(int&);
-
-/*!
-\brief 快速刷新缓存映像到显示屏缓冲区。
-\note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
-\since build 319
-*/
-YF_API void
-ScreenSynchronize(platform::Pixel*, const platform::Pixel*) ynothrow;
-#endif
-
-#if YCL_DS || YF_Hosted
-/*!
-\brief DS 显示状态。
-\note 对 DS 提供实际的状态设置；对宿主实现，仅保存状态。
-\since build 429
-*/
-class YF_API DSVideoState
-{
-#if YF_Hosted
-private:
-	bool LCD_main_on_top = true;
-#endif
-
-public:
-	bool
-	IsLCDMainOnTop() const;
-
-	void
-	SetLCDMainOnTop(bool);
-
-	void
-	SwapLCD();
-};
-#endif
-
-} // namespace platform_ex;
 
 #endif
 

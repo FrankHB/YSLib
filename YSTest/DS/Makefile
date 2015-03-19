@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2014 FrankHB.
+#	(C) 2009-2015 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -7,10 +7,10 @@
 #	this file you indicate that you have read the license and
 #	understand and accept it fully.
 #
-# DS Makefile for YSTest by FrankHB 2009 - 2013
-# Version = r1140
+# DS Makefile for YSTest by FrankHB 2009-2015
+# Version = r1143
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2014-12-06 22:04 +0800
+# Updated = 2015-03-17 17:22 +0800
 # Encoding = ANSI
 
 # This makefile is written based on devkitPro example template.
@@ -45,7 +45,7 @@ export OUTPUT		=	$(BUILDDIR)/$(TARGET)
 
 TITLE		:= $(PROJNAME)
 SUBTITLE1 	:= FrankHB
-SUBTITLE2 	:= 2009 - 2014
+SUBTITLE2 	:= 2009-2015
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
 # If you're using EFS_lib, uncomment "USE_EFS = YES" here.

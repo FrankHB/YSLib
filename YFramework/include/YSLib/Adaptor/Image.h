@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1296
+\version r1297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2015-03-17 02:19 +0800
+	2015-03-17 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Adaptor_Image_h_ 1
 
 #include "../Core/YModules.h"
-#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YGraphics
 #include YFM_YSLib_Adaptor_YContainer
 #include <ystdex/exception.h> // for ystdex::unsupported;
 #include YFM_YSLib_Core_YClock // for TimeSpan;
