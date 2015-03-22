@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file button.h
+/*!	\file Button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2308
+\version r2322
 \author FrankHB <frankhb1989@gmail.com>
-\since build 194
+\since build 586
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-08-10 18:24 +0800
+	2015-03-21 18:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_button_h_
-#define YSL_INC_UI_button_h_ 1
+#ifndef YSL_INC_UI_Button_h_
+#define YSL_INC_UI_Button_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YControl
@@ -91,6 +91,11 @@ protected:
 
 public:
 	DefDeMoveCtor(Thumb)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~Thumb() override;
 
 	/*!
 	\brief 判断按钮当前是否处于按下状态。
@@ -129,10 +134,6 @@ public:
 	using MLabel::HorizontalAlignment;
 	using MLabel::VerticalAlignment;
 	using MLabel::Text;
-/*
-	YImage BackgroundImage; //!< 背景图像。
-	YImage Image; //!< 前景图像。
-*/
 
 	/*!
 	\brief 构造：使用指定边界、字体、文本颜色和文本对齐样式。

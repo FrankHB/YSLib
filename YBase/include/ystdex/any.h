@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1499
+\version r1544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-11-28 12:40 +0800
+	2015-03-21 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,9 +199,13 @@ namespace any_ops
 class YB_API holder : public cloneable
 {
 public:
-	virtual
-	~holder()
-	{}
+	//! \since build 586
+	//@{
+	holder() = default;
+	holder(const holder&) = default;
+	//! \brief 虚析构：类定义外默认实现。
+	~holder() override;
+	//@}
 
 	//! \since build 348
 	virtual void*
@@ -811,38 +815,57 @@ swap(any& x, any& y) ynothrow
 \brief 动态泛型转换失败异常。
 \note 基本接口和语义同 boost::bad_any_cast 。
 \sa any_cast
-\since build 331
+\since build 586
 */
-class bad_any_cast : public std::bad_cast
+class YB_API bad_any_cast : public std::bad_cast
 {
 private:
-	//! \since build 342
-	const char* from_name;
-	//! \since build 342
-	const char* to_name;
+	//! \since build 586
+	lref<const std::type_info> from_ti, to_ti;
 
 public:
 	//! \since build 342
 	//@{
 	bad_any_cast()
 		: std::bad_cast(),
-		from_name("unknown"), to_name("unknown")
-	{};
-	bad_any_cast(const std::type_info& from_type, const std::type_info& to_type)
-		: std::bad_cast(),
-		from_name(from_type.name()), to_name(to_type.name())
+		from_ti(typeid(void)), to_ti(typeid(void))
 	{}
+	bad_any_cast(const std::type_info& from_, const std::type_info& to_)
+		: std::bad_cast(),
+		from_ti(from_), to_ti(to_)
+	{}
+	//! \since build 586
+	bad_any_cast(const bad_any_cast&) = default;
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~bad_any_cast() override;
 
 	const char*
 	from() const ynothrow
 	{
-		return from_name;
+		return from_type() == typeid(void) ? "unknown" : from_type().name();
+	}
+
+	//! \since build 586
+	const std::type_info&
+	from_type() const ynothrow
+	{
+		return from_ti.get();
 	}
 
 	const char*
 	to() const ynothrow
 	{
-		return to_name;
+		return to_type() == typeid(void) ? "unknown" : to_type().name();
+	}
+
+	//! \since build 586
+	const std::type_info&
+	to_type() const ynothrow
+	{
+		return from_ti.get();
 	}
 	//@}
 
@@ -887,21 +910,21 @@ template<typename _tValue>
 inline _tValue
 any_cast(any& x)
 {
-	const auto tmp(any_cast<remove_reference_t<_tValue>*>(&x));
+	const auto p(any_cast<remove_reference_t<_tValue>*>(&x));
 
-	if(!tmp)
+	if(!p)
 		throw bad_any_cast(x.type(), typeid(_tValue));
-	return static_cast<_tValue>(*tmp);
+	return static_cast<_tValue>(*p);
 }
 template<typename _tValue>
 _tValue
 any_cast(const any& x)
 {
-	const auto tmp(any_cast<remove_reference_t<_tValue>*>(&x));
+	const auto p(any_cast<remove_reference_t<_tValue>*>(&x));
 
-	if(!tmp)
+	if(!p)
 		throw bad_any_cast(x.type(), typeid(_tValue));
-	return static_cast<_tValue>(*tmp);
+	return static_cast<_tValue>(*p);
 }
 //@}
 //@}

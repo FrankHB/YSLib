@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file uicontx.cpp
+/*!	\file UIContainerEx.cpp
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r268
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2014-11-21 12:39 +0800
+	2015-03-21 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,7 @@ DialogBox::DialogBox(const Rect& r)
 	FetchEvent<LostFocus>(*this) += invalidator
 	);
 }
+ImplDeDtor(DialogBox)
 
 
 DialogPanel::DialogPanel(const Rect& r)
@@ -79,6 +80,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	FetchEvent<LostFocus>(*this) += invalidator
 	);
 }
+ImplDeDtor(DialogPanel)
 
 } // namespace UI;
 

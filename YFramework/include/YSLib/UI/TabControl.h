@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TabControl.h
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r238
+\version r244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:43 +0800
 \par 修改时间:
-	2014-11-12 04:12 +0800
+	2015-03-21 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,6 +130,11 @@ public:
 	explicit
 	TabControl(const Rect& = {});
 	DefDeMoveCtor(TabControl)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~TabControl() override;
 
 	DefWidgetMemberIterationOperations(iterator)
 

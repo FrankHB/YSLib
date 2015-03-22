@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1671
+\version r1743
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2015-02-28 14:28 +0800
+	2015-03-21 17:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,8 +71,11 @@ public:
 	\since build 295
 	*/
 	DefDeCopyCtor(UIEventArgs)
-	//! \since build 423
-	virtual DefDeDtor(UIEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 423
+	*/
+	virtual ~UIEventArgs();
 
 	/*!
 	\brief 复制赋值：默认实现。
@@ -111,6 +114,13 @@ public:
 		: UIEventArgs(wgt),
 		Strategy(strategy), Handled(false)
 	{}
+	//! \since build 586
+	DefDeCopyCtor(RoutedEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~RoutedEventArgs() override;
 };
 
 
@@ -138,6 +148,13 @@ public:
 	\since build 298
 	*/
 	InputEventArgs(IWidget&, const KeyInput& = {}, RoutingStrategy = Direct);
+	//! \since build 586
+	DefDeCopyCtor(InputEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~InputEventArgs() override;
 
 	/*!
 	\brief 转换为按键代码类型。
@@ -173,6 +190,14 @@ public:
 	\brief 构造：使用输入类型对象和事件路由策略。
 	*/
 	KeyEventArgs(IWidget&, const InputType& = {}, RoutingStrategy = Direct);
+
+	//! \since build 586
+	DefDeCopyCtor(KeyEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~KeyEventArgs() override;
 };
 
 
@@ -194,7 +219,13 @@ public:
 	*/
 	CursorEventArgs(IWidget&, const KeyInput&, const InputType& = {},
 		RoutingStrategy = Direct);
-
+	//! \since build 586
+	DefDeCopyCtor(CursorEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~CursorEventArgs() override;
 	/*!
 	\brief 转换为输入类型。
 	\since build 482
@@ -222,6 +253,13 @@ private:
 public:
 	CursorWheelEventArgs(IWidget&, WheelDelta, const KeyInput&,
 		const InputType& = {}, RoutingStrategy = Direct);
+	//! \since build 586
+	DefDeCopyCtor(CursorWheelEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~CursorWheelEventArgs() override;
 
 	DefGetter(const ynothrow, WheelDelta, Delta, delta)
 };
@@ -239,6 +277,13 @@ public:
 	TextInputEventArgs(IWidget&, String, const KeyInput& = {},
 		RoutingStrategy = Direct);
 	TextInputEventArgs(InputEventArgs, String);
+	//! \since build 586
+	DefDeCopyCtor(TextInputEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~TextInputEventArgs() override;
 };
 
 
@@ -279,6 +324,13 @@ struct YF_API PaintEventArgs : public UIEventArgs, public PaintContext
 	PaintEventArgs(IWidget&, const PaintContext&);
 	PaintEventArgs(IWidget&, const Drawing::Graphics&, const Drawing::Point&,
 		const Drawing::Rect&);
+	//! \since build 586
+	DefDeCopyCtor(PaintEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~PaintEventArgs() override;
 };
 
 
@@ -447,6 +499,14 @@ class YF_API BadEvent : public LoggedEvent
 public:
 	//! \since build 538
 	using LoggedEvent::LoggedEvent;
+
+	//! \since build 586
+	//@{
+	DefDeCtor(BadEvent)
+	DefDeCopyCtor(BadEvent)
+	//! \brief 虚析构：类定义外默认实现。
+	~BadEvent() override;
+	//@}
 };
 
 
@@ -458,9 +518,14 @@ public:
 class YF_API UIEventSignal : public Messaging::MessageSignal
 {
 public:
-	UIEventSignal(const std::string& msg = "")
-		: MessageSignal(msg)
-	{}
+	//! \since build 586
+	//@{
+	using MessageSignal::MessageSignal;
+
+	DefDeCopyCtor(UIEventSignal)
+	//! \brief 虚析构：类定义外默认实现。
+	virtual ~UIEventSignal();
+	//@}
 };
 
 
@@ -480,11 +545,13 @@ public:
 	AController(bool b = true)
 		: enabled(b)
 	{}
+	//! \since build 586
+	DefDeCopyCtor(AController)
 	/*!
-	\brief 析构：空实现。
+	\brief 虚析构：类定义外默认实现。
 	\since build 295
 	*/
-	virtual DefDeDtor(AController)
+	~AController() override;
 
 	DefPred(const ynothrow, Enabled, enabled)
 	/*!

@@ -59,6 +59,8 @@ if echo "$CXX" | grep clang++ > /dev/null; then
 	: ${CXXFLAGS_IMPL_WARNING:=" \
 		-Wno-deprecated-register \
 		-Wno-mismatched-tags \
+		-Wshorten-64-to-32 \
+		-Wweak-vtables \
 		"}
 #	: ${CXXFLAGS_IMPL_OPT:='-flto'}
 	: ${LDFLAGS_IMPL_OPT:="$CXXFLAGS_IMPL_OPT"}

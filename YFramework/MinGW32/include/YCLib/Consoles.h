@@ -11,13 +11,13 @@
 /*!	\file Consoles.h
 \ingroup NBuilder
 \brief 控制台。
-\version r217
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2015-01-10 15:55 +0800
+	2015-03-21 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,8 +126,9 @@ public:
 	void
 	Erase(wchar_t = L' ');
 
+	//! \since build 576
 	void
-	Fill(::COORD, size_t, wchar_t = L' ');
+	Fill(::COORD, unsigned long, wchar_t = L' ');
 
 	//! \brief 重置属性。
 	void

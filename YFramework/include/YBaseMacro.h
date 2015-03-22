@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2672
+\version r2713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2015-01-22 18:33 +0800
+	2015-03-22 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,8 +178,9 @@ _t type
 #define DefDelDtor(_t) \
 	~_t() = delete;
 
-#define ImplEmptyDtor(_t) \
-	inline _t::DefDeDtor(_t)
+//! \since build 586
+#define ImplDeDtor(_t) \
+	_t::DefDeDtor(_t)
 
 #define DefDeCopyAssignment(_t) \
 	_t& operator=(const _t&) = default;
@@ -228,45 +229,55 @@ _t type
 	_spec DefCvt(const ynothrow, bool, __VA_ARGS__)
 
 #define DefPred(_q, _n, ...) \
-	bool YPP_Concat(Is, _n)() _q \
-	ImplRet(__VA_ARGS__)
+	bool \
+	YPP_Concat(Is, _n)() _q \
+		ImplRet(__VA_ARGS__)
 #define DefPredBase(_q, _n, _b) \
 	DefPred(_q, _n, _b::YPP_Concat(Is, _n)())
 #define DefPredMem(_q, _n, _m) \
 	DefPred(_q, _n, (_m).YPP_Concat(Is, _n)())
 
 #define DefGetter(_q, _t, _n, ...) \
-	_t YPP_Concat(Get, _n)() _q \
-	ImplRet(__VA_ARGS__)
+	_t \
+	YPP_Concat(Get, _n)() _q \
+		ImplRet(__VA_ARGS__)
 #define DefGetterBase(_q, _t, _n, _b) \
 	DefGetter(_q, _t, _n, _b::YPP_Concat(Get, _n)())
 #define DefGetterMem(_q, _t, _n, _m) \
 	DefGetter(_q, _t, _n, (_m).YPP_Concat(Get, _n)())
 
 #define DefSetter(_t, _n, _m) \
-	void YPP_Concat(Set, _n)(_t _tempArgName) \
-	ImplExpr((_m) = _tempArgName)
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName) \
+		ImplExpr((_m) = _tempArgName)
 #define DefSetterDe(_t, _n, _m, _defv) \
-	void YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
-	ImplExpr((_m) = _tempArgName)
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+		ImplExpr((_m) = _tempArgName)
 #define DefSetterBase(_t, _n, _b) \
-	void YPP_Concat(Set, _n)(_t _tempArgName) \
-	ImplExpr(_b::YPP_Concat(Set, _n)(_tempArgName))
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName) \
+		ImplExpr(_b::YPP_Concat(Set, _n)(_tempArgName))
 #define DefSetterBaseDe(_t, _n, _b, _defv) \
-	void YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
-	ImplExpr(_b::YPP_Concat(Set, _n)(_tempArgName))
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+		ImplExpr(_b::YPP_Concat(Set, _n)(_tempArgName))
 #define DefSetterMem(_t, _n, _m) \
-	void YPP_Concat(Set, _n)(_t _tempArgName) \
-	ImplExpr((_m).YPP_Concat(Set, _n)(_tempArgName))
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName) \
+		ImplExpr((_m).YPP_Concat(Set, _n)(_tempArgName))
 #define DefSetterMemDe(_t, _n, _m, _defv) \
-	void YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
-	ImplExpr((_m).YPP_Concat(Set, _n)(_tempArgName))
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+		ImplExpr((_m).YPP_Concat(Set, _n)(_tempArgName))
 #define DefSetterEx(_t, _n, _m, ...) \
-	void YPP_Concat(Set, _n)(_t _tempArgName) \
-	ImplExpr((_m) = (__VA_ARGS__))
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName) \
+		ImplExpr((_m) = (__VA_ARGS__))
 #define DefSetterDeEx(_t, _n, _m, _defv, ...) \
-	void YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
-	ImplExpr((_m) = (__VA_ARGS__))
+	void \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+		ImplExpr((_m) = (__VA_ARGS__))
 //@}
 
 
@@ -330,15 +341,14 @@ _t type
 
 /*!
 \brief 定义接口类型头部。
-\sa ImplEmptyDtor
 \since build 562
 */
 #define YInterfaceHead(_n) { \
 protected: \
 	DefDeCtor(_n) \
+	DefDeCopyCtor(_n) \
 \
-public: \
-	virtual DefDeDtor(_n)
+public:
 
 #define FwdDeclI(_n) YInterface _n;
 
@@ -348,7 +358,8 @@ public: \
 */
 #define DeclI(_attr, _n) \
 	YInterface _attr _n \
-	YInterfaceHead(_n)
+	YInterfaceHead(_n) \
+	virtual ~_n();
 
 /*
 \brief 定义派生接口类型。
@@ -357,7 +368,8 @@ public: \
 */
 #define DeclDerivedI(_attr, _n, ...) \
 	YInterface _attr _n : __VA_ARGS__ \
-	YInterfaceHead(_n)
+	YInterfaceHead(_n) \
+	~_n() ImplI(__VA_ARGS__);
 
 //! \note ImplI = Implements Interface 。
 #define ImplI(...) override

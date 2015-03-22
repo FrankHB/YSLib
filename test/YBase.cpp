@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r252
+\version r256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-02-19 17:12 +0800
+	2015-03-20 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,16 +155,16 @@ main()
 		expect(vector<int>{-2, 5, 16, 16}, []{
 			vector<int> a{1, 2, 3, 4}, b{5, 4, 6, 5}, c{7, 3, 2, 4}, r(4);
 
-			transform_n([](int a, int b, int c)->int{
-				return a * b - c;
+			transform_n([](int x, int y, int z)->int{
+				return x * y - z;
 			}, r.begin(), 4, a.cbegin(), b.cbegin(), c.cbegin());
 			return r;
 		}),
 		expect(list<int>{21, 18, 27, 24, 41}, []{
 			list<int> a{1, 2, 3, 4, 5}, b{5, 4, 6, 5, 9}, r(5);
 
-			transform_n([](int a, int b)->int{
-				return a + b * 4;
+			transform_n([](int x, int y)->int{
+				return x + y * 4;
 			}, r.begin(), 5, a.cbegin(), b.cbegin());
 			return r;
 		}),

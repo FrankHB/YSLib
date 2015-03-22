@@ -11,13 +11,13 @@
 /*!	\file YRenderer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r661
+\version r662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2015-01-25 03:27 +0800
+	2015-03-21 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,6 +44,9 @@ Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 		CallEvent<UI::Paint>(wgt, e);
 	return e.ClipArea;
 }
+
+
+ImplDeDtor(PseudoRenderer)
 
 
 BufferedRenderer::BufferedRenderer(bool b, unique_ptr<Drawing::IImage> p)

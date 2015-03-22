@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3291
+\version r3298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-01-30 13:06 +0800
+	2015-03-21 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,6 +126,13 @@ public:
 		: LoggedEvent(msg),
 		err(e)
 	{}
+	//! \since build 586
+	DefDeCopyCtor(FontException)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~FontException() override;
 
 	DefGetter(const ynothrow, FontError, ErrorCode, err)
 };

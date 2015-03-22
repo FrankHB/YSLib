@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3431
+\version r3432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-03-17 18:16 +0800
+	2015-03-22 15:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -523,7 +523,7 @@ template<typename _tPixel, typename _tOut>
 inline void
 FillPixel(_tOut dst_iter, size_t n, _tPixel c)
 {
-	CopyLine<true>()(dst_iter, ystdex::pseudo_iterator<_tPixel>(c), n);
+	CopyLine<true>()(dst_iter, ystdex::pseudo_iterator<_tPixel>(c), SDst(n));
 }
 
 /*!

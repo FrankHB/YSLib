@@ -14,15 +14,25 @@
     <None Include="..\doc\ChangeLog.PreAlpha1.txt" />
     <None Include="..\doc\ChangeLog.PreAlpha2.txt" />
     <None Include="..\doc\ChangeLog.PreAlpha3.txt" />
-    <None Include="..\doc\CHRLib.txt" />
+		<Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
+		<Text Include="..\doc\ChangeLog.PreAlpha5.txt" />
+		<None Include="..\doc\CHRLib.txt" />
     <None Include="..\doc\CommonRules.txt" />
     <None Include="..\doc\Definitions.txt" />
-    <None Include="..\doc\Designation.txt" />
-    <None Include="..\doc\Meta.txt" />
-    <None Include="..\doc\ProjectRules.txt" />
-    <None Include="..\doc\vsd\YFramework.vsd" />
-    <None Include="..\doc\YSLib.txt" />
-  </ItemGroup>
+		<Text Include="..\doc\Dependencies.txt" />
+		<None Include="..\doc\Designation.txt" />
+		<Text Include="..\doc\LanguageConvention.txt" />
+		<None Include="..\doc\Meta.txt" />
+		<Text Include="..\doc\NPL.txt" />
+		<Text Include="..\doc\Workflow.Annual2013.txt" />
+		<Text Include="..\doc\Workflow.Annual2014.txt" />
+		<Text Include="..\doc\Workflow.Annual2015.txt" />
+		<None Include="..\doc\ProjectRules.txt" />
+		<Text Include="..\doc\YBase.txt" />
+		<Text Include="..\doc\YFramework.txt" />
+		<None Include="..\doc\YSLib.txt" />
+		<None Include="..\doc\vsd\YFramework.vsd" />
+	</ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\3rdparty\include\FreeImage.h" />
     <ClInclude Include="..\3rdparty\freetype\include\config\ftconfig.h" />
@@ -117,7 +127,7 @@
     <ClInclude Include="DS\source\Helper\DSScreen.h" />
     <ClInclude Include="DS\source\Helper\DSWindow.h" />
     <ClInclude Include="include\CHRLib\chrdef.h" />
-    <ClInclude Include="include\CHRLib\chrmap.h" />
+    <ClInclude Include="include\CHRLib\CharacterMapping.h" />
     <ClInclude Include="include\CHRLib\CharacterProcessing.h" />
     <ClInclude Include="include\CHRLib\Convert.hpp" />
     <ClInclude Include="include\CHRLib\encoding.h" />
@@ -188,7 +198,7 @@
     <ClInclude Include="include\YSLib\Core\YObject.h" />
     <ClInclude Include="include\YSLib\Core\ysdef.h" />
     <ClInclude Include="include\YSLib\Core\YShell.h" />
-    <ClInclude Include="include\YSLib\Core\ymsg.h" />
+    <ClInclude Include="include\YSLib\Core\YMessage.h" />
     <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
     <ClInclude Include="include\YSLib\Core\YStorage.hpp" />
     <ClInclude Include="include\YSLib\Core\ystring.h" />
@@ -214,7 +224,7 @@
     <ClInclude Include="include\YSLib\Service\YTimer.h" />
     <ClInclude Include="include\YSLib\UI\Animation.h" />
     <ClInclude Include="include\YSLib\UI\Border.h" />
-    <ClInclude Include="include\YSLib\UI\button.h" />
+    <ClInclude Include="include\YSLib\UI\Button.h" />
     <ClInclude Include="include\YSLib\UI\ComboList.h" />
     <ClInclude Include="include\YSLib\UI\ExStyle.h" />
     <ClInclude Include="include\YSLib\UI\form.h" />
@@ -223,20 +233,20 @@
     <ClInclude Include="include\YSLib\UI\Loader.h" />
     <ClInclude Include="include\YSLib\UI\Menu.h" />
     <ClInclude Include="include\YSLib\UI\progress.h" />
-    <ClInclude Include="include\YSLib\UI\scroll.h" />
+    <ClInclude Include="include\YSLib\UI\Scroll.h" />
     <ClInclude Include="include\YSLib\UI\Selector.h" />
     <ClInclude Include="include\YSLib\UI\TabControl.h" />
-    <ClInclude Include="include\YSLib\UI\textarea.h" />
+    <ClInclude Include="include\YSLib\UI\TextArea.h" />
     <ClInclude Include="include\YSLib\UI\TextBox.h" />
     <ClInclude Include="include\YSLib\UI\ListControl.h" />
     <ClInclude Include="include\YSLib\UI\TreeView.h" />
-    <ClInclude Include="include\YSLib\UI\uicontx.h" />
+    <ClInclude Include="include\YSLib\UI\UIContainerEx.h" />
     <ClInclude Include="include\YSLib\UI\Viewer.h" />
     <ClInclude Include="include\YSLib\UI\WidgetIteration.h" />
     <ClInclude Include="include\YSLib\UI\Console.h" />
     <ClInclude Include="include\YSLib\UI\YComponent.h" />
     <ClInclude Include="include\YSLib\UI\YControl.h" />
-    <ClInclude Include="include\YSLib\UI\ydesktop.h" />
+    <ClInclude Include="include\YSLib\UI\YDesktop.h" />
     <ClInclude Include="include\YSLib\UI\YFocus.h" />
     <ClInclude Include="include\YSLib\UI\YGUI.h" />
     <ClInclude Include="include\YSLib\UI\YModules.h" />
@@ -303,10 +313,11 @@
     <ClCompile Include="source\YSLib\Core\ValueNode.cpp" />
     <ClCompile Include="source\YSLib\Core\YApplication.cpp" />
     <ClCompile Include="source\YSLib\Core\YCoreUtilities.cpp" />
-    <ClCompile Include="source\YSLib\Core\ydevice.cpp" />
-    <ClCompile Include="source\YSLib\Core\yexcept.cpp" />
+    <ClCompile Include="source\YSLib\Core\YDevice.cpp" />
+    <ClCompile Include="source\YSLib\Core\YException.cpp" />
     <ClCompile Include="source\YSLib\Core\YGDIBase.cpp" />
-    <ClCompile Include="source\YSLib\Core\yobject.cpp" />
+    <ClCompile Include="source\YSLib\Core\YGraphics.cpp" />
+    <ClCompile Include="source\YSLib\Core\YObject.cpp" />
     <ClCompile Include="source\YSLib\Core\yshell.cpp" />
     <ClCompile Include="source\YSLib\Core\YMessage.cpp" />
     <ClCompile Include="source\YSLib\Core\ystring.cpp" />
@@ -325,7 +336,7 @@
     <ClCompile Include="source\YSLib\Service\YBrush.cpp" />
     <ClCompile Include="source\YSLib\Service\YDraw.cpp" />
     <ClCompile Include="source\YSLib\Service\YGDI.cpp" />
-    <ClCompile Include="source\YSLib\Service\yres.cpp" />
+    <ClCompile Include="source\YSLib\Service\YResource.cpp" />
     <ClCompile Include="source\YSLib\Service\YTimer.cpp" />
     <ClCompile Include="source\YSLib\UI\Animation.cpp" />
     <ClCompile Include="source\YSLib\UI\Border.cpp" />
@@ -341,17 +352,17 @@
     <ClCompile Include="source\YSLib\UI\Scroll.cpp" />
     <ClCompile Include="source\YSLib\UI\Selector.cpp" />
     <ClCompile Include="source\YSLib\UI\TabControl.cpp" />
-    <ClCompile Include="source\YSLib\UI\textarea.cpp" />
+    <ClCompile Include="source\YSLib\UI\TextArea.cpp" />
     <ClCompile Include="source\YSLib\UI\TextBox.cpp" />
     <ClCompile Include="source\YSLib\UI\ListControl.cpp" />
     <ClCompile Include="source\YSLib\UI\TreeView.cpp" />
-    <ClCompile Include="source\YSLib\UI\uicontx.cpp" />
+    <ClCompile Include="source\YSLib\UI\UIContainerEx.cpp" />
     <ClCompile Include="source\YSLib\UI\Viewer.cpp" />
     <ClCompile Include="source\YSLib\UI\YBrush.cpp" />
     <ClCompile Include="source\YSLib\UI\Console.cpp" />
     <ClCompile Include="source\YSLib\UI\YComponent.cpp" />
     <ClCompile Include="source\YSLib\UI\YControl.cpp" />
-    <ClCompile Include="source\YSLib\UI\ydesktop.cpp" />
+    <ClCompile Include="source\YSLib\UI\YDesktop.cpp" />
     <ClCompile Include="source\YSLib\UI\YFocus.cpp" />
     <ClCompile Include="source\YSLib\UI\YGUI.cpp" />
     <ClCompile Include="source\YSLib\UI\ypanel.cpp" />
@@ -362,18 +373,6 @@
     <ClCompile Include="source\YSLib\UI\YWidget.cpp" />
     <ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
     <ClCompile Include="source\YSLib\UI\ywindow.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
-    <Text Include="..\doc\ChangeLog.PreAlpha5.txt" />
-    <Text Include="..\doc\Dependencies.txt" />
-    <Text Include="..\doc\LanguageConvention.txt" />
-    <Text Include="..\doc\NPL.txt" />
-    <Text Include="..\doc\Workflow.Annual2013.txt" />
-    <Text Include="..\doc\Workflow.Annual2014.txt" />
-    <Text Include="..\doc\Workflow.Annual2015.txt" />
-    <Text Include="..\doc\YBase.txt" />
-    <Text Include="..\doc\YFramework.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{305D480F-C3DC-4A3D-915A-88E9D2224742}</ProjectGuid>

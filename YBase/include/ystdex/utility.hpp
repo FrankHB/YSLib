@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2413
+\version r2534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-03-19 10:14 +0800
+	2015-03-20 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,27 @@
 
 namespace ystdex
 {
+
+
+//! \since build 586
+//@{
+//! \brief 接受任意参数类型构造的类型。
+struct any_constructible
+{
+	any_constructible(...);
+};
+
+
+//! \brief 不接受任意参数类型构造的类型。
+struct not_constructible
+{
+	not_constructible() = delete;
+	not_constructible(const not_constructible&) = delete;
+	not_constructible(not_constructible&&) = delete;
+	~not_constructible() = delete;
+};
+//@}
+
 
 /*
 \ingroup helper_functions
@@ -114,6 +135,75 @@ underlying(_type val) ynothrow
 }
 
 
+/*!
+\brief 引入 std::swap 实现为 ADL 提供重载的命名空间。
+\since build 586
+*/
+namespace dependent_swap
+{
+
+using std::swap;
+
+not_constructible
+swap(any_constructible, any_constructible);
+
+template<typename _type, typename _type2>
+struct yimpl(helper)
+{
+	static yconstexpr const bool value = !is_same<decltype(swap(std::declval<
+		_type&>(), std::declval<_type2&>())), not_constructible>::value;
+
+	helper()
+		ynoexcept_spec(swap(std::declval<_type&>(), std::declval<_type2&>()))
+	{}
+};
+
+} // namespace dependent_swap;
+
+
+/*!
+\ingroup type_traits_operations
+\see ISO C++11 [swappable.requirements] 。
+\since build 586
+*/
+//@{
+//! \brief 判断是否可以调用 \c swap 。
+//@{
+template<typename...>
+struct is_swappable;
+
+//! \ingroup binary_type_trait
+template<typename _type, typename _type2>
+struct is_swappable<_type, _type2> : std::integral_constant<bool,
+	yimpl(dependent_swap::helper<_type, _type2>::value)>
+{};
+
+//! \ingroup unary_type_trait
+template<typename _type>
+struct is_swappable<_type> : std::integral_constant<bool,
+	yimpl(dependent_swap::helper<_type, _type>::value)>
+{};
+//@}
+
+
+//! \brief 判断是否可以无抛出地调用 \c swap 。
+//@{
+template<typename...>
+struct is_nothrow_swappable;
+
+template<typename _type, typename _type2>
+struct is_nothrow_swappable<_type, _type2> : is_nothrow_default_constructible<
+	yimpl(dependent_swap::helper<_type, _type2>)>
+{};
+
+template<typename _type>
+struct is_nothrow_swappable<_type> : is_nothrow_default_constructible<
+	yimpl(dependent_swap::helper<_type, _type>)>
+{};
+//@}
+//@}
+
+
 //! \since build 560
 //@{
 /*!
@@ -161,12 +251,10 @@ public:
 		return bool(*this);
 	}
 
+	//! \since build 586
 	yconstfn explicit
-	operator bool() const ynothrow
+	operator bool() const ynoexcept_spec(bool(std::declval<pointer>()))
 	{
-#if YB_HAS_NOEXCEPT
-		static_assert(noexcept(bool(ptr)), "Invalid type found.");
-#endif
 		return bool(ptr);
 	}
 
@@ -183,13 +271,11 @@ public:
 		return ptr;
 	}
 
+	//! \since build 586
 	void
-	swap(nptr& np) ynothrow
+	swap(nptr& np) ynoexcept(is_nothrow_swappable<pointer>::value)
 	{
 		using std::swap;
-#if YB_HAS_NOEXCEPT
-		static_assert(noexcept(swap(ptr, np.ptr)), "Invalid type found.");
-#endif
 
 		swap(ptr, np.ptr);
 	}
@@ -567,47 +653,50 @@ private:
 namespace details
 {
 
+
 //! \since build 569
 //@{
 template<typename _type, typename _tToken,
 	bool _bRef = is_reference<_tToken>::value>
 struct state_guard_traits
 {
+	//! \since build 586
+	//@{
 	static void
-	save(_tToken t, _type& val) ynoexcept(
-		noexcept(std::declval<_tToken&>()(true, std::declval<_type&>())))
+	save(_tToken t, _type& val) ynoexcept_spec(t(true, val))
 	{
 		t(true, val);
 	}
 
 	static void
-	restore(_tToken t, _type& val) ynoexcept(
-		noexcept(std::declval<_tToken&>()(false, std::declval<_type&>())))
+	restore(_tToken t, _type& val) ynoexcept_spec(t(false, val))
 	{
 		t(false, val);
 	}
+	//@}
 };
 
 template<typename _type, typename _tToken>
 struct state_guard_traits<_type, _tToken, true>
 {
-	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
+	//! \since build 586
+	//@{
 	static void
-	save(_tToken t, _type& val)
+	save(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>::value)
 	{
 		using std::swap;
 
 		swap(val, static_cast<_type&>(t));
 	}
 
-	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
 	static void
-	restore(_tToken t, _type& val)
+	restore(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>::value)
 	{
 		using std::swap;
 
 		swap(val, static_cast<_type&>(t));
 	}
+	//@}
 };
 
 
@@ -631,16 +720,20 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 	~state_guard_impl()
 	{}
 
+	//! \since build 586
 	template<typename... _tParams>
 	void
 	construct_and_save(_tParams&&... args)
+		ynoexcept(noexcept(value_type(yforward(args)...))
+		&& noexcept(std::declval<state_guard_impl&>().save()))
 	{
 		new(std::addressof(value)) value_type(yforward(args)...);
 		save();
 	}
 
+	//! \since build 586
 	void
-	destroy()
+	destroy() ynoexcept(is_nothrow_destructible<value_type>::value)
 	{
 		value.~value_type();
 	}
@@ -653,17 +746,17 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 	}
 
 	void
-	restore() ynoexcept(noexcept(state_guard_traits<value_type, token_type>
-		::restore(std::declval<token_type&>(),
-		std::declval<value_type&>())))
+	restore()
+		ynoexcept_spec(state_guard_traits<value_type, token_type>::restore(
+		std::declval<token_type&>(), std::declval<value_type&>()))
 	{
 		state_guard_traits<value_type, token_type>::restore(token, value);
 	}
 
 	void
-	restore_and_destroy() ynoexcept(
-		noexcept(state_guard_traits<value_type, token_type>::restore(
-		std::declval<token_type&>(), std::declval<value_type&>())))
+	restore_and_destroy()
+		ynoexcept_spec(state_guard_traits<value_type, token_type>::restore(
+		std::declval<token_type&>(), std::declval<value_type&>()))
 	{
 		restore();
 		destroy();
@@ -697,16 +790,23 @@ public:
 	using base::data;
 	mutable condition_type enabled{};
 
+	//! \since build 586
+	//@{
 	template<typename... _tParams>
 	state_guard(condition_type cond, token_type t, _tParams&&... args)
+		ynoexcept(is_nothrow_constructible<base, token_type>::value
+		&& is_nothrow_copy_constructible<condition_type>::value
+		&& noexcept(std::declval<state_guard&>()
+		.base::construct_and_save(yforward(args)...)))
 		: base(t),
 		enabled(cond)
 	{
 		if(enabled)
 			base::construct_and_save(yforward(args)...);
 	}
-	~state_guard() ynoexcept(
-		noexcept(std::declval<state_guard&>().base::restore_and_destroy()))
+	~state_guard()
+		ynoexcept(is_nothrow_copy_constructible<condition_type>::value
+		&& noexcept(std::declval<state_guard&>().base::restore_and_destroy()))
 	{
 		if(enabled)
 			base::restore_and_destroy();
@@ -714,11 +814,14 @@ public:
 
 	void
 	dismiss()
+		ynoexcept(is_nothrow_copy_constructible<condition_type>::value
+		&& is_nothrow_assignable<condition_type, condition_type>::value)
 	{
 		if(enabled)
 			base::destroy();
 		enabled = condition_type();
 	}
+	//@}
 };
 
 template<typename _type, typename _tToken>
@@ -739,11 +842,16 @@ public:
 
 	template<typename... _tParams>
 	state_guard(token_type t, _tParams&&... args)
+		ynoexcept(is_nothrow_constructible<base, token_type>::value
+		&& noexcept(std::declval<state_guard&>()
+		.base::construct_and_save(yforward(args)...)))
 		: base(t)
 	{
 		base::construct_and_save(yforward(args)...);
 	}
+	//! \since build 586
 	~state_guard()
+		ynoexcept_spec(std::declval<state_guard&>().base::restore_and_destroy())
 	{
 		base::restore_and_destroy();
 	}

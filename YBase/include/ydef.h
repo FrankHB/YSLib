@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2574
+\version r2600
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-12-23 22:24 +0800
+	2015-03-20 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,17 +82,15 @@
 #	elif defined(__clang__)
 #		undef YB_IMPL_CLANGPP
 #		if defined(__apple_build_version__)
-#		define YB_IMPL_CLANGPP \
-			(40300 + __clang_patchlevel__)
+#		define YB_IMPL_CLANGPP (40300 + __clang_patchlevel__)
 #		else
-#			define YB_IMPL_CLANGPP \
-				(__clang__ * 10000 + __clang_minor__ * 100 \
-					+ __clang_patchlevel__)
+#			define YB_IMPL_CLANGPP (__clang__ * 10000 + __clang_minor__ * 100 \
+	+ __clang_patchlevel__)
 #		endif
 #	elif defined(__GNUC__)
 #		undef YB_IMPL_GNUCPP
 #		define YB_IMPL_GNUCPP \
-			(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #	else
 // TODO: Complete version checking for compiler and library implementations.
 //#ifdef __GNUC__
@@ -575,11 +573,28 @@
 \brief YSLib 无异常抛出保证：指定特定的异常规范。
 \since build 319
 */
+/*!
+\ingroup YBase_pseudo_keyword
+\def ynoexcept_assert
+\brief 表达式 \c noexcept 静态断言。
+\since build 586
+*/
 #if YB_HAS_NOEXCEPT
 #	define ynoexcept noexcept
+#	define ynoexcept_assert(_msg, ...) \
+	static_assert(noexcept(__VA_ARGS__), _msg)
 #else
 #	define ynoexcept(...)
+#	define ynoexcept_assert(_msg, ...)
 #endif
+
+/*!
+\ingroup YBase_pseudo_keyword
+\def ynoexcept_spec
+\brief 表达式 \c noexcept 异常规范。
+\since build 586
+*/
+#define ynoexcept_spec(...) ynoexcept(noexcept(__VA_ARGS__))
 
 /*!
 \ingroup YBase_pseudo_keyword
@@ -770,10 +785,12 @@ class offsetof_check
 \brief 根据参数类型使用 std::forward 传递对应参数。
 \since build 245
 
-传递参数：按类型保持值类别(value catory) 和 const 修饰符。
+传递参数：按类型保持值类别(value catory) 和 cv-qualifier 。
 当表达式类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
 当且仅当左值引用类型时结果为左值（此时类型不变）；
 否则结果为对应的右值引用类型的消亡值(xvalue) 。
+因为允许使用右值对象引用类型的左值作为参数，此时直接用函数模板的参数匹配无法区分实际
+参数的类型而错误地转移为左值，因此不能通过函数模板直接匹配不同的引用实现。
 */
 #define yforward(_expr) std::forward<decltype(_expr)>(_expr)
 

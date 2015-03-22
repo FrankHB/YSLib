@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3231
+\version r3233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-03-19 13:44 +0800
+	2015-03-21 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,6 +93,7 @@ ListBox::ListBox(const Rect& r, unique_ptr<TextList>&& p_textlist)
 ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	: ListBox(r, make_unique<TextList>(Rect(r.GetSize()), h))
 {}
+ImplDeDtor(ListBox)
 
 void
 ListBox::ResizeForPreferred(const Size& sup, Size s)
@@ -131,6 +132,7 @@ FileBox::FileBox(const Rect& r)
 	ListItems();
 	UpdateView();
 }
+ImplDeDtor(FileBox)
 
 IO::Path
 FileBox::GetPath() const

@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3873
+\version r3888
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-03-17 18:10 +0800
+	2015-03-21 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,14 @@ struct YF_API Padding
 	\since build 365
 	*/
 	DefDeCtor(Padding)
+	/*!
+	\brief 构造：使用 4 个相同的边距。
+	\since build 586
+	*/
+	explicit yconstfn
+	Padding(SPos x)
+		: Padding(x, x, x, x)
+	{}
 	/*!
 	\brief 构造：使用 4 个边距。
 	\since build 365
@@ -197,6 +205,13 @@ public:
 	BasicImage(const Graphics& g)
 		: Graphics(g)
 	{}
+	//! \since build 586
+	DefDeCopyCtor(BasicImage)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~BasicImage() override;
 
 	using Graphics::operator!;
 

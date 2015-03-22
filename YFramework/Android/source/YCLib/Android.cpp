@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r558
+\version r562
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-12-31 08:00 +0800
+	2015-03-19 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,11 +48,11 @@ namespace platform_ex
 namespace Android
 {
 
-InputQueue::InputQueue(::ALooper& looper, ::AInputQueue& q)
-	: queue_ref(q)
+InputQueue::InputQueue(::ALooper& looper, ::AInputQueue& input_queue)
+	: queue_ref(input_queue)
 {
 	YTraceDe(Debug, "Attaching input queue to looper.");
-	::AInputQueue_attachLooper(&q, &looper, ALOOPER_POLL_CALLBACK,
+	::AInputQueue_attachLooper(&input_queue, &looper, ALOOPER_POLL_CALLBACK,
 		[](int, int, void* p_data){
 			auto& q(Deref(static_cast<InputQueue*>(p_data)));
 			::AInputEvent* p_evt{};

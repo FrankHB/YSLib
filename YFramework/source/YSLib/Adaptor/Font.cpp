@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3466
+\version r3472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-03-19 13:38 +0800
+	2015-03-22 15:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,10 @@ static_assert(std::is_same<CharBitmap::ScaleType, ::FT_Byte>::value,
 static_assert(std::is_same<CharBitmap::SignedScaleType, ::FT_Char>::value,
 	"Invalid type found.");
 //@}
+
+
+ImplDeDtor(FontException)
+
 
 //! \since build 420
 namespace
@@ -482,11 +486,11 @@ FontCache::LoadTypefaces(const FontPath& path)
 
 		const size_t face_n(face_num);
 
-		for(size_t i(0); i < face_n; ++i)
-			TryExpr(*this += *(ynew Typeface(*this, path, i)))
-			CatchExpr(..., YTraceDe(Warning,
-				"Failed loading face of path '%s', index '%u'.", path.c_str(),
-				unsigned(i)))
+		for(long i(0); i < face_num; ++i)
+			// XXX: Conversion to 'long' might be implementation-defined.
+			TryExpr(*this += *(ynew Typeface(*this, path, std::uint32_t(i))))
+			CatchExpr(..., YTraceDe(Warning, "Failed loading face of path"
+				" '%s', index '%ld'.", path.c_str(), i))
 		return face_n;
 	}
 	return 0;

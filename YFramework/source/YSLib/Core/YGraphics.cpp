@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,42 +8,35 @@
 	understand and accept it fully.
 */
 
-/*!	\file yexcept.cpp
+/*!	\file YGraphics.cpp
 \ingroup Core
-\brief 异常处理模块。
-\version r281
+\brief 平台无关的基础图形接口。
+\version r41
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 586
 \par 创建时间:
-	2010-06-15 20:30:14 +0800
+	2015-03-21 18:48:24 +0800
 \par 修改时间:
-	2014-10-31 12:51 +0800
+	2015-03-21 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Core::YException
+	YSLib::Core::YGraphics
 */
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_YException
+#include YFM_YSLib_Core_YGraphics
 
 namespace YSLib
 {
 
-LoggedEvent::LoggedEvent(const std::string& s, LevelType lv)
-	: GeneralEvent(s),
-	level(lv)
-{}
-LoggedEvent::LoggedEvent(const GeneralEvent& e, LevelType lv)
-	: GeneralEvent(e),
-	level(lv)
-{}
+namespace Drawing
+{
 
+ImplDeDtor(IImage)
 
-FatalError::FatalError(const std::string& t, const std::string& c)
-	: GeneralEvent(t), content(c)
-{}
+} // namespace Drawing;
 
 } // namespace YSLib;
 

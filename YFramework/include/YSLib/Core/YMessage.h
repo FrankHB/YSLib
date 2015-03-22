@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ymsg.h
+/*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r1997
+\version r2016
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-12-11 20:38 +0800
+	2015-03-21 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Core_ymsg_h_
-#define YSL_INC_Core_ymsg_h_ 1
+#ifndef YSL_INC_Core_YMessage_h_
+#define YSL_INC_Core_YMessage_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
@@ -69,7 +69,7 @@ class YF_API Message
 
 private:
 	ID id; //!< 消息标识。
-	ValueObject content; //消息内容。
+	ValueObject content{}; //消息内容。
 
 public:
 	/*!
@@ -269,6 +269,14 @@ class YF_API MessageException : public LoggedEvent
 public:
 	//! \since build 538
 	using LoggedEvent::LoggedEvent;
+
+	//! \since build 586
+	DefDeCopyCtor(MessageException)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~MessageException() override;
 };
 
 
@@ -280,9 +288,16 @@ public:
 class YF_API MessageSignal : public MessageException
 {
 public:
+	//! \since build 586
+	//@{
 	MessageSignal(const std::string& msg = "")
 		: MessageException(msg)
 	{}
+
+	DefDeCopyCtor(MessageSignal)
+	//! \brief 虚析构：类定义外默认实现。
+	~MessageSignal() override;
+	//@}
 };
 
 } // namespace Messaging;

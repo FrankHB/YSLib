@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r586
+\version r593
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2015-03-11 00:00 +0800
+	2015-03-21 22:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,6 +90,14 @@ public:
 		: LoggedEvent(s, lv),
 		NodeName(name)
 	{}
+
+	//! \since build 586
+	DefDeCopyCtor(WidgetNotFound)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~WidgetNotFound() override;
 };
 
 

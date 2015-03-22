@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1976
+\version r1978
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-12-10 00:57 +0800
+	2015-03-21 16:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,9 @@ using namespace Text;
 
 namespace IO
 {
+
+ImplDeDtor(PathNorm)
+
 
 Path&
 Path::operator/=(const String& fname)

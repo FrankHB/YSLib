@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r604
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-01-16 03:25 +0800
+	2015-03-22 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_MinGW32
 #	include YFM_YCLib_FileSystem // for platform::FileOperationFaiure;
+#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
 using namespace YSLib;
 #endif
@@ -42,6 +43,9 @@ namespace platform_ex
 
 inline namespace Windows
 {
+
+ImplDeDtor(Win32Exception)
+
 
 //! \since build 545
 namespace
@@ -59,11 +63,8 @@ ConsoleHandler(unsigned long ctrl)
 	case CTRL_LOGOFF_EVENT:
 	case CTRL_SHUTDOWN_EVENT:
 		std::_Exit(STATUS_CONTROL_C_EXIT);
-		break;
-	default:
-		return 0;
 	}
-	return 1;
+	return 0;
 }
 
 class Win32ErrorCategory : public std::error_category
@@ -143,39 +144,54 @@ CheckWine()
 std::string
 MBCSToMBCS(const char* str, std::size_t len, int cp_src, int cp_dst)
 {
-	YAssertNonnull(str);
-	if(cp_src == cp_dst)
+	if(len != 0)
+	{
+		if(cp_src != cp_dst)
+		{
+			const auto l(CheckPositiveScalar<int>(len));
+			const int
+				w_len(::MultiByteToWideChar(cp_src, 0, Nonnull(str), l, {}, 0));
+			std::wstring wstr(w_len, wchar_t());
+			wchar_t* w_str = &wstr[0];
+
+			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
+
+			return WCSToMBCS(w_str, w_len, cp_dst);
+		}
 		return str;
-
-	const int w_len(::MultiByteToWideChar(cp_src, 0, str, len, {}, 0));
-	std::wstring wstr(w_len, wchar_t());
-	wchar_t* w_str = &wstr[0];
-
-	::MultiByteToWideChar(cp_src, 0, str, len, w_str, w_len);
-
-	return WCSToMBCS(w_str, w_len, cp_dst);
+	}
+	return {};
 }
 
 std::string
 WCSToMBCS(const wchar_t* str, std::size_t len, int cp)
 {
-	const int
-		r_len(::WideCharToMultiByte(cp, 0, Nonnull(str), len, {}, 0, {}, {}));
-	std::string mbcs(r_len, char());
+	if(len != 0)
+	{
+		const auto l(CheckPositiveScalar<int>(len));
+		const int
+			r_l(::WideCharToMultiByte(cp, 0, Nonnull(str), l, {}, 0, {}, {}));
+		std::string mbcs(CheckNonnegativeScalar<size_t>(r_l), char());
 
-	::WideCharToMultiByte(cp, 0, str, len, &mbcs[0], r_len, {}, {});
-	return mbcs;
+		::WideCharToMultiByte(cp, 0, str, l, &mbcs[0], r_l, {}, {});
+		return mbcs;
+	}
+	return {};
 }
 
 std::wstring
 MBCSToWCS(const char* str, std::size_t len, int cp)
 {
-	const auto w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), len, {}, 0));
-	std::wstring res(w_len, wchar_t());
-	const auto w_str = &res[0];
+	if(len != 0)
+	{
+		const auto l(CheckPositiveScalar<int>(len));
+		const int w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), l, {}, 0));
+		std::wstring res(CheckNonnegativeScalar<size_t>(w_len), wchar_t());
 
-	::MultiByteToWideChar(cp, 0, str, len, w_str, w_len);
-	return res;
+		::MultiByteToWideChar(cp, 0, str, l, &res[0], w_len);
+		return res;
+	}
+	return {};
 }
 
 
@@ -291,7 +307,8 @@ RegistryKey::GetSubKeyNames() const
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
 			YF_Raise_Win32Exception_On_Failure(::RegEnumKeyExW(h_key,
-				res.size(), name, {}, {}, {}, {}, {}), "RegEnumKeyExW");
+				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
+				{}), "RegEnumKeyExW");
 	}
 	return res;
 }
@@ -317,7 +334,8 @@ RegistryKey::GetValueNames() const
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
 			YF_Raise_Win32Exception_On_Failure(::RegEnumValueW(h_key,
-				res.size(), name, {}, {}, {}, {}, {}), "RegEnumValueW");
+				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
+				{}), "RegEnumValueW");
 	}
 	return res;
 }
@@ -345,7 +363,7 @@ FetchSystemPath(size_t s)
 {
 	const auto res(make_unique<wchar_t[]>(s));
 
-	::GetSystemDirectoryW(&res[0], s);
+	::GetSystemDirectoryW(&res[0], unsigned(s));
 	return ystdex::rtrim(std::wstring(&res[0]), L'\\') + L'\\';
 }
 

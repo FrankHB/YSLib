@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r527
+\version r537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-01-15 19:48 +0800
+	2015-03-22 07:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,13 @@ public:
 	*/
 	Win32Exception(ErrorCode, const std::string& = "Win32 exception",
 		LevelType = YSLib::Emergent);
+	//! \since build 586
+	DefDeCopyCtor(Win32Exception)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~Win32Exception() override;
 
 	DefGetter(const ynothrow, ErrorCode, ErrorCode, ErrorCode(code().value()))
 	//! \since build 437
@@ -158,7 +165,9 @@ CheckWine();
 
 /*!	\defgroup native_encoding_conv Native Encoding Conversion
 \brief 本机文本编码转换。
-\pre 断言：字符串指针参数非空。
+\pre 长度参数非零且不上溢 \c int 时断言：字符串指针参数非空。
+\throw 长度参数上溢 \c int 。
+\note 长度为零时直接返回空字符串，无其它效果。
 \since build 431
 */
 //@{

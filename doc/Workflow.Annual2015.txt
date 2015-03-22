@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r159
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-03-17 19:29 +0800
+	2015-03-21 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,6 +160,19 @@ Be cautious with revision patcher script. Currently the pattern of reversion is 
 			The default value has been adjusted to '30' instead of '20' to cover all of current source files.
 	Now version number pattern is restricted to mandate a prefixed number character in the version number.
 		Thus the script it self would not be affected even the 'PatchEnd' is set to 30. It should also work for the readme file.
+The Clang++ warning '-Wweak-vtables' is mainly for compiling performance.
+	See http://lists.cs.uiuc.edu/pipermail/cfe-dev/2012-August/024020.html .
+	See also http://stackoverflow.com/questions/23746941/what-is-the-meaning-of-clangs-wweak-vtables .
+	G++ behave similarly, but VC++ does not.
+		See http://stackoverflow.com/questions/12024642/placing-of-external-virtual-tables .
+	It is enabled by '-Weverything'.
+	For client code this might be not important, so no problem to disable.
+	However, for libraries with a lot of translation units or being depended deeply, it is better to turn it on.
+		YSLib libraries should use these flags if possible.
+		YFramework interface type now requires out-of-line destructor provided by user.
+		Note to avoid '-Wdeprected' warnings, the copy or move constructor should be defined.
+			This might cause some trouble with '-Wextra' from G++ complaining aboud imlicit call of default constructor in devired classes if it is not explicit initialized.
+				As a workaround, (a few) copy constructors now explicitly initialize the base interface subobjects.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2684
+\version r2694
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2015-01-22 18:37 +0800
+	2015-03-21 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,6 +74,11 @@ public:
 	explicit
 	ListBox(const Rect& = {}, const shared_ptr<ListType>& = {});
 	DefDeMoveCtor(ListBox)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~ListBox() override;
 
 	//! \since build 357
 	DefWidgetMemberIterationBase(ScrollableContainer, GetTextListRef())
@@ -174,6 +179,11 @@ public:
 	explicit
 	FileBox(const Rect& = {});
 	DefDeMoveCtor(FileBox)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~FileBox() override;
 
 	/*!
 	\brief 导航至绝对路径。

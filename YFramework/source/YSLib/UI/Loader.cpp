@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r303
+\version r304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-03-10 23:58 +0800
+	2014-03-21 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,6 +60,9 @@ ParseRect(const string& str)
 
 	return res;
 }
+
+
+ImplDeDtor(WidgetNotFound)
 
 
 IWidget&

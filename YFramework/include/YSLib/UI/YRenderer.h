@@ -11,13 +11,13 @@
 /*!	\file YRenderer.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r642
+\version r647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2015-01-25 03:26 +0800
+	2015-03-21 14:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,6 +88,11 @@ class PseudoRenderer : public Renderer
 public:
 	DefDeCtor(PseudoRenderer)
 	DefDeCopyMoveCtorAssignment(PseudoRenderer)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~PseudoRenderer() override;
 
 	DefClone(const override, PseudoRenderer)
 

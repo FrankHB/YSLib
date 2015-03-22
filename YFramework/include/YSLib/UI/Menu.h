@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1027
+\version r1032
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2015-03-01 15:05 +0800
+	2015-03-21 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,6 +84,11 @@ public:
 	\todo 实现转移操作。
 	*/
 	DefDelMoveCtor(Menu)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~Menu() override;
 
 	/*!
 	\brief 向子菜单组添加关联索引和指针指定的菜单。

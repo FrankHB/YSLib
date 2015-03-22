@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r786
+\version r796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-02-22 08:23 +0800
+	2015-03-21 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,7 +114,8 @@ public:
 	{
 		yunseq(v.ContainerPtr = {}, v.DependencyPtr = {}, v.FocusingPtr = {});
 	}
-	virtual DefDeDtor(AView)
+	//! \brief 虚析构：类定义外默认实现。
+	~AView() override;
 
 	DefDeCopyMoveAssignment(AView)
 
@@ -196,14 +197,7 @@ public:
 		: AView(),
 		visual(r)
 	{}
-	View(const View& v)
-		: AView(v),
-		visual(v.visual)
-	{}
-	View(View&& v)
-		: AView(std::move(v)),
-		visual(v.visual)
-	{}
+	DefDeCopyMoveCtor(View)
 
 	DefDeCopyMoveAssignment(View)
 

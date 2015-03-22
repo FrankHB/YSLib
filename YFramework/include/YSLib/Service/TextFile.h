@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r797
+\version r800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-12-02 18:51 +0800
+	2015-03-22 15:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,10 +108,10 @@ public:
 
 	/*!
 	\brief 定位：设置文件读位置。
-	\since build 273
+	\since build 586
 	*/
 	void
-	Locate(std::uint32_t) const;
+	Locate(std::size_t) const;
 
 	/*!
 	\brief 设置文件读位置为文本区段头。

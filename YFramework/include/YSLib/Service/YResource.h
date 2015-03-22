@@ -11,13 +11,13 @@
 /*!	\file YResource.h
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r587
+\version r594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 578
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2015-02-23 18:46 +0800
+	2015-03-21 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,6 +65,13 @@ public:
 	Image(const CompactPixmap&);
 	//! \since build 433
 	Image(CompactPixmap&&);
+	//! \since build 586
+	DefDeCopyCtor(Image)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~Image() override;
 
 	DefGetter(const ynothrow, BitmapPtr, ImagePtr, GetBufferPtr())
 };

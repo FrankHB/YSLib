@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file chrmap.h
+/*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1320
+\version r1327
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-11-14 23:00 +0800
+	2015-03-21 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INC_CHRLib_chrmap_h_
-#define INC_CHRLib_chrmap_h_ 1
+#ifndef INC_CHRLib_CharacterMapping_h_
+#define INC_CHRLib_CharacterMapping_h_ 1
 
 #include "YModules.h"
 #include YFM_CHRLib_Encoding
@@ -51,14 +51,14 @@ yconstexpr Encoding CS_Default = CharSet::UTF_8;
 \pre 断言： \c c_ptr 。
 */
 inline PDefH(ucs2_t, FetchBiCharBE, const char* c_ptr)
-	ImplRet(yconstraint(c_ptr), (*c_ptr << CHAR_BIT) | c_ptr[1])
+	ImplRet(yconstraint(c_ptr), ucs2_t((*c_ptr << CHAR_BIT) | c_ptr[1]))
 
 /*!
 \brief 取 c_ptr 指向的小端序双字节字符。
 \pre 断言： \c c_ptr 。
 */
 inline PDefH(ucs2_t, FetchBiCharLE, const char* c_ptr)
-	ImplRet(yconstraint(c_ptr), (c_ptr[1] << CHAR_BIT) | *c_ptr)
+	ImplRet(yconstraint(c_ptr), ucs2_t((c_ptr[1] << CHAR_BIT) | *c_ptr))
 
 
 /*!

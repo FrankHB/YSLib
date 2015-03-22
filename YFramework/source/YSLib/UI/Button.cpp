@@ -11,13 +11,13 @@
 /*!	\file Button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3301
+\version r3302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2015-03-01 20:20 +0800
+	2015-03-21 16:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ Thumb::Thumb(const Rect& r, ystdex::raw_tag)
 	FetchEvent<LostFocus>(*this) += invalidator
 	);
 }
-
+ImplDeDtor(Thumb)
 
 void
 DecorateAsCloseButton(Thumb& tmb)

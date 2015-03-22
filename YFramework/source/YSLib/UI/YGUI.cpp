@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4327
+\version r4328
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-19 13:54 +0800
+	2015-03-21 17:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,6 +100,7 @@ InputTimer::RefreshHeld(HeldStateType& s, Duration initial_delay,
 	}
 	return {};
 }
+ImplDeDtor(InputTimer)
 
 size_t
 InputTimer::RefreshTap(size_t s, Duration delay)

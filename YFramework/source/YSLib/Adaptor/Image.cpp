@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1081
+\version r1091
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-03-19 13:11 +0800
+	2015-03-22 07:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -220,6 +220,15 @@ LookupPlugin(::FREE_IMAGE_FORMAT fif)
 } // unnamed namespace;
 
 
+ImplDeDtor(BadImageAlloc)
+
+
+ImplDeDtor(UnsupportedImageFormat)
+
+
+ImplDeDtor(UnknownImageFormat)
+
+
 ImageMemory::ImageMemory(const HBitmap& pixmap, ImageFormat fmt,
 	ImageDecoderFlags flags)
 	: buffer(), handle(), format(fmt)
@@ -268,8 +277,8 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: p_bitmap([&]{
 		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(
-			Nonnull(src)), s.Width, s.Height,
-			s.Width * sizeof(Pixel) + pitch_delta, YF_PixConvSpec, true);
+			Nonnull(src)), s.Width, s.Height, CheckScalar<int>(
+			s.Width * sizeof(Pixel) + pitch_delta), YF_PixConvSpec, true);
 	}())
 {
 	if(!p_bitmap)
@@ -348,7 +357,7 @@ HBitmap::operator[](size_t idx) const ynothrowv
 {
 	YAssertNonnull(*this);
 	YAssert(idx < GetHeight(), "Index is out of range.");
-	return ::FreeImage_GetScanLine(Nonnull(p_bitmap), idx);
+	return ::FreeImage_GetScanLine(Nonnull(p_bitmap), int(idx));
 }
 
 HBitmap::operator CompactPixmap() const
@@ -630,7 +639,7 @@ ImageTag::GetValuePtr() const ynothrow
 bool
 ImageTag::SetCount(size_t count) const ynothrow
 {
-	return ::FreeImage_SetTagCount(p_tag, count);
+	return ::FreeImage_SetTagCount(p_tag, static_cast<unsigned long>(count));
 }
 bool
 ImageTag::SetDescription(const char* desc) const ynothrow
@@ -650,7 +659,7 @@ ImageTag::SetKey(const char* key) const ynothrow
 bool
 ImageTag::SetLength(size_t len) const ynothrow
 {
-	return ::FreeImage_SetTagLength(p_tag, len);
+	return ::FreeImage_SetTagLength(p_tag, static_cast<unsigned long>(len));
 }
 bool
 ImageTag::SetType(ImageTag::Type type) const ynothrow
@@ -750,7 +759,8 @@ ImageCodec::~ImageCodec()
 ImageFormat
 ImageCodec::DetectFormat(ImageMemory::NativeHandle handle, size_t size)
 {
-	return ImageFormat(::FreeImage_GetFileTypeFromMemory(handle, size));
+	return ImageFormat(::FreeImage_GetFileTypeFromMemory(handle,
+		static_cast<unsigned long>(size)));
 }
 ImageFormat
 ImageCodec::DetectFormat(const char* filename)

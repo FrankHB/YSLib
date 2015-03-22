@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1429
+\version r1430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2015-03-02 20:12 +0800
+	2015-03-21 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,6 +157,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 	}
 	);
 }
+ImplDeDtor(Menu)
 
 void
 Menu::operator+=(const ValueType& val)

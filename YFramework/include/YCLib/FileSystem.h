@@ -11,7 +11,7 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1663
+\version r1669
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
@@ -513,6 +513,14 @@ class YF_API FileOperationFailure : public std::system_error
 public:
 	//! \since build 538
 	using system_error::system_error;
+
+	//! \since build 586
+	DefDeCopyCtor(FileOperationFailure)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~FileOperationFailure() override;
 };
 
 

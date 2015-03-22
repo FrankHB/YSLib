@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r185
+\version r186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2015-03-17 01:38 +0800
+	2015-03-21 00:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ public:
 	Size MinSize;
 
 	BorderResizer(IWidget& wgt, size_t w = 4, const Size& min_size = {})
-		: widget(wgt), Margin(w, w, w, w),
+		: widget(wgt), Margin(SPos(w)),
 		MinSize(min_size.Width + w + w, min_size.Height + w + w)
 	{
 		Wrap();

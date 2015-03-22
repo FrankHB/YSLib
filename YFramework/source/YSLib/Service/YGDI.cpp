@@ -11,13 +11,13 @@
 /*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2946
+\version r2949
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-03-17 06:29 +0800
+	2015-03-21 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,9 @@ ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 }
 
 
+ImplDeDtor(BasicImage)
+
+
 CompactPixmap::CompactPixmap(ConstBitmapPtr i, SDst w, SDst h)
 	: BaseType()
 	// NOTE: The size member cannot be initialized just here, or it would be
@@ -100,7 +103,8 @@ CompactPixmap::CompactPixmap(unique_ptr<Pixel[]> p, const Size& s) ynothrow
 	: BaseType(std::move(p), s)
 {}
 CompactPixmap::CompactPixmap(const CompactPixmap& buf)
-	: BaseType()
+	// XXX: $2015-03 @ %Documentation::Workflow::Annual2015.
+	: BaseType(), IImage()
 {
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())

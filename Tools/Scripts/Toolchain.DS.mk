@@ -1,5 +1,5 @@
 #
-#	(C) 2014 FrankHB.
+#	(C) 2014-2015 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,14 +8,21 @@
 #	understand and accept it fully.
 #
 # Makefile for DS toolchain
-# Version = r62
+# Version = r70
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2014-12-06 21:08 +0800
+# Updated = 2015-03-21 23:41 +0800
 # Encoding = ANSI
 
 
 # NOTE: Workaround for libnds: do not use '-pedantic-errors'.
 C_CXXFLAGS_COMMON ?= -pipe -fdata-sections -ffunction-sections
+# NOTE: Workaround for libnds: do not use '-Wpacked'.
+C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
+	-Wdeprecated-declarations -Wextra -Wformat=2 -Winvalid-pch \
+	-Wmissing-declarations -Wmissing-include-dirs -Wmultichar \
+	-Wno-format-nonliteral -Wredundant-decls -Wshadow -Wsign-promo
+# NOTE: Workaround for libnds: do not use '-Wdouble-promotion'.
+C_CXXFLAGS_IMPL_WARNING ?= -Wlogical-op -Wtrampolines 
 
 # NOTE: Binary size is more important for DS. LTO is also disabled by default.
 ifneq ($(CONF),debug)

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r351
+\version r360
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-02-10 13:19 +0800
+	2015-03-21 13:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,11 +133,19 @@ YStandardEx 直接扩充标准库，包含仅依赖标准库而非标准库实�
 另见 @2.4.3 、 @2.4.4 和 @2.4.5 。
 
 @2.4.2 命名空间和模板特化：
-命名空间 ystdex 内 details 命名空间保留为非公开实现。
-除了块作用域和非公开的实现命名空间外，命名空间 ystdex 中对标准库的元编程和类型特征名称使用 using std:: 声明，禁止其它的 using 声明引入 std 成员。 
+命名空间 ystdex 内 details 命名空间和声明以宏 yimpl (@2.3.3)修饰的命名空间保留为非公开实现。
+除块作用域和非公开的实现命名空间和此处列明的例外，禁止其它的别名声明引入 std 成员命名空间：
+ystdex 中对标准库的元编程和类型特征名称使用别名声明；
+文档指定的以实现为 ADL([Documentation::LanguageConvention @@5.3.3.1]) 提供并行重载为目的的别名声明。
 ystdex 的类型在声明所在的同一头文件中，可能存在 std 命名空间中的类模板的对应特化。
 std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。注意完整包含所需的头文件，而不仅是 std 成员声明的标准库头。当前包括以下类型：
 std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
+
+@2.4.2.1 YBase 引入的公开命名空间：
+ystdex ： YStandardEx 使用的默认命名空间。
+ystdex::any_ops ： ystdex::any 相关的底层操作接口。
+ystdex::dependent_operators ： YBase::YStandardEx::Operators 使用的隔离 ADL 的命名空间。
+ystdex::dependent_swap ： 引入 std::swap 实现为 ADL 提供重载的命名空间。
 
 @2.4.3 不依赖其它 YStandardEx 文件的基本头文件：
 

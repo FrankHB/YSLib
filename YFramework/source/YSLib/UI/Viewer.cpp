@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r284
+\version r286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2015-03-01 10:05 +0800
+	2015-03-22 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,7 +159,7 @@ SequenceViewer::RestrictView()
 SDst
 AMUnitList::GetFullViewHeight() const
 {
-	return GetItemHeight() * GetTotal();
+	return SDst(GetItemHeight() * GetTotal());
 }
 SDst
 AMUnitList::GetItemHeight() const
@@ -192,7 +192,7 @@ AMUnitList::GetUnitLocation(size_t idx) const
 SDst
 AMUnitList::GetViewPosition() const
 {
-	return GetItemHeight() * vwList.GetHeadIndex() + uTopOffset;
+	return SDst(GetItemHeight() * vwList.GetHeadIndex() + uTopOffset);
 }
 
 SDst
