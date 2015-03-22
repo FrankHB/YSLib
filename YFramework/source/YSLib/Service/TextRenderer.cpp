@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2710
+\version r2713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:47 +0800
+	2015-03-22 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,6 +136,7 @@ TextRegion::TextRegion()
 {
 	InitializeFont();
 }
+ImplDeDtor(TextRegion)
 
 void
 TextRegion::operator()(ucs4_t c)
@@ -191,7 +192,7 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 {
 	if(YB_LIKELY(pBuffer && pBufferAlpha))
 	{
-		const std::int32_t t(((h + Margin.Bottom > GetHeight()
+		const auto t(((h + Margin.Bottom > GetHeight()
 			? GetHeight() - Margin.Bottom : h)
 			- Margin.Top - std::abs(n)) * GetWidth());
 

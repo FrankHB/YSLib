@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file textarea.h
+/*!	\file TextArea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r480
+\version r490
 \author FrankHB <frankhb1989@gmail.com>
-\since build 222
+\since build 586
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2014-08-10 18:33 +0800
+	2015-03-21 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_textarea_h_
-#define YSL_INC_UI_textarea_h_ 1
+#ifndef YSL_INC_UI_TextArea_h_
+#define YSL_INC_UI_TextArea_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YWidget
@@ -62,6 +62,11 @@ public:
 	TextArea(const Drawing::Rect&, Drawing::FontCache&,
 		HBrush = MakeBlankBrush(), Drawing::Color = Drawing::ColorSpace::Black);
 	DefDeMoveCtor(TextArea)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~TextArea() override;
 
 	using Widget::GetWidth;
 	using Widget::GetHeight;

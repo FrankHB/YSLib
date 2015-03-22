@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r100
+\version r104
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2015-02-04 08:22 +0800
+	2015-03-21 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,13 +59,13 @@
 #define YFM_YSLib_UI_Viewer <YSLib/UI/Viewer.h>
 #define YFM_YSLib_UI_Loader <YSLib/UI/Loader.h>
 #define YFM_YSLib_UI_Label <YSLib/UI/Label.h>
-#define YFM_YSLib_UI_Button <YSLib/UI/button.h>
-#define YFM_YSLib_UI_UIContainerEx <YSLib/UI/uicontx.h>
+#define YFM_YSLib_UI_Button <YSLib/UI/Button.h>
+#define YFM_YSLib_UI_UIContainerEx <YSLib/UI/UIContainerEx.h>
 #define YFM_YSLib_UI_Form <YSLib/UI/form.h>
 #define YFM_YSLib_UI_Selector <YSLib/UI/Selector.h>
-#define YFM_YSLib_UI_Scroll <YSLib/UI/scroll.h>
+#define YFM_YSLib_UI_Scroll <YSLib/UI/Scroll.h>
 #define YFM_YSLib_UI_Progress <YSLib/UI/progress.h>
-#define YFM_YSLib_UI_TextArea <YSLib/UI/textarea.h>
+#define YFM_YSLib_UI_TextArea <YSLib/UI/TextArea.h>
 //! \since build 528
 #define YFM_YSLib_UI_ListControl <YSLib/UI/ListControl.h>
 #define YFM_YSLib_UI_ComboList <YSLib/UI/ComboList.h>

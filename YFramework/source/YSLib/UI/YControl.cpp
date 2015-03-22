@@ -11,13 +11,13 @@
 /*!	\file YControl.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3967
+\version r3968
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2015-02-28 14:27 +0800
+	2015-03-21 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,6 +202,7 @@ Control::Control(const Rect& r, HBrush b)
 Control::Control(const Control& ctl)
 	: Widget(ctl), BoundControlPtr(ctl.BoundControlPtr)
 {}
+ImplDeDtor(Control)
 
 void
 Control::OnTouch_Close(CursorEventArgs&&)

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file base.h
 \ingroup YStandardEx
 \brief 基类实用设施。
-\version r171
+\version r180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 11:59:15 +0800
 \par 修改时间:
-	2014-11-28 13:01 +0800
+	2015-03-21 12:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,21 +117,21 @@ public:
 class YB_API cloneable
 {
 public:
-#if YB_IMPL_MSCPP
-	//! \since build 503 as workaround for Visual C++ 2013
+	//! \since build 503
 	cloneable() = default;
-	//! \since build 503 as workaround for Visual C++ 2013
-	cloneable(const cloneable&) = default;
+#if YB_IMPL_MSCPP
 	//! \since build 483 as workaround for Visual C++ 2013
 	cloneable(cloneable&&)
 	{}
 #endif
-	virtual cloneable*
-	clone() const = 0;
-
+	//! \since build 503
+	cloneable(const cloneable&) = default;
 	//! \brief 虚析构：类定义外默认实现。
 	virtual
 	~cloneable();
+
+	virtual cloneable*
+	clone() const = 0;
 };
 
 

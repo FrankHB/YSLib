@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1003
+\version r1008
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-01-25 04:03 +0800
+	2015-01-25 23:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -402,9 +402,12 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 			size.Width, "width"), -CheckPositiveScalar<SPos>(size.Height,
 			"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
 			sizeof(Pixel) * size.Width * size.Height), 0, 0, 0, 0}, {}};
+		void* p_buf{};
+		const auto h(::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
+			&reinterpret_cast<void*&>(p_buf), {}, 0));
 
-		return ::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
-			&reinterpret_cast<void*&>(pBuffer), {}, 0);
+		pBuffer = reinterpret_cast<BitmapPtr>(p_buf);
+		return h;
 	}())
 {}
 ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow

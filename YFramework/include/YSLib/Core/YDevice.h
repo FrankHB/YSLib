@@ -11,13 +11,13 @@
 /*!	\file YDevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2076
+\version r2086
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 586
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2015-03-17 18:13 +0800
+	2015-03-21 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,11 +56,14 @@ public:
 	GraphicDevice(const Drawing::Size& s, Drawing::BitmapPtr p = {}) ynothrow
 		: Graphics(p, s)
 	{}
+	//! \since build 586
+	DefDeCopyCtor(GraphicDevice)
+	//! \brief 虚析构：类定义外默认实现。
 	/*!
-	\brief 析构：默认实现。
+	\brief 虚析构：类定义外默认实现。
 	\since build 297
 	*/
-	virtual DefDeDtor(GraphicDevice)
+	virtual ~GraphicDevice();
 
 	//! \since build 319
 	//@{
@@ -108,7 +111,10 @@ public:
 	{
 		YAssert(w != 0, "Invalid key input device found.");
 	}
-	virtual DefDeDtor(KeyInputDevice)
+	//! \since build 586
+	DefDeCopyCtor(KeyInputDevice)
+	//! \brief 虚析构：类定义外默认实现。
+	virtual ~KeyInputDevice();
 
 	DefGetter(const ynothrow, KeyIndex, Width, width)
 

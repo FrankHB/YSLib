@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r290
+\version r291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2015-03-19 13:50 +0800
+	2015-03-21 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,6 +128,7 @@ TabControl::TabControl(const Rect& r)
 	: Control(r),
 	p_bar(new TabBar(Size(r.Width, BarHeight)))
 {}
+ImplDeDtor(TabControl)
 
 void
 TabControl::operator+=(IWidget& wgt)

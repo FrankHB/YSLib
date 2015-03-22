@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1542
+\version r1543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-02-23 20:36 +0800
+	2015-03-31 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,7 +194,7 @@ public:
 		return *p;
 	}
 
-	DefCvt(const ynothrow, const string&, name);
+	DefCvt(const ynothrow, const string&, name)
 
 	/*!
 	\brief 取子节点容器引用。

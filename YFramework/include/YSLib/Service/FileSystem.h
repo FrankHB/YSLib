@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2397
+\version r2404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-12-31 07:42 +0800
+	2015-03-21 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,6 +61,14 @@ class YF_API PathNorm : public ystdex::path_norm<YSLib::String>
 {
 public:
 	using value_type = YSLib::String;
+
+	//! \since build 586
+	//@{
+	DefDeCtor(PathNorm)
+	DefDeCopyCtor(PathNorm)
+	//! \brief 虚析构：类定义外默认实现。
+	~PathNorm() override;
+	//@}
 
 	PDefH(bool, is_delimiter, const value_type& str) override
 		ImplRet(YCL_FS_CharIsDelimiter(str[0], u))

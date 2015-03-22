@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2140
+\version r2144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-12-02 18:53 +0800
+	2015-03-22 16:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,12 +314,14 @@ RestrictInInterval(_type& i, const _type& a, const _type& b) ynothrow
 /*!
 \brief 约束无符号整数 u 在区间上界 b 内。
 \post <tt>!(b < u)</tt>。
-\since build 319
+\since build 586
 */
 template<typename _type>
 void
-RestrictUnsignedStrict(_type& u, unsigned b) ynothrow
+RestrictUnsignedStrict(_type& u, _type b) ynothrow
 {
+	static_assert(std::is_unsigned<_type>::value, "Invalid type found.");
+
 	if(b < u)
 		u = b;
 }
@@ -514,6 +516,7 @@ struct safe_delete_obj
 {
 	/*!
 	\brief 删除指针指向的对象，并置指针为空值。
+	\note 使用 ADL \c reset 。
 	*/
 	template<typename _tPointer>
 	inline void

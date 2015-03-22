@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1720
+\version r1728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2015-02-10 18:14 +0800
+	2015-03-20 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,7 +225,7 @@ YB_Impl_Operators_TmplHead1(decrementable) : _tBase
 YB_Impl_Operators_TmplHead2(dereferenceable) : _tBase
 {
 	yconstfn _type2
-	operator->() const ynoexcept(noexcept(*std::declval<const _type&>()))
+	operator->() const ynoexcept_spec(*std::declval<const _type&>())
 	{
 		return std::addressof(*static_cast<const _type&>(*this));
 	}
@@ -238,7 +238,7 @@ struct indexable : _tBase
 {
 	yconstfn _tRet
 	operator[](_type2 n) const
-		ynoexcept(noexcept(*(std::declval<const _type&>() + n)))
+		ynoexcept_spec(*(std::declval<const _type&>() + n))
 	{
 		return *(static_cast<const _type&>(*this) + n);
 	}
@@ -415,10 +415,10 @@ struct random_access_iteratable
 
 
 /*!
-\brief 实现命名空间：作为 ADL 边界。
-\since build 576
+\brief 依赖名称查找操作：作为 ADL 的边界。
+\since build 586
 */
-namespace operators_impl
+namespace dependent_operators
 {
 
 template<class>
@@ -537,10 +537,10 @@ struct operators<_type, _type> : totally_ordered<_type,
 #undef YB_Impl_Operators_friend_s
 #undef YB_Impl_Operators_friend
 
-} // namespace operators_impl;
+} // namespace dependent_operators;
 
-//! \since build 576
-using namespace operators_impl;
+//! \since build 586
+using namespace dependent_operators;
 
 } // namespace ystdex;
 

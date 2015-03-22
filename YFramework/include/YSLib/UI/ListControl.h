@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1632
+\version r1634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2015-03-02 19:35 +0800
+	2015-03-22 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,8 +179,8 @@ protected:
 	GetItemHeightCore() const override;
 
 public:
-	//! \since build 527
-	SDst
+	//! \since build 586
+	size_t
 	GetTotal() const ImplI(AMUnitList);
 
 	/*!

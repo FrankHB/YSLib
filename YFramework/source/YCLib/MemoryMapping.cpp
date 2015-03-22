@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r227
+\version r229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2015-03-19 13:14 +0800
+	2015-03-22 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,8 +62,8 @@ MappedFile::MappedFile(const char* path)
 		const auto h(::HANDLE(::_get_osfhandle(fd)));
 
 		if(h != INVALID_HANDLE_VALUE)
-			if(::HANDLE fm = ::CreateFileMapping(h, {}, PAGE_READONLY, 0, size,
-				{}))
+			if(::HANDLE fm = ::CreateFileMapping(h, {}, PAGE_READONLY, 0,
+				static_cast<unsigned long>(size), {}))
 			{
 				p = ::MapViewOfFile(fm, FILE_MAP_READ, 0, 0, size);
 				::CloseHandle(fm);

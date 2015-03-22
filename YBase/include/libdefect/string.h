@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<string\> 修正。
-\version r647
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2014-11-01 01:29 +0800
+	2015-03-19 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,7 +176,7 @@ YB_LibDefect_String_tostri(wstring, unsigned long long, L"%llu", std::vswprintf)
 	{ \
 		return __gnu_cxx::__to_xstring<_s>(&_cfname, \
 			__gnu_cxx::__numeric_traits<_t>::__max_exponent10 + 20, \
-			_fmt, __val); \
+			_fmt, double(__val)); \
 	}
 
 YB_LibDefect_String_tostrf(string, float, "%f", std::vsnprintf)

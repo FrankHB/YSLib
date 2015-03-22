@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1229
+\version r1234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2014-12-24 17:31 +0800
+	2015-03-22 15:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1154,8 +1154,9 @@ MapKeyChar(const KeyInput& keys, KeyIndex code) ynothrow
 	// NOTE: See implementation of %UpdateKeyStates.
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		state[i] = keys[i] ? 0x80 : 0;
-	return ::ToAscii(code, ::MapVirtualKeyW(code, MAPVK_VK_TO_VSC), state, &s,
-		0) == 1 ? switch_key(char(s) & 0x7F) : char();
+	return ::ToAscii(unsigned(code), ::MapVirtualKeyW(unsigned(code),
+		MAPVK_VK_TO_VSC), state, &s, 0) == 1 ? switch_key(char(s) & 0x7F)
+		: char();
 }
 
 namespace KeyCodes
@@ -1177,7 +1178,7 @@ FetchLockState(KeyIndex code) ynothrow
 #if YCL_DS || YCL_Android
 	return code == CapsLock ? caps_lock : false;
 #elif YCL_Win32
-	return (::GetKeyState(code) & 0x0001) != 0;
+	return (::GetKeyState(int(code)) & 0x0001) != 0;
 #endif
 }
 

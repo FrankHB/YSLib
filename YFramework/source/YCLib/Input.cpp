@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r465
+\version r468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-11-12 05:01 +0800
+	2015-03-22 16:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,8 +181,8 @@ UpdateKeyStates()
 	KeyState = ::keysCurrent();
 #elif YCL_Win32
 	// NOTE: 0x00 and 0xFF should be invalid.
-	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
-		pKeyState->set(i, ::GetAsyncKeyState(i) & 0x8000);
+	for(size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
+		pKeyState->set(i, ::GetAsyncKeyState(int(i)) & 0x8000);
 #elif YCL_Android
 	FetchKeyStateRef() = KeyStateBuffer;
 #endif

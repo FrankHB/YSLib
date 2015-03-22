@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r721
+\version r733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2014-12-10 01:00 +0800
+	2015-03-21 13:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,9 +51,15 @@ class path_norm : public cloneable
 public:
 	using value_type = _type;
 
-	//! \since build 450
-	virtual
-	~path_norm() = default;
+	//! \since build 586
+	path_norm() = default;
+	//! \since build 586
+	path_norm(const path_norm&) = default;
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 450
+	*/
+	~path_norm() override;
 
 	virtual bool
 	is_compatible_with(const path_norm&) const ynothrow
@@ -80,6 +86,9 @@ public:
 	virtual path_norm*
 	clone() const override = 0;
 };
+
+template<typename _type>
+path_norm<_type>::~path_norm() = default;
 
 
 //! \brief 文件路径范式。

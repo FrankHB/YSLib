@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1852
+\version r1869
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-02-28 21:11 +0805
+	2015-03-22 16:16 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,20 +140,22 @@ public:
 	fixed_point(base_type v, raw_tag) ynothrow
 		: value(v)
 	{}
-	//! \since build 581
-	//@{
+	//! \since build 586
 	template<typename _tInt>
 	yconstfn
 	fixed_point(_tInt val,
-		yimpl(enable_if_t<is_integral<_tInt>::value, _tInt*> = {}))
-		ynothrow
-		: value(base_type(val) << frac_bit_n)
+		yimpl(enable_if_t<is_integral<_tInt>::value, _tInt*> = {})) ynothrowv
+		: value(base_type(val << frac_bit_n))
 	{}
+	//! \since build 581
+	//@{
 	template<typename _tFloat>
 	explicit yconstfn
 	fixed_point(_tFloat val, yimpl(enable_if_t<
 		is_floating_point<_tFloat>::value, _tFloat*> = {})) ynothrow
-		: value(std::llround(base_element() * val))
+		// XXX: Conversion to 'base_type' might be implementation-defined if
+		//	it is signed.
+		: value(base_type(std::llround(base_element() * val)))
 	{}
 	template<typename _tFirst, typename _tSecond>
 	yconstfn
@@ -204,6 +206,10 @@ public:
 		: value(f.value << (frac_bit_n - _vOtherFrac))
 	{}
 	//@}
+
+	//! \since build 586
+	fixed_point&
+	operator=(const fixed_point&) = default;
 
 	bool
 	operator<(const fixed_point& f) const ynothrow
@@ -272,8 +278,8 @@ public:
 	fixed_point&
 	operator/=(const fixed_point& f) ynothrow
 	{
-		value = (typename fixed_multiplicative<base_type>::type(value)
-			<< frac_bit_n) / f.value;
+		value = base_type(typename fixed_multiplicative<base_type>::type(value
+			<< frac_bit_n) / f.value);
 		return *this;
 	}
 
@@ -331,15 +337,15 @@ private:
 		// NOTE: Only fit for unsigned type, due to there exists
 		//	implementation-defined behavior in conversion and right shifting on
 		//	operands of signed types.
-		return (typename fixed_multiplicative<base_type>::type(x) * y)
-			>> _vShiftBits;
+		return base_type((typename fixed_multiplicative<base_type>::type(x) * y)
+			>> _vShiftBits);
 	}
 
 	template<size_t _vShiftBits>
 	static yconstfn base_type
 	mul_signed(typename fixed_multiplicative<base_type>::type tmp)
 	{
-		return tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits;
+		return base_type(tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits);
 	}
 
 public:

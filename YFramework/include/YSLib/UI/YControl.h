@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4844
+\version r4849
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2015-02-28 19:15 +0800
+	2015-03-21 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -316,6 +316,11 @@ public:
 	*/
 	Control(const Control&);
 	DefDeMoveCtor(Control)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~Control() override;
 
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。

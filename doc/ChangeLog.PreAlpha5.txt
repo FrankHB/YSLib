@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r11202
+\version r11616
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-03-19 14:48 +0800
+	2015-03-22 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,417 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	// NOTE: x86_64 Clang++ is used to test for warnings.
+	/ %YBase $=
+	(
+		/ DLD "%to_string with floating pointer parameters"
+			^ "casting to 'double'" @ %LibDefect.String,
+			// To eliminate G++ warning: [-Wdouble-promotion].
+		+ "macro %(ynoexcept_assert, ynoexcept_spec)" @ %YDefinition,
+		/ %YStandardEx $=
+		(
+			/ "namespace %operators_impl" @ "namespace %ystdex" @ %operators
+				=> "%dependent_operators",
+			/ %Utility $=
+			(
+				+ "namespace %dependent_swap",
+				+ "classes %(any_constructible, not_constructible)",
+				+ "type traits %(is_swappable, is_nothrow_swappable)",
+				/ @ "class template %state_guard" $=
+				(
+					/ "specialization with reference type tokens" $=
+					(
+						/ "supported exception specification",
+						+ "exception specification" @ "desturctor"
+							// Allow destructor to throw.
+					),
+					/ @ "specialization with non-reference type tokens" $=
+					(
+						* "wrong exception specification if %condition_type \
+							convent to %bool could throw" @ "destructor",
+						+ "exception specification" @ "function %dismiss"
+					)
+					+ "exception specification"
+						@ "underlying destroy operation, constructors",
+				),
+				/ "allow throwing exception" @ "functions \
+					%(operator bool, swap)" @ "class template %nptr" $=
+				(
+					- "static assertion",
+					/ 'ynothrow' -> "exception specification allowing to throw"
+				)
+			),
+			/ %Iterator $=
+			(
+				/ @ "non-special constructors"
+					@ "class template %transposed_iterator" $=
+				(
+					+ "noexcept specification",
+					/ "initialized member iterator" ^ "copy" ~ "forwarding"
+				),
+				+ "noexcept specification"
+					@ "constructor template %transformed_iterator",
+				+ "noexcept specification"
+					@ "templates %(make_transform, make_transposed)"
+					^ $dep_from ("%ynoexcept_spec" @ %YDefinition)
+			),
+			/ "class %bad_any_cast" @ %Any $=
+			(
+				/ "stored %lref<const std::type_info> object"
+					~ "%name result of %std::type_info";
+				+ "functions %(from_type, to_type)",
+				* $comp "unspecified storage and possibly undefined behavior \
+					depending on implementations" @ "functions %(from, to)"
+					$since b342,
+					// ISO C++ does not specified whether the result of \
+						%std::type_info::name can be used out of full \
+						expressions or not.
+				* "missing 'YB_API'" $since b331
+			),
+			- DLD "unused parameter" @ "catch clause"
+				@ "destructor %thread_pool" @ %Concurrency,
+				// To eliminate Clang++ warning: [-Wunused-exception-parameter].
+			+ $dev "explicitly defaulted default constructor"
+				@ "classes %(unsupported, unimplemented)" @ %Exception,
+				// To eliminate Clang++ warning: [-Wdeprecated] due to \
+					user-provided destructor declared.
+			/ @ "class template %fixed_point" %Rational $=
+			(
+				/ @ "constructor template for integers" $=
+				(
+					/ DLD "cast to %base_type from shift result"
+						~ "cast from parameter",
+						// To eliminate Clang++ warning: [-Wconversion].
+					/ 'ynothrow' -> 'ynothrowv'
+						// Since left shift may cause undefined behavior.
+				),
+				/ "cast to %base_type from round result"
+					@ "constructor template for floating point numbers",
+					// To eliminate Clang++ warning: [-Wconversion].
+				+ "explicitly defaulted copy %operator=",
+					// To eliminate Clang++ warning: [-Wdeprecated].
+				/ DLD "cast to result type from shift result"
+					~ "cast from parameter"
+					@ "function %operator/=, multiplicative operations"
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+			),
+		)
+	),
+	/ %YFramework $=
+	(
+		/ DLD "renamed local variable" @ "constructor %InputQueue::InputQueue"
+			@ %'YCLib_(Android)'.Android,
+			// To eliminate G++ warning: [-Wshadow-local].
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ DLD "simplified exception specification" @ %YEvent
+					^ "%std::is_nothrow_constructible";
+				+ "YGraphics.cpp" @ %YGraphics
+					$= (+ $dev "definition of destructor"
+						@ "interface %IImage"),
+				/ DLD "cast" @ "ctor-initializer"
+					@ "constructor templates %GBinaryGroup" @ %YGDIBase,
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				/ @ "function template %RestrictUnsigned" @ %YCoreUtilities $=
+				(
+					/ "2nd parameter" -> '_type' ~ 'unsigned',
+					+ "static assertion to confirm '_type' is unsigned integer"
+					// Also to eliminate Clang++ warning: [-Wshorten-64-to-32] \
+						for %TextBox::UpdateTextBoxClippedText without cast.
+				)
+			),
+			/ "user-provided constructor" -> "inherited constructor"
+				@ "class %MessageSignal" @ %(Core.YMessage,
+				"class %UIEventSignal" @ %UI.YWidgetEvent),
+			/ %UI $=
+			(
+				+ $dev "explicitly defaulted default constructor"
+					@ "class %BadEvent" @ %YWidgetEvent,
+				/ $dev %YWidgetView $=
+				(
+					/ @ "class %AView" $=
+					(
+						/ "inline defined destructor" -> "defined virtual \
+							destructor out-of-line" @ "non-header file",
+							// To eliminate Clang++ warning: [-Wweak-vtables].
+					),
+					/ $lib "explicitly defaulted (move, copy) constructors"
+						@ "class %View" ^ "%DefDeCopyMoveCtor"
+				),
+				- 'virtual' @ "destructor" @ "class %Console" @ %Console,
+					// Also to eliminate Clang++ warning: [-Wweak-vtables].
+				/ DLD "cast" @ "constructor %BorderResizer" @ %Border,
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				* "wrong return type" @ "member function %GetTotal"
+					@ "classes %(MTextList, AMUnitList)" $orig
+					(@ %TextList $since b527)
+					// Also to eliminate Clang++ warning: [-Wshorten-64-to-32].
+					$= (/ "return type" -> 'size_t' ~ 'SDst'),
+				/ DLD "cast to %Rect component type"
+					@ "member function %TextList::InvalidateSelected"
+						@ %ListControl
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+			),
+			/ $dev @ ("classes %(GraphicDevice, KeyInputDevice)"
+				@ %Core.YDevice, "class %AController" @ %UI.YWidgetEvent) $=
+			(
+				/ "inline defined destructor" -> "defined virtual destructor \
+					out-of-line" @ "non-header file",
+					// To eliminate Clang++ warning: [-Wweak-vtables].
+				+ "explicitly defaulted default constructor"
+					// To eliminate Clang++ warning: [-Wdeprecated] due to \
+						user-provided destructor declared.
+			),
+			/ $dev "inline defined defaulted destructor" @ ("class %UIEventArgs"
+				@ %UI.YWidgetEvent, "class %Timer" @ %Service.YTimer)
+				-> "defined virtual destructor out-of-line" @ "non-header file",
+				// To eliminate Clang++ warning: [-Wweak-vtables].
+			+ $dev "out-of-line virtual destructor" @ (("%PseudoRenderer"
+				@ %YRenderer, "class %Control" @ %YControl, "class %Desktop"
+				@ %YDesktop, "classes %(HorizontalTrack, VerticalTrack, \
+				ScrollableContainer)" @ %Scroll, "class %Thumb" @ %Button,
+				"class %TabControl" @ %TabControl, "classes %(TreeList, \
+				TreeView)" @ %TreeView, "classes %(ListBox, FileBox)"
+				@ %ComboList, "class %Menu" @ %Menu, "class %TextArea"
+				@ %TextArea, "class %WidgetNotFound" @ Loader) @ %UI,
+				"class %TextRegion" @ %Service.TextRenderer,
+				"classes %(DialogBox, DialogPanel)" @ %UIContainerEx),
+				// To eliminate Clang++ warning: [-Wweak-vtables].
+			/ %Service $=
+			(
+				/ %File $=
+				(
+					/ DLD "cast to %long" @ "member function %File::Seek",
+						// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+					/ DLD "implemented function template %operator>>"
+						^ "%std::isspace" ~ "%std::iswspace"
+						// Also to eliminate Clang++ warning: [-Wconversion].
+				),
+				/ %TextFile $=
+				(
+					/ "parameter type" @ "function %Locate" -> "%std::size_t"
+						~ "%std::uint32_t"
+						// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				),
+				- "virtual destructor" @ "class %TextFileBuffer" @ %TextManager,
+					// Also to eliminate Clang++ warning: [-Wweak-vtables].
+				+ "explicit constructor for same 4 components"
+					@ "class %Padding" @ %YGDI,
+				/ DLD "implemented member function %TextRegion::Scroll#2"
+					@ %TextRenderer ^ 'auto' ~ 'std::int32_t',
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+
+			),
+			+ "explicitly defaulted default constructor" @ ("class %PathNorm"
+				@ %Service.FileSystem, "class %BadImageAlloc" @ %Adaptor.Image),
+			+ DLD "explicitly initialized interface type subobject"
+				@ ("class %Widget" @ %UI.Widget, "class %CompactPixmap"
+				@ %Service.YGDI),
+				// To eliminate G++ warning: [-Wextra].
+			/ %Adaptor $=
+			(
+				/ %Image $=
+				(
+					/ DLD "cast to 'unsigned long'"
+						@ "member functions %(ImageTag::(SetCount, SetLength), \
+						ImageCodec::DetectFormat#1)",
+						// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+					/ DLD "cast to %int"
+						@ "member function %HBitmap::operator[]",
+						// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+					* "missing offset range check" @ "constructor accepting pitch"
+						@ "class %HBitmap" $since b471,
+						// Also to eliminate Clang++ warning: \
+							[-Wshorten-64-to-32].
+						$= (+ $design "range check by call of %CheckScalar \
+							which would throw on failure")
+				),
+				/ %Font $=
+				(
+					/ DLD "cast to %long for face indexes"
+						@ "member function %FontCache::LoadTypefaces",
+						// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				)
+			),
+			/ DLD "cast to 'SDst'" @ ("function template %FillPixel"
+				@ %Service.YBlit, ("member functions \
+				%AMUnitList::(GetFullViewHeight, GetViewPosition)" @ %Viewer,
+				"member function %TreeList::GetIndentWidth" @ %TreeView) @ %UI)
+				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+		),
+		/ %YBaseMacro $=
+		(
+			+ "definition of defaulted copy constructors"
+				@ "macro %YInterfaceHead" @ %YBaseMacro,
+				// To eliminate Clang++ warning: [-Wdeprecated] due to \
+					user-provided destructor declared.
+			- "destructor definition" @ "macro %YInterfaceHead",
+			+ "virtual destructor declarations"
+				@ "macros %(DeclI, DeclDerivedI)"
+				// Keep non-pure to avoid Clang++ warning: [-Wweak-vtables].
+		),
+		/ DLD "cast to %ucs2_t" @ "functions %(FetchBiCharBE, FetchBiCharLE)"
+			@ %CHRLib.CharacterMapping,
+			// To eliminate Clang++ warning: [-Wconversion].
+		* $dev $build "strict ISO C++ conformance" $=
+		(
+			// To eliminate G++ warning: [-Wpedatic], Clang++ warning: \
+				[-Wextra-semi].
+			* "redundant ';' at end of member function definition"
+				@ (("class %HostRenderer" $since b430 @ %HostRenderer $orig
+				($impl $since b426)) @ %Helper, @ ("class %ValueNode"
+				@ %Core.ValueNode $since b338, "class %HBitmap"
+				@ %Adaptor.Image $since b417) @ %YSLib),
+			// To eliminate Clang++ warning: [-Wundefined-reinterpret-cast].
+			$= (* "undefined behavior of 'reinterpret_cast'" @ "constructor \
+				%ScreenBuffer" @ "platform %Win32" @ %YCLib.HostedGUI $orig
+				(@ %'YCLib(MinGW32)'.Win32GUI $since b428))
+		),
+		(
+		/ "macro %ImplEmptyDtor" -> "macro %ImplDeDtor with 'inline' removed"
+			@ %YBaseMacro;
+		/ DLD "simplified out-of-line defaulted destructor definitions"
+			^ "%ImplDeDtor" $effective @ %('Helper_(MinGW32)'.Win32Control,
+			'YCLib(_MinGW32)'.MinGW32, YCLib.(FileSystem, Host), YSLib)
+		),
+		/ %'YCLib_(MinGW32)' $=
+		(
+			/ %MinGW32 $=
+			(
+				- "redundant 'break'" @ "console handler" @ %MinGW32,
+					// To eliminate Clang++ warning: [-Wunreachable-code-break].
+				/ DLD "cast size to 'unsigned long'" @ "member functions \
+					%RegistryKey::(GetSubKeyNames, GetValueNames)",
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				/ DLD "cast size to 'unsigned'"
+					@ "function %FetchSystemPath",
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				/ @ "functions %(MBCSToMBCS, WCSToMBCS, MBCSToWCS)" $=
+				(
+					* "missing zero length check" $since b431,
+					* "missing length overflow check" $since b431
+						// If overflow when cast to 'int', the behavior is \
+							undefined. Also to eliminate Clang++ warning: \
+							[-Wshorten-64-to-32].
+						$= ($design "prevented length overflow by call of \
+							%YSLib::CheckPositiveScalar which would throw on \
+							failure");
+					/ "check nonnull only when length is in the range and \
+						always by %Nonnull indirectly"
+				)
+			),
+			/ DLD "2nd parameter" -> 'unsigned long' ~ 'size_t'
+				@ "member function %WConsole::Fill" @ %Consoles,
+				// To eliminate Clang++ warning: [-Wshorten-64-to-32] where \
+					%size_t is not 'unsigned long'.
+		),
+		/ %YCLib $=
+		(
+			/ DLD "cast virtual key code to 'int'" @ "platform %Win32"
+				@ "function %UpdateKeyStates" @ %Input,
+				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+			/ %Keys $=
+			(
+				/ DLD "cast key code to 'unsigned' as %function %MapKeyChar#1"
+					@ "function %MapKeyChar#2" @ "platform %Win32",
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				/ DLD "cast key code to 'int'" @ "function %FetchLockState"
+					@ "platform %Win32" @ %Keys
+					// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+			),
+			/ DLD "cast mapped size to 'unsigned long'" @ "constructor \
+				%MappedFile" @ "platform %Win32" @ %MemoryMapping,
+				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+			/ DLD "cast size to 'int'" @ "platform %Win32"
+				@ "function %u16getcwd_n" @ %FileSystem,
+				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+
+		),
+		/ DLD "implemented member functinon %FPSCounter::Refresh"
+			@ %Helper.ShellHelper
+			// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+	),
+	* $dev "missing entries for files of %YFramework.Core.(YConsole, YGraphics)"
+		@ "Code::Blocks projects" $since b585,
+	/ %Test $=
+	(
+		+ $dev $build '-Wno-double-promotion' @ "%CXXFLAGS" @ "%test.sh",
+			// To eliminate G++ warning: [-Wdouble-promotion].
+		/ DLD "renamed local variable for several lambdas" @ %YBase
+			// To eliminate G++ warning: [-Wshadow].
+	),
+	/ DLD "simplified declarations" ^ $dep_from
+		("%(ynoexcept_assert, ynoexcept_spec)" @ %YBase.YDefinition) $effective
+		@ %(YBase.YStandarEx.(Iterator, Utilities, Iterator, Cast, Functional),
+		YFramework.YSLib.Core.YEvent),
+	/ $dev @ ("class %bad_any_cast" @ %YBase.YStandardEx.Any, (((
+		"classes %(LoggedEvent, FatalError)" @ %YException,
+		"classes %(MessageException, MessageSignal)" @ %YMessage) @ %Core,
+		("class %FontException" @ %Font,
+		"classes %(BadImageAlloc, UnsupportedImageFormat, UnknownImageFormat)"
+		@ %Image) @ Adaptor, ("class %PathNorm" @ %FileSystem, "class %Image"
+		@ %YResource, "class %BasicImage" @ %YGDI) @ %Service,
+		("classes %(RoutedEventArgs, KeyEventArgs, InputEventArgs, \
+		CursorEventArgs, CursorWheelEventArgs, TextInputEventArgs, \
+		PaintEventArgs, BadEvent)" @ %YWidgetEvent, "class %InputTimer" @ %YGUI)
+		@ %UI) @ %YSLib, ("class %Exception" @ %Host,
+		"class %FileOperationFailure" @ %YFileSystem) @ %YCLib,
+		"class %Win32Exception" @ %'YCLib_(MinGW32)'.MinGW32,
+		"class %ViewSignal" @ %'Helper_(MinGW32)'.Win32Control) @ %YFramework) $=
+	(
+		+ "defined virtual destructor out-of-line" @ "non-header file",
+			// To eliminate Clang++ warning: [-Wweak-vtables].
+		+ "explicitly defaulted copy constructor"
+			// To eliminate Clang++ warning: [-Wdeprecated] when user-provided \
+				destructor declared.
+	),
+	/ "explicitly defaulted (default, copy) constructor for all platforms"
+		@ ("class %cloneable" @ %Base, "class template %path_norm" @ %Path,
+		"class %any_ops::holder" @ %Any),
+			[-Wdeprecated] due to user-provided destructor declared. The default
+		// The copy constructor is provided to eliminate Clang++ warning: \ \
+			constructor is provided due to the default declared one will be \
+			supressed by the copy constructor.
+	+ "interface destructor definitions" $effective @ (Core.(YEvent, YObject),
+		UI.YWidget, Service.YResource) @ %YFramework,
+		// Also to eliminate Clang++ warning: [-Wweak-vtables].
+	(
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%main.cpp" => "%Main.cpp"
+		@ %YSTest.Main, ((("%ydevice.h" => "%YDevice.h", "%yexcept.cpp"
+		=> "%YException.cpp", "%ymsg.h" => "%YMessage.h", "%ydevice.cpp"
+		=> "%YDevice.cpp", "%yobject.cpp" => "%YObject.cpp") @ %Core,
+		("%ydraw.h" => "%YDraw.h", "%yres.cpp" => "%YResource.cpp") @ %Service,
+		("%scroll.h" => "%Scroll.h", "%ydesktop.h" => "%YDesktop.h",
+		"%ydesktop.cpp" => "%YDesktop.cpp", "%button.h" => "%Button.h",
+		"%uicontx.h" => "%UIContainerEx.h", "%uicontx.cpp"
+		=> "%UIContainerEx.cpp", "%textarea.h" => "%TextArea.h",
+		"textarea.cpp" => "TextArea.cpp") @ %UI) @ %YSLib,
+		"%chrmap.h" => "%CharacterMapping.h" @ %CHRLib) @ %YFramework);
+	* $comp "mismatched header file name"
+		@ %YFramework.YSLib.(Core, Service).YModule $since b585
+	),
+	/ %Tool.Scripts $=
+	(
+		+ $build '-Wshorten-64-to-32 -Wweak-vtables' @ "default value"
+			@ "variable %CXXFLAGS_IMPL_WARNING for Clang++"
+			@ "%SHBuild-common-options.sh",
+			// See $2015-03 @ %Documentation::Workflow::Annual2013 for details \
+				of '-Wweak-vtables'. Though it is not fit for every project, \
+				it is still tentatively placed here in the script.
+		(
+		/ "allowed %(C_CXXFLAGS_IMPL_WARNING, CXXFLAGS_IMPL_WARNING) to be \
+			overridden" @ "%Toolchain.options.mk";
+		/ "removed '-Wdouble-promotion -Wpacked'" @ "default options"
+			@ "%Toolchain.DS.mk"
+		)
+	)
+),
+
+b585
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -231,11 +642,7 @@ $now
 		/ DLD "implemented floating point constant" @ %ShlExplorer ^ "%float"
 			~ "%double"
 			// To eliminate G++ warning: [-Wdouble-promotion].
-	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ "%main.cpp" => "%Main.cpp"
-		@ %YSTest.Main, ("%ydevice.h" => "%YDevice.h" @ %Core,
-		"%ydraw.h" => "%YDraw.h" @ %Service) @ %YFramework.YSLib
+	)
 ),
 
 b584
@@ -3940,7 +4347,7 @@ b556
 			/ "classes (noncopyable, nonmoveable, cloneable)" @ %Utilities
 				>> %Base;
 			/ $dev "defined virtual destructor out-of-line" @ "class %cloneable"
-				@ ".cpp file" ~ ("class definition" @ "header")
+				@ "non-header file" ~ ("class definition" @ "header")
 				// To eliminate Clang++ warning: [-Wweak-vtables].
 			),
 			(
@@ -3953,7 +4360,7 @@ b556
 					>> %Exception;
 				+ $dev "defined virtual destructor out-of-line"
 					@ "class %(unsupported, unimplemented)"
-					@ ".cpp file" ~ ("class definition" @ "header")
+					@ "non-header file" ~ ("class definition" @ "header")
 					// To eliminate Clang++ warning: [-Wweak-vtables].
 			)
 		)

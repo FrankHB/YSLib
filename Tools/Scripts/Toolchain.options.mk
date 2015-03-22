@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile specifying common toolchain options
-# Version = r65
+# Version = r67
 # Created = 2014-12-06 17:24:04 +0800
-# Updated = 2015-03-19 13:05 +0800
+# Updated = 2015-03-22 17:26 +0800
 # Encoding = ANSI
 
 
@@ -29,8 +29,8 @@ C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
 CFLAGS_STD ?= -std=c11
 
 # TODO: Detect implementation.
-C_CXXFLAGS_IMPL_WARNING := -Wdouble-promotion -Wlogical-op -Wtrampolines 
-CXXFLAGS_IMPL_WARNING := -Wconditionally-supported -Wstrict-null-sentinel \
+C_CXXFLAGS_IMPL_WARNING ?= -Wdouble-promotion -Wlogical-op -Wtrampolines 
+CXXFLAGS_IMPL_WARNING ?= -Wconditionally-supported -Wstrict-null-sentinel \
 	-Wzero-as-null-pointer-constant
 
 CFLAGS_WARNING ?= $(C_CXXFLAGS_WARNING) $(C_CXXFLAGS_IMPL_WARNING)

@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2966
+\version r2971
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-01-18 13:53 +0800
+	2015-03-21 15:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -482,6 +482,11 @@ public:
 	\since build 296
 	*/
 	DefDeMoveCtor(TextRegion)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~TextRegion() override;
 
 	/*!
 	\brief 从文本状态中恢复状态。

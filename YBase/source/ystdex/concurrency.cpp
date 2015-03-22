@@ -11,13 +11,13 @@
 /*!	\file concurrency.cpp
 \ingroup YStandardEx
 \brief 并发操作。
-\version r153
+\version r154
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 19:09:18 +0800
 \par 修改时间:
-	2014-12-22 14:50 +0800
+	2015-03-21 10:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ thread_pool::~thread_pool() ynothrow
 
 			stopped = true;
 		}
-		catch(std::system_error& e)
+		catch(std::system_error&)
 		{
 			yassume(false);
 		}

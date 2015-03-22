@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5048
+\version r5080
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-03-19 12:18 +0800
+	2015-03-21 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -385,7 +385,7 @@ template<typename _type, typename _tIter, typename _tTraits>
 yconstfn bool
 operator==(const pseudo_iterator<_type, _tIter, _tTraits>& x,
 	const pseudo_iterator<_type, _tIter, _tTraits>& y)
-	ynoexcept(noexcept(bool(x.value == y.value)))
+	ynoexcept_spec(bool(x.value == y.value))
 {
 	return x.value == y.value;
 }
@@ -394,7 +394,7 @@ template<typename _type, typename _tIter, typename _tTraits>
 yconstfn bool
 operator<(const pseudo_iterator<_type, _tIter, _tTraits>& x,
 	const pseudo_iterator<_type, _tIter, _tTraits>& y)
-	ynoexcept(noexcept(bool(x.value < y.value)))
+	ynoexcept_spec(bool(x.value < y.value))
 {
 	return x.value < y.value;
 }
@@ -511,8 +511,8 @@ public:
 	//@{
 	reference
 	operator*() const
-		ynoexcept(noexcept(reference(std::declval<transformed_iterator&>().
-		transformer(std::declval<transformed_iterator&>().get()))))
+		ynoexcept_spec(reference(std::declval<transformed_iterator&>().
+		transformer(std::declval<transformed_iterator&>().get())))
 	{
 		return transformer(get());
 	}
@@ -579,7 +579,7 @@ template<typename _type, typename _fTransformer>
 inline bool
 operator==(const transformed_iterator<_type, _fTransformer>& x,
 	const transformed_iterator<_type, _fTransformer>& y)
-	ynoexcept(noexcept(bool(x.get() == y.get())))
+	ynoexcept_spec(bool(x.get() == y.get()))
 {
 	return x.get() == y.get();
 }
@@ -613,7 +613,7 @@ template<typename _type, typename _fTransformer>
 inline bool
 operator<(const transformed_iterator<_type, _fTransformer>& x,
 	const transformed_iterator<_type, _fTransformer>& y)
-	ynoexcept(noexcept(bool(x.get() < y.get())))
+	ynoexcept_spec(bool(x.get() < y.get()))
 {
 	return bool(x.get() < y.get());
 }
@@ -793,8 +793,8 @@ public:
 	//@{
 	pair_iterator&
 	operator+=(difference_type n)
-		ynoexcept(noexcept(yunseq(std::declval<pair_iterator&>().first += n,
-		std::declval<pair_iterator&>().second += n)))
+		ynoexcept_spec(yunseq(std::declval<pair_iterator&>().first += n,
+		std::declval<pair_iterator&>().second += n))
 	{
 		yunseq(this->first += n, this->second += n);
 		return *this;
@@ -802,8 +802,8 @@ public:
 
 	pair_iterator&
 	operator-=(difference_type n)
-		ynoexcept(noexcept(yunseq(std::declval<pair_iterator&>().first -= n,
-		std::declval<pair_iterator&>().second -= n)))
+		ynoexcept_spec(yunseq(std::declval<pair_iterator&>().first -= n,
+		std::declval<pair_iterator&>().second -= n))
 	{
 		yunseq(this->first -= n, this->second -= n);
 		return *this;
@@ -813,14 +813,14 @@ public:
 	//@{
 	yconstfn reference
 	operator*() const
-		ynoexcept(noexcept(reference(*std::declval<pair_iterator&>().first)))
+		ynoexcept_spec(reference(*std::declval<pair_iterator&>().first))
 	{
 		return *this->first;
 	}
 
 	pair_iterator&
-	operator++() ynoexcept(noexcept(yunseq(++std::declval<
-		pair_iterator&>().first, ++std::declval<pair_iterator&>().second)))
+	operator++() ynoexcept_spec(yunseq(++std::declval<pair_iterator&>().first,
+		++std::declval<pair_iterator&>().second))
 	{
 		yunseq(++this->first, ++this->second);
 		return *this;
@@ -829,8 +829,8 @@ public:
 
 	//! \brief 满足双向迭代器要求。
 	pair_iterator&
-	operator--() ynoexcept(noexcept(yunseq(--std::declval<
-		pair_iterator&>().first, --std::declval<pair_iterator&>().second)))
+	operator--() ynoexcept_spec(yunseq(--std::declval<pair_iterator&>().first,
+		--std::declval<pair_iterator&>().second))
 	{
 		yunseq(--this->first, --this->second);
 		return *this;
@@ -838,7 +838,7 @@ public:
 
 	friend bool
 	operator==(const pair_iterator& x, const pair_iterator& y)
-		ynoexcept(noexcept(bool(x.first == y.first && x.second == y.second())))
+		ynoexcept_spec(bool(x.first == y.first && x.second == y.second()))
 	{
 		return x.first == y.first && x.second == y.second();
 	}
@@ -999,18 +999,25 @@ private:
 
 public:
 	transposed_iterator() = default;
+	//! \since build 586
+	//@{
 	yconstfn
 	transposed_iterator(iterator_type i, size_type w, size_type h)
-		: iter(yforward(i)), width((yconstraint(w != 0), w)),
+		ynoexcept(is_nothrow_copy_constructible<iterator_type>::value
+		&& is_nothrow_copy_constructible<size_type>::value)
+		: iter(i), width((yconstraint(w != 0), w)),
 		height((yconstraint(h != 0), h)), row(), col(w)
 	{}
 	yconstfn
 	transposed_iterator(iterator_type i, size_type w, size_type h,
 		size_type idx)
-		: iter(yforward(i)), width((yconstraint(w != 0), w)),
+		ynoexcept(is_nothrow_copy_constructible<iterator_type>::value
+		&& is_nothrow_copy_constructible<size_type>::value)
+		: iter(i), width((yconstraint(w != 0), w)),
 		height((yconstraint(h != 0), h)),
 		row((yconstraint(!(w * h < idx)), idx % h)), col(idx / h)
 	{}
+	//@}
 	transposed_iterator(const transposed_iterator&) = default;
 #if YB_IMPL_MSCPP
 	//! \since build 575 as workaround for Visual C++ 2013
@@ -1105,10 +1112,7 @@ public:
 	iterator_type
 	get() const ynothrowv
 	{
-#if YB_HAS_NOEXCEPT
-		static_assert(noexcept(iter + row * width + col),
-			"Invalid type found.");
-#endif
+		ynoexcept_assert("Invalid type found.", iter + row * width + col);
 
 		return iter + get_index();
 	}
@@ -1137,9 +1141,7 @@ public:
 	yconstfn size_type
 	get_index() const ynothrowv
 	{
-#if YB_HAS_NOEXCEPT
-		static_assert(noexcept(row * width + col), "Invalid type found.");
-#endif
+		ynoexcept_assert("Invalid type found.", row * width + col);
 
 		return row * width + col;
 	}

@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r122
+\version r127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2014-06-01 02:50 +0800
+	2015-03-21 13:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,13 @@
 
 namespace ystdex
 {
+
+namespace any_ops
+{
+
+holder::~holder() = default;
+
+} // namespace any_ops;
 
 any::any(const any& a)
 	: any()
@@ -100,6 +107,9 @@ any::type() const ynothrow
 	}
 	return typeid(void);
 }
+
+
+bad_any_cast::~bad_any_cast() = default;
 
 } // namespace ystdex;
 

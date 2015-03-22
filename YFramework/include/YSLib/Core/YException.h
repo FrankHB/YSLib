@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yexcept.h
+/*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r410
+\version r427
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2014-12-16 21:36 +0800
+	2015-03-21 11:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,13 @@ public:
 	\since build 545
 	*/
 	LoggedEvent(const GeneralEvent&, LevelType = Emergent);
+	//! \since build 586
+	DefDeCopyCtor(LoggedEvent)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~LoggedEvent() override;
 
 	DefGetter(const ynothrow, LevelType, Level, level)
 };
@@ -88,6 +95,13 @@ public:
 	\since build 549
 	*/
 	FatalError(const std::string&, const std::string&);
+	//! \since build 586
+	DefDeCopyCtor(FatalError)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~FatalError() override;
 
 	//! \since build 549
 	DefGetter(const ynothrow, const std::string&, Content, content)

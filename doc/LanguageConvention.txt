@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1429
+\version r1434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-03-15 12:54 +0800
+	2015-03-21 23:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -546,7 +546,7 @@ inline 对 ODR(@5.1.8) 发生影响。
 和 static 、 explicit 配合使用时类同 inline ，参见 @5.5.6.1 。
 
 @5.5.11 属性(attributes) ：
-按需使用属性。在实现支持时可以使用扩展，如 GCC 的 __attribute__ 和 Microsoft Visual C++ 的 __declspec ，并考虑用宏统一包装。
+按需使用属性。在实现支持时可以使用扩展，如 GNU C++ 的 __attribute__ 和 Microsoft Visual C++ 的 __declspec ，并考虑用宏统一包装。
 注意 ISO C++ 的属性被设计为尽量减少语义的改变，参见 http://herbsutter.com/2012/04/05/reader-qa-what-does-it-mean-for-attributes-to-affect-language-semantics/ 。
 
 @5.5.11.1 [[noreturn]] ：
@@ -848,13 +848,15 @@ member-declarator 的可选 brace-or-equal-initializer ，即类定义内的成�
 
 @5.10.5.5.1 noexcept 使用准则：
 使用 noexcept 代替 noexcept(true) 。
+注意违反 noexcept 可能导致程序非正常退出。
 注意 WG21 N3248 明确了标准库使用 noexcept 的准则。
 为了便于程序验证（可测试机性等），不直接在所有无异常抛出保证的函数上使用 noexcept ，仅当函数具有 wide contract([WG21 N3248]) ，即保证不（因为参数或状态违反前置条件）引起未定义行为时使用 noexcept 。
 WG21 N3263 在此基础上明确了标准库容器成员的 noexcept 使用。 WG21 N3279 明确了标准库中的一般使用。
-转移构造函数、转移赋值函数和 swap 需要使用 noexcept 。
+转移构造函数、转移赋值函数和 swap 需要使用 noexcept ，除非依赖于仅由模板参数引入的对应操作非 noexcept 的基类或成员子对象。
 除以下指定的规则外，一般库的设计应遵循标准库上述对异常规范的使用准则。
 资源对象(@5.10.5.1.4) 的析构函数需要保证无异常抛出时不使用允许抛出异常的异常规范。注意隐式推导时调用的函数需要保证具有无异常抛出保证的异常规范。
-仅在隐式异常规范不符合接口目的时使用 noexcept 指定不同行为。以下情形的任意其它析构函数允许显式指定 noexcept 异常规范时，但需要在文档中标注并明确理由：
+仅在隐式异常规范不符合接口目的时使用 noexcept 指定不同行为。
+以下情形的任意其它析构函数允许显式指定 noexcept 异常规范，但需要在文档中标注并明确理由：
 禁止抛出异常：保证不抛出异常，但隐式异常规范不保证无异常抛出；
 允许抛出异常：明确保证不在栈展开(@5.14.1) 时使用，明确允许抛出异常，但隐式异常规范保证无异常抛出；
 允许可能抛出异常：使用 noexcept 的操作数指定可能抛出异常，一般用于模板代码。

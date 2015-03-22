@@ -11,13 +11,13 @@
 /*!	\file Viewer.h
 \ingroup UI
 \brief 样式无关的视图。
-\version r699
+\version r704
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2015-03-01 10:05 +0800
+	2015-03-22 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,8 +244,11 @@ public:
 	DefGetter(const ynothrow, size_t, SharedIndex, idxShared)
 	//! \since build 528
 	DefGetter(const ynothrow, SDst, TopOffset, uTopOffset)
-	//! \brief 取单元总数。
-	DeclIEntry(SDst GetTotal() const)
+	/*!
+	\brief 取单元总数。
+	\since build 586
+	*/
+	DeclIEntry(size_t GetTotal() const)
 	//! \brief 取单元部件引用。
 	DeclIEntry(IWidget& GetUnitRef() const)
 	/*!

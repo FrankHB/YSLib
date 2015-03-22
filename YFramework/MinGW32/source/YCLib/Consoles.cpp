@@ -9,15 +9,16 @@
 */
 
 /*!	\file Consoles.cpp
-\ingroup NBuilder
+\ingroup YCLib
+\ingroup MinGW32
 \brief 控制台。
-\version r232
+\version r235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-01-10 15:56 +0800
+	2015-03-22 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,7 +126,7 @@ WConsole::Erase(wchar_t c)
 }
 
 void
-WConsole::Fill(::COORD coord, size_t n, wchar_t c)
+WConsole::Fill(::COORD coord, unsigned long n, wchar_t c)
 {
 	::FillConsoleOutputCharacterW(h_std, c, n, coord, {});
 	::FillConsoleOutputAttribute(h_std, Attributes, n, coord, {});

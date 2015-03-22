@@ -11,13 +11,13 @@
 /*!	\file YMessage.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1241
+\version r1243
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2015-02-19 14:47 +0800
+	2015-03-21 16:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,6 +90,12 @@ MessageQueue::Remove(Priority p)
 {
 	erase(upper_bound(p), end());
 }
+
+
+ImplDeDtor(MessageException)
+
+
+ImplDeDtor(MessageSignal)
 
 } // namespace Messaging;
 

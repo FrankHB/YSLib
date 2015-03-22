@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1057
+\version r1074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2014-12-30 01:20 +0800
+	2015-03-21 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,12 @@
 #ifndef YB_INC_ystdex_cast_hpp_
 #define YB_INC_ystdex_cast_hpp_ 1
 
-#include "type_op.hpp"
+#include "type_op.hpp" // for ystdex::decay_t, ystdex::is_same,
+//	ystdex::array_ref_decay, ystdex::is_object, ystdex::is_void,
+//	ystdex::is_function;
+#include <memory> // for std::addressof;
 #include "cassert.h"
-#include <memory>
-#include <typeinfo> // for dynamic_cast;
+#include <typeinfo> // for std::bad_cast;
 #include <initializer_list> // for std::initializer_list;
 
 namespace ystdex
@@ -150,11 +152,9 @@ polymorphic_cast(_tSrc* x)
 	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
 	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
 
-	const auto tmp(dynamic_cast<_pDst>(x));
-
-	if(!tmp)
-		throw std::bad_cast();
-	return tmp;
+	if(const auto p = dynamic_cast<_pDst>(x))
+		return p;
+	throw std::bad_cast();
 }
 
 /*!
@@ -189,7 +189,7 @@ polymorphic_downcast(_tSrc* x) ynothrow
 \pre 静态断言： _rDst 是左值引用。
 */
 template<typename _rDst, class _tSrc>
-yconstfn enable_if_t<is_lvalue_reference<_rDst>::value, _rDst>
+yconstfn yimpl(enable_if_t)<is_lvalue_reference<_rDst>::value, _rDst>
 polymorphic_downcast(_tSrc& x) ynothrow
 {
 	return *ystdex::polymorphic_downcast<remove_reference_t<_rDst>*>(
@@ -201,7 +201,7 @@ polymorphic_downcast(_tSrc& x) ynothrow
 \pre 静态断言： _rDst 是右值引用。
 */
 template<typename _rDst, class _tSrc>
-yconstfn enable_if_t<is_rvalue_reference<_rDst>::value
+yconstfn yimpl(enable_if_t)<is_rvalue_reference<_rDst>::value
 	&& !is_reference<_tSrc>::value, _rDst>
 polymorphic_downcast(_tSrc&& x) ynothrow
 {
@@ -223,10 +223,7 @@ polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& x) ynothrow
 	using dst_type = std::unique_ptr<_tDst, _tDeleter>;
 	using pointer = typename dst_type::pointer;
 	auto ptr(x.release());
-#if YB_HAS_NOEXCEPT
-	static_assert(noexcept(polymorphic_downcast<pointer>(ptr)),
-		"Invalid cast found.");
-#endif
+	ynoexcept_assert("Invalid cast found.", polymorphic_downcast<pointer>(ptr));
 
 	yassume(bool(ptr));
 	return dst_type(polymorphic_downcast<pointer>(ptr),

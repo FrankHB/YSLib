@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2119
+\version r2121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-03-11 00:01 +0800
+	2015-03-22 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,7 +354,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 
 #if YCL_Win32
 		return reinterpret_cast<char16_t*>(
-			::_wgetcwd(reinterpret_cast<wchar_t*>(buf), size));
+			::_wgetcwd(reinterpret_cast<wchar_t*>(buf), int(size)));
 #else
 		if(const auto cwd = ::getcwd(reinterpret_cast<char*>(buf), size))
 			try
@@ -503,6 +503,9 @@ GetFileSizeOf(std::FILE* fp)
 	return GetFileSizeOf(fileno(fp));
 #endif
 }
+
+
+ImplDeDtor(FileOperationFailure)
 
 
 DirectorySession::DirectorySession(const char* path)

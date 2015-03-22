@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r281
+\version r283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-03-19 12:31 +0800
+	2015-03-21 16:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,7 @@ Exception::Exception(int ev, const std::error_category& ecat,
 	: system_error(ev, ecat, msg),
 	level(lv)
 {}
+ImplDeDtor(Exception)
 
 
 #if YCL_Win32
@@ -262,7 +263,7 @@ Terminal::Terminal(std::FILE* fp)
 	}())
 {}
 
-Terminal::DefDeDtor(Terminal)
+ImplDeDtor(Terminal)
 
 bool
 Terminal::RestoreAttributes()

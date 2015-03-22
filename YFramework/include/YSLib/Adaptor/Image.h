@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1297
+\version r1329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2015-03-17 18:20 +0800
+	2015-03-22 07:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,7 +159,16 @@ enum class ImageMetadataModel
 \since build 402
 */
 class YF_API BadImageAlloc : public std::bad_alloc
-{};
+{
+public:
+	//! \since build 586
+	//@{
+	DefDeCtor(BadImageAlloc)
+	DefDeCopyCtor(BadImageAlloc)
+	//! \brief 虚析构：类定义外默认实现。
+	~BadImageAlloc() override;
+	//@}
+};
 
 
 /*!
@@ -172,6 +181,14 @@ class YF_API UnsupportedImageFormat
 public:
 	//! \since build 566
 	using GeneralEvent::GeneralEvent;
+
+	//! \since build 586
+	DefDeCopyCtor(UnsupportedImageFormat)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~UnsupportedImageFormat() override;
 };
 
 
@@ -185,6 +202,14 @@ class YF_API UnknownImageFormat : public UnsupportedImageFormat
 public:
 	//! \since build 566
 	using UnsupportedImageFormat::UnsupportedImageFormat;
+
+	//! \since build 586
+	DefDeCopyCtor(UnknownImageFormat)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~UnknownImageFormat() override;
 };
 
 
@@ -289,6 +314,7 @@ public:
 	\brief 构造：从矩形像素图缓冲区按指定大小和扫描线跨距增量复制并转换图像数据。
 	\pre 间接断言：输入指针非空。
 	\throw GeneralEvent 转换失败。
+	\exception LoggedEvent 异常中立：由跨距计算的偏移值范围检查失败。
 	\note 扫描线跨距的单位为字节，
 		等于图像的宽乘以每像素字节数与输入的扫描线跨距增量之和。
 	\since build 471
@@ -410,7 +436,7 @@ public:
 	SDst
 	GetHeight() const ynothrow;
 	//! \since build 417
-	DefGetter(const ynothrow, Size, Size, {GetWidth(), GetHeight()});
+	DefGetter(const ynothrow, Size, Size, {GetWidth(), GetHeight()})
 	//! \since build 417
 	SDst
 	GetPitch() const ynothrow;
@@ -733,6 +759,7 @@ public:
 	const void*
 	GetValuePtr() const ynothrow;
 
+	//! \warning 参数截断至 <tt>unsigned long</tt> 。
 	bool
 	SetCount(size_t) const ynothrow;
 	bool
@@ -741,6 +768,7 @@ public:
 	SetID(ID) const ynothrow;
 	bool
 	SetKey(const char*) const ynothrow;
+	//! \warning 参数截断至 <tt>unsigned long</tt> 。
 	bool
 	SetLength(size_t) const ynothrow;
 	bool
@@ -893,7 +921,10 @@ public:
 	\since build 457
 	*/
 	//@{
-	//! \note 使用图像内存的本机句柄和大小。
+	/*!
+	\note 使用图像内存的本机句柄和大小。
+	\warning 参数截断至 <tt>unsigned long</tt> 。
+	*/
 	static ImageFormat
 	DetectFormat(ImageMemory::NativeHandle, size_t);
 	//! \note 使用指定 UTF-8 文件名。

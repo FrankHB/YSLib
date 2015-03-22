@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3731
+\version r3735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2015-02-19 14:47 +0800
+	2015-03-21 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@ namespace YSLib
 
 namespace UI
 {
+
+ImplDeDtor(ScrollEventArgs)
 
 namespace
 {
@@ -304,6 +306,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 		}
 	};
 }
+ImplDeDtor(HorizontalTrack)
 
 
 VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
@@ -328,6 +331,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 		}
 	};
 }
+ImplDeDtor(VerticalTrack)
 
 
 ScrollBar::ScrollBar(const Rect& r, Orientation o, SDst min_thumb)
@@ -452,6 +456,7 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 			CallEvent<CursorWheel>(vsbVertical, std::move(e));
 	};
 }
+ImplDeDtor(ScrollableContainer)
 
 Size
 ScrollableContainer::FixLayout(const Size& s)

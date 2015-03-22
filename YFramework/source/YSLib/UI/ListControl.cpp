@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2139
+\version r2144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2015-03-19 13:50 +0800
+	2015-03-22 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,7 +100,7 @@ MTextList::GetItemHeightCore() const
 	YAssert(item_h != 0, "Invalid item height found.");
 	return item_h;
 }
-SDst
+size_t
 MTextList::GetTotal() const
 {
 	return GetList().size();
@@ -297,12 +297,13 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 	if(offset >= 0 && n != 0)
 	{
 		const auto item_h(GetItemHeight());
-		Rect r(0, item_h * offset - uTopOffset, GetWidth(), item_h * n);
+		Rect r(0, SPos(item_h * offset - uTopOffset), GetWidth(),
+			SDst(item_h * n));
 
 		if(r.Y < 0 || SDst(r.Y) < GetHeight())
 		{
 			r.Y = max<SPos>(0, r.Y);
-			RestrictUnsignedStrict(r.Height, GetHeight() - r.Y);
+			RestrictUnsignedStrict(r.Height, SDst(GetHeight() - r.Y));
 			Invalidate(*this, r);
 		}
 	}
@@ -336,7 +337,7 @@ TextList::LocateViewPosition(SDst h)
 
 	if(fvh <= height)
 		return;
-	RestrictUnsignedStrict(h, fvh - height - 1);
+	RestrictUnsignedStrict(h, SDst(fvh - height - 1));
 	if(GetViewPosition() != h)
 	{
 		const SDst item_h(GetItemHeight());

@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2135
+\version r2137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-03-17 18:11 +0800
+	2014-03-22 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,7 +322,7 @@ public:
 	template<typename _type>
 	explicit yconstfn
 	Size(const GBinaryGroup<_type>& val) ynothrow
-		: Width(val.X), Height(val.Y)
+		: Width(static_cast<SDst>(val.X)), Height(static_cast<SDst>(val.Y))
 	{}
 	/*!
 	\brief 构造：使用两个纯量。
@@ -331,7 +331,7 @@ public:
 	template<typename _tScalar1, typename _tScalar2>
 	yconstfn
 	Size(_tScalar1 w, _tScalar2 h) ynothrow
-		: Width(w), Height(h)
+		: Width(static_cast<SDst>(w)), Height(static_cast<SDst>(h))
 	{}
 
 	//! \since build 554

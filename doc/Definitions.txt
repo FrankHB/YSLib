@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13019
+\version r13025
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-02-01 08:05 +0800
+	2015-03-21 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,6 +104,8 @@ yconstfn
 ythrow(*)?
 ynothrow
 ynoexcept(*)?
+ynoexcept_assert(_msg, *)?
+ynoexcept_spec(*)
 yconstraint(_expr)
 yassume(_expr)
 yoffsetof(_type, _member)
@@ -220,7 +222,6 @@ $header YBaseMacro
 {
 YInterface
 YInterfaceHead(_n)
-PDeclI(_n)
 DeclI(_attr, _n)
 DeclDerivedI(_attr, _n, ...)
 ImplI(...)
@@ -241,8 +242,6 @@ TryExpr(...)
 TryRet(...)
 CatchExpr(_ex, ...)
 CatchRet(_ex, ...)
-DefEmptyDtor(_t)
-ImplEmptyDtor(_t)
 DefDeCtor(_t)
 DefDelCtor(_t)
 DefDeCopyCtor(_t)
@@ -252,6 +251,7 @@ DefDelMoveCtor(_t)
 DefDeCopyMoveCtor(_t)
 DefDeDtor(_t)
 DefDelDtor(_t)
+ImplDeDtor(_t)
 DefDeCopyAssignment(_t)
 DefDelCopyAssignment(_t)
 DefDeMoveAssignment(_t)

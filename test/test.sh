@@ -14,6 +14,8 @@ SHBuild_NoAdjustSubsystem=true
 : ${AR:='gcc-ar'}
 . $SHBuild_ToolDir/SHBuild-BuildApp.sh
 
+CXXFLAGS="$CXXFLAGS -Wno-double-promotion"
+
 INCLUDE_PCH='../YBase/include/stdinc.h'
 INCLUDES=" \
 	-I../YFramework/include -I../YFramework/Android/include \

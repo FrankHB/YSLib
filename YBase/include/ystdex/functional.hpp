@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1530
+\version r1549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-03-05 01:26 +0800
+	2015-03-20 17:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -914,39 +914,36 @@ struct combined_hash<_type> : std::hash<_type>
 namespace details
 {
 
-template<bool, class, class>
+//! \since build 586
+//@{
+template<class, class>
 struct combined_hash_tuple;
 
-template<bool _bNoExcept, typename _type, size_t... _vSeq>
-struct combined_hash_tuple<_bNoExcept, _type, variadic_sequence<_vSeq...>>
+template<typename _type, size_t... _vSeq>
+struct combined_hash_tuple<_type, variadic_sequence<_vSeq...>>
 {
 	static yconstfn size_t
-	call(const _type& tp) ynoexcept(_bNoExcept)
+	call(const _type& tp)
+		ynoexcept_spec(ystdex::hash_combine_seq(0, std::get<_vSeq>(tp)...))
 	{
 		return ystdex::hash_combine_seq(0, std::get<_vSeq>(tp)...);
 	}
 };
+//@}
 
 } // namespace details;
 
 template<typename... _types>
 struct combined_hash<std::tuple<_types...>>
 {
-public:
 	using type = std::tuple<_types...>;
 
-#if YB_HAS_NOEXCEPT
-private:
-	//! \brief 判断使用 noexcept 并避免 constexpr 失败。
-	static yconstexpr bool is_noexcept_v = noexcept(
-		ystdex::hash_combine_seq(0, std::declval<const _types&>()...));
-#endif
-
-public:
+	//! \since build 586
 	yconstfn size_t
-	operator()(const type& tp) const ynoexcept(is_noexcept_v)
+	operator()(const type& tp) const ynoexcept_spec(
+		ystdex::hash_combine_seq(0, std::declval<const _types&>()...))
 	{
-		return details::combined_hash_tuple<is_noexcept_v, type,
+		return details::combined_hash_tuple<type,
 			make_natural_sequence_t<sizeof...(_types)>>::call(tp);
 	}
 };

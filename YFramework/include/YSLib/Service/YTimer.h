@@ -11,13 +11,13 @@
 /*!	\file YTimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1118
+\version r1123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2015-03-17 02:15 +0800
+	2015-03-21 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,8 +95,11 @@ public:
 	Timer(Duration = {}, bool = true) ynothrow;
 	//! \since build 555
 	DefDeCopyCtor(Timer)
-	//! \since build 416
-	virtual DefDeDtor(Timer)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 416
+	*/
+	virtual ~Timer();
 
 	//! \since build 555
 	DefDeCopyAssignment(Timer)

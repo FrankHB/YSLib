@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4985
+\version r5013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-02-02 04:14 +0800
+	2015-03-21 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,9 @@ DeclDerivedI(, GIHEvent, ystdex::cloneable)
 	//! \since build 409
 	DeclIEntry(GIHEvent* clone() const ImplI(ystdex::cloneable))
 EndDecl
+
+template<typename... _tParams>
+GIHEvent<_tParams...>::DefDeDtor(GIHEvent)
 
 
 /*!
@@ -80,17 +83,11 @@ private:
 		//@{
 		using decayed_type = ystdex::decay_t<_tFunctor>;
 
-#if YB_HAS_NOEXCEPT
-		/*!
-		\brief 判断使用 noexcept 并避免 constexpr 失败。
-		\since build 468
-		*/
-		static yconstexpr bool is_noexcept_v = noexcept(std::declval<
-			const decayed_type>() == std::declval<const decayed_type>());
-#endif
-
+		//! \since build 586
 		static bool
-		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept(is_noexcept_v)
+		AreEqual(const GHEvent& x, const GHEvent& y)
+			ynoexcept_spec(std::declval<const decayed_type>()
+			== std::declval<const decayed_type>())
 		{
 			const auto p(x.template target<decayed_type>());
 
@@ -872,27 +869,15 @@ public:
 	using PointerType = unique_ptr<ItemType>;
 
 private:
-#if YB_HAS_NOEXCEPT
-	/*
-	\brief 避免 constexpr 失败的 noexcept 检查。
-	\since build 468
-	*/
-	template<typename _type>
-	struct is_noexcept
-	{
-		static yconstexpr bool value
-			= noexcept(PointerType(std::declval<_type>()));
-	};
-#endif
-
 	PointerType ptr;
 
 public:
-	//! \since build 553
+	//! \since build 586
 	template<typename _type, yimpl(
 		typename = ystdex::exclude_self_ctor_t<GEventPointerWrapper, _type>)>
 	inline
-	GEventPointerWrapper(_type&& p) ynoexcept(is_noexcept<_type>::value)
+	GEventPointerWrapper(_type&& p)
+		ynoexcept(std::is_nothrow_constructible<PointerType, _type>::value)
 		: ptr(Nonnull(p))
 	{}
 	/*!

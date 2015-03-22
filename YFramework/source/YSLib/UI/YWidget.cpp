@@ -11,13 +11,13 @@
 /*!	\file YWidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4471
+\version r4476
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-02-04 15:41 +0800
+	2015-03-21 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,9 @@ namespace YSLib
 
 namespace UI
 {
+
+ImplDeDtor(IWidget)
+
 
 bool
 Contains(const IWidget& wgt, SPos x, SPos y)
@@ -210,13 +213,15 @@ Widget::Widget(const Rect& r)
 	InitializeEvents();
 }
 Widget::Widget(const Rect& r, HBrush b)
-	: view_ptr(new View(r)), renderer_ptr(new Renderer()),
+	// XXX: $2015-03 @ %Documentation::Workflow::Annual2015.
+	: IWidget(), view_ptr(new View(r)), renderer_ptr(new Renderer()),
 	controller_ptr(new WidgetController({})), Background(b)
 {
 	InitializeEvents();
 }
 Widget::Widget(const Widget& wgt)
-	: view_ptr(ClonePolymorphic(wgt.view_ptr)),
+	// XXX: $2015-03 @ %Documentation::Workflow::Annual2015.
+	: IWidget(), view_ptr(ClonePolymorphic(wgt.view_ptr)),
 	renderer_ptr(ClonePolymorphic(wgt.renderer_ptr)),
 	controller_ptr(ClonePolymorphic(wgt.controller_ptr)),
 	Background(wgt.Background)

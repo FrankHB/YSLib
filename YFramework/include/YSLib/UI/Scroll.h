@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file scroll.h
+/*!	\file Scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2751
+\version r2778
 \author FrankHB <frankhb1989@gmail.com>
-\since build 194
+\since build 586
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2014-11-12 04:11 +0800
+	2015-03-21 18:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_scroll_h_
-#define YSL_INC_UI_scroll_h_ 1
+#ifndef YSL_INC_UI_Scroll_h_
+#define YSL_INC_UI_Scroll_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_Button
@@ -91,6 +91,13 @@ public:
 		: UIEventArgs(wgt), pair<float, float>(val, old_val),
 		Category(t)
 	{}
+	//! \since build 586
+	DefDeCopyCtor(ScrollEventArgs)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~ScrollEventArgs() override;
 
 	/*!
 	\brief 取值。
@@ -263,6 +270,11 @@ public:
 	explicit
 	HorizontalTrack(const Rect& = {}, SDst = 8);
 	DefDeMoveCtor(HorizontalTrack)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~HorizontalTrack() override;
 
 	DefGetter(const ynothrow ImplI(ATrack), Orientation, Orientation,
 		Horizontal)
@@ -284,6 +296,11 @@ public:
 	explicit
 	VerticalTrack(const Rect& = {}, SDst = 8);
 	DefDeMoveCtor(VerticalTrack)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~VerticalTrack() override;
 
 	DefGetter(const ynothrow ImplI(ATrack), Orientation, Orientation, Vertical)
 };
@@ -402,6 +419,11 @@ public:
 	explicit
 	ScrollableContainer(const Rect& = {});
 	DefDeMoveCtor(ScrollableContainer)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~ScrollableContainer() override;
 
 	//! \since build 356
 	DefWidgetMemberIteration(hsbHorizontal, vsbVertical)

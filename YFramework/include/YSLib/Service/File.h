@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1156
+\version r1159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-12-11 20:39 +0800
+	2015-03-21 11:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,7 +95,7 @@ public:
 	\since build 273
 	*/
 	PDefH(int, Seek, ptrdiff_t offset, int whence) const
-		ImplRet(std::fseek(fp, offset, whence))
+		ImplRet(std::fseek(fp, long(offset), whence))
 
 	/*!
 	\brief 检测文件结束符。
@@ -219,7 +219,7 @@ operator>>(File& f, _tString& str)
 
 	int c;
 
-	while((c = std::fgetc(f.GetPtr())) > 0 && !std::iswspace(c))
+	while((c = std::fgetc(f.GetPtr())) > 0 && !std::isspace(c))
 		str += c;
 	return f;
 }
