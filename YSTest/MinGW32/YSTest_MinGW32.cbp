@@ -122,7 +122,9 @@
 			<Add option="-Wno-format-nonliteral" />
 			<Add option="-Wpacked" />
 			<Add option="-Wdouble-promotion" />
+			<Add option="-Wfloat-equal" />
 			<Add option="-Wlogical-op" />
+			<Add option="-Wsign-conversion" />
 			<Add option="-Wtrampolines" />
 			<Add option="-Wconditionally-supported" />
 			<Add option="-Wstrict-null-sentinel" />

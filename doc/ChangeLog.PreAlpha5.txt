@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r11616
+\version r12035
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-03-22 17:39 +0800
+	2015-03-24 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,414 @@ $import $HISTORY;
 
 $now
 (
-	// NOTE: x86_64 Clang++ is used to test for warnings.
+	// NOTE: x86_64 Clang++ 3.5.1 is used to test for warnings. G++ warnings \
+		are not all eliminated. A lot of warnings are remained using G++ 4.9.1 \
+		on platform %MinGW, but a few on other platforms because newly added
+		'-Wfloat-equal -Wsign-conversion' is not updated for makefiles.
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				* "missing normal value check for 2nd parameter"
+					@ "constructor %ProgressBar" @ %Progress $since b271
+					$= (/ DLD "comparing" ^ "%std::isnormal" ~ '== 0'),
+					// Also to eliminate warning: [-Wfloat-equal].
+				* "wrong return value" @ "member functions %Widget::(SetX, \
+					SetY)" @ %YWidget $since b267 $=
+					// Also to eliminate warning: [-Wsign-conversion].
+					(/ "return value" -> 'SPos' ~ 'SDst'),
+				/ DLD "cast to 'ucs2_t'"
+					@ "member function %GUIState::SendInput#1" @ %YGUI,
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "cast to 'SPos'" @ ("function %LocateMenu, constructor \
+					%Menu" @ %Menu, "functions %(DrawTick, DrawCross, \
+					RectDrawCornerArrowOutline, DrawRectRoundCorner)" @ %YStyle,
+					"member function %TreeList::GetIndentBox, constructor \
+					%TreeList" @ %TreeView, "member functions \
+					%TextBox::(GetCaretLocation, GetCaretPosition)" @ %TextBox,
+					"constructors %(HorizontalTrack, VerticalTrack), function \
+					%DrawTrackBackground, member functions \
+					%ATrack::(SetThumbPosition, LocateThumb, CheckArea), \
+					constructor %ScrollBar" @ %Scroll, "constructors \
+					%(DialogBox, DialogPanel)" @ %UIContainerEx, "member \
+					function %BorderResizer::(CheckArea, Wrap)" @ %Border,
+					"constructor, function %Refresh" @ "class %DropDownList"
+					@ %ComboList, "member function %MLabel::GetAlignedPenOffset"
+					@ %Label, "constructor, function %InvalidateSelected"
+					@ "class %TextList" @ %ListControl, "member function \
+					%TabControl::GetPageBounds" @ %TabControl, "member \
+					function %AMUnitList::CheckPoint" @ %Viewer),
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "implementation" @ "functions %(RectDrawArrow, \
+					RectDrawCornerArrow, RectDrawArrowOutline)" ^ 'SPos' ~
+					'SDst',
+					// To eliminate warning: [-Wsign-conversion].
+				/ "return type" @ "member function %ATrack::GetTrackPosition"
+					@ %Scroll -> 'SPos' ~ 'SDst',
+					// Also to eliminate warning: [-Wsign-conversion].
+				/ DLD "cast to 'size_t'" @ ("member function %Find" @ ("class \
+					%TabControl" @ %TabControl, "class %MLinearUIContainer"
+					@ %MLinearUIContainer, "constructor %DropDownList"
+					@ %ComboList), "member function \
+					%(AMUnitList::GetLastLabelIndexClipped, CheckPoint)"
+					@ %Viewer, "member function %TextList::InvalidateSelected2"
+					@ %ListControl, "member function %TextBox::GetCaretPosition"
+					@ %TextBox),
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "cast to 'ptrdiff_t'" @ ("member functions \
+					%SequenceViewer::(Offset, IncreaseHead, IncreaseSelected)"
+					@ %Viewer,
+					"implementation" @ "class %TreeList" @ %TreeList),
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "cast to 'IndexType'" @ "member function %TreeList::Bind"
+					@ %TreeView,
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "cast to 'IndexType'"
+					@ "member function %BorderResizer::Wrap" @ %Border,
+					// To eliminate warning: [-Wsign-conversion].
+				/ @ "member function %WidgetLoader::DetectWidgetNode" @ %Loader
+					$=
+				(
+					/ "check values for size" ^ "%CheckNonnegtiveScalar";
+					* $comp "missing overflow check" $since b433
+				),
+				/ DLD "implemented constructor %TreeList" @ %TreeView
+					^ "%cbegin" ~ "%begin"
+			),
+			/ %Service $=
+			(
+				/ %YStyle $=
+				(
+					* "missing finite value check for saturation value"
+						@ "member function %HSL::operator Color" $since b271 $=
+					(
+						+ "assertion for saturation" ^ "%std::isfinite",
+						/ DLD "comparing" ^ "%std::isnormal" ~ '== 0'
+						// Also to eliminate warning: [-Wfloat-equal].
+					),
+					/ $lib "simplified implementation" @ "constructor %HSV"
+						// It now uses less 'float'. Also to eliminate \
+							warning: [-Wfloat-equal].
+				),
+				/ DLD "cast to 'SDst'"
+					@ ("functions %(GetHorizontalOf, GetVerticalOf)" @ %YGDI,
+					"functions %(PlotHLineSeg, PlotVLineSeg, PlotLineSeg)"
+					@ %YDraw, "member function %TextState::GetCharBounds, \
+					function %GetTextLineBaseOf" @ %TextBase,
+					"function templates %FetchStringWidth#(3, 4)" @ %TextLayout,
+					"member function %TextRegion::Scroll#1" @ %TextRenderer,
+					"blit component calculation" @ %YBlit),
+					// To eliminate warning: [-Wsign-conversion].
+				/ %YGDI $=
+				(
+					/ "parameter type" @ "member function %Padding::operator*="
+						-> 'size_t' ~ 'SDst',
+					/ "function %Padding::operator* for %Padding" $=
+					(
+						/ "parameter type" @  -> 'size_t' ~ 'SDst',
+						/ DLD "cast to ('SPos', 'ptrdiff_t') for components"
+							// To eliminate warning: [-Wsign-conversion].
+					),
+					/ DLD "cast to 'SPos', 'SDst'"
+						@ "functions %(operator+, FetchMargin), ClipMargin)"
+						// To eliminate warning: [-Wsign-conversion].
+				),
+				/ DLD "cast to 'ptrdiff_t'"
+					@ ("functions %(PutPixel, PlotHLineSeg, PlotVLineSeg)"
+					@ %YDraw, "member function %TextFileBuffer::GetPosition"
+					@ %TextManager, "member function %SwitchPageDiff"
+					@ %ImageProcessing,
+				/ "member functions %TextFile::(Locate, Rewind)" @ %TextFile)
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "cast to 'SPos'" @ ("functions %(PlotHLineSeg, \
+					PlotVLineSeg, PlotLineSeg, DrawRect)" @ %YDraw, "functions \
+					%(AdjustEndOfLine, SetCurrentTextLineNOf)" @ %TextBase,
+					"function %FetchLastLineBasePosition" @ %TextLayout,
+					"function %AdjustOffset" @ %ImageProcessing, "blit \
+					component calculation" @ %YBlit, "member function \
+					%TextRegion::ClearTextLine" @ %TextRenderer),
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "implementation" @ "functions %(DrawCircle, FillCircle)"
+					@ %YDraw,
+					// To eliminate warning: [-Wsign-conversion].
+				/ "return type" @ "function %GetCurrentTextLineNOf" @ %TextBase
+					-> 'ptrdiff_t' ~ 'std::uint16_t'
+				/ %TextLayout $=
+				(
+					/ @ "function %AdjustBottomMarginOf" $=
+					(
+						/ "return type" -> 'void' ~ 'SDst',
+						/ DLD "cast to 'SPos'",
+							// To eliminate warning: [-Wsign-conversion].
+					)
+					/ DLD "implemented function template %FetchMaxTextWidth"
+						^ 'SDst()' ~ '0',
+						// To eliminate warning: [-Wsign-conversion].
+					/ DLD "implemented function %FetchLastLineBasePosition"
+						^ "%GetTextLineBaseOf",
+					* "missing restriction on nonnegative bottom margin \
+						component" @ "function %FetchResizedBottomMargin" $since
+						b365,
+						// Also to eliminate warning: [-Wsign-conversion].
+					* "missing nonnegative result check"
+						@ "function %FetchCharWidth" $since b280
+						// Also to eliminate warning: [-Wsign-conversion].
+				),
+				/ DLD "implemented inline functions"
+					"%(SetPenOf, AdjustEndOfLine, CarriageReturn)" @ %TextBase
+					^ "macros %(PDefH, ImplExpr)",
+				/ DLD "implemented inline functions" ("%(GetTextLineHeightOf, \
+					GetTextLineHeightExOf, GetCurrentTextLineNOf, \
+					GetTextLineBaseOf)" @ %TextBase, \
+					"%(FetchResizedBottomMargin, AdjustBottomMarginOf)"
+					@ %TextLayout) ^ "macros %(PDefH, ImplRet)"),
+				/ DLD %YBlit $=
+				(
+					// To eliminate warning: [-Wsign-conversion].
+					/ "cast to '_Diff'" @ "function template %BlitScan",
+					/ "cast to 'difference_type' for iterator addition"
+						@ "function template %Blit"
+				),
+				/ %CharRenderer $=
+				(
+					* "wrong return type 'SDst'" ~ 'SPos' @ "function template \
+						%GetEndOfLinePositionOf" $since b372,
+						// Also To eliminate warning: [-Wsign-conversion].
+					(
+					+ "function template GetEndOfLineOffsetOf",
+					(
+					+ "enum %PutCharResult";
+					+ "function %HasPutNewline",
+					/ @ "function %PutCharBase" $=
+					(
+						/ "return type" -> 'PutCharResult' ~ 'std::uint8_t';
+						/ "differentiated printable character from unprintable"
+					),
+					/ "return type" @ "function template %PutChar"
+						-> 'PutCharResult' ~ 'std::uint8_t'
+					);
+					+ "function template %PutChar with EOL parameter";
+					/ "simplified function template %PutChar witout EOL"
+						^ "new overloading, %GetEndOfLineOffsetOf"
+						// Also to eliminate warning: [-Wsign-conversion].
+					)
+				),
+				/ DLD "cast to 'size_t'" @ (%CharRenderer,
+					"function %GetRootNameLength" @ %FileSystem,
+					"member function %SwitchPageDiff" @ %ImageProcessing),
+					// To eliminate warning: [-Wsign-conversion].
+				/ %TextRenderer $=
+				(
+					/ @ "member function %TextRegion::Scroll#2" $=
+					(
+						// Also to eliminate warning: [-Wsign-conversion].
+						* "missing restriction on nonnegative vertical margin \
+							components" $since b365,
+						* "missing check to ensure sum of vertical margin \
+							components is less than height" $orig (@ "member \
+							function %YTextRegion::Move" @ %Shell.YText $since
+							$before b132)
+					),
+					/ @ "function templates %((PrintLine, PutLine, \
+						PrintString, PutString)#3)" $=
+					(
+						/ DLD "cast to 'String::size_type'",
+							// To eliminate warning: [-Wsign-conversion].
+						/ "dispatch call" !^ "ADL"
+					),
+					/ "lifted EOL position calculation out of loop"
+						@ "%(PutLine, PutString)" @ %TextRenderer $dep_from
+						%CharRenderer
+						// This improves performance on assumption of the \
+							renderer does not modify the EOL position in the \
+							loop.
+				),
+				/ @ "class %File" @ %File $=
+				(
+					/ @ "function %GetPositon" $=
+					(
+						/ "threw %LoggedEvent on failure",
+						/ "return type" -> 'size_t' ~ 'ptrdiff_t'
+							// Also to eliminate warning: [-Wsign-conversion].
+					),
+					/ $lib "simplified constructor by reducing redundant file \
+						seek on querying initial file size"
+				),
+				- "function %GetTextPosition" @ "class %TextFile" @ %TextFile
+			),
+			/ %Core $=
+			(
+				// To eliminate warning: [-Wsign-conversion].
+				/ %YGDIBase $=
+				(
+					/ DLD "cast to 'SPos'" @ "functions %(LocateCenter, \
+						RotateCenter, TransposeCCW, TransposeCW), member \
+						functions %Rect::operator(&=, |=)",
+					/ DLD "cast to 'SDst'" @ "function %MakeRect, member \
+						function %Rect::operator(&=, |=)",
+					/ DLD "cast to '_type'" @ "function templates \
+						%operator(+, -) for %GBinaryGroup instance and %Size"
+				),
+				/ DLD "cast to 'ptrdiff_t'" @ "function %at" @ %ValueNode
+			),
+			/ %Adaptor $=
+			(
+				/ %Image $=
+				(
+					/ DLD "cast to 'int'"
+						@ "member function %ImageCodec::DetectFormat#1",
+						// To eliminate warning: [-Wsign-conversion].
+					/ @ "class %HBitmap" $=
+					(
+						// Also to eliminate warning: [-Wsign-conversion].
+						* "missing size component range check" @ "constructors \
+							with 'const Size&' parameter" $since b417
+							$= (+ "size component check" ^ "%CheckScalar"),
+						* "missing size range check" @ "%operator CompactPixmap"
+							b471
+							$= (+ "size check" ^ "%CheckScalar")
+					),
+					/ @ "%HMultiBitmap constructor implementation" $=
+					(
+						* "missing nonnegative check for page count procedure \
+							result" $since b456,
+						/ DLD "cast to 'size_t'"
+							// To eliminate warning: [-Wsign-conversion].
+					)
+				),
+				/ %Font $=
+				(
+					/ @ "member function %FontCache::LoadTypefaces" $=
+					(
+						+ "trace for loaded face number with level \
+							%Informative",
+						/ "cast result to 'size_t'"
+							// To eliminate warning: [-Wsign-conversion].
+					),
+					/ @ "class %Typeface" $=
+					(
+						// To eliminate warning: [-Wsign-conversion].
+						/ "cast to 'std::int32_t'"
+							@ "member function %Typeface::LookupBitmap"
+						/ "cast to 'long'" @ "constructor",
+					)
+				)
+			)
+		),
+		/ %NPL.SContext $=
+		(
+			// To eliminate warning: [-Wsign-conversion].
+			/ DLD "cast to 'byte'" @ ("member functions \
+				%Session::(DefaultParseByte, DefaultParseQuoted)" @ %Scontext,
+				"member function %LexicalAnalyzer::FilterForParse" @ Lexical),
+			/ DLD "cast to 'char'" @ ("constructor %SContext" @ %Scontext, \
+				"member functions %LexicalAnalyzer::(ParseQuoted, ParseByte)"
+				@ %Lexical)
+		),
+		/ %'YCLib_(MinGW32)' $=
+		(
+			/ %MinGW32 $=
+			(
+				/ DLD "cast error code to 'Win32Exception::ErrorCode'"
+					@ "%YF_Raise_Win32Exception_On_Failure",
+					// See http://stackoverflow.com/questions/19547419/errors-in-windows-dword-getlasterror-vs-hresult-vs-lstatus \
+						for different types. Also to eliminate warning: \
+						[-Wsign-conversion] for WIN32 registry API calls.
+				/ DLD "implemented function %ConvertTime",
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "cast to 'int'" @ "constructor %Win32Exception, console \
+					handler",
+					// To eliminate warning: [-Wsign-conversion].
+				/ @ "functions %(MBCSToMBCS, WCSToMBCS, MBCSToWCS)" $=
+				(
+					/ "all 'int' parameter" -> 'unsigned',
+						// Also to eliminate warning: [-Wsign-conversion].
+					/ "shift parameter of length to 1st"
+						// To avoid ambiguity.
+				),
+				* "missing internal check to result of %MBCSToMBCS" $since b431
+					// Also to eliminate warning: [-Wsign-conversion].
+			),
+			/ @ "class %WConsole" %Console $=
+			(
+				/ DLD "cast to 'short'" @ "function %CursorUp"
+					// To eliminate warning: [-Wsign-conversion].
+				* "missing check for positive console size components" $since 
+					b520
+					// Also to eliminate warning: [-Wsign-conversion].
+			)
+		),
+		/ DLD %YCLib $=
+		(
+			// To eliminate warning: [-Wsign-conversion].
+			/ "cast to 'std::uint64_t'" @ "platform %Win32"
+				@ "function %GetFileSizeOf" @ %FileSystem,
+			/ "cast to ('int', 'unsigned long', 'SPos', 'SDst')"
+				@ "platform %Win32" @ %HostedGUI
+		),
+		/ %Helper $=
+		(
+			// To eliminate warning: [-Wsign-conversion].
+			/ "last parameter type"
+				@ "function template %ActOnHover_ShowTopLevel"
+				@ "platform %Win32" @ %HostedUI -> 'unsigned long' ~ 'int',
+			/ DLD "cast to ('short', 'unsigned')" @ "constructor %Window"
+				@ %Host,
+			/ DLD "cast to 'ptrdiff_t'" @ "platform %Win32"
+				@ "constructor %InputManager" @ %InputManager,
+			/ DLD "implementation" @ "member function %FPSCounter::Refresh"
+		),
+		/ %CHRLib $=
+		(
+			// To eliminate warning: [-Wsign-conversion].
+			/ DLD "implementation" @ (%MappingEx,
+				"member function %GUCS2Mapper<CharSet::UTF_8>::InverseMap"
+				@ %StaticMapping),
+			/ DLD "cast to 'size_t'"
+				@ "functions %(MBCSToUCS2, UCS2ToMBCS, UCS4ToUCS2)"
+		)
+	),
+	/ %YStandardEx $=
+	(
+		/ "metafunction %fixed_multiplicative" @ %Rational -> "%make_widen_int"
+			@ %CStandardInteger,
+		/ DLD "cast to 'size_t'" @ "implementation"
+			@ "function template %ntctslen" @ %CString,
+			// To eliminate warning: [-Wsign-conversion].
+		/ DLD "cast to 'size_t'" @ "operator+="
+			@ "class template %bitseg_iterator" @ %BitSegment
+			// To eliminate warning: [-Wsign-conversion].
+	),
+	/ %YReader $=
+	(
+		/ @ "member function %HexModel::GetPosition" @ %HexBrowser $=
+		(
+			- 'ynothrow',
+			/ "return type" -> 'size_t' ~ 'ptrdiff_t'
+		),
+		* "wrong result presented on file position getting failure"
+			@ "hex browser %ViewChanged handler" @ "constructor %ShlHexBrowser"
+			@ %ShlReader
+	),
+	+ $build '-Wfloat-equal -Wsign-conversion' @ ("default value"
+		@ "variable %CXXFLAGS_WARNING", "compiler options"
+		@ "platform %Win32" @ "Code::Blocks projects"),
+	(
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ ((("%progress.h"
+		=> "%Progress.h") @ %UI, "%yblit.cpp" => "%YBlit.cpp" @ %Service)
+		@ %YSLib, ("%MapEx.cpp" => "%MappingEx.cpp", "%smap.hpp"
+		=> "%StaticMapping.hpp", "chrproc.cpp" => "%CharacterProcessing.cpp")
+		@ %CHRLib) @ %YFramework;
+	/ $forced $build "updated %LIBS" @ "%SHBuild-bootstrap.sh" @ %Tools.Scripts
+	)
+),
+
+b586
+(
+	// NOTE: x86_64 Clang++ 3.5.1 is used to test for warnings.
 	/ %YBase $=
 	(
 		/ DLD "%to_string with floating pointer parameters"
@@ -665,8 +1072,8 @@ b584
 		(
 			/ %YTimer $=
 			(
-				/ $dev $re_ex(b572) "all 'const TimeSpan&' parameter" -> 'TimeSpan'
-					$effective @ "function %Delay",
+				/ $dev $re_ex(b572) "all 'const TimeSpan&' parameter"
+					-> 'TimeSpan' $effective @ "function %Delay",
 					// See $2015-01 @ %Documentation::Workflow::Annual2015.
 				/ "underlying integer type" @ "alias %TimeSpan"
 					-> "unsigned type as of %Duration";
@@ -679,20 +1086,22 @@ b584
 			(
 				/ @ "functor %BlitTransparentPoint" $=
 				(
-					/ $design "all reference type parameters"
-						@ "function templates %operator()" -> "object type parameters",
+					/ $design "all reference type parameters" @ "function \
+						templates %operator()" -> "object type parameters",
 					(
-					/ "parameter with type %IteratorPair" @ "function template %operator()"
+					/ "parameter with type %IteratorPair"
+						@ "function template %operator()"
 						-> "instance of %ystdex::pair_iterator";
 					$dep_to "%IteratorPair usage"
 					)
 				),
 				/ "merged member function templates %operator()#(1, 2)"
 					@ "functor %BlitAlphaPoint";
-				* $comp "undeclared using of %IteratorPair" @ "blit loop functors"
-					$since b442 $dep_from "%IteratorPair usage",
-					// Since %YPixel is designed without %YBlit support, there should be a \
-						declaration of %IteratorPair if used directly.
+				* $comp "undeclared using of %IteratorPair" @ "blit loop \
+					functors" $since b442 $dep_from "%IteratorPair usage",
+					// Since %YPixel is designed without %YBlit support, there \
+						should be a declaration of %IteratorPair if used \
+						directly.
 				/ "functors %(BlitTransparentPoint, BlitAlphaPoint)"
 					>> $dep_from %YBlend
 			),

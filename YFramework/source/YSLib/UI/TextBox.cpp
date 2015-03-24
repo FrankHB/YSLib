@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r704
+\version r711
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-03-08 17:20 +0800
+	2015-03-24 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,14 +248,17 @@ TextBox::GetCaretLocation() const
 	// TODO: Improve performance?
 	const auto& pen_offset(GetPenOffset());
 
-	return {pen_offset.X + (MaskChar == ucs4_t() ? FetchStringWidth(Font, Text,
-		cur_pos.X) : FetchCharWidth(Font, MaskChar) * cur_pos.X),
-		cur_pos.Y * lh + pen_offset.Y};
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return {pen_offset.X + SPos(MaskChar == ucs4_t()
+		? FetchStringWidth(Font, Text, cur_pos.X) : FetchCharWidth(Font,
+		MaskChar) * cur_pos.X), SPos(cur_pos.Y * lh) + pen_offset.Y};
 }
 TextSelection::Position
 TextBox::GetCaretPosition(const Point& pt)
 {
-	const SDst max_w(max<SPos>(pt.X + h_offset - Margin.Left, 0));
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	const auto
+		max_w(size_t(max<SPos>(pt.X + SPos(h_offset) - Margin.Left, SPos())));
 
 	if(MaskChar == ucs4_t())
 	{

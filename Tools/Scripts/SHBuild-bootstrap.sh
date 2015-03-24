@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# (C) 2014 FrankHB.
+# (C) 2014-2015 FrankHB.
 # Common source script: bootstrap configuration.
 
 echo Bootstrap beginned.
@@ -29,7 +29,7 @@ INCLUDES=" \
 	-I../../YBase/include \
 	"
 
-# Coordinated with build 559.
+# Coordinated with build 587.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -37,14 +37,14 @@ LIBS=" \
 	../../YBase/source/ystdex/any.cpp \
 	../../YBase/source/ystdex/concurrency.cpp \
 	../../YFramework/source/CHRLib/chrmap.cpp \
-	../../YFramework/source/CHRLib/chrproc.cpp \
-	../../YFramework/source/CHRLib/MapEx.cpp \
+	../../YFramework/source/CHRLib/CharacterProcessing.cpp \
+	../../YFramework/source/CHRLib/MappingEx.cpp \
 	../../YFramework/source/YCLib/Debug.cpp \
 	../../YFramework/source/YCLib/FileSystem.cpp \
 	../../YFramework/source/YCLib/Host.cpp \
 	../../YFramework/source/YCLib/ycommon.cpp \
 	../../YFramework/source/YSLib/Core/YCoreUtilities.cpp \
-	../../YFramework/source/YSLib/Core/yexcept.cpp \
+	../../YFramework/source/YSLib/Core/YException.cpp \
 	../../YFramework/source/YSLib/Core/ValueNode.cpp \
 	../../YFramework/source/YSLib/Service/FileSystem.cpp \
 	../../YFramework/source/YSLib/Service/File.cpp \

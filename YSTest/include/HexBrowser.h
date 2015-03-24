@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r471
+\version r474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2014-12-02 18:49 +0800
+	2015-03-24 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,8 @@ private:
 public:
 	DefGetterMem(const ynothrow, FILE*, Ptr, GetSource())
 
-	DefGetterMem(const ynothrow, ptrdiff_t, Position, GetSource())
+	//! \since build 587
+	DefGetterMem(const, size_t, Position, GetSource())
 	DefGetterMem(const ynothrow, size_t, Size, GetSource())
 
 	DefFwdTmpl(const, ptrdiff_t, SetPosition,

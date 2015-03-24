@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3735
+\version r3766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2015-03-21 16:15 +0800
+	2015-03-24 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,7 +144,8 @@ ATrack::SetThumbLength(SDst l)
 void
 ATrack::SetThumbPosition(SPos pos)
 {
-	RestrictInClosedInterval<SPos>(pos, 0, GetScrollableLength());
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	RestrictInClosedInterval<SPos>(pos, 0, SPos(GetScrollableLength()));
 
 	Point pt(GetLocationOf(tmbScroll));
 	const bool is_h(IsHorizontal());
@@ -186,7 +187,7 @@ ATrack::CheckArea(SPos q) const
 	{
 		yconstexpr Area lst[]{OnPrev, OnThumb, OnNext};
 		const SPos a[]{SPos(), SPos(GetThumbPosition()),
-			SPos(GetThumbPosition() + GetThumbLength())};
+			SPos(GetThumbPosition() + SPos(GetThumbLength()))};
 		const auto n(SwitchInterval(q, a, 3));
 
 		if(n < 3)
@@ -201,7 +202,8 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 	ValueType old_value(value);
 
 	if(t == ScrollCategory::ThumbTrack)
-		value = GetThumbPosition() == GetScrollableLength() ? max_value
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		value = GetThumbPosition() == SPos(GetScrollableLength()) ? max_value
 			: max_value * GetThumbPosition()
 			/ (GetTrackLength() - GetThumbLength());
 	else
@@ -231,7 +233,8 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 			}
 		case ScrollCategory::Last:
 			value = max_value;
-			SetThumbPosition(GetScrollableLength());
+			// XXX: Conversion to 'SPos' might be implementation-defined.
+			SetThumbPosition(SPos(GetScrollableLength()));
 		default:
 			;
 		}
@@ -250,14 +253,15 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 
 	FillRect(g, bounds, pal[Styles::Track]);
 
-#define YSL_UI_ATRACK_PARTIAL_INVALIDATION
+#define YSL_UI_Impl_ATrack_Partial_Invalidation 1
 	// NOTE: Partial invalidation made no efficiency improved here.
 	const auto c(pal[Styles::Light]);
-#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
+#if YSL_UI_Impl_ATrack_Partial_Invalidation
 	SPos x(pt.X);
 	SPos y(pt.Y);
-	SPos xr(x + trk.GetWidth());
-	SPos yr(y + trk.GetHeight());
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	SPos xr(x + SPos(trk.GetWidth()));
+	SPos yr(y + SPos(trk.GetHeight()));
 #else
 	const SPos xr(pt.X + trk.GetWidth());
 	const SPos yr(pt.Y + trk.GetHeight());
@@ -265,18 +269,20 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 
 	if(trk.IsHorizontal())
 	{
-#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-		RestrictInInterval(y, bounds.Y, SPos(bounds.Y + bounds.Height)),
-		RestrictInInterval(yr, bounds.Y, SPos(bounds.Y + bounds.Height));
+#if YSL_UI_Impl_ATrack_Partial_Invalidation
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		RestrictInInterval(y, bounds.Y, SPos(bounds.Y + SPos(bounds.Height))),
+		RestrictInInterval(yr, bounds.Y, SPos(bounds.Y + SPos(bounds.Height)));
 #endif
 		DrawHLineSeg(g, bounds, pt.Y, pt.X, xr, c),
 		DrawHLineSeg(g, bounds, yr, pt.X, xr, c);
 	}
 	else
 	{
-#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-		RestrictInInterval(x, bounds.X, SPos(bounds.X + bounds.Width)),
-		RestrictInInterval(xr, bounds.X, SPos(bounds.X + bounds.Width));
+#if YSL_UI_Impl_ATrack_Partial_Invalidation
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		RestrictInInterval(x, bounds.X, SPos(bounds.X + SPos(bounds.Width))),
+		RestrictInInterval(xr, bounds.X, SPos(bounds.X + SPos(bounds.Width)));
 #endif
 		DrawVLineSeg(g, bounds, pt.X, pt.Y, yr, c),
 		DrawVLineSeg(g, bounds, xr, pt.Y, yr, c);
@@ -297,8 +303,9 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 			{
 				SPos x(st.CursorLocation.X + st.DraggingOffset.X);
 
+				// XXX: Conversion to 'SPos' might be implementation-defined.
 				RestrictInClosedInterval<SPos>(x, 0,
-					GetWidth() - tmbScroll.GetWidth());
+					SPos(GetWidth()) - SPos(tmbScroll.GetWidth()));
 				Invalidate(tmbScroll);
 				SetLocationOf(tmbScroll, Point(x, GetLocationOf(tmbScroll).Y));
 				ThumbDrag(UIEventArgs(*this));
@@ -322,8 +329,9 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 			{
 				SPos y(st.CursorLocation.Y + st.DraggingOffset.Y);
 
+				// XXX: Conversion to 'SPos' might be implementation-defined.
 				RestrictInClosedInterval<SPos>(y, 0,
-					GetHeight() - tmbScroll.GetHeight());
+					SPos(GetHeight()) - SPos(tmbScroll.GetHeight()));
 				Invalidate(tmbScroll);
 				SetLocationOf(tmbScroll, Point(GetLocationOf(tmbScroll).X, y));
 				ThumbDrag(UIEventArgs(*this));
@@ -336,11 +344,11 @@ ImplDeDtor(VerticalTrack)
 
 ScrollBar::ScrollBar(const Rect& r, Orientation o, SDst min_thumb)
 	: Control(r),
-	pTrack(o == Horizontal
-		? static_cast<ATrack*>(new HorizontalTrack(
-			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), min_thumb))
-		: static_cast<ATrack*>(new VerticalTrack(
-			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), min_thumb))),
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	pTrack(o == Horizontal ? static_cast<ATrack*>(new
+	HorizontalTrack(Rect(SPos(r.Height), 0, r.Width - r.Height * 2, r.Height),
+	min_thumb)) : static_cast<ATrack*>(new VerticalTrack(Rect(0, SPos(r.Width),
+	r.Width, r.Height - r.Width * 2), min_thumb))),
 	btnPrev(Rect()), btnNext(Rect()), small_delta(2)
 {
 	SetContainerPtrOf(*pTrack, this),
@@ -360,7 +368,8 @@ ScrollBar::ScrollBar(const Rect& r, Orientation o, SDst min_thumb)
 		auto pt(GetLocationOf(btnNext));
 		Size s(GetSizeOf(track));
 
-		yunseq(pt.GetRef(is_h) = tl + prev_metric, s.GetRef(is_h) = tl);
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		yunseq(pt.GetRef(is_h) = SPos(tl + prev_metric), s.GetRef(is_h) = tl);
 		btnNext.GetView().SetLocation(pt), track.GetView().SetSize(s);
 		// NOTE: No event %(Resize, Move) is raised.
 	},

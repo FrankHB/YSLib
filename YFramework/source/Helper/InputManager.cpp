@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r548
+\version r550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2015-01-25 12:14 +0800
+	2015-03-24 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,7 @@ InputManager::DispatchInput(IWidget& wgt)
 			p_wnd->RawMouseButton = 0;
 		}
 
-		// TODO: Use ISO C++1y lambda initializers to simplify implementation.
+		// TODO: Use ISO C++14 lambda initializers to simplify implementation.
 		const auto p_input(st.ExternalTextInputFocusPtr);
 
 		p_wnd->AccessInputString([=, &st](String& ustr){
@@ -134,7 +134,7 @@ InputManager::DispatchInput(IWidget& wgt)
 					else
 						break;
 				}
-				ustr.erase(ustr.begin(), ustr.begin() + n);
+				ustr.erase(ustr.begin(), ustr.begin() + ptrdiff_t(n));
 				// TODO: Resolve duplicate locking.
 				if(st.CaretLocation != caret_location_cache)
 				{

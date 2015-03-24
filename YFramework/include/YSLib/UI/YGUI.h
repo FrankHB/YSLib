@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2412
+\version r2413
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-21 17:56 +0800
+	2015-03-22 20:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,7 +391,7 @@ public:
 	*/
 	//@{
 	PDefH(bool, SendInput, KeyInput& k)
-		ImplRet(SendInput(UpdateChar(k), k))
+		ImplRet(SendInput(ucs2_t(UpdateChar(k)), k))
 	PDefH(bool, SendInput, ucs2_t c, const KeyInput& k)
 		ImplRet(c != ucs2_t() ? SendInput(k, {c}) : false)
 	bool

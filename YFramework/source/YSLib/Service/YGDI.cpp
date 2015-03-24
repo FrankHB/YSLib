@@ -11,13 +11,13 @@
 /*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2949
+\version r2960
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-03-21 23:36 +0800
+	2015-03-24 12:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,17 +40,19 @@ namespace Drawing
 Rect
 operator+(const Rect& r, const Padding& m)
 {
+	// XXX: Conversion to 'SPos' might be implementation-defined.
 	return Rect(r.X + m.Left, r.Y + m.Top,
-		max<int>(0, r.Width - m.Left - m.Right),
-		max<int>(0, r.Height - m.Top - m.Bottom));
+		SDst(max<SPos>(0, SPos(r.Width) - m.Left - m.Right)),
+		SDst(max<SPos>(0, SPos(r.Height) - m.Top - m.Bottom)));
 }
 
 
 Padding
 FetchMargin(const Rect& r, const Size& s)
 {
-	return Padding(r.X, s.Width - r.X - r.Width,
-		r.Y, s.Height - r.Y - r.Height);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return Padding(r.X, SPos(s.Width) - r.X - SPos(r.Width),
+		r.Y, SPos(s.Height) - r.Y - SPos(r.Height));
 }
 
 
@@ -73,12 +75,14 @@ ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 		const auto& pt(pc.Location);
 		const Point dp(max<int>(m.Left, pt.X), max<int>(m.Top, pt.Y));
 		const Point sp(dp - pt);
-		const auto scx(min<int>(ss.Width, ds.Width - m.Right - dp.X) - sp.X),
-			scy(min<int>(ss.Height, ds.Height - m.Bottom - dp.Y) - sp.Y);
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		const SPos scx(min<SPos>(SPos(ss.Width), SPos(ds.Width) - m.Right
+			- dp.X) - sp.X), scy(min<SPos>(SPos(ss.Height), SPos(ds.Height)
+			- m.Bottom - dp.Y) - sp.Y);
 
 		if(scx > 0 && scy > 0)
 		{
-			pc.ClipArea &= Rect(dp, scx, scy);
+			pc.ClipArea &= Rect(dp, SDst(scx), SDst(scy));
 			return pc.ClipArea.GetPoint() - pt;
 		}
 	}

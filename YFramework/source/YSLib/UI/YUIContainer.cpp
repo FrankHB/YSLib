@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1921
+\version r1923
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2015-03-12 12:27 +0800
+	2015-03-23 15:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,8 +200,8 @@ MLinearUIContainer::Contains(IWidget& wgt) const
 size_t
 MLinearUIContainer::Find(IWidget& wgt) const
 {
-	return std::find_if(vWidgets.cbegin(), vWidgets.cend(),
-		bind(is_equal(), _1, std::ref(wgt))) - vWidgets.cbegin();
+	return size_t(std::find_if(vWidgets.cbegin(), vWidgets.cend(),
+		bind(is_equal(), _1, std::ref(wgt))) - vWidgets.cbegin());
 }
 
 MLinearUIContainer::iterator

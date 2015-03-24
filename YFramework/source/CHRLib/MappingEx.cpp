@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file MapEx.cpp
+/*!	\file MappingEx.cpp
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r75
+\version r78
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:43 +0800
 \par 修改时间:
-	2014-11-08 02:19 +0800
+	2015-03-22 16:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ template<byte*& _vCPMapPtr, size_t _vMax>
 ucs2_t
 dbcs_lkp(byte seq0, byte seq1)
 {
-	const size_t idx(seq0 << 8 | seq1);
+	const auto idx(size_t(seq0 << 8U | seq1));
 
 	return YB_LIKELY(idx < 0xFF7E)
 		? reinterpret_cast<const ucs2_t*>(_vCPMapPtr + 0x0100)[idx] : 0;

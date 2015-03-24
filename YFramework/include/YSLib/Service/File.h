@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1159
+\version r1165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-03-21 11:50 +0800
+	2015-03-24 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,9 +85,13 @@ public:
 	DefGetter(const ynothrow, FILE*, Ptr, fp) //!< 取文件指针。
 	DefGetter(const ynothrow, size_t, Size, fsize) //!< 取文件大小。
 	/*!
-	\brief 取文件指针的位置，返回值语义同 std::ftell 。
+	\brief 取文件指针的位置。
+	\return 成功时同 std::ftell 。
+	\throw LoggedEvent 失败。
+	\since build 587
 	*/
-	DefGetter(const ynothrow, ptrdiff_t, Position, std::ftell(fp))
+	size_t
+	GetPosition();
 
 	/*!
 	\brief 设置文件指针位置。

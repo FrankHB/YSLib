@@ -11,7 +11,7 @@
 /*!	\file Scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2778
+\version r2783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
@@ -190,8 +190,12 @@ public:
 		GetTrackLength() - GetThumbLength()) //!< 取可滚动区域长度。
 	DefGetter(const ynothrow, SDst, ThumbLength,
 		GetSizeOf(tmbScroll).GetRef(IsHorizontal())) //!< 取轨道方向上的滑块长度。
-	DefGetter(const ynothrow, SDst, ThumbPosition,
-		GetLocationOf(tmbScroll).GetRef(IsHorizontal())) //!< 取滑块位置。
+	/*!
+	\brief 取滑块位置。
+	\since build 587
+	*/
+	DefGetter(const ynothrow, SPos, ThumbPosition,
+		GetLocationOf(tmbScroll).GetRef(IsHorizontal()))
 	virtual DefGetter(const ynothrow, SDst, TrackLength,
 		GetSizeOf(*this).GetRef(IsHorizontal())) //!< 取轨道方向上的轨道长度。
 	DefGetter(const ynothrow, ValueType, LargeDelta, large_delta)

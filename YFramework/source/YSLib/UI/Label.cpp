@@ -11,13 +11,13 @@
 /*!	\file Label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1423
+\version r1435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2015-02-02 10:01 +0800
+	2015-03-22 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,8 +60,9 @@ MLabel::GetAlignedPenOffset(const Size& s) const
 		case TextAlignment::Center:
 		case TextAlignment::Right:
 			{
-				SPos horizontal_offset(s.Width - GetHorizontalOf(Margin)
-					- FetchStringWidth(Font, Text));
+				// XXX: Conversion to 'SPos' might be implementation-defined.
+				SPos horizontal_offset(SPos(s.Width - GetHorizontalOf(Margin)
+					- FetchStringWidth(Font, Text)));
 
 				if(horizontal_offset > 0)
 				{
@@ -79,8 +80,9 @@ MLabel::GetAlignedPenOffset(const Size& s) const
 		case TextAlignment::Center:
 		case TextAlignment::Down:
 			{
-				SPos vertical_offset(s.Height - GetVerticalOf(Margin)
-					- Font.GetHeight());
+				// XXX: Conversion to 'SPos' might be implementation-defined.
+				SPos vertical_offset(SPos(s.Height - GetVerticalOf(Margin)
+					- Font.GetHeight()));
 
 				if(vertical_offset > 0)
 				{
@@ -98,16 +100,15 @@ MLabel::GetAlignedPenOffset(const Size& s) const
 }
 
 void
-MLabel::DrawText(const Size& s, const PaintContext& e) const
+MLabel::DrawText(const Size& s, const PaintContext& pc) const
 {
-	const Rect bounds(e.Location, s);
-	const auto r(bounds + Margin);
-	TextState ts(Font, FetchMargin(r, e.Target.GetSize()));
+	const auto r(Rect(pc.Location, s) + Margin);
+	TextState ts(Font, FetchMargin(r, pc.Target.GetSize()));
 
 	ts.Color = ForeColor,
-	ts.ResetPen(e.Location, Margin);
+	ts.ResetPen(pc.Location, Margin);
 	ts.Pen += GetAlignedPenOffset(s);
-	UpdateClippedText({e.Target, e.Location, e.ClipArea & r}, ts, Text,
+	UpdateClippedText({pc.Target, pc.Location, pc.ClipArea & r}, ts, Text,
 		AutoWrapLine);
 }
 

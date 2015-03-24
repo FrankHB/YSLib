@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1430
+\version r1437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2015-03-21 22:54 +0800
+	2015-03-23 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,8 +152,10 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 		const auto& ubound(GetBoundsOf(GetUnitRef()) + e.Location);
 
 		if(YB_LIKELY(ubound.Width > 16) && ystdex::exists(mSubMenus, idxShared))
-			DrawArrow(e.Target, e.ClipArea, Rect(ubound.X + ubound.Width - 16,
-				ubound.Y, 16, ubound.Height), 4, RDeg0, LabelBrush.ForeColor);
+			// XXX: Conversion to 'SPos' might be implementation-defined.
+			DrawArrow(e.Target, e.ClipArea,
+				Rect(ubound.X + SPos(ubound.Width) - 16, ubound.Y, 16,
+				ubound.Height), 4, RDeg0, LabelBrush.ForeColor);
 	}
 	);
 }
@@ -262,8 +264,9 @@ Menu::TryShowingSub(IndexType idx)
 void
 LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 {
-	SetLocationOf(dst, Point(src.GetX() + src.GetWidth(),
-		src.GetY() + src.GetItemHeight() * idx));
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	SetLocationOf(dst, {src.GetX() + SPos(src.GetWidth()),
+		src.GetY() + SPos(src.GetItemHeight() * idx)});
 }
 
 

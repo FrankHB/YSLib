@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1696
+\version r1699
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2014-10-11 17:13 +0800
+	2015-03-22 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断字符类型是否被 ISO C++ 指定提供 <tt>std::char_traits</tt> 的特化。
 \since build 544
 */
@@ -125,7 +125,7 @@ ntctslen_raw(const _tChar* s, std::false_type)
 
 	while(!ystdex::is_null(*p))
 		++p;
-	return p - s;
+	return size_t(p - s);
 }
 
 } // namespace details;

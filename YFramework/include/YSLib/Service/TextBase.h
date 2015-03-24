@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2741
+\version r2781
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:43 +0800
+	2015-03-22 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,8 +129,8 @@ public:
 	\since build 486
 	*/
 	PDefH(Rect, GetCharBounds, ucs4_t c) const ynothrow
-		ImplRet(Rect(Pen.X, Pen.Y - Font.GetAscender(), Font.GetAdvance(c),
-			Font.GetHeight()))
+		ImplRet(Rect(Pen.X, Pen.Y - Font.GetAscender(),
+			SDst(Font.GetAdvance(c)), Font.GetHeight()))
 
 	/*!
 	\brief 打印换行。
@@ -160,51 +160,36 @@ public:
 \brief 取当前指定文本状态的字体设置对应的行高。
 \since build 231
 */
-inline SDst
-GetTextLineHeightOf(const TextState& ts)
-{
-	return ts.Font.GetHeight();
-}
+inline PDefH(SDst, GetTextLineHeightOf, const TextState& ts)
+	ImplRet(ts.Font.GetHeight())
 
 /*!
 \brief 取当前指定文本状态的字体设置对应的行高与行距之和。
 \since build 231
 */
-inline SDst
-GetTextLineHeightExOf(const TextState& ts)
-{
-	return ts.Font.GetHeight() + ts.LineGap;
-}
+inline PDefH(SDst, GetTextLineHeightExOf, const TextState& ts)
+	ImplRet(ts.Font.GetHeight() + ts.LineGap)
 
 /*!
 \brief 取笔所在的当前行数。
-\since build 231
+\since build 587
 */
-inline std::uint16_t
-GetCurrentTextLineNOf(const TextState& ts)
-{
-	return (ts.Pen.Y - ts.Margin.Top) / GetTextLineHeightExOf(ts);
-}
+inline PDefH(ptrdiff_t, GetCurrentTextLineNOf, const TextState& ts)
+	ImplRet((ts.Pen.Y - ts.Margin.Top) / SPos(GetTextLineHeightExOf(ts)))
 
 /*!
 \brief 取第一行的基线位置（纵坐标）。
 \since build 372
 */
-inline SPos
-GetTextLineBaseOf(const TextState& ts)
-{
-	return ts.Margin.Top + ts.Font.GetAscender();
-}
+inline PDefH(SPos, GetTextLineBaseOf, const TextState& ts)
+	ImplRet(ts.Margin.Top + SPos(ts.Font.GetAscender()))
 
 /*!
 \brief 设置笔位置。
 \since build 231
 */
-inline void
-SetPenOf(TextState& ts, SPos x, SPos y)
-{
-	ts.Pen = Point(x, y);
-}
+inline PDefH(void, SetPenOf, TextState& ts, SPos x, SPos y)
+	ImplExpr(ts.Pen = Point(x, y))
 
 /*!
 \brief 设置笔的行位置。
@@ -217,15 +202,13 @@ SetCurrentTextLineNOf(TextState&, std::uint16_t);
 \brief 按指定显示区域和文本区域的宽重新设置右边距。
 \note 右边距参与行的结尾位置计算。
 \note 单独使用时，需要设置笔的起始位置（横坐标），否则只适用于单行显示。
-\sa PutChar
+\sa Drawing::PutChar
 \since build 372
 */
-inline void
-AdjustEndOfLine(TextState& ts, const Rect& r, SDst w)
-{
+inline PDefH(void, AdjustEndOfLine, TextState& ts, const Rect& r, SDst w)
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ImplExpr(ts.Margin.Right = SPos(w) - r.X - SPos(r.Width))
 //	ts.Margin = FetchMargin(r, s);
-	ts.Margin.Right = w - r.X - r.Width;
-}
 
 /*!
 \brief 回车。
@@ -233,11 +216,8 @@ AdjustEndOfLine(TextState& ts, const Rect& r, SDst w)
 指定文本状态的笔的水平位置移至左端，竖直位置不变。
 \since build 270
 */
-inline void
-CarriageReturn(TextState& ts)
-{
-	ts.Pen.X = ts.Margin.Left;
-}
+inline PDefH(void, CarriageReturn, TextState& ts)
+	ImplExpr(ts.Pen.X = ts.Margin.Left)
 
 /*!
 \brief 按字符跨距移动笔。

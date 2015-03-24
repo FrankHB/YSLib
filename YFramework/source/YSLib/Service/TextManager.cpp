@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3823
+\version r3825
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-03-19 13:40 +0800
+	2015-03-24 10:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,7 +238,8 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 
 		File.Locate(idx *= BlockSize);
 
-		const auto mid(vec.cbegin() + pos);
+		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+		const auto mid(vec.cbegin() + ptrdiff_t(pos));
 
 		YAssert(mid <= vec.cend(), "Wrong iterator found.");
 

@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r189
+\version r204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2015-01-25 13:50 +0800
+	2015-03-24 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,10 +58,11 @@ BorderBrush::operator()(PaintEventArgs&& e)
 BorderResizer::Area
 BorderResizer::CheckArea(const Point& pt)
 {
-	const auto comp([](SPos q, SPos left, SPos left2){
+	const auto comp([](SPos q, SPos left, SDst left2){
 		if(q >= 0)
 		{
-			const SPos a[]{SPos(), left, left2};
+			// XXX: Conversion to 'SPos' might be implementation-defined.
+			const SPos a[]{SPos(), left, SPos(left2)};
 			const auto n(SwitchInterval(q, a, 3));
 
 			if(n < 3)
@@ -96,16 +97,17 @@ BorderResizer::Wrap()
 				const auto offset(st.CursorLocation - orig_loc);
 				auto bounds(locked_bounds);
 
+				// XXX: Conversion to 'SPos' might be implementation-defined.
 				switch(focused.first)
 				{
 				case BorderArea::Left:
-					bounds.Width = max<SPos>(MinSize.Width,
-						locked_bounds.Width - offset.X);
-					bounds.X += locked_bounds.Width - bounds.Width;
+					bounds.Width = SDst(max<SPos>(SPos(MinSize.Width),
+						SPos(locked_bounds.Width) - offset.X));
+					bounds.X += SPos(locked_bounds.Width) - SPos(bounds.Width);
 					break;
 				case BorderArea::Right:
-					bounds.Width = max<SPos>(MinSize.Width,
-						locked_bounds.Width + offset.X);
+					bounds.Width = SDst(max<SPos>(SPos(MinSize.Width),
+						SPos(locked_bounds.Width) + offset.X));
 					break;
 				default:
 					;
@@ -113,13 +115,14 @@ BorderResizer::Wrap()
 				switch(focused.second)
 				{
 				case BorderArea::Up:
-					bounds.Height = max<SPos>(MinSize.Height,
-						locked_bounds.Height - offset.Y);
-					bounds.Y += locked_bounds.Height - bounds.Height;
+					bounds.Height = SDst(max<SPos>(SPos(MinSize.Height),
+						SPos(locked_bounds.Height) - offset.Y));
+					bounds.Y += SPos(locked_bounds.Height)
+						- SPos(bounds.Height);
 					break;
 				case BorderArea::Down:
-					bounds.Height = max<SPos>(MinSize.Height,
-						locked_bounds.Height + offset.Y);
+					bounds.Height = SDst(max<SPos>(SPos(MinSize.Height),
+						SPos(locked_bounds.Height) + offset.Y));
 					break;
 				default:
 					;

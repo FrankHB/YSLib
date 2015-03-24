@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.cpp
 \ingroup Service
 \brief 文本布局计算。
-\version r2478
+\version r2487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:47 +0800
+	2015-03-23 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,8 @@ SDst
 FetchResizedBottomMargin(const TextState& ts, SDst h)
 {
 	YAssert(GetTextLineHeightExOf(ts) != 0, "Zero line height found.");
-	return ts.Margin.Bottom + (h + ts.LineGap - GetVerticalOf(ts.Margin))
-		% GetTextLineHeightExOf(ts);
+	return SDst(max<SPos>(0, ts.Margin.Bottom)) + (h + ts.LineGap
+		- GetVerticalOf(ts.Margin)) % GetTextLineHeightExOf(ts);
 }
 
 std::uint16_t
@@ -61,16 +61,18 @@ FetchLastLineBasePosition(const TextState& ts, SDst h)
 {
 	const std::uint16_t n(FetchResizedLineN(ts, h));
 
-	return ts.Margin.Top + ts.Font.GetAscender()
-		+ GetTextLineHeightExOf(ts) * (n > 0 ? n - 1 : n);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return GetTextLineBaseOf(ts) + SPos(GetTextLineHeightExOf(ts)
+		* (n > 0 ? n - 1 : n));
 //	return h - ts.Margin.Bottom + ts.GetCache().GetDescender() + 1;
 }
 
 
 SDst
-FetchCharWidth(const Font& font, ucs4_t c)
+FetchCharWidth(const Font& fnt, ucs4_t c)
 {
-	return font.GetAdvance(c, font.GetGlyph(c));
+	// TODO: Support negtive horizontal advance.
+	return CheckNonnegativeScalar<SDst>(fnt.GetAdvance(c, fnt.GetGlyph(c)));
 }
 
 } // namespace Drawing;

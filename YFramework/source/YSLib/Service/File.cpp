@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file File.cpp
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r544
+\version r566
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2014-11-06 20:25 +0800
+	2015-03-24 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,12 +39,7 @@ File::File()
 File::File(const char* filename, const char* mode)
 	: File()
 {
-	if(Open(filename, mode))
-	{
-		Seek(0, SEEK_END);
-		fsize = GetPosition();
-		Rewind();
-	}
+	Open(filename, mode);
 }
 File::File(const char* filename, std::ios_base::openmode mode)
 	: File(filename, ystdex::openmode_conv(mode))
@@ -52,24 +47,27 @@ File::File(const char* filename, std::ios_base::openmode mode)
 File::File(const String& filename, const ucs2_t* mode)
 	: File()
 {
-	if(Open(filename, mode))
-	{
-		Seek(0, SEEK_END);
-		fsize = GetPosition();
-		Rewind();
-	}
+	Open(filename, mode);
 }
 File::File(const String& filename, std::ios_base::openmode mode)
 	: File(filename, String(ystdex::openmode_conv(mode)).c_str())
 {}
-
 File::~File()
 {
-	// FIXME: No throw guarantee.
 	YTraceDe(Debug, "File pointer to be closed in destructor: %p.",
 		ystdex::pvoid(fp));
 	if(*this)
 		std::fclose(fp);
+}
+
+size_t
+File::GetPosition()
+{
+	const long pos(std::ftell(fp));
+
+	if(pos != -1L)
+		return size_t(pos);
+	throw LoggedEvent("Failed getting file position.");
 }
 
 void

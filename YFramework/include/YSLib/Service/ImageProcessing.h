@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r260
+\version r262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2015-02-28 19:54 +0800
+	2015-03-22 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,7 +105,7 @@ public:
 /*!
 \brief 图像页面集。
 \warning 若 MinScale 不小于 MaxScale 则可能引起未定义行为。
-\warning 若缩放比例小于 MaxScale 或 MaxScale 小于缩放比例则不保证状态符合预期。 
+\warning 若缩放比例小于 MaxScale 或 MaxScale 小于缩放比例则不保证状态符合预期。
 \warning 非虚析构。
 \since build 555
 */
@@ -193,7 +193,7 @@ public:
 
 	//!\return 是否切换了不同页面。
 	PDefH(bool, SwitchPageDiff, ptrdiff_t diff)
-		ImplRet(SwitchPage((index + diff) % GetCount()))
+		ImplRet(SwitchPage(size_t(ptrdiff_t(index) + diff) % GetCount()))
 
 	/*!
 	\return 是否成功进行了缩放。

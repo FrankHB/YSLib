@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r651
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-03-22 16:01 +0800
+	2015-03-24 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ ConsoleHandler(unsigned long ctrl)
 	case CTRL_BREAK_EVENT:
 	case CTRL_LOGOFF_EVENT:
 	case CTRL_SHUTDOWN_EVENT:
-		std::_Exit(STATUS_CONTROL_C_EXIT);
+		std::_Exit(int(STATUS_CONTROL_C_EXIT));
 	}
 	return 0;
 }
@@ -81,7 +81,7 @@ public:
 } // unnamed namespace;
 
 Win32Exception::Win32Exception(ErrorCode ec, const std::string& s, LevelType lv)
-	: Exception(ec, GetErrorCategory(), s, lv)
+	: Exception(int(ec), GetErrorCategory(), s, lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");
 }
@@ -106,7 +106,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 			ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
 			reinterpret_cast<wchar_t*>(&buf), 1, {});
 
-		auto res(WCSToMBCS(buf, CP_UTF8));
+		auto res(WCSToMBCS(buf, unsigned(CP_UTF8)));
 
 		::LocalFree(buf);
 		return res;
@@ -142,7 +142,7 @@ CheckWine()
 
 
 std::string
-MBCSToMBCS(const char* str, std::size_t len, int cp_src, int cp_dst)
+MBCSToMBCS(std::size_t len, const char* str, unsigned cp_src, unsigned cp_dst)
 {
 	if(len != 0)
 	{
@@ -151,12 +151,12 @@ MBCSToMBCS(const char* str, std::size_t len, int cp_src, int cp_dst)
 			const auto l(CheckPositiveScalar<int>(len));
 			const int
 				w_len(::MultiByteToWideChar(cp_src, 0, Nonnull(str), l, {}, 0));
-			std::wstring wstr(w_len, wchar_t());
+			std::wstring wstr(CheckPositiveScalar<size_t>(w_len), wchar_t());
 			wchar_t* w_str = &wstr[0];
 
 			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
 
-			return WCSToMBCS(w_str, w_len, cp_dst);
+			return WCSToMBCS(wstr.length(), w_str, cp_dst);
 		}
 		return str;
 	}
@@ -164,7 +164,7 @@ MBCSToMBCS(const char* str, std::size_t len, int cp_src, int cp_dst)
 }
 
 std::string
-WCSToMBCS(const wchar_t* str, std::size_t len, int cp)
+WCSToMBCS(std::size_t len, const wchar_t* str, unsigned cp)
 {
 	if(len != 0)
 	{
@@ -180,7 +180,7 @@ WCSToMBCS(const wchar_t* str, std::size_t len, int cp)
 }
 
 std::wstring
-MBCSToWCS(const char* str, std::size_t len, int cp)
+MBCSToWCS(std::size_t len, const char* str, unsigned cp)
 {
 	if(len != 0)
 	{
@@ -379,9 +379,9 @@ ConvertTime(::FILETIME& file_time)
 		// NOTE: The epoch is Jan. 1, 1601: 134774 days to Jan. 1, 1970, i.e.
 		//	11644473600 seconds, or 116444736000000000 * 100 nanoseconds.
 		// TODO: Strip away the magic number;
-		yunseq(date.HighPart = file_time.dwHighDateTime,
+		yunseq(date.HighPart = long(file_time.dwHighDateTime),
 			date.LowPart = file_time.dwLowDateTime);
-		return std::chrono::nanoseconds((date.QuadPart - 116444736000000000ULL)
+		return std::chrono::nanoseconds((date.QuadPart - 116444736000000000LL)
 			* 100U);
 	}
 	else

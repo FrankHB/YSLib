@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3888
+\version r3896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-03-21 00:30 +0800
+	2015-03-23 16:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,9 +90,9 @@ struct YF_API Padding
 
 	/*!
 	\brief 乘法赋值：对应分量调用 operator-= 。
-	\since build 572
+	\since build 587
 	*/
-	PDefHOp(Padding&, *=, SDst n)
+	PDefHOp(Padding&, *=, size_t n)
 		ImplRet(yunseq(Left *= n, Right *= n, Top *= n, Bottom *= n), *this)
 };
 
@@ -122,10 +122,11 @@ yconstfn PDefHOp(Padding, -, const Padding& x, const Padding& y)
 
 /*!
 \brief 乘法：对应分量调用 operator* 。
-\since build 572
+\since build 587
 */
-yconstfn PDefHOp(Padding, *, const Padding& x, SDst n)
-	ImplRet(Padding(x.Left * n, x.Right * n, x.Top * n, x.Bottom * n))
+yconstfn PDefHOp(Padding, *, const Padding& x, size_t n)
+	ImplRet(Padding(SPos(x.Left * ptrdiff_t(n)), SPos(x.Right * ptrdiff_t(n)),
+		SPos(x.Top * ptrdiff_t(n)), SPos(x.Bottom * ptrdiff_t(n))))
 
 /*!
 \brief 加法：缩小屏幕标准矩形，相对位置由指定边距决定。
@@ -148,13 +149,13 @@ inline PDefHOp(Rect, -, const Rect& r, const Padding& m)
 \brief 取水平边距和。
 */
 inline PDefH(SDst, GetHorizontalOf, const Padding& m)
-	ImplRet(max<SPos>(0, m.Left) + max<SPos>(0, m.Right))
+	ImplRet(SDst(max<SPos>(0, m.Left) + max<SPos>(0, m.Right)))
 
 /*!
 \brief 取竖直边距和。
 */
 inline PDefH(SDst, GetVerticalOf, const Padding& m)
-	ImplRet(max<SPos>(0, m.Top) + max<SPos>(0, m.Bottom))
+	ImplRet(SDst(max<SPos>(0, m.Top) + max<SPos>(0, m.Bottom)))
 
 
 /*!

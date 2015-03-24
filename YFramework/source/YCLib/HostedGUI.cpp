@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1008
+\version r1023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-01-25 23:18 +0800
+	2015-03-24 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
 	YCL_Impl_CallWin32(SetWindowPos, "ResizeWindow", h_wnd, {},
-		0, 0, w, h, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE
+		0, 0, int(w), int(h), SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE
 		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 
@@ -112,7 +112,7 @@ FetchSizeFromBounds(const ::RECT& rect)
 inline unsigned long
 FetchWindowStyle(::HWND h_wnd)
 {
-	return ::GetWindowLongW(h_wnd, GWL_STYLE);
+	return static_cast<unsigned long>(::GetWindowLongW(h_wnd, GWL_STYLE));
 }
 
 void
@@ -124,11 +124,12 @@ AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 		"Invalid boundary found.");
 }
 
+//! \since build 587
 void
-SetWindowBounds(::HWND h_wnd, int x, int y, int cx, int cy)
+SetWindowBounds(::HWND h_wnd, int x, int y, SDst w, SDst h)
 {
-	YCL_Impl_CallWin32(SetWindowPos, "SetWindowBounds", h_wnd, {}, x, y, cx,
-		cy, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
+	YCL_Impl_CallWin32(SetWindowPos, "SetWindowBounds", h_wnd, {}, x, y, int(w),
+		int(h), SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
 		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 //@}
@@ -235,13 +236,14 @@ WindowReference::SetBounds(const Rect& r)
 void
 WindowReference::SetClientBounds(const Rect& r)
 {
-	::RECT rect{r.X, r.Y, CheckScalar<SPos>(r.X + r.Width, "width"),
-		CheckScalar<SPos>(r.Y + r.Height, "height")};
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	::RECT rect{r.X, r.Y, CheckScalar<SPos>(r.X + SPos(r.Width), "width"),
+		CheckScalar<SPos>(r.Y + SPos(r.Height), "height")};
 	const auto h_wnd(GetNativeHandle());
 
 	AdjustWindowBounds(rect, h_wnd);
-	SetWindowBounds(h_wnd, rect.left, rect.top, rect.right - rect.left,
-		rect.bottom - rect.top);
+	SetWindowBounds(h_wnd, rect.left, rect.top, SDst(rect.right - rect.left),
+		SDst(rect.bottom - rect.top));
 }
 void
 WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
@@ -307,7 +309,8 @@ WindowReference::ResizeClient(const Size& s)
 	const auto h_wnd(GetNativeHandle());
 
 	AdjustWindowBounds(rect, h_wnd);
-	ResizeWindow(h_wnd, rect.right - rect.left, rect.bottom - rect.top);
+	ResizeWindow(h_wnd, SDst(rect.right - rect.left),
+		SDst(rect.bottom - rect.top));
 }
 
 bool
@@ -568,8 +571,8 @@ WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 	const auto& s(sbuf.GetSize());
 
 	// NOTE: Unlocked intentionally for performance.
-	::BitBlt(h_owner_dc, pt.X, pt.Y, s.Width, s.Height, h_mem_dc, 0, 0,
-		SRCCOPY);
+	::BitBlt(h_owner_dc, pt.X, pt.Y, int(s.Width), int(s.Height), h_mem_dc, 0,
+		0, SRCCOPY);
 	::SelectObject(h_mem_dc, h_old);
 }
 void

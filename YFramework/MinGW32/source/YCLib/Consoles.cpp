@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief 控制台。
-\version r235
+\version r241
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-03-22 00:27 +0800
+	2015-03-24 11:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,9 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Consoles
+#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
+
+using namespace YSLib;
 #endif
 
 namespace platform_ex
@@ -107,7 +110,8 @@ WConsole::CursorUp(size_t num_rows)
 	{
 		const auto pos(GetCursorPosition());
 
-		SetCursorPosition({short(pos.Y - num_rows), pos.X});
+		// XXX: Conversion to 'short' might be implementation-defined.
+		SetCursorPosition({short(pos.Y - short(num_rows)), pos.X});
 	}
 }
 
@@ -122,7 +126,8 @@ WConsole::Erase(wchar_t c)
 {
 	const auto size(GetScreenBufferInfo().dwSize);
 
-	Fill({short(0), short(0)}, size.X * size.Y, c);
+	Fill({short(), short()}, CheckPositiveScalar<unsigned long>(size.X)
+		* CheckPositiveScalar<unsigned long>(size.Y), c);
 }
 
 void

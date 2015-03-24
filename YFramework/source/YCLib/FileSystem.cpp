@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2121
+\version r2123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-03-22 16:06 +0800
+	2015-03-24 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -482,7 +482,7 @@ GetFileSizeOf(int fd)
 	// XXX: Error handling for indirect calls.
 	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(fd)), &sz) != 0
 		&& YB_LIKELY(sz.QuadPart >= 0))
-		return sz.QuadPart;
+		return std::uint64_t(sz.QuadPart);
 	// TODO: Get correct error condition.
 #else
 	struct ::stat st;
@@ -674,7 +674,7 @@ GetRootNameLength(const char* path)
 {
 	const char* p(std::strchr(Nonnull(path), ':'));
 
-	return !p ? 0 : p - path + 1;
+	return !p ? 0 : size_t(p - path + 1);
 }
 
 }

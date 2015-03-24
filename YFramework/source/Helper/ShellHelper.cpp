@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r528
+\version r531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2015-03-22 16:03 +0800
+	2015-03-24 18:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,13 +117,14 @@ FPSCounter::FPSCounter(std::chrono::nanoseconds s)
 size_t
 FPSCounter::Refresh()
 {
-	const std::chrono::nanoseconds tmp_tick(GetHighResolutionTicks());
+	using namespace std::chrono;
+	const nanoseconds tmp_tick(GetHighResolutionTicks());
 
 	if(YB_UNLIKELY(last_tick + MinimalInterval < tmp_tick))
 	{
 		last_tick = now_tick;
 
-		const auto r(1000000000000ULL * refresh_count
+		const auto r(nanoseconds::rep(1000000000000ULL * refresh_count)
 			/ ((now_tick = tmp_tick) - last_tick).count());
 
 		refresh_count = 1;

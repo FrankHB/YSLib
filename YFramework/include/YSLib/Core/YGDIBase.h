@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2137
+\version r2156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-03-22 00:25 +0800
+	2014-03-23 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -431,16 +431,18 @@ yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
 \since build 583
 */
 yconstfn PDefH(Point, LocateCenter, const Size& x, const Size& y)
-	ImplRet({HalfDifference<SPos>(x.Width, y.Width),
-		HalfDifference<SPos>(x.Height, y.Height)})
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ImplRet({HalfDifference(SPos(x.Width), SPos(y.Width)),
+		HalfDifference(SPos(x.Height), SPos(y.Height))})
 
 /*!
 \brief 计算按指定大小的矩形绕中心旋转一个直角后左上角的相对位置。
 \since build 578
 */
 yconstfn PDefH(Point, RotateCenter, const Size& s)
-	ImplRet({HalfDifference<SPos>(s.Width, s.Height),
-		HalfDifference<SPos>(s.Height, s.Width)})
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ImplRet({HalfDifference(SPos(s.Width), SPos(s.Height)),
+		HalfDifference(SPos(s.Height), SPos(s.Width))})
 
 /*!
 \brief 取分量。
@@ -475,7 +477,8 @@ template<typename _type>
 yconstfn GBinaryGroup<_type>
 operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 {
-	return GBinaryGroup<_type>(val.X + s.Width, val.Y + s.Height);
+	// XXX: Conversion to '_type' might be implementation-defined.
+	return {val.X + _type(s.Width), val.Y + _type(s.Height)};
 }
 
 /*!
@@ -486,7 +489,8 @@ template<typename _type>
 yconstfn GBinaryGroup<_type>
 operator-(GBinaryGroup<_type> val, const Size& s) ynothrow
 {
-	return GBinaryGroup<_type>(val.X - s.Width, val.Y - s.Height);
+	// XXX: Conversion to '_type' might be implementation-defined.
+	return {val.X - _type(s.Width), val.Y - _type(s.Height)};
 }
 
 
@@ -796,23 +800,25 @@ inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
 \note 可以是可以是主对角线或副对角线之一上的顶点。
 */
 /*!
-\todo 使用 ISO C++14 的带有 \c constexpr 的 \c std::minmax 。
+\todo 使用 ISO C++14 的带有 \c constexpr 的 \c std::min 和 \c std::max 。
 \todo 提取 abs 实现。
 */
 yconstfn PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
 	ImplRet(Rect(min(pt1.X, pt2.X), min(pt1.Y, pt2.Y),
-		pt1.X < pt2.X ? pt2.X - pt1.X : pt1.X - pt2.X,
-		pt1.Y < pt2.Y ? pt2.Y - pt1.Y : pt1.Y - pt2.Y))
+		SDst(pt1.X < pt2.X ? pt2.X - pt1.X : pt1.X - pt2.X),
+		SDst(pt1.Y < pt2.Y ? pt2.Y - pt1.Y : pt1.Y - pt2.Y)))
 
 //! \brief 转置变换：逆时针旋转直角。
 yconstfn PDefH(Rect, TransposeCCW, const Rect& r) ynothrow
-	ImplRet(MakeRect(TransposeCCW(Point(r.X + r.Width, r.Y)),
-		TransposeCCW(Point(r.X, r.Y + r.Height))))
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ImplRet(MakeRect(TransposeCCW(Point(r.X + SPos(r.Width), r.Y)),
+		TransposeCCW(Point(r.X, r.Y + SPos(r.Height)))))
 
 //! \brief 转置变换：顺时针旋转直角。
 yconstfn PDefH(Rect, TransposeCW, const Rect& r) ynothrow
-	ImplRet(MakeRect(TransposeCW(Point(r.X + r.Width, r.Y)),
-		TransposeCW(Point(r.X, r.Y + r.Height))))
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ImplRet(MakeRect(TransposeCW(Point(r.X + SPos(r.Width), r.Y)),
+		TransposeCW(Point(r.X, r.Y + SPos(r.Height)))))
 //@}
 
 /*!

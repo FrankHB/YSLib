@@ -132,7 +132,7 @@
     <ClInclude Include="include\CHRLib\Convert.hpp" />
     <ClInclude Include="include\CHRLib\encoding.h" />
     <ClInclude Include="include\CHRLib\MapEx.h" />
-    <ClInclude Include="include\CHRLib\smap.hpp" />
+    <ClInclude Include="include\CHRLib\StaticMapping.hpp" />
     <ClInclude Include="include\CHRLib\YModules.h" />
     <ClInclude Include="include\Helper\GUIApplication.h" />
     <ClInclude Include="include\Helper\GUIShell.h" />
@@ -232,7 +232,7 @@
     <ClInclude Include="include\YSLib\UI\Label.h" />
     <ClInclude Include="include\YSLib\UI\Loader.h" />
     <ClInclude Include="include\YSLib\UI\Menu.h" />
-    <ClInclude Include="include\YSLib\UI\progress.h" />
+    <ClInclude Include="include\YSLib\UI\Progress.h" />
     <ClInclude Include="include\YSLib\UI\Scroll.h" />
     <ClInclude Include="include\YSLib\UI\Selector.h" />
     <ClInclude Include="include\YSLib\UI\TabControl.h" />
@@ -276,8 +276,8 @@
     <ClCompile Include="MinGW32\source\YCLib\MinGW32.cpp" />
     <ClCompile Include="MinGW32\source\YCLib\NLS.cpp" />
     <ClCompile Include="source\CHRLib\chrmap.cpp" />
-    <ClCompile Include="source\CHRLib\chrproc.cpp" />
-    <ClCompile Include="source\CHRLib\MapEx.cpp" />
+    <ClCompile Include="source\CHRLib\CharacterProcessing.cpp" />
+    <ClCompile Include="source\CHRLib\MappingEx.cpp" />
     <ClCompile Include="source\Helper\GUIApplication.cpp" />
     <ClCompile Include="source\Helper\GUIShell.cpp" />
     <ClCompile Include="source\Helper\Environment.cpp" />
@@ -332,7 +332,7 @@
     <ClCompile Include="source\YSLib\Service\TextManager.cpp" />
     <ClCompile Include="source\YSLib\Service\TextRenderer.cpp" />
     <ClCompile Include="source\YSLib\Service\YBlend.cpp" />
-    <ClCompile Include="source\YSLib\Service\yblit.cpp" />
+    <ClCompile Include="source\YSLib\Service\YBlit.cpp" />
     <ClCompile Include="source\YSLib\Service\YBrush.cpp" />
     <ClCompile Include="source\YSLib\Service\YDraw.cpp" />
     <ClCompile Include="source\YSLib\Service\YGDI.cpp" />

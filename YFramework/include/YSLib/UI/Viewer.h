@@ -11,13 +11,13 @@
 /*!	\file Viewer.h
 \ingroup UI
 \brief 样式无关的视图。
-\version r704
+\version r705
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2015-03-22 15:39 +0800
+	2015-03-22 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ public:
 	DefGetter(const ynothrow, size_t, HeadIndex, head)
 	DefGetter(const ynothrow, size_t, SelectedIndex, selected)
 	DefGetter(const ynothrow, ptrdiff_t, Offset, IsSelected()
-		? GetSelectedIndex() - GetHeadIndex() : -1) \
+		? ptrdiff_t(GetSelectedIndex()) - ptrdiff_t(GetHeadIndex()) : -1) \
 		//!< 取选中的项目相对视图中首个项目的的索引偏移（未选中时为 -1 ）。
 	/*!
 	\brief 取当前视图中有效项目个数。

@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3309
+\version r3326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-18 05:28 +0800
+	2015-03-24 17:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,9 +68,8 @@ struct BlitTextPoint
 	}
 };
 
-//! \since build 415
-//@{
-template<unsigned char _vN>
+//! \since build 587
+template<size_t _vN>
 struct tr_seg
 {
 	static_assert(_vN < CHAR_BIT, "Specified bits should be within a byte.");
@@ -80,11 +79,14 @@ struct tr_seg
 	const byte&
 	operator()(const bitseg_iterator<_vN, true>& i) ynothrow
 	{
-		return v = byte(*i << (CHAR_BIT - _vN) | ((1U << _vN) - 1));
+		return v = byte(unsigned(*i << (size_t(CHAR_BIT) - _vN))
+			| ((1U << _vN) - 1));
 	}
 };
 
 
+//! \since build 415
+//@{
 using PixelIt = pseudo_iterator<const Pixel>;
 
 //! \since build 584
@@ -164,31 +166,25 @@ RenderCharAlpha(PaintContext&& pc, Color c, bool neg_pitch,
 }
 
 
-std::uint8_t
+PutCharResult
 PutCharBase(TextState& ts, SDst eol, ucs4_t c)
 {
 	if(c == '\n')
 	{
 		ts.PutNewline();
-		return 0;
+		return PutCharResult::PutNewline;
 	}
 	if(YB_UNLIKELY(!IsPrint(c)))
-		return 0;
-#if 0
-	const int max_w(GetBufferWidthN() - 1),
-		space_w(ts.GetCache().GetAdvance(' '));
+		return PutCharResult::NotPrintable;
 
-	if(max_w < space_w)
-		return line_breaks_l = 1;
-#endif
 	const SPos w_adv(ts.Pen.X + ts.Font.GetAdvance(c));
 
 	if(YB_UNLIKELY(w_adv > 0 && SDst(w_adv) > eol))
 	{
 		ts.PutNewline();
-		return 1;
+		return PutCharResult::NeedNewline;
 	}
-	return 2;
+	return PutCharResult::Normal;
 }
 
 } // namespace Drawing;

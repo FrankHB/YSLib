@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r304
+\version r309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-03-21 22:59 +0800
+	2014-03-23 18:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,14 +50,11 @@ ParseRect(const string& str)
 			iss >> buf[i];
 		else
 			throw std::invalid_argument("Parse 'Rect' failed: bad state.");
-	// FIXME: Complete max value checking.
-	if(buf[2] < 0 || buf[3] < 0)
-		throw std::invalid_argument("Parse 'Rect' failed: underflow.");
 
-	Rect res(buf[0], buf[1], buf[2], buf[3]);
+	const Rect res(buf[0], buf[1], CheckNonnegativeScalar<SDst>(buf[2]),
+		CheckNonnegativeScalar<SDst>(buf[3]));
 
 	YTraceDe(Debug, "ParseRect: %s.", to_string(res).c_str());
-
 	return res;
 }
 
