@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3472
+\version r3480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-03-22 15:18 +0800
+	2015-03-24 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -260,7 +260,9 @@ Typeface::SmallBitmapData::~SmallBitmapData()
 
 
 Typeface::Typeface(FontCache& cache, const FontPath& path, std::uint32_t i)
-	: Path(path), face_index(i), cmap_index(-1), style_name(), ref([&, this]{
+	// XXX: Conversion to 'long' might be implementation-defined.
+	: Path(path), face_index(long(i)), cmap_index(-1), style_name(),
+	ref([&, this]{
 		if(YB_UNLIKELY(ystdex::exists(cache.sFaces, this)))
 			throw LoggedEvent("Duplicate typeface found.", Critical);
 
@@ -337,7 +339,7 @@ Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
 			bool(key.Style & FontStyle::Italic) ? &italic_matrix : nullptr, {});
 
 		return SmallBitmapData(::FT_Load_Glyph(&ref.second.get(),
-			key.GlyphIndex, key.Flags | FT_LOAD_RENDER) == 0
+			key.GlyphIndex, std::int32_t(key.Flags | FT_LOAD_RENDER)) == 0
 			? ref.second.get().glyph : nullptr, key.Style);
 	});
 }
@@ -481,17 +483,16 @@ FontCache::LoadTypefaces(const FontPath& path)
 		const auto face_num(face->num_faces);
 
 		::FT_Done_Face(face);
+		YTraceDe(Informative, "Loaded faces num '%ld' from path '%s'.",
+			face_num, path.c_str());
 		if(face_num < 0)
 			return 0;
-
-		const size_t face_n(face_num);
-
 		for(long i(0); i < face_num; ++i)
 			// XXX: Conversion to 'long' might be implementation-defined.
 			TryExpr(*this += *(ynew Typeface(*this, path, std::uint32_t(i))))
 			CatchExpr(..., YTraceDe(Warning, "Failed loading face of path"
 				" '%s', index '%ld'.", path.c_str(), i))
-		return face_n;
+		return size_t(face_num);
 	}
 	return 0;
 }

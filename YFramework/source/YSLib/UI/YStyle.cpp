@@ -11,13 +11,13 @@
 /*!	\file YStyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1057
+\version r1098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-02-28 20:49 +0800
+	2015-03-24 16:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,9 @@ DrawRectRoundCorner(const PaintContext& pc, const Size& s, Color c)
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
 	const Rect& bounds(pc.ClipArea);
-	const SPos x1(pt.X + 1), y1(pt.Y + 1), x2(pt.X + s.Width - 1),
-		y2(pt.Y + s.Height - 1);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	const SPos x1(pt.X + 1), y1(pt.Y + 1), x2(pt.X + SPos(s.Width) - 1),
+		y2(pt.Y + SPos(s.Height) - 1);
 
 	if(YB_LIKELY(x1 <= x2 && y1 <= y2))
 	{
@@ -70,14 +71,14 @@ RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
 	const Rect& bounds(pc.ClipArea);
-	SDst x(pt.X), y(pt.Y);
+	SPos x(pt.X), y(pt.Y);
 
 	switch(rot)
 	{
 	case RDeg0:
 	case RDeg180:
 		{
-			SDst t(pt.Y);
+			SPos t(pt.Y);
 
 			for(SDst i(0); i < half_size; ++i)
 				DrawVLineSeg(g, bounds, rot == 0 ? x-- : x++, y--, t++, c);
@@ -86,7 +87,7 @@ RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 	case RDeg90:
 	case RDeg270:
 		{
-			SDst t(pt.X);
+			SPos t(pt.X);
 
 			for(SDst i(0); i < half_size; ++i)
 				DrawHLineSeg(g, bounds, rot == RDeg90 ? y++ : y--, x--, t++, c);
@@ -107,14 +108,14 @@ RectDrawArrowOutline(const PaintContext& pc, SDst half_size, Rotation rot,
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
 	const Rect& bounds(pc.ClipArea);
-	SDst x(pt.X), y(pt.Y);
+	SPos x(pt.X), y(pt.Y);
 
 	switch(rot)
 	{
 	case RDeg0:
 	case RDeg180:
 		{
-			SDst t(pt.Y);
+			SPos t(pt.Y);
 
 			for(SDst i(0); i < half_size - 1; ++i)
 			{
@@ -128,7 +129,7 @@ RectDrawArrowOutline(const PaintContext& pc, SDst half_size, Rotation rot,
 	case RDeg90:
 	case RDeg270:
 		{
-			SDst t(pt.X);
+			SPos t(pt.X);
 
 			for(SDst i(0); i < half_size - 1; ++i)
 			{
@@ -151,15 +152,15 @@ RectDrawCornerArrow(const PaintContext& pc, SDst size, Rotation rot,
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
 	const Rect& bounds(pc.ClipArea);
-	const SDst x(pt.X);
-	SDst y(pt.Y);
+	const SPos x(pt.X);
+	SPos y(pt.Y);
 
 	switch(rot)
 	{
 	case RDeg0:
 	case RDeg270:
 		{
-			SDst t(x);
+			SPos t(x);
 
 			y -= size;
 			for(SDst i(0); i < size; ++i)
@@ -169,7 +170,8 @@ RectDrawCornerArrow(const PaintContext& pc, SDst size, Rotation rot,
 	case RDeg90:
 	case RDeg180:
 		{
-			SDst t(rot == RDeg90 ? x - size : x + size);
+			// XXX: Conversion to 'SPos' might be implementation-defined.
+			SPos t(rot == RDeg90 ? x - SPos(size) : x + SPos(size));
 
 			for(SDst i(0); i < size; ++i)
 				DrawHLineSeg(g, bounds, y++, rot == RDeg90 ? t++ : t--, x, c);
@@ -187,8 +189,9 @@ RectDrawCornerArrowOutline(const PaintContext& pc, SDst size, Rotation rot,
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
 	const Rect& bounds(pc.ClipArea);
-	const SDst x(pt.X), y(pt.Y), inv_x(rot < RDeg180 ? x - size : x + size),
-		inv_y(rot == RDeg0 || rot == RDeg270 ? y - size : y + size);
+	const SPos x(pt.X), y(pt.Y),
+		inv_x(rot < RDeg180 ? x - SPos(size) : x + SPos(size)),
+		inv_y(rot == RDeg0 || rot == RDeg270 ? y - SPos(size) : y + SPos(size));
 
 	DrawVLineSeg(g, bounds, x, inv_y, y, c);
 	DrawHLineSeg(g, bounds, y, inv_x, x, c);
@@ -240,8 +243,9 @@ DrawCross(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 {
 	if(YB_LIKELY(r.Width > 8 && r.Height > 8))
 	{
-		const SPos xmin(r.X + 4), xmax(xmin + r.Width - 8),
-			ymin(r.Y + 4), ymax(ymin + r.Height - 8);
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		const SPos xmin(r.X + 4), xmax(xmin + SPos(r.Width) - 8),
+			ymin(r.Y + 4), ymax(ymin + SPos(r.Height) - 8);
 
 		DrawLineSeg(g, bounds, xmin, ymin, xmax, ymax, c),
 		DrawLineSeg(g, bounds, xmax - 1, ymin, xmin - 1, ymax, c);
@@ -254,9 +258,10 @@ DrawTick(const Graphics& g, const Rect& bounds, const Rect& r, Color c1,
 {
 	if(YB_LIKELY(r.Width > 8 && r.Height > 8))
 	{
-		const Point p1(r.X + 2, r.Y + r.Height / 2),
-			p3(r.X + r.Width - 2, r.Y + 1);
-		Point p2(r.X + r.Width / 2 - 1, r.Y + r.Height - 3);
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		const Point p1(r.X + 2, r.Y + SPos(r.Height) / 2),
+			p3(r.X + SPos(r.Width) - 2, r.Y + 1);
+		Point p2(r.X + SPos(r.Width) / 2 - 1, r.Y + SPos(r.Height) - 3);
 
 		--p2.Y;
 		DrawLineSeg(g, bounds, p1 + Vec(1, 0), p2, c2);
@@ -321,7 +326,8 @@ HSL::operator Color() const ynothrow
 	YAssert(IsInClosedInterval(GetS(), 0.F, 1.F),
 		"Invalid saturation found."),
 	YAssert(IsInClosedInterval(lightness, 0.F, 1.F), "Invalid light found.");
-	if(GetS() == 0)
+	YAssert(std::isfinite(GetS()), "Abnormal saturation found.");
+	if(!std::isnormal(GetS()))
 		return MakeGray(lightness > 255.F / 0x100 ? 0xFF : lightness * 0x100);
 
 	float t2((lightness < 0.5F ? lightness * (1 + GetS())
@@ -354,25 +360,28 @@ HSL::operator Color() const ynothrow
 
 HSV::HSV(Color c) ynothrow
 {
-	const float r(c.GetR() / 255.0f), g(c.GetG() / 255.0f),
-		b(c.GetB() / 255.0f), max_color(max(r, max(g, b))),
+	using int_type = ystdex::make_widen_int<MonoType, true>::type;
+	static_assert(std::is_signed<int_type>::value, "Invalid type found.");
+	// TODO: Check range by constexpr 'std::numeric_limits' members.
+	const int_type r(c.GetR()), g(c.GetG()), b(c.GetB()),
+		max_color(max(r, max(g, b))),
 		delta(max_color - min(r, min(g, b)));
 
-	yunseq(GetSRef() = max_color == 0.F ? 0.F : delta / max_color,
-		value = max_color);
-	GetHRef() = Hue((GetS() > 0.F ? [=]{
-		float res(0);
+	yunseq(GetSRef() = max_color == 0 ? 0.F : delta / float(max_color),
+		value = max_color / 255.F);
+	GetHRef() = Hue((max_color > 0 ? [=]{
+		int_type res(0);
 
 		if(r == max_color)
-			res = (g - b) / delta;
+			res = g - b;
 		else if(g == max_color)
-			res = 2.F + (b - r) / delta;
+			res = delta * 2 + b - r;
 		else if(b == max_color)
-			res = 4.F + (r - g) / delta;
-		if(res < 0.F)
-			res += 6.F;
+			res = delta * 4 + r - g;
+		if(res < 0)
+			res += delta * 6;
 		return res;
-	}() : -6.F) * 60.F);
+	}() * 60.F / delta : -360.F));
 }
 
 HSV::operator Color() const ynothrow

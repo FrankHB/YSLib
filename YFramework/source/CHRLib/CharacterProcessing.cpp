@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file chrproc.cpp
+/*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1264
+\version r1269
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-11-14 21:38 +0800
+	2015-03-22 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,7 +124,7 @@ MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
 			ConvertCharacter(pfun, *d++, s, std::move(st));
 		}
 	*d = 0;
-	return d - p;
+	return size_t(d - p);
 }
 
 size_t
@@ -139,7 +139,7 @@ UCS2ToMBCS(char* d, const ucs2_t* s, Encoding enc)
 		while(!is_null(*s))
 			d += pfun(d, *s++);
 	*d = 0;
-	return d - p;
+	return size_t(d - p);
 }
 
 size_t
@@ -153,7 +153,7 @@ UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 	while(!is_null(*s))
 		*d++ = ucs2_t(*s++);
 	*d = 0;
-	return d - p;
+	return size_t(d - p);
 }
 
 } // namespace CHRLib;

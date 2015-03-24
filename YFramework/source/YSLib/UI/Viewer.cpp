@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r286
+\version r294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2015-03-22 16:33 +0800
+	2015-03-24 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,8 @@ SequenceViewer::AdjustForContent(size_t total)
 SequenceViewer&
 SequenceViewer::IncreaseHead(ptrdiff_t d, size_t total)
 {
-	ptrdiff_t t(head + d);
+	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+	auto t(ptrdiff_t(head) + d);
 
 	RestrictInInterval(t, ptrdiff_t(0), ptrdiff_t(total));
 	SetHeadIndex(size_t(t), total);
@@ -104,7 +105,8 @@ SequenceViewer::IncreaseHead(ptrdiff_t d, size_t total)
 SequenceViewer&
 SequenceViewer::IncreaseSelected(ptrdiff_t d, size_t total)
 {
-	ptrdiff_t t(selected + d);
+	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+	auto t(ptrdiff_t(selected) + d);
 
 	RestrictInInterval(t, ptrdiff_t(0), ptrdiff_t(total));
 	SetSelectedIndex(size_t(t), total);
@@ -179,8 +181,8 @@ size_t
 AMUnitList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return vwList.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
-		- v_off - 1) / SPos(GetItemHeight()) + 1, vwList.GetValid(GetTotal()));
+	return vwList.GetHeadIndex() + min(size_t((SPos(height + uTopOffset)
+		- v_off - 1) / SPos(GetItemHeight()) + 1), vwList.GetValid(GetTotal()));
 }
 Point
 AMUnitList::GetUnitLocation(size_t idx) const
@@ -259,8 +261,8 @@ AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
 size_t
 AMUnitList::CheckPoint(const Size& s, const Point& pt)
 {
-	return Rect(s).Contains(pt) ? (pt.Y + uTopOffset) / GetItemHeight()
-		+ vwList.GetHeadIndex() : size_t(-1);
+	return Rect(s).Contains(pt) ? size_t((pt.Y + SPos(uTopOffset))
+		/ SPos(GetItemHeight())) + vwList.GetHeadIndex() : size_t(-1);
 }
 
 void

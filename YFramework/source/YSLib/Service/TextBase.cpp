@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2507
+\version r2510
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:48 +0800
+	2014-03-24 10:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,8 @@ TextState::ResetPen(const Point& pt, const Padding& m)
 void
 SetCurrentTextLineNOf(TextState& ts, std::uint16_t n)
 {
-	ts.Pen.Y = GetTextLineBaseOf(ts) + GetTextLineHeightExOf(ts) * n;
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ts.Pen.Y = GetTextLineBaseOf(ts) + SPos(GetTextLineHeightExOf(ts) * n);
 }
 
 void

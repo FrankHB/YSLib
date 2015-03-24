@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3233
+\version r3239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-03-21 22:53 +0800
+	2015-03-24 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,8 +209,9 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 			{
 				// NOTE: Get height of top widget, top and bottom spaces.
 				const SDst h0(GetSizeOf(*p).Height);
-				const SDst h1(max<SPos>(0, pt.Y)), h2(max<SPos>(0, h0 - pt.Y
-					- GetHeight()));
+				// XXX: Conversion to 'SPos' might be implementation-defined.
+				const SDst h1(SDst(max<SPos>(0, pt.Y))), h2(SDst(max<SPos>(0,
+					SPos(h0) - pt.Y - SPos(GetHeight()))));
 
 				if(IsInOpenInterval(h1, h0) || IsInOpenInterval(h2, h0))
 				{
@@ -228,7 +229,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 						const auto i(std::find(lst.cbegin(), lst.cend(), Text));
 
 						if(i != lst.cend())
-							lbContent.SetSelected(i - lst.cbegin());
+							lbContent.SetSelected(size_t(i - lst.cbegin()));
 						else
 							lbContent.ClearSelected();
 					}
@@ -270,7 +271,8 @@ DropDownList::Refresh(PaintEventArgs&& e)
 		csCurrent = CursorState::Pressed;
 	Button::Refresh(std::move(e));
 	csCurrent = cs;
-	DrawArrow(e.Target, e.ClipArea, Rect(e.Location.X + GetWidth() - 16,
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	DrawArrow(e.Target, e.ClipArea, Rect(e.Location.X + SPos(GetWidth()) - 16,
 		e.Location.Y, Size(16, GetHeight())), 4, RDeg270, ForeColor);
 }
 

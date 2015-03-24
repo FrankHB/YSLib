@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1490
+\version r1494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2014-10-14 01:03 +0800
+	2014-10-14 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,7 +140,7 @@ LexicalAnalyzer::CheckLineConcatnater(char c, char concat, char newline)
 		if(!unescape_context.PopIf(concat))
 		{
 			auto& pfx(unescape_context.Prefix);
-	
+
 			if(!pfx.empty() && pfx.back() == concat)
 				pfx.pop_back();
 			else if(!cbuf.empty() && cbuf.back() == line_concat)
@@ -159,7 +159,7 @@ bool
 LexicalAnalyzer::FilterForParse(char c, Unescaper unescape,
 	PrefixHandler prefix_handler)
 {
-	return !(CheckLineConcatnater(c) || CheckEscape(c, unescape)
+	return !(CheckLineConcatnater(c) || CheckEscape(byte(c), unescape)
 		|| prefix_handler(c, unescape_context.Prefix));
 }
 
@@ -167,7 +167,7 @@ void
 LexicalAnalyzer::ParseByte(byte b, Unescaper unescape,
 	PrefixHandler prefix_handler)
 {
-	if(FilterForParse(b, unescape, prefix_handler))
+	if(FilterForParse(char(b), unescape, prefix_handler))
 	{
 		switch(b)
 		{
@@ -175,7 +175,7 @@ LexicalAnalyzer::ParseByte(byte b, Unescaper unescape,
 			case '"':
 				if(ld == char())
 				{
-					ld = b;
+					ld = char(b);
 					qlist.push_back(cbuf.size());
 					cbuf += char(b);
 				}
@@ -209,7 +209,7 @@ void
 LexicalAnalyzer::ParseQuoted(byte b, Unescaper unescape,
 	PrefixHandler prefix_handler)
 {
-	if(FilterForParse(b, unescape, prefix_handler))
+	if(FilterForParse(char(b), unescape, prefix_handler))
 		cbuf += char(b);
 }
 

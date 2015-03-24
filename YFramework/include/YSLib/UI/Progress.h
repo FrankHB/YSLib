@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file progress.h
+/*!	\file Progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r318
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
-\since build 219
+\since build 587
 \par 创建时间:
 	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2014-08-10 18:03 +0800
+	2015-03-24 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_progress_h_
-#define YSL_INC_UI_progress_h_ 1
+#ifndef YSL_INC_UI_Progress_h_
+#define YSL_INC_UI_Progress_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YControl
@@ -52,7 +52,10 @@ public:
 	*/
 	Color ForeColor{Drawing::ColorSpace::Black};
 
-	//! \since build 337
+	/*!
+	\note 当第二参数不是非零有限浮点数时视为 1.F 。
+	\since build 337
+	*/
 	explicit
 	ProgressBar(const Rect& = {}, ValueType = 0xFF);
 	DefDeMoveCtor(ProgressBar)

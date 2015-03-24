@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r537
+\version r566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-03-22 07:38 +0800
+	2015-03-24 11:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ public:
 */
 #	define YF_Raise_Win32Exception_On_Failure(_expr, ...) \
 	{ \
-		const auto err(_expr); \
+		const auto err(Win32Exception::ErrorCode(_expr)); \
 	\
 		if(err != ERROR_SUCCESS) \
 			throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
@@ -166,51 +166,49 @@ CheckWine();
 /*!	\defgroup native_encoding_conv Native Encoding Conversion
 \brief 本机文本编码转换。
 \pre 长度参数非零且不上溢 \c int 时断言：字符串指针参数非空。
-\throw 长度参数上溢 \c int 。
+\exception 长度参数上溢 \int 或转换中溢出。
 \note 长度为零时直接返回空字符串，无其它效果。
-\since build 431
-*/
-//@{
-/*!
-\brief 转换第一个 int 参数指定编码的字符串为第二个 int 参数指定的编码。
-\since build 476
+\since build 587
+
+转换第一个 \c unsigned 参数指定编码的字符串为第二个 \c unsigned 参数指定的编码。
 */
 //@{
 YF_API std::string
-MBCSToMBCS(const char*, std::size_t, int = CP_UTF8, int = CP_ACP);
-inline PDefH(std::string, MBCSToMBCS, const char* str, int cp_src = CP_UTF8,
-	int cp_dst = CP_ACP)
-	ImplRet(Windows::MBCSToMBCS(str, ystdex::ntctslen(str), cp_src, cp_dst))
+MBCSToMBCS(std::size_t, const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
+inline PDefH(std::string, MBCSToMBCS, const char* str,
+	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
+	ImplRet(Windows::MBCSToMBCS(ystdex::ntctslen(str), str, cp_src, cp_dst))
 inline PDefH(std::string, MBCSToMBCS, const std::string& str,
-	int cp_src = CP_UTF8, int cp_dst = CP_ACP)
-	ImplRet(Windows::MBCSToMBCS(str.c_str(), str.length(), cp_src, cp_dst))
-//@}
+	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
+	ImplRet(Windows::MBCSToMBCS(str.length(), str.c_str(), cp_src, cp_dst))
 
 YF_API std::string
-WCSToMBCS(const wchar_t*, std::size_t, int = CP_ACP);
-inline PDefH(std::string, WCSToMBCS, const wchar_t* str, int cp = CP_ACP)
-	ImplRet(Windows::WCSToMBCS(str, ystdex::ntctslen(str), cp))
-inline PDefH(std::string, WCSToMBCS, const std::wstring& str, int cp = CP_ACP)
-	ImplRet(Windows::WCSToMBCS(str.c_str(), str.length(), cp))
+WCSToMBCS(std::size_t, const wchar_t*, unsigned = CP_ACP);
+inline PDefH(std::string, WCSToMBCS, const wchar_t* str, unsigned cp = CP_ACP)
+	ImplRet(Windows::WCSToMBCS(ystdex::ntctslen(str), str, cp))
+inline PDefH(std::string, WCSToMBCS, const std::wstring& str,
+	unsigned cp = CP_ACP)
+	ImplRet(Windows::WCSToMBCS(str.length(), str.c_str(), cp))
 
 YF_API std::wstring
-MBCSToWCS(const char*, std::size_t, int = CP_ACP);
-inline PDefH(std::wstring, MBCSToWCS, const char* str, int cp = CP_ACP)
-	ImplRet(Windows::MBCSToWCS(str, ystdex::ntctslen(str), cp))
-inline PDefH(std::wstring, MBCSToWCS, const std::string& str, int cp = CP_ACP)
-	ImplRet(Windows::MBCSToWCS(str.c_str(), str.length(), cp))
+MBCSToWCS(std::size_t, const char*, unsigned = CP_ACP);
+inline PDefH(std::wstring, MBCSToWCS, const char* str, unsigned cp = CP_ACP)
+	ImplRet(Windows::MBCSToWCS(ystdex::ntctslen(str), str, cp))
+inline PDefH(std::wstring, MBCSToWCS, const std::string& str,
+	unsigned cp = CP_ACP)
+	ImplRet(Windows::MBCSToWCS(str.length(), str.c_str(), cp))
 
 //! \since build 540
 //@{
 inline PDefH(std::string, WCSToUTF8, const wchar_t* str, std::size_t len)
-	ImplRet(WCSToMBCS(str, len, CP_UTF8))
+	ImplRet(WCSToMBCS(len, str, CP_UTF8))
 inline PDefH(std::string, WCSToUTF8, const wchar_t* str)
 	ImplRet(Windows::WCSToUTF8(str, ystdex::ntctslen(str)))
 inline PDefH(std::string, WCSToUTF8, const std::wstring& str)
 	ImplRet(Windows::WCSToUTF8(str.c_str(), str.length()))
 
 inline PDefH(std::wstring, UTF8ToWCS, const char* str, std::size_t len)
-	ImplRet(MBCSToWCS(str, len, CP_UTF8))
+	ImplRet(MBCSToWCS(len, str, CP_UTF8))
 inline PDefH(std::wstring, UTF8ToWCS, const char* str)
 	ImplRet(Windows::UTF8ToWCS(str, ystdex::ntctslen(str)))
 inline PDefH(std::wstring, UTF8ToWCS, const std::string& str)

@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r692
+\version r705
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2015-03-22 16:32 +0800
+	2015-03-24 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,8 +159,9 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 				? CursorOverColor : LabelBrush.ForeColor, true);
 			break;
 		case NodeState::Expanded:
-			DrawCornerArrow(e.Target, e.ClipArea,
-				e.Location + Vec(LabelBrush.Margin.Left - UnitIndent + 2, 2), 7,
+			// XXX: Conversion to 'SPos' might be implementation-defined.
+			DrawCornerArrow(e.Target, e.ClipArea, e.Location
+				+ Vec(LabelBrush.Margin.Left - SPos(UnitIndent) + 2, 2), 7,
 				RDeg0, idxCursorOver == idxShared ? CursorOverColor
 				: LabelBrush.ForeColor);
 			break;
@@ -189,7 +190,9 @@ TreeList::ExtractNodeName(const ValueNode& node)
 Rect
 TreeList::GetIndentBox() const
 {
-	return Rect(LabelBrush.Margin.Left - UnitIndent - 2, 0, GetIndentBoxSize());
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return Rect(LabelBrush.Margin.Left - SPos(UnitIndent) - 2, 0,
+		GetIndentBoxSize());
 }
 Rect
 TreeList::GetIndentBoxBounds(size_t idx) const
@@ -250,7 +253,7 @@ void
 TreeList::Bind(size_t max_depth)
 {
 	IndentType indent(1);
-	IndexType index(-1);
+	auto index(IndexType(-1));
 
 	// TODO: Optimize implementation.
 	bind_node(TreeRoot, [&, this](const ValueNode& node,
@@ -375,9 +378,10 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		// XXX: Reuse previous operation.
 		// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63500 .
 #if defined(_GLIBCXX_DEBUG) && YB_IMPL_GNUCPP < 40902
-		lst.insert(lst.cbegin() + idx + 1, text_list.begin(), text_list.end());
+		lst.insert(lst.cbegin() + ptrdiff_t(idx) + 1, text_list.begin(),
+			text_list.end());
 #else
-		lst.insert(lst.cbegin() + idx + 1, std::make_move_iterator(
+		lst.insert(lst.cbegin() + ptrdiff_t(idx) + 1, std::make_move_iterator(
 			text_list.begin()), std::make_move_iterator(text_list.end()));
 #endif
 	}
@@ -403,9 +407,9 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 
 			const auto n(std::prev(j)->first - idx);
 
-			// XXX: Use %cbegin after switched to libstdc++ 4.9.
-			yunseq(ystdex::erase_n(lst, std::next(lst.begin(),
-				idx + 1), n), indent_map.erase(i, j));
+			// XXX: Conversion to 'SPos' might be implementation-defined.
+			yunseq(ystdex::erase_n(lst, std::next(lst.cbegin(),
+				ptrdiff_t(idx + 1)), ptrdiff_t(n)), indent_map.erase(i, j));
 #if 1
 			{
 				// XXX: Use %std::make_move_iterator if proper.

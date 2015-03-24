@@ -313,7 +313,7 @@
     <ClInclude Include="include\YSLib\Service\YPixel.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\progress.h">
+    <ClInclude Include="include\YSLib\UI\Progress.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\Label.h">
@@ -343,7 +343,7 @@
     <ClInclude Include="include\CHRLib\encoding.h">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\CHRLib\smap.hpp">
+    <ClInclude Include="include\CHRLib\StaticMapping.hpp">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
     <ClInclude Include="include\YCLib\YCommon.h">
@@ -975,7 +975,7 @@
     <ClCompile Include="source\YSLib\Service\YResource.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Service\yblit.cpp">
+    <ClCompile Include="source\YSLib\Service\YBlit.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\YDraw.cpp">
@@ -999,7 +999,7 @@
     <ClCompile Include="source\CHRLib\chrmap.cpp">
       <Filter>source\CHRLib</Filter>
     </ClCompile>
-    <ClCompile Include="source\CHRLib\chrproc.cpp">
+    <ClCompile Include="source\CHRLib\CharacterProcessing.cpp">
       <Filter>source\CHRLib</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\YWidgetView.cpp">
@@ -1062,7 +1062,7 @@
     <ClCompile Include="source\YCLib\Timer.cpp">
       <Filter>source\YCLib</Filter>
     </ClCompile>
-    <ClCompile Include="source\CHRLib\MapEx.cpp">
+    <ClCompile Include="source\CHRLib\MappingEx.cpp">
       <Filter>source\CHRLib</Filter>
     </ClCompile>
     <ClCompile Include="source\YCLib\MemoryMapping.cpp">

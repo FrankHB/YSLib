@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3432
+\version r3439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-03-22 15:34 +0800
+	2015-03-23 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,8 +122,8 @@ void
 BlitScan(_fBlitLoop loop, _tOut dst, _tIn src, _tScalar d_width,
 	_tScalar s_width, _tDiff delta_x, _tDiff delta_y)
 {
-	loop(dst, src, delta_x, delta_y, (_bDec ? -1 : 1) * d_width - delta_x,
-		s_width - delta_x);
+	loop(dst, src, delta_x, delta_y, _tDiff(_bDec ? -1 : 1) * _tDiff(d_width)
+		- delta_x, _tDiff(s_width) - delta_x);
 }
 
 
@@ -169,10 +169,13 @@ Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 {
 	SDst min_x, min_y, delta_x, delta_y;
 
+	// XXX: Conversion to 'difference_type' might be implementation-defined.
 	if(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, delta_x, delta_y))
-		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + (BlitScaleComponent<
+		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + typename
+			std::iterator_traits<_tOut>::difference_type(BlitScaleComponent<
 			_bSwapUD>(dp.Y, sp.Y, delta_y) * ds.Width + BlitScaleComponent<
-			_bSwapLR>(dp.X, sp.X, delta_x)), src + ((_bSwapUD ? ss.Height
+			_bSwapLR>(dp.X, sp.X, delta_x)), src + typename
+			std::iterator_traits<_tIn>::difference_type((_bSwapUD ? ss.Height
 			- delta_y - min_y : min_y) * ss.Width + (_bSwapLR ? ss.Width
 			- delta_x - min_x : min_x)), ds.Width, ss.Width, delta_x, delta_y);
 }

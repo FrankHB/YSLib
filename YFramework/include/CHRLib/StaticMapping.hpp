@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file smap.hpp
+/*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1999
+\version r2007
 \author FrankHB <frankhb1989@gmail.com>
-\since build 247
+\since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-11-10 00:12 +0800
+	2015-03-22 16:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INC_CHRLib_smap_hpp_
-#define INC_CHRLib_smap_hpp_ 1
+#ifndef INC_CHRLib_StaticMapping_hpp_
+#define INC_CHRLib_StaticMapping_hpp_ 1
 
 #include "YModules.h"
 #include YFM_CHRLib_CharacterMapping
@@ -189,12 +189,12 @@ struct GUCS2Mapper<CharSet::UTF_8>
 			l = 2;
 		else
 		{
-			*d = 0xE0 | s >> 12;
+			*d = char(0xE0 | s >> 12U);
 			++d;
 			l = 3;
 		}
-		*d = 0x80 | (s >> 6 & 0x3F);
-		*++d = 0x80 | (s & 0x3F);
+		*d = char(0x80 | (s >> 6 & 0x3F));
+		*++d = char(0x80 | (s & 0x3F));
 		return l;
 	}
 };

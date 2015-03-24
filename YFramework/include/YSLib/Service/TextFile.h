@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r800
+\version r802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-03-22 15:27 +0800
+	2015-03-24 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,8 +95,6 @@ public:
 	DefGetter(const ynothrow, size_t, BOMSize, bl)
 	DefGetter(const ynothrow, size_t, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
-	DefGetter(const ynothrow, size_t, TextPosition, GetPosition() - bl) \
-		//!< 取文件指针关于文本区段的位置。
 
 	/*!
 	\brief 检查文件头是否有 BOM(Byte Order Mark) ，若有则据此判断编码。

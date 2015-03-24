@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1329
+\version r1332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2015-03-22 07:48 +0800
+	2015-03-24 10:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -308,6 +308,8 @@ public:
 	HBitmap(DataPtr ptr) ynothrow
 		: p_bitmap(ptr)
 	{}
+	//! \exception LoggedEvent 异常中立：输入的大小分量过大。
+	//@{
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
@@ -321,6 +323,7 @@ public:
 	*/
 	explicit
 	HBitmap(BitmapPtr, const Size&, size_t = 0);
+	//@}
 	/*!
 	\brief 构造：从标准矩形像素图缓冲区复制并转换图像数据。
 	\exception GeneralEvent 转换失败。

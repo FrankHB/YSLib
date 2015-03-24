@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1482
+\version r1486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2014-11-29 11:16 +0800
+	2015-03-24 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ Session::Session(const TextFile& tf, CharParser parse)
 	{
 		if(YB_UNLIKELY(is_undereferenceable(i)))
 			throw LoggedEvent("Bad Source!", Critical);
-		parse(lexer, *i);
+		parse(lexer, char(*i));
 		++i;
 	}
 }
@@ -54,13 +54,13 @@ Session::Session(const TextFile& tf, CharParser parse)
 void
 Session::DefaultParseByte(LexicalAnalyzer& lexer, char c)
 {
-	lexer.ParseByte(c);
+	lexer.ParseByte(byte(c));
 }
 
 void
 Session::DefaultParseQuoted(LexicalAnalyzer& lexer, char c)
 {
-	lexer.ParseQuoted(c);
+	lexer.ParseQuoted(byte(c));
 }
 
 

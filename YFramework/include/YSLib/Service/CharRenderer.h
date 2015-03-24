@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2833
+\version r2890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:41 +0800
+	2015-03-24 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,8 +50,8 @@ namespace Drawing
 \param pc 指定字符所在区域和渲染目标的绘制上下文，
 	其中 Location 为相对源的坐标。
 \param neg_pitch 指定交换行渲染顺序。
-\sa Blit
-\sa BlitLines
+\sa Drawing::Blit
+\sa Drawing::BlitLines
 \since build 438
 */
 template<typename _tOut, typename _tIn, typename _fBlitScanner>
@@ -82,8 +82,8 @@ BlitGlyphLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ss,
 \param pc 指定字符所在区域和渲染目标的绘制上下文，
 	其中 Location 为相对源的坐标。
 \param neg_pitch 指定交换行渲染顺序。
-\sa Blit
-\sa BlitPixels
+\sa Drawing::Blit
+\sa Drawing::BlitPixels
 \since build 440
 */
 template<typename _tOut, typename _tIn, typename _fPixelShader>
@@ -129,13 +129,25 @@ RenderCharAlpha(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
 
 /*!
 \brief 取文本渲染器的行末位置（横坐标）。
-\since build 372
+\since build 587
 */
 template<class _tRenderer>
-inline SDst
+inline SPos
 GetEndOfLinePositionOf(const _tRenderer& r)
 {
 	return r.GetTextState().Margin.Right;
+}
+
+/*!
+\brief 取文本渲染器的行末位置剩余偏移。
+\note 使用 ADL <tt>GetEndOfLinePositionOf</tt> 取行末位置。
+\since build 587
+*/
+template<class _tRenderer>
+inline SPos
+GetEndOfLineOffsetOf(const _tRenderer& r)
+{
+	return SPos(r.GetContext().GetWidth()) - GetEndOfLinePositionOf(r);
 }
 
 /*!
@@ -151,12 +163,24 @@ PrintChar(_tRenderer& r, ucs4_t c)
 		r(c);
 }
 
-/*!
-\brief 使用指定的文本状态和行末位置（横坐标）按需打印换行并判断是否需要渲染单个字符。
-\return 遇到行内无法容纳而换行时为 1 ，需要继续渲染为 2 ，否则为 0 。
-\since build 372
-*/
-YF_API std::uint8_t
+//! \since build 587
+//@{
+//! \brief 输出字符结果。
+enum class PutCharResult
+{
+	//! \brief 行内无法容纳而换行。
+	NeedNewline,
+	//! \brief 输出换行符。
+	PutNewline,
+	//! \brief 遇到不可打印字符。
+	NotPrintable,
+	//! \brief 可继续在同一行输出可打印字符。
+	Normal
+};
+
+
+//! \brief 使用指定的文本状态和行末位置按需打印换行并判断是否需要渲染单个字符。
+YF_API PutCharResult
 PutCharBase(TextState&, SDst, ucs4_t);
 
 /*!
@@ -164,24 +188,30 @@ PutCharBase(TextState&, SDst, ucs4_t);
 \return 遇到行内无法容纳而换行时返回非零值，否则返回 0 。
 \note 处理换行符。
 \note 当行内无法容纳完整字符时换行。
-\since build 190
 */
+//@{
 template<class _tRenderer>
-std::uint8_t
+PutCharResult
+PutChar(_tRenderer& r, ucs4_t c, SDst eol)
+{
+	const auto res(PutCharBase(r.GetTextState(), eol, c));
+
+	if(res == PutCharResult::Normal)
+		r(c);
+	return res;
+}
+template<class _tRenderer>
+PutCharResult
 PutChar(_tRenderer& r, ucs4_t c)
 {
-	const std::uint8_t res(PutCharBase(r.GetTextState(),
-		r.GetContext().GetWidth() - GetEndOfLinePositionOf(r), c));
+	const SPos seol(GetEndOfLineOffsetOf(r));
 
-	switch(res)
-	{
-	case 2:
-		r(c);
-		return 0;
-	default:
-		return res;
-	}
+	if(seol >= 0)
+		return PutChar(r, c, SDst(seol));
+	return PutCharResult::NeedNewline;
 }
+//@}
+//@}
 
 } // namespace Drawing;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2831
+\version r2847
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:47 +0800
+	2015-03-23 03:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,21 +71,16 @@ FetchLastLineBasePosition(const TextState&, SDst);
 \brief 取按字体高度和行距调整文本区域的底边距。
 \since build 252
 */
-inline SDst
-FetchResizedBottomMargin(const TextRegion& tr)
-{
-	return FetchResizedBottomMargin(tr, tr.GetHeight());
-}
+inline PDefH(SDst, FetchResizedBottomMargin, const TextRegion& tr)
+	ImplRet(FetchResizedBottomMargin(tr, tr.GetHeight()))
 
 /*!
 \brief 按字体高度和行距调整文本区域的底边距。
-\since build 252
+\since build 587
 */
-inline SDst
-AdjustBottomMarginOf(TextRegion& tr)
-{
-	return tr.Margin.Bottom = FetchResizedBottomMargin(tr);
-}
+inline PDefH(void, AdjustBottomMarginOf, TextRegion& tr)
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ImplExpr(tr.Margin.Bottom = SPos(FetchResizedBottomMargin(tr)))
 
 
 /*!
@@ -288,7 +283,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIter s)
 	EmptyTextRenderer r(ts, h);
 
 	PrintString(r, s);
-	return ts.Pen.X - x;
+	return SDst(ts.Pen.X - x);
 }
 /*!
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
@@ -305,7 +300,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIter s, _tIter g, ucs4_t c = {})
 	EmptyTextRenderer r(ts, h);
 
 	PrintString(r, s, g, c);
-	return ts.Pen.X - x;
+	return SDst(ts.Pen.X - x);
 }
 /*!
 \brief 取单行字符串在指定文本状态和高度限制时的显示宽度。
@@ -330,7 +325,8 @@ template<typename _tIn,
 SDst
 FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
 {
-	return std::accumulate(first, last, 0, [&](SDst val, decltype(*first) str){
+	return std::accumulate(first, last, SDst(),
+		[&](SDst val, decltype(*first) str){
 		return max(val, FetchStringWidth(font, str));
 	});
 }

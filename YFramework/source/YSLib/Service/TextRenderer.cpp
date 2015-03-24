@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2713
+\version r2734
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-22 15:32 +0800
+	2015-03-24 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,35 +178,42 @@ TextRegion::ClearTextLine(std::uint16_t l)
 	auto& ts(GetTextState());
 	SDst h(GetTextLineHeightExOf(ts));
 
-	ClearLine(ts.Margin.Top + h * l, h);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	ClearLine(ts.Margin.Top + SPos(h * l), h);
 }
 
 void
 TextRegion::Scroll(ptrdiff_t n)
 {
 	if(YB_LIKELY(Margin.Bottom < 0 || GetHeight() > SDst(Margin.Bottom)))
-		Scroll(n, GetHeight() - Margin.Bottom);
+		Scroll(n, GetHeight() - SDst(Margin.Bottom));
 }
 void
 TextRegion::Scroll(ptrdiff_t n, SDst h)
 {
-	if(YB_LIKELY(pBuffer && pBufferAlpha))
+	if(YB_LIKELY(n != 0 && pBuffer && pBufferAlpha))
 	{
-		const auto t(((h + Margin.Bottom > GetHeight()
-			? GetHeight() - Margin.Bottom : h)
-			- Margin.Top - std::abs(n)) * GetWidth());
+		SDst top(SDst(max(Margin.Top, SPos()))),
+			bottom(SDst(max(Margin.Bottom, SPos())));
+		const auto& size(GetSize());
 
-		if(YB_LIKELY(n && t > 0))
+		if(size.Height > top + bottom)
 		{
-			std::uint32_t d(Margin.Top), s(d);
+			const auto t(((h + top > size.Height ? size.Height - bottom : h)
+				- top - size_t(std::abs(n))) * size.Width);
 
-			if(n > 0)
-				d += n;
-			else
-				s -= n;
-			yunseq(s *= GetWidth(), d *= GetWidth());
-			yunseq(ystdex::pod_move_n(&pBuffer[s], t, &pBuffer[d]),
-				ystdex::pod_move_n(&pBufferAlpha[s], t, &pBufferAlpha[d]));
+			if(YB_LIKELY(t > 0))
+			{
+				size_t d(top), s(d);
+
+				if(n > 0)
+					d += size_t(n);
+				else
+					s -= size_t(n);
+				yunseq(s *= size.Width, d *= size.Width);
+				yunseq(ystdex::pod_move_n(&pBuffer[s], t, &pBuffer[d]),
+					ystdex::pod_move_n(&pBufferAlpha[s], t, &pBufferAlpha[d]));
+			}
 		}
 	}
 }

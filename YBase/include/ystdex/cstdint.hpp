@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r167
+\version r194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2013-09-23 12:12 +0800
+	2015-03-22 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,6 +135,35 @@ struct make_width_int<64U>
 
 
 /*!
+\ingroup metafunctions
+\brief 位加倍扩展。
+\since build 587
+\note 可用于定点数乘除法中间类型。
+\todo 使用扩展整数类型保持 64 位类型精度。
+*/
+//@{
+template<typename _type, bool _bSigned = is_signed<_type>::value>
+struct make_widen_int
+{
+	using type = typename make_signed_c<typename
+		make_width_int<integer_width<_type>::value << 1>::type, _bSigned>::type;
+};
+
+template<bool _bSigned>
+struct make_widen_int<std::int64_t, _bSigned>
+{
+	using type = std::int64_t;
+};
+
+template<bool _bSigned>
+struct make_widen_int<std::uint64_t, _bSigned>
+{
+	using type = std::uint64_t;
+};
+//@}
+
+
+/*!
 \ingroup meta_operations
 \brief 模算术特性：取得不超过模值的最大值。
 \note 不保证值是整数，因此不从 std::integral_constant 派生。
@@ -151,7 +180,7 @@ struct modular_arithmetic
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup binary_type_traits
 \brief 判断两个类型是否具有相同的模值。
 \since build 440
 */

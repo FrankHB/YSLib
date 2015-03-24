@@ -11,7 +11,7 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2144
+\version r2149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
@@ -148,7 +148,9 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 
 					if(vwList.IsSelected())
 					{
-						vwList.IncreaseSelected((up ? -1 : 1) * (k[Up]
+						// XXX: Conversion to 'SPos' might be
+						//	implementation-defined.
+						vwList.IncreaseSelected((up ? -1 : 1) * SPos(k[Up]
 							|| k[Down] ? 1 : GetHeight() / GetItemHeight()),
 							GetList().size());
 						if(old_sel == vwList.GetSelectedIndex()
@@ -303,7 +305,8 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 		if(r.Y < 0 || SDst(r.Y) < GetHeight())
 		{
 			r.Y = max<SPos>(0, r.Y);
-			RestrictUnsignedStrict(r.Height, SDst(GetHeight() - r.Y));
+			// XXX: Conversion to 'SPos' might be implementation-defined.
+			RestrictUnsignedStrict(r.Height, SDst(SPos(GetHeight()) - r.Y));
 			Invalidate(*this, r);
 		}
 	}
@@ -315,7 +318,7 @@ TextList::InvalidateSelected2(ListType::difference_type x,
 {
 	if(y < x)
 		std::swap(x, y);
-	InvalidateSelected(x < 0 ? 0 : x, y - x + 1);
+	InvalidateSelected(x < 0 ? 0 : x, size_t(y - x + 1));
 }
 
 void

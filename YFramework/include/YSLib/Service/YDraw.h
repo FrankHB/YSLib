@@ -11,13 +11,13 @@
 /*!	\file YDraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1242
+\version r1244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2015-03-17 18:15 +0800
+	2015-03-22 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,8 @@ namespace Drawing
 \since build 394
 */
 inline PDefH(void, PutPixel, BitmapPtr dst, SDst w, SPos x, SPos y, Color c)
-	ImplExpr(Nonnull(dst)[y * w + x] = c)
+	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+	ImplExpr(Nonnull(dst)[y * ptrdiff_t(w) + x] = c)
 /*!
 \ingroup Graphics2D
 \brief 修改指定位置的像素：(x, y) 。

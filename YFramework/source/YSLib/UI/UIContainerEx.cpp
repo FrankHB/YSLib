@@ -11,13 +11,13 @@
 /*!	\file UIContainerEx.cpp
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r272
+\version r277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2015-03-21 16:15 +0800
+	2015-03-23 16:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,8 @@ namespace UI
 
 DialogBox::DialogBox(const Rect& r)
 	: Control(r, MakeBlankBrush()),
-	btnClose(Rect(GetWidth() - 20, 4, 16, 16), 330)
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	btnClose(Rect(SPos(GetWidth()) - 20, 4, 16, 16), 330)
 {
 	const auto invalidator([this]{
 		Invalidate(*this);
@@ -57,8 +58,9 @@ ImplDeDtor(DialogBox)
 
 DialogPanel::DialogPanel(const Rect& r)
 	: Panel(r),
-	btnClose(Rect(GetWidth() - 20, 4, 16, 16), 330),
-	btnOK(Rect(GetWidth() - 40, 4, 16, 16), 120)
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	btnClose(Rect(SPos(GetWidth()) - 20, 4, 16, 16), 330),
+	btnOK(Rect(SPos(GetWidth()) - 40, 4, 16, 16), 120)
 {
 	const auto invalidator([this]{
 		Invalidate(*this);

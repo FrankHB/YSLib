@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4738
+\version r4747
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-02-05 20:00 +0800
+	2015-03-24 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -769,10 +769,15 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 			Exit();
 	},
 	HexArea.ViewChanged += [this](HexViewArea::ViewArgs&&){
-		pnlFileInfo.lblSize.Text = u"当前位置： "
-			+ String(to_string(HexArea.GetModel().GetPosition())
-			+ " / " + to_string(HexArea.GetModel().GetSize()));
-		Invalidate(pnlFileInfo.lblSize);
+		try
+		{
+			pnlFileInfo.lblSize.Text = u"当前位置： "
+				+ String(to_string(HexArea.GetModel().GetPosition())
+				+ " / " + to_string(HexArea.GetModel().GetSize()));
+			Invalidate(pnlFileInfo.lblSize);
+		}
+		catch(LoggedEvent&)
+		{}
 	}
 	);
 

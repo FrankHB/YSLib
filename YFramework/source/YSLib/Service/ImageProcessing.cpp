@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r264
+\version r269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2015-03-19 12:05 +0800
+	2015-03-22 22:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,8 +106,11 @@ ImagePages::AdjustOffset(const Size& cont_size)
 	auto& dst(Brush.DstOffset);
 	const auto& size(Brush.ImagePtr->GetSize());
 
-	HalfDifferenceIfGreater<SPos>(dst.X, cont_size.Width, size.Width),
-	HalfDifferenceIfGreater<SPos>(dst.Y, cont_size.Height, size.Height);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	HalfDifferenceIfGreater<SPos>(dst.X, SPos(cont_size.Width),
+		SPos(size.Width)),
+	HalfDifferenceIfGreater<SPos>(dst.Y, SPos(cont_size.Height),
+		SPos(size.Height));
 	YTraceDe(Informative, "Adjusted destination offset = %s.",
 		to_string(Brush.DstOffset).c_str());
 }

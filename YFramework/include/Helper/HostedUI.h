@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r403
+\version r405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-02-10 19:48 +0800
+	2015-03-23 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,12 +134,12 @@ ShowTopLevelDraggable(UI::Widget&);
 #	if YCL_Win32
 /*!
 \brief 设置悬停操作时显示指定部件为顶级窗口。
-\since build 573
+\since build 587
 */
 template<typename _func>
 void
 ActOnHover_ShowTopLevel(UI::IWidget& sender, UI::Widget& wgt, _func f,
-	int wstyle_ex = WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST)
+	unsigned long wstyle_ex = WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST)
 {
 	UI::ActOnHover(sender, [&]{
 		f();

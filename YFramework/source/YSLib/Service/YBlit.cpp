@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yblit.cpp
+/*!	\file YBlit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1076
+\version r1082
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2014-12-07 19:34 +0800
+	2015-03-24 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,13 +43,14 @@ namespace
 inline SDst
 blit_min(SPos s, SPos d)
 {
-	return max<SPos>(max<SPos>(0, s), s - d);
+	return SDst(max<SPos>(max(SPos(), s), s - d));
 }
 
 inline SPos
 blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 {
-	return min<SPos>(min<SPos>(sl, s + cl), s + dl - d);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return min<SPos>(min<SPos>(SPos(sl), s + SPos(cl)), s + SPos(dl) - d);
 }
 
 } // unnamed namespace;
@@ -66,7 +67,7 @@ BlitBounds(const Point& dp, const Point& sp,
 		max_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
 	if(max_x >= 0 && max_y >= 0 && min_x < SDst(max_x) && min_y < SDst(max_y))
 	{
-		yunseq(delta_x = max_x - min_x, delta_y = max_y - min_y);
+		yunseq(delta_x = SDst(max_x) - min_x, delta_y = SDst(max_y) - min_y);
 		return true;
 	}
 	return {};

@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1091
+\version r1106
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-03-22 07:45 +0800
+	2015-03-24 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,7 +269,8 @@ ImageMemory::~ImageMemory()
 
 
 HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
-	: p_bitmap(::FreeImage_Allocate(s.Width, s.Height, bpp, 0, 0, 0))
+	: p_bitmap(::FreeImage_Allocate(CheckScalar<int>(s.Width),
+	CheckScalar<int>(s.Height), bpp, 0, 0, 0))
 {
 	if(!p_bitmap)
 		throw BadImageAlloc();
@@ -277,7 +278,8 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: p_bitmap([&]{
 		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(
-			Nonnull(src)), s.Width, s.Height, CheckScalar<int>(
+			Nonnull(src)), CheckScalar<int>(s.Width),
+			CheckScalar<int>(s.Height), CheckScalar<int>(
 			s.Width * sizeof(Pixel) + pitch_delta), YF_PixConvSpec, true);
 	}())
 {
@@ -330,8 +332,8 @@ HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
 		throw GeneralEvent("Converting bitmap failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap, const Size& s, SamplingFilter sf)
-	: p_bitmap(::FreeImage_Rescale(pixmap.p_bitmap, s.Width, s.Height,
-	::FREE_IMAGE_FILTER(sf)))
+	: p_bitmap(::FreeImage_Rescale(pixmap.p_bitmap, CheckScalar<int>(s.Width),
+	CheckScalar<int>(s.Height), ::FREE_IMAGE_FILTER(sf)))
 {
 	if(!p_bitmap)
 		throw GeneralEvent("Rescaling image failed.");
@@ -366,7 +368,8 @@ HBitmap::operator CompactPixmap() const
 	auto pixels(make_unique<Pixel[]>(GetAreaOf(s)));
 
 	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
-		GetDataPtr(), s.Width * sizeof(Pixel), YF_PixConvSpec, true);
+		GetDataPtr(), CheckScalar<int>(s.Width * sizeof(Pixel)), YF_PixConvSpec,
+		true);
 	return CompactPixmap(std::move(pixels), s);
 }
 
@@ -453,7 +456,7 @@ private:
 	lref<::FreeImageIO> io_ref;
 	//! \since build 554
 	lref<::FI_PluginRec> plugin_ref;
-	size_t page_count = 0;
+	size_t page_count = 1;
 	void* data = {};
 
 public:
@@ -484,9 +487,12 @@ MultiBitmapData::MultiBitmapData(::fi_handle h, int flags,
 	{
 		data = open(&io_ref.get(), handle, open_for_reading);
 		if(const auto proc = plugin_ref.get().pagecount_proc)
-			page_count = proc(&io_ref.get(), handle, data);
-		else
-			page_count = 1;
+		{
+			const int cnt(proc(&io_ref.get(), handle, data));
+
+			if(cnt > 0)
+				page_count = size_t(cnt);
+		}
 	}
 }
 MultiBitmapData::MultiBitmapData(ImageFormat fmt, std::FILE& f, int flags,
@@ -760,7 +766,7 @@ ImageFormat
 ImageCodec::DetectFormat(ImageMemory::NativeHandle handle, size_t size)
 {
 	return ImageFormat(::FreeImage_GetFileTypeFromMemory(handle,
-		static_cast<unsigned long>(size)));
+		int(static_cast<unsigned long>(size))));
 }
 ImageFormat
 ImageCodec::DetectFormat(const char* filename)

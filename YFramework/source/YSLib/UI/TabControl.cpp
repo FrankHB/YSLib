@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r291
+\version r296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2015-03-21 17:28 +0800
+	2015-03-23 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,16 +151,17 @@ Rect
 TabControl::GetPageBounds() const ynothrow
 {
 	const SDst h(GetHeight());
-	const SDst h_tb(max<SDst>(GetTabBarRef().GetHeight(), BarHeight));
+	const SDst h_tb(max(GetTabBarRef().GetHeight(), BarHeight));
 
-	return Rect(0, h_tb, GetWidth(), h < h_tb ? 0 : h - h_tb);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return Rect(0, SPos(h_tb), GetWidth(), h < h_tb ? 0 : h - h_tb);
 }
 
 size_t
 TabControl::Find(IWidget& wgt) const
 {
-	return std::find(tab_pages.cbegin(), tab_pages.cend(), &wgt)
-		- tab_pages.cbegin();
+	return size_t(std::find(tab_pages.cbegin(), tab_pages.cend(), &wgt)
+		- tab_pages.cbegin());
 }
 
 bool

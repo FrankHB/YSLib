@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1869
+\version r1897
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-03-22 16:16 +0805
+	2015-03-22 20:07 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ namespace ystdex
 {
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断类型是否可满足正规化要求：在 0 和 1 之间存在值进行表示。
 \since build 442
 */
@@ -45,31 +45,6 @@ template<typename _type>
 struct is_normalizable
 	: integral_constant<bool, is_floating_point<_type>::value>
 {};
-
-
-/*!
-\brief 定点数乘除法中间类型。
-\since build 260
-\todo 保持 64 位类型精度。
-*/
-template<typename _type>
-struct fixed_multiplicative
-{
-	using type = typename make_signed_c<typename make_width_int<integer_width<
-		_type>::value << 1>::type, is_signed<_type>::value>::type;
-};
-
-template<>
-struct fixed_multiplicative<std::int64_t>
-{
-	using type = std::int64_t;
-};
-
-template<>
-struct fixed_multiplicative<std::uint64_t>
-{
-	using type = std::uint64_t;
-};
 
 
 #define YB_Impl_Rational_fp_T fixed_point<_tBase, _vInt, _vFrac>
@@ -270,15 +245,15 @@ public:
 	operator*=(const fixed_point& f) ynothrow
 	{
 		value = mul<frac_bit_n + is_signed<base_type>::value>(value,
-			f.value, integral_constant<bool, is_signed<
-			typename fixed_multiplicative<base_type>::type>::value>());
+			f.value, integral_constant<bool,
+			is_signed<typename make_widen_int<base_type>::type>::value>());
 		return *this;
 	}
 
 	fixed_point&
 	operator/=(const fixed_point& f) ynothrow
 	{
-		value = base_type(typename fixed_multiplicative<base_type>::type(value
+		value = base_type(typename make_widen_int<base_type>::type(value
 			<< frac_bit_n) / f.value);
 		return *this;
 	}
@@ -328,7 +303,7 @@ private:
 	mul(base_type x, base_type y, true_type)
 	{
 		return mul_signed<_vShiftBits>(
-			typename fixed_multiplicative<base_type>::type(x * y));
+			typename make_widen_int<base_type>::type(x * y));
 	}
 	template<size_t _vShiftBits>
 	static yconstfn base_type
@@ -337,13 +312,13 @@ private:
 		// NOTE: Only fit for unsigned type, due to there exists
 		//	implementation-defined behavior in conversion and right shifting on
 		//	operands of signed types.
-		return base_type((typename fixed_multiplicative<base_type>::type(x) * y)
+		return base_type((typename make_widen_int<base_type>::type(x) * y)
 			>> _vShiftBits);
 	}
 
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul_signed(typename fixed_multiplicative<base_type>::type tmp)
+	mul_signed(typename make_widen_int<base_type>::type tmp)
 	{
 		return base_type(tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits);
 	}
