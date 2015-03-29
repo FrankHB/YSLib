@@ -11,13 +11,13 @@
 /*!	\file YDraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1097
+\version r1111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2015-03-23 20:36 +0800
+	2015-03-25 15:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,9 +44,7 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 	if(!bounds.IsUnstrictlyEmpty()
 		&& IsInInterval(SPos(y - bounds.Y), SPos(bounds.Height)))
 	{
-		const SPos bx(bounds.X);
-		// XXX: Conversion to 'SPos' might be implementation-defined.
-		const SPos bxw(bx + SPos(bounds.Width));
+		const SPos bx(bounds.X), bxw(bounds.GetRight());
 
 		if(!((x1 < bx && x2 < bx)
 			|| (x1 >= 0 && x2 >= 0 && x1 >= bxw && x2 >= bxw)))
@@ -70,9 +68,7 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 	if(!bounds.IsUnstrictlyEmpty()
 		&& IsInInterval(SPos(x - bounds.X), SPos(bounds.Width)))
 	{
-		const SPos by(bounds.Y);
-		// XXX: Conversion to 'SPos' might be implementation-defined.
-		const SPos byh(by + SPos(bounds.Height));
+		const SPos by(bounds.Y), byh(bounds.GetBottom());
 
 		if(!((y1 < by && y2 < by)
 			|| (y1 >= 0 && y2 >= 0 && y1 >= byh && y2 >= byh)))
@@ -111,9 +107,9 @@ PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,
 			std::swap(dx, dy);
 
 		//初始化误差项以补偿非零截断。
-		const SDst dx2(dx << 1), dy2(dy << 1);
 		// XXX: Conversion to 'SPos' might be implementation-defined.
-		SPos e(SPos(dy2) - SPos(dx));
+		const SPos dx2(SPos(dx << 1)), dy2(SPos(dy << 1));
+		SPos e(dy2 - SPos(dx));
 
 		//主循环。
 		while(dx-- != 0)
@@ -137,12 +133,9 @@ PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,
 }
 
 void
-DrawRect(const Graphics& g, const Rect& bounds, const Point& pt, const Size& s,
-	Color c)
+DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 {
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	const SPos x1(pt.X), y1(pt.Y), x2(x1 + SPos(s.Width) - 1),
-		y2(y1 + SPos(s.Height) - 1);
+	const SPos x1(r.X), y1(r.Y), x2(r.GetRight() - 1), y2(r.GetBottom() - 1);
 
 	if(YB_LIKELY(x1 < x2 && y1 < y2))
 	{

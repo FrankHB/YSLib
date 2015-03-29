@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3192
+\version r3210
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2015-03-23 16:35 +0800
+	2015-03-25 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ FindLineFeed(const TextRegion& r, _tBi s, _tBi e)
 	{
 		if(IsPrint(*s))
 		{
-			w += r.Font.GetAdvance(*s);
+			w += SDst(r.Font.GetAdvance(*s));
 			if(w >= wmax)
 				break;
 		}
@@ -163,17 +163,23 @@ CopyScrollArea(YSLib::UI::BufferedTextArea& src_area,
 /*!
 \brief 全区域移动上下屏区域像素。
 \note 复制后清除未被覆盖区域。
-\since build 292
+\since build 588
 */
 void
 MoveScrollArea(YSLib::UI::BufferedTextArea& area_up,
-	YSLib::UI::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
+	YSLib::UI::BufferedTextArea& area_dn, ptrdiff_t offset, SDst n)
 {
-	YAssert(area_up.GetHeight() - area_up.Margin.Bottom - n > 0,
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	YAssert(SPos(area_up.GetHeight()) - area_up.Margin.Bottom - SPos(n) > 0,
 		"No enough space of areas found.");
 
-	SDst src_off(area_dn.Margin.Top),
-		dst_off(area_up.GetHeight() - area_up.Margin.Bottom - n);
+	const SDst up_btm(SDst(max<SPos>(area_up.Margin.Bottom, 0)));
+
+	if(YB_UNLIKELY(area_up.GetHeight() <= up_btm + n))
+		return;
+
+	auto src_off(SDst(max<SPos>(area_dn.Margin.Top, 0))),
+		dst_off(SDst(area_up.GetHeight() - up_btm - n));
 	auto* p_src(&area_dn);
 	auto* p_dst(&area_up);
 	SDst clr_off;
@@ -182,11 +188,12 @@ MoveScrollArea(YSLib::UI::BufferedTextArea& area_up,
 	{
 		std::swap(p_src, p_dst),
 		std::swap(src_off, dst_off),
-		clr_off = area_up.Margin.Top;
+		clr_off = SDst(max<SPos>(area_up.Margin.Top, 0));
 	}
 	else
-		clr_off = area_dn.GetHeight() - area_dn.Margin.Bottom - n;
-	CopyScrollArea(*p_src, src_off, *p_dst, dst_off, offset, n);
+		clr_off = area_dn.GetHeight()
+			- SDst(max<SPos>(area_dn.Margin.Bottom, 0)) - n;
+	CopyScrollArea(*p_src, src_off, *p_dst, dst_off, offset, size_t(n));
 	p_src->ClearLine(clr_off, n);
 }
 
@@ -196,7 +203,8 @@ CheckOverRead(TextRegion& r)
 {
 	const auto b(FetchLastLineBasePosition(r, r.GetHeight()));
 
-	return r.Pen.Y < b ? (b - r.Pen.Y) / GetTextLineHeightExOf(r) : 0;
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return r.Pen.Y < b ? (b - r.Pen.Y) / SPos(GetTextLineHeightExOf(r)) : 0;
 }
 
 } // unnamed namespace;
@@ -335,7 +343,7 @@ DualScreenReader::Execute(Command cmd)
 
 		if(cmd & Up)
 		{
-			MoveScrollArea(area_up, area_dn, hx, h);
+			MoveScrollArea(area_up, area_dn, hx, SDst(h));
 			SetCurrentTextLineNOf(area_up, 0);
 			AdjustForPrevNewline();
 			CarriageReturn(area_up);
@@ -430,7 +438,7 @@ DualScreenReader::LoadText(TextFile& file)
 void
 DualScreenReader::MoveUpForLastLine(ptrdiff_t off, size_t h)
 {
-	MoveScrollArea(area_up, area_dn, off, h);
+	MoveScrollArea(area_up, area_dn, off, SDst(h));
 
 	std::uint16_t n(area_dn.GetTextLineNEx());
 

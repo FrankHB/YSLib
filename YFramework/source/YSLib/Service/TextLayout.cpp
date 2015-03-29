@@ -11,13 +11,13 @@
 /*!	\file TextLayout.cpp
 \ingroup Service
 \brief 文本布局计算。
-\version r2487
+\version r2490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-23 19:00 +0800
+	2015-03-24 22:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,11 +59,11 @@ FetchResizedLineN(const TextState& ts, SDst h)
 SPos
 FetchLastLineBasePosition(const TextState& ts, SDst h)
 {
-	const std::uint16_t n(FetchResizedLineN(ts, h));
+	const auto n(FetchResizedLineN(ts, h));
 
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return GetTextLineBaseOf(ts) + SPos(GetTextLineHeightExOf(ts)
-		* (n > 0 ? n - 1 : n));
+	return GetTextLineBaseOf(ts) + SPos(GetTextLineHeightExOf(ts))
+		* SPos(n > 0 ? n - 1 : n);
 //	return h - ts.Margin.Bottom + ts.GetCache().GetDescender() + 1;
 }
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1023
+\version r1026
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-03-24 11:28 +0800
+	2015-03-25 15:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -236,9 +236,8 @@ WindowReference::SetBounds(const Rect& r)
 void
 WindowReference::SetClientBounds(const Rect& r)
 {
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	::RECT rect{r.X, r.Y, CheckScalar<SPos>(r.X + SPos(r.Width), "width"),
-		CheckScalar<SPos>(r.Y + SPos(r.Height), "height")};
+	::RECT rect{r.X, r.Y, CheckScalar<SPos>(r.GetRight(), "width"),
+		CheckScalar<SPos>(r.GetBottom(), "height")};
 	const auto h_wnd(GetNativeHandle());
 
 	AdjustWindowBounds(rect, h_wnd);

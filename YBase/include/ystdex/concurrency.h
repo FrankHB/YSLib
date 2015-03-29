@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r368
+\version r373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-03-19 12:24 +0800
+	2015-03-28 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,9 @@
 #ifndef YB_INC_ystdex_concurrency_h_
 #define YB_INC_ystdex_concurrency_h_ 1
 
-#include "../ydef.h"
-#include "functional.hpp" // for ystdex::result_of_t, std::bind, std::function;
-#include "pseudo_mutex.h" // for std::make_shared,
-//	ystdex::threading::unlock_deleter;
-#include "utility.hpp" // for std::declval, ystdex::noncopyable;
+#include "pseudo_mutex.h" // for ystdex::result_of_t, std::declval,
+//	std::make_shared, ystdex::threading::unlock_deleter, ystdex::noncopyable;
+#include <functional> // for std::bind, std::function;
 #include <future> // for std::packaged_task, std::future;
 #include <thread>
 #include <vector>

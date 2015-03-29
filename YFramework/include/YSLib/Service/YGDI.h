@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3896
+\version r3900
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-03-23 16:41 +0800
+	2015-03-24 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,9 @@ struct YF_API Padding
 	\since build 587
 	*/
 	PDefHOp(Padding&, *=, size_t n)
-		ImplRet(yunseq(Left *= n, Right *= n, Top *= n, Bottom *= n), *this)
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		ImplRet(yunseq(Left *= SPos(n), Right *= SPos(n), Top *= SPos(n),
+			Bottom *= SPos(n)), *this)
 };
 
 //! \relates Padding
@@ -379,7 +381,7 @@ public:
 	\since build 407
 	*/
 	DefGetter(const ynothrow, size_t, SizeOfBufferAlpha,
-		sizeof(AlphaType) * GetAreaOf(GetSize()))
+		sizeof(AlphaType) * size_t(GetAreaOf(GetSize())))
 
 	using CompactPixmap::SetSize;
 	/*!

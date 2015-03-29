@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r224
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-21 16:15 +0800
+	2015-03-25 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,9 @@ using namespace Drawing;
 
 namespace UI
 {
+
+ImplDeDtor(ViewSignal)
+
 
 ImplDeDtor(AView)
 

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r200
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2015-01-13 01:54 +0800
+	2015-03-24 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ Analyze(std::istream& in)
 	const auto& vpfx("version r");
 	PatchMap res;
 	string line, name_a, name_b;
-	size_t at_blk(-1);
+	auto at_blk(size_t(-1));
 
 	for(size_t n(0); extract_line_cr(in, line); ++n)
 	{
@@ -95,7 +95,7 @@ Analyze(std::istream& in)
 				entry.emplace_back(std::move(line));
 				break;
 			default:
-				at_blk = -1;
+				at_blk = size_t(-1);
 			}
 		}
 	}

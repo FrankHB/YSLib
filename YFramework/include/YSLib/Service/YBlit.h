@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3439
+\version r3440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-03-23 20:49 +0800
+	2015-03-23 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -425,7 +425,7 @@ inline void
 DispatchTranspose(std::true_type, _func updater, const ConstGraphics& src)
 {
 	updater(ystdex::make_transposed(src.GetBufferPtr(), src.GetWidth(),
-		src.GetHeight(), 0), Transpose(src.GetSize()),
+		src.GetHeight(), 0U), Transpose(src.GetSize()),
 		RotateCenter(src.GetSize()));
 }
 //@}

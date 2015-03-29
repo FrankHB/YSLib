@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1424
+\version r1428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2014-12-14 22:12 +0800
+	2015-03-25 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,17 +207,17 @@ public:
 	/*
 	\warning 在同一个分析器对象上混用多种反转义算法的结果未指定。
 	\warning 在同一个分析器对象上混用 ParseByte 和 ParseQuoted 的结果未指定。
-	\since build 546
+	\since build 588
 	*/
 	//@{
 	//! \brief 解析单个字符并添加至字符解析结果。
 	void
-	ParseByte(byte, Unescaper = NPLUnescape,
+	ParseByte(char, Unescaper = NPLUnescape,
 		PrefixHandler = HandleBackslashPrefix);
 
 	//! \brief 解析单个字面量字符并添加至字符解析结果：反转义以外无视边界字符。
 	void
-	ParseQuoted(byte, Unescaper = NPLUnescape,
+	ParseQuoted(char, Unescaper = NPLUnescape,
 		PrefixHandler = HandleBackslashPrefix);
 	//@}
 

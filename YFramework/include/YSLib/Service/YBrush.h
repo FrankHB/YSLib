@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r546
+\version r548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2015-03-17 06:59 +0800
+	2015-03-24 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,7 @@ UpdateTranposedPixels(_fPixelShader shader, const PaintContext& pc,
 
 	Drawing::BlitPixels<_bSwapLR, _bSwapUD>(shader, g.GetBufferPtr(),
 		ystdex::make_transposed(src.GetBufferPtr(), src.GetWidth(),
-		src.GetHeight(), 0), g.GetSize(), Transpose(src.GetSize()),
+		src.GetHeight(), 0U), g.GetSize(), Transpose(src.GetSize()),
 		bounds.GetPoint(), bounds.GetPoint() + src_offset - dst_offset,
 		bounds.GetSize());
 }
@@ -278,7 +278,7 @@ DispatchRotatedBrush(Rotation rot)
 		return UpdateRotatedBrush<RDeg0, _fPixelShader>;
 		break;
 	case RDeg90:
- 		return UpdateRotatedBrush<RDeg90, _fPixelShader>;
+		return UpdateRotatedBrush<RDeg90, _fPixelShader>;
 		break;
 	case RDeg180:
 		return UpdateRotatedBrush<RDeg180, _fPixelShader>;

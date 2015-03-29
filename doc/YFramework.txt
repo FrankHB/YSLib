@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1065
+\version r1066
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-03-01 10:02 +0800
+	2015-03-25 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -665,6 +665,7 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 
 @4.2.2.2 成员函数：
 访问器[Documentation::CommonRules @@3.12.3] （以谓词([Documentation::CommonRules @@3.12.2]) 、其它获取器([Documentation::CommonRules @@3.12.4]) 、设置器([Documentation::CommonRules @@3.12.4]) 排列）在转换操作符后和其它函数或函数模板前声明。
+基于 [ProjectRules @@5.5.4.1] 的扩展，这些访问器即使具有不同名称，其声明也不分行；但获取器之间各个子项（谓词、其它获取器和设置器三项之间）的声明应空 1 行。
 注意非访问器的谓词不适用以上规则。
 
 @4.3 附加规则：

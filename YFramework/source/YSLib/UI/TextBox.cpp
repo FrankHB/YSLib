@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r711
+\version r713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-03-24 12:30 +0800
+	2015-03-29 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_Service_TextLayout
 #include YFM_YSLib_UI_YUIContainer // for LocateForWidget;
-#include <ystdex/cast.hpp>
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 
 namespace YSLib
 {

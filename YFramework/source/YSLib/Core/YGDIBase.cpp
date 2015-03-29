@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r703
+\version r709
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2015-03-24 11:30 +0800
+	2015-03-25 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,9 +106,8 @@ Rect::ContainsStrict(const Rect& r) const ynothrow
 Rect&
 Rect::operator&=(const Rect& r) ynothrow
 {
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	const SPos x1(max(X, r.X)), x2(min(X + SPos(Width), r.X + SPos(r.Width))),
-		y1(max(Y, r.Y)), y2(min(Y + SPos(Height), r.Y + SPos(r.Height)));
+	const SPos x1(max(X, r.X)), x2(min(GetRight(), r.GetRight())),
+		y1(max(Y, r.Y)), y2(min(GetBottom(), r.GetBottom()));
 
 	return *this = x2 < x1 || y2 < y1 ? Rect()
 		: Rect(x1, y1, SDst(x2 - x1), SDst(y2 - y1));
@@ -124,9 +123,8 @@ Rect::operator|=(const Rect& r) ynothrow
 
 	const SPos mx(min(X, r.X)), my(min(Y, r.Y));
 
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return *this = Rect(mx, my, SDst(max(X + SPos(Width), r.X + SPos(r.Width))
-		- mx), SDst(max(Y + SPos(Height), r.Y + SPos(r.Height)) - my));
+	return *this = Rect(mx, my, SDst(max(GetRight(), r.GetRight())
+		- mx), SDst(max(GetBottom(), r.GetBottom()) - my));
 }
 
 } // namespace Drawing;

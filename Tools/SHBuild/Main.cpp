@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2740
+\version r2743
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-03-19 12:37 +0800
+	2015-03-25 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -362,7 +362,7 @@ GetDependencies(const string& path)
 	}, [&](string::const_iterator b, string::const_iterator e){
 		lst.push_back(string(b, e));
 	}, [&](string::const_iterator i){
-		return !ystdex::exists(spaces, i - buf.cbegin());
+		return !ystdex::exists(spaces, size_t(i - buf.cbegin()));
 	});
 
 	const auto i_c(std::find_if(lst.cbegin(), lst.cend(), [](const string& dep){
@@ -720,7 +720,8 @@ main(int argc, char* argv[])
 		auto& logger(FetchStaticRef<Logger>());
 
 		LogDisabled.set(size_t(LogGroup::DepsCheck));
-		logger.FilterLevel = Logger::Level::Debug;
+		yunseq(FetchCommonLogger().FilterLevel = Logger::Level::Informative,
+			logger.FilterLevel = Logger::Level::Debug);
 		logger.SetFilter([](Logger::Level lv, Logger& l){
 			return !ystdex::qualify(LogDisabled)[size_t(LastLogGroup)]
 				&& Logger::DefaultFilter(lv, l);

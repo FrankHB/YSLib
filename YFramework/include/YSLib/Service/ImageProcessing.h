@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r262
+\version r275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2015-03-22 23:09 +0800
+	2015-03-28 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include YFM_YSLib_Service_YBrush // for Drawing::Image, Drawing::ImageCodec,
 //	Drawing::ImageBrush;
 #include YFM_YSLib_Adaptor_Image // for Drawing::HBitmap;
+#include <ystdex/hash.hpp> // for ystdex::hash_combine_seq;
 #include <ystdex/cache.hpp>
 #include YFM_YSLib_Adaptor_YContainer
 
@@ -202,17 +203,26 @@ public:
 	//@{
 	/*!
 	\brief 按指定的比例变化量和偏移量缩放。
+	\exception std::invalid_argument 异常中立：由 ZoomTo 抛出。
+	\sa ZoomTo
 	\since build 558
 	*/
 	bool
 	Zoom(float, const Point&);
 
-	//! \brief 按指定的比例和偏移量缩放。
+	/*!
+	\brief 按指定的相对比例、偏移量和允许的误差缩放。
+	\exception std::invalid_argument 异常中立：由 ZoomTo 抛出。
+	\note 非零误差指定缩放的绝对比例的精确度，使用 ystdex::round_in 约束。
+	\sa ZoomTo
+	*/
 	bool
-	ZoomByRatio(float, const Point&);
+	ZoomByRatio(float, const Point&, float = 0.F);
 
 	/*!
-	\brief 按指定的比例和偏移量缩放。
+	\brief 按指定的绝对比例和偏移量缩放。
+	\throw std::invalid_argument 比例不是有限实数。
+	\note 比例会被约束到 MinScale 和 MaxScale 。
 	\since build 580
 	*/
 	bool

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r209
+\version r218
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2014-12-06 16:27 +0800
+	2015-03-25 11:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,9 +83,11 @@ ConvertToBookmarkList(const vector<String>& lst)
 
 BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 	: DialogPanel(Size(MainScreenWidth, MainScreenHeight)),
+	// XXX: Conversion to 'SPos' might be implementation-defined.
 	lbPosition({8, 32, 240, 128}),
-	btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
-	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210), shell(shl), bookmarks(bm)
+	btnAdd(Rect(SPos(GetWidth()) - 80, 4, 16, 16), 210),
+	btnRemove(Rect(SPos(GetWidth()) - 60, 4, 16, 16), 210), shell(shl),
+	bookmarks(bm)
 {
 	const auto stop_routing_after_direct([](KeyEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Bubble)
@@ -106,7 +108,8 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 		auto idx(GetSelected());
 
 		if(idx < 0)
-			idx = lst.size();
+			// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+			idx = ptrdiff_t(lst.size());
 		lst.insert(lst.begin() + idx,
 			String(ConvertToUIString(shell.get().GetReaderPosition(), shell)));
 		lbPosition.AdjustViewForContent();
@@ -129,7 +132,8 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 BookmarkList::difference_type
 BookmarkPanel::GetSelected() const
 {
-	return lbPosition.IsSelected() ? lbPosition.GetSelectedIndex() : -1;
+	return lbPosition.IsSelected()
+		? BookmarkList::difference_type(lbPosition.GetSelectedIndex()) : -1;
 }
 
 void

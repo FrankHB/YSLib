@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1075
+\version r1077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2015-01-23 19:11 +0800
+	2015-03-29 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #include YFM_YSLib_UI_Selector
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_UI_YGUI
-#include <ystdex/cast.hpp>
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 
 namespace YSLib
 {

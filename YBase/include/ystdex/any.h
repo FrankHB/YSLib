@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1544
+\version r1574
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-03-21 14:47 +0800
+	2015-03-29 09:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <new> // for placement ::operator new from standard library;
 #include "base.h" // for ystdex::cloneable;
 #include <memory> // for std::addressof, std::unique_ptr;
-#include "functional.hpp" // for ystdex::lref;
+#include "ref.hpp" // for ystdex::lref;
 #include <typeinfo> // for typeid, std::bad_cast;
 
 namespace ystdex
@@ -57,7 +57,7 @@ union non_aggregate_pod
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup binary_type_traits
 \brief 判断是否可对齐存储。
 \since build 503
 */
@@ -151,39 +151,6 @@ union pod_storage
 	assign(_type&& x)
 	{
 		access<decay_t<_type>>() = yforward(x);
-	}
-};
-
-
-/*!
-\brief 任意对象引用类型。
-\warning 不检查 cv-qualifier 。
-\since build 247
-\todo 右值引用版本。
-*/
-class void_ref
-{
-private:
-	const volatile void* ptr;
-
-public:
-	template<typename _type>
-	yconstfn
-	void_ref(_type& obj)
-		: ptr(&obj)
-	{}
-
-	template<typename _type>
-	yconstfn YB_PURE
-	operator _type&() const
-	{
-		return *static_cast<_type*>(&*this);
-	}
-
-	YB_PURE void*
-	operator&() const volatile
-	{
-		return const_cast<void*>(ptr);
 	}
 };
 

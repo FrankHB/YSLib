@@ -11,7 +11,7 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r832
+\version r839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
@@ -154,8 +154,8 @@ public:
 	\note 线程安全。
 	\since build 399
 	*/
-	PDefH(void, EnterWindowThread, )
-		ImplExpr(++wnd_thrd_count)
+	void
+	EnterWindowThread();
 #	endif
 
 	/*!
@@ -178,12 +178,12 @@ public:
 #	endif
 
 	/*!
-	\brief 映射宿主光标位置到相对顶层窗口输入的光标位置。
-	\return 使用的顶层窗口指针（若使用屏幕则为空）和相对顶层窗口或屏幕的位置。
+	\brief 映射宿主光标位置到相对顶级窗口输入的光标位置。
+	\return 使用的顶级窗口指针（若使用屏幕则为空）和相对顶级窗口或屏幕的位置。
 	\since build 571
 	\todo 支持 Win32 和 Android 以外的平台。
 
-	首先确定屏幕光标位置，若 MapPoint 非空则调用 MapPoint 确定顶层窗口及变换坐标，
+	首先确定屏幕光标位置，若 MapPoint 非空则调用 MapPoint 确定顶级窗口及变换坐标，
 	最后返回结果。
 	*/
 	pair<Host::Window*, Drawing::Point>
@@ -191,11 +191,11 @@ public:
 
 #	if YCL_Win32
 	/*!
-	\brief 映射顶层窗口的点。
+	\brief 映射顶级窗口的点。
 	\since build 571
 
-	首先调用使用指定的参数作为屏幕光标位置确定顶层窗口。
-	若存在指定的顶层窗口，则调用窗口的 MapCursor 方法确定结果，否则返回无效值。
+	首先调用使用指定的参数作为屏幕光标位置确定顶级窗口。
+	若存在指定的顶级窗口，则调用窗口的 MapCursor 方法确定结果，否则返回无效值。
 	*/
 	pair<Host::Window*, Drawing::Point>
 	MapTopLevelWindowPoint(const Drawing::Point&) const;

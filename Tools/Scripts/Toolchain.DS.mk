@@ -8,17 +8,17 @@
 #	understand and accept it fully.
 #
 # Makefile for DS toolchain
-# Version = r70
+# Version = r72
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2015-03-21 23:41 +0800
+# Updated = 2015-03-24 22:22 +0800
 # Encoding = ANSI
 
 
 # NOTE: Workaround for libnds: do not use '-pedantic-errors'.
 C_CXXFLAGS_COMMON ?= -pipe -fdata-sections -ffunction-sections
-# NOTE: Workaround for libnds: do not use '-Wpacked'.
+# NOTE: Workaround for libnds: do not use '-Wpacked -Wsign-conversion'.
 C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
-	-Wdeprecated-declarations -Wextra -Wformat=2 -Winvalid-pch \
+	-Wdeprecated-declarations -Wextra -Wfloat-equal -Wformat=2 -Winvalid-pch \
 	-Wmissing-declarations -Wmissing-include-dirs -Wmultichar \
 	-Wno-format-nonliteral -Wredundant-decls -Wshadow -Wsign-promo
 # NOTE: Workaround for libnds: do not use '-Wdouble-promotion'.

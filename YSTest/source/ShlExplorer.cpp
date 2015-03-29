@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1445
+\version r1452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-03-19 14:15 +0800
+	2015-03-25 10:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,8 +118,9 @@ CheckMenuKey(const KeyInput& k)
 #if YCL_Win32
 	auto ke(k);
 
-	unseq_apply([&](int vk){ke.set(vk, {});}, VK_CONTROL, VK_LCONTROL,
-		VK_RCONTROL);
+	unseq_apply([&](int vk){
+		ke.set(size_t(vk), {});
+	}, VK_CONTROL, VK_LCONTROL, VK_RCONTROL);
 	return ke.none() && k[VK_CONTROL];
 #else
 	return k.count() == 1 && k[YCL_KEY_Start];
@@ -538,7 +539,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		}
 		if(up_i == 0)
 			Enable(btnPrevBackground, false);
-		GetMainDesktop().Background = ImageBrush(FetchImage(up_i));
+		GetMainDesktop().Background = ImageBrush(FetchImage(size_t(up_i)));
 		unseq_apply(SetInvalidationOf, GetMainDesktop(), GetSubDesktop());
 	},
 	FetchEvent<Click>(btnNextBackground) += [&]{
@@ -549,7 +550,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		}
 		if(size_t(up_i + 1) == Image_N)
 			Enable(btnNextBackground, false);
-		GetMainDesktop().Background = ImageBrush(FetchImage(up_i));
+		GetMainDesktop().Background = ImageBrush(FetchImage(size_t(up_i)));
 		SetInvalidationOf(GetMainDesktop()),
 		SetInvalidationOf(GetSubDesktop());
 	},
@@ -603,8 +604,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		m0 += {0u, &m1};
 		mhMain.Roots[&btnMenu] = &m0;
 		unseq_apply(ResizeForContent, m0, m1),
+		// XXX: Conversion to 'SPos' might be implementation-defined.
 		SetLocationOf(m0,
-			Point(btnMenu.GetX(), btnMenu.GetY() - m0.GetHeight()));
+			Point(btnMenu.GetX(), btnMenu.GetY() - SPos(m0.GetHeight())));
 		//m0.SetWidth(btnMenu.GetWidth() + 20);
 	}
 	YTraceDe(Debug, "Initialization of ShlExplorer ended.");

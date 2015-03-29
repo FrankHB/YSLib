@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r256
+\version r266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-03-20 09:07 +0800
+	2015-03-24 22:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,12 +105,13 @@ main()
 	// 4 cases covering: ystdex::apply, ystdex::compose, ystdex::make_expanded.
 	seq_apply(make_guard("YStandard.Functional").get(pass, fail),
 		// 1 case covering: ystdex::apply.
-		7.0 == apply([](int i, float f, double d){
+		abs(7.0 - apply([](int i, float f, double d){
 			return i + f + d;
-		}, make_tuple(1, 2.0F, 4.0)),
+		}, make_tuple(1, 2.0F, 4.0))) < numeric_limits<double>::epsilon(),
 		// 2 cases covering: ystdex::compose.
-		0.5 == compose(static_cast<double(&)(double)>(sin),
-			static_cast<double(&)(double)>(asin))(0.5),
+		abs(0.5 - compose(static_cast<double(&)(double)>(sin),
+			static_cast<double(&)(double)>(asin))(0.5))
+			< numeric_limits<double>::epsilon(),
 		expect(145, []{
 			return compose([](int x, int y){
 				return x + y + 1;
@@ -138,15 +139,15 @@ main()
 		expect(vector<int>{0, 4, 1, 5, 2, 6, 3, 7}, []{
 			vector<int> v{0, 1, 2, 3, 4, 5, 6, 7}, r;
 
-			copy(make_transposed(v.begin(), 4, 2, 0),
-				make_transposed(v.begin(), 4, 2, 8), back_inserter(r));
+			copy(make_transposed(v.begin(), 4U, 2U, 0U),
+				make_transposed(v.begin(), 4U, 2U, 8U), back_inserter(r));
 			return r;
 		}),
 		expect(deque<int>{0, 1, 2, 3, 4, 5, 6, 7}, []{
 			deque<int> d{0, 4, 1, 5, 2, 6, 3, 7}, r;
 
-			copy(make_transposed(d.begin(), 2, 4) - d.size(),
-				make_transposed(d.begin(), 2, 4), back_inserter(r));
+			copy(make_transposed(d.begin(), 2U, 4U) - ptrdiff_t(d.size()),
+				make_transposed(d.begin(), 2U, 4U), back_inserter(r));
 			return r;
 		})
 	);
@@ -173,7 +174,7 @@ main()
 #else
 		1 == ystdex::min(1, 2),
 #endif
-		2.F == ystdex::max(1.F, 2.F),
+		abs(2.F - ystdex::max(1.F, 2.F)) < numeric_limits<float>::epsilon(),
 		4U == integral_constant<unsigned,
 			ystdex::min({5U, 6U, 7U, 8U, 4U})>::value,
 		4 == ystdex::max({4, -5, -6, -7})

@@ -11,13 +11,13 @@
 /*!	\file Button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3302
+\version r3304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2015-03-21 16:16 +0800
+	2015-03-29 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_Button
 #include YFM_YSLib_UI_YGUI
-#include <ystdex/cast.hpp>
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 
 namespace YSLib
 {

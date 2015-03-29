@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r986
+\version r990
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2014-10-06 11:56 +0800
+	2015-03-28 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,8 @@
 #ifndef YB_INC_ystdex_any_iterator_hpp_
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
-#include "any.h"
-#include "functional.hpp" // for ystdex::wrapped_traits;
-#include "iterator.hpp" // for ystdex::is_undereferenceable;
+#include "any.h" // for ystdex::any, ystdex::wrapped_traits;
+#include "iterator.hpp" // for ystdex::is_undereferenceable, std::iterator;
 
 namespace ystdex
 {

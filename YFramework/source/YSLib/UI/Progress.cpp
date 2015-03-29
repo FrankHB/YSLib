@@ -11,13 +11,13 @@
 /*!	\file Progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r396
+\version r398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2015-03-22 18:51 +0800
+	2015-03-24 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,8 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 		const SDst w_bar(round(value * s.Width / max_value));
 
 		FillRect(g, bounds, {pt, w_bar, s.Height}, ForeColor);
-		pt.X += w_bar;
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		pt.X += SPos(w_bar);
 		if(s.Width > w_bar)
 			// TODO: Finish drawing with non-solid brushes.
 			if(const auto p = Background.target<Drawing::SolidBrush>())
