@@ -80,6 +80,8 @@
 		<Unit filename="../include/ystdex/examiner.hpp" />
 		<Unit filename="../include/ystdex/exception.h" />
 		<Unit filename="../include/ystdex/functional.hpp" />
+		<Unit filename="../include/ystdex/functor.hpp" />
+		<Unit filename="../include/ystdex/hash.hpp" />
 		<Unit filename="../include/ystdex/iterator.hpp" />
 		<Unit filename="../include/ystdex/iterator_op.hpp" />
 		<Unit filename="../include/ystdex/memory.hpp" />
@@ -88,7 +90,10 @@
 		<Unit filename="../include/ystdex/path.hpp" />
 		<Unit filename="../include/ystdex/pseudo_mutex.h" />
 		<Unit filename="../include/ystdex/rational.hpp" />
+		<Unit filename="../include/ystdex/ref.hpp" />
+		<Unit filename="../include/ystdex/scope_guard.hpp" />
 		<Unit filename="../include/ystdex/string.hpp" />
+		<Unit filename="../include/ystdex/thunk.hpp" />
 		<Unit filename="../include/ystdex/tuple.hpp" />
 		<Unit filename="../include/ystdex/type_op.hpp" />
 		<Unit filename="../include/ystdex/utility.hpp" />

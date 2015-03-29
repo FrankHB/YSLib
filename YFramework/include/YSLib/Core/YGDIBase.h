@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2156
+\version r2177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-03-23 19:34 +0800
+	2014-03-25 15:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -681,7 +681,6 @@ public:
 	*/
 	bool
 	Contains(const Rect&) const ynothrow;
-
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
 	\since build 528
@@ -701,7 +700,6 @@ public:
 	*/
 	bool
 	ContainsStrict(const Rect&) const ynothrow;
-
 	/*!
 	\brief 判断矩形是否为线段：长和宽中有且一个数值等于 0 。
 	\sa Size::IsLineSegment
@@ -715,6 +713,9 @@ public:
 	*/
 	using Size::IsUnstrictlyEmpty;
 
+	//! \since build 588
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	yconstfn DefGetter(const ynothrow, SPos, Bottom, Y + SPos(Height))
 	/*!
 	\brief 取左上角位置。
 	*/
@@ -725,6 +726,9 @@ public:
 	\since build 296
 	*/
 	DefGetter(ynothrow, Point&, PointRef, static_cast<Point&>(*this))
+	//! \since build 588
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	yconstfn DefGetter(const ynothrow, SPos, Right, X + SPos(Width))
 	/*!
 	\brief 取大小。
 	*/
@@ -735,6 +739,14 @@ public:
 	\since build 296
 	*/
 	DefGetter(ynothrow, Size&, SizeRef, static_cast<Size&>(*this))
+	//! \since build 588
+	//@{
+	using Point::GetX;
+	using Point::GetY;
+
+	using Point::SetX;
+	using Point::SetY;
+	//@}
 };
 
 //! \relates Rect
@@ -789,9 +801,10 @@ inline PDefHOp(Rect, |, const Rect& x, const Rect& y) ynothrow
 \since build 479
 */
 inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
+	// XXX: Conversion to 'SPos' might be implementation-defined.
 	ImplExpr(YAssert(r.Width > off2 && r.Height > off2,
-		"Boundary is too small."),
-		yunseq(r.X += off1, r.Y += off1, r.Width -= off2, r.Height -= off2))
+		"Boundary is too small."), yunseq(r.X += SPos(off1), r.Y += SPos(off1),
+		r.Width -= off2, r.Height -= off2))
 
 //! \since build 577
 //@{
@@ -810,15 +823,13 @@ yconstfn PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
 
 //! \brief 转置变换：逆时针旋转直角。
 yconstfn PDefH(Rect, TransposeCCW, const Rect& r) ynothrow
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	ImplRet(MakeRect(TransposeCCW(Point(r.X + SPos(r.Width), r.Y)),
-		TransposeCCW(Point(r.X, r.Y + SPos(r.Height)))))
+	ImplRet(MakeRect(TransposeCCW(Point(r.GetRight(), r.Y)),
+		TransposeCCW(Point(r.X, r.GetBottom()))))
 
 //! \brief 转置变换：顺时针旋转直角。
 yconstfn PDefH(Rect, TransposeCW, const Rect& r) ynothrow
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	ImplRet(MakeRect(TransposeCW(Point(r.X + SPos(r.Width), r.Y)),
-		TransposeCW(Point(r.X, r.Y + SPos(r.Height)))))
+	ImplRet(MakeRect(TransposeCW(Point(r.GetRight(), r.Y)),
+		TransposeCW(Point(r.X, r.GetBottom()))))
 //@}
 
 /*!

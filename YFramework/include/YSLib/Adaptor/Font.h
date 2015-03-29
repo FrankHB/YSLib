@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3298
+\version r3299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-03-21 12:48 +0800
+	2015-03-28 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <string>
 #include YFM_YSLib_Core_YException
 #include YFM_YSLib_Adaptor_YTextBase
+#include <ystdex/hash.hpp> // for ystdex::hash_combine_seq;
 #include <ystdex/cache.hpp>
 
 //包含 FreeType2 。

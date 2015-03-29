@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r358
+\version r360
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2015-03-19 13:48 +0800
+	2015-03-24 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,8 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 
 				FillRect(g, bounds, rp,
 					roll({}, 239, {39.132872F, 0.920000F, 0.951172F}));
-				rp.Y += rp.Height;
+				// XXX: Conversion to 'SPos' might be implementation-defined.
+				rp.Y += SPos(rp.Height);
 				if(s.Height % 2 != 0)
 					++rp.Height;
 				FillRect(g, bounds, rp,

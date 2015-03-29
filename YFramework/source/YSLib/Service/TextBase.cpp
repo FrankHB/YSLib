@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2510
+\version r2512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-24 10:32 +0800
+	2014-03-24 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,8 @@ void
 TextState::PutNewline()
 {
 	CarriageReturn(*this);
-	Pen.Y += GetTextLineHeightExOf(*this);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	Pen.Y += SPos(GetTextLineHeightExOf(*this));
 }
 
 void

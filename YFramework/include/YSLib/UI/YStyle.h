@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r836
+\version r838
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2015-02-28 20:41 +0800
+	2015-03-28 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include YFM_YSLib_Service_YDraw
 #include <ystdex/rational.hpp>
 #include <typeindex>
+#include <ystdex/hash.hpp> // for ystdex::combined_hash;
 
 namespace YSLib
 {
@@ -222,6 +223,7 @@ public:
 
 	/*!
 	\brief 转换为 RGB 颜色。
+	\pre 断言： <tt>std::isfinite(GetS())</tt> 。
 	\note 结果的 Alpha 使用默认初始化值。
 	*/
 	explicit

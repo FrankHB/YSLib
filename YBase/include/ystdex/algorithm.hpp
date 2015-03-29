@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r651
+\version r652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-02-19 17:12 +0800
+	2015-03-29 00:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "deref_op.hpp" // for ystdex::is_undereferenceable;
 #include <algorithm>
 #include <cstring> // for std::memcpy, std::memmove;
-#include "functional.hpp" // for std::bind, ystdex::less;
+#include "functor.hpp" // for std::bind, ystdex::less;
 
 namespace ystdex
 {

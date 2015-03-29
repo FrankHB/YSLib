@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1897
+\version r1975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-03-22 20:07 +0805
+	2015-03-29 09:32 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,89 @@
 
 namespace ystdex
 {
+
+//! \since build 588
+//@{
+//! \brief 判断指定的值是否为零值。
+//@{
+template<typename _type>
+yconstfn yimpl(enable_if_t)<is_floating_point<_type>::value, bool>
+is_zero(_type x)
+{
+	return std::fpclassify(x) == FP_ZERO;
+}
+template<typename _type,
+	yimpl(typename = enable_if_t<!is_floating_point<_type>::value>)>
+yconstfn bool
+is_zero(_type x)
+{
+	return x == _type(0);
+}
+//@}
+
+
+/*!
+\brief 指定误差内舍入。
+\pre 参数为有限值。
+\warning 不检查参数。
+*/
+//@{
+/*
+\note 不检查误差非零。
+\note 使用 ADL \c round 。
+*/
+template<typename _type>
+yconstfn _type
+round_in_nocheck(_type x, _type err)
+{
+	using std::round;
+
+	return round(x / err) * err;
+}
+
+template<typename _type>
+yconstfn _type
+round_in(_type x, _type err)
+{
+	return ystdex::is_zero(err) ? x : ystdex::round_in_nocheck(x, err);
+}
+//@}
+
+
+//! \brief 计算整数次幂。
+template<typename _type>
+yconstfn _type
+pow_int(_type x, size_t n)
+{
+	return n != 0 ? (pow_int(x, n / 2) * pow_int(x, n / 2)
+		* (n % 2 == 1 ? _type(x) : _type(1))) : _type(1);
+}
+
+//! \brief 计算平方。
+template<typename _type>
+yconstfn _type
+square(_type x)
+{
+	return x * x;
+}
+
+//! \brief 计算立方。
+template<typename _type>
+yconstfn _type
+cube(_type x)
+{
+	return x * x * x;
+}
+
+//! \brief 计算四次方。
+template<typename _type>
+yconstfn _type
+quad(_type x)
+{
+	return ystdex::square(ystdex::square(x));
+}
+//@}
+
 
 /*!
 \ingroup unary_type_traits
@@ -120,6 +203,8 @@ public:
 	yconstfn
 	fixed_point(_tInt val,
 		yimpl(enable_if_t<is_integral<_tInt>::value, _tInt*> = {})) ynothrowv
+		// XXX: Conversion to 'base_type' might be implementation-defined if
+		//	it is signed.
 		: value(base_type(val << frac_bit_n))
 	{}
 	//! \since build 581
@@ -128,8 +213,6 @@ public:
 	explicit yconstfn
 	fixed_point(_tFloat val, yimpl(enable_if_t<
 		is_floating_point<_tFloat>::value, _tFloat*> = {})) ynothrow
-		// XXX: Conversion to 'base_type' might be implementation-defined if
-		//	it is signed.
 		: value(base_type(std::llround(base_element() * val)))
 	{}
 	template<typename _tFirst, typename _tSecond>
@@ -253,8 +336,10 @@ public:
 	fixed_point&
 	operator/=(const fixed_point& f) ynothrow
 	{
-		value = base_type(typename make_widen_int<base_type>::type(value
-			<< frac_bit_n) / f.value);
+		using widen_type = typename make_widen_int<base_type>::type;
+
+		value = base_type((widen_type(value) << widen_type(frac_bit_n))
+			/ f.value);
 		return *this;
 	}
 
@@ -279,7 +364,7 @@ public:
 	explicit yconstfn
 	operator _type() const ynothrow
 	{
-		return value >> frac_bit_n;
+		return _type(value >> base_type(frac_bit_n));
 	}
 	template<typename _type, yimpl(typename _type2 = _type,
 		typename = enable_if_t<is_floating_point<_type2>::value, _type>)>

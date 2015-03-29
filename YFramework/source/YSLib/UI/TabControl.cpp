@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r296
+\version r298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2015-03-23 18:43 +0800
+	2015-03-24 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,8 @@ TabBar::PerformLayout()
 		if(h < s.Height)
 			s.Height = h;
 		SetBoundsOf(wgt_ref, Rect(x, 0, s));
-		x += s.Width;
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		x += SPos(s.Width);
 	}
 	return x;
 }

@@ -11,13 +11,13 @@
 /*!	\file YRenderer.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r647
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2015-03-21 14:43 +0800
+	2015-03-21 21:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,9 +81,9 @@ public:
 
 /*!
 \brief 伪渲染器：静态类型的所有实际操作不产生可观察的副作用。
-\since build 547
+\since build 588
 */
-class PseudoRenderer : public Renderer
+class YF_API PseudoRenderer : public Renderer
 {
 public:
 	DefDeCtor(PseudoRenderer)

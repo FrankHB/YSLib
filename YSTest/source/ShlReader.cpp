@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4747
+\version r4753
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-03-24 19:01 +0800
+	2015-03-25 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,9 +314,9 @@ ShlTextReader::SettingSession::SettingSession(ShlTextReader& shl)
 	{
 		using ystdex::get_key;
 
-		size_t i(std::find(Encodings | get_key,
+		auto i(size_t(std::find(Encodings | get_key,
 			(Encodings + arrlen(Encodings)) | get_key,
-			reader.GetEncoding()) - Encodings);
+			reader.GetEncoding()) - Encodings));
 
 		if(i == arrlen(Encodings))
 			i = 0;
@@ -376,8 +376,9 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 			const auto& pt(LocateForWidget(GetSubDesktop(),
 				boxReader.btnMenu));
 
+			// XXX: Conversion to 'SPos' might be implementation-defined.
 			ShowMenu(*p_mnu_reader,
-				Point(pt.X, pt.Y - p_mnu_reader->GetHeight()));
+				{pt.X, pt.Y - SPos(p_mnu_reader->GetHeight())});
 		}
 	},
 	FetchEvent<Click>(boxReader.btnSetting) += [this]{
@@ -401,8 +402,9 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	FetchEvent<TouchDown>(boxReader.pbReader) += [this](CursorEventArgs&& e){
 		const auto s(reader.GetTextSize());
 
+		// TODO: Assert for nonnegative position?
 		if(YB_LIKELY(s != 0))
-			Locate(e.Position.X * s / boxReader.pbReader.GetWidth());
+			Locate(size_t(e.Position.X) * s / boxReader.pbReader.GetWidth());
 	},
 	FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
 		auto& pb(boxReader.pbReader);

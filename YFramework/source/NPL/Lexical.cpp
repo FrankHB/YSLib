@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1494
+\version r1507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2014-10-14 09:45 +0800
+	2015-03-25 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,29 +164,29 @@ LexicalAnalyzer::FilterForParse(char c, Unescaper unescape,
 }
 
 void
-LexicalAnalyzer::ParseByte(byte b, Unescaper unescape,
+LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
 	PrefixHandler prefix_handler)
 {
-	if(FilterForParse(char(b), unescape, prefix_handler))
+	if(FilterForParse(c, unescape, prefix_handler))
 	{
-		switch(b)
+		switch(c)
 		{
 			case '\'':
 			case '"':
 				if(ld == char())
 				{
-					ld = char(b);
+					ld = c;
 					qlist.push_back(cbuf.size());
-					cbuf += char(b);
+					cbuf += c;
 				}
-				else if(ld == b)
+				else if(ld == c)
 				{
 					ld = char();
-					cbuf += char(b);
+					cbuf += c;
 					qlist.push_back(cbuf.size());
 				}
 				else
-					cbuf += char(b);
+					cbuf += c;
 				break;
 			case ' ':
 			case '\f':
@@ -200,17 +200,17 @@ LexicalAnalyzer::ParseByte(byte b, Unescaper unescape,
 					break;
 				}
 			default:
-				cbuf += char(b);
+				cbuf += c;
 		}
 	}
 }
 
 void
-LexicalAnalyzer::ParseQuoted(byte b, Unescaper unescape,
+LexicalAnalyzer::ParseQuoted(char c, Unescaper unescape,
 	PrefixHandler prefix_handler)
 {
-	if(FilterForParse(char(b), unescape, prefix_handler))
-		cbuf += char(b);
+	if(FilterForParse(c, unescape, prefix_handler))
+		cbuf += c;
 }
 
 list<string>

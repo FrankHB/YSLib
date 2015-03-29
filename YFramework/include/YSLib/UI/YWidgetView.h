@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r796
+\version r812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-21 12:46 +0800
+	2015-03-25 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,6 +84,25 @@ public:
 	Visual(const Rect& r)
 		: Bounds(r)
 	{}
+};
+
+
+/*!
+\brief 视图操作消息信号。
+\since build 570
+*/
+class YF_API ViewSignal : public Messaging::MessageSignal
+{
+public:
+	using MessageSignal::MessageSignal;
+
+	//! \since build 586
+	DefDeCopyCtor(ViewSignal)
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~ViewSignal() override;
 };
 
 

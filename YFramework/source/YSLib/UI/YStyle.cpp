@@ -11,13 +11,13 @@
 /*!	\file YStyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1098
+\version r1111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-03-24 16:45 +0800
+	2015-03-25 21:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,7 +162,7 @@ RectDrawCornerArrow(const PaintContext& pc, SDst size, Rotation rot,
 		{
 			SPos t(x);
 
-			y -= size;
+			y -= SPos(size);
 			for(SDst i(0); i < size; ++i)
 				DrawHLineSeg(g, bounds, y++, rot == RDeg0 ? t-- : t++, x, c);
 		}
@@ -208,15 +208,17 @@ DrawArrow(const Graphics& g, const Rect& bounds, const Rect& r, SDst half_size,
 	{
 	case RDeg0:
 	case RDeg180:
-		x += (rot == RDeg180
-			? (r.Width - half_size) : (r.Width + half_size)) / 2;
-		y += (r.Height + 1) / 2;
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		x += SPos(rot == RDeg180 ? (r.Width - half_size)
+			: (r.Width + half_size)) / 2;
+		y += SPos(r.Height + 1) / 2;
 		break;
 	case RDeg90:
 	case RDeg270:
-		y += (rot == RDeg90
-			? (r.Height - half_size) : (r.Height + half_size)) / 2;
-		x += (r.Width + 1) / 2;
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		y += SPos(rot == RDeg90 ? (r.Height - half_size)
+			: (r.Height + half_size)) / 2;
+		x += SPos(r.Width + 1) / 2;
 	default:
 		break;
 	}
@@ -231,9 +233,9 @@ DrawCornerArrow(const Graphics& g, const Rect& bounds, const Point& pt,
 	SPos x(pt.X), y(pt.Y);
 
 	if(rot < RDeg180)
-		x += size;
+		x += SPos(size);
 	if(rot == RDeg0 || rot == RDeg270)
-		y += size;
+		y += SPos(size);
 	(outline ? RectDrawCornerArrowOutline : RectDrawCornerArrow)(
 		{g, {x, y}, bounds}, size, rot, c);
 }
@@ -243,9 +245,8 @@ DrawCross(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 {
 	if(YB_LIKELY(r.Width > 8 && r.Height > 8))
 	{
-		// XXX: Conversion to 'SPos' might be implementation-defined.
-		const SPos xmin(r.X + 4), xmax(xmin + SPos(r.Width) - 8),
-			ymin(r.Y + 4), ymax(ymin + SPos(r.Height) - 8);
+		const SPos xmin(r.X + 4), xmax(r.GetRight() - 4),
+			ymin(r.Y + 4), ymax(r.GetBottom() - 4);
 
 		DrawLineSeg(g, bounds, xmin, ymin, xmax, ymax, c),
 		DrawLineSeg(g, bounds, xmax - 1, ymin, xmin - 1, ymax, c);

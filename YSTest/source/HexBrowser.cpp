@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r581
+\version r599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2014-12-02 18:49 +0800
+	2015-03-25 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,11 +85,11 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 void
 HexViewArea::Load(const char* path)
 {
-	Reset();
 	model = make_unique<File>(path);
+	Reset();
 
-	const IndexType n_total_ln((model.GetSize() + ItemPerLine - 1)
-		/ ItemPerLine);
+	const IndexType
+		n_total_ln((model.GetSize() + ItemPerLine - 1) / ItemPerLine);
 
 	if(n_total_ln > GetItemNum())
 	{
@@ -129,7 +129,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 		w_ch((w_all - w_blank * (1 + ItemPerLine)) / (8 + ItemPerLine * 2)),
 		w_addr(w_ch * 8 + w_blank),
 		w_item(w_ch * 2 + w_blank);
-	const int fsize(model.GetSize());
+	const auto fsize(model.GetSize());
 	auto& pen_x(TextState.Pen.X);
 	TextRenderer tr(TextState, e.Target);
 	auto pos(model.GetPosition());
@@ -147,16 +147,20 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 			std::sprintf(straddr, "%08tX", pos);
 			PutLine(tr, straddr);
 		}
-		x += w_addr;
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		x += SPos(w_addr);
 
 		const auto n(min<IndexType>(fsize - pos, ItemPerLine));
 
-		for(IndexType j(0); j < n; yunseq(++j, i_data += 2, x += w_item))
+		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+		for(IndexType j(0); j < n;
+			yunseq(++j, i_data += 2, x += ptrdiff_t(w_item)))
 		{
 			pen_x = x;
 			PutLine(tr, &*i_data, &*i_data + 2);
 		}
-		yunseq(y += lh + TextState.LineGap, pos += ItemPerLine);
+		// XXX: Conversion to 'SPos' might be implementation-defined.
+		yunseq(y += SPos(lh + TextState.LineGap), pos += ItemPerLine);
 	}
 }
 
@@ -176,7 +180,8 @@ HexViewArea::UpdateData(std::uint32_t pos)
 	{
 		const DataType::size_type n(ItemPerLine * GetItemNum() * 2);
 
-		model.SetPosition(pos, SEEK_SET);
+		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+		model.SetPosition(ptrdiff_t(pos), SEEK_SET);
 		datCurrent.resize(n);
 
 		auto b(datCurrent.begin());
@@ -192,8 +197,10 @@ HexViewArea::UpdateData(std::uint32_t pos)
 			*b++ = l > '9' ? l + 'A' - '9' - 1 : l;
 		}
 	//	vsbVertical.SetValue(pos / ItemPerLine);
-		datCurrent.resize(b - datCurrent.cbegin());
-		model.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
+		datCurrent.resize(size_t(b - datCurrent.cbegin()));
+		// Refresh 需要据此判断接近文件结尾。
+		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+		model.SetPosition(ptrdiff_t(pos), SEEK_SET);
 	}
 }
 

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r690
+\version r738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-02-23 04:54 +0800
+	2015-03-28 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,6 +381,61 @@ make_shared(std::initializer_list<_tValue> il)
 {
 	return std::make_shared<_type>(il);
 }
+
+
+//! \since build 588
+//@{
+//! \brief 打包对象：通过指定参数构造对象。
+//@{
+template<typename _type, typename... _tParams>
+auto
+pack_object(_tParams&&... args) -> decltype(_type(yforward(args)...))
+{
+	return _type(yforward(args)...);
+}
+template<typename _type, typename... _tParams>
+auto
+pack_object(_tParams&&... args) -> decltype(make_unique<_type>(yforward(args)...))
+{
+	return make_unique<_type>(yforward(args)...);
+}
+template<typename _type, typename... _tParams>
+auto
+pack_object(_tParams&&... args) -> decltype(make_shared<_type>(yforward(args)...))
+{
+	return make_shared<_type>(yforward(args)...);
+}
+//@}
+
+
+//! \brief 打包的对象：使用 pack_object 得到的对象包装。
+template<typename _type, typename _tPack = std::unique_ptr<_type>>
+struct object_pack
+{
+public:
+	using value_type = _type;
+	using pack_type = _tPack;
+
+private:
+	pack_type pack;
+
+public:
+	//! \note 使用 ADL pack_object 。
+	template<typename... _tParams>
+	object_pack(_tParams&&... args)
+		: pack(pack_object<_tPack>(yforward(args)...))
+	{}
+
+	operator pack_type&() ynothrow
+	{
+		return pack;
+	}
+	operator const pack_type&() const ynothrow
+	{
+		return pack;
+	}
+};
+//@}
 
 } // namespace ystdex;
 

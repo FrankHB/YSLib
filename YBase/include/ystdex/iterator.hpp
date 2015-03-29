@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5080
+\version r5086
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-03-21 09:54 +0800
+	2015-03-24 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1044,7 +1044,7 @@ public:
 		// See $2015-02 @ %Documentation::Workflow::Annual2015.
 		yassume(!(difference_type(idx) < -n)),
 		yassume(!(difference_type(width * height) < difference_type(idx) + n));
-		idx += n;
+		idx += size_type(n);
 		yunseq(row = idx % height, col = idx / height);
 		return *this;
 	}
@@ -1100,7 +1100,8 @@ public:
 	operator-(const transposed_iterator& x, const transposed_iterator& y)
 	{
 		yconstraint(x.share_sequence(y));
-		return (x.col - y.col) * x.height + x.row - y.row;
+		// XXX: Conversion to 'difference_type' might be implementation-defined.
+		return difference_type((x.col - y.col) * x.height + x.row - y.row);
 	}
 
 	yconstfn const iterator_type&
@@ -1114,7 +1115,8 @@ public:
 	{
 		ynoexcept_assert("Invalid type found.", iter + row * width + col);
 
-		return iter + get_index();
+		// XXX: Conversion to 'difference_type' might be implementation-defined.
+		return iter + difference_type(get_index());
 	}
 
 	friend bool
@@ -1417,7 +1419,7 @@ operator-(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
 	_tPointer, _tReference>& y) ynothrow
 {
 	yconstraint(x.container() == y.container());
-	return x.get_index() - y.get_index();
+	return _tDifference(x.get_index() - y.get_index());
 }
 
 } // namespace ystdex;

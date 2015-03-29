@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r12035
+\version r12254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-03-24 20:12 +0800
+	2015-03-29 10:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,226 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	// These warnings are detected by 32-bit G++ 4.9 but not x86_64 Clang++ 3.5.1.
+	/ %YReader $=
+	(
+		/ DLD "implementation" @ "member function %HexViewArea::Refresh"
+			@ %HexBrowser,
+			// To eliminate G++ warning: [-Wsign-compare].
+		/ DLD "cast to 'SPos'" @ ("function %HexViewArea::Refresh"
+			@ %HexBrowser, "constructor %ShlExplorer" @ %ShlExplorer,
+			"constructor %ShlTextReader" @ %ShlReader,
+			"constructor %BookmarkPanel" @ %BookmarkUI),
+			// To eliminate warning: [-Wsign-conversion].
+		/ DLD "cast to 'ptrdiff_t'"
+			@ ("functions %HexViewArea::(Refresh, \UpdateData)"
+			@ %HexBrowser, "constructor %BookmarkPanel" @ %BookmarkUI),
+			// To eliminate warning: [-Wsign-conversion].
+		* "reset view before successfully loaded model"
+			@ "member function %HexViewArea::Load" @ %HexBrowser $since b254,
+			// Thus if exception thrown, the view state is unexpected.
+		/ DLD "cast to 'size_t'" @ ("member function %HexViewArea::UpdateData"
+			@ %HexBrowser, %ShlExplorer,
+			"constructor %ShlTextReader" @ %ShlReader),
+			// To eliminate warning: [-Wsign-conversion].
+		/ @ "scroll implementation" @ %DSReader $=
+		(
+			/ DLD "cast to ('SPos', 'SDst')",
+				// To eliminate warning: [-Wsign-conversion].
+			* $re_ex(b587) "missing restriction on nonnegative vertical margin \
+				components" $since b365
+		),
+		/ DLD "cast to 'BookmarkList::difference_type'"
+			@ "function %BookmarkPanel::GetSelected" @ %BookmarkUI
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ DLD "cast to 'SPos'" @ ("function %Diminish" @ %Core.YGDIBase,
+				("member function %Padding::operator*=" @ %YGDI,
+				"member function %TextState::PutNewline" @ %TextBase,
+				"function %FetchLastLineBasePosition" @ %TextLayout,
+				"function %PlotLineSeg" @ %YDraw) @ %Service, ("constructor \
+				%DropDownList" @ %ComboList, "style 'Aoi' implementation"
+				@ %ExStyle, "member function %ProgressBar::Refresh" @ %Progress,
+				"member function %TabBar::PerformLayout" @ %TabControl,
+				"constructor, member function %GetIndentBoxBounds" @ "class \
+				%TreeList" @ %TreeView, "functions %(RectDrawCornerArrow, \
+				DrawArrow, DrawCornerArrow)", "member function \
+				%TextList::InvalidateSelected" @ %ListControl @ %YStyle) @ %UI),
+				// To eliminate G++ warning: [-Wsign-conversion].
+			/ DLD "cast to 'ptrdiff_t'" @ ("member function \
+				%TextList::InvalidateSelected" @ %ListControl,
+				"member function %AMUnitList::AdjustOffsetForHeight" @ %Viewer)
+				@ %UI,
+				// To eliminate G++ warning: [-Wsign-conversion].
+			/ %Service $=
+			(
+				/ DLD "cast to 'SDst'" @ "function %GetTextLineHeightExOf"
+					@ %TextBase,
+					// To eliminate G++ warning: [-Wsign-conversion].
+				/ @ "class %ImagePages" @ %ImageProcessing $=
+				(
+					* "missing check for finite scale value"
+						@ "function %ZoomTo" $since b580 $orig (@ "function
+						%(Zoom, ZoomByRatio)" $since b555), 
+					+ "3rd parameter 'float = 0.F' to specify allowed error"
+						@ "function %ZoomByRatio",
+					/ "disallowed modification when the rescaled size is equal \
+						to original size" @ "function %AdjustOffset"
+						!^ "%HalfDifferenceIfGreater"
+				),
+				/ DLD "cast to 'size_t'" @ "member function \
+					%CompactBitmapEx::SizeOfBufferAlpha" @ %YGDI,
+					// To eliminate G++ warning on 'SDst' with less rank than \
+						'size_t': [-Wsign-conversion].
+				+ "function template %PutChar for non %ucs4_t character type"
+					@ %CharRenderer,
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLD "swapped %DrawRect inline and non-inline implementations"
+					@ %YDraw
+			),
+			/ %Core $=
+			(
+				- $revert(b554) "function template %HalfDifferenceIfGreater"
+					@ %YCoreUtilities $dep_from
+					"member function %ImagePages::AdjustOffset",
+				/ @ "class %Rect" @ %YGDIBase $=
+				(
+					+ 'using Point::GetX',
+					+ 'using Point::GetY',
+					+ 'using Point::SetX',
+					+ 'using Point::SetY',
+					+ "member functions %(GetBottom, GetRight)"
+				),
+
+			),
+			* "missing 'YF_API'" @ "class %PseudoRenderer" @ %UI.YRenderer
+				$since b547
+		),
+		/ @ "class %LexicalAnalyzer" @ %NPL.Lexical $=
+		(
+			/ "1st parameter function %(ParseQuoted, ParseByte)" -> 'char'
+				~ 'byte'
+				// This would make less conversions on parameters.
+		),
+		/ "class %ViewSignal" @ "namespace %Windows::UI"
+			@ %'Helper_(MinGW32)'.Win32Control >> ("namespace %UI"
+			@ "all platforms" @ %YSLib.UI.YWidgetView),
+		/ %Helper $=
+		(
+			/ $lib $design "simplified host Widget implementation"
+				@ "platform %Win32" @ %HostedUI,
+			/ DLD "member function %Environment::EnterWindowThread"
+				@ %Environment -> "non-inline member function"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ DLD "cast to ('base_type', '_type')"
+			@ "function template %operator _type for integer types"
+			@ "class template %fixed_point" @ %Rational,
+			// To eliminate G++ warning: [-Wsign-conversion].
+		/ DLD %Iterator $=
+		(
+			// To eliminate G++ warning: [-Wsign-conversion].
+			/ @ "class template %transposed_iterator" $=
+			(
+				/ "cast to 'size_type'" @ "function %operator+="
+				/ "cast to 'difference_type'"
+					@ "friend function %operator-, function %get"
+			),
+			/ "cast to '_tDifference'" @ "function template %operator- for 2 \
+				parameters of %subscriptive_iterator instance"
+		),
+		/ %Rational $=
+		(
+			* "reduced precision caused wrong result" @ "function %operator/="
+				@ "class template %fixed_point" $since b586,
+			+ "'yconstfn' function templates %((2 is_zero, round_in_nocheck; \
+				round_in), pow_int, square, cube, quad)"
+		),
+		/ %Memory $=
+		(
+			+ "3 function template %pack_object";
+			+ "class template %object_pack"
+		),
+		+ "unary type traits %(is_class_type; has_addressof)" @ %TypeOperations,
+		(
+		+ %Hash;
+		/ "function templates %(hash_combine, hash_combine_seq, hash_range), \
+			class template %combined_hash" @ %Functional >> %Hash
+		),
+		(
+		+ %Ref;
+		/ "class template %lref, function templates %(ref, cref, unref), unary \
+			type trait %wrapped_traits, alias template %wrapped_traits_t"
+			@ %Functional >> %Ref,
+		/ "class %void_ref" @ %Any >> %Ref
+		),
+		(
+		+ %Thunk;
+		/ "class templates %(thunk_caller, thunk), function templates \
+			%make_thunk" @ %Functional >> %Thunk
+		),
+		(
+		+ %Functor;
+		/ "all functors, function templates %(xcrease, delta_assign)"
+			@ %Functional >> %Functor;
+		* "strict ISO C++ code compatibility" @ "functor %deref_str_comp" $orig
+			(@ %Functional $since b333)
+			$= (* "missing including <algorithm> for \
+				%std::lexicographical_compare")
+		),
+		/ DLD "simplified inclusion" @ %Concurrency,
+		(
+		+ "%ScopeGuard";
+		/ "class templates %state_guard, alias template %swap_guard"
+			@ %Utilities >> %ScopeGuard
+		)
+	),
+	/ %Tools $=
+	(
+		/ $re_ex(b587) %Scripts $=
+		(
+			/ '-Wfloat-equal -Wsign-conversion' @ "default value"
+				@ "variable %CXXFLAGS_WARNING" @ "%SHBuild-common-option.sh"
+				=> ("default value" @ "variable %C_CXXFLAGS_WARNING"),
+			+ '-Wfloat-equal -Wsign-conversion' @ "default value"
+				@ "variable %C_CXXFLAGS_WARNING" @ "%Toolchain.options.mk",
+			+ '-Wfloat-equal' @ "default value"
+				@ "variable %C_CXXFLAGS_WARNING" @ "%ToolchainDS.mk"
+		),
+		/ %SHBuild.Main $=
+		(
+			/ DLD "cast to 'byte', 'size_t'",
+				// To eliminate warning: [-Wsign-conversion].
+			/ "set default logger level 'Informative'" @ "main function"
+				// To avoid too may debug information when assertion is turned \
+					on (e.g. stage 1).
+		),
+		/ DLD "cast to 'size_t'" @ %RevisionPatcher.Main
+			// To eliminate warning: [-Wsign-conversion].
+	),
+	/ "floating point number comparison" %Test.YBase ^ "%abs" ~ '==',
+		// To eliminate warning: [-Wfloat-equal].
+	/ %YDE.ImageBrowser.ImageControl $=
+	(
+		/ DLD "renamed constructor parameter",
+			// To eliminate warning: [-Wshadow].
+	),
+	/ "3rd argument" @ "function template %make_transposed kept unsigned"
+		$effective @ %YFramework.YSLib.Service.(YBlit, YBrush),
+		// To eliminate warning: [-Wsign-conversion].
+	/ DLD "simplified implementation" ^ $dep_from
+		("%Rect::(GetBottom, GetRight)" @ %YFramework.YSLib.Core.YGDIBase)
+		$effective @ %YFramework.(YSLib.(Core.YGDIBase, Service.(YStyle, YDraw),
+		UI.(Menu, Scroll)), YCLib.HostedGUI))
+),
+
+b587
 (
 	// NOTE: x86_64 Clang++ 3.5.1 is used to test for warnings. G++ warnings \
 		are not all eliminated. A lot of warnings are remained using G++ 4.9.1 \
@@ -401,7 +621,7 @@ $now
 				@ "functions %(MBCSToUCS2, UCS2ToMBCS, UCS4ToUCS2)"
 		)
 	),
-	/ %YStandardEx $=
+	/ %YBase.YStandardEx $=
 	(
 		/ "metafunction %fixed_multiplicative" @ %Rational -> "%make_widen_int"
 			@ %CStandardInteger,

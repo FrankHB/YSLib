@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2890
+\version r2897
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-24 18:03 +0800
+	2015-03-25 11:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,6 +209,14 @@ PutChar(_tRenderer& r, ucs4_t c)
 	if(seol >= 0)
 		return PutChar(r, c, SDst(seol));
 	return PutCharResult::NeedNewline;
+}
+
+//! \since build 588
+template<class _tRenderer, typename _tChar, typename... _tParams>
+inline PutCharResult
+PutChar(_tRenderer& r, _tChar c, _tParams&&... args)
+{
+	return PutChar(r, ucs4_t(c), yforward(args)...);
 }
 //@}
 //@}

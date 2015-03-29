@@ -11,7 +11,7 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1577
+\version r1581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
@@ -134,6 +134,12 @@ Environment::AddMappedItem(NativeWindowHandle h, Window* p)
 	lock_guard<mutex> lck(wmap_mtx);
 
 	wnd_map.emplace(h, p);
+}
+
+void
+Environment::EnterWindowThread()
+{
+	++wnd_thrd_count;
 }
 
 Window*

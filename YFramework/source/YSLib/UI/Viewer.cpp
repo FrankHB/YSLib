@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r294
+\version r296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2015-03-24 12:44 +0800
+	2015-03-24 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,7 +229,8 @@ AMUnitList::AdjustOffsetForHeight(SDst h, bool is_top)
 
 				uTopOffset = tmp % item_h;
 				AdjustViewLengthForHeight(item_h, h);
-				vwList.IncreaseHead(tmp / item_h, GetTotal());
+			// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+				vwList.IncreaseHead(ptrdiff_t(tmp / item_h), GetTotal());
 			}
 			return d;
 		}

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r414
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-03-10 19:57 +0800
+	2015-03-27 14:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,14 +180,14 @@ DoSetupTopLevel(Widget& top, _func f)
 	if(const auto p_wnd = GetWindowPtrOf(top))
 	{
 #	if YCL_Win32
-		auto& root(p_wnd->GetEnvironmentRef().Desktop);
+		auto& wnd(*p_wnd);
+		auto& root(wnd.GetEnvironmentRef().Desktop);
 
 		if(FetchContainerPtr(top) == &root)
 		{
 			auto& wgt(f(root));
 
-			if(p_wnd)
-				AttachToHost(wgt, *p_wnd);
+			AttachToHost(wgt, wnd);
 			return true;
 		}
 #	else

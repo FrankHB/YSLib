@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3766
+\version r3772
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2015-03-24 12:42 +0800
+	2015-03-25 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,9 +270,8 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 	if(trk.IsHorizontal())
 	{
 #if YSL_UI_Impl_ATrack_Partial_Invalidation
-		// XXX: Conversion to 'SPos' might be implementation-defined.
-		RestrictInInterval(y, bounds.Y, SPos(bounds.Y + SPos(bounds.Height))),
-		RestrictInInterval(yr, bounds.Y, SPos(bounds.Y + SPos(bounds.Height)));
+		RestrictInInterval(y, bounds.Y, bounds.GetBottom()),
+		RestrictInInterval(yr, bounds.Y, bounds.GetBottom());
 #endif
 		DrawHLineSeg(g, bounds, pt.Y, pt.X, xr, c),
 		DrawHLineSeg(g, bounds, yr, pt.X, xr, c);
@@ -280,9 +279,8 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 	else
 	{
 #if YSL_UI_Impl_ATrack_Partial_Invalidation
-		// XXX: Conversion to 'SPos' might be implementation-defined.
-		RestrictInInterval(x, bounds.X, SPos(bounds.X + SPos(bounds.Width))),
-		RestrictInInterval(xr, bounds.X, SPos(bounds.X + SPos(bounds.Width)));
+		RestrictInInterval(x, bounds.X, bounds.GetRight()),
+		RestrictInInterval(xr, bounds.X, bounds.GetRight());
 #endif
 		DrawVLineSeg(g, bounds, pt.X, pt.Y, yr, c),
 		DrawVLineSeg(g, bounds, xr, pt.Y, yr, c);

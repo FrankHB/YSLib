@@ -34,6 +34,7 @@ fi
 	-Wdeprecated \
 	-Wdeprecated-declarations \
 	-Wextra \
+	-Wfloat-equal \
 	-Wformat=2 \
 	-Winvalid-pch \
 	-Wmissing-declarations \
@@ -43,6 +44,7 @@ fi
 	-Wpacked \
 	-Wredundant-decls \
 	-Wshadow \
+	-Wsign-conversion \
 	-Wsign-promo \
 	"}
 
@@ -91,10 +93,8 @@ fi
 : ${CXXFLAGS_STD:='-std=c++11'}
 : ${CXXFLAGS_WARNING:=" $CFLAGS_WARNING \
 	-Wctor-dtor-privacy \
-	-Wfloat-equal \
 	-Wnon-virtual-dtor \
 	-Woverloaded-virtual \
-	-Wsign-conversion \
 	$C_CXXFLAGS_IMPL_WARNING \
 	$CXXFLAGS_IMPL_WARNING \
 	"}

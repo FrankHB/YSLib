@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2781
+\version r2782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-22 22:51 +0800
+	2015-03-24 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,7 +168,7 @@ inline PDefH(SDst, GetTextLineHeightOf, const TextState& ts)
 \since build 231
 */
 inline PDefH(SDst, GetTextLineHeightExOf, const TextState& ts)
-	ImplRet(ts.Font.GetHeight() + ts.LineGap)
+	ImplRet(SDst(ts.Font.GetHeight() + ts.LineGap))
 
 /*!
 \brief 取笔所在的当前行数。

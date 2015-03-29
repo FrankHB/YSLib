@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1317
+\version r1366
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-02-23 12:58 +0800
+	2015-03-28 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,14 +183,14 @@ using std::result_of;
 \since build 306
 */
 
-/*!	\defgroup unary_type_trait Unary Type Trait
+/*!	\defgroup unary_type_traits Unary Type Trait
 \ingroup type_traits_operations
 \brief 一元类型特征。
 \see ISO C++11 20.9.1[meta.rqmts] 。
 \since build 306
 */
 
-/*!	\defgroup binary_type_trait Binary Type Trait
+/*!	\defgroup binary_type_traits Binary Type Trait
 \ingroup type_traits_operations
 \brief 二元类型特征。
 \see ISO C++11 20.9.1[meta.rqmts] 。
@@ -207,7 +207,7 @@ using std::result_of;
 
 /*!
 \ingroup type_traits_operations
-\brief ISO C++ 1y 兼容类型操作别名。
+\brief ISO C++ 14 兼容类型操作别名。
 \todo 条件编译：尽可能使用语言实现。
 */
 //@{
@@ -345,7 +345,7 @@ struct not_ : integral_constant<bool, !_b::value>
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断指定类型是否可作为返回值类型。
 \note 即排除数组类型、抽象类类型和函数类型的所有类型。
 \see ISO C++11 8.3.5/8 和 ISO C++11 10.4/3 。
@@ -358,12 +358,23 @@ struct is_returnable
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断指定类型是否已退化。
 \since build 529
 */
 template<typename _type>
 struct is_decayed : or_<is_same<decay_t<_type>, _type>>
+{};
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断指定类型是否是类类型。
+\since build 588
+*/
+template<typename _type>
+struct is_class_type
+	: or_<is_class<_type>, is_union<_type>>
 {};
 
 
@@ -379,7 +390,7 @@ struct is_class_pointer
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断指定类型是否是类类型左值引用。
 \since build 333
 */
@@ -390,7 +401,7 @@ struct is_lvalue_class_reference
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断指定类型是否是类类型右值引用。
 \since build 333
 */
@@ -401,7 +412,7 @@ struct is_rvalue_class_reference
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断指定类型是否是 POD struct 。
 \see ISO C++11 9/10 。
 \since build 333
@@ -412,7 +423,7 @@ struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断指定类型是否是 POD union 。
 \see ISO C++11 9/10 。
 \since build 333
@@ -423,7 +434,7 @@ struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup binary_type_traits
 \brief 判断指定类型之间是否可转换。
 \since build 575
 */
@@ -434,7 +445,7 @@ struct is_interoperable
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup binary_type_traits
 \brief 判断指定类型之间是否协变。
 \warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
 \since build 447
@@ -445,7 +456,7 @@ struct is_covariant : is_convertible<_tFrom, _tTo>
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup binary_type_traits
 \brief 判断指定类型之间是否逆变。
 \warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
 \since build 447
@@ -535,6 +546,25 @@ YB_HAS_MEMBER(value)
 YB_TYPE_OP_TEST_2(have_equality_operator, (is_convertible<decltype(std::declval<
 	_type>() == std::declval<_type2>()), bool>::value))
 
+
+//! \since build 588
+namespace yimpl(has_addressof_impl)
+{
+
+struct result
+{};
+
+template<typename _type>
+result operator&(_type&&);
+
+template<typename _type>
+struct check
+{
+	static yconstexpr bool value = !is_same<decltype(&std::declval<_type&>()),
+		has_addressof_impl::result>::value;
+};
+
+} // namespace has_addressof_impl;
 
 //! \since build 399
 YB_TYPE_OP_TEST_2(has_subscription, !is_void<decltype(std::declval<_type>()[
@@ -651,7 +681,7 @@ struct common_nonvoid_impl<false, _type, _types...>
 //! \since build 454 as workaround for Visual C++ 2013
 #if !YB_IMPL_MSCPP
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断 _type 是否包含 value 成员。
 \since build 440
 */
@@ -663,7 +693,18 @@ struct has_mem_value : std::integral_constant<bool,
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup unary_type_traits
+\brief 判断是否存在合式的重载 & 操作符接受直嘀咕类型的表达式。
+\pre 参数不为不完整的类类型。
+*/
+template<typename _type>
+struct has_addressof
+	: and_<is_class_type<_type>, details::has_addressof_impl::check<_type>>
+{};
+
+
+/*!
+\ingroup binary_type_traits
 \brief 判断是否存在合式的结果为非 void 类型的 [] 操作符接受指定类型的表达式。
 \since build 399
 */
@@ -673,7 +714,7 @@ struct has_subscription : details::has_subscription<_type1, _type2>
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup binary_type_traits
 \brief 判断是否存在合式的结果可转换为 bool 类型的 == 操作符接受指定类型的表达式。
 \since build 306
 */
@@ -684,7 +725,7 @@ struct has_equality_operator : integral_constant<bool,
 
 
 /*!
-\ingroup binary_type_trait
+\ingroup binary_type_traits
 \brief 判断指定类型是否有非空虚基类。
 \since build 175
 */
@@ -695,7 +736,7 @@ struct has_nonempty_virtual_base : integral_constant<bool,
 
 
 /*!
-\ingroup unary_type_trait
+\ingroup unary_type_traits
 \brief 判断指定的两个类类型是否有非空虚基类。
 \since build 175
 */

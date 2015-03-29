@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1486
+\version r1488
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2015-03-24 19:22 +0800
+	2015-03-25 18:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,13 +54,13 @@ Session::Session(const TextFile& tf, CharParser parse)
 void
 Session::DefaultParseByte(LexicalAnalyzer& lexer, char c)
 {
-	lexer.ParseByte(byte(c));
+	lexer.ParseByte(c);
 }
 
 void
 Session::DefaultParseQuoted(LexicalAnalyzer& lexer, char c)
 {
-	lexer.ParseQuoted(byte(c));
+	lexer.ParseQuoted(c);
 }
 
 

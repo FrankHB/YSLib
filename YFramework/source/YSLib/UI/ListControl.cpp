@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2149
+\version r2151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2015-03-22 15:39 +0800
+	2015-03-24 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -299,8 +299,8 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 	if(offset >= 0 && n != 0)
 	{
 		const auto item_h(GetItemHeight());
-		Rect r(0, SPos(item_h * offset - uTopOffset), GetWidth(),
-			SDst(item_h * n));
+		Rect r(0, SPos(ptrdiff_t(item_h) * offset - SPos(uTopOffset)),
+			GetWidth(), SDst(item_h * n));
 
 		if(r.Y < 0 || SDst(r.Y) < GetHeight())
 		{

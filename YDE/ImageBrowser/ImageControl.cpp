@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1127
+\version r1129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-03-17 07:01 +0800
+	2015-03-24 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,9 +44,9 @@ enum MenuItem : size_t
 //! \since build 583
 static yconstexpr float def_scale(1.201F), def_rscale(1 / def_scale);
 
-ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
+ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 	const Size& max_size)
-	: Panel(r),
+	: Panel(r_),
 	min_panel_size(min_size), max_panel_size(max_size), btnClose({{}, 24, 24}),
 	lblCenter(Size(96, 32), Font(FetchDefaultTypeface().GetFontFamily(), 16,
 	FontStyle::Bold), SolidCompositeBrush({0x00, 0x00, 0x00, 0xA0}),
