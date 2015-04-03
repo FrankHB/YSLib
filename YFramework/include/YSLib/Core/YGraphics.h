@@ -11,13 +11,13 @@
 /*!	\file YGraphics.h
 \ingroup Core
 \brief 平台无关的基础图形接口。
-\version r209
+\version r210
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 18:03:31 +0800
 \par 修改时间:
-	2015-03-17 18:33 +0800
+	2015-03-29 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ public:
 	DefGetter(const ynothrow, SDst, Height, sGraphics.Height)
 	//! \since build 177
 	DefGetter(const ynothrow, size_t, SizeOfBuffer,
-		sizeof(PixelType) * GetAreaOf(sGraphics)) //!< 取缓冲区占用空间。
+		sizeof(PixelType) * size_t(GetAreaOf(sGraphics))) //!< 取缓冲区占用空间。
 
 	/*!
 	\brief 取指定行首元素指针。

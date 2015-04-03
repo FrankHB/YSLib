@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r346
+\version r706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2015-01-31 02:24 +0800
+	2015-03-31 19:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,361 +33,324 @@
 namespace ystdex
 {
 
-/*!
-\ingroup meta_types
-\brief 变长参数标记的整数序列。
-\since build 303
-*/
-template<size_t... _vSeq>
-struct variadic_sequence
-{
-	/*!
-	\brief 取序列长度。
-	\note 同 C++1y std::integer_sequence::size 。
-	\since build 447
-	*/
-	static yconstfn size_t
-	size()
-	{
-		return sizeof...(_vSeq);
-	}
-};
-
-
 /*!	\defgroup vseq_operations Variadic Sequence Operations
 \ingroup meta_operations
 \brief 变长参数标记的序列相关的元操作。
 \since build 447
 
 形式为模板类名声明和特化的相关操作，被操作的序列是类类型。
-除此处对 ystdex::variadic_sequence 外的特化外，可有其它类类型的特化。
-特化至少需保证具有表示和此处特化意义相同的 type 类型成员。
+除此处的特化外，可有其它类类型的特化。
+特化至少需保证具有表示和此处特化意义相同的 type 类型成员，并可能有其它成员。
 对非类型元素，成员 value 表示结果，成员 type 表示对应的序列类型。
 */
 
 
+//! \since build 589
+namespace vseq
+{
+
 /*!
 \ingroup vseq_operations
-\brief 拆分序列。
-\since build 447
-
-拆分序列为首元素和其余部分。
+\since build 589
 */
 //@{
-template<class>
-struct sequence_split;
+#define YB_Impl_Variadic_SeqOp(_n, _tparams, _targs) \
+	template<_tparams> \
+	struct _n; \
+	\
+	template<_tparams> \
+	using _n##_t = typename _n<_targs>::type;
+#define YB_Impl_Variadic_SeqOpU(_n) \
+	YB_Impl_Variadic_SeqOp(_n, class _tSeq, _tSeq)
+#define YB_Impl_Variadic_SeqOpB(_n) YB_Impl_Variadic_SeqOp(_n, class _tSeq1 \
+	YPP_Comma class _tSeq2, _tSeq1 YPP_Comma _tSeq2)
+#define YB_Impl_Variadic_SeqOpI(_n) YB_Impl_Variadic_SeqOp(_n, class _tSeq \
+	YPP_Comma size_t _vIdx, _tSeq YPP_Comma _vIdx)
+#define YB_Impl_Variadic_SeqOpN(_n) YB_Impl_Variadic_SeqOp(_n, size_t _vN \
+	YPP_Comma class _tSeq, _vN YPP_Comma _tSeq)
+
+//! \brief 取序列元素数。
+YB_Impl_Variadic_SeqOpU(seq_size)
+
+
+//! \brief 清除序列。
+YB_Impl_Variadic_SeqOpU(clear)
+
+
+//! \brief 合并序列。
+YB_Impl_Variadic_SeqOpB(concat)
+
+
+//! \brief 取序列最后一个元素。
+YB_Impl_Variadic_SeqOpU(back)
+
+
+//! \brief 取序列第一个元素。
+YB_Impl_Variadic_SeqOpU(front)
+
+
+//! \brief 取序列最后元素以外的元素的序列。
+YB_Impl_Variadic_SeqOpU(pop_back)
+
+
+//! \brief 取序列第一个元素以外的元素的序列。
+YB_Impl_Variadic_SeqOpU(pop_front)
+
+
+//! \brief 取在序列末尾插入一个元素的序列。
+YB_Impl_Variadic_SeqOp(push_back, class _tSeq YPP_Comma typename _tItem,
+	_tSeq YPP_Comma _tItem)
+
+
+//! \brief 取在序列起始插入一个元素的序列。
+YB_Impl_Variadic_SeqOp(push_front, class _tSeq YPP_Comma typename _tItem,
+	_tSeq YPP_Comma _tItem)
+
+
+//! \brief 投影操作。
+YB_Impl_Variadic_SeqOp(project, class _tSeq YPP_Comma class _tIdxSeq,
+	_tSeq YPP_Comma _tIdxSeq)
+
+
+//! \brief 取指定位置的元素。
+//@{
+YB_Impl_Variadic_SeqOpI(at)
+
+template<class _tSeq, size_t _vIdx>
+struct at : at<pop_front_t<_tSeq>, _vIdx - 1>
+{};
 
 template<class _tSeq>
-using sequence_split_t = typename sequence_split<_tSeq>::type;
-
-template<size_t _vHead, size_t... _vTail>
-struct sequence_split<variadic_sequence<_vHead, _vTail...>>
-{
-	static yconstexpr size_t value = _vHead;
-
-	using type = variadic_sequence<value>;
-	using tail = variadic_sequence<_vTail...>;
-};
+struct at<_tSeq, 0> : front<_tSeq>
+{};
 //@}
 
 
-/*!
-\ingroup vseq_operations
-\brief 合并序列。
-\since build 447
-*/
+//! \brief 拆分序列前若干元素。
 //@{
-template<class, class>
-struct sequence_cat;
+YB_Impl_Variadic_SeqOpN(split_n)
 
-template<class _tSeq1, class _tSeq2>
-using sequence_cat_t = typename sequence_cat<_tSeq1, _tSeq2>::type;
-
-template<size_t... _vSeq1, size_t... _vSeq2>
-struct sequence_cat<variadic_sequence<_vSeq1...>, variadic_sequence<_vSeq2...>>
-{
-	using type = variadic_sequence<_vSeq1..., _vSeq2...>;
-};
-//@}
-
-
-/*!
-\ingroup vseq_operations
-\brief 取序列元素。
-\since build 447
-*/
-//@{
-template<size_t, class>
-struct sequence_element;
-
-template<size_t _vIdx, class _tSeq>
-using sequence_element_t = typename sequence_element<_vIdx, _tSeq>::type;
-
-template<size_t _vIdx>
-struct sequence_element<_vIdx, variadic_sequence<>>;
-
-template<size_t... _vSeq>
-struct sequence_element<0, variadic_sequence<_vSeq...>>
-{
-private:
-	using vseq = variadic_sequence<_vSeq...>;
-
-public:
-	static yconstexpr auto value = sequence_split<vseq>::value;
-
-	using type = sequence_split_t<vseq>;
-};
-
-template<size_t _vIdx, size_t... _vSeq>
-struct sequence_element<_vIdx, variadic_sequence<_vSeq...>>
-{
-private:
-	using sub = sequence_element<_vIdx - 1,
-		typename sequence_split<variadic_sequence<_vSeq...>>::tail>;
-
-public:
-	static yconstexpr auto value = sub::value;
-	using type = typename sub::type;
-};
-//@}
-
-
-/*!
-\ingroup vseq_operations
-\brief 投影操作。
-\since build 447
-*/
-//@{
-template<class, class>
-struct sequence_project;
-
-template<class _tSeq, class _tIdxSeq>
-using sequence_project_t = typename sequence_project<_tSeq, _tIdxSeq>::type;
-
-template<size_t... _vSeq, size_t... _vIdxSeq>
-struct sequence_project<variadic_sequence<_vSeq...>,
-	variadic_sequence<_vIdxSeq...>>
-{
-	using type = variadic_sequence<
-		sequence_element<_vIdxSeq, variadic_sequence<_vSeq...>>::value...>;
-};
-//@}
-
-
-/*!
-\ingroup vseq_operations
-\brief 取逆序列。
-\since build 447
-*/
-//@{
-template<class>
-struct sequence_reverse;
-
-template<class _tSeq>
-using sequence_reverse_t = typename sequence_reverse<_tSeq>::type;
-
-template<>
-struct sequence_reverse<variadic_sequence<>>
-{
-	using type = variadic_sequence<>;
-};
-
-template<size_t... _vSeq>
-struct sequence_reverse<variadic_sequence<_vSeq...>>
-{
-private:
-	using vseq = variadic_sequence<_vSeq...>;
-
-public:
-	using type = sequence_cat_t<sequence_reverse_t<typename
-		sequence_split<vseq>::tail>, sequence_split_t<vseq>>;
-};
-//@}
-
-
-/*!
-\ingroup vseq_operations
-\brief 重复连接序列元素。
-\since build 572
-*/
-//@{
-template<size_t, class>
-struct sequence_join_n;
-
+//! \note 使用二分实现减少递归实例化深度。
 template<size_t _vN, class _tSeq>
-using sequence_join_n_t = typename sequence_join_n<_vN, _tSeq>::type;
-
-template<size_t... _vSeq>
-struct sequence_join_n<0, variadic_sequence<_vSeq...>>
-{
-	using type = variadic_sequence<>;
-};
-
-template<size_t... _vSeq>
-struct sequence_join_n<1, variadic_sequence<_vSeq...>>
-{
-	using type = variadic_sequence<_vSeq...>;
-};
-
-template<size_t _vN, size_t... _vSeq>
-struct sequence_join_n<_vN, variadic_sequence<_vSeq...>>
+struct split_n
 {
 private:
-	using unit = variadic_sequence<_vSeq...>;
-	using half = sequence_join_n_t<_vN / 2, unit>;
+	using half = split_n<_vN / 2, _tSeq>;
+	using last = split_n<_vN - _vN / 2, typename half::tail>;
 
 public:
-	using type = sequence_cat_t<sequence_cat_t<half, half>,
-		sequence_join_n_t<_vN % 2, unit>>;
-};
-//@}
-
-
-/*!
-\ingroup vseq_operations
-\brief 拆分序列前若干元素。
-\note 使用二分实现减少递归实例化深度。
-\since build 507
-*/
-//@{
-template<size_t, class>
-struct sequence_split_n;
-
-template<size_t _vIdx, class _tSeq>
-using sequence_split_n_t = typename sequence_split_n<_vIdx, _tSeq>::type;
-
-template<size_t... _vSeq>
-struct sequence_split_n<0, variadic_sequence<_vSeq...>>
-{
-	using type = variadic_sequence<>;
-	using tail = variadic_sequence<_vSeq...>;
-};
-
-template<size_t _vHead, size_t... _vSeq>
-struct sequence_split_n<1, variadic_sequence<_vHead, _vSeq...>>
-{
-	using type = variadic_sequence<_vHead>;
-	using tail = variadic_sequence<_vSeq...>;
-};
-
-template<size_t _vIdx, size_t... _vSeq>
-struct sequence_split_n<_vIdx, variadic_sequence<_vSeq...>>
-{
-private:
-	using half = sequence_split_n<_vIdx / 2, variadic_sequence<_vSeq...>>;
-	using last = sequence_split_n<_vIdx - _vIdx / 2, typename half::tail>;
-
-public:
-	using type = sequence_cat_t<typename half::type, typename last::type>;
+	using type = concat_t<typename half::type, typename last::type>;
 	using tail = typename last::tail;
 };
+
+template<class _tSeq>
+struct split_n<0, _tSeq>
+{
+	using type = clear_t<_tSeq>;
+	using tail = _tSeq;
+};
+
+template<class _tSeq>
+struct split_n<1, _tSeq>
+{
+	using type = front_t<_tSeq>;
+	using tail = pop_front_t<_tSeq>;
+};
 //@}
 
 
-/*!
-\ingroup vseq_operations
-\brief 二元操作合并应用。
-\pre 二元操作符合交换律和结合律。
-\since build 507
-*/
+//! \brief 删除指定位置的元素。
 //@{
-template<class, typename, class>
-struct sequence_fold;
+YB_Impl_Variadic_SeqOp(erase, class _tSeq YPP_Comma size_t _vIdx YPP_Comma \
+	size_t _vEnd = _vIdx + 1, _tSeq YPP_Comma _vIdx YPP_Comma _vEnd)
 
-template<class _fBinary, typename _tState, class _type>
-using sequence_fold_t = typename sequence_fold<_fBinary, _tState, _type>::type;
-
-template<class _fBinary, class _tState>
-struct sequence_fold<_fBinary, _tState, variadic_sequence<>>
+template<class _tSeq, size_t _vIdx, size_t _vEnd>
+struct erase
 {
-	using type = _tState;
-
-	static yconstexpr auto value = _tState::value;
-};
-
-template<class _fBinary, class _tState, size_t _vHead>
-struct sequence_fold<_fBinary, _tState, variadic_sequence<_vHead>>
-{
-	static yconstexpr auto value = _fBinary()(_tState::value, _vHead);
-
-	using type = variadic_sequence<value>;
-};
-
-template<class _fBinary, class _tState, size_t... _vSeq>
-struct sequence_fold<_fBinary, _tState, variadic_sequence<_vSeq...>>
-{
-private:
-	using parts
-		= sequence_split_n<sizeof...(_vSeq) / 2, variadic_sequence<_vSeq...>>;
-	using head = typename parts::type;
-	using tail = typename parts::tail;
+	static_assert(_vIdx <= _vEnd, "Invalid range found.");
 
 public:
-	static yconstexpr auto value = sequence_fold<_fBinary,
-		std::integral_constant<size_t,
-		sequence_fold<_fBinary, _tState, head>::value>, tail>::value;
-
-	using type = variadic_sequence<value>;
+	using type = concat_t<split_n_t<_vIdx, _tSeq>,
+		typename split_n<_vEnd, _tSeq>::tail>;
 };
 //@}
 
 
-/*!
-\brief 直接接受 size_t 类型值二元操作合并应用。
-\sa sequence_fold
-\since build 507
-*/
-template<class _fBinary, size_t _vState, size_t... _vSeq>
-using vseq_fold = sequence_fold<_fBinary,
-	std::integral_constant<size_t, _vState>, variadic_sequence<_vSeq...>>;
-
-
-/*!
-\ingroup meta_operations
-\brief 取整数序列的自然数后继。
-\since build 303
-*/
+//! \brief 查找元素。
 //@{
-template<class>
-struct make_successor;
+YB_Impl_Variadic_SeqOp(find, class _tSeq YPP_Comma typename _type,
+	_tSeq YPP_Comma _type)
 
-//! \since build 447
+namespace details
+{
+
+template<size_t _vN, class _tSeq, typename _type>
+struct find
+{
+	static yconstexpr size_t value = is_same<front_t<_tSeq>, _type>::value ? 0
+		: find<_vN - 1, pop_front_t<_tSeq>, _type>::value + 1;
+};
+
+template<class _tSeq, typename _type>
+struct find<0, _tSeq, _type>
+{
+	static yconstexpr size_t value = 0;
+};
+
+} // namespace details;
+
+template<class _tSeq, typename _type>
+struct find : integral_constant<size_t,
+	details::find<seq_size<_tSeq>::value, _tSeq, _type>::value>
+{};
+//@}
+
+
+//! \brief 取合并相同元素后的序列。
+//@{
+YB_Impl_Variadic_SeqOpU(deduplicate)
+
+namespace details
+{
+
+template<size_t, class _tSeq>
+struct deduplicate
+{
+private:
+	using head = pop_back_t<_tSeq>;
+	using tail = back_t<_tSeq>;
+	using sub = deduplicate_t<head>;
+
+public:
+	using type = typename std::conditional<vseq::find<head, tail>::value
+		== seq_size<head>::value, concat_t<sub, tail>, sub>::type;
+};
+
 template<class _tSeq>
-using make_successor_t = typename make_successor<_tSeq>::type;
-
-template<size_t... _vSeq>
-struct make_successor<variadic_sequence<_vSeq...>>
+struct deduplicate<0, _tSeq>
 {
-	using type = variadic_sequence<_vSeq..., sizeof...(_vSeq)>;
+	using type = _tSeq;
+};
+
+template<class _tSeq>
+struct deduplicate<1, _tSeq>
+{
+	using type = _tSeq;
+};
+
+} // namespace details;
+
+template<class _tSeq>
+struct deduplicate
+{
+	using type
+		= typename details::deduplicate<seq_size<_tSeq>::value, _tSeq>::type;
 };
 //@}
+
+
+//! \brief 重复连接序列元素。
+//@{
+YB_Impl_Variadic_SeqOpN(join_n)
+
+//! \note 使用二分实现减少递归实例化深度。
+template<size_t _vN, class _tSeq>
+struct join_n
+{
+private:
+	using unit = _tSeq;
+	using half = join_n_t<_vN / 2, unit>;
+
+public:
+	using type = concat_t<concat_t<half, half>, join_n_t<_vN % 2, unit>>;
+};
+
+template<class _tSeq>
+struct join_n<0, _tSeq>
+{
+	using type = clear_t<_tSeq>;
+};
+
+template<class _tSeq>
+struct join_n<1, _tSeq>
+{
+	using type = _tSeq;
+};
+//@}
+
+
+//! \brief 取逆序列。
+//@{
+YB_Impl_Variadic_SeqOpU(reverse)
+
+template<class _tSeq>
+struct reverse
+{
+	using type = typename std::conditional<seq_size<_tSeq>::value == 0,
+		clear_t<_tSeq>, concat_t<reverse_t<pop_front_t<_tSeq>>, front_t<_tSeq>>
+		>::type;
+};
+//@}
+
+
+//! \brief 取合并相邻相同元素后的序列。
+//@{
+YB_Impl_Variadic_SeqOpU(unique)
+
+namespace details
+{
+
+template<size_t, class _tSeq>
+struct unique
+{
+	using head = front_t<_tSeq>;
+	using type = concat_t<head, unique_t<typename split_n<
+		is_same<head, at<_tSeq, 1>>::value ? 2 : 1, _tSeq>::tail>>;
+};
+
+template<class _tSeq>
+struct unique<0, _tSeq>
+{
+	using type = clear_t<_tSeq>;
+};
+
+template<class _tSeq>
+struct unique<1, _tSeq>
+{
+	using type = _tSeq;
+};
+
+} // namespace details;
+
+template<class _tSeq>
+struct unique
+{
+	using type = typename details::unique<seq_size<_tSeq>::value, _tSeq>::type;
+};
 
 
 /*!
-\ingroup meta_operations
-\brief 取自然数变量标记序列。
-\since build 303
+\brief 二元操作合并应用。
+\pre 二元操作符合交换律和结合律。
 */
-//@{
-template<size_t>
-struct make_natural_sequence;
+YB_Impl_Variadic_SeqOp(fold, class _fBinary YPP_Comma typename \
+	_tState YPP_Comma class _type, _fBinary YPP_Comma _tState YPP_Comma _type)
 
-//! \since build 447
-template<size_t _vN>
-using make_natural_sequence_t = typename make_natural_sequence<_vN>::type;
 
-template<size_t _vN>
-struct make_natural_sequence
-{
-	using type = make_successor_t<make_natural_sequence_t<_vN - 1>>;
-};
+//! \brief 序列作为向量的加法。
+YB_Impl_Variadic_SeqOpB(vec_add)
 
-template<>
-struct make_natural_sequence<0>
-{
-	using type = variadic_sequence<>;
-};
+
+//! \brief 序列作为向量的减法。
+YB_Impl_Variadic_SeqOpB(vec_subtract)
+
+#undef YB_Impl_Variadic_SeqOpN
+#undef YB_Impl_Variadic_SeqOpI
+#undef YB_Impl_Variadic_SeqOpU
+#undef YB_Impl_Variadic_SeqOp
 //@}
+
+} // namespace vseq;
 
 } // namespace ystdex;
 

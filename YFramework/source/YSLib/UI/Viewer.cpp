@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r296
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2015-03-24 22:02 +0800
+	2015-03-29 12:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,7 +256,7 @@ void
 AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
 {
 	if(YB_LIKELY(item_h != 0))
-		vwList.Length = (h + uTopOffset + item_h - 1) / item_h;
+		vwList.Length = size_t((h + uTopOffset + item_h - 1) / item_h);
 }
 
 size_t

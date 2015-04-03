@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2203
+\version r2218
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-03-29 00:44 +0800
+	2015-04-01 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "tuple.hpp" // for ../ydef.h, ystdex::remove_reference_t,
-//	ystdex::make_natural_sequence_t, std::tuple_size;
+#include "tuple.hpp" // for ../ydef.h, ystdex::vseq::join_n_t,
+//	ystdex::make_index_sequence, std::tuple_size;
 #include <memory> // for std::addressof;
 #include "ref.hpp" // for ystdex::wrapped_traits;
 #include <string> // for std::char_traits;
@@ -371,7 +371,7 @@ struct make_function_type<_tRet, std::tuple<_tParams...>>
 //! \brief 取指定维数和指定参数类型的多元映射扩展恒等函数类型。
 template<typename _type, size_t _vN = 1, typename _tParam = _type>
 using id_func_t
-	= make_function_type_t<_type, sequence_join_n_t<_vN, std::tuple<_tParam>>>;
+	= make_function_type_t<_type, vseq::join_n_t<_vN, std::tuple<_tParam>>>;
 
 //! \brief 取指定维数和 const 左值引用参数类型的多元映射扩展恒等函数类型。
 template<typename _type, size_t _vN = 1>
@@ -431,7 +431,7 @@ template<class, class>
 struct call_projection;
 
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
-struct call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
+struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
 	//! \since build 547
 	template<typename _func>
@@ -447,16 +447,16 @@ struct call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
 //! \since build 448
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<std::function<_tRet(_tParams...)>,
-	variadic_sequence<_vSeq...>> : private
-	call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
+	index_sequence<_vSeq...>> : private
+	call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
-	using
-		call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>::call;
+	//! \since build 589
+	using call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>::call;
 };
 
 //! \since build 547
 template<typename... _tParams, size_t... _vSeq>
-struct call_projection<std::tuple<_tParams...>, variadic_sequence<_vSeq...>>
+struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 {
 	template<typename _func>
 	static auto
@@ -480,11 +480,11 @@ struct call_projection<std::tuple<_tParams...>, variadic_sequence<_vSeq...>>
 template<typename _func, class _tTuple>
 inline auto
 apply(_func&& f, _tTuple&& args)
-	-> yimpl(decltype(call_projection<_tTuple, make_natural_sequence_t<
+	-> yimpl(decltype(call_projection<_tTuple, make_index_sequence<
 	std::tuple_size<decay_t<_tTuple>>::value>>::call(yforward(f),
 	yforward(args))))
 {
-	return call_projection<_tTuple, make_natural_sequence_t<std::tuple_size<
+	return call_projection<_tTuple, make_index_sequence<std::tuple_size<
 		decay_t<_tTuple>>::value>>::call(yforward(f), yforward(args));
 }
 
@@ -496,18 +496,18 @@ namespace details
 //! \since build 448
 template<typename _fCallable, size_t _vLen = paramlist_size<_fCallable>::value>
 struct expand_proxy : private call_projection<_fCallable,
-	make_natural_sequence_t<_vLen>>, private expand_proxy<_fCallable, _vLen - 1>
+	make_index_sequence<_vLen>>, private expand_proxy<_fCallable, _vLen - 1>
 {
-	using call_projection<_fCallable, make_natural_sequence_t<_vLen>>::call;
+	using call_projection<_fCallable, make_index_sequence<_vLen>>::call;
 	using expand_proxy<_fCallable, _vLen - 1>::call;
 };
 
 //! \since build 448
 template<typename _fCallable>
 struct expand_proxy<_fCallable, 0>
-	: private call_projection<_fCallable, variadic_sequence<>>
+	: private call_projection<_fCallable, index_sequence<>>
 {
-	using call_projection<_fCallable, variadic_sequence<>>::call;
+	using call_projection<_fCallable, index_sequence<>>::call;
 };
 
 } // namespace details;

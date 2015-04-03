@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r514
+\version r520
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2015-02-25 16:51 +0800
+	2015-04-04 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 			if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
 			{
 				if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
-					// NOTE: This value is safely to case because it is
+					// NOTE: This value is safe to cast because it is
 					//	specified as a signed value, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms645578(v=vs.85).aspx .
 					RawMouseButton = short(p_raw->data.mouse.usButtonData);
 			}
@@ -163,21 +163,21 @@ Window::UpdateTextInputFocus(IWidget& wgt, const Point& pt)
 #	endif
 
 void
-Window::UpdateFrom(Drawing::ConstBitmapPtr p_buf, ScreenRegionBuffer& rbuf)
+Window::UpdateFrom(Drawing::ConstBitmapPtr p, ScreenBuffer& buf)
 {
 	const auto h_wnd(GetNativeHandle());
 
 #	if YCL_Win32
 	if(UseOpacity)
 	{
-		rbuf.Premultiply(p_buf);
-		rbuf.UpdatePremultipliedTo(h_wnd, Opacity);
+		buf.Premultiply(p);
+		buf.UpdatePremultipliedTo(h_wnd, Opacity);
 	}
 	else
 #	endif
 	{
-		rbuf.UpdateFrom(p_buf);
-		rbuf.UpdateTo(h_wnd);
+		buf.UpdateFrom(p);
+		buf.UpdateTo(h_wnd);
 	}
 }
 

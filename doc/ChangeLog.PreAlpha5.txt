@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r12254
+\version r12434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-03-29 10:22 +0800
+	2015-04-04 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,184 @@ $import $HISTORY;
 
 $now
 (
-	// These warnings are detected by 32-bit G++ 4.9 but not x86_64 Clang++ 3.5.1.
+	/ %YFramework $=
+	(
+		/ "assertion string" @ "constructor %WConsole"
+			@ %'YCLib_(MinGW32)'.Consoles,
+		/ %YCLib $=
+		(
+			/ DLD "cast to 'std::uint64_t' for result"
+				@ "function %GetFileSizeOf" @ '!YCL_Win32' @ %FileSystem,
+				// Also to eliminate warning: [-Wsign-conversion] for intermediate results.
+			/ "class %ScreenRegionBuffer" @ %HostedGUI $=
+			(
+				/ "function %(UpdatePremultipliedTo, UpdateTo)"
+					@ "platform %Win32" >> "class %ScreenBuffer";
+				/ "all non-special member functions and using declarations \
+					except for %GetScreenBufferRef" -> "function %Lock"
+			)
+		),
+		/ %YSLib $=
+		(
+			/ DLD "cast to 'size_t'" @ ("member function %HBitmap::operator \
+				CompactPixmap" @ %Adaptor.Image, ("member function \
+				%CompactPixmapEx::ClearImage" @ %YGDIBase, "function \
+				%GetSizeOfBuffer" @ "class template %GGraphics" @ %YGraphics)
+				@ %Core, ("functions %(ClearImage, Fill), function template \
+				%BlitScaleComponent" @ %YBlit, "member functions \
+				%TextRegion::(Scroll, ClearTextLine)" @ %TextRenderer)
+				@ %Service, "member function \
+				%AMUnitList::AdjustViewLengthForHeight" @ %UI.Viewer),
+				// To eliminate warning: [-Wsign-conversion] for intermediate \
+					results.
+			/ "1st parameter" @ "member functions %(TextRegion::(ClearLine, \
+				ClearTextLine), TextRenderer::ClearLine)"
+				@ %Service.TextRenderer -> 'size_t' ~ 'std::uint16_t',
+				// Also to eliminate warning: [-Wsign-conversion] for \
+					intermediate results.
+		),
+		/ %Helper $=
+		(
+			/ @ %HostRenderer $=
+			(
+				/ "lifted guard operations to be configurable"
+					@ "class %WindowThread" $=
+				(
+					(
+					+ "aliases %(Guard, GuardGenerator)";
+					+ "data member 'GuardGenerator GenerateGuard{};'";
+					+ "constructor with %GuardGenerator parameter to \
+						initialize %GenerateGuard",
+					+ "static function %DefaultGenerateGuard",
+					^ "%GenerateGuard" @ "static function %ThreadLoop"
+					),
+					- "guard operations of calling %Environment::(EnterThread, \
+						LeaveThread)" @ "static function %WindowLoop"
+				),
+				/ @ "class %HostRenderer" $=
+				(
+					/ DLD "supported arbitrary argument forwarding",
+					+ "2 constructor templates with \
+						%WindowThread::GuardGenerator parameter" $dep_from
+						"class %WindowThread",
+					* "probable infinite recursive call of constructor" $since
+						b570
+						$= (/ DLD "implemented delegation"
+							^ "%ystdex::empty_base" ~ "%ystdex::identity"),
+					/ "unconditional assertion for matched view and buffer \
+						sizes" @ "member function %Update" -> ("adjusting \
+						mismatched buffer size to view size with tracings of \
+						level 'Warning'" @ "host window pointer is nonnull")
+						$dep_from %YCLib.HostedGUI
+						// To avoid unexpected result when the underlying view \
+							size is modified. Note this depends on thread-safe \
+							%ScreenRegionBuffer member functions.
+				)
+			),
+			/ @ "platform %Win32" @ %HostedUI $dep_From
+				("constructors" @ "class %HostRenderer" @ %HostRenderer) $=
+			(
+				+ "function %ShowTopLevel with with \
+					%WindowThread::GuardGenerator parameter";
+				/ "function template %ActOnHover_ShowTopLevel now would call \
+					no guard operations"
+			),
+			/ "2nd parameter" @ "member function %Host::Window::UpdateFrom"
+				@ %HostWindow -> 'ScreenBuffer&' ~ 'ScreenRegionBuffer&'
+				$dep_from %YCLib.HostedGUI
+,		)
+	),
+	/ %YReader.ShlReader $=
+	(
+		/ DLD "cast to ('size_t', 'SDst')" @ "constructor %ShlTextReader"
+			// To eliminate warning: [-Wsign-conversion] for intermediate \
+				results.
+		/ DLD "cast to 'std::time_t'" @ "constructor %ShlHexBrowser"
+			// To eliminate warning: [-Wsign-conversion] in platform %Android. \
+				It seems that the %::stat struct member is wrongly mismatched \
+				with %::time_t.
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ %IntegerSequence $=
+		(
+			+ "using declaration %std::(integer_sequence, index_sequence, \
+				make_integer_sequence, make_index_sequence, index_sequence_for)"
+				@ '__cplusplus >= 201402L',
+			/ @ !'__cplusplus >= 201402L' $=
+			(
+				+ "class %template %integer_sequence";
+				+ "alias template %index_sequence_for"
+			),
+			+ "metafunction specialization for %integer_sequence instances \
+				%(seq_size, back, clear, front, pop_back, pop_front, \
+				push_back, push_front)" $dep_from
+				("new sequence metafunctions" @ %Variadic)
+		);
+		/ @ %Variadic $=
+		(
+			/ "split for ISO C++14 interface" $=
+			(
+			/ "metafunction %make_successor"
+				-> ("metafunction for %integer_sequence" @ %IntegerSequence),
+			(
+			/ "metafunction %make_natural_sequence" -> "%make_natural_sequence \
+				supported integer type" @ %IntegerSequence;
+				-> ("metafunction %make_integer_sequence"
+				@ !'__cplusplus > 201103L') @ %IntegerSequence;
+			/ "alias template %make_natural_sequence_t" -> (("alias templates \
+				%(make_integer_sequence; make_index_sequence")
+				@ !'__cplusplus > 201402L' @ %IntegerSequence)
+				// See $2015-03 @ %Documentation::Workflow::Annual2015 for \
+					details about '__cplusplus'.
+			),
+			/ "class template %variadic_sequence"
+				-> ("alias template %index_sequence" @ %IntegerSequence),
+			),
+			(
+			/ "undefined metafunctions declarations with 'sequence_' prefix"
+				-> "undefined metafunctions without 'sequence_prefix'"
+				@ "namespace %vseq";
+			/ "metafunction %sequence_join_n" -> "%join_n",
+			/ "metafunction %sequence_split"
+				-> "undefined metafunctions %(front, pop_front)",
+			/ "metafunction %sequence_split_n" -> "metafunction %split_n",
+			/ "metafunction %sequence_element" -> "metafunction %at with 2 \
+				specializations for non-empty sequences",
+			/ "metafunction %sequence_reverse" -> "metafunction %reverse",
+			/ "specializations" @ "metafunctions %(sequence_cat, \
+				sequence_element for empty sequence, sequence_project, \
+				sequence_fold)"
+				-> ("specializations for %integer_sequence" @ "namespace %vseq"
+				@ %IntegerSequence);
+			/ "metafunction %cat" >> "%concat"
+			),
+			/ DLD "simplified sequence metafunctions" ^ "macros",
+			+ "undefined metafunctions %(seq_size, clear, back, front, \
+				pop_back, pop_front, push_back, push_front, erase, find, \
+				deduplicate, unique)" @ "namespace %vseq" $dep_to
+				"new sequence metafunctions",
+			/ "metafunction %vseq_fold" => "%vfold"
+		),
+		/ @ %Tuple $=
+		(
+			+ "metafunction specialization for %std::tuple instances \
+				%(seq_size, back, clear, front, pop_back, pop_front, \
+				push_back, push_front)" $dep_from
+				("new sequence metafunctions" @ %Variadic),
+			- "specialization" @ "%(sequence_join_n, sequence_split, \
+				sequence_element, sequence_reverse)"
+		),
+		+ "defaulted as deleted function template %is_undereferenceable for \
+			('const std::atomic<_type>', 'const volatile std::atomic<_type>')"
+			@ %DereferenceOperation,
+	)
+),
+
+b588
+(
+	// These warnings are detected by 32-bit G++ 4.9 but not x86_64 Clang++ \
+		3.5.1.
 	/ %YReader $=
 	(
 		/ DLD "implementation" @ "member function %HexViewArea::Refresh"
@@ -582,7 +759,7 @@ b587
 				* "missing internal check to result of %MBCSToMBCS" $since b431
 					// Also to eliminate warning: [-Wsign-conversion].
 			),
-			/ @ "class %WConsole" %Console $=
+			/ @ "class %WConsole" @ %Console $=
 			(
 				/ DLD "cast to 'short'" @ "function %CursorUp"
 					// To eliminate warning: [-Wsign-conversion].
@@ -1056,7 +1233,7 @@ b586
 		+ $build '-Wshorten-64-to-32 -Wweak-vtables' @ "default value"
 			@ "variable %CXXFLAGS_IMPL_WARNING for Clang++"
 			@ "%SHBuild-common-options.sh",
-			// See $2015-03 @ %Documentation::Workflow::Annual2013 for details \
+			// See $2015-03 @ %Documentation::Workflow::Annual2015 for details \
 				of '-Wweak-vtables'. Though it is not fit for every project, \
 				it is still tentatively placed here in the script.
 		(
@@ -1514,7 +1691,7 @@ b582
 							@ "class %TextBox" $dep_from
 							("%GUIState::UpdateChar" @ %YGUI) $since b489,
 							// See $2015-03 @ \
-								%Documentation::Workflow::Annual2013.
+								%Documentation::Workflow::Annual2015.
 						(
 						+ "function %GetPenOffset";
 						- "calculation of pen offset" @ "function \

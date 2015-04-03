@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r405
+\version r417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-03-23 15:06 +0800
+	2015-04-01 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,16 +99,25 @@ DragWindow(Window&, UI::CursorEventArgs&&, bool = {});
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶级窗口。
 \return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
-\since build 570
 
 WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
 当部件位置不为 Point::Invalid 时设置顶级窗口位置。
 设置宿主渲染器并阻塞等待宿主窗口指针非空。
+若省略 WindowThread::GuardGenerator 参数，默认使用
+WindowThread::DefaultGenerateGuard 。
 */
+//@{
+//! \since build 570
 YF_API HostRenderer&
 ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long
 	= WS_EX_LAYERED, int = SW_SHOWNORMAL, const wchar_t* = L"");
+//! \since build 589
+YF_API HostRenderer&
+ShowTopLevel(UI::Widget&, WindowThread::GuardGenerator,
+	unsigned long = WS_POPUP, unsigned long = WS_EX_LAYERED,
+	int = SW_SHOWNORMAL, const wchar_t* = L"");
+//@}
 #	endif
 #	if !YCL_Android
 
@@ -143,7 +152,7 @@ ActOnHover_ShowTopLevel(UI::IWidget& sender, UI::Widget& wgt, _func f,
 {
 	UI::ActOnHover(sender, [&]{
 		f();
-		ShowTopLevel(wgt, WS_POPUP, wstyle_ex, SW_SHOWNOACTIVATE);
+		ShowTopLevel(wgt, {}, WS_POPUP, wstyle_ex, SW_SHOWNOACTIVATE);
 	});
 }
 #	endif

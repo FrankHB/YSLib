@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r418
+\version r427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-03-27 14:23 +0800
+	2015-04-01 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,15 @@ HostRenderer&
 ShowTopLevel(Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
 	int n_cmd_show, const wchar_t* title)
 {
-	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, [=, &wgt]{
+	return ShowTopLevel(wgt, WindowThread::DefaultGenerateGuard, wstyle,
+		wstyle_ex, n_cmd_show, title);
+}
+HostRenderer&
+ShowTopLevel(Widget& wgt, WindowThread::GuardGenerator guard_gen,
+	unsigned long wstyle, unsigned long wstyle_ex, int n_cmd_show,
+	const wchar_t* title)
+{
+	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, guard_gen, [=, &wgt]{
 		WindowReference wnd_ref(CreateNativeWindow(WindowClassName,
 			GetSizeOf(wgt), title, wstyle, wstyle_ex));
 

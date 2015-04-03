@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r3033
+\version r3039
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-24 17:51 +0800
+	2015-03-29 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -422,9 +422,10 @@ public:
 	\note 图形接口上下文不可用或 l 越界时忽略。
 	\note n 被限制为不越界。
 	\note n 为 0 时清除之后的所有行。
+	\since build 589
 	*/
 	void
-	ClearLine(std::uint16_t l, SDst n);
+	ClearLine(size_t l, SDst n);
 };
 
 
@@ -547,16 +548,18 @@ public:
 	/*!
 	\brief 清除缓冲区第 l 行起始的 n 行像素。
 	\note n 为 0 时清除之后的所有行。
+	\since build 589
 	*/
 	void
-	ClearLine(std::uint16_t l, SDst n);
+	ClearLine(size_t l, SDst n);
 
 	/*!
 	\brief 清除缓冲区中的指定行号的文本行。
 	\note 参数为 0 表示首行。
+	\since build 589
 	*/
 	void
-	ClearTextLine(std::uint16_t);
+	ClearTextLine(size_t);
 
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。

@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r480
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-02-25 20:02 +0800
+	2015-04-04 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,6 +113,29 @@ WindowThread::~WindowThread()
 	delete p_wnd_val;
 }
 
+WindowThread::Guard
+WindowThread::DefaultGenerateGuard(Window& wnd)
+{
+#if YF_Multithread
+	const auto leave_wnd_thrd([](Window& w){
+		TryExpr(w.GetEnvironmentRef().LeaveWindowThread())
+		CatchExpr(std::exception& e,
+			YTraceDe(Alert, "Caught std::exception[%s]: %s.",
+			typeid(e).name(), e.what()), yunused(e))
+		CatchExpr(..., YTraceDe(Alert,
+			"Unknown exception found @ default event guard destructor."))
+	});
+
+	wnd.GetEnvironmentRef().EnterWindowThread();
+	TryRet(shared_ptr<Window>(&wnd, [=](Window* p){
+			leave_wnd_thrd(Deref(p));
+		}))
+	CatchExpr(..., leave_wnd_thrd(wnd), throw)
+#else
+	return {};
+#endif
+}
+
 void
 WindowThread::ThreadLoop(NativeWindowHandle h_wnd)
 {
@@ -122,18 +145,16 @@ void
 WindowThread::ThreadLoop(unique_ptr<Window> p)
 {
 	YAssert(!p_wnd, "Duplicate window initialization detected.");
+
+	auto& wnd(Deref(p));
+
 	p_wnd = p.release();
-	WindowLoop(Deref(p_wnd));
+	WindowLoop(wnd, GenerateGuard);
 }
 
 void
 WindowThread::WindowLoop(Window& wnd)
 {
-#	if YF_Multithread
-	auto& env(wnd.GetEnvironmentRef());
-
-	env.EnterWindowThread();
-#	endif
 	YTraceDe(Informative, "Host loop began.");
 #	if YCL_HostedUI_XCB
 	// XXX: Exit on I/O error occurred?
@@ -159,7 +180,9 @@ WindowThread::WindowLoop(Window& wnd)
 		if(i != m.cend())
 			i->second(p_evt.get());
 	}
-#	elif YCL_Win32
+#	else
+	yunused(wnd);
+#		if YCL_Win32
 	while(true)
 	{
 		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}};
@@ -175,11 +198,16 @@ WindowThread::WindowLoop(Window& wnd)
 			// NOTE: Failure ignored.
 			::WaitMessage();
 	}
+#		endif
 #	endif
 	YTraceDe(Informative, "Host loop ended.");
-#	if YF_Multithread
-	env.LeaveWindowThread();
-#	endif
+}
+void
+WindowThread::WindowLoop(Window& wnd, GuardGenerator guard_gen)
+{
+	const auto guard(guard_gen ? guard_gen(wnd) : Guard());
+
+	WindowLoop(wnd);
 }
 
 
@@ -209,7 +237,7 @@ void
 HostRenderer::SetSize(const Size& s)
 {
 	BufferedRenderer::SetSize(s),
-	rbuf.Resize(s);
+	Deref(rbuf.Lock()).Resize(s);
 }
 
 void
@@ -228,15 +256,25 @@ HostRenderer::InitWidgetView()
 }
 
 void
-HostRenderer::Update(ConstBitmapPtr p_buf)
+HostRenderer::Update(ConstBitmapPtr p)
 {
-	YAssert(GetSizeOf(widget) == rbuf.GetSize(), "Mismatched size found.");
-
 	if(const auto p_wnd = GetWindowPtr())
 		try
 		{
 			auto& view(widget.get().GetView());
+			const auto& view_size(view.GetSize());
+			auto p_buf(rbuf.Lock());
+			auto& buf(Deref(p_buf));
+			const auto& buf_size(buf.GetSize());
 
+			if(YB_UNLIKELY(view_size != buf_size))
+			{
+				YTraceDe(Warning, "Mismatched host renderer buffer size %s"
+					" found.", to_string(buf_size).c_str());
+				buf.Resize(view_size);
+				YTraceDe(Warning, "Host renderer buffer size has adjusted to"
+					" view size %s.", to_string(view_size).c_str());
+			}
 			if(RootMode)
 			{
 #	if YCL_HostedUI_XCB
@@ -256,7 +294,7 @@ HostRenderer::Update(ConstBitmapPtr p_buf)
 					rInvalidated = {{}, bounds.GetSize()};
 					Validate(widget, widget, {GetContext(), {}, rInvalidated});
 				}
-				bounds.GetSizeRef() = view.GetSize();
+				bounds.GetSizeRef() = view_size;
 #	if !YCL_Android
 				if(bounds != cbounds)
 #		if YCL_HostedUI_XCB
@@ -266,7 +304,7 @@ HostRenderer::Update(ConstBitmapPtr p_buf)
 #		endif
 #	endif
 			}
-			p_wnd->UpdateFrom(p_buf, rbuf);
+			p_wnd->UpdateFrom(p, buf);
 		}
 #	if YCL_Win32
 		CatchIgnore(Win32Exception&)

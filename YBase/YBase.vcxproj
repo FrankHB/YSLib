@@ -39,6 +39,7 @@
     <ClInclude Include="include\ystdex\functional.hpp" />
     <ClInclude Include="include\ystdex\functor.hpp" />
     <ClInclude Include="include\ystdex\hash.hpp" />
+    <ClInclude Include="include\ystdex\integer_sequence.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
     <ClInclude Include="include\ystdex\iterator_op.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />

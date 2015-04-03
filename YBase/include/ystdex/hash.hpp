@@ -11,13 +11,13 @@
 /*!	\file hash.hpp
 \ingroup YStandardEx
 \brief 散列接口。
-\version r161
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:12:11 +0800
 \par 修改时间:
-	2015-03-28 22:22 +0800
+	2015-03-31 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_hash_hpp_
 #define YB_INC_ystdex_hash_hpp_ 1
 
-#include "tuple.hpp" // for ../ydef.h, ystdex::variadic_sequence, std::get,
-//	std::tuple, std::declval, ystdex::make_natural_sequence_t, std::pair;
+#include "tuple.hpp" // for ../ydef.h, ystdex::index_sequence, std::get,
+//	std::tuple, std::declval, ystdex::index_sequence_for, std::pair;
 #include <functional> // for std::hash;
 #include <numeric> // for std::accumulate;
 
@@ -109,7 +109,7 @@ template<class, class>
 struct combined_hash_tuple;
 
 template<typename _type, size_t... _vSeq>
-struct combined_hash_tuple<_type, variadic_sequence<_vSeq...>>
+struct combined_hash_tuple<_type, index_sequence<_vSeq...>>
 {
 	static yconstfn size_t
 	call(const _type& tp)
@@ -145,7 +145,7 @@ struct combined_hash<std::tuple<_types...>>
 		ystdex::hash_combine_seq(0, std::declval<const _types&>()...))
 	{
 		return details::combined_hash_tuple<type,
-			make_natural_sequence_t<sizeof...(_types)>>::call(tp);
+			index_sequence_for<_types...>>::call(tp);
 	}
 };
 

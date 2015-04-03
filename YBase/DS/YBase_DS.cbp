@@ -80,6 +80,7 @@
 		<Unit filename="../include/ystdex/functional.hpp" />
 		<Unit filename="../include/ystdex/functor.hpp" />
 		<Unit filename="../include/ystdex/hash.hpp" />
+		<Unit filename="../include/ystdex/integer_sequence.hpp" />
 		<Unit filename="../include/ystdex/iterator.hpp" />
 		<Unit filename="../include/ystdex/iterator_op.hpp" />
 		<Unit filename="../include/ystdex/memory.hpp" />
