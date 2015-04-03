@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief 控制台。
-\version r241
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-03-24 11:07 +0800
+	2015-03-29 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ WConsole::WConsole(::HANDLE h)
 	: h_std(h), saved_attr(GetScreenBufferInfo().wAttributes),
 	Attributes(saved_attr)
 {
-	YAssert(h_std && h_std != INVALID_HANDLE_VALUE, "Wrong handle found;");
+	YAssert(h_std && h_std != INVALID_HANDLE_VALUE, "Invalid handle found.");
 }
 WConsole::~WConsole()
 {

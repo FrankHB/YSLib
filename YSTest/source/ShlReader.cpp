@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4753
+\version r4757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-03-25 10:51 +0800
+	2015-03-25 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -413,8 +413,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		auto& pt(e.Location);
 
 		FillRect(e.Target, e.ClipArea, Rect(pt.X + 1 + round(pb.GetValue()
-			* w / mval), pt.Y + 1, round((reader.GetBottomPosition()
-			- GetReaderPosition()) * w / mval), pb.GetHeight() - 2),
+			* w / mval), pt.Y + 1, round(size_t(SDst(reader.GetBottomPosition()
+			- GetReaderPosition()) * w / mval)), pb.GetHeight() - 2),
 			ColorSpace::Yellow);
 	},
 	FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
@@ -795,9 +795,9 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 	::stat(path_str.c_str(), &file_stat);
 	yunseq(
 	pnlFileInfo.lblAccessTime.Text = u"访问时间："
-		+ String(TranslateTime(file_stat.st_atime)),
+		+ String(TranslateTime(std::time_t(file_stat.st_atime))),
 	pnlFileInfo.lblModifiedTime.Text = u"修改时间："
-		+ String(TranslateTime(file_stat.st_mtime))
+		+ String(TranslateTime(std::time_t(file_stat.st_mtime)))
 	);
 	dsk_m += pnlFileInfo;
 	HexArea.Load(path_str.c_str());

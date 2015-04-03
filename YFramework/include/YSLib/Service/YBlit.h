@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3440
+\version r3442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-03-23 23:17 +0800
+	2015-03-29 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,8 @@ template<bool _bDec>
 yconstfn size_t
 BlitScaleComponent(SPos d, SPos s, SDst delta)
 {
-	return size_t(max<SPos>(0, s < 0 ? d - s : d)) + (_bDec ? delta - 1 : 0);
+	return size_t(max<SPos>(0, s < 0 ? d - s : d))
+		+ size_t(_bDec ? delta - 1 : 0);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r172
+\version r192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-03-21 22:42 +0800
+	2015-03-31 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,6 +173,26 @@ The Clang++ warning '-Wweak-vtables' is mainly for compiling performance.
 		Note to avoid '-Wdeprected' warnings, the copy or move constructor should be defined.
 			This might cause some trouble with '-Wextra' from G++ complaining aboud imlicit call of default constructor in devired classes if it is not explicit initialized.
 				As a workaround, (a few) copy constructors now explicitly initialize the base interface subobjects.
+Note that '__cplusplus' value is significant across different versions of implementations.
+	Paticularly, '__cplusplus > 201103L' is not equivalent to '__cplusplus >= 201402L'.
+		ISO C++ working draft did not specify any value between '201103L' and '201402L' for 'cplusplus'.
+		However, there exists some implementations use these values.
+			For example, some G++ versions uses '201300L' for C++1y mode.
+				See https://gcc.gnu.org/ml/gcc-patches/2013-04/msg01452.html .
+				MinGW G++ 4.9.1 from MSYS2 is tested and confimed the use of this value when specified '-std=c++14'.
+			On the other hand, Clang++ 3.5.1 from MSYS2 uses '201402L' for '-std=c++14'.
+		This is important for some feature detection conditions.
+			As an example, 'constexpr' on C++14 'std::max' is supported differently by similar conditions.
+				Libstdc++ only supports it through macro '_GLIBCXX14_CONSTEXPR' after version 4.9 when '__cplusplus >= 201402L'.
+				Libc++ supports it with same condition through macro '_LIBCPP_CONSTEXPR_AFTER_CXX11' except for it can be disabled by define '_LIBCPP_HAS_NO_CXX14_CONSTEXPR'.
+			As another example, C++14 'std::integer_sequence' is supported similarly.
+				Libstdc++ 4.9 supports it when '__cplusplus > 201103L'.
+				Libc++ supports it when '_LIBCPP_STD_VER > 11', effectively equivalent with '__cplusplus > 201103L''.
+		YSLib uses it carefullly.
+			For different senarios, these different conditions are distinguished.
+			Currently the non-standard-compliant macros like '_LIBCPP_HAS_NO_CXX14_CONSTEXPR' are ignored.
+			There would be some specific macros like libc++ to control it better in future.
+			Utilization of '__has_feature' would be preferred. Note it would be supported by G++ 5, and Clang++ has already supported it.
 
 ////
 

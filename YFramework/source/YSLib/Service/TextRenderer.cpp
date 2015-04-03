@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2734
+\version r2744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-24 18:07 +0800
+	2015-03-29 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ TextRenderer::operator()(ucs4_t c)
 }
 
 void
-TextRenderer::ClearLine(std::uint16_t l, SDst n)
+TextRenderer::ClearLine(size_t l, SDst n)
 {
 	const auto& g(GetContext());
 	const auto h(g.GetHeight());
@@ -126,7 +126,7 @@ TextRenderer::ClearLine(std::uint16_t l, SDst n)
 	{
 		if(n == 0 || l + n > h)
 			n = h - l;
-		ClearPixel(g[l], g.GetWidth() * n);
+		ClearPixel(g[l], size_t(g.GetWidth() * n));
 	}
 }
 
@@ -154,7 +154,7 @@ TextRegion::InitializeFont()
 }
 
 void
-TextRegion::ClearLine(std::uint16_t l, SDst n)
+TextRegion::ClearLine(size_t l, SDst n)
 {
 	const auto& g(GetContext());
 
@@ -164,8 +164,8 @@ TextRegion::ClearLine(std::uint16_t l, SDst n)
 		--n;
 	if(YB_LIKELY(bool(g) && pBufferAlpha))
 	{
-		const std::uint32_t t(
-			(l + n > g.GetHeight() ? g.GetHeight() - l : n) * g.GetWidth());
+		const size_t t((l + n > g.GetHeight() ? g.GetHeight() - l : n)
+			* g.GetWidth());
 
 		yunseq(ClearPixel(g[l], t),
 			ClearPixel(&pBufferAlpha[l * g.GetWidth()], t));
@@ -173,13 +173,14 @@ TextRegion::ClearLine(std::uint16_t l, SDst n)
 }
 
 void
-TextRegion::ClearTextLine(std::uint16_t l)
+TextRegion::ClearTextLine(size_t l)
 {
 	auto& ts(GetTextState());
 	SDst h(GetTextLineHeightExOf(ts));
 
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	ClearLine(ts.Margin.Top + SPos(h * l), h);
+	// TODO: Is the 1st argument safe?
+	ClearLine(size_t(ts.Margin.Top + SPos(h * l)), h);
 }
 
 void
@@ -199,8 +200,8 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 
 		if(size.Height > top + bottom)
 		{
-			const auto t(((h + top > size.Height ? size.Height - bottom : h)
-				- top - size_t(std::abs(n))) * size.Width);
+			const auto t(size_t(((h + top > size.Height ? size.Height - bottom
+				: h) - top - SDst(std::abs(n))) * size.Width));
 
 			if(YB_LIKELY(t > 0))
 			{

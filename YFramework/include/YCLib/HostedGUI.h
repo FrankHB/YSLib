@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1035
+\version r1069
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-03-17 18:19 +0800
+	2015-04-03 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -458,6 +458,20 @@ public:
 	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 	//@}
 
+#	if YCL_Win32
+	//! \since build 589
+	void
+	UpdatePremultipliedTo(NativeWindowHandle, YSLib::Drawing::AlphaType = 0xFF,
+		const YSLib::Drawing::Point& = {});
+#	endif
+
+	/*!
+	\pre 间接断言：本机句柄非空。
+	\since build 589
+	*/
+	void
+	UpdateTo(NativeWindowHandle, const YSLib::Drawing::Point& = {}) ynothrow;
+
 	/*
 	\brief 交换。
 	\since build 430
@@ -498,42 +512,11 @@ public:
 	{}
 #	endif
 
-	using ScreenBuffer::GetBufferPtr;
-#	if YCL_HostedUI_XCB || YCL_Android
-	//! \since build 499
-	using ScreenBuffer::GetContext;
-//	using ScreenBuffer::GetNativeHandle;
-	//! \since build 499
-	using ScreenBuffer::GetStride;
-#	elif YCL_Win32
-	using ScreenBuffer::GetNativeHandle;
-
-	//! \since build 435
-	using ScreenBuffer::Premultiply;
-#	endif
-	using ScreenBuffer::GetSize;
 	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 
-	//! \since build 445
-	using ScreenBuffer::Resize;
-
-	/*!
-	\pre 间接断言：参数非空。
-	\since build 558
-	*/
-	void
-	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
-
-#	if YCL_Win32
-	//! \since build 561
-	void
-	UpdatePremultipliedTo(NativeWindowHandle, YSLib::Drawing::AlphaType = 0xFF,
-		const YSLib::Drawing::Point& = {});
-#	endif
-
-	//! \pre 间接断言：本机句柄非空。
-	void
-	UpdateTo(NativeWindowHandle, const YSLib::Drawing::Point& = {}) ynothrow;
+	//! \since build 589
+	YSLib::locked_ptr<ScreenBuffer>
+	Lock();
 };
 //@}
 

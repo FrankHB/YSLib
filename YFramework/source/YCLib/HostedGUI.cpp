@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1026
+\version r1059
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-03-25 15:27 +0800
+	2015-04-03 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -499,6 +499,29 @@ ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 #	endif
 }
 
+#	if YCL_Win32
+void
+ScreenBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
+	const Point& pt)
+{
+	GSurface<> sf(h_wnd);
+
+	sf.UpdatePremultiplied(*this, h_wnd, a, pt);
+}
+#	endif
+
+void
+ScreenBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
+{
+#	if YCL_HostedUI_XCB || YCL_Android
+	UpdateContentTo(h_wnd, {pt, GetSize()}, GetContext());
+#	elif YCL_Win32
+	GSurface<> sf(h_wnd);
+
+	sf.Update(*this, pt);
+#	endif
+}
+
 void
 ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 {
@@ -513,14 +536,6 @@ ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 }
 
 
-void
-ScreenRegionBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
-{
-	lock_guard<mutex> lck(mtx);
-
-	ScreenBuffer::UpdateFrom(p_buf);
-}
-
 #	if YCL_HostedUI_XCB || YCL_Android
 ScreenRegionBuffer::ScreenRegionBuffer(const Size& s)
 	: ScreenRegionBuffer(s, s.Width)
@@ -528,29 +543,15 @@ ScreenRegionBuffer::ScreenRegionBuffer(const Size& s)
 ScreenRegionBuffer::ScreenRegionBuffer(const Size& s, SDst buf_stride)
 	: ScreenBuffer(s, buf_stride)
 {}
-#	elif YCL_Win32
-void
-ScreenRegionBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
-	const Point& pt)
-{
-	lock_guard<mutex> lck(mtx);
-	GSurface<> sf(h_wnd);
-
-	sf.UpdatePremultiplied(*this, h_wnd, a, pt);
-}
 #	endif
 
-void
-ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
+locked_ptr<ScreenBuffer>
+ScreenRegionBuffer::Lock()
 {
-	lock_guard<mutex> lck(mtx);
-#	if YCL_HostedUI_XCB || YCL_Android
-	UpdateContentTo(h_wnd, {pt, GetSize()}, GetContext());
-#	elif YCL_Win32
-	GSurface<> sf(h_wnd);
+	using namespace YSLib;
+	unique_lock<mutex> lck(mtx);
 
-	sf.Update(*this, pt);
-#	endif
+	return {&GetScreenBufferRef(), std::move(lck)};
 }
 
 

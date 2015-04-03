@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r388
+\version r452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-03-21 11:21 +0800
+	2015-04-03 22:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,9 +74,18 @@ public:
 /*!
 \brief 宿主窗口线程。
 \since build 430
+
+使用合适的参数取特定类型的值表示本机窗口，并在新线程中运行这个窗口的循环。
+本机窗口类型可以是 NativeWindowHandle 、 WindowReference 或 unique_ptr<Window> 。
 */
 class YF_API WindowThread : private OwnershipTag<Window>
 {
+public:
+	//! \since build 589
+	using Guard = ystdex::any;
+	//! \since build 589
+	using GuardGenerator = std::function<Guard(Window&)>;
+
 private:
 	/*!
 	\brief 窗口指针。
@@ -87,10 +96,21 @@ private:
 	std::thread thrd;
 
 public:
+	/*!
+	\brief 在进入线程时取守护对象。
+	\since build 589
+	*/
+	GuardGenerator GenerateGuard{};
+
 	template<typename... _tParams>
 	WindowThread(_tParams&&... args)
+		: WindowThread({}, yforward(args)...)
+	{}
+	//! \since build 589
+	template<typename... _tParams>
+	WindowThread(GuardGenerator guard_gen, _tParams&&... args)
 		: thrd(&WindowThread::ThreadFunc<ystdex::decay_t<_tParams>...>, this,
-		ystdex::decay_copy(args)...)
+		ystdex::decay_copy(args)...), GenerateGuard(guard_gen)
 	{}
 	//! \since build 385
 	DefDelMoveCtor(WindowThread)
@@ -102,6 +122,15 @@ public:
 
 	//! \note 线程安全。
 	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd)
+
+	/*!
+	\brief 默认生成守护对象。
+	\since build 589
+
+	生成的守护对象在构造和析构时分别调用 EnterWindowThread 和 LeaveWindowThread 。
+	*/
+	static Guard
+	DefaultGenerateGuard(Window&);
 
 private:
 	//! \todo 使用 \c INVOKE 调用。
@@ -124,6 +153,11 @@ private:
 public:
 	static void
 	WindowLoop(Window&);
+
+private:
+	//! \since build 589
+	static void
+	WindowLoop(Window&, GuardGenerator);
 };
 
 
@@ -148,31 +182,53 @@ public:
 	*/
 	bool RootMode = {};
 
-	//! \since build 385
+	/*!
+	\brief 构造：使用指定部件和窗口线程参数创建 RenderWindow 对象。
+	\since build 385
+	*/
 	template<typename... _tParams>
 	HostRenderer(UI::IWidget& wgt, _tParams&&... args)
 		: HostRenderer(ystdex::identity<RenderWindow>(), wgt, yforward(args)...)
 	{}
 	//! \since build 430
 	//@{
+	//! \brief 构造：使用指定部件和窗口线程参数创建指定类型的渲染窗口。
 	template<class _tWindow, typename... _tParams>
 	HostRenderer(ystdex::identity<_tWindow>, UI::IWidget& wgt,
 		_tParams&&... args)
-		: HostRenderer(ystdex::identity<WindowThread>(), wgt,
+		: HostRenderer(ystdex::empty_base<WindowThread>(), wgt,
 		std::mem_fn(&HostRenderer::MakeRenderWindow<
 		_tWindow, ystdex::decay_t<_tParams>...>), this, yforward(args)...)
 	{}
+	//! \since build 589
+	template<class _tWindow, typename... _tParams>
+	HostRenderer(ystdex::identity<_tWindow>, UI::IWidget& wgt,
+		WindowThread::GuardGenerator guard_gen, _tParams&&... args)
+		: HostRenderer(ystdex::empty_base<WindowThread>(), wgt, guard_gen,
+		std::mem_fn(&HostRenderer::MakeRenderWindow<_tWindow,
+		ystdex::decay_t<_tParams>...>), this, yforward(args)...)
+	{}
+	//! \brief 构造：使用指定部件和窗口线程参数间接创建 RenderWindow 对象。
 	template<typename... _tParams>
 	HostRenderer(int, UI::IWidget& wgt, _tParams&&... args)
 		: HostRenderer(0, ystdex::identity<RenderWindow>(), wgt,
 		yforward(args)...)
 	{}
+	//! \brief 构造：使用指定部件和窗口线程参数间接创建指定类型的渲染窗口。
 	template<class _tWindow, typename... _tParams>
 	HostRenderer(int, ystdex::identity<_tWindow>, UI::IWidget& wgt,
 		_tParams&&... args)
-		: HostRenderer(ystdex::identity<WindowThread>(), wgt,
+		: HostRenderer(ystdex::empty_base<WindowThread>(), wgt,
 		std::mem_fn(&HostRenderer::MakeRenderWindowEx<
 		_tWindow, ystdex::decay_t<_tParams>...>), this, yforward(args)...)
+	{}
+	//! \since build 589
+	template<class _tWindow, typename... _tParams>
+	HostRenderer(int, ystdex::identity<_tWindow>, UI::IWidget& wgt,
+		WindowThread::GuardGenerator guard_gen, _tParams&&... args)
+		: HostRenderer(ystdex::empty_base<WindowThread>(), wgt, guard_gen,
+		std::mem_fn(&HostRenderer::MakeRenderWindowEx<_tWindow,
+		ystdex::decay_t<_tParams>...>), this, yforward(args)...)
 	{}
 	//@}
 	/*!
@@ -185,12 +241,12 @@ public:
 	~HostRenderer();
 
 private:
-	//! \since build 570
-	template<typename _func, typename... _tParams>
-	HostRenderer(ystdex::identity<WindowThread>, UI::IWidget& wgt, _func f,
+	//! \since build 589
+	template<typename... _tParams>
+	HostRenderer(ystdex::empty_base<WindowThread>, UI::IWidget& wgt,
 		_tParams&&... args)
 		: BufferedRenderer(),
-		widget(wgt), rbuf(GetSizeOf(wgt)), thrd(f, yforward(args)...)
+		widget(wgt), rbuf(GetSizeOf(wgt)), thrd(yforward(args)...)
 	{
 		InitWidgetView();
 	}
@@ -219,7 +275,10 @@ private:
 	InitWidgetView();
 
 public:
-	//! \since build 430
+	/*!
+	\brief 创建指定类型的渲染窗口。
+	\since build 430
+	*/
 	//@{
 	template<class _tWindow, typename _func, typename... _tParams>
 	unique_ptr<Window>
@@ -238,8 +297,8 @@ public:
 
 	/*!
 	\brief 调整和更新指定缓冲区内容至宿主窗口。
-	\pre 断言：部件和内部缓冲区大小一致。
 	\note 若宿主窗口未就绪则忽略。
+	\note 宿主窗口就绪时检查部件视图和内部缓冲区，必要时调整缓冲区和视图大小一致。
 	\since build 558
 
 	调整宿主窗口位置，保持部件位置在原点。按内部状态同步宿主窗口大小。

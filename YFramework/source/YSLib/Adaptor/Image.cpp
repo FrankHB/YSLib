@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1106
+\version r1107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-03-24 10:15 +0800
+	2015-03-29 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -365,7 +365,7 @@ HBitmap::operator[](size_t idx) const ynothrowv
 HBitmap::operator CompactPixmap() const
 {
 	const Size& s(GetSize());
-	auto pixels(make_unique<Pixel[]>(GetAreaOf(s)));
+	auto pixels(make_unique<Pixel[]>(size_t(GetAreaOf(s))));
 
 	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		GetDataPtr(), CheckScalar<int>(s.Width * sizeof(Pixel)), YF_PixConvSpec,
