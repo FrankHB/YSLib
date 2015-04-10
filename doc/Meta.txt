@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1399
+\version r1407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-03-04 18:23 +0800
+	2015-04-04 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,6 +64,12 @@ $parser.state.style $= $natral_NPL;
 $lambda(_params)(...); // The lambda abstraction form.
 $map(_f); // The map higher order function.
 
+// Parameters.
+$rev; // Revision token, e.g. 'b*'.
+$rev_list; // Revision list: one or more revision tokens;
+$spec; // Spec token, including revision token or other documentation materials;
+$spec_list; // Specs list: one or more spec tokens;
+
 // Abstract operations for dependencies:
 $dep_from; // take evaluation dependence from;
 $dep_all_from; // take all evaluation dependence from;
@@ -101,7 +107,8 @@ $debug; // issues on debugging;
 
 // Project contents:
 $comp; // features consist of dependencies with no additional work;
-$doc; // for documents target;
+$doc; // for documentation target;
+$mismatch($spec_list); // for inconsistency between design and specs;
 $impl; // for being used as placeholder of implementation parts;
 $repo; // for repositories of version control system;
 $term; // for terminology;
@@ -304,7 +311,7 @@ dep.merge:
 OpenImageIO(http://www.openimageio.org/): tentatively rejected.
 	This is a library focused on image I/O.
 		It actually does more, e.g. provides some ISO C99 math functions and POSIX math macros, implementation of 'array_view', etc.
-		It embeds some 3rd party code to support XML, SHA1, etc. 
+		It embeds some 3rd party code to support XML, SHA1, etc.
 		It also encapsulates some system-dependent operations, e.g. threads.
 			The threading operations depend on Boost.Thread.
 		Its interface is in C++.

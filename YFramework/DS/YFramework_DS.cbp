@@ -190,9 +190,9 @@
 		<Unit filename="../include/YSLib/Adaptor/YModules.h" />
 		<Unit filename="../include/YSLib/Adaptor/YNew.h" />
 		<Unit filename="../include/YSLib/Adaptor/YTextBase.h" />
+		<Unit filename="../include/YSLib/Adaptor/YReference.hpp" />
 		<Unit filename="../include/YSLib/Adaptor/config.h" />
 		<Unit filename="../include/YSLib/Adaptor/ycont.h" />
-		<Unit filename="../include/YSLib/Adaptor/yref.hpp" />
 		<Unit filename="../include/YSLib/Core/Task.h" />
 		<Unit filename="../include/YSLib/Core/ValueNode.h" />
 		<Unit filename="../include/YSLib/Core/YApplication.h" />

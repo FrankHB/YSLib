@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2413
+\version r2414
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-22 20:32 +0800
+	2015-04-06 03:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ public:
 	};
 
 	//! \since build 555
-	static yconstexpr const Duration DefaultDuration{Timers::TimeSpan(1000U)};
+	static yconstexpr Duration DefaultDuration{Timers::TimeSpan(1000U)};
 
 	//! \since build 572
 	InputTimer(Duration = DefaultDuration) ynothrow;

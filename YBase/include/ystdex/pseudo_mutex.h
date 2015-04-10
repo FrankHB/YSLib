@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r641
+\version r656
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2014-11-28 12:47 +0800
+	2015-04-04 03:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_pseudo_mutex_h_
 #define YB_INC_ystdex_pseudo_mutex_h_ 1
 
-#include "memory.hpp" // for ydef.h, ystdex::bound_deleter, std::declval;
+#include "memory.hpp" // for ydef.h, ystdex::bound_delete, std::declval;
 #include "base.h" // for ystdex::noncopyable, ystdex::nonmovable;
 #include <chrono>
 #include <system_error> // for std::errc, std::system_error;
@@ -547,11 +547,11 @@ namespace threading
 /*!
 \brief 解锁删除器。
 \pre _tMutex 满足 \c BasicLockable 要求。
-\since build 551
+\since build 590
 */
 template<class _tMutex = single_thread::mutex,
 	class _tLock = single_thread::unique_lock<_tMutex>>
-class unlock_deleter : private bound_deleter<_tLock>, private noncopyable
+class unlock_delete : private noncopyable
 {
 public:
 	using mutex_type = _tMutex;
@@ -559,21 +559,27 @@ public:
 
 	mutable lock_type lock;
 
-	unlock_deleter(mutex_type& mtx)
+	unlock_delete(mutex_type& mtx)
 		: lock(mtx)
 	{}
 	template<typename
 		= yimpl(enable_if_t)<is_nothrow_move_constructible<lock_type>::value>>
-	unlock_deleter(lock_type&& lck) ynothrow
+	unlock_delete(lock_type&& lck) ynothrow
 		: lock(std::move(lck))
 	{}
 	template<typename... _tParams>
-	unlock_deleter(mutex_type& mtx, _tParams&&... args) ynoexcept(
+	unlock_delete(mutex_type& mtx, _tParams&&... args) ynoexcept(
 		std::declval<mutex_type&>()(std::declval<_tParams&&>()...))
 		: lock(mtx, yforward(args)...)
 	{}
 
-	using bound_deleter<lock_type>::operator();
+	//! \brief 删除：解锁。
+	template<typename _tPointer>
+	void
+	operator()(const _tPointer&) const ynothrow
+	{
+		lock.unlock();
+	}
 };
 
 
@@ -583,7 +589,7 @@ public:
 */
 template<typename _type, class _tMutex = single_thread::mutex,
 	class _tLock = single_thread::unique_lock<_tMutex>>
-using locked_ptr = std::unique_ptr<_type, unlock_deleter<_tMutex, _tLock>>;
+using locked_ptr = std::unique_ptr<_type, unlock_delete<_tMutex, _tLock>>;
 
 } // namespace threading;
 

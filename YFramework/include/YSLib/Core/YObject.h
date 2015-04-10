@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3898
+\version r3902
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-22 18:34 +0800
+	2015-04-10 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,9 +145,8 @@ AreEqualHeld(const _type1& x, const _type2& y)
 template<typename _type>
 class ValueHolder : implements IValueHolder
 {
-	static_assert(std::is_object<_type>::value, "Non-object type found.");
-	static_assert(!(std::is_const<_type>::value
-		|| std::is_volatile<_type>::value), "Cv-qualified type found.");
+	static_assert(std::is_object<_type>(), "Non-object type found.");
+	static_assert(!ystdex::is_cv<_type>(), "Cv-qualified type found.");
 
 public:
 	//! \since build 352
@@ -203,7 +202,7 @@ template<typename _type, class _tPointer = std::unique_ptr<_type>>
 class PointerHolder : implements IValueHolder
 {
 	//! \since build 332
-	static_assert(std::is_object<_type>::value, "Invalid type found.");
+	static_assert(std::is_object<_type>(), "Invalid type found.");
 
 public:
 	//! \since build 352

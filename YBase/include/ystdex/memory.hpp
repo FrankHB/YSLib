@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r738
+\version r797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-03-28 22:55 +0800
+	2015-04-10 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,52 +64,6 @@ struct free_delete
 template<typename _type>
 struct free_delete<_type[]>;
 //@}
-
-
-/*!
-\brief 绑定值的删除器。
-\tparam _type 绑定的值的类型。
-\tparam _tPointer 指针类型。
-\pre _tPointer 满足 \c NullablePointer 要求。
-\since build 550
-*/
-template<typename _type, typename _tPointer = void*>
-struct bound_deleter
-{
-	using pointer = _tPointer;
-
-	mutable _type value;
-
-	yconstfn
-	bound_deleter() = default;
-	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_ctor_t<bound_deleter, _tParam>)>
-	yconstfn
-	bound_deleter(_tParam&& arg)
-		: value(yforward(arg))
-	{}
-	template<typename _tParam1, typename _tParam2, typename... _tParams>
-	yconstfn
-	bound_deleter(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
-		: value(yforward(arg1), yforward(arg2), yforward(args)...)
-	{}
-	yconstfn
-	bound_deleter(const bound_deleter&) = default;
-	yconstfn
-	bound_deleter(bound_deleter&&) = default;
-
-	//! \since build 551
-	bound_deleter&
-	operator=(const bound_deleter&) = default;
-	//! \since build 551
-	bound_deleter&
-	operator=(bound_deleter&&) = default;
-
-	//! \brief 删除：空操作。
-	inline void
-	operator()(pointer) const ynothrow
-	{}
-};
 
 
 /*!	\defgroup get_raw Get get_raw Pointers
@@ -237,7 +191,7 @@ template<typename _type, typename _pSrc>
 yconstfn std::shared_ptr<_type>
 share_raw(const _pSrc& p)
 {
-	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
+	static_assert(is_pointer<_pSrc>(), "Invalid type found.");
 
 	return std::shared_ptr<_type>(p);
 }
@@ -249,7 +203,7 @@ template<typename _type, typename _pSrc>
 yconstfn std::shared_ptr<_type>
 share_raw(_pSrc&& p)
 {
-	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
+	static_assert(is_pointer<_pSrc>(), "Invalid type found.");
 
 	return std::shared_ptr<_type>(p);
 }
@@ -380,6 +334,28 @@ yconstfn std::shared_ptr<_type>
 make_shared(std::initializer_list<_tValue> il)
 {
 	return std::make_shared<_type>(il);
+}
+
+
+/*!
+\brief 构造共享作用域守护。
+\since build 589
+*/
+template<typename _type, typename _func>
+std::shared_ptr<_type>
+make_shared_guard(_type* p, _func f)
+{
+	try
+	{
+		return std::shared_ptr<_type>(p, [=](_type* ptr){
+			f(ptr);
+		});
+	}
+	catch(...)
+	{
+		f(p);
+		throw;
+	}
 }
 
 

@@ -179,6 +179,9 @@
     <ClInclude Include="include\ystdex\integer_sequence.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\optional.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
@@ -209,6 +212,9 @@
       <Filter>source\ystdex</Filter>
     </ClCompile>
     <ClCompile Include="source\ystdex\exception.cpp">
+      <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\optional.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>

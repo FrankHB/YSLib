@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r283
+\version r284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-03-21 16:16 +0800
+	2015-04-06 03:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,7 +194,7 @@ public:
 namespace
 {
 
-yconstexpr const int cmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
+yconstexpr int cmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
 
 } //unnamed namespace
 

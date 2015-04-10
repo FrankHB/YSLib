@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r417
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-04-01 22:42 +0800
+	2015-04-08 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,7 +170,7 @@ ActOnHover_ShowTopLevelAt(UI::IWidget& sender, UI::Widget& wgt, _func f)
 		SetLocationOf(wgt, f());
 	});
 #	else
-	yunused(sender), yunused(wgt), yunused(f);
+	yunused(sender, wgt), yunused(f);
 #	endif
 }
 //@}

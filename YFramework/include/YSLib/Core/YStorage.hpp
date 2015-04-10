@@ -11,13 +11,13 @@
 /*!	\file YStorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r446
+\version r449
 \author FrankHB <frankhb1989@gmail.com>
-\since build 195
+\since build 567
 \par 创建时间:
 	2011-03-14 20:17:34 +0800
 \par 修改时间:
-	2015-01-19 20:53 +0800
+	2015-04-10 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ FetchPrototype()
 template<typename _type, typename _tPointer = _type*>
 class GStaticCache : private noncopyable
 {
-	static_assert(std::is_nothrow_constructible<_tPointer>::value,
+	static_assert(std::is_nothrow_constructible<_tPointer>(),
 		"Invalid pointer type found");
 
 public:
@@ -147,7 +147,7 @@ typename GStaticCache<_type, _tPointer>::PointerType
 template<typename _type, typename _tPointer = _type*>
 class GLocalStaticCache : private noncopyable
 {
-	static_assert(std::is_nothrow_constructible<_tPointer>::value,
+	static_assert(std::is_nothrow_constructible<_tPointer>(),
 		"Invalid pointer type found");
 
 public:

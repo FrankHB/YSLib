@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r652
+\version r658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-03-29 00:52 +0800
+	2015-04-10 17:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_algorithm_hpp_ 1
 
 #include "type_op.hpp" // for ystdex::is_pod;
+#include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for ystdex::is_undereferenceable;
 #include <algorithm>
 #include <cstring> // for std::memcpy, std::memmove;
@@ -109,6 +110,8 @@ transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
 {
 	while(n-- != 0)
 	{
+		using ystdex::is_undereferenceable;
+
 		yunseq((yconstraint(!is_undereferenceable(result)), 0),
 			(yconstraint(!is_undereferenceable(iters)), void(iters), 0)...);
 		*result = op((*iters)...);
@@ -119,7 +122,7 @@ transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
 /*!	\defgroup pod_operations POD Type Operations
 \brief POD 类型操作。
 \tparam _type 指定对象类型。
-\pre 静态断言： <tt>is_pod<remove_reference_t<_type>>::value</tt> 。
+\pre 静态断言： <tt>is_pod<remove_reference_t<_type>>::()</tt> 。
 \warning 不检查指针是否有效。
 \since build 304
 */
@@ -128,7 +131,7 @@ template<class _type>
 inline _type*
 pod_fill(_type* first, _type* last, const _type& value)
 {
-	static_assert(is_pod<remove_reference_t<_type>>::value,
+	static_assert(is_pod<remove_reference_t<_type>>(),
 		"Non-POD type found @ pod_fill;");
 
 	switch((last - first) & 7)
@@ -153,7 +156,7 @@ template<class _type>
 inline _type*
 pod_copy_n(const _type* first, size_t n, _type* result)
 {
-	static_assert(is_pod<remove_reference_t<_type>>::value,
+	static_assert(is_pod<remove_reference_t<_type>>(),
 		"Non-POD type found @ pod_copy_n;");
 
 	std::memcpy(result, first, sizeof(*first) * n);
@@ -171,7 +174,7 @@ template<class _type>
 inline _type*
 pod_move_n(const _type* first, size_t n, _type* result)
 {
-	static_assert(is_pod<remove_reference_t<_type>>::value,
+	static_assert(is_pod<remove_reference_t<_type>>(),
 		"Non-POD type found @ pod_move_n;");
 
 	std::memmove(result, first, sizeof(*first) * n);

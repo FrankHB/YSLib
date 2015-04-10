@@ -86,6 +86,7 @@
 		<Unit filename="../include/ystdex/memory.hpp" />
 		<Unit filename="../include/ystdex/mixin.hpp" />
 		<Unit filename="../include/ystdex/operators.hpp" />
+		<Unit filename="../include/ystdex/optional.hpp" />
 		<Unit filename="../include/ystdex/path.hpp" />
 		<Unit filename="../include/ystdex/pseudo_mutex.h" />
 		<Unit filename="../include/ystdex/rational.hpp" />
@@ -107,6 +108,7 @@
 		<Unit filename="../source/ystdex/cstring.cpp" />
 		<Unit filename="../source/ystdex/cwctype.cpp" />
 		<Unit filename="../source/ystdex/exception.cpp" />
+		<Unit filename="../source/ystdex/optional.cpp" />
 		<Unit filename="../source/ytest/test.cpp" />
 		<Unit filename="Makefile" />
 		<Extensions>

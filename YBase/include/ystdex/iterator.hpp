@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5086
+\version r5093
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-03-24 22:45 +0800
+	2015-04-10 17:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,7 +254,7 @@ operator==(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
 
 
 /*!
-\ingroup meta_operations
+\ingroup transformation_traits
 \brief 指针包装为类类型迭代器。
 \since build 290
 
@@ -448,9 +448,9 @@ class transformed_iterator : public pointer_classify<_tIter>::type,
 	yimpl(details::transit_traits<_tIter, _fTransformer, _tReference>)>
 {
 	//! \since build 529
-	static_assert(is_decayed<_tIter>::value, "Invalid type found.");
+	static_assert(is_decayed<_tIter>(), "Invalid type found.");
 	//! \since build 529
-	static_assert(is_decayed<_fTransformer>::value, "Invalid type found.");
+	static_assert(is_decayed<_fTransformer>(), "Invalid type found.");
 
 private:
 	//! \since build 576
@@ -1003,16 +1003,16 @@ public:
 	//@{
 	yconstfn
 	transposed_iterator(iterator_type i, size_type w, size_type h)
-		ynoexcept(is_nothrow_copy_constructible<iterator_type>::value
-		&& is_nothrow_copy_constructible<size_type>::value)
+		ynoexcept(and_<is_nothrow_copy_constructible<iterator_type>,
+		is_nothrow_copy_constructible<size_type>>())
 		: iter(i), width((yconstraint(w != 0), w)),
 		height((yconstraint(h != 0), h)), row(), col(w)
 	{}
 	yconstfn
 	transposed_iterator(iterator_type i, size_type w, size_type h,
 		size_type idx)
-		ynoexcept(is_nothrow_copy_constructible<iterator_type>::value
-		&& is_nothrow_copy_constructible<size_type>::value)
+		ynoexcept(and_<is_nothrow_copy_constructible<iterator_type>,
+		is_nothrow_copy_constructible<size_type>>())
 		: iter(i), width((yconstraint(w != 0), w)),
 		height((yconstraint(h != 0), h)),
 		row((yconstraint(!(w * h < idx)), idx % h)), col(idx / h)

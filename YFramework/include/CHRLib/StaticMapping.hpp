@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2007
+\version r2009
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-03-22 16:19 +0800
+	2015-04-10 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,9 +44,9 @@ template<typename _tIn, typename _tState>
 inline bool
 FillByte(_tIn& i, _tState& st)
 {
-	static_assert(std::is_constructible<const byte, decltype(*i)>::value,
+	static_assert(std::is_constructible<const byte, decltype(*i)>(),
 		"Invalid mapping source type found.");
-	static_assert(!std::is_volatile<ystdex::remove_reference_t<_tState>>::value,
+	static_assert(!std::is_volatile<ystdex::remove_reference_t<_tState>>(),
 		"Volatile state is not supported.");
 
 	if(YB_UNLIKELY(is_undereferenceable(i)))

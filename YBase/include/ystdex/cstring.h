@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1699
+\version r1702
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-03-22 20:40 +0800
+	2015-04-10 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,9 +81,9 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 \since build 544
 */
 template<typename _tChar>
-struct is_char_specialized_in_std : integral_constant<bool,
-	is_same<_tChar, char>::value || is_same<_tChar, char>::value
-	|| is_same<_tChar, char>::value || is_same<_tChar, char>::value>
+struct is_char_specialized_in_std : or_<is_same<_tChar, char>,
+	is_same<_tChar, wchar_t>, is_same<_tChar, char16_t>,
+	is_same<_tChar, char32_t>>
 {};
 
 

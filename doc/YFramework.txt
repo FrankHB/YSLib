@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1066
+\version r1078
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-03-25 15:16 +0800
+	2015-04-09 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -404,7 +404,7 @@ CHRLib 文件依赖性同 YCLib 非平台扩展。
 除限定平台集合(@2.1.4) 的头文件外， YCLib 非平台扩展头文件不依赖 YSLib 文件和 YCLib::NativeAPI 。
 YCLib 平台扩展和限定平台集合可依赖 YSLib::Core 的必要头文件。
 YCLib 平台扩展和限定平台集合的实现文件可依赖 YSLib::Core 或 YSLib::Service 的公开头文件。
-YCLib 中除 YCLib::Platform 外的文件仅被 YCLib 、 YSLib::YAdaptor 和 Helper 依赖。
+YCLib 中除 YCLib::Platform 外的文件仅被 YCLib 、 YSLib::YAdaptor 和 Helper 直接依赖。
 
 @2.2.6 YSLib 文件依赖性：
 除 @2.2 另有约定的外， YSLib 不依赖 CHRLib 、 YCLib 和 YSLib 以外的文件。
@@ -593,39 +593,42 @@ FetchDefaultFontCache ：取默认字体缓存。
 @3 API 设计和风格概述：
 基本内容参见 [Documentation::Designation @@3] 。
 
-@3.1 异常使用规则：
+@3.1 语言特性使用限制：
+YFramework 不重载 operator, ，也不对其它代码是否重载 operator, 做出假设。
+
+@3.2 异常使用规则：
 基本内容参见 [Documentation::LanguageConvention @@5.10.5] 。
 作为例外，接口和实现非平台中立的部分(@2.1.3) 可以使用 catch(...) 捕获所有异常。
 所有平台中立的内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::LanguageConvention @@5.10.5.1.3]) 。
 
-@3.2 字符编码：
+@3.3 字符编码：
 YFramework 使用 UTF-8 作为外部文本编码。
 除非显式指定表示编码的参数或另行约定，以 char 作为字符类型的 C 风格字符串使用外部文本编码。
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。
 
-@3.3 实现定义行为使用：
+@3.4 实现定义行为使用：
 基本内容参见 [Documentation::LanguageConvention @@5.1.3] 。以下为补充例外约定。
 允许未回绕([Documentation::LanguageConvention @@5.8.8.2]) 的无符号整数算术表达式计算结果向有符号整数显式转换，不需特别在接口说明范围，仅需实现注释。注意仍然禁止依赖无符号整数隐式转换为有符号整数。
 
-@3.4 目标风格与最佳实践：
+@3.5 目标风格与最佳实践：
 本节概述基于 [Documentation::Designation @@2.1] 和 @1.3 的约束下，组件和 UI 库接口设计的总体风格和对用户代码的影响。
 
-@3.4.1 引用参照：
+@3.5.1 引用参照：
 Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 
-@3.4.2 库使用：
+@3.5.2 库使用：
 参见 [Documentation::CommonRules @@3.13] 。
 
-@3.4.3 资源管理：
+@3.5.3 资源管理：
 基于对象所有权，方法参见 [Documentation::YSLib @@2.2.2] 。
 基于和 Ultimate++ 相同的理由，接口不使用智能指针，且用户代码而不是被依赖的组件决定部件对象的所有权从属。
 但总体风格上没有限定作用域和所有权的严格对应关系，也因此能够自然地使用部件指针的标准库容器。这点同时简化基于迭代器模式的实现。
 此外， YSLib 不排斥在部件实现([Documentation::YSLib @3.3]) 中提供（有限的）复制和转移支持以保证值语义。
 
-@3.4.4 泛型值类型：
+@3.5.4 泛型值类型：
 适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.4.6.4]) 等类型实现。允许空值。
 
-@3.4.5 虚函数：
+@3.5.5 虚函数：
 不要求总是使用 NVI 模式([Documentation::LanguageConvention @5.13.6.3]) ，但适合复用（如检查代码）时应当使用。
 
 @4 命名和编码风格导引：

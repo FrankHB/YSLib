@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3480
+\version r3484
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-03-24 19:27 +0800
+	2015-04-10 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,9 +57,9 @@ namespace Drawing
 
 //! \since build 562
 //@{
-static_assert(std::is_same<FontException::FontError, ::FT_Error>::value,
+static_assert(std::is_same<FontException::FontError, ::FT_Error>(),
 	"Invalid type found.");
-static_assert(std::is_same<CharBitmap::BufferType, ::FT_Byte*>::value,
+static_assert(std::is_same<CharBitmap::BufferType, ::FT_Byte*>(),
 	"Invalid type found.");
 static_assert(int(CharBitmap::None) == ::FT_PIXEL_MODE_NONE && int(
 	CharBitmap::Mono) == ::FT_PIXEL_MODE_MONO && int(CharBitmap::Gray)
@@ -67,9 +67,9 @@ static_assert(int(CharBitmap::None) == ::FT_PIXEL_MODE_NONE && int(
 	&& int(CharBitmap::Gray4) == ::FT_PIXEL_MODE_GRAY4 && int(CharBitmap::LCD)
 	== ::FT_PIXEL_MODE_LCD && int(CharBitmap::LCD_V) == ::FT_PIXEL_MODE_LCD_V,
 	"Incompatible format found.");
-static_assert(std::is_same<CharBitmap::ScaleType, ::FT_Byte>::value,
+static_assert(std::is_same<CharBitmap::ScaleType, ::FT_Byte>(),
 	"Invalid type found.");
-static_assert(std::is_same<CharBitmap::SignedScaleType, ::FT_Char>::value,
+static_assert(std::is_same<CharBitmap::SignedScaleType, ::FT_Char>(),
 	"Invalid type found.");
 //@}
 

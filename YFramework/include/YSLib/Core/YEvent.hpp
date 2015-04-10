@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5013
+\version r5014
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-03-21 21:26 +0800
+	2015-04-10 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -877,7 +877,7 @@ public:
 		typename = ystdex::exclude_self_ctor_t<GEventPointerWrapper, _type>)>
 	inline
 	GEventPointerWrapper(_type&& p)
-		ynoexcept(std::is_nothrow_constructible<PointerType, _type>::value)
+		ynoexcept(std::is_nothrow_constructible<PointerType, _type>())
 		: ptr(Nonnull(p))
 	{}
 	/*!

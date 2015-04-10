@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r184
+\version r186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2015-03-10 15:55 +0800
+	2015-04-06 03:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,7 @@ public:
 	*/
 	using Locator = std::function<Point(const CursorEventArgs&)>;
 
-	static yconstexpr const Timers::Duration
-		DefaultDuration{Timers::TimeSpan(400U)};
+	static yconstexpr Timers::Duration DefaultDuration{Timers::TimeSpan(400U)};
 	Locator Locate{DefaultLocate};
 
 private:

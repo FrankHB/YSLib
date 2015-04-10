@@ -70,8 +70,10 @@
 					<Add library="../../build/MinGW32/YBase/debug/YBased.dll" />
 				</Linker>
 				<ExtraCommands>
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YBase\debug\YBased.dll&quot; &quot;..\..\build\MinGW32\YSTest\debug\YBased.dll&quot;' />
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YFramework\debug\YFrameworkd.dll&quot; &quot;..\..\build\MinGW32\YSTest\debug\YFrameworkd.dll&quot;' />
+					<Add before='CMD /C DEL &quot;..\..\build\MinGW32\YSTest\debug\YBased.dll&quot; || EXIT' />
+					<Add before='CMD /C MKLINK &quot;..\..\build\MinGW32\YSTest\debug\YBased.dll&quot; &quot;..\..\build\MinGW32\YBase\debug\YBased.dll&quot; || MKLINK /H &quot;..\..\build\MinGW32\YSTest\debug\YBased.dll&quot; &quot;..\..\build\MinGW32\YBase\debug\YBased.dll&quot; || ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YBase\debug\YBased.dll&quot; &quot;..\..\build\MinGW32\YSTest\debug\YBased.dll&quot;' />
+					<Add before='CMD /C DEL &quot;..\..\build\MinGW32\YSTest\debug\YFrameworkd.dll&quot; || EXIT' />
+					<Add before='CMD /C MKLINK &quot;..\..\build\MinGW32\YSTest\debug\YFrameworkd.dll&quot; &quot;..\..\build\MinGW32\YFramework\debug\YFrameworkd.dll&quot; || MKLINK /H &quot;..\..\build\MinGW32\YSTest\debug\YFrameworkd.dll&quot; &quot;..\..\build\MinGW32\YFramework\debug\YFrameworkd.dll&quot; || ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YFramework\debug\YFrameworkd.dll&quot; &quot;..\..\build\MinGW32\YSTest\debug\YFrameworkd.dll&quot;' />
 				</ExtraCommands>
 			</Target>
 			<Target title="release_DLL">
@@ -95,8 +97,10 @@
 					<Add library="../../build/MinGW32/YBase/release/YBase.dll" />
 				</Linker>
 				<ExtraCommands>
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YBase\release\YBase.dll&quot; &quot;..\..\build\MinGW32\YSTest\release\YBase.dll&quot;' />
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YFramework\release\YFramework.dll&quot; &quot;..\..\build\MinGW32\YSTest\release\YFramework.dll&quot;' />
+					<Add before='CMD /C DEL &quot;..\..\build\MinGW32\YSTest\release\YBase.dll&quot; || EXIT' />
+					<Add before='CMD /C MKLINK &quot;..\..\build\MinGW32\YSTest\release\YBase.dll&quot; &quot;..\..\build\MinGW32\YBase\release\YBase.dll&quot; || MKLINK /H &quot;..\..\build\MinGW32\YSTest\release\YBase.dll&quot; &quot;..\..\build\MinGW32\YBase\release\YBase.dll&quot; || ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YBase\release\YBase.dll&quot; &quot;..\..\build\MinGW32\YSTest\release\YBase.dll&quot;' />
+					<Add before='CMD /C DEL &quot;..\..\build\MinGW32\YSTest\release\YFramework.dll&quot; || EXIT' />
+					<Add before='CMD /C MKLINK &quot;..\..\build\MinGW32\YSTest\release\YFramework.dll&quot; &quot;..\..\build\MinGW32\YFramework\release\YFramework.dll&quot; || MKLINK /H &quot;..\..\build\MinGW32\YSTest\release\YFramework.dll&quot; &quot;..\..\build\MinGW32\YFramework\release\YFramework.dll&quot; || ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YFramework\release\YFramework.dll&quot; &quot;..\..\build\MinGW32\YSTest\release\YFramework.dll&quot;' />
 				</ExtraCommands>
 			</Target>
 		</Build>

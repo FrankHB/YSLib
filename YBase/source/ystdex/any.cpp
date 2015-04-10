@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r127
+\version r129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2015-03-21 13:34 +0800
+	2015-04-09 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,10 @@ namespace any_ops
 holder::~holder() = default;
 
 } // namespace any_ops;
+
+
+bad_any_cast::~bad_any_cast() = default;
+
 
 any::any(const any& a)
 	: any()
@@ -107,9 +111,6 @@ any::type() const ynothrow
 	}
 	return typeid(void);
 }
-
-
-bad_any_cast::~bad_any_cast() = default;
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2713
+\version r2714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2015-03-22 00:01 +0800
+	2015-04-08 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ _t type
 // NOTE: GCC complains about 'void(yunseq(__VA_ARGS__))'.
 #define ImplUnseq(...) \
 	{ \
-		yunused(yunseq(__VA_ARGS__)); \
+		static_cast<void>(yunseq(__VA_ARGS__)); \
 	}
 //@}
 

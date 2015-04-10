@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r504
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2015-01-10 23:19 +0800
+	2015-04-10 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,11 +46,11 @@ namespace XCB
 {
 
 //! \since build 562
-static_assert(std::is_same<Atom::NativeType, ::xcb_atom_t>::value,
+static_assert(std::is_same<Atom::NativeType, ::xcb_atom_t>(),
 	"Invalid type found.");
 //! \since build 562
-static_assert(std::is_same<WindowData::ID, ::xcb_window_t>::value
-	&& std::is_same<WindowData::ID, ::xcb_drawable_t>::value,
+static_assert(ystdex::and_<std::is_same<WindowData::ID, ::xcb_window_t>,
+	std::is_same<WindowData::ID, ::xcb_drawable_t>>(),
 	"Invalid type found.");
 
 //! \since build 561

@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r706
+\version r710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2015-03-31 19:43 +0800
+	2015-04-09 17:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,8 +187,8 @@ namespace details
 template<size_t _vN, class _tSeq, typename _type>
 struct find
 {
-	static yconstexpr size_t value = is_same<front_t<_tSeq>, _type>::value ? 0
-		: find<_vN - 1, pop_front_t<_tSeq>, _type>::value + 1;
+	static yconstexpr size_t value = std::is_same<front_t<_tSeq>, _type>::value
+		? 0 : find<_vN - 1, pop_front_t<_tSeq>, _type>::value + 1;
 };
 
 template<class _tSeq, typename _type>
@@ -200,7 +200,7 @@ struct find<0, _tSeq, _type>
 } // namespace details;
 
 template<class _tSeq, typename _type>
-struct find : integral_constant<size_t,
+struct find : std::integral_constant<size_t,
 	details::find<seq_size<_tSeq>::value, _tSeq, _type>::value>
 {};
 //@}
@@ -305,7 +305,7 @@ struct unique
 {
 	using head = front_t<_tSeq>;
 	using type = concat_t<head, unique_t<typename split_n<
-		is_same<head, at<_tSeq, 1>>::value ? 2 : 1, _tSeq>::tail>>;
+		std::is_same<head, at<_tSeq, 1>>::value ? 2 : 1, _tSeq>::tail>>;
 };
 
 template<class _tSeq>

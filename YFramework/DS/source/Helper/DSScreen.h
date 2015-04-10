@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r458
+\version r460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-12-29 95:39 +0800
+	2015-04-03 03:50 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -111,7 +111,7 @@ public:
 	void
 	UpdateToSurface(_type& sf)
 	{
-		sf.Update(rbuf, Offset);
+		sf.Update(Deref(rbuf.Lock()), Offset);
 	}
 #else
 #	error "Unsupported platform found."

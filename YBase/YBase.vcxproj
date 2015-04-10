@@ -45,6 +45,7 @@
     <ClInclude Include="include\ystdex\memory.hpp" />
     <ClInclude Include="include\ystdex\mixin.hpp" />
     <ClInclude Include="include\ystdex\operators.hpp" />
+    <ClInclude Include="include\ystdex\optional.h" />
     <ClInclude Include="include\ystdex\path.hpp" />
     <ClInclude Include="include\ystdex\pseudo_mutex.h" />
     <ClInclude Include="include\ystdex\rational.hpp" />
@@ -69,6 +70,7 @@
     <ClCompile Include="source\ystdex\cstring.cpp" />
     <ClCompile Include="source\ystdex\cwctype.cpp" />
     <ClCompile Include="source\ystdex\exception.cpp" />
+    <ClCompile Include="source\ystdex\optional.cpp" />
     <ClCompile Include="source\ytest\test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

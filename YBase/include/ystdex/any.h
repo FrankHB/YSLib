@@ -11,17 +11,20 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1574
+\version r1678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-03-29 09:47 +0800
+	2015-04-10 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
+
+\see ISO WG21/N4081 6[optional] 。
+\see http://www.boost.org/doc/libs/1_57_0/doc/html/any/reference.html 。
 */
 
 
@@ -62,12 +65,10 @@ union non_aggregate_pod
 \since build 503
 */
 template<typename _type, typename _tDst>
-struct is_aligned_storable
-{
-	static yconstexpr bool value = sizeof(_type) <= sizeof(_tDst)
-		&& yalignof(_type) <= yalignof(_tDst)
-		&& yalignof(_tDst) % yalignof(_type) == 0;
-};
+struct is_aligned_storable : integral_constant<bool,
+	sizeof(_type) <= sizeof(_tDst) && yalignof(_type) <= yalignof(_tDst)
+	&& yalignof(_tDst) % yalignof(_type) == 0>
+{};
 
 
 /*
@@ -78,7 +79,7 @@ struct is_aligned_storable
 template<typename _tPOD = aligned_storage_t<sizeof(void*)>>
 union pod_storage
 {
-	static_assert(is_pod<_tPOD>::value, "Non-POD underlying type found.");
+	static_assert(is_pod<_tPOD>(), "Non-POD underlying type found.");
 
 	using underlying = _tPOD;
 
@@ -130,7 +131,7 @@ union pod_storage
 	YB_PURE _type&
 	access()
 	{
-		static_assert(is_aligned_storable<_type, pod_storage>::value,
+		static_assert(is_aligned_storable<_type, pod_storage>(),
 			"Invalid type found.");
 
 		return *static_cast<_type*>(access());
@@ -139,7 +140,7 @@ union pod_storage
 	yconstfn YB_PURE const _type&
 	access() const
 	{
-		static_assert(is_aligned_storable<_type, pod_storage>::value,
+		static_assert(is_aligned_storable<_type, pod_storage>(),
 			"Invalid type found.");
 
 		return *static_cast<const _type*>(access());
@@ -195,9 +196,8 @@ public:
 template<typename _type>
 class value_holder : public holder
 {
-	static_assert(is_object<_type>::value, "Non-object type found.");
-	static_assert(!(is_const<_type>::value || is_volatile<_type>::value),
-		"Cv-qualified type found.");
+	static_assert(is_object<_type>(), "Non-object type found.");
+	static_assert(!is_cv<_type>(), "Cv-qualified type found.");
 
 public:
 	//! \since build 352
@@ -216,7 +216,7 @@ public:
 	\note 不一定保证无异常抛出；不被 ystdex::any 直接使用。
 	\since build 352
 	*/
-	value_holder(_type&& value) ynoexcept(ynoexcept(_type(std::move(value))))
+	value_holder(_type&& value) ynoexcept_spec(_type(std::move(value)))
 		: held(std::move(value))
 	{}
 	//! \since build 555
@@ -257,14 +257,14 @@ public:
 \tparam _type 对象类型。
 \tparam _tPointer 智能指针类型。
 \pre _tPointer 具有 _type 对象所有权。
-\pre 静态断言： <tt>is_object<_type>::value</tt> 。
+\pre 静态断言： <tt>is_object<_type>()</tt> 。
 \since build 555
 */
 template<typename _type, class _tPointer = std::unique_ptr<_type>>
 class pointer_holder : public holder
 {
 	//! \since build 331
-	static_assert(is_object<_type>::value, "Invalid type found.");
+	static_assert(is_object<_type>(), "Invalid type found.");
 
 public:
 	//! \since build 352
@@ -541,7 +541,7 @@ public:
 template<typename _tHolder>
 class holder_handler : public value_handler<_tHolder>
 {
-	static_assert(is_convertible<_tHolder&, holder&>::value,
+	static_assert(is_convertible<_tHolder&, holder&>(),
 		"Invalid holder type found.");
 
 public:
@@ -618,10 +618,80 @@ public:
 
 
 /*!
+\ingroup exceptions
+\brief 动态泛型转换失败异常。
+\note 基本接口和语义同 boost::bad_any_cast 。
+\note 非标准库提案扩展：提供标识转换失败的源和目标类型。
+\sa any_cast
+\see ISO WG21/N4081 6.2[any.bad_any_cast] 。
+\since build 586
+*/
+class YB_API bad_any_cast : public std::bad_cast
+{
+private:
+	//! \since build 586
+	lref<const std::type_info> from_ti, to_ti;
+
+public:
+	//! \since build 342
+	//@{
+	bad_any_cast()
+		: std::bad_cast(),
+		from_ti(typeid(void)), to_ti(typeid(void))
+	{}
+	bad_any_cast(const std::type_info& from_, const std::type_info& to_)
+		: std::bad_cast(),
+		from_ti(from_), to_ti(to_)
+	{}
+	//! \since build 586
+	bad_any_cast(const bad_any_cast&) = default;
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 586
+	*/
+	~bad_any_cast() override;
+
+	const char*
+	from() const ynothrow
+	{
+		return from_type() == typeid(void) ? "unknown" : from_type().name();
+	}
+
+	//! \since build 586
+	const std::type_info&
+	from_type() const ynothrow
+	{
+		return from_ti.get();
+	}
+
+	const char*
+	to() const ynothrow
+	{
+		return to_type() == typeid(void) ? "unknown" : to_type().name();
+	}
+
+	//! \since build 586
+	const std::type_info&
+	to_type() const ynothrow
+	{
+		return from_ti.get();
+	}
+	//@}
+
+	virtual const char*
+	what() const ynothrow override
+	{
+		return "Failed conversion: any_cast.";
+	}
+};
+
+
+/*!
 \brief 基于类型擦除的动态泛型对象。
-\note 值语义。基本接口和语义同 std::any 提议和 boost::any （对应接口以前者为准）。
+\note 值语义。基本接口和语义同 std::experimental::any 提议
+	和 boost::any （对应接口以前者为准）。
 \warning 非虚析构。
-\see http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3508.html#synopsis 。
+\see ISO WG21/N4081 6.3[any.class] 。
 \see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
 \todo allocator_arg 支持。
@@ -768,6 +838,11 @@ public:
 };
 
 /*!
+\relates any
+\see ISO WG21/N4081 6.4[any.nonmembers] 。
+*/
+//@{
+/*!
 \brief 交换对象。
 \since build 398
 */
@@ -776,73 +851,6 @@ swap(any& x, any& y) ynothrow
 {
 	x.swap(y);
 }
-
-
-/*!
-\brief 动态泛型转换失败异常。
-\note 基本接口和语义同 boost::bad_any_cast 。
-\sa any_cast
-\since build 586
-*/
-class YB_API bad_any_cast : public std::bad_cast
-{
-private:
-	//! \since build 586
-	lref<const std::type_info> from_ti, to_ti;
-
-public:
-	//! \since build 342
-	//@{
-	bad_any_cast()
-		: std::bad_cast(),
-		from_ti(typeid(void)), to_ti(typeid(void))
-	{}
-	bad_any_cast(const std::type_info& from_, const std::type_info& to_)
-		: std::bad_cast(),
-		from_ti(from_), to_ti(to_)
-	{}
-	//! \since build 586
-	bad_any_cast(const bad_any_cast&) = default;
-	/*!
-	\brief 虚析构：类定义外默认实现。
-	\since build 586
-	*/
-	~bad_any_cast() override;
-
-	const char*
-	from() const ynothrow
-	{
-		return from_type() == typeid(void) ? "unknown" : from_type().name();
-	}
-
-	//! \since build 586
-	const std::type_info&
-	from_type() const ynothrow
-	{
-		return from_ti.get();
-	}
-
-	const char*
-	to() const ynothrow
-	{
-		return to_type() == typeid(void) ? "unknown" : to_type().name();
-	}
-
-	//! \since build 586
-	const std::type_info&
-	to_type() const ynothrow
-	{
-		return from_ti.get();
-	}
-	//@}
-
-	virtual const char*
-	what() const ynothrow override
-	{
-		return "Failed conversion: any_cast.";
-	}
-};
-
 
 /*!
 \brief 动态泛型转换。
@@ -919,6 +927,7 @@ unsafe_any_cast(const any* p)
 	yconstraint(p);
 	return static_cast<const _type*>(p->get());
 }
+//@}
 //@}
 
 

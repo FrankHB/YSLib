@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4328
+\version r4330
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-21 17:57 +0800
+	2015-04-10 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ FetchVisibleEnabledFocusingPtr(IWidget& con)
 } // unnamed namespace;
 
 
-yconstexpr const InputTimer::Duration InputTimer::DefaultDuration;
+yconstexpr InputTimer::Duration InputTimer::DefaultDuration;
 
 InputTimer::InputTimer(Duration d) ynothrow
 	: Timer(d)
@@ -514,7 +514,7 @@ GUIState::Wrap(IWidget& wgt)
 GUIState&
 FetchGUIState() ynothrow
 {
-	static_assert(std::is_nothrow_default_constructible<GUIState>::value,
+	static_assert(std::is_nothrow_default_constructible<GUIState>(),
 		"State class is invalid");
 	static GUIState state;
 

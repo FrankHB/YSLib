@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1216
+\version r1221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-03-17 17:47 +0800
+	2015-04-10 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,13 +45,13 @@ using SDst = std::uint16_t; //!< 屏幕坐标距离。
 
 //! \since build 517
 //@{
-static_assert(std::is_signed<SPos>::value,
+static_assert(std::is_signed<SPos>(),
 	"Only signed integer is supported for screen position measurement.");
-static_assert(std::is_unsigned<SDst>::value,
+static_assert(std::is_unsigned<SDst>(),
 	"Only unsigned integer is supported for screen destination measurement.");
-static_assert(ystdex::integer_width<SDst>::value >= ystdex::integer_width<SPos>
-	::value, "Max value of screen destination shall be grater than"
-	" max value of screen position.");
+static_assert(ystdex::integer_width<SDst>() >= ystdex::integer_width<SPos>(),
+	"Max value of screen destination shall be grater than max value of screen"
+	" position.");
 //@}
 
 /*!

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1069
+\version r1078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-04-03 23:21 +0800
+	2015-04-04 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -543,20 +543,11 @@ public:
 	//! \since build 387
 	void
 	Update(ScreenBuffer&, const YSLib::Drawing::Point& = {}) ynothrow;
-	//! \since build 387
-	PDefH(void, Update, ScreenRegionBuffer& rbuf,
-		const YSLib::Drawing::Point& pt = {}) ynothrow
-		ImplExpr(Update(rbuf.GetScreenBufferRef(), pt))
 
 	//! \since build 561
 	void
 	UpdatePremultiplied(ScreenBuffer&, NativeWindowHandle,
 		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {});
-	//! \since build 561
-	PDefH(void, UpdatePremultiplied, ScreenRegionBuffer& rbuf,
-		NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a = 0xFF,
-		const YSLib::Drawing::Point& pt = {})
-		ImplExpr(UpdatePremultiplied(rbuf.GetScreenBufferRef(), h_wnd, a, pt))
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r534
+\version r580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-04 00:11 +0800
+	2015-04-08 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,8 +47,8 @@ using namespace Drawing;
 namespace Host
 {
 
-RenderWindow::RenderWindow(HostRenderer& r, NativeWindowHandle h)
-	: Window(h), renderer(r)
+RenderWindow::RenderWindow(HostRenderer& rd, NativeWindowHandle h)
+	: Window(h), renderer(rd)
 {
 #	if YCL_HostedUI_XCB
 	MessageMap[XCB_EXPOSE] += [this]{
@@ -68,12 +68,7 @@ RenderWindow::RenderWindow(HostRenderer& r, NativeWindowHandle h)
 void
 RenderWindow::Refresh()
 {
-	auto& rd(GetRenderer());
-	auto& wgt(rd.GetWidgetRef());
-
-	if(rd.Validate(wgt, wgt,
-		{rd.GetContext(), Point(), rd.GetInvalidatedArea()}))
-		rd.Update(rd.GetContext().GetBufferPtr());
+	GetRenderer().RefreshForWidget();
 }
 
 
@@ -117,20 +112,15 @@ WindowThread::Guard
 WindowThread::DefaultGenerateGuard(Window& wnd)
 {
 #if YF_Multithread
-	const auto leave_wnd_thrd([](Window& w){
-		TryExpr(w.GetEnvironmentRef().LeaveWindowThread())
+	wnd.GetEnvironmentRef().EnterWindowThread();
+	return ystdex::make_shared_guard(&wnd, [](Window* p_wnd){
+		TryExpr(Deref(p_wnd).GetEnvironmentRef().LeaveWindowThread())
 		CatchExpr(std::exception& e,
 			YTraceDe(Alert, "Caught std::exception[%s]: %s.",
 			typeid(e).name(), e.what()), yunused(e))
 		CatchExpr(..., YTraceDe(Alert,
 			"Unknown exception found @ default event guard destructor."))
 	});
-
-	wnd.GetEnvironmentRef().EnterWindowThread();
-	TryRet(shared_ptr<Window>(&wnd, [=](Window* p){
-			leave_wnd_thrd(Deref(p));
-		}))
-	CatchExpr(..., leave_wnd_thrd(wnd), throw)
 #else
 	return {};
 #endif
@@ -240,6 +230,24 @@ HostRenderer::SetSize(const Size& s)
 	Deref(rbuf.Lock()).Resize(s);
 }
 
+bool
+HostRenderer::AdjustSize()
+{
+	const auto& view_size(GetSizeOf(widget));
+	const auto& buf_size(GetContext().GetSize());
+
+	if(YB_UNLIKELY(view_size != buf_size))
+	{
+		YTraceDe(Warning, "Mismatched host renderer buffer size %s found.",
+			to_string(buf_size).c_str());
+		SetSize(view_size);
+		YTraceDe(Warning, "Host renderer buffer size has adjusted to view size"
+			" %s.", to_string(view_size).c_str());
+		return true;
+	}
+	return {};
+}
+
 void
 HostRenderer::InitWidgetView()
 {
@@ -256,6 +264,19 @@ HostRenderer::InitWidgetView()
 }
 
 void
+HostRenderer::RefreshForWidget()
+{
+	auto& wgt(GetWidgetRef());
+
+	AdjustSize();
+
+	const auto& g(GetContext());
+
+	if(Validate(wgt, wgt, {g, Point(), GetInvalidatedArea()}))
+		Update(g.GetBufferPtr());
+}
+
+void
 HostRenderer::Update(ConstBitmapPtr p)
 {
 	if(const auto p_wnd = GetWindowPtr())
@@ -268,13 +289,9 @@ HostRenderer::Update(ConstBitmapPtr p)
 			const auto& buf_size(buf.GetSize());
 
 			if(YB_UNLIKELY(view_size != buf_size))
-			{
-				YTraceDe(Warning, "Mismatched host renderer buffer size %s"
-					" found.", to_string(buf_size).c_str());
-				buf.Resize(view_size);
-				YTraceDe(Warning, "Host renderer buffer size has adjusted to"
-					" view size %s.", to_string(view_size).c_str());
-			}
+				throw LoggedEvent(ystdex::sfmt("Mismatched host renderer buffer"
+					" size %s and view size %s found.",
+					to_string(buf_size).c_str(), to_string(view_size).c_str()));
 			if(RootMode)
 			{
 #	if YCL_HostedUI_XCB

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r427
+\version r451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-04-01 22:42 +0800
+	2015-04-09 11:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,14 @@
 #include YFM_Helper_HostedUI
 #include YFM_Helper_HostRenderer
 #include YFM_YSLib_UI_YControl // for UI::FetchEvent;
-#include YFM_YSLib_UI_YGUI // for FetchGUIState;
+#include YFM_YSLib_UI_YGUI // for UI::FetchGUIState;
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_UI_YPanel
 #include YFM_Helper_Environment
 #if YCL_Win32
 #	include YFM_YSLib_Core_Task
 #	include <ystdex/cast.hpp> // for ystdex::pvoid;
+#	include YFM_Helper_GUIApplication // for Host::FetchEnvironment;
 #endif
 
 namespace YSLib
@@ -131,7 +132,7 @@ ShowTopLevel(Widget& wgt, WindowThread::GuardGenerator guard_gen,
 		return wnd_ref;
 	}));
 
-	WaitForHostWindow(wgt).UseOpacity = bool(wstyle_ex & WS_EX_LAYERED);
+	res.Wait().UseOpacity = bool(wstyle_ex & WS_EX_LAYERED);
 	return res;
 }
 #	endif
@@ -181,27 +182,27 @@ PrepareTopLevelPopupMenu(MenuHost& mh, Menu& mnu, Panel& root)
 namespace
 {
 
+//! \since build 590
 template<typename _func>
 bool
-DoSetupTopLevel(Widget& top, _func f)
+DoSetupTopLevel(Widget& top, _func f, Window* p_wnd = {})
 {
-	if(const auto p_wnd = GetWindowPtrOf(top))
-	{
 #	if YCL_Win32
-		auto& wnd(*p_wnd);
-		auto& root(wnd.GetEnvironmentRef().Desktop);
+	auto&
+		root((p_wnd ? p_wnd->GetEnvironmentRef() : FetchEnvironment()).Desktop);
 
-		if(FetchContainerPtr(top) == &root)
-		{
-			auto& wgt(f(root));
+	if(!p_wnd || FetchContainerPtr(top) == &root)
+	{
+		auto& wgt(f(root));
 
-			AttachToHost(wgt, wnd);
-			return true;
-		}
-#	else
-		yunused(f);
-#	endif
+		if(p_wnd)
+			AttachToHost(wgt, *p_wnd);
+		return true;
 	}
+#	else
+	yunused(top, p_wnd);
+	yunused(f);
+#	endif
 	return {};
 }
 
@@ -222,10 +223,10 @@ SetupTopLevelTimedTips(Widget& top, IWidget& wgt, TimedHoverState& st,
 #	if YCL_Win32
 		BindTimedTips(st, wgt, lbl);
 #	else
-		yunused(st), yunused(wgt);
+		yunused(st, wgt, lbl);
 #	endif
 		return lbl;
-	});
+	}, GetWindowPtrOf(top));
 }
 
 bool
@@ -236,10 +237,10 @@ SetupTopLevelContextMenu(Widget& top, IWidget& wgt, MenuHost& mh, Menu& mnu)
 		PrepareTopLevelPopupMenu(mh, mnu, root);
 		BindTopLevelPopupMenu(mh, mnu, wgt);
 #	else
-		yunused(mh), yunused(mnu), yunused(root), yunused(wgt);
+		yunused(mh, mnu, root, wgt);
 #	endif
 		return mnu;
-	});
+	}, GetWindowPtrOf(top));
 }
 
 } // namespace Host;

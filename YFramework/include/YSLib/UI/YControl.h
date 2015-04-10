@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4849
+\version r4850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2015-03-21 14:20 +0800
+	2015-04-10 01:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ CallEvent(IWidget& wgt, _tEventArgs&& e)
 	using HandlerType = typename EventTypeMapping<_vID>::HandlerType;
 	static_assert(std::is_convertible<ystdex::remove_reference_t<_tEventArgs>,
 		ystdex::remove_reference_t<typename EventArgsHead<typename
-		HandlerType::TupleType>::type>>::value,
+		HandlerType::TupleType>::type>>(),
 		"Invalid event argument type found @ CallEvent;");
 
 	TryRet(DoEvent<HandlerType>(wgt.GetController(), _vID, std::move(e)))

@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2218
+\version r2220
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-04-01 22:54 +0800
+	2015-04-10 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -522,8 +522,7 @@ template<typename _fHandler, typename _fCallable>
 struct expanded_caller
 {
 	//! \since build 448
-	static_assert(is_object<_fCallable>::value,
-		"Callable object type is needed.");
+	static_assert(is_object<_fCallable>(), "Callable object type is needed.");
 
 	//! \since build 525
 	_fCallable caller;
