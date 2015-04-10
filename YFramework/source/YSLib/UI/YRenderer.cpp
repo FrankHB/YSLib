@@ -11,13 +11,13 @@
 /*!	\file YRenderer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r662
+\version r677
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2015-03-21 16:15 +0800
+	2015-04-04 11:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,10 +54,10 @@ BufferedRenderer::BufferedRenderer(bool b, unique_ptr<Drawing::IImage> p)
 	rInvalidated(), pImageBuffer(p ? std::move(p)
 	: make_unique<CompactPixmap>()), IgnoreBackground(b)
 {}
-BufferedRenderer::BufferedRenderer(const BufferedRenderer& r)
-	: Renderer(r),
-	rInvalidated(r.rInvalidated), pImageBuffer(ClonePolymorphic(
-	r.pImageBuffer)), IgnoreBackground(r.IgnoreBackground)
+BufferedRenderer::BufferedRenderer(const BufferedRenderer& rd)
+	: Renderer(rd),
+	rInvalidated(rd.rInvalidated), pImageBuffer(ClonePolymorphic(
+	rd.pImageBuffer)), IgnoreBackground(rd.IgnoreBackground)
 {}
 
 bool
@@ -88,8 +88,6 @@ BufferedRenderer::CommitInvalidation(const Rect& r)
 Rect
 BufferedRenderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
-	YAssert(&e.GetSender().GetRenderer() == this, "Invalid widget found.");
-
 	const Rect& r(Validate(wgt, e.GetSender(), e));
 
 	UpdateTo(e);
@@ -110,6 +108,7 @@ Rect
 BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 	const PaintContext& pc)
 {
+	YAssert(&sender.GetRenderer() == this, "Invalid widget found.");
 	if(RequiresRefresh())
 	{
 		if(!IgnoreBackground && FetchContainerPtr(sender))
@@ -119,18 +118,21 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 
 		if(!clip.IsUnstrictlyEmpty())
 		{
+			const auto& g(GetContext());
+
 			if(!IgnoreBackground && FetchContainerPtr(sender))
 			{
-				const auto& g(GetContext());
+				const auto dst(g.GetBufferPtr());
+				const auto& src(pc.Target);
 
-				CopyTo(g.GetBufferPtr(), pc.Target, g.GetSize(), clip.GetPoint()
-					- pc.Location, clip.GetPoint(), clip.GetSize());
+				if(dst != src.GetBufferPtr())
+					CopyTo(g.GetBufferPtr(), src, g.GetSize(), clip.GetPoint()
+						- pc.Location, clip.GetPoint(), clip.GetSize());
 			}
 
-			PaintEventArgs
-				e(sender, {GetContext(), Point(), clip - pc.Location});
+			PaintEventArgs e(sender,
+				{g, Point(), (clip - pc.Location) & Rect(g.GetSize())});
 
-			e.ClipArea &= e.Target.GetSize();
 			CallEvent<UI::Paint>(wgt, e);
 			// NOTE: To keep %CommitInvalidation result correct, both
 			//	components of the size shall be reset.

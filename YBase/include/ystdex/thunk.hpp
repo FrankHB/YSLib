@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r177
+\version r178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2015-03-28 22:19 +0800
+	2015-04-10 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ template<typename _tRet, typename _func>
 struct thunk_caller
 {
 	//! \since build 529
-	static_assert(is_decayed<_func>::value, "Invalid type found.");
+	static_assert(is_decayed<_func>(), "Invalid type found.");
 
 	//! \since build 541
 	using caller_type = _func;

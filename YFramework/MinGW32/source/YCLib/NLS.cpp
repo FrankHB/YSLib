@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r173
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2015-03-19 10:54 +0800
+	2015-04-06 03:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ FetchNLSItemFromRegistry(const wchar_t* name)
 namespace
 {
 
-yconstexpr const size_t MAXIMUM_LEADBYTES(12);
+yconstexpr size_t MAXIMUM_LEADBYTES(12);
 
 struct NLS_FILE_HEADER
 {

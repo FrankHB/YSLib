@@ -11,13 +11,13 @@
 /*!	\file YBlend.h
 \ingroup Service
 \brief 平台中立的图像混合操作。
-\version r154
+\version r156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 584
 \par 创建时间:
 	2015-03-17 06:17:06 +0800
 \par 修改时间:
-	2015-03-17 06:42 +0800
+	2015-04-10 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ public:
 		ystdex::pair_iterator<_tInPixel, _tInAlpha> src_iter)
 	{
 		static_assert(std::is_convertible<ystdex::remove_reference_t<
-			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
+			decltype(*dst_iter)>, Pixel>(), "Wrong type found.");
 
 		*dst_iter = Shaders::BlendAlpha<ABitTrait<decltype(*dst_iter)>::ABitsN,
 			8>(*dst_iter, *src_iter, AlphaType(*src_iter.base().second));
@@ -103,7 +103,7 @@ public:
 	operator()(_tOut dst_iter, _tIn src_iter)
 	{
 		static_assert(std::is_convertible<ystdex::remove_reference_t<
-			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
+			decltype(*dst_iter)>, Pixel>(), "Wrong type found.");
 
 		*dst_iter = Shaders::Composite<ABitTrait<decltype(*dst_iter)>::ABitsN,
 			ABitTrait<decltype(*src_iter)>::ABitsN>(*dst_iter, *src_iter);

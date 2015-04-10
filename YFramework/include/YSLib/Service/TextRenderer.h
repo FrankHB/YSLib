@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r3039
+\version r3087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-29 12:34 +0800
+	2015-04-03 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ namespace Drawing
 //@{
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
@@ -54,18 +54,18 @@ namespace Drawing
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PrintLine(_tRenderer& r, _tIter s)
+PrintLine(_tRenderer& rd, _tIter s)
 {
 	while(*s != 0 && *s != '\n')
 	{
-		PrintChar(r, *s);
+		PrintChar(rd, *s);
 		++s;
 	}
 	return s;
 }
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
 \param c 指向迭代终止的字符。
@@ -75,32 +75,32 @@ PrintLine(_tRenderer& r, _tIter s)
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PrintLine(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
+PrintLine(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
 {
 	while(s != g && ucs4_t(*s) != c && *s != '\n')
 	{
-		PrintChar(r, *s);
+		PrintChar(rd, *s);
 		++s;
 	}
 	return s;
 }
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
 */
 template<class _tRenderer, class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PrintLine(_tRenderer& r, const _tString& str)
+PrintLine(_tRenderer& rd, const _tString& str)
 {
-	return String::size_type(Drawing::PrintLine(r, &str[0]) - &str[0]);
+	return String::size_type(Drawing::PrintLine(rd, &str[0]) - &str[0]);
 }
 
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
@@ -109,24 +109,24 @@ PrintLine(_tRenderer& r, const _tString& str)
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PutLine(_tRenderer& r, _tIter s)
+PutLine(_tRenderer& rd, _tIter s)
 {
-	const SPos seol(GetEndOfLineOffsetOf(r));
+	const SPos seol(GetEndOfLineOffsetOf(rd));
 
 	if(seol >= 0)
 	{
-		TextState& ts(r.GetTextState());
+		TextState& ts(rd.GetTextState());
 		const SPos fpy(ts.Pen.Y);
 
 		while(*s != 0 && fpy == ts.Pen.Y)
-			if(PutChar(r, *s, SDst(seol)) != PutCharResult::NeedNewline)
+			if(PutChar(rd, *s, SDst(seol)) != PutCharResult::NeedNewline)
 				++s;
 	}
 	return s;
 }
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
 \param c 指向迭代终止的字符。
@@ -137,24 +137,24 @@ PutLine(_tRenderer& r, _tIter s)
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PutLine(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
+PutLine(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
 {
-	const SPos seol(GetEndOfLineOffsetOf(r));
+	const SPos seol(GetEndOfLineOffsetOf(rd));
 
 	if(seol >= 0)
 	{
-		TextState& ts(r.GetTextState());
+		TextState& ts(rd.GetTextState());
 		const SPos fpy(ts.Pen.Y);
 
 		while(s != g && ucs4_t(*s) != c && fpy == ts.Pen.Y)
-			if(PutChar(r, *s, SDst(seol)) != PutCharResult::NeedNewline)
+			if(PutChar(rd, *s, SDst(seol)) != PutCharResult::NeedNewline)
 				++s;
 	}
 	return s;
 }
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
 \note 当行内无法容纳完整字符时换行。
@@ -162,14 +162,14 @@ PutLine(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
 template<class _tRenderer, class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PutLine(_tRenderer& r, const _tString& str)
+PutLine(_tRenderer& rd, const _tString& str)
 {
-	return String::size_type(Drawing::PutLine(r, &str[0]) - &str[0]);
+	return String::size_type(Drawing::PutLine(rd, &str[0]) - &str[0]);
 }
 
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
@@ -177,15 +177,15 @@ PutLine(_tRenderer& r, const _tString& str)
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PrintString(_tRenderer& r, _tIter s)
+PrintString(_tRenderer& rd, _tIter s)
 {
 	while(*s != 0 && *s != '\n')
-		PrintChar(r, *s++);
+		PrintChar(rd, *s++);
 	return s;
 }
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
 \param c 指向迭代终止的字符。
@@ -195,29 +195,29 @@ PrintString(_tRenderer& r, _tIter s)
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PrintString(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
+PrintString(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
 {
 	while(s != g && ucs4_t(*s) != c && *s != '\n')
-		PrintChar(r, *s++);
+		PrintChar(rd, *s++);
 	return s;
 }
 /*!
 \brief 打印字符串，直至区域末尾或字符串结束。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
 */
 template<class _tRenderer, class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PrintString(_tRenderer& r, const _tString& str)
+PrintString(_tRenderer& rd, const _tString& str)
 {
-	return String::size_type(Drawing::PrintString(r, &str[0]) - &str[0]);
+	return String::size_type(Drawing::PrintString(rd, &str[0]) - &str[0]);
 }
 
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
@@ -226,24 +226,24 @@ PrintString(_tRenderer& r, const _tString& str)
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PutString(_tRenderer& r, _tIter s)
+PutString(_tRenderer& rd, _tIter s)
 {
-	const SPos seol(GetEndOfLineOffsetOf(r));
+	const SPos seol(GetEndOfLineOffsetOf(rd));
 
 	if(seol >= 0)
 	{
-		TextState& ts(r.GetTextState());
-		const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+		TextState& ts(rd.GetTextState());
+		const SPos mpy(FetchLastLineBasePosition(ts, rd.GetHeight()));
 
 		while(*s != 0 && ts.Pen.Y <= mpy)
-			if(PutChar(r, *s, SDst(seol)) != PutCharResult::NeedNewline)
+			if(PutChar(rd, *s, SDst(seol)) != PutCharResult::NeedNewline)
 				++s;
 	}
 	return s;
 }
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
 \param c 指向迭代终止的字符。
@@ -254,24 +254,24 @@ PutString(_tRenderer& r, _tIter s)
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PutString(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
+PutString(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
 {
-	const SPos seol(GetEndOfLineOffsetOf(r));
+	const SPos seol(GetEndOfLineOffsetOf(rd));
 
 	if(seol >= 0)
 	{
-		TextState& ts(r.GetTextState());
-		const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
+		TextState& ts(rd.GetTextState());
+		const SPos mpy(FetchLastLineBasePosition(ts, rd.GetHeight()));
 
 		while(s != g && ucs4_t(*s) != c && ts.Pen.Y <= mpy)
-			if(PutChar(r, *s, SDst(seol)) != PutCharResult::NeedNewline)
+			if(PutChar(rd, *s, SDst(seol)) != PutCharResult::NeedNewline)
 				++s;
 	}
 	return s;
 }
 /*!
 \brief 打印字符串，直至区域末尾或字符串结束。
-\param r 使用的字符渲染器。
+\param rd 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
 \note 当行内无法容纳完整字符时换行。
@@ -279,9 +279,9 @@ PutString(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
 template<class _tRenderer, class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PutString(_tRenderer& r, const _tString& str)
+PutString(_tRenderer& rd, const _tString& str)
 {
-	return String::size_type(PutString(r, &str[0]) - &str[0]);
+	return String::size_type(Drawing::PutString(rd, &str[0]) - &str[0]);
 }
 //@}
 
@@ -296,9 +296,9 @@ void
 PutText(bool multi, _tParams&&... args)
 {
 	if(multi)
-		PutString(yforward(args)...);
+		Drawing::PutString(yforward(args)...);
 	else
-		PutLine(yforward(args)...);
+		Drawing::PutLine(yforward(args)...);
 }
 
 

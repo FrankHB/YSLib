@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r98
+\version r101
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2013-07-04 07:39 +0800
+	2015-04-10 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_examiner_hpp_
 #define YB_INC_ystdex_examiner_hpp_ 1
 
-#include "../ydef.h" // for ynoexcept;
+#include "../ydef.h" // for ynoexcept_spec;
 
 namespace ystdex
 {
@@ -49,7 +49,7 @@ struct equal
 	template<typename _type1, typename _type2>
 	static yconstfn YB_PURE bool
 	are_equal(_type1&& x, _type2&& y, decltype(x == y) = {})
-		ynoexcept(ynoexcept(x == y))
+		ynoexcept_spec(x == y)
 	{
 		return x == y;
 	}

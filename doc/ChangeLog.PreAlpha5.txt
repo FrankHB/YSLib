@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r12434
+\version r12650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-04-04 00:25 +0800
+	2015-04-10 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,223 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		(
+		/ "class template %unlock_deleter" -> "%unlock_delete"
+			@ "namespace %threading" @ %PseudoMutex $=
+		(
+			* "missing unlocking" @ "%operator()" $since b551;
+				// Even if it would be unlocked at destruction, it did not \
+					meet requirements of 'std::unique_ptr' for spcific \
+					resource release operation, so 'reset' would not release \
+					the lock, which was unexpected.
+			/ DLD "stored lock"
+				!^ "%bound_deleter instance as private base class";
+			* $comp "polluted member type %pointer" $since b551
+				// Since the %pointer member is not declared, unexpected base \
+					class member %pointer(i.e. 'void*') is used even if it \
+					private.
+		);
+		- $revert(b550) "class template %bound_deleter" @ %Memory
+		),
+		/ "alias template %unlock_deleter" @ "namespace %concurrency"
+			=> "%unlock_delete" @ %Concurrency,
+		+ "function template %make_shared_guard" @ %Utility,
+		* "missing unqualified 'std::' for %(is_same, integral_constant)"
+			@ %Variadic $since b589,
+		/ %IntegerSequence $=
+		(
+			(
+			/ "supported base value"
+				@ "metafunctions %(make_succsessor, make_successor_t)";
+			+ "metafunctions %(make_peano_sequence, make_peano_sequence_t)";
+			/ "metafunctions %make_natural_sequence"
+				-> ("alias template" ^ "%make_peano_sequence_t")
+			),
+			(
+			+ "alias template %make_natural_sequence_t";
+			/ DLD "simplified %make_integer_sequence"
+				^ "%make_natural_sequence_t"
+			)
+		),
+		/ $dev $doc "Doxygen groups" $=
+		(
+			+ "group %type_traits_operations" @ "%meta_operations"
+				>> "%metafunctions",
+			/ "marked tight category %metafunctions \
+				for metafunctions" ~ "%meta_operations" $effective
+				@ %(TypeOperations, IntegerSequence, CStandardInteger),
+			/ "marked tight category %unary_type_traits \
+				for metafunctions" ~ "%meta_operations" $effective
+				@ %CStandardInteger,
+			(
+			+ "group %transformation_traits" @ "%";
+			/ "marked tight category %transformation_traits for metafunctions"
+				~ "%meta_operations" $effective @ %(TypeOperations, Iterator,
+				CStandardInteger)
+			),
+			(
+			+ "group %exceptions";
+			/ "marked group %exceptions for exception classes" @ $effective
+				@ %(Exception, Any)
+			),
+			/ "mark WG21/N4081 reference, ordered interface" @ %Any
+		),
+		/ @ "metafunction %is_char_specialized_in_std" @ %CString $=
+		(
+			/ $re_ex(b578) DLD "simplified" ^ "%or_" ~ "%integral_constant",
+			* "wrong implementation for non %char type" $since b544
+		),
+		+ "unary type trait %is_cv" @ %TypeTraits,
+		* "binary type trait %is_aligned_storable not based on \
+			%std::integral_constant" @ %Any $since b503
+		/ %Rational $=
+		(
+			/ $re_ex(b578) DLD "simplified metafunction %is_normalizable"
+				^ "%or_" ~ "%integral_constant",
+			+ "%std::hash specialization for %ystdex::fixed_point instances"
+		),
+		+ %Optional $=
+		(
+			+ "struct %in_place_t; object %in_place",
+			+ "struct %nullopt_t; object %nullopt",
+			+ "class %bad_optional_access"
+		),
+		/ %Algorithm $=
+		(
+			* "missing 'using ystdex::is_undereferenceable;'"
+				@ "function template %transform_n" $since b517,
+			* "missing including %CAssertion" $since b576
+				// This might cause 'yconstraint' used without defined.
+		)
+	),
+	/ %YFramework $=
+	(
+		- $revert(b561) "functions %(Update, UpdatePremultiplied) with \
+			%ScreenRegionBuffer parameter" @ "class %WindowMemorySurface"
+			@ %YCLib.HostedGUI,
+			// To avoid misuse of thread-unsafe functions.
+		/ %Helper $=
+		(
+			/ %HostRenderer $=
+			(
+				/ @ "class %HostRenderer" $=
+				(
+					/ "locked buffer" @ "function template %UpdateToSurface",
+					(
+					(
+					// Adjusting buffer is out of %Update call to avoid \
+						invalidated parameter of %Update used.
+					+ "function %AdjustSize",
+					/ $re_ex(b589) "buffer adjusting" @ "function %Update"
+					(
+						- $revert(b589) "tracing",
+						+ "checking and throwing %LoggedEvent on mismatch"
+					)
+					);
+					* $comp "missing resize underlying %BufferedRenderer \
+						buffer size on adjusting renderer buffer size" $since
+						b589
+						// This would probably cause undefined behavior when \
+							underlying native view size is modified.
+					),
+					+ "function %RefreshForWidget"
+				),
+				/ @ "class %RenderWindow" $=
+				(
+					+ "call to adjusting buffer" @ "function %Refresh" $dep_from
+						"%HostRenderer::AdjustSize",
+					/ DLD "simplified implementation" ^ $dep_from
+						"%Host::RefreshForWidget"
+				),
+				/ DLD "simplified implementation" @ "static member function \
+					%WindowThread::DefaultGenerateGuard" ^ $dep_from
+					("%ystdex::make_shared_guard" @ %YBase.YStandardEx.Utility)
+			),
+			/ %HostedUI $=
+			(
+				* $dep_to "tip depending on top level window" $since b583,
+				/ DLD "simplified implementation" @ "function %ShowTopLevel"
+					!^ "%WaitForHostWindow"
+			)
+		),
+		/ %YSLib $=
+		(
+			/ @ "class %BufferedRenderer" @ %UI.YRenderer $=
+			(
+				/ "assertion" @ "function %Paint" -> "assertion"
+					@ "function %Validate",
+				/ "avoiding redundant copy when the context parameter is the \
+					context of the renderer buffer"
+					// This usually does not occur since there should be no \
+						parent widget normally. However, it is not forbidden.
+			),
+			/ $re(b587) %Service.TextRenderer $=
+			(
+				* $mismatch(b587) "missing" !^ "ADL"
+					@ "function template %PutString#3" $since b587,
+				/ "dispatched calls" @ "function template %PutText" !^ "ADL"
+			)
+		),
+		* $lib "wrong implementation" @ "macro %ImplUnseq" @ %YBaseMacro $since
+			b435 $=
+			// The macro %yunused can be implemented by other means like \
+				attributes, which would cause it being semantically different \
+				and possible wrong behavior.
+			(/ $revert(b435) "implemented" ^ 'static_cast<void>' ~ "%yunused")
+	),
+	/ $build "tried to make link before copy to reduce copy overhead"
+		@ "pre build steps" @ "Code::Blocks project %YSTest_MinGW32",
+	* "wrong use of 'const' after 'yconstexpr'" @ '!YB_HAS_CONSTEXPR' $effective
+		%(YFramework.(YCLib.(Host $since b489, Key $since b489), YSLib.(
+		Core.YConsole $since b585, UI.(Hover $since b572, YGUI $since b572,
+		Menu $since b537)), 'YCLib_(MinGW32)'.NLS $since b556),
+		YBase.YStandardEx.Utilities $since b586),
+		// ISO C++14 [dcl.type]/2 forbids duplicate 'const'.
+	/ DLD "merged multiple 'yunused' expressions except for template parameters"
+		$effective @ %YFramework.Helper.HostedUI,
+		// Since YSLib now guarantees no %operator, is overloaded. Note that \
+			there should no ',' between theses expressions.
+	* $comp "tip on close button never shown" @ "class %ImageControl"
+		@ %YDE.ImageBrowser.ImageControl $since b583 $dep_from
+		"tip depending on top level window",
+
+	/ DLD "simplified static assertion for cv-qualified types" ^ $dep_from
+		("%is_cv" @ %TypeTraits) $effecitve @ %(YBase.YStandardEx.Any,
+		YFramework.YSLib.YObject),
+	/ DLD
+		"simplified constant expressions with %integral_constant derived types"
+		^ "%and_" @ %(YBase.YStandardEx.(Iterator, ScopeGuard), YCLib.XCB),
+	/ DLD "simplified static assertions" ^ "%or_" @ %'YCLib_(MinGW32)'.COM,
+	/ DLD "simplified static assertions with %integral_constant derived types"
+		^ '()' ~ 'value' ($dep_from "%is_aligned_storable"
+		@ %YBase.YStandardEx.Any) $effective @ %(YBase.YStandardEx.(Algorithm,
+		Any, Functional, Iterator, Rational, Thunk, Path, Memory,
+		IntegerSequence, Cast), YFramework.(YSLib.(UI.(YStyle, YGUI, YControl),
+		Adaptor.Font, Service.(YPixel, YBlend, YStorage), Core.(YObject,
+		YGraphics, YCoreUtilities, Task)), YCLib.(XCB, HostedGUI, Video,
+		FileSystem), 'YCLib_(MinGW32)'.COM, CHRLib.(StaticMapping,
+		CharacterProcessing), YDefinition),
+		// See $2015-04 @ %Documentation::Workflow::Annual2015.
+	/ DLD "simplified noexcept exception specifications with \
+		%integral_constant derived types" ^ '()' ~ 'value' $effective
+		@ %YBase.YStandardEx.(Iterator, ScopeGuard, Utilities),
+		YFramework.YSLib.Core.YEvent),
+		// See $2015-04 @ %Documentation::Workflow::Annual2015.
+	/ $re_ex(b586) DLD "simplified noexcept exception specifications"
+		^ 'ynoexcept_spec' ~ "nested 'ynoexcept'" $effective
+		@ %YBase.YStandardEx.(Any, Examiner),
+	+ $dev $doc "option strategies" @ %Documentation.Defintions,
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ ("%yref.hpp"
+		=> "%YReference.hpp") @ %YFramework.YSLib.Adaptor,
+	* $dev $build "missing VC++ project dependencies setting"
+		@ "platform %Android"
+),
+
+b589
 (
 	/ %YFramework $=
 	(
@@ -3817,7 +4034,7 @@ b563
 				+ "member function %HostRenderer::GetBufferRef",
 				+ "XCB support" @ %HostRenderer $dep_from %YCLib.XCB $=
 				(
-					+ "support for update" @ "%XCB_EXPOSURE" @ "platforms ^%XCB"
+					+ "support for update" @ "%XCB_EXPOSE" @ "platforms ^%XCB"
 						@ "constructor %RenderWindow" $dep_from
 						%YCLib.(Platform, XCB),
 					/ @ "static function %HostLoop merged" -> "static function \

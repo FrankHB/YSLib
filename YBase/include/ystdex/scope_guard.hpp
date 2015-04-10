@@ -11,17 +11,17 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r260
+\version r275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2015-03-29 00:59 +0800
+	2015-04-10 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YStandardEx::Utilities
+	YStandardEx::ScopeGuard
 */
 
 
@@ -65,7 +65,7 @@ struct state_guard_traits<_type, _tToken, true>
 	//! \since build 586
 	//@{
 	static void
-	save(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>::value)
+	save(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>())
 	{
 		using std::swap;
 
@@ -73,7 +73,7 @@ struct state_guard_traits<_type, _tToken, true>
 	}
 
 	static void
-	restore(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>::value)
+	restore(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>())
 	{
 		using std::swap;
 
@@ -116,7 +116,7 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 
 	//! \since build 586
 	void
-	destroy() ynoexcept(is_nothrow_destructible<value_type>::value)
+	destroy() ynoexcept(is_nothrow_destructible<value_type>())
 	{
 		value.~value_type();
 	}
@@ -177,8 +177,8 @@ public:
 	//@{
 	template<typename... _tParams>
 	state_guard(condition_type cond, token_type t, _tParams&&... args)
-		ynoexcept(is_nothrow_constructible<base, token_type>::value
-		&& is_nothrow_copy_constructible<condition_type>::value
+		ynoexcept(and_<is_nothrow_constructible<base, token_type>,
+		is_nothrow_copy_constructible<condition_type>>()
 		&& noexcept(std::declval<state_guard&>()
 		.base::construct_and_save(yforward(args)...)))
 		: base(t),
@@ -187,8 +187,7 @@ public:
 		if(enabled)
 			base::construct_and_save(yforward(args)...);
 	}
-	~state_guard()
-		ynoexcept(is_nothrow_copy_constructible<condition_type>::value
+	~state_guard() ynoexcept(is_nothrow_copy_constructible<condition_type>()
 		&& noexcept(std::declval<state_guard&>().base::restore_and_destroy()))
 	{
 		if(enabled)
@@ -196,9 +195,8 @@ public:
 	}
 
 	void
-	dismiss()
-		ynoexcept(is_nothrow_copy_constructible<condition_type>::value
-		&& is_nothrow_assignable<condition_type, condition_type>::value)
+	dismiss() ynoexcept(and_<is_nothrow_copy_constructible<condition_type>,
+		is_nothrow_assignable<condition_type, condition_type>>())
 	{
 		if(enabled)
 			base::destroy();
@@ -224,10 +222,9 @@ public:
 	using base::data;
 
 	template<typename... _tParams>
-	state_guard(token_type t, _tParams&&... args)
-		ynoexcept(is_nothrow_constructible<base, token_type>::value
-		&& noexcept(std::declval<state_guard&>()
-		.base::construct_and_save(yforward(args)...)))
+	state_guard(token_type t, _tParams&&... args) ynoexcept(
+		is_nothrow_constructible<base, token_type>() && noexcept(std::declval<
+		state_guard&>().base::construct_and_save(yforward(args)...)))
 		: base(t)
 	{
 		base::construct_and_save(yforward(args)...);

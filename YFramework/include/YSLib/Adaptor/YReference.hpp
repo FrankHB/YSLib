@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yref.hpp
+/*!	\file YReference.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2671
+\version r2679
 \author FrankHB <frankhb1989@gmail.com>
-\since build 176
+\since build 590
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2014-11-15 00:03 +0800
+	2015-04-10 01:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,9 +128,9 @@ operator!=(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
 
 /*!
 \brief 解锁删除器：使用线程模型对应的互斥量和锁。
-\since build 551
+\since build 590
 */
-using platform::Threading::unlock_deleter;
+using platform::Threading::unlock_delete;
 
 
 /*!
@@ -138,9 +138,9 @@ using platform::Threading::unlock_deleter;
 \sa threading::locked_ptr
 \since build 551
 */
-template<typename _type, class _tMutex = typename unlock_deleter<>::mutex_type,
-	class _tLock = typename unlock_deleter<_tMutex>::lock_type>
-using locked_ptr = unique_ptr<_type, unlock_deleter<_tMutex, _tLock>>;
+template<typename _type, class _tMutex = typename unlock_delete<>::mutex_type,
+	class _tLock = typename unlock_delete<_tMutex>::lock_type>
+using locked_ptr = unique_ptr<_type, unlock_delete<_tMutex, _tLock>>;
 
 } // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r373
+\version r377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-03-28 00:51 +0800
+	2015-04-03 02:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_concurrency_h_ 1
 
 #include "pseudo_mutex.h" // for ystdex::result_of_t, std::declval,
-//	std::make_shared, ystdex::threading::unlock_deleter, ystdex::noncopyable;
+//	std::make_shared, ystdex::threading::unlock_delete, ystdex::noncopyable;
 #include <functional> // for std::bind, std::function;
 #include <future> // for std::packaged_task, std::future;
 #include <thread>
@@ -43,12 +43,12 @@ namespace ystdex
 
 /*!
 \brief 解锁删除器：默认使用标准库互斥量和锁。
-\sa threading::unlock_deleter
-\since build 551
+\sa threading::unlock_delete
+\since build 590
 */
 template<class _tMutex = std::mutex,
 	class _tLock = std::unique_lock<_tMutex>>
-using unlock_deleter = threading::unlock_deleter<_tMutex, _tLock>;
+using unlock_delete = threading::unlock_delete<_tMutex, _tLock>;
 
 
 /*!

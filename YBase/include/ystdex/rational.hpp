@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1975
+\version r1997
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-03-29 09:32 +0805
+	2015-04-10 02:17 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,8 +125,7 @@ quad(_type x)
 \since build 442
 */
 template<typename _type>
-struct is_normalizable
-	: integral_constant<bool, is_floating_point<_type>::value>
+struct is_normalizable : or_<is_floating_point<_type>>
 {};
 
 
@@ -163,7 +162,7 @@ template<typename _tBase = std::int32_t,
 	size_t _vFrac = std::numeric_limits<_tBase>::digits - _vInt>
 class fixed_point : public operators<YB_Impl_Rational_fp_T>
 {
-	static_assert(is_integral<_tBase>::value, "Non-integral type found.");
+	static_assert(is_integral<_tBase>(), "Non-integral type found.");
 	static_assert(_vInt < size_t(std::numeric_limits<_tBase>::digits),
 		"No sufficient fractional bits found.");
 	static_assert(_vInt + _vFrac == size_t(std::numeric_limits<_tBase>::digits),
@@ -653,10 +652,31 @@ struct common_type<_type, ystdex::YB_Impl_Rational_fp_T>
 
 
 /*!
+\brief ystdex::fixed_point 散列支持。
+\since build 590
+*/
+//@{
+template<typename>
+struct hash;
+
+template<YB_Impl_Rational_fp_PList>
+struct hash<ystdex::YB_Impl_Rational_fp_T>
+{
+	size_t
+	operator()(const ystdex::YB_Impl_Rational_fp_T& k) const
+		yimpl(ynoexcept_spec(hash<_tBase>{}(k.get())))
+	{
+		return hash<_tBase>{}(k.get());
+	}
+};
+//@}
+
+
+/*!
 \brief std::numeric_traits 的 ystdex::fixed_point 特化类型。
 \since build 260
 */
-template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
+template<YB_Impl_Rational_fp_PList>
 class numeric_limits<ystdex::YB_Impl_Rational_fp_T>
 {
 private:

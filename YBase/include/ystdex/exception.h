@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r184
+\version r192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2015-03-21 11:07 +0800
+	2015-04-09 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,12 @@
 
 namespace ystdex
 {
+
+/*!	\defgroup exceptions Exceptions
+\brief 异常类型。
+\since build 590
+*/
+
 
 /*!
 \brief 迭代处理异常。
@@ -97,7 +103,10 @@ handle_nested(_tEx& e, _func&& f)
 }
 
 
-//! \since build 475
+/*!
+\since build 475
+\ingroup exceptions
+*/
 //@{
 //! \brief 异常：不支持的操作。
 class YB_API unsupported : public std::logic_error

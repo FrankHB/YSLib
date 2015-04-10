@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r452
+\version r486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-03 22:10 +0800
+	2015-04-04 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,13 +59,17 @@ private:
 public:
 	RenderWindow(HostRenderer&, NativeWindowHandle);
 	//! \since build 548
-	RenderWindow(HostRenderer& r, Host::WindowReference wnd_ref)
-		: RenderWindow(r, wnd_ref.GetNativeHandle())
+	RenderWindow(HostRenderer& rd, Host::WindowReference wnd_ref)
+		: RenderWindow(rd, wnd_ref.GetNativeHandle())
 	{}
 
 	DefGetter(const ynothrow, HostRenderer&, Renderer, renderer)
 
-	//! \since build 387
+	/*!
+	\brief 刷新。
+	\sa HostRenderer::RefreshForWidget
+	\since build 387
+	*/
 	void
 	Refresh() override;
 };
@@ -164,6 +168,7 @@ private:
 /*!
 \brief 宿主渲染器：在宿主环境以窗口形式显示的渲染器。
 \invariant 部件的位置保持在原点。
+\invariant 本机缓冲区大小和 UI::BufferedRenderer 缓冲区大小一致。
 \since build 430
 */
 class YF_API HostRenderer : public UI::BufferedRenderer
@@ -259,8 +264,25 @@ public:
 	DefGetter(const ynothrow, UI::IWidget&, WidgetRef, widget.get())
 	DefGetterMem(const ynothrow, Window*, WindowPtr, thrd)
 
+	/*!
+	\brief 设置 BufferedRenderer 缓冲区和本机缓冲区大小。
+	\post <tt>GetContext().GetSize() == rbuf.Lock()->GetSize()</tt> 。
+	\note 可能导致原缓冲区失效。
+	\sa BufferedRenderer::SetSize
+	*/
 	void
 	SetSize(const Drawing::Size&) override;
+
+	/*!
+	\brief 调整缓冲区大小确保和视图大小一致。
+	\post <tt>GetContext().GetSize() == rbuf.Lock()->GetSize()</tt> 。
+	\post <tt>UI::GetSizeOf(widget) == GetContext().GetSize()</tt> 。
+	\return 是否发现不一致而进行调整。
+	\sa SetSize
+	\since build 590
+	*/
+	bool
+	AdjustSize();
 
 private:
 	/*!
@@ -296,9 +318,18 @@ public:
 	//@}
 
 	/*!
+	\brief 从部件刷新：更新缓冲区，必要时调整缓冲区和视图大小一致。
+	\sa AdjustSize
+	\since build 590
+	*/
+	void
+	RefreshForWidget();
+
+	/*!
 	\brief 调整和更新指定缓冲区内容至宿主窗口。
 	\note 若宿主窗口未就绪则忽略。
-	\note 宿主窗口就绪时检查部件视图和内部缓冲区，必要时调整缓冲区和视图大小一致。
+	\throw LoggedEvent 宿主窗口就绪时本机缓冲区大小和视图大小不一致。
+	\sa AdjustSize
 	\since build 558
 
 	调整宿主窗口位置，保持部件位置在原点。按内部状态同步宿主窗口大小。
@@ -312,7 +343,7 @@ public:
 	void
 	UpdateToSurface(_type& sf)
 	{
-		sf.Update(rbuf);
+		sf.Update(Deref(rbuf.Lock()));
 	}
 
 	/*!

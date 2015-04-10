@@ -11,13 +11,13 @@
 /*!	\file YStyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1111
+\version r1112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-03-25 21:52 +0800
+	2015-04-10 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -362,7 +362,7 @@ HSL::operator Color() const ynothrow
 HSV::HSV(Color c) ynothrow
 {
 	using int_type = ystdex::make_widen_int<MonoType, true>::type;
-	static_assert(std::is_signed<int_type>::value, "Invalid type found.");
+	static_assert(std::is_signed<int_type>(), "Invalid type found.");
 	// TODO: Check range by constexpr 'std::numeric_limits' members.
 	const int_type r(c.GetR()), g(c.GetG()), b(c.GetB()),
 		max_color(max(r, max(g, b))),

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r496
+\version r501
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2014-12-31 07:59 +0800
+	2015-04-10 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -324,8 +324,8 @@ template<class _iCOM1, class _iCOM2>
 inline bool
 operator==(const COMPtr<_iCOM1>& x, const COMPtr<_iCOM2>& y) ynothrow
 {
-	static_assert(std::is_base_of<_iCOM1, _iCOM2>::value
-		|| std::is_base_of<_iCOM1, _iCOM2>::value,
+	static_assert(or_<std::is_base_of<_iCOM1, _iCOM2>,
+		std::is_base_of<_iCOM1, _iCOM2>>(),
 		"'_iCOM1' and '_iCOM2' pointers must be comparable");
 
 	return x.Get() == y.Get();
@@ -367,8 +367,8 @@ template<class _iCOM1, class _iCOM2>
 inline bool
 operator<(const COMPtr<_iCOM1>& x, const COMPtr<_iCOM2>& y) ynothrow
 {
-	static_assert(std::is_base_of<_iCOM1, _iCOM2>::value
-		|| std::is_base_of<_iCOM1, _iCOM2>::value,
+	static_assert(or_<std::is_base_of<_iCOM1, _iCOM2>,
+		std::is_base_of<_iCOM1, _iCOM2>>(),
 		"'_iCOM1' and '_iCOM2' pointers must be comparable");
 
 	return x.Get() < y.Get();

@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1074
+\version r1086
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2015-03-21 09:54 +0800
+	2015-04-10 01:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ template<typename _tSrc, typename _tDst = const decay_t<_tSrc>&&>
 yconstfn _tDst
 qualify(_tSrc&& arg) ynothrow
 {
-	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>::value,
+	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
 		"Non-qualification conversion found.");
 
 	return static_cast<_tDst>(arg);
@@ -69,7 +69,7 @@ template<typename _tSrc,
 yconstfn _tDst
 unqualify(_tSrc&& arg) ynothrow
 {
-	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>::value,
+	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
 		"Non-qualification conversion found.");
 
 	return const_cast<_tDst>(arg);
@@ -123,7 +123,7 @@ template<typename _tDst, typename _tSrc>
 inline _tDst
 union_cast(_tSrc x) ynothrow
 {
-	static_assert(is_pod<_tDst>::value, "Non-POD destination type found.");
+	static_assert(is_pod<_tDst>(), "Non-POD destination type found.");
 	static_assert(sizeof(_tSrc) == sizeof(_tDst), "Incompatible types found.");
 
 	union
@@ -149,8 +149,8 @@ template<typename _pDst, class _tSrc>
 inline _pDst
 polymorphic_cast(_tSrc* x)
 {
-	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
-	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
+	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
+	static_assert(is_pointer<_pDst>(), "Non-pointer destination found.");
 
 	if(const auto p = dynamic_cast<_pDst>(x))
 		return p;
@@ -175,10 +175,10 @@ template<typename _pDst, class _tSrc>
 inline _pDst
 polymorphic_downcast(_tSrc* x) ynothrow
 {
-	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
-	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
+	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
+	static_assert(is_pointer<_pDst>(), "Non-pointer destination found.");
 	static_assert(is_base_of<_tSrc, remove_cv_t<
-		remove_pointer_t<_pDst>>>::value, "Wrong destination type found.");
+		remove_pointer_t<_pDst>>>(), "Wrong destination type found.");
 
 	yassume(dynamic_cast<_pDst>(x) == x);
 	return static_cast<_pDst>(x);
@@ -264,8 +264,8 @@ template<typename _pDst, class _tSrc>
 inline _pDst
 polymorphic_crosscast(_tSrc* x)
 {
-	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
-	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
+	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
+	static_assert(is_pointer<_pDst>(), "Non-pointer destination found.");
 
 	auto p(dynamic_cast<_pDst>(x));
 
@@ -282,7 +282,7 @@ template<typename _rDst, class _tSrc>
 yconstfn _rDst
 polymorphic_crosscast(_tSrc& x)
 {
-	static_assert(is_lvalue_reference<_rDst>::value,
+	static_assert(is_lvalue_reference<_rDst>(),
 		"Invalid destination type found.");
 
 	return *ystdex::polymorphic_crosscast<remove_reference_t<_rDst>*>(
@@ -298,7 +298,7 @@ template<typename _rDst, class _tSrc>
 yconstfn enable_if_t<!is_reference<_tSrc>::value, _rDst>
 polymorphic_crosscast(_tSrc&& x)
 {
-	static_assert(is_rvalue_reference<_rDst>::value,
+	static_assert(is_rvalue_reference<_rDst>(),
 		"Invalid destination type found.");
 
 	return std::move(ystdex::polymorphic_crosscast<_rDst&>(x));

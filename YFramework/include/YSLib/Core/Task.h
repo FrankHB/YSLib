@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r107
+\version r109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2014-10-04 15:11 +0800
+	2015-04-10 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ Renew(_fUpdater update, Priority prior = Messaging::NormalPriority)
 template<typename _fCallable>
 class GAutoTask
 {
-	static_assert(std::is_object<_fCallable>::value,
+	static_assert(std::is_object<_fCallable>(),
 		"Callable object type is needed.");
 public:
 	//! \since build 450

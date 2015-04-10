@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r903
+\version r950
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2015-03-17 06:28 +0800
+	2015-04-10 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_YPixel_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YShellDefinition
 #include <ystdex/rational.hpp>
 
 namespace YSLib
@@ -77,9 +77,9 @@ struct GPixelCompositor
 		_tSrcAlpha, _tDstAlpha>
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
-		static_assert(ystdex::is_normalizable<_tDstAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
 			"Non-normalizable destination alpha type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
 
 		return sa + da * (_tSrcAlpha(1) - sa);
@@ -100,13 +100,13 @@ struct GPixelCompositor
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
-		static_assert(ystdex::is_normalizable<_tDst>::value,
+		static_assert(ystdex::is_normalizable<_tDst>(),
 			"Non-normalizable destination type found.");
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable source type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
-		static_assert(ystdex::is_normalizable<_tAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tAlpha>(),
 			"Non-normalizable alpha type found.");
 
 		return a != _tAlpha(0) ? (s < d ? _tDst(d - sa * (d - s) / a)
@@ -128,9 +128,9 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 	static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
-		static_assert(ystdex::is_normalizable<_tDstAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
 			"Non-normalizable destination alpha type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
 
 		return sa != 0 ? _tDstAlpha(1) : da;
@@ -148,13 +148,13 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
-		static_assert(ystdex::is_normalizable<_tDst>::value,
+		static_assert(ystdex::is_normalizable<_tDst>(),
 			"Non-normalizable destination type found.");
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable source type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
-		static_assert(ystdex::is_normalizable<_tAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tAlpha>(),
 			"Non-normalizable alpha type found.");
 
 		return a != _tAlpha(0) ? (sa != _tSrcAlpha(0) ? (s < d
@@ -178,7 +178,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 	static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha)
 	{
-		static_assert(ystdex::is_normalizable<_tDstAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
 			"Non-normalizable destination alpha type found.");
 
 		return _tDstAlpha(1);
@@ -187,7 +187,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 	static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha)
 	{
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
 
 		return CompositeAlphaOver(da);
@@ -209,7 +209,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 	static yconstfn _tSrc
 	CompositeComponentOver(_tSrc s)
 	{
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable source type found.");
 
 		return s;
@@ -219,11 +219,11 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 	static yconstfn _tSrc
 	CompositeComponentOver(_tDst, _tSrc s, _tSrcAlpha, _tAlpha)
 	{
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable destination type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
-		static_assert(ystdex::is_normalizable<_tAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tAlpha>(),
 			"Non-normalizable alpha type found.");
 
 		return CompositeComponentOver(s);
@@ -245,9 +245,9 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 	static yconstfn _tSrcAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
-		static_assert(ystdex::is_normalizable<_tDstAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
 			"Non-normalizable destination alpha type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
 
 		return da != 0 ? _tSrcAlpha(1) : sa;
@@ -265,13 +265,13 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
-		static_assert(ystdex::is_normalizable<_tDst>::value,
+		static_assert(ystdex::is_normalizable<_tDst>(),
 			"Non-normalizable destination type found.");
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable source type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
-		static_assert(ystdex::is_normalizable<_tAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tAlpha>(),
 			"Non-normalizable alpha type found.");
 
 		return a != _tAlpha(0) ? GPixelCompositor<0, _vSrcAlphaBits>
@@ -306,11 +306,11 @@ struct GPixelCompositor<0, _vSrcAlphaBits> : private GPixelCompositor<2, 0>
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
 	{
-		static_assert(ystdex::is_normalizable<_tDst>::value,
+		static_assert(ystdex::is_normalizable<_tDst>(),
 			"Non-normalizable destination type found.");
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable source type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
 
 		return s < d ? _tDst(d - sa * (d - s)) : _tDst(sa * (s - d) + d);
@@ -320,7 +320,7 @@ struct GPixelCompositor<0, _vSrcAlphaBits> : private GPixelCompositor<2, 0>
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha)
 	{
-		static_assert(ystdex::is_normalizable<_tAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tAlpha>(),
 			"Non-normalizable alpha type found.");
 
 		return CompositeComponentOver(d, s, sa);
@@ -348,11 +348,11 @@ struct GPixelCompositor<0, 1> : private GPixelCompositor<2, 0>
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
 	{
-		static_assert(ystdex::is_normalizable<_tDst>::value,
+		static_assert(ystdex::is_normalizable<_tDst>(),
 			"Non-normalizable destination type found.");
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable source type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
 
 		return sa != 0 ? _tDst(s) : _tDst(d);
@@ -362,7 +362,7 @@ struct GPixelCompositor<0, 1> : private GPixelCompositor<2, 0>
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha)
 	{
-		static_assert(ystdex::is_normalizable<_tAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tAlpha>(),
 			"Non-normalizable alpha type found.");
 
 		return CompositeComponentOver(d, s, sa);
@@ -392,9 +392,9 @@ struct GPixelCompositor<1, 1>
 	static yconstfn _tDstAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
-		static_assert(ystdex::is_normalizable<_tDstAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tDstAlpha>(),
 			"Non-normalizable destination alpha type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
 
 		return sa != 0 || da != 0 ? _tDstAlpha(1) : _tDstAlpha(0);
@@ -413,13 +413,13 @@ struct GPixelCompositor<1, 1>
 	static yconstfn _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
-		static_assert(ystdex::is_normalizable<_tDst>::value,
+		static_assert(ystdex::is_normalizable<_tDst>(),
 			"Non-normalizable destination type found.");
-		static_assert(ystdex::is_normalizable<_tSrc>::value,
+		static_assert(ystdex::is_normalizable<_tSrc>(),
 			"Non-normalizable source type found.");
-		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tSrcAlpha>(),
 			"Non-normalizable source alpha type found.");
-		static_assert(ystdex::is_normalizable<_tAlpha>::value,
+		static_assert(ystdex::is_normalizable<_tAlpha>(),
 			"Non-normalizable alpha type found.");
 
 		return a != _tAlpha(0) ? GPixelCompositor<0, 1>
@@ -542,7 +542,7 @@ template<size_t _vSrcAlphaBits, typename _tPixel, typename _tSrcAlphaInt>
 yconstfn _tPixel
 Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+	static_assert(std::is_integral<_tSrcAlphaInt>(),
 		"Invalid integer source alpha type found.");
 
 	return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
@@ -554,7 +554,7 @@ template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
 yconstfn RGBA<5, 5, 5, 1>
 Blend(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s, _tSrcAlphaInt sa)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+	static_assert(std::is_integral<_tSrcAlphaInt>(),
 		"Invalid integer source alpha type found.");
 
 	return BlendCore<_vSrcAlphaBits>(d, s, sa) | 1 << 15;
@@ -576,7 +576,7 @@ template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 yconstfn _tPixel
 BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+	static_assert(std::is_integral<_tSrcAlphaInt>(),
 		"Invalid integer source alpha type found.");
 	using namespace ystdex;
 	using pixd = make_fixed_t<_vDstAlphaBits>;
@@ -594,7 +594,7 @@ yconstfn RGBA<5, 5, 5, 1>
 BlendAlpha(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s,
 	_tSrcAlphaInt sa)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+	static_assert(std::is_integral<_tSrcAlphaInt>(),
 		"Invalid integer source alpha type found.");
 	using namespace ystdex;
 	using pixd = make_fixed_t<_vDstAlphaBits>;
@@ -621,9 +621,9 @@ template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 yconstfn _tPixel
 Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa, _tAlphaInt a)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+	static_assert(std::is_integral<_tSrcAlphaInt>(),
 		"Invalid integer source alpha type found.");
-	static_assert(std::is_integral<_tAlphaInt>::value,
+	static_assert(std::is_integral<_tAlphaInt>(),
 		"Invalid integer result alpha type found.");
 
 	return Color(CompositeComponent<_vDstAlphaBits, _vSrcAlphaBits>(d.GetR(),
@@ -641,9 +641,9 @@ yconstfn RGBA<5, 5, 5, 1>
 Composite(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s,
 	_tSrcAlphaInt sa, _tAlphaInt a)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+	static_assert(std::is_integral<_tSrcAlphaInt>(),
 		"Invalid integer source alpha type found.");
-	static_assert(std::is_integral<_tAlphaInt>::value,
+	static_assert(std::is_integral<_tAlphaInt>(),
 		"Invalid integer alpha type found.");
 
 	return BlendCore<_vSrcAlphaBits>(d, s, sa) | ((a != 0) ? 1 << 15 : 0);

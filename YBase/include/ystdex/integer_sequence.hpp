@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r280
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-03-31 20:07 +0800
+	2015-04-09 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,44 +206,66 @@ using vfold = vseq::fold<_fBinary, std::integral_constant<size_t, _vState>,
 
 
 /*!
-\ingroup meta_operations
-\since build 303
+\ingroup meta_functions
+\since build 590
 */
 //@{
 //! \brief 取整数序列的自然数后继。
 //@{
-template<class>
+template<typename _tInt, _tInt, class>
 struct make_successor;
 
-template<class _tSeq>
-using make_successor_t = typename make_successor<_tSeq>::type;
+template<typename _tInt, _tInt _vBase, class _tSeq>
+using make_successor_t = typename make_successor<_tInt, _vBase, _tSeq>::type;
 
-//! \since build 589
-template<typename _tInt, _tInt... _vSeq>
-struct make_successor<integer_sequence<_tInt, _vSeq...>>
+template<typename _tInt, _tInt _vBase, _tInt... _vSeq>
+struct make_successor<_tInt, _vBase, integer_sequence<_tInt, _vSeq...>>
 {
-	using type = integer_sequence<_tInt, _vSeq..., sizeof...(_vSeq)>;
+private:
+	using common_t = typename std::common_type<size_t, _tInt>::type;
+
+public:
+	// XXX: Conversion to '_tInt' might be implementation-defined.
+	using type
+		= integer_sequence<_tInt, _vSeq..., static_cast<_tInt>(static_cast<
+		common_t>(_vBase) + static_cast<common_t>(sizeof...(_vSeq)))>;
 };
 //@}
 
 
-//! \brief 取自然数变量标记序列。
+//! \brief 取皮亚诺公理决定的整数序列。
 //@{
-template<typename, size_t>
-struct make_natural_sequence;
+template<typename _tInt, _tInt, size_t>
+struct make_peano_sequence;
 
-template<typename _tInt, size_t _vN>
-struct make_natural_sequence
+//! \since build 590
+template<typename _tInt, _tInt _vBase, size_t _vN>
+using make_peano_sequence_t
+	= typename make_peano_sequence<_tInt, _vBase, _vN>::type;
+
+template<typename _tInt, _tInt _vBase, size_t _vN>
+struct make_peano_sequence
 {
-	using type = make_successor_t<
-		typename make_natural_sequence<_tInt, _vN - 1>::type>;
+	using type = make_successor_t<_tInt, _vBase,
+		make_peano_sequence_t<_tInt, _vBase, _vN - 1>>;
 };
 
-template<typename _tInt>
-struct make_natural_sequence<_tInt, 0>
+template<typename _tInt, _tInt _vBase>
+struct make_peano_sequence<_tInt, _vBase, 0>
 {
 	using type = integer_sequence<_tInt>;
 };
+//@}
+
+
+//! \brief 取自然数序列。
+//@{
+template<typename _tInt, size_t _vN>
+using make_natural_sequence = make_peano_sequence<_tInt, 0, _vN>;
+
+template<typename _tInt, size_t _vN>
+using make_natural_sequence_t
+	= typename make_natural_sequence<_tInt, _vN>::type;
 //@}
 //@}
 
@@ -258,13 +280,13 @@ using std::index_sequence_for;
 //@}
 #else
 /*!
-\ingroup meta_operations
+\ingroup metafunctions
 \see ISO C++14 20.5[intseq] 。
 \since build 589
 */
 //@{
 template<typename _tInt, size_t _vN>
-using make_integer_sequence = typename make_natural_sequence<_tInt, _vN>::type;
+using make_integer_sequence = make_natural_sequence_t<_tInt, _vN>;
 
 template<size_t _vN>
 using make_index_sequence = make_integer_sequence<size_t, _vN>;

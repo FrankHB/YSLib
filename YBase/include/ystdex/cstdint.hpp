@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r194
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-03-22 20:08 +0800
+	2015-04-09 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ namespace ystdex
 {
 
 /*!
-\ingroup meta_operations
+\ingroup unary_type_traits
 \brief 取指定整数类型的位宽度。
 \since build 260
 */
@@ -45,7 +45,7 @@ struct integer_width : integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
 
 
 /*!
-\ingroup meta_operations
+\ingroup transformation_traits
 \brief 取指定整数类型和条件表达式对应的有符号或无符号整数类型。
 \since build 260
 */
@@ -164,7 +164,7 @@ struct make_widen_int<std::uint64_t, _bSigned>
 
 
 /*!
-\ingroup meta_operations
+\ingroup metafunctions
 \brief 模算术特性：取得不超过模值的最大值。
 \note 不保证值是整数，因此不从 std::integral_constant 派生。
 \note 模值 0 表示模为平凡值 1 或不支持模算术。

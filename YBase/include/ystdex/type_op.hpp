@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1366
+\version r1406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-03-28 22:51 +0800
+	2015-04-10 01:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,6 +162,7 @@ using std::result_of;
 
 /*!	\defgroup template_meta_programing Template Meta Programing
 \brief 模板元编程。
+\note 以下类别中的接口包括类模板和对应的别名模板。
 \since build 288
 */
 
@@ -177,8 +178,15 @@ using std::result_of;
 \since build 288
 */
 
-/*!	\defgroup type_traits_operations Type Traits Operations
+/*!	\defgroup metafunctions Metafunctions
 \ingroup meta_operations
+\brief 元函数。
+\see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/metafunction.html 。
+\since build 333
+*/
+
+/*!	\defgroup type_traits_operations Type Traits Operations
+\ingroup metafunctions
 \brief 类型特征操作。
 \since build 306
 */
@@ -197,16 +205,16 @@ using std::result_of;
 \since build 306
 */
 
-/*!	\defgroup metafunctions Metafunctions
-\ingroup meta_operations
-\brief 元函数。
-\see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/metafunction.html 。
-\since build 333
+/*!	\defgroup transformation_traits Binary Type Trait
+\ingroup type_traits_operations
+\brief 变换类型特征。
+\see ISO C++11 20.9.1[meta.rqmts] 。
+\since build 590
 */
 
 
 /*!
-\ingroup type_traits_operations
+\ingroup transformation_traits
 \brief ISO C++ 14 兼容类型操作别名。
 \todo 条件编译：尽可能使用语言实现。
 */
@@ -344,8 +352,18 @@ struct not_ : integral_constant<bool, !_b::value>
 //@}
 
 
+//! \ingroup unary_type_traits
+//@{
 /*!
-\ingroup unary_type_traits
+\brief 判断指定类型是否为 const 或 volatile 类型。
+\since build 590
+*/
+template<typename _type>
+struct is_cv : or_<is_const<_type>, is_volatile<_type>>
+{};
+
+
+/*!
 \brief 判断指定类型是否可作为返回值类型。
 \note 即排除数组类型、抽象类类型和函数类型的所有类型。
 \see ISO C++11 8.3.5/8 和 ISO C++11 10.4/3 。
@@ -358,7 +376,6 @@ struct is_returnable
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断指定类型是否已退化。
 \since build 529
 */
@@ -368,7 +385,6 @@ struct is_decayed : or_<is_same<decay_t<_type>, _type>>
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断指定类型是否是类类型。
 \since build 588
 */
@@ -379,7 +395,6 @@ struct is_class_type
 
 
 /*!
-\ingroup unary_type_trait
 \brief 判断指定类型是否是指向类类型对象的指针。
 \since build 333
 */
@@ -390,7 +405,6 @@ struct is_class_pointer
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断指定类型是否是类类型左值引用。
 \since build 333
 */
@@ -401,7 +415,6 @@ struct is_lvalue_class_reference
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断指定类型是否是类类型右值引用。
 \since build 333
 */
@@ -412,7 +425,6 @@ struct is_rvalue_class_reference
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断指定类型是否是 POD struct 。
 \see ISO C++11 9/10 。
 \since build 333
@@ -423,7 +435,6 @@ struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断指定类型是否是 POD union 。
 \see ISO C++11 9/10 。
 \since build 333
@@ -431,10 +442,12 @@ struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
 template<typename _type>
 struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
 {};
+//@}
 
 
+//! \ingroup binary_type_traits
+//@{
 /*!
-\ingroup binary_type_traits
 \brief 判断指定类型之间是否可转换。
 \since build 575
 */
@@ -445,7 +458,6 @@ struct is_interoperable
 
 
 /*!
-\ingroup binary_type_traits
 \brief 判断指定类型之间是否协变。
 \warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
 \since build 447
@@ -456,7 +468,6 @@ struct is_covariant : is_convertible<_tFrom, _tTo>
 
 
 /*!
-\ingroup binary_type_traits
 \brief 判断指定类型之间是否逆变。
 \warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
 \since build 447
@@ -464,6 +475,7 @@ struct is_covariant : is_convertible<_tFrom, _tTo>
 template<typename _tFrom, typename _tTo>
 struct is_contravariant : is_convertible<_tTo, _tFrom>
 {};
+//@}
 
 
 namespace details
@@ -583,7 +595,7 @@ YB_TYPE_OP_TEST_2(has_subscription, !is_void<decltype(std::declval<_type>()[
 template<class _type>
 struct have_nonempty_virtual_base
 {
-	static_assert(std::is_class<_type>::value,
+	static_assert(is_class<_type>(),
 		"Non-class type found @ ystdex::has_nonempty_virtual_base;");
 
 private:
@@ -617,8 +629,7 @@ public:
 template<class _type1, class _type2>
 struct have_common_nonempty_virtual_base
 {
-	static_assert(std::is_class<_type1>::value
-		&& std::is_class<_type2>::value,
+	static_assert(and_<is_class<_type1>, is_class<_type2>>(),
 		"Non-class type found @ ystdex::has_common_nonempty_virtual_base;");
 
 private:

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Mutex.h
 \ingroup YCLib
 \brief 互斥量。
-\version r78
+\version r81
 \author FrankHB <frankhb1989@gmail.com>
 \since build 551
 \par 创建时间:
 	2014-11-04 05:17:14 +0800
 \par 修改时间:
-	2014-11-05 14:30 +0800
+	2015-04-03 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,8 @@ using YCL_Mutex_Namespace::try_lock;
 namespace Threading
 {
 
-using YCL_Threading_Namespace::unlock_deleter;
+//! \since build 590
+using YCL_Threading_Namespace::unlock_delete;
 using YCL_Threading_Namespace::locked_ptr;
 
 } // namespace Threading;

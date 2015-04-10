@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r733
+\version r735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-03-21 13:49 +0800
+	2015-04-10 01:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -479,7 +479,7 @@ to_string(const path<_tSeqCon, _tNorm>& pth,
 	const typename _tSeqCon::value_type& seperator = &to_array<
 	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
 {
-	static_assert(is_object<typename _tSeqCon::value_type>::value,
+	static_assert(is_object<typename _tSeqCon::value_type>(),
 		"Invalid type found.");
 
 	if(pth.empty())
@@ -505,7 +505,7 @@ typename _tSeqCon::value_type
 to_string_d(const path<_tSeqCon, _tNorm>& pth, typename string_traits<typename
 	_tSeqCon::value_type>::value_type delimiter = '/')
 {
-	static_assert(is_object<typename _tSeqCon::value_type>::value,
+	static_assert(is_object<typename _tSeqCon::value_type>(),
 		"Invalid type found.");
 	typename _tSeqCon::value_type res;
 

@@ -11,7 +11,7 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13025
+\version r13787
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
@@ -651,6 +651,774 @@ $header Caret
 } // $dir YSLib;
 
 } // $dir YFramework;
+
+///
+
+// Options strategies.
+// Compiler options based on implemantion of GCC.
+
+// TODO: For options supported by implementation other than GCC/Clang++.
+// TODO: Check Clang implementation to get full list of options.
+
+$options $tags_format($tgroup, ...) $=
+(
+	$warning;
+		// Warnings.
+	$impl(...);
+		// Usable for implementations.
+	$enabled_by(.)
+		// Enabled by specified modes so no need to specify explicitly.
+	$tgroup $default;
+		// These options are not needed to specify and should not be reverted.
+	$tgroup $pedantic;
+		// Pedantic options, intended by default.
+	$tgroup $intended;
+		// Intended options.
+	$tgroup $undoc;
+		// Undocumented. Used only for test.
+	$tgroup $ignored;
+		// No longer effective and should not be used in general.
+	$tgroup $compatible_superseded;
+		// Preferred to use other equivalent options to gain better compatibility.
+	$tgroup $test_only;
+		// Used only for test
+	$tgroup $TBD;
+		// Furthur analysis to be done. Currently used only for test.
+	$tgroup $unintended;
+		// Avoided for clear reasons.
+	$tgroup $lang_only(...);
+		// Only listed languages supported, so not suited for other languagues.
+);
+
+$options $default $impl("GCC", "Clang") $=
+[[
+	// Form gcc/common.opt.
+	fexceptions
+	Common Report Var(flag_exceptions) Optimization
+		// Default to supported implementations.
+	Wcoverage-mismatch
+	Common Var(warn_coverage_mismatch) Init(1) Warning
+	// From gcc/c-family/c.opt.
+	frtti
+	C++ ObjC++ Optimization Var(flag_rtti) Init(1)
+	Wbuiltin-macro-redefined
+	C ObjC C++ ObjC++ CPP(warn_builtin_macro_redefined) CppReason(CPP_W_BUILTIN_MACRO_REDEFINED) Var(cpp_warn_builtin_macro_redefined) Init(1) Warning
+	Wint-conversion
+	C ObjC Var(warn_int_conversion) Init(1) Warning
+	Wint-to-pointer-cast
+	C ObjC C++ ObjC++ Var(warn_int_to_pointer_cast) Init(1) Warning
+	Winvalid-offsetof
+	C++ ObjC++ Var(warn_invalid_offsetof) Init(1) Warning
+	Wpacked-bitfield-compat
+	C ObjC C++ ObjC++ Var(warn_packed_bitfield_compat) Init(-1) Warning
+		// The layout may change since GCC 4.4.
+	Wpointer-to-int-cast
+	C ObjC Var(warn_pointer_to_int_cast) Init(1) Warning
+	Wproperty-assign-default
+	ObjC ObjC++ Var(warn_property_assign_default) Init(1) Warning
+	Wpragmas
+	C ObjC C++ ObjC++ Var(warn_pragmas) Init(1) Warning
+	Wsync-nand
+	C C++ Var(warn_sync_nand) Init(1) Warning
+		// These functions changed semantics in GCC 4.4. 
+]],
+/ $options $default $impl("gcc", "g++", !"clang", !"clang++") $=
+[[
+	// Form gcc/common.opt.
+	funsafe-loop-optimizations
+	Common Report Var(flag_unsafe_loop_optimizations) Optimization
+	Wunsafe-loop-optimizations
+	Common Var(warn_unsafe_loop_optimizations) Warning
+	// From gcc/c-family/c.opt.
+	Wnon-template-friend
+	C++ ObjC++ Var(warn_nontemplate_friend) Init(1) Warning
+	Wpmf-conversions
+	C++ ObjC++ Var(warn_pmf2ptr) Init(1) Warning
+]],
+$options $pedantic $=
+[[
+	// Form gcc/common.opt.
+	-pedantic
+	Common Alias(Wpedantic)
+		// Superseded by 'pedantic'.
+	-pedantic-errors
+	Common Alias(pedantic-errors)
+		// Superseded by 'pedantic-errors'.
+	Wpedantic
+	Common Var(pedantic) Init(0) Warning
+		// Superseded by 'pedantic'.
+	pedantic
+	Common Alias(Wpedantic)
+	pedantic-errors
+	Common Var(flag_pedantic_errors)
+]],
+$options $intended $warning $impl("gcc", "clang") $=
+[[
+	// Form gcc/common.opt.
+	Wcast-align
+	Common Var(warn_cast_align) Warning
+	Wdeprecated-declarations
+	Common Var(warn_deprecated_decl) Init(1) Warning
+	Wextra
+	Common Var(extra_warnings) Warning
+	// Form gcc/c-family/c.opt.
+	Wall
+	C ObjC C++ ObjC++ Warning
+	Wdiv-by-zero
+	C ObjC C++ ObjC++ Var(warn_div_by_zero) Init(1) Warning
+	Wformat-security
+	C ObjC C++ ObjC++ Var(warn_format_security) Warning LangEnabledBy(C ObjC C++ ObjC++,Wformat=, warn_format >= 2, 0)
+	Wformat-y2k
+	C ObjC C++ ObjC++ Var(warn_format_y2k) Warning LangEnabledBy(C ObjC C++ ObjC++,Wformat=,warn_format >= 2, 0)
+	Winvalid-pch
+	C ObjC C++ ObjC++ CPP(warn_invalid_pch) CppReason(CPP_W_INVALID_PCH) Var(cpp_warn_invalid_pch) Init(0) Warning
+	Wmissing-declarations
+	C ObjC C++ ObjC++ Var(warn_missing_declarations) Warning
+	Wmissing-include-dirs
+	C ObjC C++ ObjC++ CPP(warn_missing_include_dirs) CppReason(CPP_W_MISSING_INCLUDE_DIRS) Var(cpp_warn_missing_include_dirs) Init(0) Warning
+	Wpacked
+	Common Var(warn_packed) Warning
+	Wredundant-decls
+	C ObjC C++ ObjC++ Var(warn_redundant_decls) Warning
+	Wsign-promo
+	C++ ObjC++ Var(warn_sign_promo) Warning
+]],
+$options $intended $warning $impl("gcc", "g++", !"clang", !"clang++") $=
+[[
+	// Form gcc/common.opt.
+	Wtrampolines
+	Common Var(warn_trampolines) Warning
+	// Form gcc/c-family/c.opt.
+	Wdouble-promotion
+	C ObjC C++ ObjC++ Var(warn_double_promotion) Warning
+	Wformat-signedness
+	C ObjC C++ ObjC++ Var(warn_format_signedness) Warning
+		// Need gcc > 5.
+	Wlogical-op
+	C ObjC C++ ObjC++ Var(warn_logical_op) Init(0) Warning
+]],
+$options $intended $warning $impl("g++", "clang++") $=
+[[
+	// Form gcc/c-family/c.opt.
+	Wconditionally-supported
+	C++ ObjC++ Var(warn_conditionally_supported) Warning
+	Wctor-dtor-privacy
+	C++ ObjC++ Var(warn_ctor_dtor_privacy) Warning
+	Wnon-virtual-dtor
+	C++ ObjC++ Var(warn_nonvdtor) Warning LangEnabledBy(C++ ObjC++,Weffc++)
+	Woverloaded-virtual
+	C++ ObjC++ Var(warn_overloaded_virtual) Warning
+]],
+$options $intended $warning $impl("g++", !"clang++") $=
+[[
+	// Form gcc/c-family/c.opt.
+	Wstrict-null-sentinel
+	C++ ObjC++ Warning Var(warn_strict_null_sentinel)
+	Wzero-as-null-pointer-constant
+	C++ ObjC++ Var(warn_zero_as_null_pointer_constant) Warning
+]],
+$options $TBD $=
+[[
+	// common.opt
+	fabi-version=
+	Common Joined RejectNegative UInteger Var(flag_abi_version) Init(0)
+		// See comments in common.opt. GCC 5 would be preferred.
+	feliminate-unused-debug-symbols
+	Common Report Var(flag_debug_only_used_symbols)
+	feliminate-unused-debug-types
+	Common Report Var(flag_eliminate_unused_debug_types) Init(1)
+	femit-class-debug-always
+	Common Report Var(flag_emit_class_debug_always) Init(0)
+	// c.opt.
+	Wabi
+	C ObjC C++ ObjC++ LTO Var(warn_abi) Warning
+	Wabi=
+	C ObjC C++ ObjC++ LTO Joined RejectNegative UInteger Warning
+	Wabi-tag
+	C++ ObjC++ Var(warn_abi_tag) Warning
+	fabi-compat-version=
+	C++ ObjC++ Joined RejectNegative UInteger Var(flag_abi_compat_version) Init(-1)
+]],
+$options $undoc $impl("GCC") $=
+[[
+	// From gcc/common.opt.
+	Wlarger-than-
+	Common RejectNegative Joined Warning Undocumented Alias(Wlarger-than=)
+	export-dynamic
+	Driver Undocumented
+	fuse-linker-plugin
+	Common Undocumented Var(flag_use_linker_plugin)
+	// From gcc/c-family/c.opt.
+	-preprocess
+	C ObjC C++ ObjC++ Undocumented Alias(E)
+	E
+	C ObjC C++ ObjC++ Undocumented Var(flag_preprocess_only)
+	Wpsabi
+	C ObjC C++ ObjC++ LTO Var(warn_psabi) Init(1) Undocumented LangEnabledBy(C ObjC C++ ObjC++,Wabi)
+	Wimport
+	C ObjC C++ ObjC++ Undocumented Ignore
+	fbuilding-libgcc
+	C ObjC C++ ObjC++ Undocumented Var(flag_building_libgcc)
+	ftemplate-depth-
+	C++ ObjC++ Joined RejectNegative Undocumented Alias(ftemplate-depth=)
+	lang-asm
+	C Undocumented RejectDriver
+]],
+$options $ignored $impl("GCC") $=
+[[
+	// Form gcc/common.opt.
+	Wunreachable-code
+	Common Ignore
+		//Note for GCC, it is only used for compatibility and would be ignored.
+	fargument-alias
+	Common Ignore
+	fargument-noalias
+	Common Ignore
+	fargument-noalias-global
+	Common Ignore
+	fargument-noalias-anything
+	Common Ignore
+	fcse-skip-blocks
+	Common Ignore
+	fforce-addr
+	Common Ignore
+	floop-flatten
+	Common Ignore
+	fipa-matrix-reorg
+	Common Ignore
+	fipa-struct-reorg
+	Common Ignore
+	floop-optimize
+	Common Ignore
+	foptimize-register-move
+	Common Ignore
+	fregmove
+	Common Ignore
+	frerun-loop-opt
+	Common Ignore
+	fsched2-use-traces
+	Common Ignore
+	fsee
+	Common Ignore
+	fzee
+	Common Ignore
+	fstrength-reduce
+	Common Ignore
+	ftree-store-ccp
+	Common Ignore
+	ftree-store-copy-prop
+	Common Ignore
+	ftree-salias
+	Common Ignore
+	ftree-vectorizer-verbose=
+	Common Joined RejectNegative Ignore
+	ftree-vect-loop-version
+	Common Ignore
+	// From gcc/c-family/c.opt; no need to specify.
+	Wimport
+	C ObjC C++ ObjC++ Undocumented Ignore
+	Wmudflap
+	C ObjC C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fall-virtual
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	falt-external-templates
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fdefault-inline
+	C++ ObjC++ Ignore
+	fenum-int-equiv
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fexternal-templates
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fguiding-decls
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fhonor-std
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fhuge-objects
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	flabels-ok
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fmudflap
+	C ObjC C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fmudflapth
+	C ObjC C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fmudflapir
+	C ObjC C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fname-mangling-version-
+	C++ ObjC++ Joined Ignore Warn(switch %qs is no longer supported)
+	fnew-abi
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fnonnull-objects
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	foptional-diags
+	C++ ObjC++ Ignore
+	fsquangle
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fthis-is-variable
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fvtable-gc
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fvtable-thunks
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+	fxref
+	C++ ObjC++ Ignore Warn(switch %qs is no longer supported)
+]],
+$options $compatible_superseded $=
+[[
+	// From gcc/common.opt.
+	Wsuggest-attribute=noreturn
+	Common Var(warn_suggest_attribute_noreturn) Warning
+		// Superseded for Clang compatibility.
+	// From gcc/c-family/c.opt.
+	Wsuggest-attribute=format
+	C ObjC C++ ObjC++ Var(warn_suggest_attribute_format) Warning
+		// Superseded for Clang compatibility.
+]],
+$options $test_only $impl("GCC", "Clang") $=
+[[
+	// From gcc/common.opt.
+	Wdisabled-optimization
+	Common Var(warn_disabled_optimization) Warning
+	Winline
+	Common Var(warn_inline) Warning
+	Wmissing-noreturn
+	Common Alias(Wsuggest-attribute=noreturn)
+	Wstack-protector
+	Common Var(warn_stack_protect) Warning
+		// Only used with 'fstack-protector'.
+	Wstrict-aliasing
+	Common Warning
+	Wsystem-headers
+	Common Var(warn_system_headers) Warning
+	Wvector-operation-performance
+	Common Var(warn_vector_operation_performance) Warning
+	// From gcc/c-family/c.opt.
+	Wmissing-format-attribute
+	C ObjC C++ ObjC++ Alias(Wsuggest-attribute=format)
+	Wtrigraphs
+	C ObjC C++ ObjC++ CPP(warn_trigraphs) CppReason(CPP_W_TRIGRAPHS) Var(cpp_warn_trigraphs) Init(2) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+		// See 'trigraphs'.
+	fshort-enums
+	C ObjC C++ ObjC++ LTO Optimization Var(flag_short_enums)
+		// Use default ABI as possible.
+	fshort-wchar
+	C ObjC C++ ObjC++ LTO Optimization Var(flag_short_wchar)
+		// Ditto.
+	fsigned-bitfields
+	C ObjC C++ ObjC++ Var(flag_signed_bitfields) Init(1)
+		// Ditto.
+	fsigned-char
+	C ObjC C++ ObjC++ LTO Var(flag_signed_char)
+		// Ditto.
+	fstack-protector
+	Common Report Var(flag_stack_protect, 1)
+	fstats
+	C++ ObjC++ Var(flag_detailed_statistics)
+		// For compiler test.
+	trigraphs
+	C ObjC C++ ObjC++
+		// Trigraphs are normally not used and are possibly going to be removed in C++17.
+]],
+/ $options $test_only $impl("gcc", !"clang") $=
+[[
+	// From gcc/common.opt.
+	Wmissing-format-attribute
+	C ObjC C++ ObjC++ Alias(Wsuggest-attribute=format)
+	Wstack-usage=
+	Common Joined RejectNegative UInteger Var(warn_stack_usage) Init(-1) Warning
+	Wsuggest-attribute=const
+	Common Var(warn_suggest_attribute_const) Warning
+	Wsuggest-attribute=pure
+	Common Var(warn_suggest_attribute_pure) Warning
+	Wsuggest-final-types
+	Common Var(warn_suggest_final_types) Warning
+	Wsuggest-final-methods
+	Common Var(warn_suggest_final_methods) Warning
+	fshort-double
+	C ObjC C++ ObjC++ LTO Optimization Var(flag_short_double)
+		// Use default ABI as possible.
+	fsized-deallocation
+	C++ ObjC++ Var(flag_sized_deallocation) Init(-1)
+		// Use only after C++14 is explicitly used.
+]],
+$options $TBD $impl("GCC", "Clang"?) $=
+[[
+	// From gcc/common.opt.
+	Wcast-align
+	Common Var(warn_cast_align) Warning
+		// CHRLib to be resolved.
+	// From gcc/c-family/c.opt.
+	Wnoexcept
+	C++ ObjC++ Var(warn_noexcept) Warning
+		// C++ lambda with noexcept?
+	Wnormalized=<id|nfc|nfkc>?
+]],
+$options $TBD $impl(!"GCC", "Clang") $=
+[[
+	Wconsumed
+	Wstring-plus-int
+	Wtype-safety
+	Wunavailable-declarations
+	Wunsupported-friend
+	Wunsupported-visibility
+]],
+$options $impl("GCC", "Clang"?) $enabled_by("pedantic modes") $=
+[[
+	// From gcc/c-family/c.opt.
+	-pedantic
+	C ObjC C++ ObjC++ Alias(pedantic)
+	Wendif-labels
+	C ObjC C++ ObjC++ CPP(warn_endif_labels) CppReason(CPP_W_ENDIF_LABELS) Var(cpp_warn_endif_labels) Init(1) Warning LangEnabledBy(C ObjC C++ ObjC++,Wpedantic)
+	Wlong-long
+	C ObjC C++ ObjC++ CPP(cpp_warn_long_long) CppReason(CPP_W_LONG_LONG) Var(warn_long_long) Init(-1) Warning LangEnabledBy(C ObjC,Wc90-c99-compat)
+	Wmain
+	LangEnabledBy(C ObjC C++ ObjC++,Wpedantic, 2, 0)
+	Woverlength-strings
+	C ObjC C++ ObjC++ Var(warn_overlength_strings) Warning LangEnabledBy(C ObjC C++ ObjC++,Wpedantic)
+	Wpedantic
+	C ObjC C++ ObjC++ CPP(cpp_pedantic) CppReason(CPP_W_PEDANTIC) Warning
+		// Superseded '-pedantic' in common.opt.
+	Wpointer-arith
+	C ObjC C++ ObjC++ Var(warn_pointer_arith) Warning LangEnabledBy(C ObjC C++ ObjC++,Wpedantic)
+	Wpointer-sign
+	C ObjC Var(warn_pointer_sign) Warning LangEnabledBy(C ObjC,Wall || Wpedantic)
+	Wvariadic-macros
+	C ObjC C++ ObjC++ CPP(warn_variadic_macros) CppReason(CPP_W_VARIADIC_MACROS) Var(cpp_warn_variadic_macros) Init(0) Warning LangEnabledBy(C ObjC C++ ObjC++,Wpedantic || Wtraditional)
+	pedantic
+	C ObjC C++ ObjC++ Alias(Wpedantic)
+]],
+$options $impl("GCC", "Clang"?) $enabled_by('-Wall') $=
+[[
+	// From gcc/c-family/c.opt.
+	-all-warnings
+	C ObjC C++ ObjC++ Warning Alias(Wall)
+	Waddress
+	C ObjC C++ ObjC++ Var(warn_address) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Warray-bounds
+	LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Warray-bounds=
+	LangEnabledBy(C ObjC C++ ObjC++,Wall,1,0)
+	Wbool-compare
+	C ObjC C++ ObjC++ Var(warn_bool_compare) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wc++0x-compat
+	C++ ObjC++ Var(warn_cxx0x_compat) Warning LangEnabledBy(C++ ObjC++,Wall)
+	Wc++11-compat
+	C++ ObjC++ Warning Alias(Wc++0x-compat)
+	Wc++14-compat
+	C++ ObjC++ Var(warn_cxx14_compat) Warning LangEnabledBy(C++ ObjC++,Wall)
+	Wchar-subscripts
+	C ObjC C++ ObjC++ Var(warn_char_subscripts) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wchkp
+	C ObjC C++ ObjC++ Var(warn_chkp) Warning EnabledBy(Wall)
+	Wcomment,C ObjC C++ ObjC++ CPP(warn_comments) CppReason(CPP_W_COMMENTS) Var(cpp_warn_comment) Init(0) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wdelete-non-virtual-dtor
+	C++ ObjC++ Var(warn_delnonvdtor) Warning LangEnabledBy(C++ ObjC++,Wall || Weffc++)
+	Wenum-compare
+	C ObjC C++ ObjC++ Var(warn_enum_compare) Init(-1) Warning LangEnabledBy(C ObjC,Wall || Wc++-compat)
+	Wformat=
+	C ObjC C++ ObjC++ Joined RejectNegative UInteger Var(warn_format) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall, 1, 0)
+	Winit-self
+	C ObjC C++ ObjC++ Var(warn_init_self) Warning LangEnabledBy(C++ ObjC++,Wall)
+	Wimplicit
+	C ObjC Var(warn_implicit) Warning LangEnabledBy(C ObjC,Wall)
+	Wlogical-not-parentheses
+	C ObjC C++ ObjC++ Var(warn_logical_not_paren) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wmain
+	C ObjC C++ ObjC++ Var(warn_main) Init(-1) Warning LangEnabledBy(C ObjC,Wall, 2, 0)
+	Wmemset-transposed-args
+	C ObjC C++ ObjC++ Var(warn_memset_transposed_args) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wmissing-braces
+	C ObjC C++ ObjC++ Var(warn_missing_braces) Warning LangEnabledBy(C ObjC,Wall)
+	Wsizeof-pointer-memaccess
+	C ObjC C++ ObjC++ Var(warn_sizeof_pointer_memaccess) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wswitch
+	C ObjC C++ ObjC++ Var(warn_switch) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wnarrowing
+	C ObjC C++ ObjC++ Warning Var(warn_narrowing) Init(-1) LangEnabledBy(C++ ObjC++,Wall || Wc++0x-compat)
+	Wnonnull
+	C ObjC C++ ObjC++ LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wopenmp-simd
+	C C++ Var(warn_openmp_simd) Warning LangEnabledBy(C C++,Wall)
+	Wparentheses
+	C ObjC C++ ObjC++ Var(warn_parentheses) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wpointer-sign
+	C ObjC Var(warn_pointer_sign) Warning LangEnabledBy(C ObjC,Wall || Wpedantic)
+	Wreorder
+	C++ ObjC++ Var(warn_reorder) Warning LangEnabledBy(C++ ObjC++,Wall)
+	Wreturn-type
+	C ObjC C++ ObjC++ Var(warn_return_type) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wsequence-point
+	C ObjC C++ ObjC++ Var(warn_sequence_point) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wsign-compare
+	C ObjC C++ ObjC++ Var(warn_sign_compare) Warning LangEnabledBy(C++ ObjC++,Wall)
+	Wstrict-aliasing=
+	C ObjC C++ ObjC++ LangEnabledBy(C ObjC C++ ObjC++,Wall, 3, 0)
+	Wstrict-overflow=
+	C ObjC C++ ObjC++ LangEnabledBy(C ObjC C++ ObjC++,Wall, 1, 0)
+	Wuninitialized
+	C ObjC C++ ObjC++ LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wmaybe-uninitialized
+	C ObjC C++ ObjC++ LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wunknown-pragmas
+	C ObjC C++ ObjC++ Warning Var(warn_unknown_pragmas) LangEnabledBy(C ObjC C++ ObjC++,Wall, 1, 0)
+	Wunused
+	C ObjC C++ ObjC++ LangEnabledBy(C ObjC C++ ObjC++,Wall)
+	Wvolatile-register-var
+	C ObjC C++ ObjC++ Var(warn_volatile_register_var) Warning LangEnabledBy(C ObjC C++ ObjC++,Wall)
+]],
+$options $impl("GCC, "Clang"?) $enabled_by('-Wextra') $=
+[[
+	// From gcc/common.opt.
+	-extra-warnings
+	Common Warning Alias(Wextra)
+	W
+	Common RejectNegative Warning Alias(Wextra)
+	This switch is deprecated; use -Wextra instead
+	Wtype-limits
+	Common Var(warn_type_limits) Warning EnabledBy(Wextra)
+	Wuninitialized
+	Common Var(warn_uninitialized) Warning EnabledBy(Wextra)
+	Wunused-but-set-parameter
+	Common Var(warn_unused_but_set_parameter) Warning EnabledBy(Wunused && Wextra)
+	Wunused-parameter
+	Common Var(warn_unused_parameter) Warning EnabledBy(Wunused && Wextra)
+	// From gcc/c-family/c.opt.
+	Wclobbered
+	C ObjC C++ ObjC++ Var(warn_clobbered) Warning EnabledBy(Wextra)
+	Wempty-body
+	C ObjC C++ ObjC++ Var(warn_empty_body) Warning EnabledBy(Wextra)
+	Wignored-qualifiers
+	C C++ Var(warn_ignored_qualifiers) Warning EnabledBy(Wextra)
+	Wmissing-field-initializers
+	C ObjC C++ ObjC++ Var(warn_missing_field_initializers) Warning EnabledBy(Wextra)
+	Wsized-deallocation
+	C++ ObjC++ Var(warn_sized_deallocation) Warning EnabledBy(Wextra)
+	Wmissing-parameter-type
+	C ObjC Var(warn_missing_parameter_type) Warning EnabledBy(Wextra)
+	Wold-style-declaration
+	C ObjC Var(warn_old_style_declaration) Warning EnabledBy(Wextra)
+	Woverride-init
+	C ObjC Var(warn_override_init) Warning EnabledBy(Wextra)
+]],
+$options $warning $impl("GCC") $enabled_by("others") $=
+[[
+	// From gcc/common.opt.
+	Wunused-but-set-parameter
+	Common Var(warn_unused_but_set_parameter) Warning EnabledBy(Wunused && Wextra)
+	Wunused-but-set-variable
+	Common Var(warn_unused_but_set_variable) Warning EnabledBy(Wunused)
+	Wunused-function
+	Common Var(warn_unused_function) Warning EnabledBy(Wunused)
+	Wunused-label
+	Common Var(warn_unused_label) Warning EnabledBy(Wunused)
+	Wunused-parameter
+	Common Var(warn_unused_parameter) Warning EnabledBy(Wunused && Wextra)
+	Wunused-value
+	Common Var(warn_unused_value) Warning EnabledBy(Wunused)
+	Wunused-variable
+	Common Var(warn_unused_variable) Warning EnabledBy(Wunused)
+	// From gcc/c-family/c.opt.
+	Wenum-compare
+	C ObjC C++ ObjC++ Var(warn_enum_compare) Init(-1) Warning LangEnabledBy(C ObjC,Wall || Wc++-compat)
+	Wnonnull
+	C ObjC C++ ObjC++ Var(warn_nonnull) Warning LangEnabledBy(C ObjC C++ ObjC++,Wformat=,warn_format >= 1,0)
+	Wshadow-ivar
+	ObjC ObjC++ Var(warn_shadow_ivar) EnabledBy(Wshadow) Init(1) Warning
+	Wunused-local-typedefs
+	C ObjC C++ ObjC++ Var(warn_unused_local_typedefs) Warning EnabledBy(Wunused)
+]],
+$options $unintended $impl("gcc", "clang"?) $=
+[[
+	// From gcc/common.opt; no need to specify.
+	Wold-style-cast
+	C++ ObjC++ Var(warn_old_style_cast) Warning
+		// Too many in freetype, libnds, etc.
+	Wpadded
+	Common Var(warn_padded) Warning
+		// Too many, not all unintended.
+	// From gcc/c-family/c.opt; no need to specify.
+	Weffc++
+	C++ ObjC++ Var(warn_ecpp) Warning
+		// Too many, not all intended.
+	Wfloat-equal
+	C ObjC C++ ObjC++ Var(warn_float_equal) Warning
+		// Not intended mostly.
+	Wformat-nonliteral
+	C ObjC C++ ObjC++ Var(warn_format_nonliteral) Warning LangEnabledBy(C ObjC C++ ObjC++,Wformat=, warn_format >= 2, 0)
+		// Not intended mostly.
+	Wlong-long
+	C ObjC C++ ObjC++ CPP(cpp_warn_long_long) CppReason(CPP_W_LONG_LONG) Var(warn_long_long) Init(-1) Warning LangEnabledBy(C ObjC,Wc90-c99-compat)
+		// Since C99/C++11 above are used, there should be no reason to forbid the use.
+	Wswitch-default
+	C ObjC C++ ObjC++ Var(warn_switch_default) Warning
+		// Not intended mostly.
+	Wswitch-enum
+	C ObjC C++ ObjC++ Var(warn_switch_enum) Warning
+		// Not intended mostly.
+	Wtraditional
+	C ObjC CPP(cpp_warn_traditional) CppReason(CPP_W_TRADITIONAL) Var(warn_traditional) Init(0) Warning
+	Wundef
+	C ObjC C++ ObjC++ CPP(warn_undef) CppReason(CPP_W_UNDEF) Var(cpp_warn_undef) Init(0) Warning
+		// Not intended by design.
+	Wunused-macros
+	C ObjC C++ ObjC++ CppReason(CPP_W_UNUSED_MACROS) Var(cpp_warn_unused_macros) Warning
+		// Not cared.
+	Wunused-result
+	C ObjC C++ ObjC++ Var(warn_unused_result) Init(1) Warning
+		// Not cared. Independent attribute 'warn_unused_result' may better.
+	Wvariadic-macros
+	C ObjC C++ ObjC++ CPP(warn_variadic_macros) CppReason(CPP_W_VARIADIC_MACROS) Var(cpp_warn_variadic_macros) Init(0) Warning LangEnabledBy(C ObjC C++ ObjC++,Wpedantic || Wtraditional)
+		// Since C99/C++11 above are used, there should be no reason to forbid the use.
+	fpermissive
+	C++ ObjC++ Var(flag_permissive)
+		// Only use portable modern language features.
+	fplan9-extensions
+	C ObjC Var(flag_plan9_extensions)
+		// Ditto.
+	traditional
+	Driver
+		// Ditto.
+	traditional-cpp
+	C ObjC C++ ObjC++
+		// Ditto.
+]],
+/ $options $lang_only("C", "ObjC") $impl("GCC") $=
+[[
+	// From gcc/c-family/c.opt; not used except for C std mode.
+	Wbad-function-cast
+	C ObjC Var(warn_bad_function_cast) Warning
+	Wc90-c99-compat
+	C ObjC CPP(cpp_warn_c90_c99_compat) CppReason(CPP_W_C90_C99_COMPAT) Var(warn_c90_c99_compat) Init(-1) Warning
+	Warn about features not present in ISO C90, but present in ISO C99
+	Wc99-c11-compat
+	C ObjC Var(warn_c99_c11_compat) Init(-1) Warning
+	Wc++-compat
+	C ObjC Var(warn_cxx_compat) CPP(warn_cxx_operator_names) CppReason(CPP_W_CXX_OPERATOR_NAMES) Init(0) Warning
+	Wdeclaration-after-statement
+	C ObjC Var(warn_declaration_after_statement) Init(-1) Warning
+	Wdesignated-init
+	C ObjC Var(warn_designated_init) Init(1) Warning
+	Wdiscarded-array-qualifiers
+	C ObjC Var(warn_discarded_array_qualifiers) Init(1) Warning
+	Wdiscarded-qualifiers
+	C ObjC Var(warn_discarded_qualifiers) Init(1) Warning
+	Werror-implicit-function-declaration
+	C ObjC RejectNegative Warning Alias(Werror=, implicit-function-declaration)
+	Wimplicit
+	C ObjC Var(warn_implicit) Warning LangEnabledBy(C ObjC,Wall)
+	Wimplicit-function-declaration
+	C ObjC Var(warn_implicit_function_declaration) Init(-1) Warning LangEnabledBy(C ObjC,Wimplicit)
+	Wimplicit-int
+	C ObjC Var(warn_implicit_int) Init(-1) Warning LangEnabledBy(C ObjC,Wimplicit)
+	Wint-conversion
+	C ObjC Var(warn_int_conversion) Init(1) Warning
+	Wjump-misses-init
+	C ObjC Var(warn_jump_misses_init) Warning LangEnabledby(C ObjC,Wc++-compat)
+	Wmissing-parameter-type
+	C ObjC Var(warn_missing_parameter_type) Warning EnabledBy(Wextra)
+	Wmissing-prototypes
+	C ObjC Var(warn_missing_prototypes) Warning
+	Wnested-externs
+	C ObjC Var(warn_nested_externs) Warning
+	Wold-style-declaration
+	C ObjC Var(warn_old_style_declaration) Warning EnabledBy(Wextra)
+	Wold-style-definition
+	C ObjC Var(warn_old_style_definition) Warning
+	Woverride-init
+	C ObjC Var(warn_override_init) Warning EnabledBy(Wextra)
+	Wpointer-sign
+	C ObjC Var(warn_pointer_sign) Warning LangEnabledBy(C ObjC,Wall || Wpedantic)
+	Wpointer-to-int-cast
+	C ObjC Var(warn_pointer_to_int_cast) Init(1) Warning
+	Wstrict-prototypes
+	C ObjC Var(warn_strict_prototypes) Warning
+	Wtraditional-conversion
+	C ObjC Var(warn_traditional_conversion) Warning
+	Wunsuffixed-float-constants
+	C ObjC Var(warn_unsuffixed_float_constants) Warning
+	fallow-parameterless-variadic-functions
+	C ObjC Var(flag_allow_parameterless_variadic_functions)
+	fgnu89-inline
+	C ObjC Var(flag_gnu89_inline) Init(-1)
+	fplan9-extensions
+	C ObjC Var(flag_plan9_extensions)
+	std=c1x
+	C ObjC Alias(std=c11)
+	std=c89
+	C ObjC Alias(std=c90)
+	std=c9x
+	C ObjC Alias(std=c99)
+		// Deprecated in favor of -std=c99.
+	std=gnu89
+	C ObjC Alias(std=gnu90)
+	std=iso9899:1990
+	C ObjC Alias(std=c90)
+	std=iso9899:199409
+	C ObjC
+	std=iso9899:1999
+	C ObjC Alias(std=c99)
+	std=iso9899:199x
+	C ObjC Alias(std=c99)
+		// Deprecated in favor of -std=iso9899:1999
+	std=iso9899:2011
+	C ObjC Alias(std=c11)
+]],
+$options $lang_only("ObjC", "ObjC++") $impl("GCC") $=
+[[
+	// From gcc/c-family/c.opt; not used.
+	Wassign-intercept
+	ObjC ObjC++ Var(warn_assign_intercept) Warning
+	Wproperty-assign-default
+	ObjC ObjC++ Var(warn_property_assign_default) Init(1) Warning
+	Wprotocol
+	ObjC ObjC++ Var(warn_protocol) Init(1) Warning
+	Wselector
+	ObjC ObjC++ Var(warn_selector) Warning
+	Wshadow-ivar
+	ObjC ObjC++ Var(warn_shadow_ivar) EnabledBy(Wshadow) Init(1) Warning
+	Wstrict-selector-match
+	ObjC ObjC++ Var(warn_strict_selector_match) Warning
+	Wundeclared-selector
+	ObjC ObjC++ Var(warn_undeclared_selector) Warning
+	fconstant-string-class=
+	ObjC ObjC++ Joined MissingArgError(no class name specified with %qs)
+	fgnu-runtime
+	ObjC ObjC++ LTO Report RejectNegative Var(flag_next_runtime,0) Init(NEXT_OBJC_RUNTIME)
+	fnext-runtime
+	ObjC ObjC++ LTO Report RejectNegative Var(flag_next_runtime)
+	fnil-receivers
+	ObjC ObjC++ Var(flag_nil_receivers) Init(1)
+	flocal-ivars
+	ObjC ObjC++ Var(flag_local_ivars) Init(1)
+	fivar-visibility=
+	ObjC ObjC++ Joined RejectNegative Enum(ivar_visibility) Var(default_ivar_visibility) Init(IVAR_VISIBILITY_PROTECTED)
+	fobjc-abi-version=
+	ObjC ObjC++ LTO Joined Report RejectNegative UInteger Var(flag_objc_abi)
+	fobjc-direct-dispatch
+	ObjC ObjC++ Var(flag_objc_direct_dispatch)
+	fobjc-exceptions
+	ObjC ObjC++ Var(flag_objc_exceptions)
+	fobjc-gc
+	ObjC ObjC++ LTO Var(flag_objc_gc)
+	fobjc-nilcheck
+	ObjC ObjC++ Var(flag_objc_nilcheck,1)
+	fobjc-sjlj-exceptions
+	ObjC ObjC++ Var(flag_objc_sjlj_exceptions) Init(-1)
+	fobjc-std=objc1
+	ObjC ObjC++ Var(flag_objc1_only)
+	freplace-objc-classes
+	ObjC ObjC++ LTO Var(flag_replace_objc_classes)
+	fzero-link
+	ObjC ObjC++ Var(flag_zero_link)
+	gen-decls
+	ObjC ObjC++ Var(flag_gen_declaration)
+	print-objc-runtime-info
+	ObjC ObjC++
+	Wassign-intercept
+	ObjC ObjC++ Var(warn_assign_intercept) Warning
+]],
+// Options from gcc/fortran/lang.opt ignored; unused.
+// Options from gcc/go/lang.opt ignored; unused.
+// Options from gcc/java/lang.opt ignored; unused.
 
 ///
 

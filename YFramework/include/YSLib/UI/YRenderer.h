@@ -11,13 +11,13 @@
 /*!	\file YRenderer.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r649
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2015-03-21 21:28 +0800
+	2015-04-04 11:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,13 +178,13 @@ public:
 
 	/*!
 	\brief 按参数绘制。
-	\pre 断言： <tt>&e.GetSender().GetRenderer() == this</tt> 。
+	\pre 间接断言： <tt>&e.GetSender().GetRenderer() == this</tt> 。
 	\note 在 Validate 后 Update 。
-	\note 不调用 wgt.IsVisible() 检查可见性。
+	\note 不检查部件可见性。
 	\since build 263
 	*/
 	Rect
-	Paint(IWidget& wgt, PaintEventArgs&&) override;
+	Paint(IWidget& wgt, PaintEventArgs&& e) override;
 
 	/*!
 	\brief 更新至指定图形设备上下文的指定点。
@@ -195,6 +195,7 @@ public:
 
 	/*!
 	\brief 验证并按需绘制。
+	\pre 断言： <tt>&sender.GetRenderer() == this</tt> 。
 	\return 验证中被刷新的区域边界。
 	\since build 293
 

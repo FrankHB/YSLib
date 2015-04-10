@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1669
+\version r1673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-01-19 08:49 +0800
+	2015-04-10 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,9 +49,9 @@ namespace platform
 
 //! \since build 538
 //@{
-static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
+static_assert(std::is_same<CHRLib::ucs2_t, char16_t>(),
 	"Wrong character type found.");
-static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
+static_assert(std::is_same<CHRLib::ucs4_t, char32_t>(),
 	"Wrong character type found.");
 #if YCL_Win32
 static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
@@ -162,10 +162,10 @@ yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 
 //! \since build 402
 //@{
-static_assert(std::is_integral<decltype(YCL_PATH_DELIMITER)>::value,
+static_assert(std::is_integral<decltype(YCL_PATH_DELIMITER)>(),
 	"Illegal type of delimiter found.");
 static_assert(std::is_array<ystdex::remove_reference_t<decltype(
-	YCL_PATH_SEPARATOR)>>::value, "Non-array type of separator found.");
+	YCL_PATH_SEPARATOR)>>(), "Non-array type of separator found.");
 //! \since build 458 as workaround for Visual C++ 2013
 #if YB_HAS_CONSTEXPR
 static_assert(ystdex::arrlen(YCL_PATH_SEPARATOR) == 2,

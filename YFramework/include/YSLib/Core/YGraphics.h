@@ -11,13 +11,13 @@
 /*!	\file YGraphics.h
 \ingroup Core
 \brief 平台无关的基础图形接口。
-\version r210
+\version r212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 18:03:31 +0800
 \par 修改时间:
-	2015-03-29 12:01 +0800
+	2015-04-10 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,9 +46,9 @@ namespace Drawing
 template<typename _tPointer, class _tSize = Size>
 class GGraphics
 {
-	static_assert(std::is_nothrow_move_constructible<_tPointer>::value,
+	static_assert(std::is_nothrow_move_constructible<_tPointer>(),
 		"Invalid pointer type found.");
-	static_assert(std::is_nothrow_copy_constructible<_tSize>::value,
+	static_assert(std::is_nothrow_copy_constructible<_tSize>(),
 		"Invalid size type found.");
 
 public:

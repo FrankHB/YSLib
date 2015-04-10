@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2155
+\version r2157
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-03-25 10:37 +0800
+	2015-04-10 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -308,7 +308,7 @@ template<typename _type>
 void
 RestrictUnsignedStrict(_type& u, _type b) ynothrow
 {
-	static_assert(std::is_unsigned<_type>::value, "Invalid type found.");
+	static_assert(std::is_unsigned<_type>(), "Invalid type found.");
 
 	if(b < u)
 		u = b;
@@ -536,7 +536,7 @@ auto
 ClonePolymorphic(const _type& p) -> decltype(&*p)
 {
 	static_assert(std::is_polymorphic<ystdex::remove_reference_t<decltype(*p)>>
-		::value, "Non-polymorphic class type found.");
+		(), "Non-polymorphic class type found.");
 
 	return p->clone();
 }
