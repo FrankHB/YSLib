@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r486
+\version r498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-04 13:13 +0800
+	2015-04-12 00:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -326,17 +326,17 @@ public:
 	RefreshForWidget();
 
 	/*!
-	\brief 调整和更新指定缓冲区内容至宿主窗口。
+	\brief 调整和更新指定缓冲区内指定边界的内容至宿主窗口。
 	\note 若宿主窗口未就绪则忽略。
 	\throw LoggedEvent 宿主窗口就绪时本机缓冲区大小和视图大小不一致。
 	\sa AdjustSize
-	\since build 558
+	\since build 591
 
 	调整宿主窗口位置，保持部件位置在原点。按内部状态同步宿主窗口大小。
 	调用宿主窗口 UpdateFrom 方法更新窗口内容。
 	*/
 	void
-	Update(Drawing::ConstBitmapPtr);
+	Update(Drawing::ConstBitmapPtr, const Drawing::Rect&);
 
 	//! \since build 387
 	template<typename _type>
@@ -345,6 +345,16 @@ public:
 	{
 		sf.Update(Deref(rbuf.Lock()));
 	}
+
+#if YCL_Win32
+	//! \since build 591
+	template<typename _type, typename... _tParams>
+	void
+	UpdateBoundsToSurface(_type& sf, _tParams&&... args)
+	{
+		sf.UpdateBounds(Deref(rbuf.Lock()), yforward(args)...);
+	}
+#endif
 
 	/*!
 	\brief 等待宿主窗口就绪。

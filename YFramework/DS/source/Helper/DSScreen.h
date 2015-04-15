@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r460
+\version r467
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2015-04-03 03:50 +0800
+	2015-04-11 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -112,6 +112,14 @@ public:
 	UpdateToSurface(_type& sf)
 	{
 		sf.Update(Deref(rbuf.Lock()), Offset);
+	}
+
+	//! \since build 591
+	template<typename _type, typename... _tParams>
+	void
+	UpdateBoundsToSurface(_type& sf, _tParams&&... args)
+	{
+		sf.UpdateBounds(Deref(rbuf.Lock()), yforward(args)...);
 	}
 #else
 #	error "Unsupported platform found."

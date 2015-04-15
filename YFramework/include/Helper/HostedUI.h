@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r418
+\version r430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-04-08 14:51 +0800
+	2015-04-15 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,6 +100,7 @@ DragWindow(Window&, UI::CursorEventArgs&&, bool = {});
 \return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
 
+当设置 WS_POPUP 时清除参数中的 WS_EX_LAYERED 。
 WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
 当部件位置不为 Point::Invalid 时设置顶级窗口位置。
@@ -170,7 +171,7 @@ ActOnHover_ShowTopLevelAt(UI::IWidget& sender, UI::Widget& wgt, _func f)
 		SetLocationOf(wgt, f());
 	});
 #	else
-	yunused(sender, wgt), yunused(f);
+	yunused(sender), yunused(wgt), yunused(f);
 #	endif
 }
 //@}
@@ -205,14 +206,12 @@ YF_API void
 PrepareTopLevelPopupMenu(UI::MenuHost&, UI::Menu&, UI::Panel&);
 
 /*!
-\return 是否通过顶层部件的检查。
 \note 前两个参数分别指定顶层窗口对应的部件和在宿主桌面触发显示新顶层窗口的部件。
-\note 若第一个参数指定的不对应宿主的顶层窗口则不执行进一步操作。
-\note 在其它操作成功后，调用 AttachToHost 设置异步回调操作，
-	以保证销毁顶层窗口时同时设置菜单部件的默认渲染器。
+\note 在其它操作成功后，设置 <tt>FetchEnvironment().Exit 设置回调操作，
+	用于复位默认渲染器以保证销毁其它顶层窗口退出程序时同时使顶层部件宿主线程终止。
 \sa AttachToHost
 \sa Environment::Desktop
-\since build 583
+\since build 591
 */
 //@{
 /*!
@@ -222,8 +221,8 @@ PrepareTopLevelPopupMenu(UI::MenuHost&, UI::Menu&, UI::Panel&);
 
 以参数指定的悬停状态，设置边框并调用 BindTimedTips 绑定悬停的标签。
 */
-YF_API bool
-SetupTopLevelTimedTips(UI::Widget&, UI::IWidget&, UI::TimedHoverState&,
+YF_API void
+SetupTopLevelTimedTips(UI::IWidget&, UI::TimedHoverState&,
 	UI::Label&, const String&, const Drawing::Rect& = Drawing::Rect::Invalid,
 	const Drawing::Font& = {},
 	const Drawing::Padding& = Drawing::DefaultMargin * 2);
@@ -233,11 +232,11 @@ SetupTopLevelTimedTips(UI::Widget&, UI::IWidget&, UI::TimedHoverState&,
 \sa PrepareTopLevelPopupMenu
 \sa UI::BindTopLevelPopupMenu
 
-第三参数指定宿主顶级窗口对应的部件。当且仅当此部件的父部件是对应的宿主环境桌面时，
+第二参数指定宿主顶级窗口对应的部件。当且仅当此部件的父部件是对应的宿主环境桌面时，
 依次通过 PrepareTopLevelPopupMenu 和 UI::BindTopLevelPopupMenu 设置上下文菜单。
 */
-YF_API bool
-SetupTopLevelContextMenu(UI::Widget&, UI::IWidget&, UI::MenuHost&, UI::Menu&);
+YF_API void
+SetupTopLevelContextMenu(UI::IWidget&, UI::MenuHost&, UI::Menu&);
 //@}
 
 } // namespace Host;

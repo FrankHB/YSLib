@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r580
+\version r628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-08 12:45 +0800
+	2015-04-15 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,12 +56,17 @@ RenderWindow::RenderWindow(HostRenderer& rd, NativeWindowHandle h)
 		renderer.get().GetBufferRef().UpdateTo(GetNativeHandle());
 	};
 #	elif YCL_Win32
+	yunseq(
+	MessageMap[WM_ERASEBKGND] += [](::LPARAM, ::WPARAM, ::LRESULT& res){
+		res = 1;
+	},
 	MessageMap[WM_PAINT] += [this]{
 		// NOTE: Parameters are not used.
 		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
 
-		renderer.get().UpdateToSurface(sf);
-	};
+		renderer.get().UpdateBoundsToSurface(sf, sf.GetInvalidatedArea());
+	}
+	);
 #	endif
 }
 
@@ -78,8 +83,8 @@ WindowThread::~WindowThread()
 
 	YTraceDe(Debug, "Ready to close window '%p' on leaving window"
 		" thread.", ystdex::pvoid(p_wnd_val));
-	try
-	{
+
+	FilterExceptions([this, p_wnd_val]{
 #	if !YCL_Android
 		TryExpr(p_wnd_val->Close())
 		// TODO: Log.
@@ -89,7 +94,7 @@ WindowThread::~WindowThread()
 #		if YCL_Win32
 		CatchIgnore(Win32Exception&)
 #		else
-		CatchIgnore(Exception&) // XXX: Use proper platform-dependent type.
+		CatchIgnore(Exception&) // TODO: Use proper platform-dependent type.
 #		endif
 #	endif
 		YTraceDe(Informative, "Ready to join the window thread '%p' of closed"
@@ -97,14 +102,7 @@ WindowThread::~WindowThread()
 		thrd.join();
 		YTraceDe(Debug, "Window thread '%p' joined.",
 			ystdex::pvoid(&thrd));
-	}
-	CatchExpr(std::system_error& e, YTraceDe(Warning,
-		"Caught std::system_error: %s.", e.what()), yunused(e))
-	CatchExpr(std::exception& e,
-		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
-		e.what()), yunused(e))
-	CatchExpr(..., YTraceDe(Alert,
-		"Unknown exception found @ WindowThread::~WindowThread."))
+	}, "HostRenderer::~WindowThread");
 	delete p_wnd_val;
 }
 
@@ -114,12 +112,9 @@ WindowThread::DefaultGenerateGuard(Window& wnd)
 #if YF_Multithread
 	wnd.GetEnvironmentRef().EnterWindowThread();
 	return ystdex::make_shared_guard(&wnd, [](Window* p_wnd){
-		TryExpr(Deref(p_wnd).GetEnvironmentRef().LeaveWindowThread())
-		CatchExpr(std::exception& e,
-			YTraceDe(Alert, "Caught std::exception[%s]: %s.",
-			typeid(e).name(), e.what()), yunused(e))
-		CatchExpr(..., YTraceDe(Alert,
-			"Unknown exception found @ default event guard destructor."))
+		FilterExceptions([=]{
+			Deref(p_wnd).GetEnvironmentRef().LeaveWindowThread();
+		}, "default event guard destructor");
 	});
 #else
 	return {};
@@ -204,22 +199,17 @@ WindowThread::WindowLoop(Window& wnd, GuardGenerator guard_gen)
 HostRenderer::~HostRenderer()
 {
 #if YCL_Win32
-	try
-	{
-		auto& wnd(Wait());
+	FilterExceptions([this]{
+		try
+		{
+			auto& wnd(Wait());
 
-		wnd.GetEnvironmentRef().Desktop -= widget;
-		if(const auto p_wgt = dynamic_cast<UI::Widget*>(&widget.get()))
-			p_wgt->SetView({});
-	}
-	CatchIgnore(Windows::UI::ViewSignal&)
-	CatchExpr(std::system_error& e, YTraceDe(Warning,
-		"Caught std::system_error: %s.", e.what()), yunused(e))
-	CatchExpr(std::exception& e,
-		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
-		e.what()), yunused(e))
-	CatchExpr(..., YTraceDe(Alert,
-		"Unknown exception found @ HostRenderer::~HostRenderer."))
+			wnd.GetEnvironmentRef().Desktop -= widget;
+			if(const auto p_wgt = dynamic_cast<UI::Widget*>(&widget.get()))
+				p_wgt->SetView({});
+		}
+		CatchIgnore(Windows::UI::ViewSignal&)
+	}, "HostRenderer::~HostRenderer");
 #endif
 }
 
@@ -271,13 +261,14 @@ HostRenderer::RefreshForWidget()
 	AdjustSize();
 
 	const auto& g(GetContext());
+	const auto r(GetInvalidatedArea());
 
-	if(Validate(wgt, wgt, {g, Point(), GetInvalidatedArea()}))
-		Update(g.GetBufferPtr());
+	if(Validate(wgt, wgt, {g, {}, r}))
+		Update(g.GetBufferPtr(), r);
 }
 
 void
-HostRenderer::Update(ConstBitmapPtr p)
+HostRenderer::Update(ConstBitmapPtr p, const Rect& r)
 {
 	if(const auto p_wnd = GetWindowPtr())
 		try
@@ -321,7 +312,12 @@ HostRenderer::Update(ConstBitmapPtr p)
 #		endif
 #	endif
 			}
+#if YCL_Win32
+			p_wnd->UpdateFromBounds(p, buf, r, r.GetPoint());
+#else
+			yunused(r);
 			p_wnd->UpdateFrom(p, buf);
+#endif
 		}
 #	if YCL_Win32
 		CatchIgnore(Win32Exception&)

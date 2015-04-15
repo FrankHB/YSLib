@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r735
+\version r746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-04-10 01:44 +0800
+	2015-04-11 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,10 @@
 #ifndef YB_INC_ystdex_path_hpp_
 #define YB_INC_ystdex_path_hpp_ 1
 
-#include "base.h" // for ystdex::cloneable;
-#include "string.hpp" // for ystdex::sequence_container_adaptor,
-//	ystdex::erase_all_if, ystdex::string_traits, ystdex::to_array;
-#include "memory.hpp" // for std::unique_ptr, ystdex::make_unique;
+#include "base.h" // for cloneable;
+#include "string.hpp" // for sequence_container_adaptor,
+//	erase_all_if, string_traits, to_array;
+#include "memory.hpp" // for std::unique_ptr, make_unique;
 #include <string> // for std::string;
 #include <algorithm> // for std::adjencent_find;
 #include <typeinfo> // for typeid;
@@ -158,16 +158,16 @@ enum class path_category : yimpl(size_t)
 \since build 543
 */
 template<typename _tNorm, class _tString>
-ystdex::path_category
+path_category
 classify_path(const _tString& name, _tNorm&& norm = _tNorm())
 {
 	if(YB_UNLIKELY(name.empty()))
-		return ystdex::path_category::empty;
+		return path_category::empty;
 	if(norm.is_self(name))
-		return ystdex::path_category::self;
+		return path_category::self;
 	if(norm.is_parent(name))
-		return ystdex::path_category::parent;
-	return ystdex::path_category::node;
+		return path_category::parent;
+	return path_category::node;
 }
 
 
@@ -186,7 +186,7 @@ classify_path(const _tString& name, _tNorm&& norm = _tNorm())
 	23.2.1[container.requirements.general] 。
 */
 template<class _tSeqCon,
-	class _tNorm = ystdex::path_norm<typename _tSeqCon::value_type>>
+	class _tNorm = path_norm<typename _tSeqCon::value_type>>
 class path : private sequence_container_adaptor<_tSeqCon>
 {
 private:
@@ -196,7 +196,7 @@ public:
 	using value_type = typename _tSeqCon::value_type;
 	using norm = _tNorm;
 	//! \since build 473
-	using default_norm = ystdex::conditional_t<std::is_default_constructible<
+	using default_norm = conditional_t<std::is_default_constructible<
 		norm>::value, norm, file_path_norm<value_type>>;
 	using reference = typename _tSeqCon::reference;
 	using const_reference = typename _tSeqCon::const_reference;

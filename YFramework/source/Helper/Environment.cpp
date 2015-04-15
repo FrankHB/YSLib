@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1581
+\version r1584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-03-03 14:30 +0800
+	2015-04-11 03:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,10 @@ WndProc(::HWND h_wnd, unsigned msg, ::WPARAM w_param, ::LPARAM l_param)
 
 		if(i != m.cend())
 		{
-			i->second(w_param, l_param);
-			return 0;
+			::LRESULT res(0);
+
+			i->second(w_param, l_param, res);
+			return res;
 		}
 	}
 	return ::DefWindowProcW(h_wnd, msg, w_param, l_param);

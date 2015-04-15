@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r210
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-04-10 02:50 +0800
+	2015-04-12 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ The Clang++ warning '-Wweak-vtables' is mainly for compiling performance.
 	However, for libraries with a lot of translation units or being depended deeply, it is better to turn it on.
 		YSLib libraries should use these flags if possible.
 		YFramework interface type now requires out-of-line destructor provided by user.
-		Note to avoid '-Wdeprected' warnings, the copy or move constructor should be defined.
+		Note to avoid '-Wdeprecated' warnings, the copy or move constructor should be defined.
 			This might cause some trouble with '-Wextra' from G++ complaining aboud imlicit call of default constructor in devired classes if it is not explicit initialized.
 				As a workaround, (a few) copy constructors now explicitly initialize the base interface subobjects.
 Note that '__cplusplus' value is significant across different versions of implementations.
@@ -201,13 +201,20 @@ $2015-04:
 report.impl:
 ISO C++14 does not allowed arbitiary expressions for template non-type arguments.
 	Notably, 'std::integral_constant' using '()' converting to a value is not allowed in these context.
-		This is too restrict and cause it can be used almost always with 'static_assert'.
+		This is too restrict and cause it can be used almost always with 'static_assert' declarations or 'noexcept' specifications.
 	WG21/N4198 stated and resolved this problem.
 		See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4198.html .
 		The resolution has been merged into working draft WG21/N4296.
 	Note the use of '::value' are preferred in several contexts.
 		Only certain expression related with 'std::integral_constant' should be considered for refactoring.
 		For example, those 'seq_size' call in YBase.YStandardEx.Variadic and implementations of 'and_', 'or_', and 'not_' in YBase.YStandardEx.TypeOperation would not be touched even C++1z is accepted.
+Copy constructor of exception classes is reviewed.
+	See $2014-02 report.impl of basic rules.
+	The standard don't restrict the stored subobjets of standard exception classes to allow optimization.
+		See http://wg21.cmeerw.net/lwg/issue254.
+		However, actual implementations may directly use reference-counted strings.
+			See http://stackoverflow.com/questions/29052647/c11-introduced-exception-constructors-taking-const-char-but-why .
+			See http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20140428/104370.html .
 
 ////
 

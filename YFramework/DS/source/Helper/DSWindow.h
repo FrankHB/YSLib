@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r115
+\version r125
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2014-12-22 13:17 +0800
+	2015-04-11 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -70,6 +70,16 @@ public:
 	*/
 	YSLib::Drawing::Point
 	MapPoint(const YSLib::Drawing::Point&) const override;
+
+	//! \since build 591
+	template<typename _tSurface>
+	static void
+	UpdateScreen(_tSurface& sf, Devices::DSScreen& scr,
+		const YSLib::Drawing::Rect& r)
+	{
+		scr.UpdateBoundsToSurface(sf,
+			YSLib::Drawing::Rect(scr.Offset, scr.GetSize()) & r);
+	}
 
 	/*!
 	\brief 更新文本焦点：根据指定的部件和相对部件的位置调整状态。

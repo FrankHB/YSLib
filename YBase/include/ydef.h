@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2602
+\version r2663
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-04-10 01:35 +0800
+	2015-04-11 01:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,17 +112,22 @@
 \since build 484
 */
 //@{
+//! \since build 535
+#ifndef __has_builtin
+#	define __has_builtin(...) 0
+#endif
+
+//! \since build 591
+#ifndef __has_cpp_attribute
+#	define __has_cpp_attribute(...) 0
+#endif
+
 #ifndef __has_feature
 #	define __has_feature(...) 0
 #endif
 
 #ifndef __has_extension
 #	define __has_extension(...) 0
-#endif
-
-//! \since build 535
-#ifndef __has_builtin
-#	define __has_builtin(...) 0
 #endif
 //@}
 
@@ -224,8 +229,19 @@
 */
 #undef YB_HAS_CONSTEXPR
 #define YB_HAS_CONSTEXPR \
-	(__has_feature(cxx_constexpr) || YB_IMPL_CPP >= 201103L || \
-		YB_IMPL_GNUCPP >= 40600)
+	(__cpp_constexpr >= 200704 || __has_feature(cxx_constexpr) \
+		|| YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
+
+/*!
+\def YB_HAS_RELAXED_CONSTEXPR
+\brief C++14 constexpr 支持。
+\since build 591
+*/
+#undef YB_HAS_CONSTEXPR_CPP14
+#define YB_HAS_CONSTEXPR_CPP14 \
+	(__cpp_constexpr >= 201304 || __has_feature(cxx_relaxed_constexpr) \
+		|| YB_IMPL_CPP >= 201402L)
+
 
 /*!
 \def YB_HAS_NOEXCPT
@@ -278,6 +294,8 @@
 */
 #if YB_IMPL_GNUCPP >= 20500
 #	define YB_ATTR(...) __attribute__((__VA_ARGS__))
+#elif __cpp_attributes >= 200809 || __has_feature(cxx_attributes)
+#	define YB_ATTR(...) [[__VA_ARGS__]]
 #else
 #	define YB_ATTR(...)
 #endif
@@ -320,7 +338,7 @@
 \brief 分支预测提示。
 \since build 313
 */
-#if YB_IMPL_GNUCPP >= 29600
+#if __has_builtin(__builtin_expect) || YB_IMPL_GNUCPP >= 29600
 #	define YB_EXPECT(_expr, _constant) (__builtin_expect(_expr, _constant))
 #	define YB_LIKELY(_expr) (__builtin_expect(bool(_expr), 1))
 #	define YB_UNLIKELY(_expr) (__builtin_expect(bool(_expr), 0))
@@ -348,7 +366,7 @@
 \warning 当指定的函数调用实际返回时行为未定义。
 \since build 396
 */
-#if YB_IMPL_GNUCPP >= 40800
+#if __has_cpp_attribute(noreturn) >= 200809 || YB_IMPL_GNUCPP >= 40800
 #	define YB_NORETURN [[noreturn]]
 #elif YB_IMPL_GNUCPP >= 20296
 #	define YB_NORETURN YB_ATTR(__noreturn__)
@@ -477,10 +495,24 @@
 \brief YBase 指定的替代关键字。
 \since build 362
 */
+//@{
+/*!
+\def yalignas
+\brief 指定特定类型的对齐。
+\note 同 C++11 alignas 作用于类型时的语义。
+\since build 591
+\todo 判断没有 alignas 且没有属性支持时的其它情况。
+*/
+#if YB_HAS_ALIGNAS
+#	define yalignas alignas
+#	define yalignas_type alignas
+#else
+#	define yalignas(_type) YB_ATTR(__aligned__(_type))
+#	define yalignas_type(_type) YB_ATTR(__aligned__(__alignof(_type)))
+#endif
 
 
 /*!
-\ingroup YBase_pseudo_keyword
 \def yalignof
 \brief 指定特定类型的对齐。
 \note 同 C++11 alignof 作用于类型时的语义。
@@ -495,14 +527,12 @@
 
 
 /*!
-\ingroup YBase_pseudo_keyword
 \def yconstexpr
 \brief 指定编译时常量表达式。
 \note 同 C++11 constepxr 作用于编译时常量的语义。
 \since build 246
 */
 /*!
-\ingroup YBase_pseudo_keyword
 \def yconstfn
 \brief 指定编译时常量函数。
 \note 同 C++11 constepxr 作用于编译时常量函数的语义。
@@ -518,7 +548,19 @@
 
 
 /*!
-\ingroup YBase_pseudo_keyword
+\def yconstfn_relaxed
+\brief 指定编译时没有 C++11 限制和隐式成员 const 的常量函数。
+\note 同 C++14 constepxr 作用于编译时常量函数的语义。
+\since build 591
+*/
+#if YB_HAS_CONSTEXPR_CPP14
+#	define yconstfn_relaxed constexpr
+#else
+#	define yconstfn_relaxed inline
+#endif
+
+
+/*!
 \def ythrow
 \brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
 \note ythrow = "yielded throwing" 。
@@ -530,7 +572,6 @@
 #endif
 
 /*!
-\ingroup YBase_pseudo_keyword
 \def ynothrowv
 \brief YSLib 无异常抛出保证验证：有条件地使用无异常抛出规范。
 \note 指定 ynothrowv 的函数具有 narrow constraint ，
@@ -548,7 +589,6 @@
 #endif
 
 /*!
-\ingroup YBase_pseudo_keyword
 \def ynothrow
 \brief YSLib 无异常抛出保证：若支持 noexcept 关键字，
 	指定特定的 noexcept 异常规范。
@@ -568,13 +608,11 @@
 #endif
 
 /*!
-\ingroup YBase_pseudo_keyword
 \def ynoexcept
 \brief YSLib 无异常抛出保证：指定特定的异常规范。
 \since build 319
 */
 /*!
-\ingroup YBase_pseudo_keyword
 \def ynoexcept_assert
 \brief 表达式 \c noexcept 静态断言。
 \since build 586
@@ -589,7 +627,6 @@
 #endif
 
 /*!
-\ingroup YBase_pseudo_keyword
 \def ynoexcept_spec
 \brief 表达式 \c noexcept 异常规范。
 \since build 586
@@ -597,7 +634,6 @@
 #define ynoexcept_spec(...) ynoexcept(noexcept(__VA_ARGS__))
 
 /*!
-\ingroup YBase_pseudo_keyword
 \def ythread
 \brief 线程局部存储：若实现支持，指定为 \c thread_local 。
 \since build 425
@@ -608,6 +644,7 @@
 #else
 #	define ythread static
 #endif
+//@}
 
 
 namespace ystdex
@@ -751,8 +788,8 @@ struct raw_tag
 template<bool _bMemObjPtr, bool _bNoExcept, class _type>
 class offsetof_check
 {
-	static_assert(std::is_class<_type>(), "Non class type found.");
-	static_assert(std::is_standard_layout<_type>(),
+	static_assert(std::is_class<_type>::value, "Non class type found.");
+	static_assert(std::is_standard_layout<_type>::value,
 		"Non standard layout type found.");
 	static_assert(_bMemObjPtr, "Non-static member object violation found.");
 	static_assert(_bNoExcept, "Exception guarantee violation found.");

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2201
+\version r2216
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-03-19 12:33 +0800
+	2015-04-13 02:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,22 +197,14 @@ LoadMappedModule(const string& path)
 	YAssert(false, "Unreachable control found.");
 }
 
-//! \since build 549
+//! \since build 591
 void
-ExtractException(const std::exception& e, string& res, size_t level = 0)
+Extract(const std::exception& e, string& res) ynothrow
 {
-	const auto print([&, level](const string& str){
-		res += string(level, ' ') + str + '\n';
-	});
-
-	TryExpr(print(string("ERROR: ") + e.what()), throw)
-	CatchIgnore(std::exception&)
-	CatchExpr(..., print("Unknown exception found @ ExtractException."))
-#if YCL_Win32
-	ystdex::handle_nested(e, [&, level](std::exception& ex){
-		ExtractException(ex, res, level + 1);
-	});
-#endif
+	ExtractException(
+		[&](const string& str, LoggedEvent::LevelType, size_t level){
+		res += string(level, ' ') + "ERROR: " + str + '\n';
+	}, e);
 }
 
 #if YCL_Win32
@@ -465,7 +457,7 @@ InitializeInstalled()
 		YF_Init_puts(Notice, "OK!");
 		return node;
 	}
-	CatchExpr(std::exception& e, ExtractException(e, res))
+	CatchExpr(std::exception& e, Extract(e, res))
 	CatchExpr(..., res += "Unknown exception @ InitializeInstalled.\n")
 	throw FatalError("      Invalid Installation      ",
 		" Please make sure the data is\n"
@@ -518,7 +510,7 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 			throw GeneralEvent("Setting default font face failed.");
 		return;
 	}
-	CatchExpr(std::exception& e, ExtractException(e, res))
+	CatchExpr(std::exception& e, Extract(e, res))
 	CatchExpr(..., res += "Unknown exception @ InitializeSystemFontCache.\n")
 	throw FatalError("      Font Caching Failure      ",
 		" Please make sure the fonts are\n"

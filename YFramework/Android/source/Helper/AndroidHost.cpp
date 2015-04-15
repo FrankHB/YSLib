@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r402
+\version r410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2015-02-25 20:08 +0800
+	2015-04-13 02:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,6 +134,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 
 		auto& host(*YCL_NativeHostPtr);
 
+		// TODO: Nonull?
 		if(const auto p_app = LockInstance())
 		{
 			// XXX: Use proper exit code.
@@ -142,13 +143,9 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 		}
 		YTraceDe(Informative,
 			"Waiting for native main thread finishing...");
-		TryExpr(host.thrdMain.join())
-		CatchExpr(std::system_error& e, YTraceDe(Warning,
-			"Caught std::system_error: %s.", e.what()), yunused(e))
-		CatchExpr(std::exception& e,
-			YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
-			e.what()), yunused(e))
-		CatchExpr(..., YTraceDe(Alert, "Caught unknown exception."))
+		FilterExceptions([&]{
+			host.thrdMain.join();
+		}, "AndroidHost NativeWindowDestroyed handler");
 		YTraceDe(Informative, "Waiting for screen being released...");
 		YTraceDe(Debug, "Client thread terminated.");
 	},
