@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1406
+\version r1454
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-04-10 01:41 +0800
+	2015-04-11 02:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,23 +28,13 @@
 #ifndef YB_INC_ystdex_type_op_hpp_
 #define YB_INC_ystdex_type_op_hpp_ 1
 
-#include "../ydef.h" // for <type_traits> and std::declval;
+#include "../ydef.h" // for <type_traits>, std::declval;
 
 namespace ystdex
 {
 
-#if 0
-using std::tr1::add_reference;
-
-using std::tr1::has_nothrow_assign;
-using std::tr1::has_nothrow_constructor;
-using std::tr1::has_nothrow_copy;
-using std::tr1::has_trivial_assign;
-using std::tr1::has_trivial_constructor;
-using std::tr1::has_trivial_copy;
-using std::tr1::has_trivial_destructor;
-#endif
-
+//! \since build 245
+//@{
 using std::integral_constant;
 using std::true_type;
 using std::false_type;
@@ -86,6 +76,8 @@ using std::is_signed;
 using std::is_unsigned;
 
 using std::is_constructible;
+//! \since build 551
+//@{
 using std::is_default_constructible;
 using std::is_copy_constructible;
 using std::is_move_constructible;
@@ -95,6 +87,7 @@ using std::is_copy_assignable;
 using std::is_move_assignable;
 
 using std::is_destructible;
+//@}
 
 #if 0
 using std::is_trivially_constructible;
@@ -105,9 +98,12 @@ using std::is_trivially_move_constructible;
 using std::is_trivially_assignable;
 using std::is_trivially_copy_assignable;
 using std::is_trivially_move_assignable;
-using std::is_trivially_destructible;
 #endif
+//! \since build 591
+using std::is_trivially_destructible;
 
+//! \since build 551
+//@{
 using std::is_nothrow_constructible;
 using std::is_nothrow_default_constructible;
 using std::is_nothrow_copy_constructible;
@@ -118,6 +114,7 @@ using std::is_nothrow_copy_assignable;
 using std::is_nothrow_move_assignable;
 
 using std::is_nothrow_destructible;
+//@}
 
 using std::has_virtual_destructor;
 
@@ -158,6 +155,7 @@ using std::common_type;
 //! \since build 439
 using std::underlying_type;
 using std::result_of;
+//@}
 
 
 /*!	\defgroup template_meta_programing Template Meta Programing
@@ -295,6 +293,16 @@ template<typename _type>
 using result_of_t = typename result_of<_type>::type;
 //@}
 //@}
+
+
+/*!
+\brief 表达式 SFINAE 别名模板。
+\see WG21/N3911 。
+\see WG21/N4296 20.10.2[meta.type.synop] 。
+\since build 591
+*/
+template<typename...>
+using void_t = void;
 
 
 /*!
@@ -559,24 +567,27 @@ YB_TYPE_OP_TEST_2(have_equality_operator, (is_convertible<decltype(std::declval<
 	_type>() == std::declval<_type2>()), bool>::value))
 
 
-//! \since build 588
-namespace yimpl(has_addressof_impl)
-{
-
-struct result
+//! \since build 591
+//@{
+template<typename _type, typename = void>
+struct has_addressof_mem : false_type
 {};
 
 template<typename _type>
-result operator&(_type&&);
+struct has_addressof_mem<_type,
+	void_t<decltype(std::declval<const _type&>().operator&())>> : true_type
+{};
+
+
+template<typename _type, typename = void>
+struct has_addressof_free : false_type
+{};
 
 template<typename _type>
-struct check
-{
-	static yconstexpr bool value = !is_same<decltype(&std::declval<_type&>()),
-		has_addressof_impl::result>::value;
-};
-
-} // namespace has_addressof_impl;
+struct has_addressof_free<_type,
+	void_t<decltype(operator&(std::declval<const _type&>()))>> : true_type
+{};
+//@}
 
 //! \since build 399
 YB_TYPE_OP_TEST_2(has_subscription, !is_void<decltype(std::declval<_type>()[
@@ -705,12 +716,13 @@ struct has_mem_value : std::integral_constant<bool,
 
 /*!
 \ingroup unary_type_traits
-\brief 判断是否存在合式的重载 & 操作符接受直嘀咕类型的表达式。
-\pre 参数不为不完整的类类型。
+\brief 判断是否存在合式的 & 操作符接受指定类型的表达式。
+\pre 参数不为不完整类型。
+\since build 588
 */
 template<typename _type>
 struct has_addressof
-	: and_<is_class_type<_type>, details::has_addressof_impl::check<_type>>
+	: or_<details::has_addressof_mem<_type>, details::has_addressof_free<_type>>
 {};
 
 

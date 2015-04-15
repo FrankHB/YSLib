@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1129
+\version r1133
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-03-24 23:09 +0800
+	2015-04-16 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,10 +57,9 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 {
 	AddWidgets(*this, btnClose, lblCenter),
 	SetVisibleOf(lblCenter, {}),
+	Host::SetupTopLevelTimedTips(btnClose, hover_state, lblCloseTips, u"关闭"),
 	yunseq(
 	lblCenter.HorizontalAlignment = TextAlignment::Center,
-	Host::SetupTopLevelTimedTips(*this, btnClose, hover_state, lblCloseTips,
-		u"关闭"),
 	Background = SolidBrush({0x00, 0x00, 0x00, 0xC0}),
 	btnClose.Background = [this](PaintEventArgs&& e){
 		const auto& g(e.Target);
@@ -204,7 +203,7 @@ void
 ImagePanel::SetupContextMenu()
 {
 	ResizeForContent(mnuContext);
-	Host::SetupTopLevelContextMenu(*this, *this, mhMain, mnuContext);
+	Host::SetupTopLevelContextMenu(*this, mhMain, mnuContext);
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r797
+\version r817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-04-10 01:45 +0800
+	2015-04-10 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,32 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, is_pointer, is_array, extent,
-//	enable_if_t and remove_extent_t;
+#include "type_op.hpp" // for ../ydef.h, enable_if_t, has_addressof,
+//	is_pointer, is_array, extent, remove_extent_t;
 #include <memory>
 
 namespace ystdex
 {
+
+/*!
+\brief 尝试对非重载 operator& 提供 constexpr 的 std::addressof 替代。
+\since build 591
+*/
+//@{
+template<typename _type>
+yconstfn yimpl(enable_if_t)<!has_addressof<_type>::value, _type*>
+constfn_addressof(_type& r)
+{
+	return &r;
+}
+template<typename _type, yimpl(enable_if_t)<has_addressof<_type>::value>>
+inline yimpl(enable_if_t)<has_addressof<_type>::value, _type*>
+constfn_addressof(_type& r)
+{
+	return std::addressof(r);
+}
+//@}
+
 
 /*!
 \brief 使用显式析构函数调用和 \c std::free 的删除器。

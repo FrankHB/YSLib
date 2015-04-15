@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r658
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-04-10 17:53 +0800
+	2015-04-11 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,12 @@
 #ifndef YB_INC_ystdex_algorithm_hpp_
 #define YB_INC_ystdex_algorithm_hpp_ 1
 
-#include "type_op.hpp" // for ystdex::is_pod;
+#include "type_op.hpp" // for is_pod;
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for ystdex::is_undereferenceable;
 #include <algorithm>
 #include <cstring> // for std::memcpy, std::memmove;
-#include "functor.hpp" // for std::bind, ystdex::less;
+#include "functor.hpp" // for std::bind, less;
 
 namespace ystdex
 {
@@ -110,8 +110,6 @@ transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
 {
 	while(n-- != 0)
 	{
-		using ystdex::is_undereferenceable;
-
 		yunseq((yconstraint(!is_undereferenceable(result)), 0),
 			(yconstraint(!is_undereferenceable(iters)), void(iters), 0)...);
 		*result = op((*iters)...);

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r792
+\version r824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2015-01-02 09:27 +0800
+	2015-04-12 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,13 +184,12 @@ There are some issues against aggresive optimization of moving an object in seve
 	Therefore, explicitly use of 'std::move' and 'std::move_if_noexcept' only should occured when necessary.
 'YSTest402r16.nds' cases DeSmuME 0.9.9 x64 crash for unknown reasons.
 
-
 $2014-03:
 
 report.impl:
 Now for YSLib::UI, the default UI event handlers treat the senders to be processed instead of destination widgets where the identity of the sender and the destination widget is true.
 	The old rules mean 'this == e.GetSender()' is always true for calling of some events in implementation of YSLib::UI.
-		There is no guarantee or guildlines to specify either sender or destination widgets to be used actually in the hanlders in or not in implementation of YSLib::UI.
+		There is no guarantee or guidelines to specify either sender or destination widgets to be used actually in the hanlders in or not in implementation of YSLib::UI.
 	The new rules mean senders should always to be considered to be processed at first.
 		Actually, the senders are the widgets to be process as possible as it can, i.e. if no dynamic cast needed, 'e.GetSender()' is used instead of '*this' in implementation of YSLib::UI.
 	User-provided handlers now can use this assumption to transfer different senders.
@@ -238,7 +237,7 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 				The first parameter for the constructor of 'std::thread'.
 					The use cases and reasons are similiar.
 					See http://wg21.cmeerw.net/lwg/issue929 for details.
-	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved event if copy ellision criteria in ISO C++ 12.8/31 are not met.
+	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved event if copy elision criteria in ISO C++ 12.8/31 are not met.
 		If used as forwarding of a passed by value callable object, no redundant 'std::move' should be used.
 	Similarly, in the standard library, the iteraors in the algorithms are passed by reference primarily.
 	For simplicity in YSLib, if and only if noncopyable callable object is intendedly acceptable by design, pass-by-value '_fCallable' should always be used instead of '_fCallable&&'.
@@ -258,38 +257,46 @@ Rules for exception handling should be uniformed.
 	Exceptions handling should generally make use of custom exception classes.
 		Pay attention to implicitly declared special member funtions.
 		The following rules are forced:
-			Make sure no resource could be leak.
+			Make sure no resource could leak.
 			Make sure the destructor is virtual.
 			Make sure the move constructor, if any, have nothrow guarantee.
 		For YSLib, the exception objects should be MoveConstructible or at least CopyConstructible with trivially copy can be performed. See below for reasons.
-	Boost exception handling guildlines are reviewed. See http://www.boost.org/community/error_handling.html . Note it is pre-ISO C++11.
-	However, currently most of these rules are not used in YSLib. YSLib follows closely to ISO C++ standard library.
-	It's goot to make exception classes derived from std::exception. YSLib follows this guideline. But no assumption should be make generally in user code.
+	Boost exception handling guidelines are reviewed. See http://www.boost.org/community/error_handling.html .
+		Note it is pre-ISO C++11.
+		However, currently most of these rules are not used in YSLib.
+			YSLib follows closely to ISO C++ standard library.
+	It's good to make exception classes derived from 'std::exception'.
+		YSLib follows this guideline.
+		But no assumption should be make generally in user code.
 	Virtual inheritance with tagging is not used as Boost library. Because:
-		It is somewhat less efficient both in time and space. This is a minor reason, but it nodoubtly exists.
+		It is somewhat less efficient both in time and space.
+			This is a minor reason, but it nodoubtly exists.
 		It might be complex and error-prone.
 		The tag dispatching is not always useful.
-		States of context might be significant, so no guarantee to not use data members stored in exception.
-	There should be no exception thrown during copying an exception object.
-		The stricter "not embedding" rule is only necessary when the move constructor is not usable. It is reasonable to not embedded a subobject without nothrow-copy guarantee into an exception object for pre-C++11 code.
+		States of context might be significant, data members in different subobjects stored in the same exception object may be used.
+	There should be no exception thrown during copy-initialization of an exception object.
+		Otherwise, 'std::terminate' would be called on copy-initialization failure in throw-expression.
+		The stricter "not embedding" rule (Boost exception handling guideline 3) is only necessary when the move constructor is not usable.
+			It is reasonable to not embed a subobject without nothrow-copy guarantee into an exception object for pre-C++11 code.
 		Make the exception object movable, ideally only the initially creation of the excetpion object is concerned with the copy failure.
-			This is not guaranteed to be available. See $2014-12 report.impl about non-mandantory of move exception objects.
-		But anyway, for std::bad_alloc, even calling of std::terminate is still probably acceptable. Note this handler can be set by std::set_terminate.
-		Some standard library classes, notably std::exception, are according to this guideline. Some others are not guaranteed to be according this, like std::runtime_error, which uses object of std::string as a constructor parameter.
+		Note the replacing of copy by move operation based on copy elision criteria is not applicable for caught-by-value exception objects.
+			See $2014-02 report.impl about non-mandantory of move exception objects.
+		But anyway, for 'std::bad_alloc', even calling of 'std::terminate' is still probably acceptable. Note this handler can be set by 'std::set_terminate'.
+		Some standard library classes, notably 'std::exception', are following this guideline. Some others are not guaranteed, like 'std::runtime_error', which uses object of 'std::string' as a constructor parameter.
 		See also http://stackoverflow.com/questions/15831029/not-using-stdstring-in-exceptions .
 		Because the YSLib exception objects are MoveConstructible or can be copied trivially, "not embedding" rule is not forced.
-	Generally the constructor should throw no exceptions. But this is also not always guaranteed.
-		Some standard library classes, notably std::exception, are according to this guideline. Some others are not guaranteed to be according this, like std::runtime_error, whose constructors are without 'noexcept'.
-		This guideline is also not forced for YSLib exception objects.
-	The what() member function should be overriden only necessary.
+	Ideally the constructor used other than copy-initialization should throw no exceptions. But this is also not always true.
+		Some standard library classes, notably 'std::exception', are following this guideline. Some others are not guaranteed, like 'std::runtime_error', whose constructors are without 'noexcept'.
+		This guideline is also not forced on YSLib exception objects.
+	The 'what' member function should be overriden only necessary.
 		It is usually memroy-sensitive to format the message string.
-		YSLib rarely override the what() member function.
-	For both implemention and semantics reasons, do not use 'catch(...)' without rethrowing unless really necessary. See also %Documentation::CommonRules @5.14.2.
+		YSLib rarely override the 'what' member function.
+	For both implemention and semantics reasons, do not use 'catch(...)' without rethrowing unless really necessary. See also Documentation::CommonRules @5.14.2.
 
 $2014-05:
 
 report.impl:
-	Select carefully between const_iterator and iterator for ODR issue. See http://wg21.cmeerw.net/lwg/issue1214 .
+	Select carefully between 'const_iterator' and 'iterator' for ODR issue. See http://wg21.cmeerw.net/lwg/issue1214 .
 There are some similar measurement values for a given image with proper underlying image buffer, both are rectangular in sense of rasterization as pixels.
 	Width is the magnitude of the logical image or buffer area in horizontal, or X-axis for 2D coordinates.
 	Height is the magnitude of the logical image or buffer area in vertical, or Y-axis for 2D coordinates.
@@ -323,7 +330,7 @@ Behavior changed in ::ANativeWindow after Android 4.0 (API level >= 14), and dif
 	See http://www.klayge.org/2013/01/23/%E5%9C%A8android%E6%A8%A1%E6%8B%9F%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E9%99%B7%E9%98%B1/ .
 Call-by-value for parameter with object type for classes types should be refined when the overhead is significant.
 	Not all class type object can be passed by value.
-	Note that copy ellision is not always mandated. See $2014-04 report.impl for references.
+	Note that copy elision is not available. See $2014-04 report.impl for references.
 	A notable exception is unifying assignment, when copy-and-swap idiom is needed and the move constructor is implemented with little overhead.
 		See http://stackoverflow.com/questions/8968452/who-coined-the-term-unified-or-unifying-assignment-operator .
 		Because at least one copy operation is performed, the parameter is needed.
@@ -523,7 +530,7 @@ Initialization should be cared.
 			See http://wg21.cmeerw.net/cwg/issue1301 .
 			It differentiates with explicitly deleted constructor (declaring with '= delete') or user-provided ones.
 			Note for ISO C++11, The '= default' is not enough to ensure a value-initialized with no unitialized non-static data members. This is not intended.
-			It seems G++ 4.8 and Clang++ 4.9 have implemented it, see http://stackoverflow.com/questions/24043897/c11-value-initialization-with-defaulted-default-constructor .
+			It seems G++ 4.8 and Clang++ 3.3 have implemented it, see http://stackoverflow.com/questions/24043897/c11-value-initialization-with-defaulted-default-constructor .
 		List-initialization was also effected by CWG1301.
 			Aggregate initialization takes the first place for aggregates despite of default constructor.
 			See http://stackoverflow.com/questions/23882409/c14-value-initialization-with-deleted-constructor .
@@ -742,6 +749,8 @@ Sometimes 'LANG=C' should be expicitly specified in the command line to prevent 
 	For example, 'ar' from MSYS2 does not play with zh-CN locale well, while 'gcc-ar' has no problem.
 
 $2014-11:
+
+report.impl:
 There should be general no explicit exception specification for destructors. However, exceptions of this rule are also allowed.
 	In gerenal, throwing an exception in a destructor is thought to be bad practice.
 		It would terminate the program during stack unwinding.
@@ -783,6 +792,8 @@ Note the 'std::reference_wrapper' is not equal to 'boost::reference_wrapper'.
 				For examples, as 'std::bind' arguments or 'operator()' is used. In these cases the 'std::' should be used explicitly.
 
 $2014-12:
+
+report.impl:
 Keyboard input processing is complicated. There are a few key codes on Linux as options.
 	See https://www.berrange.com/tags/key-codes/ .
 	See https://stackoverflow.com/questions/8737566/rolling-ones-own-keyboard-input-system-in-c-c .

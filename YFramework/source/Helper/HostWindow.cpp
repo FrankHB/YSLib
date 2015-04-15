@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r520
+\version r539
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2015-04-04 00:10 +0800
+	2015-04-11 03:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 			}
 		}
 	},
-	MessageMap[WM_CHAR] += [this](::WPARAM w_param, ::WPARAM l_param){
+	MessageMap[WM_CHAR] += [this](::WPARAM w_param, ::LPARAM l_param){
 		lock_guard<recursive_mutex> lck(input_mutex);
 
 		for(size_t n(l_param & 0x7FFF); n-- != 0;)
@@ -180,6 +180,26 @@ Window::UpdateFrom(Drawing::ConstBitmapPtr p, ScreenBuffer& buf)
 		buf.UpdateTo(h_wnd);
 	}
 }
+
+#	if YCL_Win32
+void
+Window::UpdateFromBounds(Drawing::ConstBitmapPtr p, ScreenBuffer& buf,
+	const Rect& r, const Point& sp)
+{
+	const auto h_wnd(GetNativeHandle());
+
+	if(UseOpacity)
+	{
+		buf.Premultiply(p);
+		buf.UpdatePremultipliedTo(h_wnd, Opacity);
+	}
+	else
+	{
+		buf.UpdateFromBounds(p, r);
+		buf.UpdateToBounds(h_wnd, r, sp);
+	}
+}
+#	endif
 
 } // namespace Host;
 #endif

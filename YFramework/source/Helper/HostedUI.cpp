@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r451
+\version r515
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-04-09 11:18 +0800
+	2015-04-16 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,9 +64,6 @@ AttachToHost(Widget& wgt, Window& wnd, Messaging::Priority prior)
 
 	wnd.MessageMap[WM_DESTROY] += [&]{
 		PostTask([&, prior]{
-			YTraceDe(Debug, "Ready to reset renderer of widget '%p' from host"
-				" window '%p' from the host.", pvoid(&wgt),
-				pvoid(GetWindowPtrOf(wgt)));
 			wgt.SetRenderer({});
 		}, prior);
 	};
@@ -120,6 +117,12 @@ ShowTopLevel(Widget& wgt, WindowThread::GuardGenerator guard_gen,
 	unsigned long wstyle, unsigned long wstyle_ex, int n_cmd_show,
 	const wchar_t* title)
 {
+	if(!bool(wstyle & WS_POPUP) && bool(wstyle_ex & WS_EX_LAYERED))
+	{
+		wstyle_ex &= ~static_cast<unsigned long>(WS_EX_LAYERED);
+		YTraceDe(Informative, "Layered style ignored for non-popup window.");
+	}
+
 	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, guard_gen, [=, &wgt]{
 		WindowReference wnd_ref(CreateNativeWindow(WindowClassName,
 			GetSizeOf(wgt), title, wstyle, wstyle_ex));
@@ -173,74 +176,39 @@ PrepareTopLevelPopupMenu(MenuHost& mh, Menu& mnu, Panel& root)
 	mh += mnu;
 	root.Add(mnu, DefaultMenuZOrder);
 #	if YCL_Win32
-	ShowTopLevel(mnu, WS_POPUP,
+	ShowTopLevel(mnu, WindowThread::GuardGenerator(), WS_POPUP,
 		WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST, SW_HIDE);
 #	endif
 }
 
-//! \since build 583
-namespace
+void
+SetupTopLevelTimedTips(IWidget& wgt, TimedHoverState& st, Label& lbl,
+	const String& text, const Rect& r, const Font& fnt, const Padding& m)
 {
+	using namespace UI;
 
-//! \since build 590
-template<typename _func>
-bool
-DoSetupTopLevel(Widget& top, _func f, Window* p_wnd = {})
-{
+	SetupContentsOf(lbl, text, r, fnt, m);
+	// TODO: Border style setting, font, background, allowing host shadow,
+	//	etc.
+	FetchEvent<Paint>(lbl) += BorderBrush();
 #	if YCL_Win32
-	auto&
-		root((p_wnd ? p_wnd->GetEnvironmentRef() : FetchEnvironment()).Desktop);
-
-	if(!p_wnd || FetchContainerPtr(top) == &root)
-	{
-		auto& wgt(f(root));
-
-		if(p_wnd)
-			AttachToHost(wgt, *p_wnd);
-		return true;
-	}
+	BindTimedTips(st, wgt, lbl);
 #	else
-	yunused(top, p_wnd);
-	yunused(f);
+	yunused(wgt), yunused(st), yunused(lbl);
 #	endif
-	return {};
 }
 
-} // unnamed namespace;
-
-bool
-SetupTopLevelTimedTips(Widget& top, IWidget& wgt, TimedHoverState& st,
-	Label& lbl, const String& text, const Rect& r, const Font& fnt,
-	const Padding& m)
+void
+SetupTopLevelContextMenu(IWidget& wgt, MenuHost& mh, Menu& mnu)
 {
-	return DoSetupTopLevel(top, [&](Panel&)->Widget&{
-		using namespace UI;
-
-		SetupContentsOf(lbl, text, r, fnt, m);
-		// TODO: Border style setting, font, background, allowing host shadow,
-		//	etc.
-		FetchEvent<Paint>(lbl) += BorderBrush();
 #	if YCL_Win32
-		BindTimedTips(st, wgt, lbl);
-#	else
-		yunused(st, wgt, lbl);
-#	endif
-		return lbl;
-	}, GetWindowPtrOf(top));
-}
+	auto& env(FetchEnvironment());
 
-bool
-SetupTopLevelContextMenu(Widget& top, IWidget& wgt, MenuHost& mh, Menu& mnu)
-{
-	return DoSetupTopLevel(top, [&](Panel& root)->Widget&{
-#	if YCL_Win32
-		PrepareTopLevelPopupMenu(mh, mnu, root);
-		BindTopLevelPopupMenu(mh, mnu, wgt);
+	PrepareTopLevelPopupMenu(mh, mnu, env.Desktop);
+	BindTopLevelPopupMenu(mh, mnu, wgt);
 #	else
-		yunused(mh, mnu, root, wgt);
+	yunused(wgt), yunused(mh), yunused(mnu);
 #	endif
-		return mnu;
-	}, GetWindowPtrOf(top));
 }
 
 } // namespace Host;

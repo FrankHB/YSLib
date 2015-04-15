@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r513
+\version r523
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-03-19 13:08 +0800
+	2015-04-13 03:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,14 +101,18 @@ Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 	if(lv <= Descriptions::Alert)
 		platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
 #endif
-	std::fprintf(stderr,
 #if YF_Multithread
-		"[%s:%#X]: %s\n",
-		ystdex::to_string(std::this_thread::get_id()).c_str(),
-#else
-		"[%#X]: %s\n",
+	std::string t_id;
+
+	TryExpr(t_id = ystdex::to_string(std::this_thread::get_id()))
+	CatchIgnore(...)
+	if(!t_id.empty())
+		std::fprintf(stderr, "[%s:%#X]: %s\n",
+			ystdex::to_string(std::this_thread::get_id()).c_str(),
+			unsigned(lv), Nonnull(str));
+	else
 #endif
-		unsigned(lv), Nonnull(str));
+		std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
 	std::fflush(stderr);
 }
 

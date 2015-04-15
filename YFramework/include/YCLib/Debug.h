@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r557
+\version r568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-02-25 19:59 +0800
+	2015-02-25 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,6 +231,16 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 	platform::FetchCommonLogger().Log( \
 		platform::Descriptions::RecordLevel(_lv), __VA_ARGS__)
 
+/*!
+\brief YCLib 直接调试跟踪。
+\note 不带源代码信息。
+\since build 591
+*/
+#define YCL_TraceRaw(_lv, ...) \
+	YCL_Log(_lv, [&]()->std::string{ \
+		TryRet(ystdex::sfmt(__VA_ARGS__)) \
+		CatchRet(..., {}) \
+	})
 
 /*!
 \def YCL_Trace
@@ -244,11 +254,7 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 		return platform::LogWithSource(__FILE__, __LINE__, __VA_ARGS__); \
 	})
 #else
-#	define YCL_Trace(_lv, ...) \
-	YCL_Log(_lv, [&]()->std::string{ \
-		TryRet(ystdex::sfmt(__VA_ARGS__)) \
-		CatchRet(..., {}) \
-	})
+#	define YCL_Trace(_lv, ...) YCL_TraceRaw(_lv, __VA_ARGS__)
 #endif
 
 

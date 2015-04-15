@@ -11,34 +11,36 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r96
+\version r516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2015-04-09 17:40 +0800
+	2015-04-12 05:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Optonal
-
 \see ISO WG21/N4081 5[optional] 。
 \see http://www.boost.org/doc/libs/1_57_0/libs/optional/doc/html/optional/reference.html 。
+
+除了部分关系操作使用 operators 实现而不保留命名空间内的声明外，
+其它接口同 std::experimental::optional 。
 */
 
 
 #ifndef YB_INC_ystdex_optional_h_
 #define YB_INC_ystdex_optional_h_ 1
 
-#include "type_op.hpp" // for std::is_trivially_destructible, ystdex::is_cv,
-//	ystdex::empty_base, std::move, ystdex::or_, ystdex::is_reference,
-//	ystdex::is_same, ystdex::remove_cv_t, ystdex::and_,
-//	ystdex::is_nothrow_destructible, ystdex::is_object, std::move,
-//	ystdex::enable_if_t, ystdex::is_constructible, ystdex::decay_t;
-#include <memory> // for std::addressof;
-#include <new> // for placement ::operator new from standard library;
+#include "utility.hpp" // for is_trivially_destructible, is_cv, empty_base,
+//	std::move, or_, is_reference, is_same, remove_cv_t, and_,
+//	is_nothrow_destructible, is_object, enable_if_t, is_constructible,
+//	is_nothrow_swappable, decay_t;
 #include <stdexcept> // for std::logic_error;
+#include <new> // for placement ::operator new from standard library;
+#include "memory.hpp" // for std::addressof, ystdex::constfn_addressof;
+#include "operators.hpp" // for totally_ordered, totally_ordered2;
 #include <initializer_list> // for std::initializer_list;
 
 namespace ystdex
@@ -91,7 +93,459 @@ public:
 };
 //@}
 
+//! \since build 591
+//@{
+namespace details
+{
+
+template<typename _type, bool = std::is_trivially_destructible<_type>::value>
+class optional_base : public optional_base<_type, true>
+{
+public:
+	using optional_base::optional_base;
+	~optional_base()
+	{
+		if(this->engaged)
+			this->destroy_raw();
+	}
+
+	optional_base&
+	operator=(const optional_base& s)
+	{
+		return this->assign(s.value);
+	}
+	optional_base&
+	operator=(optional_base&& s)
+	{
+		return this->assign(std::move(s.value));
+	}
+};
+
+template<typename _type>
+class optional_base<_type, true>
+{
+	// NOTE: See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3770.html#FI15 .
+	//	Also http://wg21.cmeerw.net/cwg/issue1776 .
+	static_assert(!is_cv<_type>(), "Cv-qualified type found.");
+
+protected:
+	union
+	{
+		empty_base<> empty;
+		mutable _type value;
+	};
+	bool engaged = {};
+
+public:
+	yconstfn
+	optional_base() ynothrow
+		: empty()
+	{}
+	template<typename... _tParams>
+	explicit yconstfn
+	optional_base(in_place_t, _tParams&&... args)
+		: value(yforward(args)...), engaged(true)
+	{}
+	optional_base(const optional_base& s)
+		: engaged(s.engaged)
+	{
+		if(engaged)
+			construct_raw(s.value);
+	}
+	optional_base(const optional_base&& s)
+		ynoexcept_spec(is_nothrow_move_constructible<_type>())
+		: engaged(s.engaged)
+	{
+		if(engaged)
+			construct_raw(std::move(s.value));
+	}
+
+	optional_base&
+	operator=(const optional_base& s)
+	{
+		return assign(s.value);
+	}
+	optional_base&
+	operator=(optional_base&& s) ynoexcept(and_<is_nothrow_move_constructible<
+		_type>, is_nothrow_move_assignable<_type>>())
+	{
+		return assign(std::move(s.value));
+	}
+
+	template<typename _tParam>
+	optional_base&
+	assign(_tParam&& arg) ynoexcept(and_<is_rvalue_reference<_tParam&&>,
+		is_nothrow_move_constructible<_type>,
+		is_nothrow_move_assignable<_type>>())
+	{
+		if(engaged && arg.engaged)
+			value = yforward(arg);
+		else if(arg.engaged)
+			construct(yforward(arg));
+		else
+			reset();
+		return *this;
+	}
+
+	template<typename... _tParams>
+	void
+	construct(_tParams&&... args)
+	{
+		construct_raw(yforward(args)...);
+		engaged = true;
+	}
+
+private:
+	template<typename... _tParams>
+	void
+	construct_raw(_tParams&&... args)
+	{
+		::new(std::addressof(value)) _type(yforward(args)...);
+	}
+
+public:
+	void
+	destroy() ynothrow
+	{
+		engaged = {};
+		destroy_raw();
+	}
+
+protected:
+	void
+	destroy_raw() ynothrow
+	{
+		ynoexcept_assert("Invalid type found.", value.~type());
+
+		value.~_type();
+	}
+
+public:
+	_type&
+	get() ynothrow
+	{
+		return value;
+	}
+
+	bool
+	is_engaged() const ynothrow
+	{
+		return engaged;
+	}
+
+	void
+	reset() ynothrow
+	{
+		if(engaged)
+			destroy();
+	}
+};
+
+} // namespace details;
+
+
+/*!
+\brief 可选值对象包装。
+\note 值语义。基本接口和语义同 std::experimental::optional 提议
+	和 boost::optional （对应接口以前者为准）。
+\warning 非虚析构。
+\see ISO WG21/N4081 5.3[optional.object] 。
+\todo allocator_arg 支持。
+*/
+template<typename _type>
+class optional : private details::optional_base<remove_cv_t<_type>>, yimpl(
+	public totally_ordered<optional<_type>>, public totally_ordered2<optional<
+	_type>, _type>, public totally_ordered2<optional<_type>, nullopt_t>)
+{
+	//! \see ISO WG21/N4081 5.2[optional.synopsis]/1 。
+	static_assert(!or_<is_reference<_type>, is_same<remove_cv_t<_type>,
+		in_place_t>, is_same<remove_cv_t<_type>, nullopt_t>>(),
+		"Invalid type found.");
+	//! \see ISO WG21/N4081 5.3[optional.object]/3 。
+	static_assert(and_<is_nothrow_destructible<_type>, is_object<_type>>(),
+		"Invalid type found.");
+
+public:
+	using value_type = _type;
+
+private:
+	using base = details::optional_base<_type>;
+
+public:
+	yconstfn
+	optional() ynothrow
+	{}
+	yconstfn
+	optional(nullopt_t) ynothrow
+	{}
+	yconstfn
+	optional(const _type& v)
+		: base(in_place, v)
+	{}
+	yconstfn
+	optional(_type&& v)
+		: base(in_place, std::move(v))
+	{}
+	template<typename... _tParams>
+	explicit yconstfn
+	optional(in_place_t, _tParams&&... args)
+		: base(in_place, yforward(args)...)
+	{}
+	template<typename _tOther, typename... _tParams,
+		yimpl(typename = enable_if_t<is_constructible<_type,
+		std::initializer_list<_tOther>&, _tParams&&...>::value>)>
+	explicit yconstfn
+	optional(in_place_t, std::initializer_list<_tOther> il, _tParams&&... args)
+		: base(in_place, il, yforward(args)...)
+	{}
+	optional(const optional&) yimpl(= default);
+	optional(optional&&) ynoexcept(is_nothrow_move_constructible<_type>())
+		yimpl(= default);
+	~optional() yimpl(= default);
+
+	optional&
+	operator=(nullopt_t) ynothrow
+	{
+		this->reset();
+		return *this;
+	}
+	optional&
+	operator=(const optional& o)
+	{
+		get_base() = o.get_base();
+	}
+	optional&
+	operator=(optional&& o) ynoexcept(and_<is_nothrow_move_constructible<
+		_type>, is_nothrow_move_assignable<_type>>())
+	{
+		get_base() = std::move(o.get_base());
+	}
+	template<typename _tOther>
+	yimpl(enable_if_t)<is_same<decay_t<_tOther>, _type>::value, optional&>
+	operator=(_tOther&& v)
+	{
+		if(this->is_engaged())
+			this->get() = yforward(v);
+		else
+			this->construct(yforward(v));
+	}
+
+	template<typename... _tParams>
+	void
+	emplace(_tParams&&... args)
+	{
+		this->reset();
+		this->construct(yforward(args)...);
+	}
+	template<typename _tOther, typename... _tParams>
+	void
+	emplace(std::initializer_list<_tOther> il, _tParams&&... args)
+	{
+		this->reset();
+		this->construct(il, yforward(args)...);
+	}
+
+private:
+	base&
+	get_base() ynothrow
+	{
+		return static_cast<base&>(*this);
+	}
+	const base&
+	get_base() const ynothrow
+	{
+		return static_cast<const base&>(*this);
+	}
+
+public:
+	void
+	swap(optional& o) ynoexcept(and_<is_nothrow_move_constructible<value_type>,
+		is_nothrow_swappable<value_type>>())
+	{
+		using std::swap;
+
+		if(this->is_engaged() && o.is_engaged())
+			swap(this->get(), o.get());
+		else if(this->is_engaged())
+		{
+			o.construct(std::move(this->get()));
+			this->destroy();
+		}
+		else if(o.is_engaged())
+		{
+			this->construct(std::move(this->get()));
+			o.destroy();
+		}
+	}
+
+	yconstfn_relaxed _type*
+	operator->()
+	{
+		std::addressof(this->get());
+	}
+	yconstfn const _type*
+	operator->() const
+	{
+		return ystdex::constfn_addressof(this->get());
+	}
+
+	yconstfn_relaxed _type&
+	operator*() &
+	{
+		return this->get();
+	}
+	yconstfn const _type&
+	operator*() const&
+	{
+		return this->get();
+	}
+	yconstfn_relaxed _type
+	operator*() &&
+	{
+		return std::move(this->get());
+	}
+	yconstfn _type
+	operator*() const&&
+	{
+		return std::move(this->get());
+	}
+
+	explicit yconstfn
+	operator bool() const ynothrow
+	{
+		return this->is_engaged();
+	}
+
+	yconstfn_relaxed _type&
+	value() &
+	{
+		return this->is_engaged() ? this->get() : (throw bad_optional_access(),
+			this->get());
+	}
+	yconstfn const _type&
+	value() const&
+	{
+		return this->is_engaged() ? this->get() : (throw bad_optional_access(),
+			this->get());
+	}
+	yconstfn_relaxed _type
+	value() &&
+	{
+		return this->is_engaged() ? std::move(this->get())
+			: (throw bad_optional_access(), std::move(this->get()));
+	}
+	yconstfn _type
+	value() const&&
+	{
+		return this->is_engaged() ? std::move(this->get())
+			: (throw bad_optional_access(), std::move(this->get()));
+	}
+
+	template<typename _tOther>
+	yconstfn _type
+	value_or(_tOther&& other) const&
+	{
+		static_assert(and_<is_copy_constructible<_type>,
+			is_copy_assignable<_type>>(), "Invalid type found.");
+		
+		return this->is_engaged() ? this->get()
+			: static_cast<_type>(yforward(other));
+	}
+	template<typename _tOther>
+	yconstfn_relaxed _type
+	value_or(_tOther&& other) &&
+	{
+		static_assert(and_<is_copy_constructible<_type>,
+			is_copy_assignable<_type>>(), "Invalid type found.");
+
+		return this->is_engaged() ? std::move(this->get())
+			: static_cast<_type>(yforward(other));
+	}
+};
+
+//! \relates optional
+//@{
+/*!
+\brief 关系和比较操作。
+\note 未显式声明的部分由 \c operators 提供实现。
+\see ISO WG21/N4081 5.7[optional.relops] 。
+\see ISO WG21/N4081 5.8[optional.nullops] 。
+\see ISO WG21/N4081 5.9[optional.comp_with_t] 。
+*/
+//@{
+template<typename _type>
+yconstfn bool
+operator==(const optional<_type>& x, const optional<_type>& y)
+{
+	return bool(x) == bool(y) && (!x || *x == *y);
+}
+template<typename _type>
+yconstfn bool
+operator==(const optional<_type>& x, nullopt_t) ynothrow
+{
+	return !x;
+}
+template<typename _type>
+yconstfn bool
+operator==(const optional<_type>& x, const _type& v)
+{
+	return bool(x) ? *x == v : false;
+}
+
+template<typename _type>
+yconstfn bool
+operator<(const optional<_type>& x, const optional<_type>& y)
+{
+	return bool(y) && (!x || *x < *y);
+}
+//@}
+
+
+//! \see ISO WG21/N4081 5.10[optional.specalg] 。
+//@{
+template<typename _type> void
+swap(optional<_type>& x, optional<_type>& y) ynoexcept_spec(x.swap(y))
+{
+	return x.swap(y);
+}
+template<typename _type>
+yconstfn optional<decay_t<_type>>
+make_optional(_type&& v)
+{
+	return optional<decay_t<_type>>(yforward(v));
+}
+//@}
+//@}
+
 } // namespace ystdex;
+
+
+namespace std
+{
+
+/*!
+\brief ystdex::optional 散列支持。
+\see ISO WG21/N4081 5.11[optional.hash] 。
+\since build 591
+*/
+//@{
+template<typename>
+struct hash;
+
+template<typename _type>
+struct hash<ystdex::optional<_type>>
+{
+	size_t
+	operator()(const ystdex::optional<_type>& k) const
+		yimpl(ynoexcept_spec(hash<_type>{}(*k)))
+	{
+		// NOTE: The unspecified value is randomly picked.
+		return k ? hash<_type>{}(*k) : yimpl(-4242);
+	}
+};
+//@}
+
+} // namespace std;
 
 #endif
 

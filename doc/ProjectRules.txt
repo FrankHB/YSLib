@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r592
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2015-03-31 13:18 +0800
+	2015-04-12 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,15 +59,18 @@ YSLib 项目约定一个体系结构和使用的外部依赖(@1) 是一个平台
 实际的平台实现可能复用部分实现，配置之间可存在依赖（如继承关系）。这些在项目中所有被配置的平台称为公共平台(common platform) ，其中能对应生成输出的称为具体平台(concrete platform) ，否则为抽象平台(abstract platform) 。
 
 @1.2.1 语言特性使用和限制：
-本节适用于本项目，不直接限制用户程序。
+本节适用于本项目，不直接限制依赖项和用户程序。
 使用 ISO C++ 作为主要开发语言。
 在 YBase([Documentation::YBase]) 中有约定的部分，适用相应规则；项目中的其它部分适用本节以下规则。
-不使用和 ISO C++11 不兼容的特性，包括 export 关键字([Documentation::LanguageConvention @@5.7.6]) 和已经在 ISO C++03 中标记为 deprected 而在 C++11 去除的特性（如 const char 数组类型左值到 char* 右值的转换）。
+标识符使用参见 [CommonRules @@4] 。
+不使用和 ISO C++11 不兼容的特性，包括 export 关键字([Documentation::LanguageConvention @@5.7.6]) 和已经在 ISO C++03 中标记为 deprected 而在 C++11 去除的特性（如 const char 数组类型左值到 char* 右值的转换，也包括重新取消 deprecated 的特性如修饰命名空间作用域声明的 static ）。
 默认基于 ISO C++11 （包括 Defect Report 修正；但扩展 ISO C++03 部分受 @1.2.1.1 限制）环境。
+允许使用 ISO C++11 以后兼容最新标准草案的正式标准中的特性，通过 __cplusplus 宏判断。
 依赖 ISO C++ 独立实现或宿主实现，附加以下例外：
 严格限制 @1.2.2.1 列出的扩展使用；
 标准库要求等同于 ISO C++11 定义的宿主实现；
 需要定宽整数 std::intN_t 和 std::uintN_t （其中 N 为 8 、 16 、 32 或 64 ）支持（ ISO C++11 中为可选支持）。
+假定特定类型的默认构造函数无异常抛出（但不依赖异常规范的行为），当前包括 std::string （ WG21/N4002 引入了显式指定 noexcept ，仅在标准草案 WG21/N4296 起有效）。
 
 @1.2.1.1 需要使用的非 ISO C++03 扩展：
 定义在 ISO C99（ISO/IEC 9899:1999）和 ISO C++11（ISO/IEC 14882:2011）中，且有一个以上完整的语言实现。

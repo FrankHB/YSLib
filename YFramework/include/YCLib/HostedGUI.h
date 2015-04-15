@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1078
+\version r1122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-04-04 01:25 +0800
+	2015-04-12 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,7 @@ using MessageID = std::uint8_t;
 using MessageHandler = void(void*);
 #	elif YCL_Win32
 using MessageID = unsigned;
-using MessageHandler = void(::WPARAM, ::LPARAM);
+using MessageHandler = void(::WPARAM, ::LPARAM, ::LRESULT&);
 #	endif
 //@}
 
@@ -115,7 +115,6 @@ using MessageHandler = void(::WPARAM, ::LPARAM);
 /*!
 \brief 窗口消息转发事件映射。
 \since build 514
-\todo 处理返回值。
 */
 using MessageMap = std::map<MessageID, YSLib::GEvent<MessageHandler>>;
 #	endif
@@ -163,7 +162,10 @@ public:
 	DefGetterMem(const, YSLib::Drawing::Size, Size, Deref())
 	//@}
 #	elif YCL_Win32
-	//! \since build 543
+	/*!
+	\exception 异常中立：由 CheckScalar 抛出。
+	\since build 543
+	*/
 	YSLib::Drawing::Rect
 	GetBounds() const;
 	//! \since build 445
@@ -198,6 +200,7 @@ public:
 	//! \since build 538
 	WindowReference
 	GetParent() const;
+	//! \exception 异常中立：由 CheckScalar 抛出。
 	YSLib::Drawing::Size
 	GetSize() const;
 #	elif YCL_Android
@@ -249,6 +252,7 @@ public:
 	SetBounds(const YSLib::Drawing::Rect&);
 	/*!
 	\brief 按参数指定的客户区边界设置窗口边界。
+	\exception 异常中立：由 CheckScalar 抛出。
 	\since build 445
 	*/
 	void
@@ -300,6 +304,7 @@ public:
 
 	/*!
 	\brief 按参数指定的客户区大小调整窗口大小。
+	\exception 异常中立：由 CheckScalar 抛出。
 	\note 线程安全。
 	*/
 	void
@@ -335,7 +340,7 @@ UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
 /*!
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶级窗口。
 \note 最后的默认参数分别为 \c WS_POPUP 和 \c WS_EX_LTRREADING 。
-\exception LoggedEvent 宽或高不大于 0 。
+\exception 异常中立：由 CheckScalar 抛出。
 \since build 564
 */
 YF_API NativeWindowHandle
@@ -459,6 +464,18 @@ public:
 	//@}
 
 #	if YCL_Win32
+	/*!
+	\brief 从缓冲区更新指定边界的区域。
+	\pre 间接断言：参数非空。
+	\post \c ::HBITMAP 的 \c rgbReserved 为 0 。
+	\warning 直接复制，没有边界和大小检查。
+	\warning 实际存储必须和 32 位 ::HBITMAP 兼容。
+	\since build 591
+	*/
+	void
+	UpdateFromBounds(YSLib::Drawing::ConstBitmapPtr,
+		const YSLib::Drawing::Rect&) ynothrow;
+
 	//! \since build 589
 	void
 	UpdatePremultipliedTo(NativeWindowHandle, YSLib::Drawing::AlphaType = 0xFF,
@@ -471,6 +488,16 @@ public:
 	*/
 	void
 	UpdateTo(NativeWindowHandle, const YSLib::Drawing::Point& = {}) ynothrow;
+
+#	if YCL_Win32
+	/*!
+	\pre 间接断言：本机句柄非空。
+	\since build 591
+	*/
+	void
+	UpdateToBounds(NativeWindowHandle, const YSLib::Drawing::Rect&,
+		const YSLib::Drawing::Point& = {}) ynothrow;
+#	endif
 
 	/*
 	\brief 交换。
@@ -544,10 +571,16 @@ public:
 	void
 	Update(ScreenBuffer&, const YSLib::Drawing::Point& = {}) ynothrow;
 
-	//! \since build 561
+	//! \since build 591
+	void
+	UpdateBounds(ScreenBuffer&, const YSLib::Drawing::Rect&,
+		const YSLib::Drawing::Point& = {}) ynothrow;
+
+	//! \since build 591
 	void
 	UpdatePremultiplied(ScreenBuffer&, NativeWindowHandle,
-		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {});
+		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {})
+		ynothrow;
 };
 
 
@@ -596,6 +629,14 @@ private:
 protected:
 	WindowRegionDeviceContext(NativeWindowHandle);
 	~WindowRegionDeviceContext();
+
+public:
+	/*!
+	\exception 异常中立：由 CheckScalar 抛出。
+	\since build 591
+	*/
+	YSLib::Drawing::Rect
+	GetInvalidatedArea() const;
 };
 //@}
 

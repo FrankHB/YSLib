@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1078
+\version r1079
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-04-09 15:05 +0800
+	2015-04-11 02:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -626,7 +626,7 @@ Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 此外， YSLib 不排斥在部件实现([Documentation::YSLib @3.3]) 中提供（有限的）复制和转移支持以保证值语义。
 
 @3.5.4 泛型值类型：
-适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.4.6.4]) 等类型实现。允许空值。
+适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.4.7.5]) 等类型实现。允许空值。
 
 @3.5.5 虚函数：
 不要求总是使用 NVI 模式([Documentation::LanguageConvention @5.13.6.3]) ，但适合复用（如检查代码）时应当使用。

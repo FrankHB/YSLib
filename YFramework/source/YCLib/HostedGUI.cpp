@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1061
+\version r1126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-04-10 01:22 +0800
+	2015-04-13 02:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,8 @@
 #	if SW_SHOWNORMAL != 1 || WS_POPUP != 0x80000000L || WS_EX_LTRREADING != 0L
 #		error "Wrong macro defined."
 #	endif
+#	include "YSLib/Service/YModules.h"
+#	include YFM_YSLib_Service_YBlit
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #	include <android/native_window.h>
@@ -103,9 +105,15 @@ FetchWindowRect(::HWND h_wnd)
 Size
 FetchSizeFromBounds(const ::RECT& rect)
 {
-	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
-		"Invalid boundary found.");
-	return {rect.right - rect.left, rect.bottom - rect.top};
+	return {CheckScalar<SDst>(rect.right - rect.left, "width"),
+		CheckScalar<SDst>(rect.bottom - rect.top, "height")};
+}
+
+//! \since build 591
+Rect
+FetchRectFromBounds(const ::RECT& rect)
+{
+	return {rect.left, rect.top, FetchSizeFromBounds(rect)};
 }
 
 //! \since build 564
@@ -143,8 +151,8 @@ void
 BindDefaultWindowProc(NativeWindowHandle h_wnd, MessageMap& m, unsigned msg,
 	EventPriority prior)
 {
-	m[msg].Add([=](::WPARAM w_param, ::LPARAM l_param){
-		::DefWindowProcW(h_wnd, msg, w_param, l_param);
+	m[msg].Add([=](::WPARAM w_param, ::LPARAM l_param, ::LRESULT& res){
+		res = ::DefWindowProcW(h_wnd, msg, w_param, l_param);
 	}, prior);
 }
 #	endif
@@ -168,9 +176,7 @@ WindowReference::IsVisible() const ynothrow
 Rect
 WindowReference::GetBounds() const
 {
-	const auto& rect(FetchWindowRect(GetNativeHandle()));
-
-	return {rect.left, rect.top, FetchSizeFromBounds(rect)};
+	return FetchRectFromBounds(FetchWindowRect(GetNativeHandle()));
 }
 Rect
 WindowReference::GetClientBounds() const
@@ -501,6 +507,13 @@ ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 
 #	if YCL_Win32
 void
+ScreenBuffer::UpdateFromBounds(ConstBitmapPtr p_buf, const Rect& r) ynothrow
+{
+	BlitLines<false, false>(CopyLine<true>(), GetBufferPtr(), p_buf,
+		size, size, r.GetPoint(), r.GetPoint(), r.GetSize());
+}
+
+void
 ScreenBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
 	const Point& pt)
 {
@@ -521,6 +534,16 @@ ScreenBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 	sf.Update(*this, pt);
 #	endif
 }
+#if YCL_Win32
+void
+ScreenBuffer::UpdateToBounds(NativeWindowHandle h_wnd, const Rect& r,
+	const Point& sp) ynothrow
+{
+	GSurface<> sf(h_wnd);
+
+	sf.UpdateBounds(*this, r, sp);
+}
+#endif
 
 void
 ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
@@ -567,17 +590,25 @@ WindowMemorySurface::~WindowMemorySurface()
 void
 WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 {
+	UpdateBounds(sbuf, {pt, sbuf.GetSize()});
+}
+void
+WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
+	const Point& sp) ynothrow
+{
 	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
-	const auto& s(sbuf.GetSize());
 
-	// NOTE: Unlocked intentionally for performance.
-	::BitBlt(h_owner_dc, pt.X, pt.Y, int(s.Width), int(s.Height), h_mem_dc, 0,
-		0, SRCCOPY);
+	if(YB_UNLIKELY(::BitBlt(h_owner_dc, int(r.X), int(r.Y), int(r.Width),
+		int(r.Height), h_mem_dc, int(sp.X), int(sp.Y), SRCCOPY) == 0))
+		YTraceDe(Warning, "Failed call BitBlt, error = %u.",
+			unsigned(GetLastError()));
 	::SelectObject(h_mem_dc, h_old);
 }
+
 void
 WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 	NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a, const Point& pt)
+	ynothrow
 {
 	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
 	auto rect(FetchWindowRect(h_wnd));
@@ -585,20 +616,19 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 	::POINT ptx{pt.X, pt.Y};
 	::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
 
-	// NOTE: Unlocked intentionally for performance.
-	if(YB_UNLIKELY(!::UpdateLayeredWindow(h_wnd, h_owner_dc,
+	if(YB_UNLIKELY(::UpdateLayeredWindow(h_wnd, h_owner_dc,
 		reinterpret_cast<::POINT*>(&rect), &size, h_mem_dc, &ptx, 0, &bfunc,
-		ULW_ALPHA)))
-	{
-		// TODO: Use RAII.
-		::SelectObject(h_mem_dc, h_old);
-		YF_Raise_Win32Exception("UpdateLayeredWindow");
-	}
+		ULW_ALPHA) == 0))
+		YTraceDe(Warning, "Failed call UpdateLayeredWindow, error = %u.",
+			unsigned(GetLastError()));
 	::SelectObject(h_mem_dc, h_old);
 }
 
 
 WindowDeviceContext::WindowDeviceContext(NativeWindowHandle h_wnd)
+	// NOTE: Painting using %::GetDC and manually managing clipping areas
+	//	instead of %::GetDCEx, for performance and convenience calculation
+	//	of input boundary.
 	: WindowDeviceContextBase(h_wnd, ::GetDC(h_wnd))
 {}
 WindowDeviceContext::~WindowDeviceContext()
@@ -617,6 +647,15 @@ WindowRegionDeviceContext::~WindowRegionDeviceContext()
 		"Invalid type found.");
 
 	::EndPaint(hWindow, reinterpret_cast<::PAINTSTRUCT*>(ps));
+}
+
+Rect
+WindowRegionDeviceContext::GetInvalidatedArea() const
+{
+	// XXX: To workaround [-fstrict-aliasing].
+	const auto p(reinterpret_cast<const ::PAINTSTRUCT*>(ps));
+
+	return FetchRectFromBounds((*p).rcPaint);
 }
 
 
@@ -658,13 +697,10 @@ WindowClass::WindowClass(const std::wstring& class_name,
 WindowClass::~WindowClass()
 {
 	::UnregisterClassW(reinterpret_cast<const wchar_t*>(atom), h_instance);
-	TryExpr(YTraceDe(Notice, "Window class '%s' of atom '%hu' unregistered.",
-		name.empty() ? "<unknown>" : WCSToUTF8(name).c_str(), atom))
-	CatchExpr(std::exception& e,
-		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
-		e.what()), yunused(e))
-	CatchExpr(..., YTraceDe(Alert,
-		"Unknown exception found @ WindowClass::~WindowClass."))
+	FilterExceptions([this]{
+		YTraceDe(Notice, "Window class '%s' of atom '%hu' unregistered.",
+			name.empty() ? "<unknown>" : WCSToUTF8(name).c_str(), atom);
+	}, "WindowClass::~WindowClass");
 }
 #	endif
 
