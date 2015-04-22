@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r628
+\version r645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-15 18:56 +0800
+	2015-04-19 17:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,20 +256,30 @@ HostRenderer::InitWidgetView()
 void
 HostRenderer::RefreshForWidget()
 {
-	auto& wgt(GetWidgetRef());
+	if(const auto p_wnd = GetWindowPtr())
+	{
+#if YCL_Win32
+		if(!p_wnd->IsMinimized())
+#endif
+		{
+			// TODO: Determine what should be painted for thumbnail.
+			// TODO: Provide interface for custom painting.
+			AdjustSize();
 
-	AdjustSize();
+			auto& wgt(GetWidgetRef());
+			const auto& g(GetContext());
+			const auto r(GetInvalidatedArea());
 
-	const auto& g(GetContext());
-	const auto r(GetInvalidatedArea());
-
-	if(Validate(wgt, wgt, {g, {}, r}))
-		Update(g.GetBufferPtr(), r);
+			if(Validate(wgt, wgt, {g, {}, r}))
+				Update(g.GetBufferPtr(), r);
+		}
+	}
 }
 
 void
 HostRenderer::Update(ConstBitmapPtr p, const Rect& r)
 {
+	YAssertNonnull(p);
 	if(const auto p_wnd = GetWindowPtr())
 		try
 		{

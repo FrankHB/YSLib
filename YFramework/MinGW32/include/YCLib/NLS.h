@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r69
+\version r71
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-25 17:30:48 +0800
 \par 修改时间:
-	2014-11-25 17:45 +0800
+	2015-04-19 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ inline namespace Windows
 \pre 间接断言：字符串参数非空。
 \since build 552
 */
-YF_API std::wstring
+YF_API YB_NONNULL(1) std::wstring
 FetchNLSItemFromRegistry(const wchar_t*);
 
 /*!

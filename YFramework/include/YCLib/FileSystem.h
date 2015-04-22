@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1673
+\version r1699
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-04-10 01:33 +0800
+	2015-04-19 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,10 +303,10 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 */
 //@{
 //! \brief 判断指定 UTF-8 文件名的文件是否存在。
-YF_API bool
+YF_API YB_NONNULL(1) bool
 ufexists(const char*) ynothrow;
 //! \brief 判断指定 UCS-2 文件名的文件是否存在。
-YF_API bool
+YF_API YB_NONNULL(1) bool
 ufexists(const char16_t*) ynothrow;
 //@}
 /*!
@@ -327,22 +327,23 @@ ufexists(const _tString& str) ynothrow
 \pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
 \since build 566
 */
-YF_API int
+YF_API YB_NONNULL(1) int
 upclose(std::FILE*) ynothrow;
 
 /*!
 \param filename 文件名，意义同 POSIX <tt>::popen</tt> 。
 \param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \pre 断言：\c filename 。
+\pre 间接断言： \c mode 。
 \warning 应使用 upclose 而不是 \c std::close 关闭管道流，否则行为可能未定义。
 \since build 566
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开管道流。
-YF_API std::FILE*
+YF_API YB_NONNULL(1, 2) std::FILE*
 upopen(const char* filename, const char* mode) ynothrow;
 //! \brief 以 UCS-2 文件名无缓冲打开管道流。
-YF_API std::FILE*
+YF_API YB_NONNULL(1, 2) std::FILE*
 upopen(const char16_t* filename, const char16_t* mode) ynothrow;
 //@}
 
@@ -355,7 +356,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow;
 \note 指定的 size 不能容纳结果时失败，设置 \c errno 为 \c ERANGE 。
 \note 若分配存储失败，设置 \c errno 为 \c ENOMEM 。
 */
-YF_API char16_t*
+YF_API YB_NONNULL(1) char16_t*
 u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 //@}
 
@@ -371,7 +372,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 \brief 切换当前工作路径至指定的 UTF-8 字符串。
 \since build 476
 */
-YF_API bool
+YF_API YB_NONNULL(1) bool
 uchdir(const char*) ynothrow;
 
 /*!
@@ -379,28 +380,28 @@ uchdir(const char*) ynothrow;
 \note 权限由实现定义： DS 使用最大权限； MinGW32 使用 _wmkdir 指定的默认权限。
 \since build 475
 */
-YF_API bool
+YF_API YB_NONNULL(1) bool
 umkdir(const char*) ynothrow;
 
 /*!
 \brief 按 UTF-8 路径删除一个空目录。
 \since build 475
 */
-YF_API bool
+YF_API YB_NONNULL(1) bool
 urmdir(const char*) ynothrow;
 
 /*!
 \brief 按 UTF-8 路径删除一个非目录文件。
 \since build 476
 */
-YF_API bool
+YF_API YB_NONNULL(1) bool
 uunlink(const char*) ynothrow;
 
 /*!
 \brief 按 UTF-8 路径删除一个文件。
 \since build 476
 */
-YF_API bool
+YF_API YB_NONNULL(1) bool
 uremove(const char*) ynothrow;
 
 /*!
@@ -411,7 +412,7 @@ uremove(const char*) ynothrow;
 
 若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
 */
-YF_API bool
+YF_API YB_NONNULL(1) bool
 truncate(std::FILE*, std::size_t) ynothrow;
 //@}
 
@@ -426,15 +427,15 @@ truncate(std::FILE*, std::size_t) ynothrow;
 //@{
 YF_API std::chrono::nanoseconds
 GetFileModificationTimeOf(int);
-//! \pre 断言：输入非空指针。
-YF_API std::chrono::nanoseconds
+//! \pre 断言：参数非空。
+//@{
+YF_API YB_NONNULL(1) std::chrono::nanoseconds
 GetFileModificationTimeOf(std::FILE*);
-//! \pre 断言：输入非空指针。
-YF_API std::chrono::nanoseconds
+YF_API YB_NONNULL(1) std::chrono::nanoseconds
 GetFileModificationTimeOf(const char*);
-//! \pre 断言：输入非空指针。
-YF_API std::chrono::nanoseconds
+YF_API YB_NONNULL(1) std::chrono::nanoseconds
 GetFileModificationTimeOf(const char16_t*);
+//@}
 //! \note 使用 NTCTS 参数 GetFileModificationTimeOf 实现。
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
@@ -454,8 +455,8 @@ GetFileModificationTimeOf(const _tString& str)
 //@{
 YF_API std::uint64_t
 GetFileSizeOf(int);
-//! \pre 断言：输入非空指针。
-YF_API std::uint64_t
+//! \pre 断言：参数非空。
+YF_API YB_NONNULL(1) std::uint64_t
 GetFileSizeOf(std::FILE*);
 //@}
 
@@ -708,10 +709,10 @@ using FileIterator = ystdex::indirect_input_iterator<HDirectory*>;
 */
 //@{
 //! \since build 412
-YF_API bool
+YF_API YB_NONNULL(1) bool
 IsAbsolute(const char*);
 //! \since build 559
-YF_API bool
+YF_API YB_NONNULL(1) bool
 IsAbsolute(const char16_t*);
 //@}
 
@@ -720,7 +721,7 @@ IsAbsolute(const char16_t*);
 \pre 间接断言：参数非空。
 \since build 412
 */
-YF_API std::size_t
+YF_API YB_NONNULL(1) std::size_t
 GetRootNameLength(const char*);
 
 } // namespace platform;

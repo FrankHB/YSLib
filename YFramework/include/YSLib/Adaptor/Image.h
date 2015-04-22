@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1332
+\version r1336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2015-03-24 10:01 +0800
+	2015-04-19 12:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,14 +314,14 @@ public:
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
 	\brief 构造：从矩形像素图缓冲区按指定大小和扫描线跨距增量复制并转换图像数据。
-	\pre 间接断言：输入指针非空。
+	\pre 间接断言：指针参数非空。
 	\throw GeneralEvent 转换失败。
 	\exception LoggedEvent 异常中立：由跨距计算的偏移值范围检查失败。
 	\note 扫描线跨距的单位为字节，
 		等于图像的宽乘以每像素字节数与输入的扫描线跨距增量之和。
 	\since build 471
 	*/
-	explicit
+	explicit YB_NONNULL(1)
 	HBitmap(BitmapPtr, const Size&, size_t = 0);
 	//@}
 	/*!
@@ -714,11 +714,12 @@ public:
 		: p_tag(ptr), owns(o)
 	{}
 	/*!
-	\pre 断言：指针参数非空。
+	\pre 断言：表示名称的指针参数非空。
 	\post <tt>!owns</tt> 。
 	\throw GeneralEvent 没有找到指定的标签。
 	\throw std::invalid_argument 位图为空。
 	\since build 557
+	\todo 使用 <tt>YB_NONNULL(3)</tt> 。
 	*/
 	//@{
 	//! \brief 构造：使用依赖的位图指针、模型和元数据名称。

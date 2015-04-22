@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1414
+\version r1423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2014-12-14 22:15 +0800
+	2015-04-18 16:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,10 +58,9 @@ public:
 	//@{
 	using CharParser = std::function<void(LexicalAnalyzer&, char)>;
 
-private:
-	LexicalAnalyzer lexer;
+	//! \since build 592
+	LexicalAnalyzer Lexer;
 
-public:
 	/*!
 	\throw GeneralEvent 文件无效。
 	\throw LoggedEvent 文件内容读取失败。
@@ -70,10 +69,10 @@ public:
 	//! \throw LoggedEvent 关键失败：无法访问源内容。
 	template<typename _tIn>
 	Session(_tIn first, _tIn last, CharParser parse = DefaultParseByte)
-		: lexer()
+		: Lexer()
 	{
 		std::for_each(first, last, [&](char c){
-			parse(lexer, c);
+			parse(Lexer, c);
 		});
 	}
 	template<typename _tRange,
@@ -83,9 +82,9 @@ public:
 	{}
 	DefDeCopyMoveCtorAssignment(Session)
 
-	DefGetterMem(const ynothrow, const string&, Buffer, lexer)
+	DefGetterMem(const ynothrow, const string&, Buffer, Lexer)
 	//@}
-	DefGetter(const, TokenList, TokenList, Tokenize(lexer.Literalize()))
+	DefGetter(const, TokenList, TokenList, Tokenize(Lexer.Literalize()))
 
 	/*!
 	\brief 默认字符解析实现：直接使用 LexicalAnalyzer::ParseByte 。
@@ -149,6 +148,7 @@ Analyze(ValueNode&, const Session&);
 YF_API void
 Analyze(ValueNode&, const string&);
 template<typename _type>
+//! ADL \c Analyze 分析节点。 
 ValueNode
 Analyze(const _type& arg)
 {

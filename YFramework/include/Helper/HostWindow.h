@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r447
+\version r451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2015-04-11 21:03 +0800
+	2015-04-19 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,19 +166,21 @@ public:
 
 	/*!
 	\brief 更新：同步缓冲区。
+	\pre 间接断言：指针参数非空。
 	\note 根据 UseOpacity 选择更新操作。
 	\since build 589
 	*/
-	void
+	YB_NONNULL(1) void
 	UpdateFrom(Drawing::ConstBitmapPtr, ScreenBuffer&);
 
 #if YCL_Win32
 	/*!
 	\brief 更新：同步指定边界和源偏移量的缓冲区。
+	\pre 间接断言：指针参数非空。
 	\note 根据 UseOpacity 选择更新操作。
 	\since build 591
 	*/
-	void
+	YB_NONNULL(1) void
 	UpdateFromBounds(Drawing::ConstBitmapPtr, ScreenBuffer&,
 		const Drawing::Rect&, const Drawing::Point& = {});
 #endif

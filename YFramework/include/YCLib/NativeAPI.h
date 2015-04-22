@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r832
+\version r858
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-02-01 12:05 +0800
+	2015-04-19 10:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,40 +130,23 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 #	include <direct.h> // for ::_mkdir;
 #	include <sys/stat.h>
 
-/*!
-\ingroup name_collision_workarounds
-\brief 禁止使用 DialogBox 宏。
-\since build 297
-*/
+//! \ingroup name_collision_workarounds
+//@{
+//! \since build 297
 #	undef DialogBox
-
-/*!
-\ingroup name_collision_workarounds
-\brief 禁止使用 DrawText 宏。
-\since build 298
-*/
+//! \since build 298
 #	undef DrawText
-
-/*!
-\ingroup name_collision_workarounds
-\brief 禁止使用 FindWindow 宏。
-\since build 381
-*/
+//! \since build 592
+#	undef ExpandEnvironmentStrings
+//! \since build 381
 #	undef FindWindow
-
-/*!
-\ingroup name_collision_workarounds
-\brief 禁止使用 GetObject 宏。
-\since build 313
-*/
+//! \since build 592
+#	undef GetMessage
+//! \since build 313
 #	undef GetObject
-
-/*!
-\ingroup name_collision_workarounds
-\brief 禁止使用 PostMessage 宏。
-\since build 298
-*/
+//! \since build 298
 #	undef PostMessage
+//@}
 
 
 #	ifndef S_IFIFO

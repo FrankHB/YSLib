@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r713
+\version r716
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-03-29 01:02 +0800
+	2015-04-19 16:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,8 @@ Caret::~Caret()
 bool
 Caret::Check(IWidget& sender)
 {
-	if(caret_animation.GetConnectionPtr()
-		&& caret_animation.GetConnectionRef().Ready)
+	if(FetchGUIState().ExternalTextInputFocusPtr == &sender && caret_animation
+		.GetConnectionPtr() && caret_animation.GetConnectionRef().Ready)
 	{
 		if(IsEnabled(sender) && IsFocusedCascade(sender))
 			return CaretTimer.RefreshRemainder() < CaretTimer.Interval / 2;
@@ -113,7 +113,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 				return;
 			}
 
-			const auto& k(e.GetKeys());
+			const auto& k(st.GetCheckedHeldKeys());
 			auto ek(FindFirstKeyInCategroy(k, Editing));
 
 			if(ek == KeyBitsetWidth)

@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r238
+\version r247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-03-21 11:53 +0800
+	2015-04-23 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,31 +83,31 @@ public:
 
 
 #	if !YCL_Win32 && YCL_API_Has_unistd_h
-//! \since build 553
-using HandleDeleter = platform::FileDescriptorDeleter;
+//! \since build 592
+using HandleDelete = platform::FileDescriptorDeleter;
 #	else
 /*!
 \brief 句柄删除器。
-\since build 520
+\since build 592
 */
-struct YF_API HandleDeleter
+struct YF_API HandleDelete
 {
 #		if YCL_Win32
 	using pointer = ::HANDLE;
 
 	void
-	operator()(pointer);
+	operator()(pointer) const ynothrow;
 #		else
 	using pointer = int*;
 
-	PDefHOp(void, (), pointer h)
+	PDefHOp(void, (), pointer h) const ynothrow
 		ImplExpr(delete h)
 #		endif
 };
 #endif
 
 //! \since build 520
-using UniqueHandle = std::unique_ptr<HandleDeleter::pointer, HandleDeleter>;
+using UniqueHandle = std::unique_ptr<HandleDelete::pointer, HandleDelete>;
 
 
 //! \since build 567
@@ -167,7 +167,7 @@ MakePipe();
 */
 //@{
 #	if YCL_Win32
-YF_API std::string
+YF_API YB_NONNULL(1) std::string
 DecodeArg(const char*);
 inline PDefH(std::string, DecodeArg, const std::string& arg)
 	ImplRet(DecodeArg(&arg[0]))
@@ -185,7 +185,7 @@ DecodeArg(_type&& arg) -> decltype(yforward(arg))
 }
 
 #	if YCL_Win32
-YF_API std::string
+YF_API YB_NONNULL(1) std::string
 EncodeArg(const char*);
 inline PDefH(std::string, EncodeArg, const std::string& arg)
 	ImplRet(EncodeArg(&arg[0]))

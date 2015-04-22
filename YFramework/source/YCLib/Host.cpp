@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r284
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-04-06 03:41 +0800
+	2015-04-23 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,9 +62,9 @@ ImplDeDtor(Exception)
 
 #if YCL_Win32
 void
-HandleDeleter::operator()(pointer h)
+HandleDelete::operator()(pointer h) const ynothrow
 {
-	::CloseHandle(h);
+	YCL_CallWin32_Trace(CloseHandle, "HandleDelete::operator()", h);
 }
 #endif
 
@@ -131,13 +131,13 @@ MakePipe()
 	::HANDLE h_raw_read, h_raw_write;
 
 	if(!::CreatePipe(&h_raw_read, &h_raw_write, {}, 0))
-		YF_Raise_Win32Exception("CreatePipe");
+		YCL_Raise_Win32Exception("CreatePipe");
 
 	UniqueHandle h_read(h_raw_read), h_write(h_raw_write);
 
 	if(!::SetHandleInformation(h_write.get(), HANDLE_FLAG_INHERIT,
 		HANDLE_FLAG_INHERIT))
-		YF_Raise_Win32Exception("SetHandleInformation");
+		YCL_Raise_Win32Exception("SetHandleInformation");
 	return {std::move(h_read), std::move(h_write)};
 #	elif YCL_API_Has_unistd_h
 	int fds[2];

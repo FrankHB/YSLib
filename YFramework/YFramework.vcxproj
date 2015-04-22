@@ -14,25 +14,25 @@
     <None Include="..\doc\ChangeLog.PreAlpha1.txt" />
     <None Include="..\doc\ChangeLog.PreAlpha2.txt" />
     <None Include="..\doc\ChangeLog.PreAlpha3.txt" />
-		<Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
-		<Text Include="..\doc\ChangeLog.PreAlpha5.txt" />
-		<None Include="..\doc\CHRLib.txt" />
+    <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
+    <Text Include="..\doc\ChangeLog.PreAlpha5.txt" />
+    <None Include="..\doc\CHRLib.txt" />
     <None Include="..\doc\CommonRules.txt" />
     <None Include="..\doc\Definitions.txt" />
-		<Text Include="..\doc\Dependencies.txt" />
-		<None Include="..\doc\Designation.txt" />
-		<Text Include="..\doc\LanguageConvention.txt" />
-		<None Include="..\doc\Meta.txt" />
-		<Text Include="..\doc\NPL.txt" />
-		<Text Include="..\doc\Workflow.Annual2013.txt" />
-		<Text Include="..\doc\Workflow.Annual2014.txt" />
-		<Text Include="..\doc\Workflow.Annual2015.txt" />
-		<None Include="..\doc\ProjectRules.txt" />
-		<Text Include="..\doc\YBase.txt" />
-		<Text Include="..\doc\YFramework.txt" />
-		<None Include="..\doc\YSLib.txt" />
-		<None Include="..\doc\vsd\YFramework.vsd" />
-	</ItemGroup>
+    <Text Include="..\doc\Dependencies.txt" />
+    <None Include="..\doc\Designation.txt" />
+    <Text Include="..\doc\LanguageConvention.txt" />
+    <None Include="..\doc\Meta.txt" />
+    <Text Include="..\doc\NPL.txt" />
+    <Text Include="..\doc\Workflow.Annual2013.txt" />
+    <Text Include="..\doc\Workflow.Annual2014.txt" />
+    <Text Include="..\doc\Workflow.Annual2015.txt" />
+    <None Include="..\doc\ProjectRules.txt" />
+    <Text Include="..\doc\YBase.txt" />
+    <Text Include="..\doc\YFramework.txt" />
+    <None Include="..\doc\YSLib.txt" />
+    <None Include="..\doc\vsd\YFramework.vsd" />
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\3rdparty\include\FreeImage.h" />
     <ClInclude Include="..\3rdparty\freetype\include\config\ftconfig.h" />
@@ -179,7 +179,7 @@
     <ClInclude Include="include\YSLib\Adaptor\Font.h" />
     <ClInclude Include="include\YSLib\Adaptor\YModules.h" />
     <ClInclude Include="include\YSLib\Adaptor\YNew.h" />
-    <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
+    <ClInclude Include="include\YSLib\Adaptor\YReference.hpp" />
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
     <ClInclude Include="include\YSLib\Core\Task.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />

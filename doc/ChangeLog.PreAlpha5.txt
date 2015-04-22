@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r12843
+\version r13062
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-04-16 01:39 +0800
+	2015-04-23 01:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,184 @@ $import $HISTORY;
 
 $now
 (
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			/ %HostedUI $=
+			(
+				- "1st parameter" @ "function %PrepareTopLevelPopupMenu",
+				(
+				+ "function %FetchDefaultTopLevelPosition"
+					@ !"platform %Android";
+					// Current only implemented for platform %Win32. The \
+						position is an approximation as top level overlapped \
+						window behavior.
+				/ "set top level window position" @ !"window style containing \
+					'WS_OVERLAPPED | WS_CHILD'" @ "function %ShowTopLevel"
+					@ "platform %Win32" ^ "%FetchDefaultTopLevelPosition"
+				)
+			),
+			/ @ "class %HostRenderer" @ %HostRenderer $=
+			(
+				+ "assertion for nonnull parameter" @ "function %Update",
+				(
+				/ "only refreshed when the window is existed and not minimized \
+					(currently for platform %Win32 only)"
+					@ "function %RefreshForWidget";
+				* $comp "mismatched buffer found and exception threw after the \
+					window is minimized" $since b590
+				)
+			),
+
+		),
+		/ %'YCLib_(MinGW32)' $=
+		(
+			* DLB "missing 'ystdex::' before 'or_'" @ %COM $since b590,
+			/ %MinGW32 $=
+			(
+				+ "2 functions %ExpandEnvironmentStrings",
+				+ "assertion for nonnull string parameter"
+					@ "constructor %RegistryKey",
+				/ "macro %YF_Raise_Win32Exception"
+					=> "%YCL_Raise_Win32Exception",
+				/ "macro %YF_Raise_Win32Exception_On_Failure"
+					=> "%YCL_Raise_Win32Exception_On_Failure",
+				+ "macros %(YCL_CallWin32, YCL_CallWin32_Trace)"
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %UI.TextBox $=
+			(
+				* "failed to response for caret shared by different senders"
+					@ "member function %Caret::Check" $since b483,
+					// If there are 2 senders, even the input cannot work \
+						because the caret check would reset the external text \
+						input focus.
+				* "%Shift combined with arrow keys handled" @ "class %TextBox"
+					$since b571
+					 // Since b571 arrow keys did not work in %TextBox. Since \
+						b582 it seemed to be OK other than %Shift keys \
+						combined with arrow keys which would not be responded \
+						before %KeyDown.
+			),
+			/ "class %ValueNode" @ %Core.ValueNode $=
+			(
+				+ 'const ynothrow' @ "functions %(Clear, ClearChildren)",
+				+ "function %ValueNode::ClearContainer"
+			),
+
+		),
+		/ %YCLib $=
+		(
+			/ %NativeAPI $=
+			(
+				* "missing '#undef GetMessage'" $since b437,
+					// This caused %Win32Exception::GetMessage is actually \
+						'GetMessageW'.
+				+ '#undef ExpandEnvironmentStrings'
+			),
+			- DLB "redundant inclusion of '<Shlwapi.h>'" @ "platform %Win32"
+				@ %FileSystem $redendant $since b559,
+			/ @ "platform %Win32" %HostedGUI $=
+			(
+				/ @ "class %ScreenBuffer" $=
+				(
+					+ "assertion for nonnull parameter"
+						@ "function %Premultiply",
+					* "missing assertion for nonnull"
+						@ "function %UpdateFromBounds" $mismatch $since b591
+				),
+				(
+				+ "functions %(IsMaximized, IsMinimized)"
+					@ "class %WindowReference";
+				+ ('using WindowReference::IsMaximized;',
+					'using WindowReference::IsMinimized;') @ "class %HostWindow"
+				),
+				+ "function %ExecuteShellCommand",
+				/ $design "simplified implementation" $=
+				(
+					^ $dev $design $dep_from ("macro %YF_CallWin32"
+						@ %'YCLib_(MinGW32)'.MinGW32),
+					^ $dep_from ("macro %YF_CallWin32_Trace"
+						@ %'YCLib_(MinGW32)'.MinGW32) ~ "%YTraceDe" $effective
+						@ "member functions %WindowMemorySurface::( \
+						UpdateBounds, UpdatePremultiplied)"
+				),
+				(
+				+ "struct %GDIObjectDelete"^ $dep_from
+					("macro %YF_CallWin32_Trace" @ %'YCLib_(MinGW32)'.MinGW32);
+				/ $design "implemented destructor %ScreenBuffer"
+					^ "%GDIObjectDelete"
+				)
+			),
+			/ %Host $=
+			(
+				/ "type %HandleDeleter" => "%HandleDelete";
+				/ @ "member function %HandleDelete::operator()" $=
+				(
+					+ 'const ynothrow',
+					+ "trace with level 'Warning' on failure" ^ $dep_from
+						("%YF_CallWin32_Trace" @ %'YCLib_(MinGW32)'.MinGW32)
+						@ "platform %Win32"
+				)
+			)
+		),
+		+ "exposed data member %Session::Lexer" @ %NPL.SContext,
+		+ "'YB_NONULL' for nonnull function parameters" $effective @ %(Helper.(
+			HostWindow, "DS screen implementation"), CHRLib.CharacterProcessing,
+			YCLib.(Debug, FileSystem, HostedGUI),
+			'YCLib_(DS)'.DSVideo, YSLib.Core.(YDevice, YException))
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		/ DLD "clarified build mode" ^ "enum class",
+		(
+		/ $revert_ex(b541) "purged output before building .a files and warned \
+			if this operation failed";
+		* $comp "wrong modules reserved in .a files after being renamed" $since
+			b541
+		),
+		/ DLD "simplified function %::main" ^ "%Nonnull" ~ "%YAssertNonnull"
+	),
+	/ @ "function ::main" @ %YDE.ImageBrowser.Main $=
+	(
+		/ "set window position" ^ "%Point::Invalid",
+			// In combination of modification on %ShowTopLevel, this makes the \
+				window shown at 1/4 top and left position of the screen.
+		(
+		- "handling of %Win32Exception" @ "platform %Win32";
+		/ DLD "simplified implementation" ^ "%FilterExceptions"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* "wrong type identification used"
+			@ "member function %bad_any_cast::to_type" @ %Any $since b586,
+		/ %String $=
+		(
+			/ @ "traits class %string_traits" $=
+			(
+				(
+				+ "alias %allocator_type";
+				+ "aliases %(size_type, difference_type)" ^ "%allocator_type",
+				/ "aliases %(pointer, const_pointer)" ^ "%allocator_type"
+				),
+				+ "aliases %(reference, const_reference)"
+			),
+			+ "3 function templates %(erase_left, erase_right)" $dep_from
+				"%string_traits::size_type",
+			/ DLD "simplified function templates %trim" ^ 'yforward'
+				~ 'static_cast<_tString&&>'
+		)
+	),
+	* $dev "missing updating project file for renaming of \
+		%YFramework.YSLib.Adaptor.YReference" @ "VC++ project" $since b590
+),
+
+b591
+(
 	/ %YBase $=
 	(
 		/ %YDefinition $=
@@ -44,7 +222,7 @@ $now
 			+ "pseudo keyword %yconstfn_relaxed"
 			),
 			+ "pseudo keywords %(yalignas, yalignas_type)",
-			+ "feature tests support from WG21/N4000" $=
+			+ "feature tests support from WG21/N4200" $=
 			(
 				(
 				+ "macro %__has_cpp_attribute" @ "!defined";
@@ -169,23 +347,23 @@ $now
 					@ "DS window %WM_PAINT handler" $dep_from \
 					"%(WindowMemorySurface::UpdateBounds, \
 					%WindowRegionDeviceContext::GetInvalidatedArea)"
-					@ %YCLib.HostedGUI,
-				/ %HostedUI $=
-				(
-					/ "function template %ActOnHover_ShowTopLevel, \
-						function %PrepareTopLevelPopupMenu"
-						^ "empty window guard";
-					/ @ "functions %(SetupTopLevelTimedTips, \
-						SetupTopLevelContextMenu)" $=
-					(
-						- "attaching to host window";
-						- "1st parameter",
-						/ "return type" -> 'void' ~ 'bool'
-					)
-				)
+					@ %YCLib.HostedGUI
 			),
 			/ "simplified implementation" @ %Initialization ^ $dep_from
-				("function %ExtractException" @ %YCLib.Host)
+				("function %ExtractException" @ %YCLib.Host),
+			/ %HostedUI $=
+			(
+				/ "function template %ActOnHover_ShowTopLevel, \
+					function %PrepareTopLevelPopupMenu"
+					^ "empty window guard";
+				/ @ "functions %(SetupTopLevelTimedTips, \
+					SetupTopLevelContextMenu)" $=
+				(
+					- "attaching to host window";
+					- "1st parameter",
+					/ "return type" -> 'void' ~ 'bool'
+				)
+			)
 		),
 		/ %YSLib.Core.YException $=
 		(
@@ -374,8 +552,8 @@ b590
 			),
 			/ $re(b587) %Service.TextRenderer $=
 			(
-				* $mismatch(b587) "missing" !^ "ADL"
-					@ "function template %PutString#3" $since b587,
+				* "missing" !^ "ADL"
+					@ "function template %PutString#3" $mismatch $since b587,
 				/ "dispatched calls" @ "function template %PutText" !^ "ADL"
 			)
 		),
@@ -2475,7 +2653,7 @@ b579
 			/ %ShellHelper $=
 			(
 				* DLD "ignored size parameter" @ "time printing implementation"
-					$since b307 @ "!platform %DS"
+					$since b307 @ !"platform %DS"
 					$= (/ "implemented" ^ "%std::snprintf or %::snprintf"
 						~ "%std::printf"),
 						// No %std::snprintf is declared on platforms \
@@ -3626,7 +3804,7 @@ b567
 				/ "creating terminal data only when for TTY";
 					// See $2015-01 @ %Documentation::Workflow::Annual2015.
 				* $comp "escape sequence output even if underlying stream \
-					redirected" @ "!platform %Win32" $since b560
+					redirected" @ !"platform %Win32" $since b560
 			)
 		),
 		/ %Helper $=
@@ -4212,7 +4390,7 @@ b563
 			)
 			),
 			* "assertion failed for root path due to wrong invariant on string \
-				length" @ "!platforms %(Win32, DS)" @ "class %DirectorySession"
+				length" @ !"platforms %(Win32, DS)" @ "class %DirectorySession"
 				@ %FileSystem $since b559,
 			/ "merged enum %ExtendedSet" -> "enum %NativeSet"
 				@ "platform %Linux" @ "namespace %KeyCodes" @ %Keys,
@@ -4264,7 +4442,7 @@ b563
 			/ "freetype headers and libraries would be installed only when \
 				$INCLUDES_freetype is not empty",
 			/ "determined package %freetype2 including directory"
-				@ "!platform %Win32" ^ 'pkg-config --cflags-only-I'
+				@ !"platform %Win32" ^ 'pkg-config --cflags-only-I'
 			/ "supported installing %SHBuild executable without extension name"
 				^ ($dep_from "%EXESFX" @ "%SHBuild-common-options.sh"
 				@ %Scripts),
@@ -4289,11 +4467,11 @@ b563
 			/ @ "%SHBuild-BuildApp.sh" $=
 			(
 				/ "determined package %freetype2 cflags and libs"
-					@ "!platform %Win32" ^ 'pkg-config',
+					@ !"platform %Win32" ^ 'pkg-config',
 				* "missing quoting library directory for '-L'" $since b549,
 				/ "exported %LIBS" ^ $dep_from ("%LIBS_RPATH"
 					@ "%SHBuild-common-options.sh" @ %Scripts),
-				/ "disabled '-mwindows' to linker flag" @ "!platform %Win32"
+				/ "disabled '-mwindows' to linker flag" @ !"platform %Win32"
 			),
 			/ @ "SHBuild-common.sh" $=
 			(
@@ -4307,7 +4485,7 @@ b563
 					@ "functions %(SHBuild_Install, SHBuild_InstallDir)"
 					^ "logical (AND, OR)",
 				+ "variable %LIBS_RPATH with default value: \
-					-Wl,-rpath,'\$ORIGIN:\$ORIGIN/../lib'" @ "!platform %Win32"
+					-Wl,-rpath,'\$ORIGIN:\$ORIGIN/../lib'" @ !"platform %Win32"
 			),
 			+ "variable %EXESFX with default variable '.exe'"
 				@ "platform %Win32" @ "%SHBuild-common-options.sh",
@@ -4415,7 +4593,7 @@ b562
 				/ "system library" ^ "%SHBuild_YF_SystemLibs"
 					~ "hard coded values",
 				+ '-lxcb -lpthread' @ "%SHBuild_YF_SystemLibs"
-					@ "!platform %Win32"
+					@ !"platform %Win32"
 			),
 			/ @ "%SHBuild-common.sh" $=
 			(
@@ -4639,7 +4817,7 @@ b561
 		/ %YCLib $=
 		(
 			* "wrong assertion" @ "constructor %DirectorySession"
-				@ "!platform %Win32" $since b560,
+				@ !"platform %Win32" $since b560,
 			/ 'inline' @ "function template %Deref"  -> 'yconstfn' @ %Debug,
 			/ @ "platform %Win32" @ %YCLib.HostedGUI $=
 			(
@@ -4751,7 +4929,7 @@ b561
 					'-Wl,--gc-sections' respectively";
 				+ "test to set to empty for %(CXXFLAGS_GC, LDFLAGS_GC) if not \
 					successfully compiled by $CXX to support toolchain without \
-					these options (e.g. on OS X)" @ "!platform %Win32"
+					these options (e.g. on OS X)" @ !"platform %Win32"
 					// Windows has limitation, see \
 						http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25 .
 				/ "applied $(CXXFLAGS_GC, LDFLAGS_GC) for default value of variables \
@@ -4782,7 +4960,7 @@ b560
 (
 	/ %YFramework $=
 	(
-		/ @ "namespace %platform_ex" @ "!platform %Android" @ "hosted platforms"
+		/ @ "namespace %platform_ex" @ !"platform %Android" @ "hosted platforms"
 			@ %YCLib.Host $=
 		(
 			(
@@ -4825,7 +5003,7 @@ b560
 							and the build is successful, it still can turn out \
 							wrong result in runtime, e.g. ReiserFS on Linux. \
 							See also https://github.com/ggreer/the_silver_searcher/issues/36 .
-					+ "resolving link target" @ "!platforms %(DS, Win32)"
+					+ "resolving link target" @ !"platforms %(DS, Win32)"
 						@ "member function %HDirectory::GetNodeCategory"
 						// %DS has no %::lstat.
 				),
@@ -4972,14 +5150,17 @@ b559
 					("platform %Linux" @ %Platform),
 				+ "explicitly assertion for nonnull parameter"
 					@ "functions %GetRootNameLength" ^ "%Nonnull",
-				/ @ "!platform %Win32"
-					@ "function %IsAbsolute for 'const char*'" $=
+				/ @ "function %IsAbsolute for 'const char*'" $=
 				(
-					+ "assertion for nonnull parameter" ^ "%Deref",
-					- "null check",
-						// Since behavior for null parameter has been undefined.
-					/ $dev $lib "implemented" !^ "%::PathIsRelative" $dep_to
-						"getting off Shlwapi"
+					/ @ !"platform %Win32" $=
+					(
+						+ "assertion for nonnull parameter" ^ "%Deref",
+						- "null check",
+							// Since behavior for null parameter has been \
+								undefined.
+					),
+					/ $dev $lib "implemented" @ "platform %Win32"
+						!^ "%::PathIsRelative" $dep_to "getting off Shlwapi"
 				),
 				+ "function %IsAbsolute for 'const char16_t*'"
 			)
@@ -7478,7 +7659,7 @@ b544
 				/ DLD "simplified some assertions for invariant"
 					@ "member functions",
 				* "wrong file type filtered" @ "function %GetNodeCategory"
-					@ "!platform %Win32" $since b543
+					@ !"platform %Win32" $since b543
 					// The 'DT_*' is not bitmask.
 			),
 			/ @ "function template %ufexists" $=
@@ -8441,7 +8622,7 @@ b538
 					/ "set %errno to %EINVAL when buffer pointer is null or \
 					size \
 						is zero",
-					/ @ "!platform %Win32" $=
+					/ @ !"platform %Win32" $=
 					(
 						/ "set %errno to %ERANGE when size is too small to \
 							contain the converted string",

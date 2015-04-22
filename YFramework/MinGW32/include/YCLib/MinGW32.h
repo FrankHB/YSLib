@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r566
+\version r628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-03-24 11:18 +0800
+	2015-04-23 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
+#include YFM_YCLib_Debug
 #if !YCL_MinGW
 #	error "This file is only for MinGW."
 #endif
@@ -109,28 +110,40 @@ public:
 	//@}
 };
 
-/*!
-\brief 按 ::GetLastError 的结果和指定参数抛出 Windows::Win32Exception 对象。
-\since build 426
-*/
-#	define YF_Raise_Win32Exception(...) \
+
+//! \since build 592
+//@{
+//! \brief 按 ::GetLastError 的结果和指定参数抛出 Windows::Win32Exception 对象。
+#	define YCL_Raise_Win32Exception(...) \
 	{ \
 		const auto err(::GetLastError()); \
 	\
 		throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
 	}
 
-/*!
-\brief 按表达式求值和指定参数抛出 Windows::Win32Exception 对象。
-\since build 549
-*/
-#	define YF_Raise_Win32Exception_On_Failure(_expr, ...) \
+//! \brief 按表达式求值和指定参数抛出 Windows::Win32Exception 对象。
+#	define YCL_Raise_Win32Exception_On_Failure(_expr, ...) \
 	{ \
 		const auto err(Win32Exception::ErrorCode(_expr)); \
 	\
 		if(err != ERROR_SUCCESS) \
 			throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
 	}
+
+//! \brief 调用 WinAPI ，若失败抛出 Windows::Win32Exception 对象。
+#	define YCL_CallWin32(_fn, _msg, ...) \
+	if(YB_UNLIKELY(!::_fn(__VA_ARGS__))) \
+		YCL_Raise_Win32Exception(#_fn " @ " _msg)
+
+/*!
+\brief 调用 WinAPI ，若失败跟踪 ::GetLastError 的结果。
+\note 格式转换说明符置于最前以避免宏参数影响结果。
+*/
+#	define YCL_CallWin32_Trace(_fn, _msg, ...) \
+	if(YB_UNLIKELY(!::_fn(__VA_ARGS__))) \
+		YTraceDe(Warning, "Error %lu: failed call" #_fn " @ " _msg ".", \
+			::GetLastError())
+//@}
 
 
 /*!
@@ -165,7 +178,7 @@ CheckWine();
 
 /*!	\defgroup native_encoding_conv Native Encoding Conversion
 \brief 本机文本编码转换。
-\pre 长度参数非零且不上溢 \c int 时断言：字符串指针参数非空。
+\pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
 \exception 长度参数上溢 \int 或转换中溢出。
 \note 长度为零时直接返回空字符串，无其它效果。
 \since build 587
@@ -175,7 +188,7 @@ CheckWine();
 //@{
 YF_API std::string
 MBCSToMBCS(std::size_t, const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
-inline PDefH(std::string, MBCSToMBCS, const char* str,
+inline YB_NONNULL(1) PDefH(std::string, MBCSToMBCS, const char* str,
 	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
 	ImplRet(Windows::MBCSToMBCS(ystdex::ntctslen(str), str, cp_src, cp_dst))
 inline PDefH(std::string, MBCSToMBCS, const std::string& str,
@@ -184,7 +197,8 @@ inline PDefH(std::string, MBCSToMBCS, const std::string& str,
 
 YF_API std::string
 WCSToMBCS(std::size_t, const wchar_t*, unsigned = CP_ACP);
-inline PDefH(std::string, WCSToMBCS, const wchar_t* str, unsigned cp = CP_ACP)
+inline YB_NONNULL(1) PDefH(std::string, WCSToMBCS, const wchar_t* str,
+	unsigned cp = CP_ACP)
 	ImplRet(Windows::WCSToMBCS(ystdex::ntctslen(str), str, cp))
 inline PDefH(std::string, WCSToMBCS, const std::wstring& str,
 	unsigned cp = CP_ACP)
@@ -192,7 +206,8 @@ inline PDefH(std::string, WCSToMBCS, const std::wstring& str,
 
 YF_API std::wstring
 MBCSToWCS(std::size_t, const char*, unsigned = CP_ACP);
-inline PDefH(std::wstring, MBCSToWCS, const char* str, unsigned cp = CP_ACP)
+inline YB_NONNULL(1) PDefH(std::wstring, MBCSToWCS, const char* str,
+	unsigned cp = CP_ACP)
 	ImplRet(Windows::MBCSToWCS(ystdex::ntctslen(str), str, cp))
 inline PDefH(std::wstring, MBCSToWCS, const std::string& str,
 	unsigned cp = CP_ACP)
@@ -202,14 +217,14 @@ inline PDefH(std::wstring, MBCSToWCS, const std::string& str,
 //@{
 inline PDefH(std::string, WCSToUTF8, const wchar_t* str, std::size_t len)
 	ImplRet(WCSToMBCS(len, str, CP_UTF8))
-inline PDefH(std::string, WCSToUTF8, const wchar_t* str)
+inline YB_NONNULL(1) PDefH(std::string, WCSToUTF8, const wchar_t* str)
 	ImplRet(Windows::WCSToUTF8(str, ystdex::ntctslen(str)))
 inline PDefH(std::string, WCSToUTF8, const std::wstring& str)
 	ImplRet(Windows::WCSToUTF8(str.c_str(), str.length()))
 
 inline PDefH(std::wstring, UTF8ToWCS, const char* str, std::size_t len)
 	ImplRet(MBCSToWCS(len, str, CP_UTF8))
-inline PDefH(std::wstring, UTF8ToWCS, const char* str)
+inline YB_NONNULL(1) PDefH(std::wstring, UTF8ToWCS, const char* str)
 	ImplRet(Windows::UTF8ToWCS(str, ystdex::ntctslen(str)))
 inline PDefH(std::wstring, UTF8ToWCS, const std::string& str)
 	ImplRet(Windows::UTF8ToWCS(str.c_str(), str.length()))
@@ -296,12 +311,17 @@ private:
 	::HKEY h_key;
 
 public:
-	//! \since build 564
+	/*!
+	\brief 构造：使用本机键、名称、选项和访问权限。
+	\pre 间接断言：字符串参数非空。
+	\since build 564
+	*/
+	YB_NONNULL(2)
 	RegistryKey(::HKEY h_parent, const wchar_t* name, unsigned long ul_opt = 0,
 		::REGSAM access = KEY_READ)
 	{
-		YF_Raise_Win32Exception_On_Failure(::RegOpenKeyExW(h_parent,
-			name, ul_opt, access, &h_key), "RegOpenKeyEx");
+		YCL_Raise_Win32Exception_On_Failure(::RegOpenKeyExW(h_parent,
+			platform::Nonnull(name), ul_opt, access, &h_key), "RegOpenKeyEx");
 	}
 	//! \since build 549
 	RegistryKey(RegistryKey&& key)
@@ -355,21 +375,13 @@ public:
 \since build 522
 */
 //@{
-YF_API std::wstring
+YF_API YB_NONNULL(2) std::wstring
 FetchRegistryString(const RegistryKey&, const wchar_t*);
-inline PDefH(std::wstring, FetchRegistryString, ::HKEY h_parent,
-	const wchar_t* key_name, const wchar_t* name)
+inline YB_NONNULL(2, 3) PDefH(std::wstring, FetchRegistryString,
+	::HKEY h_parent, const wchar_t* key_name, const wchar_t* name)
 	ImplRet(FetchRegistryString(RegistryKey(h_parent, key_name), name))
 //@}
 
-
-/*!
-\brief 取系统目录路径。
-\note 保证以一个分隔符结尾。
-\since build 552
-*/
-YF_API std::wstring
-FetchSystemPath(size_t s = MAX_PATH);
 
 /*!
 \brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。
@@ -378,6 +390,26 @@ FetchSystemPath(size_t s = MAX_PATH);
 */
 YF_API std::chrono::nanoseconds
 ConvertTime(::FILETIME&);
+
+/*!
+\brief 展开字符串中的环境变量。
+\since build 592
+*/
+//@{
+//! \note 第一参数为空指针或第二参数等于 0 时返回空串。
+YF_API std::wstring
+ExpandEnvironmentStrings(const wchar_t*, size_t);
+inline PDefH(std::wstring, ExpandEnvironmentStrings, const std::wstring& str)
+	ImplRet(ExpandEnvironmentStrings(str.c_str(), str.length()))
+//@}
+
+/*!
+\brief 取系统目录路径。
+\note 保证以一个分隔符结尾。
+\since build 552
+*/
+YF_API std::wstring
+FetchSystemPath(size_t s = MAX_PATH);
 
 } // inline namespace Windows;
 

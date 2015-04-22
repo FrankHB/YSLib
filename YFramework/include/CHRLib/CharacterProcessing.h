@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1122
+\version r1137
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-04-10 01:34 +0800
+	2015-04-19 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ inline PDefH(ConversionResult, MBCToUC, ucs2_t& uc, const char*& c,
 \since build 291
 */
 //@{
-YF_API ConversionResult
+YF_API YB_NONNULL(2) ConversionResult
 MBCToUC(ucs2_t&, std::FILE*, Encoding, ConversionState&& = {});
 inline PDefH(ConversionResult, MBCToUC, ucs2_t& uc, std::FILE* fp, Encoding enc,
 	ConversionState& st)
@@ -99,10 +99,10 @@ inline PDefH(ConversionResult, MBCToUC, const char*& c, Encoding enc,
 	ImplRet(MBCToUC(c, enc, std::move(st)))
 //! \pre 断言：指针参数非空。
 //@{
-YF_API ConversionResult
+YF_API YB_NONNULL(1) ConversionResult
 MBCToUC(std::FILE*, Encoding, ConversionState&& = {});
-inline PDefH(ConversionResult, MBCToUC, std::FILE* fp, Encoding enc,
-	ConversionState& st)
+inline YB_NONNULL(1) PDefH(ConversionResult, MBCToUC, std::FILE* fp,
+	Encoding enc, ConversionState& st)
 	ImplRet(MBCToUC(fp, enc, std::move(st)))
 //@}
 //@}
@@ -112,7 +112,7 @@ inline PDefH(ConversionResult, MBCToUC, std::FILE* fp, Encoding enc,
 \pre 断言：指针参数非空 。
 \since build 305
 */
-YF_API size_t
+YF_API YB_NONNULL(1) size_t
 UCToMBC(char*, const ucs2_t&, Encoding);
 
 
@@ -127,18 +127,18 @@ UCToMBC(char*, const ucs2_t&, Encoding);
 \brief 按指定编码转换 MBCS 字符串为 UCS-2 字符串。
 \since build 291
 */
-YF_API size_t
+YF_API YB_NONNULL(1, 2) size_t
 MBCSToUCS2(ucs2_t*, const char*, Encoding = CS_Default);
 
 /*!
 \brief 按指定编码转换 UCS-2 字符串为 MBCS 字符串。
 \since build 291
 */
-YF_API size_t
+YF_API YB_NONNULL(1, 2) size_t
 UCS2ToMBCS(char*, const ucs2_t*, Encoding = CS_Default);
 
 //! \brief 转换 UCS-4 字符串为 UCS-2 字符串。
-YF_API size_t
+YF_API YB_NONNULL(1, 2) size_t
 UCS4ToUCS2(ucs2_t*, const ucs4_t*);
 //@}
 
@@ -166,7 +166,7 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 //@{
 //! \brief 转换指定编码的多字节字符串为指定类型的 UCS-2 字符串。
 template<class _tDst = std::basic_string<ucs2_t>>
-_tDst
+YB_NONNULL(1) _tDst
 MakeUCS2LE(const char* s, Encoding enc = CS_Default)
 {
 	_tDst str(ystdex::ntctslen(s),
@@ -177,7 +177,7 @@ MakeUCS2LE(const char* s, Encoding enc = CS_Default)
 }
 //! \brief 构造指定类型的 UCS-2 字符串。
 template<class _tDst = std::basic_string<ucs2_t>>
-inline _tDst
+YB_NONNULL(1) inline _tDst
 MakeUCS2LE(const ucs2_t* s, Encoding = CharSet::ISO_10646_UCS_2)
 {
 	yconstraint(s);
@@ -187,7 +187,7 @@ MakeUCS2LE(const ucs2_t* s, Encoding = CharSet::ISO_10646_UCS_2)
 }
 //! \brief 转换 UCS-4 字符串为指定类型的 UCS-2 字符串。
 template<class _tDst = std::basic_string<ucs2_t>>
-_tDst
+YB_NONNULL(1) _tDst
 MakeUCS2LE(const ucs4_t* s, Encoding = CharSet::ISO_10646_UCS_4)
 {
 	yconstraint(s);
@@ -219,7 +219,7 @@ MakeUCS2LE(_tString&& str)
 
 //! \brief 构造多字节字符串。
 template<class _tDst = std::string>
-inline _tDst
+inline YB_NONNULL(1) _tDst
 MakeMBCS(const char* s)
 {
 	yconstraint(s);
@@ -228,7 +228,7 @@ MakeMBCS(const char* s)
 }
 //! \brief 转换 UTF-8 字符串为指定编码的多字节字符串。
 template<class _tDst = std::string>
-inline _tDst
+inline YB_NONNULL(1) _tDst
 MakeMBCS(const char* s, Encoding enc)
 {
 	return enc = CS_Default ? MakeMBCS<_tDst>(s)
@@ -236,7 +236,7 @@ MakeMBCS(const char* s, Encoding enc)
 }
 //! \brief 转换 UCS-2LE 字符串为指定编码的多字节字符串。
 template<class _tDst = std::string>
-_tDst
+YB_NONNULL(1) _tDst
 MakeMBCS(const ucs2_t* s, Encoding enc = CS_Default)
 {
 	yconstraint(s);

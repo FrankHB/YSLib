@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r661
+\version r693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-03-24 11:26 +0800
+	2015-04-23 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ FixConsoleHandler(int(WINAPI* handler)(unsigned long), bool add)
 {
 	if(YB_UNLIKELY(!::SetConsoleCtrlHandler(handler
 		? handler : ConsoleHandler, add)))
-		YF_Raise_Win32Exception("SetConsoleCtrlHandler");
+		YCL_Raise_Win32Exception("SetConsoleCtrlHandler");
 }
 
 bool
@@ -152,7 +152,7 @@ MBCSToMBCS(std::size_t len, const char* str, unsigned cp_src, unsigned cp_dst)
 			const int
 				w_len(::MultiByteToWideChar(cp_src, 0, Nonnull(str), l, {}, 0));
 			std::wstring wstr(CheckPositiveScalar<size_t>(w_len), wchar_t());
-			wchar_t* w_str = &wstr[0];
+			const auto w_str(&wstr[0]);
 
 			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
 
@@ -268,7 +268,7 @@ DirectoryFindData::Rewind() ynothrow
 void
 RegistryKey::Flush()
 {
-	YF_Raise_Win32Exception_On_Failure(::RegFlushKey(h_key), "RegFlushKey");
+	YCL_Raise_Win32Exception_On_Failure(::RegFlushKey(h_key), "RegFlushKey");
 }
 
 std::pair<unsigned long, std::vector<ystdex::byte>>
@@ -276,12 +276,12 @@ RegistryKey::GetRawValue(const wchar_t* name, unsigned long type) const
 {
 	unsigned long size;
 
-	YF_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, Nonnull(name),
+	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, Nonnull(name),
 		{}, type == REG_NONE ? &type : nullptr, {}, &size), "RegQueryValueExW");
 
 	std::vector<ystdex::byte> res(size);
 
-	YF_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, name,
+	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, name,
 		{}, &type, &res[0], &size), "RegQueryValueExW");
 	return {type, std::move(res)};
 }
@@ -290,7 +290,7 @@ RegistryKey::GetSubKeyCount() const
 {
 	unsigned long res;
 
-	YF_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {},
+	YCL_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {},
 		&res, {}, {}, {}, {}, {}, {}, {}), "RegQueryInfoKey");
 	return size_t(res);
 }
@@ -306,7 +306,7 @@ RegistryKey::GetSubKeyNames() const
 		wchar_t name[256];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
-			YF_Raise_Win32Exception_On_Failure(::RegEnumKeyExW(h_key,
+			YCL_Raise_Win32Exception_On_Failure(::RegEnumKeyExW(h_key,
 				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
 				{}), "RegEnumKeyExW");
 	}
@@ -317,7 +317,7 @@ RegistryKey::GetValueCount() const
 {
 	unsigned long res;
 
-	YF_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {}, {},
+	YCL_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {}, {},
 		{}, {}, &res, {}, {}, {}, {}), "RegQueryInfoKey");
 	return size_t(res);
 }
@@ -333,7 +333,7 @@ RegistryKey::GetValueNames() const
 		wchar_t name[16384];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
-			YF_Raise_Win32Exception_On_Failure(::RegEnumValueW(h_key,
+			YCL_Raise_Win32Exception_On_Failure(::RegEnumValueW(h_key,
 				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
 				{}), "RegEnumValueW");
 	}
@@ -358,15 +358,6 @@ FetchRegistryString(const RegistryKey& key, const wchar_t* name)
 }
 
 
-std::wstring
-FetchSystemPath(size_t s)
-{
-	const auto res(make_unique<wchar_t[]>(s));
-
-	::GetSystemDirectoryW(&res[0], unsigned(s));
-	return ystdex::rtrim(std::wstring(&res[0]), L'\\') + L'\\';
-}
-
 std::chrono::nanoseconds
 ConvertTime(::FILETIME& file_time)
 {
@@ -386,6 +377,34 @@ ConvertTime(::FILETIME& file_time)
 	}
 	else
 		throw std::system_error(ENOSYS, std::generic_category());
+}
+
+std::wstring
+ExpandEnvironmentStrings(const wchar_t* p_src, size_t len)
+{
+	if(p_src && len != 0)
+	{
+		const size_t w_len(::ExpandEnvironmentStringsW(p_src, {}, 0));
+
+		if(w_len != 0)
+		{
+			std::wstring wstr(w_len, wchar_t());
+
+			if(::ExpandEnvironmentStringsW(p_src, &wstr[0], w_len) != 0)
+				return wstr;
+		}
+		YCL_Raise_Win32Exception("ExpandEnvironmentStringsW");
+	}
+	return {};
+}
+
+std::wstring
+FetchSystemPath(size_t s)
+{
+	const auto res(make_unique<wchar_t[]>(s));
+
+	::GetSystemDirectoryW(&res[0], unsigned(s));
+	return ystdex::rtrim(std::wstring(&res[0]), L'\\') + L'\\';
 }
 
 } // inline namespace Windows;
