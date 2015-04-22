@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r114
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:45:13 +0800
 \par 修改时间:
-	2015-03-17 17:15 +0800
+	2015-04-19 11:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ InitScrDown(int&);
 \note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
 \since build 319
 */
-YF_API void
+YF_API YB_NONNULL(1, 2) void
 ScreenSynchronize(platform::Pixel*, const platform::Pixel*) ynothrow;
 #endif
 

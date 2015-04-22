@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r501
+\version r504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2015-04-10 01:25 +0800
+	2015-04-19 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 
 #include "YCLib/YModules.h"
 #include YFM_MinGW32_YCLib_MinGW32
-#include YFM_YCLib_Debug
 #include <objbase.h>
 
 namespace platform_ex
@@ -324,7 +323,7 @@ template<class _iCOM1, class _iCOM2>
 inline bool
 operator==(const COMPtr<_iCOM1>& x, const COMPtr<_iCOM2>& y) ynothrow
 {
-	static_assert(or_<std::is_base_of<_iCOM1, _iCOM2>,
+	static_assert(ystdex::or_<std::is_base_of<_iCOM1, _iCOM2>,
 		std::is_base_of<_iCOM1, _iCOM2>>(),
 		"'_iCOM1' and '_iCOM2' pointers must be comparable");
 
@@ -367,7 +366,7 @@ template<class _iCOM1, class _iCOM2>
 inline bool
 operator<(const COMPtr<_iCOM1>& x, const COMPtr<_iCOM2>& y) ynothrow
 {
-	static_assert(or_<std::is_base_of<_iCOM1, _iCOM2>,
+	static_assert(ystdex::or_<std::is_base_of<_iCOM1, _iCOM2>,
 		std::is_base_of<_iCOM1, _iCOM2>>(),
 		"'_iCOM1' and '_iCOM2' pointers must be comparable");
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief 控制台。
-\version r242
+\version r243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-03-29 11:49 +0800
+	2015-04-23 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ WConsole::GetScreenBufferInfo() const
 	::CONSOLE_SCREEN_BUFFER_INFO info;
 
 	if(!::GetConsoleScreenBufferInfo(h_std, &info))
-		YF_Raise_Win32Exception("GetConsoleScreenBufferInfo");
+		YCL_Raise_Win32Exception("GetConsoleScreenBufferInfo");
 	return info;
 }
 

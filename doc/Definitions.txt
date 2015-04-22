@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13787
+\version r13791
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-03-21 16:06 +0800
+	2015-04-23 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,8 +189,10 @@ $dir YCLib_(MinGW32)
 {
 $header MinGW32
 {
-YF_Raise_Win32Exception(...)
-YF_Raise_Win32Exception_On_Failure(_expr, ...)
+YCL_Raise_Win32Exception(...)
+YCL_Raise_Win32Exception_On_Failure(_expr, ...)
+YCL_CallWin32(_fn, _msg, ...)
+YCL_CallWin32_Trace(_fn, _msg, ...)
 }
 } // $dir YCLib_(MinGW32);
 

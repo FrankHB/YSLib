@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r498
+\version r501
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-12 00:14 +0800
+	2015-04-19 11:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -319,6 +319,7 @@ public:
 
 	/*!
 	\brief 从部件刷新：更新缓冲区，必要时调整缓冲区和视图大小一致。
+	\note 间接断言：上下文缓冲区指针非空。
 	\sa AdjustSize
 	\since build 590
 	*/
@@ -327,6 +328,7 @@ public:
 
 	/*!
 	\brief 调整和更新指定缓冲区内指定边界的内容至宿主窗口。
+	\pre 断言：指针参数非空。
 	\note 若宿主窗口未就绪则忽略。
 	\throw LoggedEvent 宿主窗口就绪时本机缓冲区大小和视图大小不一致。
 	\sa AdjustSize
@@ -335,7 +337,7 @@ public:
 	调整宿主窗口位置，保持部件位置在原点。按内部状态同步宿主窗口大小。
 	调用宿主窗口 UpdateFrom 方法更新窗口内容。
 	*/
-	void
+	YB_NONNULL(1) void
 	Update(Drawing::ConstBitmapPtr, const Drawing::Rect&);
 
 	//! \since build 387

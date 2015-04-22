@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1126
+\version r1245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-04-13 02:50 +0800
+	2015-04-23 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@
 #	endif
 #	include "YSLib/Service/YModules.h"
 #	include YFM_YSLib_Service_YBlit
+#	include <Shellapi.h> // for ::ShellExecuteW;
+#	include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #	include <android/native_window.h>
@@ -54,6 +56,17 @@ using namespace Drawing;
 namespace platform_ex
 {
 
+#	if YCL_Win32
+void
+GDIObjectDelete::operator()(pointer h) const ynothrow
+{
+	static_assert(std::is_same<pointer, ::HGDIOBJ>::value,
+		"Mismatched type found.");
+
+	YCL_CallWin32_Trace(DeleteObject, "GDIObjectDelete::operator()", h);
+}
+#	endif
+
 namespace
 {
 
@@ -68,15 +81,11 @@ CheckStride(SDst buf_stride, SDst w)
 	return buf_stride;
 }
 #	elif YCL_Win32
-#		define YCL_Impl_CallWin32(_fn, _msg, ...) \
-	if(YB_UNLIKELY(!::_fn(__VA_ARGS__))) \
-		YF_Raise_Win32Exception(#_fn " @ " _msg)
-
 //! \since build 570
 void
 MoveWindow(::HWND h_wnd, SPos x, SPos y)
 {
-	YCL_Impl_CallWin32(SetWindowPos, "MoveWindow", h_wnd, {},
+	YCL_CallWin32(SetWindowPos, "MoveWindow", h_wnd, {},
 		x, y, 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
 		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
 }
@@ -85,7 +94,7 @@ MoveWindow(::HWND h_wnd, SPos x, SPos y)
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
-	YCL_Impl_CallWin32(SetWindowPos, "ResizeWindow", h_wnd, {},
+	YCL_CallWin32(SetWindowPos, "ResizeWindow", h_wnd, {},
 		0, 0, int(w), int(h), SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE
 		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
@@ -96,7 +105,7 @@ FetchWindowRect(::HWND h_wnd)
 {
 	::RECT rect;
 
-	YCL_Impl_CallWin32(GetWindowRect, "FetchWindowRect", h_wnd, &rect);
+	YCL_CallWin32(GetWindowRect, "FetchWindowRect", h_wnd, &rect);
 	return rect;
 }
 
@@ -126,7 +135,7 @@ FetchWindowStyle(::HWND h_wnd)
 void
 AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 {
-	YCL_Impl_CallWin32(AdjustWindowRect, "AdjustWindowBounds", &rect,
+	YCL_CallWin32(AdjustWindowRect, "AdjustWindowBounds", &rect,
 		FetchWindowStyle(h_wnd), b_menu);
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
@@ -136,7 +145,7 @@ AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 void
 SetWindowBounds(::HWND h_wnd, int x, int y, SDst w, SDst h)
 {
-	YCL_Impl_CallWin32(SetWindowPos, "SetWindowBounds", h_wnd, {}, x, y, int(w),
+	YCL_CallWin32(SetWindowPos, "SetWindowBounds", h_wnd, {}, x, y, int(w),
 		int(h), SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
 		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
@@ -168,6 +177,16 @@ WindowReference::Deref() const
 }
 #	elif YCL_Win32
 bool
+WindowReference::IsMaximized() const ynothrow
+{
+	return ::IsZoomed(GetNativeHandle());
+}
+bool
+WindowReference::IsMinimized() const ynothrow
+{
+	return ::IsIconic(GetNativeHandle());
+}
+bool
 WindowReference::IsVisible() const ynothrow
 {
 	return ::IsWindowVisible(GetNativeHandle());
@@ -188,7 +207,7 @@ WindowReference::GetClientLocation() const
 {
 	::POINT point{0, 0};
 
-	YCL_Impl_CallWin32(ClientToScreen, "WindowReference::GetClientLocation",
+	YCL_CallWin32(ClientToScreen, "WindowReference::GetClientLocation",
 		GetNativeHandle(), &point);
 	return {point.x, point.y};
 }
@@ -197,7 +216,7 @@ WindowReference::GetClientSize() const
 {
 	::RECT rect;
 
-	YCL_Impl_CallWin32(GetClientRect, "WindowReference::GetClientSize",
+	YCL_CallWin32(GetClientRect, "WindowReference::GetClientSize",
 		GetNativeHandle(), &rect);
 	return {rect.right, rect.bottom};
 }
@@ -206,9 +225,9 @@ WindowReference::GetCursorLocation() const
 {
 	::POINT cursor;
 
-	YCL_Impl_CallWin32(GetCursorPos, "WindowReference::GetCursorLocation",
+	YCL_CallWin32(GetCursorPos, "WindowReference::GetCursorLocation",
 		&cursor);
-	YCL_Impl_CallWin32(ScreenToClient, "WindowReference::GetCursorLocation",
+	YCL_CallWin32(ScreenToClient, "WindowReference::GetCursorLocation",
 		GetNativeHandle(), &cursor);
 	return {cursor.x, cursor.y};
 }
@@ -224,7 +243,7 @@ WindowReference::GetOpacity() const
 {
 	ystdex::byte a;
 
-	YCL_Impl_CallWin32(GetLayeredWindowAttributes,
+	YCL_CallWin32(GetLayeredWindowAttributes,
 		"WindowReference::GetOpacity", GetNativeHandle(), {}, &a, {});
 	return a;
 }
@@ -253,7 +272,7 @@ WindowReference::SetClientBounds(const Rect& r)
 void
 WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
 {
-	YCL_Impl_CallWin32(SetLayeredWindowAttributes,
+	YCL_CallWin32(SetLayeredWindowAttributes,
 		"WindowReference::SetOpacity", GetNativeHandle(), 0, a, LWA_ALPHA);
 }
 WindowReference
@@ -266,21 +285,21 @@ WindowReference::GetParent() const
 void
 WindowReference::SetText(const wchar_t* str)
 {
-	YCL_Impl_CallWin32(SetWindowTextW, "WindowReference::SetText",
+	YCL_CallWin32(SetWindowTextW, "WindowReference::SetText",
 		GetNativeHandle(), str);
 }
 
 void
 WindowReference::Close()
 {
-	YCL_Impl_CallWin32(SendNotifyMessageW, "WindowReference::Close",
+	YCL_CallWin32(SendNotifyMessageW, "WindowReference::Close",
 		GetNativeHandle(), WM_CLOSE, 0, 0);
 }
 
 void
 WindowReference::Invalidate()
 {
-	YCL_Impl_CallWin32(InvalidateRect, "WindowReference::Invalidate",
+	YCL_CallWin32(InvalidateRect, "WindowReference::Invalidate",
 		GetNativeHandle(), {}, {});
 }
 
@@ -427,7 +446,7 @@ ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
 ScreenBuffer::~ScreenBuffer()
 {
 #	if YCL_Win32
-	::DeleteObject(hBitmap);
+	GDIObjectDelete()(hBitmap);
 #	endif
 }
 
@@ -478,6 +497,7 @@ ScreenBuffer::Resize(const Size& s)
 void
 ScreenBuffer::Premultiply(ConstBitmapPtr p_buf) ynothrow
 {
+	YAssertNonnull(p_buf);
 	// NOTE: Since the stride is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
 	std::transform(p_buf, p_buf + size.Width * size.Height, pBuffer,
@@ -509,7 +529,7 @@ ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 void
 ScreenBuffer::UpdateFromBounds(ConstBitmapPtr p_buf, const Rect& r) ynothrow
 {
-	BlitLines<false, false>(CopyLine<true>(), GetBufferPtr(), p_buf,
+	BlitLines<false, false>(CopyLine<true>(), GetBufferPtr(), Nonnull(p_buf),
 		size, size, r.GetPoint(), r.GetPoint(), r.GetSize());
 }
 
@@ -598,10 +618,9 @@ WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 {
 	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
 
-	if(YB_UNLIKELY(::BitBlt(h_owner_dc, int(r.X), int(r.Y), int(r.Width),
-		int(r.Height), h_mem_dc, int(sp.X), int(sp.Y), SRCCOPY) == 0))
-		YTraceDe(Warning, "Failed call BitBlt, error = %u.",
-			unsigned(GetLastError()));
+	YCL_CallWin32_Trace(BitBlt, "WindowMemorySurface::UpdateBounds", h_owner_dc,
+		int(r.X), int(r.Y), int(r.Width), int(r.Height), h_mem_dc, int(sp.X),
+		int(sp.Y), SRCCOPY);
 	::SelectObject(h_mem_dc, h_old);
 }
 
@@ -616,11 +635,10 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 	::POINT ptx{pt.X, pt.Y};
 	::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
 
-	if(YB_UNLIKELY(::UpdateLayeredWindow(h_wnd, h_owner_dc,
+	YCL_CallWin32_Trace(UpdateLayeredWindow,
+		"WindowMemorySurface::UpdatePremultiplied", h_wnd, h_owner_dc,
 		reinterpret_cast<::POINT*>(&rect), &size, h_mem_dc, &ptx, 0, &bfunc,
-		ULW_ALPHA) == 0))
-		YTraceDe(Warning, "Failed call UpdateLayeredWindow, error = %u.",
-			unsigned(GetLastError()));
+		ULW_ALPHA);
 	::SelectObject(h_mem_dc, h_old);
 }
 
@@ -672,7 +690,7 @@ WindowClass::WindowClass(const ::WNDCLASSW& wc)
 		const auto a(::RegisterClassW(&wc));
 
 		if(YB_UNLIKELY(a == 0))
-			YF_Raise_Win32Exception("RegisterClassW");
+			YCL_Raise_Win32Exception("RegisterClassW");
 		return a;
 	}(), wc.hInstance)
 {}
@@ -681,7 +699,7 @@ WindowClass::WindowClass(const ::WNDCLASSEXW& wc)
 		const auto a(::RegisterClassExW(&wc));
 
 		if(YB_UNLIKELY(a == 0))
-			YF_Raise_Win32Exception("RegisterClassExW");
+			YCL_Raise_Win32Exception("RegisterClassExW");
 		return a;
 	}(), wc.hInstance)
 {}
@@ -726,22 +744,22 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 	wchar_t buf[ystdex::arrlen(WindowClassName)];
 
-	YCL_Impl_CallWin32(GetClassNameW, "HostWindow::HostWindow",
+	YCL_CallWin32(GetClassNameW, "HostWindow::HostWindow",
 		GetNativeHandle(), buf, ystdex::arrlen(WindowClassName));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
 	if(YB_UNLIKELY(::SetWindowLongPtrW(GetNativeHandle(), GWLP_USERDATA,
 		::LONG_PTR(this)) == 0 && GetLastError() != 0))
-		YF_Raise_Win32Exception("SetWindowLongPtrW");
-	YCL_Impl_CallWin32(SetWindowPos, "HostWindow::HostWindow",
+		YCL_Raise_Win32Exception("SetWindowLongPtrW");
+	YCL_CallWin32(SetWindowPos, "HostWindow::HostWindow",
 		GetNativeHandle(), {}, 0, 0, 0, 0,
 		SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW
 		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
 
 	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
 
-	YCL_Impl_CallWin32(RegisterRawInputDevices, "HostWindow::HostWindow",
+	YCL_CallWin32(RegisterRawInputDevices, "HostWindow::HostWindow",
 		&rid, 1, sizeof(rid));
 	MessageMap[WM_DESTROY] += []{
 		::PostQuitMessage(0);
@@ -773,7 +791,73 @@ HostWindow::MapPoint(const Point& pt) const
 {
 	return pt;
 }
-#		undef YCL_Impl_CallWin32
+#	endif
+
+
+#	if YCL_Win32
+void
+ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
+	const wchar_t* dir, int n_cmd_show, NativeWindowHandle h_parent)
+{
+	// TODO: Set currend working directory as %USERPROFILE%?
+	int res(int(::ShellExecuteW(h_parent,
+		use_admin ? L"runas" : nullptr, Nonnull(cmd), args, dir, n_cmd_show)));
+
+	switch(res)
+	{
+	case 0:
+	case SE_ERR_OOM:
+		// TODO: Use inherited class of exception.
+		throw std::bad_alloc();
+	case SE_ERR_SHARE:
+	case SE_ERR_DLLNOTFOUND:
+		res = SE_ERR_SHARE ? ERROR_SHARING_VIOLATION : ERROR_DLL_NOT_FOUND;
+	case ERROR_FILE_NOT_FOUND: // NOTE: Same as %SE_ERR_FNF.
+	case ERROR_PATH_NOT_FOUND: // NOTE: Same as %SE_ERR_PNF.
+	case ERROR_ACCESS_DENIED: // NOTE: Same as %SE_ERR_ACCESSDENIED.
+	case ERROR_BAD_FORMAT:
+		throw Win32Exception(Win32Exception::ErrorCode(res), "ShellExecuteW",
+			Err);
+	case SE_ERR_ASSOCINCOMPLETE:
+	case SE_ERR_NOASSOC:
+	case SE_ERR_DDETIMEOUT:
+	case SE_ERR_DDEFAIL:
+	case SE_ERR_DDEBUSY:
+	{
+		using boxed_exception = ystdex::wrap_mixin_t<std::runtime_error, int>;
+		const auto throw_ex([=](int ec){
+			std::throw_with_nested(Win32Exception(Win32Exception::ErrorCode(ec),
+				ystdex::sfmt("ShellExecuteW: %d", res), Err));
+		});
+
+		TryExpr(throw boxed_exception{std::runtime_error("ShellExecuteW"), res})
+		catch(boxed_exception& e)
+		{
+			switch(e.value)
+			{
+			case SE_ERR_ASSOCINCOMPLETE:
+			case SE_ERR_NOASSOC:
+				throw_ex(ERROR_NO_ASSOCIATION);
+			case SE_ERR_DDETIMEOUT:
+			case SE_ERR_DDEFAIL:
+			case SE_ERR_DDEBUSY:
+				throw_ex(ERROR_DDE_FAIL);
+			default:
+				break;
+			}
+		}
+		YAssert(false, "");
+	}
+	default:
+		if(res > 32)
+			YTraceDe(Informative, "ExecuteShellCommand: ::ShellExecute call"
+				" succeed with return value %d.", res);
+		else
+			throw LoggedEvent(ystdex::sfmt("ExecuteShellCommand:"
+				" ::ShellExecuteW call failed" " with unknown error '%d'.",
+				res), Err);
+	}
+}
 #	endif
 
 } // namespace platform_ex;

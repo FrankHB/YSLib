@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r515
+\version r533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-04-16 00:49 +0800
+	2015-04-17 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,6 +101,17 @@ DragWindow(Window& wnd, CursorEventArgs&& e, bool root)
 		}
 	}
 }
+
+Point
+FetchDefaultTopLevelPosition() ynothrow
+{
+#	if YCL_Win32
+	return {SPos(::GetSystemMetrics(SM_CXSCREEN) / 4),
+		SPos(::GetSystemMetrics(SM_CYSCREEN) / 4)};
+#	else
+	return {};
+#	endif
+}
 #	endif
 
 #	if YCL_Win32
@@ -131,6 +142,9 @@ ShowTopLevel(Widget& wgt, WindowThread::GuardGenerator guard_gen,
 
 		if(pt != Point::Invalid)
 			wnd_ref.MoveClient(pt);
+		else if(!
+			(wstyle & static_cast<unsigned long>(WS_OVERLAPPED | WS_CHILD)))
+			wnd_ref.MoveClient(FetchDefaultTopLevelPosition());
 		wnd_ref.Show(n_cmd_show);
 		return wnd_ref;
 	}));
@@ -171,9 +185,8 @@ BindTimedTips(TimedHoverState& st, IWidget& wgt, Widget& target)
 }
 
 void
-PrepareTopLevelPopupMenu(MenuHost& mh, Menu& mnu, Panel& root)
+PrepareTopLevelPopupMenu(Menu& mnu, Panel& root)
 {
-	mh += mnu;
 	root.Add(mnu, DefaultMenuZOrder);
 #	if YCL_Win32
 	ShowTopLevel(mnu, WindowThread::GuardGenerator(), WS_POPUP,
@@ -194,17 +207,16 @@ SetupTopLevelTimedTips(IWidget& wgt, TimedHoverState& st, Label& lbl,
 #	if YCL_Win32
 	BindTimedTips(st, wgt, lbl);
 #	else
-	yunused(wgt), yunused(st), yunused(lbl);
+	yunused(wgt), yunused(st);
 #	endif
 }
 
 void
 SetupTopLevelContextMenu(IWidget& wgt, MenuHost& mh, Menu& mnu)
 {
+	mh += mnu;
 #	if YCL_Win32
-	auto& env(FetchEnvironment());
-
-	PrepareTopLevelPopupMenu(mh, mnu, env.Desktop);
+	PrepareTopLevelPopupMenu(mnu, FetchEnvironment().Desktop);
 	BindTopLevelPopupMenu(mh, mnu, wgt);
 #	else
 	yunused(wgt), yunused(mh), yunused(mnu);

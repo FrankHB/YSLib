@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1122
+\version r1181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-04-12 16:57 +0800
+	2015-04-21 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,6 +90,21 @@ using NativeWindowHandle = ::HWND;
 using NativeWindowHandle = ::ANativeWindow*;
 #	endif
 
+
+#	if YCL_Win32
+//@{
+//! \brief 使用 ::DeleteObject 删除句柄的删除器。
+struct YF_API GDIObjectDelete
+{
+	using pointer = void*;
+
+	void
+	operator()(pointer) const ynothrow;
+};
+//@}
+#	endif
+
+
 //! \since build 563
 //@{
 /*!
@@ -149,6 +164,12 @@ public:
 	DefDeCopyMoveCtorAssignment(WindowReference)
 
 #	if YCL_Win32
+	//! \since build 592
+	bool
+	IsMaximized() const ynothrow;
+	//! \since build 592
+	bool
+	IsMinimized() const ynothrow;
 	//! \since build 569
 	bool
 	IsVisible() const ynothrow;
@@ -433,11 +454,12 @@ public:
 
 	/*!
 	\brief 从缓冲区更新并按 Alpha 预乘。
+	\pre 断言：参数非空。
 	\post ::HBITMAP 的 rgbReserved 为 0 。
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
 	\since build 558
 	*/
-	void
+	YB_NONNULL(1) void
 	Premultiply(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 #	endif
 
@@ -459,7 +481,7 @@ public:
 	\warning Android 平台：实际存储必须和 32 位 RGBA8888 兼容。
 	\since build 558
 	*/
-	void
+	YB_NONNULL(1) void
 	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 	//@}
 
@@ -472,7 +494,7 @@ public:
 	\warning 实际存储必须和 32 位 ::HBITMAP 兼容。
 	\since build 591
 	*/
-	void
+	YB_NONNULL(1) void
 	UpdateFromBounds(YSLib::Drawing::ConstBitmapPtr,
 		const YSLib::Drawing::Rect&) ynothrow;
 
@@ -678,10 +700,11 @@ public:
 	//! \throw Win32Exception 窗口类注册失败。
 	//@{
 	/*
-	\pre 间接断言：指针参数非空。
+	\pre 间接断言：第一参数非空。
 	\note 应用程序实例句柄参数为空则使用 <tt>::GetModuleHandleW()</tt> 。
 	\note 默认画刷参数等于 <tt>::HBRUSH(COLOR_MENU + 1)</tt> 。
 	*/
+	YB_NONNULL(1)
 	WindowClass(const wchar_t*, ::WNDPROC, unsigned = 0,
 		::HBRUSH = ::HBRUSH(4 + 1), ::HINSTANCE = {});
 	WindowClass(const ::WNDCLASSW&);
@@ -750,6 +773,10 @@ public:
 	~HostWindow();
 
 #	if YCL_Win32
+	//! \since build 592
+	using WindowReference::IsMaximized;
+	//! \since build 592
+	using WindowReference::IsMinimized;
 	//! \since build 569
 	using WindowReference::IsVisible;
 #	endif
@@ -841,6 +868,41 @@ public:
 	//@}
 #	endif
 };
+
+
+#	if YCL_Win32
+/*!
+\brief 执行 Shell 命令。
+\pre 间接断言：第一参数非空。
+\throw LoggedEvent 一般调用失败。
+\throw std::bad_alloc 调用失败：存储分配失败。
+\warning 当不能保证不使用 COM 时，要求 COM 被适当初始化。
+\warning 不附加检查：命令执行路径指定为文档时，命令参数应为空。
+\warning 不附加检查：命令执行路径为相对路径时，工作目录路径不应为相对路径。
+\sa https://msdn.microsoft.com/en-us/library/windows/desktop/bb762153(v=vs.85).aspx
+\since build 592
+
+使用 ::ShellExecuteW 执行 Shell 命令。
+参数分别表示命令执行路径、命令参数、是否使用管理员权限执行、工作目录路径、
+	使用的初始窗口选项（默认为 \c SW_SHOWNORMAL ），以及关联的父窗口句柄。
+::ShellExecuteW 的返回值若不大于 32 则为错误。和 Win32 错误码直接对应相等的返回值
+	被抛出为 Win32 异常。
+返回 0 和 SE_ERR_OOM 时抛出 std::bad_alloc ；
+未被文档明确的错误视为未知错误，抛出 LoggedEvent ；
+其它返回值被重新映射后抛出 Win32 异常：
+返回 SE_ERR_SHARE 映射为 Win32 错误码 ERROR_SHARING_VIOLATION ；
+返回 SE_ERR_DLLNOTFOUND 映射为 Win32 错误码 ERROR_DLL_NOT_FOUND ；
+返回 SE_ERR_ASSOCINCOMPLETE 和 SE_ERR_NOASSOC 映射为 Win32 错误码
+	ERROR_NO_ASSOCIATION ；
+返回 SE_ERR_DDETIMEOUT 、 SE_ERR_DDEFAIL 和 SE_ERR_DDEBUSY 映射为 Win32 错误码
+	ERROR_DDE_FAIL 。
+对多个返回值映射的错误码，抛出的异常是嵌套异常，
+	其底层异常为 ystdex::wrap_mixin_t<std::runtime_error, int> 类型。
+*/
+YF_API YB_NONNULL(1) void
+ExecuteShellCommand(const wchar_t*, const wchar_t* = {}, bool = {},
+	const wchar_t* = {}, int = 1, NativeWindowHandle = {});
+#	endif
 
 } // namespace platform_ex;
 

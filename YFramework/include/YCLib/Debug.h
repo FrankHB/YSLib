@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r568
+\version r570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-02-25 01:32 +0800
+	2015-04-19 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ public:
 	\brief 默认发送器：使用 stderr 输出。
 	\pre 间接断言：第三参数非空。
 	*/
-	static void
+	static YB_NONNULL(3) void
 	DefaultSendLog(Level, Logger&, const char*) ynothrowv;
 
 	/*!
@@ -171,7 +171,7 @@ private:
 	*/
 	//@{
 	//! \pre 间接断言：指针参数非空。
-	void
+	YB_NONNULL(1) void
 	DoLogRaw(Level, const char*);
 	PDefH(void, DoLogRaw, Level lv, const std::string& str)
 		ImplRet(DoLogRaw(lv, str.c_str()))

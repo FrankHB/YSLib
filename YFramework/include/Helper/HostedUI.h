@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r430
+\version r445
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-04-15 23:36 +0800
+	2015-04-17 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,6 +92,17 @@ AttachToHost(UI::Widget&, Window&, Messaging::Priority = 0xF8);
 */
 YF_API void
 DragWindow(Window&, UI::CursorEventArgs&&, bool = {});
+
+/*!
+\brief 取顶级窗口默认位置。
+\note Win32 平台：取屏幕左上 1/4 位置坐标。
+\note 非 Win32 平台：未实现屏幕位置计算，返回原点坐标。
+\since build 592
+\todo 非 Win32 宿主平台实现。
+\todo 多显示器支持。
+*/
+YF_API Drawing::Point
+FetchDefaultTopLevelPosition() ynothrow;
 #	endif
 #	if YCL_Win32
 
@@ -99,11 +110,13 @@ DragWindow(Window&, UI::CursorEventArgs&&, bool = {});
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶级窗口。
 \return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
+\sa FetchDefaultTopLevelPosition
 
 当设置 WS_POPUP 时清除参数中的 WS_EX_LAYERED 。
 WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
-当部件位置不为 Point::Invalid 时设置顶级窗口位置。
+当部件位置不为 Drawing::Point::Invalid 时设置顶级窗口位置；否则，当窗口样式不包含
+\c WS_OVERLAPPED 和 \c WS_CHILD 时调用 FetchDefaultTopLevelPosition 设置位置。
 设置宿主渲染器并阻塞等待宿主窗口指针非空。
 若省略 WindowThread::GuardGenerator 参数，默认使用
 WindowThread::DefaultGenerateGuard 。
@@ -197,13 +210,13 @@ BindTimedTips(UI::TimedHoverState&, UI::IWidget&, UI::Widget&);
 /*!
 \brief 准备宿主顶级窗口的弹出菜单。
 \note 非 Win32 平台：未实现宿主顶级窗口样式和销毁窗口的回调。
-\since build 575
+\since build 592
 \todo 非 Win32 宿主平台实现。
 
 关联菜单宿主和菜单部件并设置菜单为具有适合显式为菜单的样式的宿主顶级窗口。
 */
 YF_API void
-PrepareTopLevelPopupMenu(UI::MenuHost&, UI::Menu&, UI::Panel&);
+PrepareTopLevelPopupMenu(UI::Menu&, UI::Panel&);
 
 /*!
 \note 前两个参数分别指定顶层窗口对应的部件和在宿主桌面触发显示新顶层窗口的部件。

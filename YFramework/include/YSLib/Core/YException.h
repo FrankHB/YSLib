@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r474
+\version r475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-04-13 03:48 +0800
+	2015-04-19 11:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,7 @@ using ExtractedExceptionPrinter
 \brief 通过 YCL_TraceRaw 跟踪带空格缩进层次的异常信息的函数类型。
 \pre 断言：第一参数非空。
 */
-YF_API void
+YF_API YB_NONNULL(1) void
 TraceException(const char*, LoggedEvent::LevelType = Err,
 	size_t level = 0) ynothrow;
 

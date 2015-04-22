@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1094
+\version r1236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-01-12 14:03 +0800
+	2015-04-20 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "array.hpp" // for ../ydef.h, ystdex::to_array;
+#include "array.hpp" // for ../ydef.h, std::bidirectional_iterator_tag,
+//	ystdex::to_array;
 #include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
@@ -50,16 +51,27 @@ struct string_traits
 	using string_type = decay_t<_tString>;
 	using value_type = remove_rcv_t<decltype(std::declval<string_type>()[0])>;
 	using traits_type = typename std::char_traits<value_type>;
-	using pointer = value_type*;
-	using const_pointer = const value_type*;
+	//! \since build 592
+	//@{
+	using allocator_type = std::allocator<value_type>;
+	using size_type = typename std::allocator_traits<allocator_type>::size_type;
+	using difference_type
+		= typename std::allocator_traits<allocator_type>::difference_type;
+	using reference = value_type&;
+	using const_reference = const value_type&;
+	//@}
+	using pointer = typename std::allocator_traits<allocator_type>::pointer;
+	using const_pointer
+		= typename std::allocator_traits<allocator_type>::const_pointer;
 	using initializer = std::initializer_list<value_type>;
 };
 
 
-//! \since build 557
+//! \since build 450
 namespace details
 {
 
+//! \since build 557
 template<typename _type>
 struct is_string_class_test
 {
@@ -73,6 +85,55 @@ struct is_string_class_test
 
 	static yconstexpr bool value = decltype(test<_type>(nullptr))::value;
 };
+
+//! \since build 519
+//@{
+template<typename _type>
+struct string_length_dispatcher
+{
+	static size_t
+	length(const _type& str)
+	{
+		return str.size();
+	}
+};
+
+template<typename _type, size_t _vN>
+struct string_length_dispatcher<_type[_vN]>
+{
+	static yconstfn size_t
+	length(const _type(&)[_vN]) ynothrow
+	{
+		return _vN - 1U;
+	}
+};
+
+template<typename _type>
+struct string_length_dispatcher<_type*>
+{
+	static inline size_t
+	length(const _type* str) ynothrow
+	{
+		return std::char_traits<_type>::length(str);
+	}
+};
+//@}
+
+
+//! \todo 支持 std::forward_iterator_tag 重载。
+template<typename _tFwd1, typename _tFwd2, typename _fPred>
+bool
+ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
+	_fPred comp, std::bidirectional_iterator_tag)
+{
+	auto i(e);
+	auto it(et);
+
+	while(i != b && it != bt)
+		if(!comp(*--i, *--it))
+			return {};
+	return it == bt;
+}
 
 } // unnamed namespace;
 
@@ -174,46 +235,8 @@ string_end(_type(&arr)[_vN]) ynothrow
 \note 模板形参关键字 \c class 表示仅支持类类型对象字符串。
 \since build 304
 */
-
-
-//! \since build 519
-namespace details
-{
-
-template<typename _type>
-struct string_length_dispatcher
-{
-	static size_t
-	length(const _type& str)
-	{
-		return str.size();
-	}
-};
-
-template<typename _type, size_t _vN>
-struct string_length_dispatcher<_type[_vN]>
-{
-	static yconstfn size_t
-	length(const _type(&)[_vN]) ynothrow
-	{
-		return _vN - 1U;
-	}
-};
-
-template<typename _type>
-struct string_length_dispatcher<_type*>
-{
-	static inline size_t
-	length(const _type* str) ynothrow
-	{
-		return std::char_traits<_type>::length(str);
-	}
-};
-
-} // namespace details;
-
+//@{
 /*!
-\ingroup string_algorithms
 \brief 计算字符串长度。
 \since build 519
 */
@@ -223,32 +246,9 @@ string_length(const _type& str)
 {
 	return details::string_length_dispatcher<_type>::length(str);
 }
-//@}
 
-
-//! \since build 450
-namespace details
-{
-
-//! \todo 支持 std::forward_iterator_tag 重载。
-template<typename _tFwd1, typename _tFwd2, typename _fPred>
-bool
-ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
-	_fPred comp, std::bidirectional_iterator_tag)
-{
-	auto i(e);
-	auto it(et);
-
-	while(i != b && it != bt)
-		if(!comp(*--i, *--it))
-			return {};
-	return it == bt;
-}
-
-} // namespace details;
 
 /*!
-\ingroup string_algorithms
 \note 使用 ADL string_begin 和 string_end 指定范围迭代器。
 \note 除 ADL 外接口同 Boost.StringAlgo 。
 \sa ystdex::string_begin, ystdex::string_end
@@ -340,6 +340,7 @@ alph(_tString& str)
 \param n 串接结果包含原字符串的重复次数。
 \pre 断言： <tt>1 < n</tt> 。
 \since build 414
+\todo 检查 reserve 。
 */
 template<class _tString>
 void
@@ -357,8 +358,69 @@ concat(_tString& str, size_t n)
 	}
 }
 
-//! \ingroup string_algorithms
+//! \since build 592
 //@{
+//! \brief 删除字符串中指定的连续字符左侧的字符串。
+//@{
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_left(typename string_traits<_tString>::size_type pos, _tString&& str)
+{
+	return static_cast<_tString&&>(
+		pos != _tString::npos ? str.erase(0, pos) : str);
+}
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_left(_tString&& str, typename string_traits<_tString>::value_type c)
+{
+	return yforward(ystdex::erase_left(str.find_last_of(c), yforward(str)));
+}
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_left(_tString&& str, const remove_reference_t<_tString>& t)
+{
+	return yforward(ystdex::erase_left(str.find_last_of(t), yforward(str)));
+}
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_left(_tString&& str, typename string_traits<_tString>::const_pointer t
+	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+{
+	return yforward(ystdex::erase_left(str.find_last_of(t), yforward(str)));
+}
+//@}
+
+//! \brief 删除字符串中指定的连续字符右侧的字符串。
+//@{
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_right(typename string_traits<_tString>::size_type pos, _tString&& str)
+{
+	return static_cast<_tString&&>(
+		pos != _tString::npos ? str.erase(pos + 1) : str);
+}
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_right(_tString&& str, typename string_traits<_tString>::value_type c)
+{
+	return yforward(ystdex::erase_right(str.find_last_of(c), yforward(str)));
+}
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_right(_tString&& str, const remove_reference_t<_tString>& t)
+{
+	return yforward(ystdex::erase_right(str.find_last_of(t), yforward(str)));
+}
+template<class _tString>
+inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
+erase_right(_tString&& str, typename string_traits<_tString>::const_pointer t
+	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+{
+	return yforward(ystdex::erase_right(str.find_last_of(t), yforward(str)));
+}
+//@}
+//@}
+
 //! \since build 552
 //@{
 //! \brief 删除字符串中指定的连续前缀字符。
@@ -414,20 +476,20 @@ template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return static_cast<_tString&&>(ystdex::ltrim(ystdex::rtrim(str, c)));
+	return yforward(ystdex::ltrim(ystdex::rtrim(str, c)));
 }
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, const _tString& t)
 {
-	return static_cast<_tString&&>(ystdex::ltrim(ystdex::rtrim(str, t)));
+	return yforward(ystdex::ltrim(ystdex::rtrim(str, t)));
 }
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return static_cast<_tString&&>(ystdex::ltrim(ystdex::rtrim(str, t)));
+	return yforward(ystdex::ltrim(ystdex::rtrim(str, t)));
 }
 //@}
 //@}
@@ -561,7 +623,7 @@ split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 //@}
 
 
-/*! 
+/*!
 \brief 从输入流中取字符串。
 \since build 565
 */
@@ -851,7 +913,6 @@ sfmt(const _tChar* fmt, ...)
 	std::va_list args;
 
 	va_start(args, fmt);
-
 	try
 	{
 		std::basic_string<_tChar> str(vsfmt(fmt, args));

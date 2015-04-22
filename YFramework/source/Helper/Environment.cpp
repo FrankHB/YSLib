@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1584
+\version r1585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-04-11 03:07 +0800
+	2015-04-23 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,7 @@ Environment::MapTopLevelWindowPoint(const Point& pt) const
 		{
 			if(YB_UNLIKELY(!::ScreenToClient(p_wnd->GetNativeHandle(),
 				&cursor)))
-				YF_Raise_Win32Exception(
+				YCL_Raise_Win32Exception(
 					"ScreenToClient @ Environment::MapCursor");
 			return {p_wnd, p_wnd->MapPoint({cursor.x, cursor.y})};
 		}

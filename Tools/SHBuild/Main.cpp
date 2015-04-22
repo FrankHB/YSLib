@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2743
+\version r2780
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-03-25 18:29 +0800
+	2015-04-22 20:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,6 +83,13 @@ enum class LogGroup : yimpl(size_t)
 	Max
 };
 
+//! \since build 592
+enum class BuildMode : yimpl(size_t)
+{
+	AR = 1,
+	LD = 2
+};
+
 using opt_uint = unsigned long;
 LogGroup LastLogGroup(LogGroup::General);
 std::mutex LastLogGroupMutex;
@@ -126,7 +133,8 @@ PrintException(const std::exception& e, size_t level = 0)
 set<string> IgnoredDirs;
 string OutputDir;
 size_t MaxJobs(0);
-size_t Mode(1);
+//! \since build 592
+BuildMode Mode(BuildMode::AR);
 //! \since build 556
 string TargetName;
 const struct Option
@@ -211,11 +219,16 @@ const struct Option
 	}, opt_uint(LogGroup::Max), {"The log group should be enabled.",
 		"See description of '-xloggd,'.", OPT_des_last}},
 	{"-xmode,", "mode", "MODE", [](opt_uint uval){
-		if(uval == 1 || uval == 2)
-			Mode = uval;
-		else
-			PrintInfo("Ignored unsupported mode '" + to_string(uval)
-				+ "'.", Warning);
+		switch(BuildMode(uval))
+		{
+		case BuildMode::AR:
+		case BuildMode::LD:
+			Mode = BuildMode(uval);
+			break;
+		default:
+			PrintInfo("Ignored unsupported mode '" + to_string(uval) + "'.",
+				Warning);
+		}
 	}, 0x3UL, {"The target action mode.",
 		"Value '1' represents call of AR for the final target, and '2' is LD."
 		" Other value is reserved and to be ignored."
@@ -398,8 +411,8 @@ public:
 	vector<string> Options{};
 	//! \since build 547
 	map<string, string> Envs;
-	//! \since build 546
-	size_t Mode = 1;
+	//! \since build 592
+	BuildMode Mode = BuildMode::AR;
 	//! \since build 556
 	string TargetName{};
 
@@ -643,10 +656,10 @@ BuildContext::Build()
 
 		auto target(to_string(opth).GetMBCS(CS_Path));
 		const auto& LDFLAGS(GetEnv("LDFLAGS"));
-		const auto& cmd(Mode == 1 ? GetEnv("AR") + ' ' + GetEnv("ARFLAGS")
-			: GetEnv("LD") + ' ' + LDFLAGS + " -o");
+		const auto& cmd(Mode == BuildMode::AR ? GetEnv("AR") + ' '
+			+ GetEnv("ARFLAGS") : GetEnv("LD") + ' ' + LDFLAGS + " -o");
 
-		if(Mode == 1)
+		if(Mode == BuildMode::AR)
 			target += ".a";
 		// FIXME: Find extension properly.
 		else
@@ -667,9 +680,18 @@ BuildContext::Build()
 			// FIXME: Prevent path too long.
 			for(const auto& ofile : ofiles)
 				str += " \"" + ofile + "\"";
-			if(Mode == 2)
+			if(Mode == BuildMode::LD)
 				str += ' ' + GetEnv("LIBS");
 			print("Link file: '" + target + "'.", Informative);
+			if(Mode == BuildMode::AR)
+			{
+				// NOTE: Since the return value might be implementation-defined
+				//	and the next operations might be still meaningful, it is
+				//	not intended to throw an exception.
+				if(uremove(target.c_str()) != 0)
+					PrintInfo(u8"Deleted file '" + target + u8"'.", Warning);
+				PrintInfo(u8"Deleted file '" + target + u8"'.", Debug);
+			}
 			CallWithException(str, 1);
 		}
 	}
@@ -694,7 +716,8 @@ BuildContext::RunTask(const string& cmd) const
 		if(result != 0)
 			return result;
 	}
-	// TODO: Use ISO C++1y lambda initializers to simplify implementation.
+	// TODO: Use ISO C++14 lambda initializers to simplify implementation.
+	// TODO: Do not use hard-coded duration.
 	jobs.wait_for(milliseconds(80), [&, cmd]{
 		const int res(usystem(cmd.c_str()));
 		{
@@ -736,7 +759,6 @@ main(int argc, char* argv[])
 			std::fprintf(stream, "[%04u.%03u][%zu:%#02X]",
 				unsigned(dcnt / 1000U), unsigned(dcnt % 1000U),
 				size_t(LastLogGroup), unsigned(lv));
-			YAssertNonnull(str);
 			if(term_ref)
 			{
 				using namespace Consoles;
@@ -752,7 +774,7 @@ main(int argc, char* argv[])
 				else
 					term_ref.UpdateForeColor(colors[i - lvs]);
 			}
-			std::fprintf(stream, "%s", &EncodeArg(str)[0]);
+			std::fprintf(stream, "%s", &EncodeArg(Nonnull(str))[0]);
 			term_ref.RestoreAttributes();
 			std::fputc('\n', stream);
 		});

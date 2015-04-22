@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup ImageBrowser
 \brief 主界面。
-\version r177
+\version r191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 424
 \par 创建时间:
 	2013-07-07 12:57:53 +0800
 \par 修改时间:
-	2015-01-25 14:05 +0800
+	2015-04-18 05:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,27 +37,16 @@ main(int argc, char* argv[])
 	using namespace platform_ex;
 
 	if(argc > 1)
-		try
-		{
+		FilterExceptions([=]{
 			GUIApplication app;
 			ImageCodec codec;
-			ImagePanel pnl(Rect(0, 0, 640, 480));
+			ImagePanel pnl({Point::Invalid, 640, 480});
 
 			pnl.Load(DecodeArg(argv[1]));
 			ShowTopLevelDraggable(pnl);
 			pnl.SetRootMode(Deref(GetHostRendererPtrOf(pnl)).RootMode),
 			pnl.SetupContextMenu();
 			Execute(app);
-		}
-#ifdef YCL_Win32
-		CatchExpr(Win32Exception& e, cerr
-			<< "Unhandled Win32Exception exception" << e.GetErrorCode()
-			<< "found: " << endl << e.GetMessage() << endl << "From: "
-			<< e.what() << endl)
-#endif
-		CatchExpr(exception& e, cerr << "Unhandled exception ["
-			<< typeid(e).name() << "]: " << endl << e.what() << endl)
-		CatchExpr(..., cerr << "Unhandled exception found main function."
-			<< endl)
+		}, "::main");
 }
 

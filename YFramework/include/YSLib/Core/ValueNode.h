@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1543
+\version r1552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-03-31 11:33 +0800
+	2015-04-18 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -237,7 +237,7 @@ public:
 	\brief 清除节点。
 	\post <tt>!Value && !GetContainerPtr()</tt> 。
 	*/
-	PDefH(void, Clear, )
+	PDefH(void, Clear, ) const ynothrow
 		ImplExpr(Value.Clear(), p_container.reset())
 
 	/*!
@@ -245,8 +245,16 @@ public:
 	\post <tt>!GetContainerPtr() || GetContainerPtr()->empty()</tt> 。
 	\since build 502
 	*/
-	PDefH(void, ClearChildren, )
+	PDefH(void, ClearChildren, ) const ynothrow
 		ImplExpr(p_container ? p_container->clear() : void())
+
+	/*!
+	\brief 清除节点容器。
+	\post <tt>!GetContainerPtr()</tt> 。
+	\since build 592
+	*/
+	PDefH(void, ClearContainer, ) const ynothrow
+		ImplExpr(p_container.reset())
 
 	//! \since build 403
 	bool

@@ -11,13 +11,13 @@
 /*!	\file YDevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2086
+\version r2087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2015-03-21 13:56 +0800
+	2015-04-19 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ public:
 	\pre 参数指定的缓冲区和屏幕缓冲区兼容。
 	\since build 558
 	*/
-	virtual void
+	virtual YB_NONNULL(1) void
 	Update(Drawing::ConstBitmapPtr) ynothrow;
 
 	//! \since build 558

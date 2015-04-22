@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1678
+\version r1681
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-04-10 18:08 +0800
+	2015-04-18 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,9 @@
 
 #include "utility.hpp"
 #include <new> // for placement ::operator new from standard library;
-#include "base.h" // for ystdex::cloneable;
+#include "base.h" // for cloneable;
 #include <memory> // for std::addressof, std::unique_ptr;
-#include "ref.hpp" // for ystdex::lref;
+#include "ref.hpp" // for lref;
 #include <typeinfo> // for typeid, std::bad_cast;
 
 namespace ystdex
@@ -674,7 +674,7 @@ public:
 	const std::type_info&
 	to_type() const ynothrow
 	{
-		return from_ti.get();
+		return to_ti.get();
 	}
 	//@}
 

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r467
+\version r469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2015-04-11 22:15 +0800
+	2015-04-19 10:54 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -75,7 +75,7 @@ public:
 	\note 复制到屏幕。
 	\since build 558
 	*/
-	void
+	YB_NONNULL(1) void
 	Update(Drawing::ConstBitmapPtr) ynothrow override;
 #elif YCL_HostedUI
 public:
@@ -103,7 +103,7 @@ public:
 	\note 部分线程安全：在不同线程上更新到屏幕和屏幕缓冲区之间线程间未决定有序。
 	\since build 558
 	*/
-	void
+	YB_NONNULL(1) void
 	Update(Drawing::ConstBitmapPtr) ynothrow override;
 
 	//! \since build 386

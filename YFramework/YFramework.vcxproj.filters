@@ -217,7 +217,7 @@
     <ClInclude Include="include\YSLib\Adaptor\YNew.h">
       <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\yref.hpp">
+    <ClInclude Include="include\YSLib\Adaptor\YReference.hpp">
       <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\YApplication.h">
