@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1913
+\version r1914
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2015-03-17 17:09 +0800
+	2015-04-24 05:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ OnExit_DebugMemory_continue()
 /*!
 \since build 301
 */
-template<std::size_t _vN, class _tCon>
+template<size_t _vN, class _tCon>
 void
 OnExit_DebugMemory_print(_tCon& con, const char* item_name)
 {

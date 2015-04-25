@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r122
+\version r125
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2014-09-03 13:57 +0800
+	2015-04-24 05:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ class YF_API MappedFile
 private:
 	int fd;
 	std::uint64_t size;
-	ystdex::byte* addr;
+	byte* addr;
 
 public:
 	//! \throw FileOperationFailure 映射失败。
@@ -62,7 +62,7 @@ public:
 	~MappedFile();
 
 	//! \since build 413
-	DefGetter(const ynothrow, ystdex::byte*, Ptr, addr)
+	DefGetter(const ynothrow, byte*, Ptr, addr)
 	//! \since build 475
 	DefGetter(const ynothrow, std::uint64_t, Size, size)
 };

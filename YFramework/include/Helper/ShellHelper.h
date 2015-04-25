@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1794
+\version r1802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2014-12-31 07:53 +0800
+	2015-04-24 03:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,15 +42,18 @@ namespace YSLib
 \ingroup debugging
 \brief 调试计时器。
 \since build 378
+\todo 使用符合约定的 protected 命名。
 */
 class YF_API DebugTimer
 {
 protected:
-	std::string event_info;
+	//! \since build 593
+	string event_info;
 	Timers::HighResolutionClock::time_point base_tick;
 
 public:
-	DebugTimer(const std::string& str = "");
+	//! \since build 593
+	DebugTimer(const string& str = "");
 	~DebugTimer();
 };
 #	define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer _name(__VA_ARGS__);
@@ -92,7 +95,7 @@ namespace Text
 \brief 编码信息项目。
 \since build 307
 */
-using EncodingInfoItem = std::pair<Encoding, const ucs2_t*>;
+using EncodingInfoItem = pair<Encoding, const ucs2_t*>;
 
 /*!
 \brief 编码信息。
@@ -315,6 +318,7 @@ yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
 
 /*!
 \brief 格式化时间字符串。
+\warning 非线程安全。
 \since build 307
 */
 //@{

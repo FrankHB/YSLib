@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r275
+\version r276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2015-03-28 22:26 +0800
+	2015-04-24 03:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,6 @@
 #include YFM_YSLib_Adaptor_Image // for Drawing::HBitmap;
 #include <ystdex/hash.hpp> // for ystdex::hash_combine_seq;
 #include <ystdex/cache.hpp>
-#include YFM_YSLib_Adaptor_YContainer
 
 namespace YSLib
 {

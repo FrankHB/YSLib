@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r693
+\version r735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-04-23 01:19 +0800
+	2015-04-25 16:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,22 @@ inline namespace Windows
 ImplDeDtor(Win32Exception)
 
 
+void
+GlobalDelete::operator()(pointer h) const ynothrow
+{
+	YCL_CallWin32_Trace(GlobalFree, "GlobalDelete::operator()", h);
+}
+
+
+GlobalLocked::GlobalLocked(::HGLOBAL h)
+	: p_locked(YCL_CallWin32(GlobalLock, "GlobalLocked::GlobalLocked", h))
+{}
+GlobalLocked::~GlobalLocked()
+{
+	YCL_CallWin32_Trace(GlobalUnlock, "GlobalLocked::~GlobalLocked", p_locked);
+}
+
+
 //! \since build 545
 namespace
 {
@@ -58,8 +74,8 @@ ConsoleHandler(unsigned long ctrl)
 	switch (ctrl)
 	{
 	case CTRL_C_EVENT:
-	case CTRL_CLOSE_EVENT:
 	case CTRL_BREAK_EVENT:
+	case CTRL_CLOSE_EVENT:
 	case CTRL_LOGOFF_EVENT:
 	case CTRL_SHUTDOWN_EVENT:
 		std::_Exit(int(STATUS_CONTROL_C_EXIT));
@@ -119,9 +135,8 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 void
 FixConsoleHandler(int(WINAPI* handler)(unsigned long), bool add)
 {
-	if(YB_UNLIKELY(!::SetConsoleCtrlHandler(handler
-		? handler : ConsoleHandler, add)))
-		YCL_Raise_Win32Exception("SetConsoleCtrlHandler");
+	YCL_CallWin32(SetConsoleCtrlHandler, "FixConsoleHandler", handler
+		? handler : ConsoleHandler, add);
 }
 
 bool
@@ -141,8 +156,8 @@ CheckWine()
 }
 
 
-std::string
-MBCSToMBCS(std::size_t len, const char* str, unsigned cp_src, unsigned cp_dst)
+string
+MBCSToMBCS(size_t len, const char* str, unsigned cp_src, unsigned cp_dst)
 {
 	if(len != 0)
 	{
@@ -151,7 +166,7 @@ MBCSToMBCS(std::size_t len, const char* str, unsigned cp_src, unsigned cp_dst)
 			const auto l(CheckPositiveScalar<int>(len));
 			const int
 				w_len(::MultiByteToWideChar(cp_src, 0, Nonnull(str), l, {}, 0));
-			std::wstring wstr(CheckPositiveScalar<size_t>(w_len), wchar_t());
+			wstring wstr(CheckPositiveScalar<size_t>(w_len), wchar_t());
 			const auto w_str(&wstr[0]);
 
 			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
@@ -163,15 +178,15 @@ MBCSToMBCS(std::size_t len, const char* str, unsigned cp_src, unsigned cp_dst)
 	return {};
 }
 
-std::string
-WCSToMBCS(std::size_t len, const wchar_t* str, unsigned cp)
+string
+WCSToMBCS(size_t len, const wchar_t* str, unsigned cp)
 {
 	if(len != 0)
 	{
 		const auto l(CheckPositiveScalar<int>(len));
 		const int
 			r_l(::WideCharToMultiByte(cp, 0, Nonnull(str), l, {}, 0, {}, {}));
-		std::string mbcs(CheckNonnegativeScalar<size_t>(r_l), char());
+		string mbcs(CheckNonnegativeScalar<size_t>(r_l), char());
 
 		::WideCharToMultiByte(cp, 0, str, l, &mbcs[0], r_l, {}, {});
 		return mbcs;
@@ -179,14 +194,14 @@ WCSToMBCS(std::size_t len, const wchar_t* str, unsigned cp)
 	return {};
 }
 
-std::wstring
-MBCSToWCS(std::size_t len, const char* str, unsigned cp)
+wstring
+MBCSToWCS(size_t len, const char* str, unsigned cp)
 {
 	if(len != 0)
 	{
 		const auto l(CheckPositiveScalar<int>(len));
 		const int w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), l, {}, 0));
-		std::wstring res(CheckNonnegativeScalar<size_t>(w_len), wchar_t());
+		wstring res(CheckNonnegativeScalar<size_t>(w_len), wchar_t());
 
 		::MultiByteToWideChar(cp, 0, str, l, &res[0], w_len);
 		return res;
@@ -195,10 +210,10 @@ MBCSToWCS(std::size_t len, const char* str, unsigned cp)
 }
 
 
-DirectoryFindData::DirectoryFindData(std::string name)
+DirectoryFindData::DirectoryFindData(string name)
 	: DirectoryFindData(UTF8ToWCS(name))
 {}
-DirectoryFindData::DirectoryFindData(std::wstring name)
+DirectoryFindData::DirectoryFindData(wstring name)
 	: dir_name(ystdex::rtrim(name, L"/\\")), find_data()
 {
 	YAssert(!dir_name.empty() && dir_name.back() != '\\',
@@ -232,7 +247,7 @@ DirectoryFindData::Close() ynothrow
 	yunused(res);
 }
 
-std::wstring*
+wstring*
 DirectoryFindData::Read()
 {
 	if(!h_node)
@@ -271,7 +286,7 @@ RegistryKey::Flush()
 	YCL_Raise_Win32Exception_On_Failure(::RegFlushKey(h_key), "RegFlushKey");
 }
 
-std::pair<unsigned long, std::vector<ystdex::byte>>
+pair<unsigned long, vector<byte>>
 RegistryKey::GetRawValue(const wchar_t* name, unsigned long type) const
 {
 	unsigned long size;
@@ -279,13 +294,13 @@ RegistryKey::GetRawValue(const wchar_t* name, unsigned long type) const
 	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, Nonnull(name),
 		{}, type == REG_NONE ? &type : nullptr, {}, &size), "RegQueryValueExW");
 
-	std::vector<ystdex::byte> res(size);
+	vector<byte> res(size);
 
 	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, name,
 		{}, &type, &res[0], &size), "RegQueryValueExW");
 	return {type, std::move(res)};
 }
-std::size_t
+size_t
 RegistryKey::GetSubKeyCount() const
 {
 	unsigned long res;
@@ -294,11 +309,11 @@ RegistryKey::GetSubKeyCount() const
 		&res, {}, {}, {}, {}, {}, {}, {}), "RegQueryInfoKey");
 	return size_t(res);
 }
-std::vector<std::wstring>
+vector<wstring>
 RegistryKey::GetSubKeyNames() const
 {
 	const auto cnt(GetSubKeyCount());
-	std::vector<std::wstring> res;
+	vector<wstring> res;
 
 	if(cnt > 0)
 	{
@@ -312,7 +327,7 @@ RegistryKey::GetSubKeyNames() const
 	}
 	return res;
 }
-std::size_t
+size_t
 RegistryKey::GetValueCount() const
 {
 	unsigned long res;
@@ -321,11 +336,11 @@ RegistryKey::GetValueCount() const
 		{}, {}, &res, {}, {}, {}, {}), "RegQueryInfoKey");
 	return size_t(res);
 }
-std::vector<std::wstring>
+vector<wstring>
 RegistryKey::GetValueNames() const
 {
 	const auto cnt(GetValueCount());
-	std::vector<std::wstring> res;
+	vector<wstring> res;
 
 	if(cnt > 0)
 	{
@@ -340,7 +355,7 @@ RegistryKey::GetValueNames() const
 	return res;
 }
 
-std::wstring
+wstring
 FetchRegistryString(const RegistryKey& key, const wchar_t* name)
 {
 	try
@@ -349,7 +364,7 @@ FetchRegistryString(const RegistryKey& key, const wchar_t* name)
 
 		if(pr.first == REG_SZ && !pr.second.empty())
 			// TODO: Improve performance?
-			return ystdex::rtrim(std::wstring(reinterpret_cast<const wchar_t*>(
+			return ystdex::rtrim(wstring(reinterpret_cast<const wchar_t*>(
 				&pr.second[0]), pr.second.size() / 2), L'\0');
 	}
 	catch(Win32Exception&)
@@ -379,7 +394,7 @@ ConvertTime(::FILETIME& file_time)
 		throw std::system_error(ENOSYS, std::generic_category());
 }
 
-std::wstring
+wstring
 ExpandEnvironmentStrings(const wchar_t* p_src, size_t len)
 {
 	if(p_src && len != 0)
@@ -388,7 +403,7 @@ ExpandEnvironmentStrings(const wchar_t* p_src, size_t len)
 
 		if(w_len != 0)
 		{
-			std::wstring wstr(w_len, wchar_t());
+			wstring wstr(w_len, wchar_t());
 
 			if(::ExpandEnvironmentStringsW(p_src, &wstr[0], w_len) != 0)
 				return wstr;
@@ -398,13 +413,13 @@ ExpandEnvironmentStrings(const wchar_t* p_src, size_t len)
 	return {};
 }
 
-std::wstring
+wstring
 FetchSystemPath(size_t s)
 {
 	const auto res(make_unique<wchar_t[]>(s));
 
 	::GetSystemDirectoryW(&res[0], unsigned(s));
-	return ystdex::rtrim(std::wstring(&res[0]), L'\\') + L'\\';
+	return ystdex::rtrim(wstring(&res[0]), L'\\') + L'\\';
 }
 
 } // inline namespace Windows;

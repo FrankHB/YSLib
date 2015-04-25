@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1245
+\version r1405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-04-23 01:20 +0800
+	2015-04-24 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,6 +150,35 @@ SetWindowBounds(::HWND h_wnd, int x, int y, SDst w, SDst h)
 		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 //@}
+
+
+//! \since build 593
+inline unique_ptr<void, GlobalDelete>
+MakeMoveableGlobalMemory(size_t size)
+{
+	auto p(unique_raw(::GlobalAlloc(GMEM_MOVEABLE, size), GlobalDelete()));
+
+	if(YB_UNLIKELY(!p))
+		// TODO: Use inherited class of exception.
+		throw std::bad_alloc();
+	return p;
+}
+
+//! \since build 593
+template<typename _tChar, class _tString>
+YB_ALLOCATOR YB_ATTR(returns_nonnull) void*
+CopyGlobalString(const _tString& str)
+{
+	const auto len(str.length());
+	auto p(MakeMoveableGlobalMemory((len + 1) * sizeof(_tChar)));
+	{
+		const GlobalLocked gl(Nonnull(p));
+		const auto p_buf(gl.GetPtr<_tChar>());
+
+		ystdex::ntctscpy(p_buf, str.data(), len);
+	}
+	return p.release();
+}
 #	endif
 
 } // unnamed namespace;
@@ -241,7 +270,7 @@ WindowReference::GetLocation() const
 YSLib::Drawing::AlphaType
 WindowReference::GetOpacity() const
 {
-	ystdex::byte a;
+	byte a;
 
 	YCL_CallWin32(GetLayeredWindowAttributes,
 		"WindowReference::GetOpacity", GetNativeHandle(), {}, &a, {});
@@ -365,6 +394,24 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 	XCB::UpdatePixmapBuffer(Deref(h_wnd.get()), r, g);
 }
 #	elif YCL_Win32
+YF_API ::HBITMAP
+CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
+{
+	// NOTE: Bitmap format is hard coded here for explicit buffer
+	//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
+	//	windows.
+	::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositiveScalar<long>(
+		s.Width, "width"), -CheckPositiveScalar<long>(s.Height,
+		"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
+		sizeof(Pixel) * s.Width * s.Height), 0, 0, 0, 0}, {}};
+	void* p_buf{};
+	const auto h(YCL_CallWin32(CreateDIBSection, "ScreenBuffer::ScreenBuffer",
+		{}, &bmi, DIB_RGB_COLORS, &p_buf, {}, 0));
+
+	p_buffer = static_cast<BitmapPtr>(p_buf);
+	return h;
+}
+
 NativeWindowHandle
 CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
 	const wchar_t* title, unsigned long wstyle, unsigned long wstyle_ex)
@@ -421,33 +468,17 @@ ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
 }
 #	elif YCL_Win32
 ScreenBuffer::ScreenBuffer(const Size& s)
-	: size(s), hBitmap([this]{
-		// NOTE: Bitmap format is hard coded here for explicit buffer
-		//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
-		//	windows.
-		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositiveScalar<SPos>(
-			size.Width, "width"), -CheckPositiveScalar<SPos>(size.Height,
-			"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
-			sizeof(Pixel) * size.Width * size.Height), 0, 0, 0, 0}, {}};
-		void* p_buf{};
-		const auto h(::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
-			&reinterpret_cast<void*&>(p_buf), {}, 0));
-
-		pBuffer = reinterpret_cast<BitmapPtr>(p_buf);
-		return h;
-	}())
+	: size(s), p_bitmap(CreateCompatibleDIBSection(s, p_buffer))
 {}
-ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
-	: size(sbuf.size), hBitmap(sbuf.hBitmap)
-{
-	sbuf.hBitmap = {};
-}
+ScreenBuffer::ScreenBuffer(ScreenBuffer&&) ynothrow = default;
 #	endif
-ScreenBuffer::~ScreenBuffer()
+ImplDeDtor(ScreenBuffer)
+
+ScreenBuffer&
+ScreenBuffer::operator=(ScreenBuffer&& sbuf) ynothrow
 {
-#	if YCL_Win32
-	GDIObjectDelete()(hBitmap);
-#	endif
+	sbuf.swap(*this);
+	return *this;
 }
 
 #	if YCL_HostedUI_XCB || YCL_Android
@@ -480,13 +511,6 @@ ScreenBuffer::Resize(const Size& s)
 	width = s.Width;
 }
 #	elif YCL_Win32
-ScreenBuffer&
-ScreenBuffer::operator=(ScreenBuffer&& sbuf)
-{
-	sbuf.swap(*this);
-	return *this;
-}
-
 void
 ScreenBuffer::Resize(const Size& s)
 {
@@ -500,7 +524,7 @@ ScreenBuffer::Premultiply(ConstBitmapPtr p_buf) ynothrow
 	YAssertNonnull(p_buf);
 	// NOTE: Since the stride is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
-	std::transform(p_buf, p_buf + size.Width * size.Height, pBuffer,
+	std::transform(p_buf, p_buf + size.Width * size.Height, p_buffer,
 		[](const Pixel& pixel){
 			const auto a(pixel.GetA());
 
@@ -573,8 +597,8 @@ ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 	std::swap(width, sbuf.width);
 #	elif YCL_Win32
 	std::swap(size, sbuf.size),
-	std::swap(pBuffer, sbuf.pBuffer),
-	std::swap(hBitmap, sbuf.hBitmap);
+	std::swap(p_buffer, sbuf.p_buffer),
+	std::swap(p_bitmap, sbuf.p_bitmap);
 #	endif
 }
 
@@ -686,24 +710,14 @@ WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
 		::LoadCursorW({}, IDC_ARROW), h_bg, nullptr, Nonnull(class_name)})
 {}
 WindowClass::WindowClass(const ::WNDCLASSW& wc)
-	: WindowClass(wc.lpszClassName, [&]{
-		const auto a(::RegisterClassW(&wc));
-
-		if(YB_UNLIKELY(a == 0))
-			YCL_Raise_Win32Exception("RegisterClassW");
-		return a;
-	}(), wc.hInstance)
+	: WindowClass(wc.lpszClassName, YCL_CallWin32(RegisterClassW,
+	"WindowClass::WindowClass", &wc), wc.hInstance)
 {}
 WindowClass::WindowClass(const ::WNDCLASSEXW& wc)
-	: WindowClass(wc.lpszClassName, [&]{
-		const auto a(::RegisterClassExW(&wc));
-
-		if(YB_UNLIKELY(a == 0))
-			YCL_Raise_Win32Exception("RegisterClassExW");
-		return a;
-	}(), wc.hInstance)
+	: WindowClass(wc.lpszClassName, YCL_CallWin32(RegisterClassExW,
+	"WindowClass::WindowClass", &wc), wc.hInstance)
 {}
-WindowClass::WindowClass(const std::wstring& class_name,
+WindowClass::WindowClass(const wstring& class_name,
 	unsigned short class_atom, ::HINSTANCE h_inst)
 	: name(class_name), atom(class_atom), h_instance(h_inst)
 {
@@ -742,10 +756,10 @@ HostWindow::HostWindow(NativeWindowHandle h)
 	YAssert(::GetWindowLongPtrW(h, GWLP_USERDATA) == 0,
 		"Invalid user data of window found.");
 
-	wchar_t buf[ystdex::arrlen(WindowClassName)];
+	wchar_t buf[arrlen(WindowClassName)];
 
-	YCL_CallWin32(GetClassNameW, "HostWindow::HostWindow",
-		GetNativeHandle(), buf, ystdex::arrlen(WindowClassName));
+	YCL_CallWin32(GetClassNameW, "HostWindow::HostWindow", GetNativeHandle(),
+		buf, arrlen(WindowClassName));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
@@ -795,11 +809,93 @@ HostWindow::MapPoint(const Point& pt) const
 
 
 #	if YCL_Win32
+Clipboard::Clipboard(NativeWindowHandle h_wnd)
+{
+	YCL_CallWin32(OpenClipboard, "Clipboard::Clipboard", h_wnd);
+}
+Clipboard::~Clipboard()
+{
+	YCL_CallWin32_Trace(CloseClipboard, "Clipboard::~Clipboard", );
+}
+
+bool
+Clipboard::IsAvailable(FormatType fmt) ynothrow
+{
+	return bool(::IsClipboardFormatAvailable(fmt));
+}
+
+void
+Clipboard::CheckAvailable(FormatType fmt)
+{
+	YCL_CallWin32(IsClipboardFormatAvailable, "Clipboard::CheckAvailable", fmt);
+}
+
+void
+Clipboard::Clear() ynothrow
+{
+	YCL_CallWin32_Trace(EmptyClipboard, "Clipboard::Clear", );
+}
+
+NativeWindowHandle
+Clipboard::GetOpenWindow() ynothrow
+{
+	return ::GetOpenClipboardWindow();
+}
+
+bool
+Clipboard::Receive(YSLib::string& str)
+{
+	return ReceiveRaw(CF_TEXT, [&](const void* p){
+		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<char>();
+	});
+}
+
+bool
+Clipboard::Receive(YSLib::String& str)
+{
+	return ReceiveRaw(CF_UNICODETEXT, [&](const void* p){
+		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<ucs2_t>();
+	});
+}
+
+bool
+Clipboard::ReceiveRaw(FormatType fmt, std::function<void(const void*)> f)
+{
+	if(IsAvailable(fmt))
+		if(const auto h = ::GetClipboardData(fmt))
+		{
+			const GlobalLocked gl(h);
+
+			Nonnull(f)(&gl);
+			return true;
+		}
+	return {};
+}
+
+void
+Clipboard::Send(const YSLib::string& str)
+{
+	SendRaw(CF_TEXT, CopyGlobalString<char>(str));
+}
+void
+Clipboard::Send(const YSLib::String& str)
+{
+	SendRaw(CF_UNICODETEXT, CopyGlobalString<ucs2_t>(str));
+}
+
+void
+Clipboard::SendRaw(FormatType fmt, void* h)
+{
+	Clear();
+	YCL_CallWin32(SetClipboardData, "Clipboard::SendRaw", fmt, h);
+}
+
+
 void
 ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	const wchar_t* dir, int n_cmd_show, NativeWindowHandle h_parent)
 {
-	// TODO: Set currend working directory as %USERPROFILE%?
+	// TODO: Set current working directory as %USERPROFILE%?
 	int res(int(::ShellExecuteW(h_parent,
 		use_admin ? L"runas" : nullptr, Nonnull(cmd), args, dir, n_cmd_show)));
 

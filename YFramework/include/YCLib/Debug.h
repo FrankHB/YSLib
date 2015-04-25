@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r570
+\version r588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-04-19 11:55 +0800
+	2015-04-24 03:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
+#include YFM_YCLib_Container // for string, sfmt;
 #include YFM_YCLib_Mutex
-#include <ystdex/string.hpp> // for std::string, ystdex::sfmt;
 
 /*!	\defgroup diagnostic Diagnostic
 \brief 诊断设施。
@@ -160,7 +160,8 @@ public:
 	//! \note 忽略空指针参数。
 	void
 	DoLog(Level, const char*);
-	PDefH(void, DoLog, Level lv, const std::string& str)
+	//! \since build 593
+	PDefH(void, DoLog, Level lv, const string& str)
 		ImplRet(DoLog(lv, str.c_str()))
 	//@}
 
@@ -173,7 +174,8 @@ private:
 	//! \pre 间接断言：指针参数非空。
 	YB_NONNULL(1) void
 	DoLogRaw(Level, const char*);
-	PDefH(void, DoLogRaw, Level lv, const std::string& str)
+	//! \since build 593
+	PDefH(void, DoLogRaw, Level lv, const string& str)
 		ImplRet(DoLogRaw(lv, str.c_str()))
 	//@}
 
@@ -187,9 +189,12 @@ public:
 	void
 	DoLogException(Level level, const std::exception&) ynothrow;
 
-	//! \brief 取新建的平台相关的默认发送：按指定的标签取平台相关实现。
+	/*!
+	\brief 取新建的平台相关的默认发送：按指定的标签取平台相关实现。
+	\since build 593
+	*/
 	static Sender
-	FetchDefaultSender(const std::string& = "YFramework");
+	FetchDefaultSender(const string& = "YFramework");
 
 	template<typename _fCaller, typename... _tParams>
 	void
@@ -215,9 +220,9 @@ FetchCommonLogger();
 \pre 间接断言：第三参数非空。
 \note 允许第一参数为空指针，视为未知。
 \note 当失败时调用 ystdex::trace 记录，但只保留参数中的文件名和行号。
-\since build 566
+\since build 593
 */
-YF_API YB_ATTR(format (printf, 3, 4)) YB_NONNULL(1, 3) std::string
+YF_API YB_ATTR(format (printf, 3, 4)) YB_NONNULL(1, 3) string
 LogWithSource(const char*, int, const char*, ...) ynothrow;
 
 
@@ -237,8 +242,8 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 \since build 591
 */
 #define YCL_TraceRaw(_lv, ...) \
-	YCL_Log(_lv, [&]()->std::string{ \
-		TryRet(ystdex::sfmt(__VA_ARGS__)) \
+	YCL_Log(_lv, [&]()->string{ \
+		TryRet(sfmt(__VA_ARGS__)) \
 		CatchRet(..., {}) \
 	})
 
@@ -330,10 +335,10 @@ public:
 	using Level = Logger::Level;
 
 private:
-	std::string tag;
+	string tag;
 
 public:
-	AndroidLogSender(const std::string&);
+	AndroidLogSender(const string&);
 	//! \since build 560
 	DefDeCopyMoveCtorAssignment(AndroidLogSender)
 	~AndroidLogSender();
@@ -342,7 +347,7 @@ public:
 	void
 	operator()(Level, Logger&, const char*) const;
 
-	DefGetter(const ynothrow, const std::string&, Tag, tag)
+	DefGetter(const ynothrow, const string&, Tag, tag)
 };
 #endif
 

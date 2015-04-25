@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r196
+\version r198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2014-12-31 07:55 +0800
+	2015-04-24 04:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,9 +89,9 @@ public:
 private:
 	/*!
 	\brief 构造：使用虚拟机引用、环境引用和所有权状态。
-	\since build 554
+	\since build 593
 	*/
-	JNIBase(::JavaVM& vm, const std::pair<::JNIEnv&, bool>& pr)
+	JNIBase(::JavaVM& vm, const pair<::JNIEnv&, bool>& pr)
 		: vm_ref(vm), env_ref(pr.first), owns(pr.second)
 	{}
 

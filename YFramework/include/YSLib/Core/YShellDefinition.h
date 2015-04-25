@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2009-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,61 +8,32 @@
 	understand and accept it fully.
 */
 
-/*!	\file YReference.hpp
-\ingroup Adaptor
-\brief 用于提供指针和引用访问的间接访问类模块。
-\version r2679
+/*!	\file YShellDefinition.h
+\ingroup Core
+\brief 宏定义和类型描述。
+\version r1662
 \author FrankHB <frankhb1989@gmail.com>
-\since build 590
+\since build 593
 \par 创建时间:
-	2010-03-21 23:09:06 +0800
+	2009-12-24 15:29:11 +0800
 \par 修改时间:
-	2015-04-10 01:27 +0800
+	2015-04-24 06:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Adaptor::YReference
+	YSLib::Core::YShellDefinition
 */
 
 
-#ifndef YSL_INC_Adaptor_yref_hpp_
-#define YSL_INC_Adaptor_yref_hpp_ 1
+#ifndef YSL_INC_Core_YShellDefinition_h_
+#define YSL_INC_Core_YShellDefinition_h_ 1
 
 #include "YModules.h"
+
 #include YFM_YSLib_Adaptor_YAdaptor
-#include <utility>
-#include <ystdex/memory.hpp>
-#include <ystdex/functional.hpp>
 
 namespace YSLib
 {
-
-using std::bad_weak_ptr;
-using std::const_pointer_cast;
-using std::dynamic_pointer_cast;
-using std::enable_shared_from_this;
-using std::get_deleter;
-//! \since build 529
-using std::make_shared;
-//! \since build 298
-using ystdex::make_shared;
-//! \since build 292
-using ystdex::make_unique;
-//! \since build 422
-using ystdex::get_raw;
-//! \since build 454
-using std::owner_less;
-using ystdex::reset;
-using ystdex::share_raw;
-using std::shared_ptr;
-using std::static_pointer_cast;
-using ystdex::unique_raw;
-using std::unique_ptr;
-using std::weak_ptr;
-
-//! \since build 554
-using ystdex::lref;
-
 
 /*!	\defgroup reset Reset Pointers
 \brief 安全删除指定引用的句柄指向的对象。
@@ -126,21 +97,63 @@ operator!=(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
 	return !(x == y);
 }
 
-/*!
-\brief 解锁删除器：使用线程模型对应的互斥量和锁。
-\since build 590
-*/
-using platform::Threading::unlock_delete;
-
 
 /*!
-\brief 独占所有权的锁定指针：使用线程模型对应的互斥量和锁以及 YSLib::unique_ptr 。
-\sa threading::locked_ptr
+\brief 独占所有权的锁定指针：使用线程模型对应的互斥量和锁以及 unique_ptr 。
+\sa ystdex::threading::locked_ptr
 \since build 551
 */
 template<typename _type, class _tMutex = typename unlock_delete<>::mutex_type,
 	class _tLock = typename unlock_delete<_tMutex>::lock_type>
 using locked_ptr = unique_ptr<_type, unlock_delete<_tMutex, _tLock>>;
+
+namespace Shells
+{
+class Shell;
+} // namespace Shells;
+
+namespace Text
+{
+class String;
+} // namespace Text;
+
+class Application;
+
+using Shells::Shell;
+
+using Text::String;
+
+
+//平台无关的类型定义。
+//
+
+
+/*!	\defgroup GlobalObjects Global Objects
+\brief 全局对象。
+*/
+
+/*!	\defgroup DefaultGlobalConstants Default Global Constants
+\ingroup GlobalObjects
+\brief 默认全局常量。
+*/
+//@{
+//@}
+
+/*!	\defgroup DefaultGlobalVariables Default Global Variables
+\ingroup GlobalObjects
+\brief 默认全局变量。
+*/
+//@{
+//@}
+
+/*!	\defgroup DefaultGlobalObjectMapping Default Global Object Mapping
+\ingroup GlobalObjects
+\brief 默认全局变量映射。
+
+访问全局程序实例对象。
+*/
+//@{
+//@}
 
 } // namespace YSLib;
 

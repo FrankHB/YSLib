@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1236
+\version r1252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-04-20 18:34 +0800
+	2015-04-23 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -352,9 +352,9 @@ concat(_tString& str, size_t n)
 		const auto len(str.length());
 
 		ystdex::concat(str, n / 2);
-		str.append(&str[0], str.length());
+		str.append(str.data(), str.length());
 		if(n % 2 != 0)
-			str.append(&str[0], len);
+			str.append(str.data(), len);
 	}
 }
 
@@ -367,26 +367,26 @@ inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(typename string_traits<_tString>::size_type pos, _tString&& str)
 {
 	return static_cast<_tString&&>(
-		pos != _tString::npos ? str.erase(0, pos) : str);
+		pos != decay_t<_tString>::npos ? str.erase(0, pos) : str);
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return yforward(ystdex::erase_left(str.find_last_of(c), yforward(str)));
+	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(c), str));
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(_tString&& str, const remove_reference_t<_tString>& t)
 {
-	return yforward(ystdex::erase_left(str.find_last_of(t), yforward(str)));
+	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return yforward(ystdex::erase_left(str.find_last_of(t), yforward(str)));
+	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
 }
 //@}
 
@@ -397,26 +397,29 @@ inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(typename string_traits<_tString>::size_type pos, _tString&& str)
 {
 	return static_cast<_tString&&>(
-		pos != _tString::npos ? str.erase(pos + 1) : str);
+		pos != decay_t<_tString>::npos ? str.erase(pos + 1) : str);
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return yforward(ystdex::erase_right(str.find_last_of(c), yforward(str)));
+	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(c),
+		str));
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(_tString&& str, const remove_reference_t<_tString>& t)
 {
-	return yforward(ystdex::erase_right(str.find_last_of(t), yforward(str)));
+	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
+		str));
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return yforward(ystdex::erase_right(str.find_last_of(t), yforward(str)));
+	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
+		str));
 }
 //@}
 //@}
@@ -476,20 +479,20 @@ template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return yforward(ystdex::ltrim(ystdex::rtrim(str, c)));
+	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), c))));
 }
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, const _tString& t)
 {
-	return yforward(ystdex::ltrim(ystdex::rtrim(str, t)));
+	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
 }
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return yforward(ystdex::ltrim(ystdex::rtrim(str, t)));
+	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
 }
 //@}
 //@}

@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1086
+\version r1153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2015-04-10 01:50 +0800
+	2015-04-24 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,54 +28,16 @@
 #ifndef YB_INC_ystdex_cast_hpp_
 #define YB_INC_ystdex_cast_hpp_ 1
 
-#include "type_op.hpp" // for ystdex::decay_t, ystdex::is_same,
-//	ystdex::array_ref_decay, ystdex::is_object, ystdex::is_void,
-//	ystdex::is_function;
+#include "type_op.hpp" // for decay_t, is_same, array_ref_decay, is_object,
+//	is_void, is_function;
 #include <memory> // for std::addressof;
 #include "cassert.h"
 #include <typeinfo> // for std::bad_cast;
 #include <initializer_list> // for std::initializer_list;
 
+//! \since build 175
 namespace ystdex
 {
-
-/*!	\defgroup cast Cast
-\brief 显式类型转换。
-\since build 243
-*/
-
-
-/*!
-\ingroup cast
-\pre 源类型和目标类型退化后相同。
-\note 指定源类型优先，可自动推导目标类型。
-\since build 531
-*/
-//@{
-//! \brief 允许添加限定符转换。
-template<typename _tSrc, typename _tDst = const decay_t<_tSrc>&&>
-yconstfn _tDst
-qualify(_tSrc&& arg) ynothrow
-{
-	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
-		"Non-qualification conversion found.");
-
-	return static_cast<_tDst>(arg);
-}
-
-//! \brief 允许去除限定符转换。
-template<typename _tSrc,
-	typename _tDst = typename array_ref_decay<_tSrc>::reference>
-yconstfn _tDst
-unqualify(_tSrc&& arg) ynothrow
-{
-	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
-		"Non-qualification conversion found.");
-
-	return const_cast<_tDst>(arg);
-}
-//@}
-
 
 /*!
 \brief 取 \c void* 类型的指针。
@@ -112,31 +74,56 @@ pvoid_ref(_type&& ref)
 
 
 /*!
-\ingroup cast
-\brief 使用匿名联合体进行的类型转换。
-\tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
-\pre <tt>is_pod<_tDst>::value && sizeof<_tSrc> == sizeof<_tDst></tt> 。
-\since build 297
+\brief 转换 const 引用。
+\see WG21/N4380 。
+\since build 593
 */
-template<typename _tDst, typename _tSrc>
-inline _tDst
-union_cast(_tSrc x) ynothrow
+template<typename _type>
+inline add_const_t<_type>&
+as_const(_type& t)
 {
-	static_assert(is_pod<_tDst>(), "Non-POD destination type found.");
-	static_assert(sizeof(_tSrc) == sizeof(_tDst), "Incompatible types found.");
-
-	union
-	{
-		_tSrc x;
-		_tDst y;
-	} u = {x};
-	return u.y;
+	return t;
 }
 
 
+/*!	\defgroup cast Cast
+\brief 显式类型转换。
+\since build 243
+*/
+//@{
 /*!
-\ingroup cast
+\pre 源类型和目标类型退化后相同。
+\note 指定源类型优先，可自动推导目标类型。
+\sa as_const
+\since build 531
+*/
+//@{
+//! \brief 允许添加限定符转换。
+template<typename _tSrc, typename _tDst = const decay_t<_tSrc>&&>
+yconstfn _tDst
+qualify(_tSrc&& arg) ynothrow
+{
+	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
+		"Non-qualification conversion found.");
+
+	return static_cast<_tDst>(arg);
+}
+
+//! \brief 允许去除限定符转换。
+template<typename _tSrc,
+	typename _tDst = typename array_ref_decay<_tSrc>::reference>
+yconstfn _tDst
+unqualify(_tSrc&& arg) ynothrow
+{
+	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
+		"Non-qualification conversion found.");
+
+	return const_cast<_tDst>(arg);
+}
+//@}
+
+
+/*!
 \brief 多态类指针类型转换。
 \tparam _tSrc 源类型。
 \tparam _pDst 目标类型。
@@ -158,7 +145,6 @@ polymorphic_cast(_tSrc* x)
 }
 
 /*!
-\ingroup cast
 \brief 多态类指针向派生类指针转换。
 \since build 551
 */
@@ -245,10 +231,7 @@ polymorphic_downcast(const std::unique_ptr<_tSrc>& x) ynothrow
 }
 //@}
 
-/*!
-\ingroup cast
-\brief 多态类指针交叉转换。
-*/
+//! \brief 多态类指针交叉转换。
 //@{
 /*!
 \tparam _tSrc 源类型。
@@ -384,7 +367,6 @@ struct general_cast_type_helper
 } // namespace details;
 
 /*!
-\ingroup cast
 \brief 一般类型转换。
 \tparam _tSrc 源类型。
 \tparam _tDst 目标类型。
@@ -417,6 +399,7 @@ general_cast(const _tSrc& x)
 	return details::general_cast_helper<const _tSrc&, _tDst, details
 		::general_cast_type_helper<const _tSrc&, const _tDst>::value>::cast(x);
 }
+//@}
 //@}
 
 } // namespace ystdex;

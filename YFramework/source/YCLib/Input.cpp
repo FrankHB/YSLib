@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r468
+\version r471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2015-03-22 16:07 +0800
+	2015-04-24 04:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,10 +190,10 @@ UpdateKeyStates()
 
 
 #if YCL_DS
-std::pair<std::int16_t, std::int16_t>
+pair<std::int16_t, std::int16_t>
 FetchCursor()
 {
-	using pr_type = std::pair<std::int16_t, std::int16_t>;
+	using pr_type = pair<std::int16_t, std::int16_t>;
 	::touchPosition tp;
 
 	::touchRead(&tp);
@@ -243,7 +243,7 @@ WaitForABXY()
 	return WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y);
 }
 #elif YCL_Android
-std::pair<float, float>
+pair<float, float>
 FetchCursor()
 {
 	lock_guard<mutex> lck(CursorMutex);

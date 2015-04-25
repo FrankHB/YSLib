@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1978
+\version r1981
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-03-21 16:16 +0800
+	2015-04-24 04:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,12 +170,12 @@ EnsureDirectory(const Path& pth)
 void
 DeleteTree(const Path& pth)
 {
-	TraverseChildren(pth, [&](NodeCategory c, const std::string& name){
+	TraverseChildren(pth, [&](NodeCategory c, const string& name){
 		const auto child(pth / name);
 
 		if(c == NodeCategory::Directory)
 			DeleteTree(child);
-		uremove(std::string(child).c_str());
+		uremove(string(child).c_str());
 	});
 }
 
@@ -183,7 +183,7 @@ void
 ListFiles(const Path& pth, vector<String>& lst)
 {
 	TryExpr(Traverse(pth,
-		[&](NodeCategory c, const std::string& name, PathNorm& nm){
+		[&](NodeCategory c, const string& name, PathNorm& nm){
 		lst.push_back(String(!nm.is_parent(name)
 			&& c == NodeCategory::Directory
 			? name + YCL_PATH_DELIMITER : name, CS_Path));

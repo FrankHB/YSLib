@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1336
+\version r1340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2015-04-19 12:11 +0800
+	2015-04-24 04:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "../Core/YModules.h"
 #include YFM_YSLib_Core_YGraphics
-#include YFM_YSLib_Adaptor_YContainer
 #include <ystdex/exception.h> // for ystdex::unsupported;
 #include YFM_YSLib_Core_YClock // for TimeSpan;
 //#include <FreeImage.h>
@@ -310,7 +309,7 @@ public:
 	{}
 	//! \exception LoggedEvent 异常中立：输入的大小分量过大。
 	//@{
-	//! \throw BadImageAlloc 分配空间失败。
+	//! \throw BadImageAlloc 存储分配失败。
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
 	\brief 构造：从矩形像素图缓冲区按指定大小和扫描线跨距增量复制并转换图像数据。
@@ -395,7 +394,7 @@ public:
 	\since build 430
 	*/
 	HBitmap(const HBitmap&, const Size&, SamplingFilter);
-	//! \throw BadImageAlloc 分配空间失败。
+	//! \throw BadImageAlloc 存储分配失败。
 	HBitmap(const HBitmap&);
 	HBitmap(HBitmap&&) ynothrow;
 	//! \since build 461
@@ -580,7 +579,7 @@ public:
 	DefDeCtor(HMultiBitmap)
 	/*!
 	\post <tt>bool(*this)</tt> 。
-	\throw std::bad_alloc 存储分配失败。
+	\throw BadImageAlloc 存储分配失败。
 	\throw std::invalid_argument 文件打开失败。
 	\since build 457
 	*/

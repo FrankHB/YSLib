@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2016
+\version r2017
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2015-03-21 18:51 +0800
+	2015-04-24 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
-#include YFM_YSLib_Adaptor_YContainer
 #include <ctime>
 
 namespace YSLib

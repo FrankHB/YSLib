@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1699
+\version r1715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-04-19 11:10 +0800
+	2015-04-24 05:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,11 @@
 #define YCL_INC_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_YCommon // for std::uint64_t, std::FILE*;
-#include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
-//	ystdex::remove_reference_t, ystdex::arrlen;
+#include YFM_YCLib_Container // for std::uint64_t, std::FILE*, std::is_array,
+//	std::is_integral, ystdex::remove_reference_t, arrlen, string,
+//	ystdex::string_length;
 #include <ystdex/cstring.h> // for ystdex::is_null;
-#include <ystdex/path.hpp> // for ystdex::string_length, std::string,
-//	ystdex::path_category;
+#include <ystdex/path.hpp> // for ystdex::path_category;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_Encoding
 #include <system_error>
@@ -168,7 +167,7 @@ static_assert(std::is_array<ystdex::remove_reference_t<decltype(
 	YCL_PATH_SEPARATOR)>>(), "Non-array type of separator found.");
 //! \since build 458 as workaround for Visual C++ 2013
 #if YB_HAS_CONSTEXPR
-static_assert(ystdex::arrlen(YCL_PATH_SEPARATOR) == 2,
+static_assert(arrlen(YCL_PATH_SEPARATOR) == 2,
 	"Wrong length of separator found.");
 static_assert(YCL_PATH_SEPARATOR[0] == YCL_PATH_DELIMITER,
 	"Mismatched path delimiter and separator found.");
@@ -357,7 +356,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow;
 \note 若分配存储失败，设置 \c errno 为 \c ENOMEM 。
 */
 YF_API YB_NONNULL(1) char16_t*
-u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
+u16getcwd_n(char16_t* buf, size_t size) ynothrow;
 //@}
 
 /*
@@ -413,7 +412,7 @@ uremove(const char*) ynothrow;
 若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
 */
 YF_API YB_NONNULL(1) bool
-truncate(std::FILE*, std::size_t) ynothrow;
+truncate(std::FILE*, size_t) ynothrow;
 //@}
 
 
@@ -541,11 +540,11 @@ public:
 protected:
 	/*!
 	\brief 目录路径。
-	\invariant <tt>std::char_traits<char>::length(sDirPath.c_str()) > 0 && \
+	\invariant <tt>string_length(sDirPath.c_str()) > 0 && \
 		sDirPath.back() == YCL_PATH_DELIMITER</tt> 。
-	\since build 560
+	\since build 593
 	*/
-	std::string sDirPath;
+	string sDirPath;
 #endif
 
 private:
@@ -606,9 +605,9 @@ private:
 
 	/*!
 	\brief 节点 UTF-8 名称。
-	\since build 402
+	\since build 593
 	*/
-	mutable std::string utf8_name{};
+	mutable string utf8_name{};
 #else
 	/*!
 	\brief 节点信息。
@@ -662,8 +661,8 @@ public:
 	*/
 	DefBoolNeg(explicit, p_dirent)
 
-	//! \since build 412
-	DefCvt(const, std::string, GetName())
+	//! \since build 593
+	DefCvt(const, string, GetName())
 
 	/*!
 	\brief 间接操作：取节点名称。
@@ -721,7 +720,7 @@ IsAbsolute(const char16_t*);
 \pre 间接断言：参数非空。
 \since build 412
 */
-YF_API YB_NONNULL(1) std::size_t
+YF_API YB_NONNULL(1) size_t
 GetRootNameLength(const char*);
 
 } // namespace platform;

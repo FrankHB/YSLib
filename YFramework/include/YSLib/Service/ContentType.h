@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ContentType.h
 \ingroup Service
 \brief 内容类型接口。
-\version r101
+\version r103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-10 06:03:37 +0800
 \par 修改时间:
-	2014-08-30 08:05 +0800
+	2015-04-24 03:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_ValueNode
 #include <ystdex/path.hpp>
-#include YFM_YSLib_Adaptor_YContainer
 
 namespace YSLib
 {

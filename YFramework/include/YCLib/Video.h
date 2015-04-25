@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1221
+\version r1224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-04-10 01:33 +0800
+	2015-04-24 05:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ struct XYZATrait
 	using RType = typename ystdex::make_width_int<ZBitsN>::unsigned_least_type;
 	using IntegerType
 		= typename ystdex::make_width_int<BitsN>::unsigned_least_type;
-	using ArrayType = ystdex::byte[BytesN];
+	using ArrayType = byte[BytesN];
 
 	static_assert(BitsN <= 64, "Width larger than 64 unimplemented");
 };
@@ -285,8 +285,8 @@ union YB_ATTR(packed) YB_ATTR(
 
 //! \since build 417
 //@{
-using MonoType = ystdex::octet;
-using AlphaType = ystdex::octet;
+using MonoType = octet;
+using AlphaType = octet;
 //@}
 
 #if YCL_DS

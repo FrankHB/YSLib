@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1237
+\version r1238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2015-04-06 03:41 +0800
+	2015-04-24 05:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1148,7 +1148,7 @@ MapKeyChar(KeyIndex code) ynothrow
 char
 MapKeyChar(const KeyInput& keys, KeyIndex code) ynothrow
 {
-	ystdex::byte state[256];
+	byte state[256];
 	unsigned short s;
 
 	// NOTE: See implementation of %UpdateKeyStates.

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief 控制台。
-\version r243
+\version r248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-04-23 01:18 +0800
+	2015-04-25 16:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,8 +62,8 @@ WConsole::GetScreenBufferInfo() const
 {
 	::CONSOLE_SCREEN_BUFFER_INFO info;
 
-	if(!::GetConsoleScreenBufferInfo(h_std, &info))
-		YCL_Raise_Win32Exception("GetConsoleScreenBufferInfo");
+	YCL_CallWin32(GetConsoleScreenBufferInfo,
+		"WConsole::GetScreenBufferInfo", h_std, &info);
 	return info;
 }
 
@@ -115,7 +115,7 @@ WConsole::CursorUp(size_t num_rows)
 	}
 }
 
-std::array<std::uint8_t, 2>
+array<std::uint8_t, 2>
 WConsole::DecomposeAttributes(::WORD value)
 {
 	return {{std::uint8_t(value & 15), std::uint8_t((value >> 4) & 15)}};
@@ -170,10 +170,10 @@ WConsole::UpdateForeColor(std::uint8_t fc)
 	Update();
 }
 
-std::unique_ptr<WConsole>
+unique_ptr<WConsole>
 MakeWConsole(unsigned long h)
 {
-	std::unique_ptr<WConsole> p_con;
+	unique_ptr<WConsole> p_con;
 
 	TryExpr(p_con.reset(new WConsole(h)))
 	CatchIgnore(Win32Exception&)

@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r229
+\version r231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2015-03-22 15:54 +0800
+	2015-04-24 05:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ MappedFile::MappedFile(const char* path)
 	}())
 {
 #if YCL_DS
-	addr = new ystdex::byte[size];
+	addr = new byte[size];
 
 	::read(fd, addr, size);
 #else
@@ -76,7 +76,7 @@ MappedFile::MappedFile(const char* path)
 	if(p == MAP_FAILED)
 		throw std::runtime_error("Mapping failed.");
 	// TODO: Create specific exception type.
-	addr = static_cast<ystdex::byte*>(p);
+	addr = static_cast<byte*>(p);
 #endif
 }
 MappedFile::~MappedFile()

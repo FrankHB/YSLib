@@ -11,13 +11,13 @@
 /*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r838
+\version r840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2015-03-28 23:01 +0800
+	2015-04-24 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -427,9 +427,6 @@ template<typename _tRange>
 inline void
 AddHandlers(HandlerTable& table, std::type_index idx, _tRange&& c)
 {
-	using std::begin;
-	using std::end;
-
 	// XXX: Consider std::make_move_iterator.
 	Styles::AddHandlers(table, idx, begin(yforward(c)), end(yforward(c)));
 }

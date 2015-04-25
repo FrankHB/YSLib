@@ -11,7 +11,7 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2780
+\version r2781
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
@@ -689,7 +689,8 @@ BuildContext::Build()
 				//	and the next operations might be still meaningful, it is
 				//	not intended to throw an exception.
 				if(uremove(target.c_str()) != 0)
-					PrintInfo(u8"Deleted file '" + target + u8"'.", Warning);
+					PrintInfo(u8"Failed deleting file '" + target + u8"'.",
+						Warning);
 				PrintInfo(u8"Deleted file '" + target + u8"'.", Debug);
 			}
 			CallWithException(str, 1);
