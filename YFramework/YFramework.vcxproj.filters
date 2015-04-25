@@ -208,16 +208,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\YSLib\Adaptor\config.h">
-      <Filter>include\YSLib\Adaptor</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\YAdaptor.h">
       <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\YNew.h">
-      <Filter>include\YSLib\Adaptor</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\YReference.hpp">
       <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\YApplication.h">
@@ -230,9 +224,6 @@
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\YObject.h">
-      <Filter>include\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ysdef.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\YShell.h">
@@ -351,9 +342,6 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\YWidgetView.h">
       <Filter>include\YSLib\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\ycont.h">
-      <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\YFocus.h">
       <Filter>include\YSLib\UI</Filter>
@@ -894,6 +882,18 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\YGraphics.h">
       <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\Container.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Adaptor\Configuration.h">
+      <Filter>include\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YShellDefinition.h">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\Reference.h">
+      <Filter>include\YCLib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

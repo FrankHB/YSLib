@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r647
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-12-28 23:48 +0800
+	2015-04-24 05:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace platform
 \brief 按键索引类型：标识特定的按键在按键集合中的位置。
 \since build 490
 */
-using KeyIndex = std::size_t;
+using KeyIndex = size_t;
 
 /*!
 \brief 按键并行位宽。

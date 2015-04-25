@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2404
+\version r2413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-03-21 14:53 +0800
+	2015-04-24 04:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -388,7 +388,7 @@ Traverse(HDirectory& dir, _func f)
 	PathNorm nm;
 
 	std::for_each(FileIterator(&dir), FileIterator(),
-		[&, f](const std::string& name){
+		[&, f](const string& name){
 		YAssert(!name.empty(), "Empty name found.");
 		if(!nm.is_self(name))
 			f(dir.GetNodeCategory(), name, nm);
@@ -402,9 +402,10 @@ Traverse(const char* path, _func f)
 
 	IO::Traverse(dir, f);
 }
+//! \since build 593
 template<typename _func>
 inline void
-Traverse(const std::string& path, _func f)
+Traverse(const string& path, _func f)
 {
 	IO::Traverse(path.c_str(), f);
 }
@@ -412,15 +413,16 @@ template<typename _func>
 inline void
 Traverse(const Path& pth, _func f)
 {
-	IO::Traverse(std::string(pth), f);
+	IO::Traverse(string(pth), f);
 }
 
+//! \since build 593
 template<typename _func>
 void
-TraverseChildren(const std::string& path, _func f)
+TraverseChildren(const string& path, _func f)
 {
 	IO::Traverse(path,
-		[f](NodeCategory c, const std::string& name, PathNorm& nm){
+		[f](NodeCategory c, const string& name, PathNorm& nm){
 		if(!nm.is_parent(name))
 			f(c, name);
 	});
@@ -431,7 +433,8 @@ TraverseChildren(const std::string& path, _func f)
 //@{
 YF_API void
 DeleteTree(const Path&);
-inline PDefH(void, DeleteTree, const std::string& pth)
+//! \since build 593
+inline PDefH(void, DeleteTree, const string& pth)
 	ImplRet(IO::DeleteTree(Path(pth)))
 //@}
 

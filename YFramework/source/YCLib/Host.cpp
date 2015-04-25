@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r288
+\version r305
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-04-23 01:19 +0800
+	2015-04-25 16:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,8 +69,8 @@ HandleDelete::operator()(pointer h) const ynothrow
 #endif
 
 
-std::string
-FetchCommandOutput(const std::string& cmd, std::size_t buf_size)
+string
+FetchCommandOutput(const string& cmd, size_t buf_size)
 {
 	if(YB_UNLIKELY(buf_size == 0))
 		throw std::invalid_argument("Zero buffer size found.");
@@ -82,7 +82,7 @@ FetchCommandOutput(const std::string& cmd, std::size_t buf_size)
 
 		// TODO: Improve performance.
 		const auto p_buf(make_unique<char[]>(buf_size));
-		std::string res;
+		string res;
 
 		for(size_t n; (n = std::fread(&p_buf[0], 1, buf_size, fp.get())) != 0; )
 			res.append(&p_buf[0], n);
@@ -105,8 +105,8 @@ LockCommandCache()
 		std::move(lck)};
 }
 
-const std::string&
-FetchCachedCommandResult(const std::string& cmd, std::size_t buf_size)
+const string&
+FetchCachedCommandResult(const string& cmd, size_t buf_size)
 {
 	auto p_locked(LockCommandCache());
 	auto& cache(Deref(p_locked));
@@ -115,29 +115,27 @@ FetchCachedCommandResult(const std::string& cmd, std::size_t buf_size)
 		const auto i_entry(cache.find(cmd));
 
 		return (i_entry != cache.cend() ? i_entry : (cache.emplace(cmd,
-			YB_UNLIKELY(cmd.empty()) ? std::string()
+			YB_UNLIKELY(cmd.empty()) ? string()
 			: FetchCommandOutput(cmd, buf_size))).first)->second;
 	}
 	CatchExpr(FileOperationFailure& e,
 		YTraceDe(Err, "Command execution failed: %s.", e.what()))
-	return cache[std::string()];
+	return cache[string()];
 }
 
 
-std::pair<UniqueHandle, UniqueHandle>
+pair<UniqueHandle, UniqueHandle>
 MakePipe()
 {
 #	if YCL_Win32
 	::HANDLE h_raw_read, h_raw_write;
 
-	if(!::CreatePipe(&h_raw_read, &h_raw_write, {}, 0))
-		YCL_Raise_Win32Exception("CreatePipe");
+	YCL_CallWin32(CreatePipe, "MakePipe", &h_raw_read, &h_raw_write, {}, 0);
 
 	UniqueHandle h_read(h_raw_read), h_write(h_raw_write);
 
-	if(!::SetHandleInformation(h_write.get(), HANDLE_FLAG_INHERIT,
-		HANDLE_FLAG_INHERIT))
-		YCL_Raise_Win32Exception("SetHandleInformation");
+	YCL_CallWin32(SetHandleInformation, "MakePipe", h_write.get(),
+		HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
 	return {std::move(h_read), std::move(h_write)};
 #	elif YCL_API_Has_unistd_h
 	int fds[2];
@@ -159,13 +157,13 @@ MakePipe()
 
 
 #	if YCL_Win32
-std::string
+string
 DecodeArg(const char* str)
 {
 	return MBCSToMBCS(str, CP_ACP, CP_UTF8);
 }
 
-std::string
+string
 EncodeArg(const char* str)
 {
 	return MBCSToMBCS(str);
@@ -212,7 +210,7 @@ public:
 private:
 	//! \since build 567
 	bool
-	ExecuteCommand(const std::string&) const;
+	ExecuteCommand(const string&) const;
 
 public:
 	PDefH(bool, RestoreAttributes, ) ynothrow
@@ -225,7 +223,7 @@ public:
 };
 
 bool
-TerminalData::ExecuteCommand(const std::string& cmd) const
+TerminalData::ExecuteCommand(const string& cmd) const
 {
 	const auto& str(FetchCachedCommandString(cmd));
 

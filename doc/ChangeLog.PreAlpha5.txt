@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r13062
+\version r13264
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-04-23 01:36 +0800
+	2015-04-25 18:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,209 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %String $=
+		(
+			* "forwarding failure"
+				@ "function templates %(erase_left, erase_right)" $since b592
+				$= (/ DLD ^ "implemented" ^ 'static_cast<_tString&&>'
+					~ 'yforward')
+				// Because the 'erase_*' methods are currently whithou '&&' \
+					qualifier overloadings.
+			* "forwarding failure" @ "function templates %trim" $since b592
+				$= (/ DLD $re_ex(b592) "implemented intermediate calls"
+					^ 'yforward'),
+				// This is slightly different. The called functions are in \
+					'namespace ystdex' with forwarding refernce overloadings.
+			* "ill-formed 'npos' for reference type"
+				@ "function templates %(erase_left, erase_right)" $since b592
+				$= (/ DLD "implemented" ^ 'decay_t<_tString>::npos'
+					~ '_tString::npos')
+		),
+		+ "function template %ntctscpy" @ %CString,
+		/ %Cast $=
+		(
+			- $revert(b297) "function template %union_cast",
+				// Similar to removal of %initializer_cast @ b555. Note at \
+					least currently (as per WG21/N4296) access value of \
+					inactive non-static member is still undefined behavior in \
+					C++, which is different than ISO C99. Use \
+					'reinterpret_cast' instead if type punning is really needed.
+			+ "function template %as_const"
+		)
+	),
+	/ %Tools $=
+	(
+		* "wrong message for deleting '.a' file failure" @ %SHBuild.Main $since
+			b591,
+		* $build $comp "failed to build" @ %RevisionPatcher.Main $since b492
+			$dep_from ("%trim" @ %YBase.YStandardEx.String)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ "threw %BadImageAlloc" ~ "%std::bad_alloc" @ "allocation failure"
+				@ "constructors %HMultiBitmap" @ %Adaptor.Image,
+			/ $dev $design "explicit qualified 'Drawing::' to prevent ADL on \
+				string class" @ "function templates %(FetchStringOffsets, \
+				FetchStringWidth)" @ %Service.TextLayout,
+			/ %Adaptor$=
+			(
+				/ %YContainer -> %YCLib.Container $=
+				(
+					/ "alias declarations %(ucs2string, ucs4string)"
+						>> %YTextBase;
+					/ "namespace %YSLib" -> ("inline namespace containers"
+						@ "%namespace %platform");
+					/ @ "namespace %platform::containers" $=
+					(
+						- "all Loki options",
+						+ 'using wstring = \
+							yimpl(GSStringTemplate<wchar_t>::basic_string);',
+						+ 'using ystdex::sfmt;',
+						+ 'using ystdex::vsfmt;',
+						+ 'using std::to_wstring;'
+					);
+					+ 'using namespace platform::containers;'
+						@ "namespace %platform_ex"
+				),
+				/ %YAdaptor $=
+				(
+					/ "using declarations %(ystdex::arrlen, std::to_string, \
+						ystdex::to_string)" -> "all names imported from \
+						namespace %platform" @ $dep_from %YCLib.Container,
+					(
+					/ "alias declarations %(byte, octet, ptrdiff_t, size_t, \
+						wint_t)" @ "namespace %YSLib" >> ("inline namespace \
+						%basic_types" @ "namespace %platform") %YCLib.Platform
+						$dep_to "basic types";
+					+ 'using platform::byte;',
+					+ 'using platform::octet;',
+					+ 'using platform::ptrdiff_t;',
+					+ 'using platform::size_t;',
+					+ 'using platform::wint_t;'
+					),
+					/ "all names imported to namespace %YSLib"
+						@ "namespace %platform" @ $dep_from %YCLib.Reference
+				),
+				- "all unused macros" @ %Configuration $dep_from
+					%YCLib.Container $effective @ "%(YSL_USE_COPY_ON_WRITE, \
+					YSL_USE_YASLI_VECTOR, YSL_USE_FLEX_STRING, \
+					YSL_OPT_SMALL_STRING_LENGTH, YSL_DEBUG_MSG)",
+				/ %YReference -> %YCLib.Reference $=
+				(
+					/ "using declaration %unlock_delete" -> %YAdaptor,
+					/ "all function templates, aliases template %locked_ptr"
+						>> %Core.YShellDefiniton;
+					/ "namespace %YSLib" -> ("inline namespace %references"
+						@ "namespace %platform");
+					+ 'using namespace platform::references;'
+						@ "namespace %platform_ex"
+				),
+				* $dev "duplicate definition of macro \
+					%YFM_YSLib_Adaptor_Configuration" @ %YModule $orig
+					(@ %YFramework.YModule $since b461)
+			),
+			/ DLD "implementation" @ %UI.TreeView ^ $dep_from
+				("%ystdex::as_const" @ %YBase.YStandardEx.Cast)
+				~ "%ystdex::qualify"
+		),
+		/ DLD "simplified implementation" @ "function %MBCSToUCS2"
+			@ %CHRLib.CharacterProcessing,
+		/ %YCLib $=
+		(
+			+ 'using namespace platform::basic_types;'
+				@ "namespace %platform_ex" @ %Platform $dep_from "basic types",
+			/ @ "function %u16getcwd_n" @ !"platform %Win32" @ %FileSystem $=
+			(
+				/ DLD "implemented" ^ 'std::char_traits<char16_t>::copy'
+					~ 'std::copy',
+				* "missing set terminate null character" $since b538
+			),
+			/ @ %HostedGUI $=
+			(
+				/ @ "class %ScreenBuffer" $=
+				(
+					(
+					/ "protected members %(pBuffer, hBitmap)"
+						@ "platform %Win32" -> "private members";
+					/ DLD "simplified implementation" @ ("move constructor"
+						@ "platform %Win32", "destructor")
+					),
+					/ @ "function %operator=" $=
+					(
+						* "missing 'ynothrow'" $since b445,
+						* "missing definition" @ !"platform %Win32" $since b563
+					),
+					* "missing buffer invariant constraint" @ "platform %Win32"
+						$since b445 $=
+					(
+						/ DLD "simplified constructor" @ "platform %Win32"
+							^ $dep_from "%CreateCompatibleDIBSection";
+						* $comp "missing check %::CreateDIBSection failure"
+							$orig (@ %Helper $since b299)
+					)
+				),
+				/ @ "platform %Win32" $=
+				(
+					+ "class %Clipboard"
+						// Only text supported currently.
+					+ "function %CreateCompatibleDIBSection"
+				)
+			)
+		),
+		/ %'YCLib_(MinGW32)'.MinGW32 $=
+		(
+			+ "struct %GlobalDelete"
+			+ "class %GlobalLocked",
+			/ "supported return value"
+				@ "macros %(YCL_CallWin32, YCL_CallWin32_Trace)"
+				^ "lambda expression"
+		),
+		/ $dev $design "simplified Win32 API calls" ^ $dep_from
+			("%YCL_CallWin32" @ %MinGW) ~ "%YCL_Raise_Win32Exception" $effective
+			@ (%'YCLib_(MinGW32)'.(Consoles, MinGW32), "platform %Win32"
+			@ %(Helper.Environment, YCLib.(FileSystem, Host, HostedGUI)))
+	),
+	/ DLD "all temporary of const string '[0]' operation with length required \
+		for string type with 'c_str' member" -> '.c_str()' $effective
+		@ %YFramework.(YCLib.FileSystem, YSLib.Service.TextLayout),
+	/ DLD "all temporary of const string '[0]' operation without length \
+		required for string type with 'data' member" -> '.data()' $effective
+		@ %(YBase.YStandardEx.String, YFramework.YSLib.Service.TextLayout),
+	/ "all 'std::unique_ptr'" -> 'YSLib::unique_ptr'
+	- "'std::' after inclusion of %YCLib.Container names" $dep_from
+		%YCLib.Container @ !(%YFramework.(YSLib.(Adaptor.YNew,
+		Core.(YCoreUtilities, YException))), "exception %std::string",
+		"%ystdex::to_string result for %std::thread::id"), $effective
+		@ %(YFramework.(YCLib.(Debug, Host, Input, JNI, XCB),
+		YSLib.(Adaptor.(Image, Font), Core.(YGDIBase, ValueNode),
+		Service.FileSystem, UI.(YStyle, YComponent)),
+		'YCLib_(MinGW32)'.(MinGW32, NLS), 'Helper_(Android)'.AndroidHost,
+		Helper.ShellHelper), YReader.(DSReader, ShlExplorer, ReaderSetting));
+		// In %(YCLib, YFramework.YSLib.Adaptor.Font) some types are actually \
+			changed if %string is not %std::string. For function declarations \
+			of the former case, the revision numbers are also changed.
+	- "'std::' after inclusion of %YCLib.Platform names" $dep_from
+		%YCLib.Platform @ !(%YFramework.YSLib.Adaptor.YNew) $effective
+		@ %(YFramework.(YCLib.(HostedGUI, MemoryMapping, Video, Keys,
+		FileSystem), 'YCLib_(MinGW32)'.MinGW32,
+		YSLib.(Adaptor.Image, Service.TextFile)), Main),
+	- "'std::' after inclusion of %YCLib.Platform names" $dep_from
+		%YCLib.Reference @ !(%YFramework.YSLib.Core.YObject), $effective
+		@ %YFramework.('Helper_(Android)'.AndroidHost, YCLib.(XCB, FileSystem,
+		Host, HostedGUI), YSLib.Core.ValueNode, YCLib_(MinGW32)::Consoles),
+		// Also several types change.
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ %(Adaptor.("%config.h"
+		=> "%Configure.h"), Core.("%ysdef.h" => "%YShellDefinition.h"))
+		@ %YFramework.YSLib
+),
+
+b592
 (
 	/ %YFramework $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1269
+\version r1273
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-03-22 15:16 +0800
+	2015-04-23 05:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,11 +118,7 @@ MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
 	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
 		input_monomorphic_iterator&&, ConversionState&&)>(enc))
 		while(!is_null(*s))
-		{
-			ConversionState st;
-
-			ConvertCharacter(pfun, *d++, s, std::move(st));
-		}
+			ConvertCharacter(pfun, *d++, s, ConversionState());
 	*d = 0;
 	return size_t(d - p);
 }

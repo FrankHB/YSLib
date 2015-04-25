@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1668
+\version r1751
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-02-19 14:44 +0800
+	2015-04-24 06:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,26 +30,21 @@
 
 #include "YModules.h"
 
-//引入平台设置和存储调试设施。
 #include YFM_YSLib_Adaptor_YNew
-
-// 确保包含标准库必要部分。
 #include <libdefect/cmath.h>
-
-//包含 YStandardEx 公用部分。
 #include <ystdex/algorithm.hpp> // for ystdex::min, ystdex::max;
 #include <ystdex/functional.hpp>
 #include <ystdex/utility.hpp>
-#include <ystdex/string.hpp> // for std::to_string, ystdex::to_string;
-
-//包含 YCLib 公用部分。
+#include <ystdex/tuple.hpp>
 #include YFM_YCLib_YCommon
 #include YFM_YCLib_Debug
 #include YFM_YCLib_Keys
 #include YFM_YCLib_Timer
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_Video
+#include YFM_YCLib_Container
 #include YFM_YCLib_Mutex
+#include YFM_YCLib_Reference
 
 /*
 !\brief YSLib 命名空间。
@@ -57,6 +52,18 @@
 */
 namespace YSLib
 {
+
+//! \since build 593
+//@{
+using platform::byte;
+using platform::octet;
+//! \since build 209
+using ystdex::errno_t;
+using platform::ptrdiff_t;
+using platform::size_t;
+using platform::wint_t;
+//@}
+
 
 /*!
 \brief 调用分派。
@@ -102,31 +109,80 @@ using ystdex::max;
 #endif
 //}
 
-//! \brief 助手功能。
-//@{
-//! \since build 291
-using ystdex::arrlen;
-//! \since build 308
-using std::to_string;
-//! \since build 308
-using ystdex::to_string;
-//@}
 
+//! \since build 593
+//@{
+using platform::forward_as_tuple;
+using platform::get;
+using platform::ignore;
+using platform::make_pair;
+using platform::make_tuple;
+using platform::pair;
+using platform::tie;
+using platform::tuple;
+using platform::tuple_cat;
+
+//! \since build 546
+using platform::begin;
+//! \since build 546
+using platform::end;
+
+using platform::array;
+using platform::deque;
+using platform::forward_list;
+using platform::list;
+using platform::vector;
+
+using platform::map;
+using platform::multimap;
+using platform::multiset;
+using platform::set;
+
+using platform::unordered_map;
+using platform::unordered_multimap;
+using platform::unordered_multiset;
+using platform::unordered_set;
+
+using platform::stack;
+using platform::priority_queue;
+using platform::queue;
+
+using platform::GSStringTemplate;
+
+using platform::string;
+using platform::wstring;
+using platform::sfmt;
+using platform::vsfmt;
+
+using platform::arrlen;
+using platform::to_string;
+using platform::to_wstring;
+
+using platform::bad_weak_ptr;
+using platform::const_pointer_cast;
+using platform::dynamic_pointer_cast;
+using platform::enable_shared_from_this;
+using platform::get_deleter;
+using platform::make_shared;
+using platform::make_shared;
+using platform::make_unique;
+using platform::get_raw;
+using platform::owner_less;
+using platform::reset;
+using platform::share_raw;
+using platform::shared_ptr;
+using platform::static_pointer_cast;
+using platform::unique_raw;
+using platform::unique_ptr;
+using platform::weak_ptr;
+
+using platform::lref;
 
 /*!
-\brief 平台通用数据类型。
-\since build 209
+\brief 解锁删除器：使用线程模型对应的互斥量和锁。
+\since build 590
 */
-//@{
-//! \since build 417
-using ystdex::byte;
-//! \since build 417
-using ystdex::octet;
-using ystdex::errno_t;
-using ystdex::ptrdiff_t;
-using ystdex::size_t;
-//! \since build 245
-using ystdex::wint_t;
+using platform::Threading::unlock_delete;
 //@}
 
 

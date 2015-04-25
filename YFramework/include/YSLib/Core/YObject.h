@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3902
+\version r3903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-04-10 01:30 +0800
+	2015-04-24 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities
-#include YFM_YSLib_Adaptor_YContainer
 #include <ystdex/any.h> // for ystdex::any_ops::holder, ystdex::any;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 

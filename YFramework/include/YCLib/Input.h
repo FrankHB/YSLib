@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r494
+\version r500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2014-08-29 16:36 +0800
+	2015-04-24 04:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YCLib_Keys
 #include YFM_YCLib_Video // for SPos;
+#include YFM_YCLib_Container
 
 namespace platform
 {
@@ -148,9 +149,9 @@ inline PDefH(platform::KeyInput, FetchKeyUpState, )
 #if YCL_DS
 /*!
 \brief 取当前指针设备光标位置。
-\since build 481
+\since build 593
 */
-YF_API std::pair<std::int16_t, std::int16_t>
+YF_API pair<std::int16_t, std::int16_t>
 FetchCursor();
 
 
@@ -193,9 +194,9 @@ WaitForABXY();
 #elif YCL_Android
 /*!
 \brief 取当前指针设备光标位置。
-\since build 493
+\since build 593
 */
-YF_API std::pair<float, float>
+YF_API pair<float, float>
 FetchCursor();
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1552
+\version r1555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-04-18 20:07 +0800
+	2015-04-24 06:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -355,9 +355,6 @@ template<typename _tRange>
 inline const ValueNode&
 at(const ValueNode& node, const _tRange& c)
 {
-	using std::begin;
-	using std::end;
-
 	return YSLib::at(node, begin(c), end(c));
 }
 //@}
@@ -491,7 +488,7 @@ template<typename... _tParams>
 inline unique_ptr<ValueNode::Container>
 CollectNodes(_tParams&&... args)
 {
-	return std::unique_ptr<ValueNode::Container>(new
+	return unique_ptr<ValueNode::Container>(new
 		ValueNode::Container{yforward(args)...});
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r758
+\version r786
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-12-27 05:55 +0800
+	2015-04-23 07:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,13 +76,13 @@
 */
 /*!	\defgroup PlatformAPIs Platform APIs
 \brief 平台 API 支持。
-\note 若未另行说明，仅当定义为非零整数值表示有效。
+\note 若未另行约定，仅当定义为非零整数值表示有效。
 \since build 553
 */
 /*!	\defgroup PlatformOptionalFeatures Platform Optional Features
 \brief 平台可选特性支持。
 \note 仅当未被定义时 YCLib 提供定义。
-\note 若未另行说明，仅当定义为非零整数值表示有效。
+\note 若未另行约定，仅当定义为非零整数值表示有效。
 \since build 552
 */
 
@@ -375,6 +375,39 @@
 #else
 #	define YF_Multithread 0
 #endif
+
+namespace platform
+{
+
+//! \since build 593
+inline namespace basic_types
+{
+
+/*!
+\brief 平台通用数据类型。
+\since build 209
+*/
+//@{
+//! \since build 417
+using ystdex::byte;
+//! \since build 417
+using ystdex::octet;
+using ystdex::ptrdiff_t;
+using ystdex::size_t;
+//! \since build 245
+using ystdex::wint_t;
+//@}
+
+} // inline namespace basic_types;
+
+} // namespace platform;
+
+namespace platform_ex
+{
+
+using namespace platform::basic_types;
+
+} // namespace platform_ex;
 
 #endif
 

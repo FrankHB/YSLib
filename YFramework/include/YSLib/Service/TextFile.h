@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r802
+\version r805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-03-24 18:48 +0800
+	2015-04-24 05:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,7 @@
 #define YSL_INC_Service_TextFile_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_File
-#include YFM_YSLib_Adaptor_YContainer // for string;
+#include YFM_YSLib_Service_File // for string, File;
 
 namespace YSLib
 {
@@ -109,7 +108,7 @@ public:
 	\since build 586
 	*/
 	void
-	Locate(std::size_t) const;
+	Locate(size_t) const;
 
 	/*!
 	\brief 设置文件读位置为文本区段头。

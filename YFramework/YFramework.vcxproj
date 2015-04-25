@@ -153,6 +153,7 @@
     <ClInclude Include="include\NPL\SContext.h" />
     <ClInclude Include="include\NPL\YModules.h" />
     <ClInclude Include="include\YBaseMacro.h" />
+    <ClInclude Include="include\YCLib\Container.h" />
     <ClInclude Include="include\YCLib\Debug.h" />
     <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Host.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="include\YCLib\NativeAPI.h" />
     <ClInclude Include="include\YCLib\Platform.h" />
     <ClInclude Include="include\YCLib\POSIXThread.h" />
+    <ClInclude Include="include\YCLib\Reference.h" />
     <ClInclude Include="include\YCLib\Timer.h" />
     <ClInclude Include="include\YCLib\Video.h" />
     <ClInclude Include="include\YCLib\XCB.h" />
@@ -172,14 +174,12 @@
     <ClInclude Include="include\YCLib\YModules.h" />
     <ClInclude Include="include\YModules.h" />
     <ClInclude Include="include\ysbuild.h" />
-    <ClInclude Include="include\YSLib\Adaptor\config.h" />
+    <ClInclude Include="include\YSLib\Adaptor\Configuration.h" />
     <ClInclude Include="include\YSLib\Adaptor\Image.h" />
     <ClInclude Include="include\YSLib\Adaptor\YAdaptor.h" />
-    <ClInclude Include="include\YSLib\Adaptor\ycont.h" />
     <ClInclude Include="include\YSLib\Adaptor\Font.h" />
     <ClInclude Include="include\YSLib\Adaptor\YModules.h" />
     <ClInclude Include="include\YSLib\Adaptor\YNew.h" />
-    <ClInclude Include="include\YSLib\Adaptor\YReference.hpp" />
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
     <ClInclude Include="include\YSLib\Core\Task.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
@@ -196,10 +196,10 @@
     <ClInclude Include="include\YSLib\Core\YGraphics.h" />
     <ClInclude Include="include\YSLib\Core\YModules.h" />
     <ClInclude Include="include\YSLib\Core\YObject.h" />
-    <ClInclude Include="include\YSLib\Core\ysdef.h" />
     <ClInclude Include="include\YSLib\Core\YShell.h" />
     <ClInclude Include="include\YSLib\Core\YMessage.h" />
     <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
+    <ClInclude Include="include\YSLib\Core\YShellDefinition.h" />
     <ClInclude Include="include\YSLib\Core\YStorage.hpp" />
     <ClInclude Include="include\YSLib\Core\ystring.h" />
     <ClInclude Include="include\YSLib\Service\AccessHistory.hpp" />

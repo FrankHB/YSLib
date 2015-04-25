@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r217
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-12-31 11:41 +0800
+	2015-04-24 06:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,12 +30,12 @@
 #define INC_Android_Helper_AndroidHost_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_Environment // for Devices::AndroidScreen;
+#include YFM_Helper_Environment // for unique_ptr, std::atomic,
+//	Devices::AndroidScreen;
 #if YCL_Android
 #	include <thread>
 #	include <android/native_activity.h>
 #	include <android/configuration.h>
-#	include YFM_YSLib_Adaptor_YReference // for unique_ptr;
 #	include YFM_YCLib_JNI
 #	include YFM_YCLib_Host
 #else
@@ -94,7 +94,8 @@ private:
 	//! \since build 553
 	//@{
 	mutex msg_mutex{};
-	std::pair<UniqueHandle, UniqueHandle> msg_pipe;
+	//! \since build 593
+	pair<UniqueHandle, UniqueHandle> msg_pipe;
 	std::function<void()> msg_task{};
 	//@}
 	/*!
@@ -134,7 +135,7 @@ public:
 	{
 		// TODO: Wait for 'std::is_trivially_copyable' to be implemented.
 	//	static_assert(std::is_trivially_copyable<ystdex::remove_reference_t<
-	//		_type>>::value, "Invalid state type found.");
+	//		_type>>(), "Invalid state type found.");
 		lock_guard<mutex> lck(state_mutex);
 
 		fSaveState = [&](void*& p_saved_state, size_t& saved_size){
@@ -166,7 +167,7 @@ public:
 	{
 		// TODO: Wait for 'std::is_trivially_copyable' to be implemented.
 	//	static_assert(std::is_trivially_copyable<ystdex::remove_reference_t<
-	//		_type>>::value, "Invalid state type found.");
+	//		_type>>(), "Invalid state type found.");
 
 		RestoreSavedState(reinterpret_cast<byte*>(&state));
 	}

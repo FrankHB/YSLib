@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1181
+\version r1268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-04-21 01:12 +0800
+	2015-04-25 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,12 @@
 #define YCL_INC_HostedGUI_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host
+#include YFM_YCLib_Host // for string, map;
 #include <ystdex/utility.hpp> // for ystdex::nptr;
-#include YFM_YSLib_Core_YGraphics
-#include YFM_YSLib_Core_YEvent
-#include <atomic>
+#include YFM_YSLib_Core_YEvent // for YSLib::GEvent;
+#include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
+//	YSLib::Drawing::Point, YSLib::Drawing::Size;
+#include YFM_YSLib_Core_YString // for YSLib::String;
 #if YCL_HostedUI_XCB
 #	include YFM_YCLib_XCB
 #elif YCL_Win32 || YCL_Android
@@ -131,7 +132,7 @@ using MessageHandler = void(::WPARAM, ::LPARAM, ::LRESULT&);
 \brief 窗口消息转发事件映射。
 \since build 514
 */
-using MessageMap = std::map<MessageID, YSLib::GEvent<MessageHandler>>;
+using MessageMap = map<MessageID, YSLib::GEvent<MessageHandler>>;
 #	endif
 
 #	if YCL_Win32
@@ -359,6 +360,19 @@ UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
 	const YSLib::Drawing::ConstGraphics&);
 #	elif YCL_Win32
 /*!
+\brief 创建指定大小的兼容位图。
+\exception 异常中立：由 YSLib::CheckScalar 抛出。
+\throw Win32Exception ::CreateDIBSection 调用失败。
+\return 非空句柄。
+\since build 593
+
+调用 ::CreateDIBSection 创建 32 位位图，使用兼容缓冲区指针填充第二参数。
+*/
+YF_API ::HBITMAP
+CreateCompatibleDIBSection(const YSLib::Drawing::Size&,
+	YSLib::Drawing::BitmapPtr&);
+
+/*!
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶级窗口。
 \note 最后的默认参数分别为 \c WS_POPUP 和 \c WS_EX_LTRREADING 。
 \exception 异常中立：由 CheckScalar 抛出。
@@ -396,9 +410,9 @@ private:
 #	if YCL_HostedUI_XCB || YCL_Android
 	/*!
 	\invariant bool(p_impl) 。
-	\since build 498
+	\since build 593
 	*/
-	std::unique_ptr<ScreenBufferData> p_impl;
+	unique_ptr<ScreenBufferData> p_impl;
 	/*!
 	\brief 宽：以像素数计量的缓冲区的实际宽度。
 	\since build 498
@@ -407,10 +421,13 @@ private:
 #	elif YCL_Win32
 	//! \since build 386
 	YSLib::Drawing::Size size;
-
-protected:
-	YSLib::Drawing::BitmapPtr pBuffer;
-	::HBITMAP hBitmap;
+	//! \since build 593
+	YSLib::Drawing::BitmapPtr p_buffer;
+	/*!
+	\invariant bool(p_bitmap;) 。
+	\since build 593
+	*/
+	unique_ptr<void, GDIObjectDelete> p_bitmap;
 #	endif
 
 public:
@@ -428,9 +445,9 @@ public:
 	ScreenBuffer(ScreenBuffer&&) ynothrow;
 	~ScreenBuffer();
 
-	//! \since build 445
+	//! \since build 593
 	ScreenBuffer&
-	operator=(ScreenBuffer&&);
+	operator=(ScreenBuffer&&) ynothrow;
 
 #	if YCL_HostedUI_XCB || YCL_Android
 	//! \since build 492
@@ -448,8 +465,9 @@ public:
 #	elif YCL_Win32
 	//! \since build 386
 	//@{
-	DefGetter(const ynothrow, YSLib::Drawing::BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const ynothrow, ::HBITMAP, NativeHandle, hBitmap)
+	DefGetter(const ynothrow, YSLib::Drawing::BitmapPtr, BufferPtr, p_buffer)
+	DefGetter(const ynothrow, ::HBITMAP, NativeHandle,
+		::HBITMAP(p_bitmap.get()))
 	DefGetter(const ynothrow, const YSLib::Drawing::Size&, Size, size)
 
 	/*!
@@ -465,7 +483,7 @@ public:
 
 	/*!
 	\brief 重新设置大小。
-	\note 当大小一致时无操作，否则重新分配，可导致 pBuffer 和 hBitmap 值改变。
+	\note 当大小一致时无操作，否则重新分配，可导致本机句柄和缓冲区指针的改变。
 	\since build 445
 	*/
 	void
@@ -646,7 +664,7 @@ private:
 	\note 保持和 \c ::PAINTSTRUCT 二进制兼容。
 	\since build 564
 	*/
-	ystdex::byte ps[64];
+	byte ps[64];
 
 protected:
 	WindowRegionDeviceContext(NativeWindowHandle);
@@ -686,8 +704,8 @@ public:
 class YF_API WindowClass final : private YSLib::noncopyable
 {
 private:
-	//! \since build 565
-	std::wstring name;
+	//! \since build 593
+	wstring name;
 	//! \since build 565
 	unsigned short atom;
 	::HINSTANCE h_instance;
@@ -715,8 +733,9 @@ public:
 	\pre 实例句柄和注册时使用的值相等。
 	\throw std::invalid_argument 原子值等于 \c 0 。
 	\note 使用指定名称和原子并取得窗口类的所有权。名称不影响原子。
+	\since build 593
 	*/
-	WindowClass(const std::wstring&, unsigned short, ::HINSTANCE);
+	WindowClass(const wstring&, unsigned short, ::HINSTANCE);
 	//@}
 	~WindowClass();
 
@@ -724,8 +743,9 @@ public:
 	//@{
 	DefGetter(const ynothrow, unsigned short, Atom, atom)
 	DefGetter(const ynothrow, ::HINSTANCE, InstanceHandle, h_instance)
-	DefGetter(const ynothrow, const std::wstring&, Name, name)
 	//@}
+	//! \since build 593
+	DefGetter(const ynothrow, const wstring&, Name, name)
 };
 
 
@@ -871,6 +891,64 @@ public:
 
 
 #	if YCL_Win32
+/*!
+\brief 打开的剪贴板实例。
+\since build 593
+\todo 非 Win32 宿主平台实现。
+*/
+class YF_API Clipboard : private YSLib::noncopyable, private YSLib::nonmovable
+{
+public:
+	//! \brief 格式标识类型。
+	using FormatType = unsigned;
+
+	Clipboard(NativeWindowHandle);
+	~Clipboard();
+
+	/*!
+	\brief 判断指定格式是否可用。
+	\note Win32 平台：不可用时可能会改变 ::GetLastError() 的结果。
+	*/
+	static bool
+	IsAvailable(FormatType) ynothrow;
+
+	/*!
+	\brief 检查指定格式是否可用，若成功则无效果。
+	\throw Win32Exception 值不可用。
+	\sa IsAvailable
+	*/
+	static void
+	CheckAvailable(FormatType);
+
+	//! \brief 清除剪贴板内容。
+	void
+	Clear() ynothrow;
+
+	//! \brief 返回当前打开剪贴板并关联的窗口句柄。
+	static NativeWindowHandle
+	GetOpenWindow() ynothrow;
+
+	bool
+	Receive(YSLib::string&);
+	bool
+	Receive(YSLib::String&);
+
+private:
+	bool
+	ReceiveRaw(FormatType, std::function<void(const void*)>);
+
+public:
+	void
+	Send(const YSLib::string&);
+	void
+	Send(const YSLib::String&);
+
+private:
+	void
+	SendRaw(FormatType, void*);
+};
+
+
 /*!
 \brief 执行 Shell 命令。
 \pre 间接断言：第一参数非空。

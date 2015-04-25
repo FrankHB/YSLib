@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2863
+\version r2875
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-04-11 02:44 +0800
+	2015-04-24 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -165,11 +165,10 @@ YSLib 的可重入性和线程安全性参见 @2 、 @2.2 、 @3 、 @4 和 @5 �
 除非另行约定，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体([Documentation::YFramework @@2.1.5]) 。
 
 @2.1 外部库关联 YAdaptor ：
-默认行为如下：
-包含 "ynew.h" ，引入平台设置和存储调试设施(@2.2) 。
+默认实现如下：
+包含 YNew ，引入平台设置和存储调试设施(@2.2) 。
 包含 YBase 依赖项(@7) <ystdex/functional.hpp> 和 <ystdex/utility.hpp> 。
-包含 YCLib 的 YFM_YCLib_YCommon 、 YFM_YCLib_FileSystem 和 YFM_YCLib_Video 。
-包含 CHRLib [Documentation::CHRLib] 的 YFM_CHRLib_CHRDefinition 。
+包含 YCLib 的 YCommon 、 FileSystem 和 Video 。
 在 YSLib 命名空间 using 引用必要的名称。
 
 @2.2 内存调试设施 YNew ：
@@ -181,13 +180,20 @@ MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定�
 YNew 的接口不保证可重入性，暂时不支持线程安全性。
 
 @2.3 引用对象 YReference ：
-在 "yref.hpp" 中声明智能指针等引用对象类型。
-可以包装 Loki 或 std::tr1 指针智能等实现。
+在 YReference 中声明智能指针等引用对象类型。
+可包装 Loki 或 std::tr1 指针智能等实现。
 YSLib 早期包装 Loki 指针实现句柄；
 build 208 起包装 ISO C++11 标准库智能指针实现；
 build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
 
-@2.4 平台无关的字体缓存库 Font ：
+@2.4 YContainer
+包含标准库容器相关的头，并在 YSLib 命名空间 using 引用对应名称。
+包含 CHRLib([Documentation::CHRLib]) 的 CHRDefinition 。
+
+@2.5 YTextBase
+包含 CHRLib([Documentation::CHRLib]) 的 CharacterProcessing 。
+
+@2.6 平台无关的字体缓存库 Font ：
 基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
 
 @3 核心构件系统：

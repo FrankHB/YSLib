@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r586
+\version r588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2013-08-05 22:02 +0800
+	2015-04-24 04:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,8 +80,6 @@ FetchSetting<Color>(const ValueNode::Container& con, const string& name)
 ValueNode
 ColorToNode(const string& name, const Color& value)
 {
-	using ystdex::to_string;
-
 	return YSLib::MakeNode(name, to_string(value.GetR()) + ' '
 		+ to_string(value.GetG()) + ' ' + to_string(value.GetB()));
 }

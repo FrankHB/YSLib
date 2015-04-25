@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1702
+\version r1735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-04-10 00:07 +0800
+	2015-04-23 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_cstring_h_
 #define YB_INC_ystdex_cstring_h_ 1
 
-#include "type_op.hpp" // for ystdex::integral_constants;
+#include "type_op.hpp" // for or_, is_same;
 #include <cstring>
 #include <string> // for std::char_traits;
 #include <cctype>
@@ -99,14 +99,6 @@ is_null(_tChar c)
 }
 
 
-/*!	\defgroup NTCTSUtil null-terminated character string utilities
-\brief 简单 NTCTS 操作。
-\note NTCTS(null-terminated character string) 即空字符标记结束的字符串，
-	除了结束字符外没有空字符。
-\note 简单指不包括 NTMBS(null-terminated mutibyte string) ，按等宽字符考虑。
-\see ISO C++03 (17.1.12, 17.3.2.1.3.2) 。
-*/
-
 //! \since build 544
 namespace details
 {
@@ -130,8 +122,16 @@ ntctslen_raw(const _tChar* s, std::false_type)
 
 } // namespace details;
 
+
+/*!	\defgroup NTCTSUtil null-terminated character string utilities
+\brief 简单 NTCTS 操作。
+\note NTCTS(null-terminated character string) 即空字符标记结束的字符串，
+	除了结束字符外没有空字符。
+\note 简单指不包括 NTMBS(null-terminated mutibyte string) ，按等宽字符考虑。
+\see ISO C++03 (17.1.12, 17.3.2.1.3.2) 。
+*/
+//@{
 /*!
-\ingroup NTCTSUtil
 \brief 计算简单 NTCTS 长度。
 \pre 断言： <tt>s</tt> 。
 \note 语义同 std::char_traits<_tChar>::length 。
@@ -148,7 +148,6 @@ ntctslen(const _tChar* s)
 }
 
 /*!
-\ingroup NTCTSUtil
 \brief 按字典序比较简单 NTCTS 。
 \pre 断言： <tt>s1 && s2</tt> 。
 \note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
@@ -169,7 +168,6 @@ ntctscmp(const _tChar* s1, const _tChar* s2)
 }
 
 /*!
-\ingroup NTCTSUtil
 \brief 按字典序比较简单 NTCTS （忽略大小写）。
 \pre 断言： <tt>s1 && s2</tt> 。
 \note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度和大小写。
@@ -189,10 +187,24 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 	return d;
 }
 
+/*!
+\brief 复制 NTCTS 。
+\pre 断言： <tt>s1 && s2</tt> 。
+\since build 329
+*/
+template<typename _tChar>
+_tChar*
+ntctscpy(_tChar* s1, const _tChar* s2, size_t n)
+{
+	yconstraint(s1),
+	yconstraint(s2);
+
+	return yunseq(std::char_traits<_tChar>::copy(s1, s2, n), s1[n] = _tChar());
+}
+
 
 /*!
 \ingroup constexpr_algorithms
-\ingroup NTCTSUtil
 \brief 计算简单 NTCTS 长度。
 \note 语义同 std::char_traits<_tChar>::length 。
 \since build 329
@@ -206,7 +218,6 @@ const_ntctslen(const _tChar* s)
 
 /*!
 \ingroup constexpr_algorithms
-\ingroup NTCTSUtil
 \brief 计算简单 NTCTS 中的指定字符数。
 \since build 329
 */
@@ -220,7 +231,6 @@ const_ntctscnt(const _tChar* s, _tChar c)
 
 /*!
 \ingroup constexpr_algorithms
-\ingroup NTCTSUtil
 \brief 比较简单 NTCTS 。
 \note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
 \since build 329
@@ -235,7 +245,6 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2)
 }
 /*!
 \ingroup constexpr_algorithms
-\ingroup NTCTSUtil
 \brief 比较限制长度上限的简单 NTCTS 。
 \note 语义同 std::basic_string<_tChar>::compare 。
 \since build 329
@@ -251,7 +260,6 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 
 /*!
 \ingroup constexpr_algorithms
-\ingroup NTCTSUtil
 \brief 在简单 NTCTS 中顺序查找指定字符。
 \return 在查找结束时经过的字符数。
 \since build 329
@@ -266,7 +274,6 @@ const_ntctschr(const _tChar* s, _tChar c)
 
 /*!
 \ingroup constexpr_algorithms
-\ingroup NTCTSUtil
 \brief 在简单 NTCTS 中顺序查找第指定次数出现的指定字符。
 \return 在查找结束时经过的字符数。
 \since build 329
@@ -282,7 +289,6 @@ const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 
 /*!
 \ingroup constexpr_algorithms
-\ingroup NTCTSUtil
 \brief 在简单 NTCTS 中顺序查找作为子串的指定 NTCTS 。
 \return 在查找结束时经过的字符数。
 \since build 329
@@ -295,6 +301,7 @@ const_ntctsstr(const _tChar* s1, const _tChar* s2)
 		ystdex::const_ntctslen(s2)) == _tChar()? 0
 		: ystdex::const_ntctsstr(s1 + 1, s2) + 1);
 }
+//@}
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1107
+\version r1116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-03-29 12:25 +0800
+	2015-04-24 05:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,12 +67,12 @@ FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 
 ::FreeImageIO u8_io{
 	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h){
-		return unsigned(std::fread(buffer, std::size_t(size),
-			std::size_t(nmemb), static_cast<std::FILE*>(h)));
+		return unsigned(std::fread(buffer, size_t(size),
+			size_t(nmemb), static_cast<std::FILE*>(h)));
 	},
 	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h){
-		return unsigned(std::fwrite(buffer, std::size_t(size),
-			std::size_t(nmemb), static_cast<std::FILE*>(h)));
+		return unsigned(std::fwrite(buffer, size_t(size),
+			size_t(nmemb), static_cast<std::FILE*>(h)));
 	},
 	[](::fi_handle h, long offset, int whence){
 		return std::fseek(static_cast<std::FILE*>(h), offset, whence);
@@ -509,9 +509,8 @@ MultiBitmapData::~MultiBitmapData()
 ::FIBITMAP*
 MultiBitmapData::LockPage(size_t index) const ynothrow
 {
-	YAssert(index < page_count, ystdex::sfmt(
-		"Invalid page index %u found, should be less than %u.",
-		unsigned(index), unsigned(page_count)).c_str());
+	YAssert(index < page_count, sfmt("Invalid page index %u found, should be"
+		" less than %u.", unsigned(index), unsigned(page_count)).c_str());
 	if(const auto load = plugin_ref.get().load_proc)
 		return load(&io_ref.get(), handle, int(index), load_flags, data);
 	return {};
@@ -528,7 +527,8 @@ MultiBitmapData*
 LoadImagePages(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags)
 {
 	if(fp)
-		return new MultiBitmapData(fmt, *fp, int(flags));
+		TryRet(new MultiBitmapData(fmt, *fp, int(flags)))
+		CatchThrow(std::bad_alloc&, BadImageAlloc())
 	throw std::invalid_argument("Invalid file found on loading image pages.");
 }
 MultiBitmapData*

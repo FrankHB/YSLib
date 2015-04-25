@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1428
+\version r1429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2015-03-25 18:22 +0800
+	2015-04-24 03:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YF_INC_NPL_Lexical_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Adaptor_YContainer
+#include YFM_YSLib_Adaptor_YAdaptor
 #include <cctype> // for std::isgraph;
 
 namespace NPL

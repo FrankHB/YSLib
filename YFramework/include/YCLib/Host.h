@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r247
+\version r276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-04-23 00:41 +0800
+	2015-04-24 06:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,10 +32,9 @@
 
 #include "YCLib/YModules.h"
 #include "YSLib/Core/YModules.h"
-#include YFM_YCLib_YCommon
+#include YFM_YCLib_Container // for unordered_map, pair;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
-#include <memory> // for std::unique_ptr;
-#include <unordered_map> // for std::unordered_map;
+#include YFM_YCLib_Reference // for unique_ptr;
 #include <system_error> // for std::system_error;
 #if !YCL_Win32
 #	include YFM_YCLib_FileSystem // for platform::file_desc;
@@ -107,7 +106,7 @@ struct YF_API HandleDelete
 #endif
 
 //! \since build 520
-using UniqueHandle = std::unique_ptr<HandleDelete::pointer, HandleDelete>;
+using UniqueHandle = unique_ptr<HandleDelete::pointer, HandleDelete>;
 
 
 //! \since build 567
@@ -121,13 +120,14 @@ yconstexpr size_t DefaultCommandBufferSize(yimpl(4096));
 \throw std::invalid_argument 第二参数的值等于 \c 0 。
 \throw std::system_error 表示读取失败的派生类异常对象。
 \note 第二参数指定每次读取的缓冲区大小，先于执行命令进行检查。
+\since build 593
 */
-YF_API std::string
-FetchCommandOutput(const std::string&, std::size_t = DefaultCommandBufferSize);
+YF_API string
+FetchCommandOutput(const string&, size_t = DefaultCommandBufferSize);
 
 
 //! \brief 命令和命令执行结果的缓冲区类型。
-using CommandCache = std::unordered_map<std::string, std::string>;
+using CommandCache = unordered_map<string, string>;
 
 /*!
 \brief 锁定命令执行缓冲区。
@@ -136,45 +136,47 @@ using CommandCache = std::unordered_map<std::string, std::string>;
 YF_API YSLib::locked_ptr<CommandCache>
 LockCommandCache();
 
+//! \since build 593
+//@{
 //! \brief 取缓冲的命令执行结果。
-YF_API const std::string&
-FetchCachedCommandResult(const std::string&,
-	std::size_t = DefaultCommandBufferSize);
+YF_API const string&
+FetchCachedCommandResult(const string&, size_t = DefaultCommandBufferSize);
 
 //! \brief 取缓冲的命令执行结果字符串。
-inline PDefH(std::string, FetchCachedCommandString, const std::string& cmd,
-	std::size_t buf_size = DefaultCommandBufferSize)
-	ImplRet(ystdex::trail(std::string(FetchCachedCommandResult(cmd, buf_size))))
+inline PDefH(string, FetchCachedCommandString, const string& cmd,
+	size_t buf_size = DefaultCommandBufferSize)
+	ImplRet(ystdex::trail(string(FetchCachedCommandResult(cmd, buf_size))))
+//@}
 //@}
 
 /*!
 \brief 创建管道。
 \throw std::system_error 表示创建失败的派生类异常对象。
-\since build 520
+\since build 593
 */
-YF_API std::pair<UniqueHandle, UniqueHandle>
+YF_API pair<UniqueHandle, UniqueHandle>
 MakePipe();
 
 
 /*!
 \brief 从外部环境编码字符串参数或解码为外部环境字符串参数。
 \pre Win32 平台可能间接断言参数非空。
-\since build 560
+\since build 593
 
 对 Win32 平台调用当前代码页的 platform::MBCSToMBCS 编解码字符串，其它直接传递参数。
-此时和 platform::MBCSToMBCS 不同，参数为 \c std::string 时长度通过 NTCTS 计算。
+此时和 platform::MBCSToMBCS 不同，参数为 \c string 时长度通过 NTCTS 计算。
 若需要使用 <tt>const char*</tt> 指针，可直接使用 <tt>&arg[0]</tt> 的形式。
 */
 //@{
 #	if YCL_Win32
-YF_API YB_NONNULL(1) std::string
+YF_API YB_NONNULL(1) string
 DecodeArg(const char*);
-inline PDefH(std::string, DecodeArg, const std::string& arg)
+inline PDefH(string, DecodeArg, const string& arg)
 	ImplRet(DecodeArg(&arg[0]))
 #	endif
 template<typename _type
 #if YCL_Win32
-	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<std::string,
+	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<string,
 		_type&&>::value>)
 #endif
 	>
@@ -185,14 +187,14 @@ DecodeArg(_type&& arg) -> decltype(yforward(arg))
 }
 
 #	if YCL_Win32
-YF_API YB_NONNULL(1) std::string
+YF_API YB_NONNULL(1) string
 EncodeArg(const char*);
-inline PDefH(std::string, EncodeArg, const std::string& arg)
+inline PDefH(string, EncodeArg, const string& arg)
 	ImplRet(EncodeArg(&arg[0]))
 #	endif
 template<typename _type
 #if YCL_Win32
-	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<std::string,
+	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<string,
 		_type&&>::value>)
 #endif
 	>
@@ -221,7 +223,8 @@ class TerminalData;
 class YF_API Terminal
 {
 private:
-	std::unique_ptr<TerminalData> p_term;
+	//! \since build 593
+	unique_ptr<TerminalData> p_term;
 
 public:
 	/*!

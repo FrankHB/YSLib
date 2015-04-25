@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r523
+\version r532
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-04-13 03:37 +0800
+	2015-04-24 04:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,16 +156,14 @@ Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 		// XXX: Provide no throw guarantee and put it out of the critical
 		//	section?
 		// XXX: Log demangled type name.
-		const auto& str(ystdex::sfmt("<%s>: %s", typeid(e).name(), msg));
-
-		DoLogRaw(lv, str);
+		DoLogRaw(lv, sfmt("<%s>: %s", typeid(e).name(), msg));
 	}
 	CatchExpr(std::exception& ex, do_log_excetpion_raw(ex.what()))
 	CatchExpr(..., do_log_excetpion_raw({}))
 }
 
 Logger::Sender
-Logger::FetchDefaultSender(const std::string& tag)
+Logger::FetchDefaultSender(const string& tag)
 {
 #if YCL_Android
 	return platform_ex::AndroidLogSender(tag);
@@ -186,7 +184,7 @@ FetchCommonLogger()
 }
 
 
-std::string
+string
 LogWithSource(const char* file, int line, const char* fmt, ...) ynothrow
 {
 	try
@@ -195,11 +193,10 @@ LogWithSource(const char* file, int line, const char* fmt, ...) ynothrow
 
 		va_start(args, fmt);
 
-		std::string str(ystdex::vsfmt(fmt, args));
+		string str(vsfmt(fmt, args));
 
 		va_end(args);
-		return
-			ystdex::sfmt("\"%s\":%i:\n", chk_null(file), line) + std::move(str);
+		return sfmt("\"%s\":%i:\n", chk_null(file), line) + std::move(str);
 	}
 	CatchExpr(...,
 		ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,
@@ -233,7 +230,7 @@ LogAssert(bool expr, const char* expr_str, const char* file, int line,
 
 			::GetModuleFileNameA({}, prog, MAX_PATH);
 
-			const auto& errstr(ystdex::sfmt("Assertion failed @ program %s: "
+			const auto& errstr(sfmt("Assertion failed @ program %s: "
 				"\"%s\":%i:\n %s .\nMessage: \n%s\n", prog, chk_null(file),
 				line, chk_null(expr_str), chk_null(msg)));
 
@@ -281,7 +278,7 @@ MapAndroidLogLevel(Descriptions::RecordLevel lv)
 }
 
 
-AndroidLogSender::AndroidLogSender(const std::string& t)
+AndroidLogSender::AndroidLogSender(const string& t)
 	: tag(t)
 {}
 AndroidLogSender::~AndroidLogSender()

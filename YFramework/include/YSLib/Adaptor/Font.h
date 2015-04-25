@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3299
+\version r3302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-03-28 22:26 +0800
+	2015-04-24 04:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,17 +65,17 @@ using FontSize = std::uint8_t;
 \brief 字体文件路径。
 \since build 277
 */
-using FontPath = std::string;
+using FontPath = string;
 /*!
 \brief 字型家族名称。
 \since build 277
 */
-using FamilyName = std::string;
+using FamilyName = string;
 /*!
 \brief 字型样式名称。
 \since build 277
 */
-using StyleName = std::string;
+using StyleName = string;
 
 
 /*!

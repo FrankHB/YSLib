@@ -21,13 +21,13 @@
 /*!	\file YModules.h
 \ingroup YCLib
 \brief YCLib 库模块配置文件。
-\version r86
+\version r90
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:20 +0800
 \par 修改时间:
-	2015-03-17 18:47 +0800
+	2015-04-24 06:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,8 +52,12 @@
 #define YFM_YCLib_Keys <YCLib/Keys.h>
 #define YFM_YCLib_Input <YCLib/Input.h>
 #define YFM_YCLib_MemoryMapping <YCLib/MemoryMapping.h>
+//! \since build 593
+#define YFM_YCLib_Container <YCLib/Container.h>
 //! \since build 551
 #define YFM_YCLib_Mutex <YCLib/Mutex.h>
+//! \since build 593
+#define YFM_YCLib_Reference <YCLib/Reference.h>
 
 //! \since build 492
 #define YFM_YCLib_Host <YCLib/Host.h>

@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2157
+\version r2159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-04-10 01:31 +0800
+	2015-04-24 04:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,7 @@
 #define YSL_INC_Core_YCoreUtilities_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
-#include YFM_YSLib_Adaptor_YContainer // for YSLib::string;
+#include YFM_YSLib_Core_YException // for std::string, string, LoggedEvent;
 
 namespace YSLib
 {

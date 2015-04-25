@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1452
+\version r1454
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-03-25 10:43 +0800
+	2015-04-24 04:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -456,8 +456,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	FetchEvent<TouchDown>(pnlSetting) += [&]{
 		struct ::mallinfo t(::mallinfo());
 
-		lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
-			t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
+		lblInfo.Text = sfmt("%d,%d,%d,%d,%d;", t.arena, t.ordblks, t.uordblks,
+			t.fordblks, t.keepcost);
 		Invalidate(lblInfo);
 	},
 #endif

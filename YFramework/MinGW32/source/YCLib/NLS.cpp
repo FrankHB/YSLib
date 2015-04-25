@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r180
+\version r182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2015-04-13 03:51 +0800
+	2015-04-24 04:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_NLS
 #	include YFM_YCLib_MemoryMapping
-#	include <map>
+#	include YFM_YCLib_Container // for map;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -131,7 +131,7 @@ NLSTableEntry::NLSTableEntry(int cp)
 
 mutex NLSCacheMutex;
 
-std::map<int, unique_ptr<NLSTableEntry>> NLSCache;
+map<int, unique_ptr<NLSTableEntry>> NLSCache;
 
 NLSTableEntry&
 FetchNLSTableEntry(int cp)

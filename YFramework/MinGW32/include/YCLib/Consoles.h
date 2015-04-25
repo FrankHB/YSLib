@@ -11,13 +11,13 @@
 /*!	\file Consoles.h
 \ingroup NBuilder
 \brief 控制台。
-\version r219
+\version r224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2015-03-21 00:27 +0800
+	2015-04-24 06:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YCLib/YModules.h"
 #include YFM_MinGW32_YCLib_MinGW32
 #include <cstdlib> // for std::system;
-#include <array> // for std::array;
+#include YFM_YCLib_Container // for array;
 #include YFM_YCLib_Video
 #include <wincon.h>
 
@@ -119,8 +119,8 @@ public:
 	void
 	CursorUp(size_t);
 
-	//! \since build 540
-	static std::array<std::uint8_t, 2>
+	//! \since build 593
+	static array<std::uint8_t, 2>
 	DecomposeAttributes(::WORD);
 
 	void
@@ -153,9 +153,9 @@ public:
 \return 指向新创建的控制台对象的指针，若失败则为空。
 \note 不抛出 Win32Exception 。
 \relates WConsole
-\since build 564
+\since build 593
 */
-YF_API std::unique_ptr<WConsole>
+YF_API unique_ptr<WConsole>
 MakeWConsole(unsigned long = STD_OUTPUT_HANDLE);
 
 } // inline namespace Windows;

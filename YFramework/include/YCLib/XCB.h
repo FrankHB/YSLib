@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r353
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2015-01-10 23:18 +0800
+	2015-04-24 06:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,8 +56,8 @@ namespace platform_ex
 namespace XCB
 {
 
-//! \since build 562
-using std::string;
+//! \since build 593
+using platform::string;
 
 //! \brief XCB 异常。
 class YF_API XCBException : public Exception
@@ -154,8 +154,8 @@ class YF_API Connection final : private ConnectionReference,
 	private YSLib::noncopyable, private YSLib::nonmovable
 {
 private:
-	//! \since build 564
-	YSLib::shared_ptr<void> p_shared;
+	//! \since build 593
+	shared_ptr<void> p_shared;
 
 public:
 	//! \throw Exception 连接失败。

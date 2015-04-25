@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2129
+\version r2143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-04-23 01:19 +0800
+	2015-04-25 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_Debug
 #include YFM_YCLib_NativeAPI
-#include <cstring> // for std::strcpy, std::strchr;
+#include YFM_YCLib_Reference // for unique_ptr;
+#include <cstring> // for std::strchr;
 #include <fcntl.h>
 #if YCL_DS
 #	include YFM_CHRLib_CharacterProcessing
@@ -104,7 +105,7 @@ template<typename _tChar>
 std::chrono::nanoseconds
 GetFileModificationTimeOfImpl(const _tChar* filename)
 {
-	if(const std::unique_ptr<int, FileDescriptorDeleter>
+	if(const unique_ptr<int, FileDescriptorDeleter>
 		fdw{platform::uopen(filename, O_RDONLY)})
 		return GetFileModificationTimeOf(*fdw.get());
 	throw FileOperationFailure(errno, std::generic_category(),
@@ -343,7 +344,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow
 }
 
 char16_t*
-u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
+u16getcwd_n(char16_t* buf, size_t size) ynothrow
 {
 	if(YB_UNLIKELY(!buf || size == 0))
 		errno = EINVAL;
@@ -364,10 +365,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 				if(size < len + 1)
 					errno = ERANGE;
 				else
-				{
-					std::copy(res.begin(), res.end(), buf);
-					return buf;
-				}
+					return ystdex::ntctscpy(buf, res.data(), len);
 			}
 			CatchExpr(std::bad_alloc&, errno = ENOMEM)
 #endif
@@ -418,7 +416,7 @@ YCL_Impl_FileSystem_ufunc(uremove, std::remove, ::_wremove)
 #undef YCL_Impl_FileSystem_ufunc
 
 bool
-truncate(std::FILE* fp, std::size_t size) ynothrow
+truncate(std::FILE* fp, size_t size) ynothrow
 {
 #if YCL_Win32
 	return ::_chsize(::_fileno(fp), long(size)) == 0;
@@ -436,8 +434,8 @@ GetFileModificationTimeOf(int fd)
 	::FILETIME file_time;
 
 	// XXX: Error handling for indirect calls.
-	if(!::GetFileTime(::HANDLE(::_get_osfhandle(fd)), {}, {}, &file_time))
-		YCL_Raise_Win32Exception("GetFileTime");
+	YCL_CallWin32(GetFileTime, "GetFileModificationTimeOf",
+		::HANDLE(::_get_osfhandle(fd)), {}, {}, &file_time);
 	TryRet(platform_ex::ConvertTime(file_time))
 	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
 		"Failed querying file modification time: ") + e.what() + "."))
@@ -601,7 +599,7 @@ HDirectory::GetNodeCategory() const ynothrow
 		name.pop_back();
 		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
 		if(::_wstat((name
-			+ Deref(static_cast<std::wstring*>(p_dirent))).c_str(), &st) == 0)
+			+ Deref(static_cast<wstring*>(p_dirent))).c_str(), &st) == 0)
 			res |= FetchNodeCategoryFromStat(st);
 #else
 		auto name(sDirPath + Deref(p_dirent).d_name);
@@ -629,7 +627,7 @@ HDirectory::GetName() const ynothrow
 		return p_dirent->d_name;
 #else
 		YCL_Impl_RetTryCatchAll(utf8_name = platform_ex::WCSToUTF8(
-			Deref(static_cast<std::wstring*>(p_dirent))), &utf8_name[0])
+			Deref(static_cast<wstring*>(p_dirent))), utf8_name.c_str())
 #endif
 	}
 	return ".";
@@ -671,7 +669,7 @@ IsAbsolute(const char16_t* path)
 #endif
 }
 
-std::size_t
+size_t
 GetRootNameLength(const char* path)
 {
 	const char* p(std::strchr(Nonnull(path), ':'));

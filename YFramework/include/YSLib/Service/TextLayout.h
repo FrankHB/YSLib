@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2847
+\version r2852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-23 03:12 +0800
+	2015-04-22 05:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,7 +167,7 @@ template<class _tString,
 inline pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, const _tString& str)
 {
-	return FetchStringOffsets(max_width, fnt, &str[0]);
+	return Drawing::FetchStringOffsets(max_width, fnt, str.c_str());
 }
 /*!
 \brief 取单行字符串前不超过 n 个字符在指定字体和宽度时的
@@ -179,7 +179,7 @@ inline pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, const _tString& str,
 	size_t n)
 {
-	return FetchStringOffsets(max_width, fnt, &str[0], n);
+	return Drawing::FetchStringOffsets(max_width, fnt, str.data(), n);
 }
 //@}
 
@@ -255,7 +255,7 @@ template<class _tString,
 inline SDst
 FetchStringWidth(const Font& fnt, const _tString& str)
 {
-	return FetchStringWidth(fnt, &str[0]);
+	return Drawing::FetchStringWidth(fnt, str.c_str());
 }
 /*!
 \brief 取单行字符串前不超过 n 个字符在字体指定、无边界限制时的显示宽度。
@@ -266,7 +266,7 @@ template<class _tString,
 inline SDst
 FetchStringWidth(const Font& fnt, const _tString& str, size_t n)
 {
-	return FetchStringWidth(fnt, &str[0], n);
+	return Drawing::FetchStringWidth(fnt, str.data(), n);
 }
 /*!
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
@@ -312,7 +312,7 @@ template<class _tString,
 inline SDst
 FetchStringWidth(TextState& ts, SDst h, const _tString& str)
 {
-	return FetchStringWidth(ts, h, &str[0]);
+	return FetchStringWidth(ts, h, str.c_str());
 }
 
 

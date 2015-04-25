@@ -11,7 +11,7 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2177
+\version r2180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
@@ -841,15 +841,15 @@ template<size_t _vIdx>
 yconstfn ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
 get(Rect& r)
 {
-	return std::get<_vIdx>(std::tuple<SPos&, SPos&, SDst&, SDst&>(r.X, r.Y,
-		r.Width, r.Height));
+	return get<_vIdx>(
+		tuple<SPos&, SPos&, SDst&, SDst&>(r.X, r.Y, r.Width, r.Height));
 }
 template<size_t _vIdx>
 yconstfn const ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
 get(const Rect& r)
 {
-	return std::get<_vIdx>(std::tuple<const SPos&, const SPos&, const SDst&,
-		const SDst&>(r.X, r.Y, r.Width, r.Height));
+	return get<_vIdx>(tuple<const SPos&, const SPos&, const SDst&, const SDst&>(
+		r.X, r.Y, r.Width, r.Height));
 }
 //@}
 //@}

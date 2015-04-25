@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3210
+\version r3212
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2015-03-25 11:28 +0800
+	2015-04-24 04:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,8 +111,6 @@ template<typename _tIn, class _tArea, class _tCon>
 inline void
 AdjustForNewline(_tArea& area, _tIn& i, _tCon& c)
 {
-	using std::end;
-
 	i = FindLineFeed(area, next_if_eq(i, '\n'), end(c));
 }
 
@@ -124,8 +122,6 @@ template<typename _tIn, class _tArea, class _tCon>
 inline void
 AdjustPrevious(_tArea& area, _tIn& i, _tCon& c)
 {
-	using std::begin;
-
 	i = FindPreviousLineFeed(area, i, begin(c));
 }
 

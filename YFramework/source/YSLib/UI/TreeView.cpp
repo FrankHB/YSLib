@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r712
+\version r715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2015-03-24 22:05 +0800
+	2015-04-24 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_TreeView
-#include <ystdex/cast.hpp> // for ystdex::qualify;
+#include <ystdex/cast.hpp> // for ystdex::as_const;
 
 namespace YSLib
 {
@@ -321,7 +321,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		expanded.insert(branch_pth);
 
 		const auto& branch(at(TreeRoot, branch_pth));
-		auto i(ystdex::qualify(indent_map).lower_bound(idx));
+		auto i(ystdex::as_const(indent_map).lower_bound(idx));
 
 		YAssert(i != indent_map.cend(), "Invalid state found.");
 
@@ -390,7 +390,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 	}
 	else
 	{
-		auto i(ystdex::qualify(indent_map).find(idx));
+		auto i(ystdex::as_const(indent_map).find(idx));
 
 		YAssert(i != indent_map.cend(), "Invalid state found.");
 

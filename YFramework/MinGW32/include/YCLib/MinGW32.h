@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r628
+\version r740
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-04-23 01:20 +0800
+	2015-04-24 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,13 +32,10 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_Debug
+#include YFM_YCLib_Debug // for string, wstring, vector, pair;
 #if !YCL_MinGW
 #	error "This file is only for MinGW."
 #endif
-#include <string> // for std::string, std::wstring;
-#include <vector> // for std::vector;
-#include <utility> // for std::pair;
 #include <chrono> // for std::chrono::nanoseconds;
 
 /*!
@@ -132,17 +129,70 @@ public:
 
 //! \brief 调用 WinAPI ，若失败抛出 Windows::Win32Exception 对象。
 #	define YCL_CallWin32(_fn, _msg, ...) \
-	if(YB_UNLIKELY(!::_fn(__VA_ARGS__))) \
-		YCL_Raise_Win32Exception(#_fn " @ " _msg)
+	[&]{ \
+		const auto res(::_fn(__VA_ARGS__)); \
+	\
+		if(YB_UNLIKELY(!res)) \
+			YCL_Raise_Win32Exception(#_fn " @ " _msg); \
+		return res; \
+	}()
 
 /*!
 \brief 调用 WinAPI ，若失败跟踪 ::GetLastError 的结果。
 \note 格式转换说明符置于最前以避免宏参数影响结果。
 */
 #	define YCL_CallWin32_Trace(_fn, _msg, ...) \
-	if(YB_UNLIKELY(!::_fn(__VA_ARGS__))) \
-		YTraceDe(Warning, "Error %lu: failed call" #_fn " @ " _msg ".", \
-			::GetLastError())
+	[&]{ \
+		const auto res(::_fn(__VA_ARGS__)); \
+	\
+		if(YB_UNLIKELY(!res)) \
+			YTraceDe(Warning, "Error %lu: failed call" #_fn " @ " _msg ".", \
+				::GetLastError()); \
+		return res; \
+	}()
+//@}
+
+
+//! \since build 593
+//@{
+//! \brief 全局存储删除器。
+struct YF_API GlobalDelete
+{
+	using pointer = ::HGLOBAL;
+
+	void
+	operator()(pointer) const ynothrow;
+};
+
+
+//! \brief 全局锁定存储。
+class YF_API GlobalLocked
+{
+private:
+	//! \invariant <tt>bool(p_locked)</tt> 。
+	void* p_locked;
+
+public:
+	/*!
+	\brief 构造：锁定存储。
+	\throw Win32Exception ::GlobalLock 调用失败。
+	*/
+	//@{
+	GlobalLocked(::HGLOBAL);
+	template<typename _tPointer>
+	GlobalLocked(const _tPointer& p)
+		: GlobalLocked(p.get())
+	{}
+	//@}
+	~GlobalLocked();
+
+	template<typename _type = void>
+	_type*
+	GetPtr() const ynothrow
+	{
+		return static_cast<_type*>(p_locked);
+	}
+};
 //@}
 
 
@@ -153,7 +203,7 @@ public:
 \warning 默认不应在 \c std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
 \see http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx
 \see http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx
-\see $2014-10 @ %Documentation::Workflow::Annual2014.
+\see $2015-01 @ %Documentation::Workflow::Annual2014.
 \since build 565
 
 若第一参数为空，则使用具有以下行为的处理器：
@@ -181,54 +231,51 @@ CheckWine();
 \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
 \exception 长度参数上溢 \int 或转换中溢出。
 \note 长度为零时直接返回空字符串，无其它效果。
-\since build 587
+\since build 593
 
 转换第一个 \c unsigned 参数指定编码的字符串为第二个 \c unsigned 参数指定的编码。
 */
 //@{
-YF_API std::string
-MBCSToMBCS(std::size_t, const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
-inline YB_NONNULL(1) PDefH(std::string, MBCSToMBCS, const char* str,
+YF_API string
+MBCSToMBCS(size_t, const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
+inline YB_NONNULL(1) PDefH(string, MBCSToMBCS, const char* str,
 	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
 	ImplRet(Windows::MBCSToMBCS(ystdex::ntctslen(str), str, cp_src, cp_dst))
-inline PDefH(std::string, MBCSToMBCS, const std::string& str,
+inline PDefH(string, MBCSToMBCS, const string& str,
 	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
 	ImplRet(Windows::MBCSToMBCS(str.length(), str.c_str(), cp_src, cp_dst))
 
-YF_API std::string
-WCSToMBCS(std::size_t, const wchar_t*, unsigned = CP_ACP);
-inline YB_NONNULL(1) PDefH(std::string, WCSToMBCS, const wchar_t* str,
+YF_API string
+WCSToMBCS(size_t, const wchar_t*, unsigned = CP_ACP);
+inline YB_NONNULL(1) PDefH(string, WCSToMBCS, const wchar_t* str,
 	unsigned cp = CP_ACP)
 	ImplRet(Windows::WCSToMBCS(ystdex::ntctslen(str), str, cp))
-inline PDefH(std::string, WCSToMBCS, const std::wstring& str,
+inline PDefH(string, WCSToMBCS, const wstring& str,
 	unsigned cp = CP_ACP)
 	ImplRet(Windows::WCSToMBCS(str.length(), str.c_str(), cp))
 
-YF_API std::wstring
-MBCSToWCS(std::size_t, const char*, unsigned = CP_ACP);
-inline YB_NONNULL(1) PDefH(std::wstring, MBCSToWCS, const char* str,
+YF_API wstring
+MBCSToWCS(size_t, const char*, unsigned = CP_ACP);
+inline YB_NONNULL(1) PDefH(wstring, MBCSToWCS, const char* str,
 	unsigned cp = CP_ACP)
 	ImplRet(Windows::MBCSToWCS(ystdex::ntctslen(str), str, cp))
-inline PDefH(std::wstring, MBCSToWCS, const std::string& str,
+inline PDefH(wstring, MBCSToWCS, const string& str,
 	unsigned cp = CP_ACP)
 	ImplRet(Windows::MBCSToWCS(str.length(), str.c_str(), cp))
 
-//! \since build 540
-//@{
-inline PDefH(std::string, WCSToUTF8, const wchar_t* str, std::size_t len)
+inline PDefH(string, WCSToUTF8, const wchar_t* str, size_t len)
 	ImplRet(WCSToMBCS(len, str, CP_UTF8))
-inline YB_NONNULL(1) PDefH(std::string, WCSToUTF8, const wchar_t* str)
+inline YB_NONNULL(1) PDefH(string, WCSToUTF8, const wchar_t* str)
 	ImplRet(Windows::WCSToUTF8(str, ystdex::ntctslen(str)))
-inline PDefH(std::string, WCSToUTF8, const std::wstring& str)
+inline PDefH(string, WCSToUTF8, const wstring& str)
 	ImplRet(Windows::WCSToUTF8(str.c_str(), str.length()))
 
-inline PDefH(std::wstring, UTF8ToWCS, const char* str, std::size_t len)
+inline PDefH(wstring, UTF8ToWCS, const char* str, size_t len)
 	ImplRet(MBCSToWCS(len, str, CP_UTF8))
-inline YB_NONNULL(1) PDefH(std::wstring, UTF8ToWCS, const char* str)
+inline YB_NONNULL(1) PDefH(wstring, UTF8ToWCS, const char* str)
 	ImplRet(Windows::UTF8ToWCS(str, ystdex::ntctslen(str)))
-inline PDefH(std::wstring, UTF8ToWCS, const std::string& str)
+inline PDefH(wstring, UTF8ToWCS, const string& str)
 	ImplRet(Windows::UTF8ToWCS(str.c_str(), str.length()))
-//@}
 //@}
 
 
@@ -239,14 +286,20 @@ inline PDefH(std::wstring, UTF8ToWCS, const std::string& str)
 class YF_API DirectoryFindData : private ystdex::noncopyable
 {
 private:
-	//! \brief 查找起始的目录名称。
-	std::wstring dir_name;
+	/*!
+	\brief 查找起始的目录名称。
+	\since build 593
+	*/
+	wstring dir_name;
 	//! \brief Win32 查找数据。
 	::WIN32_FIND_DATAW find_data;
 	//! \brief 查找节点句柄。
 	::HANDLE h_node = {};
-	//! \brief 当前查找的项目名称。
-	std::wstring d_name{};
+	/*!
+	\brief 当前查找的项目名称。
+	\since build 593
+	*/
+	wstring d_name{};
 
 public:
 	/*!
@@ -254,12 +307,13 @@ public:
 	\pre 断言：路径非空且不以 '\\' 结尾。
 	\throw platform::FileOperationFailure 打开路径失败，或指定的路径不是目录。
 	\note 目录路径无视结尾的斜杠和反斜杠。
+	\since build 593
 	*/
 	//@{
 	//! \note 使用 UTF-8 目录路径。
-	DirectoryFindData(std::string);
+	DirectoryFindData(string);
 	//! \note 使用 UTF-16 目录路径。
-	DirectoryFindData(std::wstring);
+	DirectoryFindData(wstring);
 	//@}
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	~DirectoryFindData();
@@ -271,7 +325,8 @@ public:
 	DefGetter(const ynothrow, unsigned long, Attributes,
 		find_data.dwFileAttributes)
 	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
-	DefGetter(const ynothrow, const std::wstring&, DirName, dir_name)
+	//! \since build 593
+	DefGetter(const ynothrow, const wstring&, DirName, dir_name)
 
 private:
 	/*!
@@ -285,12 +340,13 @@ public:
 	/*!
 	\brief 读取：迭代当前查找状态。
 	\return 若迭代结束后节点非空，表示当前查找项目名的指针；否则为空指针。
+	\since build 593
 
 	若查找节点句柄非空则迭代当前查找状态查找下一个文件系统项。
 	否则查找节点句柄为空或迭代失败则关闭查找状态并置查找节点句柄空。
 	最终查找节点非空时保存记录当前查找的项目状态。
 	*/
-	std::wstring*
+	wstring*
 	Read();
 
 	//! \brief 复位查找状态：若查找节点句柄非空则关闭查找状态并置查找节点句柄空。
@@ -341,24 +397,25 @@ public:
 	\brief 取指定名称和类型的值的存储表示。
 	\return 成功得到的值的类型和内容。
 	\note 类型为 \c REG_NONE 时表示允许任意类型的值。
-	\since build 564
+	\since build 593
 	*/
 	//@{
 	//! \brief 间接断言：第一参数非空。
-	std::pair<unsigned long, std::vector<ystdex::byte>>
+	pair<unsigned long, vector<byte>>
 	GetRawValue(const wchar_t*, unsigned long = REG_NONE) const;
-	PDefH(std::pair<unsigned long YPP_Comma std::vector<ystdex::byte>>,
-		GetRawValue, const std::wstring& name, unsigned long type = REG_NONE)
-		const
+	PDefH(pair<unsigned long YPP_Comma vector<byte>>, GetRawValue,
+		const wstring& name, unsigned long type = REG_NONE) const
 		ImplRet(GetRawValue(name.c_str(), type))
 	//@}
-	std::size_t
+	size_t
 	GetSubKeyCount() const;
-	std::vector<std::wstring>
+	//! \since build 593
+	vector<wstring>
 	GetSubKeyNames() const;
-	std::size_t
+	size_t
 	GetValueCount() const;
-	std::vector<std::wstring>
+	//! \since build 593
+	vector<wstring>
 	GetValueNames() const;
 
 	//! \throw Win32Exception 刷新失败。
@@ -372,12 +429,12 @@ public:
 \return 若成功则为指定的值，否则为空串。
 \note 字符串内容保证不以空字符结尾。
 \relates RegistryKey
-\since build 522
+\since build 593
 */
 //@{
-YF_API YB_NONNULL(2) std::wstring
+YF_API YB_NONNULL(2) wstring
 FetchRegistryString(const RegistryKey&, const wchar_t*);
-inline YB_NONNULL(2, 3) PDefH(std::wstring, FetchRegistryString,
+inline YB_NONNULL(2, 3) PDefH(wstring, FetchRegistryString,
 	::HKEY h_parent, const wchar_t* key_name, const wchar_t* name)
 	ImplRet(FetchRegistryString(RegistryKey(h_parent, key_name), name))
 //@}
@@ -393,22 +450,22 @@ ConvertTime(::FILETIME&);
 
 /*!
 \brief 展开字符串中的环境变量。
-\since build 592
+\since build 593
 */
 //@{
 //! \note 第一参数为空指针或第二参数等于 0 时返回空串。
-YF_API std::wstring
+YF_API wstring
 ExpandEnvironmentStrings(const wchar_t*, size_t);
-inline PDefH(std::wstring, ExpandEnvironmentStrings, const std::wstring& str)
+inline PDefH(wstring, ExpandEnvironmentStrings, const wstring& str)
 	ImplRet(ExpandEnvironmentStrings(str.c_str(), str.length()))
 //@}
 
 /*!
 \brief 取系统目录路径。
 \note 保证以一个分隔符结尾。
-\since build 552
+\since build 593
 */
-YF_API std::wstring
+YF_API wstring
 FetchSystemPath(size_t s = MAX_PATH);
 
 } // inline namespace Windows;

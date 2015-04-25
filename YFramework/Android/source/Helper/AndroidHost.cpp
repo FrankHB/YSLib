@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r410
+\version r412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2015-04-13 02:56 +0800
+	2015-04-24 06:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,8 +310,8 @@ ANativeActivity_onCreate(::ANativeActivity* p_activity,
 
 	YTraceDe(Debug, "Creating activity: %p.",
 		ystdex::pvoid(Nonnull(p_activity)));
-	p_activity->instance = ystdex::make_unique<NativeHost>(*p_activity,
-		saved_state, saved_state_size).release();
+	p_activity->instance = make_unique<NativeHost>(*p_activity, saved_state,
+		saved_state_size).release();
 }
 
 #endif
