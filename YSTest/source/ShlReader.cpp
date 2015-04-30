@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4757
+\version r4763
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-03-25 12:49 +0800
+	2015-04-29 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 	}
 	else
 		InitializeProgress();
-	unseq_apply([](IWidget& wgt){Invalidate(wgt);}, pbReader, lblProgress);
+	InvalidateWidgets(pbReader, lblProgress);
 }
 
 
@@ -148,7 +148,7 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 		lblTop.Text = "Top: " + to_string(reader.GetTopPosition()) + " B;",
 		lblBottom.Text = "Bottom: " + to_string(reader.GetBottomPosition())
 		+ " B;"),
-	unseq_apply([](IWidget& wgt){Invalidate(wgt); }, lblEncoding, lblSize);
+	InvalidateWidgets(lblEncoding, lblSize);
 }
 
 
@@ -547,7 +547,8 @@ ShlTextReader::LoadFile(const IO::Path& pth)
 
 	const auto text_size(reader.GetTextSize());
 
-	ystdex::erase_all_if(pnlBookmark.bookmarks, [&](Bookmark::PositionType pos){
+	ystdex::erase_all_if(pnlBookmark.bookmarks,
+		[&](Bookmark::PositionType pos) ynothrow{
 		return pos >= text_size;
 	});
 }
@@ -778,8 +779,7 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 				+ " / " + to_string(HexArea.GetModel().GetSize()));
 			Invalidate(pnlFileInfo.lblSize);
 		}
-		catch(LoggedEvent&)
-		{}
+		CatchIgnore(LoggedEvent&)
 	}
 	);
 

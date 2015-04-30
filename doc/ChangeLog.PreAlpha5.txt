@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r13264
+\version r13528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-04-25 18:00 +0800
+	2015-04-30 10:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,259 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				+ "function template %CopyBitmapBuffer" @ %YGraphics,
+				/ "implemented %String::GetMBCS" @ %Core.String ^ $dep_from
+					("%MakeMBCS" @ %CHRLib.CharacterProcessing) ~ "GetMBCSOf"
+			),
+			- $revert(b209) 'using ystdex::errno_t' @ %Adaptor.YAdaptor
+				$dep_from %Helper.ShellHelper,
+			+ "function template %InvalidateWidgets" @ %UI.YWidget,
+			/ DLD "implemented encoding conversion" @ %Service.TextManager
+				^ $dep_from ("%pair_iterator" @ %YBase.YStandardEx.Iterator)
+				~ "%GetCountOf"
+		),
+		/ %YCLib $=
+		(
+			/ $dev $build "used '#error' when detected macro %__MSYS__"
+				@ %Platform,
+				// MSYS is currently not supported.
+			/ %HostedGUI $=
+			(
+				+ 'ynothrow' @ "constructor %WindowDeviceContextBase"
+					@ "platform %Win32",
+				/ $lib $design "implemented function %UpdateContentTo"
+					@ "platform %Android" ^ "%BlitLines" ~ "%CopyTo",
+					// This may slightly improve performance because the \
+						rotation is fixed without dispatching at runtime.
+			)
+		),
+		/ @ "class %ConfigurationDeleter" @ %'Helper_(Android)'.AndroidHost $=
+		(
+			(
+			+ "alias %pointer";
+			/ "function %operator()" ^ "%pointer"
+			),
+			+ 'const ynothrow' @ "%operator()"
+		),
+		/ %CHRLib $=
+		(
+			/ %StaticMapping $=
+			(
+				/ DLD "implemented 'yconstfn' functions %(IsSurrogateHead, \
+					IsValidSurrogateHead, IsValidSurrogateTail)"
+					^ "macros %(PDefH, ImplExpr)",
+				* $dev "missing prventing ADL use of %(IsSurrogateHead, \
+					IsValidSurrogateHead, IsValidSurrogateTail)" @ "template \
+					classes %(GUCS2Mapper<CharSet::UTF_16BE>, \
+					GUCS2Mapper<CharSet::UTF_16LE>)" $since b552,
+				+ 'ynothrow' @ "functions %(IsSurrogateHead, \
+					IsValidSurrogateHead, IsValidSurrogateTail)",
+				+ "struct %UCSMapperBase",
+				/ @ "class %GUCSMapper<CharSet::UTF_8>" $=
+				(
+					/ DLD "simplified decoding implementation",
+					+ 'ynothrow' @ "function %IsValid",
+					/ @ "static function template %InverseMap" -> "%Encode" $=
+					(
+						/ "return type" -> 'size_t' ~ 'byte',
+							// Also to avoid truncating the result.
+						/ "2nd parameter type" -> 'ucs4_t' ~ 'const ucs2_t&',
+						+ $dev 'ynoexcept_assert("Invalid type found.", \
+							*d = char());'
+					)
+				),
+				/ "function templates %(UCSMapper_Map, UCSMapper_InverseMap, \
+					UCSMapper)" -> "%(UCS2Mapper_Decode, UCS2Mapper_Encode, \
+					UCS2Mapper)"
+				(
+					+ "noexcept specification",
+					* $dev "missing prevent ADL" @ "intermediate calls" $since
+						b273
+				),
+				/ DLD "all bit operation operands" $=
+				(
+					// To eliminate warning: [-Wsign-conversion].
+					/ "wrapped with 'ucs4_t'",
+					^ "%unsigned literal" ~ "%int literal"
+				)
+			),
+			/ %Encoding $=
+			(
+				(
+				+ "alias %ByteOrder" ^ $dep_from ("%ystdex::byte_order"
+					@ %YBase.YStandardEx.CStandardInteger);
+				+ "metafunction %EncodingTraits" @ "namespace %CharSet"
+				),
+				/ @ "enum %Encoding" @ "namespace %CharSet" $=
+				(
+					// Update as http://www.iana.org/assignments/ianacharset-mib/ianacharset-mib, \
+						which was modified at 2014-05-23 07:44:38.
+					/ "%Reserved_1" => "%other"
+					/ "%Reserved_2" => "%unknown",
+				)
+			),
+			+ "metafunction %MapFixedEncoding" @ %CharacterMapping,
+			/ %CharacterProcessing $=
+			(
+				(
+				+ "function %(MBCSToUCS4, UCS2ToUCS4)";
+				+ "8 function templates %MakeUCS4LE"
+				),
+				/ DLD "simplified implementation" @ "function %UCS4ToUCS2"
+					^ $dep_from ("function template %transform_when"
+					@ %Algorithm),
+				- "'yconstraint' assertion" @ "function template %MakeUCS2LE#3",
+					// Since %ntctslen would assert.
+				* "missing 3 function templates %MakeUCS2LE accepting \
+					character string pointer, length and encoding" $since b544,
+					// This made string class version of %MakeUCS2LE not usable.
+				* "missing 3 function templates %MakeMBCS accepting character \
+					string pointer, length and encoding" $since b544,
+					// This made string class version of %MakeMBCS not usable.
+				/ "resizing result string" @ "function template %MakeMBCS with \
+					'ucs2_t*' parameter" ^ "%FetchMaxCharWidth"
+					~ "%FetchMaxVariantCharWidth",
+				* @ "function template %MakeMBCS with 'const _tString&' \
+					parameter" $since b544 $=
+				(
+					/ "implemented" ^ "%CHRLib::MakeMBCS"
+						~ "%CHRLib::MakeUCS2LE",
+					/ "swapped 1st and 2nd template parameter"
+						// Also to allow user only providing zero or one \
+							destination type as template arguments.
+				),
+				- $revert(b305) "function template %GetMBCSOf" $dep_from
+					%YSLib.Core.String,
+				(
+				+ "function %UCS4ToMBCS";
+				+ 2 "function templates %MakeMBCS for %ucs4_t"
+				)
+			),
+			/ %CharacterMapping $=
+			(
+				// The state is now not mandated to be the same of processed \
+					number of bytes.
+				/ "(function, function template) %GetCountOf" => "%GetIndexOf"
+					$dep_from %YSLib.Service.TextManager,
+				/ "data member %ConversionState::Count" => "%Index"
+			),
+			/ "class template %GUCS2Mapper" -> "%GUCSMapper"
+				@ %(StaticMapping, MapEx) $=
+			(
+				(
+				+ $dep_from ("base class %UCSMapperBase" @ %StaticMapping);
+				+ 'using UCSMapperBase::Assign',
+					// To adapt to %ucs4_t assignment.
+				),
+				/ @ "static function template %Map" -> "%Decode" $=
+				(
+					/ "assignment" ^ $dep_from "%Assign" ~ '=',
+					+ "noexcept specification" $dep_from %CharacterMapping
+				)
+			)
+		),
+		/ %Helper $=
+		(
+			/ %ShellHelper $=
+			(
+				- $revert($before b132) "function templates \
+					%((CallStoredAtOnce; NowShellToStored), NowShellToNew)";
+				/ "return type" @ "function %NowShellTo" -> 'void' ~ 'errno_t'
+			),
+			* "possible thrown exception" @ "closing window"
+				@ 'YF_Hosted && !YCL_Android' @ "destructor" @ "class \
+				%Environment" @ %Environment $orig (@ %Host $since b382) $=
+				(/ "implemented inner loop" ^ "%FilterException")
+		)
+	),
+	/ DLD "simplified implementation" @ "sized buffer copy" ^ $dep_from
+		("%CopyBitmapBuffer" @ %YSLib.Core.YGraphics) $effective @YFramework.(
+		YCLib.HostedGUI, YSLib.(Core.YDevice, Service.(YBlit, YGDI)));
+	/ $build "all '#!/usr/bin'" @ ".sh files" -> '#!/usr/bin/env '
+		@ effective %(Tools, Test.Test),
+		// To improve compatibility.
+	* $re(b546) "shebang specifying '/usr/bin/sh' without POSIX shell \
+		compatibility" @ %Test.Test $since b575,
+	/ DLD "all '\0' for null terminate character"
+		-> "value-initialized character" $effective %(YBase.YStandardEx(String,
+		CAssertion), YFramework.(YCLib_MinGW32.MinGW32, YCLib.(Debug,
+		FileSystem), CHRLib.CharacterProcessing, YSLib.Adaptor.Image))
+		!$effective @ %YBase.LibDefect.Exception,
+		// Only string cookie of type %__cxxabiv1::_Unwind_Exception_Class
+			@ %YBase.LibDefect.Exception is not of string terminate character.
+	/ $build "first 'pacman -S'" -> 'pacman -Syu' @ "%msys2-pacman-update.sh"
+		@ %Tools,
+		// To make it consistent to 'update'.
+	/ %YBase $=
+	(
+		* "strict ISO C++ code compatibility" @ %LibDefect $since b308
+			$= (* "missing including <cwchar>" @ %YStandardEx.String),
+		/ %YStandardEx $=
+		(
+			+ "enum class %byte_order" @ %CStandardInteger,
+			+ "function templates %(transform_when; copy_when)" @ %Algorithm,
+			+ 'ynothrow' @ "function template %classify_path" @ %Path,
+			/ %Functional $=
+			(
+				+ "noexcept-specifications"
+					@ "function templates %(sizeof_params, varg, chain_apply, \
+					seq_apply, unseq_apply)",
+				* "wrong use of 'yconstexpr'" @ "function template %varg" $since
+					b412
+					$= (/ 'yconstexpr' -> 'yconstfn')
+			),
+			+ "noexcept-specification" @ "member function template"
+				@ "%is_equal::operator() for object reference" @ %Functor,
+			+ "exception specifications" @ "function templates %(hash_combine, \
+				hash_combine_seq)" @ %Hash ^ 'ynoexcept_spec',
+			/ "class template %pair_iterator" @ %Iterator $=
+			(
+				+ 'const' @ "function template \
+					%operator pair<_tFirst, _tSecond>",
+				+ "noexcept specification" @ "move constructor",
+				* "wrong exception specification and implementation"
+					@ "friend function %operator==" $since b585
+			),
+			/ DLD "implemented constructor %any_input_iterator"
+				@ %(Any, AnyIterator) ^ "%remove_rcv_t" ~ "%remove_rcv",
+			* "constructor template %any with parameters '_type&& x, \
+				any_ops::holder_tag'" $since b375
+				$= (/ $re_ex(b376) "implemented initialization"
+					^ "%remove_rcv_t" ~ "%remove_cv_t")
+		),
+		/ %YDefinition $=
+		(
+			- 'using errno_t = int;' $dep_from
+				%YFramework.YSLib.YAdaptor.Adaptor
+			+ 'ynothrow' @ "function template %unsequenced"
+		)
+	),
+	+ DLD "('ynothrow', 'ynoexcept', 'ynothrowv') exception specification"
+		@ "lambda expressions whose exception guarantee can be determined"
+		$effective @ %(YStandard.(Concurrency, String, CAssertion, Path, Thunk),
+		YFramework.('Helper_(DS)'.DSMain, YSLib.(Core.(YEvent, YException),
+		Servie.FileSystem, UI.(Animation, ExStyle, TreeView, YUIContainer),
+		Adaptor.Image), Helper.(GUIApplication, HostRenderer, Environment,
+		HostWindow, Initialization), YCLib.(Debug, HostedGUI, JNI)),
+		YReader.(BookmarkUI, ReaderSettingUI, Shells, ShlReader)),
+	+ "'YB_NORETURN' for lambda expressions always not return" $effective
+		@ %YFramework.YCLib.HostedGUI,
+	/ "simplified widgets invalidation" ^ $dep_from ("%InvalidateWidgets"
+		@ %YFramework.YSLib.UI.YWidget) @ %YReader.(ShlExplorer, ShlReader),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.(CHRLib.(
+		"%encoding.h" => "%Encoding.h"),
+		YSLib.Core.("%ystring.h" => "%YString.h"))
+),
+
+b593
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1209,6 +1462,9 @@ b588
 	/ "3rd argument" @ "function template %make_transposed kept unsigned"
 		$effective @ %YFramework.YSLib.Service.(YBlit, YBrush),
 		// To eliminate warning: [-Wsign-conversion].
+	/ $ex(b587) $doc $term DLD "all 'C++1y'" -> 'C++14'
+		!@ %Documentation::(ChangLog, Workflow) $effective
+		%Documentation.CommonRules,
 	/ DLD "simplified implementation" ^ $dep_from
 		("%Rect::(GetBottom, GetRight)" @ %YFramework.YSLib.Core.YGDIBase)
 		$effective @ %YFramework.(YSLib.(Core.YGDIBase, Service.(YStyle, YDraw),
@@ -1618,8 +1874,12 @@ b587
 		@ %YSLib, ("%MapEx.cpp" => "%MappingEx.cpp", "%smap.hpp"
 		=> "%StaticMapping.hpp", "chrproc.cpp" => "%CharacterProcessing.cpp")
 		@ %CHRLib) @ %YFramework;
-	/ $forced $build "updated %LIBS" @ "%SHBuild-bootstrap.sh" @ %Tools.Scripts
-	)
+	/ $forced $build "updated %LIBS" @ "%SHBuild-bootstrap.sh"
+		@ %Tools.Scripts
+	),
+	/ $revert_ex(b525) $doc $term DLD "all 'C++1y'" -> 'C++14'
+		!@ %Documentation $effective %Helper.InputManager
+		// The standard has been published.
 ),
 
 b586
@@ -7014,14 +7274,14 @@ b551
 			)
 		),
 		/ @ "class %NativeHost"
-			@ %'Helper_(Android)'.AndroidHost $=
+			@ %'Helper_(Android)'.AndroidHost @ "platform %Android" $=
 		(
 			/ @ "callback for %onNativeWindowDestroyed" $=
 			(
 				/ $design "%joinable check"
 					-> "catch clause for %std::system_error",
 					// Like in %WindowThread.
-				* "possible crash when posting quit message" $since b498
+				* "possible crash when posting quit message" $since b502
 					// This would cause %SIGSEGV on normal exit if native main \
 						thread has finished.
 					$= (/ "lock global instance to ensure it in lifetime \
@@ -9961,7 +10221,7 @@ b525
 			RadioButton)::Refresh" ^ "%MLabel::operator()"
 			~ "%MLabel::DrawText" $dep_from "%MLabel::operator()"
 	),
-	/ DLD "all 'C++14'" -> 'C++1y' !@ %Documentation::CommonRules,
+	/ $doc $term DLD "all 'C++14'" -> 'C++1y' !@ %Documentation::CommonRules,
 		// The standard is not published yet. Do not modify rules to \
 			minimalize future modification.
 	/ %YBase.YStandardEx $=

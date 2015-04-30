@@ -1,5 +1,5 @@
-#!/usr/bin/bash
-# (C) 2014 FrankHB.
+#!/usr/bin/env bash
+# (C) 2014-2015 FrankHB.
 # Script for build all YDE packages using SHBuild-BuildApp.
 
 set -e

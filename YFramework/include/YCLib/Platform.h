@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r786
+\version r789
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2015-04-23 07:40 +0800
+	2015-04-28 03:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,7 +178,9 @@
 \brief 目标平台。
 \note 注意顺序。
 */
-#ifdef __MINGW64__
+#ifdef __MSYS__
+#	error "MSYS is not currently supported. Use MinGW targets instead."
+#elif defined(__MINGW64__)
 #	define YF_Platform YF_Platform_MinGW64
 #elif defined(__MINGW32__)
 #	define YF_Platform YF_Platform_MinGW32

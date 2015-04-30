@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1273
+\version r1324
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-04-23 05:03 +0800
+	2015-04-30 04:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,8 @@
 #include <ystdex/cstdio.h>
 #include <ystdex/memory.hpp> // for ystdex::make_unique;
 #include YFM_CHRLib_Convert
+#include <ystdex/algorithm.hpp> // for ystdex::copy_when,
+//	ystdex::transform_when;
 
 namespace CHRLib
 {
@@ -124,6 +126,29 @@ MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
 }
 
 size_t
+MBCSToUCS4(ucs4_t* d, const char* s, Encoding enc)
+{
+	yconstraint(d),
+	yconstraint(s);
+
+	const auto p(d);
+
+	// TODO: Use UCS-4 internal conversion directly?
+	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
+		input_monomorphic_iterator&&, ConversionState&&)>(enc))
+		while(!is_null(*s))
+		{
+			// TODO: Necessary initialization?
+			ucs2_t c;
+
+			ConvertCharacter(pfun, c, s, ConversionState());
+			*d++ = c;
+		}
+	*d = 0;
+	return size_t(d - p);
+}
+
+size_t
 UCS2ToMBCS(char* d, const ucs2_t* s, Encoding enc)
 {
 	yconstraint(d),
@@ -134,22 +159,47 @@ UCS2ToMBCS(char* d, const ucs2_t* s, Encoding enc)
 	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
 		while(!is_null(*s))
 			d += pfun(d, *s++);
-	*d = 0;
+	*d = char();
 	return size_t(d - p);
 }
 
 size_t
-UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
+UCS2ToUCS4(ucs4_t* d, const ucs2_t* s)
+{
+	const auto p(ystdex::copy_when(s, d, [](ucs2_t c) ynothrow{
+		return !is_null(c);
+	}));
+
+	*p = ucs4_t();
+	return size_t(p - d);
+}
+
+size_t
+UCS4ToMBCS(char* d, const ucs4_t* s, Encoding enc)
 {
 	yconstraint(d),
 	yconstraint(s);
 
 	const auto p(d);
 
-	while(!is_null(*s))
-		*d++ = ucs2_t(*s++);
-	*d = 0;
+	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
+		while(!is_null(*s))
+			d += pfun(d, ucs2_t(*s++));
+	*d = char();
 	return size_t(d - p);
+}
+
+size_t
+UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
+{
+	const auto p(ystdex::transform_when(s, d, [](ucs4_t c) ynothrow{
+		return !is_null(c);
+	}, [](ucs4_t c) ynothrow{
+		return ucs2_t(c);
+	}));
+
+	*p = ucs2_t();
+	return size_t(p - d);
 }
 
 } // namespace CHRLib;

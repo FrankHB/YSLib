@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1589
+\version r1592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-04-25 16:48 +0800
+	2015-04-29 00:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,8 +112,10 @@ Environment::~Environment()
 	using ystdex::get_value;
 
 	std::for_each(wnd_map.cbegin() | get_value, wnd_map.cend() | get_value,
-		[](Window* const& p){
+		[](Window* const& p) ynothrow{
+		FilterExceptions([&]{
 			p->Close();
+		});
 	});
 #	endif
 	Uninitialize();

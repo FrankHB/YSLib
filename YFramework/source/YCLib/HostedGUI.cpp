@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1405
+\version r1419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-04-24 17:44 +0800
+	2015-04-29 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,8 @@
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #	include <android/native_window.h>
+#	include "YSLib/Service/YModules.h"
+#	include YFM_YSLib_Service_YBlit
 #endif
 #if YCL_HostedUI_XCB || YCL_Android
 #	include "YSLib/Service/YModules.h"
@@ -189,7 +191,8 @@ void
 BindDefaultWindowProc(NativeWindowHandle h_wnd, MessageMap& m, unsigned msg,
 	EventPriority prior)
 {
-	m[msg].Add([=](::WPARAM w_param, ::LPARAM l_param, ::LRESULT& res){
+	m[msg].Add(
+		[=](::WPARAM w_param, ::LPARAM l_param, ::LRESULT& res) ynothrow{
 		res = ::DefWindowProcW(h_wnd, msg, w_param, l_param);
 	}, prior);
 }
@@ -432,8 +435,9 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 	::ARect arect{r.X, r.Y, r.X + r.Width, r.Y + r.Height};
 
 	::ANativeWindow_lock(Nonnull(h_wnd), &abuf, &arect);
-	CopyTo(static_cast<BitmapPtr>(abuf.bits), g,
-		WindowReference(h_wnd).GetSize(), r.GetPoint(), {}, r.GetSize());
+	BlitLines<false, false>(CopyLine<true>(), static_cast<BitmapPtr>(abuf.bits),
+		g.GetBufferPtr(), WindowReference(h_wnd).GetSize(), g.GetSize(),
+		r.GetPoint(), {}, r.GetSize());
 	::ANativeWindow_unlockAndPost(h_wnd);
 }
 #	endif
@@ -525,7 +529,7 @@ ScreenBuffer::Premultiply(ConstBitmapPtr p_buf) ynothrow
 	// NOTE: Since the stride is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
 	std::transform(p_buf, p_buf + size.Width * size.Height, p_buffer,
-		[](const Pixel& pixel){
+		[](const Pixel& pixel) ynothrow{
 			const auto a(pixel.GetA());
 
 			return Pixel{MonoType(pixel.GetB() * a / 0xFF),
@@ -540,12 +544,11 @@ ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 {
 #	if YCL_HostedUI_XCB || YCL_Android
 	// TODO: Expand stride for given width using a proper strategy.
-	std::copy_n(Nonnull(p_buf), GetAreaOf(GetSize()),
-		Deref(p_impl).GetBufferPtr());
+	CopyBitmapBuffer(Deref(p_impl).GetBufferPtr(), p_buf, GetSize());
 #	elif YCL_Win32
 	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
-	std::copy_n(Nonnull(p_buf), size.Width * size.Height, GetBufferPtr());
+	CopyBitmapBuffer(GetBufferPtr(), p_buf, size);
 #	endif
 }
 
@@ -845,7 +848,7 @@ Clipboard::GetOpenWindow() ynothrow
 bool
 Clipboard::Receive(YSLib::string& str)
 {
-	return ReceiveRaw(CF_TEXT, [&](const void* p){
+	return ReceiveRaw(CF_TEXT, [&](const void* p) ynothrowv{
 		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<char>();
 	});
 }
@@ -853,7 +856,7 @@ Clipboard::Receive(YSLib::string& str)
 bool
 Clipboard::Receive(YSLib::String& str)
 {
-	return ReceiveRaw(CF_UNICODETEXT, [&](const void* p){
+	return ReceiveRaw(CF_UNICODETEXT, [&](const void* p) ynothrowv{
 		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<ucs2_t>();
 	});
 }
@@ -921,7 +924,7 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	case SE_ERR_DDEBUSY:
 	{
 		using boxed_exception = ystdex::wrap_mixin_t<std::runtime_error, int>;
-		const auto throw_ex([=](int ec){
+		const auto throw_ex([=](int ec) YB_NORETURN{
 			std::throw_with_nested(Win32Exception(Win32Exception::ErrorCode(ec),
 				ystdex::sfmt("ShellExecuteW: %d", res), Err));
 		});

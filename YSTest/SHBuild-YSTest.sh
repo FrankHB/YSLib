@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env sh
 # (C) 2014-2015 FrankHB.
 # Build script for YSTest using SHBuild.
 

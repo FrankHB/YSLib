@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2143
+\version r2147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-04-25 16:49 +0800
+	2015-04-28 01:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -510,9 +510,9 @@ ImplDeDtor(FileOperationFailure)
 
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
-	: dir(new DirectoryFindData(path && *path != '\0' ? path : "."))
+	: dir(new DirectoryFindData(path && *path != char() ? path : "."))
 #else
-	: sDirPath(path && *path != '\0' ? path : "."),
+	: sDirPath(path && *path != char() ? path : "."),
 	dir(::opendir(sDirPath.c_str()))
 #endif
 {
@@ -641,7 +641,7 @@ IsAbsolute(const char* path)
 {
 #if YCL_Win32
 	return Deref(path) == YCL_PATH_DELIMITER
-		|| (*path != '\0' && path[1] == ':');
+		|| (*path != char() && path[1] == ':');
 #else
 	if(Deref(path) == '/')
 		return true;
@@ -655,7 +655,7 @@ bool
 IsAbsolute(const char16_t* path)
 {
 #if YCL_Win32
-	return Deref(path) == u'\\' || (*path != u'\0' && path[1] == u':');
+	return Deref(path) == u'\\' || (*path != char16_t() && path[1] == u':');
 #else
 	if(Deref(path) == u'/')
 		return true;

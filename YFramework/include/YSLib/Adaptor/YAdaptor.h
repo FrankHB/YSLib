@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1751
+\version r1755
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-04-24 06:26 +0800
+	2015-04-28 17:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,8 +57,6 @@ namespace YSLib
 //@{
 using platform::byte;
 using platform::octet;
-//! \since build 209
-using ystdex::errno_t;
 using platform::ptrdiff_t;
 using platform::size_t;
 using platform::wint_t;
@@ -164,7 +162,6 @@ using platform::dynamic_pointer_cast;
 using platform::enable_shared_from_this;
 using platform::get_deleter;
 using platform::make_shared;
-using platform::make_shared;
 using platform::make_unique;
 using platform::get_raw;
 using platform::owner_less;
@@ -177,13 +174,13 @@ using platform::unique_ptr;
 using platform::weak_ptr;
 
 using platform::lref;
+//@}
 
 /*!
 \brief 解锁删除器：使用线程模型对应的互斥量和锁。
 \since build 590
 */
 using platform::Threading::unlock_delete;
-//@}
 
 
 /*!

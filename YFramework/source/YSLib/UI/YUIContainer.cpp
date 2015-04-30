@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1923
+\version r1924
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2015-03-23 15:22 +0800
+	2015-04-29 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,7 +242,7 @@ bool
 MUIContainer::Contains(IWidget& wgt)
 {
 	return std::count_if(mWidgets.cbegin(), mWidgets.cend(),
-		[&](decltype(*mWidgets.cend()) pr){
+		[&](decltype(*mWidgets.cend()) pr) ynothrow{
 		return is_equal()(pr.second, wgt);
 	}) != 0;
 }

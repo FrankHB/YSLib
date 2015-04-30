@@ -11,13 +11,13 @@
 /*!	\file YWidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5786
+\version r5796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-22 20:02 +0800
+	2015-04-30 04:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -518,6 +518,18 @@ WrapRenderer(Widget& wgt, _tParams&&... args)
 	return UI::WrapRenderer(wgt, make_unique<_tRenderer>(yforward(args)...));
 }
 //@}
+
+
+/*!
+\brief 向无效化部件。
+\since build 594
+*/
+template<class... _tWidgets>
+inline void
+InvalidateWidgets(_tWidgets&... wgts)
+{
+	unseq_apply(static_cast<void(*)(IWidget&)>(Invalidate), wgts...);
+}
 
 } // namespace UI;
 

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3181
+\version r3182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-03-19 12:28 +0800
+	2015-04-28 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,7 @@ DSApplication::DSApplication()
 #elif YCL_Android
 	const auto h_wnd(&Android::FetchDefaultWindow());
 
-	GetEnvironmentRef().MapPoint = [](const Point& pt){
+	GetEnvironmentRef().MapPoint = [](const Point& pt) ynothrow{
 		// XXX: Use alternative implementation rather than Win32's.
 		const Rect
 			bounds(0, MainScreenHeight, MainScreenWidth, MainScreenHeight << 1);

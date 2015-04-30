@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env bash
 # (C) 2014-2015 FrankHB.
 # Script for testing.
 # Requires: G++, Tools/Scripts, YBase source.

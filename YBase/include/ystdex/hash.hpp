@@ -11,13 +11,13 @@
 /*!	\file hash.hpp
 \ingroup YStandardEx
 \brief 散列接口。
-\version r165
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:12:11 +0800
 \par 修改时间:
-	2015-03-31 11:03 +0800
+	2015-04-29 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_hash_hpp_
 #define YB_INC_ystdex_hash_hpp_ 1
 
-#include "tuple.hpp" // for ../ydef.h, ystdex::index_sequence, std::get,
-//	std::tuple, std::declval, ystdex::index_sequence_for, std::pair;
+#include "tuple.hpp" // for ../ydef.h, std::tuple, index_sequence, std::get,
+//	std::declval, index_sequence_for, std::pair;
 #include <functional> // for std::hash;
 #include <numeric> // for std::accumulate;
 
@@ -40,7 +40,7 @@ namespace ystdex
 \brief 散列扩展接口。
 \note 当前使用 Boost 定义的接口和近似实现。
 \see http://www.boost.org/doc/libs/1_54_0/doc/html/hash/reference.html#boost.hash_combine 。
-\since build 421
+\since build 594
 */
 //@{
 /*!
@@ -51,6 +51,7 @@ namespace ystdex
 template<typename _type>
 inline void
 hash_combine(size_t& seed, const _type& val)
+	ynoexcept_spec(std::hash<_type>()(val))
 {
 	seed ^= std::hash<_type>()(val) + 0x9E3779B9 + (seed << 6) + (seed >> 2);
 }
@@ -64,14 +65,17 @@ hash_combine(size_t& seed, const _type& val)
 template<typename _type>
 yconstfn size_t
 hash_combine_seq(size_t seed, const _type& val)
+	ynoexcept_spec(std::hash<_type>()(val))
 {
 	return ystdex::hash_combine(seed, val), seed;
 }
 template<typename _type, typename... _tParams>
 yconstfn size_t
-hash_combine_seq(size_t seed, const _type& x, const _tParams&... args)
+hash_combine_seq(size_t seed, const _type& val, const _tParams&... args)
+	ynoexcept_spec(std::hash<_type>()(val))
 {
-	return ystdex::hash_combine_seq(ystdex::hash_combine_seq(seed, x), args...);
+	return
+		ystdex::hash_combine_seq(ystdex::hash_combine_seq(seed, val), args...);
 }
 //@}
 

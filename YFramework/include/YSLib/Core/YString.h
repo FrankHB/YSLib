@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ystring.h
+/*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2171
+\version r2177
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2014-10-11 18:47 +0800
+	2015-04-28 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Core_ystring_h_
-#define YSL_INC_Core_ystring_h_ 1
+#ifndef YSL_INC_Core_YString_h_
+#define YSL_INC_Core_YString_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
@@ -126,7 +126,7 @@ public:
 	\since build 287
 	*/
 	PDefH(string, GetMBCS, Encoding enc = CS_Default) const
-		ImplRet(GetMBCSOf<string>(*this, enc))
+		ImplRet(MakeMBCS<string>(*this, enc))
 };
 
 /*!

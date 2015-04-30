@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.cpp
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r76
+\version r79
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2012-07-27 04:13:34 +0800
 \par 修改时间:
-	2014-12-01 16:36 +0800
+	2015-04-28 23:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,8 @@ yassert(bool expr, const char* expr_str, const char* file, int line,
 {
 	if(YB_UNLIKELY(!expr))
 	{
-		const auto chk_null([](const char* s){
-			return s && *s != '\0'? s : "<unknown>";
+		const auto chk_null([](const char* s) ynothrow{
+			return s && *s != char()? s : "<unknown>";
 		});
 
 		std::fprintf(stderr, "Assertion failed @ \"%s\":%i:\n"

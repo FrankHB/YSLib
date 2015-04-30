@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r480
+\version r491
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2014-12-02 18:44 +0800
+	2015-04-29 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,7 +204,7 @@ SettingPanel::SettingPanel()
 			/ 100U) - 1U],
 		Invalidate(ddlScrollTiming);
 	},
-	ddlScrollTiming.GetConfirmed() += [&, this](IndexEventArgs&& e){
+	ddlScrollTiming.GetConfirmed() += [&, this](IndexEventArgs&& e) ynothrow{
 		if(cbSmoothScroll.IsTicked())
 			smooth_scroll_duration = milliseconds((e.Value + 1U) * 10);
 		else
@@ -254,13 +254,15 @@ SettingPanel::operator>>(ReaderSetting& s)
 	auto& node(dynWgts.WidgetNode);
 	DeclDynWidgetN(CheckButton, cbSmoothScroll, node, "pnlPage3")
 
-	yunseq(s.UpColor = lblAreaUp.Background.target<SolidBrush>()->Color,
-		s.DownColor = lblAreaDown.Background.target<SolidBrush>()->Color,
-		s.FontColor = lblAreaUp.ForeColor,
-		s.Font = lblAreaUp.Font,
-		s.SmoothScroll = cbSmoothScroll.IsTicked(),
-		s.ScrollDuration = scroll_duration,
-		s.SmoothScrollDuration = smooth_scroll_duration);
+	yunseq(
+	s.UpColor = lblAreaUp.Background.target<SolidBrush>()->Color,
+	s.DownColor = lblAreaDown.Background.target<SolidBrush>()->Color,
+	s.FontColor = lblAreaUp.ForeColor,
+	s.Font = lblAreaUp.Font,
+	s.SmoothScroll = cbSmoothScroll.IsTicked(),
+	s.ScrollDuration = scroll_duration,
+	s.SmoothScrollDuration = smooth_scroll_duration
+	);
 	return *this;
 }
 

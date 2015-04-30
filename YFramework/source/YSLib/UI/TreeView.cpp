@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r715
+\version r717
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2015-04-24 22:24 +0800
+	2015-04-29 00:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,7 +270,7 @@ TreeList::Bind(size_t max_depth)
 		if(depth < max_depth && node.GetSize() != 0)
 			expanded.insert(pth);
 		++index;
-	}, [=](const NodePath&, size_t depth){
+	}, [=](const NodePath&, size_t depth) ynothrow{
 		return depth < max_depth;
 	}, NodePath());
 	if(index != IndexType(-1))
@@ -404,7 +404,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 			YAssert(i->first < lst.size(), "Invalid list found.");
 
 			auto j(std::find_if_not(i, indent_map.cend(),
-				[&, idt](decltype(*i) pr){
+				[&, idt](decltype(*i) pr) ynothrow{
 				return idt < pr.second;
 			}));
 

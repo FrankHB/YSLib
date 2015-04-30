@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1116
+\version r1121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-04-24 05:56 +0800
+	2015-04-29 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,18 +66,18 @@ FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 }
 
 ::FreeImageIO u8_io{
-	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h){
+	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h) ynothrow{
 		return unsigned(std::fread(buffer, size_t(size),
 			size_t(nmemb), static_cast<std::FILE*>(h)));
 	},
-	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h){
+	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h) ynothrow{
 		return unsigned(std::fwrite(buffer, size_t(size),
 			size_t(nmemb), static_cast<std::FILE*>(h)));
 	},
-	[](::fi_handle h, long offset, int whence){
+	[](::fi_handle h, long offset, int whence) ynothrow{
 		return std::fseek(static_cast<std::FILE*>(h), offset, whence);
 	},
-	[](::fi_handle h){
+	[](::fi_handle h) ynothrow{
 		return std::ftell(static_cast<std::FILE*>(h));
 	}
 };
@@ -175,7 +175,7 @@ GetFormatFromFilename(const char16_t* filename)
 
 	for(size_t i{}; i < len; ++i)
 		str[i] = CHRLib::ToASCII(filename[i]);
-	str[len] = u'\0';
+	str[len] = char();
 	return ImageFormat(::FreeImage_GetFIFFromFilename(str));
 }
 

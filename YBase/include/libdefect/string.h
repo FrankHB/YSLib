@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<string\> 修正。
-\version r649
+\version r650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2015-03-19 15:32 +0800
+	2015-04-28 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #define YB_INC_libdefect_string_h_ 1
 
 #include <string>
+#include <cwchar>
 #include "cstdio.h" // for std::vsnprintf;
 
 // See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .

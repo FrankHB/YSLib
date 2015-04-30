@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r990
+\version r991
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2015-03-28 22:45 +0800
+	2015-04-30 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,7 +244,7 @@ public:
 	any_input_iterator(_tIter&& i)
 		: any()
 	{
-		using param_obj_type = typename remove_rcv<_tIter>::type;
+		using param_obj_type = remove_rcv_t<_tIter>;
 		using handler = any_ops::input_iterator_handler<param_obj_type>;
 
 		static_assert(is_convertible<decltype(*std::declval<typename

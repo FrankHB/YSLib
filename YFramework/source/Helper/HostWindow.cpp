@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r539
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2015-04-11 03:21 +0800
+	2015-04-29 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 	MessageMap[WM_KILLFOCUS] += []{
 		platform_ex::ClearKeyStates();
 	},
-	MessageMap[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param){
+	MessageMap[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param) ynothrow{
 		byte lpb[sizeof(::RAWINPUT)]{};
 		unsigned size(sizeof(lpb));
 

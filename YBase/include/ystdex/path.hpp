@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r746
+\version r749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-04-11 01:43 +0800
+	2015-04-29 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,11 +155,11 @@ enum class path_category : yimpl(size_t)
 /*!
 \brief 路径分类。
 \relates path_category
-\since build 543
+\since build 594
 */
 template<typename _tNorm, class _tString>
 path_category
-classify_path(const _tString& name, _tNorm&& norm = _tNorm())
+classify_path(const _tString& name, _tNorm&& norm = _tNorm()) ynothrow
 {
 	if(YB_UNLIKELY(name.empty()))
 		return path_category::empty;
@@ -333,7 +333,7 @@ public:
 	{
 		auto& nm(get_norm());
 
-		ystdex::erase_all_if(*this, [&](const value_type& s){
+		ystdex::erase_all_if(*this, [&](const value_type& s) ynothrow{
 			return nm.is_self(s);
 		});
 	}

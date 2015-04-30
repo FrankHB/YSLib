@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2220
+\version r2255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-04-10 01:16 +0800
+	2015-04-29 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,9 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "tuple.hpp" // for ../ydef.h, ystdex::vseq::join_n_t,
-//	ystdex::make_index_sequence, std::tuple_size;
-#include <memory> // for std::addressof;
-#include "ref.hpp" // for ystdex::wrapped_traits;
+#include "tuple.hpp" // for ../ydef.h, std::tuple_size, vseq::join_n_t,
+//	make_index_sequence;
+#include "ref.hpp" // for wrapped_traits;
 #include <string> // for std::char_traits;
 
 namespace ystdex
@@ -69,13 +68,12 @@ struct is_contravariant<std::function<_tResFrom(_tFromParams...)>,
 {};
 
 
-/*!
-\brief 统计函数参数列表中的参数个数。
-\since build 360
-*/
+//! \since build 594
+//@{
+//! \brief 统计函数参数列表中的参数个数。
 template<typename... _tParams>
 yconstfn size_t
-sizeof_params(_tParams&&...)
+sizeof_params(_tParams&&...) ynothrow
 {
 	return sizeof...(_tParams);
 }
@@ -88,9 +86,10 @@ sizeof_params(_tParams&&...)
 template<size_t _vN>
 struct variadic_param
 {
+	//! \since build 594
 	template<typename _type, typename... _tParams>
 	static yconstfn auto
-	get(_type&&, _tParams&&... args)
+	get(_type&&, _tParams&&... args) ynothrow
 		-> decltype(variadic_param<_vN - 1>::get(yforward(args)...))
 	{
 		static_assert(sizeof...(args) == _vN,
@@ -103,9 +102,10 @@ struct variadic_param
 template<>
 struct variadic_param<0U>
 {
+	//! \since build 594
 	template<typename _type>
 	static yconstfn auto
-	get(_type&& arg) -> decltype(yforward(arg))
+	get(_type&& arg) ynothrow -> decltype(yforward(arg))
 	{
 		return yforward(arg);
 	}
@@ -118,8 +118,8 @@ struct variadic_param<0U>
 \tparam _vN 表示参数位置的非负数，从左开始计数，第一个参数为 0 。
 */
 template<size_t _vN, typename... _tParams>
-yconstexpr auto
-varg(_tParams&&... args)
+yconstfn auto
+varg(_tParams&&... args) ynothrow
 	-> decltype(variadic_param<_vN>::get(yforward(args)...))
 {
 	static_assert(_vN < sizeof...(args),
@@ -132,54 +132,51 @@ varg(_tParams&&... args)
 
 //! \see 关于调用参数类型： ISO C++11 30.3.1.2[thread.thread.constr] 。
 //@{
-/*!
-\brief 顺序链式调用。
-\since build 537
-*/
+//! \brief 顺序链式调用。
 //@{
 template<typename _func>
 inline void
-chain_apply(_func&& f)
+chain_apply(_func&& f) ynothrow
 {
 	return yforward(f);
 }
 template<typename _func, typename _type, typename... _tParams>
 inline void
 chain_apply(_func&& f, _type&& arg, _tParams&&... args)
+	ynoexcept_spec(ystdex::chain_apply(
+	yforward(yforward(f)(yforward(arg))), yforward(args)...))
 {
 	return ystdex::chain_apply(yforward(yforward(f)(yforward(arg))),
 		yforward(args)...);
 }
 //@}
 
-/*!
-\brief 顺序递归调用。
-\since build 327
-*/
+//! \brief 顺序递归调用。
 //@{
 template<typename _func>
 inline void
-seq_apply(_func&&)
+seq_apply(_func&&) ynothrow
 {}
 template<typename _func, typename _type, typename... _tParams>
 inline void
 seq_apply(_func&& f, _type&& arg, _tParams&&... args)
+	ynoexcept(noexcept(yforward(f)(yforward(arg)))
+	&& noexcept(ystdex::seq_apply(yforward(f), yforward(args)...)))
 {
 	yforward(f)(yforward(arg));
 	ystdex::seq_apply(yforward(f), yforward(args)...);
 }
 //@}
 
-/*!
-\brief 无序调用。
-\since build 327
-*/
+//! \brief 无序调用。
 template<typename _func, typename... _tParams>
 inline void
 unseq_apply(_func&& f, _tParams&&... args)
+	ynoexcept_spec(yunseq((void(yforward(f)(yforward(args))), 0)...))
 {
 	yunseq((void(yforward(f)(yforward(args))), 0)...);
 }
+//@}
 //@}
 
 

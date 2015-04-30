@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1802
+\version r1835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-04-24 03:59 +0800
+	2015-04-28 17:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,32 +178,10 @@ inline PDefH(bool, IsNowShell, const shared_ptr<Shell>& hShl)
 
 /*!
 \brief 向句柄指定的 Shell 对象转移线程控制权。
-\since 早于 build 132
+\since build 594
 */
-inline PDefH(errno_t, NowShellTo, const shared_ptr<Shell>& hShl)
-	ImplRet(-!Activate(hShl))
-
-/*!
-\brief 向新建 Shell 对象转移控制权。
-\since 早于 build 132
-*/
-template<class _tShl>
-inline errno_t
-NowShellToNew()
-{
-	return NowShellTo(new _tShl());
-}
-
-/*!
-\brief 向全局 Shell 管理器的对象转移控制权。
-\since 早于 build 132
-*/
-template<class _tShl>
-inline errno_t
-NowShellToStored()
-{
-	return NowShellTo(FetchStored<_tShl>());
-}
+inline PDefH(void, NowShellTo, const shared_ptr<Shell>& hShl)
+	ImplExpr(Activate(hShl))
 
 /*!
 \brief 通过主消息队列向指定 Shell 对象转移控制权。
@@ -235,17 +213,6 @@ inline void
 SetShellToStored()
 {
 	SetShellTo(FetchStored<_tShl>());
-}
-
-/*!
-\brief 封装向全局 Shell 管理器内的对象转移控制权。
-\since 早于 build 132
-*/
-template<class _tShl>
-inline void
-CallStoredAtOnce()
-{
-	NowShellToStored<_tShl>();
 }
 
 /*!

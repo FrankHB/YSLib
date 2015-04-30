@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r384
+\version r388
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2015-03-29 00:46 +0800
+	2015-04-29 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,7 @@
 #ifndef YB_INC_ystdex_functor_hpp_
 #define YB_INC_ystdex_functor_hpp_ 1
 
-#include "ref.hpp" // for std::addressof, ystdex::enable_if_t,
-//	ystdex::wrapped_traits;
+#include "ref.hpp" // for std::addressof, enable_if_t, wrapped_traits;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
 
@@ -96,10 +95,11 @@ struct is_equal
 {
 	//! \since build 554
 	//@{
+	//! \since build 594
 	template<typename _type1, typename _type2>
 	yconstfn yimpl(enable_if_t)<!wrapped_traits<_type1>::value
 		&& !wrapped_traits<_type2>::value, bool>
-	operator()(const _type1& x, const _type2& y) const
+	operator()(const _type1& x, const _type2& y) const ynoexcept_spec(x == y)
 	{
 		return x == y;
 	}

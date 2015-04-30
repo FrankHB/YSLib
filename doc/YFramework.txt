@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1089
+\version r1096
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-04-24 07:47 +0800
+	2015-04-27 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,7 +327,7 @@ YFramework 最核心的部分是 YSLib 库，除了本文档描述外，参见 [
 YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3rdparty/" 目录下。其它部分的原始目录为 "/YFramework" 。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
 当前第三方库和 YFramework 其它部分编译为单独的目标（静态库或动态库）。
 公开 API 以宏 YF_API 标识。
-在 Win32 平台上支持动态库。构建动态库时需定义 YF_BUILD_DLL ；此外，使用动态库时需定义 YF_DLL 。
+构建动态库时需定义 YF_BUILD_DLL ；此外，使用动态库时需定义 YF_DLL 。当前在 Win32 平台上支持动态库。
 关于 YFramework 依赖的外部项目（包括平台支持和基础库 YBase([Documentation::YBase]) ）的关联和配置参见 [Documentation::Designation @@5] 。
 
 @2.1.2 附加库：
@@ -338,18 +338,19 @@ YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3
 另一部分总是依赖 YSLib 库，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 基础附加库被 YSLib 库的 Adaptor 直接依赖，其它附加库不应被这些组件依赖。
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
-YCLib 除平台扩展外不依赖 YSLib ，被作为 YSLib 平台中立接口和实现的基础适配层； Helper 依赖 YSLib 。
+YCLib 除平台扩展外不依赖 YSLib ，被作为 YSLib 平台中立([Documentation::CommonRules @@2.2.2]) 接口和实现的基础适配层； Helper 依赖 YSLib 。
 其它附加库没有平台扩展且只依赖 YSLib 库的 Core 和 Service ，但当前不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立至 YFramework 外）。
+注意平台中立文件不一定只包括接口，可能通过条件包含等方式包含了非平台中立的非公开接口。
 
 @2.1.2.2 命名空间规则：
-除了 Helper ，这些库不直接在 YSLib 命名空间中添加声明参见。
+除了 Helper ，这些库不直接在 YSLib 命名空间中添加声明。
 关于引入的命名空间，参见 @2.3.2 。
 
 @2.1.3 平台相关性：
 综上所述， YFramework 有以下非第三方次级子项目： CHRLib 、 YCLib 、 YSLib 、 NPL 和 Helper 。
 只有 YCLib 和 Helper 存在平台扩展，不保证接口或实现平台中立；另见 @2.1.4 。
 除了上述接口， YFramework 公开接口是平台中立的：其它组件（附加库和 YSLib 库）没有平台扩展，公开接口保证平台中立，特定具体平台的功能扩展由 Helper 提供。
-平台扩展一般直接作为目标平台的接口，但也可以包括仅供实际目标平台模拟的接口。
+平台扩展一般直接作为目标平台的接口，但也可以包括专用于模拟目标平台([Documentation::CommonRules @@2.2.4]) 的接口。
 使用 YCLib::Platform 中定义的平台宏([Documentation Designation @@5.2.2.4.1]) 确定程序实际运行的目标平台。
 
 @2.1.3.1 接口使用限制：
@@ -421,7 +422,7 @@ Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.2.7 Helper 文件依赖性：
-Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
+除 @2.2.1 限制外，Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
 
 @2.3 名称：
 对模块，基本使用参见 [Documentation::ProjectRules @@3.2] 。
@@ -565,7 +566,7 @@ Helper 定义的类型若适用于不同平台，不保证二进制兼容性，�
 
 @2.8.1 内联平台模块：
 使用内联模块 [Documentation::ProjectRules @@3.2.2] 提供匹配特定平台主要功能的移植支持。
-除了和目标平台一致的接口外，当前支持以下平台模拟：
+除了和目标平台一致的接口外，当前支持以下平台的模拟([Documentation::CommonRules @@2.2.4]) ：
 MinGW32 模拟 DS 。
 
 @2.8.2 YGlobal 单元：

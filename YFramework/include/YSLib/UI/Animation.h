@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r436
+\version r440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2015-03-16 16:42 +0800
+	2015-04-28 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,7 +192,7 @@ template<class _tAnimation, typename _func>
 void
 Setup(_tAnimation& ani, IWidget& wgt, _func f)
 {
-	UI::Restart(ani, wgt, [f](IWidget&){
+	UI::Restart(ani, wgt, [f](IWidget&) ynoexcept_spec(f()){
 		f();
 		return true;
 	});
@@ -201,7 +201,8 @@ template<class _tAnimation, typename _func, typename _fCond>
 void
 Setup(_tAnimation& ani, IWidget& wgt, _fCond cond, _func f)
 {
-	UI::Restart(ani, wgt, [cond, f](IWidget&){
+	UI::Restart(ani, wgt,
+		[cond, f](IWidget&) ynoexcept(noexcept(cond()) && noexcept(f())){
 		if(cond())
 			f();
 		return true;
@@ -214,7 +215,7 @@ template<class _tAnimation, typename _func, typename _tTimer>
 void
 SetupByTimer(_tAnimation& ani, IWidget& wgt, _tTimer&& timer, _func f)
 {
-	UI::Setup(ani, wgt, [&]{
+	UI::Setup(ani, wgt, [&]() ynoexcept_spec(timer.Refresh()){
 		return timer.Refresh();
 	}, f);
 }

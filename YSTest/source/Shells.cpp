@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6371
+\version r6375
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2014-09-10 01:53 +0800
+	2015-04-29 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,14 +94,14 @@ shared_ptr<Image>&
 FetchImage(size_t i)
 {
 	static Color(*const p_bg[Image_N])(SDst, SDst){
-		[](SDst x, SDst y)->Color{
+		[](SDst x, SDst y) ynothrow -> Color{
 			return {~(x * y) >> 2, x | y | 128, 240 - ((x & y) >> 1)};
 		},
-		[](SDst x, SDst y)->Color{
+		[](SDst x, SDst y) ynothrow -> Color{
 			return {(x << 4) / (y | 1), (x | y << 1) % (y + 2),
 				(~y | x << 1) % 27 + 3};
 		},
-		[](SDst x, SDst y)->Color{
+		[](SDst x, SDst y) ynothrow -> Color{
 			return {~(x * y) >> 2, x | y | 128, 240 - ((x & y) >> 1)};
 		}
 	};

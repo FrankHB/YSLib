@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r141
+\version r142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2015-04-24 04:05 +0800
+	2015-04-29 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,7 +100,7 @@ JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM& vm, ::JNIEnv& env)
 	ythread JNIBase guard(vm, env);
 #		elif YF_Use_POSIXThread
 
-	static TLSKey key([](void* p){
+	static TLSKey key([](void* p) ynothrow{
 		delete static_cast<JNIBase*>(p);
 	});
 

@@ -11,13 +11,13 @@
 /*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1327
+\version r1355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-03-21 18:55 +0800
+	2015-04-30 04:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,6 +44,28 @@ using CharSet::Encoding;
 \since build 287
 */
 yconstexpr Encoding CS_Default = CharSet::UTF_8;
+
+
+/*!
+\ingroup metafunctions
+\brief 取指定字符类型对应的默认定长编码。
+\since build 594
+*/
+//@{
+template<typename _tChar>
+struct MapFixedEncoding : std::integral_constant<Encoding, CS_Default>
+{};
+
+template<>
+struct MapFixedEncoding<ucs2_t>
+	: std::integral_constant<Encoding, CharSet::csUnicode>
+{};
+
+template<>
+struct MapFixedEncoding<ucs4_t>
+	: std::integral_constant<Encoding, CharSet::csUCS4>
+{};
+//@}
 
 
 /*!
@@ -82,9 +104,10 @@ enum class ConversionResult
 struct ConversionState
 {
 	/*!
-	\brief 当前已转换字符计数。
+	\brief 当前状态索引。
+	\since build 594
 	*/
-	std::uint_fast8_t Count;
+	std::uint_fast8_t Index;
 	union
 	{
 		ucsint_t Wide;
@@ -97,14 +120,15 @@ struct ConversionState
 
 	yconstfn
 	ConversionState(size_t n = 0)
-		: Count(std::uint_fast8_t(n)), Value()
+		: Index(std::uint_fast8_t(n)), Value()
 	{}
 };
 
 //! \relates ConversionState
 //@{
-yconstfn PDefH(std::uint_fast8_t&, GetCountOf, ConversionState& st)
-	ImplRet(st.Count)
+//! \since build 594
+yconstfn PDefH(std::uint_fast8_t&, GetIndexOf, ConversionState& st)
+	ImplRet(st.Index)
 yconstfn PDefH(ucsint_t&, GetWideOf, ConversionState& st)
 	ImplRet(st.Value.Wide)
 yconstfn PDefH(byte*, GetSequenceOf, ConversionState& st)
@@ -113,12 +137,12 @@ yconstfn PDefH(byte*, GetSequenceOf, ConversionState& st)
 
 
 /*!
-\brief 一般类型计数。
-\since build 273
+\brief 取一般状态类型索引。
+\since build 594
 */
 template<typename _type>
 yconstfn _type&
-GetCountOf(_type& st)
+GetIndexOf(_type& st)
 {
 	return st;
 }

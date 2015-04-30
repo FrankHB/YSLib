@@ -1,5 +1,5 @@
-#!/usr/bin/sh
-# (C) 2014 FrankHB.
+#!/usr/bin/env sh
+# (C) 2014-2015 FrankHB.
 # Script for make standalone Android Clang toolchain based on NDK r9d x86_64.
 
 set -e

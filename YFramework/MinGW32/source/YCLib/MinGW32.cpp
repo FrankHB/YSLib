@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r735
+\version r736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-04-25 16:48 +0800
+	2015-04-28 01:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -365,7 +365,7 @@ FetchRegistryString(const RegistryKey& key, const wchar_t* name)
 		if(pr.first == REG_SZ && !pr.second.empty())
 			// TODO: Improve performance?
 			return ystdex::rtrim(wstring(reinterpret_cast<const wchar_t*>(
-				&pr.second[0]), pr.second.size() / 2), L'\0');
+				&pr.second[0]), pr.second.size() / 2), wchar_t());
 	}
 	catch(Win32Exception&)
 	{}

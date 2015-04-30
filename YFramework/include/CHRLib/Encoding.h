@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file encoding.h
+/*!	\file Encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r600
+\version r685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 242
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-12-24 09:41 +0800
+	2015-04-28 17:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,13 @@
 
 #include "YModules.h"
 #include YFM_CHRLib_CHRDefinition
+#include <ystdex/cstdint.hpp> // for ystdex::byte_order;
 
 namespace CHRLib
 {
+
+//! \since build 594
+using ByteOrder = ystdex::byte_order;
 
 namespace CharSet
 {
@@ -41,22 +45,27 @@ namespace CharSet
 \brief 字符流编码标识。
 \note MIB(management information base) 是
 	SNMP(simple network management protocal ，简单网络管理协议) 和
-	OSI/ISO 网络管理模型上下文中的虚拟数据库，参见
- http://en.wikipedia.org/wiki/Management_information_base 。
+	OSI/ISO 网络管理模型上下文中的虚拟数据库。
 \note 由于历史原因， CharSet（字符集）和相关概念在此作为文本编码的同义词，
-	但不是确切的用法，参见 http://www.iana.org/assignments/ianacharset-mib 。
-\note 完整枚举项的详细信息参见 http://www.iana.org/assignments/character-sets 。
+	但不是确切的用法。
+\see http://www.iana.org/assignments/character-sets 。
+\see http://www.iana.org/assignments/ianacharset-mib 。
+\see http://en.wikipedia.org/wiki/Management_information_base 。
 \since build 416
 
 编码字符集：使用 IANA 官方字符集名称和 MIBenum（MIB 枚举）。
 */
 enum Encoding
 {
-	//保留。
-	Null = 0, //!< 空字符集。
-	Reserved_1 = 1,
-	Reserved_2 = 2,
-
+	//! \note 保留。
+	//@{
+	//! \brief 空字符集。
+	Null = 0,
+	//! \since build 594
+	other = 1,
+	//! \since build 594
+	unknown = 2,
+	//@}
 	csASCII = 3,
 	csISOLatin1 = 4,
 	csISOLatin2 = 5,
@@ -366,6 +375,82 @@ yconstexpr Encoding
 
 	EUC_CN_(GB2312), windows_51936_(GB2312),
 	windows_950_(Big5);
+
+
+/*!
+\ingroup metafunctions
+\brief 取编码对应的字符类型。
+\note 对于变长编码取最小宽度对应的字符类型。
+\since build 594
+\todo 添加特化。
+*/
+//@{
+template<Encoding>
+struct EncodingTraits
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	using type = char;
+};
+
+template<>
+struct EncodingTraits<csUTF8>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::neutral;
+	using type = char;
+};
+
+template<>
+struct EncodingTraits<csUnicode>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	using type = ucs2_t;
+};
+
+template<>
+struct EncodingTraits<csUCS4>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	using type = ucs4_t;
+};
+
+template<>
+struct EncodingTraits<csUTF16>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	using type = ucs2_t;
+};
+
+template<>
+struct EncodingTraits<csUTF16BE> : EncodingTraits<csUTF16>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::big;
+};
+
+template<>
+struct EncodingTraits<csUTF16LE> : EncodingTraits<csUTF16>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::little;
+};
+
+template<>
+struct EncodingTraits<csUTF32>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	using type = ucs4_t;
+};
+
+template<>
+struct EncodingTraits<csUTF32BE> : EncodingTraits<csUTF32>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::big;
+};
+
+template<>
+struct EncodingTraits<csUTF32LE> : EncodingTraits<csUTF32>
+{
+	static yconstexpr ByteOrder byte_order = ByteOrder::little;
+};
+//@}
 
 } // namespace CharSet;
 

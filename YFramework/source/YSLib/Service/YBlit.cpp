@@ -11,13 +11,13 @@
 /*!	\file YBlit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1084
+\version r1086
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2015-03-29 12:11 +0800
+	2015-04-26 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,8 +81,7 @@ CopyBuffer(const Graphics& dst, const ConstGraphics& src)
 		"are not same.");
 
 	if(YB_LIKELY(Nonnull(dst.GetBufferPtr()) != Nonnull(src.GetBufferPtr())))
-		std::copy_n(src.GetBufferPtr(), GetAreaOf(src.GetSize()),
-			dst.GetBufferPtr());
+		CopyBitmapBuffer(dst.GetBufferPtr(), src.GetBufferPtr(), src.GetSize());
 }
 
 void

@@ -1,5 +1,5 @@
-#!/usr/bin/bash
-# (C) 2014 FrankHB.
+#!/usr/bin/env bash
+# (C) 2014-2015 FrankHB.
 # Revision patching script: patching source revisions using RevisionPatcher.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
