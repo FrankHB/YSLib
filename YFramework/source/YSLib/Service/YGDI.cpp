@@ -11,13 +11,13 @@
 /*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2961
+\version r2968
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-03-29 12:09 +0800
+	2015-04-26 03:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ CompactPixmap::CompactPixmap(ConstBitmapPtr i, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(i)
-		std::copy_n(i, GetAreaOf(GetSize()), GetBufferPtr());
+		CopyBitmapBuffer(GetBufferPtr(), i, GetSize());
 }
 CompactPixmap::CompactPixmap(unique_ptr<Pixel[]> p, const Size& s) ynothrow
 	: BaseType(std::move(p), s)
@@ -112,7 +112,7 @@ CompactPixmap::CompactPixmap(const CompactPixmap& buf)
 {
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
-		std::copy_n(p, GetAreaOf(GetSize()), GetBufferPtr());
+		CopyBitmapBuffer(GetBufferPtr(), p, GetSize());
 }
 
 void
@@ -120,7 +120,7 @@ CompactPixmap::SetContent(ConstBitmapPtr s, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(YB_LIKELY(pBuffer && s))
-		std::copy_n(s, GetAreaOf(GetSize()), pBuffer.get());
+		CopyBitmapBuffer(pBuffer.get(), s, GetSize());
 }
 void
 CompactPixmap::SetSize(const Size& s)
@@ -153,7 +153,7 @@ CompactPixmapEx::CompactPixmapEx(ConstBitmapPtr i, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(i)
-		std::copy_n(i, GetAreaOf(GetSize()), pBuffer.get());
+		CopyBitmapBuffer(pBuffer.get(), i, GetSize());
 }
 CompactPixmapEx::CompactPixmapEx(const CompactPixmapEx& buf)
 	: CompactPixmapEx()
@@ -161,9 +161,9 @@ CompactPixmapEx::CompactPixmapEx(const CompactPixmapEx& buf)
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
 	{
-		std::copy_n(p, GetAreaOf(GetSize()), pBuffer.get()),
-		std::copy_n(buf.GetBufferAlphaPtr(), GetAreaOf(GetSize()),
-			pBufferAlpha.get());
+		CopyBitmapBuffer(pBuffer.get(), p, GetSize()),
+		CopyBitmapBuffer(pBufferAlpha.get(), buf.GetBufferAlphaPtr(),
+			GetSize());
 	}
 }
 

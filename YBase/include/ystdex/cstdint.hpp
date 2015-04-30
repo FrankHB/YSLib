@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r197
+\version r210
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-04-09 20:21 +0800
+	2015-04-31 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,21 @@
 
 namespace ystdex
 {
+
+/*!
+\brief 字节序。
+\since build 594
+\todo 使用单独的头文件。
+*/
+enum class byte_order
+{
+	unknown = 0,
+	neutral = 1,
+	little = 2,
+	big = 3,
+	PDP = 4
+};
+
 
 /*!
 \ingroup unary_type_traits

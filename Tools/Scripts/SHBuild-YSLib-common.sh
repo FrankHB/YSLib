@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 # (C) 2014-2015 FrankHB.
 # Script for build YSLib using SHBuild.
 

@@ -229,7 +229,7 @@
     <ClInclude Include="include\YSLib\Core\YShell.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ystring.h">
+    <ClInclude Include="include\YSLib\Core\YString.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Service\YTimer.h">
@@ -331,7 +331,7 @@
     <ClInclude Include="include\CHRLib\CharacterProcessing.h">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\CHRLib\encoding.h">
+    <ClInclude Include="include\CHRLib\Encoding.h">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
     <ClInclude Include="include\CHRLib\StaticMapping.hpp">

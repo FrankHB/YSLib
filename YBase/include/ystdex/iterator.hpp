@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5093
+\version r5119
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-04-10 17:59 +0800
+	2015-04-30 04:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,8 @@
 
 #include "iterator_op.hpp" // for std::reverse_iterator, std::pair,
 //	std::make_move_iterator, std::iterator_traits, yconstraint, yassume,
-//	ystdex::*_tag, ystdex::is_undereferenceable;
-#include "operators.hpp" // for ystdex::random_access_iteratable,
-//	std::addressof;
+//	*_tag, is_undereferenceable;
+#include "operators.hpp" // for random_access_iteratable, std::addressof;
 
 namespace ystdex
 {
@@ -739,16 +738,16 @@ operator|(_tIter&& i, get_tag)
 \note 成员迭代器需可复制构造，满足随机迭代器要求（但不需要 + 和 - ）。
 \warning 非虚析构。
 
-拼接两个迭代器对得到的迭代器适配器，以第一个为主迭代器的迭代器适配器。
+拼接迭代器和另一对象类型对得到的迭代器适配器。
 */
-template<typename _tMaster, typename _tSlave,
-	class _tTraits = std::iterator_traits<_tMaster>>
-class pair_iterator : private std::pair<_tMaster, _tSlave>, public
-	iterator_operators_t<pair_iterator<_tMaster, _tSlave, _tTraits>, _tTraits>
+template<typename _tIter, typename _tSlave,
+	class _tTraits = std::iterator_traits<_tIter>>
+class pair_iterator : private std::pair<_tIter, _tSlave>, public
+	iterator_operators_t<pair_iterator<_tIter, _tSlave, _tTraits>, _tTraits>
 {
 public:
-	using pair_type = std::pair<_tMaster, _tSlave>;
-	using iterator_type = _tMaster;
+	using pair_type = std::pair<_tIter, _tSlave>;
+	using iterator_type = _tIter;
 	//! \since build 400
 	using traits_type = _tTraits;
 	using iterator_category = typename traits_type::iterator_category;
@@ -760,18 +759,20 @@ public:
 	yconstfn
 	pair_iterator() = default;
 	explicit yconstfn
-	pair_iterator(const _tMaster& _i)
-		: std::pair<_tMaster, _tSlave>(_i, _tSlave())
+	pair_iterator(const _tIter& i)
+		: std::pair<_tIter, _tSlave>(i, _tSlave())
 	{}
 	yconstfn
-	pair_iterator(const _tMaster& _i, const _tSlave& _s)
-		: std::pair<_tMaster, _tSlave>(_i, _s)
+	pair_iterator(const _tIter& i, const _tSlave& s)
+		: std::pair<_tIter, _tSlave>(i, s)
 	{}
 	yconstfn
 	pair_iterator(const pair_iterator&) = default;
+	//! \since build 594
 	yconstfn
-	pair_iterator(pair_iterator&& _r)
-		: std::pair<_tMaster, _tSlave>(std::move(_r))
+	pair_iterator(pair_iterator&& r) ynoexcept(is_nothrow_constructible<
+		std::pair<_tIter, _tSlave>, pair_iterator&&>::value)
+		: std::pair<_tIter, _tSlave>(std::move(r))
 	{}
 
 	inline pair_iterator&
@@ -781,8 +782,8 @@ public:
 	//! \since build 458 as workaround for Visual C++ 2013
 	operator=(pair_iterator&& i)
 	{
-		static_cast<std::pair<_tMaster, _tSlave>&>(*this)
-			= static_cast<std::pair<_tMaster, _tSlave>&&>(i);
+		static_cast<std::pair<_tIter, _tSlave>&>(*this)
+			= static_cast<std::pair<_tIter, _tSlave>&&>(i);
 		return *this;
 	}
 #else
@@ -836,17 +837,19 @@ public:
 		return *this;
 	}
 
+	//! \since build 594
 	friend bool
 	operator==(const pair_iterator& x, const pair_iterator& y)
-		ynoexcept_spec(bool(x.first == y.first && x.second == y.second()))
+		ynoexcept_spec(bool(x.first == y.first && x.second == y.second))
 	{
-		return x.first == y.first && x.second == y.second();
+		return x.first == y.first && x.second == y.second;
 	}
 
+	//! \since build 594
 	template<typename _tFirst, typename _tSecond,
-		yimpl(typename = enable_if_convertible_t<_tMaster, _tFirst>,
+		yimpl(typename = enable_if_convertible_t<_tIter, _tFirst>,
 		typename = enable_if_convertible_t<_tSlave, _tSecond>)>
-	operator std::pair<_tFirst, _tSecond>() ynoexcept(
+	operator std::pair<_tFirst, _tSecond>() const ynoexcept(
 		std::is_nothrow_copy_constructible<std::pair<_tFirst, _tSecond>()>
 		::value && noexcept(std::pair<_tFirst, _tSecond>(std::declval<
 		pair_iterator&>().first, std::declval<pair_iterator&>().second)))

@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r167
+\version r168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-03-21 18:54 +0800
+	2015-04-29 06:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ CHRLib 的实现抽象 f 、 g 和 h ，表达它们的一些典型具体实例�
 
 @2.3 限制：
 除 UTF-8 外编码映射 API 仅支持解码，不支持编码。
-除直接使用基于 GUCS2Mapper 实现的编码映射 API 外，当前 Unicode 转换 API 仅支持基本多文种平面(BMP) 代码点。
+除直接使用基于 GUCSMapper 实现的编码映射 API 外，当前 Unicode 转换 API 仅支持基本多文种平面(BMP) 代码点。
 当前未实现默认字符，需要用户另行处理。
 
 @3 API 设计和风格概述：

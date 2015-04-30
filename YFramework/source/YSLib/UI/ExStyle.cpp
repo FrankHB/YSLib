@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r360
+\version r365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2015-03-24 21:05 +0800
+	2015-04-29 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,8 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 			{
 				const Color tc(HSL(165, 0.4F, 0.16F).Roll(base_hue));
 
-				TransformRect(g, bounds & Rect(pt, s), [=](BitmapPtr dst){
+				TransformRect(g, bounds & Rect(pt, s),
+					[=](BitmapPtr dst) ynothrowv{
 					const Color d(*dst);
 
 					*dst = Color(d.GetR() ^ tc.GetR(), d.GetG() ^ tc.GetG(),
@@ -124,7 +125,7 @@ RectDrawSelector_Aoi(void(*f)(const PaintContext&, const Size&, const bool[],
 	const Color[], size_t), const PaintContext& pc, Thumb& tmb, bool is_ticked)
 {
 	const Hue base_hue(tmb.GetHue());
-	const auto roll([=](float h, float s, float l){
+	const auto roll([=](float h, float s, float l) ynothrow{
 		return Color(HSL(h, s, l).Roll(base_hue));
 	});
 	const Color colors[]{MakeGray(177), MakeGray(143), roll(2.3F, .315F, .486F),
@@ -136,7 +137,8 @@ RectDrawSelector_Aoi(void(*f)(const PaintContext&, const Size&, const bool[],
 	const bool ctl_states[]{IsFocused(tmb), IsEnabled(tmb),
 		IsFocusedByShell(tmb), is_ticked};
 
-	f(pc, GetSizeOf(tmb), ctl_states, colors, [](CursorState s)->size_t{
+	f(pc, GetSizeOf(tmb), ctl_states, colors,
+		[](CursorState s) ynothrow -> size_t{
 		switch(s)
 		{
 		case CursorState::Outside:

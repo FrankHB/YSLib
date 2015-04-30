@@ -156,11 +156,11 @@
 		<Unit filename="../include/CHRLib/CharacterMapping.h" />
 		<Unit filename="../include/CHRLib/CharacterProcessing.h" />
 		<Unit filename="../include/CHRLib/Convert.hpp" />
+		<Unit filename="../include/CHRLib/Encoding.h" />
 		<Unit filename="../include/CHRLib/MapEx.h" />
 		<Unit filename="../include/CHRLib/StaticMapping.hpp" />
 		<Unit filename="../include/CHRLib/YModules.h" />
 		<Unit filename="../include/CHRLib/chrdef.h" />
-		<Unit filename="../include/CHRLib/encoding.h" />
 		<Unit filename="../include/Helper/Environment.h" />
 		<Unit filename="../include/Helper/GUIApplication.h" />
 		<Unit filename="../include/Helper/GUIShell.h" />
@@ -224,9 +224,9 @@
 		<Unit filename="../include/YSLib/Core/YShell.h" />
 		<Unit filename="../include/YSLib/Core/YShellDefinition.h" />
 		<Unit filename="../include/YSLib/Core/YStorage.hpp" />
+		<Unit filename="../include/YSLib/Core/YString.h" />
 		<Unit filename="../include/YSLib/Core/ycounter.hpp" />
 		<Unit filename="../include/YSLib/Core/ymsgdef.h" />
-		<Unit filename="../include/YSLib/Core/ystring.h" />
 		<Unit filename="../include/YSLib/Service/AccessHistory.hpp" />
 		<Unit filename="../include/YSLib/Service/CharRenderer.h" />
 		<Unit filename="../include/YSLib/Service/ContentType.h" />

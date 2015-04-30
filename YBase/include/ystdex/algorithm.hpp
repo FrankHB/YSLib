@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r661
+\version r700
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-04-11 01:34 +0800
+	2015-04-28 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,8 +96,48 @@ for_each_if(_tIn first, _tIn last, _fPred pred, _func f)
 */
 //@{
 /*!
-\brief 指定数量的序列转换。
-\tparam _fOp 序列操作类型。
+\tparam _tIn 输入迭代器类型。
+\tparam _tOut 输出迭代器类型。
+\tparam _fPred 谓词类型。
+\param first 被复制序列的起始输入迭代器。
+\param result 输出迭代器。
+\param pred 一元谓词。
+\pre 迭代器可解引用。
+\since build 594
+*/
+//@{
+/*!
+\brief 变换满足谓词的序列的连续元素。
+\tparam _fOp 变换操作类型。
+\param op 一元变换操作。
+*/
+template<typename _tIn, typename _tOut, typename _fPred, typename _fOp>
+_tOut
+transform_when(_tIn first, _tOut result, _fPred pred, _fOp op)
+{
+	yunseq((yconstraint(!is_undereferenceable(first)), 0),
+		(yconstraint(!is_undereferenceable(result)), 0));
+
+	for(; pred(*first); yunseq((++first, 0), (++result, 0)))
+		*result = op(*first);
+	return result;
+}
+
+//! \brief 复制满足谓词的序列的连续元素。
+template<typename _tIn, typename _tOut, typename _fPred>
+_tOut
+copy_when(_tIn first, _tOut result, _fPred pred)
+{
+	return ystdex::transform_when(first, result, pred,
+		[](decltype(*first)& v) ynothrow{
+		return static_cast<decltype(*first)&>(v);
+	});
+}
+//@}
+
+/*!
+\brief 指定数量的序列变换。
+\tparam _fOp 序列变换操作类型。
 \tparam _tOut 表示结果的输出迭代器类型。
 \tparam _tIns 输入迭代器类型。
 \pre 迭代器可解引用。

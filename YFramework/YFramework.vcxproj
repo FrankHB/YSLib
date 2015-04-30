@@ -130,7 +130,7 @@
     <ClInclude Include="include\CHRLib\CharacterMapping.h" />
     <ClInclude Include="include\CHRLib\CharacterProcessing.h" />
     <ClInclude Include="include\CHRLib\Convert.hpp" />
-    <ClInclude Include="include\CHRLib\encoding.h" />
+    <ClInclude Include="include\CHRLib\Encoding.h" />
     <ClInclude Include="include\CHRLib\MapEx.h" />
     <ClInclude Include="include\CHRLib\StaticMapping.hpp" />
     <ClInclude Include="include\CHRLib\YModules.h" />
@@ -201,7 +201,7 @@
     <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
     <ClInclude Include="include\YSLib\Core\YShellDefinition.h" />
     <ClInclude Include="include\YSLib\Core\YStorage.hpp" />
-    <ClInclude Include="include\YSLib\Core\ystring.h" />
+    <ClInclude Include="include\YSLib\Core\YString.h" />
     <ClInclude Include="include\YSLib\Service\AccessHistory.hpp" />
     <ClInclude Include="include\YSLib\Service\CharRenderer.h" />
     <ClInclude Include="include\YSLib\Service\ContentType.h" />

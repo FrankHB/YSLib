@@ -1,5 +1,5 @@
-#!/usr/bin/bash
-# (C) 2014 FrankHB.
+#!/usr/bin/env bash
+# (C) 2014-2015 FrankHB.
 # Common source script.
 
 [[ "$INC_SHBuild_common" == '' ]] && INC_SHBuild_common=1 || return 0

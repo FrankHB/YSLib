@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5014
+\version r5019
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-04-10 18:04 +0800
+	2015-04-29 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,7 +141,9 @@ public:
 	template<class _type>
 	yconstfn
 	GHEvent(_type& obj, _tRet(_type::*pm)(_tParams...))
-		: GHEvent([&, pm](_tParams... args){
+		: GHEvent([&, pm](_tParams... args) ynoexcept(
+			noexcept((obj.*pm)(yforward(args)...))
+			&& std::is_nothrow_copy_constructible<_tRet>::value){
 			return (obj.*pm)(yforward(args)...);
 		})
 	{}
@@ -353,8 +355,8 @@ public:
 	GEvent&
 	operator-=(const HandlerType& h)
 	{
-		ystdex::erase_all_if<ContainerType>(handlers, handlers.cbegin(), handlers.cend(),
-			[&](decltype(*handlers.cbegin()) pr){
+		ystdex::erase_all_if<ContainerType>(handlers, handlers.cbegin(),
+			handlers.cend(), [&](decltype(*handlers.cbegin()) pr){
 			return pr.second == h;
 		});
 		return *this;

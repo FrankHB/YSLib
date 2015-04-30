@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r532
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-04-24 04:24 +0800
+	2015-04-29 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ namespace
 inline const char*
 chk_null(const char* s)
 {
-	return s && *s != '\0'? s : "<unknown>";
+	return s && *s != char()? s : "<unknown>";
 }
 
 #if YCL_Android
@@ -136,7 +136,7 @@ Logger::DoLogRaw(Level level, const char* str)
 void
 Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 {
-	const auto do_log_excetpion_raw([this](const char* msg){
+	const auto do_log_excetpion_raw([this](const char* msg) ynothrow{
 		try
 		{
 			DoLogRaw(Descriptions::Emergent,

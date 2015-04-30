@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r371
+\version r374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2015-02-26 19:33 +0800
+	2015-04-28 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,14 +95,14 @@ GUIApplication::GetEnvironmentRef() const ynothrow
 bool
 GUIApplication::DealMessage()
 {
-	if(AccessQueue([](MessageQueue& mq){
+	if(AccessQueue([](MessageQueue& mq) ynothrow{
 		return mq.empty();
 	}))
 	//	Idle(UIResponseLimit);
 		OnGotMessage(FetchIdleMessage());
 	else
 	{
-		const auto i(AccessQueue([](MessageQueue& mq){
+		const auto i(AccessQueue([](MessageQueue& mq) ynothrow{
 			return mq.cbegin();
 		}));
 
@@ -111,7 +111,7 @@ GUIApplication::DealMessage()
 		if(i->first < UIResponseLimit)
 			Idle(UIResponseLimit);
 		OnGotMessage(i->second);
-		AccessQueue([i](MessageQueue& mq){
+		AccessQueue([i](MessageQueue& mq) ynothrowv{
 			mq.erase(i);
 		});
 	}

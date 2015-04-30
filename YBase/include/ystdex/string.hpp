@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1252
+\version r1257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-04-23 23:51 +0800
+	2015-04-29 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -697,7 +697,7 @@ extract_line(std::basic_istream<_tChar, _tTraits>& is,
 
 	return ystdex::extract(is, str,
 		[d, &str](typename std::basic_istream<_tChar, _tTraits>::int_type c,
-		std::basic_streambuf<_tChar, _tTraits>& sb)->bool{
+		std::basic_streambuf<_tChar, _tTraits>& sb) -> bool{
 		if(_tTraits::eq_int_type(c, d))
 		{
 			sb.sbumpc();
@@ -733,7 +733,7 @@ extract_line_cr(std::basic_istream<_tChar, _tTraits>& is,
 
 	return ystdex::extract(is, str,
 		[cr, d, &str](typename std::basic_istream<_tChar, _tTraits>::int_type c,
-		std::basic_streambuf<_tChar, _tTraits>& sb)->bool{
+		std::basic_streambuf<_tChar, _tTraits>& sb) -> bool{
 		if(_tTraits::eq_int_type(c, d))
 			str.append(1, d);
 		else if(_tTraits::eq_int_type(c, cr)
@@ -897,7 +897,7 @@ vsfmt(const _tChar* fmt, std::va_list args)
 
 	std::basic_string<_tChar> str(l, _tChar());
 
-	yassume(str.length() > 0 && str[0] == '\0');
+	yassume(str.length() > 0 && str[0] == _tChar());
 	std::vsprintf(&str[0], fmt, args);
 	return str;
 }
@@ -968,7 +968,8 @@ template<typename _type, typename _tString>
 _tString
 cond_prefix(const _tString& str, const _type& prefix, _tString&& val = {})
 {
-	ystdex::filter_prefix(str, prefix, [&](_tString&& s){
+	ystdex::filter_prefix(str, prefix, [&](_tString&& s)
+		ynoexcept(is_nothrow_move_assignable<decay_t<_tString>>::value){
 		val = std::move(s);
 	});
 	return std::move(val);

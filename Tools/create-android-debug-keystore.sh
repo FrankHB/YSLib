@@ -1,5 +1,5 @@
-#!/usr/bin/sh
-# (C) 2014 FrankHB.
+#!/usr/bin/env sh
+# (C) 2014-2015 FrankHB.
 # Script to create Android debug keystore.
 
 set -e

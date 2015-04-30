@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r333
+\version r335
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-04-13 03:50 +0800
+	2015-04-29 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,8 @@ ExtractException(const ExtractedExceptionPrinter& print,
 	CatchExpr(..., print("Exception occurred when printing @ ExtractException.",
 		Critical, level))
 	// FIXME: Following code only tested OK for %YCL_Win32.
-	TryExpr(ystdex::handle_nested(e, [&, lv, level](std::exception& ex){
+	TryExpr(ystdex::handle_nested(e,
+		[&, lv, level](std::exception& ex) ynothrow{
 		ExtractException(print, ex, lv, level + 1);
 	}))
 	CatchExpr(..., print("Unknown nested exception found nested on calling"

@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r178
+\version r183
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2015-04-10 01:43 +0800
+	2015-04-29 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef YB_INC_ystdex_thunk_hpp_
 #define YB_INC_ystdex_thunk_hpp_ 1
 
-#include "type_op.hpp" // for std::forward, std::move, ystdex::result_of_t,
-//	ystdex::decay_t, ystdex::enable_if_t;
-#include "ref.hpp" // for ystdex::wrapped_traits, std::reference_wrapper;
+#include "type_op.hpp" // for std::forward, std::move, result_of_t,
+//	decay_t, enable_if_t;
+#include "ref.hpp" // for wrapped_traits, std::reference_wrapper;
 
 namespace ystdex
 {
@@ -77,7 +77,8 @@ struct thunk_caller
 	{}
 	//! \since build 527
 	thunk_caller(std::reference_wrapper<value_type> arg)
-		: caller([arg]()->return_type{
+		: caller([arg]() ynoexcept(std::is_nothrow_constructible<return_type,
+			std::reference_wrapper<value_type>>::value) -> return_type{
 			return arg;
 		})
 	{}

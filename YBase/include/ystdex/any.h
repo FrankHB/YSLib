@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1681
+\version r1685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-04-18 23:11 +0800
+	2015-04-30 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -716,7 +716,7 @@ public:
 	any(_type&& x)
 		: manager(any_ops::value_handler<remove_reference_t<_type>>::manage)
 	{
-		any_ops::value_handler<typename remove_rcv<_type>::type>::init(storage,
+		any_ops::value_handler<remove_rcv_t<_type>>::init(storage,
 			yforward(x));
 	}
 	//! \since build 376
@@ -740,11 +740,11 @@ public:
 	}
 	template<typename _type>
 	any(_type&& x, any_ops::holder_tag)
-		: manager(any_ops::holder_handler<any_ops::value_holder<typename
-		remove_rcv<_type>::type>>::manage)
+		: manager(any_ops::holder_handler<
+		any_ops::value_holder<remove_rcv_t<_type>>>::manage)
 	{
 		any_ops::holder_handler<any_ops::value_holder<
-			remove_cv_t<_type>>>::init(storage, yforward(x));
+			remove_rcv_t<_type>>>::init(storage, yforward(x));
 	}
 	//@}
 	any(const any&);

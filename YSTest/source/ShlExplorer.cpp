@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1454
+\version r1459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-04-24 04:24 +0800
+	2015-04-29 13:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,7 +118,7 @@ CheckMenuKey(const KeyInput& k)
 #if YCL_Win32
 	auto ke(k);
 
-	unseq_apply([&](int vk){
+	unseq_apply([&](int vk) ynothrow{
 		ke.set(size_t(vk), {});
 	}, VK_CONTROL, VK_LCONTROL, VK_RCONTROL);
 	return ke.none() && k[VK_CONTROL];
@@ -302,7 +302,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	{
 		DeclDynWidgetN(TreeView, tvNodes, node_pnlPage3)
 
-		tvNodes.GetExtractText() = [](const ValueNode& nd)->String{
+		tvNodes.GetExtractText() = [](const ValueNode& nd) -> String{
 			TryRet(TreeList::DefaultExtractText(nd))
 			CatchIgnore(ystdex::bad_any_cast&)
 			return "<NONE>";
@@ -495,7 +495,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			lblTitle.Background = SolidBrush(GenerateRandomColor());
 		lblInfo.Text = btn.Text + u", " + String(to_string(
 			FetchImageLoadTime())) + u";\n" + String(k.to_string());
-		unseq_apply([](IWidget& wgt){Invalidate(wgt);}, lblTitle, lblInfo);
+		InvalidateWidgets(lblTitle, lblInfo);
 	},
 	FetchEvent<Click>(btnTestAni) += [&]{
 		auto& conn(ani.GetConnectionRef());
@@ -556,7 +556,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	},
 	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e){
 		unseq_apply(bind(SetEnabledOf, _1, !e), cbFPS, rbTxt, rbHex);
-		unseq_apply([](IWidget& wgt){Invalidate(wgt);}, cbFPS, rbTxt, rbHex);
+		InvalidateWidgets(cbFPS, rbTxt, rbHex);
 	},
 	cbShowTextBoxContent.Ticked += [&](CheckBox::TickedArgs&& e){
 		(tpDefault.GetCapturedPtr() == &tbTest ? tpDefault.MaskChar
@@ -565,7 +565,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	},
 	ddlStyle.GetConfirmed() += [&, this]{
 		FetchGUIConfiguration().Styles.Switch(ddlStyle.Text.GetMBCS());
-		unseq_apply([](IWidget& wgt){InvalidateAll(wgt);}, dsk_m, dsk_s);
+		InvalidateWidgets(dsk_m, dsk_s);
 	}
 	);
 	RequestFocusCascade(fbMain),

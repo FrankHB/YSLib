@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r291
+\version r320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2014-11-09 22:12 +0800
+	2015-04-30 04:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,16 +81,19 @@ extern ucs2_t(*cp113_lkp)(byte, byte);
 
 /*!
 \brief 非 Unicode 编码映射模板特化。
-\since build 245
+\since build 594
 */
 //@{
 template<>
-struct GUCS2Mapper<CharSet::SHIFT_JIS>
+struct GUCSMapper<CharSet::SHIFT_JIS> : UCSMapperBase
 {
+	using UCSMapperBase::Assign;
+
 #if 0
 	template<typename _tObj, typename _tIn, typename _tState>
 	static byte
-	Map(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
+		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
 		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
 		const auto c(FillByte(i, st));
@@ -104,7 +107,7 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 				col = d - 0x40 ;
 			else if(d >= 0xA1 && d <= 0xFE)
 				col = d - 0x62;
-			uc = cp17[row * ln + col];
+			Assign(uc, cp17[row * ln + col]);
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
 		{
@@ -115,11 +118,11 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 				col = d - 0x40 ;
 			else if(d >= 0xA1 && d <= 0xFE)
 				col = d - 0x62;
-			uc = cp17[row * ln + col];
+			Assign(uc, cp17[row * ln + col]);
 		}
 		else if(c < 0x80)
 		{
-			uc = c;
+			Assign(uc, c);
 			return 1;
 		}
 		else
@@ -130,25 +133,28 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 };
 
 template<>
-struct GUCS2Mapper<CharSet::GBK>
+struct GUCSMapper<CharSet::GBK> : UCSMapperBase
 {
+	using UCSMapperBase::Assign;
+
 	//! \bug 大端序下输出缺少转换。
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
-	Map(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
+		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
 		yassume(cp113_lkp);
 
 		const auto seq(GetSequenceOf(st));
 
-		switch(GetCountOf(st))
+		switch(GetIndexOf(st))
 		{
 		case 0:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
 			if(seq[0] < 0x80)
 			{
-				uc = seq[0];
+				Assign(uc, seq[0]);
 				break;
 			}
 		case 1:
@@ -159,7 +165,7 @@ struct GUCS2Mapper<CharSet::GBK>
 
 				if(YB_LIKELY(t != 0))
 				{
-					uc = t;
+					Assign(uc, t);
 					break;
 				}
 			}
@@ -172,11 +178,15 @@ struct GUCS2Mapper<CharSet::GBK>
 };
 
 template<>
-struct GUCS2Mapper<CharSet::Big5>
+struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 {
-/*	template<typename _tObj, typename _tIn, typename _tState>
+	using UCSMapperBase::Assign;
+
+#if 0
+	template<typename _tObj, typename _tIn, typename _tState>
 	static byte
-	Map(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
+		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
 		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
 		const auto c(FillByte(i, st));
@@ -190,7 +200,7 @@ struct GUCS2Mapper<CharSet::Big5>
 				col = d - 0x40;
 			else if(d >= 0xA1 && d <= 0xFE)
 				col = d - 0x62;
-			uc = cp2026[row * ln + col];
+			Assign(uc, cp2026[row * ln + col]);
 			return 2;
 		}
 		else if(c >= 0xC9 && c <= 0xF9)
@@ -202,18 +212,19 @@ struct GUCS2Mapper<CharSet::Big5>
 				col = c - 0x40;
 			else if(d >= 0xA1 && d <= 0xFE)
 				col = d - 0x62;
-			uc = cp2026[row * ln + col];
+			Assign(uc, cp2026[row * ln + col]);
 			return 2;
 		}
 		else if(c < 0x80)
 		{
-			uc = c;
+			Assign(uc, c);
 			return 1;
 		}
 		else
-			uc = 0xFFFE;
+			Assign(uc, 0xFFFE);
 		return 2;
-	}*/
+	}
+#endif
 };
 //@}
 
@@ -230,7 +241,7 @@ FetchMapperPtr(Encoding enc)
 
 #define CHR_MapItem(enc) \
 case enc: \
-	return UCS2Mapper<enc>;
+	return UCSMapper<enc>;
 
 	switch(enc)
 	{

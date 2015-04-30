@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r645
+\version r647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-19 17:14 +0800
+	2015-04-28 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,8 @@ RenderWindow::RenderWindow(HostRenderer& rd, NativeWindowHandle h)
 	};
 #	elif YCL_Win32
 	yunseq(
-	MessageMap[WM_ERASEBKGND] += [](::LPARAM, ::WPARAM, ::LRESULT& res){
+	MessageMap[WM_ERASEBKGND]
+		+= [](::LPARAM, ::WPARAM, ::LRESULT& res) ynothrow{
 		res = 1;
 	},
 	MessageMap[WM_PAINT] += [this]{

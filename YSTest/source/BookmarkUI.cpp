@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r218
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2015-03-25 11:40 +0800
+	2015-04-29 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 	btnRemove(Rect(SPos(GetWidth()) - 60, 4, 16, 16), 210), shell(shl),
 	bookmarks(bm)
 {
-	const auto stop_routing_after_direct([](KeyEventArgs&& e){
+	const auto stop_routing_after_direct([](KeyEventArgs&& e) ynothrow{
 		if(e.Strategy == RoutedEventArgs::Bubble)
 			e.Handled = true;
 	});

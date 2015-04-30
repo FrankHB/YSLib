@@ -11,13 +11,13 @@
 /*!	\file YGraphics.h
 \ingroup Core
 \brief 平台无关的基础图形接口。
-\version r212
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 18:03:31 +0800
 \par 修改时间:
-	2015-04-10 01:31 +0800
+	2015-04-26 03:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,21 @@ namespace YSLib
 
 namespace Drawing
 {
+
+//! \since 早于 build 132
+using BitmapPtr = Pixel*;
+//! \since 早于 build 132
+using ConstBitmapPtr = const Pixel*;
+
+
+//! \since build 594
+template<typename _tOut, typename _tIn>
+void
+CopyBitmapBuffer(_tOut p_dst, _tIn p_src, const Size& s)
+{
+	std::copy_n(Nonnull(p_src), GetAreaOf(s), Nonnull(p_dst));
+}
+
 
 /*!
 \brief 二维图形接口上下文模板。
@@ -140,9 +155,6 @@ public:
 	}
 };
 
-
-using BitmapPtr = Pixel*;
-using ConstBitmapPtr = const Pixel*;
 
 //! \since build 559
 using ConstGraphics = GGraphics<ConstBitmapPtr>;

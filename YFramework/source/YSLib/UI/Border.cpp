@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r204
+\version r205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2015-03-24 12:39 +0800
+	2015-04-29 01:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ BorderBrush::operator()(PaintEventArgs&& e)
 BorderResizer::Area
 BorderResizer::CheckArea(const Point& pt)
 {
-	const auto comp([](SPos q, SPos left, SDst left2){
+	const auto comp([](SPos q, SPos left, SDst left2) ynothrow{
 		if(q >= 0)
 		{
 			// XXX: Conversion to 'SPos' might be implementation-defined.

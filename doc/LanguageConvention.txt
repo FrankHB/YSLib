@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1456
+\version r1458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-04-23 06:03 +0800
+	2015-04-29 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -388,7 +388,7 @@ begin 和 end 被 range-based for 使用。
 除非没有语言特性支持，以下规则不优先于 @5.9.4 。
 整数用0，浮点数用 0.0 。有必要使用 float 时，用 0.F 。
 空指针用 nullptr （考虑 C 兼容性可以在保证定义正确的前提下使用 NULL ）。
-字符（串结束符）用 '\0' 或带前缀的 L'\0' 等表示（其它可选的非字面量的表示形式：对字符类型 T 使用 T() ； 使用自定义宏 NUL ）。
+表示字符串结束的空字符用值初始化的非字面量（对字符类型 T 使用 T() ）或自定义宏 NUL 表示。其它具有零值的字符用对应类型的字面量如 '\0' 或 L'\0' 等表示。
 bool 类型以外的整数类型零值和 false 可以互相转换。另见 @5.11.6 。
 
 @5.4.6
@@ -548,6 +548,7 @@ inline 对 ODR(@5.1.8) 发生影响。
 @5.5.11 属性(attributes) ：
 按需使用属性。在实现支持时可以使用扩展，如 GNU C++ 的 __attribute__ 和 Microsoft Visual C++ 的 __declspec ，并考虑用宏统一包装。
 注意 ISO C++ 的属性被设计为尽量减少语义的改变，参见 http://herbsutter.com/2012/04/05/reader-qa-what-does-it-mean-for-attributes-to-affect-language-semantics/ 。
+属性可以修饰声明或声明符。若两者效果等价（如 [[noreturn]](@5.5.11.1) 修饰函数声明），当声明中只有一个声明符时，直接使用声明的属性而不是声明符的属性。
 
 @5.5.11.1 [[noreturn]] ：
 注意一个翻译单元中 [[noreturn]] 如在函数声明中出现，则每一个函数声明中都必须出现，否则程序形式非法但不要求诊断(@5.1.7) 。

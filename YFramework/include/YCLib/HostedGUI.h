@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1268
+\version r1270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-04-25 17:44 +0800
+	2015-04-28 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -630,7 +630,8 @@ protected:
 	NativeWindowHandle hWindow;
 	::HDC hDC;
 
-	WindowDeviceContextBase(NativeWindowHandle h_wnd, ::HDC h_dc)
+	//! \since build 594
+	WindowDeviceContextBase(NativeWindowHandle h_wnd, ::HDC h_dc) ynothrow
 		: hWindow(h_wnd), hDC(h_dc)
 	{}
 	DefDeDtor(WindowDeviceContextBase)

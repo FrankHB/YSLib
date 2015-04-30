@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r377
+\version r381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-04-03 02:46 +0800
+	2015-04-29 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_concurrency_h_
 #define YB_INC_ystdex_concurrency_h_ 1
 
-#include "pseudo_mutex.h" // for ystdex::result_of_t, std::declval,
-//	std::make_shared, ystdex::threading::unlock_delete, ystdex::noncopyable;
+#include "pseudo_mutex.h" // for result_of_t, std::declval,
+//	std::make_shared, threading::unlock_delete, noncopyable;
 #include <functional> // for std::bind, std::function;
 #include <future> // for std::packaged_task, std::future;
 #include <thread>
@@ -138,8 +138,8 @@ public:
 	std::future<result_of_t<_fCallable&&(_tParams&&...)>>
 	enqueue(_fCallable&& f, _tParams&&... args)
 	{
-		return wait_to_enqueue([](std::unique_lock<std::mutex>&){}, yforward(f),
-			yforward(args)...);
+		return wait_to_enqueue([](std::unique_lock<std::mutex>&) ynothrow{},
+			yforward(f), yforward(args)...);
 	}
 
 	size_t

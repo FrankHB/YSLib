@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2413
+\version r2417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-04-24 04:42 +0800
+	2015-04-24 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -387,8 +387,8 @@ Traverse(HDirectory& dir, _func f)
 {
 	PathNorm nm;
 
-	std::for_each(FileIterator(&dir), FileIterator(),
-		[&, f](const string& name){
+	std::for_each(FileIterator(&dir), FileIterator(), [&, f](const string& name)
+		ynoexcept_spec(f(dir.GetNodeCategory(), name, nm)){
 		YAssert(!name.empty(), "Empty name found.");
 		if(!nm.is_self(name))
 			f(dir.GetNodeCategory(), name, nm);
@@ -421,8 +421,8 @@ template<typename _func>
 void
 TraverseChildren(const string& path, _func f)
 {
-	IO::Traverse(path,
-		[f](NodeCategory c, const string& name, PathNorm& nm){
+	IO::Traverse(path, [f](NodeCategory c, const string& name, PathNorm& nm)
+		ynoexcept_spec(f(c, name)){
 		if(!nm.is_parent(name))
 			f(c, name);
 	});

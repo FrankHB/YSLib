@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3825
+\version r3832
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-03-24 10:34 +0800
+	2015-04-30 05:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,8 +54,9 @@ size_t
 ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 {
 	ConversionState st;
-	const auto res(ConvertCharacter(pfun, yforward(args)..., yforward(i),
-		std::move(st)));
+	ystdex::pair_iterator<ystdex::decay_t<_tIn>, size_t> it(i);
+	const auto
+		res(ConvertCharacter(pfun, yforward(args)..., it, std::move(st)));
 
 	switch(ConversionResult(YB_EXPECT(long(res), long(ConversionResult::OK))))
 	{
@@ -65,10 +66,11 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 //	case ConversionResult::Invalid:
 		// TODO: Insert placeholders for %ConversionResult::Invalid.
 	default:
-		YTraceDe(Warning, "Encoding conversion failed with state"
-			" = %u.", unsigned(res));
+		YTraceDe(Warning, "Encoding conversion failed with state = %u.",
+			unsigned(res));
 	}
-	return GetCountOf(st);
+	i = it.base().first;
+	return it.base().second;
 }
 
 } // unnamed namespace;

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r225
+\version r229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2015-04-24 06:15 +0800
+	2015-04-28 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,11 @@ using platform_ex::UniqueHandle;
 */
 struct YF_API ConfigurationDeleter
 {
-	PDefHOp(void, (), ::AConfiguration* p)
+	//! \since build 594
+	using pointer = ::AConfiguration*;
+
+	//! \since build 594
+	PDefHOp(void, (), pointer p) const ynothrow
 		ImplRet(::AConfiguration_delete(p))
 };
 
