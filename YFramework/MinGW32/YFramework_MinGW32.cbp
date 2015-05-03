@@ -233,7 +233,7 @@
 		<Unit filename="../include/CHRLib/CharacterProcessing.h" />
 		<Unit filename="../include/CHRLib/Convert.hpp" />
 		<Unit filename="../include/CHRLib/Encoding.h" />
-		<Unit filename="../include/CHRLib/MapEx.h" />
+		<Unit filename="../include/CHRLib/MappingEx.h" />
 		<Unit filename="../include/CHRLib/StaticMapping.hpp" />
 		<Unit filename="../include/CHRLib/YModules.h" />
 		<Unit filename="../include/CHRLib/chrdef.h" />

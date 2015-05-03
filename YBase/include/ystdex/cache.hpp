@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r297
+\version r304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2015-02-10 13:23 +0800
+	2015-05-02 04:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_cache_hpp_
 #define YB_INC_ystdex_cache_hpp_ 1
 
-#include "deref_op.hpp" // for std::pair, ystdex::is_undereferenceable;
+#include "deref_op.hpp" // for std::pair, is_undereferenceable;
 #include <unordered_map> // for std::unordered_map;
 #include <list> // for std::list;
 #include <stdexcept> // for std::runtime_error;
@@ -77,8 +77,9 @@ public:
 	used_list_cache(used_list_cache&&) = default;
 
 private:
+	//! \since build 595
 	void
-	check_max_used()
+	check_max_used() ynothrowv
 	{
 		while(max_use < used_list.size())
 		{
@@ -100,8 +101,9 @@ public:
 		return max_use;
 	}
 
+	//! \since build 595
 	void
-	set_max_use(size_type s)
+	set_max_use(size_type s) ynothrowv
 	{
 		max_use = s < 1 ? 1 : s;
 		check_max_used();
@@ -110,7 +112,7 @@ public:
 	using map_type::begin;
 
 	void
-	clear() ynoexcept
+	clear() ynothrow
 	{
 		map_type::clear(),
 		used_list.clear(),
@@ -127,8 +129,6 @@ public:
 
 		if(pr.second)
 		{
-			using ystdex::is_undereferenceable;
-
 			yassume(!is_undereferenceable(pr.first));
 
 			const auto& k(pr.first->first);

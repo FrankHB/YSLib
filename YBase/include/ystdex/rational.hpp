@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1997
+\version r2023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-04-10 02:17 +0805
+	2015-05-01 13:12 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,17 +215,22 @@ public:
 		: value(base_type(std::llround(base_element() * val)))
 	{}
 	template<typename _tFirst, typename _tSecond>
+	//! \since build 595
+	//@{
 	yconstfn
 	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<is_integral<
 		_tFirst>::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {}))
+		ynothrowv
 		: value((x << frac_bit_n) / y)
 	{}
 	template<typename _tFirst, typename _tSecond>
 	explicit yconstfn
 	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<is_floating_point<
 		_tFirst>::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {}))
+		ynothrowv
 		: fixed_point(x / y)
 	{}
+	//@}
 	//! \since build 260
 	yconstfn
 	fixed_point(const fixed_point&) = default;
@@ -295,36 +300,38 @@ public:
 		return result;
 	}
 
+	//! \since build 595
+	//@{
 	fixed_point&
-	operator++() ynothrow
+	operator++() ynothrowv
 	{
 		value += base_element();
 		return *this;
 	}
 
 	fixed_point&
-	operator--() ynothrow
+	operator--() ynothrowv
 	{
 		value -= base_element();
 		return *this;
 	}
 
 	fixed_point&
-	operator+=(const fixed_point& f) ynothrow
+	operator+=(const fixed_point& f) ynothrowv
 	{
 		value += f.value;
 		return *this;
 	}
 
 	fixed_point&
-	operator-=(const fixed_point& f) ynothrow
+	operator-=(const fixed_point& f) ynothrowv
 	{
 		value -= f.value;
 		return *this;
 	}
 
 	fixed_point&
-	operator*=(const fixed_point& f) ynothrow
+	operator*=(const fixed_point& f) ynothrowv
 	{
 		value = mul<frac_bit_n + is_signed<base_type>::value>(value,
 			f.value, integral_constant<bool,
@@ -333,7 +340,7 @@ public:
 	}
 
 	fixed_point&
-	operator/=(const fixed_point& f) ynothrow
+	operator/=(const fixed_point& f) ynothrowv
 	{
 		using widen_type = typename make_widen_int<base_type>::type;
 
@@ -341,6 +348,7 @@ public:
 			/ f.value);
 		return *this;
 	}
+	//@}
 
 	fixed_point&
 	operator>>=(size_t s) ynothrow
@@ -349,8 +357,9 @@ public:
 		return *this;
 	}
 
+	//! \since build 595
 	fixed_point&
-	operator<<=(size_t s) ynothrow
+	operator<<=(size_t s) ynothrowv
 	{
 		value <<= s;
 		return *this;
@@ -374,9 +383,10 @@ public:
 	}
 	//@}
 
-	//! \since build 439
+	//! \since build 595
+	//@{
 	yconstfn base_type
-	get() const
+	get() const ynothrow
 	{
 		return value;
 	}
@@ -384,14 +394,14 @@ public:
 private:
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul(base_type x, base_type y, true_type)
+	mul(base_type x, base_type y, true_type) ynothrowv
 	{
 		return mul_signed<_vShiftBits>(
 			typename make_widen_int<base_type>::type(x * y));
 	}
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul(base_type x, base_type y, false_type)
+	mul(base_type x, base_type y, false_type) ynothrowv
 	{
 		// NOTE: Only fit for unsigned type, due to there exists
 		//	implementation-defined behavior in conversion and right shifting on
@@ -402,10 +412,11 @@ private:
 
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul_signed(typename make_widen_int<base_type>::type tmp)
+	mul_signed(typename make_widen_int<base_type>::type tmp) ynothrowv
 	{
 		return base_type(tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits);
 	}
+	//@}
 
 public:
 	/*!
@@ -550,9 +561,10 @@ YB_Impl_Rational_fp_rational2(>=)
 #undef YB_Impl_Rational_fp_TmplHead_2_l
 #undef YB_Impl_Rational_fp_TmplHead_2
 
+//! \since build 595
 template<YB_Impl_Rational_fp_PList>
 yconstfn YB_Impl_Rational_fp_T
-abs(YB_Impl_Rational_fp_T x)
+abs(YB_Impl_Rational_fp_T x) ynothrow
 {
 	return fabs(x);
 }
@@ -664,7 +676,7 @@ struct hash<ystdex::YB_Impl_Rational_fp_T>
 {
 	size_t
 	operator()(const ystdex::YB_Impl_Rational_fp_T& k) const
-		yimpl(ynoexcept_spec(hash<_tBase>{}(k.get())))
+		ynoexcept_spec(yimpl(hash<_tBase>{}(k.get())))
 	{
 		return hash<_tBase>{}(k.get());
 	}

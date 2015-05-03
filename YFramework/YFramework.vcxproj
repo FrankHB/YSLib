@@ -131,7 +131,7 @@
     <ClInclude Include="include\CHRLib\CharacterProcessing.h" />
     <ClInclude Include="include\CHRLib\Convert.hpp" />
     <ClInclude Include="include\CHRLib\Encoding.h" />
-    <ClInclude Include="include\CHRLib\MapEx.h" />
+    <ClInclude Include="include\CHRLib\MappingEx.h" />
     <ClInclude Include="include\CHRLib\StaticMapping.hpp" />
     <ClInclude Include="include\CHRLib\YModules.h" />
     <ClInclude Include="include\Helper\GUIApplication.h" />

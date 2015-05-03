@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13797
+\version r13803
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-04-24 03:27 +0800
+	2015-05-01 13:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,9 +66,10 @@ YB_INC_*
 
 $header YDefinition
 {
-YB_IMPL_CPP
+YB_IMPL_GNUC
 YB_IMPL_MSCPP
 YB_IMPL_GNUCPP
+YB_IMPL_CLANGPP
 #__has_feature(...)
 #__has_extension(...)
 #__has_builtin(...)
@@ -95,9 +96,10 @@ YB_STATELESS
 !YB_DLL
 !YB_BUILD_DLL
 YB_API
-YB_Use_YAssert @ !defined(NDEBUG) && !defined(YB_Use_YAssert)
-YB_Use_YTrace
-YB_USE_EXCEPTION_SPECIFICATION
+#YB_Use_YAssert @ !defined(NDEBUG) && !defined(YB_Use_YAssert)
+#YB_Use_YTrace
+#YB_Use_DynamicExceptionSpecification
+#YB_Use_StrictNoThrow @ !defined(NDEBUG) && !defined(YB_Use_StrictNoThrow)
 yalignof(_type)
 yconstexpr
 yconstfn

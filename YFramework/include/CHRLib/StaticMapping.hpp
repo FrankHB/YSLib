@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2194
+\version r2382
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-04-30 10:11 +0800
+	2015-05-01 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,27 +36,51 @@
 namespace CHRLib
 {
 
-/*!
-\brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
-\since build 273
-*/
+//! \since build 595
+template<typename _tIn>
+inline bool
+CheckIterator(_tIn& i)
+{
+	static_assert(std::is_constructible<const byte, decltype(*i)>(),
+		"Invalid mapping source type found.");
+	using ystdex::is_undereferenceable;
+
+	return !is_undereferenceable(i);
+}
+
+//! \brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
+//@{
+//! \since build 595
+template<typename _tIn>
+inline bool
+FillByte(_tIn& i, byte& b)
+{
+	if(CheckIterator(i))
+	{
+		const auto r(*i);
+
+		yunseq(++i, b = byte(r));
+		return true;
+	}
+	return {};
+}
+//! \since build 273
 template<typename _tIn, typename _tState>
 inline bool
 FillByte(_tIn& i, _tState& st)
 {
-	static_assert(std::is_constructible<const byte, decltype(*i)>(),
-		"Invalid mapping source type found.");
-	static_assert(!std::is_volatile<ystdex::remove_reference_t<_tState>>(),
-		"Volatile state is not supported.");
+	if(CheckIterator(i))
+	{
+		static_assert(!std::is_volatile<ystdex::remove_reference_t<_tState>>(),
+			"Volatile state is not supported.");
+		const auto r(*i);
 
-	if(YB_UNLIKELY(is_undereferenceable(i)))
-		return {};
-
-	const byte r(*i);
-
-	yunseq(++i, GetSequenceOf(st)[GetIndexOf(st)++] = r);
-	return true;
+		yunseq(++i, GetSequenceOf(st)[GetIndexOf(st)++] = byte(r));
+		return true;
+	}
+	return {};
 }
+//@}
 
 
 //! \since build 594
@@ -219,15 +243,119 @@ public:
 		}
 		return ConversionResult::OK;
 	}
+	/*!
+	\brief 快速解码： UTF-8 。
+	\see https://github.com/miloyip/rapidjson/blob/master/include/rapidjson/encodings.h
+	*/
+	//@{
+	template<typename _tObj, typename _tIn>
+	static ConversionResult
+	Decode(_tObj& uc, _tIn&& i, ConversionState& st)
+		ynoexcept_spec(!FillByte(i, st))
+	{
+		byte b;
+
+		if(YB_UNLIKELY(!FillByte(i, b)))
+			return ConversionResult::BadSource;
+		if((b & 0x80U) == 0)
+		{
+			if(st.Index == 0)
+			{
+				uc = b;
+				return ConversionResult::OK;
+			}
+			return ConversionResult::Invalid;
+		}
+
+		using state_t = std::uint_fast8_t;
+		static yconstexpr state_t t_data_1[]{
+			8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3,
+			11, 6, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+		};
+		static yconstexpr state_t t_data_2[]{1, 2, 4, 4};
+		auto& code(st.Value.UCS4);
+#define CHRLib_Impl_UTF8_Decode_Fill \
+	if(YB_UNLIKELY(!FillByte(i, b))) \
+		return ConversionResult::BadSource; \
+	code = (code << 6U) | (b & 0x3FU)
+#define CHRLib_Impl_UTF8_Decode_Tail \
+	CHRLib_Impl_UTF8_Decode_Fill; \
+	trans(0x70U)
+#define CHRLib_Impl_UTF8_Decode_FillTransTail(_mask) \
+	CHRLib_Impl_UTF8_Decode_Fill; \
+	trans(_mask); \
+	CHRLib_Impl_UTF8_Decode_Tail;
+		bool res(true);
+		auto trans([&](unsigned mask){
+			res &= (b & 0xC0U) == 0x80U
+				&& (t_data_2[byte(b >> 4U) & 0x3U] & byte(mask)) != 0;
+		});
+		auto& type(st.Index);
+
+		if(type == 0)
+		{
+			if((b & 0xC0U) != 0)
+			{
+				type = state_t(t_data_1[b & 0x3FU]);
+				code = (0xFFU >> type) & byte(b);
+			}
+			else
+				return ConversionResult::Invalid;
+		}
+		switch(type)
+		{
+		case 6:
+			CHRLib_Impl_UTF8_Decode_Fill;
+		case 3:
+			CHRLib_Impl_UTF8_Decode_Fill;
+		case 2:
+			CHRLib_Impl_UTF8_Decode_Fill;
+			break;
+		case 4:
+			CHRLib_Impl_UTF8_Decode_FillTransTail(3U);
+			break;
+		case 10:
+			CHRLib_Impl_UTF8_Decode_FillTransTail(4U);
+			break;
+		case 5:
+			CHRLib_Impl_UTF8_Decode_FillTransTail(1U);
+			CHRLib_Impl_UTF8_Decode_Tail;
+			break;
+		case 11:
+			CHRLib_Impl_UTF8_Decode_FillTransTail(6U);
+			CHRLib_Impl_UTF8_Decode_Tail;
+			break;
+		case 8:
+			return ConversionResult::Invalid;
+		default:
+			return ConversionResult::BadState;
+		}
+		uc = code;
+		return res ? ConversionResult::OK : ConversionResult::Invalid;
+#undef CHRLib_Impl_UTF8_Decode_FillTransTail
+#undef CHRLib_Impl_UTF8_Decode_Tail
+#undef CHRLib_Impl_UTF8_Decode_Fill
+	}
+	template<typename _tObj, typename _tIn>
+	static ConversionResult
+	Decode(_tObj& uc, _tIn&& i, ConversionState&& st)
+		ynoexcept_spec(Decode(uc, yforward(i), st))
+	{
+		return Decode(uc, yforward(i), st);
+	}
+	//@}
 
 	template<typename _tOut>
 	static size_t
 	Encode(_tOut d, ucs4_t s) ynothrow
 	{
 		ynoexcept_assert("Invalid type found.", *d = char());
-
+		using ystdex::is_undereferenceable;
 		size_t l(0);
 
+		yconstraint(!is_undereferenceable(d));
 		if(s < 0x80U)
 		{
 			*d = s;
@@ -426,63 +554,6 @@ struct GUCSMapper<CharSet::UTF_32LE> : UCSMapperBase
 		return ConversionResult::OK;
 	}
 };
-//@}
-
-
-//! \brief 取映射函数。
-//@{
-template<Encoding, typename... _tParams>
-yconstfn ConversionResult
-UCSMapper_Decode(_tParams&&...) ynothrow
-{
-	return ConversionResult::Unhandled;
-}
-template<Encoding _vEnc, typename _tDst, typename _tSrc, typename _tState>
-yconstfn ConversionResult
-UCSMapper_Decode(_tDst&& d, _tSrc&& s, _tState&& st, decltype(
-	&GUCSMapper<_vEnc>::template Decode<_tDst, _tSrc, _tState>) = {})
-	ynoexcept_spec(GUCSMapper<_vEnc>::Decode(d, s, st))
-{
-	return GUCSMapper<_vEnc>::Decode(d, s, st);
-}
-
-template<Encoding _vEnc, typename _tDst, typename _tSrc>
-yconstfn byte
-UCSMapper_Encode(_tDst, _tSrc) ynothrow
-{
-	return 0;
-}
-template<Encoding _vEnc, typename _tDst>
-yconstfn byte
-UCSMapper_Encode(_tDst&& d, const ucs2_t& s,
-	decltype(&GUCSMapper<_vEnc>::template Encode<_tDst>) = {})
-	ynoexcept_spec(GUCSMapper<_vEnc>::Encode(d, s))
-{
-	return GUCSMapper<_vEnc>::Encode(d, s);
-}
-
-template<Encoding _vEnc, typename _tIn, typename _tState>
-yconstexpr ConversionResult
-UCSMapper(ucs2_t& uc, _tIn&& i, _tState&& st)
-	ynoexcept_spec(CHRLib::UCSMapper_Decode<_vEnc>(uc, i, std::move(st)))
-{
-	return CHRLib::UCSMapper_Decode<_vEnc>(uc, i, std::move(st));
-}
-template<Encoding _vEnc, typename _tIn, typename _tState>
-yconstexpr ConversionResult
-UCSMapper(_tIn&& i, _tState&& st)
-	ynoexcept_spec(CHRLib::UCSMapper_Decode<_vEnc>(ystdex::pseudo_output(), i, st))
-{
-	return CHRLib::UCSMapper_Decode<_vEnc>(ystdex::pseudo_output(), i, st);
-}
-template<Encoding _vEnc>
-byte
-UCSMapper(char* d, const ucs2_t& s)
-	ynoexcept_spec(CHRLib::UCSMapper_Encode<_vEnc>(d, s))
-{
-	yconstraint(d);
-	return CHRLib::UCSMapper_Encode<_vEnc>(d, s);
-}
 //@}
 //@}
 

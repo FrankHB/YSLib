@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1095
+\version r1109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2015-02-09 11:57 +0800
+	2015-05-01 07:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,8 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "functional.hpp"
-#include "algorithm.hpp" // for ystdex::sort_unique,
-//	ystdex::is_undereferenceable;
-#include "iterator.hpp" // for ystdex::make_transform;
+#include "iterator.hpp" // for make_transform, std::make_move_iterator;
+#include "algorithm.hpp" // for is_undereferenceable, sort_unique;
 #include "utility.hpp" // for std::initializer_list, ystdex::arrlen;
 
 namespace ystdex
@@ -459,7 +458,7 @@ concat(_tCon& con, _tRange&& c)
 \since build 532
 
 调用带有迭代器参数的 \c insert 成员函数插入迭代器指定的范围到容器的指定位置。
- con 是关联容器时，范围内元素有序可被优化。
+con 是关联容器时，范围内元素有序可被优化。
 */
 template<typename _tCon, typename _tIn>
 typename _tCon::const_iterator
@@ -764,14 +763,17 @@ replace_value(_tAssocCon& con, const _tKey& k, _func f)
 
 /*!
 \ingroup algorithms
+\note 行为类似 std::map::operator[] 。
+\since build 595
+*/
+//@{
+/*!
 \brief 按指定键值搜索指定映射。
 \return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
 	second 表示是否不存在而需要插入。
-\note 行为类似 std::map::operator[] 。
-\since build 173
 */
 template<class _tMap>
-std::pair<typename _tMap::iterator, bool>
+std::pair<typename _tMap::const_iterator, bool>
 search_map(_tMap& m, const typename _tMap::key_type& k)
 {
 	const auto i(m.lower_bound(k));
@@ -779,7 +781,6 @@ search_map(_tMap& m, const typename _tMap::key_type& k)
 	return {i, (i == m.end() || m.key_comp()(k, i->first))};
 }
 /*!
-\ingroup algorithms
 \brief 按指定键值搜索指定映射并执行操作。
 \pre 最后的参数构造新的值。
 \return 插入成员的迭代器。
@@ -787,13 +788,14 @@ search_map(_tMap& m, const typename _tMap::key_type& k)
 \since build 566
 */
 template<class _tMap, typename _func>
-typename _tMap::iterator
+typename _tMap::const_iterator
 search_map(_tMap& m, const typename _tMap::key_type& k, _func f)
 {
 	const auto pr(ystdex::search_map(m, k));
 
 	return pr.second ? pr.first : f(pr.first);
 }
+//@}
 
 } // namespace ystdex;
 

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2666
+\version r2708
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-04-28 17:41 +0800
+	2015-05-01 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,11 +43,11 @@
 //@{
 
 /*!
-\def YB_IMPL_CPP
-\brief C++ 实现支持版本。
-\since build 313
+\def YB_IMPL_GNUC
+\brief GNU C 实现支持版本。
+\since build 595
 
-定义为 __cplusplus 。
+定义为 100 进位制的三重版本编号和。
 */
 
 /*!
@@ -74,8 +74,12 @@
 定义为 100 进位制的三重版本编号和。
 */
 
+#if defined(__GNUC__)
+#	undef YB_IMPL_GNUC
+#	define YB_IMPL_GNUC \
+	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
 #ifdef __cplusplus
-#	define YB_IMPL_CPP __cplusplus
 #	ifdef _MSC_VER
 #		undef YB_IMPL_MSCPP
 #		define YB_IMPL_MSCPP _MSC_VER
@@ -87,10 +91,10 @@
 #			define YB_IMPL_CLANGPP (__clang__ * 10000 + __clang_minor__ * 100 \
 	+ __clang_patchlevel__)
 #		endif
-#	elif defined(__GNUC__)
+#	elif defined(__GNUG__)
 #		undef YB_IMPL_GNUCPP
 #		define YB_IMPL_GNUCPP \
-	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+	(__GNUG__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #	else
 // TODO: Complete version checking for compiler and library implementations.
 //#ifdef __GNUC__
@@ -209,7 +213,7 @@
 \since build 315
 */
 #undef YB_HAS_ALIGNOF
-#define YB_HAS_ALIGNOF (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40500)
+#define YB_HAS_ALIGNOF (__cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40500)
 
 /*!
 \def YB_HAS_BUILTIN_NULLPTR
@@ -219,7 +223,7 @@
 #undef YB_HAS_BUILTIN_NULLPTR
 #define YB_HAS_BUILTIN_NULLPTR \
 	(__has_feature(cxx_nullptr) || __has_extension(cxx_nullptr) || \
-		YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600 || \
+		__cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600 || \
 		YB_IMPL_MSCPP >= 1600)
 
 /*!
@@ -230,7 +234,7 @@
 #undef YB_HAS_CONSTEXPR
 #define YB_HAS_CONSTEXPR \
 	(__cpp_constexpr >= 200704 || __has_feature(cxx_constexpr) \
-		|| YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
+		|| __cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600)
 
 /*!
 \def YB_HAS_RELAXED_CONSTEXPR
@@ -240,7 +244,7 @@
 #undef YB_HAS_CONSTEXPR_CPP14
 #define YB_HAS_CONSTEXPR_CPP14 \
 	(__cpp_constexpr >= 201304 || __has_feature(cxx_relaxed_constexpr) \
-		|| YB_IMPL_CPP >= 201402L)
+		|| __cplusplus >= 201402L)
 
 
 /*!
@@ -251,7 +255,7 @@
 #undef YB_HAS_NOEXCEPT
 #define YB_HAS_NOEXCEPT \
 	(__has_feature(cxx_noexcept) || __has_extension(cxx_noexcept) || \
-		YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
+		__cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600)
 
 /*!
 \def YB_HAS_THREAD_LOCAL
@@ -261,7 +265,7 @@
 */
 #undef YB_HAS_THREAD_LOCAL
 #define YB_HAS_THREAD_LOCAL \
-	(__has_feature(cxx_thread_local) || (YB_IMPL_CPP >= 201103L \
+	(__has_feature(cxx_thread_local) || (__cplusplus >= 201103L \
 		&& !YB_IMPL_GNUCPP) || (YB_IMPL_GNUCPP >= 40800 && _GLIBCXX_HAVE_TLS))
 //@}
 
@@ -292,7 +296,7 @@
 \warning 不检查指令。用户应验证可能使用的指令中的标识符在宏替换后能保持正确。
 \since build 373
 */
-#if YB_IMPL_GNUCPP >= 20500
+#if YB_IMPL_GNUC >= 20500
 #	define YB_ATTR(...) __attribute__((__VA_ARGS__))
 #elif __cpp_attributes >= 200809 || __has_feature(cxx_attributes)
 #	define YB_ATTR(...) [[__VA_ARGS__]]
@@ -424,7 +428,6 @@
 \since build 373
 */
 //@{
-
 /*!
 \def YB_DLL
 \brief 使用 YBase 动态链接库。
@@ -462,6 +465,15 @@
 
 
 /*!
+\def YB_Use_DynamicExceptionSpecification
+\brief 使用 YBase 动态异常规范。
+\since build 595
+*/
+#if 0 && !defined(NDEBUG)
+#	define YB_Use_DynamicExceptionSpecification 1
+#endif
+
+/*!
 \def YB_Use_YAssert
 \brief 使用断言。
 \since build 313
@@ -471,23 +483,19 @@
 \brief 使用调试跟踪记录。
 \since build 313
 */
+/*!
+\def YB_Use_StrictNoThrow
+\brief 使用严格无异常抛出规范。
+\since build 595
+*/
 #ifndef NDEBUG
 #	ifndef YB_Use_YAssert
 #		define YB_Use_YAssert 1
 #	endif
+#elif !defined(YB_Use_StrictNoThrow)
+#	define YB_Use_StrictNoThrow 1
 #endif
 #define YB_Use_YTrace 1
-
-
-/*!
-\def YB_USE_EXCEPTION_SPECIFICATION
-\brief 使用 YBase 动态异常规范。
-\since build 362
-*/
-#if 0 && !defined(NDEBUG)
-#	define YB_USE_EXCEPTION_SPECIFICATION 1
-#endif
-
 //@}
 
 
@@ -565,7 +573,7 @@
 \brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
 \note ythrow = "yielded throwing" 。
 */
-#if YB_USE_EXCEPTION_SPECIFICATION
+#if YB_Use_DynamicExceptionSpecification
 #	define ythrow throw
 #else
 #	define ythrow(...)
@@ -580,9 +588,11 @@
 \since build 461
 
 按 ISO/IEC JTC1/SC22/WG21 N3248 要求，表示 narrow constraint 的无异常抛出接口。
-对应接口违反约束可引起未定义行为。仅当验证时使用显式异常规范。
+对应接口违反约束可引起未定义行为。
+因为可能显著改变程序的可观察行为，需要允许抛出异常进行验证时不适用。
+验证结束后，确保不存在未定义行为时可以启用以提升性能。
 */
-#ifdef YB_USE_EXCEPTION_VALIDATION
+#if YB_Use_StrictNoThrow
 #	define ynothrowv ynothrow
 #else
 #	define ynothrowv

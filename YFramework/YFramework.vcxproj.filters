@@ -397,7 +397,7 @@
     <ClInclude Include="include\YCLib\Timer.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\CHRLib\MapEx.h">
+    <ClInclude Include="include\CHRLib\MappingEx.h">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
     <ClInclude Include="include\YCLib\MemoryMapping.h">

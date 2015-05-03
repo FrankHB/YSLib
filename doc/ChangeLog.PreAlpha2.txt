@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3690
+\version r3698
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-11-03 01:49 +0800
+	2015-04-30 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -567,7 +567,7 @@ b291
 			$dep_to %YReader.'shells test example',
 			/ DLD "simplified implementation" @ "input functions"
 		);
-		/ "timers" @ '%YSLib'.Service $=
+		/ "timers" @ %'YSLib'.Service $=
 		(
 			+ "class %HighResolutionClock" ^ "%std::(duration, time_point)",
 			+ "duration and time point types",
@@ -1722,7 +1722,7 @@ b252
 	/ $dev $lib "simplified macro definitions" @ "ybasemac.h",
 	/ $doc "updated Doxygen file" ^ "Doxygen 1.7.2",
 	+ DLD "nested-use support" @ "implementation" @ "macro %yunsequenced",
-	/ DLP "libraries using" $=
+	/ DLP "toolchain and libraries using" $=
 	(
 		^ $re_ex(b223) "updated devkitARM release 35" ~ "devkitARM release 34",
 		^ $re_ex(b192) "updated libfat 1.0.10" ~ "libfat 1.0.9"
@@ -1790,6 +1790,11 @@ b248
 (
 	/ DLD "deleted copy constructor" @ "class %input_monomorphic_iterator for \
 		safety",
+	/ %CHRLib $=
+	(
+		/ "simplified implementation" @ "UCS conversion",
+		- "function %MBCSToUCS4"
+	),
 	/ %YFramework.YSLib.UI.GUI $=
 	(
 		* "wrong return value" @ "function %Refresh" @ "classes \

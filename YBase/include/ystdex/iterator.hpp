@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5119
+\version r5336
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-04-30 04:47 +0800
+	2015-05-01 07:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,10 @@
 #ifndef YB_INC_ystdex_iterator_hpp_
 #define YB_INC_ystdex_iterator_hpp_ 1
 
-#include "iterator_op.hpp" // for std::reverse_iterator, std::pair,
-//	std::make_move_iterator, std::iterator_traits, yconstraint, yassume,
-//	*_tag, is_undereferenceable;
-#include "operators.hpp" // for random_access_iteratable, std::addressof;
+#include "iterator_op.hpp" // for std::make_move_iterator, iterator_operators_t,
+//	std::iterator_traits, yconstraint, yassume, *_tag, is_undereferenceable;
+#include <tuple> // for std::tuple, std::get;
+#include "ref.hpp" // for lref;
 
 namespace ystdex
 {
@@ -44,106 +44,6 @@ namespace ystdex
 \ingroup iterators
 \brief 迭代器适配器。
 */
-
-
-//! \ingroup helper_functions
-//@{
-/*!
-\brief 构造反向迭代器。
-\see WG21/N3936 24.5.1.3.21[reverse.iter.make] 。
-\see http://wg21.cmeerw.net/lwg/issue2285 。
-\since build 531
-*/
-template<typename _tIter>
-std::reverse_iterator<_tIter>
-make_reverse_iterator(_tIter i)
-{
-	return std::reverse_iterator<_tIter>(i);
-}
-
-/*!
-\brief 构造转移迭代器对。
-\since build 337
-*/
-template<typename _tIter1, typename _tIter2>
-inline auto
-make_move_iterator_pair(_tIter1 it1, _tIter2 it2) -> decltype(
-	std::make_pair(std::make_move_iterator(it1), std::make_move_iterator(it2)))
-{
-	return std::make_pair(std::make_move_iterator(it1),
-		std::make_move_iterator(it2));
-}
-/*!
-\brief 构造指定序列范围（包含序列容器及内建数组等）的转移迭代器对。
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
-\bug decltype 指定的返回类型不能使用 ADL 。
-\since build 337
-*/
-template<typename _tRange>
-inline auto
-make_move_iterator_pair(_tRange& c)
-	-> decltype(ystdex::make_move_iterator_pair(c.begin(), c.end()))
-{
-	using std::begin;
-	using std::end;
-
-	return ystdex::make_move_iterator_pair(begin(c), end(c));
-}
-//@}
-
-
-//! \since build 576
-namespace details
-{
-
-template<typename _tIter, typename _tTraits,
-	typename _tTag = typename _tTraits::iterator_category>
-struct iterator_operators;
-
-template<typename _tIter, typename _tTraits>
-struct iterator_operators<_tIter, _tTraits, std::input_iterator_tag>
-{
-	using type = input_iteratable<_tIter, typename _tTraits::reference>;
-};
-
-template<typename _tIter, typename _tTraits>
-struct iterator_operators<_tIter, _tTraits, std::output_iterator_tag>
-{
-	using type = output_iteratable<_tIter, typename _tTraits::reference>;
-};
-
-template<typename _tIter, typename _tTraits>
-struct iterator_operators<_tIter, _tTraits, std::forward_iterator_tag>
-{
-	using type = forward_iteratable<_tIter, typename _tTraits::reference>;
-};
-
-template<typename _tIter, typename _tTraits>
-struct iterator_operators<_tIter, _tTraits, std::bidirectional_iterator_tag>
-{
-	using type = bidirectional_iteratable<_tIter, typename _tTraits::reference>;
-};
-
-template<typename _tIter, typename _tTraits>
-struct iterator_operators<_tIter, _tTraits, std::random_access_iterator_tag>
-{
-	using type = random_access_iteratable<_tIter,
-		typename _tTraits::difference_type, typename _tTraits::reference>;
-};
-
-} // namespace details;
-
-
-/*!
-\ingroup metafunctions
-\brief 按迭代器类别取可实现迭代器的重载操作符集合的实现。
-\note 仅使用第二参数的特定成员，可以是兼容 std::iterator 的实例的类型。
-\warning 实例作为实现迭代器的基类时不应使用默认参数，因为此时无法访问成员类型。
-\since build 576
-*/
-template<typename _tIter, typename _tTraits = std::iterator_traits<_tIter>>
-using iterator_operators_t
-	= typename details::iterator_operators<_tIter, _tTraits>::type;
 
 
 /*!
@@ -734,21 +634,22 @@ operator|(_tIter&& i, get_tag)
 
 /*!
 \ingroup iterator_adaptors
-\brief 成对迭代器。
+\brief 元组迭代器。
 \note 成员迭代器需可复制构造，满足随机迭代器要求（但不需要 + 和 - ）。
 \warning 非虚析构。
+\since build 595
 
-拼接迭代器和另一对象类型对得到的迭代器适配器。
+拼接迭代器和其它对象类型对得到的迭代器适配器。
 */
-template<typename _tIter, typename _tSlave,
-	class _tTraits = std::iterator_traits<_tIter>>
-class pair_iterator : private std::pair<_tIter, _tSlave>, public
-	iterator_operators_t<pair_iterator<_tIter, _tSlave, _tTraits>, _tTraits>
+template<typename _tIter, class _tTraits = std::iterator_traits<_tIter>,
+	typename... _tSlaves>
+class tuple_iterator : private std::tuple<_tIter, _tSlaves...>, public
+	iterator_operators_t<tuple_iterator<_tIter, _tTraits, _tSlaves...>,
+	_tTraits>
 {
 public:
-	using pair_type = std::pair<_tIter, _tSlave>;
+	using base_type = std::tuple<_tIter, _tSlaves...>;
 	using iterator_type = _tIter;
-	//! \since build 400
 	using traits_type = _tTraits;
 	using iterator_category = typename traits_type::iterator_category;
 	using value_type = typename traits_type::value_type;
@@ -756,57 +657,44 @@ public:
 	using pointer = typename traits_type::pointer;
 	using reference = typename traits_type::reference;
 
+private:
+	using seq_type = make_index_sequence<std::tuple_size<base_type>::value>;
+
+public:
 	yconstfn
-	pair_iterator() = default;
+	tuple_iterator() = default;
 	explicit yconstfn
-	pair_iterator(const _tIter& i)
-		: std::pair<_tIter, _tSlave>(i, _tSlave())
+	tuple_iterator(const _tIter& i)
+		: base_type(i, _tSlaves()...)
+	{}
+	template<typename... _tParams>
+	yconstfn
+	tuple_iterator(const _tIter& i, _tParams&&... args)
+		: base_type(i, yforward(args)...)
 	{}
 	yconstfn
-	pair_iterator(const _tIter& i, const _tSlave& s)
-		: std::pair<_tIter, _tSlave>(i, s)
-	{}
+	tuple_iterator(const tuple_iterator&) = default;
 	yconstfn
-	pair_iterator(const pair_iterator&) = default;
-	//! \since build 594
-	yconstfn
-	pair_iterator(pair_iterator&& r) ynoexcept(is_nothrow_constructible<
-		std::pair<_tIter, _tSlave>, pair_iterator&&>::value)
-		: std::pair<_tIter, _tSlave>(std::move(r))
-	{}
+	tuple_iterator(tuple_iterator&&) = default;
 
-	inline pair_iterator&
-	operator=(const pair_iterator&) = default;
-	inline pair_iterator&
-#if YB_IMPL_MSCPP
-	//! \since build 458 as workaround for Visual C++ 2013
-	operator=(pair_iterator&& i)
-	{
-		static_cast<std::pair<_tIter, _tSlave>&>(*this)
-			= static_cast<std::pair<_tIter, _tSlave>&&>(i);
-		return *this;
-	}
-#else
-	operator=(pair_iterator&&) = default;
-#endif
+	tuple_iterator&
+	operator=(const tuple_iterator&) = default;
+	tuple_iterator&
+	operator=(tuple_iterator&&) = default;
 
-	//! \since build 585
-	//@{
-	pair_iterator&
-	operator+=(difference_type n)
-		ynoexcept_spec(yunseq(std::declval<pair_iterator&>().first += n,
-		std::declval<pair_iterator&>().second += n))
+	tuple_iterator&
+	operator+=(difference_type n) ynoexcept_spec(
+		yimpl(std::declval<tuple_iterator&>().add(n, seq_type())))
 	{
-		yunseq(this->first += n, this->second += n);
+		add(n, seq_type());
 		return *this;
 	}
 
-	pair_iterator&
-	operator-=(difference_type n)
-		ynoexcept_spec(yunseq(std::declval<pair_iterator&>().first -= n,
-		std::declval<pair_iterator&>().second -= n))
+	tuple_iterator&
+	operator-=(difference_type n) ynoexcept_spec(
+		yimpl(std::declval<tuple_iterator&>().subtract(n, seq_type())))
 	{
-		yunseq(this->first -= n, this->second -= n);
+		subtract(n, seq_type());
 		return *this;
 	}
 
@@ -814,56 +702,109 @@ public:
 	//@{
 	yconstfn reference
 	operator*() const
-		ynoexcept_spec(reference(*std::declval<pair_iterator&>().first))
+		ynoexcept_spec(reference(*std::declval<tuple_iterator&>().get()))
 	{
-		return *this->first;
+		return *get();
 	}
 
-	pair_iterator&
-	operator++() ynoexcept_spec(yunseq(++std::declval<pair_iterator&>().first,
-		++std::declval<pair_iterator&>().second))
+	tuple_iterator&
+	operator++()
+		ynoexcept_spec(yimpl(std::declval<tuple_iterator&>().inc(seq_type())))
 	{
-		yunseq(++this->first, ++this->second);
+		inc(seq_type());
 		return *this;
 	}
 	//@}
 
 	//! \brief 满足双向迭代器要求。
-	pair_iterator&
-	operator--() ynoexcept_spec(yunseq(--std::declval<pair_iterator&>().first,
-		--std::declval<pair_iterator&>().second))
+	tuple_iterator&
+	operator--()
+		ynoexcept_spec(yimpl(std::declval<tuple_iterator&>().dec(seq_type())))
 	{
-		yunseq(--this->first, --this->second);
+		dec(seq_type());
 		return *this;
 	}
 
-	//! \since build 594
 	friend bool
-	operator==(const pair_iterator& x, const pair_iterator& y)
-		ynoexcept_spec(bool(x.first == y.first && x.second == y.second))
+	operator==(const tuple_iterator& x, const tuple_iterator& y)
+		ynoexcept_spec(bool(x.get() == y.get()))
 	{
-		return x.first == y.first && x.second == y.second;
+		return x.get() == y.get();
 	}
 
-	//! \since build 594
-	template<typename _tFirst, typename _tSecond,
-		yimpl(typename = enable_if_convertible_t<_tIter, _tFirst>,
-		typename = enable_if_convertible_t<_tSlave, _tSecond>)>
-	operator std::pair<_tFirst, _tSecond>() const ynoexcept(
-		std::is_nothrow_copy_constructible<std::pair<_tFirst, _tSecond>()>
-		::value && noexcept(std::pair<_tFirst, _tSecond>(std::declval<
-		pair_iterator&>().first, std::declval<pair_iterator&>().second)))
+private:
+	template<size_t... _vSeq>
+	void
+	add(difference_type n, index_sequence<_vSeq...>)
+		ynoexcept_spec(yimpl(yunseq((void(
+		std::get<_vSeq>(std::declval<tuple_iterator&>().base()) += n), 0)...)))
 	{
-		return std::pair<_tFirst, _tSecond>(this->first, this->second);
+		yunseq((void(std::get<_vSeq>(base()) += n), 0)...);
 	}
 
-	yconstfn const pair_type&
+public:
+	yconstfn_relaxed base_type&
+	base() ynothrow
+	{
+		return *this;
+	}
+	yconstfn const base_type&
 	base() const ynothrow
 	{
 		return *this;
 	}
-	//@}
+
+private:
+	template<size_t... _vSeq>
+	void
+	dec(index_sequence<_vSeq...>) ynoexcept_spec(yimpl(yunseq((void(
+		--std::get<_vSeq>(std::declval<tuple_iterator&>().base())), 0)...)))
+	{
+		yunseq((void(--std::get<_vSeq>(base())), 0)...);
+	}
+
+	template<size_t... _vSeq>
+	void
+	inc(index_sequence<_vSeq...>) ynoexcept_spec(yimpl(yunseq((void(
+		++std::get<_vSeq>(std::declval<tuple_iterator&>().base())), 0)...)))
+	{
+		yunseq((void(++std::get<_vSeq>(base())), 0)...);
+	}
+
+public:
+	yconstfn_relaxed iterator_type&
+	get() ynothrow
+	{
+		return std::get<0>(base());
+	}
+	yconstfn const iterator_type&
+	get() const ynothrow
+	{
+		return std::get<0>(base());
+	}
+
+private:
+	template<size_t... _vSeq>
+	void
+	subtract(difference_type n, index_sequence<_vSeq...>)
+		ynoexcept_spec(yimpl(yunseq((void(
+		std::get<_vSeq>(std::declval<tuple_iterator&>().base()) -= n), 0)...)))
+	{
+		yunseq((void(std::get<_vSeq>(base()) -= n), 0)...);
+	}
 };
+
+
+/*!
+\ingroup iterator_adaptors
+\brief 成对迭代器。
+\warning 非虚析构。
+\sa tuple_iterator
+\since build 595
+*/
+template<typename _tIter, typename _tSlave,
+	class _tTraits = std::iterator_traits<_tIter>>
+using pair_iterator = tuple_iterator<_tIter, _tTraits, _tSlave>;
 
 
 /*!
@@ -1216,7 +1157,8 @@ public:
 	using reference = _type&;
 
 protected:
-	std::reference_wrapper<value_type> proto_ref;
+	//! \since build 595
+	lref<value_type> proto_ref;
 	size_t idx;
 	updater_type updater;
 

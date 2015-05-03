@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5019
+\version r5023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-04-29 00:05 +0800
+	2015-05-02 14:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,13 +202,13 @@ private:
 //@{
 template<typename _tRet, typename... _tParams>
 yconstfn bool
-operator==(const GHEvent<_tRet(_tParams...)>& x, std::nullptr_t)
+operator==(const GHEvent<_tRet(_tParams...)>& x, nullptr_t)
 {
 	return !x;
 }
 template<typename _tRet, typename... _tParams>
 yconstfn bool
-operator==(std::nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
+operator==(nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
 {
 	return !y;
 }
@@ -222,13 +222,13 @@ operator!=(const GHEvent<_tRet(_tParams...)>& x,
 }
 template<typename _tRet, typename... _tParams>
 yconstfn bool
-operator!=(const GHEvent<_tRet(_tParams...)>& x, std::nullptr_t)
+operator!=(const GHEvent<_tRet(_tParams...)>& x, nullptr_t)
 {
 	return bool(x);
 }
 template<typename _tRet, typename... _tParams>
 yconstfn bool
-operator!=(std::nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
+operator!=(nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
 {
 	return bool(y);
 }

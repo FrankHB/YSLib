@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup CHRLib
 \brief CHRLib 库模块配置文件。
-\version r55
+\version r56
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:08 +0800
 \par 修改时间:
-	2015-04-30 10:22 +0800
+	2015-05-04 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@
 #define YFM_CHRLib_Encoding <CHRLib/Encoding.h>
 #define YFM_CHRLib_Convert <CHRLib/Convert.hpp>
 #define YFM_CHRLib_StaticMapping <CHRLib/StaticMapping.hpp>
-#define YFM_CHRLib_MappingEx <CHRLib/MapEx.h>
+#define YFM_CHRLib_MappingEx <CHRLib/MappingEx.h>
 //@}
 
 #endif

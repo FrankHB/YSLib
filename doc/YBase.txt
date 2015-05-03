@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r440
+\version r442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-04-11 02:44 +0800
+	2015-05-01 08:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,6 +156,8 @@ std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
 @2.4.2.1 YBase 引入的公开命名空间：
 ystdex ： YStandardEx 使用的默认命名空间。
 ystdex::any_ops ： ystdex::any 相关的底层操作接口。
+inline ystdex::cpp2011_traits 包含 ISO C++ 2011 <type_traits> 引入的名称的命名空间。
+inline ystdex::cpp2014_traits 包含 ISO C++ 2014 <type_traits> 引入的名称的命名空间。
 ystdex::dependent_operators ： YBase::YStandardEx::Operators 使用的隔离 ADL 的命名空间。
 ystdex::dependent_swap ： 引入 std::swap 实现为 ADL 提供重载的命名空间。
 ystdex::threading ：线程相关操作。

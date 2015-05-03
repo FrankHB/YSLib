@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1324
+\version r1354
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-04-30 04:55 +0800
+	2015-05-01 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,6 @@ namespace CHRLib
 using std::malloc;
 using std::size_t;
 using std::tolower;
-using ystdex::input_monomorphic_iterator;
 using ystdex::is_null;
 using ystdex::ntctslen;
 //! \since build 476
@@ -52,20 +51,20 @@ using ystdex::make_unique;
 ConversionResult
 MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState&& st)
 {
-	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(enc))
-		return ConvertCharacter(pfun, uc, c, std::move(st));
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&, const char*&,
+		ConversionState&&>(enc))
+		return pfun(uc, c, std::move(st));
 	return ConversionResult::Unhandled;
 }
 ConversionResult
 MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	yconstraint(fp);
-	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(enc))
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+		ystdex::ifile_iterator&, ConversionState&&>(enc))
 	{
 		ystdex::ifile_iterator i(fp);
-		const auto r(ConvertCharacter(pfun, uc, i, std::move(st)));
+		const auto r(pfun(uc, i, std::move(st)));
 
 		std::ungetc(*i, fp);
 		return r;
@@ -75,20 +74,20 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 ConversionResult
 MBCToUC(const char*& c, Encoding enc, ConversionState&& st)
 {
-	if(const auto pfun = FetchMapperPtr<ConversionResult(
-		input_monomorphic_iterator&&, ConversionState&&)>(enc))
-		return ConvertCharacter(pfun, c, std::move(st));
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ystdex::pseudo_output,
+		const char*&, ConversionState&&>(enc))
+		return pfun(ystdex::pseudo_output(), c, std::move(st));
 	return ConversionResult::Unhandled;
 }
 ConversionResult
 MBCToUC(std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	yconstraint(fp);
-	if(const auto pfun = FetchMapperPtr<ConversionResult(
-		input_monomorphic_iterator&&, ConversionState&&)>(enc))
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ystdex::pseudo_output,
+		ystdex::ifile_iterator&, ConversionState&&>(enc))
 	{
 		ystdex::ifile_iterator i(fp);
-		const auto r(ConvertCharacter(pfun, i, std::move(st)));
+		const auto r(pfun(ystdex::pseudo_output(), i, std::move(st)));
 
 		std::ungetc(*i, fp);
 		return r;
@@ -103,7 +102,7 @@ UCToMBC(char* d, const ucs2_t& s, Encoding enc)
 
 	size_t l(0);
 
-	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
+	if(const auto pfun = FetchMapperPtr<size_t, char*, ucs4_t>(enc))
 		l = pfun(d, s);
 	return l;
 }
@@ -117,10 +116,11 @@ MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
 
 	const auto p(d);
 
-	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(enc))
-		while(!is_null(*s))
-			ConvertCharacter(pfun, *d++, s, ConversionState());
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+		const char*&, ConversionState&&>(enc))
+		while(!is_null(*s) && pfun(*d, s, ConversionState())
+			== ConversionResult::OK)
+			++d;
 	*d = 0;
 	return size_t(d - p);
 }
@@ -134,15 +134,20 @@ MBCSToUCS4(ucs4_t* d, const char* s, Encoding enc)
 	const auto p(d);
 
 	// TODO: Use UCS-4 internal conversion directly?
-	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
-		input_monomorphic_iterator&&, ConversionState&&)>(enc))
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+		const char*&, ConversionState&&>(enc))
 		while(!is_null(*s))
 		{
 			// TODO: Necessary initialization?
 			ucs2_t c;
 
-			ConvertCharacter(pfun, c, s, ConversionState());
-			*d++ = c;
+			if(pfun(c, s, ConversionState()) == ConversionResult::OK)
+			{
+				*d = c;
+				++d;
+			}
+			else
+				break;
 		}
 	*d = 0;
 	return size_t(d - p);
@@ -156,7 +161,7 @@ UCS2ToMBCS(char* d, const ucs2_t* s, Encoding enc)
 
 	const auto p(d);
 
-	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
+	if(const auto pfun = FetchMapperPtr<size_t, char*, ucs4_t>(enc))
 		while(!is_null(*s))
 			d += pfun(d, *s++);
 	*d = char();
@@ -182,7 +187,7 @@ UCS4ToMBCS(char* d, const ucs4_t* s, Encoding enc)
 
 	const auto p(d);
 
-	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
+	if(const auto pfun = FetchMapperPtr<size_t, char*, ucs4_t>(enc))
 		while(!is_null(*s))
 			d += pfun(d, ucs2_t(*s++));
 	*d = char();

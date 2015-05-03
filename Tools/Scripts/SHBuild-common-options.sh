@@ -26,7 +26,7 @@ if [[ "$SHBuild_Env_OS" != 'Win32' ]]; then
 	: ${C_CXXFLAGS_PIC:='-fPIC'}
 fi
 
-: ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC -pedantic-errors"}
+: ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC $C_CXXFLAGS_ARCH -pedantic-errors"}
 : ${C_CXXFLAGS_OPT_LV:='-O3'}
 : ${C_CXXFLAGS_WARNING:=" \
 	-Wall \

@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3832
+\version r3843
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-04-30 05:08 +0800
+	2015-05-01 05:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,11 +41,12 @@ namespace
 {
 
 //! \since build 400
-yconstexpr auto& FetchMapperFunc(FetchMapperPtr<ConversionResult(ucs2_t&,
-	ystdex::input_monomorphic_iterator&&, ConversionState&&)>);
+yconstexpr auto& FetchMapperFunc(FetchMapperPtr<ConversionResult, ucs2_t&,
+	ystdex::input_monomorphic_iterator&&, ConversionState&&>);
 //! \since build 400
-yconstexpr auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult(
-	ystdex::input_monomorphic_iterator&&, ConversionState&&)>);
+yconstexpr auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult,
+	ystdex::pseudo_output, ystdex::input_monomorphic_iterator&&,
+	ConversionState&&>);
 
 
 //! \since build 552
@@ -69,8 +70,8 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 		YTraceDe(Warning, "Encoding conversion failed with state = %u.",
 			unsigned(res));
 	}
-	i = it.base().first;
-	return it.base().second;
+	i = get<0>(it.base());
+	return get<1>(it.base());
 }
 
 } // unnamed namespace;
@@ -210,9 +211,9 @@ TextFileBuffer::GetIterator(size_t pos)
 			ystdex::ifile_iterator i(File.GetPtr());
 
 			while(n_byte < pos)
-				n_byte += ConvertChar([&]{
+				n_byte += ConvertChar([&](ystdex::pseudo_output){
 					++n_char;
-				}, pfun, i);
+				}, pfun, i, ystdex::pseudo_output());
 			std::ungetc(*i, File.GetPtr());
 			return TextFileBuffer::iterator(this, idx, n_char);
 		}
@@ -253,9 +254,9 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 		size_t n_byte(0);
 
 		while(it != mid)
-			n_byte += ConvertChar([&]{
+			n_byte += ConvertChar([&](ystdex::pseudo_output){
 				++it;
-			}, pfun, i_cur);
+			}, pfun, i_cur, ystdex::pseudo_output());
 		return idx + n_byte;
 	}
 	return idx;
