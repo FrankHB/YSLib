@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # (C) 2014-2015 FrankHB.
 # Script for testing.
-# Requires: G++, Tools/Scripts, YBase source.
+# Requires: G++/Clang++, Tools/Scripts, YBase source.
 
 set -e
 : ${TestDir:=$(cd `dirname "$0"`; pwd)}
@@ -14,7 +14,10 @@ SHBuild_NoAdjustSubsystem=true
 : ${AR:='gcc-ar'}
 . $SHBuild_ToolDir/SHBuild-BuildApp.sh
 
-CXXFLAGS="$CXXFLAGS -Wno-double-promotion"
+if !(echo "$CXX" | grep clang++ > /dev/null) \
+	&& echo "$CXX" | grep g++ > /dev/null; then
+	CXXFLAGS="$CXXFLAGS -Wno-double-promotion"
+fi
 
 INCLUDE_PCH='../YBase/include/stdinc.h'
 INCLUDES=" \

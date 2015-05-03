@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3242
+\version r3245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-03-24 21:03 +0800
+	2015-05-01 04:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,7 +248,10 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 		YAssert(e.Value < lbContent.GetList().size(), "Invalid index found.");
 
 		Text = lbContent.GetList()[e.Value];
+		// XXX: This seems to be redundant if the detached top widget would be
+		//	always invalidated, however there is no such guarantee.
 		Invalidate(e.GetSender()),
+		Invalidate(*this);
 		DetachTopWidget();
 	}
 	);

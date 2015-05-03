@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file MapEx.h
+/*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r320
+\version r350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2015-04-30 04:51 +0800
+	2015-04-30 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,19 +229,41 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 //@}
 
 
-/*!
-\brief 取指定编码映射的转换函数指针。
-\since build 291
-*/
-template<typename _fCodemapTransform>
-_fCodemapTransform*
+//! \since build 595
+//@{
+template<Encoding, typename _tRet, typename... _tParams>
+ystdex::add_pointer_t<_tRet(_tParams...)>
+FetchMapperPtr_TryUCSMapper(...) ynothrow
+{
+	return {};
+}
+template<Encoding _vEnc, typename _tRet, typename... _tParams>
+ystdex::add_pointer_t<_tRet(_tParams...)>
+FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
+	decltype(GUCSMapper<_vEnc>::Decode(std::declval<_tParams>()...)), _tRet>*
+	= {})) ynothrow
+{
+	return GUCSMapper<_vEnc>::Decode;
+}
+template<Encoding _vEnc, typename _tRet, typename... _tParams>
+ystdex::add_pointer_t<_tRet(_tParams...)>
+FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
+	decltype(GUCSMapper<_vEnc>::Encode(std::declval<_tParams>()...)), _tRet,
+	int>* = {})) ynothrow
+{
+	return GUCSMapper<_vEnc>::Encode;
+}
+
+//! \brief 取指定编码映射的转换函数指针。
+template<typename _tRet, typename... _tParams>
+ystdex::add_pointer_t<_tRet(_tParams...)>
 FetchMapperPtr(Encoding enc)
 {
 	using namespace CharSet;
 
 #define CHR_MapItem(enc) \
 case enc: \
-	return UCSMapper<enc>;
+	return FetchMapperPtr_TryUCSMapper<enc, _tRet, _tParams...>(nullptr);
 
 	switch(enc)
 	{
@@ -259,6 +281,7 @@ case enc: \
 #undef CHR_MapItem
 	return {};
 }
+//@}
 
 } // namespace CHRLib;
 

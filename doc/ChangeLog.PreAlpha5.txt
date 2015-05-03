@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r13528
+\version r13823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-04-30 10:38 +0800
+	2015-05-04 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,289 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			(
+			/ "all 'YB_IMPL_CPP'" -> '__cplusplus';
+			- $revert(b313) "macro %YB_IMPL_CPP"
+			),
+			(
+			+ "macro %YB_IMPL_GNUC";
+			/ "macro %YB_ATTR for with '__attribute__' as possible"
+				^ "%YB_IMPL_GNUC"
+				// To support more attributes for Clang++.
+			),
+			/ "macro %YB_IMPL_GNUCPP" ^ '__GNUG__' ~ '__GNUC__',
+				// Use %YB_IMPL_GNUC instead.,
+			/ "library configuration macro %YB_USE_EXCEPTION_VALIDATION"
+				-> "%YB_Use_StrictNoThrow" $=
+			(
+				/ "provided default definition '1'"
+					@ '!defined(NDEBUG) && !defined(YB_Use_StrictNoThrow)',
+				/ "tested tested with non-zero value" ~ "definition"
+			),
+			/ "library configuration macro %YB_USE_EXCEPTION_SPECIFICATION"
+				=> "%YB_Use_DynamicExceptionSpecification"
+		),
+		/ %YStandardEx $=
+		(
+			* "recursively call failure due to recursive noexcept specification"
+				@ "function template %seq_apply" @ %Functional $since b594,
+			/ %Iterator $=
+			(
+				/ "class template %pair_iterator" -> "class template \
+					%tuple_iterator; alias template %pair_iterator";
+				/ $comp @ "%pair_iterator instances" $=
+				(
+					- "%pair_type",
+					- $revert(b453) "defaulted move %operator= workaround VC++ \
+						2013",
+					/ "%operator== only compare master iterators",
+					+ "function %get",
+					- "conversion operator template",
+					- "member %(first, second)" $dep_to
+						"removal of members (first, second)"
+				),
+				/ $lib "function templates %(make_reverse_iterator, \
+					make_move_iterator_pair, make_move_iterator_pair), alias \
+					template %iterator_operators_t" >> %IteratorOperation,
+				/ "type" @ "protected data member %proto_ref"
+					@ "class template %prototyped_iterator"
+					-> 'std::reference_wrapper<value_type>' ~ 'lref<value_type>'
+			),
+			/ "return type" @ "all 2 function templates %search_map" @ %Container
+				^ 'typename _tMap::const_iterator' ~ 'typename _tMap::iterator',
+			/ %TypeOperation $=
+			(
+				(
+				+ "inline namespace %cpp2011_traits";
+				/ $dev "wrapped ISO C++11 names" @ "namespace %cpp2011_traits"
+				),
+				+ "uncommented %(aligned_union, aligned_union_t)"
+					@ '!YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000'
+					$dep_from ("%YB_IMPL_GNUC" @ %YDefinition),
+				+ "uncommented all 7 remained traits 'is_trivially_*'"
+					@ '!YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000' $dep_from
+					("%YB_IMPL_GNUC" @ %YDefinition),
+				(
+				+ "inline namespace %cpp2014_traits";
+				/ $dev "wrapped ISO C++14 names from WG21/N3655",
+					@ "namespace %cpp2011_traits"
+					@ !'__cpp_lib_transformation_trait_aliases >= 201304 \
+					|| __cplusplus > 201103L',
+				+ "using declarations from namespace %std for names introduced \
+					by ISO C++14 <type_traits> from WG21/N3655"
+					@ '__cpp_lib_transformation_trait_aliases >= 201304 \
+					|| __cplusplus > 201103L'
+					// Though libstdc++ 5 only introduced 6 names of \
+						[meta.trans.cv] under \
+						'__cpp_lib_transformation_trait_aliases', these are \
+						actually covered by N3655. Anyway, '__cplusplus' \
+						should be OK.
+				),
+				+ "metafunction %identity_t"
+			),
+			/ %IteratorOperation $dep_from
+				("%make_reverse_iterator" @ %Iterator) $=
+			(
+				+ "reserved %make_reserve_iterator definition"
+					@ !'__cpp_lib_make_reverse_iterator >= 201402 \
+					|| __cplusplus >= 201402',
+					// Even if libstdc++ 5 declared it as \
+						'__cplusplus > 201103', there is no such thing in \
+						libstdc++ 4.9.
+				+ "using declarations from namespace %std for names introduced \
+					by ISO C++14 <type_traits> from resolved LWG2285"
+					@ '__cpp_lib_make_reverse_iterator >= 201402 \
+					|| __cplusplus >= 201402'
+			),
+			/ %Rational
+			(
+				/ @ "class template %fixed_point" $=
+				(
+					+ 'ynothrowv' @ "2 constructors with floating point \
+						parameter, %operator(++, --, +=, -=, *=, /=, <<=), \
+						multiplication implementation",
+					+ 'ynothrow' @ "member function %get"
+				),
+				+ 'ynothrow' @ "function template %abs"
+			),
+			/ %Memory $=
+			(
+				+ "2 function templates %(static_pointer_cast, 2 \
+					dynamic_pointer_cast, const_pointer_cast) for \
+					%std::unique_ptr instances",
+				+ "unary type trait %has_nested_allocator; metafunction \
+					%nested_allocator",
+				+ 'ynothrowv' @ "function %operator()"
+					@ "class template %free_delete",
+				+ "class template %allocator_delete; function template \
+					%make_allocator_guard"
+			),
+			/ %Any $=
+			(
+				/ $lib "metafunction %is_aligned_storable" >> %TypeOperation,
+				/ @ "namespace %any_ops" $=
+				(
+					/ 'using any_storage = pod_storage<non_aggregate_pod>;'
+						@ "namespace %any_ops"
+						-> 'using any_storage = pod_storage<void*>;',
+					/ @ "class template %holder_handler" $=
+					(
+						(
+						/ $lib "simplified %manage"
+							^ "'default' branch handling by base class";
+						- "alias %local_storage"
+						),
+						+ "static function %get_holder_pointer",
+						+ "assertion for nonnull pointer"
+							@ "static function %get_pointer"
+					),
+					/ @ "class template %value_handler" $=
+					(
+						(
+						/ "merged 2 static functions %copy" ^ "%init_impl",
+						/ "merged 2 static functions %uninit"
+							-> "static function %dispose with 'ynothrowv'"
+							$dep_from "%holder_handler";
+						- $comp "public functions with storage overloadings"
+						),
+						+ "support of variadic parameters for initialization"
+							@ "static function %init",
+						/ "implemented %get_pointer" @ "%value_holder"
+							!^ 'const_cast' $dep_from "allowing const access"
+					)
+				),
+				- $revert(b352) "union %non_aggregate_pod" $dep_from
+					"%any_ops::any_storage"
+				/ "constructors with value argument" @ "class %any" $=
+				(
+					// Also to be conforming to WG21/N4081.
+					/ "initialized manager and handler" ^ "%decay_t"
+						~ "%(remove_reference_t, %remove_rcv_t)";
+					* $comp $re_ex(b594) "initialized mismatched manager and \
+						handler types" @ "constructor with only one value \
+						argument" $since b376,
+					* $comp "ill-formed for values of array type" $since b331
+				),
+				/ "class template %pod_storage" $=
+				(
+					(
+					+ 'mutable' @ "all data members %(object, data)";
+					/ "merged function templates %access to allow non-const \
+						reference returned by const functions";
+					$dep_to "allowing const access"
+					)
+					+ "static assertion to disallow cv-qualified underlying \
+						type" @ "%pod_storage"
+						// Similar to %optional.
+				)
+			),
+			/ @ "class template %used_list_cache" @ %Cache $=
+			(
+				/ DLD "simplified implementation" @ "function template %emplace"
+					^ 'is_undereferenceable' ~ 'ystdex::undereferenceable',
+				+ 'ynothrowv' @ "function %set_max_use",
+				* "wrong exception specification" @ "function %clear" $orig
+					(@ "class template %GMRUCache"
+					@ %YFramework.YSLib.Core.Cache $since b461)
+					$= (/ 'ynoexcept' -> 'ynothrow')
+			),
+			+ "function %operator() with 'const'"
+				@ "class template %expanded_caller" @ %Functional,
+			* "%allocator_type" @ "class template %string_traits" $since b592
+				$= (/ "implemented" ^ $dep_from ("%nested_allocator" @ %Memory)
+					~ "%std::allocator"),
+			+ $dev "constructible and some 'nullptr' initialization static \
+				assertions for type parameter" @ "class template %nptr"
+				@ %Utility
+		)
+	),
+	* "unknown option '-Wno-double-promotion' for Clang++" @ "%test.sh" @ %Test
+		$since b586,
+	/ %YFramework $=
+	(
+		/ %CHRLib $=
+		(
+			+ "data member 'ucs4_t UCS4;'" @ "anonymous union %Value"
+				@ "struct %ConversionState" @ %CharacterMapping,
+			/ @ "class %GUCSMapper<CharSet::UTF_8>" %StaticMapping $=
+			(
+				(
+				+ "fast UTF-8 decoding function template %Decode for \
+					'ConversionState&'" $dep_from %CharacterMapping;
+				+ "static function template %Decode for 'ConversionState&&'"
+					^ "fast decoding"
+				),
+				+ "assertion for dereferenceable output iterator"
+					@ "function template %Encode",
+				- $revert(b594) "function templates %(UCSMapper; \
+					UCSMapper_Decode, UCSMapper_Encode)" $dep_from %MappingEx,
+				/ @ "function template %FillByte" $=
+				(
+					* "missing using declaration for dereferenceable iterator \
+						check" $since b250,
+						// For types from namespace %ystdex like \
+							%input_monomorphic_iterator, ADL would prevent the \
+							error.
+					/ DLD "initialized %byte argument" ^ "cast"
+						// To eliminate warning: [-Wsign-conversion] for \
+							'const char*', etc.
+				)
+			),
+			* "missing checking conversion result"
+				@ "functions %(MBCSToUCS2, MBCSToUCS4)" $since b248,
+				// This would case invalid access for any handles which could \
+					not increase the source iterator.
+			+ "support of parameterized output type" ~ 'ucs2_t&'
+				@ "function template %ConvertCharacter" @ %Convert,
+			/ %MappingEx $=
+			(
+				+ "3 function templates %FetchMapperPtr_TryUCSMapper";
+				/ "function template %FetchMapperPtr" ^ ("multiple template \
+					parameters", "%FetchMapperPtr_TryUCSMapper")
+			),
+			/ "UCS conversion mapper type" %CharacterProcessing $=
+			(
+				/ $forced DLD "encoding return type and decoding parameter type"
+					$dep_from %MappingEx,
+				/ "decoding iterator type" ^ "direct parameter type and \
+					conversion call"
+					~ "%(ystdex::iterator_monomorphic_iterator, \
+					ConvertCharacter)"
+					// This could improve performance significantly for short \
+						strings (about 50%).
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ $forced DLD @ %TextManager $dep_from %CHRLib.MappingEx,
+				/ $forced DLD @ %(TextManager, CharRenderer, YBlend) $dep_from
+					"removal of members (first, second)"
+			),
+			* "missing invalidate drop down list on handling %Confirmed"
+				@ "constructor %DropDownList" @ %UI.ComboList $since b482,
+			- DLD "'std::' berore 'nullptr_t'" $effective
+				@ %(Service.FileSystem, Core.YEvent),
+				// It has been declared in %Adaptor.YAdaptor indirectly.
+			/ "allowed array to initialize" @ "constructor %ValueObject"
+				@ %Core.YObject ^ "%ystdex::decay_t" ~ "%ystdex::remove_rcv"
+				// Similar to %ystdex::any.
+		)
+	),
+	+ '$C_CXXFLAGS_ARCH' @ "default value" @ "variable %C_CXXFLAGS_COMMON"
+		@ "%SHBuild-common-options.sh" @ %Tools,
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.(CHRLib.(
+		"MapEx.h" => "MappingEx.h")
+),
+
+b594
 (
 	/ %YFramework $=
 	(
@@ -133,7 +416,8 @@ $now
 			/ %CharacterProcessing $=
 			(
 				(
-				+ "function %(MBCSToUCS4, UCS2ToUCS4)";
+				+ $revert_ex(b248) "function %MBCSToUCS4",
+				+ "function %UCS2ToUCS4";
 				+ "8 function templates %MakeUCS4LE"
 				),
 				/ DLD "simplified implementation" @ "function %UCS4ToUCS2"
@@ -253,7 +537,8 @@ $now
 			),
 			/ DLD "implemented constructor %any_input_iterator"
 				@ %(Any, AnyIterator) ^ "%remove_rcv_t" ~ "%remove_rcv",
-			* "constructor template %any with parameters '_type&& x, \
+			* "inialialized mismatched manager and handler types"
+				@ "constructor template %any with parameters '_type&& x, \
 				any_ops::holder_tag'" $since b375
 				$= (/ $re_ex(b376) "implemented initialization"
 					^ "%remove_rcv_t" ~ "%remove_cv_t")
@@ -693,7 +978,7 @@ b591
 			+ "%__has_builtin(__builtin_expect) test"
 				@ "macros %(YB_EXPECT, YB_LIKELY, YB_UNLIKELY)"
 		),
-		/ %TypeOperations $=
+		/ %TypeOperation $=
 		(
 			+ "metafunction %void_t",
 			/ "unary type trait %has_addressof" $=
@@ -900,14 +1185,14 @@ b590
 				>> "%metafunctions",
 			/ "marked tight category %metafunctions \
 				for metafunctions" ~ "%meta_operations" $effective
-				@ %(TypeOperations, IntegerSequence, CStandardInteger),
+				@ %(TypeOperation, IntegerSequence, CStandardInteger),
 			/ "marked tight category %unary_type_traits \
 				for metafunctions" ~ "%meta_operations" $effective
 				@ %CStandardInteger,
 			(
 			+ "group %transformation_traits" @ "%";
 			/ "marked tight category %transformation_traits for metafunctions"
-				~ "%meta_operations" $effective @ %(TypeOperations, Iterator,
+				~ "%meta_operations" $effective @ %(TypeOperation, Iterator,
 				CStandardInteger)
 			),
 			(
@@ -1395,7 +1680,7 @@ b588
 			+ "3 function template %pack_object";
 			+ "class template %object_pack"
 		),
-		+ "unary type traits %(is_class_type; has_addressof)" @ %TypeOperations,
+		+ "unary type traits %(is_class_type; has_addressof)" @ %TypeOperation,
 		(
 		+ %Hash;
 		/ "function templates %(hash_combine, hash_combine_seq, hash_range), \
@@ -3584,7 +3869,7 @@ b575
 			(+ "overloaded function template with instances of \
 				%std::initializer_list as parameter"),
 		+ "metafunctions %(enable_if_convertible_t, \
-			(is_interoperable; enable_if_interoperable))" @ %TypeOperations,
+			(is_interoperable; enable_if_interoperable))" @ %TypeOperation,
 		+ "specialization for %std::function instances"
 			@ "metafunction %(is_covariant, is_contravariant)" @ %Functional
 	),
@@ -3617,7 +3902,7 @@ b575
 		)
 	),
 	/ "simplified static conversation SFINAE check" ^ $dep_from
-		("%enable_if_convertible_t" @ %YBase.YStandardEx.TypeOperations)
+		("%enable_if_convertible_t" @ %YBase.YStandardEx.TypeOperation)
 		~ "%(enable_if_t, is_convertible)" $effective
 		@ %YBase.YStandardEx.(Functional, Iterator, Memory, Container)
 ),
@@ -5195,12 +5480,12 @@ b562
 				+ "3 function templates %make_unique_with",
 				+ "2 function templates %unique_raw for raw pointer and deleter"
 			),
-			+ "metafunction %common_nonvoid_t" @ %TypeOperations,
+			+ "metafunction %common_nonvoid_t" @ %TypeOperation,
 			/ %Array $=
 			(
 				* "missing including <ystdex/utility.hpp>" $since b532,
 					// For 'decay_copy'.
-				+ "metafunction %common_array_t" $dep_from %TypeOperations;
+				+ "metafunction %common_array_t" $dep_from %TypeOperation;
 				/ "function templates %(make_array, forward_as_array)" $=
 				(
 					/ 'inline' -> 'yconstfn',
@@ -9002,7 +9287,7 @@ b538
 				// Multiple overloading with %enable_if_t are not touched to \
 					avoid ambiguity.
 			/ "default template argument" @ "alias template
-				%exclude_self_ctor_t" @ %TypeOperations -> 'void' ~ 'int',
+				%exclude_self_ctor_t" @ %TypeOperation -> 'void' ~ 'int',
 				// To be as same as %enable_if_t.
 			/ %Exception $=
 			(

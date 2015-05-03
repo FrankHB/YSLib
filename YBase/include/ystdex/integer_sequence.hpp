@@ -11,7 +11,7 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r318
+\version r337
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
@@ -33,19 +33,16 @@
 namespace ystdex
 {
 
-#if __cplusplus > 201103L
-//! \since build 589
-//@{
-using std::integer_sequence;
-using std::index_sequence;
-//@}
-#else
 /*!
 \ingroup meta_types
 \see ISO C++14 20.5[intseq] 。
 \since build 589
 */
 //@{
+#if __cplusplus > 201103L
+using std::integer_sequence;
+using std::index_sequence;
+#else
 template<typename _tInt, _tInt... _vSeq>
 struct integer_sequence
 {
@@ -60,8 +57,8 @@ struct integer_sequence
 
 template<size_t... _vSeq>
 using index_sequence = integer_sequence<size_t, _vSeq...>;
-//@}
 #endif
+//@}
 
 
 //! \since build 589
@@ -270,21 +267,18 @@ using make_natural_sequence_t
 //@}
 
 
-#if __cplusplus > 201103L
-//! \since build 589
-//@{
-using std::make_integer_sequence;
-using std::make_index_sequence;
-
-using std::index_sequence_for;
-//@}
-#else
 /*!
 \ingroup metafunctions
 \see ISO C++14 20.5[intseq] 。
 \since build 589
 */
 //@{
+#if __cplusplus > 201103L
+using std::make_integer_sequence;
+using std::make_index_sequence;
+
+using std::index_sequence_for;
+#else
 template<typename _tInt, size_t _vN>
 using make_integer_sequence = make_natural_sequence_t<_tInt, _vN>;
 
@@ -294,8 +288,8 @@ using make_index_sequence = make_integer_sequence<size_t, _vN>;
 
 template<typename... _types>
 using index_sequence_for = make_index_sequence<sizeof...(_types)>;
-//@}
 #endif
+//@}
 
 } // namespace ystdex;
 

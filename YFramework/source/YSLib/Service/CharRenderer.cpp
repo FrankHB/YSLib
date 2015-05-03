@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3326
+\version r3327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-24 17:19 +0800
+	2015-05-01 05:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ struct BlitTextPoint
 	operator()(_tOut dst_iter, _tIn src_iter) const
 	{
 		if(*src_iter >= BLT_TEXT_ALPHA_THRESHOLD)
-			yunseq(*dst_iter.base().second = *src_iter,
+			yunseq(*get<1>(dst_iter.base()) = *src_iter,
 				*dst_iter = Color);
 	}
 };

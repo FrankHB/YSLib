@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1454
+\version r1580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-04-11 02:06 +0800
+	2015-05-03 01:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,66 @@
 #include "../ydef.h" // for <type_traits>, std::declval;
 
 namespace ystdex
+{
+
+/*!	\defgroup template_meta_programing Template Meta Programing
+\brief 模板元编程。
+\note 以下类别中的接口包括类模板和对应的别名模板。
+\since build 288
+*/
+
+/*!	\defgroup meta_types Meta Types
+\ingroup template_meta_programing
+\brief 元类型。
+\since build 288
+*/
+
+/*!	\defgroup meta_operations Meta Operations
+\ingroup template_meta_programing
+\brief 元操作。
+\since build 288
+*/
+
+/*!	\defgroup metafunctions Metafunctions
+\ingroup meta_operations
+\brief 元函数。
+\see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/metafunction.html 。
+\since build 333
+*/
+
+/*!	\defgroup type_traits_operations Type Traits Operations
+\ingroup metafunctions
+\brief 类型特征操作。
+\since build 306
+*/
+
+/*!	\defgroup unary_type_traits Unary Type Trait
+\ingroup type_traits_operations
+\brief 一元类型特征。
+\see ISO C++11 20.9.1[meta.rqmts] 。
+\since build 306
+*/
+
+/*!	\defgroup binary_type_traits Binary Type Trait
+\ingroup type_traits_operations
+\brief 二元类型特征。
+\see ISO C++11 20.9.1[meta.rqmts] 。
+\since build 306
+*/
+
+/*!	\defgroup transformation_traits Binary Type Trait
+\ingroup type_traits_operations
+\brief 变换类型特征。
+\see ISO C++11 20.9.1[meta.rqmts] 。
+\since build 590
+*/
+
+
+/*!
+\brief 包含 ISO C++ 2011 <type_traits> 引入的名称的命名空间。
+\since build 595
+*/
+inline namespace cpp2011_traits
 {
 
 //! \since build 245
@@ -89,7 +149,9 @@ using std::is_move_assignable;
 using std::is_destructible;
 //@}
 
-#if 0
+#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
+//! \since build 595
+//@{
 using std::is_trivially_constructible;
 using std::is_trivially_default_constructible;
 using std::is_trivially_copy_constructible;
@@ -98,7 +160,8 @@ using std::is_trivially_move_constructible;
 using std::is_trivially_assignable;
 using std::is_trivially_copy_assignable;
 using std::is_trivially_move_assignable;
-#endif
+//@}
+#	endif
 //! \since build 591
 using std::is_trivially_destructible;
 
@@ -147,7 +210,10 @@ using std::remove_pointer;
 using std::add_pointer;
 
 using std::aligned_storage;
-//using std::aligned_union;
+#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
+//! \since build 595
+using std::aligned_union;
+#	endif
 using std::decay;
 using std::enable_if;
 using std::conditional;
@@ -157,66 +223,53 @@ using std::underlying_type;
 using std::result_of;
 //@}
 
+} // namespace cpp2011_traits;
 
-/*!	\defgroup template_meta_programing Template Meta Programing
-\brief 模板元编程。
-\note 以下类别中的接口包括类模板和对应的别名模板。
-\since build 288
+
+/*!
+\brief 包含 ISO C++ 2014 <type_traits> 引入的名称的命名空间。
+\since build 595
 */
-
-/*!	\defgroup meta_types Meta Types
-\ingroup template_meta_programing
-\brief 元类型。
-\since build 288
-*/
-
-/*!	\defgroup meta_operations Meta Operations
-\ingroup template_meta_programing
-\brief 元操作。
-\since build 288
-*/
-
-/*!	\defgroup metafunctions Metafunctions
-\ingroup meta_operations
-\brief 元函数。
-\see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/metafunction.html 。
-\since build 333
-*/
-
-/*!	\defgroup type_traits_operations Type Traits Operations
-\ingroup metafunctions
-\brief 类型特征操作。
-\since build 306
-*/
-
-/*!	\defgroup unary_type_traits Unary Type Trait
-\ingroup type_traits_operations
-\brief 一元类型特征。
-\see ISO C++11 20.9.1[meta.rqmts] 。
-\since build 306
-*/
-
-/*!	\defgroup binary_type_traits Binary Type Trait
-\ingroup type_traits_operations
-\brief 二元类型特征。
-\see ISO C++11 20.9.1[meta.rqmts] 。
-\since build 306
-*/
-
-/*!	\defgroup transformation_traits Binary Type Trait
-\ingroup type_traits_operations
-\brief 变换类型特征。
-\see ISO C++11 20.9.1[meta.rqmts] 。
-\since build 590
-*/
-
+inline namespace cpp2014_traits
+{
 
 /*!
 \ingroup transformation_traits
 \brief ISO C++ 14 兼容类型操作别名。
-\todo 条件编译：尽可能使用语言实现。
 */
 //@{
+#if __cpp_lib_transformation_trait_aliases >= 201304 || __cplusplus > 201103L
+using std::remove_const_t;
+using std::remove_volatile_t;
+using std::remove_cv_t;
+using std::add_const_t;
+using std::add_volatile_t;
+using std::add_cv_t;
+
+using std::remove_reference_t;
+using std::add_lvalue_reference_t;
+using std::add_rvalue_reference_t;
+
+using std::make_signed_t;
+using std::make_unsigned_t;
+
+using std::remove_extent_t;
+using std::remove_all_extents_t;
+
+using std::remove_pointer_t;
+using std::add_pointer_t;
+
+using std::aligned_storage_t;
+#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
+using std::aligned_union_t;
+#	endif
+using std::decay_t;
+using std::enable_if_t;
+using std::conditional_t;
+using std::common_type_t;
+using std::underlying_type_t;
+using std::result_of_t;
+#else
 //! \since build 340
 //@{
 template<typename _type>
@@ -237,6 +290,7 @@ using add_volatile_t = typename add_volatile<_type>::type;
 template<typename _type>
 using add_cv_t = typename add_cv<_type>::type;
 
+
 template<typename _type>
 using remove_reference_t = typename remove_reference<_type>::type;
 
@@ -246,11 +300,13 @@ using add_lvalue_reference_t = typename add_lvalue_reference<_type>::type;
 template<typename _type>
 using add_rvalue_reference_t = typename add_rvalue_reference<_type>::type;
 
+
 template<typename _type>
 using make_signed_t = typename make_signed<_type>::type;
 
 template<typename _type>
 using make_unsigned_t = typename make_unsigned<_type>::type;
+
 
 template<typename _type>
 using remove_extent_t = typename remove_extent<_type>::type;
@@ -258,11 +314,13 @@ using remove_extent_t = typename remove_extent<_type>::type;
 template<typename _type>
 using remove_all_extents_t = typename remove_all_extents<_type>::type;
 
+
 template<typename _type>
 using remove_pointer_t = typename remove_pointer<_type>::type;
 
 template<typename _type>
 using add_pointer_t = typename add_pointer<_type>::type;
+
 
 template<size_t _vLen,
 	size_t _vAlign = yalignof(typename aligned_storage<_vLen>::type)>
@@ -271,8 +329,10 @@ using aligned_storage_t = typename aligned_storage<_vLen, _vAlign>::type;
 
 //! \since build 339
 //@{
-//template<size_t _vLen, typename... _types>
-//using aligned_union_t = typename aligned_union<_vLen, _types...>::type;
+#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
+template<size_t _vLen, typename... _types>
+using aligned_union_t = typename aligned_union<_vLen, _types...>::type;
+#	endif
 
 template<typename _type>
 using decay_t = typename decay<_type>::type;
@@ -292,7 +352,10 @@ using underlying_type_t = typename underlying_type<_type>::type;
 template<typename _type>
 using result_of_t = typename result_of<_type>::type;
 //@}
+#endif
 //@}
+
+} // namespace cpp2014_traits;
 
 
 /*!
@@ -482,6 +545,17 @@ struct is_covariant : is_convertible<_tFrom, _tTo>
 */
 template<typename _tFrom, typename _tTo>
 struct is_contravariant : is_convertible<_tTo, _tFrom>
+{};
+
+
+/*!
+\brief 判断是否可对齐存储。
+\since build 503
+*/
+template<typename _type, typename _tDst>
+struct is_aligned_storable : integral_constant<bool,
+	sizeof(_type) <= sizeof(_tDst) && yalignof(_type) <= yalignof(_tDst)
+	&& yalignof(_tDst) % yalignof(_type) == 0>
 {};
 //@}
 
@@ -798,11 +872,17 @@ using enable_if_interoperable_t
 \see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。
 \since build 334
 */
+//@{
 template<typename _type>
 struct identity
 {
 	using type = _type;
 };
+
+//! \since build 595
+template<typename _type>
+using identity_t = typename identity<_type>::type;
+//@}
 
 
 /*!

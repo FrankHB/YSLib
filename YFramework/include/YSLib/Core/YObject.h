@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3903
+\version r3904
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-04-24 03:15 +0800
+	2015-05-03 08:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -278,7 +278,7 @@ public:
 		yimpl(typename = ystdex::exclude_self_ctor_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
 		: content(ystdex::any_ops::holder_tag(), make_unique<ValueHolder<
-		typename ystdex::remove_rcv<_type>::type>>(yforward(obj)))
+		ystdex::decay_t<_type>>>(yforward(obj)))
 	{}
 	/*!
 	\brief 构造：使用对象指针。

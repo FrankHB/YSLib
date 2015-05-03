@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2255
+\version r2269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-04-29 00:27 +0800
+	2015-05-02 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,11 +157,11 @@ template<typename _func>
 inline void
 seq_apply(_func&&) ynothrow
 {}
+//! \since build 595
 template<typename _func, typename _type, typename... _tParams>
 inline void
 seq_apply(_func&& f, _type&& arg, _tParams&&... args)
-	ynoexcept(noexcept(yforward(f)(yforward(arg)))
-	&& noexcept(ystdex::seq_apply(yforward(f), yforward(args)...)))
+	ynoexcept_spec(yimpl(yunseq(0, (void(yforward(f)(yforward(args))), 0)...)))
 {
 	yforward(f)(yforward(arg));
 	ystdex::seq_apply(yforward(f), yforward(args)...);
@@ -172,7 +172,7 @@ seq_apply(_func&& f, _type&& arg, _tParams&&... args)
 template<typename _func, typename... _tParams>
 inline void
 unseq_apply(_func&& f, _tParams&&... args)
-	ynoexcept_spec(yunseq((void(yforward(f)(yforward(args))), 0)...))
+	ynoexcept_spec(yimpl(yunseq((void(yforward(f)(yforward(args))), 0)...)))
 {
 	yunseq((void(yforward(f)(yforward(args))), 0)...);
 }
@@ -536,6 +536,16 @@ struct expanded_caller
 	operator()(_tParams&&... args)
 		-> decltype(details::expand_proxy<_fHandler>::call(caller,
 		std::forward_as_tuple(yforward(args)...)))
+	{
+		return details::expand_proxy<_fHandler>::call(caller,
+			std::forward_as_tuple(yforward(args)...));
+	}
+	//! \since build 595
+	template<typename... _tParams>
+	auto
+	operator()(_tParams&&... args) const
+		-> decltype(details::expand_proxy<_fHandler>::call(caller,
+		std::forward_as_tuple(yforward(args)...))) const
 	{
 		return details::expand_proxy<_fHandler>::call(caller,
 			std::forward_as_tuple(yforward(args)...));

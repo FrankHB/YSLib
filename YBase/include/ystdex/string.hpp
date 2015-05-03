@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1257
+\version r1263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-04-29 01:12 +0800
+	2015-05-03 05:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,12 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "array.hpp" // for ../ydef.h, std::bidirectional_iterator_tag,
-//	ystdex::to_array;
-#include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
+#include "memory.hpp" // for ../ydef.h, decay_t, remove_rcv_t, std::declval,
+//	has_nested_allocator;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
-//	and std::to_string;
+//	std::to_string;
+#include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
+#include "array.hpp" // for std::bidirectional_iterator_tag, ystdex::to_array;
 #include <istream> // for std::istream;
 #include "cstdio.h" // for std::vsnprintf, ystdex::vfmtlen;
 #include <cstdarg>
@@ -53,7 +54,7 @@ struct string_traits
 	using traits_type = typename std::char_traits<value_type>;
 	//! \since build 592
 	//@{
-	using allocator_type = std::allocator<value_type>;
+	using allocator_type = typename nested_allocator<string_type>::type;
 	using size_type = typename std::allocator_traits<allocator_type>::size_type;
 	using difference_type
 		= typename std::allocator_traits<allocator_type>::difference_type;

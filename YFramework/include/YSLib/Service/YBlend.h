@@ -11,13 +11,13 @@
 /*!	\file YBlend.h
 \ingroup Service
 \brief 平台中立的图像混合操作。
-\version r156
+\version r158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 584
 \par 创建时间:
 	2015-03-17 06:17:06 +0800
 \par 修改时间:
-	2015-04-10 01:29 +0800
+	2015-05-01 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ struct BlitTransparentPoint
 	operator()(_tOut dst_iter,
 		ystdex::pair_iterator<ConstBitmapPtr, _tInAlpha> src_iter)
 	{
-		*dst_iter = *src_iter.base().second & 0x80 ? FetchOpaque(*src_iter)
+		*dst_iter = *get<1>(src_iter.base()) & 0x80 ? FetchOpaque(*src_iter)
 			: FetchOpaque(Pixel());
 	}
 };
@@ -95,7 +95,7 @@ public:
 			decltype(*dst_iter)>, Pixel>(), "Wrong type found.");
 
 		*dst_iter = Shaders::BlendAlpha<ABitTrait<decltype(*dst_iter)>::ABitsN,
-			8>(*dst_iter, *src_iter, AlphaType(*src_iter.base().second));
+			8>(*dst_iter, *src_iter, AlphaType(*get<1>(src_iter.base())));
 	}
 	//! \since build 448
 	template<typename _tOut, typename _tIn>

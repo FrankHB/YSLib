@@ -11,13 +11,13 @@
 /*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1355
+\version r1357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-04-30 04:56 +0800
+	2015-04-30 12:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,8 @@ struct ConversionState
 	union
 	{
 		ucsint_t Wide;
+		//! \since build 595
+		ucs4_t UCS4;
 		/*!
 		\brief 字节序列：宽字符的字节表示。
 		\since build 475

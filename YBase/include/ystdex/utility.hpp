@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2729
+\version r2735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-04-10 18:03 +0800
+	2015-05-04 01:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,11 +209,16 @@ struct is_nothrow_swappable<_type> : is_nothrow_default_constructible<
 \brief 被包装的指针，满足 \c NullPointer 要求同时满足转移后为空。
 \tparam _type 被包装的指针。
 \pre _type 满足 \c NullPointer 要求且值转换为 \c bool 类型时不抛出异常。
-\todo 检查值初始化和 \c nullptr 比较相等。
 */
 template<typename _type>
 class nptr
 {
+	static_assert(is_copy_constructible<_type>(), "Invalid type found.");
+	static_assert(is_copy_assignable<_type>(), "Invalid type found.");
+	static_assert(is_destructible<_type>(), "Invalid type found.");
+	static_assert(_type() == _type(), "Invalid type found.");
+	static_assert(_type(nullptr) == nullptr, "Invalid type found.");
+
 public:
 	using pointer = _type;
 

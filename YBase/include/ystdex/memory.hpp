@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r817
+\version r965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-04-10 01:20 +0800
+	2015-05-03 08:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,67 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, enable_if_t, has_addressof,
-//	is_pointer, is_array, extent, remove_extent_t;
+#include "type_op.hpp" // for ../ydef.h, void_t, std::declval, is_class_type,
+//	enable_if_t, has_addressof, is_pointer, is_array, extent, remove_extent_t;
 #include <memory>
 
 namespace ystdex
 {
+
+//! \since build 595
+//@{
+namespace details
+{
+
+template<typename _type>
+using is_copy_constructible_class
+	= and_<is_copy_constructible<_type>, is_class_type<_type>>;
+
+
+template<typename, typename = void>
+struct has_nested_allocator : false_type
+{};
+
+template<class _type>
+struct has_nested_allocator<_type, enable_if_t<is_copy_constructible_class<
+	typename _type::allocator_type>::value>> : true_type
+{};
+
+
+template<typename _type, class, bool _vHasAlloc>
+struct nested_allocator
+{
+	using type = typename _type::allocator_type;
+};
+
+template<typename _type, class _tAlloc>
+struct nested_allocator<_type, _tAlloc, false>
+{
+	using type = _tAlloc;
+};
+
+} // namespace details;
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型具有嵌套的成员 allocator_type 指称一个可复制构造的类类型。
+*/
+template<typename _type>
+struct has_nested_allocator : details::has_nested_allocator<_type>
+{};
+
+
+/*!
+\ingroup metafunctions
+\brief 取嵌套成员分配器类型，若不存在则使用第二模板参数指定的默认类型。
+*/
+template<typename _type, class _tDefault = std::allocator<_type>>
+struct nested_allocator : details::nested_allocator<_type, _tDefault,
+	has_nested_allocator<_type>::value>
+{};
+//@}
+
 
 /*!
 \brief 尝试对非重载 operator& 提供 constexpr 的 std::addressof 替代。
@@ -73,8 +128,9 @@ struct free_delete
 	free_delete(const free_delete<_type2>&) ynothrow
 	{}
 
+	//! \since build 595
 	void
-	operator()(_type* p) const
+	operator()(_type* p) const ynothrowv
 	{
 		p->~_type();
 		std::free(p);
@@ -84,6 +140,37 @@ struct free_delete
 template<typename _type>
 struct free_delete<_type[]>;
 //@}
+
+
+/*!
+\brief 释放分配器的删除器。
+\since build 595
+*/
+template<class _tAlloc>
+class allocator_delete
+{
+private:
+	using traits = std::allocator_traits<_tAlloc>;
+
+public:
+	using pointer = typename traits::pointer;
+	using size_type = typename traits::size_type;
+
+private:
+	_tAlloc& alloc_ref;
+	size_type size;
+	
+public:
+	allocator_delete(_tAlloc& alloc, size_type s)
+		: alloc_ref(alloc), size(s)
+	{}
+
+	void
+	operator()(pointer p) const ynothrowv
+	{
+		std::allocator_traits<_tAlloc>::deallocate(alloc_ref, p, size);
+	}
+};
 
 
 /*!	\defgroup get_raw Get get_raw Pointers
@@ -338,8 +425,6 @@ template<typename _type, typename _tDeleter, typename... _tParams>
 yimpl(enable_if_t<extent<_type>::value != 0>)
 make_unique_with(_tDeleter&&, _tParams&&...) = delete;
 //@}
-
-
 //@}
 
 /*!
@@ -356,6 +441,20 @@ make_shared(std::initializer_list<_tValue> il)
 	return std::make_shared<_type>(il);
 }
 
+
+/*!
+\brief 构造分配器守护。
+\since build 595
+*/
+template<typename _tAlloc>
+std::unique_ptr<_tAlloc, allocator_delete<_tAlloc>>
+make_allocator_guard(_tAlloc& alloc,
+	typename std::allocator_traits<_tAlloc>::size_type n = 1)
+{
+	using del_t = allocator_delete<_tAlloc>;
+
+	return std::unique_ptr<_tAlloc, del_t>(alloc.allocate(n), del_t(alloc, n));
+}
 
 /*!
 \brief 构造共享作用域守护。
@@ -377,6 +476,76 @@ make_shared_guard(_type* p, _func f)
 		throw;
 	}
 }
+
+
+/*!
+\brief 智能指针转换。
+\since build 595
+*/
+//@{
+template<typename _tDst, typename _type>
+std::unique_ptr<_tDst>
+static_pointer_cast(std::unique_ptr<_type> p) ynothrow
+{
+	return std::unique_ptr<_tDst>(static_cast<_tDst*>(p.release()));
+}
+template<typename _tDst, typename _type, typename _tDeleter>
+std::unique_ptr<_tDst, _tDeleter>
+static_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
+{
+	return std::unique_ptr<_tDst, _tDeleter>(static_cast<_tDst*>(p.release()),
+		std::move(p.get_deleter()));
+}
+
+template<typename _tDst, typename _type>
+std::unique_ptr<_tDst>
+dynamic_pointer_cast(std::unique_ptr<_type>& p) ynothrow
+{
+	if(auto p_res = dynamic_cast<_tDst*>(p.get()))
+	{
+		p.release();
+		return std::unique_ptr<_tDst>(p_res);
+	}
+	return std::unique_ptr<_tDst>();
+}
+template<typename _tDst, typename _type>
+std::unique_ptr<_tDst>
+dynamic_pointer_cast(std::unique_ptr<_type>&& p) ynothrow
+{
+	return ystdex::dynamic_pointer_cast<_tDst, _type>(p);
+}
+template<typename _tDst, typename _type, typename _tDeleter>
+std::unique_ptr<_tDst, _tDeleter>
+dynamic_pointer_cast(std::unique_ptr<_type, _tDeleter>& p) ynothrow
+{
+	if(auto p_res = dynamic_cast<_tDst*>(p.get()))
+	{
+		p.release();
+		return std::unique_ptr<_tDst, _tDeleter>(p_res);
+	}
+	return std::unique_ptr<_tDst, _tDeleter>(nullptr);
+}
+template<typename _tDst, typename _type, typename _tDeleter>
+std::unique_ptr<_tDst, _tDeleter>
+dynamic_pointer_cast(std::unique_ptr<_type, _tDeleter>&& p) ynothrow
+{
+	return ystdex::dynamic_pointer_cast<_tDst, _type, _tDeleter>(p);
+}
+
+template<typename _tDst, typename _type>
+std::unique_ptr<_tDst>
+const_pointer_cast(std::unique_ptr<_type> p) ynothrow
+{
+	return std::unique_ptr<_tDst>(const_cast<_tDst*>(p.release()));
+}
+template<typename _tDst, typename _type, typename _tDeleter>
+std::unique_ptr<_tDst, _tDeleter>
+const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
+{
+	return std::unique_ptr<_tDst, _tDeleter>(const_cast<_tDst*>(p.release()),
+		std::move(p.get_deleter()));
+}
+//@}
 
 
 //! \since build 588
