@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3182
+\version r3202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-04-28 23:24 +0800
+	2015-05-06 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,8 @@
 #ifdef YCL_DS
 #	include YFM_YSLib_Service_YBlit // for Drawing::FillPixel;
 #elif YCL_Android
-#	include YFM_Android_Helper_AndroidHost // for Android::FetchDefaultWindow;
+#	include YFM_Android_Helper_AndroidHost // for
+//	Android::FetchNativeHostInstance, Android::FetchDefaultWindow;
 #endif
 #include YFM_YCLib_Debug
 #include YFM_Helper_Environment
@@ -72,28 +73,29 @@ DSApplication::DSApplication()
 	using Devices::DSScreen;
 
 	YAssert(!ApplicationPtr, "Duplicate instance found.");
-	//注册全局应用程序实例。
 	ApplicationPtr = this;
-	//初始化系统设备。
 #if YCL_DS
 	FetchDefaultFontCache();
 	InitVideo();
 #endif
 	Devices::InitDSScreen(scrs[0], scrs[1]);
+
+	auto& scr0(Deref(scrs[0]));
+	auto& scr1(Deref(scrs[1]));
+
 #if YCL_DS
-	FillPixel<Pixel>(scrs[0]->GetCheckedBufferPtr(),
-		GetAreaOf(scrs[0]->GetSize()), ColorSpace::Blue),
-	FillPixel<Pixel>(scrs[1]->GetCheckedBufferPtr(),
-		GetAreaOf(scrs[1]->GetSize()), ColorSpace::Green);
+	FillPixel<Pixel>(scr0.GetCheckedBufferPtr(),
+		GetAreaOf(scr1.GetSize()), ColorSpace::Blue),
+	FillPixel<Pixel>(scr0.GetCheckedBufferPtr(),
+		GetAreaOf(scr1.GetSize()), ColorSpace::Green);
 #elif YCL_Win32
 
 	using namespace Host;
 
-	YAssert(IsScreenReady(), "Screen is not ready.");
 	p_wnd_thrd.reset(new WindowThread([this]{
 		return unique_ptr<Window>(new DSWindow(CreateNativeWindow(
 			WindowClassName, {256, 384}, L"YSTest", WS_TILED | WS_CAPTION
-			| WS_SYSMENU | WS_MINIMIZEBOX), *scrs[0], *scrs[1],
+			| WS_SYSMENU | WS_MINIMIZEBOX), Deref(scrs[0]), Deref(scrs[1]),
 			GetEnvironmentRef()));
 	}));
 	while(!p_wnd_thrd->GetWindowPtr())
@@ -107,10 +109,12 @@ DSApplication::DSApplication()
 	};
 #elif YCL_Android
 	const auto h_wnd(&Android::FetchDefaultWindow());
+//	auto& host(Android::FetchNativeHostInstance());
 
+//	host.ResizeScreen({MainScreenWidth, MainScreenHeight << 1}),
 	GetEnvironmentRef().MapPoint = [](const Point& pt) ynothrow{
 		// XXX: Use alternative implementation rather than Win32's.
-		const Rect
+		yconstexpr const Rect
 			bounds(0, MainScreenHeight, MainScreenWidth, MainScreenHeight << 1);
 
 		return bounds.Contains(pt) ? pt - bounds.GetPoint() : Point::Invalid;
@@ -118,7 +122,7 @@ DSApplication::DSApplication()
 #endif
 #if YF_Hosted
 
-	yunseq(scrs[0]->WindowHandle = h_wnd, scrs[1]->WindowHandle = h_wnd);
+	yunseq(scr0.WindowHandle = h_wnd, scr1.WindowHandle = h_wnd);
 #endif
 }
 
@@ -128,11 +132,7 @@ DSApplication::~DSApplication()
 	p_wnd_thrd.reset();
 	YTraceDe(Notice, "Host thread dropped.");
 #endif
-	//等待并确保所有 Shell 被释放。
 //	hShell = {};
-	//释放全局非静态资源。
-	//当主 Shell 句柄为静态存储期对象时需要通过 reset 释放。
-	//释放设备。
 	reset(scrs[0]),
 	reset(scrs[1]);
 	ApplicationPtr = {};

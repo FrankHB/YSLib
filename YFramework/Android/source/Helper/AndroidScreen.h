@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r146
+\version r151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2015-04-19 11:45 +0800
+	2015-05-04 19:51 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -58,12 +58,15 @@ private:
 
 public:
 	/*!
-	\note 默认缓冲区大小为屏幕大小。若缓冲区和屏幕大小不等，更新时自适应屏幕大小。
+	\note 使用 SetNativeBufferSize 设置缓冲区大小。
+	\note 若缓冲区和屏幕大小不等，更新时自适应屏幕大小。
+	\sa SetNativeBufferSize
 	\since build 558
 	*/
 	//@{
 	/*!
 	\brief 初始化窗口：使用指定本机窗口引用和缓冲区大小。
+	\throw LoggedEvent 调用 ::ANativeWindow_lock 失败。
 	\note 直接查询大小，若失败（结果为 1x1 ）则锁定屏幕查询大小。
 	\note Android 4.0 起（ API 等级不小于 17 ）锁定屏幕查询大小出错。
 	\todo 在运行时判断 API 等级。
@@ -79,6 +82,7 @@ public:
 private:
 	/*!
 	\brief 设置本机缓存大小。
+	\note 若为空则使用本机窗口的大小作为默认值。
 	\since build 559
 	*/
 	void

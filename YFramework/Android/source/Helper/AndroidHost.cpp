@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r412
+\version r417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2015-04-24 06:29 +0800
+	2015-05-04 18:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,9 +71,9 @@ NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 		YTraceDe(Debug, "ANativeActivity::" #_n ": %p.", \
 			ystdex::pvoid(Nonnull(p_activity)));
 #define YCL_Android_RegSimpCb(_n, ...) \
-YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
-	__VA_ARGS__; \
-}
+	YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
+		__VA_ARGS__; \
+	}
 #	define YCL_NativeHostPtr static_cast<NativeHost*>(p_activity->instance)
 	yunseq
 	(
@@ -110,8 +110,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 			YTraceDe(Debug, "Starting native main thread...");
 			host.thrdMain = std::thread([&host, p_activity, p_window]{
 				host.p_screen.reset(new Devices::AndroidScreen(*p_window));
-				host.p_desktop.reset(
-					new Desktop(FetchNativeHostInstance().GetScreenRef()));
+				host.p_desktop.reset(new Desktop(host.GetScreenRef()));
 				::y_android_main();
 				YTraceDe(Debug, "Application main routine exited.");
 				::ANativeActivity_finish(p_activity);

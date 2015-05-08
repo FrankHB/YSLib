@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13803
+\version r13820
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-05-01 13:01 +0800
+	2015-05-07 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -721,7 +721,7 @@ $options $default $impl("GCC", "Clang") $=
 	C C++ Var(warn_sync_nand) Init(1) Warning
 		// These functions changed semantics in GCC 4.4. 
 ]],
-/ $options $default $impl("gcc", "g++", !"clang", !"clang++") $=
+$options $default $impl("gcc", "g++", !"clang", !"clang++") $=
 [[
 	// Form gcc/common.opt.
 	funsafe-loop-optimizations
@@ -779,8 +779,6 @@ $options $intended $warning $impl("gcc", "clang") $=
 	Common Var(warn_packed) Warning
 	Wredundant-decls
 	C ObjC C++ ObjC++ Var(warn_redundant_decls) Warning
-	Wsign-promo
-	C++ ObjC++ Var(warn_sign_promo) Warning
 ]],
 $options $intended $warning $impl("gcc", "g++", !"clang", !"clang++") $=
 [[
@@ -807,6 +805,8 @@ $options $intended $warning $impl("g++", "clang++") $=
 	C++ ObjC++ Var(warn_nonvdtor) Warning LangEnabledBy(C++ ObjC++,Weffc++)
 	Woverloaded-virtual
 	C++ ObjC++ Var(warn_overloaded_virtual) Warning
+	Wsign-promo
+	C++ ObjC++ Var(warn_sign_promo) Warning
 ]],
 $options $intended $warning $impl("g++", !"clang++") $=
 [[
@@ -815,6 +815,11 @@ $options $intended $warning $impl("g++", !"clang++") $=
 	C++ ObjC++ Warning Var(warn_strict_null_sentinel)
 	Wzero-as-null-pointer-constant
 	C++ ObjC++ Var(warn_zero_as_null_pointer_constant) Warning
+]],
+$options $intended $warning $impl(!"g++", "clang++") $=
+[[
+	Wshorten-64-to-32
+	Wweak-vtables
 ]],
 $options $TBD $=
 [[
@@ -1017,7 +1022,7 @@ $options $test_only $impl("GCC", "Clang") $=
 	C ObjC C++ ObjC++
 		// Trigraphs are normally not used and are possibly going to be removed in C++17.
 ]],
-/ $options $test_only $impl("gcc", !"clang") $=
+$options $test_only $impl("gcc", !"clang") $=
 [[
 	// From gcc/common.opt.
 	Wmissing-format-attribute
@@ -1280,7 +1285,14 @@ $options $unintended $impl("gcc", "clang"?) $=
 	C ObjC C++ ObjC++
 		// Ditto.
 ]],
-/ $options $lang_only("C", "ObjC") $impl("GCC") $=
+$options $unintended $impl(!"g++", "clang++) $=
+[[
+	Wdeprecated-register
+		// Used in freetype. Not distinguishable between C and C++.
+	Wmismatched-tags
+		// Used in libstdc++, e.g. 'std::numeric_limits', distinct with ISO C++. Seems only effective to Microsoft toolchains.
+]],
+$options $lang_only("C", "ObjC") $impl("GCC") $=
 [[
 	// From gcc/c-family/c.opt; not used except for C std mode.
 	Wbad-function-cast

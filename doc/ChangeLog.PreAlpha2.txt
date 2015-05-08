@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3698
+\version r3742
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2015-04-30 20:14 +0800
+	2015-05-05 04:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ b299
 				$since $before b132 $= (- "wrong assertion"),
 			* %UI.GUI $since b298 $=
 			(
-				/ "constructor implementation" @ "class %TextList";
+				/ $impl "constructor" @ "class %TextList";
 				* $comp "missing response to 'Enter' key"
 					@ "classes %(TextList, ListBox, Menu, DropDownList)"
 			),
@@ -76,12 +76,11 @@ b299
 		),
 		/ %YCLib $=
 		(
-			/ "improved implementation" @ "function %IsAbsolute"
-				@ %FileSystem $=
+			/ $impl "improved" @ "function %IsAbsolute" @ %FileSystem $=
 			(
 				+ "support for absolute path beginning with 'sd:/'"
 					@ "platform %DS",
-				+ "implementation" @ "platform %MinGW32"
+				+ $impl @ "platform %MinGW32"
 			),
 			/ %Input $=
 			(
@@ -135,10 +134,9 @@ b298
 			/ %UI.GUI $=
 			(
 				/ "key events response" @ "controls"
-				* "implementation" @ "class %ListBox" $since b261
+				* $impl "class %ListBox" $since b261
 					$= (- "wrong assertion"),
-				/ DLD "implementation" @ "class %FileBox" $dep_from
-					"file list interface",
+				/ DLD $impl @ "class %FileBox" $dep_from "file list interface",
 				+ "function %Reset" @ "class template %GSequenceViewer",
 				/ "default holding intervals"
 					// Key: (240ms, 120ms) -> (240ms, 60ms); \
@@ -166,7 +164,7 @@ b298
 			// %std::make_shared with RTTI will enlarge size of object \
 				files. Several implementations may cause access violation, \
 				see $ref b298.
-		* DLD "implementation" @ "unit %YNew" @ %Adaptor $since b203
+		* DLDI @ "unit %YNew" @ %Adaptor $since b203
 	),
 	/ @ %YBase $=
 	(
@@ -211,13 +209,12 @@ b297
 			/ @ "defined %YCL_MINGW32" $=
 			(
 				/ "pixel format";
-				/ DLD "implementation"
-					@ "class %Color for efficiency bitmap transferring",
+				/ DLDI @ "class %Color for efficiency bitmap transferring",
 			)
 			/ "function %ScreenSynchronize" @ "namespace %platform"
 				>> "namespace %platform_ex"
 		),
-		/ DLD "implementation" @ "class %Palette" ^ "initializer lists"
+		/ DLDI @ "class %Palette" ^ "initializer lists"
 			~ "assignments for efficiency" @ %'UI styles',
 		+ "blit algorithm implementation without pixel format dependency"
 			@ "unit YBlit" @ %Service,
@@ -250,7 +247,7 @@ b296
 				(
 					* $doc "comments for destructor wrongly designed to copy \
 						constructor" $since b240,
-					* "implementation" @ "move constructor" $since b241;
+					* $impl @ "move constructor" $since b241;
 					+ "function %Swap with exception specification %ynothrow";
 						// The using of %std::swap for %BitmapBuffer forbids \
 							the move assignment operator throwing exceptions \
@@ -338,8 +335,7 @@ b296
 	(
 		* "empty implementation" @ "macro %(YCL_LIKELY, YCL_UNLIKELY)"
 			@ "header %ydef.h when '!(YCL_IMPL_GNUCPP >= 29600)'" @ $since b294,
-		- "exception specification %ynothrow" @ "implementation"
-			@ "macro %yunseq",
+		- $impl "exception specification %ynothrow" @ "macro %yunseq",
 			// Allowing throwing exceptions is convenient but not safe, and \
 				users now have resposibility for checking by self.
 		+ "macro %YCL_ATTRIBUTE for implementation supported attributes"
@@ -498,8 +494,7 @@ b293
 			/ DLD "base controller methods" @ "class %AController"
 		),
 		/ "constructors" @ "class %Timer" @ %Service,
-		* DLD "missing const when casting" @ "implementation"
-			@ "class %ValueObject" $since b217
+		* DLDI "missing const when casting" @ "class %ValueObject" $since b217
 	),
 	* "wrong pixel offset when stopping smooth scrolling"
 		@ %YReader.'text reader' $since b292
@@ -509,8 +504,8 @@ b292
 (
 	/ %YFramework $=
 	(
-		* "implementation" @ "functions %(WaitForInput, WaitForKey)"
-			@ "unit %YCommon" @ %YCLib $since b291,
+		* $impl @ "functions %(WaitForInput, WaitForKey)"
+			@ %YCLib."unit %YCommon" $since b291,
 		/ %YSLib $=
 		(
 			* DLD "strict ISO C++ code compatibility" $since b273
@@ -537,7 +532,7 @@ b292
 	),
 	/ %YReader.'text reader' $=
 	(
-		+ "implementation" @ "custom encoding switching UI",
+		+ $impl @ "custom encoding switching UI",
 		/ "contiguous repeated bookmarks would not be inserted to reading list \
 		  when random locating",
 		+ "smooth scrolling mode",
@@ -642,8 +637,7 @@ b289
 			/ %YGlobal $=
 			(
 				+ "exposed const current message getter",
-				/ DLD "implementation" @ "main message loop"
-					@ "function %DSApplication::Run"
+				/ DLDI @ "main message loop" @ "function %DSApplication::Run"
 			)
 		),
 		/ DLD "bound control pointer assignment" @ "constructor"
@@ -661,7 +655,7 @@ b289
 			/ @ "class %Timer" $=
 			(
 				+ "function %IsActive" $dep_to %YReader.'text reader',
-				/ "implementation" @ "friend functions %(Activate, Deactivate)"
+				/ $impl "friend functions %(Activate, Deactivate)"
 			),
 			/ @ "class %TextFileBuffer" $=
 			(
@@ -726,20 +720,19 @@ b288
 	(
 		/ DLD "simplified implementation" @ "class %Thumb" @ %UI.GUI,
 		* DLD "comments" @ "header %ycutil.h" $since b281,
-		/ DLD "implementation" @ "idle handling",
+		/ DLDI @ "idle handling",
 		/ %Core $=
 		(
-			+ "function %MessageQueue::GetMaxPriority" @ "implementation"
-				@ "message peeking" @ %YMessage $dep_to "implementation"
-				@ "main message loop";
+			+ "function %MessageQueue::GetMaxPriority"
+				@ ($impl "message peeking") @ %YMessage $dep_to
+				($impl "main message loop");
 			/ %YMessageDefinition $=
 			(
 				- "shell message identifier %SM_DROP",
 				+ "shell message identifier %SM_TASK"
 			)
 		),
-		/ DLD "implementation" @ "main message loop"
-			@ "function %DSApplication::Run" @ %YGlobal
+		/ DLDI @ "main message loop" @ "function %DSApplication::Run" @ %YGlobal
 	),
 	/ %YReader $=
 	(
@@ -1168,8 +1161,8 @@ b275
 				* "missing thumb refreshing when invalidated area not \
 				  intersecting with thumb" @ "function %ATrack::Refresh"
 				  $since b235,
-				* "wrong position argument" @ "implementation"
-					@ "function %Button::Refresh" $since b266
+				* $impl "wrong position argument" @ "function %Button::Refresh"
+					$since b266
 			),
 			- DLD "dependency of header %platform.h" @ "header %ynew.h",
 		),
@@ -1212,11 +1205,11 @@ b274
 				@ "function %FetchResizedBottomMargin" $since b273,
 			* $lib $design "assertion string" @ "function %FetchResizedLineN"
 				$since b252,
-			* "implementation" @ "function %TextLineNEx"
+			* $impl "function %TextLineNEx"
 				@ "class template %GTextRendererBase" $since b267,
 			* "implemented function %FetchLastLineBasePosition"
 				$since $before b132 ^ "ascender" ~ "descender",
-			* "implementation" @ "function %FetchResizedLineN" $since b252
+			* $impl "function %FetchResizedLineN" $since b252
 		),
 		/ DLD "lessened header dependencies"
 	);
@@ -1329,8 +1322,7 @@ b271
 		(
 			/ %UI.GUI $=
 			(
-				/ DLD "implementation" @ "class %ScrollEventArgs"
-					^ "class template %std::pair",
+				/ DLDI @ "class %ScrollEventArgs" ^ "%std::pair",
 				/ @ "class %ProgressBar"
 				(
 					/ "main base class switched to class %Control"
@@ -1357,8 +1349,8 @@ b271
 		* "wrong state in file stream conversion" @ %CHRLib.CharacterMapping
 			$since b249
 	),
-	/ "behavior like class template %std::istream_iterator"
-		@ %YBase.YStandardEx.CStandardIO.'class %ifile_iterator'
+	/ "behavior like %std::istream_iterator"
+		@ %YBase.YStandardEx.CStandardIO."class %ifile_iterator"
 ),
 
 b270
@@ -1386,7 +1378,7 @@ b270
 		),
 		/ "size and content of file information box"
 	),
-	/ "implementation" @ "class %FontCache" $=
+	/ $impl "class %FontCache" $=
 	(
 		/ DLD "interface" @ "function %GetGlyph";
 		/ "avoiding unnecessary rendering" @ "function %GetAdvance"
@@ -1721,13 +1713,13 @@ b252
 	+ "POD type operations" @ "library %YStandardEx",
 	/ $dev $lib "simplified macro definitions" @ "ybasemac.h",
 	/ $doc "updated Doxygen file" ^ "Doxygen 1.7.2",
-	+ DLD "nested-use support" @ "implementation" @ "macro %yunsequenced",
+	+ DLDI "nested-use support" @ "macro %yunsequenced",
 	/ DLP "toolchain and libraries using" $=
 	(
 		^ $re_ex(b223) "updated devkitARM release 35" ~ "devkitARM release 34",
 		^ $re_ex(b192) "updated libfat 1.0.10" ~ "libfat 1.0.9"
 	),
-	* "implementation" @ "installation checking" $since b245
+	* $impl "installation checking" $since b245
 ),
 
 b251
@@ -2182,7 +2174,7 @@ b232
 	),
 	/ $design "simplified shell classes" $=
 	(
-		/ "implementation" @ "shell message processing" @ "class %ShlDS"
+		/ $impl "shell message processing" @ "class %ShlDS"
 			^ "default sending of %SM_PAINT message when processing %SM_INPUT"
 	)
 ),
@@ -2223,7 +2215,7 @@ b230
 		/ "updating FPS" $=
 		(
 			+ "when not getting input",
-			/ $design "implementation" ^ "shell method %UpdateToScreen"
+			/ $design $impl ^ "shell method %UpdateToScreen"
 				~ "%OnActivated"
 		)
 	)
@@ -2280,10 +2272,10 @@ b227
 	* DLD "guard macro" @ "header %UIContainerEx" $since b203,
 	/ "simplified UI class inheritance" $=
 	(
-		/ $dev $lib "implementation" ^ "class %IWidget" ~ "class %IUIBox",
+		/ $dev $lib $impl ^ "class %IWidget" ~ "class %IUIBox",
 		- "class %IUIBox",
 		- "class %IUIContainer",
-		/ $dev $lib "implementation" ^ "class %IControl" ~ "class %IPanel",
+		/ $dev $lib $impl ^ "class %IControl" ~ "class %IPanel",
 		- "class %IPanel"
 	),
 	* $lib "strict ISO C++03 code compatibility" $since b190
@@ -2381,7 +2373,7 @@ b222
 	* DLP "minor faults detected by CppCheck" $=
 	(
 		/ "simplified implementation" @ "%YGUIShell::ResponseTouch" $since b195,
-		* "implementation" @ "%ystdex::fexists" $since b151
+		* $impl "%ystdex::fexists" $since b151
 	),
 	+ "default GUI event %Paint",
 	/ "controls drawing" ^ "event Paint" ~ "function %Draw"

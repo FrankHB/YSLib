@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r297
+\version r316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-04-27 09:54 +0800
+	2014-05-05 04:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,15 +80,16 @@ b195
 (
 	* DLB "makefiles",
 	+ "dependency events",
-	+ "simple events routing"
+	+ "simple events routing",
+	+ "static storage templates"
 ),
 
 b194
 (
 	/ "global architecture",
 	/ "GUI shell class architecture" @ "unit %YGUI",
-	/ "default control event handlers implementation",
-	/ "implementation" @ "unit %YInitialization",
+	/ $impl "default control event handlers",
+	/ $impl "unit %YInitialization",
 	/ "controls always visual",
 	- "class %IVisualControl",
 	- "class %VisualControl",
@@ -97,7 +98,7 @@ b194
 
 b193
 (
-	/ "scroll controls implementation",
+	/ $impl "scroll controls",
 	/ "core utilities"
 	/ "empty event arguments" $=
 	(
@@ -105,7 +106,7 @@ b193
 		+ "inline function template %GetStaticRef",
 		/ "all event empty arguments" ^ "%GetStaticRef"
 	),
-	/ "scroll controls and listbox implementation"
+	/ $impl "scroll controls and listbox"
 ),
 
 b192
@@ -120,7 +121,7 @@ b192
 	/ "class %IWindow as non-virtual inheritance" @ "class %AWindow"
 		@ "class %YWindow",
 	/ DLB "arm9 makefile",
-	/ "scroll controls implementation",
+	/ $impl "scroll controls",
 	/ DLP "toolchain and library using" $=
 	(
 		^ "updated libnds 1.5.0" ~ "libnds 1.4.9",
@@ -131,35 +132,34 @@ b192
 
 b191
 (
-	/ "listbox APIs implementation",
-	/ "class template %GSequenceViewer" $=
+	/ $impl "listbox APIs",
+	/ @ "class template %GSequenceViewer" $=
 	(
 		* DLD "declaration of function %Contains" @ $since b171,
 		/ "interfaces"
 	),
-	* "implementation of function %GetTouchedVisualControlPtr" @ "unit %YGUI"
-		$since b167,
-	/ "simplified focus implementation"
+	* $impl "function %GetTouchedVisualControlPtr" @ "unit %YGUI" $since b167,
+	/ $impl "simplified focus"
 ),
 
 b190
 (
 	* $lib "strict ISO C++03 code compatibility" $since $before b132
 		$= (/ "fixed macros" ~ "variadic macros"),
-	/ "text region and renderers APIs implementation",
-	/ "widget, label and listbox APIs implementation"
+	/ $impl "text region and renderers APIs",
+	/ $impl "widget, label and listbox APIs"
 ),
 
 b189
 (
 	+ "class %pair_iterator" @ "YCLib",
-	/ "GDI blit and transformer implementations"
+	/ $impl "GDI blit and transformer"
 ),
 
 b188
 (
 	/ "shells test example",
-	/ "GDI blit implementations",
+	/ $impl "GDI blit",
 	- DLB "DLDI patch commands" @ "makefile",
 	* "invalid listbox input when the list not beginning from the top"
 		$since b171
@@ -172,7 +172,7 @@ b187
 	^ $lib $build "-O3 & ARM specified options compiled library %libloki.a"
 		@ "project YSTest",
 	+ "minor templates" @ "YCLib",
-	/ "GDI blit implementations"
+	/ $impl "GDI blit"
 ),
 
 b186
@@ -199,7 +199,7 @@ b185
 b184
 (
 	* $design "some spelling errors",
-	/ "DMA operations implementation"
+	/ $impl "DMA operations"
 ),
 
 b170_b183

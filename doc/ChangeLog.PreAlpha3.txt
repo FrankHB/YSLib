@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5403
+\version r5463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2015-01-02 09:33 +0800
+	2015-05-05 04:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -456,7 +456,7 @@ b388
 		/ %Helper $=
 		(
 			(
-			/ $dev $lib "implementation" @ "input manager" @ "hosted platforms",
+			/ $dev $lib $impl "input manager" @ "hosted platforms",
 			/ $dev $lib "cursor adjusting interface" @ "platform %MinGW32";
 			* "out-of-bound touch event transferred" @ "platform %MinGW32"
 				$since b377
@@ -627,8 +627,7 @@ b382
 	/ @ "platform %MinGW32" %YFramework.Helper $=
 	(
 		+ "assertion for window class name",
-		/ $dev "implementation" @ "native window procedure"
-			^ "window extra data",
+		/ $dev $impl "native window procedure" ^ "window extra data",
 		(
 		* "host thread remained on quit message posted by other threads"
 			$since b299;
@@ -728,7 +727,7 @@ b378
 				/ %DSMain $=
 				(
 					+ "class %Host::Environment as pImpl class";
-					/ DLD "implementation" @ "native hosted message loop"
+					/ DLDI @ "native hosted message loop"
 						^ "waiting for hosted environment"
 				)
 			),
@@ -956,7 +955,7 @@ b372
 			/ "function %ResetPenForBounds" @ "class %TextState" => "%ResetPen",
 			+ "function %AdjustEndOfLine" $dep_to
 				"text right margin adjustment",
-			* @ "implementation" @ "function %DrawClippedText#2" $since b371 $=
+			* $impl "function %DrawClippedText#2" $since b371 $=
 			(
 				* "wrongly treated graphic interface boundary as clipping \
 					boundary",
@@ -1009,7 +1008,7 @@ b371
 		(
 			/ @ "unit %YGDI" $=
 			(
-				/ "implementation" @ "function %ClipMargin",
+				/ $impl "function %ClipMargin",
 				+ "function %ClipBound"
 			),
 			/ @ "%unit TextRenderer" $dep_from "%ClipBound" $=
@@ -1084,7 +1083,7 @@ b369
 			* "wrong character location for unbuffered rendering" $since b357 $=
 			(
 				/ "function %Clip" -> "function %ClipMargin" @ "unit %YGDI";
-				/ $lib "implementation" @ "unit %TextRenderer"
+				/ $lib $impl "unit %TextRenderer"
 			);
 		),
 		/ DLD "argument order" @ "all call of %(min, max)"
@@ -1369,8 +1368,7 @@ b358
 		),
 		/ %Functional $=
 		(
-			* "implementation" @ "function template specialization %unref"
-				$since b348,
+			* $impl "function template specialization %unref" $since b348,
 			* $dev "missing specializations for pointer to cv-qualified member \
 				functions" @ "class template %(make_parameter_tuple, return_of)"
 				$since b333
@@ -1378,7 +1376,7 @@ b358
 		+ $dev "static assertion to check dereferenced type" @ "constructor \
 			template" @ "class template %any_input_iterator" @ %AnyIterator
 	);
-	* "wrong dereferenced type of iterators" @ "implementation"
+	* $impl "wrong dereferenced type of iterators"
 		@ "function %(GetBegin, GetEnd)" @ "class %MUIContainer"
 		@ %YFramework.YSLib.UI.GUI $since b357 $dep_from
 		"chained iterator transformation"
@@ -1389,7 +1387,7 @@ b357
 (
 	/ %YBase $=
 	(
-		/ DLP "implementation" @ "condition macro" @ %LibDefect.String,
+		/ DLP $impl @ "condition macro" @ %LibDefect.String,
 		/ %YStandardEx $=
 		(
 			/ @ "class template %any_iterator" @ %AnyIterator $=
@@ -1528,8 +1526,8 @@ b355
 				+ "class template %wrap_handler";
 				+ "class templates %(iterator_handler; input_iterator_handler)
 			);
-			/ "implementation" @ "class template %any_input_iterator"
-				^ "handlers" ~ "holders"
+			/ $impl "class template %any_input_iterator" ^ "handlers"
+				~ "holders"
 			- "unused holders"
 		)
 	)
@@ -1649,7 +1647,7 @@ b352
 			/ "function template %get" -> "non-template function",
 			(
 			/ "constructors interface" ^ $dep_from "tag type %holder_tag";
-			/ "implementation" ^ "holders" $dep_from "%any_holder_hanlder"
+			/ $impl ^ "holders" $dep_from "%any_holder_hanlder"
 			)
 		)
 	),
@@ -1707,7 +1705,7 @@ b350
 	(
 		/ "equality comparison of any iterator" @ %Iterator $=
 		(
-			/ $dev "implementation" ^ "non virtual function calls",
+			/ $dev $impl ^ "non virtual function calls",
 			+ "support for type identification and comparison between \
 				reference-wrapped object and non-reference wrapped object"
 		),
@@ -1754,7 +1752,7 @@ b349
 	(
 		* "strict ISO C++11 code compatibility" @ "function template %FillType"
 			%CHRLib.StaticMapping $since b247
-			$= (/ "implementation" ^ "%std::is_explicitly_convertible"
+			$= (/ $impl ^ "%std::is_explicitly_convertible"
 			~ "%std::is_constructible"),
 			// See $ref b349.
 		- "iterator type definition and unnecessary header including"
@@ -1767,7 +1765,7 @@ b349
 			+ "classes %(any_iterator_holder; any_input_iterator_holder)";
 			+ "class templates %(iterator_holder; input_iterator_holder)";
 			(
-			/ "implementation" @ "class %any_input_iterator" $=
+			/ $impl "class %any_input_iterator" $=
 			(
 				// Value semantics constructor argument as default, no longer \
 					wrapping as reference automatically. It would be treat as \
@@ -1823,9 +1821,8 @@ b348
 	),
 	/ %YFramework.YSLib.Core.YObject $=
 	(
-		/ $dev $lib "implementation" @ "class templates %(ValueHolder, \
-			PointerHolder)" ^ "%ystdex::examiners::equal_examiner" $dep_from
-			"examiners",
+		/ $dev $lib $impl "class templates %(ValueHolder, PointerHolder)"
+			^ "%ystdex::examiners::equal_examiner" $dep_from "examiners",
 		/ "member 'public _type held'" @ "class template %ValueHolder"
 			-> "'protected mutable _type held'";
 		/ "member 'public _type* p_held'" @ "class template %PointerHolder"
@@ -1896,7 +1893,7 @@ b345
 	(
 		/ %Helper.Initialization $=
 		(
-			+ "implementation" @ "saving and loading configuration items",
+			+ $impl @ "saving and loading configuration items",
 				// Fully implemented interface of b344.
 			* "always throwing exception when writing configuration" $since b344
 		),
@@ -1950,7 +1947,7 @@ b343
 				/ "configuration path",
 				/ $dev $lib "macro names for default configuration"
 			),
-			/ DLD "implementation" @ "constructor" @ "class %DSApplication to \
+			/ DLDI @ "constructor" @ "class %DSApplication to \
 				adapt to the new configuration convention" @ %DSMain
 		),
 		/ %NPL $=
@@ -1999,7 +1996,7 @@ b342
 		),
 		/ %NPL.Configuration $=
 		(
-			/ DLD "implementation" @ "output configuration as text file",
+			/ DLDI @ "output configuration as text file",
 			- "class %ConfigurationFile" $dep_from ("simplified initialization \
 				interface", "simplified application member")
 		)
@@ -2094,9 +2091,8 @@ b339
 	(
 		/ %TypeOperation $=
 		(
-			* "implementation" @ "unary type trait %is_class_pointer"
-				$since b333,
-			* "implementation" @ "unary type trait %is_returnable" $since b333,
+			* $impl "unary type trait %is_class_pointer" $since b333,
+			* $impl "unary type trait %is_returnable" $since b333,
 				// Missing exclusion of abstract object types.
 			+ "unary type trait %is_decayable"
 		),
@@ -2113,15 +2109,17 @@ b339
 
 b338
 (
-	+ $lib ValueNode "unit %ValueNode" @ %YFramework.YSLib.Core $=
 	(
-		/ $lib ("class %ValueNode", "function templates %(begin, end, Access, \
-			AccessChild)" @ %YObject >> %ValueNode;
+	+ %ValueNode @ %YFramework.YSLib.Core $=
+	(
 		+ "function template %(MakeNode, UnpackToNode, CollectNodes, \
 			PackNodes)",
 		+ "2 functions %UnpackToNode"
+	);
+	/ $lib ("class %ValueNode", "function templates %(begin, end, Access, \
+		AccessChild)" @ %YObject >> %ValueNode
 	),
-	+ $lib Containers "header %container.hpp" @ %YBase.YStandardEx$=
+	+ %Containers(header %container.hpp") @ %YBase.YStandardEx $=
 	(
 		/ $lib "function templates %(assign, erase_all, erase_all_if, \
 			search_map)" @ "header %algorithm.hpp" >> %Containers,
@@ -2155,10 +2153,10 @@ b337
 							modified, so the %const_cast of element is \
 							quite safe normarlly.
 					(
-					/ "implementation" @ "function %Clean",
+					/ $impl "function %Clean",
 					- "function %SetName"
 					),
-					/ DLD "implementation" ^ "std::set" ~ "std::map",
+					/ DLDI ^ "%std::set" ~ "%std::map",
 					/ "parameters order of 2 constructor templates specifying \
 						value",
 						// To Avoid ambiguous overloading.
@@ -2197,7 +2195,7 @@ b336
 	/ $dev $doc "simplified source code trailing punctuation format",
 	/ $lib @ "class %ValueNode" @ %YFramework.YSLib.Core.YObject $=
 	(
-		/ DLD "implementation" @ "class %ValueNode"
+		/ DLDI @ "class %ValueNode"
 			^ "member" ~ "base class %ValueObject",
 		/ "function template Access" -> "non-member function template %Access"
 	)
@@ -2222,8 +2220,7 @@ b334
 		+ "class template %identity" @ %TypeOperation,
 			// Same to %boost::mpl::identity or previously standardized ISO \
 				C++0x (but not in the final draft) %std::identity.
-		* "implementation" @ "all 3 function template %any_cast"
-			@ %Any $since b331
+		* $impl "all 3 function template %any_cast" @ %Any $since b331
 	),
 	/= $dev $lib "normalized version numbers and format of TODO comments",
 	/ %YFramework $=
@@ -2243,8 +2240,8 @@ b334
 					$since b152,
 				/ "treated prefix '*:/' other than 'fat:/' or 'sd:/' also valid"
 			),
-			/ DLD ^ "%PathIsRelativeW" ~ "%PathIsRelativeA"
-				@ "implementation" @ "platform %MinGW32"
+			/ DLDI ^ "%PathIsRelativeW" ~ "%PathIsRelativeA"
+				@ "platform %MinGW32"
 		)
 	)
 	/ "all header macro guard defined as integer literal '1'" ~ "nothing",
@@ -2264,7 +2261,7 @@ b333
 				// As same as %std::function.
 			/ "improved template parameter declaration"
 				^ "function type and parameter pack",
-			/ "implementation" @ "macro %(DeclDelegate, EventT)"
+			/ $impl @ "macro %(DeclDelegate, EventT)"
 		)
 	),
 	/ %YBase.YStandardEx.TypeOperation $=
@@ -2329,7 +2326,7 @@ b332
 				+ "interface class %IValueHolder"
 			);
 			+ "class templates %(IValueHolder, PointerHolder)";
-			/ DLD "implementation" @ "class %ValueObject"
+			/ DLDI @ "class %ValueObject"
 			),
 			/ DLD "simplified implementation" @ "class %ValueNode"
 		),
@@ -2360,8 +2357,7 @@ b331
 	),
 	/ %YBase $=
 	(
-		/ $lib "implementation" @ "macro %(ynothrow, ynoexcept)"
-			@ %YDefinition,
+		/ $lib $impl @ "macro %(ynothrow, ynoexcept)" @ %YDefinition,
 		/ "exception specifications" ^ "%ynothrow" ~ "%throw()"
 			@ %TypeOperation,
 		/ %YStandardEx.Any $=
@@ -2415,8 +2411,8 @@ b330
 			@ "platform %MinGW32" @ %YCLib.Input
 	),
 	(
-	/ $lib "implementation" @ "(constructor, destructor)"
-		@ "class %noncopyable" %YBase.YStandardEx.Utilities
+	/ $lib $impl @ "(constructor, destructor)" @ "class %noncopyable"
+		@ %YBase.YStandardEx.Utilities
 	* $comp DLD "constexpr use" @ "derived classes of class %noncopyable"
 		$since b246
 	)
@@ -2431,8 +2427,7 @@ b329
 		(
 			+ "functions %(Write, Flush)" @ "class %File",
 			+ "2 operator<< for output",
-			/ "ignore EOF check" @ "implementation"
-				@ "1st operator<< for input";
+			/ $impl "ignore EOF check" @ "1st operator<< for input";
 		);
 		/ DLD "simplified implementation" @ "function %CheckInstall"
 			@ %Helper.Initialization
@@ -2635,7 +2630,7 @@ b322
 				%ClearPixel" @ "header %YBlit",
 			/ DLD "several functions implementations" ^ "%std::copy_n"
 				~ "%ystdex::mmbcpy",
-			* "implementation" @ "function template %CreateRawBitmap"
+			* $impl @ "function template %CreateRawBitmap"
 				@ "header %ShellHelper" $since $before b132;
 			- "using %ystdex::(mmbcpy, mmbset)" @ %Adaptor $dep_to
 				"removal dep of mmbcpy and mmbset"
@@ -2710,8 +2705,7 @@ b320
 		* "performance" @ "function %AScrollBar::Refresh "%UI.GUI
 			$since b295,
 			// Avoiding refreshing repainted bottom button unnecessarily.
-		/ "implementation" @ ("message loop", $design "input dispatching")
-			%Helper.DSMain
+		/ $impl ("message loop", $design "input dispatching") @ %Helper.DSMain
 			// Significantly performance improved.
 	),
 	* DLB "missing including path Code::Blocks project \
@@ -2856,10 +2850,9 @@ b317
 				/ @ "class %MessageQueue" @ %YMessage $=
 				(
 					/ "iterator type exposed",
-					/ $lib "implementation" @ "function %Peek for better \
-						performance",
-					/ DLD "implementation" @ "class %Message"
-						^ "%std::multimap" ~ "%std::multiset",
+					/ $lib $impl "function %Peek for better performance",
+					/ DLDI @ "class %Message" ^ "%std::multimap"
+						~ "%std::multiset",
 						// It makes debug version significantly slower, but \
 							better performance for release.
 					- "redundant fields and interfaces of timing"
@@ -2878,7 +2871,7 @@ b317
 			/ @ "unit %DSMain" $=
 			(
 				/ DLD "implemented function %DSApplication::DealMessage",
-				/ "implementation" @ "idle function"
+				/ $impl @ "idle function"
 					// A little better performance for broadcasting message.
 			)
 		),
@@ -2937,8 +2930,7 @@ b315
 			+ "macros for alignment" @ "header %ydef.h" $dep_to "align macro",
 			+ $doc "several comments on macros"
 		),
-		/ "implementation" @ "class templates %(deref_comp, deref_str_comp)"
-			@ %Utilities
+		/ $impl "class templates %(deref_comp, deref_str_comp)" @ %Utilities
 	),
 	/ %YFramework $=
 	(
@@ -3059,8 +3051,7 @@ b309
 		/ @ %UI.GUI $=
 		(
 			+ "member %AutoWrapLine" @ "class %MLabel";
-			/ DLD "implementation" @ "function %PaintItem"
-				@ "classes %(TextList, Menu)"
+			/ DLDI @ "function %PaintItem" @ "classes %(TextList, Menu)"
 		)
 	);
 	/ "file information appearance" @ %YReader.'file explorer'

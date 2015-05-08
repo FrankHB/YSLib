@@ -106,16 +106,18 @@ fi
 LIBS="$LIBS_RPATH -L\"`SHBuild_2w "$SHBuild_Bin/../lib"`\""
 
 if [[ "$SHBuild_Static" == '' ]]; then
-	export SHBuild_YSLib_Flags="$CXXFLAGS -DYF_DLL -DYB_DLL \
+	export SHBuild_YSLib_Flags="-DYF_DLL -DYB_DLL \
 		$SHBuild_YF_CFlags_freetype -I\"$SHBuild_Bin/../include\""
 	export LIBS="$LIBS $SHBuild_YSLib_LibNames"
 else
-	export SHBuild_YSLib_Flags="$CXXFLAGS $SHBuild_YF_CFlags_freetype \
+	export SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \
 		-I$SHBuild_Bin/../include"
 	export SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
 		-lFreeImage $SHBuild_YF_Libs_freetype -L/usr/lib $SHBuild_YF_SystemLibs"
 	export LIBS="$LIBS -Wl,-dn $SHBuild_YSLib_LibNames"
 fi
+export SHBuild_CFLAGS="$CFLAGS"
+export SHBuild_CXXFLAGS="$CXXFLAGS"
 
 SHBuild_BuildApp()
 {

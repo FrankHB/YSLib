@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1270
+\version r1283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-04-28 23:52 +0800
+	2015-05-05 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -565,19 +565,8 @@ private:
 	YSLib::mutex mtx{};
 
 public:
-#	if YCL_HostedUI_XCB || YCL_Android
-	ScreenRegionBuffer(const YSLib::Drawing::Size&);
-	/*!
-	\brief 构造：使用指定的缓冲区大小和像素跨距。
-	\exception Exception 像素跨距小于缓冲区大小。
-	\since build 498
-	*/
-	ScreenRegionBuffer(const YSLib::Drawing::Size&, YSLib::SDst);
-#	elif YCL_Win32
-	ScreenRegionBuffer(const YSLib::Drawing::Size& s)
-		: ScreenBuffer(s)
-	{}
-#	endif
+	//! \since build 596
+	using ScreenBuffer::ScreenBuffer;
 
 	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 

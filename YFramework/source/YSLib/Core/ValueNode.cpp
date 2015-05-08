@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r410
+\version r422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2015-03-24 11:58 +0800
+	2015-05-06 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,6 +119,19 @@ ValueNode::Remove(const ValueNode& node) const
 	return p_con ? p_con->erase({0, node.name}) != 0 : false;
 }
 
+void
+ValueNode::SwapContainer(const ValueNode& node) const ynothrow
+{
+	p_container.swap(node.p_container);
+}
+
+void
+ValueNode::SwapContent(const ValueNode& node) const ynothrow
+{
+	SwapContainer(node),
+	Value.swap(node.Value);
+}
+
 const ValueNode&
 ValueNode::at(const string& n) const
 {
@@ -129,8 +142,7 @@ void
 ValueNode::swap(ValueNode& node) ynothrow
 {
 	std::swap(name, node.name),
-	std::swap(p_container, node.p_container),
-	Value.swap(node.Value);
+	SwapContent(node);
 }
 
 const ValueNode&
