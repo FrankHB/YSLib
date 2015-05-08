@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3245
+\version r3246
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-05-01 04:38 +0800
+	2015-05-05 04:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ ListBox::ResizeForPreferred(const Size& sup, Size s)
 		s.Width = sup.Width;
 	if(sup.Height != 0 && s.Height > sup.Height)
 	{
-		yunseq(s.Width = s.Width + defMinScrollBarWidth, s.Height = sup.Height);
+		yunseq(s.Width += defMinScrollBarWidth, s.Height = sup.Height);
 		if(sup.Width != 0 && sup.Width < s.Width)
 			s.Width = sup.Width;
 	}

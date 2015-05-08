@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8936
+\version r8975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2015-01-25 04:34 +0800
+	2015-05-05 04:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ b499
 	(
 		/ %YCLib.Debug $=
 		(
-			/ $revert_ex(b298) $dev "implementation" @ "YCL_Trace"  $=
+			/ $revert_ex(b298) $dev $impl "YCL_Trace"  $=
 			(
 				^ '[&]' ~ '[=]';
 				* $comp "capture failure for non-copyable bound variables"
@@ -633,8 +633,8 @@ b494
 				(
 					+ "alias template %GWidgetCreator";
 					(
-					/ $dev "implementation" @ "class template \
-						%(GWidgetCreator, GHandlerRegisterBase)";
+					/ $dev $impl "class templates %(GWidgetCreator, \
+						GHandlerRegisterBase)";
 					- $comp "trace"
 					) $dep_from %Core.YFunc;
 					- "alias template %GWidgetCreatorMap"
@@ -724,8 +724,8 @@ b493
 				+ "functions %FetchCursor"
 			)
 		),
-		/ "implementation" @ "function %InputManager::DispatchInput"
-			@ %Helper.InputManager $dep_from %YCLib.Keys $=
+		/ $impl "function %InputManager::DispatchInput" @ %Helper.InputManager
+			$dep_from %YCLib.Keys $=
 		(
 			^ "%KeyCodes(Primary, Secondary, Tertiary) as cursor event \
 				condition" @ "all platforms",
@@ -824,8 +824,8 @@ b492
 		),
 		+ %'YCLib_(Android)' $dep_from %YCLib.Platform
 			$= (+ %Android),
-		* DLD "missing explicit return type" @ "lambda expression"
-			@ "implementation" @ "%NPL::TransformNPLA1" @ %NPL $since b344
+		* DLDI "missing explicit return type" @ "lambda expression"
+			"%NPL::TransformNPLA1" @ %NPL $since b344
 	),
 	/ $dev @ "macros list" @ %Tools.PredefinedMacroDetector $=
 	(
@@ -1217,11 +1217,11 @@ b486
 		),
 		+ "function %FindFirstKey" @ %YCLib.Keys
 	),
-	/ $design "implementation" @ "function %ytrace" @ %YBase.StandardEx.CAssert
-		^ '#' ~ '0x';
+	/ $design $impl @ "function %ytrace" @ %YBase.StandardEx.CAssert ^ '#'
+		~ '0x';
 		// Only different for zero value, and 'X' instead of 'x' after prefix \
 			'0'.
-	* $comp "assertion for %TextBox cascade focus failed"
+	* $comp "assertion for %TextBox cascaded focus failed"
 		@ "hot key for menu pressed" @ "%ShlExplorer" $dep_from
 		@ %YFramework.YSLib.UI
 ),
@@ -1418,7 +1418,7 @@ b483
 			(
 				/ $dev "made explicit use of '{}' for private states and \
 					simplified the implementation of the default constructor",
-				+ "cascade focus with events %(LostFocus, GotFocus) for direct \
+				+ "cascaded focus with events %(LostFocus, GotFocus) for direct \
 					routing event hanling support",
 				/ "filter out widget that is invisible or not enabled for key \
 					route events" @ "function %ResponseKey"
@@ -1778,9 +1778,9 @@ b476
 				)
 			)
 		),
-		* "missing cutting of trailing characters after NUL" @ "functions \
-			%(strdup, ucsdup)" @ %CHRLib.CharacterProcessing $since b475
-			$dep_from %YBase.YStandardEx.Memory;
+		* "missing cutting of trailing characters after null character"
+			@ "functions %(strdup, ucsdup)" @ %CHRLib.CharacterProcessing $since
+			b475 $dep_from %YBase.YStandardEx.Memory;
 		/ "functions %UTF8ToMBCS" -> "functions %MBCSToMBCS"
 			@ %'YCLib_(MinGW32)'.MinGW32
 	),
@@ -1792,8 +1792,8 @@ b476
 		+ "explicitly deleted template invalid with array type argument \
 			declaration"
 	),
-	/ DLD "implementation" @ %Tools.SHBuild.Main $dep_from
-		%YFramework.YSLib.Service.FileSystem $=
+	/ DLDI @ %Tools.SHBuild.Main $dep_from %YFramework.YSLib.Service.FileSystem
+		$=
 	(
 		/ "wide string operations" -> "UTF-8 based string operatiions",
 		^ "%EnsureDirectory"
@@ -1837,7 +1837,7 @@ b475
 		/ $lib "inline functions %(UTF8ToMBCS, WCSToMBCS, MBCSToWCS)"
 			 @ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
-			/ DLD "implementation" ^ "%(PDefH, ImplRet)",
+			/ DLDI ^ "%(PDefH, ImplRet)",
 			/ "returned expression without ADL" ^ 'Windows::'
 		),
 		/ %YCLib.FileSystem $=
@@ -1952,7 +1952,7 @@ b474
 				Character; Communicator = 2000; FIFO; Socket; Link = 0x3000; \
 				SymbolicLink; HardLink; Junction; Special = 0x4000; Reparse)"
 				$dep_to "%PathCategory";
-			/ DLD "implementation" @ "classes %(DirectorySession, HDirectory)"
+			/ DLDI @ "classes %(DirectorySession, HDirectory)"
 				@ "platform %MinGW32" ^ "Win32 API" ~ "%(_WDIR, _wdirent)";
 			/ $revert_ex(b411) @ "class %HDirectory" $=
 			(
@@ -2301,7 +2301,7 @@ b467
 			/ "constructor with pointer to member function"
 				@ "class template %GHEvent" @ %Core.YEvent $=
 			(
-				/ "implementation" ^ "lambda expression"
+				/ $impl ^ "lambda expression"
 					~ "class template %ExpandMemberFirstBinder";
 					// This made calling a handler initialized by a null \
 						pointer to member function would raise undefined \
@@ -2802,7 +2802,7 @@ b457
 			),
 			/ 'using ImageFormat = int;' -> "enum class %ImageFormat"
 		),
-		/ %Service.Timer $=
+		/ %Service.YTimer $=
 		(
 			+ "assertion of non-zero interval"
 				@ "function %Timer::Refresh",
@@ -3137,7 +3137,7 @@ b454
 				+ "conditional not included corresponding code as workaround \
 					of compiler crash about 'YB_HAS_MEMBER(value)', \
 					%ystdex::has_mem_value"
-					@ YB_IMPL_MSCPP @ %TypeOperations,
+					@ YB_IMPL_MSCPP @ %TypeOperation,
 				+ "workaround of unsupported explicitly defaulted move \
 					constructor and move %operator=" @ "class templates" \
 					("%(container_adaptor, sequence_container_adaptor)"
@@ -3339,8 +3339,7 @@ b451
 			@ "class template %GAutoTask" @ %Core.Task,
 		/ %Service.YBlit $=
 		(
-			/ DLD "implementation" @ "%operator()" @ "struct %RectTransformer"
-				^ "%Blit",
+			/ DLDI @ "%operator()" @ "struct %RectTransformer" ^ "%Blit",
 			* "wrong check for maximal boundary components calculated"
 				@ "function %BlitBounds" $since b446,
 				// It caused wrong boundary calculated for %FillRect and other \
@@ -3745,7 +3744,7 @@ b446
 					@ "function template %Blit"
 			)
 		),
-		* "wrong offset and clip area for blitting" @ "implementation"
+		* $impl "wrong offset and clip area for blitting"
 			@ "function %ImageBrush::DefaultUpdate" @ %UI.YBrush $since b443
 	)
 ),
@@ -3927,7 +3926,7 @@ b442
 		),
 		/ %YSLib.Service $=
 		(
-			/ "implementation" @ "pixel blending" @ "platform %DS",
+			/ $impl @ "pixel blending" @ "platform %DS",
 				// Passing by reference for pixels makes it as efficient as \
 					integer type pixel format as b440, and smaller binary \
 					size(as same as b441).
@@ -4451,7 +4450,7 @@ b434
 	/ %YReader $=
 	(
 		+ "dynamic widget loader initialization" $dep_from %YFramework.YSLib.UI;
-		/ DLD "implementation" @ "about UI" ^ "NPL dynamic widget loading"
+		/ DLDI @ "about UI" ^ "NPL dynamic widget loading"
 			// This adds an additional panel and enlarges binary \
 				significantly. Here it is not necessary, just being used as an \
 				demo.
@@ -4649,14 +4648,14 @@ b431
 		),
 		/ "functions %platform_ex::(UTF8ToMBCS, WCSToMBCS)" @ "platform \
 			%MinGW32" @ %YCLib.YCommon >> ("namespace %platform_ex::Windows"
-			@ %'YCLib_(MinGW32)'.MinGW);
-		/ @ "namespace %platform::Windows" @ %'YCLib_(MinGW32)'.MinGW $=
+			@ %'YCLib_(MinGW32)'.MinGW32);
+		/ @ "namespace %platform::Windows" @ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
 			+ "3 functions %MBCSToWCS",
 			+ "inline functions for native encoding conversion with length of \
 				C style strings calculated at runtime;
 			^ "'CP_ACP' as default arguments" @ "encoding transformation \
-				functions" @ %'YCLib_(MinGW32)'.MinGW;
+				functions" @ %'YCLib_(MinGW32)'.MinGW32;
 		),
 		/ %Helper $=
 		(
@@ -5043,7 +5042,7 @@ b426
 		),
 		/ %Helper $=
 		(
-			/ "all 3 %Drawing::to_string" @ %ShellHelper>> %UI.YComponent;
+			/ "all 3 %Drawing::to_string" @ %ShellHelper>> %YSLib.UI.YComponent;
 			/ DLD "host implementation reconstructed";
 			(
 			+ "class %Host::Exception" @ "defined %YCL_HOSTED" @ %YGlobal;
@@ -5130,7 +5129,7 @@ b425
 			- "typedef %count_type";
 			- "template parameter 'typename _tCount = size_t'",
 			),
-			/ "implementation" ^ "%ythread" $dep_from %YDefinition,
+			/ $impl ^ "%ythread" $dep_from %YDefinition,
 			+ ynoexcept @ "all non-template member functions"
 		)
 	)
@@ -5462,7 +5461,7 @@ b416
 	(
 		+ final @ "all classes" @ %Adaptor.Font,
 		(
-			/ "class %Timer" @ %Service.Timer $=
+			/ "class %Timer" @ %Service.YTimer $=
 			(
 				* "redundant function declaration %RefreshAll" $since b405,
 				+ "function %Test",
@@ -5591,8 +5590,8 @@ b414
 	(
 		/ %Core $=
 		(
-			/ $lib "implementation" @ "function %String::operator="
-				@ %String $dep_from %YBase.YStandardEx.String,
+			/ $lib $impl "function %String::operator=" @ %String $dep_from
+				%YBase.YStandardEx.String,
 				// More efficient.
 			/ "class %FileList" -> "function %ListFiles" @ %YFileSystem
 		),
@@ -5901,8 +5900,7 @@ b409
 					/ @ "class %Path" $=
 					(
 						- "all static member object %(Slash, Now, Parent)",
-						/ $dev "implementation" ^ "inheritance %ypath"
-							~ "string member",
+						/ $dev $impl ^ "inheritance %ypath" ~ "string member",
 						- "functions %('Has*', 'GetRoot*',
 							GetRelativePath, GetParentPath, GetFilename,
 							GetStem, MakeAbsolute, RemoveFilename,
@@ -5954,8 +5952,8 @@ b408
 (
 	/ %YBase $=
 	(
-		* "implementation" @ '#define ynothrow' @ "!defined %YB_HAS_NOEXCEPT"
-			@ %YDefinition $since b319,
+		* $impl '#define ynothrow' @ "!defined %YB_HAS_NOEXCEPT" @ %YDefinition
+			$since b319,
 		/ DLD "all 'std::enable_if' excluding 'using std::enable_if'"
 			-> 'enable_if' @ "namespace %ystdex" @ %YStandardEx,
 		/ $lib %TypeOperation $=
@@ -6342,7 +6340,7 @@ b400
 		(
 			/ %'encoding conversion' $=
 			(
-				* "implementation" @ "function %MBCToUC#2" $since b299,
+				* $impl "function %MBCToUC#2" $since b299,
 				/ "reduced duplicate call of mapping function fetching"
 					@ "conversion for string",
 				+ $dev "assertions as null pointer check"

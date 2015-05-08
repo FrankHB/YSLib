@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1441
+\version r1444
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2015-03-25 15:39 +0800
+	2015-05-05 04:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -262,9 +262,10 @@ Menu::TryShowingSub(IndexType idx)
 void
 LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 {
+	const auto& r(GetBoundsOf(src));
+
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	SetLocationOf(dst, {src.GetX() + SPos(src.GetWidth()),
-		src.GetY() + SPos(src.GetItemHeight() * idx)});
+	SetLocationOf(dst, {r.GetRight(), r.Y + SPos(src.GetItemHeight() * idx)});
 }
 
 

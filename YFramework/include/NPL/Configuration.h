@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r298
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2014-12-14 21:50 +0800
+	2015-05-06 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,10 +53,6 @@ private:
 
 public:
 	DefDeCtor(Configuration)
-	//! \since build 432
-	Configuration(ValueNode& node)
-		: root(static_cast<const ValueNode&>(node))
-	{}
 	//! \since build 376
 	//@{
 	Configuration(const ValueNode& node)
@@ -65,14 +61,20 @@ public:
 	Configuration(ValueNode&& node)
 		: root(std::move(node))
 	{}
-	Configuration(Configuration& conf)
-		: Configuration(static_cast<const Configuration&>(conf))
+	//@}
+	//! \since build 596
+	//@{
+	template<typename _tParam,
+		yimpl(typename = ystdex::exclude_self_ctor_t<Configuration, _tParam>)>
+	yconstfn
+	Configuration(_tParam&& arg)
+		: root(0, yforward(arg))
+	{}
+	template<typename _tParam1, typename _tParam2, typename... _tParams>
+	Configuration(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
+		: root(0, yforward(arg1), yforward(arg2), yforward(args)...)
 	{}
 	//@}
-	template<typename... _tParams>
-	Configuration(_tParams&&... args)
-		: root(0, yforward(args)...)
-	{}
 	DefDeCopyMoveCtorAssignment(Configuration)
 
 	DefGetter(const ynothrow, const ValueNode&, Root, root)

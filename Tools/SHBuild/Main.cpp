@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2781
+\version r2827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-04-22 20:28 +0800
+	2015-05-06 09:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -250,7 +250,11 @@ const array<const char*, 3> DeEnvs[]{
 	{{"ARFLAGS", "rcs", "The archiver flags."}},
 	{{"LD", "ld", "The linker executable."}},
 	{{"LDFLAGS", "", "The linker flags."}},
-	{{"LIBS", "", "Extra options as the linker options at end."}}
+	{{"LIBS", "", "Extra options as the linker options at end."}},
+	{{"SHBuild_CFLAGS", "", "Flags used in command options when the C complier"
+		" is called."}},
+	{{"SHBuild_CXXFLAGS", "", "Flags used in command options when the C++"
+		" complier is called."}}
 };
 //@}
 
@@ -425,6 +429,9 @@ public:
 
 	//! \since build 545
 	DefGetter(const ynothrow, const string&, Flags, flags)
+	//! \since build 596
+	string
+	GetFlags(const string&) const;
 
 	//! \since build 538
 	int
@@ -471,16 +478,33 @@ public:
 
 	string
 	GetCommand(const String&) const;
+	//! \since build 596
+	static string
+	GetCommandType(const String&);
+
+	//! \since build 596
+	string
+	LookupCommand(const string&) const;
 };
 
 string
 Rule::GetCommand(const String& ext) const
 {
+	return LookupCommand(GetCommandType(ext));
+}
+string
+Rule::GetCommandType(const String& ext)
+{
 	if(ext == u"c")
-		return Context.GetEnv("CC");
+		return "CC";
 	if(ext == u"cc" || ext == u"cpp" || ext == u"cxx")
-		return Context.GetEnv("CXX");
+		return "CXX";
 	return {};
+}
+string
+Rule::LookupCommand(const string& name) const
+{
+	return name.empty() ? "" : Context.GetEnv(name);
 }
 
 
@@ -493,7 +517,8 @@ BuildFile(const Rule& rule)
 {
 	const auto& bctx(rule.Context);
 	const auto& ipth(rule.Source.first);
-	const auto& cmd(rule.GetCommand(GetExtensionOf(ipth)));
+	const auto& cmd_type(rule.GetCommandType(GetExtensionOf(ipth)));
+	const auto& cmd(rule.LookupCommand(cmd_type));
 	const auto& fullname(ipth.GetMBCS());
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
 
@@ -516,8 +541,8 @@ BuildFile(const Rule& rule)
 		{
 			print("Compile file: '" + ipth.back().GetMBCS() + "'.",
 				Informative);
-			bctx.CallWithException(cmd + " -MMD" + " -c" + bctx.GetFlags() + ' '
-				+ '"' + fullname + "\" -o \"" + ofullname + '"');
+			bctx.CallWithException(cmd + " -MMD" + " -c " + bctx.GetFlags(
+				cmd_type) + " \"" + fullname + "\" -o \"" + ofullname + '"');
 		}
 		return {ofullname};
 	}
@@ -588,6 +613,17 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 } // unnamed namespace;
 
 
+string
+BuildContext::GetFlags(const string& cmd_type) const
+{
+	string res;
+
+	if(cmd_type == "CC")
+		res = GetEnv("SHBuild_CFLAGS");
+	else if(cmd_type == "CXX")
+		res = GetEnv("SHBuild_CXXFLAGS");
+	return res + ' ' + flags;
+}
 int
 BuildContext::GetLastResult() const
 {
@@ -825,8 +861,12 @@ main(int argc, char* argv[])
 			std::puts("SRCPATH\n\tThe source directory to be recursively"
 				" searched.\n\n"
 				"OPTIONS ...\n"
-				"\tThe options. All other options would be sent to the"
-				" backends, except for listed below:\n");
+				"\tThe options. This comes after values of environment"
+				" variables SHBuild_CFLAGS or SHBuild_FLAGS and one single"
+				" space character when CC or CXX is called, respectively. All"
+				" options including these prefixed values of SHBuild_CFLAGS or"
+				" SHBuild_FLAGS would be sent to the backends, except for"
+				" listed below:\n");
 			for(const auto& opt : OptionsTable)
 			{
 				std::printf("  %s%s\n", opt.prefix, opt.option_arg);

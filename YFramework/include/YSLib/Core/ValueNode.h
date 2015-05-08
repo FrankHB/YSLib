@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1555
+\version r1564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-04-24 06:36 +0800
+	2015-05-06 02:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -262,6 +262,17 @@ public:
 	//! \since build 403
 	PDefH(bool, Remove, const string& str) const
 		ImplRet(Remove({0, str}))
+
+	//! \since build 595
+	//@{
+	//! \brief 交换容器。
+	void
+	SwapContainer(const ValueNode&) const ynothrow;
+
+	//! \brief 交换容器和值。
+	void
+	SwapContent(const ValueNode&) const ynothrow;
+	//@}
 
 	/*!
 	\exception ystdex::bad_any_cast 容器不存在。

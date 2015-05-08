@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r523
+\version r541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2015-04-10 19:26 +0800
+	2015-05-07 07:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,17 +141,26 @@ build 299 前：
 使用 http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-posix/dwarf/i686-4.8.2-release-posix-dwarf-rt_v3-rev0.7z 。
 mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼容 i686 的 LLVM/Clang++ 工具链，这导致二进制兼容性不被保持。
 注意之前由于 mingw-w64 的 bug （参见 http://sourceforge.net/mailarchive/message.php?msg_id=31045447 ），即使不改变异常模型也不能保持二进制兼容性。
-2014-01-04(build 465) 起同时支持 MinGW.org 工具链，但由于实现质量等原因，不用于默认发布。
+2014-01-04(build 465) 起同时支持 MinGW.org 工具链，但由于实现质量等原因，不用于日常测试和默认发布。
 2014-04-15(build 493) 起：
 基础环境更改参见 @1.3 。
 使用包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.8.2-7 。
+使用包 mingw32/mingw-w64-i686-crt-svn 版本 4.0.0.6568-1 。
 使用的工具链版本、线程模型和异常模型及外部库的依赖和之前保持一致，因此二进制兼容。
+2014-05-28(build 499) 起：
+使用包 mingw-w64-i686-crt-git 版本 4.0.0.4044.502c720-1 代替包 mingw32/mingw-w64-i686-crt-svn 。
 2014-07-19(build 520) 起：
-使用包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.9.1-1 。
-使用包 mingw-w64-i686-nasm-2.11.02-1 代替外部依赖项 NASM 。
+升级包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.9.1-1 。
+使用包 mingw32/mingw-w64-i686-nasm-2.11.02-1 代替外部依赖项 NASM 。
 2014-10-01(build 539) 起：
 去除了 -ffat-lto-objects 编译选项（默认 GCC 4.9 不包括此选项），启用 -flto 时要求 ar 支持插件。
-需要使用 MSYS2 的 mingw-w64-i686-binutils-git 带插件支持的链接器（已测试 GNU ar 2.24.0.20140810 可用），参见 http://sourceforge.net/p/msys2/tickets/62/ 。
+需要使用 MSYS2 的 mingw-w64-i686-binutils-git 带插件支持的链接器（已测试包 mingw32/mingw-w64-i686-binutils-git 版本 2.24.78559.d43808f-1 的 GNU ar 2.24.0.20140810 可用），参见 http://sourceforge.net/p/msys2/tickets/62/ 。
+2014-12-19(build 560) 起：
+升级包 mingw-w64-i686-crt-git 版本 4.0.0.4376.d6916b1-1 。
+2014-12-19(build 560) 起：
+升级包 mingw-w64-i686-crt-git 版本 4.0.0.4402.95c900f-1 。
+2014-05-07(build 596) 起：
+使用 MSYS2 的 mingw-w64-i686-binutils 版本 2.25-3 代替包 mingw-w64-i686-binutils-git （测试可用 LTO 插件支持）。
 
 @1.5.1 MinGW32 库部署：
 YSLib 内部使用固定的相对路径，不依赖库的部署。
@@ -385,6 +394,12 @@ YSLib 实现对所有平台的 FreeType2 库添加检查。
 
 @3.2.1 使用的版本：
 在 Arch Linux x86_64 使用包： libxcb-1.11-1 。
+
+@4 避免依赖：
+在特定平台实现上 YSLib 项目在避免使用特定的外部依赖。
+语言和语言实现（如标准库实现）相关的依赖规则见 [Documentation::Project @@1.2] 和 [Documentation::Base @@2.1.2] 。
+一般外部依赖规则参见 [Documentation::YFramework @@2.1.2.1] 。
+特定平台依赖规则参见 [Documentation::YFramework @@2.1.3.1] 。
 
 */
 ////

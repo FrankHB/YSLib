@@ -7,7 +7,7 @@ echo Updating necessary tools for native hosted environment ...
 #	'mingw-w64-i686-binutils' is not enough for LTO-enabled building.
 # 'make' is needed for LTO wrapper and build process for other platforms.
 pacman -Syu --needed \
-	mingw32/mingw-w64-i686-binutils-git \
+	mingw32/mingw-w64-i686-binutils \
 	mingw32/mingw-w64-i686-gcc \
 	msys/make
 echo Done.
@@ -22,6 +22,7 @@ echo Updating optional tools ...
 pacman -S --needed \
 	mingw32/mingw-w64-i686-gdb \
 	mingw32/mingw-w64-i686-nasm \
+	msys/base-devel \
 	msys/rsync
 # XXX: Install freetype2?
 echo Done.

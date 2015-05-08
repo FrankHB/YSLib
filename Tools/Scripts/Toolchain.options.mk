@@ -25,7 +25,7 @@ C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
 	-Wdeprecated-declarations -Wextra -Wfloat-equal -Wformat=2 -Winvalid-pch \
 	-Wmissing-declarations -Wmissing-include-dirs -Wmultichar \
 	-Wno-format-nonliteral -Wpacked -Wredundant-decls -Wshadow \
-	-Wsign-conversion -Wsign-promo
+	-Wsign-conversion
 
 CFLAGS_STD ?= -std=c11
 
@@ -43,7 +43,8 @@ LDFLAGS_IMPL_OPT ?= -s -fexpensive-optimizations -flto
 
 CXXFLAGS_STD ?= -std=c++11
 CXXFLAGS_WARNING ?= $(CFLAGS_WARNING) -Wctor-dtor-privacy -Wnon-virtual-dtor \
-	-Woverloaded-virtual $(C_CXXFLAGS_IMPL_WARNING) $(CXXFLAGS_IMPL_WARNING)
+	-Woverloaded-virtual -Wsign-promo $(C_CXXFLAGS_IMPL_WARNING) \
+	$(CXXFLAGS_IMPL_WARNING)
 
 CXXFLAGS_COMMON ?= $(C_CXXFLAGS_COMMON) $(CXXFLAGS_STD) \
 	$(CXXFLAGS_WARNING) $(CXXFLAGS_IMPL_COMMON)

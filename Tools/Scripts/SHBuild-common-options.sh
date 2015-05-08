@@ -45,7 +45,6 @@ fi
 	-Wredundant-decls \
 	-Wshadow \
 	-Wsign-conversion \
-	-Wsign-promo \
 	"}
 
 # TODO: BSD etc.
@@ -95,6 +94,7 @@ fi
 	-Wctor-dtor-privacy \
 	-Wnon-virtual-dtor \
 	-Woverloaded-virtual \
+	-Wsign-promo \
 	$C_CXXFLAGS_IMPL_WARNING \
 	$CXXFLAGS_IMPL_WARNING \
 	"}
@@ -119,8 +119,10 @@ fi
 
 # XXX: Rename %CXXFLAGS_OPT_DBG to CFLAGS_OPT_DBG or C_CXXFLAGS_OPT_DBG?
 : ${CFLAGS:="$CFLAGS_COMMON $CXXFLAGS_OPT_DBG"}
+CFLAGS="${CFLAGS//	/ }"
 
 : ${CXXFLAGS:="$CXXFLAGS_COMMON $CXXFLAGS_OPT_DBG"}
+CXXFLAGS="${CXXFLAGS//	/ }"
 
 : ${LDFLAGS_OPT_DBG:="$LDFLAGS_IMPL_OPT $LDFLAGS_GC"}
 
@@ -141,4 +143,5 @@ fi
 : ${LDFLAGS_DYN:="$LDFLAGS_DYN_BASE $LDFLAGS_DYN_EXTRA"}
 
 : ${LDFLAGS:="$LDFLAGS_OPT_DBG"}
+LDFLAGS="${LDFLAGS//	/ }"
 

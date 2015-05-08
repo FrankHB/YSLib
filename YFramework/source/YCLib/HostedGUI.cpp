@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1419
+\version r1437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-04-29 13:24 +0800
+	2015-05-05 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -433,12 +433,17 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 {
 	::ANativeWindow_Buffer abuf;
 	::ARect arect{r.X, r.Y, r.X + r.Width, r.Y + r.Height};
+	const auto res(::ANativeWindow_lock(Nonnull(h_wnd), &abuf, &arect));
 
-	::ANativeWindow_lock(Nonnull(h_wnd), &abuf, &arect);
-	BlitLines<false, false>(CopyLine<true>(), static_cast<BitmapPtr>(abuf.bits),
-		g.GetBufferPtr(), WindowReference(h_wnd).GetSize(), g.GetSize(),
-		r.GetPoint(), {}, r.GetSize());
-	::ANativeWindow_unlockAndPost(h_wnd);
+	if(YB_LIKELY(res == 0))
+	{
+		BlitLines<false, false>(CopyLine<true>(), BitmapPtr(abuf.bits),
+			g.GetBufferPtr(), WindowReference(h_wnd).GetSize(), g.GetSize(),
+			r.GetPoint(), {}, r.GetSize());
+		::ANativeWindow_unlockAndPost(h_wnd);
+	}
+	else
+		YTraceDe(Warning, "::ANativeWindow_lock failed, error = %d.", int(res));
 }
 #	endif
 
@@ -605,15 +610,6 @@ ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 #	endif
 }
 
-
-#	if YCL_HostedUI_XCB || YCL_Android
-ScreenRegionBuffer::ScreenRegionBuffer(const Size& s)
-	: ScreenRegionBuffer(s, s.Width)
-{}
-ScreenRegionBuffer::ScreenRegionBuffer(const Size& s, SDst buf_stride)
-	: ScreenBuffer(s, buf_stride)
-{}
-#	endif
 
 locked_ptr<ScreenBuffer>
 ScreenRegionBuffer::Lock()

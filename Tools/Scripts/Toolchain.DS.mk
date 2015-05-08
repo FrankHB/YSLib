@@ -20,7 +20,7 @@ C_CXXFLAGS_COMMON ?= -pipe -fdata-sections -ffunction-sections
 C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
 	-Wdeprecated-declarations -Wextra -Wfloat-equal -Wformat=2 -Winvalid-pch \
 	-Wmissing-declarations -Wmissing-include-dirs -Wmultichar \
-	-Wno-format-nonliteral -Wredundant-decls -Wshadow -Wsign-promo
+	-Wno-format-nonliteral -Wredundant-decls -Wshadow
 # NOTE: Workaround for libnds: do not use '-Wdouble-promotion'.
 C_CXXFLAGS_IMPL_WARNING ?= -Wlogical-op -Wtrampolines 
 
