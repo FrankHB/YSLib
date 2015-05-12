@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1263
+\version r1278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-05-03 05:18 +0800
+	2015-05-11 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 //	std::to_string;
 #include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
 #include "array.hpp" // for std::bidirectional_iterator_tag, ystdex::to_array;
-#include <istream> // for std::istream;
+#include <istream> // for std::basic_istream;
+#include <ostream> // for std::basic_ostream;
 #include "cstdio.h" // for std::vsnprintf, ystdex::vfmtlen;
 #include <cstdarg>
 
@@ -627,6 +628,7 @@ split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 //@}
 
 
+
 /*!
 \brief 从输入流中取字符串。
 \since build 565
@@ -752,6 +754,21 @@ extract_line_cr(std::basic_istream<_tChar, _tTraits>& is,
 }
 //@}
 //@}
+
+
+/*!
+\brief 非格式输出。
+\since build 597
+*/
+template<typename _tChar, class _tTraits, class _tAlloc>
+std::basic_ostream<_tChar, _tTraits>&
+write(std::basic_ostream<_tChar, _tTraits>& os,
+	const std::basic_string<_tChar, _tTraits, _tAlloc>& str)
+{
+	if(!str.empty())
+		os.write(&str[0], std::streamsize(str.length()));
+	return os;
+}
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1564
+\version r1570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-05-06 02:22 +0800
+	2015-05-10 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -361,10 +361,14 @@ at(const ValueNode& node, _tIn first, _tIn last)
 		return ystdex::ref(at(nd, c));
 	});
 }
-//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+/*!
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\since build 597
+*/
 template<typename _tRange>
-inline const ValueNode&
+inline auto
 at(const ValueNode& node, const _tRange& c)
+	-> decltype(YSLib::at(node, begin(c), end(c)))
 {
 	return YSLib::at(node, begin(c), end(c));
 }

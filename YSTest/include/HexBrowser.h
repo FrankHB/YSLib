@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r474
+\version r516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2015-03-24 18:58 +0800
+	2015-05-09 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include <YSLib/UI/YModules.h>
 #include <Helper/YModules.h>
 #include YFM_YSLib_UI_Scroll
-#include YFM_YSLib_Service_File
+#include <fstream> // for std::filebuf;
 #include YFM_YSLib_Service_TextLayout
 #include YFM_Helper_Initialization
 
@@ -44,53 +44,51 @@ namespace UI
 /*!
 \ingroup DataModels
 \brief 十六进制模型：十六进制视图区域数据源。
-\warning 非虚析构。
 \since build 257
 */
-class HexModel : private noncopyable
+class HexModel final
 {
 private:
-	/*!
-	\brief 文件数据源。
-	\invariant <tt>bool(pSource)</tt> 。
-	\since build 270
-	*/
-	unique_ptr<File> pSource;
+	//! \since build 597
+	//@{
+	//! \brief 文件流数据源。
+	mutable std::filebuf source{};
+	size_t size = 0;
+	//@}
 
 public:
-	HexModel()
-		: pSource(new File())
-	{}
-	//! \since build 412
-	HexModel(const char* path)
-		: pSource(new File(path))
-	{}
+	DefDeCtor(HexModel)
+	/*!
+	\brief 构造：以二进制只读模式打开文件并初始化大小。
+	\pre 间接断言；参数非空。
+	\since build 412
+	*/
+	HexModel(const char*);
 	DefDeMoveCtor(HexModel)
 
 	DefDeMoveAssignment(HexModel)
-	HexModel&
-	operator=(unique_ptr<File>&& file_ptr)
-	{
-		pSource = std::move(file_ptr);
-		return *this;
-	}
 
-	DefPred(const ynothrow, Valid, bool(GetSource()))
-
-private:
-	DefGetter(const ynothrow, File&, Source, *pSource)
+	DefPred(const ynothrow, Valid, source.is_open())
 
 public:
-	DefGetterMem(const ynothrow, FILE*, Ptr, GetSource())
-
 	//! \since build 587
-	DefGetterMem(const, size_t, Position, GetSource())
-	DefGetterMem(const ynothrow, size_t, Size, GetSource())
+	DefGetter(const, size_t, Position,
+		size_t(source.pubseekoff(0, std::ios_base::cur, std::ios_base::in)))
+	DefGetter(const ynothrow, size_t, Size, size)
 
-	DefFwdTmpl(const, ptrdiff_t, SetPosition,
-		GetSource().Seek(args...))
+	//! \since build 597
+	//@{
+	//! \pre 间接断言；参数非空。
+	PDefH(std::streamsize, Fill, char* dst, std::streamsize n) const
+		ImplRet(source.sgetn(Nonnull(dst), n))
 
-	DefFwdFn(const, int, CheckEOF, GetSource().CheckEOF())
+	//! \pre 间接断言；参数非空。
+	void
+	Load(const char*);
+
+	PDefH(void, Seek, std::streampos pos) const
+		ImplExpr(source.pubseekpos(pos, std::ios_base::in))
+	//@}
 };
 
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r650
+\version r657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2014-12-20 20:01 +0800
+	2015-05-12 13:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,7 +142,7 @@
 接口(interface) ：一种封装，参见软件工程学。
 实现(implementation) ：一种封装，参见软件工程学。
 重用(reusing) ：参见经验语义和软件工程学。
-不变量(invariable) ：满足某种等价关系的实体。参见数学和契约式程序设计。
+不变量(invariable) ：满足某种等价关系（自反、传递、对称的二元关系）的实体。参见数学和契约式程序设计。
 状态(state) ：可以和其它实体关联的、可在某个上下文中保持变化或不变的实体。同一状态总是保持变化或保持不变。状态变化的含义参见经验语义、数学或另行约定。
 可变状态(mutable state) ：在某个上下文中可能映射到若干其它状态的状态。
 不可变状态(immutable state) ：不是可变状态的状态。
@@ -200,6 +200,7 @@ NPL 实现应保证行为能符合以下的阶段（具体阶段不要求和实�
 运行之前的阶段总称为翻译(translation) ，包含各个翻译阶段(phase of translation) 。
 其中对有宿主语言支持的嵌入实现(embedded implementation) 或目标不是程序的情况，代码生成及之后的阶段不是必须的。
 嵌入实现的宿主语言可能直接运行语义分析的结果。
+在语义不变的前提下，允许实现一次或多次翻译部分代码产生部分中间结果并复用。
 其它可能的阶段由派生实现定义，但应满足所有阶段具有确定的全序关系，且不改变上述指定的阶段的顺序。符合这些条件的附加阶段称为扩展阶段。
 
 @2.4.2 并发实现(concurrent implementation) ：
@@ -302,6 +303,7 @@ list-expression ::= <left-list-bound> expression <right-list-bound>
 以派生实现定义的标点结尾的表达式称为语句。
 
 @4 语义：
+语言的语义规则构成演绎系统(deductive system) ，通过对翻译单元(@3.1) 中的表达式(@3.4.2) 的具体的求值规则(@4.4) 表达。
 
 @4.1 基本概念：
 范围(range) ：一个连续区间。此处“连续”的概念由派生实现定义，默认参照数学的形式定义。
@@ -321,7 +323,7 @@ list-expression ::= <left-list-bound> expression <right-list-bound>
 规约(reduction) ：以表达式替代另一个表达式的过程。
 
 @4.1.1 覆盖约定：
-状态的不变性由派生实现定义的等价规则指定，默认为能定义等价类的相等运算。
+状态不变由实现定义的等价关系(@2.1.2) 决定。
 
 @4.2 基本语义规则：
 所有不需要诊断消息的规则由派生实现定义（即以下规则不产生未定义行为）。
@@ -465,6 +467,8 @@ NPLA1 的规范形式是特定类型的 C++ 对象，使用 YSLib::ValueNode 作
 NPLA1 当前加入特定的序列化和反序列化作为配置文件，参见 NPL::Configuration 。
 NPLA1 的上述配置文件加入特定的匹配和初始化机制作为 YSLib::UI::Loader([Documenatation::YSLib @@5.6.8]) 在运行时读取用户界面布局和配置的脚本。
 NPLA1 用于 MIME 类型和文件名映射([Documentation::YSLib @@4.6.3]) 的实现，上述配置文件对应的外部配置格式。
+NPL 自定义分析器被用于 Tools::SHBuild 解析 GCC 输出的兼容 GNU make 包含依赖字符串。
+NPL 部分支持分析 SXML 并转换为 XML 输出。
 
 @5.9 兼容性：
 除非在此另行约定， NPLA1 实现保持兼容。

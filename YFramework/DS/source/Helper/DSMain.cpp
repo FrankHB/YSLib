@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3202
+\version r3204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-05-06 02:10 +0800
+	2015-05-10 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,8 +85,8 @@ DSApplication::DSApplication()
 
 #if YCL_DS
 	FillPixel<Pixel>(scr0.GetCheckedBufferPtr(),
-		GetAreaOf(scr1.GetSize()), ColorSpace::Blue),
-	FillPixel<Pixel>(scr0.GetCheckedBufferPtr(),
+		GetAreaOf(scr0.GetSize()), ColorSpace::Blue),
+	FillPixel<Pixel>(scr1.GetCheckedBufferPtr(),
 		GetAreaOf(scr1.GetSize()), ColorSpace::Green);
 #elif YCL_Win32
 

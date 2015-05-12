@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1835
+\version r1845
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-04-28 17:40 +0800
+	2015-05-09 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,17 +213,6 @@ inline void
 SetShellToStored()
 {
 	SetShellTo(FetchStored<_tShl>());
-}
-
-/*!
-\brief 封装通过消息队列向全局 Shell 管理器内的对象转移控制权。
-\since 早于 build 132
-*/
-template<class _tShl>
-inline void
-CallStored()
-{
-	SetShellToStored<_tShl>();
 }
 
 
