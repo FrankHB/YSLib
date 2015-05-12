@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r588
+\version r591
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-04-24 03:41 +0800
+	2015-05-12 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
-#include YFM_YCLib_Container // for string, sfmt;
+#include YFM_YCLib_Container // for string, platform::sfmt;
 #include YFM_YCLib_Mutex
 
 /*!	\defgroup diagnostic Diagnostic
@@ -243,6 +243,8 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 */
 #define YCL_TraceRaw(_lv, ...) \
 	YCL_Log(_lv, [&]()->string{ \
+		using platform::sfmt; \
+	\
 		TryRet(sfmt(__VA_ARGS__)) \
 		CatchRet(..., {}) \
 	})

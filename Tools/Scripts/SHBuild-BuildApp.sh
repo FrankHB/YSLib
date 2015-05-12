@@ -7,7 +7,7 @@
 
 SHBuild_PrintUsage()
 {
-	echo Usage: "$0" [-cCONF] [SHBOPT ...]
+	echo Usage: "$0" [-cCONF] [SHBOPT_BASE ...]
 	printf 'Build application using SHBuild.\n\n'
 	printf 'CONF\n'
 	printf '\tThe configuration name. If begins with "debug",'
@@ -19,8 +19,8 @@ SHBuild_PrintUsage()
 	printf ' using debug configuration;'
 	printf ' otherwise using release configuration.\n'
 	printf '\tThe output directory is determined as ".CONF".\n\n'
-	printf 'SHBOPT ...\n'
-	printf '\tThe options remained to pass to SHBuild.\n\n'
+	printf 'SHBOPT_BASE ...\n'
+	printf '\tThe base options remained to pass to SHBuild.\n\n'
 	printf 'There are several other environment variables to control the build.'
 	printf '\n\n'
 	printf 'SHBuild_NoAdjustSubsystem\n'
@@ -54,7 +54,7 @@ fi
 export SHBuild_Debug
 export SHBuild_Static
 
-SHBOPT="-xd,.$SHBuild_Conf -xmode,2 $@"
+SHBOPT="-xd,.$SHBuild_Conf -xid,include -xmode,2 $@"
 . $SHBuild_Bin/SHBuild-common.sh
 if hash gcc-ar > /dev/null; then
 	: ${AR:='gcc-ar'}
@@ -121,8 +121,8 @@ export SHBuild_CXXFLAGS="$CXXFLAGS"
 
 SHBuild_BuildApp()
 {
-	(cd $SHBuild_AppBaseDir; "$SHBuild_Bin/SHBuild" $SHBOPT -xid,include \
-		$@ $SHBuild_YSLib_Flags)
+	(cd $SHBuild_AppBaseDir; "$SHBuild_Bin/SHBuild" $SHBOPT $@ \
+		$SHBuild_YSLib_Flags)
 }
 
 SHBuild_EchoVar_N 'CXXFLAGS'

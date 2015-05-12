@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r786
+\version r796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2015-04-24 07:40 +0800
+	2015-05-12 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,16 +93,19 @@ using std::stack;
 using std::priority_queue;
 using std::queue;
 
-template<typename _tChar>
-struct GSStringTemplate
-{
-	using basic_string = std::basic_string<_tChar>;
-};
+/*!
+\brief 满足 ISO C++03 std::basic_string 但不保证满足 ISO C++11 的实现。
+\since build 597
+*/
+template<typename _tChar, typename _tTraits = std::char_traits<_tChar>,
+	class _tAlloc = std::allocator<_tChar>>
+using basic_string = std::basic_string<_tChar, _tTraits, _tAlloc>;
+// using versa_string = __gnu_cxx::__versa_string<_tChar>;
 
-using string = yimpl(GSStringTemplate<char>::basic_string);
+using string = basic_string<char>;
 //! \since build 593
 //@{
-using wstring = yimpl(GSStringTemplate<wchar_t>::basic_string);
+using wstring = basic_string<wchar_t>;
 
 using ystdex::sfmt;
 using ystdex::vsfmt;

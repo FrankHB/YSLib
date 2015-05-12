@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2875
+\version r3050
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-04-24 02:36 +0800
+	2015-05-12 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,14 +83,14 @@ YSLib::UI::Styles ：用户界面样式定制。
 不在本体的必要文件中显式包含，除了以下例外：
 Adaptor::YAdaptor 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
 
-@1.2.2 不在本体中显式包含，需要在 "Adaptor/ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
-<array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
+@1.2.2 不在本体中显式包含，需要在 Adaptor::YAdaptor 包含或提供替代品的 C++ 标准库依赖项：
+<array> 、 <deque> 、 <forward_list> 、<istream> 、 <list> 、 <map> 、<ostream> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和 <vector>。
+此外， Adaptor::YAdaptor 需要保证 <bitset> 、 <initializer_list> 和 <new> 被包含。
 例外：同时需要使用容器和限定标准库类型时：
-Core::YException 包含 <string> （由于复用标准库异常需要的参数类型 std::string 不一定是 Adaptor::YContainer 配置的类型）。
+Core::YException 包含 <string> （由于复用标准库异常需要的参数类型 std::string 不一定是此处配置的字符串类型）。
 
-@1.2.3 不在本体的头文件中显式包含，需要在除了 Adaptor::YContainer 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
+@1.2.3 不在本体的头文件中显式包含，需要在 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
 <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
-Adaptor::YAdaptor 需要保证 <bitset> 和 <initializer_list> 被包含。
 
 @1.2.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头及唯一在其中声明的接口和包含的宏（但可能会间接依赖）：
@@ -906,208 +906,10 @@ SM_Input				0x00FF
 @7 当前非确定上层实现注意事项：
 
 @7.1 ShellHelper ：
-注意严格禁止 CallStored 在未生效前被调用多次以免破坏消息队列。
+注意严格禁止 SetShellToStored 在未生效前被调用多次以免破坏消息队列。
 
 @7.2 后台任务：
 注意生存期。
-
-@8 初始化：
-初始化由 Helper 进行。
-
-@8.1 配置：
-自 build 300 起，配置不再硬编码，初始化时读取配置文件的内容。
-读取行为、配置文件格式和默认配置见以下说明。
-
-@8.1.1 build 343 前：
-配置文件路径 "config.txt" 。
-若配置不存在则首先生成。
-要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
-读取的默认配置内容和之前硬编码项相同。
-默认配置如下：
-//[
-H:\NDS\EFSRoot\Data\
-H:\NDS\EFSRoot\Font\FZYTK.TTF
-H:\NDS\EFSRoot\Font\
-
-//]
-
-@8.1.2 build 343 起：
-配置文件路径 "yconf.txt" ，格式和之前不兼容。
-若配置不存在则首先使用 NPL 生成。
-要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
-读取的默认配置内容中项的值和之前相同。
-生成的默认配置如下：
-//[
-YFramework
-(
-	DataDirectory "H:\NDS\EFSRoot\Data\\"
-)
-(
-	FontDirectory "H:\NDS\EFSRoot\Font\\"
-)
-(
-	FontFile "H:\NDS\EFSRoot\Font\FZYTK.TTF"
-)
-
-//]
-
-@8.1.2 build 344 起：
-增加无名节点配置支持。
-生成的默认配置不变，但支持以下形式（直接编辑或追加其它配置项时变换为此形式）：
-//[
-
-(
-	YFramework
-	(
-		DataDirectory "H:\NDS\EFSRoot\Data\\"
-	)
-	(
-		FontDirectory "H:\NDS\EFSRoot\Font\\"
-	)
-	(
-		FontFile "H:\NDS\EFSRoot\Font\FZYTK.TTF"
-	)
-)
-//]
-
-@9 计划 GUI 测试项目 ShlExplorer ：
-
-@9.1 基本部件测试：
-Label 、 Button 、 Window 等基本控件的静态显示。
-
-@9.2 隐含部件测试（非单独测试，作为正常功能集成使用）：
-Button 功能。
-CheckBox 功能。
-ListBox 功能（含 VerticalTrack 和 VerticalScrollBar 功能）。
-FileBox 功能。
-ProgressBar 功能。
-
-@9.3 部件综合测试：
-显示/隐藏控件。
-顶层控件测试：菜单和子菜单测试。
-
-@9.4 进阶互斥测试组：
-
-@9.4.1 显示：
-屏幕直接绘制。
-动态 FPS 显示。
-
-@9.4.2 屏幕接触移动：
-边界测试：移动接触点记录 Enter 和 Leave 事件参数。
-拖放测试：拖动控件（ Button 和 Window 等）。
-
-@9.4.3 背景变换：
-背景色变换。
-背景图像替换。
-
-@10 DS 测试项目 ShlReader ：
-文本阅读器和十六进制阅读器。
-
-@10.1 文本浏览：
-支持 txt 、 c 、 cpp 、 ini 等后缀按文本打开。
-使用随机载入复杂度为 O(1) 的算法，缓冲时间和文本文件大小无关。
-
-@10.1.1 编码支持：
-支持带 BOM 的 UTF-8 、 UCS-2LE 、 UCS-2BE 、 UCS-4LE 、 UCS-4BE 编码。
-不带 BOM 的编码只读取文件起始字节（至多 64 个）判断为 UTF-8 或 GBK 。
-按 GBK 打开时，可以顺序阅读，但不保证随机定位后读取的内容正常（GBK 无法保证随机定位时一定能选取到字符起始字节）。
-模拟器上读取 GBK 编码文件极慢（可能需要等待数十秒），因为需要在二进制文件中载入编码表，属于正常情况。
-
-@10.1.2 操作说明：
-上下换行，左右翻页， LR 调整行距， XY 调整字体 。
-Start （对 MinGW32 ，映射为 P 键）开启自动滚屏（可在设置界面配置以行为单位或以像素为单位平滑滚屏以及滚屏时间间隔），任意其它输入停止。
-点击屏幕阅读区域显示/隐藏显示状态和详细功能按钮的阅读框。双击屏幕阅读区域开启自动滚屏。
-点击阅读框中的进度随机定位。
-点击 M 按钮打开菜单。
-点击 S 按钮打开设置面板。
-点击 I 按钮打开文件和阅读位置信息。
-点击 B 按钮打开书签面板。焦点在书签列表框外时可以按键盘滚动并在上屏浏览文本。
-点击 R 按钮返回。
-点击 ←→ 按钮前进/后退（切换最近浏览位置）。
-其它功能，如切换字体和背景颜色等，使用菜单（ M 按钮）选择“设置”进入详细设置界面自定义。
-b429 起选择文件界面支持按组合键 L+R 或右下角按钮切换上下屏幕。
-
-@10.1.3 设置和配置：
-
-@10.1.3.1 build 345 起：
-支持选择设置保存为配置项到配置文件。配置文件仅当进入文本阅读器时会被读取，正常退出时会被写入。
-打开 Shell 读取文件时自动载入配置，若不存在则生成并追加（但配置不存在且打开的文件是配置文件时会导致读写冲突，无法响应）。
-退出 Shell 时保存配置。
-生成的默认配置如下：
-//[
-(
-	YReader
-	(
-		ReaderSetting
-		(
-			DownColor "192 216 240"
-		)
-		(
-			FontColor "0 0 0"
-		)
-		(
-			FontFamily "SimSun"
-		)
-		(
-			FontSize "14"
-		)
-		(
-			ScrollDuration "1000"
-		)
-		(
-			SmoothScroll "1"
-		)
-		(
-			SmoothScrollDuration "80"
-		)
-		(
-			UpColor "240 216 192"
-		)
-	)
-)
-//]
-
-@10.1.3.2 build 400 起：
-追加书签读取和写入支持，保存至 YReader 下 Bookmarks 节点，形如：
-Bookmarks
-(
-	"F:\Programing\NDS\YSTest\CC BY-SA 3.0 legalcode.txt" "173 743 0 3578 "
-)
-整数值表示在文件的字节位置。
-空白符除了作为间隔以外会被忽略。以空白符分组后，非整数值起始的项时此项和之后所有项都会被删除。
-
-@10.1.3.3 build 450 起：
-增加 MIME 类型和文件扩展名映射配置文件，参见 @4.6.3 。
-所有配置按 NPLA1 读取，共享实现。
-
-@11 测试注记：
-示例测试项目 YSTest 包含 @9 和 @10 提到的测试。
-自 build 363 起关于界面包含编译时间，因此原则上不会有相同的二进制文件。
-
-@11.1 执行覆盖：
-二进制相同的映像不重复测试。
-
-@11.1.1 DS ：
-所有 DS 版本通过 PC 测试。测试环境 Windows 7 Ultimate x64 + DeSmuME(x86/x64) 0.9.6 或以上（含 SVN 版本）。
-以下版本通过 iDSL+DSTT 实机测试：
-build 132 前的所有版本；
-build 416 及之前的 DS 提交版本（除 build 387 rev 20[release] ） ；
-build 428 之前的 DS release 提交版本。
-build 428 - build 452 每 4 个 DS release 提交版本。
-build 460 - build 500 每 20 个 DS release 提交版本。
-
-@11.1.2 MinGW ：
-所有 MinGW32 版本通过 PC 测试。
-build 438 前及 build 497 - build 499 起测试环境 Windows 7 Ultimate x64 。
-build 438 - build 452 测试环境 Windows 2012 Datacenter x64 。
-build 453 - build 496 及 build 500 起测试环境 Windows 2012 R2 Datacenter x64 。
-
-@11.1.3 Android ：
-所有 Android 版本通过 PC 测试。测试环境 Windows x64 + Android 模拟器 Nexus S ，宿主操作系统版本同 MinGW 。
-
-@11.1.4 非正式支持平台：
-2013-02-13: ArchLinux x86-64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。
-2013-07-17: Chakra x86-64 使用 wine-1.5.31 i386 (WOW64) 测试 MinGW32 平台版本 b429 ，基本同上；性能明显降低（ debug 版本慢于 DS 版本）；覆盖配置会导致路径问题而不能再次启动（需要在 ":" 后补充 "\" ）；此外因为权限读写失败时程序错误退出，否则有可能成功。
 
 */
 

@@ -1253,5 +1253,8 @@
     <Text Include="..\doc\Workflow.Annual2015.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\Test.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

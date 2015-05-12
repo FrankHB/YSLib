@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r13958
+\version r14138
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-05-08 10:36 +0800
+	2015-05-12 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,183 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		* "wrong screen painted at initialization" @ "platform %DS"
+			@ %'Helper_(DS)'.DSMain $since b596,
+			// The second screen was remained unpainted and black.
+		- "function template %CallStored" @ %Helper.ShellHelper,
+		/ %YSLib $=
+		(
+			/ %Core.ValueNode $=
+			(
+				/ "return type" @ "function template %at"
+					-> "trailing return type";
+				* $comp "%at call for non %size_t integral type would select \
+					overloading with range parameter" $since b531
+			),
+			/ $forced $dev %Adaptor $dep_from %YCLib.Container $=
+			(
+				/ 'using platform::GSStringTemplate;' @ %YAdaptor
+					-> 'using platform::basic_string;';
+				/ %YTextBase $=
+				(
+					/ 'using ucs2string = \
+						GSStringTemplate<CHRLib::ucs2_t>::basic_string;'
+						-> 'using ucs2string = basic_string<CHRLib::ucs2_t>;',
+					/ 'using ucs4string = \
+						GSStringTemplate<CHRLib::ucs4_t>::basic_string;'
+						-> 'using ucs4string = basic_string<CHRLib::ucs4_t>;'
+				)
+			)
+		)
+		/ %NPL $=
+		(
+			/ %NPL $=
+			(
+				/ $dev "struct %NPL" => "%NPLTag",
+					// To avoid disturbing qualified name lookup in namespace \
+						%NPL.
+				+ "namespace %SXML" $=
+					(+ "enum class %ParseOption")
+			),
+			/ %NPLA1 $=
+			(
+				/ "alias %NodeMapper" $=
+				(
+					/ $lib "simplified" ^ "%ystdex::id_func_clr_t",
+					/ "warpped with %std::function"
+				),
+				(
+				+ "alias %NodeToString",
+				+ "alias %NodeSequence",
+				(
+				+ "alias template %GNodeInserter";
+				+ "alias %NodeInserter",
+				+ "alias %NodeSequenceInserter" $dep_from "%NodeSequence"
+				),
+				+ "functions %MapNPLA1LeafNode",
+				(
+				+ "function %InsertNPLA1Child";
+				/ "extended function %TransformNPLA1 to accept %(NodeToString, \
+					NodeInserter) parameters with default arguments \
+					%(MapNPLALeafNode, ParseNPLANodeString, InsertNPLA1Child)"
+					$dep_from "%(NodeToString, NodeInserter, MapNPLA1LeafNode)"
+				),
+				(
+				+ "function %InsertNPLA1SequenceChild";
+				+ "function %TransformNPLA1Sequence for sequence value node"
+					$dep_from "%(NodeToString, NodeSequenceInserter, \
+					MapNPLA1LeafNode)";
+				+ "function template %LoadNPLA1Sequence"
+				),
+				/ DLDI "simplified" @ "function %LoadNPLA1",
+				/ "merged (function, function template) %LoadNPLA1 as function \
+					template",
+				/ $dev "structs %(NPLA, NPLA1)" => "%(NPLATag, NPLA1Tag)"
+					// To be consistent with %NPLTag.
+				+ "alias %IndentGenerator, function %DefaultGenerateIndent",
+				+ "function %PrintIndent",
+				(
+				+ "function %EscapeNodeLiteral";
+				+ "functions %(PrintNode, PrintNodeChild, PrintNodeString)"
+				),
+
+				+ "namespace %SXML" $=
+				(
+					+ "function %ConvertAttributeNodeString",
+					+ "function %ConvertStringNode" $dep_from "%EscapeXML",
+					+ "functions %(ConvertDocumentNode; PrintSyntaxNode)"
+						$dep_from "%(IndentGenerator, ParseOption)"
+				)
+			),
+			+ "functions %(EscapeXML, Literalize)" @ %Lexical,
+			/ @ "function %operator<<" @ %Configuration
+				^ ($dep_from ("%PrintNode" @ %NPLA1, "Literalize" @ %Lexical),
+				"%std::ostringstream") $=
+			(
+				/ $impl "simplified",
+				* $comp "redundant double quote for printed string" $since b343
+			)
+		),
+		/ %YCLib $=
+		(
+			/ @ "inline namespace %containers" @ %Container $=
+			(
+				/ @ "class template %GSStringTemplate"
+					-> "alias template %basic_string",
+				/ $dev "aliases %(string, wstring)" $=
+				(
+					- $lib 'yimpl',
+					/ $forced "implemented" ^ $dep_from "%basic_string"
+				)
+			),
+			* $dev "missing 'using platform::sfmt;'" @ "macro %YCL_TraceRaw"
+				@ %Debug $since b593;
+				// This caused tracing macro could not be used unless the name \
+					is found by ADL or it has been declared by alias \
+					declaration, etc.
+		)
+	),
+	/ %YReader.HexBrowser $=
+	(
+		/ "data source" @ "class %HexModel" @ ^ 'std::filebuf' ~ 'File' $=
+		(
+			/ DLDI "simplified constructor" ^ "%DefDeCtor",
+			+ "indirect assertion" @ "constructor with 1 parameter"
+				^ "%Nonnull",
+			/ "function %operator=" -> "%Load",
+			- "functions %(GetPtr, CheckEOF)",
+			/ "function %SetPosition" -> "%Seek",
+			+ "function %Fill",
+			- DLDI "redundant base class %noncopyable",
+			+ 'final';
+			/ $comp $dev $design
+				"exception never thrown from the source I/O operations"
+		);
+		/ @ "class %HexViewArea" $=
+		(
+			/ $forced DLDI @ "functions %(Load, UpdateData)",
+			/ @ "function %UpdateData" $=
+			(
+				* $dev $design "missing clearing EOF bit at end" $since b253,
+					// The order is wrong. It worked for C stream but not for \
+						%std::ifstream.
+				(
+				+ "trace for empty view area with level 'Notice'";
+				* "missing check for empty view area" $since b257
+					// Which led to undefined behavior if non-empty data was \
+						read successfully.
+				),
+				+ "trace for empty data with level 'Warning'"
+			)
+		)
+	),
+	/ $doc %Documentation $=
+	(
+		(
+		+ %Test;
+		/ "test for demo projects" @ %YFramework >> %Test
+		),
+		/ "test for initialization descriptions" @ %YFramework >> %YFramework
+	),
+	/ @ "%SHBuild-BuildApp.sh" @ %Tools.Scripts $=
+	(
+		/ '-xid,include' @ "command line" @ "function %SHBuild_BuildApp"
+			>> ("value" @ "variable %SHBOPT"),
+			// This actually effects only printed value of variable %SHBOPT.
+		/ "base %SHBOPT" => "%SHBOPT_BASE"
+			// To prevent confusion.
+	),
+	/ %YBase $=
+	(
+		+ "function template %write" @ %YStandardEx.String,
+		+ $dev $build '#include <ostream>' @ %StandardInclusion
+	)
+),
+
+b596
 (
 	/ %YFramework $=
 	(
@@ -4614,7 +4791,7 @@ b567
 			+ 'yconstexpr size_t DefaultCommandBufferSize(yimpl(4096));';
 			/ "default argument" @ "function %FetchCommandOutput"
 				^ "%DefaultCommandBufferSize",
-			+ "alias declaration %CommandCache; functions %(LockCommandCache, \
+			+ "alias %CommandCache; functions %(LockCommandCache, \
 				(FetchCachedCommandResult; FetchCachedCommandString))";
 			/ "cached terminal calls" @ "platform %Linux" @ %Host
 				^ "%FetchCachedCommandString"
@@ -4820,7 +4997,7 @@ b566
 			// To allow wrapping move-only types e.g. std::unique_ptr<T>.
 		/ %CStandardIO $=
 		(
-			+ "alias declaration %unique_file_ptr",
+			+ "alias %unique_file_ptr",
 			+ "inline function %setnbuf" @ %CStandardIO
 		),
 		+ "function template %search_map with inserter function object \
@@ -6202,10 +6379,10 @@ b558
 			),
 			/ DLDI ^ '{}' ~ '0' @ "platform %DS" @ %Video
 				// To eliminate warning: [-Wzero-as-null-pointer-constant].
-		)
+		),
 		/ DLD "all integer types names with pattern 'u*', 's*'"
-			-> "types from <cstdint>" $effective @
-			%Helper.(ShellHelper, Environment), %'Helper_(DS)'.DSMain,
+			-> "types from <cstdint>" $effective
+			@ %Helper.(ShellHelper, Environment), %'Helper_(DS)'.DSMain,
 		/ DLD "explicitly allowed buffer size passed"
 			@ "Android screen buffer implementation" @ %'Helper_(Android)',
 		/ "parameter type" -> "%Drawing::ConstBitmapPtr" ~ "%Drawing::BitmapPtr"

@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1507
+\version r1542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2015-03-25 18:24 +0800
+	2015-05-12 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,7 +168,6 @@ LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
 	PrefixHandler prefix_handler)
 {
 	if(FilterForParse(c, unescape, prefix_handler))
-	{
 		switch(c)
 		{
 			case '\'':
@@ -202,7 +201,6 @@ LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
 			default:
 				cbuf += c;
 		}
-	}
 }
 
 void
@@ -331,6 +329,43 @@ EscapeLiteral(const string& str)
 		content += '\\';
 	return c == char() ? std::move(content) : c + content + c;
 }
+
+string
+EscapeXML(const string& str)
+{
+	string res;
+
+	res.reserve(str.length());
+	for(char c : str)
+		switch(c)
+		{
+		case '\0':
+			YTraceDe(YSLib::Warning, "Invalid character '#x%X' found, ignored.",
+				unsigned(c));
+			break;
+		case '&':
+			res += "&amp;";
+			break;
+		case '<':
+			res += "&lt;";
+			break;
+		case '>':
+			res += "&gt;";
+			break;
+		default:
+			res += c;
+		}
+	return res;
+}
+
+string
+Literalize(const string& str, char c)
+{
+	if(CheckLiteral(str) != char())
+		return str;
+	return c == char() ? str : c + str + c;
+}
+
 
 list<string>
 Decompose(const string& src_str)

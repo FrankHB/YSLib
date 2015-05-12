@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r599
+\version r639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2015-03-25 11:34 +0800
+	2015-05-09 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "HexBrowser.h"
+#include <new>
 
 namespace YSLib
 {
@@ -35,6 +36,24 @@ using namespace Text;
 
 namespace UI
 {
+
+HexModel::HexModel(const char* path)
+{
+	source.open(Nonnull(path), std::ios_base::ate | std::ios_base::binary
+		| std::ios_base::in);
+	size = GetPosition();
+}
+
+void
+HexModel::Load(const char* path)
+{
+	this->~HexModel();
+	// FIXME: Exception safety.
+	::new(this) HexModel(path);
+	// TODO: Depends on libstdc++ 5.
+//	source = std::move(fin),
+//	std::swap(size, m.size);
+}
 
 HexView::HexView(FontCache& fc)
 	: TextState(fc), item_num(0), datCurrent()
@@ -85,7 +104,7 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 void
 HexViewArea::Load(const char* path)
 {
-	model = make_unique<File>(path);
+	model.Load(path);
 	Reset();
 
 	const IndexType
@@ -178,18 +197,30 @@ HexViewArea::UpdateData(std::uint32_t pos)
 {
 	if(model.IsValid() && pos < model.GetSize())
 	{
-		const DataType::size_type n(ItemPerLine * GetItemNum() * 2);
+		const DataType::size_type n(ItemPerLine * GetItemNum());
+		DataType v_buf(n);
 
-		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-		model.SetPosition(ptrdiff_t(pos), SEEK_SET);
-		datCurrent.resize(n);
-
-		auto b(datCurrent.begin());
-		const auto e(datCurrent.cend());
-
-		while(!model.CheckEOF() && b != e)
+		if(YB_UNLIKELY(v_buf.empty()))
 		{
-			byte c(std::fgetc(model.GetPtr()));
+			YTraceDe(Notice, "Give up empty view area.");
+			return;
+		}
+		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+		model.Seek(std::streampos(pos));
+		v_buf.resize(DataType::size_type(model.Fill(&v_buf[0],
+			std::streamsize(n))));
+		datCurrent.resize(v_buf.size() * 2);
+
+		if(YB_UNLIKELY(datCurrent.empty()))
+		{
+			YTraceDe(Warning, "Empty data read.");
+			return;
+		}
+
+		auto b(&datCurrent[0]);
+
+		for(const char c : v_buf)
+		{
 			char h, l;
 
 			yunseq(h = (c >> 4 & 0x0F) + '0', l = (c & 0x0F) + '0');
@@ -197,10 +228,9 @@ HexViewArea::UpdateData(std::uint32_t pos)
 			*b++ = l > '9' ? l + 'A' - '9' - 1 : l;
 		}
 	//	vsbVertical.SetValue(pos / ItemPerLine);
-		datCurrent.resize(size_t(b - datCurrent.cbegin()));
-		// Refresh 需要据此判断接近文件结尾。
+		// NOTE: 'Refresh' needs this to check if it is towards EOF.
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-		model.SetPosition(ptrdiff_t(pos), SEEK_SET);
+		model.Seek(std::streampos(pos));
 	}
 }
 

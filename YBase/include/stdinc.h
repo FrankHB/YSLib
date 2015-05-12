@@ -11,13 +11,13 @@
 /*!	\file stdinc.h
 \ingroup YBase
 \brief 包含 YBase 使用的标准库头。
-\version r70
+\version r71
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2015-01-06 16:06:21 +0800
 \par 修改时间:
-	2015-01-11 16:26 +0800
+	2015-05-11 11:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,7 @@
 #include <numeric>
 #include <ios>
 #include <istream>
+#include <ostream>
 #include <sstream>
 #include <atomic>
 

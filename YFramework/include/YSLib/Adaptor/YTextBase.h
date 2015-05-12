@@ -11,13 +11,13 @@
 /*!	\file YTextBase.h
 \ingroup Adaptor
 \brief 外部库关联：文本接口。
-\version r69
+\version r79
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-24 00:02:44 +0800
 \par 修改时间:
-	2015-04-24 03:24 +0800
+	2015-05-12 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,9 +38,16 @@
 namespace YSLib
 {
 
-// YSLib 基本字符串（使用 UCS-2 / UCS-4 ）。
-using ucs2string = GSStringTemplate<CHRLib::ucs2_t>::basic_string;
-using ucs4string = GSStringTemplate<CHRLib::ucs4_t>::basic_string;
+/*!
+\brief YSLib 基本字符串（使用 UCS-2 ）。
+\since build 245
+*/
+using ucs2string = basic_string<CHRLib::ucs2_t>;
+/*!
+\brief YSLib 基本字符串（使用 UCS-4 ）。
+\since build 253
+*/
+using ucs4string = basic_string<CHRLib::ucs4_t>;
 
 namespace Text
 {

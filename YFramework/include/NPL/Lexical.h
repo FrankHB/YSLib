@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1429
+\version r1450
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2015-04-24 03:13 +0800
+	2015-05-12 17:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,8 +205,8 @@ private:
 
 public:
 	/*
-	\warning 在同一个分析器对象上混用多种反转义算法的结果未指定。
-	\warning 在同一个分析器对象上混用 ParseByte 和 ParseQuoted 的结果未指定。
+	\note 参数指定反转义算法。
+	\warning 在同一个分析器对象上混用不等价的多种解析方法或反转义算法的结果未指定。
 	\since build 588
 	*/
 	//@{
@@ -248,7 +248,7 @@ YF_API string
 Deliteralize(const string&);
 
 /*!
-\brief 反转义字符串：替换指定字符串中的可转义字符为转义序列。
+\brief 编码转义字符串：替换指定字符串中的可转义字符为转义序列。
 \sa LexicalAnalyzer
 \since build 545
 */
@@ -256,7 +256,7 @@ YF_API string
 Escape(const string&);
 
 /*!
-\brief 反转义字符串字面量。
+\brief 编码转义字符串字面量。
 \return 若参数是字符串字面量时转义其中的内容，否则为原串。
 \note 使用 Escape 转义。
 \note 若转义后最后一个字符为 '\\' 则添加一个 '\\' 以避免转义末尾分隔符。
@@ -265,6 +265,26 @@ Escape(const string&);
 */
 YF_API string
 EscapeLiteral(const string&);
+
+/*!
+\brief 编码 XML 字符串。
+\see http://www.w3.org/TR/2006/REC-xml11-20060816/#charsets 。
+\since build 597
+
+允许 XML 1.1 字符，仅对空字符使用 YTraceDe 进行警告。
+仅对 XML 1.0 和 XML 1.1 规定的有条件使用字符 \c & 、 \c < 和 \c > 生成转义序列。
+*/
+YF_API string
+EscapeXML(const string&);
+
+/*!
+\brief 修饰字符串为字面量。
+\return 若首尾字符都为 '\'' 或 '"' 之一或第二参数为空字符则为原串，
+	否则为首尾加上第二参数字符的串。
+\since build 597
+*/
+YF_API string
+Literalize(const string&, char = '"');
 
 
 /*!

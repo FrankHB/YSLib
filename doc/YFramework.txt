@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1096
+\version r1152
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-04-27 21:12 +0800
+	2015-05-12 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -458,8 +458,8 @@ platform::Threading ： 平台线程操作接口。
 platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
 inline platform_ex::Windows ： Windows 平台内联命名空间。
 platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖此命名空间，但可能依赖该命名空间中成员包装的宏。
-CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）此命名空间。
-NPL ：子库 NPL(@2.9) 的命名空间。
+CHRLib ：次级子项目库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）此命名空间。
+NPL ：次级子项目库 NPL(@2.9) 的命名空间。
 YSLib ： YSLib 库命名空间，也被 Helper 扩展。
 
 @2.4 实体实现规则：
@@ -588,7 +588,7 @@ YSLib 不依赖这些接口以外的特性。
 包含默认消息循环等。
 
 @2.8.4 初始化 Initialization ：
-关于配置文件格式和内容参见 [Documentation::YSLib @@8] 。
+详细实现流程、配置文件格式和内容参见 @5 。
 初始化的重要策略之一是在程序启动时减少不必要的初始化，以达到以下的优势：
 减少可能的外部依赖（如不需要使用文字的程序就不初始化字体缓存，也不需要依赖外部字体文件和字体配置等）；
 减少可能的资源占用；
@@ -599,7 +599,8 @@ FetchDefaultFontCache ：取默认字体缓存。
 其它如 ImageCodec 因为未包含复杂副作用，当前不提供接口。用户可以自行初始化这些对象。
 
 @2.9 NPL 库：
-实现基于 S 表达式的名称协议语言，当前仅用于用户配置设置。
+实现基于 S 表达式的名称协议语言。
+详见 [Documentation::NPL @@5] 。
 
 @3 API 设计和风格概述：
 基本内容参见 [Documentation::Designation @@3] 。
@@ -687,6 +688,65 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 删除 M( 和对应的 ) 、删除原紧接 ) 之后的 ; 之前的空白符并去除多余的空行后应保证余下的代码遵循其它规则。
 这避免表达式宏参数内的多行代码使用过多的缩进而影响可读性，且可能减少重构需要修改的代码。
 另见 [Documentation::YBase @@2.3.7.3] 。
+
+@5 框架初始化：
+初始化由 Helper 进行。
+
+@5.1 配置：
+自 build 300 起，配置不再硬编码，初始化时读取配置文件的内容。
+读取行为、配置文件格式和默认配置见以下说明。
+
+@5.1.1 build 343 前：
+配置文件路径 "config.txt" 。
+若配置不存在则首先生成。
+要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
+读取的默认配置内容和之前硬编码项相同。
+默认配置如下：
+//[
+H:\NDS\EFSRoot\Data\
+H:\NDS\EFSRoot\Font\FZYTK.TTF
+H:\NDS\EFSRoot\Font\
+
+//]
+
+@5.1.2 build 343 起：
+配置文件路径 "yconf.txt" ，格式和之前不兼容。
+若配置不存在则首先使用 NPL 生成。
+要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
+读取的默认配置内容中项的值和之前相同。
+生成的默认配置如下：
+//[
+YFramework
+(
+	DataDirectory "H:\NDS\EFSRoot\Data\\"
+)
+(
+	FontDirectory "H:\NDS\EFSRoot\Font\\"
+)
+(
+	FontFile "H:\NDS\EFSRoot\Font\FZYTK.TTF"
+)
+
+//]
+
+@5.1.2 build 344 起：
+增加无名节点配置支持。
+生成的默认配置不变，但支持以下形式（直接编辑或追加其它配置项时变换为此形式）：
+//[
+
+(
+	YFramework
+	(
+		DataDirectory "H:\NDS\EFSRoot\Data\\"
+	)
+	(
+		FontDirectory "H:\NDS\EFSRoot\Font\\"
+	)
+	(
+		FontFile "H:\NDS\EFSRoot\Font\FZYTK.TTF"
+	)
+)
+//]
 
 */
 ////

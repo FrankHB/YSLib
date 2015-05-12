@@ -24,6 +24,7 @@
     <Text Include="..\doc\LanguageConvention.txt" />
     <None Include="..\doc\Meta.txt" />
     <Text Include="..\doc\NPL.txt" />
+    <Text Include="..\doc\Test.txt" />
     <Text Include="..\doc\Workflow.Annual2013.txt" />
     <Text Include="..\doc\Workflow.Annual2014.txt" />
     <Text Include="..\doc\Workflow.Annual2015.txt" />
