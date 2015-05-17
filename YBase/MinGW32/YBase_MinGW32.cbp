@@ -167,11 +167,5 @@
 		<Unit filename="../source/ystdex/exception.cpp" />
 		<Unit filename="../source/ystdex/optional.cpp" />
 		<Unit filename="../source/ytest/test.cpp" />
-		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
-			<lib_finder disable_auto="1" />
-		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2218
+\version r2219
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-04-29 01:17 +0800
+	2015-05-14 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -347,7 +347,7 @@ ReadConfiguration(TextFile& tf)
 
 		tf >> conf;
 		YTraceDe(Debug, "Plain configuration loaded.");
-		if(conf.GetNodeRRef().GetSize() != 0)
+		if(!conf.GetNodeRRef().empty())
 			return conf.GetNodeRRef();
 		YTraceDe(Warning, "Empty configuration found.");
 	}

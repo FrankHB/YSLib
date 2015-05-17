@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1570
+\version r1666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-05-10 19:04 +0800
+	2015-05-17 11:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,9 +56,9 @@ private:
 	string name{};
 	/*!
 	\brief 子节点容器指针。
-	\since build 502
+	\since build 598
 	*/
-	mutable unique_ptr<Container> p_container{};
+	mutable Container container{};
 
 public:
 	//! \since build 399
@@ -70,14 +70,7 @@ public:
 	\since build 502
 	*/
 	ValueNode(Container con)
-		: p_container(new Container(std::move(con)))
-	{}
-	/*!
-	\brief 构造：使用容器指针。
-	\since build 502
-	*/
-	ValueNode(unique_ptr<Container> p_con)
-		: p_container(std::move(p_con))
+		: container(std::move(con))
 	{}
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
@@ -95,16 +88,7 @@ public:
 	*/
 	template<typename _tString, typename... _tParams>
 	ValueNode(Container con, _tString&& str, _tParams&&... args)
-		: name(yforward(str)), p_container(new Container(std::move(con))),
-		Value(yforward(args)...)
-	{}
-	/*!
-	\brief 构造：使用容器指针、字符串引用和值类型对象构造参数。
-	\since build 502
-	*/
-	template<typename _tString, typename... _tParams>
-	ValueNode(unique_ptr<Container> p_con, _tString&& str, _tParams&&... args)
-		: name(yforward(str)), p_container(std::move(p_con)),
+		: name(yforward(str)), container(std::move(con)),
 		Value(yforward(args)...)
 	{}
 	/*!
@@ -114,7 +98,7 @@ public:
 	template<typename _tIn>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr)
-		: p_container(new Container(pr.first, pr.second))
+		: container(pr.first, pr.second)
 	{}
 	/*!
 	\brief 构造：使用输入迭代器对、字符串引用和值参数。
@@ -123,10 +107,9 @@ public:
 	template<typename _tIn, typename _tString>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str)
-		: name(yforward(str)), p_container(new Container(pr.first, pr.second))
+		: name(yforward(str)), container(pr.first, pr.second)
 	{}
-	ValueNode(const ValueNode&);
-	DefDeMoveCtor(ValueNode)
+	DefDeCopyMoveCtor(ValueNode)
 
 	/*
 	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
@@ -136,7 +119,7 @@ public:
 		ImplRet(node.swap(*this), *this)
 
 	//! \since build 336
-	DefBoolNeg(explicit, bool(Value) || (p_container && !p_container->empty()))
+	DefBoolNeg(explicit, bool(Value) || !container.empty())
 
 	//! \since build 403
 	//@{
@@ -198,63 +181,39 @@ public:
 
 	/*!
 	\brief 取子节点容器引用。
-	\throw ystdex::bad_any_cast 容器不存在。
-	\since build 340
+	\since build 598
 	*/
-	Container&
-	GetContainerRef() const;
-	//! \since build 398
-	DefGetter(const ynothrow, Container*, ContainerPtr, p_container.get())
+	DefGetter(const ynothrow, Container&, ContainerRef, container)
 	DefGetter(const ynothrow, const string&, Name, name)
-	size_t
-	GetSize() const ynothrow;
 
 	/*!
 	\brief 设置子节点容器内容。
 	\since build 503
 	*/
-	//@{
-	void
-	SetChildren(Container) const;
-	void
-	SetChildren(unique_ptr<Container>) const;
-	//@}
+	PDefH(void, SetChildren, Container con) const
+		ImplExpr(container = std::move(con))
 
 	//! \since build 403
-	bool
-	Add(const ValueNode&) const;
+	PDefH(bool, Add, const ValueNode& node) const
+		ImplRet(insert(node).second)
 	//! \since build 403
-	bool
-	Add(ValueNode&&) const;
+	PDefH(bool, Add, ValueNode&& node) const
+		ImplRet(insert(std::move(node)).second)
 
-private:
-	//! \since build 398
-	Container&
-	CheckNodes() const;
-
-public:
 	/*!
 	\brief 清除节点。
-	\post <tt>!Value && !GetContainerPtr()</tt> 。
+	\post <tt>!Value && GetContainerRef().empty()</tt> 。
 	*/
 	PDefH(void, Clear, ) const ynothrow
-		ImplExpr(Value.Clear(), p_container.reset())
-
-	/*!
-	\brief 清除子节点。
-	\post <tt>!GetContainerPtr() || GetContainerPtr()->empty()</tt> 。
-	\since build 502
-	*/
-	PDefH(void, ClearChildren, ) const ynothrow
-		ImplExpr(p_container ? p_container->clear() : void())
+		ImplExpr(Value.Clear(), ClearContainer())
 
 	/*!
 	\brief 清除节点容器。
-	\post <tt>!GetContainerPtr()</tt> 。
+	\post <tt>GetContainerRef().empty()</tt> 。
 	\since build 592
 	*/
 	PDefH(void, ClearContainer, ) const ynothrow
-		ImplExpr(p_container.reset())
+		ImplExpr(container.clear())
 
 	//! \since build 403
 	bool
@@ -266,8 +225,8 @@ public:
 	//! \since build 595
 	//@{
 	//! \brief 交换容器。
-	void
-	SwapContainer(const ValueNode&) const ynothrow;
+	PDefH(void, SwapContainer, const ValueNode& node) const ynothrow
+		ImplExpr(container.swap(node.container))
 
 	//! \brief 交换容器和值。
 	void
@@ -289,11 +248,31 @@ public:
 	PDefH(const_iterator, begin, ) const
 		ImplRet(GetContainerRef().begin())
 
+	//! \since build 598
+	//@{
+	DefFwdTmpl(const, pair<iterator YPP_Comma bool>, emplace,
+		container.emplace(yforward(args)...))
+
+	DefFwdTmpl(const, pair<iterator YPP_Comma bool>, emplace_hint,
+		container.emplace_hint(yforward(args)...))
+
+	PDefH(bool, empty, ) const ynothrow
+		ImplRet(container.empty())
+	//@}
+
 	PDefH(iterator, end, )
 		ImplRet(GetContainerRef().end())
 	PDefH(const_iterator, end, ) const
 		ImplRet(GetContainerRef().end())
 	//@}
+
+	//! \since build 598
+	DefFwdTmpl(const -> decltype(container.insert(yforward(args)...)), auto,
+		insert, container.insert(yforward(args)...))
+
+	//! \since build 598
+	PDefH(size_t, size, ) const ynothrow
+		ImplRet(container.size())
 
 	/*
 	\brief 交换。
@@ -428,7 +407,7 @@ template<typename _type>
 inline _type*
 AccessChildPtr(const ValueNode& node, const string& name)
 {
-	return AccessPtr<_type>(AccessNodePtr(node.GetContainerPtr(), name));
+	return AccessPtr<_type>(AccessNodePtr(node.GetContainerRef(), name));
 }
 template<typename _type>
 inline _type*
@@ -487,25 +466,22 @@ UnpackToNode(_tPack&& pk)
 
 /*!
 \brief 取指定值类型节点为成员的节点容器。
-\since build 532
+\since build 598
 */
+//@{
 template<typename _type>
-inline unique_ptr<ValueNode::Container>
+inline ValueNode::Container
 CollectNodes(std::initializer_list<_type> il)
 {
-	return make_unique<ValueNode::Container>(il);
+	return il;
 }
-/*!
-\brief 取指定值类型节点为成员的节点容器。
-\since build 399
-*/
 template<typename... _tParams>
-inline unique_ptr<ValueNode::Container>
+inline ValueNode::Container
 CollectNodes(_tParams&&... args)
 {
-	return unique_ptr<ValueNode::Container>(new
-		ValueNode::Container{yforward(args)...});
+	return {yforward(args)...};
 }
+//@}
 
 /*!
 \brief 取以指定分量为参数对应初始化得到的值类型节点为子节点的值类型节点。
@@ -526,6 +502,18 @@ PackNodes(_tString&& name, _tParams&&... args)
 */
 YF_API bool
 IsPrefixedIndex(const string&, char = '$');
+
+/*!
+\brief 转换节点大小为新的节点索引值。
+\note 重复使用作为新节点的名称，可用于插入不重复节点。
+\since build 598
+*/
+//@{
+inline PDefH(string, MakeIndex, const ValueNode::Container& con)
+	ImplRet(to_string(con.size()))
+inline PDefH(string, MakeIndex, const ValueNode& node)
+	ImplRet(to_string(node.size()))
+//@}
 
 } // namespace YSLib;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2159
+\version r2165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-04-24 04:39 +0800
+	2015-05-16 12:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Core_YCoreUtilities_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YException // for std::string, string, LoggedEvent;
+#include YFM_YSLib_Core_YException // for std::string, LoggedEvent;
+#include YFM_YSLib_Adaptor_YTextBase // for string;
 
 namespace YSLib
 {
@@ -350,7 +351,7 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 //! \brief 检查标量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckScalar(_type val, const std::string& name = "",
+CheckScalar(_type val, const std::string& name = {},
 	LoggedEvent::LevelType lv = Err)
 {
 	using common_t = ystdex::common_type_t<_tDst, _type>;
@@ -363,7 +364,7 @@ CheckScalar(_type val, const std::string& name = "",
 //! \brief 检查非负标量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckNonnegativeScalar(_type val, const std::string& name = "",
+CheckNonnegativeScalar(_type val, const std::string& name = {},
 	LoggedEvent::LevelType lv = Err)
 {
 	if(val < 0)
@@ -375,7 +376,7 @@ CheckNonnegativeScalar(_type val, const std::string& name = "",
 //! \brief 检查正标量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckPositiveScalar(_type val, const std::string& name = "",
+CheckPositiveScalar(_type val, const std::string& name = {},
 	LoggedEvent::LevelType lv = Err)
 {
 	if(!(0 < val))

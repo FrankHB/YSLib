@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1845
+\version r1846
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-05-09 13:06 +0800
+	2015-05-16 12:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ protected:
 
 public:
 	//! \since build 593
-	DebugTimer(const string& str = "");
+	DebugTimer(const string& str = {});
 	~DebugTimer();
 };
 #	define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer _name(__VA_ARGS__);

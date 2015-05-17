@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9704
+\version r9716
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-02-02 04:32 +0800
+	2015-05-16 08:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,6 +136,20 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 语言使用另见 @1.3.2.1 。
 遵从的其它标准和规格说明：
 暂略。
+
+@2.3.6 目标代码兼容性：
+基本内容参见 [Documentation::CommonRules @@2.2.4] 。
+关于开发和测试版本判断依赖开发阶段的定义，参见 [Documentation::ProjectRules @@2] 。
+除非顶级子项目([Documentation::ProjectRules @@1.3]) 的文档另行约定， YSLib 项目不依赖具体体系结构和不同语言实现之间的互操作性。
+
+@2.3.6.1 默认二进制依赖策略：
+整个项目中，任意组件在相同平台配置的二进制兼容性保证由以下规则决定。
+对明确具有二进制依赖的外部库和语言实现的([Documentation::Dependencies @@1]) 变更导致无法保证二进制兼容性时，无二进制兼容保证；
+否则，对于未更改的库的模块([Documentation::ProjectRules @@3.2]) ，应保证双向兼容；
+否则，对于非开发和测试版本之间，应提供符合文档约定的兼容性；
+否则，若顶级子项目存在约定，使用此约定提供的最强兼容性；
+否则，无二进制兼容保证。
+注意，库中的定义是否声明为 inline （而不是实际内联）影响二进制兼容性。
 
 @2.4 文本文件形式：
 基本规则参见 https://bitbucket.org/FrankHB/yslib/wiki/WikiRules.en-US.md 。

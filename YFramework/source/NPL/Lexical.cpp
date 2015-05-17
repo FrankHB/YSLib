@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1542
+\version r1544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2015-05-12 17:51 +0800
+	2015-05-13 11:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,7 +327,7 @@ EscapeLiteral(const string& str)
 
 	if(!content.empty() && content.back() == '\\')
 		content += '\\';
-	return c == char() ? std::move(content) : c + content + c;
+	return c == char() ? std::move(content) : ystdex::quote(content, c);
 }
 
 string
@@ -363,7 +363,7 @@ Literalize(const string& str, char c)
 {
 	if(CheckLiteral(str) != char())
 		return str;
-	return c == char() ? str : c + str + c;
+	return c == char() ? str : ystdex::quote(str, c);
 }
 
 

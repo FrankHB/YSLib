@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1458
+\version r1459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-04-29 00:37 +0800
+	2015-05-16 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -748,6 +748,7 @@ member-declarator 的可选 brace-or-equal-initializer ，即类定义内的成�
 合理使用类似语法。
 不引起含义改变时，使用 {} 代替较长的默认值，如 nullptr 或 false ，而不代替 0U 等。
 不引起含义改变时，使用 {} 代替较长的初值符（ *-initializer ），如 nullptr 或 false ，而不代替 (0) 等。另见 @5.9.2.1 。
+不引起含义改变时，使用 {} 代替表示空字符串的字符串字面量如 "" 。
 注意对列表初始化， C++14 由于 CWG1301 的解决优先对聚集进行初始化，和 ISO C++11 的顺序不同。
 
 @5.10 语句和控制流：

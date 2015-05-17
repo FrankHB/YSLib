@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r422
+\version r478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2015-05-06 02:23 +0800
+	2015-05-16 08:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,6 @@
 
 namespace YSLib
 {
-
-ValueNode::ValueNode(const ValueNode& node)
-	: name(node.name), p_container(node.p_container ?
-	CloneNonpolymorphic(node.p_container) : nullptr), Value(node.Value)
-{}
 
 const ValueNode&
 ValueNode::operator%=(const ValueNode& node) const
@@ -56,73 +51,17 @@ ValueNode::operator%=(const ValueNode&& node) const
 const ValueNode&
 ValueNode::operator[](const string& n) const
 {
-	auto& con(CheckNodes());
-	auto i(con.lower_bound({0, n}));
+	auto i(container.lower_bound({0, n}));
 
-	if(i == con.end() || con.key_comp()({0, n}, *i))
-		i = con.emplace_hint(i, 0, n);
+	if(i == container.end() || container.key_comp()({0, n}, *i))
+		i = container.emplace_hint(i, 0, n);
 	return *i;
-}
-
-ValueNode::Container&
-ValueNode::GetContainerRef() const
-{
-	if(p_container)
-		return *p_container;
-	throw ystdex::bad_any_cast();
-}
-
-size_t
-ValueNode::GetSize() const ynothrow
-{
-	const auto p_con(GetContainerPtr());
-
-	return p_con ? p_con->size() : 0;
-}
-
-ValueNode::Container&
-ValueNode::CheckNodes() const
-{
-	if(!p_container)
-		p_container.reset(new Container());
-	return GetContainerRef();
-}
-
-void
-ValueNode::SetChildren(Container con) const
-{
-	SetChildren(make_unique<Container>(std::move(con)));
-}
-void
-ValueNode::SetChildren(unique_ptr<Container> p_con) const
-{
-	p_container = std::move(p_con);
-}
-
-bool
-ValueNode::Add(const ValueNode& node) const
-{
-	return CheckNodes().insert(node).second;
-}
-bool
-ValueNode::Add(ValueNode&& node) const
-{
-	// TODO: Use %emplace.
-	return CheckNodes().insert(std::move(node)).second;
 }
 
 bool
 ValueNode::Remove(const ValueNode& node) const
 {
-	const auto p_con(GetContainerPtr());
-
-	return p_con ? p_con->erase({0, node.name}) != 0 : false;
-}
-
-void
-ValueNode::SwapContainer(const ValueNode& node) const ynothrow
-{
-	p_container.swap(node.p_container);
+	return container.erase({0, node.name}) != 0;
 }
 
 void

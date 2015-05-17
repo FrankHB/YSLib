@@ -468,11 +468,5 @@
 		<Unit filename="source/YCLib/Consoles.cpp" />
 		<Unit filename="source/YCLib/MinGW32.cpp" />
 		<Unit filename="source/YCLib/NLS.cpp" />
-		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
-			<lib_finder disable_auto="1" />
-		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

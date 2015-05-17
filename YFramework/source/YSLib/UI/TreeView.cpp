@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r717
+\version r720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2015-04-29 00:55 +0800
+	2015-05-16 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ void
 bind_node(const _tNode& node, _fCallable f, _fPred pred, const _tPath& pth,
 	size_t depth = 0)
 {
-	if(pred(pth, depth) && node.GetSize() != 0)
+	if(pred(pth, depth) && !node.empty())
 	{
 		auto cur_path(pth);
 
@@ -267,7 +267,7 @@ TreeList::Bind(size_t max_depth)
 			indent_map.emplace(index, indent);
 			indent = depth;
 		}
-		if(depth < max_depth && node.GetSize() != 0)
+		if(depth < max_depth && !node.empty())
 			expanded.insert(pth);
 		++index;
 	}, [=](const NodePath&, size_t depth) ynothrow{
@@ -280,7 +280,7 @@ TreeList::Bind(size_t max_depth)
 TreeList::NodeState
 TreeList::CheckNodeState(IndexType idx) const
 {
-	if(GetNodeRef(idx).GetSize() != 0)
+	if(!GetNodeRef(idx).empty())
 	{
 		auto i(indent_map.find(idx));
 		const auto indent(i->second);

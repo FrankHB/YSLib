@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r230
+\version r231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2015-05-10 10:28 +0800
+	2015-05-13 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,7 @@ build 561 起 MSYS2 平台为区分 MinGW32 被保留平台占位符。
 
 @2 测试项目 Test ：
 测试项目 Test 位于目录 /test ，依赖 YBase::Test 和 Tools::Scripts 的构建脚本。
+测试项目的二进制兼容性保证为依赖于被测试项目和 YBase 的二进制兼容性保证中较弱的一个。
 当前仅支持 YBase 。
 详见目录 /test 下的自述文件。
 

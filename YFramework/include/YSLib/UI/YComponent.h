@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2400
+\version r2401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2015-04-24 04:29 +0800
+	2015-05-13 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ to_string(const GBinaryGroup<_type>& val)
 {
 	using YSLib::to_string;
 
-	return "(" + to_string(val.X) + ", " + to_string(val.Y) + ')';
+	return ystdex::quote(to_string(val.X) + ", " + to_string(val.Y), '(', ')');
 }
 YF_API string
 to_string(const Size&);
