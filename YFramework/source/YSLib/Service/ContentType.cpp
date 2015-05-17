@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ContentType.cpp
 \ingroup Service
 \brief 内容类型接口。
-\version r106
+\version r108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-10 06:04:40 +0800
 \par 修改时间:
-	2014-10-21 12:55 +0800
+	2015-05-14 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ void
 AddMIMEItems(MIMEBiMapping& m, const ValueNode& node,
 	MIMEBiMapping::MIMEType&& pth)
 {
-	if(node.GetContainerPtr())
+	if(!node.GetContainerRef().empty())
 		for(auto& nd : node)
 			try
 			{

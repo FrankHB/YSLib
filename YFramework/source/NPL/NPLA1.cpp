@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r438
+\version r505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2015-05-12 17:13 +0800
+	2015-05-17 11:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,10 +41,40 @@ MapNPLALeafNode(const ValueNode& node)
 	return {0, "", Deliteralize(ParseNPLANodeString(node))};
 }
 
+ValueNode
+TransformToSyntaxNode(const ValueNode& node, const string& name)
+{
+	ValueNode::Container con{{0, "0", node.GetName()}};
+	const auto nested_call([&](const ValueNode& nd){
+		con.emplace(TransformToSyntaxNode(nd, MakeIndex(con)));
+	});
+
+	if(node.empty())
+		try
+		{
+			auto& seq(Access<NodeSequence>(node));
+
+			for(auto& nd : seq)
+				nested_call(nd);
+		}
+		CatchExpr(ystdex::bad_any_cast&,
+			con.emplace(0, "1", Literalize(ParseNPLANodeString(node))))
+	else
+		for(auto& nd : node)
+			nested_call(nd);
+	return {std::move(con), name};
+}
+
 string
 EscapeNodeLiteral(const ValueNode& node)
 {
-	return EscapeLiteral(ParseNPLANodeString(node));
+	return EscapeLiteral(Access<string>(node));
+}
+
+string
+LiteralizeEscapeNodeLiteral(const ValueNode& node)
+{
+	return Literalize(EscapeNodeLiteral(node));
 }
 
 string
@@ -57,16 +87,16 @@ ParseNPLANodeString(const ValueNode& node)
 
 
 void
-InsertNPLA1Child(ValueNode&& n, ValueNode::Container& cont)
+InsertNPLA1Child(ValueNode&& n, ValueNode::Container& con)
 {
-	cont.insert(n.GetName().empty() ? ValueNode(0, '$' + to_string(cont.size()),
+	con.insert(n.GetName().empty() ? ValueNode(0, '$' + MakeIndex(con),
 		std::move(n.Value)) : std::move(n));
 }
 
 void
-InsertNPLA1SequenceChild(ValueNode&& n, NodeSequence& cont)
+InsertNPLA1SequenceChild(ValueNode&& n, NodeSequence& con)
 {
-	cont.emplace_back(std::move(n));
+	con.emplace_back(std::move(n));
 }
 
 ValueNode
@@ -74,7 +104,7 @@ TransformNPLA1(const ValueNode& node, NodeMapper mapper,
 	NodeMapper map_leaf_node, NodeToString node_to_str,
 	NodeInserter insert_child)
 {
-	auto s(node.GetSize());
+	auto s(node.size());
 
 	if(s == 0)
 		return map_leaf_node(node);
@@ -99,19 +129,19 @@ TransformNPLA1(const ValueNode& node, NodeMapper mapper,
 		return {ValueNode::Container{std::move(n)}, name};
 	}
 
-	auto p_node_con(make_unique<ValueNode::Container>());
+	ValueNode::Container node_con;
 
 	std::for_each(i, node.end(), [&](const ValueNode& nd){
-		insert_child(mapper ? mapper(nd) : nested_call(nd), *p_node_con);
+		insert_child(mapper ? mapper(nd) : nested_call(nd), node_con);
 	});
-	return {std::move(p_node_con), name};
+	return {std::move(node_con), name};
 }
 
 ValueNode
 TransformNPLA1Sequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 	map_leaf_node, NodeToString node_to_str, NodeSequenceInserter insert_child)
 {
-	auto s(node.GetSize());
+	auto s(node.size());
 
 	if(s == 0)
 		return map_leaf_node(node);
@@ -221,24 +251,23 @@ namespace SXML
 string
 ConvertAttributeNodeString(const ValueNode& node)
 {
-	if(const auto p_cont = node.GetContainerPtr())
-		switch(p_cont->size())
+	switch(node.size())
+	{
+	default:
+		YTraceDe(Warning, "Invalid node with more than 2 children found.");
+	case 2:
 		{
-		default:
-			YTraceDe(Warning, "Invalid node with more than 2 children found.");
-		case 2:
-			{
-				auto i(p_cont->cbegin());
-				const auto& n1(Deref(i).Value.Access<string>());
-				const auto& n2(Deref(++i).Value.Access<string>());
+			auto i(node.begin());
+			const auto& n1(Deref(i).Value.Access<string>());
+			const auto& n2(Deref(++i).Value.Access<string>());
 
-				return n1 + '=' + n2;
-			}
-		case 1:
-			return Deref(p_cont->cbegin()).Value.Access<string>();
-		case 0:
-			break;
+			return n1 + '=' + n2;
 		}
+	case 1:
+		return Deref(node.begin()).Value.Access<string>();
+	case 0:
+		break;
+	}
 	throw LoggedEvent("Invalid node with less than 1 children found.", Warning);
 }
 
@@ -326,10 +355,8 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 						if(res.size() > 1 && res.front() == ' ')
 							res.erase(0, 1);
 						if(is_content)
-						{
-							return head + res + (nl ? '\n' + igen(depth)
-								: "") + "</" + str + '>';
-						}
+							return head + res + (nl ? '\n' + igen(depth) : "")
+								+ ystdex::quote(str, "</", '>');
 					}
 					else
 						throw LoggedEvent("Empty item found.", Warning);
@@ -354,8 +381,10 @@ void
 PrintSyntaxNode(std::ostream& os, const ValueNode& node, IndentGenerator igen,
 	size_t depth)
 {
-	ystdex::write(os, ConvertDocumentNode(
-		Deref(node.GetContainerRef().cbegin()), igen, depth)) << std::flush;
+	if(!node.empty())
+		ystdex::write(os,
+			ConvertDocumentNode(Deref(node.begin()), igen, depth));
+	os << std::flush;
 }
 
 } // namespace SXML;

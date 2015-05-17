@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r475
+\version r476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-04-19 11:39 +0800
+	2015-05-16 12:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ public:
 	\brief 构造：使用异常字符串和异常等级。
 	\since build 545
 	*/
-	LoggedEvent(const std::string& = "", LevelType = Emergent);
+	LoggedEvent(const std::string& = {}, LevelType = Emergent);
 	/*!
 	\brief 构造：使用一般异常事件对象和异常等级。
 	\since build 545

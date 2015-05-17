@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1490
+\version r1492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2015-04-18 16:45 +0800
+	2015-05-17 11:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 	while(b != e && *b != ")")
 		if(*b == "(")
 		{
-			auto nd(MakeNode(to_string(node.GetSize())));
+			auto nd(MakeNode(MakeIndex(node)));
 			auto res(Reduce(nd, ++b, e));
 
 			if(res == e || *res != ")")
@@ -99,7 +99,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 			b = ++res;
 		}
 		else
-			node += {0, to_string(node.GetSize()), *b++};
+			node += {0, MakeIndex(node), *b++};
 	return b;
 }
 

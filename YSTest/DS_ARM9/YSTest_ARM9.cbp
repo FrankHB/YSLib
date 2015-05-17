@@ -4,56 +4,33 @@
 	<Project>
 		<Option title="YSTest_ARM9" />
 		<Option makefile_is_custom="1" />
-		<Option pch_mode="2" />
 		<Option compiler="gnu_armeabi_gcc_compiler" />
-		<MakeCommands>
-			<Build command="$make -j8 -f $makefile -r CONF=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
-			<CompileFile command="$make -f $makefile $file" />
-			<Clean command="$make -f $makefile -r CONF=$target clean" />
-			<DistClean command="$make -f $makefile distclean$target" />
-			<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
-			<SilentBuild command="$make -j8 -f $makefile -r CONF=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27 &gt; $(CMD_NULL)" />
-		</MakeCommands>
 		<Build>
 			<Target title="debug">
 				<Option type="4" />
 				<Option compiler="gnu_armeabi_gcc_compiler" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
 				<MakeCommands>
 					<Build command="$make -j8 -f $makefile -r CONF=$target" />
-					<CompileFile command="$make -f $makefile $file" />
+					<CompileFile command="$make -f $makefile -r CONF=$target $file" />
 					<Clean command="$make -f $makefile -r CONF=$target clean" />
-					<DistClean command="$make -f $makefile distclean$target" />
+					<DistClean command="$make -f $makefile -r CONF=$target clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
 					<SilentBuild command="$make -j8 -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="release">
-				<Option output="release/YSTest_ARM9" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release/" />
-				<Option type="1" />
+				<Option type="4" />
 				<Option compiler="gnu_armeabi_gcc_compiler" />
-				<Compiler>
-					<Add option="-O2" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 				<MakeCommands>
 					<Build command="$make -j8 -f $makefile -r CONF=$target" />
-					<CompileFile command="$make -f $makefile $file" />
+					<CompileFile command="$make -f $makefile -r CONF=$target $file" />
 					<Clean command="$make -f $makefile -r CONF=$target clean" />
-					<DistClean command="$make -f $makefile distclean$target" />
+					<DistClean command="$make -f $makefile -r CONF=$target clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
 					<SilentBuild command="$make -j8 -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Compiler>
-			<Add option="-Wall" />
-		</Compiler>
 		<Unit filename="Makefile" />
 		<Unit filename="../include/About.h" />
 		<Unit filename="../include/BookmarkUI.h" />
@@ -78,20 +55,5 @@
 		<Unit filename="../source/Shells.cpp" />
 		<Unit filename="../source/ShlExplorer.cpp" />
 		<Unit filename="../source/ShlReader.cpp" />
-		<Extensions>
-			<DoxyBlocks>
-				<comment_style block="1" line="1" />
-				<doxyfile_project />
-				<doxyfile_build />
-				<doxyfile_warnings />
-				<doxyfile_output />
-				<doxyfile_dot />
-				<general />
-			</DoxyBlocks>
-			<code_completion />
-			<envvars set="default" />
-			<debugger />
-			<lib_finder disable_auto="1" />
-		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

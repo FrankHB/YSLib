@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r309
+\version r312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-03-23 18:28 +0800
+	2014-05-16 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 
 		if(ins || insz)
 		{
-			auto p_con(make_unique<ValueNode::Container>());
+			ValueNode::Container node_con;
 
 			for(const auto& vn : node)
 				if(CheckChildName(vn.GetName()))
@@ -134,7 +134,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 										z = r;
 								}
 								CatchIgnore(std::invalid_argument&)
-							if(p_con->insert(std::move(child)).second)
+							if(node_con.insert(std::move(child)).second)
 							{
 								if(insz && (p_z || !ins))
 									InsertZOrdered.Call(key, *p_new_widget, wgt,
@@ -145,7 +145,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 						}
 					}
 					CatchIgnore(ystdex::bad_any_cast&)
-			res += {std::move(p_con), "$children"};
+			res += {std::move(node_con), "$children"};
 		}
 		res += {0, "$pointer", shared_ptr<IWidget>(std::move(p_new_widget))};
 		return res;

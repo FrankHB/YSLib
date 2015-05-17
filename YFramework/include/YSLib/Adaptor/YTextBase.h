@@ -11,13 +11,13 @@
 /*!	\file YTextBase.h
 \ingroup Adaptor
 \brief 外部库关联：文本接口。
-\version r79
+\version r87
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-24 00:02:44 +0800
 \par 修改时间:
-	2015-05-12 12:17 +0800
+	2015-05-13 11:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,17 @@
 
 namespace YSLib
 {
+
+//! \since build 597
+using platform::basic_string;
+
+using platform::string;
+using platform::wstring;
+using platform::sfmt;
+using platform::vsfmt;
+
+using platform::to_string;
+using platform::to_wstring;
 
 /*!
 \brief YSLib 基本字符串（使用 UCS-2 ）。

@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r835
+\version r838
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2015-05-12 17:51 +0800
+	2015-05-16 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,9 +40,7 @@ operator<<(File& f, const Configuration& conf)
 {
 	std::ostringstream oss;
 
-	PrintNode(oss, conf.GetRoot(), [](const ValueNode& node) -> string{
-		return Literalize(EscapeLiteral(Access<string>(node)));
-	});
+	PrintNode(oss, conf.GetRoot(), LiteralizeEscapeNodeLiteral);
 	f << oss.str();
 	return f;
 }

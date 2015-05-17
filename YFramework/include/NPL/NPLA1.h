@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPLA1
 \brief NPLA1 公共接口。
-\version r328
+\version r406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2015-05-12 17:13 +0800
+	2015-05-16 19:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,8 +36,14 @@
 namespace NPL
 {
 
+//! \since build 598
+using YSLib::pair;
+
 //! \since build 341
 using YSLib::string;
+
+//! \since build 598
+using YSLib::to_string;
 
 //! \since build 335
 using YSLib::ValueNode;
@@ -50,6 +56,30 @@ using YSLib::ValueNode;
 */
 struct YF_API NPLATag : NPLTag
 {};
+
+
+/*!
+\brief 插入语法节点。
+\since build 598
+
+在指定的节点插入以节点大小字符串为名称的节点，可用于语法分析树。
+*/
+//@{
+template<typename _type, typename... _tParams>
+pair<ValueNode::iterator, bool>
+InsertSyntaxNode(const ValueNode& node, _type&& arg, _tParams&&... args)
+{
+	return node.emplace(yforward(arg), MakeIndex(node), yforward(args)...);
+}
+template<typename... _tParams>
+pair<ValueNode::iterator, bool>
+InsertSyntaxNode(const ValueNode& node, std::initializer_list<ValueNode> il,
+	_tParams&&... args)
+{
+	return node.emplace(ValueNode::Container(il), MakeIndex(node),
+		yforward(args)...);
+}
+//@}
 
 
 /*!
@@ -78,6 +108,8 @@ using NodeSequenceInserter = GNodeInserter<NodeSequence>;
 //@}
 
 
+//! \return 创建的新节点。
+//@{
 /*!
 \brief 映射 NPLA 叶节点。
 \since build 597
@@ -89,12 +121,32 @@ YF_API ValueNode
 MapNPLALeafNode(const ValueNode&);
 
 /*!
+\brief 变换节点为语法分析树叶节点。
+\note 可选参数指定结果名称。
+\since build 598
+*/
+YF_API ValueNode
+TransformToSyntaxNode(const ValueNode&, const string& = {});
+//@}
+
+/*!
 \brief 转义 NPLA 节点字面量。
-\return 调用 EscapeLiteral 转义 ParseNPLANodeString 的结果。
+\return 调用 EscapeLiteral 转义访问字符串的结果。
+\exception ystdex::bad_any_cast 异常中立：由 Access 抛出。
 \since build 597
 */
 YF_API string
 EscapeNodeLiteral(const ValueNode&);
+
+/*!
+\brief 转义 NPLA 节点字面量。
+\return 调用 Literalize 字面量化 EscapeNodeLiteral 的结果。
+\exception ystdex::bad_any_cast 异常中立：由 EscapeNodeLiteral 抛出。
+\sa EscapeNodeLiteral
+\since build 598
+*/
+YF_API string
+LiteralizeEscapeNodeLiteral(const ValueNode&);
 
 /*!
 \brief 解析 NPLA 节点字符串。
@@ -104,6 +156,44 @@ EscapeNodeLiteral(const ValueNode&);
 */
 YF_API string
 ParseNPLANodeString(const ValueNode&);
+
+
+/*!
+\brief 包装节点的组合字面量。
+\since build 598
+*/
+class YF_API NodeLiteral final
+{
+private:
+	ValueNode node;
+
+public:
+	NodeLiteral(const string& str)
+		: node(0, str)
+	{}
+	NodeLiteral(const string& str, string val)
+		: node(0, str, std::move(val))
+	{}
+	template<typename _tLiteral = NodeLiteral>
+	NodeLiteral(const string& str, std::initializer_list<_tLiteral> il)
+		: node(0, str, NodeSequence(il.begin(), il.end()))
+	{}
+	template<typename _tLiteral = NodeLiteral, class _tString,
+		typename... _tParams>
+	NodeLiteral(int, _tString&& str, std::initializer_list<_tLiteral> il,
+		_tParams&&... args)
+		: node(ValueNode::Container(il.begin(), il.end()), yforward(str),
+		yforward(args)...)
+	{}
+
+	DefDeCopyMoveCtorAssignment(NodeLiteral)
+
+	DefCvt(ynothrow, ValueNode&, node)
+	DefCvt(const ynothrow, const ValueNode&, node)
+
+	PDefH(ValueNode, GetSyntaxNode, ) const
+		ImplRet(TransformToSyntaxNode(node))
+};
 
 
 /*!

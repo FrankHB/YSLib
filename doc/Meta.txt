@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1411
+\version r1414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-05-05 04:23 +0800
+	2015-05-13 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,16 +89,17 @@ $dev; // issues concerned by developers, which end-users could ignore without \
 	characteristics such as static assertions but not runtime observative \
 	behaviors like runtime assertions);
 $lib; // issues only concerned with library as one case of following:
-	only implementation changing, no code would be broken switching both \
+	only implementation changing, no code would be broken switching between \
 		implementations, or \
 	interface modifying including no deletion unless some replacements are \
-		provided, no current code would be broken (except for which has \
+		provided, no current source code would be broken (except for which has \
 		undefined behavior), \
 	so no need for library users to modify code behavior using the \
 	library interface to adapt to the upgrading, as long as they don't depend \
 	on new interfaces;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
+$src; // issues known to breaking public ABI but remaining source compatibility;
 
 // Project usage:
 $build; // issues on build, such as build scripts and diagnostic messages;

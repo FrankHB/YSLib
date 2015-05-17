@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r14138
+\version r14302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-05-12 18:14 +0800
+	2015-05-17 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,166 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "3 function template %quote" @ %String,
+		/ @ %Any $=
+		(
+			/ "type" @ "alias %any_ops::any_storage" -> 'pod_storage< \
+				aligned_storage_t<sizeof(void*), sizeof(void*)>>'
+				~ 'pod_storage<>>';
+				// From 8B to 4B on i686 targets.
+			/ $comp $src "%any size" $since b351
+				// Made the storage compact (from 32B to 8B on i686 targets),
+					same with implementation of %std::experimental::any in
+					libstdc++ 5.
+		)
+	),
+	/ %YFramework $=
+	(
+		* "invalid return type" @ "%string undeclared" @ "macro %YCL_TraceRaw"
+			@ %Debug $since b593
+			$= (+ $revert_ex(b593) + "'platform::' prefix" @ "return type"
+				@ "lambda expression")
+			// This caused tracing macro could not be used unless the name \
+				'string' is declared as compatible with 'sfmt' return type.
+		/ %YSLib $=
+		(
+			/ %Adaptor $=
+				(/ $dev "using declaration of names in namespace %platform \
+					%(basic_string, string, wstring, sfmt, vsfmt, to_string, \
+					to_wstring)" @ %YAdaptor >> %YTextBase)
+			/ %Core.ValueNode $=
+			(
+				/ @ "class %ValueNode" @ %ValueNode $=
+				(
+					+ "function template %(emplace, emplace_hint)"
+						^ "%DefFwdTmpl",
+					(
+					+ "function template %insert" ^ "%DefFwdTemp";
+					/ "all 2 functions %Add" -> ("inline function" ^ "%insert")
+					),
+					- $revert(b398) "function %GetContainerPtr",
+					- $revert(b502) "function %ClearChildren",
+					/ "simplified (copy, move) constructors"
+						^ "%DefDeCopyMoveCtor",
+					/ "function %GetContainerRef" $=
+					(
+						+ 'ynothrow',
+						/ $dev -> "inline function"
+					),
+					/ "function %GetSize" -> "%size",
+					+ "function %empty",
+					/ $src "node children allocation" ^ "in place class storage"
+						~ "%unique_ptr" $since b502,
+					/ "removal of unique pointer node container interface" $=
+					(
+						- $revert(b502) "constructor (function, template) with \
+							%unique_ptr<Container> parameter"
+						- $revert(b503) "function %SetChildren with \
+							%unique_ptr<Container> parameter"
+					),
+					/ "function %GetContainerRef" $=
+					(
+						/ DLDI ^ "macro %(PDefH, ImplExpr)",
+							// For 'const', 'DefSetter' cannot be used here.
+						/ $dev $src -> "inline function"
+					),
+					/ $dev $src "functions %SwapContainer" -> "inline function"
+						^ "macros %(PDefH, ImplExpr)" $since b595
+				),
+				/ $forced "return type" @ "all 2 function %CollectNodes"
+					-> 'ValueNode::Container'
+					~ 'unique_ptr<ValueNode::Container>' $dep_from "removal of \
+						unique pointer node container interface",
+				+ "2 inline functions %MakeIndex"
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				(
+				+ 'using YSLib::pair;',
+				+ 'using YSLib::to_string;';
+				+ "2 function templates %InsertSyntaxNode" ^ $dep_from
+					("%MakeIndex" @ %YSLib.Core.ValueNode);
+				+ "function %TransformToSyntaxNode"
+				),
+				+ "final class %NodeLiteral",
+				(
+				/ "allowed exception %ystdex::bad_any_cast propagete out of \
+					function %EscapeNodeLiteral";
+				+ "function %LiteralizeEscapeNodeLiteral"
+				),
+				* $lib "missing check non-empty node"
+					@ "function %PrintSyntaxNode" $since b597
+					// This would cause undefined behavior for empty nodes.
+			),
+			/ DLDI "simplified" @ "%operator<<" @ %Configuration ^ $dep_from
+				("%LiteralizeEscapeNodeLiteral" @ %NPLA1)
+		)
+	),
+	/ DLDI "simplified quoted string generation" $effective
+		@ ((("functions %(EscapeLiteral, Literalize)" @ %Lexical,
+		"function %ConvertDocumentNode") @ %NPL, "(all 2 functions, 1 function \
+		template) %to_string" @ %YSLib.UI.YComponent) @ %YFramework, "member \
+		function %ShlReader::LoadBookmarks" @ %YReader.ShlReader) ^ $dep_from
+		("%ystdex::quote" %YBase.YStandardEx.String)
+	/ $dev $build @ "Code::Block project files" $=
+	(
+		- "all node %CodeBlocks_project_file/Project/Extensions",
+		/ @ "node %CodeBlocks_project_file/Project/"
+			@ !"platform-specific project files" $=
+		(
+			/ "cleared all children except nodes %Option with attribute %title \
+				of %(type, compiler)" @ "node %Build/Target"
+		),
+		/ @ "all nodes %CodeBlocks_project_file/Project/" @ !"platform %MinGW32"
+			$=
+		(
+			- "all node %MakeCommands",
+			- "all nodes %(Compiler, Option pch_mode)",
+			/ @ "all nodes %Build/Target/" $=
+			(
+				- "all nodes %(Compiler, Linker, Option type, Option output, \
+					Option object_output)",
+				/ "set value" @ "Option type" -> "4"
+			)
+		),
+		(
+		/ "made command for %DistClean same as %Clean"
+			@ "platforms %(DS, Android)";
+			// There is no corresponding target in makefile.
+		* "wrong command for %DistClean for platforms with makefiles" $since
+			b217
+		)
+	),
+	/ $comp $src $dep_from %YBase.YStandardEx.Any $effective @ YSLib.Core $since
+		b351 $=
+	(
+		/ "size of %ValueObject" @ %YObject,
+			// Same as %ystdex::any.
+		/ "size of %ValueNode" @ %ValueNode
+			// From 48B to 16B on i686 targets. Note it would be larger if \
+				using libstdc++ 5, since the current implementation of %string \
+				used as its member is actually COW-based %std::string, which \
+				is not conforming to ISO C++11 but only requires same size as \
+				a pointer.
+	),
+	/ $forced DLDI "%ValueNode API use" $effective @ %YFramework.(NPL.(NPLA1,
+		SContext), YSLib.(UI.(TreeView, Loader), Service.ContentType),
+		Helper.Initialization) $dep_from %YFramework.YSLib.Core.ValueNode,
+	/ $dev $lib "all string default arguments '""'" -> '{}' $effective
+		@ %YFramework.(YSLib.(Core.(YMessage, YException, YCoreUtilities),
+		Adaptor.Font), Helper.ShellHelper),
+	/ DLDI "simplified index nodes" ^ $dep_from ("%MakeIndex"
+		@ %YFramework.YSLib.Core.ValueNode) $effective
+		@ %(YFramework.NPL.(NPLA1, SContext), YReader.ReadingList)
+),
+
+b597
 (
 	/ %YFramework $=
 	(
@@ -5022,7 +5182,11 @@ b565
 					// To eliminate warning: [-Wstrict-aliasing] when \
 						[-fstrict-aliasing] is used. This option is enabled \
 						for release modes by default. Though not oberserved \
-						strange behavior for now, it is dangerous.
+						strange behavior for now, it might be dangerous. Also \
+						note the current change is not enough to fully avoid \
+						the invalid aliased access, but it would be in the \
+						Win32 API calls and the layout is always known, thus \
+						there should be no portable problems.
 				/ @ "class %WindowClass" $=
 				(
 					+ "functions %(GetInstanceHandle GetName, GetAtom)"

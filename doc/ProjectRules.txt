@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r617
+\version r627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2015-05-10 10:27 +0800
+	2015-05-13 19:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,6 +109,7 @@ YSTest 依赖 YBase 和 YFramework 。
 除非另行约定，不修改外部依赖项(@1.1.2) 。
 以下是非外部依赖项设计和管理约定。
 注意具体的 IDE （集成开发环境）等工具不一定支持以下所有项。
+关于开发阶段的定义，参见 https://bitbucket.org/FrankHB/yslib/wiki/Releases.zh-CN.md 。
 
 @2.1 配置管理：
 适用于各个子项目。
@@ -248,8 +249,17 @@ static_assert 声明可独立加注版本，以记号序列等价性确定版本
 不同头文件应使用不同的宏名。
 具体宏名由实现定义。一般应使用特定保留前缀（但不应与标准名称冲突，除非实现标准库，参见 [Documentation::LanguageConvention @@5.3.2.2.2] ）。可能包含模块命名空间(@3.2) 的名称。
 
-@2.2.7 发布(releasing) 和发行(publishing) ：
-目前为 PreAlpha 测试阶段，无发布和发行计划。
+@2.2.7 更新日志：
+主分支版本的变更活动应保留到更新日志，保存为 [Documentation::ChangeLog] 。
+其中，公开接口的修改是必要内容，非公开接口和实现是可选内容。
+当前每个新增的版本应保持独立日志。
+
+@2.2.7.1 标记规则：
+具体变更操作可附加 [Documentation::Meta] 声明的标识。
+具体顶级子项目可附加指定要求标识为必须的规则。
+
+@2.2.8 发布(releasing) 和发行(publishing) ：
+目前为 PreAlpha 测试阶段。自 build 600 起进入 Alpha 阶段。无其它发布和发行计划。
 
 @2.3 问题跟踪(issue tracking) 和管理：
 

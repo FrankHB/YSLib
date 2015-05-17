@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1864
+\version r1866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-05-03 15:25 +0800
+	2015-05-13 21:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -296,7 +296,8 @@ enum base_op : op_code
 
 //! \since build 352
 //@{
-using any_storage = pod_storage<>;
+using any_storage
+	= pod_storage<aligned_storage_t<sizeof(void*), sizeof(void*)>>;
 using any_manager = void(*)(any_storage&, const any_storage&, op_code);
 
 

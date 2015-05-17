@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1278
+\version r1305
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-05-11 11:23 +0800
+	2015-05-13 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -497,6 +497,34 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
 }
 //@}
+//@}
+
+/*!
+\brief 取添加前缀和后缀的字符串。
+\pre 断言：删除的字符串不大于串长。
+\since build 598
+*/
+//@{
+template<typename _tString>
+inline _tString
+quote(const _tString& str, typename string_traits<_tString>::value_type c
+	= typename string_traits<_tString>::value_type('"'))
+{
+	return c + str + c;
+}
+template<typename _tString, typename _tString2>
+inline yimpl(enable_if_t)<!is_convertible<_tString2,
+	typename string_traits<_tString>::value_type>::value ,_tString>
+quote(const _tString& str, const _tString2& s)
+{
+	return s + str + s;
+}
+template<typename _tString, typename _tPrefix, typename _tSuffix>
+inline _tString
+quote(const _tString& str, const _tPrefix& pfx, const _tSuffix& sfx)
+{
+	return pfx + str + sfx;
+}
 //@}
 
 /*!

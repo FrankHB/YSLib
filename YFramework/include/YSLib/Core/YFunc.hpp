@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfunc.hpp
+/*!	\file YFunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1028
+\version r1031
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 560
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2015-04-24 03:14 +0800
+	2015-05-13 11:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Core_YShellDefinition
 #include <functional>
 #include <typeinfo>
+#include YFM_YSLib_Adaptor_YTextBase // for string;
 
 namespace YSLib
 {

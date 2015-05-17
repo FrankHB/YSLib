@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3302
+\version r3303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-04-24 04:37 +0800
+	2015-05-16 12:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,7 @@ private:
 	FontError err;
 
 public:
-	FontException(FontError e, const std::string& msg = "")
+	FontException(FontError e, const std::string& msg = {})
 		: LoggedEvent(msg),
 		err(e)
 	{}
