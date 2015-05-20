@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r627
+\version r639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2015-05-13 19:19 +0800
+	2015-05-19 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,16 +63,24 @@ YSLib 项目约定一个体系结构和使用的外部依赖(@1) 是一个平台
 使用 ISO C++ 作为主要开发语言。
 在 YBase([Documentation::YBase]) 中有约定的部分，适用相应规则；项目中的其它部分适用本节以下规则。
 标识符使用参见 [CommonRules @@4] 。
-不使用和 ISO C++11 不兼容的特性，包括 export 关键字([Documentation::LanguageConvention @@5.7.6]) 和已经在 ISO C++03 中标记为 deprected 而在 C++11 去除的特性（如 const char 数组类型左值到 char* 右值的转换，也包括重新取消 deprecated 的特性如修饰命名空间作用域声明的 static ）。
-默认基于 ISO C++11 （包括 Defect Report 修正；但扩展 ISO C++03 部分受 @1.2.1.1 限制）环境。
+
+@1.2.1.1 C++ 标准和实现兼容性限制：
+不使用和 ISO C++03 以后被接受的特性不兼容的特性，包括但不限于：
+被取消的特性，如 export 关键字([Documentation::LanguageConvention @@5.7.6]) ；
+在 ISO C++03 中标记为 deprecated 而在之后版本去除的特性，如 const char 数组类型左值到 char* 右值的转换，
+在 ISO C++03 中标记为 deprecated 但在之后版本重新取消 deprecated 的特性，如修饰命名空间作用域声明的 static ；
+实现的 Defect Report ，如 CWG615 。
+注意即使使用特定模式，一些实现也可能引入之后的 Defect Report 而不保证兼容，如 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65890 。
+
+@1.2.1.2 基准要求：
+默认基于 ISO C++11 （扩展 ISO C++03 部分参见 @1.2.1.3 ）环境。
 允许使用 ISO C++11 以后兼容最新标准草案的正式标准中的特性，通过 __cplusplus 宏判断。
 依赖 ISO C++ 独立实现或宿主实现，附加以下例外：
-严格限制 @1.2.2.1 列出的扩展使用；
 标准库要求等同于 ISO C++11 定义的宿主实现；
 需要定宽整数 std::intN_t 和 std::uintN_t （其中 N 为 8 、 16 、 32 或 64 ）支持（ ISO C++11 中为可选支持）。
 假定特定类型的默认构造函数无异常抛出（但不依赖异常规范的行为），当前包括 std::string （ WG21/N4002 引入了显式指定 noexcept ，仅在标准草案 WG21/N4296 起有效）。
 
-@1.2.1.1 需要使用的非 ISO C++03 扩展：
+@1.2.1.3 非 ISO C++03 扩展：
 定义在 ISO C99（ISO/IEC 9899:1999）和 ISO C++11（ISO/IEC 14882:2011）中，且有一个以上完整的语言实现。
 参见： https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。其中 ISO C++11 以上的特性仅限于核心特性和可选（条件编译）的库特性。
 在支持多线程环境的平台上，以下 ISO C++11 中新增头被接口和实现使用： <atomic> 、 <condition_variable> 、 <future> 、 <mutex> 和 <thread> 。
@@ -202,7 +210,7 @@ B 是 i 的函数，表示平台上被支持的第一类支持的配置数。
 项目间转移不忽略任何变更，按删除和添加处理。
 
 @2.2.4.3 同名实体变更：
-在以下变更中忽略标注为实现细节（由文档约定，在特定命名空间中或以宏标注）的变更。
+在以下变更中忽略标注为实现细节（包括 C++ 隐式返回类型，以及由文档约定，在特定命名空间中或以宏标注的代码）的变更。
 除非另行约定，以下接口中的等效定义为在同一语言实现的前提下，使用这些接口的代码具有在预处理阶段后不可分辨的行为。
 除非涉及 C++ 实体（如参数类型）变更或另行约定，所有变更直接通过预处理记号序列比较，即宏的替换序列改变不视为使用宏的实体的变更。
 相同实体在条件编译指令的至少一个条件分支下存在，变更分支（包括增加及减少但仍然存在的条件分支）不视为实体变更，仅当变更分支后所有分支都满足以下变更条件视为变更。

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r202
+\version r212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2015-03-24 23:07 +0800
+	2015-05-18 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,6 @@ See readme file for details.
 #include <iostream>
 
 using namespace YSLib;
-using namespace platform;
 
 namespace
 {
@@ -188,14 +187,13 @@ CalcLines(EntryMap& m, size_t base, size_t limit = 2)
 int
 main()
 {
-	using namespace std;
+	return FilterExceptions([]{
+		using namespace std;
 
-	FileDescriptor(stdin).SetMode(0x8000 /* _O_BINARY */ ),
-	FileDescriptor(stdout).SetMode(0x8000);
-	cin.sync_with_stdio({});
-	cout.sync_with_stdio({});
-	for(auto& m : Analyze(cin))
-		cout << m.first << endl
-			<< CalcLines(m.second.second, m.second.first) << endl;
+		platform::SetupBinaryStdIO();
+		for(auto& m : Analyze(cin))
+			cout << m.first << endl
+				<< CalcLines(m.second.second, m.second.first) << endl;
+	}, "main") ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 

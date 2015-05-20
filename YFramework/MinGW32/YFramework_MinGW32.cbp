@@ -3,13 +3,11 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="YFramework_MinGW32" />
-		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Option extended_obj_names="1" />
 		<Build>
 			<Target title="debug">
 				<Option output="../../build/MinGW32/YFramework/debug/YFrameworkd" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
 				<Option object_output="../../build/MinGW32/YFramework/debug/static/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
@@ -22,7 +20,6 @@
 			</Target>
 			<Target title="release">
 				<Option output="../../build/MinGW32/YFramework/release/YFramework" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
 				<Option object_output="../../build/MinGW32/YFramework/release/static/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
@@ -324,7 +321,6 @@
 		<Unit filename="../include/YSLib/Service/YPixel.h" />
 		<Unit filename="../include/YSLib/Service/YResource.h" />
 		<Unit filename="../include/YSLib/Service/YTimer.h" />
-		<Unit filename="../include/YSLib/Service/yftext.h" />
 		<Unit filename="../include/YSLib/UI/Animation.h" />
 		<Unit filename="../include/YSLib/UI/Border.h" />
 		<Unit filename="../include/YSLib/UI/Button.h" />
@@ -400,11 +396,11 @@
 		<Unit filename="../source/YSLib/Core/ValueNode.cpp" />
 		<Unit filename="../source/YSLib/Core/YApplication.cpp" />
 		<Unit filename="../source/YSLib/Core/YCoreUtilities.cpp" />
+		<Unit filename="../source/YSLib/Core/YDevice.cpp" />
+		<Unit filename="../source/YSLib/Core/YException.cpp" />
 		<Unit filename="../source/YSLib/Core/YGDIBase.cpp" />
 		<Unit filename="../source/YSLib/Core/YGraphics.cpp" />
 		<Unit filename="../source/YSLib/Core/YMessage.cpp" />
-		<Unit filename="../source/YSLib/Core/YDevice.cpp" />
-		<Unit filename="../source/YSLib/Core/YException.cpp" />
 		<Unit filename="../source/YSLib/Core/YObject.cpp" />
 		<Unit filename="../source/YSLib/Core/yshell.cpp" />
 		<Unit filename="../source/YSLib/Core/ystring.cpp" />

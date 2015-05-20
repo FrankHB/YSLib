@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r736
+\version r739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-04-28 01:54 +0800
+	2015-05-19 23:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -216,8 +216,9 @@ DirectoryFindData::DirectoryFindData(string name)
 DirectoryFindData::DirectoryFindData(wstring name)
 	: dir_name(ystdex::rtrim(name, L"/\\")), find_data()
 {
-	YAssert(!dir_name.empty() && dir_name.back() != '\\',
-		"Invalid argument found.");
+	if(dir_name.empty())
+		dir_name = L'.';
+	YAssert(dir_name.back() != '\\', "Invalid argument found.");
 
 	using platform::FileOperationFailure;
 	const auto r(::GetFileAttributesW(dir_name.c_str()));

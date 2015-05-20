@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPLA1
 \brief NPLA1 公共接口。
-\version r406
+\version r529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2015-05-16 19:08 +0800
+	2015-05-20 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPL
-#include YFM_YSLib_Core_ValueNode
+#include YFM_YSLib_Core_ValueNode // for YSLib::string, YSLib::ValueNode;
 #include <ystdex/functional.hpp> // for ystdex::id_func_clr_t;
 
 namespace NPL
@@ -48,6 +48,9 @@ using YSLib::to_string;
 //! \since build 335
 using YSLib::ValueNode;
 
+//! \since build 599
+using YSLib::MakeIndex;
+
 
 /*!
 \brief NPLA 元标签。
@@ -60,24 +63,25 @@ struct YF_API NPLATag : NPLTag
 
 /*!
 \brief 插入语法节点。
-\since build 598
+\since build 599
 
 在指定的节点插入以节点大小字符串为名称的节点，可用于语法分析树。
 */
 //@{
-template<typename _type, typename... _tParams>
-pair<ValueNode::iterator, bool>
-InsertSyntaxNode(const ValueNode& node, _type&& arg, _tParams&&... args)
+template<class _tNodeOrCon, typename... _tParams>
+ValueNode::iterator
+InsertSyntaxNode(_tNodeOrCon&& node_or_con,
+	std::initializer_list<ValueNode> il, _tParams&&... args)
 {
-	return node.emplace(yforward(arg), MakeIndex(node), yforward(args)...);
+	return node_or_con.emplace_hint(node_or_con.end(), ValueNode::Container(il),
+		MakeIndex(node_or_con), yforward(args)...);
 }
-template<typename... _tParams>
-pair<ValueNode::iterator, bool>
-InsertSyntaxNode(const ValueNode& node, std::initializer_list<ValueNode> il,
-	_tParams&&... args)
+template<class _tNodeOrCon, typename _type, typename... _tParams>
+ValueNode::iterator
+InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
 {
-	return node.emplace(ValueNode::Container(il), MakeIndex(node),
-		yforward(args)...);
+	return node_or_con.emplace_hint(node_or_con.end(), yforward(arg),
+		MakeIndex(node_or_con), yforward(args)...);
 }
 //@}
 
@@ -168,6 +172,14 @@ private:
 	ValueNode node;
 
 public:
+	//! \since build 599
+	NodeLiteral(const ValueNode& nd)
+		: node(nd)
+	{}
+	//! \since build 599
+	NodeLiteral(ValueNode&& nd)
+		: node(std::move(nd))
+	{}
 	NodeLiteral(const string& str)
 		: node(0, str)
 	{}
@@ -185,7 +197,6 @@ public:
 		: node(ValueNode::Container(il.begin(), il.end()), yforward(str),
 		yforward(args)...)
 	{}
-
 	DefDeCopyMoveCtorAssignment(NodeLiteral)
 
 	DefCvt(ynothrow, ValueNode&, node)
@@ -194,6 +205,35 @@ public:
 	PDefH(ValueNode, GetSyntaxNode, ) const
 		ImplRet(TransformToSyntaxNode(node))
 };
+
+
+/*!
+\brief 插入语法子节点。
+\since build 599
+
+在指定的节点插入以节点大小字符串为名称的节点，可用于语法分析树。
+*/
+//@{
+template<class _tNodeOrCon>
+ValueNode::iterator
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const ValueNode& child)
+{
+	return InsertSyntaxNode(yforward(node_or_con), child.GetContainerRef());
+}
+template<class _tNodeOrCon>
+ValueNode::iterator
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, ValueNode&& child)
+{
+	return InsertSyntaxNode(yforward(node_or_con),
+		std::move(child.GetContainerRef()));
+}
+template<class _tNodeOrCon>
+ValueNode::iterator
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
+{
+	return InsertChildSyntaxNode(yforward(node_or_con), nl.GetSyntaxNode());
+}
+//@}
 
 
 /*!
@@ -392,6 +432,87 @@ ConvertStringNode(const ValueNode&);
 YF_API void
 PrintSyntaxNode(std::ostream& os, const ValueNode&,
 	IndentGenerator = DefaultGenerateIndent, size_t = 0);
+
+
+//! \since build 599
+//@{
+//! \brief 构造 SXML 文档顶级节点。
+//@{
+template<typename... _tParams>
+ValueNode
+MakeTop(const string& name, _tParams&&... args)
+{
+	return NodeLiteral(0, name,
+		{{MakeIndex(0), "*TOP*"}, NodeLiteral(yforward(args))...});
+}
+inline PDefH(ValueNode, MakeTop, )
+	ImplRet(MakeTop({}))
+//@}
+
+/*!
+\brief 构造 SXML 文档 XML 声明节点。
+\note 第一个参数指定节点名称，其余参数指定节点中 XML 声明的值：版本、编码和独立性。
+\note 最后两个参数可选为空值，此时结果不包括对应的属性。
+\warning 不对参数合规性进行检查。
+*/
+YF_API ValueNode
+MakeXMLDecl(const string& = {}, const string& = "1.0",
+	const string& = "UTF-8", const string& = {});
+
+/*!
+\brief 构造包含 XML 声明的 SXML 文档节点。
+\sa MakeTop
+\sa MakeXMLDecl
+*/
+YF_API ValueNode
+MakeXMLDoc(const string& = {}, const string& = "1.0",
+	const string& = "UTF-8", const string& = {});
+
+//! \brief 构造 SXML 属性标记字面量。
+//@{
+inline PDefH(NodeLiteral, MakeAttributeTagLiteral,
+	std::initializer_list<NodeLiteral> il)
+	ImplRet({"@", il})
+template<typename... _tParams>
+NodeLiteral
+MakeAttributeTagLiteral(_tParams&&... args)
+{
+	return SXML::MakeAttributeTagLiteral({NodeLiteral(yforward(args)...)});
+}
+//@}
+
+//! \brief 构造 XML 属性字面量。
+//@{
+inline PDefH(NodeLiteral, MakeAttributeLiteral, const string& name,
+	std::initializer_list<NodeLiteral> il)
+	ImplRet({name, {MakeAttributeTagLiteral(il)}})
+template<typename... _tParams>
+NodeLiteral
+MakeAttributeLiteral(const string& name, _tParams&&... args)
+{
+	return {name, {SXML::MakeAttributeTagLiteral(yforward(args)...)}};
+}
+//@}
+
+//! \brief 插入只有 XML 属性节点到语法节点。
+//@{
+template<class _tNodeOrCon>
+inline void
+InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
+	std::initializer_list<NodeLiteral> il)
+{
+	InsertChildSyntaxNode(node_or_con, MakeAttributeLiteral(name, il));
+}
+template<class _tNodeOrCon, typename... _tParams>
+inline void
+InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
+	_tParams&&... args)
+{
+	InsertChildSyntaxNode(node_or_con,
+		SXML::MakeAttributeLiteral(name, yforward(args)...));
+}
+//@}
+//@}
 
 } // namespace SXML;
 //@}

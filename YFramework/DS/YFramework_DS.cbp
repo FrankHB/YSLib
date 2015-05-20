@@ -120,7 +120,6 @@
 		<Unit filename="../../3rdparty/freetype/include/tttags.h" />
 		<Unit filename="../../3rdparty/freetype/include/ttunpat.h" />
 		<Unit filename="../../3rdparty/include/FreeImage.h" />
-		<Unit filename="../../Data/cp113.bin" />
 		<Unit filename="../data/default_font.bin" />
 		<Unit filename="../include/CHRLib/CharacterMapping.h" />
 		<Unit filename="../include/CHRLib/CharacterProcessing.h" />
@@ -213,7 +212,6 @@
 		<Unit filename="../include/YSLib/Service/YPixel.h" />
 		<Unit filename="../include/YSLib/Service/YResource.h" />
 		<Unit filename="../include/YSLib/Service/YTimer.h" />
-		<Unit filename="../include/YSLib/Service/yftext.h" />
 		<Unit filename="../include/YSLib/UI/Animation.h" />
 		<Unit filename="../include/YSLib/UI/Border.h" />
 		<Unit filename="../include/YSLib/UI/Button.h" />
@@ -285,11 +283,11 @@
 		<Unit filename="../source/YSLib/Core/ValueNode.cpp" />
 		<Unit filename="../source/YSLib/Core/YApplication.cpp" />
 		<Unit filename="../source/YSLib/Core/YCoreUtilities.cpp" />
+		<Unit filename="../source/YSLib/Core/YDevice.cpp" />
+		<Unit filename="../source/YSLib/Core/YException.cpp" />
 		<Unit filename="../source/YSLib/Core/YGDIBase.cpp" />
 		<Unit filename="../source/YSLib/Core/YGraphics.cpp" />
 		<Unit filename="../source/YSLib/Core/YMessage.cpp" />
-		<Unit filename="../source/YSLib/Core/YDevice.cpp" />
-		<Unit filename="../source/YSLib/Core/YException.cpp" />
 		<Unit filename="../source/YSLib/Core/YObject.cpp" />
 		<Unit filename="../source/YSLib/Core/yshell.cpp" />
 		<Unit filename="../source/YSLib/Core/ystring.cpp" />
@@ -310,7 +308,6 @@
 		<Unit filename="../source/YSLib/Service/YGDI.cpp" />
 		<Unit filename="../source/YSLib/Service/YResource.cpp" />
 		<Unit filename="../source/YSLib/Service/YTimer.cpp" />
-		<Unit filename="../source/YSLib/Service/yfile.cpp" />
 		<Unit filename="../source/YSLib/UI/Animation.cpp" />
 		<Unit filename="../source/YSLib/UI/Border.cpp" />
 		<Unit filename="../source/YSLib/UI/Button.cpp" />
@@ -333,8 +330,8 @@
 		<Unit filename="../source/YSLib/UI/Viewer.cpp" />
 		<Unit filename="../source/YSLib/UI/YComponent.cpp" />
 		<Unit filename="../source/YSLib/UI/YControl.cpp" />
-		<Unit filename="../source/YSLib/UI/YFocus.cpp" />
 		<Unit filename="../source/YSLib/UI/YDesktop.cpp" />
+		<Unit filename="../source/YSLib/UI/YFocus.cpp" />
 		<Unit filename="../source/YSLib/UI/YGUI.cpp" />
 		<Unit filename="../source/YSLib/UI/YRenderer.cpp" />
 		<Unit filename="../source/YSLib/UI/YStyle.cpp" />

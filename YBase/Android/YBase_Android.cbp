@@ -65,7 +65,7 @@
 		<Unit filename="../include/ystdex/memory.hpp" />
 		<Unit filename="../include/ystdex/mixin.hpp" />
 		<Unit filename="../include/ystdex/operators.hpp" />
-		<Unit filename="../include/ystdex/optional.hpp" />
+		<Unit filename="../include/ystdex/optional.h" />
 		<Unit filename="../include/ystdex/path.hpp" />
 		<Unit filename="../include/ystdex/pseudo_mutex.h" />
 		<Unit filename="../include/ystdex/rational.hpp" />
@@ -83,6 +83,7 @@
 		<Unit filename="../source/ystdex/any.cpp" />
 		<Unit filename="../source/ystdex/base.cpp" />
 		<Unit filename="../source/ystdex/cassert.cpp" />
+		<Unit filename="../source/ystdex/concurrency.cpp" />
 		<Unit filename="../source/ystdex/cstdio.cpp" />
 		<Unit filename="../source/ystdex/cstring.cpp" />
 		<Unit filename="../source/ystdex/cwctype.cpp" />
@@ -90,10 +91,5 @@
 		<Unit filename="../source/ystdex/optional.cpp" />
 		<Unit filename="../source/ytest/test.cpp" />
 		<Unit filename="Makefile" />
-		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
-		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

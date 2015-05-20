@@ -1,5 +1,5 @@
 ﻿== Tool: simple host build
-This is a command line tool for recursively call native complier to generate binary files.
+This is a command line tool to generate binary files by recursively scanning source directories and then calling backends (i.e. compiler driver or archiver).
 The output can be object/archive/executable files.
 
 = Precondition
@@ -24,6 +24,7 @@ Compile the source, then run in the command line shell.
 Type "shbuild SRCPATH [CXXFLAGS ...]" to build a project, where:
 	SRCPATH is the source directory to be recursively searched.
 	CXXFLAGS are the options to be pass to the C++ compiler.
+All empty arguments would be ignored.
 SRCPATH is verified to be exist. If not, or other file system operations fail, the program stops and returns 1.
 The directory reading is currently implemented by YSLib::DirectorySession. Only Windows style path is supported for MinGW32.
 Once the SRCPATH is verified, the program will create a directory named ".shbuild" in the current working directory to be the root of output directory. If this operation fails, the program stops and returns 2.

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2827
+\version r2836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-05-06 09:53 +0800
+	2015-05-19 22:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -334,8 +334,8 @@ GetDependencies(const string& path)
 
 	set<size_t> spaces;
 	Session sess(tf, [&](LexicalAnalyzer& lexer, char c){
-		lexer.ParseQuoted(c, [&](string& buf, const UnescapeContext& uctx,
-			char)->bool{
+		lexer.ParseQuoted(c, [&](string& buf, const UnescapeContext& uctx, char)
+			-> bool{
 			const auto& escs(uctx.GetSequence());
 
 			// NOTE: See comments in %munge function of 'mkdeps.c' from libcpp
@@ -361,7 +361,7 @@ GetDependencies(const string& path)
 				}
 			}
 			return {};
-		}, [](char c, string& pfx)->bool{
+		}, [](char c, string& pfx) -> bool{
 			if(c == '\\')
 				pfx = "\\";
 			else if(c == '$')
@@ -504,7 +504,7 @@ Rule::GetCommandType(const String& ext)
 string
 Rule::LookupCommand(const string& name) const
 {
-	return name.empty() ? "" : Context.GetEnv(name);
+	return name.empty() ? string() : Context.GetEnv(name);
 }
 
 
@@ -823,8 +823,8 @@ main(int argc, char* argv[])
 			{
 				auto arg(DecodeArg(argv[i]));
 
-				if(std::none_of(begin(OptionsTable), end(OptionsTable),
-					[&](const Option& opt){
+				if(!arg.empty() && std::none_of(begin(OptionsTable),
+					end(OptionsTable), [&](const Option& opt){
 						return opt(arg);
 				}))
 					args.emplace_back(std::move(arg));
@@ -850,8 +850,8 @@ main(int argc, char* argv[])
 		}
 		else if(argc == 1)
 		{
-			std::printf("%s%s%s", "Usage: [ENV ...] ", *argv,
-				" SRCPATH [OPTIONS ...]\n"
+			std::printf("%s%s%s", "Usage: [ENV ...] \"", *argv,
+				"\" SRCPATH [OPTIONS ...]\n"
 				"\n[ENV ...]\n\tThe environment variables settings."
 				" Currently accepted settings are listed below:\n\n");
 			for(const auto& env : DeEnvs)
@@ -872,7 +872,7 @@ main(int argc, char* argv[])
 				std::printf("  %s%s\n", opt.prefix, opt.option_arg);
 				for(const auto& des : opt.option_details)
 					std::printf("\t%s\n", des);
-				std::puts("");
+				std::putchar('\n');
 			}
 		}
 	}

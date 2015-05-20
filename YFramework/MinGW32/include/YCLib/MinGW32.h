@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r740
+\version r743
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-04-24 16:57 +0800
+	2015-05-19 22:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -281,7 +281,7 @@ inline PDefH(wstring, UTF8ToWCS, const string& str)
 
 /*
 \brief 文件系统目录查找状态。
-\since build 489
+\since build 549
 */
 class YF_API DirectoryFindData : private ystdex::noncopyable
 {
@@ -304,9 +304,9 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定的目录路径。
-	\pre 断言：路径非空且不以 '\\' 结尾。
 	\throw platform::FileOperationFailure 打开路径失败，或指定的路径不是目录。
 	\note 目录路径无视结尾的斜杠和反斜杠。
+	\note 去除结尾斜杠和反斜杠后若为空则视为当前路径。
 	\since build 593
 	*/
 	//@{

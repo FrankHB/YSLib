@@ -3,13 +3,11 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="YBase_MinGW32" />
-		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Option extended_obj_names="1" />
 		<Build>
 			<Target title="debug">
 				<Option output="../../build/MinGW32/YBase/debug/YBased" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
 				<Option object_output="../../build/MinGW32/YBase/debug/static/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
@@ -22,7 +20,6 @@
 			</Target>
 			<Target title="release">
 				<Option output="../../build/MinGW32/YBase/release/YBase" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
 				<Option object_output="../../build/MinGW32/YBase/release/static/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
@@ -142,7 +139,7 @@
 		<Unit filename="../include/ystdex/memory.hpp" />
 		<Unit filename="../include/ystdex/mixin.hpp" />
 		<Unit filename="../include/ystdex/operators.hpp" />
-		<Unit filename="../include/ystdex/optional.hpp" />
+		<Unit filename="../include/ystdex/optional.h" />
 		<Unit filename="../include/ystdex/path.hpp" />
 		<Unit filename="../include/ystdex/pseudo_mutex.h" />
 		<Unit filename="../include/ystdex/rational.hpp" />

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1666
+\version r1673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-05-17 11:38 +0800
+	2015-05-20 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,7 +253,8 @@ public:
 	DefFwdTmpl(const, pair<iterator YPP_Comma bool>, emplace,
 		container.emplace(yforward(args)...))
 
-	DefFwdTmpl(const, pair<iterator YPP_Comma bool>, emplace_hint,
+	//! \since build 599
+	DefFwdTmpl(const, iterator, emplace_hint,
 		container.emplace_hint(yforward(args)...))
 
 	PDefH(bool, empty, ) const ynothrow
@@ -505,14 +506,17 @@ IsPrefixedIndex(const string&, char = '$');
 
 /*!
 \brief 转换节点大小为新的节点索引值。
+\return 保证 4 位十进制数内按字典序递增的字符串。
 \note 重复使用作为新节点的名称，可用于插入不重复节点。
 \since build 598
 */
 //@{
+YF_API string
+MakeIndex(size_t);
 inline PDefH(string, MakeIndex, const ValueNode::Container& con)
-	ImplRet(to_string(con.size()))
+	ImplRet(MakeIndex(con.size()))
 inline PDefH(string, MakeIndex, const ValueNode& node)
-	ImplRet(to_string(node.size()))
+	ImplRet(MakeIndex(node.GetContainerRef()))
 //@}
 
 } // namespace YSLib;

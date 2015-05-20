@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1305
+\version r1347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-05-13 11:28 +0800
+	2015-05-20 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -499,6 +499,44 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 //@}
 //@}
 
+
+//! \since build 599
+//@{
+//! \brief 取前缀子字符串。
+//@{
+template<typename _tString, typename... _tParams>
+inline _tString
+find_prefix(const _tString& str, _tParams&&... args)
+{
+	if(!str.empty())
+	{
+		const auto pos(str.find(yforward(args)...));
+
+		if(pos != _tString::npos)
+			return str.substr(0, pos);
+	}
+	return {};
+}
+//@}
+
+//! \brief 取后缀子字符串。
+//@{
+template<typename _tString, typename... _tParams>
+inline _tString
+find_suffix(const _tString& str, _tParams&&... args)
+{
+	if(!str.empty())
+	{
+		const auto pos(str.rfind(yforward(args)...));
+
+		if(pos != _tString::npos)
+			return str.substr(pos + 1);
+	}
+	return {};
+}
+//@}
+//@}
+
 /*!
 \brief 取添加前缀和后缀的字符串。
 \pre 断言：删除的字符串不大于串长。
@@ -786,15 +824,18 @@ extract_line_cr(std::basic_istream<_tChar, _tTraits>& is,
 
 /*!
 \brief 非格式输出。
-\since build 597
+\since build 599
 */
-template<typename _tChar, class _tTraits, class _tAlloc>
-std::basic_ostream<_tChar, _tTraits>&
-write(std::basic_ostream<_tChar, _tTraits>& os,
-	const std::basic_string<_tChar, _tTraits, _tAlloc>& str)
+template<typename _tChar, class _tString>
+std::basic_ostream<_tChar, typename _tString::traits_type>&
+write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
+	const _tString& str, typename _tString::size_type pos = 0,
+	typename _tString::size_type n = _tString::npos)
 {
-	if(!str.empty())
-		os.write(&str[0], std::streamsize(str.length()));
+	const auto len(str.length());
+
+	if(pos < len)
+		os.write(&str[pos], std::streamsize(std::min(n, len - pos)));
 	return os;
 }
 

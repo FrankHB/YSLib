@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r478
+\version r486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2015-05-16 08:30 +0800
+	2015-05-20 13:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_ValueNode
+#include <cstdio> // for std::snprintf;
 
 namespace YSLib
 {
@@ -125,6 +126,15 @@ IsPrefixedIndex(const string& name, char prefix)
 		}
 		CatchIgnore(std::invalid_argument&)
 	return {};
+}
+
+string
+MakeIndex(size_t n)
+{
+	char str[5]{};
+
+	std::snprintf(str, 5, "%04u", unsigned(n));
+	return str;
 }
 
 } // namespace YSLib;

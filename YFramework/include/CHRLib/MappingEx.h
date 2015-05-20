@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r350
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2015-04-30 23:17 +0800
+	2015-05-18 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ struct GUCSMapper<CharSet::SHIFT_JIS> : UCSMapperBase
 #if 0
 	template<typename _tObj, typename _tIn, typename _tState>
 	static byte
-	Decode(_tObj& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
 		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
@@ -137,10 +137,13 @@ struct GUCSMapper<CharSet::GBK> : UCSMapperBase
 {
 	using UCSMapperBase::Assign;
 
-	//! \bug 大端序下输出缺少转换。
+	/*!
+	\bug 大端序下输出缺少转换。
+	\since build 599
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
 		yassume(cp113_lkp);
@@ -185,7 +188,7 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 #if 0
 	template<typename _tObj, typename _tIn, typename _tState>
 	static byte
-	Decode(_tObj& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
 		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
