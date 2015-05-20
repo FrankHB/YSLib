@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1437
+\version r1438
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-05-05 05:37 +0800
+	2015-05-17 14:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -941,7 +941,7 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 				break;
 			}
 		}
-		YAssert(false, "");
+		YAssert(false, "Invalid state found.");
 	}
 	default:
 		if(res > 32)

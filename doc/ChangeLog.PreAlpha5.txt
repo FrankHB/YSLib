@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r14302
+\version r14581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-05-17 12:04 +0800
+	2015-05-21 00:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,284 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %ValueNode $=
+				(
+					* "wrong return type" @ "member function template \
+						%emplace_hint" @ "class %ValueNode" $since b598 $=
+						(/ "return type" -> 'iterator'
+							~ 'pair<iterator YPP_Comma bool>'),
+					/ @ "functions %MakeIndex" $=
+					(
+						+ "overloading for %size_t parameter";
+						* "lexicographical order not reserved in result" $since
+							b598
+					)
+				),
+				/ %YException $=
+				(
+					/ "supported return %bool to indicate exception occurred"
+						@ "function %TryExecute; function template \
+						%FilterExceptions",
+					/ "removed last '.'" @ "tracing message for caught \
+						exception" @ "function %TraceExceptionType"
+				)
+			),
+			/ %Service $=
+			(
+				* "wrong result due to no iteration made"
+					@ "functions %(GetIterator, GetPosition)"
+					@ "class %TextManager" @ %TextManager $since b595
+				/ %FileSystem $=
+				(
+					/ "merged 2 function %GetExtensionOf for string types"
+						-> "function template" ^ ("%ystdex::find_suffix"
+						@ %YBase.YStandardEx.String)
+					/ @ "class %Path" $=
+					(
+						(
+						/ "%GetString supported delimiter parameter with \
+							default argument 'ucs2_t(YCL_PATH_DELIMITER)'";
+						+ "function %Verify";
+						/ DLDI "simplified function %operator String"
+							^ "%Verify",
+						/ "function %GetMBCS supported 2nd delimiter parameter \
+							with default argument 'ucs2_t(YCL_PATH_DELIMITER)'"
+							^ "%Verify" ~ "%operator String"
+						),
+						+ 'using ypath::size',
+						+ 'using ypath::max_size',
+						+ "constructor template for input iterator pairs",
+						+ "constructor template for instances of \
+							%std::initializer_list",
+						/ @ "function %operator/="
+						(
+							* "wrongly popped back parent component when the \
+								parameter is parent component and parent \
+								component is at end" $since b409
+								// So 'string(Path("..") /= u"..")' should be \
+									'string("../..")' rather than \
+									'string("..")' in general.
+							* "wrongly ignored parent component parameter when \
+								the nothing can be popped" $since b409
+								// So 'string(Path() /= u"..")' should be \
+									'string("..")' rather than 'string()' \
+									in general.
+						)
+					)
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				(
+				/ @ "all 2 function templates %InsertSyntaxNode"
+					-> "4 function templates" $=
+				(
+					/ "return type" -> 'pair<ValueNode::Container, bool>'
+						~ 'ValueNode::iterator',
+					/ DLDI "implemented" ^ ($dep_from "%ValueNode::emplace_hint"
+						@ %YSLib.Core.ValueNode) ~ "%ValueNode::emplace",
+					/ "parameterized 1st parameter to support node container"
+				);
+				+ "3 function templates %InsertChildSyntaxNode"
+				),
+				/ @ "function %ConvertDocumentNode" $=
+				(
+					/ "pop back a space for non-empty string before converted \
+						result '?>'",
+					/ "push back a space before converted result '/>'",
+					/ "pop back space before '</' if existed",
+					/ DLDI "string concatenated by condition" ^ 'if'
+						~ "conditional expression"
+				),
+				/ @ "namespace %XSML" $=
+				(
+					(
+					+ "function template %MakeTop";
+					+ "function %MakeTop",
+					+ "function %MakeXMLDecl";
+					+ "function %MakeXMLDoc",
+					),
+					(
+					+ "(inline functions, function templates) \
+						%(MakeAttributeTagLiteral; MakeAttributeLiteral)";
+					+ "2 function templates %InsertAttributeNode" $dep_from
+						"%InsertChildSyntaxNode"
+					)
+				),
+				+ "constructors with parameter ('const ValueNode&',
+					'ValueNode&&')" @ "class %NodeLiteral",
+				/ "trimmed first newline characters for nonempty node output"
+					@ "function %PrintSyntaxNode"
+				+ 'using YSLib::MakeIndex;'
+			),
+			* $comp "lexicographical order not reserved for syntax node"
+				@ ("function %Reduce" @ %SContext $since b335, $forced
+				"function %TransformToSyntaxNode" @ %NPLA1 $since b598)
+				$dep_from %YSLib.Core.ValueNode
+		)
+		/ %CHRLib $=
+		(
+			/ "parameter '_tObj&'" @ "all function template %Decode"
+				@ "class template specializations %GUCSMapper" -> '_tObj&&'
+				$effecive @ %(StaticMapping, MappingEx),
+			* "non lvalue reference type cannot instantiate nonnull decoder \
+				pointer" @ "function template %FetchMapperPtr" @ %Mapping $since
+				b595;
+			* "functions %MBCToUC without output" @ %CharacterProcessing $since
+				b595
+		),
+		/ %YCLib $=
+		(
+			* "missing assertion string" @ "function %ExecuteShellCommand"
+				@ "platform %Win32" @ %HostedGUI $since b592,
+			/ %FileSystem $=
+			(
+				/ DLDI "simplified" @ "platform %Win32"
+					@ "constructor %DirectorySession" $dep_from
+					%'YCLib_(MinGW32)'.MinGW32,
+				+ "functions %platform::(SetBinaryIO; SetupBinaryStdIO)"
+			)
+		),
+		/ "constructor %DirectoryFindData" @ %'YCLib_(MinGW32)'.MinGW32 $=
+		(
+			/ $lib "allowed empty directory after trailing slashes and \
+				backslashes removed and treated as current directory",
+			* $doc "wrong precondition" $since b549
+		)
+	),
+	/ %YReader $=
+	(
+		* $comp "member functions %DSReader::(GetTopPosition, \
+			GetBottomPosition always returned initial value" @ %DSReader $since
+			b495 $dep_from %YFramework.YSLib.Service.TextManager;
+		* $comp %ShlReader $since b495 $=
+		(
+			* "wrong reading position indicated" @ "member functions \
+				%(TextInfoBox::UpdateData, ReaderBox::UpdateData)",
+			/ @ "class %ShlTextReader" $=
+			(
+				* "wrong result" @ "function %GetReaderPosition";
+				* "wrong position indicated" @ "reader box",
+				* "wrong last position updated" @ "function %UpdateReadingList",
+				* "no effect" @ "function %Locate"
+			)
+		),
+		* $comp "wrong bookmark position added" @ "class %BookmarkPanel"
+			@ %BookmarkUI $since b495 $dep_from
+			("%ShlTextReader::GetReaderPosition" @ %ShlReader)
+	),
+	/ $re_ex(b498) DLDI "all string arguments '""' for non-dependent class \
+		type parameters" -> '{}' $effective
+		@ %YFramework.YSLib.Service.FileSystem,
+	/ $re_ex(b498) DLDI "all string arguments '""' for dependent parameters"
+		-> 'string()' $effective @ %(YFramework.(Helper.Initialization, \
+		NPL.NPLA1), Tools.SHBuild.Main),
+	/ DLDI "printed new line" @ %Tools.SHBuild.Main ^ "%std::putchar"
+		~ "%std::puts",
+	/ %Tools $=
+	(
+		(
+		+ %SXML2XML
+			$= (+ %Main ^ $dep_from ("%platform::SetupBinaryStdIO"
+				@ %YFramework.YCLib.FileSystem));
+		+ "installing %SXML2XML" @ "!SHBuild_NoDev" @ "%install-sysroot.sh"
+		),
+		/ %RevisionPatcher.Main $=
+		(
+			(
+			/ $lib $impl "simplified" ^ $dep_from ("%platform::SetupBinaryStdIO"
+				@ %YFramework.YCLib.FileSystem);
+			/ $comp "supported platforms other than %Win32",
+			/ $comp "removed redandant call of %std::ios_base::sync_with_stdio"
+			);
+			/ "wrapped to return nonzero when caught exception"
+				^ "%FilterException"
+		),
+		/ "function %::main" @ SHBuild.Main $=
+		(
+			* "missing wrapped quotes on program name" @ "usage text" $since
+				b474,
+				// Otherwise it would be wrong if the full path has whitespaces.
+			/ "ignored empty command line arguments",
+			* $comp "first empty argument or argument containing only \
+				slashes/backslashes caused assertion failure in \
+				%VerifyDirectory call of normalizing %SRCPATH" $since b474
+				$dep_from %YFramework.'YCLib_(MinGW32)'.MinGW32
+				// Note that MSYS2 would convert path of single slash.
+		),
+		(
+		+ %ProjectGenerator
+			$= (+ %Main ^ $dep_from %YFramework.NPL.NPLA1);
+		+ "%GenerateProjects.sh" @ %Tools,
+			// Ensured generated files are identical to current ones.
+		+ "installing %ProjectGenerator" @ "!SHBuild_NoDev"
+			@ "%install-sysroot.sh"
+		)
+	),
+	/ @ "function template %write" @ %YBase.YStandardEx.String $=
+	(
+		/ "parameter type of %std::basic_string instances"
+			-> "template type parameter",
+		+ "position parameter",
+		+ "custom length parameter",
+		+ "function templates %(find_prefix, find_suffix)"
+	),
+	/ $dev "Code::Blocks projects" $=
+	(
+		/ %YBase $=
+		(
+			* DLD "redundant node %CodeBlocks_project_file/Project/Extensions"
+				$since b598,
+			* $dev "wrong header name for %YBase.YStandardEx.Optional" $since
+				b590,
+			* "missing unit 'source/ystdex/concurrency.hpp'"
+				@ "platforms %(Android, DS)" $since b520
+		),
+		- $dev "all nodes \
+			%CodeBlocks_project_file/Project/Build/Target/working_dir"
+			$effective @ "platform %MinGW32" @ %(YBase, YFramework);
+		/ %YFramework $=
+		(
+			/ @ "%YFramework.cbp" $=
+			(
+				* DLD "redundant node \
+					%CodeBlocks_project_file/Project/Option pch_mode" $since
+					b598,
+				* "missing unit 'include/YCLib/HostedGUI.h'" $since b560,
+				* "missing update freetype headers" $since b563,
+				* "redundant %DS header" $since b585,
+				- "unit 'data/default_font.bin'"
+					// For consistent with other files.
+			),
+			* "redundant unit '../include/YSLib/Service/yftext.h'"
+				@ 'YFramework_*.cbp' $since b473
+			* "redundant unit '../source/YSLib/Service/yfile.cpp'"
+				@ "%(YFramework_DS.cbp, YFramework_Android.cbp)" $since b473
+			* "missing unit '../source/YSLib/UI/Viewer.cpp'"
+				@ "%YFramework_Android.cbp" $since b525
+		),
+		- "all unit '../../Data/cp113.bin'" $effective
+			@ "%(YFramework.cbp, YFramework_DS.cbp)",
+			// Since it is not necessary long ago.
+		* "duplicate units ('AndroidManifest.xml', 'Makefile')"
+			@ "%YSTest_Android.cbp" $since b502,
+		/ $lib "single quotes" @ "node %ExtraCommands" @ "%YSTest_MinGW32.cbp"
+			-> "double quotes"
+			// Note this might be different than Code::Blocks saved.
+	)
+),
+
+b598
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -8186,7 +8464,7 @@ b549
 			/ DLD "simplified memory mapping implementation" @ "platform %Win32"
 				@ %MemoryMapping
 		),
-		/ %YCLib_(MinGW32).MinGW32 $=
+		/ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
 			+ "macro %YF_Raise_Win32Exception_On_Failure",
 			/ "class %RegisterKey" -> "%RegistryKey" $=
@@ -8206,7 +8484,7 @@ b549
 				+ "functions %(GetSubKeyCount, GetSubKeyNames, GetValueCount, \
 					GetValueNames, Flush)"
 			),
-			+ "classes %DirectoryFindData"
+			+ "class %DirectoryFindData"
 		),
 		/ %YSLib $=
 		(

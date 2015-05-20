@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1715
+\version r1738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-04-24 05:50 +0800
+	2015-05-18 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,17 @@
 #define YCL_INC_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_Container // for std::uint64_t, std::FILE*, std::is_array,
-//	std::is_integral, ystdex::remove_reference_t, arrlen, string,
-//	ystdex::string_length;
-#include <ystdex/cstring.h> // for ystdex::is_null;
-#include <ystdex/path.hpp> // for ystdex::path_category;
+#include YFM_YCLib_Container // for std::is_same, yalignof,
+//	ystdex::string_length, std::is_integral, std::is_array,
+//	ystdex::remove_reference_t, arrlen, std::FILE,
+//	ystdex::enable_for_string_class_t, std::uint64_t, string;
 #include "CHRLib/YModules.h"
-#include YFM_CHRLib_Encoding
-#include <system_error>
+#include YFM_CHRLib_Encoding // for CHRLib::ucs2_t, CHRLib::ucs4_t,
+//	CHRLib::CharSet::Encoding;
+#include <ystdex/cstring.h> // for ystdex::is_null;
+#include <ios> // for std::ios_base::sync_with_stdio;
+#include <system_error> // for std::system_error;
+#include <ystdex/base.h> // for ystdex::deref_self;
 #if YCL_DS || YCL_MinGW || YCL_Linux || YCL_OS_X
 #	include <dirent.h>
 #endif
@@ -238,6 +241,22 @@ struct YF_API FileDescriptorDeleter
 	void
 	operator()(pointer) ynothrow;
 };
+
+
+/*!
+\brief 设置标准库流二进制输入/输出模式。
+\pre 间接断言：参数非空。
+\since build 599
+*/
+//@{
+YF_API void
+SetBinaryIO(std::FILE*) ynothrow;
+
+inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
+	std::FILE* out = stdout, bool sync = {}) ynothrow
+	ImplExpr(SetBinaryIO(in), SetBinaryIO(out),
+		std::ios_base::sync_with_stdio(sync))
+//@}
 
 
 /*!

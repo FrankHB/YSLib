@@ -31,7 +31,6 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="Makefile" />
 		<Unit filename="../include/About.h" />
 		<Unit filename="../include/BookmarkUI.h" />
 		<Unit filename="../include/ColorPicker.h" />
@@ -55,5 +54,6 @@
 		<Unit filename="../source/Shells.cpp" />
 		<Unit filename="../source/ShlExplorer.cpp" />
 		<Unit filename="../source/ShlReader.cpp" />
+		<Unit filename="Makefile" />
 	</Project>
 </CodeBlocks_project_file>

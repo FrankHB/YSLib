@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1981
+\version r2010
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-04-24 04:43 +0800
+	2015-05-20 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,10 +46,12 @@ Path::operator/=(const String& fname)
 {
 	auto& norm(get_norm());
 
-	if(norm.is_parent(fname))
+	if(norm.is_parent(fname) && (is_absolute() ? 1 : 0) < size())
 	{
-		if((is_absolute() ? 1 : 0) < size())
+		if(!norm.is_parent(back()))
 			pop_back();
+		else
+			push_back(fname);
 	}
 	else if(!norm.is_self(fname))
 		push_back(fname);
@@ -63,22 +65,13 @@ Path::operator/=(const Path& pth)
 	return *this;
 }
 
-Path::operator String() const
-{
-	auto res(GetString());
-
-	if(!(res.empty() || VerifyDirectory(res)))
-		res.pop_back();
-	return res;
-}
-
 String
-Path::GetString() const
+Path::GetString(ucs2_t delimiter) const
 {
 	const auto res(ystdex::to_string_d(static_cast<const ypath&>(*this),
-		YCL_PATH_DELIMITER));
+		delimiter));
 
-	YAssert(res.empty() || res.back() == YCL_PATH_DELIMITER,
+	YAssert(res.empty() || res.back() == delimiter,
 		"Invalid conversion result found.");
 	return res;
 }
@@ -95,22 +88,18 @@ Path::Parse(const ucs2string& str)
 		res.push_back(ucs2string(b, e));
 	});
 	if(!res.empty() && !IsAbsolute(res.front()) && IsAbsolute(str.c_str()))
-		res.insert(res.cbegin(), u"");
+		res.insert(res.cbegin(), {});
 	return res;
 }
 
-
 String
-GetExtensionOf(const String& fname)
+Path::Verify(ucs2_t delimiter) const
 {
-	if(!fname.empty())
-	{
-		const auto pos(fname.rfind('.'));
+	auto res(GetString(delimiter));
 
-		if(pos != String::npos)
-			return fname.substr(pos + 1);
-	}
-	return {};
+	if(!(res.empty() || VerifyDirectory(res)))
+		res.pop_back();
+	return res;
 }
 
 
@@ -182,8 +171,7 @@ DeleteTree(const Path& pth)
 void
 ListFiles(const Path& pth, vector<String>& lst)
 {
-	TryExpr(Traverse(pth,
-		[&](NodeCategory c, const string& name, PathNorm& nm){
+	TryExpr(Traverse(pth, [&](NodeCategory c, const string& name, PathNorm& nm){
 		lst.push_back(String(!nm.is_parent(name)
 			&& c == NodeCategory::Directory
 			? name + YCL_PATH_DELIMITER : name, CS_Path));

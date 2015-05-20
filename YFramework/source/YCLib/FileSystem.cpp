@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2147
+\version r2158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-04-28 01:54 +0800
+	2015-05-19 22:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,6 +174,18 @@ FileDescriptorDeleter::operator()(FileDescriptorDeleter::pointer p) ynothrow
 {
 	if(p)
 		::close(*p);
+}
+
+
+void
+SetBinaryIO(std::FILE* stream) ynothrow
+{
+#if YCL_Win32
+	FileDescriptor(Nonnull(stream)).SetMode(_O_BINARY);
+#else
+	// NOTE: No effect.
+	Nonnull(stream);
+#endif
 }
 
 
@@ -510,7 +522,7 @@ ImplDeDtor(FileOperationFailure)
 
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
-	: dir(new DirectoryFindData(path && *path != char() ? path : "."))
+	: dir(new DirectoryFindData(path ? path : ""))
 #else
 	: sDirPath(path && *path != char() ? path : "."),
 	dir(::opendir(sDirPath.c_str()))

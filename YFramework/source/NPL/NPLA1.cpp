@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r505
+\version r546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2015-05-17 11:40 +0800
+	2015-05-20 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,13 +38,13 @@ namespace NPL
 ValueNode
 MapNPLALeafNode(const ValueNode& node)
 {
-	return {0, "", Deliteralize(ParseNPLANodeString(node))};
+	return {0, string(),  Deliteralize(ParseNPLANodeString(node))};
 }
 
 ValueNode
 TransformToSyntaxNode(const ValueNode& node, const string& name)
 {
-	ValueNode::Container con{{0, "0", node.GetName()}};
+	ValueNode::Container con{{0, MakeIndex(0), node.GetName()}};
 	const auto nested_call([&](const ValueNode& nd){
 		con.emplace(TransformToSyntaxNode(nd, MakeIndex(con)));
 	});
@@ -58,7 +58,7 @@ TransformToSyntaxNode(const ValueNode& node, const string& name)
 				nested_call(nd);
 		}
 		CatchExpr(ystdex::bad_any_cast&,
-			con.emplace(0, "1", Literalize(ParseNPLANodeString(node))))
+			con.emplace(0, MakeIndex(1), Literalize(ParseNPLANodeString(node))))
 	else
 		for(auto& nd : node)
 			nested_call(nd);
@@ -307,6 +307,8 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 						for(; i != cont.cend(); ++i)
 							res += Deliteralize(ConvertDocumentNode(Deref(i),
 								igen, depth, ParseOption::String)) + ' ';
+						if(!res.empty())
+							res.pop_back();
 						return res + "?>";
 					}
 					if(str == "*ENTITY*" || str == "*NAMESPACES*")
@@ -339,24 +341,31 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 							CatchIgnore(std::out_of_range&)
 							CatchIgnore(ystdex::bad_any_cast&)
 							if(i == cont.cend())
-								return head + "/>";
+								return head + " />";
 							head += '>';
 						}
 						else
-							return head + "/>";
+							return head + " />";
 						for(; i != cont.cend(); ++i)
 						{
 							nl = Deref(i).Value.GetType() != typeid(string);
-							res += (nl ? '\n' + igen(depth
-								+ size_t(is_content)) : " ")
-								+ Deliteralize(ConvertDocumentNode(*i, igen,
-								depth + size_t(is_content)));
+							if(nl)
+								res += '\n' + igen(depth + size_t(is_content));
+							else
+								res += ' ';
+							res += Deliteralize(ConvertDocumentNode(*i,
+								igen, depth + size_t(is_content)));
 						}
 						if(res.size() > 1 && res.front() == ' ')
 							res.erase(0, 1);
+						if(!res.empty() && res.back() == ' ')
+							res.pop_back();
 						if(is_content)
-							return head + res + (nl ? '\n' + igen(depth) : "")
-								+ ystdex::quote(str, "</", '>');
+						{
+							if(nl)
+								res += '\n' + igen(depth);
+							return head + res + ystdex::quote(str, "</", '>');
+						}
 					}
 					else
 						throw LoggedEvent("Empty item found.", Warning);
@@ -383,8 +392,33 @@ PrintSyntaxNode(std::ostream& os, const ValueNode& node, IndentGenerator igen,
 {
 	if(!node.empty())
 		ystdex::write(os,
-			ConvertDocumentNode(Deref(node.begin()), igen, depth));
+			ConvertDocumentNode(Deref(node.begin()), igen, depth), 1);
 	os << std::flush;
+}
+
+
+ValueNode
+MakeXMLDecl(const string& name, const string& ver, const string& enc,
+	const string& sd)
+{
+	string decl("version=\"" + ver + '"');
+
+	if(!enc.empty())
+		decl += " encoding=\"" + enc + '"';
+	if(!sd.empty())
+		decl += " standalone=\"" + sd + '"';
+	return NodeLiteral{0, name, {{MakeIndex(0), "*PI*"}, {MakeIndex(1), "xml"},
+		{MakeIndex(2), decl + ' '}}};
+}
+
+ValueNode
+MakeXMLDoc(const string& name, const string& ver, const string& enc,
+	const string& sd)
+{
+	auto doc(MakeTop(name));
+
+	doc.Add(MakeXMLDecl(MakeIndex(1), ver, enc, sd));
+	return doc;
 }
 
 } // namespace SXML;

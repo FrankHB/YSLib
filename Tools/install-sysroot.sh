@@ -214,9 +214,17 @@ if [[ "$SHBuild_NoDev" == '' ]]; then
 	SHBuild_S2_SHBuild="$SR_Bin/SHBuild"
 	$SHBuild_S2_SHBuild $SHBuild_BaseDir/../RevisionPatcher "-xd,$SR_SHBuild" \
 		-xmode,2 $SHBuild_Opt $CXXFLAGS $INCLUDES
+	$SHBuild_S2_SHBuild $SHBuild_BaseDir/../SXML2XML "-xd,$SR_SHBuild" \
+		-xmode,2 $SHBuild_Opt $CXXFLAGS $INCLUDES
+	$SHBuild_S2_SHBuild $SHBuild_BaseDir/../ProjectGenerator "-xd,$SR_SHBuild" \
+		-xmode,2 $SHBuild_Opt $CXXFLAGS $INCLUDES
 	echo Installing other development tools ...
 	SHBuild_Install_HardLink_Exe "$SR_SHBuild/RevisionPatcher.exe" \
 		"$SR_Bin/RevisionPatcher$EXESFX"
+	SHBuild_Install_HardLink_Exe "$SR_SHBuild/SXML2XML.exe" \
+		"$SR_Bin/SXML2XML$EXESFX"
+	SHBuild_Install_HardLink_Exe "$SR_SHBuild/ProjectGenerator.exe" \
+		"$SR_Bin/ProjectGenerator$EXESFX"
 	# XXX: Version of Windows? Extract as a function?
 	if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
 		SHBuild_Install "$YSLib_DataDir/FixUAC.manifest" \

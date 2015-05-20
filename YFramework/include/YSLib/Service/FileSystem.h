@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2417
+\version r2457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-04-24 23:37 +0800
+	2015-05-20 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,6 +125,16 @@ public:
 	Path(_type&& arg, Text::Encoding enc = CS_Path)
 		: ypath(Parse(String(yforward(arg), enc)))
 	{}
+	//! \since build 599
+	template<typename _tIn>
+	Path(_tIn first, _tIn last)
+		: ypath(first, last)
+	{}
+	//! \since build 599
+	template<typename _type>
+	Path(std::initializer_list<_type> il)
+		: ypath(il)
+	{}
 	//@}
 	/*!
 	\brief 复制构造：默认实现。
@@ -164,29 +174,30 @@ public:
 
 	/*!
 	\brief 转换为字符串。
-	\note 使用 VerifyDirectory 验证，当且仅当确认为可打开的目录时结果以分隔符结尾。
+	\sa Verify
 	\since build 409
 	*/
-	operator String() const;
+	DefCvt(const, String, Verify())
 	/*!
 	\brief 转换为窄字符串。
 	\since build 411
 	*/
-	DefCvt(const, string, GetMBCS(CS_Path))
+	DefCvt(const, string, GetMBCS())
 
 	/*!
 	\brief 取指定编码的多字节字符串。
-	\since build 411
+	\since build 599
 	*/
-	PDefH(string, GetMBCS, Text::Encoding enc = CS_Path) const
-		ImplRet(String(*this).GetMBCS(enc))
+	PDefH(string, GetMBCS, Text::Encoding enc = CS_Path,
+		ucs2_t delimiter = ucs2_t(YCL_PATH_DELIMITER)) const
+		ImplRet(Verify(delimiter).GetMBCS(enc))
 	/*!
-	\brief 取字符串表示。
+	\brief 取指定分隔符的字符串表示。
 	\post 断言：结果为空或以分隔符结尾。
-	\since build 411
+	\since build 599
 	*/
 	String
-	GetString() const;
+	GetString(ucs2_t = ucs2_t(YCL_PATH_DELIMITER)) const;
 
 	/*!
 	\brief 正规化：去除自指和父节点的路径成员。
@@ -199,6 +210,16 @@ public:
 	//@{
 	static ypath
 	Parse(const ucs2string&);
+
+	/*!
+	\brief 转换为指定分隔符表示的字符串并验证。
+	\note 使用 VerifyDirectory 验证，当且仅当确认为可打开的目录时结果以分隔符结尾。
+	\sa GetString
+	\sa VerifyDirectory
+	\since build 599
+	*/
+	String
+	Verify(ucs2_t = ucs2_t(YCL_PATH_DELIMITER)) const;
 
 	using ypath::back;
 
@@ -230,6 +251,9 @@ public:
 
 	using ypath::is_relative;
 
+	//! \since build 599
+	using ypath::max_size;
+
 	//! \since build 410
 	using ypath::merge_parents;
 
@@ -238,6 +262,9 @@ public:
 
 	//! \since build 473
 	using ypath::push_back;
+
+	//! \since build 599
+	using ypath::size;
 
 	using ypath::swap;
 	PDefH(void, swap, Path& pth)
@@ -281,11 +308,13 @@ inline DefSwap(ynothrow, Path)
 \since build 410
 */
 //@{
-YF_API String
-GetExtensionOf(const String&);
-//! \since build 476
-inline PDefH(String, GetExtensionOf, const string& path)
-	ImplRet(String(path, CS_Path))
+//! \since build 599
+template<class _tString>
+_tString
+GetExtensionOf(const _tString& fname)
+{
+	return ystdex::find_suffix(fname, typename _tString::value_type('.'));
+}
 inline PDefH(String, GetExtensionOf, const Path& pth)
 	ImplRet(pth.empty() ? String() : GetExtensionOf(pth.back()))
 //@}

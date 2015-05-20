@@ -4,7 +4,6 @@
 	<Project>
 		<Option title="YFramework" />
 		<Option makefile_is_custom="1" />
-		<Option pch_mode="2" />
 		<Option compiler="null" />
 		<Build>
 			<Target title="debug">
@@ -30,6 +29,7 @@
 		<Unit filename="../3rdparty/freetype/include/ftbitmap.h" />
 		<Unit filename="../3rdparty/freetype/include/ftbzip2.h" />
 		<Unit filename="../3rdparty/freetype/include/ftcache.h" />
+		<Unit filename="../3rdparty/freetype/include/ftcffdrv.h" />
 		<Unit filename="../3rdparty/freetype/include/ftchapters.h" />
 		<Unit filename="../3rdparty/freetype/include/ftcid.h" />
 		<Unit filename="../3rdparty/freetype/include/fterrdef.h" />
@@ -57,6 +57,7 @@
 		<Unit filename="../3rdparty/freetype/include/ftsynth.h" />
 		<Unit filename="../3rdparty/freetype/include/ftsystem.h" />
 		<Unit filename="../3rdparty/freetype/include/fttrigon.h" />
+		<Unit filename="../3rdparty/freetype/include/ftttdrv.h" />
 		<Unit filename="../3rdparty/freetype/include/fttypes.h" />
 		<Unit filename="../3rdparty/freetype/include/ftwinfnt.h" />
 		<Unit filename="../3rdparty/freetype/include/ftxf86.h" />
@@ -103,11 +104,6 @@
 		<Unit filename="../3rdparty/freetype/include/tttags.h" />
 		<Unit filename="../3rdparty/freetype/include/ttunpat.h" />
 		<Unit filename="../3rdparty/include/FreeImage.h" />
-		<Unit filename="../Data/cp113.bin" />
-		<Unit filename="DS/include/Helper/DSMain.h" />
-		<Unit filename="DS/include/Helper/shlds.h" />
-		<Unit filename="DS/include/YCLib/DSVideo.h" />
-		<Unit filename="data/default_font.bin" />
 		<Unit filename="include/CHRLib/CharacterMapping.h" />
 		<Unit filename="include/CHRLib/CharacterProcessing.h" />
 		<Unit filename="include/CHRLib/Convert.hpp" />
@@ -139,6 +135,7 @@
 		<Unit filename="include/YCLib/Debug.h" />
 		<Unit filename="include/YCLib/FileSystem.h" />
 		<Unit filename="include/YCLib/Host.h" />
+		<Unit filename="include/YCLib/HostedGUI.h" />
 		<Unit filename="include/YCLib/Input.h" />
 		<Unit filename="include/YCLib/JNI.h" />
 		<Unit filename="include/YCLib/Keys.h" />
@@ -277,11 +274,11 @@
 		<Unit filename="source/YSLib/Core/ValueNode.cpp" />
 		<Unit filename="source/YSLib/Core/YApplication.cpp" />
 		<Unit filename="source/YSLib/Core/YCoreUtilities.cpp" />
+		<Unit filename="source/YSLib/Core/YDevice.cpp" />
+		<Unit filename="source/YSLib/Core/YException.cpp" />
 		<Unit filename="source/YSLib/Core/YGDIBase.cpp" />
 		<Unit filename="source/YSLib/Core/YGraphics.cpp" />
 		<Unit filename="source/YSLib/Core/YMessage.cpp" />
-		<Unit filename="source/YSLib/Core/YDevice.cpp" />
-		<Unit filename="source/YSLib/Core/YException.cpp" />
 		<Unit filename="source/YSLib/Core/YObject.cpp" />
 		<Unit filename="source/YSLib/Core/yshell.cpp" />
 		<Unit filename="source/YSLib/Core/ystring.cpp" />

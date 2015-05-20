@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2382
+\version r2410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-05-01 23:14 +0800
+	2015-05-18 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,10 +186,13 @@ public:
 		return x == 0xC0 || x == 0xC1 || x > 0xF4;
 	}
 
-	//! \brief 解码： UTF-8 。
+	/*!
+	\brief 解码： UTF-8 。
+	\since build 599
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st)) && noexcept(GetIndexOf(st))
 		&& noexcept(!FillByte(i, st)))
 	{
@@ -246,11 +249,12 @@ public:
 	/*!
 	\brief 快速解码： UTF-8 。
 	\see https://github.com/miloyip/rapidjson/blob/master/include/rapidjson/encodings.h
+	\since build 599
 	*/
 	//@{
 	template<typename _tObj, typename _tIn>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, ConversionState& st)
+	Decode(_tObj&& uc, _tIn&& i, ConversionState& st)
 		ynoexcept_spec(!FillByte(i, st))
 	{
 		byte b;
@@ -340,7 +344,7 @@ public:
 	}
 	template<typename _tObj, typename _tIn>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, ConversionState&& st)
+	Decode(_tObj&& uc, _tIn&& i, ConversionState&& st)
 		ynoexcept_spec(Decode(uc, yforward(i), st))
 	{
 		return Decode(uc, yforward(i), st);
@@ -381,10 +385,13 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 {
 	using UCSMapperBase::Assign;
 
-	//! \brief 解码： UTF-16BE 。
+	/*!
+	\brief 解码： UTF-16BE 。
+	\since build 599
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -432,10 +439,13 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 {
 	using UCSMapperBase::Assign;
 
-	//! \brief 解码： UTF-16LE 。
+	/*!
+	\brief 解码： UTF-16LE 。
+	\since build 599
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -483,10 +493,13 @@ struct GUCSMapper<CharSet::UTF_32BE> : UCSMapperBase
 {
 	using UCSMapperBase::Assign;
 
-	//! \brief 解码： UTF-32BE 。
+	/*!
+	\brief 解码： UTF-32BE 。
+	\since build 599
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -522,10 +535,13 @@ struct GUCSMapper<CharSet::UTF_32LE> : UCSMapperBase
 {
 	using UCSMapperBase::Assign;
 
-	//! \brief 解码： UTF-32LE 。
+	/*!
+	\brief 解码： UTF-32LE 。
+	\since build 599
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
-	Decode(_tObj& uc, _tIn&& i, _tState&& st)
+	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{

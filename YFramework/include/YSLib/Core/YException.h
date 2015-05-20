@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r476
+\version r487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-05-16 12:22 +0800
+	2015-05-18 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,29 +141,36 @@ ExtractException(const ExtractedExceptionPrinter&,
 	const std::exception&, LoggedEvent::LevelType = Err, size_t = 0) ynothrow;
 
 /*!
+\return 是否发生并捕获异常。
+\since 599
+*/
+//@{
+/*!
 \brief 执行并试图记录异常。
 
 对参数指定的函数求值，并跟踪记录异常。
 */
-YF_API void
+YF_API bool
 TryExecute(std::function<void()>, const char* = {},
 	LoggedEvent::LevelType = Alert);
 
 /*!
-\brief 过滤宿主异常。
+\brief 调用函数并过滤宿主异常。
 
 对参数指定的函数求值，并捕获和跟踪记录所有异常。
 */
 template<typename _func>
-void
+bool
 FilterExceptions(_func f, const char* desc = {},
 	LoggedEvent::LevelType lv = Alert) ynothrow
 {
-	TryExpr(TryExecute(f, desc, lv))
+	TryRet(TryExecute(f, desc, lv))
 	CatchExpr(std::exception& e, TraceExceptionType(e, Emergent))
 	CatchExpr(..., YCL_TraceRaw(Emergent,
 		"Unknown exception found @ FilterExceptions."))
+	return true;
 }
+//@}
 //@}
 
 } // namespace YSLib;

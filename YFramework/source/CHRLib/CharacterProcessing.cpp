@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1354
+\version r1359
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-05-01 00:06 +0800
+	2015-05-18 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,8 +74,8 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 ConversionResult
 MBCToUC(const char*& c, Encoding enc, ConversionState&& st)
 {
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ystdex::pseudo_output,
-		const char*&, ConversionState&&>(enc))
+	if(const auto pfun = FetchMapperPtr<ConversionResult,
+		ystdex::pseudo_output&&, const char*&, ConversionState&&>(enc))
 		return pfun(ystdex::pseudo_output(), c, std::move(st));
 	return ConversionResult::Unhandled;
 }
@@ -83,8 +83,9 @@ ConversionResult
 MBCToUC(std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	yconstraint(fp);
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ystdex::pseudo_output,
-		ystdex::ifile_iterator&, ConversionState&&>(enc))
+	if(const auto pfun = FetchMapperPtr<ConversionResult,
+		ystdex::pseudo_output&&, ystdex::ifile_iterator&,
+		ConversionState&&>(enc))
 	{
 		ystdex::ifile_iterator i(fp);
 		const auto r(pfun(ystdex::pseudo_output(), i, std::move(st)));

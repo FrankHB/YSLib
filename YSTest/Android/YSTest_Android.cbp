@@ -55,8 +55,6 @@
 		<Unit filename="../source/ShlExplorer.cpp" />
 		<Unit filename="../source/ShlReader.cpp" />
 		<Unit filename="AndroidManifest.xml" />
-		<Unit filename="AndroidManifest.xml" />
-		<Unit filename="Makefile" />
 		<Unit filename="Makefile" />
 	</Project>
 </CodeBlocks_project_file>

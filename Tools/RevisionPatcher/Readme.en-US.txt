@@ -16,6 +16,8 @@ Currently only patches exported from 'hg diff' are tested. Example:
 
 	hg status --color=none -amn0 | xargs -0 hg diff --color=none | RevisionPatcher
 
+The program return nonzero value if any error occurred during conversion, otherwise zero.
+
 = About revision number
 The revision number rules is specified by Documentation::ProjectRules.
 Following are current implementation details.
