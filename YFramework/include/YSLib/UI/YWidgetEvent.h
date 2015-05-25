@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1743
+\version r1744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2015-03-21 17:32 +0800
+	2015-05-24 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -576,7 +576,7 @@ public:
 		EventMapping::MappedType(&)()) const
 		ImplRet(GetItem(id))
 
-	DefSetter(bool, Enabled, enabled)
+	DefSetter(, bool, Enabled, enabled)
 	/*!
 	\brief 设置指定事件是否启用。
 	\throw ystdex::unsupported 不支持设置事件启用操作。

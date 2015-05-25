@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1459
+\version r1464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-04-29 13:32 +0800
+	2015-05-24 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,13 +219,14 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 } // unnamed namespace;
 
 
-String
+IO::Path
 FetchDefaultShellDirectory()
 {
 #if YCL_Android
-	return AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory");
+	return
+		Path(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory"));
 #else
-	return IO::FetchCurrentWorkingDirectory();
+	return Path(IO::FetchCurrentWorkingDirectory());
 #endif
 }
 

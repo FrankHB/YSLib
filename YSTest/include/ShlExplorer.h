@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r161
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-02-05 15:34 +0800
+	2015-05-24 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,9 @@ namespace YReader
 
 /*!
 \brief 取默认 Shell 起始路径。
-\since build 512
+\since build 600
 */
-String
+IO::Path
 FetchDefaultShellDirectory();
 
 
@@ -53,6 +53,7 @@ public:
 };
 
 
+//! \since build 154
 class ShlExplorer : public ShlDS
 {
 private:

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2735
+\version r2857
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-05-04 01:08 +0800
+	2015-05-24 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, ystdex::qualified_decay;
+#include "type_op.hpp" // for ../ydef.h, qualified_decay;
 #include "cassert.h" // for yassume;
 #include <memory> // for std::addressof;
 
@@ -199,146 +199,6 @@ template<typename _type>
 struct is_nothrow_swappable<_type> : is_nothrow_default_constructible<
 	yimpl(dependent_swap::helper<_type, _type>)>
 {};
-//@}
-//@}
-
-
-//! \since build 560
-//@{
-/*!
-\brief 被包装的指针，满足 \c NullPointer 要求同时满足转移后为空。
-\tparam _type 被包装的指针。
-\pre _type 满足 \c NullPointer 要求且值转换为 \c bool 类型时不抛出异常。
-*/
-template<typename _type>
-class nptr
-{
-	static_assert(is_copy_constructible<_type>(), "Invalid type found.");
-	static_assert(is_copy_assignable<_type>(), "Invalid type found.");
-	static_assert(is_destructible<_type>(), "Invalid type found.");
-	static_assert(_type() == _type(), "Invalid type found.");
-	static_assert(_type(nullptr) == nullptr, "Invalid type found.");
-
-public:
-	using pointer = _type;
-
-private:
-	pointer ptr{};
-
-public:
-	nptr() = default;
-	yconstfn
-	nptr(std::nullptr_t)
-		: pointer()
-	{}
-	nptr(pointer p)
-		: ptr(p)
-	{}
-	nptr(const nptr&) = default;
-	nptr(nptr&& np) ynothrow
-	{
-		np.swap(*this);
-	}
-
-	nptr&
-	operator=(const nptr&) = default;
-	nptr&
-	operator=(nptr&& np) ynothrow
-	{
-		np.swap(*this);
-		return *this;
-	}
-
-	yconstfn bool
-	operator!() const ynothrow
-	{
-		return bool(*this);
-	}
-
-	//! \since build 586
-	yconstfn explicit
-	operator bool() const ynoexcept_spec(bool(std::declval<pointer>()))
-	{
-		return bool(ptr);
-	}
-
-	//! \since build 566
-	yconstfn const pointer&
-	get() const ynothrow
-	{
-		return ptr;
-	}
-
-	pointer&
-	get_ref() ynothrow
-	{
-		return ptr;
-	}
-
-	//! \since build 586
-	void
-	swap(nptr& np) ynoexcept(is_nothrow_swappable<pointer>())
-	{
-		using std::swap;
-
-		swap(ptr, np.ptr);
-	}
-};
-
-//! \relates nptr
-//@{
-template<typename _type>
-yconstfn bool
-operator==(const nptr<_type>& x, const nptr<_type>& y)
-{
-	return x.get() == y.get();
-}
-
-template<typename _type>
-yconstfn bool
-operator!=(const nptr<_type>& x, const nptr<_type>& y)
-{
-	return !(x == y);
-}
-
-//! \since build 562
-//@{
-template<typename _type>
-yconstfn bool
-operator<(const nptr<_type>& x, const nptr<_type>& y)
-{
-	return x.get() < y.get();
-}
-
-template<typename _type>
-yconstfn bool
-operator<=(const nptr<_type>& x, const nptr<_type>& y)
-{
-	return !(y < x);
-}
-
-template<typename _type>
-yconstfn bool
-operator>(const nptr<_type>& x, const nptr<_type>& y)
-{
-	return y < x;
-}
-
-template<typename _type>
-yconstfn bool
-operator>=(const nptr<_type>& x, const nptr<_type>& y)
-{
-	return !(x < y);
-}
-//@}
-
-//! \since build 563
-template<typename _type>
-inline void
-swap(nptr<_type>& x, nptr<_type>& y) ynothrow
-{
-	x.swap(y);
-}
 //@}
 //@}
 

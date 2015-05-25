@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2836
+\version r2841
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-05-19 22:25 +0800
+	2015-05-25 06:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -361,10 +361,10 @@ GetDependencies(const string& path)
 				}
 			}
 			return {};
-		}, [](char c, string& pfx) -> bool{
-			if(c == '\\')
+		}, [](char ch, string& pfx) -> bool{
+			if(ch == '\\')
 				pfx = "\\";
-			else if(c == '$')
+			else if(ch == '$')
 				pfx = "$";
 			else
 				return {};
@@ -646,7 +646,7 @@ BuildContext::Build()
 	}
 
 	const auto in(NormalizeDirectoryPathTail(Options[0]));
-	const auto ipath(MakeNormalizedAbsolute(in));
+	const auto ipath(MakeNormalizedAbsolute(Path(in)));
 
 	PrintInfo("Absolute path recognized: " + to_string(ipath).GetMBCS() + " .");
 	if(!VerifyDirectory(in))
@@ -667,7 +667,7 @@ BuildContext::Build()
 		}) : BuildAction([=](const ActionContext&){
 			return BuildFile(*p_rule);
 		});
-	})({in, opth}));
+	})({Path(in), opth}));
 
 	// TODO: Optimize for job dependency.
 	if(jobs.get_max_task_num() > 1)

@@ -94,9 +94,8 @@ DEVKITPRO = /F/devkitPro
 DKP_HOME = F:\devkitPro
 需要保证有可用的 UNIX shell ； Windows 下可能需要另外加入 devkitPro 安装目录下 msys/bin 至 %PATH% 。可使用 MSys2 替代。
 
- Android
+Android
 ==
-未正式支持。
 开发环境配置详见 doc/Dependencies.txt @1.6 。
 
 运行时依赖
@@ -106,7 +105,7 @@ DKP_HOME = F:\devkitPro
 特别注意，应当使用对应的正确的线程模型（使用 POSIX 而不是 Win32 ，后者没有实现标准库的线程支持）以及异常模型（ Dwarf2 和 SjLj 之一，特定构建版本相关）。
 配置文件 yconf.txt 在当前工作目录下生成。使用 CHRLib 转换 GBK 编码的程序若找不到 cp113.bin 可能会异常退出，需要在 yconf.txt 中指定 DataDirectory 路径，或复制 /Data 下的文件到程序所在的目录（因为默认 DataDirectory 为当前目录）。
 
- SHBuild
+SHBuild
 ==
 试验中的命令行构建工具。不需要引入领域特定语言的脚本，除了特定选项外传递到后端工具（编译器），递归查找目录中的源文件进行直接构建。省略选项显示使用说明。
 若使用 ConEmu 出现 0xC0000005 错误，注意升级到最新版本后勾选 Inject ConEmuHk 选项。详见 https://code.google.com/p/conemu-maximus5/wiki/MicrosoftBugs 。
@@ -123,6 +122,89 @@ DKP_HOME = F:\devkitPro
 当前仅提供 YBase 的有限测试。
 
 > YSLib PreAlpha 更新说明
+====
+2015-05-25(V0.6)
+[YSLib]
+添加简易测试框架 [Test] 。
+[Test]
+添加 YBase 的部分测试用例。
+[Tools]
+添加 sysroot 构建工具脚本 [Sysroot] 。
+添加 SXML 到 XML 文档转换工具 [SXML2XML] 。
+添加项目文件生成 [ProjectGenerator] 。
+[Tools.SHBuild]
+支持并行构建和文件时间戳检查。
+及构建脚本支持控制台彩色输出。
+支持按等级和分组过滤输出消息。
+[Sysroot]
+Stage1 SHBuild 支持 Linux 。
+[YBase]
+添加部分 ctype 替代实现以避免某些标准库实现的 bug 。
+添加测试支持。
+从 YFramework 转移通用 MRU 缓存模板 used_list_cache 。
+添加标准库异常扩展接口。
+添加原型迭代器模板 prototyped_iterator 。
+添加临时暂存对象支持模板 swap_guard 。
+添加若干算法和容器操作函数模板。
+添加链式调用模板 chain_apply 。
+添加函数复合模板 compose 。
+添加单线程标准库兼容锁接口支持。
+变长参数序列兼容 C++14 std::integer_sequence 等的接口。
+[YFramework]
+[YFramework.YSLib]
+[YFramework.YSLib.Core]
+添加若干 ValueNode 相关接口。
+移除事件宏。
+[YFramework.YSLib.UI]
+修复若干列表框滚动条显示及断言失败问题。
+完善 TextBox 支持。
+移除 Widget 及派生类中不必要的前景色数据成员。
+重构 TextList ，抽取实现为 AMUnitList 和 AMUnitControlList ，使用共享部件代替直接渲染。
+Enter 事件和 Leave 事件支持共享部件对象。
+添加 TreeList 和 TreeView 控件。
+简化菜单相关的接口，移除 MenuHost 对 Menu 的所有权以及菜单标识。
+添加连续点击支持。
+控件保存特定事件的启用状态。
+支持基于 CursorOver 事件的悬停菜单。
+明确 CursorOver 引起的 Leave 事件的发送者和订阅者。
+GotFocus 和 LostFocus 可被所在的直接或间接容器部件焦点的改变引发。
+[YFramework.YSLib.Service]
+添加 HSV 和对应 RGB 转换支持。
+添加图像缓存和辅助的像素块传输模板。
+修复块传输算法在转置时的一个剪切边界计算错误。
+[YFramework.NPL]
+添加 NPLA1 变换映射。
+修复 NPL 转义序列写入。
+修复 NPL 词法分析器的断行连接转义并允许配置其它反转义算法。
+添加 SXML 解析转换到 XML 的基本支持。
+[YFramework.YCLib]
+移除旧调试接口（如 yprintf ）。
+YCLib 添加命令缓存和终端接口，非 Win32 控制台支持通过 tput 输出彩色文本。
+添加执行 Shell 命令的接口（当前仅适用于 Win32 ）。
+[YFramework.CHRLib]
+添加解码 UTF-16 文本支持（但上层 API 仍然只使用 UCS-2 ）。
+添加 UCS-4 中间代码支持和相关接口。
+修复编码转换操作的容错性。
+使用非包装的迭代器实现字符串转换接口，显著提升性能。
+UTF-8 解码默认使用新算法，显著提升性能。
+[YFramework.Helper]
+宿主窗口线程支持自定义进入/退出操作。
+默认以宿主桌面代替顶级窗口作为视图树根部件（当前仅适用于 Win32 ）。
+非前景宿主窗口响应非键盘输入（当前仅适用于 Win32 ）。
+添加宿主工具提示和菜单相关接口（当前仅适用于 Win32 ）。
+[Win32]
+添加文本框调整输入法候选窗口位置的支持（部分输入法可能因为 bug 无法实现）。
+修复因 MSVCRT 的 bug 导致部分字符无法正确显示。
+添加控制台接口。
+扩大屏幕相关整数类型的取值范围。
+允许读取 cp113.bin 失败时使用系统 NLS 代码页数据用于 GBK 编码转换。
+优化窗口绘制实现，允许使用无效区域。
+[Android]
+添加宿主支持。
+[Linux]
+添加工具和 YBase 支持。
+[YReader]
+修复保存设置崩溃及破坏配置文件。
 ====
 2014-05-30(PreAlpha 5)
 更改输出目录结构：目标文件和源代码分离。

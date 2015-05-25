@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1452
+\version r1457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2015-05-13 11:56 +0800
+	2015-05-22 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,7 +211,10 @@ public:
 	\since build 588
 	*/
 	//@{
-	//! \brief 解析单个字符并添加至字符解析结果。
+	/*!
+	\brief 解析单个字符并添加至字符解析结果。
+	\note 记录引号并忽略空字符。
+	*/
 	void
 	ParseByte(char, Unescaper = NPLUnescape,
 		PrefixHandler = HandleBackslashPrefix);
@@ -313,6 +316,7 @@ IsDelimeter(char c)
 
 /*!
 \brief 分解字符串为记号。
+\post 结果中字符串两端不包括 "C" 区域 \tt std::isspace 返回非零的字符。
 \since build 335
 */
 YF_API list<string>

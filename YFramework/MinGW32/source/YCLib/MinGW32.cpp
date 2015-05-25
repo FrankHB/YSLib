@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r739
+\version r741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-05-19 23:35 +0800
+	2015-05-24 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -406,7 +406,8 @@ ExpandEnvironmentStrings(const wchar_t* p_src, size_t len)
 		{
 			wstring wstr(w_len, wchar_t());
 
-			if(::ExpandEnvironmentStringsW(p_src, &wstr[0], w_len) != 0)
+			if(::ExpandEnvironmentStringsW(p_src, &wstr[0],
+				static_cast<unsigned long>(w_len)) != 0)
 				return wstr;
 		}
 		YCL_Raise_Win32Exception("ExpandEnvironmentStringsW");

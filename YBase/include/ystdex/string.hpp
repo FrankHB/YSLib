@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1347
+\version r1357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-05-20 12:52 +0800
+	2015-05-22 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,10 +383,11 @@ erase_left(_tString&& str, const remove_reference_t<_tString>& t)
 {
 	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
 }
+//! \since build 600
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
 }
@@ -415,10 +416,11 @@ erase_right(_tString&& str, const remove_reference_t<_tString>& t)
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
 		str));
 }
+//! \since build 600
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
 		str));
@@ -442,11 +444,11 @@ ltrim(_tString&& str, const _tString& t)
 {
 	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
 }
-//! \since build 474
+//! \since build 600
 template<class _tString>
 inline _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
 }
@@ -466,10 +468,11 @@ rtrim(_tString&& str, const remove_reference_t<_tString>& t)
 {
 	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
 }
+//! \since build 600
 template<class _tString>
 inline _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
 }
@@ -489,10 +492,11 @@ trim(_tString&& str, const _tString& t)
 {
 	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
 }
+//! \since build 600
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
 }

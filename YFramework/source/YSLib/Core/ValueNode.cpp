@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r486
+\version r487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2015-05-20 13:48 +0800
+	2015-05-23 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ IsPrefixedIndex(const string& name, char prefix)
 		{
 			const string ss(&name[1]);
 
-			return to_string(std::stoul(ss)) == ss;
+			return MakeIndex(std::stoul(ss)) == ss;
 		}
 		CatchIgnore(std::invalid_argument&)
 	return {};

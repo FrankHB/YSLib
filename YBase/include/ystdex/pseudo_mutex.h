@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r656
+\version r658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2015-04-04 03:46 +0800
+	2015-05-24 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,7 @@
 #ifndef YB_INC_ystdex_pseudo_mutex_h_
 #define YB_INC_ystdex_pseudo_mutex_h_ 1
 
-#include "memory.hpp" // for ydef.h, ystdex::bound_delete, std::declval;
-#include "base.h" // for ystdex::noncopyable, ystdex::nonmovable;
+#include "base.h" // for ydef.h, for noncopyable, nonmovable, std::declval;
 #include <chrono>
 #include <system_error> // for std::errc, std::system_error;
 

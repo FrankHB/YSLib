@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2180
+\version r2182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-03-25 15:40 +0800
+	2014-05-24 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,8 +125,8 @@ public:
 	yconstfn DefGetter(const ynothrow, _type, X, X)
 	yconstfn DefGetter(const ynothrow, _type, Y, Y)
 
-	DefSetter(_type, X, X)
-	DefSetter(_type, Y, Y)
+	DefSetter(, _type, X, X)
+	DefSetter(, _type, Y, Y)
 
 	/*!
 	\brief 判断是否是零元素。

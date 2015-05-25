@@ -141,6 +141,7 @@
 		<Unit filename="../include/ystdex/operators.hpp" />
 		<Unit filename="../include/ystdex/optional.h" />
 		<Unit filename="../include/ystdex/path.hpp" />
+		<Unit filename="../include/ystdex/pointer.hpp" />
 		<Unit filename="../include/ystdex/pseudo_mutex.h" />
 		<Unit filename="../include/ystdex/rational.hpp" />
 		<Unit filename="../include/ystdex/ref.hpp" />

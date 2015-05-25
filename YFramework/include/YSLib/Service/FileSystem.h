@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2457
+\version r2493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-05-20 17:50 +0800
+	2015-05-24 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,7 +95,8 @@ using ypath = ystdex::path<vector<String>, PathNorm>;
 \brief 路径。
 \warning 非虚析构。
 */
-class YF_API Path : private ypath
+class YF_API Path : private ypath, public ystdex::totally_ordered<Path>,
+	public ystdex::dividable<Path, String>, public ystdex::dividable<Path>
 {
 public:
 	using ypath::iterator;
@@ -108,20 +109,24 @@ public:
 	\brief 无参数构造：默认实现。
 	*/
 	DefDeCtor(Path)
+	explicit
 	Path(const ucs2_t* str)
 		: ypath(Parse(str))
 	{}
 	//! \since build 402
 	//@{
+	explicit
 	Path(const ucs2string& str)
 		: ypath(Parse(str))
 	{}
+	explicit
 	Path(ucs2string&& str)
 		: ypath(Parse(str))
 	{}
 	//! \since build 448
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<Path, _type>)>
+	explicit
 	Path(_type&& arg, Text::Encoding enc = CS_Path)
 		: ypath(Parse(String(yforward(arg), enc)))
 	{}
@@ -160,17 +165,17 @@ public:
 	//! \brief 追加路径。
 	//@{
 	//! \since build 410
-	Path&
-	operator/=(const String&);
-	Path&
-	operator/=(const Path&);
+	PDefHOp(Path&, /=, const String& fname)
+		ImplRet(GetBaseRef() /= fname, *this)
+	PDefHOp(Path&, /=, const Path& pth)
+		ImplRet(GetBaseRef() /= pth, *this)
 	//@}
 
-	friend bool
-	operator==(const Path&, const Path&);
+	friend PDefHOp(bool, ==, const Path& x, const Path& y)
+		ImplRet(x.GetBase() == y.GetBase())
 
-	friend bool
-	operator<(const Path&, const Path&);
+	friend PDefHOp(bool, <, const Path& x, const Path& y)
+		ImplRet(x.GetBase() < y.GetBase())
 
 	/*!
 	\brief 转换为字符串。
@@ -184,6 +189,10 @@ public:
 	*/
 	DefCvt(const, string, GetMBCS())
 
+	//! \since build 600
+	DefGetter(const ynothrow, const ypath&, Base, *this)
+	//! \since build 600
+	DefGetter(ynothrow, ypath&, BaseRef, *this)
 	/*!
 	\brief 取指定编码的多字节字符串。
 	\since build 599
@@ -277,29 +286,11 @@ public:
 	//@}
 };
 
-//! \relates Path
-//@{
-inline PDefHOp(bool, ==, const Path& x, const Path& y)
-	ImplRet(static_cast<const ypath&>(x) == static_cast<const ypath&>(y))
-inline PDefHOp(bool, !=, const Path& x, const Path& y)
-	ImplRet(!(x == y))
-inline PDefHOp(bool, <, const Path& x, const Path& y)
-	ImplRet(static_cast<const ypath&>(x) < static_cast<const ypath&>(y))
-inline PDefHOp(bool, <=, const Path& x, const Path& y)
-	ImplRet(!(y < x))
-inline PDefHOp(bool, >, const Path& x, const Path& y)
-	ImplRet(y < x)
-inline PDefHOp(bool, >=, const Path& x, const Path& y)
-	ImplRet(!(x < y))
-
-inline PDefHOp(Path, /, const Path& x, const Path& y)
-	ImplRet(std::move(Path(x) /= y))
-
 /*!
 \brief 交换。
+\relates Path
 */
 inline DefSwap(ynothrow, Path)
-//@}
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r446
+\version r454
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-05-13 19:19 +0800
+	2015-05-24 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ YBase 是 YSLib(the YSLib project) 的顶级子项目([ProjectRules @@1.3]) ，�
 @1.3.1 目标代码兼容性：
 基本内容参见 [Documentation::Designation @@2.3.6] 。
 现阶段 YBase 提供以下二进制兼容性保证：
-除非在更新日志中使用 $src 标识([Documentation::ProjectRules @@2.2.7.1]) ，满足二进制库向后兼容保证([Documentation::CommonRules @@2.2.4.2]) 。
+除非在变更日志中使用 $src 标识([Documentation::ProjectRules @@2.2.7.1]) ，满足二进制库向后兼容保证([Documentation::CommonRules @@2.2.4.2]) 。
 
 @2 实现约束、组成和架构：
 
@@ -241,14 +241,17 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 @2.4.5.8 迭代器操作 IteratorOperation ：
 扩展了标准库头 <iterator> 。
 
-@2.4.5.9 通用迭代器 Iterator ：
-间接扩展了标准库头 <iterator> ，提供对迭代器的指针和若干迭代器适配器。
+@2.4.5.9 通用指针 Pointer ：
+间接扩展了标准库头 <iterator> ，提供指针的迭代器适配器包装和其它模板。
 
-@2.4.5.10 泛型算法 Algorithm ：
+@2.4.5.10 通用迭代器 Iterator ：
+间接扩展了标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
+
+@2.4.5.11 泛型算法 Algorithm ：
 扩展了标准库头 <algorithm> ，提供一些泛型算法。
 除非另行约定，使用 first 和 last 为名称的参数指定同一个范围，否则不保证结果正确，可能引起未定义行为。
 
-@2.4.5.11 ISO C++ 标准字符串扩展 String ：
+@2.4.5.12 ISO C++ 标准字符串扩展 String ：
 间接扩展了标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
 @2.4.6 标准库替代：
@@ -263,7 +266,7 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 
 @2.4.7.2 通用容器操作 Containers ：
 实现通用容器适配器模板和对容器类型及构建数组容器的操作。
-参数限制同 Algorithm (@2.4.5.10) 。
+参数限制同 Algorithm (@2.4.5.11) 。
 
 @2.4.7.3 基类实用设施 Base ：
 提供适合被作为基类的通用接口。

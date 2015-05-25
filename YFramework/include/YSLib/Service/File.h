@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1165
+\version r1180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-03-24 18:43 +0800
+	2015-05-23 12:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Core_YCoreUtilities
 #include <cwctype>
 #include YFM_YSLib_Adaptor_YTextBase
+#include <sstream> // for std::ostringstream;
 
 namespace YSLib
 {
@@ -235,24 +236,26 @@ operator>>(File& f, _tString& str)
 inline PDefHOp(File&, <<, File& f, char c)
 	ImplRet(YAssert(bool(f), "Invalid file found."), std::fputc(c, f.GetPtr()),
 		f)
-/*!
-\brief 向指定文件写字符串。
-\since build 326
-*/
+//! \brief 向指定文件写字符串。
+//@{
+//! \since build 326
 inline PDefHOp(File&, <<, File& f, const char* str)
 	ImplRet(YAssert(bool(f), "Invalid file found."),
 		std::fputs(str, f.GetPtr()), f)
-/*!
-\brief 向指定文件写字符串。
-\since build 326
-\todo 支持非 char 元素字符串。
-*/
-template<typename _tString>
+
+//! \since build 600
+inline PDefHOp(File&, <<, File& f, const string& str)
+	ImplRet(f << str.c_str())
+//@}
+//! \since build 600
+template<typename _type>
 File&
-operator<<(File& f, const _tString& str)
+operator<<(File& f, const _type& obj)
 {
-	YAssert(bool(f), "Invalid file found.");
-	std::fputs(reinterpret_cast<const char*>(str.c_str()), f.GetPtr());
+	std::ostringstream oss;
+
+	oss << obj;
+	f << oss.str();
 	return f;
 }
 //@}

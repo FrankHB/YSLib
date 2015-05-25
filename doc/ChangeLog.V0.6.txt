@@ -1,0 +1,406 @@
+﻿/*
+	© 2015 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ChangeLog.V0.6.txt
+\ingroup Documentation
+\brief 版本更新历史记录 - V0.6 。
+\version r405
+\author FrankHB <frankhb1989@gmail.com>
+\since build 600
+\par 创建时间:
+	2014-05-21 01:17:08 +0800
+\par 修改时间:
+	2015-05-26 00:13 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::ChangeLog::'V0.6'
+*/
+
+// See %Documentation::Meta for meta descriptions.
+
+$import $HISTORY;
+
+// Scope: [b600, $now];
+
+$now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Path $=
+		(
+			/ @ "class template %path" $=
+			(
+				+ "base class 'totally_ordered<path<_tSeqCon, _tNorm>>'",
+				/ "function %equals" -> "friend function %operaor==",
+				/ "function %before" -> "friend function %operaor<",
+				(
+				+ "2 function %operator/=";
+				+ "base classes ('dividable<path<_tSeqCon, _tNorm>, typename \
+					_tSeqCon::value_type>',
+					'dividable<path<_tSeqCon, _tNorm>>')"
+				)
+			),
+			- "rational operation function templates for %path instances",
+		),
+		/ + '\f' @ "default arguments of array" @ "all 5 function templates \
+			%(erase_left, erase_right, ltrim, rtrim, trim)" @ %String,
+			// For locale "C" characters which make %std::isspace return \
+				nonzero.
+		+ %Pointer;
+		/ "class templates %(pointer_iterator, pointer_classify)" @ %Iterator
+			>> %Pointer,
+		(
+		/ "class template %nptr, function templates for %nptr instances"
+			@ %Utility >> %Pointer;
+		/ %Pointer $=
+		(
+		/ $dev "rational operators for class template %nptr except for \
+			%operator(==, <)" -> "base class %totally_ordered<nptr<_type>>"
+			@ "class template %nptr",
+		/ "function templates %operator(<, ==) for %(nptr, pointer_iterator) \
+			instances" -> "member functions with 'ynothrow'"
+		)
+		),
+		/ $dev %BitSegment $=
+		(
+			/ "member functions (postfix %operator(++, --), %operator(+, -, \
+				->, []))" -> "instance of %iterator_operators_t as base class"
+				@ "class template %bitseg_iterator";
+			- "rational operators for class template %bitseg_iterator except \
+				for %operator(==, <)",
+			/ "function templates %operator(==, <) for instances of \
+				%bitseg_iterator" -> ("friend functions"
+				@ "class template %bitseg_iterator with 'ynothrow'")
+		),
+		/ %Iterator $=
+		(
+			/ "all non-member (relational, compound assignment, arithmetic) \
+				operator function templates" -> "friend functions" $effective
+				@ "class templates %(pseudo_iterator, transformed_iterator, \
+				subscriptive_iterator)",
+			+ $dev 'yconstfn_relaxed' @ "conversion function to \
+				'iterator_type&'" @ "class template %transformed_iterator"
+		),
+		/ %CStandardIO $=
+		(
+			+ $dev "explicitly defaulted copy %operator="
+				@ "class %ifile_iterator",
+				// To eliminate Clang++ warning: [-Wdeprecated].
+			(
+			/ "postfix %operator++, %operator->" -> "instance of \
+				%iterator_operators_t as base class" @ "class %ifile_iterator";
+			- "function operator!= for %ifie_iterator"
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ %FileSystem $=
+				(
+					/ @ "class %Path" $=
+					(
+						(
+						+ "function %GetBaseRef";
+						/ DLDI "simplified 2 functions %operator/=" ^ ($dep_from
+							("%path::operator/=" @ %YBase.YStandardEx.Path),
+							"macros %(PDefHOp, ImplRet)"),
+						),
+						+ $dev "base classes ('totally_ordered<Path>', \
+							'dividable<Path, String>, 'dividable<Path>')",
+						(
+						+ "function %GetBase";
+						/ $dev $impl "inlined and simplified friend functions \
+							%operator(==, <)" ^ "%GetBase",
+						),
+						+ 'explicit' @ "constructors with string parameter"
+							// To avoid ambiguity in %operator/, etc.
+					),
+					- "function %operator/ for %Path"
+						// Also to avoid some subtle diagnostics.
+					- "rational operation functions %operator(!=, <=, >, >=) \
+						for %Path",
+					/ $comp $impl "function %DeleteTree appended %string with \
+						cast to %String" ~ "implicitly converted to %Path"
+				),
+				/ @ %File $=
+				(
+					/ "function template %operator<< for %File and string types"
+						-> "inline function %operator for %File and %string",
+					+ "function template %operator for %File and any other \
+						types" ^ "%std::ostringstream"
+				),
+				+ DLDI 'ImplI(IImage)' @ "overrider %BasicImage::SetSize"
+					@ %YGDI $dep_from %YBaseMacro,
+					// To eliminate Clang++ 3.6 warning: \
+						[-Winconsistent-missing-override].
+				/ %TextRenderer $=
+				(
+					+ DLDI 'override' @ "overrider %TextRegion::GetContext"
+						$dep_from %YBaseMacro,
+						// To eliminate Clang++ 3.6 warning: \
+							[-Winconsistent-missing-override].
+					/ DLDI "explicit cast to 'SDst'" @ "member function \
+						%TextRenderer::ClearLine"
+						// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				)
+			),
+			* "wrong node string compared" @ "function %IsPrefixedIndex"
+				@ %Core.ValueNode
+				$= (/ $re_ex(b599 )$impl "node string generation" ^ "%MakeIndex"
+					~ "%to_string"),
+			+ DLDI "'override' qualifiers" @ "setter overriders" @ "class %View"
+				@ %UI.YWidgetView $dep_from %YBaseMacro
+				// To eliminate Clang++ 3.6 warning: \
+					[-Winconsistent-missing-override].
+		),
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				/ @ "function %Decompose" $=
+				(
+					/ DLDI "simplified" ^ "%string::front"
+						~ "%string::substr",
+					/ $comp "guaranteed '\f' trimmed" ^ $dep_from
+						("%ystdex::ltrim" @ %YBase.YStandardEx.String)
+				),
+				(
+				/ "ignored null character"
+					@ "function %LexicalAnalyzer::ParseByte";
+				* $comp "redundant string with single null character at end of \
+					list of %Tokenize result for null-terminated character \
+					array as source" $since b335 $dep_to "null character in \
+					NPL units"
+				),
+				/ DLDI "simplified function %Literalize"
+			),
+			/ "function %operator for %File and %Configuration" @ %Configuration
+				-> "function %operator<< for %std::ostream and %Configuration"
+				$dep_from %YSLib.Service.File,
+			/ %NPLA1 $=
+			(
+				/ DLDI "function template% InsertChildSyntaxNode#3"
+					^ "%TransformToSyntaxNode" ~ "%NodeLiteral::GetSyntaxNode",
+				(
+				/ ("alias %NodeSequence" @ "namespace %NPL")
+					>> ("namespace %YSLib" @ %ValueNode)
+				+ 'using %YSLib::NodeSequence';
+				)
+				/ ("class %NodeLiteral" @ "namespace %NPL")
+					>> ("namespace %YSLib" @ %ValueNode) $dep_from
+					"removal of %NodeLiteral::GetSyntaxNode";
+				+ 'using YSLib::NodeLiteral;'
+			)
+		),
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				/ @ "function %FetchMIMEBiMapping" $=
+				(
+					* $comp "corrupted MIME data generated" $since b597
+						$dep_from "null character in NPL units"
+						// After this fix the format is still wrong but it \
+							would not crash. Note this also made '""' being \
+							output at the 2nd line of output, it now \
+							disappears intentionally.
+					* $comp "wrong format of MIME data generated" $since b598
+						$dep_from %YSLib.Core.ValueNode
+				),
+				/ DLDI "simplified function %LoadConfiguration" ^ $dep_from
+					("%NodeLiteral" @ %YSLib.Core.ValueNode)
+					~ "%(PackNodes, MakeNodes)",
+				/ @ "function %FetchMIMEBiMapping" $=
+				(
+					+ $re(b594) DLDI 'ynothrow' @ "lambda expression pushed as \
+						application exit callback",
+					/ DLDI "push application exit callback only after resource \
+						acquiring successfully"
+						// Since otherwise the pointer is null, \
+							delete-expression would do nothing, the observable \
+							behavior would not change.
+				),
+				/ "functions %(ReadConfiguration, WriteConfiguration)"
+					>> ("namespace %NPL" @ %NPL.Configuration)
+			),
+			/ %HostRenderer $=
+			(
+				/ DLDI "split evaluation of operand in 'typeid'"
+					@ "member function %HostRenderer::InitWidgetView",
+					// To eliminate Clang++ 3.6 warning: \
+						[-Wpotentially-evaluated-expression].
+				/ DLDI "renamed private member" @ "class %WindowThread"
+					// To eliminate Clang++ warning: [-Wshadow].
+			)
+		),
+		* $dev $build $impl "wrong returned value cast of %::ShllExecuteW"
+			@ "function %ExecuteShellCommand" @ "platform %Win32"
+			@ %YCLib.HostedGUI $since b592,
+			// It would cause build failure on x86_64.
+		+ "'_q' as first parameter for qualifier support"
+			@ "all 8 macros 'DefSetter*'" @ %YBaseMacro,
+		/ @ "function %ExpandEnvironmentStrings" @ %'YCLib_(MinGW32)'.MinGW32 $=
+		(
+			/ DLDI "explicitly cast to 'unsigned long' for \
+				'::ExpandEnvironmentStringsW' argument"
+				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+			* $impl "strict ISO C++ compatibility" $since b492
+				// See http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn .
+				$= (- 'YB_NORETURN' @ "lambda expression")
+		),
+
+	),
+	/ @ %Tool $=
+	(
+		/ %ProjectGenerator.Main $=
+		(
+			/ DLDI "simplified commands and library paths concatenation",
+			/ $forced $dev $impl "path operations" $dep_from
+				%YFramework.Service.FileSystem,
+			/ DLDI "node syntax transformation" ^ "%TransformToSyntaxNode"
+				~ "%NodeLiteral::GetSyntaxNode" $dep_to
+				"removal of %NodeLiteral::GetSyntaxNode"
+		),
+		/ %SHBuild.Main $=
+		(
+			/ $forced $impl "path argument" $dep_from
+				%YFramework.YSLib.Service.FileSystem,
+			/ DLDI "makefile parsing"
+				// To eliminate Clang++ warning: [-Wshadow].
+		)
+	),
+	/ %YReader $=
+	(
+		/ $comp "bookmark names guaranteed trimmed '\f'" @ %ShlReader
+			^ $dep_from ("%ystdex::ltrim" @ %YBase.YStandardEx.String);
+		/ $forced "return type" @ "function %FetchDefaultShellDirectory"
+			$dep_from %YFramework.YSLib.Service.FileSystem -> "%IO::Path"
+			~ "%String",
+		* $comp "crashed on read automatically generated MIME data" $since b597
+			$dep_from %YFramework.Helper.Initialization
+			// After this fix the file extension category based on MIME \
+				mapping detected normally. 
+	),
+	/ "regenerated Code::Blocks projects" $effective @ %YBase,
+	/ $forced "inserted qualifiers" @ "macro 'DefSetter' invocations" $dep_from
+		%YFramework.YBaseMacro $effective @ %YFramework.(YSLib.(Core.(YDevice, \
+		YGDIBase), Service.YGDI, UI.(Process, Scroll, Selector, YWidgetEvent, \
+		YWidgetView, ComboList, YWiget)), YCLib.HostedGUI),
+		YDE.ImageBrowser.ImageControl,
+	/ $dev $build "toolchain and library using"
+	(
+		/ $re_ex(b520) "updated library %FreeImage" $=
+		(
+			(
+			/ "updated base library 3.17.0" ~ "3.16.0";
+			/ @ "file %Makefile.srcs" $=
+			(
+				/ 'VER_MINOR = 16.0' -> 'VER_MINOR = 17.0',
+				/ $forced "updated %SRCS"
+			)
+			),
+			/ "merged old modification",
+			* "hard coded compiler for include file generation"
+				@ "%Makefile.gnu" $since b562
+				$= (/ "build %jsimdcfg.inc" ^ '$(CC)' ~ 'gcc'),
+			/ $design "all '='" -> ':=' @ "makefiles",
+			/ @ "%Makefile.mingw" $=
+			(
+				- $lib "some outdated comments",
+				/ "allowed user-provided assembler by variable %NASM with 'yasm'
+					as default value",
+					// It seems that 'nasm' from MSYS2 does not work, 'yasm' \
+						can be used instead.
+				/ "allowed user-provided compiler and linker by variables \
+					%(CC, CXX, LD)",
+				/ "supported switching between i686 and x86_64 targets by \
+					%MSYSTEM value 'MINGW32' and 'MINGW64'",
+				/ "compiled '.o' with source extensions",
+				* "empty %jsimdinc.h generated" $since b431,
+					// This was not actually used since the file was \
+						already copied to the source tree.
+				(
+				+ "flag %C_CXX_FLAGS with default value '-O3 -fdata-sections \
+					-ffunction-sections -pipe -Wno-attributes -fexceptions \
+					-DNDEBUG' and applied to %(CFLAGS, CXXFLAGS)";
+				+ $comp "-fdata-sections -ffunction-sections"
+					@ "%(CFLAGS, CXXFLAGS)"
+				)
+			),
+			* "circular dependencies on assembly modules" $since b431
+				$effective @ "%(Makefile.mingw, Makefile.gnu)"
+				$= (+ '.SUFFIXES'),
+			// There are nothing to update from new makefiles. \
+				Particularity 'mkdir -p' does not work for 'cmd'.
+			/ "removed external plugin initialization"
+				@ "%Source/Plugin.cpp",
+				// Also eliminated update for it.
+			^ "libjpeg-turbo-1.4.0" @ "%Source/LibJPEG" $=
+			(
+				+ $forced '#define BITS_IN_JSAMPLE 8'
+					@ "%(config.h, jconfig.h)",
+					// Now libjepg-turbo supports 12-bit data, so it was \
+						removed from "jmorecfg.h" to "jconfig.h". If not \
+						defined, %::JSAMPER and other declarations are \
+						missing, and the build would fail.
+				/ "updated version numbers" @ "%jconfig.h",
+				+ $forced "new file %jconfigint.h based on %jconfig.h",
+				/ $forced "updated %Makefile.srcs"
+			),
+			^ "libpng-1.6.17 with old libpng-1.6.3 standard configuration \
+				header file %Source/LibPNG/pnglibconf.h" ~ "libpng-1.6.12",
+				$=
+			(
+				+ $forced '#define \
+					PNG_WRITE_CUSTOMIZE_COMPRESSION_SUPPORTED'
+					// Otherwise 'png_set_compression_level' would not be \
+						declared.
+				/ "updated value of macros %(PNG_USER_CHUNK_CACHE_MAX, \
+					PNG_USER_CHUNK_MALLOC_MAX)"
+			)
+			// No other configuration update for libpng or libjpeg-turbo \
+				needed currently. If Linux platforms are supported in future, \
+				SIMD should be turned on by define 'WITH_SIMD'.
+		),
+		/ DLP "platform %MinGW32" $=
+		(
+			^ $re_ex(b520) "MinGW[gcc version 4.9.1 (Rev5, Built by MSYS2 \
+				project)] mingw32/mingw-w64-i686-gcc-4.9.2-5" ~ "MinGW[gcc \
+				version 4.8.2 (Rev1, Built by MSYS2 project)] \
+				mingw32/mingw-w64-i686-gcc-4.9.1-1" @ "platform %MinGW32",
+				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+					Exceptions implementation: Dwarf2.
+			^ "mingw-w64-i686-binutils 2.25-4 from MSYS2",
+			/ $re_ex(b520) "recompiled library %FreeImage" $dep_from
+				"updated library %FreeImage"
+		),
+		/ DLP "toolchain and library using" @ "platform %DS" $=
+		(
+			^ $re_ex(b558) "updated devkitARM release 44"
+				~ "devkitARM release 43",
+			^ $re_ex(b558) "updated libnds 1.5.8" ~ "libnds 1.5.7",
+			^ $re_ex(b558) "updated default arm7 0.5.25"
+				~ "default arm7 0.5.24",
+			^ $re_ex(b558) "updated libfat 1.0.12" ~ "libfat 1.0.11";
+			/ $re_ex(b520) "recompiled library %FreeImage" $dep_from
+				"updated library %FreeImage"
+		)
+	),
+	- $repo "all .a files"
+		// To avoid enlarged the repository too much.
+);
+
+////
+

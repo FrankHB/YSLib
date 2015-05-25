@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r458
+\version r488
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-02-10 13:20 +0800
+	2015-05-25 03:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <cstdarg> // for std::va_list;
 #include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
-#include "deref_op.hpp" // for ystdex::is_undereferenceable;
+#include "iterator_op.hpp" // for iterator_operators_t, is_undereferenceable;
 
 namespace ystdex
 {
@@ -107,7 +107,9 @@ openmode_conv(const char*) ynothrow;
 \since build 245
 */
 class YB_API ifile_iterator : public std::iterator<std::input_iterator_tag,
-	byte, ptrdiff_t, const byte*, const byte&>
+	byte, ptrdiff_t, const byte*, const byte&>, public iterator_operators_t<
+	ifile_iterator, std::iterator_traits<yimpl(std::iterator<
+	std::input_iterator_tag, byte, ptrdiff_t, const byte*, const byte&>)>>
 {
 protected:
 	using traits_type = std::iterator<std::input_iterator_tag, byte, ptrdiff_t,
@@ -155,17 +157,15 @@ public:
 	ifile_iterator(const ifile_iterator&) = default;
 	~ifile_iterator() = default;
 
+	//! \since build 600
+	ifile_iterator&
+	operator=(const ifile_iterator&) = default;
+
 	//! \since build 461
 	yconstfn reference
 	operator*() const ynothrow
 	{
 		return value;
-	}
-
-	yconstfn pointer
-	operator->() const
-	{
-		return &**this;
 	}
 
 	/*
@@ -178,21 +178,6 @@ public:
 	*/
 	ifile_iterator&
 	operator++();
-	/*
-	\brief 后置自增。
-	\pre 断言：同前置自增。
-	\return 迭代器副本。
-
-	读入字符。
-	*/
-	ifile_iterator
-	operator++(int)
-	{
-		const auto i(*this);
-
-		++*this;
-		return i;
-	}
 
 	friend yconstfn bool
 	operator==(const ifile_iterator& x, const ifile_iterator& y)
@@ -206,12 +191,6 @@ public:
 		return stream;
 	}
 };
-
-yconstfn bool
-operator!=(const ifile_iterator& x, const ifile_iterator& y)
-{
-	return !(x == y);
-}
 
 
 /*!

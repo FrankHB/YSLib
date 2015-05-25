@@ -11,13 +11,13 @@
 /*!	\file Scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2783
+\version r2789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2015-03-21 18:52 +0800
+	2015-05-24 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,12 +114,12 @@ public:
 	\brief 设置值。
 	\since build 271
 	*/
-	DefSetter(ValueType, Value, first)
+	DefSetter(, ValueType, Value, first)
 	/*!
 	\brief 设置旧值。
 	\since build 271
 	*/
-	DefSetter(ValueType, OldValue, first)
+	DefSetter(, ValueType, OldValue, first)
 };
 
 
@@ -384,10 +384,10 @@ public:
 	DefGetterMem(const ynothrow, ValueType, LargeDelta, GetTrackRef())
 	DefGetter(const ynothrow, ValueType, SmallDelta, small_delta)
 
-	DefSetterMem(ValueType, MaxValue, GetTrackRef())
-	DefSetterMem(ValueType, Value, GetTrackRef())
-	DefSetterMem(ValueType, LargeDelta, GetTrackRef())
-	DefSetter(ValueType, SmallDelta, small_delta)
+	DefSetterMem(, ValueType, MaxValue, GetTrackRef())
+	DefSetterMem(, ValueType, Value, GetTrackRef())
+	DefSetterMem(, ValueType, LargeDelta, GetTrackRef())
+	DefSetter(, ValueType, SmallDelta, small_delta)
 
 	/*!
 	\brief 定位滑块。

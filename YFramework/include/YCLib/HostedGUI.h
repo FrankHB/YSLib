@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1283
+\version r1285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-05-05 05:38 +0800
+	2015-05-24 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for string, map;
-#include <ystdex/utility.hpp> // for ystdex::nptr;
+#include <ystdex/pointer.hpp> // for ystdex::nptr;
 #include YFM_YSLib_Core_YEvent // for YSLib::GEvent;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
 //	YSLib::Drawing::Point, YSLib::Drawing::Size;
@@ -235,7 +235,7 @@ public:
 #	if YCL_HostedUI_XCB
 	//! \since build 562
 	//@{
-	DefSetterMem(const YSLib::Drawing::Rect&, Bounds, Deref())
+	DefSetterMem(, const YSLib::Drawing::Rect&, Bounds, Deref())
 
 	PDefH(void, Close, )
 		ImplRet(Deref().Close())

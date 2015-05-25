@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13820
+\version r13831
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-05-07 09:56 +0800
+	2015-05-24 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -268,14 +268,14 @@ DefPredMem(_q, _n, _m)
 DefGetter(_q, _t, _n, ...)
 DefGetterBase(_q, _t, _n, _b)
 DefGetterMem(_q, _t, _n, _m)
-DefSetter(_t, _n, _m)
-DefSetterDe(_t, _n, _m, _defv)
-DefSetterBase(_t, _n, _b)
-DefSetterBaseDe(_t, _n, _b, _defv)
-DefSetterMem(_t, _n, _m)
-DefSetterMemDe(_t, _n, _m, _defv)
-DefSetterEx(_t, _n, _m, _e)
-DefSetterDeEx(_t, _n, _m, _defv, _e)
+DefSetter(_q, _t, _n, _m)
+DefSetterDe(_q, _t, _n, _m, _defv)
+DefSetterBase(_q, _t, _n, _b)
+DefSetterBaseDe(_q, _t, _n, _b, _defv)
+DefSetterMem(_q, _t, _n, _m)
+DefSetterMemDe(_q, _t, _n, _m, _defv)
+DefSetterEx(_q, _t, _n, _m, _e)
+DefSetterDeEx(_q, _t, _n, _m, _defv, _e)
 DefClone(_q, _t)
 DefSwap(_q, _t)
 DefSubscriptor(_q, _type, ...)
@@ -818,6 +818,8 @@ $options $intended $warning $impl("g++", !"clang++") $=
 ]],
 $options $intended $warning $impl(!"g++", "clang++") $=
 [[
+	Winconsistent-missing-override
+	Wpotentially-evaluated-expression
 	Wshorten-64-to-32
 	Wweak-vtables
 ]],
@@ -1053,7 +1055,7 @@ $options $TBD $impl("GCC", "Clang"?) $=
 	// From gcc/c-family/c.opt.
 	Wnoexcept
 	C++ ObjC++ Var(warn_noexcept) Warning
-		// C++ lambda with noexcept?
+		// C++ lambda with noexcept? See also CWG 1722.
 	Wnormalized=<id|nfc|nfkc>?
 ]],
 $options $TBD $impl(!"GCC", "Clang") $=

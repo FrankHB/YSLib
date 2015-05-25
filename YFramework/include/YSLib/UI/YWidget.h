@@ -11,13 +11,13 @@
 /*!	\file YWidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5796
+\version r5800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-04-30 04:59 +0800
+	2015-05-24 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -458,12 +458,12 @@ public:
 	DefGetterMem(const ynothrow, SPos, X, GetView())
 	DefGetterMem(const ynothrow, SPos, Y, GetView())
 
-	DefSetterMem(SDst, Height, GetView())
-	DefSetterMem(SDst, Width, GetView())
+	DefSetterMem(, SDst, Height, GetView())
+	DefSetterMem(, SDst, Width, GetView())
 	//! \since build 587
-	DefSetterMem(SPos, X, GetView())
+	DefSetterMem(, SPos, X, GetView())
 	//! \since build 587
-	DefSetterMem(SPos, Y, GetView())
+	DefSetterMem(, SPos, Y, GetView())
 	/*!
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用以当前部件边界新建的 Renderer 对象。
