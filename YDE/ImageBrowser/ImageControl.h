@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r645
+\version r646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-03-17 02:28 +0800
+	2015-05-25 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ private:
 
 public:
 	//! \since build 571
-	DefSetter(bool, RootMode, border.RootMode)
+	DefSetter(, bool, RootMode, border.RootMode)
 
 private:
 	//! \since build 578

@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2744
+\version r2745
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-29 12:46 +0800
+	2015-05-25 03:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,7 +125,7 @@ TextRenderer::ClearLine(size_t l, SDst n)
 	if(YB_LIKELY(bool(g) && l < h))
 	{
 		if(n == 0 || l + n > h)
-			n = h - l;
+			n = h - SDst(l);
 		ClearPixel(g[l], size_t(g.GetWidth() * n));
 	}
 }

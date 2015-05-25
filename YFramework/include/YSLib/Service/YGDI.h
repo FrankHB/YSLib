@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3900
+\version r3901
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-03-24 20:47 +0800
+	2015-05-24 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,7 +230,7 @@ public:
 	//! \since build 409
 	DefClone(const ImplI(IImage), BasicImage)
 
-	DefSetter(const Size&, Size, sGraphics)
+	DefSetter(ImplI(IImage), const Size&, Size, sGraphics)
 };
 
 

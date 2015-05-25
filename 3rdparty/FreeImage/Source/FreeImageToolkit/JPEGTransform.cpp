@@ -28,6 +28,8 @@
 // Modified by FrankHB <frankhb1989@gmail.com>, 2014-07-19:
 //	Removed all spaces at end of lines.
 //	Updated credits and code from base version 3.16.0 except for functions only supported in Win32: "openStdIOU" and "FreeImage_JPEGTransformCombinedU".
+// Modified by FrankHB <frankhb1989@gmail.com>, 2015-05-25:
+//	Merged changes from base version 3.17.0.
 
 extern "C" {
 #define XMD_H
@@ -384,7 +386,7 @@ closeStdIO(fi_handle src_handle, fi_handle dst_handle) {
 	if(src_handle) {
 		fclose((FILE*)src_handle);
 	}
-	if(dst_handle) {
+	if(dst_handle && (dst_handle != src_handle)) {
 		fclose((FILE*)dst_handle);
 	}
 }

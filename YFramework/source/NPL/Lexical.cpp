@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1544
+\version r1549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2015-05-13 11:02 +0800
+	2015-05-23 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,6 +186,7 @@ LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
 				}
 				else
 					cbuf += c;
+			case char():
 				break;
 			case ' ':
 			case '\f':
@@ -361,9 +362,8 @@ EscapeXML(const string& str)
 string
 Literalize(const string& str, char c)
 {
-	if(CheckLiteral(str) != char())
-		return str;
-	return c == char() ? str : ystdex::quote(str, c);
+	return c != char() && CheckLiteral(str) == char() ? ystdex::quote(str, c)
+		: str;
 }
 
 
@@ -379,7 +379,7 @@ Decompose(const string& src_str)
 		YAssert(!str.empty(), "Null token found.");
 		if(IsGraphicalDelimeter(*b))
 		{
-			dst.push_back(str.substr(0, 1));
+			dst.push_back({str.front()});
 			str.erase(0, 1);
 		}
 		// TODO: Optimize using %std::experimental::string_view.

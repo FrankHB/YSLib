@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r749
+\version r848
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-04-29 01:12 +0800
+	2015-05-22 08:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,10 @@
 
 #include "base.h" // for cloneable;
 #include "string.hpp" // for sequence_container_adaptor,
-//	erase_all_if, string_traits, to_array;
+//	ystdex::erase_all_if, string_traits, to_array;
+#include "operators.hpp" // for totally_ordered, dividable;
 #include "memory.hpp" // for std::unique_ptr, make_unique;
-#include <string> // for std::string;
-#include <algorithm> // for std::adjencent_find;
+#include <string> // for std::basic_string, std::string;
 #include <typeinfo> // for typeid;
 
 namespace ystdex
@@ -187,7 +187,10 @@ classify_path(const _tString& name, _tNorm&& norm = _tNorm()) ynothrow
 */
 template<class _tSeqCon,
 	class _tNorm = path_norm<typename _tSeqCon::value_type>>
-class path : private sequence_container_adaptor<_tSeqCon>
+class path : private sequence_container_adaptor<_tSeqCon>,
+	public dividable<path<_tSeqCon, _tNorm>, typename _tSeqCon::value_type>,
+	public totally_ordered<path<_tSeqCon, _tNorm>>,
+	dividable<path<_tSeqCon, _tNorm>>
 {
 private:
 	using base = sequence_container_adaptor<_tSeqCon>;
@@ -269,6 +272,49 @@ public:
 		return *this = path(il);
 	}
 
+	//! \since build 600
+	path&
+	operator/=(const value_type& s)
+	{
+		auto& norm(get_norm());
+
+		if(norm.is_parent(s) && (is_absolute() ? 1 : 0) < size())
+		{
+			if(!norm.is_parent(back()))
+				pop_back();
+			else
+				push_back(s);
+		}
+		else if(!norm.is_self(s))
+			push_back(s);
+		return *this;
+	}
+	//! \since build 600
+	path&
+	operator/=(const path& pth)
+	{
+		for(const auto& s : pth)
+			*this /= s;
+		return *this;
+	}
+
+	//! \since build 600
+	//@{
+	friend bool
+	operator<(const path& x, const path& y)
+	{
+		return typeid(x.get_norm()).before(typeid(y.get_norm()))
+			&& static_cast<const base&>(x) < static_cast<const base&>(y);
+	}
+
+	friend bool
+	operator==(const path& x, const path& y)
+	{
+		return typeid(x.get_norm()) == typeid(y.get_norm())
+			&& static_cast<const base&>(x) == static_cast<const base&>(y);
+	}
+	//@}
+
 	using base::begin;
 
 	using base::end;
@@ -313,20 +359,6 @@ public:
 
 	//! \since build 559
 	using base::get_container;
-
-	bool
-	before(const path& pth) const
-	{
-		return typeid(get_norm()).before(typeid(pth.get_norm()))
-			&& static_cast<const base&>(*this) < static_cast<const base&>(pth);
-	}
-
-	bool
-	equals(const path& pth) const
-	{
-		return typeid(get_norm()) == typeid(pth.get_norm())
-			&& static_cast<const base&>(*this) == static_cast<const base&>(pth);
-	}
 
 	void
 	filter_self()
@@ -398,54 +430,6 @@ private:
 		return p ? std::move(p) : make_unique<default_norm>();
 	}
 };
-
-/*!
-\brief 路径比较操作。
-\relates path
-*/
-//@{
-template<class _tSeqCon, class _tNorm>
-inline bool
-operator==(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
-{
-	return x.equals(y);
-}
-
-template<class _tSeqCon, class _tNorm>
-bool
-operator!=(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
-{
-	return !(x == y);
-}
-
-template<class _tSeqCon, class _tNorm>
-bool
-operator<(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
-{
-	return x.before(y);
-}
-
-template<class _tSeqCon, class _tNorm>
-bool
-operator<=(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
-{
-	return !(y < x);
-}
-
-template<class _tSeqCon, class _tNorm>
-bool
-operator>(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
-{
-	return y < x;
-}
-
-template<class _tSeqCon, class _tNorm>
-bool
-operator>=(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
-{
-	return !(x < y);
-}
-//@}
 
 /*!
 \brief 正规化。

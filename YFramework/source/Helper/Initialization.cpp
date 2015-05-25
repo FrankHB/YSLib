@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2220
+\version r2285
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-05-18 14:11 +0800
+	2015-05-24 14:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,8 @@
 
 using namespace ystdex;
 using namespace platform;
+//! \since build 600
+using namespace NPL;
 
 namespace YSLib
 {
@@ -277,6 +279,26 @@ LoadComponents(const ValueNode& node)
 		throw GeneralEvent("Invalid default font file path found.");
 }
 
+bool
+CreateDefaultNPLA1File(const char* disp, const char* path,
+	ValueNode(*creator)(), bool show_info)
+{
+	if(show_info)
+		YF_Init_printf(Notice, "Creating %s '%s'...\n", disp, path);
+	if(creator)
+	{
+		YTraceDe(Debug, "Creator found.");
+		if(TextFile tf{path, std::ios_base::out | std::ios_base::trunc})
+			tf << NPL::Configuration(creator());
+		else
+			throw GeneralEvent(ystdex::sfmt("Cannot create file,"
+				" error = %d: %s.", errno, std::strerror(errno)));
+		YTraceDe(Debug, "Created configuration.");
+		return {};
+	}
+	return true;
+}
+
 } // unnamed namespace;
 
 void
@@ -310,19 +332,7 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	if(!ufexists(path))
 	{
 		YTraceDe(Debug, "Path '%s' access failed.", path);
-		if(show_info)
-			YF_Init_printf(Notice, "Creating %s '%s'...\n", disp, path);
-		if(creator)
-		{
-			YTraceDe(Debug, "Creator found.");
-			if(TextFile tf{path, std::ios_base::out | std::ios_base::trunc})
-				tf << NPL::Configuration(creator());
-			else
-				throw GeneralEvent(ystdex::sfmt("Cannot create file,"
-					" error = %d: %s.", errno, std::strerror(errno)));
-			YTraceDe(Debug, "Created configuration.");
-		}
-		else
+		if(CreateDefaultNPLA1File(disp, path, creator, show_info))
 			return {};
 	}
 
@@ -333,45 +343,13 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	return ReadConfiguration(tf);
 }
 
-
-ValueNode
-ReadConfiguration(TextFile& tf)
-{
-	if(YB_LIKELY(tf))
-	{
-		YTraceDe(Debug, "Found accessible configuration file.");
-		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
-			throw GeneralEvent("Wrong encoding of configuration file.");
-
-		NPL::Configuration conf;
-
-		tf >> conf;
-		YTraceDe(Debug, "Plain configuration loaded.");
-		if(!conf.GetNodeRRef().empty())
-			return conf.GetNodeRRef();
-		YTraceDe(Warning, "Empty configuration found.");
-	}
-	throw GeneralEvent("Invalid file found when reading configuration.");
-}
-
-void
-WriteConfiguration(TextFile& tf, const ValueNode& node)
-{
-	if(YB_UNLIKELY(!tf))
-		throw GeneralEvent("Invalid file found when writing configuration.");
-	YTraceDe(Debug, "Writing configuration...");
-	tf << NPL::Configuration(ValueNode(node.GetContainerRef()));
-	YTraceDe(Debug, "Writing configuration done.");
-}
-
 ValueNode
 LoadConfiguration(bool show_info)
 {
 	return LoadNPLA1File("configuration file", CONF_PATH, []{
-		return PackNodes("YFramework", MakeNode("DataDirectory",
-			string(DATA_DIRECTORY)), MakeNode("FontFile",
-			string(DEF_FONT_PATH)), MakeNode("FontDirectory",
-			string(DEF_FONT_DIRECTORY)));
+		return ValueNode(NodeLiteral{"YFramework",
+			{{"DataDirectory", DATA_DIRECTORY}, {"FontFile", DEF_FONT_PATH},
+			{"FontDirectory", DEF_FONT_DIRECTORY}}});
 	}, show_info);
 }
 
@@ -579,16 +557,16 @@ FetchMIMEBiMapping()
 {
 	if(YB_UNLIKELY(!p_mapping))
 	{
-		p_mapping = ynew MIMEBiMapping;
-		app_exit.push([]{
-			ydelete(p_mapping);
-		});
+		p_mapping = ynew MIMEBiMapping();
 		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
 			(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory")
 			+ "MIMEExtMap.txt").c_str(), []{
 			return
 				NPL::LoadNPLA1(NPL::SContext::Analyze(NPL::Session(TU_MIME)));
-		}, true));
+			}, true));
+		app_exit.push([]() ynothrow{
+			ydelete(p_mapping);
+		});
 	}
 	return *p_mapping;
 }

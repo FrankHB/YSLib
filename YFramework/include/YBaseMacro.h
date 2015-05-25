@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2714
+\version r2733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2015-04-08 14:51 +0800
+	2015-05-24 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,38 +246,41 @@ _t type
 #define DefGetterMem(_q, _t, _n, _m) \
 	DefGetter(_q, _t, _n, (_m).YPP_Concat(Get, _n)())
 
-#define DefSetter(_t, _n, _m) \
+//! \since build 600
+//@{
+#define DefSetter(_q, _t, _n, _m) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName) \
+	YPP_Concat(Set, _n)(_t _tempArgName) _q \
 		ImplExpr((_m) = _tempArgName)
-#define DefSetterDe(_t, _n, _m, _defv) \
+#define DefSetterDe(_q, _t, _n, _m, _defv) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) _q \
 		ImplExpr((_m) = _tempArgName)
-#define DefSetterBase(_t, _n, _b) \
+#define DefSetterBase(_q, _t, _n, _b) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName) \
+	YPP_Concat(Set, _n)(_t _tempArgName) _q \
 		ImplExpr(_b::YPP_Concat(Set, _n)(_tempArgName))
-#define DefSetterBaseDe(_t, _n, _b, _defv) \
+#define DefSetterBaseDe(_q, _t, _n, _b, _defv) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) _q \
 		ImplExpr(_b::YPP_Concat(Set, _n)(_tempArgName))
-#define DefSetterMem(_t, _n, _m) \
+#define DefSetterMem(_q, _t, _n, _m) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName) \
+	YPP_Concat(Set, _n)(_t _tempArgName) _q \
 		ImplExpr((_m).YPP_Concat(Set, _n)(_tempArgName))
-#define DefSetterMemDe(_t, _n, _m, _defv) \
+#define DefSetterMemDe(_q, _t, _n, _m, _defv) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) _q \
 		ImplExpr((_m).YPP_Concat(Set, _n)(_tempArgName))
-#define DefSetterEx(_t, _n, _m, ...) \
+#define DefSetterEx(_q, _t, _n, _m, ...) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName) \
+	YPP_Concat(Set, _n)(_t _tempArgName) _q \
 		ImplExpr((_m) = (__VA_ARGS__))
-#define DefSetterDeEx(_t, _n, _m, _defv, ...) \
+#define DefSetterDeEx(_q, _t, _n, _m, _defv, ...) \
 	void \
-	YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
+	YPP_Concat(Set, _n)(_t _tempArgName = _defv) _q \
 		ImplExpr((_m) = (__VA_ARGS__))
+//@}
 //@}
 
 

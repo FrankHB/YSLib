@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r812
+\version r821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-03-25 20:55 +0800
+	2015-05-24 23:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -235,18 +235,16 @@ public:
 	//! \since build 307
 	DefGetterMem(ynothrow, Size&, SizeRef, GetBounds())
 
-	virtual/*override*/ DefSetter(SDst, Height, GetSizeRef().Height)
+	DefSetter(override, SDst, Height, GetSizeRef().Height)
 	void
 	SetVisible(bool) ImplI(AView);
-	virtual/*override*/ DefSetter(SDst, Width, GetSizeRef().Width)
-	virtual/*override*/ DefSetterMem(SPos, X, GetLocationRef())
-	virtual/*override*/ DefSetterMem(SPos, Y, GetLocationRef())
+	DefSetter(override, SDst, Width, GetSizeRef().Width)
+	DefSetterMem(override, SPos, X, GetLocationRef())
+	DefSetterMem(override, SPos, Y, GetLocationRef())
 	//! \since build 569
-	virtual/*override*/ DefSetter(const Rect&, Bounds, visual.Bounds)
-	virtual/*ImplI(AView)*/
-	DefSetter(const Point&, Location, visual.Bounds.GetPointRef())
-	virtual/*ImplI(AView)*/
-	DefSetter(const Size&, Size, visual.Bounds.GetSizeRef())
+	DefSetter(override, const Rect&, Bounds, visual.Bounds)
+	DefSetter(ImplI(AView), const Point&, Location, visual.Bounds.GetPointRef())
+	DefSetter(ImplI(AView), const Size&, Size, visual.Bounds.GetSizeRef())
 
 	//! \since build 409
 	DefClone(const ImplI(AView), View)

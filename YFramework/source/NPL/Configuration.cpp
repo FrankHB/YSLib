@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r838
+\version r871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2015-05-16 19:10 +0800
+	2015-05-24 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,21 +28,17 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Configuration
 #include YFM_NPL_SContext
-#include <sstream> // for std::ostringstream;
 
 using namespace YSLib;
 
 namespace NPL
 {
 
-File&
-operator<<(File& f, const Configuration& conf)
+std::ostream&
+operator<<(std::ostream& os, const Configuration& conf)
 {
-	std::ostringstream oss;
-
-	PrintNode(oss, conf.GetRoot(), LiteralizeEscapeNodeLiteral);
-	f << oss.str();
-	return f;
+	PrintNode(os, conf.GetRoot(), LiteralizeEscapeNodeLiteral);
+	return os;
 }
 
 TextFile&
@@ -51,6 +47,37 @@ operator>>(TextFile& tf, Configuration& conf)
 	tf.Rewind();
 	conf.root = LoadNPLA1(SContext::Analyze(Session(tf)));
 	return tf;
+}
+
+
+ValueNode
+ReadConfiguration(TextFile& tf)
+{
+	if(YB_LIKELY(tf))
+	{
+		YTraceDe(Debug, "Found accessible configuration file.");
+		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
+			throw GeneralEvent("Wrong encoding of configuration file.");
+
+		NPL::Configuration conf;
+
+		tf >> conf;
+		YTraceDe(Debug, "Plain configuration loaded.");
+		if(!conf.GetNodeRRef().empty())
+			return conf.GetNodeRRef();
+		YTraceDe(Warning, "Empty configuration found.");
+	}
+	throw GeneralEvent("Invalid file found when reading configuration.");
+}
+
+void
+WriteConfiguration(TextFile& tf, const ValueNode& node)
+{
+	if(YB_UNLIKELY(!tf))
+		throw GeneralEvent("Invalid file found when writing configuration.");
+	YTraceDe(Debug, "Writing configuration...");
+	tf << NPL::Configuration(ValueNode(node.GetContainerRef()));
+	YTraceDe(Debug, "Writing configuration done.");
 }
 
 } // namespace NPL;

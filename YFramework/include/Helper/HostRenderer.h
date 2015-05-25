@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r501
+\version r504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-19 11:38 +0800
+	2015-05-25 02:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,9 +94,9 @@ private:
 	/*!
 	\brief 窗口指针。
 	\note 不使用 \c unique_ptr 以便于实现线程安全的状态检查。
-	\since build 428
+	\since build 600
 	*/
-	std::atomic<Window*> p_wnd{{}};
+	std::atomic<Window*> p_window{{}};
 	std::thread thrd;
 
 public:
@@ -125,7 +125,7 @@ public:
 	~WindowThread();
 
 	//! \note 线程安全。
-	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd)
+	DefGetter(const ynothrow, Window*, WindowPtr, p_window)
 
 	/*!
 	\brief 默认生成守护对象。

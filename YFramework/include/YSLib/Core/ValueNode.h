@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1673
+\version r1717
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-05-20 13:23 +0800
+	2015-05-24 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -518,6 +518,57 @@ inline PDefH(string, MakeIndex, const ValueNode::Container& con)
 inline PDefH(string, MakeIndex, const ValueNode& node)
 	ImplRet(MakeIndex(node.GetContainerRef()))
 //@}
+
+
+/*!
+\brief 节点序列容器。
+\since build 597
+
+除分配器外满足和 std::vector 相同的要求的模板的一个实例，元素为 ValueNode 类型。
+*/
+using NodeSequence = yimpl(YSLib::vector)<ValueNode>;
+
+
+/*!
+\brief 包装节点的组合字面量。
+\since build 598
+*/
+class YF_API NodeLiteral final
+{
+private:
+	ValueNode node;
+
+public:
+	//! \since build 599
+	NodeLiteral(const ValueNode& nd)
+		: node(nd)
+	{}
+	//! \since build 599
+	NodeLiteral(ValueNode&& nd)
+		: node(std::move(nd))
+	{}
+	NodeLiteral(const string& str)
+		: node(0, str)
+	{}
+	NodeLiteral(const string& str, string val)
+		: node(0, str, std::move(val))
+	{}
+	template<typename _tLiteral = NodeLiteral>
+	NodeLiteral(const string& str, std::initializer_list<_tLiteral> il)
+		: node(0, str, NodeSequence(il.begin(), il.end()))
+	{}
+	template<typename _tLiteral = NodeLiteral, class _tString,
+		typename... _tParams>
+	NodeLiteral(int, _tString&& str, std::initializer_list<_tLiteral> il,
+		_tParams&&... args)
+		: node(ValueNode::Container(il.begin(), il.end()), yforward(str),
+		yforward(args)...)
+	{}
+	DefDeCopyMoveCtorAssignment(NodeLiteral)
+
+	DefCvt(ynothrow, ValueNode&, node)
+	DefCvt(const ynothrow, const ValueNode&, node)
+};
 
 } // namespace YSLib;
 

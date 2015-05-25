@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2010
+\version r2032
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-05-20 20:06 +0800
+	2015-05-21 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,30 +40,6 @@ namespace IO
 
 ImplDeDtor(PathNorm)
 
-
-Path&
-Path::operator/=(const String& fname)
-{
-	auto& norm(get_norm());
-
-	if(norm.is_parent(fname) && (is_absolute() ? 1 : 0) < size())
-	{
-		if(!norm.is_parent(back()))
-			pop_back();
-		else
-			push_back(fname);
-	}
-	else if(!norm.is_self(fname))
-		push_back(fname);
-	return *this;
-}
-Path&
-Path::operator/=(const Path& pth)
-{
-	for(const auto& fname : pth)
-		*this /= fname;
-	return *this;
-}
 
 String
 Path::GetString(ucs2_t delimiter) const

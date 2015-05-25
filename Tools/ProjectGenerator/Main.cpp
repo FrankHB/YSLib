@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r611
+\version r725
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2015-05-21 00:38 +0800
+	2015-05-23 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,70 +44,80 @@ namespace
 
 const string C_CONF(" -f $makefile -r CONF=$target");
 const string C_CMD("CMD /C ");
-const string C_EXIT(" || EXIT");
+
+//! \since build 600
+//@{
+using spath = ystdex::path<vector<string>>;
+
+yconstfn YB_STATELESS PDefH(const char*, GetConfName, bool debug)
+	ImplRet(debug ? "debug" : "release")
+
+yconstfn YB_STATELESS PDefH(const char*, GetConfSuffix, bool debug)
+	ImplRet(debug ? "d." : ".")
+
+inline PDefH(string, GetDLLName, const string& name, bool debug,
+	bool win32 = true)
+	ImplRet(name + GetConfSuffix(debug) + (win32 ? "dll" : "so"))
+
+inline PDefH(spath, GetLibPath, const string& name, bool debug,
+	bool dll = true, bool win32 = true)
+	ImplRet({name, string(GetConfName(debug)), dll
+		? GetDLLName(name, debug, win32) : "lib" + name + GetConfSuffix(debug)
+		+ 'a'})
+
+inline PDefH(string, QuoteCommandPath, const spath& pth,
+	const string& separator = "\\")
+	ImplRet(ystdex::quote(to_string(pth, separator), " &quot;", "&quot;"))
+//@}
 
 NodeLiteral
 MakeCommandLiteral(const string& jstr = "-j8")
 {
 	const auto Build("$make " + jstr + C_CONF);
 	const auto Clean("$make" + C_CONF + " clean");
-	const auto AskRebuildNeeded("$make -q" + C_CONF + " rebuild");
+	const auto make([](const string& name, const string& val){
+		return MakeAttributeLiteral(name, "command", val);
+	});
 
 	// TODO: Support diagnostics for showing in Visual Studio.
-	return {"MakeCommands", {
-		{MakeAttributeLiteral("Build", "command", Build)},
-		{MakeAttributeLiteral("CompileFile", "command",
-			"$make" + C_CONF + " $file")},
-		{MakeAttributeLiteral("Clean", "command", Clean)},
-		{MakeAttributeLiteral("DistClean", "command", Clean)},
-		{MakeAttributeLiteral("AskRebuildNeeded", "command",
-			"$make -q" + C_CONF + " rebuild")},
-		{MakeAttributeLiteral("SilentBuild", "command",
-			Build + " &gt; $(CMD_NULL)")}
-	}};
+	return {"MakeCommands", {{make("Build", Build)}, {make("CompileFile",
+		"$make" + C_CONF + " $file")}, {make("Clean", Clean)}, {make(
+		"DistClean", Clean)}, {make("AskRebuildNeeded", "$make -q" + C_CONF
+		+ " rebuild")}, {make("SilentBuild",  Build + " &gt; $(CMD_NULL)")}}};
 }
 
+//! \since build 600
 NodeLiteral
-MakeExtraCommandLiteral(bool debug, const string& proj,
-	const string& prefix = "..\\..\\build\\MinGW32\\")
+MakeExtraCommandLiteral(bool debug, const string& proj, const spath& prefix)
 {
-	const auto& quo([debug](const string pfx, const string& name) -> string{
-		return ystdex::quote(pfx + (debug ? "debug" : "release")
-			+ YCL_PATH_DELIMITER + name + (debug ? "d.dll" : ".dll"), " &quot;",
-			"&quot;");
+	const auto& dst(prefix / proj / GetConfName(debug));
+	const auto& quo([&, debug](const string& name) -> string{
+		return QuoteCommandPath(dst / GetDLLName(name, debug));
 	});
-	const auto& dst(prefix + proj + YCL_PATH_DELIMITER);
 	const auto del([&](const string& name) -> string{
-		return C_CMD + "DEL" + quo(dst, name) + C_EXIT;
+		return C_CMD + "DEL" + quo(name) + " || EXIT";
 	});
 	const auto create([&](const string& name) -> string{
-		const auto& qd(quo(dst, name));
-		const auto& qs(quo(prefix + name + YCL_PATH_DELIMITER, name));
+		const auto& qd(quo(name));
+		const auto& qs(QuoteCommandPath(prefix / GetLibPath(name, debug)));
 		const auto& qds(qd + qs);
 
 		return C_CMD + "MKLINK" + qds + " || MKLINK /H" + qds
 			+ " || ECHO F | XCOPY /D /Y" + qs + qd;
 	});
+	const auto make([](const string& val){
+		return MakeAttributeLiteral("Add", "before", val);
+	});
 
-	return {"ExtraCommands", {
-		{MakeAttributeLiteral("Add", "before", del("YBase"))},
-		{MakeAttributeLiteral("Add", "before", create("YBase"))},
-		{MakeAttributeLiteral("Add", "before", del("YFramework"))},
-		{MakeAttributeLiteral("Add", "before", create("YFramework"))}
-	}};
+	return {"ExtraCommands", {{make(del("YBase"))}, {make(create("YBase"))},
+		{make(del("YFramework"))}, {make(create("YFramework"))}}};
 }
 
-bool
-IsDSARM(const string& platform)
-{
-	return platform == "DS_ARM7" || platform == "DS_ARM9";
-}
+inline PDefH(bool, IsDSARM, const string& platform)
+	ImplRet(platform == "DS_ARM7" || platform == "DS_ARM9")
 
-bool
-IsDS(const string& platform)
-{
-	return platform == "DS" || IsDSARM(platform);
-}
+inline PDefH(bool, IsDS, const string& platform)
+	ImplRet(platform == "DS" || IsDSARM(platform))
 
 string
 LookupCompilerName(const string& platform)
@@ -121,11 +131,8 @@ LookupCompilerName(const string& platform)
 	return "gcc";
 }
 
-bool
-CheckIfCustomMakefile(const string& platform)
-{
-	return LookupCompilerName(platform) != "gcc";
-}
+inline PDefH(bool, CheckIfCustomMakefile, const string& platform)
+	ImplRet(LookupCompilerName(platform) != "gcc")
 
 
 enum class BuildType : yimpl(size_t)
@@ -170,7 +177,7 @@ InsertTargetNode(const ValueNode& node, const string& project,
 	const string& platform, bool custom_makefile, bool debug, BuildType btype,
 	HostHandler hosted_handler = {})
 {
-	const string& target(debug ? "debug" : "release");
+	const string& target(GetConfName(debug));
 	const string& proj_type(custom_makefile ? "4"
 		: [](BuildType b) -> const char*{
 		switch(b)
@@ -188,8 +195,8 @@ InsertTargetNode(const ValueNode& node, const string& project,
 		}
 	}(!debug && bool(btype & BuildType::Executable) ? btype
 		| BuildType::GUI : btype));
-	auto child(MakeAttributeLiteral("Target", "title", bool(btype
-		& BuildType::Static) ? target : target + "_DLL").GetSyntaxNode());
+	auto child(TransformToSyntaxNode(MakeAttributeLiteral("Target", "title",
+		bool(btype & BuildType::Static) ? target : target + "_DLL")));
 
 	if(!(platform.empty() || custom_makefile))
 	{
@@ -269,7 +276,7 @@ void
 InsertUnit(set<string>& res, const Path& pth, const string& platform)
 {
 	auto lpth((!platform.empty() && pth.size() > 2 && pth.front() == u".."
-		&& *(pth.begin() + 1) == platform
+		&& *(pth.begin() + 1) == String(platform)
 		? Path(pth.begin() + 2, pth.end()) : pth).GetMBCS(CS_Path, '/'));
 
 	if(CheckExcluded(lpth, platform))
@@ -310,12 +317,9 @@ FindUnits(set<string>& res, const Path& pth, const Path& opth,
 		});
 	}
 }
-void
-FindUnits(set<string>& res, const Path& pth, const Path& opth,
-	const String& name, const string& platform)
-{
-	FindUnits(res, pth / name, opth / name, platform);
-}
+inline PDefH(void, FindUnits, set<string>& res, const Path& pth,
+	const Path& opth, const String& name, const string& platform)
+	ImplExpr(FindUnits(res, pth / name, opth / name, platform))
 
 void
 SearchUnits(set<string>& res, const Path& pth, const Path& opth,
@@ -365,12 +369,12 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 
 	if(!custom_makefile)
 		handler = [&, btype](const ValueNode& nd, bool debug, bool is_static){
-			auto child(NodeLiteral("Compiler").GetSyntaxNode());
+			auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
 			const auto opt_add([&child](const string& str){
 				InsertAttributeNode(child, "Add", "option", str);
 			});
-			const auto lib_add([&child](const string& str){
-				InsertAttributeNode(child, "Add", "library", str);
+			const auto lib_add([&child](const spath& pth){
+				InsertAttributeNode(child, "Add", "library", to_string(pth));
 			});
 
 			for(auto& opt : GetCompilerOptionList(debug))
@@ -390,32 +394,26 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 			if(!debug || (project != "YBase"
 				&& !(project == "YFramework" && is_static)))
 			{
-				child = NodeLiteral("Linker").GetSyntaxNode();
+				child = TransformToSyntaxNode(NodeLiteral("Linker"));
 				if(!debug)
 					opt_add("-s");
 				if(project != "YBase")
 				{
+					const spath pfx_w32{"..", "..", "build", "MinGW32"};
+					const spath
+						w32lib{"..", "..", "YFramework", "MinGW32", "lib-i686"};
+
 					if(project != "YFramework")
 					{
 						if(is_static)
 						{
-#undef PG_MinGW32
-#undef PG_MinGW32_lib_i686
-#define PG_MinGW32 "../../build/MinGW32/"
-#define PG_MinGW32_lib_i686 "../../YFramework/MinGW32/lib-i686/"
-							seq_apply(lib_add, debug ? PG_MinGW32
-								"YFramework/debug/libYFrameworkd.a" : PG_MinGW32
-								"YFramework/release/libYFramework.a",
-								PG_MinGW32_lib_i686 "libFreeImage.a",
-								PG_MinGW32_lib_i686 "libfreetype.a",
-								debug ? PG_MinGW32 "YBase/debug/libYBased.a"
-								: PG_MinGW32 "YBase/release/libYBase.a");
-#undef PG_MinGW32_lib_i686
+							seq_apply(lib_add, pfx_w32 / GetLibPath(
+								"YFramework", debug, {}), w32lib
+								/ "libFreeImage.a", w32lib / "libfreetype.a",
+								pfx_w32 / GetLibPath("YBase", debug, {}));
 						}
 						else if(platform == "MinGW32")
-							lib_add(debug ? PG_MinGW32 "YFramework/"
-								"debug/YFrameworkd.dll" : PG_MinGW32
-								"YFramework/release/YFramework.dll");
+							lib_add(pfx_w32 / GetLibPath("YFramework", debug));
 					}
 					else if(!is_static)
 					{
@@ -423,24 +421,23 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 							"--dynamic-list-cpp-new,--dynamic-list-cpp"
 							"-typeinfo");
 						if(project == "YFramework")
-							seq_apply(lib_add, "lib-i686/libFreeImage.a",
-								"lib-i686/libfreetype.a");
+							seq_apply(lib_add,
+								spath{"lib-i686", "libFreeImage.a"},
+								spath{"lib-i686", "libfreetype.a"});
 					}
 					if(platform == "MinGW32")
 					{
 						if(!is_static)
-							lib_add(debug ? PG_MinGW32 "YBase/debug/YBased.dll"
-								: PG_MinGW32 "YBase/release/YBase.dll");
+							lib_add(pfx_w32 / GetLibPath("YBase", debug));
 						if(is_static != (project == "YFramework"))
-							seq_apply(lib_add, "gdi32", "imm32");
+							seq_apply(lib_add, spath{"gdi32"}, spath{"imm32"});
 					}
-#undef PG_MinGW32
 				}
 				InsertChildSyntaxNode(nd, std::move(child));
 			}
 			if(exe && !is_static && platform == "MinGW32")
-				InsertChildSyntaxNode(nd,
-					MakeExtraCommandLiteral(debug, project));
+				InsertChildSyntaxNode(nd, MakeExtraCommandLiteral(debug,
+					project, {"..", "..", "build", "MinGW32"}));
 		};
 
 	const auto ins([&, custom_makefile](bool d, BuildType bt){
@@ -457,7 +454,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 	}
 	if(!custom_makefile)
 	{
-		auto child(NodeLiteral("Compiler").GetSyntaxNode());
+		auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
 		const auto opt_add([&child](const string& str){
 			InsertAttributeNode(child, "Add", "option", str);
 		});
@@ -491,7 +488,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 				"../../3rdparty/freetype/include");
 		}
 		InsertChildSyntaxNode(proj, std::move(child));
-		child = NodeLiteral("Linker").GetSyntaxNode();
+		child = TransformToSyntaxNode(NodeLiteral("Linker"));
 		seq_apply(opt_add, "-Wl,--gc-sections", "-pipe");
 		InsertChildSyntaxNode(proj, std::move(child));
 	}
@@ -534,9 +531,9 @@ MakeCBDocNode(const Path& pth, const Path& opth, const string& platform,
 		SearchUnits(units, pth / platform, opth / platform, custom_makefile,
 			platform);
 		if(platform == "DS_ARM9")
-			SearchUnits(units, pth / "..", opth / "..", {}, platform);
+			SearchUnits(units, pth / u"..", opth / u"..", {}, platform);
 		else if(!IsDS(platform))
-			SearchUnits(units, pth / "DS", opth / "DS", {}, platform);
+			SearchUnits(units, pth / u"DS", opth / u"DS", {}, platform);
 	}
 	return MakeCBDocNode(project, platform, exe, units, custom_makefile);
 }
@@ -571,7 +568,7 @@ main(int argc, char* argv[])
 				return EXIT_FAILURE;
 			}
 
-			const auto ipath(MakeNormalizedAbsolute(in));
+			const auto ipath(MakeNormalizedAbsolute(Path(in)));
 			string platform;
 
 			YAssert(!ipath.empty(), "Empty path found.");

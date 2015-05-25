@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r275
+\version r367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2015-03-23 19:30 +0800
+	2015-05-24 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_bitseg_hpp_ 1
 
 #include "type_op.hpp" // for byte, ptrdiff_t;
-#include <iterator> // for std::iterator, std::random_access_iterator_tag;
+#include "iterator_op.hpp" // for std::iterator,
+//	std::random_access_iterator_tag, iterator_operators_t;
 
 namespace ystdex
 {
@@ -53,7 +54,9 @@ template<size_t _vN, bool _bEndian = false>
 template<size_t _vN, bool _bEndian = {}>
 #endif
 class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
-	byte, ptrdiff_t, byte*, byte&>
+	byte, ptrdiff_t, byte*, byte&>, public iterator_operators_t<bitseg_iterator<
+	_vN, _bEndian>, std::iterator_traits<yimpl(std::iterator<
+	std::random_access_iterator_tag, byte, ptrdiff_t, byte*, byte&>)>>
 {
 	static_assert(_vN != 0, "A bit segment should contain at least one bit.");
 	static_assert(_vN != CHAR_BIT, "A bit segment should not be a byte.");
@@ -119,12 +122,6 @@ public:
 			& ((1 << seg_width) - 1);
 	}
 
-	yconstfn pointer
-	operator->() const ynothrowv
-	{
-		return &**this;
-	}
-
 	inline bitseg_iterator&
 	operator++() ynothrowv
 	{
@@ -133,15 +130,6 @@ public:
 		if(++shift == seg_n)
 			yunseq(shift = 0, ++base);
 		return *this;
-	}
-	//! \since build 415
-	bitseg_iterator
-	operator++(int) ynothrowv
-	{
-		auto i(*this);
-
-		++*this;
-		return i;
 	}
 
 	inline bitseg_iterator&
@@ -155,36 +143,21 @@ public:
 			--shift;
 		return *this;
 	}
-	//! \since build 415
-	bitseg_iterator
-	operator--(int) ynothrowv
-	{
-		auto i(*this);
 
-		--*this;
-		return i;
+	//! \since build 600
+	//@{
+	friend bool
+	operator==(const bitseg_iterator& x, const bitseg_iterator& y) ynothrow
+	{
+		return x.base == y.base && x.shift == y.shift;
 	}
 
-	reference
-	operator[](difference_type n) const ynothrowv
+	friend bool
+	operator<(const bitseg_iterator& x, const bitseg_iterator& y) ynothrow
 	{
-		const auto i(*this);
-
-		i += n;
-		return *i.operator->();
+		return x.base < y.base || (x.base == y.base && x.shift < y.shift);
 	}
-
-	yconstfn bitseg_iterator
-	operator+(difference_type n) const ynothrow
-	{
-		return bitseg_iterator(base + n);
-	}
-
-	yconstfn bitseg_iterator
-	operator-(difference_type n) const ynothrow
-	{
-		return bitseg_iterator(base - n);
-	}
+	//@}
 
 	yconstfn explicit
 	operator pointer() const ynothrow
@@ -199,65 +172,6 @@ public:
 	}
 	//@}
 };
-
-/*!
-\relates bitseg_iterator
-\since build 428
-*/
-//@{
-template<size_t _vN, bool _bEndian>
-inline bool
-operator==(const bitseg_iterator<_vN, _bEndian>& x,
-	const bitseg_iterator<_vN, _bEndian>& y)
-{
-	using pointer = typename bitseg_iterator<_vN, _bEndian>::pointer;
-
-	return pointer(x) == pointer(y) && x.get_shift() == y.get_shift();
-}
-
-template<size_t _vN, bool _bEndian>
-inline bool
-operator!=(const bitseg_iterator<_vN, _bEndian>& x,
-	const bitseg_iterator<_vN, _bEndian>& y)
-{
-	return !(x == y);
-}
-
-template<size_t _vN, bool _bEndian>
-inline bool
-operator<(const bitseg_iterator<_vN, _bEndian>& x,
-	const bitseg_iterator<_vN, _bEndian>& y)
-{
-	using pointer = typename bitseg_iterator<_vN, _bEndian>::pointer;
-
-	return pointer(x) < pointer(y)
-		|| (pointer(x) == pointer(y) && x.get_shift() < y.get_shift());
-}
-
-template<size_t _vN, bool _bEndian>
-bool
-operator<=(const bitseg_iterator<_vN, _bEndian>& x,
-	const bitseg_iterator<_vN, _bEndian>& y)
-{
-	return !(y < x);
-}
-
-template<size_t _vN, bool _bEndian>
-bool
-operator>(const bitseg_iterator<_vN, _bEndian>& x,
-	const bitseg_iterator<_vN, _bEndian>& y)
-{
-	return y < x;
-}
-
-template<size_t _vN, bool _bEndian>
-bool
-operator>=(const bitseg_iterator<_vN, _bEndian>& x,
-	const bitseg_iterator<_vN, _bEndian>& y)
-{
-	return !(x < y);
-}
-//@}
 
 } // namespace ystdex;
 

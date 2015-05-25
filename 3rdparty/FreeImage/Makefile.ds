@@ -1,5 +1,5 @@
 # DS makefile for FreeImage
-# Require: devkitPro
+# Required: devkitPro
 
 include Makefile.srcs
 
@@ -25,16 +25,16 @@ DESTDIR ?= /
 INCDIR ?= $(DESTDIR)/usr/include
 #INSTALLDIR ?= $(DESTDIR)/usr/lib
 
-MODULES = $(SRCS:.c=.o)
+MODULES := $(SRCS:.c=.o)
 MODULES := $(MODULES:.cpp=.o)
 CFLAGS ?= -c -O3 -pipe -Wno-attributes -fvisibility=hidden -DNO_LCMS
 CFLAGS += $(INCLUDE)
 CXXFLAGS ?= -std=c++11 -c -O3 -pipe -Wno-attributes -fvisibility=hidden -Wno-ctor-dtor-privacy
 CXXFLAGS += $(INCLUDE)
 
-TARGET  = FreeImage
-STATICLIB = lib$(TARGET).a
-HEADER = Source/FreeImage.h
+TARGET := FreeImage
+STATICLIB := lib$(TARGET).a
+HEADER := Source/FreeImage.h
 
 
 default: all
@@ -45,17 +45,17 @@ dist: FreeImage
 	cp *.a $(DIST)
 	cp Source/FreeImage.h Dist
 
-FreeImage: $(STATICLIB)
+FreeImage : $(STATICLIB)
 
-.c.o:
+.c.o :
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.cpp.o:
+.cpp.o :
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(STATICLIB): $(MODULES)
+$(STATICLIB) : $(MODULES)
 	$(AR) rcs $@ $(MODULES)
 
-clean:
+clean :
 	rm -f core $(DIST)/*.* u2dtmp* $(MODULES) $(STATICLIB) $(LIBNAME)
 

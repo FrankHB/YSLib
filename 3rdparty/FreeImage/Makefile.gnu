@@ -1,5 +1,7 @@
 # Linux makefile for FreeImage
 
+.SUFFIXES:
+
 include Makefile.srcs
 
 # General configuration variables:
@@ -8,9 +10,9 @@ INCDIR ?= $(DESTDIR)/usr/include
 INSTALLDIR ?= $(DESTDIR)/usr/lib
 
 # Converts cr/lf to just lf
-DOS2UNIX = dos2unix
+DOS2UNIX := dos2unix
 
-LIBRARIES = -lstdc++
+LIBRARIES := -lstdc++
 
 NASM ?= nasm
 C_CXXFLAGS_GC ?= -fdata-sections -ffunction-sections
@@ -44,12 +46,12 @@ MODULES := $(MODULES:.asm=.asm.o)
 MODULES := $(MODULES:.c=.c.o)
 MODULES := $(MODULES:.cpp=.cpp.o)
 
-TARGET  = freeimage
-STATICLIB = lib$(TARGET).a
-SHAREDLIB = lib$(TARGET)-$(VER_MAJOR).$(VER_MINOR).so
+TARGET := freeimage
+STATICLIB := lib$(TARGET).a
+SHAREDLIB := lib$(TARGET)-$(VER_MAJOR).$(VER_MINOR).so
 LIBNAME	= lib$(TARGET).so
-VERLIBNAME = $(LIBNAME).$(VER_MAJOR)
-HEADER = Source/FreeImage.h
+VERLIBNAME := $(LIBNAME).$(VER_MAJOR)
+HEADER := Source/FreeImage.h
 
 
 default : all
@@ -75,8 +77,8 @@ FreeImage : $(STATICLIB) $(SHAREDLIB)
 %.asm.o : %.asm ./Source/LibJPEG/simd/jsimdcfg.inc
 	$(NASM) $(NAFLAGS) -I./Source/LibJPEG/simd/ $< -o $@
 
-./Source/LibJPEG/simd/jsimdcfg.inc:
-	gcc -E -I$. -I$./Source/LibJPEG/simd/ $./jsimdcfg.inc.h | grep -e "^[\;%]|^\ %" | sed 's%_cpp_protection_%%' | sed 's@% define@%define@g' > $@
+./Source/LibJPEG/simd/jsimdcfg.inc :
+	$(CC) -E -I$. -I$./Source/LibJPEG/simd/ $./jsimdcfg.inc.h | grep -e "^[\;%]|^\ %" | sed 's%_cpp_protection_%%' | sed 's@% define@%define@g' > $@
 
 $(STATICLIB) : $(MODULES)
 	$(AR) r $@ $(MODULES)

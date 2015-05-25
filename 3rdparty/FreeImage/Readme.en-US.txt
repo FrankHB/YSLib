@@ -8,9 +8,16 @@ Source and binary compatibility was kept before b456.
 Since b456, the "Plugin" struct is renamed (to avoid global namespace pollution), new interface are introduced, and some functions are removed.
 Unmodified library code should compile, but wrappers based on old code might not work as before.
 
+= Since build 600:
+Based on previous revision b520:
+Merged base version 3.17.0 without functions with suffix "U" and real support for new formats.
+For compatibility, "mkdir -p Dist" is not added as official makefiles.
+Added Win64 support in Makefile.mingw. Now it uses variable "MSYSTEM" to distinguish Win32 and Win64. The value shall be one of "MINGW32" or "MINGW64".
+
 = Since build 520:
 Based on previous revision b456:
 Merged base version 3.16.0 without functions with suffix "U" and real support for new formats.
+FreeImagePlus is not touched.
 
 = Since build 456:
 Based on previous revision b431:
@@ -58,6 +65,14 @@ Disabled unused plugins and make placeholders in plugin list in "Source/Plugin.h
 
 == Additional source replacement
 
+= Since build 600:
+Based on base version 3.17.0:
+Source files of libpng are updated to 1.6.17 from 1.6.16.
+Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16/1.6.17/lpng1617.7z .
+Source files of libjpeg-turbo are required to replace libjpeg in original FreeImage source distribution.
+Get the libjpeg-turbo source from http://sourceforge.net/projects/libjpeg-turbo/files/1.4.0/libjpeg-turbo-1.4.0.tar.gz .
+(This version contains the newest release of zlib 1.2.8, no need to change.)
+
 = Since build 520:
 Based on base version 3.16.0:
 Source files of libpng are updated to 1.6.12 from 1.6.10.
@@ -84,13 +99,13 @@ Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16
 == FreeImage build instructions
 FreeImage source files are required.
 Get the source from http://sourceforge.net/projects/freeimage/files/Source%20Distribution .
-The output files of different platform will be put in the same directory "dist". Make sure it is cleaned before each build.
+The output files of different platform will be put in the same directory "Dist". Make sure it is cleaned before each build.
 See following sections before build.
 
 = Patching
 Use additional source above to replace specific parts of FreeImage source by directly copying(and overwriting existed files) to "Source/LibJPEG", "Source/ZLib" and "Source/LibPNG" respectively.
 Copy all files except this document in this directory to the source directory and overwrite original files before building the library.
-It is now required to replace the original header file "FreeImage.h" for building the library, though the content of header file "FreeImage.h" is actually equivalent with the original file before b456.
+It is now required to replace the original header file "FreeImage.h" in "Source" directory by header in "3rdparty/include" for building the library, though the content of header file "FreeImage.h" is actually equivalent with the original file before b456.
 
 = DS
 Currently only building on Windows is tested.
@@ -102,7 +117,8 @@ Run "make -f Makefile.ds clean" to delete all build files.
 
 = MinGW32
 MinGW-w64 GCC toolchain, the "cp" and "rm" command are required by the official or modified MinGW makefile. (MSYS should be OK.)
-NASM is required for compiling libjpeg-turbo SIMD source files.
+Assembler is required for compiling libjpeg-turbo SIMD source files. This is called by variable NASM. It now defaults to "yasm", since "nasm" from MSYS2 does not work.
+The environment variable "MSYSTEM" shall be set to "MINGW32", e.g. run "set MSYSTEM=MINGW32" at "cmd".
 The environment variable "PATH" should be set properly like "C:\msys\mingw32\bin;C:\msys\usr\bin;C:\Windows\System32", to make sure the toolchain files can be found.
 The modified file "Makefile.mingw" should have been copied to the source directory and overwritten the original one.
 Run "mingw32-make FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.mingw -j" to build static library for MinGW32.

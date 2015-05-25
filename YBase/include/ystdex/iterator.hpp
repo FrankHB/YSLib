@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5336
+\version r5596
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-05-01 07:42 +0800
+	2015-05-24 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_iterator_hpp_
 #define YB_INC_ystdex_iterator_hpp_ 1
 
-#include "iterator_op.hpp" // for std::make_move_iterator, iterator_operators_t,
-//	std::iterator_traits, yconstraint, yassume, *_tag, is_undereferenceable;
+#include "pointer.hpp" // for iterator_operators_t, std::iterator_traits,
+//	pointer_classify, *_tag, yassume, is_undereferenceable, yconstraint;
 #include <tuple> // for std::tuple, std::get;
 #include "ref.hpp" // for lref;
 
@@ -44,134 +44,6 @@ namespace ystdex
 \ingroup iterators
 \brief 迭代器适配器。
 */
-
-
-/*!
-\ingroup iterator_adaptors
-\brief 指针迭代器。
-\note 转换为 bool 、有序比较等操作使用转换为对应指针实现。
-\warning 非虚析构。
-\since build 290
-
-转换指针为类类型的随机访问迭代器。
-\todo 和 std::pointer_traits 交互。
-*/
-template<typename _type>
-class pointer_iterator : public iterator_operators_t<pointer_iterator<_type>,
-	std::iterator_traits<_type*>>
-{
-public:
-	using iterator_type = _type*;
-	using iterator_category
-		= typename std::iterator_traits<iterator_type>::iterator_category;
-	using value_type = typename std::iterator_traits<iterator_type>::value_type;
-	using difference_type
-		= typename std::iterator_traits<iterator_type>::difference_type;
-	using pointer = typename std::iterator_traits<iterator_type>::pointer;
-	using reference = typename std::iterator_traits<iterator_type>::reference;
-
-protected:
-	//! \since build 415
-	pointer raw;
-
-public:
-	yconstfn
-	pointer_iterator(nullptr_t = {})
-		: raw()
-	{}
-	//! \since build 347
-	template<typename _tPointer>
-	explicit yconstfn
-	pointer_iterator(_tPointer&& ptr)
-		: raw(yforward(ptr))
-	{}
-	inline
-	pointer_iterator(const pointer_iterator&) = default;
-
-	//! \since build 585
-	//@{
-	pointer_iterator&
-	operator+=(difference_type n) ynothrowv
-	{
-		yconstraint(raw);
-		raw += n;
-		return *this;
-	}
-
-	pointer_iterator&
-	operator-=(difference_type n) ynothrowv
-	{
-		yconstraint(raw);
-		raw -= n;
-		return *this;
-	}
-
-	//! \since build 461
-	reference
-	operator*() const ynothrowv
-	{
-		yconstraint(raw);
-		return *raw;
-	}
-
-	inline pointer_iterator&
-	operator++() ynothrowv
-	{
-		yconstraint(raw);
-		++raw;
-		return *this;
-	}
-
-	inline pointer_iterator&
-	operator--() ynothrowv
-	{
-		--raw;
-		return *this;
-	}
-
-	yconstfn
-	operator pointer() const ynothrow
-	{
-		return raw;
-	}
-	//@}
-};
-
-/*!
-\relates pointer_iterator
-\since build 585
-*/
-template<typename _type>
-inline bool
-operator==(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
-	ynothrow
-{
-	using pointer = typename pointer_iterator<_type>::pointer;
-
-	return pointer(x) == pointer(y);
-}
-
-
-/*!
-\ingroup transformation_traits
-\brief 指针包装为类类型迭代器。
-\since build 290
-
-若参数是指针类型则包装为 pointer_iterator 。
-*/
-//@{
-template<typename _type>
-struct pointer_classify
-{
-	using type = _type;
-};
-
-template<typename _type>
-struct pointer_classify<_type*>
-{
-	using type = pointer_iterator<_type>;
-};
-//@}
 
 
 /*!
@@ -272,41 +144,31 @@ public:
 		return *this;
 	}
 	//@}
+
+	//! \since build 600
+	//@{
+	friend yconstfn bool
+	operator==(const pseudo_iterator& x, const pseudo_iterator& y)
+		ynoexcept_spec(bool(x.value == y.value))
+	{
+		return x.value == y.value;
+	}
+
+	friend yconstfn bool
+	operator<(const pseudo_iterator& x, const pseudo_iterator& y)
+		ynoexcept_spec(bool(x.value < y.value))
+	{
+		return x.value < y.value;
+	}
+
+	friend yconstfn
+		typename pseudo_iterator<_type, _tIter, _tTraits>::difference_type
+	operator-(const pseudo_iterator&, const pseudo_iterator&) ynothrow
+	{
+		return 0;
+	}
+	//@}
 };
-
-//! \relates pseudo_iterator
-//@{
-/*!
-\brief 满足输入迭代器要求。
-\since build 585
-*/
-template<typename _type, typename _tIter, typename _tTraits>
-yconstfn bool
-operator==(const pseudo_iterator<_type, _tIter, _tTraits>& x,
-	const pseudo_iterator<_type, _tIter, _tTraits>& y)
-	ynoexcept_spec(bool(x.value == y.value))
-{
-	return x.value == y.value;
-}
-
-template<typename _type, typename _tIter, typename _tTraits>
-yconstfn bool
-operator<(const pseudo_iterator<_type, _tIter, _tTraits>& x,
-	const pseudo_iterator<_type, _tIter, _tTraits>& y)
-	ynoexcept_spec(bool(x.value < y.value))
-{
-	return x.value < y.value;
-}
-
-template<typename _type, typename _tIter, typename _tTraits>
-inline yconstfn
-	typename pseudo_iterator<_type, _tIter, _tTraits>::difference_type
-operator-(const pseudo_iterator<_type, _tIter, _tTraits>&,
-	const pseudo_iterator<_type, _tIter, _tTraits>&) ynothrow
-{
-	return 0;
-}
-//@}
 
 
 namespace details
@@ -406,6 +268,24 @@ public:
 	transformed_iterator&
 	operator=(transformed_iterator&&) = default;
 
+	//! \since build 600
+	friend transformed_iterator&
+	operator+=(transformed_iterator& i, difference_type n)
+		ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() += n))
+	{
+		i.get() += n;
+		return i;
+	}
+
+	//! \since build 600
+	friend transformed_iterator&
+	operator-=(transformed_iterator& i, difference_type n)
+		ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() -= n))
+	{
+		i.get() -= n;
+		return i;
+	}
+
 	//! \since build 585
 	//@{
 	reference
@@ -416,10 +296,26 @@ public:
 		return transformer(get());
 	}
 
+	//! \since build 600
+	friend bool
+	operator==(const transformed_iterator& x, const transformed_iterator& y)
+		ynoexcept_spec(bool(x.get() == y.get()))
+	{
+		return x.get() == y.get();
+	}
+
+	//! \since build 600
+	friend bool
+	operator<(const transformed_iterator& x, const transformed_iterator& y)
+		ynoexcept_spec(bool(x.get() < y.get()))
+	{
+		return bool(x.get() < y.get());
+	}
+
 	/*!
 	\brief 转换为原迭代器引用。
 	*/
-	inline
+	yconstfn_relaxed
 	operator iterator_type&() ynothrow
 	{
 		return *this;
@@ -467,56 +363,6 @@ public:
 	}
 	//@}
 };
-
-//! \since build 585
-//@{
-/*!
-\brief 满足输入迭代器要求。
-\relates transformed_iterator
-*/
-template<typename _type, typename _fTransformer>
-inline bool
-operator==(const transformed_iterator<_type, _fTransformer>& x,
-	const transformed_iterator<_type, _fTransformer>& y)
-	ynoexcept_spec(bool(x.get() == y.get()))
-{
-	return x.get() == y.get();
-}
-
-/*!
-\brief 满足随机迭代器要求。
-\relates transformed_iterator
-*/
-//@{
-template<typename _type, typename _fTransformer>
-inline transformed_iterator<_type, _fTransformer>&
-operator+=(transformed_iterator<_type, _fTransformer>& i,
-	typename transformed_iterator<_type, _fTransformer>::difference_type n)
-	ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() += n))
-{
-	i.get() += n;
-	return i;
-}
-
-template<typename _type, typename _fTransformer>
-inline transformed_iterator<_type, _fTransformer>&
-operator-=(transformed_iterator<_type, _fTransformer>& i,
-	typename transformed_iterator<_type, _fTransformer>::difference_type n)
-	ynoexcept(noexcept(decltype(i)(i)) && noexcept(i.get() -= n))
-{
-	i.get() -= n;
-	return i;
-}
-
-template<typename _type, typename _fTransformer>
-inline bool
-operator<(const transformed_iterator<_type, _fTransformer>& x,
-	const transformed_iterator<_type, _fTransformer>& y)
-	ynoexcept_spec(bool(x.get() < y.get()))
-{
-	return bool(x.get() < y.get());
-}
-//@}
 
 /*!
 \ingroup helper_functions
@@ -1331,6 +1177,15 @@ public:
 		return x.index < y.index;
 	}
 
+	//! \since build 600
+	friend _tDifference
+	operator-(const subscriptive_iterator& x, const subscriptive_iterator& y)
+		ynothrow
+	{
+		yconstraint(x.container_ptr == y.container_ptr);
+		return _tDifference(x.index - y.index);
+	}
+
 	//! \since build 461
 	yconstfn _tCon*
 	container() const ynothrow
@@ -1351,21 +1206,6 @@ public:
 		return !i.container_ptr;
 	}
 };
-
-/*!
-\relates subscriptive_iterator
-\since build 556
-*/
-template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
-	typename _tReference>
-inline _tDifference
-operator-(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
-	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
-	_tPointer, _tReference>& y) ynothrow
-{
-	yconstraint(x.container() == y.container());
-	return _tDifference(x.get_index() - y.get_index());
-}
 
 } // namespace ystdex;
 

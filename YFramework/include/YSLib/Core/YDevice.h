@@ -11,13 +11,13 @@
 /*!	\file YDevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2087
+\version r2088
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2015-04-19 11:22 +0800
+	2015-05-24 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ public:
 	//@}
 
 	//! \since build 558
-	virtual DefSetter(const Drawing::Size&, Size, sGraphics)
+	virtual DefSetter(, const Drawing::Size&, Size, sGraphics)
 };
 
 

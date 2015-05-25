@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1438
+\version r1441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-05-17 14:05 +0800
+	2015-05-25 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -895,8 +895,8 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	const wchar_t* dir, int n_cmd_show, NativeWindowHandle h_parent)
 {
 	// TODO: Set current working directory as %USERPROFILE%?
-	int res(int(::ShellExecuteW(h_parent,
-		use_admin ? L"runas" : nullptr, Nonnull(cmd), args, dir, n_cmd_show)));
+	auto res(int(std::intptr_t(::ShellExecuteW(h_parent,
+		use_admin ? L"runas" : nullptr, Nonnull(cmd), args, dir, n_cmd_show))));
 
 	switch(res)
 	{
@@ -920,7 +920,7 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	case SE_ERR_DDEBUSY:
 	{
 		using boxed_exception = ystdex::wrap_mixin_t<std::runtime_error, int>;
-		const auto throw_ex([=](int ec) YB_NORETURN{
+		const auto throw_ex([=](int ec) /*YB_NORETURN*/{
 			std::throw_with_nested(Win32Exception(Win32Exception::ErrorCode(ec),
 				ystdex::sfmt("ShellExecuteW: %d", res), Err));
 		});

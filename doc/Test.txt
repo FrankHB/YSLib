@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r231
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2015-05-13 19:00 +0800
+	2015-05-22 08:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,6 +188,7 @@ Bookmarks
 @5 测试注记：
 以下注记仅适用提交版本([Documentation::ProjectRules @@3.2.1.2]) ，对已提交的版本为测试记录，未提交的版本为测试计划。
 示例测试项目 YSTest 包含 @3 和 @4 提到的测试。
+测试使用的二进制文件构建方式和发布版本相同，参见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
 
 @5.1 执行覆盖：
 二进制相同的映像不重复测试。

@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2694
+\version r2697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2015-03-21 22:52 +0800
+	2015-05-24 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,9 +83,9 @@ public:
 	//! \since build 357
 	DefWidgetMemberIterationBase(ScrollableContainer, GetTextListRef())
 
-	DefPredMem(const ynothrow, Selected, GetTextListRef())
 	PDefH(bool, Contains, ListType::size_type i)
 		ImplRet(GetTextListRef().Contains(i))
+	DefPredMem(const ynothrow, Selected, GetTextListRef())
 
 	//! \since build 534
 	//@{
@@ -110,7 +110,7 @@ public:
 	\brief 设置文本列表。
 	\since build 292
 	*/
-	DefSetterMem(const shared_ptr<ListType>&, List, GetTextListRef())
+	DefSetterMem(, const shared_ptr<ListType>&, List, GetTextListRef())
 	/*!
 	\brief 设置选中项。
 	\sa TextList::SetSelected
@@ -293,7 +293,7 @@ public:
 	\brief 设置文本列表。
 	\since build 292
 	*/
-	DefSetterMem(const shared_ptr<ListType>&, List, lbContent)
+	DefSetterMem(, const shared_ptr<ListType>&, List, lbContent)
 
 	/*!
 	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。

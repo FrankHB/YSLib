@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r318
+\version r336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2015-05-06 15:06 +0800
+	2015-05-24 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,12 +96,29 @@ public:
 };
 
 /*!
-\brief 输出设置至文件。
+\brief 输出设置至输出流。
 \relates Configuration
-\since build 334
+\since build 600
 */
-YF_API File&
-operator<<(File&, const Configuration&);
+YF_API std::ostream&
+operator<<(std::ostream&, const Configuration&);
+
+
+/*!
+\brief 从文本文件中读取配置。
+\throw GeneralEvent 文件无效或编码非 UTF-8 导致的读取失败。
+\since build 344
+*/
+YF_API ValueNode
+ReadConfiguration(TextFile&);
+
+/*!
+\brief 写入配置至文本文件。
+\throw GeneralEvent 文件无效导致的写入失败。
+\since build 344
+*/
+YF_API void
+WriteConfiguration(TextFile&, const ValueNode&);
 
 } // namespace NPL;
 

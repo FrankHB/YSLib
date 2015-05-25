@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r3087
+\version r3089
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-04-03 11:31 +0800
+	2015-05-24 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -534,8 +534,8 @@ public:
 		TextState, *this)
 	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, *this)
 	//! \since build 566
-	ImplS(GTextRendererBase)
-		DefGetterBase(const ynothrow, Graphics, Context, CompactPixmapEx)
+	ImplS(GTextRendererBase) DefGetterBase(const ynothrow override, Graphics,
+		Context, CompactPixmapEx)
 
 protected:
 	/*!

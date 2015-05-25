@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r647
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-04-28 23:51 +0800
+	2015-05-25 02:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,13 +128,13 @@ WindowThread::ThreadLoop(NativeWindowHandle h_wnd)
 	ThreadLoop(make_unique<Window>(h_wnd));
 }
 void
-WindowThread::ThreadLoop(unique_ptr<Window> p)
+WindowThread::ThreadLoop(unique_ptr<Window> p_wnd)
 {
-	YAssert(!p_wnd, "Duplicate window initialization detected.");
+	YAssert(!p_window, "Duplicate window initialization detected.");
 
-	auto& wnd(Deref(p));
+	auto& wnd(Deref(p_wnd));
 
-	p_wnd = p.release();
+	p_window = p_wnd.release();
 	WindowLoop(wnd, GenerateGuard);
 }
 
@@ -251,7 +251,9 @@ HostRenderer::InitWidgetView()
 	wnd.GetEnvironmentRef().Desktop += widget;
 #endif
 	// FIXME: Allow user to specify which kinds of views should be adjusted.
-	RootMode = typeid(widget.get().GetView()) == typeid(UI::View);
+	auto& view_ref(widget.get().GetView());
+
+	RootMode = typeid(view_ref) == typeid(UI::View);
 }
 
 void

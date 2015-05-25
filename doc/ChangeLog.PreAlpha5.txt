@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r14581
+\version r14611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-05-21 00:52 +0800
+	2015-05-25 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@ $import $HISTORY;
 
 // Scope: [b500, $now];
 
-$now
+b599
 (
 	/ %YFramework $=
 	(
@@ -115,7 +115,7 @@ $now
 				(
 					/ "return type" -> 'pair<ValueNode::Container, bool>'
 						~ 'ValueNode::iterator',
-					/ DLDI "implemented" ^ ($dep_from "%ValueNode::emplace_hint"
+					/ DLDI "implemented" ^ $dep_from ("%ValueNode::emplace_hint"
 						@ %YSLib.Core.ValueNode) ~ "%ValueNode::emplace",
 					/ "parameterized 1st parameter to support node container"
 				);
@@ -190,8 +190,8 @@ $now
 	(
 		* $comp "member functions %DSReader::(GetTopPosition, \
 			GetBottomPosition always returned initial value" @ %DSReader $since
-			b495 $dep_from %YFramework.YSLib.Service.TextManager;
-		* $comp %ShlReader $since b495 $=
+			b595 $dep_from %YFramework.YSLib.Service.TextManager;
+		* $comp %ShlReader $since b595 $=
 		(
 			* "wrong reading position indicated" @ "member functions \
 				%(TextInfoBox::UpdateData, ReaderBox::UpdateData)",
@@ -204,13 +204,13 @@ $now
 			)
 		),
 		* $comp "wrong bookmark position added" @ "class %BookmarkPanel"
-			@ %BookmarkUI $since b495 $dep_from
+			@ %BookmarkUI $since b595 $dep_from
 			("%ShlTextReader::GetReaderPosition" @ %ShlReader)
 	),
-	/ $re_ex(b498) DLDI "all string arguments '""' for non-dependent class \
+	/ $re_ex(b598) DLDI "all string arguments '""' for non-dependent class \
 		type parameters" -> '{}' $effective
 		@ %YFramework.YSLib.Service.FileSystem,
-	/ $re_ex(b498) DLDI "all string arguments '""' for dependent parameters"
+	/ $re_ex(b598) DLDI "all string arguments '""' for dependent parameters"
 		-> 'string()' $effective @ %(YFramework.(Helper.Initialization, \
 		NPL.NPLA1), Tools.SHBuild.Main),
 	/ DLDI "printed new line" @ %Tools.SHBuild.Main ^ "%std::putchar"
@@ -901,8 +901,8 @@ b595
 						reference returned by const functions";
 					$dep_to "allowing const access"
 					)
-					+ "static assertion to disallow cv-qualified underlying \
-						type" @ "%pod_storage"
+					+ $dev "static assertion to disallow cv-qualified \
+						underlying type" @ "%pod_storage"
 						// Similar to %optional.
 				)
 			),
@@ -1244,7 +1244,7 @@ b594
 			+ 'ynothrow' @ "function template %unsequenced"
 		)
 	),
-	+ DLD "('ynothrow', 'ynoexcept', 'ynothrowv') exception specification"
+	+ DLDI "('ynothrow', 'ynoexcept', 'ynothrowv') exception specification"
 		@ "lambda expressions whose exception guarantee can be determined"
 		$effective @ %(YStandard.(Concurrency, String, CAssertion, Path, Thunk),
 		YFramework.('Helper_(DS)'.DSMain, YSLib.(Core.(YEvent, YException),
@@ -1300,7 +1300,7 @@ b593
 	(
 		* "wrong message for deleting '.a' file failure" @ %SHBuild.Main $since
 			b591,
-		* $build $comp "failed to build" @ %RevisionPatcher.Main $since b492
+		* $build $comp "failed to build" @ %RevisionPatcher.Main $since b592
 			$dep_from ("%trim" @ %YBase.YStandardEx.String)
 	),
 	/ %YFramework $=
@@ -3195,7 +3195,7 @@ b586
 	(
 		+ $dev $build '-Wno-double-promotion' @ "%CXXFLAGS" @ "%test.sh",
 			// To eliminate G++ warning: [-Wdouble-promotion].
-		/ DLD "renamed local variable for several lambdas" @ %YBase
+		/ DLD "renamed local variable for several lambda expressions" @ %YBase
 			// To eliminate G++ warning: [-Wshadow].
 	),
 	/ DLD "simplified declarations" ^ $dep_from
@@ -5883,7 +5883,7 @@ b563
 			/ "determined package %freetype2 including directory"
 				@ !"platform %Win32" ^ 'pkg-config --cflags-only-I'
 			/ "supported installing %SHBuild executable without extension name"
-				^ ($dep_from "%EXESFX" @ "%SHBuild-common-options.sh"
+				^ $dep_from ("%EXESFX" @ "%SHBuild-common-options.sh"
 				@ %Scripts),
 			/ DLD "simplified installation implementation and other functions",
 			* "missing quoting library directory for '-L' on building stage2 \
@@ -8745,7 +8745,7 @@ b547
 			+ "macros %(TryExpr, TryRet, CatchExpr, CatchIgnore, CatchRet, \
 				CatchThrow)"
 		),
-		/ DLD "simplified exception handling" ^ ($dep_from "macros %(TryExpr, \
+		/ DLD "simplified exception handling" ^ $dep_from ("macros %(TryExpr, \
 			TryRet, CatchExpr, CatchIgnore, CatchThrow)" @ %YBaseMacro)
 	),
 	/ %Tools $=
@@ -8764,7 +8764,7 @@ b547
 			/ DLD $revert(b545) "merged function %Wait" -> "%Build"
 				@ "class %BuildContext",
 			/ DLD "simplified exception handling" @ %Tools.SHBuild.Main
-				^ ($dep_from "macros %(TryExpr, CatchExpr, CatchIgnore, \
+				^ $dep_from ("macros %(TryExpr, CatchExpr, CatchIgnore, \
 				CatchRet)" @ %YBaseMacro),
 			(
 			/ DLD "simplified options and environment variables handling";
@@ -8800,8 +8800,8 @@ b547
 			)
 		)
 	),
-	/ DLD "simplified exception handling" @ %ShlReader ^ ($dep_from
-		"macros %(TryExpr, TryRet, CatchExpr, CatchIgnore)", @ %YBaseMacro)
+	/ DLD "simplified exception handling" @ %ShlReader ^ $dep_from
+		("macros %(TryExpr, TryRet, CatchExpr, CatchIgnore)" @ %YBaseMacro)
 ),
 
 b546
@@ -9038,7 +9038,7 @@ b545
 					-> 'const vector<size_t>&' ~ 'const list<size_t>&'
 					$dep_from 'using YSLib::vector;',
 				(
-				/ DLD "implemented unescaping" ^ ($dep_from "%UnescapeContext");
+				/ DLD "implemented unescaping" ^ $dep_from "%UnescapeContext";
 				- "limitation of max character number of escaped sequence; \
 					data member %MaxEscapeLength"
 				),
@@ -9961,7 +9961,7 @@ b538
 			* $dev "wrong %yconstfn" @ "function templates %chain_apply"
 				@ %Functional $since b537,
 			* $dev $build "constructor templates" @ "class %mixin" @ %Mixin
-				$since  b477 $=
+				$since b477 $=
 				// G++ 4.9.1 did not detect these errors but Clang++ 3.5 \
 					complained.
 			(
@@ -10479,7 +10479,12 @@ b532
 	),
 	/ %YBase.YStandardEx $=
 	(
-		+ "4 function templates %make_container" @ %Container,
+		/ %Container $=
+		(
+			+ "4 function templates %make_container",
+			/ "function templates %(make_array, forward_as_array, 4 to_array)"
+				@ %Container >> $dep_from %Array
+		),
 		+ %Array,
 		/ @ "class template %transformed_iterator" @ %Iterator $=
 		(
@@ -10489,9 +10494,7 @@ b532
 			+ "3rd template parameter 'typename _tReference = void'";
 			/ "%reference" ^ "%_tReference"
 			// See $2014-09 @ %Documentation::Workflow::Annual2014.
-			),
-			/ "function templates %(make_array, forward_as_array, 4 to_array)"
-				>> $dep_from %Array
+			)
 		),
 		/ $dev $design "trailing-return-type"
 			@ "function template %make_move_iterator_pair" @ %Iterator
@@ -11418,7 +11421,7 @@ b522
 	),
 	/ %Tools.SHBuild.Main
 		$= (/ DLD "simplified implementation"
-			^ ($dep_from %YBase.YStandardEx.Exception)),
+			^ $dep_from %YBase.YStandardEx.Exception),
 	/ %YFramework.YSLib $=
 	(
 		+ "assertions for the boundary argument"
@@ -11713,8 +11716,7 @@ b520
 		^ $dev $build $re_ex(b453) "MinGW[gcc version 4.9.1 (Rev1, Built by \
 			MSYS2 project)] mingw32/mingw-w64-i686-gcc-4.9.1-1"
 			~ "MinGW[gcc version 4.8.2 (Rev7, Built by MSYS2 \
-			project)] mingw32/mingw-w64-i686-gcc-4.8.2-7";
-			@ "platform %MinGW32",
+			project)] mingw32/mingw-w64-i686-gcc-4.8.2-7" @ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 				Exceptions implementation: Dwarf2.
 		/ "recompiled library %FreeType",

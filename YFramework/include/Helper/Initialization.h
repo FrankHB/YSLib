@@ -11,7 +11,7 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r746
+\version r759
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
@@ -56,22 +56,6 @@ YF_API ValueNode
 LoadNPLA1File(const char* disp, const char* path,
 	ValueNode(*creator)(), bool show_info = {});
 
-
-/*!
-\brief 从文本文件中读取配置。
-\throw GeneralEvent 文件无效导致的读取失败。
-\since build 344
-*/
-YF_API ValueNode
-ReadConfiguration(TextFile&);
-
-/*!
-\brief 写入配置至文本文件。
-\throw GeneralEvent 文件无效导致的写入失败。
-\since build 344
-*/
-YF_API void
-WriteConfiguration(TextFile&, const ValueNode&);
 
 /*!
 \brief 载入默认配置。

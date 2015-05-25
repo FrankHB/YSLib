@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r357
+\version r358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2015-04-24 06:30 +0800
+	2015-05-24 15:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 //	#include <xcb/xcb.h>
 #	include YFM_YCLib_Host // for platform_ex::Exception;
 #	include YFM_YCLib_Debug // for platform::Deref;
-#	include <ystdex/utility.hpp> // for ystdex::nptr;
+#	include <ystdex/pointer.hpp> // for ystdex::nptr;
 #	include YFM_YSLib_Core_YGDIBase
 #	include YFM_YSLib_Core_YEvent
 #	include <atomic>

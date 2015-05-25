@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPLA1
 \brief NPLA1 公共接口。
-\version r529
+\version r580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2015-05-20 13:44 +0800
+	2015-05-24 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,12 @@ using YSLib::ValueNode;
 
 //! \since build 599
 using YSLib::MakeIndex;
+
+//! \since build 600
+using YSLib::NodeSequence;
+
+//! \since build 600
+using YSLib::NodeLiteral;
 
 
 /*!
@@ -100,13 +106,6 @@ template<class _tCon>
 using GNodeInserter = std::function<void(ValueNode&&, _tCon&)>;
 
 using NodeInserter = GNodeInserter<ValueNode::Container&>;
-
-/*!
-\brief 节点序列容器。
-
-除分配器外满足和 std::vector 相同的要求的模板的一个实例，元素为 ValueNode 类型。
-*/
-using NodeSequence = yimpl(YSLib::vector)<ValueNode>;
 
 using NodeSequenceInserter = GNodeInserter<NodeSequence>;
 //@}
@@ -163,51 +162,6 @@ ParseNPLANodeString(const ValueNode&);
 
 
 /*!
-\brief 包装节点的组合字面量。
-\since build 598
-*/
-class YF_API NodeLiteral final
-{
-private:
-	ValueNode node;
-
-public:
-	//! \since build 599
-	NodeLiteral(const ValueNode& nd)
-		: node(nd)
-	{}
-	//! \since build 599
-	NodeLiteral(ValueNode&& nd)
-		: node(std::move(nd))
-	{}
-	NodeLiteral(const string& str)
-		: node(0, str)
-	{}
-	NodeLiteral(const string& str, string val)
-		: node(0, str, std::move(val))
-	{}
-	template<typename _tLiteral = NodeLiteral>
-	NodeLiteral(const string& str, std::initializer_list<_tLiteral> il)
-		: node(0, str, NodeSequence(il.begin(), il.end()))
-	{}
-	template<typename _tLiteral = NodeLiteral, class _tString,
-		typename... _tParams>
-	NodeLiteral(int, _tString&& str, std::initializer_list<_tLiteral> il,
-		_tParams&&... args)
-		: node(ValueNode::Container(il.begin(), il.end()), yforward(str),
-		yforward(args)...)
-	{}
-	DefDeCopyMoveCtorAssignment(NodeLiteral)
-
-	DefCvt(ynothrow, ValueNode&, node)
-	DefCvt(const ynothrow, const ValueNode&, node)
-
-	PDefH(ValueNode, GetSyntaxNode, ) const
-		ImplRet(TransformToSyntaxNode(node))
-};
-
-
-/*!
 \brief 插入语法子节点。
 \since build 599
 
@@ -231,7 +185,8 @@ template<class _tNodeOrCon>
 ValueNode::iterator
 InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
 {
-	return InsertChildSyntaxNode(yforward(node_or_con), nl.GetSyntaxNode());
+	return
+		InsertChildSyntaxNode(yforward(node_or_con), TransformToSyntaxNode(nl));
 }
 //@}
 

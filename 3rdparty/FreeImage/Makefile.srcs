@@ -1,49 +1,39 @@
-VER_MAJOR = 3
-VER_MINOR = 16.0
+VER_MAJOR := 3
+VER_MINOR := 17.0
 
-libsimd_SOURCES = Source/LibJPEG/simd/jsimd_i386.c \
-	Source/LibJPEG/simd/jsimdcpu.asm Source/LibJPEG/simd/jccolmmx.asm Source/LibJPEG/simd/jdcolmmx.asm Source/LibJPEG/simd/jcgrammx.asm \
-	Source/LibJPEG/simd/jcsammmx.asm Source/LibJPEG/simd/jdsammmx.asm Source/LibJPEG/simd/jdmermmx.asm Source/LibJPEG/simd/jcqntmmx.asm \
-	Source/LibJPEG/simd/jfmmxfst.asm Source/LibJPEG/simd/jfmmxint.asm Source/LibJPEG/simd/jimmxred.asm Source/LibJPEG/simd/jimmxint.asm \
-	Source/LibJPEG/simd/jimmxfst.asm Source/LibJPEG/simd/jcqnt3dn.asm Source/LibJPEG/simd/jf3dnflt.asm Source/LibJPEG/simd/ji3dnflt.asm \
-	Source/LibJPEG/simd/jcqntsse.asm Source/LibJPEG/simd/jfsseflt.asm Source/LibJPEG/simd/jisseflt.asm Source/LibJPEG/simd/jccolss2.asm \
-	Source/LibJPEG/simd/jdcolss2.asm Source/LibJPEG/simd/jcgrass2.asm Source/LibJPEG/simd/jcsamss2.asm Source/LibJPEG/simd/jdsamss2.asm \
-	Source/LibJPEG/simd/jdmerss2.asm Source/LibJPEG/simd/jcqnts2i.asm Source/LibJPEG/simd/jfss2fst.asm Source/LibJPEG/simd/jfss2int.asm \
-	Source/LibJPEG/simd/jiss2red.asm Source/LibJPEG/simd/jiss2int.asm Source/LibJPEG/simd/jiss2fst.asm Source/LibJPEG/simd/jcqnts2f.asm \
-	Source/LibJPEG/simd/jiss2flt.asm
+libsimd_SOURCES := jsimdcpu jfdctflt-3dn jidctflt-3dn jquant-3dn jccolor-mmx \
+    jcgray-mmx jcsample-mmx jdcolor-mmx jdmerge-mmx jdsample-mmx jfdctfst-mmx \
+    jfdctint-mmx jidctfst-mmx jidctint-mmx jidctred-mmx jquant-mmx jfdctflt-sse \
+    jidctflt-sse jquant-sse jccolor-sse2 jcgray-sse2 jcsample-sse2 jdcolor-sse2 \
+    jdmerge-sse2 jdsample-sse2 jfdctfst-sse2 jfdctint-sse2 jidctflt-sse2 \
+    jidctfst-sse2 jidctint-sse2 jidctred-sse2 jquantf-sse2 jquanti-sse2
+libsimd_SOURCES := $(addsuffix .asm, $(libsimd_SOURCES))
+libsimd_SOURCES := jsimd_i386.c $(libsimd_SOURCES)
+libsimd_SOURCES := $(addprefix Source/LibJPEG/simd/, $(libsimd_SOURCES))
 
-libsimd_64_SOURCES = Source/LibJPEG/simd/jsimd_x86_64.c \
-	Source/LibJPEG/simd/jfsseflt-64.asm Source/LibJPEG/simd/jcgrass2-64.asm \
-	Source/LibJPEG/simd/jccolss2-64.asm Source/LibJPEG/simd/jdcolss2-64.asm Source/LibJPEG/simd/jcsamss2-64.asm \
-	Source/LibJPEG/simd/jdsamss2-64.asm Source/LibJPEG/simd/jdmerss2-64.asm Source/LibJPEG/simd/jcqnts2i-64.asm \
-	Source/LibJPEG/simd/jfss2fst-64.asm Source/LibJPEG/simd/jfss2int-64.asm Source/LibJPEG/simd/jiss2red-64.asm \
-	Source/LibJPEG/simd/jiss2int-64.asm Source/LibJPEG/simd/jiss2fst-64.asm Source/LibJPEG/simd/jcqnts2f-64.asm \
-	Source/LibJPEG/simd/jiss2flt-64.asm
+libsimd_64_SOURCES := jfdctflt-sse-64 jccolor-sse2-64 jcgray-sse2-64 \
+    jcsample-sse2-64 jdcolor-sse2-64 jdmerge-sse2-64 jdsample-sse2-64 \
+    jfdctfst-sse2-64 jfdctint-sse2-64 jidctflt-sse2-64 jidctfst-sse2-64 \
+    jidctint-sse2-64 jidctred-sse2-64 jquantf-sse2-64 jquanti-sse2-64
+libsimd_64_SOURCES := $(addsuffix .asm, $(libsimd_64_SOURCES))
+libsimd_64_SOURCES := jsimd_x86_64.c $(libsimd_64_SOURCES)
+libsimd_64_SOURCES := $(addprefix Source/LibJPEG/simd/, $(libsimd_64_SOURCES))
 
-libsimd_ARM_SOURCES = Source/LibJPEG/simd/jsimd_arm.c Source/LibJPEG/simd/jsimd_arm_neon.S
+libsimd_ARM_SOURCES := Source/LibJPEG/simd/jsimd_arm.c Source/LibJPEG/simd/jsimd_arm_neon.S
 
+SRCS := BitmapAccess.cpp ColorLookup.cpp FreeImage.cpp \
+	FreeImageC.c FreeImageIO.cpp GetType.cpp MemoryIO.cpp PixelAccess.cpp \
+	Plugin.cpp PluginBMP.cpp PluginGIF.cpp PluginICO.cpp PluginJPEG.cpp PluginPNG.cpp \
+	tmoColorConvert.cpp tmoDrago03.cpp tmoFattal02.cpp tmoReinhard05.cpp ToneMapping.cpp NNQuantizer.cpp WuQuantizer.cpp LFPQuantizer.cpp \
+	Conversion.cpp Conversion16_555.cpp Conversion16_565.cpp Conversion24.cpp Conversion32.cpp Conversion4.cpp Conversion8.cpp \
+	ConversionFloat.cpp ConversionRGB16.cpp ConversionRGBF.cpp ConversionRGBAF.cpp ConversionRGBA16.cpp ConversionType.cpp ConversionUINT16.cpp \
+	ZLibInterface.cpp
+SRCS := $(addprefix Source/FreeImage/, $(SRCS))
 
-SRCS = Source/FreeImage/BitmapAccess.cpp Source/FreeImage/ColorLookup.cpp Source/FreeImage/FreeImage.cpp \
-Source/FreeImage/FreeImageC.c Source/FreeImage/FreeImageIO.cpp \
-Source/FreeImage/GetType.cpp Source/FreeImage/MemoryIO.cpp \
-Source/FreeImage/PixelAccess.cpp \
-Source/FreeImage/Plugin.cpp \
-Source/FreeImage/PluginBMP.cpp \
-Source/FreeImage/PluginGIF.cpp \
-Source/FreeImage/PluginICO.cpp \
-Source/FreeImage/PluginJPEG.cpp \
-Source/FreeImage/PluginPNG.cpp \
-Source/FreeImage/tmoColorConvert.cpp Source/FreeImage/tmoDrago03.cpp Source/FreeImage/tmoFattal02.cpp Source/FreeImage/tmoReinhard05.cpp Source/FreeImage/ToneMapping.cpp Source/FreeImage/NNQuantizer.cpp Source/FreeImage/WuQuantizer.cpp \
-Source/FreeImage/Conversion.cpp \
-Source/FreeImage/Conversion16_555.cpp Source/FreeImage/Conversion16_565.cpp Source/FreeImage/Conversion24.cpp Source/FreeImage/Conversion32.cpp \
-Source/FreeImage/Conversion4.cpp Source/FreeImage/Conversion8.cpp \
-Source/FreeImage/ConversionFloat.cpp \
-Source/FreeImage/ConversionRGB16.cpp Source/FreeImage/ConversionRGBF.cpp \
-Source/FreeImage/ConversionType.cpp Source/FreeImage/ConversionUINT16.cpp \
-Source/FreeImageToolkit/Background.cpp Source/FreeImageToolkit/BSplineRotate.cpp Source/FreeImageToolkit/Channels.cpp Source/FreeImageToolkit/ClassicRotate.cpp Source/FreeImageToolkit/Colors.cpp Source/FreeImageToolkit/CopyPaste.cpp Source/FreeImageToolkit/Display.cpp Source/FreeImageToolkit/Flip.cpp \
-Source/FreeImageToolkit/MultigridPoissonSolver.cpp Source/FreeImageToolkit/Rescale.cpp Source/FreeImageToolkit/Resize.cpp \
-Source/FreeImage/ZLibInterface.cpp \
-Source/LibJPEG/jaricom.c Source/LibJPEG/jcapimin.c Source/LibJPEG/jcapistd.c Source/LibJPEG/jcarith.c Source/LibJPEG/jccoefct.c Source/LibJPEG/jccolor.c Source/LibJPEG/jcdctmgr.c Source/LibJPEG/jchuff.c Source/LibJPEG/jcinit.c Source/LibJPEG/jcmainct.c Source/LibJPEG/jcmarker.c Source/LibJPEG/jcmaster.c Source/LibJPEG/jcomapi.c Source/LibJPEG/jcparam.c Source/LibJPEG/jcprepct.c Source/LibJPEG/jcsample.c Source/LibJPEG/jctrans.c Source/LibJPEG/jdapimin.c Source/LibJPEG/jdapistd.c Source/LibJPEG/jdarith.c Source/LibJPEG/jdatadst.c Source/LibJPEG/jdatasrc.c Source/LibJPEG/jdcoefct.c Source/LibJPEG/jdcolor.c Source/LibJPEG/jddctmgr.c Source/LibJPEG/jdhuff.c Source/LibJPEG/jdinput.c Source/LibJPEG/jdmainct.c Source/LibJPEG/jdmarker.c Source/LibJPEG/jdmaster.c Source/LibJPEG/jdmerge.c Source/LibJPEG/jdpostct.c Source/LibJPEG/jdsample.c Source/LibJPEG/jdtrans.c Source/LibJPEG/jerror.c Source/LibJPEG/jfdctflt.c Source/LibJPEG/jfdctfst.c Source/LibJPEG/jfdctint.c Source/LibJPEG/jidctflt.c Source/LibJPEG/jidctfst.c Source/LibJPEG/jidctint.c Source/LibJPEG/jmemmgr.c Source/LibJPEG/jmemnobs.c Source/LibJPEG/jquant1.c Source/LibJPEG/jquant2.c Source/LibJPEG/jutils.c Source/LibJPEG/transupp.c \
+SRCS += Source/FreeImageToolkit/Background.cpp Source/FreeImageToolkit/BSplineRotate.cpp Source/FreeImageToolkit/Channels.cpp Source/FreeImageToolkit/ClassicRotate.cpp Source/FreeImageToolkit/Colors.cpp Source/FreeImageToolkit/CopyPaste.cpp Source/FreeImageToolkit/Display.cpp Source/FreeImageToolkit/Flip.cpp \
+Source/FreeImageToolkit/MultigridPoissonSolver.cpp Source/FreeImageToolkit/Rescale.cpp Source/FreeImageToolkit/Resize.cpp
+
+SRCS += Source/LibJPEG/jaricom.c Source/LibJPEG/jcapimin.c Source/LibJPEG/jcapistd.c Source/LibJPEG/jcarith.c Source/LibJPEG/jccoefct.c Source/LibJPEG/jccolor.c Source/LibJPEG/jcdctmgr.c Source/LibJPEG/jchuff.c Source/LibJPEG/jcinit.c Source/LibJPEG/jcmainct.c Source/LibJPEG/jcmarker.c Source/LibJPEG/jcmaster.c Source/LibJPEG/jcomapi.c Source/LibJPEG/jcparam.c Source/LibJPEG/jcprepct.c Source/LibJPEG/jcsample.c Source/LibJPEG/jctrans.c Source/LibJPEG/jdapimin.c Source/LibJPEG/jdapistd.c Source/LibJPEG/jdarith.c Source/LibJPEG/jdatadst.c Source/LibJPEG/jdatasrc.c Source/LibJPEG/jdcoefct.c Source/LibJPEG/jdcolor.c Source/LibJPEG/jddctmgr.c Source/LibJPEG/jdhuff.c Source/LibJPEG/jdinput.c Source/LibJPEG/jdmainct.c Source/LibJPEG/jdmarker.c Source/LibJPEG/jdmaster.c Source/LibJPEG/jdmerge.c Source/LibJPEG/jdpostct.c Source/LibJPEG/jdsample.c Source/LibJPEG/jdtrans.c Source/LibJPEG/jerror.c Source/LibJPEG/jfdctflt.c Source/LibJPEG/jfdctfst.c Source/LibJPEG/jfdctint.c Source/LibJPEG/jidctflt.c Source/LibJPEG/jidctfst.c Source/LibJPEG/jidctint.c Source/LibJPEG/jmemmgr.c Source/LibJPEG/jmemnobs.c Source/LibJPEG/jquant1.c Source/LibJPEG/jquant2.c Source/LibJPEG/jutils.c Source/LibJPEG/transupp.c \
 Source/LibJPEG/jcphuff.c Source/LibJPEG/jdphuff.c Source/LibJPEG/jidctred.c \
 Source/LibPNG/png.c Source/LibPNG/pngerror.c Source/LibPNG/pngget.c Source/LibPNG/pngmem.c Source/LibPNG/pngpread.c Source/LibPNG/pngread.c Source/LibPNG/pngrio.c Source/LibPNG/pngrtran.c Source/LibPNG/pngrutil.c Source/LibPNG/pngset.c Source/LibPNG/pngtrans.c Source/LibPNG/pngwio.c Source/LibPNG/pngwrite.c Source/LibPNG/pngwtran.c Source/LibPNG/pngwutil.c \
 Source/ZLib/adler32.c Source/ZLib/compress.c Source/ZLib/crc32.c Source/ZLib/deflate.c Source/ZLib/gzclose.c Source/ZLib/gzlib.c Source/ZLib/gzread.c Source/ZLib/gzwrite.c Source/ZLib/infback.c Source/ZLib/inffast.c Source/ZLib/inflate.c Source/ZLib/inftrees.c Source/ZLib/trees.c Source/ZLib/uncompr.c Source/ZLib/zutil.c \
@@ -88,7 +78,7 @@ Source/Metadata/Exif.cpp Source/Metadata/FIRational.cpp Source/Metadata/FreeImag
 #Source/LibRawLite/internal/dcraw_common.cpp Source/LibRawLite/internal/dcraw_fileio.cpp Source/LibRawLite/internal/demosaic_packs.cpp Source/LibRawLite/src/libraw_c_api.cpp Source/LibRawLite/src/libraw_cxx.cpp Source/LibRawLite/src/libraw_datastream.cpp \
 #Wrapper/FreeImagePlus/src/fipImage.cpp Wrapper/FreeImagePlus/src/fipMemoryIO.cpp Wrapper/FreeImagePlus/src/fipMetadataFind.cpp Wrapper/FreeImagePlus/src/fipMultiPage.cpp Wrapper/FreeImagePlus/src/fipTag.cpp Wrapper/FreeImagePlus/src/fipWinImage.cpp Wrapper/FreeImagePlus/src/FreeImagePlus.cpp
 
-INCLUDE = -I. -ISource -ISource/Metadata \
+INCLUDE := -I. -ISource -ISource/Metadata \
 -ISource/LibJPEG \
 -ISource/LibPNG \
 -ISource/ZLib \

@@ -11,13 +11,13 @@
 /*!	\file Progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r327
+\version r328
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2015-03-24 19:05 +0800
+	2015-05-24 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ public:
 	*/
 	void
 	SetMaxValue(ValueType);
-	DefSetter(ValueType, Value, value)
+	DefSetter(, ValueType, Value, value)
 
 	/*!
 	\brief 取最大值。

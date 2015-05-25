@@ -36,6 +36,8 @@
 //	Made "PluginList::AddFakeNode" call "FreeImage_OutputMessageProc" on fail.
 // Modified by FrankHB <frankhb1989@gmail.com>, 2014-07-19:
 //	Added fake node as entries in base version 3.16.0: "WEBP" and "JXR".
+// Modified by FrankHB <frankhb1989@gmail.com>, 2015-05-25:
+//	Removed external plugin initialization for Windows.
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
@@ -295,60 +297,6 @@ FreeImage_Initialise(BOOL load_local_plugins_only)
 #if !(defined(_MSC_VER) && (_MSC_VER <= 1310))
 			s_plugins->AddFakeNode("JXR");
 #endif // unsupported by MS Visual Studio 2003 !!!
-
-			// external plugin initialization
-#ifdef _WIN32
-			if(!load_local_plugins_only)
-			{
-				int count = 0;
-				char buffer[MAX_PATH + 200];
-				char current_dir[2 * _MAX_PATH], module[2 * _MAX_PATH];
-				bool bOk = {};
-
-				// store the current directory. then set the directory to the application location
-				if(::GetCurrentDirectory(2 * _MAX_PATH, current_dir) != 0)
-					if(::GetModuleFileName({}, module, 2 * _MAX_PATH) != 0)
-						if(const auto last_point = strrchr(module, '\\'))
-						{
-							*last_point = '\0';
-							bOk = ::SetCurrentDirectory(module);
-						}
-				// search for plugins
-				while(count < s_search_list_size)
-				{
-					_finddata_t find_data;
-					long find_handle;
-
-					strcpy(buffer, s_search_list[count]);
-					strcat(buffer, "*.fip");
-
-					if((find_handle = long(_findfirst(buffer, &find_data)))
-						!= -1L)
-					{
-						do
-						{
-							strcpy(buffer, s_search_list[count]);
-							strncat(buffer, find_data.name, MAX_PATH + 200);
-
-							const auto instance(::LoadLibrary(buffer));
-
-							if(instance)
-								if(const auto proc = ::GetProcAddress(instance,
-									"_Init@8"))
-									s_plugins->AddNode(::FI_InitProc(proc),
-										static_cast<void*>(instance));
-								else
-									::FreeLibrary(instance);
-						}while(_findnext(find_handle, &find_data) != -1L);
-						::_findclose(find_handle);
-					}
-					++count;
-				}
-				// restore the current directory
-				if(bOk)
-					SetCurrentDirectory(current_dir);
-			}
-#endif // _WIN32
 		}
 	}
 }

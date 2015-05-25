@@ -1256,5 +1256,8 @@
     <Text Include="..\doc\Test.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\ChangeLog.V0.6.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>
