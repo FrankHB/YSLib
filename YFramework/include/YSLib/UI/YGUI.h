@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2414
+\version r2416
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-04-06 03:43 +0800
+	2015-05-29 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ public:
 	};
 
 	//! \since build 555
-	static yconstexpr Duration DefaultDuration{Timers::TimeSpan(1000U)};
+	static yconstexpr const Duration DefaultDuration{Timers::TimeSpan(1000U)};
 
 	//! \since build 572
 	InputTimer(Duration = DefaultDuration) ynothrow;
@@ -387,7 +387,7 @@ public:
 	\sa UI::CallInputEvent
 	\since build 510
 
-	若文本输入焦点为空则忽略，否则调用 SendInputEvent 触发 TextInput 事件。
+	若文本输入焦点为空则忽略，否则调用 UI::CallInputEvent 触发 TextInput 事件。
 	*/
 	//@{
 	PDefH(bool, SendInput, KeyInput& k)

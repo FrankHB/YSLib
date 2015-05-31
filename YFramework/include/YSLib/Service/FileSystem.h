@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2493
+\version r2497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-05-24 22:59 +0800
+	2015-05-29 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -277,12 +277,11 @@ public:
 
 	using ypath::swap;
 	PDefH(void, swap, Path& pth)
-		ImplExpr(static_cast<ypath&>(pth).swap(*this))
+		ImplExpr(pth.GetBaseRef().swap(*this))
 
 	//! \since build 475
 	friend PDefH(String, to_string, const Path& pth)
-		ImplRet(to_string(static_cast<const ypath&>(pth),
-			{ucs2_t(YCL_PATH_DELIMITER)}))
+		ImplRet(to_string(pth.GetBase(), {ucs2_t(YCL_PATH_DELIMITER)}))
 	//@}
 };
 
@@ -316,7 +315,7 @@ inline PDefH(String, GetExtensionOf, const Path& pth)
 \note 不小于 \c PATH_MAX 。
 \since build 542
 */
-yconstexpr size_t MaxPathLength(yimpl(1 << 10));
+yconstexpr const size_t MaxPathLength(yimpl(1 << 10));
 
 /*!
 \brief 取当前工作目录。

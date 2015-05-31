@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2841
+\version r2842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-05-25 06:08 +0800
+	2015-05-27 04:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -821,7 +821,7 @@ main(int argc, char* argv[])
 
 			for(int i(1); i < argc; ++i)
 			{
-				auto arg(DecodeArg(argv[i]));
+				string arg(DecodeArg(argv[i]));
 
 				if(!arg.empty() && std::none_of(begin(OptionsTable),
 					end(OptionsTable), [&](const Option& opt){

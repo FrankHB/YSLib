@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r649
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2015-04-24 05:52 +0800
+	2015-05-29 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,11 +48,11 @@ using KeyIndex = size_t;
 */
 //@{
 #if YCL_DS
-yconstexpr KeyIndex KeyBitsetWidth(32);
+yconstexpr const KeyIndex KeyBitsetWidth(32);
 #elif YCL_Win32 || YCL_Android || YCL_OS_X
-yconstexpr KeyIndex KeyBitsetWidth(256);
+yconstexpr const KeyIndex KeyBitsetWidth(256);
 #elif YCL_Linux
-yconstexpr KeyIndex KeyBitsetWidth(0x200);
+yconstexpr const KeyIndex KeyBitsetWidth(0x200);
 #else
 #	error "Unsupported platform found."
 #endif
@@ -183,10 +183,10 @@ MapKeyChar(KeyIndex) ynothrow;
 YF_API char
 MapKeyChar(const KeyInput&, KeyIndex) ynothrow;
 #else
-yconstexpr PDefH(char, MapKeyChar, KeyIndex) ynothrow
+yconstfn PDefH(char, MapKeyChar, KeyIndex) ynothrow
 	ImplRet({})
 //! \since build 489
-yconstexpr PDefH(char, MapKeyChar, const KeyInput&, KeyIndex) ynothrow
+yconstfn PDefH(char, MapKeyChar, const KeyInput&, KeyIndex) ynothrow
 	ImplRet({})
 #endif
 //@}
@@ -226,12 +226,14 @@ enum NativeSet
 	//@}
 };
 
-//按键别名。
-yconstexpr NativeSet Enter(A), Esc(B), PgUp(L), PgDn(R);
+//! \brief 按键别名。
+//@{
+yconstexpr const NativeSet Enter(A), Esc(B), PgUp(L), PgDn(R);
 //! \since build 490
-yconstexpr NativeSet Home(X), End(Y);
+yconstexpr const NativeSet Home(X), End(Y);
 //! \since build 493
-yconstexpr NativeSet Primary(Touch);
+yconstexpr const NativeSet Primary(Touch);
+//@}
 
 /*!
 \brief 扩展集：作为 DS 可直接被 KeyInput 表示的非物理键按键编码。

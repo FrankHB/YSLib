@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2410
+\version r2412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-05-18 00:39 +0800
+	2015-05-29 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -272,13 +272,13 @@ public:
 		}
 
 		using state_t = std::uint_fast8_t;
-		static yconstexpr state_t t_data_1[]{
+		static yconstexpr const state_t t_data_1[]{
 			8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 			10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3,
 			11, 6, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
 		};
-		static yconstexpr state_t t_data_2[]{1, 2, 4, 4};
+		static yconstexpr const state_t t_data_2[]{1, 2, 4, 4};
 		auto& code(st.Value.UCS4);
 #define CHRLib_Impl_UTF8_Decode_Fill \
 	if(YB_UNLIKELY(!FillByte(i, b))) \

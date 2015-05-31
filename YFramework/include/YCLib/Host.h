@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r276
+\version r277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-04-24 06:35 +0800
+	2015-05-29 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ using UniqueHandle = unique_ptr<HandleDelete::pointer, HandleDelete>;
 //! \since build 567
 //@{
 //! \brief 默认命令缓冲区大小。
-yconstexpr size_t DefaultCommandBufferSize(yimpl(4096));
+yconstexpr const size_t DefaultCommandBufferSize(yimpl(4096));
 
 /*!
 \brief 取命令在标准输出上的执行结果。

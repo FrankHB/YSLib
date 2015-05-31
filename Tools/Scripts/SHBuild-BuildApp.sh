@@ -68,7 +68,7 @@ if [[ "$SHBuild_Debug" != '' ]]; then
 	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
-	LDFLAGS=' '
+	LDFLAGS_OPT_DBG=' '
 	. $SHBuild_Bin/SHBuild-common-options.sh
 	export SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
 else

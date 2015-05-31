@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r870
+\version r900
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2015-03-17 13:36 +0800
+	2015-05-29 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,13 +38,6 @@ namespace YSLib
 {
 
 #if YCL_DS || YF_Hosted
-#	ifndef SCREEN_WIDTH
-#		define SCREEN_WIDTH 256
-#	endif
-#	ifndef SCREEN_HEIGHT
-#		define SCREEN_HEIGHT 192
-#	endif
-
 /*!	\defgroup CustomGlobalConstants Custom Global Constants
 \ingroup GlobalObjects
 \brief 平台相关的全局常量。
@@ -55,7 +48,7 @@ namespace YSLib
 \brief 屏幕大小。
 \since build 215
 */
-const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
+yconstexpr const SDst MainScreenWidth(256), MainScreenHeight(192);
 //@}
 
 
@@ -63,32 +56,6 @@ namespace Devices
 {
 class DSScreen;
 } // namespace Devices;
-
-namespace Drawing
-{
-
-/*!
-\brief 全屏幕描点。
-\note 颜色由坐标决定。
-\since build 360
-*/
-template<typename _tOut, typename _tGen>
-void
-ScrDraw(_tOut buf, _tGen&& f)
-{
-	for(SDst y(0); y < MainScreenHeight; ++y)
-		for(SDst x(0); x < MainScreenWidth; yunseq(++x, ++buf))
-			*buf = yforward(f)(x, y);
-}
-
-/*!
-\brief 新建屏幕图像。
-\since build 213
-*/
-inline PDefH(shared_ptr<Image>, CreateSharedScreenImage, ConstBitmapPtr p)
-	ImplRet(make_shared<Image>(p, MainScreenWidth, MainScreenHeight))
-
-} // namespace Drawing;
 
 
 /*!

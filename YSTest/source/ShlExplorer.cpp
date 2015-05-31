@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1464
+\version r1476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-05-24 18:32 +0800
+	2015-05-31 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,15 +130,15 @@ CheckMenuKey(const KeyInput& k)
 
 //! \since build 585
 //@{
-yconstexpr auto PI = 3.141592F;
-yconstexpr auto PI_2 = PI * 2;
+yconstexpr const auto PI = 3.141592F;
+yconstexpr const auto PI_2 = PI * 2;
 
 //! \since build 452
 void
 DrawStar(Graphics& g, const Rect& bounds, Color c, const Point& pt, SDst r,
 	float a, size_t n = 5)
 {
-	static yconstexpr auto PI_4 = PI * 4;
+	static yconstexpr const auto PI_4 = PI * 4;
 	vector<Point> pts(n);
 
 	for(size_t i = 0; i < n; ++i)
@@ -241,6 +241,7 @@ SwitchScreensButton::SwitchScreensButton(ShlDS& shl, const Point& pt)
 	}
 	);
 }
+ImplDeDtor(SwitchScreensButton)
 
 
 ShlExplorer::ShlExplorer(const IO::Path& path,
@@ -431,12 +432,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 
 				PostTask([=]{
 					ResetDSDesktops(*h_up, *h_dn);
-					if(b)
-						NowShellTo(
-							make_shared<ShlTextReader>(fb_path, h_up, h_dn));
-					else
-						NowShellTo(
-							make_shared<ShlHexBrowser>(fb_path, h_up, h_dn));
+					NowShellTo(b ? shared_ptr<Shell>(make_shared<ShlTextReader>(
+						fb_path, h_up, h_dn)) : shared_ptr<Shell>(
+						make_shared<ShlHexBrowser>(fb_path, h_up, h_dn)));
 				}, 0xF8);
 			}
 		}
@@ -625,13 +623,13 @@ ShlExplorer::OnPaint()
 	if(cbFPS.IsTicked())
 	{
 		using namespace ColorSpace;
-		const std::uint32_t t(fpsCounter.Refresh());
+		const auto t(fpsCounter.Refresh());
 
 		if(t != 0)
 		{
 			const auto g(ystdex::polymorphic_downcast<BufferedRenderer&>(
 				GetMainDesktop().GetRenderer()).GetContext());
-			yconstexpr Rect r(176, 0, 80, 20);
+			static yconstexpr const Rect r(176, 0, 80, 20);
 			char strt[20];
 
 			std::sprintf(strt, "FPS: %u.%03u", unsigned(t / 1000),

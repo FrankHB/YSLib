@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1224
+\version r1246
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-04-24 05:59 +0800
+	2015-05-29 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,14 +63,14 @@ static_assert(ystdex::integer_width<SDst>() >= ystdex::integer_width<SPos>(),
 template<size_t _vX, size_t _vY, size_t _vZ, size_t _vA>
 struct XYZATrait
 {
-	static yconstexpr size_t ABitsN = _vA;
-	static yconstexpr size_t XBitsN = _vX;
-	static yconstexpr size_t YBitsN = _vY;
-	static yconstexpr size_t ZBitsN = _vZ;
-	static yconstexpr size_t XYBitsN = XBitsN + YBitsN;
-	static yconstexpr size_t XYZBitsN = XBitsN + YBitsN + ZBitsN;
-	static yconstexpr size_t BitsN = XBitsN + YBitsN + ZBitsN + ABitsN;
-	static yconstexpr size_t BytesN = (BitsN + CHAR_BIT - 1) / CHAR_BIT;
+	static yconstexpr const size_t ABitsN = _vA;
+	static yconstexpr const size_t XBitsN = _vX;
+	static yconstexpr const size_t YBitsN = _vY;
+	static yconstexpr const size_t ZBitsN = _vZ;
+	static yconstexpr const size_t XYBitsN = XBitsN + YBitsN;
+	static yconstexpr const size_t XYZBitsN = XBitsN + YBitsN + ZBitsN;
+	static yconstexpr const size_t BitsN = XBitsN + YBitsN + ZBitsN + ABitsN;
+	static yconstexpr const size_t BytesN = (BitsN + CHAR_BIT - 1) / CHAR_BIT;
 
 	using AType = typename ystdex::make_width_int<ABitsN>::unsigned_least_type;
 	using BType = typename ystdex::make_width_int<XBitsN>::unsigned_least_type;
@@ -93,13 +93,13 @@ struct XYZAMaskTrait
 {
 	using IntegerType = typename XYZATrait<_vX, _vY, _vZ, _vA>::IntegerType;
 
-	static yconstexpr IntegerType XMaskN = _vX;
-	static yconstexpr IntegerType XYMaskN = XMaskN + _vY;
-	static yconstexpr IntegerType XYZMaskN = XYMaskN + _vZ;
-	static yconstexpr IntegerType AMask = ((1U << _vA) - 1) << XYZMaskN;
-	static yconstexpr IntegerType XMask = (1U << _vX) - 1;
-	static yconstexpr IntegerType YMask = ((1U << _vY) - 1) << XMaskN;
-	static yconstexpr IntegerType ZMask = ((1U << _vZ) - 1) << XYMaskN;
+	static yconstexpr const IntegerType XMaskN = _vX;
+	static yconstexpr const IntegerType XYMaskN = XMaskN + _vY;
+	static yconstexpr const IntegerType XYZMaskN = XYMaskN + _vZ;
+	static yconstexpr const IntegerType AMask = ((1U << _vA) - 1) << XYZMaskN;
+	static yconstexpr const IntegerType XMask = (1U << _vX) - 1;
+	static yconstexpr const IntegerType YMask = ((1U << _vY) - 1) << XMaskN;
+	static yconstexpr const IntegerType ZMask = ((1U << _vZ) - 1) << XYMaskN;
 };
 
 
@@ -112,13 +112,13 @@ struct AXYZMaskTrait
 {
 	using IntegerType = typename XYZATrait<_vX, _vY, _vZ, _vA>::IntegerType;
 
-	static yconstexpr IntegerType AMaskN = _vA;
-	static yconstexpr IntegerType AXMaskN = AMaskN + _vX;
-	static yconstexpr IntegerType AXYMaskN = AXMaskN + _vY;
-	static yconstexpr IntegerType AMask = (1U << _vA) - 1;
-	static yconstexpr IntegerType XMask = ((1U << _vX) - 1) << AMaskN;
-	static yconstexpr IntegerType YMask = ((1U << _vY) - 1) << AXMaskN;
-	static yconstexpr IntegerType ZMask = ((1U << _vZ) - 1) << AXYMaskN;
+	static yconstexpr const IntegerType AMaskN = _vA;
+	static yconstexpr const IntegerType AXMaskN = AMaskN + _vX;
+	static yconstexpr const IntegerType AXYMaskN = AXMaskN + _vY;
+	static yconstexpr const IntegerType AMask = (1U << _vA) - 1;
+	static yconstexpr const IntegerType XMask = ((1U << _vX) - 1) << AMaskN;
+	static yconstexpr const IntegerType YMask = ((1U << _vY) - 1) << AXMaskN;
+	static yconstexpr const IntegerType ZMask = ((1U << _vZ) - 1) << AXYMaskN;
 };
 
 

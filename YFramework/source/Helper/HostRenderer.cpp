@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r653
+\version r657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-05-25 02:44 +0800
+	2015-05-27 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,8 @@ RenderWindow::RenderWindow(HostRenderer& rd, NativeWindowHandle h)
 #	if YCL_HostedUI_XCB
 	MessageMap[XCB_EXPOSE] += [this]{
 		// TODO: Optimize using event parameter.
-		renderer.get().GetBufferRef().UpdateTo(GetNativeHandle());
+		YSLib::Deref(renderer.get().GetBufferRef().Lock()).UpdateTo(
+			GetNativeHandle());
 	};
 #	elif YCL_Win32
 	yunseq(
@@ -263,6 +264,8 @@ HostRenderer::RefreshForWidget()
 	{
 #if YCL_Win32
 		if(!p_wnd->IsMinimized())
+#else
+		yunused(p_wnd);
 #endif
 		{
 			// TODO: Determine what should be painted for thumbnail.

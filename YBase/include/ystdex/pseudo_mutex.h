@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r658
+\version r667
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2015-05-24 14:32 +0800
+	2015-05-29 19:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,18 +46,14 @@ namespace single_thread
 
 //! \since build 550
 //@{
-struct defer_lock_t
-{};
+yconstexpr const struct defer_lock_t
+{} defer_lock{};
 
-struct try_to_lock_t
-{};
+yconstexpr const struct try_to_lock_t
+{} try_to_lock{};
 
-struct adopt_lock_t
-{};
-
-yconstexpr defer_lock_t defer_lock{};
-yconstexpr try_to_lock_t try_to_lock{};
-yconstexpr adopt_lock_t adopt_lock{};
+yconstexpr const struct adopt_lock_t
+{} adopt_lock{};
 
 
 //! \warning 不保证线程安全：多线程环境下假定线程同步语义可能引起未定义行为。

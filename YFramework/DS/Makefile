@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2070
+# Version = r2071
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2015-03-17 18:22 +0800
+# Updated = 2015-05-26 14:25 +0800
 # Encoding = ANSI
 
 
@@ -152,7 +152,7 @@ $(CONF):
 #----
 clean:
 	@echo Cleaning $(TARGET) of $(PLATFORM) ...
-	@rm -fr $(BUILDDIR)/*
+	@rm -fr $(BUILDDIR)/* 2> /dev/null || true
 	@rm -f $(OUTPUT)
 	@echo Cleaned.
 

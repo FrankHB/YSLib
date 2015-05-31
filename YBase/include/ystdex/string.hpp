@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1357
+\version r1362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-05-22 20:25 +0800
+	2015-05-29 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ namespace ystdex
 template<typename _tString>
 struct string_traits
 {
-	using string_type = decay_t<_tString>;
+	using string_type = remove_rcv_t<_tString>;
 	using value_type = remove_rcv_t<decltype(std::declval<string_type>()[0])>;
 	using traits_type = typename std::char_traits<value_type>;
 	//! \since build 592
@@ -62,9 +62,8 @@ struct string_traits
 	using reference = value_type&;
 	using const_reference = const value_type&;
 	//@}
-	using pointer = typename std::allocator_traits<allocator_type>::pointer;
-	using const_pointer
-		= typename std::allocator_traits<allocator_type>::const_pointer;
+	using pointer = value_type*;
+	using const_pointer = const value_type*;
 	using initializer = std::initializer_list<value_type>;
 };
 
@@ -85,7 +84,7 @@ struct is_string_class_test
 	static false_type
 	test(...);
 
-	static yconstexpr bool value = decltype(test<_type>(nullptr))::value;
+	static yconstexpr const bool value = decltype(test<_type>(nullptr))::value;
 };
 
 //! \since build 519

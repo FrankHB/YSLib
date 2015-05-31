@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1238
+\version r1242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2015-04-24 05:48 +0800
+	2015-05-29 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ namespace
 {
 
 #if YCL_DS
-yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
+yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	Editing, // KEY_A as a synonym of 'Enter'.
 	Navigation, // KEY_B as a synonym of 'Esc'.
 	Menu | System, // KEY_SELECT as a synonym of 'Menu'.
@@ -91,7 +91,7 @@ yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
 };
 #elif YCL_Win32
 // See http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx .
-yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
+yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	None, // 0 is not assigned.
 	Editing | NonKeyboard, // VK_LBUTTON is a mouse key.
 	Editing | NonKeyboard, // VK_RBUTTON is a mouse key.
@@ -350,7 +350,7 @@ yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
 };
 #elif YCL_Android
 // See http://developer.android.com/reference/android/view/KeyEvent.html .
-yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
+yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	None, // KEYCODE_UNKNOWN.
 	Function, // KEYCODE_SOFT_LEFT.
 	Function, // KEYCODE_SOFT_RIGHT .
@@ -579,7 +579,7 @@ yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
 	Editing | NonKeyboard // Extended tertiary key.
 };
 #elif YCL_Linux
-yconstexpr Category KeyCategoryTable[]{
+yconstexpr const Category KeyCategoryTable[]{
 	None, // KEY_RESERVED.
 	Navigation, // KEY_ESC.
 	Numeric, // KEY_1.

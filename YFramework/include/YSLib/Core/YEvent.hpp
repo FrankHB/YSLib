@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5023
+\version r5024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-05-02 14:56 +0800
+	2015-05-29 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,7 +246,7 @@ using EventPriority = std::uint8_t;
 \brief 默认事件优先级。
 \since build 294
 */
-yconstexpr EventPriority DefaultEventPriority(0x80);
+yconstexpr const EventPriority DefaultEventPriority(0x80);
 
 
 /*!

@@ -11,7 +11,7 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2182
+\version r2187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
@@ -421,10 +421,12 @@ yconstfn PDefHOp(Size, &, const Size& x, const Size& y) ynothrow
 yconstfn PDefHOp(Size, |, const Size& x, const Size& y) ynothrow
 	ImplRet({max(x.Width, y.Width), max(x.Height, y.Height)})
 
-//! \brief 取面积。
-yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
-	-> decltype(s.Width * s.Height)
-	ImplRet(s.Width * s.Height)
+/*!
+\brief 取面积。
+\since build 601
+*/
+yconstfn PDefH(size_t, GetAreaOf, const Size& s) ynothrow
+	ImplRet(size_t(s.Width * s.Height))
 
 /*!
 \brief 计算第一参数和第二参数为大小的矩形中心重合时左上角相对于第一个矩形的位置。

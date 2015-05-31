@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2032
+\version r2036
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-05-21 01:28 +0800
+	2015-05-27 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,7 @@ ImplDeDtor(PathNorm)
 String
 Path::GetString(ucs2_t delimiter) const
 {
-	const auto res(ystdex::to_string_d(static_cast<const ypath&>(*this),
-		delimiter));
+	const auto res(ystdex::to_string_d(GetBase(), delimiter));
 
 	YAssert(res.empty() || res.back() == delimiter,
 		"Invalid conversion result found.");
@@ -64,7 +63,7 @@ Path::Parse(const ucs2string& str)
 		res.push_back(ucs2string(b, e));
 	});
 	if(!res.empty() && !IsAbsolute(res.front()) && IsAbsolute(str.c_str()))
-		res.insert(res.cbegin(), {});
+		res.insert(res.cbegin(), {{}});
 	return res;
 }
 
@@ -96,6 +95,7 @@ MakeNormalizedAbsolute(const Path& pth, size_t len)
 	if(IsRelative(res))
 		res = Path(FetchCurrentWorkingDirectory(len)) / res;
 	res.Normalize();
+	YTraceDe(Debug, "Converted path is '%s'.", string(res).c_str());
 	YAssert(IsAbsolute(res), "Invalid path converted.");
 	return res;
 }

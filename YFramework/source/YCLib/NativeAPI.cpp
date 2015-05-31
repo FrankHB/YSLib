@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r511
+\version r529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2014-07-22 18:55 +0800
+	2015-05-31 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,16 +26,12 @@
 
 
 #include "YCLib/YModules.h"
-#include "CHRLib/YModules.h"
 #include YFM_YCLib_NativeAPI
-#include <ydef.h>
-#include <ctime>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include YFM_CHRLib_CharacterProcessing
-
-using namespace CHRLib;
+#if YCL_DS
+#	include <fat.h>
+#elif YCL_MinGW
+#	include <ctime> // for std::gmtime;
+#endif
 
 namespace
 {
@@ -43,10 +39,18 @@ namespace
 }
 
 #if YCL_DS
+namespace platform_ex
+{
 
+bool
+InitializeFileSystem() ynothrow
+{
+	// NOTE: %DEFAULT_CACHE_PAGES is 16 in "common.h" in libfat source.
+	return ::fatInit(16, true);
+}
 
+} // namespace platform_ex;
 #elif YCL_MinGW
-
 extern "C"
 {
 

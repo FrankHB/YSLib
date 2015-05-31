@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1765
+\version r1771
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-05-13 11:44 +0800
+	2015-05-26 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,12 +310,7 @@ namespace ColorSpace = platform::ColorSpace;
 
 namespace IO
 {
-//文件系统抽象。
-/*!
-\brief 本机路径字符类型。
-\since build 286
-*/
-using platform::NativePathCharType;
+
 //! \since build 402
 using platform::CS_Path;
 

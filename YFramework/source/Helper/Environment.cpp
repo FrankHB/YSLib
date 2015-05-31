@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1592
+\version r1593
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-04-29 00:23 +0800
+	2015-05-29 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ namespace
 {
 
 #if YCL_Win32 && 0
-yconstexpr double g_max_free_fps(1000);
+yconstexpr const double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(std::uint64_t(1000000000 / g_max_free_fps));
 #endif
 

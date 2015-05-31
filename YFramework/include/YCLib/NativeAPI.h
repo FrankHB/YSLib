@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r858
+\version r877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-04-19 10:31 +0800
+	2015-05-31 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,16 +69,7 @@ namespace platform_replace
 
 
 #if YCL_DS
-
 #	include <nds.h>
-#	include <fat.h>
-//包含 PALib 。
-//#	include <PA9.h>
-
-#	ifdef USE_EFS
-//包含 EFSLib 。
-#		include "efs_lib.h"
-#	endif
 
 namespace platform_ex
 {
@@ -93,14 +84,23 @@ namespace platform_ex
 \since build 405
 */
 inline void
-DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
+DMAFillWordsAsync(std::uint8_t chan, std::uint32_t val, void* p_dst,
+	std::uint32_t size)
 {
-	DMA_FILL(chan) = vu32(val);
-	DMA_SRC(3) = u32(&DMA_FILL(3));
-	DMA_DEST(3) = u32(p_dst);
+	DMA_FILL(chan) = std::uint32_t(val);
+	DMA_SRC(3) = std::uint32_t(&DMA_FILL(3));
+	DMA_DEST(3) = std::uint32_t(p_dst);
 
 	DMA_CR(3) = DMA_SRC_FIX | DMA_COPY_WORDS | size >> 2;
 }
+
+/*!
+\brief 初始化文件系统。
+\return 是否成功。
+\since build 601
+*/
+YF_API bool
+InitializeFileSystem() ynothrow;
 
 } // namespace platform_ex;
 

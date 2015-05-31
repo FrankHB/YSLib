@@ -1,5 +1,5 @@
 #
-#	(C) 2014-2015 FrankHB.
+#	(C) 2009-2015 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r351
+# Version = r354
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2015-03-19 14:53 +0800
+# Updated = 2015-05-29 21:35 +0800
 # Encoding = ANSI
 
 
@@ -70,7 +70,7 @@ CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
 #----
 # any extra libraries we wish to link with the project
 #----
-LIBS	:=	#-lfreetype #-lfat -lnds9
+LIBS	:=	#-lfreetype
 
 #----
 # list of directories containing libraries, this must be the top level containing
@@ -146,7 +146,7 @@ $(CONF):
 #----
 clean:
 	@echo Cleaning $(TARGET) of $(PLATFORM) ...
-	@rm -fr $(BUILDDIR)/*
+	@rm -fr $(BUILDDIR)/* 2> /dev/null || true
 	@rm -f $(OUTPUT)
 	@echo Cleaned.
 

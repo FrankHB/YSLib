@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1846
+\version r1889
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-05-16 12:23 +0800
+	2015-05-29 19:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ using EncodingInfoItem = pair<Encoding, const ucs2_t*>;
 \brief 编码信息。
 \since build 307
 */
-yconstexpr EncodingInfoItem Encodings[]{{CharSet::UTF_8, u"UTF-8"},
+yconstexpr const EncodingInfoItem Encodings[]{{CharSet::UTF_8, u"UTF-8"},
 	{CharSet::GBK, u"GBK"}, {CharSet::UTF_16BE, u"UTF-16 Big Endian"},
 	{CharSet::UTF_16LE, u"UTF-16 Little Endian"},
 	{CharSet::UTF_32BE, u"UTF-32 Big Endian"},
@@ -144,31 +144,6 @@ FetchShell()
 }
 
 
-//全局函数。
-
-/*!
-\brief 取全局 Shell 句柄。
-\since build 195
-*/
-template<class _tShl>
-inline shared_ptr<Shell>
-FetchStored()
-{
-	return GLocalStaticCache<_tShl, shared_ptr<Shell>>::GetPointer();
-}
-
-/*!
-\brief 释放全局 Shell 。
-\since build 195
-*/
-template<class _tShl>
-inline void
-ReleaseStored()
-{
-	GLocalStaticCache<_tShl, shared_ptr<Shell>>::Release();
-}
-
-
 /*!
 \brief 判断句柄指定的 Shell 是否为当前线程空间中运行的 Shell 。
 \since 早于 build 132
@@ -192,28 +167,6 @@ inline PDefH(void, SetShellTo, const shared_ptr<Shell>& hShl,
 	// NOTE: It would make the message loop in dead lock when called more
 	//	than once specifying on same destination shell.
 	ImplRet(PostMessage<SM_Set>(prior, hShl))
-
-/*!
-\brief 通过主消息队列向新建 Shell 对象转移控制权。
-\since 早于 build 132
-*/
-template<class _tShl>
-inline void
-SetShellToNew()
-{
-	SetShellTo(make_shared<_tShl>());
-}
-
-/*!
-\brief 通过主消息队列向全局 Shell 管理器内的对象转移控制权。
-\since 早于 build 132
-*/
-template<class _tShl>
-inline void
-SetShellToStored()
-{
-	SetShellTo(FetchStored<_tShl>());
-}
 
 
 /*!
@@ -270,7 +223,7 @@ RemoveGlobalTasks();
 \brief 默认时间格式字符串。
 \since build 307
 */
-yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
+yconstexpr const char* const DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
 
 /*!
 \brief 格式化时间字符串。

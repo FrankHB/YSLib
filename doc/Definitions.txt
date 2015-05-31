@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13831
+\version r13834
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-05-24 23:07 +0800
+	2015-05-28 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -775,8 +775,6 @@ $options $intended $warning $impl("gcc", "clang") $=
 	C ObjC C++ ObjC++ Var(warn_missing_declarations) Warning
 	Wmissing-include-dirs
 	C ObjC C++ ObjC++ CPP(warn_missing_include_dirs) CppReason(CPP_W_MISSING_INCLUDE_DIRS) Var(cpp_warn_missing_include_dirs) Init(0) Warning
-	Wpacked
-	Common Var(warn_packed) Warning
 	Wredundant-decls
 	C ObjC C++ ObjC++ Var(warn_redundant_decls) Warning
 ]],
@@ -988,6 +986,9 @@ $options $test_only $impl("GCC", "Clang") $=
 	Common Var(warn_inline) Warning
 	Wmissing-noreturn
 	Common Alias(Wsuggest-attribute=noreturn)
+	Wpacked
+	Common Var(warn_packed) Warning
+		// Too many in libnds. Clang++ has possible false diagnostics: https://llvm.org/bugs/show_bug.cgi?id=18132 , which affects YFramework since b595 ('YB_ATTR' implementation changed).
 	Wstack-protector
 	Common Var(warn_stack_protect) Warning
 		// Only used with 'fstack-protector'.

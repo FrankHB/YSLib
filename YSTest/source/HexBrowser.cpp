@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r639
+\version r643
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2015-05-09 12:05 +0800
+	2015-05-29 02:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ HexViewArea::Load(const char* path)
 void
 HexViewArea::LocateViewPosition(size_t line)
 {
-	UpdateData(ItemPerLine * line);
+	UpdateData(std::uint32_t(ItemPerLine * line));
 	UpdateView(true);
 }
 
@@ -138,8 +138,6 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 	ScrollableContainer::Refresh(std::move(e));
 	TextState.ResetPen();
 
-	// NOTE: It seems there is a bug in linker for checking odr-using.
-	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine);
 	auto& y(TextState.Pen.Y);
 	const SDst lh(GetItemHeight()), h(GetHeight()),
 		w_all(GetWidth() - vsbVertical.GetWidth()
@@ -169,7 +167,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 		// XXX: Conversion to 'SPos' might be implementation-defined.
 		x += SPos(w_addr);
 
-		const auto n(min<IndexType>(fsize - pos, ItemPerLine));
+		const auto n(min<IndexType>(fsize - pos, IndexType(ItemPerLine)));
 
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 		for(IndexType j(0); j < n;

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2857
+\version r2858
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-05-24 14:51 +0800
+	2015-05-29 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ swap(any_constructible, any_constructible);
 template<typename _type, typename _type2>
 struct yimpl(helper)
 {
-	static yconstexpr bool value = !is_same<decltype(swap(std::declval<
+	static yconstexpr const bool value = !is_same<decltype(swap(std::declval<
 		_type&>(), std::declval<_type2&>())), not_constructible>::value;
 
 	helper()

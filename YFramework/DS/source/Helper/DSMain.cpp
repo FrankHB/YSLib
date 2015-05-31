@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3204
+\version r3206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-05-10 10:09 +0800
+	2015-05-29 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ namespace
 {
 
 #if YCL_Win32
-yconstexpr double g_max_free_fps(1000);
+yconstexpr const double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(std::uint64_t(1000000000 / g_max_free_fps));
 #endif
 

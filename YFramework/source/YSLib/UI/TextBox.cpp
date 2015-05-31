@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r716
+\version r717
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-04-19 16:52 +0800
+	2015-05-27 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,7 +142,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 							++range.second.X;
 						}
 					}
-					ReplaceSelection(u"");
+					ReplaceSelection({});
 					break;
 				case Left:
 				case Right:

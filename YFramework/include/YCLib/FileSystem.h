@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1738
+\version r1752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-05-18 22:38 +0800
+	2015-05-29 19:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,13 +109,6 @@ static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
 	*/
 #	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
-/*!
-\brief 本机路径字符类型。
-\since build 296
-*/
-//	using NativePathCharType = wchar_t;
-using NativePathCharType = char;
-
 #	define YCL_FS_CharIsDelimiter(_c, _p) \
 	(_c == YPP_Concat(_p, '/') || _c == YPP_Concat(_p, '\\'))
 #	define YCL_FS_StringIsRoot(_s, _p) \
@@ -126,7 +119,7 @@ using NativePathCharType = char;
 \brief 路径字符串编码。
 \since build 402
 */
-yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
+yconstexpr const CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #elif defined(YCL_API_POSIXFileSystem)
 	/*!
 	\brief 文件路径分隔符。
@@ -143,12 +136,6 @@ yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 	*/
 #	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
-/*!
-\brief 本机路径字符类型。
-\since build 286
-*/
-using NativePathCharType = char;
-
 #	define YCL_FS_CharIsDelimiter(_c, _p) \
 	(_c == YPP_Join(_p, YCL_PATH_DELIMITER))
 #	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
@@ -157,7 +144,7 @@ using NativePathCharType = char;
 \brief 路径字符串编码。
 \since build 402
 */
-yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
+yconstexpr const CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #else
 #	error "Unsupported platform found."
 #endif

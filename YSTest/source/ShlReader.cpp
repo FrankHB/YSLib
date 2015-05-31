@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4764
+\version r4783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-05-13 11:04 +0800
+	2015-05-30 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,6 +84,7 @@ ReaderBox::ReaderBox(const Rect& r)
 	lblProgress.Font.SetSize(12),
 	InitializeProgress();
 }
+ImplDeDtor(ReaderBox)
 
 void
 ReaderBox::InitializeProgress()
@@ -169,6 +170,7 @@ FileInfoPanel::FileInfoPanel()
 	AddWidgets(*this, lblPath, lblSize, lblAccessTime, lblModifiedTime,
 		lblOperations);
 }
+ImplDeDtor(FileInfoPanel)
 
 
 ShlReader::ShlReader(const IO::Path& pth,
@@ -184,8 +186,7 @@ ShlReader::Exit()
 		return;
 	bExit = true;
 	fBackgroundTask = nullptr;
-	// TODO: Use template %SetShellToNew.
-//	SetShellToNew<ShlExplorer>();
+//	SetShellTo(make_shared<ShlExplorer>());
 	const auto h_up(GetMainDesktopHandle());
 	const auto h_dn(GetSubDesktopHandle());
 
@@ -291,7 +292,7 @@ ShlTextReader::BaseSession::~BaseSession()
 	shl.boxReader.UpdateData(shl.reader),
 	shl.boxTextInfo.UpdateData(shl.reader);
 	if(reader_box_shown)
-		Show(shl.boxReader);
+		FilterExceptions(std::bind(Show, std::ref(shl.boxReader)));
 }
 
 
@@ -300,31 +301,31 @@ ShlTextReader::SettingSession::SettingSession(ShlTextReader& shl)
 {
 	auto& dsk_m(shl.GetMainDesktop());
 	auto& dsk_s(shl.GetSubDesktop());
-	auto& reader(shl.reader);
-	auto& CurrentSetting(shl.CurrentSetting);
-	auto& pnlSetting(shl.pnlSetting);
+	auto& s_reader(shl.reader);
+	auto& cur_setting(shl.CurrentSetting);
+	auto& pnl_setting(shl.pnlSetting);
 
 	shl.reader.SetVisible(false),
-	yunseq(CurrentSetting.UpColor = dsk_m.Background
-		.target<SolidBrush>()->Color, CurrentSetting.DownColor
+	yunseq(cur_setting.UpColor = dsk_m.Background
+		.target<SolidBrush>()->Color, cur_setting.DownColor
 		= dsk_s.Background.target<SolidBrush>()->Color,
-		CurrentSetting.FontColor = reader.GetColor(),
-		CurrentSetting.Font = reader.GetFont());
-	AddWidgets(dsk_m, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
+		cur_setting.FontColor = s_reader.GetColor(),
+		cur_setting.Font = s_reader.GetFont());
+	AddWidgets(dsk_m, pnl_setting.lblAreaUp, pnl_setting.lblAreaDown);
 	{
 		using ystdex::get_key;
 
 		auto i(size_t(std::find(Encodings | get_key,
 			(Encodings + arrlen(Encodings)) | get_key,
-			reader.GetEncoding()) - Encodings));
+			s_reader.GetEncoding()) - Encodings));
 
 		if(i == arrlen(Encodings))
 			i = 0;
-		yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(i),
-			AccessWidget<DropDownList>(pnlSetting.dynWgts.WidgetNode,
+		yunseq(pnl_setting.lblAreaDown.Text = FetchEncodingString(i),
+			AccessWidget<DropDownList>(pnl_setting.dynWgts.WidgetNode,
 			"pnlPage2", "ddlEncoding").Text = Encodings[i].second);
 	}
-	Show(pnlSetting << CurrentSetting);
+	Show(pnl_setting << cur_setting);
 }
 ShlTextReader::SettingSession::~SettingSession()
 {
@@ -341,6 +342,7 @@ ShlTextReader::BookmarkSession::BookmarkSession(ShlTextReader& shl)
 	shl.pnlBookmark.LoadBookmarks();
 	Show(shl.pnlBookmark);
 }
+ShlTextReader::ImplDeDtor(BookmarkSession)
 
 
 ShlTextReader::ShlTextReader(const IO::Path& pth,
@@ -806,6 +808,7 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 	dsk_s += HexArea;
 	RequestFocusCascade(HexArea);
 }
+ImplDeDtor(ShlHexBrowser)
 
 } // namespace YReader;
 
