@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r404
+\version r405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2015-03-31 19:56 +0800
+	2015-05-29 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,7 +200,7 @@ private:
 	using t2 = std::tuple<_types2...>;
 
 public:
-	static yconstexpr bool value
+	static yconstexpr const bool value
 		= std::is_convertible<vseq::at<t1, _vHead>, vseq::at<t2, _vHead>>::value
 		&& tuple_element_convertible<t1, t2, index_sequence<_vSeq...>>::value;
 };

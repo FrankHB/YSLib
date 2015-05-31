@@ -11,13 +11,13 @@
 /*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1357
+\version r1358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-04-30 12:37 +0800
+	2015-05-29 19:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ using CharSet::Encoding;
 \brief 默认字符编码。
 \since build 287
 */
-yconstexpr Encoding CS_Default = CharSet::UTF_8;
+yconstexpr const Encoding CS_Default = CharSet::UTF_8;
 
 
 /*!

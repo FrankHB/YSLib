@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r710
+\version r715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2015-04-09 17:17 +0800
+	2015-05-29 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_variadic_hpp_
 #define YB_INC_ystdex_variadic_hpp_ 1
 
-#include "../ydef.h" // for ystdex::size_t;
+#include "../ydef.h" // for size_t;
 
 namespace ystdex
 {
@@ -187,14 +187,15 @@ namespace details
 template<size_t _vN, class _tSeq, typename _type>
 struct find
 {
-	static yconstexpr size_t value = std::is_same<front_t<_tSeq>, _type>::value
+	static yconstexpr const size_t value
+		= std::is_same<front_t<_tSeq>, _type>::value
 		? 0 : find<_vN - 1, pop_front_t<_tSeq>, _type>::value + 1;
 };
 
 template<class _tSeq, typename _type>
 struct find<0, _tSeq, _type>
 {
-	static yconstexpr size_t value = 0;
+	static yconstexpr const size_t value = 0;
 };
 
 } // namespace details;

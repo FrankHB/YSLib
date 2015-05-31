@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2285
+\version r2323
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-05-24 14:14 +0800
+	2015-05-31 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 #include <cerrno> // for errno;
 //#include <clocale>
 #if YCL_DS
-#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSInitConsole;
+#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
 #elif YCL_Android
 #	include <unistd.h> // for ::access, F_OK;
 #elif YCL_Win32
@@ -309,7 +309,7 @@ HandleFatalError(const FatalError& e) ynothrow
 
 	const char* line("--------------------------------");
 
-	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s\n", line, e.GetTitle(), line,
+	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
 		e.GetContent().c_str(), line);
 #else
 #	if YCL_Win32
@@ -365,53 +365,35 @@ SaveConfiguration(const ValueNode& node)
 void
 InitializeEnvironment()
 {
-	//设置默认异常终止函数。
 	std::set_terminate(terminate);
 #if YCL_DS
-	//启用设备。
 	::powerOn(POWER_ALL);
-
-	//启用 LibNDS 默认异常处理。
 	::defaultExceptionHandler();
-
-	//初始化主控制台。
 	platform_ex::DSConsoleInit(true, ColorSpace::Lime);
-
-	//初始化文件系统。
-	//初始化 EFSLib 和 LibFAT 。
-	//当 .nds 文件大于32MB时， EFS 行为异常。
-#	ifdef USE_EFS
-	if(!::EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
-	{
-		//如果初始化 EFS 失败则初始化 FAT 。
-#	endif
-		if(!::fatInitDefault())
-			throw FatalError("         LibFAT Failure         ",
-				" An error is preventing the\n"
-				" program from accessing\n"
-				" external files.\n"
-				"\n"
-				" If you're using an emulator,\n"
-				" make sure it supports DLDI\n"
-				" and that it's activated.\n"
-				"\n"
-				" In case you're seeing this\n"
-				" screen on a real DS, make sure\n"
-				" you've applied the correct\n"
-				" DLDI patch (most modern\n"
-				" flashcards do this\n"
-				" automatically).\n"
-				"\n"
-				" Note: Some cards only\n"
-				" autopatch .nds files stored in\n"
-				" the root folder of the card.\n");
-#	ifdef USE_EFS
-	}
-#	endif
+	if(!platform_ex::InitializeFileSystem())
+		throw FatalError("         LibFAT Failure         ",
+			" An error is preventing the\n"
+			" program from accessing\n"
+			" external files.\n"
+			"\n"
+			" If you're using an emulator,\n"
+			" make sure it supports DLDI\n"
+			" and that it's activated.\n"
+			"\n"
+			" In case you're seeing this\n"
+			" screen on a real DS, make sure\n"
+			" you've applied the correct\n"
+			" DLDI patch (most modern\n"
+			" flashcards do this\n"
+			" automatically).\n"
+			"\n"
+			" Note: Some cards only\n"
+			" autopatch .nds files stored in\n"
+			" the root folder of the card.\n");
 #endif
 #if 0
 	// TODO: Review locale APIs compatibility.
-	static yconstexpr char locale_str[]{"zh_CN.GBK"};
+	static yconstexpr const char locale_str[]{"zh_CN.GBK"};
 
 	if(!std::setlocale(LC_ALL, locale_str))
 		throw GeneralEvent("Call of std::setlocale() with %s failed.\n",

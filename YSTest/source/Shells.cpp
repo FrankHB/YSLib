@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6375
+\version r6396
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2015-04-29 01:02 +0800
+	2015-05-29 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,21 +30,20 @@
 #include "ShlReader.h"
 #include <ytest/timing.hpp>
 
-////////
-//测试用声明：全局资源定义。
-//extern char gstr[128];
-
 using namespace ystdex;
 
 namespace YReader
 {
 
+//! \since build 601
+using Timers::HighResolutionClock;
+
 namespace
 {
 
 ResourceMap GlobalResourceMap;
-//! \since build 319
-double gfx_init_time;
+//! \since build 601
+HighResolutionClock::duration gfx_init_time;
 
 } // unnamed namespace;
 
@@ -54,8 +53,6 @@ namespace
 {
 
 using namespace YReader;
-
-//测试函数。
 
 template<typename _tTarget>
 _tTarget&
@@ -86,8 +83,6 @@ Cleanup()
 	for(size_t i(0); i != Image_N; ++i)
 		FetchGlobalImage(i).reset();
 	GlobalResourceMap.clear();
-	ReleaseStored<ShlReader>();
-	ReleaseStored<ShlExplorer>();
 }
 
 shared_ptr<Image>&
@@ -106,23 +101,25 @@ FetchImage(size_t i)
 		}
 	};
 
-	if(!FetchGlobalImage(i) && p_bg[i])
-	{
-		auto& h(FetchGlobalImage(i));
+	auto& h(FetchGlobalImage(i));
 
-		if(!h)
-			h = make_shared<Image>(nullptr, MainScreenWidth, MainScreenHeight);
-		gfx_init_time += ytest::timing::once(Timers::HighResolutionClock::now,
-			ScrDraw<BitmapPtr, decltype(*p_bg)>, h->GetBufferPtr(), p_bg[i])
-			.count() / 1e9;
+	if(!h && p_bg[i])
+	{
+		h = make_shared<Image>(nullptr, MainScreenWidth, MainScreenHeight);
+		gfx_init_time += ytest::timing::once(HighResolutionClock::now,
+			[](BitmapPtr buf, decltype(*p_bg) f){
+				for(SDst y(0); y < MainScreenHeight; ++y)
+					for(SDst x(0); x < MainScreenWidth; yunseq(++x, ++buf))
+						*buf = f(x, y);
+			}, h->GetBufferPtr(), p_bg[i]);
 	}
-	return FetchGlobalImage(i);
+	return h;
 }
 
 double
 FetchImageLoadTime()
 {
-	return gfx_init_time;
+	return gfx_init_time.count() / 1e9;
 }
 
 

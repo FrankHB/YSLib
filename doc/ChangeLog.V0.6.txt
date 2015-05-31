@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r405
+\version r605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-05-26 00:13 +0800
+	2015-05-26 02:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,207 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	+ $repo "glob pattern 'YFramework/*/lib*/lib*.a'" @ "%.hgignore",
+	(
+	/ "ignored errors" @ "target %clean" @ "library makefiles" @ "platforms %(DS, Android)";
+	* $comp "failure on %clean executed in Visual Studio" $since b473
+		// The *.log file in the build directory cannot be removed, since it is opened by Visual Studio and 'rm' would complain: "Device or resource busy"
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			- $revert(b286) 'using platform::NativePathCharType;' @ %Adaptor.YAdaptor,
+			* "missing update macro %YFM_YSLib_UI_YDesktop" @ %UI.YModules $since b586,
+			/ %Service $=
+			(
+				/ %FileSystem $=
+				(
+					/ @ "function %MakeNormalizedAbsolute" $=
+					(
+						+ "tracing converted path with level 'Debug'",
+						* "assertion failed" @ !"platform %Win32" $since b599 $dep_from "%Path::Parse" $dep_to "absolute path checking failure"
+					),
+					/ @ "class %Path" $=
+					(
+						/ DLDI "simplified friend function %swap" ^ "%GetBaseRef" ~ 'static_cast'
+						/ DLDI "simplified function %GetString, friend function %to_string" ^ "%GetBase" ~ 'static_cast',
+						* "inserted nothing as prefix" @ "static function %Parse" $since b499 $=
+							// Initializer '{}' would be treated as an empty sequence of strings rather than an empty string.
+							(/ $re_ex(b499) '{}' -> '{{}}')
+					)
+				),
+				/ $revert_ex(b301) "return type" @ "function %GetAreaOf" -> 'size_t' ~ "deduced type",
+					// To eliminate warning: [-Wsign-conversion].
+				/ DLDI "cast to 'wchar_t'" @ %TextRenderer
+					// To eliminate warning: [-Wsign-conversion] where 'wchar_t' is not the same sign as 'ucs4_t'.
+			)
+		),
+		/ %YCLib $=
+		(
+			- $revert(b286) "alias %NativePathCharType" @ "namespace %platform" @ %FileSystem $dep_from %YSLib.Adaptor.YAdaptor
+			* "missing update header for %YGraphics caused ill-formed use of undeclared %YSLib::Drawing::ConstGraphics" @ %XCB
+				$= (/ '#include YFM_YSLib_Core_YGDIBase' -> '#include YFM_YSLib_Core_YGraphics'),
+			* $re_ex(b458) "wrong use of %yconstexpr for functions %MapKeyChar" @ %YCLib.Keys
+				$since b487 $= (^ "%yconstfn" ~ "%yconstexpr"),
+			/ "platform %DS" @ %NativeAPI $=
+			(
+				/ "cleanup unused %USE_EFS conditional inclusion",
+				/ $dev "platform_ex::DMAFillWordsAsync" $=
+				(
+					^ "types from <cstdint>" ~ "types from libnds",
+					/ $impl !^ "unneeded volatile type cast"
+				),
+				+ "function %InitializeFileSystem",
+				- "inclusion of <nds.h>" @ "header" $dep_from "hiding libfat interface"
+			)
+		),
+		* $comp $build "ill-formed use of %nptr since static assertion of %nptr always triggered it" @ %YCLib.XCB $dep_from %YBase.YStandardEx.Pointer $orig $since b595 $dep_from %YBase.YStandardEx.Utility,
+		/ %Helper $=
+		(
+			/ DLDI ^ 'yunused' @ "function body for 3rd parameter" @ "function %AttachToHost" @ !"platform %Win32" @ %HostedUI,
+				// To eliminate warning: [-Wunused-parameter] hosted platforms other than %Win32.
+			* "ill-formed buffer access" @ 'YCL_HostedUI_XCB' $since b589
+				$= (/ $forced ^ "%ScreenRegionBuffer::Lock"),
+			/ DLDI ^ 'yunused' @ "member %HostRenderer::RefreshForWidget" @ !"platform %Win32" @ %HostedUI,
+				// To eliminate warning: [-Wunused-variable] hosted platforms other than %Win32.
+			/ %ShellHelper $=
+			(
+				(
+				- $revert(b195) "function template %SetShellToStored";
+				- $revert($before b132) "function template %FetchStored"
+				),
+				- $revert(b195) "function template %ReleaseStored" $dep_from "%Cleanup" @ %YReader.Shells,
+				- $revert($before b132) "function template %SetShellToNew"
+			)
+		),
+		* $dev "missing macro guard" @ !"platform %Win32" @ %'Helper_(MinGW32)'.Win32Control $since b578,
+		/ %'Helper_(DS)'.DSMain $=
+		(
+			- "function templates %(ScrDraw, CreateSharedScreenImage)",
+			/ @ "variables %(MainScreenWidth, MainScreenHeight)" $=
+			(
+				/ $dev "hard-coded screen width and height" $dep_to "hard coded screen measurement",
+				+ 'yconstexpr'
+			),
+			- $revert(b297) "macros %(SCREEN_WIDTH, SCREEN_HEIGHT)" $dep_from "hard coded screen measurement"
+		),
+		/ @ "platform %DS" @ %Helper.Initialization $=
+		(
+			(
+			/ $impl "InitializeEnvironment"
+				^ "%InitializeFileSystem" $dep_to "hiding libfat interface";
+			- $comp "GBA cart slot support for file system initialization"
+			),
+			* "redundant '\n' printed at last after horizontal line" @ "function %HandleFatalError" $since b508
+				// This cause LibFAT error titil disappeared.
+		)
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			* "ill-formed %nptr constructor for %nullptr_t" @ %Pointer $orig (@ %Utilities) $since b560,
+			/ DLDI "cast to 'unsigned'" @ "function %iswprint" @ %CWideCharacterType,
+				// To eliminate warning: [-Wsign-conversion] where 'wchar_t' is signed integer type.
+			/ "directly cast to common type" @ "inner arguments" @ "function template %cast_array" @ %Array,
+				// Also to eliminate warning: [-Wsign-conversion], etc when the arguments are of distinct integer types.
+			/ @ "class template %string_traits" @ %String $=
+			(
+				/ $revert_ex(b483) "%string_type" ^ "%remove_rcv_t" ~ "%decay_t",
+				* "corrected pointer types" $since b592
+					$= (/ $revert(b592) ^ "pointers based on %value_type" ~ "%allocator_traits")
+					// As an example, for array types of 'char', the 'const_pointer_type' should not be 'char* const*'.
+			),
+			/ %Optional $=
+			(
+				* $impl "ill-formed inheriting constructor declaration" @ "%optional base class template" $since b591,
+					// Both G++ 4.9.2 and Clang++ 3.6 are happy but G++ 5.1 complains.
+				/ DLDI "merged declarations %((in_place_t, in_place), %(nullopt_t, nullopt))"
+			),
+			/ DLDI "merged declarations %((defer_lock_t, defer_lock), %(try_to_lock_t, try_to_lock), (adopt_lock_t, adopt_lock))" @ %PseudoMutex
+		),
+		/ "substitution macro %yconstexpr" @ !"'constexpr' supported" @ %YDefinition -> '' ~ 'const'
+			// To avoid possible ill-formed program due to duplicate 'const'. Note now it behaves differently with '_GLIBCXX_USE_CONSTEXPR' of libstdc++.
+	),
+	/ %Tools $=
+	(
+		/ @ !"platform %Win32" @ %SHBuild.Main $=
+		(
+			(
+			* "ill-formed string %empty call" @ $since b599,
+			* $comp "ill-formed string decoding call" $since b592 $dep_from ("%ystdex::string_traits::const_pointer" @ %YBase.YStandardEx.String);
+			* "failed to build" $orig $since b586 $dep_from %YFramework.(YSLib.UI.YModules, YCLib.XCB)
+			),
+			* $comp "assertion failed for absolute path checking" $since b599 $dep_from "absolute path checking failure"
+		),
+		/ %ProjectGenerator.Main $=
+		(
+			* "invalid %NormalizeDirectoryPathTail call" ^ "non-class type result of %DecodeArg" @ !"platform %Win32" $since b599,
+			- "'-Wpacked' option for projects generation"
+		)
+		/ %Scripts $=
+		(
+			(
+			+ '$C_CXXFLAGS_PIC' @ ("begin" @ "default values") @ "variables %(CFLAGS, CXXFLAGS, LDFLAGS)" @ "%SHBuild-common-options.sh";
+			(
+			- "independent %C_CXXFLAGS_PIC" @ "%(SHBuild-YSLib-debug.sh, SHBuild-YSLib-debug.sh)";
+			* "missing '-fPIC' during dynamic library building with the precompiled header" @ !"platform %Win32"
+				$since b564
+			),
+			+ '$C_CXXFLAGS_PIC CXXFLAGS_IMPL_COMMON_THRD_' @ "value" @ "exported %LDFLAGS" @ "%SHBuild-YSLib-debug.sh",
+			/ "set %$LDFLAGS_OPT_DBG as ' '" @ "debug configurations" @ "%SHBuild-BuildApp.sh" ~ "%LDFLAGS as ' '";
+			/ $comp "enabled position independent code for all library and user code" @ !"platform %Win32"
+				// It is still reasonable for static libraries, e.g. to enable being embedded in shared libraries.
+			),
+			+ '$CXXFLAGS_IMPL_COMMON_THRD_' @ "default value" @ "variable %LDFLAGS" @ "%SHBuild-common-options.sh";
+			* "failed building dynamic libraries" $since b564,
+				// It is strange that G++ 4.9.2 did not complain about missing '-fPIC' and '-pthread' on linker command.
+			- $build "warning option '-Wpacked'" @ "build scripts and common makefiles" $dep_to "removal of -Wpacked"
+		)
+	),
+	/ $re_ex(b598) DLDI "all string arguments 'u""' for non-dependent class \
+		type parameters" -> '{}' $effective @ %YFramework.YSLib.UI.TextBox;
+	/ $build "simplified makefiles by based on removal of '-Wpacked'" @ "platform %DS" $dep_from "removal of -Wpacked",
+	/ %YReader $=
+	(
+		/ %Shells $=
+		(
+			/ $forced DLDI "image loading" $dep_from ("%ScrDraw" @ %'Helper_(DS)'.DSMain),
+			/ DLDI "simplified %Cleanup"
+		),
+		+ $dev $re_ex(b) "out-of-line virtual destructors" @ ("class %SwitchScreensButton"
+			@ %ShlExplorer, "classes %(ShlHexBrowser, ReaderBox, FileInfoPanel, ShlTextReader::BookmarkSession)" @ %ShlReader, "class %FrmAbout" @ %About,
+			"class %BookmarkPanel" @ %BookmarkUI, "class %SettingPanel" @ %ReaderSettingUI,
+			"class %ColorBox" @ %ColorPicker),
+			// To eliminate Clang++ warning: [-Wweak-vtables].
+		/ DLDI "member function %ShlExplorer::OnPaint",
+			// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+		/ DLDI "cast to 'size_t'" @ "constructor %SettingPanel" @ %ReaderSettingUI,
+			// To eliminate warning: [-Wsign-conversion].
+		/ DLDI @ "class %HexViewArea" %HexBrowser $=
+		(
+			/ "cast to 'std::uint32_t'" @ "function %LocateViewPosition"
+				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+			/ "cast to prvalue for %ItemPerLine as argument of %min" @ "function %Refresh" @ %HexBrowser
+				// To avoid odr-use cause linking failure because 'yconstexpr' static member %ItemPerLine is never undefined.
+		),
+		/ @ "class %ShlTextReader" @ %ShlReader $=
+		(
+			/ DLDI "constructor %SettingSession::SettingSession",
+				// To eliminate Clang++ warning: [-Wshadow], although it is rarely possible to access a non-static member of the enclosing class.
+			/ "prevent propagate exception" @ "destructor %BaseSession" ^ "%FilterExceptions"
+		)
+	),
+	+ $forced $revert_ex(b590) $dev 'const' @ "variable defined using 'yconstexpr'" $dep_from "%yconstexpr" @ %YDefinition $effective @ "141 instances" @ %YBase.YStandardEx.(BitSegment,
+		CStandardInteger, IntegerSequence, Iterator, Optional, PseudoMutex, String, Rational, Tuple, TypeOperation, Variadic, Utilities),
+		YFramework.('Helper_(DS)'.DSMain, CHRLib.(Encoding, MappingEx, StaticMapping), Helper.(ShellHelper, Initialization, Environent), YCLib.(FileSystem, Host, HostedGUI, Keys, Video),
+		YSLib.(Adaptor.Font, Core.(YClock, YConsole, YEvent, YMessage), Service.(FileSystem, TextBase, TextFile, TextManager),
+		UI.(Animation, Hover, Menu, YGUI, YWidgetEvent, Scroll)), 'YCLib_(MinGW32)'.(MinGW32, NLS), YReader.(HexBrowser, Shells, ColorPicker, ShlExplorer))
+),
+
+b600
 (
 	/ %YBase.YStandardEx $=
 	(

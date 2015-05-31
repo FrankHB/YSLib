@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r516
+\version r517
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2015-05-09 11:56 +0800
+	2015-05-29 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,7 +100,7 @@ public:
 class HexView
 {
 public:
-	static yconstexpr size_t ItemPerLine = 8; //!< 每行数据总数（字节）。
+	static yconstexpr const size_t ItemPerLine = 8; //!< 每行数据总数（字节）。
 
 	using IndexType = std::uintptr_t; //!< 索引类型。
 	using DataType = vector<char>; //!< 显示数据类型。

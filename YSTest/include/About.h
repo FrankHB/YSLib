@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2012-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file About.h
 \ingroup YReader
 \brief 关于界面。
-\version r56
+\version r62
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:07:32 +0800
 \par 修改时间:
-	2013-08-05 21:54 +0800
+	2015-05-29 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,11 @@ protected:
 
 public:
 	FrmAbout();
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 601
+	*/
+	~FrmAbout() override;
 };
 
 } // namespace YReader;

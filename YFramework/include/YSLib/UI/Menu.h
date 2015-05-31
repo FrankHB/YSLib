@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1033
+\version r1034
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2015-04-06 03:43 +0800
+	2015-05-29 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ class MenuHost;
 \brief 默认菜单 Z 顺序值。
 \since build 555
 */
-yconstexpr ZOrder DefaultMenuZOrder(224);
+yconstexpr const ZOrder DefaultMenuZOrder(224);
 
 
 /*!

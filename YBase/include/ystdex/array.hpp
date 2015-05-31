@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file array.hpp
 \ingroup YStandardEx
 \brief 数组操作。
-\version r138
+\version r142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-01 18:39:25 +0800
 \par 修改时间:
-	2015-02-10 13:57 +0800
+	2015-05-27 16:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,7 @@
 #ifndef YB_INC_ystdex_array_hpp_
 #define YB_INC_ystdex_array_hpp_ 1
 
-#include "utility.hpp" // for yforward, ystdex::decay_copy,
-//	ystdex::common_nonvoid_t, ystdex::decay_copy;
+#include "utility.hpp" // for yforward, common_nonvoid_t, decay_copy,
 #include <array> // for std::array;
 #include <algorithm> // for std::copy_n;
 #include <memory> // for std::addressof;
@@ -58,7 +57,7 @@ template<typename _type = void, typename... _tParams>
 yconstfn common_array_t<_type, _tParams...>
 cast_array(_tParams&&... args)
 {
-	return {{decay_copy<common_nonvoid_t<_type, _tParams...>>(args)...}};
+	return {{decay_copy(common_nonvoid_t<_type, _tParams...>(args))...}};
 }
 
 //! \brief 转移指定参数至 \c std::array 对象。

@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r269
+\version r270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2015-05-25 02:57 +0800
+	2015-05-27 04:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ public:
 	nptr() = default;
 	yconstfn
 	nptr(std::nullptr_t)
-		: pointer()
+		: nptr()
 	{}
 	nptr(pointer p)
 		: ptr(p)

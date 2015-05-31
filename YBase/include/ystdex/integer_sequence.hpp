@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2012-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r337
+\version r342
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-04-09 20:47 +0800
+	2015-05-29 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,13 +145,13 @@ struct fold<_fBinary, _tState, integer_sequence<_tInt>>
 {
 	using type = _tState;
 
-	static yconstexpr auto value = _tState::value;
+	static yconstexpr const auto value = _tState::value;
 };
 
 template<typename _tInt, class _fBinary, class _tState, _tInt _vHead>
 struct fold<_fBinary, _tState, integer_sequence<_tInt, _vHead>>
 {
-	static yconstexpr auto value = _fBinary()(_tState::value, _vHead);
+	static yconstexpr const auto value = _fBinary()(_tState::value, _vHead);
 
 	using type = integer_sequence<_tInt, value>;
 };
@@ -166,8 +166,8 @@ private:
 	using tail = typename parts::tail;
 
 public:
-	static yconstexpr auto value = fold<_fBinary, std::integral_constant<size_t,
-		fold<_fBinary, _tState, head>::value>, tail>::value;
+	static yconstexpr const auto value = fold<_fBinary, std::integral_constant<
+		size_t, fold<_fBinary, _tState, head>::value>, tail>::value;
 
 	using type = index_sequence<value>;
 };

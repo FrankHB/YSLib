@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r516
+\version r526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2015-04-12 05:44 +0800
+	2015-05-29 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,27 +52,20 @@ namespace ystdex
 \brief 原地构造标记。
 \see ISO WG21/N4081 5.4[optional.inplace] 。
 */
-//@{
-struct in_place_t
-{};
-
-yconstexpr in_place_t in_place{};
-//@}
+yconstexpr const struct in_place_t{} in_place{};
 
 
 //! \see ISO WG21/N4081 5.5[optional.nullopt] 。
 //@{
 //! \brief 无值状态指示。
 //@{
-struct nullopt_t
+yconstexpr const struct nullopt_t
 {
 	yimpl()
-};
+} nullopt{yimpl()};
 
 static_assert(std::is_literal_type<nullopt_t>(),
 	"Invalid implementation found.");
-
-yconstexpr nullopt_t nullopt(yimpl());
 //@}
 
 
@@ -102,7 +95,8 @@ template<typename _type, bool = std::is_trivially_destructible<_type>::value>
 class optional_base : public optional_base<_type, true>
 {
 public:
-	using optional_base::optional_base;
+	//! \since build 601
+	using optional_base<_type, true>::optional_base;
 	~optional_base()
 	{
 		if(this->engaged)

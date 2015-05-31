@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r491
+\version r494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2015-04-29 01:02 +0800
+	2015-05-29 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,7 +199,7 @@ SettingPanel::SettingPanel()
 
 		ddlScrollTiming.SetList(e.Value ? get_init<true>(fetch_scroll_durations,
 			true) : get_init<false>(fetch_scroll_durations, false));
-		ddlScrollTiming.Text = ddlScrollTiming.GetList()[(e.Value
+		ddlScrollTiming.Text = ddlScrollTiming.GetList()[size_t(e.Value
 			? smooth_scroll_duration.count() / 10U : scroll_duration.count()
 			/ 100U) - 1U],
 		Invalidate(ddlScrollTiming);
@@ -223,6 +223,7 @@ SettingPanel::SettingPanel()
 	}
 	);
 }
+ImplDeDtor(SettingPanel)
 
 SettingPanel&
 SettingPanel::operator<<(const ReaderSetting& s)

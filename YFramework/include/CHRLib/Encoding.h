@@ -11,13 +11,13 @@
 /*!	\file Encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r685
+\version r724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 242
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-04-28 17:02 +0800
+	2015-05-29 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,30 +325,13 @@ enum Encoding
 	reserved = 3000
 };
 
-//通用别名。
-yconstexpr Encoding
-	US_ASCII(csASCII),
-	SHIFT_JIS(csShiftJIS),
-	KS_C_5601_1987(csKSC56011987),
-	EUC_KR(csEUCKR),
-	ASMO_449(csISO89ASMO449),
-	UTF_8(csUTF8),
-	GBK(csGBK),
-	GB18030(csGB18030),
-
-	ISO_10646_UCS_2(csUnicode),
-	ISO_10646_UCS_4(csUCS4),
-	ISO_10646_UCS_Basic(csUnicodeASCII),
-
-	UTF_7(csUTF7),
-	UTF_16BE(csUTF16BE),
-	UTF_16LE(csUTF16LE),
-	UTF_16(csUTF16),
-
-	UTF_32(csUTF32),
-	UTF_32BE(csUTF32BE),
-	UTF_32LE(csUTF32LE),
-
+//! \brief 通用别名。
+yconstexpr const Encoding US_ASCII(csASCII), SHIFT_JIS(csShiftJIS),
+	KS_C_5601_1987(csKSC56011987), EUC_KR(csEUCKR), ASMO_449(csISO89ASMO449),
+	UTF_8(csUTF8), GBK(csGBK), GB18030(csGB18030), ISO_10646_UCS_2(csUnicode),
+	ISO_10646_UCS_4(csUCS4), ISO_10646_UCS_Basic(csUnicodeASCII), UTF_7(csUTF7),
+	UTF_16BE(csUTF16BE), UTF_16LE(csUTF16LE), UTF_16(csUTF16), UTF_32(csUTF32),
+	UTF_32BE(csUTF32BE), UTF_32LE(csUTF32LE),
 	GB2312(csGB2312), //!< 仅 EUC-CN ，GB2312 最常用实现。
 	Big5(csBig5)//,
 	;
@@ -358,24 +341,15 @@ yconstexpr Encoding
 	MIK; //!<  Supports Bulgarian and Russian as well
 	*/
 
-//其它别名。
-yconstexpr Encoding
-	iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
-		IBM367(US_ASCII), cp367(US_ASCII),
-	MS_Kanji(SHIFT_JIS), windows_932_(SHIFT_JIS),
-	iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987),
-		KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987),
-		windows_949_(KS_C_5601_1987),
-	windows_65001_(UTF_8),
-	CP936(GBK), MS936(GBK), windows_936(GBK),
-	windows_54936_(GB18030),
-
-	windows_1201_(UTF_16BE),
-	windows_1200_(UTF_16LE),
-
-	EUC_CN_(GB2312), windows_51936_(GB2312),
-	windows_950_(Big5);
-
+//! \brief 其它别名。
+yconstexpr const Encoding iso_ir_6(US_ASCII), ISO646_US(US_ASCII),
+	ASCII(US_ASCII), us(US_ASCII), IBM367(US_ASCII), cp367(US_ASCII),
+	MS_Kanji(SHIFT_JIS), windows_932_(SHIFT_JIS), iso_ir_149(KS_C_5601_1987),
+	KS_C_5601_1989(KS_C_5601_1987), KSC_5601(KS_C_5601_1987),
+	korean(KS_C_5601_1987), windows_949_(KS_C_5601_1987), windows_65001_(UTF_8),
+	CP936(GBK), MS936(GBK), windows_936(GBK), windows_54936_(GB18030),
+	windows_1201_(UTF_16BE), windows_1200_(UTF_16LE), EUC_CN_(GB2312),
+	windows_51936_(GB2312), windows_950_(Big5);
 
 /*!
 \ingroup metafunctions
@@ -388,28 +362,28 @@ yconstexpr Encoding
 template<Encoding>
 struct EncodingTraits
 {
-	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	static yconstexpr const ByteOrder byte_order = ByteOrder::unknown;
 	using type = char;
 };
 
 template<>
 struct EncodingTraits<csUTF8>
 {
-	static yconstexpr ByteOrder byte_order = ByteOrder::neutral;
+	static yconstexpr const ByteOrder byte_order = ByteOrder::neutral;
 	using type = char;
 };
 
 template<>
 struct EncodingTraits<csUnicode>
 {
-	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	static yconstexpr const ByteOrder byte_order = ByteOrder::unknown;
 	using type = ucs2_t;
 };
 
 template<>
 struct EncodingTraits<csUCS4>
 {
-	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
+	static yconstexpr const ByteOrder byte_order = ByteOrder::unknown;
 	using type = ucs4_t;
 };
 

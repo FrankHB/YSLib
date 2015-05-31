@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2745
+\version r2746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-05-25 03:02 +0800
+	2015-05-27 06:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ RenderCharFrom(ucs4_t c, const Graphics& g, TextState& ts, const Rect& clip,
 		// TODO: Use fast glyph advance fetching for non-graph characters
 		//	when possible.
 		// TODO: Handle '\t'.
-		if(ystdex::iswgraph(c))
+		if(ystdex::iswgraph(wchar_t(c)))
 			if(const auto cbuf = cbmp.GetBuffer())
 			{
 				auto&& pc(ClipChar(g, ts.Pen, cbmp, clip));

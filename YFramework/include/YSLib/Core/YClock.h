@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YClock.h
 \ingroup Core
 \brief 时钟接口。
-\version r87
+\version r89
 \author FrankHB <frankhb1989@gmail.com>
 \since build 584
 \par 创建时间:
 	2015-03-17 02:09:02 +0800
 \par 修改时间:
-	2015-03-17 02:10 +0800
+	2015-05-29 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ public:
 	using time_point = std::chrono::time_point<HighResolutionClock,
 		std::chrono::nanoseconds>;
 
-	static yconstexpr bool is_steady = {};
+	static yconstexpr const bool is_steady = {};
 
 	//! \warning 首次调用前非线程安全。
 	static PDefH(time_point, now, ) ynothrow

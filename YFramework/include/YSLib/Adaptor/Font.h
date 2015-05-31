@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3303
+\version r3305
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-05-16 12:23 +0800
+	2015-05-29 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -450,7 +450,7 @@ public:
 	\note 单位为字节。
 	\since build 277
 	*/
-	static yconstexpr size_t DefaultGlyphCacheSize = 128U << 10;
+	static yconstexpr const size_t DefaultGlyphCacheSize = 128U << 10;
 
 private:
 	::FT_Library library; //!< 库实例。
@@ -564,7 +564,7 @@ public:
 class YF_API Font final
 {
 public:
-	static yconstexpr FontSize DefaultSize = 12,
+	static yconstexpr const FontSize DefaultSize = 12,
 		MinimalSize = 4, MaximalSize = 96;
 
 private:

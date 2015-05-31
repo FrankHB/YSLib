@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3050
+\version r3051
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-05-12 13:36 +0800
+	2015-05-29 17:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -906,7 +906,7 @@ SM_Input				0x00FF
 @7 当前非确定上层实现注意事项：
 
 @7.1 ShellHelper ：
-注意严格禁止 SetShellToStored 在未生效前被调用多次以免破坏消息队列。
+注意严格禁止在未生效前以静态存储取得的 shell 为参数调用 SetShellTo 多次以免破坏消息队列。
 
 @7.2 后台任务：
 注意生存期。

@@ -17,7 +17,7 @@ if [[ "$SHBuild_NoStatic" == '' ]]; then
 	SHBOUT=.shbuild-debug
 	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN"
 	. $SHBuild_ToolDir/SHBuild-common-options.sh
-	export LDFLAGS="-Wl,--dn"
+	export LDFLAGS="$C_CXXFLAGS_PIC $CXXFLAGS_IMPL_COMMON_THRD_ -Wl,--dn"
 
 	SHBuild_EchoVar SHBOPT "$SHBOPT"
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
@@ -42,7 +42,7 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 	SHBOUT=.shbuild-dll-debug
 	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN -xmode,2"
 	. $SHBuild_ToolDir/SHBuild-common-options.sh
-	export LDFLAGS="$LDFLAGS_DYN"
+	export LDFLAGS="$C_CXXFLAGS_PIC $CXXFLAGS_IMPL_COMMON_THRD_ $LDFLAGS_DYN"
 
 	SHBuild_EchoVar SHBOPT "$SHBOPT"
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
@@ -51,13 +51,13 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
 
 	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ ../YBase \
-		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL $INCLUDES_YBase \
+		$CXXFLAGS -DYB_BUILD_DLL $INCLUDES_YBase \
 		$SHBuild_IncPCH
 
 	export LIBS="-L.shbuild-dll-debug -lYBased $LIBS_YFramework"
 
 	$SHBuild $SHBOPT -xn,${LIBPFX}YFrameworkd $@ ../YFramework \
-		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_DLL -DYF_BUILD_DLL \
+		$CXXFLAGS -DYB_DLL -DYF_BUILD_DLL \
 		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
 
 	echo Finished building debug dynamic libraries.

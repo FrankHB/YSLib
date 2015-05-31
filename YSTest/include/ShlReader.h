@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1810
+\version r1831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2015-02-05 15:34 +0800
+	2015-05-29 21:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,6 +82,11 @@ public:
 	Label lblProgress;
 
 	ReaderBox(const Rect&);
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 601
+	*/
+	~ReaderBox() override;
 
 	//! \since build 357
 	DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnBookmark,
@@ -136,9 +141,15 @@ public:
 	Label lblPath, lblSize, lblAccessTime, lblModifiedTime, lblOperations;
 
 	FileInfoPanel();
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 601
+	*/
+	~FileInfoPanel() override;
 };
 
 
+//! \since build 198
 class ShlReader : public ShlDS
 {
 protected:
@@ -237,6 +248,11 @@ private:
 	{
 	public:
 		BookmarkSession(ShlTextReader&);
+		/*!
+		\brief 虚析构：类定义外默认实现。
+		\since build 601
+		*/
+		~BookmarkSession() override;
 	};
 	//@}
 
@@ -412,6 +428,11 @@ public:
 	*/
 	ShlHexBrowser(const IO::Path&,
 		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 601
+	*/
+	~ShlHexBrowser() override;
 };
 
 } // namespace YReader;

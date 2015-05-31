@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2018
+\version r2019
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2015-05-13 12:22 +0800
+	2015-05-29 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ using Priority = std::uint8_t;
 \brief 默认消息优先级。
 \since build 449
 */
-yconstexpr Priority NormalPriority(0x80);
+yconstexpr const Priority NormalPriority(0x80);
 
 
 /*!

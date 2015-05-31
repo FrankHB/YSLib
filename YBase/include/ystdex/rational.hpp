@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2023
+\version r2054
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-05-01 13:12 +0805
+	2015-05-29 19:18 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef YB_INC_ystdex_rational_hpp_
 #define YB_INC_ystdex_rational_hpp_ 1
 
-#include "cstdint.hpp" // for ystdex::make_width_int, std::common_type,
-//	ystdex::common_type_t, std::numeric_limits;
-#include "operators.hpp" // for ystdex::operators;
+#include "cstdint.hpp" // for make_width_int, std::common_type, common_type_t,
+//	std::numeric_limits;
+#include "operators.hpp" // for operators;
 #include <libdefect/cmath.h> // for std::llround;
 
 namespace ystdex
@@ -176,11 +176,11 @@ public:
 	using base_type = _tBase;
 
 	//! \brief 整数部分二进制位数。
-	static yconstexpr size_t int_bit_n = _vInt;
+	static yconstexpr const size_t int_bit_n = _vInt;
 	//! \brief 小数部分二进制位数。
-	static yconstexpr size_t frac_bit_n = _vFrac;
+	static yconstexpr const size_t frac_bit_n = _vFrac;
 	//! \brief 非符号位的二进制位数。
-	static yconstexpr size_t digit_bit_n = int_bit_n + frac_bit_n;
+	static yconstexpr const size_t digit_bit_n = int_bit_n + frac_bit_n;
 
 private:
 	base_type value;
@@ -622,7 +622,7 @@ struct common_type<ystdex::YB_Impl_Rational_fp_T1,
 private:
 	using common_base_type = ystdex::common_type_t<_tBase1, _tBase2>;
 
-	static yconstexpr size_t int_size = _vInt1 < _vInt2 ? _vInt2 : _vInt1;
+	static yconstexpr const size_t int_size = _vInt1 < _vInt2 ? _vInt2 : _vInt1;
 
 public:
 	using type = ystdex::fixed_point<common_base_type, int_size,
@@ -696,7 +696,7 @@ private:
 	using base_type = typename fp_type::base_type;
 
 public:
-	static yconstexpr bool is_specialized = true;
+	static yconstexpr const bool is_specialized = true;
 
 	static yconstfn fp_type
 	min() ynothrow
@@ -718,13 +718,13 @@ public:
 		return min();
 	}
 
-	static yconstexpr int digits = _vInt;
-	static yconstexpr int digits10 = digits * 643L / 2136;
-	static yconstexpr int max_digits10 = 0;
-	static yconstexpr bool is_signed = numeric_limits<base_type>::is_signed;
-	static yconstexpr bool is_integer = {};
-	static yconstexpr bool is_exact = true;
-	static yconstexpr int radix = 2;
+	static yconstexpr const int digits = _vInt;
+	static yconstexpr const int digits10 = digits * 643L / 2136;
+	static yconstexpr const int max_digits10 = 0;
+	static yconstexpr const bool is_signed = numeric_limits<base_type>::is_signed;
+	static yconstexpr const bool is_integer = {};
+	static yconstexpr const bool is_exact = true;
+	static yconstexpr const int radix = 2;
 
 	static yconstfn fp_type
 	epsilon() ynothrow
@@ -738,16 +738,16 @@ public:
 		return 0.5;
 	}
 
-	static yconstexpr int min_exponent = 0;
-	static yconstexpr int min_exponent10 = 0;
-	static yconstexpr int max_exponent = 0;
-	static yconstexpr int max_exponent10 = 0;
+	static yconstexpr const int min_exponent = 0;
+	static yconstexpr const int min_exponent10 = 0;
+	static yconstexpr const int max_exponent = 0;
+	static yconstexpr const int max_exponent10 = 0;
 
-	static yconstexpr bool has_infinity = {};
-	static yconstexpr bool has_quiet_NaN = {};
-	static yconstexpr bool has_signaling_NaN = has_quiet_NaN;
-	static yconstexpr float_denorm_style has_denorm = denorm_absent;
-	static yconstexpr bool has_denorm_loss = {};
+	static yconstexpr const bool has_infinity = {};
+	static yconstexpr const bool has_quiet_NaN = {};
+	static yconstexpr const bool has_signaling_NaN = has_quiet_NaN;
+	static yconstexpr const float_denorm_style has_denorm = denorm_absent;
+	static yconstexpr const bool has_denorm_loss = {};
 
 	static yconstfn fp_type
 	infinity() ynothrow
@@ -773,13 +773,14 @@ public:
 		return 0;
 	}
 
-	static yconstexpr bool is_iec559 = {};
-	static yconstexpr bool is_bounded = true;
-	static yconstexpr bool is_modulo = numeric_limits<base_type>::is_modulo;
+	static yconstexpr const bool is_iec559 = {};
+	static yconstexpr const bool is_bounded = true;
+	static yconstexpr const bool is_modulo
+		= numeric_limits<base_type>::is_modulo;
 
-	static yconstexpr bool traps = numeric_limits<base_type>::traps;
-	static yconstexpr bool tinyness_before = {};
-	static yconstexpr float_round_style round_style = round_toward_zero;
+	static yconstexpr const bool traps = numeric_limits<base_type>::traps;
+	static yconstexpr const bool tinyness_before = {};
+	static yconstexpr const float_round_style round_style = round_toward_zero;
 };
 
 #undef YB_Impl_Rational_fp_PList2

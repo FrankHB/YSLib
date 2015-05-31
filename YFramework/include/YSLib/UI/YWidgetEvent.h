@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1744
+\version r1747
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2015-05-24 21:41 +0800
+	2015-05-29 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,9 +46,9 @@ namespace UI
 \since build 294
 */
 //@{
-yconstexpr EventPriority BackgroundPriority(0xC0);
-yconstexpr EventPriority BoundaryPriority(0x60);
-yconstexpr EventPriority ForegroundPriority(0x40);
+yconstexpr const EventPriority BackgroundPriority(0xC0);
+yconstexpr const EventPriority BoundaryPriority(0x60);
+yconstexpr const EventPriority ForegroundPriority(0x40);
 //@}
 
 

@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r367
+\version r371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2015-05-24 19:32 +0800
+	2015-05-29 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,10 +69,10 @@ public:
 	using reference = byte&;
 
 	//! \since build 549
-	static yconstexpr bool lsb = _bEndian;
-	static yconstexpr unsigned char seg_n = CHAR_BIT / _vN;
-	static yconstexpr unsigned char seg_size = 1 << _vN;
-	static yconstexpr unsigned char seg_width = _vN;
+	static yconstexpr const bool lsb = _bEndian;
+	static yconstexpr const unsigned char seg_n = CHAR_BIT / _vN;
+	static yconstexpr const unsigned char seg_size = 1 << _vN;
+	static yconstexpr const unsigned char seg_width = _vN;
 
 protected:
 	byte* base;

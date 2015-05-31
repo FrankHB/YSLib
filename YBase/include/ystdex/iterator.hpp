@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5596
+\version r5600
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-05-24 19:49 +0800
+	2015-05-29 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -425,12 +425,12 @@ second(const _tIter& i) -> decltype((i->second))
 \since build 288
 */
 //@{
-yconstexpr first_tag get_first{}, get_key{};
-yconstexpr second_tag get_second{}, get_value{};
+yconstexpr const first_tag get_first{}, get_key{};
+yconstexpr const second_tag get_second{}, get_value{};
 //! \since build 358
-yconstexpr struct indirect_tag{} get_indirect{};
+yconstexpr const struct indirect_tag{} get_indirect{};
 //! \since build 536
-yconstexpr struct get_tag{} get_get{};
+yconstexpr const struct get_tag{} get_get{};
 //@}
 
 

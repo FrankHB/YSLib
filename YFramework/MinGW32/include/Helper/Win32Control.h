@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup MinGW32
 \brief Win32 控件相关接口。
-\version r138
+\version r140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 570
 \par 创建时间:
 	2013-03-12 00:24:05 +0800
 \par 修改时间:
-	2015-03-25 20:56 +0800
+	2015-05-27 16:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@
 
 namespace YSLib
 {
+
+#if YCL_Win32
 
 namespace Windows
 {
@@ -99,6 +101,8 @@ public:
 } // namespace UI;
 
 } // namespace Windows;
+
+#endif
 
 } // namespace YSLib;
 

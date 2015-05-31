@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r533
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-04-17 20:54 +0800
+	2015-05-27 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ AttachToHost(Widget& wgt, Window& wnd, Messaging::Priority prior)
 		}, prior);
 	};
 #	else
-	yunused(wgt), yunused(wnd);
+	yunused(wgt), yunused(wnd), yunused(prior);
 #	endif
 }
 

@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r440
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2015-04-28 23:39 +0800
+	2015-05-29 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ namespace UI
 \brief 默认背景动画任务消息优先级。
 \since build 450
 */
-yconstexpr Messaging::Priority AnimationPriority(0x20);
+yconstexpr const Messaging::Priority AnimationPriority(0x20);
 
 
 //! \since build 455

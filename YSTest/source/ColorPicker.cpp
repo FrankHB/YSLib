@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r275
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 21:37:51 +0800
 \par 修改时间:
-	2014-08-24 00:32 +0800
+	2015-05-29 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,8 +36,8 @@ namespace UI
 
 namespace
 {
-	yconstexpr Size track_size(112, 16);
-	yconstexpr Size label_size(44, 20);
+	yconstexpr const Size track_size(112, 16);
+	yconstexpr const Size label_size(44, 20);
 }
 
 ColorBox::ColorBox(const Point& pt, Color c)
@@ -65,6 +65,7 @@ ColorBox::ColorBox(const Point& pt, Color c)
 	);
 	SetColor(c);
 }
+ImplDeDtor(ColorBox)
 
 Color&
 ColorBox::GetColorRef() const

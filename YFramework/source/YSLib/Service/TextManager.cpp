@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3844
+\version r3848
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-05-18 00:46 +0800
+	2015-05-29 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,11 +40,11 @@ namespace Text
 namespace
 {
 
-//! \since build 400
-yconstexpr auto& FetchMapperFunc(FetchMapperPtr<ConversionResult, ucs2_t&,
+//! \since build 601
+yconstexpr const auto& FetchMapperFunc(FetchMapperPtr<ConversionResult, ucs2_t&,
 	ystdex::input_monomorphic_iterator&&, ConversionState&&>);
-//! \since build 400
-yconstexpr auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult,
+//! \since build 601
+yconstexpr const auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult,
 	ystdex::pseudo_output&&, ystdex::input_monomorphic_iterator&&,
 	ConversionState&&>);
 

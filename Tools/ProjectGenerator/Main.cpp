@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r725
+\version r730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2015-05-23 23:50 +0800
+	2015-05-28 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -468,9 +468,9 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 			"-pedantic-errors", "-Wextra", "-Wall", "-std=c++11",
 			"-Wctor-dtor-privacy", "-Winvalid-pch", "-Wsign-promo",
 			"-Wdeprecated", "-Wdeprecated-declarations", "-Wformat=2",
-			"-Wmultichar", "-Wno-format-nonliteral", "-Wpacked",
-			"-Wdouble-promotion", "-Wfloat-equal", "-Wlogical-op",
-			"-Wsign-conversion", "-Wtrampolines", "-Wconditionally-supported",
+			"-Wmultichar", "-Wno-format-nonliteral", "-Wdouble-promotion",
+			"-Wfloat-equal", "-Wlogical-op", "-Wsign-conversion",
+			"-Wtrampolines", "-Wconditionally-supported",
 			"-Wstrict-null-sentinel", "-fdata-sections", "-ffunction-sections",
 			"-mthreads", "-pipe");
 		if(project == "YFramework")
@@ -559,7 +559,8 @@ main(int argc, char* argv[])
 			platform::SetupBinaryStdIO();
 			clog << "Code::Blocks generator found." << endl;
 
-			const auto in(NormalizeDirectoryPathTail(DecodeArg(argv[2])));
+			const auto
+				in(NormalizeDirectoryPathTail(DecodeArg(string(argv[2]))));
 
 			if(!VerifyDirectory(in))
 			{

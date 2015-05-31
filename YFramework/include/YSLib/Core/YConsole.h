@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2012, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YConsole.h
 \ingroup Core
 \brief 通用控制台接口。
-\version r87
+\version r89
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 17:44:34 +0800
 \par 修改时间:
-	2015-04-06 03:44 +0800
+	2015-05-29 19:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ enum Color
 \note 顺序和 Consoles::Color 对应。
 \since build 328
 */
-yconstexpr ColorSpace::ColorSet ConsoleColors[]{ColorSpace::Black,
+yconstexpr const ColorSpace::ColorSet ConsoleColors[]{ColorSpace::Black,
 	ColorSpace::Navy, ColorSpace::Green, ColorSpace::Teal, ColorSpace::Maroon,
 	ColorSpace::Purple, ColorSpace::Olive, ColorSpace::Silver, ColorSpace::Gray,
 	ColorSpace::Blue, ColorSpace::Lime, ColorSpace::Aqua, ColorSpace::Red,

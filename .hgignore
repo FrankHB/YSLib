@@ -5,6 +5,7 @@ syntax: glob
 *.log
 *.user
 *.stackdump
+YFramework/*/lib*/lib*.a
 __gen_*.*
 build/*/*
 */Debug*/

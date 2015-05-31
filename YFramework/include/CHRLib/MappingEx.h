@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r357
+\version r359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2015-05-18 00:39 +0800
+	2015-05-18 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,13 +47,13 @@ namespace CHRLib
 \since 早于 build 132
 */
 //@{
-yconstexpr byte cp17[]{0};
+yconstexpr const byte cp17[]{0};
 extern "C"
 {
 	extern const byte cp113[];
 	//extern const byte cp2026[13658];
 }
-yconstexpr byte cp2026[]{0};
+yconstexpr const byte cp2026[]{0};
 //@}
 #else
 

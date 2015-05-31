@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013, 2015 FrankHB.
+	© 2012-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r210
+\version r212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-04-31 16:26 +0800
+	2015-05-29 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,7 +189,7 @@ struct make_widen_int<std::uint64_t, _bSigned>
 template<typename _type>
 struct modular_arithmetic
 {
-	static yconstexpr _type value = is_unsigned<_type>::value
+	static yconstexpr const _type value = is_unsigned<_type>::value
 		? std::numeric_limits<_type>::max() : _type(0);
 };
 

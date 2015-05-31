@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r805
+\version r810
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-04-24 05:51 +0800
+	2015-05-29 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,11 +43,11 @@ Unicode Encoding Scheme Signatures BOM（byte-order mark ，字节顺序标记�
 \since build 297
 */
 //@{
-yconstexpr char BOM_UTF_16LE[]{"\xFF\xFE"};
-yconstexpr char BOM_UTF_16BE[]{"\xFE\xFF"};
-yconstexpr char BOM_UTF_8[]{"\xEF\xBB\xBF"};
-yconstexpr char BOM_UTF_32LE[]{"\xFF\xFE\x00\x00"};
-yconstexpr char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
+yconstexpr const char BOM_UTF_16LE[]{"\xFF\xFE"};
+yconstexpr const char BOM_UTF_16BE[]{"\xFE\xFF"};
+yconstexpr const char BOM_UTF_8[]{"\xEF\xBB\xBF"};
+yconstexpr const char BOM_UTF_32LE[]{"\xFF\xFE\x00\x00"};
+yconstexpr const char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 //@}
 
 
