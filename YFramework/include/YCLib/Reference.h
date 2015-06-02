@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2773
+\version r2775
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2015-04-24 07:40 +0800
+	2015-06-01 16:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,8 @@ using yimpl(std)::make_shared;
 using ystdex::make_shared;
 //! \since build 292
 using yimpl(ystdex)::make_unique;
+//! \since build 601
+using yimpl(ystdex)::make_unique_default_init;
 //! \since build 422
 using ystdex::get_raw;
 //! \since build 454

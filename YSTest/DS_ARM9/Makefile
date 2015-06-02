@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2014 FrankHB.
+#	(C) 2009-2015 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1391
+# Version = r1393
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-12-31 11:30 +0800
+# Updated = 2015-05-31 15:11 +0800
 # Encoding = ANSI
 
 
@@ -192,7 +192,7 @@ $(ARM9BIN)	:	$(ARM9ELF)
 	@$(OBJCOPY) -O binary $< $@
 	@echo Built $(notdir $@) .
 
-$(ARM9ELF)	:	$(OFILES)
+$(ARM9ELF)	:	$(OFILES) $(YFRAMEWORK_A) $(YBASE_A)
 	@echo Linking $(notdir $@) ...
 	$(LD) $(LDFLAGS) $(OFILES) $(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
 # IMPORTANT: the order of files is significant.
