@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YSTest by FrankHB 2009-2015
-# Version = r1143
+# Version = r1144
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2015-03-17 17:22 +0800
+# Updated = 2015-05-31 16:46 +0800
 # Encoding = ANSI
 
 # This makefile is written based on devkitPro example template.
@@ -75,7 +75,7 @@ ifeq ($(strip $(USE_EFS)), YES)
 #	@$(CURDIR)/../efs $(OUTPUT).sc.nds
 endif
 
-$(OUTPUT).nds	:	$(ARM9OBJ)
+$(OUTPUT).nds : $(ARM7OBJ) $(ARM9OBJ)
 	@echo Building $(notdir $@) ...
 ifeq ($(strip $(USE_EFS)), YES)
 	ndstool -c $(OUTPUT).nds -7 $(ARM7OBJ) -9 $(ARM9OBJ) $(ICON) "$(TITLE);$(SUBTITLE1);$(SUBTITLE2)" -d $(TOPDIR)/efsroot

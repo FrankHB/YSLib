@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r742
+\version r744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-05-29 19:35 +0800
+	2015-06-01 16:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -418,7 +418,8 @@ ExpandEnvironmentStrings(const wchar_t* p_src, size_t len)
 wstring
 FetchSystemPath(size_t s)
 {
-	const auto res(make_unique<wchar_t[]>(s));
+	// XXX: Depends right behavior on external API.
+	const auto res(make_unique_default_init<wchar_t[]>(s));
 
 	::GetSystemDirectoryW(&res[0], unsigned(s));
 	return ystdex::rtrim(wstring(&res[0]), L'\\') + L'\\';
