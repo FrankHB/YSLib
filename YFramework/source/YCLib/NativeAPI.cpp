@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r736
+\version r744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2015-06-02 11:38 +0800
+	2015-06-04 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,12 +33,13 @@
 #	include <stdint.h> // for ::uint32_t;
 #	include <sys/iosupport.h> // for ::_reent, ::size_t, ::ssize_t, ::off_t,
 //	sturct ::stat, struct ::statvfs, ::DIR_ITER, ::devoptab_t;
-#	include YFM_YCLib_Debug // for string, YTraceDe, platform::Descriptions;
+#	include YFM_YCLib_Debug // for string, YTraceDe, platform::Descriptions,
+//	ystdex::trivially_copy_n;
 #	include YFM_YCLib_Reference // for std::malloc, std::free,
-//	platform::unique_raw, std::uninitialized_copy;
+//	platform::unique_raw;
 #	include <stdlib.h> // for ::free;
 
-//! \since build 601
+//! \since build 602
 extern "C" ::DLDI_INTERFACE _io_dldi_stub;
 #elif YCL_MinGW
 #	include <ctime> // for std::gmtime;
@@ -50,7 +51,7 @@ namespace
 }
 
 #if YCL_DS
-//! \since build 601
+//! \since build 602
 //@{
 extern "C"
 {
@@ -241,9 +242,9 @@ FATMount(const string& name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 			{
 				const auto p_name(reinterpret_cast<char*>(p.get() + 1));
 
-				std::uninitialized_copy(&dotab_fat, &dotab_fat + 1, p.get()),
-				std::copy_n(name.c_str(), name.length() + 1, p_name),
-				yunseq(p->name = p_name, p->deviceData = p_part.get());
+				yunseq(ystdex::trivially_copy_n(&dotab_fat, 1, p.get()),
+					ystdex::trivially_copy_n(name.c_str(), name.length() + 1,
+					p_name), p->name = p_name, p->deviceData = p_part.get());
 				if(YB_UNLIKELY(::AddDevice(p.get())) == -1)
 					throw std::runtime_error("Adding device failed.");
 				p_part.release();

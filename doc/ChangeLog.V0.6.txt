@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r641
+\version r710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-06-03 04:30 +0800
+	2015-06-05 15:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,13 +32,80 @@ $import $HISTORY;
 
 $now
 (
+	/ $build @ "makefiles" @ "platform %DS" $=
+	(
+		/ @ "%YSTest_DS makefile" $=
+		(
+			- "all optional EFS support by %USE_EFS",
+			- "variables %(PROGNAME, OFILES, ADD_LIBS)"
+			/ @ "target '$(CONF)'" $=
+			(
+				* "missing dependency '$(OUTPUT).nds'" $since b478 $orig (@ "target '$(BUILD)'" $since $before b132),
+				- "detection for variables %(TEXT_TO_SAY_1, TEXT_TO_SAY_2, TEXT_TO_SAY_3, TEXT_TO_SAY_4, NL_AND_PAUSE, MSG_IS_ERROR)" @ "recipe"
+			),
+			/ "%(ARM7OBJ, ARM9OBJ)" => "%(ARM7BIN, ARM9BIN)",
+				// To be consistent with children makefiles.
+			+ "build message of configuration at beginning" @ "target '$(OUTPUT).nds'",
+				// Also to behave similar as children makefiles.
+		),
+		* "redundant '/'" @ "inclusion path for %Toolchain.options.mk" @ "%Tools/Scripts/Toolchain.DS.mk"
+			$since b558
+			// It seemed to be OK, but is not intended.
+	),
+	/ $build @ "VC++ projects" $=
+	(
+		(
+		* "missing wrapping output for Visual Studio" @ "project %YSTest_Android" $since b497;
+			// Clicking on error output would not go to source lines as other projects.
+		/ "wrapped build and rebuild commands with pipes by 'bash -o pipefail'" @ "command calls" $effective @ "platforms %(DS, Android)",
+			// To prompt error when fail to compile or link. Note 'bash' has already been a necessary dependency for those targets.
+		),
+		- "all unused WinGDB user properties" $effective @ "projects %(YSTest_Android, YSTest_DS)"
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Algorithm $=
+		(
+			- $revert(b304) "function template %pod_fill",
+				// The explicit loop unrolling would not be useful for mordern implementation of C++. Use %std::fill with static assertion  instead. Actually this needed no POD.
+			/ "POD operations" -> "trivially type operations" $=
+			(
+				/ $doc "Doxygen group %pod_operations" -> "%trivial_type_operations",
+				+ "function templates %(trivailly_fill_n, trivailly_fill)",
+				+ 'ynothrowv',
+				(
+				/ "function templates %(pod_copy, pod_copy_n, pod_move, pod_move_n)"
+					-> "%(trivailly_copy, trivially_copy_n, trivially_move, trivially_move_n)";
+				/ $comp DLD "type-parameter-key" -> 'typename' ~ 'class',
+				/ $comp DLDI ^ 'sizeof(_type)' ~ 'sizeof(*first)',
+				+ $comp "assertions for validation of input pointers" ^ "%is_undereferenceable",
+				/ $comp $dev "static assertion for types" ^ "%is_trivial" ~ "%is_pod",
+					// Note that %is_trivially_copyable is not supported by libstdc++ 4.9 yet.
+				+ $comp $dev "static assertion" ^ "%is_copy_assignable"
+					// To be similar to %std::copy.
+				)
+			)
+		),
+		+ "function template %pack_uint" @ %CStandardInteger
+	),
+	/ DLDI ^ $dep_from ("%ystdex::trivially_copy_n" @ %YBase.YStandardEx.Algorithm) ~ "%std::memcpy" $effective @ %'YCLib_(MinGW32)'.NLS,
+	/ %YFramework $=
+	(
+		/ $forced DLDI %YSLib.Service.TextRenderer $dep_from "ystdex::trivially_move_n" @ %YBase.YStandardEx.Algorithm,
+		/ DLDI %YCLib.Native ^ ($dep_from "ystdex::trivially_copy_n" @ %YBase.YStandardEx.Algorithm)
+			~ "%std(uninitialized_copy, copy_n)";
+	)
+),
+
+b602
+(
 	/ "makefiles" @ "platform %DS" $=
 	(
-		* $build "missing dependent on libraries" @ ".arm9.elf file"
+		* $build "missing dependency of libraries" @ ".arm9.elf file"
 			@ "ARM9 makefile" $since $before b132,
 			// The project should be rebuilt after .a files rebuilt.
-		* $build "missing dependent on ARM7 ojbect" @ ".nds makefile" $since
-			$before b132
+		* $build "missing dependency of ARM7 ojbect" @ "%YSTest_DS makefile"
+			$since $before b132
 	),
 	/ %YFramework $=
 	(

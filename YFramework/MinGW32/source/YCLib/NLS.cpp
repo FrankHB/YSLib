@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r183
+\version r196
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2015-05-29 19:36 +0800
+	2015-06-04 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #	include YFM_MinGW32_YCLib_NLS
 #	include YFM_YCLib_MemoryMapping
 #	include YFM_YCLib_Container // for map;
+#	include <ystdex/algorithm.hpp> // for ystdex::trivially_copy_n;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -112,15 +113,15 @@ NLSTableEntry::NLSTableEntry(int cp)
 	table.DefaultChar = header.DefaultChar,
 	table.UniDefaultChar = header.UniDefaultChar,
 	table.TransDefaultChar = header.TransDefaultChar,
-	table.TransUniDefaultChar = header.TransUniDefaultChar
-	);
-	std::memcpy(&table.LeadByte, &header.LeadByte, MAXIMUM_LEADBYTES);
+	table.TransUniDefaultChar = header.TransUniDefaultChar,
+	ystdex::trivially_copy_n(header.LeadByte, 1, table.LeadByte),
 	// NOTE: Offset to wide char table is after the header, then the multibyte
-	//	table (256 wchars) .
+	//	table (256 wide characters) .
 	table.WideCharTable = base + header.HeaderSize + 1
-		+ base[header.HeaderSize];
-	table.MultiByteTable = base + header.HeaderSize + 1;
-	// NOTE: Glyph table (256 wchars) is probably present.
+		+ base[header.HeaderSize],
+	table.MultiByteTable = base + header.HeaderSize + 1
+	);
+	// NOTE: Glyph table (256 wide characters) is probably present.
 	table.DBCSRanges = table.MultiByteTable + 256 + 1;
 	if(table.MultiByteTable[256])
 		table.DBCSRanges += 256;

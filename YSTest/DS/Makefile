@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YSTest by FrankHB 2009-2015
-# Version = r1144
+# Version = r1207
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2015-05-31 16:46 +0800
+# Updated = 2015-06-03 12:26 +0800
 # Encoding = ANSI
 
 # This makefile is written based on devkitPro example template.
@@ -48,90 +48,36 @@ SUBTITLE1 	:= FrankHB
 SUBTITLE2 	:= 2009-2015
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
-# If you're using EFS_lib, uncomment "USE_EFS = YES" here.
-#USE_EFS = YES
-
-PROGNAME = $(PROJNAME)
-OFILES +=
-ADD_LIBS +=
-
-ARM7OBJ := $(BUILDDIR)/../../$(TARGET)_ARM7/$(CONF)/$(TARGET)_ARM7.arm7
-ARM9OBJ := $(BUILDDIR)/../../$(TARGET)_ARM9/$(CONF)/$(TARGET)_ARM9.arm9
+ARM7BIN := $(BUILDDIR)/../../$(TARGET)_ARM7/$(CONF)/$(TARGET)_ARM7.arm7
+ARM9BIN := $(BUILDDIR)/../../$(TARGET)_ARM9/$(CONF)/$(TARGET)_ARM9.arm9
 
 .PHONY: $(CONF) clean rebuild
 
 # main targets
-all : $(CONF) $(OUTPUT).nds
+all : $(CONF)
 
-%.ds.gba: %.nds
+%.ds.gba : %.nds
 	@dsbuild $<
 	@echo Built: $(notdir $(OUTPUT)).nds .
 	@echo Built: $(notdir $@) .
 #	@cp $(RELEASEDIR)/$(notdir $@) $(BUILDDIR)/$(notdir $(OUTPUT)).sc.nds
 #	@echo Built: $(notdir $(OUTPUT)).sc.nds .
-ifeq ($(strip $(USE_EFS)), YES)
-	@$(CURDIR)/../efs $(OUTPUT).nds
-#	@$(CURDIR)/../efs $(OUTPUT).ds.gba
-#	@$(CURDIR)/../efs $(OUTPUT).sc.nds
-endif
 
-$(OUTPUT).nds : $(ARM7OBJ) $(ARM9OBJ)
+$(OUTPUT).nds : $(ARM7BIN) $(ARM9BIN)
+	@echo Building configuration: $(notdir $@) ...
 	@echo Building $(notdir $@) ...
-ifeq ($(strip $(USE_EFS)), YES)
-	ndstool -c $(OUTPUT).nds -7 $(ARM7OBJ) -9 $(ARM9OBJ) $(ICON) "$(TITLE);$(SUBTITLE1);$(SUBTITLE2)" -d $(TOPDIR)/efsroot
-	$(TOPDIR)/efs.exe $(OUTPUT).nds
-else
-	ndstool -c $(OUTPUT).nds -7 $(ARM7OBJ) -9 $(ARM9OBJ) $(ICON) "$(TITLE);$(SUBTITLE1);$(SUBTITLE2)"
-#	@cp $(OUTPUT).nds $(OUTPUT)_.nds
-endif
+	ndstool -c $(OUTPUT).nds -7 $(ARM7BIN) -9 $(ARM9BIN) $(ICON) "$(TITLE);$(SUBTITLE1);$(SUBTITLE2)"
 	@echo Built $(notdir $@) .
 
-$(CONF):
-# Before compiling, show any warning messages that might have detected
-ifneq ($(strip $(TEXT_TO_SAY_1)),)
-ifeq ($(strip $(MSG_IS_ERROR)),)
-	@echo " ===================================="
-	@echo "/ YSLib Project Compilation Warning /"
-	@echo "==================================== "
-else
-	@echo " =================================="
-	@echo "/ YSLib Project Compilation Error /"
-	@echo "================================== "
-endif
-	@echo.
-	@echo $(TEXT_TO_SAY_1)
-endif
-ifneq ($(strip $(TEXT_TO_SAY_2)),)
-	@echo $(TEXT_TO_SAY_2)
-endif
-ifneq ($(strip $(TEXT_TO_SAY_3)),)
-	@echo $(TEXT_TO_SAY_3)
-endif
-ifneq ($(strip $(TEXT_TO_SAY_4)),)
-	@echo $(TEXT_TO_SAY_4)
-endif
-ifneq ($(strip $(NL_AND_PAUSE)),)
-	@echo.
-ifeq ($(strip $(MSG_IS_ERROR)),)
-	@read -n 1 -p "Press any key to continue the compilation..."
-	@echo.
-else
-	@read -n 1 -p "Press any key to exit..."
-endif
-	@echo.
-endif
-ifeq ($(strip $(MSG_IS_ERROR)),)
-	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
-	@[ -d $(RELEASEDIR) ] || mkdir -p $(RELEASEDIR)
-#	@make --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile
-endif
+$(CONF) : $(OUTPUT).nds
+	@echo Built configuration: $(notdir $@) .
 
-clean:
+clean :
 	@echo Cleaning releases ...
 	@rm -f $(BUILDDIR)/*.d
 	@rm -f $(BUILDDIR)/*.o
 	@rm -f $(RELEASEDIR)/*.*ds*
 	@echo Cleaned.
 
-rebuild: all
+rebuild : all
 

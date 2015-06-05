@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r212
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-05-29 19:11 +0800
+	2015-06-05 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,12 @@
 #ifndef YB_INC_ystdex_cstdint_hpp_
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
-#include "type_op.hpp"
+#include "type_op.hpp" // for integral_constant, size_t, make_signed_t,
+//	make_unsigned_t, std::int64_t, std::uint64_t;
 #include <limits>
+#include "cassert.h" // for yconstraint;
+#include "deref_op.hpp" // for is_undereferenceable;
+#include <numeric> // for std::accumulate;
 
 namespace ystdex
 {
@@ -204,6 +208,24 @@ struct have_same_modulo : integral_constant<bool, uintmax_t(modular_arithmetic<
 	_type1>::value) != 0 && uintmax_t(modular_arithmetic<_type1>::value)
 	== uintmax_t(modular_arithmetic<_type2>::value)>
 {};
+
+
+/*!
+\brief 使用迭代器对指定范围中的字节表示的序列构造无符号整数。
+\pre 范围中的迭代器可解应用。
+\since build 603
+*/
+template<size_t _vWidth, typename _tIn>
+typename make_width_int<_vWidth>::unsigned_type
+pack_uint(_tIn first, _tIn last) ynothrowv
+{
+	using uint_t = typename make_width_int<_vWidth>::unsigned_type;
+
+	yconstraint(!is_undereferenceable(first));
+	return std::accumulate(first, last, uint_t(), [](uint_t x, byte y){
+		return uint_t(x << std::numeric_limits<byte>::digits | y);
+	});
+}
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r700
+\version r801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-04-28 23:11 +0800
+	2015-06-05 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "type_op.hpp" // for is_pod;
 #include "cassert.h" // for yconstraint;
-#include "deref_op.hpp" // for ystdex::is_undereferenceable;
+#include "deref_op.hpp" // for is_undereferenceable;
 #include <algorithm>
 #include <cstring> // for std::memcpy, std::memmove;
 #include "functor.hpp" // for std::bind, less;
@@ -157,74 +157,95 @@ transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
 	}
 }
 
-/*!	\defgroup pod_operations POD Type Operations
-\brief POD 类型操作。
+/*!	\defgroup trivial_type_operations Trivial Type Operations
+\brief 平凡类型操作。
 \tparam _type 指定对象类型。
-\pre 静态断言： <tt>is_pod<remove_reference_t<_type>>::()</tt> 。
-\warning 不检查指针是否有效。
-\since build 304
+\pre 静态断言： <tt>is_trivial<_type>()</tt> 。
+\pre 范围中的指针有效。
+\pre 断言：范围起始指针满足 <tt>!is_undereferenceable</tt> 。
+\since build 603
+\todo 使用 \c is_trivially_copyable 代替 \c is_trivial 。
+*/
+//@{
+/*!
+\brief 填充字节序列。
+\pre 指针输入范围要求同 \c std::memset 。
+*/
+//@{
+template<typename _type>
+inline _type*
+trivially_fill_n(_type* first, size_t n = 1, byte value = {}) ynothrowv
+{
+	static_assert(is_trivial<_type>(), "Non-trivial type found.");
+
+	yconstraint(!is_undereferenceable(first));
+	std::memset(first, value, sizeof(_type) * n);
+	return first + n;
+}
+
+template<typename _type>
+inline void
+trivially_fill(_type* first, _type* last, byte value = {}) ynothrowv
+{
+	ystdex::trivially_fill_n(first, last - first, value);
+}
+//@}
+
+/*!
+\brief 复制不覆盖的序列。
+\pre 静态断言： <tt>is_copy_assignment<_type>()</tt> 。
+\pre 指针输入范围要求同 \c std::memcpy 。
+*/
+//@{
+template<typename _type>
+inline _type*
+trivially_copy_n(const _type* first, size_t n, _type* result) ynothrowv
+{
+	static_assert(is_trivial<_type>(), "Non-trivial type found.");
+	static_assert(is_copy_assignable<_type>(),
+		"Type shall meet CopyAssignable.");
+
+	yunseq((yconstraint(!is_undereferenceable(result)), 0),
+		(yconstraint(!is_undereferenceable(first)), 0));
+	std::memcpy(result, first, sizeof(_type) * n);
+	return result + n;
+}
+
+template<typename _type>
+inline _type*
+trivially_copy(const _type* first, const _type* last, _type* result) ynothrowv
+{
+	return ystdex::trivially_copy_n(first, last - first, result);
+}
+//@}
+
+/*!
+\brief 复制可能覆盖的序列。
+\pre 静态断言： <tt>is_copy_assignment<_type>()</tt> 。
+\pre 指针输入范围要求同 \c std::memmove 。
 */
 //@{
 template<class _type>
 inline _type*
-pod_fill(_type* first, _type* last, const _type& value)
+trivially_move_n(const _type* first, size_t n, _type* result)
 {
-	static_assert(is_pod<remove_reference_t<_type>>(),
-		"Non-POD type found @ pod_fill;");
+	static_assert(is_trivial<_type>(), "Non-trivial type found.");
+	static_assert(is_copy_assignable<_type>(),
+		"Type shall meet CopyAssignable.");
 
-	switch((last - first) & 7)
-	{
-	case 0:
-		while(first != last)
-		{
-			*first = value; ++first;
-	case 7: *first = value; ++first;
-	case 6: *first = value; ++first;
-	case 5: *first = value; ++first;
-	case 4: *first = value; ++first;
-	case 3: *first = value; ++first;
-	case 2: *first = value; ++first;
-	case 1: *first = value; ++first;
-		}
-	}
-	return last;
-}
-
-template<class _type>
-inline _type*
-pod_copy_n(const _type* first, size_t n, _type* result)
-{
-	static_assert(is_pod<remove_reference_t<_type>>(),
-		"Non-POD type found @ pod_copy_n;");
-
-	std::memcpy(result, first, sizeof(*first) * n);
+	yunseq((yconstraint(!is_undereferenceable(result)), 0),
+		(yconstraint(!is_undereferenceable(first)), 0));
+	std::memmove(result, first, sizeof(_type) * n);
 	return result + n;
 }
 
 template<class _type>
 inline _type*
-pod_copy(const _type* first, const _type* last, _type* result)
+trivially_move(const _type* first, const _type* last, _type* result)
 {
-	return ystdex::pod_copy_n(first, last - first, result);
+	return ystdex::trivially_move_n(first, last - first, result);
 }
-
-template<class _type>
-inline _type*
-pod_move_n(const _type* first, size_t n, _type* result)
-{
-	static_assert(is_pod<remove_reference_t<_type>>(),
-		"Non-POD type found @ pod_move_n;");
-
-	std::memmove(result, first, sizeof(*first) * n);
-	return result + n;
-}
-
-template<class _type>
-inline _type*
-pod_move(const _type* first, const _type* last, _type* result)
-{
-	return ystdex::pod_move_n(first, last - first, result);
-}
+//@}
 //@}
 
 
