@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2746
+\version r2749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-05-27 06:05 +0800
+	2015-06-03 03:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,8 +212,9 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 				else
 					s -= size_t(n);
 				yunseq(s *= size.Width, d *= size.Width);
-				yunseq(ystdex::pod_move_n(&pBuffer[s], t, &pBuffer[d]),
-					ystdex::pod_move_n(&pBufferAlpha[s], t, &pBufferAlpha[d]));
+				yunseq(ystdex::trivially_move_n(&pBuffer[s], t, &pBuffer[d]),
+					ystdex::trivially_move_n(&pBufferAlpha[s], t,
+						&pBufferAlpha[d]));
 			}
 		}
 	}

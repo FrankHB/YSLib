@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for DS toolchain
-# Version = r73
+# Version = r74
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2015-05-28 21:07 +0800
+# Updated = 2015-06-03 12:28 +0800
 # Encoding = ANSI
 
 
@@ -34,7 +34,7 @@ else
 	C_CXXFLAGS_OPT_DBG ?= $(C_CXXFLAGS_OPT_LV) -g -fno-omit-frame-pointer
 endif
 
-include $(dir $(lastword $(MAKEFILE_LIST)))/Toolchain.options.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))Toolchain.options.mk
 
 # NOTE: Wordaround for client makefiles.
 CFLAGS_WARNING := $(CFLAGS_WARNING) -Wno-missing-include-dirs
