@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r488
+\version r567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-05-25 03:01 +0800
+	2015-06-05 06:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
 #include "iterator_op.hpp" // for iterator_operators_t, is_undereferenceable;
+#include "base.h" // for noncopyable;
 
 namespace ystdex
 {
@@ -203,6 +204,97 @@ is_undereferenceable(const ifile_iterator& i) ynothrow
 {
 	return !i.get_stream();
 }
+
+
+/*!
+\brief 块缓冲。
+\warning 非虚析构。
+\since build 604
+*/
+class YB_API block_buffer : private noncopyable
+{
+private:
+	bool need_flush = {};
+	std::unique_ptr<byte[]> content;
+
+public:
+	block_buffer(size_t n)
+		: content(new byte[n]())
+	{}
+	block_buffer(std::unique_ptr<byte[]> p)
+		: content(std::move(p))
+	{}
+	block_buffer(block_buffer&&) = default;
+
+	block_buffer&
+	operator=(block_buffer&&) = default;
+
+	void
+	clear() ynothrow
+	{
+		flush();
+		content.reset();
+	}
+
+	bool
+	empty() ynothrow
+	{
+		return !content;
+	}
+
+	void
+	flush() ynothrow
+	{
+		need_flush = {};
+	}
+
+	byte*
+	get() const ynothrow
+	{
+		return content.get();
+	}
+
+	bool
+	modified() const ynothrow
+	{
+		return need_flush;
+	}
+
+	/*!
+	\brief 读取缓冲区内容到外部存储。
+	\param dst 外部存储的字节序列。
+	\param offset 起始偏移字节数。
+	\param n 复制的字节数。
+	\pre dst 指向的存储至少 n 个字节可写。
+	\pre 断言：指针参数和 \c get() 结果非空。
+	*/
+	void
+	read(void* dst, size_t offset, size_t n) const ynothrowv;
+
+	void
+	set(std::unique_ptr<byte[]> p) ynothrow
+	{
+		content = std::move(p);
+	}
+
+	friend void
+	swap(block_buffer& x, block_buffer& y) ynothrow
+	{
+		std::swap(x.need_flush, y.need_flush),
+		x.content.swap(y.content);
+	}
+
+	/*!
+	\brief 写入外部字节序列的内容到缓冲区。
+	\param offset 起始偏移字节数。
+	\param src 外部存储的字节序列。
+	\param n 复制的字节数。
+	\pre src 指向的存储至少 n 个字节可读。
+	\pre 断言：指针参数和 \c get() 结果非空。
+	*/
+	void
+	write(size_t offset, const void* src, size_t n) ynothrowv;
+};
 
 } // namespace ystdex;
 

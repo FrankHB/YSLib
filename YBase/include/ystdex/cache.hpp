@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r304
+\version r315
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2015-05-02 04:03 +0800
+	2015-06-05 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,9 @@ namespace ystdex
 {
 
 /*!
-\brief 按最近最多使用策略刷新的缓存。
+\brief 按最近使用策略刷新的缓存。
 \since build 521
+\note 默认策略替换最近最少使用的项，保留其它项。
 \todo 加入异常安全的复制构造函数和复制赋值操作符。
 \todo 支持其它刷新策略。
 */
@@ -61,6 +62,8 @@ public:
 	using typename map_type::iterator;
 	using typename map_type::key_type;
 	using typename map_type::size_type;
+	//! \since build 604
+	using typename map_type::value_type;
 
 private:
 	mutable used_list_type used_list;
@@ -69,6 +72,9 @@ private:
 	size_type max_use;
 
 public:
+	//! \since build 604
+	std::function<void(value_type&)> flush{};
+
 	explicit
 	used_list_cache(size_type s = yimpl(15U))
 		: map_type(),
@@ -87,8 +93,13 @@ private:
 			yassume(!used_cache.empty());
 
 			const auto& key(used_list.front());
+			const auto i(map_type::find(key));
 
-			map_type::erase(key),
+			yassume(i != map_type::end());
+
+			if(flush)
+				flush(*i);
+			map_type::erase(i),
 			used_cache.erase(key);
 			used_list.pop_front();
 		}

@@ -895,6 +895,9 @@
     <ClInclude Include="include\YCLib\Reference.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="DS\include\YCLib\DSIO.h">
+      <Filter>DS\include\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -1220,6 +1223,9 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\YGraphics.cpp">
       <Filter>source\YSLib\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="DS\source\YCLib\DSIO.cpp">
+      <Filter>DS\source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

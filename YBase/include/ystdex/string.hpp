@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1362
+\version r1415
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-05-29 19:18 +0800
+	2015-06-06 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,11 @@
 //	has_nested_allocator;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
+#include "cstdio.h" // for yconstraint, ystdex::vfmtlen;
 #include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
 #include "array.hpp" // for std::bidirectional_iterator_tag, ystdex::to_array;
 #include <istream> // for std::basic_istream;
 #include <ostream> // for std::basic_ostream;
-#include "cstdio.h" // for std::vsnprintf, ystdex::vfmtlen;
 #include <cstdarg>
 
 namespace ystdex
@@ -322,6 +322,35 @@ exists_substr(const _tString& str, const typename _tString::value_type* p_sub)
 
 
 /*!
+\brief 复制不超过指定长度的 NTCTS 。
+\note 目标字符串短于指定长度的部分可能被填充空字符。
+\warning 源字符串在指定长度内没有空字符则目标字符串不保证以空字符结尾。
+\since build 604
+*/
+//@{
+//! \pre 断言：指针参数非空。
+template<class _tString>
+inline _tString&&
+ntctsncpy(_tString&& str, const typename string_traits<_tString>::const_pointer
+	s, const typename string_traits<_tString>::size_type n)
+{
+	yconstraint(s);
+	return static_cast<_tString&&>(str = decay_t<_tString>(s, n));
+}
+template<class _tString>
+inline _tString&&
+ntctsncpy(_tString&& str, _tString&& s,
+	const typename string_traits<_tString>::size_type n)
+{
+	auto sub(yforward(s));
+
+	sub.resize(n);
+	return static_cast<_tString&&>(str = std::move(sub));
+}
+//@}
+
+
+/*!
 \brief 取字母表：有序的字符串的不重复序列。
 \since build 414
 */
@@ -382,12 +411,16 @@ erase_left(_tString&& str, const remove_reference_t<_tString>& t)
 {
 	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
 }
-//! \since build 600
+/*!
+\pre 断言：指针参数非空。
+\since build 600
+*/
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
+	yconstraint(t);
 	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
 }
 //@}
@@ -415,12 +448,16 @@ erase_right(_tString&& str, const remove_reference_t<_tString>& t)
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
 		str));
 }
-//! \since build 600
+/*!
+\pre 断言：指针参数非空。
+\since build 600
+*/
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
+	yconstraint(t);
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(t),
 		str));
 }
@@ -443,12 +480,16 @@ ltrim(_tString&& str, const _tString& t)
 {
 	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
 }
-//! \since build 600
+/*!
+\pre 断言：指针参数非空。
+\since build 600
+*/
 template<class _tString>
 inline _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
+	yconstraint(t);
 	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
 }
 //@}
@@ -467,12 +508,16 @@ rtrim(_tString&& str, const remove_reference_t<_tString>& t)
 {
 	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
 }
-//! \since build 600
+/*!
+\pre 断言：指针参数非空。
+\since build 600
+*/
 template<class _tString>
 inline _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
+	yconstraint(t);
 	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
 }
 //@}
@@ -491,12 +536,16 @@ trim(_tString&& str, const _tString& t)
 {
 	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
 }
-//! \since build 600
+/*!
+\pre 断言：指针参数非空。
+\since build 600
+*/
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
+	yconstraint(t);
 	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
 }
 //@}

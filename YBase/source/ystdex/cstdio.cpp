@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r211
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2015-01-01 12:35 +0800
+	2015-06-05 05:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include "ystdex/cassert.h"
 #include <libdefect/string.h> // for std::char_traits<char>::length and
 //	possible fix for std::vsnprintf;
+#include "ystdex/algorithm.hpp" // for ystdex::trivially_copy_n;
 
 namespace ystdex
 {
@@ -171,6 +172,24 @@ ifile_iterator::operator++()
 		value = byte(val);
 	}
 	return *this;
+}
+
+
+void
+block_buffer::read(void* dst, size_t offset, size_t n) const ynothrowv
+{
+	yunseq((yconstraint(get()), 0), (yconstraint(dst), 0));
+
+	ystdex::trivially_copy_n(get() + offset, n, static_cast<byte*>(dst));
+}
+
+void
+block_buffer::write(size_t offset, const void* src, size_t n) ynothrowv
+{
+	yunseq((yconstraint(get()), 0), (yconstraint(src), 0));
+
+	yunseq(ystdex::trivially_copy_n(static_cast<const byte*>(src), n,
+		get() + offset), need_flush = true);
 }
 
 } // namespace ystdex;
