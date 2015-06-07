@@ -11,7 +11,7 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r232
+\version r258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
@@ -210,15 +210,19 @@ struct have_same_modulo : integral_constant<bool, uintmax_t(modular_arithmetic<
 {};
 
 
+//! \pre 静态断言：整数宽度非零且为 byte 类型宽度的整数倍。
+//@{
 /*!
-\brief 使用迭代器对指定范围中的字节表示的序列构造无符号整数。
-\pre 范围中的迭代器可解应用。
+\brief 使用迭代器对指定的范围中的字节表示的序列构造无符号整数。
+\pre 范围中的迭代器可解引用。
 \since build 603
 */
 template<size_t _vWidth, typename _tIn>
 typename make_width_int<_vWidth>::unsigned_type
 pack_uint(_tIn first, _tIn last) ynothrowv
 {
+	static_assert(_vWidth != 0 && _vWidth % std::numeric_limits<byte>::digits
+		== 0, "Invalid integer width found.");
 	using uint_t = typename make_width_int<_vWidth>::unsigned_type;
 
 	yconstraint(!is_undereferenceable(first));
@@ -226,6 +230,29 @@ pack_uint(_tIn first, _tIn last) ynothrowv
 		return uint_t(x << std::numeric_limits<byte>::digits | y);
 	});
 }
+
+/*!
+\brief 分解无符号整数到迭代器对指定的字节范围。
+\pre 断言：范围中的迭代器可解引用。
+\since build 604
+*/
+template<size_t _vWidth, typename _tOut>
+void
+unpack_uint(typename ystdex::make_width_int<_vWidth>::unsigned_type value,
+	_tOut result) ynothrow
+{
+	static_assert(_vWidth != 0 && _vWidth % std::numeric_limits<byte>::digits
+		== 0, "Invalid integer width found.");
+	auto n(_vWidth);
+
+	while(!(_vWidth < (n -= std::numeric_limits<byte>::digits)))
+	{
+		yconstraint(!is_undereferenceable(result));
+		*result = byte(value >> n);
+		++result;
+	}
+}
+//@}
 
 } // namespace ystdex;
 

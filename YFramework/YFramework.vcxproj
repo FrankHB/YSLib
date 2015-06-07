@@ -125,6 +125,7 @@
     <ClInclude Include="..\3rdparty\freetype\include\ft2build.h" />
     <ClInclude Include="DS\include\Helper\DSMain.h" />
     <ClInclude Include="DS\include\Helper\shlds.h" />
+    <ClInclude Include="DS\include\YCLib\DSIO.h" />
     <ClInclude Include="DS\include\YCLib\DSVideo.h" />
     <ClInclude Include="DS\source\Helper\DSScreen.h" />
     <ClInclude Include="DS\source\Helper\DSWindow.h" />
@@ -272,6 +273,7 @@
     <ClCompile Include="DS\source\Helper\DSScreen.cpp" />
     <ClCompile Include="DS\source\Helper\DSWindow.cpp" />
     <ClCompile Include="DS\source\Helper\shlds.cpp" />
+    <ClCompile Include="DS\source\YCLib\DSIO.cpp" />
     <ClCompile Include="DS\source\YCLib\DSVideo.cpp" />
     <ClCompile Include="MinGW32\source\Helper\Win32Control.cpp" />
     <ClCompile Include="MinGW32\source\YCLib\Consoles.cpp" />

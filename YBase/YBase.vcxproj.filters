@@ -36,6 +36,9 @@
     <Filter Include="source\libdefect">
       <UniqueIdentifier>{dded3b0e-a760-4308-bd6f-48b949ff41de}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\test">
+      <UniqueIdentifier>{c2683d61-157b-40ec-ae3a-736e1583896a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ydef.h">
@@ -202,9 +205,6 @@
     <ClCompile Include="source\ystdex\cwctype.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
-    <ClCompile Include="source\ytest\test.cpp">
-      <Filter>source\ystdex</Filter>
-    </ClCompile>
     <ClCompile Include="source\ystdex\concurrency.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
@@ -219,6 +219,9 @@
     </ClCompile>
     <ClCompile Include="source\ystdex\optional.cpp">
       <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ytest\test.cpp">
+      <Filter>source\test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

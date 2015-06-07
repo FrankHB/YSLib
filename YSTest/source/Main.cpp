@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1914
+\version r1929
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2015-04-24 05:57 +0800
+	2015-06-08 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,10 +144,8 @@ main()
 {
 	using namespace YSLib;
 
-	try
-	{
+	const auto res(FilterExceptions([]{
 		{
-			//应用程序实例。
 			DSApplication app;
 
 			YTraceDe(Debug, "Application initialized.");
@@ -199,17 +197,13 @@ main()
 	#ifdef YSL_USE_MEMORY_DEBUG
 		OnExit_DebugMemory();
 	#endif
-	}
-	CatchExpr(FatalError& e, HandleFatalError(e))
-	CatchExpr(LoggedEvent& e,
-		YTraceDe(Emergent, "%s", ("Unhandled logged event with level = "
-		+ to_string(e.GetLevel()) + " : " + e.what()).c_str()))
-	CatchExpr(std::exception& e,
-		// TODO: Distinguish errors from %std::runtime_error and YSLib-defined
-		//	exceptions.
-		YTraceDe(Emergent, "%s", (string("Unhandled std::exception: ")
-		+ e.what()).c_str()))
-	CatchExpr(..., YTraceDe(Emergent, "Unhandled exception @ main function."))
-	// TODO: Return exit code properly.
+	}, "main") ? EXIT_FAILURE : EXIT_SUCCESS);
+#if YCL_DS
+	if(res != EXIT_SUCCESS)
+		terminate();
+#endif
+#if !YCL_Android
+	return res;
+#endif
 }
 
