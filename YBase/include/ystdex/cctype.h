@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r132
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2014-11-21 07:38 +0800
+	2015-06-08 16:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,8 @@
 #define YB_INC_ystdex_cctype_h_ 1
 
 #include "../ydef.h" // for yconstfn, CHAR_MIN, yimpl;
+#include <cwctype> // for std::towlower, std::towupper;
+#include <cctype> // for std::tolower, std::toupper;
 
 namespace ystdex
 {
@@ -121,6 +123,40 @@ isdigit(char c)
 {
 	return (unsigned(c) - '0') < 10U;
 }
+
+
+/*!
+\brief 转换大小写字符。
+\note 和 ISO C 标准库对应接口不同而和 ISO C++ <locale> 中的接口类似，
+	参数和返回值是字符类型而不是对应的整数类型。
+\since build 605
+*/
+//@{
+template<typename _tChar>
+inline _tChar
+tolower(_tChar c)
+{
+	return _tChar(std::towupper(wint_t(c)));
+}
+inline char
+tolower(char c)
+{
+	return char(std::tolower(c));
+}
+
+
+template<typename _tChar>
+inline _tChar
+toupper(_tChar c)
+{
+	return _tChar(std::towlower(wint_t(c)));
+}
+inline char
+toupper(char c)
+{
+	return char(std::toupper(c));
+}
+//@}
 
 } // namespace ystdex;
 

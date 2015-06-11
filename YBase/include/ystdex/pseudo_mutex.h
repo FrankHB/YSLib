@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r667
+\version r715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2015-05-29 19:17 +0800
+	2015-06-10 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,18 +69,18 @@ public:
 
 	//! \pre 调用线程不持有锁。
 	void
-	lock()
+	lock() yimpl(ynothrow)
 	{}
 
 	bool
-	try_lock()
+	try_lock() yimpl(ynothrow)
 	{
 		return true;
 	}
 
 	//! \pre 调用线程持有锁。
 	void
-	unlock()
+	unlock() yimpl(ynothrow)
 	{}
 };
 
@@ -93,18 +93,18 @@ public:
 	~recursive_mutex() yimpl(= default);
 
 	void
-	lock()
+	lock() yimpl(ynothrow)
 	{}
 
 	bool
-	try_lock()
+	try_lock() yimpl(ynothrow)
 	{
 		return true;
 	}
 
 	//! \pre 调用线程持有锁。
 	void
-	unlock()
+	unlock() yimpl(ynothrow)
 	{}
 };
 
@@ -120,18 +120,18 @@ public:
 	//! \pre 调用线程不持有锁。
 	//@{
 	void
-	lock()
+	lock() yimpl(ynothrow)
 	{}
 
 	bool
-	try_lock()
+	try_lock() yimpl(ynothrow)
 	{
 		return true;
 	}
 
 	template<typename _tRep, typename _tPeriod>
 	bool
-	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>&)
+	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>&) yimpl(ynothrow)
 	{
 		return true;
 	}
@@ -139,6 +139,7 @@ public:
 	template<typename _tClock, typename _tDuration>
 	bool
 	try_lock_until(const std::chrono::time_point<_tClock, _tDuration>&)
+		yimpl(ynothrow)
 	{
 		return true;
 	}
@@ -146,7 +147,7 @@ public:
 
 	//! \pre 调用线程持有锁。
 	void
-	unlock()
+	unlock() yimpl(ynothrow)
 	{}
 };
 
@@ -159,18 +160,18 @@ public:
 	~recursive_timed_mutex() yimpl(= default);
 
 	void
-	lock()
+	lock() yimpl(ynothrow)
 	{}
 
 	bool
-	try_lock()
+	try_lock() yimpl(ynothrow)
 	{
 		return true;
 	}
 
 	template<typename _tRep, typename _tPeriod>
 	bool
-	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>&)
+	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>&) yimpl(ynothrow)
 	{
 		return true;
 	}
@@ -178,13 +179,14 @@ public:
 	template<typename _tClock, typename _tDuration>
 	bool
 	try_lock_until(const std::chrono::time_point<_tClock, _tDuration>&)
+		yimpl(ynothrow)
 	{
 		return true;
 	}
 
 	//! \pre 调用线程持有锁。
 	void
-	unlock()
+	unlock() yimpl(ynothrow)
 	{}
 };
 //@}
@@ -199,9 +201,9 @@ public:
 
 #ifdef NDEBUG
 	explicit
-	lock_guard(mutex_type&)
+	lock_guard(mutex_type&) yimpl(ynothrow)
 	{}
-	lock_guard(mutex_type&, adopt_lock_t)
+	lock_guard(mutex_type&, adopt_lock_t) yimpl(ynothrow)
 	{}
 
 #else
@@ -214,7 +216,7 @@ public:
 	\post <tt>pm == &m</tt> 。
 	*/
 	explicit
-	lock_guard(mutex_type& m)
+	lock_guard(mutex_type& m) yimpl(ynothrow)
 		: pm(m)
 	{
 		m.lock();
@@ -223,10 +225,10 @@ public:
 	\pre 调用线程持有锁。
 	\post <tt>pm == &m</tt> 。
 	*/
-	lock_guard(mutex_type& m, adopt_lock_t)
+	lock_guard(mutex_type& m, adopt_lock_t) yimpl(ynothrow)
 		: pm(&m)
 	{}
-	~lock_guard()
+	~lock_guard() yimpl(ynothrow)
 	{
 		pm.unlock();
 	}
@@ -247,20 +249,22 @@ public:
 	//@{
 	unique_lock() yimpl(= default);
 	explicit
-	unique_lock(mutex_type&)
+	unique_lock(mutex_type&) yimpl(ynothrow)
 	{}
-	unique_lock(mutex_type&, defer_lock_t)
+	//! \since build 605
+	unique_lock(mutex_type&, defer_lock_t) ynothrow
 	{}
-	unique_lock(mutex_type&, try_to_lock_t)
+	unique_lock(mutex_type&, try_to_lock_t) yimpl(ynothrow)
 	{}
-	unique_lock(mutex_type&, adopt_lock_t)
+	unique_lock(mutex_type&, adopt_lock_t) yimpl(ynothrow)
 	{}
 	template<typename _tClock, typename _tDuration>
 	unique_lock(mutex_type&,
-		const std::chrono::time_point<_tClock, _tDuration>&)
+		const std::chrono::time_point<_tClock, _tDuration>&) yimpl(ynothrow)
 	{}
 	template<typename _tRep, typename _tPeriod>
 	unique_lock(mutex_type&, const std::chrono::duration<_tRep, _tPeriod>&)
+		yimpl(ynothrow)
 	{}
 	unique_lock(unique_lock&&) yimpl(= default);
 
@@ -291,14 +295,14 @@ public:
 	{}
 
 	bool
-	try_lock()
+	try_lock() yimpl(ynothrow)
 	{
 		return true;
 	}
 
 	template<typename _tRep, typename _tPeriod>
 	bool
-	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>&)
+	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>&) yimpl(ynothrow)
 	{
 		return true;
 	}
@@ -306,12 +310,13 @@ public:
 	template<typename _tClock, typename _tDuration>
 	bool
 	try_lock_until(const std::chrono::time_point<_tClock, _tDuration>&)
+		yimpl(ynothrow)
 	{
 		return true;
 	}
 
 	void
-	unlock()
+	unlock() yimpl(ynothrow)
 	{}
 
 	mutex_type*
@@ -333,7 +338,7 @@ public:
 	//! \post <tt>pm == &m</tt> 。
 	//@{
 	explicit
-	unique_lock(mutex_type& m)
+	unique_lock(mutex_type& m) yimpl(ynothrow)
 		: unique_lock(m, defer_lock)
 	{
 		lock();
@@ -346,11 +351,11 @@ public:
 	\pre mutex_type 满足 Lockable 要求。
 	\pre 若 mutex_type 非递归锁，调用线程不持有锁。
 	*/
-	unique_lock(mutex_type& m, try_to_lock_t)
+	unique_lock(mutex_type& m, try_to_lock_t) yimpl(ynothrow)
 		: pm(&m), owns(pm->try_lock())
 	{}
 	//! \pre 调用线程持有锁。
-	unique_lock(mutex_type& m, adopt_lock_t)
+	unique_lock(mutex_type& m, adopt_lock_t) yimpl(ynothrow)
 		: pm(&m), owns(true)
 	{}
 	/*!
@@ -359,13 +364,13 @@ public:
 	*/
 	//@{
 	template<typename _tClock, typename _tDuration>
-	unique_lock(mutex_type& m,
-		const std::chrono::time_point<_tClock, _tDuration>& abs_time)
+	unique_lock(mutex_type& m, const std::chrono::time_point<_tClock,
+		_tDuration>& abs_time) yimpl(ynothrow)
 		: pm(&m), owns(pm->try_lock_until(abs_time))
 	{}
 	template<typename _tRep, typename _tPeriod>
 	unique_lock(mutex_type& m,
-		const std::chrono::duration<_tRep, _tPeriod>& rel_time)
+		const std::chrono::duration<_tRep, _tPeriod>& rel_time) yimpl(ynothrow)
 		: pm(&m), owns(pm->try_lock_for(rel_time))
 	{}
 	//@}
@@ -391,7 +396,7 @@ public:
 	\see http://wg21.cmeerw.net/lwg/issue2104 。
 	*/
 	unique_lock&
-	operator=(unique_lock&& u)
+	operator=(unique_lock&& u) yimpl(ynothrow)
 	{
 		if(owns)
 			unlock();
@@ -408,7 +413,7 @@ public:
 
 private:
 	void
-	check_lock()
+	check_lock() yimpl(ynothrow)
 	{
 		using namespace std;
 
@@ -421,14 +426,14 @@ private:
 	}
 
 	void
-	clear_members()
+	clear_members() yimpl(ynothrow)
 	{
 		yunseq(pm = {}, owns = {});
 	}
 
 public:
 	void
-	lock()
+	lock() yimpl(ynothrow)
 	{
 		check_lock();
 		pm->lock();
@@ -459,7 +464,7 @@ public:
 
 	//! \pre mutex_type 满足 Lockable 要求。
 	bool
-	try_lock()
+	try_lock() yimpl(ynothrow)
 	{
 		check_lock();
 		return owns = pm->lock();
@@ -470,6 +475,7 @@ public:
 	template<typename _tRep, typename _tPeriod>
 	bool
 	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>& rel_time)
+		yimpl(ynothrow)
 	{
 		check_lock();
 		return owns = pm->try_lock_for(rel_time);
@@ -478,6 +484,7 @@ public:
 	template<typename _tClock, typename _tDuration>
 	bool
 	try_lock_until(const std::chrono::time_point<_tClock, _tDuration>& abs_time)
+		yimpl(ynothrow)
 	{
 		check_lock();
 		return owns = pm->try_lock_until(abs_time);
@@ -485,7 +492,7 @@ public:
 	//@}
 
 	void
-	unlock()
+	unlock() yimpl(ynothrow)
 	{
 		if(!owns)
 			throw std::system_error(int(std::errc::operation_not_permitted),
@@ -517,12 +524,12 @@ swap(unique_lock<_tMutex>& x, unique_lock<_tMutex>& y) ynothrow
 
 template<class _tLock1, class _tLock2, class... _tLocks>
 void
-lock(_tLock1&&, _tLock2&&, _tLocks&&...)
+lock(_tLock1&&, _tLock2&&, _tLocks&&...) yimpl(ynothrow)
 {}
 
 template<class _tLock1, class _tLock2, class... _tLocks>
 yconstfn int
-try_lock(_tLock1&&, _tLock2&&, _tLocks&&...)
+try_lock(_tLock1&&, _tLock2&&, _tLocks&&...) yimpl(ynothrow)
 {
 	return -1;
 }

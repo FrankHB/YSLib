@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2165
+\version r2194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-05-16 12:23 +0800
+	2015-06-11 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,17 +71,6 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 
 
 /*!
-\brief 取指定类型的零元素。
-\since build 319
-*/
-template<typename _type>
-yconstfn _type
-FetchZero() ynothrow
-{
-	return _type(0);
-}
-
-/*!
 \brief 整数类型符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 \since build 319
@@ -98,7 +87,7 @@ FetchSign(int a, int b = 0) ynothrow
 */
 template<typename _type>
 yconstfn std::int8_t
-FetchSign(const _type& a, const _type& b = FetchZero<_type>()) ynothrow
+FetchSign(const _type& a, const _type& b = _type(0)) ynothrow
 {
 	return a < b ? -1 : !(a == b);
 }
@@ -143,17 +132,17 @@ HalfDifference(_type x, _type y)
 }
 
 /*!
-\brief 判断 i 是否在左闭右开区间 [<tt>FetchZero<_type>()</tt>, b) 中。
-\pre 断言： <tt>FetchZero<_type>() < b</tt> 。
+\brief 判断 i 是否在左闭右开区间 [_type(0), b) 中。
+\pre 断言： <tt>_type(0) < b</tt> 。
 \since build 319
 */
 template<typename _type>
 inline bool
 IsInInterval(_type i, _type b) ynothrow
 {
-	YAssert(FetchZero<_type>() < b,
+	YAssert(_type(0) < b,
 		"Zero element as lower bound is not less than upper bound.");
-	return !(i < FetchZero<_type>()) && i < b;
+	return !(i < _type(0)) && i < b;
 }
 /*!
 \brief 判断 i 是否在左闭右开区间 [a, b) 中。
@@ -169,17 +158,17 @@ IsInInterval(_type i, _type a, _type b) ynothrow
 }
 
 /*!
-\brief 判断 i 是否在闭区间 [FetchZero<_type>(), b] 中。
-\pre 断言： <tt>FetchZero<_type>() < b</tt> 。
+\brief 判断 i 是否在闭区间 [_type(0), b] 中。
+\pre 断言： <tt>_type(0) < b</tt> 。
 \since build 470
 */
 template<typename _type>
 inline bool
 IsInClosedInterval(_type i, _type b) ynothrow
 {
-	YAssert(FetchZero<_type>() < b,
+	YAssert(_type(0) < b,
 		"Zero element as lower bound is not less than upper bound.");
-	return !(i < FetchZero<_type>() || b < i);
+	return !(i < _type(0) || b < i);
 }
 /*!
 \brief 判断 i 是否在闭区间 [a, b] 中。
@@ -195,17 +184,17 @@ IsInClosedInterval(_type i, _type a, _type b) ynothrow
 }
 
 /*!
-\brief 判断 i 是否在开区间 (FetchZero<_type>(), b) 内。
-\pre 断言： <tt>FetchZero<_type>() < b</tt> 。
+\brief 判断 i 是否在开区间 (_type(0), b) 内。
+\pre 断言： <tt>_type(0) < b</tt> 。
 \since build 319
 */
 template<typename _type>
 inline bool
 IsInOpenInterval(_type i, _type b) ynothrow
 {
-	YAssert(FetchZero<_type>() < b,
+	YAssert(_type(0) < b,
 		"Zero element as lower bound is not less than upper bound.");
-	return FetchZero<_type>() < i && i < b;
+	return _type(0) < i && i < b;
 }
 /*!
 \brief 判断 i 是否在开区间 (a, b) 内。
@@ -216,8 +205,7 @@ template<typename _type>
 inline bool
 IsInOpenInterval(_type i, _type a, _type b) ynothrow
 {
-	YAssert(a < b,
-		"Lower bound is not less than upper bound.");
+	YAssert(a < b, "Lower bound is not less than upper bound.");
 	return a < i && i < b;
 }
 
@@ -244,7 +232,7 @@ SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 
 /*!
 \brief 计算满足指定的值 v 在区间 [b(i), b(i + 1)) 内的最小的 i ；
-			其中 b(i) 是 <tt>a[i]</tt> 前 i 项的和。
+	其中 b(i) 是 <tt>a[i]</tt> 前 i 项的和。
 \pre 断言： <tt>a</tt> 。
 \pre 断言： <tt>n != 0</tt> 。
 \pre 断言： <tt>!(v < *a)</tt> 。
@@ -316,15 +304,15 @@ RestrictUnsignedStrict(_type& u, _type b) ynothrow
 
 /*!
 \brief 约束无符号整数 u 在左闭右开区间 [0, b) 中。
-\pre 断言： <tt>b != FetchZero<_type>()</tt> 。
-\post <tt>!(u < FetchZero<_type>()) && u < b</tt> 。
+\pre 断言： <tt>b != _type(0)</tt> 。
+\post <tt>!(u < _type(0)) && u < b</tt> 。
 \since build 319
 */
 template<typename _type>
 void
 RestrictUnsigned(_type& u, unsigned b) ynothrow
 {
-	YAssert(b != FetchZero<_type>(), "Zero upper bound found.");
+	YAssert(b != _type(0), "Zero upper bound found.");
 	if(!(u < b))
 		u = b - 1;
 }
