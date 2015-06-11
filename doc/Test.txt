@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r232
+\version r233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2015-05-22 08:17 +0800
+	2015-06-11 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,7 +191,7 @@ Bookmarks
 测试使用的二进制文件构建方式和发布版本相同，参见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
 
 @5.1 执行覆盖：
-二进制相同的映像不重复测试。
+二进制相同的映像不重复测试。另见 [Documentation::Meta] $bin_image_eq 。
 自 build 363 起关于界面包含编译时间（直至 build 564 被取消），因此原则上不会有相同的二进制文件。
 
 @5.1.1 DS ：

@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r275
+\version r321
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2015-04-10 18:03 +0800
+	2015-06-10 21:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,58 @@
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
 #include "type_op.hpp" // for ystdex::is_reference, std::swap;
+#include "base.h" // for noncopyable;
+#include "ref.hpp" // for lref;
 #include <memory> // for std::addressof;
 
 namespace ystdex
 {
+
+//! \since build 605
+//@{
+/*!
+\brief 作用域守护：析构时调用保存的函数对象或引用。
+\note 不可复制，不提供其它状态。
+\sa make_shared_guard
+*/
+template<typename _func, bool _bNoThrow = true>
+struct guard : private noncopyable
+{
+	_func func;
+	guard(guard&&) = default;
+
+	template<typename... _tParams>
+	guard(_tParams&&... args) ynoexcept_spec(func(yforward(args)...))
+		: func(yforward(args)...)
+	{}
+	~guard() ynoexcept_spec(!_bNoThrow)
+	{
+		func();
+	}
+};
+
+/*!
+\brief 创建作用域守护。
+\relates guard
+*/
+template<typename _type>
+guard<_type>
+make_guard(_type f) ynoexcept_spec(guard<_type>(guard<_type>(f)))
+{
+#if YB_HAS_NOEXCEPT
+	return guard<_type, noexcept(f())>(f);
+#else
+	return guard<_type, false>(f);
+#endif
+}
+template<typename _type>
+guard<_type&>
+make_guard(lref<_type> f) ynoexcept_spec(ystdex::make_guard<_type&>(f.get()))
+{
+	return ystdex::make_guard<_type&>(f.get());
+}
+//@}
+
 
 namespace details
 {
@@ -150,7 +198,7 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 } // namespace details;
 
 /*!
-\brief 使用临时状态暂存对象的 scope guard 。
+\brief 使用临时状态暂存对象的作用域守护。
 \since build 569
 \todo 支持分配器。
 \todo 支持有限的复制和转移。
@@ -240,7 +288,7 @@ public:
 
 
 /*!
-\brief 使用 ADL swap 调用暂存对象的 scope guard 。
+\brief 使用 ADL swap 调用暂存对象的作用域守护。
 \since build 569
 \todo 支持分配器。
 \todo 支持有限的复制和转移。

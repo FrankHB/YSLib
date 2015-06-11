@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1884
+\version r1889
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-06-07 13:40 +0800
+	2015-06-08 17:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <cstring> // for std::strlen, std::strcpy, std::memchr, std::strncpy;
 #include <string> // for std::char_traits;
 #include "cassert.h" // for yconstraint;
-#include <cctype> // for std::tolower;
+#include "cctype.h" // for ystdex::tolower;
 #include <cwchar> // for std::wmemchr, std::wcscpy, std::wcsncpy;
 
 namespace ystdex
@@ -232,8 +232,8 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 	using int_type = typename std::char_traits<_tChar>::int_type;
 	int_type d(0);
 
-	while((d = std::tolower(*s1) - std::tolower(*s2)) == int_type(0)
-		&& !ystdex::is_null(s2))
+	while((d = int_type(ystdex::tolower(*s1)) - int_type(ystdex::tolower(*s2)))
+		== int_type(0) && !ystdex::is_null(s2))
 		yunseq(++s1, ++s2);
 	return d;
 }
@@ -255,7 +255,8 @@ ntctsnicmp(const _tChar* s1, const _tChar* s2, size_t n)
 	using int_type = typename std::char_traits<_tChar>::int_type;
 	int_type d(0);
 
-	while(n-- != 0 && (d = std::tolower(*s1) - std::tolower(*s2)) == int_type(0)
+	while(n-- != 0 && (d = int_type(ystdex::tolower(*s1))
+		- int_type(ystdex::tolower(*s2))) == int_type(0)
 		&& !ystdex::is_null(*s2))
 		yunseq(++s1, ++s2);
 	return d;

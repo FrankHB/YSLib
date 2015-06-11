@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1414
+\version r1422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-05-13 18:24 +0800
+	2015-06-11 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,10 +252,14 @@ $URL http://lists.cs.uiuc.edu/pipermail/cfe-dev/2011-October/017831.html
 
 $bin_image_eq $=
 (
-	"platform %DS" (b361r, b362r),
-	"platform %DS" (b353, b354),
-	"platform %DS" (b334r, b335r),
-	"platform %DS" (b313, b314)
+	"platform %DS" $=
+	(
+		(b361r, b362r),
+		(b353, b354),
+		(b334r, b335r),
+		(b313, b314),
+		(b604r, b605r)
+	)
 );
 
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r135
+\version r140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-06-06 07:04 +0800
+	2015-06-09 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ private:
 	GetPage(::sec_t) ynothrow;
 
 public:
-	bool
+	YB_NONNULL(2) bool
 	EraseWritePartialSector(const void*, ::sec_t, size_t, size_t) ynothrowv;
 
 	bool
@@ -115,16 +115,16 @@ private:
 	FlushEntry(UsedListCache::value_type&) ynothrow;
 
 public:
-	bool
+	YB_NONNULL(2) bool
 	ReadPartialSector(void*, ::sec_t, size_t, size_t) ynothrowv;
 
-	bool
+	YB_NONNULL(4) bool
 	ReadSectors(::sec_t, size_t, void*) ynothrowv;
 
-	bool
+	YB_NONNULL(2) bool
 	WritePartialSector(const void*, ::sec_t, size_t, size_t) ynothrowv;
 
-	bool
+	YB_NONNULL(4) bool
 	WriteSectors(::sec_t, size_t, const void*) ynothrow;
 };
 //@}

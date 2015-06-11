@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r964
+\version r1023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-06-08 01:21 +0800
+	2015-06-11 16:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,65 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %CCharacterType $=
+			(
+				+ "function templates %(tolower, toupper)"
+					^ "%std::(towlower, towupper)",
+				+ "inline function overloadings %(tolower, toupper) for %char"
+					^ "%std::(tolower, toupper)"
+			),
+			* "wrong standard library routines called for !%char type"
+				@ "function templates" ("%ntctsicmp" $since b329 $orig
+				(@ "%sntctsicmp" $since b329), "%ntctsnicmp" $since b604)
+				@ %CString
+				$= (/ $impl ^ $dep_from ("%ystdex::tolower" @ %CCharacterType)
+					~ "%std::tolower"),
+			/ @ "namespace %single_thread" @ %PseudoMutex $=
+			(
+				* "missing nothrow exception specification" @ "debug interface"
+					@ "constructor with %defer_lock_t parameter"
+					@ "class template %unique_lock" $since b551,
+					// ISO C++11 requires 'noexcept' on this constructor.
+				+ $impl 'yimpl(ynothrow)' @ "stubs without exception \
+					specifications" $effective @ "classes %(mutex, \
+					recursive_mutex, timed_mutex, recursived_timed_mutex),
+					class templates %(lock_guard, unique_lock), function \
+					templates %(lock, try_lock)"
+			),
+			+ "class template guard; 2 function templates %make_guard"
+				@ %ScopeGuard
+		),
+		/ "split macro %YB_ATTR" -> "%(YB_ATTR, YB_ATTR_STD)" @ %YDefinition
+			// http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn .
+			// http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20140310/101215.html .
+	),
+	/ %YFramework $=
+	(
+		+ "'YB_NONNULL' for nonnull function parameters"
+			@ %'YCLib_(DS)'.DSIO $effective @ "class %SectorCache",
+		+ $revert_ex(b600) $re_ex(b594) "'YB_ATTR(noreturn)' for lambda \
+			expressions always not return" @ %YCLib.HostedGUI $dep_from
+			%YBase.YDefinition,
+		/ %YSLib.Core.CoreUtilities $=
+		(
+			/ "function templates %(FetchSign, IsInInterval, \
+				IsInClosedInterval, IsInOpenInterval, RestrictUnsigned)"
+				^ "_type(0)" ~ 'FetchZero<_type>()';
+				// ADL is complicated and considered unnecessary here.
+			- $revert(b201) "function template %FetchZero"
+				// It is verbose and there exist some problems (e.g. exception \
+					specification) underspecified. Exception specification \
+					checks should be resolved for other functions in future.
+		)
+	)
+),
+
+b604
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -720,7 +779,7 @@ b600
 			/ DLDI "explicitly cast to 'unsigned long' for \
 				'::ExpandEnvironmentStringsW' argument"
 				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
-			* $impl "strict ISO C++ compatibility" $since b492
+			* $impl "strict ISO C++ compatibility" $since b594
 				// See http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn .
 				$= (- 'YB_NORETURN' @ "lambda expression")
 		),
