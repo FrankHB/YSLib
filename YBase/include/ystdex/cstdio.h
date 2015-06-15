@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r567
+\version r577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-06-05 06:02 +0800
+	2015-06-13 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,6 +241,17 @@ public:
 	{
 		return !content;
 	}
+
+	/*!
+	\brief 填充字节到缓冲区。
+	\param offset 起始偏移字节数。
+	\param n 填充的字节数。
+	\param value 填充的字节值。
+	\pre 断言：指针参数和 \c get() 结果非空。
+	\since build 606
+	*/
+	void
+	fill(size_t offset, size_t n = 1, byte value = {}) ynothrowv;
 
 	void
 	flush() ynothrow

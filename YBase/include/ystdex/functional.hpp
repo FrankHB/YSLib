@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2269
+\version r2301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-05-02 13:29 +0800
+	2015-06-15 05:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_functional_hpp_ 1
 
 #include "tuple.hpp" // for ../ydef.h, std::tuple_size, vseq::join_n_t,
+//	common_nonvoid_t, std::true_type, std::false_type, std::integral_constant,
 //	make_index_sequence;
 #include "ref.hpp" // for wrapped_traits;
 #include <string> // for std::char_traits;
@@ -417,6 +418,43 @@ compose(_func1 f, _func2 g, _funcs... args)
 	return ystdex::compose(ystdex::compose(f, g), args...);
 }
 //@}
+
+
+//! \since build 606
+namespace details
+{
+
+template<typename _type, typename _func, typename... _tParams>
+_type
+call_for_value(std::true_type, _type&& val, _func&& f, _tParams&&... args)
+{
+	yforward(f)(yforward(args)...);
+	return yforward(val);
+}
+
+template<typename _type, typename _func, typename... _tParams>
+auto
+call_for_value(std::false_type, _type&&, _func&& f, _tParams&&... args)
+	-> result_of_t<_func&&(_tParams&&...)>
+{
+	return yforward(f)(yforward(args)...);
+}
+
+} // unnamed namespace;
+
+/*!
+\brief 调用第二个参数起指定的函数对象，若返回空类型则使用第一个参数的值为返回值。
+\since build 606
+*/
+template<typename _type, typename _func, typename... _tParams>
+auto
+call_for_value(_type&& val, _func&& f, _tParams&&... args)
+	-> common_nonvoid_t<result_of_t<_func&&(_tParams&&...)>, _type>
+{
+	return details::call_for_value(std::integral_constant<bool, is_void<
+		result_of_t<_func&&(_tParams&&...)>>::value>(), yforward(val),
+		yforward(f), yforward(args)...);
+}
 
 
 /*!

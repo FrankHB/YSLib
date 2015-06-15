@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r140
+\version r143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-06-09 23:38 +0800
+	2015-06-13 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,6 +106,10 @@ private:
 public:
 	YB_NONNULL(2) bool
 	EraseWritePartialSector(const void*, ::sec_t, size_t, size_t) ynothrowv;
+
+	//! \since build 606
+	bool
+	FillSectors(::sec_t, size_t = 1, byte = {}) ynothrow;
 
 	bool
 	Flush() ynothrow;

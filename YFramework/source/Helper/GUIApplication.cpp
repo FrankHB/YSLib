@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r374
+\version r376
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2015-04-28 23:45 +0800
+	2015-06-14 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,9 +138,7 @@ FetchAppInstance()
 locked_ptr<GUIApplication, recursive_mutex>
 LockInstance()
 {
-	unique_lock<recursive_mutex> lck(ApplicationMutex);
-
-	return {ApplicationPtr, std::move(lck)};
+	return {ApplicationPtr, ApplicationMutex};
 }
 
 

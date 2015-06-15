@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1286
+\version r1288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-05-29 19:26 +0800
+	2015-06-14 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -571,8 +571,8 @@ public:
 	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 
 	//! \since build 589
-	YSLib::locked_ptr<ScreenBuffer>
-	Lock();
+	PDefH(YSLib::locked_ptr<ScreenBuffer>, Lock, )
+		ImplRet({&GetScreenBufferRef(), mtx})
 };
 //@}
 
