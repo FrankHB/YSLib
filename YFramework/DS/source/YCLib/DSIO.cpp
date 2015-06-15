@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r225
+\version r247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-06-06 07:05 +0800
+	2015-06-06 00:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,6 +107,31 @@ SectorCache::EraseWritePartialSector(const void* p_buf, ::sec_t sec,
 		}
 	}
 	return {};
+}
+
+bool
+SectorCache::FillSectors(::sec_t sec, size_t n, byte value)
+	ynothrow
+{
+	while(0 < n)
+	{
+		const auto key(GetKey(sec));
+
+		if(const auto p_entry = GetPage(key))
+		{
+			const auto sec_off(sec - key);
+			// TODO: Compare and assert 'entry.count' and 'sec'?
+			const auto secs_to_process(
+				std::min<size_t>(GetBlockCount(key) - sec_off, n));
+
+			p_entry->fill(sec_off * bytes_per_sector,
+				secs_to_process * bytes_per_sector, value);
+			yunseq(sec += secs_to_process, n -= secs_to_process);
+		}
+		else
+			return {};
+	}
+	return true;
 }
 
 bool

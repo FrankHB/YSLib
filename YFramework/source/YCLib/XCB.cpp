@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r507
+\version r510
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2015-04-10 01:21 +0800
+	2015-06-14 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,10 +89,7 @@ MakeAtomPair(::xcb_connection_t& c_ref, const string& name, bool e)
 locked_ptr<map<string, Atom>>
 LockAtoms(::xcb_connection_t& c_ref)
 {
-	auto& m(FetchGlobalTableRef());
-	unique_lock<mutex> lck(TableMutex);
-
-	return {&m.at(&c_ref), std::move(lck)};
+	return {&FetchGlobalTableRef().at(&c_ref), TableMutex};
 }
 //@}
 

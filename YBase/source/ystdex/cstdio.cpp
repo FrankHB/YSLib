@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r225
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2015-06-05 05:58 +0800
+	2015-06-13 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,6 +174,15 @@ ifile_iterator::operator++()
 	return *this;
 }
 
+
+void
+block_buffer::fill(size_t offset, size_t n, byte value) ynothrowv
+{
+	yconstraint(get());
+
+	yunseq(ystdex::trivially_fill_n(get() + offset, n, value),
+		need_flush = true);
+}
 
 void
 block_buffer::read(void* dst, size_t offset, size_t n) const ynothrowv

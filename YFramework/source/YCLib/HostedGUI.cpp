@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1442
+\version r1449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-06-10 00:41 +0800
+	2015-06-14 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -608,16 +608,6 @@ ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 	std::swap(p_buffer, sbuf.p_buffer),
 	std::swap(p_bitmap, sbuf.p_bitmap);
 #	endif
-}
-
-
-locked_ptr<ScreenBuffer>
-ScreenRegionBuffer::Lock()
-{
-	using namespace YSLib;
-	unique_lock<mutex> lck(mtx);
-
-	return {&GetScreenBufferRef(), std::move(lck)};
 }
 
 

@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r308
+\version r310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-06-01 16:50 +0800
+	2015-06-14 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,10 +99,9 @@ LockCommandCache()
 	struct cmd_cache_tag
 	{};
 	static YSLib::mutex mtx;
-	YSLib::unique_lock<YSLib::mutex> lck(mtx);
 
 	return {&ystdex::parameterize_static_object<CommandCache, cmd_cache_tag>(),
-		std::move(lck)};
+		mtx};
 }
 
 const string&

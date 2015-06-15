@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r1023
+\version r1057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-06-11 16:45 +0800
+	2015-06-15 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,39 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "member function %block_buffer::fill" @ %CStandardIO,
+		/ %ScopeGuard $=
+		(
+			/ @ "class template %guard" $=
+			(
+				* "missing explicitly defaulted move %operator=" $since b605,
+				* "wrong exception specifiction" @ "constructor template"
+					$since b605
+			),
+			/ @ "all 2 function templates %make_guard" $=
+			(
+				(
+				+ "1st templatee parameter 'bool _bNoThrow' with default \
+					argument 'true'";
+				/ "'noexcept' expression for function object"
+					-> "template parameter _bNoThrow"
+				),
+				* "wrong template argument" @ "trailing-return-type" $since b605
+			)
+		),
+		+ "function template %call_for_value" @ %Functional,
+		+ "function template %normalize" @ %String
+	),
+	+ "member function %SectorCache::FillSectors"
+		@ %YFramework.'YCLib(DS)'.DSIO,
+	/ $impl "simplified %locked_ptr construction" $effective
+		@ %(Helper.GUIApplication, YCLib.(Host, HostedGUI, XCB))
+),
+
+b605
 (
 	/ %YBase $=
 	(
@@ -295,7 +328,7 @@ b601
 		(
 			- $revert(b286) 'using platform::NativePathCharType;'
 				@ %Adaptor.YAdaptor,
-			* "missing update macro %YFM_YSLib_UI_YDesktop"
+			* "missing updating macro %YFM_YSLib_UI_YDesktop"
 				@ %UI.YModules $since b586,
 			/ %Service $=
 			(
@@ -508,7 +541,7 @@ b601
 				("%ScrDraw" @ %'Helper_(DS)'.DSMain),
 			/ DLDI "simplified %Cleanup"
 		),
-		+ $dev $re_ex(b) "out-of-line virtual destructors" @ ("class \
+		+ $dev $re_ex(b586) "out-of-line virtual destructors" @ ("class \
 			%SwitchScreensButton" @ %ShlExplorer, "classes %(ShlHexBrowser, \
 			ReaderBox, FileInfoPanel, ShlTextReader::BookmarkSession)"
 			@ %ShlReader, "class %FrmAbout" @ %About, "class %BookmarkPanel"

@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r321
+\version r341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2015-06-10 21:47 +0800
+	2015-06-14 04:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "type_op.hpp" // for ystdex::is_reference, std::swap;
+#include "type_op.hpp" // for is_constructible, is_reference, std::swap;
 #include "base.h" // for noncopyable;
 #include "ref.hpp" // for lref;
 #include <memory> // for std::addressof;
@@ -47,37 +47,41 @@ template<typename _func, bool _bNoThrow = true>
 struct guard : private noncopyable
 {
 	_func func;
-	guard(guard&&) = default;
 
+	//! \since build 606
 	template<typename... _tParams>
-	guard(_tParams&&... args) ynoexcept_spec(func(yforward(args)...))
+	guard(_tParams&&... args)
+		ynoexcept(is_constructible<_func, _tParams&&...>::value)
 		: func(yforward(args)...)
 	{}
+	guard(guard&&) = default;
 	~guard() ynoexcept_spec(!_bNoThrow)
 	{
 		func();
 	}
+
+	guard&
+	operator=(guard&&) = default;
 };
 
 /*!
 \brief 创建作用域守护。
 \relates guard
+\since build 606
 */
-template<typename _type>
+template<bool _bNoThrow = true, typename _type>
 guard<_type>
-make_guard(_type f) ynoexcept_spec(guard<_type>(guard<_type>(f)))
+make_guard(_type f)
+	ynoexcept_spec(guard<_type, _bNoThrow>(guard<_type, _bNoThrow>(f)))
 {
-#if YB_HAS_NOEXCEPT
-	return guard<_type, noexcept(f())>(f);
-#else
-	return guard<_type, false>(f);
-#endif
+	return guard<_type, _bNoThrow>(f);
 }
-template<typename _type>
+template<bool _bNoThrow = true, typename _type>
 guard<_type&>
-make_guard(lref<_type> f) ynoexcept_spec(ystdex::make_guard<_type&>(f.get()))
+make_guard(lref<_type> f)
+	ynoexcept_spec(ystdex::make_guard<_bNoThrow, _type&>(f.get()))
 {
-	return ystdex::make_guard<_type&>(f.get());
+	return ystdex::make_guard<_bNoThrow, _type&>(f.get());
 }
 //@}
 

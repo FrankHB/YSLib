@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1415
+\version r1430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-06-06 21:48 +0800
+	2015-06-06 08:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
 #include "cstdio.h" // for yconstraint, ystdex::vfmtlen;
+#include "cstring.h" // for ystdex::ntctslen;
 #include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
 #include "array.hpp" // for std::bidirectional_iterator_tag, ystdex::to_array;
 #include <istream> // for std::basic_istream;
@@ -321,6 +322,20 @@ exists_substr(const _tString& str, const typename _tString::value_type* p_sub)
 //@}
 
 
+//! \ingroup NTCTSUtil
+//@{
+/*!
+\brief NTCTS 正规化：保留空字符之前的字符。
+\post <tt>str.length() == ystdex::ntctslen(str.c_str())</tt> 。
+\since build 606
+*/
+template<class _tString>
+auto
+normalize(_tString& str) -> decltype(str.resize(ystdex::ntctslen(str.c_str())))
+{
+	return str.resize(ystdex::ntctslen(str.c_str()));
+}
+
 /*!
 \brief 复制不超过指定长度的 NTCTS 。
 \note 目标字符串短于指定长度的部分可能被填充空字符。
@@ -347,6 +362,7 @@ ntctsncpy(_tString&& str, _tString&& s,
 	sub.resize(n);
 	return static_cast<_tString&&>(str = std::move(sub));
 }
+//@}
 //@}
 
 
