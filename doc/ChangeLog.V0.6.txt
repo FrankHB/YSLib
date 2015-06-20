@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r1057
+\version r1161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-06-15 08:41 +0800
+	2015-06-20 09:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,111 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ $re_ex(b604) DLDI @ "main function" @ "platform %Android" @ %Main
+		^ 'yunused',
+		// To eliminated warning: [-Wunused-variable].
+
+	/ %YBase.YStandardEx $=
+	(
+		+ "functor %lref_less" @ %Functional,
+		/ "inline namespaces %(cpp2011_traits, cpp2014_traits)"
+			=> "%(cpp2011, cpp2014)" @ %TypeTraits,
+		/ "enclosed ISO C++ 14 interface" @ "inline namespace %cpp2014"
+			@ %IntegerSequence,
+		/ @ "class %ifile_iterator" @ %CStandardIO $=
+		(
+			/ DLDI "simplified data member initialization"
+				^ "braced-init-list '{}'",
+			(
+			+ "alias %int_type";
+			+ "functions 2 %(sputbackc; sungetc)"
+			)
+		)
+	),
+	/ DLDI "simplified container type" ^ $dep_rom
+		("%lref_less" @ %YBase.YStandardEx.Functional),
+	/ %YFramework $=
+	(
+		/ @ "namespace %platform" @ %YCLib.FileSystem $=
+		(
+			+ "enum class %FileSystemType"
+			+ "namespace %FAT" $=
+			(
+				(
+				+ "alias %ClusterIndex";
+				+ "enum class %Attribute with bitmask operations"
+				),
+				+ "yconstexpr object %IllegalAliasCharacters",
+				(
+				+ "alias %FileSize";
+				+ "yconstexpr object %MaxFileSize"
+				),
+				(
+				+ "alias %EntryDataUnit";
+				+ "namespace %Clusters" $=
+				(
+					+ "objects %(PerFAT12, PerFAT16)",
+					+ "enum for %ClusterIndex constants"
+				),
+				+ "namespace %LFN" $=
+				(
+					+ "enum %Offsets",
+					+ "yconstexpr object %OffsetTable",
+					+ "enum for %size_t constants",
+					+ "enum for %EntryDataUnit values",
+					+ "yconstexpr objects %IllegalCharacters",
+					+ "function %GenerateAliasChecksum"
+				),
+				)
+				(
+				+ "alias %Timestamp";
+				+ "functions %(ConvertFileTime, FetchDateTime)"
+				)
+			)
+		),
+		/ %YSLib.Service $=
+		(
+			* "wrong %operator>> for %File and non-string argument deduced"
+				@ %File $since b326 $=
+			(
+				// Only explicit call of 'operator>><char>' worked.
+				/ "restricted overloading for non-string class type"
+					^ "%ystdex::enable_if_t"
+				/ "restricted overloading for string class type"
+					^ "%ystdex::enable_for_string_class_t"
+			),
+			/ @ "class %TextFileBuffer" @ %TextManager $=
+			(
+				* $comp "possible dropped first byte for reading block"
+					$dep_from %CHRLib.StaticMapping $since b495,
+				/ DLDI "simplified put back" @ %CharacterProcessing ^ $dep_from
+					("%ifile_iterator::sungetc" @ %CStandardIO) "%std::ungetc",
+				* "missing putting back character after searching by iterator"
+					@ "function %GetPosition" $since b400
+			)
+		),
+		/ %CHRLib $=
+		(
+			* "undefined behavior for referential proxy of iterator \
+				indirection result" @ "all 2 function templates %FillByte"
+				@ %StaticMapping $since b495,
+				// Deferred cast to 'byte' is indeterminately sequenced with \
+					iterator incrementing.
+			/ DLDI "simplified put back" @ %CharacterProcessing ^ $dep_from
+				("%ifile_iterator::sungetc" @ %CStandardIO) "%std::ungetc"
+		)
+	)
+	* "missing creation directories for build and release" @ "%YSTest makefile"
+		@ "platform %DS" $since b603,
+		// To prevent making failed caused by nonexistence of parent directory \
+			in '.arm7' and '.arm9' file paths.
+	* $comp "dropped first byte for buffered block text" @ %YReader.DSReader
+		$dep_from %YFramework.Service.TextManager $since b495
+		// For test build, only %MinGW32 seemed to be normal.
+),
+
+b606
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -194,7 +299,7 @@ b603
 (
 	/ $build @ "makefiles" @ "platform %DS" $=
 	(
-		/ @ "%YSTest_DS makefile" $=
+		/ @ "%YSTest makefile" $=
 		(
 			- "all optional EFS support by %USE_EFS",
 			- "variables %(PROGNAME, OFILES, ADD_LIBS)"

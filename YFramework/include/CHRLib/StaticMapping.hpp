@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2412
+\version r2416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-05-29 19:24 +0800
+	2015-05-29 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,9 +57,9 @@ FillByte(_tIn& i, byte& b)
 {
 	if(CheckIterator(i))
 	{
-		const auto r(*i);
+		const auto r = byte(*i);
 
-		yunseq(++i, b = byte(r));
+		yunseq(++i, b = r);
 		return true;
 	}
 	return {};
@@ -73,9 +73,9 @@ FillByte(_tIn& i, _tState& st)
 	{
 		static_assert(!std::is_volatile<ystdex::remove_reference_t<_tState>>(),
 			"Volatile state is not supported.");
-		const auto r(*i);
+		const auto r = byte(*i);
 
-		yunseq(++i, GetSequenceOf(st)[GetIndexOf(st)++] = byte(r));
+		yunseq(++i, GetSequenceOf(st)[GetIndexOf(st)++] = r);
 		return true;
 	}
 	return {};

@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1180
+\version r1187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-05-23 12:32 +0800
+	2015-06-17 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,11 +201,13 @@ public:
 //@{
 /*!
 \brief 从指定文件读字符。
-\since build 326
+\since build 607
 */
-template<typename _tChar>
+template<typename _tChar, yimpl(typename _type2 = _tChar,
+	typename = ystdex::enable_if_t<
+	std::is_integral<typename std::char_traits<_type2>::char_type>::value>)>
 File&
-operator>>(File& f, typename std::char_traits<_tChar>::char_type& c)
+operator>>(File& f, _tChar& c)
 {
 	YAssert(bool(f), "Invalid file found.");
 
@@ -216,7 +218,8 @@ operator>>(File& f, typename std::char_traits<_tChar>::char_type& c)
 \brief 从指定文件读空白符分隔的字符串。
 \since build 326
 */
-template<typename _tString>
+template<typename _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 File&
 operator>>(File& f, _tString& str)
 {

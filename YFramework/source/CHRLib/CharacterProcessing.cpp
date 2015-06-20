@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1359
+\version r1361
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-05-18 00:46 +0800
+	2015-06-19 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 		ystdex::ifile_iterator i(fp);
 		const auto r(pfun(uc, i, std::move(st)));
 
-		std::ungetc(*i, fp);
+		i.sungetc(fp);
 		return r;
 	}
 	return ConversionResult::Unhandled;
@@ -90,7 +90,7 @@ MBCToUC(std::FILE* fp, Encoding enc, ConversionState&& st)
 		ystdex::ifile_iterator i(fp);
 		const auto r(pfun(ystdex::pseudo_output(), i, std::move(st)));
 
-		std::ungetc(*i, fp);
+		i.sungetc(fp);
 		return r;
 	}
 	return ConversionResult::Unhandled;

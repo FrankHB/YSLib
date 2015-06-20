@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1929
+\version r1932
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2015-06-08 01:02 +0800
+	2015-06-15 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,7 +202,9 @@ main()
 	if(res != EXIT_SUCCESS)
 		terminate();
 #endif
-#if !YCL_Android
+#if YCL_Android
+	yunused(res);
+#else
 	return res;
 #endif
 }

@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r577
+\version r616
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-06-13 00:24 +0800
+	2015-06-19 19:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,13 +118,15 @@ protected:
 
 public:
 	using char_type = byte;
+	//! \since build 607
+	using int_type = int;
 
 private:
 	/*!
 	\brief 流指针。
 	\since build 458
 	*/
-	std::FILE* stream;
+	std::FILE* stream{};
 	char_type value;
 
 public:
@@ -136,11 +138,11 @@ public:
 	*/
 	yconstfn
 	ifile_iterator()
-		: stream(), value()
+		: value()
 	{}
 	/*!
-	\brief 构造：使用流引用。
-	\pre <tt>ptr</tt>。
+	\brief 构造：使用流指针。
+	\pre 断言： <tt>ptr</tt> 。
 	\post <tt>stream == ptr</tt> 。
 	\since build 458
 	*/
@@ -191,6 +193,41 @@ public:
 	{
 		return stream;
 	}
+
+	/*!
+	\brief 向流中写回字符。
+	\since build 607
+	*/
+	//@{
+	//! \pre 断言： <tt>!stream</tt> 。
+	int_type
+	sputbackc(char_type c)
+	{
+		yconstraint(stream);
+		return std::ungetc(c, stream);
+	}
+	//! \pre 断言： <tt>!stream || steram == s</tt> 。
+	int_type
+	sputbackc(char_type c, std::FILE* s)
+	{
+		yconstraint(!stream || stream == s);
+		stream = s;
+		return sputbackc(c);
+	}
+
+	//! \pre 间接断言： <tt>!stream</tt> 。
+	int_type
+	sungetc()
+	{
+		return sputbackc(value);
+	}
+	//! \pre 间接断言： <tt>!stream || steram == s</tt> 。
+	int_type
+	sungetc(std::FILE* s)
+	{
+		return sputbackc(value, s);
+	}
+	//@}
 };
 
 

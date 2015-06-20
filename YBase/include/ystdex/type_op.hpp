@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1584
+\version r1592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-05-29 19:19 +0800
+	2015-06-17 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,10 +87,10 @@ namespace ystdex
 
 
 /*!
-\brief 包含 ISO C++ 2011 <type_traits> 引入的名称的命名空间。
-\since build 595
+\brief 包含 ISO C++ 2011 引入的名称的命名空间。
+\since build 607
 */
-inline namespace cpp2011_traits
+inline namespace cpp2011
 {
 
 //! \since build 245
@@ -223,14 +223,14 @@ using std::underlying_type;
 using std::result_of;
 //@}
 
-} // namespace cpp2011_traits;
+} // inline namespace cpp2011;
 
 
 /*!
-\brief 包含 ISO C++ 2014 <type_traits> 引入的名称的命名空间。
-\since build 595
+\brief 包含 ISO C++ 2014 引入的名称的命名空间。
+\since build 607
 */
-inline namespace cpp2014_traits
+inline namespace cpp2014
 {
 
 /*!
@@ -355,7 +355,7 @@ using result_of_t = typename result_of<_type>::type;
 #endif
 //@}
 
-} // namespace cpp2014_traits;
+} // inline namespace cpp2014;
 
 
 /*!

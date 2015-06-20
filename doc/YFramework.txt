@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1152
+\version r1161
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-05-12 13:40 +0800
+	2015-06-16 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -373,7 +373,7 @@ YSLib 库中，模块目录 YSLib::Adaptor([Documentation::YSLib @@2]) 以外其
 Adaptor 被 YSLib 的几乎所有其它部分依赖。 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能、有必要被足够多模块依赖的的外部依赖项，新增的部分应尽量放在外部的 Helper 库(@2.7) 而不是 Adaptor 中。
 
 @2.1.6 预处理附加规则：
-对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.2])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
+对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.3])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
 指定限定平台集合(@2.1.4) 的宏（如 YF_Hosted ）不得被用于出现在 YSLib 中用于条件编译（关于依赖性限制，参见 @2.2.5）。
 
 @2.2 文件依赖性：
@@ -453,7 +453,12 @@ platform ：平台中立：接口平台无关但实现平台相关的公共接�
 inline platform::basic_types ： 基本类型声明内联命名空间。
 inline platform::containers ： 容器声明内联命名空间。
 inline platform::references ： 引用声明内联命名空间。
+platform::ColorSpace ：颜色空间。
 platform::Concurrency ： 平台并发操作接口。
+platform::FAT ： 文件分配表接口。
+platform::FAT::Clusters ：簇接口。
+platform::FAT::LFN ：长文件名接口。
+platform::KeyCategory ：按键类别。
 platform::Threading ： 平台线程操作接口。
 platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
 inline platform_ex::Windows ： Windows 平台内联命名空间。
@@ -461,6 +466,7 @@ platform_replace ：平台替换：接口和实现都平台相关的特定接口
 CHRLib ：次级子项目库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）此命名空间。
 NPL ：次级子项目库 NPL(@2.9) 的命名空间。
 YSLib ： YSLib 库命名空间，也被 Helper 扩展。
+关于 YSLib 的子命名空间，参见 [Documentation::YSLib @@1.1.5] 。
 
 @2.4 实体实现规则：
 
@@ -691,6 +697,8 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 
 @5 框架初始化：
 初始化由 Helper 进行。
+框架初始化在 DS 平台被直接调用。其它平台可延迟初始化，按需调用。
+使用默认字体缓存或 MIME 数据时自动调用。
 
 @5.1 配置：
 自 build 300 起，配置不再硬编码，初始化时读取配置文件的内容。

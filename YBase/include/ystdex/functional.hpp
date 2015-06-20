@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2301
+\version r2312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-06-15 05:48 +0800
+	2015-06-16 05:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,7 @@
 #include "tuple.hpp" // for ../ydef.h, std::tuple_size, vseq::join_n_t,
 //	common_nonvoid_t, std::true_type, std::false_type, std::integral_constant,
 //	make_index_sequence;
-#include "ref.hpp" // for wrapped_traits;
-#include <string> // for std::char_traits;
+#include "functor.hpp" // for less, addressof_op, mem_get, lref;
 
 namespace ystdex
 {
@@ -418,6 +417,17 @@ compose(_func1 f, _func2 g, _funcs... args)
 	return ystdex::compose(ystdex::compose(f, g), args...);
 }
 //@}
+
+
+/*!
+\ingroup functors
+\brief lref 小于仿函数。
+\sa lref
+\since build 607
+*/
+template<typename _type>
+using lref_less = composed<less<_type*>, composed<addressof_op<_type>,
+	mem_get<lref<_type>>>>;
 
 
 //! \since build 606

@@ -11,7 +11,7 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3848
+\version r3851
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
@@ -117,7 +117,7 @@ TextFileBuffer::iterator::operator--() ynothrow
 TextFileBuffer::iterator::reference
 TextFileBuffer::iterator::operator*() const
 {
-	auto& vec((Deref(p_buffer))[block].first);
+	auto& vec(Deref(p_buffer)[block].first);
 
 	YAssert(!vec.empty(), "Empty block found.");
 	YAssert(index < vec.size(), "Invalid index found.");
@@ -174,7 +174,7 @@ TextFileBuffer::operator[](size_t idx)
 				n_byte += ConvertChar([&](ucs2_t uc){
 					vec.push_back(uc);
 				}, pfun, i, c);
-			std::ungetc(*i, File.GetPtr()),
+			i.sungetc(File.GetPtr());
 			vec.shrink_to_fit();
 		}
 	return b;
@@ -214,7 +214,7 @@ TextFileBuffer::GetIterator(size_t pos)
 				n_byte += ConvertChar([&](ystdex::pseudo_output){
 					++n_char;
 				}, pfun, i, ystdex::pseudo_output());
-			std::ungetc(*i, File.GetPtr());
+			i.sungetc(File.GetPtr());
 			return TextFileBuffer::iterator(this, idx, n_char);
 		}
 		return TextFileBuffer::iterator(this, idx, 0);
@@ -257,6 +257,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 			n_byte += ConvertChar([&](ystdex::pseudo_output){
 				++it;
 			}, pfun, i_cur, ystdex::pseudo_output());
+		i_cur.sungetc(File.GetPtr());
 		return idx + n_byte;
 	}
 	return idx;

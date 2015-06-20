@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r342
+\version r348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-05-29 19:12 +0800
+	2015-06-17 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,9 @@
 #include "variadic.hpp"
 
 namespace ystdex
+{
+
+inline namespace cpp2014
 {
 
 /*!
@@ -59,6 +62,8 @@ template<size_t... _vSeq>
 using index_sequence = integer_sequence<size_t, _vSeq...>;
 #endif
 //@}
+
+} // inline namespace cpp2014;
 
 
 //! \since build 589
@@ -267,6 +272,9 @@ using make_natural_sequence_t
 //@}
 
 
+inline namespace cpp2014
+{
+
 /*!
 \ingroup metafunctions
 \see ISO C++14 20.5[intseq] 。
@@ -290,6 +298,8 @@ template<typename... _types>
 using index_sequence_for = make_index_sequence<sizeof...(_types)>;
 #endif
 //@}
+
+} // inline namespace cpp2014;
 
 } // namespace ystdex;
 
