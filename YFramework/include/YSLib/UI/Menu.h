@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1034
+\version r1037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2015-05-29 19:34 +0800
+	2015-06-16 05:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,9 +190,8 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 class YF_API MenuHost : private noncopyable
 {
 private:
-	//! \since build 554
-	set<lref<Menu>, ystdex::composed<std::less<Menu*>, ystdex::composed<
-		ystdex::addressof_op<Menu>, ystdex::mem_get<lref<Menu>>>>> menus{};
+	//! \since build 607
+	set<lref<Menu>, ystdex::lref_less<Menu>> menus{};
 
 public:
 	/*!

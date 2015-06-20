@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r454
+\version r458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-05-24 14:49 +0800
+	2015-06-17 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,8 +161,8 @@ std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
 @2.4.2.1 YBase 引入的公开命名空间：
 ystdex ： YStandardEx 使用的默认命名空间。
 ystdex::any_ops ： ystdex::any 相关的底层操作接口。
-inline ystdex::cpp2011_traits 包含 ISO C++ 2011 <type_traits> 引入的名称的命名空间。
-inline ystdex::cpp2014_traits 包含 ISO C++ 2014 <type_traits> 引入的名称的命名空间。
+inline ystdex::cpp2011 包含 ISO C++ 2011 引入的名称的命名空间。
+inline ystdex::cpp2014 包含 ISO C++ 2014 引入的名称的命名空间。
 ystdex::dependent_operators ： YBase::YStandardEx::Operators 使用的隔离 ADL 的命名空间。
 ystdex::dependent_swap ： 引入 std::swap 实现为 ADL 提供重载的命名空间。
 ystdex::threading ：线程相关操作。
@@ -210,8 +210,8 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 @2.4.4.5 ISO C 宽字符分类操作扩展 CWideCharacterType ：
 头文件扩展了标准库头 <cwctype> ，提供一些替代实现。
 
-@2.4.4.6 ISO C 字符分类操作扩展 CCtype ：
-头文件扩展了标准库头 <cctype> ，提供一些扩展实现。
+@2.4.4.6 ISO C 字符分类操作扩展 CCharacterCtype ：
+头文件扩展了标准库头 <cctype> ，提供一些扩展和替代实现。
 
 @2.4.5 ISO C++ 基本扩展：
 扩展标准库文件，不依赖以上文件外的 YStandardEx 头文件。

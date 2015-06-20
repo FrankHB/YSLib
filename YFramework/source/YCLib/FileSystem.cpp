@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2158
+\version r2235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-05-19 22:46 +0800
+	2015-06-16 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YCLib_Reference // for unique_ptr;
 #include <cstring> // for std::strchr;
 #include <fcntl.h>
+#include <numeric> // for std::accumulate;
 #if YCL_DS
 #	include YFM_CHRLib_CharacterProcessing
 
@@ -63,6 +64,7 @@ _wfopen(const wchar_t*, const wchar_t*);
 #	endif
 #	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
 //	platform_ex::ConvertTime;
+#	include <time.h> // for ::localtime_s;
 
 //! \since build 540
 using platform_ex::UTF8ToWCS;
@@ -72,6 +74,7 @@ using platform_ex::DirectoryFindData;
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
 #	include <sys/stat.h>
+#	include <time.h> // for ::localtime_r;
 
 //! \since build 475
 using namespace CHRLib;
@@ -689,7 +692,93 @@ GetRootNameLength(const char* path)
 	return !p ? 0 : size_t(p - path + 1);
 }
 
+
+namespace FAT
+{
+
+namespace LFN
+{
+
+//! \see Microsoft FAT specification 7.2 节。
+EntryDataUnit
+GenerateAliasChecksum(const EntryDataUnit* p) ynothrowv
+{
+	static_assert(std::is_same<EntryDataUnit, unsigned char>::value,
+		"Only unsigned char as byte is supported by checksum generation.");
+
+	YAssertNonnull(p);
+	// NOTE: The operation is an unsigned char rotate right.
+	return std::accumulate(p, p + AliasEntryLength, 0,
+		[](EntryDataUnit v, EntryDataUnit b){
+			return ((v & 1) != 0 ? 0x80 : 0) + (v >> 1) + b;
+		});
 }
+
+} // namespace LFN;
+
+//! \since build 607
+namespace
+{
+
+yconstexpr bool
+is_time_no_leap_valid(const std::tm& t)
+{
+	return !(t.tm_hour < 0 || 23 < t.tm_hour || t.tm_hour < 0 || 59 < t.tm_min
+		|| t.tm_sec < 0 || 59 < t.tm_min);
+}
+yconstexpr bool
+is_date_range_valid(const std::tm& t)
+{
+	return !(t.tm_mon < 0 || 12 < t.tm_mon || t.tm_mday < 1 || 31 < t.tm_mday);
+}
+
+} // unnamed namespace;
+
+std::time_t
+ConvertFileTime(Timestamp d, Timestamp t) ynothrow
+{
+	struct std::tm time_parts;
+
+	yunseq(
+		time_parts.tm_hour = t >> 11,
+		time_parts.tm_min = (t >> 5) & 0x3F,
+		time_parts.tm_sec = (t & 0x1F) << 1,
+		time_parts.tm_mday = d & 0x1F,
+		time_parts.tm_mon = ((d >> 5) & 0x0F) - 1,
+		time_parts.tm_year = (d >> 9) + 80,
+		time_parts.tm_isdst = 0
+	);
+	return std::mktime(&time_parts);
+}
+
+pair<Timestamp, Timestamp>
+FetchDateTime() ynothrow
+{
+	struct std::tm tmp;
+	std::time_t epoch;
+
+	if(std::time(&epoch) != std::time_t(-1))
+	{
+#if YCL_Win32
+		// NOTE: The return type and parameter order differs than ISO C11
+		//	library extension.
+		::localtime_s(&tmp, &epoch);
+#else
+		::localtime_r(&epoch, &tmp);
+		// FIXME: For platforms without %::(localtime_r, localtime_s).
+#endif
+		// NOTE: Microsoft FAT base year is 1980.
+		return {is_date_range_valid(tmp) ? ((tmp.tm_year - 80) & 0x7F) << 9
+			| ((tmp.tm_mon + 1) & 0xF) << 5 | (tmp.tm_mday & 0x1F) : 0,
+			is_time_no_leap_valid(tmp) ? (tmp.tm_hour & 0x1F) << 11
+			| (tmp.tm_min & 0x3F) << 5 | ((tmp.tm_sec >> 1) & 0x1F) : 0};
+	}
+	return {0, 0};
+}
+
+} // namespace FAT;
+
+} // namespace platform;
 
 namespace platform_ex
 {
@@ -708,5 +797,5 @@ FS_IsRoot(const char16_t* str)
 }
 #endif
 
-}
+} // namespace platform_ex;
 

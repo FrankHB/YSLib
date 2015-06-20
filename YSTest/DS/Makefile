@@ -7,10 +7,10 @@
 #	this file you indicate that you have read the license and
 #	understand and accept it fully.
 #
-# DS Makefile for YSTest by FrankHB 2009-2015
-# Version = r1207
+# DS Makefile for YSTest by FrankHB
+# Version = r1212
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2015-06-03 12:26 +0800
+# Updated = 2015-06-19 18:59 +0800
 # Encoding = ANSI
 
 # This makefile is written based on devkitPro example template.
@@ -37,7 +37,7 @@ export BUILDDIR		?=	$(TOPDIR)/../../build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
 export RELEASEDIR	?=	$(BUILDDIR)
 export TARGET		:=	$(PROJNAME)
 #export TARGET		:=	$(shell basename $(CURDIR))
-export OUTPUT		=	$(BUILDDIR)/$(TARGET)
+export OUTPUT		=	$(RELEASEDIR)/$(TARGET)
 
 # Be sure to change these default banner TEXTs. This is the name your project will
 # display in the DS menu (including some flash cards). Create a custom LOGO.BMP
@@ -62,6 +62,10 @@ all : $(CONF)
 	@echo Built: $(notdir $@) .
 #	@cp $(RELEASEDIR)/$(notdir $@) $(BUILDDIR)/$(notdir $(OUTPUT)).sc.nds
 #	@echo Built: $(notdir $(OUTPUT)).sc.nds .
+
+$(ARM7BIN) $(ARM9BIN) :
+	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
+	@[ -d $(RELEASEDIR) ] || mkdir -p $(RELEASEDIR)
 
 $(OUTPUT).nds : $(ARM7BIN) $(ARM9BIN)
 	@echo Building configuration: $(notdir $@) ...

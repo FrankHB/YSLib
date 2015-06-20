@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1752
+\version r1892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-05-29 19:25 +0800
+	2015-06-16 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include YFM_YCLib_Container // for std::is_same, yalignof,
 //	ystdex::string_length, std::is_integral, std::is_array,
 //	ystdex::remove_reference_t, arrlen, std::FILE,
-//	ystdex::enable_for_string_class_t, std::uint64_t, string;
+//	ystdex::enable_for_string_class_t, std::uint64_t, string, std::uint8_t,
+//	std::uint32_t, pair;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_Encoding // for CHRLib::ucs2_t, CHRLib::ucs4_t,
 //	CHRLib::CharSet::Encoding;
@@ -45,6 +46,7 @@
 #endif
 #include <chrono> // for std::chrono::nanoseconds;
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
+#include <ctime> // for std::time_t;
 
 namespace platform
 {
@@ -728,6 +730,174 @@ IsAbsolute(const char16_t*);
 */
 YF_API YB_NONNULL(1) size_t
 GetRootNameLength(const char*);
+
+
+/*!
+\brief 已知文件系统类型。
+\since build 607
+*/
+enum class FileSystemType
+{
+	Unknown,
+	FAT12,
+	FAT16,
+	FAT32
+};
+
+
+/*!
+\brief 文件分配表接口。
+\since build 607
+*/
+namespace FAT
+{
+
+using EntryDataUnit = std::uint8_t;
+using ClusterIndex = std::uint32_t;
+
+/*!
+\brief 文件属性。
+\see Microsoft FAT specification Section 6 。
+*/
+enum class Attribute : EntryDataUnit
+{
+	ReadOnly = 0x01,
+	Hidden = 0x02,
+	System = 0x04,
+	VolumeID = 0x08,
+	Directory = 0x10,
+	Archive = 0x20,
+	LongFileName = ReadOnly | Hidden | System | VolumeID
+};
+
+//! \relates Attribute
+DefBitmaskEnum(Attribute)
+
+
+//! \brief 簇接口。
+namespace Clusters
+{
+
+yconstexpr const size_t PerFAT12 = 4085;
+yconstexpr const size_t PerFAT16 = 65525;
+
+enum : ClusterIndex
+{
+	FAT16RootDirectory = 0,
+	EndOfFile = 0x0FFFFFFF,
+	First = 0x00000002,
+	Root = 0x00000000,
+	Free = 0x00000000,
+	Error = 0xFFFFFFFF
+};
+
+} // namespace Clusters;
+
+
+//! \brief 非法别名字符。
+const char IllegalAliasCharacters[]{"\\/:;*?\"<>|&+,=[] "};
+
+
+//! \brief 文件大小：字节数。
+using FileSize = std::uint32_t;
+
+/*!
+\brief 最大文件大小。
+\note 等于 4GiB - 1B 。
+*/
+static yconstexpr auto MaxFileSize(FileSize(0xFFFFFFFF));
+
+
+//! \brief 时间戳：表示日期和时间的整数类型。
+using Timestamp = std::uint16_t;
+
+//! \brief 转换日期和时间的时间戳为标准库时间类型。
+YF_API std::time_t
+ConvertFileTime(Timestamp, Timestamp) ynothrow;
+
+//! \brief 取以实时时钟的文件日期和时间。
+YF_API pair<Timestamp, Timestamp>
+FetchDateTime() ynothrow;
+
+
+/*!
+\brief 长文件名接口。
+\note 仅适用于 ASCII 兼容字符集。
+\see Microsoft FAT specification Section 7 。
+*/
+namespace LFN
+{
+
+//! \brief 长文件名目录项偏移量。
+enum Offsets
+{
+	//! \brief 长文件名序数。
+	Ordinal = 0x00,
+	Char0 = 0x01,
+	Char1 = 0x03,
+	Char2 = 0x05,
+	Char3 = 0x07,
+	Char4 = 0x09,
+	//! \note 值等于 Attribute::LongFilename 。
+	Flag = 0x0B,
+	//! \note 保留值 0x00 。
+	Reserved1 = 0x0C,
+	//! \brief 短文件名（别名）校验和。
+	CheckSum = 0x0D,
+	Char5 = 0x0E,
+	Char6 = 0x10,
+	Char7 = 0x12,
+	Char8 = 0x14,
+	Char9 = 0x16,
+	Char10 = 0x18,
+	//! \note 保留值 0x0000 。
+	Reserved2 = 0x1A,
+	Char11 = 0x1C,
+	Char12 = 0x1E
+};
+
+//! \brief 组成长文件名中的 UCS-2 字符在项中的偏移量表。
+yconstexpr const size_t OffsetTable[]{0x01, 0x03, 0x05, 0x07, 0x09, 0x0E,
+	0x10, 0x12, 0x14, 0x16, 0x18, 0x1C, 0x1E};
+
+enum : size_t
+{
+	//! \brief UCS-2 项最大长度。
+	MaxLength = 256,
+	//! \brief UTF-8 项最大长度。
+	MaxMBCSLength = MaxLength * 3,
+	EntryLength = arrlen(OffsetTable),
+	AliasEntryLength = 11,
+	MaxAliasMainPartLength = 8,
+	MaxAliasExtensionLength = 3,
+	MaxAliasLength = MaxAliasMainPartLength + MaxAliasExtensionLength + 2,
+	MaxNumericTail = 999999
+};
+
+enum EntryValues : EntryDataUnit
+{
+	//! \brief WinNT 小写文件名。
+	CaseLowerBasename = 0x08,
+	//! \brief WinNT 小写扩展名。
+	CaseLowerExtension = 0x10,
+	//! \brief Ordinal 中标记结束的项。
+	LastLongEntry = 0x40
+};
+
+//! \brief 非法长文件名字符。
+const char IllegalCharacters[]{"\\/:*?\"<>|"};
+
+/*!
+\brief 生成命名校验和。
+\pre 断言：参数非空。
+\see Microsoft FAT specification Section 7.2 。
+*/
+YF_API EntryDataUnit
+GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
+
+} // namespace LFN;
+
+} // namespace FAT;
 
 } // namespace platform;
 
