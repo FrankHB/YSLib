@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2235
+\version r2300
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-06-16 15:29 +0800
+	2015-06-22 07:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -699,7 +699,65 @@ namespace FAT
 namespace LFN
 {
 
-//! \see Microsoft FAT specification 7.2 节。
+tuple<string, string, bool>
+ConvertToAlias(const u16string& long_name)
+{
+	YAssert(ystdex::ntctslen(long_name.c_str()) == long_name.length(),
+		"Invalid long file name found.");
+
+	string alias;
+	// NOTE: Strip leading periods.
+	size_t offset(long_name.find_first_not_of(u'.'));
+	// NOTE: Set when the alias had to be modified to be valid.
+	bool lossy(offset != 0);
+	const auto check_char([&](string& str, char16_t uc){
+		int bc(std::wctob(std::towupper(wint_t(uc))));
+
+		if(!lossy && std::wctob(wint_t(uc)) != bc)
+			lossy = true;
+		if(bc == ' ')
+		{
+			// NOTE: Skip spaces in filename.
+			lossy = true;
+			return;
+		}
+		// TODO: Optimize.
+		if(bc == EOF || string(IllegalAliasCharacters).find(char(bc))
+			!= string::npos)
+			// NOTE: Replace unconvertible or illegal characters with
+			//	underscores. See Microsoft FAT specification Section 7.4.
+			yunseq(bc = '_', lossy = true);
+		str += char(bc);
+	});
+	const auto len(long_name.length());
+
+	for(; alias.length() < MaxAliasMainPartLength && long_name[offset] != u'.'
+		&& offset != len; ++offset)
+		check_char(alias, long_name[offset]);
+	if(!lossy && long_name[offset] != u'.' && long_name[offset] != char16_t())
+		// NOTE: More than 8 characters in name.
+		lossy = true;
+
+	auto ext_pos(long_name.rfind(u'.'));
+	string ext;
+
+	if(!lossy && ext_pos != u16string::npos && long_name.rfind(u'.', ext_pos)
+		!= u16string::npos)
+		// NOTE: More than one period in name.
+		lossy = true;
+	if(ext_pos != u16string::npos && ext_pos + 1 != len)
+	{
+		++ext_pos;
+		for(size_t ext_len(0); ext_len < LFN::MaxAliasExtensionLength
+			&& ext_pos != len; yunseq(++ext_len, ++ext_pos))
+			check_char(ext, long_name[ext_pos]);
+		if(ext_pos != len)
+			// NOTE: More than 3 characters in extension.
+			lossy = true;
+	}
+	return make_tuple(std::move(alias), std::move(ext), lossy);
+}
+
 EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit* p) ynothrowv
 {
@@ -712,6 +770,21 @@ GenerateAliasChecksum(const EntryDataUnit* p) ynothrowv
 		[](EntryDataUnit v, EntryDataUnit b){
 			return ((v & 1) != 0 ? 0x80 : 0) + (v >> 1) + b;
 		});
+}
+
+YF_API void
+WriteNumericTail(string& alias, size_t k) ynothrowv
+{
+	YAssert(!(MaxAliasMainPartLength < alias.length()), "Invalid alias found.");
+
+	auto p(&alias[MaxAliasMainPartLength - 1]);
+
+	while(k > 0)
+	{
+		*p-- = '0' + k % 10;
+		k /= 10;
+	}
+	*p = '~';
 }
 
 } // namespace LFN;

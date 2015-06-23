@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r247
+\version r343
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-06-06 00:34 +0800
+	2015-06-22 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,50 +88,34 @@ SectorCache::GetPage(::sec_t key) ynothrow
 }
 
 bool
-SectorCache::EraseWritePartialSector(const void* p_buf, ::sec_t sec,
-	size_t offset, size_t n) ynothrowv
+SectorCache::EraseWritePartialSector(::sec_t sec, size_t offset,
+	const void* p_buf, size_t n) ynothrowv
 {
-	if(!(bytes_per_sector < offset + n))
-	{
-		const auto key(GetKey(sec));
-
-		if(const auto p_entry = GetPage(key))
-		{
-			auto& entry(*p_entry);
-			const auto sec_bytes((sec - key) * bytes_per_sector);
-
-			ystdex::trivially_fill_n(entry.get() + sec_bytes,
-				bytes_per_sector);
-			entry.write(sec_bytes + offset, p_buf, n);
-			return true;
-		}
-	}
-	return {};
+	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
+		size_t sec_bytes){
+		ystdex::trivially_fill_n(entry.get() + sec_bytes, bytes_per_sector);
+		entry.write(sec_bytes + offset, p_buf, n);
+	}, sec, offset, n);
 }
 
 bool
-SectorCache::FillSectors(::sec_t sec, size_t n, byte value)
-	ynothrow
+SectorCache::FillPartialSector(::sec_t sec, size_t offset, size_t n, byte val)
+	ynothrowv
 {
-	while(0 < n)
-	{
-		const auto key(GetKey(sec));
+	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
+		size_t sec_bytes){
+		entry.fill(sec_bytes + offset, n, val);
+	}, sec, offset, n);
+}
 
-		if(const auto p_entry = GetPage(key))
-		{
-			const auto sec_off(sec - key);
-			// TODO: Compare and assert 'entry.count' and 'sec'?
-			const auto secs_to_process(
-				std::min<size_t>(GetBlockCount(key) - sec_off, n));
-
-			p_entry->fill(sec_off * bytes_per_sector,
-				secs_to_process * bytes_per_sector, value);
-			yunseq(sec += secs_to_process, n -= secs_to_process);
-		}
-		else
-			return {};
-	}
-	return true;
+bool
+SectorCache::FillSectors(::sec_t sec, size_t n, byte val) ynothrow
+{
+	return PerformSectorsIO([&](ystdex::block_buffer& entry, size_t sec_off,
+		size_t secs_to_process){
+		entry.fill(sec_off * bytes_per_sector,
+			secs_to_process * bytes_per_sector, val);
+	}, sec, n);
 }
 
 bool
@@ -161,89 +145,47 @@ bool
 SectorCache::ReadPartialSector(void* p_buf, ::sec_t sec, size_t offset,
 	size_t n) ynothrowv
 {
-	if(!(bytes_per_sector < offset + n))
-	{
-		const auto key(GetKey(sec));
-
-		if(const auto p_entry = GetPage(key))
-		{
-			p_entry->read(p_buf, (sec - key) * bytes_per_sector + offset, n);
-			return true;
-		}
-	}
-	return {};
+	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
+		size_t sec_bytes){
+		entry.read(p_buf, sec_bytes + offset, n);
+	}, sec, offset, n);
 }
 
 bool
-SectorCache::ReadSectors(::sec_t sec, size_t n, void* p_buf) ynothrowv
+SectorCache::ReadSectors(void* p_buf, ::sec_t sec, size_t n) ynothrowv
 {
 	auto dst(static_cast<byte*>(p_buf));
 
-	while(0 < n)
-	{
-		const auto key(GetKey(sec));
-
-		if(const auto p_entry = GetPage(key))
-		{
-			const auto sec_off(sec - key);
-			// TODO: Compare and assert 'count' and 'sec_off'?
-			const auto secs_to_process(
-				std::min<size_t>(GetBlockCount(key) - sec_off, n));
-
-			p_entry->read(dst, sec_off * bytes_per_sector,
-				secs_to_process * bytes_per_sector);
-			yunseq(dst += secs_to_process * bytes_per_sector,
-				sec += secs_to_process,  n -= secs_to_process);
-		}
-		else
-			return {};
-	}
-	return true;
+	return PerformSectorsIO([&](ystdex::block_buffer& entry, size_t sec_off,
+		size_t secs_to_process){
+		entry.read(dst, sec_off * bytes_per_sector,
+			secs_to_process * bytes_per_sector);
+		dst += secs_to_process * bytes_per_sector;
+	}, sec, n);
 }
 
 bool
-SectorCache::WritePartialSector(const void* p_buf, ::sec_t sec, size_t offset,
+SectorCache::WritePartialSector(::sec_t sec, size_t offset, const void* p_buf,
 	size_t n) ynothrowv
 {
-	if(!(bytes_per_sector < offset + n))
-	{
-		const auto key(GetKey(sec));
-
-		if(const auto p_entry = GetPage(key))
-		{
-			p_entry->write((sec - key) * bytes_per_sector + offset, p_buf, n);
-			return true;
-		}
-	}
-	return {};
+	return PerformPartialSectorIO([=](ystdex::block_buffer& entry,
+		size_t sec_bytes){
+		entry.write(sec_bytes + offset, p_buf, n);
+	}, sec, offset, n);
 }
 
 bool
-SectorCache::WriteSectors(::sec_t sec, size_t n, const void* p_buf)
+SectorCache::WriteSectors(::sec_t sec, const void* p_buf, size_t n)
 	ynothrow
 {
 	auto src(static_cast<const byte*>(p_buf));
 
-	while(0 < n)
-	{
-		const auto key(GetKey(sec));
-
-		if(const auto p_entry = GetPage(key))
-		{
-			const auto sec_off(sec - key);
-			// TODO: Compare and assert 'entry.count' and 'sec'?
-			const auto secs_to_process(
-				std::min<size_t>(GetBlockCount(key) - sec_off, n));
-
-			p_entry->write(sec_off * bytes_per_sector, src,
-				secs_to_process * bytes_per_sector);
-			yunseq(src += secs_to_process * bytes_per_sector,
-				sec += secs_to_process, n -= secs_to_process);
-		}
-		else
-			return {};
-	}
-	return true;
+	return PerformSectorsIO([&](ystdex::block_buffer& entry, size_t sec_off,
+		size_t secs_to_process){
+		entry.write(sec_off * bytes_per_sector, src,
+			secs_to_process * bytes_per_sector);
+		src += secs_to_process * bytes_per_sector;
+	}, sec, n);
 }
 #endif
 
