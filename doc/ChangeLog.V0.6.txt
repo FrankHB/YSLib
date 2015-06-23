@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r1161
+\version r1214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-06-20 09:02 +0800
+	2015-06-23 11:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ "ignored message with lower level than 'Alert'" @ "platform %DS"
+			@ "member function Logger::DefaultSendLog" @ %YCLib.Debug,
+		* "printed pixel noise due to 'std::printf' call" @ "platform %DS"
+			@ %Helper.Initialization $since b450,
+			// This occurred when %FetchMIMEBiMapping called.
+		/ %YCLib $=
+		(
+			+ 'using u16string = basic_string<char16_t>;' @ %Container,
+			/ @ "namespace %FAT" @ %FileSystem $=
+			(
+				/ @ "namespace %LFN" $=
+				(
+					+ "function %ConvertToAlias" $dep_from %Container,
+					+ "functions %(FetchLongNameOffset, WriteNumericTail)"
+				),
+				+ "enums %(BPB, FSI)",
+				+ "inline namespace %FAT16"
+					$= (+ "enum %BPB"),
+				+ "inline namespace %FAT32"
+					$= (+ "enum %BPB"),
+				+ "yconstexpr objects %(FSI_LeadSig_Value, FSI_StrucSig_Value,
+					FSI_TrailSig_Value)"
+			)
+		),
+		/ @ "class %SectorCache" @ %'YCLib_(DS)'.DSIO $=
+		(
+			+ "function %FillPartialSector",
+			(
+			/ "reordered parameters" @ "functions %(EraseWritePartialSector,
+				ReadSectors, WritePartialSector, WriteSectors)";
+			+ "default argument '1'" @ "last size parameter" @ "functions \
+				%(EraseWritePartialSector, ReadPartialSector, ReadSectors, \
+				WritePartialSector, WriteSectors)"
+			),
+			/ DLDI "simplified I/O routines" ^ "private member templates"
+		)
+	),
+	* $comp "printed pixel noise due to tracing" $since b434
+		$dep_from %YFramework.YCLib.Debug;
+		// For %debug configuration, this was changed since b432, but only \
+			occurred by %YTraceDe calls in %YLoader since b434. For %release \
+			configuration, this occurred from b498.
+	/ %YBase.YStandardEx $=
+	(
+		+ "function templates %(read_uint_le, write_uint_le)"
+			@ %CStandardInteger,
+		+ "function template %restrict_length" @ %String
+	)
+),
+
+b607
 (
 	/ $re_ex(b604) DLDI @ "main function" @ "platform %Android" @ %Main
 		^ 'yunused',

@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1161
+\version r1163
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-06-16 13:52 +0800
+	2015-06-23 05:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -456,6 +456,8 @@ inline platform::references ： 引用声明内联命名空间。
 platform::ColorSpace ：颜色空间。
 platform::Concurrency ： 平台并发操作接口。
 platform::FAT ： 文件分配表接口。
+inline platform::FAT::FAT16 ： FAT16 接口（ FAT12 共享实现）。
+inline platform::FAT::FAT32 ： FAT32 接口。
 platform::FAT::Clusters ：簇接口。
 platform::FAT::LFN ：长文件名接口。
 platform::KeyCategory ：按键类别。

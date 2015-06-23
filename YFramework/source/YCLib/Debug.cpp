@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r534
+\version r536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-04-29 00:26 +0800
+	2015-06-21 07:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,6 +100,8 @@ Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 #if YCL_DS
 	if(lv <= Descriptions::Alert)
 		platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
+	else
+		return;
 #endif
 #if YF_Multithread
 	std::string t_id;

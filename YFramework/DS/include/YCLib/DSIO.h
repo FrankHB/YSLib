@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r143
+\version r194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-06-13 00:28 +0800
+	2015-06-22 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,8 +104,13 @@ private:
 	GetPage(::sec_t) ynothrow;
 
 public:
-	YB_NONNULL(2) bool
-	EraseWritePartialSector(const void*, ::sec_t, size_t, size_t) ynothrowv;
+	//! \since build 608
+	YB_NONNULL(4) bool
+	EraseWritePartialSector(::sec_t, size_t, const void*, size_t = 1) ynothrowv;
+
+	//! \since build 608
+	bool
+	FillPartialSector(::sec_t, size_t, size_t = 1, byte = {}) ynothrowv;
 
 	//! \since build 606
 	bool
@@ -118,18 +123,62 @@ private:
 	bool
 	FlushEntry(UsedListCache::value_type&) ynothrow;
 
+	//! \since build 608
+	//@{
+	template<typename _func>
+	bool
+	PerformPartialSectorIO(_func f, ::sec_t sec, size_t offset, size_t n)
+	{
+		if(!(bytes_per_sector < offset + n))
+		{
+			const auto key(GetKey(sec));
+
+			if(const auto p_entry = GetPage(key))
+			{
+				f(*p_entry, (sec - key) * bytes_per_sector);
+				return true;
+			}
+		}
+		return {};
+	}
+
+	template<typename _func>
+	bool
+	PerformSectorsIO(_func f, ::sec_t& sec, size_t& n)
+	{
+		while(0 < n)
+		{
+			const auto key(GetKey(sec));
+
+			if(const auto p_entry = GetPage(key))
+			{
+				const auto sec_off(sec - key);
+				// TODO: Compare and assert 'count' and 'sec_off'?
+				const auto secs_to_process(
+					std::min<size_t>(GetBlockCount(key) - sec_off, n));
+
+				f(*p_entry, sec_off, secs_to_process);
+				yunseq(sec += secs_to_process,  n -= secs_to_process);
+			}
+			else
+				return {};
+		}
+		return true;
+	}
+
 public:
 	YB_NONNULL(2) bool
-	ReadPartialSector(void*, ::sec_t, size_t, size_t) ynothrowv;
-
-	YB_NONNULL(4) bool
-	ReadSectors(::sec_t, size_t, void*) ynothrowv;
+	ReadPartialSector(void*, ::sec_t, size_t, size_t = 1) ynothrowv;
 
 	YB_NONNULL(2) bool
-	WritePartialSector(const void*, ::sec_t, size_t, size_t) ynothrowv;
+	ReadSectors(void*, ::sec_t, size_t = 1) ynothrowv;
 
 	YB_NONNULL(4) bool
-	WriteSectors(::sec_t, size_t, const void*) ynothrow;
+	WritePartialSector(::sec_t, size_t, const void*, size_t = 1) ynothrowv;
+
+	YB_NONNULL(3) bool
+	WriteSectors(::sec_t, const void*, size_t = 1) ynothrow;
+	//@}
 };
 //@}
 #endif

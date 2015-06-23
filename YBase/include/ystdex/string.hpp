@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1430
+\version r1443
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-06-06 08:38 +0800
+	2015-06-23 11:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -364,6 +364,21 @@ ntctsncpy(_tString&& str, _tString&& s,
 }
 //@}
 //@}
+
+
+/*!
+\brief 限制长度不超过指定参数。
+\since build 608
+*/
+template<class _tString>
+inline _tString&&
+restrict_length(_tString&& str,
+	const typename string_traits<_tString>::size_type n)
+{
+	if(n < str.length())
+		str.resize(n);
+	return static_cast<_tString&&>(str);
+}
 
 
 /*!

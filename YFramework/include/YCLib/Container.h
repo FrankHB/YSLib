@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r796
+\version r798
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2015-05-12 12:15 +0800
+	2015-06-21 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,6 +103,8 @@ using basic_string = std::basic_string<_tChar, _tTraits, _tAlloc>;
 // using versa_string = __gnu_cxx::__versa_string<_tChar>;
 
 using string = basic_string<char>;
+//! \since build 608
+using u16string = basic_string<char16_t>;
 //! \since build 593
 //@{
 using wstring = basic_string<wchar_t>;

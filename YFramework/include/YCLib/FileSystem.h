@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1892
+\version r2001
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-06-16 17:28 +0800
+	2015-06-23 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	ystdex::string_length, std::is_integral, std::is_array,
 //	ystdex::remove_reference_t, arrlen, std::FILE,
 //	ystdex::enable_for_string_class_t, std::uint64_t, string, std::uint8_t,
-//	std::uint32_t, pair;
+//	std::uint32_t, pair, tuple, u16string;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_Encoding // for CHRLib::ucs2_t, CHRLib::ucs4_t,
 //	CHRLib::CharSet::Encoding;
@@ -755,6 +755,100 @@ namespace FAT
 using EntryDataUnit = std::uint8_t;
 using ClusterIndex = std::uint32_t;
 
+//! \since build 608
+//@{
+/*!
+\brief BIOS 参数块偏移量。
+\see Microsoft FAT Specification Section 3.1 。
+*/
+enum BPB : size_t
+{
+	BS_jmpBoot = 0,
+	BS_OEMName = 3,
+	BPB_BytsPerSec = 11,
+	BPB_SecPerClus = 13,
+	BPB_RsvdSecCnt = 14,
+	BPB_NumFATs = 16,
+	BPB_RootEntCnt = 17,
+	BPB_TotSec16 = 19,
+	BPB_Media = 21,
+	BPB_FATSz16 = 22,
+	BPB_SecPerTrk = 24,
+	BPB_NumHeads = 26,
+	BPB_HiddSec = 28,
+	BPB_TotSec32 = 32
+};
+
+//! \brief FAT16 接口（ FAT12 共享实现）。
+inline namespace FAT16
+{
+
+/*!
+\brief FAT12 和 FAT16 扩展 BIOS 参数块偏移量。
+\see Microsoft FAT Specification Section 3.2 。
+*/
+enum BPB : size_t
+{
+	BS_DrvNum = 36,
+	BS_Reserved1 = 37,
+	BS_BootSig = 38,
+	BS_VolID = 39,
+	BS_VolLab = 43,
+	BS_FilSysType = 54,
+	_reserved_zero_448 = 62,
+	Signature_word = 510,
+	_reserved_remained = 512
+};
+
+} // inline namespace FAT16;
+
+//! \brief FAT32 接口。
+inline namespace FAT32
+{
+
+/*!
+\brief FAT32 扩展 BIOS 参数块偏移量。
+\see Microsoft FAT Specification Section 3.3 。
+*/
+enum BPB : size_t
+{
+	BPB_FATSz32 = 36,
+	BPB_ExtFlags = 40,
+	BPB_FSVer = 42,
+	BPB_RootClus = 44,
+	BPB_FSInfo = 48,
+	BPB_BkBootSec = 50,
+	BPB_Reserved = 52,
+	BS_DrvNum = 64,
+	BS_Reserved1 = 65,
+	BS_BootSig = 66,
+	BS_VolID = 67,
+	BS_VolLab = 71,
+	BS_FilSysType = 82,
+	_reserved_zero_420 = 90
+};
+
+} // inline namespace FAT32;
+
+//! \see Microsoft FAT Specification Section 5 。
+//@{
+//! \brief 文件系统信息块偏移量。
+enum FSI : size_t
+{
+	FSI_LeadSig = 0,
+	FSI_Reserved1 = 4,
+	FSI_StrucSig = 484,
+	FSI_Free_Count = 488,
+	FSI_Nxt_Free = 492,
+	FSI_Reserved2 = 496,
+	FSI_TrailSig = 508
+};
+
+yconstexpr const std::uint32_t FSI_LeadSig_Value(0x41615252),
+	FSI_StrucSig_Value(0x61417272), FSI_TrailSig_Value(0xAA550000);
+//@}
+//@}
+
 /*!
 \brief 文件属性。
 \see Microsoft FAT specification Section 6 。
@@ -887,13 +981,38 @@ enum EntryValues : EntryDataUnit
 //! \brief 非法长文件名字符。
 const char IllegalCharacters[]{"\\/:*?\"<>|"};
 
+//! \since build 608
+//@{
 /*!
-\brief 生成命名校验和。
+\brief 转换长文件名为别名。
+\pre 参数指定的字符串不含空字符。
+\return 主文件名、扩展名和指定是否为有损转换标识。
+\note 返回的文件名长度分别不大于 MaxAliasMainPartLength
+	和 MaxAliasExtensionLength 。
+*/
+YF_API tuple<string, string, bool>
+ConvertToAlias(const u16string&);
+
+//! \brief 按指定序数取长文件名偏移。
+inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord) ynothrow
+	ImplRet((size_t(ord & ~LastLongEntry) - 1U) * EntryLength)
+//@}
+
+/*!
+\brief 生成别名校验和。
 \pre 断言：参数非空。
 \see Microsoft FAT specification Section 7.2 。
 */
 YF_API EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
+
+/*!
+\brief 在指定字符串写 '~' 和整数的后缀以作为短文件名。
+\pre 字符串长度不小于 MaxAliasMainPartLength 。
+\since build 608
+*/
+YF_API void
+WriteNumericTail(string&, size_t) ynothrowv;
 
 } // namespace LFN;
 

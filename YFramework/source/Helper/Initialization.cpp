@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2323
+\version r2333
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-05-31 11:29 +0800
+	2015-06-21 09:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,12 @@ namespace
 \brief 初始化时使用的行输出函数。
 \since build 505
 */
-#if YCL_Android
+#if YCL_DS
+// \since build 608
+bool at_init(true);
+#	define YF_Init_printf(_lv, ...) (at_init ? std::printf(__VA_ARGS__) : 0)
+#	define YF_Init_puts(_lv, _str) (at_init ? std::puts(_str) : 0)
+#elif YCL_Android
 #	define YF_Init_printf(_lv, ...) YTraceDe(_lv, __VA_ARGS__)
 #	define YF_Init_puts(_lv, _str) YTraceDe(_lv, _str)
 #else
@@ -531,6 +536,10 @@ FetchDefaultFontCache()
 			AccessChild<string>(node, "FontFile"),
 			AccessChild<string>(node, "FontDirectory"));
 	}
+#if YCL_DS
+	// XXX: Actually this should be set after %InitVideo call.
+	at_init = {};
+#endif
 	return *p_font_cache;
 }
 
