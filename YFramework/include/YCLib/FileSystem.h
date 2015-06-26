@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2001
+\version r2114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-06-23 11:16 +0800
+	2015-06-26 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -757,10 +757,9 @@ using ClusterIndex = std::uint32_t;
 
 //! \since build 608
 //@{
-/*!
-\brief BIOS 参数块偏移量。
-\see Microsoft FAT Specification Section 3.1 。
-*/
+//! \see Microsoft FAT Specification Section 3.1 。
+//@{
+//! \brief BIOS 参数块偏移量。
 enum BPB : size_t
 {
 	BS_jmpBoot = 0,
@@ -778,6 +777,13 @@ enum BPB : size_t
 	BPB_HiddSec = 28,
 	BPB_TotSec32 = 32
 };
+
+/*!
+\brief BIOS 参数块偏移量域 BPB_BytsPerSec 的最值。
+\since build 609
+*/
+yconstexpr const size_t MinSectorSize(512), MaxSectorSize(4096);
+//@}
 
 //! \brief FAT16 接口（ FAT12 共享实现）。
 inline namespace FAT16
@@ -872,12 +878,30 @@ DefBitmaskEnum(Attribute)
 namespace Clusters
 {
 
-yconstexpr const size_t PerFAT12 = 4085;
-yconstexpr const size_t PerFAT16 = 65525;
+// !\see Microsoft FAT Specification Section 3.2 。
+//@{
+yconstexpr const size_t PerFAT12(4085);
+yconstexpr const size_t PerFAT16(65525);
+//@}
 
 enum : ClusterIndex
 {
 	FAT16RootDirectory = 0,
+	/*!
+	\since build 609
+	\see Microsoft FAT Specification Section 4 。
+	*/
+	//@{
+	MaxValid12 = 0xFF6,
+	MaxValid16 = 0xFFF6,
+	MaxValid32 = 0xFFFFFF6,
+	Bad12 = 0xFF7,
+	Bad16 = 0xFFF7,
+	Bad32 = 0xFFFFFF7,
+	EndOfFile12 = 0xFFF,
+	EndOfFile16 = 0xFFFF,
+	EndOfFile32 = 0xFFFFFFFF,
+	//@}
 	EndOfFile = 0x0FFFFFFF,
 	First = 0x00000002,
 	Root = 0x00000000,
@@ -1015,6 +1039,107 @@ YF_API void
 WriteNumericTail(string&, size_t) ynothrowv;
 
 } // namespace LFN;
+
+//! \since build 609
+//@{
+//! \brief 目录项数据大小。
+yconstexpr const size_t EntryDataSize(0x20);
+
+/*!
+\brief 目录项数据。
+\note 默认构造不初始化。
+*/
+class YF_API EntryData final : private array<EntryDataUnit, EntryDataSize>
+{
+public:
+	using Base = array<EntryDataUnit, EntryDataSize>;
+	/*
+	\brief 目录项偏移量。
+	\sa Microsoft FAT specification Section 6 。
+	*/
+	enum Offsets : size_t
+	{
+		Name = 0x00,
+		Extension = 0x08,
+		Attributes = 0x0B,
+		//! \note 项 DIR_NTRes 保留，指定值为 0 但扩展为表示大小写。
+		CaseInfo = 0x0C,
+		CTimeTenth = 0x0D,
+		CTime = 0x0E,
+		CDate = 0x10,
+		ADate = 0x12,
+		ClusterHigh = 0x14,
+		MTime = 0x16,
+		MDate = 0x18,
+		Cluster = 0x1A,
+		FileSize = 0x1C
+	};
+	//! \sa Microsoft FAT specification Section 6.1 。
+	enum : EntryDataUnit
+	{
+		Last = 0x00,
+		Free = 0xE5,
+	};
+
+	using Base::operator[];
+	using Base::data;
+
+	DefPred(const ynothrow, Directory,
+		bool(Attribute((*this)[Attributes]) & Attribute::Directory))
+	DefPred(const ynothrow, LongFileName,
+		Attribute((*this)[Attributes]) == Attribute::LongFileName)
+	DefPred(const ynothrow, Volume, bool(Attribute((*this)[Attributes])
+		& Attribute::VolumeID))
+	DefPred(const ynothrow, Writable,
+		!bool(Attribute((*this)[Attributes]) & Attribute::ReadOnly))
+
+	PDefH(void, SetDirectoryAttribute, ) ynothrow
+		ImplExpr((*this)[Attributes] = EntryDataUnit(Attribute::Directory))
+	PDefH(void, SetDot, size_t n) ynothrowv
+		ImplExpr(YAssert(n < EntryDataSize, "Invalid argument found."),
+			(*this)[n] = '.')
+
+	PDefH(void, ClearAlias, ) ynothrow
+		ImplExpr(ystdex::trivially_fill_n(data(), LFN::AliasEntryLength, ' '))
+
+	PDefH(void, Clear, ) ynothrow
+		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this)))
+
+	/*!
+	\brief 复制长文件名列表项数据到参数指定的缓冲区的对应位置。
+	\pre 断言：参数非空。
+	*/
+	void
+	CopyLFN(char16_t*) const ynothrowv;
+
+	PDefH(void, FillLast, ) ynothrow
+		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this), 1, Last))
+
+	bool
+	FindAlias(const char*, size_t) const;
+
+	string
+	GenerateAlias() const;
+
+	PDefH(std::uint32_t, ReadFileSize, ) ynothrow
+		ImplRet(ystdex::read_uint_le<32>(data() + FileSize))
+
+	void
+	SetupRoot(ClusterIndex) ynothrow;
+
+	void
+	WriteAlias(const string&) ynothrow;
+
+	void
+	WriteCDateTime() ynothrow;
+
+	void
+	WriteCluster(ClusterIndex) ynothrow;
+
+	void
+	WriteDateTime() ynothrow;
+};
+//@}
 
 } // namespace FAT;
 
