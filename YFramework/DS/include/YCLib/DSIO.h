@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r194
+\version r198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-06-22 11:55 +0800
+	2015-06-24 09:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,6 +98,12 @@ public:
 private:
 	size_t
 	GetBlockCount(::sec_t) const ynothrow;
+
+public:
+	//! \since build 609
+	DefGetter(const ynothrow, Disc, Disc, disc)
+
+private:
 	PDefH(size_t, GetKey, ::sec_t sec) const ynothrowv
 		ImplRet(sec & ~((1 << sectors_per_page_shift) - 1))
 	ystdex::block_buffer*

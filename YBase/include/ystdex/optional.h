@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r526
+\version r533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2015-05-29 19:57 +0800
+	2015-06-26 07:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,6 +153,13 @@ public:
 		if(engaged)
 			construct_raw(std::move(s.value));
 	}
+	/*!
+	\brief 析构：空实现。
+	\note 不使用默认函数以避免派生此类的非平凡析构函数非合式而被删除。
+	\since build 609
+	*/
+	~optional_base()
+	{}
 
 	optional_base&
 	operator=(const optional_base& s)

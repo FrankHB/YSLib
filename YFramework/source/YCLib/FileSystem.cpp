@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2300
+\version r2406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-06-22 07:18 +0800
+	2015-06-26 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,8 @@
 #include <cstring> // for std::strchr;
 #include <fcntl.h>
 #include <numeric> // for std::accumulate;
+#include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
+//	ystdex::write_uint_le;
 #if YCL_DS
 #	include YFM_CHRLib_CharacterProcessing
 
@@ -847,6 +849,128 @@ FetchDateTime() ynothrow
 			| (tmp.tm_min & 0x3F) << 5 | ((tmp.tm_sec >> 1) & 0x1F) : 0};
 	}
 	return {0, 0};
+}
+
+
+void
+EntryData::CopyLFN(char16_t* str) const ynothrowv
+{
+	const auto pos(LFN::FetchLongNameOffset((*this)[LFN::Ordinal]));
+
+	YAssertNonnull(str);
+	for(size_t i(0); i < LFN::EntryLength; ++i)
+		if(pos + i < LFN::MaxLength - 1)
+			str[pos + i]
+				= ystdex::read_uint_le<16>(data() + LFN::OffsetTable[i]);
+}
+
+bool
+EntryData::FindAlias(const char* name, size_t len) const
+{
+	const auto alias(GenerateAlias());
+
+	return ystdex::ntctsnicmp(name, alias.c_str(),
+		std::min<size_t>(alias.length(), len)) == 0;
+}
+
+string
+EntryData::GenerateAlias() const
+{
+	if((*this)[0] != Free)
+	{
+		if((*this)[0] == '.')
+			return (*this)[1] == '.' ? ".." : ".";
+
+		// NOTE: Copy the base filename.
+		bool case_info(((*this)[CaseInfo] & LFN::CaseLowerBasename) != 0);
+		const auto conv([&](size_t i){
+			const auto c((*this)[i]);
+
+			return char(case_info ? std::tolower(int(c)) : c);
+		});
+		string res;
+
+		res.reserve(LFN::MaxAliasLength - 1);
+		for(size_t i(0); i < LFN::MaxAliasMainPartLength
+			&& (*this)[Name + i] != ' '; ++i)
+			res += conv(Name + i);
+		if((*this)[Extension] != ' ')
+		{
+			res += '.';
+			case_info = ((*this)[CaseInfo] & LFN::CaseLowerExtension) != 0;
+			for(size_t i(0); i < LFN::MaxAliasExtensionLength
+				&& (*this)[Extension + i] != ' '; ++i)
+				res += conv(Extension + i);
+		}
+		return res;
+	}
+	return {};
+}
+
+void
+EntryData::SetupRoot(ClusterIndex root_cluster) ynothrow
+{
+	Clear();
+	ClearAlias(),
+	SetDot(Name),
+	SetDirectoryAttribute();
+	WriteCluster(root_cluster);
+}
+
+void
+EntryData::WriteCluster(ClusterIndex c) ynothrow
+{
+	using ystdex::write_uint_le;
+
+	write_uint_le<16>(data() + Cluster, c),
+	write_uint_le<16>(data() + ClusterHigh, c >> 16);
+}
+
+void
+EntryData::WriteAlias(const string& alias) ynothrow
+{
+	size_t i(0), j(0);
+
+	for(; j < LFN::MaxAliasMainPartLength && alias[i] != '.'
+		&& alias[i] != char(); yunseq(++i, ++j))
+		(*this)[j] = EntryDataUnit(alias[i]);
+	while(j < LFN::MaxAliasMainPartLength)
+	{
+		(*this)[j] = ' ';
+		++j;
+	}
+	if(alias[i] == '.')
+		for(++i; alias[i] != char() && j < LFN::AliasEntryLength;
+			yunseq(++i, ++j))
+			(*this)[j] = EntryDataUnit(alias[i]);
+	for(; j < LFN::AliasEntryLength; ++j)
+		(*this)[j] = ' ';
+}
+
+void
+EntryData::WriteCDateTime() ynothrow
+{
+	using ystdex::write_uint_le;
+	const auto& date_time(FetchDateTime());
+
+	write_uint_le<16>(data() + CTime, date_time.second),
+	write_uint_le<16>(data() + CDate, date_time.first);
+}
+
+void
+EntryData::WriteDateTime() ynothrow
+{
+	using ystdex::write_uint_le;
+	using ystdex::unseq_apply;
+	const auto date_time(FetchDateTime());
+	const auto dst(data());
+
+	unseq_apply([&](size_t offset){
+		write_uint_le<16>(dst + offset, date_time.first);
+	}, CDate, MDate, ADate),
+	unseq_apply([&](size_t offset){
+		write_uint_le<16>(dst + offset, date_time.second);
+	}, CTime, MTime);
 }
 
 } // namespace FAT;
