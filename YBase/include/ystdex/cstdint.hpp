@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r286
+\version r289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-06-22 00:24 +0800
+	2015-06-27 05:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,11 +222,11 @@ pack_uint(_tIn first, _tIn last) ynothrowv
 {
 	static_assert(_vWidth != 0 && _vWidth % std::numeric_limits<byte>::digits
 		== 0, "Invalid integer width found.");
-	using uint_t = typename make_width_int<_vWidth>::unsigned_type;
+	using utype = typename make_width_int<_vWidth>::unsigned_type;
 
 	yconstraint(!is_undereferenceable(first));
-	return std::accumulate(first, last, uint_t(), [](uint_t x, byte y){
-		return uint_t(x << std::numeric_limits<byte>::digits | y);
+	return std::accumulate(first, last, utype(), [](utype x, byte y){
+		return utype(x << std::numeric_limits<byte>::digits | y);
 	});
 }
 

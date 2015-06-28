@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1163
+\version r1172
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-06-23 05:48 +0800
+	2015-06-27 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -463,6 +463,7 @@ platform::FAT::LFN ：长文件名接口。
 platform::KeyCategory ：按键类别。
 platform::Threading ： 平台线程操作接口。
 platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
+platform_ex::FAT ：基于文件分配表的文件系统扩展接口（当前仅支持 DS 平台）。
 inline platform_ex::Windows ： Windows 平台内联命名空间。
 platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖此命名空间，但可能依赖该命名空间中成员包装的宏。
 CHRLib ：次级子项目库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）此命名空间。
@@ -621,10 +622,19 @@ YFramework 不重载 operator, ，也不对其它代码是否重载 operator, �
 作为例外，接口和实现非平台中立的部分(@2.1.3) 可以使用 catch(...) 捕获所有异常。
 所有平台中立的内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::LanguageConvention @@5.10.5.1.3]) 。
 
-@3.3 字符编码：
+@3.3 文本操作：
+
+@3.3.1 文本编码：
 YFramework 使用 UTF-8 作为外部文本编码。
 除非显式指定表示编码的参数或另行约定，以 char 作为字符类型的 C 风格字符串使用外部文本编码。
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。
+
+@3.3.2 字符串：
+约定表示字符串的类型中，值不包括空字符，即和 NTCTS([Documentation::LanguageConvention @@5.15.10]) 兼容。
+可能被用于表示字符串的类型包括但不限于：
+类模板 basic_string （注意不限于 std::basic_string ，也包括类似的部分兼容的模板）的实例；
+用于表示 C 风格字符串的字符数组、 std::array 或类似类型，以及字符指针类型。
+除非在文档中显式指定，明确表示字符串的类型的值约定不包括作为结束标记的空字符。对 basic_string 实例的值可以直接取长度，即为串长。
 
 @3.4 实现定义行为使用：
 基本内容参见 [Documentation::LanguageConvention @@5.1.3] 。以下为补充例外约定。

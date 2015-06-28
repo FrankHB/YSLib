@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r715
+\version r722
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2015-06-10 17:28 +0800
+	2015-06-28 06:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "base.h" // for ydef.h, for noncopyable, nonmovable, std::declval;
 #include <chrono>
-#include <system_error> // for std::errc, std::system_error;
+#include "exception.h" // for throw_system_error, std::errc;
 
 namespace ystdex
 {
@@ -418,11 +418,9 @@ private:
 		using namespace std;
 
 		if(!pm)
-			throw system_error(int(errc::operation_not_permitted),
-				generic_category());
+			throw_system_error(errc::operation_not_permitted);
 		if(owns)
-			throw system_error(int(errc::resource_deadlock_would_occur),
-				generic_category());
+			throw_system_error(errc::resource_deadlock_would_occur);
 	}
 
 	void
@@ -495,8 +493,7 @@ public:
 	unlock() yimpl(ynothrow)
 	{
 		if(!owns)
-			throw std::system_error(int(std::errc::operation_not_permitted),
-				std::generic_category());
+			throw_system_error(std::errc::operation_not_permitted);
 		if(pm)
 		{
 			pm->unlock();
