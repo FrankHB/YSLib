@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1889
+\version r1919
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-06-08 17:02 +0800
+	2015-06-08 08:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,10 +322,13 @@ ntctscpy(_tChar* s1, const _tChar* s2, size_t n)
 \note 目标字符串短于指定长度的部分会被填充空字符。
 \warning 源字符串在指定长度内没有空字符则目标字符串不以空字符结尾。
 \since build 604
+\todo 使用 \c is_trivially_copyable 代替 \c is_trivial 。
 */
 //@{
 template<typename _tChar>
-_tChar*
+yimpl(enable_if_t<not_<and_<is_trivial<_tChar>,
+	or_<is_aligned_replaceable<_tChar, char>,
+	is_aligned_replaceable<_tChar, wchar_t>>>>::value, _tChar*>)
 ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 {
 	yconstraint(s1),
@@ -340,7 +343,7 @@ ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 			break;
 	}
 	while(n-- != 0)
-		*s2++ = _tChar();
+		*s1++ = _tChar();
 	return res;
 }
 inline char*
@@ -358,6 +361,31 @@ ntctsncpy(wchar_t* s1, const wchar_t* s2, size_t n)
 	yconstraint(s2);
 
 	return std::wcsncpy(s1, s2, n);
+}
+/*!
+\since build 610
+\todo 使用 \c is_trivially_copyable 代替 \c is_trivial 。
+*/
+template<typename _tChar, yimpl(typename = enable_if_t<and_<is_trivial<_tChar>,
+	is_aligned_replaceable<_tChar, char>>::value>)>
+inline _tChar*
+ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
+{
+	return reinterpret_cast<_tChar*>(ystdex::ntctsncpy(
+		reinterpret_cast<char*>(s1), reinterpret_cast<const char*>(s2), n));
+}
+/*!
+\since build 610
+\todo 使用 \c is_trivially_copyable 代替 \c is_trivial 。
+*/
+template<typename _tChar, yimpl(typename _tChar2 = _tChar,
+	typename = enable_if_t<and_<is_trivial<_tChar2>,
+	is_aligned_replaceable<_tChar2, wchar_t>>::value>)>
+inline _tChar*
+ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
+{
+	return reinterpret_cast<_tChar*>(ystdex::ntctsncpy(reinterpret_cast<wchar_t*
+		>(s1), reinterpret_cast<const wchar_t*>(s2), n));
 }
 //@}
 //@}

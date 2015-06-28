@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1592
+\version r1620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-06-17 00:28 +0800
+	2015-06-27 08:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -549,15 +549,42 @@ struct is_contravariant : is_convertible<_tTo, _tFrom>
 
 
 /*!
+\brief 判断是否对齐兼容。
+\note 第一参数类型比第二参数类型对齐要求更严格或相同。
+\since build 610
+*/
+template<typename _type, typename _type2>
+struct is_aligned_compatible : integral_constant<bool, yalignof(_type2)
+	<= yalignof(_type) && yalignof(_type) % yalignof(_type2) == 0>
+{};
+
+/*!
+\brief 判断是否可原地对齐存储。
+\since build 610
+*/
+template<typename _type, typename _tDst>
+struct is_aligned_placeable : integral_constant<bool, sizeof(_type)
+	== sizeof(_tDst) && is_aligned_compatible<_tDst, _type>::value>
+{};
+
+/*!
 \brief 判断是否可对齐存储。
 \since build 503
 */
 template<typename _type, typename _tDst>
-struct is_aligned_storable : integral_constant<bool,
-	sizeof(_type) <= sizeof(_tDst) && yalignof(_type) <= yalignof(_tDst)
-	&& yalignof(_tDst) % yalignof(_type) == 0>
+struct is_aligned_storable : integral_constant<bool, sizeof(_type)
+	<= sizeof(_tDst) && is_aligned_compatible<_tDst, _type>::value>
 {};
 //@}
+
+/*!
+\brief 判断是否可替换对齐存储。
+\since build 610
+*/
+template<typename _type, typename _tDst>
+struct is_aligned_replaceable : and_<is_aligned_storable<_type, _tDst>,
+	is_aligned_storable<_tDst, _type>>
+{};
 
 
 namespace details

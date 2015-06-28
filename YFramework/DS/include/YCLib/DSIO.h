@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r198
+\version r298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-06-24 09:02 +0800
+	2015-06-29 06:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@
 #	include <ystdex/base.h> // for ystdex::noncopyable, ystdex::nonmomable;
 #	include <ystdex/cache.hpp> // for ystdex::used_list_cache;
 #	include <ystdex/cstdio.h> //for ystdex::block_buffer;
+#	include YFM_YCLib_FileSystem // for platform::FAT, platform::Deref,
+//	platform::Concurrency, platform::FileSystemType, std::system_error;
 #endif
 
 namespace platform_ex
@@ -187,6 +189,131 @@ public:
 	//@}
 };
 //@}
+
+/*!
+\brief 基于文件分配表的文件系统扩展接口。
+\since build 610
+*/
+namespace FAT
+{
+
+//! \see Microsoft FAT Specification Section 2 。
+static_assert(std::is_same<byte, ystdex::octet>::value,
+	"Only 8-bit byte is supported.");
+
+static_assert(!(sizeof(size_t) < sizeof(std::uint32_t)),
+	"Invalid type found.");
+
+using namespace platform::FAT;
+using platform::Deref;
+using namespace platform::Concurrency;
+using platform::FileSystemType;
+
+// XXX: Mutex lock probable may throw on platforms other than DS. However,
+//	ISO C++ [thread.req.exception] guaranteed only specified error conditions
+//	are allowed, and all of them in [thread.mutex.requirements.mutex] are
+//	carefully avoided. Thus the exception specifications are not effected even
+//	if each creation of lock is not in a try-block.
+
+
+//! \brief 分配表。
+class YF_API AllocationTable final
+{
+private:
+	mutable mutex part_mutex{};
+	size_t sectors_per_cluster;
+	size_t bytes_per_sector;
+	size_t bytes_per_cluster;
+	::sec_t table_start;
+	size_t table_size;
+	size_t total_sectors_num;
+	size_t limit;
+	size_t root_dir_start;
+	size_t root_dir_sectors_num;
+	size_t data_sectors_num;
+	ClusterIndex first_free = Clusters::First;
+	ClusterIndex free_cluster = 0;
+	ClusterIndex last_alloc_cluster = 0;
+	ClusterIndex last_cluster;
+	FileSystemType fs_type;
+	ClusterIndex root_dir_cluster;
+
+public:
+	mutable SectorCache Cache;
+
+	YB_NONNULL(3)
+	AllocationTable(::sec_t, const byte*, size_t, size_t, Disc) ynothrowv;
+
+	DefDeCopyAssignment(AllocationTable)
+
+	PDefH(bool, IsValidCluster, ClusterIndex c) const ynothrow
+		// NOTE: This will catch Clusters::Error.
+		ImplRet(Clusters::First <= c && c <= last_cluster)
+
+	DefGetter(const ynothrow, size_t, BytesPerCluster, bytes_per_cluster)
+	DefGetter(const ynothrow, size_t, BytesPerSector, bytes_per_sector)
+	DefGetter(const ynothrow, FileSystemType, FileSystemType, fs_type)
+	DefGetter(const ynothrow, size_t, FreeClusters,
+		fs_type == FileSystemType::FAT32 ? free_cluster : CountFreeCluster())
+	DefGetter(const ynothrow, mutex&, MutexRef, part_mutex)
+	DefGetter(const ynothrow, ClusterIndex, RootDirCluster, root_dir_cluster)
+	DefGetter(const ynothrow, ClusterIndex, RootDirSectorsNum,
+		root_dir_sectors_num)
+	DefGetter(const ynothrow, size_t, SectorsPerCluster, sectors_per_cluster)
+	DefGetter(const ynothrow, std::uint64_t, TotalSize, std::uint64_t(
+		data_sectors_num) * std::uint64_t(bytes_per_sector))
+	DefGetter(const ynothrow, size_t, UsedClusters,
+		last_cluster - Clusters::First + 1)
+
+	PDefH(::sec_t, ClusterToSector, ClusterIndex c) const ynothrow
+		ImplRet((c >= Clusters::First ? (c - Clusters::First) * ::sec_t(
+			sectors_per_cluster) + root_dir_sectors_num : 0) + root_dir_start)
+
+	bool
+	ClearLinks(ClusterIndex) ynothrow;
+
+	ClusterIndex
+	CountFreeCluster() const ynothrow;
+
+	ClusterIndex
+	LinkFree(ClusterIndex) ynothrow;
+
+private:
+	ClusterIndex
+	ProbeForNext(ClusterIndex) const ynothrow;
+
+public:
+	ClusterIndex
+	QueryNext(ClusterIndex) const ynothrow;
+
+	ClusterIndex
+	QueryLast(ClusterIndex) const ynothrow;
+
+	YB_NONNULL(2) void
+	ReadClusters(const byte*) ynothrowv;
+
+	ClusterIndex
+	TrimChain(ClusterIndex, size_t) ynothrow;
+
+	/*!
+	\brief 链接空闲空间。
+	\exception std::system_error ENOSPC 空间不足。
+	*/
+	ClusterIndex
+	TryLinkFree(ClusterIndex) ythrow(std::system_error);
+
+	YB_NONNULL(2) void
+	WriteClusters(byte*) const ynothrowv;
+
+	bool
+	WriteEntry(ClusterIndex, std::uint32_t) const ynothrow;
+
+	YB_NONNULL(2) void
+	WriteFSInfo(byte*) ynothrowv;
+};
+
+} // namespace FAT;
+
 #endif
 
 } // namespace platform_ex;

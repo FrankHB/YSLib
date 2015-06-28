@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r192
+\version r213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2015-04-09 21:59 +0800
+	2015-06-29 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,8 @@
 #include <libdefect/exception.h>
 #include <stdexcept> // for std::logic_error;
 #include <memory> // for std::addressof;
+#include <system_error> // for std::error_category, std::generic_category,
+//	std::system_error, std::errc;
 
 namespace ystdex
 {
@@ -144,6 +146,27 @@ public:
 	*/
 	~unimplemented() override;
 };
+//@}
+
+
+/*!
+\brief 抛出 std::system_error 异常。
+\throw std::system_error 使用参数构造的异常。
+\since build 610
+*/
+//@{
+YB_NORETURN inline void
+throw_system_error(int e, const std::error_category& ec
+	= std::generic_category()) ythrow(std::system_error)
+{
+	throw std::system_error(e, ec);
+}
+YB_NORETURN inline void
+throw_system_error(std::errc e, const std::error_category& ec
+	= std::generic_category()) ythrow(std::system_error)
+{
+	throw_system_error(int(e), ec);
+}
 //@}
 
 } // namespace ystdex;

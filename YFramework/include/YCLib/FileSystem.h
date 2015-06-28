@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2114
+\version r2135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-06-26 17:11 +0800
+	2015-06-27 09:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +33,10 @@
 //	ystdex::string_length, std::is_integral, std::is_array,
 //	ystdex::remove_reference_t, arrlen, std::FILE,
 //	ystdex::enable_for_string_class_t, std::uint64_t, string, std::uint8_t,
-//	std::uint32_t, pair, tuple, u16string;
+//	std::uint32_t, pair, tuple, u16string, ystdex::restrict_length;
 #include "CHRLib/YModules.h"
-#include YFM_CHRLib_Encoding // for CHRLib::ucs2_t, CHRLib::ucs4_t,
-//	CHRLib::CharSet::Encoding;
+#include YFM_CHRLib_CharacterProcessing // for CHRLib::ucs2_t, CHRLib::ucs4_t,
+//	CHRLib::CharSet::Encoding, CHRLib::MakeMBCS;
 #include <ystdex/cstring.h> // for ystdex::is_null;
 #include <ios> // for std::ios_base::sync_with_stdio;
 #include <system_error> // for std::system_error;
@@ -47,6 +47,7 @@
 #include <chrono> // for std::chrono::nanoseconds;
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 #include <ctime> // for std::time_t;
+#include YFM_YCLib_Debug // for Nonnull;
 
 namespace platform
 {
@@ -836,6 +837,13 @@ enum BPB : size_t
 
 } // inline namespace FAT32;
 
+/*
+\brief 卷标数据类型。
+\see Microsoft FAT Specification Section 3.2 。
+\since build 610
+*/
+using VolumeLabel = array<byte, 11>;
+
 //! \see Microsoft FAT Specification Section 5 。
 //@{
 //! \brief 文件系统信息块偏移量。
@@ -908,6 +916,10 @@ enum : ClusterIndex
 	Free = 0x00000000,
 	Error = 0xFFFFFFFF
 };
+
+//! \since build 610
+inline PDefH(bool, IsFreeOrEOF, ClusterIndex c)
+	ImplRet(c == Clusters::Free || c == Clusters::EndOfFile)
 
 } // namespace Clusters;
 
@@ -1021,6 +1033,15 @@ ConvertToAlias(const u16string&);
 inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord) ynothrow
 	ImplRet((size_t(ord & ~LastLongEntry) - 1U) * EntryLength)
 //@}
+
+/*!
+\brief 转换 UCS-2 路径字符串为多字节字符串。
+\since build 610
+*/
+inline PDefH(string, ConvertToMBCS, const char16_t* path)
+	// TODO: Optimize?
+	ImplRet(ystdex::restrict_length(CHRLib::MakeMBCS(Nonnull(path),
+		MaxLength, CS_Path), MaxMBCSLength))
 
 /*!
 \brief 生成别名校验和。

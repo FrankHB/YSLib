@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r1236
+\version r1293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-06-27 04:42 +0800
+	2015-06-29 06:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLDI "alias declaration" @ "function template %pack_uint"
+			@ CStandardInteger,
+			// To eliminate warning: [-Wshadow] to 'uint_t' on platform
+				%Android. Note the global '::*_t' is reserved by POSIX.
+		* "missing excluding non class string type for function template \
+			%ntctsncpy" @ %String,
+			// These function templates would be used instead of %ntctsncpy in
+				%CString for non class type, which cause ill-formed programs.
+		/ @ "%ntctsncpy" @ %CString $=
+		(
+			/ @ "function template for unbound character types" $=
+			(
+				* "wrong assignment of terminate null character",
+					// It is ill-formed to modify element pointed by 'const'
+						pointer.
+				+ "overloading condition"
+			)
+			+ "function templates for character types compatible to %(char, \
+				wchar_t)"
+		),
+		/ %TypeOperations $=
+		(
+			+ "binary type trait %is_aligned_compatible";
+			(
+			+ "binary type trait %is_aligned_placeable",
+			/ DLDI "simplified %is_aligned_storable" ^ "%is_aligned_compatible"
+			),
+			+ "binary type trait %is_aligned_replaceable"
+		),
+		(
+		+ "2 inline functions %throw_system_error" @ %Exception;
+		/ DLDI "simplified" @ %PseudoMutex ^ "%throw_system_error"
+			~ "throw-expression"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ "namespace %platform::FAT::Clusters" @ %YCLib.FileSystem $=
+		(
+			+ "function %IsFreeOrEOF" @ "namespace %Clusters",
+			+ "function %ConvertToMBCS" @ "namespace %LFN",
+			+ 'using VolumeLabel = array<byte, 11>;',
+		),
+		+ "namespace %platform::FAT" @ "platform %DS" @ %'YCLib_(DS)'.DSIO$=
+		(
+			+ $dev "static assertions for %(byte, size_t)",
+				// Specific properties are required to support FAT
+					implementation.
+			+ 'using namespace platform::FAT',
+			+ "class %AllocationTable"
+		)
+	)
+),
+
+b609
 (
 	/ %YFramework $=
 	(

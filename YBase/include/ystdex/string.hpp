@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1443
+\version r1447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-06-23 11:08 +0800
+	2015-06-27 07:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -344,7 +344,8 @@ normalize(_tString& str) -> decltype(str.resize(ystdex::ntctslen(str.c_str())))
 */
 //@{
 //! \pre 断言：指针参数非空。
-template<class _tString>
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline _tString&&
 ntctsncpy(_tString&& str, const typename string_traits<_tString>::const_pointer
 	s, const typename string_traits<_tString>::size_type n)
@@ -352,7 +353,8 @@ ntctsncpy(_tString&& str, const typename string_traits<_tString>::const_pointer
 	yconstraint(s);
 	return static_cast<_tString&&>(str = decay_t<_tString>(s, n));
 }
-template<class _tString>
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline _tString&&
 ntctsncpy(_tString&& str, _tString&& s,
 	const typename string_traits<_tString>::size_type n)
