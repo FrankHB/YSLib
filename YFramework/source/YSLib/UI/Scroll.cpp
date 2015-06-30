@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3773
+\version r3775
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2015-05-29 19:40 +0800
+	2015-06-30 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,8 +95,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 {
 	SetContainerPtrOf(tmbScroll, this);
 	yunseq(
-	Background = std::bind(DrawTrackBackground, std::placeholders::_1,
-		std::ref(*this)),
+	Background = ystdex::bind1(DrawTrackBackground, std::ref(*this)),
 	ThumbDrag += [this]{
 		LocateThumb(0, ScrollCategory::ThumbTrack);
 	},

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r1293
+\version r1546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-06-29 06:43 +0800
+	2015-07-01 06:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,262 @@ $import $HISTORY;
 
 $now
 (
+	/ %YFramework $=
+	(
+		+ "function %CheckColons" @ "namespace %platform::FAT"
+			@ %YCLib.FileSystem,
+		/ @ "namespace %platform_ex::FAT" @ "platform %DS" @ %'YCLib(DS)'.DSIO
+			$=
+		(
+			+ $dev "static assertion 'LFN::MaxMBCSLength <= NAME_MAX'",
+			+ 'using namespace platform::Threading;',
+			+ "classes %(FilePosition, DEntryPosition, DEntry, Partition,
+				DirState, FileInfo)",
+			+ "functions %(CheckColons, FetchPartitionFromPath)";
+			+ "functions %(Mount, Unmount)"
+		),
+		/ @ "platform %DS" %YCLib.NativeAPI $=
+		(
+			/ $impl "function %InitializeFileSystem" $=
+			(
+				/ $lib ^ $dep_from ("function %Mount" @ %'YCLib(DS)'.DSIO)
+					~ "libfat" $=
+				(
+					/ "cache" ^ "%SectorCache",
+						// Efficient lookup but larger binary size. However \
+							overall size is still smaller than linking an \
+							external library in release configuration.
+					/ "filename" @ "entries"
+						^ "%string without length limitation"
+						// Limitation of 255 UCS-2 character of LFN is not \
+							checked. The memory usage is more efficient.
+					/ "deferred checking LFN length" @ "adding entry",
+						// Only for filename which is not "." or "..".
+					^ "%CHRLib for encoding conversion" ~ "ISO C routines",
+						// These routines are locale-dependent, although for \
+							DS the patched newlib always use UTF-8 as \
+							multibyte encoding.
+					/ "transparent propogated %ENOSPC as %std::system_error",
+					/ "open file list" ^ "%list" ~ "intrusive linked list",
+					- $design "unnecessary minor redundant integer range check",
+						// See https://github.com/devkitPro/libfat/pull/1 .
+					/ "merged getting date and time calls",
+					/ "reduced unnecessary calls for looking up last cluster",
+						// See https://github.com/devkitPro/libfat/issues/3 . \
+							Even if there is the cache, it is still slower.
+					- "redundant function call for directory entry opening by \
+						path '/'",
+						// See https://github.com/devkitPro/libfat/issues/5 .
+					/ $comp $dev "device operation table allocation and \
+						deallocation" ^ "::operator %(new, delete)"
+						~ "%std::(malloc, free)"
+				),
+				/ DLD "reduced one redundant %REG_EXMEMCNT access",
+				* "missing check to prevent repeated initialization" $since b601
+			),
+			+ "function %UninitializeFileSystem"
+		),
+		+ $design "call of %platform_ex::UninitializeFileSystem"
+			@ "platform %DS" @ "function %Uninitialize"
+			@ %Helper.Initialization $dep_from ("%UninitializeFileSystem"
+			@ %YCLib.NativeAPI)
+	),
+	- $dev "-lfat" @ "%LIBS" @ "ARM9 makefile" $dep_from ("platform %DS"
+		@ %YFramework.YCLib.NativeAPI) $dep_to "replaced libfat",
+	/ $comp "platform %DS" $dep_from "replaced libfat" $=
+	(
+		/ "gave up order for flushing files on destruction of partition",
+		/ "skipped redundant alias matching when a filename has been found"
+			@ "opening entry from path",
+		/ "partition object allocation and deallocation"
+			^ "%(make_unique, ::delete)" ~ "%(unique_raw, std::(malloc, free))"
+		/ "creation file system information" @ "constructing partition object"
+			$=
+		(
+			/ "allocation failure would throw rather be suppressed and quietly \
+				abort",
+			+ "trace section writing error with level 'Err'"
+		),
+		+ "trace file synchronization failure on destructing partition object \
+			with level 'Err'",
+		/ "adding entry" $=
+		(
+			/ "threw %EINVAL as %std::system_error when adding entry failed"
+				$dep_to "validating adding entry",
+			/ "threw %ENAMETOOLONG as %std::system_error for too long required \
+				name" $dep_to "path too long"
+				// Actually hard-coded FAT long file name length limit \
+					constant is used instead of %NAME_MAX. For DS, %NAME_MAX \
+					is 768, as same as the UTF-8 sequence length limit of the \
+					FAT long file name. This error would not occur before \
+					because libfat uses fixed-length entries and the bad paths \
+					would be truncated silently.
+		),
+		/ "checking reading or writing file setting %EBADF uniformly on failure"
+			$dep_to "reused file check",
+		- "checking and setting %errno to %EBADF for invalid %fd except for \
+			null value",
+			// This is OK because it is not real file descriptor. Checking \
+				shall be done at caller site.
+		/ "%devoptab_t routines" $=
+		(
+			- "set %errno to %EBADF for zero file descriptor"
+				@ "%(write_r, read_r, seek_r)",
+				// To be same as %close_r. Note it should be safe for external
+					interface.
+			/ "set %errno to %ENOENT for empty path parameter before checking \
+				device" ~ "%ENODEV" @ "%(open_r, stat_r, unlink_r, chdir_r, \
+				rename_r, mkdir_r, statvfs_r)" $dep_to "empty path errno",
+			/ @ "routine %devoptab_t::read_r" $dep_to "read error handling" $=
+			(
+				/ "checked zero bytes to read after other file errors",
+				/ "left %errno untouched rather than setting to %EOVERFLOW on \
+					bytes reaching beyond end-of-file",
+				/ "return '-1' after %EIO set",
+				/ "left file offset untouched after error occurred" @ "%read_r"
+					// POSIX.1-2013 explicitly states it is not specified in \
+						RATIONALE. Since newlib would clear %__SOFF state in \
+						higher-level stdio interface to require fresh seeking \
+						after reading failure, so the modification after \
+						failure is redundant. 
+			),
+			/ "lift path colon check before read-only file system check"
+				@ "%(unlink_r, rename_r)",
+				// Also to simplify the implementation. Note the POSIX error \
+					for %::unlink only valid for flags.
+			+ "colon check" @ "%statvfs_r",
+				// To unify and simplify the implementation. Note it is not a \
+					POSIX error.
+			- "sanity check and setting %EBADF"
+				@ "%dirreset_r, dirnext_r, dirclose_r" $dep_to
+				"removal sanity check for directory operations"
+			/ @ "%(fstat_r, stat_r)" $=
+			(
+				// See https://github.com/devkitPro/libfat/issues/4 .
+				// In function %_FAT_directory_entryFromPosition of "fatfile.c".
+				- "redundant name entry traverse" $dep_to
+					"removal of stat name entry traverse",
+				* "missing check error %EIO" $since b132 $dep_to
+					"missing stat I/O error"
+					// On calling %_FAT_cache_readPartialSector.
+			),
+			/ "checking %ENOENT before %ENOTDIR" @ "%(chdir_r, open_r, \
+				rename_r)" $dep_to "checking changing directory",
+			+ "set %ENOSPC on I/O error" @ "%mkdir_r" $dep_to "mkdir_r ENOSPC"
+		),
+		* "wrong root data sectors number calculated" @ "!FAT32" $since $before
+			b132,
+			// See https://github.com/devkitPro/libfat/issues/2 . Valid value \
+				of %BPB_BytsPerSec is always greater than 1. By specification, \
+				the result for FAT32 is always 0, otherwise this could be less \
+				1 than expected.
+		- "redundantly writing of blank sectors after end of directory mark \
+			reached when finding gap",
+		* "missing some %EIO error checking on cache I/O operations for \
+			(linking cleared cluster, disc synchronization, extending file \
+			blocks, reading file, entry removing, writing file)" $since $before
+			b132,
+		* "strict POSIX.1-2013 compatibility" $since $before b132 $=
+		(
+			// %EINVAL non-POSIX extension for invalid paths are kept, since \
+				POSIX paths do not care about colons.
+			* "%::(open, stat, unlink, chdir, rename, mkdir, statvfs) and \
+				variants for empty string path parameter"
+				$= (/ $comp "set %errno to %ENOENT" ~ "%ENODEV" $dep_from
+					"empty path errno"),
+			* "wrong result and wrong check for zero byte to read"
+				@ "function ::read"
+				$= (/ $comp "setting %errno and returning value properly"
+					$dep_from "read error handling"),
+			* "%ENOSPC wrongly set for invalid path" ~ "%EINVAL"
+				@ "%::rename and variants" $dep_from "validating adding entry",
+			* "missing set %ENAMETOOLONG" @ "%::(open, mkdir, chdir, rename, \
+				opendir) and variants" $dep_from "path too long",
+				// Note that POSIX requires %ENAMETOOLONG when the path \
+					component is longer than %NAME_MAX, and this is optional \
+					for whole path limit, which is stricter.
+			* "redundant %EBADF set"
+				@ "%::(rewinddir, seekdir) and related functions in <dirent.h>"
+				$dep_to "removal sanity check for directory operations",
+			* "missing setting %EIO for %::(stat, fstat)" $dep_from
+				"missing stat I/O error",
+			* "missing checking %ENOENT before %ENOTDIR" @ "%(chdir, open, \
+				rename) and variants" $dep_from "checking changing directory",
+			* "missing setting %ENOSPC on I/O error" @ "%mkdir and variants"
+				$dep_from "mkdir_r ENOSPC"
+				// POSIX requires no %EIO here.
+		),
+		/ $comp "setting %EBADF for files cannot be written" ~ "%EINVAL"
+			@ "function %::ftruncate" $dep_from "reused file check",
+		/ $comp "%EIO would not be set if name entries are corrupted on \
+			calling %::(stat, fstat)" $dep_to
+			"removal of stat name entry traverse"
+	),
+	+ $dev $repo "tag 'V0.6' to revision 472",
+	// See $2015-06 @ %Documentation::Workflow::Annual2015.
 	/ %YBase.YStandardEx $=
 	(
-		/ DLDI "alias declaration" @ "function template %pack_uint"
+		/ %Cache $=
+		(
+			(
+			+ "function template %recent_used_list";
+			+ "traits template %used_list_cache_traits";
+			),
+			/ @ "class template %used_list_cache" $=
+			(
+				/ "simplified template parameters and member types" ^ $dep_from
+					"%used_list_cache_traits";
+				/ $forced $impl "simplified member" ^ $dep_from
+					"%recent_used_list",
+				/ $comp $forced "element of used_list_type" ^ "%value_type"
+					~ "%_tKey",
+				(
+				/ $comp "allowed specified %void hash-function for traits";
+				/ $comp ^ "%std::map as default underlying map container \
+					unless explicitly specified non-void hash function"
+					~ "%std::unordered_map",
+					// Multiple choices are necessary. See \
+						http://blog.dubbelboer.com/2012/12/04/lru-cache.html .
+				),
+				(
+				/ 'using typename map_type::const_iterator;' -> 'using \
+					const_iterator = typename used_list_type::const_iterator;',
+				/ 'using typename map_type::iterator;' -> 'using iterator \
+					= typename used_list_type::iterator;',
+				/ $forced "using-declarations %(key_type, value_type, \
+					size_type)" -> "alias-declarations",
+				/ $forced "using-declarations %(begin, end, size)"
+					-> "functions",
+				/ $forced "function template %emplace"
+					-> "2 function templates";
+				- $design "private base map",
+				* $comp "strong exception guarantee when used list insertion \
+					failed" @ "function template %emplace" $orig
+					(@ "class template %GMRUCache"
+					@ %YFramework.YSLib.Core.Cache $since b461)
+					// Missing rollback for list on insertion failure, so the \
+						base map is inconsistent.
+				),
+				+ $dev "static assertion for same %size_type of underlying \
+					containers"
+			)
+		)
+		+ "function template %bind1" @ %Functional
+	),
+	/ DLDI "simplified bound call" ^ $dep_from ("%bind1"
+		@ %YBase.YStandardEx.Functional) ~ "%std::bind" $effective
+		@ %(YFramework.(NPL.NPLA1, YSLib.(Adaptor.YNew, UI.(Scroll,
+		YUIContainer))), YReader.(ShlReader, ShlExplorer)),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.YSLib.Adaptor.(
+		"ynew.cpp" => "YNew.cpp")
+),
+
+b610
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLDI "alias-declaration" @ "function template %pack_uint"
 			@ CStandardInteger,
 			// To eliminate warning: [-Wshadow] to 'uint_t' on platform
 				%Android. Note the global '::*_t' is reserved by POSIX.

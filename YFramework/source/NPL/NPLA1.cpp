@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r546
+\version r552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2015-05-20 13:54 +0800
+	2015-06-30 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_NPL_NPLA1
 #include YFM_NPL_SContext
 #include <ystdex/exception.h> // for ystdex::unimplemented;
+#include <ystdex/functional.hpp> // for ystdex::bind1;
 
 using namespace YSLib;
 
@@ -110,8 +111,8 @@ TransformNPLA1(const ValueNode& node, NodeMapper mapper,
 		return map_leaf_node(node);
 
 	auto i(node.begin());
-	auto nested_call(std::bind(TransformNPLA1, std::placeholders::_1, mapper,
-		map_leaf_node, node_to_str, insert_child));
+	auto nested_call(ystdex::bind1(TransformNPLA1, mapper, map_leaf_node,
+		node_to_str, insert_child));
 
 	if(s == 1)
 		return nested_call(*i);
@@ -147,8 +148,8 @@ TransformNPLA1Sequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 		return map_leaf_node(node);
 
 	auto i(node.begin());
-	auto nested_call(std::bind(TransformNPLA1Sequence, std::placeholders::_1,
-		mapper, map_leaf_node, node_to_str, insert_child));
+	auto nested_call(ystdex::bind1(TransformNPLA1Sequence, mapper,
+		map_leaf_node, node_to_str, insert_child));
 
 	if(s == 1)
 		return nested_call(*i);

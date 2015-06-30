@@ -900,7 +900,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
+    <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
       <Filter>source\YSLib\Adaptor</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\YApplication.cpp">

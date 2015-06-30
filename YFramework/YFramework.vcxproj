@@ -313,7 +313,7 @@
     <ClCompile Include="source\YCLib\ycommon.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Image.cpp" />
-    <ClCompile Include="source\YSLib\Adaptor\ynew.cpp" />
+    <ClCompile Include="source\YSLib\Adaptor\YNew.cpp" />
     <ClCompile Include="source\YSLib\Core\ValueNode.cpp" />
     <ClCompile Include="source\YSLib\Core\YApplication.cpp" />
     <ClCompile Include="source\YSLib\Core\YCoreUtilities.cpp" />

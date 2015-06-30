@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1476
+\version r1482
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-05-31 11:34 +0800
+	2015-07-01 06:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "ShlExplorer.h"
 #include "ShlReader.h"
 #include YFM_YSLib_UI_ExStyle
+#include <ystdex/functional.hpp> // for ystdex::bind1;
 
 namespace YReader
 {
@@ -255,6 +256,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 {
 	using namespace std;
 	using namespace placeholders;
+	using ystdex::bind1;
 	static struct Init
 	{
 		Init()
@@ -331,15 +333,14 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(bind(SetVisibleOf, _1, false), pnlSetting, pnlTest1,
-		*pFrmAbout),
+	unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1, *pFrmAbout),
 	unseq_apply(bind(&ShlDS::WrapForSwapScreens, this, _1, ref(SwapMask)),
 		dsk_m, dsk_s),
 	ani.Reset(&pnlTest1),
 	ddlStyle.SetList(FetchVisualStyleNames()),
 	rbTxt.ShareTo(rbHex),
 	rbTxt.Select(),
-	unseq_apply(bind(Enable, _1, false), btnOK, btnPrevBackground),
+	unseq_apply(bind1(Enable, false), btnOK, btnPrevBackground),
 	yunseq(
 	dsk_m.Background = ImageBrush(FetchImage(0)),
 	dsk_s.Background
@@ -554,7 +555,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetInvalidationOf(GetSubDesktop());
 	},
 	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e){
-		unseq_apply(bind(SetEnabledOf, _1, !e), cbFPS, rbTxt, rbHex);
+		unseq_apply(bind1(SetEnabledOf, !e), cbFPS, rbTxt, rbHex);
 		InvalidateWidgets(cbFPS, rbTxt, rbHex);
 	},
 	cbShowTextBoxContent.Ticked += [&](CheckBox::TickedArgs&& e){

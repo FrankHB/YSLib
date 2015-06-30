@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ynew.cpp
+/*!	\file YNew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r999
+\version r1004
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2014-11-09 03:24 +0800
+	2015-06-30 17:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include <cstdlib> // for std::atexit, std::malloc & std::free;
 #include <cassert> // for assert;
 #include <algorithm> // for std::for_each;
-#include <functional> // for std::bind;
+#include <ystdex/functional.hpp> // for ystdex::bind1;
 #include <ystdex/cast.hpp> // for ystdex::pvoid;
 
 #ifdef YSL_USE_MEMORY_DEBUG
@@ -167,7 +167,7 @@ void
 MemoryList::PrintAll(std::FILE* stream)
 {
 	std::for_each(Blocks.cbegin(), Blocks.cend(),
-		std::bind(MemoryList::Print, std::placeholders::_1, stream));
+		ystdex::bind1(MemoryList::Print, stream));
 }
 
 void
@@ -175,7 +175,7 @@ MemoryList::PrintAllDuplicate(std::FILE* stream)
 {
 	std::for_each(DuplicateDeletedBlocks.cbegin(),
 		DuplicateDeletedBlocks.cend(),
-		std::bind(MemoryList::Print, std::placeholders::_1, stream));
+		ystdex::bind1(MemoryList::Print, stream));
 }
 
 } // namespace YSLib;

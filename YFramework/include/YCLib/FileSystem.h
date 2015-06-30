@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2135
+\version r2144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-06-27 09:03 +0800
+	2015-06-29 11:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1161,6 +1161,17 @@ public:
 	WriteDateTime() ynothrow;
 };
 //@}
+
+
+/*!
+\brief 检查参数指定的 MS-DOS 风格路径冒号。
+\pre 间接断言：参数非空。
+\exception std::system_error 检查失败。
+	\li \c std::errc::invalid_argument 路径有超过一个冒号。
+\since build 611
+*/
+YF_API YB_NONNULL(1) const char*
+CheckColons(const char*) ythrow(std::system_error);
 
 } // namespace FAT;
 

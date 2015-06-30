@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2406
+\version r2421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-06-26 17:21 +0800
+	2015-06-29 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,13 @@
 #include YFM_YCLib_Reference // for unique_ptr;
 #include <cstring> // for std::strchr;
 #include <fcntl.h>
+#include <cwchar> // for std::wctob;
+#include <cwctype> // for std::towupper, std::towlower;
 #include <numeric> // for std::accumulate;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
 //	ystdex::write_uint_le;
+#include <ystdex/exception.h> // for ystdex::throw_system_error,
+//	std::errc::invalid_argument;
 #if YCL_DS
 #	include YFM_CHRLib_CharacterProcessing
 
@@ -971,6 +975,18 @@ EntryData::WriteDateTime() ynothrow
 	unseq_apply([&](size_t offset){
 		write_uint_le<16>(dst + offset, date_time.second);
 	}, CTime, MTime);
+}
+
+const char*
+CheckColons(const char* path) ythrow(std::system_error)
+{
+	if(const auto p_col = std::strchr(Nonnull(path), ':'))
+	{
+		path = p_col + 1;
+		if(std::strchr(path, ':'))
+			ystdex::throw_system_error(std::errc::invalid_argument);
+	}
+	return path;
 }
 
 } // namespace FAT;

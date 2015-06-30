@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2333
+\version r2337
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-06-21 09:30 +0800
+	2015-06-29 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -493,6 +493,10 @@ Uninitialize() ynothrow
 			app_exit.top()();
 		app_exit.pop();
 	}
+#if YCL_DS
+	// XXX: Ignored error.
+	platform_ex::UninitializeFileSystem();
+#endif
 #if !CHRLIB_NODYNAMIC_MAPPING
 #	if YCL_Win32
 	if(cp113_lkp_backup)

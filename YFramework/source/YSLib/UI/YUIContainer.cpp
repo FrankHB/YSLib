@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1924
+\version r1930
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2015-04-29 00:59 +0800
+	2015-06-30 17:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,10 +27,9 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_YDesktop
+#include <ystdex/functional.hpp> // for ystdex::bind1;
 
 using namespace ystdex;
-using std::bind;
-using namespace std::placeholders;
 
 namespace YSLib
 {
@@ -184,7 +183,7 @@ MLinearUIContainer::operator-=(IWidget& wgt)
 {
 	auto t(vWidgets.size());
 
-	erase_all_if(vWidgets, bind(is_equal(), _1, std::ref(wgt)));
+	erase_all_if(vWidgets, bind1(is_equal(), std::ref(wgt)));
 	t -= vWidgets.size();
 	YAssert(t <= 1, "Duplicate widget references found.");
 	return t != 0;
@@ -194,14 +193,14 @@ bool
 MLinearUIContainer::Contains(IWidget& wgt) const
 {
 	return std::count_if(vWidgets.cbegin(), vWidgets.cend(),
-		bind(is_equal(), _1, std::ref(wgt))) != 0;
+		bind1(is_equal(), std::ref(wgt))) != 0;
 }
 
 size_t
 MLinearUIContainer::Find(IWidget& wgt) const
 {
 	return size_t(std::find_if(vWidgets.cbegin(), vWidgets.cend(),
-		bind(is_equal(), _1, std::ref(wgt))) - vWidgets.cbegin());
+		bind1(is_equal(), std::ref(wgt))) - vWidgets.cbegin());
 }
 
 MLinearUIContainer::iterator

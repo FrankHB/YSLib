@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r315
+\version r541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2015-06-05 21:58 +0800
+	2015-06-30 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,45 +29,171 @@
 #define YB_INC_ystdex_cache_hpp_ 1
 
 #include "deref_op.hpp" // for std::pair, is_undereferenceable;
-#include <unordered_map> // for std::unordered_map;
 #include <list> // for std::list;
+#include <unordered_map> // for std::unordered_map;
+#include <map> // for std::map;
 #include <stdexcept> // for std::runtime_error;
 
 namespace ystdex
 {
 
+//! \since build 611
+//@{
+/*!
+\brief 使用双向链表实现的最近使用列表。
+\note 保证移除项时的顺序为最远端先移除。
+*/
+template<typename _tKey, typename _tMapped,
+	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>>
+class recent_used_list : private std::list<std::pair<const _tKey, _tMapped>>
+{
+public:
+	using allocator_type = _tAlloc;
+	using value_type = std::pair<const _tKey, _tMapped>;
+	using list_type = std::list<value_type>;
+	using size_type = typename list_type::size_type;
+	using const_iterator = typename list_type::const_iterator;
+	using iterator = typename list_type::iterator;
+
+	using list_type::begin;
+
+	using list_type::cbegin;
+
+	using list_type::cend;
+
+	using list_type::clear;
+
+	template<typename... _tParams>
+	iterator
+	emplace(_tParams&&... args)
+	{
+		list_type::emplace_front(yforward(args)...);
+		return begin();
+	}
+
+	using list_type::empty;
+
+	using list_type::end;
+
+	using list_type::front;
+
+	iterator
+	refresh(iterator i) ynothrowv
+	{
+		list_type::splice(begin(), *this, i);
+		return i;
+	}
+
+	template<typename _tMap>
+	void
+	shrink(_tMap& m) ynothrowv
+	{
+		yassume(!empty());
+
+		auto& val(list_type::back());
+
+		m.erase(val.first);
+		list_type::pop_back();
+	}
+	template<typename _tMap, typename _func>
+	void
+	shrink(_tMap& m, _func f)
+	{
+		yassume(!empty());
+
+		auto& val(list_type::back());
+
+		if(f)
+			f(val);
+		m.erase(val.first);
+		list_type::pop_back();
+	}
+	template<typename _tMap, typename... _tParams>
+	void
+	shrink(_tMap& m, size_type max_use, _tParams&&... args)
+	{
+		while(max_use < size_type(m.size()))
+		{
+			yassume(!m.empty());
+
+			shrink(m, yforward(args)...);
+		}
+	}
+
+	void
+	undo_emplace() ynothrow
+	{
+		yassume(!empty());
+
+		list_type::pop_front();
+	}
+};
+
+
+//! \brief 最近刷新策略的缓存特征。
+//@{
+template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
+	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>,
+	class _tList = recent_used_list<_tKey, _tMapped, _tAlloc>>
+struct used_list_cache_traits
+{
+	using map_type = std::unordered_map<_tKey, _tMapped, _fHash,
+		std::equal_to<_tKey>, _tAlloc>;
+	using used_list_type = _tList;
+	using used_cache_type = std::unordered_multimap<_tKey,
+		typename _tList::iterator, _fHash, typename map_type::key_equal,
+		typename _tAlloc::template
+		rebind<std::pair<const _tKey, typename _tList::iterator>>::other>;
+};
+
+template<typename _tKey, typename _tMapped, class _tAlloc, class _tList>
+struct used_list_cache_traits<_tKey, _tMapped, void, _tAlloc, _tList>
+{
+	using map_type = std::map<_tKey, _tMapped, _tAlloc>;
+	using used_list_type = _tList;
+	using used_cache_type = std::map<_tKey, typename _tList::iterator,
+		std::less<_tKey>, typename _tAlloc::template
+		rebind<std::pair<const _tKey, typename _tList::iterator>>::other>;
+};
+//@}
+
+
 /*!
 \brief 按最近使用策略刷新的缓存。
-\since build 521
 \note 默认策略替换最近最少使用的项，保留其它项。
 \todo 加入异常安全的复制构造函数和复制赋值操作符。
 \todo 支持其它刷新策略。
 */
-template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
-	typename _fEqual = std::equal_to<_tKey>,
-	class _tAlloc = std::allocator<std::pair<const _tKey, _tMapped>>>
+template<typename _tKey, typename _tMapped, typename _fHash = void,
+	typename _tTraits = used_list_cache_traits<_tKey, _tMapped, _fHash>>
 class used_list_cache
-	: private std::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>
 {
 public:
-	using map_type
-		= std::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
-	using used_list_type
-		= std::list<_tKey, typename _tAlloc::template rebind<_tKey>::other>;
-	using used_cache_type = std::unordered_multimap<_tKey,
-		typename used_list_type::iterator, _fHash, _fEqual,
-		typename _tAlloc::template rebind<std::pair<const _tKey,
-		typename used_list_type::iterator>>::other>;
-	using typename map_type::const_iterator;
-	using typename map_type::iterator;
-	using typename map_type::key_type;
-	using typename map_type::size_type;
+	//! \since build 611
+	using traits_type = _tTraits;
+	using map_type = typename traits_type::map_type;
+	using key_type = typename map_type::key_type;
 	//! \since build 604
-	using typename map_type::value_type;
+	using value_type = typename map_type::value_type;
+	using size_type = typename map_type::size_type;
+	using used_list_type = typename traits_type::used_list_type;
+	using used_cache_type = typename traits_type::used_cache_type;
+	using const_iterator = typename used_list_type::const_iterator;
+	using iterator = typename used_list_type::iterator;
+	//! \since build 611
+	static_assert(and_<is_same<size_type, typename used_list_type::size_type>,
+		is_same<size_type, typename used_cache_type::size_type>>(),
+		"Invalid size found.");
 
 private:
+	/*!
+	\invariant <tt>std::count(used_list.begin(), used_list.end())
+		== used_cache.size()</tt> 。
+	*/
+	//@{
 	mutable used_list_type used_list;
 	used_cache_type used_cache;
+	//@}
 	//! \brief 保持可以再增加一个缓存项的最大容量。
 	size_type max_use;
 
@@ -77,8 +203,7 @@ public:
 
 	explicit
 	used_list_cache(size_type s = yimpl(15U))
-		: map_type(),
-		used_list(), used_cache(), max_use(s)
+		: used_list(), used_cache(), max_use(s)
 	{}
 	used_list_cache(used_list_cache&&) = default;
 
@@ -87,22 +212,7 @@ private:
 	void
 	check_max_used() ynothrowv
 	{
-		while(max_use < used_list.size())
-		{
-			yassume(!used_list.empty()),
-			yassume(!used_cache.empty());
-
-			const auto& key(used_list.front());
-			const auto i(map_type::find(key));
-
-			yassume(i != map_type::end());
-
-			if(flush)
-				flush(*i);
-			map_type::erase(i),
-			used_cache.erase(key);
-			used_list.pop_front();
-		}
+		used_list.shrink(used_cache, max_use, flush);
 	}
 
 public:
@@ -120,30 +230,38 @@ public:
 		check_max_used();
 	}
 
-	using map_type::begin;
+	//! \since build 611
+	//@{
+	iterator
+	begin()
+	{
+		return used_list.begin();
+	}
+	iterator
+	begin() const
+	{
+		return used_list.cbegin();
+	}
+	//@}
 
 	void
 	clear() ynothrow
 	{
-		map_type::clear(),
 		used_list.clear(),
 		used_cache.clear();
 	}
 
 	template<typename... _tParams>
-	std::pair<typename map_type::iterator, bool>
-	emplace(_tParams&&... args)
+	std::pair<iterator, bool>
+	emplace(const key_type& k, _tParams&&... args)
 	{
 		check_max_used();
 
-		const auto pr(map_type::emplace(yforward(args)...));
+		const auto i_cache(used_cache.find(k));
 
-		if(pr.second)
+		if(i_cache == used_cache.end())
 		{
-			yassume(!is_undereferenceable(pr.first));
-
-			const auto& k(pr.first->first);
-			const auto i(used_list.insert(used_list.end(), k));
+			const auto i(used_list.emplace(k, yforward(args)...));
 
 			try
 			{
@@ -151,44 +269,77 @@ public:
 			}
 			catch(...)
 			{
-				yassume(!used_list.empty());
-				map_type::erase(pr.first),
-				used_list.pop_back();
+				used_list.undo_emplace();
 				throw;
 			}
+			return {i, true};
 		}
-		return pr;
+		else
+			return {i_cache->second, false};
+	}
+	template<typename... _tParams>
+	std::pair<iterator, bool>
+	emplace(_tParams&&... args)
+	{
+		check_max_used();
+
+		const auto i(used_list.emplace_front(yforward(args)...));
+
+		try
+		{
+			const auto pr(used_cache.emplace(i->first, i));
+
+			if(!pr.second)
+			{
+				used_list.undo_emplace();
+				return {pr.first, false};
+			}
+		}
+		catch(...)
+		{
+			used_list.undo_emplace();
+			throw;
+		}
+		return {i, true};
 	}
 
-	using map_type::end;
+	//! \since build 611
+	//@{
+	iterator
+	end()
+	{
+		return used_list.end();
+	}
+	iterator
+	end() const
+	{
+		return used_list.cend();
+	}
+	//@}
 
 	iterator
 	find(const key_type& k)
 	{
 		const auto i(used_cache.find(k));
 
-		if(i != used_cache.end())
-		{
-			used_list.splice(used_list.end(), used_list, i->second);
-			return map_type::find(k);
-		}
-		return map_type::end();
+		return i != used_cache.end() ? used_list.refresh(i->second) : end();
 	}
 	const_iterator
 	find(const key_type& k) const
 	{
 		const auto i(used_cache.find(k));
 
-		if(i != used_cache.end())
-		{
-			used_list.splice(used_list.end(), used_list, i->second);
-			return map_type::find(k);
-		}
-		return map_type::end();
+		return i != used_cache.end() ? used_list.refresh(i->second) : end();
 	}
 
-	using map_type::size;
+	//! \since build 611
+	size_type
+	size() const ynothrow
+	{
+		return used_cache.size();
+	}
 };
+//@}
 
 
 /*!
