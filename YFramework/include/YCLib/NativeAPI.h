@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r877
+\version r886
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-05-31 13:20 +0800
+	2015-06-29 15:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,10 +97,20 @@ DMAFillWordsAsync(std::uint8_t chan, std::uint32_t val, void* p_dst,
 /*!
 \brief 初始化文件系统。
 \return 是否成功。
+\note 若已初始化则直接返回不成功。
 \since build 601
 */
 YF_API bool
 InitializeFileSystem() ynothrow;
+
+/*!
+\brief 反初始化文件系统。
+\return 是否成功。
+\note 若未初始化则直接返回不成功。
+\since build 611
+*/
+YF_API bool
+UninitializeFileSystem() ynothrow;
 
 } // namespace platform_ex;
 

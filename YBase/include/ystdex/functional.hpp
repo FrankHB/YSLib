@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2312
+\version r2324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-06-16 05:53 +0800
+	2015-06-30 17:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,6 +378,20 @@ using id_func_clr_t = id_func_t<_type, _vN, const _type&>;
 template<typename _type, size_t _vN = 1>
 using id_func_rr_t = id_func_t<_type, _vN, _type&&>;
 //@}
+
+
+/*!
+\brief 复合调用 std::bind 和 std::placeholders::_1 。
+\note std::placeholders::_1 应保证被实现支持。
+\since build 611
+*/
+template<typename _func, typename... _tParams>
+inline auto
+bind1(_func f, _tParams&&... args)
+	-> decltype(std::bind(f, std::placeholders::_1, yforward(args)...))
+{
+	return std::bind(f, std::placeholders::_1, yforward(args)...);
+}
 
 
 //! \since build 537

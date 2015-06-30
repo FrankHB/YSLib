@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r224
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-05-24 15:08 +0800
+	2015-06-30 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,6 +222,21 @@ report.impl:
 Now 'ystdex::nptr' is moved to <ystdex/pointer.hpp> to be specifically categorized as the pointer-related interface.
 	Also to implement by using <ystdex/operators.hpp> avoiding too many dependencies introduced to <ystdex/utility.hpp>.
 	It is still not ideal to decouple the interface, because now <ystdex/iterator.hpp> is relying on this header. In future, some portion of code in latter would better placed in another new header.
+
+$2015-06:
+
+report.impl:
+Binary size matters, particularly to platform DS.
+	Substitution of FAT code by custom implementation in 'DSIO' instead of libfat may gain runtime performance, however, makes it worse.
+		Informal test release build before substitution showed sizes varied.
+			YSTest.nds shrinked 983KiB to 978KiB by the raw libfat source substitution because of compiler and linker optimization.
+			It bloated to 985KiB after the complicated ystdex::used_list_cache used instead of naive one.
+			After introduced exception handling and some other refactoring tricks, it became 986KiB.
+			After adding some more error checking, it became 988KiB.
+		Use new cache implementation which reduced base class, it reduced to 986KiB.
+			The DSIO uses 'std::map' instead of 'std::unordered_map' as underlying map container.
+			Note this also has effect on font cache and image processing cache, except for 'std::unordered_map' is kept because hash function is specified.
+			This also made less memory footprint.
 
 ////
 

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1393
+# Version = r1394
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2015-05-31 15:11 +0800
+# Updated = 2015-06-29 13:09 +0800
 # Encoding = ANSI
 
 
@@ -77,7 +77,7 @@ LDFLAGS := $(LDFLAGS_OPT_DBG) -specs=ds_arm9.specs $(ARCH) -Wl,--gc-sections \
 #	-Wl,-Map,$(notdir $*.map)
 
 # any extra libraries we wish to link with the project
-LIBS	:=	-lfat -lnds9
+LIBS := -lnds9
 
 # User defined libraries.
 LIBPATHEX	:= -L$(TOPDIR)/../../YFramework/DS/lib

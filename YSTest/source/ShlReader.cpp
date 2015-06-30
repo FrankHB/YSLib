@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4783
+\version r4790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-05-30 11:31 +0800
+	2015-06-30 17:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "ShlReader.h"
 #include "ShlExplorer.h"
 #include YFM_NPL_Lexical
+#include <ystdex/functional.hpp> // for ystdex::bind1;
 #include <sys/stat.h> // for ::stat;
 
 namespace YReader
@@ -281,8 +282,7 @@ ShlTextReader::BaseSession::BaseSession(ShlTextReader& shl)
 	reader_box_shown(IsVisible(shl.boxReader))
 {
 	shl.StopAutoScroll(),
-	unseq_apply(std::bind(Hide, std::placeholders::_1), shl.boxReader,
-		shl.boxTextInfo);
+	unseq_apply(ystdex::bind1(Hide), shl.boxReader, shl.boxTextInfo);
 }
 ShlTextReader::BaseSession::~BaseSession()
 {
@@ -353,15 +353,11 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	CurrentSetting.GetTimerSetting()),
 	boxReader({0, 160, 256, 32}), pnlBookmark(LoadBookmarks(pth), *this)
 {
-	using namespace std;
-	using namespace placeholders;
-	using ystdex::get_key;
-
 	const auto exit_session([this]{
 		session_ptr.reset();
 	});
 
-	unseq_apply(bind(SetVisibleOf, _1, false), boxReader, boxTextInfo,
+	unseq_apply(ystdex::bind1(SetVisibleOf, false), boxReader, boxTextInfo,
 		pnlSetting, pnlBookmark);
 	yunseq(
 	reader.ViewChanged = [this]{
