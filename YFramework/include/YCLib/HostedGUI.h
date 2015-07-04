@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1288
+\version r1290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-06-14 22:00 +0800
+	2015-07-04 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -361,8 +361,10 @@ UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
 #	elif YCL_Win32
 /*!
 \brief 创建指定大小的兼容位图。
+\post 第二参数非空。
 \exception 异常中立：由 YSLib::CheckScalar 抛出。
 \throw Win32Exception ::CreateDIBSection 调用失败。
+\throw std::runtime_error 后置条件检查失败（ ::CreateDIBSection 实现错误）。
 \return 非空句柄。
 \since build 593
 

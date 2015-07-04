@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r801
+\version r830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-06-05 15:10 +0800
+	2015-07-02 06:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 #include "deref_op.hpp" // for is_undereferenceable;
 #include <algorithm>
 #include <cstring> // for std::memcpy, std::memmove;
-#include "functor.hpp" // for std::bind, less;
+#include "functor.hpp" // for std::bind, std::placeholders::_1, less;
+#include <iterator> // for std::iterator_traits;
 
 namespace ystdex
 {
@@ -351,6 +352,7 @@ min(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 \note 语义同 ISO C++14 std::max 的带 constexpr 的重载。
 \since build 578
 */
+//@{
 template<typename _type, typename _fComp = less<_type>>
 yconstfn const _type&
 max(const _type& a, const _type& b, _fComp comp = less<_type>())
@@ -365,6 +367,35 @@ max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 	return n + 1 < t.size() ? ystdex::max(*(t.begin() + n),
 		ystdex::max(t, comp, n + 1)) : *(t.begin() + n);
 }
+//@}
+
+/*!
+\brief 取约束范围的值。
+\sa http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4536.html
+\since build 612
+*/
+//@{
+template<typename _type, typename _fComp = less<>>
+yconstfn const _type&
+clamp(const _type& v, const _type& lo, const _type& hi, _fComp comp = _fComp())
+{
+	// TODO: Assert 'yconstraint(!comp(hi, lo))'.
+	return comp(v, lo) ? lo : comp(hi, v) ? hi : v;
+}
+
+template<typename _tIn, typename _tOut, typename _fComp = less<>>
+yconstfn _tOut
+clamp_range(_tIn first, _tIn last, _tOut result, const typename
+	std::iterator_traits<_tIn>::value_type& lo, const typename
+	std::iterator_traits<_tIn>::value_type& hi, _fComp comp = _fComp())
+{
+	using arg_type = decltype(lo);
+
+	return std::transform(first, last, result, [&](arg_type val) -> arg_type{
+		return ystdex::clamp(val, lo, hi, comp);
+	});
+}
+//@}
 //@}
 //@}
 

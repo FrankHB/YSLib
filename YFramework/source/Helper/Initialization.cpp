@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2337
+\version r2339
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-06-29 15:30 +0800
+	2015-07-01 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -485,8 +485,8 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 void
 Uninitialize() ynothrow
 {
-	YF_Init_printf(Notice, "Uninitialization entered with"
-		" %u handler(s) to be called.\n", unsigned(app_exit.size()));
+	YF_Init_printf(Notice, "Uninitialization entered with %zu handler(s) to be"
+		" called.\n", app_exit.size());
 	while(!app_exit.empty())
 	{
 		if(YB_LIKELY(app_exit.top()))

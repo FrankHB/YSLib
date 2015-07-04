@@ -11,13 +11,13 @@
 /*!	\file Consoles.h
 \ingroup NBuilder
 \brief 控制台。
-\version r224
+\version r233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2015-04-24 06:39 +0800
+	2015-07-04 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,11 +120,20 @@ public:
 	CursorUp(size_t);
 
 	//! \since build 593
-	static array<std::uint8_t, 2>
-	DecomposeAttributes(::WORD);
+	static PDefH(array<std::uint8_t YPP_Comma 2>, DecomposeAttributes,
+		::WORD val)
+		ImplRet({{FetchForeColor(val), FetchBackColor(val)}})
 
 	void
 	Erase(wchar_t = L' ');
+
+	//! \since build 612
+	static PDefH(std::uint8_t, FetchBackColor, ::WORD val)
+		ImplRet(std::uint8_t((val >> 4) & 15))
+
+	//! \since build 612
+	static PDefH(std::uint8_t, FetchForeColor, ::WORD val)
+		ImplRet(std::uint8_t(val & 15))
 
 	//! \since build 576
 	void

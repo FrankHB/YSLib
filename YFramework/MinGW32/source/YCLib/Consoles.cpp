@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief 控制台。
-\version r248
+\version r258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-04-25 16:43 +0800
+	2015-07-04 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,22 +79,18 @@ WConsole::SetSystemColor(std::uint8_t color)
 void
 WConsole::SetBackColor(std::uint8_t bc)
 {
-	const auto arr(DecomposeAttributes(Attributes));
-
-	Attributes = ComposeAttributes(arr[0], bc);
+	Attributes = ComposeAttributes(FetchForeColor(Attributes), bc);
 }
 void
 WConsole::SetCursorPosition(::COORD pos)
 {
-	// NOTE: ::SetConsoleCursorPosition expects 1-based.
+	// NOTE: %::SetConsoleCursorPosition expects 1-based.
 	::SetConsoleCursorPosition(h_std, {short(pos.X + 1), short(pos.Y + 1)});
 }
 void
 WConsole::SetForeColor(std::uint8_t fc)
 {
-	const auto arr(DecomposeAttributes(Attributes));
-
-	Attributes = ComposeAttributes(fc, arr[1]);
+	Attributes = ComposeAttributes(fc, FetchBackColor(Attributes));
 }
 
 ::WORD
@@ -113,12 +109,6 @@ WConsole::CursorUp(size_t num_rows)
 		// XXX: Conversion to 'short' might be implementation-defined.
 		SetCursorPosition({short(pos.Y - short(num_rows)), pos.X});
 	}
-}
-
-array<std::uint8_t, 2>
-WConsole::DecomposeAttributes(::WORD value)
-{
-	return {{std::uint8_t(value & 15), std::uint8_t((value >> 4) & 15)}};
 }
 
 void

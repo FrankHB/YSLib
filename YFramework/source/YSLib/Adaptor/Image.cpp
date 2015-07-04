@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1124
+\version r1126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-06-01 16:52 +0800
+	2015-07-01 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -510,8 +510,8 @@ MultiBitmapData::~MultiBitmapData()
 ::FIBITMAP*
 MultiBitmapData::LockPage(size_t index) const ynothrow
 {
-	YAssert(index < page_count, sfmt("Invalid page index %u found, should be"
-		" less than %u.", unsigned(index), unsigned(page_count)).c_str());
+	YAssert(index < page_count, sfmt("Invalid page index %zu found, should be"
+		" less than %zu.", index, page_count).c_str());
 	if(const auto load = plugin_ref.get().load_proc)
 		return load(&io_ref.get(), handle, int(index), load_flags, data);
 	return {};

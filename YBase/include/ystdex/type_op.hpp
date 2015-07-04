@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1620
+\version r1651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-06-27 08:43 +0800
+	2015-07-02 08:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -784,6 +784,21 @@ public:
 	static yconstexpr const bool value = sizeof(C) < sizeof(A) + sizeof(B);
 };
 
+//! \since build 612
+//@{
+template<typename _type>
+struct member_target_type_impl
+{
+	using type = void;
+};
+
+template<class _tClass, typename _type>
+struct member_target_type_impl<_type _tClass::*>
+{
+	using type = _tClass;
+};
+//@}
+
 //! \since build 562
 //@{
 template<bool, typename, typename... _types>
@@ -913,8 +928,9 @@ using identity_t = typename identity<_type>::type;
 //@}
 
 
+//! \ingroup metafunctions
+//@{
 /*!
-\ingroup metafunctions
 \brief 移除可能被 cv-qualifier 修饰的引用类型。
 \note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
 \since build 376
@@ -933,7 +949,6 @@ using remove_rcv_t = typename remove_rcv<_type>::type;
 
 
 /*!
-\ingroup metafunctions
 \brief 移除指针和引用类型。
 \note 指针包括可能的 cv-qualifier 修饰。
 \since build 175
@@ -946,7 +961,6 @@ struct remove_rp
 
 
 /*!
-\ingroup metafunctions
 \brief 移除可能被 cv-qualifier 修饰的引用和指针类型。
 \since build 376
 */
@@ -958,7 +972,6 @@ struct remove_rpcv
 
 
 /*!
-\ingroup metafunctions
 \brief 数组类型退化。
 \since build 290
 
@@ -972,7 +985,6 @@ struct array_decay
 
 
 /*!
-\ingroup metafunctions
 \brief 保持修饰符的类型退化。
 \note 结果不移除非数组或函数类型的引用，可用于参数转发。
 \since build 290
@@ -992,7 +1004,6 @@ public:
 
 
 /*!
-\ingroup metafunctions
 \brief 数组及数组引用类型退化。
 \since build 290
 
@@ -1021,9 +1032,15 @@ struct array_ref_decay<_type&&>
 };
 //@}
 
+/*!
+\brief 取成员指针类型指向的类类型。
+\since build 612
+*/
+template<typename _type>
+using member_target_type_t
+	= typename details::member_target_type_impl<_type>::type;
 
 /*!
-\ingroup metafunctions
 \brief 移除选择类类型的特定重载避免构造模板和复制/转移构造函数冲突。
 \sa enable_if_t
 \since build 538
@@ -1033,13 +1050,13 @@ using exclude_self_ctor_t
 	= enable_if_t<!is_same<_tClass&, remove_rcv_t<_tParam>&>::value, _type>;
 
 /*!
-\ingroup metafunctions
 \brief 取公共非空类型：若第一参数为非空类型则为第一参数，否则从其余参数推断。
 \since build 562
 */
 template<typename _type, typename... _types>
 using common_nonvoid_t = typename
 	details::common_nonvoid_impl<is_void<_type>::value, _type, _types...>::type;
+//@}
 
 
 /*!	\defgroup tags Tags

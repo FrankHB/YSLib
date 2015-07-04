@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r593
+\version r595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-05-12 11:51 +0800
+	2015-07-01 20:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,7 +222,7 @@ FetchCommonLogger();
 \note 当失败时调用 ystdex::trace 记录，但只保留参数中的文件名和行号。
 \since build 593
 */
-YF_API YB_ATTR(format (printf, 3, 4)) YB_NONNULL(1, 3) string
+YF_API YB_ATTR(format (gnu_printf, 3, 4)) YB_NONNULL(1, 3) string
 LogWithSource(const char*, int, const char*, ...) ynothrow;
 
 

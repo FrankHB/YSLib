@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1449
+\version r1463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-06-14 22:00 +0800
+	2015-07-04 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -400,6 +400,10 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 YF_API ::HBITMAP
 CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 {
+	// NOTE: It would return %ERROR_INVALID_PARAMETER for many calls if
+	//	allocated memory is not on 32-bit boundary. Anyway it is not a matter
+	//	here because the pixel is at least 32-bit. See
+	//	http://msdn2.microsoft.com/en-us/library/ms532292.aspx and https://msdn.microsoft.com/en-us/library/dd183494.aspx .
 	// NOTE: Bitmap format is hard coded here for explicit buffer
 	//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
 	//	windows.
@@ -411,7 +415,13 @@ CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 	const auto h(YCL_CallWin32(CreateDIBSection, "ScreenBuffer::ScreenBuffer",
 		{}, &bmi, DIB_RGB_COLORS, &p_buf, {}, 0));
 
-	p_buffer = static_cast<BitmapPtr>(p_buf);
+	if(YB_LIKELY(p_buf))
+		p_buffer = static_cast<BitmapPtr>(p_buf);
+	else
+		// XXX: This should not occur unless there are bugs in implementation of
+		//	%::CreateCompatibleDIBSection.
+		throw std::runtime_error("Failed writing pointer"
+			" @ CreateCompatibleDIBSection.");
 	return h;
 }
 
@@ -800,6 +810,7 @@ HostWindow::MapPoint(const Point& pt) const
 #	if YCL_Win32
 Clipboard::Clipboard(NativeWindowHandle h_wnd)
 {
+	// FIXME: Spin for remote desktops?
 	YCL_CallWin32(OpenClipboard, "Clipboard::Clipboard", h_wnd);
 }
 Clipboard::~Clipboard()
@@ -838,7 +849,6 @@ Clipboard::Receive(YSLib::string& str)
 		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<char>();
 	});
 }
-
 bool
 Clipboard::Receive(YSLib::String& str)
 {
@@ -862,12 +872,12 @@ Clipboard::ReceiveRaw(FormatType fmt, std::function<void(const void*)> f)
 }
 
 void
-Clipboard::Send(const YSLib::string& str)
+Clipboard::Send(const string& str)
 {
 	SendRaw(CF_TEXT, CopyGlobalString<char>(str));
 }
 void
-Clipboard::Send(const YSLib::String& str)
+Clipboard::Send(const String& str)
 {
 	SendRaw(CF_UNICODETEXT, CopyGlobalString<ucs2_t>(str));
 }

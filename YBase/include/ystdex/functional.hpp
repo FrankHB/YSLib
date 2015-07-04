@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2324
+\version r2402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-06-30 17:29 +0800
+	2015-07-02 08:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define YB_INC_ystdex_functional_hpp_ 1
 
 #include "tuple.hpp" // for ../ydef.h, std::tuple_size, vseq::join_n_t,
-//	common_nonvoid_t, std::true_type, std::false_type, std::integral_constant,
-//	make_index_sequence;
+//	member_target_type_t, ommon_nonvoid_t, std::true_type, std::false_type,
+//	std::integral_constant, make_index_sequence;
 #include "functor.hpp" // for less, addressof_op, mem_get, lref;
 
 namespace ystdex
@@ -178,6 +178,91 @@ unseq_apply(_func&& f, _tParams&&... args)
 }
 //@}
 //@}
+
+//! \since build 612
+namespace details
+{
+
+template<typename _tClass, typename _type>
+struct is_callable_target
+	: is_base_of<member_target_type_t<_type>, _tClass>
+{};
+
+template<typename _fCallable, typename _type>
+struct is_callable_case1 : and_<is_member_function_pointer<_fCallable>,
+	is_callable_target<_type&&, _fCallable>>
+{};
+
+template<typename _fCallable, typename _type>
+struct is_callable_case2 : and_<is_member_function_pointer<_fCallable>,
+	not_<is_callable_target<_type&&, _fCallable>>>
+{};
+
+template<typename _fCallable, typename _type>
+struct is_callable_case3 : and_<is_member_object_pointer<_fCallable>,
+	is_callable_target<_type&&, _fCallable>>
+{};
+
+template<typename _fCallable, typename _type>
+struct is_callable_case4 : and_<is_member_object_pointer<_fCallable>,
+	not_<is_callable_target<_type&&, _fCallable>>>
+{};
+
+template<typename _fCallable, typename _type, typename... _tParams>
+yconstfn auto
+invoke_impl(_fCallable&& f, _type&& obj, _tParams&&... args)
+	-> enable_if_t<is_callable_case1<decay_t<_fCallable>, _type>::value,
+	decltype((obj.*f)(yforward(args)...))>
+{
+	return yconstraint(f), (obj.*f)(yforward(args)...);
+}
+template<typename _fCallable, typename _type, typename... _tParams>
+yconstfn auto
+invoke_impl(_fCallable&& f, _type&& obj, _tParams&&... args)
+	-> enable_if_t<is_callable_case2<decay_t<_fCallable>, _type>::value,
+	decltype(((*yforward(obj)).*f)(yforward(args)...))>
+{
+	return yconstraint(f), ((*yforward(obj)).*f)(yforward(args)...);
+}
+template<typename _fCallable, typename _type>
+yconstfn auto
+invoke_impl(_fCallable&& f, _type&& obj)
+	-> enable_if_t<is_callable_case3<decay_t<_fCallable>, _type>::value,
+	decltype(obj.*f)>
+{
+	return yconstraint(f), obj.*f;
+}
+template<typename _fCallable, typename _type>
+yconstfn auto
+invoke_impl(_fCallable&& f, _type&& obj)
+	-> enable_if_t<is_callable_case4<decay_t<_fCallable>, _type>::value,
+	decltype((*yforward(obj)).*f)>
+{
+	return yconstraint(f), (*yforward(obj)).*f;
+}
+template<typename _func, typename... _tParams>
+yconstfn auto
+invoke_impl(_func&& f, _tParams&&... args)
+	-> enable_if_t<!is_member_pointer<decay_t<_func>>::value,
+	decltype(yforward(f)(yforward(args)...))>
+{
+	return yforward(f)(yforward(args)...);
+}
+
+} // unnamed details;
+
+/*!
+\brief 调用可调用对象。
+\sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4169.html
+\see WG21/N4527 20.9.2[func.require] ， WG21/N4527 20.9.3[func.invoke] 。
+\since build 612
+*/
+template<typename _fCallable, typename... _tParams>
+yimpl(yconstfn) result_of_t<_fCallable&&(_tParams&&...)>
+invoke(_fCallable&& f, _tParams&&... args)
+{
+	return details::invoke_impl(yforward(f), yforward(args)...);
+}
 
 
 /*!
