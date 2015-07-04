@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1593
+\version r1594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-05-29 19:37 +0800
+	2015-07-01 20:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,7 +161,7 @@ Environment::LeaveWindowThread()
 {
 	if(--wnd_thrd_count == 0 && ExitOnAllWindowThreadCompleted)
 		YSLib::PostQuitMessage(0);
-	YTraceDe(Debug, "New window thread count = %u.", unsigned(wnd_thrd_count));
+	YTraceDe(Debug, "New window thread count = %zu.", wnd_thrd_count.load());
 }
 #	endif
 

@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3305
+\version r3379
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-05-29 19:29 +0800
+	2015-07-01 16:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,13 +36,23 @@
 #include YFM_YSLib_Adaptor_YTextBase
 #include <ystdex/hash.hpp> // for ystdex::hash_combine_seq;
 #include <ystdex/cache.hpp>
+//#include <ft2build.h>
+//#include FT_FREETYPE_H
 
-//包含 FreeType2 。
-
-#include <ft2build.h>
-
-#include FT_FREETYPE_H
-#include FT_CACHE_H
+//! \since build 612
+//@{
+struct FT_SizeRec_;
+using FT_Size = ::FT_SizeRec_*;
+using FT_SizeRec = ::FT_SizeRec_;
+struct FT_FaceRec_;
+using FT_FaceRec = ::FT_FaceRec_;
+struct FT_GlyphSlotRec_;
+using FT_GlyphSlot = ::FT_GlyphSlotRec_*;
+struct FT_LibraryRec_;
+using FT_Library = ::FT_LibraryRec_*;
+struct FT_Size_Metrics_;
+using FT_Size_Metrics = FT_Size_Metrics_;
+//@}
 
 namespace YSLib
 {
@@ -233,6 +243,8 @@ class YF_API Typeface final : private noncopyable, private nonmovable
 {
 	//! \since build 419
 	friend class Font;
+	//! \since build 612
+	friend class CharBitmap;
 
 public:
 	const FontPath Path;
@@ -262,10 +274,25 @@ private:
 				key.GlyphIndex, key.Flags))
 	};
 
-	struct SmallBitmapData
+	class SmallBitmapData
 	{
-		::FTC_SBitRec_ sbit;
+		friend class CharBitmap;
 
+	private:
+		/*!
+		\sa ::FTC_SBitRec_
+		\since build 612
+		*/
+		//@{
+		byte width = 255, height = 0;
+		signed char left = 0, top = 0;
+		byte format = 0, max_grays = 0;
+		short pitch = 0;
+		signed char xadvance = 0, yadvance = 0;
+		byte* buffer = {};
+		//@}
+
+	public:
 		//! \since build 421
 		SmallBitmapData(::FT_GlyphSlot, FontStyle);
 		SmallBitmapData(SmallBitmapData&&);
@@ -327,7 +354,8 @@ private:
 	SmallBitmapData&
 	LookupBitmap(const BitmapKey&) const;
 
-	::FT_UInt
+	//! \since build 612
+	unsigned
 	LookupGlyphIndex(ucs4_t) const;
 
 	//! since build 420
@@ -381,7 +409,8 @@ public:
 		LCD,
 		LCD_V
 	};
-	using NativeType = ::FTC_SBit;
+	//! \brief 本机类型对象：指针类型。
+	using NativeType = Typeface::SmallBitmapData*;
 	/*!
 	\note 和 \c ::FT_Short 一致。
 	\since build 415
@@ -393,35 +422,44 @@ public:
 	using SignedScaleType = signed char;
 
 private:
-	NativeType bitmap;
+	NativeType bitmap = {};
 
 public:
-	/*!
-	\brief 使用本机类型对象构造字符位图对象。
-	*/
+	//! \since build 612
+	//@{
+	//! \brief 构造：空位图。
+	DefDeCtor(CharBitmap)
+	//! \brief 构造：使用本机类型对象。
 	yconstfn
-	CharBitmap(const NativeType& b)
+	CharBitmap(NativeType b)
 		: bitmap(b)
 	{}
+	//@}
 
 	yconstfn DefCvt(const ynothrow, NativeType, bitmap)
 
-	yconstfn DefGetter(const ynothrow, BufferType, Buffer, bitmap->buffer)
-	//! \since build 415
-	yconstfn DefGetter(const ynothrow, FormatType, Format,
-		FormatType(bitmap->format))
-	//! \since build 414
-	yconstfn DefGetter(const ynothrow, ScaleType, GrayLevel, bitmap->max_grays)
-	yconstfn DefGetter(const ynothrow, ScaleType, Height, bitmap->height)
-	yconstfn DefGetter(const ynothrow, SignedScaleType, Left, bitmap->left)
-	//! \since build 415
-	yconstfn DefGetter(const ynothrow, PitchType, Pitch, bitmap->pitch)
-	yconstfn DefGetter(const ynothrow, SignedScaleType, Top, bitmap->top)
-	yconstfn DefGetter(const ynothrow, ScaleType, Width, bitmap->width)
-	yconstfn DefGetter(const ynothrow, SignedScaleType, XAdvance,
-		bitmap->xadvance)
-	yconstfn DefGetter(const ynothrow, SignedScaleType, YAdvance,
-		bitmap->yadvance)
+	/*!
+	\pre 间接断言：位图本机类型对象非空。
+	\since build 612
+	*/
+	//@{
+	yconstfn DefGetter(const ynothrowv, BufferType, Buffer,
+		Deref(bitmap).buffer)
+	yconstfn DefGetter(const ynothrowv, FormatType, Format,
+		FormatType(Deref(bitmap).format))
+	yconstfn DefGetter(const ynothrowv, ScaleType, GrayLevel,
+		Deref(bitmap).max_grays)
+	yconstfn DefGetter(const ynothrowv, ScaleType, Height, Deref(bitmap).height)
+	yconstfn DefGetter(const ynothrowv, SignedScaleType, Left,
+		Deref(bitmap).left)
+	yconstfn DefGetter(const ynothrowv, PitchType, Pitch, Deref(bitmap).pitch)
+	yconstfn DefGetter(const ynothrowv, SignedScaleType, Top, Deref(bitmap).top)
+	yconstfn DefGetter(const ynothrowv, ScaleType, Width, Deref(bitmap).width)
+	yconstfn DefGetter(const ynothrowv, SignedScaleType, XAdvance,
+		Deref(bitmap).xadvance)
+	yconstfn DefGetter(const ynothrowv, SignedScaleType, YAdvance,
+		Deref(bitmap).yadvance)
+	//@}
 };
 
 
@@ -601,10 +639,10 @@ public:
 
 	/*!
 	\brief 取跨距。
-	\since build 280
+	\since build 612
 	*/
 	std::int8_t
-	GetAdvance(ucs4_t, FTC_SBit = {}) const;
+	GetAdvance(ucs4_t, CharBitmap = {}) const;
 	/*!
 	\brief 取升部。
 	\since build 280
@@ -628,13 +666,13 @@ public:
 	\brief 取当前字型和大小渲染的指定字符的字形。
 	\param c 指定需要被渲染的字符。
 	\param flags FreeType 渲染标识。
+	\note 默认参数为 FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL 。
 	\warning 返回的位图在下一次调用 FontCache 方法或底层 FreeType 缓存时不保证有效。
 	\warning flags 可能被移除，应仅用于内部实现。
-	\since build 280
+	\since build 612
 	*/
 	CharBitmap
-	GetGlyph(ucs4_t c, ::FT_UInt flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL)
-		const;
+	GetGlyph(ucs4_t c, unsigned flags = 4UL) const;
 	/*!
 	\brief 取字体对应的字符高度。
 	\since build 280

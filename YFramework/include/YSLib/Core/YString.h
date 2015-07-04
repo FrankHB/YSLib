@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2177
+\version r2193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2015-04-28 20:48 +0800
+	2015-07-02 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,20 +50,8 @@ public:
 	\brief 无参数构造：默认实现。
 	*/
 	DefDeCtor(String)
-	/*!
-	\brief 复制构造：默认实现。
-	*/
-	DefDeCopyCtor(String)
-	/*!
-	\brief 转移构造：默认实现。
-	*/
-	DefDeMoveCtor(String)
-	/*!
-	\brief 构造：使用 UCS-2 字符指针表示的等宽 NTCTS 。
-	*/
-	String(const ucs2_t* s)
-		: ucs2string(s)
-	{}
+	//! \since build 612
+	using ucs2string::ucs2string;
 	/*!
 	\brief 构造：使用字符指针表示的 NTCTS 和指定编码。
 	\since build 281
@@ -101,6 +89,14 @@ public:
 	String(const std::basic_string<_tChar>& s, Encoding enc = CS_Default)
 		: String(s.c_str(), enc)
 	{}
+	/*!
+	\brief 复制构造：默认实现。
+	*/
+	DefDeCopyCtor(String)
+	/*!
+	\brief 转移构造：默认实现。
+	*/
+	DefDeMoveCtor(String)
 	DefDeDtor(String)
 
 	/*!

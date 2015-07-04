@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3851
+\version r3853
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-05-29 19:38 +0800
+	2015-07-01 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,8 +67,8 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 //	case ConversionResult::Invalid:
 		// TODO: Insert placeholders for %ConversionResult::Invalid.
 	default:
-		YTraceDe(Warning, "Encoding conversion failed with state = %u.",
-			unsigned(res));
+		YTraceDe(Warning, "Encoding conversion failed with state = %zu.",
+			size_t(res));
 	}
 	i = get<0>(it.base());
 	return get<1>(it.base());

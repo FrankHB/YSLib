@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r388
+\version r422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2015-04-29 00:57 +0800
+	2015-07-02 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,9 +40,8 @@ namespace ystdex
 \note 函数对象包含函数指针和仿函数。
 \since build 243
 */
-
+//@{
 /*!
-\ingroup functors
 \brief std::addressof 仿函数。
 \since build 537
 */
@@ -57,7 +56,6 @@ struct addressof_op
 };
 
 /*!
-\ingroup functors
 \brief 成员 get 操作。
 \since build 537
 */
@@ -86,7 +84,6 @@ struct mem_get<void>
 //@}
 
 /*!
-\ingroup functors
 \brief 相等关系仿函数。
 \note 除 reference_wrapper 相关的重载外同 boost::is_equal 。
 \since build 450
@@ -127,10 +124,7 @@ struct is_equal
 	//@}
 };
 
-/*!
-\ingroup functors
-\brief 引用相等关系仿函数。
-*/
+//! \brief 引用相等关系仿函数。
 template<typename _type>
 struct ref_eq
 {
@@ -142,7 +136,6 @@ struct ref_eq
 };
 
 /*!
-\ingroup functors
 \note 同 ISO WG21/N4296 对应标准库仿函数。
 \since build 578
 */
@@ -168,7 +161,7 @@ struct ref_eq
 		using is_transparent = yimpl(void); \
 		\
 		template<typename _type1, typename _type2> \
-		auto operator()(const _type1&& x, const _type2&& y) const \
+		auto operator()(_type1&& x, _type2&& y) const \
 			-> decltype(yforward(x) < yforward(y)) \
 		{ \
 			return yforward(x) < yforward(y); \
@@ -221,10 +214,8 @@ YB_Impl_Functional_Comparison(less_equal, <=)
 #undef YB_Impl_Functional_Ops2
 //@}
 
-/*!
-\ingroup functors
-\brief 编译期选择自增/自减运算仿函数。
-*/
+
+//! \brief 选择自增/自减运算仿函数。
 //@{
 template<bool, typename _tScalar>
 struct xcrease_t
@@ -249,8 +240,7 @@ struct xcrease_t<false, _tScalar>
 //@}
 
 /*!
-\ingroup functors
-\brief 编译期选择加法/减法复合赋值运算仿函数。
+\brief 选择加法/减法复合赋值运算仿函数。
 \since build 284
 */
 //@{
@@ -274,10 +264,7 @@ struct delta_assignment<false, _tScalar1, _tScalar2>
 };
 //@}
 
-/*!
-\ingroup helper_functions
-\brief 编译期选择自增/自减运算。
-*/
+//! \brief 选择自增/自减运算。
 template<bool _bIsPositive, typename _tScalar>
 yconstfn _tScalar&
 xcrease(_tScalar& _x)
@@ -286,8 +273,7 @@ xcrease(_tScalar& _x)
 }
 
 /*!
-\ingroup helper_functions
-\brief 编译期选择加法/减法复合赋值运算。
+\brief 选择加法/减法复合赋值运算。
 \since build 284
 */
 template<bool _bIsPositive, typename _tScalar1, typename _tScalar2>
@@ -298,10 +284,7 @@ delta_assign(_tScalar1& _x, _tScalar2& _y)
 }
 
 
-/*!
-\ingroup functors
-\brief 引用仿函数。
-*/
+//! \brief 引用仿函数。
 template<typename _type>
 struct deref_op
 {
@@ -316,10 +299,7 @@ struct deref_op
 };
 
 
-/*!
-\ingroup functors
-\brief const 引用仿函数。
-*/
+//! \brief const 引用仿函数。
 template<typename _type>
 struct const_deref_op
 {
@@ -335,7 +315,6 @@ struct const_deref_op
 
 
 /*!
-\ingroup functors
 \brief 间接访问比较仿函数。
 \warning 非虚析构。
 \since build 315
@@ -357,7 +336,6 @@ struct deref_comp
 
 
 /*!
-\ingroup functors
 \brief 间接访问字符串比较仿函数。
 \warning 非虚析构。
 \since build 315
@@ -378,6 +356,7 @@ struct deref_str_comp
 			::length(x), y, y + traits_type::length(y), _fCompare());
 	}
 };
+//@}
 
 } // namespace ystdex;
 

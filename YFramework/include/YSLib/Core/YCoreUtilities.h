@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2194
+\version r2201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-06-11 15:49 +0800
+	2015-07-02 06:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YException // for std::string, LoggedEvent;
 #include YFM_YSLib_Adaptor_YTextBase // for string;
+#include <ystdex/algorithm.hpp> // for ystdex::clamp;
 
 namespace YSLib
 {
@@ -255,7 +256,7 @@ SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 
 /*!
 \brief 约束 v 在闭区间 [a, b] 中。
-\pre 断言： <tt>!(b < a)</tt> 。
+\pre 间接断言： <tt>!(b < a)</tt> 。
 \post <tt>!(i < a || b < i)</tt> 。
 \since build 448
 */
@@ -263,11 +264,7 @@ template<typename _type>
 void
 RestrictInClosedInterval(_type& v, const _type& a, const _type& b) ynothrow
 {
-	YAssert(!(b < a), "Upper bound is less than lower bound.");
-	if(v < a)
-		v = a;
-	else if(b < v)
-		v = b;
+	v = ystdex::clamp(v, a, b);
 }
 
 /*!

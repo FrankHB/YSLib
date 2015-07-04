@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r278
+\version r283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2015-03-25 10:57 +0800
+	2015-07-01 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_Service_ImageProcessing
-#include YFM_YSLib_UI_YComponent // for YSLib::to_string;
+#include YFM_YSLib_UI_YComponent // for to_string;
 
 namespace YSLib
 {
@@ -72,7 +72,7 @@ ZoomedImageCache::Lookup(ImageScale scale, size_t idx)
 ImagePages::ImagePages(ZoomedImageCache&& c, const Size& min_size,
 	const Size& max_size, ImageScale init_scale)
 	: cache(std::move(c)),
-	base_size([&](const ZoomedImageCache::Container& bmps)->Size{
+	base_size([&](const ZoomedImageCache::Container& bmps) -> Size {
 		YAssert(!max_size.IsUnstrictlyEmpty(), "Empty maximum size found.");
 
 		if(bmps.empty())
@@ -83,7 +83,7 @@ ImagePages::ImagePages(ZoomedImageCache&& c, const Size& min_size,
 		TryRet(GetLogicalSizeOf(bmps[0]) | first_size)
 		CatchIgnore(GeneralEvent&)
 		return first_size;
-	}(cache.GetBitmaps())), scale([&, init_scale]()->ImageScale{
+	}(cache.GetBitmaps())), scale([&, init_scale]() -> ImageScale {
 		return init_scale < MinScale ? ImageScale(cache.GetBitmaps().empty()
 			? 1.F : ScaleMin(max_size, base_size)) : init_scale;
 	}())
@@ -148,8 +148,8 @@ ImagePages::SwitchPage(size_t page)
 	if(page != index)
 	{
 		index = ZoomedImageCache::Container::size_type(page);
-		YTraceDe(Informative, "Page switched: %u/%u.", unsigned(index + 1),
-			unsigned(cache.GetBitmaps().size()));
+		YTraceDe(Informative, "Page switched: %zu/%zu.", index + 1,
+			cache.GetBitmaps().size());
 		LoadContent();
 		return true;
 	}

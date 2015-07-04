@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3484
+\version r3518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-04-10 01:20 +0800
+	2015-07-01 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,9 @@
 #include YFM_Helper_Initialization
 #include YFM_YCLib_Debug
 #include <algorithm> // for std::for_each;
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_CACHE_H
 #include FT_SIZES_H
 #include FT_BITMAP_H
 //#include FT_GLYPH_H
@@ -219,22 +222,29 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 			}
 		}
 
-		const ::FT_Pos xadvance((slot->advance.x + 32) >> 6),
-			yadvance((slot->advance.y + 32) >> 6);
+		const ::FT_Pos xadv((slot->advance.x + 32) >> 6),
+			yadv((slot->advance.y + 32) >> 6);
 
 #define SBIT_CHECK_CHAR(d) (::FT_Int(::FT_Char(d)) == d)
 #define SBIT_CHECK_BYTE(d) (::FT_Int(::FT_Byte(d)) == d)
 		if(SBIT_CHECK_BYTE(bitmap.rows) && SBIT_CHECK_BYTE(bitmap.width)
 			&& SBIT_CHECK_CHAR(bitmap.pitch)
 			&& SBIT_CHECK_CHAR(slot->bitmap_left)
-			&& SBIT_CHECK_CHAR(slot->bitmap_top) && SBIT_CHECK_CHAR(xadvance)
-			&& SBIT_CHECK_CHAR(yadvance))
+			&& SBIT_CHECK_CHAR(slot->bitmap_top) && SBIT_CHECK_CHAR(xadv)
+			&& SBIT_CHECK_CHAR(yadv))
 		{
-			sbit = {::FT_Byte(bitmap.width), ::FT_Byte(bitmap.rows),
-				::FT_Char(slot->bitmap_left), ::FT_Char(slot->bitmap_top),
-				::FT_Byte(bitmap.pixel_mode), ::FT_Byte(bitmap.num_grays - 1),
-				::FT_Char(bitmap.pitch), ::FT_Char(xadvance),
-				::FT_Char(yadvance), bitmap.buffer};
+			yunseq(
+			width = byte(bitmap.width),
+			height = byte(bitmap.rows),
+			left = static_cast<signed char>(slot->bitmap_left),
+			top = static_cast<signed char>(slot->bitmap_top),
+			format = byte(bitmap.pixel_mode),
+			max_grays = byte(bitmap.num_grays - 1),
+			pitch = static_cast<signed char>(bitmap.pitch),
+			xadvance = static_cast<signed char>(xadv),
+			yadvance = static_cast<signed char>(yadv),
+			buffer = bitmap.buffer
+			);
 			bitmap.buffer = {};
 			// XXX: Moving instead of copying should be safe if the library
 			//	memory handlers are not customized.
@@ -245,17 +255,19 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 #undef SBIT_CHECK_CHAR
 #undef SBIT_CHECK_BYTE
 	}
-	sbit = {255, 0, 0, 0, 0, 0, 0, 0, 0, nullptr};
 }
 Typeface::SmallBitmapData::SmallBitmapData(SmallBitmapData&& sbit_dat)
-	: sbit(sbit_dat.sbit)
+	: width(sbit_dat.width), height(sbit_dat.height), left(sbit_dat.left),
+	top(sbit_dat.top), format(sbit_dat.format), max_grays(sbit_dat.width),
+	pitch(sbit_dat.pitch), xadvance(sbit_dat.xadvance),
+	yadvance(sbit_dat.yadvance), buffer(sbit_dat.buffer)
 {
-	sbit_dat.sbit.buffer = {};
+	sbit_dat.buffer = {};
 }
 Typeface::SmallBitmapData::~SmallBitmapData()
 {
 	// NOTE: See constructor.
-	std::free(sbit.buffer);
+	std::free(buffer);
 }
 
 
@@ -510,13 +522,11 @@ Font::Font(const FontFamily& family, const FontSize size, FontStyle fs)
 {}
 
 std::int8_t
-Font::GetAdvance(ucs4_t c, ::FTC_SBit sbit) const
+Font::GetAdvance(ucs4_t c, CharBitmap sbit) const
 {
 	if(!sbit)
 		sbit = GetGlyph(c, FT_LOAD_DEFAULT);
-	if(YB_LIKELY(sbit))
-		return sbit->xadvance;
-	return 0;
+	return YB_LIKELY(sbit) ? sbit.GetXAdvance() : 0;
 }
 std::int8_t
 Font::GetAscender() const
@@ -529,12 +539,14 @@ Font::GetDescender() const
 	return GetInternalInfo().descender >> 6;
 }
 CharBitmap
-Font::GetGlyph(ucs4_t c, ::FT_UInt flags) const
+Font::GetGlyph(ucs4_t c, unsigned flags) const
 {
+	static_assert((FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL) == 4L,
+		"Invalid default argument found.");
 	const auto& face(GetTypeface());
 
 	return &face.LookupBitmap(Typeface::BitmapKey{flags,
-		face.LookupGlyphIndex(c), font_size, style}).sbit;
+		face.LookupGlyphIndex(c), font_size, style});
 }
 FontSize
 Font::GetHeight() const ynothrow
