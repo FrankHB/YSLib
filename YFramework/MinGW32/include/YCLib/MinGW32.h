@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r743
+\version r745
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-05-19 22:43 +0800
+	2015-07-04 20:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,8 +146,8 @@ public:
 		const auto res(::_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res)) \
-			YTraceDe(Warning, "Error %lu: failed call" #_fn " @ " _msg ".", \
-				::GetLastError()); \
+			YTraceDe(Warning, "Error %lu: failed calling " #_fn " @ " _msg \
+				".", ::GetLastError()); \
 		return res; \
 	}()
 //@}

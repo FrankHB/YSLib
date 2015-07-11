@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r1615
+\version r1690
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-07-04 10:04 +0800
+	2015-07-11 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,82 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		+ "2 member functions %Send for %CF_DIBV5 data" @ "class %Clipboard"
+			@ "platform %Win32" @ %YCLib.HostedGUI,
+		/ %YSLib $=
+		(
+			/ %Core.YException $=
+			(
+				+ "function template %TryInvoke";
+				/ DLDI "simplified %FilterExceptions" ^ "%TryInvoke"
+			),
+			- $re_ex(b570) '&&' @ ("parameter constructor %AMUnitControlList"
+				@ %ListControl, "2nd parameter"
+				@ "protected constructor %ListBox" @ %ComboList) @ %UI,
+			/ %Service $=
+			(
+				/ %TextFile $=
+				(
+					/ DLDI "simplified encoding detection" $=
+					(
+						^ $dep_from ("%CHRLib::VerifyUC" @ %CHRLib.Convert),
+						- "redundant seeking before checking BOM"
+					)
+				),
+				/ @ "class TextFileBuffer" @ %TextManager $=
+				(
+					(
+					/ "static yconstfn object %BlockSize" -> "%BlockShift";
+					/ $forced DLDI "position calculation",
+					),
+					/ @ "class iterator" $=
+					(
+						(
+						/ DLDI "block, index members" -> "position";
+						/ $forced DLDI "assertions"
+						),
+						- $dev 'friend class TextFileBuffer;'
+					),
+					/ DLDI "simplified file iteration" ^ $dep_from
+						("%File::GetSentry" @ %File)
+				),
+				+ "class %Sentry; function %GetSentry" @ "class %File" @ %File
+			)
+		),
+		* "assertion string" @ "macro %YCL_CallWin32_Trace"
+			@ %'YCLib_(MinGW32)'.MinGW32 $since b592,
+		+ "function template %VerifyUC" @ %CHRLib.Convert
+	),
+	/ @ "class %ImagePanel" @ %YDE.ImageBrowser.ImageControl $=
+	(
+		+ "function %CopyToClipboard to copy whole image" ^ $dep_from
+			("%TryInvoke" @ %YFramework.YSLib.Core.YException);
+		+ "copying to clipboard when Ctrl+C is pressed",
+		+ "copying to clipboard menu item"
+	),
+	/ %Tools $=
+	(
+		+ $dev "2 cases concerned with %std::string allocation and deallocation"
+			@ "%DrMemory-YSLib-suppress.txt",
+		/ @ "member function %BuildContext::Build" @ %SHBuild.Main $=
+		(
+			+ "check for nonnull target name component",
+			* "invalid target name formed for root volume path" $since b546
+				// Output component would be ended with ':' and cause output \
+					directory creation failure.
+		)
+	),
+	/ @ "class template %nptr" @ %YBase.YStandardEx.Pointer $=
+	(
+		+ "2 functions %operator(*, ->)",
+		+ $lib 'yconstfn_releaxed' @ "function %get_ref"
+	)
+),
+
+b612
 (
 	/ %YFramework $=
 	(

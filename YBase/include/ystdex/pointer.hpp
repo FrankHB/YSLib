@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r270
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2015-05-27 04:35 +0800
+	2015-07-11 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,34 @@ public:
 		return bool(*this);
 	}
 
+	//! \since build 613
+	//@{
+	//! \pre 表达式 \c *ptr 合式。
+	//@{
+	yconstfn_relaxed auto
+	operator*() ynothrow -> decltype(*ptr)
+	{
+		return *ptr;
+	}
+	yconstfn auto
+	operator*() const ynothrow -> decltype(*ptr)
+	{
+		return *ptr;
+	}
+	//@}
+
+	yconstfn_relaxed pointer&
+	operator->() ynothrow
+	{
+		return ptr;
+	}
+	yconstfn const pointer&
+	operator->() const ynothrow
+	{
+		return ptr;
+	}
+	//@}
+
 	//! \since build 600
 	friend yconstfn bool
 	operator==(const nptr& x, const nptr& y) ynothrow
@@ -115,7 +143,7 @@ public:
 		return ptr;
 	}
 
-	pointer&
+	yconstfn_relaxed pointer&
 	get_ref() ynothrow
 	{
 		return ptr;

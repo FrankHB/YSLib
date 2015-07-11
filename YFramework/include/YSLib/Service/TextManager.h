@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3844
+\version r3854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-05-29 19:33 +0800
+	2015-07-10 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,9 +73,8 @@ public:
 	private:
 		//! \since build 460
 		TextFileBuffer* p_buffer;
-		//文本读取位置。
-		size_t block;
-		size_t index;
+		//! \since build 613
+		size_t position;
 
 	public:
 		/*!
@@ -106,17 +105,18 @@ public:
 		operator==(const iterator&, const iterator&) ynothrow;
 
 		DefGetter(const ynothrow, TextFileBuffer*, BufferPtr, p_buffer)
-		DefGetter(const ynothrow, size_t, BlockN, block)
-		DefGetter(const ynothrow, size_t, IndexN, index)
+		DefGetter(const ynothrow, size_t, BlockN, position >> BlockShift)
+		DefGetter(const ynothrow, size_t, IndexN,
+			position & ((1 << BlockShift) - 1))
 	};
 	using const_iterator = iterator;
 	//@}
 
 	/*!
-	\brief 默认文本区块大小。
-	\since build 273
+	\brief 默认文本区块大小偏移。
+	\since build 613
 	*/
-	static yconstexpr const size_t BlockSize = 2048U;
+	static yconstexpr const size_t BlockShift = 11U;
 
 protected:
 	/*!
@@ -156,6 +156,7 @@ private:
 public:
 	/*!
 	\brief 构造：使用文本文件。
+	\pre 文件以文本模式打开（保证大小和字符数一致）。
 	*/
 	explicit
 	TextFileBuffer(TextFile&);

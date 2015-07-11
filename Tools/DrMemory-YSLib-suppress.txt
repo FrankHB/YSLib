@@ -27,6 +27,16 @@ libstdc++-6.dll!...
 ...
 *!YSLib::LoggedEvent::~LoggedEvent
 
+INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
+name=libstc++ std::string#1
+...
+*!std::string::_Rep::_M_dispose
+
+INVALID HEAP ARGUMENT: allocated with operator new, freed with free
+name=libstc++ std::string#2
+...
+*!YSLib::InitializeInstalled
+
 LEAK
 name=libwinpthread leak#1
 libwinpthread-1.dll!...

@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1133
+\version r1165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-04-16 00:26 +0800
+	2015-07-04 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,8 @@ enum MenuItem : size_t
 	OrigSize,
 	Flip,
 	RotateCW,
-	RotateCCW
+	RotateCCW,
+	CopyImage
 };
 
 //! \since build 583
@@ -53,7 +54,7 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 	ColorSpace::White), hover_state(std::bind(TimedHoverState::LocateForOffset,
 	std::placeholders::_1, Point(0, 24))), border(*this, 8, min_size),
 	mnuContext({}, make_shared<Menu::ListType, String>(
-	{u"退出", u"查看原始大小", u"翻转", u"顺时针旋转", u"逆时针旋转"}))
+	{u"退出", u"查看原始大小", u"翻转", u"顺时针旋转", u"逆时针旋转", u"复制"}))
 {
 	AddWidgets(*this, btnClose, lblCenter),
 	SetVisibleOf(lblCenter, {}),
@@ -95,6 +96,9 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 			break;
 		case MenuItem::RotateCCW:
 			RotateCCW();
+			break;
+		case MenuItem::CopyImage:
+			CopyToClipboard();
 		default:
 			break;
 		}
@@ -109,6 +113,20 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 			Invalidate(*this);
 		}
 	},
+	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			auto& st(FetchGUIState());
+
+			st.CheckHeldState(e.Keys);
+
+			const auto& k(st.GetCheckedHeldKeys());
+
+			if(k[KeyCodes::Ctrl] && e.Keys['C'])
+				CopyToClipboard();
+		}
+	},
+	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
 		if(session_ptr && e.Keys[KeyCodes::Tertiary] && GetPagesRef().Zoom(
 			round((1 - GetPagesRef().GetScale()) * 100), e))
@@ -144,6 +162,23 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 	FetchEvent<Paint>(lblCenter) += BorderBrush(BorderStyle(ColorSpace::Gray))
 	);
 	SetLocationOf(btnClose, CalcCloseButtonLocation());
+}
+
+bool
+ImagePanel::CopyToClipboard() ynothrow
+{
+	return TryInvoke([this]() -> bool{
+		if(const auto p = Host::GetWindowPtrOf(*this))
+		{
+			const auto& g(GetPagesRef().Brush.ImagePtr->GetContext());
+
+			YTraceDe(Debug, "Size of image to be copied to clipboard: %s.",
+				to_string(g.GetSize()).c_str());
+			platform_ex::Clipboard(p->GetNativeHandle()).Send(g);
+			return true;
+		}
+		return {};
+	});
 }
 
 void

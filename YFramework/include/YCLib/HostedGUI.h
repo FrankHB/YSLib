@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1290
+\version r1302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-07-04 09:43 +0800
+	2015-07-04 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -934,6 +934,18 @@ public:
 	Send(const YSLib::string&);
 	void
 	Send(const YSLib::String&);
+	/*!
+	\pre 断言：指针非空。
+	\pre 断言：大小不为 YSLib::Drawing::Size::Invalid 。
+	\since build 613
+	*/
+	//@{
+	//! \warning 不检查缓冲区指针和大小匹配。
+	void
+	Send(YSLib::Drawing::ConstBitmapPtr, const YSLib::Drawing::Size&);
+	PDefH(void, Send, const YSLib::Drawing::ConstGraphics& g)
+		ImplRet(Send(g.GetBufferPtr(), g.GetSize()))
+	//@}
 
 private:
 	void

@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r991
+\version r1049
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-04-24 05:57 +0800
+	2015-07-10 20:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,8 @@
 
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_TextFile
+#include YFM_CHRLib_Convert
+#include <ystdex/cast.hpp> // for ystdex::as_const;
 
 namespace YSLib
 {
@@ -36,41 +38,24 @@ using namespace Text;
 namespace
 {
 
-bool
-CheckUTF8(const char* s, const char* g)
-{
-	while(s < g && *s != 0
-		&& MBCToUC(s, CharSet::UTF_8) == ConversionResult::OK);
-	return s == g || *s == 0;
-}
-
-// TODO: More accurate encoding checking for text stream without BOM.
-Encoding
-CheckEncoding(const char* s, size_t n)
-{
-	return CheckUTF8(s, s + n) ? CharSet::UTF_8 : CharSet::GBK;
-}
-
 void
 InitializeTextFile(TextFile& tf, size_t& bl)
 {
-	if(tf)
+	bl = tf.CheckBOM(tf.Encoding);
+	tf.Rewind();
+	if(bl == 0)
 	{
-		tf.Seek(0, SEEK_END);
-		bl = tf.CheckBOM(tf.Encoding);
-		tf.Rewind();
-		if(bl == 0)
-		{
 #define YSL_TXT_CHECK_ENCODING_N size_t(64U)
-			char s[YSL_TXT_CHECK_ENCODING_N + 6];
-			const auto n(min(tf.GetTextSize(), YSL_TXT_CHECK_ENCODING_N));
+		char s[YSL_TXT_CHECK_ENCODING_N + 6];
+		const auto n(min(tf.GetTextSize(), YSL_TXT_CHECK_ENCODING_N));
 #undef YSL_TXT_CHECK_ENCODING_N
 
-			std::char_traits<char>::assign(s + n, arrlen(s) - n, 0);
-			tf.Read(s, 1, n);
-			tf.Rewind();
-			tf.Encoding = CheckEncoding(s, n);
-		}
+		std::char_traits<char>::assign(s + n, arrlen(s) - n, 0);
+		tf.Read(s, 1, n);
+		tf.Rewind();
+		// TODO: More accurate encoding checking for text stream without BOM.
+		tf.Encoding = VerifyUC(&ystdex::as_const(s)[0], s + n, CharSet::UTF_8)
+			? CharSet::UTF_8 : CharSet::GBK;
 	}
 }
 
@@ -82,34 +67,38 @@ TextFile::TextFile(const char* filename, std::ios_base::openmode mode,
 	: File(filename, mode),
 	bl(0), Encoding(enc)
 {
-	if(bool(*this) && GetSize() == 0 && mode & std::ios_base::out)
-		switch(enc)
-		{
-		case CharSet::UTF_16LE:
-			yunseq(*this << BOM_UTF_16LE, bl = 2);
-			break;
-		case CharSet::UTF_16BE:
-			yunseq(*this << BOM_UTF_16BE, bl = 2);
-			break;
-		case CharSet::UTF_8:
-			yunseq(*this << BOM_UTF_8, bl = 3);
-			break;
-		case CharSet::UTF_32LE:
-			yunseq(*this << BOM_UTF_32LE, bl = 4);
-			break;
-		case CharSet::UTF_32BE:
-			yunseq(*this << BOM_UTF_32BE, bl = 4);
-		default:
-			break;
-		}
-	else
-		InitializeTextFile(*this, bl);
+	if(bool(*this))
+	{
+		if(GetSize() == 0 && mode & std::ios_base::out)
+			switch(enc)
+			{
+			case CharSet::UTF_16LE:
+				yunseq(*this << BOM_UTF_16LE, bl = 2);
+				break;
+			case CharSet::UTF_16BE:
+				yunseq(*this << BOM_UTF_16BE, bl = 2);
+				break;
+			case CharSet::UTF_8:
+				yunseq(*this << BOM_UTF_8, bl = 3);
+				break;
+			case CharSet::UTF_32LE:
+				yunseq(*this << BOM_UTF_32LE, bl = 4);
+				break;
+			case CharSet::UTF_32BE:
+				yunseq(*this << BOM_UTF_32BE, bl = 4);
+			default:
+				break;
+			}
+		else
+			InitializeTextFile(*this, bl);
+	}
 }
 TextFile::TextFile(const String& filename)
 	: File(filename, u"r"),
 	bl(0), Encoding(CharSet::Null)
 {
-	InitializeTextFile(*this, bl);
+	if(bool(*this))
+		InitializeTextFile(*this, bl);
 }
 
 string
@@ -127,14 +116,14 @@ TextFile::GetBOM() const
 size_t
 TextFile::CheckBOM(Text::Encoding& cp)
 {
-	using std::char_traits;
-
 	Rewind();
 	if(GetSize() < 2)
 		return 0;
-	char tmp[4];
-	Read(tmp, 1, 4);
 
+	using std::char_traits;
+	char tmp[4];
+
+	Read(tmp, 1, 4);
 	if(char_traits<char>::compare(tmp, BOM_UTF_16LE, 2) == 0)
 	{
 		cp = CharSet::UTF_16LE;

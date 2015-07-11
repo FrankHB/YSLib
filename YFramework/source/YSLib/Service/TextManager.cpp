@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3853
+\version r3895
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-07-01 20:49 +0800
+	2015-07-11 20:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,49 +79,43 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 
 TextFileBuffer::iterator::iterator(TextFileBuffer* p_buf, size_t b, size_t idx)
 	ynothrow
-	: p_buffer(p_buf), block(b), index(idx)
+	: p_buffer(p_buf), position(b << BlockShift | idx)
 {}
 
 TextFileBuffer::iterator&
 TextFileBuffer::iterator::operator++() ynothrow
 {
-	YAssert(block < Deref(p_buffer).nBlock, "End iterator found.");
-
-	auto& vec((*p_buffer)[block].first);
-
-	YAssert(index < vec.size(), "Invalid index found.");
-	if(YB_UNLIKELY(++index == vec.size()))
-		yunseq(++block, index = 0);
+	YAssert(GetBlockN() < Deref(p_buffer).nBlock, "End iterator found.");
+	YAssert(GetIndexN() < (*p_buffer)[GetBlockN()].first.size(),
+		"Invalid index found.");
+	++position;
 	return *this;
 }
 
 TextFileBuffer::iterator&
 TextFileBuffer::iterator::operator--() ynothrow
 {
-	YAssert(block != 0 || index != 0, "Begin iterator found.");
-	YAssert(block < Deref(p_buffer).nBlock || *this == p_buffer->end(),
+	YAssert(position != 0, "Begin iterator found.");
+	YAssert(GetBlockN() < Deref(p_buffer).nBlock || *this == p_buffer->end(),
 		"Invalid iterator found.");
-	if(index == 0)
-	{
-		index = (*p_buffer)[--block].first.size();
-
-		YAssert(index != 0, "Invalid index found.");
-	}
-	else
-		YAssert(index < (*p_buffer)[block].first.size(),
-			"Invalid index found.");
-	--index;
+	YAssert((GetIndexN() != 0 || GetBlockN() != 0) && GetIndexN()
+		< (*p_buffer)[GetBlockN() - (GetIndexN() == 0 ? 1 : 0)].first.size(),
+		"Invalid index found.");
+	--position;
 	return *this;
 }
 
 TextFileBuffer::iterator::reference
 TextFileBuffer::iterator::operator*() const
 {
-	auto& vec(Deref(p_buffer)[block].first);
+	auto& vec(Deref(p_buffer)[GetBlockN()].first);
 
 	YAssert(!vec.empty(), "Empty block found.");
-	YAssert(index < vec.size(), "Invalid index found.");
-	return vec[index];
+
+	const auto idx(GetIndexN());
+
+	YAssert(idx < vec.size(), "Invalid index found.");
+	return vec[idx];
 }
 
 bool
@@ -131,13 +125,13 @@ operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 	YAssert(x.p_buffer == y.p_buffer,
 		"Iterators of different buffers are not comparable.");
 
-	return x.block == y.block && x.index == y.index;
+	return x.position == y.position;
 }
 
 
 TextFileBuffer::TextFileBuffer(TextFile& file)
 	: File(file), nTextSize(File.GetTextSize()),
-	nBlock((nTextSize + BlockSize - 1) / BlockSize),
+	nBlock((nTextSize + (1 << BlockShift) - 1) >> BlockShift),
 	fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(fixed_width
 	== 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
 {
@@ -159,22 +153,22 @@ TextFileBuffer::operator[](size_t idx)
 	if(YB_UNLIKELY(vec.empty() && bool(File)))
 		if(const auto pfun = FetchMapperFunc(File.Encoding))
 		{
-			File.Locate(idx * BlockSize);
+			File.Locate(idx << BlockShift);
 
-			size_t len(idx == nBlock - 1 && nTextSize % BlockSize != 0
-				? nTextSize % BlockSize : BlockSize);
+			size_t len(idx == nBlock - 1
+				&& (nTextSize & ((1 << BlockShift) - 1)) != 0
+				? nTextSize & ((1 << BlockShift) - 1) : 1 << BlockShift);
 
 			vec.reserve(len / fixed_width);
 
 			size_t n_byte(0);
 			ucs2_t c;
-			ystdex::ifile_iterator i(File.GetPtr());
+			auto sentry(File.GetSentry());
 
 			while(n_byte < len)
 				n_byte += ConvertChar([&](ucs2_t uc){
 					vec.push_back(uc);
-				}, pfun, i, c);
-			i.sungetc(File.GetPtr());
+				}, pfun, sentry.GetIteratorRef(), c);
 			vec.shrink_to_fit();
 		}
 	return b;
@@ -195,9 +189,9 @@ TextFileBuffer::GetIterator(size_t pos)
 {
 	if(pos < nTextSize)
 	{
-		const size_t idx(pos / BlockSize);
+		const size_t idx(pos >> BlockShift);
 
-		pos %= BlockSize;
+		pos &= (1 << BlockShift) - 1;
 		if(fixed_width == max_width)
 			return TextFileBuffer::iterator(this, idx, pos / max_width);
 
@@ -205,16 +199,15 @@ TextFileBuffer::GetIterator(size_t pos)
 
 		if(const auto pfun = FetchSkipMapperFunc(File.Encoding))
 		{
-			File.Locate(idx * BlockSize);
+			File.Locate(idx << BlockShift);
 
 			size_t n_byte(0), n_char(0);
-			ystdex::ifile_iterator i(File.GetPtr());
+			auto sentry(File.GetSentry());
 
 			while(n_byte < pos)
 				n_byte += ConvertChar([&](ystdex::pseudo_output){
 					++n_char;
-				}, pfun, i, ystdex::pseudo_output());
-			i.sungetc(File.GetPtr());
+				}, pfun, sentry.GetIteratorRef(), ystdex::pseudo_output());
 			return TextFileBuffer::iterator(this, idx, n_char);
 		}
 		return TextFileBuffer::iterator(this, idx, 0);
@@ -231,7 +224,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 	const auto pos(i.GetIndexN());
 
 	if(fixed_width == max_width)
-		return idx * BlockSize + pos * max_width;
+		return (idx << BlockShift) + pos * max_width;
 
 	if(const auto pfun = FetchSkipMapperFunc(File.Encoding))
 	{
@@ -239,7 +232,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 
 		YAssert(!vec.empty() && bool(File), "Block loading failed.");
 
-		File.Locate(idx *= BlockSize);
+		File.Locate(idx <<= BlockShift);
 
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 		const auto mid(vec.cbegin() + ptrdiff_t(pos));
@@ -250,14 +243,13 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 
 		YAssert(it <= mid, "Wrong iterator found.");
 
-		ystdex::ifile_iterator i_cur(File.GetPtr());
 		size_t n_byte(0);
+		auto sentry(File.GetSentry());
 
 		while(it != mid)
 			n_byte += ConvertChar([&](ystdex::pseudo_output){
 				++it;
-			}, pfun, i_cur, ystdex::pseudo_output());
-		i_cur.sungetc(File.GetPtr());
+			}, pfun, sentry.GetIteratorRef(), ystdex::pseudo_output());
 		return idx + n_byte;
 	}
 	return idx;

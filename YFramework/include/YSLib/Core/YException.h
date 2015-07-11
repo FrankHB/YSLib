@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r487
+\version r505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-05-18 21:44 +0800
+	2015-07-04 16:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <ystdex/functional.hpp> // for ystdex::result_of_t, ystdex::invoke;
 
 namespace YSLib
 {
@@ -155,6 +156,20 @@ TryExecute(std::function<void()>, const char* = {},
 	LoggedEvent::LevelType = Alert);
 
 /*!
+\brief 调用函数并试图返回。
+\since build 613
+*/
+template<typename _fCallable, typename... _tParams>
+ystdex::result_of_t<_fCallable&&(_tParams&&...)>
+TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
+{
+	TryRet(ystdex::invoke(yforward(f), yforward(args)...))
+	CatchExpr(std::exception& e, TraceExceptionType(e, Emergent))
+	CatchExpr(..., YCL_TraceRaw(Emergent, "Unknown exception found."))
+	return {};
+}
+
+/*!
 \brief 调用函数并过滤宿主异常。
 
 对参数指定的函数求值，并捕获和跟踪记录所有异常。
@@ -164,11 +179,9 @@ bool
 FilterExceptions(_func f, const char* desc = {},
 	LoggedEvent::LevelType lv = Alert) ynothrow
 {
-	TryRet(TryExecute(f, desc, lv))
-	CatchExpr(std::exception& e, TraceExceptionType(e, Emergent))
-	CatchExpr(..., YCL_TraceRaw(Emergent,
-		"Unknown exception found @ FilterExceptions."))
-	return true;
+	return !TryInvoke([=]{
+		return !TryExecute(f, desc, lv);
+	});
 }
 //@}
 //@}
