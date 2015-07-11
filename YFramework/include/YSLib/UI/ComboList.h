@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2697
+\version r2699
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2015-05-24 21:40 +0800
+	2015-07-04 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,9 +65,9 @@ protected:
 	*/
 	unique_ptr<TextList> pTextList;
 
-	//! \since build 534
+	//! \since build 613
 	explicit
-	ListBox(const Rect&, unique_ptr<TextList>&&);
+	ListBox(const Rect&, unique_ptr<TextList>);
 
 public:
 	//! \since build 337

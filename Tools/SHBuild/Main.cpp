@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2842
+\version r2848
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-05-27 04:42 +0800
+	2015-07-05 06:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -657,7 +657,12 @@ BuildContext::Build()
 	});
 
 	const auto opth(Path(OutputDir)
-		/ (TargetName.empty() ? ipath.back() : String(TargetName)));
+		/ (TargetName.empty() ? [](const String& n) -> String{
+			if(!n.empty())
+				return
+					n.back() == u':' ? String(n.substr(0, n.length() - 1)) : n;
+			throw std::invalid_argument("Empty input path component found.");
+		}(ipath.back()) : String(TargetName)));
 	const auto& ofiles(ActionContext([this](const Key& name){
 		const shared_ptr<Rule> p_rule(new Rule{*this, name});
 

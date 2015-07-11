@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1634
+\version r1636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2015-03-22 15:39 +0800
+	2015-07-04 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,10 +96,10 @@ public:
 	/*!
 	\brief 构造：使用部件指针。
 	\note 当文本列表指针为空时新建。
-	\since build 527
+	\since build 613
 	*/
 	explicit
-	AMUnitControlList(unique_ptr<IWidget>&&);
+	AMUnitControlList(unique_ptr<IWidget>);
 	DefDeMoveCtor(AMUnitControlList)
 
 	//! \since build 529

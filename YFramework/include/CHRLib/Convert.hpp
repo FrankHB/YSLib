@@ -11,13 +11,13 @@
 /*!	\file Convert.hpp
 \ingroup CHRLib
 \brief 转换模板。
-\version r69
+\version r84
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-23 10:18:20 +0800
 \par 修改时间:
-	2015-04-30 21:21 +0800
+	2015-07-08 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,23 @@ ConversionResult
 ConvertCharacter(_fConv f, _tIn&& i, ConversionState&& st)
 {
 	return f(ystdex::input_monomorphic_iterator(std::ref(i)), std::move(st));
+}
+
+
+/*!
+\brief 验证指定字符序列是否可转换为 UCS-2 字符串。
+\pre 指定范围内的迭代器可解引用。
+\note 使用 ADL \c MBCToUC 指定转换迭代器的例程：第一参数应迭代输入参数至下一位置。
+\since build 613
+*/
+template<typename _tIn>
+bool
+VerifyUC(_tIn&& first, ystdex::remove_reference_t<_tIn> last, Encoding enc)
+{
+	while(first != last && *first != 0 && MBCToUC(first, enc)
+		== ConversionResult::OK)
+		;
+	return first == last || *first == char();
 }
 
 } // namespace CHRLib;

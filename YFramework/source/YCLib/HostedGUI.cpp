@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1463
+\version r1484
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-07-04 09:43 +0800
+	2015-07-04 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -400,6 +400,7 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 YF_API ::HBITMAP
 CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 {
+	// NOTE: There is no resolution information created. See https://msdn.microsoft.com/en-us/library/dd183494.aspx .
 	// NOTE: It would return %ERROR_INVALID_PARAMETER for many calls if
 	//	allocated memory is not on 32-bit boundary. Anyway it is not a matter
 	//	here because the pixel is at least 32-bit. See
@@ -880,6 +881,28 @@ void
 Clipboard::Send(const String& str)
 {
 	SendRaw(CF_UNICODETEXT, CopyGlobalString<ucs2_t>(str));
+}
+void
+Clipboard::Send(ConstBitmapPtr p_bmp, const Size& s)
+{
+	YAssertNonnull(p_bmp),
+	YAssert(s != Size::Invalid, "Invalid size found.");
+
+	auto p(MakeMoveableGlobalMemory(sizeof(::BITMAPV5HEADER)
+		+ GetAreaOf(s) * sizeof(Pixel)));
+	{
+		const GlobalLocked gl(Nonnull(p));
+		const auto p_buf(gl.GetPtr<::BITMAPV5HEADER>());
+
+		*p_buf = {sizeof(::BITMAPV5HEADER), CheckPositiveScalar<long>(s.Width,
+			"width"), -CheckPositiveScalar<long>(s.Height, "height"), 1, 32,
+			BI_BITFIELDS, static_cast<unsigned long>(sizeof(Pixel)
+			* GetAreaOf(s)), 0, 0, 0, 0, 0x00FF0000, 0x0000FF00, 0x000000FF,
+			0xFF000000, 0x73524742/*LCS_sRGB*/, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}
+			}, 0, 0, 0, LCS_GM_IMAGES, 0, 0, 0},
+		CopyBitmapBuffer(reinterpret_cast<Pixel*>(p_buf + 1), p_bmp, s);
+	}
+	SendRaw(CF_DIBV5, p.release());
 }
 
 void

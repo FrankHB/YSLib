@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2151
+\version r2153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2015-03-24 22:11 +0800
+	2015-07-04 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ using namespace Drawing;
 namespace UI
 {
 
-AMUnitControlList::AMUnitControlList(unique_ptr<IWidget>&& p_wgt)
+AMUnitControlList::AMUnitControlList(unique_ptr<IWidget> p_wgt)
 	: AMUnitList(),
 	p_unit(std::move(p_wgt))
 {}
@@ -82,7 +82,7 @@ MTextList::MTextList(const shared_ptr<ListType>& h)
 {
 	auto& unit(GetUnitRef());
 
-	LabelBrush.Margin = Padding(2, 2, 1, 1),
+	LabelBrush.Margin = {2, 2, 1, 1},
 	unit.GetView().SetHeight(GetItemHeight()),
 	Iterated += [this](size_t idx){
 		YAssert(idx < GetTotal(), "Index is out of range.");

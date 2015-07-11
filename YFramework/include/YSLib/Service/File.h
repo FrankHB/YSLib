@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1187
+\version r1211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-06-17 00:36 +0800
+	2015-07-11 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities
+#include <ystdex/cstdio.h> // for ystdex::ifile_iterator;
 #include <cwctype>
 #include YFM_YSLib_Adaptor_YTextBase
 #include <sstream> // for std::ostringstream;
@@ -43,6 +44,31 @@ namespace YSLib
 */
 class YF_API File : private noncopyable
 {
+public:
+	//! \since build 613
+	class YF_API Sentry
+	{
+	private:
+		ystdex::nptr<std::FILE*> fp{};
+		ystdex::ifile_iterator iter{};
+
+	public:
+		DefDeCtor(Sentry)
+		Sentry(const File& file)
+			: fp(file.fp), iter(file.fp)
+		{}
+		DefDeMoveCtor(Sentry)
+		~Sentry()
+		{
+			if(fp)
+				iter.sungetc(Nonnull(fp.get()));
+		}
+
+		DefDeMoveAssignment(Sentry)
+
+		DefGetter(ynothrow, ystdex::ifile_iterator&, IteratorRef, iter)
+	};
+
 private:
 	//! \since build 341
 	std::FILE* fp; //!< 默认文件指针。
@@ -84,6 +110,8 @@ public:
 	DefBoolNeg(explicit, fp)
 
 	DefGetter(const ynothrow, FILE*, Ptr, fp) //!< 取文件指针。
+	//! \since build 613
+	DefGetter(const ynothrow, Sentry, Sentry, *this)
 	DefGetter(const ynothrow, size_t, Size, fsize) //!< 取文件大小。
 	/*!
 	\brief 取文件指针的位置。
