@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r810
+\version r819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-05-29 19:33 +0800
+	2015-07-13 11:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,7 +124,7 @@ public:
 	inline Text::ConversionResult
 	ReadChar(_tChar& c, _tParams&&... args) const
 	{
-		return MBCToUC(c, GetPtr(), Encoding, args...);
+		return MBCToUC(c, GetStream(), Encoding, args...);
 	}
 
 	/*!
@@ -135,16 +135,8 @@ public:
 	inline Text::ConversionResult
 	SkipChar(_tParams&&... args) const
 	{
-		return MBCToUC(GetPtr(), Encoding, args...);
+		return MBCToUC(GetStream(), Encoding, args...);
 	}
-
-	/*!
-	\brief 截断文本。
-	\sa File::Truncate
-	\since build 341
-	*/
-	bool
-	Truncate(size_t) const override;
 };
 
 } // namespace YSLib;

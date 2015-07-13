@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1211
+\version r1234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-07-11 21:26 +0800
+	2015-07-13 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,11 @@ public:
 	*/
 	DefBoolNeg(explicit, fp)
 
-	DefGetter(const ynothrow, FILE*, Ptr, fp) //!< 取文件指针。
+	/*!
+	\brief 取文件指针。
+	\since build 614
+	*/
+	DefGetter(const ynothrow, FILE*, Stream, fp)
 	//! \since build 613
 	DefGetter(const ynothrow, Sentry, Sentry, *this)
 	DefGetter(const ynothrow, size_t, Size, fsize) //!< 取文件大小。
@@ -121,14 +125,6 @@ public:
 	*/
 	size_t
 	GetPosition();
-
-	/*!
-	\brief 设置文件指针位置。
-	\note 参数和返回值语义同 \c std::fseek 。
-	\since build 273
-	*/
-	PDefH(int, Seek, ptrdiff_t offset, int whence) const
-		ImplRet(std::fseek(fp, long(offset), whence))
 
 	/*!
 	\brief 检测文件结束符。
@@ -202,15 +198,6 @@ public:
 		ImplExpr(std::rewind(fp))
 
 	/*!
-	\brief 截断文件。
-	\sa platform::truncate
-	\note 派生类可能覆盖默认行为。
-	\since build 341
-	*/
-	virtual bool
-	Truncate(size_t) const;
-
-	/*!
 	\brief 连续写 \c nmemb 个大小为 \c size 文件块到 \c ptr 中。
 	\return 返回成功写入的文件块数。
 	\note 语义同 \c std::fwrite 。
@@ -239,7 +226,7 @@ operator>>(File& f, _tChar& c)
 {
 	YAssert(bool(f), "Invalid file found.");
 
-	c = std::fgetc(f.GetPtr());
+	c = std::fgetc(f.GetStream());
 	return f;
 }
 /*!
@@ -255,7 +242,7 @@ operator>>(File& f, _tString& str)
 
 	int c;
 
-	while((c = std::fgetc(f.GetPtr())) > 0 && !std::isspace(c))
+	while((c = std::fgetc(f.GetStream())) > 0 && !std::isspace(c))
 		str += c;
 	return f;
 }
@@ -265,14 +252,14 @@ operator>>(File& f, _tString& str)
 \since build 326
 */
 inline PDefHOp(File&, <<, File& f, char c)
-	ImplRet(YAssert(bool(f), "Invalid file found."), std::fputc(c, f.GetPtr()),
-		f)
+	ImplRet(YAssert(bool(f), "Invalid file found."),
+		std::fputc(c, f.GetStream()), f)
 //! \brief 向指定文件写字符串。
 //@{
 //! \since build 326
 inline PDefHOp(File&, <<, File& f, const char* str)
 	ImplRet(YAssert(bool(f), "Invalid file found."),
-		std::fputs(str, f.GetPtr()), f)
+		std::fputs(str, f.GetStream()), f)
 
 //! \since build 600
 inline PDefHOp(File&, <<, File& f, const string& str)

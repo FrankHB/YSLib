@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1651
+\version r1658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-07-02 08:02 +0800
+	2015-07-12 20:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,21 +67,21 @@ namespace ystdex
 /*!	\defgroup unary_type_traits Unary Type Trait
 \ingroup type_traits_operations
 \brief 一元类型特征。
-\see ISO C++11 20.9.1[meta.rqmts] 。
+\see ISO C++11 20.9.1 [meta.rqmts] 。
 \since build 306
 */
 
 /*!	\defgroup binary_type_traits Binary Type Trait
 \ingroup type_traits_operations
 \brief 二元类型特征。
-\see ISO C++11 20.9.1[meta.rqmts] 。
+\see ISO C++11 20.9.1 [meta.rqmts] 。
 \since build 306
 */
 
 /*!	\defgroup transformation_traits Binary Type Trait
 \ingroup type_traits_operations
 \brief 变换类型特征。
-\see ISO C++11 20.9.1[meta.rqmts] 。
+\see ISO C++11 20.9.1 [meta.rqmts] 。
 \since build 590
 */
 
@@ -898,6 +898,11 @@ using enable_if_convertible_t
 template<typename _type1, typename _type2, typename _type = void>
 using enable_if_interoperable_t
 	= enable_if_t<is_interoperable<_type1, _type2>::value, _type>;
+
+//! \since build 614
+template<typename _type1, typename _type2, typename _type = void>
+using enable_if_same_t
+	= enable_if_t<is_same<_type1, _type2>::value, _type>;
 //@}
 
 

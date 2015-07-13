@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1350
+\version r1370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-04-28 22:43 +0800
+	2015-07-12 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,6 +73,9 @@ ToASCII(_tChar c)
 //@{
 YF_API ConversionResult
 MBCToUC(ucs2_t&, const char*&, Encoding, ConversionState&& = {});
+//! \since build 614
+YF_API ConversionResult
+MBCToUC(ucs2_t&, const char*&, const char*, Encoding, ConversionState&& = {});
 inline PDefH(ConversionResult, MBCToUC, ucs2_t& uc, const char*& c,
 	Encoding enc, ConversionState& st)
 	ImplRet(MBCToUC(uc, c, enc, std::move(st)))
@@ -96,9 +99,16 @@ inline PDefH(ConversionResult, MBCToUC, ucs2_t& uc, std::FILE* fp, Encoding enc,
 //@{
 YF_API ConversionResult
 MBCToUC(const char*&, Encoding, ConversionState&& = {});
+//! \since build 614
+YF_API ConversionResult
+MBCToUC(const char*&, const char*, Encoding, ConversionState&& = {});
 inline PDefH(ConversionResult, MBCToUC, const char*& c, Encoding enc,
 	ConversionState& st)
 	ImplRet(MBCToUC(c, enc, std::move(st)))
+//! \since build 614
+inline PDefH(ConversionResult, MBCToUC, const char*& c, const char* e,
+	Encoding enc, ConversionState& st)
+	ImplRet(MBCToUC(c, e, enc, std::move(st)))
 //! \pre 断言：指针参数非空。
 //@{
 YF_API YB_NONNULL(1) ConversionResult
@@ -133,15 +143,25 @@ UCToMBC(char*, const ucs2_t&, Encoding);
 \brief 按指定编码转换 MBCS 字符串为 UCS-2 字符串。
 \since build 291
 */
+//@{
 YF_API YB_NONNULL(1, 2) size_t
 MBCSToUCS2(ucs2_t*, const char*, Encoding = CS_Default);
+//! \since build 614
+YF_API YB_NONNULL(1, 2, 3) size_t
+MBCSToUCS2(ucs2_t*, const char*, const char* e, Encoding = CS_Default);
+//@}
 
 /*!
 \brief 按指定编码转换 MBCS 字符串为 UCS-4 字符串。
 \since build 594
 */
+//@{
 YF_API YB_NONNULL(1, 2) size_t
 MBCSToUCS4(ucs4_t*, const char*, Encoding = CS_Default);
+//! \since build 614
+YF_API YB_NONNULL(1, 2, 3) size_t
+MBCSToUCS4(ucs4_t*, const char*, const char*, Encoding = CS_Default);
+//@}
 
 /*!
 \brief 按指定编码转换 UCS-2 字符串为 MBCS 字符串。

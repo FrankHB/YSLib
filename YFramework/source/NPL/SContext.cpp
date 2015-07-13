@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1492
+\version r1494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2015-05-17 11:40 +0800
+	2015-07-13 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,8 @@ Session::Session(const TextFile& tf, CharParser parse)
 		throw GeneralEvent("Invalid file found when opening NPL session.");
 
 	using namespace ystdex;
-	ifile_iterator i(tf.GetPtr());
+	auto sentry(tf.GetSentry());
+	auto& i(sentry.GetIteratorRef());
 
 	while(!tf.CheckEOF())
 	{

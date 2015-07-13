@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1049
+\version r1076
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-07-10 20:39 +0800
+	2015-07-13 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,18 @@ using namespace Text;
 namespace
 {
 
+YB_NONNULL(1, 2) Encoding
+VerifyEncoding(std::FILE* fp, char* s, size_t buflen, size_t txt_len)
+{
+	const auto n(std::min(txt_len, buflen));
+
+	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
+	std::fread(s, 1, n, Nonnull(fp));
+	std::rewind(fp);
+	return VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), CharSet::UTF_8)
+		? CharSet::UTF_8 : CharSet::Null;
+}
+
 void
 InitializeTextFile(TextFile& tf, size_t& bl)
 {
@@ -45,17 +57,11 @@ InitializeTextFile(TextFile& tf, size_t& bl)
 	tf.Rewind();
 	if(bl == 0)
 	{
-#define YSL_TXT_CHECK_ENCODING_N size_t(64U)
-		char s[YSL_TXT_CHECK_ENCODING_N + 6];
-		const auto n(min(tf.GetTextSize(), YSL_TXT_CHECK_ENCODING_N));
-#undef YSL_TXT_CHECK_ENCODING_N
+		char s[64U];
 
-		std::char_traits<char>::assign(s + n, arrlen(s) - n, 0);
-		tf.Read(s, 1, n);
-		tf.Rewind();
 		// TODO: More accurate encoding checking for text stream without BOM.
-		tf.Encoding = VerifyUC(&ystdex::as_const(s)[0], s + n, CharSet::UTF_8)
-			? CharSet::UTF_8 : CharSet::GBK;
+		tf.Encoding = VerifyEncoding(tf.GetStream(), s, arrlen(s),
+			tf.GetTextSize()) != CharSet::Null ? CharSet::UTF_8 : CharSet::GBK;
 	}
 }
 
@@ -109,7 +115,7 @@ TextFile::GetBOM() const
 
 	File::Rewind();
 	for(size_t i(0); i != s; ++i)
-		str[i] = std::fgetc(GetPtr());
+		str[i] = std::fgetc(GetStream());
 	return str;
 }
 
@@ -155,21 +161,15 @@ TextFile::CheckBOM(Text::Encoding& cp)
 void
 TextFile::Locate(size_t pos) const
 {
-	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-	Seek(ptrdiff_t(bl + pos), SEEK_SET);
+	// XXX: Conversion to 'long' might be implementation-defined.
+	std::fseek(GetStream(), long(bl + pos), SEEK_SET);
 }
 
 void
 TextFile::Rewind() const
 {
-	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-	Seek(ptrdiff_t(bl), SEEK_SET);
-}
-
-bool
-TextFile::Truncate(size_t size) const
-{
-	return File::Truncate(GetBOMSize() + size);
+	// XXX: Conversion to 'long' might be implementation-defined.
+	std::fseek(GetStream(), long(bl), SEEK_SET);
 }
 
 } // namespace YSLib;

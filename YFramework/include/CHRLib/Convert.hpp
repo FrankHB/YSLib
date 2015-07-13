@@ -11,13 +11,13 @@
 /*!	\file Convert.hpp
 \ingroup CHRLib
 \brief 转换模板。
-\version r84
+\version r113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-23 10:18:20 +0800
 \par 修改时间:
-	2015-07-08 23:46 +0800
+	2015-07-12 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,15 +57,44 @@ ConvertCharacter(_fConv f, _tIn&& i, ConversionState&& st)
 \note 使用 ADL \c MBCToUC 指定转换迭代器的例程：第一参数应迭代输入参数至下一位置。
 \since build 613
 */
+//@{
 template<typename _tIn>
 bool
 VerifyUC(_tIn&& first, ystdex::remove_reference_t<_tIn> last, Encoding enc)
 {
-	while(first != last && *first != 0 && MBCToUC(first, enc)
-		== ConversionResult::OK)
+	auto res(ConversionResult::OK);
+
+	while(first != last && *first != 0
+		&& (res = MBCToUC(first, enc), res == ConversionResult::OK))
 		;
-	return first == last || *first == char();
+	return res == ConversionResult::OK || *first == char();
 }
+/*!
+\pre 迭代器为随机迭代器。
+\note 使用指定迭代器边界。
+\since build 614
+*/
+template<typename _tIn>
+bool
+VerifyUC(_tIn&& first, typename std::iterator_traits<ystdex::decay_t<_tIn>>
+	::difference_type n, Encoding enc)
+{
+
+	if(n != 0)
+	{
+		auto res(ConversionResult::OK);
+		const auto i(first);
+
+		while(*first != 0 && (res = MBCToUC(first, first + n, enc),
+			res == ConversionResult::OK))
+			;
+		return res == ConversionResult::OK
+			|| (res == ConversionResult::BadSource && first - i == n)
+			|| *first == char();
+	}
+	return true;
+}
+//@}
 
 } // namespace CHRLib;
 
