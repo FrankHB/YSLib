@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2339
+\version r2364
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-07-01 20:47 +0800
+	2015-07-12 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,11 +226,13 @@ LoadCP936_NLS()
 {
 	using namespace platform_ex;
 
-	p_dbcs_off_936 = FetchDBCSOffset(936);
-	cp113_lkp_backup = CHRLib::cp113_lkp;
-	CHRLib::cp113_lkp = [](byte seq0, byte seq1) ynothrowv -> ucs2_t{
-		return p_dbcs_off_936[p_dbcs_off_936[seq0] + seq1];
-	};
+	if((p_dbcs_off_936 = FetchDBCSOffset(936)))
+	{
+		cp113_lkp_backup = CHRLib::cp113_lkp;
+		CHRLib::cp113_lkp = [](byte seq0, byte seq1) ynothrowv -> ucs2_t{
+			return p_dbcs_off_936[p_dbcs_off_936[seq0] + seq1];
+		};
+	}
 }
 //@}
 #endif
@@ -255,26 +257,32 @@ LoadComponents(const ValueNode& node)
 
 	YF_Init_printf(Notice, "Loading character mapping file '%s' ...\n",
 		mapping_name.c_str());
-
-#if YCL_Win32
 	try
 	{
-#endif
 		p_mapped = LoadMappedModule(data_dir + "cp113.bin");
 		if(p_mapped->GetSize() != 0)
 			CHRLib::cp113 = p_mapped->GetPtr();
 		else
 			throw GeneralEvent("Failed loading CHRMapEx.");
-#if YCL_Win32
+		YF_Init_puts(Notice, "CHRMapEx loaded successfully.");
 	}
 	catch(std::exception&)
 	{
+		YTraceDe(Notice, "Module cp113.bin loading failed.");
+#	if YCL_Win32
 		LoadCP936_NLS();
-		YTraceDe(Notice,
-			"Module cp113.bin loading failed, NLS CP936 used as fallback.");
+		if(p_dbcs_off_936)
+			YTraceDe(Notice, "NLS CP936 used as fallback.");
+		else
+#	endif
+		{
+			CHRLib::cp113_lkp = [](byte, byte) YB_ATTR(noreturn) -> ucs2_t {
+				throw LoggedEvent("Failed calling conversion for CHRMapEx.");
+			};
+			YF_Init_puts(Warning, "CHRMapEx conversion calls would lead to"
+				" exception thrown.");
+		}
 	}
-#endif
-	YF_Init_puts(Notice, "CHRMapEx loaded successfully.");
 #endif
 	YF_Init_printf(Notice, "Trying entering directory '%s' ...\n",
 		data_dir.c_str());

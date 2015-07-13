@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r196
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2015-06-04 15:58 +0800
+	2015-07-13 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ public:
 };
 
 NLSTableEntry::NLSTableEntry(int cp)
-	: p_mapped(make_unique<platform::MappedFile>(WCSToMBCS(FetchSystemPath()
+	: p_mapped(new platform::MappedFile(WCSToMBCS(FetchSystemPath()
 	+ FetchCPFileNameFromRegistry(cp))))
 {
 	const auto base(reinterpret_cast<unsigned short*>(p_mapped->GetPtr()));
@@ -151,11 +151,11 @@ FetchNLSTableEntry(int cp)
 const unsigned short*
 FetchDBCSOffset(int cp) ynothrow
 {
-	FilterExceptions([=]{
+	return TryInvoke([=]{
 		auto& tbl(FetchNLSTableEntry(cp).GetTable());
 
 		return tbl.DBCSCodePage ? tbl.DBCSOffsets : nullptr;
-	}, "FetchDBCSOffset", Warning);
+	});
 	return {};
 }
 

@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1361
+\version r1423
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-06-19 19:44 +0800
+	2015-07-12 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,16 @@ MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState&& st)
 	return ConversionResult::Unhandled;
 }
 ConversionResult
+MBCToUC(ucs2_t& uc, const char*& c, const char* e, Encoding enc,
+	ConversionState&& st)
+{
+	yconstraint(c <= e);
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+		GuardPair<const char*>&&, ConversionState&&>(enc))
+		return pfun(uc, {c, e}, std::move(st));
+	return ConversionResult::Unhandled;
+}
+ConversionResult
 MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	yconstraint(fp);
@@ -77,6 +87,16 @@ MBCToUC(const char*& c, Encoding enc, ConversionState&& st)
 	if(const auto pfun = FetchMapperPtr<ConversionResult,
 		ystdex::pseudo_output&&, const char*&, ConversionState&&>(enc))
 		return pfun(ystdex::pseudo_output(), c, std::move(st));
+	return ConversionResult::Unhandled;
+}
+ConversionResult
+MBCToUC(const char*& c, const char* e, Encoding enc, ConversionState&& st)
+{
+	yconstraint(c <= e);
+	if(const auto pfun = FetchMapperPtr<ConversionResult,
+		ystdex::pseudo_output&&, GuardPair<const char*>&&,
+		ConversionState&&>(enc))
+		return pfun(ystdex::pseudo_output(), {c, e}, std::move(st));
 	return ConversionResult::Unhandled;
 }
 ConversionResult
@@ -125,6 +145,24 @@ MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
 	*d = 0;
 	return size_t(d - p);
 }
+size_t
+MBCSToUCS2(ucs2_t* d, const char* s, const char* e, Encoding enc)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(e),
+	yconstraint(s <= e);
+
+	const auto p(d);
+
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+		GuardPair<const char*>&&, ConversionState&&>(enc))
+		while(!is_null(*s) && pfun(*d, {s, e}, ConversionState())
+			== ConversionResult::OK)
+			++d;
+	*d = 0;
+	return size_t(d - p);
+}
 
 size_t
 MBCSToUCS4(ucs4_t* d, const char* s, Encoding enc)
@@ -143,6 +181,35 @@ MBCSToUCS4(ucs4_t* d, const char* s, Encoding enc)
 			ucs2_t c;
 
 			if(pfun(c, s, ConversionState()) == ConversionResult::OK)
+			{
+				*d = c;
+				++d;
+			}
+			else
+				break;
+		}
+	*d = 0;
+	return size_t(d - p);
+}
+size_t
+MBCSToUCS4(ucs4_t* d, const char* s, const char* e, Encoding enc)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(e),
+	yconstraint(s <= e);
+
+	const auto p(d);
+
+	// TODO: Use UCS-4 internal conversion directly?
+	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+		GuardPair<const char*>&&, ConversionState&&>(enc))
+		while(!is_null(*s))
+		{
+			// TODO: Necessary initialization?
+			ucs2_t c;
+
+			if(pfun(c, {s, e}, ConversionState()) == ConversionResult::OK)
 			{
 				*d = c;
 				++d;
