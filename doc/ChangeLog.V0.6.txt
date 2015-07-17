@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r1772
+\version r1833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2014-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-07-13 13:50 +0800
+	2015-07-18 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,68 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ %FileIO;
+			/ "classes %(FileDescriptor, FileDescriptorDeleter, \
+				FileOperationFailure), functions %(SetBinaryIO, 2 \
+				SetupBinaryStdIO, 2 uaccess, 4 uopen, 2 ufopen, 2 ufexists, \
+				upclose, 2 upopen, u16getcwd_n, uchdir, umkdir, urmdir, \
+				uunlink, uremove, truncate, 4 GetFileModificationTimeOf, 2 \
+				GetFileSizeOf), function templates %(ufexists, \
+				GetFileModificationTimeOf)" @ %FileSystem >> %FileIO
+		),
+		/ %YSLib.Service $=
+		(
+			/ @ "class %TextFileBuffer" @ %TextManager $=
+			(
+				/ @ "constructor" $=
+				(
+					* $doc "wrong precondition" $since b613,
+					/ "threw %LoggedEvent when file is not opened"
+				),
+				/ DLDI ^ $dep_from ("%ConvertCharacter" @ %CHRLib.Convert)
+			),
+			+ "defined out-of-line virtual destructor" @ "class %TextFile"
+				@ %TextFile
+				// To eliminate Clang++ warning: [-Wweak-vtable].
+		),
+		/ %CHRLib $=
+		(
+			/ %StaticMapping $=
+			(
+				/ "alias template %GuardPair" >> %CharacterMapping,
+				"missing 'get()' call for first component"
+					@ "function templates %FillByte for %GuardPair" $since b614
+			);
+			+ "2 function template %ConvertCharacter for GuardPair" @ %Convert
+		)
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			* "invalid access for null parameter and wrong result for nonnull \
+				parameter" @ "function %openmode_conv with 'const char*' \
+				parameter" @ %CStandardIO $since b326,
+			/ @ "class template %any_input_iterator" @ %AnyIterator $=
+			(
+				/ "function %get with return type %any" -> "2 functions with \
+					return types (('any&', 'const any&'), 'ynothrow')",
+				+ 'using any::target'
+			),
+		),
+		+ "macro %YB_ATTR_gnu_printf" @ %YDefinition;
+	),
+	/ $dev DLDI "attribute 'YB_ATTR(format (gnu_printf, ...))'" ^ $dep_from
+		("%YB_ATTR_gnu_printf" @ %YBase.YDefinition)
+		// Also to eliminate Clang++ warning: [-Wignored-attributes].
+),
+
+b614
 (
 	+ "type traits operation %enable_if_same_t"
 		@ %YBase.YStandardEx.TypeOperation,

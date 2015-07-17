@@ -11,13 +11,13 @@
 /*!	\file Convert.hpp
 \ingroup CHRLib
 \brief 转换模板。
-\version r113
+\version r141
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-23 10:18:20 +0800
 \par 修改时间:
-	2015-07-12 22:38 +0800
+	2015-07-17 23:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,13 +43,42 @@ ConvertCharacter(_fConv f, _tOut&& obj, _tIn&& i, ConversionState&& st)
 	return f(yforward(obj), ystdex::input_monomorphic_iterator(std::ref(i)),
 		std::move(st));
 }
+//! \since build 400
 template<typename _tIn, typename _fConv>
 ConversionResult
 ConvertCharacter(_fConv f, _tIn&& i, ConversionState&& st)
 {
 	return f(ystdex::input_monomorphic_iterator(std::ref(i)), std::move(st));
 }
+//! \since build 615
+template<typename _tIn, typename _tOut, typename _fConv>
+ConversionResult
+ConvertCharacter(_fConv f, _tOut&& obj, GuardPair<_tIn>& i,
+	ConversionState&& st)
+{
+	ystdex::input_monomorphic_iterator it(i.first);
+	const auto res(f(yforward(obj), GuardPair<
+		ystdex::input_monomorphic_iterator>(it, i.second), std::move(st)));
+	auto p_target(it.target<_tIn>());
 
+	yassume(p_target);
+	i.first = *p_target;
+	return res;
+}
+//! \since build 615
+template<typename _tIn, typename _fConv>
+ConversionResult
+ConvertCharacter(_fConv f, GuardPair<_tIn>& i, ConversionState&& st)
+{
+	ystdex::input_monomorphic_iterator it(i.first);
+	const auto res(f(GuardPair<
+		ystdex::input_monomorphic_iterator>(it, i.second), std::move(st)));
+	auto p_target(it.target<_tIn>());
+
+	yassume(p_target);
+	i.first = *p_target;
+	return res;
+}
 
 /*!
 \brief 验证指定字符序列是否可转换为 UCS-2 字符串。

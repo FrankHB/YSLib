@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r991
+\version r1006
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2015-04-30 10:15 +0800
+	2015-07-17 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_any_iterator_hpp_
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
-#include "any.h" // for ystdex::any, ystdex::wrapped_traits;
-#include "iterator.hpp" // for ystdex::is_undereferenceable, std::iterator;
+#include "any.h" // for any, wrapped_traits;
+#include "iterator.hpp" // for is_undereferenceable, std::iterator;
 
 namespace ystdex
 {
@@ -308,12 +308,19 @@ public:
 		return *this;
 	}
 
-	//! \since build 349
-	any
-	get() const
+	//! \since build 615
+	//@{
+	any&
+	get() ynothrow
 	{
-		return static_cast<const any&>(*this);
+		return *this;
 	}
+	const any&
+	get() const ynothrow
+	{
+		return *this;
+	}
+	//@}
 
 	//! \since build 400
 	bool
@@ -343,6 +350,9 @@ public:
 		manager(t, i.storage, any_ops::equals);
 		return t.access<bool>();
 	}
+
+	//! \since build 615
+	using any::target;
 
 	using any::type;
 	//@}

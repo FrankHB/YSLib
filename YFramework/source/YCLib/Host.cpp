@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r310
+\version r311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-06-14 21:58 +0800
+	2015-07-14 19:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_FileSystem // for platform::FileOperationFailure;
+#include YFM_YCLib_FileIO // for platform::FileOperationFailure;
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Consoles
 #	include <io.h> // for ::_isatty;

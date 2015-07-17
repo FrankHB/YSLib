@@ -21,13 +21,13 @@
 /*!	\file YModules.h
 \ingroup YCLib
 \brief YCLib 库模块配置文件。
-\version r92
+\version r94
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:20 +0800
 \par 修改时间:
-	2015-06-05 03:17 +0800
+	2015-07-14 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,8 @@
 #define YFM_YCLib_YCommon <YCLib/YCommon.h>
 #define YFM_YCLib_NativeAPI <YCLib/NativeAPI.h>
 #define YFM_YCLib_Debug <YCLib/Debug.h>
+//! \since build 615
+#define YFM_YCLib_FileIO <YCLib/FileIO.h>
 #define YFM_YCLib_FileSystem <YCLib/FileSystem.h>
 #define YFM_YCLib_Timer <YCLib/Timer.h>
 #define YFM_YCLib_Video <YCLib/Video.h>

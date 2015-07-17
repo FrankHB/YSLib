@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2725
+\version r2740
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-06-10 00:45 +0800
+	2015-07-18 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,6 +313,22 @@
 #	define YB_ATTR_STD(...) [[__VA_ARGS__]]
 #else
 #	define YB_ATTR_STD(...)
+#endif
+
+/*!
+\def YB_ATTR
+\brief GNU 风格 printf 属性。
+\note Clang++ 未支持此属性，警告 [-Wignored-attributes] 。
+\since build 615
+*/
+#if YB_IMPL_GNUC >= 40400 && !YB_IMPL_CLANGPP
+#	define YB_ATTR_gnu_printf(...) \
+	YB_ATTR(__format__ (__gnu_printf__, __VA_ARGS__))
+// TODO: Version?
+#elif YB_IMPL_GNUC
+#	define YB_ATTR_gnu_printf(...) YB_ATTR(__format__ (__printf__, __VA_ARGS__))
+#else
+#	define YB_ATTR(...)
 #endif
 
 /*!

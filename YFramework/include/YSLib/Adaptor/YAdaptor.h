@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1773
+\version r1775
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-06-01 16:47 +0800
+	2015-07-14 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@
 #include YFM_YCLib_Debug
 #include YFM_YCLib_Keys
 #include YFM_YCLib_Timer
+#include YFM_YCLib_FileIO
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_Video
 #include YFM_YCLib_Container
@@ -154,7 +155,7 @@ using platform::enable_shared_from_this;
 using platform::get_deleter;
 using platform::make_shared;
 using platform::make_unique;
-//! \since build 601
+//! \since build 602
 using platform::make_unique_default_init;
 using platform::get_raw;
 using platform::owner_less;

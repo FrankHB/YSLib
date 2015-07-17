@@ -898,6 +898,9 @@
     <ClInclude Include="DS\include\YCLib\DSIO.h">
       <Filter>DS\include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\FileIO.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
@@ -1226,6 +1229,9 @@
     </ClCompile>
     <ClCompile Include="DS\source\YCLib\DSIO.cpp">
       <Filter>DS\source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\FileIO.cpp">
+      <Filter>source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

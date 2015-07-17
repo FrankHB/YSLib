@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1448
+\version r1449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-07-01 20:15 +0800
+	2015-07-18 00:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1107,7 +1107,7 @@ sfmt(const _tChar* fmt, ...)
 \sa ystdex::sfmt
 \since build 350
 */
-template YB_ATTR(format (gnu_printf, 1, 2)) YB_NONNULL(1) std::string
+template YB_ATTR_gnu_printf(1, 2) YB_NONNULL(1) std::string
 sfmt<char>(const char*, ...);
 
 

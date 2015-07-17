@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2436
+\version r2443
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-05-29 22:02 +0800
+	2015-07-17 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,18 +30,11 @@
 
 #include "YModules.h"
 #include YFM_CHRLib_CharacterMapping
-#include <utility> // for std::pair;
-#include <ystdex/ref.hpp> // for ystdex::lref;
 #include <ystdex/cstdio.h>
 #include <ystdex/any.h> // for ystdex::pseudo_object;
 
 namespace CHRLib
 {
-
-//! \since build 614
-template<typename _tIn>
-using GuardPair = std::pair<ystdex::lref<_tIn>, const _tIn>;
-
 
 //! \since build 595
 template<typename _tIn>
@@ -93,13 +86,13 @@ template<typename _tIn>
 inline bool
 FillByte(GuardPair<_tIn>& pr, byte& b)
 {
-	return pr.first != pr.second ? FillByte(pr.first.get(), b) : false;
+	return pr.first.get() != pr.second ? FillByte(pr.first.get(), b) : false;
 }
 template<typename _tIn, typename _tState>
 inline bool
 FillByte(GuardPair<_tIn>& pr, _tState& st)
 {
-	return pr.first != pr.second ? FillByte(pr.first.get(), st) : false;
+	return pr.first.get() != pr.second ? FillByte(pr.first.get(), st) : false;
 }
 //@}
 //@}

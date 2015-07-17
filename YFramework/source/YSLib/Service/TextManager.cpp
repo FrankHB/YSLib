@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3922
+\version r3940
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-07-13 13:46 +0800
+	2015-07-17 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,24 +40,26 @@ namespace Text
 namespace
 {
 
-//! \since build 601
+//! \since build 615
+//@{
+using MonoIter = ystdex::input_monomorphic_iterator;
 yconstexpr const auto& FetchMapperFunc(FetchMapperPtr<ConversionResult, ucs2_t&,
-	ystdex::input_monomorphic_iterator&&, ConversionState&&>);
-//! \since build 601
+	GuardPair<MonoIter>&&, ConversionState&&>);
 yconstexpr const auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult,
-	ystdex::pseudo_output&&, ystdex::input_monomorphic_iterator&&,
-	ConversionState&&>);
+	ystdex::pseudo_output&&, GuardPair<MonoIter>&&, ConversionState&&>);
 
 
-//! \since build 552
 template<typename _func, typename _vPFun, typename _tIn, typename... _tParams>
 size_t
 ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 {
+	using InIter = ystdex::decay_t<_tIn>;
+	using RetainedIter = ystdex::pair_iterator<InIter, size_t>;
 	ConversionState st;
-	ystdex::pair_iterator<ystdex::decay_t<_tIn>, size_t> it(i);
+	RetainedIter it(i);
+	GuardPair<RetainedIter> gpr(it, static_cast<RetainedIter>(InIter()));
 	const auto
-		res(ConvertCharacter(pfun, yforward(args)..., it, std::move(st)));
+		res(ConvertCharacter(pfun, yforward(args)..., gpr, std::move(st)));
 
 	switch(ConversionResult(YB_EXPECT(long(res), long(ConversionResult::OK))))
 	{
@@ -73,6 +75,7 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 	i = get<0>(it.base());
 	return get<1>(it.base());
 }
+//@}
 
 } // unnamed namespace;
 
@@ -139,10 +142,10 @@ operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 
 
 TextFileBuffer::TextFileBuffer(TextFile& file)
-	: File(file), nTextSize(File.GetTextSize()),
-	nBlock((nTextSize + BlockSize - 1) / BlockSize),
-	fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(fixed_width
-	== 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
+	: File(file ? file : (throw LoggedEvent("Invalid file found."), file)),
+	nTextSize(File.GetTextSize()), nBlock((nTextSize + BlockSize - 1)
+	/ BlockSize), fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(
+	fixed_width == 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
 {
 	YAssert(max_width != 0, "Unknown encoding found.");
 
