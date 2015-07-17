@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1076
+\version r1077
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-07-13 11:57 +0800
+	2015-07-18 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,6 +106,7 @@ TextFile::TextFile(const String& filename)
 	if(bool(*this))
 		InitializeTextFile(*this, bl);
 }
+ImplDeDtor(TextFile)
 
 string
 TextFile::GetBOM() const

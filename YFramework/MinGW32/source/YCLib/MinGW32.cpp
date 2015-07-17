@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r744
+\version r745
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-06-01 16:52 +0800
+	2015-07-14 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_MinGW32
-#	include YFM_YCLib_FileSystem // for platform::FileOperationFaiure;
+#	include YFM_YCLib_FileIO // for platform::FileOperationFailure;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
 using namespace YSLib;

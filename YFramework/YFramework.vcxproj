@@ -158,6 +158,7 @@
     <ClInclude Include="include\YBaseMacro.h" />
     <ClInclude Include="include\YCLib\Container.h" />
     <ClInclude Include="include\YCLib\Debug.h" />
+    <ClInclude Include="include\YCLib\FileIO.h" />
     <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Host.h" />
     <ClInclude Include="include\YCLib\HostedGUI.h" />
@@ -298,6 +299,7 @@
     <ClCompile Include="source\NPL\NPLA1.cpp" />
     <ClCompile Include="source\NPL\SContext.cpp" />
     <ClCompile Include="source\YCLib\Debug.cpp" />
+    <ClCompile Include="source\YCLib\FileIO.cpp" />
     <ClCompile Include="source\YCLib\FileSystem.cpp" />
     <ClCompile Include="source\YCLib\Host.cpp" />
     <ClCompile Include="source\YCLib\HostedGUI.cpp" />

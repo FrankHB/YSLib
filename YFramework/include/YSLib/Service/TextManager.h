@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3863
+\version r3865
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-07-13 13:46 +0800
+	2015-07-15 13:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,7 +156,8 @@ private:
 public:
 	/*!
 	\brief 构造：使用文本文件。
-	\pre 文件以文本模式打开（保证大小和字符数一致）。
+	\pre 文件以二进制模式打开（保证大小和字符数一致）。
+	\throw LoggedEvent 文件未打开。
 	*/
 	explicit
 	TextFileBuffer(TextFile&);

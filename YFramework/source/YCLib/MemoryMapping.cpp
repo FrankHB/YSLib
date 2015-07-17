@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r231
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2015-04-24 05:49 +0800
+	2015-07-14 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_MemoryMapping
-#include YFM_YCLib_FileSystem // for platform::uopen, platform::GetFileSizeOf;
+#include YFM_YCLib_FileIO // for platform::uopen, platform::GetFileSizeOf;
 #include YFM_YCLib_NativeAPI
 #include <fcntl.h>
 #include <stdexcept> // for std::runtime_error;

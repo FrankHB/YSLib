@@ -11,13 +11,13 @@
 /*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1358
+\version r1363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-05-29 19:21 +0800
+	2015-07-17 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,8 @@
 #include YFM_CHRLib_Encoding
 #include YFM_YBaseMacro
 #include <ystdex/cassert.h>
+#include <utility> // for std::pair;
+#include <ystdex/ref.hpp> // for ystdex::lref;
 
 namespace CHRLib
 {
@@ -176,6 +178,11 @@ FetchMaxCharWidth(Encoding);
 */
 YF_API size_t
 FetchMaxVariantCharWidth(Encoding);
+
+
+//! \since build 614
+template<typename _tIn>
+using GuardPair = std::pair<ystdex::lref<_tIn>, const _tIn>;
 
 } // namespace CHRLib;
 
