@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1775
+\version r1784
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-07-14 19:32 +0800
+	2015-07-21 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,7 +246,16 @@ using platform::uunlink;
 //! \since build 476
 using platform::uremove;
 //! \since build 341
+//! \since build 616
+//@{
 using platform::truncate;
+using platform::basic_filebuf;
+using platform::filebuf;
+using platform::wfilebuf;
+using platform::basic_fstream;
+using platform::fstream;
+using platform::wfstream;
+//@}
 //! \since build 547
 using platform::GetFileModificationTimeOf;
 //! \since build 547

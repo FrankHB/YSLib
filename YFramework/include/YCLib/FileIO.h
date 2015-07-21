@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r364
+\version r557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-07-14 19:47 +0800
+	2015-07-21 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,11 @@
 //	std::uint64_t;
 #include <cstdio> // for std::FILE;
 #include <ios> // for std::ios_base::sync_with_stdio;
+#include <fstream> // for std::filebuf;
+#if __GLIBCXX__
+#	include <ext/stdio_filebuf.h> // for __gnu_cxx::stdio_filebuf;
+#	include <ystdex/cstdio.h> // for ystdex::unique_file_ptr;
+#endif
 #include <system_error> // for std::system_error;
 #include <chrono> // for std::chrono::nanoseconds;
 
@@ -119,6 +124,15 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 		std::ios_base::sync_with_stdio(sync))
 //@}
 
+/*!
+\brief 尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
+\return 非 \c EINTR 的错误。
+\note 使用 \c std::fclose 关闭流。
+\since build 616
+*/
+YB_NONNULL(1) int
+TryClose(std::FILE*) ynothrow;
+
 
 /*!
 \brief 测试路径可访问性。
@@ -173,6 +187,20 @@ ufopen(const char* filename, const char* mode) ynothrow;
 //! \brief 以 UCS-2 文件名打开文件。
 YF_API std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
+//@}
+
+/*!
+\param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
+\pre 断言：<tt>filename</tt> 。
+\since build 616
+*/
+//@{
+//! \brief 以 UTF-8 文件名打开文件。
+YF_API std::FILE*
+ufopen(const char* filename, std::ios_base::openmode mode) ynothrow;
+//! \brief 以 UCS-2 文件名打开文件。
+YF_API std::FILE*
+ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow;
 //@}
 //@}
 
@@ -293,6 +321,197 @@ uremove(const char*) ynothrow;
 */
 YF_API YB_NONNULL(1) bool
 truncate(std::FILE*, size_t) ynothrow;
+//@}
+
+
+//! \since build 616
+//@{
+#if __GLIBCXX__
+template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
+class basic_filebuf : public yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>)
+{
+public:
+	using char_type = _tChar;
+	using int_type = typename _tTraits::int_type;
+	using pos_type = typename _tTraits::pos_type;
+	using off_type = typename _tTraits::off_type;
+	using traits = _tTraits;
+
+private:
+	//! \invairant <tt>bool(uptr) == this->is_open()</tt> 。
+	ystdex::unique_file_ptr uptr{{}, TryClose};
+
+public:
+	using yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>::stdio_filebuf);
+
+	template<typename _tPathChar>
+	std::basic_filebuf<_tChar, _tTraits>*
+	open(const _tPathChar* s, std::ios_base::openmode mode)
+	{
+		if(!this->is_open())
+		{
+			yassume(!uptr);
+			uptr.reset(ufopen(s, mode));
+			this->_M_file.sys_open(uptr.get(), mode);
+			if(this->is_open())
+			{
+				this->_M_allocate_internal_buffer();
+				this->_M_mode = mode;
+				yunseq(this->_M_reading = {}, this->_M_writing = {});
+				this->_M_set_buffer(-1);
+				yunseq(this->_M_state_cur = this->_M_state_beg,
+					this->_M_state_last = this->_M_state_beg);
+				if((mode & std::ios_base::ate) && this->seekoff(0,
+					std::ios_base::end) == pos_type(off_type(-1)))
+					close();
+				else
+					return this;
+			}
+		}
+		return {};
+	}
+
+	std::basic_filebuf<_tChar, _tTraits>*
+	close()
+	{
+		if(std::basic_filebuf<_tChar, _tTraits>::close())
+		{
+			uptr.reset();
+			return this;
+		}
+		return {};
+	}
+};
+
+
+//extern template class YF_API basic_filebuf<char>;
+//extern template class YF_API basic_filebuf<wchar_t>;
+
+using filebuf = basic_filebuf<char>;
+using wfilebuf = basic_filebuf<wchar_t>;
+
+
+template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
+class basic_fstream : public std::basic_iostream<_tChar, _tTraits>
+{
+public:
+	using char_type = _tChar;
+	using int_type = typename _tTraits::int_type;
+	using pos_type = typename _tTraits::pos_type;
+	using off_type = typename _tTraits::off_type;
+	using traits_type = _tTraits;
+
+private:
+	using base_type = std::basic_iostream<char_type, traits_type>;
+
+	basic_filebuf<_tChar, _tTraits> fbuf{};
+
+public:
+	basic_fstream()
+		: base_type({})
+	{
+		this->init(&fbuf);
+	}
+	template<typename _tParam,
+		yimpl(typename = ystdex::exclude_self_ctor_t<basic_fstream, _tParam>)>
+	explicit
+	basic_fstream(_tParam&& s,
+		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+		: base_type({}),
+		fbuf(platform::ufopen(s, mode), mode)
+	{
+		this->init(&fbuf);
+		this->open(yforward(s), mode);
+	}
+	DefDelCopyCtor(basic_fstream)
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+	basic_fstream(basic_fstream&& rhs)
+		: base_type(std::move(rhs)),
+		fbuf(std::move(rhs.fbuf))
+	{
+		base_type::set_rdbuf(&fbuf);
+	}
+#	endif
+	DefDeDtor(basic_fstream)
+
+	DefDelCopyAssignment(basic_fstream)
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+	basic_fstream&
+	operator=(basic_fstream&& rhs)
+	{
+		base_type::operator=(std::move(rhs));
+		fbuf = std::move(rhs.fbuf);
+		return *this;
+	}
+
+	void
+	swap(basic_fstream& rhs)
+	{
+		base_type::swap(rhs),
+		fbuf.swap(rhs.fbuf);
+	}
+#	endif
+
+	std::basic_filebuf<_tChar, _tTraits>*
+	rdbuf() const
+	{
+		return const_cast<std::basic_filebuf<_tChar, _tTraits>*>(static_cast<
+			const std::basic_filebuf<_tChar, _tTraits>*>(&fbuf));
+	}
+
+	bool
+	is_open() const
+	{
+		return fbuf.is_open();
+	}
+
+	void
+	open(const char* s,
+		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+	{
+		if (!fbuf.open(s, mode))
+			this->setstate(std::ios_base::failbit);
+		else
+			this->clear();
+	}
+	void
+	open(const std::string& s,
+		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+	{
+		if (!fbuf.open(s, mode))
+			this->setstate(std::ios_base::failbit);
+		else
+			this->clear();
+	}
+
+	void
+	close()
+	{
+		if (!fbuf.close())
+			this->setstate(std::ios_base::failbit);
+	}
+};
+
+#	if __GLIBCXX__ > 20140922
+template<typename _tChar, class _tTraits>
+inline DefSwap(, basic_fstream<_tChar YPP_Comma _tTraits>)
+#	endif
+
+
+//extern template class YF_API basic_fstream<char>;
+//extern template class YF_API basic_fstream<wchar_t>;
+
+using fstream = basic_fstream<char>;
+using wfstream = basic_fstream<wchar_t>;
+#else
+// TODO: Use VC++ extensions to support %char16_t path initialization.
+using std::basic_filebuf;
+using std::filebuf;
+using std::wfilebuf;
+using std::basic_fstream;
+using std::fstream;
+using std::wfstream;
+#endif
 //@}
 
 
