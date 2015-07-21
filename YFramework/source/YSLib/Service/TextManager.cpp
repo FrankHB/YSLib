@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3940
+\version r3945
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-07-17 23:58 +0800
+	2015-07-18 20:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 	using RetainedIter = ystdex::pair_iterator<InIter, size_t>;
 	ConversionState st;
 	RetainedIter it(i);
-	GuardPair<RetainedIter> gpr(it, static_cast<RetainedIter>(InIter()));
+	GuardPair<RetainedIter> gpr(it, RetainedIter(InIter(), 0));
 	const auto
 		res(ConvertCharacter(pfun, yforward(args)..., gpr, std::move(st)));
 
@@ -162,7 +162,9 @@ TextFileBuffer::operator[](size_t idx)
 	auto& b(mBuffer[idx]);
 	auto& vec(b.first);
 
-	if(YB_UNLIKELY(vec.empty() && bool(File)))
+	if(YB_UNLIKELY(vec.empty()))
+	{
+		YAssert(bool(File), "Invalid file found.");
 		if(const auto pfun = FetchMapperFunc(File.Encoding))
 		{
 			File.Locate(idx * BlockSize);
@@ -182,6 +184,7 @@ TextFileBuffer::operator[](size_t idx)
 				}, pfun, sentry.GetIteratorRef(), c);
 			vec.shrink_to_fit();
 		}
+	}
 	return b;
 }
 

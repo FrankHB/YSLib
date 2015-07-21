@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1479
+\version r1486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-06-28 17:15 +0800
+	2015-06-28 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -498,12 +498,16 @@ inline 对 ODR(@5.1.8) 发生影响。
 因此需要注意当使用内联成员函数且在其中定义静态对象时类名具有的链接。
 
 @5.5.7 using ：
-注意 using 声明优先于 using 指示。
+注意 using 声明优先于 using 指令。
 
 @5.5.7.1 using 声明：
 不使用冗余的 using 声明。
 尽量避免在命名空间作用域内，尤其是头文件中使用 using 声明，以防名称污染。
-在结构体/类中合理使用 using 声明使被隐藏成员可见，此时需要注意访问权限控制(@5.13.5) 。
+在类作用域内合理使用 using 声明使被隐藏成员可见，或避免声明同名重载函数隐藏基类的同名函数成员。此时需要注意访问权限控制(@5.13.5) 。
+注意类作用域内使用的 using 声明和构造函数/模板继承语法相似但语义不同。
+类作用域内使用 using 声明应直接使用被声明的成员所在的直接或间接基类以便找到原始成员声明，除非至少存在以下情况之一：
+需要避免多个基类声明路径不唯一造成歧义；
+需要强调作为公开接口的 using 声明不依赖引入这个成员的所在的类而是其派生类。
 
 @5.5.7.2 using 指令：
 除非特别指定（例如文档说明），应避免在命名空间作用域内，尤其是头文件中使用 using 指令，以防名称污染。
@@ -1191,7 +1195,7 @@ ISO C11 7.1.3/1 指定的保留名称被 ISO C++11 覆盖。
 <algorithm> 、 <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <random> 、 <regex> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <valarray> 、 <vector> 、 <utility> 包含 <initializer_list> ；
 <ios> 包含 <iosfwd> ；
 <bitset> 包含 <string> 和 <iosfwd> ；
-<iotream> 包含 <ios>、<streambuf>、<istream>、<ostream>。
+<iotream> 包含 <ios> 、 <streambuf> 、 <istream> 、 <ostream> 。
 
 @5.15.2.2 补充指定：
 ISO C++11 24.6.5/1 指定，除 <iterator> 外，以下标准库头被包含时 24.6.5 的函数模板（即 std::begin 和 std::end ）也可用：

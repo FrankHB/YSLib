@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r495
+\version r525
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-07-17 03:25 +0800
+	2015-07-21 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,6 +161,18 @@ SetBinaryIO(std::FILE* stream) ynothrow
 #endif
 }
 
+int
+TryClose(std::FILE* fp) ynothrow
+{
+	int err = 0;
+
+	errno = 0;
+	do
+		err = std::fclose(fp);
+	while(err != 0 && errno == EINTR);
+	return err;
+}
+
 
 // XXX: Catch %std::bad_alloc?
 #define YCL_Impl_RetTryCatchAll(...) \
@@ -261,6 +273,26 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 		MakeMBCS(mode).c_str()))
 	return {};
 #endif
+}
+std::FILE*
+ufopen(const char* filename, std::ios_base::openmode mode) ynothrow
+{
+	if(const auto c_mode = ystdex::openmode_conv(mode))
+		return ufopen(filename, c_mode);
+	return {};
+}
+std::FILE*
+ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow
+{
+	YAssertNonnull(filename);
+	if(const auto c_mode = ystdex::openmode_conv(mode))
+#if YCL_Win32
+		YCL_Impl_RetTryCatchAll(::_wfopen(reinterpret_cast<const wchar_t*>(
+			filename), UTF8ToWCS(c_mode).c_str()))
+#else
+		YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(), c_mode))
+#endif
+	return {};
 }
 
 bool
