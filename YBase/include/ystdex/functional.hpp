@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2402
+\version r2413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-07-02 08:03 +0800
+	2015-07-23 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "tuple.hpp" // for ../ydef.h, std::tuple_size, vseq::join_n_t,
 //	member_target_type_t, ommon_nonvoid_t, std::true_type, std::false_type,
-//	std::integral_constant, make_index_sequence;
+//	integral_constant, make_index_sequence;
 #include "functor.hpp" // for less, addressof_op, mem_get, lref;
 
 namespace ystdex
@@ -130,7 +130,7 @@ varg(_tParams&&... args) ynothrow
 //@}
 
 
-//! \see 关于调用参数类型： ISO C++11 30.3.1.2[thread.thread.constr] 。
+//! \see 关于调用参数类型： ISO C++11 30.3.1.2 [thread.thread.constr] 。
 //@{
 //! \brief 顺序链式调用。
 //@{
@@ -179,6 +179,10 @@ unseq_apply(_func&& f, _tParams&&... args)
 //@}
 //@}
 
+#if YB_IMPL_MSCPP >= 1900
+//! \since build 617
+using std::invoke;
+#else
 //! \since build 612
 namespace details
 {
@@ -263,6 +267,7 @@ invoke(_fCallable&& f, _tParams&&... args)
 {
 	return details::invoke_impl(yforward(f), yforward(args)...);
 }
+#endif
 
 
 /*!
@@ -560,9 +565,9 @@ auto
 call_for_value(_type&& val, _func&& f, _tParams&&... args)
 	-> common_nonvoid_t<result_of_t<_func&&(_tParams&&...)>, _type>
 {
-	return details::call_for_value(std::integral_constant<bool, is_void<
-		result_of_t<_func&&(_tParams&&...)>>::value>(), yforward(val),
-		yforward(f), yforward(args)...);
+	return details::call_for_value(
+		bool_constant<is_void<result_of_t<_func&&(_tParams&&...)>>::value>(),
+		yforward(val), yforward(f), yforward(args)...);
 }
 
 
@@ -666,7 +671,7 @@ template<typename _fHandler, typename _fCallable>
 struct expanded_caller
 {
 	//! \since build 448
-	static_assert(is_object<_fCallable>(), "Callable object type is needed.");
+	static_assert(is_object<_fCallable>::value, "Callable object type is needed.");
 
 	//! \since build 525
 	_fCallable caller;

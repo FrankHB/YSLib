@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2858
+\version r2863
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-05-29 19:20 +0800
+	2015-07-23 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ exchange(_type& obj, _type2&& new_val)
 /*!
 \ingroup helper_functions
 \brief 退化复制。
-\see ISO C++11 30.2.6[thread.decaycopy] 。
+\see ISO C++11 30.2.6 [thread.decaycopy] 。
 \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3255.html 。
 \since build 439
 */
@@ -173,14 +173,14 @@ struct is_swappable;
 
 //! \ingroup binary_type_traits
 template<typename _type, typename _type2>
-struct is_swappable<_type, _type2> : std::integral_constant<bool,
-	yimpl(dependent_swap::helper<_type, _type2>::value)>
+struct is_swappable<_type, _type2>
+	: bool_constant<yimpl(dependent_swap::helper<_type, _type2>::value)>
 {};
 
 //! \ingroup unary_type_traits
 template<typename _type>
-struct is_swappable<_type> : std::integral_constant<bool,
-	yimpl(dependent_swap::helper<_type, _type>::value)>
+struct is_swappable<_type>
+	: bool_constant<yimpl(dependent_swap::helper<_type, _type>::value)>
 {};
 //@}
 

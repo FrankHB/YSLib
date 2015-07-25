@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r354
+\version r361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 00:13:53 +0800
 \par 修改时间:
-	2015-01-06 15:39 +0800
+	2015-07-22 02:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,11 +49,12 @@
 //	function declarator for. [[noreturn]] does not work on G++ earlier than 4.8.
 //	For compatibility reason this is not used.
 
-#pragma GCC visibility push(default)
-
 #if defined(__GLIBCXX__) \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& __GNUC__ * 100 + __GNUC_MINOR__ < 409
+
+#	pragma GCC visibility push(default)
+
 namespace std
 {
 
@@ -63,12 +64,17 @@ get_terminate() noexcept;
 unexpected_handler
 get_unexpected() noexcept;
 
-}
+} // namespacee std;
+
+#	pragma GCC visibility pop
+
 #endif
 
 #if defined(__GLIBCXX__) \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& ATOMIC_INT_LOCK_FREE < 2
+
+#	pragma GCC visibility push(default)
 
 #	include <bits/c++config.h>
 #	include <bits/exception_defines.h>
@@ -338,9 +344,9 @@ rethrow_if_nested(const _Ex& __ex)
 
 } // extern "C++";
 
-#endif
+#	pragma GCC visibility pop
 
-#pragma GCC visibility pop
+#endif
 
 #endif
 

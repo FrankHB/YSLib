@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1077
+\version r1124
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-07-18 00:30 +0800
+	2015-07-24 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,15 +33,13 @@
 namespace YSLib
 {
 
-using namespace Text;
-
-namespace
+namespace Text
 {
 
-YB_NONNULL(1, 2) Encoding
+Encoding
 VerifyEncoding(std::FILE* fp, char* s, size_t buflen, size_t txt_len)
 {
-	const auto n(std::min(txt_len, buflen));
+	const auto n(min(txt_len, buflen));
 
 	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
 	std::fread(s, 1, n, Nonnull(fp));
@@ -49,11 +47,51 @@ VerifyEncoding(std::FILE* fp, char* s, size_t buflen, size_t txt_len)
 	return VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), CharSet::UTF_8)
 		? CharSet::UTF_8 : CharSet::Null;
 }
-
-void
-InitializeTextFile(TextFile& tf, size_t& bl)
+Encoding
+VerifyEncoding(std::istream& stream, char* s, size_t buflen, size_t txt_len)
 {
-	bl = tf.CheckBOM(tf.Encoding);
+	const auto n(min(txt_len, buflen));
+
+	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
+	stream.read(s, std::streamsize(n));
+	stream.seekg(0);
+	return VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), CharSet::UTF_8)
+		? CharSet::UTF_8 : CharSet::Null;
+}
+
+size_t
+WriteBOM(std::ostream& os, Encoding enc)
+ {
+	switch(enc)
+	{
+#define YSL_Impl_WriteBOM(_n) \
+	case CharSet::_n: \
+		os.write(BOM_##_n, sizeof(BOM_##_n) - 1); \
+		return sizeof(BOM_##_n) - 1;
+	YSL_Impl_WriteBOM(UTF_16LE)
+	YSL_Impl_WriteBOM(UTF_16BE)
+	YSL_Impl_WriteBOM(UTF_8)
+	YSL_Impl_WriteBOM(UTF_32LE)
+	YSL_Impl_WriteBOM(UTF_32BE)
+#undef YSL_Impl_WriteBOM
+	default:
+		return 0;
+	}
+}
+
+} // namespace Text;
+
+using namespace Text;
+
+namespace
+{
+
+//! \since build 617
+size_t
+InitializeTextFile(TextFile& tf)
+{
+	const auto bl(tf.CheckBOM(tf.Encoding));
+
 	tf.Rewind();
 	if(bl == 0)
 	{
@@ -63,6 +101,7 @@ InitializeTextFile(TextFile& tf, size_t& bl)
 		tf.Encoding = VerifyEncoding(tf.GetStream(), s, arrlen(s),
 			tf.GetTextSize()) != CharSet::Null ? CharSet::UTF_8 : CharSet::GBK;
 	}
+	return bl;
 }
 
 } // unnamed namespace;
@@ -71,7 +110,7 @@ InitializeTextFile(TextFile& tf, size_t& bl)
 TextFile::TextFile(const char* filename, std::ios_base::openmode mode,
 	Text::Encoding enc)
 	: File(filename, mode),
-	bl(0), Encoding(enc)
+	Encoding(enc)
 {
 	if(bool(*this))
 	{
@@ -96,15 +135,15 @@ TextFile::TextFile(const char* filename, std::ios_base::openmode mode,
 				break;
 			}
 		else
-			InitializeTextFile(*this, bl);
+			bl = InitializeTextFile(*this);
 	}
 }
 TextFile::TextFile(const String& filename)
-	: File(filename, u"r"),
-	bl(0), Encoding(CharSet::Null)
+	: File(filename, std::ios_base::in),
+	Encoding(CharSet::Null)
 {
 	if(bool(*this))
-		InitializeTextFile(*this, bl);
+		bl = InitializeTextFile(*this);
 }
 ImplDeDtor(TextFile)
 
@@ -130,7 +169,7 @@ TextFile::CheckBOM(Text::Encoding& cp)
 	using std::char_traits;
 	char tmp[4];
 
-	Read(tmp, 1, 4);
+	std::fread(tmp, 1, 4, GetStream());
 	if(char_traits<char>::compare(tmp, BOM_UTF_16LE, 2) == 0)
 	{
 		cp = CharSet::UTF_16LE;

@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r824
+\version r871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-07-18 00:30 +0800
+	2015-07-18 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,22 @@
 
 namespace YSLib
 {
+
+namespace Text
+{
+
+/*!
+\brief 验证流的编码。
+\note 第二参数和第三参数指定缓冲区，第四参数指定最大文本长度。
+\since build 617
+*/
+//@{
+YB_NONNULL(1, 2) Text::Encoding
+VerifyEncoding(std::FILE*, char*, size_t, size_t);
+YB_NONNULL(2) Text::Encoding
+VerifyEncoding(std::istream&, char*, size_t, size_t);
+//@}
+
 
 /*!
 \brief Unicode 编码模式标记。
@@ -50,13 +66,21 @@ yconstexpr const char BOM_UTF_32LE[]{"\xFF\xFE\x00\x00"};
 yconstexpr const char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 //@}
 
+/*!
+\brief 写入指定编码的 BOM 。
+\return 写入的 BOM 的长度。
+\note 只写入 UTF-16 、 UTF-8 或 UTF-32 的 BOM 。
+\since build 617
+*/
+YF_API size_t
+WriteBOM(std::ostream&, Text::Encoding);
+
+} // namespace Text;
+
 
 //! \brief 文本文件类。
 class YF_API TextFile : public File
 {
-private:
-	size_t bl; //!<  BOM 大小。
-
 public:
 	/*!
 	\brief 编码。
@@ -65,6 +89,11 @@ public:
 	*/
 	Text::Encoding Encoding;
 
+private:
+	//! \brief BOM 大小。
+	size_t bl = 0;
+
+public:
 	/*!
 	\brief 构造：使用指定文件名、编码和模式初始化文本文件对象。
 	\note 当打开文件大小为零且以可写方式打开时按编码写入 BOM 。
@@ -120,28 +149,6 @@ public:
 	*/
 	void
 	Rewind() const;
-
-	/*!
-	\brief 按自身编码读取 Unicode 字符。
-	\since build 273
-	*/
-	template<typename _tChar, typename... _tParams>
-	inline Text::ConversionResult
-	ReadChar(_tChar& c, _tParams&&... args) const
-	{
-		return MBCToUC(c, GetStream(), Encoding, args...);
-	}
-
-	/*!
-	\brief 按自身编码读取但不保存 Unicode 字符。
-	\since build 273
-	*/
-	template<typename... _tParams>
-	inline Text::ConversionResult
-	SkipChar(_tParams&&... args) const
-	{
-		return MBCToUC(GetStream(), Encoding, args...);
-	}
 };
 
 } // namespace YSLib;

@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r848
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-05-22 08:59 +0800
+	2015-07-23 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,8 +182,8 @@ classify_path(const _tString& name, _tNorm&& norm = _tNorm()) ynothrow
 \note 满足序列容器、可倒置容器要求，支持容器比较操作。
 \note 使用 ISO C++11 容器要求指定的成员顺序声明。
 \warning 非虚析构。
-\see ISO C++11 17.6.3.1[utility.arg.requirements],
-	23.2.1[container.requirements.general] 。
+\see ISO C++11 17.6.3.1 [utility.arg.requirements],
+	23.2.1 [container.requirements.general] 。
 */
 template<class _tSeqCon,
 	class _tNorm = path_norm<typename _tSeqCon::value_type>>
@@ -278,7 +278,7 @@ public:
 	{
 		auto& norm(get_norm());
 
-		if(norm.is_parent(s) && (is_absolute() ? 1 : 0) < size())
+		if(norm.is_parent(s) && (is_absolute() ? 1U : 0U) < size())
 		{
 			if(!norm.is_parent(back()))
 				pop_back();

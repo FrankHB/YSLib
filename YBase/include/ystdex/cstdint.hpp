@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r289
+\version r290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-06-27 05:20 +0800
+	2015-07-23 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,7 @@ struct modular_arithmetic
 \since build 440
 */
 template<typename _type1, typename _type2>
-struct have_same_modulo : integral_constant<bool, uintmax_t(modular_arithmetic<
+struct have_same_modulo : bool_constant<uintmax_t(modular_arithmetic<
 	_type1>::value) != 0 && uintmax_t(modular_arithmetic<_type1>::value)
 	== uintmax_t(modular_arithmetic<_type2>::value)>
 {};

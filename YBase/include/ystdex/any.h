@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1866
+\version r1867
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-05-13 21:28 +0800
+	2015-07-23 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -319,7 +319,7 @@ public:
 	//! \since build 352
 	//@{
 	using value_type = _type;
-	using local_storage = integral_constant<bool, _bStoredLocally>;
+	using local_storage = bool_constant<_bStoredLocally>;
 	//@}
 
 	//! \since build 595

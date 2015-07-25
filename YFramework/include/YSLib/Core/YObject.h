@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3904
+\version r3905
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-05-03 08:46 +0800
+	2015-07-23 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ struct PointerTag
 \since build 218
 */
 template<class _tOwner, typename _type>
-struct HasOwnershipOf : std::integral_constant<bool,
+struct HasOwnershipOf : ystdex::bool_constant<
 	std::is_base_of<OwnershipTag<_type>, _tOwner>::value>
 {};
 

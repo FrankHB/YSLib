@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2740
+\version r2751
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-07-18 00:19 +0800
+	2015-07-22 02:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,9 +184,9 @@
 \todo 检查语言实现的必要支持：可变参数宏。
 
 接口代码中标注不作为公开接口实现而不应被用户依赖具体内容的部分的宏。
-类似于 ISO C++ 中的 <tt>unspecified</tt> 或标识为 exposition only 部分的代码。
+类似于 ISO C++ 中的 \c unspecified 或标识为 <tt>exposition only</tt> 部分的代码。
 保证记号被原样替换。
-以 <tt>yimpl()</tt> 的形式使用时可用于表示实现可选扩展的接口，用于序列末尾等。
+以 \c yimpl() 的形式使用时可用于表示实现可选扩展的接口，用于序列末尾等。
 */
 #define yimpl(...) __VA_ARGS__
 
@@ -204,8 +204,8 @@
 */
 #undef YB_HAS_ALIGNAS
 #define YB_HAS_ALIGNAS \
-	(__has_feature(cxx_alignas) || __has_extension(cxx_alignas) || \
-		YB_IMPL_GNUCPP >= 40800)
+	(__has_feature(cxx_alignas) || __has_extension(cxx_alignas) \
+		|| YB_IMPL_GNUCPP >= 40800)
 
 /*!
 \def YB_HAS_ALIGNOF
@@ -222,8 +222,8 @@
 */
 #undef YB_HAS_BUILTIN_NULLPTR
 #define YB_HAS_BUILTIN_NULLPTR \
-	(__has_feature(cxx_nullptr) || __has_extension(cxx_nullptr) || \
-		__cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600 || \
+	(__has_feature(cxx_nullptr) || __has_extension(cxx_nullptr) \
+		|| __cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600 || \
 		YB_IMPL_MSCPP >= 1600)
 
 /*!
@@ -234,7 +234,8 @@
 #undef YB_HAS_CONSTEXPR
 #define YB_HAS_CONSTEXPR \
 	(__cpp_constexpr >= 200704 || __has_feature(cxx_constexpr) \
-		|| __cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600)
+		|| __cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600 \
+		|| YB_IMPL_MSCPP >= 1900)
 
 /*!
 \def YB_HAS_RELAXED_CONSTEXPR
@@ -255,7 +256,8 @@
 #undef YB_HAS_NOEXCEPT
 #define YB_HAS_NOEXCEPT \
 	(__has_feature(cxx_noexcept) || __has_extension(cxx_noexcept) || \
-		__cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600)
+		__cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600 \
+		|| YB_IMPL_MSCPP >= 1900)
 
 /*!
 \def YB_HAS_THREAD_LOCAL
@@ -328,7 +330,7 @@
 #elif YB_IMPL_GNUC
 #	define YB_ATTR_gnu_printf(...) YB_ATTR(__format__ (__printf__, __VA_ARGS__))
 #else
-#	define YB_ATTR(...)
+#	define YB_ATTR_gnu_printf(...)
 #endif
 
 /*!

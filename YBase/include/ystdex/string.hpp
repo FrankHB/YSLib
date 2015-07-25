@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1449
+\version r1450
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-07-18 00:21 +0800
+	2015-07-23 14:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,7 +147,7 @@ ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
 */
 //@{
 template<typename _type>
-struct is_string_class : integral_constant<bool, std::is_class<_type>::value
+struct is_string_class : bool_constant<std::is_class<_type>::value
 	&& details::is_string_class_test<_type>::value>
 {};
 

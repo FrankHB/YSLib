@@ -29,7 +29,7 @@ INCLUDES=" \
 	-I../../YBase/include \
 	"
 
-# Coordinated with build 587.
+# Coordinated with build 617.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -40,6 +40,7 @@ LIBS=" \
 	../../YFramework/source/CHRLib/CharacterProcessing.cpp \
 	../../YFramework/source/CHRLib/MappingEx.cpp \
 	../../YFramework/source/YCLib/Debug.cpp \
+	../../YFramework/source/YCLib/FileIO.cpp \
 	../../YFramework/source/YCLib/FileSystem.cpp \
 	../../YFramework/source/YCLib/Host.cpp \
 	../../YFramework/source/YCLib/ycommon.cpp \
