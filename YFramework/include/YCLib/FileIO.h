@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r557
+\version r606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-07-21 09:04 +0800
+	2015-07-25 14:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,6 +133,21 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 YB_NONNULL(1) int
 TryClose(std::FILE*) ynothrow;
 
+
+/*
+\brief ISO C++ 标准输入输出接口打开模式转换为 POSIX 文件打开模式。
+\return 若失败为 0 ，否则为对应的值。
+\since build 617
+*/
+//@{
+//! \note 忽略二进制模式。
+YF_API int
+omode_conv(std::ios_base::openmode);
+
+//! \note 扩展：不忽略二进制模式。
+YF_API int
+omode_convb(std::ios_base::openmode);
+//@}
 
 /*!
 \brief 测试路径可访问性。
@@ -344,6 +359,17 @@ private:
 public:
 	using yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>::stdio_filebuf);
 
+	std::basic_filebuf<_tChar, _tTraits>*
+	close()
+	{
+		if(std::basic_filebuf<_tChar, _tTraits>::close())
+		{
+			uptr.reset();
+			return this;
+		}
+		return {};
+	}
+
 	template<typename _tPathChar>
 	std::basic_filebuf<_tChar, _tTraits>*
 	open(const _tPathChar* s, std::ios_base::openmode mode)
@@ -370,17 +396,6 @@ public:
 		}
 		return {};
 	}
-
-	std::basic_filebuf<_tChar, _tTraits>*
-	close()
-	{
-		if(std::basic_filebuf<_tChar, _tTraits>::close())
-		{
-			uptr.reset();
-			return this;
-		}
-		return {};
-	}
 };
 
 
@@ -404,7 +419,8 @@ public:
 private:
 	using base_type = std::basic_iostream<char_type, traits_type>;
 
-	basic_filebuf<_tChar, _tTraits> fbuf{};
+	//! \since build 617
+	mutable basic_filebuf<_tChar, _tTraits> fbuf{};
 
 public:
 	basic_fstream()
@@ -418,7 +434,7 @@ public:
 	basic_fstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
 		: base_type({}),
-		fbuf(platform::ufopen(s, mode), mode)
+		fbuf()
 	{
 		this->init(&fbuf);
 		this->open(yforward(s), mode);
@@ -452,11 +468,11 @@ public:
 	}
 #	endif
 
-	std::basic_filebuf<_tChar, _tTraits>*
-	rdbuf() const
+	void
+	close()
 	{
-		return const_cast<std::basic_filebuf<_tChar, _tTraits>*>(static_cast<
-			const std::basic_filebuf<_tChar, _tTraits>*>(&fbuf));
+		if(!fbuf.close())
+			this->setstate(std::ios_base::failbit);
 	}
 
 	bool
@@ -465,30 +481,22 @@ public:
 		return fbuf.is_open();
 	}
 
+	//! \since build 617
+	template<typename _tParam>
 	void
-	open(const char* s,
+	open(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
 	{
-		if (!fbuf.open(s, mode))
-			this->setstate(std::ios_base::failbit);
-		else
+		if(fbuf.open(yforward(s), mode))
 			this->clear();
-	}
-	void
-	open(const std::string& s,
-		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
-	{
-		if (!fbuf.open(s, mode))
-			this->setstate(std::ios_base::failbit);
 		else
-			this->clear();
+			this->setstate(std::ios_base::failbit);
 	}
 
-	void
-	close()
+	std::basic_filebuf<_tChar, _tTraits>*
+	rdbuf() const
 	{
-		if (!fbuf.close())
-			this->setstate(std::ios_base::failbit);
+		return &fbuf;
 	}
 };
 

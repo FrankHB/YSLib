@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1658
+\version r1682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-07-12 20:30 +0800
+	2015-07-23 14:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -359,6 +359,21 @@ using result_of_t = typename result_of<_type>::type;
 
 
 /*!
+\ingroup meta_types
+\brief bool 常量。
+\sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4389.html
+\see WG21/N4527 20.10.3[meta.help] 。
+\since build 617
+*/
+#if YB_IMPL_MSCPP >= 1900
+using std::bool_constant;
+#else
+template<bool _b>
+using bool_constant = integral_constant<bool, _b>;
+#endif
+
+
+/*!
 \brief 表达式 SFINAE 别名模板。
 \see WG21/N3911 。
 \see WG21/N4296 20.10.2[meta.type.synop] 。
@@ -418,7 +433,7 @@ struct or_<_b1, _b2, _b3, _bn...>
 
 
 template<typename _b>
-struct not_ : integral_constant<bool, !_b::value>
+struct not_ : bool_constant<!_b::value>
 {};
 //@}
 
@@ -554,7 +569,7 @@ struct is_contravariant : is_convertible<_tTo, _tFrom>
 \since build 610
 */
 template<typename _type, typename _type2>
-struct is_aligned_compatible : integral_constant<bool, yalignof(_type2)
+struct is_aligned_compatible : bool_constant<yalignof(_type2)
 	<= yalignof(_type) && yalignof(_type) % yalignof(_type2) == 0>
 {};
 
@@ -563,7 +578,7 @@ struct is_aligned_compatible : integral_constant<bool, yalignof(_type2)
 \since build 610
 */
 template<typename _type, typename _tDst>
-struct is_aligned_placeable : integral_constant<bool, sizeof(_type)
+struct is_aligned_placeable : bool_constant<sizeof(_type)
 	== sizeof(_tDst) && is_aligned_compatible<_tDst, _type>::value>
 {};
 
@@ -572,7 +587,7 @@ struct is_aligned_placeable : integral_constant<bool, sizeof(_type)
 \since build 503
 */
 template<typename _type, typename _tDst>
-struct is_aligned_storable : integral_constant<bool, sizeof(_type)
+struct is_aligned_storable : bool_constant<sizeof(_type)
 	<= sizeof(_tDst) && is_aligned_compatible<_tDst, _type>::value>
 {};
 //@}
@@ -825,8 +840,8 @@ struct common_nonvoid_impl<false, _type, _types...>
 \since build 440
 */
 template<class _type>
-struct has_mem_value : std::integral_constant<bool,
-	details::has_mem_value<remove_cv_t<_type>>::value>
+struct has_mem_value
+	: bool_constant<details::has_mem_value<remove_cv_t<_type>>::value>
 {};
 #endif
 
@@ -859,8 +874,8 @@ struct has_subscription : details::has_subscription<_type1, _type2>
 \since build 306
 */
 template<typename _type1, typename _type2>
-struct has_equality_operator : integral_constant<bool,
-	details::have_equality_operator<_type1, _type2>::value>
+struct has_equality_operator
+	: bool_constant<details::have_equality_operator<_type1, _type2>::value>
 {};
 
 
@@ -870,8 +885,8 @@ struct has_equality_operator : integral_constant<bool,
 \since build 175
 */
 template<class _type>
-struct has_nonempty_virtual_base : integral_constant<bool,
-	details::have_nonempty_virtual_base<_type>::value>
+struct has_nonempty_virtual_base
+	: bool_constant<details::have_nonempty_virtual_base<_type>::value>
 {};
 
 
@@ -881,7 +896,7 @@ struct has_nonempty_virtual_base : integral_constant<bool,
 \since build 175
 */
 template<class _type1, class _type2>
-struct has_common_nonempty_virtual_base : integral_constant<bool,
+struct has_common_nonempty_virtual_base : bool_constant<
 	details::have_common_nonempty_virtual_base<_type1, _type2>::value>
 {};
 

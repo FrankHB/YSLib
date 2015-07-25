@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r405
+\version r411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2015-05-29 19:18 +0800
+	2015-07-23 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,17 +210,15 @@ public:
 
 template<typename... _tFroms, typename... _tTos>
 struct is_covariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: integral_constant<bool, details::tuple_element_convertible<
-	std::tuple<_tFroms...>, std::tuple<_tTos...>,
-	index_sequence_for<_tTos...>>::value>
+	: bool_constant<details::tuple_element_convertible<std::tuple<_tFroms...>,
+	std::tuple<_tTos...>, index_sequence_for<_tTos...>>::value>
 {};
 
 
 template<typename... _tFroms, typename... _tTos>
 struct is_contravariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: integral_constant<bool, details::tuple_element_convertible<
-	std::tuple<_tTos...>, std::tuple<_tFroms...>,
-	index_sequence_for<_tTos...>>::value>
+	: bool_constant<details::tuple_element_convertible<std::tuple<_tTos...>,
+	std::tuple<_tFroms...>, index_sequence_for<_tTos...>>::value>
 {};
 
 } // namespace ystdex;

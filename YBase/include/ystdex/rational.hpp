@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2054
+\version r2056
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-05-29 19:18 +0805
+	2015-07-23 14:13 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -334,8 +334,8 @@ public:
 	operator*=(const fixed_point& f) ynothrowv
 	{
 		value = mul<frac_bit_n + is_signed<base_type>::value>(value,
-			f.value, integral_constant<bool,
-			is_signed<typename make_widen_int<base_type>::type>::value>());
+			f.value, bool_constant<is_signed<typename
+			make_widen_int<base_type>::type>::value>());
 		return *this;
 	}
 

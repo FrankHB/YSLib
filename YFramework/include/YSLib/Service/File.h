@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1234
+\version r1262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-07-13 13:03 +0800
+	2015-07-21 15:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,17 +151,6 @@ public:
 	Close();
 
 	/*!
-	\brief 刷新流。
-	\return 若成功则为 0 ，否则为 \c EOF 。
-	\note 语义同 \c std::fflush 。
-	\warning 刷新输入流或最近操作为输入的流引起未定义行为。
-	\see ISO C11 7.21.5.2 。
-	\since build 329
-	*/
-	PDefH(int, Flush, ) const
-		ImplRet(std::fflush(fp))
-
-	/*!
 	\brief 以指定方式打开指定路径的文件。
 	\note 语义同 \c std::fopen 。
 	\note 对输入 \c openmode ，使用 ystdex::openmode_conv 转换。
@@ -182,30 +171,10 @@ public:
 	//@}
 
 	/*!
-	\brief 连续读 \c nmemb 个大小为 \c size 文件块到 \c ptr 中。
-	\return 返回成功读取的文件块数。
-	\note 语义同 \c std::fread 。
-	\see ISO C11 7.21.8.1 。
-	\since build 290
-	*/
-	PDefH(size_t, Read, void* ptr, size_t size = 1U, size_t nmemb = 1U) const
-		ImplRet(std::fread(ptr, size, nmemb, fp))
-
-	/*!
 	\brief 文件指针返回到文件头，语义同 std::rewind 。
 	*/
 	PDefH(void, Rewind, ) const
 		ImplExpr(std::rewind(fp))
-
-	/*!
-	\brief 连续写 \c nmemb 个大小为 \c size 文件块到 \c ptr 中。
-	\return 返回成功写入的文件块数。
-	\note 语义同 \c std::fwrite 。
-	\see ISO C11 7.21.8.2 。
-	\since build 329
-	*/
-	PDefH(size_t, Write, void* ptr, size_t size = 1U, size_t nmemb = 1U) const
-		ImplRet(std::fwrite(ptr, size, nmemb, fp))
 };
 
 /*!

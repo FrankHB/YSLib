@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1153
+\version r1154
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2015-04-24 22:23 +0800
+	2015-07-23 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -360,7 +360,7 @@ struct general_cast_helper<_type, _type, false>
 
 template<typename _tFrom, typename _tTo>
 struct general_cast_type_helper
-	: integral_constant<bool, is_convertible<_tFrom, _tTo>::value>
+	: bool_constant<is_convertible<_tFrom, _tTo>::value>
 {};
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1094
+\version r1158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-06-03 04:15 +0800
+	2015-07-23 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,43 @@ struct nested_allocator<_type, _tAlloc, false>
 	using type = _tAlloc;
 };
 
+
+//! \since build 617
+//@{
+template<typename _type>
+struct pack_obj_impl
+{
+	template<typename... _tParams>
+	static _type
+	pack(_tParams&&... args)
+	{
+		return _type(yforward(args)...);
+	}
+};
+
+template<typename _type, class _tDeleter>
+struct pack_obj_impl<std::unique_ptr<_type, _tDeleter>>
+{
+	template<typename... _tParams>
+	static std::unique_ptr<_type>
+	pack(_tParams&&... args)
+	{
+		return std::unique_ptr<_type>(yforward(args)...);
+	}
+};
+
+template<typename _type>
+struct pack_obj_impl<std::shared_ptr<_type>>
+{
+	template<typename... _tParams>
+	static std::shared_ptr<_type>
+	pack(_tParams&&... args)
+	{
+		return std::shared_ptr<_type>(yforward(args)...);
+	}
+};
+//@}
+
 } // namespace details;
 
 
@@ -114,7 +151,7 @@ constfn_addressof(_type& r)
 //@}
 
 
-//! \since build 601
+//! \since build 602
 //@{
 //! \tparam _tIter 迭代器类型。
 //@{
@@ -474,6 +511,14 @@ share_raw(nullptr_t) ynothrow
 //@}
 
 
+inline namespace cpp2014
+{
+
+#if __cpp_lib_make_unique >= 201304 || __cplusplus > 201103L \
+	|| YB_IMPL_MSCPP >= 1800
+//! \since build 617
+using std::make_unique;
+#else
 /*!
 \ingroup helper_functions
 \brief 使用 new 和指定参数构造指定类型的 std::unique_ptr 对象。
@@ -505,6 +550,9 @@ template<typename _type,  typename... _tParams>
 yimpl(enable_if_t<extent<_type>::value != 0>)
 make_unique(_tParams&&...) = delete;
 //@}
+#endif
+
+} // inline namespace cpp2014;
 
 /*!
 \note 使用默认初始化。
@@ -599,6 +647,7 @@ make_allocator_guard(_tAlloc& alloc,
 
 /*!
 \brief 构造共享作用域守护。
+\sa make_guard
 \since build 589
 */
 template<typename _type, typename _func>
@@ -691,27 +740,20 @@ const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 
 //! \since build 588
 //@{
-//! \brief 打包对象：通过指定参数构造对象。
-//@{
+/*!
+\brief 打包对象：通过指定参数构造对象。
+\since build 617
+
+对 \c std::unique_ptr 和 \c std::shared_ptr 的实例，使用 make_unique
+和 std::make_shared 构造，否则直接使用参数构造。
+*/
 template<typename _type, typename... _tParams>
 auto
-pack_object(_tParams&&... args) -> decltype(_type(yforward(args)...))
+pack_object(_tParams&&... args)
+	-> decltype(yimpl(details::pack_obj_impl<_type>::pack(yforward(args)...)))
 {
-	return _type(yforward(args)...);
+	return details::pack_obj_impl<_type>::pack(yforward(args)...);
 }
-template<typename _type, typename... _tParams>
-auto
-pack_object(_tParams&&... args) -> decltype(make_unique<_type>(yforward(args)...))
-{
-	return make_unique<_type>(yforward(args)...);
-}
-template<typename _type, typename... _tParams>
-auto
-pack_object(_tParams&&... args) -> decltype(make_shared<_type>(yforward(args)...))
-{
-	return make_shared<_type>(yforward(args)...);
-}
-//@}
 
 
 //! \brief 打包的对象：使用 pack_object 得到的对象包装。
