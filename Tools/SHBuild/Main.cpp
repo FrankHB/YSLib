@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2848
+\version r2854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-07-05 06:39 +0800
+	2015-07-29 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,13 +327,16 @@ GetDependencies(const string& path)
 {
 	using namespace ystdex;
 	using namespace NPL;
-	TextFile tf(path);
+	using CI = std::istream_iterator<char>;
+	// XXX: Use %ifstream.
+	fstream tf(path, std::ios_base::in);
 
-	if(!tf)
+	if(!tf.is_open())
 		return {};
+	tf << std::noskipws;
 
 	set<size_t> spaces;
-	Session sess(tf, [&](LexicalAnalyzer& lexer, char c){
+	Session sess(CI(tf), CI(), [&](LexicalAnalyzer& lexer, char c){
 		lexer.ParseQuoted(c, [&](string& buf, const UnescapeContext& uctx, char)
 			-> bool{
 			const auto& escs(uctx.GetSequence());

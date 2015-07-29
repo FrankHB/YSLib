@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r561
+\version r567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-07-25 14:19 +0800
+	2015-07-28 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,19 +183,19 @@ omode_conv(std::ios_base::openmode mode)
 	{
 	case ios_base::out:
 	case ios_base::out | ios_base::trunc:
-		return O_WRONLY;
+		return O_CREAT | O_WRONLY;
 	case ios_base::out | ios_base::app:
 	case ios_base::app:
-		return O_WRONLY | O_APPEND;
+		return O_CREAT | O_WRONLY | O_APPEND;
 	case ios_base::in:
 		return O_RDONLY;
 	case ios_base::in | ios_base::out:
 		return O_RDWR;
 	case ios_base::in | ios_base::out | ios_base::trunc:
-		return O_RDWR | O_TRUNC;
+		return O_CREAT | O_RDWR | O_TRUNC;
 	case ios_base::in | ios_base::out | ios_base::app:
 	case ios_base::in | ios_base::app:
-		return O_RDWR | O_APPEND;
+		return O_CREAT | O_RDWR | O_APPEND;
 	default:
 		return 0;
 	}
@@ -207,8 +207,7 @@ omode_convb(std::ios_base::openmode mode)
 #if YCL_Win32
 	const int res(omode_conv(mode));
 
-	return res != 0
-		? res | (mode & std::ios_base::binary ? _O_BINARY : _O_TEXT) : 0;
+	return res | (mode & std::ios_base::binary ? _O_BINARY : _O_TEXT);
 #else
 	return omode_conv(mode);
 #endif
