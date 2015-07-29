@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r871
+\version r889
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2015-05-24 13:54 +0800
+	2015-07-29 10:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,9 +44,26 @@ operator<<(std::ostream& os, const Configuration& conf)
 TextFile&
 operator>>(TextFile& tf, Configuration& conf)
 {
-	tf.Rewind();
-	conf.root = LoadNPLA1(SContext::Analyze(Session(tf)));
-	return tf;
+	if(tf)
+	{
+		tf.Rewind();
+
+		using namespace ystdex;
+		auto sentry(tf.GetSentry());
+		auto& i(sentry.GetIteratorRef());
+		Session sess;
+
+		while(!tf.CheckEOF())
+		{
+			if(YB_UNLIKELY(is_undereferenceable(i)))
+				throw LoggedEvent("Bad Source!", Critical);
+			Session::DefaultParseByte(sess.Lexer, char(*i));
+			++i;
+		}
+		conf.root = LoadNPLA1(SContext::Analyze(std::move(sess)));
+		return tf;
+	}
+	throw GeneralEvent("Invalid file found when opening NPL session.");
 }
 
 

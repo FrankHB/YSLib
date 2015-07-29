@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r606
+\version r631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-07-25 14:29 +0800
+	2015-07-29 10:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -352,23 +352,7 @@ public:
 	using off_type = typename _tTraits::off_type;
 	using traits = _tTraits;
 
-private:
-	//! \invairant <tt>bool(uptr) == this->is_open()</tt> 。
-	ystdex::unique_file_ptr uptr{{}, TryClose};
-
-public:
 	using yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>::stdio_filebuf);
-
-	std::basic_filebuf<_tChar, _tTraits>*
-	close()
-	{
-		if(std::basic_filebuf<_tChar, _tTraits>::close())
-		{
-			uptr.reset();
-			return this;
-		}
-		return {};
-	}
 
 	template<typename _tPathChar>
 	std::basic_filebuf<_tChar, _tTraits>*
@@ -376,9 +360,7 @@ public:
 	{
 		if(!this->is_open())
 		{
-			yassume(!uptr);
-			uptr.reset(ufopen(s, mode));
-			this->_M_file.sys_open(uptr.get(), mode);
+			this->_M_file.sys_open(uopen(s, omode_convb(mode)), mode);
 			if(this->is_open())
 			{
 				this->_M_allocate_internal_buffer();
@@ -389,12 +371,20 @@ public:
 					this->_M_state_last = this->_M_state_beg);
 				if((mode & std::ios_base::ate) && this->seekoff(0,
 					std::ios_base::end) == pos_type(off_type(-1)))
-					close();
+					this->close();
 				else
 					return this;
 			}
 		}
 		return {};
+	}
+	//! \since build 618
+	template<class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
+	std::basic_filebuf<_tChar, _tTraits>*
+	open(const _tString& s, std::ios_base::openmode mode)
+	{
+		return open(s.c_str(), mode);
 	}
 };
 
@@ -433,8 +423,7 @@ public:
 	explicit
 	basic_fstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
-		: base_type({}),
-		fbuf()
+		: base_type({})
 	{
 		this->init(&fbuf);
 		this->open(yforward(s), mode);
