@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2364
+\version r2396
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-07-12 23:59 +0800
+	2015-07-31 09:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #if YCL_DS
 #	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
 #elif YCL_Android
-#	include <unistd.h> // for ::access, F_OK;
+#	include <unistd.h> // for F_OK;
 #elif YCL_Win32
 #	include YFM_MinGW32_YCLib_NLS
 #endif
@@ -301,8 +301,9 @@ CreateDefaultNPLA1File(const char* disp, const char* path,
 	if(creator)
 	{
 		YTraceDe(Debug, "Creator found.");
-		if(TextFile tf{path, std::ios_base::out | std::ios_base::trunc})
-			tf << NPL::Configuration(creator());
+		if(ofstream ofs{path, std::ios_base::out | std::ios_base::trunc})
+			ystdex::write_literal(ofs, Text::BOM_UTF_8)
+				<< NPL::Configuration(creator());
 		else
 			throw GeneralEvent(ystdex::sfmt("Cannot create file,"
 				" error = %d: %s.", errno, std::strerror(errno)));
@@ -348,12 +349,28 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 		if(CreateDefaultNPLA1File(disp, path, creator, show_info))
 			return {};
 	}
-
-	TextFile tf(path);
-
 	if(show_info)
 		YF_Init_printf(Notice, "Found %s '%s'.\n", disp, path);
-	return ReadConfiguration(tf);
+	if(ifstream ifs{path, std::ios_base::in})
+	{
+		array<char, 3> buf;
+
+		YTraceDe(Debug, "Found accessible configuration file.");
+		ifs.read(buf.data(), 3);
+		if(Text::CheckBOM(buf.data(), Text::BOM_UTF_8))
+		{
+			NPL::Configuration conf;
+
+			ifs >> conf;
+			YTraceDe(Debug, "Plain configuration loaded.");
+			if(!conf.GetNodeRRef().empty())
+				return conf.GetNodeRRef();
+			YTraceDe(Warning, "Empty configuration found.");
+		}
+		else
+			throw GeneralEvent("Wrong encoding of configuration file.");
+	}
+	throw GeneralEvent("Invalid file found when reading configuration.");
 }
 
 ValueNode
@@ -369,9 +386,15 @@ LoadConfiguration(bool show_info)
 void
 SaveConfiguration(const ValueNode& node)
 {
-	TextFile tf(CONF_PATH, std::ios_base::out | std::ios_base::trunc);
-
-	WriteConfiguration(tf, node);
+	if(ofstream ofs{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
+	{
+		YTraceDe(Debug, "Writing configuration...");
+		ystdex::write_literal(ofs, Text::BOM_UTF_8)
+			<< NPL::Configuration(ValueNode(node.GetContainerRef()));
+	}
+	else
+		throw GeneralEvent("Invalid file found when writing configuration.");
+	YTraceDe(Debug, "Writing configuration done.");
 }
 
 

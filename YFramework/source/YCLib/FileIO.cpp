@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r567
+\version r582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-07-28 13:04 +0800
+	2015-07-31 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,7 @@ _EXFUN(popen, (const char*, const char*));
 //! \since build 475
 using namespace CHRLib;
 #elif YCL_Win32
+#	include YFM_YCLib_NativeAPI // for 'S_*';
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
 // At least one headers of <stdlib.h>, <stdio.h>, <Windows.h>, <Windef.h>
 //	(and probably more) should have been included to make the MinGW-W64 macro
@@ -150,6 +151,19 @@ FileDescriptorDeleter::operator()(FileDescriptorDeleter::pointer p) ynothrow
 }
 
 
+int
+GetDefaultPermissionMode() ynothrow
+{
+#if YCL_Win32
+	return S_IREAD | S_IWRITE;
+	// XXX: For compatibility with newer version of MSVCRT, no %_umask call
+	//	would be considered. See https://msdn.microsoft.com/en-us/library/z0kc8e3z.aspx .
+//	return S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH;
+#else
+	return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+#endif
+}
+
 void
 SetBinaryIO(std::FILE* stream) ynothrow
 {
@@ -182,8 +196,9 @@ omode_conv(std::ios_base::openmode mode)
 	switch(unsigned((mode &= ~ios_base::ate) & ~ios_base::binary))
 	{
 	case ios_base::out:
-	case ios_base::out | ios_base::trunc:
 		return O_CREAT | O_WRONLY;
+	case ios_base::out | ios_base::trunc:
+		return O_CREAT | O_WRONLY | O_TRUNC;
 	case ios_base::out | ios_base::app:
 	case ios_base::app:
 		return O_CREAT | O_WRONLY | O_APPEND;

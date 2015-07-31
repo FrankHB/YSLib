@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r871
+\version r893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-07-18 13:45 +0800
+	2015-07-31 09:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,6 +65,30 @@ yconstexpr const char BOM_UTF_8[]{"\xEF\xBB\xBF"};
 yconstexpr const char BOM_UTF_32LE[]{"\xFF\xFE\x00\x00"};
 yconstexpr const char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 //@}
+
+/*!
+\brief 检查缓冲区是否具有指定的 BOM 。
+\since build 619
+*/
+//@{
+inline PDefH(bool, CheckBOM, const char* buf, const char* str, size_t n)
+	ImplRet(std::char_traits<char>::compare(buf, str, n) == 0)
+template<size_t _vN>
+inline bool
+CheckBOM(const char* buf, const char(&str)[_vN])
+{
+	return CheckBOM(buf, str, _vN - 1);
+}
+//@}
+
+/*!
+\brief 探测 BOM 和编码。
+\pre 参数指定的缓冲区至少具有 4 个字节可读。
+\return 检查的编码和 BOM 长度，若失败为 <tt>{CharSet::Null, 0}</tt> 。
+\since build 619
+*/
+YF_API pair<Encoding, size_t>
+DetectBOM(const char*);
 
 /*!
 \brief 写入指定编码的 BOM 。
