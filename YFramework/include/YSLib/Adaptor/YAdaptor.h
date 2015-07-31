@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1784
+\version r1796
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-07-21 09:04 +0800
+	2015-07-29 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,6 @@
 #define YSL_INC_Adaptor_YAdaptor_h_ 1
 
 #include "YModules.h"
-
 #include YFM_YSLib_Adaptor_YNew
 #include <libdefect/cmath.h>
 #include <ystdex/algorithm.hpp> // for ystdex::min, ystdex::max;
@@ -252,8 +251,20 @@ using platform::truncate;
 using platform::basic_filebuf;
 using platform::filebuf;
 using platform::wfilebuf;
+//! \since build 619
+using platform::basic_ifstream;
+//! \since build 619
+using platform::basic_ofstream;
 using platform::basic_fstream;
+//! \since build 619
+using platform::ifstream;
+//! \since build 619
+using platform::ofstream;
 using platform::fstream;
+//! \since build 619
+using platform::wifstream;
+//! \since build 619
+using platform::wofstream;
 using platform::wfstream;
 //@}
 //! \since build 547

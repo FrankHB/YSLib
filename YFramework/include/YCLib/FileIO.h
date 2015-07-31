@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r631
+\version r834
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-07-29 10:54 +0800
+	2015-07-31 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,6 +108,13 @@ struct YF_API FileDescriptorDeleter
 	operator()(pointer) ynothrow;
 };
 
+
+/*!
+\brief 取默认权限。
+\since build 619
+*/
+YF_API YB_STATELESS int
+GetDefaultPermissionMode() ynothrow;
 
 /*!
 \brief 设置标准库流二进制输入/输出模式。
@@ -360,7 +367,8 @@ public:
 	{
 		if(!this->is_open())
 		{
-			this->_M_file.sys_open(uopen(s, omode_convb(mode)), mode);
+			this->_M_file.sys_open(uopen(s, omode_convb(mode),
+				GetDefaultPermissionMode()), mode);
 			if(this->is_open())
 			{
 				this->_M_allocate_internal_buffer();
@@ -394,6 +402,206 @@ public:
 
 using filebuf = basic_filebuf<char>;
 using wfilebuf = basic_filebuf<wchar_t>;
+
+
+//! \since build 619
+//@{
+template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
+class basic_ifstream : public std::basic_istream<_tChar, _tTraits>
+{
+public:
+	using char_type = _tChar;
+	using int_type = typename _tTraits::int_type;
+	using pos_type = typename _tTraits::pos_type;
+	using off_type = typename _tTraits::off_type;
+	using traits_type = _tTraits;
+
+private:
+	using base_type = std::basic_istream<char_type, traits_type>;
+
+	mutable basic_filebuf<_tChar, _tTraits> fbuf{};
+
+public:
+	basic_ifstream()
+		: base_type({})
+	{
+		this->init(&fbuf);
+	}
+	template<typename _tParam,
+		yimpl(typename = ystdex::exclude_self_ctor_t<basic_ifstream, _tParam>)>
+	explicit
+	basic_ifstream(_tParam&& s,
+		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+		: base_type({})
+	{
+		this->init(&fbuf);
+		this->open(yforward(s), mode);
+	}
+	DefDelCopyCtor(basic_ifstream)
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+	basic_ifstream(basic_ifstream&& rhs)
+		: base_type(std::move(rhs)),
+		fbuf(std::move(rhs.fbuf))
+	{
+		base_type::set_rdbuf(&fbuf);
+	}
+#	endif
+	DefDeDtor(basic_ifstream)
+
+	DefDelCopyAssignment(basic_ifstream)
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+	basic_ifstream&
+	operator=(basic_ifstream&& rhs)
+	{
+		base_type::operator=(std::move(rhs));
+		fbuf = std::move(rhs.fbuf);
+		return *this;
+	}
+
+	void
+	swap(basic_ifstream& rhs)
+	{
+		base_type::swap(rhs),
+		fbuf.swap(rhs.fbuf);
+	}
+#	endif
+
+	void
+	close()
+	{
+		if(!fbuf.close())
+			this->setstate(std::ios_base::failbit);
+	}
+
+	bool
+	is_open() const
+	{
+		return fbuf.is_open();
+	}
+
+	//! \since build 617
+	template<typename _tParam>
+	void
+	open(_tParam&& s,
+		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+	{
+		if(fbuf.open(yforward(s), mode))
+			this->clear();
+		else
+			this->setstate(std::ios_base::failbit);
+	}
+
+	std::basic_filebuf<_tChar, _tTraits>*
+	rdbuf() const
+	{
+		return &fbuf;
+	}
+};
+
+#	if __GLIBCXX__ > 20140922
+template<typename _tChar, class _tTraits>
+inline DefSwap(, basic_ifstream<_tChar YPP_Comma _tTraits>)
+#	endif
+
+
+template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
+class basic_ofstream : public std::basic_ostream<_tChar, _tTraits>
+{
+public:
+	using char_type = _tChar;
+	using int_type = typename _tTraits::int_type;
+	using pos_type = typename _tTraits::pos_type;
+	using off_type = typename _tTraits::off_type;
+	using traits_type = _tTraits;
+
+private:
+	using base_type = std::basic_ostream<char_type, traits_type>;
+
+	//! \since build 617
+	mutable basic_filebuf<_tChar, _tTraits> fbuf{};
+
+public:
+	basic_ofstream()
+		: base_type({})
+	{
+		this->init(&fbuf);
+	}
+	template<typename _tParam,
+		yimpl(typename = ystdex::exclude_self_ctor_t<basic_ofstream, _tParam>)>
+	explicit
+	basic_ofstream(_tParam&& s,
+		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+		: base_type({})
+	{
+		this->init(&fbuf);
+		this->open(yforward(s), mode);
+	}
+	DefDelCopyCtor(basic_ofstream)
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+	basic_ofstream(basic_ofstream&& rhs)
+		: base_type(std::move(rhs)),
+		fbuf(std::move(rhs.fbuf))
+	{
+		base_type::set_rdbuf(&fbuf);
+	}
+#	endif
+	DefDeDtor(basic_ofstream)
+
+	DefDelCopyAssignment(basic_ofstream)
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+	basic_ofstream&
+	operator=(basic_ofstream&& rhs)
+	{
+		base_type::operator=(std::move(rhs));
+		fbuf = std::move(rhs.fbuf);
+		return *this;
+	}
+
+	void
+	swap(basic_ofstream& rhs)
+	{
+		base_type::swap(rhs),
+		fbuf.swap(rhs.fbuf);
+	}
+#	endif
+
+	void
+	close()
+	{
+		if(!fbuf.close())
+			this->setstate(std::ios_base::failbit);
+	}
+
+	bool
+	is_open() const
+	{
+		return fbuf.is_open();
+	}
+
+	//! \since build 617
+	template<typename _tParam>
+	void
+	open(_tParam&& s,
+		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+	{
+		if(fbuf.open(yforward(s), mode))
+			this->clear();
+		else
+			this->setstate(std::ios_base::failbit);
+	}
+
+	std::basic_filebuf<_tChar, _tTraits>*
+	rdbuf() const
+	{
+		return &fbuf;
+	}
+};
+
+#	if __GLIBCXX__ > 20140922
+template<typename _tChar, class _tTraits>
+inline DefSwap(, basic_ofstream<_tChar YPP_Comma _tTraits>)
+#	endif
+//@}
 
 
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
@@ -498,15 +706,34 @@ inline DefSwap(, basic_fstream<_tChar YPP_Comma _tTraits>)
 //extern template class YF_API basic_fstream<char>;
 //extern template class YF_API basic_fstream<wchar_t>;
 
+//! \since build 619
+//@{
+using ifstream = basic_ifstream<char>;
+using ofstream = basic_ofstream<char>;
+//! \since build 616
 using fstream = basic_fstream<char>;
+using wifstream = basic_ifstream<wchar_t>;
+using wofstream = basic_ofstream<wchar_t>;
+//@}
 using wfstream = basic_fstream<wchar_t>;
 #else
 // TODO: Use VC++ extensions to support %char16_t path initialization.
 using std::basic_filebuf;
 using std::filebuf;
 using std::wfilebuf;
+//! \since build 619
+//@{
+using std::basic_ifstream;
+using std::basic_ofstream;
+//! \since build 616
 using std::basic_fstream;
+using std::ifstream;
+using std::ofstream;
+//! \since build 616
 using std::fstream;
+using std::wifstream;
+using std::wofstream;
+//@}
 using std::wfstream;
 #endif
 //@}

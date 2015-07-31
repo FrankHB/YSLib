@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r517
+\version r527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2015-05-29 19:41 +0800
+	2015-07-30 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include <YSLib/UI/YModules.h>
 #include <Helper/YModules.h>
 #include YFM_YSLib_UI_Scroll
-#include <fstream> // for std::filebuf;
 #include YFM_YSLib_Service_TextLayout
 #include YFM_Helper_Initialization
 
@@ -49,12 +48,13 @@ namespace UI
 class HexModel final
 {
 private:
+	/*!
+	\brief 文件流数据源。
+	\since build 619
+	*/
+	mutable filebuf source{};
 	//! \since build 597
-	//@{
-	//! \brief 文件流数据源。
-	mutable std::filebuf source{};
 	size_t size = 0;
-	//@}
 
 public:
 	DefDeCtor(HexModel)

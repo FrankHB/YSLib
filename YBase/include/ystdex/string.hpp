@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1450
+\version r1473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-07-23 14:13 +0800
+	2015-07-30 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,8 @@
 #include "cstdio.h" // for yconstraint, ystdex::vfmtlen;
 #include "cstring.h" // for ystdex::ntctslen;
 #include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
-#include "array.hpp" // for std::bidirectional_iterator_tag, ystdex::to_array;
+#include "array.hpp" // for std::bidirectional_iterator_tag, ystdex::to_array,
+//	ystdex::arrlen;
 #include <istream> // for std::basic_istream;
 #include <ostream> // for std::basic_ostream;
 #include <cstdarg>
@@ -911,6 +912,7 @@ extract_line_cr(std::basic_istream<_tChar, _tTraits>& is,
 \brief 非格式输出。
 \since build 599
 */
+//@{
 template<typename _tChar, class _tString>
 std::basic_ostream<_tChar, typename _tString::traits_type>&
 write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
@@ -923,6 +925,28 @@ write(std::basic_ostream<_tChar, typename _tString::traits_type>& os,
 		os.write(&str[pos], std::streamsize(std::min(n, len - pos)));
 	return os;
 }
+//! \since build 619
+template<typename _tChar, class _tTraits, size_t _vN>
+std::basic_ostream<_tChar, _tTraits>&
+write(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
+{
+	return os.write(std::addressof(s[0]), std::streamsize(ystdex::arrlen(s)));
+}
+
+/*!
+\note 参数数组作为字符串字面量。
+\since build 619
+*/
+template<typename _tChar, class _tTraits, size_t _vN>
+std::basic_ostream<_tChar, _tTraits>&
+write_literal(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
+{
+	static_assert(0 < _vN, "Empty string literal found.");
+
+	return
+		os.write(std::addressof(s[0]), std::streamsize(ystdex::arrlen(s) - 1));
+}
+//@}
 
 
 /*!

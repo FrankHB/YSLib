@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1124
+\version r1169
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-07-24 13:45 +0800
+	2015-07-31 09:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,21 @@ VerifyEncoding(std::istream& stream, char* s, size_t buflen, size_t txt_len)
 		? CharSet::UTF_8 : CharSet::Null;
 }
 
+pair<Encoding, size_t>
+DetectBOM(const char* buf)
+{
+#define YSL_Impl_DetectBOM(_n) \
+	if(CheckBOM(buf, BOM_##_n)) \
+		return {CharSet::_n, arrlen(BOM_##_n) - 1};
+	YSL_Impl_DetectBOM(UTF_16LE)
+	YSL_Impl_DetectBOM(UTF_16BE)
+	YSL_Impl_DetectBOM(UTF_8)
+	YSL_Impl_DetectBOM(UTF_32LE)
+	YSL_Impl_DetectBOM(UTF_32BE)
+#undef YSL_Impl_DetectBOM
+	return {CharSet::Null, 0};
+}
+
 size_t
 WriteBOM(std::ostream& os, Encoding enc)
  {
@@ -66,8 +81,8 @@ WriteBOM(std::ostream& os, Encoding enc)
 	{
 #define YSL_Impl_WriteBOM(_n) \
 	case CharSet::_n: \
-		os.write(BOM_##_n, sizeof(BOM_##_n) - 1); \
-		return sizeof(BOM_##_n) - 1;
+		os.write(BOM_##_n, arrlen(BOM_##_n) - 1); \
+		return arrlen(BOM_##_n) - 1;
 	YSL_Impl_WriteBOM(UTF_16LE)
 	YSL_Impl_WriteBOM(UTF_16BE)
 	YSL_Impl_WriteBOM(UTF_8)
@@ -166,36 +181,15 @@ TextFile::CheckBOM(Text::Encoding& cp)
 	if(GetSize() < 2)
 		return 0;
 
-	using std::char_traits;
-	char tmp[4];
+	array<char, 4> buf;
 
-	std::fread(tmp, 1, 4, GetStream());
-	if(char_traits<char>::compare(tmp, BOM_UTF_16LE, 2) == 0)
-	{
-		cp = CharSet::UTF_16LE;
-		return 2;
-	}
-	if(char_traits<char>::compare(tmp, BOM_UTF_16BE, 2) == 0)
-	{
-		cp = CharSet::UTF_16BE;
-		return 2;
-	}
-	if(char_traits<char>::compare(tmp, BOM_UTF_8, 3) == 0)
-	{
-		cp = CharSet::UTF_8;
-		return 3;
-	}
-	if(char_traits<char>::compare(tmp, BOM_UTF_32LE, 4) == 0)
-	{
-		cp = CharSet::UTF_32LE;
-		return 4;
-	}
-	if(char_traits<char>::compare(tmp, BOM_UTF_32BE, 4) == 0)
-	{
-		cp = CharSet::UTF_32BE;
-		return 4;
-	}
-	return 0;
+	std::fread(buf.data(), 1, 4, GetStream());
+	// FIXME: Reading error.
+	const auto res(DetectBOM(buf.data()));
+
+	if(res.second != 0)
+		cp = res.first;
+	return res.second;
 }
 
 void

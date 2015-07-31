@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r338
+\version r361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2015-05-24 10:15 +0800
+	2015-07-29 15:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,17 +30,9 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1
-#include YFM_YSLib_Service_TextFile
 
 namespace NPL
 {
-
-//! \since build 335
-//@{
-using YSLib::File;
-using YSLib::TextFile;
-//@}
-
 
 /*!
 \brief 设置：使用 S 表达式存储外部状态。
@@ -83,10 +75,10 @@ public:
 	\brief 从文件输入设置。
 	\throw GeneralEvent 文件无效。
 	\throw LoggedEvent 文件内容读取失败。
-	\since build 403
+	\since build 619
 	*/
-	YF_API friend TextFile&
-	operator>>(TextFile&, Configuration&);
+	YF_API friend std::istream&
+	operator>>(std::istream&, Configuration&);
 
 	//! \since build 344
 	DefGetter(const ynothrow, const ValueNode&, Node, root)
@@ -104,23 +96,6 @@ public:
 */
 YF_API std::ostream&
 operator<<(std::ostream&, const Configuration&);
-
-
-/*!
-\brief 从文本文件中读取配置。
-\throw GeneralEvent 文件无效或编码非 UTF-8 导致的读取失败。
-\since build 344
-*/
-YF_API ValueNode
-ReadConfiguration(TextFile&);
-
-/*!
-\brief 写入配置至文本文件。
-\throw GeneralEvent 文件无效导致的写入失败。
-\since build 344
-*/
-YF_API void
-WriteConfiguration(TextFile&, const ValueNode&);
 
 } // namespace NPL;
 
