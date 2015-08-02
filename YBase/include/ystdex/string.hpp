@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1473
+\version r1476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-07-30 22:53 +0800
+	2015-07-31 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,11 +168,11 @@ struct is_string_class<_type*> : false_type
 \ingroup metafunctions
 \brief 选择字符串类类型的特定重载避免和其它非字符串类型冲突。
 \sa enable_if_t
-\since build 483
+\since build 620
 */
-template<typename _tParam>
+template<typename _tParam, typename _type = void>
 using enable_for_string_class_t
-	= enable_if_t<is_string_class<decay_t<_tParam>>::value>;
+	= enable_if_t<is_string_class<decay_t<_tParam>>::value, _type>;
 
 
 /*!

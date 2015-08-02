@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r527
+\version r536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2015-07-30 23:25 +0800
+	2015-08-01 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,15 +76,14 @@ public:
 		size_t(source.pubseekoff(0, std::ios_base::cur, std::ios_base::in)))
 	DefGetter(const ynothrow, size_t, Size, size)
 
+	//! \since build 620
+	DefBoolNeg(explicit, source.is_open())
+
 	//! \since build 597
 	//@{
 	//! \pre 间接断言；参数非空。
 	PDefH(std::streamsize, Fill, char* dst, std::streamsize n) const
 		ImplRet(source.sgetn(Nonnull(dst), n))
-
-	//! \pre 间接断言；参数非空。
-	void
-	Load(const char*);
 
 	PDefH(void, Seek, std::streampos pos) const
 		ImplExpr(source.pubseekpos(pos, std::ios_base::in))
@@ -140,8 +139,7 @@ protected:
 \brief 十六进制视图区域。
 \since build 253
 */
-class HexViewArea : public ScrollableContainer,
-	protected HexView
+class HexViewArea : public ScrollableContainer, protected HexView
 {
 public:
 	using HexView::ItemPerLine;
@@ -171,6 +169,9 @@ public:
 	explicit
 	HexViewArea(const Drawing::Rect& = {},
 		FontCache& = FetchDefaultFontCache());
+
+	//! \since build 620
+	DefBoolNeg(explicit, bool(model))
 
 	using HexView::GetItemHeight;
 	using HexView::GetItemNum;

@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r643
+\version r666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2015-05-29 02:45 +0800
+	2015-08-01 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,17 +42,6 @@ HexModel::HexModel(const char* path)
 	source.open(Nonnull(path), std::ios_base::ate | std::ios_base::binary
 		| std::ios_base::in);
 	size = GetPosition();
-}
-
-void
-HexModel::Load(const char* path)
-{
-	this->~HexModel();
-	// FIXME: Exception safety.
-	::new(this) HexModel(path);
-	// TODO: Depends on libstdc++ 5.
-//	source = std::move(fin),
-//	std::swap(size, m.size);
 }
 
 HexView::HexView(FontCache& fc)
@@ -104,19 +93,22 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 void
 HexViewArea::Load(const char* path)
 {
-	model.Load(path);
+	model = HexModel(path);
 	Reset();
 
-	const IndexType
-		n_total_ln((model.GetSize() + ItemPerLine - 1) / ItemPerLine);
-
-	if(n_total_ln > GetItemNum())
+	if(model)
 	{
-		vsbVertical.SetMaxValue(n_total_ln - GetItemNum());
-		vsbVertical.SetLargeDelta(GetItemNum());
+		const IndexType n_total_ln((model.GetSize() + ItemPerLine - 1)
+			/ ItemPerLine);
+
+		if(n_total_ln > GetItemNum())
+		{
+			vsbVertical.SetMaxValue(n_total_ln - GetItemNum());
+			vsbVertical.SetLargeDelta(GetItemNum());
+			return;
+		}
 	}
-	else
-		SetVisibleOf(vsbVertical, false);
+	SetVisibleOf(vsbVertical, {});
 }
 
 void

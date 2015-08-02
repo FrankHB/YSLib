@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r834
+\version r900
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-07-31 13:02 +0800
+	2015-08-01 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,8 @@
 #include <fstream> // for std::filebuf;
 #if __GLIBCXX__
 #	include <ext/stdio_filebuf.h> // for __gnu_cxx::stdio_filebuf;
-#	include <ystdex/cstdio.h> // for ystdex::unique_file_ptr;
+#	include <ystdex/utility.hpp> // for ystdex::swap_underlying,
+//	ystdex::exchange;
 #endif
 #include <system_error> // for std::system_error;
 #include <chrono> // for std::chrono::nanoseconds;
@@ -359,8 +360,63 @@ public:
 	using off_type = typename _tTraits::off_type;
 	using traits = _tTraits;
 
+	//! \since build 620
+	DefDeCtor(basic_filebuf)
 	using yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>::stdio_filebuf);
+#	if YB_IMPL_GNUCPP && !(YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922)
+	//! \since build 620
+	//@{
+	DefDelCopyCtor(basic_filebuf)
+	basic_filebuf(basic_filebuf&& rhs)
+		: __gnu_cxx::stdio_filebuf<_tChar, _tTraits>()
+	{
+		assign(std::move(rhs)),
+		yunseq(this->_M_pback = rhs._M_pback,
+			this->_M_codecvt = rhs._M_codecvt);
+	}
 
+	DefDelCopyAssignment(basic_filebuf)
+	basic_filebuf&
+	operator=(basic_filebuf&& rhs)
+	{
+		this->close();
+		ystdex::swap_underlying(this->_M_file, rhs._M_file),
+		assign(std::move(rhs));
+		return *this;
+	}
+
+private:
+	void
+	assign(basic_filebuf&& rhs)
+	{
+	//	static_cast<std::basic_streambuf<_tChar, _tTraits>&>(*this) = rhs;
+		yunseq(
+		this->_M_mode
+			= ystdex::exchange(rhs._M_mode, std::ios_base::openmode(0)),
+		this->_M_state_beg = std::move(rhs._M_state_beg),
+		this->_M_state_cur = std::move(rhs._M_state_cur),
+		this->_M_state_last = std::move(rhs._M_state_last),
+		this->_M_buf = ystdex::exchange(rhs._M_buf, {}),
+		this->_M_buf_size = ystdex::exchange(rhs._M_buf_size, 1U),
+		this->_M_buf_allocated = ystdex::exchange(rhs._M_buf_allocated, {}),
+		this->_M_ext_buf = ystdex::exchange(rhs._M_ext_buf, {}),
+		this->_M_ext_buf_size = ystdex::exchange(rhs._M_ext_buf_size, 0),
+		this->_M_ext_next = ystdex::exchange(rhs._M_ext_next, {}),
+		this->_M_ext_end = ystdex::exchange(rhs._M_ext_end, {}),
+		this->_M_reading = ystdex::exchange(rhs._M_reading, {}),
+		this->_M_writing = ystdex::exchange(rhs._M_writing, {}),
+		this->_M_pback_cur_save = ystdex::exchange(rhs._M_pback_cur_save, {}),
+		this->_M_pback_end_save = ystdex::exchange(rhs._M_pback_end_save, {}),
+		this->_M_pback_init = ystdex::exchange(rhs._M_pback_init, {})
+		);
+		rhs._M_set_buffer(-1);
+		yunseq(rhs._M_state_last = rhs._M_state_beg,
+			rhs._M_state_cur = rhs._M_state_beg);
+	}
+	//@}
+#endif
+
+public:
 	template<typename _tPathChar>
 	std::basic_filebuf<_tChar, _tTraits>*
 	open(const _tPathChar* s, std::ios_base::openmode mode)
@@ -438,18 +494,15 @@ public:
 		this->open(yforward(s), mode);
 	}
 	DefDelCopyCtor(basic_ifstream)
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	basic_ifstream(basic_ifstream&& rhs)
 		: base_type(std::move(rhs)),
 		fbuf(std::move(rhs.fbuf))
 	{
 		base_type::set_rdbuf(&fbuf);
 	}
-#	endif
 	DefDeDtor(basic_ifstream)
 
 	DefDelCopyAssignment(basic_ifstream)
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	basic_ifstream&
 	operator=(basic_ifstream&& rhs)
 	{
@@ -458,6 +511,7 @@ public:
 		return *this;
 	}
 
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	void
 	swap(basic_ifstream& rhs)
 	{
@@ -537,18 +591,15 @@ public:
 		this->open(yforward(s), mode);
 	}
 	DefDelCopyCtor(basic_ofstream)
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	basic_ofstream(basic_ofstream&& rhs)
 		: base_type(std::move(rhs)),
 		fbuf(std::move(rhs.fbuf))
 	{
 		base_type::set_rdbuf(&fbuf);
 	}
-#	endif
 	DefDeDtor(basic_ofstream)
 
 	DefDelCopyAssignment(basic_ofstream)
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	basic_ofstream&
 	operator=(basic_ofstream&& rhs)
 	{
@@ -557,6 +608,7 @@ public:
 		return *this;
 	}
 
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	void
 	swap(basic_ofstream& rhs)
 	{
@@ -637,18 +689,15 @@ public:
 		this->open(yforward(s), mode);
 	}
 	DefDelCopyCtor(basic_fstream)
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	basic_fstream(basic_fstream&& rhs)
 		: base_type(std::move(rhs)),
 		fbuf(std::move(rhs.fbuf))
 	{
 		base_type::set_rdbuf(&fbuf);
 	}
-#	endif
 	DefDeDtor(basic_fstream)
 
 	DefDelCopyAssignment(basic_fstream)
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	basic_fstream&
 	operator=(basic_fstream&& rhs)
 	{
@@ -657,6 +706,7 @@ public:
 		return *this;
 	}
 
+#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
 	void
 	swap(basic_fstream& rhs)
 	{
