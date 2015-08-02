@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2863
+\version r2883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-07-23 14:20 +0800
+	2015-08-01 23:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, qualified_decay;
+#include "type_op.hpp" // for ../ydef.h, is_standard_layout, std::swap,
+//	qualified_decay;
 #include "cassert.h" // for yassume;
 #include <memory> // for std::addressof;
 
@@ -56,8 +57,26 @@ struct not_constructible
 //@}
 
 
+//! \ingroup helper_functions
+//@{
+/*!
+\brief 交换相同标准布局类型可修改左值的存储。
+\since build 620
+*/
+template<typename _type>
+void
+swap_underlying(_type& x, _type& y) ynothrow
+{
+	static_assert(is_standard_layout<_type>(),
+		"Invalid underlying type found.");
+	using array_type = byte[sizeof(_type)];
+
+	std::swap(reinterpret_cast<array_type&>(x),
+		reinterpret_cast<array_type&>(y));
+}
+
+
 /*
-\ingroup helper_functions
 \brief 交换值并返回旧值。
 \return 被替换的原值。
 \see ISO WG21/N3797 20.2.3[utility.exchange] 。
@@ -72,6 +91,7 @@ exchange(_type& obj, _type2&& new_val)
 	obj = std::forward<_type2>(new_val);
 	return old_val;
 }
+//@}
 
 
 /*!

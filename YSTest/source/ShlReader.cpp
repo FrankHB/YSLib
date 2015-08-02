@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4790
+\version r4806
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-06-30 17:45 +0800
+	2015-08-01 13:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,7 +253,7 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 
 		for(const auto& pos : bookmarks)
 			str += to_string(pos) + ' ';
-		FetchRoot().at("YReader")["Bookmarks"]['"' + group + '"']
+		FetchRoot()["YReader"]["Bookmarks"]['"' + group + '"']
 			.Value = std::move(str);
 	}
 	CatchExpr(std::exception& e, YTraceDe(Warning,
@@ -483,17 +483,19 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	LoadFile(pth);
 	LastRead.DropSubsequent();
 	UpdateButtons();
-	//置默认视图。
 	// TODO: Associate view setting state for user selection.
 	OnClick(CursorEventArgs(dsk_s, 0));
 	RequestFocusCascade(dsk_s);
 }
-
 ShlTextReader::~ShlTextReader()
 {
-	SaveBookmarks(CurrentPath, pnlBookmark.bookmarks),
-	SaveGlobalConfiguration(CurrentSetting);
-	LastRead.Insert(CurrentPath, GetReaderPosition());
+	FilterExceptions([this]{
+		SaveBookmarks(CurrentPath, pnlBookmark.bookmarks);
+		SaveGlobalConfiguration(CurrentSetting);
+	}, "ShlTextReader::~ShlTextReader");
+	FilterExceptions([this]{
+		LastRead.Insert(CurrentPath, GetReaderPosition());
+	}, "ShlTextReader::~ShlTextReader");
 }
 
 string
@@ -799,8 +801,13 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 	);
 	dsk_m += pnlFileInfo;
 	HexArea.Load(path_str.c_str());
-	HexArea.UpdateData(0);
-	HexArea.ViewChanged(HexViewArea::ViewArgs(HexArea, true));
+	if(HexArea)
+	{
+		HexArea.UpdateData(0);
+		HexArea.ViewChanged(HexViewArea::ViewArgs(HexArea, true));
+	}
+	else
+		pnlFileInfo.lblSize.Text = u"文件打开失败！";
 	dsk_s += HexArea;
 	RequestFocusCascade(HexArea);
 }

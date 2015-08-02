@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r202
+\version r205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2015-05-01 08:50 +0800
+	2015-07-31 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,10 +44,10 @@ namespace ystdex
 \sa enable_if_t
 \since build 483
 */
-template<typename _tParam, typename = yimpl(std::pair<
+template<typename _tParam, typename _type = void, typename = yimpl(std::pair<
 	decltype(*std::declval<_tParam&>()), decltype(++std::declval<_tParam&>())>)>
 using enable_for_iterator_t = enable_if_t<
-	is_same<decltype(++std::declval<_tParam&>()), _tParam&>::value, int>;
+	is_same<decltype(++std::declval<_tParam&>()), _tParam&>::value, _type>;
 
 
 /*!	\defgroup iterator_operations Iterator Operations
