@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3867
+\version r3873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-07-19 09:20 +0800
+	2015-08-04 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,12 +215,9 @@ public:
 \relates TextFileBuffer::iterator
 \since build 460
 */
-inline bool
-operator!=(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator y)
-	ynothrow
-{
-	return !(x == y);
-}
+inline PDefHOp(bool, !=, const TextFileBuffer::iterator& x,
+	const TextFileBuffer::iterator y) ynothrow
+	ImplRet(!(x == y))
 
 
 /*!

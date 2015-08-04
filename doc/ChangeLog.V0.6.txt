@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r2176
+\version r2248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-08-01 13:11 +0800
+	2015-08-04 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,79 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework.YSLib.Service $=
+	(
+		/ ("class %File" @ %File; $forced $impl "class %TextFile"
+			@ %TextFile) ^ "%(fstream, std::istream_iterator<char>)"
+			~ "%(std::FILE, ystdex::ifile_iterator)" $dep_from
+			"removal of public sentry" $dep_to "stream I/O",
+		/ %TextFile $=
+		(
+			/ @ "class %TextFile" $=
+			(
+				- "functions %Rewind",
+				- $revert(b341) "functions %GetBOM",
+				- $revert(b273) "functions %CheckBOM",
+				(
+				- "writing BOM when output to empty file" @ "constructor#1",
+				* $comp "BOM truncated at null character for UTF32-LE"
+					$since b341
+				),
+				- "constructor#2",
+				/ DLDI "simplified BOM and encoding detection" $dep_from
+					("stream I/O", ^ "%DetectBOM for %std::istream")
+			),
+			/ DLDI "simplified %WriteBOM" ^ "%ystdex::write_literal",
+			(
+			+ "5th parameter 'Encoding = CS_Default'"
+				@ "all 2 functions %VerifyEncoding";
+			+ "function %DetectBOM for %std::istream"
+			)
+		),
+		/ %File $=
+		(
+			/ @ "class %File" $=
+			(
+				- "function %Rewind",
+				(
+				- $revert(b326) "all 2 constructors with %String filename \
+					parameter";
+				- $revert(b326) "all 2 functions %Open for %String paramenter"
+				),
+				(
+				- $revert(b412) "constructor with 'const char*' parameters";
+				- $revert(b412) "function %Open with 'const char*' parameters"
+				),
+				(
+				+ DLDI "brace-or-equal-initializer '{}'" @ "data members";
+				/ "default constructor"
+					-> "explicitly defaulted default constructor"
+				),
+				(
+				- "close before opening stream" @ "function %Open";
+				- "function %Close"
+				),
+				(
+				- $revert(b613) "function %GetSentry" $dep_from
+					"class %TextFileBuffer";
+				- $revert(b613) "class %Sentry";
+				$dep_to "removal of public sentry"
+				)
+			),
+			- $revert(b326) "all overloaded %operator(>>, <<) for %File"
+		),
+		/ @ %TextManager $=
+		(
+			/ DLDI "%operator!= for %TextFileBuffer::iterator"
+				^ "macros %(PDefHOp, ImplRet)",
+			/ DLDI "class %TextFileBuffer" !^ "%File::GetSentry"
+		)
+	),
+	+ "function %GetBufferRef" @ "class %DualScreenReader" @ %YReader.DSReader
+),
+
+b620
 (
 	/ %YBase.YStandardEx $=
 	(

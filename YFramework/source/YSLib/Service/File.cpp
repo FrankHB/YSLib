@@ -11,13 +11,13 @@
 /*!	\file File.cpp
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r577
+\version r630
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-07-13 13:03 +0800
+	2015-08-04 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,37 +33,19 @@
 namespace YSLib
 {
 
-File::File()
-	: fp(), fsize(0)
-{}
-File::File(const char* filename, const char* mode)
-	: File()
-{
-	Open(filename, mode);
-}
 File::File(const char* filename, std::ios_base::openmode mode)
-	: File(filename, ystdex::openmode_conv(mode))
-{}
-File::File(const String& filename, const ucs2_t* mode)
 	: File()
 {
 	Open(filename, mode);
 }
-File::File(const String& filename, std::ios_base::openmode mode)
-	: File(filename, String(ystdex::openmode_conv(mode)).c_str())
-{}
-File::~File()
-{
-	if(*this)
-		std::fclose(fp);
-}
+ImplDeDtor(File)
 
 size_t
 File::GetPosition()
 {
-	const long pos(std::ftell(fp));
+	const auto pos(stream.tellg());
 
-	if(pos != -1L)
+	if(pos != fstream::pos_type(-1))
 		return size_t(pos);
 	throw LoggedEvent("Failed getting file position.");
 }
@@ -71,45 +53,22 @@ File::GetPosition()
 void
 File::CheckSize()
 {
-	std::fseek(GetStream(), 0L, SEEK_END);
+	stream.seekg(0, std::ios_base::end);
 	fsize = GetPosition();
-	Rewind();
+	GetStream().seekg(0);
 }
 
-void
-File::Close()
-{
-	if(*this)
-		std::fclose(fp);
-	fp = {};
-}
-
-bool
-File::Open(const char* filename, const char* mode)
-{
-	if(*this)
-		std::fclose(fp);
-	if((fp = ufopen(filename, mode)))
-		CheckSize();
-	return fp;
-}
 bool
 File::Open(const char* filename, std::ios_base::openmode mode)
 {
-	return Open(filename, ystdex::openmode_conv(mode));
-}
-bool
-File::Open(const String& filename, const ucs2_t* mode)
-{
-	Close();
-	if((fp = ufopen(filename.c_str(), mode)))
+	stream.open(filename, mode);
+	if(*this)
+	{
+		stream.unsetf(std::ios_base::skipws);
 		CheckSize();
-	return fp;
-}
-bool
-File::Open(const String& filename, std::ios_base::openmode mode)
-{
-	return Open(filename, String(ystdex::openmode_conv(mode)).c_str());
+		return true;
+	}
+	return {};
 }
 
 } // namespace YSLib;
