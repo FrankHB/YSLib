@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3945
+\version r3973
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-07-18 20:32 +0800
+	2015-08-04 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,6 +76,35 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 	return get<1>(it.base());
 }
 //@}
+
+//! \since build 621
+class Sentry
+{
+private:
+	ystdex::nptr<std::istream*> fp{};
+	std::istream_iterator<char> iter{};
+
+public:
+	DefDeCtor(Sentry)
+	Sentry(std::istream& is)
+		: fp(&is), iter(is)
+	{}
+	Sentry(TextFile& tf)
+		: Sentry(tf.GetStream())
+	{}
+	DefDeMoveCtor(Sentry)
+	~Sentry()
+	{
+		if(fp)
+			TryExpr(fp->clear(), fp->unget(), fp->clear())
+			CatchIgnore(std::ios_base::failure&)
+			CatchExpr(..., yassume(false))
+	}
+
+	DefDeMoveAssignment(Sentry)
+
+	DefGetter(ynothrow, std::istream_iterator<char>&, IteratorRef, iter)
+};
 
 } // unnamed namespace;
 
@@ -176,7 +205,7 @@ TextFileBuffer::operator[](size_t idx)
 
 			size_t n_byte(0);
 			ucs2_t c;
-			auto sentry(File.GetSentry());
+			Sentry sentry(File);
 
 			while(n_byte < len)
 				n_byte += ConvertChar([&](ucs2_t uc){
@@ -216,7 +245,7 @@ TextFileBuffer::GetIterator(size_t pos)
 			File.Locate(idx * BlockSize);
 
 			size_t n_byte(0), n_char(0);
-			auto sentry(File.GetSentry());
+			Sentry sentry(File);
 
 			while(n_byte < pos)
 				n_byte += ConvertChar([&](ystdex::pseudo_output){
@@ -258,7 +287,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 		YAssert(it <= mid, "Wrong iterator found.");
 
 		size_t n_byte(0);
-		auto sentry(File.GetSentry());
+		Sentry sentry(File);
 
 		while(it != mid)
 			n_byte += ConvertChar([&](ystdex::pseudo_output){

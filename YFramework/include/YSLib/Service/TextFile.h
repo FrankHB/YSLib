@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r893
+\version r936
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-07-31 09:11 +0800
+	2015-08-04 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,14 +39,15 @@ namespace Text
 
 /*!
 \brief 验证流的编码。
-\note 第二参数和第三参数指定缓冲区，第四参数指定最大文本长度。
-\since build 617
+\note 第二参数和第三参数指定缓冲区，第四参数指定最大文本长度，
+	第五参数参数指定验证的编码。
+\since build 621
 */
 //@{
 YB_NONNULL(1, 2) Text::Encoding
-VerifyEncoding(std::FILE*, char*, size_t, size_t);
+VerifyEncoding(std::FILE*, char*, size_t, size_t, Encoding = CS_Default);
 YB_NONNULL(2) Text::Encoding
-VerifyEncoding(std::istream&, char*, size_t, size_t);
+VerifyEncoding(std::istream&, char*, size_t, size_t, Encoding = CS_Default);
 //@}
 
 
@@ -81,14 +82,26 @@ CheckBOM(const char* buf, const char(&str)[_vN])
 }
 //@}
 
+//! \brief 探测 BOM 和编码。
+//@{
 /*!
-\brief 探测 BOM 和编码。
 \pre 参数指定的缓冲区至少具有 4 个字节可读。
 \return 检查的编码和 BOM 长度，若失败为 <tt>{CharSet::Null, 0}</tt> 。
 \since build 619
 */
 YF_API pair<Encoding, size_t>
 DetectBOM(const char*);
+/*!
+\sa VerifyEncoding
+\since build 621
+
+设置流读位置为起始位置。当流大小大于 1 时试验读取前 4 字节并检查 BOM 。
+若没有发现 BOM ，调用 VerifyEncoding 按前 64 字节探测编码。
+读取 BOM 时若遇到流无效，直接返回 <tt>{CharSet::Null, 0}</tt> 。
+*/
+YF_API pair<Encoding, size_t>
+DetectBOM(std::istream&, size_t, Encoding = CS_Default);
+//@}
 
 /*!
 \brief 写入指定编码的 BOM 。
@@ -127,24 +140,11 @@ public:
 	TextFile(const char*, std::ios_base::openmode = std::ios_base::in,
 		Text::Encoding = Text::CS_Default);
 	/*!
-	\brief 构造：使用指定文件名初始化只读文本文件对象。
-	\since build 305
-	*/
-	explicit
-	TextFile(const String&);
-	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 615
 	*/
 	~TextFile() override;
 
-	/*!
-	\brief 取 BOM 字符串。
-	\post 同 Rewind() 。
-	\since build 341
-	*/
-	string
-	GetBOM() const;
 	/*!
 	\brief 取 BOM 大小。
 	\since build 520
@@ -154,25 +154,11 @@ public:
 		//!< 取文本区段大小。
 
 	/*!
-	\brief 检查文件头是否有 BOM(Byte Order Mark) ，若有则据此判断编码。
-	\return BOM 的长度（字节数）。
-	\since build 273
-	*/
-	size_t
-	CheckBOM(Text::Encoding&);
-
-	/*!
 	\brief 定位：设置文件读位置。
 	\since build 586
 	*/
 	void
 	Locate(size_t) const;
-
-	/*!
-	\brief 设置文件读位置为文本区段头。
-	*/
-	void
-	Rewind() const;
 };
 
 } // namespace YSLib;

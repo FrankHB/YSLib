@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1865
+\version r1872
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2015-02-04 08:28 +0800
+	2015-08-04 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,12 +149,13 @@ public:
 
 	//! \since build 374
 	DefPred(const ynothrow, BufferReady, bool(p_text));
-	DefPred(const ynothrow, TextTop, i_top == p_text->begin()) \
+	//! \brief 判断输出位置是否到文本顶端。
+	DefPred(const ynothrow, TextTop, i_top == p_text->begin())
+	//! \brief 判断输出位置是否到文本底端。
+	DefPred(const ynothrow, TextBottom, i_btm == p_text->end())
 
-		//!< 判断输出位置是否到文本顶端。
-	DefPred(const ynothrow, TextBottom, i_btm == p_text->end()) \
-		//!< 判断输出位置是否到文本底端。
-
+	//! \since build 621
+	DefGetter(const ynothrow, Text::TextFileBuffer&, BufferRef, Deref(p_text))
 	/*!
 	\brief 取文本区域的字体颜色。
 	\note 上下文本区域的字体颜色应该保持一致，否则滚屏时字体颜色错误。
