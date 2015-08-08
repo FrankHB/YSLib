@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r582
+\version r585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-07-31 13:43 +0800
+	2015-08-08 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -556,6 +556,8 @@ GetFileSizeOf(int fd)
 		&& YB_LIKELY(sz.QuadPart >= 0))
 		return std::uint64_t(sz.QuadPart);
 	// TODO: Get correct error condition.
+	throw FileOperationFailure(platform_ex::GetErrnoFromWin32(),
+		std::generic_category(), "Failed getting file size.");
 #else
 	struct ::stat st;
 
@@ -564,9 +566,9 @@ GetFileSizeOf(int fd)
 		// XXX: No negative file size should be found. See also:
 		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed . 
 		return std::uint64_t(st.st_size);
-#endif
 	throw FileOperationFailure(errno, std::generic_category(),
 		"Failed getting file size.");
+#endif
 }
 std::uint64_t
 GetFileSizeOf(std::FILE* fp)

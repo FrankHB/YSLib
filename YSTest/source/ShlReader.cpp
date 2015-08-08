@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4806
+\version r4815
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-08-01 13:09 +0800
+	2015-08-05 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -541,9 +541,9 @@ void
 ShlTextReader::LoadFile(const IO::Path& pth)
 {
 	CurrentPath = pth;
-	pTextFile.reset(new TextFile(string(pth).c_str(),
-		std::ios_base::in | std::ios_base::binary, CharSet::Null));
-	reader.LoadText(*pTextFile);
+	pTextFile.reset(new ifstream(string(pth).c_str(),
+		std::ios_base::in | std::ios_base::binary));
+	reader.LoadText(*pTextFile, CharSet::Null);
 
 	const auto text_size(reader.GetTextSize());
 
@@ -624,12 +624,10 @@ ShlTextReader::StopAutoScroll()
 void
 ShlTextReader::Switch(Encoding enc)
 {
-	if(enc != Encoding() && pTextFile && bool(*pTextFile)
-		&& pTextFile->Encoding != enc)
-	{
-		pTextFile->Encoding = enc;
-		reader.LoadText(*pTextFile);
-	}
+	if(enc != Encoding() && pTextFile && pTextFile->is_open()
+		&& reader.IsBufferReady()
+		&& reader.GetBufferRef().GetEncoding() != enc)
+		reader.LoadText(*pTextFile, enc);
 }
 
 void

@@ -110,7 +110,7 @@ It is now required to replace the original header file "FreeImage.h" in "Source"
 = DS
 Currently only building on Windows is tested.
 MSYS and devkitARM are required.
-The environment variable "DEVKITARM" should be set properly like "/C/devkitPro", to make sure the toolchain files can be found.
+The environment variable "DEVKITARM" should be set properly like "/C/devkitPro/devkitARM", to make sure the toolchain files can be found.
 The file "Makefile.ds" should have been copied to the source directory.
 Run "make -f Makefile.ds -j" to build the static library.
 Run "make -f Makefile.ds clean" to delete all build files.

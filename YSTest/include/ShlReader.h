@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1831
+\version r1833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2015-05-29 21:49 +0800
+	2015-08-05 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -290,7 +290,8 @@ protected:
 	TextInfoBox boxTextInfo{};
 	//! \brief 设置面板。
 	SettingPanel pnlSetting{};
-	unique_ptr<TextFile> pTextFile{};
+	//! \since build 622
+	unique_ptr<ifstream> pTextFile{};
 	MenuHost mhMain{};
 	//@}
 	/*!

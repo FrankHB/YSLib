@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r237
+\version r243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-06-30 16:55 +0800
+	2015-08-06 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -237,6 +237,14 @@ Binary size matters, particularly to platform DS.
 			The DSIO uses 'std::map' instead of 'std::unordered_map' as underlying map container.
 			Note this also has effect on font cache and image processing cache, except for 'std::unordered_map' is kept because hash function is specified.
 			This also made less memory footprint.
+
+$2015-08:
+
+report.impl:
+According to ISO/IEC 9899 footnote 268, it is undefined behavior to call 'fseek(file, 0, SEEK_END)' for a binary stream.
+	This is also existed in ISO/IEC 9899:TC3 (WG14/N1256) which is referenced by ISO C++11, and older version of ISO C.
+	However, it is not mattered in POSIX-compliant systems. ISO C++ standard library streams are also not effected.
+	See also http://stackoverflow.com/questions/5957845/using-fseek-and-ftell-to-determine-the-size-of-a-file-has-a-vulnerability .
 
 ////
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2424
+\version r2425
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-06-30 17:33 +0800
+	2015-08-07 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2268,7 +2268,7 @@ FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 	TryRet(ystdex::call_for_value(0, f))
 	CatchExpr(std::system_error& e, seterr(r, e.code().value()))
 	CatchExpr(std::bad_alloc&, seterr(r, ENOMEM))
-	CatchExpr(..., YAssert(false, "Invalid exception found"))
+	CatchExpr(..., YAssert(false, "Invalid exception found."))
 	return def_val;
 }
 

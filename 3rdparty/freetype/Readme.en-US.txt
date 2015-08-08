@@ -21,8 +21,8 @@ Direct fix on FreeType source is not planned. See module "YSLib::Adaptor::Font" 
 
 = DS
 Currently only building on Windows is tested.
-Msys and devkitARM are required.
-The environment variable "DEVKITARM" should be set properly like "/C/devkitPro", to make sure the toolchain files can be found.
+MSYS and devkitARM are required.
+The environment variable "DEVKITARM" should be set properly like "/C/devkitPro/devkitARM", to make sure the toolchain files can be found.
 Copy the directory "builds" to the freetype source directory, change current working directory to "builds" and run the script "build-ds" to build the static library.
 The script "build-ds.sh" is for UNIX shell. Alternatively, use "build-ds.cmd" for Windows command shell.
 The script will clean "objs" directory in the freetype source directory, then copy necessary files, call "make -j -f buildlib.mk".
@@ -31,7 +31,7 @@ The output is "objs/ds/libfreetype.a" in the freetype source directory.
 = MinGW32
 Toolchain compatible to i686-pc-mingw32 is required. Only MinGW-w64 GCC has been tested.
 The environment variable "PATH" should be set properly like "C:\msys\mingw32\bin;C:\Windows\System32", to make sure the toolchain files can be found.
-Note that if "PATH" is too long or UNIX shell(e.g. from MSys) can be found in the PATH, mingw32-make would probably fail.
+Note that if "PATH" is too long or UNIX shell(e.g. from MSYS) can be found in the PATH, mingw32-make would probably fail.
 Copy the file "builds/ds/modules.cfg" to "objs" in the freetype source directory.
 Then run "mingw32-make"(add "-j" to build concurrently) with proper options using official makefile to build static library for MinGW32.
 Currently, the YSLib uses:

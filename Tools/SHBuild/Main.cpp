@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2857
+\version r2890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-07-29 18:40 +0800
+	2015-08-07 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,7 @@ template<typename... _tParams>
 YB_NORETURN inline PDefH(void, raise_exception, int ret, _tParams&&... args)
 	ImplExpr(raise_exception<IntException>({
 		std::runtime_error(yforward(args)...), ret}))
+//@}
 //! \since build 522
 YB_NORETURN inline PDefH(void, raise_exception, int ret)
 	ImplExpr(raise_exception(ret, "Failed calling command."))
@@ -104,23 +105,6 @@ PrintInfo(const string& line, RecordLevel lv = Notice,
 	LastLogGroup = grp;
 	FetchStaticRef<Logger>().Log(lv, [&]{
 		return line;
-	});
-}
-//@}
-
-void
-PrintException(const std::exception& e, size_t level = 0)
-{
-	const auto print(std::bind(PrintInfo, _1, Err, LogGroup::General));
-
-	TryExpr(print(string(level, ' ') + "ERROR: " + e.what()), throw)
-	CatchExpr(IntException& ex,
-		print("IntException: " + to_string(unsigned(ex)) + "."))
-	CatchExpr(FileOperationFailure&, print("ERROR: File operation failure."))
-	CatchIgnore(std::exception&)
-	CatchExpr(..., print("ERROR: PrintException."))
-	ystdex::handle_nested(e, [=](std::exception& ex){
-		PrintException(ex, level + 1);
 	});
 }
 //@}
@@ -782,8 +766,7 @@ main(int argc, char* argv[])
 {
 	Terminal term, term_err(stderr);
 
-	try
-	{
+	return FilterExceptions([&]{
 		auto& logger(FetchStaticRef<Logger>());
 
 		LogDisabled.set(size_t(LogGroup::DepsCheck));
@@ -882,8 +865,22 @@ main(int argc, char* argv[])
 				std::putchar('\n');
 			}
 		}
-	}
-	CatchRet(std::exception& e, PrintException(e), EXIT_FAILURE)
-	CatchRet(..., PrintInfo("ERROR: Unknown failure.", Err), EXIT_FAILURE)
+	}, {}, Err, [](const std::exception& e, LoggedEvent::LevelType l){
+		return ExtractException([](const char* str, LoggedEvent::LevelType lv,
+			size_t level){
+			const auto print([=](const string& s){
+				PrintInfo(string(level, ' ') + s, lv, LogGroup::General);
+			});
+
+			TryExpr(throw)
+			CatchExpr(IntException& ex, print("IntException: "
+				+ to_string(unsigned(ex)) + "."))
+			CatchExpr(FileOperationFailure&, print(
+				"ERROR: File operation failure."))
+			CatchIgnore(std::exception&)
+			CatchExpr(..., YAssert(false, "Invalid exception found."))
+			print(string("ERROR: ") + str);
+		}, e, l, 0);
+	}) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
