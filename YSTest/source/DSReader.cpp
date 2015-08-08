@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3212
+\version r3216
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2015-04-24 04:10 +0800
+	2015-08-05 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -414,11 +414,12 @@ DualScreenReader::Locate(size_t pos)
 }
 
 void
-DualScreenReader::LoadText(TextFile& file)
+DualScreenReader::LoadText(ifstream& file, Encoding enc)
 {
-	if(YB_LIKELY(file))
+	if(file.is_open())
 	{
-		p_text.reset(new Text::TextFileBuffer(file));
+		file.unsetf(std::ios_base::skipws);
+		p_text.reset(new Text::TextFileBuffer(file, enc));
 		yunseq(i_top = p_text->begin(), i_btm = p_text->end());
 		UpdateView();
 	}

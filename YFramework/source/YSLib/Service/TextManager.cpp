@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3973
+\version r4017
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-08-04 22:19 +0800
+	2015-08-06 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,15 +82,14 @@ class Sentry
 {
 private:
 	ystdex::nptr<std::istream*> fp{};
-	std::istream_iterator<char> iter{};
 
 public:
+	//! \since build 622
+	std::istream_iterator<char> Iterator{};
+
 	DefDeCtor(Sentry)
 	Sentry(std::istream& is)
-		: fp(&is), iter(is)
-	{}
-	Sentry(TextFile& tf)
-		: Sentry(tf.GetStream())
+		: fp(&is), Iterator(is)
 	{}
 	DefDeMoveCtor(Sentry)
 	~Sentry()
@@ -102,8 +101,6 @@ public:
 	}
 
 	DefDeMoveAssignment(Sentry)
-
-	DefGetter(ynothrow, std::istream_iterator<char>&, IteratorRef, iter)
 };
 
 } // unnamed namespace;
@@ -170,11 +167,28 @@ operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 }
 
 
-TextFileBuffer::TextFileBuffer(TextFile& file)
-	: File(file ? file : (throw LoggedEvent("Invalid file found."), file)),
-	nTextSize(File.GetTextSize()), nBlock((nTextSize + BlockSize - 1)
-	/ BlockSize), fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(
-	fixed_width == 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
+TextFileBuffer::TextFileBuffer(std::istream& file, Encoding enc)
+	: File(file), fsize([&, this]() -> size_t{
+		File.seekg(0, std::ios_base::end);
+		if(!File)
+			throw LoggedEvent("Failed getting size of file.");
+		return File.tellg();
+	}()), encoding(enc), bl([this]() -> size_t{
+		if(encoding == CharSet::Null)
+		{
+			size_t blen;
+
+			tie(encoding, blen) = DetectBOM(File, fsize);
+			// TODO: More accurate encoding checking for text stream without
+			//	BOM.
+			if(encoding == CharSet::Null)
+				encoding = CharSet::GBK;
+			return blen;
+		}
+		return 0;
+	}()), nTextSize(fsize - bl), nBlock((nTextSize + BlockSize - 1)
+	/ BlockSize), fixed_width(FetchFixedCharWidth(encoding)), max_width(
+	fixed_width == 0 ? FetchMaxVariantCharWidth(encoding) : fixed_width)
 {
 	YAssert(max_width != 0, "Unknown encoding found.");
 
@@ -194,9 +208,11 @@ TextFileBuffer::operator[](size_t idx)
 	if(YB_UNLIKELY(vec.empty()))
 	{
 		YAssert(bool(File), "Invalid file found.");
-		if(const auto pfun = FetchMapperFunc(File.Encoding))
+		if(const auto pfun = FetchMapperFunc(encoding))
 		{
-			File.Locate(idx * BlockSize);
+			// XXX: Conversion to 'fstream::pos_type' might be
+			//	implementation-defined.
+			File.seekg(fstream::pos_type(bl + idx * BlockSize));
 
 			size_t len(idx == nBlock - 1 && nTextSize % BlockSize != 0
 				? nTextSize % BlockSize : BlockSize);
@@ -210,7 +226,7 @@ TextFileBuffer::operator[](size_t idx)
 			while(n_byte < len)
 				n_byte += ConvertChar([&](ucs2_t uc){
 					vec.push_back(uc);
-				}, pfun, sentry.GetIteratorRef(), c);
+				}, pfun, sentry.Iterator, c);
 			vec.shrink_to_fit();
 		}
 	}
@@ -240,9 +256,11 @@ TextFileBuffer::GetIterator(size_t pos)
 
 		YAssert(bool(File), "Invalid file found.");
 
-		if(const auto pfun = FetchSkipMapperFunc(File.Encoding))
+		if(const auto pfun = FetchSkipMapperFunc(encoding))
 		{
-			File.Locate(idx * BlockSize);
+			// XXX: Conversion to 'fstream::pos_type' might be
+			//	implementation-defined.
+			File.seekg(fstream::pos_type(bl + idx * BlockSize));
 
 			size_t n_byte(0), n_char(0);
 			Sentry sentry(File);
@@ -250,7 +268,7 @@ TextFileBuffer::GetIterator(size_t pos)
 			while(n_byte < pos)
 				n_byte += ConvertChar([&](ystdex::pseudo_output){
 					++n_char;
-				}, pfun, sentry.GetIteratorRef(), ystdex::pseudo_output());
+				}, pfun, sentry.Iterator, ystdex::pseudo_output());
 			return TextFileBuffer::iterator(this, idx, n_char);
 		}
 		return TextFileBuffer::iterator(this, idx, 0);
@@ -269,13 +287,14 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 	if(fixed_width == max_width)
 		return idx * BlockSize + pos * max_width;
 
-	if(const auto pfun = FetchSkipMapperFunc(File.Encoding))
+	if(const auto pfun = FetchSkipMapperFunc(encoding))
 	{
 		const auto& vec((*this)[idx].first);
 
 		YAssert(!vec.empty() && bool(File), "Block loading failed.");
-
-		File.Locate(idx *= BlockSize);
+		// XXX: Conversion to 'fstream::pos_type' might be
+		//	implementation-defined.
+		File.seekg(fstream::pos_type(bl + (idx *= BlockSize)));
 
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 		const auto mid(vec.cbegin() + ptrdiff_t(pos));
@@ -292,7 +311,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 		while(it != mid)
 			n_byte += ConvertChar([&](ystdex::pseudo_output){
 				++it;
-			}, pfun, sentry.GetIteratorRef(), ystdex::pseudo_output());
+			}, pfun, sentry.Iterator, ystdex::pseudo_output());
 		return idx + n_byte;
 	}
 	return idx;

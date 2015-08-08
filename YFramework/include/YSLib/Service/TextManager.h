@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3873
+\version r3893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-08-04 12:51 +0800
+	2015-08-05 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,10 +120,20 @@ public:
 
 protected:
 	/*!
-	\brief 文本文件引用。
-	\since build 273
+	\brief 流引用。
+	\since build 621
 	*/
-	TextFile& File;
+	std::istream& File;
+
+private:
+	//! \since build 622
+	//@{
+	size_t fsize;
+	Encoding encoding;
+	size_t bl;
+	//@}
+
+public:
 	/*!
 	\brief 文本大小。
 	\since build 273
@@ -155,12 +165,15 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用文本文件。
-	\pre 文件以二进制模式打开（保证大小和字符数一致）。
-	\throw LoggedEvent 文件未打开。
+	\brief 构造：使用流和指定编码。
+	\pre 流以二进制模式打开且设置 std::ios_base::skipws ，支持定位到结尾访问，
+		以保证大小等于字符数。
+	\throw LoggedEvent 取文件大小失败。
+	\note 编码为 \c CharSet::Null 时自动推断，若无法推断，默认为 CharSet::GBK 。
+	\since build 622
 	*/
 	explicit
-	TextFileBuffer(TextFile&);
+	TextFileBuffer(std::istream&, Encoding = CharSet::Null);
 
 	/*!
 	\brief 块随机访问。
@@ -176,8 +189,8 @@ public:
 	\since build 273
 	*/
 	DefGetter(const ynothrow, size_t, BlockN, nBlock)
-	DefGetter(const ynothrow, Encoding, Encoding, File.Encoding)
-	DefGetterMem(const ynothrow, size_t, Size, File)
+	DefGetter(const ynothrow, Encoding, Encoding, encoding)
+	DefGetter(const ynothrow, size_t, Size, fsize)
 	DefGetter(const ynothrow, size_t, TextSize, nTextSize)
 
 	/*!

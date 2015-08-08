@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r745
+\version r758
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-07-04 20:39 +0800
+	2015-08-08 16:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,6 +54,22 @@ namespace platform_ex
 */
 inline namespace Windows
 {
+
+//! \since build 622
+//@{
+/*!
+\brief 转换 Win32 错误为 \c errno 。
+\return 当对应不存在时 \c EINVAL ，否则参数对应的 \c errno 。
+\since build 622
+*/
+YF_API int
+ConvertToErrno(unsigned long);
+
+//! \breif 取转换为 \c errno 的 Win32 错误。
+inline PDefH(int, GetErrnoFromWin32, )
+	ImplRet(ConvertToErrno(::GetLastError()))
+//@}
+
 
 /*!
 \ingroup exception_types

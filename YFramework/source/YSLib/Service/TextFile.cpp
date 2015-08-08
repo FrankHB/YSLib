@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1279
+\version r1300
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-08-04 14:17 +0800
+	2015-08-05 09:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,31 +124,6 @@ WriteBOM(std::ostream& os, Encoding enc)
 }
 
 } // namespace Text;
-
-
-TextFile::TextFile(const char* filename, std::ios_base::openmode mode,
-	Text::Encoding enc)
-	: File(filename, mode),
-	Encoding(enc)
-{
-	using namespace Text;
-
-	if(*this)
-	{
-		tie(Encoding, bl) = DetectBOM(GetStream(), GetSize());
-		// TODO: More accurate encoding checking for text stream without BOM.
-		if(Encoding == CharSet::Null)
-			Encoding = CharSet::GBK;
-	}
-}
-ImplDeDtor(TextFile)
-
-void
-TextFile::Locate(size_t pos) const
-{
-	// XXX: Conversion to 'fstream::pos_type' might be implementation-defined.
-	GetStream().seekg(fstream::pos_type(bl + pos));
-}
 
 } // namespace YSLib;
 

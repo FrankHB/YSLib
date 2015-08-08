@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r339
+\version r350
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-05-18 21:44 +0800
+	2015-08-07 10:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,9 +65,15 @@ TraceExceptionType(std::exception& e, LoggedEvent::LevelType lv) ynothrow
 		e.what());
 }
 
+void
+ExtractAndTrace(std::exception& e, LoggedEvent::LevelType lv)
+{
+	TraceExceptionType(e, lv);
+	ExtractException(TraceException, e, lv);
+}
 
 void
-ExtractException(const ExtractedExceptionPrinter& print,
+ExtractException(const ExtractedLevelPrinter& print,
 	const std::exception& e, LoggedEvent::LevelType lv, size_t level)
 	ynothrow
 {
@@ -85,10 +91,8 @@ ExtractException(const ExtractedExceptionPrinter& print,
 
 bool
 TryExecute(std::function<void()> f, const char* desc,
-	LoggedEvent::LevelType lv)
+	LoggedEvent::LevelType lv, ExceptionTracer trace)
 {
-	const ExtractedExceptionPrinter paint(TraceException);
-
 	try
 	{
 		TryExpr(f())
@@ -100,8 +104,7 @@ TryExecute(std::function<void()> f, const char* desc,
 		}
 		return {};
 	}
-	CatchExpr(std::exception& e, TraceExceptionType(e, lv),
-		ExtractException(paint, e, lv))
+	CatchExpr(std::exception& e, trace(e, lv))
 	return true;
 }
 

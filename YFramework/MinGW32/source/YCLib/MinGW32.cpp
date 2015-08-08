@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r745
+\version r852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-07-14 19:50 +0800
+	2015-08-08 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,10 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_MinGW32
+#	include <cerrno>
+#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
+//	YSLib::CheckPositiveScalar;
 #	include YFM_YCLib_FileIO // for platform::FileOperationFailure;
-#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
 using namespace YSLib;
 #endif
@@ -43,6 +45,111 @@ namespace platform_ex
 
 inline namespace Windows
 {
+
+int
+ConvertToErrno(unsigned long err)
+{
+	// NOTE: This mapping is from Windows Kits 10.0.10150.0,
+	//	ucrt/misc/errno.cpp, except for fix of the bug error 124: it shall be
+	//	%ERROR_INVALID_LEVEL but not %ERROR_INVALID_HANDLE. See https://connect.microsoft.com/VisualStudio/feedback/details/1641428 .
+	switch(err)
+	{
+	case ERROR_INVALID_FUNCTION:
+		return EINVAL;
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+		return ENOENT;
+	case ERROR_TOO_MANY_OPEN_FILES:
+		return EMFILE;
+	case ERROR_ACCESS_DENIED:
+		return EACCES;
+	case ERROR_INVALID_HANDLE:
+		return EBADF;
+	case ERROR_ARENA_TRASHED:
+	case ERROR_NOT_ENOUGH_MEMORY:
+	case ERROR_INVALID_BLOCK:
+		return ENOMEM;
+	case ERROR_BAD_ENVIRONMENT:
+		return E2BIG;
+	case ERROR_BAD_FORMAT:
+		return ENOEXEC;
+	case ERROR_INVALID_ACCESS:
+	case ERROR_INVALID_DATA:
+		return EINVAL;
+	case ERROR_INVALID_DRIVE:
+		return ENOENT;
+	case ERROR_CURRENT_DIRECTORY:
+		return EACCES;
+	case ERROR_NOT_SAME_DEVICE:
+		return EXDEV;
+	case ERROR_NO_MORE_FILES:
+		return ENOENT;
+	case ERROR_LOCK_VIOLATION:
+		return EACCES;
+	case ERROR_BAD_NETPATH:
+		return ENOENT;
+	case ERROR_NETWORK_ACCESS_DENIED:
+		return EACCES;
+	case ERROR_BAD_NET_NAME:
+		return ENOENT;
+	case ERROR_FILE_EXISTS:
+		return EEXIST;
+	case ERROR_CANNOT_MAKE:
+	case ERROR_FAIL_I24:
+		return EACCES;
+	case ERROR_INVALID_PARAMETER:
+		return EINVAL;
+	case ERROR_NO_PROC_SLOTS:
+		return EAGAIN;
+	case ERROR_DRIVE_LOCKED:
+		return EACCES;
+	case ERROR_BROKEN_PIPE:
+		return EPIPE;
+	case ERROR_DISK_FULL:
+		return ENOSPC;
+	case ERROR_INVALID_TARGET_HANDLE:
+		return EBADF;
+	case ERROR_INVALID_LEVEL:
+		return EINVAL;
+	case ERROR_WAIT_NO_CHILDREN:
+	case ERROR_CHILD_NOT_COMPLETE:
+		return ECHILD;
+	case ERROR_DIRECT_ACCESS_HANDLE:
+		return EBADF;
+	case ERROR_NEGATIVE_SEEK:
+		return EINVAL;
+	case ERROR_SEEK_ON_DEVICE:
+		return EACCES;
+	case ERROR_DIR_NOT_EMPTY:
+		return ENOTEMPTY;
+	case ERROR_NOT_LOCKED:
+		return EACCES;
+	case ERROR_BAD_PATHNAME:
+		return ENOENT;
+	case ERROR_MAX_THRDS_REACHED:
+		return EAGAIN;
+	case ERROR_LOCK_FAILED:
+		return EACCES;
+	case ERROR_ALREADY_EXISTS:
+		return EEXIST;
+	case ERROR_FILENAME_EXCED_RANGE:
+		return ENOENT;
+	case ERROR_NESTING_NOT_ALLOWED:
+		return EAGAIN;
+	case ERROR_NOT_ENOUGH_QUOTA:
+		return ENOMEM;
+	default:
+		break;
+	}
+	if(IsInClosedInterval<unsigned long>(err, ERROR_WRITE_PROTECT,
+		ERROR_SHARING_BUFFER_EXCEEDED))
+		return EACCES;
+	if(IsInClosedInterval<unsigned long>(err, ERROR_INVALID_STARTING_CODESEG,
+		ERROR_INFLOOP_IN_RELOC_CHAIN))
+		return ENOEXEC;
+	return EINVAL;
+}
+
 
 ImplDeDtor(Win32Exception)
 

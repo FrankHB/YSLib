@@ -1,127 +1,18 @@
-﻿ YSLib 项目自述文件
+﻿YSLib 项目自述文件
 
-> 项目组成概要
+> 概要
 ====
- YSLib 项目包括 YBase 和 YFramework 两个库，以及测试项目 YSTest 和其它一些小工具。
- YBase 提供一些 C++ 语言特性封装和公用设施的基本支持。 YFramework 是跨平台的框架，可用于开发本机 GUI 程序。
-当前支持的平台有 DS 和 MinGW32 。
+YSLib 项目包括 YBase 和 YFramework 两个库，以及测试项目 YSTest 、 Test 和工具。
+YBase 提供一些 C++ 语言特性封装和公用设施的基本支持。 YFramework 是跨平台的框架，可用于开发本机 GUI 程序。
+详情参见： https://bitbucket.org/FrankHB/yslib/wiki/Home 。
+内容目录： https://bitbucket.org/FrankHB/yslib/wiki/Contents.zh-CN.md 。
+入门： https://bitbucket.org/FrankHB/yslib/wiki/GettingStarted.zh-CN.md 。
+项目依赖性： https://bitbucket.org/FrankHB/yslib/wiki/ProjectDependencies.zh-CN.md 。
+构建： https://bitbucket.org/FrankHB/yslib/wiki/Build.zh-CN.md 。
+根目录、文件和项目结构说明： https://bitbucket.org/FrankHB/yslib/wiki/Features.zh-CN.md 。
+测试项目 Test ： https://bitbucket.org/FrankHB/yslib/wiki/Test.zh-CN.md 。
 
-> 根目录结构和文件说明
-====
-以下只包括一级目录和少数特定的二级目录说明。
-/.git
- Git 目录（可通过 hg-git 同步）
-/.hg
- Mercurial 目录
-/3rdparty
-第三方依赖项
-/Data
-最终用户环境中部署的数据目录
-/Tools
-开发使用的（辅助）工具
-/Tools/SHBuild
- SHBuild 构建工具
-/Tools/Scripts
-用于构建和建立 SHBuild 环境的工具脚本
-/YBase
-顶级子项目 YBase
-/YFramework
-顶级子项目 YFramework
-/YSTest/Android
-示例项目 YReader 的 Android 平台项目（未完成正式支持）
-/YSTest/DS_ARM7
-示例项目 YReader 的 ARM7 项目（仅用于 DS 平台，用于生成 ARM7 ELF 二进制映像）
-/YSTest/DS_ARM9
-示例项目 YReader 的 ARM9 项目（包括 DS 平台 ARM9 部分，于生成 ARM9 ELF 二进制映像；源代码和其它平台共享）
-/YSTest/DS
-示例项目 YReader 的 DS 平台可执行文件项目（仅用于 DS 平台，用于生成 NDS 文件）
-/YSTest/MinGW32
-示例项目 YReader 的 MinGW32 平台可执行文件项目（仅用于 MinGW32 平台，用于生成 EXE 文件）
-/build
-默认生成文件目录
-/doc
-开发文档
-/doc/vsd
-架构示意 Visio 文档
-/test
-测试项目目录
-/.hgignore
- Mercurial 忽略文件
-/.hgtags
- Mercurial 标签文件
-/CC BY-SA 3.0 legalcode.txt
-文档许可证： Creative Commons Legal Code Attribution-ShareAlike 3.0 Unported
-/Doxyfile
- Doxygen 配置文件
-/FTL.TXT
-许可证： The FreeType Project LICENSE
-/gpl-2.0.txt
-许可证： GNU GENERAL PUBLIC LICENSE Version 2
-/gpl-3.0.txt
-许可证： GNU GENERAL PUBLIC LICENSE Version 3
-/LICENSE.txt
-整体许可证
-/LICENSE_HISTORY.txt
-整体许可证：历史版本
-/license-fi.txt
-许可证： FreeImage Public License - Version 1.0
-/Readme.zh-CN.txt
-本自述文件
-/YSTest.sln
- Visual Studio 解决方案文件
-/YSTest.workspace
- Code::Blocks 工作空间文件
-
-> 构建说明
-====
-构建平台/宿主平台： Windows 或类 UNIX 系统。
-目标平台： DS 和 MinGW32 。非正式支持 Android 。
-详细参见 doc/Designation.txt @5.1 。
-按 doc/Dependencies.txt @1 下载搭建目标平台对应的开发环境。
-使用 Microsoft Visual Studio 2012 或以上版本打开 .sln （仅 Windows ）；
-使用 Code::Blocks 12.11 或以上版本打开 .workspace 。
-注意：
-打开解决方案/工作空间后直接生成会失败，因为 .sln 和 .workspace 中并非所有项目都保证能生成，项目名没有平台后缀的不用于构建，仅作为项目原型便于开发；
-需要生成特定平台后缀的项目，如 Win32 上的可执行文件对应 YSTest_MinGW32 ；
-当前 Win32 依赖 Code::Blocs 内建构建工具支持，其它平台使用 makefile ，因此 Visual Studio 解决方案不支持 Win32 平台配置生成。
-
- DS
-==
-使用 devkitPro 至少需要以下环境变量（具体路径仅为示例，下同）：
-DEVKITARM = /F/devkitPro/devkitARM
-DEVKITPRO = /F/devkitPro
-使用 Microsoft Visual Studio 打开文件，还需要以下环境变量以保证路径解析正确：
-DKP_HOME = F:\devkitPro
-需要保证有可用的 UNIX shell ； Windows 下可能需要另外加入 devkitPro 安装目录下 msys/bin 至 %PATH% 。可使用 MSys2 替代。
-
-Android
-==
-开发环境配置详见 doc/Dependencies.txt @1.6 。
-
-运行时依赖
-==
- MinGW32 平台需要特定版本的 MinGW GCC 运行库，未在发布版本中打包。
-需确认 doc/Dependencies.txt @1.5.2 描述的对应版本的构建依赖。若缺少 DLL ，可在 MinGW32 GCC 发行版其中的 bin 目录下找到。
-特别注意，应当使用对应的正确的线程模型（使用 POSIX 而不是 Win32 ，后者没有实现标准库的线程支持）以及异常模型（ Dwarf2 和 SjLj 之一，特定构建版本相关）。
-配置文件 yconf.txt 在当前工作目录下生成。使用 CHRLib 转换 GBK 编码的程序若找不到 cp113.bin 可能会异常退出，需要在 yconf.txt 中指定 DataDirectory 路径，或复制 /Data 下的文件到程序所在的目录（因为默认 DataDirectory 为当前目录）。
-
-SHBuild
-==
-试验中的命令行构建工具。不需要引入领域特定语言的脚本，除了特定选项外传递到后端工具（编译器），递归查找目录中的源文件进行直接构建。省略选项显示使用说明。
-若使用 ConEmu 出现 0xC0000005 错误，注意升级到最新版本后勾选 Inject ConEmuHk 选项。详见 https://code.google.com/p/conemu-maximus5/wiki/MicrosoftBugs 。
-已经在 Windows 平台实现自举（需要 G++ 和 bash 但不需要 make ）。
-可使用 Tools/Scripts/install-sysroot.sh 脚本生成包含 YSLib 库和 SHBuild 工具的 sysroot ，用于进一步开发。
-
-其它
-==
-详细的其它选项参照 https://bitbucket.org/FrankHB/yslib/wiki/Home 。
-
-> 测试项目
-在 /test 目录中直接运行脚本测试。
-测试框架依赖 YBase::YTest 。
-当前仅提供 YBase 的有限测试。
-
-> YSLib PreAlpha 更新说明
+> 更新历史
 ====
 2015-05-25(V0.6)
 [YSLib]

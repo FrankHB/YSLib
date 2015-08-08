@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r936
+\version r977
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-08-04 14:12 +0800
+	2015-08-05 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,53 +113,6 @@ YF_API size_t
 WriteBOM(std::ostream&, Text::Encoding);
 
 } // namespace Text;
-
-
-//! \brief 文本文件类。
-class YF_API TextFile : public File
-{
-public:
-	/*!
-	\brief 编码。
-	\warning 修改编码可能会造成读取错误。
-	\since build 290
-	*/
-	Text::Encoding Encoding;
-
-private:
-	//! \brief BOM 大小。
-	size_t bl = 0;
-
-public:
-	/*!
-	\brief 构造：使用指定文件名、编码和模式初始化文本文件对象。
-	\note 当打开文件大小为零且以可写方式打开时按编码写入 BOM 。
-	\since build 412
-	*/
-	explicit
-	TextFile(const char*, std::ios_base::openmode = std::ios_base::in,
-		Text::Encoding = Text::CS_Default);
-	/*!
-	\brief 虚析构：类定义外默认实现。
-	\since build 615
-	*/
-	~TextFile() override;
-
-	/*!
-	\brief 取 BOM 大小。
-	\since build 520
-	*/
-	DefGetter(const ynothrow, size_t, BOMSize, bl)
-	DefGetter(const ynothrow, size_t, TextSize, GetSize() - GetBOMSize()) \
-		//!< 取文本区段大小。
-
-	/*!
-	\brief 定位：设置文件读位置。
-	\since build 586
-	*/
-	void
-	Locate(size_t) const;
-};
 
 } // namespace YSLib;
 

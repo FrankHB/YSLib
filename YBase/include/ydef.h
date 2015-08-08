@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2751
+\version r2755
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-07-22 02:52 +0800
+	2015-08-06 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,8 @@
 #		define YB_IMPL_GNUCPP \
 	(__GNUG__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #	else
-// TODO: Complete version checking for compiler and library implementations.
+// TODO: Deferred. Complete version checking for compiler and library
+//	implementations, e.g. EDG frontends.
 //#ifdef __GNUC__
 //#	include <tr1/type_traits>
 #		error "This language implementation is not supported."
@@ -326,8 +327,7 @@
 #if YB_IMPL_GNUC >= 40400 && !YB_IMPL_CLANGPP
 #	define YB_ATTR_gnu_printf(...) \
 	YB_ATTR(__format__ (__gnu_printf__, __VA_ARGS__))
-// TODO: Version?
-#elif YB_IMPL_GNUC
+#elif YB_IMPL_GNUC >= 20604 && !YB_IMPL_CLANGPP
 #	define YB_ATTR_gnu_printf(...) YB_ATTR(__format__ (__printf__, __VA_ARGS__))
 #else
 #	define YB_ATTR_gnu_printf(...)
