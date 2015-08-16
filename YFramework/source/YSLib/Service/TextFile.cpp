@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1300
+\version r1301
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2015-08-05 09:44 +0800
+	2015-08-10 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ DetectBOM(std::istream& is, std::size_t fsize, Encoding enc)
 		{
 			const auto res(DetectBOM(buf.data()));
 
-			is.seekg(std::istream::pos_type(res.second));
+			is.seekg(std::istream::off_type(res.second));
 			if(res.second != 0)
 				return res;
 		}

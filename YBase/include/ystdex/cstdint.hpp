@@ -10,14 +10,14 @@
 
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
-\brief ISO C 标准整数类型操作。
-\version r290
+\brief ISO C 标准整数类型和相关扩展操作。
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-07-23 14:11 +0800
+	2015-08-11 09:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,6 +253,21 @@ unpack_uint(typename ystdex::make_width_int<_vWidth>::unsigned_type value,
 }
 //@}
 
+//! \pre 指针参数非空。
+//@{
+/*!
+\brief 从字节缓冲区读取指定宽的大端序无符号整数。
+\since build 623
+*/
+template<size_t _vWidth>
+inline YB_NONNULL(1) typename make_width_int<_vWidth>::unsigned_type
+read_uint_be(const byte* buf) ynothrowv
+{
+	yconstraint(buf);
+	return ystdex::pack_uint<_vWidth>(buf,
+		buf + _vWidth / std::numeric_limits<byte>::digits);
+}
+
 //! \since build 608
 //@{
 //! \brief 从字节缓冲区读取指定宽的小端序无符号整数。
@@ -266,6 +281,19 @@ read_uint_le(const byte* buf) ynothrowv
 		ystdex::make_reverse_iterator(buf));
 }
 
+/*!
+\brief 向字节缓冲区写入指定宽的大端序无符号整数。
+\since build 623
+*/
+template<size_t _vWidth>
+inline YB_NONNULL(1) void
+write_uint_be(byte* buf, typename make_width_int<_vWidth>::unsigned_type
+	val) ynothrowv
+{
+	yconstraint(buf);
+	ystdex::unpack_uint<_vWidth>(val, buf);
+}
+
 //! \brief 向字节缓冲区写入指定宽的小端序无符号整数。
 template<size_t _vWidth>
 inline YB_NONNULL(1) void
@@ -276,6 +304,7 @@ write_uint_le(byte* buf, typename make_width_int<_vWidth>::unsigned_type
 	ystdex::unpack_uint<_vWidth>(val, ystdex::make_reverse_iterator(buf
 		+ _vWidth / std::numeric_limits<byte>::digits));
 }
+//@}
 //@}
 
 } // namespace ystdex;

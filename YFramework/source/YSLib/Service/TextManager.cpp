@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4017
+\version r4024
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-08-06 21:36 +0800
+	2015-08-10 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ TextFileBuffer::TextFileBuffer(std::istream& file, Encoding enc)
 		File.seekg(0, std::ios_base::end);
 		if(!File)
 			throw LoggedEvent("Failed getting size of file.");
-		return File.tellg();
+		return size_t(File.tellg());
 	}()), encoding(enc), bl([this]() -> size_t{
 		if(encoding == CharSet::Null)
 		{
@@ -210,9 +210,9 @@ TextFileBuffer::operator[](size_t idx)
 		YAssert(bool(File), "Invalid file found.");
 		if(const auto pfun = FetchMapperFunc(encoding))
 		{
-			// XXX: Conversion to 'fstream::pos_type' might be
+			// XXX: Conversion to 'fstream::off_type' might be
 			//	implementation-defined.
-			File.seekg(fstream::pos_type(bl + idx * BlockSize));
+			File.seekg(fstream::off_type(bl + idx * BlockSize));
 
 			size_t len(idx == nBlock - 1 && nTextSize % BlockSize != 0
 				? nTextSize % BlockSize : BlockSize);
@@ -258,9 +258,9 @@ TextFileBuffer::GetIterator(size_t pos)
 
 		if(const auto pfun = FetchSkipMapperFunc(encoding))
 		{
-			// XXX: Conversion to 'fstream::pos_type' might be
+			// XXX: Conversion to 'fstream::off_type' might be
 			//	implementation-defined.
-			File.seekg(fstream::pos_type(bl + idx * BlockSize));
+			File.seekg(fstream::off_type(bl + idx * BlockSize));
 
 			size_t n_byte(0), n_char(0);
 			Sentry sentry(File);
@@ -292,9 +292,9 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 		const auto& vec((*this)[idx].first);
 
 		YAssert(!vec.empty() && bool(File), "Block loading failed.");
-		// XXX: Conversion to 'fstream::pos_type' might be
+		// XXX: Conversion to 'fstream::off_type' might be
 		//	implementation-defined.
-		File.seekg(fstream::pos_type(bl + (idx *= BlockSize)));
+		File.seekg(fstream::off_type(bl + (idx *= BlockSize)));
 
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 		const auto mid(vec.cbegin() + ptrdiff_t(pos));

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2396
+\version r2400
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-07-31 09:31 +0800
+	2015-08-16 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,9 +329,10 @@ HandleFatalError(const FatalError& e) ynothrow
 #	if YCL_Win32
 	using platform_ex::MBCSToWCS;
 
-	TryExpr(::MessageBoxW({}, MBCSToWCS(e.GetContent()).c_str(),
-		MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR))
-	CatchIgnore(...)
+	FilterExceptions([&]{
+		::MessageBoxW({}, MBCSToWCS(e.GetContent()).c_str(),
+			MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR);
+	});
 #	endif
 	YF_Init_printf(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent().c_str());
 #endif

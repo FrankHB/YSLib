@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r2339
+\version r2534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-08-06 00:58 +0800
+	2015-08-16 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,153 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		* $doc "wrong precondition" @ "wrong '\pre' Doxygen directive"
+			@ "comments" @ "constructor %TextFileBuffer"
+			@ %YSLib.Service.TextManager $since b622,
+		+ %Dependency @ %NPL
+			$= (+ "functions %(DecomposeMakefileDepList, \
+				FilterMakefileDependencies)"),
+		/ %'YCLib(DS)'.DSIO $=
+		(
+			/ @ "constructor %FileInfo" @ %DSIO $=
+			(
+				/ DLDI ^ 'O_ACCMODE' ~ "hard-coded '0x03'",
+				/ "throw %std::system_error with value \
+					%std::errc::read_only_file_system when %O_TRUNC specified \
+					for flags on read-only file system" $dep_to
+					"truncation on read-only file system"
+				/ "throw %std::system_error with value \
+					%std::errc::is_a_directory only when write access \
+					requested" $dep_to "check for directory"
+			),
+			/ DLDI @ "class %AllocationTable" $=
+			(
+				/ "simplified function %QueryNext",
+				/ "simplified function %TrimChain" ^ "%Clusters::IsFreeOrEOF"
+			)
+		),
+		/ %Helper $=
+		(
+			/ "constructor" @ "%WindowThread" @ %HostRenderer $=
+			(
+				/ "passing parameters" ^ "%yforward" ~ "%ystdex::decay_copy",
+					// Copying here is unnecessary.
+				/ "constructing window handle supporting INVOKE callable \
+					object" ^ "%ystdex::invoke",
+					// The first parameter now can be pointer to member value.
+				/ "caught exceptions thrown by callable object"
+					^ "%FilterException"
+			),
+			/ "showing message box" @ "platform %Win32"
+				@ "function %HandleFatalError" @ %Initialization $=
+			(
+				/ DLDI ^ "%FilterException";
+				+ "log with level 'Emergent' on failure"
+			)
+		),
+		/ @ "function %LogAssert" @ %YCLib.Debug $=
+		(
+			* "catch-clause" @ "platform %Win32" $since b
+				$= (+ "log and calling %ystdex::assert"),
+			/ DLDI "simplified" @ "platform !%(Win32, Android)" ^ "%TryExpr"
+		)
+	),
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			/ DLDI ^ $dep_from ("%(DecomposeMakefileDepList, \
+				FilterMakefileDependencies)" @ %YFramework.NPL.Dependency)
+				$dep_to "library dependency",
+			* "building skipped when .d file corrupted or opening failed" $since
+				b557,
+			/ $revert_ex(b520) $impl "clean waiting" !^ "duration" $dep_from
+				("%task_pool" @ %YBase.YStandardEx.Concurrency)
+		),
+		/ $forced "updated %LIBS" @ "%SHBuild-bootstrap.sh" $dep_from
+			"library dependency"
+	),
+	/ DLDI "argument type" @ "%seekg with 1 parameter"
+		-> "explicitly cast stream %off_type" ~ "stream %pos_type" $effective
+		@ %YFrameowrk.YSLib.Service.(TextFile, TextManager);
+		// To eliminate Clang++ warning: [-Wsign-conversion].
+	/ DLDI "explicitly cast to 'size_t' for %tellg return value"
+		@ "constructor %TextFileBuffer" @ %YSLib.Service.TextManager,
+		// To eliminate Clang++ warning: [-Wsign-conversion].
+	* $re_ex(b611) "strict POSIX.1-2013 compatibility" @ "platform %DS" $since
+		$before b132 $=
+	(
+		* "missing set %EROFS to %errno for %::open and variants on read-only \
+			file system when %O_TRUNC specified"
+			$= (/ $comp "setting %errno properly on opening" $dep_from
+				"truncation on read-only file system"
+		* "wrongly set %errno to %EISDIR and failed for %::open and variants when \
+			flags contains no %O_WRONLY or %O_RDWR"
+			$= (/ $comp "checked for write access on opening" $dep_from
+				"check for directory"
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "function templates %(read_uint_be, write_uint_be)" @ %CStandardInteger,
+		+ 'yconstfn' @ "function %operator()"@ "class template %composed"
+			@ %Functional,
+		+ %CSignal $=
+		(
+			+ "inline function %restore_signal";
+			+ "function %reraise"
+		),
+		/ %Concurrency $=
+		(
+			/ @ "class %task_pool" $=
+			(
+				* "missing passing waiting call result" @ ("function \
+					templates %(poll, poll_until, pool_for)" $since b543,
+					"function templates %(wait, wait_for, wait_until)" $since
+						b539,
+						"function template %wait_to_enqueue" $since b538),
+				(
+				/ @ "function template %wait_to_enqueue" $=
+				* "missing notifying for enqueueing when task queue is \
+					available" @ "function template %wait_to_enqueue" $since
+					b538;
+				/ $comp "copied callable argument"
+					@ "call of %(wait_to_enqueue; poll, poll_for, poll_until; \
+					wait, wait_for, wait_until)",
+					// Since ISO C++ requires invoking a copy of the callable \
+						object shall behave the same as invoking the copyied \
+						one for constructor of instances of %packaged_task, \
+						the copy here is acceptable.
+				* $comp "infinite wating after all tasks consumed"
+					@ "function templates" ("%wait" $since b539,
+					"%poll" $since b543)
+				)
+			)
+			/ @ "function template %wait_to_enqueue" @ "class %thread_pool" $=
+			(
+				/ $re_ex(b545) "reduced redundant 'return std::move'"
+					@ "return-statement",
+				* "wrongly ignored waiting call result" @ "function \
+					%wait_to_enqueue" $since b538 $dep_from "%task_pool"
+			),
+			* "missing including %CAssertion for %yassume" @ "header"
+				@ %Concurrency $since b588
+			(
+				+ "alias template %future_result_t";
+				/ "simplified return types" @ "function templates"
+					("%(enqueue, wait_to_enqueue)" @ "class %thread_pool",
+					"%poll, poll_for, poll_until, wait, wait_for, \
+					wait_to_enqueue, wait_until") ^ "%future_result_t"
+					// Also to avoid GCC bug. See $2015-08 \
+						@ %Documentation::Workflow::Annual2015.
+			)
+		)
+	)
+),
+
+b622
 (
 	/ %YFramework $=
 	(
@@ -758,8 +905,11 @@ b612
 				);
 				/ @ "class %CharBitmap" $=
 				(
-					/ $dev "alias %NativeType" @ "class %SmallBitmapData" -> 'Typeface::SmallBitmapData*' ~ '::FTC_SBit' $dep_from "%Typeface",
-					/ "parameter" @ "constructor %CharBitmap" -> 'NativeType' ~ 'const NativeType&',
+					/ $dev "alias %NativeType" @ "class %SmallBitmapData"
+						-> 'Typeface::SmallBitmapData*' ~ '::FTC_SBit' $dep_from
+						"%Typeface",
+					/ "parameter" @ "constructor %CharBitmap" -> 'NativeType'
+						~ 'const NativeType&',
 					/ @ "all 10 data access member functions" $=
 					(
 						+ "indirect assertions" ^ "%Deref",
@@ -768,38 +918,62 @@ b612
 					+ "empty braced-init-list" @ "native handle data member",
 					+ "defaulted default constructor"
 				),
-				/ $forced "2nd parameter type" @ "member function %Font::GetAdvance" -> 'CharBitmap' ~ 'FTC_SBit';
+				/ $forced "2nd parameter type" @ "member function \
+					%Font::GetAdvance" -> 'CharBitmap' ~ 'FTC_SBit';
 				$dep_to "removal of FreeType cache types"
 				);
 				- $dev '#include FT_CACHE_H' @ "header",
 				(
 				/ $dev "all '::FT_UInt'" -> 'unsigned',
-				- $dev "explicit FreeType2 constants" @ "default argument" @ "member function %Font::GetGlyph",
-				+ $dev "class name declarations and aliases declarations %((FT_SizeRec_; FT_Size, FT_SizeRec), (FT_FaceRec_; FT_FaceRec), (FT_GlyphSlotRec_; FT_GlyphSlot), FT_FaceRec_, (FT_LibraryRec_; FT_LibraryRec_), (FT_Size_Metrics_; FT_Size_Metrics))" @ "global namespace";
-				- $dev ('#include FT_FREETYPE_H'; '#include <ft2build.h>') $dep_from "removal of FreeType cache types"
+				- $dev "explicit FreeType2 constants" @ "default argument"
+					@ "member function %Font::GetGlyph",
+				+ $dev "class name declarations and aliases declarations
+					%((FT_SizeRec_; FT_Size, FT_SizeRec), (FT_FaceRec_;
+					FT_FaceRec), (FT_GlyphSlotRec_; FT_GlyphSlot), FT_FaceRec_,
+					(FT_LibraryRec_; FT_LibraryRec_),
+					(FT_Size_Metrics_; FT_Size_Metrics))" @ "global namespace";
+				- $dev ('#include FT_FREETYPE_H'; '#include <ft2build.h>')
+					$dep_from "removal of FreeType cache types"
 				)
 			),
-			/ DLDI "simplified function %RestrictInClosedInterval" @ %Core.YCoreUtilities ^ $dep_from ("%ystdex::clamp" @ %YBase.YStandardEx.Algorithm) $dep_from "%ystdex::less" @ %YBase.YStandardEx.Functor
+			/ DLDI "simplified function %RestrictInClosedInterval"
+				@ %Core.YCoreUtilities ^ $dep_from
+				("%ystdex::clamp" @ %YBase.YStandardEx.Algorithm)
+				$dep_from "%ystdex::less" @ %YBase.YStandardEx.Functor
 		),
-		+ "additional sanity check throwing %std::runtime_error for pointer result" @ "platform %Win32" @ %YCLib.HostedGUI,
-			// This should not occur unless there are bugs in implementation of %::CreateCompatibleDIBSection.
+		+ "additional sanity check throwing %std::runtime_error for pointer \
+			result" @ "platform %Win32" @ %YCLib.HostedGUI,
+			// This should not occur unless there are bugs in implementation \
+				of %::CreateCompatibleDIBSection.
 		/ @ "class %WConsole" @ %'YCLib.(MinGW32)'.Consoles $=
 		(
 			/ "static functions %(FetchBackColor, FetchForeColor)";
-			/ "static function %DecomposeAttributes" -> "inline function" ^ "%(FetchBackColor, FetchForeColor)",
-			/ DLDI "simplified function %SetBackColor" ^ "%FetchForeColor" ~ "%DecomposeAttributes",
-			/ DLDI "simplified function %SetForeColor" ^ "%FetchBackColor" ~ "%DecomposeAttributes"
+			/ "static function %DecomposeAttributes" -> "inline function"
+				^ "%(FetchBackColor, FetchForeColor)",
+			/ DLDI "simplified function %SetBackColor" ^ "%FetchForeColor"
+				~ "%DecomposeAttributes",
+			/ DLDI "simplified function %SetForeColor" ^ "%FetchBackColor"
+				~ "%DecomposeAttributes"
 		)
 	),
 	(
 	* $dev "wrong warning for ISO C99 compatible format"
-		$= ("format attribute %printf" -> "%gnu_printf" $effective @ %(YBase.YStandardEx.(CAssert $since b432, String $since b322), YFramework.YCLib.Debug $since b299));
-		// On Windows 'printf' defaulted to 'ms_printf', this is not intended since %__USE_MINGW_ANSI_STDIO has been enabled by libstdc++, thus it would wrongly warn about "%zu", etc.
-	/ $dev "simplified format" ^ "%zu" ~ "%u" $effective @ %(YFramework.(Helper.(Environment, Initialization), YSLib.Service(Image, ImageProcessing)), YReader.Main)
+		$= ("format attribute %printf" -> "%gnu_printf" $effective
+			@ %(YBase.YStandardEx.(CAssert $since b432, String $since b322),
+			YFramework.YCLib.Debug $since b299));
+		// On Windows 'printf' defaulted to 'ms_printf', this is not intended \
+			since %__USE_MINGW_ANSI_STDIO has been enabled by libstdc++, thus \
+			it would wrongly warn about "%zu", etc.
+	/ $dev "simplified format" ^ "%zu" ~ "%u" $effective
+		@ %(YFramework.(Helper.(Environment, Initialization),
+		YSLib.Service(Image, ImageProcessing)), YReader.Main)
 	),
 	/ %YBase.YStandardEx $=
 	(
-		* "wrong parameter types for '<void>' specializations" @ "functors %(plus, minus, multiplies, divides, modulus, equal_to, not_equal_to, greater, less, greater_equal, less_equal)" $since b578
+		* "wrong parameter types for '<void>' specializations"
+			@ "functors %(plus, minus, multiplies, divides, modulus, \
+			equal_to, not_equal_to, greater, less, greater_equal, less_equal)"
+			$since b578
 			$= (/ DLDI ^ "forwarding reference" ~ "const qualified reference"),
 		+ "function templates %(clamp, clamp_range)" @ %Algorithm,
 		+ "metafunction %member_target_type_t" @ %TypeOperations,
@@ -807,8 +981,11 @@ b612
 	),
 	/ %YSLib $=
 	(
-		/ "constructor with single pointer parameter" @ "class %String" @ %Core.String -> 'using ucs2string::ucs2string;',
-		/ DLDI "simplified member function %TextBox::Refresh" @ %UI.TextBox ^ $dep_from ("inherited constructor" @ "class %String" @ %Core.String) ~ "%operator* for %String"
+		/ "constructor with single pointer parameter" @ "class %String"
+			@ %Core.String -> 'using ucs2string::ucs2string;',
+		/ DLDI "simplified member function %TextBox::Refresh" @ %UI.TextBox
+			^ $dep_from ("inherited constructor" @ "class %String"
+			@ %Core.String) ~ "%operator* for %String"
 	)
 ),
 
@@ -876,7 +1053,7 @@ b611
 	),
 	- $dev "-lfat" @ "%LIBS" @ "ARM9 makefile" $dep_from ("platform %DS"
 		@ %YFramework.YCLib.NativeAPI) $dep_to "replaced libfat",
-	/ $comp "platform %DS" $dep_from "replaced libfat" $=
+	/ $comp @ "platform %DS" $dep_from "replaced libfat" $=
 	(
 		/ "gave up order for flushing files on destruction of partition",
 		/ "skipped redundant alias matching when a filename has been found"

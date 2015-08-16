@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r243
+\version r247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-08-06 01:05 +0800
+	2015-08-16 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,6 +245,10 @@ According to ISO/IEC 9899 footnote 268, it is undefined behavior to call 'fseek(
 	This is also existed in ISO/IEC 9899:TC3 (WG14/N1256) which is referenced by ISO C++11, and older version of ISO C.
 	However, it is not mattered in POSIX-compliant systems. ISO C++ standard library streams are also not effected.
 	See also http://stackoverflow.com/questions/5957845/using-fseek-and-ftell-to-determine-the-size-of-a-file-has-a-vulnerability .
+It is a known issue that current GNU C++ frontend 'cc1plus' would crash when debug option('-g', -g1' or '-ggdb', etc) for some code with nested 'decltype' expression in trailing-return-type.
+	Only tested for G++ from MSYS2 package 5.2.0-3. It is used to build stage 2 SHBuild.
+		However, stage 1 SHBuild seems to be OK.
+	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67238 .
 
 ////
 

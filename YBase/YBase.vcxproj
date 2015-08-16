@@ -29,6 +29,7 @@
     <ClInclude Include="include\ystdex\cctype.h" />
     <ClInclude Include="include\ystdex\concurrency.h" />
     <ClInclude Include="include\ystdex\container.hpp" />
+    <ClInclude Include="include\ystdex\csignal.h" />
     <ClInclude Include="include\ystdex\cstdint.hpp" />
     <ClInclude Include="include\ystdex\cstdio.h" />
     <ClInclude Include="include\ystdex\cstring.h" />
@@ -67,6 +68,7 @@
     <ClCompile Include="source\ystdex\base.cpp" />
     <ClCompile Include="source\ystdex\cassert.cpp" />
     <ClCompile Include="source\ystdex\concurrency.cpp" />
+    <ClCompile Include="source\ystdex\csignal.cpp" />
     <ClCompile Include="source\ystdex\cstdio.cpp" />
     <ClCompile Include="source\ystdex\cstring.cpp" />
     <ClCompile Include="source\ystdex\cwctype.cpp" />

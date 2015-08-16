@@ -29,7 +29,7 @@ INCLUDES=" \
 	-I../../YBase/include \
 	"
 
-# Coordinated with build 617.
+# Coordinated with build 623.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -51,7 +51,8 @@ LIBS=" \
 	../../YFramework/source/YSLib/Service/File.cpp \
 	../../YFramework/source/YSLib/Service/TextFile.cpp \
 	../../YFramework/source/NPL/Lexical.cpp \
-	../../YFramework/source/NPL/SContext.cpp
+	../../YFramework/source/NPL/SContext.cpp \
+	../../YFramework/source/NPL/Dependency.cpp \
 	"
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	LIBS="$LIBS \

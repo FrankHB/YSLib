@@ -188,6 +188,9 @@
     <ClInclude Include="include\ystdex\pointer.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\csignal.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
@@ -222,6 +225,9 @@
     </ClCompile>
     <ClCompile Include="source\ytest\test.cpp">
       <Filter>source\test</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\csignal.cpp">
+      <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

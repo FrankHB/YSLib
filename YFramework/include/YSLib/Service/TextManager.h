@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3893
+\version r3895
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-08-05 10:05 +0800
+	2015-08-09 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,8 +166,8 @@ private:
 public:
 	/*!
 	\brief 构造：使用流和指定编码。
-	\pre 流以二进制模式打开且设置 std::ios_base::skipws ，支持定位到结尾访问，
-		以保证大小等于字符数。
+	\pre 流以二进制模式打开，未设置 \c std::ios_base::skipws ，
+		支持定位到结尾访问以保证大小等于字符数。
 	\throw LoggedEvent 取文件大小失败。
 	\note 编码为 \c CharSet::Null 时自动推断，若无法推断，默认为 CharSet::GBK 。
 	\since build 622
