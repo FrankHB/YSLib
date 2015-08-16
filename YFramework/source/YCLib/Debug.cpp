@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r536
+\version r545
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-06-21 07:55 +0800
+	2015-08-16 17:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #	include <ystdex/concurrency.h>
 #endif
 #if YCL_DS
-#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSInitConsole;
+#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
 #elif YCL_Win32
 #	include <csignal>
 #	include <Windows.h>
@@ -251,14 +251,14 @@ LogAssert(bool expr, const char* expr_str, const char* file, int line,
 			std::terminate();
 		}
 		catch(...)
-		{}
-#		endif
-		try
 		{
-			FetchCommonLogger().AccessRecord([=]{
-				ystdex::yassert({}, expr_str, file, line, msg);
-			});
+			YCL_TraceRaw(Descriptions::Emergent, "Unknown exception found.");
+			ystdex::yassert({}, expr_str, file, line, msg);
 		}
+#		endif
+		TryExpr(FetchCommonLogger().AccessRecord([=]{
+				ystdex::yassert({}, expr_str, file, line, msg);
+			}))
 		catch(...)
 		{
 			std::fprintf(stderr, "Fetch logger failed.");

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2425
+\version r2508
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-08-07 14:03 +0800
+	2015-08-11 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -477,63 +477,55 @@ AllocationTable::LinkFree(ClusterIndex c) ynothrow
 }
 
 ClusterIndex
-AllocationTable::ProbeForNext(ClusterIndex c) const ynothrow
-{
-	// FIXME: Too large malformed parameter?
-	YAssert(c != Clusters::Free, "Invalid parameter found.");
-
-	ClusterIndex next_cluster(Clusters::Free);
-
-	switch(fs_type)
-	{
-	case FileSystemType::FAT12:
-		{
-			const auto c32(c * 3 / 2);
-			::sec_t sector(table_start + c32 / bytes_per_sector);
-			size_t offset(c32 % bytes_per_sector);
-
-			ReadLEVal<8>(Cache, next_cluster, sector, offset);
-			if(++offset == bytes_per_sector)
-			{
-				offset = 0;
-				++sector;
-			}
-
-			std::uint32_t next_cluster_h(0);
-
-			ReadLEVal<8>(Cache, next_cluster_h, sector, offset);
-			next_cluster |= next_cluster_h << 8;
-		}
-		if(c & 0x01)
-			next_cluster = next_cluster >> 4;
-		else
-			next_cluster &= 0x0FFF;
-		if(Clusters::MaxValid12 < next_cluster)
-			next_cluster = Clusters::EndOfFile;
-		break;
-	case FileSystemType::FAT16:
-		ReadLEVal<16>(Cache, next_cluster, table_start
-			+ (c << 1) / bytes_per_sector, c % (bytes_per_sector >> 1) << 1);
-		if(Clusters::MaxValid16 < next_cluster)
-			next_cluster = Clusters::EndOfFile;
-		break;
-	case FileSystemType::FAT32:
-		ReadLEVal<32>(Cache, next_cluster, table_start
-			+ (c << 2) / bytes_per_sector, c % (bytes_per_sector >> 2) << 2);
-		if(Clusters::MaxValid32 < next_cluster)
-			next_cluster = Clusters::EndOfFile;
-		break;
-	default:
-		return Clusters::Error;
-	}
-	return next_cluster;
-}
-
-ClusterIndex
 AllocationTable::QueryNext(ClusterIndex c) const ynothrow
 {
-	// FIXME: c == Clusters::EndOfFile?
-	return c == Clusters::Free ? ClusterIndex(Clusters::Free) : ProbeForNext(c);
+	ClusterIndex next_cluster(Clusters::Free);
+
+	// FIXME: c == Clusters::EndOfFile? Too large malformed parameter?
+	if(c != Clusters::Free)
+		switch(fs_type)
+		{
+		case FileSystemType::FAT12:
+			{
+				const auto c32(c * 3 / 2);
+				::sec_t sector(table_start + c32 / bytes_per_sector);
+				size_t offset(c32 % bytes_per_sector);
+
+				ReadLEVal<8>(Cache, next_cluster, sector, offset);
+				if(++offset == bytes_per_sector)
+				{
+					offset = 0;
+					++sector;
+				}
+
+				std::uint32_t next_cluster_h(0);
+
+				ReadLEVal<8>(Cache, next_cluster_h, sector, offset);
+				next_cluster |= next_cluster_h << 8;
+			}
+			if(c & 0x01)
+				next_cluster = next_cluster >> 4;
+			else
+				next_cluster &= 0x0FFF;
+			if(Clusters::MaxValid12 < next_cluster)
+				next_cluster = Clusters::EndOfFile;
+			break;
+		case FileSystemType::FAT16:
+			ReadLEVal<16>(Cache, next_cluster, table_start + (c << 1)
+				/ bytes_per_sector, c % (bytes_per_sector >> 1) << 1);
+			if(Clusters::MaxValid16 < next_cluster)
+				next_cluster = Clusters::EndOfFile;
+			break;
+		case FileSystemType::FAT32:
+			ReadLEVal<32>(Cache, next_cluster, table_start + (c << 2)
+				/ bytes_per_sector, c % (bytes_per_sector >> 2) << 2);
+			if(Clusters::MaxValid32 < next_cluster)
+				next_cluster = Clusters::EndOfFile;
+			break;
+		default:
+			return Clusters::Error;
+		}
+	return next_cluster;
 }
 
 ClusterIndex
@@ -560,8 +552,7 @@ AllocationTable::ReadClusters(const byte* sec_buf) ynothrowv
 }
 
 ClusterIndex
-AllocationTable::TrimChain(ClusterIndex start, size_t len)
-	ynothrow
+AllocationTable::TrimChain(ClusterIndex start, size_t len) ynothrow
 {
 	if(len == 0)
 	{
@@ -572,13 +563,13 @@ AllocationTable::TrimChain(ClusterIndex start, size_t len)
 
 	auto next(QueryNext(start));
 
-	while(len > 0 && next != Clusters::Free && next != Clusters::EndOfFile)
+	while(len > 0 && !Clusters::IsFreeOrEOF(next))
 	{
 		--len;
 		start = next;
 		next = QueryNext(start);
 	}
-	if(next != Clusters::Free && next != Clusters::EndOfFile)
+	if(!Clusters::IsFreeOrEOF(next))
 		ClearLinks(next);
 	WriteEntry(start, Clusters::EndOfFile);
 	return start;
@@ -602,8 +593,7 @@ AllocationTable::WriteClusters(byte* sec_buf) const ynothrowv
 }
 
 bool
-AllocationTable::WriteEntry(ClusterIndex c, std::uint32_t val) const
-	ynothrow
+AllocationTable::WriteEntry(ClusterIndex c, std::uint32_t val) const ynothrow
 {
 	if(IsValidCluster(c))
 	{
@@ -1666,8 +1656,7 @@ DirState::DirState(Partition& part, const char* path, unique_lock<mutex>)
 {}
 
 void
-DirState::Iterate(char* filename, struct ::stat* filestat)
-	ythrow(system_error)
+DirState::Iterate(char* filename, struct ::stat* filestat) ythrow(system_error)
 {
 	if(valid_entry)
 	{
@@ -1694,7 +1683,7 @@ DirState::Reset() ythrow(system_error)
 
 FileInfo::FileInfo(Partition& part, const char* path, int flags)
 {
-	switch(flags & 0x03)
+	switch(flags & O_ACCMODE)
 	{
 	case O_RDWR:
 		attr.set(WriteBit);
@@ -1708,8 +1697,7 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 		throw_system_error(errc::permission_denied);
 	}
 	// NOTE: %O_CREAT when file not exist would be check later.
-	// FIXME: POSIX requires %EROFS for %O_TRUNC on a read-only file system.
-	if(CanWrite() && part.IsReadOnly())
+	if((CanWrite() || (flags & O_TRUNC)) && part.IsReadOnly())
 		throw_system_error(errc::read_only_file_system);
 
 	lock_guard<mutex> lck(part.GetMutexRef());
@@ -1759,9 +1747,7 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 		
 		if((flags & O_CREAT) != 0 && (flags & O_EXCL) != 0)
 			throw_system_error(errc::file_exists);
-		// FIXME: POSIX requires %EISDIR only when %O_WRONLY or %O_RDWR
-		//	included in the flag.
-		if(dentry.Data.IsDirectory())
+		if(dentry.Data.IsDirectory() && CanWrite())
 			throw_system_error(errc::is_a_directory);
 		do_init(dentry);
 	}

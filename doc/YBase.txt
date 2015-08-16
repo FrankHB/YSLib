@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r458
+\version r461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-06-17 00:27 +0800
+	2015-08-13 10:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,7 +198,7 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 头文件扩展了标准库头 <cassert> ，提供若干断言函数。这些函数提供无异常抛出保证的异常规范以便于在隐式指定异常规范的无异常抛出的析构函数([Documentation::LanguageConvention @@5.10.5.5]) 中使用。
 在库使用约定([Documentation::CommonRules @@3.13.2]) 和语言使用规约([Documentation::LanguageConvention @@5.15.3.3]) 的基础上使用方式同 <cassert> 和 <assert.h> （允许定义宏控制重复包含的内容）。
 
-@2.4.4.2 ISO C 标准整数类型操作 CStandardInteger。
+@2.4.4.2 ISO C 标准整数类型操作 CStandardInteger ：
 头文件间接扩展了标准库头 <cstdint> ，提供一些类型操作和一些整数类型的模板特化以及模算术的基本支持。
 
 @2.4.4.3 ISO C 标准字符串扩展 CString ：
@@ -212,6 +212,9 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 
 @2.4.4.6 ISO C 字符分类操作扩展 CCharacterCtype ：
 头文件扩展了标准库头 <cctype> ，提供一些扩展和替代实现。
+
+@2.4.4.7 ISO C 标准信号扩展操作 CSignal ：
+头文件扩展了标准库头 <csignal> ，提供一些便利接口。
 
 @2.4.5 ISO C++ 基本扩展：
 扩展标准库文件，不依赖以上文件外的 YStandardEx 头文件。

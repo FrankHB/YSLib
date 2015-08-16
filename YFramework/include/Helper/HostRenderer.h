@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r504
+\version r514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-05-25 02:44 +0800
+	2015-08-15 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,8 @@ public:
 	//! \since build 589
 	template<typename... _tParams>
 	WindowThread(GuardGenerator guard_gen, _tParams&&... args)
-		: thrd(&WindowThread::ThreadFunc<ystdex::decay_t<_tParams>...>, this,
-		ystdex::decay_copy(args)...), GenerateGuard(guard_gen)
+		: thrd(&WindowThread::ThreadFunc<_tParams...>, this, yforward(args)...),
+		GenerateGuard(guard_gen)
 	{}
 	//! \since build 385
 	DefDelMoveCtor(WindowThread)
@@ -137,12 +137,17 @@ public:
 	DefaultGenerateGuard(Window&);
 
 private:
-	//! \todo 使用 \c INVOKE 调用。
+	//! \since build 623
 	template<typename _func, typename... _tParams>
 	void
-	ThreadFunc(_func&& f, _tParams&&... args)
+	ThreadFunc(_func&& f, _tParams&&... args) ynothrow
 	{
-		ThreadLoop(yforward(f)(yforward(args)...));
+		FilterExceptions([&, this]{
+			// XXX: Blocked. 'yforward' cause G++ 5.2 crash: segmentation
+			//	fault.
+			ThreadLoop(ystdex::invoke(std::forward<_func&&>(f),
+				std::forward<_tParams&&>(args)...));
+		});
 	}
 
 	//! \since build 389

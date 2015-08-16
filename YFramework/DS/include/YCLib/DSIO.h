@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r862
+\version r867
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-06-29 15:29 +0800
+	2015-08-10 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,11 +283,6 @@ public:
 	ClusterIndex
 	LinkFree(ClusterIndex) ynothrow;
 
-private:
-	ClusterIndex
-	ProbeForNext(ClusterIndex) const ynothrow;
-
-public:
 	ClusterIndex
 	QueryNext(ClusterIndex) const ynothrow;
 
@@ -850,7 +845,7 @@ public:
 	\pre 第二参数非空。
 	\exception std::system_error 构造失败。
 		\lic \c std::errc::permission_denied 访问标识没有指定读写权限。
-		\lic \c std::errc::is_a_directory 打开目录。
+		\lic \c std::errc::is_a_directory 使用写权限打开目录。
 		\lic \c std::errc::file_exists 要求创建不存在的文件但文件已存在。
 		\lic \c std::errc::read_only_file_system 创建文件但文件系统只读。
 		\lic \c std::errc::no_such_file_or_directory 文件不存在。

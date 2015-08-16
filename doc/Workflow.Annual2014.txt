@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r824
+\version r828
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2015-04-12 19:38 +0800
+	2015-08-15 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,6 +182,7 @@ There are some issues against aggresive optimization of moving an object in seve
 	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3852.html for N3690 comments list.
 	There was no consensus for the suggested change for other contexts. See N3690 comment US 12.
 	Therefore, explicitly use of 'std::move' and 'std::move_if_noexcept' only should occured when necessary.
+	See also $2014-01 in this document.
 'YSTest402r16.nds' cases DeSmuME 0.9.9 x64 crash for unknown reasons.
 
 $2014-03:
@@ -237,8 +238,9 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 				The first parameter for the constructor of 'std::thread'.
 					The use cases and reasons are similiar.
 					See http://wg21.cmeerw.net/lwg/issue929 for details.
-	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved event if copy elision criteria in ISO C++ 12.8/31 are not met.
+	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved even if the copy elision criteria in ISO C++ 12.8/31 are not met.
 		If used as forwarding of a passed by value callable object, no redundant 'std::move' should be used.
+		See also $2014-01 and $2014-02 in this document.
 	Similarly, in the standard library, the iteraors in the algorithms are passed by reference primarily.
 	For simplicity in YSLib, if and only if noncopyable callable object is intendedly acceptable by design, pass-by-value '_fCallable' should always be used instead of '_fCallable&&'.
 		This also means most callable objects should be CopyConstrictible.
@@ -493,7 +495,7 @@ Distinguishing platforms should be care.
 				MinGW.org runtime is mainly maintained by Keith Marshall.
 				They don't think same, e.g https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .
 				For generally use, MinGW-W64 is recommended by YSLib.
-				Also see $2014-01 in this document.
+				See also $2014-01 in this document.
 			The MinGW-w64 targeting both x86 and x64 Windows. There even exists mixture, i.e. multilib support, or cross-compilers between x86 and x64 Windows editions.
 			Do not be confused with MSYS.
 				MSYS stands for "minimal system".

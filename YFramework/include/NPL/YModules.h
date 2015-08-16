@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YFramework
 \brief NPL 库模块配置文件。
-\version r51
+\version r53
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:14 +0800
 \par 修改时间:
-	2014-02-02 18:00 +0800
+	2015-08-09 22:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,8 @@
 #define YFM_NPL_SContext <NPL/SContext.h>
 #define YFM_NPL_Configuration <NPL/Configuration.h>
 //@}
+//! \since build 623
+#define YFM_NPL_Dependency <NPL/Dependency.h>
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r381
+\version r444
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-04-29 01:11 +0800
+	2015-08-16 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,12 +30,13 @@
 
 #include "pseudo_mutex.h" // for result_of_t, std::declval,
 //	std::make_shared, threading::unlock_delete, noncopyable;
-#include <functional> // for std::bind, std::function;
+#include "functional.hpp" // for std::bind, std::function, ystdex::invoke;
 #include <future> // for std::packaged_task, std::future;
 #include <thread>
 #include <vector>
 #include <queue>
 #include <mutex>
+#include "cassert.h" // for yassume;
 #include <condition_variable>
 
 namespace ystdex
@@ -69,6 +70,11 @@ using locked_ptr = threading::locked_ptr<_type, _tMutex, _tLock>;
 YB_API std::string
 to_string(const std::thread::id&);
 
+
+//! \since build 623
+template<typename _fCallable, typename... _tParams>
+using future_result_t
+	= std::future<result_of_t<_fCallable&&(_tParams&&...)>>;
 
 //! \since build 358
 template<typename _fCallable, typename... _tParams>
@@ -133,13 +139,17 @@ public:
 	*/
 	~thread_pool() ynothrow;
 
-	//! \see wait_to_enqueue
+	/*!
+	\see wait_to_enqueue
+	\since build 623
+	*/
 	template<typename _fCallable, typename... _tParams>
-	std::future<result_of_t<_fCallable&&(_tParams&&...)>>
+	future_result_t<_fCallable, _tParams...>
 	enqueue(_fCallable&& f, _tParams&&... args)
 	{
-		return wait_to_enqueue([](std::unique_lock<std::mutex>&) ynothrow{},
-			yforward(f), yforward(args)...);
+		return wait_to_enqueue([](std::unique_lock<std::mutex>&) ynothrow{
+			return true;
+		}, yforward(f), yforward(args)...);
 	}
 
 	size_t
@@ -161,12 +171,13 @@ public:
 	\param args 进入队列操作时的参数。
 	\param waiter 等待操作。
 	\pre waiter 调用后满足条件变量后置条件；断言：持有锁。
+	\return 任务共享状态（若等待失败则无效）。
 	\warning 需要确保未被停止（未进入析构），否则不保证任务被运行。
 	\warning 使用非递归锁，等待时不能再次锁定。
-	\since build 538
+	\since build 623
 	*/
 	template<typename _fWaiter, typename _fCallable, typename... _tParams>
-	std::future<result_of_t<_fCallable&&(_tParams&&...)>>
+	future_result_t<_fCallable, _tParams...>
 	wait_to_enqueue(_fWaiter waiter, _fCallable&& f, _tParams&&... args)
 	{
 		const auto
@@ -176,14 +187,21 @@ public:
 		{
 			std::unique_lock<std::mutex> lck(queue_mutex);
 
-			waiter(lck);
-			yassume(lck.owns_lock());
-			tasks.push([task]{
-				(*task)();
-			});
+			if(waiter(lck))
+			{
+				yassume(lck.owns_lock());
+				// TODO: Blocked. Use ISO C++14 lambda initializers to reduce
+				//	initialization cost by directly moving from
+				//	%std::packaged_task.
+				tasks.push([task]{
+					(*task)();
+				});
+			}
+			else
+				return {};
 		}
 		condition.notify_one();
-		return std::move(res);
+		return res;
 	}
 };
 
@@ -234,28 +252,28 @@ public:
 
 	using thread_pool::size;
 
-	//! \since build 543
+	//! \since build 623
 	//@{
 	template<typename _func, typename _fCallable, typename... _tParams>
-	auto
+	future_result_t<_fCallable, _tParams...>
 	poll(_func poller, _fCallable&& f, _tParams&&... args)
-		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
 			enqueue_condition.wait(lck, [=]{
 				return poller() && can_enqueue_unlocked();
 			});
+			return true;
 		}, yforward(f), yforward(args)...);
 	}
 
 	template<typename _func, typename _tDuration, typename _fCallable,
 		typename... _tParams>
-	auto
+	future_result_t<_fCallable, _tParams...>
 	poll_for(_func poller, const _tDuration& duration, _fCallable&& f,
-		_tParams&&... args) -> decltype(enqueue(yforward(f), yforward(args)...))
+		_tParams&&... args)
 	{
 		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			enqueue_condition.wait_for(lck, duration, [=]{
+			return enqueue_condition.wait_for(lck, duration, [=]{
 				return poller() && can_enqueue_unlocked();
 			});
 		}, yforward(f), yforward(args)...);
@@ -263,24 +281,20 @@ public:
 
 	template<typename _func, typename _tTimePoint, typename _fCallable,
 		typename... _tParams>
-	auto
+	future_result_t<_fCallable, _tParams...>
 	poll_until(_func poller, const _tTimePoint& abs_time,
 		_fCallable&& f, _tParams&&... args)
-		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			enqueue_condition.wait_until(lck, abs_time, [=]{
+			return enqueue_condition.wait_until(lck, abs_time, [=]{
 				return poller() && can_enqueue_unlocked();
 			});
 		}, yforward(f), yforward(args)...);
 	}
-	//@}
 
-	//! \since build 539
 	template<typename _fCallable, typename... _tParams>
-	inline auto
+	inline future_result_t<_fCallable, _tParams...>
 	wait(_fCallable&& f, _tParams&&... args)
-		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return poll([]{
 			return true;
@@ -288,9 +302,8 @@ public:
 	}
 
 	template<typename _tDuration, typename _fCallable, typename... _tParams>
-	inline auto
+	inline future_result_t<_fCallable, _tParams...>
 	wait_for(const _tDuration& duration, _fCallable&& f, _tParams&&... args)
-		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return poll_for([]{
 			return true;
@@ -298,27 +311,34 @@ public:
 	}
 
 	template<typename _fWaiter, typename _fCallable, typename... _tParams>
-	auto
+	future_result_t<_fCallable, _tParams...>
 	wait_to_enqueue(_fWaiter waiter, _fCallable&& f, _tParams&&... args)
-		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return thread_pool::wait_to_enqueue(
-			[=](std::unique_lock<std::mutex>& lck){
+			[=](std::unique_lock<std::mutex>& lck) -> bool{
 			while(!can_enqueue_unlocked())
-				waiter(lck);
-		}, yforward(f), yforward(args)...);
+				if(!waiter(lck))
+					return {};
+			return true;
+		}, [=](_tParams&&... f_args){
+			// TODO: Blocked. Use ISO C++14 lambda initializers to implement
+			//	passing %f with %ystdex::decay_copy.
+			enqueue_condition.notify_one();
+			// XXX: Blocked. 'yforward' cause G++ 5.2 failed (perhaps silently)
+			//	with exit code 1.
+			return ystdex::invoke(f, std::forward<_tParams&&>(f_args)...);
+		}, yforward(args)...);
 	}
 
-	//! \since build 539
 	template<typename _tTimePoint, typename _fCallable, typename... _tParams>
-	inline auto
+	inline future_result_t<_fCallable, _tParams...>
 	wait_until(const _tTimePoint& abs_time, _fCallable&& f, _tParams&&... args)
-		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return poll_until([]{
 			return true;
 		}, abs_time, yforward(f), yforward(args)...);
 	}
+	//@}
 };
 
 } // namespace ystdex;

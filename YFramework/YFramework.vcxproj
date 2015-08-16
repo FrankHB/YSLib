@@ -150,6 +150,7 @@
     <ClInclude Include="include\Helper\YGlobal.h" />
     <ClInclude Include="include\Helper\YModules.h" />
     <ClInclude Include="include\NPL\Configuration.h" />
+    <ClInclude Include="include\NPL\Dependency.h" />
     <ClInclude Include="include\NPL\Lexical.h" />
     <ClInclude Include="include\NPL\NPL.h" />
     <ClInclude Include="include\NPL\NPLA1.h" />
@@ -295,6 +296,7 @@
     <ClCompile Include="source\Helper\ShellHelper.cpp" />
     <ClCompile Include="source\Helper\yglobal.cpp" />
     <ClCompile Include="source\NPL\Configuration.cpp" />
+    <ClCompile Include="source\NPL\Dependency.cpp" />
     <ClCompile Include="source\NPL\Lexical.cpp" />
     <ClCompile Include="source\NPL\NPLA1.cpp" />
     <ClCompile Include="source\NPL\SContext.cpp" />

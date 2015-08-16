@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2890
+\version r2980
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-08-07 14:01 +0800
+	2015-08-16 00:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,8 @@ See readme file for details.
 //	platform_ex::Terminal;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include <ystdex/exception.h> // for ystdex::raise_exception;
-#include YFM_NPL_SContext
+#include YFM_NPL_Dependency // for NPL::DecomposeMakefileDepList,
+//	NPL::FilterMakefileDependencies;
 #include YFM_YSLib_Core_YConsole
 
 using namespace YSLib;
@@ -302,84 +303,6 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 }
 //@}
 
-/*!
-\brief 分解 \c .d 文件的依赖项。
-\since build 546
-*/
-vector<string>
-GetDependencies(const string& path)
-{
-	using namespace ystdex;
-	using namespace NPL;
-	using CI = std::istream_iterator<char>;
-	ifstream tf(path, std::ios_base::in);
-
-	if(!tf.is_open())
-		return {};
-	tf.unsetf(std::ios_base::skipws);
-
-	set<size_t> spaces;
-	Session sess(CI(tf), CI(), [&](LexicalAnalyzer& lexer, char c){
-		lexer.ParseQuoted(c, [&](string& buf, const UnescapeContext& uctx, char)
-			-> bool{
-			const auto& escs(uctx.GetSequence());
-
-			// NOTE: See comments in %munge function of 'mkdeps.c' from libcpp
-			//	of GCC.
-			if(escs.length() == 1)
-			{
-				if(uctx.Prefix == "\\")
-					switch(escs[0])
-					{
-					case ' ':
-						spaces.insert(buf.size());
-					case '\\':
-					case '#':
-						buf += escs[0];
-						return true;
-					default:
-						;
-					}
-				if(uctx.Prefix == "$" && escs[0] == '$')
-				{
-					buf += '$';
-					return true;
-				}
-			}
-			return {};
-		}, [](char ch, string& pfx) -> bool{
-			if(ch == '\\')
-				pfx = "\\";
-			else if(ch == '$')
-				pfx = "$";
-			else
-				return {};
-			return true;
-		});
-	});
-	const auto& buf(sess.GetBuffer());
-	vector<string> lst;
-
-	ystdex::split_if_iter(buf.begin(), buf.end(), [](char c){
-		return std::isspace(c);
-	}, [&](string::const_iterator b, string::const_iterator e){
-		lst.push_back(string(b, e));
-	}, [&](string::const_iterator i){
-		return !ystdex::exists(spaces, size_t(i - buf.cbegin()));
-	});
-
-	const auto i_c(std::find_if(lst.cbegin(), lst.cend(), [](const string& dep){
-		return !dep.empty() && dep.back() == ':';
-	}));
-	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::DepsCheck));
-
-	if(i_c == lst.cend() || (lst.erase(lst.cbegin(), i_c + 1), lst.empty()))
-		print("Wrong dependencies format found.", Warning);
-	print(to_string(lst.size()) + " dependenc"
-		+ (lst.size() == 1 ? "y" : "ies") + " found.", Debug);
-	return lst;
-}
-
 } // unnamed namespace;
 
 
@@ -518,9 +441,25 @@ BuildFile(const Rule& rule)
 			auto dfullname(ofullname);
 
 			YAssert(!dfullname.empty(), "Invalid output name found.");
+			// FIXME: Correct replacement when extension of %ofullname is not
+			//	1 character.
 			dfullname.back() = 'd';
-			if(!CheckBuild(GetDependencies(dfullname), ofullname))
-				build = {};
+			if(ifstream tf{dfullname, std::ios_base::in})
+			{
+				const auto printd(std::bind(PrintInfo, _1, _2,
+					LogGroup::DepsCheck));
+				auto lst(NPL::DecomposeMakefileDepList(tf));
+
+				if(NPL::FilterMakefileDependencies(lst))
+				{
+					printd(to_string(lst.size()) + " dependenc"
+						+ (lst.size() == 1 ? "y" : "ies") + " found.", Debug);
+					if(!CheckBuild(lst, ofullname))
+						build = {};
+				}
+				else
+					printd("Wrong dependencies format found.", Warning);
+			}
 		}
 		CatchIgnore(std::exception&)
 		if(build)
@@ -744,9 +683,11 @@ BuildContext::RunTask(const string& cmd) const
 		if(result != 0)
 			return result;
 	}
-	// TODO: Use ISO C++14 lambda initializers to simplify implementation.
-	// TODO: Do not use hard-coded duration.
-	jobs.wait_for(milliseconds(80), [&, cmd]{
+
+	// TODO: Blocked. Use ISO C++14 lambda initializers to simplify
+	//	implementation and optimize copy of %cmd.
+	// FIXME: Correct handling of result value.
+	jobs.wait([&, cmd]{
 		const int res(usystem(cmd.c_str()));
 		{
 			std::lock_guard<std::mutex> lck(job_mtx);
