@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r585
+\version r675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-08-08 16:10 +0800
+	2015-08-20 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include YFM_YCLib_FileIO
 #include YFM_YCLib_Debug // for Nonnull;
 #include YFM_YCLib_Reference // for unique_ptr;
-#include <fcntl.h> // for O_RDONLY;
+#include <fcntl.h> // for O_RDONLY, ::fcntl, F_GETFL, O_NONBLOCK;
 #if YCL_DS
 #	include YFM_YCLib_NativeAPI // for ::close, ::getcwd, ::ftruncate;
 #	include "CHRLib/YModules.h"
@@ -75,7 +75,6 @@ using platform_ex::DirectoryFindData;
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
 #	include <sys/stat.h>
-#	include <time.h> // for ::localtime_r;
 
 //! \since build 475
 using namespace CHRLib;
@@ -109,14 +108,22 @@ template<typename _tChar>
 std::chrono::nanoseconds
 GetFileModificationTimeOfImpl(const _tChar* filename)
 {
-	if(const unique_ptr<int, FileDescriptorDeleter>
+	if(const unique_ptr<int, FileDescriptor::Deleter>
 		fdw{platform::uopen(filename, O_RDONLY)})
-		return GetFileModificationTimeOf(*fdw.get());
+		return FileDescriptor(fdw.get()).GetModificationTime();
 	throw FileOperationFailure(errno, std::generic_category(),
 		"Failed getting file time of \"" + ensure_str(filename) + "\".");
 }
 
 } // unnamed namespace;
+
+
+void
+FileDescriptor::Deleter::operator()(pointer p) ynothrow
+{
+	if(p)
+		::close(*p);
+}
 
 
 FileDescriptor::FileDescriptor(std::FILE* fp) ynothrow
@@ -126,6 +133,55 @@ FileDescriptor::FileDescriptor(std::FILE* fp) ynothrow
 	: desc(fp ? fileno(fp) : -1)
 #endif
 {}
+
+std::chrono::nanoseconds
+FileDescriptor::GetModificationTime()
+{
+#if YCL_Win32
+	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
+	::FILETIME file_time;
+
+	// XXX: Error handling for indirect calls.
+	YCL_CallWin32(GetFileTime, "GetFileModificationTimeOf",
+		::HANDLE(::_get_osfhandle(desc)), {}, {}, &file_time);
+	TryRet(platform_ex::ConvertTime(file_time))
+	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
+		"Failed querying file modification time: ") + e.what() + "."))
+#else
+	// TODO: Get more precise time count.
+	struct ::stat st;
+
+	if(::fstat(desc, &st) == 0)
+		return std::chrono::seconds(st.st_mtime);
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed getting file size.");
+#endif
+}
+std::uint64_t
+FileDescriptor::GetSize()
+{
+#if YCL_Win32
+	::LARGE_INTEGER sz;
+
+	// XXX: Error handling for indirect calls.
+	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(desc)), &sz) != 0
+		&& YB_LIKELY(sz.QuadPart >= 0))
+		return std::uint64_t(sz.QuadPart);
+	// TODO: Get correct error condition.
+	throw FileOperationFailure(platform_ex::GetErrnoFromWin32(),
+		std::generic_category(), "Failed getting file size.");
+#else
+	struct ::stat st;
+
+	if(::fstat(desc, &st) == 0)
+		// TODO: Use YSLib::CheckNonnegativeScalar<std::uint64_t>?
+		// XXX: No negative file size should be found. See also:
+		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed . 
+		return std::uint64_t(st.st_size);
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed getting file size.");
+#endif
+}
 
 int
 FileDescriptor::SetMode(int mode) const ynothrow
@@ -141,13 +197,19 @@ FileDescriptor::SetMode(int mode) const ynothrow
 	return 0;
 #endif
 }
-
-
-void
-FileDescriptorDeleter::operator()(FileDescriptorDeleter::pointer p) ynothrow
+bool
+FileDescriptor::SetNonblocking() const ynothrow
 {
-	if(p)
-		::close(*p);
+#if !YCL_Win32
+	const int flags(::fcntl(desc, F_GETFL));
+
+	if(flags != -1 && !(flags & O_NONBLOCK))
+	{
+		::fcntl(desc, F_SETFL, flags | O_NONBLOCK);
+		return true;
+	}
+#endif
+	return {};
 }
 
 
@@ -502,37 +564,17 @@ ImplDeDtor(FileOperationFailure)
 
 
 std::chrono::nanoseconds
-GetFileModificationTimeOf(int fd)
-{
-#if YCL_Win32
-	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
-	::FILETIME file_time;
-
-	// XXX: Error handling for indirect calls.
-	YCL_CallWin32(GetFileTime, "GetFileModificationTimeOf",
-		::HANDLE(::_get_osfhandle(fd)), {}, {}, &file_time);
-	TryRet(platform_ex::ConvertTime(file_time))
-	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
-		"Failed querying file modification time: ") + e.what() + "."))
-#else
-	// TODO: Get more precise time count.
-	struct ::stat st;
-
-	if(::fstat(fd, &st) == 0)
-		return std::chrono::seconds(st.st_mtime);
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed getting file size.");
-#endif
-}
-std::chrono::nanoseconds
 GetFileModificationTimeOf(std::FILE* fp)
 {
 	YAssertNonnull(fp);
+
+	return FileDescriptor(
 #if YCL_Win32
-	return GetFileModificationTimeOf(::_fileno(fp));
+		::_fileno
 #else
-	return GetFileModificationTimeOf(fileno(fp));
+		fileno
 #endif
+		(fp)).GetModificationTime();
 }
 std::chrono::nanoseconds
 GetFileModificationTimeOf(const char* filename)
@@ -546,39 +588,17 @@ GetFileModificationTimeOf(const char16_t* filename)
 }
 
 std::uint64_t
-GetFileSizeOf(int fd)
-{
-#if YCL_Win32
-	::LARGE_INTEGER sz;
-
-	// XXX: Error handling for indirect calls.
-	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(fd)), &sz) != 0
-		&& YB_LIKELY(sz.QuadPart >= 0))
-		return std::uint64_t(sz.QuadPart);
-	// TODO: Get correct error condition.
-	throw FileOperationFailure(platform_ex::GetErrnoFromWin32(),
-		std::generic_category(), "Failed getting file size.");
-#else
-	struct ::stat st;
-
-	if(::fstat(fd, &st) == 0)
-		// TODO: Use YSLib::CheckNonnegativeScalar<std::uint64_t>?
-		// XXX: No negative file size should be found. See also:
-		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed . 
-		return std::uint64_t(st.st_size);
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed getting file size.");
-#endif
-}
-std::uint64_t
 GetFileSizeOf(std::FILE* fp)
 {
 	YAssertNonnull(fp);
+
+	return FileDescriptor(
 #if YCL_Win32
-	return GetFileSizeOf(::_fileno(fp));
+		::_fileno
 #else
-	return GetFileSizeOf(fileno(fp));
+		fileno
 #endif
+		(fp)).GetSize();
 }
 
 } // namespace platform;

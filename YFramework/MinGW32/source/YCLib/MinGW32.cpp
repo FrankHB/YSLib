@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r852
+\version r854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-08-08 16:10 +0800
+	2015-08-19 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,8 @@ public:
 
 } // unnamed namespace;
 
-Win32Exception::Win32Exception(ErrorCode ec, const std::string& s, LevelType lv)
+Win32Exception::Win32Exception(ErrorCode ec, const std::string& s,
+	RecordLevel lv)
 	: Exception(int(ec), GetErrorCategory(), s, lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");

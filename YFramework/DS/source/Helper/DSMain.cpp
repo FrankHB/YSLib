@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3206
+\version r3209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-05-29 19:20 +0800
+	2015-08-19 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #	include <thread> // for std::this_thread::*;
 #endif
 #ifdef YCL_DS
-#	include YFM_YSLib_Service_YBlit // for Drawing::FillPixel;
+#	include YFM_YSLib_Service_YBlit // for Drawing::FillPixels;
 #elif YCL_Android
 #	include YFM_Android_Helper_AndroidHost // for
 //	Android::FetchNativeHostInstance, Android::FetchDefaultWindow;
@@ -84,9 +84,9 @@ DSApplication::DSApplication()
 	auto& scr1(Deref(scrs[1]));
 
 #if YCL_DS
-	FillPixel<Pixel>(scr0.GetCheckedBufferPtr(),
+	FillPixels<Pixel>(scr0.GetCheckedBufferPtr(),
 		GetAreaOf(scr0.GetSize()), ColorSpace::Blue),
-	FillPixel<Pixel>(scr1.GetCheckedBufferPtr(),
+	FillPixels<Pixel>(scr1.GetCheckedBufferPtr(),
 		GetAreaOf(scr1.GetSize()), ColorSpace::Green);
 #elif YCL_Win32
 

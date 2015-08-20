@@ -11,13 +11,13 @@
 /*!	\file YBlit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1086
+\version r1088
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2015-04-26 02:57 +0800
+	2015-08-19 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,13 +87,13 @@ CopyBuffer(const Graphics& dst, const ConstGraphics& src)
 void
 ClearImage(const Graphics& g)
 {
-	ClearPixel(g.GetBufferPtr(), size_t(GetAreaOf(g.GetSize())));
+	ClearPixels(g.GetBufferPtr(), size_t(GetAreaOf(g.GetSize())));
 }
 
 void
 Fill(const Graphics& g, Color c)
 {
-	FillPixel<Pixel>(g.GetBufferPtr(), size_t(GetAreaOf(g.GetSize())), c);
+	FillPixels<Pixel>(g.GetBufferPtr(), size_t(GetAreaOf(g.GetSize())), c);
 }
 
 } // namespace Drawing;

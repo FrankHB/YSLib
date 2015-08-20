@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1476
+\version r1486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-07-31 23:59 +0800
+	2015-08-19 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,10 @@
 //	has_nested_allocator;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
-#include "cstdio.h" // for yconstraint, ystdex::vfmtlen;
-#include "cstring.h" // for ystdex::ntctslen;
-#include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
-#include "array.hpp" // for std::bidirectional_iterator_tag, ystdex::to_array,
-//	ystdex::arrlen;
+#include "container.hpp" // for begin, end, sort_unique, underlying;
+#include "cstdio.h" // for yconstraint, vfmtlen;
+#include "cstring.h" // for ntctslen;
+#include "array.hpp" // for std::bidirectional_iterator_tag, to_array, arrlen;
 #include <istream> // for std::basic_istream;
 #include <ostream> // for std::basic_ostream;
 #include <cstdarg>
@@ -188,16 +187,12 @@ template<class _tRange>
 yconstfn auto
 string_begin(_tRange& c) -> decltype(c.begin())
 {
-	using std::begin;
-
 	return begin(c);
 }
 template<class _tRange>
 yconstfn auto
 string_begin(const _tRange& c) -> decltype(c.begin())
 {
-	using std::begin;
-
 	return begin(c);
 }
 template<typename _type, size_t _vN>
@@ -211,16 +206,12 @@ template<class _tRange>
 yconstfn auto
 string_end(_tRange& c) -> decltype(c.end())
 {
-	using std::end;
-
 	return end(c);
 }
 template<class _tRange>
 yconstfn auto
 string_end(const _tRange& c) -> decltype(c.end())
 {
-	using std::end;
-
 	return end(c);
 }
 template<typename _type, size_t _vN>
@@ -830,7 +821,7 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 		}
 		catch(...)
 		{
-			// XXX: Rethrow?
+			// NOTE: May rethrow.
 			is.setstate(std::ios_base::badbit);
 		}
 	}

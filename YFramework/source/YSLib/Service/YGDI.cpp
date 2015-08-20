@@ -11,13 +11,13 @@
 /*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2968
+\version r2970
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-04-26 03:02 +0800
+	2015-08-19 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -195,8 +195,8 @@ CompactPixmapEx::ClearImage() const
 {
 	const auto t(size_t(GetAreaOf(sGraphics)));
 
-	ClearPixel(pBuffer.get(), t);
-	ClearPixel(pBufferAlpha.get(), t);
+	ClearPixels(pBuffer.get(), t);
+	ClearPixels(pBufferAlpha.get(), t);
 }
 
 bool

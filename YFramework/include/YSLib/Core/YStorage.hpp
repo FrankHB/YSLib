@@ -11,13 +11,13 @@
 /*!	\file YStorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r449
+\version r453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 567
 \par 创建时间:
 	2011-03-14 20:17:34 +0800
 \par 修改时间:
-	2015-04-10 01:29 +0800
+	2015-08-18 22:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,12 +122,13 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
+	\note 使用 ADL \c reset 。
 	\since build 319
 	*/
 	static void
 	Release() ynothrow
 	{
-		safe_delete_obj()(_ptr);
+		reset(_ptr);
 	}
 };
 
@@ -204,12 +205,13 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
+	\note 使用 ADL \c reset 。
 	\since build 319
 	*/
 	static void
 	Release() ynothrow
 	{
-		safe_delete_obj()(GetStaticPtrRef());
+		reset(GetStaticPtrRef());
 	}
 };
 

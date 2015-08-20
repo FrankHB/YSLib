@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r461
+\version r468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-08-13 10:34 +0800
+	2015-08-19 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -250,12 +250,18 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 @2.4.5.10 通用迭代器 Iterator ：
 间接扩展了标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
 
-@2.4.5.11 泛型算法 Algorithm ：
+@2.4.5.11 范围操作 Range ：
+扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
+
+@2.4.5.12 泛型算法 Algorithm ：
 扩展了标准库头 <algorithm> ，提供一些泛型算法。
 除非另行约定，使用 first 和 last 为名称的参数指定同一个范围，否则不保证结果正确，可能引起未定义行为。
 
-@2.4.5.12 ISO C++ 标准字符串扩展 String ：
+@2.4.5.13 ISO C++ 标准字符串扩展 String ：
 间接扩展了标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
+
+@2.4.5.14 ISO C++ <future> 扩展 Future ：
+扩展了标准库头 <future> ，提供一些别名模板和便利接口。
 
 @2.4.6 标准库替代：
 
@@ -269,7 +275,7 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 
 @2.4.7.2 通用容器操作 Containers ：
 实现通用容器适配器模板和对容器类型及构建数组容器的操作。
-参数限制同 Algorithm (@2.4.5.11) 。
+参数限制同 Algorithm (@2.4.5.12) 。
 
 @2.4.7.3 基类实用设施 Base ：
 提供适合被作为基类的通用接口。

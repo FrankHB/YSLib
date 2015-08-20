@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r593
+\version r595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2015-03-21 22:58 +0800
+	2015-08-19 16:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,8 +85,9 @@ class YF_API WidgetNotFound : public LoggedEvent
 public:
 	string NodeName;
 
+	//! \since build 624
 	WidgetNotFound(const string& name, const std::string& s,
-		LevelType lv = Warning)
+		RecordLevel lv = Warning)
 		: LoggedEvent(s, lv),
 		NodeName(name)
 	{}

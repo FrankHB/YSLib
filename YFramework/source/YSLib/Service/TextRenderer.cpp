@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2749
+\version r2752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-06-03 03:18 +0800
+	2015-08-19 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ TextRenderer::ClearLine(size_t l, SDst n)
 	{
 		if(n == 0 || l + n > h)
 			n = h - SDst(l);
-		ClearPixel(g[l], size_t(g.GetWidth() * n));
+		ClearPixels(g[l], size_t(g.GetWidth() * n));
 	}
 }
 
@@ -167,8 +167,8 @@ TextRegion::ClearLine(size_t l, SDst n)
 		const size_t t((l + n > g.GetHeight() ? g.GetHeight() - l : n)
 			* g.GetWidth());
 
-		yunseq(ClearPixel(g[l], t),
-			ClearPixel(&pBufferAlpha[l * g.GetWidth()], t));
+		yunseq(ClearPixels(g[l], t),
+			ClearPixels(&pBufferAlpha[l * g.GetWidth()], t));
 	}
 }
 

@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r278
+\version r319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-07-14 19:50 +0800
+	2015-08-20 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 #include YFM_YCLib_Reference // for unique_ptr;
 #include <system_error> // for std::system_error;
 #if !YCL_Win32
-#	include YFM_YCLib_FileIO // for platform::FileDescriptorDeleter;
+#	include YFM_YCLib_FileIO // for platform::FileDescriptor::Deleter;
 #else
 //! \since build 564
 using HANDLE = void*;
@@ -55,19 +55,17 @@ namespace platform_ex
 */
 class YF_API Exception : public std::system_error
 {
-public:
-	//! \since build 545
-	//@{
-	using LevelType = YSLib::LoggedEvent::LevelType;
-
 private:
-	LevelType level = YSLib::Emergent;
+	//! \since build 624
+	YSLib::RecordLevel level = YSLib::Emergent;
 
 public:
+	//! \since build 624
+	//@{
 	Exception(std::error_code, const std::string& = "unknown host exception",
-		LevelType = YSLib::Emergent);
+		YSLib::RecordLevel = YSLib::Emergent);
 	Exception(int, const std::error_category&, const std::string&
-		= "unknown host exception", LevelType = YSLib::Emergent);
+		= "unknown host exception", YSLib::RecordLevel = YSLib::Emergent);
 	//! \since build 586
 	DefDeCopyCtor(Exception)
 	/*!
@@ -76,14 +74,14 @@ public:
 	*/
 	~Exception() override;
 
-	DefGetter(const ynothrow, LevelType, Level, level)
+	DefGetter(const ynothrow, YSLib::RecordLevel, Level, level)
 	//@}
 };
 
 
 #	if !YCL_Win32 && YCL_API_Has_unistd_h
 //! \since build 592
-using HandleDelete = platform::FileDescriptorDeleter;
+using HandleDelete = platform::FileDescriptor::Deleter;
 #	else
 /*!
 \brief 句柄删除器。
@@ -222,6 +220,28 @@ class TerminalData;
 */
 class YF_API Terminal
 {
+public:
+	/*!
+	\brief 终端界面状态守护。
+	\since build 624
+	*/
+	class YF_API Guard final
+	{
+	private:
+		Terminal& terminal;
+
+	public:
+		template<typename _func>
+		Guard(Terminal& term, _func f)
+			: terminal(term)
+		{
+			if(term)
+				f(term);
+		}
+		//! \brief 析构：重置终端属性，截获并记录错误。
+		~Guard();
+	};
+
 private:
 	//! \since build 593
 	unique_ptr<TerminalData> p_term;
@@ -235,6 +255,7 @@ public:
 	Terminal(std::FILE* = stdout);
 	~Terminal();
 
+	//! \brief 判断终端有效或无效。
 	DefBoolNeg(explicit, bool(p_term))
 
 	bool
@@ -244,6 +265,16 @@ public:
 	UpdateForeColor(std::uint8_t);
 };
 //@}
+
+/*!
+\brief 根据等级设置终端的前景色。
+\return 终端是否有效。
+\note 当终端无效时忽略。
+\relates Terminal
+\since build 624
+*/
+YF_API bool
+UpdateForeColorByLevel(Terminal&, YSLib::RecordLevel);
 #	endif
 
 } // namespace platform_ex;

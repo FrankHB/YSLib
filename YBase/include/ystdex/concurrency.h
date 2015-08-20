@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r444
+\version r492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-08-16 20:06 +0800
+	2015-08-18 10:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,14 +30,14 @@
 
 #include "pseudo_mutex.h" // for result_of_t, std::declval,
 //	std::make_shared, threading::unlock_delete, noncopyable;
+#include <mutex> // for std::mutex, std::unique_lock;
+#include <thread> // for std::thread;
+#include <vector> // for std::vector;
+#include <queue> // for std::queue;
+#include "future.hpp" // for std::packaged_task, future_result_t, pack_task;
+#include <condition_variable> // for std::condition_variable;
 #include "functional.hpp" // for std::bind, std::function, ystdex::invoke;
-#include <future> // for std::packaged_task, std::future;
-#include <thread>
-#include <vector>
-#include <queue>
-#include <mutex>
 #include "cassert.h" // for yassume;
-#include <condition_variable>
 
 namespace ystdex
 {
@@ -71,37 +71,8 @@ YB_API std::string
 to_string(const std::thread::id&);
 
 
-//! \since build 623
-template<typename _fCallable, typename... _tParams>
-using future_result_t
-	= std::future<result_of_t<_fCallable&&(_tParams&&...)>>;
-
-//! \since build 358
-template<typename _fCallable, typename... _tParams>
-using packed_task_t
-	= std::packaged_task<result_of_t<_fCallable&&(_tParams&&...)>()>;
-
-
-//! \since build 359
-//@{
-template<typename _fCallable, typename... _tParams>
-packed_task_t<_fCallable&&, _tParams&&...>
-pack_task(_fCallable&& f, _tParams&&... args)
-{
-	return packed_task_t<_fCallable&&, _tParams&&...>(std::bind(yforward(f),
-		yforward(args)...));
-}
-
-template<typename _fCallable, typename... _tParams>
-std::shared_ptr<packed_task_t<_fCallable&&, _tParams&&...>>
-pack_shared_task(_fCallable&& f, _tParams&&... args)
-{
-	return std::make_shared<packed_task_t<_fCallable&&, _tParams&&...>>(
-		std::bind(yforward(f), yforward(args)...));
-}
-//@}
-
-
+#	if !__GLIBCXX__ || (defined(_GLIBCXX_HAS_GTHREADS) \
+	&& defined(_GLIBCXX_USE_C99_STDINT_TR1) && (ATOMIC_INT_LOCK_FREE > 1))
 /*!
 \brief 线程池。
 \note 除非另行约定，所有公开成员函数线程安全。
@@ -112,7 +83,8 @@ class YB_API thread_pool : private noncopyable
 {
 private:
 	std::vector<std::thread> workers;
-	std::queue<std::function<void()>> tasks{};
+	//! \since build 624
+	std::queue<std::packaged_task<void()>> tasks{};
 	mutable std::mutex queue_mutex{};
 	std::condition_variable condition{};
 	/*!
@@ -180,9 +152,8 @@ public:
 	future_result_t<_fCallable, _tParams...>
 	wait_to_enqueue(_fWaiter waiter, _fCallable&& f, _tParams&&... args)
 	{
-		const auto
-			task(ystdex::pack_shared_task(yforward(f), yforward(args)...));
-		auto res(task->get_future());
+		auto bound(ystdex::pack_task(yforward(f), yforward(args)...));
+		auto res(bound.get_future());
 
 		{
 			std::unique_lock<std::mutex> lck(queue_mutex);
@@ -191,11 +162,11 @@ public:
 			{
 				yassume(lck.owns_lock());
 				// TODO: Blocked. Use ISO C++14 lambda initializers to reduce
-				//	initialization cost by directly moving from
-				//	%std::packaged_task.
-				tasks.push([task]{
-					(*task)();
-				});
+				//	initialization cost by directly moving from %bound.
+				tasks.push(std::packaged_task<void()>(
+					std::bind([](decltype(bound)& tsk){
+					tsk();
+				}, std::move(bound))));
 			}
 			else
 				return {};
@@ -340,6 +311,7 @@ public:
 	}
 	//@}
 };
+#	endif
 
 } // namespace ystdex;
 

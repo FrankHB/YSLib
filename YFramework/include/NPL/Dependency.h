@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r57
+\version r67
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2015-08-09 22:52 +0800
+	2015-08-19 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,18 @@
 
 namespace NPL
 {
+
+//! \since build 624
+enum class DepsEventType : yimpl(size_t)
+{
+	General,
+	Search,
+	Build,
+	Command,
+	DepsCheck,
+	Max
+};
+
 
 //! \since build 623
 //@{

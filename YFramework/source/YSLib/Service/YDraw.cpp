@@ -11,13 +11,13 @@
 /*!	\file YDraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1111
+\version r1112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2015-03-25 15:36 +0800
+	2015-08-19 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 			RestrictInInterval(x2, bx, SPos(bxw + 1));
 			RestrictLessEqual(x1, x2);
 			// XXX: Conversion to 'SPos' might be implementation-defined.
-			FillPixel<Pixel>(&Nonnull(dst)[y * ptrdiff_t(w) + x1],
+			FillPixels<Pixel>(&Nonnull(dst)[y * ptrdiff_t(w) + x1],
 				SDst(x2 - x1), c);
 		}
 	}

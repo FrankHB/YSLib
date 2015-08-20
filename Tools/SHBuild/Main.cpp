@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2980
+\version r3199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-08-16 00:12 +0800
+	2015-08-19 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@ See readme file for details.
 
 
 #include <ysbuild.h>
-#include YFM_YSLib_Core_YStorage // for YSLib::FetchStaticRef
+#include YFM_YSLib_Core_YStorage // for YSLib::FetchStaticRef;
 #include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/mixin.hpp>
@@ -37,8 +37,8 @@ See readme file for details.
 //	platform_ex::Terminal;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include <ystdex/exception.h> // for ystdex::raise_exception;
-#include YFM_NPL_Dependency // for NPL::DecomposeMakefileDepList,
-//	NPL::FilterMakefileDependencies;
+#include YFM_NPL_Dependency // for NPL::DepsEventType,
+//	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies;
 #include YFM_YSLib_Core_YConsole
 
 using namespace YSLib;
@@ -60,30 +60,17 @@ namespace
 #define OPT_build_path ".shbuild"
 
 //! \since build 477
-//@{
 using IntException = ystdex::wrap_mixin_t<std::runtime_error, int>;
+//! \since build 477
 using ystdex::raise_exception;
 //! \since build 539
 template<typename... _tParams>
 YB_NORETURN inline PDefH(void, raise_exception, int ret, _tParams&&... args)
 	ImplExpr(raise_exception<IntException>({
 		std::runtime_error(yforward(args)...), ret}))
-//@}
 //! \since build 522
 YB_NORETURN inline PDefH(void, raise_exception, int ret)
 	ImplExpr(raise_exception(ret, "Failed calling command."))
-
-//! \since build 547
-//@{
-enum class LogGroup : yimpl(size_t)
-{
-	General,
-	Search,
-	Build,
-	Command,
-	DepsCheck,
-	Max
-};
 
 //! \since build 592
 enum class BuildMode : yimpl(size_t)
@@ -92,6 +79,10 @@ enum class BuildMode : yimpl(size_t)
 	LD = 2
 };
 
+//! \since build 624
+using LogGroup = NPL::DepsEventType;
+//! \since build 547
+//@{
 using opt_uint = unsigned long;
 LogGroup LastLogGroup(LogGroup::General);
 std::mutex LastLogGroupMutex;
@@ -108,10 +99,8 @@ PrintInfo(const string& line, RecordLevel lv = Notice,
 		return line;
 	});
 }
-//@}
 
-//! \since build 547
-//@{
+
 #define OPT_des_mul "Multiple occurrence is allowed."
 #define OPT_des_last "If this option occurs more than once, only the last one" \
 	" is effective."
@@ -271,35 +260,31 @@ CheckModification(const string& path)
 	return file_time;
 }
 
-//! \since build 560
-PDefH(bool, CompareModification, const string& ipath, const nanoseconds& omod)
-	ImplRet(omod >= CheckModification(ipath))
-
-template<typename _func>
-bool
-CheckBuild(_func f, const string& opath)
-{
-	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
-
-	try
-	{
-		if(f())
-		{
-			print("Output '"+ opath + "' is up-to-date, skipped.", Informative);
-			return {};
-		}
-	}
-	CatchExpr(FileOperationFailure& e, print(e.what(), Debug))
-	return true;
-}
 bool
 CheckBuild(const vector<string>& ipaths, const string& opath)
 {
-	return CheckBuild([&]{
-		return ipaths.empty() ? false
-			: std::all_of(ipaths.cbegin(), ipaths.cend(),
-			std::bind(CompareModification, _1, CheckModification(opath)));
-	}, opath);
+	if(!ipaths.empty())
+	{
+		const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
+
+		try
+		{
+			const auto& omod(CheckModification(opath));
+
+			if(std::none_of(ipaths.cbegin(), ipaths.cend(),
+				[&](const string& ipath){
+				return omod < CheckModification(ipath);
+			}))
+			{
+				print("Output '"+ opath + "' is up-to-date, skipped.",
+					Informative);
+				return {};
+			}
+		}
+		CatchExpr(FileOperationFailure& e, print(e.what(), Debug))
+		return true;
+	}
+	return {};
 }
 //@}
 
@@ -316,6 +301,8 @@ private:
 	mutable std::mutex job_mtx{};
 	mutable int result = 0;
 	string flags{};
+	//! \since build 624
+	mutable vector<std::future<int>> futures{};
 
 public:
 	set<string> IgnoredDirs{};
@@ -588,82 +575,106 @@ BuildContext::Build()
 					n.back() == u':' ? String(n.substr(0, n.length() - 1)) : n;
 			throw std::invalid_argument("Empty input path component found.");
 		}(ipath.back()) : String(TargetName)));
-	const auto& ofiles(ActionContext([this](const Key& name){
-		const shared_ptr<Rule> p_rule(new Rule{*this, name});
-
-		return VerifyDirectory(name.first)
-			? BuildAction([=](const ActionContext& actx){
-			return SearchDirectory(*p_rule, actx);
-		}) : BuildAction([=](const ActionContext&){
-			return BuildFile(*p_rule);
-		});
-	})({Path(in), opth}));
-
-	// TODO: Optimize for job dependency.
-	if(jobs.get_max_task_num() > 1)
-	{
-		PrintInfo("Wait for unfinished tasks before linking ...",
-			Notice, LogGroup::Build);
-		jobs.reset();
-	}
-	CheckResult(GetLastResult());
-
-	const auto onum(ofiles.size());
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
-
-	print("Found " + to_string(onum) + " .o file(s).", Informative);
-	if(onum != 0)
+	try
 	{
-		Path pth(opth);
+		const auto& ofiles(ActionContext([this](const Key& name){
+			const shared_ptr<Rule> p_rule(new Rule{*this, name});
 
-		YAssert(!pth.empty(), "Invalid path found.");
-		pth.pop_back();
-		EnsureOutputDirectory(pth);
+			return VerifyDirectory(name.first)
+				? BuildAction([=](const ActionContext& actx){
+				return SearchDirectory(*p_rule, actx);
+			}) : BuildAction([=](const ActionContext&){
+				return BuildFile(*p_rule);
+			});
+		})({Path(in), opth}));
 
-		auto target(to_string(opth).GetMBCS(CS_Path));
-		const auto& LDFLAGS(GetEnv("LDFLAGS"));
-		const auto& cmd(Mode == BuildMode::AR ? GetEnv("AR") + ' '
-			+ GetEnv("ARFLAGS") : GetEnv("LD") + ' ' + LDFLAGS + " -o");
-
-		if(Mode == BuildMode::AR)
-			target += ".a";
-		// FIXME: Find extension properly.
-		else
-			// FIXME: Parse %LDFLAGS.
-// FIXME: Support cross compiling.
-			target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
-				|| ystdex::exists_substr(LDFLAGS, "-shared")
-#if YCL_Win32
-				? ".dll"
-#else
-				? ".so"
-#endif
-				: ".exe";
-		if(CheckBuild(ofiles, target))
+		// TODO: Optimize for job dependency.
+		if(jobs.get_max_task_num() > 1)
 		{
-			auto str(cmd + " \"" + target + '"');
-
-			// FIXME: Prevent path too long.
-			for(const auto& ofile : ofiles)
-				str += " \"" + ofile + "\"";
-			if(Mode == BuildMode::LD)
-				str += ' ' + GetEnv("LIBS");
-			print("Link file: '" + target + "'.", Informative);
-			if(Mode == BuildMode::AR)
-			{
-				// NOTE: Since the return value might be implementation-defined
-				//	and the next operations might be still meaningful, it is
-				//	not intended to throw an exception.
-				if(uremove(target.c_str()) != 0)
-					PrintInfo(u8"Failed deleting file '" + target + u8"'.",
-						Warning);
-				PrintInfo(u8"Deleted file '" + target + u8"'.", Debug);
-			}
-			CallWithException(str, 1);
+			print("Wait for unfinished tasks before linking ...", Notice);
+			jobs.reset();
 		}
+		CheckResult(GetLastResult());
+
+		const auto onum(ofiles.size());
+
+		print("Found " + to_string(onum) + " .o file(s).", Informative);
+		if(onum != 0)
+		{
+			Path pth(opth);
+
+			YAssert(!pth.empty(), "Invalid path found.");
+			pth.pop_back();
+			EnsureOutputDirectory(pth);
+
+			auto target(to_string(opth).GetMBCS(CS_Path));
+			const auto& LDFLAGS(GetEnv("LDFLAGS"));
+			const auto& cmd(Mode == BuildMode::AR ? GetEnv("AR") + ' '
+				+ GetEnv("ARFLAGS") : GetEnv("LD") + ' ' + LDFLAGS + " -o");
+
+			if(Mode == BuildMode::AR)
+				target += ".a";
+			// FIXME: Find extension properly.
+			else
+				// FIXME: Parse %LDFLAGS.
+	// FIXME: Support cross compiling.
+				target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
+					|| ystdex::exists_substr(LDFLAGS, "-shared")
+	#if YCL_Win32
+					? ".dll"
+	#else
+					? ".so"
+	#endif
+					: ".exe";
+			if(CheckBuild(ofiles, target))
+			{
+				auto str(cmd + " \"" + target + '"');
+
+				// FIXME: Prevent path too long.
+				for(const auto& ofile : ofiles)
+					str += " \"" + ofile + "\"";
+				if(Mode == BuildMode::LD)
+					str += ' ' + GetEnv("LIBS");
+				print("Link file: '" + target + "'.", Informative);
+				if(Mode == BuildMode::AR)
+				{
+					// NOTE: Since the return value might be
+					//	implementation-defined and the next operations might be
+					//	still meaningful, it is not intended to throw an
+					//	exception.
+					if(uremove(target.c_str()) != 0)
+						PrintInfo(u8"Failed deleting file '" + target + u8"'.",
+							Warning);
+					PrintInfo(u8"Deleted file '" + target + u8"'.", Debug);
+				}
+				CallWithException(str, 1);
+			}
+		}
+		else
+			print("No files to be built.", Warning);
 	}
-	else
-		print("No files to be built.", Warning);
+	catch(...)
+	{
+		FilterExceptions([print, this]{
+			size_t succ(0), fail(1);
+
+			print("Wating unfinshed tasks ...", Warning);
+			for(auto& fut : futures)
+				if(FilterExceptions([&]{
+					if(fut.get() == 0)
+						++succ;
+					else
+						++fail;
+				}, "futures stat"))
+					++fail;
+			// TODO: Show statistics also on success?
+			print(ystdex::sfmt("%zu task(s) succeeded, %zu task(s) failed.",
+				succ, fail), Informative);
+			jobs.reset();
+		});
+		throw;
+	}
 }
 
 int
@@ -686,8 +697,8 @@ BuildContext::RunTask(const string& cmd) const
 
 	// TODO: Blocked. Use ISO C++14 lambda initializers to simplify
 	//	implementation and optimize copy of %cmd.
-	// FIXME: Correct handling of result value.
-	jobs.wait([&, cmd]{
+	// TODO: Reduce memory footprint.
+	futures.push_back(jobs.wait([&, cmd]{
 		const int res(usystem(cmd.c_str()));
 		{
 			std::lock_guard<std::mutex> lck(job_mtx);
@@ -696,7 +707,7 @@ BuildContext::RunTask(const string& cmd) const
 				result = res;
 		}
 		return res;
-	});
+	}));
 	return 0;
 }
 //@}
@@ -727,23 +738,12 @@ main(int argc, char* argv[])
 			std::fprintf(stream, "[%04u.%03u][%zu:%#02X]",
 				unsigned(dcnt / 1000U), unsigned(dcnt % 1000U),
 				size_t(LastLogGroup), unsigned(lv));
-			if(term_ref)
 			{
-				using namespace Consoles;
-				static const Logger::Level
-					lvs[]{Err, Warning, Notice, Informative, Debug};
-				static const Color
-					colors[]{Red, Yellow, Cyan, Magenta, DarkGreen};
-				const auto i(
-					std::lower_bound(&lvs[0], &lvs[arrlen(colors)], lv));
+				Terminal::Guard
+					guard(term_ref, std::bind(UpdateForeColorByLevel, _1, lv));
 
-				if(i == &lvs[arrlen(colors)])
-					term_ref.RestoreAttributes();
-				else
-					term_ref.UpdateForeColor(colors[i - lvs]);
+				std::fprintf(stream, "%s", &EncodeArg(Nonnull(str))[0]);
 			}
-			std::fprintf(stream, "%s", &EncodeArg(Nonnull(str))[0]);
-			term_ref.RestoreAttributes();
 			std::fputc('\n', stream);
 		});
 		if(argc > 1)
@@ -806,8 +806,8 @@ main(int argc, char* argv[])
 				std::putchar('\n');
 			}
 		}
-	}, {}, Err, [](const std::exception& e, LoggedEvent::LevelType l){
-		return ExtractException([](const char* str, LoggedEvent::LevelType lv,
+	}, {}, Err, [](const std::exception& e, RecordLevel l){
+		return ExtractException([](const char* str, RecordLevel lv,
 			size_t level){
 			const auto print([=](const string& s){
 				PrintInfo(string(level, ' ') + s, lv, LogGroup::General);

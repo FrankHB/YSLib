@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r510
+\version r519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2015-06-14 22:02 +0800
+	2015-08-19 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,18 +193,19 @@ FetchXCBErrorCategory()
 	return ecat;
 }
 
-//! \since build 564
+//! \since build 624
+//@{
 template<typename _tParam>
 YB_NORETURN void
 ThrowGeneralXCBException(_tParam&& arg, int err = 0, const std::error_category&
-	ecat = FetchXCBErrorCategory(), Exception::LevelType lv = Err)
+	ecat = FetchXCBErrorCategory(), RecordLevel lv = Err)
 {
 	throw Exception(err, ecat, yforward(arg), lv);
 }
 
 void
 CheckRequest(::xcb_connection_t& c_ref, ::xcb_void_cookie_t cookie,
-	Exception::LevelType lv = Err)
+	RecordLevel lv = Err)
 {
 	if(const auto p
 		= unique_raw(::xcb_request_check(&c_ref, cookie), std::free))
@@ -215,7 +216,7 @@ CheckRequest(::xcb_connection_t& c_ref, ::xcb_void_cookie_t cookie,
 
 unique_ptr<::xcb_get_geometry_reply_t, void(&)(void*)>
 FetchGeometry(::xcb_connection_t& c_ref, ::xcb_drawable_t id,
-	Exception::LevelType lv = Err)
+	RecordLevel lv = Err)
 {
 	const auto cookie(::xcb_get_geometry(&c_ref, id));
 	::xcb_generic_error_t* p_err{};
@@ -230,13 +231,14 @@ FetchGeometry(::xcb_connection_t& c_ref, ::xcb_drawable_t id,
 		ThrowGeneralXCBException("XCB reply is null without error detected.");
 	return p_reply;
 }
+//@}
 
 } // unnamed namespace;
 
 
 XCBException::XCBException(const string& msg, std::uint8_t resp,
 	std::uint8_t ec, std::uint16_t seq, std::uint32_t rid, std::uint16_t minor,
-	std::uint8_t major, std::uint32_t full_seq, LevelType lv)
+	std::uint8_t major, std::uint32_t full_seq, RecordLevel lv)
 	: Exception(resp, FetchXCBErrorCategory(), msg, lv),
 	error_code(ec), sequence(seq), resource_id(rid), minor_code(minor),
 	major_code(major), full_sequence(full_seq)
@@ -321,9 +323,9 @@ Connection::~Connection()
 }
 
 
-Atom::Atom(::xcb_connection_t& c_ref, const YSLib::string& n,
+Atom::Atom(::xcb_connection_t& c_ref, const string& n,
 	bool only_if_exists) ynothrow
-	: atom([&](::xcb_intern_atom_cookie_t cookie)->::xcb_atom_t{
+	: atom([&](::xcb_intern_atom_cookie_t cookie) -> ::xcb_atom_t {
 		if(const auto p = unique_raw(
 			::xcb_intern_atom_reply(&c_ref, cookie, {}), std::free))
 			return p->atom;

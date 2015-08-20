@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r900
+\version r961
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-08-01 23:49 +0800
+	2015-08-20 13:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,19 @@ namespace platform
 */
 class YF_API FileDescriptor
 {
+public:
+	/*!
+	\brief 删除器。
+	\since build 624
+	*/
+	struct YF_API Deleter
+	{
+		using pointer = FileDescriptor;
+
+		void
+		operator()(pointer) ynothrow;
+	};
+
 private:
 	//! \since build 554
 	int desc;
@@ -82,6 +95,24 @@ public:
 
 	explicit DefCvt(const ynothrow, bool, desc != -1)
 
+	//! \since build 624
+	//@{
+	/*!
+	\brief 取文件的修改时间。
+	\return 以 POSIX 时间相同历元的时间间隔。
+	\throw FileOperationFailure 参数无效或文件修改时间查询失败。
+	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
+	*/
+	YF_API std::chrono::nanoseconds
+	GetModificationTime();
+	/*
+	\brief 取文件的大小。
+	\return 以字节计算的文件大小。
+	\throw FileOperationFailure 参数无效或文件大小查询失败。
+	*/
+	std::uint64_t
+	GetSize();
+
 	/*!
 	\brief 设置模式。
 	\note 参数和返回值意义和语义同 \c setmode 函数，在 Windows 以外的平台无作用。
@@ -89,24 +120,20 @@ public:
 	*/
 	int
 	SetMode(int) const ynothrow;
+	/*!
+	\brief 设置非阻塞模式。
+	\note 仅在非 Windows 平台有效。
+	\note 可能设置 \c errno 。
+	\return 是否进行了设置。
+	*/
+	bool
+	SetNonblocking() const ynothrow;
+	//@}
 
 	friend PDefHOp(bool, ==, const FileDescriptor& x, const FileDescriptor& y)
 		ImplRet(x.desc == y.desc)
 	friend PDefHOp(bool, !=, const FileDescriptor& x, const FileDescriptor& y)
 		ImplRet(x.desc != y.desc)
-};
-
-
-/*!
-\brief 文件描述符删除器。
-\since build 565
-*/
-struct YF_API FileDescriptorDeleter
-{
-	using pointer = FileDescriptor;
-
-	void
-	operator()(pointer) ynothrow;
 };
 
 
@@ -810,15 +837,11 @@ public:
 
 
 /*!
-\brief 取文件的修改时间。
-\return 以 POSIX 时间相同历元的时间间隔。
-\throw FileOperationFailure 参数无效或文件修改时间查询失败。
-\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
+\sa FileDescriptor::GetModificationTime
+\exception FileOperationFailure 参数无效或文件修改时间查询失败。
 \since build 544
 */
 //@{
-YF_API std::chrono::nanoseconds
-GetFileModificationTimeOf(int);
 //! \pre 断言：参数非空。
 //@{
 YF_API YB_NONNULL(1) std::chrono::nanoseconds
@@ -839,18 +862,13 @@ GetFileModificationTimeOf(const _tString& str)
 //@}
 
 /*!
-\brief 取文件的大小。
-\return 以字节计算的文件大小。
-\throw FileOperationFailure 参数无效或文件大小查询失败。
+\pre 断言：参数非空。
+\excption FileOperationFailure 参数无效或文件大小查询失败。
+\sa FileDescriptor::GetSize
 \since build 475
 */
-//@{
-YF_API std::uint64_t
-GetFileSizeOf(int);
-//! \pre 断言：参数非空。
 YF_API YB_NONNULL(1) std::uint64_t
 GetFileSizeOf(std::FILE*);
-//@}
 
 } // namespace platform;
 

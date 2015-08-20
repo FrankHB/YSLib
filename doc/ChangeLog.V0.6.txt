@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r2534
+\version r2673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-08-16 22:00 +0800
+	2015-08-20 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,145 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ $imp @ "class %thread_pool" @ %Concurrency $=
+		(
+			/ DLD "simplified task queue" ^ "%std::packaged_task"
+				~ "%std::function";
+			/ $impl "simplified function template %wait_to_enqueue",
+				// This saves a copy and indirection of bound task object.
+			/ "alias templates %(future_result_t, packed_task_t), function \
+				templates %(pack_task, pack_shared_task)"
+				>> %Future $dep_from "added future header"
+		),
+		+ %Future $=
+		(
+			$dep_to "added future header";
+			+ "metafunction %is_future",
+			+ "(2 function templates, inline function) %make_ready_future"
+		),
+		(
+		+ %Range $=
+		(
+			+ ('using std::begin;', 'using std::end;')
+				@ "inline namespace cpp2011",
+			+ "%(cbegin, cend, rbegin, rend, crbegin, crend")
+				@ "inline namespace cpp2011" $=
+			(
+				+ $impl ^ "aliases from %std" @ '#if __cplusplus >= 201402L \
+					&& (!defined(__GLIBCXX__) || __GLIBCXX__ >= 20150119) \
+					|| (_LIBCXX_VERSION >= 1101 && _LIBCPP_STD_VER > 11) \
+					|| YB_IMPL_MSCPP >= 1800',
+				+ "templates" @ "%std names unavailable"
+			)
+		);
+		- DLDI "redundant 'using std::begin;', 'using std::end;'"
+			@ %(IteratorOperation, String, Container)
+		)
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		(
+		/ $impl "collected wating results" ^ "%std::future vector";
+		+ "wating for unfinished tasks and tasks statistics when build failed",
+		* DLD "missing capturing wating results" $since b520
+		),
+		/ DLDI "simplified" ^ $dep_from %YFramework.NPL.Dependency,
+		/ DLDI "simplified %::main logging" @ %Tool.SHBuild.Main
+			^ $dep_from ("%(Terminal::Guard, UpdateForeColorByLevel)"
+			@ %YFramework.YCLib.Host),
+		/ "omitted timestamp check for empth dependent list"
+	),
+	/ %YFramework $=
+	(
+		+ "enum class %DepsEventType" @ %NPL.Dependency,
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ DLDI "static function %Release" @ "class templates \
+					%(GStaticCache, GLocalStaticCache)" @ %YStorage
+					!^ "%safe_delete_obj";
+				/ %YCoreUtilities $=
+				(
+					- $revert(b154) "struct %safe_delete_obj" $dep_from
+						%YStorage,
+					(
+					- "macro %delete_second_mem";
+					- $revert(b281) "structs %(delete_second_mem_ndebug, \
+						delete_second_mem_debug)"
+					),
+					- DLDI "redundant 'typename'"
+						@ "function template %CloneNonpolymorphic",
+					(
+					- "macro %delete_obj" $dep_from %Adaptor.Font;
+					- $revert(b174)
+						"structs %(delete_obj_debug, delete_obj_ndebug)"
+					),
+					/ @ "function template %ClearSequence" $=
+					(
+						(
+						- "check of parameters";
+						/ $forced 'ynothrow' -> 'ynothrowv';
+						$dep_to "throwing sequence check"
+						),
+						/ "test type for value" ^ "%ystdex::decay_t"
+							~ "%ystdex::remove_reference_t"
+						/ $dev $impl $re(b590) "static assertion" ^ '()'
+							~ '::value'
+					)
+				),
+				- "%LevelType" @ "class %LoggedEvent" @ %YException $dep_from
+					("removal use of LoggedEvent::LevelType",
+					"%Exception" @ %YCLib.Host)
+			),
+			/ %Service.YBlit $=
+			(
+				/ "function template %ClearPixel" -> "%ClearPixels"
+					$= (/ $forced 'ynothrow' -> 'ynothrowv' $dep_from
+						"throwing sequence check"),
+				/ "function %FillPixel" => "%FillPixels"
+			),
+			- "debug memory trace" @ "class %FontCache" @ %Adaptor.Font $=
+			(
+				/ $impl "%ClearContainers" ^ "%std::default_delete<Typeface>"
+					~ "%delete_obj";
+				/ $forced "%LoadTypefaces" ^ 'new' ~ 'ynew'
+			)
+		),
+		/ %YCLib.Host $=
+		(
+			/ %Host $=
+			(
+			+ "class %Guard" @ "%Terminal",
+			+ "function %UpdateForeColorByLevel",
+			- "%LevelType" @ "class %Exception" $dep_from
+				"removal use of Exception::LevelType"
+			),
+			/ %FileIO $=
+			(
+				/ "class %FileDescriptorDeleter"
+					-> "class %FileDescriptor::Deleter",
+				+ "function %SetNonblocking" @ "class %FileDescriptor",
+				/ "function %GetFileSizeOf for %int"
+					-> "member function %FileDescriptor::GetSize",
+				/ "function %GetFileModificationTimeOf for %int"
+					-> "member function %FileDescriptor::GetModificationTime"
+			)
+		)
+	),
+	/ "all 'Exception::LevelType'" -> "%YSLib::RecordLevel" $effective
+		@ %(YFramework.(YCLib.(Host, XCB)), 'YCLib.(MinGW32)'.MinGW32) $dep_to
+		"removal use of Exception::LevelType",
+	/ "all 'LoggedEvent::LevelType'" -> "%YSLib::RecordLevel" $effective
+		@ %((YFramework.(YCLib.Host, Helper.Initialization,
+		YSLib.(Core.(YException, YCoreUtilities), UI.Loader))),
+		Tools.SHBuild.Main) $dep_to "removal use of LoggedEvent::LevelType"
+),
+
+b623
 (
 	/ %YFramework $=
 	(
@@ -2231,7 +2370,7 @@ b600
 					~ "%(PackNodes, MakeNodes)",
 				/ @ "function %FetchMIMEBiMapping" $=
 				(
-					+ $re(b594) DLDI 'ynothrow' @ "lambda expression pushed as \
+					+ DLDI $re(b594) 'ynothrow' @ "lambda expression pushed as \
 						application exit callback",
 					/ DLDI "push application exit callback only after resource \
 						acquiring successfully"

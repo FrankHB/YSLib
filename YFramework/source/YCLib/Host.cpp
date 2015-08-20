@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r311
+\version r342
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-07-14 19:51 +0800
+	2015-08-19 16:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
 #include YFM_YCLib_FileIO // for platform::FileOperationFailure;
+#include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Consoles
 #	include <io.h> // for ::_isatty;
+#	include YFM_YSLib_Core_YConsole
 #elif YF_Hosted
 #	include <fcntl.h>
 #	include YFM_YSLib_Core_YConsole
@@ -48,12 +50,12 @@ using namespace YSLib;
 namespace platform_ex
 {
 
-Exception::Exception(std::error_code ec, const std::string& msg, LevelType lv)
+Exception::Exception(std::error_code ec, const std::string& msg, RecordLevel lv)
 	: system_error(ec, msg),
 	level(lv)
 {}
 Exception::Exception(int ev, const std::error_category& ecat,
-	const std::string& msg, LevelType lv)
+	const std::string& msg, RecordLevel lv)
 	: system_error(ev, ecat, msg),
 	level(lv)
 {}
@@ -234,6 +236,16 @@ TerminalData::ExecuteCommand(const string& cmd) const
 #	endif
 
 
+Terminal::Guard::~Guard()
+{
+	if(terminal)
+		FilterExceptions([this]{
+			if(!YB_LIKELY(terminal.p_term->RestoreAttributes()))
+				throw LoggedEvent("Restoring terminal attributes failed.");
+		});
+}
+
+
 Terminal::Terminal(std::FILE* fp)
 	: p_term([fp]()->TerminalData*{
 #	if YCL_Win32
@@ -272,6 +284,27 @@ bool
 Terminal::UpdateForeColor(std::uint8_t c)
 {
 	return p_term ? p_term->UpdateForeColor(c) : false;
+}
+
+bool
+UpdateForeColorByLevel(Terminal& term, RecordLevel lv)
+{
+	if(term)
+	{
+		using namespace Consoles;
+		static yconstexpr const RecordLevel
+			lvs[]{Err, Warning, Notice, Informative, Debug};
+		static yconstexpr const Color
+			colors[]{Red, Yellow, Cyan, Magenta, DarkGreen};
+		const auto i(std::lower_bound(ystdex::begin(lvs), ystdex::end(lvs), lv));
+
+		if(i == ystdex::end(lvs))
+			term.RestoreAttributes();
+		else
+			term.UpdateForeColor(colors[i - lvs]);
+		return true;
+	}
+	return {};
 }
 #endif
 
