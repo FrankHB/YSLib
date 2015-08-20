@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2201
+\version r2312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-07-02 06:34 +0800
+	2015-08-19 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,15 +329,14 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 
 
 /*!
-\since build 557
+\since build 624
 \throw LoggedEvent 范围检查失败。
 */
 //@{
 //! \brief 检查标量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckScalar(_type val, const std::string& name = {},
-	LoggedEvent::LevelType lv = Err)
+CheckScalar(_type val, const std::string& name = {}, RecordLevel lv = Err)
 {
 	using common_t = ystdex::common_type_t<_tDst, _type>;
 
@@ -350,7 +349,7 @@ CheckScalar(_type val, const std::string& name = {},
 template<typename _tDst, typename _type>
 inline _tDst
 CheckNonnegativeScalar(_type val, const std::string& name = {},
-	LoggedEvent::LevelType lv = Err)
+	RecordLevel lv = Err)
 {
 	if(val < 0)
 		// XXX: Use more specified exception type.
@@ -362,7 +361,7 @@ CheckNonnegativeScalar(_type val, const std::string& name = {},
 template<typename _tDst, typename _type>
 inline _tDst
 CheckPositiveScalar(_type val, const std::string& name = {},
-	LoggedEvent::LevelType lv = Err)
+	RecordLevel lv = Err)
 {
 	if(!(0 < val))
 		// XXX: Use more specified exception type.
@@ -374,146 +373,39 @@ CheckPositiveScalar(_type val, const std::string& name = {},
 
 /*!
 \brief 清除指定的连续对象。
-\pre 设类型 T 为 <tt>ystdex::remove_reference_t<decltype(*dst)></tt>， 则应满足
-	<tt>std::is_pod<T> || (std::is_nothrow_default_constructible<T>::value
-		&& std::is_nothrow_assignable<T, T>::value)</tt> 。
-\note 忽略空指针和零长度。
-\since build 322
+\pre 设类型 T 为 <tt>ystdex::decay_t<decltype(*dst)></tt>， 则应满足
+	<tt>std::is_pod<T>() || (std::is_nothrow_default_constructible<T>:()
+		&& std::is_nothrow_assignable<T, T>())</tt> 。
+\since build 624
 */
 template<typename _tOut>
 inline void
-ClearSequence(_tOut dst, size_t n) ynothrow
+ClearSequence(_tOut dst, size_t n) ynothrowv
 {
-	using _type = ystdex::remove_reference_t<decltype(*dst)>;
-	static_assert(std::is_pod<_type>::value
-		|| (std::is_nothrow_default_constructible<_type>::value
-		&& std::is_nothrow_assignable<_type, _type>::value),
+	using _type = ystdex::decay_t<decltype(*dst)>;
+	static_assert(std::is_pod<_type>()
+		|| (std::is_nothrow_default_constructible<_type>()
+		&& std::is_nothrow_assignable<_type, _type>()),
 		"Invalid type found.");
 
-	if(YB_LIKELY(dst && n))
-		std::fill_n(dst, n, _type());
+	std::fill_n(dst, n, _type());
 }
 
 
 /*!
-\brief delete 仿函数。
-\since build 174
-*/
-struct delete_obj_ndebug
-{
-	/*!
-	\brief 删除指针指向的对象。
-	*/
-	template<typename _type>
-	inline void
-	operator()(_type* _ptr) ynothrow
-	{
-		delete _ptr;
-	}
-};
-
-
-/*!
-\brief delete 第二成员仿函数。
-\since build 281
-\todo 删除数组成员。
-*/
-struct delete_second_mem_ndebug
-{
-	/*!
-	\brief 删除第二成员指向的对象。
-	*/
-	template<typename _type>
-	inline void
-	operator()(const _type& _pr) ynothrow
-	{
-		delete _pr.second;
-	}
-};
-
-
-#ifdef YSL_USE_MEMORY_DEBUG
-
-/*!
-\brief delete 仿函数（调试版本）。
-\since build 174
-*/
-struct delete_obj_debug
-{
-	/*!
-	\brief 删除指针指向的对象。
-	*/
-	template<typename _type>
-	inline void
-	operator()(_type* _ptr) ynothrow
-	{
-		ydelete(_ptr);
-	}
-};
-
-
-/*!
-\brief delete 第二成员仿函数。
-\since build 281
-\todo 删除数组成员。
-*/
-struct delete_second_mem_debug
-{
-	/*!
-	\brief 删除第二成员指向的对象。
-	*/
-	template<typename _type>
-	inline void
-	operator()(const _type& _pr) ynothrow
-	{
-		ydelete(_pr.second);
-	}
-};
-
-
-#	define delete_obj delete_obj_debug
-#	define delete_second_mem delete_second_mem_debug
-
-#else
-
-#	define delete_obj delete_obj_ndebug
-#	define delete_second_mem delete_second_mem_ndebug
-
-#endif
-
-/*!
-\brief 带置空指针操作的 delete 仿函数。
-\since build 154
-*/
-struct safe_delete_obj
-{
-	/*!
-	\brief 删除指针指向的对象，并置指针为空值。
-	\note 使用 ADL \c reset 。
-	*/
-	template<typename _tPointer>
-	inline void
-	operator()(_tPointer& _ptr) ynothrow
-	{
-		reset(_ptr);
-	}
-};
-
-
-/*!
-\brief 使用 new 复制指定指针指向的对象。
+\brief 使用 \c new 复制指定指针指向的对象。
 \since build 240
 */
 template<typename _type>
 yconstfn auto
 CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 {
-	return new typename ystdex::remove_reference_t<decltype(*p)>(*p);
+	return new ystdex::remove_reference_t<decltype(*p)>(*p);
 }
 
 /*!
-\brief 使用 clone 成员函数复制指定指针指向的多态类类型对象。
-\pre 断言： std::is_polymorphic<decltype(*p)>::value 。
+\brief 使用 \c clone 成员函数复制指定指针指向的多态类类型对象。
+\pre 断言： \c std::is_polymorphic<decltype(*p)>::value 。
 \since build 240
 */
 template<class _type>

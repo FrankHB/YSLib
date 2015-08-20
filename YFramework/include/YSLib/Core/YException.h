@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r533
+\version r560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-08-07 10:46 +0800
+	2015-08-19 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,23 +51,21 @@ using GeneralEvent = std::runtime_error;
 */
 class YF_API LoggedEvent : public GeneralEvent
 {
-public:
-	using LevelType = RecordLevel;
-
 private:
-	LevelType level;
+	//! \since build 624
+	RecordLevel level;
 
 public:
 	/*!
-	\brief 构造：使用异常字符串和异常等级。
-	\since build 545
+	\brief 构造：使用异常字符串和记录等级。
+	\since build 624
 	*/
-	LoggedEvent(const std::string& = {}, LevelType = Emergent);
+	LoggedEvent(const std::string& = {}, RecordLevel = Emergent);
 	/*!
-	\brief 构造：使用一般异常事件对象和异常等级。
-	\since build 545
+	\brief 构造：使用一般异常事件对象和记录等级。
+	\since build 624
 	*/
-	LoggedEvent(const GeneralEvent&, LevelType = Emergent);
+	LoggedEvent(const GeneralEvent&, RecordLevel = Emergent);
 	//! \since build 586
 	DefDeCopyCtor(LoggedEvent)
 	/*!
@@ -76,7 +74,8 @@ public:
 	*/
 	~LoggedEvent() override;
 
-	DefGetter(const ynothrow, LevelType, Level, level)
+	//! \since build 624
+	DefGetter(const ynothrow, RecordLevel, Level, level)
 };
 
 
@@ -110,34 +109,32 @@ public:
 };
 
 
-//! \since build 622
+//! \since build 624
 //@{
 /*!
 \brief 打印带有层次信息的函数类型。
 \warning 不保证检查第一个参数非空。
 */
 using ExtractedLevelPrinter
-	= std::function<void(const char*, LoggedEvent::LevelType, size_t)>;
+	= std::function<void(const char*, RecordLevel, size_t)>;
 template<typename _type>
-using GLevelTracer = std::function<void(_type, LoggedEvent::LevelType)>;
+using GLevelTracer = std::function<void(_type, RecordLevel)>;
 using ExceptionTracer = GLevelTracer<std::exception&>;
 
 
 /*!
 \brief 通过 YCL_TraceRaw 跟踪带空格缩进层次的异常信息的函数类型。
 \pre 断言：第一参数非空。
-\since build 591
 */
 YF_API YB_NONNULL(1) void
-TraceException(const char*, LoggedEvent::LevelType = Err,
-	size_t level = 0) ynothrow;
+TraceException(const char*, RecordLevel = Err, size_t level = 0) ynothrow;
 
 /*!
 \brief 通过 YCL_TraceRaw 跟踪记录异常类型。
 \todo 处理类型名称。
 */
 YF_API void
-TraceExceptionType(std::exception&, LoggedEvent::LevelType = Err)
+TraceExceptionType(std::exception&, RecordLevel = Err)
 	ynothrow;
 
 /*!
@@ -147,25 +144,25 @@ TraceExceptionType(std::exception&, LoggedEvent::LevelType = Err)
 \sa TraceExceptionType
 */
 YF_API void
-ExtractAndTrace(std::exception&, LoggedEvent::LevelType = Err);
+ExtractAndTrace(std::exception&, RecordLevel = Err);
 
 //! \brief 展开指定层次的异常并使用指定参数记录。
 YF_API void
 ExtractException(const ExtractedLevelPrinter&,
-	const std::exception&, LoggedEvent::LevelType = Err, size_t = 0) ynothrow;
+	const std::exception&, RecordLevel = Err, size_t = 0) ynothrow;
 //@}
 
 //! \return 是否发生并捕获异常。
 //@{
 /*!
 \brief 执行并试图记录异常。
-\since build 622
+\since build 624
 
 对参数指定的函数求值，并使用最后一个参数跟踪记录异常。
 */
 YF_API bool
-TryExecute(std::function<void()>, const char* = {},
-	LoggedEvent::LevelType = Alert, ExceptionTracer = ExtractAndTrace);
+TryExecute(std::function<void()>, const char* = {}, RecordLevel = Alert,
+	ExceptionTracer = ExtractAndTrace);
 
 /*!
 \brief 调用函数并试图返回。
@@ -183,14 +180,14 @@ TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 
 /*!
 \brief 调用函数并过滤宿主异常。
-\since build 622
+\since build 624
 
 对参数指定的函数求值，并捕获和跟踪记录所有异常。
 */
 template<typename _func>
 bool
-FilterExceptions(_func f, const char* desc = {}, LoggedEvent::LevelType lv
-	= Alert, ExceptionTracer trace = ExtractAndTrace) ynothrow
+FilterExceptions(_func f, const char* desc = {}, RecordLevel lv = Alert,
+	ExceptionTracer trace = ExtractAndTrace) ynothrow
 {
 	return !TryInvoke([=]{
 		return !TryExecute(f, desc, lv, trace);

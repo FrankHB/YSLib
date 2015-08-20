@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r350
+\version r361
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-08-07 10:44 +0800
+	2015-08-19 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,11 @@
 namespace YSLib
 {
 
-LoggedEvent::LoggedEvent(const std::string& s, LevelType lv)
+LoggedEvent::LoggedEvent(const std::string& s, RecordLevel lv)
 	: GeneralEvent(s),
 	level(lv)
 {}
-LoggedEvent::LoggedEvent(const GeneralEvent& e, LevelType lv)
+LoggedEvent::LoggedEvent(const GeneralEvent& e, RecordLevel lv)
 	: GeneralEvent(e),
 	level(lv)
 {}
@@ -50,8 +50,7 @@ ImplDeDtor(FatalError)
 
 
 void
-TraceException(const char* str, LoggedEvent::LevelType lv, size_t level)
-	ynothrow
+TraceException(const char* str, RecordLevel lv, size_t level) ynothrow
 {
 	TryExpr(
 		YCL_TraceRaw(lv, "%s%s", std::string(level, ' ').c_str(), Nonnull(str)))
@@ -59,23 +58,22 @@ TraceException(const char* str, LoggedEvent::LevelType lv, size_t level)
 }
 
 void
-TraceExceptionType(std::exception& e, LoggedEvent::LevelType lv) ynothrow
+TraceExceptionType(std::exception& e, RecordLevel lv) ynothrow
 {
 	YCL_TraceRaw(lv, "Caught std::exception[%s]: %s", typeid(e).name(),
 		e.what());
 }
 
 void
-ExtractAndTrace(std::exception& e, LoggedEvent::LevelType lv)
+ExtractAndTrace(std::exception& e, RecordLevel lv)
 {
 	TraceExceptionType(e, lv);
 	ExtractException(TraceException, e, lv);
 }
 
 void
-ExtractException(const ExtractedLevelPrinter& print,
-	const std::exception& e, LoggedEvent::LevelType lv, size_t level)
-	ynothrow
+ExtractException(const ExtractedLevelPrinter& print, const std::exception& e,
+	RecordLevel lv, size_t level) ynothrow
 {
 	TryExpr(print(e.what(), lv, level))
 	CatchExpr(..., print("Exception occurred when printing @ ExtractException.",
@@ -90,8 +88,8 @@ ExtractException(const ExtractedLevelPrinter& print,
 }
 
 bool
-TryExecute(std::function<void()> f, const char* desc,
-	LoggedEvent::LevelType lv, ExceptionTracer trace)
+TryExecute(std::function<void()> f, const char* desc, RecordLevel lv,
+	ExceptionTracer trace)
 {
 	try
 	{

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r359
+\version r361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2015-05-24 15:51 +0800
+	2015-08-19 16:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,10 +74,10 @@ private:
 	//@}
 
 public:
-	//! \since build 562
+	//! \since build 624
 	XCBException(const string&, std::uint8_t, std::uint8_t, std::uint16_t,
 		std::uint32_t, std::uint16_t, std::uint8_t, std::uint32_t,
-		Exception::LevelType = YSLib::Emergent);
+		YSLib::RecordLevel = YSLib::Emergent);
 
 	//! \since build 561
 	//@{

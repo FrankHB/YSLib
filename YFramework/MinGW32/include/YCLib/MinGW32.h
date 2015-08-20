@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r758
+\version r760
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-08-08 16:07 +0800
+	2015-08-19 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,10 +87,10 @@ public:
 	/*!
 	\pre 错误码不等于 0 。
 	\warning 初始化参数时可能会改变 ::GetLastError() 的结果。
-	\since build 545
+	\since build 624
 	*/
 	Win32Exception(ErrorCode, const std::string& = "Win32 exception",
-		LevelType = YSLib::Emergent);
+		YSLib::RecordLevel = YSLib::Emergent);
 	//! \since build 586
 	DefDeCopyCtor(Win32Exception)
 	/*!

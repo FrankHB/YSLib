@@ -39,6 +39,7 @@
     <ClInclude Include="include\ystdex\exception.h" />
     <ClInclude Include="include\ystdex\functional.hpp" />
     <ClInclude Include="include\ystdex\functor.hpp" />
+    <ClInclude Include="include\ystdex\future.hpp" />
     <ClInclude Include="include\ystdex\hash.hpp" />
     <ClInclude Include="include\ystdex\integer_sequence.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
@@ -50,6 +51,7 @@
     <ClInclude Include="include\ystdex\path.hpp" />
     <ClInclude Include="include\ystdex\pointer.hpp" />
     <ClInclude Include="include\ystdex\pseudo_mutex.h" />
+    <ClInclude Include="include\ystdex\range.hpp" />
     <ClInclude Include="include\ystdex\rational.hpp" />
     <ClInclude Include="include\ystdex\ref.hpp" />
     <ClInclude Include="include\ystdex\scope_guard.hpp" />

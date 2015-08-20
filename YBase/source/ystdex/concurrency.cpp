@@ -11,13 +11,13 @@
 /*!	\file concurrency.cpp
 \ingroup YStandardEx
 \brief 并发操作。
-\version r154
+\version r158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 19:09:18 +0800
 \par 修改时间:
-	2015-03-21 10:49 +0800
+	2015-08-18 10:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,8 @@ to_string(const std::thread::id& id)
 }
 
 
+#	if !__GLIBCXX__ || (defined(_GLIBCXX_HAS_GTHREADS) \
+	&& defined(_GLIBCXX_USE_C99_STDINT_TR1) && (ATOMIC_INT_LOCK_FREE > 1))
 thread_pool::thread_pool(size_t n, std::function<void()> on_enter,
 	std::function<void()> on_exit)
 	: workers(n)
@@ -68,7 +70,7 @@ thread_pool::thread_pool(size_t n, std::function<void()> on_enter,
 				}
 				else
 				{
-					const auto task(std::move(tasks.front()));
+					auto task(std::move(tasks.front()));
 
 					tasks.pop();
 					lck.unlock();
@@ -131,6 +133,7 @@ task_pool::reset()
 	threads.~thread_pool();
 	::new(&threads) thread_pool(max_tasks);
 }
+#	endif
 
 } // namespace ystdex;
 

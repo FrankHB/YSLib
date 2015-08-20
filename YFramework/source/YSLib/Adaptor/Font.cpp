@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3518
+\version r3521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-07-01 16:56 +0800
+	2015-08-19 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -477,7 +477,8 @@ FontCache::operator-=(Typeface& face) ynothrow
 void
 FontCache::ClearContainers() ynothrow
 {
-	std::for_each(sFaces.cbegin(), sFaces.cend(), delete_obj());
+	std::for_each(sFaces.cbegin(), sFaces.cend(),
+		std::default_delete<Typeface>());
 	sFaces.clear();
 	mFamilies.clear();
 }
@@ -501,7 +502,7 @@ FontCache::LoadTypefaces(const FontPath& path)
 			return 0;
 		for(long i(0); i < face_num; ++i)
 			// XXX: Conversion to 'long' might be implementation-defined.
-			TryExpr(*this += *(ynew Typeface(*this, path, std::uint32_t(i))))
+			TryExpr(*this += *(new Typeface(*this, path, std::uint32_t(i))))
 			CatchExpr(..., YTraceDe(Warning, "Failed loading face of path"
 				" '%s', index '%ld'.", path.c_str(), i))
 		return size_t(face_num);

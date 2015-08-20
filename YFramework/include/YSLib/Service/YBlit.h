@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3442
+\version r3447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-03-29 12:13 +0800
+	2015-08-19 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -504,7 +504,7 @@ struct CopyLine<false>
 /*
 \brief 显示缓存操作：清除/以纯色像素填充。
 \tparam _tOut 输出迭代器类型（需要支持 += 操作，一般应是随机迭代器）。
-\since build 438
+\since build 624
 */
 //@{
 /*!
@@ -514,7 +514,7 @@ struct CopyLine<false>
 */
 template<typename _tOut>
 inline _tOut
-ClearPixel(_tOut dst, size_t n) ynothrow
+ClearPixels(_tOut dst, size_t n) ynothrowv
 {
 	ClearSequence(dst, n);
 	return dst;
@@ -525,13 +525,14 @@ ClearPixel(_tOut dst, size_t n) ynothrow
 */
 template<typename _tPixel, typename _tOut>
 inline void
-FillPixel(_tOut dst_iter, size_t n, _tPixel c)
+FillPixels(_tOut dst_iter, size_t n, _tPixel c)
 {
 	CopyLine<true>()(dst_iter, ystdex::pseudo_iterator<_tPixel>(c), SDst(n));
 }
 
 /*!
 \brief 使用 n 个指定像素竖直填充指定位置。
+\since build 438
 */
 template<typename _tPixel, typename _tOut>
 inline void

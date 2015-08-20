@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r232
+\version r233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2015-07-14 19:49 +0800
+	2015-08-20 13:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ MappedFile::MappedFile(const char* path)
 		if(fd == -1)
 			throw FileOperationFailure(errno, std::generic_category(),
 				"Failed mapping file.");
-		return GetFileSizeOf(fd);
+		return FileDescriptor(fd).GetSize();
 	}())
 {
 #if YCL_DS

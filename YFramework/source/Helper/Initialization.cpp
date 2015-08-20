@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2400
+\version r2401
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-08-16 17:39 +0800
+	2015-08-19 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,7 @@ void
 Extract(const std::exception& e, string& res) ynothrow
 {
 	ExtractException(
-		[&](const string& str, LoggedEvent::LevelType, size_t level){
+		[&](const string& str, RecordLevel, size_t level){
 		res += string(level, ' ') + "ERROR: " + str + '\n';
 	}, e);
 }

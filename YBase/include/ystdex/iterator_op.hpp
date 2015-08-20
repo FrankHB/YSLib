@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r205
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2015-07-31 23:59 +0800
+	2015-08-19 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "type_op.hpp" // for std::pair, std::declval, enable_if_t, is_same;
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
-#include <iterator> // for std::next, std::prev, std::reverse_iterator;
+#include "range.hpp" // for std::next, std::prev, std::reverse_iterator,
+//	begin, end;
 #include "operators.hpp" // for input_iteratable, output_iteratable,
 //	forward_iteratable, bidirectional_iteratable, random_access_iteratable;
 
@@ -145,9 +146,6 @@ inline auto
 make_move_iterator_pair(_tRange& c)
 	-> decltype(ystdex::make_move_iterator_pair(c.begin(), c.end()))
 {
-	using std::begin;
-	using std::end;
-
 	return ystdex::make_move_iterator_pair(begin(c), end(c));
 }
 //@}

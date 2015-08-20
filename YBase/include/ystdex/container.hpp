@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1109
+\version r1135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2015-05-01 07:56 +0800
+	2015-08-19 00:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "functional.hpp"
-#include "iterator.hpp" // for make_transform, std::make_move_iterator;
+#include "iterator.hpp" // for begin, end, make_transform,
+//	std::make_move_iterator;
 #include "algorithm.hpp" // for is_undereferenceable, sort_unique;
 #include "utility.hpp" // for std::initializer_list, ystdex::arrlen;
 
@@ -41,8 +42,8 @@ namespace ystdex
 \note 满足容器要求（但不是 ISO C++ 要求的序列容器要求）。
 \note 使用 ISO C++11 容器要求指定的成员顺序声明。
 \warning 非虚析构。
-\see ISO C++11 23.6[container.adaptors],
-	23.2.1[container.requirements.general] 。
+\see ISO C++11 23.6 [container.adaptors],
+	23.2.1 [container.requirements.general] 。
 \since build 408
 */
 template<class _tSeqCon>
@@ -187,8 +188,8 @@ swap(container_adaptor<_tSeqCon>& x,
 \note 满足序列要求（但不是 ISO C++ 要求的序列容器要求）。
 \note 使用 ISO C++11 容器要求指定的成员顺序声明。
 \warning 非虚析构。
-\see ISO C++11 23.6[container.adaptors], 23.2.1[container.requirements.general],
-	23.2.3[sequence.reqmts] 。
+\see ISO C++11 23.6 [container.adaptors],
+	23.2.1 [container.requirements.general], 23.2.3 [sequence.reqmts] 。
 \since build 408
 */
 template<class _tSeqCon>
@@ -312,9 +313,6 @@ template<class _tCon, typename _tRange>
 inline _tCon
 make_container(_tRange&& c)
 {
-	using std::begin;
-	using std::end;
-
 	return _tCon(begin(c), end(c));
 }
 //! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
@@ -322,9 +320,6 @@ template<class _tCon, typename _tRange, typename _func>
 inline _tCon
 make_container(_tRange&& c, _func f)
 {
-	using std::begin;
-	using std::end;
-
 	return _tCon(ystdex::make_transform(begin(c), f),
 		ystdex::make_transform(end(c), f));
 }
@@ -360,9 +355,6 @@ inline auto
 range_size(const _tRange& c, false_type)
 	-> decltype(std::distance(begin(c), end(c)))
 {
-	using std::begin;
-	using std::end;
-
 	return std::distance(begin(c), end(c));
 }
 
@@ -370,7 +362,7 @@ range_size(const _tRange& c, false_type)
 
 /*!
 \brief 取范围大小。
-\note 需要时使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 需要时使用 ADL \c begin 和 \c end 指定范围迭代器。
 \since build 546
 
 对数组直接返回大小，否则：
@@ -424,6 +416,7 @@ assign(_tCon& con, const _type(&arr)[_vN])
 
 /*!
 \brief 插入元素到容器末尾。
+\pre 指定元素的范围和容器不重叠。
 \since build 546
 \todo 返回非 \c void 。
 */
@@ -439,9 +432,6 @@ template<class _tCon, typename _tRange>
 void
 concat(_tCon& con, _tRange&& c)
 {
-	using std::begin;
-	using std::end;
-
 	con.insert(con.end(), begin(c), end(c));
 }
 //@}
@@ -553,16 +543,13 @@ exists(const _tCon& con, const _tKey& key)
 /*!
 \ingroup algorithms
 \brief 删除指定序列容器中和指定值的相等的元素。
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 使用 ADL \c begin 和 \c end 指定范围迭代器。
 \since build 289
 */
 template<typename _tCon>
 void
 erase_all(_tCon& con, const typename _tCon::value_type& val)
 {
-	using std::begin;
-	using std::end;
-
 	con.erase(std::remove(begin(con), end(con), val), end(con));
 }
 /*!
@@ -585,16 +572,13 @@ erase_all(_tCon& con, _tFwd first, _tFwd last, const _tValue& value)
 /*!
 \ingroup algorithms
 \brief 删除指定序列容器中满足条件的元素。
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 使用 ADL \c begin 和 \c end 指定范围迭代器。
 \since build 289
 */
 template<typename _tCon, typename _fPred>
 void
 erase_all_if(_tCon& con, _fPred pred)
 {
-	using std::begin;
-	using std::end;
-
 	con.erase(std::remove_if(begin(con), end(con), pred), end(con));
 }
 /*!
@@ -645,16 +629,13 @@ erase_n(_tCon& con, typename _tCon::iterator i,
 \ingroup algorithms
 \brief 排序指定序列容器，保留不重复元素。
 \pre 容器的迭代器满足随机迭代器要求。
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 使用 ADL \c begin 和 \c end 指定范围迭代器。
 \since build 414
 */
 template<class _tCon>
 inline void
 sort_unique(_tCon& con)
 {
-	using std::begin;
-	using std::end;
-
 	con.erase(ystdex::sort_unique(begin(con), end(con)), end(con));
 }
 
