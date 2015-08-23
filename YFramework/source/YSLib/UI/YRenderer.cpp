@@ -11,13 +11,13 @@
 /*!	\file YRenderer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r677
+\version r678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2015-04-04 11:25 +0800
+	2015-08-20 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ BufferedRenderer::BufferedRenderer(bool b, unique_ptr<Drawing::IImage> p)
 {}
 BufferedRenderer::BufferedRenderer(const BufferedRenderer& rd)
 	: Renderer(rd),
-	rInvalidated(rd.rInvalidated), pImageBuffer(ClonePolymorphic(
+	rInvalidated(rd.rInvalidated), pImageBuffer(ystdex::clone_polymorphic(
 	rd.pImageBuffer)), IgnoreBackground(rd.IgnoreBackground)
 {}
 

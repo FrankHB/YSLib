@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r886
+\version r908
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-06-29 15:23 +0800
+	2015-08-22 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,9 @@
 #ifndef YCL_INC_NativeAPI_h_
 #define YCL_INC_NativeAPI_h_ 1
 
-//平台定义。
 #include "YModules.h"
 #include YFM_YCLib_Platform
-
-#include <ydef.h>
+#include <ystdex/type_op.hpp> // for ystdex::make_signed_t, std::is_signed;
 #include YFM_YBaseMacro
 
 #ifndef YF_Platform
@@ -63,8 +61,30 @@ namespace platform_replace
 #	include <dirent.h>
 #endif
 
+// TODO: Test whether <fcntl.h> is available.
+#include <fcntl.h>
+
 #if YCL_API_Has_unistd_h
 #	include <unistd.h>
+//! \since build 625
+//@{
+namespace platform
+{
+	using ssize_t = ::ssize_t;
+} // namespace platform_ex;
+#	else
+namespace platform
+{
+#	if YCL_Win32
+	using ssize_t = int;
+#	else
+	using ssize_t = ystdex::make_signed_t<std::size_t>;
+#	endif
+} // namespace platform;
+
+static_assert(std::is_signed<platform::ssize_t>(),
+	"Invalid signed size type found.");
+//@}
 #endif
 
 

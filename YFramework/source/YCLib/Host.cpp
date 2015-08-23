@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r342
+\version r354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-08-19 16:21 +0800
+	2015-08-22 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,6 @@
 #	include <io.h> // for ::_isatty;
 #	include YFM_YSLib_Core_YConsole
 #elif YF_Hosted
-#	include <fcntl.h>
 #	include YFM_YSLib_Core_YConsole
 #endif
 
@@ -141,16 +140,22 @@ MakePipe()
 #	elif YCL_API_Has_unistd_h
 	int fds[2];
 
+	// TODO: Check whether '::socketpair' is available.
 	if(::pipe(fds) != 0)
 		throw FileOperationFailure(errno, std::generic_category(),
 			"Failed getting file size.");
-	if(::fcntl(fds[0], F_SETFL, O_NONBLOCK) != 0)
-		throw FileOperationFailure(errno, std::generic_category(),
-			"Failed making pipe for reading.");
-	if(::fcntl(fds[1], F_SETFL, O_NONBLOCK) != 0)
-		throw FileOperationFailure(errno, std::generic_category(),
-			"Failed making pipe for writing.");
-	return {UniqueHandle(fds[0]), UniqueHandle(fds[1])};
+
+	auto pr(make_pair(UniqueHandle(fds[0]), UniqueHandle(fds[1])));
+	auto check([](UniqueHandle& h, const char* msg){
+		// NOTE: %O_NONBLOCK is initially cleared on ::pipe results.
+		//	See http://pubs.opengroup.org/onlinepubs/9699919799/ .
+		if(!(h && h->SetNonblocking()))
+			throw FileOperationFailure(errno, std::generic_category(), msg);
+	});
+
+	check(pr.first, "Failed making pipe for reading."),
+	check(pr.second, "Failed making pipe for writing.");
+	return pr;
 #	else
 #	error "Unsupported platform found."
 #	endif

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3591
+\version r3618
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2014-12-19 21:26 +0800
+	2015-08-23 06:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,20 +28,12 @@
 #ifndef YCL_INC_ycommon_h_
 #define YCL_INC_ycommon_h_ 1
 
-//平台定义。
 #include "YModules.h"
 #include YFM_YCLib_Platform
-
-//平台中立部分。
-#include <ydef.h>
-#include <ystdex/cassert.h>
-#include <ystdex/cstdio.h>
-#include <ystdex/cwctype.h>
-#include <string>
+#include <ystdex/type_op.hpp> // for ystdex::decay_t, ystdex::result_of_t;
+#include <ystdex/cassert.h> // yconstraint, yassume for other headers;
+#include <ystdex/cwctype.h> // for ystdex::isprint, ystdex::iswprint;
 #include YFM_YBaseMacro
-
-//平台相关部分。
-//#include <unistd.h>
 
 //! \brief 默认平台命名空间。
 namespace platform
@@ -99,6 +91,26 @@ IsPrint(_tChar c)
 	return platform::IsPrint(wchar_t(c));
 }
 //@}
+
+
+/*!
+\brief 循环重复操作。
+\since build 625
+*/
+template<typename _func, typename _tErrorRef,
+	typename _tError = ystdex::decay_t<_tErrorRef>,
+	typename _type = ystdex::result_of_t<_func&()>>
+_type
+RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
+{
+	_type res;
+
+	err = _tError();
+	do
+		res = f();
+	while(res < _type() && _tError(err) == e);
+	return res;
+}
 
 
 /*!

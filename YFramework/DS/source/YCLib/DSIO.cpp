@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2508
+\version r2530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-08-11 22:39 +0800
+	2015-08-23 02:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,9 @@
 //	YTraceDe, std::exception, ystdex::trivially_copy_n, ptrdiff_t,
 //	DISC_INTERFACE, unique_raw;
 #if YCL_DS
+#	include "YSLib/Core/YModules.h"
+#	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
+//	YSLib::FilterExceptions;
 #	include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
 //	ystdex::write_uint_le;
 #	include <ystdex/exception.h> // for ystdex::throw_system_error,
@@ -40,8 +43,8 @@
 //	CHRLib::MakeUCS2LE, ystdex::ntctsnicmp, ystdex::ntctsncpy,
 //	ystdex::ntctsicmp;
 #	include <cerrno>
-#	include <fcntl.h> // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC, O_APPEND,
-//	O_CREAT, O_EXCL;
+#	include YFM_YCLib_NativeAPI // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC,
+//	O_APPEND, O_CREAT, O_EXCL;
 #	include <ystdex/scope_guard.hpp> // for ystdex::guard;
 #	include <ystdex/functional.hpp> // for ystdex::common_nonvoid_t,
 //	ystdex::call_for_value, ystdex::bind1;
@@ -86,7 +89,8 @@ SectorCache::GetPage(::sec_t key) ynothrow
 {
 	YAssert(GetKey(key) == key, "Invalid key found.");
 
-	TryRet(&ystdex::cache_lookup(entries, key, [key, this]{
+	return YSLib::TryInvoke([=]{
+		return &ystdex::cache_lookup(entries, key, [=]{
 			const auto size(bytes_per_sector << sectors_per_page_shift);
 			// TODO: Use aligned allocation for cache implementation.
 			// NOTE: Intentionally uninitialized as libfat.
@@ -98,12 +102,8 @@ SectorCache::GetPage(::sec_t key) ynothrow
 				throw std::runtime_error(
 					"Failed reading on creating file system cache entry.");
 			return entry;
-		}))
-	CatchExpr(std::exception& e, YCL_TraceRaw(Warning,
-		"FATMount failure[%s]: %s", typeid(e).name(), e.what()))
-	CatchExpr(..., YCL_TraceRaw(Emergent,
-		"Unknown exception found when getting file system cache page."))
-	return {};
+		});
+	});
 }
 
 bool
@@ -759,7 +759,6 @@ DEntry::DEntry(Partition& part, const char* path, const char* path_end)
 							found = true;
 					}
 					CatchIgnore(...)
-					{}
 				if(found && !Data.IsDirectory() && next_pos)
 					found = {};
 			}while(!found);
@@ -1094,9 +1093,9 @@ Partition::Partition(byte* sec_buf, Disc d, size_t pages,
 }
 Partition::~Partition()
 {
-	try
-	{
+	YSLib::FilterExceptions([this]{
 		lock_guard<mutex> lck(GetMutexRef());
+
 		for(const auto& file : open_files)
 		{
 			// XXX: Flush after exceptions occurred?
@@ -1108,11 +1107,7 @@ Partition::~Partition()
 		}
 		if(GetFileSystemType() == FileSystemType::FAT32)
 			WriteFSInfo();
-	}
-	CatchExpr(std::exception& e, YCL_TraceRaw(Warning,
-		"Partition::~Partition failure[%s]: %s", typeid(e).name(), e.what()))
-	CatchExpr(..., YCL_TraceRaw(Emergent,
-		"Unknown exception found @ Partition::~Partition."))
+	}, "Partition::~Partition", Warning);
 }
 
 void
@@ -2328,7 +2323,7 @@ op_file_locked(::_reent* r, int fd, _func f, _fCheck check = check_true)
 
 			return f(file);
 		}
-		throw_system_error(EBADF);
+		throw_system_error(errc::bad_file_descriptor);
 	});
 }
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2822
+\version r2824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-07-17 03:24 +0800
+	2015-08-22 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,6 @@
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_FileIO // for FileOperationFailure;
 #include <cstring> // for std::strchr;
-#include <fcntl.h>
 #include <cwchar> // for std::wctob;
 #include <cwctype> // for std::towupper, std::towlower;
 #include <numeric> // for std::accumulate;
@@ -92,7 +91,7 @@ FetchNodeCategoryFromStat(_type& st)
 	if(m & S_IFSOCK)
 		res |= NodeCategory::Socket;
 #endif
-	return res;;
+	return res;
 }
 
 } // unnamed namespace;

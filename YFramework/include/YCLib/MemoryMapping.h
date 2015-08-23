@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r125
+\version r129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2015-04-24 05:49 +0800
+	2015-08-22 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,10 @@ private:
 	byte* addr;
 
 public:
-	//! \throw FileOperationFailure 映射失败。
+	/*!
+	\throw FileOperationFailure 文件打开失败。
+	\throw std::runtime_error 映射失败。
+	*/
 	//@{
 	//! \since build 412
 	explicit

@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3905
+\version r3906
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-07-23 14:20 +0800
+	2015-08-20 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -480,7 +480,7 @@ public:
 		if(!ptr)
 			ptr = PointerType(new DependentType());
 		else if(!ptr.unique())
-			ptr = PointerType(CloneNonpolymorphic(ptr));
+			ptr = PointerType(ystdex::clone_monomorphic(ptr));
 		return Nonnull(ptr);
 	}
 
