@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2312
+\version r2335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-08-19 16:04 +0800
+	2015-08-20 21:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,33 +389,6 @@ ClearSequence(_tOut dst, size_t n) ynothrowv
 		"Invalid type found.");
 
 	std::fill_n(dst, n, _type());
-}
-
-
-/*!
-\brief 使用 \c new 复制指定指针指向的对象。
-\since build 240
-*/
-template<typename _type>
-yconstfn auto
-CloneNonpolymorphic(const _type& p) -> decltype(&*p)
-{
-	return new ystdex::remove_reference_t<decltype(*p)>(*p);
-}
-
-/*!
-\brief 使用 \c clone 成员函数复制指定指针指向的多态类类型对象。
-\pre 断言： \c std::is_polymorphic<decltype(*p)>::value 。
-\since build 240
-*/
-template<class _type>
-auto
-ClonePolymorphic(const _type& p) -> decltype(&*p)
-{
-	static_assert(std::is_polymorphic<ystdex::remove_reference_t<decltype(*p)>>
-		(), "Non-polymorphic class type found.");
-
-	return p->clone();
 }
 
 

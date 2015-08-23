@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r417
+\version r427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2015-05-04 18:02 +0800
+	2015-08-23 06:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -255,17 +255,20 @@ NativeHost::RunOnUIThread(std::function<void()> f)
 	YTraceDe(Debug, "RunOnUIThread called.");
 
 	lock_guard<mutex> lck(msg_mutex);
-	int res;
-	const int ret(1);
 
 	msg_task = f;
-	while(res = ::write(*msg_pipe.second.get(), &ret, sizeof(int)),
-		res < 0 && errno == EINTR)
-		;
+
+	int res(platform::RetryOnError([this]{
+		const int ret(1);
+
+		return ::write(*msg_pipe.second.get(), &ret, sizeof(int));
+	}, errno, EINTR));
+
 	if(res < 0)
-		YTraceDe(Warning, "Failed writing file descriptor.");
-	else if(res != sizeof(int))
-		YTraceDe(Warning, "Truncated writing with result %d.", res);
+		YTraceDe(Warning, "Failed writing file descriptor, error = %d.",
+			errno);
+	else if(size_t(res) != sizeof(int))
+		YTraceDe(Warning, "Truncated writing with result %d.", int(res));
 }
 
 void*

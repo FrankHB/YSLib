@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r675
+\version r794
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-08-20 13:39 +0800
+	2015-08-23 21:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,9 @@
 #include YFM_YCLib_FileIO
 #include YFM_YCLib_Debug // for Nonnull;
 #include YFM_YCLib_Reference // for unique_ptr;
-#include <fcntl.h> // for O_RDONLY, ::fcntl, F_GETFL, O_NONBLOCK;
+#include YFM_YCLib_NativeAPI // for O_RDONLY, ::close, ::fcntl, F_GETFL,
+//	O_NONBLOCK, ::ftruncate, 'S_*', ::getcwd;
 #if YCL_DS
-#	include YFM_YCLib_NativeAPI // for ::close, ::getcwd, ::ftruncate;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing
 
@@ -48,7 +48,6 @@ _EXFUN(popen, (const char*, const char*));
 //! \since build 475
 using namespace CHRLib;
 #elif YCL_Win32
-#	include YFM_YCLib_NativeAPI // for 'S_*';
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
 // At least one headers of <stdlib.h>, <stdio.h>, <Windows.h>, <Windef.h>
 //	(and probably more) should have been included to make the MinGW-W64 macro
@@ -70,7 +69,6 @@ using platform_ex::UTF8ToWCS;
 //! \since build 549
 using platform_ex::DirectoryFindData;
 #elif YCL_API_POSIXFileSystem
-#	include YFM_YCLib_NativeAPI // for ::close, ::getcwd, ::ftruncate;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
@@ -114,6 +112,45 @@ GetFileModificationTimeOfImpl(const _tChar* filename)
 	throw FileOperationFailure(errno, std::generic_category(),
 		"Failed getting file time of \"" + ensure_str(filename) + "\".");
 }
+
+//! \since build 625
+//@{
+template<typename _func>
+auto
+RetryOnInterrupted(_func f) -> decltype(RetryOnError(f, errno, EINTR))
+{
+	return RetryOnError(f, errno, EINTR);
+}
+
+template<typename _func, typename _tBuf>
+size_t
+SafeReadWrite(_func f, int fd, _tBuf buf, size_t nbyte) ynothrowv
+{
+	return size_t(RetryOnInterrupted([&]{
+		return f(fd, buf, nbyte);
+	}));
+}
+
+template<int _vErr, typename _func, typename _tByteBuf>
+_tByteBuf
+FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
+{
+	while(nbyte > 0)
+	{
+		const auto n(f(ptr, nbyte));
+
+		if(n == size_t(-1))
+			break;
+		if(n == 0)
+		{
+			errno = _vErr;
+			break;
+		}
+		yunseq(ptr += n, nbyte -= n);
+	}
+	return ptr;
+}
+//@}
 
 } // unnamed namespace;
 
@@ -167,7 +204,6 @@ FileDescriptor::GetSize()
 	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(desc)), &sz) != 0
 		&& YB_LIKELY(sz.QuadPart >= 0))
 		return std::uint64_t(sz.QuadPart);
-	// TODO: Get correct error condition.
 	throw FileOperationFailure(platform_ex::GetErrnoFromWin32(),
 		std::generic_category(), "Failed getting file size.");
 #else
@@ -183,6 +219,22 @@ FileDescriptor::GetSize()
 #endif
 }
 
+bool
+FileDescriptor::SetBlocking() const ynothrow
+{
+#if !YCL_Win32
+	// NOTE: Read-modify-write operation is need for compatibility.
+	//	See. http://pubs.opengroup.org/onlinepubs/9699919799/ .
+	const int flags(::fcntl(desc, F_GETFL));
+
+	if(flags != -1 && flags & O_NONBLOCK)
+	{
+		::fcntl(desc, F_SETFL, flags & ~O_NONBLOCK);
+		return true;
+	}
+#endif
+	return {};
+}
 int
 FileDescriptor::SetMode(int mode) const ynothrow
 {
@@ -201,6 +253,8 @@ bool
 FileDescriptor::SetNonblocking() const ynothrow
 {
 #if !YCL_Win32
+	// NOTE: Read-modify-write operation is need for compatibility.
+	//	See. http://pubs.opengroup.org/onlinepubs/9699919799/ .
 	const int flags(::fcntl(desc, F_GETFL));
 
 	if(flags != -1 && !(flags & O_NONBLOCK))
@@ -210,6 +264,47 @@ FileDescriptor::SetNonblocking() const ynothrow
 	}
 #endif
 	return {};
+}
+bool
+FileDescriptor::SetSize(size_t size) ynothrow
+{
+#if YCL_Win32
+	return ::_chsize(desc, long(size)) == 0;
+#else
+	return ::ftruncate(desc, ::off_t(size)) == 0;
+#endif
+}
+
+size_t
+FileDescriptor::FullRead(void* buf, size_t nbyte) ynothrowv
+{
+	using namespace std::placeholders;
+	const auto p_buf(static_cast<char*>(buf));
+
+	return size_t(FullReadWrite<0>(
+		std::bind(&FileDescriptor::Read, this, _1, _2), p_buf, nbyte) - p_buf);
+}
+
+size_t
+FileDescriptor::FullWrite(const void* buf, size_t nbyte) ynothrowv
+{
+	using namespace std::placeholders;
+	const auto p_buf(static_cast<const char*>(buf));
+
+	return size_t(FullReadWrite<ENOSPC>(std::bind(&FileDescriptor::Write, this,
+		_1, _2), p_buf, nbyte) - p_buf);
+}
+
+size_t
+FileDescriptor::Read(void* buf, size_t nbyte) ynothrowv
+{
+	return SafeReadWrite(::read, desc, buf, nbyte);
+}
+
+size_t
+FileDescriptor::Write(const void* buf, size_t nbyte) ynothrowv
+{
+	return SafeReadWrite(::write, desc, buf, nbyte);
 }
 
 
@@ -240,13 +335,9 @@ SetBinaryIO(std::FILE* stream) ynothrow
 int
 TryClose(std::FILE* fp) ynothrow
 {
-	int err = 0;
-
-	errno = 0;
-	do
-		err = std::fclose(fp);
-	while(err != 0 && errno == EINTR);
-	return err;
+	return RetryOnInterrupted([=]{
+		return std::fclose(fp);
+	});
 }
 
 
@@ -507,7 +598,6 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow
 	return {};
 }
 
-//! \since build 476
 #define YCL_Impl_FileSystem_ufunc_1(_n) \
 bool \
 _n(const char* path) ynothrow \
@@ -549,16 +639,6 @@ YCL_Impl_FileSystem_ufunc(uremove, std::remove, ::_wremove)
 #undef YCL_Impl_FileSystem_ufunc_2
 #undef YCL_Impl_FileSystem_ufunc
 
-bool
-truncate(std::FILE* fp, size_t size) ynothrow
-{
-#if YCL_Win32
-	return ::_chsize(::_fileno(fp), long(size)) == 0;
-#else
-	return ::ftruncate(fileno(fp), ::off_t(size)) == 0;
-#endif
-}
-
 
 ImplDeDtor(FileOperationFailure)
 
@@ -566,15 +646,7 @@ ImplDeDtor(FileOperationFailure)
 std::chrono::nanoseconds
 GetFileModificationTimeOf(std::FILE* fp)
 {
-	YAssertNonnull(fp);
-
-	return FileDescriptor(
-#if YCL_Win32
-		::_fileno
-#else
-		fileno
-#endif
-		(fp)).GetModificationTime();
+	return FileDescriptor(fp).GetModificationTime();
 }
 std::chrono::nanoseconds
 GetFileModificationTimeOf(const char* filename)
@@ -590,15 +662,7 @@ GetFileModificationTimeOf(const char16_t* filename)
 std::uint64_t
 GetFileSizeOf(std::FILE* fp)
 {
-	YAssertNonnull(fp);
-
-	return FileDescriptor(
-#if YCL_Win32
-		::_fileno
-#else
-		fileno
-#endif
-		(fp)).GetSize();
+	return FileDescriptor(fp).GetSize();
 }
 
 } // namespace platform;

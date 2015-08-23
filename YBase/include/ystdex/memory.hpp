@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1158
+\version r1188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-07-23 13:39 +0800
+	2015-08-20 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -346,9 +346,44 @@ public:
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		std::allocator_traits<_tAlloc>::deallocate(alloc_ref, p, size);
+		traits::deallocate(alloc_ref, p, size);
 	}
 };
+
+
+//! \since build 625
+//@{
+//! \brief 使用分配器复制指定指针指向的对象。
+template<typename _type, class _tAlloc
+	= std::allocator<remove_reference_t<decltype(*std::declval<_type>())>>>
+auto
+clone_monomorphic(const _type& p, _tAlloc&& a = _tAlloc())
+	-> decltype(std::addressof(*p))
+{
+	using traits = std::allocator_traits<_tAlloc>;
+	using value_type = typename traits::value_type;
+
+	auto p_allocated(traits::allocate(a, sizeof(value_type)));
+	const auto p_storage(std::addressof(*p_allocated));
+
+	traits::construct(a, p_storage, *p);
+	return p_storage;
+}
+
+/*!
+\brief 使用 \c clone 成员函数复制指定指针指向的多态类类型对象。
+\pre 断言： <tt>std::is_polymorphic<remove_reference_t(decltype(*p))>()</tt> 。
+*/
+template<class _type>
+auto
+clone_polymorphic(const _type& p) -> decltype(std::addressof(*p))
+{
+	static_assert(std::is_polymorphic<remove_reference_t<decltype(*p)>>(),
+		"Non-polymorphic class type found.");
+
+	return p->clone();
+}
+//@}
 
 
 /*!	\defgroup get_raw Get get_raw Pointers

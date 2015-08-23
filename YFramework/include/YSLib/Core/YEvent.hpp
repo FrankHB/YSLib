@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5024
+\version r5025
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-05-29 19:31 +0800
+	2015-08-20 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -886,7 +886,7 @@ public:
 	\brief 复制构造：深复制。
 	*/
 	GEventPointerWrapper(const GEventPointerWrapper& item)
-		: ptr(ClonePolymorphic(item.ptr))
+		: ptr(ystdex::clone_polymorphic(item.ptr))
 	{}
 	DefDeMoveCtor(GEventPointerWrapper)
 

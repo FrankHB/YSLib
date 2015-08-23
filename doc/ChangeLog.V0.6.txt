@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r2673
+\version r2750
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-08-20 13:44 +0800
+	2015-08-23 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,84 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ "function templates %(CloneNonpolymorphic, ClonePolymorphic)"
+				@ %Core.YCoreUtilities -> "%(clone_monomorphic, \
+				clone_polymorphic)" @ %YBase.YStandardEx.Memory,
+			- 'using platform::truncate;' @ %Adaptor.YAdaptor
+		),
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				+ "function %SetBlocking" @ "class %FileDescription",
+				/ "function %truncate"
+					-> "member function %FileDescriptor::SetSize" $dep_From
+					%YSLib.Adaptor.YAdaptor,
+				/ @ "class %FileDescriptor" $=
+				(
+					+ 'ynothrow' @ "function %operator*",
+					+ "2 functions %operator-> returning 'this'",
+						// To make %operator-> work when %FileDescriptor is \
+							used as %pointer as %unique_ptr, etc.
+					+ "functions %((Read; FullRead), (Write; FullWrite))"
+				),
+				/ DLDI "simplified function %TryClose",
+				/ $impl @ "function %(GetFileSizeOf, GetFileModificationTimeOf)
+					with %std::FILE* parameter" $=
+				(
+					/ "simplified wihtout conditional inclusion",
+					- "assertion for non null parameter"
+						// Error would be handled by underlying \
+							%FileDescriptor.
+				)
+			),
+			/ DLDI ^ '< 0' ~ '== -1' @ "%uopen failure check"
+				@ "constructor %MappedFile" @ %MemoryMapping,
+			/ @ "function %MakePipe" @ 'YCL_API_Has_unistd_h' @ %Host $=
+			(
+				^ $dev $impl "%FileDescriptor::SetNonblocking";
+				* DLDI "strict POSIX compatibility for future flags values"
+					$since b553,
+				* "broken basic exception guarantee" $since b553
+					// Handle might leak when throwing.
+			),
+			+ "alias %platform::ssize_t" @ %NativeAPI,
+			/ DLDI "all including <fcntl.h>" ^ %NativeAPI,
+			* "missing error handling for %::read" @ "platform %DS"
+				@ "constructor %MappedFile" @ %MemoryMapping $since b324
+				$= (+ "throwing %std::runtime_error on reading error"),
+			+ "function template %RetryOnError" @ %YCommon,
+		),
+		/ $impl %'YCLib_(DS)'.DSIO $=
+		(
+			/ "simplified" ("destructor %FAT::Partition"
+				^ "%YSLib::FilterExceptions", "(member function \
+				%SectorCache::GetPage" ^ "%YSLib::TryInvoke")
+				~ "handling with custom exception message",
+			/ DLD @ "device table operation" ^ "%errc::bad_file_descriptor"
+				~ "%EBADF"
+		),
+		/ @ "member function %NativeHost::RunOnUIThread"
+			@ %'Helper_(Android)'.AndroidHost $=
+		(
+			(
+			/ $impl ^ ("%RetryOnError" @ %YCLib.YCommon);
+			* $comp "overread when old value of %errno is %EINTR" $since b553
+			),
+			+ "traced %errno",
+			/ DLDI ^ "explicitly cast for integer types"
+		)
+	),
+	/ DLDI "simplified" @ "%allocator_delete::operator()"
+		@ %YBase.YStandardEx.Memory ^ 'traits'
+),
+
+b624
 (
 	/ %YBase.YStandardEx $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r961
+\version r1043
 \author FrankHB <frankhb1989@gmail.com>
-\since build 615
+\since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-08-20 13:26 +0800
+	2015-08-23 15:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,10 +90,23 @@ public:
 		: desc(-1)
 	{}
 
-	PDefHOp(int, *, )
+	//! \since build 625
+	//@{
+	PDefHOp(int, *, ) ynothrow
 		ImplRet(desc)
 
+	PDefHOp(FileDescriptor*, ->, ) ynothrow
+		ImplRet(this)
+	PDefHOp(const FileDescriptor*, ->, ) const ynothrow
+		ImplRet(this)
+	//@}
+
 	explicit DefCvt(const ynothrow, bool, desc != -1)
+
+	friend PDefHOp(bool, ==, const FileDescriptor& x, const FileDescriptor& y)
+		ImplRet(x.desc == y.desc)
+	friend PDefHOp(bool, !=, const FileDescriptor& x, const FileDescriptor& y)
+		ImplRet(x.desc != y.desc)
 
 	//! \since build 624
 	//@{
@@ -114,6 +127,15 @@ public:
 	GetSize();
 
 	/*!
+	\brief 设置阻塞模式。
+	\note 仅在非 Windows 平台有效。
+	\note 可能设置 \c errno 。
+	\return 是否进行了设置。
+	\since build 625
+	*/
+	bool
+	SetBlocking() const ynothrow;
+	/*!
 	\brief 设置模式。
 	\note 参数和返回值意义和语义同 \c setmode 函数，在 Windows 以外的平台无作用。
 	\since build 565
@@ -122,18 +144,62 @@ public:
 	SetMode(int) const ynothrow;
 	/*!
 	\brief 设置非阻塞模式。
-	\note 仅在非 Windows 平台有效。
+	\note 仅在 POSIX 平台有效。
+	\note 对不支持非阻塞的平台， POSIX 未指定文件描述符是否忽略 \c O_NONBLOCK 。
 	\note 可能设置 \c errno 。
 	\return 是否进行了设置。
+	\see http://pubs.opengroup.org/onlinepubs/9699919799/ 。
 	*/
 	bool
 	SetNonblocking() const ynothrow;
 	//@}
+	//! \since build 625
+	//@{
+	/*!
+	\brief 调整文件至指定长度。
+	\pre 指定文件需已经打开并可写。
+	\note 不改变文件读写位置。
 
-	friend PDefHOp(bool, ==, const FileDescriptor& x, const FileDescriptor& y)
-		ImplRet(x.desc == y.desc)
-	friend PDefHOp(bool, !=, const FileDescriptor& x, const FileDescriptor& y)
-		ImplRet(x.desc != y.desc)
+	若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
+	*/
+	bool
+	SetSize(size_t) ynothrow;
+
+	//! \note 每次读写首先清除 \c errno ；读写时遇 \c EINTR 时继续。
+	//@{
+	/*!
+	\brief 循环读写文件。
+	*/
+	//@{
+	/*!
+	\note 每次读 0 字节时设置 \c errno 为 0 。
+	\sa Read
+	*/
+	YB_NONNULL(2) size_t
+	FullRead(void*, size_t) ynothrowv;
+
+	/*
+	\note 每次写 0 字节时设置 \c errno 为 ENOSPC 。
+	\sa Write
+	*/
+	YB_NONNULL(2) size_t
+	FullWrite(const void*, size_t) ynothrowv;
+	//@}
+
+	/*!
+	\brief 读写文件。
+	\note 首先清除 \c errno 。
+	\return 若发生错误为 size_t(-1) ，否则为读取的字节数。
+	*/
+	//@{
+	YB_NONNULL(2) size_t
+	Read(void*, size_t) ynothrowv;
+
+	YB_NONNULL(2) size_t
+	Write(const void*, size_t) ynothrowv;
+	//@}
+	//@}
+	//@}
 };
 
 
@@ -162,6 +228,7 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 /*!
 \brief 尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
 \return 非 \c EINTR 的错误。
+\note 首先清除 \c errno ；遇 \c EINTR 时重试。
 \note 使用 \c std::fclose 关闭流。
 \since build 616
 */
@@ -179,7 +246,10 @@ TryClose(std::FILE*) ynothrow;
 YF_API int
 omode_conv(std::ios_base::openmode);
 
-//! \note 扩展：不忽略二进制模式。
+/*!
+\note 扩展：不忽略二进制模式。
+\note POSIX 平台下同 omode_conv 。
+*/
 YF_API int
 omode_convb(std::ios_base::openmode);
 //@}
@@ -360,17 +430,6 @@ uunlink(const char*) ynothrow;
 */
 YF_API YB_NONNULL(1) bool
 uremove(const char*) ynothrow;
-
-/*!
-\brief 截断文件至指定长度。
-\pre 指定文件需已经打开并可写。
-\note 不改变文件读写位置。
-\since build 341
-
-若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
-*/
-YF_API YB_NONNULL(1) bool
-truncate(std::FILE*, size_t) ynothrow;
 //@}
 
 
@@ -842,10 +901,10 @@ public:
 \since build 544
 */
 //@{
-//! \pre 断言：参数非空。
-//@{
 YF_API YB_NONNULL(1) std::chrono::nanoseconds
 GetFileModificationTimeOf(std::FILE*);
+//! \pre 断言：参数非空。
+//@{
 YF_API YB_NONNULL(1) std::chrono::nanoseconds
 GetFileModificationTimeOf(const char*);
 YF_API YB_NONNULL(1) std::chrono::nanoseconds
@@ -862,7 +921,6 @@ GetFileModificationTimeOf(const _tString& str)
 //@}
 
 /*!
-\pre 断言：参数非空。
 \excption FileOperationFailure 参数无效或文件大小查询失败。
 \sa FileDescriptor::GetSize
 \since build 475
