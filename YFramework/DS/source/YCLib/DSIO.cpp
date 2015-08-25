@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2530
+\version r2549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-08-23 02:51 +0800
+	2015-08-25 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1488,25 +1488,25 @@ Partition::StatFromEntry(const EntryData& data, struct ::stat& st) const
 	const auto dst(data.data());
 
 	yunseq(
-		st.st_dev = disc.GetType(),
-		// NOTE: The file serial number is the start cluster.
-		st.st_ino = ::ino_t(EntryGetCluster(data)),
-		st.st_mode = (data.IsDirectory() ? S_IFDIR : S_IFREG)
-			| (S_IRUSR | S_IRGRP | S_IROTH) | (data.IsWritable()
-			? (S_IWUSR | S_IWGRP | S_IWOTH) : 0),
-		// NOTE: Always one hard link on a FAT file.
-		st.st_nlink = 1,
-		// NOTE: Faked for FAT.
-		st.st_uid = 1, st.st_gid = 2,
-		st.st_size = read_uint_le<32>(dst + EntryData::FileSize),
-		st.st_atime
-			= ConvertFileTime(read_uint_le<16>(dst + EntryData::ADate), 0),
-		st.st_spare1 = 0, st.st_mtime = ConvertFileTime(read_uint_le<16>(
-			dst + EntryData::MDate), read_uint_le<16>(dst + EntryData::MTime)),
-		st.st_spare2 = 0, st.st_ctime = ConvertFileTime(read_uint_le<16>(
-			dst + EntryData::CDate), read_uint_le<16>(dst + EntryData::CTime)),
-		st.st_spare3 = 0, st.st_blksize = GetBytesPerSector(),
-		st.st_spare4[0] = 0, st.st_spare4[1] = 0
+	st.st_dev = disc.GetType(),
+	// NOTE: The file serial number is the start cluster.
+	st.st_ino = ::ino_t(EntryGetCluster(data)),
+	st.st_mode = mode_t(data.IsDirectory() ? Mode::Directory
+		: Mode::Regular) | mode_t(Mode::Read)
+		| (data.IsWritable() ? mode_t(Mode::Write) : mode_t()),
+	// NOTE: Always one hard link on a FAT file.
+	st.st_nlink = 1,
+	// NOTE: Faked for FAT.
+	st.st_uid = 1, st.st_gid = 2,
+	st.st_size = read_uint_le<32>(dst + EntryData::FileSize),
+	st.st_atime
+		= ConvertFileTime(read_uint_le<16>(dst + EntryData::ADate), 0),
+	st.st_spare1 = 0, st.st_mtime = ConvertFileTime(read_uint_le<16>(
+		dst + EntryData::MDate), read_uint_le<16>(dst + EntryData::MTime)),
+	st.st_spare2 = 0, st.st_ctime = ConvertFileTime(read_uint_le<16>(
+		dst + EntryData::CDate), read_uint_le<16>(dst + EntryData::CTime)),
+	st.st_spare3 = 0, st.st_blksize = GetBytesPerSector(),
+	st.st_spare4[0] = 0, st.st_spare4[1] = 0
 	);
 
 	const auto bps(GetBytesPerSector());

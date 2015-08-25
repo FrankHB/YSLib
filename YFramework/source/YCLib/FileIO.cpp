@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r794
+\version r827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-08-23 21:50 +0800
+	2015-08-25 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,6 +76,8 @@ using platform_ex::DirectoryFindData;
 
 //! \since build 475
 using namespace CHRLib;
+#else
+#	error "Unsupported platform found."
 #endif
 
 namespace platform
@@ -96,8 +98,6 @@ ensure_str(const char16_t* s)
 	return platform_ex::WCSToMBCS(reinterpret_cast<const wchar_t*>(s));
 #elif YCL_API_POSIXFileSystem
 	return MakeMBCS(s);
-#else
-#	error "Unsupported platform found."
 #endif
 }
 
@@ -308,16 +308,15 @@ FileDescriptor::Write(const void* buf, size_t nbyte) ynothrowv
 }
 
 
-int
+mode_t
 GetDefaultPermissionMode() ynothrow
 {
 #if YCL_Win32
-	return S_IREAD | S_IWRITE;
 	// XXX: For compatibility with newer version of MSVCRT, no %_umask call
 	//	would be considered. See https://msdn.microsoft.com/en-us/library/z0kc8e3z.aspx .
-//	return S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH;
+	return mode_t(Mode::UserReadWrite);
 #else
-	return S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+	return mode_t(Mode::UserReadWrite | Mode::GroupReadWrite | Mode::OtherRead);
 #endif
 }
 
@@ -411,44 +410,24 @@ uaccess(const char16_t* path, int amode) ynothrow
 }
 
 int
-uopen(const char* filename, int oflag) ynothrow
+uopen(const char* filename, int oflag, mode_t pmode) ynothrow
 {
 	YAssertNonnull(filename);
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wopen(UTF8ToWCS(filename).c_str(), oflag))
-	return -1;
-#else
-	return ::open(filename, oflag);
-#endif
-}
-int
-uopen(const char* filename, int oflag, int pmode) ynothrow
-{
-	YAssertNonnull(filename);
-#if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wopen(UTF8ToWCS(filename).c_str(), oflag, pmode))
+	YCL_Impl_RetTryCatchAll(::_wopen(UTF8ToWCS(filename).c_str(), oflag,
+		int(pmode)))
 	return -1;
 #else
 	return ::open(filename, oflag, pmode);
 #endif
 }
 int
-uopen(const char16_t* filename, int oflag) ynothrow
+uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrow
 {
 	YAssertNonnull(filename);
 #if YCL_Win32
-	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag);
-#else
-	YCL_Impl_RetTryCatchAll(::open(MakeMBCS(filename).c_str(), oflag))
-	return -1;
-#endif
-}
-int
-uopen(const char16_t* filename, int oflag, int pmode) ynothrow
-{
-	YAssertNonnull(filename);
-#if YCL_Win32
-	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag, pmode);
+	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag,
+		int(pmode));
 #else
 	YCL_Impl_RetTryCatchAll(::open(MakeMBCS(filename).c_str(), oflag, pmode))
 	return -1;
@@ -625,7 +604,7 @@ YCL_Impl_FileSystem_ufunc_1(umkdir)
 #if YCL_Win32
 	YCL_Impl_FileSystem_ufunc_2(_unused_, ::_wmkdir)
 #else
-	return ::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0;
+	return ::mkdir(path, mode_t(Mode::Access)) == 0;
 }
 #endif
 

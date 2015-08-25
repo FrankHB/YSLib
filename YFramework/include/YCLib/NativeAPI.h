@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r908
+\version r1046
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-08-22 19:24 +0800
+	2015-08-25 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,14 +47,6 @@
 \note Windows API 冲突时显式使用带 A 或 W 的全局函数名称。
 \since build 381
 */
-
-
-/*!
-\brief 平台替代命名空间。
-\since build 298
-*/
-namespace platform_replace
-{} // namespace platform_replace;
 
 
 #if YCL_API_Has_dirent_h
@@ -157,8 +149,7 @@ UninitializeFileSystem() ynothrow;
 #	endif
 
 #	include <Windows.h>
-#	include <direct.h> // for ::_mkdir;
-#	include <sys/stat.h>
+#	include <direct.h> // for ::_wmkdir;
 
 //! \ingroup name_collision_workarounds
 //@{
@@ -178,89 +169,8 @@ UninitializeFileSystem() ynothrow;
 #	undef PostMessage
 //@}
 
-
-#	ifndef S_IFIFO
-#		define S_IFIFO _S_IFIFO
-#	endif
-
-#	ifndef S_IFMT
-#		define S_IFMT _S_IFMT
-#	endif
-#	ifndef S_IFDIR
-#		define S_IFDIR _S_IFDIR
-#	endif
-#	ifndef S_IFCHR
-#		define S_IFCHR _S_IFCHR
-#	endif
-#	ifndef S_IFREG
-#		define S_IFREG _S_IFREG
-#	endif
-
-#	ifndef S_IREAD
-#		define S_IREAD _S_IREAD
-#	endif
-#	ifndef S_IWRITE
-#		define S_IWRITE _S_IWRITE
-#	endif
-#	ifndef S_IEXEC
-#		define S_IEXEC _S_IEXEC
-#	endif
-
-#	ifndef S_IRGRP
-#		define S_IRGRP	(_S_IREAD >> 3)
-#	endif
-#	ifndef S_IWGRP
-#		define S_IWGRP	(_S_IWRITE >> 3)
-#	endif
-#	ifndef S_IXGRP
-#		define S_IXGRP (_S_IEXEC >> 3)
-#	endif
-#	ifndef S_IRWXG
-#		define	S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
-#	endif
-#	ifndef S_IROTH
-#		define S_IROTH	(S_IRGRP >> 3)
-#	endif
-#	ifndef S_IWOTH
-#		define S_IWOTH	(S_IWGRP >> 3)
-#	endif
-#	ifndef S_IXOTH
-#		define S_IXOTH (S_IXGRP >> 3)
-#	endif
-#	ifndef S_IRWXO
-#		define	S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
-#	endif
-
-
-namespace platform_replace
-{
-
-#	undef mkdir
-/*!
-\brief 修正 MinGW 中的 mkdir 参数问题。
-\note 忽略第二参数。
-\since build 521
-*/
-inline int
-mkdir(char const* dir, ::mode_t = 0777)
-{
-	return ::_mkdir(dir);
-}
-
-} // namespace platform_replace;
-
-
 extern "C"
 {
-
-/*!
-\def mkdir
-\brief 修正 MinGW 中的 mkdir 参数问题。
-\sa platform_replace::makedir
-\since build 298
-*/
-#	define mkdir platform_replace::makedir
-
 
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
 //! \since build 465
@@ -289,6 +199,75 @@ inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
 
 } // namespace platform_ex;
 
+#endif
+
+#if YCL_Win32 || YCL_API_POSIXFileSystem
+#	include <sys/stat.h>
+
+namespace platform
+{
+
+//! \since build 626
+//@{
+enum class Mode
+#	if YCL_Win32
+	: unsigned short
+#	else
+	: ::mode_t
+#	endif
+{
+#	if YCL_Win32
+	FileType = _S_IFMT,
+	Directory = _S_IFDIR,
+	Character = _S_IFCHR,
+	FIFO = _S_IFIFO,
+	Regular = _S_IFREG,
+	UserRead = _S_IREAD,
+	UserWrite = _S_IWRITE,
+	UserExecute = _S_IEXEC,
+	GroupRead = _S_IREAD >> 3,
+	GroupWrite = _S_IWRITE >> 3,
+	GroupExecute = _S_IEXEC >> 3,
+	OtherRead = _S_IREAD >> 6,
+	OtherWrite = _S_IWRITE >> 6,
+	OtherExecute = _S_IEXEC >> 6,
+#	else
+	FileType = S_IFMT,
+	Directory = S_IFDIR,
+	Character = S_IFCHR,
+	Block = S_IFBLK,
+	Regular = S_IFREG,
+	Link = S_IFLNK,
+	Socket = S_IFSOCK,
+	FIFO = S_IFIFO,
+	UserRead = S_IRUSR,
+	UserWrite = S_IWUSR,
+	UserExecute = S_IXUSR,
+	GroupRead = S_IRGRP,
+	GroupWrite = S_IWGRP,
+	GroupExecute = S_IXGRP,
+	OtherRead = S_IROTH,
+	OtherWrite = S_IWOTH,
+	OtherExecute = S_IXOTH,
+#	endif
+	UserReadWrite = UserRead | UserWrite,
+	User = UserReadWrite | UserExecute,
+	GroupReadWrite = GroupRead | GroupWrite,
+	Group = GroupReadWrite | GroupExecute,
+	OtherReadWrite = OtherRead | OtherWrite,
+	Other = OtherReadWrite | OtherExecute,
+	Read = UserRead | GroupRead | OtherRead,
+	Write = UserWrite | GroupWrite | OtherWrite,
+	Execute = UserExecute | GroupExecute | OtherExecute,
+	ReadWrite = Read | Write,
+	Access = ReadWrite | Execute
+};
+
+//! \relates Mode
+DefBitmaskEnum(Mode)
+//@}
+
+} // namespace platform;
 #endif
 
 #endif

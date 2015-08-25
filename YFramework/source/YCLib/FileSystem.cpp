@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2824
+\version r2835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-08-22 19:32 +0800
+	2015-08-25 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileSystem
+#include YFM_YCLib_NativeAPI // for Mode;
 #include YFM_YCLib_FileIO // for FileOperationFailure;
 #include <cstring> // for std::strchr;
 #include <cwchar> // for std::wctob;
@@ -71,24 +72,26 @@ NodeCategory
 FetchNodeCategoryFromStat(_type& st)
 {
 	auto res(NodeCategory::Empty);
-	const auto m(st.st_mode & S_IFMT);
+	const auto m(Mode(st.st_mode) & Mode::FileType);
 
-	if(m & S_IFDIR)
+	if((m & Mode::Directory) == Mode::Directory)
 		res |= NodeCategory::Directory;
 #if !YCL_Win32
-	if(m & S_IFLNK)
+	if((m & Mode::Link) == Mode::Link)
 		res |= NodeCategory::Link;
 #endif
-	if(m & S_IFREG)
+	if((m & Mode::Regular) == Mode::Regular)
 		res |= NodeCategory::Regular;
-	if(YB_UNLIKELY(m & S_IFCHR))
+	if(YB_UNLIKELY((m & Mode::Character) == Mode::Character))
 		res |= NodeCategory::Character;
-	else if(YB_UNLIKELY(m & S_IFCHR))
+#if !YCL_Win32
+	else if(YB_UNLIKELY((m & Mode::Block) == Mode::Block))
 		res |= NodeCategory::Block;
-	if(YB_UNLIKELY(m & S_IFIFO))
+#endif
+	if(YB_UNLIKELY((m & Mode::FIFO) == Mode::FIFO))
 		res |= NodeCategory::FIFO;
 #if !YCL_Win32
-	if(m & S_IFSOCK)
+	if((m & Mode::Socket) == Mode::Socket)
 		res |= NodeCategory::Socket;
 #endif
 	return res;

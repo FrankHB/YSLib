@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r596
+\version r620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-07-18 00:21 +0800
+	2015-08-25 22:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
-#include YFM_YCLib_Container // for platform::string, platform::sfmt;
+#include YFM_YCLib_Container // for platform::string, std::ostream,
+//	platform::sfmt;
 #include YFM_YCLib_Mutex
 
 /*!	\defgroup diagnostic Diagnostic
@@ -145,12 +146,19 @@ public:
 	static bool
 	DefaultFilter(Level, Logger&) ynothrow;
 
-	/*!
-	\brief 默认发送器：使用 stderr 输出。
-	\pre 间接断言：第三参数非空。
-	*/
+	//! \pre 间接断言：第三参数非空。
+	//@{
+	//! \brief 默认发送器：使用 \c std::cerr 输出。
 	static YB_NONNULL(3) void
 	DefaultSendLog(Level, Logger&, const char*) ynothrowv;
+
+	/*!
+	\brief 默认发送器：使用 \c stderr 输出。
+	\since build 626
+	*/
+	static YB_NONNULL(3) void
+	DefaultSendLogToFile(Level, Logger&, const char*) ynothrowv;
+	//@}
 
 	/*!
 	\brief 转发等级和日志至发送器。
@@ -204,6 +212,20 @@ public:
 			TryExpr(DoLog(level, yforward(f)(yforward(args)...)))
 			CatchExpr(std::exception& e, DoLogException(level, e), throw)
 	}
+
+	/*!
+	\brief 默认发送器：使用第一参数指定的流输出。
+	\pre 间接断言：字符串参数非空。
+	\since build 626
+	*/
+	//@{
+	static YB_NONNULL(4) void
+	SendLog(std::ostream&, Level, Logger&, const char*) ynothrowv;
+
+	//! \pre 断言：流指针非空。
+	static YB_NONNULL(1, 4) void
+	SendLogToFile(std::FILE*, Level, Logger&, const char*) ynothrowv;
+	//@}
 };
 
 
@@ -295,7 +317,7 @@ namespace platform_ex
 若断言成功则为空操作，否则：
 在 Android 上用此函数包装 NDK 函数替代实现。
 在其它平台上：
-	在 Win32 上首先使用图形界面（消息框）提示断言失败。
+	在 Win32 上首先使用图形界面（消息框）提示断言失败。注意不适用于消息循环内部。
 		允许忽略并继续，否则终止程序。当选择中止时候首先发送 \c SIGABRT 信号。
 		忽略此过程的所有错误，包括所有被抛出的异常。若捕获异常则继续以下行为。
 	锁定公共日志记录器后调用 ystdex::yassert ，最终调用 std::terminate 终止程序。

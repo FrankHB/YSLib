@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1043
+\version r1092
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-08-23 15:19 +0800
+	2015-08-25 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <ystdex/string.hpp> // for ynothrow, ystdex::enable_for_string_class_t,
 //	std::uint64_t;
 #include <cstdio> // for std::FILE;
+#include YFM_YCLib_Reference // for unique_ptr;
 #include <ios> // for std::ios_base::sync_with_stdio;
 #include <fstream> // for std::filebuf;
 #if __GLIBCXX__
@@ -46,6 +47,18 @@
 
 namespace platform
 {
+
+/*!
+\brief 文件模式类型。
+\since build 626
+*/
+//@{
+#if YCL_Win32
+using mode_t = unsigned short;
+#else
+using mode_t = ::mode_t;
+#endif
+//@}
 
 /*!
 \brief 文件描述符包装类。
@@ -203,11 +216,15 @@ public:
 };
 
 
+//! \since build 626
+using UniqueFile = unique_ptr<FileDescriptor, FileDescriptor::Deleter>;
+
+
 /*!
 \brief 取默认权限。
-\since build 619
+\since build 626
 */
-YF_API YB_STATELESS int
+YF_API YB_STATELESS mode_t
 GetDefaultPermissionMode() ynothrow;
 
 /*!
@@ -219,6 +236,12 @@ GetDefaultPermissionMode() ynothrow;
 YF_API void
 SetBinaryIO(std::FILE*) ynothrow;
 
+/*!
+\warning 改变默认日志默认发送器前，不应使用 \c std::cerr 和 \c std::clog
+	等依赖 \c stderr 的流，以避免导致同步问题。
+\sa FetchCommonLogger
+\sa Logger::DefaultSendLog
+*/
 inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 	std::FILE* out = stdout, bool sync = {}) ynothrow
 	ImplExpr(SetBinaryIO(in), SetBinaryIO(out),
@@ -254,11 +277,12 @@ YF_API int
 omode_convb(std::ios_base::openmode);
 //@}
 
+//! \pre 断言：第一参数非空。
+//@{
 /*!
 \brief 测试路径可访问性。
 \param path 路径，意义同 POSIX <tt>::open</tt> 。
 \param amode 模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。 。
-\pre 断言：\c filename 。
 \note \c errno 在出错时会被设置，具体值由实现定义。
 \since build 549
 */
@@ -269,33 +293,26 @@ YF_API int
 uaccess(const char16_t* path, int amode) ynothrow;
 //@}
 
-//! \since build 324
-//@{
 /*!
-\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
+\param filename 文件名，意义同 POSIX \c ::open 。
 \param oflag 打开标识，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
-\pre 断言：\c filename 。
+\param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
+\since build 626
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
-//@{
 YF_API int
-uopen(const char* filename, int oflag) ynothrow;
-YF_API int
-uopen(const char* filename, int oflag, int pmode) ynothrow;
-//@}
+uopen(const char* filename, int oflag, mode_t pmode = 0) ynothrow;
 //! \brief 以 UCS-2 文件名无缓冲打开文件。
-//@{
 YF_API int
-uopen(const char16_t* filename, int oflag) ynothrow;
-//! \param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
-YF_API int
-uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
+uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrow;
 //@}
 
+//! \param filename 文件名，意义同 \c std::fopen 。
+//@{
 /*!
-\param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
-\pre 断言：<tt>filename && mode && *mode != 0</tt> 。
+\param mode 打开模式，基本语义同 ISO C11 ，具体行为取决于实现。
+\pre 断言：<tt>mode && *mode != 0</tt> 。
 */
 //@{
 /*!
@@ -304,14 +321,15 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
 */
 YF_API std::FILE*
 ufopen(const char* filename, const char* mode) ynothrow;
-//! \brief 以 UCS-2 文件名打开文件。
+/*!
+\brief 以 UCS-2 文件名打开文件。
+\since build 324
+*/
 YF_API std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 //@}
-
 /*!
 \param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
-\pre 断言：<tt>filename</tt> 。
 \since build 616
 */
 //@{
@@ -321,6 +339,7 @@ ufopen(const char* filename, std::ios_base::openmode mode) ynothrow;
 //! \brief 以 UCS-2 文件名打开文件。
 YF_API std::FILE*
 ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow;
+//@}
 //@}
 //@}
 

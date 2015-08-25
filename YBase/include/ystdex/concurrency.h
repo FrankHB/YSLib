@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r492
+\version r502
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-08-18 10:28 +0800
+	2015-08-25 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,6 +69,17 @@ using locked_ptr = threading::locked_ptr<_type, _tMutex, _tLock>;
 */
 YB_API std::string
 to_string(const std::thread::id&);
+
+/*!
+\brief 取当前线程标识的字符串表示。
+\sa ystdex::to_string
+\since build 626
+*/
+inline std::string
+get_this_thread_id()
+{
+	return ystdex::to_string(std::this_thread::get_id());
+}
 
 
 #	if !__GLIBCXX__ || (defined(_GLIBCXX_HAS_GTHREADS) \

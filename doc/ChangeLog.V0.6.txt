@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r2750
+\version r2854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-08-23 21:58 +0800
+	2015-08-25 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,109 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				(
+				+ "alias %mode_t";
+					// This is 'unsigned short' for %st_mode member of \
+						'_stat', etc. Note for '_wopen' the type of %pmode is \
+						'int'.
+				(
+				/ "merged all 4 functions %uopen to 2 functions" ^ "%mode_t";
+				* $comp "int as permission mode for %uopen" @ !"platform %Win32"
+					$orig (@ %FileSystem $since b324)
+				),
+				/ "return type" @ "function %GetDefaultPermissionMode"
+					-> "%mode_t" ~ 'int'
+				)
+				+ "alias %UniqueFile"
+			),
+			/ %Native $=
+			(
+				/ @ "platform %Win32" $=
+				(
+					- "macro %mkdir",
+					- '#undef mkdir';
+					* "wrong %mkdir call" $since b521
+					- "namespace %platform_replace"
+				),
+				/ @ "namespace %platform"
+					@ 'YCL_Win32 || YCL_API_POSIXFileSystem' $=
+				(
+					+ "enum class %Mode";
+					+ 'DefBitmaskEnum(Mode)'
+				),
+				- "all 16 'S_*' macros" @ "platform %YCL_Win32" $dep_from
+					"removal use of Win32 mode macro"
+			),
+			* @ "member function %HDirectory::GetNodeCategory" @ %FileSystem
+				$since b560 $=
+			(
+				// See http://sourceforge.net/p/mingw/bugs/1146/6 .
+				* "%NodeCategory::Block check for block file" $=
+				(
+					* "wrongly missing check" @ !"platform %Win32",
+					* "wrong check" @ "platform %Win32"
+						// It is not used in MSVCRT, even MinGW has 'S_ISBLK'.
+				),
+				* "strict POSIX.1-2013 compatibility for comparing file type"
+			),
+			/ %Debug $=
+			(
+				/ @ "class %Logger" $=
+				(
+					(
+					+ "static function %SendLog with %std::ostream parameter";
+					/ @ "static function %DefaultSendLog" $=
+					(
+						/ $impl "logging to %std::cerr" ~ "%stderr"
+							^ ("%SendLog", "%get_this_thread_id"
+							@ %YBase.YStandardEx.Concurrency),
+							// To be friend to %std::ios_base::sync_with_stdio.
+						* $re_ex(b591) $comp "exception not protected in try \
+							cluase when getting thread ID string" $since b579
+					)
+					),
+					+ "static functions %(SendLogToFile; DefaultSendLogToFile)"
+						// The old %stderr based stream output is now optional. 
+				),
+				* DLDI "%YF_Multithread check" $since b579
+					// There are currently only two option value supported, \
+						so directly cast to integer is a only bug of \
+						consistency of implementation.
+			)
+		),
+		+ 'ynothrow' @ "platform %DS" @ %'YCLib_(DS)'.DSVideo
+	),
+	/ "mode" ^ $dep_from ("%Mode" @ %Native) ~ "'S_I*' macros"
+		@ "platform %Win32" $effective @ %YCLib.(FileIO, FileSystem) $dep_to
+		"removal use of Win32 mode macro",
+	/ "mode" ^ $dep_from ("%Mode" @ %Native) ~ "'S_I*' macros"
+		@ !"platform %Win32" $effective @ %(YCLib.(FileIO, FileSystem,
+		MemoryMapping), 'YCLib_(DS)'.DSIO),
+	+ "inline function %get_this_thread_id" @ %YBase.YStandardEx.Concurrency,
+	* $comp "output on %stderr not synchronized after call of \
+		%platform::SetupBinaryStdIO" @ "function %::main"
+		@ %Tools.ProjectGenerator.Main $since b599 $dep_from
+		("%Logger::DefaultSendLog" @ %YFramework.YCLib.Debug),
+	/ %DereferenceOperation $=
+	(
+		- $revert(b589) "defaulted as deleted function template \
+			%is_undereferenceable for ('const std::atomic<_type>', \
+			'const volatile std::atomic<_type>')"
+		* "string ISO C++ code conformance" @ $since b589 $=
+			// According to ISO C++ [namespace.std], this leads to undefined \
+				behavior.
+			(- "declaration %std::atomic" @ "namespace %std")
+	)
+),
+
+b625
 (
 	/ %YFramework $=
 	(
@@ -72,7 +175,7 @@ $now
 			/ @ "function %MakePipe" @ 'YCL_API_Has_unistd_h' @ %Host $=
 			(
 				^ $dev $impl "%FileDescriptor::SetNonblocking";
-				* DLDI "strict POSIX compatibility for future flags values"
+				* DLDI "strict POSIX.1-2013 compatibility for future flags values"
 					$since b553,
 				* "broken basic exception guarantee" $since b553
 					// Handle might leak when throwing.
@@ -488,7 +591,7 @@ b621
 			@ %TextFile) ^ "%(fstream, std::istream_iterator<char>)"
 			~ "%(std::FILE, ystdex::ifile_iterator)" $dep_from
 			"removal of public sentry" $dep_to "stream I/O";
-		* $comp "strict ISO C/C++ code compatibility for %std::fseek call on binary \
+		* $comp "strict ISO C/C++ code conformance for %std::fseek call on binary \
 			stream" $since $before b132
 			// See $2015-08 @ %Documentation::Workflow::Annual2015.
 		),
