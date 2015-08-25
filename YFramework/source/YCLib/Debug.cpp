@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r545
+\version r631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-08-16 17:41 +0800
+	2015-08-16 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,6 @@
 #include YFM_YCLib_Debug
 #include YFM_YCLib_Input
 #include YFM_YCLib_Video // for platform::ColorSpace, platform::YConsoleInit;
-#include <cstdarg>
-#include <ystdex/string.hpp>
-#if YF_Multithread
-#	include <ystdex/concurrency.h>
-#endif
 #if YCL_DS
 #	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
 #elif YCL_Win32
@@ -42,6 +37,11 @@
 #elif YCL_Android
 #	include <android/log.h>
 #endif
+#if YF_Multithread == 1
+#	include <ystdex/concurrency.h>
+#endif
+#include <iostream> // for std::cerr;
+#include <cstdarg>
 
 namespace platform
 {
@@ -56,8 +56,31 @@ chk_null(const char* s)
 	return s && *s != char()? s : "<unknown>";
 }
 
-#if YCL_Android
+#if YF_Multithread == 1
+//! \since build 626
+std::string
+FetchCurrentThreadID() ynothrow
+{
+	TryRet(ystdex::get_this_thread_id())
+	// XXX: Nothing more can be done.
+	CatchIgnore(...)
+	return {};
+}
+#endif
 
+#if YCL_DS
+//! \since build 626
+bool
+PrepareLog(Logger::Level lv) ynothrow
+{
+	if(lv <= Descriptions::Alert)
+	{
+		platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
+		return true;
+	}
+	return {};
+}
+#elif YCL_Android
 //! \since build 498
 template<typename... _tParams>
 inline int
@@ -95,27 +118,16 @@ Logger::DefaultFilter(Level lv, Logger& logger) ynothrow
 }
 
 void
-Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
+Logger::DefaultSendLog(Level lv, Logger& logger, const char* str) ynothrowv
 {
-#if YCL_DS
-	if(lv <= Descriptions::Alert)
-		platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
-	else
-		return;
-#endif
-#if YF_Multithread
-	std::string t_id;
+	SendLog(std::cerr, lv, logger, str);
+}
 
-	TryExpr(t_id = ystdex::to_string(std::this_thread::get_id()))
-	CatchIgnore(...)
-	if(!t_id.empty())
-		std::fprintf(stderr, "[%s:%#X]: %s\n",
-			ystdex::to_string(std::this_thread::get_id()).c_str(),
-			unsigned(lv), Nonnull(str));
-	else
-#endif
-		std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
-	std::fflush(stderr);
+void
+Logger::DefaultSendLogToFile(Level lv, Logger& logger, const char* str)
+	ynothrowv
+{
+	SendLogToFile(stderr, lv, logger, str);
 }
 
 void
@@ -174,6 +186,51 @@ Logger::FetchDefaultSender(const string& tag)
 
 	return DefaultSendLog;
 #endif
+}
+
+void
+Logger::SendLog(std::ostream& os, Level lv, Logger&, const char* str)
+	ynothrowv
+{
+#if YCL_DS
+	if(!PrepareLog(lv))
+		return;
+#endif
+	try
+	{
+#if YF_Multithread == 1
+		const auto& t_id(FetchCurrentThreadID());
+
+		if(!t_id.empty())
+			os << ystdex::sfmt("[%s:%#X]: %s\n", t_id.c_str(), unsigned(lv),
+				Nonnull(str));
+		else
+#endif
+			os << ystdex::sfmt("[%#X]: %s\n", unsigned(lv), Nonnull(str));
+		os.flush();
+	}
+	CatchIgnore(...)
+}
+
+void
+Logger::SendLogToFile(std::FILE* stream, Level lv, Logger&, const char* str)
+	ynothrowv
+{
+	YAssertNonnull(stream);
+#if YCL_DS
+	if(!PrepareLog(lv))
+		return;
+#endif
+#if YF_Multithread == 1
+	const auto& t_id(FetchCurrentThreadID());
+
+	if(!t_id.empty())
+		std::fprintf(stream, "[%s:%#X]: %s\n", t_id.c_str(), unsigned(lv),
+			Nonnull(str));
+	else
+#endif
+		std::fprintf(stream, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
+	std::fflush(stream);
 }
 
 
@@ -237,6 +294,8 @@ LogAssert(bool expr, const char* expr_str, const char* file, int line,
 				line, chk_null(expr_str), chk_null(msg)));
 
 			::OutputDebugStringA(errstr.c_str());
+			// XXX: Not safe in windows procedure, but not used in YFramework.
+			// TODO: Use custom windows creation?
 			switch(::MessageBoxA({}, errstr.c_str(),
 				"YCLib Runtime Assertion", MB_ABORTRETRYIGNORE | MB_ICONHAND
 				| MB_SETFOREGROUND | MB_TASKMODAL))

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r115
+\version r120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:45:13 +0800
 \par 修改时间:
-	2015-04-19 11:24 +0800
+	2015-08-25 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,15 +64,13 @@ InitScrDown(int&);
 */
 YF_API YB_NONNULL(1, 2) void
 ScreenSynchronize(platform::Pixel*, const platform::Pixel*) ynothrow;
-#endif
 
-#if YCL_DS
 /*!
 \brief 启动控制台。
 \param use_customed 使用自定义而非 LibNDS 提供的默认例程初始化控制台。
 \param fc 前景色。
 \param bc 背景色。
-\since build 585
+\since build 626
 
 初始化 DS 控制台。第一参数为 \c true 指定初始化上屏，否则调用 ::consoleDemoInit
 初始化下屏。
@@ -80,7 +78,7 @@ ScreenSynchronize(platform::Pixel*, const platform::Pixel*) ynothrow;
 YF_API void
 DSConsoleInit(bool use_customed,
 	platform::Color fc = platform::ColorSpace::White,
-	platform::Color bc = platform::ColorSpace::Black);
+	platform::Color bc = platform::ColorSpace::Black) ynothrow;
 #endif
 
 

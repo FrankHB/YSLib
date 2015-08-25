@@ -11,13 +11,13 @@
 /*!	\file deref_op.hpp
 \ingroup YStandardEx
 \brief 解引用操作。
-\version r73
+\version r87
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-10 13:12:26 +0800
 \par 修改时间:
-	2015-04-02 11:38 +0800
+	2015-08-25 23:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,15 +29,6 @@
 #define YB_INC_ystdex_deref_op_hpp_ 1
 
 #include "../ydef.h"
-
-namespace std
-{
-
-//! \since build 589
-template<typename _type>
-struct atomic;
-
-} // namespace std;
 
 namespace ystdex
 {
@@ -61,14 +52,6 @@ is_undereferenceable(_type* p) ynothrow
 {
 	return !p;
 }
-//! \since build 589
-template<typename _type>
-yconstfn bool
-is_undereferenceable(const std::atomic<_type>&) = delete;
-//! \since build 589
-template<typename _type>
-yconstfn bool
-is_undereferenceable(const volatile std::atomic<_type>&) = delete;
 //@}
 
 } // namespace ystdex;

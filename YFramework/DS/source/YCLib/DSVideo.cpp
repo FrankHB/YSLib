@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r182
+\version r192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:46:32 +0800
 \par 修改时间:
-	2015-03-17 17:27 +0800
+	2015-08-25 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,8 +85,9 @@ ResetVideo()
 	::vramSetBanks_EFG(VRAM_E_LCD, VRAM_F_LCD, VRAM_G_LCD),
 	::vramSetBankH(VRAM_H_LCD),
 	::vramSetBankI(VRAM_I_LCD);
-//	memset(OAM, 0, SPRITE_COUNT * sizeof(SpriteEntry));
-//	memset(OAM_SUB, 0, SPRITE_COUNT * sizeof(SpriteEntry));
+//	std::fill_n(static_cast<void*>(OAM), SPRITE_COUNT * sizeof(SpriteEntry), 0),
+//	std::fill_n(static_cast<void*>(OAM_SUB), SPRITE_COUNT * sizeof(SpriteEntry),
+//		0);
 	::videoSetMode(MODE_5_2D);
 	::videoSetModeSub(MODE_5_2D);
 }
@@ -105,10 +106,7 @@ InitScrUp(int& id)
 platform::Pixel*
 InitScrDown(int& id)
 {
-	//初始化背景，并得到屏幕背景ID 。
 	id = ::bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
-
-	//获得屏幕背景所用的显存地址。
 	return reinterpret_cast<platform::Pixel*>(::bgGetGfxPtr(id));
 }
 
@@ -121,11 +119,9 @@ ScreenSynchronize(platform::Pixel* buf, const platform::Pixel* src)
 	::DC_FlushRange(src, sizeof(ScreenBufferType));
 	::dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));
 }
-#endif
 
-#if YCL_DS
 void
-DSConsoleInit(bool use_customed, Color fc, Color bc)
+DSConsoleInit(bool use_customed, Color fc, Color bc) ynothrow
 {
 	if(YB_LIKELY(use_customed ? []{
 		::videoSetMode(MODE_0_2D);
@@ -140,7 +136,7 @@ DSConsoleInit(bool use_customed, Color fc, Color bc)
 
 		const auto bg_palette(use_customed ? BG_PALETTE : BG_PALETTE_SUB);
 
-		bg_palette[0] = Pixel(bc).Integer | BIT(15);
+		bg_palette[0] = Pixel(bc).Integer | BIT(15),
 		bg_palette[255] = Pixel(fc).Integer | BIT(15);
 	}
 }
@@ -175,7 +171,7 @@ DSVideoState::SwapLCD()
 	::lcdSwap();
 #	else
 	LCD_main_on_top = !LCD_main_on_top;
-#endif
+#	endif
 }
 #endif
 
