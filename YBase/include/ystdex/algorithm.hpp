@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r830
+\version r868
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-07-02 06:32 +0800
+	2015-08-30 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,12 @@
 #ifndef YB_INC_ystdex_algorithm_hpp_
 #define YB_INC_ystdex_algorithm_hpp_ 1
 
-#include "type_op.hpp" // for is_pod;
+#include "iterator_trait.hpp" // for have_same_iterator_category;
+#include "functor.hpp" // for <algorithm>, is_equal, std::bind,
+//	std::placeholders::_1, less;
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
-#include <algorithm>
 #include <cstring> // for std::memcpy, std::memmove;
-#include "functor.hpp" // for std::bind, std::placeholders::_1, less;
-#include <iterator> // for std::iterator_traits;
 
 namespace ystdex
 {
@@ -87,6 +86,40 @@ for_each_if(_tIn first, _tIn last, _fPred pred, _func f)
 	return f;
 }
 //@}
+
+
+//! \since build 627
+inline namespace cpp2014
+{
+
+using std::equal;
+#if !(__cpp_lib_robust_nonmodifying_seq_ops >= 201304 || __cplusplus > 201103L)
+template<typename _tIn1, typename _tIn2, typename _fBiPred>
+inline bool
+equal(_tIn1 first1, _tIn1 last1, _tIn2 first2, _tIn2 last2,
+	_fBiPred binary_pred)
+{
+	if(have_same_iterator_category<std::random_access_iterator_tag, _tIn1,
+		_tIn2>())
+	{
+		if(std::distance(first1, last1) != std::distance(first2, last2))
+			return {};
+		return std::equal(first1, last1, first2, binary_pred);
+	}
+	for(; first1 != last1 && first2 != last2; ++first1, ++first2)
+		if(!bool(binary_pred(*first1, *first2)))
+			return {};
+	return first1 == last1 && first2 == last2;
+}
+template<typename _tIn1, typename _tIn2>
+inline bool
+equal(_tIn1 first1, _tIn1 last1, _tIn2 first2, _tIn2 last2)
+{
+	return ystdex::equal(first1, last1, first2, last2, is_equal());
+}
+#endif
+
+} // inline namespace cpp2014;
 //@}
 
 
@@ -379,7 +412,8 @@ template<typename _type, typename _fComp = less<>>
 yconstfn const _type&
 clamp(const _type& v, const _type& lo, const _type& hi, _fComp comp = _fComp())
 {
-	// TODO: Assert 'yconstraint(!comp(hi, lo))'.
+	// TODO: Blocked, see http://wg21.cmeerw.net/lwg/issue2234 .
+	//	Assert 'yconstraint(!comp(hi, lo))'.
 	return comp(v, lo) ? lo : comp(hi, v) ? hi : v;
 }
 

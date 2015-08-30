@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1165
+\version r1187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-07-04 21:12 +0800
+	2015-08-27 09:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,13 +80,7 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 			break;
 		case MenuItem::OrigSize:
 			if(session_ptr)
-			{
-				const auto& s(GetSizeOf(*this));
-
-				GetPagesRef().ZoomTo(1.F, Point(s.Width / 2, s.Height / 2));
-				Invalidate(*this);
-				UpdateMenuItem({});
-			}
+				ResetSize();
 			break;
 		case MenuItem::Flip:
 			Flip();
@@ -128,9 +122,8 @@ ImagePanel::ImagePanel(const Rect& r_, const Size& min_size,
 	},
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
-		if(session_ptr && e.Keys[KeyCodes::Tertiary] && GetPagesRef().Zoom(
-			round((1 - GetPagesRef().GetScale()) * 100), e))
-			Invalidate(*this);
+		if(session_ptr && e.Keys[KeyCodes::Tertiary])
+			ResetSize();
 	},
 	FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
 		if(session_ptr)
@@ -232,6 +225,22 @@ ImagePanel::Load(ImagePages&& src)
 		});
 	}
 	UpdateMenuItem();
+}
+
+bool
+ImagePanel::ResetSize()
+{
+	YAssertNonnull(session_ptr);
+
+	const auto& s(GetSizeOf(*this));
+
+	if(GetPagesRef().ZoomTo(1.F, Point(s.Width / 2, s.Height / 2)))
+	{
+		Invalidate(*this);
+		UpdateMenuItem({});
+		return true;
+	}
+	return {};
 }
 
 void

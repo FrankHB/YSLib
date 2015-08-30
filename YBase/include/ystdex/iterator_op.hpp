@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r209
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2015-08-19 00:06 +0800
+	2015-08-30 16:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,28 +28,15 @@
 #ifndef YB_INC_ystdex_iterator_op_hpp_
 #define YB_INC_ystdex_iterator_op_hpp_ 1
 
-#include "type_op.hpp" // for std::pair, std::declval, enable_if_t, is_same;
+#include "range.hpp" // for std::next, std::prev, std::make_move_iterator,
+//	std::reverse_iterator, std::make_pair, begin, end;
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
-#include "range.hpp" // for std::next, std::prev, std::reverse_iterator,
-//	begin, end;
 #include "operators.hpp" // for input_iteratable, output_iteratable,
 //	forward_iteratable, bidirectional_iteratable, random_access_iteratable;
 
 namespace ystdex
 {
-
-/*!
-\ingroup metafunctions
-\brief 选择迭代器类型的特定重载避免和其它类型冲突。
-\sa enable_if_t
-\since build 483
-*/
-template<typename _tParam, typename _type = void, typename = yimpl(std::pair<
-	decltype(*std::declval<_tParam&>()), decltype(++std::declval<_tParam&>())>)>
-using enable_for_iterator_t = enable_if_t<
-	is_same<decltype(++std::declval<_tParam&>()), _tParam&>::value, _type>;
-
 
 /*!	\defgroup iterator_operations Iterator Operations
 \ingroup iterators

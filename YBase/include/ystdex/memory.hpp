@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1188
+\version r1299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-08-20 21:44 +0800
+	2015-08-27 17:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -321,6 +321,83 @@ struct free_delete<_type[]>;
 
 
 /*!
+\brief 使用显式 \c std::return_temporary_buffer 的删除器。
+\note 非数组类型的特化无定义。
+\since build 627
+*/
+//@{
+template<typename>
+struct temporary_buffer_delete;
+
+template<typename _type>
+struct temporary_buffer_delete<_type[]>
+{
+	yconstfn temporary_buffer_delete() ynothrow = default;
+
+	void
+	operator()(_type* p) const ynothrowv
+	{
+		std::return_temporary_buffer(p);
+	}
+};
+//@}
+
+
+/*!
+\brief 临时缓冲区。
+\since build 627
+*/
+//@{
+template<typename _type>
+class temporary_buffer
+{
+public:
+	using array_type = _type[];
+	using element_type = _type;
+	using deleter = temporary_buffer_delete<array_type>;
+	using pointer = std::unique_ptr<array_type, deleter>;
+
+private:
+	std::pair<pointer, size_t> buf;
+
+public:
+	//! \throw std::bad_cast 取临时存储失败。
+	temporary_buffer(size_t n)
+		: buf([n]{
+			// NOTE: See http://wg21.cmeerw.net/lwg/issue2072 .
+			const auto pr(std::get_temporary_buffer<_type>(ptrdiff_t(n)));
+
+			if(pr.first)
+				return {pr.first, size_t(pr.second)};
+			throw std::bad_cast();
+		})
+	{}
+	temporary_buffer(temporary_buffer&&) = default;
+	temporary_buffer&
+	operator=(temporary_buffer&&) = default;
+
+	typename deleter::pointer
+	get() ynothrow
+	{
+		return buf.first.get();
+	}
+
+	pointer&
+	get_pointer_ref() ynothrow
+	{
+		return buf.first;
+	}
+
+	size_t
+	size() const ynothrow
+	{
+		return buf.second;
+	}
+};
+//@}
+
+
+/*!
 \brief 释放分配器的删除器。
 \since build 595
 */
@@ -503,38 +580,30 @@ unique_raw(nullptr_t) ynothrow
 \since build 204
 */
 //@{
-/*!
-\tparam _pSrc 指定指针类型。
-\pre 静态断言： _pSrc 是内建指针。
-*/
-template<typename _type, typename _pSrc>
+//! \since build 627
+//@{
+template<typename _type, typename... _tParams>
 yconstfn std::shared_ptr<_type>
-share_raw(const _pSrc& p)
+share_raw(_type* p, _tParams&&... args)
 {
-	static_assert(is_pointer<_pSrc>(), "Invalid type found.");
-
-	return std::shared_ptr<_type>(p);
+	return std::shared_ptr<_type>(p, yforward(args)...);
 }
 /*!
 \tparam _pSrc 指定指针类型。
-\pre 静态断言： _pSrc 是内建指针。
+\pre 静态断言： remove_reference_t<_pSrc> 是内建指针。
 */
-template<typename _type, typename _pSrc>
+template<typename _type, typename _pSrc, typename... _tParams>
 yconstfn std::shared_ptr<_type>
-share_raw(_pSrc&& p)
+share_raw(_pSrc&& p, _tParams&&... args)
 {
-	static_assert(is_pointer<_pSrc>(), "Invalid type found.");
+	static_assert(is_pointer<remove_reference_t<_pSrc>>(),
+		"Invalid type found.");
 
-	return std::shared_ptr<_type>(p);
+	return std::shared_ptr<_type>(p, yforward(args)...);
 }
-template<typename _type>
-yconstfn std::shared_ptr<_type>
-share_raw(_type* p)
-{
-	return std::shared_ptr<_type>(p);
-}
+//@}
 /*!
-\note 使用空指针构造空实例。
+\note 使用空指针构造空对象。
 \since build 319
 */
 template<typename _type>
@@ -542,6 +611,17 @@ yconstfn std::shared_ptr<_type>
 share_raw(nullptr_t) ynothrow
 {
 	return std::shared_ptr<_type>();
+}
+/*!
+\note 使用空指针和其它参数构造空对象。
+\pre 参数复制构造不抛出异常。
+\since build 627
+*/
+template<typename _type, class... _tParams>
+yconstfn yimpl(enable_if_t)<sizeof...(_tParams) != 0, std::shared_ptr<_type>>
+share_raw(nullptr_t, _tParams&&... args) ynothrow
+{
+	return std::shared_ptr<_type>(nullptr, yforward(args)...);
 }
 //@}
 
@@ -678,28 +758,6 @@ make_allocator_guard(_tAlloc& alloc,
 	using del_t = allocator_delete<_tAlloc>;
 
 	return std::unique_ptr<_tAlloc, del_t>(alloc.allocate(n), del_t(alloc, n));
-}
-
-/*!
-\brief 构造共享作用域守护。
-\sa make_guard
-\since build 589
-*/
-template<typename _type, typename _func>
-std::shared_ptr<_type>
-make_shared_guard(_type* p, _func f)
-{
-	try
-	{
-		return std::shared_ptr<_type>(p, [=](_type* ptr){
-			f(ptr);
-		});
-	}
-	catch(...)
-	{
-		f(p);
-		throw;
-	}
 }
 
 
