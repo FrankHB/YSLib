@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9716
+\version r9717
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-05-16 08:47 +0800
+	2015-05-16 15:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,6 +228,7 @@ _tEx ：异常类型（除非另行约定，应为类类型）；
 _func ：函数对象类型；
 _fCallable ：可调用类型；
 _fPred ：谓词函数类型；
+_fBiPred ：二元谓词函数类型；
 _tIter ：迭代器类型；
 _tIn ：输入迭代器类型；
 _tOut ：输出迭代器类型；

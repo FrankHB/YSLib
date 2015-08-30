@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1046
+\version r1069
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-08-25 09:22 +0800
+	2015-08-30 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,7 +208,6 @@ namespace platform
 {
 
 //! \since build 626
-//@{
 enum class Mode
 #	if YCL_Win32
 	: unsigned short
@@ -260,11 +259,34 @@ enum class Mode
 	Write = UserWrite | GroupWrite | OtherWrite,
 	Execute = UserExecute | GroupExecute | OtherExecute,
 	ReadWrite = Read | Write,
-	Access = ReadWrite | Execute
+	Access = ReadWrite | Execute,
+	//! \since build 627
+	//@{
+#	if !YCL_Win32
+	SetUserID = S_ISUID,
+	SetGroupID = S_ISGID,
+#	else
+	SetUserID = 0,
+	SetGroupID = 0,
+#	endif
+#	if YCL_Linux || _XOPEN_SOURCE
+	VTX = S_ISVTX,
+#	else
+	VTX = 0,
+#	endif
+	PMode = SetUserID | SetGroupID | VTX | Access,
+	All = PMode | FileType
+	//@}
 };
 
 //! \relates Mode
+//@{
+//! \since build 626
 DefBitmaskEnum(Mode)
+
+//! \since build 627
+yconstfn PDefH(bool, HasExtraMode, Mode m)
+	ImplRet(bool(m & ~(Mode::Access | Mode::FileType)))
 //@}
 
 } // namespace platform;

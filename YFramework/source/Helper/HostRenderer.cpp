@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r657
+\version r659
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-05-27 23:09 +0800
+	2015-08-27 16:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,9 +111,9 @@ WindowThread::~WindowThread()
 WindowThread::Guard
 WindowThread::DefaultGenerateGuard(Window& wnd)
 {
-#if YF_Multithread
+#if YF_Multithread == 1
 	wnd.GetEnvironmentRef().EnterWindowThread();
-	return ystdex::make_shared_guard(&wnd, [](Window* p_wnd){
+	return share_raw(&wnd, [](Window* p_wnd){
 		FilterExceptions([=]{
 			Deref(p_wnd).GetEnvironmentRef().LeaveWindowThread();
 		}, "default event guard destructor");

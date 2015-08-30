@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r827
+\version r832
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-08-25 00:37 +0800
+	2015-08-30 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #include YFM_YCLib_FileIO
 #include YFM_YCLib_Debug // for Nonnull;
 #include YFM_YCLib_Reference // for unique_ptr;
-#include YFM_YCLib_NativeAPI // for O_RDONLY, ::close, ::fcntl, F_GETFL,
-//	O_NONBLOCK, ::ftruncate, 'S_*', ::getcwd;
+#include YFM_YCLib_NativeAPI // for Mode, O_RDONLY, ystdex::underlying_type_t,
+//	::close, ::fcntl, F_GETFL, O_NONBLOCK, ::ftruncate, 'S_*', ::getcwd;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing
@@ -82,6 +82,10 @@ using namespace CHRLib;
 
 namespace platform
 {
+
+//! \since build 627
+static_assert(std::is_same<::mode_t, ystdex::underlying_type_t<Mode>>(),
+	"Mismatched mode types found.");
 
 namespace
 {

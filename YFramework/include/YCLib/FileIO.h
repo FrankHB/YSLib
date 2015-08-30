@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1092
+\version r1149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-08-25 22:24 +0800
+	2015-08-30 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -522,6 +522,22 @@ private:
 #endif
 
 public:
+	//! \since build 627
+	std::basic_filebuf<_tChar, _tTraits>*
+	open(UniqueFile p, std::ios_base::openmode mode)
+	{
+		if(p)
+		{
+			this->_M_file.sys_open(*p.get(), mode);
+
+			if(open_check(mode))
+			{
+				p.release();
+				return this;
+			}
+		}
+		return {};
+	}
 	template<typename _tPathChar>
 	std::basic_filebuf<_tChar, _tTraits>*
 	open(const _tPathChar* s, std::ios_base::openmode mode)
@@ -530,20 +546,8 @@ public:
 		{
 			this->_M_file.sys_open(uopen(s, omode_convb(mode),
 				GetDefaultPermissionMode()), mode);
-			if(this->is_open())
-			{
-				this->_M_allocate_internal_buffer();
-				this->_M_mode = mode;
-				yunseq(this->_M_reading = {}, this->_M_writing = {});
-				this->_M_set_buffer(-1);
-				yunseq(this->_M_state_cur = this->_M_state_beg,
-					this->_M_state_last = this->_M_state_beg);
-				if((mode & std::ios_base::ate) && this->seekoff(0,
-					std::ios_base::end) == pos_type(off_type(-1)))
-					this->close();
-				else
-					return this;
-			}
+			if(open_check(mode))
+				return this;
 		}
 		return {};
 	}
@@ -555,6 +559,28 @@ public:
 	{
 		return open(s.c_str(), mode);
 	}
+
+private:
+	//! \since build 627
+	bool
+	open_check(std::ios_base::openmode mode)
+	{
+		if(this->is_open())
+		{
+			this->_M_allocate_internal_buffer();
+			this->_M_mode = mode;
+			yunseq(this->_M_reading = {}, this->_M_writing = {});
+			this->_M_set_buffer(-1);
+			yunseq(this->_M_state_cur = this->_M_state_beg,
+				this->_M_state_last = this->_M_state_beg);
+			if((mode & std::ios_base::ate) && this->seekoff(0,
+				std::ios_base::end) == pos_type(off_type(-1)))
+				this->close();
+			else
+				return true;
+		}
+		return {};
+	}	
 };
 
 
@@ -588,11 +614,12 @@ public:
 	{
 		this->init(&fbuf);
 	}
+	//! \since build 627
 	template<typename _tParam,
 		yimpl(typename = ystdex::exclude_self_ctor_t<basic_ifstream, _tParam>)>
 	explicit
 	basic_ifstream(_tParam&& s,
-		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+		std::ios_base::openmode mode = std::ios_base::in)
 		: base_type({})
 	{
 		this->init(&fbuf);
@@ -638,11 +665,11 @@ public:
 		return fbuf.is_open();
 	}
 
-	//! \since build 617
+	//! \since build 627
 	template<typename _tParam>
 	void
 	open(_tParam&& s,
-		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+		std::ios_base::openmode mode = std::ios_base::in)
 	{
 		if(fbuf.open(yforward(s), mode))
 			this->clear();
@@ -685,11 +712,12 @@ public:
 	{
 		this->init(&fbuf);
 	}
+	//! \since build 627
 	template<typename _tParam,
 		yimpl(typename = ystdex::exclude_self_ctor_t<basic_ofstream, _tParam>)>
 	explicit
 	basic_ofstream(_tParam&& s,
-		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+		std::ios_base::openmode mode = std::ios_base::out)
 		: base_type({})
 	{
 		this->init(&fbuf);
@@ -735,11 +763,10 @@ public:
 		return fbuf.is_open();
 	}
 
-	//! \since build 617
+	//! \since build 627
 	template<typename _tParam>
 	void
-	open(_tParam&& s,
-		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+	open(_tParam&& s, std::ios_base::openmode mode = std::ios_base::out)
 	{
 		if(fbuf.open(yforward(s), mode))
 			this->clear();

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2549
+\version r2551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-08-25 00:49 +0800
+	2015-08-28 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1142,7 +1142,7 @@ Partition::ChangeDir(const char* path) ythrow(system_error)
 void
 Partition::CreateFSInfo()
 {
-	YAssert(GetFileSystemType() != FileSystemType::FAT32,
+	YAssert(GetFileSystemType() == FileSystemType::FAT32,
 		"Only FAT32 supported.");
 	if(!read_only)
 	{
@@ -1597,7 +1597,7 @@ Partition::Unlink(const char* path) ythrow(system_error)
 void
 Partition::WriteFSInfo() const
 {
-	YAssert(GetFileSystemType() != FileSystemType::FAT32,
+	YAssert(GetFileSystemType() == FileSystemType::FAT32,
 		"Only FAT32 supported.");
 
 	// TODO: Use aligned allocation.

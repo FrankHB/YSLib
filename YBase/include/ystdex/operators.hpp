@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1728
+\version r1731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2015-03-20 16:09 +0800
+	2015-08-30 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "../ydef.h"
+#include "type_op.hpp" // for false_type, true_type;
 #include <memory> // for std::addressof;
 
 namespace ystdex
@@ -516,13 +516,13 @@ YB_Impl_Operators_Chain2(random_access_iteratable)
 //! \since build 439
 //@{
 template<class _type, typename _type2>
-struct operators2 : public totally_ordered2<_type, _type2,
+struct operators2 : totally_ordered2<_type, _type2,
 	integer_arithmetic2<_type, _type2, bitwise2<_type, _type2>>>
 {};
 
 
 template<class _type, typename _type2 = _type>
-struct operators : public operators2<_type, _type2>
+struct operators : operators2<_type, _type2>
 {};
 
 template<class _type>

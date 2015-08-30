@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r652
+\version r655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-07-04 16:33 +0800
+	2015-08-27 09:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,6 +126,10 @@ public:
 	{
 		Load(ImagePages(&arg[0], min_panel_size, max_panel_size));
 	}
+
+	//! \since build 627
+	bool
+	ResetSize();
 
 	//! \since build 578
 	PDefH(void, RotateCCW, )
