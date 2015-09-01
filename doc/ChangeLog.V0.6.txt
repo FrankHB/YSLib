@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r2950
+\version r3105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-08-30 17:09 +0800
+	2015-09-01 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,155 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			- DLDI "including '<sys/stat.h>'" @ %(FileIO, FileSystem),
+				// %YFM_YCLib_NativeAPI is sufficient.
+			/ %FileIO $=
+			(
+				* $impl "out of synchronized exception description"
+					@ "Win32 call" @ "platform %Win32" @ "member function \
+					%FileDescriptor::GetModificationTime" $since b624,
+				+ 'using FileTime = std::chrono::nanoseconds;',
+				/ @ "class %FileDescriptor" $=
+				(
+					+ 'const' @ "functions %(operator*, GetModificationTime, \
+						GetSize)",
+					/ "return type" -> ($dep_from "%FileTime")
+						~ "%std::chrono::nanoseconds",
+					+ "functions %(GetModificationTime, \
+						GetModificationAndAccessTimes)"
+				),
+				/ "return type" @ "all 3 %GetFileModificationTimeOf"
+					-> ($dep_from "%FileTime") ~ "%std::chrono::nanoseconds",
+				* "wrong exception string" @ ("member function \
+					%FileDescriptor::GetModificationTime; function \
+					%GetFileModificationTimeOf)" $orig (@ "function \
+					%GetFileModificationTimeOf" @ %FileSystem) $since b544,
+				/ DLDI "simplified %GetFileModificationTimeOf" ^ "%UniqueFile"
+			),
+			- $revert(b458) "workaround for Microsoft VC++2013"
+				@ %(Video, FileSystem),
+			/ @ "platform %Win32" @ "member function \
+				%HDirectory::GetNodeCategory" @ %FileSystem $=
+			(
+				/ $re_ex(b416) "supported %Device";
+				/ $impl ^ "%::(CreateFileW, GetFileType, GetFullPathNameW)"
+					~ "%::_wstat"
+					// Though %st_nlink from call of %::_wstat may be wrong, \
+						the file type should be OK. However, it is not \
+						effecicent for the use here.
+			)
+		),
+		/ DLDI "simplified callback" @ "constructor %NativeHost"
+			@ %'Helper_(Android)'.AndroidHost ^ "%std::bind",
+		/ %'YCLib.(MinGW)'.MinGW32 $=
+		(
+			(
+			+ "macro %YCL_WrapCallWin32";
+			/ DLDI "simplified macro definition %YCL_CallWin32"
+				^ "%YCL_WrapCallWin32",
+			),
+			(
+			+ "macro %YCL_WrapCallWin32_Trace";
+			/ DLDI "simplified macro definition %YCL_CallWin32_Trace"
+				^ "%YCL_WrapCallWin32_Trace",
+			),
+			/ @ "private member function" @ "%DirectoryFindData" $=
+			(
+				/ "assertion" -> "exception handling" ^ ("%FilterExceptions",
+					$dep_from "%YCL_WrapCallWin32");
+				* $comp "wrong exception specification" $since b421
+			)
+		),
+		+ "static assertions to ensure no throw copying of component type"
+			@ "%GBinaryGroup" @ %YSLib.Core.YGDIBase
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			+ '&&' @ "1st function parameter" @ "%ystdex::bind1" @ %Functional,
+				// To be consistent with %std::bind. See also \
+					http://wg21.cmeerw.net/lwg/issue817 .
+			/ @ "class template %nptr" @ %Pointer $=
+			(
+				* "missing forcing no throw exception guarantee for \
+					%NullablePointer requirements" @ "member functions \
+					%(operator bool, swap)" $since (@ %Utilities $since b586),
+					// ISO C++ [nullablepointer.requirements]/4 explicitly \
+						specifies it.
+				/ $re_ex(b598) "enhanced stricter static assertions to ensure \
+					noexcept requirements",
+				+ 'ynothrow' @ "all constructors"
+			),
+			/ "function template %exchange" @ %Utilities $dep_from
+				("%__cpp_lib_integer_sequence" @ %YDefinition) $=
+			(
+				>> "inline namespace %cpp2014" \
+					@ '__cpp_lib_exchange_function >= 201304 \
+					|| __cplusplus > 201103L || YB_IMPL_MSCPP >= 1800',
+				-> 'using std::exchange;' @ "inline namespace %cpp2014"
+					@ !'__cpp_lib_exchange_function >= 201304 \
+					|| __cplusplus > 201103L'
+			),
+			/ "inclusion condition" @ "inline namespace %cpp2014"
+				@ %IntegerSequence $dep_from ("%__cpp_lib_exchange_function"
+				@ %YDefinition) -> '__cpp_lib_integer_sequence >= 201304 \
+				|| __cplusplus > 201103L' ~ '__cplusplus > 201103L',
+			/ %Memory $=
+			(
+				+ "all 1 feature-test macro %__cpp_lib_make_unique recommended \
+					by WG21/N4200 when not defined" @ 'YB_IMPL_MSCPP >= 1800';
+				/ $dev $lib "simplified inclusion condition for %make_unique"
+					@ "inline namespace %ystdex::cpp2014" !^ 'YB_IMPL_MSCPP'
+			),
+			(
+			+ "all 1 feature-test macro %__cpp_lib_make_unique recommended by \
+				WG21/N4200 when not defined" @ 'YB_IMPL_MSCPP >= 1900'
+				@ %Functor;
+			* $comp "template %equal conflicted with %std::equal"
+				@ "inline namespace %ystdex::cpp2014" @ 'YB_MSCPP >= 1900'
+				@ %Algorithm $since b627
+				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx .
+			),
+			- "redundant 'using ystdex::nullptr;'" @ '!YB_HAS_BUILTIN_NULLPTR'
+				@ %ScopeGuard
+		),
+		/ %YDefinition $=
+		(
+			+ "all 2 feature-test macros %(__cpp_lib_integer_sequence, \
+				__cpp_lib_exchange_function) recommended by WG21/N4200 when \
+				not defined" @ 'YB_IMPL_MSCPP >= 1900',
+				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx .
+			(
+			+ "predefined feature-test macro %__cpp_constexpr recommended by \
+				WG21/N4200 when not defined";
+			/ "conditional macro definition %yconstexpr"
+				@ ^ '__cpp_constexpr >= 201304' ~ 'YB_HAS_CONSTEXPR_CPP14',
+			/ "conditional macro definition %yconstexpr_relaxed"
+				^ '__cpp_constexpr >= 200704' ~ 'YB_HAS_CONSTEXPR'
+			),
+			- $revert(b313) "macro %YB_HAS_CONSTEXPR" $dep_from
+				("%__cpp_constexpr", %YFramework.YCLib.(Video, FileSystem)),
+			- $revert(b591) "macro %YB_HAS_CONSTEXPR_CPP14" $dep_from
+				"%__cpp_constexpr",
+			(
+			+ "macro %__has_attribute";
+			/ "allowed conditions" @ "macros %(YB_ALLOCATOR, YB_NORETURN, \
+				YB_PURE, YB_STATELESS, YB_API)" ^ "%__has_attribute"
+			)
+		)
+	),
+	* "invalid 'ynothrow'" @ "getters with return type not guarantees non \
+		throwing on copy/move" $effective @ %YFramework.('YCLib(DS)'.DSIO
+		$since b611, YCLib.Debug $since b498, YSLib.Adaptor.Font $since b277)
+),
+
+b627
 (
 	/ %YBase $=
 	(
@@ -128,6 +277,7 @@ $now
 	)
 ),
 
+b626
 (
 	/ %YFramework $=
 	(
@@ -258,8 +408,8 @@ b625
 					+ "functions %((Read; FullRead), (Write; FullWrite))"
 				),
 				/ DLDI "simplified function %TryClose",
-				/ $impl @ "function %(GetFileSizeOf, GetFileModificationTimeOf)
-					with %std::FILE* parameter" $=
+				/ $impl @ "functions %(GetFileSizeOf, \
+					GetFileModificationTimeOf) with %std::FILE* parameter" $=
 				(
 					/ "simplified wihtout conditional inclusion",
 					- "assertion for non null parameter"
@@ -1023,9 +1173,9 @@ b617
 						|| __cplusplus > 201103L || YB_IMPL_MSCPP >= 1800',
 					-> 'using std::make_unique;' @ "inline namespace %cpp2014"
 						@ !'__cpp_lib_make_unique >= 201304 \
-							|| __cplusplus > 201103L || YB_IMPL_MSCPP >= 1800'
-					// Also to prevent ambiguity when ADL %std::make_unique \
-						provided besides %ystdex::make_unique.
+							|| __cplusplus > 201103L || YB_IMPL_MSCPP >= 1800';
+					* $comp "ambiguity when ADL %std::make_unique provided \
+						besides %ystdex::make_unique""
 				)
 			),
 			/ "function template %invoke" %Functional @ 'YB_IMPL_MSCPP >= 1900'
@@ -2483,7 +2633,7 @@ b600
 			>> %Pointer,
 		(
 		/ "class template %nptr, function templates for %nptr instances"
-			@ %Utility >> %Pointer;
+			@ %Utilities >> %Pointer;
 		/ %Pointer $=
 		(
 		/ $dev "rational operators for class template %nptr except for \

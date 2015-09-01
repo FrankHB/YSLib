@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r341
+\version r344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2015-06-14 04:19 +0800
+	2015-09-01 10:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,10 +301,6 @@ template<typename _type, typename _tCond = bool, typename _tRef = _type&>
 using swap_guard = state_guard<_type, _tCond, _tRef>;
 
 } // namespace ystdex;
-
-#if !YB_HAS_BUILTIN_NULLPTR
-using ystdex::nullptr;
-#endif
 
 #endif
 

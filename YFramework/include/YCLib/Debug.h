@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r620
+\version r622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-08-25 22:09 +0800
+	2015-08-31 23:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,8 @@ private:
 	Concurrency::recursive_mutex record_mutex;
 
 public:
-	DefGetter(const ynothrow, Sender, Sender, sender)
+	//! \since build 628
+	DefGetter(const ynothrow, const Sender&, Sender, sender)
 
 	/*!
 	\brief 设置过滤器。

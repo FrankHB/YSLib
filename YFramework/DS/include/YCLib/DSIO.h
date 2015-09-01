@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r867
+\version r869
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-08-10 23:01 +0800
+	2015-08-31 23:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -570,7 +570,8 @@ public:
 	DefGetter(const ynothrow, SectorCache&, CacheRef, Table.Cache)
 	DefGetterMem(const ynothrow, FileSystemType, FileSystemType, Table)
 	DefGetter(const ynothrow, const VolumeLabel&, Label, label)
-	DefGetter(const ynothrow, string, LabelString,
+	//! \since build 628
+	DefGetter(const, string, LabelString,
 		string(reinterpret_cast<const char*>(label.data()), label.size()))
 	DefGetterMem(const ynothrow, mutex&, MutexRef, Table)
 	DefGetterMem(const ynothrow, ClusterIndex, RootDirCluster, Table)

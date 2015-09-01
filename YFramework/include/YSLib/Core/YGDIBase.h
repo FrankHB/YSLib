@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2187
+\version r2193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-05-24 21:42 +0800
+	2014-09-01 00:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,13 @@ class Rect;
 template<typename _type>
 class GBinaryGroup
 {
+	//! \since build 628
+	static_assert(std::is_nothrow_copy_constructible<_type>(),
+		"Invalid type found.");
+	//! \since build 628
+	static_assert(std::is_nothrow_copy_assignable<_type>(),
+		"Invalid type found.");
+
 public:
 	static const GBinaryGroup Invalid; //!< 无效（不在屏幕坐标系中）对象。
 

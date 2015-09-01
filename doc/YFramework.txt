@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1172
+\version r1173
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-06-27 17:21 +0800
+	2015-06-27 09:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -321,6 +321,7 @@ YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为�
 YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
 除非另行约定，仅保证非成员函数（排除声明紧随在某个类之后，首个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
 关于 YBase 的文件依赖性参见 [Documentation::YBase @@2.2] 。
+YFramework 提供的实体或宏不依赖 YBase 是否已提供特定扩展实现宏([Documentation::YBase @@2.2.2]) 。
 
 @2.1.1 组成概述：
 YFramework 最核心的部分是 YSLib 库，除了本文档描述外，参见 [Documentation::YSLib] 。

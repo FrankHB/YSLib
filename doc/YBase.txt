@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r468
+\version r491
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-08-19 00:40 +0800
+	2015-09-01 09:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,17 @@ ydef.h 仅依赖标准库头。
 LibDefect 不包含头文件或仅包含标准库头。
 YBase 依赖且仅依赖 YBase 文件和标准库头。
 YStandardEx 相关的头文件依赖性参见 @2.4.1 。
+
+@2.2.1 实现修正：
+YBase 中 YDefinition(@2.3) 和 LibDefect(@2.5) 以外的部分可能包含 LibDefect 的头文件提供修正定义。
+YBase 内使用这些宏时不依赖外部头文件的包含顺序，即在需要使用时，保证可用的宏和实体已被引入。
+用户程序若使用定义了这些宏的 YBase 头文件且在某个翻译单元中存在明确依赖 LibDefect 头文件提供的内容时，则应保证在这个翻译单元内使用这些内容前包含 LibDefect 对应头文件而不仅是约定的标准库头，以避免违反 ODR([Documentation::YBase @@5.1.8]) 造成未定义行为。
+
+@2.2.2 宏依赖：
+YBase 可能扩展 __cpp 为前缀的特性检测宏（如 WG21/N4200 ），仅当特定实现包含指定头（若需要）后仍没有定义该宏但实际特性可用时。
+其中表示库特性的 __cpp_lib 为前缀的可能在 YDefinition 或 YStandardEx(@2.4) 中提供，而其它（核心特性） __cpp 前缀的宏仅在 YDefinition 中提供。
+YBase 内使用这些宏时不依赖外部头文件的包含顺序，即在需要使用时，保证可用的宏已被定义。
+用户程序若使用定义了这些宏的 YBase 头文件且在某个翻译单元中存在明确依赖这些宏是否被定义或替换的值的实体声明，则应保证在这个翻译单元内使用这些内容前包含 YBase 对应头文件而不仅是约定的标准库头，以避免违反 ODR 造成未定义行为。
 
 @2.3 YDefinition ：
 模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
@@ -241,26 +252,29 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 @2.4.5.7 数组操作 Array ：
 扩展了标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.4.5.8 迭代器操作 IteratorOperation ：
-扩展了标准库头 <iterator> 。
-
-@2.4.5.9 通用指针 Pointer ：
-间接扩展了标准库头 <iterator> ，提供指针的迭代器适配器包装和其它模板。
-
-@2.4.5.10 通用迭代器 Iterator ：
-间接扩展了标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
-
-@2.4.5.11 范围操作 Range ：
+@2.4.5.8 范围操作 Range ：
 扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
 
-@2.4.5.12 泛型算法 Algorithm ：
+@2.4.5.9 迭代器特征 IteratorTrait ：
+扩展标准库头 <iterator> ，提供迭代器相关的类型特征。
+
+@2.4.5.10 迭代器操作 IteratorOperation ：
+间接扩展了标准库头 <iterator> 。
+
+@2.4.5.11 通用指针 Pointer ：
+间接扩展了标准库头 <iterator> ，提供指针的迭代器适配器包装和其它模板。
+
+@2.4.5.12 通用迭代器 Iterator ：
+间接扩展了标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
+
+@2.4.5.13 泛型算法 Algorithm ：
 扩展了标准库头 <algorithm> ，提供一些泛型算法。
 除非另行约定，使用 first 和 last 为名称的参数指定同一个范围，否则不保证结果正确，可能引起未定义行为。
 
-@2.4.5.13 ISO C++ 标准字符串扩展 String ：
+@2.4.5.14 ISO C++ 标准字符串扩展 String ：
 间接扩展了标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
-@2.4.5.14 ISO C++ <future> 扩展 Future ：
+@2.4.5.15 ISO C++ <future> 扩展 Future ：
 扩展了标准库头 <future> ，提供一些别名模板和便利接口。
 
 @2.4.6 标准库替代：
@@ -275,7 +289,7 @@ Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 
 @2.4.7.2 通用容器操作 Containers ：
 实现通用容器适配器模板和对容器类型及构建数组容器的操作。
-参数限制同 Algorithm (@2.4.5.12) 。
+参数限制同 Algorithm (@2.4.5.13) 。
 
 @2.4.7.3 基类实用设施 Base ：
 提供适合被作为基类的通用接口。

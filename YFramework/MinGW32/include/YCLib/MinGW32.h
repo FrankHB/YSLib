@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r760
+\version r773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-08-19 16:09 +0800
+	2015-08-19 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,20 +144,26 @@ public:
 	}
 
 //! \brief 调用 WinAPI ，若失败抛出 Windows::Win32Exception 对象。
-#	define YCL_CallWin32(_fn, _msg, ...) \
+//@{
+#	define YCL_WrapCallWin32(_fn, _msg, ...) \
 	[&]{ \
 		const auto res(::_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res)) \
 			YCL_Raise_Win32Exception(#_fn " @ " _msg); \
 		return res; \
-	}()
+	}
+
+//! \since build 628
+#	define YCL_CallWin32(_fn, ...) YCL_WrapCallWin32(_fn, __VA_ARGS__)()
+//@}
 
 /*!
 \brief 调用 WinAPI ，若失败跟踪 ::GetLastError 的结果。
 \note 格式转换说明符置于最前以避免宏参数影响结果。
 */
-#	define YCL_CallWin32_Trace(_fn, _msg, ...) \
+//@{
+#	define YCL_WrapCallWin32_Trace(_fn, _msg, ...) \
 	[&]{ \
 		const auto res(::_fn(__VA_ARGS__)); \
 	\
@@ -165,7 +171,12 @@ public:
 			YTraceDe(Warning, "Error %lu: failed calling " #_fn " @ " _msg \
 				".", ::GetLastError()); \
 		return res; \
-	}()
+	}
+
+//! \since build 628
+#	define YCL_CallWin32_Trace(_fn, ...) \
+	YCL_WrapCallWin32_Trace(_fn, __VA_ARGS__)()
+//@}
 //@}
 
 

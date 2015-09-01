@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3379
+\version r3381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-07-01 16:48 +0800
+	2015-08-31 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -679,7 +679,8 @@ public:
 	*/
 	FontSize
 	GetHeight() const ynothrow;
-	DefGetter(const ynothrow, StyleName, StyleName, FetchName(style))
+	//! \since build 628
+	DefGetter(const, StyleName, StyleName, FetchName(style))
 
 private:
 	/*!

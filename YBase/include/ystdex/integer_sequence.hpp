@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r348
+\version r352
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-06-17 00:30 +0800
+	2015-09-01 08:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,11 +38,11 @@ inline namespace cpp2014
 
 /*!
 \ingroup meta_types
-\see ISO C++14 20.5[intseq] 。
+\see ISO C++14 20.5 [intseq] 。
 \since build 589
 */
 //@{
-#if __cplusplus > 201103L
+#if __cpp_lib_integer_sequence >= 201304 || __cplusplus > 201103L
 using std::integer_sequence;
 using std::index_sequence;
 #else
@@ -277,11 +277,11 @@ inline namespace cpp2014
 
 /*!
 \ingroup metafunctions
-\see ISO C++14 20.5[intseq] 。
+\see ISO C++14 20.5 [intseq] 。
 \since build 589
 */
 //@{
-#if __cplusplus > 201103L
+#if __cpp_lib_integer_sequence >= 201304 || __cplusplus > 201103L
 using std::make_integer_sequence;
 using std::make_index_sequence;
 

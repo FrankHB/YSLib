@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r297
+\version r313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2015-07-11 21:08 +0800
+	2015-09-01 00:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,15 +38,18 @@ namespace ystdex
 //! \since build 560
 //@{
 /*!
-\brief 被包装的指针，满足 \c NullablePointer 要求同时满足转移后为空。
+\brief 可空指针包装：满足 \c NullablePointer 要求同时满足转移后为空。
 \tparam _type 被包装的指针。
-\pre _type 满足 \c NullablePointer 要求且值转换为 \c bool 类型时不抛出异常。
+\pre _type 满足 \c NullablePointer 要求。
 */
 template<typename _type>
 class nptr : public totally_ordered<nptr<_type>>
 {
-	static_assert(is_copy_constructible<_type>(), "Invalid type found.");
-	static_assert(is_copy_assignable<_type>(), "Invalid type found.");
+	//! \since build 628
+	static_assert(is_nothrow_copy_constructible<_type>(),
+		"Invalid type found.");
+	//! \since build 628
+	static_assert(is_nothrow_copy_assignable<_type>(), "Invalid type found.");
 	static_assert(is_destructible<_type>(), "Invalid type found.");
 	static_assert(_type() == _type(), "Invalid type found.");
 	static_assert(_type(nullptr) == nullptr, "Invalid type found.");
@@ -59,13 +62,16 @@ private:
 
 public:
 	nptr() = default;
+	//! \since build 628
+	//@{
 	yconstfn
-	nptr(std::nullptr_t)
+	nptr(std::nullptr_t) ynothrow
 		: nptr()
 	{}
-	nptr(pointer p)
+	nptr(pointer p) ynothrow
 		: ptr(p)
 	{}
+	//@}
 	nptr(const nptr&) = default;
 	nptr(nptr&& np) ynothrow
 	{
@@ -129,9 +135,9 @@ public:
 		return x.ptr == y.ptr;
 	}
 
-	//! \since build 586
+	//! \since build 628
 	yconstfn explicit
-	operator bool() const ynoexcept_spec(bool(std::declval<pointer>()))
+	operator bool() const ynothrow
 	{
 		return bool(ptr);
 	}
@@ -149,9 +155,9 @@ public:
 		return ptr;
 	}
 
-	//! \since build 586
+	//! \since build 628
 	void
-	swap(nptr& np) ynoexcept(is_nothrow_swappable<pointer>())
+	swap(nptr& np) ynothrow
 	{
 		using std::swap;
 

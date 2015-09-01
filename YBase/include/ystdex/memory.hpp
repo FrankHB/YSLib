@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1299
+\version r1311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-08-27 17:09 +0800
+	2015-09-01 09:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,17 @@
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
 #include <new> // for placement ::operator new from standard library;
+
+#if YB_IMPL_MSCPP >= 1800
+/*!
+\brief WG21/N4200 \<memory\> 特性测试宏。
+\see WG21/N4200 3.4 。
+\since build 628
+*/
+#	ifndef __cpp_lib_make_unique
+#		define __cpp_lib_make_unique 201304
+#	endif
+#endif
 
 namespace ystdex
 {
@@ -629,8 +640,7 @@ share_raw(nullptr_t, _tParams&&... args) ynothrow
 inline namespace cpp2014
 {
 
-#if __cpp_lib_make_unique >= 201304 || __cplusplus > 201103L \
-	|| YB_IMPL_MSCPP >= 1800
+#if __cpp_lib_make_unique >= 201304 || __cplusplus > 201103L
 //! \since build 617
 using std::make_unique;
 #else

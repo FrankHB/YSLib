@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2883
+\version r2890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-08-01 23:08 +0800
+	2015-09-01 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,6 +76,12 @@ swap_underlying(_type& x, _type& y) ynothrow
 }
 
 
+inline namespace cpp2014
+{
+
+#if __cpp_lib_exchange_function >= 201304 || __cplusplus > 201103L
+using std::exchange;
+#else
 /*
 \brief 交换值并返回旧值。
 \return 被替换的原值。
@@ -92,6 +98,9 @@ exchange(_type& obj, _type2&& new_val)
 	return old_val;
 }
 //@}
+#endif
+
+} // inline namespace cpp2014;
 
 
 /*!
