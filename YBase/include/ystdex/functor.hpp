@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r422
+\version r432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2015-07-02 06:40 +0800
+	2015-09-01 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,17 @@
 #include "ref.hpp" // for std::addressof, enable_if_t, wrapped_traits;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
+
+#if YB_IMPL_MSCPP >= 1900
+/*!
+\brief WG21/N4200 \<algorithm\> 特性测试宏。
+\see WG21/N4200 3.4 。
+\since build 628
+*/
+#	ifndef __cpp_lib_robust_nonmodifying_seq_ops
+#		define __cpp_lib_robust_nonmodifying_seq_ops 201304
+#	endif
+#endif
 
 namespace ystdex
 {

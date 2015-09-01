@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r854
+\version r857
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-08-19 16:09 +0800
+	2015-08-31 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -350,10 +350,8 @@ DirectoryFindData::~DirectoryFindData()
 void
 DirectoryFindData::Close() ynothrow
 {
-	const auto res(::FindClose(h_node));
-
-	YAssert(res, "No valid directory found.");
-	yunused(res);
+	FilterExceptions(YCL_WrapCallWin32(FindClose, "DirectoryFindData::Close",
+		h_node), "DirectoryFindData::Close");
 }
 
 wstring*

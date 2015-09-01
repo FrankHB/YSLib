@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r832
+\version r923
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-08-30 00:18 +0800
+	2015-09-01 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #include YFM_YCLib_FileIO
 #include YFM_YCLib_Debug // for Nonnull;
 #include YFM_YCLib_Reference // for unique_ptr;
-#include YFM_YCLib_NativeAPI // for Mode, O_RDONLY, ystdex::underlying_type_t,
-//	::close, ::fcntl, F_GETFL, O_NONBLOCK, ::ftruncate, 'S_*', ::getcwd;
+#include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
+//	Mode, O_RDONLY, ::close, ::stat, ::fstat, ::fcntl, F_GETFL, O_NONBLOCK,
+//	::ftruncate, ::getcwd, ::_wgetcwd;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing
@@ -72,7 +73,6 @@ using platform_ex::DirectoryFindData;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
-#	include <sys/stat.h>
 
 //! \since build 475
 using namespace CHRLib;
@@ -105,14 +105,13 @@ ensure_str(const char16_t* s)
 #endif
 }
 
-//! \since build 544
+//! \since build 628
 template<typename _tChar>
-std::chrono::nanoseconds
+FileTime
 GetFileModificationTimeOfImpl(const _tChar* filename)
 {
-	if(const unique_ptr<int, FileDescriptor::Deleter>
-		fdw{platform::uopen(filename, O_RDONLY)})
-		return FileDescriptor(fdw.get()).GetModificationTime();
+	if(const UniqueFile p{platform::uopen(filename, O_RDONLY)})
+		return p->GetModificationTime();
 	throw FileOperationFailure(errno, std::generic_category(),
 		"Failed getting file time of \"" + ensure_str(filename) + "\".");
 }
@@ -156,6 +155,34 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 }
 //@}
 
+//! \since build 628
+template<typename _func>
+auto
+#if YCL_Win32
+FetchFileTime(_func f)
+	-> ystdex::result_of_t<_func()>
+#else
+FetchFileTime(_func f, int desc)
+	-> ystdex::result_of_t<_func(struct ::stat&)>
+#endif
+{
+#if YCL_Win32
+	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
+	// XXX: Error handling for indirect calls.
+	TryRet(f())
+	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
+		"Failed querying file time: ") + e.what() + "."))
+#else
+	// TODO: Get more precise time count.
+	struct ::stat st;
+
+	if(::fstat(desc, &st) == 0)
+		return f(st);
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed querying file time.");
+#endif
+}
+
 } // unnamed namespace;
 
 
@@ -175,31 +202,64 @@ FileDescriptor::FileDescriptor(std::FILE* fp) ynothrow
 #endif
 {}
 
-std::chrono::nanoseconds
-FileDescriptor::GetModificationTime()
+FileTime
+FileDescriptor::GetAccessTime() const
 {
 #if YCL_Win32
-	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
-	::FILETIME file_time;
+	::FILETIME atime;
 
-	// XXX: Error handling for indirect calls.
-	YCL_CallWin32(GetFileTime, "GetFileModificationTimeOf",
-		::HANDLE(::_get_osfhandle(desc)), {}, {}, &file_time);
-	TryRet(platform_ex::ConvertTime(file_time))
-	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
-		"Failed querying file modification time: ") + e.what() + "."))
+	return FetchFileTime([&]{
+		YCL_CallWin32(GetFileTime, "FileDescriptor::GetAccessTime",
+			::HANDLE(::_get_osfhandle(desc)), {}, &atime, {});
+		return platform_ex::ConvertTime(atime);
+	});
 #else
-	// TODO: Get more precise time count.
-	struct ::stat st;
-
-	if(::fstat(desc, &st) == 0)
-		return std::chrono::seconds(st.st_mtime);
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed getting file size.");
+	return FetchFileTime([&](struct ::stat& st){
+		return std::chrono::seconds(st.st_atime); 
+	}, desc);
 #endif
 }
+FileTime
+FileDescriptor::GetModificationTime() const
+{
+#if YCL_Win32
+	::FILETIME mtime;
+
+	return FetchFileTime([&]{
+		YCL_CallWin32(GetFileTime, "FileDescriptor::GetModificationTime",
+			::HANDLE(::_get_osfhandle(desc)), {}, {}, &mtime);
+		return platform_ex::ConvertTime(mtime);
+	});
+#else
+	return FetchFileTime([&](struct ::stat& st){
+		return std::chrono::seconds(st.st_mtime); 
+	}, desc);
+#endif
+
+}
+array<FileTime, 2>
+FileDescriptor::GetModificationAndAccessTime() const
+{
+#if YCL_Win32
+	::FILETIME mtime, atime;
+
+	return FetchFileTime([&]{
+		YCL_CallWin32(GetFileTime,
+			"FileDescriptor::GetModificationAndAccessTime",
+			::HANDLE(::_get_osfhandle(desc)), {}, &atime, &mtime);
+		return array<FileTime, 2>{platform_ex::ConvertTime(mtime),
+			platform_ex::ConvertTime(atime)};
+	});
+#else
+	return FetchFileTime([&](struct ::stat& st){
+		return array<FileTime, 2>{std::chrono::seconds(st.st_mtime),
+			std::chrono::seconds(st.st_atime)};
+	}, desc);
+#endif
+
+}
 std::uint64_t
-FileDescriptor::GetSize()
+FileDescriptor::GetSize() const
 {
 #if YCL_Win32
 	::LARGE_INTEGER sz;
@@ -275,6 +335,9 @@ FileDescriptor::SetSize(size_t size) ynothrow
 #if YCL_Win32
 	return ::_chsize(desc, long(size)) == 0;
 #else
+	// FIXME: It seems that on Android 32-bit size is always used even if
+	//	'_FILE_OFFSET_BITS == 1'. Thus it is not safe and would better to be
+	//	ignored slightly.
 	return ::ftruncate(desc, ::off_t(size)) == 0;
 #endif
 }
@@ -338,6 +401,9 @@ SetBinaryIO(std::FILE* stream) ynothrow
 int
 TryClose(std::FILE* fp) ynothrow
 {
+	// NOTE: However, on some implementations, '::close' and some other
+	//	function calls may always cause file descriptor to be closed
+	//	even if returning 'EINTR'. Thus it should be ignored. See https://www.python.org/dev/peps/pep-0475/#modified-functions .
 	return RetryOnInterrupted([=]{
 		return std::fclose(fp);
 	});
@@ -626,17 +692,17 @@ YCL_Impl_FileSystem_ufunc(uremove, std::remove, ::_wremove)
 ImplDeDtor(FileOperationFailure)
 
 
-std::chrono::nanoseconds
+FileTime
 GetFileModificationTimeOf(std::FILE* fp)
 {
 	return FileDescriptor(fp).GetModificationTime();
 }
-std::chrono::nanoseconds
+FileTime
 GetFileModificationTimeOf(const char* filename)
 {
 	return GetFileModificationTimeOfImpl(filename);
 }
-std::chrono::nanoseconds
+FileTime
 GetFileModificationTimeOf(const char16_t* filename)
 {
 	return GetFileModificationTimeOfImpl(filename);

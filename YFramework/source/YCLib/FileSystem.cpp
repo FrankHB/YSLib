@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2835
+\version r2871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-08-25 09:19 +0800
+	2015-09-01 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileSystem
-#include YFM_YCLib_NativeAPI // for Mode;
+#include YFM_YCLib_NativeAPI // for Mode, ::CreateFileW, struct ::stat, ::lstat;
 #include YFM_YCLib_FileIO // for FileOperationFailure;
 #include <cstring> // for std::strchr;
 #include <cwchar> // for std::wctob;
@@ -44,6 +44,7 @@ using namespace CHRLib;
 #elif YCL_Win32
 #	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
 //	platform_ex::ConvertTime;
+#	include YFM_YCLib_Host // for platform_ex::UniqueHandle;
 #	include <time.h> // for ::localtime_s;
 
 //! \since build 540
@@ -53,7 +54,6 @@ using platform_ex::DirectoryFindData;
 #elif YCL_API_POSIXFileSystem
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
-#	include <sys/stat.h>
 #	include <time.h> // for ::localtime_r;
 
 //! \since build 475
@@ -63,6 +63,7 @@ using namespace CHRLib;
 namespace platform
 {
 
+#if !YCL_Win32
 namespace
 {
 
@@ -76,28 +77,23 @@ FetchNodeCategoryFromStat(_type& st)
 
 	if((m & Mode::Directory) == Mode::Directory)
 		res |= NodeCategory::Directory;
-#if !YCL_Win32
 	if((m & Mode::Link) == Mode::Link)
 		res |= NodeCategory::Link;
-#endif
 	if((m & Mode::Regular) == Mode::Regular)
 		res |= NodeCategory::Regular;
 	if(YB_UNLIKELY((m & Mode::Character) == Mode::Character))
 		res |= NodeCategory::Character;
-#if !YCL_Win32
 	else if(YB_UNLIKELY((m & Mode::Block) == Mode::Block))
 		res |= NodeCategory::Block;
-#endif
 	if(YB_UNLIKELY((m & Mode::FIFO) == Mode::FIFO))
 		res |= NodeCategory::FIFO;
-#if !YCL_Win32
 	if((m & Mode::Socket) == Mode::Socket)
 		res |= NodeCategory::Socket;
-#endif
 	return res;
 }
 
 } // unnamed namespace;
+#endif
 
 
 DirectorySession::DirectorySession(const char* path)
@@ -166,10 +162,11 @@ HDirectory::GetNodeCategory() const ynothrow
 		const auto&
 			dir_data(Deref(static_cast<DirectoryFindData*>(GetNativeHandle())));
 		const auto& find_data(dir_data.GetFindData());
+		const auto& attr(find_data.dwFileAttributes);
 
-		if(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		if(attr & FILE_ATTRIBUTE_DIRECTORY)
 			res |= NodeCategory::Directory;
-		if(find_data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+		if(attr & FILE_ATTRIBUTE_REPARSE_POINT)
 		{
 			switch(find_data.dwReserved0)
 			{
@@ -183,16 +180,35 @@ HDirectory::GetNodeCategory() const ynothrow
 				;
 			}
 		}
+		if(attr & FILE_ATTRIBUTE_DEVICE)
+			res |= NodeCategory::Device;
 
-		struct ::_stat st;
 		auto name(dir_data.GetDirName());
 
 		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
 		name.pop_back();
 		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
-		if(::_wstat((name
-			+ Deref(static_cast<wstring*>(p_dirent))).c_str(), &st) == 0)
-			res |= FetchNodeCategoryFromStat(st);
+		// NOTE: Only existed and accessable files are considered.
+		// FIXME: TOCTTOU access.
+		if(const platform_ex::UniqueHandle h{::CreateFileW((name + Deref(
+			static_cast<wstring*>(p_dirent))).c_str(), FILE_READ_ATTRIBUTES,
+			FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, {},
+			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, {})})
+			switch(::GetFileType(h.get())
+				& ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
+			{
+			case FILE_TYPE_CHAR:
+				res |= NodeCategory::Character;
+				break;
+			case FILE_TYPE_DISK:
+				res |= NodeCategory::Device;
+				break;
+			case FILE_TYPE_PIPE:
+				res |= NodeCategory::FIFO;
+				break;
+			default:
+				;
+			}
 #else
 		auto name(sDirPath + Deref(p_dirent).d_name);
 		struct ::stat st;

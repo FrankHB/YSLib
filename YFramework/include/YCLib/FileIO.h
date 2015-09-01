@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1149
+\version r1180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-08-30 15:01 +0800
+	2015-09-01 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <ystdex/string.hpp> // for ynothrow, ystdex::enable_for_string_class_t,
 //	std::uint64_t;
 #include <cstdio> // for std::FILE;
+#include YFM_YCLib_Container // for array;
 #include YFM_YCLib_Reference // for unique_ptr;
 #include <ios> // for std::ios_base::sync_with_stdio;
 #include <fstream> // for std::filebuf;
@@ -47,6 +48,9 @@
 
 namespace platform
 {
+
+//! \since build 628
+using FileTime = std::chrono::nanoseconds;
 
 /*!
 \brief 文件模式类型。
@@ -103,16 +107,16 @@ public:
 		: desc(-1)
 	{}
 
-	//! \since build 625
-	//@{
-	PDefHOp(int, *, ) ynothrow
+	//! \since build 628
+	PDefHOp(int, *, ) const ynothrow
 		ImplRet(desc)
 
+	//! \since build 625
 	PDefHOp(FileDescriptor*, ->, ) ynothrow
 		ImplRet(this)
+	//! \since build 625
 	PDefHOp(const FileDescriptor*, ->, ) const ynothrow
 		ImplRet(this)
-	//@}
 
 	explicit DefCvt(const ynothrow, bool, desc != -1)
 
@@ -121,23 +125,33 @@ public:
 	friend PDefHOp(bool, !=, const FileDescriptor& x, const FileDescriptor& y)
 		ImplRet(x.desc != y.desc)
 
-	//! \since build 624
+	//! \since build 628
 	//@{
-	/*!
-	\brief 取文件的修改时间。
+	/*
 	\return 以 POSIX 时间相同历元的时间间隔。
 	\throw FileOperationFailure 参数无效或文件修改时间查询失败。
 	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
 	*/
-	YF_API std::chrono::nanoseconds
-	GetModificationTime();
+	//@{
+	//! \brief 取文件的访问时间。
+	YF_API FileTime
+	GetAccessTime() const;
+	//! \brief 取文件的修改时间。
+	YF_API FileTime
+	GetModificationTime() const;
+	//! \brief 取文件的修改和访问时间。
+	YF_API array<FileTime, 2>
+	GetModificationAndAccessTime() const;
+	//@}
 	/*
 	\brief 取文件的大小。
 	\return 以字节计算的文件大小。
+	\note 非常规文件可能出错。
 	\throw FileOperationFailure 参数无效或文件大小查询失败。
 	*/
 	std::uint64_t
-	GetSize();
+	GetSize() const;
+	//@}
 
 	/*!
 	\brief 设置阻塞模式。
@@ -162,10 +176,10 @@ public:
 	\note 可能设置 \c errno 。
 	\return 是否进行了设置。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/ 。
+	\since build 624
 	*/
 	bool
 	SetNonblocking() const ynothrow;
-	//@}
 	//! \since build 625
 	//@{
 	/*!
@@ -944,22 +958,22 @@ public:
 /*!
 \sa FileDescriptor::GetModificationTime
 \exception FileOperationFailure 参数无效或文件修改时间查询失败。
-\since build 544
+\since build 628
 */
 //@{
-YF_API YB_NONNULL(1) std::chrono::nanoseconds
+YF_API YB_NONNULL(1) FileTime
 GetFileModificationTimeOf(std::FILE*);
 //! \pre 断言：参数非空。
 //@{
-YF_API YB_NONNULL(1) std::chrono::nanoseconds
+YF_API YB_NONNULL(1) FileTime
 GetFileModificationTimeOf(const char*);
-YF_API YB_NONNULL(1) std::chrono::nanoseconds
+YF_API YB_NONNULL(1) FileTime
 GetFileModificationTimeOf(const char16_t*);
 //@}
 //! \note 使用 NTCTS 参数 GetFileModificationTimeOf 实现。
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline std::chrono::nanoseconds
+inline FileTime
 GetFileModificationTimeOf(const _tString& str)
 {
 	return platform::GetFileModificationTimeOf(str.c_str());

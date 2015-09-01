@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13836
+\version r13842
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-07-18 00:19 +0800
+	2015-09-01 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,6 +73,9 @@ YB_IMPL_CLANGPP
 #__has_feature(...)
 #__has_extension(...)
 #__has_builtin(...)
+#__cpp_constexpr
+#__cpp_lib_integer_sequence
+#__cpp_lib_exchange_function
 YPP_Empty
 YPP_Comma
 YPP_Join(_x, _y)
@@ -81,7 +84,6 @@ yimpl
 YB_HAS_ALIGNAS
 YB_HAS_ALIGNOF
 YB_HAS_BUILTIN_NULLPTR
-YB_HAS_CONSTEXPR
 YB_HAS_NOEXCEPT
 YB_ABORT
 YB_ATTR(...)
@@ -196,7 +198,9 @@ $header MinGW32
 YCL_Raise_Win32Exception(...)
 YCL_Raise_Win32Exception_On_Failure(_expr, ...)
 YCL_CallWin32(_fn, _msg, ...)
+YCL_WrapCallWin32(_fn, ...)
 YCL_CallWin32_Trace(_fn, _msg, ...)
+YCL_WrapCallWin32_Trace(_fn, ...)
 }
 } // $dir YCLib_(MinGW32);
 

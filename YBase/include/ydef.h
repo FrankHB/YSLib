@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2755
+\version r2816
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-08-06 21:10 +0800
+	2015-09-01 10:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,6 +117,11 @@
 \since build 484
 */
 //@{
+//! \since build 628
+#ifndef __has_attribute
+#	define __has_attribute(...) 0
+#endif
+
 //! \since build 535
 #ifndef __has_builtin
 #	define __has_builtin(...) 0
@@ -136,6 +141,23 @@
 #endif
 //@}
 
+/*!
+\brief WG21/N4200 \c constexpr 特性测试宏。
+\see WG21/N4200 3.4 和 3.5 。
+\since build 628
+*/
+//! \since build 628
+//@{
+#ifndef __cpp_constexpr
+#	if __has_feature(cxx_relaxed_constexpr) || __cplusplus >= 201402L
+#		define __cpp_constexpr 201304
+#	elif __has_feature(cxx_constexpr) || __cplusplus >= 201103L \
+	|| YB_IMPL_GNUCPP >= 40600 || YB_IMPL_MSCPP >= 1900
+#		define __cpp_constexpr 200704
+#	endif
+#endif
+//@}
+
 #include <cstddef> // for std::nullptr_t, std::size_t, std::ptrdiff_t, offsetof;
 #include <cstdlib> // for std::abort;
 #include <climits> // for CHAR_BIT;
@@ -144,6 +166,22 @@
 #include <cwchar> // for std::wint_t;
 #include <utility> // for std::forward;
 #include <type_traits> // for std::is_class, std::is_standard_layout;
+
+#if YB_IMPL_MSCPP >= 1900
+/*!
+\brief WG21/N4200 \<utility\> 特性测试宏。
+\see WG21/N4200 3.4 。
+\since build 628
+*/
+//@{
+#	ifndef __cpp_lib_integer_sequence
+#		define __cpp_lib_integer_sequence 201304
+#	endif
+#	ifndef __cpp_lib_exchange_function
+#		define __cpp_lib_exchange_function 201304
+#	endif
+//@}
+#endif
 
 
 /*!	\defgroup preprocessor_helpers Perprocessor Helpers
@@ -226,28 +264,6 @@
 	(__has_feature(cxx_nullptr) || __has_extension(cxx_nullptr) \
 		|| __cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600 || \
 		YB_IMPL_MSCPP >= 1600)
-
-/*!
-\def YB_HAS_CONSTEXPR
-\brief constexpr 支持。
-\since build 313
-*/
-#undef YB_HAS_CONSTEXPR
-#define YB_HAS_CONSTEXPR \
-	(__cpp_constexpr >= 200704 || __has_feature(cxx_constexpr) \
-		|| __cplusplus >= 201103L || YB_IMPL_GNUCPP >= 40600 \
-		|| YB_IMPL_MSCPP >= 1900)
-
-/*!
-\def YB_HAS_RELAXED_CONSTEXPR
-\brief C++14 constexpr 支持。
-\since build 591
-*/
-#undef YB_HAS_CONSTEXPR_CPP14
-#define YB_HAS_CONSTEXPR_CPP14 \
-	(__cpp_constexpr >= 201304 || __has_feature(cxx_relaxed_constexpr) \
-		|| __cplusplus >= 201402L)
-
 
 /*!
 \def YB_HAS_NOEXCPT
@@ -343,7 +359,7 @@
 指示函数若返回非空指针，返回的指针不是其它任何有效指针的别名，
 且指针指向的存储内容不由其它存储决定。
 */
-#if YB_IMPL_GNUCPP >= 20296
+#if __has_attribute(__malloc__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_ALLOCATOR YB_ATTR(__malloc__)
 #else
 #	define YB_ALLOCATOR
@@ -402,7 +418,7 @@
 */
 #if __has_cpp_attribute(noreturn) >= 200809 || YB_IMPL_GNUCPP >= 40800
 #	define YB_NORETURN [[noreturn]]
-#elif YB_IMPL_GNUCPP >= 20296
+#elif __has_attribute(__noreturn__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_NORETURN YB_ATTR(__noreturn__)
 #else
 #	define YB_NORETURN
@@ -422,7 +438,7 @@
 指示函数或函数模板的求值是返回值的计算，无影响其它的存储的副作用，
 且返回值只依赖参数和/或编译时确定内存位置（如具有静态存储期的对象的）存储的值。
 */
-#if YB_IMPL_GNUCPP >= 20296
+#if __has_attribute(__pure__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_PURE YB_ATTR(__pure__)
 #else
 #	define YB_PURE
@@ -445,7 +461,7 @@
 若参数是对象指针或引用类型，还必须保证指向或引用的对象是其它参数，或者不被使用。
 函数实现不能调用其它不能以 YB_STATELESS 限定的函数。
 */
-#if YB_IMPL_GNUCPP >= 20500
+#if __has_attribute(__const__) || YB_IMPL_GNUCPP >= 20500
 #	define YB_STATELESS YB_ATTR(__const__)
 #else
 #	define YB_STATELESS
@@ -487,7 +503,8 @@
 #	else
 #		define YB_API
 #	endif
-#elif defined(YB_BUILD_DLL) && (YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP)
+#elif defined(YB_BUILD_DLL) && (__has_attribute(__visibility__) \
+	|| YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP)
 #	define YB_API YB_ATTR(__visibility__("default"))
 #else
 #	define YB_API
@@ -539,7 +556,7 @@
 \brief 指定特定类型的对齐。
 \note 同 C++11 alignas 作用于类型时的语义。
 \since build 591
-\todo 判断没有 alignas 且没有属性支持时的其它情况。
+\todo 判断没有内建关键字支持时属性存在及没有属性支持时的其它情况。
 */
 #if YB_HAS_ALIGNAS
 #	define yalignas alignas
@@ -576,7 +593,7 @@
 \note 同 C++11 constepxr 作用于编译时常量函数的语义。
 \since build 266
 */
-#if YB_HAS_CONSTEXPR
+#if __cpp_constexpr >= 200704
 #	define yconstexpr constexpr
 #	define yconstfn constexpr
 #else
@@ -591,7 +608,7 @@
 \note 同 C++14 constepxr 作用于编译时常量函数的语义。
 \since build 591
 */
-#if YB_HAS_CONSTEXPR_CPP14
+#if __cpp_constexpr >= 201304
 #	define yconstfn_relaxed constexpr
 #else
 #	define yconstfn_relaxed inline

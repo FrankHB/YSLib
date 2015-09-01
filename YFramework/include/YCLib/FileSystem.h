@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2432
+\version r2435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-07-14 19:23 +0800
+	2015-09-01 10:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,15 +155,12 @@ static_assert(std::is_integral<decltype(YCL_PATH_DELIMITER)>(),
 	"Illegal type of delimiter found.");
 static_assert(std::is_array<ystdex::remove_reference_t<decltype(
 	YCL_PATH_SEPARATOR)>>(), "Non-array type of separator found.");
-//! \since build 458 as workaround for Visual C++ 2013
-#if YB_HAS_CONSTEXPR
 static_assert(arrlen(YCL_PATH_SEPARATOR) == 2,
 	"Wrong length of separator found.");
 static_assert(YCL_PATH_SEPARATOR[0] == YCL_PATH_DELIMITER,
 	"Mismatched path delimiter and separator found.");
 static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 	"Non-null-terminator as end of separator.");
-#endif
 //@}
 
 

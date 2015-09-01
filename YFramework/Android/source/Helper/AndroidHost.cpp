@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r427
+\version r430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2015-08-23 06:35 +0800
+	2015-08-31 22:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,9 +142,8 @@ NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 		}
 		YTraceDe(Informative,
 			"Waiting for native main thread finishing...");
-		FilterExceptions([&]{
-			host.thrdMain.join();
-		}, "AndroidHost NativeWindowDestroyed handler");
+		FilterExceptions(std::bind(&std::thread::join, std::ref(
+			host.thrdMain)), "AndroidHost NativeWindowDestroyed handler");
 		YTraceDe(Informative, "Waiting for screen being released...");
 		YTraceDe(Debug, "Client thread terminated.");
 	},

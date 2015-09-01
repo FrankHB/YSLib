@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1246
+\version r1255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-05-29 19:28 +0800
+	2015-09-01 09:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -394,14 +394,6 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 	AlphaType r, AlphaType g, AlphaType b) ynothrow
 	ImplRet(std::uint32_t(r) | std::uint32_t(g) << 8 | std::uint32_t(b) << 16)
 
-//! \since build 458 as workaround for Visual C++ 2013
-#	if YB_HAS_CONSTEXPR
-#		define YCL_FetchPixel(r, g, b) platform::FetchPixel(r, g, b)
-#	else
-#		define YCL_FetchPixel(r, g, b) \
-	(std::uint32_t(r) | std::uint32_t(g) << 8 | std::uint32_t(b) << 16)
-#	endif
-
 /*!
 \brief 定义 Windows DIB 格式兼容像素。
 \note 得到的 32 位整数和 ::RGBQUAD 在布局上兼容。
@@ -410,7 +402,7 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 \since build 296
 */
 #	define DefColorH_(hex, name) \
-	name = (YCL_FetchPixel(((hex) >> 16) & 0xFF, \
+	name = (FetchPixel(((hex) >> 16) & 0xFF, \
 		((hex) >> 8) & 0xFF, (hex) & 0xFF) << 8 | 0xFF)
 #else
 #	error "Unsupported platform found."
@@ -449,7 +441,6 @@ enum ColorSet : Pixel::Trait::IntegerType
 	DefColorH(FFFF00, Yellow)
 };
 
-#undef YCL_FetchPixel
 #undef DefColorH
 #undef DefColorH_
 #undef HexAdd0x
