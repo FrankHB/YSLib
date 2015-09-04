@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r773
+\version r890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-08-19 22:36 +0800
+	2015-09-03 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
 #include YFM_YCLib_Debug // for string, wstring, vector, pair;
+#include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
 #if !YCL_MinGW
 #	error "This file is only for MinGW."
 #endif
@@ -220,6 +221,113 @@ public:
 		return static_cast<_type*>(p_locked);
 	}
 };
+//@}
+
+
+//! \since build 629
+//@{
+/*!
+\brief 访问权限。
+\see https://msdn.microsoft.com/en-us/library/windows/desktop/aa374892(v=vs.85).aspx 。
+\see https://msdn.microsoft.com/en-us/library/windows/desktop/aa374896(v=vs.85).aspx 。
+*/
+enum class AccessRights : ::ACCESS_MASK
+{
+	None = 0,
+	GenericRead = GENERIC_READ,
+	GenericWrite = GENERIC_WRITE,
+	GenericReadWrite = GenericRead | GenericWrite,
+	GenericExecute = GENERIC_EXECUTE,
+	GenericAll = GENERIC_ALL,
+	MaximumAllowed = MAXIMUM_ALLOWED,
+	AccessSystemACL = ACCESS_SYSTEM_SECURITY,
+	Delete = DELETE,
+	ReadControl = READ_CONTROL,
+	Synchronize = SYNCHRONIZE,
+	WriteDAC = WRITE_DAC,
+	WriteOwner = WRITE_OWNER,
+	All = STANDARD_RIGHTS_ALL,
+	Execute = STANDARD_RIGHTS_EXECUTE,
+	StandardRead = STANDARD_RIGHTS_READ,
+	Required = STANDARD_RIGHTS_REQUIRED,
+	StandardWrite = STANDARD_RIGHTS_WRITE
+};
+
+//! \relates AccessRights
+DefBitmaskEnum(AccessRights)
+
+
+//! \brief 文件特定的访问权限。
+enum class FileSpecificAccessRights : ::ACCESS_MASK
+{
+	AddFile = FILE_ADD_FILE,
+	AddSubdirectory = FILE_ADD_SUBDIRECTORY,
+	AllAccess = FILE_ALL_ACCESS,
+	AppendData = FILE_APPEND_DATA,
+	CreatePipeInstance = FILE_CREATE_PIPE_INSTANCE,
+	DeleteChild = FILE_DELETE_CHILD,
+	Execute = FILE_EXECUTE,
+	ListDirectory = FILE_LIST_DIRECTORY,
+	ReadAttributes = FILE_READ_ATTRIBUTES,
+	ReadData = FILE_READ_DATA,
+	ReadEA = FILE_READ_EA,
+	Traverse = FILE_TRAVERSE,
+	WriteAttributes = FILE_WRITE_ATTRIBUTES,
+	WriteData = FILE_WRITE_DATA,
+	WriteEA = FILE_WRITE_EA,
+	Read = STANDARD_RIGHTS_READ,
+	Write = STANDARD_RIGHTS_WRITE
+};
+
+//! \relates FileSpecificAccessRights
+DefBitmaskEnum(FileSpecificAccessRights)
+
+
+//! \brief 文件访问权限。
+using FileAccessRights
+	= ystdex::enum_union<AccessRights, FileSpecificAccessRights>;
+
+//! \relates FileAccessRights
+DefBitmaskOperations(FileAccessRights,
+	ystdex::wrapped_enum_traits_t<FileAccessRights>)
+
+
+//! \brief 文件共享模式。
+enum class FileShareMode : ::ACCESS_MASK
+{
+	None = 0,
+	Delete = FILE_SHARE_DELETE,
+	Read = FILE_SHARE_READ,
+	Write = FILE_SHARE_WRITE,
+	ReadWrite = Read | Write,
+	All = Delete | Read | Write
+};
+
+//! \relates FileShareMode
+DefBitmaskEnum(FileShareMode)
+
+
+//! \brief 文件创建选项。
+enum class CreationDisposition : unsigned long
+{
+	CreateAlways = CREATE_ALWAYS,
+	CreateNew = CREATE_NEW,
+	OpenAlways = OPEN_ALWAYS,
+	OpenExisting = OPEN_EXISTING,
+	TruncateExisting = TRUNCATE_EXISTING
+};
+
+
+/*!
+\brief 创建或打开独占的文件或设备。
+\pre 间接断言：路径参数非空。
+\note 调用 \c ::CreateFileW 实现。
+*/
+YF_API YB_NONNULL(1) UniqueHandle
+MakeFile(const wchar_t*, FileAccessRights = AccessRights::None,
+	FileShareMode = FileShareMode::All,
+	CreationDisposition = CreationDisposition::OpenExisting, unsigned long
+	= FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS) ynothrowv;
 //@}
 
 
@@ -466,6 +574,32 @@ inline YB_NONNULL(2, 3) PDefH(wstring, FetchRegistryString,
 	ImplRet(FetchRegistryString(RegistryKey(h_parent, key_name), name))
 //@}
 
+
+/*!
+\brief 查询文件的创建、访问和修改时间。
+\note 后三个参数可选，指针为空时忽略。
+\since build 629
+*/
+//@{
+//! \pre 文件句柄不为 \c INVALID_HANDLE_VALUE 且具有 AccessRights::GenericRead 权限。
+YF_API void
+QueryFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
+	::FILETIME* = {});
+/*!
+\note 即使可选参数都为空指针时仍访问文件。
+\pre 间接断言：路径非空。
+\throw Win32Exception 访问文件失败。
+*/
+//@{
+//! \note 使用 UTF-8 路径。
+YF_API YB_NONNULL(1) void
+QueryFileTime(const char*, ::FILETIME* = {}, ::FILETIME* = {},
+	::FILETIME* = {});
+YF_API YB_NONNULL(1) void
+QueryFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
+	::FILETIME* = {});
+//@}
+//@}
 
 /*!
 \brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。

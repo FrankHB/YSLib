@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r247
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-08-16 21:53 +0800
+	2015-09-03 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ Since 'ystdex::nptr' is exactly a wrapper but not a smart pointer, it is intende
 The function 'isatty' on POSIX compliant environments and '_isatty' is not the same.
 	For POSIX compliant environments, '::isatty' returns whether the file descriptor is associated with a terminal.
 		See http://pubs.opengroup.org/onlinepubs/009695399/functions/isatty.html .
-	For Win32, '::_isatty' returns whether the file descriptor is associated with a character device;  Both cases exclude some uses not fit.
+	For Win32, '::_isatty' returns whether the file descriptor is associated with a character device.
 		See http://msdn.microsoft.com/en-us/library/f4s0ddew.aspx.
 	Use Win32 APIs to achieve the functionality of POSIX compliant 'isatty'.
 		See http://stackoverflow.com/questions/3648711/detect-nul-file-descriptor-isatty-is-bogus .
@@ -249,6 +249,17 @@ It is a known issue that current GNU C++ frontend 'cc1plus' would crash when deb
 	Only tested for G++ from MSYS2 package 5.2.0-3. It is used to build stage 2 SHBuild.
 		However, stage 1 SHBuild seems to be OK.
 	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67238 .
+
+$2015-09:
+
+report.impl:
+	Be cautious to the fact that some POD structs without constructors might not be initialized without initializer.
+		It is clear that only a few types in the standard library is dangerous for the reason, see below. The specification is usually clear enough to distinguish bugs from implementations and user code.
+		To serve robustness and make some speicific error easy to be detected, the automatic object of these types should be initialized explicitly for other external libraries.
+		To value-initilize these types, '{}' is recommended.
+			Note the list-initialization rules is not the same in ISO C++11 and ISO C++14, but here the effect is same.
+			Still be cautious that value-initialization might not be enough, e.g. for instances of 'std::atomic'.
+				Instead of '{}', use '{{}}', etc.
 
 ////
 

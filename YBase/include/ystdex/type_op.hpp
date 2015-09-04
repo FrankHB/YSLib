@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1682
+\version r1775
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-07-23 14:13 +0800
+	2015-09-04 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -561,45 +561,7 @@ struct is_covariant : is_convertible<_tFrom, _tTo>
 template<typename _tFrom, typename _tTo>
 struct is_contravariant : is_convertible<_tTo, _tFrom>
 {};
-
-
-/*!
-\brief 判断是否对齐兼容。
-\note 第一参数类型比第二参数类型对齐要求更严格或相同。
-\since build 610
-*/
-template<typename _type, typename _type2>
-struct is_aligned_compatible : bool_constant<yalignof(_type2)
-	<= yalignof(_type) && yalignof(_type) % yalignof(_type2) == 0>
-{};
-
-/*!
-\brief 判断是否可原地对齐存储。
-\since build 610
-*/
-template<typename _type, typename _tDst>
-struct is_aligned_placeable : bool_constant<sizeof(_type)
-	== sizeof(_tDst) && is_aligned_compatible<_tDst, _type>::value>
-{};
-
-/*!
-\brief 判断是否可对齐存储。
-\since build 503
-*/
-template<typename _type, typename _tDst>
-struct is_aligned_storable : bool_constant<sizeof(_type)
-	<= sizeof(_tDst) && is_aligned_compatible<_tDst, _type>::value>
-{};
 //@}
-
-/*!
-\brief 判断是否可替换对齐存储。
-\since build 610
-*/
-template<typename _type, typename _tDst>
-struct is_aligned_replaceable : and_<is_aligned_storable<_type, _tDst>,
-	is_aligned_storable<_tDst, _type>>
-{};
 
 
 namespace details
@@ -683,7 +645,8 @@ YB_HAS_MEMBER(value)
 YB_TYPE_OP_TEST_2(have_equality_operator, (is_convertible<decltype(std::declval<
 	_type>() == std::declval<_type2>()), bool>::value))
 
-
+//! \ingroup binary_type_traits
+//@{
 //! \since build 591
 //@{
 template<typename _type, typename = void>
@@ -717,11 +680,9 @@ YB_TYPE_OP_TEST_2(has_subscription, !is_void<decltype(std::declval<_type>()[
 #endif
 
 
-/*!
-\since build 306
-*/
+//! \since build 629
 template<class _type>
-struct have_nonempty_virtual_base
+struct has_nonempty_virtual_base
 {
 	static_assert(is_class<_type>(),
 		"Non-class type found @ ystdex::has_nonempty_virtual_base;");
@@ -798,6 +759,7 @@ private:
 public:
 	static yconstexpr const bool value = sizeof(C) < sizeof(A) + sizeof(B);
 };
+//@}
 
 //! \since build 612
 //@{
@@ -832,6 +794,8 @@ struct common_nonvoid_impl<false, _type, _types...>
 } // namespace details;
 
 
+//! \ingroup unary_type_traits
+//@{
 //! \since build 454 as workaround for Visual C++ 2013
 #if !YB_IMPL_MSCPP
 /*!
@@ -847,7 +811,6 @@ struct has_mem_value
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断是否存在合式的 & 操作符接受指定类型的表达式。
 \pre 参数不为不完整类型。
 \since build 588
@@ -856,10 +819,12 @@ template<typename _type>
 struct has_addressof
 	: or_<details::has_addressof_mem<_type>, details::has_addressof_free<_type>>
 {};
+//@}
 
 
+//! \ingroup binary_type_traits
+//@{
 /*!
-\ingroup binary_type_traits
 \brief 判断是否存在合式的结果为非 void 类型的 [] 操作符接受指定类型的表达式。
 \since build 399
 */
@@ -869,7 +834,6 @@ struct has_subscription : details::has_subscription<_type1, _type2>
 
 
 /*!
-\ingroup binary_type_traits
 \brief 判断是否存在合式的结果可转换为 bool 类型的 == 操作符接受指定类型的表达式。
 \since build 306
 */
@@ -880,14 +844,14 @@ struct has_equality_operator
 
 
 /*!
-\ingroup binary_type_traits
 \brief 判断指定类型是否有非空虚基类。
 \since build 175
 */
 template<class _type>
 struct has_nonempty_virtual_base
-	: bool_constant<details::have_nonempty_virtual_base<_type>::value>
+	: bool_constant<details::has_nonempty_virtual_base<_type>::value>
 {};
+//@}
 
 
 /*!
@@ -901,28 +865,9 @@ struct has_common_nonempty_virtual_base : bool_constant<
 {};
 
 
-/*!
-\ingroup type_traits_operations
-\since build 575
-*/
+//! \ingroup transformation_traits
 //@{
-template<typename _tFrom, typename _tTo, typename _type = void>
-using enable_if_convertible_t
-	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
-
-template<typename _type1, typename _type2, typename _type = void>
-using enable_if_interoperable_t
-	= enable_if_t<is_interoperable<_type1, _type2>::value, _type>;
-
-//! \since build 614
-template<typename _type1, typename _type2, typename _type = void>
-using enable_if_same_t
-	= enable_if_t<is_same<_type1, _type2>::value, _type>;
-//@}
-
-
 /*!
-\ingroup metafunctions
 \brief 恒等元函数。
 \note 功能可以使用 ISO C++ 11 的 std::common_type 的单一参数实例替代。
 \note ISO C++ LWG 2141 建议更改 std::common 的实现，无法替代。
@@ -948,8 +893,6 @@ using identity_t = typename identity<_type>::type;
 //@}
 
 
-//! \ingroup metafunctions
-//@{
 /*!
 \brief 移除可能被 cv-qualifier 修饰的引用类型。
 \note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
@@ -1052,6 +995,7 @@ struct array_ref_decay<_type&&>
 };
 //@}
 
+
 /*!
 \brief 取成员指针类型指向的类类型。
 \since build 612
@@ -1059,16 +1003,11 @@ struct array_ref_decay<_type&&>
 template<typename _type>
 using member_target_type_t
 	= typename details::member_target_type_impl<_type>::type;
+//@}
 
-/*!
-\brief 移除选择类类型的特定重载避免构造模板和复制/转移构造函数冲突。
-\sa enable_if_t
-\since build 538
-*/
-template<class _tClass, typename _tParam, typename _type = void>
-using exclude_self_ctor_t
-	= enable_if_t<!is_same<_tClass&, remove_rcv_t<_tParam>&>::value, _type>;
 
+//! \ingroup metafunctions
+//@{
 /*!
 \brief 取公共非空类型：若第一参数为非空类型则为第一参数，否则从其余参数推断。
 \since build 562
@@ -1076,6 +1015,41 @@ using exclude_self_ctor_t
 template<typename _type, typename... _types>
 using common_nonvoid_t = typename
 	details::common_nonvoid_impl<is_void<_type>::value, _type, _types...>::type;
+
+/*!
+\brief 取公共底层类型。
+\since build 629
+*/
+template<typename... _types>
+using common_underlying_t = common_type_t<underlying_type_t<_types>...>;
+
+
+//! \sa enable_if_t
+//@{
+//! \since build 575
+//@{
+template<typename _tFrom, typename _tTo, typename _type = void>
+using enable_if_convertible_t
+	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
+
+template<typename _type1, typename _type2, typename _type = void>
+using enable_if_interoperable_t
+	= enable_if_t<is_interoperable<_type1, _type2>::value, _type>;
+
+//! \since build 614
+template<typename _type1, typename _type2, typename _type = void>
+using enable_if_same_t
+	= enable_if_t<is_same<_type1, _type2>::value, _type>;
+//@}
+
+/*!
+\brief 移除选择类类型的特定重载避免构造模板和复制/转移构造函数冲突。
+\since build 538
+*/
+template<class _tClass, typename _tParam, typename _type = void>
+using exclude_self_ctor_t
+	= enable_if_t<!is_same<_tClass&, remove_rcv_t<_tParam>&>::value, _type>;
+//@}
 //@}
 
 

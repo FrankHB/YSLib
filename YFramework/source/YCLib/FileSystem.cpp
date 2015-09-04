@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2871
+\version r2883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-01 21:04 +0800
+	2015-09-02 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileSystem
-#include YFM_YCLib_NativeAPI // for Mode, ::CreateFileW, struct ::stat, ::lstat;
+#include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include YFM_YCLib_FileIO // for FileOperationFailure;
 #include <cstring> // for std::strchr;
 #include <cwchar> // for std::wctob;
@@ -42,13 +42,9 @@
 //! \since build 475
 using namespace CHRLib;
 #elif YCL_Win32
-#	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
-//	platform_ex::ConvertTime;
-#	include YFM_YCLib_Host // for platform_ex::UniqueHandle;
+#	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::MakeFile;
 #	include <time.h> // for ::localtime_s;
 
-//! \since build 540
-using platform_ex::UTF8ToWCS;
 //! \since build 549
 using platform_ex::DirectoryFindData;
 #elif YCL_API_POSIXFileSystem
@@ -183,17 +179,16 @@ HDirectory::GetNodeCategory() const ynothrow
 		if(attr & FILE_ATTRIBUTE_DEVICE)
 			res |= NodeCategory::Device;
 
+		using namespace platform_ex;
 		auto name(dir_data.GetDirName());
 
 		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
 		name.pop_back();
 		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
 		// NOTE: Only existed and accessable files are considered.
-		// FIXME: TOCTTOU access.
-		if(const platform_ex::UniqueHandle h{::CreateFileW((name + Deref(
-			static_cast<wstring*>(p_dirent))).c_str(), FILE_READ_ATTRIBUTES,
-			FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, {},
-			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, {})})
+		// FIXME: Blocked. TOCTTOU access.
+		if(const auto h{MakeFile((name + Deref(static_cast<wstring*>(
+			p_dirent))).c_str(), FileSpecificAccessRights::ReadAttributes)})
 			switch(::GetFileType(h.get())
 				& ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
 			{

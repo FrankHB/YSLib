@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1867
+\version r1939
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-07-23 14:11 +0800
+	2015-09-04 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,90 +31,15 @@
 #ifndef YB_INC_ystdex_any_h_
 #define YB_INC_ystdex_any_h_ 1
 
-#include "utility.hpp"
-#include <new> // for placement ::operator new from standard library;
 #include "base.h" // for cloneable;
 #include <memory> // for std::addressof, std::unique_ptr;
-#include "ref.hpp" // for lref;
 #include <typeinfo> // for typeid, std::bad_cast;
+#include "type_pun.hpp" // for pod_storage, aligned_storage_t;
+#include "ref.hpp" // for lref;
+#include "cassert.h" // for yconstraint;
 
 namespace ystdex
 {
-
-/*
-\brief 任意 POD 类型存储。
-\note POD 的含义参考 ISO C++11 。
-\since build 351
-*/
-template<typename _tPOD = aligned_storage_t<sizeof(void*)>>
-union pod_storage
-{
-	static_assert(is_pod<_tPOD>(), "Non-POD underlying type found.");
-
-	using underlying = _tPOD;
-
-	//! \since build 595
-	mutable underlying object;
-	//! \since build 595
-	mutable byte data[sizeof(underlying)];
-
-	//! \since build 352
-	//@{
-	pod_storage() = default;
-	//! \since build 503
-	pod_storage(const pod_storage&) = default;
-	//! \since build 454
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<pod_storage, _type>)>
-	inline
-	pod_storage(_type&& x)
-	{
-		new(access()) decay_t<_type>(yforward(x));
-	}
-
-	//! \since build 503
-	pod_storage&
-	operator=(const pod_storage&) = default;
-	/*
-	\note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
-	\since build 454
-	*/
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<pod_storage, _type>)>
-	inline pod_storage&
-	operator=(_type&& x)
-	{
-		assign(yforward(x));
-		return *this;
-	}
-	//@}
-
-	//! \since build 595
-	yconstfn YB_PURE void*
-	access() const
-	{
-		return &data[0];
-	}
-	//! \since build 595
-	template<typename _type>
-	yconstfn YB_PURE _type&
-	access() const
-	{
-		static_assert(is_aligned_storable<_type, pod_storage>(),
-			"Invalid type found.");
-
-		return *static_cast<_type*>(access());
-	}
-
-	//! \since build 503
-	template<typename _type>
-	inline void
-	assign(_type&& x)
-	{
-		access<decay_t<_type>>() = yforward(x);
-	}
-};
-
 
 //! \since build 354
 namespace any_ops

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1311
+\version r1312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-09-01 09:13 +0800
+	2015-09-02 11:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -379,7 +379,7 @@ public:
 			const auto pr(std::get_temporary_buffer<_type>(ptrdiff_t(n)));
 
 			if(pr.first)
-				return {pr.first, size_t(pr.second)};
+				return std::pair<pointer, size_t>{pr.first, size_t(pr.second)};
 			throw std::bad_cast();
 		})
 	{}

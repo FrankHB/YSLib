@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r923
+\version r973
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-01 21:07 +0800
+	2015-09-03 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,7 @@ _wfopen(const wchar_t*, const wchar_t*);
 //@}
 #	endif
 #	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
+//	platform_ex::QueryFileTime, platform_ex::UniqueHandle::pointer,
 //	platform_ex::ConvertTime;
 
 //! \since build 540
@@ -105,17 +106,6 @@ ensure_str(const char16_t* s)
 #endif
 }
 
-//! \since build 628
-template<typename _tChar>
-FileTime
-GetFileModificationTimeOfImpl(const _tChar* filename)
-{
-	if(const UniqueFile p{platform::uopen(filename, O_RDONLY)})
-		return p->GetModificationTime();
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed getting file time of \"" + ensure_str(filename) + "\".");
-}
-
 //! \since build 625
 //@{
 template<typename _func>
@@ -154,6 +144,48 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 	return ptr;
 }
 //@}
+
+#if YCL_Win32
+//! \since build 629
+void
+QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime = {})
+{
+	platform_ex::QueryFileTime(platform_ex::UniqueHandle::pointer(
+		::_get_osfhandle(fd)), p_ctime, p_atime, p_mtime);
+}
+
+//! \since build 629
+template<typename _tChar>
+FileTime
+GetFileModificationTimeOfImpl(const _tChar* filename)
+{
+	try
+	{
+		::FILETIME mtime{};
+
+		platform_ex::QueryFileTime(reinterpret_cast<const ystdex::conditional_t<
+			std::is_same<_tChar, char>::value, char, wchar_t>*>(filename), {},
+			{}, &mtime);
+		return platform_ex::ConvertTime(mtime);
+	}
+	CatchThrow(std::system_error& e, FileOperationFailure(e.code(),
+		"Failed getting file time of \"" + ensure_str(filename) + "\"."))
+	CatchThrow(..., FileOperationFailure(errno, std::generic_category(),
+		"Failed getting file time of \"" + ensure_str(filename) + "\"."))
+}
+#else
+//! \since build 628
+template<typename _tChar>
+FileTime
+GetFileModificationTimeOfImpl(const _tChar* filename)
+{
+	if(const UniqueFile p{platform::uopen(filename, O_RDONLY)})
+		return p->GetModificationTime();
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed getting file time of \"" + ensure_str(filename) + "\".");
+}
+#endif
 
 //! \since build 628
 template<typename _func>
@@ -206,11 +238,10 @@ FileTime
 FileDescriptor::GetAccessTime() const
 {
 #if YCL_Win32
-	::FILETIME atime;
+	::FILETIME atime{};
 
 	return FetchFileTime([&]{
-		YCL_CallWin32(GetFileTime, "FileDescriptor::GetAccessTime",
-			::HANDLE(::_get_osfhandle(desc)), {}, &atime, {});
+		QueryFileTime(desc, {}, &atime);
 		return platform_ex::ConvertTime(atime);
 	});
 #else
@@ -223,11 +254,10 @@ FileTime
 FileDescriptor::GetModificationTime() const
 {
 #if YCL_Win32
-	::FILETIME mtime;
+	::FILETIME mtime{};
 
 	return FetchFileTime([&]{
-		YCL_CallWin32(GetFileTime, "FileDescriptor::GetModificationTime",
-			::HANDLE(::_get_osfhandle(desc)), {}, {}, &mtime);
+		QueryFileTime(desc, {}, {}, &mtime);
 		return platform_ex::ConvertTime(mtime);
 	});
 #else
@@ -241,12 +271,10 @@ array<FileTime, 2>
 FileDescriptor::GetModificationAndAccessTime() const
 {
 #if YCL_Win32
-	::FILETIME mtime, atime;
+	::FILETIME mtime{}, atime{};
 
 	return FetchFileTime([&]{
-		YCL_CallWin32(GetFileTime,
-			"FileDescriptor::GetModificationAndAccessTime",
-			::HANDLE(::_get_osfhandle(desc)), {}, &atime, &mtime);
+		QueryFileTime(desc, {}, &atime, &mtime);
 		return array<FileTime, 2>{platform_ex::ConvertTime(mtime),
 			platform_ex::ConvertTime(atime)};
 	});
