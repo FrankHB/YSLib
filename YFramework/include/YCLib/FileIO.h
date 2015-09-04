@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1180
+\version r1189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-01 20:31 +0800
+	2015-09-03 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,14 +87,17 @@ public:
 
 private:
 	//! \since build 554
-	int desc;
+	int desc = -1;
 
 public:
-	FileDescriptor() ynothrow
-		: desc(-1)
-	{}
+	yconstfn DefDeCtor(FileDescriptor)
+	yconstfn
 	FileDescriptor(int fd) ynothrow
 		: desc(fd)
+	{}
+	yconstfn
+	FileDescriptor(std::nullptr_t) ynothrow
+		: desc()
 	{}
 	/*!
 	\brief 构造：使用标准流。
@@ -103,9 +106,6 @@ public:
 	当参数为空时得到无效文件空描述符，否则调用 POSIX \c fileno 函数。
 	*/
 	FileDescriptor(std::FILE*) ynothrow;
-	FileDescriptor(std::nullptr_t) ynothrow
-		: desc(-1)
-	{}
 
 	//! \since build 628
 	PDefHOp(int, *, ) const ynothrow

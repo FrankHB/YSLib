@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r857
+\version r890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-08-31 22:34 +0800
+	2015-09-03 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,6 +167,21 @@ GlobalLocked::GlobalLocked(::HGLOBAL h)
 GlobalLocked::~GlobalLocked()
 {
 	YCL_CallWin32_Trace(GlobalUnlock, "GlobalLocked::~GlobalLocked", p_locked);
+}
+
+
+UniqueHandle
+MakeFile(const wchar_t* path, FileAccessRights desired_access,
+	FileShareMode shared_mode, CreationDisposition creation_disposition,
+	unsigned long attributes_and_flags) ynothrowv
+{
+	using ystdex::underlying;
+	const auto h(::CreateFileW(Nonnull(path), underlying(
+		desired_access), underlying(shared_mode), {}, underlying(
+		creation_disposition), attributes_and_flags, {}));
+
+	return UniqueHandle(h != INVALID_HANDLE_VALUE ? h
+	: UniqueHandle::pointer());
 }
 
 
@@ -479,6 +494,28 @@ FetchRegistryString(const RegistryKey& key, const wchar_t* name)
 	return {};
 }
 
+
+void
+QueryFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime)
+{
+	YCL_CallWin32(GetFileTime, "QueryFileTime", h, p_ctime, p_atime, p_mtime);
+}
+void
+QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime)
+{
+	QueryFileTime(UTF8ToWCS(path).c_str(), p_ctime, p_atime, p_mtime);
+}
+void
+QueryFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime)
+{
+	if(const auto h{MakeFile(path, AccessRights::GenericRead)})
+		QueryFileTime(h.get(), p_ctime, p_atime, p_mtime);
+	else
+		YCL_Raise_Win32Exception("CreateFileW"); 
+}
 
 std::chrono::nanoseconds
 ConvertTime(::FILETIME& file_time)

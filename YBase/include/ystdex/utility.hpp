@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2890
+\version r2892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-09-01 10:05 +0800
+	2015-09-02 12:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,9 +153,9 @@ arrlen(_type(&&)[_vN])
 
 /*!
 \brief 取枚举值的底层整数。
-\since build 585
+\since build 629
 */
-template<typename _type>
+template<typename _type, yimpl(typename = enable_if_t<is_enum<_type>::value>)>
 yconstfn underlying_type_t<_type>
 underlying(_type val) ynothrow
 {
