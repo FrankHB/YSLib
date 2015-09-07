@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1370
+\version r1373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-07-12 21:48 +0800
+	2015-09-07 11:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,10 @@
 
 namespace CHRLib
 {
+
+//! \since build 630
+using ystdex::uchar_t;
+
 
 /*!
 \brief 判断整数类型字符在 ASCII 字符取值范围内。
@@ -132,7 +136,7 @@ UCToMBC(char*, const ucs2_t&, Encoding);
 
 //! \note 编码字节序同实现的 ucs2_t 存储字节序。
 //@{
-/*
+/*!
 \pre 断言：指针参数非空 。
 \pre 第一参数指向的缓冲区能容纳转换后的 NTCTS （包括结尾的空字符）。
 \pre 指针参数指向的缓冲区不重叠。

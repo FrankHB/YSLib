@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2892
+\version r2898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-09-02 12:14 +0800
+	2015-09-05 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, is_standard_layout, std::swap,
-//	qualified_decay;
+#include "type_pun.hpp" // for ../ydef.h, is_standard_layout, pun_storage_t,
+//	std::swap, aligned_replace_cast, qualified_decay;
 #include "cassert.h" // for yassume;
 #include <memory> // for std::addressof;
 
@@ -69,10 +69,10 @@ swap_underlying(_type& x, _type& y) ynothrow
 {
 	static_assert(is_standard_layout<_type>(),
 		"Invalid underlying type found.");
-	using array_type = byte[sizeof(_type)];
+	using utype = pun_storage_t<_type>;
 
-	std::swap(reinterpret_cast<array_type&>(x),
-		reinterpret_cast<array_type&>(y));
+	std::swap(ystdex::aligned_replace_cast<utype&>(x),
+		ystdex::aligned_replace_cast<utype&>(y));
 }
 
 
@@ -82,7 +82,7 @@ inline namespace cpp2014
 #if __cpp_lib_exchange_function >= 201304 || __cplusplus > 201103L
 using std::exchange;
 #else
-/*
+/*!
 \brief 交换值并返回旧值。
 \return 被替换的原值。
 \see ISO WG21/N3797 20.2.3[utility.exchange] 。

@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r533
+\version r550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2015-06-26 07:51 +0800
+	2015-09-05 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +33,10 @@
 #ifndef YB_INC_ystdex_optional_h_
 #define YB_INC_ystdex_optional_h_ 1
 
-#include "utility.hpp" // for is_trivially_destructible, is_cv, empty_base,
-//	std::move, or_, is_reference, is_same, remove_cv_t, and_,
-//	is_nothrow_destructible, is_object, enable_if_t, is_constructible,
-//	is_nothrow_swappable, decay_t;
+#include "utility.hpp" // for is_trivially_destructible, is_cv, std::move,
+//	empty_base, is_nothrow_moveable, and_, remove_cv_t, or_, is_reference,
+//	is_same, is_nothrow_destructible, is_object, enable_if_t, is_constructible,
+//	decay_t, is_nothrow_swappable, is_copyable;
 #include <stdexcept> // for std::logic_error;
 #include <new> // for placement ::operator new from standard library;
 #include "memory.hpp" // for std::addressof, ystdex::constfn_addressof;
@@ -166,18 +166,18 @@ public:
 	{
 		return assign(s.value);
 	}
+	//! \since build 630
 	optional_base&
-	operator=(optional_base&& s) ynoexcept(and_<is_nothrow_move_constructible<
-		_type>, is_nothrow_move_assignable<_type>>())
+	operator=(optional_base&& s) ynoexcept(is_nothrow_moveable<_type>())
 	{
 		return assign(std::move(s.value));
 	}
 
+	//! \since build 630
 	template<typename _tParam>
 	optional_base&
 	assign(_tParam&& arg) ynoexcept(and_<is_rvalue_reference<_tParam&&>,
-		is_nothrow_move_constructible<_type>,
-		is_nothrow_move_assignable<_type>>())
+		is_nothrow_moveable<_type>>())
 	{
 		if(engaged && arg.engaged)
 			value = yforward(arg);
@@ -315,9 +315,9 @@ public:
 	{
 		get_base() = o.get_base();
 	}
+	//! \since build 630
 	optional&
-	operator=(optional&& o) ynoexcept(and_<is_nothrow_move_constructible<
-		_type>, is_nothrow_move_assignable<_type>>())
+	operator=(optional&& o) ynoexcept(is_nothrow_moveable<_type>())
 	{
 		get_base() = std::move(o.get_base());
 	}
@@ -446,8 +446,7 @@ public:
 	yconstfn _type
 	value_or(_tOther&& other) const&
 	{
-		static_assert(and_<is_copy_constructible<_type>,
-			is_copy_assignable<_type>>(), "Invalid type found.");
+		static_assert(is_copyable<_type>(), "Invalid type found.");
 		
 		return this->is_engaged() ? this->get()
 			: static_cast<_type>(yforward(other));
@@ -456,8 +455,7 @@ public:
 	yconstfn_relaxed _type
 	value_or(_tOther&& other) &&
 	{
-		static_assert(and_<is_copy_constructible<_type>,
-			is_copy_assignable<_type>>(), "Invalid type found.");
+		static_assert(is_copyable<_type>(), "Invalid type found.");
 
 		return this->is_engaged() ? std::move(this->get())
 			: static_cast<_type>(yforward(other));

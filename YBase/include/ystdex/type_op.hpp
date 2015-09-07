@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1775
+\version r1872
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-09-04 12:05 +0800
+	2015-09-07 12:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,21 +64,21 @@ namespace ystdex
 \since build 306
 */
 
-/*!	\defgroup unary_type_traits Unary Type Trait
+/*!	\defgroup unary_type_traits Unary Type Traits
 \ingroup type_traits_operations
 \brief 一元类型特征。
 \see ISO C++11 20.9.1 [meta.rqmts] 。
 \since build 306
 */
 
-/*!	\defgroup binary_type_traits Binary Type Trait
+/*!	\defgroup binary_type_traits Binary Type Traits
 \ingroup type_traits_operations
 \brief 二元类型特征。
 \see ISO C++11 20.9.1 [meta.rqmts] 。
 \since build 306
 */
 
-/*!	\defgroup transformation_traits Binary Type Trait
+/*!	\defgroup transformation_traits Transformation Traits
 \ingroup type_traits_operations
 \brief 变换类型特征。
 \see ISO C++11 20.9.1 [meta.rqmts] 。
@@ -438,7 +438,10 @@ struct not_ : bool_constant<!_b::value>
 //@}
 
 
-//! \ingroup unary_type_traits
+/*!
+\ingroup unary_type_traits
+\tparam _type 需要判断特征的类型参数。
+*/
 //@{
 /*!
 \brief 判断指定类型是否为 const 或 volatile 类型。
@@ -446,6 +449,26 @@ struct not_ : bool_constant<!_b::value>
 */
 template<typename _type>
 struct is_cv : or_<is_const<_type>, is_volatile<_type>>
+{};
+
+
+/*!
+\brief 判断指定类型是否已退化。
+\since build 529
+*/
+template<typename _type>
+struct is_decayed : or_<is_same<decay_t<_type>, _type>>
+{};
+
+
+//! \note 以下参数可能是 cv 修饰的类型，结果和去除 cv 修饰符的类型一致。
+//@{
+/*!
+\brief 判断指定类型是否为对象或 void 类型。
+\since build 630
+*/
+template<typename _type>
+struct is_object_or_void : or_<is_object<_type>, is_void<_type>>
 {};
 
 
@@ -462,15 +485,6 @@ struct is_returnable
 
 
 /*!
-\brief 判断指定类型是否已退化。
-\since build 529
-*/
-template<typename _type>
-struct is_decayed : or_<is_same<decay_t<_type>, _type>>
-{};
-
-
-/*!
 \brief 判断指定类型是否是类类型。
 \since build 588
 */
@@ -480,30 +494,47 @@ struct is_class_type
 {};
 
 
-/*!
-\brief 判断指定类型是否是指向类类型对象的指针。
-\since build 333
-*/
+//! \since build 630
+//@{
+//! \brief 判断指定类型是否是指向对象类型的指针。
+template<typename _type>
+struct is_pointer_to_object
+	: and_<is_pointer<_type>, is_object<remove_pointer_t<_type>>>
+{};
+
+
+//! \brief 判断指定类型是否是指向对象类型的指针。
+template<typename _type>
+struct is_object_pointer
+	: and_<is_pointer<_type>, is_object_or_void<remove_pointer_t<_type>>>
+{};
+
+
+//! \brief 判断指定类型是否是指向函数类型的指针。
+template<typename _type>
+struct is_function_pointer
+	: and_<is_pointer<_type>, is_function<remove_pointer_t<_type>>>
+{};
+//@}
+
+
+//! \since build 333
+//@{
+//! \brief 判断指定类型是否是指向类类型的指针。
 template<typename _type>
 struct is_class_pointer
 	: and_<is_pointer<_type>, is_class<remove_pointer_t<_type>>>
 {};
 
 
-/*!
-\brief 判断指定类型是否是类类型左值引用。
-\since build 333
-*/
+//! \brief 判断指定类型是否是类类型左值引用。
 template<typename _type>
 struct is_lvalue_class_reference
 	: and_<is_lvalue_reference<_type>, is_class<remove_reference_t<_type>>>
 {};
 
 
-/*!
-\brief 判断指定类型是否是类类型右值引用。
-\since build 333
-*/
+//! \brief 判断指定类型是否是类类型右值引用。
 template<typename _type>
 struct is_rvalue_class_reference
 	: and_<is_rvalue_reference<_type>, is_class<remove_reference_t<_type>>>
@@ -511,23 +542,68 @@ struct is_rvalue_class_reference
 
 
 /*!
-\brief 判断指定类型是否是 POD struct 。
+\pre remove_all_extents<_type> 是完整类型或（可能 cv 修饰的） \c void 。
 \see ISO C++11 9/10 。
-\since build 333
 */
+//@{
+//! \brief 判断指定类型是否是 POD struct 。
 template<typename _type>
 struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
 {};
 
 
-/*!
-\brief 判断指定类型是否是 POD union 。
-\see ISO C++11 9/10 。
-\since build 333
-*/
+//! \brief 判断指定类型是否是 POD union 。
 template<typename _type>
 struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
 {};
+//@}
+//@}
+//@}
+
+
+/*!
+\pre remove_all_extents<_type> 是完整类型、（可能 cv 修饰的） \c void ，
+	或未知大小的数组。
+\since build 630
+*/
+//@{
+template<typename _type>
+struct is_copyable
+	: and_<is_copy_constructible<_type>, is_copy_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_moveable
+	: and_<is_move_constructible<_type>, is_move_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_nothrow_copyable : and_<is_nothrow_copy_constructible<_type>,
+	is_nothrow_copy_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_nothrow_moveable : and_<is_nothrow_move_constructible<_type>,
+	is_nothrow_move_assignable<_type>>
+{};
+
+
+#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
+template<typename _type>
+struct is_trivially_copyable : and_<is_trivially_copy_constructible<_type>,
+	is_trivially_copy_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_trivially_moveable : and_<is_trivially_move_constructible<_type>,
+	is_trivially_move_assignable<_type>>
+{};
+#	endif
+//@}
 //@}
 
 

@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1422
+\version r1432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-06-11 17:38 +0800
+	2015-09-06 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,9 @@ __unfold __iterators.for_labeled_paragraph
 	$STATE
 );
 
+// Since b539, tracked issues are hosted on BitBucket, see https://bitbucket.org/FrankHB/yslib/issues .
+// These issue are referenced by 'issue #NUM' with NUM indicating issue number.
+
 // See "ex.cpp" for escaped abbreviation schema.
 
 $parser.state.style $= $natral_NPL;
@@ -88,12 +91,15 @@ $dev; // issues concerned by developers, which end-users could ignore without \
 	risk if the code with no undefined behavior (including compile-time \
 	characteristics such as static assertions but not runtime observative \
 	behaviors like runtime assertions);
-$lib; // issues only concerned with library as one case of following:
+$lib; // issues only concerned with library as one of following cases:
 	only implementation changing, no code would be broken switching between \
-		implementations, or \
-	interface modifying including no deletion unless some replacements are \
+		implementations if the underlying external implementation would behave \
+		correctly according to interface specification, and current programs \
+		would behave exactly same as befrore as long as confoming to the \
+		interface specification (no undefined behavior, etc); \
+	or interface modifying including no deletion unless some replacements are \
 		provided, no current source code would be broken (except for which has \
-		undefined behavior), \
+		undefined behavior); \
 	so no need for library users to modify code behavior using the \
 	library interface to adapt to the upgrading, as long as they don't depend \
 	on new interfaces;
@@ -145,6 +151,7 @@ $moved_to >>;
 $renamed_to =>;
 
 // Abbreviations.
+DD $dev $doc;
 DLD $dev $lib $design;
 DLDI $dev $lib $design $impl;
 DLP $dev $lib $deploy;

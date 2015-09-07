@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1484
+\version r1485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-07-04 20:47 +0800
+	2015-09-07 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -685,7 +685,7 @@ WindowRegionDeviceContext::WindowRegionDeviceContext(NativeWindowHandle h_wnd)
 {}
 WindowRegionDeviceContext::~WindowRegionDeviceContext()
 {
-	static_assert(ystdex::is_aligned_storable<decltype(ps), ::PAINTSTRUCT>(),
+	static_assert(ystdex::is_aligned_storable<::PAINTSTRUCT, decltype(ps)>(),
 		"Invalid type found.");
 
 	::EndPaint(hWindow, reinterpret_cast<::PAINTSTRUCT*>(ps));

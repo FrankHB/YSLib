@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1939
+\version r1942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-09-04 12:44 +0800
+	2015-09-07 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include "base.h" // for cloneable;
 #include <memory> // for std::addressof, std::unique_ptr;
 #include <typeinfo> // for typeid, std::bad_cast;
-#include "type_pun.hpp" // for pod_storage, aligned_storage_t;
+#include "type_pun.hpp" // for pod_storage, aligned_storage_t,
+//	is_aligned_storable;
 #include "ref.hpp" // for lref;
 #include "cassert.h" // for yconstraint;
 
@@ -237,7 +238,7 @@ struct holder_tag
 \since build 355
 */
 template<typename _type,
-	bool _bStoredLocally = is_aligned_storable<_type, any_storage>::value>
+	bool _bStoredLocally = is_aligned_storable<any_storage, _type>::value>
 class value_handler
 {
 public:

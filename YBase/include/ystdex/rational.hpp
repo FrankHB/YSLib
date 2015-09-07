@@ -11,7 +11,7 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2056
+\version r2061
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
@@ -62,7 +62,7 @@ is_zero(_type x)
 \warning 不检查参数。
 */
 //@{
-/*
+/*!
 \note 不检查误差非零。
 \note 使用 ADL \c round 。
 */
@@ -188,10 +188,9 @@ private:
 public:
 	/*!
 	\brief 无参数构造。
-	\warning 基本整数类型成员未被初始化，具有未决定值 ，使用可能造成未定义行为。
+	\warning 基本整数类型成员未被初始化，具有未决定值，使用可能造成未定义行为。
 	*/
 	fixed_point() = default;
-
 	//! \since build 439
 	yconstfn
 	fixed_point(base_type v, raw_tag) ynothrow
@@ -218,15 +217,15 @@ public:
 	//! \since build 595
 	//@{
 	yconstfn
-	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<is_integral<
-		_tFirst>::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {}))
+	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<and_<is_integral<
+		_tFirst>, not_<is_same<_tSecond, raw_tag>>>::value, _tFirst*> = {}))
 		ynothrowv
 		: value((x << frac_bit_n) / y)
 	{}
 	template<typename _tFirst, typename _tSecond>
 	explicit yconstfn
-	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<is_floating_point<
-		_tFirst>::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {}))
+	fixed_point(_tFirst x, _tSecond y, yimpl(enable_if_t<and_<is_floating_point<
+		_tFirst>, not_<is_same<_tSecond, raw_tag>>>::value, _tFirst*> = {}))
 		ynothrowv
 		: fixed_point(x / y)
 	{}

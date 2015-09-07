@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2193
+\version r2199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-09-01 00:33 +0800
+	2014-09-01 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,11 +51,8 @@ class Rect;
 template<typename _type>
 class GBinaryGroup
 {
-	//! \since build 628
-	static_assert(std::is_nothrow_copy_constructible<_type>(),
-		"Invalid type found.");
-	//! \since build 628
-	static_assert(std::is_nothrow_copy_assignable<_type>(),
+	//! \since build 630
+	static_assert(ystdex::is_nothrow_copyable<_type>(),
 		"Invalid type found.");
 
 public:
@@ -822,7 +819,7 @@ inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
 \note 可以是可以是主对角线或副对角线之一上的顶点。
 */
 /*!
-\todo 使用 ISO C++14 的带有 \c constexpr 的 \c std::min 和 \c std::max 。
+\todo 使用 ISO C++14 的带有 \c constexpr 的 std::min 和 std::max 。
 \todo 提取 abs 实现。
 */
 yconstfn PDefH(Rect, MakeRect, const Point& pt1, const Point& pt2) ynothrow
