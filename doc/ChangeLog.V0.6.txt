@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3191
+\version r3346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-04 16:01 +0800
+	2015-09-07 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,153 @@ $now
 (
 	/ %YBase.YStandardEx $=
 	(
-		+ "metafunction %common_underlying_t" @ %TypeOperations,
+		/ DLDI %Cast $=
+		(
+			/ "parameter to be cast" -> 'v' ~ 'x',
+				// To be consistent to normative text of ISO C++ cast notation.
+			/ "simplified %enable_if_t argument" @ "function template %pvoid"
+				^ "%or_",
+			/ "%general_cast" ^ "%and_"
+		),
+		/ %Rational $=
+		(
+			/ DLDI "simplified %enable_if_t argument" @ "2 constructor template"
+				@ "class template %fixed_point",
+			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ "function templates %(round_in_nocheck, round_in)" @ %Rational
+				$since b588
+		),
+		/ %TypeOperation $=
+		(
+			+ "unary type traits %(is_copyable, is_moveable, \
+				is_nothrow_copyable, is_nothrow_moveable)",
+			+ "unary type traits %(is_trivially_copyable, \
+				is_trivially_moveable)"
+				@ '!YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000',
+			/ DD "description" @ "Doxygen groups %*_traits" $=
+			(
+				^ "plural",
+				* DD "wrong description" @ "group %transformation_traits"
+					$since b590
+			),
+			+ "unary type traits %((is_object_or_void; is_object_pointer), \
+				is_pointer_to_object, is_function_pointer)"
+		),
+		/ @ "class %optional" @ %Optional $=
+		(
+			/ DLDI "simplified static assertions"
+				@ "all 2 member function templates %value_or"
+				^ $dep_from ("%is_copyable" @ %TypeOperation),
+			/ DLD "simplified noexcept-specification" @ "2 %operator=, %assign"
+				^ $dep_from ("%is_nothrow_moveable" @ %TypeOperation)
+		),
+		/ DLD "simplified member function %dismiss" @ "noexcept-specification"
+			@ "class template %state_guard" @ %ScopeGuard
+			^ $dep_from ("%is_nothrow_copyable" @ %TypeOperation),
+		+ DLD "simplified static assertions" @ "class template %nptr" @ %Point
+			^ ($dep_from "%ystdex::is_nothrow_copyable"
+			@ %YBase.YStandardEx.TypeOperation),
+		/ %TypePun $=
+		(
+			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ "class template %pod_storage" $since b629
+				$orig (@ "union %any_pod_t" @ %Utilities $since b247)
+			+ "transformation trait %pun_storage_t",
+			* "missing constraining destination type"
+				@ "binary type trait %is_trivially_replaceable" $since b629,
+			/ "%is_trivally_replaceable" -> "%is_trivially_replaceable" $=
+			(
+				* "spelling error" $since b629,
+				/ "restricted pointer version type to object pointer"
+					^ $dep_from ("%is_object_pointer" @ %TypeOperation)
+					~ "%is_pointer"
+			),
+			+ "2 function templates %(aligned_cast, aligned_store_cast, \
+				aligned_replace_cast)",
+			+ "metafunction %enable_if_replaceable_t",
+			(
+			+ DD "Doxygen group aligned_type_traits"
+				@ "group %binary_type_traits",
+			/ "swapped type parameters",
+				@ "%(is_aligned_placeable, is_aligned_storable)";
+				// To be consistent with other traits here.
+			/ DD "moved all traits" @ "group %binary_type_traits"
+				>> "group %aligned_type_traits"
+			),
+			* $forced DLDI "member function template %pod_storage::access"
+				$dep_from "%is_aligned_storable"
+		),
+		/ %Utilities $=
+		(
+			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ "function template %exchange" $since b517,
+			/ "%function template %swap_underlying"
+				^ "aligned underlying storage" ~ "byte array type"
+				$= (/ $impl ^ $dep_from
+					("%(pun_storage_t, aligned_replace_cast)" @ %TypePun))
+		),
+		/ %CString $=
+		(
+			(
+			+ "alias %uchar_t";
+			+ "overloadings with pointer types of %uchar_t"
+				@ "%(ntctsnlen, ntctscpy, ntctsncpy)" ^ "%replace_cast"
+			),
+			+ $lib "%YB_NONNULL attributes for pointer arguments"
+				@ "(functions, function templates) with nonnull string",
+			(
+			+ "metafunction %enable_if_irreplaceable_char_t";
+			/ DLDI "simplified %enable_if_t arguemnt for irreplaceable \
+				character types" @ "function template %ntctsncpy"
+				^ "%enable_if_irreplaceable_char_t"
+			),
+			/ DLDI "simplified %enable_if_t arguemnt for trivially replaceable \
+				character types" @ "2 function templates %ntctsncpy"
+				^ $dep_from ("%enable_if_replaceable_t" @ %TypePun)
+		),
+		* $forced DLDI "default argument" @ "class tempalte %value_handler"
+			$dep_from ("%is_aligned_storable" @ %TypePun)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ DLD "post condition for type"
+				@ "classes %(CompactPixmap, CompactPixmapEx)" @ %Service.YGDI
+				^ ($dep_from "%ystdex::is_nothrow_moveable"
+					@ %YBase.YStandardEx.TypeOperation),
+			+ DLD "simplified static assertions"
+				@ "class template %GBinaryGroup" @ %Core.YGDIBase
+				^ ($dep_from "%ystdex::is_nothrow_copyable"
+				@ %YBase.YStandardEx.TypeOperation),
+			/ %Service.YGDI $=
+			(
+				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+					comments" @ "multiple declarations" $since b296,
+				+ $dev "static assertions to ensure %(CompactPixmap, \
+					CompactPixmapEx) meeting to %ystdex::is_nothrow_moveable"
+					// Because the type trait requires complete types, they \
+						are put in namespace scope.
+			)
+		),
+		/ %CHRLib.CharacterProcessing $=
+		(
+			+ 'using ystdex::uchar_t;'
+				$dep_from ("%uchar_t" @ %YBase.YStandardEx.CString),
+			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ "MBCS conversion functions" $since b544
+		),
+		/ $forced DLDI "desturctor %WindowRegionDeviceContext"
+			@ "platform %Win32" @ %HostedGUI $dep_from
+			("%ystdex::is_aligned_storable" @ %YBase.YStandardEx.TypePun)
+	)
+),
+
+b629
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "metafunction %common_underlying_t" @ %TypeOperation,
 		+ %Enum
 			$= (+ "unary type trait %is_enum_union, trasformation traits \
 				%(wrapped_enum_traits, wrapped_enum_traits_t), class template \
@@ -51,7 +197,7 @@ $now
 			+ "2 function templates %replace_cast"
 		),
 		/ "binary type traits %(is_aligned_compatible, is_aligned_placeable, \
-			is_aligned_storable, is_aligned_replaceable)" @ %TypeOperations
+			is_aligned_storable, is_aligned_replaceable)" @ %TypeOperation
 			>> %TypePun $dep_to "moving aligned traits",
 		/ "class template %pod_storage" @ %Any >> %TypePun,
 		/ %CString $=
@@ -303,7 +449,8 @@ b627
 		+ "function %ResetSize";
 		/ DLDI "simplified menu item for resizing size" ^ "%ResetSize",
 		* "%Tertiary key (middle mouse button) wrongly caused very large \
-			scale of image being updated"
+			scale of image being updated" $since b580
+			// See issue #27.
 	),
 	/ %YFramework $=
 	(
@@ -686,7 +833,7 @@ b623
 (
 	/ %YFramework $=
 	(
-		* $doc "wrong precondition" @ "wrong '\pre' Doxygen directive"
+		* DD "wrong precondition" @ "wrong '\pre' Doxygen directive"
 			@ "comments" @ "constructor %TextFileBuffer"
 			@ %YSLib.Service.TextManager $since b622,
 		+ %Dependency @ %NPL
@@ -1265,7 +1412,7 @@ b617
 			),
 			/ "function template %invoke" %Functional @ 'YB_IMPL_MSCPP >= 1900'
 				-> 'using std::invoke;',
-			+ "meta type %bool_constant" @ %TypeOperations $=
+			+ "meta type %bool_constant" @ %TypeOperation $=
 			(
 				+ 'using std::bool_constant' @ 'YB_IMPL_MSCPP >=1900',
 				+ "alias template %bool_constant" @ !'YB_IMPL_MSCPP >=1900'
@@ -1341,7 +1488,7 @@ b615
 			(
 				/ @ "constructor" $=
 				(
-					* $doc "wrong precondition" $since b613,
+					* DD "wrong precondition" $since b613,
 					/ "threw %LoggedEvent when file is not opened"
 				),
 				/ DLDI ^ $dep_from ("%ConvertCharacter" @ %CHRLib.Convert)
@@ -1628,7 +1775,7 @@ b612
 			$since b578
 			$= (/ DLDI ^ "forwarding reference" ~ "const qualified reference"),
 		+ "function templates %(clamp, clamp_range)" @ %Algorithm,
-		+ "metafunction %member_target_type_t" @ %TypeOperations,
+		+ "metafunction %member_target_type_t" @ %TypeOperation,
 		+ "function template %invoke" @ %Functional
 	),
 	/ %YSLib $=
@@ -1918,7 +2065,7 @@ b610
 			+ "function templates for character types compatible to %(char, \
 				wchar_t)"
 		),
-		/ %TypeOperations $=
+		/ %TypeOperation $=
 		(
 			+ "binary type trait %is_aligned_compatible";
 			(
@@ -2344,7 +2491,7 @@ b603
 					assertion instead. Actually this needed no POD.
 			/ "POD operations" -> "trivially type operations" $=
 			(
-				/ $doc "Doxygen group %pod_operations"
+				/ DD "Doxygen group %pod_operations"
 					-> "%trivial_type_operations",
 				+ "function templates %(trivailly_fill_n, trivailly_fill)",
 				+ 'ynothrowv',

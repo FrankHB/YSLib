@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3901
+\version r3934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-05-24 21:57 +0800
+	2015-09-05 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace Drawing
 */
 struct YF_API Padding
 {
-	/*
+	/*!
 	\brief 空白距离：左、右、上、下。
 	\since build 365
 	*/
@@ -236,8 +236,7 @@ public:
 
 /*!
 \brief 标准矩形像素图缓冲区。
-\note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
-	std::is_nothrow_move_assignable<T>::value</tt> 。
+\post 满足 \c ystdex::is_nothrow_moveable<CompactPixmap>()</tt> 。
 \note 保证像素数据连续。
 \since build 418
 */
@@ -272,6 +271,13 @@ public:
 	CompactPixmap(const CompactPixmap&);
 	DefDeMoveCtor(CompactPixmap)
 
+	/*!
+	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 476
+	*/
+	PDefHOp(CompactPixmap&, =, CompactPixmap buf) ynothrow
+		ImplRet(buf.swap(*this), *this)
+
 	//! \since build 566
 	//@{
 	using BaseType::operator!;
@@ -287,13 +293,6 @@ public:
 	DefGetter(const ynothrow ImplI(IImage), Graphics, Context,
 		Graphics(GetBufferPtr(), GetSize()))
 	//@}
-
-	/*
-	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
-	\since build 476
-	*/
-	PDefHOp(CompactPixmap&, =, CompactPixmap buf) ynothrow
-		ImplRet(buf.swap(*this), *this)
 
 	/*!
 	\brief 设置内容。
@@ -326,24 +325,25 @@ public:
 
 	DefClone(const ImplI(IImage), CompactPixmap)
 
-	/*
-	\brief 交换。
-	*/
+	//! \brief 交换。
 	PDefH(void, swap, CompactPixmap& buf) ynothrow
 		ImplExpr(std::swap<BaseType>(*this, buf))
 };
 
-/*!
-\relates CompactPixmap
-\since build 418
-*/
+//! \relates CompactPixmap
+//@{
+//! \since build 630
+static_assert(ystdex::is_nothrow_moveable<CompactPixmap>(),
+	"Postcondition failed.");
+
+//! \since build 418
 inline DefSwap(ynothrow, CompactPixmap)
+//@}
 
 
 /*!
 \brief 使用 8 位 Alpha 扩展的标准矩形像素图缓冲区。
-\note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
-	std::is_nothrow_move_assignable<T>::value</tt> 。
+\post 满足 \c ystdex::is_nothrow_moveable<CompactPixmapEx>()</tt> 。
 \note 保证像素数据和 Alpha 数据分别连续。
 */
 class YF_API CompactPixmapEx : public CompactPixmap
@@ -364,7 +364,7 @@ public:
 	CompactPixmapEx(const CompactPixmapEx&);
 	DefDeMoveCtor(CompactPixmapEx)
 
-	/*
+	/*!
 	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 566
 	*/
@@ -401,19 +401,21 @@ public:
 
 	DefClone(const override, CompactPixmapEx)
 
-	/*
-	\brief 交换。
-	*/
+	//! \brief 交换。
 	PDefH(void, swap, CompactPixmapEx& buf) ynothrow
 		ImplExpr(std::swap<CompactPixmap>(*this, buf),
 			std::swap(pBufferAlpha, buf.pBufferAlpha))
 };
 
-/*!
-\relates CompactPixmapEx
-\since build 418
-*/
+//! \relates CompactPixmapEx
+//@{
+//! \since build 630
+static_assert(ystdex::is_nothrow_moveable<CompactPixmapEx>(),
+	"Postcondition failed.");
+
+//! \since build 418
 inline DefSwap(ynothrow, CompactPixmapEx)
+//@}
 
 
 /*!

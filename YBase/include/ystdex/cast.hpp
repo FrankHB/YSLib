@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1154
+\version r1199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2015-07-23 14:27 +0800
+	2015-09-05 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,13 +41,12 @@ namespace ystdex
 
 /*!
 \brief 取 \c void* 类型的指针。
-\note 适合 \c std::fprintf 等的 \c %p 转换规格。
+\note 适合 std::fprintf 等的 \c %p 转换规格。
 \since build 563
 */
 //@{
 template<typename _type>
-yconstfn
-	yimpl(enable_if_t)<is_object<_type>::value || is_void<_type>::value, void*>
+yconstfn yimpl(enable_if_t)<or_<is_object<_type>, is_void<_type>>::value, void*>
 pvoid(_type* p) ynothrow
 {
 	return const_cast<void*>(static_cast<const volatile void*>(p));
@@ -134,12 +133,12 @@ unqualify(_tSrc&& arg) ynothrow
 */
 template<typename _pDst, class _tSrc>
 inline _pDst
-polymorphic_cast(_tSrc* x)
+polymorphic_cast(_tSrc* v)
 {
 	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
 	static_assert(is_pointer<_pDst>(), "Non-pointer destination found.");
 
-	if(const auto p = dynamic_cast<_pDst>(x))
+	if(const auto p = dynamic_cast<_pDst>(v))
 		return p;
 	throw std::bad_cast();
 }
@@ -159,15 +158,15 @@ polymorphic_cast(_tSrc* x)
 */
 template<typename _pDst, class _tSrc>
 inline _pDst
-polymorphic_downcast(_tSrc* x) ynothrow
+polymorphic_downcast(_tSrc* v) ynothrow
 {
 	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
 	static_assert(is_pointer<_pDst>(), "Non-pointer destination found.");
 	static_assert(is_base_of<_tSrc, remove_cv_t<
 		remove_pointer_t<_pDst>>>(), "Wrong destination type found.");
 
-	yassume(dynamic_cast<_pDst>(x) == x);
-	return static_cast<_pDst>(x);
+	yassume(dynamic_cast<_pDst>(v) == v);
+	return static_cast<_pDst>(v);
 }
 /*!
 \tparam _tSrc 源类型。
@@ -176,10 +175,10 @@ polymorphic_downcast(_tSrc* x) ynothrow
 */
 template<typename _rDst, class _tSrc>
 yconstfn yimpl(enable_if_t)<is_lvalue_reference<_rDst>::value, _rDst>
-polymorphic_downcast(_tSrc& x) ynothrow
+polymorphic_downcast(_tSrc& v) ynothrow
 {
 	return *ystdex::polymorphic_downcast<remove_reference_t<_rDst>*>(
-		std::addressof(x));
+		std::addressof(v));
 }
 /*!
 \tparam _tSrc 源类型。
@@ -189,9 +188,9 @@ polymorphic_downcast(_tSrc& x) ynothrow
 template<typename _rDst, class _tSrc>
 yconstfn yimpl(enable_if_t)<is_rvalue_reference<_rDst>::value
 	&& !is_reference<_tSrc>::value, _rDst>
-polymorphic_downcast(_tSrc&& x) ynothrow
+polymorphic_downcast(_tSrc&& v) ynothrow
 {
-	return std::move(ystdex::polymorphic_downcast<_rDst&>(x));
+	return std::move(ystdex::polymorphic_downcast<_rDst&>(v));
 }
 /*!
 \tparam _tSrc 源的元素类型。
@@ -204,16 +203,16 @@ polymorphic_downcast(_tSrc&& x) ynothrow
 template<class _tDst, typename _tSrc, typename _tDeleter>
 inline yimpl(enable_if_t)<!is_reference<_tDst>::value
 	&& !is_array<_tDst>::value, std::unique_ptr<_tDst, _tDeleter>>
-polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& x) ynothrow
+polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& v) ynothrow
 {
 	using dst_type = std::unique_ptr<_tDst, _tDeleter>;
 	using pointer = typename dst_type::pointer;
-	auto ptr(x.release());
+	auto ptr(v.release());
 	ynoexcept_assert("Invalid cast found.", polymorphic_downcast<pointer>(ptr));
 
 	yassume(bool(ptr));
 	return dst_type(polymorphic_downcast<pointer>(ptr),
-		std::move(x.get_deleter()));
+		std::move(v.get_deleter()));
 }
 /*!
 \tparam _tSrc 源的元素类型。
@@ -223,11 +222,11 @@ polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& x) ynothrow
 template<class _tDst, typename _tSrc>
 inline yimpl(enable_if_t)<!is_reference<_tDst>::value
 	&& !is_array<_tDst>::value, std::shared_ptr<_tDst>>
-polymorphic_downcast(const std::unique_ptr<_tSrc>& x) ynothrow
+polymorphic_downcast(const std::unique_ptr<_tSrc>& v) ynothrow
 {
-	yassume(dynamic_cast<_tDst*>(x.get()) == x.get());
+	yassume(dynamic_cast<_tDst*>(v.get()) == v.get());
 
-	return std::static_pointer_cast<_tDst>(x);
+	return std::static_pointer_cast<_tDst>(v);
 }
 //@}
 
@@ -245,12 +244,12 @@ polymorphic_downcast(const std::unique_ptr<_tSrc>& x) ynothrow
 */
 template<typename _pDst, class _tSrc>
 inline _pDst
-polymorphic_crosscast(_tSrc* x)
+polymorphic_crosscast(_tSrc* v)
 {
 	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
 	static_assert(is_pointer<_pDst>(), "Non-pointer destination found.");
 
-	auto p(dynamic_cast<_pDst>(x));
+	auto p(dynamic_cast<_pDst>(v));
 
 	yassume(p);
 	return p;
@@ -263,13 +262,13 @@ polymorphic_crosscast(_tSrc* x)
 */
 template<typename _rDst, class _tSrc>
 yconstfn _rDst
-polymorphic_crosscast(_tSrc& x)
+polymorphic_crosscast(_tSrc& v)
 {
 	static_assert(is_lvalue_reference<_rDst>(),
 		"Invalid destination type found.");
 
 	return *ystdex::polymorphic_crosscast<remove_reference_t<_rDst>*>(
-		std::addressof(x));
+		std::addressof(v));
 }
 /*!
 \tparam _tSrc 源类型。
@@ -279,12 +278,12 @@ polymorphic_crosscast(_tSrc& x)
 */
 template<typename _rDst, class _tSrc>
 yconstfn enable_if_t<!is_reference<_tSrc>::value, _rDst>
-polymorphic_crosscast(_tSrc&& x)
+polymorphic_crosscast(_tSrc&& v)
 {
 	static_assert(is_rvalue_reference<_rDst>(),
 		"Invalid destination type found.");
 
-	return std::move(ystdex::polymorphic_crosscast<_rDst&>(x));
+	return std::move(ystdex::polymorphic_crosscast<_rDst&>(v));
 }
 //@}
 
@@ -298,9 +297,9 @@ template<typename _tFrom, typename _tTo, bool _bNonVirtualDownCast>
 struct general_polymorphic_cast_helper
 {
 	static yconstfn _tTo
-	cast(_tFrom x)
+	cast(_tFrom v)
 	{
-		return ystdex::polymorphic_downcast<_tTo>(x);
+		return ystdex::polymorphic_downcast<_tTo>(v);
 	}
 };
 
@@ -308,9 +307,9 @@ template<typename _tFrom, typename _tTo>
 struct general_polymorphic_cast_helper<_tFrom, _tTo, false>
 {
 	static yconstfn _tTo
-	cast(_tFrom x)
+	cast(_tFrom v)
 	{
-		return dynamic_cast<_tTo>(x);
+		return dynamic_cast<_tTo>(v);
 	}
 };
 
@@ -319,9 +318,9 @@ template<typename _tFrom, typename _tTo, bool _bUseStaticCast>
 struct general_cast_helper
 {
 	static yconstfn _tTo
-	cast(_tFrom x)
+	cast(_tFrom v)
 	{
-		return _tTo(x);
+		return _tTo(v);
 	}
 };
 
@@ -329,12 +328,12 @@ template<typename _tFrom, typename _tTo>
 struct general_cast_helper<_tFrom, _tTo, false>
 {
 	static yconstfn _tTo
-	cast(_tFrom x)
+	cast(_tFrom v)
 	{
-		return general_polymorphic_cast_helper<_tFrom, _tTo, (is_base_of<
-			_tFrom, _tTo>::value && !has_common_nonempty_virtual_base<typename
-			remove_rp<_tFrom>::type, typename remove_rp<_tTo>::type>::value)
-		>::cast(x);
+		return general_polymorphic_cast_helper<_tFrom, _tTo,
+			and_<is_base_of<_tFrom, _tTo>, not_<
+			has_common_nonempty_virtual_base<typename remove_rp<_tFrom>::type,
+			typename remove_rp<_tTo>::type>>>::value>::cast(v);
 	}
 };
 
@@ -342,9 +341,9 @@ template<typename _type>
 struct general_cast_helper<_type, _type, true>
 {
 	static inline _type
-	cast(_type x)
+	cast(_type v)
 	{
-		return x;
+		return v;
 	}
 };
 
@@ -352,9 +351,9 @@ template<typename _type>
 struct general_cast_helper<_type, _type, false>
 {
 	static yconstfn _type
-	cast(_type x)
+	cast(_type v)
 	{
-		return x;
+		return v;
 	}
 };
 
@@ -380,24 +379,24 @@ struct general_cast_type_helper
 //@{
 template<typename _tDst, typename _tSrc>
 yconstfn _tDst
-general_cast(_tSrc* x)
+general_cast(_tSrc* v)
 {
 	return details::general_cast_helper<_tSrc*, _tDst,
-		details::general_cast_type_helper<_tSrc*, _tDst>::value>::cast(x);
+		details::general_cast_type_helper<_tSrc*, _tDst>::value>::cast(v);
 }
 template<typename _tDst, typename _tSrc>
 yconstfn _tDst
-general_cast(_tSrc& x)
+general_cast(_tSrc& v)
 {
 	return details::general_cast_helper<_tSrc&, _tDst,
-		details::general_cast_type_helper<_tSrc&, _tDst>::value>::cast(x);
+		details::general_cast_type_helper<_tSrc&, _tDst>::value>::cast(v);
 }
 template<typename _tDst, typename _tSrc>
 yconstfn const _tDst
-general_cast(const _tSrc& x)
+general_cast(const _tSrc& v)
 {
 	return details::general_cast_helper<const _tSrc&, _tDst, details
-		::general_cast_type_helper<const _tSrc&, const _tDst>::value>::cast(x);
+		::general_cast_type_helper<const _tSrc&, const _tDst>::value>::cast(v);
 }
 //@}
 //@}

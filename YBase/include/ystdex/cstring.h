@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1942
+\version r2026
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-09-04 15:55 +0800
+	2015-09-07 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_cstring_h_ 1
 
 #include "type_pun.hpp" // for or_, is_same, enable_if_t, not_,
-//	is_trivally_replaceable, replace_cast;
+//	is_trivially_replaceable, replace_cast, enable_if_replaceable_t;
 #include <cstring> // for std::strlen, std::strcpy, std::memchr, std::strncpy;
 #include <string> // for std::char_traits;
 #include "cassert.h" // for yconstraint;
@@ -38,9 +38,6 @@
 
 namespace ystdex
 {
-
-//非 ISO C/C++ 扩展库函数。
-//
 
 /*!
 \brief 带空指针检查的字符串长度计算。
@@ -96,6 +93,30 @@ struct is_char_specialized_in_std : or_<is_same<_tChar, char>,
 {};
 
 
+//! \since build 630
+//@{
+/*!
+\ingroup metafunctions
+\brief 选择不和 char 或 wchar_t 可替换字符类类型的特定重载以避免冲突。
+\brief 
+*/
+template<typename _tChar, typename _type = void>
+using enable_if_irreplaceable_char_t = enable_if_t<not_<or_<
+	is_trivially_replaceable<_tChar, char>,
+	is_trivially_replaceable<_tChar, wchar_t>>>::value, _type>;
+
+
+/*!
+\brief 指定和 \c wchar_t 互相替换存储的非 \c char 内建字符类型。
+\warning 不同类型的非空字符的值是否可以替换取决于实现定义。
+\note 若存在这样的类型，为 \c char16_t 或 \c char32_t 之一，否则为 \c void 。
+*/
+using uchar_t = conditional_t<is_trivially_replaceable<wchar_t, char16_t>
+	::value, char16_t, conditional_t<is_trivially_replaceable<wchar_t, char32_t>
+	::value, char32_t, void>>;
+//@}
+
+
 /*!
 \brief 使用 <tt>std::char_traits::eq</tt> 判断是否为空字符。
 \since build 329
@@ -113,13 +134,13 @@ namespace details
 {
 
 template<typename _tChar>
-inline YB_PURE size_t
+inline YB_NONNULL(1) YB_PURE size_t
 ntctslen_raw(const _tChar* s, std::true_type)
 {
 	return std::char_traits<_tChar>::length(s);
 }
 template<typename _tChar>
-YB_PURE size_t
+YB_NONNULL(1) YB_PURE size_t
 ntctslen_raw(const _tChar* s, std::false_type)
 {
 	const _tChar* p(s);
@@ -147,7 +168,7 @@ ntctslen_raw(const _tChar* s, std::false_type)
 \since build 329
 */
 template<typename _tChar>
-inline YB_PURE size_t
+inline YB_NONNULL(1) YB_PURE size_t
 ntctslen(const _tChar* s)
 {
 	yconstraint(s);
@@ -164,7 +185,7 @@ ntctslen(const _tChar* s)
 */
 //@{
 template<typename _tChar>
-YB_PURE size_t
+YB_NONNULL(1) YB_PURE size_t
 ntctsnlen(const _tChar* s, size_t n)
 {
 	yconstraint(s);
@@ -173,10 +194,9 @@ ntctsnlen(const _tChar* s, size_t n)
 
 	while(n-- != 0 && *s)
 		++s;
-
 	return s - str;
 }
-inline YB_PURE size_t
+inline YB_NONNULL(1) YB_PURE size_t
 ntctsnlen(const char* s, size_t n)
 {
 	yconstraint(s);
@@ -185,7 +205,7 @@ ntctsnlen(const char* s, size_t n)
 
 	return p ? size_t(p - s) : n;
 }
-inline YB_PURE size_t
+inline YB_NONNULL(1) YB_PURE size_t
 ntctsnlen(const wchar_t* s, size_t n)
 {
 	yconstraint(s);
@@ -193,6 +213,12 @@ ntctsnlen(const wchar_t* s, size_t n)
 	const auto p(static_cast<const wchar_t*>(std::wmemchr(s, char(), n)));
 
 	return p ? size_t(p - s) : n;
+}
+//! \since build 630
+inline YB_NONNULL(1) YB_PURE size_t
+ntctsnlen(const uchar_t* s, size_t n)
+{
+	return ntctsnlen(replace_cast<const wchar_t*>(s), n);
 }
 //@}
 
@@ -203,7 +229,7 @@ ntctsnlen(const wchar_t* s, size_t n)
 \since build 329
 */
 template<typename _tChar>
-YB_PURE typename std::char_traits<_tChar>::int_type
+YB_NONNULL(1, 2) YB_PURE typename std::char_traits<_tChar>::int_type
 ntctscmp(const _tChar* s1, const _tChar* s2)
 {
 	yconstraint(s1),
@@ -224,7 +250,7 @@ ntctscmp(const _tChar* s1, const _tChar* s2)
 \since build 329
 */
 template<typename _tChar>
-YB_PURE typename std::char_traits<_tChar>::int_type
+YB_NONNULL(1, 2) YB_PURE typename std::char_traits<_tChar>::int_type
 ntctsicmp(const _tChar* s1, const _tChar* s2)
 {
 	yconstraint(s1),
@@ -247,7 +273,7 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 \since build 604
 */
 template<typename _tChar>
-YB_PURE typename std::char_traits<_tChar>::int_type
+YB_NONNULL(1, 2) YB_PURE typename std::char_traits<_tChar>::int_type
 ntctsnicmp(const _tChar* s1, const _tChar* s2, size_t n)
 {
 	yconstraint(s1),
@@ -274,7 +300,7 @@ ntctsnicmp(const _tChar* s1, const _tChar* s2, size_t n)
 */
 //@{
 template<typename _tChar>
-_tChar*
+YB_NONNULL(1, 2) _tChar*
 ntctscpy(_tChar* s1, const _tChar* s2)
 {
 	yconstraint(s1),
@@ -286,7 +312,7 @@ ntctscpy(_tChar* s1, const _tChar* s2)
 		;
 	return res;
 }
-inline char*
+inline YB_NONNULL(1, 2) char*
 ntctscpy(char* s1, const char* s2)
 {
 	yconstraint(s1),
@@ -294,7 +320,7 @@ ntctscpy(char* s1, const char* s2)
 
 	return std::strcpy(s1, s2);
 }
-inline wchar_t*
+inline YB_NONNULL(1, 2) wchar_t*
 ntctscpy(wchar_t* s1, const wchar_t* s2)
 {
 	yconstraint(s1),
@@ -302,14 +328,19 @@ ntctscpy(wchar_t* s1, const wchar_t* s2)
 
 	return std::wcscpy(s1, s2);
 }
+//! \since build 630
+inline YB_NONNULL(1, 2) wchar_t*
+ntctscpy(uchar_t* s1, const uchar_t* s2)
+{
+	return ntctscpy(replace_cast<wchar_t*>(s1), replace_cast<const wchar_t*>(s2));
+}
 //@}
 /*!
 \brief 复制确定源长度的 NTCTS 。
-\pre 断言： <tt>s1 && s2</tt> 。
 \since build 329
 */
 template<typename _tChar>
-_tChar*
+YB_NONNULL(1, 2) _tChar*
 ntctscpy(_tChar* s1, const _tChar* s2, size_t n)
 {
 	yconstraint(s1),
@@ -323,12 +354,10 @@ ntctscpy(_tChar* s1, const _tChar* s2, size_t n)
 \note 目标字符串短于指定长度的部分会被填充空字符。
 \warning 源字符串在指定长度内没有空字符则目标字符串不以空字符结尾。
 \since build 604
-\todo 使用 \c is_trivially_copyable 代替 is_trivial 。
 */
 //@{
 template<typename _tChar>
-yimpl(enable_if_t<not_<or_<is_trivally_replaceable<_tChar, char>,
-	is_trivally_replaceable<_tChar, wchar_t>>>::value, _tChar*>)
+YB_NONNULL(1, 2) yimpl(enable_if_irreplaceable_char_t<_tChar, _tChar*>)
 ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 {
 	yconstraint(s1),
@@ -346,7 +375,7 @@ ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 		*s1++ = _tChar();
 	return res;
 }
-inline char*
+inline YB_NONNULL(1, 2) char*
 ntctsncpy(char* s1, const char* s2, size_t n)
 {
 	yconstraint(s1),
@@ -354,7 +383,7 @@ ntctsncpy(char* s1, const char* s2, size_t n)
 
 	return std::strncpy(s1, s2, n);
 }
-inline wchar_t*
+inline YB_NONNULL(1, 2) wchar_t*
 ntctsncpy(wchar_t* s1, const wchar_t* s2, size_t n)
 {
 	yconstraint(s1),
@@ -362,19 +391,25 @@ ntctsncpy(wchar_t* s1, const wchar_t* s2, size_t n)
 
 	return std::wcsncpy(s1, s2, n);
 }
+//! \since build 630
+inline YB_NONNULL(1, 2) wchar_t*
+ntctsncpy(uchar_t* s1, const uchar_t* s2, size_t n)
+{
+	return ntctsncpy(replace_cast<wchar_t*>(s1),
+		replace_cast<const wchar_t*>(s2), n);
+}
 //! \since build 610
 //@{
-template<typename _tChar, yimpl(typename
-	= enable_if_t<is_trivally_replaceable<_tChar, char>::value>)>
-inline _tChar*
+template<typename _tChar,
+	yimpl(typename = enable_if_replaceable_t<_tChar, char>)>
+inline YB_NONNULL(1, 2) _tChar*
 ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 {
 	return ystdex::replace_cast<_tChar*>(ystdex::ntctsncpy(ystdex::replace_cast<
 		char*>(s1), ystdex::replace_cast<const char*>(s2), n));
 }
-template<typename _tChar, yimpl(typename _tChar2 = _tChar,
-	typename = enable_if_t<is_trivally_replaceable<_tChar2, wchar_t>::value>)>
-inline _tChar*
+template<typename _tChar>
+inline YB_NONNULL(1, 2) yimpl(enable_if_replaceable_t)<_tChar, wchar_t, _tChar*>
 ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 {
 	return ystdex::replace_cast<_tChar*>(ystdex::ntctsncpy(ystdex::replace_cast<
@@ -385,26 +420,26 @@ ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 //@}
 
 
+//! \ingroup constexpr_algorithms
+//@{
 /*!
-\ingroup constexpr_algorithms
 \brief 计算简单 NTCTS 长度。
 \note 语义同 std::char_traits<_tChar>::length 。
 \since build 329
 */
 template<typename _tChar>
-yconstfn YB_PURE size_t
+yconstfn YB_NONNULL(1) YB_PURE size_t
 const_ntctslen(const _tChar* s)
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctslen(s + 1) + 1;
 }
 
 /*!
-\ingroup constexpr_algorithms
 \brief 计算简单 NTCTS 中的指定字符数。
 \since build 329
 */
 template<typename _tChar>
-yconstfn YB_PURE size_t
+yconstfn YB_NONNULL(1) YB_PURE size_t
 const_ntctscnt(const _tChar* s, _tChar c)
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctscnt(s + 1, c)
@@ -412,13 +447,12 @@ const_ntctscnt(const _tChar* s, _tChar c)
 }
 
 /*!
-\ingroup constexpr_algorithms
 \brief 比较简单 NTCTS 。
 \note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
 \since build 329
 */
 template<typename _tChar>
-yconstfn YB_PURE typename std::char_traits<_tChar>::int_type
+yconstfn YB_NONNULL(1, 2) YB_PURE typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2)
 {
 	return !std::char_traits<_tChar>::eq(*s1, *s2) || ystdex::is_null(*s1)
@@ -426,13 +460,12 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2)
 		: ystdex::const_ntctscmp(s1 + 1, s2 + 1);
 }
 /*!
-\ingroup constexpr_algorithms
 \brief 比较限制长度上限的简单 NTCTS 。
 \note 语义同 std::basic_string<_tChar>::compare 。
 \since build 329
 */
 template<typename _tChar>
-yconstfn YB_PURE typename std::char_traits<_tChar>::int_type
+yconstfn YB_NONNULL(1, 2) YB_PURE typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 {
 	return n == 0 ? _tChar() : (!std::char_traits<_tChar>::eq(*s1, *s2)
@@ -441,13 +474,12 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 }
 
 /*!
-\ingroup constexpr_algorithms
 \brief 在简单 NTCTS 中顺序查找指定字符。
 \return 在查找结束时经过的字符数。
 \since build 329
 */
 template<typename _tChar>
-yconstfn YB_PURE size_t
+yconstfn YB_NONNULL(1) YB_PURE size_t
 const_ntctschr(const _tChar* s, _tChar c)
 {
 	return ystdex::is_null(*s) || std::char_traits<_tChar>::eq(*s, c)
@@ -455,13 +487,12 @@ const_ntctschr(const _tChar* s, _tChar c)
 }
 
 /*!
-\ingroup constexpr_algorithms
 \brief 在简单 NTCTS 中顺序查找第指定次数出现的指定字符。
 \return 在查找结束时经过的字符数。
 \since build 329
 */
 template<typename _tChar>
-yconstfn YB_PURE size_t
+yconstfn YB_NONNULL(1) YB_PURE size_t
 const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 {
 	return n == 0 || ystdex::is_null(*s) ? 0 : (std::char_traits<_tChar>
@@ -470,19 +501,19 @@ const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 }
 
 /*!
-\ingroup constexpr_algorithms
 \brief 在简单 NTCTS 中顺序查找作为子串的指定 NTCTS 。
 \return 在查找结束时经过的字符数。
 \since build 329
 */
 template<typename _tChar>
-yconstfn YB_PURE size_t
+yconstfn YB_NONNULL(1) YB_PURE size_t
 const_ntctsstr(const _tChar* s1, const _tChar* s2)
 {
 	return ystdex::is_null(*s1) ? 0 : (ystdex::const_ntctscmp(s1, s2,
 		ystdex::const_ntctslen(s2)) == _tChar()? 0
 		: ystdex::const_ntctsstr(s1 + 1, s2) + 1);
 }
+//@}
 //@}
 
 } // namespace ystdex;

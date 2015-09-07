@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r313
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2015-09-01 00:34 +0800
+	2015-09-05 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,11 +45,8 @@ namespace ystdex
 template<typename _type>
 class nptr : public totally_ordered<nptr<_type>>
 {
-	//! \since build 628
-	static_assert(is_nothrow_copy_constructible<_type>(),
-		"Invalid type found.");
-	//! \since build 628
-	static_assert(is_nothrow_copy_assignable<_type>(), "Invalid type found.");
+	//! \since build 630
+	static_assert(is_nothrow_copyable<_type>(), "Invalid type found.");
 	static_assert(is_destructible<_type>(), "Invalid type found.");
 	static_assert(_type() == _type(), "Invalid type found.");
 	static_assert(_type(nullptr) == nullptr, "Invalid type found.");
