@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3199
+\version r3200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-08-19 22:19 +0800
+	2015-09-08 21:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,7 +254,7 @@ CheckModification(const string& path)
 
 	print("Checking path '" + path + "' ...");
 
-	const auto& file_time(GetFileModificationTimeOf(path));
+	const auto& file_time(GetFileModificationTimeOf(path.c_str()));
 
 	print("Modification time: " + to_string(file_time.count()) + " .");
 	return file_time;

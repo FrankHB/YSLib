@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r142
+\version r145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2015-04-29 00:38 +0800
+	2015-09-08 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_JNI
+#include YFM_YCLib_JNI // for platform::Descriptions, platform::Deref,
+//	ystdex::replace_cast;
 #include YFM_YCLib_POSIXThread
 #include <ystdex/exception.h> // for ystdex::unsupported;
 
@@ -56,7 +57,7 @@ FetchJNIEnvRef(::JavaVM& vm, ::jint version)
 {
 	void* p_env;
 	int status(vm.GetEnv(&p_env, version));
-	auto& p_jni(reinterpret_cast<::JNIEnv*&>(p_env));
+	auto& p_jni(ystdex::replace_cast<::JNIEnv*&>(p_env));
 
 	if(status == JNI_EDETACHED)
 	{

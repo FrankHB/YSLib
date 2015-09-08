@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2061
+\version r2065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-07-23 14:13 +0805
+	2015-09-08 03:19 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -594,11 +594,7 @@ struct is_normalizable<YB_Impl_Rational_fp_T> : true_type
 \brief 取包括指定有效二进制位和至少指定位整数的定点数类型。
 \since build 561
 */
-#if YB_IMPL_MSCPP || YB_IMPL_CLANGPP
 template<size_t _vFrac, size_t _vInt = 1, bool _bSigned = false>
-#else
-template<size_t _vFrac, size_t _vInt = 1, bool _bSigned = {}>
-#endif
 using make_fixed_t = fixed_point<conditional_t<_bSigned,
 	typename make_width_int<_vFrac + _vInt>::least_type,
 	typename make_width_int<_vFrac + _vInt>::unsigned_least_type>, _vFrac>;

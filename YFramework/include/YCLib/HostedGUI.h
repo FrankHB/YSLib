@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1302
+\version r1312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-07-04 16:25 +0800
+	2015-09-08 02:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #define YCL_INC_HostedGUI_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for string, map;
+#include YFM_YCLib_Host // for map, ystdex::aligned_storage_t, string;
 #include <ystdex/pointer.hpp> // for ystdex::nptr;
 #include YFM_YSLib_Core_YEvent // for YSLib::GEvent;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
@@ -396,7 +396,7 @@ class ScreenBufferData;
 #	endif
 
 
-/*
+/*!
 \note 像素格式和 platform::Pixel 兼容。
 \warning 非虚析构。
 */
@@ -541,7 +541,7 @@ public:
 		const YSLib::Drawing::Point& = {}) ynothrow;
 #	endif
 
-	/*
+	/*!
 	\brief 交换。
 	\since build 430
 	*/
@@ -654,9 +654,13 @@ class YF_API WindowRegionDeviceContext : public WindowDeviceContextBase
 private:
 	/*!
 	\note 保持和 \c ::PAINTSTRUCT 二进制兼容。
-	\since build 564
+	\since build 631
 	*/
-	byte ps[64];
+#if YCL_Win64
+	ystdex::aligned_storage_t<72, 8> ps;
+#else
+	ystdex::aligned_storage_t<64, 4> ps;
+#endif
 
 protected:
 	WindowRegionDeviceContext(NativeWindowHandle);
@@ -709,7 +713,7 @@ public:
 	//@{
 	//! \throw Win32Exception 窗口类注册失败。
 	//@{
-	/*
+	/*!
 	\pre 间接断言：第一参数非空。
 	\note 应用程序实例句柄参数为空则使用 <tt>::GetModuleHandleW()</tt> 。
 	\note 默认画刷参数等于 <tt>::HBRUSH(COLOR_MENU + 1)</tt> 。

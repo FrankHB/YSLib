@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1485
+\version r1498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-09-07 12:48 +0800
+	2015-09-08 02:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_HostedGUI
-#include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar,
+//	ystdex::aligned_store_cast;
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_MinGW32
 #	include <ystdex/exception.h> // for ystdex::unimplemented;
@@ -661,8 +662,8 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 
 	YCL_CallWin32_Trace(UpdateLayeredWindow,
 		"WindowMemorySurface::UpdatePremultiplied", h_wnd, h_owner_dc,
-		reinterpret_cast<::POINT*>(&rect), &size, h_mem_dc, &ptx, 0, &bfunc,
-		ULW_ALPHA);
+		ystdex::aligned_store_cast<::POINT*>(&rect), &size, h_mem_dc, &ptx, 0,
+		&bfunc, ULW_ALPHA);
 	::SelectObject(h_mem_dc, h_old);
 }
 
@@ -681,23 +682,18 @@ WindowDeviceContext::~WindowDeviceContext()
 
 WindowRegionDeviceContext::WindowRegionDeviceContext(NativeWindowHandle h_wnd)
 	: WindowDeviceContextBase(h_wnd,
-	::BeginPaint(h_wnd, reinterpret_cast<::PAINTSTRUCT*>(ps)))
+	::BeginPaint(h_wnd, ystdex::aligned_store_cast<::PAINTSTRUCT*>(&ps)))
 {}
 WindowRegionDeviceContext::~WindowRegionDeviceContext()
 {
-	static_assert(ystdex::is_aligned_storable<::PAINTSTRUCT, decltype(ps)>(),
-		"Invalid type found.");
-
-	::EndPaint(hWindow, reinterpret_cast<::PAINTSTRUCT*>(ps));
+	::EndPaint(hWindow, ystdex::aligned_store_cast<::PAINTSTRUCT*>(&ps));
 }
 
 Rect
 WindowRegionDeviceContext::GetInvalidatedArea() const
 {
-	// XXX: To workaround [-fstrict-aliasing].
-	const auto p(reinterpret_cast<const ::PAINTSTRUCT*>(ps));
-
-	return FetchRectFromBounds((*p).rcPaint);
+	return FetchRectFromBounds(
+		ystdex::aligned_store_cast<const ::PAINTSTRUCT&>(ps).rcPaint);
 }
 
 
@@ -900,7 +896,8 @@ Clipboard::Send(ConstBitmapPtr p_bmp, const Size& s)
 			* GetAreaOf(s)), 0, 0, 0, 0, 0x00FF0000, 0x0000FF00, 0x000000FF,
 			0xFF000000, 0x73524742/*LCS_sRGB*/, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}
 			}, 0, 0, 0, LCS_GM_IMAGES, 0, 0, 0},
-		CopyBitmapBuffer(reinterpret_cast<Pixel*>(p_buf + 1), p_bmp, s);
+		CopyBitmapBuffer(ystdex::aligned_store_cast<Pixel*>(p_buf + 1),
+			p_bmp, s);
 	}
 	SendRaw(CF_DIBV5, p.release());
 }

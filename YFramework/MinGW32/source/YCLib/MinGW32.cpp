@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r890
+\version r892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-09-03 16:26 +0800
+	2015-09-08 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,6 +247,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 
 		auto res(WCSToMBCS(buf, unsigned(CP_UTF8)));
 
+		// FIXME: For some platforms, no ::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx .
 		::LocalFree(buf);
 		return res;
 	}
@@ -511,7 +512,7 @@ void
 QueryFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
 {
-	if(const auto h{MakeFile(path, AccessRights::GenericRead)})
+	if(const auto h = MakeFile(path, AccessRights::GenericRead))
 		QueryFileTime(h.get(), p_ctime, p_atime, p_mtime);
 	else
 		YCL_Raise_Win32Exception("CreateFileW"); 

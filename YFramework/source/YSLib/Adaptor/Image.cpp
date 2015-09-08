@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1126
+\version r1130
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-07-01 20:47 +0800
+	2015-09-08 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "YSLib/Service/YModules.h"
 #include "CHRLib/YModules.h"
-#include YFM_YSLib_Adaptor_Image
+#include YFM_YSLib_Adaptor_Image // for Timers::TimeSpan,
+//	ystdex::aligned_store_cast;
 #include <FreeImage.h>
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_Service_YGDI
@@ -277,7 +278,7 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 }
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: p_bitmap([&]{
-		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(
+		return ::FreeImage_ConvertFromRawBits(ystdex::aligned_store_cast<byte*>(
 			Nonnull(src)), CheckScalar<int>(s.Width),
 			CheckScalar<int>(s.Height), CheckScalar<int>(
 			s.Width * sizeof(Pixel) + pitch_delta), YF_PixConvSpec, true);
@@ -368,7 +369,7 @@ HBitmap::operator CompactPixmap() const
 	// XXX: Depends right behavior on external API.
 	auto pixels(make_unique_default_init<Pixel[]>(size_t(GetAreaOf(s))));
 
-	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
+	::FreeImage_ConvertToRawBits(ystdex::aligned_store_cast<byte*>(&pixels[0]),
 		GetDataPtr(), CheckScalar<int>(s.Width * sizeof(Pixel)), YF_PixConvSpec,
 		true);
 	return CompactPixmap(std::move(pixels), s);

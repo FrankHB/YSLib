@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r371
+\version r376
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2015-05-29 19:11 +0800
+	2015-09-08 03:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,12 +47,7 @@ namespace ystdex
 
 对字节分段提供的随机访问迭代器。
 */
-//! \note since build 458 as workaround for Visual C++ 2013 and Clang++ 3.4
-#if YB_IMPL_MSCPP || YB_IMPL_CLANGPP
 template<size_t _vN, bool _bEndian = false>
-#else
-template<size_t _vN, bool _bEndian = {}>
-#endif
 class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
 	byte, ptrdiff_t, byte*, byte&>, public iterator_operators_t<bitseg_iterator<
 	_vN, _bEndian>, std::iterator_traits<yimpl(std::iterator<

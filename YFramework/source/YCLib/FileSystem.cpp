@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2883
+\version r2885
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-02 13:05 +0800
+	2015-09-08 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,8 +187,8 @@ HDirectory::GetNodeCategory() const ynothrow
 		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
 		// NOTE: Only existed and accessable files are considered.
 		// FIXME: Blocked. TOCTTOU access.
-		if(const auto h{MakeFile((name + Deref(static_cast<wstring*>(
-			p_dirent))).c_str(), FileSpecificAccessRights::ReadAttributes)})
+		if(const auto h = MakeFile((name + Deref(static_cast<wstring*>(
+			p_dirent))).c_str(), FileSpecificAccessRights::ReadAttributes))
 			switch(::GetFileType(h.get())
 				& ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
 			{

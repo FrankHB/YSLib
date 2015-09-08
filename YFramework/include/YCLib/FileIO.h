@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1189
+\version r1228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-03 01:34 +0800
+	2015-09-08 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -955,14 +955,32 @@ public:
 };
 
 
+//! \exception FileOperationFailure 参数无效或文件时间查询失败。
+//@{
+/*!
+\sa FileDescriptor::GetAccessTime
+\since build 631
+*/
+//@{
+inline YB_NONNULL(1) PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
+	ImplRet(FileDescriptor(fp).GetAccessTime())
+//! \pre 断言：参数非空。
+//@{
+YF_API YB_NONNULL(1) FileTime
+GetFileAccessTimeOf(const char*);
+YF_API YB_NONNULL(1) FileTime
+GetFileAccessTimeOf(const char16_t*);
+//@}
+//@}
+
+//@{
 /*!
 \sa FileDescriptor::GetModificationTime
-\exception FileOperationFailure 参数无效或文件修改时间查询失败。
 \since build 628
 */
 //@{
-YF_API YB_NONNULL(1) FileTime
-GetFileModificationTimeOf(std::FILE*);
+inline YB_NONNULL(1) PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
+	ImplRet(FileDescriptor(fp).GetModificationTime())
 //! \pre 断言：参数非空。
 //@{
 YF_API YB_NONNULL(1) FileTime
@@ -970,14 +988,25 @@ GetFileModificationTimeOf(const char*);
 YF_API YB_NONNULL(1) FileTime
 GetFileModificationTimeOf(const char16_t*);
 //@}
-//! \note 使用 NTCTS 参数 GetFileModificationTimeOf 实现。
-template<class _tString,
-	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline FileTime
-GetFileModificationTimeOf(const _tString& str)
-{
-	return platform::GetFileModificationTimeOf(str.c_str());
-}
+//@}
+
+//@{
+/*!
+\sa FileDescriptor::GetModificationAndAccessTime
+\since build 631
+*/
+//@{
+inline YB_NONNULL(1) PDefH(array<FileTime YPP_Comma 2>,
+	GetFileModificationAndAccessTimeOf, std::FILE* fp)
+	ImplRet(FileDescriptor(fp).GetModificationAndAccessTime())
+//! \pre 断言：参数非空。
+//@{
+YF_API YB_NONNULL(1) array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(const char*);
+YF_API YB_NONNULL(1) array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(const char16_t*);
+//@}
+//@}
 //@}
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r540
+\version r549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2015-04-29 00:24 +0800
+	2015-09-08 00:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,8 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Environment
+#include YFM_Helper_Environment // for Host::Window, ::RAWINPUT, WM_*,
+//	ystdex::pun_storage_t, ystdex::replace_cast;
 #include YFM_Helper_GUIApplication // for FetchEnvironent;
 #include YFM_YCLib_Input // for platform::ClearKeyStates;
 #if YCL_Win32
@@ -62,13 +63,16 @@ Window::Window(NativeWindowHandle h, Environment& e)
 		platform_ex::ClearKeyStates();
 	},
 	MessageMap[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param) ynothrow{
-		byte lpb[sizeof(::RAWINPUT)]{};
-		unsigned size(sizeof(lpb));
+		ystdex::pun_storage_t<::RAWINPUT> buf;
+		unsigned size(sizeof(buf));
 
-		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
+		// TODO: Use '{}' to simplify after resolving CWG 1368. See $2015-09
+		//	@ %Documentation::Workflow::Annual2014.
+		ystdex::trivially_fill_n(&buf);
+		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &buf,
 			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1)))
 		{
-			const auto p_raw(reinterpret_cast<::RAWINPUT*>(lpb));
+			const auto p_raw(ystdex::replace_cast<::RAWINPUT*>(&buf));
 
 			if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
 			{

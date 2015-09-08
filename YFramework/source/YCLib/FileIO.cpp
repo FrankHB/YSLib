@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r973
+\version r1188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-03 16:00 +0800
+	2015-09-08 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,21 +91,6 @@ static_assert(std::is_same<::mode_t, ystdex::underlying_type_t<Mode>>(),
 namespace
 {
 
-std::string
-ensure_str(const char* s)
-{
-	return s;
-}
-std::string
-ensure_str(const char16_t* s)
-{
-#if YCL_Win32
-	return platform_ex::WCSToMBCS(reinterpret_cast<const wchar_t*>(s));
-#elif YCL_API_POSIXFileSystem
-	return MakeMBCS(s);
-#endif
-}
-
 //! \since build 625
 //@{
 template<typename _func>
@@ -155,63 +140,194 @@ QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 		::_get_osfhandle(fd)), p_ctime, p_atime, p_mtime);
 }
 
-//! \since build 629
-template<typename _tChar>
-FileTime
-GetFileModificationTimeOfImpl(const _tChar* filename)
+//! \since build 631
+//@{
+string
+ensure_str(const wstring& s)
+{
+	return platform_ex::WCSToMBCS(s);
+}
+
+template<typename _func>
+auto
+GetFileTimeOfImpl(_func f, const wstring& filename)
+	-> ystdex::result_of_t<_func(const wchar_t*)>
 {
 	try
 	{
-		::FILETIME mtime{};
-
-		platform_ex::QueryFileTime(reinterpret_cast<const ystdex::conditional_t<
-			std::is_same<_tChar, char>::value, char, wchar_t>*>(filename), {},
-			{}, &mtime);
-		return platform_ex::ConvertTime(mtime);
+		return f(filename.c_str());
 	}
 	CatchThrow(std::system_error& e, FileOperationFailure(e.code(),
 		"Failed getting file time of \"" + ensure_str(filename) + "\"."))
 	CatchThrow(..., FileOperationFailure(errno, std::generic_category(),
 		"Failed getting file time of \"" + ensure_str(filename) + "\"."))
 }
-#else
-//! \since build 628
-template<typename _tChar>
-FileTime
-GetFileModificationTimeOfImpl(const _tChar* filename)
+
+wstring
+ensure_wstr(const char16_t* s)
 {
-	if(const UniqueFile p{platform::uopen(filename, O_RDONLY)})
-		return p->GetModificationTime();
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed getting file time of \"" + ensure_str(filename) + "\".");
+	return wcast(s);
 }
+wstring
+ensure_wstr(const char* s)
+{
+	return UTF8ToWCS(s);
+}
+//@}
+#else
+//! \since build 631
+//@{
+int
+ensure_stat(int fd)
+{
+	return fd;
+}
+const char*
+ensure_stat(const char* s)
+{
+	return s;
+}
+string
+ensure_stat(const char16_t* s)
+{
+	return MakeMBCS(s);
+}
+const char*
+ensure_stat(const string& s)
+{
+	return &s[0];
+}
+
+template<typename _fStat, typename _func, typename _tParam>
+auto
+FetchFileTimeStat(_fStat fs, _func f, _tParam arg)
+	-> ystdex::result_of_t<_func(struct ::stat&)>
+{
+	// TODO: Get more precise time count.
+	struct ::stat st;
+
+	if(fs(ensure_stat(ensure_stat(arg)), &st) == 0)
+		return f(st);
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed querying file time.");
+}
+//@}
 #endif
 
-//! \since build 628
+//! \since build 631
 template<typename _func>
 auto
-#if YCL_Win32
-FetchFileTime(_func f)
-	-> ystdex::result_of_t<_func()>
-#else
 FetchFileTime(_func f, int desc)
+#if YCL_Win32
+	-> ystdex::result_of_t<_func(int)>
+#else
 	-> ystdex::result_of_t<_func(struct ::stat&)>
 #endif
 {
 #if YCL_Win32
 	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
 	// XXX: Error handling for indirect calls.
-	TryRet(f())
+	TryRet(f(desc))
 	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
 		"Failed querying file time: ") + e.what() + "."))
 #else
-	// TODO: Get more precise time count.
-	struct ::stat st;
+	return FetchFileTimeStat(::fstat, f, desc);
+#endif
+}
 
-	if(::fstat(desc, &st) == 0)
-		return f(st);
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed querying file time.");
+#if YCL_Win32
+//! \since build 631
+//@{
+const auto get_st_atime([](int fd){
+	::FILETIME atime{};
+
+	QueryFileTime(fd, {}, &atime);
+	return platform_ex::ConvertTime(atime);
+});
+const auto get_st_mtime([](int fd){
+	::FILETIME mtime{};
+
+	QueryFileTime(fd, {}, {}, &mtime);
+	return platform_ex::ConvertTime(mtime);
+});
+const auto get_st_matime([](int fd){
+	::FILETIME mtime{}, atime{};
+
+	QueryFileTime(fd, {}, &atime, &mtime);
+	return array<FileTime, 2>{platform_ex::ConvertTime(mtime),
+		platform_ex::ConvertTime(atime)};
+});
+//@}
+#else
+//! \since build 631
+//@{
+const auto get_st_atime([](struct ::stat& st){
+	return FileTime(st.st_atime);
+});
+const auto get_st_mtime([](struct ::stat& st){
+	return FileTime(st.st_mtime);
+});
+const auto get_st_matime([](struct ::stat& st){
+	return array<FileTime, 2>{FileTime(st.st_mtime), FileTime(st.st_atime)};
+});
+//@}
+#endif
+
+//! \since build 631
+template<typename _tChar>
+FileTime
+GetFileAccessTimeOfImpl(const _tChar* path)
+{
+#if YCL_Win32
+	return GetFileTimeOfImpl([](const wchar_t* fn){
+		::FILETIME atime{};
+
+		platform_ex::QueryFileTime(fn, {}, &atime, {});
+		return platform_ex::ConvertTime(atime);
+	}, ensure_wstr(path));
+#elif YCL_DS
+	return FetchFileTimeStat(::stat, get_st_atime, Nonnull(path));
+#else
+	return FetchFileTimeStat(::lstat, get_st_atime, Nonnull(path));
+#endif
+}
+
+//! \since build 628
+template<typename _tChar>
+FileTime
+GetFileModificationTimeOfImpl(const _tChar* path)
+{
+#if YCL_Win32
+	return GetFileTimeOfImpl([](const wchar_t* fn){
+		::FILETIME mtime{};
+
+		platform_ex::QueryFileTime(fn, {}, {}, &mtime);
+		return platform_ex::ConvertTime(mtime);
+	}, ensure_wstr(path));
+#elif YCL_DS
+	return FetchFileTimeStat(::stat, get_st_mtime, Nonnull(path));
+#else
+	return FetchFileTimeStat(::lstat, get_st_mtime, Nonnull(path));
+#endif
+}
+
+//! \since build 631
+template<typename _tChar>
+array<FileTime, 2>
+GetFileModificationAndAccessTimeOfImpl(const _tChar* path)
+{
+#if YCL_Win32
+	return GetFileTimeOfImpl([](const wchar_t* fn){
+		::FILETIME atime{}, mtime{};
+
+		platform_ex::QueryFileTime(fn, {}, &atime, &mtime);
+		return array<FileTime, 2>{platform_ex::ConvertTime(mtime),
+			platform_ex::ConvertTime(atime)};
+	}, ensure_wstr(path));
+#elif YCL_DS
+	return FetchFileTimeStat(::stat, get_st_matime, Nonnull(path));
+#else
+	return FetchFileTimeStat(::lstat, get_st_matime, Nonnull(path));
 #endif
 }
 
@@ -237,54 +353,17 @@ FileDescriptor::FileDescriptor(std::FILE* fp) ynothrow
 FileTime
 FileDescriptor::GetAccessTime() const
 {
-#if YCL_Win32
-	::FILETIME atime{};
-
-	return FetchFileTime([&]{
-		QueryFileTime(desc, {}, &atime);
-		return platform_ex::ConvertTime(atime);
-	});
-#else
-	return FetchFileTime([&](struct ::stat& st){
-		return std::chrono::seconds(st.st_atime); 
-	}, desc);
-#endif
+	return FetchFileTime(get_st_atime, desc);
 }
 FileTime
 FileDescriptor::GetModificationTime() const
 {
-#if YCL_Win32
-	::FILETIME mtime{};
-
-	return FetchFileTime([&]{
-		QueryFileTime(desc, {}, {}, &mtime);
-		return platform_ex::ConvertTime(mtime);
-	});
-#else
-	return FetchFileTime([&](struct ::stat& st){
-		return std::chrono::seconds(st.st_mtime); 
-	}, desc);
-#endif
-
+	return FetchFileTime(get_st_mtime, desc);
 }
 array<FileTime, 2>
 FileDescriptor::GetModificationAndAccessTime() const
 {
-#if YCL_Win32
-	::FILETIME mtime{}, atime{};
-
-	return FetchFileTime([&]{
-		QueryFileTime(desc, {}, &atime, &mtime);
-		return array<FileTime, 2>{platform_ex::ConvertTime(mtime),
-			platform_ex::ConvertTime(atime)};
-	});
-#else
-	return FetchFileTime([&](struct ::stat& st){
-		return array<FileTime, 2>{std::chrono::seconds(st.st_mtime),
-			std::chrono::seconds(st.st_atime)};
-	}, desc);
-#endif
-
+	return FetchFileTime(get_st_matime, desc);
 }
 std::uint64_t
 FileDescriptor::GetSize() const
@@ -500,7 +579,7 @@ uaccess(const char16_t* path, int amode) ynothrow
 {
 	YAssertNonnull(path);
 #if YCL_Win32
-	return ::_waccess(reinterpret_cast<const wchar_t*>(path), amode);
+	return ::_waccess(wcast(path), amode);
 #else
 	YCL_Impl_RetTryCatchAll(::access(MakeMBCS(path).c_str(), amode))
 	return -1;
@@ -524,8 +603,7 @@ uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrow
 {
 	YAssertNonnull(filename);
 #if YCL_Win32
-	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag,
-		int(pmode));
+	return ::_wopen(wcast(filename), oflag, int(pmode));
 #else
 	YCL_Impl_RetTryCatchAll(::open(MakeMBCS(filename).c_str(), oflag, pmode))
 	return -1;
@@ -551,8 +629,8 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
-	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
-		reinterpret_cast<const wchar_t*>(mode));
+	return ::_wfopen(wcast(filename),
+		wcast(mode));
 #else
 	YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(),
 		MakeMBCS(mode).c_str()))
@@ -572,7 +650,7 @@ ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow
 	YAssertNonnull(filename);
 	if(const auto c_mode = ystdex::openmode_conv(mode))
 #if YCL_Win32
-		YCL_Impl_RetTryCatchAll(::_wfopen(reinterpret_cast<const wchar_t*>(
+		YCL_Impl_RetTryCatchAll(::_wfopen(wcast(
 			filename), UTF8ToWCS(c_mode).c_str()))
 #else
 		YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(), c_mode))
@@ -636,8 +714,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
-	return ::_wpopen(reinterpret_cast<const wchar_t*>(filename),
-		reinterpret_cast<const wchar_t*>(mode));
+	return ::_wpopen(wcast(filename), wcast(mode));
 #else
 	YCL_Impl_RetTryCatchAll(::popen(MakeMBCS(filename).c_str(),
 		MakeMBCS(mode).c_str()))
@@ -655,10 +732,10 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow
 		using namespace std;
 
 #if YCL_Win32
-		return reinterpret_cast<char16_t*>(
-			::_wgetcwd(reinterpret_cast<wchar_t*>(buf), int(size)));
+		return ucast(::_wgetcwd(wcast(buf), int(size)));
 #else
-		if(const auto cwd = ::getcwd(reinterpret_cast<char*>(buf), size))
+		if(const auto cwd
+			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), size))
 			try
 			{
 				const auto res(MakeUCS2LE(cwd));
@@ -721,10 +798,16 @@ ImplDeDtor(FileOperationFailure)
 
 
 FileTime
-GetFileModificationTimeOf(std::FILE* fp)
+GetFileAccessTimeOf(const char* filename)
 {
-	return FileDescriptor(fp).GetModificationTime();
+	return GetFileAccessTimeOfImpl(filename);
 }
+FileTime
+GetFileAccessTimeOf(const char16_t* filename)
+{
+	return GetFileAccessTimeOfImpl(filename);
+}
+
 FileTime
 GetFileModificationTimeOf(const char* filename)
 {
@@ -734,6 +817,17 @@ FileTime
 GetFileModificationTimeOf(const char16_t* filename)
 {
 	return GetFileModificationTimeOfImpl(filename);
+}
+
+array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(const char* filename)
+{
+	return GetFileModificationAndAccessTimeOfImpl(filename);
+}
+array<FileTime, 2>
+GetFileModificationAndAccessTimeOf(const char16_t* filename)
+{
+	return GetFileModificationAndAccessTimeOfImpl(filename);
 }
 
 std::uint64_t

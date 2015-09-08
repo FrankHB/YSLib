@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r238
+\version r243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2015-08-25 00:43 +0800
+	2015-09-08 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,7 @@
 #include YFM_YCLib_FileIO // for platform::uopen, platform::GetFileSizeOf;
 #include YFM_YCLib_NativeAPI
 #include <stdexcept> // for std::runtime_error;
-#if YCL_Win32
-#define MAP_FAILED (reinterpret_cast<void*>(-1))
-#elif YCL_Linux || YCL_OS_X
+#if YCL_Linux || YCL_OS_X
 #	include <sys/mman.h>
 #	include <sys/stat.h>
 #endif
@@ -55,7 +53,7 @@ MappedFile::MappedFile(const char* path)
 		throw std::runtime_error("Mapping failed.");
 #else
 #	if YCL_Win32
-	void* p(MAP_FAILED);
+	auto p(reinterpret_cast<void*>(-1));
 
 	if(size != 0)
 	{
@@ -73,7 +71,7 @@ MappedFile::MappedFile(const char* path)
 	const auto p(::mmap({}, size, PROT_READ, MAP_PRIVATE, fd, 0));
 #	endif
 
-	if(p == MAP_FAILED)
+	if(p == reinterpret_cast<void*>(-1))
 		throw std::runtime_error("Mapping failed.");
 	// TODO: Create specific exception type.
 	addr = static_cast<byte*>(p);

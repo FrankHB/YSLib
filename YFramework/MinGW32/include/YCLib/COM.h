@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r504
+\version r523
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2015-04-19 11:57 +0800
+	2015-09-07 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,11 @@
 #define YCL_MinGW32_INC_COMPtr_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_MinGW32
-#include <objbase.h>
+#include YFM_MinGW32_YCLib_MinGW32 // for platform_ex, std::runtime_error,
+//	ystdex::enable_if_t, std::is_convertible, std::nullptr_t,
+//	ystdex::replace_cast;
+#include <objbase.h> // for ::HRESULT, ::CoInitialize, S_OK, ::CoUnitialize,
+//	FAILED, S_FALSE, ::IID;
 
 namespace platform_ex
 {
@@ -98,7 +101,7 @@ inline PDefH(void, EnsureNonNull, void* p)
 	ImplExpr(p ? void() : throw COMException(S_FALSE))
 
 
-/*
+/*!
 \brief COM 指针。
 \warning 非虚析构。
 */
@@ -219,13 +222,14 @@ public:
 	\since build 563
 	*/
 	//@{
+	//! \since build 631
 	COMPtr<IUnknown>
-	As(REFIID riid) const
+	As(const ::IID& riid) const
 	{
 		COMPtr<IUnknown> res;
 
 		CheckHResult(Deref(pInterface).QueryInterface(riid,
-			reinterpret_cast<void**>(&res.ReleaseAndGetRef())));
+			ystdex::replace_cast<void**>(&res.ReleaseAndGetRef())));
 		return res;
 	}
 	template<class _iOther>
@@ -235,16 +239,17 @@ public:
 		COMPtr<_iOther> res;
 
 		CheckHResult(Deref(pInterface).QueryInterface(__uuidof(_iOther),
-			reinterpret_cast<void**>(&res.ReleaseAndGetRef())));
+			ystdex::replace_cast<void**>(&res.ReleaseAndGetRef())));
 		return res;
 	}
 	//@}
 
+	//! \since build 631
 	::HRESULT
-	Cast(REFIID riid, COMPtr<IUnknown>& ptr) const ynothrow
+	Cast(const ::IID& riid, COMPtr<IUnknown>& ptr) const ynothrow
 	{
 		return Deref(pInterface).QueryInterface(riid,
-			reinterpret_cast<void**>(&ptr.ReleaseAndGetRef()));
+			ystdex::replace_cast<void**>(&ptr.ReleaseAndGetRef()));
 	}
 	template<class _iOther>
 	::HRESULT
@@ -252,7 +257,7 @@ public:
 	{
 		YAssertNonnull(pInterface);
 		return pInterface->QueryInterface(__uuidof(_iOther),
-			reinterpret_cast<void**>(&ptr.ReleaseAndGetRef()));
+			ystdex::replace_cast<void**>(&ptr.ReleaseAndGetRef()));
 	}
 
 	InterfaceType*
@@ -261,9 +266,9 @@ public:
 		InternalAddRef();
 		return pInterface;
 	}
-	//! \since build 563
+	//! \since build 631
 	void*
-	Copy(REFIID riid) const
+	Copy(const ::IID& riid) const
 	{
 		void* p;
 
@@ -271,8 +276,9 @@ public:
 		return p;
 	}
 
+	//! \since build 631
 	::HRESULT
-	CopyTo(REFIID riid, void** ptr) const ynothrow
+	CopyTo(const ::IID& riid, void** ptr) const ynothrow
 	{
 		return Deref(pInterface).QueryInterface(riid, ptr);
 	}
@@ -281,7 +287,7 @@ public:
 	CopyTo(_type*& p) const ynothrow
 	{
 		return pInterface->QueryInterface(__uuidof(_type),
-			reinterpret_cast<void**>(&p));
+			ystdex::replace_cast<void**>(&p));
 	}
 
 protected:

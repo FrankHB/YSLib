@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r192
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:46:32 +0800
 \par 修改时间:
-	2015-08-25 21:34 +0800
+	2015-09-08 08:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_DS_YCLib_DSVideo
+#include YFM_DS_YCLib_DSVideo // for ystdex::replace_cast;
 #include YFM_YCLib_NativeAPI
 
 namespace platform_ex
@@ -96,18 +96,15 @@ ResetVideo()
 platform::Pixel*
 InitScrUp(int& id)
 {
-	//初始化背景，并得到屏幕背景ID 。
 	id = ::bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
-
-	//获得屏幕背景所用的显存地址。
-	return reinterpret_cast<platform::Pixel*>(::bgGetGfxPtr(id));
+	return ystdex::replace_cast<platform::Pixel*>(::bgGetGfxPtr(id));
 }
 
 platform::Pixel*
 InitScrDown(int& id)
 {
 	id = ::bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
-	return reinterpret_cast<platform::Pixel*>(::bgGetGfxPtr(id));
+	return ystdex::replace_cast<platform::Pixel*>(::bgGetGfxPtr(id));
 }
 
 void
