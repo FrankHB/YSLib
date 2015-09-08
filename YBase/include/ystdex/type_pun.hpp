@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r306
+\version r310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2015-09-07 12:41 +0800
+	2015-09-08 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,8 +48,8 @@ namespace ystdex
 \since build 610
 */
 template<typename _type, typename _type2>
-struct is_aligned_compatible : bool_constant<yalignof(_type2)
-	<= yalignof(_type) && yalignof(_type) % yalignof(_type2) == 0>
+struct is_aligned_compatible : bool_constant<!(yalignof(_type)
+	< yalignof(_type2)) && yalignof(_type) % yalignof(_type2) == 0>
 {};
 
 
@@ -107,7 +107,7 @@ using enable_if_replaceable_t
 
 /*!
 \ingroup transformation_traits
-\brief 用于显示转换的替代对齐存储类型。
+\brief 用于显示转换的替代对齐存储 POD 类型。
 */
 template<typename _type, size_t _vAlign = yalignof(_type)>
 using pun_storage_t = aligned_storage_t<sizeof(_type), _vAlign>;
@@ -121,7 +121,7 @@ using pun_storage_t = aligned_storage_t<sizeof(_type), _vAlign>;
 //@{
 /*!
 \brief 保证对齐兼容的显式转换。
-\note 用于替代针对满足 is_aligned_storable 要求对象的 \c reinterpret_cast 。
+\note 用于替代针对满足 is_aligned_compatible 要求对象的 \c reinterpret_cast 。
 */
 //@{
 template<typename _pDst, typename _tSrc>

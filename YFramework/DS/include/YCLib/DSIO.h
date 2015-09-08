@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r869
+\version r940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-08-31 23:20 +0800
+	2015-09-07 22:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 #	include <ystdex/cstdio.h> //for ystdex::block_buffer;
 #	include YFM_YCLib_FileSystem // for platform::FAT, platform::Deref,
 //	platform::Concurrency, platform::FileSystemType, std::system_error, array,
-//	string;
+//	string, ystdex::replace_cast;
 #	include <bitset> // for std::bitset;
 #	include <sys/syslimits.h> // for NAME_MAX.
 #endif
@@ -50,7 +50,7 @@ namespace platform_ex
 #if YCL_DS
 //! \since build 604
 //@{
-/*
+/*!
 \brief DS 底层外部存储接口封装。
 \see LibNDS 头文件 <nds/disc_io.h> 。
 \see LibFAT 源码文件 "source/disc.h" 。
@@ -298,7 +298,7 @@ public:
 	/*!
 	\brief 链接空闲空间。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::no_space_on_device 空间不足。
+		\li std::errc::no_space_on_device 空间不足。
 	*/
 	ClusterIndex
 	TryLinkFree(ClusterIndex) ythrow(std::system_error);
@@ -440,7 +440,7 @@ public:
 	/*!
 	\brief 构造：使用分区上的指定名称位置。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::io_error 读错误。
+		\li std::errc::io_error 读错误。
 	*/
 	DEntry(Partition&, const NamePosition&);
 	//! \pre 断言：指针参数非空。
@@ -448,8 +448,8 @@ public:
 	/*!
 	\brief 构造：使用分区上的指定路径。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::filename_too_long 路径太长。
-		\li \c std::errc::no_such_file_or_directory 项不存在。
+		\li std::errc::filename_too_long 路径太长。
+		\li std::errc::no_such_file_or_directory 项不存在。
 	*/
 	//@{
 	YB_NONNULL(3)
@@ -462,10 +462,10 @@ public:
 	\brief 构造：初始化用于被添加的新条目。
 	\note 第一参数未使用。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::filename_too_long 路径太长。
-		\li \c std::errc::no_such_file_or_directory 项不存在。
-		\li \c std::errc::not_a_directory 非目录项。
-		\li \c std::errc::invalid_argument 名称为空，
+		\li std::errc::filename_too_long 路径太长。
+		\li std::errc::no_such_file_or_directory 项不存在。
+		\li std::errc::not_a_directory 非目录项。
+		\li std::errc::invalid_argument 名称为空，
 			或含有 LFN::IllegalCharacters 中的字符。
 	*/
 	YB_NONNULL(4)
@@ -481,10 +481,10 @@ public:
 	\brief 添加项。
 	\pre 使用 int 起始参数类型构造，且之前没有被调用。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::file_exists ：项已存在。
-		\li \c std::errc::no_space_on_device 空间不足。
-		\li \c std::errc::invalid_argument 文件名非法导致生成后缀失败。
-		\li \c std::errc::io_error 读写错误。
+		\li std::errc::file_exists ：项已存在。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::invalid_argument 文件名非法导致生成后缀失败。
+		\li std::errc::io_error 读写错误。
 	*/
 	void
 	AddTo(Partition&, ClusterIndex);
@@ -493,8 +493,8 @@ public:
 	\brief 查找指定簇后的空闲空间并分配位置。
 	\pre 参数指定的分区和之前所有成员函数调用一致。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::no_space_on_device 空间不足。
-		\li \c std::errc::io_error 读写错误。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::io_error 读写错误。
 	*/
 	void
 	FindEntryGap(Partition&, ClusterIndex, size_t) ythrow(std::system_error);
@@ -515,7 +515,7 @@ public:
 	\brief 查询分区内下一个状态。
 	\pre 参数指定的分区和之前所有成员函数调用一致。
 	\exception std::system_error 查询失败。
-		\li \c std::errc::io_error 读错误。
+		\li std::errc::io_error 读错误。
 	*/
 	bool
 	QueryNextFrom(Partition&) ythrow(system_error);
@@ -572,7 +572,7 @@ public:
 	DefGetter(const ynothrow, const VolumeLabel&, Label, label)
 	//! \since build 628
 	DefGetter(const, string, LabelString,
-		string(reinterpret_cast<const char*>(label.data()), label.size()))
+		string(ystdex::replace_cast<const char*>(label.data()), label.size()))
 	DefGetterMem(const ynothrow, mutex&, MutexRef, Table)
 	DefGetterMem(const ynothrow, ClusterIndex, RootDirCluster, Table)
 	DefGetterMem(const ynothrow, size_t, SectorsPerCluster, Table)
@@ -581,7 +581,7 @@ public:
 	/*!
 	\brief 切换当前工作目录至参数指定路径的目录。
 	\pre 间接断言：参数非空。
-	\exception std::system_error 调用失败。\li \c std::errc::not_a_directory 指定的路径不是目录。
+	\exception std::system_error 调用失败。\li std::errc::not_a_directory 指定的路径不是目录。
 	*/
 	YB_NONNULL(2) void
 	ChangeDir(const char*) ythrow(std::system_error);
@@ -602,8 +602,8 @@ public:
 	/*!
 	\brief 检查并设置文件位置为下一簇。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::invalid_argument 文件位置的扇区数非法。
-		\li \c std::errc::no_space_on_device 空间不足。
+		\li std::errc::invalid_argument 文件位置的扇区数非法。
+		\li std::errc::no_space_on_device 空间不足。
 	*/
 	void
 	CheckPositionForNextCluster(FilePosition&) ythrow(std::system_error);
@@ -611,7 +611,7 @@ public:
 	/*!
 	\brief 检查指定名称和簇的项是否存在。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::io_error 查询项时读错误。
+		\li std::errc::io_error 查询项时读错误。
 	*/
 	bool
 	EntryExists(const string&, ClusterIndex) ythrow(system_error);
@@ -623,7 +623,7 @@ public:
 	/*!
 	\brief 移动目录项位置至下一个项，当遇到文件结束时扩展。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::no_space_on_device 空间不足。
+		\li std::errc::no_space_on_device 空间不足。
 	\todo 合并 IncrementPosition 实现。
 	*/
 	void
@@ -632,7 +632,7 @@ public:
 	/*!
 	\brief 刷新。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::io_error 写错误。
+		\li std::errc::io_error 写错误。
 	*/
 	PDefH(void, Flush, ) ythrow(std::system_error)
 		ImplExpr(GetCacheRef().Flush() ? void()
@@ -645,8 +645,8 @@ public:
 	/*!
 	\brief 分配已填充零的空间。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::no_space_on_device 空间不足。
-		\li \c std::errc::io_error 写错误。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::io_error 写错误。
 	\sa AllocationTable::LinkFree
 	*/
 	ClusterIndex
@@ -658,11 +658,11 @@ public:
 	/*!
 	\brief 创建路径指定的目录。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::file_exists 项已存在。
-		\li \c std::errc::read_only_file_system 文件系统只读。
-		\li \c std::errc::not_a_directory 路径前缀不是目录。
-		\li \c std::errc::io_error 读写错误。
-		\li \c std::errc::no_space_on_device 空间不足。
+		\li std::errc::file_exists 项已存在。
+		\li std::errc::read_only_file_system 文件系统只读。
+		\li std::errc::not_a_directory 路径前缀不是目录。
+		\li std::errc::io_error 读写错误。
+		\li std::errc::no_space_on_device 空间不足。
 	*/
 	void
 	MakeDir(const char*) ythrow(std::system_error);
@@ -682,7 +682,7 @@ public:
 
 	/*!
 	\brief 移除名称位置指定的项。
-	\exception std::system_error 调用失败。\li \c std::errc::io_error 读写错误。
+	\exception std::system_error 调用失败。\li std::errc::io_error 读写错误。
 	*/
 	void
 	RemoveEntry(const DEntry::NamePosition&) ythrow(std::system_error);
@@ -691,10 +691,10 @@ public:
 	\brief 重命名路径。
 	\pre 间接断言：参数非空。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::cross_device_link 路径指定的不是同一分区。
-		\li \c std::errc::read_only_file_system 文件系统只读。
-		\li \c std::errc::no_such_file_or_directory 指定的旧项不存在。
-		\li \c std::errc::file_exists 指定的新项已存在；
+		\li std::errc::cross_device_link 路径指定的不是同一分区。
+		\li std::errc::read_only_file_system 文件系统只读。
+		\li std::errc::no_such_file_or_directory 指定的旧项不存在。
+		\li std::errc::file_exists 指定的新项已存在；
 		std::errc::io_error 读写错误。
 	*/
 	YB_NONNULL(2, 3) void
@@ -708,7 +708,7 @@ public:
 	\brief 查询指定路径的项信息并填充到第一参数。
 	\pre 间接断言：路径参数非空。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::io_error 读写错误。
+		\li std::errc::io_error 读写错误。
 	*/
 	YB_NONNULL(3) void
 	Stat(struct ::stat&, const char*) ythrow(std::system_error);
@@ -721,7 +721,7 @@ public:
 	\brief 同步：更新文件信息到底层存储。
 	\return 是否成功（刷新时没有发生读写错误）。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::io_error 刷新前发生读写错误。
+		\li std::errc::io_error 刷新前发生读写错误。
 	*/
 	bool
 	Sync(const FileInfo&) const ythrow(system_error);
@@ -729,10 +729,10 @@ public:
 	/*!
 	\brief 移除路径参数指定的链接。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::read_only_file_system 文件系统只读。
-		\li \c std::errc::no_such_file_or_directory 指定的项不存在。
-		\li \c std::errc::operation_not_permitted 无法移除 . 或 .. 项。
-		\li \c std::errc::io_error 读写错误。
+		\li std::errc::read_only_file_system 文件系统只读。
+		\li std::errc::no_such_file_or_directory 指定的项不存在。
+		\li std::errc::operation_not_permitted 无法移除 . 或 .. 项。
+		\li std::errc::io_error 读写错误。
 	*/
 	void
 	Unlink(const char*) ythrow(std::system_error);
@@ -772,11 +772,11 @@ public:
 	\brief 构造：使用路径。
 	\pre 间接断言：参数非空。
 	\exception std::system_error 构造失败。
-		\li \c std::errc::no_such_device 无法访问路径指定的分区。
-		\li \c std::errc::invalid_argument 路径非法。
-		\li \c std::errc::not_a_directory 路径指定的不是目录。
-		\li \c std::errc::no_such_file_or_directory 路径指定的目录项不存在。
-		\li \c std::errc::io_error 查询项时读错误。
+		\li std::errc::no_such_device 无法访问路径指定的分区。
+		\li std::errc::invalid_argument 路径非法。
+		\li std::errc::not_a_directory 路径指定的不是目录。
+		\li std::errc::no_such_file_or_directory 路径指定的目录项不存在。
+		\li std::errc::io_error 查询项时读错误。
 	\sa CheckColons
 	\sa FetchPartitionFromPath
 	*/
@@ -786,10 +786,10 @@ public:
 private:
 	/*!
 	\exception std::system_error 构造失败。
-		\li \c std::errc::invalid_argument 路径非法。
-		\li \c std::errc::not_a_directory 路径指定的不是目录。
-		\li \c std::errc::no_such_file_or_directory 路径指定的目录项不存在。
-		\li \c std::errc::io_error 查询项时读错误。
+		\li std::errc::invalid_argument 路径非法。
+		\li std::errc::not_a_directory 路径指定的不是目录。
+		\li std::errc::no_such_file_or_directory 路径指定的目录项不存在。
+		\li std::errc::io_error 查询项时读错误。
 	\sa CheckColons
 	*/
 	DirState(Partition&, const char*, unique_lock<mutex>)
@@ -802,8 +802,8 @@ public:
 	\brief 迭代：取下一个项并更新内部状态。
 	\pre 间接断言：路径参数非空。
 	\exception std::system_error 迭代失败。
-		\li \c std::errc::no_such_device 无法访问路径指定的分区。
-		\li \c std::errc::io_error 查询项时读错误。
+		\li std::errc::no_such_device 无法访问路径指定的分区。
+		\li std::errc::io_error 查询项时读错误。
 	\note ::stat 指针参数指定需要更新的项信息，为空时忽略。
 	*/
 	YB_NONNULL(2) void
@@ -812,7 +812,7 @@ public:
 	/*!
 	\brief 复位状态。
 	\exception std::system_error 复位失败。
-		\li \c std::errc::io_error 查询项时读错误。
+		\li std::errc::io_error 查询项时读错误。
 	*/
 	void
 	Reset() ythrow(std::system_error);
@@ -845,11 +845,11 @@ public:
 	\brief 构造：使用分区、路径和访问标识（指定读写权限）。
 	\pre 第二参数非空。
 	\exception std::system_error 构造失败。
-		\lic \c std::errc::permission_denied 访问标识没有指定读写权限。
-		\lic \c std::errc::is_a_directory 使用写权限打开目录。
-		\lic \c std::errc::file_exists 要求创建不存在的文件但文件已存在。
-		\lic \c std::errc::read_only_file_system 创建文件但文件系统只读。
-		\lic \c std::errc::no_such_file_or_directory 文件不存在。
+		\lic std::errc::permission_denied 访问标识没有指定读写权限。
+		\lic std::errc::is_a_directory 使用写权限打开目录。
+		\lic std::errc::file_exists 要求创建不存在的文件但文件已存在。
+		\lic std::errc::read_only_file_system 创建文件但文件系统只读。
+		\lic std::errc::no_such_file_or_directory 文件不存在。
 	\note 访问标识包含 O_RDONLY 、 O_WRONLY 或 O_RDWR 指定读写权限。
 	*/
 	YB_NONNULL(3)
@@ -882,9 +882,9 @@ public:
 	/*!
 	\brief 扩展：分配更大空间。
 	\exception std::system_error 扩展失败。
-		\li \c std::errc::invalid_argument 参数非法。
-		\li \c std::errc::no_space_on_device 空间不足。
-		\li \c std::errc::io_error 写错误。
+		\li std::errc::invalid_argument 参数非法。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::io_error 写错误。
 	*/
 	void
 	Extend() ythrow(std::system_error);
@@ -898,7 +898,7 @@ public:
 	/*!
 	\brief 读取文件信息并保存到参数。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::io_error 读错误。
+		\li std::errc::io_error 读错误。
 	*/
 	void
 	Stat(struct ::stat&) const;
@@ -906,8 +906,8 @@ public:
 	/*!
 	\brief 截断文件。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::invalid_argument 参数非法。
-		\li \c std::errc::no_space_on_device 空间不足。
+		\li std::errc::invalid_argument 参数非法。
+		\li std::errc::no_space_on_device 空间不足。
 	*/
 	void
 	Truncate(FileSize) ythrow(std::system_error);
@@ -916,7 +916,7 @@ public:
 	\brief 读文件内容到第一参数指定的缓冲区。
 	\pre 间接断言：第一参数非空。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::io_error 读错误。
+		\li std::errc::io_error 读错误。
 	*/
 	YB_NONNULL(2) ::ssize_t
 	TryRead(char*, size_t) ythrow(std::system_error);
@@ -924,8 +924,8 @@ public:
 	/*!
 	\brief 设置文件读写位置。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::invalid_argument 参数非法。
-		\li \c std::errc::value_too_large 位置溢出。
+		\li std::errc::invalid_argument 参数非法。
+		\li std::errc::value_too_large 位置溢出。
 	\note 第二参数取值为 SEEK_SET 、 SEEK_CUR 和 SEEK_END 之一。
 	*/
 	::off_t
@@ -934,9 +934,9 @@ public:
 	/*!
 	\brief 设置文件读写位置。
 	\exception std::system_error 调用失败。
-		\li \c std::errc::invalid_argument 参数非法。
-		\li \c std::errc::no_space_on_device 空间不足。
-		\li \c std::errc::io_error 写错误。
+		\li std::errc::invalid_argument 参数非法。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::io_error 写错误。
 	*/
 	YB_NONNULL(2) ::ssize_t
 	TryWrite(const char*, size_t) ythrow(std::system_error);

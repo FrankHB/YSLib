@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3618
+\version r3643
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2015-08-23 06:35 +0800
+	2015-09-08 08:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include <ystdex/type_op.hpp> // for ystdex::decay_t, ystdex::result_of_t;
 #include <ystdex/cassert.h> // yconstraint, yassume for other headers;
 #include <ystdex/cwctype.h> // for ystdex::isprint, ystdex::iswprint;
+#include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
 #include YFM_YBaseMacro
 
 //! \brief 默认平台命名空间。
@@ -93,6 +94,32 @@ IsPrint(_tChar c)
 //@}
 
 
+//! \since build 631
+//@{
+inline PDefH(ystdex::uchar_t*, ucast, wchar_t* p) ynothrow
+	ImplRet(ystdex::replace_cast<ystdex::uchar_t*>(p))
+inline PDefH(const ystdex::uchar_t*, ucast, const wchar_t* p) ynothrow
+	ImplRet(ystdex::replace_cast<const ystdex::uchar_t*>(p))
+template<typename _tChar>
+_tChar*
+ucast(_tChar* p) ynothrow
+{
+	return p;
+}
+
+inline PDefH(wchar_t*, wcast, ystdex::uchar_t* p) ynothrow
+	ImplRet(ystdex::replace_cast<wchar_t*>(p))
+inline PDefH(const wchar_t*, wcast, const ystdex::uchar_t* p) ynothrow
+	ImplRet(ystdex::replace_cast<const wchar_t*>(p))
+template<typename _tChar>
+_tChar*
+wcast(_tChar* p) ynothrow
+{
+	return p;
+}
+//@}
+
+
 /*!
 \brief 循环重复操作。
 \since build 625
@@ -115,7 +142,7 @@ RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
 
 /*!
 \brief 执行 UTF-8 字符串的环境命令。
-\note 使用 \c std::system 实现；若参数为空则和 \c std::system 行为一致。
+\note 使用 std::system 实现；若参数为空则和 std::system 行为一致。
 \since build 539
 */
 YF_API int

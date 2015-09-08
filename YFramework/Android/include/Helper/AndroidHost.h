@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r229
+\version r233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2015-04-28 16:39 +0800
+	2015-09-07 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 #include "YModules.h"
 #include YFM_Helper_Environment // for unique_ptr, std::atomic,
-//	Devices::AndroidScreen;
+//	Devices::AndroidScreen, ystdex::aligned_store_cast;
 #if YCL_Android
 #	include <thread>
 #	include <android/native_activity.h>
@@ -77,7 +77,7 @@ struct YF_API ConfigurationDeleter
 class YF_API NativeHost
 {
 protected:
-	/*
+	/*!
 	\brief 本机主线程，用于启动入口函数。
 	\note 和直接使用 NativeActivity 控制的进程的主线程不同。
 	\sa ::y_android_main
@@ -145,7 +145,7 @@ public:
 		fSaveState = [&](void*& p_saved_state, size_t& saved_size){
 			p_saved_state = std::malloc(sizeof(_type));
 			if(p_saved_state)
-				// TODO: Subclassing.
+				// TODO: Use inherited class of exception.
 				throw std::bad_alloc();
 			new(p_saved_state) _type(state);
 			saved_size = sizeof(_type);
@@ -173,7 +173,7 @@ public:
 	//	static_assert(std::is_trivially_copyable<ystdex::remove_reference_t<
 	//		_type>>(), "Invalid state type found.");
 
-		RestoreSavedState(reinterpret_cast<byte*>(&state));
+		RestoreSavedState(ystdex::aligned_store_cast<byte*>(&state));
 	}
 
 	/*!

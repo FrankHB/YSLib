@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3346
+\version r3475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-07 12:56 +0800
+	2015-09-08 22:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,136 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(DS)' $=
+		(
+			/ %DSIO $=
+			(
+				/ DLDI "member function %Partition::GetLabelString"
+					^ "%ystdex::replace_cast" ~ 'reinterpret_cast',
+				* $doc "missing '!'" @ "end of '/*'"
+					@ "multiline Doxygen comments" @ "class %Disc" $since b604,
+				/ DLDI "function %Mount" ^ "%ystdex::aligned_store_cast"
+					~ 'reinterpret_cast'
+			),
+			/ DLDI "all 2 'reinterpret_cast<platform::PixelType*>'" @ %DSVideo
+				-> 'ystdex::replace_cast<platform::PixelType*>'
+		),
+		/ @ "class template %COMPtr" @ %'YCLib_(MinGW32)'.COM $=
+		(
+			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				$since b412,
+			/ DLDI "all 4 'REFIID'" -> 'const ::IID&',
+			/ DLDI "all 5 'reinterpret_cast'" -> 'ystdex::replace_cast'
+			 // This should work for casting to 'void**'.
+		),
+		/ DLDI "constructor %Window" @ "platform %Win32" @ %Helper.HostWindow
+			^ ("%ystdex::pun_storage_t" ~ "byte[]";
+			"%ystdex::replace_cast" ~ 'reinterpret_cast'),
+		/ %YSLib.Adaptor $=
+		(
+			/ DLDI "constructor %HBitmap#2" @ %Image
+				^ "%ystdex::aligned_store_cast" ~ 'reinterpret_cast',
+			+ 'using platform::GetFileAccessTimeOf;',
+				'using platform::GetFileModificationAndAccessTimeOf'
+				@ "namespace %YSLib" @ %YAdaptor
+		),
+		/ DLDI @ "class %NativeHost" @ %'Helper_(Android)'.AndroidHost $=
+		(
+			/ "function template %Restore" ^ "%ystdex::aligned_store_cast"
+				~ 'reinterpret_cast',
+			* $doc "missing '!'" @ "end of '/*'"
+				@ "protected data member %thrdMain" $since b502
+		),
+		/ %YCLib $=
+		(
+			/ $dev $impl "non reserved macro %MAP_FAILED pollution"
+				@ %MemoryMapping $since b324,
+			/ DLDI %JNI ^ "%ystdex::replace_cast" ~ 'reinterpret_cast',
+			/ @ "platform %Win32" @ %HostedGUI $=
+			(
+				/ DLDI "member functions %(Clipboard::Send, \
+					WindowMemorySurface::UpdatePremultiplied)"
+					^ "%ystdex::aligned_store_cast" ~ 'reinterpret_cast',
+				/ DLD @ "class %WindowRegionDeviceContext" $=
+				(
+					/ "type" @ "paint structure buffer data member"
+						-> ('ystdex::aligned_storage_t<72, 8>' @ 'YCL_Win64',
+						'ystdex::aligned_storage_t<64, 4>'
+						@ "platform %Win32 otherwise") ~ 'byte[64]';
+					(
+					+ $comp "platform %Win64 support",
+					(
+					/ $impl ^ "%ystdex::aligned_store_cast"
+						~ 'reinterpret_cast';
+					- $revert(b) $impl "static assertion" @ "destructor"
+					)
+					)
+				)
+			),
+			(
+			+ "(functions, function template) %(ucast, wcast)" @ %YCommon
+				^ "%ystdex::(uchar_t, replace_cast)";
+			/ DLDI "simplified" %FileIO
+				^ ("%aligned_store_cast", "%(ucast, wcast)" @ %YCommon);
+			),
+			- $revert(b544) "function template %GetFileModificationTimeOf"
+				$dep_to "removal of getting modification time template",
+			/ $dev @ "all 3 functions %GetFileModificationTimeOf, member \
+				functions %FileDescriptor::(GetAccessTime, \
+				GetModificationTime, GetModificationAndAccessTime)" @ %FileIO $=
+			(
+				/ $lib $impl "simplified",
+				/ @ !"platform %Win32" $=
+				(
+					/ "function with path parameters"  ^ '::(stat, lstat)'
+						~ "%FileDescriptor"
+						// This allows file to be not opened. '::lstat' is \
+							used if available. For platform %DS, '::stat' is \
+							used as a fallback.
+					/ re(b629) "allowed querying shared file owned by unique \
+						process"
+				)
+			),
+			/ DLD "function %GetFileModificationTimeOf"
+				-> "non-inline function",
+			+ "3 functions %(GetFileAccessTimeOf, \
+				GetFileModificationAndAccessTimeOf)"
+		),
+		* "strict ISO C++11 code conforming about wrong use of \
+			braced-init-list to be deduced from %MakeFile call"
+			@ '!YB_IMPL_GNUCPP' $effective @ %(YCLib.FileSystem, \
+			'YCLib_(MinGW32)'.MinGW32) $since b453,
+			// Also to avoid Clang++ warning: [-Wfuture-compat]. See $2015-09 \
+				@ %Documentation::Workflow::Annual2015.
+		* "wrong month value (always 1 smaller than real value)"
+			@ "function %TranslateTime" @ %Helper.ShellHelper $since b307 $orig
+			(@ %YReader.ShlReader $since b264)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %TypePun $=
+		(
+			* DD "comments" @ "function templates %aligned_cast" $since b630,
+			/ $re_ex(b630) DLDI "%is_aligned_compatible" ^ ('!', '<') ~ '<='
+				// To be consistent with %is_aligned_storable.
+		),
+		* "strict ISO C++11 code conforming about wrong workaround for invalid \
+			code about default argument for template non-type parameters"
+			$effective @ %(Rational $since b561 $orig, BitSegment $since b507
+			$orig @ (%Iterator $since b458))
+			// See $2015-09 @ %Documentation::Workflow::Annual2015.
+	),
+	/ $forced DLDI @ %Tools.SHBuild.Main $dep_from
+		"removal of getting modification time template",
+	* $comp "wrong month value of date shown"
+		@ "hexadecimal browser file information on UI" @ %YReader.ShlReader
+		$since b264 $dep_from %Helper.ShellHelper
+),
+
+b630
 (
 	/ %YBase.YStandardEx $=
 	(

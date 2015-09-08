@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2551
+\version r2564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-08-28 01:37 +0800
+	2015-09-07 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,22 +27,19 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_DS_YCLib_DSIO // for platform::Descriptions, YCL_PATH_DELIMITER,
+#include YFM_DS_YCLib_DSIO // for platform::Descriptions, std::runtime_error,
+//	ystdex::throw_system_error, std::system_error, YCL_PATH_DELIMITER,
 //	YTraceDe, std::exception, ystdex::trivially_copy_n, ptrdiff_t,
-//	DISC_INTERFACE, unique_raw;
+//	DISC_INTERFACE, unique_raw, ystdex::aligned_store_cast;
 #if YCL_DS
 #	include "YSLib/Core/YModules.h"
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
 //	YSLib::FilterExceptions;
-#	include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
-//	ystdex::write_uint_le;
-#	include <ystdex/exception.h> // for ystdex::throw_system_error,
-//	std::system_error, std::runtime_error;
 #	include "CHRLib/YModules.h"
-#	include YFM_CHRLib_CharacterProcessing // for CHRLib::ucs2_t,
-//	CHRLib::MakeUCS2LE, ystdex::ntctsnicmp, ystdex::ntctsncpy,
-//	ystdex::ntctsicmp;
-#	include <cerrno>
+#	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
+//	ystdex::write_uint_le, CHRLib::ucs2_t, CHRLib::MakeUCS2LE,
+//	ystdex::ntctsnicmp, ystdex::ntctsncpy, ystdex::ntctsicmp;
+#	include <cerrno> // for E*;
 #	include YFM_YCLib_NativeAPI // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC,
 //	O_APPEND, O_CREAT, O_EXCL;
 #	include <ystdex/scope_guard.hpp> // for ystdex::guard;
@@ -2261,7 +2258,7 @@ op_path(::_reent* r, const char*& path, _func f) ynothrowv
 	return FilterDevOps(r, [=, &path]{
 		if(Deref(path) != char())
 		{
-			if(auto p_part = FetchPartitionFromPath(path))
+			if(const auto p_part = FetchPartitionFromPath(path))
 			{
 				// XXX: %EINVAL is not POSIX error for path.
 				path = CheckColons(path);
@@ -2454,7 +2451,7 @@ Mount(const string& name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 			if(auto p_part = make_unique<Partition>(intf, pages,
 				sectors_per_page_shift, start_sector))
 			{
-				const auto p_name(reinterpret_cast<char*>(p.get() + 1));
+				const auto p_name(ystdex::aligned_store_cast<char*>(p.get() + 1));
 
 				yunseq(ystdex::trivially_copy_n(&dotab_fat, 1, p.get()),
 					ystdex::trivially_copy_n(name.c_str(), name.length() + 1,

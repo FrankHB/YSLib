@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1797
+\version r1801
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-08-22 02:13 +0800
+	2015-09-08 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,8 +266,12 @@ using platform::wifstream;
 using platform::wofstream;
 using platform::wfstream;
 //@}
+//! \since build 631
+using platform::GetFileAccessTimeOf;
 //! \since build 547
 using platform::GetFileModificationTimeOf;
+//! \since build 631
+using platform::GetFileModificationAndAccessTimeOf;
 //! \since build 547
 using platform::GetFileSizeOf;
 //@}
