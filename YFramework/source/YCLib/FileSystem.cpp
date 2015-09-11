@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2885
+\version r2892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-08 02:35 +0800
+	2015-09-12 03:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,8 +176,6 @@ HDirectory::GetNodeCategory() const ynothrow
 				;
 			}
 		}
-		if(attr & FILE_ATTRIBUTE_DEVICE)
-			res |= NodeCategory::Device;
 
 		using namespace platform_ex;
 		auto name(dir_data.GetDirName());
@@ -188,15 +186,13 @@ HDirectory::GetNodeCategory() const ynothrow
 		// NOTE: Only existed and accessable files are considered.
 		// FIXME: Blocked. TOCTTOU access.
 		if(const auto h = MakeFile((name + Deref(static_cast<wstring*>(
-			p_dirent))).c_str(), FileSpecificAccessRights::ReadAttributes))
+			p_dirent))).c_str(), FileSpecificAccessRights::ReadAttributes,
+			FileAttributesAndFlags::NormalWithDirectory))
 			switch(::GetFileType(h.get())
 				& ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
 			{
 			case FILE_TYPE_CHAR:
 				res |= NodeCategory::Character;
-				break;
-			case FILE_TYPE_DISK:
-				res |= NodeCategory::Device;
 				break;
 			case FILE_TYPE_PIPE:
 				res |= NodeCategory::FIFO;

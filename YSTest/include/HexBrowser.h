@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r536
+\version r543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2015-08-01 12:58 +0800
+	2015-09-11 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,15 +79,16 @@ public:
 	//! \since build 620
 	DefBoolNeg(explicit, source.is_open())
 
-	//! \since build 597
-	//@{
-	//! \pre 间接断言；参数非空。
+	/*!
+	\pre 间接断言；参数非空。
+	\since build 597
+	*/
 	PDefH(std::streamsize, Fill, char* dst, std::streamsize n) const
 		ImplRet(source.sgetn(Nonnull(dst), n))
 
-	PDefH(void, Seek, std::streampos pos) const
-		ImplExpr(source.pubseekpos(pos, std::ios_base::in))
-	//@}
+	//! \since build 632
+	PDefH(void, Seek, std::streamoff off) const
+		ImplExpr(source.pubseekoff(off, std::ios_base::beg, std::ios_base::in))
 };
 
 

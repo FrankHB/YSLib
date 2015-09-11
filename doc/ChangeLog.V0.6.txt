@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3475
+\version r3563
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-08 22:25 +0800
+	2015-09-12 03:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,92 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YCLib $=
+	(
+		/ "fetching time" @ %FileIO $=
+		(
+			/ DLDI "merged fetching by file descriptor and paths",
+			- "file name" @ "exception message" @ "platform %Win32",
+			/ DLDI "simplified standard library implementation \
+				feature-dependent declarations" $=
+			(
+				+ "'#undef __STRICT_ANSI__' before including headers"
+				- "declarations %(fileno, pclose, popen)" @ "platform %DS",
+				/ @ "platform %Win32 using MinGW.org headers" $=
+				(
+					- $revert(b464) "declarations %(_fileno _wfopen)",
+					+ '#undef _fileno'
+				)
+			),
+			/ @ "routines 'GetFile*TimeOf' of parameter with path" $=
+			(
+				/ $comp "reading file by default" ^ ("link" ~ "target")
+					@ "platform %Win32" $dep_from ("%QueryFileTime"
+					@ 'YCLib_(MinGW32)'.MinGW32),
+				+ "last parameter 'bool = {}' to allow following the link"
+					// The behavior is not specified before b621. It seems \
+						that Win32 implementation did not following the link.
+			)
+		),
+		/ %FileSystem $=
+		(
+			/ $forced DLDI @ "%function HDirectory::GetNodeCategory" $dep_from
+				("%MakeFile" @ 'YCLib_(MinGW32)'.MinGW32),
+			- $revert(b628) "%Device support" @ "platform %Win32"
+				@ "member function %HDirectory::GetNodeCategory"
+				// %FILE_ATTRIBUTE_DEVICE is reserved, thus should not be \
+					used. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/gg258117(v=vs.85).aspx .
+		),
+		* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+			@ ("functions 'u*'" $orig (@ %FileSystem $since b476),
+			"functions 'omode_conv*'" $since b617, ("%(FullWrite, GetSize)"
+			$since b624, "'Get*Time'" $since b628) @ "member functions"
+			@ "class %FileDescriptor")
+	),
+	/ %MinGW32 $=
+	(
+		* "missing 'const'" @ "parameter" @ "function %ConvertTime" $since b544,
+		* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+			@ "class %DirectoryFindData" $since b549,
+		(
+		+ "enum %FileAttributesAndFlags";
+		+ 'DefBitmaskEnum(FileAttributesAndFlags)';
+		/ @ "function %MakeFile" $=
+		(
+			/ "last parameter 'unsigned long = FILE_ATTRIBUTE_NORMAL \
+				| FILE_FLAG_BACKUP_SEMANTICS'" -> 'FileAttributesAndFlags \
+				= FileAttributesAndFlags::NormalAll',
+				// Not tracing reparse point by default.
+			+ "3 inline overloadings"
+		)
+		),
+		/ @ "functions %QueryFileTime with path parameter" $=
+		(
+			+ "parameter 'bool = {}' at last",
+			/ "forbade tracing reparse point by default"
+		)
+	),
+	/ %YReader $=
+	(
+		/ DLDI "file time querying" @ "constructor %ShlHexBrowser"
+			^ "%GetModificationAndAccessTimeOf" ~ "::stat" @ %ShlReader,
+		/ "class %HexModel" @ %HexBrowser $=
+		(
+			/ "function %Seek" ^ "%seekoff" ~ "%seekpos";
+			* $forced DLDI "strict ISO C++ conforming for calling %seekpos \
+				without valid result from allowed calls"
+				@ "function %UpdateData" $since b597
+				// This might cause undefined behavior, see ISO C++11 \
+					[filebuf.virtuals]/17.
+		)
+	),
+	* $comp "missing '\'" @ "file explorer" @ "platform %Win32" @ %YReader
+		$since b628 $dep_from
+		("%HDirectory::GetNodeCategory" @ %YFramework.YCLib.FileSystem)
+),
+
+b631
 (
 	/ %YFramework $=
 	(
@@ -115,11 +201,12 @@ $now
 				/ $lib $impl "simplified",
 				/ @ !"platform %Win32" $=
 				(
-					/ "function with path parameters"  ^ '::(stat, lstat)'
+					/ "function with path parameters" ^ '::(stat, lstat)'
 						~ "%FileDescriptor"
 						// This allows file to be not opened. '::lstat' is \
 							used if available. For platform %DS, '::stat' is \
-							used as a fallback.
+							used as a fallback. This also alter the behavior \
+							for links.
 					/ re(b629) "allowed querying shared file owned by unique \
 						process"
 				)

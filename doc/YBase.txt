@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r542
+\version r548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-09-04 15:22 +0800
+	2015-09-10 21:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -348,7 +348,16 @@ Boost.Operators 的重新实现。
 基本内容参见 [Documentation::Designation @@3] 。
 
 @3.1 语言特性使用限制：
+
+@3.1.1 重载 operator,
 YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出假设。
+
+@3.1.2 别名：
+除了 LibDefect 可能实现兼容 C++11 以前实现的代码外，不使用 typedef ，而用 using 别名声明代替。
+
+@3.2 别名策略：
+使用条件包含中的 using 声明引入新的声明替代部分其它声明时，公开的接口为所有分支的公共子集。
+除非文档说明，在 namespace ystdex 及其 inline 的 ystdex::cpp*(@2.4.2.1) 内声明的名称，和 namespace std 同名的，提供的接口和被支持的最新分支接口在实体上兼容，对不依赖实现细节的实体的用户代码使用透明（即可替换实现），但不保证存在包含相同名称的所有实体（如不同的重载）。
 
 @3.2 异常使用规则：
 基本内容参见 [Documentation::LanguageConvention @@5.10.5] 。

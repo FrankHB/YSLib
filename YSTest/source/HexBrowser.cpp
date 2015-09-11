@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r666
+\version r670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2015-08-01 13:08 +0800
+	2015-09-11 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -195,8 +195,8 @@ HexViewArea::UpdateData(std::uint32_t pos)
 			YTraceDe(Notice, "Give up empty view area.");
 			return;
 		}
-		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-		model.Seek(std::streampos(pos));
+		// XXX: Conversion to 'std::streamoff' might be implementation-defined.
+		model.Seek(std::streamoff(pos));
 		v_buf.resize(DataType::size_type(model.Fill(&v_buf[0],
 			std::streamsize(n))));
 		datCurrent.resize(v_buf.size() * 2);
@@ -219,8 +219,8 @@ HexViewArea::UpdateData(std::uint32_t pos)
 		}
 	//	vsbVertical.SetValue(pos / ItemPerLine);
 		// NOTE: 'Refresh' needs this to check if it is towards EOF.
-		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-		model.Seek(std::streampos(pos));
+		// XXX: Conversion to 'std::streamoff' might be implementation-defined.
+		model.Seek(std::streamoff(pos));
 	}
 }
 
