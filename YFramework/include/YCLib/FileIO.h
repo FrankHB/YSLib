@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1228
+\version r1255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-08 20:59 +0800
+	2015-09-12 00:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ public:
 
 	//! \since build 628
 	//@{
-	/*
+	/*!
 	\return 以 POSIX 时间相同历元的时间间隔。
 	\throw FileOperationFailure 参数无效或文件修改时间查询失败。
 	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
@@ -143,7 +143,7 @@ public:
 	YF_API array<FileTime, 2>
 	GetModificationAndAccessTime() const;
 	//@}
-	/*
+	/*!
 	\brief 取文件的大小。
 	\return 以字节计算的文件大小。
 	\note 非常规文件可能出错。
@@ -205,7 +205,7 @@ public:
 	YB_NONNULL(2) size_t
 	FullRead(void*, size_t) ynothrowv;
 
-	/*
+	/*!
 	\note 每次写 0 字节时设置 \c errno 为 ENOSPC 。
 	\sa Write
 	*/
@@ -251,7 +251,7 @@ YF_API void
 SetBinaryIO(std::FILE*) ynothrow;
 
 /*!
-\warning 改变默认日志默认发送器前，不应使用 \c std::cerr 和 \c std::clog
+\warning 改变默认日志默认发送器前，不应使用 std::cerr 和 std::clog
 	等依赖 \c stderr 的流，以避免导致同步问题。
 \sa FetchCommonLogger
 \sa Logger::DefaultSendLog
@@ -266,14 +266,14 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 \brief 尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
 \return 非 \c EINTR 的错误。
 \note 首先清除 \c errno ；遇 \c EINTR 时重试。
-\note 使用 \c std::fclose 关闭流。
+\note 使用 std::fclose 关闭流。
 \since build 616
 */
 YB_NONNULL(1) int
 TryClose(std::FILE*) ynothrow;
 
 
-/*
+/*!
 \brief ISO C++ 标准输入输出接口打开模式转换为 POSIX 文件打开模式。
 \return 若失败为 0 ，否则为对应的值。
 \since build 617
@@ -322,7 +322,7 @@ YF_API int
 uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrow;
 //@}
 
-//! \param filename 文件名，意义同 \c std::fopen 。
+//! \param filename 文件名，意义同 std::fopen 。
 //@{
 /*!
 \param mode 打开模式，基本语义同 ISO C11 ，具体行为取决于实现。
@@ -395,7 +395,7 @@ upclose(std::FILE*) ynothrow;
 \param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \pre 断言：\c filename 。
 \pre 间接断言： \c mode 。
-\warning 应使用 upclose 而不是 \c std::close 关闭管道流，否则行为可能未定义。
+\warning 应使用 upclose 而不是 std::close 关闭管道流，否则行为可能未定义。
 \since build 566
 */
 //@{
@@ -420,7 +420,7 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow;
 YF_API YB_NONNULL(1) char16_t*
 u16getcwd_n(char16_t* buf, size_t size) ynothrow;
 
-/*
+/*!
 \pre 断言：参数非空。
 \return 操作是否成功。
 \note \c errno 在出错时会被设置，具体值由实现定义。
@@ -964,12 +964,15 @@ public:
 //@{
 inline YB_NONNULL(1) PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetAccessTime())
-//! \pre 断言：参数非空。
+/*!
+\pre 断言：第一参数非空。
+\note 最后一个参数指定若文件系统支持，访问链接的文件而不是链接自身。
+*/
 //@{
 YF_API YB_NONNULL(1) FileTime
-GetFileAccessTimeOf(const char*);
+GetFileAccessTimeOf(const char*, bool = {});
 YF_API YB_NONNULL(1) FileTime
-GetFileAccessTimeOf(const char16_t*);
+GetFileAccessTimeOf(const char16_t*, bool = {});
 //@}
 //@}
 
@@ -981,12 +984,16 @@ GetFileAccessTimeOf(const char16_t*);
 //@{
 inline YB_NONNULL(1) PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetModificationTime())
-//! \pre 断言：参数非空。
+/*!
+\pre 断言：第一参数非空。
+\note 最后一个参数指定若文件系统支持，访问链接的文件而不是链接自身。
+*/
+
 //@{
 YF_API YB_NONNULL(1) FileTime
-GetFileModificationTimeOf(const char*);
+GetFileModificationTimeOf(const char*, bool = {});
 YF_API YB_NONNULL(1) FileTime
-GetFileModificationTimeOf(const char16_t*);
+GetFileModificationTimeOf(const char16_t*, bool = {});
 //@}
 //@}
 
@@ -999,12 +1006,15 @@ GetFileModificationTimeOf(const char16_t*);
 inline YB_NONNULL(1) PDefH(array<FileTime YPP_Comma 2>,
 	GetFileModificationAndAccessTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetModificationAndAccessTime())
-//! \pre 断言：参数非空。
+/*!
+\pre 断言：第一参数非空。
+\note 最后一个参数指定若文件系统支持，访问链接的文件而不是链接自身。
+*/
 //@{
 YF_API YB_NONNULL(1) array<FileTime, 2>
-GetFileModificationAndAccessTimeOf(const char*);
+GetFileModificationAndAccessTimeOf(const char*, bool = {});
 YF_API YB_NONNULL(1) array<FileTime, 2>
-GetFileModificationAndAccessTimeOf(const char16_t*);
+GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 //@}
 //@}
 //@}

@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1173
+\version r1182
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-06-27 09:35 +0800
+	2015-09-10 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -615,8 +615,9 @@ FetchDefaultFontCache ：取默认字体缓存。
 @3 API 设计和风格概述：
 基本内容参见 [Documentation::Designation @@3] 。
 
-@3.1 语言特性使用限制：
-YFramework 不重载 operator, ，也不对其它代码是否重载 operator, 做出假设。
+@3.1 扩展限制：
+使用 [Documentation::YBase @@3.1] 的语言特性使用限制规则。
+使用 [Documentation::YBase @@3.2] 的别名策略规则，除 ystdex 相关命名空间替换为 YSLib 。
 
 @3.2 异常使用规则：
 基本内容参见 [Documentation::LanguageConvention @@5.10.5] 。
@@ -702,11 +703,18 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 基于 [ProjectRules @@5.5.4.1] 的扩展，这些访问器即使具有不同名称，其声明也不分行；但获取器之间各个子项（谓词、其它获取器和设置器三项之间）的声明应空 1 行。
 注意非访问器的谓词不适用以上规则。
 
-@4.3 附加规则：
+@4.3 附加编码规则：
 对 YDefinition([Documentation::YBase @@2.3]) 中的每个表达式宏([Documentation::CommonRules @@5.10]) M ，使用特定的以下规则：
 删除 M( 和对应的 ) 、删除原紧接 ) 之后的 ; 之前的空白符并去除多余的空行后应保证余下的代码遵循其它规则。
 这避免表达式宏参数内的多行代码使用过多的缩进而影响可读性，且可能减少重构需要修改的代码。
 另见 [Documentation::YBase @@2.3.7.3] 。
+
+@4.4 实现语用规则：
+基本内容见 [Documentation::LanguageConvention] 和 [Documentation::Designation @@6.2] 。
+
+@4.4.1 实现特性宏：
+作为 [Documentation::Designation @@6.2.5] 指定允许的例外， YCLib 实现中，源文件 FileIO 使用以下预处理指令：
+#undef __STRICT_ANSI__
 
 @5 框架初始化：
 初始化由 Helper 进行。

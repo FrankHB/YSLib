@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4815
+\version r4825
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-08-05 09:45 +0800
+	2015-09-10 22:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -787,15 +787,16 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 
 	pnlFileInfo.lblPath.Text = u"文件路径：" + String(pth);
 
-	struct ::stat file_stat;
+	using namespace std::chrono;
+	// NOTE: It seems on DeSmuME no FAT time is support, but it works on iDSL
+	//	+ DSTT (though the precesion for access time is lower than 1 day).
+	auto matime(GetFileModificationAndAccessTimeOf(path_str.c_str()));
 
-	//在 DeSmuME 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
-	::stat(path_str.c_str(), &file_stat);
 	yunseq(
-	pnlFileInfo.lblAccessTime.Text = u"访问时间："
-		+ String(TranslateTime(std::time_t(file_stat.st_atime))),
-	pnlFileInfo.lblModifiedTime.Text = u"修改时间："
-		+ String(TranslateTime(std::time_t(file_stat.st_mtime)))
+	pnlFileInfo.lblAccessTime.Text = u"访问时间：" + String(TranslateTime(
+		std::time_t(duration_cast<seconds>(matime[1]).count()))),
+	pnlFileInfo.lblModifiedTime.Text = u"修改时间：" + String(TranslateTime(
+		std::time_t(duration_cast<seconds>(matime[0]).count())))
 	);
 	dsk_m += pnlFileInfo;
 	HexArea.Load(path_str.c_str());

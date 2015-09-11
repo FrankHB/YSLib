@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r890
+\version r933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-09-03 16:25 +0800
+	2015-09-11 23:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ public:
 
 	/*!
 	\brief 取错误类别。
-	\return \c std::error_category 派生类的 const 引用。
+	\return std::error_category 派生类的 const 引用。
 	\since build 545
 	*/
 	static const std::error_category&
@@ -316,6 +316,20 @@ enum class CreationDisposition : unsigned long
 	OpenExisting = OPEN_EXISTING,
 	TruncateExisting = TRUNCATE_EXISTING
 };
+//@}
+
+
+//! \since build 632
+//@{
+enum class FileAttributesAndFlags : unsigned long
+{
+	Normal = FILE_ATTRIBUTE_NORMAL,
+	NormalWithDirectory = Normal | FILE_FLAG_BACKUP_SEMANTICS,
+	NormalAll = NormalWithDirectory | FILE_FLAG_OPEN_REPARSE_POINT
+};
+
+//! \relates FileAttributesAndFlags
+DefBitmaskEnum(FileAttributesAndFlags)
 
 
 /*!
@@ -323,11 +337,30 @@ enum class CreationDisposition : unsigned long
 \pre 间接断言：路径参数非空。
 \note 调用 \c ::CreateFileW 实现。
 */
+//@{
 YF_API YB_NONNULL(1) UniqueHandle
 MakeFile(const wchar_t*, FileAccessRights = AccessRights::None,
-	FileShareMode = FileShareMode::All,
-	CreationDisposition = CreationDisposition::OpenExisting, unsigned long
-	= FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS) ynothrowv;
+	FileShareMode = FileShareMode::All, CreationDisposition
+	= CreationDisposition::OpenExisting,
+	FileAttributesAndFlags = FileAttributesAndFlags::NormalAll) ynothrowv;
+inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+	FileAccessRights desired_access, FileShareMode shared_mode,
+	FileAttributesAndFlags attributes_and_flags
+	= FileAttributesAndFlags::NormalAll) ynothrowv
+	ImplRet(MakeFile(path, desired_access, shared_mode,
+		CreationDisposition::OpenExisting, attributes_and_flags))
+inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+	FileAccessRights desired_access, CreationDisposition creation_disposition,
+	FileAttributesAndFlags attributes_and_flags
+	= FileAttributesAndFlags::NormalAll) ynothrowv
+	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
+		creation_disposition, attributes_and_flags))
+inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+	FileAccessRights desired_access,
+	FileAttributesAndFlags attributes_and_flags)
+	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
+		CreationDisposition::OpenExisting, attributes_and_flags))
+//@}
 //@}
 
 
@@ -335,7 +368,7 @@ MakeFile(const wchar_t*, FileAccessRights = AccessRights::None,
 \brief 安装控制台处理器。
 \throw Win32Exception 设置失败。
 \note 默认行为使用 <tt>::ExitProcess</tt> ，可能造成 C/C++ 运行时无法正常清理。
-\warning 默认不应在 \c std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
+\warning 默认不应在 std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
 \see http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx
 \see http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx
 \see $2015-01 @ %Documentation::Workflow::Annual2014.
@@ -414,7 +447,7 @@ inline PDefH(wstring, UTF8ToWCS, const string& str)
 //@}
 
 
-/*
+/*!
 \brief 文件系统目录查找状态。
 \since build 549
 */
@@ -586,28 +619,29 @@ YF_API void
 QueryFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {});
 /*!
-\note 即使可选参数都为空指针时仍访问文件。
 \pre 间接断言：路径非空。
 \throw Win32Exception 访问文件失败。
+\note 即使可选参数都为空指针时仍访问文件。最后参数表示跟踪重解析点。
+\since build 632
 */
 //@{
 //! \note 使用 UTF-8 路径。
 YF_API YB_NONNULL(1) void
 QueryFileTime(const char*, ::FILETIME* = {}, ::FILETIME* = {},
-	::FILETIME* = {});
+	::FILETIME* = {}, bool = {});
 YF_API YB_NONNULL(1) void
 QueryFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
-	::FILETIME* = {});
+	::FILETIME* = {}, bool = {});
 //@}
 //@}
 
 /*!
 \brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。
 \throw std::system_error 输入的时间表示不被实现支持。
-\since build 544
+\since build 632
 */
 YF_API std::chrono::nanoseconds
-ConvertTime(::FILETIME&);
+ConvertTime(const ::FILETIME&);
 
 /*!
 \brief 展开字符串中的环境变量。

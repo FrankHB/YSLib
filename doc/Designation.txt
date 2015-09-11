@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9717
+\version r9735
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-05-16 15:33 +0800
+	2015-09-10 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -460,15 +460,32 @@ ytest ：测试框架设施 YTest 。
 从属的非段落指令如 \code 、 \endcode 、\tt 、 \verbatim 等不限制顺序。
 其它顺序参见 http://drupal.org/node/1354#links 。
 
-@6.2 YFramework 规则：
-参见 [Documentation::YFramework @@4] 。
+@6.2 实现语用规则：
 
-@6.3 其它实现规则：
+@6.2.1 编码风格：
+依次以部件、事件和调用形式的顺序集中添加或移除事件处理器，其中调用形式约定为操作符调用、成员函数调用和非成员函数调用；使用宽松分行([Documentation::CommonRules @@5.4.3.1]) 分隔处理器列表项。
+
+@6.2.2 替代语言特性：
+除非补充语言实现或类似场合的兼容性需要，考虑以下规则：
+尽量使用智能指针([Documentation::LanguageConvention @@5.15.9]) 而不是 new-expression 和 delete-expression 管理资源，除非实现智能指针或另有约定。
+显式转换：基本规则参见 [Documentation::LanguageConvention @@5.11.3] ；尽量使用 YBase::YStandardEx::TypePun(@2.4.4.2) 和 YBase::YStandardEx::Cast(@2.4.7.1) 中的转换模板代替内建显式转换。
+
+@6.2.3 限定名称：
 在建议 [Documentation::LanguageConvention @@5.3.3.1] 的基础上强制要求全局名称保留前缀 :: 规则。
 全局 operator new/delete 使用前缀 :: 以强调确定使用全局版本（对应非名称的 new/delete 表达式也同样使用）。
 其它一般全局名称的使用总是保留前缀 :: 以便移植。
 同理，除非另有约定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
-依次以部件、事件和调用形式的顺序集中添加或移除事件处理器，其中调用形式约定为操作符调用、成员函数调用和非成员函数调用；使用宽松分行([Documentation::CommonRules @@5.4.3.1]) 分隔处理器列表项。
+
+@6.2.4 限制使用标识符：
+项目全局范围内以下 C++ 关键字应尽量少使用，考虑是否合理的替代：
+new
+delete
+reinterpret_cast
+参见 @6.2.2 。
+关于 new 的例外，另见 [Documentation::LanguageConvention @@5.15.9.2] 。
+
+@6.2.5 宏定义：
+不在代码中定义或取消定义影响实现特性的宏([Documentation::LanguageConvention @@5.3.6.2])，除非文档约定，此时不假定这些宏之前未被外部环境预定义([Documentation::LanguageConvention @@5.3.6]) ，且需保证在标准库头之前包含([Documentation::LanguageConvention @@5.3.9]) 。
 
 @7 一般实现导引：
 自定义应用程序 Shell 类，继承默认 Shells::Shell 类或其派生类并产生实例。
