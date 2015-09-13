@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2892
+\version r2926
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-12 03:06 +0800
+	2015-09-13 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,13 +36,13 @@
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
 //	ystdex::write_uint_le;
 #include <ystdex/exception.h> // for ystdex::throw_system_error,
-//	std::errc::invalid_argument;
+//	std::errc::not_supported, std::errc::invalid_argument;
 #if YCL_DS
 #	include YFM_CHRLib_CharacterProcessing
 //! \since build 475
 using namespace CHRLib;
 #elif YCL_Win32
-#	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::MakeFile;
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::MakeFile;
 #	include <time.h> // for ::localtime_s;
 
 //! \since build 549
@@ -90,6 +90,37 @@ FetchNodeCategoryFromStat(_type& st)
 
 } // unnamed namespace;
 #endif
+
+
+void
+CreateHardLink(const char* dst, const char* src)
+{
+#if YCL_Win32
+	using namespace platform_ex;
+
+	CreateHardLink(ucast(UTF8ToWCS(dst).c_str()),
+		ucast(UTF8ToWCS(src).c_str()));
+#elif YCL_DS
+	yunused(dst), yunused(src);
+	ystdex::throw_system_error(std::errc::not_supported);
+#else
+	if(::link(Nonnull(dst), Nonnull(src)) != 0)
+		ystdex::throw_system_error(errno);
+#endif
+}
+void
+CreateHardLink(const char16_t* dst, const char16_t* src)
+{
+#if YCL_Win32
+	YCL_CallWin32(CreateHardLinkW, "CreateHardLink", wcast(dst), wcast(src),
+		{});
+#elif YCL_DS
+	yunused(dst), yunused(src);
+	ystdex::throw_system_error(std::errc::not_supported);
+#else
+	CreateHardLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str());
+#endif
+}
 
 
 DirectorySession::DirectorySession(const char* path)
@@ -204,12 +235,14 @@ HDirectory::GetNodeCategory() const ynothrow
 		auto name(sDirPath + Deref(p_dirent).d_name);
 		struct ::stat st;
 
-#	if !YCL_DS
+#	if YCL_DS
+		if(::stat(name.c_str(), &st) == 0)
+#	else
 		// TODO: Set error properly.
 		if(::lstat(name.c_str(), &st) == 0)
 			res |= FetchNodeCategoryFromStat(st);
-#	endif
 		if(bool(res & NodeCategory::Link) && ::stat(name.c_str(), &st) == 0)
+#	endif
 			res |= FetchNodeCategoryFromStat(st);
 #endif
 		return res != NodeCategory::Empty ? res : NodeCategory::Invalid;

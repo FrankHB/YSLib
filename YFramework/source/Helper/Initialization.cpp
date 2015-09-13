@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2401
+\version r2402
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-08-19 16:01 +0800
+	2015-09-12 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@
 #elif YCL_Android
 #	include <unistd.h> // for F_OK;
 #elif YCL_Win32
-#	include YFM_MinGW32_YCLib_NLS
+#	include YFM_Win32_YCLib_NLS
 #endif
 #include YFM_NPL_SContext
 

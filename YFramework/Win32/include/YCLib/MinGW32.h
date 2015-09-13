@@ -10,19 +10,19 @@
 
 /*!	\file MinGW32.h
 \ingroup YCLib
-\ingroup MinGW32
+\ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r933
+\version r1026
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-09-11 23:53 +0800
+	2015-09-12 20:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::MinGW32
+	YCLib_(Win32)::MinGW32
 */
 
 
@@ -32,19 +32,12 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_Debug // for string, wstring, vector, pair;
+#include YFM_YCLib_Debug // for string, wstring;
 #include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
-#if !YCL_MinGW
-#	error "This file is only for MinGW."
+#if !YCL_Win32
+#	error "This file is only for Win32."
 #endif
 #include <chrono> // for std::chrono::nanoseconds;
-
-/*!
-\ingroup name_collision_workarounds
-\brief 禁止使用 GetObject 宏。
-\since build 412
-*/
-#undef GetObject
 
 namespace platform_ex
 {
@@ -61,13 +54,13 @@ inline namespace Windows
 /*!
 \brief 转换 Win32 错误为 \c errno 。
 \return 当对应不存在时 \c EINVAL ，否则参数对应的 \c errno 。
-\since build 622
+\since build 633
 */
-YF_API int
-ConvertToErrno(unsigned long);
+YF_API YB_STATELESS int
+ConvertToErrno(unsigned long) ynothrow;
 
 //! \breif 取转换为 \c errno 的 Win32 错误。
-inline PDefH(int, GetErrnoFromWin32, )
+inline PDefH(int, GetErrnoFromWin32, ) ynothrow
 	ImplRet(ConvertToErrno(::GetLastError()))
 //@}
 
@@ -521,91 +514,6 @@ public:
 	void
 	Rewind() ynothrow;
 };
-
-
-/*!
-\brief 注册表键。
-\warning 不检查外部进程交互：并发访问可能导致错误的结果。
-\since build 549
-\todo 增加和实现创建和删除值等功能接口。
-*/
-class YF_API RegistryKey
-{
-private:
-	::HKEY h_key;
-
-public:
-	/*!
-	\brief 构造：使用本机键、名称、选项和访问权限。
-	\pre 间接断言：字符串参数非空。
-	\since build 564
-	*/
-	YB_NONNULL(2)
-	RegistryKey(::HKEY h_parent, const wchar_t* name, unsigned long ul_opt = 0,
-		::REGSAM access = KEY_READ)
-	{
-		YCL_Raise_Win32Exception_On_Failure(::RegOpenKeyExW(h_parent,
-			platform::Nonnull(name), ul_opt, access, &h_key), "RegOpenKeyEx");
-	}
-	//! \since build 549
-	RegistryKey(RegistryKey&& key)
-		: h_key(key.h_key)
-	{
-		key.h_key = {};
-	}
-	~RegistryKey()
-	{
-		::RegCloseKey(h_key);
-	}
-
-	DefDeMoveAssignment(RegistryKey)
-
-	DefGetter(const ynothrow, ::HKEY, Key, h_key)
-	/*!
-	\brief 取指定名称和类型的值的存储表示。
-	\return 成功得到的值的类型和内容。
-	\note 类型为 \c REG_NONE 时表示允许任意类型的值。
-	\since build 593
-	*/
-	//@{
-	//! \brief 间接断言：第一参数非空。
-	pair<unsigned long, vector<byte>>
-	GetRawValue(const wchar_t*, unsigned long = REG_NONE) const;
-	PDefH(pair<unsigned long YPP_Comma vector<byte>>, GetRawValue,
-		const wstring& name, unsigned long type = REG_NONE) const
-		ImplRet(GetRawValue(name.c_str(), type))
-	//@}
-	size_t
-	GetSubKeyCount() const;
-	//! \since build 593
-	vector<wstring>
-	GetSubKeyNames() const;
-	size_t
-	GetValueCount() const;
-	//! \since build 593
-	vector<wstring>
-	GetValueNames() const;
-
-	//! \throw Win32Exception 刷新失败。
-	void
-	Flush();
-};
-
-/*!
-\brief 取注册表字符串值。
-\pre 间接断言：字符串参数非空。
-\return 若成功则为指定的值，否则为空串。
-\note 字符串内容保证不以空字符结尾。
-\relates RegistryKey
-\since build 593
-*/
-//@{
-YF_API YB_NONNULL(2) wstring
-FetchRegistryString(const RegistryKey&, const wchar_t*);
-inline YB_NONNULL(2, 3) PDefH(wstring, FetchRegistryString,
-	::HKEY h_parent, const wchar_t* key_name, const wchar_t* name)
-	ImplRet(FetchRegistryString(RegistryKey(h_parent, key_name), name))
-//@}
 
 
 /*!

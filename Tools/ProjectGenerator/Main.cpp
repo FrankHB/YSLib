@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r730
+\version r741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2015-05-28 21:10 +0800
+	2015-09-12 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -302,7 +302,6 @@ FindUnits(set<string>& res, const Path& pth, const Path& opth,
 	const string& platform)
 {
 	if(VerifyDirectory(pth))
-	{
 		TraverseChildren(string(pth),
 			[&](NodeCategory c, const std::string& name){
 			if(name[0] != '.')
@@ -315,7 +314,6 @@ FindUnits(set<string>& res, const Path& pth, const Path& opth,
 					InsertUnit(res, ofpth, platform);
 			}
 		});
-	}
 }
 inline PDefH(void, FindUnits, set<string>& res, const Path& pth,
 	const Path& opth, const String& name, const string& platform)
@@ -532,8 +530,14 @@ MakeCBDocNode(const Path& pth, const Path& opth, const string& platform,
 			platform);
 		if(platform == "DS_ARM9")
 			SearchUnits(units, pth / u"..", opth / u"..", {}, platform);
-		else if(!IsDS(platform))
-			SearchUnits(units, pth / u"DS", opth / u"DS", {}, platform);
+		else
+		{
+			if(!IsDS(platform))
+				SearchUnits(units, pth / u"DS", opth / u"DS", {}, platform);
+			if(platform == "MinGW32")
+				SearchUnits(units, pth / u"Win32", opth / u"Win32", {},
+					platform);
+		}
 	}
 	return MakeCBDocNode(project, platform, exe, units, custom_makefile);
 }
@@ -587,7 +591,7 @@ main(int argc, char* argv[])
 					: Path(u".."), platform, ptype == "c")}}});
 				cout << endl;
 				clog << "Conversion finished." << endl;
-			}, "main") ? EXIT_FAILURE : EXIT_SUCCESS;
+			}, "::main") ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 	}
 	else if(argc == 1)

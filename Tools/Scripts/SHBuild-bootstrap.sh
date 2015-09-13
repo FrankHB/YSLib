@@ -24,12 +24,12 @@ SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 INCLUDE_PCH='../../YBase/include/stdinc.h'
 INCLUDES=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \
-	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \
+	-I../../YFramework/DS/include -I../../YFramework/Win32/include \
 	-I../../3rdparty/include -I../../3rdparty/freetype/include \
 	-I../../YBase/include \
 	"
 
-# Coordinated with build 623.
+# Coordinated with build 633.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -56,8 +56,8 @@ LIBS=" \
 	"
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	LIBS="$LIBS \
-		../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
-		../../YFramework/MinGW32/source/YCLib/Consoles.cpp \
+		../../YFramework/Win32/source/YCLib/MinGW32.cpp \
+		../../YFramework/Win32/source/YCLib/Consoles.cpp \
 		"
 fi
 

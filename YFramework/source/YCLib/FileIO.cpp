@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1416
+\version r1417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-12 00:56 +0800
+	2015-09-13 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ using namespace CHRLib;
 //	available if it is really being used.
 #		undef _fileno
 #	endif
-#	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::QueryFileTime,
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::QueryFileTime,
 //	platform_ex::UniqueHandle, platform::WCSToMBCS, platform_ex::UTF8ToWCS,
 //	platform_ex::ConvertTime, platform_ex::GetErrnoFromWin32;
 

@@ -129,28 +129,28 @@
     <Filter Include="DS">
       <UniqueIdentifier>{3749e041-a186-4f84-826a-661242e5012e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MinGW32">
+    <Filter Include="Win32">
       <UniqueIdentifier>{0e5005e9-87b6-4576-9884-77fc858c0472}</UniqueIdentifier>
     </Filter>
     <Filter Include="Android">
       <UniqueIdentifier>{a35fef3b-2e8c-4b4c-afa9-7dd40781c5a2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MinGW32\include">
+    <Filter Include="Win32\include">
       <UniqueIdentifier>{45dcdbf7-03e1-45eb-aeb1-0bf2b1382fa1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MinGW32\include\YCLib">
+    <Filter Include="Win32\include\YCLib">
       <UniqueIdentifier>{916471ca-7f11-4cdb-b009-cf3d657a3534}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MinGW32\include\Helper">
+    <Filter Include="Win32\include\Helper">
       <UniqueIdentifier>{285378e3-6e07-432d-9b99-bc595a793b56}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MinGW32\source">
+    <Filter Include="Win32\source">
       <UniqueIdentifier>{2fbac2a1-b810-4c7e-ad53-58a74b1f9c5a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MinGW32\source\YCLib">
+    <Filter Include="Win32\source\YCLib">
       <UniqueIdentifier>{5d836d6d-e95b-47ec-964d-66f986013cc2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MinGW32\source\Helper">
+    <Filter Include="Win32\source\Helper">
       <UniqueIdentifier>{30ded5ae-2711-465a-99cd-26c9cbcb12ff}</UniqueIdentifier>
     </Filter>
     <Filter Include="DS\include">
@@ -847,20 +847,20 @@
     <ClInclude Include="include\YSLib\Service\YBlend.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="MinGW32\include\YCLib\COM.h">
-      <Filter>MinGW32\include\YCLib</Filter>
+    <ClInclude Include="Win32\include\YCLib\COM.h">
+      <Filter>Win32\include\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="MinGW32\include\YCLib\Consoles.h">
-      <Filter>MinGW32\include\YCLib</Filter>
+    <ClInclude Include="Win32\include\YCLib\Consoles.h">
+      <Filter>Win32\include\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="MinGW32\include\YCLib\MinGW32.h">
-      <Filter>MinGW32\include\YCLib</Filter>
+    <ClInclude Include="Win32\include\YCLib\MinGW32.h">
+      <Filter>Win32\include\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="MinGW32\include\YCLib\NLS.h">
-      <Filter>MinGW32\include\YCLib</Filter>
+    <ClInclude Include="Win32\include\YCLib\NLS.h">
+      <Filter>Win32\include\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="MinGW32\include\Helper\Win32Control.h">
-      <Filter>MinGW32\include\Helper</Filter>
+    <ClInclude Include="Win32\include\Helper\Win32Control.h">
+      <Filter>Win32\include\Helper</Filter>
     </ClInclude>
     <ClInclude Include="DS\include\Helper\DSMain.h">
       <Filter>DS\include\Helper</Filter>
@@ -903,6 +903,9 @@
     </ClInclude>
     <ClInclude Include="include\NPL\Dependency.h">
       <Filter>include\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="Win32\include\YCLib\Registry.h">
+      <Filter>Win32\include\YCLib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1200,17 +1203,17 @@
     <ClCompile Include="source\YSLib\Service\YBlend.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="MinGW32\source\YCLib\Consoles.cpp">
-      <Filter>MinGW32\source\YCLib</Filter>
+    <ClCompile Include="Win32\source\YCLib\Consoles.cpp">
+      <Filter>Win32\source\YCLib</Filter>
     </ClCompile>
-    <ClCompile Include="MinGW32\source\YCLib\MinGW32.cpp">
-      <Filter>MinGW32\source\YCLib</Filter>
+    <ClCompile Include="Win32\source\YCLib\MinGW32.cpp">
+      <Filter>Win32\source\YCLib</Filter>
     </ClCompile>
-    <ClCompile Include="MinGW32\source\YCLib\NLS.cpp">
-      <Filter>MinGW32\source\YCLib</Filter>
+    <ClCompile Include="Win32\source\YCLib\NLS.cpp">
+      <Filter>Win32\source\YCLib</Filter>
     </ClCompile>
-    <ClCompile Include="MinGW32\source\Helper\Win32Control.cpp">
-      <Filter>MinGW32\source\Helper</Filter>
+    <ClCompile Include="Win32\source\Helper\Win32Control.cpp">
+      <Filter>Win32\source\Helper</Filter>
     </ClCompile>
     <ClCompile Include="DS\source\Helper\DSMain.cpp">
       <Filter>DS\source\Helper</Filter>
@@ -1238,6 +1241,9 @@
     </ClCompile>
     <ClCompile Include="source\NPL\Dependency.cpp">
       <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="Win32\source\YCLib\Registry.cpp">
+      <Filter>Win32\source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

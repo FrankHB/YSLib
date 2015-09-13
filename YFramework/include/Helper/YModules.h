@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup Helper
 \brief Helper 库模块配置文件。
-\version r67
+\version r69
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:11 +0800
 \par 修改时间:
-	2015-01-24 09:29 +0800
+	2015-09-12 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,8 +55,8 @@
 #define YFM_DS_Helper_DSMain <Helper/DSMain.h>
 #define YFM_DS_Helper_Shell_DS <Helper/shlds.h>
 
-//! \since build 570
-#define YFM_MinGW32_Helper_Win32Control <Helper/Win32Control.h>
+//! \since build 633
+#define YFM_Win32_Helper_Win32Control <Helper/Win32Control.h>
 
 //! \since build 502
 #define YFM_Android_Helper_AndroidHost <Helper/AndroidHost.h>

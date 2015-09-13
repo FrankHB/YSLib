@@ -10,19 +10,19 @@
 
 /*!	\file COM.h
 \ingroup YCLib
-\ingroup MinGW32
+\ingroup Win32
 \brief COM 接口。
-\version r523
+\version r526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2015-09-07 22:39 +0800
+	2015-09-12 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::COM
+	YCLib_(Win32)::COM
 */
 
 
@@ -30,7 +30,7 @@
 #define YCL_MinGW32_INC_COMPtr_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_MinGW32 // for platform_ex, std::runtime_error,
+#include YFM_Win32_YCLib_MinGW32 // for platform_ex, std::runtime_error,
 //	ystdex::enable_if_t, std::is_convertible, std::nullptr_t,
 //	ystdex::replace_cast;
 #include <objbase.h> // for ::HRESULT, ::CoInitialize, S_OK, ::CoUnitialize,

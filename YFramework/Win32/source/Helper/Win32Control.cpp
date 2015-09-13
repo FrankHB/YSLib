@@ -10,24 +10,24 @@
 
 /*!	\file Win32Control.cpp
 \ingroup Helper
-\ingroup MinGW32
+\ingroup Win32
 \brief Win32 控件相关接口。
-\version r61
+\version r64
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-12 00:21:59 +0800
 \par 修改时间:
-	2015-05-27 16:18 +0800
+	2015-09-12 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper_(MinGW32)::Win32Control
+	Helper_(Win32)::Win32Control
 */
 
 
 #include "Helper/YModules.h"
-#include YFM_MinGW32_Helper_Win32Control
+#include YFM_Win32_Helper_Win32Control
 #include YFM_Helper_Environment
 
 namespace YSLib

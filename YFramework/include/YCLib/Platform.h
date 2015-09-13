@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r789
+\version r794
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2015-04-28 03:55 +0800
+	2015-09-12 13:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,6 +89,11 @@
 /*!	\defgroup DS Nintendo/iQue Dual Screen[L/LL/i]
 \ingroup Platforms
 \brief DS 平台。
+*/
+/*!	\defgroup Win32 MinGW for Win32
+\ingroup Platforms
+\brief Win32 平台。
+\since build 633
 */
 /*!	\defgroup MinGW32 MinGW for Win32
 \ingroup Platforms
