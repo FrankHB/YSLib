@@ -27,7 +27,7 @@ INCLUDE_PCH='../YBase/include/stdinc.h'
 INCLUDES_YBase='-I../YBase/include'
 INCLUDES_YFramework=" \
 	-I../YFramework/include -I../YFramework/Android/include \
-	-I../YFramework/DS/include -I../YFramework/MinGW32/include \
+	-I../YFramework/DS/include -I../YFramework/Win32/include \
 	-I../3rdparty/include $INCLUDES_freetype -I../YBase/include"
 SHBOPT_IGN="-xid,alternative -xid,data -xid,include -xid,Android"
 

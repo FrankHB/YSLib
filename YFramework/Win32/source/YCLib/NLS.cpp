@@ -10,28 +10,28 @@
 
 /*!	\file NLS.cpp
 \ingroup YCLib
-\ingroup MinGW32
+\ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r199
+\version r204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2015-07-13 00:08 +0800
+	2015-09-12 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::NLS
+	YCLib_(Win32)::NLS
 */
 
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_NLS
-#	include YFM_YCLib_MemoryMapping
-#	include YFM_YCLib_Container // for map;
+#	include YFM_Win32_YCLib_NLS // for map;
+#	include YFM_Win32_YCLib_Registry // for FetchRegistryString;
+#	include YFM_YCLib_MemoryMapping // for platform::MappedFile;
 #	include <ystdex/algorithm.hpp> // for ystdex::trivially_copy_n;
 
 using namespace YSLib;

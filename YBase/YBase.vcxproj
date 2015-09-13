@@ -136,23 +136,29 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <BuildLog>
       <Path>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <Lib>
+      <AdditionalOptions>/ignore:4006</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <ClCompile>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <BuildLog>
       <Path>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <Lib>
+      <AdditionalOptions>/ignore:4006</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

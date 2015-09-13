@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r659
+\version r660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-08-27 16:59 +0800
+	2015-09-12 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #	include YFM_YCLib_XCB
 #elif YCL_Win32
 #	include YFM_Helper_Environment
-#	include YFM_MinGW32_Helper_Win32Control
+#	include YFM_Win32_Helper_Win32Control
 #endif
 #include <ystdex/cast.hpp> // for ystdex::pvoid;
 

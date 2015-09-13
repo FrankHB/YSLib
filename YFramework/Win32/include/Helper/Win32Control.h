@@ -10,19 +10,19 @@
 
 /*!	\file Win32Control.h
 \ingroup Helper
-\ingroup MinGW32
+\ingroup Win32
 \brief Win32 控件相关接口。
-\version r140
+\version r142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 570
 \par 创建时间:
 	2013-03-12 00:24:05 +0800
 \par 修改时间:
-	2015-05-27 16:19 +0800
+	2015-09-12 13:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper_(MinGW32)::Win32Control
+	Helper_(Win32)::Win32Control
 */
 
 

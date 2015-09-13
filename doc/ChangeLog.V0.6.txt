@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3563
+\version r3663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-12 03:14 +0800
+	2015-09-13 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,105 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				* "member function %HDirectory::GetNodeCategory"
+					@ "platform %DS" $since b560,
+				+ "2 functions %CreateHardLink" $dep_from %NativeAPI
+			),
+			/ %FileIO $=
+			(
+				* "missing 'YF_API'" @ "function %TryClose" $since b616,
+				+ 'YB_NONNULL(1)' @ "2 functions %(uaccess, uopen, ufopen) \
+					with pointer parameters",
+				+ 'YB_NONNULL(1, 2)' @ "2 functions %ufopen without pointer \
+					mode parameter"
+			),
+			+ '#	undef CreateHardLink' @ "platform %Win32" @ %NativeAPI
+		),
+		/ %YSLib $=
+		(
+			/ "treated entries with directory and other attributes as \
+				directories" @ "function %ListFiles" @ %Service.FileSystem,
+			/ %Core.YCoreUtilities $=
+			(
+				+ 'YB_STATELESS' @ "function templates %(HalfDifference, 2 \
+					IsInInterval, 2 IsInClosedInterval, 2 IsInOpenInterval)",
+				+ 'YB_PURE YB_NONNULL(2)' @ "function templates \
+					%(SwitchInterval, SwitchAddedInterval)",
+				/ "(function, function templates) %(FetchSign, \
+					FetchSignFromInterval)" $=
+				(
+					- "function",
+					/ @ "function template" $=
+					(
+						- 'const&' @ "argument types",
+						/ "return type" -> 'std::int_fast8_t',
+						+ 'YB_STATELESS'
+					)
+				)
+			)
+		),
+		/ %'YCLib_(MinGW32)' -> %'YCLib_(Win32)' $=
+		(
+			/ %MinGW32 $=
+			(
+				/ '#if !YCL_Win32' -> '#if !YCL_MinGW32',
+				- $revert(b412) '#undef GetObject'
+					// It is redundant since b427 because this is already done \
+						in %YCLib.NativeAPI.
+				/ "class %RegistryKey, all 2 functions %FetchRegistryString"
+					>> $dep_from %Registry,
+				+ 'ynothrow' @ "functions %(ConvertToErrno, GetErrnoFromWin32)",
+				+ 'YB_STATELESS' @ "function %ConvertToErrno"
+			),
+			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ ("class %WConsole" $since b304,
+				"enum %WConsole::Style" $since b519) @ %Consoles
+			+ %Registry
+		),
+		/ %'Helper_(MinGW32)' => %'Helper_(Win32)',
+		+ "macro %YFM_Win32_YCLib_Registry" @ %YModules $dep_from
+			%'YCLib_(Win32)'.Registry
+	),
+	/ @ "file explorer" @ %YReader $=
+	(
+		* $comp "missing '/' at end of directories" @ "platform %DS" $since b560
+			$dep_from
+			("%HDirectory::GetNodeCategory" @ %YFramework.YCLib.FileSystem),
+		/ $comp "shown '\' at end of directory links" @ "platform %Win32"
+			$dep_from @ "function %ListFiles"
+			@ %YFramework.YSLib.Service.FileSystem
+	),
+	/ $forced "including paths"
+		@ "%(SHBuild-bootstrap.sh, SHBuild-YSLib-common.sh)"
+		@ %Tools.Scripts $dep_from %YFramework.'YCLib_(Win32)',
+	/ @ "VC++ project" @ %YBase $=
+	(
+		/ $revert(b457) "warning level" -> '/W3',
+			// To eliminate VC++2015 warning: C4514.
+		/ $dev $build "disabled warning LNK4006"
+	),
+	/ %Tools.ProjectGenerator $=
+	(
+		/ $design "exception decription" -> '::main' ~ 'main'
+			@ "function %::main",
+		+ $forced "searching 'Win32' directory for platform %MinGW32" $dep_from
+			%YFramework.('YCLib_(Win32)', 'Helper_(Win32)')
+	),
+	/ $re(b386) $dev $doc $term "all" ('标量' -> '纯量') $effective
+		@ %(YFramework.YSLib.Core.YCoreUtilities, Documentation.Designation);
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.YCommon.(
+		"ycommon.cpp" => "YCommon.cpp")
+),
+
+b632
 (
 	/ %YCLib $=
 	(
@@ -111,8 +210,8 @@ $now
 					[filebuf.virtuals]/17.
 		)
 	),
-	* $comp "missing '\'" @ "file explorer" @ "platform %Win32" @ %YReader
-		$since b628 $dep_from
+	* $comp "missing '\' at end of directories" @ "file explorer"
+		@ "platform %Win32" @ %YReader $since b628 $dep_from
 		("%HDirectory::GetNodeCategory" @ %YFramework.YCLib.FileSystem)
 ),
 

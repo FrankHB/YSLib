@@ -9,19 +9,20 @@
 */
 
 /*!	\file Consoles.h
-\ingroup NBuilder
+\ingroup YCLib
+\ingroup Win32
 \brief 控制台。
-\version r233
+\version r239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2015-07-04 09:59 +0800
+	2015-09-12 13:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::Consoles
+	YCLib_(Win32)::Consoles
 */
 
 
@@ -29,7 +30,7 @@
 #define YCL_MinGW32_INC_Consoles_h_
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_MinGW32
+#include YFM_Win32_YCLib_MinGW32
 #include <cstdlib> // for std::system;
 #include YFM_YCLib_Container // for array;
 #include YFM_YCLib_Video
@@ -41,14 +42,14 @@ namespace platform_ex
 inline namespace Windows
 {
 
-/*
+/*!
 \build Windows 控制台对象。
 \since build 304
 */
 class YF_API WConsole
 {
 public:
-	/*
+	/*!
 	\build Windows 控制台文本样式。
 	\since build 519
 	*/

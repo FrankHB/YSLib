@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1255
+\version r1265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-12 00:44 +0800
+	2015-09-13 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,9 +267,9 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 \return 非 \c EINTR 的错误。
 \note 首先清除 \c errno ；遇 \c EINTR 时重试。
 \note 使用 std::fclose 关闭流。
-\since build 616
+\since build 633
 */
-YB_NONNULL(1) int
+YF_API YB_NONNULL(1) int
 TryClose(std::FILE*) ynothrow;
 
 
@@ -301,9 +301,9 @@ omode_convb(std::ios_base::openmode);
 \since build 549
 */
 //@{
-YF_API int
+YF_API YB_NONNULL(1) int
 uaccess(const char* path, int amode) ynothrow;
-YF_API int
+YF_API YB_NONNULL(1) int
 uaccess(const char16_t* path, int amode) ynothrow;
 //@}
 
@@ -315,10 +315,10 @@ uaccess(const char16_t* path, int amode) ynothrow;
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
-YF_API int
+YF_API YB_NONNULL(1) int
 uopen(const char* filename, int oflag, mode_t pmode = 0) ynothrow;
 //! \brief 以 UCS-2 文件名无缓冲打开文件。
-YF_API int
+YF_API YB_NONNULL(1) int
 uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrow;
 //@}
 
@@ -333,13 +333,13 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrow;
 \brief 以 UTF-8 文件名打开文件。
 \since build 299
 */
-YF_API std::FILE*
+YF_API YB_NONNULL(1, 2) std::FILE*
 ufopen(const char* filename, const char* mode) ynothrow;
 /*!
 \brief 以 UCS-2 文件名打开文件。
 \since build 324
 */
-YF_API std::FILE*
+YF_API YB_NONNULL(1, 2) std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 //@}
 /*!
@@ -348,10 +348,10 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 */
 //@{
 //! \brief 以 UTF-8 文件名打开文件。
-YF_API std::FILE*
+YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char* filename, std::ios_base::openmode mode) ynothrow;
 //! \brief 以 UCS-2 文件名打开文件。
-YF_API std::FILE*
+YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow;
 //@}
 //@}

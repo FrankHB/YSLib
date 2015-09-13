@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ycommon.cpp
+/*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2739
+\version r2743
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2014-10-02 02:10 +0800
+	2015-09-12 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <cstdarg>
 #include YFM_YCLib_NativeAPI
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_MinGW32
+#	include YFM_Win32_YCLib_MinGW32
 #endif
 
 namespace platform
@@ -42,7 +42,7 @@ void
 terminate() ynothrow
 {
 #if YCL_DS
-	for(;;)
+	while(true)
 		::swiWaitForVBlank();
 #else
 	std::abort();

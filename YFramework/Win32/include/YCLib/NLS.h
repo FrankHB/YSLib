@@ -10,19 +10,19 @@
 
 /*!	\file NLS.h
 \ingroup YCLib
-\ingroup MinGW32
+\ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r76
+\version r79
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-25 17:30:48 +0800
 \par 修改时间:
-	2015-04-24 04:54 +0800
+	2015-09-12 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::NLS
+	YCLib_(Win32)::NLS
 */
 
 
@@ -30,7 +30,7 @@
 #define YCL_MinGW32_INC_NLS_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_MinGW32
+#include YFM_Win32_YCLib_MinGW32
 
 namespace platform_ex
 {

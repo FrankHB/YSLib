@@ -10,26 +10,26 @@
 
 /*!	\file Consoles.cpp
 \ingroup YCLib
-\ingroup MinGW32
+\ingroup Win32
 \brief 控制台。
-\version r258
+\version r261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-07-04 09:59 +0800
+	2015-09-12 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::Consoles
+	YCLib_(Win32)::Consoles
 */
 
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_Consoles
+#	include YFM_Win32_YCLib_Consoles
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
 using namespace YSLib;

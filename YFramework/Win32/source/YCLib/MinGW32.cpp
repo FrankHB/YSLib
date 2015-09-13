@@ -10,26 +10,26 @@
 
 /*!	\file MinGW32.cpp
 \ingroup YCLib
-\ingroup MinGW32
+\ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r903
+\version r986
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-09-12 00:35 +0800
+	2015-09-12 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::MinGW32
+	YCLib_(Win32)::MinGW32
 */
 
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_MinGW32
+#	include YFM_Win32_YCLib_Registry // for RegistryKey;
 #	include <cerrno>
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
 //	YSLib::CheckPositiveScalar;
@@ -47,7 +47,7 @@ inline namespace Windows
 {
 
 int
-ConvertToErrno(unsigned long err)
+ConvertToErrno(unsigned long err) ynothrow
 {
 	// NOTE: This mapping is from Windows Kits 10.0.10150.0,
 	//	ucrt/misc/errno.cpp, except for fix of the bug error 124: it shall be
@@ -400,99 +400,6 @@ DirectoryFindData::Rewind() ynothrow
 		Close();
 		h_node = {};
 	}
-}
-
-
-void
-RegistryKey::Flush()
-{
-	YCL_Raise_Win32Exception_On_Failure(::RegFlushKey(h_key), "RegFlushKey");
-}
-
-pair<unsigned long, vector<byte>>
-RegistryKey::GetRawValue(const wchar_t* name, unsigned long type) const
-{
-	unsigned long size;
-
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, Nonnull(name),
-		{}, type == REG_NONE ? &type : nullptr, {}, &size), "RegQueryValueExW");
-
-	vector<byte> res(size);
-
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, name,
-		{}, &type, &res[0], &size), "RegQueryValueExW");
-	return {type, std::move(res)};
-}
-size_t
-RegistryKey::GetSubKeyCount() const
-{
-	unsigned long res;
-
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {},
-		&res, {}, {}, {}, {}, {}, {}, {}), "RegQueryInfoKey");
-	return size_t(res);
-}
-vector<wstring>
-RegistryKey::GetSubKeyNames() const
-{
-	const auto cnt(GetSubKeyCount());
-	vector<wstring> res;
-
-	if(cnt > 0)
-	{
-		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx .
-		wchar_t name[256];
-
-		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
-			YCL_Raise_Win32Exception_On_Failure(::RegEnumKeyExW(h_key,
-				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
-				{}), "RegEnumKeyExW");
-	}
-	return res;
-}
-size_t
-RegistryKey::GetValueCount() const
-{
-	unsigned long res;
-
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {}, {},
-		{}, {}, &res, {}, {}, {}, {}), "RegQueryInfoKey");
-	return size_t(res);
-}
-vector<wstring>
-RegistryKey::GetValueNames() const
-{
-	const auto cnt(GetValueCount());
-	vector<wstring> res;
-
-	if(cnt > 0)
-	{
-		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx .
-		wchar_t name[16384];
-
-		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
-			YCL_Raise_Win32Exception_On_Failure(::RegEnumValueW(h_key,
-				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
-				{}), "RegEnumValueW");
-	}
-	return res;
-}
-
-wstring
-FetchRegistryString(const RegistryKey& key, const wchar_t* name)
-{
-	try
-	{
-		const auto pr(key.GetRawValue(name, REG_SZ));
-
-		if(pr.first == REG_SZ && !pr.second.empty())
-			// TODO: Improve performance?
-			return ystdex::rtrim(wstring(reinterpret_cast<const wchar_t*>(
-				&pr.second[0]), pr.second.size() / 2), wchar_t());
-	}
-	catch(Win32Exception&)
-	{}
-	return {};
 }
 
 

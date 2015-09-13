@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2335
+\version r2389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-08-20 21:49 +0800
+	2015-09-12 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,51 +72,29 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 
 
 /*!
-\brief 整数类型符号函数。
-\note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
-\since build 319
-*/
-yconstfn std::int8_t
-FetchSign(int a, int b = 0) ynothrow
-{
-	return a < b ? -1 : !(a == b);
-}
-/*!
 \brief 符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
-\since build 319
+\since build 633
 */
 template<typename _type>
-yconstfn std::int8_t
-FetchSign(const _type& a, const _type& b = _type(0)) ynothrow
+yconstfn YB_STATELESS std::int_fast8_t
+FetchSign(_type a, _type b = _type(0)) ynothrow
 {
 	return a < b ? -1 : !(a == b);
 }
 
-/*!
-\brief 判断整数 d 和以 [a, b](a ≤ b) 或 [b, a](a > b) 区间的关系。
-\return < 0 ：d 在区间外；
-\return = 0 ：d 在区间端点上；
-\return > 0 ：d 在区间内。
-\note 无精度修正。
-\since build 319
-*/
-yconstfn int
-FetchSignFromInterval(int d, int a, int b) ynothrow
-{
-	return FetchSign(a, d) * FetchSign(d, b);
-}
 /*!
 \brief 判断 d 和以 [a, b](a ≤ b) 或 [b, a](a > b) 区间的关系。
 \return < 0 ：d 在区间外；
 \return = 0 ：d 在区间端点上；
 \return > 0 ：d 在区间内。
 \note 无精度修正。
-\since build 319
+\note 使用 ADL FetchSign 。
+\since build 633
 */
 template<typename _type>
-yconstfn int
-FetchSignFromInterval(const _type& d, const _type& a, const _type& b) ynothrow
+yconstfn YB_STATELESS std::int_fast8_t
+FetchSignFromInterval(_type d, _type a, _type b) ynothrow
 {
 	return FetchSign(a, d) * FetchSign(d, b);
 }
@@ -126,7 +104,7 @@ FetchSignFromInterval(const _type& d, const _type& a, const _type& b) ynothrow
 \since build 554
 */
 template<typename _type>
-yconstfn _type
+yconstfn YB_STATELESS _type
 HalfDifference(_type x, _type y)
 {
 	return (x - y) / 2;
@@ -138,7 +116,7 @@ HalfDifference(_type x, _type y)
 \since build 319
 */
 template<typename _type>
-inline bool
+inline YB_STATELESS bool
 IsInInterval(_type i, _type b) ynothrow
 {
 	YAssert(_type(0) < b,
@@ -151,7 +129,7 @@ IsInInterval(_type i, _type b) ynothrow
 \since build 319
 */
 template<typename _type>
-inline bool
+inline YB_STATELESS bool
 IsInInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
@@ -164,7 +142,7 @@ IsInInterval(_type i, _type a, _type b) ynothrow
 \since build 470
 */
 template<typename _type>
-inline bool
+inline YB_STATELESS bool
 IsInClosedInterval(_type i, _type b) ynothrow
 {
 	YAssert(_type(0) < b,
@@ -177,7 +155,7 @@ IsInClosedInterval(_type i, _type b) ynothrow
 \since build 470
 */
 template<typename _type>
-inline bool
+inline YB_STATELESS bool
 IsInClosedInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
@@ -190,7 +168,7 @@ IsInClosedInterval(_type i, _type a, _type b) ynothrow
 \since build 319
 */
 template<typename _type>
-inline bool
+inline YB_STATELESS bool
 IsInOpenInterval(_type i, _type b) ynothrow
 {
 	YAssert(_type(0) < b,
@@ -203,7 +181,7 @@ IsInOpenInterval(_type i, _type b) ynothrow
 \since build 319
 */
 template<typename _type>
-inline bool
+inline YB_STATELESS bool
 IsInOpenInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
@@ -211,14 +189,17 @@ IsInOpenInterval(_type i, _type a, _type b) ynothrow
 }
 
 /*!
-\brief 计算满足指定的值 v 在区间 [<tt>a[i]</tt>, <tt>a[i + 1]</tt>) 内最小的 i 。
-\pre 断言： <tt>a</tt> 。
 \pre 断言： <tt>n != 0</tt> 。
+\pre 间接断言： <tt>a</tt> 。
 \pre 断言： <tt>!(v < *a)</tt> 。
 \since build 319
 */
+//@{
+/*!
+\brief 计算满足指定的值 v 在区间 [\c a[i], <tt>a[i + 1]</tt>) 内最小的 i 。
+*/
 template<typename _type>
-size_t
+YB_PURE YB_NONNULL(2) size_t
 SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 {
 	YAssert(n != 0, "Zero length of array found.");
@@ -232,15 +213,11 @@ SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 }
 
 /*!
-\brief 计算满足指定的值 v 在区间 [b(i), b(i + 1)) 内的最小的 i ；
-	其中 b(i) 是 <tt>a[i]</tt> 前 i 项的和。
-\pre 断言： <tt>a</tt> 。
-\pre 断言： <tt>n != 0</tt> 。
-\pre 断言： <tt>!(v < *a)</tt> 。
-\since build 319
+\brief 计算满足指定的值 v 在区间 [s(i), s(i + 1)) 内的最小的 i ；
+	其中 s(i) 是 \c a[i] 前 i 项的和。
 */
 template<typename _type>
-size_t
+YB_PURE YB_NONNULL(2) size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 {
 	YAssert(n != 0, "Zero length of array found.");
@@ -253,6 +230,7 @@ SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 		;
 	return i - 1;
 }
+//@}
 
 /*!
 \brief 约束 v 在闭区间 [a, b] 中。
@@ -333,7 +311,7 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 \throw LoggedEvent 范围检查失败。
 */
 //@{
-//! \brief 检查标量数值在指定类型的范围内。
+//! \brief 检查纯量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
 CheckScalar(_type val, const std::string& name = {}, RecordLevel lv = Err)
@@ -345,7 +323,7 @@ CheckScalar(_type val, const std::string& name = {}, RecordLevel lv = Err)
 	return _tDst(val);
 }
 
-//! \brief 检查非负标量数值在指定类型的范围内。
+//! \brief 检查非负纯量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
 CheckNonnegativeScalar(_type val, const std::string& name = {},
@@ -357,7 +335,7 @@ CheckNonnegativeScalar(_type val, const std::string& name = {},
 	return CheckScalar<_tDst>(val, name, lv);
 }
 
-//! \brief 检查正标量数值在指定类型的范围内。
+//! \brief 检查正纯量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
 CheckPositiveScalar(_type val, const std::string& name = {},

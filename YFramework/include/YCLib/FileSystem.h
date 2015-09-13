@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2435
+\version r2448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-09-01 10:23 +0800
+	2015-09-13 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,6 +206,21 @@ enum class NodeCategory : std::uint_least32_t
 \since build 543
 */
 DefBitmaskEnum(NodeCategory)
+
+
+/*!
+\brief 创建硬链接。
+\pre 路径非空。
+\exception std::system_error 系统错误。
+\note 参数为目标路径和源路径。源路径符号链接时行为未指定。
+\since build 633
+*/
+//@{
+YF_API YB_NONNULL(1, 2) void
+CreateHardLink(const char*, const char*);
+YF_API YB_NONNULL(1, 2) void
+CreateHardLink(const char16_t*, const char16_t*);
+//@}
 
 
 /*!

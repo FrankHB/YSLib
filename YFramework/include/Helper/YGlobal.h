@@ -11,13 +11,13 @@
 /*!	\file YGlobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1941
+\version r1942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2015-01-23 23:12 +0800
+	2015-09-12 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "../YCLib/YModules.h"
 #include YFM_YCLib_YCommon
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_MinGW32
+#	include YFM_Win32_YCLib_MinGW32
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #elif YF_Hosted

@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r354
+\version r355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-08-22 19:54 +0800
+	2015-09-12 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include YFM_YCLib_FileIO // for platform::FileOperationFailure;
 #include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_Consoles
+#	include YFM_Win32_YCLib_Consoles
 #	include <io.h> // for ::_isatty;
 #	include YFM_YSLib_Core_YConsole
 #elif YF_Hosted

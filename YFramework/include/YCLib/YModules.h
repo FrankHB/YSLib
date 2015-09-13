@@ -21,13 +21,13 @@
 /*!	\file YModules.h
 \ingroup YCLib
 \brief YCLib 库模块配置文件。
-\version r94
+\version r106
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:20 +0800
 \par 修改时间:
-	2015-07-14 18:54 +0800
+	2015-09-12 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,14 +76,16 @@
 #define YFM_DS_YCLib_DSVideo <YCLib/DSVideo.h>
 //! \since build 604
 #define YFM_DS_YCLib_DSIO <YCLib/DSIO.h>
-
-#define YFM_MinGW32_YCLib_MinGW32 <YCLib/MinGW32.h>
-#define YFM_MinGW32_YCLib_COM <YCLib/COM.h>
 //@}
-//! \since build 556
-#define YFM_MinGW32_YCLib_NLS <YCLib/NLS.h>
-//! \since build 520
-#define YFM_MinGW32_YCLib_Consoles <YCLib/Consoles.h>
+
+//! \since build 633
+//@{
+#define YFM_Win32_YCLib_MinGW32 <YCLib/MinGW32.h>
+#define YFM_Win32_YCLib_Registry <YCLib/Registry.h>
+#define YFM_Win32_YCLib_COM <YCLib/COM.h>
+#define YFM_Win32_YCLib_NLS <YCLib/NLS.h>
+#define YFM_Win32_YCLib_Consoles <YCLib/Consoles.h>
+//@}
 //! \since build 492
 #define YFM_Android_YCLib_Android <YCLib/Android.h>
 

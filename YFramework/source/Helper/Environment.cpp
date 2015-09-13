@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1594
+\version r1595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-07-01 20:45 +0800
+	2015-09-12 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include YFM_YCLib_Input // for platform_ex::FetchCursor;
 #include YFM_Helper_Initialization // for InitializeEnvironment;
 #if YCL_Win32
-#	include YFM_MinGW32_Helper_Win32Control // for Windows::UI::ControlView;
+#	include YFM_Win32_Helper_Win32Control // for Windows::UI::ControlView;
 #endif
 
 namespace YSLib
