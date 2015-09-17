@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1265
+\version r1328
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-13 14:47 +0800
+	2015-09-14 09:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include <ystdex/string.hpp> // for ynothrow, ystdex::enable_for_string_class_t,
 //	std::uint64_t;
 #include <cstdio> // for std::FILE;
-#include YFM_YCLib_Container // for array;
+#include YFM_YCLib_Debug // for Nonnull, string, u16string, array;
+#include <chrono> // for std::chrono::nanoseconds;
 #include YFM_YCLib_Reference // for unique_ptr;
 #include <ios> // for std::ios_base::sync_with_stdio;
 #include <fstream> // for std::filebuf;
@@ -44,10 +45,26 @@
 //	ystdex::exchange;
 #endif
 #include <system_error> // for std::system_error;
-#include <chrono> // for std::chrono::nanoseconds;
 
 namespace platform
 {
+
+/*!
+\brief 构造适合表示路径的字符串。
+\note 字符类型非 \c char 时转换，假定为 UTF-8 编码。
+\since build 634
+*/
+//@{
+inline PDefH(string, MakePathString, const char* s)
+	ImplRet(Nonnull(s))
+inline PDefH(const string&, MakePathString, const string& s)
+	ImplRet(s)
+YF_API string
+MakePathString(const char16_t*);
+inline PDefH(string, MakePathString, const u16string& s)
+	ImplRet(MakePathString(s.c_str()))
+//@}
+
 
 //! \since build 628
 using FileTime = std::chrono::nanoseconds;
@@ -227,6 +244,24 @@ public:
 	//@}
 	//@}
 	//@}
+
+	/*!
+	\brief 第二参数内容写入第一参数指定的文件。
+	//! \pre 最后参数指定的缓冲区大小不等于 0 。
+	\since build 634
+	*/
+	//@{
+	//! \pre 参数指定的缓冲区非空且大小不等于 0 。
+	static YB_NONNULL(3) void
+	WriteContent(FileDescriptor, FileDescriptor, byte*, size_t);
+	/*!
+	\note 最后一个参数指定缓冲区大小的上限，若分配失败自动重新分配。
+	\throw std::bad_alloc 缓冲区分配失败。
+	*/
+	static void
+	WriteContent(FileDescriptor, FileDescriptor,
+		size_t = yimpl(size_t(BUFSIZ << 4)));
+	//}
 };
 
 
@@ -263,14 +298,14 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 //@}
 
 /*!
-\brief 尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
+\brief 重复尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
 \return 非 \c EINTR 的错误。
 \note 首先清除 \c errno ；遇 \c EINTR 时重试。
 \note 使用 std::fclose 关闭流。
-\since build 633
+\since build 634
 */
 YF_API YB_NONNULL(1) int
-TryClose(std::FILE*) ynothrow;
+RetryClose(std::FILE*) ynothrow;
 
 
 /*!
@@ -953,6 +988,35 @@ public:
 	*/
 	~FileOperationFailure() override;
 };
+
+
+/*!
+\brief 尝试移除文件链接。
+\pre 间接断言：参数非空。
+\throw FileOperationFailure 文件存在且操作失败。
+\since build 634
+*/
+//@{
+template<typename _tChar>
+YB_NONNULL(1) void
+TryRemove(const _tChar* path)
+{
+	if(YB_UNLIKELY(uremove(path) != 0 && errno != ENOENT))
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Failed removing destination file '"
+			+ platform::MakePathString(path) + "'.");
+}
+
+template<typename _tChar>
+YB_NONNULL(1) void
+TryUnlink(const _tChar* path)
+{
+	if(YB_UNLIKELY(uunlink(path) != 0 && errno != ENOENT))
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Failed unlinking destination file '"
+			+ platform::MakePathString(path) + "'.");
+}
+//@}
 
 
 //! \exception FileOperationFailure 参数无效或文件时间查询失败。

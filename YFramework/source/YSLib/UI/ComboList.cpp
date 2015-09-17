@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3247
+\version r3248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-07-04 21:17 +0800
+	2015-09-17 12:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,7 +137,7 @@ ImplDeDtor(FileBox)
 IO::Path
 FileBox::GetPath() const
 {
-	return IsSelected() ? pthDirectory / (GetList()[GetSelectedIndex()])
+	return IsSelected() ? pthDirectory / IO::Path(GetList()[GetSelectedIndex()])
 		: pthDirectory;
 }
 

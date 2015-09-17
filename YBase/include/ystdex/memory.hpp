@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1312
+\version r1344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-09-02 11:40 +0800
+	2015-09-16 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -300,12 +300,12 @@ uninitialized_construct_n(_tFwd first, _tSize n, _tParams&&... args)
 
 
 /*!
-\brief 使用显式析构函数调用和 \c std::free 的删除器。
+\brief 使用显式析构函数调用和 std::free 的删除器。
 \note 数组类型的特化无定义。
 \since build 561
 
-除使用 \c std::free 代替 \c ::operator delete，和 \c std::default_deleter
-的非数组类型元相同。注意和直接使用 \c std::free 不同，会调用析构函数且不适用于数组。
+除使用 std::free 代替 \c ::operator delete，和 std::default_deleter
+的非数组类型元相同。注意和直接使用 std::free 不同，会调用析构函数且不适用于数组。
 */
 //@{
 template<typename _type>
@@ -327,12 +327,32 @@ struct free_delete
 };
 
 template<typename _type>
-struct free_delete<_type[]>;
+struct free_delete<_type[]>
+{
+	//! \since build 634
+	//@{
+	static_assert(is_trivially_destructible<_type>(), "Invalid type found");
+
+	yconstfn free_delete() ynothrow = default;
+	template<typename _type2,
+		yimpl(typename = enable_if_convertible_t<_type2(*)[], _type(*)[]>)>
+	free_delete(const free_delete<_type2[]>&) ynothrow
+	{}
+
+	template<typename _type2,
+		yimpl(typename = enable_if_convertible_t<_type2(*)[], _type(*)[]>)>
+	void
+	operator()(_type2* p) const ynothrowv
+	{
+		std::free(p);
+	}
+	//@}
+};
 //@}
 
 
 /*!
-\brief 使用显式 \c std::return_temporary_buffer 的删除器。
+\brief 使用显式 std::return_temporary_buffer 的删除器。
 \note 非数组类型的特化无定义。
 \since build 627
 */
@@ -366,7 +386,7 @@ public:
 	using array_type = _type[];
 	using element_type = _type;
 	using deleter = temporary_buffer_delete<array_type>;
-	using pointer = std::unique_ptr<array_type, deleter>;
+	using pointer = std::unique_ptr<_type, deleter>;
 
 private:
 	std::pair<pointer, size_t> buf;
@@ -379,18 +399,20 @@ public:
 			const auto pr(std::get_temporary_buffer<_type>(ptrdiff_t(n)));
 
 			if(pr.first)
-				return std::pair<pointer, size_t>{pr.first, size_t(pr.second)};
+				return std::pair<pointer, size_t>(pointer(pr.first),
+					size_t(pr.second));
 			throw std::bad_cast();
-		})
+		}())
 	{}
 	temporary_buffer(temporary_buffer&&) = default;
 	temporary_buffer&
 	operator=(temporary_buffer&&) = default;
 
-	typename deleter::pointer
-	get() ynothrow
+	//! \since build 634
+	yconstfn const pointer&
+	get() const ynothrow
 	{
-		return buf.first.get();
+		return buf.first;
 	}
 
 	pointer&
@@ -847,7 +869,7 @@ const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 \brief 打包对象：通过指定参数构造对象。
 \since build 617
 
-对 \c std::unique_ptr 和 \c std::shared_ptr 的实例，使用 make_unique
+对 std::unique_ptr 和 std::shared_ptr 的实例，使用 make_unique
 和 std::make_shared 构造，否则直接使用参数构造。
 */
 template<typename _type, typename... _tParams>

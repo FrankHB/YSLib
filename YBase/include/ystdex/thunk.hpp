@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r183
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2015-04-29 01:17 +0800
+	2015-09-14 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "type_op.hpp" // for std::forward, std::move, result_of_t,
 //	decay_t, enable_if_t;
-#include "ref.hpp" // for wrapped_traits, std::reference_wrapper;
+#include "functional.hpp" // for wrapped_traits, std::reference_wrapper,
+//	ystdex::invoke;
 
 namespace ystdex
 {
@@ -52,14 +53,14 @@ struct thunk_call_proxy
 };
 
 //! \since build 526
-template<typename _tRet, typename _func>
+template<typename _tRet, typename _fCallable>
 struct thunk_caller
 {
 	//! \since build 529
-	static_assert(is_decayed<_func>(), "Invalid type found.");
+	static_assert(is_decayed<_fCallable>(), "Invalid type found.");
 
 	//! \since build 541
-	using caller_type = _func;
+	using caller_type = _fCallable;
 	using return_type = _tRet;
 	using value_type = decay_t<wrapped_traits_t<_tRet>>;
 
@@ -100,11 +101,11 @@ struct thunk_caller
 \since build 526
 */
 template<typename _tRet,
-	typename _func = std::function<wrapped_traits_t<_tRet>()>>
-class thunk : private details::thunk_caller<_tRet, decay_t<_func>>
+	typename _fCallable = std::function<wrapped_traits_t<_tRet>()>>
+class thunk : private details::thunk_caller<_tRet, decay_t<_fCallable>>
 {
 private:
-	using base = details::thunk_caller<_tRet, decay_t<_func>>;
+	using base = details::thunk_caller<_tRet, decay_t<_fCallable>>;
 
 public:
 	//! \since build 541
@@ -141,7 +142,7 @@ public:
 	return_type
 	operator()() const
 	{
-		return caller();
+		return ystdex::invoke(caller);
 	}
 
 	//! \since build 526
@@ -157,11 +158,11 @@ public:
 \since build 526
 */
 //@{
-template<typename _func>
-thunk<result_of_t<_func()>, decay_t<_func>>
-make_thunk(_func&& f)
+template<typename _fCallable>
+thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>
+make_thunk(_fCallable&& f)
 {
-	return thunk<result_of_t<_func()>, decay_t<_func>>(yforward(f));
+	return thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>(yforward(f));
 }
 //! \todo 使用 ISO C++14 返回值推导，直接以 lambda 表达式实现。
 template<typename _type>
