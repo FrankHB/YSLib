@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3643
+\version r3651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2015-09-08 08:58 +0800
+	2015-09-14 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Platform
-#include <ystdex/type_op.hpp> // for ystdex::decay_t, ystdex::result_of_t;
+#include <ystdex/functional.hpp> // for ystdex::decay_t, ystdex::result_of_t,
+//	ystdex::retry_on_cond;
 #include <ystdex/cassert.h> // yconstraint, yassume for other headers;
 #include <ystdex/cwctype.h> // for ystdex::isprint, ystdex::iswprint;
 #include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
@@ -130,13 +131,9 @@ template<typename _func, typename _tErrorRef,
 _type
 RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
 {
-	_type res;
-
-	err = _tError();
-	do
-		res = f();
-	while(res < _type() && _tError(err) == e);
-	return res;
+	return ystdex::retry_on_cond([&](_type res){
+		return res < _type() && _tError(err) == e;
+	}, f);
 }
 
 

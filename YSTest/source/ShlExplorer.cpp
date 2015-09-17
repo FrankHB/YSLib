@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1482
+\version r1488
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-07-01 06:30 +0800
+	2015-09-17 10:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,11 +409,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			RequestFocusCascade(pnlSetting);
 		}
 	},
-	fbMain.GetViewChanged() += [&]{
-		lblPath.Text = String(fbMain.GetPath());
-		Invalidate(lblPath);
-	},
+	// TODO: Improve UI action when %ViewChanged being called?
 	fbMain.GetSelected() += [&]{
+		lblPath.Text = String(fbMain.GetPath()),
+		Invalidate(lblPath),
 		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
 	},
 	FetchEvent<Click>(btnOK) += [&]{

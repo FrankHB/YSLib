@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3663
+\version r3749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-13 15:46 +0800
+	2015-09-17 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,93 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Memory $=
+		(
+			+ "definition for class template specialization \
+				%free_delete<_type[]> with static assertion \
+				'is_trivially_destructible<_type>()'",
+			/ @ "class template %temporary_buffer" $=
+			(
+				* "%pointer" $since b627,
+				* "wrong return type" @ "function %get" $since b627,
+				* "ill-formed constructor" $since b627
+			)
+		),
+		+ "callable type support" @ ("function template %call_for_value"
+			@ %Functional, "class %thunk" @ %Thunk),
+		/ %Functional $=
+		(
+			+ "function template %retry_on_cond",
+			/ @ "class template specializations %call_projection" $=
+			(
+				+ "member function template %invoke" ^ "%ystdex::invoke",
+				+ "variadic template overloadings",
+				/ DLDI "simplified trailing-return-type for tuple reference \
+					parameter" ^ 'std::move' ~ 'yforward'
+			),
+			+ "class template %expand_proxy";
+			/ "%operator()" @ "class template %expanded_caller" $=
+			(
+				- "overloading without 'const'",
+				/ DLDI "simplified trailing-return-type" $dep_from
+					("%expand_proxy", "variadic template overloadings"
+					@ "%call_projection")
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				/ "function %TryClose" => "%RetryClose",
+				(
+				+ "(3 inline functions, function template) %MakePathString";
+				+ "function templates %(TryRemove, TryUnlink)"
+				),
+				+ "2 static functions %WriteContent" @ "class %FileDescriptor"
+			),
+			/ "function template %RetryOnError" @ %YCLib $=
+			(
+				/ $impl ^ $dep_from ("%ystdex::retry_on_cond" @ %Functional);
+				+ $comp "callable type support"
+			)
+		),
+		/ DLDI "member functions" @ %'YCLib_(DS)'.DSIO $=
+		(
+			/ "simplified %AllocationTable::QueryLast" ^ ($dep_from
+				("%ystdex::retry_on_cond" @ %YBase.YStandardEx.Functional),
+				"%ystdex::exchange"),
+			/ "simplified %Partition::RemoveEntry"
+		),
+		* $comp "parameter as unparsed path component caused wrong result"
+			@ "member function %FileBox::GetPath" @ %YSLib.UI.ComboList $since
+			b600
+			// Since b600, the constructor of %Path is 'explicit', so it \
+				should be cast to be parsed.
+	),
+	/ %YReader.ShlExplorer $=
+	(
+		* "parent directory shown" ~ "file entries" $since b531,
+			// Since b531, call of %UpdateView in %ListBox on %TouchDown was \
+				removed and %ViewChanged of %FileBox would not be called. So \
+				user code should be changed.
+		* $comp "double delimiter" @ "paths component shown entered by list GUI"
+			@ ("platform %Win32" $since b600, !"platform %Win32" $since b633)
+			$dep_from ("%FileBox::GetPath" @ %YFramework.YSLib.UI.ComboList)
+			// The wrong result is caused by %FileBox::GetPath since b600, \
+				however for platform without the file system base path ended \
+				with a delimiter (e.g. on Win32 it should ended with a \
+				backslash), only when the path component was correct since \
+				b633, it was shown.
+	)
+),
+
+b633
 (
 	/ %YFramework $=
 	(

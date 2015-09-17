@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1417
+\version r1460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-13 15:35 +0800
+	2015-09-16 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 //	_fileno, _wfopen for MinGW.org;
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO
-#include YFM_YCLib_Debug // for Nonnull;
+#include YFM_YCLib_Debug // for Nonnull, ystdex::temporary_buffer;
 #include YFM_YCLib_Reference // for unique_ptr;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl, F_GETFL,
@@ -238,6 +238,17 @@ FetchFileTime(_func f, _tParams... args)
 } // unnamed namespace;
 
 
+string
+MakePathString(const char16_t* s)
+{
+#if YCL_Win32
+	return platform_ex::WCSToUTF8(wcast(s));
+#else
+	return MakeMBCS(s);
+#endif
+}
+
+
 void
 FileDescriptor::Deleter::operator()(pointer p) ynothrow
 {
@@ -385,6 +396,41 @@ FileDescriptor::Write(const void* buf, size_t nbyte) ynothrowv
 	return SafeReadWrite(::write, desc, buf, nbyte);
 }
 
+void
+FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
+	byte* buf, size_t size)
+{
+	YAssertNonnull(ifd),
+	YAssertNonnull(ofd),
+	YAssertNonnull(buf),
+	YAssert(size != 0, "Invalid size found.");
+
+	ystdex::retry_on_cond([&](size_t len){
+		if(len == size_t(-1))
+			throw FileOperationFailure(errno, std::generic_category(),
+				"Failed reading source file '" + to_string(*ifd) +"'.");
+		if(ofd.FullWrite(buf, len) == size_t(-1))
+			throw FileOperationFailure(errno, std::generic_category(),
+				"Failed writing destination file '" + to_string(*ofd) +"'.");
+		return len != 0;
+#if YCL_Android
+	// TODO: Use newer G++ to get away with the workaround.
+	}, [&]{
+		return ifd.Read(buf, size);
+	});
+#else
+	}, &FileDescriptor::Read, &ifd, buf, size);
+#endif
+}
+void
+FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
+	size_t size)
+{
+	ystdex::temporary_buffer<byte> buf(size);
+
+	WriteContent(ofd, ifd, buf.get().get(), buf.size());
+}
+
 
 mode_t
 GetDefaultPermissionMode() ynothrow
@@ -410,7 +456,7 @@ SetBinaryIO(std::FILE* stream) ynothrow
 }
 
 int
-TryClose(std::FILE* fp) ynothrow
+RetryClose(std::FILE* fp) ynothrow
 {
 	// NOTE: However, on some implementations, '::close' and some other
 	//	function calls may always cause file descriptor to be closed

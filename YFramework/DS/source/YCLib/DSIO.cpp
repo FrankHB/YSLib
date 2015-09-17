@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2564
+\version r2576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-09-07 22:34 +0800
+	2015-09-14 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -529,14 +529,11 @@ ClusterIndex
 AllocationTable::QueryLast(ClusterIndex c) const ynothrow
 {
 	// TODO: Assert !Clusters::IsFreeOrEOF(c)?
-	ClusterIndex t;
-
-	do 
-	{
-		t = c;
-		c = QueryNext(t);
-	}while(!Clusters::IsFreeOrEOF(c));
-	return t;
+	return ystdex::retry_on_cond([&]{
+		return !Clusters::IsFreeOrEOF(c);
+	}, [&]{
+		return ystdex::exchange(c, QueryNext(c));
+	});
 }
 
 void
@@ -1462,20 +1459,18 @@ Partition::StatFS(struct ::statvfs& st)
 void
 Partition::RemoveEntry(const DEntry::NamePosition& np) ythrow(system_error)
 {
-	EntryData edata;
-	bool finished;
-	auto name_pos(np);
-
 	// NOTE: Create an empty directory entry to overwrite the old ones.
+	auto name_pos(np);
+	EntryData edata;
+
 	do
 	{
 		TryReadPartialSector(Table, name_pos[0], edata.data());
 		edata[0] = EntryData::Free;
 		TryWritePartialSector(Table, name_pos[0], edata.data());
-		finished = name_pos[0] == name_pos[1];
 		if(!IncrementPosition(name_pos[0]))
 			throw_system_error(errc::io_error);
-	}while(!finished);
+	}while(!(name_pos[0] == name_pos[1]));
 }
 
 void
