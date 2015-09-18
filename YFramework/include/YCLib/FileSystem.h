@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2448
+\version r2459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-09-13 16:02 +0800
+	2015-09-18 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,12 +114,6 @@ static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
 #	define YCL_FS_StringIsRoot(_s, _p) \
 		(ystdex::string_length(_s) == 3 \
 		&& _s[1] == ':' && YCL_FS_CharIsDelimiter(_s[2], _p))
-
-/*!
-\brief 路径字符串编码。
-\since build 402
-*/
-yconstexpr const CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #elif defined(YCL_API_POSIXFileSystem)
 	/*!
 	\brief 文件路径分隔符。
@@ -139,12 +133,6 @@ yconstexpr const CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #	define YCL_FS_CharIsDelimiter(_c, _p) \
 	(_c == YPP_Join(_p, YCL_PATH_DELIMITER))
 #	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
-
-/*!
-\brief 路径字符串编码。
-\since build 402
-*/
-yconstexpr const CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #else
 #	error "Unsupported platform found."
 #endif
@@ -731,7 +719,7 @@ inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord) ynothrow
 inline PDefH(string, ConvertToMBCS, const char16_t* path)
 	// TODO: Optimize?
 	ImplRet(ystdex::restrict_length(CHRLib::MakeMBCS(Nonnull(path),
-		MaxLength, CS_Path), MaxMBCSLength))
+		MaxLength), MaxMBCSLength))
 
 /*!
 \brief 生成别名校验和。

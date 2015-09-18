@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2497
+\version r2518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-05-29 19:32 +0800
+	2015-09-18 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ public:
 	//@}
 
 	PDefH(bool, is_delimiter, const value_type& str) override
-		ImplRet(YCL_FS_CharIsDelimiter(str[0], u))
+		ImplRet(str.length() == 1 && YCL_FS_CharIsDelimiter(str[0], u))
 
 	PDefH(bool, is_parent, const value_type& str) ynothrow override
 		ImplRet(YCL_FS_StringIsParent(str, u))
@@ -109,27 +109,24 @@ public:
 	\brief 无参数构造：默认实现。
 	*/
 	DefDeCtor(Path)
-	explicit
-	Path(const ucs2_t* str)
-		: ypath(Parse(str))
-	{}
-	//! \since build 402
+	//! \since build 635
 	//@{
 	explicit
-	Path(const ucs2string& str)
-		: ypath(Parse(str))
+	Path(ypath pth) ynothrow
+		: ypath(std::move(pth))
 	{}
+	//! \since build 402
 	explicit
-	Path(ucs2string&& str)
-		: ypath(Parse(str))
+	Path(const ucs2string& str) ynothrow
+		: Path(Parse(str))
 	{}
-	//! \since build 448
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<Path, _type>)>
 	explicit
-	Path(_type&& arg, Text::Encoding enc = CS_Path)
+	Path(_type&& arg, Text::Encoding enc = Text::CS_Default)
 		: ypath(Parse(String(yforward(arg), enc)))
 	{}
+	//@}
 	//! \since build 599
 	template<typename _tIn>
 	Path(_tIn first, _tIn last)
@@ -140,7 +137,6 @@ public:
 	Path(std::initializer_list<_type> il)
 		: ypath(il)
 	{}
-	//@}
 	/*!
 	\brief 复制构造：默认实现。
 	*/
@@ -194,11 +190,11 @@ public:
 	//! \since build 600
 	DefGetter(ynothrow, ypath&, BaseRef, *this)
 	/*!
-	\brief 取指定编码的多字节字符串。
-	\since build 599
+	\brief 取指定分隔符和编码的多字节字符串。
+	\since build 635
 	*/
-	PDefH(string, GetMBCS, Text::Encoding enc = CS_Path,
-		ucs2_t delimiter = ucs2_t(YCL_PATH_DELIMITER)) const
+	PDefH(string, GetMBCS, ucs2_t delimiter = ucs2_t(YCL_PATH_DELIMITER),
+		Text::Encoding enc = Text::CS_Default) const
 		ImplRet(Verify(delimiter).GetMBCS(enc))
 	/*!
 	\brief 取指定分隔符的字符串表示。
@@ -333,7 +329,7 @@ FetchCurrentWorkingDirectory(size_t = MaxPathLength);
 inline PDefH(bool, IsAbsolute, const string& path)
 	ImplRet(IsAbsolute(path.c_str()))
 inline PDefH(bool, IsAbsolute, const String& path)
-	ImplRet(IsAbsolute(path.GetMBCS(CS_Path)))
+	ImplRet(IsAbsolute(path.GetMBCS()))
 inline PDefH(bool, IsAbsolute, const Path& pth)
 	ImplRet(!pth.empty() && IsAbsolute(pth.GetString()))
 //@}
@@ -372,7 +368,7 @@ VerifyDirectory(const char*);
 inline PDefH(bool, VerifyDirectory, const string& path)
 	ImplRet(VerifyDirectory(path.c_str()))
 inline PDefH(bool, VerifyDirectory, const String& path)
-	ImplRet(VerifyDirectory(path.GetMBCS(CS_Path)))
+	ImplRet(VerifyDirectory(path.GetMBCS()))
 inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
 //@}
@@ -392,7 +388,7 @@ inline PDefH(void, EnsureDirectory, const char* path)
 inline PDefH(void, EnsureDirectory, const string& path)
 	ImplExpr(EnsureDirectory(path.c_str()))
 inline PDefH(void, EnsureDirectory, const String& path)
-	ImplExpr(EnsureDirectory(path.GetMBCS(CS_Path)))
+	ImplExpr(EnsureDirectory(path.GetMBCS()))
 //@}
 
 
