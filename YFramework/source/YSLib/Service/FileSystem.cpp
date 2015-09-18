@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2038
+\version r2040
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-09-12 03:42 +0800
+	2015-09-18 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ EnsureDirectory(const Path& pth)
 
 	for(const auto& name : pth)
 	{
-		upath += MakeMBCS(name.c_str(), CS_Path) + YCL_PATH_DELIMITER;
+		upath += MakeMBCS(name.c_str()) + YCL_PATH_DELIMITER;
 		if(!VerifyDirectory(upath) && !umkdir(upath.c_str()) && errno != EEXIST)
 		{
 			YTraceDe(Err, "Failed making directory path '%s'", upath.c_str());
@@ -150,7 +150,7 @@ ListFiles(const Path& pth, vector<String>& lst)
 	TryExpr(Traverse(pth, [&](NodeCategory c, const string& name, PathNorm& nm){
 		lst.push_back(String(!nm.is_parent(name)
 			&& bool(c & NodeCategory::Directory) ? name + YCL_PATH_DELIMITER
-			: name, CS_Path));
+			: name));
 	}))
 	CatchIgnore(FileOperationFailure&)
 }

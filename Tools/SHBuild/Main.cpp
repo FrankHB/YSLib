@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3200
+\version r3203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-09-08 21:52 +0800
+	2015-09-18 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -487,8 +487,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 			}
 			else
 			{
-				auto cmd(rule.GetCommand(
-					GetExtensionOf(String(name, CS_Path))));
+				auto cmd(rule.GetCommand(GetExtensionOf(String(name))));
 
 				if(!cmd.empty())
 					src_files.emplace_back(std::move(cmd), name);
@@ -608,7 +607,7 @@ BuildContext::Build()
 			pth.pop_back();
 			EnsureOutputDirectory(pth);
 
-			auto target(to_string(opth).GetMBCS(CS_Path));
+			auto target(to_string(opth).GetMBCS());
 			const auto& LDFLAGS(GetEnv("LDFLAGS"));
 			const auto& cmd(Mode == BuildMode::AR ? GetEnv("AR") + ' '
 				+ GetEnv("ARFLAGS") : GetEnv("LD") + ' ' + LDFLAGS + " -o");
