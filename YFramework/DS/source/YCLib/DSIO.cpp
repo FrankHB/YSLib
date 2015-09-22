@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2576
+\version r2663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-09-14 12:09 +0800
+	2015-09-20 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,13 +391,11 @@ AllocationTable::AllocationTable(::sec_t start_sector, const byte* sec_buf,
 	}()), root_dir_cluster([sec_buf, this]() -> ClusterIndex{
 		if(fs_type != FileSystemType::FAT32)
 			return Clusters::FAT16RootDirectory;
-
-		const auto t(read_uint_le<32>(sec_buf + BPB_RootClus));
 		// NOTE: Check if FAT mirroring is enabled.
 		if((sec_buf[BPB_ExtFlags] & 0x80) == 0)
 			// NOTE: Use the active FAT.
 			table_start += table_size * (sec_buf[BPB_ExtFlags] & 0x0F);
-		return t;
+		return read_uint_le<32>(sec_buf + BPB_RootClus);
 	}()), Cache(pages, sectors_per_page_shift, d,
 	start_sector + total_sectors_num, bytes_per_sector)
 {}
@@ -696,37 +694,32 @@ DEntry::DEntry(Partition& part, const char* path)
 {}
 DEntry::DEntry(Partition& part, const char* path, const char* path_end)
 {
-	YAssertNonnull(path_end);
-
 	ClusterIndex dclus;
-	const char* path_pos = Nonnull(path);
-	bool found = {};
 
-	if(path_pos[0] == YCL_PATH_DELIMITER)
+	YAssertNonnull(path_end);
+	if(Deref(path) == YCL_PATH_DELIMITER)
 	{
 		dclus = part.GetRootDirCluster();
-		while(path_pos[0] == YCL_PATH_DELIMITER)
-			++path_pos;
-		// NOTE: Return directory "/".
-		if(path_pos == path_end)
+		while(*path == YCL_PATH_DELIMITER)
+			++path;
+		if(path == path_end)
 			goto found_root;
 	}
 	else
 		dclus = part.GetCWDCluster();
-	do
-	{
-		const char* next_pos(std::strchr(path_pos, YCL_PATH_DELIMITER));
-		size_t dname_len(next_pos ? next_pos - path_pos
-			: std::strlen(path_pos));
+	ystdex::retry_on_cond([](bool found){
+		return !found;
+	}, [&]{
+		const char* next_pos(std::strchr(path, YCL_PATH_DELIMITER));
+		size_t dname_len(next_pos ? next_pos - path
+			: std::strlen(path));
+		bool found{};
 
 		if(LFN::MaxMBCSLength < dname_len)
 			throw_system_error(errc::filename_too_long);
-
-		// NOTE: Fake entries for "." or ".." when the dclus is root
-		//	cluster.
 		if(dclus == part.GetRootDirCluster()
-			&& (std::strncmp(".", path_pos, dname_len) == 0
-			|| std::strncmp("..", path_pos, dname_len) == 0))
+			&& (std::strncmp(".", path, dname_len) == 0
+			|| std::strncmp("..", path, dname_len) == 0))
 		{
 			this->~DEntry();
 			::new(this) DEntry(part);
@@ -734,42 +727,42 @@ DEntry::DEntry(Partition& part, const char* path, const char* path_end)
 		else
 		{
 			NamePos = GenerateBeforeFirstNamePos(dclus);
-			do
-			{
+			found = !ystdex::retry_on_cond([this, next_pos](bool cont){
+				return cont || (!Data.IsDirectory() && next_pos);
+			}, [&]() -> bool{
 				if(!QueryNextFrom(part))
 					throw_system_error(errc::no_such_file_or_directory);
 				try
 				{
 					if(dname_len == name.length() && ystdex::ntctsnicmp(
-						MakeUCS2LE(string(path_pos, dname_len)).c_str(),
+						MakeUCS2LE(string(path, dname_len)).c_str(),
 						MakeUCS2LE(name).c_str(), dname_len) == 0)
-						found = true;
+						return {};
 				}
 				CatchIgnore(...)
-				if(!found)
-					try
-					{
-						if(Data.FindAlias(path_pos, dname_len))
-							found = true;
-					}
-					CatchIgnore(...)
-				if(found && !Data.IsDirectory() && next_pos)
-					found = {};
-			}while(!found);
+				try
+				{
+					if(Data.FindAlias(path, dname_len))
+						return {};
+				}
+				CatchIgnore(...)
+				return true;
+			});
 		}
-		if(!next_pos || (next_pos >= path_end))
-			found = true;
-		else if(Data.IsDirectory())
+		if(!(next_pos && next_pos < path_end))
+			return true;
+		if(Data.IsDirectory())
 		{
 			dclus = part.EntryGetCluster(Data);
 			if(dclus == Clusters::Root)
 				dclus = part.GetRootDirCluster();
-			path_pos = next_pos;
-			while(path_pos[0] == YCL_PATH_DELIMITER)
-				++path_pos;
-			found = path_pos >= path_end;
+			path = next_pos;
+			while(*path == YCL_PATH_DELIMITER)
+				++path;
+			return path >= path_end;
 		}
-	}while(!found);
+		return found;
+	});
 	// NOTE: On FAT32 an actual cluster should be specified for the root
 	//	entry, not cluster 0 as on FAT16.
 	if(part.GetFileSystemType() == FileSystemType::FAT32 && Data.IsDirectory()
@@ -871,17 +864,17 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 						LFN::MaxAliasLength) != 0
 						|| part.EntryExists(alias, dclus))
 					{
-						pri.resize(LFN::MaxAliasMainPartLength, '_');
-						alias = pri + '.' + ext;
-
 						size_t i(1);
 
-						do
-						{
+						pri.resize(LFN::MaxAliasMainPartLength, '_');
+						alias = pri + '.' + ext;
+						ystdex::retry_on_cond([&]{
+							return part.EntryExists(alias, dclus);
+						}, [&]{
 							if(YB_UNLIKELY(LFN::MaxNumericTail < i))
 								throw_system_error(errc::invalid_argument);
 							LFN::WriteNumericTail(alias, i++);
-						}while(part.EntryExists(alias, dclus));
+						});
 					}
 				}
 				Data.WriteAlias(alias);
@@ -1187,13 +1180,13 @@ Partition::EntryExists(const string& name, ClusterIndex dclus)
 ClusterIndex
 Partition::EntryGetCluster(const EntryData& data) const ynothrow
 {
-	// NOTE: Only use high 16 bits of start cluster when we are certain they are
+	// NOTE: Only high 16 bits of start cluster are used when they are certainly
 	//	correctly defined.
 	const auto dst(data.data());
 	const auto t(read_uint_le<16>(dst + EntryData::Cluster));
 
 	return GetFileSystemType() == FileSystemType::FAT32
-		? t | (read_uint_le<16>( dst + EntryData::ClusterHigh) << 16) : t;
+		? t | (read_uint_le<16>(dst + EntryData::ClusterHigh) << 16) : t;
 }
 
 ::sec_t
@@ -1463,14 +1456,15 @@ Partition::RemoveEntry(const DEntry::NamePosition& np) ythrow(system_error)
 	auto name_pos(np);
 	EntryData edata;
 
-	do
-	{
+	ystdex::retry_on_cond([&]{
+		return !(name_pos[0] == name_pos[1]);
+	}, [&]{
 		TryReadPartialSector(Table, name_pos[0], edata.data());
 		edata[0] = EntryData::Free;
 		TryWritePartialSector(Table, name_pos[0], edata.data());
 		if(!IncrementPosition(name_pos[0]))
 			throw_system_error(errc::io_error);
-	}while(!(name_pos[0] == name_pos[1]));
+	});
 }
 
 void
@@ -1965,27 +1959,26 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 		// NOTE: Read in whole clusters, contiguous blocks at a time.
 		while(remain >= part.GetBytesPerCluster())
 		{
-			ClusterIndex chunk_end, next_chunk_start(pos.GetCluster());
-			size_t chunkSize(0);
+			size_t chunk_size(0);
+			ClusterIndex next_start(pos.GetCluster()), chunk_end(
+				ystdex::retry_on_cond([&](ClusterIndex end){
+					return next_start == end + 1
+						&& chunk_size + part.GetBytesPerCluster() <= remain;
+				}, [&]{
+					chunk_size += part.GetBytesPerCluster();
+					return ystdex::exchange(next_start,
+						part.Table.QueryNext(next_start));
+				}));
 
-			do
-			{
-				chunk_end = next_chunk_start;
-				next_chunk_start = part.Table.QueryNext(chunk_end);
-				chunkSize += part.GetBytesPerCluster();
-			}while(next_chunk_start == chunk_end + 1
-				&& chunkSize + part.GetBytesPerCluster() <= remain);
 			TryReadSectors(part.Table, pos.GetCluster(), buf,
-				chunkSize / part.GetBytesPerSector());
-			buf += chunkSize;
-			remain -= chunkSize;
-			// Advance to next cluster
-			if(remain == 0 && next_chunk_start == Clusters::EndOfFile)
+				chunk_size / part.GetBytesPerSector());
+			yunseq(buf += chunk_size, remain -= chunk_size);
+			if(remain == 0 && next_start == Clusters::EndOfFile)
 				pos = {chunk_end, part.GetSectorsPerCluster(), pos.GetByte()};
-			else if(!part.Table.IsValidCluster(next_chunk_start))
+			else if(!part.Table.IsValidCluster(next_start))
 				throw_system_error(errc::io_error);
 			else
-				pos = {next_chunk_start, 0, pos.GetByte()};
+				pos = {next_start, 0, pos.GetByte()};
 		}
 		// NOTE: %tmp is number of sectors left.
 		tmp = remain / part.GetBytesPerSector();
@@ -2145,7 +2138,7 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 			if(remain != 0)
 				part.CheckPositionForNextCluster(pos);
 
-			auto chunk_end(pos.GetCluster()), next_chunk_start(chunk_end);
+			auto chunk_end(pos.GetCluster()), next_start(chunk_end);
 			size_t chunk_size(part.GetBytesPerCluster());
 			FilePosition next_position(pos);
 
@@ -2157,20 +2150,20 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 				// TODO: != ?
 				if(remain > chunk_size)
 					part.CheckPositionForNextCluster(next_position);
-				next_chunk_start = next_position.GetCluster();
-				if(next_chunk_start != chunk_end + 1)
+				next_start = next_position.GetCluster();
+				if(next_start != chunk_end + 1)
 					break;
-				yunseq(chunk_end = next_chunk_start,
+				yunseq(chunk_end = next_start,
 					chunk_size += part.GetBytesPerCluster());
 			}
 			TryWriteSectors(part.Table, pos.GetCluster(), buf,
 				chunk_size / part.GetBytesPerSector());
 			yunseq(buf += chunk_size, remain -= chunk_size);
-			if(chunk_end != next_chunk_start
-				&& part.Table.IsValidCluster(next_chunk_start))
+			if(chunk_end != next_start
+				&& part.Table.IsValidCluster(next_start))
 				// NOTE: New cluster is already allocated (because it was not
 				//	consecutive).
-				pos = {next_chunk_start, 0, pos.GetByte()};
+				pos = {next_start, 0, pos.GetByte()};
 			else
 				pos = {chunk_end, part.GetSectorsPerCluster(), pos.GetByte()};
 		}

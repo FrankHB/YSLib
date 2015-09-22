@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1328
+\version r1355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-14 09:18 +0800
+	2015-09-22 09:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,7 +118,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用标准流。
-	\note 对非空参数可能设置 \c errno 。
+	\note 对非空参数可能设置 errno 。
 
 	当参数为空时得到无效文件空描述符，否则调用 POSIX \c fileno 函数。
 	*/
@@ -173,7 +173,7 @@ public:
 	/*!
 	\brief 设置阻塞模式。
 	\note 仅在非 Windows 平台有效。
-	\note 可能设置 \c errno 。
+	\note 可能设置 errno 。
 	\return 是否进行了设置。
 	\since build 625
 	*/
@@ -190,7 +190,7 @@ public:
 	\brief 设置非阻塞模式。
 	\note 仅在 POSIX 平台有效。
 	\note 对不支持非阻塞的平台， POSIX 未指定文件描述符是否忽略 \c O_NONBLOCK 。
-	\note 可能设置 \c errno 。
+	\note 可能设置 errno 。
 	\return 是否进行了设置。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/ 。
 	\since build 624
@@ -209,21 +209,21 @@ public:
 	bool
 	SetSize(size_t) ynothrow;
 
-	//! \note 每次读写首先清除 \c errno ；读写时遇 \c EINTR 时继续。
+	//! \note 每次读写首先清除 errno ；读写时遇 EINTR 时继续。
 	//@{
 	/*!
 	\brief 循环读写文件。
 	*/
 	//@{
 	/*!
-	\note 每次读 0 字节时设置 \c errno 为 0 。
+	\note 每次读 0 字节时设置 errno 为 0 。
 	\sa Read
 	*/
 	YB_NONNULL(2) size_t
 	FullRead(void*, size_t) ynothrowv;
 
 	/*!
-	\note 每次写 0 字节时设置 \c errno 为 ENOSPC 。
+	\note 每次写 0 字节时设置 errno 为 ENOSPC 。
 	\sa Write
 	*/
 	YB_NONNULL(2) size_t
@@ -232,7 +232,7 @@ public:
 
 	/*!
 	\brief 读写文件。
-	\note 首先清除 \c errno 。
+	\note 首先清除 errno 。
 	\return 若发生错误为 size_t(-1) ，否则为读取的字节数。
 	*/
 	//@{
@@ -247,7 +247,8 @@ public:
 
 	/*!
 	\brief 第二参数内容写入第一参数指定的文件。
-	//! \pre 最后参数指定的缓冲区大小不等于 0 。
+	\pre 最后参数指定的缓冲区大小不等于 0 。
+	\throw FileOperationFailure 文件读写失败。
 	\since build 634
 	*/
 	//@{
@@ -299,8 +300,9 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 
 /*!
 \brief 重复尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
-\return 非 \c EINTR 的错误。
-\note 首先清除 \c errno ；遇 \c EINTR 时重试。
+\pre 参数非空。
+\return 非 EINTR 的错误。
+\note 首先清除 errno ；遇 EINTR 时重试。
 \note 使用 std::fclose 关闭流。
 \since build 634
 */
@@ -332,7 +334,7 @@ omode_convb(std::ios_base::openmode);
 \brief 测试路径可访问性。
 \param path 路径，意义同 POSIX <tt>::open</tt> 。
 \param amode 模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。 。
-\note \c errno 在出错时会被设置，具体值由实现定义。
+\note errno 在出错时会被设置，具体值由实现定义。
 \since build 549
 */
 //@{
@@ -447,9 +449,9 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow;
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
 \return 若成功为 buf ，否则为空指针。
-\note 当 <tt>!buf || size == 0</tt> 时失败，设置 \c errno 为 \c EINVAL 。
-\note 指定的 size 不能容纳结果时失败，设置 \c errno 为 \c ERANGE 。
-\note 若分配存储失败，设置 \c errno 为 \c ENOMEM 。
+\note 当 <tt>!buf || size == 0</tt> 时失败，设置 errno 为 EINVAL 。
+\note 指定的 size 不能容纳结果时失败，设置 errno 为 \c ERANGE 。
+\note 若分配存储失败，设置 errno 为 \c ENOMEM 。
 \since build 324
 */
 YF_API YB_NONNULL(1) char16_t*
@@ -458,7 +460,7 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow;
 /*!
 \pre 断言：参数非空。
 \return 操作是否成功。
-\note \c errno 在出错时会被设置，具体值由实现定义。
+\note errno 在出错时会被设置，具体值由实现定义。
 \note DS 使用 newlib 实现。 MinGW32 使用 MSVCRT 实现。 Android 使用 bionic 实现。
 	其它 Linux 使用 GLibC 实现。
 */
@@ -568,7 +570,7 @@ private:
 			rhs._M_state_cur = rhs._M_state_beg);
 	}
 	//@}
-#endif
+#	endif
 
 public:
 	//! \since build 627
@@ -1090,6 +1092,17 @@ GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 */
 YF_API YB_NONNULL(1) std::uint64_t
 GetFileSizeOf(std::FILE*);
+
+
+/*!
+\brief 比较文件内容相等。
+\note 首先清除 errno 。
+\note 可能设置 errno 。
+\warning 读取失败时即截断返回，因此需要另行比较文件大小。
+\since build 636
+*/
+YF_API bool
+HaveSameContents(UniqueFile, UniqueFile);
 
 } // namespace platform;
 

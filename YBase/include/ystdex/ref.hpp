@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r207
+\version r253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2015-03-29 09:47 +0800
+	2015-09-19 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,9 +41,9 @@ namespace ystdex
 \brief 左值引用包装。
 \tparam _type 被包装的类型。
 
-类似 \c std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
+类似 std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
 	引用包装类实现。
-和 \c std::reference_wrapper 不同而和 \c boost::reference_wrapper 类似，
+和 std::reference_wrapper 不同而和 \c boost::reference_wrapper 类似，
 	不要求模板参数为完整类型。
 */
 //@{
@@ -149,7 +149,7 @@ using wrapped_traits_t = typename wrapped_traits<_type>::type;
 
 /*!
 \brief 解除引用包装。
-\note 默认仅提供对 \c std::reference_wrapper 和 lref 的实例类型的重载。
+\note 默认仅提供对 std::reference_wrapper 和 lref 的实例类型的重载。
 \note 使用 ADL 。
 \since build 348
 */
@@ -201,6 +201,54 @@ public:
 		return const_cast<void*>(ptr);
 	}
 };
+
+
+/*!
+\brief 伪输出对象。
+\note 吸收所有赋值操作。
+\since build 273
+*/
+struct pseudo_output
+{
+	//! \since build 636
+	//@{
+	template<typename... _tParams>
+	yconstfn
+	pseudo_output(_tParams&&...)
+	{}
+
+	template<typename _tParam,
+		yimpl(exclude_self_ctor_t<pseudo_output, _tParam>)>
+	yconstfn pseudo_output&
+	operator=(_tParam&&) const
+	{
+		return *this;
+	}
+	template<typename... _tParams>
+	yconstfn pseudo_output&
+	operator()(_tParams&&...) const
+	{
+		return *this;
+	}
+	//@}
+};
+
+
+/*!
+\ingroup metafunctions
+\since build 636
+*/
+//@{
+//! \brief 若类型不是空类型则取后备结果类型（默认为 pseudo_output ）。
+template<typename _type, typename _tRes = pseudo_output>
+using nonvoid_result_t
+	= conditional_t<!is_void<_type>::value, _type, pseudo_output>;
+
+//! \brief 若类型不是对象类型则取后备结果类型（默认为 pseudo_output ）。
+template<typename _type, typename _tRes = pseudo_output>
+using object_result_t
+	= conditional_t<is_object<_type>::value, _type, pseudo_output>;
+//@}
 
 } // namespace ystdex;
 

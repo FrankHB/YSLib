@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1460
+\version r1476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-16 21:16 +0800
+	2015-09-22 11:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl, F_GETFL,
 //	O_*, ::ftruncate, ::_wgetcwd, ::getcwd and !defined(__STRICT_ANSI__) API;
+#include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing
@@ -413,7 +414,7 @@ FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
 			throw FileOperationFailure(errno, std::generic_category(),
 				"Failed writing destination file '" + to_string(*ofd) +"'.");
 		return len != 0;
-#if YCL_Android
+#if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)
 	// TODO: Use newer G++ to get away with the workaround.
 	}, [&]{
 		return ifd.Read(buf, size);
@@ -462,7 +463,7 @@ RetryClose(std::FILE* fp) ynothrow
 	//	function calls may always cause file descriptor to be closed
 	//	even if returning 'EINTR'. Thus it should be ignored. See https://www.python.org/dev/peps/pep-0475/#modified-functions .
 	return RetryOnInterrupted([=]{
-		return std::fclose(fp);
+		return std::fclose(Nonnull(fp));
 	});
 }
 
@@ -784,6 +785,22 @@ std::uint64_t
 GetFileSizeOf(std::FILE* fp)
 {
 	return FileDescriptor(fp).GetSize();
+}
+
+
+bool
+HaveSameContents(UniqueFile p_a, UniqueFile p_b)
+{
+	filebuf fb_a, fb_b;
+
+	errno = 0;
+	if(!fb_a.open(std::move(p_a), std::ios_base::in | std::ios_base::binary))
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Failed opening first file.");
+	if(!fb_b.open(std::move(p_b), std::ios_base::in | std::ios_base::binary))
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Failed opening second file.");
+	return ystdex::streambuf_equal(fb_a, fb_b);
 }
 
 } // namespace platform;

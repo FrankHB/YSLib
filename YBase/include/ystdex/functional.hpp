@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2537
+\version r2569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-09-14 14:16 +0800
+	2015-09-19 09:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,7 +253,7 @@ invoke_impl(_func&& f, _tParams&&... args)
 	return yforward(f)(yforward(args)...);
 }
 
-} // unnamed details;
+} // namespace details;
 
 /*!
 \brief 调用可调用对象。
@@ -268,6 +268,36 @@ invoke(_fCallable&& f, _tParams&&... args)
 	return details::invoke_impl(yforward(f), yforward(args)...);
 }
 #endif
+
+namespace details
+{
+
+template<typename _fCallable, typename... _tParams>
+yconstfn pseudo_output
+invoke_nonvoid_impl(true_type, _fCallable&& f, _tParams&&... args)
+{
+	return ystdex::invoke(yforward(f), yforward(args)...), pseudo_output();
+}
+template<typename _fCallable, typename... _tParams>
+inline result_of_t<_fCallable&&(_tParams&&...)>
+invoke_nonvoid_impl(false_type, _fCallable&& f, _tParams&&... args)
+{
+	return ystdex::invoke(yforward(f), yforward(args)...);
+}
+
+} // namespace details;
+
+/*!
+\brief 调用可调用对象，保证返回值非空。
+\since build 635
+*/
+template<typename _fCallable, typename... _tParams>
+yimpl(yconstfn) nonvoid_result_t<result_of_t<_fCallable&&(_tParams&&...)>>
+invoke_nonvoid(_fCallable&& f, _tParams&&... args)
+{
+	return details::invoke_nonvoid_impl(is_void<result_of_t<
+		_fCallable&&(_tParams&&...)>>(), yforward(f), yforward(args)...);
+}
 
 
 /*!
@@ -736,12 +766,13 @@ result_of_t<_fCallable&&(_tParams&&...)>
 retry_on_cond(_fCond cond, _fCallable&& f, _tParams&&... args)
 {
 	using res_t = result_of_t<_fCallable&&(_tParams&&...)>;
-	res_t res;
+	using obj_t = object_result_t<res_t>;
+	obj_t res;
 
 	do
-		res = ystdex::invoke(yforward(f), yforward(args)...);
-	while(expand_proxy<bool(res_t&)>::call(cond, res));
-	return res;
+		res = ystdex::invoke_nonvoid(yforward(f), yforward(args)...);
+	while(expand_proxy<bool(obj_t&)>::call(cond, res));
+	return res_t(res);
 }
 
 

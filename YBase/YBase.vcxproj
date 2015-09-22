@@ -43,6 +43,7 @@
     <ClInclude Include="include\ystdex\future.hpp" />
     <ClInclude Include="include\ystdex\hash.hpp" />
     <ClInclude Include="include\ystdex\integer_sequence.hpp" />
+    <ClInclude Include="include\ystdex\istream.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
     <ClInclude Include="include\ystdex\iterator_op.hpp" />
     <ClInclude Include="include\ystdex\iterator_trait.hpp" />
@@ -57,6 +58,7 @@
     <ClInclude Include="include\ystdex\rational.hpp" />
     <ClInclude Include="include\ystdex\ref.hpp" />
     <ClInclude Include="include\ystdex\scope_guard.hpp" />
+    <ClInclude Include="include\ystdex\streambuf.hpp" />
     <ClInclude Include="include\ystdex\string.hpp" />
     <ClInclude Include="include\ystdex\thunk.hpp" />
     <ClInclude Include="include\ystdex\tuple.hpp" />

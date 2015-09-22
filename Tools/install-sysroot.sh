@@ -135,7 +135,7 @@ fi
 SHB_InstInc "$YSLib_BaseDir/YBase/include/"
 SHB_InstInc "$BD_YFramework/include/"
 SHB_InstInc "$BD_YFramework/DS/include/"
-SHB_InstInc "$BD_YFramework/MinGW32/include/"
+SHB_InstInc "$BD_YFramework/Win32/include/"
 
 SR_S1_SHBuild="$YSLib_BuildDir/.shbuild"
 SR_S1_SHBuild_debug="$YSLib_BuildDir/.shbuild-debug"
