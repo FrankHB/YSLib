@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3815
+\version r3883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-18 22:38 +0800
+	2015-09-22 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,75 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "struct %pseudo_output" @ %Any >> %Ref $=
+		(
+			/ "function %operator=" $=
+			(
+				+ ('const'; 'yconstfn'),
+				- "unnecessary packed template parameter",
+				/ "avoided self constructor to initialize the parameter"
+			),
+			+ "constructor template",
+			+ "operator %()"
+		),
+		+ "metafunctions %(nonvoid_result_t, object_result_t)" @ %Ref,
+		/ %Functional $=
+		(
+			+ "function template %invoke_nonvoid" $dep_from
+				("%nonvoid_result_t" @ %Ref),
+			+ "support for non-object result type"
+				@ "function template %retry_on_cond",
+		),
+		+ %InputStream
+			$= (+ "function template %stream_equal"),
+		+ %StreamBuffer
+			$= (+ "function template %streambuf_equal")
+	),
+	/ %YFramework $=
+	(
+		/ $re_ex(b634) DLDI %'YCLib_(DS)'.DSIO $=
+		(
+			/ "member function %(Partition::RemoveEntry, DEntry::AddTo), \
+				constructor %DEntry#5" ^ $dep_from
+				("%ystdex::retry_on_cond" @ %YBase.YStandardEx.Functional),
+			/ "simplified member function %FileInfo::TryRead"
+				^ "%ystdex::(retry_on_cond, exchange)"
+		),
+		/ %YCLib.FileIO $=
+		(
+			+ "assertion to ensure nonnull parameter" @ "function %RetryClose"
+				^ "%Nonnull",
+			* $impl "workaround not covered debug configuartions"
+				@ "platform %DS"
+				@ "member function %FileDescriptor::WriteContent" $since b635
+				// It seems this bug is related: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57899. \
+					However it should be fixed for all GCC used by YSLib then. \
+					It is unknown why only debug configurations are effected.
+				$= (/ '#if YCL_Android'
+					-> '#if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)')
+		)
+	),
+	/ %Tools $=
+	(
+		/ "concurrency tasks run" $=
+		(
+			+ "printed information when enqueueing the task",
+			* "printed too more tasks cmd line than actually executed"
+				@ %SHBuild.Main $since b539
+				// The command should be printed just before being called \
+					rather than enqueued.
+		),
+		* "missing update of installing 'include' directory for platform %Win32"
+			$since b633
+			// 'MinGW32/include' now has no files, so the path is wrong. 'Win32' \
+				is missed to deploy.
+	)
+),
+
+b635
 (
 	/ %YFramework $=
 	(

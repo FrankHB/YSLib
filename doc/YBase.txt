@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r548
+\version r554
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-09-10 21:45 +0800
+	2015-09-22 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,10 +283,16 @@ Boost.Operators 的重新实现。
 @2.4.6.14 ISO C++ 标准字符串扩展 String ：
 间接扩展了标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
-@2.4.6.15 ISO C++ <future> 扩展 Future ：
+@2.4.6.15 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+扩展了标准库头 <streambuf> 。
+
+@2.4.6.16 ISO C++ 标准输入流扩展 InputStream ：
+扩展了标准库头 <istream> 。
+
+@2.4.6.17 ISO C++ <future> 扩展 Future ：
 扩展了标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.4.6.16 伪互斥量 PseudoMutex ：
+@2.4.6.18 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，包括标准库 <mutex> 的替代。
 
 @2.4.7 其它扩展接口：

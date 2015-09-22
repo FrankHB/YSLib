@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3203
+\version r3207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-09-18 14:53 +0800
+	2015-09-20 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -346,8 +346,7 @@ public:
 	//! \since build 539
 	//@{
 	PDefH(void, CallWithException, const string& cmd, size_t n = 0) const
-		ImplExpr(PrintInfo(cmd, Debug, LogGroup::Command),
-			CheckResult(Call(cmd, n)))
+		ImplExpr(CheckResult(Call(cmd, n)))
 
 	static PDefH(void, CheckResult, int ret)
 		ImplExpr(ret == 0 ? void() : raise_exception(ret))
@@ -681,6 +680,7 @@ BuildContext::Call(const string& cmd, size_t n) const
 {
 	if(n == 0)
 		n = jobs.get_max_task_num();
+	PrintInfo(n <= 1 ? cmd : "Task enqueued.", Debug, LogGroup::Command);
 	return n <= 1 ? usystem(cmd.c_str()) : RunTask(cmd);
 }
 
@@ -698,6 +698,7 @@ BuildContext::RunTask(const string& cmd) const
 	//	implementation and optimize copy of %cmd.
 	// TODO: Reduce memory footprint.
 	futures.push_back(jobs.wait([&, cmd]{
+		PrintInfo(cmd, Debug, LogGroup::Command);
 		const int res(usystem(cmd.c_str()));
 		{
 			std::lock_guard<std::mutex> lck(job_mtx);
