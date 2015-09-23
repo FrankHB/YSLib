@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r986
+\version r1003
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-09-12 20:21 +0800
+	2015-09-24 23:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,6 +403,24 @@ DirectoryFindData::Rewind() ynothrow
 }
 
 
+size_t
+QueryFileLinks(UniqueHandle::pointer h)
+{
+	::BY_HANDLE_FILE_INFORMATION info;
+
+	YCL_CallWin32(GetFileInformationByHandle, "QueryFileLinks", h, &info);
+//	if(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+//		ProcessReparsePoint(info);
+	return size_t(info.nNumberOfLinks);
+}
+size_t
+QueryFileLinks(const wchar_t* path)
+{
+	if(const auto h = MakeFile(path))
+		return QueryFileLinks(h.get());
+	YCL_Raise_Win32Exception("CreateFileW");
+}
+
 void
 QueryFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
@@ -425,7 +443,7 @@ QueryFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 		: FileAttributesAndFlags::NormalAll))
 		QueryFileTime(h.get(), p_ctime, p_atime, p_mtime);
 	else
-		YCL_Raise_Win32Exception("CreateFileW"); 
+		YCL_Raise_Win32Exception("CreateFileW");
 }
 
 std::chrono::nanoseconds

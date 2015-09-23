@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r213
+\version r238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2015-06-29 06:40 +0800
+	2015-09-23 13:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_exception_hpp_
 #define YB_INC_ystdex_exception_hpp_ 1
 
-#include "type_op.hpp" // for ystdex::remove_cv_t;
+#include "type_op.hpp" // for remove_cv_t;
 #include <libdefect/exception.h>
 #include <stdexcept> // for std::logic_error;
 #include <memory> // for std::addressof;
@@ -58,7 +58,7 @@ iterate_exceptions(_func&& f, std::exception_ptr p = std::current_exception())
 
 /*!
 \brief 取嵌套异常指针。
-\return 若符合 \c std::rethrow_if_nested 抛出异常的条件则返回异常指针，否则为空。
+\return 若符合 std::rethrow_if_nested 抛出异常的条件则返回异常指针，否则为空。
 \since build 538
 */
 template<class _tEx>
@@ -150,22 +150,34 @@ public:
 
 
 /*!
-\brief 抛出 std::system_error 异常。
-\throw std::system_error 使用参数构造的异常。
-\since build 610
+\brief 抛出错误： std::system_error 或允许相同构造函数参数的异常。
+\throw _type 使用参数构造的异常。
+\since build 637
 */
 //@{
+template<class _type = std::system_error, typename... _tParams>
 YB_NORETURN inline void
-throw_system_error(int e, const std::error_category& ec
-	= std::generic_category()) ythrow(std::system_error)
+throw_error(std::error_code ec, _tParams&&... args)
 {
-	throw std::system_error(e, ec);
+	throw _type(ec, yforward(args)...);
 }
+template<class _type = std::system_error, typename... _tParams>
 YB_NORETURN inline void
-throw_system_error(std::errc e, const std::error_category& ec
-	= std::generic_category()) ythrow(std::system_error)
+throw_error(std::error_condition cond, _tParams&&... args)
 {
-	throw_system_error(int(e), ec);
+	throw _type(cond.value(), cond.category(), yforward(args)...);
+}
+template<class _type = std::system_error, typename... _tParams>
+YB_NORETURN inline void
+throw_error(int ev, _tParams&&... args)
+{
+	throw _type(ev, std::generic_category(), yforward(args)...);
+}
+template<class _type = std::system_error, typename... _tParams>
+YB_NORETURN inline void
+throw_error(int ev, const std::error_category& ecat, _tParams&&... args)
+{
+	throw _type(ev, ecat, yforward(args)...);
 }
 //@}
 

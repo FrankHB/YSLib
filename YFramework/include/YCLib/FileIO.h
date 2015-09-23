@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1355
+\version r1448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-22 09:29 +0800
+	2015-09-23 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,6 +83,9 @@ using mode_t = ::mode_t;
 
 /*!
 \brief 文件描述符包装类。
+\note 除非另行约定，具有无异常抛出保证的操作可能设置 errno 。
+\note 不支持的平台操作失败设置 errno 为 ENOSYS 。
+\note 以 \c int 为返回值的操作返回 \c -1 表示失败。
 \note 满足 NullablePointer 要求。
 \see ISO WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
 \since build 565
@@ -118,7 +121,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用标准流。
-	\note 对非空参数可能设置 errno 。
+	\note 对空参数不设置 errno 。
 
 	当参数为空时得到无效文件空描述符，否则调用 POSIX \c fileno 函数。
 	*/
@@ -150,18 +153,33 @@ public:
 	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
 	*/
 	//@{
-	//! \brief 取文件的访问时间。
+	//! \brief 取访问时间。
 	YF_API FileTime
 	GetAccessTime() const;
-	//! \brief 取文件的修改时间。
+	//! \since build 637
+	//@{
+	/*!
+	\brief 取旗标。
+	\note 仅支持 POSIX 平台。
+	*/
+	YF_API int
+	GetFlags() const ynothrow;
+	/*!
+	\brief 取模式。
+	\return 若失败为 0 ，否则为指定的模式。
+	*/
+	mode_t
+	GetMode() const ynothrow;
+	//@}
+	//! \brief 取修改时间。
 	YF_API FileTime
 	GetModificationTime() const;
-	//! \brief 取文件的修改和访问时间。
+	//! \brief 取修改和访问时间。
 	YF_API array<FileTime, 2>
 	GetModificationAndAccessTime() const;
 	//@}
 	/*!
-	\brief 取文件的大小。
+	\brief 取大小。
 	\return 以字节计算的文件大小。
 	\note 非常规文件可能出错。
 	\throw FileOperationFailure 参数无效或文件大小查询失败。
@@ -172,27 +190,31 @@ public:
 
 	/*!
 	\brief 设置阻塞模式。
-	\note 仅在非 Windows 平台有效。
-	\note 可能设置 errno 。
-	\return 是否进行了设置。
+	\note 仅支持 POSIX 平台。
+	\return 是否成功进行了设置。
+	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	\since build 625
 	*/
 	bool
 	SetBlocking() const ynothrow;
 	/*!
-	\brief 设置模式。
-	\note 参数和返回值意义和语义同 \c setmode 函数，在 Windows 以外的平台无作用。
-	\since build 565
+	\note 仅支持 POSIX 平台。
+	\since build 637
 	*/
-	int
-	SetMode(int) const ynothrow;
+	//@{
+	//! \brief 设置旗标。
+	bool
+	SetFlags(int) const ynothrow;
+	//! \brief 设置访问模式。
+	bool
+	SetMode(mode_t) const ynothrow;
+	//@}
 	/*!
 	\brief 设置非阻塞模式。
-	\note 仅在 POSIX 平台有效。
-	\note 对不支持非阻塞的平台， POSIX 未指定文件描述符是否忽略 \c O_NONBLOCK 。
-	\note 可能设置 errno 。
-	\return 是否进行了设置。
-	\see http://pubs.opengroup.org/onlinepubs/9699919799/ 。
+	\note 仅支持 POSIX 平台。
+	\note 对不支持非阻塞的文件描述符， POSIX 未指定是否忽略 \c O_NONBLOCK 。
+	\return 是否成功进行了设置。
+	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	\since build 624
 	*/
 	bool
@@ -208,6 +230,13 @@ public:
 	*/
 	bool
 	SetSize(size_t) ynothrow;
+	/*!
+	\brief 设置翻译模式。
+	\note 参数和返回值意义和语义同 \c setmode 函数，在忽略文本模式的平台上无作用。
+	\since build 637
+	*/
+	int
+	SetTranslationMode(int) const ynothrow;
 
 	//! \note 每次读写首先清除 errno ；读写时遇 EINTR 时继续。
 	//@{
@@ -346,7 +375,7 @@ uaccess(const char16_t* path, int amode) ynothrow;
 
 /*!
 \param filename 文件名，意义同 POSIX \c ::open 。
-\param oflag 打开标识，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
+\param oflag 打开旗标，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \since build 626
 */
@@ -631,7 +660,7 @@ private:
 				return true;
 		}
 		return {};
-	}	
+	}
 };
 
 
@@ -1094,15 +1123,55 @@ YF_API YB_NONNULL(1) std::uint64_t
 GetFileSizeOf(std::FILE*);
 
 
+//! \since build 647
+//@{
+/*!
+\brief 复制文件。
+\pre 间接断言：表示目标和源的参数非空。
+\note 第一参数表示目标，第二参数表示源。
+\note 不复制元数据。
+*/
+//@{
+YF_API void
+CopyFile(UniqueFile, FileDescriptor);
+YF_API YB_NONNULL(2) void
+CopyFile(UniqueFile, const char*);
+/*!
+\exception FileOperationFailure 打开目标失败。
+\note 最后一个参数为打开目标的模式。
+\sa EnsureUniqueFile
+*/
+//@{
+YF_API YB_NONNULL(1) void
+CopyFile(const char*, FileDescriptor, mode_t mode);
+YF_API YB_NONNULL(1, 2) void
+CopyFile(const char*, const char*, mode_t mode);
+//@}
+//@}
+
+/*!
+\brief 尝试删除指定路径的文件后再以指定路径和模式创建常规文件。
+\note 忽略目标不存在导致的删除失败。
+\throw FileOperationFailure 创建目标失败。
+*/
+YF_API YB_NONNULL(1) UniqueFile
+EnsureUniqueFile(const char*, mode_t);
+//@}
+
 /*!
 \brief 比较文件内容相等。
-\note 首先清除 errno 。
-\note 可能设置 errno 。
+\throw ThrowFileOperationFailure 文件按流打开失败。
+\note 首先清除 errno ；可能设置 errno 。
 \warning 读取失败时即截断返回，因此需要另行比较文件大小。
-\since build 636
 */
+//@{
+//! \since build 637
+YF_API YB_NONNULL(1, 2) bool
+HaveSameContents(const char*, const char*);
+//! \since build 636
 YF_API bool
 HaveSameContents(UniqueFile, UniqueFile);
+//@}
 
 } // namespace platform;
 

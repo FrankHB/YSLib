@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3883
+\version r3968
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-22 12:15 +0800
+	2015-09-24 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,89 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				- $dev "%CHRLib header dependency" $=
+				(
+					/ "inline function %ConvertToMBCS" -> "non-inline function",
+					- $revert(b538) "static assertions for %CHRLib types"
+				),
+				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+					comments" @ ("macros %(YCL_FS_StringIsCurrent, \
+					YCL_FS_StringIsParent, YCL_FS_CharIsDelimiter, \
+					YCL_FS_StringIsRoot)" $since b409, ("enum \
+					%EntryData::Offsets" $since b609, "alias %VolumeLabel"
+					$since b610) @ "namespace %platform_ex"),
+				/ $forced DLDI $dep_from %YBase.YStandardEx.Exception
+			),
+			+ '#	undef CopyFile' @ "platform %Win32" @ %NativeAPI,
+			/ %FileIO $=
+			(
+				+ "function %EnsureUniqueFile",
+				+ "4 functions %CopyFile",
+				/ DLDI "simplified throwing",
+				/ @ "class %FileDescriptor" $=
+				(
+					(
+					/ "function %SetMode" => "%SetTranslationMode";
+					+ "function %SetMode"
+					),
+					+ "functions %(GetFlags, SetFlags, GetMode)",
+					/ @ "functions %(SetBlocking, SetNonblocking)" $=
+					(
+						(
+						/ "enabled" @ 'YCL_API_POSIXFileSystem'
+							~ !"platform %Win32";
+						* $dev $doc "wrong platform description"
+							@ "function %SetNonblocking" $since b496
+						),
+						* "wrong return value" @ "%::fcntl call failed"
+							@ !"platform %Win32" $since b496,
+						/ DLDI "simplified" ^ $dep_from
+							"%(SetBlocking, SetNonblocking)",
+						/ "set %errno to %ENOSYS and return '-1'" ~ 'return 0;'
+							@ !'YCL_API_POSIXFileSystem'
+					)
+				),
+				/ DLDI @ "platform %Win32" @ "function %SetBinaryIO",
+				+ "function %HaveSameContents for 'const char*' path"
+			)
+		),
+		/ DLDI %'YCLib(DS)'.DSIO $=
+		(
+			/ "simplified member function %SectorCache::Flush"
+				@  ^ "%std::(all_of, bind)",
+			/ $forced $dep_from %YBase.YStandardEx.Exception
+		),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ "2 functions %QueryFileLinks",
+			/ "missing 'ynothorwv'" @ "function %MakeFile#4" $since b632
+		)
+	),
+	- ($re_ex(b583) @ %YSTest) "unnecessary curly braces around variables"
+		@ "build-all.sh" @ %YDE,
+	/ %YBase.YStandardEx $=
+	(
+		/ @ %Exception $=
+		(
+			/ "all 2 inline function %throw_system_error"
+				-> "3 function templates %throw_error";
+			* "wrong exception-specification" $since b610
+				// Since there is no guarantee for construction of \
+					%std::system_error, excplicit dynamic exception \
+					specification should be avoided.
+		),
+		/ $forced DLDI @ %PseudoMutex ^ $dep_from ("%throw_error" @ %Exception)
+	)
+),
+
+b636
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -75,9 +158,7 @@ $now
 			* $impl "workaround not covered debug configuartions"
 				@ "platform %DS"
 				@ "member function %FileDescriptor::WriteContent" $since b635
-				// It seems this bug is related: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57899. \
-					However it should be fixed for all GCC used by YSLib then. \
-					It is unknown why only debug configurations are effected.
+				// It is unknown why only debug configurations are effected.
 				$= (/ '#if YCL_Android'
 					-> '#if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)')
 		)
