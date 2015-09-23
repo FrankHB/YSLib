@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2926
+\version r2946
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-13 16:03 +0800
+	2015-09-23 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,20 +35,17 @@
 #include <numeric> // for std::accumulate;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
 //	ystdex::write_uint_le;
-#include <ystdex/exception.h> // for ystdex::throw_system_error,
+#include <ystdex/exception.h> // for ystdex::throw_error,
 //	std::errc::not_supported, std::errc::invalid_argument;
-#if YCL_DS
-#	include YFM_CHRLib_CharacterProcessing
-//! \since build 475
-using namespace CHRLib;
-#elif YCL_Win32
+#include "CHRLib/YModules.h"
+#include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
+#if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::MakeFile;
 #	include <time.h> // for ::localtime_s;
 
 //! \since build 549
 using platform_ex::DirectoryFindData;
 #elif YCL_API_POSIXFileSystem
-#	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
 #	include <time.h> // for ::localtime_r;
 
@@ -102,21 +99,23 @@ CreateHardLink(const char* dst, const char* src)
 		ucast(UTF8ToWCS(src).c_str()));
 #elif YCL_DS
 	yunused(dst), yunused(src);
-	ystdex::throw_system_error(std::errc::not_supported);
+	ystdex::throw_error(std::errc::not_supported);
 #else
 	if(::link(Nonnull(dst), Nonnull(src)) != 0)
-		ystdex::throw_system_error(errno);
+		ystdex::throw_error(errno);
 #endif
 }
 void
 CreateHardLink(const char16_t* dst, const char16_t* src)
 {
+	// TODO: To make the behavior specific and same as on platform %Win32, use
+	//	%::realpath on platform %Linux, etc.
 #if YCL_Win32
 	YCL_CallWin32(CreateHardLinkW, "CreateHardLink", wcast(dst), wcast(src),
 		{});
 #elif YCL_DS
 	yunused(dst), yunused(src);
-	ystdex::throw_system_error(std::errc::not_supported);
+	ystdex::throw_error(std::errc::not_supported);
 #else
 	CreateHardLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str());
 #endif
@@ -376,6 +375,14 @@ ConvertToAlias(const u16string& long_name)
 	return make_tuple(std::move(alias), std::move(ext), lossy);
 }
 
+string
+ConvertToMBCS(const char16_t* path)
+{
+	// TODO: Optimize?
+	ImplRet(ystdex::restrict_length(CHRLib::MakeMBCS(Nonnull(path),
+		MaxLength), MaxMBCSLength))
+}
+
 EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit* p) ynothrowv
 {
@@ -596,7 +603,7 @@ CheckColons(const char* path) ythrow(std::system_error)
 	{
 		path = p_col + 1;
 		if(std::strchr(path, ':'))
-			ystdex::throw_system_error(std::errc::invalid_argument);
+			ystdex::throw_error(std::errc::invalid_argument);
 	}
 	return path;
 }

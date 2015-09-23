@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r940
+\version r941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-09-07 22:35 +0800
+	2015-09-23 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -636,7 +636,7 @@ public:
 	*/
 	PDefH(void, Flush, ) ythrow(std::system_error)
 		ImplExpr(GetCacheRef().Flush() ? void()
-			: ystdex::throw_system_error(std::errc::io_error))
+			: ystdex::throw_error(std::errc::io_error))
 
 	//! \brief 移动目录项位置至下一个项。
 	bool

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1026
+\version r1046
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-09-12 20:35 +0800
+	2015-09-24 23:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,14 +52,14 @@ inline namespace Windows
 //! \since build 622
 //@{
 /*!
-\brief 转换 Win32 错误为 \c errno 。
-\return 当对应不存在时 \c EINVAL ，否则参数对应的 \c errno 。
+\brief 转换 Win32 错误为 errno 。
+\return 当对应不存在时 EINVAL ，否则参数对应的 errno 。
 \since build 633
 */
 YF_API YB_STATELESS int
 ConvertToErrno(unsigned long) ynothrow;
 
-//! \breif 取转换为 \c errno 的 Win32 错误。
+//! \breif 取转换为 errno 的 Win32 错误。
 inline PDefH(int, GetErrnoFromWin32, ) ynothrow
 	ImplRet(ConvertToErrno(::GetLastError()))
 //@}
@@ -348,9 +348,10 @@ inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	= FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
 		creation_disposition, attributes_and_flags))
+//! \since build 637
 inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAccessRights desired_access,
-	FileAttributesAndFlags attributes_and_flags)
+	FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
 //@}
@@ -517,6 +518,21 @@ public:
 
 
 /*!
+\brief 查询文件链接数。
+\since build 637
+*/
+//@{
+YF_API size_t
+QueryFileLinks(UniqueHandle::pointer);
+/*!
+\pre 间接断言：路径参数非空。
+\throw Win32Exception 访问文件失败。
+*/
+YF_API YB_NONNULL(1) size_t
+QueryFileLinks(const wchar_t*);
+//@}
+
+/*!
 \brief 查询文件的创建、访问和修改时间。
 \note 后三个参数可选，指针为空时忽略。
 \since build 629
@@ -527,7 +543,7 @@ YF_API void
 QueryFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {});
 /*!
-\pre 间接断言：路径非空。
+\pre 间接断言：路径参数非空。
 \throw Win32Exception 访问文件失败。
 \note 即使可选参数都为空指针时仍访问文件。最后参数表示跟踪重解析点。
 \since build 632

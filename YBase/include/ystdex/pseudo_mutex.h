@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r722
+\version r729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2015-06-28 06:39 +0800
+	2015-09-23 15:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,15 +28,15 @@
 #ifndef YB_INC_ystdex_pseudo_mutex_h_
 #define YB_INC_ystdex_pseudo_mutex_h_ 1
 
-#include "base.h" // for ydef.h, for noncopyable, nonmovable, std::declval;
-#include <chrono>
-#include "exception.h" // for throw_system_error, std::errc;
+#include "base.h" // for ydef.h noncopyable, nonmovable, std::declval;
+#include <chrono> // for std::chrono::duration, std::chrono::time_point;
+#include "exception.h" // for throw_error, std::errc;
 
 namespace ystdex
 {
 
 /*!
-\brief 单线程操作：保证单线程环境下接口及符合对应的 \c std 命名空间下的接口。
+\brief 单线程操作：保证单线程环境下接口及符合对应的 std 命名空间下的接口。
 \note 不包含本机类型相关的接口。
 \since build 550
 \todo 添加 ISO C++ 14 共享锁。
@@ -418,9 +418,9 @@ private:
 		using namespace std;
 
 		if(!pm)
-			throw_system_error(errc::operation_not_permitted);
+			throw_error(errc::operation_not_permitted);
 		if(owns)
-			throw_system_error(errc::resource_deadlock_would_occur);
+			throw_error(errc::resource_deadlock_would_occur);
 	}
 
 	void
@@ -493,7 +493,7 @@ public:
 	unlock() yimpl(ynothrow)
 	{
 		if(!owns)
-			throw_system_error(std::errc::operation_not_permitted);
+			throw_error(std::errc::operation_not_permitted);
 		if(pm)
 		{
 			pm->unlock();

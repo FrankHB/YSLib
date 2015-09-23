@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1071
+\version r1073
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-09-13 14:53 +0800
+	2015-09-23 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,6 +153,8 @@ UninitializeFileSystem() ynothrow;
 
 //! \ingroup name_collision_workarounds
 //@{
+//! \since build 637
+#	undef CopyFile
 //! \since build 633
 #	undef CreateHardLink
 //! \since build 297

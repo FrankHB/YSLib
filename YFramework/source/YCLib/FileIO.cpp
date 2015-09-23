@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1476
+\version r1630
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-22 11:51 +0800
+	2015-09-23 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 #include YFM_YCLib_Reference // for unique_ptr;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl, F_GETFL,
-//	O_*, ::ftruncate, ::_wgetcwd, ::getcwd and !defined(__STRICT_ANSI__) API;
+//	O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd, ::getcwd,
+//	!defined(__STRICT_ANSI__) API;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
@@ -81,6 +82,14 @@ static_assert(std::is_same<::mode_t, ystdex::underlying_type_t<Mode>>(),
 
 namespace
 {
+
+//! \since build 637
+template<typename _tParam>
+YB_NORETURN void
+ThrowFileOperationFailure(_tParam&& arg)
+{
+	ystdex::throw_error<FileOperationFailure>(errno, yforward(arg));
+}
 
 //! \since build 625
 //@{
@@ -186,11 +195,6 @@ const auto get_st_matime([](struct ::stat& st){
 
 //! \since build 632
 //@{
-int
-estat(struct ::stat& st, int fd)
-{
-	return ::fstat(fd, &st);
-}
 YB_NONNULL(2) int
 estat(struct ::stat& st, const char* path, bool follow_link)
 {
@@ -206,8 +210,13 @@ estat(struct ::stat& st, const char16_t* path, bool follow_link)
 {
 	return estat(st, MakeMBCS(path).c_str(), follow_link);
 }
-//@}
 #endif
+int
+estat(struct ::stat& st, int fd)
+{
+	return ::fstat(fd, &st);
+}
+//@}
 
 //! \since build 632
 template<typename _func, typename... _tParams>
@@ -223,17 +232,31 @@ FetchFileTime(_func f, _tParams... args)
 	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
 	// XXX: Error handling for indirect calls.
 	TryRet(f(args...))
-	CatchThrow(std::system_error& e, FileOperationFailure(e.code(), std::string(
-		"Failed querying file time: ") + e.what() + "."))
+	CatchThrow(std::system_error& e, FileOperationFailure(e.code(),
+		std::string("Failed querying file time: ") + e.what() + "."))
 #else
 	// TODO: Get more precise time count.
 	struct ::stat st;
 
 	if(estat(st, args...) == 0)
 		return f(st);
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed querying file time.");
+	ThrowFileOperationFailure("Failed querying file time.");
 #endif
+}
+
+//! \since build 637
+template<typename _type>
+void
+CopyFileForSource(_type&& ofile, const char* src)
+{
+#if YCL_Win32
+	if(UniqueFile p_ifile{uopen(src, O_RDONLY | O_BINARY)})
+#else
+	if(UniqueFile p_ifile{uopen(src, O_RDONLY)})
+#endif
+		FileDescriptor::WriteContent(yforward(ofile), p_ifile.get());
+	ThrowFileOperationFailure(
+		"Failed opening source file '" + string(src) +"'.");
 }
 
 } // unnamed namespace;
@@ -271,6 +294,23 @@ FileDescriptor::GetAccessTime() const
 {
 	return FetchFileTime(get_st_atime, desc);
 }
+int
+FileDescriptor::GetFlags() const ynothrow
+{
+#if YCL_API_POSIXFileSystem
+	return ::fcntl(desc, F_GETFL);
+#else
+	errno = ENOSYS;
+	return -1;
+#endif
+}
+mode_t
+FileDescriptor::GetMode() const ynothrow
+{
+	struct ::stat st;
+
+	return estat(st, desc) == 0 ? st.st_mode : 0;
+}
 FileTime
 FileDescriptor::GetModificationTime() const
 {
@@ -299,56 +339,62 @@ FileDescriptor::GetSize() const
 	if(::fstat(desc, &st) == 0)
 		// TODO: Use YSLib::CheckNonnegativeScalar<std::uint64_t>?
 		// XXX: No negative file size should be found. See also:
-		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed . 
+		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed .
 		return std::uint64_t(st.st_size);
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed getting file size.");
+	ThrowFileOperationFailure("Failed getting file size.");
 #endif
 }
 
 bool
 FileDescriptor::SetBlocking() const ynothrow
 {
-#if !YCL_Win32
+#if YCL_API_POSIXFileSystem
 	// NOTE: Read-modify-write operation is need for compatibility.
-	//	See. http://pubs.opengroup.org/onlinepubs/9699919799/ .
-	const int flags(::fcntl(desc, F_GETFL));
+	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html .
+	const int flags(GetFlags());
 
 	if(flags != -1 && flags & O_NONBLOCK)
-	{
-		::fcntl(desc, F_SETFL, flags & ~O_NONBLOCK);
-		return true;
-	}
+		return SetFlags(flags & ~O_NONBLOCK);
+#else
+	errno = ENOSYS;
 #endif
 	return {};
 }
-int
-FileDescriptor::SetMode(int mode) const ynothrow
+bool
+FileDescriptor::SetFlags(int flags) const ynothrow
 {
-#if YCL_Win32
-	return ::_setmode(desc, mode);
-#elif defined(_NEWLIB_VERSION) && defined(__SCLE)
-	// TODO: Other platforms.
-	return ::setmode(desc, mode);
+#if YCL_API_POSIXFileSystem
+	return ::fcntl(desc, F_SETFL, flags) != -1;
 #else
-	// NOTE: No effect.
+	// TODO: Try using NT6 %::SetFileInformationByHandle for Win32.
+	yunused(flags);
+	errno = ENOSYS;
+	return {};
+#endif
+}
+bool
+FileDescriptor::SetMode(mode_t mode) const ynothrow
+{
+#if YCL_API_POSIXFileSystem
+	return ::fchmod(desc, mode) != -1;
+#else
 	yunused(mode);
-	return 0;
+	errno = ENOSYS;
+	return {};
 #endif
 }
 bool
 FileDescriptor::SetNonblocking() const ynothrow
 {
-#if !YCL_Win32
+#if YCL_API_POSIXFileSystem
 	// NOTE: Read-modify-write operation is need for compatibility.
-	//	See. http://pubs.opengroup.org/onlinepubs/9699919799/ .
-	const int flags(::fcntl(desc, F_GETFL));
+	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html .
+	const int flags(GetFlags());
 
 	if(flags != -1 && !(flags & O_NONBLOCK))
-	{
-		::fcntl(desc, F_SETFL, flags | O_NONBLOCK);
-		return true;
-	}
+		return SetFlags(flags | O_NONBLOCK);
+#else
+	errno = ENOSYS;
 #endif
 	return {};
 }
@@ -362,6 +408,20 @@ FileDescriptor::SetSize(size_t size) ynothrow
 	//	'_FILE_OFFSET_BITS == 1'. Thus it is not safe and would better to be
 	//	ignored slightly.
 	return ::ftruncate(desc, ::off_t(size)) == 0;
+#endif
+}
+int
+FileDescriptor::SetTranslationMode(int mode) const ynothrow
+{
+#if YCL_Win32
+	return ::_setmode(desc, mode);
+#elif defined(_NEWLIB_VERSION) && defined(__SCLE)
+	// TODO: Other platforms.
+	return ::setmode(desc, mode);
+#else
+	// NOTE: No effect.
+	yunused(mode);
+	return 0;
 #endif
 }
 
@@ -408,10 +468,10 @@ FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
 
 	ystdex::retry_on_cond([&](size_t len){
 		if(len == size_t(-1))
-			throw FileOperationFailure(errno, std::generic_category(),
+			ThrowFileOperationFailure(
 				"Failed reading source file '" + to_string(*ifd) +"'.");
 		if(ofd.FullWrite(buf, len) == size_t(-1))
-			throw FileOperationFailure(errno, std::generic_category(),
+			ThrowFileOperationFailure(
 				"Failed writing destination file '" + to_string(*ofd) +"'.");
 		return len != 0;
 #if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)
@@ -449,7 +509,7 @@ void
 SetBinaryIO(std::FILE* stream) ynothrow
 {
 #if YCL_Win32
-	FileDescriptor(Nonnull(stream)).SetMode(_O_BINARY);
+	FileDescriptor(Nonnull(stream)).SetTranslationMode(_O_BINARY);
 #else
 	// NOTE: No effect.
 	Nonnull(stream);
@@ -788,18 +848,68 @@ GetFileSizeOf(std::FILE* fp)
 }
 
 
+void
+CopyFile(UniqueFile p_ofile, FileDescriptor ifd)
+{
+	FileDescriptor::WriteContent(Nonnull(p_ofile.get()), Nonnull(ifd));
+}
+void
+CopyFile(UniqueFile p_ofile, const char* src)
+{
+	CopyFileForSource(Nonnull(p_ofile.get()), src);
+}
+void
+CopyFile(const char* dst, FileDescriptor ifd, mode_t mode)
+{
+	FileDescriptor::WriteContent(EnsureUniqueFile(dst, mode).get(),
+		Nonnull(ifd));
+}
+void
+CopyFile(const char* dst, const char* src, mode_t mode)
+{
+	CopyFileForSource(EnsureUniqueFile(dst, mode).get(), src);
+}
+
+UniqueFile
+EnsureUniqueFile(const char* dst, mode_t mode)
+{
+	TryUnlink(dst);
+	if(UniqueFile p_file{uopen(dst, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL
+#if YCL_Win32
+		| O_BINARY
+#endif
+		, mode & mode_t(Mode::User))})
+		return p_file;
+	ThrowFileOperationFailure("Failed creating file '" + string(dst) +"'.");
+}
+
+bool
+HaveSameContents(const char* path_a, const char* path_b)
+{
+	filebuf fb_a, fb_b;
+
+	// FIXME: Check %st_ino.
+	errno = 0;
+	if(!fb_a.open(Nonnull(path_a), std::ios_base::in | std::ios_base::binary))
+		ThrowFileOperationFailure("Failed opening first file '" + string(path_a)
+			+"'.");
+	if(!fb_b.open(Nonnull(path_b), std::ios_base::in | std::ios_base::binary))
+		ThrowFileOperationFailure("Failed opening second file '"
+			+ string(path_b) +"'.");
+	return ystdex::streambuf_equal(fb_a, fb_b);
+}
 bool
 HaveSameContents(UniqueFile p_a, UniqueFile p_b)
 {
 	filebuf fb_a, fb_b;
 
+	// FIXME: Check %st_ino.
 	errno = 0;
+	// FIXME: Implement for streams without open-by-raw-file extension.
 	if(!fb_a.open(std::move(p_a), std::ios_base::in | std::ios_base::binary))
-		throw FileOperationFailure(errno, std::generic_category(),
-			"Failed opening first file.");
+		ThrowFileOperationFailure("Failed opening first file.");
 	if(!fb_b.open(std::move(p_b), std::ios_base::in | std::ios_base::binary))
-		throw FileOperationFailure(errno, std::generic_category(),
-			"Failed opening second file.");
+		ThrowFileOperationFailure("Failed opening second file.");
 	return ystdex::streambuf_equal(fb_a, fb_b);
 }
 

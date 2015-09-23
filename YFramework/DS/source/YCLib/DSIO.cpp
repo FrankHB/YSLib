@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2663
+\version r2728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-09-20 02:36 +0800
+	2015-09-23 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,15 @@
 
 #include "YCLib/YModules.h"
 #include YFM_DS_YCLib_DSIO // for platform::Descriptions, std::runtime_error,
-//	ystdex::throw_system_error, std::system_error, YCL_PATH_DELIMITER,
-//	YTraceDe, std::exception, ystdex::trivially_copy_n, ptrdiff_t,
-//	DISC_INTERFACE, unique_raw, ystdex::aligned_store_cast;
+//	ystdex::throw_error, std::system_error, YCL_PATH_DELIMITER, YTraceDe,
+//	std::exception, ystdex::trivially_copy_n, ptrdiff_t, DISC_INTERFACE,
+//	unique_raw, ystdex::aligned_store_cast;
 #if YCL_DS
 #	include "YSLib/Core/YModules.h"
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
 //	YSLib::FilterExceptions;
+#	include <ystdex/functional.hpp> // for std::all_of,
+//	ystdex::common_nonvoid_t, ystdex::call_for_value, ystdex::bind1;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
 //	ystdex::write_uint_le, CHRLib::ucs2_t, CHRLib::MakeUCS2LE,
@@ -43,8 +45,6 @@
 #	include YFM_YCLib_NativeAPI // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC,
 //	O_APPEND, O_CREAT, O_EXCL;
 #	include <ystdex/scope_guard.hpp> // for ystdex::guard;
-#	include <ystdex/functional.hpp> // for ystdex::common_nonvoid_t,
-//	ystdex::call_for_value, ystdex::bind1;
 #	include <sys/iosupport.h> // for ::_reent, ::size_t, ::ssize_t, ::off_t,
 //	sturct ::stat, struct ::statvfs, ::DIR_ITER, ::devoptab_t;
 #endif
@@ -138,10 +138,8 @@ bool
 SectorCache::Flush() ynothrow
 {
 	// TODO: Flush all?
-	for(auto& pr : entries)
-		if(!FlushEntry(pr))
-			return {};
-	return true;
+	return std::all_of(entries.begin(), entries.end(),
+		std::bind(&SectorCache::FlushEntry, this, std::placeholders::_1));
 }
 
 bool
@@ -211,7 +209,7 @@ namespace FAT
 //@{
 using ystdex::read_uint_le;
 using ystdex::write_uint_le;
-using ystdex::throw_system_error;
+using ystdex::throw_error;
 //! \since build 611
 //@{
 using std::system_error;
@@ -261,7 +259,7 @@ void
 CheckThrowEIO(bool b) ythrow(system_error)
 {
 	if(!YB_UNLIKELY(b))
-		throw_system_error(errc::io_error);
+		throw_error(errc::io_error);
 }
 
 inline bool
@@ -382,7 +380,7 @@ AllocationTable::AllocationTable(::sec_t start_sector, const byte* sec_buf,
 		ClusterIndex cluster_count(data_sectors_num / sectors_per_cluster);
 
 		last_cluster = cluster_count + Clusters::First - 1;
-		// TODO: Distinguish part type (e.g. FAT16B) with file system type. 
+		// TODO: Distinguish part type (e.g. FAT16B) with file system type.
 		if(cluster_count < Clusters::PerFAT12)
 			return FileSystemType::FAT12;
 		if(cluster_count < Clusters::PerFAT16)
@@ -574,7 +572,7 @@ AllocationTable::TryLinkFree(ClusterIndex c) ythrow(system_error)
 
 	if(IsValidCluster(t))
 		return t;
-	throw_system_error(errc::no_space_on_device);
+	throw_error(errc::no_space_on_device);
 }
 
 void
@@ -684,7 +682,7 @@ DEntry::DEntry(Partition& part, const NamePosition& name_pos)
 		else
 			edata.CopyLFN(long_name);
 		if(!part.IncrementPosition(pos))
-			throw_system_error(errc::io_error);
+			throw_error(errc::io_error);
 	}
 	name = name_pos[0] == name_pos[1] ? Data.GenerateAlias()
 		: LFN::ConvertToMBCS(long_name);
@@ -716,7 +714,7 @@ DEntry::DEntry(Partition& part, const char* path, const char* path_end)
 		bool found{};
 
 		if(LFN::MaxMBCSLength < dname_len)
-			throw_system_error(errc::filename_too_long);
+			throw_error(errc::filename_too_long);
 		if(dclus == part.GetRootDirCluster()
 			&& (std::strncmp(".", path, dname_len) == 0
 			|| std::strncmp("..", path, dname_len) == 0))
@@ -731,7 +729,7 @@ DEntry::DEntry(Partition& part, const char* path, const char* path_end)
 				return cont || (!Data.IsDirectory() && next_pos);
 			}, [&]() -> bool{
 				if(!QueryNextFrom(part))
-					throw_system_error(errc::no_such_file_or_directory);
+					throw_error(errc::no_such_file_or_directory);
 				try
 				{
 					if(dname_len == name.length() && ystdex::ntctsnicmp(
@@ -783,7 +781,7 @@ DEntry::DEntry(int, Partition& part, const char* path,
 		parent_clus = part.GetCWDCluster();
 		path_end = path;
 	}
-	else 
+	else
 	{
 		this->~DEntry();
 		::new(this) DEntry(part, path, path_end);
@@ -793,17 +791,17 @@ DEntry::DEntry(int, Partition& part, const char* path,
 			++path_end;
 		}
 		else
-			throw_system_error(errc::not_a_directory);
+			throw_error(errc::not_a_directory);
 	}
 	name = ystdex::rtrim(string(path_end), ' ');
 #	if 0
 	ystdex::ltrim(name, ' ');
 #	endif
 	if(YB_UNLIKELY(LFN::MaxMBCSLength < name.length()))
-		throw_system_error(errc::filename_too_long);
+		throw_error(errc::filename_too_long);
 	if(name.empty()
 		|| name.find_first_of(LFN::IllegalCharacters) != string::npos)
-		throw_system_error(errc::invalid_argument);
+		throw_error(errc::invalid_argument);
 }
 
 void
@@ -819,7 +817,7 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 	//	codes not representable in UCS-2.
 	for(const char c : name)
 		if(c < 0x20 || static_cast<unsigned char>(c) >= 0xF0)
-			throw_system_error(errc::invalid_argument);
+			throw_error(errc::invalid_argument);
 	if(!part.EntryExists(name, dclus))
 	{
 		Data.ClearAlias();
@@ -872,7 +870,7 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 							return part.EntryExists(alias, dclus);
 						}, [&]{
 							if(YB_UNLIKELY(LFN::MaxNumericTail < i))
-								throw_system_error(errc::invalid_argument);
+								throw_error(errc::invalid_argument);
 							LFN::WriteNumericTail(alias, i++);
 						});
 					}
@@ -880,7 +878,7 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 				Data.WriteAlias(alias);
 			}
 			else
-				throw_system_error(errc::invalid_argument);
+				throw_error(errc::invalid_argument);
 			alias_check_sum = LFN::GenerateAliasChecksum(Data.data());
 		}
 		FindEntryGap(part, dclus, entry_size);
@@ -920,7 +918,7 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 		}
 	}
 	else
-		throw_system_error(errc::file_exists);
+		throw_error(errc::file_exists);
 }
 
 void
@@ -993,7 +991,7 @@ DEntry::QueryNextFrom(Partition& part) ythrow(system_error)
 
 			// NOTE: See Microsoft FAT Specification Section 7.1.
 			if((ord & 0x80) != 0)
-				// NOTE: Corrupted. 
+				// NOTE: Corrupted.
 				has_long_name = {};
 			else if((ord & LFN::LastLongEntry) != 0)
 				yunseq(
@@ -1105,7 +1103,7 @@ Partition::CheckPositionForNextCluster(FilePosition& pos) ythrow(system_error)
 
 	if(YB_UNLIKELY(spc < s))
 		// NOTE: Internal error.
-		throw_system_error(errc::invalid_argument);
+		throw_error(errc::invalid_argument);
 	if(s == spc)
 	{
 		auto t(Table.QueryNext(pos.GetCluster()));
@@ -1123,7 +1121,7 @@ Partition::ChangeDir(const char* path) ythrow(system_error)
 	if(entry.Data.IsDirectory())
 		cwd_cluster = EntryGetCluster(entry.Data);
 	else
-		throw_system_error(errc::not_a_directory);
+		throw_error(errc::not_a_directory);
 }
 
 void
@@ -1295,7 +1293,7 @@ Partition::ExtendPosition(DEntryPosition& entry_pos) ythrow(system_error)
 			pos.SetCluster(c);
 		}
 		else if(root && s == Table.GetRootDirSectorsNum())
-			throw_system_error(errc::no_space_on_device);
+			throw_error(errc::no_space_on_device);
 	}
 	entry_pos = pos;
 }
@@ -1307,14 +1305,14 @@ Partition::MakeDir(const char* path) ythrow(system_error)
 	{
 		DEntry dentry(*this, path);
 
-		throw_system_error(errc::file_exists);
+		throw_error(errc::file_exists);
 	}
 	catch(system_error& e)
 	{
 		if(e.code().value() == ENOENT)
 		{
 			if(read_only)
-				throw_system_error(errc::read_only_file_system);
+				throw_error(errc::read_only_file_system);
 
 			ClusterIndex parent_clus;
 			DEntry dentry(0, *this, path, parent_clus);
@@ -1322,7 +1320,7 @@ Partition::MakeDir(const char* path) ythrow(system_error)
 			dentry.Data.Clear();
 			dentry.Data.SetDirectoryAttribute();
 			dentry.Data.WriteDateTime();
-	
+
 			auto dclus(LinkFreeClusterCleared(Clusters::Free));
 
 			dentry.Data.WriteCluster(dclus);
@@ -1340,7 +1338,7 @@ Partition::MakeDir(const char* path) ythrow(system_error)
 			// XXX: POSIX does not require %EIO here.
 			if(!YB_UNLIKELY(cache.EraseWritePartialSector(dir_sector, 0,
 				edata.data(), EntryDataSize)))
-				throw_system_error(errc::no_space_on_device);
+				throw_error(errc::no_space_on_device);
 			// NOTE: Create the double dot entry within the directory.
 			edata.SetDot(EntryData::Name + 1);
 			// NOTE: if parent directory is root then ".." always link to
@@ -1349,7 +1347,7 @@ Partition::MakeDir(const char* path) ythrow(system_error)
 				? ClusterIndex(Clusters::FAT16RootDirectory) : parent_clus);
 			if(!YB_UNLIKELY(cache.WritePartialSector(dir_sector, EntryDataSize,
 				edata.data(), EntryDataSize)))
-				throw_system_error(errc::no_space_on_device);
+				throw_error(errc::no_space_on_device);
 			Flush();
 		}
 		else
@@ -1384,7 +1382,7 @@ Partition::Rename(const char* old, const char* new_name) ythrow(system_error)
 	if(FetchPartitionFromPath(new_name) == this)
 	{
 		// FIXME: errc::invalid_argument: The old pathname names an
-		//	ancestor directory of the new pathname. 
+		//	ancestor directory of the new pathname.
 		if(!read_only)
 		{
 			DEntry old_dir_entry(*this, old);
@@ -1392,7 +1390,7 @@ Partition::Rename(const char* old, const char* new_name) ythrow(system_error)
 			{
 				DEntry new_dir_entry(*this, new_name);
 
-				throw_system_error(errc::file_exists);
+				throw_error(errc::file_exists);
 			}
 			catch(system_error& e)
 			{
@@ -1415,10 +1413,10 @@ Partition::Rename(const char* old, const char* new_name) ythrow(system_error)
 			}
 		}
 		else
-			throw_system_error(errc::read_only_file_system);
+			throw_error(errc::read_only_file_system);
 	}
 	else
-		throw_system_error(errc::cross_device_link);
+		throw_error(errc::cross_device_link);
 }
 
 void
@@ -1463,7 +1461,7 @@ Partition::RemoveEntry(const DEntry::NamePosition& np) ythrow(system_error)
 		edata[0] = EntryData::Free;
 		TryWritePartialSector(Table, name_pos[0], edata.data());
 		if(!IncrementPosition(name_pos[0]))
-			throw_system_error(errc::io_error);
+			throw_error(errc::io_error);
 	});
 }
 
@@ -1537,11 +1535,11 @@ Partition::LinkFreeClusterCleared(ClusterIndex c) ythrow(system_error)
 
 		for(size_t i(0); i < GetSectorsPerCluster(); ++i)
 			if(YB_UNLIKELY(!cache.FillSectors(Table.ClusterToSector(t) + i)))
-				throw_system_error(errc::io_error);
+				throw_error(errc::io_error);
 		if(Table.IsValidCluster(t))
 			return t;
 	}
-	throw_system_error(errc::no_space_on_device);
+	throw_error(errc::no_space_on_device);
 }
 
 void
@@ -1567,7 +1565,7 @@ Partition::Unlink(const char* path) ythrow(system_error)
 				if(dir_contents.IsDot())
 					next_entry = dir_contents.QueryNextFrom(*this);
 				else
-					throw_system_error(errc::operation_not_permitted);
+					throw_error(errc::operation_not_permitted);
 		}
 		if(Table.IsValidCluster(c) && !Table.ClearLinks(c))
 		{
@@ -1575,9 +1573,9 @@ Partition::Unlink(const char* path) ythrow(system_error)
 			Flush();
 			return;
 		}
-		throw_system_error(errc::io_error);
+		throw_error(errc::io_error);
 	}
-	throw_system_error(errc::read_only_file_system);
+	throw_error(errc::read_only_file_system);
 }
 
 void
@@ -1618,7 +1616,7 @@ DirState::DirState(const char* path) ythrow(system_error)
 	: DirState([=]() -> Partition&{
 		if(const auto p = FetchPartitionFromPath(path))
 			return *p;
-		throw_system_error(errc::no_such_device);
+		throw_error(errc::no_such_device);
 	}(), path, unique_lock<mutex>(GetPartitionRef().GetMutexRef()))
 {}
 DirState::DirState(Partition& part, const char* path, unique_lock<mutex>)
@@ -1631,7 +1629,7 @@ DirState::DirState(Partition& part, const char* path, unique_lock<mutex>)
 
 		if(dentry.Data.IsDirectory())
 			return part.EntryGetCluster(dentry.Data);
-		throw_system_error(errc::not_a_directory);
+		throw_error(errc::not_a_directory);
 	}()), current_entry(start_cluster),
 	valid_entry(current_entry.QueryNextFrom(GetPartitionRef()))
 {}
@@ -1651,7 +1649,7 @@ DirState::Iterate(char* filename, struct ::stat* filestat) ythrow(system_error)
 		valid_entry = current_entry.QueryNextFrom(part);
 	}
 	else
-		throw_system_error(errc::no_such_file_or_directory);
+		throw_error(errc::no_such_file_or_directory);
 }
 
 void
@@ -1675,11 +1673,11 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 		attr.set(WriteBit);
 		break;
 	default:
-		throw_system_error(errc::permission_denied);
+		throw_error(errc::permission_denied);
 	}
 	// NOTE: %O_CREAT when file not exist would be check later.
 	if((CanWrite() || (flags & O_TRUNC)) && part.IsReadOnly())
-		throw_system_error(errc::read_only_file_system);
+		throw_error(errc::read_only_file_system);
 
 	lock_guard<mutex> lck(part.GetMutexRef());
 	const auto do_init([&, this](DEntry& dentry){
@@ -1688,11 +1686,11 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 		// NOTE: Allow LARGEFILEs with undefined results. Make sure that the
 		//	file size can fit in the available space.
 		if((flags & O_LARGEFILE) == 0 && file_size >= (1 << 31))
-			ThrowSystemError(EFBIG);
+			throw_error(errc::file_too_large);
 #endif
 		// XXX: Extension on file level.
 		if(CanWrite() && !dentry.Data.IsWritable())
-			throw_system_error(errc::read_only_file_system);
+			throw_error(errc::read_only_file_system);
 		yunseq(part_ptr = &part,
 			start_cluster = part.EntryGetCluster(dentry.Data));
 		if((flags & O_TRUNC) != 0 && CanWrite() && start_cluster != 0)
@@ -1725,11 +1723,11 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 	try
 	{
 		DEntry dentry(part, path);
-		
+
 		if((flags & O_CREAT) != 0 && (flags & O_EXCL) != 0)
-			throw_system_error(errc::file_exists);
+			throw_error(errc::file_exists);
 		if(dentry.Data.IsDirectory() && CanWrite())
-			throw_system_error(errc::is_a_directory);
+			throw_error(errc::is_a_directory);
 		do_init(dentry);
 	}
 	catch(system_error& e)
@@ -1753,10 +1751,10 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 					do_init(dentry);
 				}
 				else
-					throw_system_error(errc::read_only_file_system);
+					throw_error(errc::read_only_file_system);
 			}
 			else
-				throw_system_error(errc::no_such_file_or_directory);
+				throw_error(errc::no_such_file_or_directory);
 		}
 		else
 			throw;
@@ -1952,7 +1950,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 			if(remain == 0 && t == Clusters::EndOfFile)
 				pos.SetSector(part.GetSectorsPerCluster());
 			else if(!part.Table.IsValidCluster(t))
-				throw_system_error(errc::io_error);
+				throw_error(errc::io_error);
 			else
 				pos = {t, 0, pos.GetByte()};
 		}
@@ -1976,7 +1974,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 			if(remain == 0 && next_start == Clusters::EndOfFile)
 				pos = {chunk_end, part.GetSectorsPerCluster(), pos.GetByte()};
 			else if(!part.Table.IsValidCluster(next_start))
-				throw_system_error(errc::io_error);
+				throw_error(errc::io_error);
 			else
 				pos = {next_start, 0, pos.GetByte()};
 		}
@@ -1999,7 +1997,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 		}
 		nbyte -= remain;
 		yunseq(rw_position = pos, current_position += nbyte);
-		return nbyte;		
+		return nbyte;
 	}
 	return 0;
 }
@@ -2020,7 +2018,7 @@ FileInfo::TrySeek(::off_t offset, int whence) ythrow(system_error)
 		new_pos += ::off_t(file_size);
 		break;
 	default:
-		throw_system_error(errc::invalid_argument);
+		throw_error(errc::invalid_argument);
 	}
 
 	auto& part(GetPartitionRef());
@@ -2064,16 +2062,16 @@ FileInfo::TrySeek(::off_t offset, int whence) ythrow(system_error)
 						rw_position = {rw_position.GetCluster(),
 							part.GetSectorsPerCluster(), 0};
 					else
-						throw_system_error(errc::invalid_argument);
+						throw_error(errc::invalid_argument);
 				}
 				rw_position.SetCluster(cluster);
 			}
 			current_position = pos;
 			return pos;
 		}
-		throw_system_error(errc::invalid_argument);
+		throw_error(errc::invalid_argument);
 	}
-	throw_system_error(errc::value_too_large);
+	throw_error(errc::value_too_large);
 }
 
 ::ssize_t
@@ -2253,9 +2251,9 @@ op_path(::_reent* r, const char*& path, _func f) ynothrowv
 				return f(*p_part);
 			}
 			// XXX: This is not POSIX error.
-			throw_system_error(std::errc::no_such_device);
+			throw_error(std::errc::no_such_device);
 		}
-		throw_system_error(ENOENT);
+		throw_error(ENOENT);
 	});
 }
 
@@ -2308,7 +2306,7 @@ op_file_locked(::_reent* r, int fd, _func f, _fCheck check = check_true)
 
 			return f(file);
 		}
-		throw_system_error(errc::bad_file_descriptor);
+		throw_error(errc::bad_file_descriptor);
 	});
 }
 

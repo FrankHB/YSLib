@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2459
+\version r2489
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-09-18 14:30 +0800
+	2015-09-22 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,6 @@
 //	ystdex::string_length, std::is_integral, std::is_array,
 //	ystdex::remove_reference_t, arrlen, string, std::uint8_t,
 //	std::uint32_t, pair, tuple, u16string, ystdex::restrict_length;
-#include "CHRLib/YModules.h"
-#include YFM_CHRLib_CharacterProcessing // for CHRLib::ucs2_t, CHRLib::ucs4_t,
-//	CHRLib::CharSet::Encoding, CHRLib::MakeMBCS;
 #include <ystdex/cstring.h> // for ystdex::is_null;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
@@ -45,32 +42,19 @@
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 #include <ctime> // for std::time_t;
 #include YFM_YCLib_Debug // for Nonnull;
+#include <ystdex/cstdint.hpp> // for ystdex::read_uint_le;
 
 namespace platform
 {
 
-//! \since build 538
-//@{
-static_assert(std::is_same<CHRLib::ucs2_t, char16_t>(),
-	"Wrong character type found.");
-static_assert(std::is_same<CHRLib::ucs4_t, char32_t>(),
-	"Wrong character type found.");
-#if YCL_Win32
-static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
-	"Wrong character type found.");
-static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
-	"Inconsistent alignment between character types found.");
-#endif
-//@}
-
-/*
+/*!
 \brief 判断字符串是否是当前路径。
 \since build 409
 */
 #define YCL_FS_StringIsCurrent(_s, _p) \
 	(ystdex::string_length(_s) == 1 && _s[0] == YPP_Concat(_p, '.'))
 
-/*
+/*!
 \brief 判断字符串是否是父目录。
 \since build 409
 */
@@ -78,13 +62,13 @@ static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
 	(ystdex::string_length(_s) == 2 \
 	&& _s[0] == YPP_Concat(_p, '.') && _s[1] == YPP_Concat(_p, '.'))
 
-/*
+/*!
 \def YCL_FS_CharIsDelimiter
 \brief 判断字符是否路径分隔符。
 \since build 409
 */
 
-/*
+/*!
 \def YCL_FS_StringIsRoot
 \brief 判断字符是否表示根目录路径。
 \since build 409
@@ -515,7 +499,7 @@ enum BPB : size_t
 
 } // inline namespace FAT32;
 
-/*
+/*!
 \brief 卷标数据类型。
 \see Microsoft FAT Specification Section 3.2 。
 \since build 610
@@ -716,10 +700,8 @@ inline PDefH(size_t, FetchLongNameOffset, EntryDataUnit ord) ynothrow
 \brief 转换 UCS-2 路径字符串为多字节字符串。
 \since build 610
 */
-inline PDefH(string, ConvertToMBCS, const char16_t* path)
-	// TODO: Optimize?
-	ImplRet(ystdex::restrict_length(CHRLib::MakeMBCS(Nonnull(path),
-		MaxLength), MaxMBCSLength))
+YF_API string
+ConvertToMBCS(const char16_t* path);
 
 /*!
 \brief 生成别名校验和。
@@ -752,9 +734,9 @@ class YF_API EntryData final : private array<EntryDataUnit, EntryDataSize>
 {
 public:
 	using Base = array<EntryDataUnit, EntryDataSize>;
-	/*
+	/*!
 	\brief 目录项偏移量。
-	\sa Microsoft FAT specification Section 6 。
+	\see Microsoft FAT specification Section 6 。
 	*/
 	enum Offsets : size_t
 	{
@@ -773,7 +755,7 @@ public:
 		Cluster = 0x1A,
 		FileSize = 0x1C
 	};
-	//! \sa Microsoft FAT specification Section 6.1 。
+	//! \see Microsoft FAT specification Section 6.1 。
 	enum : EntryDataUnit
 	{
 		Last = 0x00,
@@ -845,7 +827,7 @@ public:
 \brief 检查参数指定的 MS-DOS 风格路径冒号。
 \pre 间接断言：参数非空。
 \exception std::system_error 检查失败。
-	\li \c std::errc::invalid_argument 路径有超过一个冒号。
+	\li std::errc::invalid_argument 路径有超过一个冒号。
 \since build 611
 */
 YF_API YB_NONNULL(1) const char*
