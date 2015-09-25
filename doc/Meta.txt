@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1432
+\version r1448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-09-06 13:36 +0800
+	2015-09-24 13:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ $since; // first revision involved;
 
 // Project stakeholders:
 $dev; // issues concerned by developers, which end-users could ignore without \
-	risk if the code with no undefined behavior (including compile-time \
+	risk if the code with no undefined behavior (including ahead-of-time build \
 	characteristics such as static assertions but not runtime observative \
 	behaviors like runtime assertions);
 $lib; // issues only concerned with library as one of following cases:
@@ -343,6 +343,21 @@ OpenImageIO(http://www.openimageio.org/): tentatively rejected.
 		It is in doubt to shrink without giving up some functionality.
 	It is lacks of GIF support, which is used by YFramework.
 		So at least at current, it can not replace FreeImage.
+// $2015-09.
+dep.merge:
+libwibble(https://packages.debian.org/sid/libwibble-dev): tentatively rejected.
+	This is a package about some general/low-level C++ utilities for developers.
+	The interface is not up-to-date to modern C++ style.
+	The functinoality should be covered by YBase and YFramework.YCLib intentionally, though most of them are not done yet.	
+folly(https://github.com/facebook/folly): tentatively rejected.
+	Though used productively and is under actively development, this library is not fit for YSLib as a dependency.
+		The API design is awful.
+			Too many functionality overlapped with the standard library, with less obvious design principles.
+			Too many direct use of strongly coupled specific types in function signatures (e.g. explicit 'std::string').
+		The quality of impelementation is not competitive.
+		It relies on a subset of boost.
+			Boost is rejected basically because it is too large. This subset is still considered large engough to be rejected.
+			Though some equivalent API of them are of parts of YBase (e.g. boost.operators), it is too tricky to maintain.
 
 
 todo.ceased:

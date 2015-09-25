@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1630
+\version r1757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-23 22:36 +0800
+	2015-09-25 11:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,9 @@
 #include YFM_YCLib_Debug // for Nonnull, ystdex::temporary_buffer;
 #include YFM_YCLib_Reference // for unique_ptr;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
-//	Mode, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl, F_GETFL,
-//	O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd, ::getcwd,
-//	!defined(__STRICT_ANSI__) API;
+//	Mode, ::HANDLE, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl,
+//	F_GETFL, _O_*, O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd,
+//	::getcwd, !defined(__STRICT_ANSI__) API;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
@@ -49,14 +49,15 @@ using namespace CHRLib;
 //	available if it is really being used.
 #		undef _fileno
 #	endif
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::QueryFileTime,
-//	platform_ex::UniqueHandle, platform::WCSToMBCS, platform_ex::UTF8ToWCS,
-//	platform_ex::ConvertTime, platform_ex::GetErrnoFromWin32;
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::QueryFileNodeID,
+//	platform_ex::QueryFileTime, platform::WCSToMBCS, platform_ex::UTF8ToWCS,
+//	platform_ex::ConvertTime, platform_ex::QueryFileLinks,
+//	platform_ex::GetErrnoFromWin32;
 
 //! \since build 632
 //@{
+using platform_ex::QueryFileNodeID;
 using platform_ex::QueryFileTime;
-using platform_ex::UniqueHandle;
 using platform_ex::WCSToMBCS;
 //! \since build 540
 using platform_ex::UTF8ToWCS;
@@ -137,8 +138,7 @@ void
 QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
 {
-	QueryFileTime(platform_ex::UniqueHandle::pointer(
-		::_get_osfhandle(fd)), p_ctime, p_atime, p_mtime);
+	QueryFileTime(::HANDLE(::_get_osfhandle(fd)), p_ctime, p_atime, p_mtime);
 }
 
 // TODO: Use ISO C++14 generic lambda expressions.
@@ -193,6 +193,26 @@ const auto get_st_matime([](struct ::stat& st){
 });
 //@}
 
+//! \since build 638
+//@{
+static_assert(std::is_integral<::dev_t>(),
+	"Nonconforming '::dev_t' type found.");
+static_assert(std::is_unsigned<::ino_t>(),
+	"Nonconforming '::ino_t' type found.");
+
+FileNodeID
+get_file_node_id(struct ::stat& st)
+{
+	return {std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)};
+}
+
+YB_NONNULL(2) int
+cstat(struct ::stat& st, const char* path)
+{
+	return ::stat(Nonnull(path), &st);
+}
+//@}
+
 //! \since build 632
 //@{
 YB_NONNULL(2) int
@@ -200,7 +220,7 @@ estat(struct ::stat& st, const char* path, bool follow_link)
 {
 #	if YCL_DS
 	yunused(follow_link);
-	return ::stat(Nonnull(path), &st);
+	return cstat(st, path);
 #	else
 	return (follow_link ? ::stat : ::lstat)(Nonnull(path), &st);
 #	endif
@@ -250,13 +270,14 @@ void
 CopyFileForSource(_type&& ofile, const char* src)
 {
 #if YCL_Win32
-	if(UniqueFile p_ifile{uopen(src, O_RDONLY | O_BINARY)})
+	if(UniqueFile p_ifile{uopen(src, _O_RDONLY | _O_BINARY)})
 #else
 	if(UniqueFile p_ifile{uopen(src, O_RDONLY)})
 #endif
 		FileDescriptor::WriteContent(yforward(ofile), p_ifile.get());
-	ThrowFileOperationFailure(
-		"Failed opening source file '" + string(src) +"'.");
+	else
+		ThrowFileOperationFailure(
+			"Failed opening source file '" + string(src) + "'.");
 }
 
 } // unnamed namespace;
@@ -271,6 +292,12 @@ MakePathString(const char16_t* s)
 	return MakeMBCS(s);
 #endif
 }
+
+
+// XXX: Catch %std::bad_alloc?
+#define YCL_Impl_RetTryCatchAll(...) \
+	TryRet(__VA_ARGS__) \
+	CatchIgnore(...)
 
 
 void
@@ -321,6 +348,35 @@ FileDescriptor::GetModificationAndAccessTime() const
 {
 	return FetchFileTime(get_st_matime, desc);
 }
+FileNodeID
+FileDescriptor::GetNodeID() const ynothrow
+{
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(QueryFileNodeID(::HANDLE(::_get_osfhandle(desc))))
+#else
+	struct ::stat st;
+
+	if(estat(st, desc) == 0)
+		return get_file_node_id(st);
+#endif
+	return FileNodeID();
+}
+size_t
+FileDescriptor::GetNumberOfLinks() const ynothrow
+{
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(
+		platform_ex::QueryFileLinks(::HANDLE(::_get_osfhandle(desc))))
+#else
+	struct ::stat st;
+	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
+		"Unsupported '::nlink_t' type found.");
+
+	if(estat(st, desc) == 0)
+		return size_t(st.st_nlink);
+#endif
+	return size_t();
+}
 std::uint64_t
 FileDescriptor::GetSize() const
 {
@@ -336,7 +392,7 @@ FileDescriptor::GetSize() const
 #else
 	struct ::stat st;
 
-	if(::fstat(desc, &st) == 0)
+	if(estat(st, desc) == 0)
 		// TODO: Use YSLib::CheckNonnegativeScalar<std::uint64_t>?
 		// XXX: No negative file size should be found. See also:
 		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed .
@@ -445,6 +501,14 @@ FileDescriptor::FullWrite(const void* buf, size_t nbyte) ynothrowv
 		_1, _2), p_buf, nbyte) - p_buf);
 }
 
+bool
+FileDescriptor::NodeCompare(FileDescriptor x, FileDescriptor y) ynothrow
+{
+	const auto id(x.GetNodeID());
+
+	return id != FileNodeID() && id == y.GetNodeID();
+}
+
 size_t
 FileDescriptor::Read(void* buf, size_t nbyte) ynothrowv
 {
@@ -469,10 +533,10 @@ FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
 	ystdex::retry_on_cond([&](size_t len){
 		if(len == size_t(-1))
 			ThrowFileOperationFailure(
-				"Failed reading source file '" + to_string(*ifd) +"'.");
+				"Failed reading source file '" + to_string(*ifd) + "'.");
 		if(ofd.FullWrite(buf, len) == size_t(-1))
 			ThrowFileOperationFailure(
-				"Failed writing destination file '" + to_string(*ofd) +"'.");
+				"Failed writing destination file '" + to_string(*ofd) + "'.");
 		return len != 0;
 #if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)
 	// TODO: Use newer G++ to get away with the workaround.
@@ -494,7 +558,7 @@ FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
 
 
 mode_t
-GetDefaultPermissionMode() ynothrow
+DefaultPMode() ynothrow
 {
 #if YCL_Win32
 	// XXX: For compatibility with newer version of MSVCRT, no %_umask call
@@ -568,11 +632,6 @@ omode_convb(std::ios_base::openmode mode)
 #endif
 }
 
-
-// XXX: Catch %std::bad_alloc?
-#define YCL_Impl_RetTryCatchAll(...) \
-	TryRet(__VA_ARGS__) \
-	CatchIgnore(...)
 
 int
 uaccess(const char* path, int amode) ynothrow
@@ -874,43 +933,88 @@ UniqueFile
 EnsureUniqueFile(const char* dst, mode_t mode)
 {
 	TryUnlink(dst);
-	if(UniqueFile p_file{uopen(dst, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL
+	if(UniqueFile p_file{uopen(dst, 
 #if YCL_Win32
-		| O_BINARY
+		_O_WRONLY | _O_CREAT | _O_TRUNC | _O_EXCL | _O_BINARY
+#else
+		O_WRONLY | O_CREAT | O_TRUNC | O_EXCL
 #endif
 		, mode & mode_t(Mode::User))})
 		return p_file;
-	ThrowFileOperationFailure("Failed creating file '" + string(dst) +"'.");
+	ThrowFileOperationFailure("Failed creating file '" + string(dst) + "'.");
 }
 
 bool
 HaveSameContents(const char* path_a, const char* path_b)
 {
+	return HaveSameContents(string(Nonnull(path_a)), string(Nonnull(path_b)));
+}
+bool
+HaveSameContents(const string& path_a, const string& path_b)
+{
 	filebuf fb_a, fb_b;
 
-	// FIXME: Check %st_ino.
 	errno = 0;
-	if(!fb_a.open(Nonnull(path_a), std::ios_base::in | std::ios_base::binary))
-		ThrowFileOperationFailure("Failed opening first file '" + string(path_a)
-			+"'.");
-	if(!fb_b.open(Nonnull(path_b), std::ios_base::in | std::ios_base::binary))
-		ThrowFileOperationFailure("Failed opening second file '"
-			+ string(path_b) +"'.");
+	// FIXME: Blocked. TOCTTOU access.
+	if(IsNodeShared(path_a.c_str(), path_b.c_str()))
+		return true;
+	if(!fb_a.open(path_a, std::ios_base::in | std::ios_base::binary))
+		ThrowFileOperationFailure("Failed opening first file '" + path_a
+			+ "'.");
+	if(!fb_b.open(path_b, std::ios_base::in | std::ios_base::binary))
+		ThrowFileOperationFailure("Failed opening second file '" + path_b +
+			"'.");
+	// XXX: Check opened file identity here?
 	return ystdex::streambuf_equal(fb_a, fb_b);
 }
 bool
 HaveSameContents(UniqueFile p_a, UniqueFile p_b)
 {
+	errno = 0;
+	if(IsNodeShared(Nonnull(p_a).get(), Nonnull(p_b).get()))
+		return true;
+
 	filebuf fb_a, fb_b;
 
-	// FIXME: Check %st_ino.
-	errno = 0;
 	// FIXME: Implement for streams without open-by-raw-file extension.
 	if(!fb_a.open(std::move(p_a), std::ios_base::in | std::ios_base::binary))
 		ThrowFileOperationFailure("Failed opening first file.");
 	if(!fb_b.open(std::move(p_b), std::ios_base::in | std::ios_base::binary))
 		ThrowFileOperationFailure("Failed opening second file.");
 	return ystdex::streambuf_equal(fb_a, fb_b);
+}
+
+bool
+IsNodeShared(const char* a, const char* b) ynothrow
+{
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(QueryFileNodeID(
+		UTF8ToWCS(a).c_str()) == QueryFileNodeID(UTF8ToWCS(b).c_str()))
+	return {};
+#else
+	struct ::stat st;
+
+	if(cstat(st, a) != 0)
+		return {};
+
+	const auto id(get_file_node_id(st));
+
+	if(cstat(st, b) != 0)
+		return {};
+
+	return IsNodeShared(id, get_file_node_id(st));
+#endif
+}
+bool
+IsNodeShared(const char16_t* a, const char16_t* b) ynothrow
+{
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(
+		QueryFileNodeID(wcast(a)) == QueryFileNodeID(wcast(b)))
+	return {};
+#else
+	return IsNodeShared(MakeMBCS(a).c_str(), MakeMBCS(b).c_str());
+#endif
 }
 
 } // namespace platform;

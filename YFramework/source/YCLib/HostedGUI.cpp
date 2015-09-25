@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1499
+\version r1552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-09-12 12:44 +0800
+	2015-09-24 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ GDIObjectDelete::operator()(pointer h) const ynothrow
 	static_assert(std::is_same<pointer, ::HGDIOBJ>::value,
 		"Mismatched type found.");
 
-	YCL_CallWin32_Trace(DeleteObject, "GDIObjectDelete::operator()", h);
+	YCL_CallWin32F_Trace(DeleteObject, h);
 }
 #	endif
 
@@ -88,18 +88,18 @@ CheckStride(SDst buf_stride, SDst w)
 void
 MoveWindow(::HWND h_wnd, SPos x, SPos y)
 {
-	YCL_CallWin32(SetWindowPos, "MoveWindow", h_wnd, {},
-		x, y, 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
-		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
+	YCL_CallWin32F(SetWindowPos, h_wnd, {}, x, y, 0, 0, SWP_ASYNCWINDOWPOS
+		| SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING
+		| SWP_NOSIZE | SWP_NOZORDER);
 }
 
 //! \since build 388
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
-	YCL_CallWin32(SetWindowPos, "ResizeWindow", h_wnd, {},
-		0, 0, int(w), int(h), SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE
-		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
+	YCL_CallWin32F(SetWindowPos, h_wnd, {}, 0, 0, int(w), int(h),
+		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER
+		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 
 //! \since build 427
@@ -108,7 +108,7 @@ FetchWindowRect(::HWND h_wnd)
 {
 	::RECT rect;
 
-	YCL_CallWin32(GetWindowRect, "FetchWindowRect", h_wnd, &rect);
+	YCL_CallWin32F(GetWindowRect, h_wnd, &rect);
 	return rect;
 }
 
@@ -138,8 +138,7 @@ FetchWindowStyle(::HWND h_wnd)
 void
 AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 {
-	YCL_CallWin32(AdjustWindowRect, "AdjustWindowBounds", &rect,
-		FetchWindowStyle(h_wnd), b_menu);
+	YCL_CallWin32F(AdjustWindowRect, &rect, FetchWindowStyle(h_wnd), b_menu);
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
 }
@@ -148,8 +147,8 @@ AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 void
 SetWindowBounds(::HWND h_wnd, int x, int y, SDst w, SDst h)
 {
-	YCL_CallWin32(SetWindowPos, "SetWindowBounds", h_wnd, {}, x, y, int(w),
-		int(h), SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
+	YCL_CallWin32F(SetWindowPos, h_wnd, {}, x, y, int(w), int(h),
+		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
 		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 //@}
@@ -240,8 +239,7 @@ WindowReference::GetClientLocation() const
 {
 	::POINT point{0, 0};
 
-	YCL_CallWin32(ClientToScreen, "WindowReference::GetClientLocation",
-		GetNativeHandle(), &point);
+	YCL_CallWin32F(ClientToScreen, GetNativeHandle(), &point);
 	return {point.x, point.y};
 }
 Size
@@ -249,8 +247,7 @@ WindowReference::GetClientSize() const
 {
 	::RECT rect;
 
-	YCL_CallWin32(GetClientRect, "WindowReference::GetClientSize",
-		GetNativeHandle(), &rect);
+	YCL_CallWin32F(GetClientRect, GetNativeHandle(), &rect);
 	return {rect.right, rect.bottom};
 }
 Point
@@ -258,10 +255,8 @@ WindowReference::GetCursorLocation() const
 {
 	::POINT cursor;
 
-	YCL_CallWin32(GetCursorPos, "WindowReference::GetCursorLocation",
-		&cursor);
-	YCL_CallWin32(ScreenToClient, "WindowReference::GetCursorLocation",
-		GetNativeHandle(), &cursor);
+	YCL_CallWin32F(GetCursorPos, &cursor);
+	YCL_CallWin32F(ScreenToClient, GetNativeHandle(), &cursor);
 	return {cursor.x, cursor.y};
 }
 Point
@@ -276,8 +271,7 @@ WindowReference::GetOpacity() const
 {
 	byte a;
 
-	YCL_CallWin32(GetLayeredWindowAttributes,
-		"WindowReference::GetOpacity", GetNativeHandle(), {}, &a, {});
+	YCL_CallWin32F(GetLayeredWindowAttributes, GetNativeHandle(), {}, &a, {});
 	return a;
 }
 Size
@@ -305,8 +299,8 @@ WindowReference::SetClientBounds(const Rect& r)
 void
 WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
 {
-	YCL_CallWin32(SetLayeredWindowAttributes,
-		"WindowReference::SetOpacity", GetNativeHandle(), 0, a, LWA_ALPHA);
+	YCL_CallWin32F(SetLayeredWindowAttributes, GetNativeHandle(), 0, a,
+		LWA_ALPHA);
 }
 WindowReference
 WindowReference::GetParent() const
@@ -318,22 +312,19 @@ WindowReference::GetParent() const
 void
 WindowReference::SetText(const wchar_t* str)
 {
-	YCL_CallWin32(SetWindowTextW, "WindowReference::SetText",
-		GetNativeHandle(), str);
+	YCL_CallWin32F(SetWindowTextW, GetNativeHandle(), str);
 }
 
 void
 WindowReference::Close()
 {
-	YCL_CallWin32(SendNotifyMessageW, "WindowReference::Close",
-		GetNativeHandle(), WM_CLOSE, 0, 0);
+	YCL_CallWin32F(SendNotifyMessageW, GetNativeHandle(), WM_CLOSE, 0, 0);
 }
 
 void
 WindowReference::Invalidate()
 {
-	YCL_CallWin32(InvalidateRect, "WindowReference::Invalidate",
-		GetNativeHandle(), {}, {});
+	YCL_CallWin32F(InvalidateRect, GetNativeHandle(), {}, {});
 }
 
 void
@@ -414,8 +405,8 @@ CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 		"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
 		sizeof(Pixel) * s.Width * s.Height), 0, 0, 0, 0}, {}};
 	void* p_buf{};
-	const auto h(YCL_CallWin32(CreateDIBSection, "ScreenBuffer::ScreenBuffer",
-		{}, &bmi, DIB_RGB_COLORS, &p_buf, {}, 0));
+	const auto h(YCL_CallWin32F(CreateDIBSection, {}, &bmi, DIB_RGB_COLORS,
+		&p_buf, {}, 0));
 
 	if(YB_LIKELY(p_buf))
 		p_buffer = static_cast<BitmapPtr>(p_buf);
@@ -643,9 +634,8 @@ WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 {
 	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
 
-	YCL_CallWin32_Trace(BitBlt, "WindowMemorySurface::UpdateBounds", h_owner_dc,
-		int(r.X), int(r.Y), int(r.Width), int(r.Height), h_mem_dc, int(sp.X),
-		int(sp.Y), SRCCOPY);
+	YCL_CallWin32F_Trace(BitBlt, h_owner_dc, int(r.X), int(r.Y), int(r.Width),
+		int(r.Height), h_mem_dc, int(sp.X), int(sp.Y), SRCCOPY);
 	::SelectObject(h_mem_dc, h_old);
 }
 
@@ -660,8 +650,7 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 	::POINT ptx{pt.X, pt.Y};
 	::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
 
-	YCL_CallWin32_Trace(UpdateLayeredWindow,
-		"WindowMemorySurface::UpdatePremultiplied", h_wnd, h_owner_dc,
+	YCL_CallWin32F_Trace(UpdateLayeredWindow, h_wnd, h_owner_dc,
 		ystdex::aligned_store_cast<::POINT*>(&rect), &size, h_mem_dc, &ptx, 0,
 		&bfunc, ULW_ALPHA);
 	::SelectObject(h_mem_dc, h_old);
@@ -706,12 +695,12 @@ WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
 		::LoadCursorW({}, IDC_ARROW), h_bg, nullptr, Nonnull(class_name)})
 {}
 WindowClass::WindowClass(const ::WNDCLASSW& wc)
-	: WindowClass(wc.lpszClassName, YCL_CallWin32(RegisterClassW,
-	"WindowClass::WindowClass", &wc), wc.hInstance)
+	: WindowClass(wc.lpszClassName, YCL_CallWin32F(RegisterClassW, &wc),
+	wc.hInstance)
 {}
 WindowClass::WindowClass(const ::WNDCLASSEXW& wc)
-	: WindowClass(wc.lpszClassName, YCL_CallWin32(RegisterClassExW,
-	"WindowClass::WindowClass", &wc), wc.hInstance)
+	: WindowClass(wc.lpszClassName, YCL_CallWin32F(RegisterClassExW, &wc),
+	wc.hInstance)
 {}
 WindowClass::WindowClass(const wstring& class_name,
 	unsigned short class_atom, ::HINSTANCE h_inst)
@@ -728,7 +717,7 @@ WindowClass::~WindowClass()
 	FilterExceptions([this]{
 		YTraceDe(Notice, "Window class '%s' of atom '%hu' unregistered.",
 			name.empty() ? "<unknown>" : WCSToUTF8(name).c_str(), atom);
-	}, "WindowClass::~WindowClass");
+	}, yfsig);
 }
 #	endif
 
@@ -754,23 +743,21 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 	wchar_t buf[arrlen(WindowClassName)];
 
-	YCL_CallWin32(GetClassNameW, "HostWindow::HostWindow", GetNativeHandle(),
-		buf, arrlen(WindowClassName));
+	YCL_CallWin32F(GetClassNameW, GetNativeHandle(), buf,
+		arrlen(WindowClassName));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
 	if(YB_UNLIKELY(::SetWindowLongPtrW(GetNativeHandle(), GWLP_USERDATA,
 		::LONG_PTR(this)) == 0 && GetLastError() != 0))
 		YCL_Raise_Win32Exception("SetWindowLongPtrW");
-	YCL_CallWin32(SetWindowPos, "HostWindow::HostWindow",
-		GetNativeHandle(), {}, 0, 0, 0, 0,
+	YCL_CallWin32F(SetWindowPos, GetNativeHandle(), {}, 0, 0, 0, 0,
 		SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW
 		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
 
 	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
 
-	YCL_CallWin32(RegisterRawInputDevices, "HostWindow::HostWindow",
-		&rid, 1, sizeof(rid));
+	YCL_CallWin32F(RegisterRawInputDevices, &rid, 1, sizeof(rid));
 	MessageMap[WM_DESTROY] += []{
 		::PostQuitMessage(0);
 	};
@@ -808,11 +795,11 @@ HostWindow::MapPoint(const Point& pt) const
 Clipboard::Clipboard(NativeWindowHandle h_wnd)
 {
 	// FIXME: Spin for remote desktops?
-	YCL_CallWin32(OpenClipboard, "Clipboard::Clipboard", h_wnd);
+	YCL_CallWin32F(OpenClipboard, h_wnd);
 }
 Clipboard::~Clipboard()
 {
-	YCL_CallWin32_Trace(CloseClipboard, "Clipboard::~Clipboard", );
+	YCL_CallWin32F_Trace(CloseClipboard, );
 }
 
 bool
@@ -824,13 +811,13 @@ Clipboard::IsAvailable(FormatType fmt) ynothrow
 void
 Clipboard::CheckAvailable(FormatType fmt)
 {
-	YCL_CallWin32(IsClipboardFormatAvailable, "Clipboard::CheckAvailable", fmt);
+	YCL_CallWin32F(IsClipboardFormatAvailable, fmt);
 }
 
 void
 Clipboard::Clear() ynothrow
 {
-	YCL_CallWin32_Trace(EmptyClipboard, "Clipboard::Clear", );
+	YCL_CallWin32F_Trace(EmptyClipboard, );
 }
 
 NativeWindowHandle
@@ -906,7 +893,7 @@ void
 Clipboard::SendRaw(FormatType fmt, void* h)
 {
 	Clear();
-	YCL_CallWin32(SetClipboardData, "Clipboard::SendRaw", fmt, h);
+	YCL_CallWin32F(SetClipboardData, fmt, h);
 }
 
 

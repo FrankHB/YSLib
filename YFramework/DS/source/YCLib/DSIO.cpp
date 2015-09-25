@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2728
+\version r2729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-09-23 13:03 +0800
+	2015-09-24 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1092,7 +1092,7 @@ Partition::~Partition()
 		}
 		if(GetFileSystemType() == FileSystemType::FAT32)
 			WriteFSInfo();
-	}, "Partition::~Partition", Warning);
+	}, yfsig, Warning);
 }
 
 void

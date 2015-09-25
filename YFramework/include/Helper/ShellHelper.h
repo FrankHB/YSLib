@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1889
+\version r1891
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-05-29 19:25 +0800
+	2015-09-25 11:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,10 +231,10 @@ yconstexpr const char* const DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
 \since build 307
 */
 //@{
-YF_API const char*
+YF_API YB_ATTR(returns_nonnull) const char*
 TranslateTime(const std::tm&, const char* = DefaultTimeFormat);
 //! \since build 563
-YF_API const char*
+YF_API YB_ATTR(returns_nonnull) const char*
 TranslateTime(const std::time_t&, const char* = DefaultTimeFormat);
 //@}
 
