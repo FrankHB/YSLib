@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r3968
+\version r4104
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-24 23:50 +0800
+	2015-09-25 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ 'using FileID = std::uint64_t;',
+			+ 'using VolumeID = std::uint32_t;';
+			+ "2 functions %QueryFileNodeID",
+			(
+			+ "constructor %Win32Exception with 'const char*' parameter as \
+				enclosing function name";
+			/ $impl "simplified" @ "macro %YCL_WrapCallWin32";
+			+ "macro %YCL_WrapCallWin32F" ^ $dep_from
+				("%yfsig" @ %YBase.YDefinition);
+			+ "macro %YCL_CallWin32F"
+			),
+			(
+			+ "support for non string literal parameter '_msg'"
+				@ "macro %YCL_WrapCallWin32_Trace";
+			+ "macro %YCL_WrapCallWin32F_Trace"
+				^ $dep_from ("%yfsig" @ %YBase.YDefinition);
+			+ "macro %YCL_CallWin32F_Trace"
+			),
+			+ '&' @ "parameter" @ "all 2 constructors %DirectoryFindData"
+		),
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				/ DLDI ^ '_O*' @ "platform %Win32" ~ 'O_*',
+				(
+				+ "alias %FileNodeID";
+				+ "inline functions %operator(=; !=) for %FileNodeID",
+				+ "function %IsNodeShare for %FileNodeID"
+				),
+				/ @ "class %FileDescriptor" $=
+				(
+					+ "function %GetNumberOfLinks",
+					+ "function %GetNodeID" $dep_from ("%FileNodeID",
+						"%QueryFileNodeID" @ %'YCLib_(Win32)'.MinGW32),
+					+ "static function %NodeCompare"
+				),
+				+ "function %IsNodeShared for %FileDescriptor parameters"
+					^ $dep_from "%FileDescriptor::NodeCompare",
+				+ "2 function %IsNodeShared for path parameters",
+				/ @ "functions %HaveSameContents" $=
+				(
+					+ "overloading for 'const string&' parameters",
+					* "missing check file node identity" $since 636
+						// It is not guaranteed the same file can be opened \
+							more than once.
+				),
+				* "wrong error condition detection"
+					@ ("function templates %(TryRemove, TryUnlink)" $since b634;
+					$comp "function %EnsureUniqueFile" $since b637),
+				/ "function %GetDefaultPermissionMode" => "%DefaultPMode",
+				/ @ "all 2 functions %CopyFile with path string as 1st \
+					parameter" $=
+				(
+					* "unlink failure" @ $since b637 $dep_from
+						"%EnsureUniqueFile",
+					+ "default argument '= DefaultPMode()'" $dep_from
+						"%DefaultPMode"
+				),
+				* "exception thrown even if source opened successfully"
+					@ "all 2 functions %CopyFile with path string as 2st \
+					parameter" $since b637,
+				+ $dev 'YB_STATELESS' @ "functions %(omode_conv, omode_convb)"
+			),
+			/ %FileSystem $=
+			(
+				/ @ "%function %platform::FAT::CheckColon" @  $=
+				(
+					* $re(b637) "wrong exception-specification" $since b610
+						$= (- 'ythrow(std::system_error)'),
+					+ $dev 'YB_PURE'
+				),
+				- DLDI "redundant null pointer check"
+					@ "constuctor %DirectorySession" @ "platform %Win32"
+			)
+		),
+		/ DLDI "simplified Win32 calls" ^ ("%YCL_WrapCallWin32F"
+			~ "%YCL_WrapCallWin32" $effective @ %YCLib_'(Win32)'.MinGW32,
+			"%YCL_CallWin32F" ~ "%YCL_CallWin32" $effective @ %(YCLib.(
+			FileSystem, Host, HostedGUI), YCLib_'(Win32)'.(Consoles, MinGW32),
+			Helper.Environment), "%YCL_CallWin32F_Trace"
+			~ "%YCL_CallWin32_Trace" $effective
+			@ %(YCLib.(Host, HostedGUI), YCLib_'(Win32)'.MinGW32)),
+		+ 'YB_ATTR(returns_nonnull)' @ ("functions %(InitScrUp, InitScrDown)"
+			@ %'YCLib_(DS)'.DSVideo, "all 2 functions %TranslateTime"
+			@ %Helper.ShellHelper),
+		/ $revert(b459) $dev $build "disabled warning C4520" @ "VC++ project",
+			// It seems that the bug is no longer in VC++ 2015.
+	),
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ "macros %(yfname, yfsig)";
+			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ "macros %(YPP_Concat, YPP_Join)" $orig
+				(@ "macros %(yjoin, yJOIN)" $since b409)
+		),
+		/ %YStandardEx $=
+		(
+			/ %CStandardIO $=
+			(
+				+ $dev 'YB_PURE' @ "all 2 functions %openmode_conv",
+				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+					comments" @ ("all 2 functions %openmode_conv" $since b326,
+					"member function %ifile_iterator::operator++" $since b301)
+			)
+			/ DLDI @ %CString $=
+			(
+				/ "%strcpycat" !^ 'YB_UNLIKELY',
+				/ "simplified %strcatdup"
+			)
+		)
+	),
+	/ DLDI "simplified %FilterExceptions calls" ^ 'yfsig' $effective
+		@ %(YFramework.(YCLib_'(Win32)'.MinGW32, 'YCLib_(DS)'.DSIO,
+		Helper.HostRenderer, YCLib.HostedGUI), YReader.ShlReader,
+		(YDE.ImageBrowser,
+		Tools.(SXML2XML, RevisionPatcher, ProjectGenerator)).Main)
+),
+
+b637
 (
 	/ %YFramework $=
 	(
@@ -84,7 +211,7 @@ $now
 				+ "function %HaveSameContents for 'const char*' path"
 			)
 		),
-		/ DLDI %'YCLib(DS)'.DSIO $=
+		/ DLDI %'YCLib_(DS)'.DSIO $=
 		(
 			/ "simplified member function %SectorCache::Flush"
 				@  ^ "%std::(all_of, bind)",
@@ -928,7 +1055,7 @@ b628
 			(
 				/ "assertion" -> "exception handling" ^ ("%FilterExceptions",
 					$dep_from "%YCL_WrapCallWin32");
-				* $comp "wrong exception specification" $since b421
+				* $comp "wrong exception-specification" $since b421
 			)
 		),
 		+ "static assertions to ensure no throw copying of component type"
@@ -1011,7 +1138,7 @@ b628
 		)
 	),
 	* "invalid 'ynothrow'" @ "getters with return type not guarantees non \
-		throwing on copy/move" $effective @ %YFramework.('YCLib(DS)'.DSIO
+		throwing on copy/move" $effective @ %YFramework.('YCLib_(DS)'.DSIO
 		$since b611, YCLib.Debug $since b498, YSLib.Adaptor.Font $since b277)
 ),
 
@@ -1444,7 +1571,7 @@ b623
 		+ %Dependency @ %NPL
 			$= (+ "functions %(DecomposeMakefileDepList, \
 				FilterMakefileDependencies)"),
-		/ %'YCLib(DS)'.DSIO $=
+		/ %'YCLib_(DS)'.DSIO $=
 		(
 			/ @ "constructor %FileInfo" @ %DSIO $=
 			(
@@ -2202,7 +2329,7 @@ b614
 				// On Win32, only after fallback failed.
 			+ "fallback handler which would throw after failure"
 		),
-		/ %'YCLib(MinGW32)'.NLS $=
+		/ %'YCLib_(MinGW32)'.NLS $=
 		(
 			/ DLDI "initialization" @ ^ 'new' ~ "%make_unique",
 			/ @ "function %FetchDBCSOffset" $=
@@ -2317,7 +2444,7 @@ b612
 					/ @ "all 10 data access member functions" $=
 					(
 						+ "indirect assertions" ^ "%Deref",
-						/ "exception specification" -> 'ynothrowv' ~ 'ynothrow'
+						/ "exception-specification" -> 'ynothrowv' ~ 'ynothrow'
 					),
 					+ "empty braced-init-list" @ "native handle data member",
 					+ "defaulted default constructor"
@@ -2399,7 +2526,7 @@ b611
 	(
 		+ "function %CheckColons" @ "namespace %platform::FAT"
 			@ %YCLib.FileSystem,
-		/ @ "namespace %platform_ex::FAT" @ "platform %DS" @ %'YCLib(DS)'.DSIO
+		/ @ "namespace %platform_ex::FAT" @ "platform %DS" @ %'YCLib_(DS)'.DSIO
 			$=
 		(
 			+ $dev "static assertion 'LFN::MaxMBCSLength <= NAME_MAX'",
@@ -2413,7 +2540,7 @@ b611
 		(
 			/ $impl "function %InitializeFileSystem" $=
 			(
-				/ $lib ^ $dep_from ("function %Mount" @ %'YCLib(DS)'.DSIO)
+				/ $lib ^ $dep_from ("function %Mount" @ %'YCLib_(DS)'.DSIO)
 					~ "libfat" $=
 				(
 					/ "cache" ^ "%SectorCache",
@@ -2913,7 +3040,7 @@ b606
 		+ "function template %normalize" @ %String
 	),
 	+ "member function %SectorCache::FillSectors"
-		@ %YFramework.'YCLib(DS)'.DSIO,
+		@ %YFramework.'YCLib_(DS)'.DSIO,
 	/ $impl "simplified %locked_ptr construction" $effective
 		@ %(Helper.GUIApplication, YCLib.(Host, HostedGUI, XCB))
 ),
@@ -2939,7 +3066,7 @@ b605
 					~ "%std::tolower"),
 			/ @ "namespace %single_thread" @ %PseudoMutex $=
 			(
-				* "missing nothrow exception specification" @ "debug interface"
+				* "missing nothrow exception-specification" @ "debug interface"
 					@ "constructor with %defer_lock_t parameter"
 					@ "class template %unique_lock" $since b551,
 					// ISO C++11 requires 'noexcept' on this constructor.

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup Tools
 \brief SXML 文档转换工具。
-\version r50
+\version r52
 \author FrankHB <frankhb1989@gmail.com>
-\since build 598
+\since build 599
 \par 创建时间:
 	2015-05-09 16:32:08 +0800
 \par 修改时间:
-	2015-05-19 11:09 +0800
+	2015-09-24 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,6 @@ main()
 		SXML::PrintSyntaxNode(cout, SContext::Analyze(Session(
 			istreambuf_iterator<char>(cin), istreambuf_iterator<char>())));
 		cout << endl;
-	}, "main") ? EXIT_FAILURE : EXIT_SUCCESS;
+	}, yfsig) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 

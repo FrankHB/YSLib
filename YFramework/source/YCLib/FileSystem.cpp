@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2946
+\version r2950
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-23 12:03 +0800
+	2015-09-25 11:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,8 +111,7 @@ CreateHardLink(const char16_t* dst, const char16_t* src)
 	// TODO: To make the behavior specific and same as on platform %Win32, use
 	//	%::realpath on platform %Linux, etc.
 #if YCL_Win32
-	YCL_CallWin32(CreateHardLinkW, "CreateHardLink", wcast(dst), wcast(src),
-		{});
+	YCL_CallWin32F(CreateHardLinkW, wcast(dst), wcast(src), {});
 #elif YCL_DS
 	yunused(dst), yunused(src);
 	ystdex::throw_error(std::errc::not_supported);
@@ -130,10 +129,10 @@ DirectorySession::DirectorySession(const char* path)
 	dir(::opendir(sDirPath.c_str()))
 #endif
 {
+#if !YCL_Win32
 	if(!dir)
 		throw FileOperationFailure(errno, std::generic_category(),
 			"Opening directory failed.");
-#if !YCL_Win32
 	ystdex::rtrim(sDirPath, YCL_PATH_DELIMITER);
 	YAssert(sDirPath.empty() || sDirPath.back() != YCL_PATH_DELIMITER,
 		"Invalid directory name state found.");
@@ -597,7 +596,7 @@ EntryData::WriteDateTime() ynothrow
 }
 
 const char*
-CheckColons(const char* path) ythrow(std::system_error)
+CheckColons(const char* path)
 {
 	if(const auto p_col = std::strchr(Nonnull(path), ':'))
 	{

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2816
+\version r2929
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-09-01 10:56 +0800
+	2015-09-25 20:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,13 +198,13 @@
 */
 #define YPP_Comma ,
 
-/*
+/*!
 \brief 记号连接。
 \sa YPP_Join
 */
 #define YPP_Concat(_x, _y) _x ## _y
 
-/*
+/*!
 \brief 带宏替换的记号连接。
 \see ISO WG21/N4140 16.3.3[cpp.concat]/3 。
 \see http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
@@ -425,18 +425,21 @@
 #endif
 
 /*!
-\def YB_PURE
-\brief 指示函数或函数模板实例为纯函数。
 \post 函数外可访问的存储保持不变。
 \note 假定函数保证可返回；返回类型 void 时无意义。
 \note 假定函数无外部可见的副作用：局部记忆化合并重复调用后不改变可观察行为。
+*/
+//@{
+/*!
+\def YB_PURE
+\brief 指示函数或函数模板实例为纯函数。
 \note 不修改函数外部的存储；不访问函数外部 volatile 存储；
 	通常不调用不可被 YB_PURE 安全指定的函数。
 \warning 要求满足指示的假定，否则行为未定义。
 \since build 373
 
-指示函数或函数模板的求值是返回值的计算，无影响其它的存储的副作用，
-且返回值只依赖参数和/或编译时确定内存位置（如具有静态存储期的对象的）存储的值。
+指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
+且返回值只依赖参数和/或编译时确定内存位置（如静态存储的对象的）存储的值。
 */
 #if __has_attribute(__pure__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_PURE YB_ATTR(__pure__)
@@ -447,9 +450,6 @@
 /*!
 \def YB_STATELESS
 \brief 指示函数或函数模板实例为无状态函数。
-\post 函数外可访问的存储保持不变。
-\note 假定函数保证可返回；返回类型 void 时无意义。
-\note 假定函数无外部可见的副作用：局部记忆化合并重复调用后不改变可观察行为。
 \note 假定函数调用的结果总是相同：返回值总是不可分辨的右值或指示同一个内存位置的
 	左值。任意以一次调用结果替代调用或合并重复调用时不改变可观察行为。
 \note 不访问函数外部的存储；通常不调用不可被 YB_STATELESS 安全指定的函数。
@@ -457,15 +457,16 @@
 \warning 要求满足指示的假定，否则行为未定义。
 \since build 373
 
-指示函数或函数模板的求值是返回值的计算，返回值只依赖参数的值，和其它存储无关。
-若参数是对象指针或引用类型，还必须保证指向或引用的对象是其它参数，或者不被使用。
-函数实现不能调用其它不能以 YB_STATELESS 限定的函数。
+指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
+且返回值只依赖参数的值，和其它存储无关。
+若参数是对象指针或引用类型，必须保证指向或引用的对象是其它参数，或者不被使用。
 */
 #if __has_attribute(__const__) || YB_IMPL_GNUCPP >= 20500
 #	define YB_STATELESS YB_ATTR(__const__)
 #else
 #	define YB_STATELESS
 #endif
+//@}
 //@}
 
 
@@ -562,10 +563,9 @@
 #	define yalignas alignas
 #	define yalignas_type alignas
 #else
-#	define yalignas(_type) YB_ATTR(__aligned__(_type))
+#	define yalignas(_expr) YB_ATTR(__aligned__(_expr))
 #	define yalignas_type(_type) YB_ATTR(__aligned__(__alignof(_type)))
 #endif
-
 
 /*!
 \def yalignof
@@ -579,7 +579,6 @@
 #else
 #	define yalignof(_type) std::alignment_of<_type>::value
 #endif
-
 
 /*!
 \def yconstexpr
@@ -601,7 +600,6 @@
 #	define yconstfn inline
 #endif
 
-
 /*!
 \def yconstfn_relaxed
 \brief 指定编译时没有 C++11 限制和隐式成员 const 的常量函数。
@@ -614,54 +612,40 @@
 #	define yconstfn_relaxed inline
 #endif
 
-
 /*!
-\def ythrow
-\brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
-\note ythrow = "yielded throwing" 。
+\def yfname
+\brief 展开为表示函数名的预定义变量的宏。
+\since build 628
+\todo 判断语言实现版本。
 */
-#if YB_Use_DynamicExceptionSpecification
-#	define ythrow throw
+#if YCL_IMPL_MSCPP || __INTEL_COMPILER >= 600 || __IBMCPP__ >= 500
+#	define yfname __FUNCTION__
+#elif __BORLANDC__ >= 0x550
+#	define yfname __FUNC__
+#elif __cplusplus >= 201103 || __STDC_VERSION__ >= 199901
+#	define yfname __func__
 #else
-#	define ythrow(...)
+#	define yfname "<unknown-fn>"
 #endif
 
 /*!
-\def ynothrowv
-\brief YSLib 无异常抛出保证验证：有条件地使用无异常抛出规范。
-\note 指定 ynothrowv 的函数具有 narrow constraint ，
-	即不保证违反前置条件时不引起未定义行为。
-\sa ynothrow
-\since build 461
-
-按 ISO/IEC JTC1/SC22/WG21 N3248 要求，表示 narrow constraint 的无异常抛出接口。
-对应接口违反约束可引起未定义行为。
-因为可能显著改变程序的可观察行为，需要允许抛出异常进行验证时不适用。
-验证结束后，确保不存在未定义行为时可以启用以提升性能。
+\def yfsig
+\brief 展开为表示函数签名的预定义变量的宏。
+\since build 628
+\todo 判断语言实现版本。
 */
-#if YB_Use_StrictNoThrow
-#	define ynothrowv ynothrow
+#if YCL_IMPL_GNUCPP
+#	define yfsig __PRETTY_FUNCTION__
+#elif defined(__FUNCSIG__)
+#	define yfsig __FUNCSIG__
+#elif __INTEL_COMPILER >= 600 || __IBMCPP__ >= 500
+#	define yfsig __FUNCTION__
+#elif __BORLANDC__ >= 0x550
+#	define yfsig __FUNC__
+#elif __cplusplus >= 201103 || __STDC_VERSION__ >= 199901
+#	define yfsig __func__
 #else
-#	define ynothrowv
-#endif
-
-/*!
-\def ynothrow
-\brief YSLib 无异常抛出保证：若支持 noexcept 关键字，
-	指定特定的 noexcept 异常规范。
-\note YB_IMPL_MSCPP >= 1200 时支持 __declspec(nothrow) 行为和 throw() 基本一致，
-	但语法（顺序）不同。
-\note 指定 ynothrow 的函数具有 wide constraint ，
-	即保证违反前置条件不引起未定义行为。
-\sa ynothrowv
-\sa ynoexcept
-*/
-#if YB_HAS_NOEXCEPT
-#	define ynothrow ynoexcept
-#elif YB_IMPL_GNUCPP >= 30300
-#	define ynothrow __attribute__ ((nothrow))
-#else
-#	define ynothrow ythrow()
+#	define yfsig "<unknown-fsig>"
 #endif
 
 /*!
@@ -684,6 +668,44 @@
 #endif
 
 /*!
+\def ynothrow
+\brief YSLib 无异常抛出保证：若支持 noexcept 关键字，
+	指定特定的 noexcept 异常规范。
+\note YB_IMPL_MSCPP >= 1200 时支持 __declspec(nothrow) 行为和 throw() 基本一致，
+	但语法（顺序）不同。
+\note 指定 ynothrow 的函数具有 wide constraint ，
+	即保证违反前置条件不引起未定义行为。
+\sa ynothrowv
+\sa ynoexcept
+*/
+#if YB_HAS_NOEXCEPT
+#	define ynothrow ynoexcept
+#elif YB_IMPL_GNUCPP >= 30300
+#	define ynothrow __attribute__ ((nothrow))
+#else
+#	define ynothrow ythrow()
+#endif
+
+/*!
+\def ynothrowv
+\brief YSLib 无异常抛出保证验证：有条件地使用无异常抛出规范。
+\note 指定 ynothrowv 的函数具有 narrow constraint ，
+	即不保证违反前置条件时不引起未定义行为。
+\sa ynothrow
+\since build 461
+
+按 ISO/IEC JTC1/SC22/WG21 N3248 要求，表示 narrow constraint 的无异常抛出接口。
+对应接口违反约束可引起未定义行为。
+因为可能显著改变程序的可观察行为，需要允许抛出异常进行验证时不适用。
+验证结束后，确保不存在未定义行为时可以启用以提升性能。
+*/
+#if YB_Use_StrictNoThrow
+#	define ynothrowv ynothrow
+#else
+#	define ynothrowv
+#endif
+
+/*!
 \def ynoexcept_spec
 \brief 表达式 \c noexcept 异常规范。
 \since build 586
@@ -700,6 +722,17 @@
 #	define ythread thread_local
 #else
 #	define ythread static
+#endif
+
+/*!
+\def ythrow
+\brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
+\note ythrow = "yielded throwing" 。
+*/
+#if YB_Use_DynamicExceptionSpecification
+#	define ythrow throw
+#else
+#	define ythrow(...)
 #endif
 //@}
 
@@ -746,9 +779,7 @@ using std::nullptr_t;
 const class nullptr_t
 {
 public:
-	/*
-	\brief 转换任意类型至空非成员或静态成员指针。
-	*/
+	//! \brief 转换任意类型至空非成员或静态成员指针。
 	template<typename _type>
 	inline
 	operator _type*() const
@@ -756,18 +787,14 @@ public:
 		return 0;
 	}
 
-	/*
-	\brief 转换任意类型至空非静态成员指针。
-	*/
+	//! \brief 转换任意类型至空非静态成员指针。
 	template<class _tClass, typename _type>
 	inline
 	operator _type _tClass::*() const
 	{
 		return 0;
 	}
-	/*
-	\brief 支持关系运算符重载。
-	*/
+	//! \brief 支持关系运算符重载。
 	template<typename _type>
 	bool
 	equals(const _type& rhs) const
@@ -775,9 +802,7 @@ public:
 		return rhs == 0;
 	}
 
-	/*
-	\brief 禁止取 nullptr 的指针。
-	*/
+	//! \brief 禁止取 nullptr 的指针。
 	void operator&() const = delete;
 } nullptr = {};
 

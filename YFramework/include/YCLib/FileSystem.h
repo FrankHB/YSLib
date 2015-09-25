@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2489
+\version r2491
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-09-22 13:31 +0800
+	2015-09-25 09:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -830,8 +830,8 @@ public:
 	\li std::errc::invalid_argument 路径有超过一个冒号。
 \since build 611
 */
-YF_API YB_NONNULL(1) const char*
-CheckColons(const char*) ythrow(std::system_error);
+YF_API YB_NONNULL(1) YB_PURE const char*
+CheckColons(const char*);
 
 } // namespace FAT;
 

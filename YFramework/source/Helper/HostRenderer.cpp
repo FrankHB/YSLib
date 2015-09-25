@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r660
+\version r662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-09-12 12:45 +0800
+	2015-09-24 12:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ WindowThread::~WindowThread()
 		thrd.join();
 		YTraceDe(Debug, "Window thread '%p' joined.",
 			ystdex::pvoid(&thrd));
-	}, "HostRenderer::~WindowThread");
+	}, yfsig);
 	delete p_wnd_val;
 }
 
@@ -211,7 +211,7 @@ HostRenderer::~HostRenderer()
 				p_wgt->SetView({});
 		}
 		CatchIgnore(Windows::UI::ViewSignal&)
-	}, "HostRenderer::~HostRenderer");
+	}, yfsig);
 #endif
 }
 

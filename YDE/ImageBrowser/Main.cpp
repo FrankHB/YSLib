@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup ImageBrowser
 \brief 主界面。
-\version r191
+\version r192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 424
 \par 创建时间:
 	2013-07-07 12:57:53 +0800
 \par 修改时间:
-	2015-04-18 05:20 +0800
+	2015-09-24 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,6 @@ main(int argc, char* argv[])
 			pnl.SetRootMode(Deref(GetHostRendererPtrOf(pnl)).RootMode),
 			pnl.SetupContextMenu();
 			Execute(app);
-		}, "::main");
+		}, yfsig);
 }
 

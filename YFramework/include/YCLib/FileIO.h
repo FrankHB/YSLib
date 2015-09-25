@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1448
+\version r1549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-23 22:29 +0800
+	2015-09-25 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,24 @@ inline PDefH(string, MakePathString, const u16string& s)
 //@}
 
 
+//! \since build 638
+//@{
+//! \brief 文件节点标识类型。
+//@{
+#if YCL_Win32
+using FileNodeID = pair<std::uint32_t, std::uint64_t>;
+#else
+using FileNodeID = pair<std::uint64_t, std::uint64_t>;
+#endif
+//@}
+
+//! \relates FileNodeID
+yconstfn PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y)
+	ImplRet(x.first == y.first && x.second == y.second)
+yconstfn PDefHOp(bool, !=, const FileNodeID& x, const FileNodeID& y)
+	ImplRet(!(x == y))
+//@}
+
 //! \since build 628
 using FileTime = std::chrono::nanoseconds;
 
@@ -85,6 +103,7 @@ using mode_t = ::mode_t;
 \brief 文件描述符包装类。
 \note 除非另行约定，具有无异常抛出保证的操作可能设置 errno 。
 \note 不支持的平台操作失败设置 errno 为 ENOSYS 。
+\note 除非另行约定，无异常抛出的操作使用值初始化的返回类型表示失败结果。
 \note 以 \c int 为返回值的操作返回 \c -1 表示失败。
 \note 满足 NullablePointer 要求。
 \see ISO WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
@@ -160,14 +179,11 @@ public:
 	//@{
 	/*!
 	\brief 取旗标。
-	\note 仅支持 POSIX 平台。
+	\note 非 POSIX 平台：不支持操作。
 	*/
 	YF_API int
 	GetFlags() const ynothrow;
-	/*!
-	\brief 取模式。
-	\return 若失败为 0 ，否则为指定的模式。
-	*/
+	//! \brief 取模式。
 	mode_t
 	GetMode() const ynothrow;
 	//@}
@@ -177,6 +193,15 @@ public:
 	//! \brief 取修改和访问时间。
 	YF_API array<FileTime, 2>
 	GetModificationAndAccessTime() const;
+	//@}
+	//! \since build 638
+	//@{
+	//! \brief 取文件系统节点标识。
+	FileNodeID
+	GetNodeID() const ynothrow;
+	//! \brief 取链接数。
+	size_t
+	GetNumberOfLinks() const ynothrow;
 	//@}
 	/*!
 	\brief 取大小。
@@ -189,36 +214,32 @@ public:
 	//@}
 
 	/*!
+	\note 非 POSIX 平台：不支持操作。
+	\since build 637
+	*/
+	//@{
+	/*!
 	\brief 设置阻塞模式。
-	\note 仅支持 POSIX 平台。
-	\return 是否成功进行了设置。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	\since build 625
 	*/
 	bool
 	SetBlocking() const ynothrow;
-	/*!
-	\note 仅支持 POSIX 平台。
-	\since build 637
-	*/
-	//@{
 	//! \brief 设置旗标。
 	bool
 	SetFlags(int) const ynothrow;
 	//! \brief 设置访问模式。
 	bool
 	SetMode(mode_t) const ynothrow;
-	//@}
 	/*!
 	\brief 设置非阻塞模式。
-	\note 仅支持 POSIX 平台。
 	\note 对不支持非阻塞的文件描述符， POSIX 未指定是否忽略 \c O_NONBLOCK 。
-	\return 是否成功进行了设置。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
 	\since build 624
 	*/
 	bool
 	SetNonblocking() const ynothrow;
+	//@}
 	//! \since build 625
 	//@{
 	/*!
@@ -232,7 +253,8 @@ public:
 	SetSize(size_t) ynothrow;
 	/*!
 	\brief 设置翻译模式。
-	\note 参数和返回值意义和语义同 \c setmode 函数，在忽略文本模式的平台上无作用。
+	\note 兼容 Win32 文本模式行为的平台：参数和返回值意义和语义同 \c setmode 函数。
+	\note 其它平台：无作用。
 	\since build 637
 	*/
 	int
@@ -258,6 +280,15 @@ public:
 	YB_NONNULL(2) size_t
 	FullWrite(const void*, size_t) ynothrowv;
 	//@}
+
+	/*!
+	\brief 比较文件节点。
+	\note 取节点失败视为不相同。
+	\sa GetNodeID
+	\since build 638
+	*/
+	static bool
+	NodeCompare(FileDescriptor, FileDescriptor) ynothrow;
 
 	/*!
 	\brief 读写文件。
@@ -301,10 +332,10 @@ using UniqueFile = unique_ptr<FileDescriptor, FileDescriptor::Deleter>;
 
 /*!
 \brief 取默认权限。
-\since build 626
+\since build 638
 */
 YF_API YB_STATELESS mode_t
-GetDefaultPermissionMode() ynothrow;
+DefaultPMode() ynothrow;
 
 /*!
 \brief 设置标准库流二进制输入/输出模式。
@@ -346,14 +377,14 @@ RetryClose(std::FILE*) ynothrow;
 */
 //@{
 //! \note 忽略二进制模式。
-YF_API int
+YF_API YB_STATELESS int
 omode_conv(std::ios_base::openmode);
 
 /*!
 \note 扩展：不忽略二进制模式。
-\note POSIX 平台下同 omode_conv 。
+\note POSIX 平台：同 omode_conv 。
 */
-YF_API int
+YF_API YB_STATELESS int
 omode_convb(std::ios_base::openmode);
 //@}
 
@@ -449,7 +480,7 @@ ufexists(const _tString& str) ynothrow
 
 /*!
 \brief 关闭管道流。
-\param 基本语义同 POSIX.1 2004 的 <tt>::pclose</tt> ，具体行为取决于实现。
+\param 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
 \pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
 \since build 566
 */
@@ -457,7 +488,7 @@ YF_API YB_NONNULL(1) int
 upclose(std::FILE*) ynothrow;
 
 /*!
-\param filename 文件名，意义同 POSIX <tt>::popen</tt> 。
+\param filename 文件名，意义同 POSIX \c ::popen 。
 \param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \pre 断言：\c filename 。
 \pre 间接断言： \c mode 。
@@ -496,6 +527,7 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow;
 //@{
 /*!
 \brief 切换当前工作路径至指定的 UTF-8 字符串。
+\note POSIX 平台：除路径和返回值外语义同 \c ::chdir 。
 \since build 476
 */
 YF_API YB_NONNULL(1) bool
@@ -503,7 +535,7 @@ uchdir(const char*) ynothrow;
 
 /*!
 \brief 按 UTF-8 路径以默认权限新建一个目录。
-\note 权限由实现定义： DS 使用最大权限； MinGW32 使用 _wmkdir 指定的默认权限。
+\note 权限由实现定义： DS 使用最大权限； MinGW32 使用 \c ::_wmkdir 指定的默认权限。
 \since build 475
 */
 YF_API YB_NONNULL(1) bool
@@ -511,6 +543,7 @@ umkdir(const char*) ynothrow;
 
 /*!
 \brief 按 UTF-8 路径删除一个空目录。
+\note POSIX 平台：除路径和返回值外语义同 \c ::rmdir 。
 \since build 475
 */
 YF_API YB_NONNULL(1) bool
@@ -518,13 +551,17 @@ urmdir(const char*) ynothrow;
 
 /*!
 \brief 按 UTF-8 路径删除一个非目录文件。
+\note POSIX 平台：除路径和返回值外语义同 \c ::unlink 。
 \since build 476
 */
 YF_API YB_NONNULL(1) bool
 uunlink(const char*) ynothrow;
 
 /*!
-\brief 按 UTF-8 路径删除一个文件。
+\brief 按 UTF-8 路径移除一个文件。
+\note POSIX 平台：除路径和返回值外语义同 \c ::remove 。移除非空目录总是失败。
+\note Win32 平台：删除目录、只读文件或打开的文件总是失败。
+\see https://msdn.microsoft.com/en-us/library/kc07117k.aspx 。
 \since build 476
 */
 YF_API YB_NONNULL(1) bool
@@ -624,8 +661,8 @@ public:
 	{
 		if(!this->is_open())
 		{
-			this->_M_file.sys_open(uopen(s, omode_convb(mode),
-				GetDefaultPermissionMode()), mode);
+			this->_M_file.sys_open(uopen(s, omode_convb(mode), DefaultPMode()),
+				mode);
 			if(open_check(mode))
 				return this;
 		}
@@ -1032,7 +1069,7 @@ template<typename _tChar>
 YB_NONNULL(1) void
 TryRemove(const _tChar* path)
 {
-	if(YB_UNLIKELY(uremove(path) != 0 && errno != ENOENT))
+	if(YB_UNLIKELY(!uremove(path) && errno != ENOENT))
 		throw FileOperationFailure(errno, std::generic_category(),
 			"Failed removing destination file '"
 			+ platform::MakePathString(path) + "'.");
@@ -1042,7 +1079,7 @@ template<typename _tChar>
 YB_NONNULL(1) void
 TryUnlink(const _tChar* path)
 {
-	if(YB_UNLIKELY(uunlink(path) != 0 && errno != ENOENT))
+	if(YB_UNLIKELY(!uunlink(path) && errno != ENOENT))
 		throw FileOperationFailure(errno, std::generic_category(),
 			"Failed unlinking destination file '"
 			+ platform::MakePathString(path) + "'.");
@@ -1123,7 +1160,7 @@ YF_API YB_NONNULL(1) std::uint64_t
 GetFileSizeOf(std::FILE*);
 
 
-//! \since build 647
+//! \since build 637
 //@{
 /*!
 \brief 复制文件。
@@ -1140,12 +1177,13 @@ CopyFile(UniqueFile, const char*);
 \exception FileOperationFailure 打开目标失败。
 \note 最后一个参数为打开目标的模式。
 \sa EnsureUniqueFile
+\since build 638
 */
 //@{
 YF_API YB_NONNULL(1) void
-CopyFile(const char*, FileDescriptor, mode_t mode);
+CopyFile(const char*, FileDescriptor, mode_t mode = DefaultPMode());
 YF_API YB_NONNULL(1, 2) void
-CopyFile(const char*, const char*, mode_t mode);
+CopyFile(const char*, const char*, mode_t mode = DefaultPMode());
 //@}
 //@}
 
@@ -1165,12 +1203,37 @@ EnsureUniqueFile(const char*, mode_t);
 \warning 读取失败时即截断返回，因此需要另行比较文件大小。
 */
 //@{
-//! \since build 637
+/*!
+\note 间接断言：参数非空。
+\since build 637
+*/
 YF_API YB_NONNULL(1, 2) bool
 HaveSameContents(const char*, const char*);
+//! \since build 638
+YF_API bool
+HaveSameContents(const string&, const string&);
 //! \since build 636
 YF_API bool
 HaveSameContents(UniqueFile, UniqueFile);
+//@}
+
+/*!
+\brief 判断参数是否表示共享的文件节点。
+\nsince build 638
+*/
+//@{
+yconstfn YB_PURE PDefH(bool, IsNodeShared, const FileNodeID& x,
+	const FileNodeID& y) ynothrow
+	ImplRet(x != FileNodeID() && x == y)
+//! \pre 间接断言：参数非空。
+//@{
+YF_API YB_NONNULL(1, 2) bool
+IsNodeShared(const char*, const char*) ynothrow;
+YF_API YB_NONNULL(1, 2) bool
+IsNodeShared(const char16_t*, const char16_t*) ynothrow;
+//@}
+inline PDefH(bool, IsNodeShared, FileDescriptor x, FileDescriptor y) ynothrow
+	ImplRet(FileDescriptor::NodeCompare(x, y))
 //@}
 
 } // namespace platform;

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r308
+\version r322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-09-08 03:16 +0800
+	2015-09-24 13:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,6 +301,21 @@ Previously analysis of grammar of template default argument for non-type paramet
 	See $2013-10 report.impl.
 	Note ISO C++11 [dcl.fct.default]/3 has already forbid non assignment-expression as template default argument for non-type parameters.
 	It turned to be a G++ bug. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57905 .
+
+dep.merge:
+libwibble(https://packages.debian.org/sid/libwibble-dev): tentatively rejected.
+	This is a package about some general/low-level C++ utilities for developers.
+	The interface is not up-to-date to modern C++ style.
+	The functinoality should be covered by YBase and YFramework.YCLib intentionally, though most of them are not done yet.	
+folly(https://github.com/facebook/folly): tentatively rejected.
+	Though used productively and is under actively development, this library is not fit for YSLib as a dependency.
+		The API design is awful.
+			Too many functionality overlapped with the standard library, with less obvious design principles.
+			Too many direct use of strongly coupled specific types in function signatures (e.g. explicit 'std::string').
+		The quality of impelementation is not competitive.
+		It relies on a subset of boost.
+			Boost is rejected basically because it is too large. This subset is still considered large engough to be rejected.
+			Though some equivalent API of them are of parts of YBase (e.g. boost.operators), it is too tricky to maintain.
 
 ////
 

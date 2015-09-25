@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1046
+\version r1102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-09-24 23:42 +0800
+	2015-09-28 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_Debug // for string, wstring;
+#include YFM_YCLib_Debug // for string, wstring, pair;
 #include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
 #if !YCL_Win32
 #	error "This file is only for Win32."
@@ -81,10 +81,20 @@ public:
 	/*!
 	\pre 错误码不等于 0 。
 	\warning 初始化参数时可能会改变 ::GetLastError() 的结果。
-	\since build 624
 	*/
+	//@{
+	//! \since build 624
 	Win32Exception(ErrorCode, const std::string& = "Win32 exception",
 		YSLib::RecordLevel = YSLib::Emergent);
+	/*!
+	\pre 第三参数非空。
+	\note 第三参数表示函数名，可以使用 \c __func__ 。
+	\since build 638
+	*/
+	YB_NONNULL(4)
+	Win32Exception(ErrorCode, const std::string&, const char*,
+		YSLib::RecordLevel = YSLib::Emergent);
+	//@}
 	//! \since build 586
 	DefDeCopyCtor(Win32Exception)
 	/*!
@@ -144,12 +154,19 @@ public:
 		const auto res(::_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res)) \
-			YCL_Raise_Win32Exception(#_fn " @ " _msg); \
+			YCL_Raise_Win32Exception(#_fn, _msg); \
 		return res; \
 	}
 
+//! \since build 638
+#	define YCL_WrapCallWin32F(_fn, ...) \
+	YCL_WrapCallWin32(_fn, yfsig, __VA_ARGS__)
+
 //! \since build 628
 #	define YCL_CallWin32(_fn, ...) YCL_WrapCallWin32(_fn, __VA_ARGS__)()
+
+//! \since build 638
+#	define YCL_CallWin32F(_fn, ...) YCL_WrapCallWin32F(_fn, __VA_ARGS__)()
 //@}
 
 /*!
@@ -162,14 +179,22 @@ public:
 		const auto res(::_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res)) \
-			YTraceDe(Warning, "Error %lu: failed calling " #_fn " @ " _msg \
-				".", ::GetLastError()); \
+			YTraceDe(Warning, "Error %lu: failed calling " #_fn " @ %s.", \
+				::GetLastError(), _msg); \
 		return res; \
 	}
+
+//! \since build 638
+#	define YCL_WrapCallWin32F_Trace(_fn, ...) \
+	YCL_WrapCallWin32_Trace(_fn, yfsig, __VA_ARGS__)
 
 //! \since build 628
 #	define YCL_CallWin32_Trace(_fn, ...) \
 	YCL_WrapCallWin32_Trace(_fn, __VA_ARGS__)()
+
+//! \since build 638
+#	define YCL_CallWin32F_Trace(_fn, ...) \
+	YCL_WrapCallWin32F_Trace(_fn, __VA_ARGS__)()
 //@}
 //@}
 
@@ -469,13 +494,13 @@ public:
 	\throw platform::FileOperationFailure 打开路径失败，或指定的路径不是目录。
 	\note 目录路径无视结尾的斜杠和反斜杠。
 	\note 去除结尾斜杠和反斜杠后若为空则视为当前路径。
-	\since build 593
+	\since build 638
 	*/
 	//@{
 	//! \note 使用 UTF-8 目录路径。
-	DirectoryFindData(string);
+	DirectoryFindData(const string&);
 	//! \note 使用 UTF-16 目录路径。
-	DirectoryFindData(wstring);
+	DirectoryFindData(const wstring&);
 	//@}
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	~DirectoryFindData();
@@ -517,6 +542,16 @@ public:
 };
 
 
+//! \since build 638
+//@{
+//! \see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
+//@{
+//! \brief 文件标识。
+using FileID = std::uint64_t;
+//! \brief 卷序列号。
+using VolumeID = std::uint32_t;
+//@}
+
 /*!
 \brief 查询文件链接数。
 \since build 637
@@ -530,6 +565,24 @@ QueryFileLinks(UniqueHandle::pointer);
 */
 YF_API YB_NONNULL(1) size_t
 QueryFileLinks(const wchar_t*);
+//@}
+
+/*!
+\brief 查询文件标识。
+\return 卷标识和卷上文件的标识的二元组。
+\bug ReFS 上不保证唯一。
+\see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
+*/
+//@{
+YF_API pair<VolumeID, FileID>
+QueryFileNodeID(UniqueHandle::pointer);
+/*!
+\pre 间接断言：路径参数非空。
+\throw Win32Exception 访问文件失败。
+*/
+YF_API YB_NONNULL(1) pair<VolumeID, FileID>
+QueryFileNodeID(const wchar_t*);
+//@}
 //@}
 
 /*!

@@ -440,7 +440,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4520;4800</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4800</DisableSpecificWarnings>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <BuildLog>

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r120
+\version r131
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:45:13 +0800
 \par 修改时间:
-	2015-08-25 21:36 +0800
+	2015-09-25 11:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,19 +43,16 @@ YF_API void
 ResetVideo();
 
 
-/*!
-\brief 默认上屏初始化函数。
-\since build 564
-*/
-YF_API platform::Pixel*
+//! \since build 564
+//@{
+//! \brief 默认上屏初始化函数。
+YF_API YB_ATTR(returns_nonnull) platform::Pixel*
 InitScrUp(int&);
 
-/*!
-\brief 默认下屏初始化函数。
-\since build 564
-*/
-YF_API platform::Pixel*
+//! \brief 默认下屏初始化函数。
+YF_API YB_ATTR(returns_nonnull) platform::Pixel*
 InitScrDown(int&);
+//@}
 
 /*!
 \brief 快速刷新缓存映像到显示屏缓冲区。

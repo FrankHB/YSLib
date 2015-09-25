@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1003
+\version r1039
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-09-24 23:15 +0800
+	2015-09-25 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,16 +157,16 @@ ImplDeDtor(Win32Exception)
 void
 GlobalDelete::operator()(pointer h) const ynothrow
 {
-	YCL_CallWin32_Trace(GlobalFree, "GlobalDelete::operator()", h);
+	YCL_CallWin32F_Trace(GlobalFree, h);
 }
 
 
 GlobalLocked::GlobalLocked(::HGLOBAL h)
-	: p_locked(YCL_CallWin32(GlobalLock, "GlobalLocked::GlobalLocked", h))
+	: p_locked(YCL_CallWin32F(GlobalLock, h))
 {}
 GlobalLocked::~GlobalLocked()
 {
-	YCL_CallWin32_Trace(GlobalUnlock, "GlobalLocked::~GlobalLocked", p_locked);
+	YCL_CallWin32F_Trace(GlobalUnlock, p_locked);
 }
 
 
@@ -224,6 +224,10 @@ Win32Exception::Win32Exception(ErrorCode ec, const std::string& s,
 {
 	YAssert(ec != 0, "No error should be thrown.");
 }
+Win32Exception::Win32Exception(ErrorCode ec, const std::string& s,
+	const char* fn, RecordLevel lv)
+	: Win32Exception(ec, s + " @ " + Nonnull(fn), lv)
+{}
 
 const std::error_category&
 Win32Exception::GetErrorCategory()
@@ -259,8 +263,8 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 void
 FixConsoleHandler(int(WINAPI* handler)(unsigned long), bool add)
 {
-	YCL_CallWin32(SetConsoleCtrlHandler, "FixConsoleHandler", handler
-		? handler : ConsoleHandler, add);
+	YCL_CallWin32F(SetConsoleCtrlHandler, handler ? handler : ConsoleHandler,
+		add);
 }
 
 bool
@@ -334,24 +338,24 @@ MBCSToWCS(size_t len, const char* str, unsigned cp)
 }
 
 
-DirectoryFindData::DirectoryFindData(string name)
+DirectoryFindData::DirectoryFindData(const string& name)
 	: DirectoryFindData(UTF8ToWCS(name))
 {}
-DirectoryFindData::DirectoryFindData(wstring name)
-	: dir_name(ystdex::rtrim(name, L"/\\")), find_data()
+DirectoryFindData::DirectoryFindData(const wstring& name)
+	: dir_name(name), find_data()
 {
-	if(dir_name.empty())
+	if(ystdex::rtrim(dir_name, L"/\\").empty())
 		dir_name = L'.';
 	YAssert(dir_name.back() != '\\', "Invalid argument found.");
 
 	using platform::FileOperationFailure;
-	const auto r(::GetFileAttributesW(dir_name.c_str()));
-	yconstexpr const char* const msg("Opening directory failed.");
+	const auto attr(::GetFileAttributesW(dir_name.c_str()));
+	yconstexpr const auto& msg("Opening directory failed.");
 
-	if(YB_UNLIKELY(r == INVALID_FILE_ATTRIBUTES))
+	if(YB_UNLIKELY(attr == INVALID_FILE_ATTRIBUTES))
 		// TODO: Call %::GetLastError to distinguish concreate errors.
 		throw FileOperationFailure(EINVAL, std::generic_category(), msg);
-	if(r & FILE_ATTRIBUTE_DIRECTORY)
+	if(attr & FILE_ATTRIBUTE_DIRECTORY)
 		dir_name += L"\\*";
 	else
 		throw FileOperationFailure(ENOTDIR, std::generic_category(), msg);
@@ -366,8 +370,7 @@ DirectoryFindData::~DirectoryFindData()
 void
 DirectoryFindData::Close() ynothrow
 {
-	FilterExceptions(YCL_WrapCallWin32(FindClose, "DirectoryFindData::Close",
-		h_node), "DirectoryFindData::Close");
+	FilterExceptions(YCL_WrapCallWin32F(FindClose, h_node), yfsig);
 }
 
 wstring*
@@ -403,12 +406,29 @@ DirectoryFindData::Rewind() ynothrow
 }
 
 
+pair<VolumeID, FileID>
+QueryFileNodeID(UniqueHandle::pointer h)
+{
+	::BY_HANDLE_FILE_INFORMATION info;
+
+	YCL_CallWin32F(GetFileInformationByHandle, h, &info);
+	return {VolumeID(info.dwVolumeSerialNumber),
+		FileID(info.nFileSizeHigh) << 32 | info.nFileSizeLow};
+}
+pair<VolumeID, FileID>
+QueryFileNodeID(const wchar_t* path)
+{
+	if(const auto h = MakeFile(path))
+		return QueryFileNodeID(h.get());
+	YCL_Raise_Win32Exception("CreateFileW");
+}
+
 size_t
 QueryFileLinks(UniqueHandle::pointer h)
 {
 	::BY_HANDLE_FILE_INFORMATION info;
 
-	YCL_CallWin32(GetFileInformationByHandle, "QueryFileLinks", h, &info);
+	YCL_CallWin32F(GetFileInformationByHandle, h, &info);
 //	if(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
 //		ProcessReparsePoint(info);
 	return size_t(info.nNumberOfLinks);
@@ -425,7 +445,7 @@ void
 QueryFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
 {
-	YCL_CallWin32(GetFileTime, "QueryFileTime", h, p_ctime, p_atime, p_mtime);
+	YCL_CallWin32F(GetFileTime, h, p_ctime, p_atime, p_mtime);
 }
 void
 QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,

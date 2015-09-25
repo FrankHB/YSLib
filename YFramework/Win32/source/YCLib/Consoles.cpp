@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r261
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-09-12 13:24 +0800
+	2015-09-24 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,8 +62,7 @@ WConsole::GetScreenBufferInfo() const
 {
 	::CONSOLE_SCREEN_BUFFER_INFO info;
 
-	YCL_CallWin32(GetConsoleScreenBufferInfo,
-		"WConsole::GetScreenBufferInfo", h_std, &info);
+	YCL_CallWin32F(GetConsoleScreenBufferInfo, h_std, &info);
 	return info;
 }
 
