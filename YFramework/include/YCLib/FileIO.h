@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1549
+\version r1627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-09-25 20:53 +0800
+	2015-09-27 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YCLib_Platform
 #include YFM_YBaseMacro
 #include <ystdex/string.hpp> // for ynothrow, ystdex::enable_for_string_class_t,
-//	std::uint64_t;
+//	std::uint64_t, ystdex::totally_ordered;
 #include <cstdio> // for std::FILE;
 #include YFM_YCLib_Debug // for Nonnull, string, u16string, array;
 #include <chrono> // for std::chrono::nanoseconds;
@@ -109,7 +109,7 @@ using mode_t = ::mode_t;
 \see ISO WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
 \since build 565
 */
-class YF_API FileDescriptor
+class YF_API FileDescriptor : ystdex::totally_ordered<FileDescriptor>
 {
 public:
 	/*!
@@ -159,10 +159,15 @@ public:
 
 	explicit DefCvt(const ynothrow, bool, desc != -1)
 
-	friend PDefHOp(bool, ==, const FileDescriptor& x, const FileDescriptor& y)
+	//! \since build 639
+	friend yconstfn YB_PURE PDefHOp(bool,
+		==, const FileDescriptor& x, const FileDescriptor& y) ynothrow
 		ImplRet(x.desc == y.desc)
-	friend PDefHOp(bool, !=, const FileDescriptor& x, const FileDescriptor& y)
-		ImplRet(x.desc != y.desc)
+
+	//! \since build 639
+	friend yconstfn YB_PURE PDefHOp(bool,
+		<, const FileDescriptor& x, const FileDescriptor& y) ynothrow
+		ImplRet(x.desc < y.desc)
 
 	//! \since build 628
 	//@{
@@ -552,6 +557,7 @@ urmdir(const char*) ynothrow;
 /*!
 \brief 按 UTF-8 路径删除一个非目录文件。
 \note POSIX 平台：除路径和返回值外语义同 \c ::unlink 。
+\note Win32 平台：支持移除只读文件，但删除打开的文件总是失败。
 \since build 476
 */
 YF_API YB_NONNULL(1) bool
@@ -560,7 +566,7 @@ uunlink(const char*) ynothrow;
 /*!
 \brief 按 UTF-8 路径移除一个文件。
 \note POSIX 平台：除路径和返回值外语义同 \c ::remove 。移除非空目录总是失败。
-\note Win32 平台：删除目录、只读文件或打开的文件总是失败。
+\note Win32 平台：支持移除空目录和只读文件，但删除打开的文件总是失败。
 \see https://msdn.microsoft.com/en-us/library/kc07117k.aspx 。
 \since build 476
 */
@@ -1058,35 +1064,6 @@ public:
 };
 
 
-/*!
-\brief 尝试移除文件链接。
-\pre 间接断言：参数非空。
-\throw FileOperationFailure 文件存在且操作失败。
-\since build 634
-*/
-//@{
-template<typename _tChar>
-YB_NONNULL(1) void
-TryRemove(const _tChar* path)
-{
-	if(YB_UNLIKELY(!uremove(path) && errno != ENOENT))
-		throw FileOperationFailure(errno, std::generic_category(),
-			"Failed removing destination file '"
-			+ platform::MakePathString(path) + "'.");
-}
-
-template<typename _tChar>
-YB_NONNULL(1) void
-TryUnlink(const _tChar* path)
-{
-	if(YB_UNLIKELY(!uunlink(path) && errno != ENOENT))
-		throw FileOperationFailure(errno, std::generic_category(),
-			"Failed unlinking destination file '"
-			+ platform::MakePathString(path) + "'.");
-}
-//@}
-
-
 //! \exception FileOperationFailure 参数无效或文件时间查询失败。
 //@{
 /*!
@@ -1152,53 +1129,34 @@ GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 //@}
 
 /*!
-\excption FileOperationFailure 参数无效或文件大小查询失败。
-\sa FileDescriptor::GetSize
-\since build 475
+\brief 取路径指定的文件链接数。
+\return 若成功为连接数，否则为 0 。
+\since build 639
 */
-YF_API YB_NONNULL(1) std::uint64_t
-GetFileSizeOf(std::FILE*);
+YB_NONNULL(1) size_t
+FetchNumberOfLinks(const char*) ynothrow;
+YB_NONNULL(1) size_t
+FetchNumberOfLinks(const char16_t*) ynothrow;
 
-
-//! \since build 637
-//@{
-/*!
-\brief 复制文件。
-\pre 间接断言：表示目标和源的参数非空。
-\note 第一参数表示目标，第二参数表示源。
-\note 不复制元数据。
-*/
-//@{
-YF_API void
-CopyFile(UniqueFile, FileDescriptor);
-YF_API YB_NONNULL(2) void
-CopyFile(UniqueFile, const char*);
-/*!
-\exception FileOperationFailure 打开目标失败。
-\note 最后一个参数为打开目标的模式。
-\sa EnsureUniqueFile
-\since build 638
-*/
-//@{
-YF_API YB_NONNULL(1) void
-CopyFile(const char*, FileDescriptor, mode_t mode = DefaultPMode());
-YF_API YB_NONNULL(1, 2) void
-CopyFile(const char*, const char*, mode_t mode = DefaultPMode());
-//@}
-//@}
 
 /*!
 \brief 尝试删除指定路径的文件后再以指定路径和模式创建常规文件。
+\pre 间接断言：第一参数非空。
+\note 参数依次表示目标路径、打开模式、覆盖目标允许的链接数和是否允许共享覆盖。
+\note 第二参数被限制 Mode::User 内。
+\note 若目标已存在，创建或覆盖文件保证目标文件链接数不超过第三参数指定的值。
+\note 若目标已存在、链接数大于 1 且不允许写入共享则先删除目标。
 \note 忽略目标不存在导致的删除失败。
 \throw FileOperationFailure 创建目标失败。
+\since build 639
 */
 YF_API YB_NONNULL(1) UniqueFile
-EnsureUniqueFile(const char*, mode_t);
+EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
 //@}
 
 /*!
 \brief 比较文件内容相等。
-\throw ThrowFileOperationFailure 文件按流打开失败。
+\throw FileOperationFailure 文件按流打开失败。
 \note 首先清除 errno ；可能设置 errno 。
 \warning 读取失败时即截断返回，因此需要另行比较文件大小。
 */

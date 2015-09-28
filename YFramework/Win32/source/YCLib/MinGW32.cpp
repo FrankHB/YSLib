@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1039
+\version r1052
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-09-25 13:10 +0800
+	2015-09-26 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ inline namespace Windows
 {
 
 int
-ConvertToErrno(unsigned long err) ynothrow
+ConvertToErrno(ErrorCode err) ynothrow
 {
 	// NOTE: This mapping is from Windows Kits 10.0.10150.0,
 	//	ucrt/misc/errno.cpp, except for fix of the bug error 124: it shall be
@@ -141,10 +141,10 @@ ConvertToErrno(unsigned long err) ynothrow
 	default:
 		break;
 	}
-	if(IsInClosedInterval<unsigned long>(err, ERROR_WRITE_PROTECT,
+	if(IsInClosedInterval<ErrorCode>(err, ERROR_WRITE_PROTECT,
 		ERROR_SHARING_BUFFER_EXCEEDED))
 		return EACCES;
-	if(IsInClosedInterval<unsigned long>(err, ERROR_INVALID_STARTING_CODESEG,
+	if(IsInClosedInterval<ErrorCode>(err, ERROR_INVALID_STARTING_CODESEG,
 		ERROR_INFLOOP_IN_RELOC_CHAIN))
 		return ENOEXEC;
 	return EINVAL;
@@ -213,7 +213,7 @@ public:
 	//! \since build 564
 	PDefH(std::string, message, int ev) const override
 		// NOTE: For Win32 a %::DWORD can be mapped one-to-one for 32-bit %int.
-		ImplRet(Win32Exception::FormatMessage(Win32Exception::ErrorCode(ev)))
+		ImplRet(Win32Exception::FormatMessage(ErrorCode(ev)))
 };
 
 } // unnamed namespace;
@@ -349,16 +349,18 @@ DirectoryFindData::DirectoryFindData(const wstring& name)
 	YAssert(dir_name.back() != '\\', "Invalid argument found.");
 
 	using platform::FileOperationFailure;
-	const auto attr(::GetFileAttributesW(dir_name.c_str()));
+	const auto attr(FileAttributes(::GetFileAttributesW(dir_name.c_str())));
 	yconstexpr const auto& msg("Opening directory failed.");
 
-	if(YB_UNLIKELY(attr == INVALID_FILE_ATTRIBUTES))
-		// TODO: Call %::GetLastError to distinguish concreate errors.
-		throw FileOperationFailure(EINVAL, std::generic_category(), msg);
-	if(attr & FILE_ATTRIBUTE_DIRECTORY)
-		dir_name += L"\\*";
+	if(attr != FileAttributes::Invalid)
+	{
+		if(attr & FileAttributes::Directory)
+			dir_name += L"\\*";
+		else
+			ystdex::throw_error<FileOperationFailure>(ENOTDIR, msg);
+	}
 	else
-		throw FileOperationFailure(ENOTDIR, std::generic_category(), msg);
+		ystdex::throw_error<FileOperationFailure>(GetErrnoFromWin32(), msg);
 }
 
 DirectoryFindData::~DirectoryFindData()

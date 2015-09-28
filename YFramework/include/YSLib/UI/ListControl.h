@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1636
+\version r1639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2015-07-04 21:16 +0800
+	2015-07-04 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,7 +241,8 @@ public:
 	DefDeMoveCtor(TextList)
 
 	DefPredMem(const ynothrow, Selected, vwList)
-	PDefH(bool, Contains, ListType::size_type i)
+	//! \since build 639
+	PDefH(bool, Contains, ListType::size_type i) const ynothrow
 		ImplRet(vwList.Contains(i))
 
 	//! \since build 530
@@ -270,7 +271,7 @@ public:
 
 	/*!
 	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
-	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	\since build 392
 	*/
 	PDefH(void, AdjustViewForContent, )

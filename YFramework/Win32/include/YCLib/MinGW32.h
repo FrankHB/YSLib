@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1102
+\version r1196
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-09-28 12:43 +0800
+	2015-09-28 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,20 +49,23 @@ namespace platform_ex
 inline namespace Windows
 {
 
-//! \since build 622
-//@{
+//! \since build 435
+using ErrorCode = unsigned long;
+
 /*!
 \brief 转换 Win32 错误为 errno 。
 \return 当对应不存在时 EINVAL ，否则参数对应的 errno 。
-\since build 633
+\since build 639
 */
 YF_API YB_STATELESS int
-ConvertToErrno(unsigned long) ynothrow;
+ConvertToErrno(ErrorCode) ynothrow;
 
-//! \breif 取转换为 errno 的 Win32 错误。
+/*!
+\breif 取转换为 errno 的 Win32 错误。
+\since build 622
+*/
 inline PDefH(int, GetErrnoFromWin32, ) ynothrow
 	ImplRet(ConvertToErrno(::GetLastError()))
-//@}
 
 
 /*!
@@ -72,11 +75,6 @@ inline PDefH(int, GetErrnoFromWin32, ) ynothrow
 */
 class YF_API Win32Exception : public Exception
 {
-public:
-	//! \since build 435
-	//@{
-	using ErrorCode = unsigned long;
-
 public:
 	/*!
 	\pre 错误码不等于 0 。
@@ -141,7 +139,7 @@ public:
 //! \brief 按表达式求值和指定参数抛出 Windows::Win32Exception 对象。
 #	define YCL_Raise_Win32Exception_On_Failure(_expr, ...) \
 	{ \
-		const auto err(Win32Exception::ErrorCode(_expr)); \
+		const auto err(Windows::ErrorCode(_expr)); \
 	\
 		if(err != ERROR_SUCCESS) \
 			throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
@@ -337,19 +335,90 @@ enum class CreationDisposition : unsigned long
 //@}
 
 
-//! \since build 632
+//! \since build 639
 //@{
-enum class FileAttributesAndFlags : unsigned long
+//! \see https://msdn.microsoft.com/en-us/library/gg258117(v=vs.85).aspx 。
+enum FileAttributes : unsigned long
 {
+	ReadOnly = FILE_ATTRIBUTE_READONLY,
+	Hidden = FILE_ATTRIBUTE_HIDDEN,
+	System = FILE_ATTRIBUTE_SYSTEM,
+	Directory = FILE_ATTRIBUTE_DIRECTORY,
+	Archive = FILE_ATTRIBUTE_ARCHIVE,
+	Device = FILE_ATTRIBUTE_DEVICE,
 	Normal = FILE_ATTRIBUTE_NORMAL,
-	NormalWithDirectory = Normal | FILE_FLAG_BACKUP_SEMANTICS,
-	NormalAll = NormalWithDirectory | FILE_FLAG_OPEN_REPARSE_POINT
+	Temporary = FILE_ATTRIBUTE_TEMPORARY,
+	SparseFile = FILE_ATTRIBUTE_SPARSE_FILE,
+	ReparsePoint = FILE_ATTRIBUTE_REPARSE_POINT,
+	Compressed = FILE_ATTRIBUTE_COMPRESSED,
+	Offline = FILE_ATTRIBUTE_OFFLINE,
+	NotContentIndexed = FILE_ATTRIBUTE_NOT_CONTENT_INDEXED,
+	Encrypted = FILE_ATTRIBUTE_ENCRYPTED,
+//	IntegrityStream = FILE_ATTRIBUTE_INTEGRITY_STREAM,
+	IntegrityStream = 0x8000,
+	Virtual = FILE_ATTRIBUTE_VIRTUAL,
+//	NoScrubData = FILE_ATTRIBUTE_NO_SCRUB_DATA,
+	NoScrubData = 0x20000,
+//	EA = FILE_ATTRIBUTE_EA,
+	//! \warning 非 MSDN 文档公开。
+	EA = 0x40000,
+	Invalid = INVALID_FILE_ATTRIBUTES
 };
 
-//! \relates FileAttributesAndFlags
-DefBitmaskEnum(FileAttributesAndFlags)
+//! \see https://msdn.microsoft.com/en-us/library/aa363858(v=vs.85).aspx 。
+enum FileFlags : unsigned long
+{
+	WriteThrough = FILE_FLAG_WRITE_THROUGH,
+	Overlapped = FILE_FLAG_OVERLAPPED,
+	NoBuffering = FILE_FLAG_NO_BUFFERING,
+	RandomAccess = FILE_FLAG_RANDOM_ACCESS,
+	SequentialScan = FILE_FLAG_SEQUENTIAL_SCAN,
+	DeleteOnClose = FILE_FLAG_DELETE_ON_CLOSE,
+	BackupSemantics = FILE_FLAG_BACKUP_SEMANTICS,
+	POSIXSemantics = FILE_FLAG_POSIX_SEMANTICS,
+	SessionAware = FILE_FLAG_SESSION_AWARE,
+	OpenReparsePoint = FILE_FLAG_OPEN_REPARSE_POINT,
+	OpenNoRecall = FILE_FLAG_OPEN_NO_RECALL,
+	// \see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa365150(v=vs.85).aspx 。
+	FirstPipeInstance = FILE_FLAG_FIRST_PIPE_INSTANCE
+};
+
+enum SecurityQoS : unsigned long
+{
+	Anonymous = SECURITY_ANONYMOUS,
+	ContextTracking = SECURITY_CONTEXT_TRACKING,
+	Delegation = SECURITY_DELEGATION,
+	EffectiveOnly = SECURITY_EFFECTIVE_ONLY,
+	Identification = SECURITY_IDENTIFICATION,
+	Impersonation = SECURITY_IMPERSONATION,
+	Present = SECURITY_SQOS_PRESENT,
+	ValidFlags = SECURITY_VALID_SQOS_FLAGS
+};
+
+enum FileAttributesAndFlags : unsigned long
+{
+	NormalWithDirectory = Normal | BackupSemantics,
+	NormalAll = NormalWithDirectory | OpenReparsePoint
+};
+//@}
 
 
+/*!
+\brief 判断 \c ::WIN32_FIND_DATAA 指定的节点是否为目录。
+\since build 298
+*/
+inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAA& d) ynothrow
+	ImplRet(d.dwFileAttributes & Directory)
+/*!
+\brief 判断 \c ::WIN32_FIND_DATAW 指定的节点是否为目录。
+\since build 299
+*/
+inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
+	ImplRet(d.dwFileAttributes & Directory)
+
+  
+//! \since build 632
+//@{
 /*!
 \brief 创建或打开独占的文件或设备。
 \pre 间接断言：路径参数非空。
@@ -390,7 +459,7 @@ inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 \warning 默认不应在 std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
 \see http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx
 \see http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx
-\see $2015-01 @ %Documentation::Workflow::Annual2014.
+\see $2015-01 @ %Documentation::Workflow::Annual2015.
 \since build 565
 
 若第一参数为空，则使用具有以下行为的处理器：

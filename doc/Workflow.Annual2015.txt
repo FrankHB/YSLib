@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r322
+\version r372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-09-24 13:18 +0800
+	2015-09-27 16:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,6 +301,56 @@ Previously analysis of grammar of template default argument for non-type paramet
 	See $2013-10 report.impl.
 	Note ISO C++11 [dcl.fct.default]/3 has already forbid non assignment-expression as template default argument for non-type parameters.
 	It turned to be a G++ bug. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57905 .
+Atomicity might be a real problem to file system APIs.
+	This might cause TOCTTOU access and make inconsistent state in the resulted environment.
+		There are no portable way to fix it.
+		See https://en.wikipedia.org/wiki/Time_of_check_to_time_of_use .
+	Since there are few file systems support transactions, this is hard to achieve on this level.
+	Users should be careful by themselves.
+	File locks should be considered in future to make life ease.
+Readonly attribute is considered in Win32 when removing a file.
+	Win32 API 'DeleteFile' prevent deletion of a file.
+	Low-level 'unlink' and 'remove' are based on 'DeleteFile' in MSVCRT (at least as in universal CRT source), so do the '_w' variants.
+	Thus mearly calling these APIs are not able to remove a readonly file.
+	To achieve consistent behavior with other platforms (mostly POSIX), YCLib 'FileIO' API now try removing the readonly attribute at first if it is not a directory.
+		This would increase risk of TOCTTOU access.
+Multilevel tree deletion actually works well, except for shared files are involved.
+	For example, for multilevel tree deletion, if non root directory is opened at 'explorer' in Windows, the view would return to the parent directory of opened directory and the operation would fail (with the previously opened directory already removed).
+	These potentional bugs should be further investigated in future.
+There are many conditions concerned to copy file.
+	'CopyFile' is proveded as a set of overloaded functions in 'YFramework.YSLib.Service'.
+		It relies on some APIs in YCLib.FileSystem to make the implmentation easy to use non platform neutral operations.
+		The destination and source are basically specified by path strings or file descriptors.
+			Other variants can be considered later.
+	The API is carefully designed to meet different requirements, particularly:
+		Users should be able to specify whether the operation would fail when the destination is already existed.
+			At least a parameter should have functionality similar to 3rd 'bFailIfExists' parameter of Win32 API 'CopyFile'.
+			For availability, 'CopyFile' actually provides a 'size_t' parameter to allow users specifying maximum allowed link numbers when the destination is already exists.
+				Note the call would change the link number of the destination path only when destination is not existed yet, that is, from 0 to 1. The parameter is not used here.
+		Link behavior should be considered.
+			Users should be able to specify whether the modification of destination is visible through other paths.
+				Note the problems only occur on overloadings with the destination specified by a path.
+				Thus, providing such functionality through other names is a surprise and bad.
+			For hard links, if shared writing is allowed, there need to be no extra operations, otherwise the destination should be removed before the copy.
+			For symbolic links, if shared writing is allowed, the link should be followed, otherwise the destination should be removed before the copy.
+		To make it clear as the name of the function and to ease the use, several limitations are made by design.
+			'CopyFile' creates only one regular file by one successful call, without reading the source file contents before the actual copy.
+			'CopyFile' does not remove destination explicitly, except for the link behavior needed above.
+		When the destination is not existed, 'CopyFile' can be called directory.
+		When uncoditionally deletion of destination is needed, user can call always 'TryRemove' and then 'CopyFile'.
+		When the destination is existed as regular file with link number equals to 1, the file are to be opened directly and write by 'CopyFile'.
+			The node ID and creation time (if any) shall not be touched.
+		New APIs should be designed for some specific operations (e.g. to increase performance) without direct calls of 'CopyFile':
+			Batch operations are needed.
+			Conditional links are needed.
+			Conditional writing, e.g. comparing source of file (to minimize writing) before actual copy, is needed.
+	Several preconditions shall be hold, or the operation would fail:
+		The destination shall not be on a readonly file system.
+		The destination shall be in a directory with write and search permission.
+		The source shall be with read permission.
+		The destination shall not specify a directory.
+			Otherwise it violates the intention of "not removing destination" above.
+			This should also fail when destination is a nonempty directory, since tree removing operation is complicated so it is not fit to implement on this level.
 
 dep.merge:
 libwibble(https://packages.debian.org/sid/libwibble-dev): tentatively rejected.

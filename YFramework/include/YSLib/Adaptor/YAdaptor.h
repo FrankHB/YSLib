@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1803
+\version r1836
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-09-18 14:27 +0800
+	2015-09-27 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,8 +46,8 @@
 #include YFM_YCLib_Mutex
 #include YFM_YCLib_Reference
 
-/*
-!\brief YSLib 命名空间。
+/*!
+\brief YSLib 命名空间。
 \since 早于 build 132
 */
 namespace YSLib
@@ -96,6 +96,8 @@ using std::round;
 \since build 265
 */
 //@{
+//! \note 要求支持 \c constexpr 。
+//@{
 #if __cplusplus >= 201402L
 using std::min;
 using std::max;
@@ -105,6 +107,7 @@ using ystdex::min;
 //! \since build 578
 using ystdex::max;
 #endif
+//@}
 //}
 
 
@@ -218,7 +221,7 @@ using platform::Deref;
 //@}
 
 /*!
-\brief 文件系统例程。
+\brief 文件访问例程。
 \since build 299
 */
 //@{
@@ -266,14 +269,6 @@ using platform::wifstream;
 using platform::wofstream;
 using platform::wfstream;
 //@}
-//! \since build 631
-using platform::GetFileAccessTimeOf;
-//! \since build 547
-using platform::GetFileModificationTimeOf;
-//! \since build 631
-using platform::GetFileModificationAndAccessTimeOf;
-//! \since build 547
-using platform::GetFileSizeOf;
 //@}
 
 //系统处理函数。
@@ -337,18 +332,42 @@ namespace ColorSpace = platform::ColorSpace;
 namespace IO
 {
 
+/*!
+\brief 文件访问和文件系统例程。
+\since build 639
+*/
+//@{
+using platform::mode_t;
+using platform::FileDescriptor;
+using platform::UniqueFile;
+using platform::DefaultPMode;
+using platform::omode_conv;
+using platform::omode_convb;
+//! \since build 411
+using platform::FileOperationFailure;
+//! \since build 631
+using platform::GetFileAccessTimeOf;
+//! \since build 547
+using platform::GetFileModificationTimeOf;
+//! \since build 631
+using platform::GetFileModificationAndAccessTimeOf;
+using platform::FetchNumberOfLinks;
+using platform::EnsureUniqueFile;
+
 //! \since build 474
 using platform::NodeCategory;
 
 //! \since build 411
 //@{
-using platform::FileOperationFailure;
 using platform::DirectorySession;
 using platform::HDirectory;
 using platform::FileIterator;
 //@}
+//! \since build 171
 using platform::IsAbsolute;
+//! \since build 171
 using platform::GetRootNameLength;
+//@}
 
 } // namespace IO;
 

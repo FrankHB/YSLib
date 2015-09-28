@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2040
+\version r2088
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-09-18 14:28 +0800
+	2015-09-28 10:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/cstring.h>
-#include <system_error>
+#include <ystdex/exception.h> // for ystdex::throw_error, system_error;
+#include YFM_YSLib_Service_File // for OpenFile;
 
 namespace YSLib
 {
@@ -62,6 +63,7 @@ Path::Parse(const ucs2string& str)
 	}, [&](ucs2string::const_iterator b, ucs2string::const_iterator e){
 		res.push_back(ucs2string(b, e));
 	});
+	// NOTE: Fix first component for absolute path beginning with delimiter.
 	if(!res.empty() && !IsAbsolute(res.front()) && IsAbsolute(str.c_str()))
 		res.insert(res.cbegin(), {{}});
 	return res;
@@ -126,21 +128,68 @@ EnsureDirectory(const Path& pth)
 		if(!VerifyDirectory(upath) && !umkdir(upath.c_str()) && errno != EEXIST)
 		{
 			YTraceDe(Err, "Failed making directory path '%s'", upath.c_str());
-			throw std::system_error(errno, std::system_category());
+			ystdex::throw_error(errno);
 		}
 	}
 }
 
 
+//! \since build 639
+namespace
+{
+
+template<typename _func>
 void
-DeleteTree(const Path& pth)
+CopyFileImpl(_func f, const char* src, mode_t src_mode)
+{
+	if(const auto p_ifile = OpenFile(src,
+		omode_convb(std::ios_base::in | std::ios_base::binary), src_mode))
+		f(p_ifile.get());
+	else
+		ystdex::throw_error<FileOperationFailure>(errno,
+			"Failed opening source file '" + string(src) + "'.");
+}
+
+} // unnamed namespace;
+
+void
+CopyFile(UniqueFile p_dst, FileDescriptor src_fd)
+{
+	FileDescriptor::WriteContent(Nonnull(p_dst.get()), Nonnull(src_fd));
+}
+void
+CopyFile(UniqueFile p_dst, const char* src, mode_t src_mode)
+{
+	CopyFileImpl([&](FileDescriptor src_fd){
+		CopyFile(std::move(p_dst), src_fd);
+	}, src, src_mode);
+}
+void
+CopyFile(const char* dst, FileDescriptor src_fd, mode_t dst_mode,
+	size_t allowed_links, bool share)
+{
+	FileDescriptor::WriteContent(EnsureUniqueFile(dst, dst_mode, allowed_links,
+		share).get(), Nonnull(src_fd));
+}
+void
+CopyFile(const char* dst, const char* src, mode_t dst_mode, mode_t src_mode,
+	size_t allowed_links, bool share)
+{
+	CopyFileImpl([&](FileDescriptor src_fd){
+		CopyFile(dst, src_fd, dst_mode, allowed_links, share);
+	}, src, src_mode);
+}
+
+
+void
+ClearTree(const Path& pth)
 {
 	TraverseChildren(pth, [&](NodeCategory c, const string& name){
 		const auto child(pth / name);
 
 		if(c == NodeCategory::Directory)
 			DeleteTree(child);
-		uremove(string(child).c_str());
+		TryRemove(string(child).c_str());
 	});
 }
 

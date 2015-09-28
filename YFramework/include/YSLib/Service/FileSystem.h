@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2518
+\version r2622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-09-18 22:38 +0800
+	2015-09-27 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,6 +190,13 @@ public:
 	//! \since build 600
 	DefGetter(ynothrow, ypath&, BaseRef, *this)
 	/*!
+	\brief 取不带分隔符结尾的字符串。
+	\since build 639
+	*/
+	PDefH(String, GetLeafString, ucs2_t delimiter = ucs2_t(YCL_PATH_DELIMITER))
+		const
+		ImplRet(ystdex::to_string(GetBase(), {delimiter}))
+	/*!
 	\brief 取指定分隔符和编码的多字节字符串。
 	\since build 635
 	*/
@@ -203,7 +210,6 @@ public:
 	*/
 	String
 	GetString(ucs2_t = ucs2_t(YCL_PATH_DELIMITER)) const;
-
 	/*!
 	\brief 正规化：去除自指和父节点的路径成员。
 	\since build 410
@@ -372,11 +378,12 @@ inline PDefH(bool, VerifyDirectory, const String& path)
 inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
 //@}
+//@}
 
 
 /*!
 \brief 验证路径表示的目录是否存在，若不存在则逐级创建。
-\throw std::system_error 失败时根据 \c errno 抛出的异常。
+\throw std::system_error 失败时根据 errno 抛出的异常。
 \note 使用 umkdir 实现。
 \since build 563
 */
@@ -392,9 +399,10 @@ inline PDefH(void, EnsureDirectory, const String& path)
 //@}
 
 
-//! \since build 538
-//@{
-//! \brief 目录遍历操作。
+/*!
+\brief 目录遍历操作。
+\since build 538
+*/
 //@{
 template<typename _func>
 void
@@ -444,29 +452,113 @@ TraverseChildren(const string& path, _func f)
 }
 //@}
 
-//! \brief 删除参数指定路径的目录树。
+
+/*!
+\brief 尝试移除文件链接。
+\pre 间接断言：参数非空。
+\throw FileOperationFailure 文件存在且操作失败。
+\since build 634
+*/
+//@{
+template<typename _tChar>
+YB_NONNULL(1) void
+TryRemove(const _tChar* path)
+{
+	if(YB_UNLIKELY(!uremove(path) && errno != ENOENT))
+		ystdex::throw_error<FileOperationFailure>(errno,
+			"Failed removing destination file '"
+			+ platform::MakePathString(path) + "'.");
+}
+
+template<typename _tChar>
+YB_NONNULL(1) void
+TryUnlink(const _tChar* path)
+{
+	if(YB_UNLIKELY(!uunlink(path) && errno != ENOENT))
+		ystdex::throw_error<FileOperationFailure>(errno,
+			"Failed unlinking destination file '"
+			+ platform::MakePathString(path) + "'.");
+}
+//@}
+
+
+/*!
+\brief 复制文件。
+\pre 间接断言：表示目标和源的参数非空。
+\note 第一参数表示目标，第二参数表示源。
+\note mode_t 参数依次表示打开目标和源的权限模式。
+\note 不复制元数据。
+\see $2015-09 @ %Documentation::Workflow::Annual2015.
+\since build 639
+*/
+//@{
+/*!
+\note 不清空目标。
+\since build 637
+*/
+YF_API void
+CopyFile(UniqueFile, FileDescriptor);
+//! \exception FileOperationFailure 打开文件失败。
+//@{
+//! \note 不清空目标。
+YF_API YB_NONNULL(2) void
+CopyFile(UniqueFile, const char*, mode_t = DefaultPMode());
+/*!
+\note 除第二参数外含义和 EnsureUniqueFile 的参数依次相同。
+\sa EnsureUniqueFile
+*/
+//@{
+YF_API YB_NONNULL(1) void
+CopyFile(const char*, FileDescriptor, mode_t = DefaultPMode(),
+	size_t = 1, bool = {});
+YF_API YB_NONNULL(1, 2) void
+CopyFile(const char*, const char*, mode_t = DefaultPMode(),
+	mode_t = DefaultPMode(), size_t = 1, bool = {});
+//@}
+//@}
+//@}
+
+
+/*!
+\note 失败时立刻终止操作。
+\exception FileOperationFailure 路径指向的不是一个目录或删除失败。
+*/
+//@{
+/*!
+\brief 清空参数指定路径的目录树内容。
+\since build 639
+*/
 //@{
 YF_API void
-DeleteTree(const Path&);
+ClearTree(const Path&);
+inline PDefH(void, ClearTree, const string& pth)
+	ImplRet(ClearTree(Path(pth)))
+//@}
+
+//! \brief 删除参数指定路径的目录树。
+//@{
+inline PDefH(void, DeleteTree, const Path& pth)
+	ImplExpr(ClearTree(pth), TryRemove(string(pth).c_str()))
 //! \since build 593
 inline PDefH(void, DeleteTree, const string& pth)
-	ImplRet(IO::DeleteTree(Path(pth)))
+	ImplExpr(DeleteTree(Path(pth)))
+//@}
 //@}
 
-//! \brief 遍历目录中的项目，更新至列表。
+/*!
+\brief 遍历目录中的项目，更新至列表。
+\since build 538
+*/
 YF_API void
 ListFiles(const Path&, vector<String>&);
-//@}
 
 
-//! \brief 按文件系统节点类别对路径分类。
+/*!
+\brief 按文件系统节点类别对路径分类。
+\since build 410
+*/
 YF_API NodeCategory
 ClassifyNode(const Path&);
-//@}
-
-
-// \brief 文件名过滤器。
-// TODO: Definition & impl.
 
 } // namespace IO;
 

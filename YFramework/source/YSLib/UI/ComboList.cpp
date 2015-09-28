@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3249
+\version r3257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-09-18 14:05 +0800
+	2015-09-28 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,7 @@ FileBox::FileBox(const Rect& r)
 	: ListBox(r), pthDirectory()
 {
 	GetConfirmed() += [this](IndexEventArgs&& e){
-		if(Contains(e) && bool(*this /= IO::Path(GetList()[e.Value])))
+		if(Contains(e) && bool(*this = GetPath(e.Value)))
 		{
 			GetListRef() = ListItems();
 			ResetView();
@@ -137,8 +137,13 @@ ImplDeDtor(FileBox)
 IO::Path
 FileBox::GetPath() const
 {
-	return IsSelected() ? pthDirectory / IO::Path(GetList()[GetSelectedIndex()])
-		: pthDirectory;
+	return IsSelected() ? GetPath(GetSelectedIndex()) : pthDirectory;
+}
+IO::Path
+FileBox::GetPath(typename ListType::size_type i) const
+{
+	YAssert(Contains(i), "Invalid index found.");
+	return pthDirectory / IO::Path(GetList()[i]);
 }
 
 bool

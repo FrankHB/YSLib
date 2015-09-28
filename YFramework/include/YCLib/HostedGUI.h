@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1312
+\version r1316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-09-08 02:22 +0800
+	2015-09-26 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,6 +86,8 @@ using NativeWindowHandle = ystdex::nptr<XCB::WindowData*>;
 #	elif YCL_Win32
 //! \since build 389
 using NativeWindowHandle = ::HWND;
+//! \since build 639
+using WindowStyle = unsigned long;
 #	elif YCL_Android
 //! \since build 492
 using NativeWindowHandle = ::ANativeWindow*;
@@ -378,11 +380,11 @@ CreateCompatibleDIBSection(const YSLib::Drawing::Size&,
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶级窗口。
 \note 最后的默认参数分别为 \c WS_POPUP 和 \c WS_EX_LTRREADING 。
 \exception 异常中立：由 CheckScalar 抛出。
-\since build 564
+\since build 639
 */
 YF_API NativeWindowHandle
 CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&, const wchar_t*
-	= L"", unsigned long = 0x80000000L, unsigned long = 0x00000000L);
+	= L"", WindowStyle = 0x80000000L, WindowStyle = 0x00000000L);
 #	endif
 
 

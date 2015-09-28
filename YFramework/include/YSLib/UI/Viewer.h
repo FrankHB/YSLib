@@ -11,13 +11,13 @@
 /*!	\file Viewer.h
 \ingroup UI
 \brief 样式无关的视图。
-\version r705
+\version r708
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2015-03-22 15:08 +0800
+	2015-09-28 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,10 +72,10 @@ public:
 
 	/*!
 	\brief 判断是否在有效范围内包含指定项目索引。
-	\since build 147
+	\since build 639
 	*/
 	bool
-	Contains(size_t) const;
+	Contains(size_t) const ynothrow;
 
 	DefGetter(const ynothrow, size_t, HeadIndex, head)
 	DefGetter(const ynothrow, size_t, SelectedIndex, selected)
@@ -296,7 +296,7 @@ public:
 	/*!
 	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
 	\note 参数指定视图可视区域的高。
-	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	*/
 	void
 	AdjustViewForContent(SDst);
