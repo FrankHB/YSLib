@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2699
+\version r2711
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2015-07-04 21:16 +0800
+	2015-09-28 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ public:
 	using iterator = ystdex::subscriptive_iterator<ListBox, IWidget>;
 
 protected:
-	/*
+	/*!
 	\brief 文本列表指针。
 	\since build 534
 	*/
@@ -83,7 +83,8 @@ public:
 	//! \since build 357
 	DefWidgetMemberIterationBase(ScrollableContainer, GetTextListRef())
 
-	PDefH(bool, Contains, ListType::size_type i)
+	//! \since build 639
+	PDefH(bool, Contains, ListType::size_type i) const ynothrow
 		ImplRet(GetTextListRef().Contains(i))
 	DefPredMem(const ynothrow, Selected, GetTextListRef())
 
@@ -121,7 +122,7 @@ public:
 
 	/*!
 	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
-	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	\sa TextList::AdjustViewLength
 	\since build 392
 	*/
@@ -215,6 +216,13 @@ public:
 	*/
 	IO::Path
 	GetPath() const;
+	/*!
+	\brief 取指定项的路径。
+	\pre 断言： \c Contains(i) 。
+	\since build 639
+	*/
+	IO::Path
+	GetPath(typename ListType::size_type i) const;
 
 	/*!
 	\brief 设置路径，若成功则刷新列表。
@@ -297,7 +305,7 @@ public:
 
 	/*!
 	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
-	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	\warning 若视图大小变化后不调用此方法调整视图，可能引起选择项越界而行为未定义。
 	\sa TextList::AdjustViewLength
 	\since build 392
 	*/

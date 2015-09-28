@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r4104
+\version r4277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-25 21:10 +0800
+	2015-09-28 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,180 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			/ "alias %ErrorCode" @ "class %Win32Exception"
+				>> "inline namespace %Windows",
+			/ "enum class %FileAttributesAndFlags, \
+				'DefBitmaskEnum(FileAttributesAndFlags)'"
+				-> "enums %(FileAttributes, FileFlags, SecurityQoS, \
+				FileAttributesAndFlags)",
+			/ "error handling" @ "constructor %DirectoryFindData" $=
+			(
+				/ DLDI ^ ($dep_from "%FileAttributes",
+					"%ystdex::throw_error" ~ 'throw'),
+				/ "distinguished error of getting attributes failure"
+					^ "%GetErrnoFromWin32"
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				/ @ "class %FileDescriptor" $=
+				(
+					+ 'yconstfn YB_STATELESS', 'ynothrow' @ "friend %operator=="
+					/ "friend function %operator!="
+						-> ("friend function %operator<",
+						"base class %ystdex::totally_ordered<FileDescriptor>"),
+					+ "static function %Open"
+				),
+				+ "support deletion of read-only file" @ "platform %Win32"
+					@ "function %(uunlink, uremove)",
+				+ "support deletion of empty directory" @ "platform %Win32"
+					@ "function %uremove",
+				/ "function templates %(TryRemove, TryUnlink)"
+					>> %YSLib.Service.FileSystem
+					$= (/ DLDI "simplified" ^ "%ystdex::throw_error"),
+				/ DLDI "simplified member function %FileDescriptor::GetSize"
+					^ "%ystdex::throw_error"
+				/ @ "function %EnsureUniqueFile" $=
+				(
+					+ "default argument ' = DefaultPMode()'"
+						@ "%mode_t parameter",
+					+ "parameters 'size_t = 1, bool = {}' to allow possible \
+						overwriting and sharing between link instances",
+					- "unlinking file before try opening" $dep_to
+						"reserved file"
+				),
+				/ "all 4 functions %CopyFile" >> %YSLib.Service.FileSystem
+					$dep_from ("%IO::(UniqueFile, FileDescriptor, mode_t)"
+					@ %YSLib.Adaptor.YAdaptor) $=
+				(
+					/ @ "functions %CopyFile with destination path parameters"
+						$=
+					(
+						* $comp "wrongly deleted source when source is the \
+							same as destination" $since b637 $dep_from
+							"reserved file",
+						+ "parameters 'size_t = 1, bool = {}' to allow \
+							possible overwriting and sharing between link \
+							instances"
+					),
+					/ @ "functions %CopyFile with source path parameters" $=
+					(
+						* "destination file created when source file access \
+							failed" $since b637,
+						(
+						+ "source mode parameter 'mode_t = DefaultPMode()'";
+						* $comp "wrong mode '0'" $since b637
+							// This would fail unless mode parameter is \
+							qignored, e.g. on Win32, but still essentially \
+							wrong.
+						)
+					)
+				),
+				+ "2 functions %FetchNumberOfLinks"
+			),
+			+ 'using WindowStyle = unsigned long;' @ "platform %Win32"
+				@ %HostedGUI,
+			/ "all 2 function %IsDirectory" @ "platform %Win32" @ %NativeAPI
+				-> ("functions" ^ $dep_from "%FileAttributes"
+				@ %'YCLib_(Win32)'.MinGW32),
+			/ DLDI %FileSystem $=
+			(
+				/ "member function %HDirectory::GetNodeCategory" ^ $dep_from
+					("%FileAttributes" @ %'YCLib_(Win32)'.MinGW32)
+				/ "constructor %DirectorySession" @ %FileSystem
+					^ "%ystdex::throw_error"
+			),
+			/ DLDI ("constructor %MappedFile" @ %MemoryMapping,
+				"function %MakePipe" @ %Host, "constructor %DirectorySession"
+				@ %FileSystem) ^ "%ystdex::throw_error",
+			- $revert(b475) $orig (@ %FileSystem) "function %GetFileSizeOf"
+				$dep_from 'using platform::FileDescriptor;'
+				@ YSLib.Adaptor.YAdaptor
+				// Use %FileDescriptor::GetSize instead.
+		),
+		/ "'unsigned long' Win32 error code" @ "inline namespace %Windows"
+			-> ('ErrorCode' $dep_from %'YCLib_(Win32)'.MinGW32) $effective
+			@ "function %ConvertToErrno" @ %'YCLib_(Win32)'.MinGW32
+			@ "platform %Win32"
+		/ "'unsigned long' Win32 window style" -> ('WindowStyle' $dep_from
+			%'YCLib_(Win32)'.MinGW32) $effective
+			@ %(YCLib.HostedGUI, Helper.HostedUI) @ "platform %Win32"
+		/ %YSLib $=
+		(
+			/ @ %Adaptor.YAdaptor $=
+			(
+				- 'using platform::GetFileSizeOf;',
+				/ @ "namespace %YSLib.IO" $=
+				(
+					+ 'using platform::FetchNumberOfLinks;' $dep_from
+						("%platform::FetchNumberOfLinks" @ %YCLib.FileSystem),
+					+ "alias-declarations %(mode_t, FileDescriptor, \
+						UniqueFile, DefaultPMode, omode_conv, omode_convb, \
+						EnsureUniqueFile) from namespace %platform",
+					/ "aliases %(GetFileAccessTimeOf, \
+						GetFileModificationTimeOf, \
+						GetFileModificationAndAccessTimeOf)"
+						@ "namespace %YSLib" >> "namespace %YSLib::IO"
+				),
+				* DD "missing '!'" @ "end of '/*'"
+					@ "multiline Doxygen comments" @ "namespace %YSLib" $since
+					b265
+			),
+			/ %Service $=
+			(
+				/ %FileSystem $=
+				(
+					+ "functions %ClearTree" ^ $dep_from "%TryRemove",
+					/ @ "functions %DeleteTree" $=
+					(
+						/ $impl $dep_from ^ "%ClearTree";
+						* $comp "deletion failure ignored silently" $since b538
+						* $comp "failure if any read-only files are in the \
+							subdirectories" $since ? $dep_from
+							("%uremove" @ %YCLib.FileIO)
+					),
+					/ DLDI "simplified %EnsureDirectory"
+						^ "%ystdex::throw_error",
+					+ "member function %GetLeafString" @ "class %Path"
+				),
+				+ "function %OpenFile" @ "namespace %IO" @ %File $dep_from
+					("%IO::(UniqueFile, mode_t)" @ %Adaptor.YAdaptor)
+			),
+			/ %UI $=
+			(
+				+ 'ynothrow' @ "function %Contains"
+					@ ("class %SequenceViewer" @ %Viewer; "class %TextList" \
+					@ %ListControl; "class %ListBox" @ %ComboList),
+				+ 'const' @ "function %Contains" @ ("class %TextList" \
+					@ %KistControl; "class %ListBox" @ %ComboList),
+				/ %ComboList $=
+				(
+					/ @ "class %FileBox" $=
+					(
+						+ "function %GetPath with index parameter";
+						/ DLDI "simplified path opertions" @ "constructo, \
+							function %GetPath without parameters" ^ "%GetPath"
+					),
+					* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+						comments" @ "protected data member %pTetList" $since
+						b534 $orig (@ "%lstText" $since b282) @ "class %ListBox"
+				)
+			)
+		)
+	),
+	/ $forced DLDI "constructor %ShlHexBrowser" @ %YReader.ShlReader $dep_from
+		("%IO::GetFileModificationAndAccessTimeOf"
+		@ %YFramework.YSLib.Adaptor.YAdaptor)
+),
+
+b638
 (
 	/ %YFramework $=
 	(

@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r359
+\version r365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-09-24 18:26 +0800
+	2015-09-26 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_FileIO // for platform::FileOperationFailure;
+#include YFM_YCLib_FileIO // for platform::FileOperationFailure,
+//	ystdex::throw_error;
 #include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles
@@ -89,8 +90,7 @@ FetchCommandOutput(const string& cmd, size_t buf_size)
 			res.append(&p_buf[0], n);
 		return res;
 	}
-	throw FileOperationFailure(errno, std::generic_category(),
-		"Failed opening pipe.");
+	ystdex::throw_error<FileOperationFailure>(errno, "Failed opening pipe.");
 }
 
 
@@ -142,7 +142,7 @@ MakePipe()
 
 	// TODO: Check whether '::socketpair' is available.
 	if(::pipe(fds) != 0)
-		throw FileOperationFailure(errno, std::generic_category(),
+		ystdex::throw_error<FileOperationFailure>(errno,
 			"Failed getting file size.");
 
 	auto pr(make_pair(UniqueHandle(fds[0]), UniqueHandle(fds[1])));
@@ -150,7 +150,7 @@ MakePipe()
 		// NOTE: %O_NONBLOCK is initially cleared on ::pipe results.
 		//	See http://pubs.opengroup.org/onlinepubs/9699919799/ .
 		if(!(h && h->SetNonblocking()))
-			throw FileOperationFailure(errno, std::generic_category(), msg);
+			ystdex::throw_error<FileOperationFailure>(errno, msg);
 	});
 
 	check(pr.first, "Failed making pipe for reading."),

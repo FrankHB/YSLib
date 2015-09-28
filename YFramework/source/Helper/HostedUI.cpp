@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r534
+\version r538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-05-27 15:30 +0800
+	2015-09-24 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ FetchDefaultTopLevelPosition() ynothrow
 #	if YCL_Win32
 
 HostRenderer&
-ShowTopLevel(Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
+ShowTopLevel(Widget& wgt, WindowStyle wstyle, WindowStyle wstyle_ex,
 	int n_cmd_show, const wchar_t* title)
 {
 	return ShowTopLevel(wgt, WindowThread::DefaultGenerateGuard, wstyle,
@@ -125,12 +125,12 @@ ShowTopLevel(Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
 }
 HostRenderer&
 ShowTopLevel(Widget& wgt, WindowThread::GuardGenerator guard_gen,
-	unsigned long wstyle, unsigned long wstyle_ex, int n_cmd_show,
+	WindowStyle wstyle, WindowStyle wstyle_ex, int n_cmd_show,
 	const wchar_t* title)
 {
 	if(!bool(wstyle & WS_POPUP) && bool(wstyle_ex & WS_EX_LAYERED))
 	{
-		wstyle_ex &= ~static_cast<unsigned long>(WS_EX_LAYERED);
+		wstyle_ex &= ~static_cast<WindowStyle>(WS_EX_LAYERED);
 		YTraceDe(Informative, "Layered style ignored for non-popup window.");
 	}
 
@@ -143,7 +143,7 @@ ShowTopLevel(Widget& wgt, WindowThread::GuardGenerator guard_gen,
 		if(pt != Point::Invalid)
 			wnd_ref.MoveClient(pt);
 		else if(!
-			(wstyle & static_cast<unsigned long>(WS_OVERLAPPED | WS_CHILD)))
+			(wstyle & static_cast<WindowStyle>(WS_OVERLAPPED | WS_CHILD)))
 			wnd_ref.MoveClient(FetchDefaultTopLevelPosition());
 		wnd_ref.Show(n_cmd_show);
 		return wnd_ref;

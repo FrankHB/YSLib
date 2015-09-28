@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1552
+\version r1559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-09-24 12:15 +0800
+	2015-09-26 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,11 +128,11 @@ FetchRectFromBounds(const ::RECT& rect)
 	return {rect.left, rect.top, FetchSizeFromBounds(rect)};
 }
 
-//! \since build 564
-inline unsigned long
+//! \since build 639
+inline WindowStyle
 FetchWindowStyle(::HWND h_wnd)
 {
-	return static_cast<unsigned long>(::GetWindowLongW(h_wnd, GWL_STYLE));
+	return WindowStyle(::GetWindowLongW(h_wnd, GWL_STYLE));
 }
 
 void
@@ -420,7 +420,7 @@ CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 
 NativeWindowHandle
 CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
-	const wchar_t* title, unsigned long wstyle, unsigned long wstyle_ex)
+	const wchar_t* title, WindowStyle wstyle, WindowStyle wstyle_ex)
 {
 	::RECT rect{0, 0, CheckScalar<SPos>(s.Width, "width"),
 		CheckScalar<SPos>(s.Height, "height")};
@@ -918,8 +918,7 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	case ERROR_PATH_NOT_FOUND: // NOTE: Same as %SE_ERR_PNF.
 	case ERROR_ACCESS_DENIED: // NOTE: Same as %SE_ERR_ACCESSDENIED.
 	case ERROR_BAD_FORMAT:
-		throw Win32Exception(Win32Exception::ErrorCode(res), "ShellExecuteW",
-			Err);
+		throw Win32Exception(ErrorCode(res), "ShellExecuteW", Err);
 	case SE_ERR_ASSOCINCOMPLETE:
 	case SE_ERR_NOASSOC:
 	case SE_ERR_DDETIMEOUT:
@@ -928,7 +927,7 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	{
 		using boxed_exception = ystdex::wrap_mixin_t<std::runtime_error, int>;
 		const auto throw_ex([=](int ec) YB_ATTR(noreturn){
-			std::throw_with_nested(Win32Exception(Win32Exception::ErrorCode(ec),
+			std::throw_with_nested(Win32Exception(ErrorCode(ec),
 				ystdex::sfmt("ShellExecuteW: %d", res), Err));
 		});
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2950
+\version r2958
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-25 11:53 +0800
+	2015-09-26 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,15 +28,14 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
-#include YFM_YCLib_FileIO // for FileOperationFailure;
+#include YFM_YCLib_FileIO // for FileOperationFailure, ystdex::throw_error,
+//	std::errc::not_supported, std::errc::invalid_argument;
 #include <cstring> // for std::strchr;
 #include <cwchar> // for std::wctob;
 #include <cwctype> // for std::towupper, std::towlower;
 #include <numeric> // for std::accumulate;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
 //	ystdex::write_uint_le;
-#include <ystdex/exception.h> // for ystdex::throw_error,
-//	std::errc::not_supported, std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
 #if YCL_Win32
@@ -131,7 +130,7 @@ DirectorySession::DirectorySession(const char* path)
 {
 #if !YCL_Win32
 	if(!dir)
-		throw FileOperationFailure(errno, std::generic_category(),
+		ystdex::throw_error<FileOperationFailure>(errno,
 			"Opening directory failed.");
 	ystdex::rtrim(sDirPath, YCL_PATH_DELIMITER);
 	YAssert(sDirPath.empty() || sDirPath.back() != YCL_PATH_DELIMITER,
@@ -184,14 +183,15 @@ HDirectory::GetNodeCategory() const ynothrow
 
 		NodeCategory res(NodeCategory::Empty);
 #if YCL_Win32
+		using namespace platform_ex;
 		const auto&
 			dir_data(Deref(static_cast<DirectoryFindData*>(GetNativeHandle())));
 		const auto& find_data(dir_data.GetFindData());
-		const auto& attr(find_data.dwFileAttributes);
+		const auto attr(FileAttributes(find_data.dwFileAttributes));
 
-		if(attr & FILE_ATTRIBUTE_DIRECTORY)
+		if(attr & FileAttributes::Directory)
 			res |= NodeCategory::Directory;
-		if(attr & FILE_ATTRIBUTE_REPARSE_POINT)
+		if(attr & FileAttributes::ReparsePoint)
 		{
 			switch(find_data.dwReserved0)
 			{
@@ -206,7 +206,6 @@ HDirectory::GetNodeCategory() const ynothrow
 			}
 		}
 
-		using namespace platform_ex;
 		auto name(dir_data.GetDirName());
 
 		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");

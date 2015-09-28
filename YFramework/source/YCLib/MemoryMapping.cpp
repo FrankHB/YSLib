@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r243
+\version r245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2015-09-08 01:03 +0800
+	2015-09-27 00:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_MemoryMapping
-#include YFM_YCLib_FileIO // for platform::uopen, platform::GetFileSizeOf;
+#include YFM_YCLib_FileIO // for platform::uopen, ystdex::throw_error;
 #include YFM_YCLib_NativeAPI
 #include <stdexcept> // for std::runtime_error;
 #if YCL_Linux || YCL_OS_X
@@ -41,7 +41,7 @@ namespace platform
 MappedFile::MappedFile(const char* path)
 	: fd(uopen(path, O_RDONLY, mode_t(Mode::UserReadWrite))), size([this]{
 		if(fd < 0)
-			throw FileOperationFailure(errno, std::generic_category(),
+			ystdex::throw_error<FileOperationFailure>(errno,
 				"Failed mapping file.");
 		return FileDescriptor(fd).GetSize();
 	}())

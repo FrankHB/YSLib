@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4827
+\version r4828
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-09-24 12:17 +0800
+	2015-09-27 15:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -790,7 +790,7 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 	using namespace std::chrono;
 	// NOTE: It seems on DeSmuME no FAT time is support, but it works on iDSL
 	//	+ DSTT (though the precesion for access time is lower than 1 day).
-	auto matime(GetFileModificationAndAccessTimeOf(path_str.c_str()));
+	auto matime(IO::GetFileModificationAndAccessTimeOf(path_str.c_str()));
 
 	yunseq(
 	pnlFileInfo.lblAccessTime.Text = u"访问时间：" + String(TranslateTime(

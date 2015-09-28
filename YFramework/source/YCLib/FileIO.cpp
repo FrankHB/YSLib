@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1757
+\version r1881
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-25 11:36 +0800
+	2015-09-27 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 //	_fileno, _wfopen for MinGW.org;
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO
-#include YFM_YCLib_Debug // for Nonnull, ystdex::temporary_buffer;
+#include YFM_YCLib_Debug // for Nonnull, ystdex::throw_error,
+//	ystdex::temporary_buffer;
 #include YFM_YCLib_Reference // for unique_ptr;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, ::HANDLE, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl,
@@ -49,18 +50,24 @@ using namespace CHRLib;
 //	available if it is really being used.
 #		undef _fileno
 #	endif
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::QueryFileNodeID,
-//	platform_ex::QueryFileTime, platform::WCSToMBCS, platform_ex::UTF8ToWCS,
-//	platform_ex::ConvertTime, platform_ex::QueryFileLinks,
-//	platform_ex::GetErrnoFromWin32;
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
+//	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
+//	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
+//	platform::WCSToUTF8, platform_ex::UTF8ToWCS, platform_ex::ConvertTime;
 
+//! \since build 639
+using platform_ex::FileAttributes;
+using platform_ex::GetErrnoFromWin32;
+//! \since build 639
+using platform_ex::QueryFileLinks;
 //! \since build 632
 //@{
 using platform_ex::QueryFileNodeID;
 using platform_ex::QueryFileTime;
-using platform_ex::WCSToMBCS;
 //! \since build 540
 using platform_ex::UTF8ToWCS;
+//! \since build 639
+using platform_ex::WCSToUTF8;
 using platform_ex::ConvertTime;
 //@}
 #elif YCL_API_POSIXFileSystem
@@ -179,6 +186,29 @@ yconstexpr const struct
 	}
 } get_st_matime;
 //@}
+
+//! \since build 639
+//@{
+YB_NONNULL(1) bool
+UnlinkWithAttr(const wchar_t* path, FileAttributes attr) ynothrow
+{
+	return !(attr & FileAttributes::ReadOnly) || ::SetFileAttributesW(path,
+		attr & ~FileAttributes::ReadOnly) ? ::_wunlink(path) == 0
+		: (errno = GetErrnoFromWin32(), false);
+}
+
+template<typename _func>
+YB_NONNULL(2) bool
+CallFuncWithAttr(_func f, const char* path)
+{
+	const auto& wpath(UTF8ToWCS(path));
+	const auto& wstr(wpath.c_str());
+	const auto attr(FileAttributes(::GetFileAttributesW(wstr)));
+
+	return attr != FileAttributes::Invalid ? f(wstr, attr)
+		: (errno = GetErrnoFromWin32(), false);
+}
+//@}
 #else
 //! \since build 631
 //@{
@@ -264,22 +294,6 @@ FetchFileTime(_func f, _tParams... args)
 #endif
 }
 
-//! \since build 637
-template<typename _type>
-void
-CopyFileForSource(_type&& ofile, const char* src)
-{
-#if YCL_Win32
-	if(UniqueFile p_ifile{uopen(src, _O_RDONLY | _O_BINARY)})
-#else
-	if(UniqueFile p_ifile{uopen(src, O_RDONLY)})
-#endif
-		FileDescriptor::WriteContent(yforward(ofile), p_ifile.get());
-	else
-		ThrowFileOperationFailure(
-			"Failed opening source file '" + string(src) + "'.");
-}
-
 } // unnamed namespace;
 
 
@@ -287,7 +301,7 @@ string
 MakePathString(const char16_t* s)
 {
 #if YCL_Win32
-	return platform_ex::WCSToUTF8(wcast(s));
+	return WCSToUTF8(wcast(s));
 #else
 	return MakeMBCS(s);
 #endif
@@ -365,8 +379,7 @@ size_t
 FileDescriptor::GetNumberOfLinks() const ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(
-		platform_ex::QueryFileLinks(::HANDLE(::_get_osfhandle(desc))))
+	YCL_Impl_RetTryCatchAll(QueryFileLinks(::HANDLE(::_get_osfhandle(desc))))
 #else
 	struct ::stat st;
 	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
@@ -387,8 +400,8 @@ FileDescriptor::GetSize() const
 	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(desc)), &sz) != 0
 		&& YB_LIKELY(sz.QuadPart >= 0))
 		return std::uint64_t(sz.QuadPart);
-	throw FileOperationFailure(platform_ex::GetErrnoFromWin32(),
-		std::generic_category(), "Failed getting file size.");
+	ystdex::throw_error<FileOperationFailure>(GetErrnoFromWin32(),
+		"Failed getting file size.");
 #else
 	struct ::stat st;
 
@@ -831,7 +844,7 @@ _n(const char* path) ynothrow \
 #if YCL_Win32
 #	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
 	YCL_Impl_RetTryCatchAll(_wfn(UTF8ToWCS(path).c_str()) == 0) \
-	return false; \
+	return {}; \
 }
 #else
 #	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
@@ -855,9 +868,27 @@ YCL_Impl_FileSystem_ufunc_1(umkdir)
 
 YCL_Impl_FileSystem_ufunc(urmdir, ::rmdir, ::_wrmdir)
 
-YCL_Impl_FileSystem_ufunc(uunlink, ::unlink, ::_wunlink)
+YCL_Impl_FileSystem_ufunc_1(uunlink)
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(CallFuncWithAttr(UnlinkWithAttr, path))
+	return {};
+}
+#else
+YCL_Impl_FileSystem_ufunc_2(::unlink, )
+#endif
 
-YCL_Impl_FileSystem_ufunc(uremove, std::remove, ::_wremove)
+YCL_Impl_FileSystem_ufunc_1(uremove)
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(CallFuncWithAttr(
+		[](const wchar_t* wstr, FileAttributes attr) YB_NONNULL(1) ynothrow{
+			return attr & FileAttributes::Directory ? _wrmdir(wstr) == 0
+				: UnlinkWithAttr(wstr, attr);
+	}, path))
+	return {};
+}
+#else
+YCL_Impl_FileSystem_ufunc_2(std::remove, )
+#endif
 
 #undef YCL_Impl_FileSystem_ufunc_1
 #undef YCL_Impl_FileSystem_ufunc_2
@@ -900,47 +931,59 @@ GetFileModificationAndAccessTimeOf(const char16_t* filename, bool follow_link)
 	return FetchFileTime(get_st_matime, wcast(filename), follow_link);
 }
 
-std::uint64_t
-GetFileSizeOf(std::FILE* fp)
+YB_NONNULL(1) size_t
+FetchNumberOfLinks(const char* path) ynothrow
 {
-	return FileDescriptor(fp).GetSize();
+#if YCL_Win32
+	return QueryFileLinks(UTF8ToWCS(path).c_str());
+#else
+	struct ::stat st;
+
+	cstat(st, path);
+	return size_t(st.st_nlink > 0 ? st.st_nlink : 0);
+#endif
+}
+YB_NONNULL(1) size_t
+FetchNumberOfLinks(const char16_t* path) ynothrow
+{
+#if YCL_Win32
+	return QueryFileLinks(wcast(path));
+#else
+	return FetchNumberOfLinks(MakeMBCS(path).c_str());
+#endif
 }
 
-
-void
-CopyFile(UniqueFile p_ofile, FileDescriptor ifd)
-{
-	FileDescriptor::WriteContent(Nonnull(p_ofile.get()), Nonnull(ifd));
-}
-void
-CopyFile(UniqueFile p_ofile, const char* src)
-{
-	CopyFileForSource(Nonnull(p_ofile.get()), src);
-}
-void
-CopyFile(const char* dst, FileDescriptor ifd, mode_t mode)
-{
-	FileDescriptor::WriteContent(EnsureUniqueFile(dst, mode).get(),
-		Nonnull(ifd));
-}
-void
-CopyFile(const char* dst, const char* src, mode_t mode)
-{
-	CopyFileForSource(EnsureUniqueFile(dst, mode).get(), src);
-}
 
 UniqueFile
-EnsureUniqueFile(const char* dst, mode_t mode)
+EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
+	bool share)
 {
-	TryUnlink(dst);
+	static yconstexpr const int de_oflag
+#if YCL_Win32
+		(_O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY);
+#else
+		(O_WRONLY | O_CREAT | O_TRUNC);
+#endif
+
+	mode &= mode_t(Mode::User);
 	if(UniqueFile p_file{uopen(dst, 
 #if YCL_Win32
-		_O_WRONLY | _O_CREAT | _O_TRUNC | _O_EXCL | _O_BINARY
+		de_oflag | _O_EXCL
 #else
-		O_WRONLY | O_CREAT | O_TRUNC | O_EXCL
+		de_oflag | O_EXCL
 #endif
-		, mode & mode_t(Mode::User))})
+		, mode)})
 		return p_file;
+	if(allowed_links != 0 && errno == EEXIST)
+	{
+		const auto n_links(FetchNumberOfLinks(dst));
+
+		// FIXME: Blocked. TOCTTOU access.
+		if(!(allowed_links < n_links)
+			&& (n_links == 1 || share || uunlink(dst) || errno == ENOENT))
+			if(UniqueFile p_file{uopen(dst, de_oflag, mode)})
+				return p_file;
+	}
 	ThrowFileOperationFailure("Failed creating file '" + string(dst) + "'.");
 }
 

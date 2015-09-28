@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r297
+\version r298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2015-03-29 12:14 +0800
+	2015-09-28 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace UI
 {
 
 bool
-SequenceViewer::Contains(size_t i) const
+SequenceViewer::Contains(size_t i) const ynothrow
 {
 	return Length != 0 && IsInInterval<size_t>(i - GetHeadIndex(), Length);
 }

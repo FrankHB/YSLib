@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1073
+\version r1085
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-09-23 00:40 +0800
+	2015-09-26 16:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,19 +187,6 @@ _gmtime32(const ::__time32_t*);
 
 namespace platform_ex
 {
-
-/*!
-\brief 判断 WIN32_FIND_DATAA 指定的节点是否为目录。
-\since build 298
-*/
-inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAA& d) ynothrow
-	ImplRet(d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-/*!
-\brief 判断 WIN32_FIND_DATAW 指定的节点是否为目录。
-\since build 299
-*/
-inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
-	ImplRet(d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 
 } // namespace platform_ex;
 

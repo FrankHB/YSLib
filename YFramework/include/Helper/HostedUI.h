@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r445
+\version r452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-04-17 20:54 +0800
+	2015-09-26 14:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,7 @@ FetchDefaultTopLevelPosition() ynothrow;
 \return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
 \sa FetchDefaultTopLevelPosition
+\since build 639
 
 当设置 WS_POPUP 时清除参数中的 WS_EX_LAYERED 。
 WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
@@ -122,14 +123,12 @@ WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指
 WindowThread::DefaultGenerateGuard 。
 */
 //@{
-//! \since build 570
 YF_API HostRenderer&
-ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long
+ShowTopLevel(UI::Widget&, WindowStyle = WS_POPUP, WindowStyle
 	= WS_EX_LAYERED, int = SW_SHOWNORMAL, const wchar_t* = L"");
-//! \since build 589
 YF_API HostRenderer&
 ShowTopLevel(UI::Widget&, WindowThread::GuardGenerator,
-	unsigned long = WS_POPUP, unsigned long = WS_EX_LAYERED,
+	WindowStyle = WS_POPUP, WindowStyle = WS_EX_LAYERED,
 	int = SW_SHOWNORMAL, const wchar_t* = L"");
 //@}
 #	endif
@@ -157,12 +156,12 @@ ShowTopLevelDraggable(UI::Widget&);
 #	if YCL_Win32
 /*!
 \brief 设置悬停操作时显示指定部件为顶级窗口。
-\since build 587
+\since build 639
 */
 template<typename _func>
 void
 ActOnHover_ShowTopLevel(UI::IWidget& sender, UI::Widget& wgt, _func f,
-	unsigned long wstyle_ex = WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST)
+	WindowStyle wstyle_ex = WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST)
 {
 	UI::ActOnHover(sender, [&]{
 		f();
