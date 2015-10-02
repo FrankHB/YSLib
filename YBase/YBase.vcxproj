@@ -60,7 +60,9 @@
     <ClInclude Include="include\ystdex\scope_guard.hpp" />
     <ClInclude Include="include\ystdex\streambuf.hpp" />
     <ClInclude Include="include\ystdex\string.hpp" />
+    <ClInclude Include="include\ystdex\string_view.hpp" />
     <ClInclude Include="include\ystdex\thunk.hpp" />
+    <ClInclude Include="include\ystdex\tstring_view.hpp" />
     <ClInclude Include="include\ystdex\tuple.hpp" />
     <ClInclude Include="include\ystdex\type_op.hpp" />
     <ClInclude Include="include\ystdex\type_pun.hpp" />

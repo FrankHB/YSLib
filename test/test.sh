@@ -22,7 +22,7 @@ fi
 INCLUDE_PCH='../YBase/include/stdinc.h'
 INCLUDES=" \
 	-I../YFramework/include -I../YFramework/Android/include \
-	-I../YFramework/DS/include -I../YFramework/MinGW32/include \
+	-I../YFramework/DS/include -I../YFramework/Win32/include \
 	-I../3rdparty/include -I../YBase/include \
 	"
 
@@ -47,7 +47,7 @@ SHBuild_CheckPCH_()
 
 SHBuild_CheckPCH_ "$INCLUDE_PCH" "$TestDir/stdinc.h"
 
-"$CXX" YBase.cpp -oYBase $CXXFLAGS $LDFLAGS $SHBuild_IncPCH $INCLUDES $LIBS
+"$CXX" YBase.cpp -oYBase $CXXFLAGS $LDFLAGS $SHBuild_IncPCH $INCLUDES $LIBS "$@"
 
 ./YBase
 

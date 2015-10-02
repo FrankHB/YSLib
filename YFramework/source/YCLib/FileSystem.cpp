@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2958
+\version r2969
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-09-26 19:15 +0800
+	2015-10-02 16:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,16 +26,12 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem
+#include YFM_YCLib_FileSystem // for std::accumulate, ystdex::read_uint_le,
+//	std::min, ystdex::write_uint_le;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
-#include YFM_YCLib_FileIO // for FileOperationFailure, ystdex::throw_error,
-//	std::errc::not_supported, std::errc::invalid_argument;
-#include <cstring> // for std::strchr;
-#include <cwchar> // for std::wctob;
-#include <cwctype> // for std::towupper, std::towlower;
-#include <numeric> // for std::accumulate;
-#include <ystdex/cstdint.hpp> // for ystdex::read_uint_le,
-//	ystdex::write_uint_le;
+#include YFM_YCLib_FileIO // for ystdex::throw_error, std::errc::not_supported,
+//	FileOperationFailure, std::strchr, std::wctob, std::towupper,
+//	ystdex::ntctsicmp, std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
 #if YCL_Win32
@@ -490,7 +486,7 @@ EntryData::FindAlias(const char* name, size_t len) const
 {
 	const auto alias(GenerateAlias());
 
-	return ystdex::ntctsnicmp(name, alias.c_str(),
+	return ystdex::ntctsicmp(name, alias.c_str(),
 		std::min<size_t>(alias.length(), len)) == 0;
 }
 

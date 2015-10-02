@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r798
+\version r807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2015-06-21 13:51 +0800
+	2015-09-29 13:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,22 +30,17 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
-
 //#include <ext/vstring.h>
-#include <ystdex/string.hpp>
-
+#include <ystdex/string_view.hpp>
 #include <ystdex/array.hpp>
 #include <deque>
 #include <forward_list>
 #include <list>
 #include <vector>
-
 #include <map>
 #include <set>
-
 #include <unordered_set>
 #include <unordered_map>
-
 #include <queue>
 #include <stack>
 
@@ -95,6 +90,7 @@ using std::queue;
 
 /*!
 \brief 满足 ISO C++03 std::basic_string 但不保证满足 ISO C++11 的实现。
+\note 假定默认构造不抛出异常。
 \since build 597
 */
 template<typename _tChar, typename _tTraits = std::char_traits<_tChar>,
@@ -108,6 +104,14 @@ using u16string = basic_string<char16_t>;
 //! \since build 593
 //@{
 using wstring = basic_string<wchar_t>;
+
+//! \since build 640
+//@{
+using ystdex::basic_string_view;
+using ystdex::string_view;
+using ystdex::u16string_view;
+using ystdex::wstring_view;
+//@}
 
 using ystdex::sfmt;
 using ystdex::vsfmt;

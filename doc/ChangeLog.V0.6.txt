@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r4277
+\version r4440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-09-28 11:23 +0800
+	2015-10-02 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,159 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %Operators $=
+			(
+				+ "wrapped parameter overloading for binary comparison \
+					operators",
+					// To make ADL work with just one argument. See WG21/N3766 \
+						for the motivated example.
+				* "wrong chained operator specializations for \
+					%(derefereceable, indexable, input_iteratable, \
+					forward_iteratable, bidirectional_iteratable, \
+					random_access_iteratable)" $since b576
+			),
+			/ %CString $=
+			(
+				+ "2 function templates %(str_find, str_rfind, \
+					str_find_first_not_of, str_find_last_not_of)",
+				+ "function templates %(str_find_first_of, str_find_last_of)",
+				/ "all 4 (functions, function templates) %ntctsnlen"
+					-> "function template %ntctslen"
+					^ "%std::char_traits::find",
+				/ $re_ex(b544) DLDI "simplified %ntctslen without length \
+					parameter"
+				^ "%std::char_traits::length" ~ "specializations for types \
+					meeting %is_char_specialized_in_std",
+					// Since the primary template %std::char_traits has \
+						already been specified to meet requirements in \
+						[char.traits].
+				/ "function template %ntctsnicmp" -> "%ntctsncmp",
+				/ "return type" @ "function templates %(ntctscmp, ntctsicmp)"
+					-> 'int',
+				+ "function template %ntctscmp with length parameter"
+			),
+			/ %String $=
+			(
+				/ DLDI "simplfied %is_string_class" ^ "%void_t",
+				+ $lib 'YB_NONNULL(1)' @ "function templates %(vsfmt, sfmt)",
+				+ "support for %string_view like class types"
+					@ "functions templates %(erase_left, erase_right)",
+				(
+				/ "function template %sfmt" ^ "trailing-return-type";
+				+ "2nd parameter to specify return type"
+					@ "class template %vsfmt"
+				)
+			),
+			+ %StringView $=
+			(
+				/ @ "namespace %ystdex" $=
+				(
+					+ "class template %basic_string_view" $dep_from
+						("%(str_find, str_rfind, str_find_first_not_of, \
+						str_find_last_not_of, str_find_first_of, \
+						str_find_last_of)" @ %CString);
+					+ 'using string_view = basic_string_view<char>;',
+					+ 'using u16string_view = basic_string_view<char16_t>;',
+					+ 'using u32string_view = basic_string_view<char32_t>;',
+					+ 'using wstring_view = basic_string_view<wchar_t>;',
+					+ "function templates %operator(==, <) for \
+						%basic_string_view",
+					+ "function template %operator<< for %(basic_string_view, \
+						std::basic_ostream)"
+				);
+				+ "std::hash specialization for %ystdex::(string_view, \
+					u16string_view, u32string_view, wstring_view)"
+			),
+			* "wrong qualified return type" @ "function template %operator()"
+				@ "class template %expanded_caller" $since b595,
+			* "missing 'const'" @ "return type" @ "member function templates \
+				%operator(=, ())" @ "class %pseudo_output" @ %Ref $since b636,
+			+ $lib 'YB_NONNULL(1)' @ "all 2 functions %vfmtlen" @ %CStandardIO,
+			/ "transformation trait %tuple_element_t" @ %Tuple
+				("%__cpp_lib_tuple_element_t" @ %YDefinition) $=
+				// See $2015-10 @ %Documentation::Workflow::Annual2015.
+			(
+				>> "inline namespace %cpp2014" \
+					@ '__cpp_lib_tuple_element_t >= 201402 \
+					|| __cplusplus > 201103L || YB_IMPL_MSCPP >= 1800',
+				-> 'using std::tuple_element_t;' @ "inline namespace %cpp2014"
+					@ !'__cpp_lib_tuple_element_t >= 201402 \
+					|| __cplusplus > 201103L'
+			),
+			+ %TStringView $dep_from
+			(
+				+ "class templelate %basic_tstring_view" $dep_from
+					("%basic_string_view" @ %StringView);
+				+ 'using tstring_view = basic_tstring_view<char>;',
+				+ 'using u16tstring_view = basic_tstring_view<char16_t>;',
+				+ 'using u32tstring_view = basic_tstring_view<char32_t>;',
+				+ 'using twstring_view = basic_tstring_view<wchar_t>;'
+			)
+		),
+		+ "feature-test macro %__cpp_lib_tuple_element_t recommended by \
+			WG21/N4200 when \
+			not defined" @ 'YB_IMPL_MSCPP >= 1900' @ YDefinition
+		// See $2015-10 @ %Documentation::Workflow::Annual2015.
+	),
+	/ %Test $=
+	(
+		/ @ "%test.sh" $=
+		(
+			* "missing updating %INCLUDES" $since b633,
+			+ "accecpted arguments forwarded to compiler command line"
+		),
+		/ %YBase $=
+		(
+			(
+			* "invalid parameter types" @ "callables for %make_expanded"
+				@ "case %ystdex::make_expanded" $since b547;
+			* $comp "failed to build" $since b634
+			),
+			+ "2 test cases" ^ $dep_from
+				("%ystdex::string_view" @ %YBase.YStandardEx.StringView)
+			/ $dev $impl $re(b590) "expressions" ^ '()' ~ '::value',
+			+ "printing tested case number",
+			+ "4 test cases" ^ $dep_from ("%ystdex::(erase_left, erase_right)"
+				@ %YBase.YStandardEx.String),
+			+ "4 test cases" ^ $dep_from ((("%ystdex::(erase_left, erase_right)"
+				@ %String), "%ystdex::string_view" @ %StringView)
+				@ %YBase.YStandardEx)
+				// Some cases are avoided intentionally. See \
+					https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795 . \
+					For %ystdex::tstring_view G++ 5.2.0 would crash: internal \
+					compiler error: in unify, at cp/pt.c:18713.
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ "using-declarations %ystdex::(string_view, u16string_view, \
+				wstring_view)" @ "inline namespace platform::containers"
+				@ %Containers $dep_from %YBase.YStandardEx.StringView
+			/ $forced DLDI @ %FileSystem $dep_from ("%ystdex::ntctsicmp"
+				@ YBase.YStandardEx.CString)
+		),
+		+ "using-declarations %platform::(basic_string_view, string_view, \
+			wstring_view;)" @ %YSLib.Adaptor.YTextBase $dep_from
+			%YCLib.Container,
+		/ $forced DLDI @ %'YCLib_(DS)'.DSIO $dep_from
+			("%ystdex::ntctsicmp" @ YBase.YStandardEx.CString),
+		- "functions %ExecuteCommand" @ "class %ShlCLI"
+			@ %'Helper_(DS)'.Shell_DS
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.'Helper_(DS)'.Shell_DS.("shlds.h" => "Shell_DS.h",
+		"shlds.cpp" => "%Shell_DS.cpp")
+),
+
+b639
 (
 	/ %YFramework $=
 	(
@@ -577,7 +730,10 @@ b634
 				- "overloading without 'const'",
 				/ DLDI "simplified trailing-return-type" $dep_from
 					("%expand_proxy", "variadic template overloadings"
-					@ "%call_projection")
+					@ "%call_projection");
+				* $comp "accepted invalid forwarding" $since b447
+					// For example, prvalue arguments for lvalue reference \
+						parameter were accepted.
 			)
 		)
 	),
@@ -635,10 +791,10 @@ b633
 			/ %FileIO $=
 			(
 				* "missing 'YF_API'" @ "function %TryClose" $since b616,
-				+ 'YB_NONNULL(1)' @ "2 functions %(uaccess, uopen, ufopen) \
-					with pointer parameters",
-				+ 'YB_NONNULL(1, 2)' @ "2 functions %ufopen without pointer \
-					mode parameter"
+				+ $lib 'YB_NONNULL(1)' @ "2 functions %(uaccess, uopen, \
+					ufopen) with pointer parameters",
+				+ $lib 'YB_NONNULL(1, 2)' @ "2 functions %ufopen without \
+					pointer mode parameter"
 			),
 			+ '#	undef CreateHardLink' @ "platform %Win32" @ %NativeAPI
 		),
@@ -650,7 +806,7 @@ b633
 			(
 				+ 'YB_STATELESS' @ "function templates %(HalfDifference, 2 \
 					IsInInterval, 2 IsInClosedInterval, 2 IsInOpenInterval)",
-				+ 'YB_PURE YB_NONNULL(2)' @ "function templates \
+				+ $lib 'YB_PURE YB_NONNULL(2)' @ "function templates \
 					%(SwitchInterval, SwitchAddedInterval)",
 				/ "(function, function templates) %(FetchSign, \
 					FetchSignFromInterval)" $=
@@ -1288,7 +1444,7 @@ b628
 		),
 		/ %YDefinition $=
 		(
-			+ "all 2 feature-test macros %(__cpp_lib_integer_sequence, \
+			+ "2 feature-test macros %(__cpp_lib_integer_sequence, \
 				__cpp_lib_exchange_function) recommended by WG21/N4200 when \
 				not defined" @ 'YB_IMPL_MSCPP >= 1900',
 				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx .
@@ -3259,7 +3415,7 @@ b605
 	),
 	/ %YFramework $=
 	(
-		+ "'YB_NONNULL' for nonnull function parameters"
+		+ $lib "'YB_NONNULL' for nonnull function parameters"
 			@ %'YCLib_(DS)'.DSIO $effective @ "class %SectorCache",
 		+ $revert_ex(b600) $re_ex(b594) "'YB_ATTR(noreturn)' for lambda \
 			expressions always not return" @ %YCLib.HostedGUI $dep_from

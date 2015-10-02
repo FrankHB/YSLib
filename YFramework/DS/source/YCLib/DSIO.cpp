@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2729
+\version r2732
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-09-24 12:13 +0800
+	2015-10-02 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
 //	ystdex::write_uint_le, CHRLib::ucs2_t, CHRLib::MakeUCS2LE,
-//	ystdex::ntctsnicmp, ystdex::ntctsncpy, ystdex::ntctsicmp;
+//	ystdex::ntctsicmp, ystdex::ntctsncpy;
 #	include <cerrno> // for E*;
 #	include YFM_YCLib_NativeAPI // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC,
 //	O_APPEND, O_CREAT, O_EXCL;
@@ -732,7 +732,7 @@ DEntry::DEntry(Partition& part, const char* path, const char* path_end)
 					throw_error(errc::no_such_file_or_directory);
 				try
 				{
-					if(dname_len == name.length() && ystdex::ntctsnicmp(
+					if(dname_len == name.length() && ystdex::ntctsicmp(
 						MakeUCS2LE(string(path, dname_len)).c_str(),
 						MakeUCS2LE(name).c_str(), dname_len) == 0)
 						return {};
@@ -858,7 +858,7 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 				{
 					entry_size = (len + LFN::EntryLength - 1) / LFN::EntryLength
 						+ 1;
-					if(ystdex::ntctsnicmp(alias.c_str(), name.c_str(),
+					if(ystdex::ntctsicmp(alias.c_str(), name.c_str(),
 						LFN::MaxAliasLength) != 0
 						|| part.EntryExists(alias, dclus))
 					{

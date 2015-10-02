@@ -212,6 +212,12 @@
     <ClInclude Include="include\ystdex\streambuf.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\string_view.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\tstring_view.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

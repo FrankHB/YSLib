@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1486
+\version r1589
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-08-19 00:10 +0800
+	2015-10-01 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 //	has_nested_allocator;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
-#include "container.hpp" // for begin, end, sort_unique, underlying;
+#include "container.hpp" // for make_index_sequence, index_sequence, begin, end,
+//	sort_unique, underlying;
 #include "cstdio.h" // for yconstraint, vfmtlen;
 #include "cstring.h" // for ntctslen;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array, arrlen;
@@ -73,20 +74,17 @@ struct string_traits
 namespace details
 {
 
-//! \since build 557
-template<typename _type>
-struct is_string_class_test
-{
-	template<typename _tParam>
-	static enable_if_t<is_object<decay_t<
-		decltype(std::declval<_tParam>()[0])>>::value, true_type>
-	test(_tParam*);
-	template<typename _tParam>
-	static false_type
-	test(...);
+//! \since build 640
+//@{
+template<typename _type, typename = void>
+struct is_string_like : false_type
+{};
 
-	static yconstexpr const bool value = decltype(test<_type>(nullptr))::value;
-};
+template<typename _type>
+struct is_string_like<_type,
+	void_t<is_object<decay_t<decltype(std::declval<_type>()[0])>>>> : true_type
+{};
+//@}
 
 //! \since build 519
 //@{
@@ -137,6 +135,76 @@ ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
 	return it == bt;
 }
 
+
+//! \since build 640
+//@{
+template<size_t>
+struct str_algos;
+
+template<>
+struct str_algos<0>
+{
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static yconstfn auto
+	erase_left(_tString& s, _tSize n) -> yimpl(decltype(s.remove_prefix(n), s))
+	{
+		return s.remove_prefix(n), s;
+	}
+
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static yconstfn auto
+	erase_right(_tString& s, _tSize n) -> yimpl(decltype(s.remove_suffix(n), s))
+	{
+		return yconstraint(n < s.size()), s.remove_suffix(s.size() - n - 1), s;
+	}
+};
+
+template<>
+struct str_algos<1>
+{
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static auto
+	erase_left(_tString& s, _tSize n) -> yimpl(decltype(s.erase(0, n)))
+	{
+		return s.erase(0, n);
+	}
+
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static auto
+	erase_right(_tString& s, _tSize n) -> yimpl(decltype(s.erase(n + 1)))
+	{
+		return s.erase(n + 1);
+	}
+};
+
+
+template<yimpl(typename = make_index_sequence<2>)>
+struct str_algo;
+
+template<>
+struct str_algo<index_sequence<>>
+{
+	void
+	erase_left() = delete;
+	void
+	erase_right() = delete;
+};
+
+template<size_t _vIdx, size_t... _vSeq>
+struct str_algo<index_sequence<_vIdx, _vSeq...>>
+	: str_algos<_vIdx>, str_algo<index_sequence<_vSeq...>>
+{
+	using str_algos<_vIdx>::erase_left;
+	using str_algo<index_sequence<_vSeq...>>::erase_left;
+	using str_algos<_vIdx>::erase_right;
+	using str_algo<index_sequence<_vSeq...>>::erase_right;
+};
+//@}
+
 } // unnamed namespace;
 
 
@@ -148,7 +216,7 @@ ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
 //@{
 template<typename _type>
 struct is_string_class : bool_constant<std::is_class<_type>::value
-	&& details::is_string_class_test<_type>::value>
+	&& details::is_string_like<_type>::value>
 {};
 
 //! \note 排除不完整类型的指针。
@@ -421,8 +489,8 @@ template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(typename string_traits<_tString>::size_type pos, _tString&& str)
 {
-	return static_cast<_tString&&>(
-		pos != decay_t<_tString>::npos ? str.erase(0, pos) : str);
+	return static_cast<_tString&&>(pos != decay_t<_tString>::npos
+		? details::str_algo<>::erase_left(str, pos) : str);
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
@@ -456,8 +524,8 @@ template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(typename string_traits<_tString>::size_type pos, _tString&& str)
 {
-	return static_cast<_tString&&>(
-		pos != decay_t<_tString>::npos ? str.erase(pos + 1) : str);
+	return static_cast<_tString&&>(pos != decay_t<_tString>::npos
+		? details::str_algo<>::erase_right(str, pos) : str);
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
@@ -688,6 +756,7 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 }
 /*!
 \brief 以指定字符分割范围指定的字符串。
+\note 使用 ADL string_begin 和 string_end 指定范围迭代器。
 \since build 399
 */
 template<typename _fPred, typename _fInsert, typename _tRange>
@@ -777,7 +846,7 @@ split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 \since build 565
 */
 //@{
-//! \note 同 \c std::getline ，除判断分隔符及附带的副作用由参数的函数对象决定。
+//! \note 同 std::getline ，除判断分隔符及附带的副作用由参数的函数对象决定。
 template<typename _tChar, class _tTraits, class _tAlloc, typename _func>
 std::basic_istream<_tChar, _tTraits>&
 extract(std::basic_istream<_tChar, _tTraits>& is,
@@ -832,7 +901,7 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 	return is;
 }
 
-//! \note 同 \c std::getline ，除字符串结尾包含分隔符。
+//! \note 同 std::getline ，除字符串结尾包含分隔符。
 //@{
 template<typename _tChar, class _tTraits, class _tAlloc>
 std::basic_istream<_tChar, _tTraits>&
@@ -941,7 +1010,7 @@ write_literal(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
 
 
 /*!
-\brief 转换为字符串： \c std::basic_string 的实例对象。
+\brief 转换为字符串： std::basic_string 的实例对象。
 \note 可与标准库的同名函数共用以避免某些类型转换警告，如 G++ 的 [-Wsign-promo] 。
 */
 //@{
@@ -1062,14 +1131,17 @@ ston(const _tString& str, _tParams&&... args)
 
 
 /*!
-\brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
 \pre 间接断言：第一参数非空。
-\throw std::runtime_error 格式化字符串输出失败。
-\since build 488
-\bug char 以外的模板参数非正确实现。
+\since build 640
+\bug \c char 以外的模板参数非正确实现。
 */
-template<typename _tChar>
-std::basic_string<_tChar>
+//@{
+/*!
+\brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
+\throw std::runtime_error 格式化字符串输出失败。
+*/
+template<typename _tChar, class _tString = std::basic_string<_tChar>>
+YB_NONNULL(1) _tString
 vsfmt(const _tChar* fmt, std::va_list args)
 {
 	std::va_list ap;
@@ -1082,7 +1154,7 @@ vsfmt(const _tChar* fmt, std::va_list args)
 	if(l == size_t(-1))
 		throw std::runtime_error("Failed to write formatted string.");
 
-	std::basic_string<_tChar> str(l, _tChar());
+	_tString str(l, _tChar());
 
 	yassume(str.length() > 0 && str[0] == _tChar());
 	std::vsprintf(&str[0], fmt, args);
@@ -1091,21 +1163,20 @@ vsfmt(const _tChar* fmt, std::va_list args)
 
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
-\pre 间接断言：第一参数非空。
+\note 使用 ADL 访问可变参数。
 \note Clang++ 对模板声明 attribute 直接提示格式字符串类型错误。
-\since build 322
-\todo 提供 char 以外的模板参数的正确实现。
 */
 template<typename _tChar>
-std::basic_string<_tChar>
+YB_NONNULL(1) auto
 sfmt(const _tChar* fmt, ...)
+	-> decltype(vsfmt(fmt, std::declval<std::va_list>()))
 {
 	std::va_list args;
 
 	va_start(args, fmt);
 	try
 	{
-		std::basic_string<_tChar> str(vsfmt(fmt, args));
+		auto str(vsfmt(fmt, args));
 
 		va_end(args);
 		return str;
@@ -1116,6 +1187,7 @@ sfmt(const _tChar* fmt, ...)
 		throw;
 	}
 }
+//@}
 
 /*!
 \brief 显式实例化：以 C 标准输出格式的输出 std::string 对象。

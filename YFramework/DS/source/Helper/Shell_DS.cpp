@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,17 +8,17 @@
 	understand and accept it fully.
 */
 
-/*!	\file shlds.cpp
+/*!	\file Shell_DS.cpp
 \ingroup Helper
 \ingroup DS
-\brief DS 平台 Shell 类。
-\version r1381
+\brief DS 平台 Shell 接口。
+\version r1390
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2014-11-12 04:40 +0800
+	2015-10-02 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,14 +41,6 @@ namespace Shells
 {
 
 using namespace Messaging;
-
-int
-ShlCLI::ExecuteCommand(const ucs2_t*)
-{
-	// TODO: Implementation.
-	return 0;
-}
-
 
 } // namespace Shells;
 

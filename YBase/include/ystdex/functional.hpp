@@ -11,7 +11,7 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2569
+\version r2572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
@@ -797,12 +797,11 @@ struct expanded_caller
 		: caller(yforward(f))
 	{}
 
-	//! \since build 595
+	//! \since build 640
 	template<typename... _tParams>
 	auto
-	operator()(_tParams&&... args) const
-		-> decltype(expand_proxy<_fHandler>::call(caller,
-		yforward(args)...)) const
+	operator()(_tParams&&... args) const -> decltype(
+		expand_proxy<_fHandler>::call(caller, yforward(args)...))
 	{
 		return expand_proxy<_fHandler>::call(caller, yforward(args)...);
 	}

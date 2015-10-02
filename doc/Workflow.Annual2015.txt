@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r372
+\version r382
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-09-27 16:08 +0800
+	2015-10-02 05:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,6 +366,18 @@ folly(https://github.com/facebook/folly): tentatively rejected.
 		It relies on a subset of boost.
 			Boost is rejected basically because it is too large. This subset is still considered large engough to be rejected.
 			Though some equivalent API of them are of parts of YBase (e.g. boost.operators), it is too tricky to maintain.
+
+$2015-10:
+
+report.impl:
+There are something to be noted for feature-testing macro '__cpp_lib_tuple_element_t'.
+	According to WG21/N4030 and WG21/N4440, the feature-testing macro is defined for <utility>.
+	However, the definition shall be in <tuple> as per ISO C++14.
+	Microsoft VC++ 2015 has supported 'tuple_element_t'
+		See https://msdn.microsoft.com/en-us/library/Hh409293.aspx .
+		Note that Microsofot VC++ 2015 implemented the primary template also in <utility> rather than <tuple> as ISO C++14 requires.
+			This is acceptable because 2-phase lookup is not implemented yet in VC++. Once <tuple> is included, the specialization of 'tuple_element' for 'tuple' would work as expected. So does 'tuple_element_t'.
+			Since <utility> is always included by YBase.YStandardEx headers, the conforming issue does not take effect.	
 
 ////
 
