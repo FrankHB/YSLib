@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1731
+\version r1780
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2015-08-30 16:57 +0800
+	2015-09-29 09:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,10 @@ namespace ystdex
 		const _type2& y) \
 	YB_Impl_Operators_friend_s(_op, _type, x _op##= std::move(y), _type x, \
 		_type2&& y)
+#define YB_Impl_Operators_TmplHead3(_name) \
+	template<class _type, typename _type2, typename _type3, \
+		class _tBase = empty_base<_type>> \
+	struct _name
 #define YB_Impl_Operators_TmplHead2(_name) \
 	template<class _type, typename _type2, class _tBase = empty_base<_type>> \
 	struct _name
@@ -63,9 +67,25 @@ namespace ystdex
 namespace details
 {
 
+//! \since build 640
+//@{
+template<typename _type = void>
+struct op_idt
+{
+	using type = _type;
+};
+
+template<typename _type = void>
+using op_idt_t = typename op_idt<_type>::type;
+//@}
+
 #define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
-		const _param_type2& y)
+		const _param_type2& y) \
+	YB_Impl_Operators_friend_s(_op, bool, _expr, \
+		const op_idt_t<_param_type>& x, const _param_type2& y) \
+	YB_Impl_Operators_friend_s(_op, bool, _expr, \
+		const _param_type& x, const op_idt_t<_param_type2>& y)
 #define YB_Impl_Operators_Compare1(_op, _expr, _param_type) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
 		const _param_type& y)
@@ -188,8 +208,8 @@ YB_Impl_Operators_Commutative(orable, |)
 		YB_Impl_Operators_friend_lr(_op, _type, _type) \
 	};
 
-	YB_Impl_Operators_Binary(left_shiftable, <<)
-	YB_Impl_Operators_Binary(right_shiftable, >>)
+YB_Impl_Operators_Binary(left_shiftable, <<)
+YB_Impl_Operators_Binary(right_shiftable, >>)
 
 #undef YB_Impl_Operators_Binary
 
@@ -232,11 +252,9 @@ YB_Impl_Operators_TmplHead2(dereferenceable) : _tBase
 };
 
 //! \since build 576
-template<class _type, typename _type2, typename _tRet,
-	class _tBase = empty_base<_type>>
-struct indexable : _tBase
+YB_Impl_Operators_TmplHead3(indexable) : _tBase
 {
-	yconstfn _tRet
+	yconstfn _type3
 	operator[](_type2 n) const
 		ynoexcept_spec(*(std::declval<const _type&>() + n))
 	{
@@ -403,11 +421,9 @@ YB_Impl_Operators_TmplHead2(bidirectional_iteratable)
 {};
 
 
-template<class _type, typename _tDiff, typename _tRef,
-	class _tBase = empty_base<_type>>
-struct random_access_iteratable
-	: bidirectional_iteratable<_type, _tRef, less_than_comparable1<_type,
-	additive2<_type, _tDiff, indexable<_type, _tDiff, _type, _tBase>>>>
+YB_Impl_Operators_TmplHead3(random_access_iteratable)
+	: bidirectional_iteratable<_type, _type3, less_than_comparable1<_type,
+	additive2<_type, _type2, indexable<_type, _type2, _type, _tBase>>>>
 {};
 //@}
 
@@ -425,6 +441,12 @@ template<class>
 struct is_chained_base : false_type
 {};
 
+
+# define YB_Impl_Operators_Chain3(_name) \
+	using ystdex::details::_name; \
+	template<class _type, typename _type2, typename _type3, class _tBase> \
+	struct is_chained_base<_name<_type, _type2, _type3, _tBase>> : true_type \
+	{};
 
 # define YB_Impl_Operators_Chain2(_name) \
 	using ystdex::details::_name; \
@@ -480,8 +502,10 @@ YB_Impl_Operators_Chain(orable)
 YB_Impl_Operators_Chain1(incrementable)
 YB_Impl_Operators_Chain1(decrementable)
 
-YB_Impl_Operators_Chain1(dereferenceable)
-YB_Impl_Operators_Chain2(indexable)
+//! \since build 640
+YB_Impl_Operators_Chain2(dereferenceable)
+//! \since build 640
+YB_Impl_Operators_Chain3(indexable)
 
 YB_Impl_Operators_Chain(left_shiftable)
 YB_Impl_Operators_Chain(right_shiftable)
@@ -503,12 +527,17 @@ YB_Impl_Operators_Chain(field_operators)
 YB_Impl_Operators_Chain(ordered_field_operators)
 YB_Impl_Operators_Chain(euclidean_ring_operators)
 YB_Impl_Operators_Chain(ordered_euclidean_ring_operators)
-YB_Impl_Operators_Chain1(input_iteratable)
+//! \since build 640
+YB_Impl_Operators_Chain2(input_iteratable)
 YB_Impl_Operators_Chain1(output_iteratable)
-YB_Impl_Operators_Chain1(forward_iteratable)
-YB_Impl_Operators_Chain1(bidirectional_iteratable)
-YB_Impl_Operators_Chain2(random_access_iteratable)
+//! \since build 640
+//@{
+YB_Impl_Operators_Chain2(forward_iteratable)
+YB_Impl_Operators_Chain2(bidirectional_iteratable)
+YB_Impl_Operators_Chain3(random_access_iteratable)
+//@}
 
+#undef YB_Impl_Operators_Chain3
 #undef YB_Impl_Operators_Chain2
 #undef YB_Impl_Operators_Chain1
 #undef YB_Impl_Operators_Chain
@@ -533,6 +562,7 @@ struct operators<_type, _type> : totally_ordered<_type,
 
 #undef YB_Impl_Operators_TmplHead1
 #undef YB_Impl_Operators_TmplHead2
+#undef YB_Impl_Operators_TmplHead3
 #undef YB_Impl_Operators_friend_lr
 #undef YB_Impl_Operators_friend_s
 #undef YB_Impl_Operators_friend

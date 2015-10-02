@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2010, 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YTextBase.h
 \ingroup Adaptor
 \brief 外部库关联：文本接口。
-\version r87
+\version r94
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-24 00:02:44 +0800
 \par 修改时间:
-	2015-05-13 11:53 +0800
+	2015-08-29 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,13 @@ using ucs2string = basic_string<CHRLib::ucs2_t>;
 \since build 253
 */
 using ucs4string = basic_string<CHRLib::ucs4_t>;
+
+//! \since build 640
+//@{
+using platform::basic_string_view;
+using platform::string_view;
+using platform::wstring_view;
+//@}
 
 namespace Text
 {

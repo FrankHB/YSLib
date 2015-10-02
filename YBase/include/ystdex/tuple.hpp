@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r411
+\version r421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2015-07-23 14:16 +0800
+	2015-10-01 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,12 +35,23 @@
 namespace ystdex
 {
 
+inline namespace cpp2014
+{
+
 /*!
-\ingroup metafunctions
+\ingroup transformation_traits
 \since build 477
 */
+//@{
+#if __cpp_lib_tuple_element_t >= 201402 || __cplusplus > 201103L
+using std::tuple_element_t;
+#else
 template<size_t _vIdx, typename _type>
 using tuple_element_t = typename std::tuple_element<_vIdx, _type>::type;
+#endif
+//@}
+
+} // inline namespace cpp2014;
 
 
 //! \since build 589

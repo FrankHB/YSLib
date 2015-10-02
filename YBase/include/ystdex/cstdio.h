@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r634
+\version r636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-09-25 09:01 +0800
+	2015-09-30 10:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,9 +46,9 @@ namespace ystdex
 \since build 564
 */
 //@{
-YB_API size_t
+YB_API YB_NONNULL(1) size_t
 vfmtlen(const char*, std::va_list) ynothrow;
-YB_API size_t
+YB_API YB_NONNULL(1) size_t
 vfmtlen(const wchar_t*, std::va_list) ynothrow;
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r554
+\version r563
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-09-22 11:26 +0800
+	2015-09-28 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -309,7 +309,7 @@ Boost.Operators 的重新实现。
 提供枚举相关操作和类型。
 
 @2.4.7.4 可选值包装类型 Optional ：
-提供 Boost.Optional 和提议的 ISO C++ std::experiment::optional 的类似的可选值包装。
+提供 Boost.Optional 和 WG21/N4081 提议的 ISO C++ std::experiment::optional 的类似的可选值包装。
 
 @2.4.7.5 动态泛型类型 Any ：
 主要提供 Boost.Any 和提议的 ISO C++ std::experiment::any 的类似的基于类型擦除实现的用于保存运行时确定类型的值的对象，默认使用和 libstdc++ 5 类似的小对象优化实现。
@@ -319,22 +319,25 @@ Boost.Operators 的重新实现。
 @2.4.7.6 动态泛型迭代器 AnyIterator ：
 基于 ystdex::any(@2.4.7.5) 实现的用于保存运行时确定类型迭代器的对象。
 
-@2.4.7.7 基于类继承的混入接口 Mixin ：
+@2.4.7.7 只读字符串视图 StringView ：
+提供 WG21/N4081 提议的 ISO C++ std::experiment:: 的类似的可选值包装。
+
+@2.4.7.8 基于类继承的混入接口 Mixin ：
 提供基本的混入接口类型。
 
-@2.4.7.8 有理数运算 Rational ：
+@2.4.7.9 有理数运算 Rational ：
 提供定点数模板等有理数算术类型接口。
 
-@2.4.7.9 位段数据结构和访问 BitSegment ：
+@2.4.7.10 位段数据结构和访问 BitSegment ：
 提供访问位集合的类型和操作。
 
-@2.4.7.10 并发操作 Concurrency ：
+@2.4.7.11 并发操作 Concurrency ：
 提供线程池等实用并发特性。
 
-@2.4.7.11 抽象路径模板 Path ：
+@2.4.7.12 抽象路径模板 Path ：
 提供抽象的路径模板及操作。
 
-@2.4.7.12 高速缓冲容器模板 Cache ：
+@2.4.7.13 高速缓冲容器模板 Cache ：
 提供抽象的缓冲容器模板及操作。
 
 @2.5 LibDefect ：

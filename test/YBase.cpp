@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r266
+\version r307
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-03-24 22:30 +0800
+	2015-10-01 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,8 @@
 #include <sstream>
 #include <iomanip>
 #include <ystdex/algorithm.hpp>
-#include <ystdex/string.hpp>
 #include <ystdex/container.hpp>
+#include <ystdex/tstring_view.hpp>
 #include <ystdex/mixin.hpp>
 #include <ystdex/bitseg.hpp>
 
@@ -93,12 +93,12 @@ main()
 			show_result(cout, printer.subject, printer.pass_n, printer.fail_n);
 		});
 	});
-	size_t pass_n(0), fail_n(0);
+	size_t pass_n(0), fail_n(0), case_n(0);
 	const auto pass([&]{
-		yunseq(++pass_n, cout << "PASS." << endl);
+		yunseq(++pass_n, cout << '#' << ++case_n << ": PASS." << endl);
 	});
 	const auto fail([&]{
-		yunseq(++fail_n, cout << "FAIL." << endl);
+		yunseq(++fail_n, cout << '#' << ++case_n << ": FAIL." << endl);
 	});
 
 	// TODO: Check stream error.
@@ -122,14 +122,14 @@ main()
 			})(42, 32);
 		}),
 		expect(make_pair(8, 2), []{
-			using ftype = int(random_access_iterator_tag&, double);
+			using ftype = int(random_access_iterator_tag, double);
 			const int i(-1);
 
 			return make_pair((make_expanded<ftype>(
-				[](input_iterator_tag&, short x){
+				[](input_iterator_tag, short x){
 					return x * 2;
 				}))(random_access_iterator_tag(), 4), make_expanded<ftype>(
-				[=](forward_iterator_tag&){
+				[=](forward_iterator_tag){
 					return i + 3;
 				})(random_access_iterator_tag(), 0));
 		})
@@ -175,12 +175,11 @@ main()
 		1 == ystdex::min(1, 2),
 #endif
 		abs(2.F - ystdex::max(1.F, 2.F)) < numeric_limits<float>::epsilon(),
-		4U == integral_constant<unsigned,
-			ystdex::min({5U, 6U, 7U, 8U, 4U})>::value,
+		4U == integral_constant<unsigned, ystdex::min({5U, 6U, 7U, 8U, 4U})>(),
 		4 == ystdex::max({4, -5, -6, -7})
 	);
-	// 11 cases covering: ystdex::string_length, ystdex::begins_with,
-	//	ystdex::ends_with.
+	// 19 cases covering: ystdex::string_length, ystdex::begins_with,
+	//	ystdex::ends_with, ystdex::erase_left, ystdex::erase_right.
 	seq_apply(make_guard("YStandard.String").get(pass, fail),
 		0 == string_length(u8""),
 		5 == string_length("abcde"),
@@ -192,7 +191,15 @@ main()
 		false == begins_with("test_string", "tests"),
 		false == begins_with("test_string", "test_string_too_long"),
 		true == ends_with("test_string", "string"),
-		false == ends_with("test_string", "strnig")
+		false == ends_with("test_string", "strnig"),
+		"de" == erase_left(3, string("abcde")),
+		"cde" == erase_left(string("abcde"), "c"),
+		"abcd" == erase_right(3, string("abcde")),
+		"ab" == erase_right(string("abcde"), 'b'),
+		string("de") == string(erase_left(3, string_view("abcde"))),
+		string("cde") == erase_left(string_view("abcde"), "c").to_string(),
+		string("abcd") == string(erase_right(3, string_view("abcde"))),
+		string("ab") == erase_right(string_view("abcde"), 'b').to_string()
 	);
 	// 4 cases covering: ystdex::range_size.
 	seq_apply(make_guard("YStandard.Container").get(pass, fail),
@@ -218,6 +225,22 @@ main()
 			return range_size(no_size_function({3, 4, 5, 6, 7, 8}));
 		})
 	);
+	// 2 cases covering: ystdex::string_view.
+	seq_apply(make_guard("YStandard.StringView").get(pass, fail),
+		string_view("????") == std::string(4, '?'),
+		expect(true, []{
+			static_assert(is_same<string_traits<string_view>::string_type,
+				string_view>(), "");
+			static_assert(is_same<string_traits<string_view>::value_type,
+				char>(), "");
+			const string str("Hello!");
+			const string_view sv(str);
+
+			return sv.find("el") == 1 && sv.find("loo") == string_view::npos
+				&& sv.rfind('l') == 3 && sv.find_first_of("abcde") == 1
+				&& sv.find_first_not_of("Hel!") == 4;
+		})
+	);
 	// 1 case covering: mixin interface.
 	seq_apply(make_guard("YStandard.Mixin").get(pass, fail),
 		expect(make_pair(string("e"), boxed_value<int>(3)), []{
@@ -225,17 +248,17 @@ main()
 			using exception_tuple = typename int_exception::tuple_type;
 			using type_0 = tuple_element_t<0, exception_tuple>;
 			using type_1 = tuple_element_t<1, exception_tuple>;
-			static_assert(is_same<type_0, runtime_error>::value, "");
-			static_assert(is_same<type_1, ystdex::boxed_value<int>>::value, "");
-			static_assert(is_constructible<type_0, const char*>::value, "");
-			static_assert(is_constructible<type_1, double>::value, "");
+			static_assert(is_same<type_0, runtime_error>(), "");
+			static_assert(is_same<type_1, ystdex::boxed_value<int>>(), "");
+			static_assert(is_constructible<type_0, const char*>(), "");
+			static_assert(is_constructible<type_1, double>(), "");
 
 			const auto et(int_exception(forward_as_tuple(runtime_error("e"), 3))
 				.to_tuple());
 			return make_pair(string(get<0>(et).what()), get<1>(et));
 		})
 	);
-	// 3 case covering: ystdex::bitseg_iterator.
+	// 3 cases covering: ystdex::bitseg_iterator.
 	seq_apply(make_guard("YStandard.BitSegment").get(pass, fail),
 		bitseg_test::expect<1>("1000000001000000110000001010000011101000"
 			"000000110000111111111111", {1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),

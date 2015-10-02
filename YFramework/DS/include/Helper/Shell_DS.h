@@ -8,17 +8,17 @@
 	understand and accept it fully.
 */
 
-/*!	\file shlds.h
+/*!	\file Shell_DS.h
 \ingroup Helper
 \ingroup DS
-\brief DS 平台 Shell 类。
-\version r1335
+\brief DS 平台 Shell 接口。
+\version r1353
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 640
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2014-06-05 09:53 +0800
+	2014-10-02 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 */
 
 
-#ifndef INC_Helper_shlds_h_
-#define INC_Helper_shlds_h_ 1
+#ifndef INC_Helper_Shell_DS_h_
+#define INC_Helper_Shell_DS_h_ 1
 
 #include "Helper/YModules.h"
 #include YFM_Helper_GUIShell
@@ -49,20 +49,6 @@ public:
 	\brief 无参数构造。
 	*/
 	DefDeCtor(ShlCLI)
-
-	/*!
-	\brief 执行命令行。
-	*/
-	int
-	ExecuteCommand(const ucs2_t*);
-	/*!
-	\brief 执行命令行。
-	*/
-	int
-	ExecuteCommand(const String& s)
-	{
-		return ExecuteCommand(s.c_str());
-	}
 };
 
 } // namespace Shells;

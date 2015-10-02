@@ -865,7 +865,7 @@
     <ClInclude Include="DS\include\Helper\DSMain.h">
       <Filter>DS\include\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="DS\include\Helper\shlds.h">
+    <ClInclude Include="DS\include\Helper\Shell_DS.h">
       <Filter>DS\include\Helper</Filter>
     </ClInclude>
     <ClInclude Include="DS\source\Helper\DSScreen.h">
@@ -1224,7 +1224,7 @@
     <ClCompile Include="DS\source\Helper\DSWindow.cpp">
       <Filter>DS\source\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="DS\source\Helper\shlds.cpp">
+    <ClCompile Include="DS\source\Helper\Shell_DS.cpp">
       <Filter>DS\source\Helper</Filter>
     </ClCompile>
     <ClCompile Include="DS\source\YCLib\DSVideo.cpp">
