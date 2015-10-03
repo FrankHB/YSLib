@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2897
+\version r2916
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-03-25 11:12 +0800
+	2015-10-02 20:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,9 +133,9 @@ RenderCharAlpha(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
 */
 template<class _tRenderer>
 inline SPos
-GetEndOfLinePositionOf(const _tRenderer& r)
+GetEndOfLinePositionOf(const _tRenderer& rd)
 {
-	return r.GetTextState().Margin.Right;
+	return rd.GetTextState().Margin.Right;
 }
 
 /*!
@@ -145,22 +145,22 @@ GetEndOfLinePositionOf(const _tRenderer& r)
 */
 template<class _tRenderer>
 inline SPos
-GetEndOfLineOffsetOf(const _tRenderer& r)
+GetEndOfLineOffsetOf(const _tRenderer& rd)
 {
-	return SPos(r.GetContext().GetWidth()) - GetEndOfLinePositionOf(r);
+	return SPos(rd.GetContext().GetWidth()) - GetEndOfLinePositionOf(rd);
 }
 
 /*!
 \brief 打印单个可打印字符。
-\since build 270
+\since build 641
 \todo 行的结尾位置计算和边距解除耦合。
 */
 template<class _tRenderer>
 void
-PrintChar(_tRenderer& r, ucs4_t c)
+PrintChar(_tRenderer& rd, char32_t c)
 {
 	if(YB_LIKELY(Text::IsPrint(c)))
-		r(c);
+		rd(c);
 }
 
 //! \since build 587
@@ -179,9 +179,11 @@ enum class PutCharResult
 };
 
 
+//! \since build 641
+//@{
 //! \brief 使用指定的文本状态和行末位置按需打印换行并判断是否需要渲染单个字符。
 YF_API PutCharResult
-PutCharBase(TextState&, SDst, ucs4_t);
+PutCharBase(TextState&, SDst, char32_t);
 
 /*!
 \brief 打印单个字符。
@@ -192,31 +194,32 @@ PutCharBase(TextState&, SDst, ucs4_t);
 //@{
 template<class _tRenderer>
 PutCharResult
-PutChar(_tRenderer& r, ucs4_t c, SDst eol)
+PutChar(_tRenderer& rd, char32_t c, SDst eol)
 {
-	const auto res(PutCharBase(r.GetTextState(), eol, c));
+	const auto res(PutCharBase(rd.GetTextState(), eol, c));
 
 	if(res == PutCharResult::Normal)
-		r(c);
+		rd(c);
 	return res;
 }
 template<class _tRenderer>
 PutCharResult
-PutChar(_tRenderer& r, ucs4_t c)
+PutChar(_tRenderer& rd, char32_t c)
 {
-	const SPos seol(GetEndOfLineOffsetOf(r));
+	const SPos seol(GetEndOfLineOffsetOf(rd));
 
 	if(seol >= 0)
-		return PutChar(r, c, SDst(seol));
+		return PutChar(rd, c, SDst(seol));
 	return PutCharResult::NeedNewline;
 }
+//@}
 
 //! \since build 588
 template<class _tRenderer, typename _tChar, typename... _tParams>
 inline PutCharResult
-PutChar(_tRenderer& r, _tChar c, _tParams&&... args)
+PutChar(_tRenderer& rd, _tChar c, _tParams&&... args)
 {
-	return PutChar(r, ucs4_t(c), yforward(args)...);
+	return PutChar(rd, char32_t(c), yforward(args)...);
 }
 //@}
 //@}

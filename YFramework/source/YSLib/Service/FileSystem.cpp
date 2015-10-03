@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2088
+\version r2095
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-09-28 10:22 +0800
+	2015-10-02 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ ImplDeDtor(PathNorm)
 
 
 String
-Path::GetString(ucs2_t delimiter) const
+Path::GetString(char16_t delimiter) const
 {
 	const auto res(ystdex::to_string_d(GetBase(), delimiter));
 
@@ -53,15 +53,15 @@ Path::GetString(ucs2_t delimiter) const
 }
 
 ypath
-Path::Parse(const ucs2string& str)
+Path::Parse(const u16string& str)
 {
 	ypath res;
 	auto& norm(res.get_norm());
 
-	ystdex::split(str, [&](ucs2_t c){
+	ystdex::split(str, [&](char16_t c){
 		return norm.is_delimiter({c});
-	}, [&](ucs2string::const_iterator b, ucs2string::const_iterator e){
-		res.push_back(ucs2string(b, e));
+	}, [&](u16string::const_iterator b, u16string::const_iterator e){
+		res.push_back(u16string(b, e));
 	});
 	// NOTE: Fix first component for absolute path beginning with delimiter.
 	if(!res.empty() && !IsAbsolute(res.front()) && IsAbsolute(str.c_str()))
@@ -70,7 +70,7 @@ Path::Parse(const ucs2string& str)
 }
 
 String
-Path::Verify(ucs2_t delimiter) const
+Path::Verify(char16_t delimiter) const
 {
 	auto res(GetString(delimiter));
 
@@ -83,7 +83,7 @@ Path::Verify(ucs2_t delimiter) const
 String
 FetchCurrentWorkingDirectory(size_t len)
 {
-	ucs2string str(len, ucs2_t());
+	u16string str(len, char16_t());
 
 	u16getcwd_n(&str[0], len);
 	return str;

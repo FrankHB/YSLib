@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2416
+\version r2423
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-05-29 19:35 +0800
+	2015-10-02 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,8 +116,9 @@ RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
 //@{
 YF_API void
 CallInputEvent(IWidget&, const String&, const KeyInput&);
-inline PDefH(bool, CallInputEvent, ucs2_t c, const KeyInput& k, IWidget& wgt)
-	ImplRet(c != ucs2_t() ? (CallInputEvent(wgt, {c}, k), true) : false)
+//! \since build 641
+inline PDefH(bool, CallInputEvent, char16_t c, const KeyInput& k, IWidget& wgt)
+	ImplRet(c != char16_t() ? (CallInputEvent(wgt, {c}, k), true) : false)
 //@}
 
 
@@ -391,9 +392,9 @@ public:
 	*/
 	//@{
 	PDefH(bool, SendInput, KeyInput& k)
-		ImplRet(SendInput(ucs2_t(UpdateChar(k)), k))
-	PDefH(bool, SendInput, ucs2_t c, const KeyInput& k)
-		ImplRet(c != ucs2_t() ? SendInput(k, {c}) : false)
+		ImplRet(SendInput(char16_t(UpdateChar(k)), k))
+	PDefH(bool, SendInput, char16_t c, const KeyInput& k)
+		ImplRet(c != char16_t() ? SendInput(k, {c}) : false)
 	bool
 	SendInput(const KeyInput&, const String&);
 	//@}
@@ -412,7 +413,7 @@ public:
 	\brief 当指定按键状态和按键保持状态不同时按需更新映射的字符和参数。
 	\note 一般用于响应 KeyDown 事件。通过参数区分是否由 KeyHeld 引起而按需更新。
 	\return 更新后的字符。
-	\sa KeyCodes::MapKeyChar
+	\sa MapKeyChar
 	\since build 582
 	*/
 	char

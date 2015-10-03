@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3216
+\version r3218
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2015-08-05 09:48 +0800
+	2015-10-02 18:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,11 +42,11 @@ namespace
 
 /*!
 \brief 指定迭代器最小值 b ，取文本迭代器 s 前最近出现的字符 c 的对应文本迭代器。
-\since build 343
+\since build 640
 */
 template<typename _tBi>
 _tBi
-FindPreviousChar(_tBi s, _tBi b, ucs4_t c = ucs4_t())
+FindPreviousChar(_tBi s, _tBi b, char32_t c = char32_t())
 {
 //	while(b < --s && *s != c)
 	while(b != --s && *s != c)

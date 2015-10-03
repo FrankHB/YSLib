@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r168
+\version r169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-04-29 06:11 +0800
+	2015-10-02 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ CHRLib 的实现抽象 f 、 g 和 h ，表达它们的一些典型具体实例�
 
 @2.2 字节序：
 不保证所有情形下字节序都一致。
-除非另行约定，字符类型 ucs2_t 和 ucs2_t 存储的字节序同实现使用的基本整数类型。
+除非另行约定，字符类型 char16_t 存储的字节序同实现使用的基本整数类型。
 接口说明中若未指定字节序，表示同时适于大端序和小端序（如 UCS-2 指 UCS-2BE 和 UCS-2LE） 。
 
 @2.3 限制：

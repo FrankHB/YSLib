@@ -8,29 +8,31 @@
 	understand and accept it fully.
 */
 
-/*!	\file chrdef.h
+/*!	\file CharacterDefinition.h
 \ingroup CHRLib
 \brief CHRLib 类型声明。
-\version r675
+\version r692
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-11-09 21:20 +0800
+	2015-10-02 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	CHRLib::CHRDefinition
+	CHRLib::CharacterDefinition
 */
 
 
-#ifndef YF_INC_CHRLib_chrdef_h_
-#define YF_INC_CHRLib_chrdef_h_ 1
+#ifndef YF_INC_CHRLib_CharacterDefinition_h_
+#define YF_INC_CHRLib_CharacterDefinition_h_ 1
 
 #include "YModules.h"
-#include <ydef.h>
-#include <string> // for std::char_traits;
+#include <ystdex/tstring_view.hpp> // for ystdex::byte, ystdex::octet,
+//	ystdex::size_t, std::char_traits, ystdex::string_view,
+//	ystdex::u16string_view, ystdex::u32string_view, ystdex::tstring_view,
+//	ystdex::u16tstring_view, ystdex::u32tstring_view;
 #include YFM_YCLib_Platform // for YF_API;
 
 namespace CHRLib
@@ -41,11 +43,17 @@ using ystdex::byte;
 using ystdex::octet;
 using ystdex::size_t;
 
-//! \brief 字符类型声明。
+//! \brief UCS 整数类型。
+using ucsint_t = std::char_traits<char32_t>::int_type;
+
+//! \since build 641
 //@{
-using ucs2_t = char16_t; //!< UCS-2 字符类型。
-using ucs4_t = char32_t; //!< UCS-4 字符类型。
-using ucsint_t = std::char_traits<ucs4_t>::int_type; //!< UCS 整数类型。
+using ystdex::string_view;
+using ystdex::u16string_view;
+using ystdex::u32string_view;
+using ystdex::tstring_view;
+using ystdex::u16tstring_view;
+using ystdex::u32tstring_view;
 //@}
 
 } // namespace CHRLib;

@@ -11,13 +11,13 @@
 /*!	\file tstring_view.hpp
 \ingroup YStandardEx
 \brief 指定结束字符的只读字符串视图。
-\version r231
+\version r256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-10-01 22:56:52 +0800
 \par 修改时间:
-	2015-10-02 06:28 +0800
+	2015-10-03 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,28 +79,20 @@ public:
 		: base(verify(str, len) ? str
 		: (throw std::invalid_argument("Invalid string found."), str), len)
 	{}
+	//! \since build 641
+	basic_tstring_view(base sv)
+		: basic_tstring_view(sv.data(), sv.length())
+	{}
 	template<class _tAlloc>
 	basic_tstring_view(const std::basic_string<_tChar, _tTraits, _tAlloc>& str)
 		ynothrow
-		: basic_tstring_view(std::nothrow, str.data())
+		: basic_tstring_view(str.data())
 	{}
 	yconstfn
 	basic_tstring_view(const basic_tstring_view&) ynothrow = default;
 
 	basic_tstring_view&
 	operator=(const basic_tstring_view&) ynothrow = default;
-
-	static YB_NONNULL(1) bool
-	verify(const _tChar* str, size_type len) ynothrow
-	{
-		return traits_type::length(str) == len;
-	}
-
-	static YB_NONNULL(1) bool
-	verify_term(const _tChar* str, size_type len) ynothrow
-	{
-		return str[len] == term;
-	}
 
 	using base::begin;
 
@@ -217,6 +209,23 @@ public:
 	using base::find_last_of;
 	using base::find_first_not_of;
 	using base::find_last_not_of;
+
+	//! \since build 641
+	//@{
+	static YB_NONNULL(1) bool
+	verify(const _tChar* str, size_type len) ynothrowv
+	{
+		yconstraint(str);
+		return traits_type::length(str) == len;
+	}
+
+	static YB_NONNULL(1) bool
+	verify_term(const _tChar* str, size_type len) ynothrowv
+	{
+		yconstraint(str);
+		return str[len] == term;
+	}
+	//@}
 };
 
 

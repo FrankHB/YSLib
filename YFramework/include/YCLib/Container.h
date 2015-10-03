@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r807
+\version r817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2015-09-29 13:12 +0800
+	2015-10-03 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YCLib_YCommon
 //#include <ext/vstring.h>
-#include <ystdex/string_view.hpp>
+#include <ystdex/tstring_view.hpp>
 #include <ystdex/array.hpp>
 #include <deque>
 #include <forward_list>
@@ -101,6 +101,8 @@ using basic_string = std::basic_string<_tChar, _tTraits, _tAlloc>;
 using string = basic_string<char>;
 //! \since build 608
 using u16string = basic_string<char16_t>;
+//! \since build 608
+using u32string = basic_string<char32_t>;
 //! \since build 593
 //@{
 using wstring = basic_string<wchar_t>;
@@ -111,6 +113,13 @@ using ystdex::basic_string_view;
 using ystdex::string_view;
 using ystdex::u16string_view;
 using ystdex::wstring_view;
+//@}
+//! \since build 641
+//@{
+using ystdex::basic_tstring_view;
+using ystdex::tstring_view;
+using ystdex::u16tstring_view;
+using ystdex::wtstring_view;
 //@}
 
 using ystdex::sfmt;

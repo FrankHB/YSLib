@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2622
+\version r2644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-09-27 10:58 +0800
+	2015-10-02 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,9 +115,9 @@ public:
 	Path(ypath pth) ynothrow
 		: ypath(std::move(pth))
 	{}
-	//! \since build 402
+	//! \since build 641
 	explicit
-	Path(const ucs2string& str) ynothrow
+	Path(const u16string& str) ynothrow
 		: Path(Parse(str))
 	{}
 	template<typename _type,
@@ -189,27 +189,23 @@ public:
 	DefGetter(const ynothrow, const ypath&, Base, *this)
 	//! \since build 600
 	DefGetter(ynothrow, ypath&, BaseRef, *this)
-	/*!
-	\brief 取不带分隔符结尾的字符串。
-	\since build 639
-	*/
-	PDefH(String, GetLeafString, ucs2_t delimiter = ucs2_t(YCL_PATH_DELIMITER))
+	//! \since build 641
+	//@{
+	//! \brief 取不带分隔符结尾的字符串。
+	PDefH(String, GetLeafString, char16_t delimiter = char16_t(YCL_PATH_DELIMITER))
 		const
 		ImplRet(ystdex::to_string(GetBase(), {delimiter}))
-	/*!
-	\brief 取指定分隔符和编码的多字节字符串。
-	\since build 635
-	*/
-	PDefH(string, GetMBCS, ucs2_t delimiter = ucs2_t(YCL_PATH_DELIMITER),
+	//! \brief 取指定分隔符和编码的多字节字符串。
+	PDefH(string, GetMBCS, char16_t delimiter = char16_t(YCL_PATH_DELIMITER),
 		Text::Encoding enc = Text::CS_Default) const
 		ImplRet(Verify(delimiter).GetMBCS(enc))
 	/*!
 	\brief 取指定分隔符的字符串表示。
 	\post 断言：结果为空或以分隔符结尾。
-	\since build 599
 	*/
 	String
-	GetString(ucs2_t = ucs2_t(YCL_PATH_DELIMITER)) const;
+	GetString(char16_t = char16_t(YCL_PATH_DELIMITER)) const;
+	//@}
 	/*!
 	\brief 正规化：去除自指和父节点的路径成员。
 	\since build 410
@@ -217,10 +213,9 @@ public:
 	PDefH(void, Normalize, )
 		ImplExpr(ystdex::normalize(*this))
 
-	//! \since build 409
-	//@{
+	//! \since build 641
 	static ypath
-	Parse(const ucs2string&);
+	Parse(const u16string&);
 
 	/*!
 	\brief 转换为指定分隔符表示的字符串并验证。
@@ -230,8 +225,10 @@ public:
 	\since build 599
 	*/
 	String
-	Verify(ucs2_t = ucs2_t(YCL_PATH_DELIMITER)) const;
+	Verify(char16_t = char16_t(YCL_PATH_DELIMITER)) const;
 
+	//! \since build 409
+	//@{
 	using ypath::back;
 
 	using ypath::begin;
@@ -283,7 +280,7 @@ public:
 
 	//! \since build 475
 	friend PDefH(String, to_string, const Path& pth)
-		ImplRet(to_string(pth.GetBase(), {ucs2_t(YCL_PATH_DELIMITER)}))
+		ImplRet(to_string(pth.GetBase(), {char16_t(YCL_PATH_DELIMITER)}))
 	//@}
 };
 

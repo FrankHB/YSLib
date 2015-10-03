@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2752
+\version r2755
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-08-19 10:25 +0800
+	2015-10-02 18:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ FetchBMPSrcWidth(const CharBitmap& cbmp)
 template<typename _tCharRenderer, _tCharRenderer& _fCharRenderer,
 	typename... _tParams>
 void
-RenderCharFrom(ucs4_t c, const Graphics& g, TextState& ts, const Rect& clip,
+RenderCharFrom(char32_t c, const Graphics& g, TextState& ts, const Rect& clip,
 	_tParams&&... args)
 {
 	const auto cbmp(ts.Font.GetGlyph(c));
@@ -110,7 +110,7 @@ RenderCharFrom(ucs4_t c, const Graphics& g, TextState& ts, const Rect& clip,
 } // unnamed namespace;
 
 void
-TextRenderer::operator()(ucs4_t c)
+TextRenderer::operator()(char32_t c)
 {
 	RenderCharFrom<decltype(RenderChar), RenderChar>(c, GetContext(), State,
 		ClipArea);
@@ -139,7 +139,7 @@ TextRegion::TextRegion()
 ImplDeDtor(TextRegion)
 
 void
-TextRegion::operator()(ucs4_t c)
+TextRegion::operator()(char32_t c)
 {
 	RenderCharFrom<decltype(RenderCharAlpha), RenderCharAlpha>(c,
 		TextRegion::GetContext(), GetTextState(), Rect(GetSize())

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1891
+\version r1893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-09-25 11:36 +0800
+	2015-10-02 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,9 +93,9 @@ namespace Text
 
 /*!
 \brief 编码信息项目。
-\since build 307
+\since build 641
 */
-using EncodingInfoItem = pair<Encoding, const ucs2_t*>;
+using EncodingInfoItem = pair<Encoding, const char16_t*>;
 
 /*!
 \brief 编码信息。

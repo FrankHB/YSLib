@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2969
+\version r2976
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-10-02 16:58 +0800
+	2015-10-03 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 //	std::min, ystdex::write_uint_le;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include YFM_YCLib_FileIO // for ystdex::throw_error, std::errc::not_supported,
-//	FileOperationFailure, std::strchr, std::wctob, std::towupper,
+//	FileOperationFailure, std::strchr, std::wctob, std::towupper, std::min,
 //	ystdex::ntctsicmp, std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
@@ -286,12 +286,12 @@ IsAbsolute(const char16_t* path)
 	if(Deref(path) == u'/')
 		return true;
 
-	const std::u16string upath(path);
+	const u16string upath(path);
 	const auto n(upath.find(u":/"));
 
 	// TODO: Optimize for performance.
-	return n != std::u16string::npos && n != 0
-		&& upath.substr(n).find(u":/") == std::u16string::npos;
+	return n != u16string::npos && n != 0
+		&& upath.substr(n).find(u":/") == u16string::npos;
 #endif
 }
 
@@ -373,8 +373,8 @@ string
 ConvertToMBCS(const char16_t* path)
 {
 	// TODO: Optimize?
-	ImplRet(ystdex::restrict_length(CHRLib::MakeMBCS(Nonnull(path),
-		MaxLength), MaxMBCSLength))
+	ImplRet(ystdex::restrict_length(CHRLib::MakeMBCS({path,
+		std::min<size_t>(ystdex::ntctslen(path), MaxLength)}), MaxMBCSLength))
 }
 
 EntryDataUnit
@@ -613,7 +613,7 @@ namespace platform_ex
 char16_t
 FS_IsRoot(const char16_t* str)
 {
-	const std::u16string ustr(str);
+	const u16string ustr(str);
 
 	return ustr == u"/"
 #	if YCL_DS

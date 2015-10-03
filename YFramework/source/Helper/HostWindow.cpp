@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r549
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2015-09-08 00:23 +0800
+	2015-10-02 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 		unsigned size(sizeof(buf));
 
 		// TODO: Use '{}' to simplify after resolving CWG 1368. See $2015-09
-		//	@ %Documentation::Workflow::Annual2014.
+		//	@ %Documentation::Workflow::Annual2015.
 		ystdex::trivially_fill_n(&buf);
 		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &buf,
 			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1)))
@@ -87,7 +87,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 		lock_guard<recursive_mutex> lck(input_mutex);
 
 		for(size_t n(l_param & 0x7FFF); n-- != 0;)
-			comp_str += ucs2_t(w_param);
+			comp_str += char16_t(w_param);
 	},
 	MessageMap[WM_IME_COMPOSITION] += [this]{
 		UpdateCandidateWindowLocation();

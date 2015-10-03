@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2852
+\version r2868
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-04-22 05:43 +0800
+	2015-10-02 19:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,10 +86,10 @@ inline PDefH(void, AdjustBottomMarginOf, TextRegion& tr)
 /*!
 \brief 取指定的字符使用指定字体的显示宽度。
 \note 无边界限制。
-\since build 280
+\since build 641
 */
 YF_API SDst
-FetchCharWidth(const Font&, ucs4_t);
+FetchCharWidth(const Font&, char32_t);
 
 /*!
 \note 能被显示的（含不完整显示的）字符数和这些字符占用的。
@@ -117,6 +117,8 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s)
 	}
 	return {r, w};
 }
+//! \since build 641
+//@{
 /*!
 \brief 取迭代器指定的单行字符串在指定字体和宽度时的最多能显示的字符数和宽。
 \note 迭代器 s 指向字符串首字符，迭代直至 n 次或指定字符 c 。
@@ -125,7 +127,7 @@ template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, size_t n,
-	ucs4_t c = {})
+	char32_t c = {})
 {
 	size_t r(0);
 	SDst w(0);
@@ -147,7 +149,7 @@ template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 pair<size_t, SDst>
 FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, _tIter g,
-	ucs4_t c = {})
+	char32_t c = {})
 {
 	size_t r(0);
 	SDst w(0);
@@ -161,6 +163,7 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, _tIter g,
 	}
 	return {r, w};
 }
+//@}
 //! \brief 取单行字符串在指定字体和宽度时的最多能显示的字符数和宽。
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
@@ -204,15 +207,16 @@ FetchStringWidth(const Font& fnt, _tIter s)
 	}
 	return w;
 }
+//! \since build 641
+//@{
 /*!
 \brief 取迭代器指定的单行字符串在字体指定、无边界限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至 n 次或指定字符 c 。
-\since build 484
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchStringWidth(const Font& fnt, _tIter s, size_t n, ucs4_t c = {})
+FetchStringWidth(const Font& fnt, _tIter s, size_t n, char32_t c = {})
 {
 	SDst w(0);
 
@@ -228,12 +232,11 @@ FetchStringWidth(const Font& fnt, _tIter s, size_t n, ucs4_t c = {})
 /*!
 \brief 取迭代器指定的单行字符串在字体指定、无边界限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
-\since build 483
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchStringWidth(const Font& fnt, _tIter s, _tIter g, ucs4_t c = {})
+FetchStringWidth(const Font& fnt, _tIter s, _tIter g, char32_t c = {})
 {
 	SDst w(0);
 
@@ -246,6 +249,7 @@ FetchStringWidth(const Font& fnt, _tIter s, _tIter g, ucs4_t c = {})
 	}
 	return w;
 }
+//@}
 /*!
 \brief 取单行字符串在字体指定、无边界限制时的显示宽度。
 \since build 483
@@ -289,12 +293,12 @@ FetchStringWidth(TextState& ts, SDst h, _tIter s)
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 字体由文本状态指定。
-\since build 483
+\since build 641
 */
 template<typename _tIter,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchStringWidth(TextState& ts, SDst h, _tIter s, _tIter g, ucs4_t c = {})
+FetchStringWidth(TextState& ts, SDst h, _tIter s, _tIter g, char32_t c = {})
 {
 	const SPos x(ts.Pen.X);
 	EmptyTextRenderer r(ts, h);

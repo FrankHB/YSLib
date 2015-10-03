@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2732
+\version r2741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-10-02 15:12 +0800
+	2015-10-02 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,8 @@
 //	ystdex::common_nonvoid_t, ystdex::call_for_value, ystdex::bind1;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
-//	ystdex::write_uint_le, CHRLib::ucs2_t, CHRLib::MakeUCS2LE,
-//	ystdex::ntctsicmp, ystdex::ntctsncpy;
+//	ystdex::write_uint_le, CHRLib::MakeUCS2LE, ystdex::ntctsicmp,
+//	ystdex::ntctsncpy;
 #	include <cerrno> // for E*;
 #	include YFM_YCLib_NativeAPI // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC,
 //	O_APPEND, O_CREAT, O_EXCL;
@@ -214,7 +214,6 @@ using ystdex::throw_error;
 //@{
 using std::system_error;
 using std::errc;
-using CHRLib::ucs2_t;
 // XXX: Coupled string types.
 using CHRLib::MakeUCS2LE;
 //@}
@@ -668,7 +667,7 @@ DEntry::DEntry(Partition& part, const NamePosition& name_pos)
 {
 	auto pos(name_pos[0]);
 	bool finished{};
-	ucs2_t long_name[LFN::MaxLength];
+	char16_t long_name[LFN::MaxLength];
 	EntryData edata;
 
 	while(!finished)
@@ -899,9 +898,9 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 					// NOTE: Padding vs terminating null character.
 					write_uint_le<16>(long_name_entry.data()
 						+ LFN::OffsetTable[j], long_name[(i - 2)
-						* LFN::EntryLength + j] == ucs2_t() ? (j > 1
+						* LFN::EntryLength + j] == char16_t() ? (j > 1
 						&& long_name[(i - 2) * LFN::EntryLength + j - 1]
-						== ucs2_t() ? 0xFFFF : 0x0000)
+						== char16_t() ? 0xFFFF : 0x0000)
 						: long_name[(i - 2) * LFN::EntryLength + j]);
 				yunseq(
 				long_name_entry[LFN::CheckSum] = alias_check_sum,
@@ -978,7 +977,7 @@ DEntry::QueryNextFrom(Partition& part) ythrow(system_error)
 
 	auto eend(estart);
 	EntryData edata;
-	ucs2_t long_name[LFN::MaxLength];
+	char16_t long_name[LFN::MaxLength];
 	bool has_long_name = {};
 	EntryDataUnit chk_sum = 0;
 
@@ -997,7 +996,7 @@ DEntry::QueryNextFrom(Partition& part) ythrow(system_error)
 				yunseq(
 				estart = eend, has_long_name = true,
 				long_name[std::min<size_t>((ord & ~LFN::LastLongEntry)
-					* LFN::EntryLength, LFN::MaxLength - 1)] = char(),
+					* LFN::EntryLength, LFN::MaxLength - 1)] = char16_t(),
 				chk_sum = edata[LFN::CheckSum]
 				);
 			else if(chk_sum != edata[LFN::CheckSum])
@@ -2025,7 +2024,7 @@ FileInfo::TrySeek(::off_t offset, int whence) ythrow(system_error)
 
 	if(!(0 < offset && new_pos < 0))
 	{
-		// NOTE: %new_pos can only be larger than the FILE_MAX_SIZE on platforms
+		// NOTE: %new_pos can only be larger than the %MaxFileSize on platforms
 		//	where ::off_t is larger than 32 bits.
 		if(!(new_pos < 0
 			|| (sizeof(new_pos) > 4 && new_pos > ::off_t(MaxFileSize))))

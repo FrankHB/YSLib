@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r718
+\version r723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-07-02 18:34 +0800
+	2015-10-02 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,7 @@ void
 Caret::Stop() ynothrow
 {
 	// TODO: Consider possible per-object optimization.
-	if(auto p = caret_animation.GetConnectionPtr())
+	if(const auto p = caret_animation.GetConnectionPtr())
 		yunseq(p->Ready = {}, FetchGUIState().ExternalTextInputFocusPtr = {});
 }
 
@@ -250,7 +250,7 @@ TextBox::GetCaretLocation() const
 	const auto& pen_offset(GetPenOffset());
 
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return {pen_offset.X + SPos(MaskChar == ucs4_t()
+	return {pen_offset.X + SPos(MaskChar == char32_t()
 		? FetchStringWidth(Font, Text, cur_pos.X) : FetchCharWidth(Font,
 		MaskChar) * cur_pos.X), SPos(cur_pos.Y * lh) + pen_offset.Y};
 }
@@ -261,7 +261,7 @@ TextBox::GetCaretPosition(const Point& pt)
 	const auto
 		max_w(size_t(max<SPos>(pt.X + SPos(h_offset) - Margin.Left, SPos())));
 
-	if(MaskChar == ucs4_t())
+	if(MaskChar == char32_t())
 	{
 		auto pr(FetchStringOffsets(max_w, Font, Text));
 
@@ -327,7 +327,7 @@ TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 void
 TextBox::Refresh(PaintEventArgs&& e)
 {
-	ystdex::swap_guard<String> guard(MaskChar != ucs4_t(), Text, [this]{
+	ystdex::swap_guard<String> guard(MaskChar != char32_t(), Text, [this]{
 		return String(Text.length(), MaskChar);
 	}());
 
@@ -384,7 +384,7 @@ TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
 		auto p(&Text[0]);
 		const auto q1(p + x1), q2(p + x2);
 		const auto& g(pc.Target);
-		CustomTextRenderer ctr([&, q1, q2](TextRenderer& tr, ucs4_t c){
+		CustomTextRenderer ctr([&, q1, q2](TextRenderer& tr, char32_t c){
 			if(IsInInterval(p, q1, q2))
 			{
 				// TODO: Use colors from %Styles::Palette.

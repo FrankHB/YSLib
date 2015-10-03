@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2402
+\version r2409
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-09-12 12:45 +0800
+	2015-10-02 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization
+#include YFM_Helper_Initialization // for ystdex::handle_nested;
 #include YFM_YSLib_Core_YApplication
 #include YFM_Helper_GUIApplication
 #include YFM_YCLib_Debug
@@ -34,7 +34,6 @@
 #include YFM_YCLib_MemoryMapping
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/string.hpp> // for ystdex::sfmt;
-#include <ystdex/exception.h> // for ystdex::handle_nested;
 #include <cerrno> // for errno;
 //#include <clocale>
 #if YCL_DS
@@ -215,10 +214,10 @@ Extract(const std::exception& e, string& res) ynothrow
 }
 
 #if YCL_Win32
+//! \since build 641
+char16_t(*cp113_lkp_backup)(byte, byte);
 //! \since build 552
 //@{
-
-ucs2_t(*cp113_lkp_backup)(byte, byte);
 const unsigned short* p_dbcs_off_936;
 
 void
@@ -229,7 +228,7 @@ LoadCP936_NLS()
 	if((p_dbcs_off_936 = FetchDBCSOffset(936)))
 	{
 		cp113_lkp_backup = CHRLib::cp113_lkp;
-		CHRLib::cp113_lkp = [](byte seq0, byte seq1) ynothrowv -> ucs2_t{
+		CHRLib::cp113_lkp = [](byte seq0, byte seq1) ynothrowv -> char16_t{
 			return p_dbcs_off_936[p_dbcs_off_936[seq0] + seq1];
 		};
 	}
@@ -276,7 +275,7 @@ LoadComponents(const ValueNode& node)
 		else
 #	endif
 		{
-			CHRLib::cp113_lkp = [](byte, byte) YB_ATTR(noreturn) -> ucs2_t {
+			CHRLib::cp113_lkp = [](byte, byte) YB_ATTR(noreturn) -> char16_t{
 				throw LoggedEvent("Failed calling conversion for CHRMapEx.");
 			};
 			YF_Init_puts(Warning, "CHRMapEx conversion calls would lead to"

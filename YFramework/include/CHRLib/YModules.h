@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup CHRLib
 \brief CHRLib 库模块配置文件。
-\version r56
+\version r59
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:08 +0800
 \par 修改时间:
-	2015-05-04 01:09 +0800
+	2015-10-03 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,9 +36,10 @@
 #include "../YModules.h"
 #include "YCLib/YModules.h"
 
+//! \since build 641
+#define YFM_CHRLib_CharacterDefinition <CHRLib/CharacterDefinition.h>
 //! \since build 461
 //@{
-#define YFM_CHRLib_CHRDefinition <CHRLib/chrdef.h>
 #define YFM_CHRLib_CharacterMapping <CHRLib/CharacterMapping.h>
 #define YFM_CHRLib_CharacterProcessing <CHRLib/CharacterProcessing.h>
 #define YFM_CHRLib_Encoding <CHRLib/Encoding.h>

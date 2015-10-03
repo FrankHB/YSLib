@@ -11,13 +11,13 @@
 /*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1363
+\version r1378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-07-17 23:32 +0800
+	2015-10-02 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,30 +59,30 @@ struct MapFixedEncoding : std::integral_constant<Encoding, CS_Default>
 {};
 
 template<>
-struct MapFixedEncoding<ucs2_t>
+struct MapFixedEncoding<char16_t>
 	: std::integral_constant<Encoding, CharSet::csUnicode>
 {};
 
 template<>
-struct MapFixedEncoding<ucs4_t>
+struct MapFixedEncoding<char32_t>
 	: std::integral_constant<Encoding, CharSet::csUCS4>
 {};
 //@}
 
 
 /*!
-\brief 取 c_ptr 指向的大端序双字节字符。
 \pre 断言： \c c_ptr 。
+\since build 641
 */
-inline PDefH(ucs2_t, FetchBiCharBE, const char* c_ptr)
-	ImplRet(yconstraint(c_ptr), ucs2_t((*c_ptr << CHAR_BIT) | c_ptr[1]))
+//@{
+//! \brief 取 c_ptr 指向的大端序双字节字符。
+inline PDefH(char16_t, FetchBiCharBE, const char* c_ptr)
+	ImplRet(yconstraint(c_ptr), char16_t((*c_ptr << CHAR_BIT) | c_ptr[1]))
 
-/*!
-\brief 取 c_ptr 指向的小端序双字节字符。
-\pre 断言： \c c_ptr 。
-*/
-inline PDefH(ucs2_t, FetchBiCharLE, const char* c_ptr)
-	ImplRet(yconstraint(c_ptr), ucs2_t((c_ptr[1] << CHAR_BIT) | *c_ptr))
+//! \brief 取 c_ptr 指向的小端序双字节字符。
+inline PDefH(char16_t, FetchBiCharLE, const char* c_ptr)
+	ImplRet(yconstraint(c_ptr), char16_t((c_ptr[1] << CHAR_BIT) | *c_ptr))
+//@}
 
 
 /*!
@@ -114,7 +114,7 @@ struct ConversionState
 	{
 		ucsint_t Wide;
 		//! \since build 595
-		ucs4_t UCS4;
+		char32_t UCS4;
 		/*!
 		\brief 字节序列：宽字符的字节表示。
 		\since build 475

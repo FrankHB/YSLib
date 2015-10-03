@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4024
+\version r4028
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-08-10 11:10 +0800
+	2015-10-02 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,8 @@ namespace
 //! \since build 615
 //@{
 using MonoIter = ystdex::input_monomorphic_iterator;
-yconstexpr const auto& FetchMapperFunc(FetchMapperPtr<ConversionResult, ucs2_t&,
+//! \since build 641
+yconstexpr const auto& FetchMapperFunc(FetchMapperPtr<ConversionResult, char16_t&,
 	GuardPair<MonoIter>&&, ConversionState&&>);
 yconstexpr const auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult,
 	ystdex::pseudo_output&&, GuardPair<MonoIter>&&, ConversionState&&>);
@@ -220,11 +221,11 @@ TextFileBuffer::operator[](size_t idx)
 			vec.reserve(len / fixed_width);
 
 			size_t n_byte(0);
-			ucs2_t c;
+			char16_t c;
 			Sentry sentry(File);
 
 			while(n_byte < len)
-				n_byte += ConvertChar([&](ucs2_t uc){
+				n_byte += ConvertChar([&](char16_t uc){
 					vec.push_back(uc);
 				}, pfun, sentry.Iterator, c);
 			vec.shrink_to_fit();

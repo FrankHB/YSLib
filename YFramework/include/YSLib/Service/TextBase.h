@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2783
+\version r2787
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-05-29 19:32 +0800
+	2015-10-02 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,9 +126,9 @@ public:
 	/*!
 	\brief 取当前状态下继续在行内打印指定字符占据的边界。
 	\note 不考虑换行。
-	\since build 486
+	\since build 641
 	*/
-	PDefH(Rect, GetCharBounds, ucs4_t c) const ynothrow
+	PDefH(Rect, GetCharBounds, char32_t c) const ynothrow
 		ImplRet(Rect(Pen.X, Pen.Y - Font.GetAscender(),
 			SDst(Font.GetAdvance(c)), Font.GetHeight()))
 
@@ -221,10 +221,10 @@ inline PDefH(void, CarriageReturn, TextState& ts)
 
 /*!
 \brief 按字符跨距移动笔。
-\since build 196
+\since build 641
 */
 YF_API void
-MovePen(TextState&, ucs4_t);
+MovePen(TextState&, char32_t);
 //@}
 
 } // namespace Drawing;

@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2272
+\version r2357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-10-02 15:11 +0800
+	2015-10-03 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include <string> // for std::char_traits;
 #include "cassert.h" // for yconstraint;
 #include "cctype.h" // for ystdex::tolower;
-#include <cwchar> // for std::wmemchr, std::wcscpy, std::wcsncpy;
+#include <cwchar> // for std::wcscpy, std::wcsncpy;
+#include <algorithm> // for std::min;
 
 namespace ystdex
 {
@@ -137,32 +138,6 @@ is_null(_tChar c)
 \see ISO C++03 (17.1.12, 17.3.2.1.3.2) 。
 */
 //@{
-//! \pre 断言： <tt>s</tt> 。
-//@{
-/*!
-\brief 计算简单 NTCTS 长度。
-\note 语义同 std::char_traits<_tChar>::length 。
-\since build 329
-*/
-template<typename _tChar>
-inline YB_NONNULL(1) YB_PURE size_t
-ntctslen(const _tChar* s)
-{
-	return yconstraint(s), std::char_traits<_tChar>::length(s);
-}
-/*!
-\brief 计算不超过指定长度的指定结束字符的简单 NTCTS 长度。
-\note 语义同 std::char_traits<_tChar>::find 。
-\since build 640
-*/
-template<typename _tChar>
-inline YB_NONNULL(1) YB_PURE size_t
-ntctslen(const _tChar* s, size_t n, _tChar c = _tChar())
-{
-	return yconstraint(s), std::char_traits<_tChar>::find(s, n, c);
-}
-//@}
-
 //! \pre 断言： <tt>s1 && s2</tt> 。
 //@{
 //! \since build 640
@@ -243,8 +218,9 @@ ntctsicmp(const _tChar* s1, const _tChar* s2, size_t n)
 \since build 604
 */
 //@{
+//! \since build 641
 template<typename _tChar>
-YB_NONNULL(1, 2) _tChar*
+YB_NONNULL(1, 2) yimpl(enable_if_irreplaceable_char_t<_tChar, _tChar*>)
 ntctscpy(_tChar* s1, const _tChar* s2)
 {
 	yconstraint(s1),
@@ -276,8 +252,27 @@ ntctscpy(wchar_t* s1, const wchar_t* s2)
 inline YB_NONNULL(1, 2) wchar_t*
 ntctscpy(uchar_t* s1, const uchar_t* s2)
 {
-	return ntctscpy(replace_cast<wchar_t*>(s1), replace_cast<const wchar_t*>(s2));
+	return ntctscpy(replace_cast<wchar_t*>(s1),
+		replace_cast<const wchar_t*>(s2));
 }
+//! \since build 641
+//@{
+template<typename _tChar,
+	yimpl(typename = enable_if_replaceable_t<_tChar, char>)>
+inline YB_NONNULL(1, 2) _tChar*
+ntctscpy(_tChar* s1, const _tChar* s2)
+{
+	return ystdex::replace_cast<_tChar*>(ystdex::ntctscpy(ystdex::replace_cast<
+		char*>(s1), ystdex::replace_cast<const char*>(s2)));
+}
+template<typename _tChar>
+inline YB_NONNULL(1, 2) yimpl(enable_if_replaceable_t)<_tChar, wchar_t, _tChar*>
+ntctscpy(_tChar* s1, const _tChar* s2)
+{
+	return ystdex::replace_cast<_tChar*>(ystdex::ntctscpy(ystdex::replace_cast<
+		wchar_t*>(s1), ystdex::replace_cast<const wchar_t*>(s2)));
+}
+//@}
 //@}
 /*!
 \brief 复制确定源长度的 NTCTS 。
@@ -361,6 +356,62 @@ ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 }
 //@}
 //@}
+//@}
+
+/*!
+\brief 转移 NTCTS 。
+\note 复制可能重叠的 NTCTS 存储。
+\since build 641
+*/
+template<typename _tChar>
+YB_NONNULL(1, 2) _tChar*
+ntctsmove(_tChar* s1, const _tChar* s2, size_t n)
+{
+	yconstraint(s1),
+	yconstraint(s2);
+
+	return yunseq(std::char_traits<_tChar>::move(s1, s2, n), s1[n] = _tChar());
+}
+//@}
+
+//! \pre 断言： \c s 。
+//@{
+/*!
+\brief 在简单 NTCTS 的指定前若干字符内查找字符。
+\pre <tt>[s, s + n)</tt> 有效。
+\note 语义同 std::char_traits<_tChar>::find 。
+\since build 641
+*/
+template<typename _tChar>
+inline YB_NONNULL(1) YB_PURE size_t
+ntctschr(const _tChar* s, size_t n, _tChar c)
+{
+	return yconstraint(s), std::char_traits<_tChar>::find(s, n, c);
+}
+
+/*!
+\brief 计算简单 NTCTS 长度。
+\note 语义同 std::char_traits<_tChar>::length 。
+\since build 329
+*/
+template<typename _tChar>
+inline YB_NONNULL(1) YB_PURE size_t
+ntctslen(const _tChar* s)
+{
+	return yconstraint(s), std::char_traits<_tChar>::length(s);
+}
+/*!
+\brief 计算不超过指定长度的简单 NTCTS 长度。
+\since build 641
+*/
+template<typename _tChar>
+inline YB_NONNULL(1) YB_PURE size_t
+ntctslen(const _tChar* s, size_t n)
+{
+	const auto p(ystdex::ntctschr(s, n, _tChar()));
+
+	return p ? p - s : n;
+}
 //@}
 //@}
 
