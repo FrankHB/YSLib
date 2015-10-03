@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2443
+\version r2470
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-07-17 23:58 +0800
+	2015-10-02 19:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_CHRLib_CharacterMapping
 #include <ystdex/cstdio.h>
-#include <ystdex/any.h> // for ystdex::pseudo_object;
+#include <ystdex/ref.hpp> // for ystdex::pseudo_object;
 
 namespace CHRLib
 {
@@ -116,17 +116,20 @@ yconstfn PDefH(bool, IsValidSurrogateTail, octet x) ynothrow
 //! \brief 提供编码映射公共操作默认实现的基类。
 struct UCSMapperBase
 {
+	//! \since build 641
+	//@{
 	static void
-	Assign(ystdex::pseudo_output, ucs4_t) ynothrow
+	Assign(ystdex::pseudo_output, char32_t) ynothrow
 	{}
 	template<typename _tObj>
 	static void
-	Assign(_tObj& uc, ucs4_t c) ynothrow
+	Assign(_tObj& uc, char32_t c) ynothrow
 	{
 		ynoexcept_assert("Invalid type found", uc = _tObj(c));
 
 		uc = _tObj(c);
 	}
+	//@}
 };
 
 
@@ -138,9 +141,9 @@ struct UCSMapperBase
 
 提供编码转换的映射模板。
 假定通过外部指定具体字符类型的中间状态为 Unicode 代码点。
-默认使用小端序（即 UCS-2LE 或 UCS-4LE ），对应字符类型 ucs2_t 和 ucs4_t 。
+默认使用小端序（即 UCS-2LE 或 UCS-4LE ），对应字符类型 char16_t 和 char32_t 。
 注意保留超出基本多文种平面的代码点需要使用范围足够大的字符类型。
-若使用 ucs2_t ，对越界部分不保证能保留正确的结果，取决于中间状态的字符赋值时的转换。
+若使用 char16_t ，对越界部分不保证能保留正确的结果，取决于中间状态的字符赋值时的转换。
 一般接口（静态成员函数模板）如下：
 IsInvalid ：判断八元组是否被禁止的接口。
 Decode ：解码操作：从指定编码的字符序列映射到中间状态的字符。
@@ -167,21 +170,21 @@ private:
 	static void
 	Assign1(_tObj& uc, const _tSeq& seq) ynothrow
 	{
-		ynoexcept_assert("Invalid type found", Assign(uc, ucs4_t()));
+		ynoexcept_assert("Invalid type found", Assign(uc, char32_t()));
 
-		Assign(uc, (ucs4_t(seq[0] & 0x1CU) >> 2U << 8U)
-			| (ucs4_t(seq[0] & 0x03U) << 6) | (ucs4_t(seq[1]) & 0x3FU));
+		Assign(uc, (char32_t(seq[0] & 0x1CU) >> 2U << 8U)
+			| (char32_t(seq[0] & 0x03U) << 6) | (char32_t(seq[1]) & 0x3FU));
 	}
 
 	template<typename _tObj, typename _tSeq>
 	static void
 	Assign2(_tObj& uc, const _tSeq& seq) ynothrow
 	{
-		ynoexcept_assert("Invalid type found", Assign(uc, ucs4_t()));
+		ynoexcept_assert("Invalid type found", Assign(uc, char32_t()));
 
-		Assign(uc, (((ucs4_t(seq[0]) & 0x0FU) << 4U
-			| ucs4_t(seq[1] & 0x3CU) >> 2U) << 8U)
-			| (ucs4_t(seq[1] & 0x3U) << 6U) | ucs4_t(seq[2] & 0x3FU));
+		Assign(uc, (((char32_t(seq[0]) & 0x0FU) << 4U
+			| char32_t(seq[1] & 0x3CU) >> 2U) << 8U)
+			| (char32_t(seq[1] & 0x3U) << 6U) | char32_t(seq[2] & 0x3FU));
 	}
 
 	static yconstfn bool
@@ -366,9 +369,10 @@ public:
 	}
 	//@}
 
+	//! \since build 641
 	template<typename _tOut>
 	static size_t
-	Encode(_tOut d, ucs4_t s) ynothrow
+	Encode(_tOut d, char32_t s) ynothrow
 	{
 		ynoexcept_assert("Invalid type found.", *d = char());
 		using ystdex::is_undereferenceable;
@@ -427,7 +431,7 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 			}
 			else
 			{
-				Assign(uc, ucs4_t(seq[0]) << 8U | ucs4_t(seq[1]));
+				Assign(uc, char32_t(seq[0]) << 8U | char32_t(seq[1]));
 				break;
 			}
 		case 2:
@@ -438,8 +442,8 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 				return ConversionResult::BadSource;
 			if(YB_UNLIKELY(!CHRLib::IsValidSurrogateTail(seq[2])))
 				return ConversionResult::Invalid;
-			Assign(uc, ucs4_t(seq[0] & 0x03U) << 18U | ucs4_t(seq[1]) << 10U
-				| ucs4_t(seq[2] & 0x03U) << 8U | ucs4_t(seq[3]));
+			Assign(uc, char32_t(seq[0] & 0x03U) << 18U | char32_t(seq[1]) << 10U
+				| char32_t(seq[2] & 0x03U) << 8U | char32_t(seq[3]));
 			break;
 		default:
 			return ConversionResult::BadState;
@@ -481,7 +485,7 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 			}
 			else
 			{
-				Assign(uc, ucs4_t(seq[0]) | ucs4_t(seq[1]) << 8U);
+				Assign(uc, char32_t(seq[0]) | char32_t(seq[1]) << 8U);
 				break;
 			}
 		case 2:
@@ -492,8 +496,8 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 				return ConversionResult::BadSource;
 			if(YB_UNLIKELY(!CHRLib::IsValidSurrogateTail(seq[3])))
 				return ConversionResult::Invalid;
-			Assign(uc, ucs4_t(seq[0] << 10U) | ucs4_t(seq[1] & 0x03U) << 18U
-				| ucs4_t(seq[2]) | ucs4_t(seq[3] & 0x03U) << 8U);
+			Assign(uc, char32_t(seq[0] << 10U) | char32_t(seq[1] & 0x03U) << 18U
+				| char32_t(seq[2]) | char32_t(seq[3] & 0x03U) << 8U);
 			break;
 		default:
 			return ConversionResult::BadState;
@@ -534,8 +538,8 @@ struct GUCSMapper<CharSet::UTF_32BE> : UCSMapperBase
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			Assign(uc, ucs4_t(seq[0]) << 24U | ucs4_t(seq[1]) << 16U
-				| ucs4_t(seq[2]) << 8U | ucs4_t(seq[3]));
+			Assign(uc, char32_t(seq[0]) << 24U | char32_t(seq[1]) << 16U
+				| char32_t(seq[2]) << 8U | char32_t(seq[3]));
 			break;
 		default:
 			return ConversionResult::BadState;
@@ -576,8 +580,8 @@ struct GUCSMapper<CharSet::UTF_32LE> : UCSMapperBase
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			Assign(uc, ucs4_t(seq[2]) | ucs4_t(seq[3]) << 8U
-				| ucs4_t(seq[0]) << 16U | ucs4_t(seq[1]) << 24U);
+			Assign(uc, char32_t(seq[2]) | char32_t(seq[3]) << 8U
+				| char32_t(seq[0]) << 16U | char32_t(seq[1]) << 24U);
 			break;
 		default:
 			return ConversionResult::BadState;

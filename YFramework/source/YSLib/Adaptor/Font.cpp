@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3521
+\version r3524
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-08-19 10:06 +0800
+	2015-10-02 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -357,7 +357,7 @@ Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
 }
 
 ::FT_UInt
-Typeface::LookupGlyphIndex(ucs4_t c) const
+Typeface::LookupGlyphIndex(char32_t c) const
 {
 	auto i(glyph_index_cache.find(c));
 
@@ -523,7 +523,7 @@ Font::Font(const FontFamily& family, const FontSize size, FontStyle fs)
 {}
 
 std::int8_t
-Font::GetAdvance(ucs4_t c, CharBitmap sbit) const
+Font::GetAdvance(char32_t c, CharBitmap sbit) const
 {
 	if(!sbit)
 		sbit = GetGlyph(c, FT_LOAD_DEFAULT);
@@ -540,7 +540,7 @@ Font::GetDescender() const
 	return GetInternalInfo().descender >> 6;
 }
 CharBitmap
-Font::GetGlyph(ucs4_t c, unsigned flags) const
+Font::GetGlyph(char32_t c, unsigned flags) const
 {
 	static_assert((FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL) == 4L,
 		"Invalid default argument found.");

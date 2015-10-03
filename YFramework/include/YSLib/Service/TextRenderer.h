@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r3089
+\version r3112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-05-24 21:59 +0800
+	2015-10-02 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,14 +70,15 @@ PrintLine(_tRenderer& rd, _tIter s)
 \param g 指示迭代终止位置的输入迭代器。
 \param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
+\since build 641
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
 */
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PrintLine(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
+PrintLine(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
 {
-	while(s != g && ucs4_t(*s) != c && *s != '\n')
+	while(s != g && char32_t(*s) != c && *s != '\n')
 	{
 		PrintChar(rd, *s);
 		++s;
@@ -133,11 +134,12 @@ PutLine(_tRenderer& rd, _tIter s)
 \return 指向结束位置的迭代器。
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
 \note 当行内无法容纳完整字符时换行。
+\since build 641
 */
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PutLine(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
+PutLine(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
 {
 	const SPos seol(GetEndOfLineOffsetOf(rd));
 
@@ -146,7 +148,7 @@ PutLine(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
 		TextState& ts(rd.GetTextState());
 		const SPos fpy(ts.Pen.Y);
 
-		while(s != g && ucs4_t(*s) != c && fpy == ts.Pen.Y)
+		while(s != g && char32_t(*s) != c && fpy == ts.Pen.Y)
 			if(PutChar(rd, *s, SDst(seol)) != PutCharResult::NeedNewline)
 				++s;
 	}
@@ -191,13 +193,14 @@ PrintString(_tRenderer& rd, _tIter s)
 \param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
+\since build 641
 */
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PrintString(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
+PrintString(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
 {
-	while(s != g && ucs4_t(*s) != c && *s != '\n')
+	while(s != g && char32_t(*s) != c && *s != '\n')
 		PrintChar(rd, *s++);
 	return s;
 }
@@ -250,11 +253,12 @@ PutString(_tRenderer& rd, _tIter s)
 \return 指向结束位置的迭代器。
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
 \note 当行内无法容纳完整字符时换行。
+\since build 641
 */
 template<typename _tIter, class _tRenderer,
 	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 _tIter
-PutString(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
+PutString(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
 {
 	const SPos seol(GetEndOfLineOffsetOf(rd));
 
@@ -263,7 +267,7 @@ PutString(_tRenderer& rd, _tIter s, _tIter g, ucs4_t c = {})
 		TextState& ts(rd.GetTextState());
 		const SPos mpy(FetchLastLineBasePosition(ts, rd.GetHeight()));
 
-		while(s != g && ucs4_t(*s) != c && ts.Pen.Y <= mpy)
+		while(s != g && char32_t(*s) != c && ts.Pen.Y <= mpy)
 			if(PutChar(rd, *s, SDst(seol)) != PutCharResult::NeedNewline)
 				++s;
 	}
@@ -324,8 +328,9 @@ public:
 
 	/*!
 	\brief 渲染单个字符：仅移动笔，不绘制。
+	\since build 641
 	*/
-	PDefHOp(void, (), ucs4_t c)
+	PDefHOp(void, (), char32_t c)
 		ImplExpr(MovePen(State, c))
 
 	DefGetter(const ynothrow, const TextState&, TextState, State)
@@ -345,7 +350,7 @@ class GTextRendererBase
 public:
 	DeclSEntry(const TextState& GetTextState() const) //!< 取文本状态。
 	DeclSEntry(TextState& GetTextState()) //!< 取文本状态。
-	/*
+	/*!
 	\brief 取图形接口上下文。
 	\since build 566
 	*/
@@ -389,7 +394,7 @@ public:
 		: GTextRendererBase<TextRenderer>(),
 		State(ts), Buffer(g), ClipArea(g.GetSize())
 	{}
-	/*
+	/*!
 	\brief 构造：使用文本状态、图形接口上下文和指定区域边界。
 	\since build 265
 	*/
@@ -400,9 +405,10 @@ public:
 
 	/*!
 	\brief 渲染单个字符。
+	\since build 641
 	*/
 	void
-	operator()(ucs4_t);
+	operator()(char32_t);
 
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, State)
@@ -439,7 +445,7 @@ class YF_API CustomTextRenderer : public TextRenderer,
 	public GTextRendererBase<CustomTextRenderer>
 {
 public:
-	using RenderFunctionType = std::function<void(TextRenderer&, ucs4_t)>;
+	using RenderFunctionType = std::function<void(TextRenderer&, char32_t)>;
 
 	RenderFunctionType RenderFunction;
 
@@ -454,8 +460,9 @@ public:
 	/*!
 	\brief 渲染单个字符。
 	\note 使用 RenderFunction 。
+	\since build 641
 	*/
-	PDefHOp(void, (), ucs4_t c)
+	PDefHOp(void, (), char32_t c)
 		ImplExpr(RenderFunction(*this, c))
 };
 
@@ -526,9 +533,10 @@ public:
 
 	/*!
 	\brief 渲染单个字符。
+	\since build 641
 	*/
 	void
-	operator()(ucs4_t);
+	operator()(char32_t);
 
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, *this)

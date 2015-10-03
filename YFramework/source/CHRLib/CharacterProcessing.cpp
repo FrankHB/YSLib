@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1423
+\version r1504
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-07-12 22:05 +0800
+	2015-10-03 14:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,28 +49,28 @@ using ystdex::ntctslen;
 using ystdex::make_unique;
 
 ConversionResult
-MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState&& st)
+MBCToUC(char16_t& uc, const char*& c, Encoding enc, ConversionState&& st)
 {
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&, const char*&,
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&, const char*&,
 		ConversionState&&>(enc))
 		return pfun(uc, c, std::move(st));
 	return ConversionResult::Unhandled;
 }
 ConversionResult
-MBCToUC(ucs2_t& uc, const char*& c, const char* e, Encoding enc,
+MBCToUC(char16_t& uc, const char*& c, const char* e, Encoding enc,
 	ConversionState&& st)
 {
 	yconstraint(c <= e);
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
 		GuardPair<const char*>&&, ConversionState&&>(enc))
 		return pfun(uc, {c, e}, std::move(st));
 	return ConversionResult::Unhandled;
 }
 ConversionResult
-MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
+MBCToUC(char16_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	yconstraint(fp);
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
 		ystdex::ifile_iterator&, ConversionState&&>(enc))
 	{
 		ystdex::ifile_iterator i(fp);
@@ -117,36 +117,36 @@ MBCToUC(std::FILE* fp, Encoding enc, ConversionState&& st)
 }
 
 size_t
-UCToMBC(char* d, const ucs2_t& s, Encoding enc)
+UCToMBC(char* d, const char16_t& s, Encoding enc)
 {
 	yconstraint(d);
 
 	size_t l(0);
 
-	if(const auto pfun = FetchMapperPtr<size_t, char*, ucs4_t>(enc))
+	if(const auto pfun = FetchMapperPtr<size_t, char*, char32_t>(enc))
 		l = pfun(d, s);
 	return l;
 }
 
 
 size_t
-MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
+MBCSToUCS2(char16_t* d, const char* s, Encoding enc)
 {
 	yconstraint(d),
 	yconstraint(s);
 
 	const auto p(d);
 
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
 		const char*&, ConversionState&&>(enc))
 		while(!is_null(*s) && pfun(*d, s, ConversionState())
 			== ConversionResult::OK)
 			++d;
-	*d = 0;
+	*d = char16_t();
 	return size_t(d - p);
 }
 size_t
-MBCSToUCS2(ucs2_t* d, const char* s, const char* e, Encoding enc)
+MBCSToUCS2(char16_t* d, const char* s, const char* e, Encoding enc)
 {
 	yconstraint(d),
 	yconstraint(s),
@@ -155,17 +155,16 @@ MBCSToUCS2(ucs2_t* d, const char* s, const char* e, Encoding enc)
 
 	const auto p(d);
 
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
 		GuardPair<const char*>&&, ConversionState&&>(enc))
 		while(!is_null(*s) && pfun(*d, {s, e}, ConversionState())
 			== ConversionResult::OK)
 			++d;
-	*d = 0;
 	return size_t(d - p);
 }
 
 size_t
-MBCSToUCS4(ucs4_t* d, const char* s, Encoding enc)
+MBCSToUCS4(char32_t* d, const char* s, Encoding enc)
 {
 	yconstraint(d),
 	yconstraint(s);
@@ -173,12 +172,12 @@ MBCSToUCS4(ucs4_t* d, const char* s, Encoding enc)
 	const auto p(d);
 
 	// TODO: Use UCS-4 internal conversion directly?
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
 		const char*&, ConversionState&&>(enc))
 		while(!is_null(*s))
 		{
 			// TODO: Necessary initialization?
-			ucs2_t c;
+			char16_t c;
 
 			if(pfun(c, s, ConversionState()) == ConversionResult::OK)
 			{
@@ -188,11 +187,11 @@ MBCSToUCS4(ucs4_t* d, const char* s, Encoding enc)
 			else
 				break;
 		}
-	*d = 0;
+	*d = char32_t();
 	return size_t(d - p);
 }
 size_t
-MBCSToUCS4(ucs4_t* d, const char* s, const char* e, Encoding enc)
+MBCSToUCS4(char32_t* d, const char* s, const char* e, Encoding enc)
 {
 	yconstraint(d),
 	yconstraint(s),
@@ -202,12 +201,12 @@ MBCSToUCS4(ucs4_t* d, const char* s, const char* e, Encoding enc)
 	const auto p(d);
 
 	// TODO: Use UCS-4 internal conversion directly?
-	if(const auto pfun = FetchMapperPtr<ConversionResult, ucs2_t&,
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
 		GuardPair<const char*>&&, ConversionState&&>(enc))
 		while(!is_null(*s))
 		{
 			// TODO: Necessary initialization?
-			ucs2_t c;
+			char16_t c;
 
 			if(pfun(c, {s, e}, ConversionState()) == ConversionResult::OK)
 			{
@@ -217,62 +216,115 @@ MBCSToUCS4(ucs4_t* d, const char* s, const char* e, Encoding enc)
 			else
 				break;
 		}
-	*d = 0;
 	return size_t(d - p);
 }
 
 size_t
-UCS2ToMBCS(char* d, const ucs2_t* s, Encoding enc)
+UCS2ToMBCS(char* d, const char16_t* s, Encoding enc)
 {
 	yconstraint(d),
 	yconstraint(s);
 
 	const auto p(d);
 
-	if(const auto pfun = FetchMapperPtr<size_t, char*, ucs4_t>(enc))
+	if(const auto pfun = FetchMapperPtr<size_t, char*, char32_t>(enc))
 		while(!is_null(*s))
 			d += pfun(d, *s++);
 	*d = char();
 	return size_t(d - p);
 }
+size_t
+UCS2ToMBCS(char* d, const char16_t* s, const char16_t* e, Encoding enc)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(s <= e);
+
+	const auto p(d);
+
+	// TODO: Deferred. Use guard for encoding.
+	if(const auto pfun = FetchMapperPtr<size_t, char*, char32_t>(enc))
+		while(s < e)
+			d += pfun(d, *s++);
+	return size_t(d - p);
+}
+
 
 size_t
-UCS2ToUCS4(ucs4_t* d, const ucs2_t* s)
+UCS2ToUCS4(char32_t* d, const char16_t* s)
 {
-	const auto p(ystdex::copy_when(s, d, [](ucs2_t c) ynothrow{
+	const auto p(ystdex::copy_when(s, d, [](char16_t c) ynothrow{
 		return !is_null(c);
 	}));
 
-	*p = ucs4_t();
+	*p = char32_t();
 	return size_t(p - d);
+}
+size_t
+UCS2ToUCS4(char32_t* d, const char16_t* s, const char16_t* e)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(s <= e);
+
+	return size_t(std::copy(s, e, d) - d);
 }
 
 size_t
-UCS4ToMBCS(char* d, const ucs4_t* s, Encoding enc)
+UCS4ToMBCS(char* d, const char32_t* s, Encoding enc)
 {
 	yconstraint(d),
 	yconstraint(s);
 
 	const auto p(d);
 
-	if(const auto pfun = FetchMapperPtr<size_t, char*, ucs4_t>(enc))
+	if(const auto pfun = FetchMapperPtr<size_t, char*, char32_t>(enc))
 		while(!is_null(*s))
-			d += pfun(d, ucs2_t(*s++));
+			d += pfun(d, char16_t(*s++));
 	*d = char();
+	return size_t(d - p);
+}
+size_t
+UCS4ToMBCS(char* d, const char32_t* s, const char32_t* e, Encoding enc)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(s <= e);
+
+	const auto p(d);
+
+	// TODO: Deferred. Use guard for encoding.
+	if(const auto pfun = FetchMapperPtr<size_t, char*, char32_t>(enc))
+		while(s < e)
+			d += pfun(d, char16_t(*s++));
 	return size_t(d - p);
 }
 
 size_t
-UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
+UCS4ToUCS2(char16_t* d, const char32_t* s)
 {
-	const auto p(ystdex::transform_when(s, d, [](ucs4_t c) ynothrow{
+	yconstraint(d),
+	yconstraint(s);
+
+	const auto p(ystdex::transform_when(s, d, [](char32_t c) ynothrow{
 		return !is_null(c);
-	}, [](ucs4_t c) ynothrow{
-		return ucs2_t(c);
+	}, [](char32_t c) ynothrow{
+		return char16_t(c);
 	}));
 
-	*p = ucs2_t();
+	*p = char16_t();
 	return size_t(p - d);
+}
+size_t
+UCS4ToUCS2(char16_t* d, const char32_t* s, const char32_t* e)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(s <= e);
+
+	return size_t(std::transform(s, e, d, [](char32_t c) ynothrow{
+		return char16_t(c);
+	}) - d);
 }
 
 } // namespace CHRLib;

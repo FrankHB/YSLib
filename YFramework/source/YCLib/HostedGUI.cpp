@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1559
+\version r1561
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-09-26 14:58 +0800
+	2015-10-02 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -837,7 +837,7 @@ bool
 Clipboard::Receive(YSLib::String& str)
 {
 	return ReceiveRaw(CF_UNICODETEXT, [&](const void* p) ynothrowv{
-		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<ucs2_t>();
+		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<char16_t>();
 	});
 }
 
@@ -863,7 +863,7 @@ Clipboard::Send(const string& str)
 void
 Clipboard::Send(const String& str)
 {
-	SendRaw(CF_UNICODETEXT, CopyGlobalString<ucs2_t>(str));
+	SendRaw(CF_UNICODETEXT, CopyGlobalString<char16_t>(str));
 }
 void
 Clipboard::Send(ConstBitmapPtr p_bmp, const Size& s)

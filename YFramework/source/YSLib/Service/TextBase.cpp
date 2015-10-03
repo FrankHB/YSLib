@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2512
+\version r2514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-24 20:56 +0800
+	2015-10-02 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,7 @@ SetCurrentTextLineNOf(TextState& ts, std::uint16_t n)
 }
 
 void
-MovePen(TextState& ts, ucs4_t c)
+MovePen(TextState& ts, char32_t c)
 {
 	CharBitmap sbit(ts.Font.GetGlyph(c));
 

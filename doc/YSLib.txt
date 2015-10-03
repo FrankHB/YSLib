@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3051
+\version r3052
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-05-29 17:32 +0800
+	2015-10-02 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,7 +234,7 @@ LoggedEvent ：记录异常事件类。
 
 @3.6 基础字符串管理 YString
 通用字符串抽象以及相关 API 。
-包括 String 类。当前使用 UCS-2 作为内部编码（字节序同实现的 ucs2_t 存储字节序）。
+包括 String 类。当前使用 UCS-2 作为内部编码（字节序同实现的 char16_t 存储字节序）。
 
 @3.7 平台无关的基础图形学对象 YGDIBase ：
 

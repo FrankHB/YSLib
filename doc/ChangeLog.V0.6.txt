@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r4440
+\version r4618
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-02 18:16 +0800
+	2015-10-04 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,182 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		* "missing parentheses protecting macro %YB_ASSUME" @ %CAssert
+			@ %YDefinition $since b535,
+		/ %YStandardEx $=
+		(
+			* $comp "unsafe when used out of expressions"
+				@ "macros %(yconstraint, yassume)" @ %CAssert $since b535
+				$dep_from %YDefinition,
+			/ @ "class template specialization %basic_tstring_view"
+				@ %TStringView $=
+			(
+				* "wrong ctor-initializer"
+					@ "constructor template %basic_tstring_view" $since b640,
+				+ "constructor with %base parameter",
+				/ @ "static functions %(verify, verify_term)" $=
+				(
+					/ "exception specificaion" -> 'ynothrowv' ~ 'ynothrow',
+					+ "assertion to ensure nonnull parameter"
+				)
+			),
+			/ %CString $=
+			(
+				* "strict ISO C++ code compatibility" @ %LibDefect $since b640
+					$= (* "missing including <algorithm> for %std::min"),
+				+ "function template %ntctschr",
+				/ @ "function template %ntctslen with size" $=
+				(
+					(
+					/ $impl $dep_from ^ "%ntctschr";
+					* $impl "wrong expression for return-statement" $since b640,
+					),
+					- "terminated character parameter"
+						// If the terminated character is not null character, \
+							the string is not NTCTS, thus the name is wrong. \
+							And the similar interface would make problems for \
+							other operations. Also now it does nothing better \
+							than %ntctschr.
+				),
+				(
+				/ "function template %ntctscpy for general string limited for \
+					string of non aligned-replaceable character types";
+				+ $re_ex(b610) "2 function templates %ntctscpy for \
+					aligned-replaceable %(char, wchar_t) string"
+					// As %ntctsncpy.
+				),
+				+ "function template %ntctsmove"
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Adaptor.YTextBase $=
+			(
+				- "alias %ucs4string",
+				+ 'using platform::u16string',
+				+ 'using platform::u32string' $dep_from
+					("%u32string" @ %YCLib.Container),
+				- "alias %ucs2string" $dep_from "removal of ucs2string",
+				- 'using Text::ucs4_t;' $dep_from
+					("removal of YSLib ucs4_t", %YReader),
+				- 'using Text::ucs2_t;' $dep_from "removal of YSLib ucs2_t"
+			),
+			^ 'char32_t' ~ 'ucs4_t' $effective @ %(Service.(TextLayout,
+				TextBase, TextRenderer, CharRenderer), UI.TextBox,
+				Adaptor.Font) $dep_to "removal of YSLib ucs4_t",
+			^ 'char16_t' ~ 'ucs2_t' $effective @ %(Service.(TextManager,
+				FileSystem, TextManager), UI.YGUI) $dep_to
+				"removal of YSLib ucs2_t",
+			/ @ "class %String" @ %Core.YString $=
+			(
+				+ $lib 'YB_NONNULL(2)' @ "constructor template %String",
+				+ "explicit constructor with %u16string_view parameter",
+				+ "constructor supporting character pointer range with UCS-2 \
+					conversion" $dep_from "null embedded string conversion"
+			)
+		),
+		/ %YCLib $=
+		(
+			/ DLDI "all 'std::u16string'" -> 'u16string' @ %FileSystem
+			^ 'char16_t' ~ 'ucs2_t' $effective %YCLib.HostedGUI,
+			/ %Container $=
+			(
+				+ 'using u32string = basic_string<char32_t>;',
+				+ 'using ystdex::basic_tstring_view;',
+				+ 'using ystdex::tstring_view;',
+				+ 'using ystdex::u16tstring_view;',
+				+ 'using ystdex::wtstring_view;
+			),
+			/ @ "function %LFN::ConvertToMBCS" @ %FileSystem $=
+			(
+				/ $forced $impl $dep_from ("%CHRLib::MakeMBCS"
+					@ %CHRLib.CharacterProcessing);
+				/ $comp "length calculation to ensure no null embedded in the \
+					string"
+			)
+		),
+		/ %CHRLib $=
+		(
+			^ ('char32_t' ~ 'ucs4_t', 'char16_t' ~ 'ucs4_t') $effective
+				@ %(CharacterProcessing, CharacterMapping, StaticMapping,
+				Encoding) $dep_from %YSLib.Adaptor.YTextBase $dep_to
+				"removal use of UCS character types",
+			/ %CHRDefinition -> %CharacterDefinition $=
+			(
+				- "aliases %ucs2_t, ucs4_t" $dep_from "removal use of UCS \
+					character types",
+				+ 'using ystdex::string_view;',
+				+ 'using ystdex::u16string_view;',
+				+ 'using ystdex::u32string_view;',
+				+ 'using ystdex::tstring_view;',
+				+ 'using ystdex::u16tstring_view;',
+				+ 'using ystdex::u32tstring_view;
+			),
+			/ %CharacterProcessing $=
+			(
+				+ "assertions to ensure nonnull pointers"
+					@ "function %UCS4ToUCS2 for null-terminated string",
+				(
+				/ $dep_to "character range conversion" $=
+				(
+					+ "functions %(UCS4ToUCS2, UCS2ToUCS4, UCS2ToMBCS, \
+						UCS4ToMBCS) for pointer range",
+					* "wrongly written terminate character to destination"
+						@ "functions %(MBCSToUCS2, MBCSToUCS4) for pointer \
+						range" $since b614
+				);
+				/ "string conversion function templates %(MakeUCS2LE, \
+					MakeUCS4LE, MakeMBCS)" @ %CharacterProcessing
+					^ ("view classes" $dep_from %CharacterDefinition) $=
+				(
+					/ "function templates for string with size"
+						^ "character range conversion" $dep_to
+						"null embedded string conversion",
+					/ "function template for byte string with size"
+						^ "%string_view",
+					/ "function template for UCS-2 string with size"
+						^ "%u16string_view",
+					/ "function template for UCS-4 string with size"
+						^ "%u32string_view",
+					- "function templates with size parameter without \
+						conversion",
+					- "all 2 template function templates for non-view string \
+						class types"
+				)
+				),
+				- "2 function templates %MakeMBCS without encoding conversion"
+			),
+		),
+		^ 'char16_t' ~ 'ucs2_t' $effective
+			%Helper.(Initialization, HostWindow, ShellHelper),
+		/ $comp DLDI "string conversion with length checked"
+			@ %'YCLib_(DS)'.DSIO $dep_from "%MakeUCS2LE"
+			@ %CHRLib.CharacterProcessing
+	),
+	^ $lib $dep_from ('u16string' @ %Adaptor.YTextBase) ~ 'ucs2string'
+		$effective %YFramework.YSLib.(Core.YString, Service.FileSystem) $dep_to
+		"removal of ucs2string",
+	/ DLDI %YReader.(DSReader, ShlExplorer) ^ 'char32_t' ~ 'ucs4_t';
+	* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments" $effective
+		@ ("function templates %(for_each_equal, for_each_if)"
+		@ YBase.YStandardEx.Algorithm $since b532, ("enum %Encoding"
+		@ %CHRLib.Encoding $since b249, (("class %TextFileBuffer" $since b272,
+		"%operator!= for %TextFileBuffer::iterator" $since b460) @ %TextManager,
+		("function %GetContext" @ "class template %GTextRendererBase" $since
+		b566, "constructor %TextRenderer#2" $since b265) @ %TextRenderer)
+		@ %YSLib.Service) @ %YFramework),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.CHRLib.("%chrdef.h" => "%CharacterDefinition.h")
+),
+
+b640
 (
 	/ %YBase $=
 	(
@@ -180,7 +356,7 @@ $now
 	/ $dev $repo "all edited file with module name not the same as base file \
 		name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.'Helper_(DS)'.Shell_DS.("shlds.h" => "Shell_DS.h",
-		"shlds.cpp" => "%Shell_DS.cpp")
+		"%shlds.cpp" => "%Shell_DS.cpp")
 ),
 
 b639
@@ -872,7 +1048,7 @@ b633
 		@ %(YFramework.YSLib.Core.YCoreUtilities, Documentation.Designation);
 	/ $dev $repo "all edited file with module name not the same as base file \
 		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.YCommon.(
-		"ycommon.cpp" => "YCommon.cpp")
+		"%ycommon.cpp" => "%YCommon.cpp")
 ),
 
 b632
@@ -3100,7 +3276,7 @@ b611
 		YUIContainer))), YReader.(ShlReader, ShlExplorer)),
 	/ $dev $repo "all edited file with module name not the same as base file \
 		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.YSLib.Adaptor.(
-		"ynew.cpp" => "YNew.cpp")
+		"%ynew.cpp" => "%YNew.cpp")
 ),
 
 b610

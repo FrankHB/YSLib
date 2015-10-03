@@ -11,13 +11,13 @@
 /*!	\file MappingEx.cpp
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r78
+\version r82
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:43 +0800
 \par 修改时间:
-	2015-03-22 16:19 +0800
+	2015-10-02 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,15 +36,15 @@ using namespace CharSet;
 namespace
 {
 
-//! \since build 552
+//! \since build 641
 template<byte*& _vCPMapPtr, size_t _vMax>
-ucs2_t
+char16_t
 dbcs_lkp(byte seq0, byte seq1)
 {
 	const auto idx(size_t(seq0 << 8U | seq1));
 
 	return YB_LIKELY(idx < 0xFF7E)
-		? reinterpret_cast<const ucs2_t*>(_vCPMapPtr + 0x0100)[idx] : 0;
+		? reinterpret_cast<const char16_t*>(_vCPMapPtr + 0x0100)[idx] : 0;
 }
 
 } // unnamed namespacce;
@@ -61,7 +61,7 @@ byte* cp2026;
 
 #endif
 
-ucs2_t(*cp113_lkp)(byte, byte) = dbcs_lkp<CHRLib::cp113, 0xFF7E>;
+char16_t(*cp113_lkp)(byte, byte) = dbcs_lkp<CHRLib::cp113, 0xFF7E>;
 
 } // namespace CHRLib;
 

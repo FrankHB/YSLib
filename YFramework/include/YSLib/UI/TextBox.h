@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r405
+\version r409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2015-03-06 05:33 +0800
+	2015-10-02 19:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ public:
 	Drawing::Font Font{};
 	Color ForeColor{ColorSpace::Gray};
 	String Text{};
-	ucs4_t MaskChar = ucs4_t();
+	char32_t MaskChar = char32_t();
 
 	//! \since build 517
 	DefGetter(const ynothrow, IWidget*, CapturedPtr, p_captured)
@@ -237,12 +237,12 @@ public:
 	/*!
 	\brief 掩码字符。
 	\note 可作为屏蔽密码显示的字符。
-	\note 当前 ucs4_t 截取为 ucs2_t 。
+	\note 当前 char32_t 截取为 char16_t 。
 	\note 若不为空字符则默认在显示时使用此字符替换 Text 的每个字符。
-	\since build 516
+	\since build 641
 	\sa Text
 	*/
-	ucs4_t MaskChar = ucs4_t();
+	char32_t MaskChar = char32_t();
 
 private:
 	/*!

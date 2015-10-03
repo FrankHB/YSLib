@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3381
+\version r3389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-08-31 23:50 +0800
+	2015-10-02 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,8 +310,8 @@ private:
 	//! \since build 521
 	mutable ystdex::used_list_cache<BitmapKey, SmallBitmapData, BitmapKeyHash>
 		bitmap_cache;
-	//! \since build 562
-	mutable unordered_map<ucs4_t, unsigned> glyph_index_cache;
+	//! \since build 641
+	mutable unordered_map<char32_t, unsigned> glyph_index_cache;
 	//! \since build 420
 	mutable unordered_map<FontSize, NativeFontSize> size_cache;
 
@@ -354,9 +354,9 @@ private:
 	SmallBitmapData&
 	LookupBitmap(const BitmapKey&) const;
 
-	//! \since build 612
+	//! \since build 641
 	unsigned
-	LookupGlyphIndex(ucs4_t) const;
+	LookupGlyphIndex(char32_t) const;
 
 	//! since build 420
 	NativeFontSize&
@@ -639,10 +639,10 @@ public:
 
 	/*!
 	\brief 取跨距。
-	\since build 612
+	\since build 641
 	*/
 	std::int8_t
-	GetAdvance(ucs4_t, CharBitmap = {}) const;
+	GetAdvance(char32_t, CharBitmap = {}) const;
 	/*!
 	\brief 取升部。
 	\since build 280
@@ -669,10 +669,10 @@ public:
 	\note 默认参数为 FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL 。
 	\warning 返回的位图在下一次调用 FontCache 方法或底层 FreeType 缓存时不保证有效。
 	\warning flags 可能被移除，应仅用于内部实现。
-	\since build 612
+	\since build 641
 	*/
 	CharBitmap
-	GetGlyph(ucs4_t c, unsigned flags = 4UL) const;
+	GetGlyph(char32_t c, unsigned flags = 4UL) const;
 	/*!
 	\brief 取字体对应的字符高度。
 	\since build 280

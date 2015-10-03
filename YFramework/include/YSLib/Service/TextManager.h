@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3895
+\version r3902
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-08-09 22:57 +0800
+	2015-10-02 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace YSLib
 namespace Text
 {
 
-/*
+/*!
 \brief 文本文件块缓冲区。
 \since build 145
 */
@@ -49,9 +49,9 @@ public:
 	\brief 缓冲区块类型。
 
 	保存转换后的文本区块和初始转换偏移状态。
-	\since build 273
+	\since build 641
 	*/
-	using BlockType = pair<vector<ucs2_t>, size_t>;
+	using BlockType = pair<vector<char16_t>, size_t>;
 	/*!
 	\brief 缓冲映射类型。
 
@@ -65,8 +65,8 @@ public:
 	*/
 	//@{
 	class YF_API iterator : public std::iterator<
-		std::bidirectional_iterator_tag, ucs2_t, ptrdiff_t, const ucs2_t*,
-		const ucs2_t&>
+		std::bidirectional_iterator_tag, char16_t, ptrdiff_t, const char16_t*,
+		const char16_t&>
 	{
 		friend class TextFileBuffer;
 
@@ -166,7 +166,7 @@ private:
 public:
 	/*!
 	\brief 构造：使用流和指定编码。
-	\pre 流以二进制模式打开，未设置 \c std::ios_base::skipws ，
+	\pre 流以二进制模式打开，未设置 std::ios_base::skipws ，
 		支持定位到结尾访问以保证大小等于字符数。
 	\throw LoggedEvent 取文件大小失败。
 	\note 编码为 \c CharSet::Null 时自动推断，若无法推断，默认为 CharSet::GBK 。
@@ -224,7 +224,7 @@ public:
 	//@}
 };
 
-/*
+/*!
 \relates TextFileBuffer::iterator
 \since build 460
 */

@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2193
+\version r2222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2015-07-02 18:29 +0800
+	2015-10-03 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,22 +43,34 @@ namespace Text
 \warning 非虚析构。
 \since 早于 build 132
 */
-class YF_API String : public ucs2string
+class YF_API String : public u16string
 {
 public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
 	DefDeCtor(String)
-	//! \since build 612
-	using ucs2string::ucs2string;
+	//! \since build 641
+	using u16string::u16string;
 	/*!
-	\brief 构造：使用字符指针表示的 NTCTS 和指定编码。
+	\brief 构造：使用指针表示的 NTCTS 和指定编码。
+	\pre 间接断言：指针参数非空。
 	\since build 281
 	*/
 	template<typename _tChar>
+	YB_NONNULL(2)
 	String(const _tChar* s, Encoding enc = CS_Default)
-		: ucs2string(MakeUCS2LE<ucs2string>(s, enc))
+		: u16string(MakeUCS2LE<u16string>(s, enc))
+	{}
+	/*!
+	\brief 构造：使用指针表示的字符范围和指定编码。
+	\pre 间接断言：指针参数非空。
+	\since build 641
+	*/
+	template<typename _tChar>
+	YB_NONNULL(2)
+	String(const _tChar* s, size_t n, Encoding enc = CS_Default)
+		: u16string(MakeUCS2LE<u16string>(s, n, enc))
 	{}
 	/*!
 	\brief 构造：使用字符的初值符列表。
@@ -66,20 +78,26 @@ public:
 	*/
 	template<typename _tChar>
 	String(std::initializer_list<_tChar> il)
-		: ucs2string(il.begin(), il.end())
+		: u16string(il.begin(), il.end())
 	{}
 	/*!
 	\brief 构造：使用 YSLib 基本字符串。
+	\since build 641
 	*/
-	String(const ucs2string& s)
-		: ucs2string(s)
+	String(const u16string& s)
+		: u16string(s)
 	{}
 	/*!
 	\brief 构造：使用 YSLib 基本字符串右值引用。
-	\since build 285
+	\since build 641
 	*/
-	String(ucs2string&& s)
-		: ucs2string(std::move(s))
+	String(u16string&& s)
+		: u16string(std::move(s))
+	{}
+	//! \since build 641
+	explicit
+	String(u16string_view sv)
+		: u16string(sv)
 	{}
 	/*!
 	\brief 构造：使用指定字符类型的 std::basic_string 和指定编码。

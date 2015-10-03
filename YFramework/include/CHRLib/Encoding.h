@@ -11,13 +11,13 @@
 /*!	\file Encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r724
+\version r731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 242
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-05-29 19:59 +0800
+	2015-10-03 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_CHRLib_encoding_h_ 1
 
 #include "YModules.h"
-#include YFM_CHRLib_CHRDefinition
+#include YFM_CHRLib_CharacterDefinition
 #include <ystdex/cstdint.hpp> // for ystdex::byte_order;
 
 namespace CHRLib
@@ -41,7 +41,7 @@ using ByteOrder = ystdex::byte_order;
 namespace CharSet
 {
 
-/*
+/*!
 \brief 字符流编码标识。
 \note MIB(management information base) 是
 	SNMP(simple network management protocal ，简单网络管理协议) 和
@@ -354,7 +354,7 @@ yconstexpr const Encoding iso_ir_6(US_ASCII), ISO646_US(US_ASCII),
 /*!
 \ingroup metafunctions
 \brief 取编码对应的字符类型。
-\note 对于变长编码取最小宽度对应的字符类型。
+\note 对变长编码取最小宽度对应的字符类型。
 \since build 594
 \todo 添加特化。
 */
@@ -377,21 +377,21 @@ template<>
 struct EncodingTraits<csUnicode>
 {
 	static yconstexpr const ByteOrder byte_order = ByteOrder::unknown;
-	using type = ucs2_t;
+	using type = char16_t;
 };
 
 template<>
 struct EncodingTraits<csUCS4>
 {
 	static yconstexpr const ByteOrder byte_order = ByteOrder::unknown;
-	using type = ucs4_t;
+	using type = char32_t;
 };
 
 template<>
 struct EncodingTraits<csUTF16>
 {
 	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
-	using type = ucs2_t;
+	using type = char16_t;
 };
 
 template<>
@@ -410,7 +410,7 @@ template<>
 struct EncodingTraits<csUTF32>
 {
 	static yconstexpr ByteOrder byte_order = ByteOrder::unknown;
-	using type = ucs4_t;
+	using type = char32_t;
 };
 
 template<>
