@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r307
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-10-01 23:47 +0800
+	2015-10-04 17:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,9 +225,11 @@ main()
 			return range_size(no_size_function({3, 4, 5, 6, 7, 8}));
 		})
 	);
-	// 2 cases covering: ystdex::string_view.
+	// 4 cases covering: ystdex::string_view.
 	seq_apply(make_guard("YStandard.StringView").get(pass, fail),
 		string_view("????") == std::string(4, '?'),
+		string_view("///a/b/c").find_first_not_of('/') == 3,
+		string_view("///a/b/c/").find_last_not_of('/') == 7,
 		expect(true, []{
 			static_assert(is_same<string_traits<string_view>::string_type,
 				string_view>(), "");
@@ -235,6 +237,24 @@ main()
 				char>(), "");
 			const string str("Hello!");
 			const string_view sv(str);
+
+			return sv.find("el") == 1 && sv.find("loo") == string_view::npos
+				&& sv.rfind('l') == 3 && sv.find_first_of("abcde") == 1
+				&& sv.find_first_not_of("Hel!") == 4;
+		})
+	);
+	// 4 cases covering: ystdex::tstring_view.
+	seq_apply(make_guard("YStandard.TStringView").get(pass, fail),
+		tstring_view("????") == std::string(4, '?'),
+		tstring_view("///a/b/c").find_first_not_of('/') == 3,
+		tstring_view("///a/b/c/").find_last_not_of('/') == 7,
+		expect(true, []{
+			static_assert(is_same<string_traits<tstring_view>::string_type,
+				tstring_view>(), "");
+			static_assert(is_same<string_traits<tstring_view>::value_type,
+				char>(), "");
+			const string str("Hello!");
+			const tstring_view sv(str);
 
 			return sv.find("el") == 1 && sv.find("loo") == string_view::npos
 				&& sv.rfind('l') == 3 && sv.find_first_of("abcde") == 1

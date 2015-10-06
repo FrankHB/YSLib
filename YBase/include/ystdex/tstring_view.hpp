@@ -11,13 +11,13 @@
 /*!	\file tstring_view.hpp
 \ingroup YStandardEx
 \brief 指定结束字符的只读字符串视图。
-\version r256
+\version r312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-10-01 22:56:52 +0800
 \par 修改时间:
-	2015-10-03 00:47 +0800
+	2015-10-04 17:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,6 +227,65 @@ public:
 	}
 	//@}
 };
+
+/*!
+\relates basic_tstring_view
+\since build 642
+*/
+//@{
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator==(basic_tstring_view<_tChar, _tTraits> x,
+	basic_tstring_view<_tChar, _tTraits> y) ynothrow
+{
+	return x.compare(y) == 0;
+}
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator==(basic_tstring_view<_tChar, _tTraits> x,
+	yimpl(decay_t<basic_tstring_view<_tChar, _tTraits>>) y) ynothrow
+{
+	return x.compare(y) == 0;
+}
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator==(yimpl(decay_t<basic_tstring_view<_tChar, _tTraits>>) x,
+	basic_tstring_view<_tChar, _tTraits> y) ynothrow
+{
+	return x.compare(y) == 0;
+}
+
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator<(basic_tstring_view<_tChar, _tTraits> x,
+	basic_tstring_view<_tChar, _tTraits> y) ynothrow
+{
+	return x.compare(y) < 0;
+}
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator<(basic_tstring_view<_tChar, _tTraits> x,
+	yimpl(decay_t<basic_tstring_view<_tChar, _tTraits>>) y) ynothrow
+{
+	return x.compare(y) < 0;
+}
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator<(yimpl(decay_t<basic_tstring_view<_tChar, _tTraits>>) x,
+	basic_tstring_view<_tChar, _tTraits> y) ynothrow
+{
+	return x.compare(y) < 0;
+}
+
+template<typename _tChar, class _tTraits>
+std::basic_ostream<_tChar, _tTraits>&
+operator<<(std::basic_ostream<_tChar, _tTraits>& os,
+	basic_tstring_view<_tChar, _tTraits> str)
+{
+	// XXX: Better implementation?
+	return os << str.to_string();
+}
+//@}
 
 
 using tstring_view = basic_tstring_view<char>;

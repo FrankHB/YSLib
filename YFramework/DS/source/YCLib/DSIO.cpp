@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2741
+\version r2910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-10-02 19:32 +0800
+	2015-10-07 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 
 #include "YCLib/YModules.h"
 #include YFM_DS_YCLib_DSIO // for platform::Descriptions, std::runtime_error,
-//	ystdex::throw_error, std::system_error, YCL_PATH_DELIMITER, YTraceDe,
-//	std::exception, ystdex::trivially_copy_n, ptrdiff_t, DISC_INTERFACE,
-//	unique_raw, ystdex::aligned_store_cast;
+//	ystdex::throw_error, std::system_error, string_view, YCL_PATH_DELIMITER,
+//	YTraceDe, std::exception, ystdex::trivially_copy_n, ptrdiff_t,
+//	DISC_INTERFACE, unique_raw, ystdex::aligned_store_cast;
 #if YCL_DS
 #	include "YSLib/Core/YModules.h"
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
@@ -63,7 +63,7 @@ SectorCache::SectorCache(size_t pages, size_t spps, Disc d, ::sec_t eop,
 	bytes_per_sector(bps),
 	entries(number_of_pages)
 {
-	entries.flush = [this](UsedListCache::value_type& pr){
+	entries.flush = [this](UsedListCache::value_type& pr) ynothrow{
 		FlushEntry(pr);
 	};
 }
@@ -356,13 +356,13 @@ AllocationTable::AllocationTable(::sec_t start_sector, const byte* sec_buf,
 		return t;
 	}()), bytes_per_cluster(bytes_per_sector * sectors_per_cluster),
 	table_start(start_sector + read_uint_le<16>(sec_buf + BPB_RsvdSecCnt)),
-	table_size([sec_buf]{
+	table_size([sec_buf]() ynothrowv{
 		// NOTE: last_cluster = cluster_count + Clusters::First - 1.
 		const auto t(read_uint_le<16>(sec_buf + BPB_FATSz16));
 
 		return t == 0 ? size_t(
 			read_uint_le<32>(sec_buf + BPB_FATSz32)) : size_t(t);
-	}()), total_sectors_num([sec_buf]{
+	}()), total_sectors_num([sec_buf]() ynothrowv{
 		const auto t(read_uint_le<16>(sec_buf + BPB_TotSec16));
 
 		return t == 0 ? read_uint_le<32>(sec_buf + BPB_TotSec32)
@@ -374,7 +374,7 @@ AllocationTable::AllocationTable(::sec_t start_sector, const byte* sec_buf,
 	* EntryDataSize + (bytes_per_sector - 1)) / bytes_per_sector),
 	data_sectors_num(total_sectors_num - size_t(root_dir_start
 	+ root_dir_sectors_num - start_sector)),
-	fs_type([start_sector, this]() -> FileSystemType{
+	fs_type([start_sector, this]() ynothrowv -> FileSystemType{
 		// NOTE: See Microsoft FAT Specification Section 3.5.
 		ClusterIndex cluster_count(data_sectors_num / sectors_per_cluster);
 
@@ -385,7 +385,7 @@ AllocationTable::AllocationTable(::sec_t start_sector, const byte* sec_buf,
 		if(cluster_count < Clusters::PerFAT16)
 			return FileSystemType::FAT16;
 		return FileSystemType::FAT32;
-	}()), root_dir_cluster([sec_buf, this]() -> ClusterIndex{
+	}()), root_dir_cluster([sec_buf, this]() ynothrowv -> ClusterIndex{
 		if(fs_type != FileSystemType::FAT32)
 			return Clusters::FAT16RootDirectory;
 		// NOTE: Check if FAT mirroring is enabled.
@@ -524,9 +524,9 @@ ClusterIndex
 AllocationTable::QueryLast(ClusterIndex c) const ynothrow
 {
 	// TODO: Assert !Clusters::IsFreeOrEOF(c)?
-	return ystdex::retry_on_cond([&]{
+	return ystdex::retry_on_cond([&]() ynothrow{
 		return !Clusters::IsFreeOrEOF(c);
-	}, [&]{
+	}, [&]() ynothrow{
 		return ystdex::exchange(c, QueryNext(c));
 	});
 }
@@ -656,67 +656,61 @@ FilePosition::Decompose(std::uint32_t pos, size_t bytes_per_cluster,
 
 
 DEntry::DEntry(Partition& part)
-	: NamePos{DEntryPosition{0}, DEntryPosition{0}}
+	: NamePos{DEntryPosition{0}, DEntryPosition{0}}, name(".")
 {
-	// TODO: Optimize.
-	name = ".";
+	// TODO: Optimize?
 	Data.SetupRoot(part.GetRootDirCluster());
 }
 DEntry::DEntry(Partition& part, const NamePosition& name_pos)
-	: NamePos(name_pos)
-{
-	auto pos(name_pos[0]);
-	bool finished{};
-	char16_t long_name[LFN::MaxLength];
-	EntryData edata;
+	: NamePos(name_pos), name([&]{
+		auto pos(name_pos[0]);
+		char16_t long_name[LFN::MaxLength];
 
-	while(!finished)
-	{
-		TryReadPartialSector(part.Table, pos, edata.data());
-		if(pos == name_pos[1])
-		{
-			Data = edata;
-			finished = true;
-		}
-		else
-			edata.CopyLFN(long_name);
-		if(!part.IncrementPosition(pos))
-			throw_error(errc::io_error);
-	}
-	name = name_pos[0] == name_pos[1] ? Data.GenerateAlias()
-		: LFN::ConvertToMBCS(long_name);
-}
-DEntry::DEntry(Partition& part, const char* path)
-	: DEntry(part, path, std::strchr(Nonnull(path), char()))
+		ystdex::retry_on_cond([&](bool finished){
+			if(!part.IncrementPosition(pos))
+				throw_error(errc::io_error);
+			return !finished;
+		}, [&]() -> bool{
+			EntryData edata;
+
+			TryReadPartialSector(part.Table, pos, edata.data());
+			if(pos == name_pos[1])
+				return Data = edata, true;
+			else
+				edata.CopyLFN(long_name);
+			return {};
+		});
+		return name_pos[0] == name_pos[1] ? Data.GenerateAlias()
+			: LFN::ConvertToMBCS(long_name);
+	}())
 {}
-DEntry::DEntry(Partition& part, const char* path, const char* path_end)
+DEntry::DEntry(Partition& part, string_view sv)
 {
+	YAssertNonnull(sv.data());
+
 	ClusterIndex dclus;
 
-	YAssertNonnull(path_end);
-	if(Deref(path) == YCL_PATH_DELIMITER)
+	if(!sv.empty() && sv.front() == YCL_PATH_DELIMITER)
 	{
-		dclus = part.GetRootDirCluster();
-		while(*path == YCL_PATH_DELIMITER)
-			++path;
-		if(path == path_end)
+		const auto pos(sv.find_first_not_of(YCL_PATH_DELIMITER));
+
+		if(pos == string_view::npos)
 			goto found_root;
+		sv.remove_prefix(pos),
+		dclus = part.GetRootDirCluster();
 	}
 	else
 		dclus = part.GetCWDCluster();
-	ystdex::retry_on_cond([](bool found){
+	ystdex::retry_on_cond([](bool found) ynothrow{
 		return !found;
-	}, [&]{
-		const char* next_pos(std::strchr(path, YCL_PATH_DELIMITER));
-		size_t dname_len(next_pos ? next_pos - path
-			: std::strlen(path));
-		bool found{};
+	}, [&]() -> bool{
+		const auto next_pos(sv.find(YCL_PATH_DELIMITER));
+		const bool leaf(next_pos == string_view::npos);
+		string_view comp(sv.data(), leaf ? sv.length() : next_pos);
 
-		if(LFN::MaxMBCSLength < dname_len)
+		if(LFN::MaxMBCSLength < comp.length())
 			throw_error(errc::filename_too_long);
-		if(dclus == part.GetRootDirCluster()
-			&& (std::strncmp(".", path, dname_len) == 0
-			|| std::strncmp("..", path, dname_len) == 0))
+		if(dclus == part.GetRootDirCluster() && (comp == "." || comp == ".."))
 		{
 			this->~DEntry();
 			::new(this) DEntry(part);
@@ -724,41 +718,43 @@ DEntry::DEntry(Partition& part, const char* path, const char* path_end)
 		else
 		{
 			NamePos = GenerateBeforeFirstNamePos(dclus);
-			found = !ystdex::retry_on_cond([this, next_pos](bool cont){
-				return cont || (!Data.IsDirectory() && next_pos);
-			}, [&]() -> bool{
+			ystdex::retry_on_cond([](bool cont) ynothrow{
+				return cont;
+			}, [&, this](bool last_comp) -> bool{
 				if(!QueryNextFrom(part))
 					throw_error(errc::no_such_file_or_directory);
+				if(!(last_comp || Data.IsDirectory()))
+					return true;
 				try
 				{
-					if(dname_len == name.length() && ystdex::ntctsicmp(
-						MakeUCS2LE(string(path, dname_len)).c_str(),
-						MakeUCS2LE(name).c_str(), dname_len) == 0)
+					if(comp.length() == name.length() && ystdex::ntctsicmp(
+						MakeUCS2LE(comp).c_str(), MakeUCS2LE(name).c_str(),
+						comp.length()) == 0)
 						return {};
 				}
 				CatchIgnore(...)
 				try
 				{
-					if(Data.FindAlias(path, dname_len))
+					if(Data.FindAlias(comp.data(), comp.length()))
 						return {};
 				}
 				CatchIgnore(...)
 				return true;
-			});
+			}, leaf);
 		}
-		if(!(next_pos && next_pos < path_end))
+		if(leaf)
 			return true;
 		if(Data.IsDirectory())
 		{
 			dclus = part.EntryGetCluster(Data);
 			if(dclus == Clusters::Root)
 				dclus = part.GetRootDirCluster();
-			path = next_pos;
-			while(*path == YCL_PATH_DELIMITER)
-				++path;
-			return path >= path_end;
+			sv.remove_prefix(next_pos);
+			sv.remove_prefix(std::min(sv.find_first_not_of(YCL_PATH_DELIMITER),
+				sv.length()));
+			return sv.empty();
 		}
-		return found;
+		throw_error(errc::not_a_directory);
 	});
 	// NOTE: On FAT32 an actual cluster should be specified for the root
 	//	entry, not cluster 0 as on FAT16.
@@ -770,29 +766,30 @@ found_root:
 		::new(this) DEntry(part);
 	}
 }
-DEntry::DEntry(int, Partition& part, const char* path,
-	ClusterIndex& parent_clus)
+DEntry::DEntry(ClusterIndex& parent_clus, Partition& part, string_view sv)
 {
-	const char* path_end(std::strrchr(Nonnull(path), YCL_PATH_DELIMITER));
+	const auto path(sv.data());
 
-	if(!path_end)
+	YAssertNonnull(path);
+
+	auto spos(sv.rfind(YCL_PATH_DELIMITER));
+
+	if(spos == string_view::npos)
 	{
 		parent_clus = part.GetCWDCluster();
-		path_end = path;
+		yunseq(NamePos = GenerateBeforeFirstNamePos(parent_clus), spos = 0);
 	}
 	else
 	{
 		this->~DEntry();
-		::new(this) DEntry(part, path, path_end);
+		::new(this) DEntry(part, {path, spos});
 		if(Data.IsDirectory())
-		{
-			parent_clus = part.EntryGetCluster(Data);
-			++path_end;
-		}
+			yunseq(parent_clus = part.EntryGetCluster(Data), ++spos);
 		else
 			throw_error(errc::not_a_directory);
 	}
-	name = ystdex::rtrim(string(path_end), ' ');
+	// TODO: Blocked. Use direct call for 'string_view'. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795 .
+	name = ystdex::rtrim(string(path + spos), ' ');
 #	if 0
 	ystdex::ltrim(name, ' ');
 #	endif
@@ -1142,7 +1139,7 @@ Partition::CreateFSInfo()
 }
 
 bool
-Partition::EntryExists(const string& name, ClusterIndex dclus)
+Partition::EntryExists(string_view name, ClusterIndex dclus)
 	ythrow(system_error)
 {
 	const auto dir_name_len(name.length());
@@ -1150,25 +1147,25 @@ Partition::EntryExists(const string& name, ClusterIndex dclus)
 	if(dir_name_len < LFN::MaxMBCSLength)
 	{
 		DEntry entry(dclus);
-		bool found_file(entry.QueryNextFrom(*this));
+		const auto& uname(MakeUCS2LE(name));
 
-		while(found_file)
+		while(entry.QueryNextFrom(*this))
 		{
 			try
 			{
 				if(dir_name_len == entry.GetName().length()
-					&& ystdex::ntctsicmp(MakeUCS2LE(name).c_str(),
+					&& ystdex::ntctsicmp(uname.c_str(),
 					MakeUCS2LE(entry.GetName()).c_str()) == 0)
 					return true;
 			}
 			CatchIgnore(...)
 			try
 			{
-				if(entry.Data.FindAlias(name.c_str(), LFN::MaxAliasLength))
+				if(entry.Data.FindAlias(name.data(),
+					std::min<size_t>(dir_name_len, LFN::MaxAliasLength)))
 					return true;
 			}
 			CatchIgnore(...)
-			found_file = entry.QueryNextFrom(*this);
 		}
 	}
 	return {};
@@ -1302,8 +1299,7 @@ Partition::MakeDir(const char* path) ythrow(system_error)
 {
 	try
 	{
-		DEntry dentry(*this, path);
-
+		DEntry(*this, path);
 		throw_error(errc::file_exists);
 	}
 	catch(system_error& e)
@@ -1313,20 +1309,16 @@ Partition::MakeDir(const char* path) ythrow(system_error)
 			if(read_only)
 				throw_error(errc::read_only_file_system);
 
-			ClusterIndex parent_clus;
-			DEntry dentry(0, *this, path, parent_clus);
+			ClusterIndex parent_clus, dclus;
 
-			dentry.Data.Clear();
-			dentry.Data.SetDirectoryAttribute();
-			dentry.Data.WriteDateTime();
-
-			auto dclus(LinkFreeClusterCleared(Clusters::Free));
-
-			dentry.Data.WriteCluster(dclus);
-			// XXX: Only %ENOSPCE may be expected.
-			// NOTE: Long name and short name would be set by
-			//	%DEntry::FindEntryGap.
-			dentry.AddTo(*this, parent_clus);
+			DEntry(*this, [&](DEntry& de){
+				de.Data.Clear();
+				de.Data.SetDirectoryAttribute();
+				de.Data.WriteDateTime();
+				dclus = LinkFreeClusterCleared(Clusters::Free);
+				de.Data.WriteCluster(dclus);
+				// XXX: Only %ENOSPCE may be expected.
+			}, path, parent_clus);
 
 			// NOTE: Create the dot entry within the directory.
 			EntryData edata;
@@ -1395,15 +1387,11 @@ Partition::Rename(const char* old, const char* new_name) ythrow(system_error)
 			{
 				if(e.code().value() == ENOENT)
 				{
-					ClusterIndex parent_clus;
-					DEntry dentry(0, *this, new_name, parent_clus);
-
-					yunseq(dentry.Data = old_dir_entry.Data,
-						dentry.NamePos = old_dir_entry.NamePos);
-					// XXX: Only %ENOSPC may be expected?
-					// NOTE: Long name and short name would be set by
-					//	%DEntry::FindEntryGap.
-					dentry.AddTo(*this, parent_clus);
+					DEntry(*this, [&](DEntry& de) ynothrow{
+						yunseq(de.Data = old_dir_entry.Data,
+							de.NamePos = old_dir_entry.NamePos);
+						// XXX: Only %ENOSPC may be expected?
+					}, new_name);
 					RemoveEntry(old_dir_entry.NamePos);
 					Flush();
 				}
@@ -1453,7 +1441,7 @@ Partition::RemoveEntry(const DEntry::NamePosition& np) ythrow(system_error)
 	auto name_pos(np);
 	EntryData edata;
 
-	ystdex::retry_on_cond([&]{
+	ystdex::retry_on_cond([&]() ynothrow{
 		return !(name_pos[0] == name_pos[1]);
 	}, [&]{
 		TryReadPartialSector(Table, name_pos[0], edata.data());
@@ -1502,24 +1490,18 @@ Partition::Sync(const FileInfo& file) const ythrow(system_error)
 {
 	EntryData dir_entry_data;
 	const auto data(dir_entry_data.data());
-	const auto& dir_entry_end(file.GetNamePos()[1]);
-
-	TryReadPartialSector(Table, dir_entry_end, data);
-
+	const auto& dir_entry_end(file.GetNamePosition()[1]);
 	const auto c(file.GetStartCluster());
-
-	write_uint_le<32>(data + EntryData::FileSize, file.GetSize()),
-	dir_entry_data.WriteCluster(c);
-
 	const auto date_time(FetchDateTime());
 
+	TryReadPartialSector(Table, dir_entry_end, data);
+	write_uint_le<32>(data + EntryData::FileSize, file.GetSize()),
+	dir_entry_data.WriteCluster(c),
 	write_uint_le<16>(data + EntryData::MTime, date_time.second),
 	write_uint_le<16>(data + EntryData::MDate, date_time.first),
 	write_uint_le<16>(data + EntryData::ADate, date_time.first);
 	data[EntryData::Attributes] |= EntryDataUnit(Attribute::Archive);
-
 	TryWritePartialSector(Table, dir_entry_end, data);
-
 	return GetCacheRef().Flush();
 }
 
@@ -1558,12 +1540,9 @@ Partition::Unlink(const char* path) ythrow(system_error)
 		if(dentry.Data.IsDirectory())
 		{
 			DEntry dir_contents(c);
-			bool next_entry(dir_contents.QueryNextFrom(*this));
 
-			while(next_entry)
-				if(dir_contents.IsDot())
-					next_entry = dir_contents.QueryNextFrom(*this);
-				else
+			while(dir_contents.QueryNextFrom(*this))
+				if(!dir_contents.IsDot())
 					throw_error(errc::operation_not_permitted);
 		}
 		if(Table.IsValidCluster(c) && !Table.ClearLinks(c))
@@ -1679,8 +1658,8 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 		throw_error(errc::read_only_file_system);
 
 	lock_guard<mutex> lck(part.GetMutexRef());
-	const auto do_init([&, this](DEntry& dentry){
-		file_size = dentry.Data.ReadFileSize();
+	const auto do_init([&, this](DEntry&& de){
+		file_size = de.Data.ReadFileSize();
 #if 0
 		// NOTE: Allow LARGEFILEs with undefined results. Make sure that the
 		//	file size can fit in the available space.
@@ -1688,17 +1667,17 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 			throw_error(errc::file_too_large);
 #endif
 		// XXX: Extension on file level.
-		if(CanWrite() && !dentry.Data.IsWritable())
+		if(CanWrite() && !de.Data.IsWritable())
 			throw_error(errc::read_only_file_system);
 		yunseq(part_ptr = &part,
-			start_cluster = part.EntryGetCluster(dentry.Data));
+			start_cluster = part.EntryGetCluster(de.Data));
 		if((flags & O_TRUNC) != 0 && CanWrite() && start_cluster != 0)
 		{
 			part.Table.ClearLinks(start_cluster);
 			yunseq(start_cluster = Clusters::Free, file_size = 0,
 				attr.set(ModifiedBit));
 		}
-		yunseq(name_pos = dentry.NamePos, current_position = 0,
+		yunseq(name_position = de.NamePos, current_position = 0,
 			rw_position = {start_cluster});
 		if(flags & O_APPEND)
 		{
@@ -1727,7 +1706,7 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 			throw_error(errc::file_exists);
 		if(dentry.Data.IsDirectory() && CanWrite())
 			throw_error(errc::is_a_directory);
-		do_init(dentry);
+		do_init(std::move(dentry));
 	}
 	catch(system_error& e)
 	{
@@ -1737,17 +1716,12 @@ FileInfo::FileInfo(Partition& part, const char* path, int flags)
 			{
 				if(!part.IsReadOnly())
 				{
-					ClusterIndex parent_clus;
-					DEntry dentry(0, part, path, parent_clus);
-
-					dentry.Data.Clear();
-					dentry.Data.WriteCDateTime();
-					// FIXME: Only %ENOSPC may be expected.
-					// NOTE: Long name and short name would be set by
-					//	%DEntry::FindEntryGap.
-					dentry.AddTo(part, parent_clus);
 					attr.set(ModifiedBit);
-					do_init(dentry);
+					do_init(DEntry(part, [](DEntry& de) ynothrow{
+						de.Data.Clear();
+						de.Data.WriteCDateTime();
+						// FIXME: Only %ENOSPC may be expected.
+					}, path));
 				}
 				else
 					throw_error(errc::read_only_file_system);
@@ -1843,7 +1817,7 @@ FileInfo::Stat(struct ::stat& st) const
 	auto& part(GetPartitionRef());
 	EntryData edata;
 
-	TryReadPartialSector(part.Table, name_pos[1], edata.data());
+	TryReadPartialSector(part.Table, name_position[1], edata.data());
 	part.StatFromEntry(edata, st);
 	// NOTE: Update fields that have changed since the file was opened.
 	yunseq(st.st_ino = ::ino_t(start_cluster), st.st_size = file_size);
@@ -1958,10 +1932,10 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 		{
 			size_t chunk_size(0);
 			ClusterIndex next_start(pos.GetCluster()), chunk_end(
-				ystdex::retry_on_cond([&](ClusterIndex end){
+				ystdex::retry_on_cond([&](ClusterIndex end) ynothrow{
 					return next_start == end + 1
 						&& chunk_size + part.GetBytesPerCluster() <= remain;
-				}, [&]{
+				}, [&]() ynothrow{
 					chunk_size += part.GetBytesPerCluster();
 					return ystdex::exchange(next_start,
 						part.Table.QueryNext(next_start));
@@ -2321,7 +2295,7 @@ const ::devoptab_t dotab_fat{
 	"fat", sizeof(FileInfo), [](::_reent* r, void* file_struct,
 		const char* path, int flags, int) YB_NONNULL(1, 2) ynothrowv{
 		// NOTE: Before call of %::devoptab_t::open_r, the parameter
-		//	%file_struct is filled as a pointer after handle in implementation
+		//	%file_struct is set as a pointer after handling in implementation
 		//	of devkitPro port of newlib (libsysbase) %::_open_r, which is
 		//	assumed to be not null.
 		return op_path(r, path, [=, &path](Partition& part){
@@ -2330,8 +2304,8 @@ const ::devoptab_t dotab_fat{
 			return int(file_struct);
 		});
 	}, [](::_reent* r, int fd) YB_NONNULL(1) ynothrowv{
-		// NOTE: The parameter %filedes is actually cast from the file structure
-		//	pointer stored by %devoptab_t::open_r and this function is called
+		// NOTE: The parameter %fd is actually cast from the file structure
+		//	pointer stored by %devoptab_t::open_r. This function is called
 		//	when the reference count in handle decreased to zero. Since this
 		//	pointer would not be null for non-predefined streams unless
 		//	corrupted, check for null (yield %EBADF) is not performed, as same

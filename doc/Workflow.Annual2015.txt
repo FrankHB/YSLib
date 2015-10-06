@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r382
+\version r416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
-	2014-01-02 09:40:31 +0800
+	2015-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-10-02 05:58 +0800
+	2015-10-05 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,6 +378,39 @@ There are something to be noted for feature-testing macro '__cpp_lib_tuple_eleme
 		Note that Microsofot VC++ 2015 implemented the primary template also in <utility> rather than <tuple> as ISO C++14 requires.
 			This is acceptable because 2-phase lookup is not implemented yet in VC++. Once <tuple> is included, the specialization of 'tuple_element' for 'tuple' would work as expected. So does 'tuple_element_t'.
 			Since <utility> is always included by YBase.YStandardEx headers, the conforming issue does not take effect.	
+Assertions can not necessarily be used in 'constexpr' functions.
+	ISO C++11 'constexpr' is limited for only one statement (besides static assertions, etc) is allowed in function-body.
+		This is relaxed by ISO C++14. However, ISO C++11 compatibility is still needed for YBase currently.
+	For ISO C++11 '__func__' and other similar extension like '__PRETTY_FUNCTION__' of G++, the implementation inserts the declaration directly into the function body. So it does not meet to the requirement above.
+		The standard macro 'assert' may or may not use these facility.
+			This actually cause 'assert' even cannot be reliably used in 'constexpr' function template for devkitARM and Android, but not for MinGW-w64.
+		This is a defect of C++. See LWG 2234.
+	As a workaround, custom implementation should be used instead.
+		For example, '_LIBCPP_ASSERT' in libc++ is used in <__debug>. It uses '_VSTD::fprintf' and '_VSTD::abort'.
+		The macro 'yconstraint' in YBase use custom 'yassert' instead of 'assert'.
+			As a result, it would display different diagnostics when triggered.
+			It might also behaves differently for platforms like Android.
+				Note '__android_log_assert' is not directly used.
+		The macro 'yassume' is not touched.
+Proper string types should be selected to design APIs.
+	For owning string, classes like std::basic_string instances may be good enough.
+		The default allocator is 'std::allocator' instance.
+			Replacing it by type-erased allocator in future is recommended for general scenes, if possible.
+				See namespace [memory.resource.aliases] in WG21/N4480. 
+		The specialization of APIs are modified significantly since ISO C++11.
+			Reference-counted implementation is not allowed any longer.
+				Be careful to non-conforming implementations, e.g. libstdc++ shipped before G++ 5, or newer but with old ABI. See $2013-12 report.impl for details and replacement.
+	For readonly view of non-owning string, some particular pass-by-value objects should be used instead.
+		Non-owing refereces are quite common to use.
+			Particularly for strings, the computational complexity is O(1) for length computation, instead of O(1) 'strlen' call for traditional C NTCTS(null-terminated character type strings).
+		See 'string_view' of [string.view] in WG21/N4480.
+			Prior art for strings has been used elsewhere, see WG21/N3921.
+			For arrays there is 'array_view' similarly, see WG/P0122R0. To simplify the APIs, see WG21/P0123R0.
+		YBase.YStandardEx.StringView provides 'ystdex::basic_string_view'.
+		Furthermore, YBase.YStandardEx.TStringView provides 'ystdex::basic_tstring_view' for strings with termination character only occurs at the end of the string, particully for NTCTS.
+			Only specializations of null character as terminators are implemented now.
+			Use it carefully, since it is essentially confilict with 'string_view' stuff because of overloading rules.
+			Only use it for APIs serve to legacy NTCTS underlying facilities when no ambiguity would be introduced.
 
 ////
 

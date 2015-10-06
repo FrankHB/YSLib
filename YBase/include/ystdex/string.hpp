@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1589
+\version r1601
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-10-01 22:51 +0800
+	2015-10-07 04:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -565,13 +565,15 @@ template<class _tString>
 inline _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(c)));
+	return static_cast<_tString&&>(
+		details::str_algo<>::erase_left(str, str.find_first_not_of(c)));
 }
 template<class _tString>
 inline _tString&&
 ltrim(_tString&& str, const _tString& t)
 {
-	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
+	return static_cast<_tString&&>(
+		details::str_algo<>::erase_left(str, str.find_first_not_of(t)));
 }
 /*!
 \pre 断言：指针参数非空。
@@ -583,7 +585,8 @@ ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	yconstraint(t);
-	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
+	return static_cast<_tString&&>(
+		details::str_algo<>::erase_left(str, str.find_first_not_of(t)));
 }
 //@}
 
@@ -593,13 +596,15 @@ template<class _tString>
 inline _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return static_cast<_tString&&>(str.erase(str.find_last_not_of(c) + 1));
+	return static_cast<_tString&&>(
+		details::str_algo<>::erase_right(str, str.find_last_not_of(c)));
 }
 template<class _tString>
 inline _tString&&
 rtrim(_tString&& str, const remove_reference_t<_tString>& t)
 {
-	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
+	return static_cast<_tString&&>(
+		details::str_algo<>::erase_right(str, str.find_last_not_of(t)));
 }
 /*!
 \pre 断言：指针参数非空。
@@ -611,7 +616,8 @@ rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	yconstraint(t);
-	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
+	return static_cast<_tString&&>(
+		details::str_algo<>::erase_right(str, str.find_last_not_of(t)));
 }
 //@}
 

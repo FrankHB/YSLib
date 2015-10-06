@@ -27,6 +27,7 @@ INCLUDES=" \
 	"
 
 LIBS=" \
+	../YBase/source/ystdex/cassert.cpp \
 	../YBase/source/ystdex/cstdio.cpp \
 	../YBase/source/ytest/test.cpp \
 	"

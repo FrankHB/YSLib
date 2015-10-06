@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r426
+\version r450
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2015-10-01 23:32 +0800
+	2015-10-04 17:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -369,10 +369,34 @@ operator==(basic_string_view<_tChar, _tTraits> x,
 {
 	return x.compare(y) == 0;
 }
+//! \since build 642
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator==(yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) x,
+	basic_string_view<_tChar, _tTraits> y) ynothrow
+{
+	return x.compare(y) == 0;
+}
 
 template<typename _tChar, class _tTraits>
 yconstfn bool
 operator<(basic_string_view<_tChar, _tTraits> x,
+	basic_string_view<_tChar, _tTraits> y) ynothrow
+{
+	return x.compare(y) < 0;
+}
+//! \since build 642
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator<(basic_string_view<_tChar, _tTraits> x,
+	yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) y) ynothrow
+{
+	return x.compare(y) < 0;
+}
+//! \since build 642
+template<typename _tChar, class _tTraits>
+yconstfn bool
+operator<(yimpl(decay_t<basic_string_view<_tChar, _tTraits>>) x,
 	basic_string_view<_tChar, _tTraits> y) ynothrow
 {
 	return x.compare(y) < 0;

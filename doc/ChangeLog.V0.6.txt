@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r4618
+\version r4807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-04 00:01 +0800
+	2015-10-07 04:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,184 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %CAssert $=
+		(
+			/ @ "function %yassert" $=
+			(
+				/ "unconditionally provided regardless of macro \
+					%YB_Use_YAssert",
+				/ "unconditionally failed for assertion" $=
+				(
+					- "1st parameter",
+					+ 'YB_NORETURN'
+				)
+			);
+			/ "macro %yconstraint" @ '!defined(NDEBUG)' ^ "%yassert"
+				~ 'assert',
+				// To enable ISO C++11 'constexpr' compatibility without \
+					'__func__', etc. Note for MinGW-w64 it is OK, but not for \
+					devkitARM or Android.
+			/ $forced $dev $lib $impl "macro %yassume"
+		),
+		/ %Algorithm $=
+		(
+			+ $impl "assertion" @ "function template %clamp"
+				^ $dep_from ('yconstraint' @ %CAssert),
+				// Though LWG2234 still counts for 'yassume', blocked by \
+					%(__func__, __PRETTY_FUNCTION__): 'body of constexpr \
+					function not a return-statement'.
+			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ "function templates %(for_each_equal, for_each_if)" $since
+				b532
+		),
+		* "missing functions (2 %operator==, %operator<) for %basic_string_view"
+			@ %StringView $since b640,
+		/ %TStringView $=
+		(
+			+ "functions %operator==(==, <) for %basic_tstring_view",
+			+ "function %operator<< for %(basic_tstring_view, \
+				std::basic_ostream)"
+		),
+		/ %String $=
+		(
+			+ $re_ex(b640) "support for %string_view like class types"
+				@ "functions templates %(ltrim, rtrim)";
+			+ $comp "support for %string_view like class types"
+				@ "functions templates %trim"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Debug $=
+			(
+				/ "unconditionally provided regardless of macro %YB_Use_YAssert"
+					@ 'YF_Multithread == 1',
+				/ @ "function %LogAssert" $=
+				(
+					/ $forced DLDI "%ystdex::yassert calls" @ "platform %Win32"
+						$dep_from %YBase.YStandardEx.CAssert,
+					/ "unconditionally failed for assertion" $=
+						(- "1st parameter")
+						// Since the message box can be cancelled by user in \
+							platform %Win32, it can return, no 'YB_NORETURN' \
+							added as 'ystdex::yassert'.
+				);
+				/ $forced $dev $lib $impl "macro %YAssert"
+			),
+			+ 'ynothrow' @ "function %FAT::Clusters::IsFreeOrEOF" @ %FileSystem
+		),
+		/ %'YCLib_(DS)'.DSIO $=
+		(
+			/ @ "class %DEntry" $=
+			(
+				/ "merged 2 constructor %DEntry with character pointer" $=
+				(
+					/ "path parameter" ^ "%string_view" ~ 'const char*',
+						// See $2015-10 @ %Documentation::Workflow::Annual2015.
+					/ DLDI "reduced %std::strlen calls",
+					/ "placed directory entry check before name and alias \
+						checks",
+						// This optimizes the disk reading. It also allow \
+							adding one more 'ynothrow'.
+					* "missing throwing %std::system_error of \
+						%std::errc::not_a_directory when non-leaf \
+						non-directory path component found" $since b611
+						$dep_to "non-directory checking for entries"
+						// Even if some other functions did not call it \
+							directly, and the %Data were checked to be \
+							specifying a directory, the prefix is not checked \
+							and %ENOENT would be wrongly set instead of \
+							%ENOTDIR.
+				),
+				/ DLDI "constructors#1",
+				/ DLDI "constructors#2" ^ "%ystdex::retry_on_cond",
+				/ "constructor %DEntry with 'int' parameter"
+					-> "2 constructor templates" $=
+				(
+					* "missing initialization of name position for relative \
+						path" $since b611,
+						// This value would be used in %DEntry::AddTo which \
+							might cause bad alias read. It also effects \
+							%FileInfo initialization.
+					/ "path parameter" ^ "%string_view" ~ 'const char*'
+				),
+				/ @ "function %GetLabalString" @ "class %Partition" $=
+				(
+					/ "return type" -> "%basic_string_view<byte>" ~ "%string";
+					+ 'ynothrow'
+				)
+			),
+			/ @ "class %FileInfo" $=
+			(
+				/ "function %GetNamePos" => "%GetNamePosition",
+				* $comp "indeterminate name position value for newly created \
+					nonexisted file when accessed using relative path" $since
+					b611 $dep_from "constructor templates %DEntry"
+					// %FileInfo::Stat uses this value. This would probably \
+						cause %::fstat call failure or filling rubbish. \
+						%Partition::Sync also use this value. This would \
+						probably cause write dirty data to the disk.
+			),
+			/ @ "class %Partition" $=
+			(
+				/ DLDI "function %Sync",
+				/ @ "function %EntryExists" $=
+				(
+					/ "type" @ "1st parameter" -> "%string_view"
+						~ 'const string&',
+					/ DLDI "simplified loop",
+						// Also avoid unnecessary duplicate encoding \
+							conversion calls.
+					* "possible buffer overrun for finding alias when input \
+						string is too short" $since b611
+				),
+				/ DLDI "simplified loop" @ "function %Unlink"
+			),
+			+ $re(600) DLDI 'ynothrow' @ "lambda-expressions" $effective
+				@ "member functions %(SectorCache::SectorCache, \
+				DEntry::DEntry#3, Partition::(Rename, RemoveEntry), \
+				FileInfo::(FileInfo, TryRead))",
+			+ $re_ex(600) DLDI 'ynothrowv' @ "lambda-expressions" $effective
+				@ ("member functions %AllocationTable::(AllocationTable, \
+				QueryLast)"),
+			* $comp "missing throwing %std::system_error of \
+				%std::errc::not_a_directory for paths where path prefix \
+				component naming a valid file but not a directory"
+				@ "member functions %(Partition::(Unlink, MakeDir, Rename), \
+				DirState::DirState, FileInfo::FileInfo)" $since b611 $dep_from
+				"non-directory check for entries" $dep_to
+				"non-directory checking"
+		),
+	),
+	/ %Test $=
+	(
+		/ $forced "updated %LIBS" @ "%test.sh" $dep_from
+			%YBase.YStandardEx.CAssert,
+		/ %YBase $=
+		(
+			+ "2 test cases" ^ ("%ystdex::string_view"
+				@ %YBase.YStandardEx.StringView),
+			+ "4 test cases" ^ $dep_from ("%ystdex::tstring_view"
+				@ %YBase.YStandardEx.TStringView),
+		)
+	),
+	* "strict POSIX.1-2013 compatibility" @ "platform %DS" $since $before b132
+		$=
+	(
+		* "wrongly setting %ENOENT instead of %ENOTDIR" @ "%::(unlink, mkdir, \
+			rename, opendir, open) and variants for path parameters where path \
+			prefix component naming a valid file but not a directory" $since
+			$before b132 $dep_from "non-directory checking"
+			// See https://github.com/devkitPro/libfat/issues/6 .
+	)
+),
+
+b641
 (
 	/ %YBase $=
 	(
@@ -193,14 +371,12 @@ $now
 		$effective %YFramework.YSLib.(Core.YString, Service.FileSystem) $dep_to
 		"removal of ucs2string",
 	/ DLDI %YReader.(DSReader, ShlExplorer) ^ 'char32_t' ~ 'ucs4_t';
-	* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments" $effective
-		@ ("function templates %(for_each_equal, for_each_if)"
-		@ YBase.YStandardEx.Algorithm $since b532, ("enum %Encoding"
-		@ %CHRLib.Encoding $since b249, (("class %TextFileBuffer" $since b272,
-		"%operator!= for %TextFileBuffer::iterator" $since b460) @ %TextManager,
-		("function %GetContext" @ "class template %GTextRendererBase" $since
-		b566, "constructor %TextRenderer#2" $since b265) @ %TextRenderer)
-		@ %YSLib.Service) @ %YFramework),
+	* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments" @ ("enum \
+		%Encoding" @ %CHRLib.Encoding $since b249, (("class %TextFileBuffer"
+		$since b272, "%operator!= for %TextFileBuffer::iterator" $since b460)
+		@ %TextManager, ("function %GetContext" @ "class template \
+		%GTextRendererBase" $since b566, "constructor %TextRenderer#2"
+		$since b265) @ %TextRenderer) @ %YSLib.Service) @ %YFramework,
 	/ $dev $repo "all edited file with module name not the same as base file \
 		name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.CHRLib.("%chrdef.h" => "%CharacterDefinition.h")
@@ -2104,7 +2280,7 @@ b623
 					// Copying here is unnecessary.
 				/ "constructing window handle supporting INVOKE callable \
 					object" ^ "%ystdex::invoke",
-					// The first parameter now can be pointer to member value.
+					// The 1st parameter now can be pointer to member value.
 				/ "caught exceptions thrown by callable object"
 					^ "%FilterException"
 			),
@@ -4268,7 +4444,7 @@ b600
 					~ "%(PackNodes, MakeNodes)",
 				/ @ "function %FetchMIMEBiMapping" $=
 				(
-					+ DLDI $re(b594) 'ynothrow' @ "lambda expression pushed as \
+					+ $re(b594) DLDI 'ynothrow' @ "lambda-expression pushed as \
 						application exit callback",
 					/ DLDI "push application exit callback only after resource \
 						acquiring successfully"
@@ -4293,7 +4469,7 @@ b600
 			@ "function %ExecuteShellCommand" @ "platform %Win32"
 			@ %YCLib.HostedGUI $since b592,
 			// It would cause build failure on x86_64.
-		+ "'_q' as first parameter for qualifier support"
+		+ "'_q' as 1st parameter for qualifier support"
 			@ "all 8 macros 'DefSetter*'" @ %YBaseMacro,
 		/ @ "function %ExpandEnvironmentStrings" @ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
@@ -4302,7 +4478,7 @@ b600
 				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
 			* $impl "strict ISO C++ compatibility" $since b594
 				// See http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn .
-				$= (- 'YB_NORETURN' @ "lambda expression")
+				$= (- 'YB_NORETURN' @ "lambda-expression")
 		),
 
 	),
