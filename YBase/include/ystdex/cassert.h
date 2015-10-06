@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r187
+\version r201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2015-07-18 00:22 +0800
+	2015-10-04 15:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,17 +34,16 @@
 namespace ystdex
 {
 
-#if YB_Use_YAssert
 /*!
 \brief YBase 默认断言函数。
 \note 当定义宏 YB_Use_YAssert 不等于 0 时，宏 YAssert 操作由此函数实现。
-\note 参数依次为：是否触发、表达式、文件名、行号和消息文本。
+\note 参数依次为：表达式、文件名、行号和消息文本。
 \note 允许空指针参数，视为未知。
-\since build 553
+\note 调用 std::terminate 终止程序。
+\since build 641
 */
-YB_API void
-yassert(bool, const char*, const char*, int, const char*) ynothrow;
-#endif
+YB_API YB_NORETURN void
+yassert(const char*, const char*, int, const char*) ynothrow;
 
 #if YB_Use_YTrace
 /*!
@@ -71,14 +70,18 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 \def yconstraint
 \brief 约束：接口语义。
 \note 和普通断言相比强调接口契约。对移植特定的平台实现时应予以特别注意。
+\note 保证兼容 ISO C++11 constexpr 模板。
+\see $2015-10 @ %Documentation::Workflow::Annual2015.
 \since build 535
 
 运行时检查的接口语义约束断言。不满足此断言的行为是接口明确地未定义的，行为不可预测。
 */
 #ifdef NDEBUG
-#	define yconstraint(expr) YB_ASSUME(expr)
+#	define yconstraint(_expr) YB_ASSUME(_expr)
 #else
-#	define yconstraint(expr) assert(expr)
+#	define yconstraint(_expr) \
+	((_expr) ? void(0) : ystdex::yassert(#_expr, __FILE__, __LINE__, \
+		"Constraint violation."))
 #endif
 
 /*!
@@ -100,7 +103,7 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 #ifndef YAssert
 #	if YB_Use_YAssert
 #		define YAssert(_expr, _msg) \
-	ystdex::yassert(_expr, #_expr, __FILE__, __LINE__, _msg)
+	((_expr) ? void(0) : ystdex::yassert(#_expr, __FILE__, __LINE__, _msg))
 #	else
 #		define YAssert(_expr, _msg) yassume(_expr)
 #	endif

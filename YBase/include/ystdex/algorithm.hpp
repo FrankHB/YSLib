@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r868
+\version r877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-08-30 16:55 +0800
+	2015-10-04 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_algorithm_hpp_ 1
 
 #include "iterator_trait.hpp" // for have_same_iterator_category;
-#include "functor.hpp" // for <algorithm>, is_equal, std::bind,
+#include "functor.hpp" // for <algorithm>,
+//	__cpp_lib_robust_nonmodifying_seq_ops, is_equal, std::bind,
 //	std::placeholders::_1, less;
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
@@ -51,7 +52,7 @@ namespace ystdex
 \since build 531
 */
 //@{
-/*
+/*!
 \tparam _func 用于遍历范围的操作的可调用类型。
 \param first 输入范围起始迭代器。
 \param last 输入范围终止迭代器。
@@ -203,7 +204,7 @@ transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
 //@{
 /*!
 \brief 填充字节序列。
-\pre 指针输入范围要求同 \c std::memset 。
+\pre 指针输入范围要求同 std::memset 。
 */
 //@{
 template<typename _type>
@@ -228,7 +229,7 @@ trivially_fill(_type* first, _type* last, byte value = {}) ynothrowv
 /*!
 \brief 复制不覆盖的序列。
 \pre 静态断言： <tt>is_copy_assignment<_type>()</tt> 。
-\pre 指针输入范围要求同 \c std::memcpy 。
+\pre 指针输入范围要求同 std::memcpy 。
 */
 //@{
 template<typename _type>
@@ -256,7 +257,7 @@ trivially_copy(const _type* first, const _type* last, _type* result) ynothrowv
 /*!
 \brief 复制可能覆盖的序列。
 \pre 静态断言： <tt>is_copy_assignment<_type>()</tt> 。
-\pre 指针输入范围要求同 \c std::memmove 。
+\pre 指针输入范围要求同 std::memmove 。
 */
 //@{
 template<class _type>
@@ -412,9 +413,7 @@ template<typename _type, typename _fComp = less<>>
 yconstfn const _type&
 clamp(const _type& v, const _type& lo, const _type& hi, _fComp comp = _fComp())
 {
-	// TODO: Blocked, see http://wg21.cmeerw.net/lwg/issue2234 .
-	//	Assert 'yconstraint(!comp(hi, lo))'.
-	return comp(v, lo) ? lo : comp(hi, v) ? hi : v;
+	return yconstraint(!comp(hi, lo)), comp(v, lo) ? lo : comp(hi, v) ? hi : v;
 }
 
 template<typename _tIn, typename _tOut, typename _fComp = less<>>

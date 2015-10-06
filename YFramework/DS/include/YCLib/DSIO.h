@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r941
+\version r991
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-09-23 12:04 +0800
+	2015-10-06 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 #	include <ystdex/cstdio.h> //for ystdex::block_buffer;
 #	include YFM_YCLib_FileSystem // for platform::FAT, platform::Deref,
 //	platform::Concurrency, platform::FileSystemType, std::system_error, array,
-//	string, ystdex::replace_cast;
+//	string, string_view, ystdex::replace_cast;
 #	include <bitset> // for std::bitset;
 #	include <sys/syslimits.h> // for NAME_MAX.
 #endif
@@ -425,6 +425,7 @@ public:
 	NamePosition NamePos;
 
 private:
+	//! \brief 名称。
 	string name;
 
 public:
@@ -443,7 +444,10 @@ public:
 		\li std::errc::io_error 读错误。
 	*/
 	DEntry(Partition&, const NamePosition&);
-	//! \pre 断言：指针参数非空。
+	/*!
+	\pre 路径参数的数据指针指针非空。
+	\since build 642
+	*/
 	//@{
 	/*!
 	\brief 构造：使用分区上的指定路径。
@@ -451,25 +455,44 @@ public:
 		\li std::errc::filename_too_long 路径太长。
 		\li std::errc::no_such_file_or_directory 项不存在。
 	*/
-	//@{
-	YB_NONNULL(3)
-	DEntry(Partition&, const char*);
-	//! \note 最后一个参数表示路径结束位置。
-	YB_NONNULL(3, 4)
-	DEntry(Partition&, const char*, const char*);
-	//@}
+	DEntry(Partition&, string_view);
+
 	/*!
-	\brief 构造：初始化用于被添加的新条目。
-	\note 第一参数未使用。
 	\exception std::system_error 调用失败。
 		\li std::errc::filename_too_long 路径太长。
 		\li std::errc::no_such_file_or_directory 项不存在。
 		\li std::errc::not_a_directory 非目录项。
 		\li std::errc::invalid_argument 名称为空，
 			或含有 LFN::IllegalCharacters 中的字符。
+	\note 长短文件名由之后的 FindEntryGap 调用设置。
 	*/
-	YB_NONNULL(4)
-	DEntry(int, Partition&, const char*, ClusterIndex&);
+	//@{
+private:
+	//! \brief 构造：初始化用于被添加的新项。
+	DEntry(ClusterIndex&, Partition&, string_view);
+
+public:
+	//! \brief 构造：初始化和添加新项。
+	template<typename _func>
+	DEntry(Partition& part, _func f, string_view path)
+	{
+		ClusterIndex parent_clus;
+
+		this->~DEntry();
+		::new(this) DEntry(parent_clus, part, path);
+		f(*this);
+		AddTo(part, parent_clus);
+	}
+	//! \brief 构造：初始化和添加新项并输出父目录簇。
+	template<typename _func>
+	DEntry(Partition& part, _func f, string_view path,
+		ClusterIndex& parent_clus)
+		: DEntry(parent_clus, part, path)
+	{
+		f(*this);
+		AddTo(part, parent_clus);
+	}
+	//@}
 	//@}
 
 	DefPred(const ynothrow, Dot, name == "." || name == "..")
@@ -512,7 +535,7 @@ public:
 			GenerateBeforeFirstDEntryPos(c)})
 
 	/*!
-	\brief 查询分区内下一个状态。
+	\brief 查询分区内下一个项，根据名称项位置更新名称。
 	\pre 参数指定的分区和之前所有成员函数调用一致。
 	\exception std::system_error 查询失败。
 		\li std::errc::io_error 读错误。
@@ -570,9 +593,9 @@ public:
 	DefGetter(const ynothrow, SectorCache&, CacheRef, Table.Cache)
 	DefGetterMem(const ynothrow, FileSystemType, FileSystemType, Table)
 	DefGetter(const ynothrow, const VolumeLabel&, Label, label)
-	//! \since build 628
-	DefGetter(const, string, LabelString,
-		string(ystdex::replace_cast<const char*>(label.data()), label.size()))
+	//! \since build 642
+	DefGetter(const ynothrow, basic_string_view<byte>, LabelString,
+		{label.data(), label.size()})
 	DefGetterMem(const ynothrow, mutex&, MutexRef, Table)
 	DefGetterMem(const ynothrow, ClusterIndex, RootDirCluster, Table)
 	DefGetterMem(const ynothrow, size_t, SectorsPerCluster, Table)
@@ -612,9 +635,10 @@ public:
 	\brief 检查指定名称和簇的项是否存在。
 	\exception std::system_error 调用失败。
 		\li std::errc::io_error 查询项时读错误。
+	\since build 642
 	*/
 	bool
-	EntryExists(const string&, ClusterIndex) ythrow(system_error);
+	EntryExists(string_view, ClusterIndex) ythrow(system_error);
 
 	//! \brief 从项数据中读取簇索引。
 	ClusterIndex
@@ -836,7 +860,8 @@ private:
 	std::uint32_t current_position;
 	FilePosition rw_position;
 	FilePosition append_position;
-	DEntry::NamePosition name_pos;
+	//! \since build 642
+	DEntry::NamePosition name_position;
 	Partition* part_ptr;
 	std::bitset<BitSize> attr{};
 
@@ -864,7 +889,9 @@ public:
 	DefPred(const ynothrow, Modified, attr[ModifiedBit])
 
 	DefGetter(const ynothrow, std::uint32_t, CurrentPosition, current_position)
-	DefGetter(const ynothrow, const DEntry::NamePosition&, NamePos, name_pos)
+	//! \since build 642
+	DefGetter(const ynothrow, const DEntry::NamePosition&, NamePosition,
+		name_position)
 	// XXX: Extended partition mutex to lock directory states.
 	DefGetter(const ynothrow, mutex&, MutexRef, GetPartitionRef().GetMutexRef())
 	DefGetter(const ynothrow, Partition&, PartitionRef, Deref(part_ptr))

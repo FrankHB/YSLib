@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2491
+\version r2495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-09-25 09:39 +0800
+	2015-10-07 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -579,8 +579,8 @@ enum : ClusterIndex
 	Error = 0xFFFFFFFF
 };
 
-//! \since build 610
-inline PDefH(bool, IsFreeOrEOF, ClusterIndex c)
+//! \since build 642
+inline PDefH(bool, IsFreeOrEOF, ClusterIndex c) ynothrow
 	ImplRet(c == Clusters::Free || c == Clusters::EndOfFile)
 
 } // namespace Clusters;
@@ -780,11 +780,11 @@ public:
 		ImplExpr(YAssert(n < EntryDataSize, "Invalid argument found."),
 			(*this)[n] = '.')
 
-	PDefH(void, ClearAlias, ) ynothrow
-		ImplExpr(ystdex::trivially_fill_n(data(), LFN::AliasEntryLength, ' '))
-
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this)))
+
+	PDefH(void, ClearAlias, ) ynothrow
+		ImplExpr(ystdex::trivially_fill_n(data(), LFN::AliasEntryLength, ' '))
 
 	/*!
 	\brief 复制长文件名列表项数据到参数指定的缓冲区的对应位置。

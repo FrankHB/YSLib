@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r631
+\version r683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-08-16 22:59 +0800
+	2015-10-04 15:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,60 +270,57 @@ using namespace platform;
 namespace platform_ex
 {
 
-#if YB_Use_YAssert && YF_Multithread == 1
+#if YF_Multithread == 1
 void
-LogAssert(bool expr, const char* expr_str, const char* file, int line,
+LogAssert(const char* expr_str, const char* file, int line,
 	const char* msg) ynothrow
 {
-	if(YB_UNLIKELY(!expr))
 #	if YCL_Android
 		::__android_log_assert(expr_str, "YFramework",
 			"Assertion failed @ \"%s\":%i:\n %s .\nMessage: \n%s\n", file, line,
 			expr_str, msg);
 #	else
-	{
 #		if YCL_Win32
-		try
+	try
+	{
+		char prog[MAX_PATH]{"<unknown>"};
+
+		::GetModuleFileNameA({}, prog, MAX_PATH);
+
+		const auto& errstr(sfmt("Assertion failed @ program %s: "
+			"\"%s\":%i:\n %s .\nMessage: \n%s\n", prog, chk_null(file),
+			line, chk_null(expr_str), chk_null(msg)));
+
+		::OutputDebugStringA(errstr.c_str());
+		// XXX: Not safe in windows procedure, but not used in YFramework.
+		// TODO: Use custom windows creation?
+		switch(::MessageBoxA({}, errstr.c_str(),
+			"YCLib Runtime Assertion", MB_ABORTRETRYIGNORE | MB_ICONHAND
+			| MB_SETFOREGROUND | MB_TASKMODAL))
 		{
-			char prog[MAX_PATH]{"<unknown>"};
-
-			::GetModuleFileNameA({}, prog, MAX_PATH);
-
-			const auto& errstr(sfmt("Assertion failed @ program %s: "
-				"\"%s\":%i:\n %s .\nMessage: \n%s\n", prog, chk_null(file),
-				line, chk_null(expr_str), chk_null(msg)));
-
-			::OutputDebugStringA(errstr.c_str());
-			// XXX: Not safe in windows procedure, but not used in YFramework.
-			// TODO: Use custom windows creation?
-			switch(::MessageBoxA({}, errstr.c_str(),
-				"YCLib Runtime Assertion", MB_ABORTRETRYIGNORE | MB_ICONHAND
-				| MB_SETFOREGROUND | MB_TASKMODAL))
-			{
-			case IDIGNORE:
-				return;
-			case IDABORT:
-				std::raise(SIGABRT);
-			default:
-				break;
-			}
-			std::terminate();
+		case IDIGNORE:
+			return;
+		case IDABORT:
+			std::raise(SIGABRT);
+		default:
+			break;
 		}
-		catch(...)
-		{
-			YCL_TraceRaw(Descriptions::Emergent, "Unknown exception found.");
-			ystdex::yassert({}, expr_str, file, line, msg);
-		}
+		std::terminate();
+	}
+	catch(...)
+	{
+		YCL_TraceRaw(Descriptions::Emergent, "Unknown exception found.");
+		ystdex::yassert(expr_str, file, line, msg);
+	}
 #		endif
-		TryExpr(FetchCommonLogger().AccessRecord([=]{
-				ystdex::yassert({}, expr_str, file, line, msg);
-			}))
-		catch(...)
-		{
-			std::fprintf(stderr, "Fetch logger failed.");
-			std::fflush(stderr);
-			ystdex::yassert({}, expr_str, file, line, msg);
-		}
+	TryExpr(FetchCommonLogger().AccessRecord([=]{
+		ystdex::yassert(expr_str, file, line, msg);
+	}))
+	catch(...)
+	{
+		std::fprintf(stderr, "Fetch logger failed.");
+		std::fflush(stderr);
+		ystdex::yassert(expr_str, file, line, msg);
 	}
 #	endif
 }

@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r622
+\version r633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-08-31 23:20 +0800
+	2015-10-04 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ public:
 
 	//! \pre 间接断言：第三参数非空。
 	//@{
-	//! \brief 默认发送器：使用 \c std::cerr 输出。
+	//! \brief 默认发送器：使用 std::cerr 输出。
 	static YB_NONNULL(3) void
 	DefaultSendLog(Level, Logger&, const char*) ynothrowv;
 
@@ -306,16 +306,15 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 namespace platform_ex
 {
 
-#if YB_Use_YAssert && YF_Multithread == 1
+#if YF_Multithread == 1
 /*!
 \brief 日志断言函数。
 \note 默认断言 ystdex::yassert 的替代。
 \warning 若忽略且继续，则行为未定义。应只用于调试用途。
 \sa ystdex::yassert
-\since build 553
+\since build 641
 \todo 允许在 Win32 上禁用消息框。
 
-若断言成功则为空操作，否则：
 在 Android 上用此函数包装 NDK 函数替代实现。
 在其它平台上：
 	在 Win32 上首先使用图形界面（消息框）提示断言失败。注意不适用于消息循环内部。
@@ -324,12 +323,15 @@ namespace platform_ex
 	锁定公共日志记录器后调用 ystdex::yassert ，最终调用 std::terminate 终止程序。
 */
 YF_API void
-LogAssert(bool, const char*, const char*, int, const char*) ynothrow;
+LogAssert(const char*, const char*, int, const char*) ynothrow;
 
-#	undef YAssert
+#	if YB_Use_YAssert
+#		undef YAssert
 //! \since build 499
-#	define YAssert(_expr, _msg) \
-	platform_ex::LogAssert(_expr, #_expr, __FILE__, __LINE__, _msg)
+#		define YAssert(_expr, _msg) \
+	((_expr) ? void(0) \
+		: platform_ex::LogAssert(#_expr, __FILE__, __LINE__, _msg))
+#	endif
 #endif
 
 #if YCL_Android
