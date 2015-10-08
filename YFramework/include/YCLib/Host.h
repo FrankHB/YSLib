@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r319
+\version r335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-08-20 13:13 +0800
+	2015-10-08 22:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,12 +60,19 @@ private:
 	YSLib::RecordLevel level = YSLib::Emergent;
 
 public:
-	//! \since build 624
+	//! \since build 643
 	//@{
-	Exception(std::error_code, const std::string& = "unknown host exception",
+	YB_NONNULL(3)
+	Exception(std::error_code, const char* = "unknown host exception",
 		YSLib::RecordLevel = YSLib::Emergent);
-	Exception(int, const std::error_category&, const std::string&
+	Exception(std::error_code, string_view,
+		YSLib::RecordLevel = YSLib::Emergent);
+	YB_NONNULL(4)
+	Exception(int, const std::error_category&, const char*
 		= "unknown host exception", YSLib::RecordLevel = YSLib::Emergent);
+	Exception(int, const std::error_category&, string_view,
+		YSLib::RecordLevel = YSLib::Emergent);
+	//@}
 	//! \since build 586
 	DefDeCopyCtor(Exception)
 	/*!
@@ -74,8 +81,8 @@ public:
 	*/
 	~Exception() override;
 
+	//! \since build 624
 	DefGetter(const ynothrow, YSLib::RecordLevel, Level, level)
-	//@}
 };
 
 
@@ -90,6 +97,10 @@ using HandleDelete = platform::FileDescriptor::Deleter;
 struct YF_API HandleDelete
 {
 #		if YCL_Win32
+	/*!
+	\warning 只检查空句柄作为空值。对不同的 Win32 API 可能需要额外检查。
+	\see http://blogs.msdn.com/b/oldnewthing/archive/2004/03/02/82639.aspx 。
+	*/
 	using pointer = ::HANDLE;
 
 	void
@@ -215,7 +226,7 @@ class TerminalData;
 
 /*!
 \brief 终端。
-\note 非 Win32 平台使用 \c tput 实现，多终端改变当前屏幕时可能导致未预期的行为。
+\note 非 Win32 平台使用 \c tput 实现，多终端改变当前屏幕时可能引起未预期的行为。
 \warning 非虚析构。
 */
 class YF_API Terminal

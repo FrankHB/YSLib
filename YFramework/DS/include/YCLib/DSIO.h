@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r991
+\version r1024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-10-06 22:57 +0800
+	2015-10-07 23:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -603,11 +603,12 @@ public:
 
 	/*!
 	\brief 切换当前工作目录至参数指定路径的目录。
-	\pre 间接断言：参数非空。
+	\pre 间接断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。\li std::errc::not_a_directory 指定的路径不是目录。
+	\since build 643
 	*/
-	YB_NONNULL(2) void
-	ChangeDir(const char*) ythrow(std::system_error);
+	void
+	ChangeDir(string_view) ythrow(std::system_error);
 
 	/*!
 	\brief 创建文件系统信息。
@@ -681,15 +682,17 @@ public:
 
 	/*!
 	\brief 创建路径指定的目录。
+	\pre 间接断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
 		\li std::errc::file_exists 项已存在。
 		\li std::errc::read_only_file_system 文件系统只读。
 		\li std::errc::not_a_directory 路径前缀不是目录。
 		\li std::errc::io_error 读写错误。
 		\li std::errc::no_space_on_device 空间不足。
+	\since build 643
 	*/
 	void
-	MakeDir(const char*) ythrow(std::system_error);
+	MakeDir(string_view) ythrow(std::system_error);
 
 private:
 	//! \pre 断言：文件系统类型为 FAT32 。
@@ -713,16 +716,17 @@ public:
 
 	/*!
 	\brief 重命名路径。
-	\pre 间接断言：参数非空。
+	\pre 间接断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
 		\li std::errc::cross_device_link 路径指定的不是同一分区。
 		\li std::errc::read_only_file_system 文件系统只读。
 		\li std::errc::no_such_file_or_directory 指定的旧项不存在。
 		\li std::errc::file_exists 指定的新项已存在；
 		std::errc::io_error 读写错误。
+	\since build 643
 	*/
-	YB_NONNULL(2, 3) void
-	Rename(const char*, const char*) ythrow(std::system_error);
+	void
+	Rename(string_view, string_view) ythrow(std::system_error);
 
 	//! \brief 查询文件系统信息并填充到参数。
 	void
@@ -730,12 +734,14 @@ public:
 
 	/*!
 	\brief 查询指定路径的项信息并填充到第一参数。
-	\pre 间接断言：路径参数非空。
+	\pre 间接断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
 		\li std::errc::io_error 读写错误。
+	\since build 643
 	*/
-	YB_NONNULL(3) void
-	Stat(struct ::stat&, const char*) ythrow(std::system_error);
+	PDefH(void, Stat, struct ::stat& st, string_view path)
+		ythrow(std::system_error)
+		ImplExpr(StatFromEntry(DEntry(*this, path).Data, st))
 
 	//! \brief 查询项数据的项信息并填充到第二参数。
 	void
@@ -752,14 +758,16 @@ public:
 
 	/*!
 	\brief 移除路径参数指定的链接。
+	\pre 间接断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
 		\li std::errc::read_only_file_system 文件系统只读。
 		\li std::errc::no_such_file_or_directory 指定的项不存在。
 		\li std::errc::operation_not_permitted 无法移除 . 或 .. 项。
 		\li std::errc::io_error 读写错误。
+	\since build 643
 	*/
 	void
-	Unlink(const char*) ythrow(std::system_error);
+	Unlink(string_view) ythrow(std::system_error);
 
 	//! \pre 断言：文件系统类型为 FAT32 。
 	void
@@ -793,15 +801,18 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用路径。
 	\pre 间接断言：参数非空。
+	\sa CheckColons
+	*/
+	//@{
+	/*!
+	\brief 构造：使用路径。
 	\exception std::system_error 构造失败。
 		\li std::errc::no_such_device 无法访问路径指定的分区。
 		\li std::errc::invalid_argument 路径非法。
 		\li std::errc::not_a_directory 路径指定的不是目录。
 		\li std::errc::no_such_file_or_directory 路径指定的目录项不存在。
 		\li std::errc::io_error 查询项时读错误。
-	\sa CheckColons
 	\sa FetchPartitionFromPath
 	*/
 	YB_NONNULL(2)
@@ -816,8 +827,10 @@ private:
 		\li std::errc::io_error 查询项时读错误。
 	\sa CheckColons
 	*/
+	YB_NONNULL(3)
 	DirState(Partition&, const char*, unique_lock<mutex>)
 		ythrow(std::system_error);
+	//@}
 
 public:
 	DefGetter(const ynothrow, Partition&, PartitionRef, part_ref)
@@ -868,7 +881,7 @@ private:
 public:
 	/*!
 	\brief 构造：使用分区、路径和访问标识（指定读写权限）。
-	\pre 第二参数非空。
+	\pre 间接断言：路径参数的数据指针非空。
 	\exception std::system_error 构造失败。
 		\lic std::errc::permission_denied 访问标识没有指定读写权限。
 		\lic std::errc::is_a_directory 使用写权限打开目录。
@@ -876,9 +889,9 @@ public:
 		\lic std::errc::read_only_file_system 创建文件但文件系统只读。
 		\lic std::errc::no_such_file_or_directory 文件不存在。
 	\note 访问标识包含 O_RDONLY 、 O_WRONLY 或 O_RDWR 指定读写权限。
+	\since build 643
 	*/
-	YB_NONNULL(3)
-	FileInfo(Partition&, const char*, int);
+	FileInfo(Partition&, string_view, int);
 
 	PDefH(bool, CanAppend) const ynothrow
 		ImplRet(attr[AppendBit])
@@ -975,7 +988,9 @@ public:
 
 /*!
 \brief 挂载 FAT 分区。
+\pre 断言：第一参数的数据指针非空。
 \note 参数为分区名、接口、起始扇区、分页数和每页扇区数的二进制位数。
+\since build 643
 
 读取并装载 FAT 分区，设置 ::devoptab 操作。
 文件和目录操作提供以下非 POSIX 指定的扩展错误：
@@ -983,7 +998,7 @@ public:
 错误 EIO 可能在迭代目录时发生。
 */
 YF_API bool
-Mount(const string&, const ::DISC_INTERFACE&, ::sec_t, size_t, size_t);
+Mount(string_view, const ::DISC_INTERFACE&, ::sec_t, size_t, size_t);
 
 /*!
 \brief 卸载 FAT 分区。

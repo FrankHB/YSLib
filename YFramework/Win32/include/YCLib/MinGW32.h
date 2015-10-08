@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1196
+\version r1201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-09-28 12:18 +0800
+	2015-10-08 11:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,18 +79,17 @@ public:
 	/*!
 	\pre 错误码不等于 0 。
 	\warning 初始化参数时可能会改变 ::GetLastError() 的结果。
+	\since build 643
 	*/
 	//@{
-	//! \since build 624
-	Win32Exception(ErrorCode, const std::string& = "Win32 exception",
+	Win32Exception(ErrorCode, string_view = "Win32 exception",
 		YSLib::RecordLevel = YSLib::Emergent);
 	/*!
 	\pre 第三参数非空。
 	\note 第三参数表示函数名，可以使用 \c __func__ 。
-	\since build 638
 	*/
 	YB_NONNULL(4)
-	Win32Exception(ErrorCode, const std::string&, const char*,
+	Win32Exception(ErrorCode, string_view, const char*,
 		YSLib::RecordLevel = YSLib::Emergent);
 	//@}
 	//! \since build 586

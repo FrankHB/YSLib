@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2910
+\version r2967
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-10-07 02:33 +0800
+	2015-10-07 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -788,8 +788,8 @@ DEntry::DEntry(ClusterIndex& parent_clus, Partition& part, string_view sv)
 		else
 			throw_error(errc::not_a_directory);
 	}
-	// TODO: Blocked. Use direct call for 'string_view'. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795 .
-	name = ystdex::rtrim(string(path + spos), ' ');
+	name = ystdex::rtrim(string_view(path + spos, sv.length() - spos), ' ')
+		.to_string();
 #	if 0
 	ystdex::ltrim(name, ' ');
 #	endif
@@ -816,17 +816,16 @@ DEntry::AddTo(Partition& part, ClusterIndex dclus)
 			throw_error(errc::invalid_argument);
 	if(!part.EntryExists(name, dclus))
 	{
-		Data.ClearAlias();
-
 		EntryDataUnit alias_check_sum(0);
 		size_t entry_size;
 
+		Data.ClearAlias();
 		if(name == ".")
 		{
 			Data.SetDot(0),
 			entry_size = 1;
 		}
-		if(name == "..")
+		else if(name == "..")
 		{
 			Data.SetDot(0),
 			Data.SetDot(1),
@@ -923,7 +922,7 @@ DEntry::FindEntryGap(Partition& part, ClusterIndex dclus, size_t size)
 {
 	// NOTE: Scan for free entry.
 	DEntryPosition gap_end(dclus), gap_start(gap_end);
-	bool end_of_dir = {};
+	bool end_of_dir{};
 	auto dentry_remain(size);
 	EntryData edata;
 
@@ -1035,8 +1034,8 @@ Partition::Partition(Disc d, size_t pages, size_t sectors_per_page_shift,
 	::sec_t start_sector)
 	// TODO: Use aligned allocation.
 	// NOTE: Uninitialized intentionally here to make it behave as libfat.
-	: Partition(make_unique_default_init<byte[]>(MaxSectorSize).get(),
-	d, pages, sectors_per_page_shift, start_sector)
+	: Partition(make_unique_default_init<byte[]>(MaxSectorSize).get(), d, pages,
+	sectors_per_page_shift, start_sector)
 {}
 Partition::Partition(byte* sec_buf, Disc d, size_t pages,
 	size_t sectors_per_page_shift, ::sec_t start_sector)
@@ -1110,7 +1109,7 @@ Partition::CheckPositionForNextCluster(FilePosition& pos) ythrow(system_error)
 }
 
 void
-Partition::ChangeDir(const char* path) ythrow(system_error)
+Partition::ChangeDir(string_view path) ythrow(system_error)
 {
 	DEntry entry(*this, path);
 
@@ -1181,6 +1180,34 @@ Partition::EntryGetCluster(const EntryData& data) const ynothrow
 
 	return GetFileSystemType() == FileSystemType::FAT32
 		? t | (read_uint_le<16>(dst + EntryData::ClusterHigh) << 16) : t;
+}
+
+void
+Partition::ExtendPosition(DEntryPosition& entry_pos) ythrow(system_error)
+{
+	auto pos(entry_pos);
+
+	if(pos.IncOffset() == GetBytesPerSector() / EntryDataSize)
+	{
+		pos.IncSectorAndResetOffset();
+
+		const auto s(pos.GetSector());
+		const bool root(pos.IsFAT16RootCluster());
+
+		if(!root && s == GetSectorsPerCluster())
+		{
+			pos.SetSector(0);
+
+			ClusterIndex c(Table.QueryNext(pos.GetCluster()));
+
+			if(c == Clusters::EndOfFile)
+				c = LinkFreeClusterCleared(pos.GetCluster());
+			pos.SetCluster(c);
+		}
+		else if(root && s == Table.GetRootDirSectorsNum())
+			throw_error(errc::no_space_on_device);
+	}
+	entry_pos = pos;
 }
 
 ::sec_t
@@ -1266,36 +1293,26 @@ Partition::IncrementPosition(DEntryPosition& entry_pos) ynothrow
 	return true;
 }
 
-void
-Partition::ExtendPosition(DEntryPosition& entry_pos) ythrow(system_error)
+ClusterIndex
+Partition::LinkFreeClusterCleared(ClusterIndex c) ythrow(system_error)
 {
-	auto pos(entry_pos);
+	const auto t(Table.LinkFree(c));
 
-	if(pos.IncOffset() == GetBytesPerSector() / EntryDataSize)
+	if(t != Clusters::Free && t != Clusters::Error)
 	{
-		pos.IncSectorAndResetOffset();
+		auto& cache(GetCacheRef());
 
-		const auto s(pos.GetSector());
-		const bool root(pos.IsFAT16RootCluster());
-
-		if(!root && s == GetSectorsPerCluster())
-		{
-			pos.SetSector(0);
-
-			ClusterIndex c(Table.QueryNext(pos.GetCluster()));
-
-			if(c == Clusters::EndOfFile)
-				c = LinkFreeClusterCleared(pos.GetCluster());
-			pos.SetCluster(c);
-		}
-		else if(root && s == Table.GetRootDirSectorsNum())
-			throw_error(errc::no_space_on_device);
+		for(size_t i(0); i < GetSectorsPerCluster(); ++i)
+			if(YB_UNLIKELY(!cache.FillSectors(Table.ClusterToSector(t) + i)))
+				throw_error(errc::io_error);
+		if(Table.IsValidCluster(t))
+			return t;
 	}
-	entry_pos = pos;
+	throw_error(errc::no_space_on_device);
 }
 
 void
-Partition::MakeDir(const char* path) ythrow(system_error)
+Partition::MakeDir(string_view path) ythrow(system_error)
 {
 	try
 	{
@@ -1368,9 +1385,9 @@ Partition::ReadFSInfo()
 }
 
 void
-Partition::Rename(const char* old, const char* new_name) ythrow(system_error)
+Partition::Rename(string_view old, string_view new_name) ythrow(system_error)
 {
-	if(FetchPartitionFromPath(new_name) == this)
+	if(FetchPartitionFromPath(new_name.data()) == this)
 	{
 		// FIXME: errc::invalid_argument: The old pathname names an
 		//	ancestor directory of the new pathname.
@@ -1414,7 +1431,7 @@ Partition::StatFS(struct ::statvfs& st)
 		&& GetFileSystemType() == FileSystemType::FAT32)
 		CreateFSInfo();
 
-	size_t free_count(Table.GetFreeClusters());
+	const auto free_count(Table.GetFreeClusters());
 
 	yunseq(
 	// NOTE: FAT clusters = POSIX blocks.
@@ -1505,32 +1522,8 @@ Partition::Sync(const FileInfo& file) const ythrow(system_error)
 	return GetCacheRef().Flush();
 }
 
-ClusterIndex
-Partition::LinkFreeClusterCleared(ClusterIndex c) ythrow(system_error)
-{
-	const auto t(Table.LinkFree(c));
-
-	if(t != Clusters::Free && t != Clusters::Error)
-	{
-		auto& cache(GetCacheRef());
-
-		for(size_t i(0); i < GetSectorsPerCluster(); ++i)
-			if(YB_UNLIKELY(!cache.FillSectors(Table.ClusterToSector(t) + i)))
-				throw_error(errc::io_error);
-		if(Table.IsValidCluster(t))
-			return t;
-	}
-	throw_error(errc::no_space_on_device);
-}
-
 void
-Partition::Stat(struct ::stat& st, const char* path) ythrow(system_error)
-{
-	StatFromEntry(DEntry(*this, path).Data, st);
-}
-
-void
-Partition::Unlink(const char* path) ythrow(system_error)
+Partition::Unlink(string_view path) ythrow(system_error)
 {
 	if(!read_only)
 	{
@@ -1638,7 +1631,7 @@ DirState::Reset() ythrow(system_error)
 }
 
 
-FileInfo::FileInfo(Partition& part, const char* path, int flags)
+FileInfo::FileInfo(Partition& part, string_view path, int flags)
 {
 	switch(flags & O_ACCMODE)
 	{
@@ -2394,12 +2387,13 @@ const ::devoptab_t dotab_fat{
 } // unnamed namespace;
 
 bool
-Mount(const string& name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
+Mount(string_view name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 	size_t pages, size_t sectors_per_page_shift)
 {
+	YAssertNonnull(name.data());
 	if(intf.startup() && intf.isInserted())
 	{
-		const auto devname(name + ':');
+		const auto devname(name.to_string() + ':');
 
 		if(::FindDevice(devname.c_str()) >= 0)
 			return true;
@@ -2413,8 +2407,8 @@ Mount(const string& name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 				const auto p_name(ystdex::aligned_store_cast<char*>(p.get() + 1));
 
 				yunseq(ystdex::trivially_copy_n(&dotab_fat, 1, p.get()),
-					ystdex::trivially_copy_n(name.c_str(), name.length() + 1,
-					p_name), p->name = p_name, p->deviceData = p_part.get());
+					ystdex::ntctscpy(p_name, name.data(), name.length()),
+					p->name = p_name, p->deviceData = p_part.get());
 				if(YB_UNLIKELY(::AddDevice(p.get())) == -1)
 					throw std::runtime_error("Adding device failed.");
 				p_part.release();

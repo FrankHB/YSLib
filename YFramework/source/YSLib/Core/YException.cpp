@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r361
+\version r367
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-08-19 16:03 +0800
+	2015-10-08 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,12 @@
 namespace YSLib
 {
 
-LoggedEvent::LoggedEvent(const std::string& s, RecordLevel lv)
-	: GeneralEvent(s),
+LoggedEvent::LoggedEvent(const char* str, RecordLevel lv)
+	: GeneralEvent(Nonnull(str)),
+	level(lv)
+{}
+LoggedEvent::LoggedEvent(string_view sv, RecordLevel lv)
+	: GeneralEvent(std::string(sv)),
 	level(lv)
 {}
 LoggedEvent::LoggedEvent(const GeneralEvent& e, RecordLevel lv)

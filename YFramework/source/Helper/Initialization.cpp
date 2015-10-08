@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2409
+\version r2410
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-10-02 19:35 +0800
+	2015-10-08 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,7 +287,7 @@ LoadComponents(const ValueNode& node)
 		data_dir.c_str());
 	if(!IO::VerifyDirectory(data_dir))
 		throw GeneralEvent("Invalid default data directory found.");
-	if(!(ufexists(font_path) || IO::VerifyDirectory(font_dir)))
+	if(!(ufexists(font_path.c_str()) || IO::VerifyDirectory(font_dir)))
 		throw GeneralEvent("Invalid default font file path found.");
 }
 
