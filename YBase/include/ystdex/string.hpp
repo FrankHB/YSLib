@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1601
+\version r1604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-10-07 04:11 +0800
+	2015-10-07 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -627,13 +627,13 @@ template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), c))));
+	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), c)), c));
 }
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, const _tString& t)
 {
-	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
+	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
 }
 /*!
 \pre 断言：指针参数非空。
@@ -645,7 +645,7 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	yconstraint(t);
-	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t))));
+	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
 }
 //@}
 //@}

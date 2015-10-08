@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r560
+\version r569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-08-19 16:03 +0800
+	2015-10-08 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include YFM_YSLib_Core_YShellDefinition
 #include <exception>
 #include <stdexcept>
-#include <string>
+#include YFM_YSLib_Adaptor_YTextBase // for string_view;
+#include <string> // for std::string;
 #include <ystdex/functional.hpp> // for ystdex::result_of_t, ystdex::invoke;
 
 namespace YSLib
@@ -58,9 +59,14 @@ private:
 public:
 	/*!
 	\brief 构造：使用异常字符串和记录等级。
-	\since build 624
+	\since build 643
 	*/
-	LoggedEvent(const std::string& = {}, RecordLevel = Emergent);
+	//@{
+	//! \pre 间接断言：第一参数非空。
+	YB_NONNULL(2)
+	LoggedEvent(const char* = "", RecordLevel = Emergent);
+	LoggedEvent(const string_view, RecordLevel = Emergent);
+	//@}
 	/*!
 	\brief 构造：使用一般异常事件对象和记录等级。
 	\since build 624

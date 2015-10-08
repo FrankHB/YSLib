@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r327
+\version r339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-10-04 17:03 +0800
+	2015-10-07 15:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,8 +178,9 @@ main()
 		4U == integral_constant<unsigned, ystdex::min({5U, 6U, 7U, 8U, 4U})>(),
 		4 == ystdex::max({4, -5, -6, -7})
 	);
-	// 19 cases covering: ystdex::string_length, ystdex::begins_with,
-	//	ystdex::ends_with, ystdex::erase_left, ystdex::erase_right.
+	// 27 cases covering: ystdex::string_length, ystdex::begins_with,
+	//	ystdex::ends_with, ystdex::erase_left, ystdex::erase_right,
+	//	ystdex::ltrim, ystdex::rtrim, ystdex::trim.
 	seq_apply(make_guard("YStandard.String").get(pass, fail),
 		0 == string_length(u8""),
 		5 == string_length("abcde"),
@@ -199,7 +200,15 @@ main()
 		string("de") == string(erase_left(3, string_view("abcde"))),
 		string("cde") == erase_left(string_view("abcde"), "c").to_string(),
 		string("abcd") == string(erase_right(3, string_view("abcde"))),
-		string("ab") == erase_right(string_view("abcde"), 'b').to_string()
+		string("ab") == erase_right(string_view("abcde"), 'b').to_string(),
+		ltrim(string("aabcbaa"), 'a') == "bcbaa",
+		ltrim(string_view("aabcbaa"), 'a').to_string() == "bcbaa",
+		rtrim(string("aabcbaa"), 'a') == "aabcb",
+		rtrim(string_view("aabcbaa"), 'a').to_string() == "aabcb",
+		trim(string("aabcbaa"), 'a') == "bcb",
+		trim(string("\v\nabcde\t\n")) == "abcde",
+		trim(string_view("aabcbaa"), 'a').to_string() == "bcb",
+		trim(string_view("\v\nabcde\t\n")) == "abcde"
 	);
 	// 4 cases covering: ystdex::range_size.
 	seq_apply(make_guard("YStandard.Container").get(pass, fail),

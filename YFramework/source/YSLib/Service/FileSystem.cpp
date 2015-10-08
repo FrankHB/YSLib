@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2095
+\version r2096
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-10-02 19:33 +0800
+	2015-10-08 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,7 +221,7 @@ ClassifyNode(const Path& pth)
 	case ystdex::path_category::parent:
 		break;
 	default:
-		if(ufexists(string(pth)))
+		if(ufexists(string(pth).c_str()))
 			return VerifyDirectory(pth)
 				? NodeCategory::Directory : NodeCategory::Regular;
 		else

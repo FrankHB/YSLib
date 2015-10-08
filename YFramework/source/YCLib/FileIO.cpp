@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1881
+\version r1882
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-09-27 15:58 +0800
+	2015-10-08 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -745,7 +745,6 @@ bool
 ufexists(const char* filename) ynothrow
 {
 #if YCL_Win32
-	YAssertNonnull(filename);
 	if(const auto file = ufopen(filename, "rb"))
 	{
 		std::fclose(file);

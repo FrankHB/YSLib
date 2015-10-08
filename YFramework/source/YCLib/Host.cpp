@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r365
+\version r380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-09-26 19:11 +0800
+	2015-10-08 22:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,13 +50,22 @@ using namespace YSLib;
 namespace platform_ex
 {
 
-Exception::Exception(std::error_code ec, const std::string& msg, RecordLevel lv)
-	: system_error(ec, msg),
+Exception::Exception(std::error_code ec, const char* str, RecordLevel lv)
+	: system_error(ec, str),
 	level(lv)
 {}
-Exception::Exception(int ev, const std::error_category& ecat,
-	const std::string& msg, RecordLevel lv)
-	: system_error(ev, ecat, msg),
+Exception::Exception(std::error_code ec, string_view sv, RecordLevel lv)
+	: system_error(ec, std::string(sv)),
+	level(lv)
+{}
+Exception::Exception(int ev, const std::error_category& ecat, const char* str,
+	RecordLevel lv)
+	: system_error(ev, ecat, str),
+	level(lv)
+{}
+Exception::Exception(int ev, const std::error_category& ecat, string_view sv,
+	RecordLevel lv)
+	: system_error(ev, ecat, std::string(sv)),
 	level(lv)
 {}
 ImplDeDtor(Exception)
@@ -148,7 +157,7 @@ MakePipe()
 	auto pr(make_pair(UniqueHandle(fds[0]), UniqueHandle(fds[1])));
 	auto check([](UniqueHandle& h, const char* msg){
 		// NOTE: %O_NONBLOCK is initially cleared on ::pipe results.
-		//	See http://pubs.opengroup.org/onlinepubs/9699919799/ .
+		//	See http://pubs.opengroup.org/onlinepubs/9699919799/.
 		if(!(h && h->SetNonblocking()))
 			ystdex::throw_error<FileOperationFailure>(errno, msg);
 	});

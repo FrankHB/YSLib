@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1052
+\version r1060
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-09-26 19:04 +0800
+	2015-10-08 11:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ ConvertToErrno(ErrorCode err) ynothrow
 {
 	// NOTE: This mapping is from Windows Kits 10.0.10150.0,
 	//	ucrt/misc/errno.cpp, except for fix of the bug error 124: it shall be
-	//	%ERROR_INVALID_LEVEL but not %ERROR_INVALID_HANDLE. See https://connect.microsoft.com/VisualStudio/feedback/details/1641428 .
+	//	%ERROR_INVALID_LEVEL but not %ERROR_INVALID_HANDLE. See https://connect.microsoft.com/VisualStudio/feedback/details/1641428.
 	switch(err)
 	{
 	case ERROR_INVALID_FUNCTION:
@@ -218,15 +218,14 @@ public:
 
 } // unnamed namespace;
 
-Win32Exception::Win32Exception(ErrorCode ec, const std::string& s,
-	RecordLevel lv)
-	: Exception(int(ec), GetErrorCategory(), s, lv)
+Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
+	: Exception(int(ec), GetErrorCategory(), msg, lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");
 }
-Win32Exception::Win32Exception(ErrorCode ec, const std::string& s,
-	const char* fn, RecordLevel lv)
-	: Win32Exception(ec, s + " @ " + Nonnull(fn), lv)
+Win32Exception::Win32Exception(ErrorCode ec, string_view msg, const char* fn,
+	RecordLevel lv)
+	: Win32Exception(ec, msg.to_string() + " @ " + Nonnull(fn), lv)
 {}
 
 const std::error_category&
@@ -251,7 +250,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 
 		auto res(WCSToMBCS(buf, unsigned(CP_UTF8)));
 
-		// FIXME: For some platforms, no ::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx .
+		// FIXME: For some platforms, no ::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
 		::LocalFree(buf);
 		return res;
 	}
