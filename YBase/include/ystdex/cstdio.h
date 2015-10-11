@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r636
+\version r638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-09-30 10:44 +0800
+	2015-10-08 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,6 @@
 #include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
 #include "iterator_op.hpp" // for iterator_operators_t, is_undereferenceable;
-#include "base.h" // for noncopyable;
 
 namespace ystdex
 {
@@ -256,7 +255,7 @@ is_undereferenceable(const ifile_iterator& i) ynothrow
 \warning 非虚析构。
 \since build 604
 */
-class YB_API block_buffer : private noncopyable
+class YB_API block_buffer
 {
 private:
 	bool need_flush = {};

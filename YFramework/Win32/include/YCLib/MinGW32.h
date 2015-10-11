@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1201
+\version r1252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-10-08 11:02 +0800
+	2015-10-09 02:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -479,58 +479,48 @@ YF_API bool
 CheckWine();
 
 
-// TODO: Add more Windows specific APIs.
-
 /*!	\defgroup native_encoding_conv Native Encoding Conversion
 \brief 本机文本编码转换。
-\pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-\exception 长度参数上溢 \int 或转换中溢出。
-\note 长度为零时直接返回空字符串，无其它效果。
-\since build 593
+\exception YSLib::LoggedEvent 长度为负数或溢出 int 。
+\since build 644
 
 转换第一个 \c unsigned 参数指定编码的字符串为第二个 \c unsigned 参数指定的编码。
 */
 //@{
+//! \pre 间接断言：字符串指针参数非空。
+YF_API YB_NONNULL(1) string
+MBCSToMBCS(const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
+//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
 YF_API string
-MBCSToMBCS(size_t, const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
-inline YB_NONNULL(1) PDefH(string, MBCSToMBCS, const char* str,
-	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
-	ImplRet(Windows::MBCSToMBCS(ystdex::ntctslen(str), str, cp_src, cp_dst))
-inline PDefH(string, MBCSToMBCS, const string& str,
-	unsigned cp_src = CP_UTF8, unsigned cp_dst = CP_ACP)
-	ImplRet(Windows::MBCSToMBCS(str.length(), str.c_str(), cp_src, cp_dst))
+MBCSToMBCS(string_view, unsigned = CP_UTF8, unsigned = CP_ACP);
 
-YF_API string
-WCSToMBCS(size_t, const wchar_t*, unsigned = CP_ACP);
-inline YB_NONNULL(1) PDefH(string, WCSToMBCS, const wchar_t* str,
-	unsigned cp = CP_ACP)
-	ImplRet(Windows::WCSToMBCS(ystdex::ntctslen(str), str, cp))
-inline PDefH(string, WCSToMBCS, const wstring& str,
-	unsigned cp = CP_ACP)
-	ImplRet(Windows::WCSToMBCS(str.length(), str.c_str(), cp))
-
+//! \pre 间接断言：字符串指针参数非空。
+YF_API YB_NONNULL(1) wstring
+MBCSToWCS(const char*, unsigned = CP_ACP);
+//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
 YF_API wstring
-MBCSToWCS(size_t, const char*, unsigned = CP_ACP);
-inline YB_NONNULL(1) PDefH(wstring, MBCSToWCS, const char* str,
-	unsigned cp = CP_ACP)
-	ImplRet(Windows::MBCSToWCS(ystdex::ntctslen(str), str, cp))
-inline PDefH(wstring, MBCSToWCS, const string& str,
-	unsigned cp = CP_ACP)
-	ImplRet(Windows::MBCSToWCS(str.length(), str.c_str(), cp))
+MBCSToWCS(string_view, unsigned = CP_ACP);
 
-inline PDefH(string, WCSToUTF8, const wchar_t* str, size_t len)
-	ImplRet(WCSToMBCS(len, str, CP_UTF8))
-inline YB_NONNULL(1) PDefH(string, WCSToUTF8, const wchar_t* str)
-	ImplRet(Windows::WCSToUTF8(str, ystdex::ntctslen(str)))
-inline PDefH(string, WCSToUTF8, const wstring& str)
-	ImplRet(Windows::WCSToUTF8(str.c_str(), str.length()))
+//! \pre 间接断言：字符串指针参数非空。
+YF_API YB_NONNULL(1) string
+WCSToMBCS(const wchar_t*, unsigned = CP_ACP);
+//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
+YF_API string
+WCSToMBCS(wstring_view, unsigned = CP_ACP);
 
-inline PDefH(wstring, UTF8ToWCS, const char* str, size_t len)
-	ImplRet(MBCSToWCS(len, str, CP_UTF8))
+//! \pre 间接断言：字符串指针参数非空。
 inline YB_NONNULL(1) PDefH(wstring, UTF8ToWCS, const char* str)
-	ImplRet(Windows::UTF8ToWCS(str, ystdex::ntctslen(str)))
-inline PDefH(wstring, UTF8ToWCS, const string& str)
-	ImplRet(Windows::UTF8ToWCS(str.c_str(), str.length()))
+	ImplRet(MBCSToWCS(str, CP_UTF8))
+//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
+inline PDefH(wstring, UTF8ToWCS, string_view sv)
+	ImplRet(MBCSToWCS(sv, CP_UTF8))
+
+//! \pre 间接断言：字符串指针参数非空。
+inline YB_NONNULL(1) PDefH(string, WCSToUTF8, const wchar_t* str)
+	ImplRet(WCSToMBCS(str, CP_UTF8))
+//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
+inline PDefH(string, WCSToUTF8, wstring_view sv)
+	ImplRet(WCSToMBCS(sv, CP_UTF8))
 //@}
 
 

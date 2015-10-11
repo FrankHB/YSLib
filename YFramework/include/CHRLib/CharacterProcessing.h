@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1651
+\version r1806
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-10-03 14:59 +0800
+	2015-10-11 06:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define INC_CHRLib_CharacterProcessing_h_ 1
 
 #include "YModules.h"
-#include YFM_CHRLib_CharacterMapping // for ystdex::ntctslen,
-//	ystdex::string_traits;
+#include YFM_CHRLib_CharacterMapping // for ystdex::is_null,
+//	ystdex::ntctslen ystdex::string_traits;
 #include <cstdio> // for std::FILE;
 #include <memory> // for std::move;
 
@@ -132,6 +132,67 @@ UCToMBC(char*, const char16_t&, Encoding);
 
 //! \note 编码字节序同实现的 char16_t 存储字节序。
 //@{
+//! \since build 644
+//@{
+template<typename _func, typename _tDst, typename _tSrc>
+YB_NONNULL(2, 3) size_t
+DecodeWith(_func f, _tDst* d, const _tSrc* s)
+{
+	yconstraint(d),
+	yconstraint(s);
+
+	const auto p(d);
+
+	while(!ystdex::is_null(*s) && f(*d, s))
+		++d;
+	*d = _tDst();
+	return size_t(d - p);
+}
+template<typename _func, typename _tDst, typename _tSrc>
+YB_NONNULL(2, 3, 4) size_t
+DecodeWith(_func f, _tDst* d, const _tSrc* s, const _tSrc* e)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(e),
+	yconstraint(s <= e);
+
+	const auto p(d);
+
+	while(!ystdex::is_null(*s) && f(*d, s, e))
+		++d;
+	return size_t(d - p);
+}
+
+template<typename _func, typename _tDst, typename _tSrc>
+YB_NONNULL(2, 3) size_t
+EncodeWith(_func f, _tDst* d, const _tSrc* s)
+{
+	yconstraint(d),
+	yconstraint(s);
+
+	const auto p(d);
+
+	f(d, s);
+	*d = _tDst();
+	return size_t(d - p);
+}
+template<typename _func, typename _tDst, typename _tSrc>
+YB_NONNULL(2, 3, 4) size_t
+EncodeWith(_func f, _tDst* d, const _tSrc* s, const _tSrc* e)
+{
+	yconstraint(d),
+	yconstraint(s),
+	yconstraint(e),
+	yconstraint(s <= e);
+
+	const auto p(d);
+
+	f(d, s, e);
+	return size_t(d - p);
+}
+//@}
+
 /*!
 \pre 断言：指针参数非空 。
 \pre 第一参数指向的缓冲区能容纳转换后的 NTCTS （包括结尾的空字符）。
@@ -142,6 +203,27 @@ UCToMBC(char*, const char16_t&, Encoding);
 //@{
 //! \brief 按指定编码转换 MBCS 字符串为 UCS-2 字符串。
 //@{
+//! \since build 644
+//@{
+template<typename _func, typename _tState = ConversionState>
+YB_NONNULL(2, 3) size_t
+MBCSToUCS2(_func f, char16_t* d, const char* s, _tState&& st = _tState())
+{
+	return DecodeWith([&](char16_t& dc, const char*& src) -> bool{
+		return f(dc, src, yforward(st)) == ConversionResult::OK;
+	}, d, s);
+}
+template<typename _func, typename _tState = ConversionState>
+YB_NONNULL(2, 3, 4) size_t
+MBCSToUCS2(_func f, char16_t* d, const char* s, const char* e,
+	_tState&& st = _tState())
+{
+	return DecodeWith(
+		[&](char16_t& dc, const char*& src, const char*& end) -> bool{
+		return f(dc, {src, end}, yforward(st)) == ConversionResult::OK;
+	}, d, s, e);
+}
+//@}
 YF_API YB_NONNULL(1, 2) size_t
 MBCSToUCS2(char16_t*, const char*, Encoding = CS_Default);
 YF_API YB_NONNULL(1, 2, 3) size_t
@@ -150,6 +232,43 @@ MBCSToUCS2(char16_t*, const char*, const char* e, Encoding = CS_Default);
 
 //! \brief 按指定编码转换 MBCS 字符串为 UCS-4 字符串。
 //@{
+//! \since build 644
+//@{
+template<typename _func, typename _tState = ConversionState>
+YB_NONNULL(2, 3) size_t
+MBCSToUCS4(_func f, char32_t* d, const char* s, _tState&& st = _tState())
+{
+	return DecodeWith([&](char32_t& dc, const char*& src) -> bool{
+		// TODO: Necessary initialization?
+		char16_t c;
+
+		if(f(c, src, yforward(st)) == ConversionResult::OK)
+		{
+			dc = c;
+			return true;
+		}
+		return {};
+	}, d, s);
+}
+template<typename _func, typename _tState = ConversionState>
+YB_NONNULL(2, 3, 4) size_t
+MBCSToUCS4(_func f, char32_t* d, const char* s, const char* e,
+	_tState&& st = _tState())
+{
+	return DecodeWith(
+		[&](char32_t& dc, const char*& src, const char*& end) -> bool{
+		// TODO: Necessary initialization?
+		char16_t c;
+
+		if(f(c, {src, end}, yforward(st)) == ConversionResult::OK)
+		{
+			dc = c;
+			return true;
+		}
+		return {};
+	}, d, s, e);
+}
+//@}
 YF_API YB_NONNULL(1, 2) size_t
 MBCSToUCS4(char32_t*, const char*, Encoding = CS_Default);
 YF_API YB_NONNULL(1, 2, 3) size_t
@@ -158,6 +277,29 @@ MBCSToUCS4(char32_t*, const char*, const char*, Encoding = CS_Default);
 
 //! \brief 按指定编码转换 UCS-2 字符串为 MBCS 字符串。
 //@{
+//! \since build 644
+//@{
+template<typename _func>
+YB_NONNULL(2, 3) size_t
+UCS2ToMBCS(_func f, char* d, const char16_t* s)
+{
+	return EncodeWith([&](char*& dst, const char16_t*& src){
+		while(!ystdex::is_null(*src))
+			dst += f(dst, *src++);
+	}, d, s);
+}
+template<typename _func>
+YB_NONNULL(2, 3, 4) size_t
+UCS2ToMBCS(_func f, char* d, const char16_t* s, const char16_t* e)
+{
+	return EncodeWith(
+		[&](char*& dst, const char16_t*& src, const char16_t* end){
+		// TODO: Deferred. Use guard for encoding.
+		while(src < end)
+			dst += f(dst, *src++);
+	}, d, s, e);
+}
+//@}
 YF_API YB_NONNULL(1, 2) size_t
 UCS2ToMBCS(char*, const char16_t*, Encoding = CS_Default);
 YF_API YB_NONNULL(1, 2, 3) size_t
@@ -174,6 +316,29 @@ UCS2ToUCS4(char32_t*, const char16_t*, const char16_t*);
 
 //! \brief 按指定编码转换 UCS-4 字符串为 MBCS 字符串。
 //@{
+//! \since build 644
+//@{
+template<typename _func>
+YB_NONNULL(2, 3) size_t
+UCS4ToMBCS(_func f, char* d, const char32_t* s)
+{
+	return EncodeWith([&](char*& dst, const char32_t*& src){
+		while(!ystdex::is_null(*src))
+			dst += f(dst, char16_t(*src++));
+	}, d, s);
+}
+template<typename _func>
+YB_NONNULL(2, 3, 4) size_t
+UCS4ToMBCS(_func f, char* d, const char32_t* s, const char32_t* e)
+{
+	return EncodeWith(
+		[&](char*& dst, const char32_t*& src, const char32_t* end){
+		// TODO: Deferred. Use guard for encoding.
+		while(src < end)
+			dst += f(dst, char16_t(*src++));
+	}, d, s, e);
+}
+//@}
 YF_API YB_NONNULL(1, 2) size_t
 UCS4ToMBCS(char*, const char32_t*, Encoding = CS_Default);
 YF_API YB_NONNULL(1, 2, 3) size_t

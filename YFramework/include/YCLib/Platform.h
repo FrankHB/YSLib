@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r794
+\version r798
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2015-09-12 13:28 +0800
+	2015-10-11 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,7 +283,7 @@
 #undef YCL_HostedUI_XCB
 
 
-/*
+/*!
 \def YCL_Device_Cursor_FixedKey
 \brief 1 表示保证指针输入设备的对应数据结构只保存一个按键状态。
 \note 接收指针设备输入时不需要区分多个按键状态，可用于输入处理优化。
@@ -374,7 +374,7 @@
 #	define YF_Use_XCB 0x11100
 #endif
 
-// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63287 .
+// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63287.
 #if __STDCPP_THREADS__
 #	define YF_Multithread 1
 #elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
@@ -403,6 +403,8 @@ using ystdex::ptrdiff_t;
 using ystdex::size_t;
 //! \since build 245
 using ystdex::wint_t;
+//! \since build 644
+using ystdex::nullptr_t;
 //@}
 
 } // inline namespace basic_types;

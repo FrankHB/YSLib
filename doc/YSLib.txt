@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3052
+\version r3064
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-10-02 18:48 +0800
+	2015-10-02 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,32 +84,31 @@ YSLib::UI::Styles ：用户界面样式定制。
 Adaptor::YAdaptor 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
 
 @1.2.2 不在本体中显式包含，需要在 Adaptor::YAdaptor 包含或提供替代品的 C++ 标准库依赖项：
-<array> 、 <deque> 、 <forward_list> 、<istream> 、 <list> 、 <map> 、<ostream> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和 <vector>。
-此外， Adaptor::YAdaptor 需要保证 <bitset> 、 <initializer_list> 和 <new> 被包含。
+<algorithm> 、 <array> 、 <deque> 、 <forward_list> 、<istream> 、 <list> 、 <memory> 、 <map> 、<ostream> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 和 <vector>。
+此外， Adaptor::YAdaptor 需要保证 <bitset> 、 <initializer_list> 、 <new> 、 <type_traits> 和 <utility> 被包含。
 例外：同时需要使用容器和限定标准库类型时：
 Core::YException 包含 <string> （由于复用标准库异常需要的参数类型 std::string 不一定是此处配置的字符串类型）。
+以上不在本体的头文件中显式包含的 C++ 标准库依赖项，同时可能在 Adaptor 的必要头文件直接或间接包含。
 
-@1.2.3 不在本体的头文件中显式包含，需要在 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
-<algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
-
-@1.2.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
+@1.2.3 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头及唯一在其中声明的接口和包含的宏（但可能会间接依赖）：
 <csetjmp> 、 <csignal> 、 <ciso646> 、 <iostream> 、 <locale> 和 <strstream> 。
 其它要点参见 [Documentation::LanguageConvention @@5.22] 。
 
-@1.2.5 本体的必要头文件中显式包含的 C++ 标准库依赖项：
+@1.2.4 本体的必要头文件中显式包含的 C++ 标准库依赖项：
 Core::YException 包含 <exception> 和 <stdexcept> ；
 Core::YFunc 包含 <functional> 和 <typeinfo> ；
 Service::YTtimer 包含 <chrono> ；
 UI::YStyle 包含 <typeindex> 。
 
-@1.2.6 本体的头文件中未限定（可能显式包含）的 C++ 标准库依赖项：
-<bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。
+@1.2.5 本体的头文件中未限定（可能显式包含）的 C++ 标准库依赖项：
+<codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。
 
-@1.2.7 本体头文件对 YBase 依赖性：
+@1.2.6 本体头文件对 YBase 依赖性：
+Core::YCoreUtilities 依赖 <ystdex/algorithm.hpp> 。
 Service::YBlit 依赖 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
 
-@1.2.8 内部头文件依赖性：
+@1.2.7 内部头文件依赖性：
 Core 的头文件仅包含 Adaptor 或 Core 的头文件。
 Service 的头文件不包含 UI 的头文件。
 实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。

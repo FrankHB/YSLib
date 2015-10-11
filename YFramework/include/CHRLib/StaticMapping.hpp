@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2470
+\version r2485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-10-02 19:40 +0800
+	2015-10-11 03:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,10 +36,12 @@
 namespace CHRLib
 {
 
-//! \since build 595
+//! \since build 644
+//@{
+//! \pre is_undereferenceable 不抛出异常。
 template<typename _tIn>
 inline bool
-CheckIterator(_tIn& i)
+CheckIterator(_tIn& i) ynothrow
 {
 	static_assert(std::is_constructible<const byte, decltype(*i)>(),
 		"Invalid mapping source type found.");
@@ -50,10 +52,9 @@ CheckIterator(_tIn& i)
 
 //! \brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
 //@{
-//! \since build 595
 template<typename _tIn>
 inline bool
-FillByte(_tIn& i, byte& b)
+FillByte(_tIn& i, byte& b) ynoexcept(noexcept(byte(*i)) && noexcept(++i))
 {
 	if(CheckIterator(i))
 	{
@@ -64,10 +65,10 @@ FillByte(_tIn& i, byte& b)
 	}
 	return {};
 }
-//! \since build 273
 template<typename _tIn, typename _tState>
 inline bool
-FillByte(_tIn& i, _tState& st)
+FillByte(_tIn& i, _tState& st) ynoexcept(noexcept(byte(*i)) && noexcept(++i)
+	&& noexcept(GetSequenceOf(st)[GetIndexOf(st)++] = byte()))
 {
 	if(CheckIterator(i))
 	{
@@ -80,17 +81,17 @@ FillByte(_tIn& i, _tState& st)
 	}
 	return {};
 }
-//! \since build 614
-//@{
 template<typename _tIn>
 inline bool
-FillByte(GuardPair<_tIn>& pr, byte& b)
+FillByte(GuardPair<_tIn>& pr, byte& b) ynoexcept(noexcept(pr.first.get()
+	!= pr.second) && noexcept(FillByte(pr.first.get(), b)))
 {
 	return pr.first.get() != pr.second ? FillByte(pr.first.get(), b) : false;
 }
 template<typename _tIn, typename _tState>
 inline bool
-FillByte(GuardPair<_tIn>& pr, _tState& st)
+FillByte(GuardPair<_tIn>& pr, _tState& st) ynoexcept(noexcept(pr.first.get()
+	!= pr.second) && noexcept(FillByte(pr.first.get(), st)))
 {
 	return pr.first.get() != pr.second ? FillByte(pr.first.get(), st) : false;
 }
@@ -266,7 +267,7 @@ public:
 	}
 	/*!
 	\brief 快速解码： UTF-8 。
-	\see https://github.com/miloyip/rapidjson/blob/master/include/rapidjson/encodings.h
+	\see https://github.com/miloyip/rapidjson/blob/master/include/rapidjson/encodings.h 。
 	\since build 599
 	*/
 	//@{

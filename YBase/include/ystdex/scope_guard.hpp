@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r349
+\version r351
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2015-09-05 00:51 +0800
+	2015-10-09 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "type_op.hpp" // for is_constructible, is_reference, std::swap,
 //	is_nothrow_copyable;
-#include "base.h" // for noncopyable;
 #include "ref.hpp" // for lref;
 #include <memory> // for std::addressof;
 
@@ -45,7 +44,7 @@ namespace ystdex
 \sa make_shared_guard
 */
 template<typename _func, bool _bNoThrow = true>
-struct guard : private noncopyable
+struct guard
 {
 	_func func;
 
