@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1638
+\version r1643
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-10-08 12:10 +0800
+	2015-10-11 14:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,8 @@
 #include "YModules.h"
 #include YFM_YCLib_Platform
 #include YFM_YBaseMacro
-#include <ystdex/string.hpp> // for ynothrow, ystdex::enable_for_string_class_t,
-//	std::uint64_t, ystdex::totally_ordered;
-#include <cstdio> // for std::FILE;
+#include <ystdex/string.hpp> // for std::uint32_t, std::uint64_t, ynothrow,
+//	ystdex::totally_ordered, std::FILE, ystdex::enable_for_string_class_t;
 #include YFM_YCLib_Debug // for Nonnull, string, u16string, array;
 #include <chrono> // for std::chrono::nanoseconds;
 #include YFM_YCLib_Reference // for unique_ptr;
@@ -134,8 +133,9 @@ public:
 	FileDescriptor(int fd) ynothrow
 		: desc(fd)
 	{}
+	//! \since build 644
 	yconstfn
-	FileDescriptor(std::nullptr_t) ynothrow
+	FileDescriptor(nullptr_t) ynothrow
 		: desc()
 	{}
 	/*!

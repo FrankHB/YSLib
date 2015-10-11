@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r759
+\version r763
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-11-27 15:45 +0800
+	2015-10-09 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,18 +41,19 @@ namespace YSLib
 \brief 处理致命错误：显示错误信息并终止程序。
 \since build 342
 */
-YB_NORETURN YF_API void
+YF_API YB_NORETURN void
 HandleFatalError(const FatalError&) ynothrow;
 
 
 /*!
 \brief 载入 NPLA1 配置文件。
 \param show_info 是否在标准输出中显示信息。
+\pre 间接断言：指针参数非空。
 \return 读取的配置。
 \note 预设行为、配置文件和配置项参考 YSLib.txt 。
 \since build 450
 */
-YF_API ValueNode
+YF_API YB_NONNULL(1, 2) ValueNode
 LoadNPLA1File(const char* disp, const char* path,
 	ValueNode(*creator)(), bool show_info = {});
 

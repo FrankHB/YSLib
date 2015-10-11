@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2410
+\version r2414
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-10-08 21:56 +0800
+	2015-10-09 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -291,10 +291,12 @@ LoadComponents(const ValueNode& node)
 		throw GeneralEvent("Invalid default font file path found.");
 }
 
-bool
+YB_NONNULL(1, 2) bool
 CreateDefaultNPLA1File(const char* disp, const char* path,
 	ValueNode(*creator)(), bool show_info)
 {
+	YAssertNonnull(disp),
+	YAssertNonnull(path);
 	if(show_info)
 		YF_Init_printf(Notice, "Creating %s '%s'...\n", disp, path);
 	if(creator)
@@ -350,7 +352,7 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 			return {};
 	}
 	if(show_info)
-		YF_Init_printf(Notice, "Found %s '%s'.\n", disp, path);
+		YF_Init_printf(Notice, "Found %s '%s'.\n", Nonnull(disp), path);
 	if(ifstream ifs{path, std::ios_base::in})
 	{
 		array<char, 3> buf;

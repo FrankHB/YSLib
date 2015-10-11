@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1457
+\version r1461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2015-05-22 21:08 +0800
+	2015-10-11 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,9 +36,10 @@
 namespace NPL
 {
 
+//! \since build 644
+using YSLib::byte;
 //! \since build 329
 //@{
-using ystdex::byte;
 using YSLib::list;
 using YSLib::string;
 //@}
@@ -205,7 +206,7 @@ private:
 	FilterForParse(char, Unescaper, PrefixHandler);
 
 public:
-	/*
+	/*!
 	\note 参数指定反转义算法。
 	\warning 在同一个分析器对象上混用不等价的多种解析方法或反转义算法的结果未指定。
 	\since build 588

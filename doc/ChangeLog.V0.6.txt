@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r4878
+\version r4981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-08 23:02 +0800
+	2015-10-11 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,93 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			/ $impl "functions %(MBCSToMBCS, MBCSToWCS, UTF8ToWCS, WCSToMBCS, \
+				WCSToUTF8) with single pointer parameter"
+				^ "directly NTCTS support of WinAPI",
+			/ "merged all 2 functions %(MBCSToMBCS, MBCSToWCS, UTF8ToWCS) with \
+				non single pointer parameter" -> "single function"
+				^ "%string_view",
+			/ "merged all 2 functions %(WCSToMBCS, WCSToUTF8) with non single \
+				pointer parameter" -> "single function" ^ "%wstring_view";
+			* $comp "missing check for length when source and destination code \
+				pages are same" @ "function %MBCSToMBCS" $mismatch $since b476
+			/ $comp "when intermediate conversion result length is zero" $=
+			(
+				* "throwing %LoggedEvent" @ "function %MBCSToMBCS" $since b586,
+				* $comp "possible undefined behavior due to out-of-range \
+					access of result string"
+					@ "functions %(MBCSToWCS, WCSToMBCS)" $mismatch $since b431
+			)
+		),
+		+ $lib 'YB_NONNULL(1, 2)' @ "function %LoadNPLA1File"
+			@ %Helper.Initialization,
+		/ %CHRLib $=
+		(
+			/ %MappingEx $=
+			(
+				+ DLD 'yconstfn'
+					@ "function templates %FetchMapperPtr_TryUCSMapper",
+				+ DLD 'yconstfn_relaxed' @ "function template %FetchMapperPtr"
+			),
+			+ "noexcept-specifications" @ "function templates (%CheckIterator, \
+				all 4 %FillByte)" @ StaticMapping
+				// Also to eliminate possible G++ warning: [-Wnoexcept] on \
+					member function templates \
+					%GUCSMapper<CharSet::UTF_8>::Decode.
+		),
+		/ %NPL.Lexical $=
+		(
+			/ DLDI 'using platform::byte;' -> 'using YSLib::byte;',
+			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+				@ "member functions %LexicalAnalyzer::'Parse*'" $orig
+				(@ "member function %LexicalAnalyzer::ParseByte" $since b207)
+		),
+		/ %YCLib $=
+		(
+			/ %Platform $=
+			(
+				+ 'usint ystdex::nullptr_t'
+					@ "inline namespace %platform::basic_types",
+				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+					comments" @ "macro %YCL_Device_Cursor_FixedKey" $since b436
+			),
+			/ "parameter type 'std::nullptr_t'" -> 'nullptr_t'
+				@ "constructor#3 %FileDescriptor" @ %FileIO
+		),
+		/ %YSLib $=
+		(
+			/ %Adaptor $=
+			(
+				/ "alias-declarations %(basic_string, string, wstring, sfmt, \
+					vsfmt, to_string, to_wstring, basic_string_view, \
+					string_view, wstring_view)" @ %YTextBase >> %YAdaptor,
+				/ DLDI "alias-declarations %(platform::(byte, octet, \
+					ptrdiff_t, size_t, wint_t), ystdex::nullptr_t)" @ %Adaptor
+					-> 'using namespace platform::basic_types;' $dep_from
+					%YCLib.Platform
+			),
+			- $dev $lib $impl "dependency on %YFM_YSLib_Adaptor_YTextBase"
+				@ %Core.YCoreUtilities $dep_from %YTextBase
+				// To improve build performance.
+		)
+	),
+	/ $doc "moved some common contents about platform rules to wiki"
+		@ %Documentation.(CommonRules, ProjectRules)
+	- DLDI "unnecessary private base class %(noncopyable, nonmoveable)"
+		$effective "%noncopyable" @ ("class %thread_pool" @ %Concurrency,
+		"class %block_buffer" @ %CStandardIO, "class template %guard"
+		@ %ScopeGuard) @ %YBase
+		// Since the classes have already met the requirement. Also too much \
+			base class is not friendly to EBO, if these types are used for \
+			class members.
+),
+
+b643
 (
 	/ %YBase.YStandardEx.String $=
 	(
@@ -276,7 +363,7 @@ b642
 			rename, opendir, open) and variants for path parameters where path \
 			prefix component naming a valid file but not a directory" $since
 			$before b132 $dep_from "non-directory checking"
-			// See https://github.com/devkitPro/libfat/issues/6 .
+			// See https://github.com/devkitPro/libfat/issues/6.
 	)
 ),
 
@@ -578,7 +665,7 @@ b640
 				@ %String), "%ystdex::string_view" @ %StringView)
 				@ %YBase.YStandardEx)
 				// Some cases are avoided intentionally. See \
-					https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795 . \
+					https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795. \
 					For %ystdex::tstring_view G++ 5.2.0 would crash: internal \
 					compiler error: in unify, at cp/pt.c:18713.
 		)
@@ -1335,7 +1422,7 @@ b632
 			- $revert(b628) "%Device support" @ "platform %Win32"
 				@ "member function %HDirectory::GetNodeCategory"
 				// %FILE_ATTRIBUTE_DEVICE is reserved, thus should not be \
-					used. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/gg258117(v=vs.85).aspx .
+					used. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/gg258117(v=vs.85).aspx.
 		),
 		* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
 			@ ("functions 'u*'" $orig (@ %FileSystem $since b476),
@@ -1821,7 +1908,7 @@ b628
 		(
 			+ '&&' @ "1st function parameter" @ "%ystdex::bind1" @ %Functional,
 				// To be consistent with %std::bind. See also \
-					http://wg21.cmeerw.net/lwg/issue817 .
+					http://wg21.cmeerw.net/lwg/issue817.
 			/ @ "class template %nptr" @ %Pointer $=
 			(
 				* "missing forcing no throw exception guarantee for \
@@ -1861,7 +1948,7 @@ b628
 			* $comp "template %equal conflicted with %std::equal"
 				@ "inline namespace %ystdex::cpp2014" @ 'YB_MSCPP >= 1900'
 				@ %Algorithm $since b627
-				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx .
+				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx.
 			),
 			- "redundant 'using ystdex::nullptr;'" @ '!YB_HAS_BUILTIN_NULLPTR'
 				@ %ScopeGuard
@@ -1871,7 +1958,7 @@ b628
 			+ "2 feature-test macros %(__cpp_lib_integer_sequence, \
 				__cpp_lib_exchange_function) recommended by WG21/N4200 when \
 				not defined" @ 'YB_IMPL_MSCPP >= 1900',
-				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx .
+				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx.
 			(
 			+ "predefined feature-test macro %__cpp_constexpr recommended by \
 				WG21/N4200 when not defined";
@@ -1970,7 +2057,7 @@ b627
 					+ "function %open with %UniqueFile and \
 						%std::ios_base::mode parameters"
 						@ "class template %basic_filebuf" @ %FileIO
-						// This can at least be implemented also for Microsoft VC++, see http://stackoverflow.com/questions/2746168/how-to-construct-a-c-fstream-from-a-posix-file-descriptor .
+						// This can at least be implemented also for Microsoft VC++, see http://stackoverflow.com/questions/2746168/how-to-construct-a-c-fstream-from-a-posix-file-descriptor.
 				)
 			)
 		),
@@ -2039,7 +2126,7 @@ b626
 			* @ "member function %HDirectory::GetNodeCategory" @ %FileSystem
 				$since b560 $=
 			(
-				// See http://sourceforge.net/p/mingw/bugs/1146/6 .
+				// See http://sourceforge.net/p/mingw/bugs/1146/6.
 				* "%NodeCategory::Block check for block file" $=
 				(
 					* "wrongly missing check" @ !"platform %Win32",
@@ -3314,14 +3401,14 @@ b611
 					/ "transparent propogated %ENOSPC as %std::system_error",
 					/ "open file list" ^ "%list" ~ "intrusive linked list",
 					- $design "unnecessary minor redundant integer range check",
-						// See https://github.com/devkitPro/libfat/pull/1 .
+						// See https://github.com/devkitPro/libfat/pull/1.
 					/ "merged getting date and time calls",
 					/ "reduced unnecessary calls for looking up last cluster",
-						// See https://github.com/devkitPro/libfat/issues/3 . \
+						// See https://github.com/devkitPro/libfat/issues/3. \
 							Even if there is the cache, it is still slower.
 					- "redundant function call for directory entry opening by \
 						path '/'",
-						// See https://github.com/devkitPro/libfat/issues/5 .
+						// See https://github.com/devkitPro/libfat/issues/5.
 					/ $comp $dev "device operation table allocation and \
 						deallocation" ^ "::operator %(new, delete)"
 						~ "%std::(malloc, free)"
@@ -3407,7 +3494,7 @@ b611
 				"removal sanity check for directory operations"
 			/ @ "%(fstat_r, stat_r)" $=
 			(
-				// See https://github.com/devkitPro/libfat/issues/4 .
+				// See https://github.com/devkitPro/libfat/issues/4.
 				// In function %_FAT_directory_entryFromPosition of "fatfile.c".
 				- "redundant name entry traverse" $dep_to
 					"removal of stat name entry traverse",
@@ -3421,7 +3508,7 @@ b611
 		),
 		* "wrong root data sectors number calculated" @ "!FAT32" $since $before
 			b132,
-			// See https://github.com/devkitPro/libfat/issues/2 . Valid value \
+			// See https://github.com/devkitPro/libfat/issues/2. Valid value \
 				of %BPB_BytsPerSec is always greater than 1. By specification, \
 				the result for FAT32 is always 0, otherwise this could be less \
 				1 than expected.
@@ -3491,7 +3578,7 @@ b611
 					unless explicitly specified non-void hash function"
 					~ "%std::unordered_map",
 					// Multiple choices are necessary. See \
-						http://blog.dubbelboer.com/2012/12/04/lru-cache.html .
+						http://blog.dubbelboer.com/2012/12/04/lru-cache.html.
 				),
 				(
 				/ 'using typename map_type::const_iterator;' -> 'using \
@@ -3834,8 +3921,8 @@ b605
 				@ %ScopeGuard
 		),
 		/ "split macro %YB_ATTR" -> "%(YB_ATTR, YB_ATTR_STD)" @ %YDefinition
-			// http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn .
-			// http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20140310/101215.html .
+			// http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn.
+			// http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20140310/101215.html.
 	),
 	/ %YFramework $=
 	(
@@ -4549,7 +4636,7 @@ b600
 				'::ExpandEnvironmentStringsW' argument"
 				// To eliminate Clang++ warning: [-Wshorten-64-to-32].
 			* $impl "strict ISO C++ compatibility" $since b594
-				// See http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn .
+				// See http://stackoverflow.com/questions/26888805/how-to-declare-a-lambdas-operator-as-noreturn.
 				$= (- 'YB_NORETURN' @ "lambda-expression")
 		),
 

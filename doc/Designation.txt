@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9736
+\version r9747
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-09-12 20:40 +0800
+	2015-10-09 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,23 +94,16 @@ Shell 和 Core 的关系是相对的，例如：
 基于操作系统 Shell 的应用程序相对操作系统 Shell 。
 这样， Shell 和 Core 之间的相对关系可以级联。对组织虚拟化程序架构等有一定意义。
 
-@2.2.1.2 环境(environment) ：
-程序中的某一部分的外界称为环境。
-根据限定程序的范围，可以有更确切的概念定义，如实现环境（对一类语言实现而言）、运行时环境（对共享实现环境的一类程序而言）。
-一般地，实现环境可以分为独立环境(freestanding environment) 和宿主环境(hosted environment) ，区分依据为是否依赖宿主（对部署在单一计算机上的实现，一般指操作系统）的支持。
-因此，环境有时指操作系统及其提供的外部服务的集合。
-一些语言，如 ISO C 和 ISO C++ ，可以同时支持宿主环境和独立环境的实现，对应地独立实现(freestanding impementation) 和宿主实现(hosted impementation) 。
-
 @2.3 构建原则：
 基本内容参见 [Documentation::CommonRules @@2.2] 。
 
 @2.3.1 可移植性相关：
 基本内容参见 [Documentation::CommonRules @@2.2.2] 。
 语言使用规则参见 [Documentation::LanguageConvention @@5] 。
-依赖的语言实现参见 @5.2 。
+依赖的语言实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md ，实际使用的具体语言实现参见 @5.2 。
 
 @2.3.2 环境依赖性：
-关于环境，参见 @1.2.1.2 。
+关于环境，参见 @2.2.1.2 。
 关于库配置，参见 @5 。
 关于语言特性使用，参见 [ProjectRules @@ 1.2.1] 。
 YSLib 基于基本的底层系统接口（由 YFramework/YCLib(@5.2.2) 支持）。
@@ -362,7 +355,7 @@ MinGW32 直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 
 @5.2.2.3.1 Win32 API ：
 需要 #undef 消除引起冲突的宏名，尽可能显式使用带后缀的函数（若存在）。
 当存在后缀时，一般尽可能使用 W ，因为大部分情况下 W 后缀为原始版本， A 后缀需要转换间接调用 W 后缀版本。
-但也存在例外， 如使用 ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
+但也存在例外，如使用 ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
 不使用被标记为过时的 API 如 IsBadReadPtr 。
 
 @5.2.2.4 平台文件：
@@ -466,9 +459,10 @@ ytest ：测试框架设施 YTest 。
 依次以部件、事件和调用形式的顺序集中添加或移除事件处理器，其中调用形式约定为操作符调用、成员函数调用和非成员函数调用；使用宽松分行([Documentation::CommonRules @@5.4.3.1]) 分隔处理器列表项。
 
 @6.2.2 替代语言特性：
-除非补充语言实现或类似场合的兼容性需要，考虑以下规则：
+除非补充语言实现或类似场合的兼容性需要，为了使代码意图更明确且实现更简洁，考虑以下规则：
 尽量使用智能指针([Documentation::LanguageConvention @@5.15.9]) 而不是 new-expression 和 delete-expression 管理资源，除非实现智能指针或另有约定。
 显式转换：基本规则参见 [Documentation::LanguageConvention @@5.11.3] ；尽量使用 YBase::YStandardEx::TypePun(@2.4.4.2) 和 YBase::YStandardEx::Cast(@2.4.7.1) 中的转换模板代替内建显式转换。
+使用 ystdex::retry_on_cond 代替 do-while （特别是每次迭代都更新最后需要返回的值的）循环，避免不必要的中间变量。
 
 @6.2.3 限定名称：
 在建议 [Documentation::LanguageConvention @@5.3.3.1] 的基础上强制要求全局名称保留前缀 :: 规则。

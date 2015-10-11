@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r502
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-08-25 21:26 +0800
+	2015-10-09 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_concurrency_h_
 #define YB_INC_ystdex_concurrency_h_ 1
 
-#include "pseudo_mutex.h" // for result_of_t, std::declval,
-//	std::make_shared, threading::unlock_delete, noncopyable;
+#include "pseudo_mutex.h" // for result_of_t, std::declval, std::make_shared,
+//	threading::unlock_delete;
 #include <mutex> // for std::mutex, std::unique_lock;
 #include <thread> // for std::thread;
 #include <vector> // for std::vector;
@@ -90,7 +90,7 @@ get_this_thread_id()
 \note 未控制线程队列的长度。
 \since build 520
 */
-class YB_API thread_pool : private noncopyable
+class YB_API thread_pool
 {
 private:
 	std::vector<std::thread> workers;
@@ -115,8 +115,8 @@ public:
 	thread_pool(size_t, std::function<void()> = {}, std::function<void()> = {});
 	/*!
 	\brief 析构：设置停止状态并等待所有执行中的线程结束。
-	\note 断言设置停止状态时不抛出 \c std::system_error 。
-	\note 可能阻塞。忽略每个线程阻塞的 \c std::system_error 。
+	\note 断言设置停止状态时不抛出 std::system_error 。
+	\note 可能阻塞。忽略每个线程阻塞的 std::system_error 。
 	\note 无异常抛出：断言。
 	\since build 552
 	*/

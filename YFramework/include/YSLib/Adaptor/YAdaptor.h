@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1836
+\version r1874
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-09-27 16:31 +0800
+	2015-10-11 14:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,22 +29,25 @@
 #define YSL_INC_Adaptor_YAdaptor_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Adaptor_YNew
-#include <libdefect/cmath.h>
-#include <ystdex/algorithm.hpp> // for ystdex::min, ystdex::max;
-#include <ystdex/functional.hpp>
-#include <ystdex/utility.hpp>
-#include <ystdex/tuple.hpp>
-#include YFM_YCLib_YCommon
-#include YFM_YCLib_Debug
-#include YFM_YCLib_Keys
+#include YFM_YSLib_Adaptor_YNew // for <cstddef>, <cstdint>, <climits>, <new>,
+//	<initializer_list>, <string>, <list>, <map>, <utility>;
+#include <libdefect/cmath.h> // for <cmath>, std::round;
+#include <ystdex/algorithm.hpp> // for <type_traits>, <algorithm>, ystdex::min,
+//	ystdex::max;
+#include <ystdex/functional.hpp> // for ystdex::seq_apply, ystdex::unseq_apply;
+#include YFM_YCLib_Keys // for platform::basic_types, <bitset>, YCLib key space;
+#include YFM_YCLib_Debug // for <array>, <deque>, <forward_list>, <istream>,
+//	<ostream>, <queue>, <set>, <stack>, <unordered_map>, <unordered_set>,
+//	YFM_YCLib_Container, <vector>, '*string_view', forward_as_tuple, get,
+//	ignore, make_pair, make_tuple, pair, tie, tuple, tuple_cat, arrlen;
 #include YFM_YCLib_Timer
-#include YFM_YCLib_FileIO
+#include YFM_YCLib_FileIO // for uopen, 'uf*', 'up*', etc;
 #include YFM_YCLib_FileSystem
-#include YFM_YCLib_Video
-#include YFM_YCLib_Container
-#include YFM_YCLib_Mutex
-#include YFM_YCLib_Reference
+#include YFM_YCLib_Video // for MonoType, AlphaType, Color;
+#include YFM_YCLib_Mutex // for ystdex::noncopyable, ystdex::nonmovable,
+//	Threading, Concurrency;
+#include YFM_YCLib_Reference // for <memory>, '*_ptr', 'make*_ptr',
+//	lref;
 
 /*!
 \brief YSLib 命名空间。
@@ -53,14 +56,8 @@
 namespace YSLib
 {
 
-//! \since build 593
-//@{
-using platform::byte;
-using platform::octet;
-using platform::ptrdiff_t;
-using platform::size_t;
-using platform::wint_t;
-//@}
+//! \since build 644
+using namespace platform::basic_types;
 
 
 /*!
@@ -80,7 +77,6 @@ using ystdex::unseq_apply;
 using ystdex::noncopyable;
 //! \since build 373
 using ystdex::nonmovable;
-using ystdex::nullptr_t;
 //@}
 
 /*!
@@ -149,6 +145,24 @@ using platform::priority_queue;
 using platform::queue;
 
 using platform::arrlen;
+
+//! \since build 597
+using platform::basic_string;
+
+using platform::string;
+using platform::wstring;
+using platform::sfmt;
+using platform::vsfmt;
+
+using platform::to_string;
+using platform::to_wstring;
+
+//! \since build 640
+//@{
+using platform::basic_string_view;
+using platform::string_view;
+using platform::wstring_view;
+//@}
 
 using platform::bad_weak_ptr;
 using platform::const_pointer_cast;
