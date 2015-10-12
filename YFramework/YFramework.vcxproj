@@ -129,7 +129,7 @@
     <ClInclude Include="DS\include\YCLib\DSVideo.h" />
     <ClInclude Include="DS\source\Helper\DSScreen.h" />
     <ClInclude Include="DS\source\Helper\DSWindow.h" />
-    <ClInclude Include="include\CHRLib\chrdef.h" />
+    <ClInclude Include="include\CHRLib\CharacterDefinition.h" />
     <ClInclude Include="include\CHRLib\CharacterMapping.h" />
     <ClInclude Include="include\CHRLib\CharacterProcessing.h" />
     <ClInclude Include="include\CHRLib\Convert.hpp" />

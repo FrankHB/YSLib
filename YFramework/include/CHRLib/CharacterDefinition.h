@@ -11,13 +11,13 @@
 /*!	\file CharacterDefinition.h
 \ingroup CHRLib
 \brief CHRLib 类型声明。
-\version r692
+\version r694
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-10-02 21:12 +0800
+	2015-10-12 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,8 @@ using ystdex::size_t;
 //! \brief UCS 整数类型。
 using ucsint_t = std::char_traits<char32_t>::int_type;
 
+//! \since build 645
+using ystdex::basic_string_view;
 //! \since build 641
 //@{
 using ystdex::string_view;

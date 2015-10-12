@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2222
+\version r2264
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2015-10-03 15:10 +0800
+	2015-10-11 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
-#include YFM_YSLib_Adaptor_YTextBase
+#include YFM_YSLib_Adaptor_YTextBase // for u16string;
 
 namespace YSLib
 {
@@ -51,7 +51,21 @@ public:
 	*/
 	DefDeCtor(String)
 	//! \since build 641
+	//@{
 	using u16string::u16string;
+	//! \brief 构造：使用 YSLib 基本字符串。
+	String(const u16string& s)
+		: u16string(s)
+	{}
+	//! \brief 构造：使用 YSLib 基本字符串右值引用。
+	String(u16string&& s)
+		: u16string(std::move(s))
+	{}
+	explicit
+	String(u16string_view sv)
+		: u16string(sv)
+	{}
+	//@}
 	/*!
 	\brief 构造：使用指针表示的 NTCTS 和指定编码。
 	\pre 间接断言：指针参数非空。
@@ -70,34 +84,13 @@ public:
 	template<typename _tChar>
 	YB_NONNULL(2)
 	String(const _tChar* s, size_t n, Encoding enc = CS_Default)
-		: u16string(MakeUCS2LE<u16string>(s, n, enc))
+		: String(basic_string_view<_tChar>(s, n), enc)
 	{}
-	/*!
-	\brief 构造：使用字符的初值符列表。
-	\since build 510
-	*/
+	//! \since build 645
 	template<typename _tChar>
-	String(std::initializer_list<_tChar> il)
-		: u16string(il.begin(), il.end())
-	{}
-	/*!
-	\brief 构造：使用 YSLib 基本字符串。
-	\since build 641
-	*/
-	String(const u16string& s)
-		: u16string(s)
-	{}
-	/*!
-	\brief 构造：使用 YSLib 基本字符串右值引用。
-	\since build 641
-	*/
-	String(u16string&& s)
-		: u16string(std::move(s))
-	{}
-	//! \since build 641
 	explicit
-	String(u16string_view sv)
-		: u16string(sv)
+	String(basic_string_view<_tChar> sv, Encoding enc = CS_Default)
+		: u16string(MakeUCS2LE<u16string>(sv, enc))
 	{}
 	/*!
 	\brief 构造：使用指定字符类型的 std::basic_string 和指定编码。
@@ -106,6 +99,14 @@ public:
 	template<typename _tChar>
 	String(const std::basic_string<_tChar>& s, Encoding enc = CS_Default)
 		: String(s.c_str(), enc)
+	{}
+	/*!
+	\brief 构造：使用字符的初值符列表。
+	\since build 510
+	*/
+	template<typename _tChar>
+	String(std::initializer_list<_tChar> il)
+		: u16string(il.begin(), il.end())
 	{}
 	/*!
 	\brief 复制构造：默认实现。

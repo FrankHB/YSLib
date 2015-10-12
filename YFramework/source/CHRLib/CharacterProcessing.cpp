@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1586
+\version r1634
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-10-11 04:10 +0800
+	2015-10-12 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,6 +130,12 @@ UCToMBC(char* d, const char16_t& s, Encoding enc)
 
 
 size_t
+MBCSToUCS2(char16_t* d, const char* s)
+{
+	return MBCSToUCS2(FetchMapper_Default<ConversionResult, char16_t&,
+		const char*&, ConversionState&&>(), d, s);
+}
+size_t
 MBCSToUCS2(char16_t* d, const char* s, Encoding enc)
 {
 	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
@@ -138,6 +144,12 @@ MBCSToUCS2(char16_t* d, const char* s, Encoding enc)
 	else
 		yconstraint(d && s);
 	return 0;
+}
+size_t
+MBCSToUCS2(char16_t* d, const char* s, const char* e)
+{
+	return MBCSToUCS2(FetchMapper_Default<ConversionResult, char16_t&,
+		GuardPair<const char*>&&, ConversionState&&>(), d, s, e);
 }
 size_t
 MBCSToUCS2(char16_t* d, const char* s, const char* e, Encoding enc)
@@ -151,6 +163,13 @@ MBCSToUCS2(char16_t* d, const char* s, const char* e, Encoding enc)
 }
 
 size_t
+MBCSToUCS4(char32_t* d, const char* s)
+{
+	// TODO: Use UCS-4 internal conversion directly?
+	return MBCSToUCS4(FetchMapper_Default<ConversionResult, char16_t&,
+		const char*&, ConversionState&&>(), d, s);
+}
+size_t
 MBCSToUCS4(char32_t* d, const char* s, Encoding enc)
 {
 	// TODO: Use UCS-4 internal conversion directly?
@@ -160,6 +179,13 @@ MBCSToUCS4(char32_t* d, const char* s, Encoding enc)
 	else
 		yconstraint(d && s);
 	return 0;
+}
+size_t
+MBCSToUCS4(char32_t* d, const char* s, const char* e)
+{
+	// TODO: Use UCS-4 internal conversion directly?
+	return MBCSToUCS4(FetchMapper_Default<ConversionResult, char16_t&,
+		GuardPair<const char*>&&, ConversionState&&>(), d, s, e);
 }
 size_t
 MBCSToUCS4(char32_t* d, const char* s, const char* e, Encoding enc)
@@ -174,6 +200,11 @@ MBCSToUCS4(char32_t* d, const char* s, const char* e, Encoding enc)
 }
 
 size_t
+UCS2ToMBCS(char* d, const char16_t* s)
+{
+	return UCS2ToMBCS(FetchMapper_Default<size_t, char*, char32_t>(), d, s);
+}
+size_t
 UCS2ToMBCS(char* d, const char16_t* s, Encoding enc)
 {
 	if(const auto pfun = FetchMapperPtr<size_t, char*, char32_t>(enc))
@@ -181,6 +212,12 @@ UCS2ToMBCS(char* d, const char16_t* s, Encoding enc)
 	else
 		yconstraint(d && s);
 	return 0;
+}
+size_t
+UCS2ToMBCS(char* d, const char16_t* s, const char16_t* e)
+{
+	// TODO: Deferred. Use guard for encoding.
+	return UCS2ToMBCS(FetchMapper_Default<size_t, char*, char32_t>(), d, s, e);
 }
 size_t
 UCS2ToMBCS(char* d, const char16_t* s, const char16_t* e, Encoding enc)
@@ -214,6 +251,11 @@ UCS2ToUCS4(char32_t* d, const char16_t* s, const char16_t* e)
 }
 
 size_t
+UCS4ToMBCS(char* d, const char32_t* s)
+{
+	return UCS4ToMBCS(FetchMapper_Default<size_t, char*, char32_t>(), d, s);
+}
+size_t
 UCS4ToMBCS(char* d, const char32_t* s, Encoding enc)
 {
 	if(const auto pfun = FetchMapperPtr<size_t, char*, char32_t>(enc))
@@ -221,6 +263,12 @@ UCS4ToMBCS(char* d, const char32_t* s, Encoding enc)
 	else
 		yconstraint(d && s);
 	return 0;
+}
+size_t
+UCS4ToMBCS(char* d, const char32_t* s, const char32_t* e)
+{
+	// TODO: Deferred. Use guard for encoding.
+	return UCS4ToMBCS(FetchMapper_Default<size_t, char*, char32_t>(), d, s, e);
 }
 size_t
 UCS4ToMBCS(char* d, const char32_t* s, const char32_t* e, Encoding enc)

@@ -322,7 +322,7 @@
     <ClInclude Include="include\YSLib\Core\YStorage.hpp">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\CHRLib\chrdef.h">
+    <ClInclude Include="include\CHRLib\CharacterDefinition.h">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
     <ClInclude Include="include\CHRLib\CharacterMapping.h">

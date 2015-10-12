@@ -11,13 +11,13 @@
 /*!	\file CharacterMapping.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1378
+\version r1382
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-10-02 19:32 +0800
+	2015-10-12 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ using CharSet::Encoding;
 \brief 默认字符编码。
 \since build 287
 */
-yconstexpr const Encoding CS_Default = CharSet::UTF_8;
+yconstexpr const Encoding CS_Default(CharSet::UTF_8);
 
 
 /*!
@@ -158,7 +158,7 @@ GetIndexOf(_type& st)
 \note UTF-16 视为 UCS-2 。
 \since build 273
 */
-YF_API size_t
+YF_API YB_STATELESS size_t
 FetchFixedCharWidth(Encoding);
 
 /*!
@@ -167,7 +167,7 @@ FetchFixedCharWidth(Encoding);
 \note UTF-16 视为 UCS-2 。
 \since build 273
 */
-YF_API size_t
+YF_API YB_STATELESS size_t
 FetchMaxCharWidth(Encoding);
 
 /*!
@@ -176,7 +176,7 @@ FetchMaxCharWidth(Encoding);
 \note UTF-16 视为 UCS-2 。
 \since build 273
 */
-YF_API size_t
+YF_API YB_STATELESS size_t
 FetchMaxVariantCharWidth(Encoding);
 
 
