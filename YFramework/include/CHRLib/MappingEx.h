@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r371
+\version r383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2015-10-11 03:06 +0800
+	2015-10-11 11:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -235,13 +235,14 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 //! \since build 595
 //@{
 template<Encoding, typename _tRet, typename... _tParams>
-yconstfn ystdex::add_pointer_t<_tRet(_tParams...)>
+yconstfn YB_STATELESS ystdex::add_pointer_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(...) ynothrow
 {
 	return {};
 }
 template<Encoding _vEnc, typename _tRet, typename... _tParams>
-yconstfn ystdex::add_pointer_t<_tRet(_tParams...)>
+yconstfn YB_ATTR(returns_nonnull) YB_STATELESS
+	ystdex::add_pointer_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	decltype(GUCSMapper<_vEnc>::Decode(std::declval<_tParams>()...)), _tRet>*
 	= {})) ynothrow
@@ -249,12 +250,21 @@ FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	return GUCSMapper<_vEnc>::Decode;
 }
 template<Encoding _vEnc, typename _tRet, typename... _tParams>
-yconstfn ystdex::add_pointer_t<_tRet(_tParams...)>
+yconstfn YB_ATTR(returns_nonnull) YB_STATELESS
+	ystdex::add_pointer_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	decltype(GUCSMapper<_vEnc>::Encode(std::declval<_tParams>()...)), _tRet,
 	int>* = {})) ynothrow
 {
 	return GUCSMapper<_vEnc>::Encode;
+}
+
+//! \since build 645
+template<typename _tRet, typename... _tParams>
+yconstfn YB_STATELESS ystdex::add_lvalue_reference_t<_tRet(_tParams...)>
+FetchMapper_Default() ynothrow
+{
+	return *FetchMapperPtr_TryUCSMapper<CS_Default, _tRet, _tParams...>(nullptr);
 }
 
 //! \brief 取指定编码映射的转换函数指针。

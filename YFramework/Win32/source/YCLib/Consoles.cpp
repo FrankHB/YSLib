@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r263
+\version r295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-09-24 12:03 +0800
+	2015-10-11 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_Win32_YCLib_Consoles
+#	include YFM_Win32_YCLib_Consoles // for UTF8ToWCS;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
 using namespace YSLib;
@@ -54,7 +54,7 @@ WConsole::WConsole(::HANDLE h)
 }
 WConsole::~WConsole()
 {
-	RestoreAttributes();
+	FilterExceptions(std::bind(&WConsole::RestoreAttributes, this), yfsig);
 }
 
 ::CONSOLE_SCREEN_BUFFER_INFO
@@ -76,7 +76,7 @@ WConsole::SetSystemColor(std::uint8_t color)
 }
 
 void
-WConsole::SetBackColor(std::uint8_t bc)
+WConsole::SetBackColor(std::uint8_t bc) ynothrow
 {
 	Attributes = ComposeAttributes(FetchForeColor(Attributes), bc);
 }
@@ -84,16 +84,16 @@ void
 WConsole::SetCursorPosition(::COORD pos)
 {
 	// NOTE: %::SetConsoleCursorPosition expects 1-based.
-	::SetConsoleCursorPosition(h_std, {short(pos.X + 1), short(pos.Y + 1)});
+	YCL_CallWin32F(SetConsoleCursorPosition, h_std, {short(pos.X + 1), short(pos.Y + 1)});
 }
 void
-WConsole::SetForeColor(std::uint8_t fc)
+WConsole::SetForeColor(std::uint8_t fc) ynothrow
 {
 	Attributes = ComposeAttributes(fc, FetchBackColor(Attributes));
 }
 
 ::WORD
-WConsole::ComposeAttributes(std::uint8_t fore, std::uint8_t back)
+WConsole::ComposeAttributes(std::uint8_t fore, std::uint8_t back) ynothrow
 {
 	return (fore & 15) | ((back & 15) << 4);
 }
@@ -122,13 +122,13 @@ WConsole::Erase(wchar_t c)
 void
 WConsole::Fill(::COORD coord, unsigned long n, wchar_t c)
 {
-	::FillConsoleOutputCharacterW(h_std, c, n, coord, {});
-	::FillConsoleOutputAttribute(h_std, Attributes, n, coord, {});
-	::SetConsoleCursorPosition(h_std, {coord.X, coord.Y});
+	YCL_CallWin32F(FillConsoleOutputCharacterW, h_std, c, n, coord, {});
+	YCL_CallWin32F(FillConsoleOutputAttribute, h_std, Attributes, n, coord, {});
+	YCL_CallWin32F(SetConsoleCursorPosition, h_std, {coord.X, coord.Y});
 }
 
 void
-WConsole::RestoreAttributes() ynothrow
+WConsole::RestoreAttributes()
 {
 //	SetColor();
 	Update(GetSavedAttributes());
@@ -142,7 +142,7 @@ WConsole::Update()
 void
 WConsole::Update(::WORD value)
 {
-	::SetConsoleTextAttribute(h_std, value);
+	YCL_CallWin32F(SetConsoleTextAttribute, h_std, value);
 }
 
 void
@@ -157,6 +157,30 @@ WConsole::UpdateForeColor(std::uint8_t fc)
 {
 	SetForeColor(fc);
 	Update();
+}
+
+size_t
+WConsole::WriteString(string_view sv)
+{
+	YAssertNonnull(sv.data());
+	// FIXME: Support for non-BMP characters.
+	return WriteString(UTF8ToWCS(sv));
+}
+size_t
+WConsole::WriteString(string_view sv, unsigned cp)
+{
+	YAssertNonnull(sv.data());
+	return WriteString(MBCSToWCS(sv, cp));
+}
+size_t
+WConsole::WriteString(wstring_view sv)
+{
+	YAssertNonnull(sv.data());
+
+	unsigned long n;
+
+	YCL_CallWin32F(WriteConsoleW, h_std, sv.data(), sv.length(), &n, yimpl({}));
+	return size_t(n);
 }
 
 unique_ptr<WConsole>

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r4981
+\version r5077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-11 14:30 +0800
+	2015-10-12 11:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,103 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ "class %String" @ %Core.YString $=
+			(
+				+ "constructor template with %basic_string_view instance \
+					parameter",
+				* "ill-formed initialization for call %MakeUCS2LE"
+					@ "constructor template with character pointer length \
+					parameters" $since b641
+			)
+		),
+		/ @ "class %WConsole" @ %'YCLib(Win32)'.Consoles $=
+		(
+			+ "4 functions %WriteString",
+			(
+			+ "throwing %Win32Exception to report error" @ "member functions \
+				%(Update, Fill, SetCursorPosition)" ^ "%YCL_CallWin32F";
+			(
+			- $forced 'ynothrow' @ "function %RestoreAttributes";
+			+ $forced "catching error" @ "destructor"
+			),
+			* "error other than occuring during getting buffer information \
+				ignored" @ "functions (Update, Fill, UpdateBackColor, \
+				UpdateForeColor, Erase)" $since b520
+			),
+			+ 'ynothrow' @ "static functions %(ComposeAttributes, \
+				DecomposeAttributes, FetchBackColor, FetchForeColor), \
+				functions %(SetBackColor, SetForeColor)"
+		),
+		/ $comp "%Win32Exception would be thrown on several errors"
+			@ "platform %Win32" @ "class %Terminal" @ %YCLib.Host $dep_from
+			%'YCLib(Win32)'.Consoles,
+		/ %CHRLib $=
+		(
+			/ %CharacterProcessing $=
+			(
+				(
+				+ "2 function templates %TranscodeWith";
+				/ "simplified all 2 %(DecodeWith, EncodeWith)"
+					^ "%TranscodeWith";
+				- "ADL for function object parameter" @ "tmeplates \
+					%(DecodeWith, EncodeWith, MBCSToUCS2, MBCSToUCS4, \
+					UCS2ToMBCS, UCS4ToMBCS)"
+				),
+				(
+				- "state support other than 'ConversionState()'"
+					@ "function templates %(MBCSToUCS2, MBCSToUCS4)";
+				* $comp "wrong result" @ "%(MBCSToUCS2, MBCSToUCS4) calls"
+					$since b644,
+				),
+				/ "split %(MBCSToUCS2, MBCSToUCS4, UCS2ToMBCS, UCS4ToMBCS)"
+					!^ "default argument %CS_Default" $dep_to
+					"split transcoding",
+				(
+				+ "class templates %(DispatchTranscoding; Transcoding)";
+				/ "function temlpates %(MakeUCS2LE, MakeUCS4LE, MakeMBCS)" $=
+				(
+					/ DLDI "simplified" ^ "macro",
+					/ $impl ^ "%Transcoding",
+					/ "string view parameter types" ^ $dep_from
+						("%basic_string_view" @ %CharacterDefinition)
+						~ "%(string_view, u16string_view, u32string_view)"),
+					/ "supported variadic parameters" ~ "encoding parameter"
+						$dep_from "split transcoding"
+						// This improve conversions without encoding \
+							parameter, which previously requires querying \
+							%CS_Default mapper pointer at rumtime. This is \
+							especially effective for static linking where LTO \
+							can take effect across the minimal procedure \
+							boundary. This is also effective to shrink binary \
+							size for statically linked image if only default \
+							encoding is used.
+				)
+				)
+			),
+			+ 'using ystdex::basic_string_view;' @ %CharacterDefinition,
+			* DLB "missing renaming 'chrdef.h'" @ "VC++ project filter" $since
+				b641,
+			/ %MappingEx $=
+			(
+				+ DLD 'YB_STATELESS'
+					@ "all 3 function templates %FetchMapperPtr_TryUCSMapper",
+				+ DLD 'YB_ATTR(returns_nonnull)' @ "all 2 function templates \
+					%FetchMapperPtr_TryUCSMapper not returning '{}'",
+				+ "function template %FetchMapper_Default"
+			),
+			+ 'YB_STATELESS' @ "functions %(FetchFixedCharWidth, \
+				FetchMaxCharWidth, FetchMaxVariantCharWidth)"
+				@ %CharacterMapping
+		)
+	)
+),
+
+b645
 (
 	/ %YFramework $=
 	(

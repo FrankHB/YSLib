@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8975
+\version r9079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2015-05-05 04:54 +0800
+	2015-10-12 11:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 
 $import $HISTORY;
 
-// Scope: [b400, $now];
+// Scope: [b400, b500);
 
 b499
 (
@@ -131,7 +131,7 @@ b498
 		(
 			/ %Debug $=
 			(
-				+ $dev $doc "Doxygen group %tracing";
+				+ DD "Doxygen group %tracing";
 				(
 				+ "class %Logger";
 				+ "functions %(FetchCommonLogger, LogWithSource)";
@@ -214,7 +214,7 @@ b498
 			(
 				/ "implemented" ^ "pImpl class %YSLib::Drawing::CompactBitmap",
 				+ "constructor accepting extra stride",
-				/ "implemented function %(UpdateFrom, swap)",
+				/ "implemented functions %(UpdateFrom, swap)",
 				/ "function %GetSize",
 				+ "functions %(GetBufferPtr, GetStride)",
 				- "function %Premultiply" $dep_from
@@ -263,7 +263,7 @@ b498
 		/ DLD "similifed unsequenced function calls" ^ "%unseq_apply"
 			@ %(ShlExplorer, ShlReader)
 	),
-	/ $dev $doc "cleanup" @ %Documentation.Definitions $=
+	/ $doc "cleanup" @ %Documentation.Definitions $=
 	(
 		- "namespaces list",
 			// Doxygen is preferred.
@@ -275,7 +275,7 @@ b498
 
 b497
 (
-	/ $dev "3rd party" @ "platform %Android" $=
+	/ "3rd party" @ "platform %Android" $=
 	(
 		+ $doc "FreeType build instructions";
 		+ "built FreeType"
@@ -311,7 +311,7 @@ b497
 		/ %YCLib $=
 		(
 			^ "%FileOperationFailure" ~ "neutral exception %std::runtime_error"
-				@ "constructors" @ "class %MemoryMappedFile" @ %MemoryMapped,
+				@ "constructors" @ "class %MappedFile" @ %MemoryMapping,
 			^ "%FileOperationFailure" ~ "%std::runtime_error"
 				@ "functions %GetFileSizeOf" @ %FileSystem
 		),
@@ -557,7 +557,7 @@ b495
 			)
 		)
 	),
-	/ $dev $doc $design "normalized terminology used"
+	/ DD $design "normalized terminology used"
 		@ %Documentation::ChangeLog $=
 	(
 		- "all 'member' when unnecessary",
@@ -597,8 +597,8 @@ b494
 			(
 				* "friend function %Activate had default arguments" @ %Console
 					$since b203 $=
-					// See http://clang-developers.42468.n3.nabble.com/Clang-compile-error-td4033809.html .
-					// See also http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59480 .
+					// See http://clang-developers.42468.n3.nabble.com/Clang-compile-error-td4033809.html.
+					// See also http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59480.
 				(
 					- "default argument" @ "friend function",
 					+ "non-friend overloading"
@@ -667,7 +667,7 @@ b494
 			make_transform) and one of constructor templates of \
 			%YSLib::GHEvent are modified. See $2014-04 \
 			@ %Documentation::Workflow::Annual2014.
-	/ $dev $doc "interface comments" $=
+	/ DD "interface comments" $=
 	(
 		^ '\invariant' ~ '\note' @ "non-null guarantee",
 		^ '\sa' ~ '\see' @ "all YSLib internal references"
@@ -739,7 +739,11 @@ b493
 			+ '-fdata-sections -ffunction-sections' @ "%CFLAGS"
 				@ "freetype %config.mk",
 			+ "build script %build-ds.sh for UNIX shell"
-		);
+		),
+		/ DLP "updated library %freetype" @ "library using"
+			$= (^ $re_ex(b459) "updated freetype 2.5.3 with several files \
+				remained from freetype 2.4.11" ~ "freetype 2.5.2"),
+			// See [Documentation::Dependencies @@2.2.3].
 		/ "rebuilt"
 	),
 	/ $dev $build $re_ex(b431) "merged directories for %YSTest platform builds" $=
@@ -764,7 +768,7 @@ b492
 		@ "macro %ythread" @ %YDefinition,
 	- $dev $build "all workaround for G++ whose version less than 4.8.2",
 	- DLD "all redundant unused parameter for expanded caller"
-		@ "parameter list of lambda expressions",
+		@ "parameter list" @ "lambda-expressions",
 	/ %'YFrameowork' $=
 	(
 		/ %YSLib $=
@@ -824,15 +828,15 @@ b492
 		),
 		+ %'YCLib_(Android)' $dep_from %YCLib.Platform
 			$= (+ %Android),
-		* DLDI "missing explicit return type" @ "lambda expression"
+		* DLDI "missing explicit return type" @ "lambda-expression"
 			"%NPL::TransformNPLA1" @ %NPL $since b344
 	),
 	/ $dev @ "macros list" @ %Tools.PredefinedMacroDetector $=
 	(
 		+ "macros %(__GCC_IEC_559, __GCC_IEC_COMPLEX)",
-			// See http://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros .
+			// See http://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros.
 		+ "Clang++ support"
-			// See http://clang.llvm.org/docs/LanguageExtensions.html .
+			// See http://clang.llvm.org/docs/LanguageExtensions.html.
 	),
 	/ $dev @ "Visual C++ projects" $=
 	(
@@ -846,9 +850,9 @@ b492
 	),
 	+ "platform %Android" $=
 	(
-		+ "toolchain package script 'make-clang-android.sh'" @ %Tools,
+		+ $dev "toolchain package script 'make-clang-android.sh'" @ %Tools,
 		+ "project %YBase_Android",
-		/ "supported for bionic libc" @ %YBase.LibDefect.String,
+		+ "support for bionic libc" @ %YBase.LibDefect.String,
 			// Without support of %std::(wcstoll, wcstoull, wcstof, wcstold, \
 				stof, stod, stold).
 		+ "project %YFramework_Android"
@@ -938,7 +942,7 @@ b490
 		/ %YSLib $=
 		(
 			(
-			+ 'using platform::KeyIndex' @ %Adaptor.YAdatpor;
+			+ 'using platform::KeyIndex' @ %Adaptor.YAdaptor;
 			+ "class %KeyInpuDevice" @ %Core.YDevice
 			),
 			/ %UI $=
@@ -1086,7 +1090,7 @@ b488
 		)
 	),
 	+ DLB '-Wno-psabi' @ "CFLAGS" @ "makefiles" @ "platform %DS"
-		// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=42748 .
+		// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=42748.
 ),
 
 b487
@@ -1099,7 +1103,7 @@ b487
 			(
 				(
 				* "missing explicit invalidation handlers" @ "handling event \
-					%(GotFocus, LostFocus)" @ "class %(Thumb, TextList, \
+					%(GotFocus, LostFocus)" @ "classes %(Thumb, TextList, \
 					ProgressBar, DialogBox, DialogPanel)" @ $since b486;
 				* $comp "submenus not shown" $since b486
 				),
@@ -1133,7 +1137,7 @@ b487
 					@ "platform %DS",
 				- $dev "all redundant '#undef' 'VK_*'" @ "platform %Win32"
 			),
-			+ "function %(2 MapKeyChar, FindNextKey)" @ %Keys
+			+ "functions %(2 MapKeyChar, FindNextKey)" @ %Keys
 		)
 	),
 	/ "menu key" -> "Ctrl" @ "platform %Win32" @ %YReader.ShlExplorer
@@ -1149,7 +1153,7 @@ b486
 			(
 				+ "function %GetCharBounds",
 				/ DLD "simplified implementation" @ "functions %operator="
-					^ "%(PDefHOp, ImplExpr)"
+					^ "macros %(PDefHOp, ImplExpr)"
 			),
 			/ %UI $=
 			(
@@ -1362,7 +1366,7 @@ b483
 		(
 			/ "alias-declaration %string_type" @ "traits %string_traits"
 				^ "%decay_t" ~ "%remove_reference_t",
-			+ "metafunction %enable_string_class_t"
+			+ "metafunction %enable_for_string_class_t"
 		),
 		+ "metafunction %enable_for_iterator_t" @ %Iterator,
 		* "missing workaround for Visual C++" @ "move constructor"
@@ -1375,12 +1379,12 @@ b483
 		/ %Adaptor.Image $dep_from %YBase.YStandardEx.String $=
 		(
 			/ DLD "selection of string parameters for member overloads"
-				@ "class %HBitmap" ^ 'ystdex::enable_string_class_t',
+				@ "class %HBitmap" ^ 'ystdex::enable_for_string_class_t',
 			/ "selection of string parameters for member overloads"
 				@ "class %HMultiBitmap" $=
 			(
 				// If the parameter is a character type
-				^ DLD 'ystdex::enable_string_class_t',
+				^ DLD 'ystdex::enable_for_string_class_t',
 				* $comp "non overloaded non-class argument selected for \
 					infinite recursion" ~ "translation-time diagnostics"
 					$since build 471
@@ -1388,7 +1392,7 @@ b483
 			/ "selection of string parameters for overloads"
 				@ "%ImageCodec::LoadForPlaying" $=
 			(
-				^ DLD 'ystdex::enable_string_class_t',
+				^ DLD 'ystdex::enable_for_string_class_t',
 				* $comp "non overloaded non-class argument selected for \
 					infinite recursion" ~ "translation-time diagnostics"
 					$since build 458
@@ -1675,11 +1679,11 @@ b478
 		- 'YSTest_MinGW32/config.txt',
 		- 'YSTest_MinGW32/yconf.txt'
 	),
-	/ $dev $doc "completed outline of %YSLib::UI documentation"
+	/ $doc "completed outline of %YSLib::UI documentation"
 		@ %Documentation.YSLib,
 	/ %YFramework.YSLib.UI $=
 	(
-		+ $dev $doc "Doxygen group %UIModels" @ "group %UI" @ %YWidget,
+		+ DD "Doxygen group %UIModels" @ "group %UI" @ %YWidget,
 		/ %Selector $=
 		(
 			+ "class template %GMSelector",
@@ -1691,7 +1695,7 @@ b478
 				/ "tick event and handler types" -> "using-declarations",
 				+ "using %MCheckBox::(StateType, Unchecked, Checked, Partial, \
 					GetState, Ticked)",
-				/ "parameter type" @ "function %(SetTicked, Tick)"
+				/ "parameter type" @ "functions %(SetTicked, Tick)"
 					-> 'StateType' ~ 'bool',
 				- "function %GetTicked"
 			)
@@ -1707,7 +1711,7 @@ b477
 	/ %YBase.YStandardEx $=
 	(
 		+ "alias template %tuple_element_t" @ %Tuple,
-			// See https://github.com/cplusplus/draft/issues/247 .
+			// See https://github.com/cplusplus/draft/issues/247.
 		+ "class %boxed_value; metafunction %classify_value_t" @ %'Utilities';
 		+ "%Mixin"
 			$= (+ "class %mixin; metafunction %wrap_mixin_t" @ %'Utilities'),
@@ -1725,7 +1729,7 @@ b477
 	/ "simplified implementation" @ %Tools.SHBuild.Main ^ "%ystdex::mixin, \
 		nested exceptions" $dep_from %YBase.YStandardEx.Mixin,
 	(
-	+ $dev $lib $doc "descriptions of code formatting algorithm in natural \
+	+ $dev $lib DD "descriptions of code formatting algorithm in natural \
 		language";
 	/ DLD "specified by rules of code formatting algorithm specific to '(' at \
 		EOL"
@@ -1749,7 +1753,7 @@ b476
 		(
 			/ %Service.YFileSystem $=
 			(
-				* $doc "wrong comments" @ "functions %(IsAbsolute, IsRelative)"
+				* DD "wrong comments" @ "functions %(IsAbsolute, IsRelative)"
 					$since b410,
 				+ "3 functions %(EnsureDirectory)",
 				/ DLD "implemented function %GetExtensionOf"
@@ -1847,7 +1851,7 @@ b475
 			- "macro %YCL_MAX_PATH_LENGTH" @ %YCLib.FileSystem,
 			- $depr_clean "function %getcwd_n",
 			- "function %mkdirs",
-			+ "function %(umkdir, urmdir)"
+			+ "functions %(umkdir, urmdir)"
 		),
 		/ %CHRLib $=
 		(
@@ -1866,7 +1870,7 @@ b475
 						* $comp "missing check for allocation failed"
 							@ "function %strdup" $since b305
 					),
-					/ $dev $doc "explicitly specified maximum sequence length \
+					/ DD "explicitly specified maximum sequence length \
 						of MBC as 'sizeof(ucsint_t)'"
 				)
 				+ "function templates %(strdup, ucsdup)"
@@ -1886,7 +1890,7 @@ b475
 			@ "function %HostRenderer::clone" @ %HostRenderer
 			@ %Helper.HostRenderer $dep_from "%ystdex::unimplemented"
 	),
-	/ $doc $term $re(b338) "all '断言检查'" -> "'断言'" @ "pre conditions",
+	/ DD $term $re(b338) "all '断言检查'" -> "'断言'" @ "pre conditions",
 	/ %YBase.YStandardEx $=
 	(
 		+ "exception classes %(unsupported; unimplemented), class %cloneable"
@@ -2160,14 +2164,20 @@ b471
 				// Inherited constructors are not supported until G++ 4.8.
 			)
 		)
-		* "VC++ project and filter did not reflect the update of freetype \
+		* DLB "VC++ project and filter did not reflect the update of freetype \
 			directory structure" $since b459
 	)
 ),
 
 b470
 (
-	/ DLD "reduced redundant 'return std::move' usage",
+	/ DLD "reduced redundant 'return std::move' usage" @ "return-statement"
+		$effective @ %(YBase.YStandardEx.(Iterator, Path, String, Container),
+		YFramework.(CHRLib.CharacterProcessing, NPL.(SContext, Configuration,
+		Lexical), 'YCLib_(MinGW32)'.(COM, MinGW32), YSLib.(Adaptor.Image,
+		Core.(ValueNode, FileSystem), Service.(AccessHistory, TextManager,
+		TextFile), UI.(ComboList, Loader)), Helper.Initialization,
+		YCLib.FileSystem), YReader.(ReadingList, ShlReader)),
 		// See $2014-01 @ %Documentation::Workflow::Annual2014.
 	/ %YFramework.YSLib $=
 	(
@@ -2275,8 +2285,8 @@ b468
 				/ "paint event handlers" ^ "styles"
 			)
 			),
-			/ $dev $doc "simplified module names style",
-			* $dev $doc "'\note' comment" @ "class %Control::ControlEventMap"
+			/ DD "simplified module names style",
+			* DD "'\note' comment" @ "class %Control::ControlEventMap"
 				@ %'YControl'
 		)
 	)
@@ -2301,7 +2311,7 @@ b467
 			/ "constructor with pointer to member function"
 				@ "class template %GHEvent" @ %Core.YEvent $=
 			(
-				/ $impl ^ "lambda expression"
+				/ $impl ^ "lambda-expression"
 					~ "class template %ExpandMemberFirstBinder";
 					// This made calling a handler initialized by a null \
 						pointer to member function would raise undefined \
@@ -2398,7 +2408,7 @@ b464
 			/ $dep "implementation kept compatible to MinGW.org runtime"
 				@ "platform %MinGW32" @ %YFileSystem $=
 			(
-				+ $dev "private declarations for C function %(_fileno, \
+				+ $dev $impl "private declarations for C functions %(_fileno, \
 					_wfopen) copied from MinGW header"
 					@ 'defined(__MINGW32__) && \
 						!defined(__MINGW64_VERSION_MAJOR)',
@@ -2458,7 +2468,7 @@ b463
 (
 	+ $dev $repo "tags (from 'V0.2' to 'V0.4' for build revisions 'b200', \
 		'b300' and 'b400' respectively), of 3 'PreAlpha' revisions",
-	+ $doc "directory structure and build instructions" @ "readme document",
+	+ DD "directory structure and build instructions" @ "readme document",
 	/ %YFramework.YSLib.UI $=
 	(
 		+ "function templates %(Restart; 2 Setup; SetupByTimer)" @ %Animation,
@@ -2501,10 +2511,10 @@ b462
 	),
 	^ $dev "macros %'YFM_*'" @ %YReader,
 	/ DLP "updated library %freetype" @ "library using"
-		$= (^ $re_ex(b459) "updated freetype 2.5.1 with several files remained \
-			from freetype 2.4.11" ~ "freetype 2.5.0.1"),
+		$= (^ $re_ex(b459) "updated freetype 2.5.2 with several files remained \
+			from freetype 2.4.11" ~ "freetype 2.5.1"),
 		// See [Documentation::Dependencies @@2.2.3].
-	/ $dev $doc $term '依赖于' -> '依赖' @ "dependency descriptions"
+	/ DD $term '依赖于' -> '依赖' @ "dependency descriptions"
 		@ %Documentation::YSLib
 ),
 
@@ -2551,7 +2561,7 @@ b461
 					normalized" @ %ValueNode => "%_tCon",
 				(
 					+ %Cache
-						$= ( + "template class %GMRUCache");
+						$= (+ "template class %GMRUCache");
 					/ "function template %LookupCache" @ %YCoreUtilities
 						>> %Cache
 				),
@@ -2617,7 +2627,7 @@ b460
 						@ "macros %(DefWidgetBegin, DefWidgetEnd, \
 						DefWidgetMemberIteration, DefWidgetMemberIterationBase)"
 				),
-				/ @ "class %(UIContainer, Panel)" $=
+				/ @ "classes %(UIContainer, Panel)" $=
 				(
 					/ "member type %Iterator" => "%iterator",
 					/ "functions %(GetBegin, GetEnd)" -> "%(begin, end)"
@@ -2672,7 +2682,7 @@ b459
 		),
 		/ DLD "implemented function %File::Rewind" @ %YSLib.Service.YFile
 			^ "macro %ImplExpr" ~ "macro %ImplRet"
-			// 'ImplRet' is intended to use return statement while 'ImplExpr' \
+			// 'ImplRet' is intended to use return-statement while 'ImplExpr' \
 				is intended to return a void typed expression. The latter is \
 				clearer in this case.
 	),
@@ -2834,7 +2844,7 @@ b457
 	(
 		+ $design "assertion for non-EOF value" @ "%ifile_iterator::operator++"
 			@ %YStandardEx.CStandardIO,
-		/ "warning level" @ "VC++ project" -> '/W4' ~ '/W3'
+		/ $dev $build "promoted warning level" @ "VC++ project" ~ '/W3'
 	),
 	^ DLD "%noncopyable" ~ "all use of %DelCopyCtor" @ "class definitions",
 	^ "%DefDeCtor" ~ "class %ReadingList" @ %YReader.ReadingList
@@ -2896,7 +2906,7 @@ b456
 		/ $doc @ "meta documentations" $since b393,
 		* "namespace %Discriptions" => "%Descriptions" @ %YCommon $since b432
 			$dep_to "namespace spelling error",
-		/ $doc %Documentation.ProjectRules $since b436
+		/ DD %Documentation.ProjectRules $since b436
 	),
 	/ DLB "project build options" $=
 	(
@@ -3102,7 +3112,7 @@ b454
 	(
 		/ %YDefinition $=
 		(
-			+ $doc "group %preprocessor_helpers"
+			+ DD "Doxygen group %preprocessor_helpers"
 				$= (+ "macros %(YPP_Empty, YPP_Comma)"),
 			/ "macro %yjoin" => "YPP_Join",
 			/ "macro %yJOIN" => "YPP_Concat";
@@ -3164,7 +3174,7 @@ b453
 	(
 		/ %UI $=
 		(
-			/ "parameter" @ "function %(DrawRectRoundCorner, RectDrawArrow)"
+			/ "parameter" @ "functions %(DrawRectRoundCorner, RectDrawArrow)"
 				^ 'const PaintContext&' ~ 'const Graphics&, const Point&',
 			/ "protected member function 'void PaintBox(const Graphics&, \
 				const Rect&)'" @ "class %CheckBox" @ %Selector
@@ -3284,7 +3294,7 @@ b452
 						internal drawing functions of %YStyle and other UI \
 						modules.
 				+ "function %PlotLineSeg",
-				+ $doc "group %Grpahics2D" @ %YDraw,
+				+ DD "Doxygen group %Grpahics2D" @ %YDraw,
 				/ "functions 'Plot*' supported for custom boundary other than \
 					boundary of buffer",
 				+ "graphics functions 'Draw*' with alternative boundary \
@@ -3687,10 +3697,10 @@ b447
 		),
 		/ %Variadic $=
 		(
-			+ "constexpr static function %size"
+			+ "static constexpr function %size"
 				@ "class template %variadic_sequence",
 				// Like %std::integer_sequence::size in C++1y.
-			+ $dev $doc "Doxygen group %vseq_operations",
+			+ DD "Doxygen group %vseq_operations",
 			+ "meta operation templates %(sequence_split, sequence_split_t, \
 				sequence_cat, sequence_cat_t, make_successor_t, \
 				make_natural_sequence_t, sequence_element, sequence_element_t, \
@@ -3858,7 +3868,7 @@ b444
 				totally out of destination buffer boundary.
 		+ "enum class BorderArea; class %BorderResizer" @ %Border
 	),
-	+ $dev $doc "Doxygen group %exception_types for exception types"
+	+ DD "Doxygen group %exception_types for exception types"
 		@ %YBase.YDefinition,
 	/ %YReader $=
 	(
@@ -3895,7 +3905,7 @@ b443
 					+ "support for painting according to destination offset"
 					// The old member %Offset is source offset.
 				),
-				/ "class %(BorderStyle, BorderBrush)" @ %YBrush >> %Border
+				/ "classes %(BorderStyle, BorderBrush)" @ %YBrush >> %Border
 					$dep_from %Border
 			),
 			+ %Border,
@@ -4044,7 +4054,7 @@ b441
 					configuration than last revision.
 		)
 	),
-	+ $dev $doc "Doxygen command '\relates' for some non-member function \
+	+ DD "Doxygen command '\relates' for some non-member function \
 		declarations outside class scope"
 ),
 
@@ -4184,10 +4194,10 @@ b439
 		+ %CStandardInteger;
 		/ "meta operation template %make_fixed_width_int" @ %TypeOperation
 			-> "%make_width_int with %('int_least*_t', 'int_fast*_t') \
-			support and without non-exact width defauted types support"
+			support and without non-exact width defaulted types support"
 			@ %CStandardInteger,
 		/ "meta operation templates %(integer_width, make_signed_c)"
-			>> %CStandardInteger
+			@ %TypeOperation >> %CStandardInteger
 		),
 		/ @ %Operators $=
 		(
@@ -4302,7 +4312,7 @@ b437
 			)
 		)
 	),
-	+ $doc DLB "number of members of %std::placeholders requirement";
+	+ DD $lib $build "number of members of %std::placeholders requirement"
 		// Currently _6 is needed by %YBlit.
 ),
 
@@ -4381,7 +4391,7 @@ b435
 			),
 			/ %Win32GUI $=
 			(
-				+ "class %(ScreenBuffer; ScreenRegionBuffer)",
+				+ "classes %(ScreenBuffer; ScreenRegionBuffer)",
 				+ "alpha premultiplying support" @ "screen buffer",
 				+ "2 functions %UpdatePremultiplied"
 					@ "class %WindowMemorySurface"
@@ -4459,9 +4469,9 @@ b434
 
 b433
 (
-	/ $dev $doc Documentation $=
+	/ $doc %Documentation $=
 	(
-		+ $doc "basic namespace rules" @ %NPL,
+		+ "basic namespace rules" @ %NPL,
 		(
 		+ "workflow document %Workflow.2013.txt";
 		+ "labeled paragraph %$STATE for current state" @ %Meta
@@ -4622,7 +4632,7 @@ b432
 			@ "class %Configuration" @ %NPL.Configuration $since b376,
 		+ "class %WindowClass" @ %'YCLib_(MinGW32)'.Win32GUI
 	),
-	+ $doc "%Documentation::NPL",
+	+ $doc %Documentation.NPL,
 	* $dev "header and source locations" @ "makefiles" @ "platform DS"
 		@ "project %(YBase_DS, YFramework_DS)" $since b431
 ),
@@ -4716,7 +4726,7 @@ b431
 			)
 		),
 		* $doc "missing license for FreeImage" $since b417,
-		+ $dev $doc "warning for using patched FreeType"
+		+ $doc "warning for using patched FreeType"
 	),
 	/ $dev $build "merged directories for %(YBase, YFramework) platform \
 		extensions"
@@ -4891,16 +4901,16 @@ b428
 					@ "explicit constructor with 2 parameters"
 			)
 		),
-		/ @ "namespace %platform_ex::Windows" @ %'YCLib(MinGW32)'.Win32GUI $=
+		/ @ "namespace %platform_ex::Windows" @ %'YCLib_(MinGW32)'.Win32GUI $=
 		(
 			(
 			+ "function %CreateNativeWindow",
 			+ "function %WindowReference::SetText"
 			),
 			(
-			+ "class %(ScreenBuffer; ScreenRegionBuffer)",
+			+ "classes %(ScreenBuffer; ScreenRegionBuffer)",
 			+ "class %WindowMemorySurface",
-			+ "class %(WindowDeviceContextBase; WindowDeviceContext, \
+			+ "classes %(WindowDeviceContextBase; WindowDeviceContext, \
 				WindowRegionDeviceContext)",
 			+ "class template %GSurface";
 			- $comp "screen update time" @ "debug output";
@@ -4914,7 +4924,7 @@ b428
 		/ %Helper $=
 		(
 			/ %HostWindow
-				$=( + 'using WindowReference::SetText;' @ "class %Host::Window"
+				$= (+ 'using WindowReference::SetText;' @ "class %Host::Window"
 					$dep_from "%WindowReference::SetText";),
 			/ @ "namespace %Host" @ %HosteUI $=
 			(
@@ -4931,7 +4941,7 @@ b428
 				)
 			)
 		),
-		/ "made explicit no exception specification"
+		/ "made explicit no exception-specification"
 			@ "user-defined destructors" @ "all final classes" @ %YFramework
 			$= (+ 'ynothrow' @ ("classes %(ImageMemory, HBitmap, ImageCodec)"
 				@ %Image, "classes %(Typeface, FontCache)" @ %Font)
@@ -5011,8 +5021,8 @@ b427
 		// Only for convenience, no ability for building.
 	/ $doc @ "directory %doc" $=
 	(
-		+ "%Documentation::YBase(file %YBase.txt)"
-		+ "%Documentation::YFramework(file %YFramework.txt)"
+		+ %Documentation.YBase("file %YBase.txt"),
+		+ %Documentation.YFramework("file %YFramework.txt")
 	)
 ),
 
@@ -5054,7 +5064,7 @@ b426
 				(
 					/ "return type of function %Show" -> "'bool'"
 						~ "'void' to report asynchronous result",
-					+ "function %(Move, GetLocation)" @ "class %Host::Window"
+					+ "functions %(Move, GetLocation)" @ "class %Host::Window"
 				);
 				/ "all Win32 API call failures not producing as result \
 					wrapped by %MinGW::Win32Exception" @ "platform %MinGW32"
@@ -5238,7 +5248,7 @@ b422
 				+ "independent cursor focus pointer";
 				+ "support for %(Enter, Leave) generated by %CursorOver",
 				/ "function %IsControlEntered" => "%IsEntered",
-				+ "function %(GetCursorOverPtr, Wrap)",
+				+ "functions %(GetCursorOverPtr, Wrap)",
 			),
 			/ "%(Enter, Leave) now only generated for derived classes of \
 				%Control as default"
@@ -5349,7 +5359,7 @@ b419
 	(
 		/ %Adaptor.Font $=
 		(
-			+ "class %(FontException, NativeFontSize, SmallBitmapData)";
+			+ "classes %(FontException, NativeFontSize, SmallBitmapData)";
 			/ @ "class %Typeface" $=
 			(
 				* "missing glyph index cache insertion failure check"
@@ -5364,7 +5374,7 @@ b419
 			(
 				- "size cache";
 				- "FreeType cache manager";
-				- "function %(ResetGlyphCache, Reset)"
+				- "functions %(ResetGlyphCache, Reset)"
 			),
 			/ @ "class %Font" $=
 			(
@@ -5377,7 +5387,7 @@ b419
 		/ $dev "access control" @ "inheriting class %LoggedEvent"
 			@ "class %BadEvent" @ %UI.YWidgetEvent -> public ~ private,
 		* $design "platform-dependent bool type xor operation" @ "assertion"
-			@ "function %(CompactPixmap, CompactPixmapEx)::SetSize, \
+			@ "functions %(CompactPixmap, CompactPixmapEx)::SetSize, \
 			CompactPixmapEx::SetSize" $since b176
 			@ %'(BitmapBuffer, BitmapBufferEx)::SetSize'
 	),
@@ -5785,7 +5795,7 @@ b411
 		(
 			/ %UI $=
 			(
-				* $dev $doc "exception name" @ %UI.YControl $since b241,
+				* DD "exception name" @ %UI.YControl $since b241,
 				/ "empty struct %BadEvent"
 					-> "class %BadEvent : public LoggedEvent" @ %YWidgetEvent
 			),
@@ -5868,7 +5878,7 @@ b409
 (
 	/ %YFramework $=
 	(
-		/ $dev "all %Swap" => "%swap",
+		/ $dev "all %Swap" => "%swap" $dep_to "swap function renaming",
 		/ $dev "all %Clone" => "%clone",
 		/ %YSLib $=
 		(
@@ -5919,9 +5929,13 @@ b409
 					- "functions %(GetDirectoryNameOf, 2 ChangeDirectory)"
 				)
 			),
-			+ "non-function template %swap for class %(BitmapBuffer, \
-				BitmapBufferEx)" @ %Service.YGDI
-		),
+			/ @ "classes %(BitmapBuffer, BitmapBufferEx)" @ %Service.YGDI $=
+			(
+				+ "non-function template %swap";
+				/ $re_ex(b332) $forced DLDI "move %operator="
+					^ "member function %swap" ~ "non-member function %Swap"
+					$dep_from "swap function renaming"
+			),
 		/ $dev %YCLib.FileSystem $dep_from %YBase.YDefinition $=
 		(
 			+ "function bool platform_ex::FS_IsRoot(const ucs2_t*)"
@@ -5962,7 +5976,7 @@ b408
 			* $comp "broken %(details::have_equality_operator,
 				ystdex::has_equality_operator)" $since b399
 		),
-		+ $dev $doc "member grouping Doxygen comments for some random access \
+		+ DD "member grouping Doxygen comments for some random access \
 			iterator templates" %Iterator,
 		(
 		+ "class templates %(container_adaptor; sequence_container_adaptor)"
@@ -6136,8 +6150,8 @@ b405
 	),
 	- $dev $repo "pattern glob '*/build*'" @ "file %.hgignore",
 	+ $dev "files for build FreeType2"
-	/ $doc "reconstructed most YSLib documentation"
-		@ "%Documentation::Designation" >> "%Documentation::YSLib"
+	/ $doc "reconstructed most of YSLib documentation"
+		@ %Documentation.Designation >> %Documentation.YSLib
 ),
 
 b404
@@ -6258,8 +6272,8 @@ b402
 			)
 		)
 	),
-	/ $doc "made expected non-sentance Doxygen especially for directive '\sa'",
-	* $dev $build "missing including header %Functional"
+	/ DD "made expected non-sentance Doxygen especially for directive '\sa'",
+	* "missing including <ystdex/functional.hpp>"
 		@ %YBase.YStandardEx.AnyIterator $since b355
 ),
 
@@ -6307,7 +6321,7 @@ b400
 				$dep_from "fixed text open mode"
 		),
 		/ $dev "cleanup" @ %(main, shells)
-			// To eliminate [-Wmissing-declarations].
+			// To eliminate warning: [-Wmissing-declarations].
 	),
 	/ %YBase.YStandardEx $=
 	(
