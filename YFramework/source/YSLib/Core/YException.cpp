@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r367
+\version r371
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-10-08 22:24 +0800
+	2015-10-13 09:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,8 +47,9 @@ LoggedEvent::LoggedEvent(const GeneralEvent& e, RecordLevel lv)
 ImplDeDtor(LoggedEvent)
 
 
-FatalError::FatalError(const std::string& t, const std::string& c)
-	: GeneralEvent(t), content(c)
+FatalError::FatalError(const char* t, string_view c)
+	: GeneralEvent(Nonnull(t)),
+	content((Nonnull(c.data()), make_shared<string>(string(c))))
 {}
 ImplDeDtor(FatalError)
 
@@ -69,7 +70,7 @@ TraceExceptionType(std::exception& e, RecordLevel lv) ynothrow
 }
 
 void
-ExtractAndTrace(std::exception& e, RecordLevel lv)
+ExtractAndTrace(std::exception& e, RecordLevel lv) ynothrow
 {
 	TraceExceptionType(e, lv);
 	ExtractException(TraceException, e, lv);

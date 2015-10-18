@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r851
+\version r858
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-07-23 09:12 +0800
+	2015-10-18 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,9 +68,6 @@ public:
 	}
 
 	virtual bool
-	is_delimiter(const value_type&) = 0;
-
-	virtual bool
 	is_parent(const value_type&) ynothrow = 0;
 
 	virtual bool
@@ -105,12 +102,6 @@ class file_path_norm<std::basic_string<_tChar, _tAlloc>>
 {
 public:
 	using value_type = std::basic_string<_tChar, _tAlloc>;
-
-	bool
-	is_delimiter(const value_type& str) override
-	{
-		return str.length() == 1 && str[0] == '/';
-	}
 
 	bool
 	is_parent(const value_type& str) ynothrow override

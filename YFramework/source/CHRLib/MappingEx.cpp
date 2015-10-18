@@ -11,13 +11,13 @@
 /*!	\file MappingEx.cpp
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r82
+\version r83
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:43 +0800
 \par 修改时间:
-	2015-10-02 19:37 +0800
+	2015-10-14 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ dbcs_lkp(byte seq0, byte seq1)
 
 } // unnamed namespacce;
 
-#if !CHRLIB_NODYNAMIC_MAPPING
+#if !CHRLib_NoDynamicMapping
 
 #if 0
 byte* cp17;

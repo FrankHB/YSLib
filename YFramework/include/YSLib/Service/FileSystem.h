@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2644
+\version r2647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-10-02 19:39 +0800
+	2015-10-18 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,9 @@ public:
 	~PathNorm() override;
 	//@}
 
-	PDefH(bool, is_delimiter, const value_type& str) override
-		ImplRet(str.length() == 1 && YCL_FS_CharIsDelimiter(str[0], u))
+	//! \since build 646
+	static PDefH(bool, IsDelimiter, u16string_view sv)
+		ImplRet(sv.length() == 1 && YCL_FS_CharIsDelimiter(sv[0], u))
 
 	PDefH(bool, is_parent, const value_type& str) ynothrow override
 		ImplRet(YCL_FS_StringIsParent(str, u))

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r5077
+\version r5174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-12 11:53 +0800
+	2015-10-18 22:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,100 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			* $doc "Doxygen comment block for %YB_ATTR_gnu_printf wrongly \
+				named for %YB_ATTR" $since b615,
+			+ "macro %YB_FLATTEN"
+		),
+		/ %YStandardEx $=
+		(
+			/ %Cache $=
+			(
+				* "missing including %CAssert for %yassume" $since b521,
+				* "missing including %TypeOperation for %and_" $since b611,
+				+ "functions %(get, list)" @ "class template %used_list_cache",
+				/ @ "trait %used_list_cache_traits" $=
+				(
+					* "wrong %used_cache_type" @ "primary template \
+						%used_list_cache_traits" $mismatch $since b611 $=
+						(/ 'unordered_multimap' -> 'unordered_map'),
+					/ @ "specialization for %void hash type" $=
+					(
+						* "missing comparator template argument"
+							@ "alias %map_type" $since b611;
+						/ "%used_cache_type" ^ "%map_type"
+					)
+				)
+			),
+			/ "range_size for std::initializer_list instances passed parameter \
+				by value" @ %Container ~ "by const reference",
+			+ "function template %to_array for %std::initializer_list instances"
+				@ %Array,
+			/ %Path $=
+			(
+				- "function %is_delimiter" @ "class template \
+					%file_path_norm<std::basic_string<_tChar, _tAlloc>>"
+				- "pure virtual function %is_delimiter"
+					@ "class template %path_norm" $dep_from
+					("%PathNorm" @ %YFramework.YSLib.Service.FileSystem)
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %CHRLib $=
+		(
+			+ DLDI ($dep_from ('YB_FLATTEN' @ %YBase.YDefinition))
+				@ ("8 transcoding functions with default encoding"
+				@ %CharacterProcessing,
+				"all member function templates %(Encode, Decode)"
+				@ "class template specializations %GUCSMapper"
+				@ %(StaticMapping, MappingEx)),
+				// This would effect performance a lot.
+			/ "macro %CHRLIB_NODYNAMIC_MAPPING" -> "%CHRLib_NoDynamicMapping"
+				@ %MappingEx
+				$= (/ "defined only if not defined previously"),
+		),
+		/ %YSLib $=
+		(
+			/ %Core.YException $=
+			(
+				+ 'ynothrow' @ "function %ExtractAndTrace",
+					// Constructing an object of 'std::function' instance from \
+						a function pointer would not throw.
+				/ @ "class %FatalError" $=
+				(
+					/ "1st parameter type" @ "constructor" -> 'const char*',
+					/ ("2nd parameter type" @ "constructor", "return type"
+						@ "GetContent") -> 'string_view' ~ 'const std::string&',
+					* "implictly defined copy constructor might throw" $since b549
+						$= (/ $impl ^ "%shared_ptr<string>" ~ "%std::string")
+				)
+			),
+			+ 'using platform::u16string_view;' @ %Adaptor.YAdaptor,
+			/ %Service.FileSystem $=
+			(
+				/ "overrider %is_delimiter" @ "class %PathNorm" -> "static \
+					function %IsDelimiter" ^ $dep_from ("%u16string_view"
+					@ %Adaptor.YAdaptor) ~ 'const value_type&',
+				/ $forced DLDI "member function %Path::Parse" $dep_from
+					"%PathNorm",
+			)
+		),
+		/ %Helper.Initialization
+		(
+			/ $forced DLDI $dep_from %CHRLib.MappingEx,
+			/ $forced DLDI "function %HandleFatalError" $dep_from
+				("%FatalError::GetContent" @ %YSLib.Core.YException)
+		)
+	)
+),
+
+b645
 (
 	/ %YFramework $=
 	(
@@ -127,7 +221,7 @@ $now
 	)
 ),
 
-b645
+b644
 (
 	/ %YFramework $=
 	(
@@ -3667,7 +3761,7 @@ b611
 					"%used_list_cache_traits";
 				/ $forced $impl "simplified member" ^ $dep_from
 					"%recent_used_list",
-				/ $comp $forced "element of used_list_type" ^ "%value_type"
+				/ $comp $forced "element of %used_list_type" ^ "%value_type"
 					~ "%_tKey",
 				(
 				/ $comp "allowed specified %void hash-function for traits";
@@ -4157,8 +4251,8 @@ b603
 		(
 			- $revert(b304) "function template %pod_fill",
 				// The explicit loop unrolling would not be useful for mordern \
-					implementation of C++. Use %std::fill with static \
-					assertion instead. Actually this needed no POD.
+					implementations of C++. Use %std::fill with static \
+					assertion instead. Actually this does not need POD.
 			/ "POD operations" -> "trivially type operations" $=
 			(
 				/ DD "Doxygen group %pod_operations"

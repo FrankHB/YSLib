@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2096
+\version r2099
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-10-08 21:57 +0800
+	2015-10-18 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,10 +56,10 @@ ypath
 Path::Parse(const u16string& str)
 {
 	ypath res;
-	auto& norm(res.get_norm());
 
 	ystdex::split(str, [&](char16_t c){
-		return norm.is_delimiter({c});
+		// TODO: Use user defined literal for %u16string_view.
+		return PathNorm::IsDelimiter(u16string({c}));
 	}, [&](u16string::const_iterator b, u16string::const_iterator e){
 		res.push_back(u16string(b, e));
 	});
