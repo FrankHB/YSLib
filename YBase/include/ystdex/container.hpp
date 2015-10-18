@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1135
+\version r1139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2015-08-19 00:09 +0800
+	2015-10-18 22:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -367,7 +367,7 @@ range_size(const _tRange& c, false_type)
 
 对数组直接返回大小，否则：
 若可调用结果可转换为 \c size_t 的成员函数 size() 则使用 size ；
-否则 \c size 取序列大小则使用 \c std::distance 计算范围迭代器确定范围大小。
+否则 \c size 取序列大小则使用 std::distance 计算范围迭代器确定范围大小。
 */
 //{
 template<typename _tRange>
@@ -383,10 +383,10 @@ range_size(const _type(&c)[_vN])
 {
 	return ystdex::arrlen(c);
 }
-//! \since build 575
+//! \since build 646
 template<typename _type>
 yconstfn size_t
-range_size(const std::initializer_list<_type>& il)
+range_size(std::initializer_list<_type> il)
 {
 	return il.size();
 }
@@ -727,7 +727,7 @@ vector_concat(_tVector& vec, _tRange&& c)
 /*!
 \ingroup helper_functions
 \brief 替换关联容器的值。
-\note 使用 <tt>end</tt> 指定范围迭代器。
+\note 使用 \c end 指定范围迭代器。
 \since build 531
 \todo 支持没有 \c emplace_hint 成员的关联容器。
 */

@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r569
+\version r595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-10-08 22:24 +0800
+	2015-10-13 09:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,17 +39,13 @@
 namespace YSLib
 {
 
-/*!
-\ingroup exception_types
-\brief 一般运行时异常事件类。
-*/
+//! \ingroup exception_types
+//@{
+//! \brief 一般运行时异常事件类。
 using GeneralEvent = std::runtime_error;
 
 
-/*!
-\ingroup exception_types
-\brief 记录日志的异常事件类。
-*/
+//! \brief 记录日志的异常事件类。
 class YF_API LoggedEvent : public GeneralEvent
 {
 private:
@@ -86,21 +82,28 @@ public:
 
 
 /*!
-\ingroup exception_types
 \brief 致命错误。
+\note YSLib 库不直接捕获这个类和派生类的异常。
 \since build 497
 */
 class YF_API FatalError : public GeneralEvent
 {
 private:
-	std::string content;
+	/*!
+	\invariant \c content 。
+	\since build 646
+	*/
+	shared_ptr<string> content;
 
 public:
 	/*!
 	\brief 构造：使用标题和内容。
-	\since build 549
+	\pre 间接断言：第一参数和第二参数的数据指针非空。
+	\note 复制字符串参数。
+	\since build 646
 	*/
-	FatalError(const std::string&, const std::string&);
+	YB_NONNULL(2)
+	FatalError(const char*, string_view);
 	//! \since build 586
 	DefDeCopyCtor(FatalError)
 	/*!
@@ -109,10 +112,11 @@ public:
 	*/
 	~FatalError() override;
 
-	//! \since build 549
-	DefGetter(const ynothrow, const std::string&, Content, content)
+	//! \since build 646
+	DefGetter(const ynothrow, string_view, Content, Deref(content))
 	DefGetter(const ynothrow, const char*, Title, what())
 };
+//@}
 
 
 //! \since build 624
@@ -148,9 +152,10 @@ TraceExceptionType(std::exception&, RecordLevel = Err)
 \sa ExtraceException
 \sa TraceException
 \sa TraceExceptionType
+\since build 645
 */
 YF_API void
-ExtractAndTrace(std::exception&, RecordLevel = Err);
+ExtractAndTrace(std::exception&, RecordLevel = Err) ynothrow;
 
 //! \brief 展开指定层次的异常并使用指定参数记录。
 YF_API void
@@ -186,6 +191,7 @@ TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 
 /*!
 \brief 调用函数并过滤宿主异常。
+\note 使用 ADL \c TryInvoke 和 \c TryExecute 。
 \since build 624
 
 对参数指定的函数求值，并捕获和跟踪记录所有异常。

@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r383
+\version r396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2015-10-11 11:18 +0800
+	2015-10-14 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,13 +35,15 @@ namespace CHRLib
 {
 
 /*!
-\since build 324
-
-无动态映射。
+\def CHRLib_NoDynamicMapping
+\brief 无动态映射：不关联外部文件的编码映射表。
+\since build 646
 */
-#define CHRLIB_NODYNAMIC_MAPPING 0
+#ifndef CHRLib_NoDynamicMapping
+#	define CHRLib_NoDynamicMapping 0
+#endif
 
-#if CHRLIB_NODYNAMIC_MAPPING
+#if CHRLib_NoDynamicMapping
 /*!
 \brief 编码转换表。
 \since 早于 build 132
@@ -91,7 +93,7 @@ struct GUCSMapper<CharSet::SHIFT_JIS> : UCSMapperBase
 
 #if 0
 	template<typename _tObj, typename _tIn, typename _tState>
-	static byte
+	static YB_FLATTEN byte
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(
 		st)) && noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -142,7 +144,7 @@ struct GUCSMapper<CharSet::GBK> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
+	static YB_FLATTEN ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(
 		st)) && noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{
@@ -187,7 +189,7 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 
 #if 0
 	template<typename _tObj, typename _tIn, typename _tState>
-	static byte
+	static YB_FLATTEN byte
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st) ynoexcept(noexcept(GetSequenceOf(
 		st)) && noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
 	{

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2414
+\version r2419
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-10-09 23:16 +0800
+	2015-10-14 14:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ unique_ptr<ValueNode> p_root;
 //! \since build 551
 unique_ptr<Drawing::FontCache> p_font_cache;
 //@}
-#if !CHRLIB_NODYNAMIC_MAPPING
+#if !CHRLib_NoDynamicMapping
 //! \since build 549
 unique_ptr<MappedFile> p_mapped;
 #endif
@@ -250,7 +250,7 @@ LoadComponents(const ValueNode& node)
 			data_dir.c_str(), font_path.c_str(), font_dir.c_str());
 	else
 		throw GeneralEvent("Empty path loaded.");
-#if !CHRLIB_NODYNAMIC_MAPPING
+#if !CHRLib_NoDynamicMapping
 
 	const string mapping_name(data_dir + "cp113.bin");
 
@@ -325,7 +325,7 @@ HandleFatalError(const FatalError& e) ynothrow
 	const char* line("--------------------------------");
 
 	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
-		e.GetContent().c_str(), line);
+		e.GetContent().data(), line);
 #else
 #	if YCL_Win32
 	using platform_ex::MBCSToWCS;
@@ -335,7 +335,7 @@ HandleFatalError(const FatalError& e) ynothrow
 			MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR);
 	});
 #	endif
-	YF_Init_printf(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent().c_str());
+	YF_Init_printf(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent().data());
 #endif
 	terminate();
 }
@@ -530,7 +530,7 @@ Uninitialize() ynothrow
 	// XXX: Ignored error.
 	platform_ex::UninitializeFileSystem();
 #endif
-#if !CHRLIB_NODYNAMIC_MAPPING
+#if !CHRLib_NoDynamicMapping
 #	if YCL_Win32
 	if(cp113_lkp_backup)
 	{

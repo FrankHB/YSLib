@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2934
+\version r2947
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-10-02 18:42 +0800
+	2015-10-12 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,7 +338,7 @@
 #endif
 
 /*!
-\def YB_ATTR
+\def YB_ATTR_gnu_printf
 \brief GNU 风格 printf 属性。
 \note Clang++ 未支持此属性，警告 [-Wignored-attributes] 。
 \since build 615
@@ -398,6 +398,19 @@
 #	define YB_EXPECT(_expr, _constant) (_expr)
 #	define YB_LIKELY(_expr) (_expr)
 #	define YB_UNLIKELY(_expr) (_expr)
+#endif
+
+/*!
+\def YB_FLATTEN
+\brief 标记函数尽可能内联定义内的调用。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48731 。
+\since build 646
+*/
+#if (__has_attribute(__noreturn__) || YB_IMPL_GNUCPP >= 40102) \
+	&& YB_IMPL_GNUCPP != 40600
+#	define YB_FLATTEN YB_ATTR(__flatten__)
+#else
+#	define YB_FLATTEN
 #endif
 
 /*!

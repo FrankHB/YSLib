@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r541
+\version r562
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2015-06-30 17:50 +0800
+	2015-10-14 20:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,8 @@
 #define YB_INC_ystdex_cache_hpp_ 1
 
 #include "deref_op.hpp" // for std::pair, is_undereferenceable;
+#include "cassert.h" // for yassume;
+#include "type_op.hpp" // for and_;
 #include <list> // for std::list;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;
@@ -140,19 +142,18 @@ struct used_list_cache_traits
 	using map_type = std::unordered_map<_tKey, _tMapped, _fHash,
 		std::equal_to<_tKey>, _tAlloc>;
 	using used_list_type = _tList;
-	using used_cache_type = std::unordered_multimap<_tKey,
-		typename _tList::iterator, _fHash, typename map_type::key_equal,
-		typename _tAlloc::template
+	using used_cache_type = std::unordered_map<_tKey, typename _tList::iterator,
+		_fHash, typename map_type::key_equal, typename _tAlloc::template
 		rebind<std::pair<const _tKey, typename _tList::iterator>>::other>;
 };
 
 template<typename _tKey, typename _tMapped, class _tAlloc, class _tList>
 struct used_list_cache_traits<_tKey, _tMapped, void, _tAlloc, _tList>
 {
-	using map_type = std::map<_tKey, _tMapped, _tAlloc>;
+	using map_type = std::map<_tKey, _tMapped, std::less<_tKey>, _tAlloc>;
 	using used_list_type = _tList;
 	using used_cache_type = std::map<_tKey, typename _tList::iterator,
-		std::less<_tKey>, typename _tAlloc::template
+		typename map_type::key_compare, typename _tAlloc::template
 		rebind<std::pair<const _tKey, typename _tList::iterator>>::other>;
 };
 //@}
@@ -332,6 +333,21 @@ public:
 		return i != used_cache.end() ? used_list.refresh(i->second) : end();
 	}
 
+	//! \since build 646
+	//@{
+	const used_cache_type&
+	get() const ynothrow
+	{
+		return used_cache;
+	}
+
+	const used_list_type&
+	list() const ynothrow
+	{
+		return used_list;
+	}
+	//@}
+
 	//! \since build 611
 	size_type
 	size() const ynothrow
@@ -345,7 +361,7 @@ public:
 /*!
 \brief 以指定的关键字查找作为缓存的无序关联容器，
 	若没有找到使用指定的可调用对象和参数初始化内容。
-\tparam _tMap 映射类型，可以是 std::map_type 、 std::unordered_map
+\tparam _tMap 映射类型，可以是 std::map 、 std::unordered_map
 	或 ystdex::used_list_cache 等。
 \since build 521
 */

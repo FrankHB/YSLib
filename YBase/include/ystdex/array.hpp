@@ -11,13 +11,13 @@
 /*!	\file array.hpp
 \ingroup YStandardEx
 \brief 数组操作。
-\version r142
+\version r152
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-01 18:39:25 +0800
 \par 修改时间:
-	2015-05-27 16:50 +0800
+	2015-10-18 22:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,17 @@ to_array(_tSrcElement(&&src)[_vN])
 
 	std::copy_n(std::make_move_iterator(std::addressof(src[0])), _vN,
 		std::addressof(arr[0]));
+	return arr;
+}
+//! \since build 636
+template<typename _type, size_t _vN, typename _tSrcElement>
+inline std::array<_type, _vN>
+to_array(std::initializer_list<_tSrcElement> il)
+{
+	std::array<_type, il.size()> arr;
+
+	std::copy_n(std::make_move_iterator(il.begin()),
+		std::min(_vN, il.size()), std::addressof(arr[0]));
 	return arr;
 }
 //@}

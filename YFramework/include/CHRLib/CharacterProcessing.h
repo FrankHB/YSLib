@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2213
+\version r2221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-10-12 11:34 +0800
+	2015-10-12 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,11 +234,11 @@ MBCSToUCS2(_func f, char16_t* d, const char* s, const char* e)
 		return f(dc, {src, end}, ConversionState()) == ConversionResult::OK;
 	}, d, s, e);
 }
-YF_API YB_NONNULL(1, 2) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2) size_t
 MBCSToUCS2(char16_t*, const char*);
 YF_API YB_NONNULL(1, 2) size_t
 MBCSToUCS2(char16_t*, const char*, Encoding);
-YF_API YB_NONNULL(1, 2, 3) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2, 3) size_t
 MBCSToUCS2(char16_t*, const char*, const char* e);
 YF_API YB_NONNULL(1, 2, 3) size_t
 MBCSToUCS2(char16_t*, const char*, const char* e, Encoding);
@@ -279,11 +279,11 @@ MBCSToUCS4(_func f, char32_t* d, const char* s, const char* e)
 		return {};
 	}, d, s, e);
 }
-YF_API YB_NONNULL(1, 2) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2) size_t
 MBCSToUCS4(char32_t*, const char*);
 YF_API YB_NONNULL(1, 2) size_t
 MBCSToUCS4(char32_t*, const char*, Encoding);
-YF_API YB_NONNULL(1, 2, 3) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2, 3) size_t
 MBCSToUCS4(char32_t*, const char*, const char*);
 YF_API YB_NONNULL(1, 2, 3) size_t
 MBCSToUCS4(char32_t*, const char*, const char*, Encoding);
@@ -311,11 +311,11 @@ UCS2ToMBCS(_func f, char* d, const char16_t* s, const char16_t* e)
 	}, d, s, e);
 }
 //@}
-YF_API YB_NONNULL(1, 2) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2) size_t
 UCS2ToMBCS(char*, const char16_t*);
 YF_API YB_NONNULL(1, 2) size_t
 UCS2ToMBCS(char*, const char16_t*, Encoding);
-YF_API YB_NONNULL(1, 2, 3) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2, 3) size_t
 UCS2ToMBCS(char*, const char16_t*, const char16_t*);
 YF_API YB_NONNULL(1, 2, 3) size_t
 UCS2ToMBCS(char*, const char16_t*, const char16_t*, Encoding);
@@ -354,11 +354,11 @@ UCS4ToMBCS(_func f, char* d, const char32_t* s, const char32_t* e)
 	}, d, s, e);
 }
 //@}
-YF_API YB_NONNULL(1, 2) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2) size_t
 UCS4ToMBCS(char*, const char32_t*);
 YF_API YB_NONNULL(1, 2) size_t
 UCS4ToMBCS(char*, const char32_t*, Encoding);
-YF_API YB_NONNULL(1, 2, 3) size_t
+YF_API YB_FLATTEN YB_NONNULL(1, 2, 3) size_t
 UCS4ToMBCS(char*, const char32_t*, const char32_t*);
 YF_API YB_NONNULL(1, 2, 3) size_t
 UCS4ToMBCS(char*, const char32_t*, const char32_t*, Encoding);

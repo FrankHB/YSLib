@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13853
+\version r13868
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-09-24 18:22 +0800
+	2015-10-14 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,9 +90,11 @@ YB_ATTR(...)
 YB_ATTR_STD(...)
 YB_ATTR_gnu_printf(...)
 YB_ALLOCATOR
+YB_ASSUME
 YB_EXPECT(_expr, _constant)
 YB_LIKELY(_expr)
 YB_UNLIKELY(_expr)
+YB_FLATTEN
 YB_NONNULL
 YB_NORETURN
 YB_PURE
@@ -139,9 +141,10 @@ $dir YFramework // YFramework 既定宏污染列表。
 
 YF_* // 保留给 YFramework 使用。
 YFM_* // 保留给 YFramework 使用作为模块包含文件宏。
-YCL_* // 保留给 YFramework::YCLib 使用。
-YSL_* // 保留给 YFramework::YSLib 使用。
-NPL_* // 保留给 YFramework::NPL 使用。
+CHRLib_* // 保留给 YFramework.CHRLib 使用。
+YCL_* // 保留给 YFramework.YCLib 使用。
+YSL_* // 保留给 YFramework.YSLib 使用。
+NPL_* // 保留给 YFramework.NPL 使用。
 INC_* // 公开头文件守护宏，保留给 YFramework 的其它部分和客户程序使用。
 Inc_* // 非公开头文件守护宏，保留给 YFramework 的其它部分和客户程序使用。
 YCL_INC_* // YCLib 公开头文件包含守护宏。
@@ -149,6 +152,14 @@ YCL_Inc_* // YCLib 非公开头文件包含守护宏。
 YSL_INC_* // YSLib 公开头文件包含守护宏。
 YSL_Inc_* // YSLib 非公开头文件包含守护宏。
 YSL_DEBUG_*
+
+$dir CHRLib
+{
+$header MappingEx
+{
+#CHRLib_NoDynamicMapping
+}
+} // dir CHRLib;
 
 $dir YCLib
 {
@@ -570,7 +581,7 @@ namespace CHRLib
 {
 
 //编码转换表。
-#if !CHRLIB_NODYNAMIC_MAPPING
+#if !CHRLib_NoDynamicMapping
 extern "C"
 {
 extern const byte cp113[];
@@ -1000,7 +1011,7 @@ $options $test_only $impl("GCC", "Clang") $=
 	Common Alias(Wsuggest-attribute=noreturn)
 	Wpacked
 	Common Var(warn_packed) Warning
-		// Too many in libnds. Clang++ has possible false diagnostics: https://llvm.org/bugs/show_bug.cgi?id=18132 , which affects YFramework since b595 ('YB_ATTR' implementation changed).
+		// Too many in libnds. Clang++ has possible false diagnostics: https://llvm.org/bugs/show_bug.cgi?id=18132, which affects YFramework since b595 ('YB_ATTR' implementation changed).
 	Wstack-protector
 	Common Var(warn_stack_protect) Warning
 		// Only used with 'fstack-protector'.
