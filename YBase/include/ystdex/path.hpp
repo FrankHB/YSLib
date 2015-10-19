@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r858
+\version r1045
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-10-18 21:43 +0800
+	2015-10-19 15:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,104 +28,49 @@
 #ifndef YB_INC_ystdex_path_hpp_
 #define YB_INC_ystdex_path_hpp_ 1
 
-#include "base.h" // for cloneable;
-#include "string.hpp" // for sequence_container_adaptor,
-//	ystdex::erase_all_if, string_traits, to_array;
-#include "operators.hpp" // for totally_ordered, dividable;
-#include "memory.hpp" // for std::unique_ptr, make_unique;
-#include <string> // for std::basic_string, std::string;
-#include <typeinfo> // for typeid;
+#include "string_view.hpp" // for std::basic_string, string_view,
+//	sequence_container_adaptor, totally_ordered, dividable,
+//	ystdex::erase_all_if, to_array, string_traits;
 
 namespace ystdex
 {
 
-/*!
-\note 允许被按路径语义特化。
-\since build 408
-*/
+//! \since build 647
 //@{
-//! \brief 路径范式。
+//! \note 允许被按路径语义特化。
+//@{
+//! \brief 路径特征。
 template<typename _type>
-class path_norm : public cloneable
+class path_traits
 {
-public:
 	using value_type = _type;
-
-	//! \since build 586
-	path_norm() = default;
-	//! \since build 586
-	path_norm(const path_norm&) = default;
-	/*!
-	\brief 虚析构：类定义外默认实现。
-	\since build 450
-	*/
-	~path_norm() override;
-
-	virtual bool
-	is_compatible_with(const path_norm&) const ynothrow
-	{
-		return true;
-	}
-
-	virtual bool
-	is_parent(const value_type&) ynothrow = 0;
-
-	virtual bool
-	is_root(const value_type&) ynothrow = 0;
-
-	virtual bool
-	is_self(const value_type&) ynothrow = 0;
-
-//	virtual bool
-//	is_wildcard(const value_type&) ynothrow = 0;
-
-	//! \since build 475
-	virtual path_norm*
-	clone() const override = 0;
 };
 
-template<typename _type>
-path_norm<_type>::~path_norm() = default;
-
-
-//! \brief 文件路径范式。
-template<typename _type>
-class file_path_norm;
-
-/*!
-\brief 文件字符串路径范式。
-\since build 409
-*/
+//! \brief 文件字符串路径特征。
 template<typename _tChar, class _tAlloc>
-class file_path_norm<std::basic_string<_tChar, _tAlloc>>
-	: public path_norm<std::string>
+class path_traits<std::basic_string<_tChar, _tAlloc>>
 {
 public:
+	using char_type = _tChar;
 	using value_type = std::basic_string<_tChar, _tAlloc>;
+	using view_type = basic_string_view<char_type>;
 
-	bool
-	is_parent(const value_type& str) ynothrow override
+	static yconstfn bool
+	is_parent(view_type sv) ynothrow
 	{
-		return str.length() == 2 && str[0] == '.' && str[1] == '.';
+		return sv.length() == 2 && sv[0] == '.' && sv[1] == '.';
 	}
 
-	bool
-	is_root(const value_type& str) ynothrow override
+	static yconstfn bool
+	is_root(view_type sv) ynothrow
 	{
-		return str.empty();
+		return sv.empty();
 	}
 
-	bool
-	is_self(const value_type& str) ynothrow override
+	static yconstfn bool
+	is_self(const value_type& str) ynothrow
 	{
 		return str.length() == 1 && str[0] == '.';
-	}
-
-	//! \since build 475
-	file_path_norm*
-	clone() const override
-	{
-		return new file_path_norm(*this);
 	}
 };
 //@}
@@ -146,24 +91,21 @@ enum class path_category : yimpl(size_t)
 /*!
 \brief 路径分类。
 \relates path_category
-\since build 594
 */
-template<typename _tNorm, class _tString>
+template<class _tString, class _tTraits = path_traits<_tString>>
 path_category
-classify_path(const _tString& name, _tNorm&& norm = _tNorm()) ynothrow
+classify_path(const _tString& name) ynothrow
 {
 	if(YB_UNLIKELY(name.empty()))
 		return path_category::empty;
-	if(norm.is_self(name))
+	if(_tTraits::is_self(name))
 		return path_category::self;
-	if(norm.is_parent(name))
+	if(_tTraits::is_parent(name))
 		return path_category::parent;
 	return path_category::node;
 }
 
 
-//! \since build 473
-//@{
 /*!
 \brief 一般路径模板。
 \tparam _tSeqCon 可倒置的序列容器类型。
@@ -177,21 +119,21 @@ classify_path(const _tString& name, _tNorm&& norm = _tNorm()) ynothrow
 	23.2.1 [container.requirements.general] 。
 */
 template<class _tSeqCon,
-	class _tNorm = path_norm<typename _tSeqCon::value_type>>
+	class _tTraits = path_traits<typename _tSeqCon::value_type>>
 class path : private sequence_container_adaptor<_tSeqCon>,
-	public dividable<path<_tSeqCon, _tNorm>, typename _tSeqCon::value_type>,
-	public totally_ordered<path<_tSeqCon, _tNorm>>,
-	dividable<path<_tSeqCon, _tNorm>>
+	public dividable<path<_tSeqCon, _tTraits>, typename _tSeqCon::value_type>,
+	public totally_ordered<path<_tSeqCon, _tTraits>>,
+	dividable<path<_tSeqCon, _tTraits>>
 {
 private:
+	//! \since build 473
+	//@{
 	using base = sequence_container_adaptor<_tSeqCon>;
 
 public:
 	using value_type = typename _tSeqCon::value_type;
-	using norm = _tNorm;
-	//! \since build 473
-	using default_norm = conditional_t<std::is_default_constructible<
-		norm>::value, norm, file_path_norm<value_type>>;
+	//! \since build 647
+	using traits_type = _tTraits;
 	using reference = typename _tSeqCon::reference;
 	using const_reference = typename _tSeqCon::const_reference;
 	using size_type = typename base::size_type;
@@ -202,49 +144,12 @@ public:
 	using const_reverse_iterator
 		= typename base::container_type::const_reverse_iterator;
 
-	std::unique_ptr<norm> p_norm;
-
-public:
-	path(std::unique_ptr<norm> p = std::unique_ptr<norm>())
-		: path(base(), std::move(p))
-	{}
-	//! \since build 433
-	explicit
-	path(base&& b, std::unique_ptr<norm> p = std::unique_ptr<norm>())
-		: base(std::move(b)), p_norm(unique_norm(p))
-	{}
-	explicit
-	path(size_type n, std::unique_ptr<norm> p = std::unique_ptr<norm>())
-		: path(base(n), std::move(p))
-	{}
-	path(size_type n, value_type root,
-		std::unique_ptr<norm> p = std::unique_ptr<norm>())
-		: path(n != 0 ? n : 1, std::move(p))
-	{
-		this->begin() = std::move(root);
-	}
-	template<typename _tIn>
-	path(_tIn first, _tIn last,
-		std::unique_ptr<norm> p = std::unique_ptr<norm>())
-		: path(base(first, last), std::move(p))
-	{}
-	//! \since build 433
-	template<typename... _tParams>
-	path(std::unique_ptr<norm> p, _tParams&&... args)
-		: path(base(yforward(args)...), std::move(p))
-	{}
-	path(const path& pth)
-		: base(pth), p_norm(pth.get_norm().clone())
-	{}
-	path(path&& pth) ynothrow
-		: path()
-	{
-		pth.swap(*this);
-	}
-	path(std::initializer_list<value_type> il,
-		std::unique_ptr<norm> p = std::unique_ptr<norm>())
-		: path(base(il), std::move(p))
-	{}
+	//! \since build 647
+	path() = default;
+	//! \since build 647
+	using base::base;
+	path(const path&) = default;
+	path(path&&) = default;
 
 	path&
 	operator=(const path& pth)
@@ -267,16 +172,14 @@ public:
 	path&
 	operator/=(const value_type& s)
 	{
-		auto& norm(get_norm());
-
-		if(norm.is_parent(s) && (is_absolute() ? 1U : 0U) < size())
+		if(traits_type::is_parent(s) && (is_absolute() ? 1U : 0U) < size())
 		{
-			if(!norm.is_parent(back()))
+			if(!traits_type::is_parent(back()))
 				pop_back();
 			else
 				push_back(s);
 		}
-		else if(!norm.is_self(s))
+		else if(!traits_type::is_self(s))
 			push_back(s);
 		return *this;
 	}
@@ -292,17 +195,15 @@ public:
 	//! \since build 600
 	//@{
 	friend bool
-	operator<(const path& x, const path& y)
+	operator==(const path& x, const path& y)
 	{
-		return typeid(x.get_norm()).before(typeid(y.get_norm()))
-			&& static_cast<const base&>(x) < static_cast<const base&>(y);
+		return static_cast<const base&>(x) == static_cast<const base&>(y);
 	}
 
 	friend bool
-	operator==(const path& x, const path& y)
+	operator<(const path& x, const path& y)
 	{
-		return typeid(x.get_norm()) == typeid(y.get_norm())
-			&& static_cast<const base&>(x) == static_cast<const base&>(y);
+		return static_cast<const base&>(x) < static_cast<const base&>(y);
 	}
 	//@}
 
@@ -354,18 +255,9 @@ public:
 	void
 	filter_self()
 	{
-		auto& nm(get_norm());
-
 		ystdex::erase_all_if(*this, [&](const value_type& s) ynothrow{
-			return nm.is_self(s);
+			return traits_type::is_self(s);
 		});
-	}
-
-	norm&
-	get_norm() const ynothrow
-	{
-		yconstraint(p_norm);
-		return *p_norm;
 	}
 
 	value_type
@@ -377,7 +269,7 @@ public:
 	bool
 	is_absolute() const ynothrow
 	{
-		return !empty() && get_norm().is_root(front());
+		return !empty() && traits_type::is_root(front());
 	}
 
 	bool
@@ -389,14 +281,12 @@ public:
 	void
 	merge_parents()
 	{
-		auto& nm(get_norm());
-
 		for(auto i(this->begin()); i != this->end();)
 		{
 			auto j(std::adjacent_find(i, this->end(),
 				[&](const value_type& x, const value_type& y){
-					return !nm.is_self(x) && !nm.is_parent(x)
-						&& nm.is_parent(y);
+					return !traits_type::is_self(x) && !traits_type::is_parent(x)
+						&& traits_type::is_parent(y);
 			}));
 
 			if(j == this->end())
@@ -410,47 +300,37 @@ public:
 	void
 	swap(path& pth) ynothrow
 	{
-		base::swap(static_cast<base&>(pth)),
-		p_norm.swap(pth.p_norm);
+		base::swap(static_cast<base&>(pth));
 	}
-
-private:
-	static std::unique_ptr<norm>
-	unique_norm(std::unique_ptr<norm>& p)
-	{
-		return p ? std::move(p) : make_unique<default_norm>();
-	}
+	//@}
 };
+//@}
 
 /*!
-\brief 正规化。
 \relates path
+\since build 473
 */
-template<class _tSeqCon, class _tNorm>
+//@{
+//! \brief 正规化。
+template<class _tSeqCon, class _tTraits>
 inline void
-normalize(path<_tSeqCon, _tNorm>& pth)
+normalize(path<_tSeqCon, _tTraits>& pth)
 {
 	pth.filter_self(), pth.merge_parents();
 }
 
-/*!
-\brief 交换。
-\relates path
-*/
-template<class _tSeqCon, class _tNorm>
+//! \brief 交换。
+template<class _tSeqCon, class _tTraits>
 inline void
-swap(path<_tSeqCon, _tNorm>& x, path<_tSeqCon, _tNorm>& y)
+swap(path<_tSeqCon, _tTraits>& x, path<_tSeqCon, _tTraits>& y)
 {
 	x.swap(y);
 }
 
-/*!
-\brief 取字符串表示。
-\relates path
-*/
-template<class _tSeqCon, class _tNorm>
+//! \brief 取字符串表示。
+template<class _tSeqCon, class _tTraits>
 typename _tSeqCon::value_type
-to_string(const path<_tSeqCon, _tNorm>& pth,
+to_string(const path<_tSeqCon, _tTraits>& pth,
 	const typename _tSeqCon::value_type& seperator = &to_array<
 	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
 {
@@ -471,13 +351,10 @@ to_string(const path<_tSeqCon, _tNorm>& pth,
 	return res;
 }
 
-/*!
-\brief 取分隔符结尾的字符串表示。
-\relates path
-*/
-template<class _tSeqCon, class _tNorm>
+//! \brief 取分隔符结尾的字符串表示。
+template<class _tSeqCon, class _tTraits>
 typename _tSeqCon::value_type
-to_string_d(const path<_tSeqCon, _tNorm>& pth, typename string_traits<typename
+to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
 	_tSeqCon::value_type>::value_type delimiter = '/')
 {
 	static_assert(is_object<typename _tSeqCon::value_type>(),

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r5174
+\version r5239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-18 22:30 +0800
+	2015-10-20 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,72 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		- $revert(b646) "all %YB_FLATTEN" @ %CHRLib.(StaticMapping, MappingEx),
+			// This would make object file too large unnecessarily since \
+				'YB_FLATTEN' has already been used for some other client \
+				routines (i.e. 'Make*').
+		/ %YCLib.FileSystem $=
+		(
+			/ "function %platform_ex::FS_IsRoot" -> "2 overloading functions \
+				for %(string_view, u16string_view)";
+			+ "support for multiple character type" @ "YCL_FS_StringIsCurrent, \
+				YCL_FS_StringIsParent, YCL_FS_CharIsDelimiter, \
+				YCL_FS_CharIsDelimiter)"
+		),
+		/ %YSLib.Service.FileSystem $=
+		(
+			(
+			/ "class %PathNorm" -> "struct %PathTraits" $dep_from
+				%YCLib.FileSystem
+				$= (/ "all 4 overriders" -> "static function templates");
+			/ DLDI @ "callback" @ "function templates %(Traverse, \
+				TraverseChildren), function %ListFiles" $=
+			(
+				- "norm parameter",
+				/ "eliminated redundant cast"
+			),
+			/ DLDI "functions %(ListFiles, Path::Parse)" ^ "%PathTraits"
+			),
+			(
+			/ $forced DLDI "%ClassifyNode" $dep_from ("ystdex::classify_path"
+				@ %YBase.YStandardEx.Path);
+			- $revert(b410) 'using ypath::get_norm;' @ "class %Path" $dep_from
+				%Helper.Initialization
+			)
+		),
+		/ DLDI "eliminated redundant cast" @ "function \
+			%InitializeSystemFontCache" %Helper.Initialization ^ $dep_from
+			("%PathTraits" @ %YSLib.Service.FileSystem),
+		/ "ensured not returning string pointer to empty string" @ "member \
+			function %DirectoryFindData::Read" @ %'YCLib_(Win32)'.MinGW32
+	),
+	/ %YBase.YStandardEx.Path $=
+	(
+		- "use of norm object" @ "function template %classify_path";
+		/ "removed norm object" @ "class template %path" $=
+		(
+			/ "norm template parameter" -> "traits",
+			/ "alias %norm" -> "%traits_type",
+			- "norm function parameter" @ "function %merge_parents",
+			- "function %get_norm",
+			/ "user-defined constructors"
+				-> "3 explicitly defaulted constructors",
+			/ DLDI "function %(filter_self, swap)" ^ "traits" ~ "norm object",
+			- DLDI "typeid-expression" @ "friend %operator(<, ==)",
+			- $revert(b473) "alias %default_norm",
+			- "data member %p_norm"
+		);
+		/ "class templates %(path_norm, file_path_norm)"
+			-> "%path_norm with specialization";
+		* $comp "wrong base" @ "%file_path_norm specialization for string \
+			other than %std::string" $since b409
+	)
+),
+
+b646
 (
 	/ %YBase $=
 	(

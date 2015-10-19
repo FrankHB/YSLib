@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1252
+\version r1253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-10-09 02:29 +0800
+	2015-10-20 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -584,7 +584,7 @@ private:
 public:
 	/*!
 	\brief 读取：迭代当前查找状态。
-	\return 若迭代结束后节点非空，表示当前查找项目名的指针；否则为空指针。
+	\return 若迭代结束后节点且文件名非空，表示当前查找项目名的指针；否则为空指针。
 	\since build 593
 
 	若查找节点句柄非空则迭代当前查找状态查找下一个文件系统项。

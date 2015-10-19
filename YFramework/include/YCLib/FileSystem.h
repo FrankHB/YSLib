@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2495
+\version r2509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-10-07 01:00 +0800
+	2015-10-19 16:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,15 +52,14 @@ namespace platform
 \since build 409
 */
 #define YCL_FS_StringIsCurrent(_s, _p) \
-	(ystdex::string_length(_s) == 1 && _s[0] == YPP_Concat(_p, '.'))
+	(ystdex::string_length(_s) == 1 && _s[0] == _p('.'))
 
 /*!
 \brief 判断字符串是否是父目录。
 \since build 409
 */
 #define YCL_FS_StringIsParent(_s, _p) \
-	(ystdex::string_length(_s) == 2 \
-	&& _s[0] == YPP_Concat(_p, '.') && _s[1] == YPP_Concat(_p, '.'))
+	(ystdex::string_length(_s) == 2 && _s[0] == _p('.') && _s[1] == _p('.'))
 
 /*!
 \def YCL_FS_CharIsDelimiter
@@ -93,11 +92,10 @@ namespace platform
 	*/
 #	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
-#	define YCL_FS_CharIsDelimiter(_c, _p) \
-	(_c == YPP_Concat(_p, '/') || _c == YPP_Concat(_p, '\\'))
+#	define YCL_FS_CharIsDelimiter(_c, _p) (_c == _p('/') || _c == _p('\\'))
 #	define YCL_FS_StringIsRoot(_s, _p) \
 		(ystdex::string_length(_s) == 3 \
-		&& _s[1] == ':' && YCL_FS_CharIsDelimiter(_s[2], _p))
+		&& _s[1] == _p(':') && YCL_FS_CharIsDelimiter(_s[2], _p))
 #elif defined(YCL_API_POSIXFileSystem)
 	/*!
 	\brief 文件路径分隔符。
@@ -114,8 +112,7 @@ namespace platform
 	*/
 #	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
-#	define YCL_FS_CharIsDelimiter(_c, _p) \
-	(_c == YPP_Join(_p, YCL_PATH_DELIMITER))
+#	define YCL_FS_CharIsDelimiter(_c, _p) (_c == _p(YCL_PATH_DELIMITER))
 #	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
 #else
 #	error "Unsupported platform found."
@@ -841,9 +838,13 @@ namespace platform_ex
 {
 
 #if !YCL_Win32
-//! \since build 409
+//! \since build 647
+//@{
+char
+FS_IsRoot(string_view);
 char16_t
-FS_IsRoot(const char16_t*);
+FS_IsRoot(u16string_view);
+//@}
 #endif
 
 } // namespace platform_ex;

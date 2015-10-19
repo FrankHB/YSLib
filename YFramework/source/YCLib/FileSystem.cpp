@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2976
+\version r2989
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-10-03 15:35 +0800
+	2015-10-18 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -610,14 +610,21 @@ namespace platform_ex
 {
 
 #if !YCL_Win32
-char16_t
-FS_IsRoot(const char16_t* str)
+char
+FS_IsRoot(string_view sv)
 {
-	const u16string ustr(str);
-
-	return ustr == u"/"
+	return sv == "/"
 #	if YCL_DS
-		|| ustr == u"fat:/" || ustr == u"sd:/"
+		|| sv == "fat:/" || sv == "sd:/"
+#	endif
+	;
+}
+char16_t
+FS_IsRoot(u16string_view sv)
+{
+	return sv == u"/"
+#	if YCL_DS
+		|| sv == u"fat:/" || sv == u"sd:/"
 #	endif
 	;
 }
