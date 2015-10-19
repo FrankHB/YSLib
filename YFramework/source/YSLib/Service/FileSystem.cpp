@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2099
+\version r2105
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-10-18 22:14 +0800
+	2015-10-19 17:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,9 +39,6 @@ using namespace Text;
 namespace IO
 {
 
-ImplDeDtor(PathNorm)
-
-
 String
 Path::GetString(char16_t delimiter) const
 {
@@ -58,8 +55,7 @@ Path::Parse(const u16string& str)
 	ypath res;
 
 	ystdex::split(str, [&](char16_t c){
-		// TODO: Use user defined literal for %u16string_view.
-		return PathNorm::IsDelimiter(u16string({c}));
+		return PathTraits::IsDelimiter(c);
 	}, [&](u16string::const_iterator b, u16string::const_iterator e){
 		res.push_back(u16string(b, e));
 	});
@@ -196,8 +192,8 @@ ClearTree(const Path& pth)
 void
 ListFiles(const Path& pth, vector<String>& lst)
 {
-	TryExpr(Traverse(pth, [&](NodeCategory c, const string& name, PathNorm& nm){
-		lst.push_back(String(!nm.is_parent(name)
+	TryExpr(Traverse(pth, [&](NodeCategory c, const string& name){
+		lst.push_back(String(!PathTraits::is_parent(String(name))
 			&& bool(c & NodeCategory::Directory) ? name + YCL_PATH_DELIMITER
 			: name));
 	}))
@@ -213,7 +209,7 @@ ClassifyNode(const Path& pth)
 
 	const auto& fname(pth.back());
 
-	switch(ystdex::classify_path(fname, pth.get_norm()))
+	switch(ystdex::classify_path<String, PathTraits>(fname))
 	{
 	case ystdex::path_category::empty:
 		return NodeCategory::Empty;

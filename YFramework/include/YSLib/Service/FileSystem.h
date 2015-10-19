@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2647
+\version r2686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-10-18 21:43 +0800
+	2015-10-19 17:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,42 +54,45 @@ NormalizeDirectoryPathTail(_tString&& str, typename
 
 
 /*!
-\brief 文件路径范式。
-\since build 473
+\brief 文件路径特征。
+\since build 647
 */
-class YF_API PathNorm : public ystdex::path_norm<YSLib::String>
+struct PathTraits
 {
-public:
 	using value_type = YSLib::String;
 
-	//! \since build 586
-	//@{
-	DefDeCtor(PathNorm)
-	DefDeCopyCtor(PathNorm)
-	//! \brief 虚析构：类定义外默认实现。
-	~PathNorm() override;
-	//@}
+	template<typename _tChar>
+	static yconstfn bool
+	IsDelimiter(_tChar c) ynothrow
+	{
+		return YCL_FS_CharIsDelimiter(c, _tChar);
+	}
 
-	//! \since build 646
-	static PDefH(bool, IsDelimiter, u16string_view sv)
-		ImplRet(sv.length() == 1 && YCL_FS_CharIsDelimiter(sv[0], u))
+	template<class _tString>
+	static yconstfn bool
+	is_parent(const _tString& str) ynothrow
+	{
+		return YCL_FS_StringIsParent(str, decltype(str[0]));
+	}
 
-	PDefH(bool, is_parent, const value_type& str) ynothrow override
-		ImplRet(YCL_FS_StringIsParent(str, u))
+	template<class _tString>
+	static yconstfn bool
+	is_root(const _tString& str) ynothrow
+	{
+		return YCL_FS_StringIsRoot(str, decltype(str[0]));
+	}
 
-	PDefH(bool, is_root, const value_type& str) ynothrow override
-		ImplRet(YCL_FS_StringIsRoot(str, u))
-
-	PDefH(bool, is_self, const value_type& str) ynothrow override
-		ImplRet(YCL_FS_StringIsCurrent(str, u))
-
-	//! \since build 475
-	DefClone(const override, PathNorm)
+	template<class _tString>
+	static yconstfn bool
+	is_self(const _tString& str) ynothrow
+	{
+		return YCL_FS_StringIsCurrent(str, decltype(str[0]));
+	}
 };
 
 
 //! \since build 409
-using ypath = ystdex::path<vector<String>, PathNorm>;
+using ypath = ystdex::path<vector<String>, PathTraits>;
 
 
 /*!
@@ -251,9 +254,6 @@ public:
 
 	using ypath::front;
 
-	//! \since build 410
-	using ypath::get_norm;
-
 	using ypath::insert;
 
 	using ypath::is_absolute;
@@ -406,13 +406,12 @@ template<typename _func>
 void
 Traverse(HDirectory& dir, _func f)
 {
-	PathNorm nm;
-
 	std::for_each(FileIterator(&dir), FileIterator(), [&, f](const string& name)
-		ynoexcept_spec(f(dir.GetNodeCategory(), name, nm)){
+		ynoexcept_spec(f(dir.GetNodeCategory(), name)){
 		YAssert(!name.empty(), "Empty name found.");
-		if(!nm.is_self(name))
-			f(dir.GetNodeCategory(), name, nm);
+		if(!PathTraits::is_self(name))
+			// TODO: Simplify.
+			f(dir.GetNodeCategory(), name);
 	});
 }
 template<typename _func>
@@ -442,9 +441,9 @@ template<typename _func>
 void
 TraverseChildren(const string& path, _func f)
 {
-	IO::Traverse(path, [f](NodeCategory c, const string& name, PathNorm& nm)
+	IO::Traverse(path, [f](NodeCategory c, const string& name)
 		ynoexcept_spec(f(c, name)){
-		if(!nm.is_parent(name))
+		if(!PathTraits::is_parent(name))
 			f(c, name);
 	});
 }

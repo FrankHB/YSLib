@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2492
+\version r2499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-10-12 14:14 +0800
+	2015-10-19 08:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,7 +210,7 @@ public:
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static YB_FLATTEN ConversionResult
+	static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st)) && noexcept(GetIndexOf(st))
 		&& noexcept(!FillByte(i, st)))
@@ -272,7 +272,7 @@ public:
 	*/
 	//@{
 	template<typename _tObj, typename _tIn>
-	static YB_FLATTEN ConversionResult
+	static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, ConversionState& st)
 		ynoexcept_spec(!FillByte(i, st))
 	{
@@ -372,7 +372,7 @@ public:
 
 	//! \since build 641
 	template<typename _tOut>
-	static YB_FLATTEN size_t
+	static size_t
 	Encode(_tOut d, char32_t s) ynothrow
 	{
 		ynoexcept_assert("Invalid type found.", *d = char());
@@ -410,7 +410,7 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static YB_FLATTEN ConversionResult
+	static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
@@ -464,7 +464,7 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static YB_FLATTEN ConversionResult
+	static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
@@ -518,7 +518,7 @@ struct GUCSMapper<CharSet::UTF_32BE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static YB_FLATTEN ConversionResult
+	static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
@@ -560,7 +560,7 @@ struct GUCSMapper<CharSet::UTF_32LE> : UCSMapperBase
 	\since build 599
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
-	static YB_FLATTEN ConversionResult
+	static ConversionResult
 	Decode(_tObj&& uc, _tIn&& i, _tState&& st)
 		ynoexcept(noexcept(GetSequenceOf(st))
 		&& noexcept(GetIndexOf(st)) && noexcept(!FillByte(i, st)))
