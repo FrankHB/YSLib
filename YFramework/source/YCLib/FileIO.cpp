@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1882
+\version r1911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-10-08 11:31 +0800
+	2015-10-23 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,11 @@ RetryOnInterrupted(_func f) -> decltype(RetryOnError(f, errno, EINTR))
 
 template<typename _func, typename _tBuf>
 size_t
+#if YCL_Win64
+SafeReadWrite(_func f, int fd, _tBuf buf, unsigned nbyte) ynothrowv
+#else
 SafeReadWrite(_func f, int fd, _tBuf buf, size_t nbyte) ynothrowv
+#endif
 {
 	return size_t(RetryOnInterrupted([&]{
 		return f(fd, buf, nbyte);
@@ -160,7 +164,7 @@ yconstexpr const struct
 		QueryFileTime(arg, {}, &atime, {}, args...);
 		return ConvertTime(atime);
 	}
-} get_st_atime;
+} get_st_atime{};
 yconstexpr const struct
 {
 	template<typename _tParam, typename... _tParams>
@@ -172,7 +176,7 @@ yconstexpr const struct
 		QueryFileTime(arg, {}, {}, &mtime, args...);
 		return ConvertTime(mtime);
 	}
-} get_st_mtime;
+} get_st_mtime{};
 yconstexpr const struct
 {
 	template<typename _tParam, typename... _tParams>
@@ -184,7 +188,7 @@ yconstexpr const struct
 		QueryFileTime(arg, {}, &atime, &mtime, args...);
 		return array<FileTime, 2>{ConvertTime(mtime), ConvertTime(atime)};
 	}
-} get_st_matime;
+} get_st_matime{};
 //@}
 
 //! \since build 639
@@ -408,7 +412,7 @@ FileDescriptor::GetSize() const
 	if(estat(st, desc) == 0)
 		// TODO: Use YSLib::CheckNonnegativeScalar<std::uint64_t>?
 		// XXX: No negative file size should be found. See also:
-		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed .
+		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed.
 		return std::uint64_t(st.st_size);
 	ThrowFileOperationFailure("Failed getting file size.");
 #endif
@@ -419,7 +423,7 @@ FileDescriptor::SetBlocking() const ynothrow
 {
 #if YCL_API_POSIXFileSystem
 	// NOTE: Read-modify-write operation is need for compatibility.
-	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html .
+	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html.
 	const int flags(GetFlags());
 
 	if(flags != -1 && flags & O_NONBLOCK)
@@ -457,7 +461,7 @@ FileDescriptor::SetNonblocking() const ynothrow
 {
 #if YCL_API_POSIXFileSystem
 	// NOTE: Read-modify-write operation is need for compatibility.
-	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html .
+	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html.
 	const int flags(GetFlags());
 
 	if(flags != -1 && !(flags & O_NONBLOCK))
@@ -514,24 +518,24 @@ FileDescriptor::FullWrite(const void* buf, size_t nbyte) ynothrowv
 		_1, _2), p_buf, nbyte) - p_buf);
 }
 
-bool
-FileDescriptor::NodeCompare(FileDescriptor x, FileDescriptor y) ynothrow
-{
-	const auto id(x.GetNodeID());
-
-	return id != FileNodeID() && id == y.GetNodeID();
-}
-
 size_t
 FileDescriptor::Read(void* buf, size_t nbyte) ynothrowv
 {
+#if YCL_Win64
+	return SafeReadWrite(::read, desc, buf, unsigned(nbyte));
+#else
 	return SafeReadWrite(::read, desc, buf, nbyte);
+#endif
 }
 
 size_t
 FileDescriptor::Write(const void* buf, size_t nbyte) ynothrowv
 {
+#if YCL_Win64
+	return SafeReadWrite(::write, desc, buf, unsigned(nbyte));
+#else
 	return SafeReadWrite(::write, desc, buf, nbyte);
+#endif
 }
 
 void
@@ -575,7 +579,7 @@ DefaultPMode() ynothrow
 {
 #if YCL_Win32
 	// XXX: For compatibility with newer version of MSVCRT, no %_umask call
-	//	would be considered. See https://msdn.microsoft.com/en-us/library/z0kc8e3z.aspx .
+	//	would be considered. See https://msdn.microsoft.com/en-us/library/z0kc8e3z.aspx.
 	return mode_t(Mode::UserReadWrite);
 #else
 	return mode_t(Mode::UserReadWrite | Mode::GroupReadWrite | Mode::OtherRead);
@@ -598,7 +602,7 @@ RetryClose(std::FILE* fp) ynothrow
 {
 	// NOTE: However, on some implementations, '::close' and some other
 	//	function calls may always cause file descriptor to be closed
-	//	even if returning 'EINTR'. Thus it should be ignored. See https://www.python.org/dev/peps/pep-0475/#modified-functions .
+	//	even if returning 'EINTR'. Thus it should be ignored. See https://www.python.org/dev/peps/pep-0475/#modified-functions.
 	return RetryOnInterrupted([=]{
 		return std::fclose(Nonnull(fp));
 	});
@@ -606,7 +610,7 @@ RetryClose(std::FILE* fp) ynothrow
 
 
 int
-omode_conv(std::ios_base::openmode mode)
+omode_conv(std::ios_base::openmode mode) ynothrow
 {
 	using namespace std;
 
@@ -634,7 +638,7 @@ omode_conv(std::ios_base::openmode mode)
 }
 
 int
-omode_convb(std::ios_base::openmode mode)
+omode_convb(std::ios_base::openmode mode) ynothrow
 {
 #if YCL_Win32
 	const int res(omode_conv(mode));
@@ -1057,6 +1061,13 @@ IsNodeShared(const char16_t* a, const char16_t* b) ynothrow
 #else
 	return IsNodeShared(MakeMBCS(a).c_str(), MakeMBCS(b).c_str());
 #endif
+}
+bool
+IsNodeShared(FileDescriptor x, FileDescriptor y) ynothrow
+{
+	const auto id(x.GetNodeID());
+
+	return id != FileNodeID() && id == y.GetNodeID();
 }
 
 } // namespace platform;

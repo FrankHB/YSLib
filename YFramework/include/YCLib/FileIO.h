@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1643
+\version r1662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-10-11 14:05 +0800
+	2015-10-24 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,17 +287,9 @@ public:
 	//@}
 
 	/*!
-	\brief 比较文件节点。
-	\note 取节点失败视为不相同。
-	\sa GetNodeID
-	\since build 638
-	*/
-	static bool
-	NodeCompare(FileDescriptor, FileDescriptor) ynothrow;
-
-	/*!
 	\brief 读写文件。
 	\note 首先清除 errno 。
+	\note Win64 平台：大小截断为 32 位。
 	\return 若发生错误为 size_t(-1) ，否则为读取的字节数。
 	*/
 	//@{
@@ -327,7 +319,7 @@ public:
 	static void
 	WriteContent(FileDescriptor, FileDescriptor,
 		size_t = yimpl(size_t(BUFSIZ << 4)));
-	//}
+	//@}
 };
 
 
@@ -378,19 +370,19 @@ RetryClose(std::FILE*) ynothrow;
 /*!
 \brief ISO C++ 标准输入输出接口打开模式转换为 POSIX 文件打开模式。
 \return 若失败为 0 ，否则为对应的值。
-\since build 617
+\since build 648
 */
 //@{
 //! \note 忽略二进制模式。
 YF_API YB_STATELESS int
-omode_conv(std::ios_base::openmode);
+omode_conv(std::ios_base::openmode) ynothrow;
 
 /*!
 \note 扩展：不忽略二进制模式。
 \note POSIX 平台：同 omode_conv 。
 */
 YF_API YB_STATELESS int
-omode_convb(std::ios_base::openmode);
+omode_convb(std::ios_base::openmode) ynothrow;
 //@}
 
 //! \pre 断言：第一参数非空。
@@ -1179,8 +1171,12 @@ IsNodeShared(const char*, const char*) ynothrow;
 YF_API YB_NONNULL(1, 2) bool
 IsNodeShared(const char16_t*, const char16_t*) ynothrow;
 //@}
-inline PDefH(bool, IsNodeShared, FileDescriptor x, FileDescriptor y) ynothrow
-	ImplRet(FileDescriptor::NodeCompare(x, y))
+/*!
+\note 取节点失败视为不共享。
+\sa FileDescriptor::GetNodeID
+*/
+bool
+IsNodeShared(FileDescriptor, FileDescriptor) ynothrow;
 //@}
 
 } // namespace platform;

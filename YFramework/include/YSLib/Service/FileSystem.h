@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2686
+\version r2750
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-10-19 17:14 +0800
+	2015-10-24 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
+#include YFM_YSLib_Service_File // for TryRemove, TryUnlink;
 #include YFM_YSLib_Core_YString
 #include <ystdex/path.hpp>
 
@@ -406,12 +407,12 @@ template<typename _func>
 void
 Traverse(HDirectory& dir, _func f)
 {
-	std::for_each(FileIterator(&dir), FileIterator(), [&, f](const string& name)
-		ynoexcept_spec(f(dir.GetNodeCategory(), name)){
-		YAssert(!name.empty(), "Empty name found.");
-		if(!PathTraits::is_self(name))
+	std::for_each(FileIterator(&dir), FileIterator(), [&, f](NativePathView npv)
+		ynoexcept_spec(f(dir.GetNodeCategory(), npv)){
+		YAssert(!npv.empty(), "Empty name found.");
+		if(!PathTraits::is_self(npv))
 			// TODO: Simplify.
-			f(dir.GetNodeCategory(), name);
+			f(dir.GetNodeCategory(), npv);
 	});
 }
 template<typename _func>
@@ -441,40 +442,11 @@ template<typename _func>
 void
 TraverseChildren(const string& path, _func f)
 {
-	IO::Traverse(path, [f](NodeCategory c, const string& name)
-		ynoexcept_spec(f(c, name)){
-		if(!PathTraits::is_parent(name))
-			f(c, name);
+	IO::Traverse(path, [f](NodeCategory c, NativePathView npv)
+		ynoexcept_spec(f(c, npv)){
+		if(!PathTraits::is_parent(npv))
+			f(c, npv);
 	});
-}
-//@}
-
-
-/*!
-\brief 尝试移除文件链接。
-\pre 间接断言：参数非空。
-\throw FileOperationFailure 文件存在且操作失败。
-\since build 634
-*/
-//@{
-template<typename _tChar>
-YB_NONNULL(1) void
-TryRemove(const _tChar* path)
-{
-	if(YB_UNLIKELY(!uremove(path) && errno != ENOENT))
-		ystdex::throw_error<FileOperationFailure>(errno,
-			"Failed removing destination file '"
-			+ platform::MakePathString(path) + "'.");
-}
-
-template<typename _tChar>
-YB_NONNULL(1) void
-TryUnlink(const _tChar* path)
-{
-	if(YB_UNLIKELY(!uunlink(path) && errno != ENOENT))
-		ystdex::throw_error<FileOperationFailure>(errno,
-			"Failed unlinking destination file '"
-			+ platform::MakePathString(path) + "'.");
 }
 //@}
 
@@ -497,9 +469,12 @@ YF_API void
 CopyFile(UniqueFile, FileDescriptor);
 //! \exception FileOperationFailure 打开文件失败。
 //@{
-//! \note 不清空目标。
+/*!
+\note 不清空目标。
+\since build 648
+*/
 YF_API YB_NONNULL(2) void
-CopyFile(UniqueFile, const char*, mode_t = DefaultPMode());
+CopyFile(UniqueFile, const char*);
 /*!
 \note 除第二参数外含义和 EnsureUniqueFile 的参数依次相同。
 \sa EnsureUniqueFile
@@ -508,18 +483,40 @@ CopyFile(UniqueFile, const char*, mode_t = DefaultPMode());
 YF_API YB_NONNULL(1) void
 CopyFile(const char*, FileDescriptor, mode_t = DefaultPMode(),
 	size_t = 1, bool = {});
+//! \since build 648
 YF_API YB_NONNULL(1, 2) void
-CopyFile(const char*, const char*, mode_t = DefaultPMode(),
-	mode_t = DefaultPMode(), size_t = 1, bool = {});
+CopyFile(const char*, const char*, mode_t = DefaultPMode(), size_t = 1,
+	bool = {});
 //@}
 //@}
 //@}
 
-
+//! \note 失败时立刻终止操作。
+//@{
 /*!
-\note 失败时立刻终止操作。
-\exception FileOperationFailure 路径指向的不是一个目录或删除失败。
+\brief 复制目录树。
+\since build 648
 */
+template<typename... _tParams>
+void
+CopyTree(const Path& dst, const Path& src, _tParams&&... args)
+{
+	EnsureDirectory(dst);
+	TraverseChildren(src, [&](NodeCategory c, NativePathView npv){
+		const String name(npv);
+
+		// XXX: Blocked. 'yforward' cause G++ 5.2 crash: internal compiler
+		//	error: Aborted (program cc1plus).
+		if(c == NodeCategory::Directory)
+			IO::CopyTree(dst / name, src / name,
+				std::forward<_tParams>(args)...);
+		else
+			IO::CopyFile(string(dst / name).c_str(), string(src / name).c_str(),
+				std::forward<_tParams>(args)...);
+	});
+}
+
+//! \exception FileOperationFailure 路径指向的不是一个目录或删除失败。
 //@{
 /*!
 \brief 清空参数指定路径的目录树内容。
@@ -544,10 +541,12 @@ inline PDefH(void, DeleteTree, const string& pth)
 
 /*!
 \brief 遍历目录中的项目，更新至列表。
+\exception FileOperationFailure 操作失败。
 \since build 538
 */
 YF_API void
 ListFiles(const Path&, vector<String>&);
+//@}
 
 
 /*!

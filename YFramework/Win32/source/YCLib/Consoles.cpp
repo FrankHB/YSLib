@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r295
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-10-11 23:50 +0800
+	2015-10-23 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,7 +179,8 @@ WConsole::WriteString(wstring_view sv)
 
 	unsigned long n;
 
-	YCL_CallWin32F(WriteConsoleW, h_std, sv.data(), sv.length(), &n, yimpl({}));
+	YCL_CallWin32F(WriteConsoleW, h_std, sv.data(),
+		static_cast<unsigned long>(sv.length()), &n, yimpl({}));
 	return size_t(n);
 }
 

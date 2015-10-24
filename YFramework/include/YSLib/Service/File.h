@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1488
+\version r1515
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-09-28 11:00 +0800
+	2015-10-20 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,13 +40,43 @@ namespace IO
 /*!
 \brief 打开文件。
 \throw FileOperationFailure 打开失败。
+\return 非空的文件指针。
 \sa uopen
 \since build 639
 */
 YF_API YB_NONNULL(1) UniqueFile
 OpenFile(const char*, int, mode_t = 0);
 
+
+/*!
+\brief 尝试移除文件链接。
+\pre 间接断言：参数非空。
+\throw FileOperationFailure 文件存在且操作失败。
+\since build 634
+*/
+//@{
+template<typename _tChar>
+YB_NONNULL(1) void
+TryRemove(const _tChar* path)
+{
+	if(YB_UNLIKELY(!uremove(path) && errno != ENOENT))
+		ystdex::throw_error<FileOperationFailure>(errno,
+			"Failed removing destination file '"
+			+ IO::MakePathString(path) + "'.");
 }
+
+template<typename _tChar>
+YB_NONNULL(1) void
+TryUnlink(const _tChar* path)
+{
+	if(YB_UNLIKELY(!uunlink(path) && errno != ENOENT))
+		ystdex::throw_error<FileOperationFailure>(errno,
+			"Failed unlinking destination file '"
+			+ IO::MakePathString(path) + "'.");
+}
+//@}
+
+} // namespace IO;
 
 } // namespace YSLib;
 

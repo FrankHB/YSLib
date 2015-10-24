@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3207
+\version r3283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-09-20 16:35 +0800
+	2015-10-21 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,6 +88,16 @@ LogGroup LastLogGroup(LogGroup::General);
 std::mutex LastLogGroupMutex;
 std::bitset<size_t(LogGroup::Max)> LogDisabled;
 
+//! \since build 648
+using ystdex::quote;
+//! \since build 648
+template<class _tString>
+auto
+Quote(_tString&& str) -> decltype(quote(yforward(str), '\''))
+{
+	return quote(yforward(str), '\'');
+}
+
 void
 PrintInfo(const string& line, RecordLevel lv = Notice,
 	LogGroup grp = LogGroup::General)
@@ -138,15 +148,15 @@ const struct Option
 				if(uval < threshold)
 					f(uval);
 				else
-					print("Warning: Value '" + val + "' of " + name
-						+ " out of range.");
+					print("Warning: Value " + Quote(val) + " of " + name
+						+ " is out of range.");
 			}
 			CatchExpr(std::invalid_argument&,
-				print("Warning: Value '" + val + "' of " + name
+				print("Warning: Value " + Quote(val) + " of " + name
 					+ " is invalid."))
 			CatchExpr(std::out_of_range&,
-				print("Warning: Value '" + val + "' of " + name
-					+ " out of range."))
+				print("Warning: Value " + Quote(val) + " of " + name
+					+ " is out of range."))
 		}, il)
 	{}
 
@@ -154,18 +164,17 @@ const struct Option
 		ImplRet(filter(arg))
 } OptionsTable[]{
 	{"-xd,", "output directory", "DIR_NAME", [](string&& val){
-		PrintInfo("Output directory is switched to '" + val
-			+ "'.");
+		PrintInfo("Output directory is switched to " + Quote(val) + '.');
 		OutputDir = std::move(val);
 	}, {"The name of output directory. Default value is '" OPT_build_path "'.",
 		OPT_des_mul}},
 	{"-xid,", "ignored directories", "DIR_NAME", [](string&& val){
-		PrintInfo("Subdirectory '" + val + "' should be ignored.");
+		PrintInfo("Subdirectory " + Quote(val) + " should be ignored.");
 		IgnoredDirs.emplace(std::move(val));
 	}, {"The name of subdirectory which should be ignored when scanning.",
 		OPT_des_mul}},
 	{"-xj,", "job max count", "MAX_JOB_COUNT", [](opt_uint uval){
-		PrintInfo("Set job max count = " + to_string(uval) + ".");
+		PrintInfo("Set job max count = " + to_string(uval) + '.');
 		MaxJobs = size_t(uval);
 	}, 0x100UL, {"Max count of parallel jobs at the same time.",
 		"This number would be used to limit the number of tasks being"
@@ -181,7 +190,7 @@ const struct Option
 		" groups.", OPT_des_last}},
 	{"-xloggd,", "disabled log group", "LOG_GROUP", [](opt_uint uval){
 		LogDisabled.set(uval);
-		PrintInfo("Log group disabled: " + to_string(uval) + ".");
+		PrintInfo("Log group disabled: " + to_string(uval) + '.');
 	}, opt_uint(LogGroup::Max), {"The log group should be disabled.",
 		"Currently these groups are supported:", "  0: General;",
 		"  1: Search;", "  2: Build;", "  3: Command;", "  4: DepsCheck.",
@@ -189,7 +198,7 @@ const struct Option
 		OPT_des_last}},
 	{"-xlogge,", "enabled log group", "LOG_GROUP", [](opt_uint uval){
 		LogDisabled.set(uval, {});
-		PrintInfo("Log group enabled: " + to_string(uval) + ".");
+		PrintInfo("Log group enabled: " + to_string(uval) + '.');
 	}, opt_uint(LogGroup::Max), {"The log group should be enabled.",
 		"See description of '-xloggd,'.", OPT_des_last}},
 	{"-xmode,", "mode", "MODE", [](opt_uint uval){
@@ -200,7 +209,7 @@ const struct Option
 			Mode = BuildMode(uval);
 			break;
 		default:
-			PrintInfo("Ignored unsupported mode '" + to_string(uval) + "'.",
+			PrintInfo("Ignored unsupported mode " + Quote(to_string(uval)) + '.',
 				Warning);
 		}
 	}, 0x3UL, {"The target action mode.",
@@ -210,8 +219,7 @@ const struct Option
 		"If this option occurs more than once, only the last one is"
 		" effective."}},
 	{"-xn,", "Target name", "OBJ_NAME", [](string&& val){
-		PrintInfo("Target name is switched to '" + val
-			+ "'.");
+		PrintInfo("Target name is switched to " + Quote(val) + '.');
 		TargetName = std::move(val);
 	}, {"The base name of final target."
 		" Default value is same to top level directory name.", OPT_des_last}},
@@ -238,11 +246,11 @@ EnsureOutputDirectory(const string& opath)
 {
 	try
 	{
-		PrintInfo("Checking output directory: '" + opath + "' ...");
+		PrintInfo("Checking output directory: " + Quote(opath) + " ...");
 		EnsureDirectory(opath);
 	}
 	CatchExpr(std::system_error&,
-		raise_exception(2, "Failed creating directory '" + opath + "'."))
+		raise_exception(2, "Failed creating directory " + Quote(opath) + '.'))
 }
 
 //! \since build 545
@@ -252,7 +260,7 @@ CheckModification(const string& path)
 {
 	const auto print(std::bind(PrintInfo, _1, Debug, LogGroup::DepsCheck));
 
-	print("Checking path '" + path + "' ...");
+	print("Checking path " + Quote(path) + " ...");
 
 	const auto& file_time(GetFileModificationTimeOf(path.c_str()));
 
@@ -276,7 +284,7 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 				return omod < CheckModification(ipath);
 			}))
 			{
-				print("Output '"+ opath + "' is up-to-date, skipped.",
+				print("Output " + Quote(opath) + " is up-to-date, skipped.",
 					Informative);
 				return {};
 			}
@@ -371,35 +379,31 @@ public:
 	BuildContext& Context;
 	Key Source;
 
-	string
-	GetCommand(const String&) const;
-	//! \since build 596
+	//! \since build 648
+	//@{
+	PDefH(string, GetCommand, string_view ext) const
+		ImplRet(LookupCommand(GetCommandType(ext)))
 	static string
-	GetCommandType(const String&);
+	GetCommandType(string_view);
 
-	//! \since build 596
 	string
-	LookupCommand(const string&) const;
+	LookupCommand(string_view) const;
+	//@}
 };
 
 string
-Rule::GetCommand(const String& ext) const
+Rule::GetCommandType(string_view ext)
 {
-	return LookupCommand(GetCommandType(ext));
-}
-string
-Rule::GetCommandType(const String& ext)
-{
-	if(ext == u"c")
+	if(ext == "c")
 		return "CC";
-	if(ext == u"cc" || ext == u"cpp" || ext == u"cxx")
+	if(ext == "cc" || ext == "cpp" || ext == "cxx")
 		return "CXX";
 	return {};
 }
 string
-Rule::LookupCommand(const string& name) const
+Rule::LookupCommand(string_view name) const
 {
-	return name.empty() ? string() : Context.GetEnv(name);
+	return name.empty() ? string() : Context.GetEnv(string(name));
 }
 
 
@@ -412,9 +416,9 @@ BuildFile(const Rule& rule)
 {
 	const auto& bctx(rule.Context);
 	const auto& ipth(rule.Source.first);
-	const auto& cmd_type(rule.GetCommandType(GetExtensionOf(ipth)));
-	const auto& cmd(rule.LookupCommand(cmd_type));
 	const auto& fullname(ipth.GetMBCS());
+	const auto& cmd_type(rule.GetCommandType(GetExtensionOf(fullname)));
+	const auto& cmd(rule.LookupCommand(cmd_type));
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
 
 	if(!cmd.empty())
@@ -450,15 +454,15 @@ BuildFile(const Rule& rule)
 		CatchIgnore(std::exception&)
 		if(build)
 		{
-			print("Compile file: '" + ipth.back().GetMBCS() + "'.",
+			print("Compile file: " + Quote(ipth.back().GetMBCS()) + '.',
 				Informative);
-			bctx.CallWithException(cmd + " -MMD" + " -c " + bctx.GetFlags(
-				cmd_type) + " \"" + fullname + "\" -o \"" + ofullname + '"');
+			bctx.CallWithException(cmd + " -MMD -c " + bctx.GetFlags(
+				cmd_type) + ' ' + quote(fullname) + " -o " + quote(ofullname));
 		}
 		return {ofullname};
 	}
 	else
-		print("No rule found for '" + fullname + "'.", Warning);
+		print("No rule found for " + Quote(fullname) + '.', Warning);
 	return {};
 }
 
@@ -472,26 +476,28 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 	vector<pair<string, string>> src_files;
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Search));
 
-	print("Searching path: " + path + " ...", Notice);
-	TraverseChildren(path, [&](NodeCategory c, const std::string& name){
+	print("Searching path: " + Quote(path) + " ...", Notice);
+	TraverseChildren(path, [&](NodeCategory c, NativePathView npv){
+		const auto& name(String(npv).GetMBCS());
+
 		if(name[0] != '.')
 		{
 			if(bool(c & NodeCategory::Directory))
 			{
 				if(ystdex::exists(rule.Context.IgnoredDirs, name))
-					print("Subdirectory " + path + name + YCL_PATH_DELIMITER
-						+ " is ignored.", Informative);
+					print("Subdirectory " + Quote(path + name
+						+ YCL_PATH_DELIMITER) + " is ignored.", Informative);
 				else
 					subdirs.push_back(name);
 			}
 			else
 			{
-				auto cmd(rule.GetCommand(GetExtensionOf(String(name))));
+				auto cmd(rule.GetCommand(GetExtensionOf(name)));
 
 				if(!cmd.empty())
 					src_files.emplace_back(std::move(cmd), name);
 				else
-					print("Ignored non source file '" + name + "'.",
+					print("Ignored non source file " + Quote(name) + '.',
 						Informative);
 			}
 		}
@@ -502,8 +508,8 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 
 	const auto snum(src_files.size());
 
-	print(to_string(snum) + " file(s) found to be built in path: " + path
-		+ " .", Informative);
+	print(to_string(snum) + " file(s) found to be built in path " + Quote(path)
+		+ '.', Informative);
 	if(snum != 0)
 	{
 		EnsureOutputDirectory(opth);
@@ -546,9 +552,9 @@ void
 BuildContext::Build()
 {
 	PrintInfo("Ready to run, job max count: "
-		+ to_string(jobs.get_max_task_num()) + ".");
+		+ to_string(jobs.get_max_task_num()) + '.');
 	OutputDir = NormalizeDirectoryPathTail(OutputDir);
-	PrintInfo("Normalized output directory: '" + OutputDir + "'.");
+	PrintInfo("Normalized output directory: " + Quote(OutputDir) + '.');
 	if(Options.empty())
 	{
 		PrintInfo("No options found. Stop.");
@@ -558,7 +564,7 @@ BuildContext::Build()
 	const auto in(NormalizeDirectoryPathTail(Options[0]));
 	const auto ipath(MakeNormalizedAbsolute(Path(in)));
 
-	PrintInfo("Absolute path recognized: " + to_string(ipath).GetMBCS() + " .");
+	PrintInfo("Absolute path " + Quote(to_string(ipath).GetMBCS()) + " recognized.");
 	if(!VerifyDirectory(in))
 		raise_exception(1, "SRCPATH is not existed.");
 	EnsureOutputDirectory(OutputDir);
@@ -627,14 +633,14 @@ BuildContext::Build()
 					: ".exe";
 			if(CheckBuild(ofiles, target))
 			{
-				auto str(cmd + " \"" + target + '"');
+				auto str(cmd + ' ' + quote(target));
 
 				// FIXME: Prevent path too long.
 				for(const auto& ofile : ofiles)
-					str += " \"" + ofile + "\"";
+					str += ' ' + quote(ofile);
 				if(Mode == BuildMode::LD)
 					str += ' ' + GetEnv("LIBS");
-				print("Link file: '" + target + "'.", Informative);
+				print("Link file: " + Quote(target) + '.', Informative);
 				if(Mode == BuildMode::AR)
 				{
 					// NOTE: Since the return value might be
@@ -642,9 +648,9 @@ BuildContext::Build()
 					//	still meaningful, it is not intended to throw an
 					//	exception.
 					if(uremove(target.c_str()) != 0)
-						PrintInfo(u8"Failed deleting file '" + target + u8"'.",
+						PrintInfo("Failed deleting file " + Quote(target) + '.',
 							Warning);
-					PrintInfo(u8"Deleted file '" + target + u8"'.", Debug);
+					PrintInfo("Deleted file " + Quote(target) + '.', Debug);
 				}
 				CallWithException(str, 1);
 			}
@@ -781,17 +787,16 @@ main(int argc, char* argv[])
 		}
 		else if(argc == 1)
 		{
-			std::printf("%s%s%s", "Usage: [ENV ...] \"", *argv,
-				"\" SRCPATH [OPTIONS ...]\n"
+			std::printf("%s%s%s", "Usage: [ENV ...] ",
+				quote(string(*argv)).c_str(), " SRCPATH [OPTIONS ...]\n"
 				"\n[ENV ...]\n\tThe environment variables settings."
 				" Currently accepted settings are listed below:\n\n");
 			for(const auto& env : DeEnvs)
 				std::printf("  %s\n\t%s Default value is %s.\n\n", env[0],
 					env[2], env[1][0] == '\0' ? "empty"
-					: ('\'' + string(env[1]) + '\'').c_str());
+					: Quote(string(env[1])).c_str());
 			std::puts("SRCPATH\n\tThe source directory to be recursively"
-				" searched.\n\n"
-				"OPTIONS ...\n"
+				" searched.\n\nOPTIONS ...\n"
 				"\tThe options. This comes after values of environment"
 				" variables SHBuild_CFLAGS or SHBuild_FLAGS and one single"
 				" space character when CC or CXX is called, respectively. All"
@@ -815,7 +820,7 @@ main(int argc, char* argv[])
 
 			TryExpr(throw)
 			CatchExpr(IntException& ex, print("IntException: "
-				+ to_string(unsigned(ex)) + "."))
+				+ to_string(unsigned(ex)) + '.'))
 			CatchExpr(FileOperationFailure&, print(
 				"ERROR: File operation failure."))
 			CatchIgnore(std::exception&)

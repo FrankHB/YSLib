@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1876
+\version r1881
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-10-18 21:49 +0800
+	2015-10-22 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ using ystdex::min;
 using ystdex::max;
 #endif
 //@}
-//}
+//@}
 
 
 //! \since build 593
@@ -353,6 +353,8 @@ namespace IO
 \since build 639
 */
 //@{
+//! \since build 648
+using platform::MakePathString;
 using platform::mode_t;
 using platform::FileDescriptor;
 using platform::UniqueFile;
@@ -384,6 +386,8 @@ using platform::IsAbsolute;
 //! \since build 171
 using platform::GetRootNameLength;
 //@}
+//! \since build 648
+using NativePathView = basic_string_view<HDirectory::NativeChar>;
 
 } // namespace IO;
 
