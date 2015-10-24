@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r744
+\version r747
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2015-10-08 23:01 +0800
+	2015-10-20 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,8 +303,10 @@ FindUnits(set<string>& res, const Path& pth, const Path& opth,
 {
 	if(VerifyDirectory(pth))
 		TraverseChildren(string(pth),
-			[&](NodeCategory c, const std::string& name){
-			if(name[0] != '.')
+			[&](NodeCategory c, NativePathView npv){
+			const String name(npv);
+
+			if(name[0] != u'.')
 			{
 				const auto& ofpth(opth / name);
 

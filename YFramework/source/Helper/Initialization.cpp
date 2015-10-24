@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2421
+\version r2425
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-10-19 16:27 +0800
+	2015-10-20 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -480,12 +480,12 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 				HDirectory dir{font_dir.c_str()};
 
 				std::for_each(FileIterator(&dir), FileIterator(),
-					[&](const string& name){
-					if(!PathTraits::is_self(name)
+					[&](NativePathView npv){
+					if(!PathTraits::is_self(npv)
 						&& dir.GetNodeCategory() != NodeCategory::Directory
-						/*&& IsExtensionOf(ext, dir.GetName())*/)
+						/*&& IsExtensionOf(ext, string(dir))*/)
 					{
-						FontPath path(font_dir + dir.GetName());
+						FontPath path(font_dir + string(dir));
 
 						if(path != fong_file)
 							nFileLoaded += fc.LoadTypefaces(path) != 0;

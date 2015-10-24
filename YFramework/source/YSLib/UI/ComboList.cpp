@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3257
+\version r3260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-09-28 02:12 +0800
+	2015-10-20 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,9 @@ FileBox::ListItems() const
 {
 	ListType lst;
 
-	ListFiles(pthDirectory, lst);
+	TryExpr(ListFiles(pthDirectory, lst))
+	// TODO: Log errors?
+	CatchIgnore(IO::FileOperationFailure&)
 	// TODO: Platform-dependent name converting.
 	return lst;
 }

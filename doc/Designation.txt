@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9747
+\version r9753
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-10-09 13:38 +0800
+	2015-10-21 11:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -431,7 +431,7 @@ ytest ：测试框架设施 YTest 。
 
 @6.1.1 注释风格：
 使用简化的（去除可以省略的星号后的） Qt 风格的注释。
-分行例外（默认参见 [Documentation::CommonRules @@5.4.1] ）： URL 链接等超出默认行宽时可在同一行（无法生成正确的代码）。
+分行例外（默认参见 [Documentation::CommonRules @@5.4.1] ）： URL 链接等超出默认行宽时可在同一行（以避免无法生成正确的代码）。
 
 @6.1.2 指令同义词：
 当多种指令等价时使用 Doxygen 手册中直接说明（而非指示同义词即 "Equivalent to" ）的一项。
@@ -452,6 +452,12 @@ ytest ：测试框架设施 YTest 。
 对连续的 \tparam 和 \param 指令，相同指令按参数在参数列表中出现的顺序排序；对连续的 \throw 和 \exception 指令，相同指令按异常类型名排序。
 从属的非段落指令如 \code 、 \endcode 、\tt 、 \verbatim 等不限制顺序。
 其它顺序参见 http://drupal.org/node/1354#links 。
+
+@6.1.5 组(grouping) ：
+仅在必要时使用分组指令。
+使用单行的分组边界，但不在注释块内使用等价的标记。
+不使用 DISTRIBUTE_GROUP_DOC 。
+当前 Doxygen 不支持嵌套成员分组。这是已知的待解决问题。
 
 @6.2 实现语用规则：
 

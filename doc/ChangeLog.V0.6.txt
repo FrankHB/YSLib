@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r5239
+\version r5338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-20 00:47 +0800
+	2015-10-24 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,101 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ "supported multiple character encodings" @ "class %HDirectory"
+				@ %FileSystem $=
+			(
+				+ "alias %NativeChar";
+				(
+				/ "function %GetName" -> "%GetNativeName";
+				* $comp "bad UTF-8 name reserved after exception ignored for \
+					getting name" @ "platform %Win32" $since b412
+				/ $forced DLDI "function %operator string",
+				/ DLDI "simplified data members and constructor"
+					@ "platform %Win32",
+				+ "functions operator %(u16string, \
+					basic_string_view<NativeChar>)"
+				)
+			),
+			/ %FileIO $=
+			(
+				/ @ "class %FileDescriptor" $=
+				(
+					/ "merged static member function \
+						%FileDescriptor::NodeCompare" -> "function \
+						%platform::IsNodeShared for %FileDescriptor parameters",
+					* DD "Doxygen member group end" $since b634,
+					/ DLDI "cast size parameter to 'unsigned'"
+						@ "functions %(Read, Write) for non POSIX compliant \
+						%::(read, write)" @ "platform %Win64"
+						// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+				),
+				* DLB $impl $re(b585) "strict ISO C++ code conformance"
+					@ "platform %Win32" $since b632
+					$= (* "missing user-provided default constructor for \
+						default initialized const objects"
+						$= (+ '{}')),
+				+ 'ynothrow' @ "functions %(omode_conv; omode_convb)"
+			)
+		),
+		/ %YSLib $=
+		(
+			/ @ "namespace %YSLib::IO" @ %Adaptor.YAdaptor $=
+			(
+				+ 'using NativePathView \
+					= basic_string_view<HDirectory::NativeChar>;',
+				+ 'platform::MakePathString;',
+				* DD "Doxygen member group end for algorithms" $since b308
+			),
+			/ %Service.FileSystem $=
+			(
+				- "catching and ignoring exception 'FileOperationFailure&'"
+					@ "function %ListFiles",
+					// To keep it consistent with other APIs in the module and \
+						also to make the error able to be handled by caller.
+				/ "function templates %(TryRemove, TryUnlink)" >> %File
+					$= (* "explicit platform-dependent 'platform::' used \
+						directly" $since b639 $dep_from ("%MakePathString"
+						@ %YSLib.Adaptor.YAdaptor)),
+				+ "function template %CopyTree",
+				- "redundant source mode parameter"
+					@ "functions %CopyFile#(2, 4)"
+			),
+			+ $forced DLDI "catching and ignoring exception \
+				'FileOperationFailure&'" @ "member function %FileBox::ListItems"
+				@ %UI.ComboList $dep_from ("%ListFiles" @ %Service.FileSystem),
+		),
+		/ DLDI "path string parameter" @ "callback" $effective @ ("function \
+			templates %(Traverse, TraverseChildren), function %(ClearTree, \
+			ListFiles)" @ %YSLib.Service.FileSystem, "function \
+			%InitializeSystemFontCache" @ %Helper.Initialization) -> $dep_from
+			("%NativePathView" @ %YSLib.Adaptor.YAdaptor) ~ 'const string&',
+		/ DLDI "cast size parameter to 'unsigned long'"
+			@ "member function %WConsole::WriteString for %wstring_view"
+			@ %'YCLib_(Win32)'.Consoles
+			// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+	),
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			/ $forced DLDI "path traverse" $dep_from
+				%YFramework.YSLib.Service.YFramework,
+			/ DLDI "rule API parameters" ^ "%string_view" ~ "%string",
+			/ "quoted all paths in messages by '\''" ^ "%ystdex::quote"
+				// To be clear with spaces.
+			/ DLDI "simplified quoted all paths in commands by '"'" ^ "%ystdex::quote"
+		),
+		/ $forced DLDI "path traverse" @ %ProjectGenerator.Main $dep_from
+			%YFramework.YSLib.Service.YFramework
+	)
+),
+
+b647
 (
 	/ %YFramework $=
 	(
@@ -3012,7 +3107,7 @@ b620
 				("class template %basic_filebuf" @ %YFramework.YCLib.FileIO);
 			- "member function %HexViewArea::Load"
 			),
-			+ "functions %operator (!, bool)"
+			+ "functions %operator(!, bool)"
 				@ "classes %(HexViewModel; %HexViewArea)";
 			/ "hiding vertical scroll bar if model loading failed"
 		),
@@ -3611,10 +3706,10 @@ b612
 	/ %YSLib $=
 	(
 		/ "constructor with single pointer parameter" @ "class %String"
-			@ %Core.String -> 'using ucs2string::ucs2string;',
+			@ %Core.YString -> 'using ucs2string::ucs2string;',
 		/ DLDI "simplified member function %TextBox::Refresh" @ %UI.TextBox
 			^ $dep_from ("inherited constructor" @ "class %String"
-			@ %Core.String) ~ "%operator* for %String"
+			@ %Core.YString) ~ "%operator* for %String"
 	)
 ),
 
@@ -4083,7 +4178,7 @@ b607
 			/ @ "class %TextFileBuffer" @ %TextManager $=
 			(
 				* $comp "possible dropped first byte for reading block"
-					$dep_from %CHRLib.StaticMapping $since b495,
+					$since b495 $dep_from %CHRLib.StaticMapping,
 				/ DLDI "simplified put back" @ %CharacterProcessing ^ $dep_from
 					("%ifile_iterator::sungetc" @ %CStandardIO) "%std::ungetc",
 				* "missing putting back character after searching by iterator"
@@ -4106,7 +4201,7 @@ b607
 		// To prevent making failed caused by nonexistence of parent directory \
 			in '.arm7' and '.arm9' file paths.
 	* $comp "dropped first byte for buffered block text" @ %YReader.DSReader
-		$dep_from %YFramework.Service.TextManager $since b495
+		$since b495 $dep_from %YFramework.Service.TextManager
 		// For test build, only %MinGW32 seemed to be normal.
 ),
 

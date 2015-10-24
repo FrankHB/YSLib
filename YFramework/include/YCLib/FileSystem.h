@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2509
+\version r2542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-10-19 16:22 +0800
+	2015-10-20 14:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -263,23 +263,29 @@ class YF_API HDirectory final
 	//! \since build 556
 	friend deref_self<HDirectory>;
 
+public:
+	//! \since build 648
+	using NativeChar =
+#if YCL_Win32
+		char16_t
+#else
+		char
+#endif
+		;
+
 private:
 #if YCL_Win32
 	/*!
 	\brief 节点信息。
+	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt> 。
+	\invariant <tt>!p_dirent || !static_cast<wstring*>(p_dirent).empty()</tt> 。
 	\since build 474
 	*/
 	void* p_dirent;
-
-	/*!
-	\brief 节点 UTF-8 名称。
-	\since build 593
-	*/
-	mutable string utf8_name{};
 #else
 	/*!
 	\brief 节点信息。
-	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt>
+	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt> 。
 	\since build 298
 	*/
 	::dirent* p_dirent;
@@ -297,9 +303,6 @@ public:
 	//! \since build 543
 	HDirectory(HDirectory&& h) ynothrow
 		: DirectorySession(std::move(h)), p_dirent(h.p_dirent)
-#if YCL_Win32
-		, utf8_name(std::move(h.utf8_name))
-#endif
 	{
 		h.p_dirent = {};
 	}
@@ -329,17 +332,12 @@ public:
 	*/
 	DefBoolNeg(explicit, p_dirent)
 
+	//! \since build 648
+	DefCvt(const ynothrow, basic_string_view<NativeChar>, GetNativeName())
 	//! \since build 593
-	DefCvt(const, string, GetName())
-
-	/*!
-	\brief 间接操作：取节点名称。
-	\return 非空结果：子节点不可用时为 \c "." ，否则为子节点名称。
-	\note 返回的结果在析构和下一次迭代前保持有效。
-	\since build 412
-	*/
-	const char*
-	GetName() const ynothrow;
+	operator string() const;
+	//! \since build 648
+	operator u16string() const;
 
 	/*!
 	\brief 取节点状态信息确定的文件系统节点类别。
@@ -349,6 +347,14 @@ public:
 	*/
 	NodeCategory
 	GetNodeCategory() const ynothrow;
+	/*!
+	\brief 间接操作：取节点名称。
+	\return 非空结果：子节点不可用时为对应类型的 \c "." ，否则为子节点名称。
+	\note 返回的结果在析构和下一次迭代前保持有效。
+	\since build 648
+	*/
+	YB_ATTR(returns_nonnull) const NativeChar* 
+	GetNativeName() const ynothrow;
 
 	//! \brief 复位。
 	using DirectorySession::Rewind;

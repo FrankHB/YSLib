@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2989
+\version r3021
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-10-18 16:23 +0800
+	2015-10-20 14:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,6 +207,8 @@ HDirectory::GetNodeCategory() const ynothrow
 		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
 		name.pop_back();
 		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
+		YAssert(!static_cast<wstring*>(p_dirent)->empty(),
+			"Invariant violation found.");
 		// NOTE: Only existed and accessable files are considered.
 		// FIXME: Blocked. TOCTTOU access.
 		if(const auto h = MakeFile((name + Deref(static_cast<wstring*>(
@@ -243,22 +245,38 @@ HDirectory::GetNodeCategory() const ynothrow
 	return NodeCategory::Empty;
 }
 
-const char*
-HDirectory::GetName() const ynothrow
+HDirectory::operator string() const
 {
+#if !YCL_Win32
+	return GetNativeName();
+#else
+	return platform_ex::WCSToUTF8(wcast(GetNativeName()));
+#endif
+}
+HDirectory::operator u16string() const
+{
+#if !YCL_Win32
+	return MakeUCS2LE(GetNativeName());
+#else
+	return ucast(GetNativeName());
+#endif
+}
+
+const HDirectory::NativeChar*
+HDirectory::GetNativeName() const ynothrow
+{
+#if !YCL_Win32
+	return p_dirent ? p_dirent->d_name : ".";
+#else
 	if(p_dirent)
 	{
-#if !YCL_Win32
-		return p_dirent->d_name;
-#else
-		// NOTE: See %YCL_Impl_RetTryCatchAll in 'fileSystem.cpp'.
-		// XXX: Catch %std::bad_alloc?
-		TryRet(utf8_name = platform_ex::WCSToUTF8(
-			Deref(static_cast<wstring*>(p_dirent))), utf8_name.c_str())
-		CatchIgnore(...)
-#endif
+		const auto& d_name(Deref(static_cast<wstring*>(p_dirent)));
+
+		YAssert(!d_name.empty(), "Invariant violation found.");
+		return ucast(d_name.data());
 	}
-	return ".";
+	return u".";
+#endif
 }
 
 
