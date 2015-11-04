@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,16 +12,16 @@
 \brief 维护工具。
 */
 
-/*!	\file main.cpp
+/*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 检查、备份和恢复指定目录下文件的创建时间。
-\version r162
+\version r189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 437
 \par 创建时间:
 	2013-08-14 01:36:07 +0800
 \par 修改时间:
-	2013-08-18 05:04 +0800
+	2015-10-31 16:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,13 +48,36 @@ namespace
 const auto file_attr(FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS
 	| FILE_FLAG_NO_BUFFERING | FILE_FLAG_OPEN_REPARSE_POINT);
 
+//! \since build 649
+//@{
+std::wstring
+MBCSToWCS(const char* str, unsigned cp = CP_ACP)
+{
+	// TODO: Use %YFramework.YCLib_('MinGW32').
+	const int
+		w_len(::MultiByteToWideChar(cp, 0, str, -1, nullptr, 0));
+
+	if(w_len != 0)
+	{
+		std::wstring res(w_len, wchar_t());
+
+		::MultiByteToWideChar(cp, 0, str, -1, &res[0], w_len);
+		if(!res.empty())
+			res.pop_back();
+		return res;
+	}
+	return std::wstring();
+}
+//@}
+
 } // unnamed namespace;
 
 FileTime
 ReadCreationTime(const char* name)
 {
-	const auto h_file(::CreateFileA(name, GENERIC_READ, FILE_SHARE_READ
-		| FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, file_attr, nullptr));
+	const auto h_file(::CreateFileW(MBCSToWCS(name).c_str(), GENERIC_READ,
+		FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, file_attr,
+		nullptr));
 
 	if(h_file == INVALID_HANDLE_VALUE)
 		throw
@@ -70,8 +93,9 @@ ReadCreationTime(const char* name)
 void
 WriteCreationTime(const char* name, const FileTime& time)
 {
-	const auto h_file(::CreateFileA(name, GENERIC_WRITE, FILE_SHARE_READ
-		| FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, file_attr, nullptr));
+	const auto h_file(::CreateFileW(MBCSToWCS(name).c_str(), GENERIC_WRITE,
+		FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, file_attr,
+		nullptr));
 	const FileTime prevent_modify = {0xFFFFFFFF, 0xFFFFFFFF};
 
 	if(h_file == INVALID_HANDLE_VALUE)

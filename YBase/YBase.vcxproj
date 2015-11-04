@@ -66,6 +66,7 @@
     <ClInclude Include="include\ystdex\tuple.hpp" />
     <ClInclude Include="include\ystdex\type_op.hpp" />
     <ClInclude Include="include\ystdex\type_pun.hpp" />
+    <ClInclude Include="include\ystdex\type_traits.hpp" />
     <ClInclude Include="include\ystdex\utility.hpp" />
     <ClInclude Include="include\ystdex\variadic.hpp" />
     <ClInclude Include="include\ytest\test.h" />

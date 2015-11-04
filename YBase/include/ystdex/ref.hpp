@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r257
+\version r258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2015-09-30 10:07 +0800
+	2015-09-30 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_ref_hpp_
 #define YB_INC_ystdex_ref_hpp_ 1
 
-#include "../ydef.h"
+#include "type_traits.hpp" // for exclude_self_ctor_t;
 #include <functional> // for std::reference_wrapper;
 #include <memory> // for std::addressof;
 

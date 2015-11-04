@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r715
+\version r751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2015-05-29 19:20 +0800
+	2015-11-04 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_variadic_hpp_
 #define YB_INC_ystdex_variadic_hpp_ 1
 
-#include "../ydef.h" // for size_t;
+#include "type_traits.hpp" // for size_t, is_same, integral_constant,
+//	conditional_t;
 
 namespace ystdex
 {
@@ -69,16 +70,16 @@ namespace vseq
 #define YB_Impl_Variadic_SeqOpN(_n) YB_Impl_Variadic_SeqOp(_n, size_t _vN \
 	YPP_Comma class _tSeq, _vN YPP_Comma _tSeq)
 
-//! \brief 取序列元素数。
-YB_Impl_Variadic_SeqOpU(seq_size)
-
-
-//! \brief 清除序列。
+//! \brief 单位元：取空序列。
 YB_Impl_Variadic_SeqOpU(clear)
 
 
-//! \brief 合并序列。
+//! \brief 连接：合并序列。
 YB_Impl_Variadic_SeqOpB(concat)
+
+
+//! \brief 取序列元素数。
+YB_Impl_Variadic_SeqOpU(seq_size)
 
 
 //! \brief 取序列最后一个元素。
@@ -153,7 +154,7 @@ struct split_n<0, _tSeq>
 template<class _tSeq>
 struct split_n<1, _tSeq>
 {
-	using type = front_t<_tSeq>;
+	using type = push_back_t<clear_t<_tSeq>, front_t<_tSeq>>;
 	using tail = pop_front_t<_tSeq>;
 };
 //@}
@@ -187,8 +188,7 @@ namespace details
 template<size_t _vN, class _tSeq, typename _type>
 struct find
 {
-	static yconstexpr const size_t value
-		= std::is_same<front_t<_tSeq>, _type>::value
+	static yconstexpr const size_t value = is_same<front_t<_tSeq>, _type>::value
 		? 0 : find<_vN - 1, pop_front_t<_tSeq>, _type>::value + 1;
 };
 
@@ -201,7 +201,7 @@ struct find<0, _tSeq, _type>
 } // namespace details;
 
 template<class _tSeq, typename _type>
-struct find : std::integral_constant<size_t,
+struct find : integral_constant<size_t,
 	details::find<seq_size<_tSeq>::value, _tSeq, _type>::value>
 {};
 //@}
@@ -223,8 +223,8 @@ private:
 	using sub = deduplicate_t<head>;
 
 public:
-	using type = typename std::conditional<vseq::find<head, tail>::value
-		== seq_size<head>::value, concat_t<sub, tail>, sub>::type;
+	using type = conditional_t<vseq::find<head, tail>::value
+		== seq_size<head>::value, concat_t<sub, tail>, sub>;
 };
 
 template<class _tSeq>
@@ -287,9 +287,8 @@ YB_Impl_Variadic_SeqOpU(reverse)
 template<class _tSeq>
 struct reverse
 {
-	using type = typename std::conditional<seq_size<_tSeq>::value == 0,
-		clear_t<_tSeq>, concat_t<reverse_t<pop_front_t<_tSeq>>, front_t<_tSeq>>
-		>::type;
+	using type = conditional_t<seq_size<_tSeq>::value == 0, clear_t<_tSeq>,
+		concat_t<reverse_t<pop_front_t<_tSeq>>, front_t<_tSeq>>>;
 };
 //@}
 
@@ -301,32 +300,45 @@ YB_Impl_Variadic_SeqOpU(unique)
 namespace details
 {
 
-template<size_t, class _tSeq>
+/*!
+\note 使用二分实现减少递归实例化深度。
+\since build 649
+*/
+//@{
+template<class _tSeq, size_t _vN = seq_size<_tSeq>::value>
 struct unique
 {
-	using head = front_t<_tSeq>;
-	using type = concat_t<head, unique_t<typename split_n<
-		std::is_same<head, at<_tSeq, 1>>::value ? 2 : 1, _tSeq>::tail>>;
+private:
+	using split = split_n<_vN / 2, _tSeq>;
+	using half = typename unique<typename split::type>::type;
+	using last = typename unique<typename split::tail>::type;
+	using half_back = back_t<half>;
+	using last_front = front_t<last>;
+
+public:
+	using type = concat_t<conditional_t<is_same<half_back, last_front>::value,
+		pop_back_t<half>, half>, last>;
 };
 
 template<class _tSeq>
-struct unique<0, _tSeq>
+struct unique<_tSeq, 0>
 {
 	using type = clear_t<_tSeq>;
 };
 
 template<class _tSeq>
-struct unique<1, _tSeq>
+struct unique<_tSeq, 1>
 {
 	using type = _tSeq;
 };
+//@}
 
 } // namespace details;
 
 template<class _tSeq>
 struct unique
 {
-	using type = typename details::unique<seq_size<_tSeq>::value, _tSeq>::type;
+	using type = typename details::unique<_tSeq>::type;
 };
 
 

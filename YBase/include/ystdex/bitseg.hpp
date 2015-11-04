@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r376
+\version r379
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2015-09-08 03:19 +0800
+	2015-11-04 09:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef YB_INC_ystdex_bitseg_hpp_
 #define YB_INC_ystdex_bitseg_hpp_ 1
 
-#include "type_op.hpp" // for byte, ptrdiff_t;
-#include "iterator_op.hpp" // for std::iterator,
-//	std::random_access_iterator_tag, iterator_operators_t;
+#include "iterator_op.hpp" // for size_t, std::iterator,
+//	std::random_access_iterator_tag, byte, ptrdiff_t, iterator_operators_t,
+//	std::iterator_traits, CHAR_BIT;
 
 namespace ystdex
 {

@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r339
+\version r375
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-10-07 15:37 +0800
+	2015-11-01 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,44 @@ using namespace placeholders;
 using namespace ystdex;
 using namespace ytest;
 
+//! \since build 649
+//@{
+namespace memory_test
+{
+
+struct t1
+{
+	const t1*
+	operator&() const ynothrow
+	{
+		return {};
+	}
+};
+
+struct t2
+{};
+
+const t2*
+operator&(const t2&) ynothrow
+{
+	return {};
+}
+
+static_assert(!ystdex::has_overloaded_addressof<void>(), "Type check failed.");
+
+template<class _type>
+bool
+t_constfn() ynothrow
+{
+	static_assert(ystdex::has_overloaded_addressof<_type>(),
+		"Type check failed.");
+	_type x;
+
+	return constfn_addressof(x) == std::addressof(x);
+}
+
+} // namespace memory_test;
+
 //! \since build 549
 namespace bitseg_test
 {
@@ -79,6 +117,7 @@ expect(const string& str, vector<byte>&& seq)
 }
 
 } // namespace bitseg_test;
+//@}
 
 } // unnamed namespace;
 
@@ -102,6 +141,11 @@ main()
 	});
 
 	// TODO: Check stream error.
+	// 2 cases covering: ystdex::constfn_addressof.
+	seq_apply(make_guard("YStandard.Memory").get(pass, fail),
+		memory_test::t_constfn<memory_test::t1>(),
+		memory_test::t_constfn<memory_test::t2>()
+	);
 	// 4 cases covering: ystdex::apply, ystdex::compose, ystdex::make_expanded.
 	seq_apply(make_guard("YStandard.Functional").get(pass, fail),
 		// 1 case covering: ystdex::apply.

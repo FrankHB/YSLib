@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r352
+\version r359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-09-01 08:58 +0800
+	2015-11-04 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_sequence_hpp_
 #define YB_INC_ystdex_sequence_hpp_ 1
 
-#include "variadic.hpp"
+#include "variadic.hpp" // for common_type_t;
 
 namespace ystdex
 {
@@ -72,12 +72,6 @@ namespace vseq
 {
 
 template<typename _tInt, _tInt... _vSeq>
-struct seq_size<integer_sequence<_tInt, _vSeq...>>
-	: integral_constant<size_t, sizeof...(_vSeq)>
-{};
-
-
-template<typename _tInt, _tInt... _vSeq>
 struct clear<integer_sequence<_tInt, _vSeq...>>
 {
 	using type = integer_sequence<_tInt>;
@@ -90,6 +84,12 @@ struct concat<integer_sequence<_tInt, _vSeq1...>,
 {
 	using type = integer_sequence<_tInt, _vSeq1..., _vSeq2...>;
 };
+
+
+template<typename _tInt, _tInt... _vSeq>
+struct seq_size<integer_sequence<_tInt, _vSeq...>>
+	: integral_constant<size_t, sizeof...(_vSeq)>
+{};
 
 
 template<typename _tInt, _tInt... _vSeq>
@@ -208,7 +208,7 @@ using vfold = vseq::fold<_fBinary, std::integral_constant<size_t, _vState>,
 
 
 /*!
-\ingroup meta_functions
+\ingroup metafunctions
 \since build 590
 */
 //@{
@@ -224,7 +224,7 @@ template<typename _tInt, _tInt _vBase, _tInt... _vSeq>
 struct make_successor<_tInt, _vBase, integer_sequence<_tInt, _vSeq...>>
 {
 private:
-	using common_t = typename std::common_type<size_t, _tInt>::type;
+	using common_t = common_type_t<size_t, _tInt>;
 
 public:
 	// XXX: Conversion to '_tInt' might be implementation-defined.

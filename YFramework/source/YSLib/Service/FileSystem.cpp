@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2120
+\version r2136
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-10-24 19:12 +0800
+	2015-10-29 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,17 +134,11 @@ EnsureDirectory(const Path& pth)
 namespace
 {
 
-//! \since build 648
-template<typename _func>
-void
-CopyFileImpl(_func f, const char* src)
+//! \since build 649
+UniqueFile
+OpenFileForCopy(const char* src)
 {
-	if(const auto p_ifile = OpenFile(src,
-		omode_convb(std::ios_base::in | std::ios_base::binary)))
-		f(p_ifile.get());
-	else
-		ystdex::throw_error<FileOperationFailure>(errno,
-			"Failed opening source file '" + string(src) + "'.");
+	return OpenFile(src, omode_convb(std::ios_base::in | std::ios_base::binary));
 }
 
 } // unnamed namespace;
@@ -157,9 +151,7 @@ CopyFile(UniqueFile p_dst, FileDescriptor src_fd)
 void
 CopyFile(UniqueFile p_dst, const char* src)
 {
-	CopyFileImpl([&](FileDescriptor src_fd){
-		CopyFile(std::move(p_dst), src_fd);
-	}, src);
+	CopyFile(std::move(p_dst), OpenFileForCopy(src).get());
 }
 void
 CopyFile(const char* dst, FileDescriptor src_fd, mode_t dst_mode,
@@ -172,9 +164,7 @@ void
 CopyFile(const char* dst, const char* src, mode_t dst_mode,
 	size_t allowed_links, bool share)
 {
-	CopyFileImpl([&](FileDescriptor src_fd){
-		CopyFile(dst, src_fd, dst_mode, allowed_links, share);
-	}, src);
+	CopyFile(dst, OpenFileForCopy(src).get(), dst_mode, allowed_links, share);
 }
 
 

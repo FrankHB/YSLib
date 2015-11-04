@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1344
+\version r1350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-09-16 21:46 +0800
+	2015-11-01 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_memory_hpp_ 1
 
 #include "type_op.hpp" // for ../ydef.h, void_t, std::declval, is_class_type,
-//	enable_if_t, has_addressof, is_pointer, is_array, extent, remove_extent_t;
+//	enable_if_t, has_overloaded_addressof, is_pointer, is_array, extent, remove_extent_t;
 #include <memory>
 #include <iterator> // for std::iterator_traits;
 #include "cassert.h" // for yconstraint;
@@ -148,13 +148,14 @@ struct nested_allocator : details::nested_allocator<_type, _tDefault,
 */
 //@{
 template<typename _type>
-yconstfn yimpl(enable_if_t)<!has_addressof<_type>::value, _type*>
+yconstfn yimpl(enable_if_t)<!has_overloaded_addressof<_type>::value, _type*>
 constfn_addressof(_type& r)
 {
 	return &r;
 }
-template<typename _type, yimpl(enable_if_t)<has_addressof<_type>::value>>
-inline yimpl(enable_if_t)<has_addressof<_type>::value, _type*>
+template<typename _type,
+	yimpl(typename = enable_if_t<has_overloaded_addressof<_type>::value>)>
+inline yimpl(enable_if_t)<has_overloaded_addressof<_type>::value, _type*>
 constfn_addressof(_type& r)
 {
 	return std::addressof(r);
@@ -395,7 +396,7 @@ public:
 	//! \throw std::bad_cast 取临时存储失败。
 	temporary_buffer(size_t n)
 		: buf([n]{
-			// NOTE: See http://wg21.cmeerw.net/lwg/issue2072 .
+			// NOTE: See http://wg21.cmeerw.net/lwg/issue2072.
 			const auto pr(std::get_temporary_buffer<_type>(ptrdiff_t(n)));
 
 			if(pr.first)
@@ -447,7 +448,7 @@ public:
 private:
 	_tAlloc& alloc_ref;
 	size_type size;
-	
+
 public:
 	allocator_delete(_tAlloc& alloc, size_type s)
 		: alloc_ref(alloc), size(s)
