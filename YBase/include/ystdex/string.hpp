@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1604
+\version r1607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-10-07 15:05 +0800
+	2015-11-03 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,8 +81,8 @@ struct is_string_like : false_type
 {};
 
 template<typename _type>
-struct is_string_like<_type,
-	void_t<is_object<decay_t<decltype(std::declval<_type>()[0])>>>> : true_type
+struct is_string_like<_type, enable_when<
+	is_object<decay_t<decltype(std::declval<_type>()[0])>>::value>> : true_type
 {};
 //@}
 
@@ -209,7 +209,7 @@ struct str_algo<index_sequence<_vIdx, _vSeq...>>
 
 
 /*!
-\ingroup metafunctions
+\ingroup unary_type_traits
 \brief 判断指定类型是否为字符串类类型。
 \since build 557
 */

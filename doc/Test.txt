@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r233
+\version r240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2015-06-11 17:38 +0800
+	2015-10-28 16:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,17 +215,18 @@ build 460 - build 500 每 20 个 DS release 提交版本。
 build 600 起的发布版本。
 
 @5.1.2 MinGW ：
-所有 MinGW32 版本通过 PC 测试。
-build 438 前及 build 497 - build 499 起测试环境 Windows 7 Ultimate x64 。
-build 438 - build 452 测试环境 Windows 2012 Datacenter x64 。
-build 453 - build 496 及 build 500 起测试环境 Windows 2012 R2 Datacenter x64 。
+所有 MinGW32 版本通过 64 位 PC 系统测试。
+build 438 前及 build 497 - build 499 起测试环境 Windows 7 Ultimate 。
+build 438 - build 452 测试环境 Windows 2012 Datacenter 。
+build 453 - build 496 及 build 500 - build 648 测试环境 Windows 2012 R2 Datacenter 。
+build 649 起 Windows 10 Enterprise 。
 
 @5.1.3 Android ：
 所有 Android 版本通过 PC 测试。测试环境 Windows x64 + Android 模拟器 Nexus S ，宿主操作系统版本同 MinGW 。
 
 @5.1.4 非正式支持平台：
-2013-02-13: ArchLinux x86-64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。
-2013-07-17: Chakra x86-64 使用 wine-1.5.31 i386 (WOW64) 测试 MinGW32 平台版本 b429 ，基本同上；性能明显降低（ debug 版本慢于 DS 版本）；覆盖配置会导致路径问题而不能再次启动（需要在 ":" 后补充 "\" ）；此外因为权限读写失败时程序错误退出，否则有可能成功。
+2013-02-13: ArchLinux x86_64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。
+2013-07-17: Chakra x86_64 使用 wine-1.5.31 i386 (WOW64) 测试 MinGW32 平台版本 b429 ，基本同上；性能明显降低（ debug 版本慢于 DS 版本）；覆盖配置会导致路径问题而不能再次启动（需要在 ":" 后补充 "\" ）；此外因为权限读写失败时程序错误退出，否则有可能成功。
 2014-12-20(build 561) 起 Linux 平台（未完整实现）可运行 stage 1 SHBuild ，提升为第四类支持。
 
 */

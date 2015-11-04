@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r5338
+\version r5487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-10-24 19:31 +0800
+	2015-11-04 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,145 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ @ "thread options" @ "SHBuild-common-options.sh" @ %Scripts $=
+		(
+			// See $2015-10 @ %Documentation::Workflow::Annual2015.
+			/ "hard-coded detection for platform without specs 'mthreads'"
+				-> "check for no 'no-pthread' in specs";
+			+ $comp "supported for OS other than Windows, Linux and OS X with \
+				pthread support";
+			* "missing '-pthread' for Clang++" $since b547
+		),
+		/ %Tools.CreationTimeManager $=
+		(
+			* "path with non current code page not usable" @ %Main $since b437,
+				// However, it might be still limited in command line. Note \
+					that 'chcp 65001' for pipe in 'cmd' is not supported, see \
+					http://stackoverflow.com/questions/1259084/what-encoding-code-page-is-cmd-exe-using.
+			+ "G++ command example for build" @ "%Readme.en-US.txt"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.Service $=
+		(
+			/ "exception message" @ "function %OpenFile" @ %File,
+			/ DLDI "simplified functions %CopyFile" @ %FileSystem
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "function templates %make_guard" @ %ScopeGuard $=
+		(
+			+ "overloading with variadic parameters",
+				// To support move.
+			- "overloading for %lref instances"
+		),
+		+ %TypeTraits $=
+		(
+			+ "enable_when",
+			(
+			+ "metafunctions %_t",
+			+ "struct %nonsuch";
+				// See WG21/N4502.
+			+ "metafunctions %(is_detected, (detected_t; is_detected_exact, \
+				is_detected_convertible), (detected_or; detected_or_t))"
+			),
+			/ $forced DLDI "%exclude_self_ctor_t" $dep_from "moving traits"
+				^ "decay_t" ~ "%remove_rcv_t"
+				// Since %remove_rcv_t is not also moved here.
+		),
+		/ %TypeOperation $=
+		(
+			/ "inline namespaces %(cpp2011, cpp2014), type %bool_constant, \
+				metafunctions %(void_t, and_, or_, exclude_self_ctor_t)"
+				>> %TypeTraits $dep_to "moving traits",
+			(
+			/ @ "type trait %has_equality_operator" $=
+			(
+				+ "2nd template default argument as 1st template parameter",
+				/ $impl "simplified" ^ $dep_from "%is_detected_convertible"
+					~ "%YB_TYPE_OP_TEST_2"
+					// Also more readable.
+			),
+			/ $impl "simplified %has_subscription" ^ $dep_from "%(is_detected, \
+				detected_t)" ~ "%YB_TYPE_OP_TEST_2";
+			- $revert(b399) "macro %YB_TYPE_OP_TEST_2"
+				// Superseded by detector APIs.
+			),
+			(
+			/ $impl "simplified %has_mem_value" ^ $dep_from "%is_detected"
+				~ "%YB_HAS_MEMBER";
+			- $revert(b453) $build "conditional inclusion as workaround for \
+				Microsoft VC++ 2013",
+			- $revert(b440) "macro %YB_HAS_MEMBER"
+				// Ditto.
+			),
+			/ "%has_addressof" -> "%has_overloaded_addressof" ^ $dep_from
+				"%is_detected"
+		),
+		* "'void' type treated as character" @ "type traits %is_string_class"
+			$since b640
+			$= (^ $dep_from ("%enable_when" @ %TypeTraits) ~ "%void_t"),
+		/ %Utilities $=
+		(
+			/ "struct %any_constructible" >> @ %TypeTraits,
+			(
+			- "struct %not_constructible"
+			/ $forced "return type" @ "function %dependent_swap::swap#1"
+				^ $dep_from ("%nonsuch" @ %TypeTraits) ~ "%not_constructible"
+			)
+		),
+		/ @ "function templates %constfn_addressof" @ %Memory $=
+		(
+			/ $forced DLDI $dep_from ("%has_overloaded_addressof"
+				@ %TypeOperation),
+			* "invalid 2nd function template parameter"
+				@ "overloading for type with overloaded %operator&" $since b591
+		),
+		/ "simplified header dependency" @ %BitSegment !^ %TypeOperation,
+		/ %Variadic $=
+		(
+			/ $dev "header dependency" ^ %TypeTraits ~ %YDefinition $dep_from
+				"moving traits" $dep_to "variadic sequence using traits"
+			/ DLDI "simplified %(deduplicate, reverse)" ^ "%conditional_t"
+				~ "%std::conditional",
+			/ DLDI "simplified %(find, unique)" ^ "%is_same" ~ "%std::is_same"
+			/ DLDI "simplified %find" ^ "%is_sameintegral_constant"
+				~ "%std::integral_constant"
+			* "wrong 'split_n<1, *>::type'" $since b589
+				$= (^ "%(clear_t, push_back_t, front_t)" ~ "%front_t"),
+				// The metafunction %project_t is not fit because no \
+					%index_sequence is guaranteed to be defined here and it is \
+					also too inefficient.
+			/ @ "metafunction %unique" $=
+			(
+				/ DLDI ^ "binary recursive instantiation",
+				* "wrong %type" $since b589
+					$= (^ "%(split_n, back_t, front_t, concat_t, pop_back_t)"
+						~ "%(front_t, push_front_t, split_t, concat_t)")
+			)
+		),
+		/ "simplified header dependency" @ %(Exception, Cache, Future, \
+			IteratorTrait) ^ %TypeTraits ~ %TypeOperation
+		* "missing including header for %exclude_self_ctor_t" @ %Ref $since b640
+			// Originally this should be %TypeOperation.
+			$= (+ $dev "including %TypeTraits" ),
+		/ DLDI "simplified %make_successor" @ %IntegerSequence $dep_from
+			"variadic sequence using traits" ^ "%common_type_t"
+			~ "%std::common_type"
+	),
+	+ "2 test cases" @ %Test.YBase ^ $dep_from "%constfn_addressof"
+		@ %YBase.YStandardEx.Memory),
+	/ $dev $repo $re_ex(b641) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %Tools.CreationTimeManager.("%main.cpp" => "%Main.cpp")
+),
+
+b648
 (
 	/ %YFramework $=
 	(
@@ -888,8 +1027,8 @@ b641
 		@ %TextManager, ("function %GetContext" @ "class template \
 		%GTextRendererBase" $since b566, "constructor %TextRenderer#2"
 		$since b265) @ %TextRenderer) @ %YSLib.Service) @ %YFramework,
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective
+	/ $dev $repo $re_ex(b640) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.CHRLib.("%chrdef.h" => "%CharacterDefinition.h")
 ),
 
@@ -1040,8 +1179,8 @@ b640
 		- "functions %ExecuteCommand" @ "class %ShlCLI"
 			@ %'Helper_(DS)'.Shell_DS
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective
+	/ $dev $repo $re_ex(b633) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.'Helper_(DS)'.Shell_DS.("shlds.h" => "Shell_DS.h",
 		"%shlds.cpp" => "%Shell_DS.cpp")
 ),
@@ -1733,9 +1872,9 @@ b633
 	),
 	/ $re(b386) $dev $doc $term "all" ('标量' -> '纯量') $effective
 		@ %(YFramework.YSLib.Core.YCoreUtilities, Documentation.Designation);
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.YCommon.(
-		"%ycommon.cpp" => "%YCommon.cpp")
+	/ $dev $repo $re_ex(b611) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.YCommon.("%ycommon.cpp" => "%YCommon.cpp")
 ),
 
 b632
@@ -3961,9 +4100,9 @@ b611
 		@ %YBase.YStandardEx.Functional) ~ "%std::bind" $effective
 		@ %(YFramework.(NPL.NPLA1, YSLib.(Adaptor.YNew, UI.(Scroll,
 		YUIContainer))), YReader.(ShlReader, ShlExplorer)),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.YSLib.Adaptor.(
-		"%ynew.cpp" => "%YNew.cpp")
+	/ $dev $repo $re_ex(b595) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.YSLib.Adaptor.("%ynew.cpp" => "%YNew.cpp")
 ),
 
 b610
@@ -4564,7 +4703,7 @@ b601
 		* $comp $build "ill-formed use of %nptr since static assertion of \
 			%nptr always triggered it" @ %YCLib.XCB $dep_from
 			%YBase.YStandardEx.Pointer $orig $since b595 $dep_from
-			%YBase.YStandardEx.Utility,
+			%YBase.YStandardEx.Utilities,
 		/ %Helper $=
 		(
 			/ DLDI ^ 'yunused' @ "function body for 3rd parameter"

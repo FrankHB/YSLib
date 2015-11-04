@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r562
+\version r563
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2015-10-14 20:36 +0800
+	2015-11-04 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "deref_op.hpp" // for std::pair, is_undereferenceable;
 #include "cassert.h" // for yassume;
-#include "type_op.hpp" // for and_;
+#include "type_traits.hpp" // for and_;
 #include <list> // for std::list;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;

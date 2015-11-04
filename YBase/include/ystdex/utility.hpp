@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2898
+\version r2917
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-09-05 11:22 +0800
+	2015-11-01 17:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,27 +35,6 @@
 
 namespace ystdex
 {
-
-
-//! \since build 586
-//@{
-//! \brief 接受任意参数类型构造的类型。
-struct any_constructible
-{
-	any_constructible(...);
-};
-
-
-//! \brief 不接受任意参数类型构造的类型。
-struct not_constructible
-{
-	not_constructible() = delete;
-	not_constructible(const not_constructible&) = delete;
-	not_constructible(not_constructible&&) = delete;
-	~not_constructible() = delete;
-};
-//@}
-
 
 //! \ingroup helper_functions
 //@{
@@ -172,14 +151,15 @@ namespace dependent_swap
 
 using std::swap;
 
-not_constructible
+//! \since build 496
+nonesuch
 swap(any_constructible, any_constructible);
 
 template<typename _type, typename _type2>
 struct yimpl(helper)
 {
 	static yconstexpr const bool value = !is_same<decltype(swap(std::declval<
-		_type&>(), std::declval<_type2&>())), not_constructible>::value;
+		_type&>(), std::declval<_type2&>())), nonesuch>::value;
 
 	helper()
 		ynoexcept_spec(swap(std::declval<_type&>(), std::declval<_type2&>()))

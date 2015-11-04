@@ -46,10 +46,11 @@ fi
 	-Wsign-conversion \
 	"}
 
-# TODO: BSD etc.
+# TODO: Impl without pthread?
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_='-mthreads'
-elif [[ "$SHBuild_Env_OS" == 'Linux' || "$SHBuild_Env_OS" == 'OS_X' ]]; then
+fi
+if !("$CXX" -dumpspecs 2>& 1 | grep no-pthread: > /dev/null); then
 	CXXFLAGS_IMPL_COMMON_THRD_='-pthread'
 fi
 

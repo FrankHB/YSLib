@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r238
+\version r239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2015-09-23 13:15 +0800
+	2015-11-04 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_exception_hpp_
 #define YB_INC_ystdex_exception_hpp_ 1
 
-#include "type_op.hpp" // for remove_cv_t;
+#include "type_traits.hpp" // for remove_cv_t;
 #include <libdefect/exception.h>
 #include <stdexcept> // for std::logic_error;
 #include <memory> // for std::addressof;
