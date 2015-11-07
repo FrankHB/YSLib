@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1350
+\version r1386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-11-01 18:50 +0800
+	2015-11-06 13:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, void_t, std::declval, is_class_type,
-//	enable_if_t, has_overloaded_addressof, is_pointer, is_array, extent, remove_extent_t;
+#include "type_op.hpp" // for is_class_type, is_nonconst_object, detected_t,
+//	conditional, enable_if_t, has_overloaded_addressof, std::declval,
+//	is_pointer, is_array, extent, remove_extent_t;
 #include <memory>
 #include <iterator> // for std::iterator_traits;
 #include "cassert.h" // for yconstraint;
@@ -60,6 +61,8 @@ using is_copy_constructible_class
 	= and_<is_copy_constructible<_type>, is_class_type<_type>>;
 
 
+// NOTE: Workaround for G++ from NDK.
+#if YB_IMPL_GNUCPP < 49200
 template<typename, typename = void>
 struct has_nested_allocator : false_type
 {};
@@ -81,6 +84,17 @@ struct nested_allocator<_type, _tAlloc, false>
 {
 	using type = _tAlloc;
 };
+#else
+//! \since build 650
+template<typename _type>
+using check_allocator = and_<cond_t<has_mem_value_type<_type>,
+	vdefer<details::mem_value_type_t, _type>>,
+	is_copy_constructible_class<_type>>;
+
+//! \since build 650
+template<typename _type>
+using nested_allocator_t = typename _type::allocator;
+#endif
 
 
 //! \since build 617
@@ -124,10 +138,25 @@ struct pack_obj_impl<std::shared_ptr<_type>>
 
 /*!
 \ingroup unary_type_traits
+\brief 判断类型是否符合分配器要求的目标类型。
+\since build 650
+*/
+template<typename _type>
+struct is_allocatable : is_nonconst_object<_type>
+{};
+
+
+/*!
+\ingroup unary_type_traits
 \brief 判断类型具有嵌套的成员 allocator_type 指称一个可复制构造的类类型。
 */
 template<typename _type>
-struct has_nested_allocator : details::has_nested_allocator<_type>
+struct has_nested_allocator
+#if YB_IMPL_GNUCPP < 49200
+	: details::has_nested_allocator<_type>
+#else
+	: details::check_allocator<detected_t<details::nested_allocator_t, _type>>
+#endif
 {};
 
 
@@ -136,8 +165,14 @@ struct has_nested_allocator : details::has_nested_allocator<_type>
 \brief 取嵌套成员分配器类型，若不存在则使用第二模板参数指定的默认类型。
 */
 template<typename _type, class _tDefault = std::allocator<_type>>
-struct nested_allocator : details::nested_allocator<_type, _tDefault,
+struct nested_allocator
+#if YB_IMPL_GNUCPP < 49200
+	: details::nested_allocator<_type, _tDefault,
 	has_nested_allocator<_type>::value>
+#else
+	: conditional<has_nested_allocator<_type>::value,
+	detected_t<details::nested_allocator_t, _type>, _tDefault>
+#endif
 {};
 //@}
 

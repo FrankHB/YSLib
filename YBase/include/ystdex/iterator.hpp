@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5600
+\version r5631
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-05-29 19:12 +0800
+	2015-11-06 11:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,10 @@
 #define YB_INC_ystdex_iterator_hpp_ 1
 
 #include "pointer.hpp" // for iterator_operators_t, std::iterator_traits,
-//	pointer_classify, *_tag, yassume, is_undereferenceable, yconstraint;
+//	_t, pointer_classify, cond_t, *_tag, yassume, is_undereferenceable,
+//	yconstraint;
 #include <tuple> // for std::tuple, std::get;
+#include "integer_sequence.hpp" // for make_index_sequence, index_sequence;
 #include "ref.hpp" // for lref;
 
 namespace ystdex
@@ -178,14 +180,14 @@ namespace details
 template<typename _tIter, typename _fTransformer, typename _tReference>
 struct transit_traits
 {
-	using iterator_type = typename pointer_classify<_tIter>::type;
+	using iterator_type = _t<pointer_classify<_tIter>>;
 	using iterator_category
 		= typename std::iterator_traits<iterator_type>::iterator_category;
 	using transformed_type = result_of_t<_fTransformer&(_tIter&)>;
 	using difference_type
 		= typename std::iterator_traits<iterator_type>::difference_type;
-	using reference = conditional_t<is_same<_tReference, void>::value,
-		transformed_type, _tReference>;
+	using reference
+		= cond_t<is_same<_tReference, void>, transformed_type, _tReference>;
 };
 
 } // namespace details;
@@ -436,46 +438,42 @@ yconstexpr const struct get_tag{} get_get{};
 
 /*!
 \brief 管道匹配操作符。
-\since build 288
+\since build 650
 */
+//@{
 template<typename _tIter>
 inline auto
-operator|(_tIter&& i, first_tag)
-	-> decltype(make_transform(yforward(i), iterator_transformation::first<
-	typename array_ref_decay<_tIter>::type>))
+operator|(_tIter&& i, first_tag) -> decltype(make_transform(yforward(i),
+	iterator_transformation::first<decay_t<_tIter>>))
 {
 	return make_transform(yforward(i), iterator_transformation::first<
-		typename array_ref_decay<_tIter>::type>);
+		decay_t<_tIter>>);
 }
 template<typename _tIter>
 inline auto
-operator|(_tIter&& i, second_tag)
-	-> decltype(make_transform(yforward(i), iterator_transformation::second<
-	typename array_ref_decay<_tIter>::type>))
+operator|(_tIter&& i, second_tag) -> decltype(make_transform(yforward(i),
+	iterator_transformation::second< decay_t<_tIter>>))
 {
 	return make_transform(yforward(i), iterator_transformation::second<
-		typename array_ref_decay<_tIter>::type>);
+		decay_t<_tIter>>);
 }
-//! \since build 358
 template<typename _tIter>
 inline auto
-operator|(_tIter&& i, indirect_tag)
-	-> decltype(make_transform(yforward(i), iterator_transformation::indirect<
-	typename array_ref_decay<_tIter>::type>))
+operator|(_tIter&& i, indirect_tag) -> decltype(make_transform(yforward(i),
+	iterator_transformation::indirect<decay_t<_tIter>>))
 {
 	return make_transform(yforward(i), iterator_transformation::indirect<
-		typename array_ref_decay<_tIter>::type>);
+		decay_t<_tIter>>);
 }
-//! \since build 536
 template<typename _tIter>
 inline auto
-operator|(_tIter&& i, get_tag)
-	-> decltype(make_transform(yforward(i), iterator_transformation::get<
-	typename array_ref_decay<_tIter>::type>))
+operator|(_tIter&& i, get_tag) -> decltype(make_transform(yforward(i),
+	iterator_transformation::get<decay_t<_tIter>>))
 {
-	return make_transform(yforward(i), iterator_transformation::get<
-		typename array_ref_decay<_tIter>::type>);
+	return make_transform(yforward(i),
+		iterator_transformation::get<decay_t<_tIter>>);
 }
+//@}
 
 
 /*!
@@ -710,7 +708,7 @@ public:
 
 	/*!
 	\brief 间接操作。
-	\pre 断言：<tt>!is_undereferenceable(iter)</tt> 。
+	\pre 断言： <tt>!is_undereferenceable(iter)</tt> 。
 	\since build 461
 	*/
 	reference
@@ -722,7 +720,7 @@ public:
 
 	/*!
 	\brief 迭代：向后遍历。
-	\pre 断言：<tt>!is_undereferenceable(iter)</tt> 。
+	\pre 断言： <tt>!is_undereferenceable(iter)</tt> 。
 	*/
 	indirect_input_iterator&
 	operator++()
@@ -831,7 +829,7 @@ public:
 	{
 		auto idx(col * height + row);
 
-		// See $2015-02 @ %Documentation::Workflow::Annual2015.
+		// NOTE: See $2015-02 @ %Documentation::Workflow::Annual2015.
 		yassume(!(difference_type(idx) < -n)),
 		yassume(!(difference_type(width * height) < difference_type(idx) + n));
 		idx += size_type(n);

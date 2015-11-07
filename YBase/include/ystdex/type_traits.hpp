@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r550
+\version r736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2015-11-04 11:26 +0800
+	2015-11-06 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -534,8 +534,18 @@ using is_detected_convertible
 	= is_convertible<detected_t<_gOp, _tParams...>, _tTo>;
 //@}
 
+//! \ingroup metafunctions
+//@{
 /*!
-\ingroup metafunctions
+\brief 条件判断。
+\sa conditional_t
+\since build 650
+*/
+template<typename _tCond, typename _tThen = true_type,
+	typename _tElse = false_type>
+using cond_t = conditional_t<_tCond::value, _tThen, _tElse>;
+
+/*!
 \brief 移除选择类类型的特定重载避免构造模板和复制/转移构造函数冲突。
 \pre 第一参数为类类型。
 \sa enable_if_t
@@ -544,6 +554,231 @@ using is_detected_convertible
 template<class _tClass, typename _tParam, typename _type = void>
 using exclude_self_ctor_t
 	= enable_if_t<!is_same<_tClass&, decay_t<_tParam>&>::value, _type>;
+
+
+/*!
+\brief 元函数应用。
+\since build 650
+*/
+//@{
+template<class _func, typename... _tParams>
+using meta_apply = typename _func::template apply<_tParams...>;
+
+template<class _func, typename... _tParams>
+using meta_apply_t = _t<meta_apply<_func, _tParams...>>;
+//@}
+//@}
+
+
+/*!
+\ingroup unary_type_traits
+\tparam _type 需要判断特征的类型参数。
+*/
+//@{
+/*!
+\brief 判断指定类型是否为 const 或 volatile 类型。
+\since build 590
+*/
+template<typename _type>
+struct is_cv : or_<is_const<_type>, is_volatile<_type>>
+{};
+
+
+/*!
+\brief 判断指定类型是否已退化。
+\since build 529
+*/
+template<typename _type>
+struct is_decayed : or_<is_same<decay_t<_type>, _type>>
+{};
+
+
+//! \note 以下参数可能是 cv 修饰的类型，结果和去除 cv 修饰符的类型一致。
+//@{
+/*!
+\brief 判断指定类型是否为对象或 void 类型。
+\since build 630
+*/
+template<typename _type>
+struct is_object_or_void : or_<is_object<_type>, is_void<_type>>
+{};
+
+
+/*!
+\brief 判断指定类型是否可作为返回值类型。
+\note 即排除数组类型、抽象类类型和函数类型的所有类型。
+\see ISO C++11 8.3.5/8 和 ISO C++11 10.4/3 。
+\since build 333
+*/
+template<typename _type>
+struct is_returnable
+	: not_<or_<is_array<_type>, is_abstract<_type>, is_function<_type>>>
+{};
+
+
+/*!
+\brief 判断指定类型是否是类类型。
+\since build 588
+*/
+template<typename _type>
+struct is_class_type
+	: or_<is_class<_type>, is_union<_type>>
+{};
+
+
+/*!
+\brief 判断类型是否为非 const 对象类型。
+\since build 650
+*/
+template<typename _type>
+struct is_nonconst_object
+	: and_<is_object<_type>, is_same<add_const_t<_type>, _type>>
+{};
+
+
+//! \since build 630
+//@{
+//! \brief 判断指定类型是否是指向对象类型的指针。
+template<typename _type>
+struct is_pointer_to_object
+	: and_<is_pointer<_type>, is_object<remove_pointer_t<_type>>>
+{};
+
+
+//! \brief 判断指定类型是否是指向对象类型的指针。
+template<typename _type>
+struct is_object_pointer
+	: and_<is_pointer<_type>, is_object_or_void<remove_pointer_t<_type>>>
+{};
+
+
+//! \brief 判断指定类型是否是指向函数类型的指针。
+template<typename _type>
+struct is_function_pointer
+	: and_<is_pointer<_type>, is_function<remove_pointer_t<_type>>>
+{};
+//@}
+
+
+//! \since build 333
+//@{
+//! \brief 判断指定类型是否是指向类类型的指针。
+template<typename _type>
+struct is_class_pointer
+	: and_<is_pointer<_type>, is_class<remove_pointer_t<_type>>>
+{};
+
+
+//! \brief 判断指定类型是否是类类型左值引用。
+template<typename _type>
+struct is_lvalue_class_reference
+	: and_<is_lvalue_reference<_type>, is_class<remove_reference_t<_type>>>
+{};
+
+
+//! \brief 判断指定类型是否是类类型右值引用。
+template<typename _type>
+struct is_rvalue_class_reference
+	: and_<is_rvalue_reference<_type>, is_class<remove_reference_t<_type>>>
+{};
+
+
+/*!
+\pre remove_all_extents<_type> 是完整类型或（可能 cv 修饰的） \c void 。
+\see ISO C++11 9/10 。
+*/
+//@{
+//! \brief 判断指定类型是否是 POD struct 。
+template<typename _type>
+struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
+{};
+
+
+//! \brief 判断指定类型是否是 POD union 。
+template<typename _type>
+struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
+{};
+//@}
+//@}
+//@}
+
+
+/*!
+\pre remove_all_extents<_type> 是完整类型、（可能 cv 修饰的） \c void ，
+	或未知大小的数组。
+\since build 630
+*/
+//@{
+template<typename _type>
+struct is_copyable
+	: and_<is_copy_constructible<_type>, is_copy_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_moveable
+	: and_<is_move_constructible<_type>, is_move_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_nothrow_copyable : and_<is_nothrow_copy_constructible<_type>,
+	is_nothrow_copy_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_nothrow_moveable : and_<is_nothrow_move_constructible<_type>,
+	is_nothrow_move_assignable<_type>>
+{};
+
+
+#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
+template<typename _type>
+struct is_trivially_copyable : and_<is_trivially_copy_constructible<_type>,
+	is_trivially_copy_assignable<_type>>
+{};
+
+
+template<typename _type>
+struct is_trivially_moveable : and_<is_trivially_move_constructible<_type>,
+	is_trivially_move_assignable<_type>>
+{};
+#	endif
+//@}
+//@}
+
+
+/*!
+\ingroup binary_type_traits
+\brief 判断指定类型之间是否可转换。
+\since build 575
+*/
+template<typename _type1, typename _type2>
+struct is_interoperable
+	: or_<is_convertible<_type1, _type2>, is_convertible<_type2, _type1>>
+{};
+
+
+/*!
+\sa enable_if_t
+\since build 575
+*/
+//@{
+template<typename _tFrom, typename _tTo, typename _type = void>
+using enable_if_convertible_t
+	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
+
+template<typename _type1, typename _type2, typename _type = void>
+using enable_if_interoperable_t
+	= enable_if_t<is_interoperable<_type1, _type2>::value, _type>;
+
+//! \since build 614
+template<typename _type1, typename _type2, typename _type = void>
+using enable_if_same_t
+	= enable_if_t<is_same<_type1, _type2>::value, _type>;
+//@}
+//@}
 
 } // namespace ystdex;
 

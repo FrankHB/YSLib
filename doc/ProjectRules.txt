@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r834
+\version r835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2015-10-12 09:54 +0800
+	2015-11-06 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -460,7 +460,7 @@ build 275 前在此之上有更强的保证：支持 8.3 文件名兼容性，�
 @3.4.5 基础文件依赖规则：
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::LanguageConvention @@5.25.2] 。
 禁止依赖（包括包含）头文件以外的文件。
-除非另行约定（如 [Documentation::YBase @@2.4.4.1] ），禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
+除非另行约定（如 [Documentation::YBase @@2.4.6.4] ），禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
 实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 
 @3.5 命名空间：

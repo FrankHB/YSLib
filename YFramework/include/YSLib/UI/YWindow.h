@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ywindow.h
+/*!	\file YWindow.h
 \ingroup UI
 \brief 样式无关的 GUI 窗口。
-\version r3844
+\version r3853
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 650
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2014-11-21 09:23 +0800
+	2015-11-07 10:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_ywindow_h_
-#define YSL_INC_UI_ywindow_h_ 1
+#ifndef YSL_INC_UI_YWindow_h_
+#define YSL_INC_UI_YWindow_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YPanel
@@ -62,8 +62,8 @@ public:
 	inline void
 	operator+=(_type& p)
 	{
-		return operator+=(ystdex::conditional_t<
-			std::is_convertible<_type&, Window&>::value, Window&, IWidget&>(p));
+		return operator+=(ystdex::cond_t<std::is_convertible<_type&, Window&>,
+			Window&, IWidget&>(p));
 	}
 
 	bool
@@ -74,8 +74,8 @@ public:
 	inline bool
 	operator-=(_type& p)
 	{
-		return operator-=(ystdex::conditional_t<
-			std::is_convertible<_type&, Window&>::value, Window&, IWidget&>(p));
+		return operator-=(ystdex::cond_t<std::is_convertible<_type&, Window&>,
+			Window&, IWidget&>(p));
 	}
 
 	using MUIContainer::Contains;

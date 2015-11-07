@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r201
+\version r203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2015-10-04 15:14 +0800
+	2015-11-05 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,9 +40,9 @@ namespace ystdex
 \note 参数依次为：表达式、文件名、行号和消息文本。
 \note 允许空指针参数，视为未知。
 \note 调用 std::terminate 终止程序。
-\since build 641
+\since build 642
 */
-YB_API YB_NORETURN void
+YB_NORETURN YB_API void
 yassert(const char*, const char*, int, const char*) ynothrow;
 
 #if YB_Use_YTrace

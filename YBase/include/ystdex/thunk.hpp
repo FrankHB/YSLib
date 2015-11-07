@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r197
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2015-09-14 09:51 +0800
+	2015-11-06 13:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_thunk_hpp_
 #define YB_INC_ystdex_thunk_hpp_ 1
 
-#include "type_op.hpp" // for std::forward, std::move, result_of_t,
-//	decay_t, enable_if_t;
+#include "type_traits.hpp" // for decay_t, std::forward, exclude_self_ctor_t,
+//	enable_if_convertible_t, std::move, result_of_t, enable_if_t;
 #include "functional.hpp" // for wrapped_traits, std::reference_wrapper,
 //	ystdex::invoke;
 

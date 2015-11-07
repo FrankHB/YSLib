@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1199
+\version r1219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2015-09-05 01:29 +0800
+	2015-11-05 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,11 @@
 #ifndef YB_INC_ystdex_cast_hpp_
 #define YB_INC_ystdex_cast_hpp_ 1
 
-#include "type_op.hpp" // for decay_t, is_same, array_ref_decay, is_object,
-//	is_void, is_function;
+#include "type_traits.hpp" // for is_object, is_void, is_function, decay_t,
+//	is_same, _t;
 #include <memory> // for std::addressof;
-#include "cassert.h"
 #include <typeinfo> // for std::bad_cast;
-#include <initializer_list> // for std::initializer_list;
+#include "cassert.h" // for yassume;
 
 //! \since build 175
 namespace ystdex
@@ -96,7 +95,6 @@ as_const(_type& t)
 \sa as_const
 \since build 531
 */
-//@{
 //! \brief 允许添加限定符转换。
 template<typename _tSrc, typename _tDst = const decay_t<_tSrc>&&>
 yconstfn _tDst
@@ -107,19 +105,6 @@ qualify(_tSrc&& arg) ynothrow
 
 	return static_cast<_tDst>(arg);
 }
-
-//! \brief 允许去除限定符转换。
-template<typename _tSrc,
-	typename _tDst = typename array_ref_decay<_tSrc>::reference>
-yconstfn _tDst
-unqualify(_tSrc&& arg) ynothrow
-{
-	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>(),
-		"Non-qualification conversion found.");
-
-	return const_cast<_tDst>(arg);
-}
-//@}
 
 
 /*!
@@ -330,10 +315,9 @@ struct general_cast_helper<_tFrom, _tTo, false>
 	static yconstfn _tTo
 	cast(_tFrom v)
 	{
-		return general_polymorphic_cast_helper<_tFrom, _tTo,
-			and_<is_base_of<_tFrom, _tTo>, not_<
-			has_common_nonempty_virtual_base<typename remove_rp<_tFrom>::type,
-			typename remove_rp<_tTo>::type>>>::value>::cast(v);
+		return general_polymorphic_cast_helper<_tFrom, _tTo, and_<is_base_of<
+			_tFrom, _tTo>, not_<has_common_nonempty_virtual_base<
+			_t<remove_rp<_tFrom>>, _t<remove_rp<_tTo>>>>>::value>::cast(v);
 	}
 };
 

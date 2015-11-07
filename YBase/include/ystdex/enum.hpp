@@ -11,13 +11,13 @@
 /*!	\file enum.hpp
 \ingroup YStandardEx
 \brief 枚举相关操作。
-\version r121
+\version r124
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-02 10:28:23 +0800
 \par 修改时间:
-	2015-09-02 12:15 +0800
+	2015-11-05 01:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_enum_hpp_
 #define YB_INC_ystdex_enum_hpp_ 1
 
-#include "tuple.hpp" // for ../ydef.h, false_type, and_, or_, is_enum,
-//	common_type_t, vseq::find, std::tuple;
+#include "tuple.hpp" // for false_type, underlying_type_t, _t, and_, or_,
+//	is_enum, common_type_t, vseq::find, std::tuple;
 
 namespace ystdex
 {
@@ -51,7 +51,7 @@ struct wrapped_enum_traits
 };
 
 template<typename _type>
-using wrapped_enum_traits_t = typename wrapped_enum_traits<_type>::type;
+using wrapped_enum_traits_t = _t<wrapped_enum_traits<_type>>;
 //@}
 
 

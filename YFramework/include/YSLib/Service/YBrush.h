@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r550
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2015-07-23 14:17 +0800
+	2015-11-06 11:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,7 +231,7 @@ UpdatePixelsWithRotation(_fPixelShader shader, const PaintContext& pc,
 	using namespace ystdex;
 	using trans_t = ystdex::bool_constant<_vRot == RDeg90 || _vRot == RDeg270>;
 
-	Drawing::DispatchTranspose(trans_t(), [&](conditional_t<trans_t::value,
+	Drawing::DispatchTranspose(trans_t(), [&](cond_t<trans_t,
 		transposed_iterator<ConstBitmapPtr>, ConstBitmapPtr> src_iter,
 		const Size& ss, const Point& dst_offset_ex){
 		const auto& g(pc.Target);

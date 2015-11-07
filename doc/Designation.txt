@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9753
+\version r9754
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-10-21 11:27 +0800
+	2015-11-05 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,7 +194,7 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 以 "INC_" 和 "Inc_" 起始的标识符专用于头文件包含标识（参见 [Documentation::Definitions] ）。
 
 @4.1.1.2 模板形式参数前缀：
-以下前缀保留给的标识符保留作为模板形式参数的名称（模板参数引用作为函数参数时可以是对应的对象类型引用）：
+除可与用户定义的字面量后缀以及非全局命名空间作用域的元函数或占位符重名，以下前缀保留给的标识符保留作为库和用户代码的模板形式参数的名称（模板参数引用作为函数参数时可以是对应的对象类型引用）：
 "_b" ：布尔类型参数，包括内建 bool 类型的值或用于表示布尔值的 std::integral_constant 的实例（注意 value 成员不保证是 bool 类型）；
 "_f" ：可调用类型(callable type) （可能是函数对象类型或成员指针）或作为元函数的类型参数；
 "_i" ：接口（纯虚类）类型参数；

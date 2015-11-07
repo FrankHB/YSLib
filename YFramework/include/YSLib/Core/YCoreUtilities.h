@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2391
+\version r2419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-09-12 13:34 +0800
+	2015-11-06 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,41 +34,6 @@
 
 namespace YSLib
 {
-
-/*!
-\brief 转换类型选择。
-\since build 201
-
-若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
-	否则 \c Result 为 \c _tWeak 。
-*/
-template<typename _type, typename _tStrict, typename _tWeak>
-struct MoreConvertible
-{
-	using Result = ystdex::conditional_t<
-		std::is_convertible<_type, _tStrict>::value, _tStrict, _tWeak>;
-
-	static inline Result
-	Cast(_type o)
-	{
-		return Result(o);
-	}
-};
-
-
-/*!
-\brief 转换类型选择。
-
-若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
-	否则 \c Result 为 \c _type 。
-\since build 201
-*/
-template<typename _type, typename _tStrict>
-struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
-{
-	using Result = typename MoreConvertible<_type, _tStrict, _type>::Result;
-};
-
 
 /*!
 \brief 符号函数。

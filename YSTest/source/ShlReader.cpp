@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4828
+\version r4833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-09-27 15:47 +0800
+	2015-11-06 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ ReaderBox::ReaderBox(const Rect& r)
 {
 	Background = nullptr,
 	SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(ContainerSetter(*this), btnMenu, btnSetting, btnInfo,
+	unseq_apply(ystdex::bind1(SetContainerPtrOf, this), btnMenu, btnSetting, btnInfo,
 		btnBookmark, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	SetBufferRendererAndText(btnMenu, u"M"),
 	SetBufferRendererAndText(btnSetting, u"S"),
@@ -128,7 +128,7 @@ TextInfoBox::TextInfoBox()
 	lblTop({4, 60, 192, 18}),
 	lblBottom({4, 80, 192, 18})
 {
-	unseq_apply(ContainerSetter(*this), lblEncoding, lblSize);
+	unseq_apply(ystdex::bind1(SetContainerPtrOf, this), lblEncoding, lblSize);
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld_Dragging;
 }
 
@@ -137,7 +137,9 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 {
 	DialogBox::Refresh(std::move(e));
 
-	unseq_apply(ChildPainter(e), lblEncoding, lblSize, lblTop, lblBottom);
+	unseq_apply([&](IWidget& wgt){
+		PaintChild(wgt, std::move(e));
+	}, lblEncoding, lblSize, lblTop, lblBottom);
 	UpdateClipSize(e, GetSizeOf(*this));
 }
 

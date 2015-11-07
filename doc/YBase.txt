@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r658
+\version r687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-11-04 11:09 +0800
+	2015-11-06 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,11 +158,11 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 扩展的标准库头（及 LibDefect(@2.5) 对应的头文件）被直接或间接地包含。
 
 @2.4.1.2 头文件直接依赖性：
-"type_op.hpp" 和 "variadic.hpp" 依赖 "type_traits.hpp" ；
-"cast.hpp" 、 "type_pun.hpp" 和 "tuple.hpp" 依赖 "type_op.hpp" ；
-"utility.hpp" 依赖 "type_pun.hpp" ；
+基本头文件扩展(@2.4.4) 的头文件依赖 "type_traits.hpp" ；
 "integer_sequence.hpp" 依赖 "variadic.hpp" ；
 "tuple.hpp" 依赖 "integer_sequence.hpp" ；
+"type_op.hpp" 依赖 "tuple.hpp" ；
+"utility.hpp" 依赖 "type_pun.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
 "functional.hpp" 、 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
@@ -198,33 +198,36 @@ std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
 @2.4.3.1 ISO C++ 类型特征扩展 TypeTraits ：
 扩展了标准库头 <type_traits> ，包括元编程设施等。
 
-@2.4.3.2 解引用操作 DereferenceOperation ：
+@2.4.3.2 范围操作 Range ：
+扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
+
+@2.4.3.3 解引用操作 DereferenceOperation ：
 提供解引用操作检查的模板，作为迭代器操作的基础。
 
-@2.4.3.3 基类实用设施 Base ：
+@2.4.3.4 基类实用设施 Base ：
 提供适合被作为基类的通用接口。
 
-@2.4.3.4 C++ 类型操作检测 Examiner ：
+@2.4.3.5 C++ 类型操作检测 Examiner ：
 使用元编程和模板匹配检查特定类型是否存在特定操作。
 
 @2.4.4 基本头文件扩展：
 用于构建其它库但不提供标准接口的替代或扩展，只直接依赖上述 YDefinition 的头文件，可被以下其它 YStandardEx 头文件依赖。
 
-@2.4.4.1 C++ 类型操作 TypeOperation ：
-间接扩展了标准库头 <type_traits> ，包括元编程设施等。
-
-@2.4.4.2 C++ 变长参数相关操作 Variadic ：
+@2.4.4.1 C++ 变长参数相关操作 Variadic ：
 使用 ISO C++11 起提供的变长参数包(pack) 的特性提供序列等基本接口的模板库。
 
-@2.4.4.3 重载操作符 Operators ：
-Boost.Operators 的重新实现。
-
-@2.4.4.4 共享存储和直接转换 TypePun ：
+@2.4.4.2 共享存储和直接转换 TypePun ：
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
-@2.4.4.5 引用包装 Ref ：
+@2.4.4.3 引用包装 Ref ：
 提供替代 std::reference_wrapper 的类模板 ystdex::lref 和相关接口。
 注意 std::reference_wrapper 要求完整类型，而 boost::reference_wrapper 和 ystdex::lref 不需要。
+
+@2.4.4.4 重载操作符 Operators ：
+Boost.Operators 的重新实现。
+
+@2.4.4.5 作用域守护 ScopeGuard ：
+提供作用域守护的便利接口。
 
 @2.4.5 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
@@ -237,10 +240,10 @@ Boost.Operators 的重新实现。
 
 @2.4.6 其它 ISO C++ 标准库扩展和替代：
 扩展或替代标准库文件，提供和标准库对应的相似接口，除 @2.4.1.2 外，不依赖之前提及以外的 YStandardEx 头文件。
-TypeTraits(@2.4.3.1) 和 TypeOperation(@2.4.4.1) 同属此类别。
+TypeTraits(@2.4.3.1) 和 Range(@2.4.3.2) 同属此类别。
 
-@2.4.6.1 范围操作 Range ：
-扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
+@2.4.6.1 C++ 类型操作 TypeOperation ：
+间接扩展了标准库头 <type_traits> ，包括元编程设施等。
 
 @2.4.6.2 迭代器操作 IteratorOperation ：
 间接扩展了标准库头 <iterator> 。
@@ -343,19 +346,22 @@ TypeTraits(@2.4.3.1) 和 TypeOperation(@2.4.4.1) 同属此类别。
 @2.4.7.8 基于类继承的混入接口 Mixin ：
 提供基本的混入接口类型。
 
-@2.4.7.9 有理数运算 Rational ：
+@2.4.4.9 间接和惰性求值 Thunk ：
+提供组合惰性求值的可调用对象。
+
+@2.4.7.10 有理数运算 Rational ：
 提供定点数模板等有理数算术类型接口。
 
-@2.4.7.10 位段数据结构和访问 BitSegment ：
+@2.4.7.11 位段数据结构和访问 BitSegment ：
 提供访问位集合的类型和操作。
 
-@2.4.7.11 并发操作 Concurrency ：
+@2.4.7.12 并发操作 Concurrency ：
 提供线程池等实用并发特性。
 
-@2.4.7.12 抽象路径模板 Path ：
+@2.4.7.13 抽象路径模板 Path ：
 提供抽象的路径模板及操作。
 
-@2.4.7.13 高速缓冲容器模板 Cache ：
+@2.4.7.14 高速缓冲容器模板 Cache ：
 提供抽象的缓冲容器模板及操作。
 
 @2.5 LibDefect ：

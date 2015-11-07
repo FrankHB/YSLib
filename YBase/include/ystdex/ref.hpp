@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r258
+\version r265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2015-09-30 11:16 +0800
+	2015-11-06 11:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_ref_hpp_
 #define YB_INC_ystdex_ref_hpp_ 1
 
-#include "type_traits.hpp" // for exclude_self_ctor_t;
+#include "type_traits.hpp" // for exclude_self_ctor_t, cond_t, not_, is_object;
 #include <functional> // for std::reference_wrapper;
 #include <memory> // for std::addressof;
 
@@ -144,7 +144,7 @@ struct wrapped_traits<lref<_tWrapped>> : true_type
 \since build 525
 */
 template<typename _type>
-using wrapped_traits_t = typename wrapped_traits<_type>::type;
+using wrapped_traits_t = _t<wrapped_traits<_type>>;
 
 
 /*!
@@ -238,17 +238,16 @@ struct pseudo_output
 /*!
 \ingroup metafunctions
 \since build 636
+\see 关于相关的核心语言特性： WG21/P0146R0 。
 */
 //@{
 //! \brief 若类型不是空类型则取后备结果类型（默认为 pseudo_output ）。
 template<typename _type, typename _tRes = pseudo_output>
-using nonvoid_result_t
-	= conditional_t<!is_void<_type>::value, _type, pseudo_output>;
+using nonvoid_result_t = cond_t<not_<is_void<_type>>, _type, pseudo_output>;
 
 //! \brief 若类型不是对象类型则取后备结果类型（默认为 pseudo_output ）。
 template<typename _type, typename _tRes = pseudo_output>
-using object_result_t
-	= conditional_t<is_object<_type>::value, _type, pseudo_output>;
+using object_result_t = cond_t<is_object<_type>, _type, pseudo_output>;
 //@}
 
 } // namespace ystdex;
