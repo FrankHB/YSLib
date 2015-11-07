@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1881
+\version r1883
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-10-22 22:12 +0800
+	2015-11-05 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,8 @@ namespace YSLib
 //! \since build 644
 using namespace platform::basic_types;
 
+//! \since build 650
+using ystdex::_t;
 
 /*!
 \brief 调用分派。

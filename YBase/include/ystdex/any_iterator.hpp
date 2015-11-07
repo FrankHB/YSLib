@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1006
+\version r1010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2015-07-17 23:03 +0800
+	2015-11-06 11:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_any_iterator_hpp_
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
-#include "any.h" // for any, wrapped_traits;
+#include "any.h" // for any, wrapped_traits, cond_t, _t;
 #include "iterator.hpp" // for is_undereferenceable, std::iterator;
 
 namespace ystdex
@@ -78,8 +78,8 @@ template<typename _type>
 struct wrap_handler
 {
 	using value_type = wrapped_traits_t<_type>;
-	using type = conditional_t<wrapped_traits<_type>::value,
-		ref_handler<value_type>, value_handler<value_type>>;
+	using type = cond_t<wrapped_traits<_type>, ref_handler<value_type>,
+		value_handler<value_type>>;
 };
 
 
@@ -87,7 +87,7 @@ template<typename _type>
 class iterator_handler : public wrap_handler<_type>::type
 {
 public:
-	using base = typename wrap_handler<_type>::type;
+	using base = _t<wrap_handler<_type>>;
 	using value_type = typename base::value_type;
 
 	using base::get_reference;

@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2572
+\version r2637
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-09-19 09:28 +0800
+	2015-11-06 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,19 +28,69 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "tuple.hpp" // for ../ydef.h, std::tuple_size, vseq::join_n_t,
-//	member_target_type_t, ommon_nonvoid_t, std::true_type, std::false_type,
-//	integral_constant, make_index_sequence;
-#include "functor.hpp" // for less, addressof_op, mem_get, lref;
+#include "type_op.hpp" // for true_type, std::tuple, is_convertible, vseq::at,
+//	bool_constant, index_sequence_for, _t, std::tuple_size, vseq::join_n_t,
+//	member_target_type_t, common_nonvoid_t, false_type, integral_constant,
+//	make_index_sequence;
+#include "functor.hpp" // for std::function, less, addressof_op, mem_get, lref;
 
 namespace ystdex
 {
 
 //! \since build 447
+//@{
+namespace details
+{
+
+template<class, class, class>
+struct tuple_element_convertible;
+
+template<class _type1, class _type2>
+struct tuple_element_convertible<_type1, _type2, index_sequence<>>
+	: true_type
+{};
+
+template<typename... _types1, typename... _types2, size_t... _vSeq,
+	size_t _vHead>
+struct tuple_element_convertible<std::tuple<_types1...>, std::tuple<_types2...>,
+	index_sequence<_vHead, _vSeq...>>
+{
+	static_assert(sizeof...(_types1) == sizeof...(_types2),
+		"Mismatched sizes of tuple found.");
+
+private:
+	using t1 = std::tuple<_types1...>;
+	using t2 = std::tuple<_types2...>;
+
+public:
+	static yconstexpr const bool value
+		= is_convertible<vseq::at<t1, _vHead>, vseq::at<t2, _vHead>>::value
+		&& tuple_element_convertible<t1, t2, index_sequence<_vSeq...>>::value;
+};
+
+} // namespace details;
+
+/*!
+\ingroup binary_type_traits
+\since build 447
+*/
+//@{
+//! \brief 判断指定类型之间是否协变。
+//@{
+template<typename _tFrom, typename _tTo>
+struct is_covariant : is_convertible<_tFrom, _tTo>
+{};
+
 template<typename _tFrom, typename _tTo, typename... _tFromParams,
 	typename... _tToParams>
 struct is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
 	: is_covariant<_tFrom, _tTo>
+{};
+
+template<typename... _tFroms, typename... _tTos>
+struct is_covariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
+	: bool_constant<details::tuple_element_convertible<std::tuple<_tFroms...>,
+	std::tuple<_tTos...>, index_sequence_for<_tTos...>>::value>
 {};
 
 //! \since build 575
@@ -50,13 +100,25 @@ struct is_covariant<std::function<_tFrom(_tFromParams...)>,
 	std::function<_tTo(_tToParams...)>>
 	: is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
 {};
+//@}
 
 
-//! \since build 447
+//! \brief 判断指定类型之间是否逆变。
+//@{
+template<typename _tFrom, typename _tTo>
+struct is_contravariant : is_convertible<_tTo, _tFrom>
+{};
+
 template<typename _tResFrom, typename _tResTo, typename... _tFromParams,
 	typename... _tToParams>
 struct is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
 	: is_contravariant<std::tuple<_tFromParams...>, std::tuple<_tToParams...>>
+{};
+
+template<typename... _tFroms, typename... _tTos>
+struct is_contravariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
+	: bool_constant<details::tuple_element_convertible<std::tuple<_tTos...>,
+	std::tuple<_tFroms...>, index_sequence_for<_tTos...>>::value>
 {};
 
 //! \since build 575
@@ -66,6 +128,8 @@ struct is_contravariant<std::function<_tResFrom(_tFromParams...)>,
 	std::function<_tResTo(_tToParams...)>>
 	: is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
 {};
+//@}
+//@}
 
 
 //! \since build 594
@@ -311,7 +375,7 @@ struct make_parameter_tuple;
 
 //! \since build 447
 template<typename _fCallable>
-using make_parameter_tuple_t = typename make_parameter_tuple<_fCallable>::type;
+using make_parameter_tuple_t = _t<make_parameter_tuple<_fCallable>>;
 
 template<typename _tRet, typename... _tParams>
 struct make_parameter_tuple<_tRet(_tParams...)>
@@ -378,7 +442,7 @@ struct return_of;
 
 //! \since build 447
 template<typename _fCallable>
-using return_of_t = typename return_of<_fCallable>::type;
+using return_of_t = _t<return_of<_fCallable>>;
 
 template<typename _tRet, typename... _tParams>
 struct return_of<_tRet(_tParams...)>
@@ -444,12 +508,12 @@ template<size_t _vIdx, typename _fCallable>
 struct parameter_of
 {
 	using type = tuple_element_t<_vIdx,
-		typename make_parameter_tuple<_fCallable>::type>;
+		_t<make_parameter_tuple<_fCallable>>>;
 };
 
 //! \since build 447
 template<size_t _vIdx, typename _fCallable>
-using parameter_of_t = typename parameter_of<_vIdx, _fCallable>::type;
+using parameter_of_t = _t<parameter_of<_vIdx, _fCallable>>;
 //@}
 
 
@@ -475,7 +539,7 @@ template<typename, class>
 struct make_function_type;
 
 template<typename _tRet, class _tTuple>
-using make_function_type_t = typename make_function_type<_tRet, _tTuple>::type;
+using make_function_type_t = _t<make_function_type<_tRet, _tTuple>>;
 
 template<typename _tRet, typename... _tParams>
 struct make_function_type<_tRet, std::tuple<_tParams...>>
@@ -754,12 +818,13 @@ struct expand_proxy<_fCallable, 0>
 
 
 /*!
-\brief 循环重复调用。
+\brief 循环重复调用：代替直接使用 do-while 语句以避免过多引入作用域外的变量。
 \tparam _fCond 判断条件。
 \tparam _fCallable 可调用对象类型。
 \tparam _tParams 参数类型。
 \note 条件接受调用结果或没有参数。
 \since build 634
+\sa object_result_t
 */
 template<typename _fCond, typename _fCallable, typename... _tParams>
 result_of_t<_fCallable&&(_tParams&&...)>

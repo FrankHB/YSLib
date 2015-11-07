@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r751
+\version r773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2015-11-04 22:52 +0800
+	2015-11-06 11:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_variadic_hpp_
 #define YB_INC_ystdex_variadic_hpp_ 1
 
-#include "type_traits.hpp" // for size_t, is_same, integral_constant,
-//	conditional_t;
+#include "type_traits.hpp" // for _t, size_t, is_same, integral_constant,
+//	conditional_t, cond_t;
 
 namespace ystdex
 {
@@ -60,7 +60,7 @@ namespace vseq
 	struct _n; \
 	\
 	template<_tparams> \
-	using _n##_t = typename _n<_targs>::type;
+	using _n##_t = _t<_n<_targs>>;
 #define YB_Impl_Variadic_SeqOpU(_n) \
 	YB_Impl_Variadic_SeqOp(_n, class _tSeq, _tSeq)
 #define YB_Impl_Variadic_SeqOpB(_n) YB_Impl_Variadic_SeqOp(_n, class _tSeq1 \
@@ -69,6 +69,23 @@ namespace vseq
 	YPP_Comma size_t _vIdx, _tSeq YPP_Comma _vIdx)
 #define YB_Impl_Variadic_SeqOpN(_n) YB_Impl_Variadic_SeqOp(_n, size_t _vN \
 	YPP_Comma class _tSeq, _vN YPP_Comma _tSeq)
+
+
+/*!
+\brief 延迟求值。
+\since build 650
+*/
+//@{
+YB_Impl_Variadic_SeqOp(defer, template<typename...> class _gfunc YPP_Comma class
+	_tSeq YPP_Comma typename _tEnabler = void,
+	_gfunc YPP_Comma _tSeq YPP_Comma _tEnabler)
+
+
+YB_Impl_Variadic_SeqOp(defer_i, typename _type YPP_Comma template<_type...>
+	class _gfunc YPP_Comma class _tSeq YPP_Comma typename _tEnabler = void,
+	_type YPP_Comma _gfunc YPP_Comma _tSeq YPP_Comma _tEnabler)
+//@}
+
 
 //! \brief 单位元：取空序列。
 YB_Impl_Variadic_SeqOpU(clear)
@@ -140,7 +157,7 @@ private:
 	using last = split_n<_vN - _vN / 2, typename half::tail>;
 
 public:
-	using type = concat_t<typename half::type, typename last::type>;
+	using type = concat_t<_t<half>, _t<last>>;
 	using tail = typename last::tail;
 };
 
@@ -244,8 +261,7 @@ struct deduplicate<1, _tSeq>
 template<class _tSeq>
 struct deduplicate
 {
-	using type
-		= typename details::deduplicate<seq_size<_tSeq>::value, _tSeq>::type;
+	using type = _t<details::deduplicate<seq_size<_tSeq>::value, _tSeq>>;
 };
 //@}
 
@@ -310,13 +326,13 @@ struct unique
 {
 private:
 	using split = split_n<_vN / 2, _tSeq>;
-	using half = typename unique<typename split::type>::type;
-	using last = typename unique<typename split::tail>::type;
+	using half = _t<unique<typename split::type>>;
+	using last = _t<unique<typename split::tail>>;
 	using half_back = back_t<half>;
 	using last_front = front_t<last>;
 
 public:
-	using type = concat_t<conditional_t<is_same<half_back, last_front>::value,
+	using type = concat_t<cond_t<is_same<half_back, last_front>,
 		pop_back_t<half>, half>, last>;
 };
 
@@ -338,7 +354,7 @@ struct unique<_tSeq, 1>
 template<class _tSeq>
 struct unique
 {
-	using type = typename details::unique<_tSeq>::type;
+	using type = _t<details::unique<_tSeq>>;
 };
 
 

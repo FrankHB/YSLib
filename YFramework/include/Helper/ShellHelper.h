@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1893
+\version r1966
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-10-02 19:39 +0800
+	2015-11-06 08:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_Helper_ShellHelper_h_ 1
 
 #include "../ysbuild.h"
-#include <ystdex/cast.hpp>
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include YFM_YCLib_Debug
 #include YFM_YSLib_Service_YTimer // for Timers::HighResolutionClock;
 #include YFM_YSLib_UI_ListControl // for UI::TextList::ListType;
@@ -110,28 +110,8 @@ yconstexpr const EncodingInfoItem Encodings[]{{CharSet::UTF_8, u"UTF-8"},
 } // namespace Text;
 
 
-/*!
-\ingroup helper_functions
-*/
+//! \ingroup helper_functions
 //@{
-
-//句柄语法糖。
-
-/*!
-\brief 句柄转换：对象引用。
-\since 早于 build 132
-*/
-template<class _type, class _tHandle>
-inline _type&
-HandleToReference(_tHandle h) ythrow(std::bad_cast)
-{
-	_type* _tmp(dynamic_cast<_type*>(get_raw(h)));
-
-	if(YB_LIKELY(!_tmp))
-		throw std::bad_cast();
-	return *_tmp;
-}
-
 /*!
 \brief 取指定 Shell 句柄对应的 Shell 引用 。
 \since build 205
@@ -179,8 +159,6 @@ inline PDefH(void, ResetDesktop, UI::Desktop& dsk, Devices::Screen& scr)
 	ImplExpr(dsk.~Desktop(), new(&dsk) UI::Desktop(scr))
 
 
-//资源相关定义和函数。
-
 namespace Drawing
 {
 
@@ -189,25 +167,6 @@ inline PDefH(Color, GenerateRandomColor, )
 //使用 std::time(0) 初始化随机数种子在 DeSmuME 上无效。
 //	std::srand(std::time(0));
 	ImplRet(Color(std::rand(), std::rand(), std::rand(), 1))
-
-/*!
-\brief 使用 new 分配空间并复制无压缩位图。
-\since build 213
-*/
-template<typename _tPixel>
-_tPixel*
-CreateRawBitmap(const _tPixel* s, size_t n)
-{
-	if(YB_LIKELY(s && n))
-	{
-		size_t size(sizeof(_tPixel) * n);
-		_tPixel* d(new _tPixel[size]);
-
-		std::copy_n(s, size, d);
-		return d;
-	}
-	return {};
-}
 
 } // namespace Drawing;
 
@@ -315,51 +274,6 @@ SwitchVisible(IWidget&);
 */
 YF_API void
 SwitchVisibleToFront(IWidget&);
-
-
-/*!
-\brief 序列设置仿函数。
-\since build 278
-*/
-struct ContainerSetter
-{
-public:
-	/*!
-	\brief 容器。
-	\since build 554
-	*/
-	lref<IWidget> Container;
-
-	ContainerSetter(IWidget& con)
-		: Container(con)
-	{}
-
-	//! \since build 467
-	PDefHOp(void, (), IWidget& wgt) const
-		ImplExpr(SetContainerPtrOf(wgt, &Container.get()))
-};
-
-
-/*!
-\brief 子部件绘制仿函数。
-\since build 278
-*/
-struct ChildPainter
-{
-public:
-	/*!
-	\brief 绘制上下文。
-	\since build 554
-	*/
-	lref<const PaintContext> Context;
-
-	ChildPainter(const PaintContext& pc)
-		: Context(pc)
-	{}
-
-	PDefHOp(void, (), IWidget& wgt)
-		ImplExpr(PaintChild(wgt, Context))
-};
 
 
 /*!

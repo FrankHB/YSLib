@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1139
+\version r1151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2015-10-18 22:06 +0800
+	2015-11-06 01:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,11 @@
 #ifndef YB_INC_ystdex_container_hpp_
 #define YB_INC_ystdex_container_hpp_ 1
 
-#include "functional.hpp"
 #include "iterator.hpp" // for begin, end, make_transform,
 //	std::make_move_iterator;
-#include "algorithm.hpp" // for is_undereferenceable, sort_unique;
+#include "functional.hpp" // for std::declval, is_detected_convertible;
 #include "utility.hpp" // for std::initializer_list, ystdex::arrlen;
+#include "algorithm.hpp" // for is_undereferenceable, sort_unique;
 
 namespace ystdex
 {
@@ -336,12 +336,14 @@ make_container(std::initializer_list<_type> il)
 namespace details
 {
 
-template<typename _type>
-auto
-test_range_size(const _type& c)
-	-> enable_if_convertible_t<decltype(c.size()), size_t, true_type>;
-false_type
-test_range_size(...);
+//! \since build 650
+//@{
+template<class _type>
+using mem_size_t = decltype(std::declval<_type>().size());
+
+template<class _type>
+using has_container_size = is_detected_convertible<size_t, mem_size_t, _type>;
+//@}
 
 template<typename _tRange>
 yconstfn auto
@@ -349,7 +351,6 @@ range_size(const _tRange& c, true_type) -> decltype(c.size())
 {
 	return c.size();
 }
-
 template<typename _tRange>
 inline auto
 range_size(const _tRange& c, false_type)
@@ -373,9 +374,9 @@ range_size(const _tRange& c, false_type)
 template<typename _tRange>
 yconstfn auto
 range_size(const _tRange& c)
-	-> decltype(details::range_size(c, decltype(details::test_range_size(c))()))
+	-> decltype(details::range_size(c, details::has_container_size<_tRange>()))
 {
-	return details::range_size(c, decltype(details::test_range_size(c))());
+	return details::range_size(c, details::has_container_size<_tRange>());
 }
 template<typename _type, size_t _vN>
 yconstfn size_t

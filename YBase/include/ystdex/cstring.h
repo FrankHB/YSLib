@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2357
+\version r2368
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-10-03 23:43 +0800
+	2015-10-06 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_cstring_h_ 1
 
 #include "type_pun.hpp" // for or_, is_same, enable_if_t, not_,
-//	is_trivially_replaceable, replace_cast, enable_if_replaceable_t;
+//	is_trivially_replaceable, cond_t, replace_cast, enable_if_replaceable_t;
 #include <cstring> // for std::strlen, std::strcpy, std::memchr, std::strncpy;
 #include <string> // for std::char_traits;
 #include "cassert.h" // for yconstraint;
@@ -85,6 +85,8 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 /*!
 \ingroup unary_type_traits
 \brief 判断字符类型是否被 ISO C++ 指定提供 <tt>std::char_traits</tt> 的特化。
+\note 同时是 WG21/N4100 指定的编码字符类型。
+\see ISO WG21/N4100 5[fs.req]/1 。
 \since build 544
 */
 template<typename _tChar>
@@ -99,7 +101,6 @@ struct is_char_specialized_in_std : or_<is_same<_tChar, char>,
 /*!
 \ingroup metafunctions
 \brief 选择不和 char 或 wchar_t 可替换字符类类型的特定重载以避免冲突。
-\brief 
 */
 template<typename _tChar, typename _type = void>
 using enable_if_irreplaceable_char_t = enable_if_t<not_<or_<
@@ -112,9 +113,8 @@ using enable_if_irreplaceable_char_t = enable_if_t<not_<or_<
 \warning 不同类型的非空字符的值是否可以替换取决于实现定义。
 \note 若存在这样的类型，为 \c char16_t 或 \c char32_t 之一，否则为 \c void 。
 */
-using uchar_t = conditional_t<is_trivially_replaceable<wchar_t, char16_t>
-	::value, char16_t, conditional_t<is_trivially_replaceable<wchar_t, char32_t>
-	::value, char32_t, void>>;
+using uchar_t = cond_t<is_trivially_replaceable<wchar_t, char16_t>, char16_t,
+	cond_t<is_trivially_replaceable<wchar_t, char32_t>, char32_t, void>>;
 //@}
 
 
@@ -522,10 +522,8 @@ str_find(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrow
 {
 	yconstraint(p || sz == 0);
 	if(pos < sz)
-	{
 		if(const _tChar* ret = _tTraits::find(p + pos, sz - pos, c))
 			return _tSize(ret - p);
-	}
 	return _vNPos;
 }
 template<typename _tChar, typename _tSize,
@@ -538,12 +536,10 @@ str_find(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos, _tSize n)
 	if(n == 0)
 		return pos <= sz ? pos : _vNPos;
 	if(n <= sz)
-	{
 		for(; pos <= sz - n; ++pos)
 			if(_tTraits::eq(p[pos], s[0])
 				&& _tTraits::compare(p + pos + 1, s + 1, n - 1) == 0)
 				return pos;
-	}
 	return _vNPos;
 }
 

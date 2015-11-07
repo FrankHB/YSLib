@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r5487
+\version r5661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-11-04 23:01 +0800
+	2015-11-07 11:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,168 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ $dev "simplified header dependency" @ %Operators ^ %TypeTraits
+			~ %TypeOperation,
+		/ $dev "simplified header dependency" @ %TypePun ^ %TypeTraits
+			~ %TypeOperation,
+		/ DLDI "simplified nested %type member" ^ "%_t" $effecitve
+			@ %(Variadic, Utilities, TypeOperation, Tuple, String, Ref,
+			Rational, Operators, IteratorOperation, Iterator, IntegerSequence,
+			Functional, Enum, Cast, AnyIterator),
+		+ "metafunctions %(meta_apply, meta_apply_t, cond_t), unary type trait \
+			%is_nonconst_object" @ %TypeTraits,
+		(
+		+ "metafunctions %((defer; defer_t), (defer_i; defer_i_t))"
+			@ "namespace %ystdex::vseq" @ %Variadic;
+		/ @ "namespace %ystdex" @ %Tuple $=
+		(
+			+ "metafunction %defer specialization for %std::tuple"
+				@ "namespace %vseq";
+			+ "metafunction %vdefer"
+		),
+		/ @ "namespace %ystdex" @ %IntegerSequence $=
+		(
+			+ "metafunction %defer_i specialization for %std::integer_sequence"
+				@ "namespace %vseq";
+			+ "metafunction %vdefer_i"
+		)
+		),
+		/ %Utilities $=
+		(
+			/ "enabled only when result type convertible"
+				@ "function template %decay_copy" ^ "%enable_if_convertible_t",
+				// To fully conform WG21/N3255.
+			- $revert(b383) "function template %decay_forward"
+				// Not useful.
+		),
+		/ %TypeOperation $=
+		(
+			+ "unary type trait %has_mem_value_type",
+			/ $impl "metafunctions %(remove_rcv, remove_rp, remove_rpcv)"
+				^ "base class",
+			/ DLDI "simplified %common_nonvoid",
+			- $revert(b290) "metafunction %qualified_decay" $dep_from
+				("%decay_forward" @ %Utilities),
+				// Not useful.
+			(
+			- $revert(b290) "unary type trait %array_ref_decay" $dep_from
+				("%operator|" @ %Iterator, "%unqualify" @ %Cast);
+				// Better be explicit to adding reference on types.
+			- $revert(b290) "unary type trait %array_decay"
+				// Not useful.
+			),
+			(
+			/ "all type traits 'is_*' except for %(is_covariant, \
+				is_contravariant); all 3 metafunctions 'enable_if_*'"
+				>> %TypeTraits $dep_to "simplification of traits dependency";
+			+ "header dependency %Tuple" $dep_from "simplified traits \
+				dependency" $dep_to "extended traits support with tuple";
+			/ DLDI "simplified %common_nonvoid_t" ^ $dep_from
+				("%cond_t" @ %TypeTraits, "%vdefer" @ %Tuple)
+			)
+		),
+		/ @ %Memory $=
+		(
+			+ "unary trait %is_allocatable" ^ $dep_from
+				("%is_nonconst_object" @ %TypeTraits),
+			/ "unary type trait %has_nested_allocator"
+				@ !'YB_IMPL_GNUCPP < 49200' $=
+				// G++ fron Android NDK is buggy.
+			(
+				/ DLDI "simplified %has_nested_allocator" ^ "%detected_t"
+					~ "%enable_if_t",
+				+ "check for member %value" ^ $dep_from ("%vdefer" @ %Tuple
+					$dep_from "extended traits support with tuple",
+					"%has_mem_value_type" @ %TypeOperations)
+			),
+			/ DLDI "simplified %nested_allocator" @ !'YB_IMPL_GNUCPP < 49200'
+				^ "%(conditional, detected_t)"
+				// Ditto.
+		),
+		* "wrong 'YB_NORETURN' specifier order" @ "function %yassert"
+			@ %CAssert $since b641,
+			// 'YB_API YB_NORETURN' is wrong and Clang++ treats it as error \
+				but G++ does not. However G++ does warn about \
+				'inline YB_NORETURN'.
+		/ DLDI "simplified function template %range_size#1" @ %Container
+			^ "%is_detected_convertible",
+		/ %Iterator $=
+		(
+			* "missing including %IntegerSequence for %(make_index_sequence, \
+				index_sequence)" $since b595,
+			/ $impl "simplified all 4 function template %operator|"
+				^ "%decay_t" ~ "%array_decay_t"
+		),
+		/ %Cast $=
+		(
+			- "function template %unqualify";
+				// Better make 'const_cast' explicit.
+			/ $dev "simplified header dependency" ^ %TypeTraits
+				~ %TypeOperation,
+		),
+		/ "simplified conditional meta call when 1st argument is trait call \
+			result" ^ $dep_from ("%cond_t" @ %TypeTraits) ~ "%conditional_t"
+			$effective @ %(AnyIterator, CString, Iterator, Rational, Ref,
+			Utilities, Variadic),
+		(
+		/ "binary type traits %(is_covariant, is_contravariant) and \
+			spacializations" @ %(TypeOperation, Tuple) >> %Functional $dep_to
+			"merged traits specializations"
+		/ $dev "simplified header dependency" @ %Tuple !^ %TypeOperation
+			$dep_to "simplified traits dependency"
+		),
+		/ $forced $dev "simplified header dependency" @ %Functional
+			^ %TypeOperation ~ %Tuple $dep_from
+			"extended traits support with tuple",
+		/ $dev "simplified header dependency" @ %(Thunk, ScopeGuard)
+			^ %TypeTraits ~ %TypeOperation $dep_from
+			"simplification of traits dependency"
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			(
+			+ 'using ystdex::_t;' @ %Adaptor.YAdaptor;
+			/ DLDI "simplified nested %type member" ^ "%_t" %effecitve
+				@ %(Core.YEvent, UI.YWidgetEvent),
+			)
+			- $revert(b201) "structs %(SelectConvertible; MoreConvertible)"
+				@ %Core.YCoreUtilities
+				// Not useful.
+			/ "simplified conditional meta call when 1st argument is trait \
+				call result" ^ $dep_from ("%cond_t" @ %TypeTraits)
+				~ "%conditional_t" $effective @ %(Service.YBrush, UI.YWindow)
+		),
+		/ %Helper.ShellHelper $=
+		(
+			- "function template %HandleToReference",
+				// Better use '*_cast' instead.
+			- $revert(b278) "struct %ChildPainter" $dep_from
+				("%TextInfoBox::Refresh" @ %YReader.ShlReader),
+				// Use bind expressions or lambdas instead.
+			- $revert(b278) "struct %ContainerSetter" $dep_from ("constructors
+				(ReaderBox, TextInfoBox)" @ %YReader.ShlReader),
+				// Ditto.
+			- $revert(b213) "function template %CreateRawBitmap"
+		),
+	),
+	/ DLDI %YReader.ShlReader $=
+	(
+		/ @ "member function %TextInfoBox::Refresh" ^ "lambda-expression"
+			~ "%ChildPainter",
+		/ @ "constructors (ReaderBox, TextInfoBox)"
+			^ "%(ystdex::bind1, SetContainerPtrOf)" ~ "%ContainerSetter"
+	),
+	/ $dev $repo $re_ex(b641) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.YSLib.UI.("%ywindow.h" => "%YWindow.h")
+),
+
+b649
 (
 	/ %Tools $=
 	(
@@ -91,17 +253,17 @@ $now
 			/ @ "type trait %has_equality_operator" $=
 			(
 				+ "2nd template default argument as 1st template parameter",
-				/ $impl "simplified" ^ $dep_from "%is_detected_convertible"
+				/ DLDI "simplified" ^ $dep_from "%is_detected_convertible"
 					~ "%YB_TYPE_OP_TEST_2"
 					// Also more readable.
 			),
-			/ $impl "simplified %has_subscription" ^ $dep_from "%(is_detected, \
+			/ DLDI "simplified %has_subscription" ^ $dep_from "%(is_detected, \
 				detected_t)" ~ "%YB_TYPE_OP_TEST_2";
 			- $revert(b399) "macro %YB_TYPE_OP_TEST_2"
 				// Superseded by detector APIs.
 			),
 			(
-			/ $impl "simplified %has_mem_value" ^ $dep_from "%is_detected"
+			/ DLDI "simplified %has_mem_value" ^ $dep_from "%is_detected"
 				~ "%YB_HAS_MEMBER";
 			- $revert(b453) $build "conditional inclusion as workaround for \
 				Microsoft VC++ 2013",
@@ -920,17 +1082,17 @@ b641
 				+ 'using platform::u16string',
 				+ 'using platform::u32string' $dep_from
 					("%u32string" @ %YCLib.Container),
-				- "alias %ucs2string" $dep_from "removal of ucs2string",
+				- "alias %ucs2string" $dep_from "removal of %ucs2string",
 				- 'using Text::ucs4_t;' $dep_from
-					("removal of YSLib ucs4_t", %YReader),
-				- 'using Text::ucs2_t;' $dep_from "removal of YSLib ucs2_t"
+					("removal of YSLib %ucs4_t", %YReader),
+				- 'using Text::ucs2_t;' $dep_from "removal of YSLib %ucs2_t"
 			),
 			^ 'char32_t' ~ 'ucs4_t' $effective @ %(Service.(TextLayout,
 				TextBase, TextRenderer, CharRenderer), UI.TextBox,
-				Adaptor.Font) $dep_to "removal of YSLib ucs4_t",
+				Adaptor.Font) $dep_to "removal of YSLib %ucs4_t",
 			^ 'char16_t' ~ 'ucs2_t' $effective @ %(Service.(TextManager,
 				FileSystem, TextManager), UI.YGUI) $dep_to
-				"removal of YSLib ucs2_t",
+				"removal of YSLib %ucs2_t",
 			/ @ "class %String" @ %Core.YString $=
 			(
 				+ $lib 'YB_NONNULL(2)' @ "constructor template %String",
@@ -1019,7 +1181,7 @@ b641
 	),
 	^ $lib $dep_from ('u16string' @ %Adaptor.YTextBase) ~ 'ucs2string'
 		$effective %YFramework.YSLib.(Core.YString, Service.FileSystem) $dep_to
-		"removal of ucs2string",
+		"removal of %ucs2string",
 	/ DLDI %YReader.(DSReader, ShlExplorer) ^ 'char32_t' ~ 'ucs4_t';
 	* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments" @ ("enum \
 		%Encoding" @ %CHRLib.Encoding $since b249, (("class %TextFileBuffer"
@@ -5070,7 +5232,8 @@ b600
 				)
 				/ ("class %NodeLiteral" @ "namespace %NPL")
 					>> ("namespace %YSLib" @ %ValueNode) $dep_from
-					"removal of %NodeLiteral::GetSyntaxNode";
+					"%NodeLiteral::GetSyntaxNode"
+					@ %Tools.ProjectGenerator.Main;
 				+ 'using YSLib::NodeLiteral;'
 			)
 		),
@@ -5140,8 +5303,7 @@ b600
 			/ $forced $dev $impl "path operations" $dep_from
 				%YFramework.Service.FileSystem,
 			/ DLDI "node syntax transformation" ^ "%TransformToSyntaxNode"
-				~ "%NodeLiteral::GetSyntaxNode" $dep_to
-				"removal of %NodeLiteral::GetSyntaxNode"
+				~ "%NodeLiteral::GetSyntaxNode"
 		),
 		/ %SHBuild.Main $=
 		(

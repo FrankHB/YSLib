@@ -262,7 +262,7 @@
     <ClInclude Include="include\YSLib\UI\YWidgetEvent.h" />
     <ClInclude Include="include\YSLib\UI\YWidgetView.h" />
     <ClInclude Include="include\YSLib\UI\YWidget.h" />
-    <ClInclude Include="include\YSLib\UI\ywindow.h" />
+    <ClInclude Include="include\YSLib\UI\YWindow.h" />
     <ClInclude Include="Win32\include\Helper\Win32Control.h" />
     <ClInclude Include="Win32\include\YCLib\COM.h" />
     <ClInclude Include="Win32\include\YCLib\Consoles.h" />

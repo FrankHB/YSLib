@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r223
+\version r227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2015-08-30 16:52 +0800
+	2015-11-05 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
 #include "operators.hpp" // for input_iteratable, output_iteratable,
-//	forward_iteratable, bidirectional_iteratable, random_access_iteratable;
+//	forward_iteratable, bidirectional_iteratable, random_access_iteratable, _t;
 
 namespace ystdex
 {
@@ -124,7 +124,7 @@ make_move_iterator_pair(_tIter1 it1, _tIter2 it2) -> decltype(
 }
 /*!
 \brief 构造指定序列范围（包含序列容器及内建数组等）的转移迭代器对。
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 使用 ADL \c begin 和 \c end 指定范围迭代器。
 \bug decltype 指定的返回类型不能使用 ADL 。
 \since build 337
 */
@@ -188,8 +188,7 @@ struct iterator_operators<_tIter, _tTraits, std::random_access_iterator_tag>
 \since build 576
 */
 template<typename _tIter, typename _tTraits = std::iterator_traits<_tIter>>
-using iterator_operators_t
-	= typename details::iterator_operators<_tIter, _tTraits>::type;
+using iterator_operators_t = _t<details::iterator_operators<_tIter, _tTraits>>;
 
 } // namespace ystdex;
 

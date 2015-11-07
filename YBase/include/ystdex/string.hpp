@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1607
+\version r1609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-11-03 09:40 +0800
+	2015-11-05 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "memory.hpp" // for ../ydef.h, decay_t, remove_rcv_t, std::declval,
+#include "memory.hpp" // for decay_t, remove_rcv_t, std::declval,
 //	has_nested_allocator;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
@@ -57,7 +57,7 @@ struct string_traits
 	using traits_type = typename std::char_traits<value_type>;
 	//! \since build 592
 	//@{
-	using allocator_type = typename nested_allocator<string_type>::type;
+	using allocator_type = _t<nested_allocator<string_type>>;
 	using size_type = typename std::allocator_traits<allocator_type>::size_type;
 	using difference_type
 		= typename std::allocator_traits<allocator_type>::difference_type;

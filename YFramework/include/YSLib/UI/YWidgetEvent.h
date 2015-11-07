@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1747
+\version r1749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2015-05-29 19:35 +0800
+	2015-11-05 01:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -594,11 +594,11 @@ public:
 };
 
 
-//! \since build 581
+//! \since build 650
 template<class _tEventHandler>
 size_t
 DoEvent(AController& controller, VisualEvent id,
-	typename EventArgsHead<typename _tEventHandler::TupleType>::type&& e)
+	_t<EventArgsHead<typename _tEventHandler::TupleType>>&& e)
 {
 	TryRet(dynamic_cast<GEvent<typename _tEventHandler::FuncType>&>(
 		controller.GetItem(id))(std::move(e)))

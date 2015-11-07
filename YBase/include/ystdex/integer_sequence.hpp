@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r359
+\version r380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-11-04 20:25 +0800
+	2015-11-05 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_sequence_hpp_
 #define YB_INC_ystdex_sequence_hpp_ 1
 
-#include "variadic.hpp" // for common_type_t;
+#include "variadic.hpp" // for vseq::defer_i, _t, common_type_t;
 
 namespace ystdex
 {
@@ -70,6 +70,15 @@ using index_sequence = integer_sequence<size_t, _vSeq...>;
 //@{
 namespace vseq
 {
+
+//! \since build 650
+template<typename _tInt, template<_tInt...> class _gfunc, _tInt... _vSeq>
+struct defer_i<_tInt, _gfunc, integer_sequence<_tInt, _vSeq...>,
+	void_t<_gfunc<_vSeq...>>>
+{
+	using type = _gfunc<_vSeq...>;
+};
+
 
 template<typename _tInt, _tInt... _vSeq>
 struct clear<integer_sequence<_tInt, _vSeq...>>
@@ -167,7 +176,7 @@ struct fold<_fBinary, _tState, integer_sequence<_tInt, _vSeq...>>
 private:
 	using parts = split_n<sizeof...(_vSeq) / 2,
 		integer_sequence<_tInt, _vSeq...>>;
-	using head = typename parts::type;
+	using head = _t<parts>;
 	using tail = typename parts::tail;
 
 public:
@@ -198,6 +207,16 @@ struct vec_subtract<integer_sequence<_tInt, _vSeq1...>,
 
 
 /*!
+\brief 可变参数整数列表延迟求值。
+\sa vseq::defer_i
+\since build 650
+*/
+template<typename _tInt, template<_tInt...> class _gfunc, _tInt... _vSeq>
+struct vdefer_i
+	: vseq::defer_i<_tInt, _gfunc, integer_sequence<_tInt, _vSeq...>>
+{};
+
+/*!
 \brief 直接接受 size_t 类型值二元操作合并应用。
 \sa vseq::fold
 \since build 589
@@ -218,7 +237,7 @@ template<typename _tInt, _tInt, class>
 struct make_successor;
 
 template<typename _tInt, _tInt _vBase, class _tSeq>
-using make_successor_t = typename make_successor<_tInt, _vBase, _tSeq>::type;
+using make_successor_t = _t<make_successor<_tInt, _vBase, _tSeq>>;
 
 template<typename _tInt, _tInt _vBase, _tInt... _vSeq>
 struct make_successor<_tInt, _vBase, integer_sequence<_tInt, _vSeq...>>
@@ -243,7 +262,7 @@ struct make_peano_sequence;
 //! \since build 590
 template<typename _tInt, _tInt _vBase, size_t _vN>
 using make_peano_sequence_t
-	= typename make_peano_sequence<_tInt, _vBase, _vN>::type;
+	= _t<make_peano_sequence<_tInt, _vBase, _vN>>;
 
 template<typename _tInt, _tInt _vBase, size_t _vN>
 struct make_peano_sequence
@@ -267,7 +286,7 @@ using make_natural_sequence = make_peano_sequence<_tInt, 0, _vN>;
 
 template<typename _tInt, size_t _vN>
 using make_natural_sequence_t
-	= typename make_natural_sequence<_tInt, _vN>::type;
+	= _t<make_natural_sequence<_tInt, _vN>>;
 //@}
 //@}
 

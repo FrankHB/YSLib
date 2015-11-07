@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2308
+\version r2580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-11-04 11:19 +0800
+	2015-11-06 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,221 +28,11 @@
 #ifndef YB_INC_ystdex_type_op_hpp_
 #define YB_INC_ystdex_type_op_hpp_ 1
 
-#include "type_traits.hpp" // for or_, is_const, is_volatile, is_same, decay_t,
-//	is_object, is_void, not_, is_abstract, is_function, is_class, is_union,
-//	is_pointer, remove_pointer_t, is_lvalue_reference, is_rvalue_reference,
-//	is_pod, is_copy_constructible, is_copy_assignable, is_move_constructible,
-//	is_move_assignable, is_nothrow_copy_constructible,
-//	is_nothrow_copy_assignable, is_nothrow_move_constructible,
-//	is_nothrow_move_assignable, is_trivially_copy_constructible,
-//	is_trivially_copy_assignable, is_trivially_move_constructible,
-//	is_trivially_move_assignable, is_convertible, std::declval, bool_constant,
-//	remove_pointer_t, remove_reference_t, is_array,  enable_if_t, is_same;
+#include "tuple.hpp" // for is_class, std::declval, or_, bool_constant,
+//	is_detected, is_void, _t, remove_reference_t, vdefer, common_type_t;
 
 namespace ystdex
 {
-
-/*!
-\ingroup unary_type_traits
-\tparam _type 需要判断特征的类型参数。
-*/
-//@{
-/*!
-\brief 判断指定类型是否为 const 或 volatile 类型。
-\since build 590
-*/
-template<typename _type>
-struct is_cv : or_<is_const<_type>, is_volatile<_type>>
-{};
-
-
-/*!
-\brief 判断指定类型是否已退化。
-\since build 529
-*/
-template<typename _type>
-struct is_decayed : or_<is_same<decay_t<_type>, _type>>
-{};
-
-
-//! \note 以下参数可能是 cv 修饰的类型，结果和去除 cv 修饰符的类型一致。
-//@{
-/*!
-\brief 判断指定类型是否为对象或 void 类型。
-\since build 630
-*/
-template<typename _type>
-struct is_object_or_void : or_<is_object<_type>, is_void<_type>>
-{};
-
-
-/*!
-\brief 判断指定类型是否可作为返回值类型。
-\note 即排除数组类型、抽象类类型和函数类型的所有类型。
-\see ISO C++11 8.3.5/8 和 ISO C++11 10.4/3 。
-\since build 333
-*/
-template<typename _type>
-struct is_returnable
-	: not_<or_<is_array<_type>, is_abstract<_type>, is_function<_type>>>
-{};
-
-
-/*!
-\brief 判断指定类型是否是类类型。
-\since build 588
-*/
-template<typename _type>
-struct is_class_type
-	: or_<is_class<_type>, is_union<_type>>
-{};
-
-
-//! \since build 630
-//@{
-//! \brief 判断指定类型是否是指向对象类型的指针。
-template<typename _type>
-struct is_pointer_to_object
-	: and_<is_pointer<_type>, is_object<remove_pointer_t<_type>>>
-{};
-
-
-//! \brief 判断指定类型是否是指向对象类型的指针。
-template<typename _type>
-struct is_object_pointer
-	: and_<is_pointer<_type>, is_object_or_void<remove_pointer_t<_type>>>
-{};
-
-
-//! \brief 判断指定类型是否是指向函数类型的指针。
-template<typename _type>
-struct is_function_pointer
-	: and_<is_pointer<_type>, is_function<remove_pointer_t<_type>>>
-{};
-//@}
-
-
-//! \since build 333
-//@{
-//! \brief 判断指定类型是否是指向类类型的指针。
-template<typename _type>
-struct is_class_pointer
-	: and_<is_pointer<_type>, is_class<remove_pointer_t<_type>>>
-{};
-
-
-//! \brief 判断指定类型是否是类类型左值引用。
-template<typename _type>
-struct is_lvalue_class_reference
-	: and_<is_lvalue_reference<_type>, is_class<remove_reference_t<_type>>>
-{};
-
-
-//! \brief 判断指定类型是否是类类型右值引用。
-template<typename _type>
-struct is_rvalue_class_reference
-	: and_<is_rvalue_reference<_type>, is_class<remove_reference_t<_type>>>
-{};
-
-
-/*!
-\pre remove_all_extents<_type> 是完整类型或（可能 cv 修饰的） \c void 。
-\see ISO C++11 9/10 。
-*/
-//@{
-//! \brief 判断指定类型是否是 POD struct 。
-template<typename _type>
-struct is_pod_struct : and_<is_pod<_type>, is_class<_type>>
-{};
-
-
-//! \brief 判断指定类型是否是 POD union 。
-template<typename _type>
-struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
-{};
-//@}
-//@}
-//@}
-
-
-/*!
-\pre remove_all_extents<_type> 是完整类型、（可能 cv 修饰的） \c void ，
-	或未知大小的数组。
-\since build 630
-*/
-//@{
-template<typename _type>
-struct is_copyable
-	: and_<is_copy_constructible<_type>, is_copy_assignable<_type>>
-{};
-
-
-template<typename _type>
-struct is_moveable
-	: and_<is_move_constructible<_type>, is_move_assignable<_type>>
-{};
-
-
-template<typename _type>
-struct is_nothrow_copyable : and_<is_nothrow_copy_constructible<_type>,
-	is_nothrow_copy_assignable<_type>>
-{};
-
-
-template<typename _type>
-struct is_nothrow_moveable : and_<is_nothrow_move_constructible<_type>,
-	is_nothrow_move_assignable<_type>>
-{};
-
-
-#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
-template<typename _type>
-struct is_trivially_copyable : and_<is_trivially_copy_constructible<_type>,
-	is_trivially_copy_assignable<_type>>
-{};
-
-
-template<typename _type>
-struct is_trivially_moveable : and_<is_trivially_move_constructible<_type>,
-	is_trivially_move_assignable<_type>>
-{};
-#	endif
-//@}
-//@}
-
-
-//! \ingroup binary_type_traits
-//@{
-/*!
-\brief 判断指定类型之间是否可转换。
-\since build 575
-*/
-template<typename _type1, typename _type2>
-struct is_interoperable
-	: or_<is_convertible<_type1, _type2>, is_convertible<_type2, _type1>>
-{};
-
-
-/*!
-\brief 判断指定类型之间是否协变。
-\warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
-\since build 447
-*/
-template<typename _tFrom, typename _tTo>
-struct is_covariant : is_convertible<_tFrom, _tTo>
-{};
-
-
-/*!
-\brief 判断指定类型之间是否逆变。
-\warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
-\since build 447
-*/
-template<typename _tFrom, typename _tTo>
-struct is_contravariant : is_convertible<_tTo, _tFrom>
-{};
-//@}
-
 
 namespace details
 {
@@ -375,6 +165,11 @@ public:
 template<typename _type>
 using mem_value_t = decltype(std::declval<_type>().value);
 
+//! \since build 650
+template<typename _type>
+using mem_value_type_t = typename _type::value_type;
+
+
 //! \since build 612
 //@{
 template<typename _type>
@@ -387,21 +182,6 @@ template<class _tClass, typename _type>
 struct member_target_type_impl<_type _tClass::*>
 {
 	using type = _tClass;
-};
-//@}
-
-//! \since build 562
-//@{
-template<bool, typename, typename... _types>
-struct common_nonvoid_impl
-{
-	using type = common_type_t<_types...>;
-};
-
-template<typename _type, typename... _types>
-struct common_nonvoid_impl<false, _type, _types...>
-{
-	using type = _type;
 };
 //@}
 
@@ -418,6 +198,17 @@ struct common_nonvoid_impl<false, _type, _types...>
 template<class _type>
 struct has_mem_value : is_detected<details::mem_value_t, _type>
 {};
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断 _type 是否包含 value_type 类型成员。
+\since build 650
+*/
+template<class _type>
+struct has_mem_value_type : is_detected<details::mem_value_type_t, _type>
+{};
+
 
 
 /*!
@@ -502,7 +293,7 @@ struct identity
 
 //! \since build 595
 template<typename _type>
-using identity_t = typename identity<_type>::type;
+using identity_t = _t<identity<_type>>;
 //@}
 
 
@@ -513,14 +304,12 @@ using identity_t = typename identity<_type>::type;
 */
 //@{
 template<typename _type>
-struct remove_rcv
-{
-	using type = remove_cv_t<remove_reference_t<_type>>;
-};
+struct remove_rcv : remove_cv<remove_reference_t<_type>>
+{};
 
 //! \since build 448
 template<typename _type>
-using remove_rcv_t = typename remove_rcv<_type>::type;
+using remove_rcv_t = _t<remove_rcv<_type>>;
 //@}
 
 
@@ -530,10 +319,8 @@ using remove_rcv_t = typename remove_rcv<_type>::type;
 \since build 175
 */
 template<typename _type>
-struct remove_rp
-{
-	using type = remove_pointer_t<remove_reference_t<_type>>;
-};
+struct remove_rp : remove_pointer<remove_reference_t<_type>>
+{};
 
 
 /*!
@@ -541,72 +328,8 @@ struct remove_rp
 \since build 376
 */
 template<typename _type>
-struct remove_rpcv
-{
-	using type = remove_cv_t<typename remove_rp<_type>::type>;
-};
-
-
-/*!
-\brief 数组类型退化。
-\since build 290
-
-参数为数组类型时同 decay ，否则结果类型为参数。
-*/
-template<typename _type>
-struct array_decay
-{
-	using type = conditional_t<is_array<_type>::value, decay_t<_type>, _type>;
-};
-
-
-/*!
-\brief 保持修饰符的类型退化。
-\note 结果不移除非数组或函数类型的引用，可用于参数转发。
-\since build 290
-
-参数移除引用后为数组或函数类型时同 decay ，否则结果为参数。
-*/
-template<typename _type>
-struct qualified_decay
-{
-private:
-	using value_type = remove_reference_t<_type>;
-
-public:
-	using type = conditional_t<is_function<value_type>::value
-		|| is_array<value_type>::value, decay_t<_type>, _type>;
-};
-
-
-/*!
-\brief 数组及数组引用类型退化。
-\since build 290
-
-参数为非引用类型时同 array_decay ，
-否则成员 type 为去除引用后 array_dacay 的类型，reference 为 type 的对应引用。
-*/
-//@{
-template<typename _type>
-struct array_ref_decay
-{
-	using type = typename array_decay<_type>::type;
-};
-
-template<typename _type>
-struct array_ref_decay<_type&>
-{
-	using type = typename array_decay<_type>::type;
-	using reference = type&;
-};
-
-template<typename _type>
-struct array_ref_decay<_type&&>
-{
-	using type = typename array_decay<_type>::type;
-	using reference = type&&;
-};
-//@}
+struct remove_rpcv : remove_cv<_t<remove_rp<_type>>>
+{};
 
 
 /*!
@@ -614,8 +337,7 @@ struct array_ref_decay<_type&&>
 \since build 612
 */
 template<typename _type>
-using member_target_type_t
-	= typename details::member_target_type_impl<_type>::type;
+using member_target_type_t = _t<details::member_target_type_impl<_type>>;
 //@}
 
 
@@ -626,8 +348,8 @@ using member_target_type_t
 \since build 562
 */
 template<typename _type, typename... _types>
-using common_nonvoid_t = typename
-	details::common_nonvoid_impl<is_void<_type>::value, _type, _types...>::type;
+using common_nonvoid_t
+	= cond_t<is_void<_type>, vdefer<common_type_t, _types...>, _type>;
 
 /*!
 \brief 取公共底层类型。
@@ -635,27 +357,6 @@ using common_nonvoid_t = typename
 */
 template<typename... _types>
 using common_underlying_t = common_type_t<underlying_type_t<_types>...>;
-
-
-/*!
-\sa enable_if_t
-\since build 575
-*/
-//@{
-template<typename _tFrom, typename _tTo, typename _type = void>
-using enable_if_convertible_t
-	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
-
-template<typename _type1, typename _type2, typename _type = void>
-using enable_if_interoperable_t
-	= enable_if_t<is_interoperable<_type1, _type2>::value, _type>;
-
-//! \since build 614
-template<typename _type1, typename _type2, typename _type = void>
-using enable_if_same_t
-	= enable_if_t<is_same<_type1, _type2>::value, _type>;
-//@}
-//@}
 
 
 /*!	\defgroup tags Tags

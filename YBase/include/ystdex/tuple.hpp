@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r421
+\version r468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2015-10-01 14:46 +0800
+	2015-11-06 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,7 @@
 #ifndef YB_INC_ystdex_tuple_hpp_
 #define YB_INC_ystdex_tuple_hpp_ 1
 
-#include "type_op.hpp"
-#include "integer_sequence.hpp"
+#include "integer_sequence.hpp" // vseq::defer, index_sequence;
 #include <tuple>
 
 namespace ystdex
@@ -47,7 +46,7 @@ inline namespace cpp2014
 using std::tuple_element_t;
 #else
 template<size_t _vIdx, typename _type>
-using tuple_element_t = typename std::tuple_element<_vIdx, _type>::type;
+using tuple_element_t = _t<std::tuple_element<_vIdx, _type>>;
 #endif
 //@}
 
@@ -59,10 +58,12 @@ using tuple_element_t = typename std::tuple_element<_vIdx, _type>::type;
 namespace vseq
 {
 
-template<typename... _types>
-struct seq_size<std::tuple<_types...>>
-	: std::tuple_size<std::tuple<_types...>>::type
-{};
+//! \since build 650
+template<template<typename...> class _gfunc, typename... _types>
+struct defer<_gfunc, std::tuple<_types...>, void_t<_gfunc<_types...>>>
+{
+	using type = _gfunc<_types...>;
+};
 
 
 template<typename... _types>
@@ -77,6 +78,12 @@ struct concat<std::tuple<_types1...>, std::tuple<_types2...>>
 {
 	using type = std::tuple<_types1..., _types2...>;
 };
+
+
+template<typename... _types>
+struct seq_size<std::tuple<_types...>>
+	: std::tuple_size<std::tuple<_types...>>::type
+{};
 
 
 template<typename... _types>
@@ -158,7 +165,7 @@ struct fold<_fBinary, _tState, std::tuple<_types...>>
 {
 private:
 	using parts = split_n_t<sizeof...(_types) / 2, std::tuple<_types...>>;
-	using head = typename parts::type;
+	using head = _t<parts>;
 	using tail = typename parts::tail;
 
 public:
@@ -185,51 +192,13 @@ struct vec_subtract<std::tuple<integral_constant<_tInt, _vSeq1>...>,
 //@}
 
 
-//! \since build 447
-//@{
-namespace details
-{
-
-template<class, class, class>
-struct tuple_element_convertible;
-
-template<class _type1, class _type2>
-struct tuple_element_convertible<_type1, _type2, index_sequence<>>
-	: true_type
-{};
-
-template<typename... _types1, typename... _types2, size_t... _vSeq,
-	size_t _vHead>
-struct tuple_element_convertible<std::tuple<_types1...>, std::tuple<_types2...>,
-	index_sequence<_vHead, _vSeq...>>
-{
-	static_assert(sizeof...(_types1) == sizeof...(_types2),
-		"Mismatched sizes of tuple found.");
-
-private:
-	using t1 = std::tuple<_types1...>;
-	using t2 = std::tuple<_types2...>;
-
-public:
-	static yconstexpr const bool value
-		= std::is_convertible<vseq::at<t1, _vHead>, vseq::at<t2, _vHead>>::value
-		&& tuple_element_convertible<t1, t2, index_sequence<_vSeq...>>::value;
-};
-
-} // namespace details;
-
-
-template<typename... _tFroms, typename... _tTos>
-struct is_covariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: bool_constant<details::tuple_element_convertible<std::tuple<_tFroms...>,
-	std::tuple<_tTos...>, index_sequence_for<_tTos...>>::value>
-{};
-
-
-template<typename... _tFroms, typename... _tTos>
-struct is_contravariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: bool_constant<details::tuple_element_convertible<std::tuple<_tTos...>,
-	std::tuple<_tFroms...>, index_sequence_for<_tTos...>>::value>
+/*!
+\brief 可变参数类型列表延迟求值。
+\sa vseq::defer
+\since build 650
+*/
+template<template<typename...> class _gfunc, typename... _types>
+struct vdefer : vseq::defer<_gfunc, std::tuple<_types...>>
 {};
 
 } // namespace ystdex;

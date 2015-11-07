@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5025
+\version r5029
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-08-20 21:41 +0800
+	2015-11-05 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
-#include <ystdex/utility.hpp> // for ystdex::cloneable;
+#include <ystdex/base.h> // for ystdex::cloneable;
+#include <ystdex/functional.hpp> // for ystdex::make_expanded;
 
 namespace YSLib
 {
@@ -839,8 +840,7 @@ class GEventWrapper : public _tEvent, implements GIHEvent<_tBaseArgs>
 public:
 	using EventType = _tEvent;
 	using BaseArgsType = _tBaseArgs;
-	using EventArgsType
-		= typename EventArgsHead<typename _tEvent::TupleType>::type;
+	using EventArgsType = _t<EventArgsHead<typename _tEvent::TupleType>>;
 
 	/*!
 	\brief 委托调用。

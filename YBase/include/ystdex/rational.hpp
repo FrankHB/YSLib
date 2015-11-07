@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2065
+\version r2072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-09-08 03:19 +0805
+	2015-11-06 11:24 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,7 +341,7 @@ public:
 	fixed_point&
 	operator/=(const fixed_point& f) ynothrowv
 	{
-		using widen_type = typename make_widen_int<base_type>::type;
+		using widen_type = _t<make_widen_int<base_type>>;
 
 		value = base_type((widen_type(value) << widen_type(frac_bit_n))
 			/ f.value);
@@ -396,7 +396,7 @@ private:
 	mul(base_type x, base_type y, true_type) ynothrowv
 	{
 		return mul_signed<_vShiftBits>(
-			typename make_widen_int<base_type>::type(x * y));
+			_t<make_widen_int<base_type>>(x * y));
 	}
 	template<size_t _vShiftBits>
 	static yconstfn base_type
@@ -405,17 +405,18 @@ private:
 		// NOTE: Only fit for unsigned type, due to there exists
 		//	implementation-defined behavior in conversion and right shifting on
 		//	operands of signed types.
-		return base_type((typename make_widen_int<base_type>::type(x) * y)
+		return base_type((_t<make_widen_int<base_type>>(x) * y)
 			>> _vShiftBits);
 	}
+	//@}
 
+	//! \since build 650
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul_signed(typename make_widen_int<base_type>::type tmp) ynothrowv
+	mul_signed(_t<make_widen_int<base_type>> tmp) ynothrowv
 	{
 		return base_type(tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits);
 	}
-	//@}
 
 public:
 	/*!
@@ -640,7 +641,7 @@ private:
 	using fixed = ystdex::YB_Impl_Rational_fp_T;
 
 public:
-	using type = ystdex::conditional_t<is_floating_point<_type>::value
+	using type = ystdex::cond_t<is_floating_point<_type>
 #if 0
 		|| !(std::double_t(std::numeric_limits<fixed>::min())
 		< std::double_t(std::numeric_limits<_type>::min())

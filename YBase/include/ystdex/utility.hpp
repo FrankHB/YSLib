@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2917
+\version r2935
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-11-01 17:34 +0800
+	2015-11-06 11:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "type_pun.hpp" // for ../ydef.h, is_standard_layout, pun_storage_t,
-//	std::swap, aligned_replace_cast, qualified_decay;
+#include "type_pun.hpp" // for is_standard_layout, pun_storage_t,
+//	std::swap, aligned_replace_cast, _t;
 #include "cassert.h" // for yassume;
 #include <memory> // for std::addressof;
 
@@ -86,25 +86,12 @@ exchange(_type& obj, _type2&& new_val)
 \ingroup helper_functions
 \brief 退化复制。
 \see ISO C++11 30.2.6 [thread.decaycopy] 。
-\see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3255.html 。
-\since build 439
+\see WG21/N3255 。
+\since build 650
 */
 template<typename _type>
-yconstfn decay_t<_type>
+yconstfn yimpl(enable_if_convertible_t)<_type, decay_t<_type>, decay_t<_type>>
 decay_copy(_type&& arg)
-{
-	return std::forward<_type>(arg);
-}
-
-/*!
-\ingroup helper_functions
-\brief 退化传递。
-\note 类似 decay_copy ，但仅对函数或数组及其引用类型退化，不复制其它值。
-\since build 383
-*/
-template<typename _type>
-yconstfn typename qualified_decay<_type>::type
-decay_forward(_type&& arg)
 {
 	return std::forward<_type>(arg);
 }
@@ -264,7 +251,7 @@ struct boxed_value
 \since build 477
 */
 template<typename _type>
-using classify_value_t = conditional_t<std::is_class<_type>::value, _type,
+using classify_value_t = cond_t<std::is_class<_type>, _type,
 	boxed_value<_type>>;
 
 

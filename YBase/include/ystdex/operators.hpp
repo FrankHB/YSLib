@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1780
+\version r1782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2015-09-29 09:15 +0800
+	2015-11-05 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "type_op.hpp" // for false_type, true_type;
+#include "type_traits.hpp" // for _t, false_type, true_type;
 #include <memory> // for std::addressof;
 
 namespace ystdex
@@ -76,7 +76,7 @@ struct op_idt
 };
 
 template<typename _type = void>
-using op_idt_t = typename op_idt<_type>::type;
+using op_idt_t = _t<op_idt<_type>>;
 //@}
 
 #define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
