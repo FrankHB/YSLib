@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2136
+\version r2159
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-10-29 00:30 +0800
+	2015-11-18 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ MakeNormalizedAbsolute(const Path& pth, size_t len)
 	if(IsRelative(res))
 		res = Path(FetchCurrentWorkingDirectory(len)) / res;
 	res.Normalize();
-	YTraceDe(Debug, "Converted path is '%s'.", string(res).c_str());
+	YTraceDe(Debug, "Converted path is '%s'.", res.VerifyAsMBCS().c_str());
 	YAssert(IsAbsolute(res), "Invalid path converted.");
 	return res;
 }
@@ -135,10 +135,11 @@ namespace
 {
 
 //! \since build 649
-UniqueFile
+YB_NONNULL(1) UniqueFile
 OpenFileForCopy(const char* src)
 {
-	return OpenFile(src, omode_convb(std::ios_base::in | std::ios_base::binary));
+	return
+		OpenFile(src, omode_convb(std::ios_base::in | std::ios_base::binary));
 }
 
 } // unnamed namespace;
@@ -166,17 +167,34 @@ CopyFile(const char* dst, const char* src, mode_t dst_mode,
 {
 	CopyFile(dst, OpenFileForCopy(src).get(), dst_mode, allowed_links, share);
 }
+void
+CopyFile(const char* dst, FileDescriptor src_fd, CopyFileHandler f,
+	mode_t dst_mode, size_t allowed_links, bool share)
+{
+	const auto p_dst(EnsureUniqueFile(dst, dst_mode, allowed_links,
+		share));
+
+	FileDescriptor::WriteContent(p_dst.get(), Nonnull(src_fd));
+	f(p_dst.get(), src_fd);
+}
+void
+CopyFile(const char* dst, const char* src, CopyFileHandler f, mode_t dst_mode,
+	size_t allowed_links, bool share)
+{
+	CopyFile(dst, OpenFileForCopy(src).get(), f, dst_mode, allowed_links, share);
+}
 
 
 void
 ClearTree(const Path& pth)
 {
-	TraverseChildren(pth, [&](NodeCategory c, NativePathView npv){
+	TraverseChildren(pth.VerifyAsMBCS(),
+		[&](NodeCategory c, NativePathView npv){
 		const auto child(pth / String(npv));
 
 		if(c == NodeCategory::Directory)
 			DeleteTree(child);
-		TryRemove(string(child).c_str());
+		TryRemove(child.VerifyAsMBCS().c_str());
 	});
 }
 
@@ -207,7 +225,7 @@ ClassifyNode(const Path& pth)
 	case ystdex::path_category::parent:
 		break;
 	default:
-		if(ufexists(string(pth).c_str()))
+		if(ufexists(pth.VerifyAsMBCS().c_str()))
 			return VerifyDirectory(pth)
 				? NodeCategory::Directory : NodeCategory::Regular;
 		else

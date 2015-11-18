@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r747
+\version r748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2015-10-20 15:01 +0800
+	2015-11-19 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -277,7 +277,7 @@ InsertUnit(set<string>& res, const Path& pth, const string& platform)
 {
 	auto lpth((!platform.empty() && pth.size() > 2 && pth.front() == u".."
 		&& *(pth.begin() + 1) == String(platform)
-		? Path(pth.begin() + 2, pth.end()) : pth).GetMBCS('/'));
+		? Path(pth.begin() + 2, pth.end()) : pth).VerifyAsMBCS('/'));
 
 	if(CheckExcluded(lpth, platform))
 		res.insert(std::move(lpth));

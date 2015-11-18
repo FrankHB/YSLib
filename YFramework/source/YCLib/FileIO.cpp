@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1911
+\version r1989
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-10-23 23:32 +0800
+	2015-11-13 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#undef __STRICT_ANSI__ // for fileno, ::pclose, ::popen for platform DS;
+#undef __STRICT_ANSI__ // for fileno, ::pclose, ::popen for POSIX platforms;
 //	_fileno, _wfopen for MinGW.org;
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO
@@ -35,7 +35,7 @@
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, ::HANDLE, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl,
 //	F_GETFL, _O_*, O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd,
-//	::getcwd, !defined(__STRICT_ANSI__) API;
+//	::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
@@ -53,7 +53,8 @@ using namespace CHRLib;
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform::WCSToUTF8, platform_ex::UTF8ToWCS, platform_ex::ConvertTime;
+//	platform::WCSToUTF8, platform_ex::UTF8ToWCS, platform_ex::ConvertTime,
+//	platform_ex::SetFileTime;
 
 //! \since build 639
 using platform_ex::FileAttributes;
@@ -143,13 +144,17 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 //@}
 
 #if YCL_Win32
+//! \since build 651
+inline PDefH(::HANDLE, ToHandle, int fd) ynothrow
+	ImplRet(::HANDLE(::_get_osfhandle(fd)))
+
 //! \since build 632
 //@{
 void
 QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
 {
-	QueryFileTime(::HANDLE(::_get_osfhandle(fd)), p_ctime, p_atime, p_mtime);
+	QueryFileTime(ToHandle(fd), p_ctime, p_atime, p_mtime);
 }
 
 // TODO: Use ISO C++14 generic lambda expressions.
@@ -214,6 +219,28 @@ CallFuncWithAttr(_func f, const char* path)
 }
 //@}
 #else
+//! \since build 651
+inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
+	ImplRet({std::time_t(ft.count() / 1000000000LL),
+		long(ft.count() % 1000000000LL)})
+
+//! \since build 651
+YB_NONNULL(2) void
+TrySetFileTime(int fd, const ::timespec* times)
+{
+#if YCL_DS
+	// XXX: Hack.
+#ifndef UTIME_OMIT
+#	define UTIME_OMIT (-1L)
+#endif
+	yunused(fd), yunused(times);
+	ystdex::throw_error(std::errc::function_not_supported);
+#else
+	if(::futimens(fd, times) != 0)
+		ThrowFileOperationFailure("Failed setting file time.");
+#endif
+}
+
 //! \since build 631
 //@{
 const auto get_st_atime([](struct ::stat& st){
@@ -234,17 +261,12 @@ static_assert(std::is_integral<::dev_t>(),
 static_assert(std::is_unsigned<::ino_t>(),
 	"Nonconforming '::ino_t' type found.");
 
-FileNodeID
-get_file_node_id(struct ::stat& st)
-{
-	return {std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)};
-}
+inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
+	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
 
-YB_NONNULL(2) int
-cstat(struct ::stat& st, const char* path)
-{
-	return ::stat(Nonnull(path), &st);
-}
+inline YB_NONNULL(2) PDefH(int, cstat, struct ::stat& st, const char* path)
+	ynothrow
+	ImplRet(::stat(Nonnull(path), &st))
 //@}
 
 //! \since build 632
@@ -315,6 +337,7 @@ MakePathString(const char16_t* s)
 // XXX: Catch %std::bad_alloc?
 #define YCL_Impl_RetTryCatchAll(...) \
 	TryRet(__VA_ARGS__) \
+	CatchExpr(std::bad_alloc&, errno = ENOMEM) \
 	CatchIgnore(...)
 
 
@@ -370,7 +393,7 @@ FileNodeID
 FileDescriptor::GetNodeID() const ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileNodeID(::HANDLE(::_get_osfhandle(desc))))
+	YCL_Impl_RetTryCatchAll(QueryFileNodeID(ToHandle(desc)))
 #else
 	struct ::stat st;
 
@@ -383,7 +406,7 @@ size_t
 FileDescriptor::GetNumberOfLinks() const ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileLinks(::HANDLE(::_get_osfhandle(desc))))
+	YCL_Impl_RetTryCatchAll(QueryFileLinks(ToHandle(desc)))
 #else
 	struct ::stat st;
 	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
@@ -418,6 +441,19 @@ FileDescriptor::GetSize() const
 #endif
 }
 
+void
+FileDescriptor::SetAccessTime(FileTime ft) const
+{
+#if YCL_Win32
+	auto atime(ConvertTime(ft));
+
+	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, {});
+#else
+	const ::timespec times[]{ToTimeSpec(ft), {yimpl(0), UTIME_OMIT}};
+
+	TrySetFileTime(desc, times);
+#endif
+}
 bool
 FileDescriptor::SetBlocking() const ynothrow
 {
@@ -454,6 +490,32 @@ FileDescriptor::SetMode(mode_t mode) const ynothrow
 	yunused(mode);
 	errno = ENOSYS;
 	return {};
+#endif
+}
+void
+FileDescriptor::SetModificationTime(FileTime ft) const
+{
+#if YCL_Win32
+	auto mtime(ConvertTime(ft));
+
+	platform_ex::SetFileTime(ToHandle(desc), {}, {}, &mtime);
+#else
+	const ::timespec times[]{{yimpl(0), UTIME_OMIT}, ToTimeSpec(ft)};
+
+	TrySetFileTime(desc, times);
+#endif
+}
+void
+FileDescriptor::SetModificationAndAccessTime(array<FileTime, 2> fts) const
+{
+#if YCL_Win32
+	auto atime(ConvertTime(fts[0])), mtime(ConvertTime(fts[1]));
+
+	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, &mtime);
+#else
+	const ::timespec times[]{ToTimeSpec(fts[0]), ToTimeSpec(fts[1])};
+
+	TrySetFileTime(desc, times);
 #endif
 }
 bool
@@ -716,8 +778,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
-	return ::_wfopen(wcast(filename),
-		wcast(mode));
+	return ::_wfopen(wcast(filename), wcast(mode));
 #else
 	YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(),
 		MakeMBCS(mode).c_str()))
@@ -737,8 +798,8 @@ ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow
 	YAssertNonnull(filename);
 	if(const auto c_mode = ystdex::openmode_conv(mode))
 #if YCL_Win32
-		YCL_Impl_RetTryCatchAll(::_wfopen(wcast(
-			filename), UTF8ToWCS(c_mode).c_str()))
+		YCL_Impl_RetTryCatchAll(
+			::_wfopen(wcast(filename), UTF8ToWCS(c_mode).c_str()))
 #else
 		YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(), c_mode))
 #endif
@@ -1034,8 +1095,8 @@ bool
 IsNodeShared(const char* a, const char* b) ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileNodeID(
-		UTF8ToWCS(a).c_str()) == QueryFileNodeID(UTF8ToWCS(b).c_str()))
+	YCL_Impl_RetTryCatchAll(QueryFileNodeID(UTF8ToWCS(a).c_str())
+		== QueryFileNodeID(UTF8ToWCS(b).c_str()))
 	return {};
 #else
 	struct ::stat st;

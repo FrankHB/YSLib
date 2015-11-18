@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r932
+\version r948
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2015-06-29 15:32 +0800
+	2015-11-12 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@
 extern "C" ::DLDI_INTERFACE _io_dldi_stub;
 #elif YCL_MinGW
 #	include <ctime> // for std::gmtime;
+#elif YCL_Android
+#	include <sys/syscall.h> // for ::syscall, __NR_utimensat;
 #endif
 
 namespace
@@ -137,7 +139,21 @@ _gmtime32(const ::__time32_t* p)
 #	endif
 
 } // extern "C";
+#elif YCL_Android
+int
+futimens(int fd, const ::timespec times[2]) ynothrow
+{
+	// NOTE: See https://android.googlesource.com/platform/bionic/+/840a114eb12773c5af39c0c97675b27aa6dee78c/libc/bionic/futimens.cpp.
+	return ::utimensat(fd, {}, times, 0);
+}
 
+int
+utimensat(int fd, const char* path, const ::timespec times[2], int flags)
+	ynothrow
+{
+	// NOTE: See http://stackoverflow.com/questions/19374749/how-to-work-around-absence-of-futimes-in-android-ndk.
+	return ::syscall(__NR_utimensat, fd, path, times, flags);
+}
 #endif
 
 namespace platform

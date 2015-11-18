@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r535
+\version r564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2015-09-08 22:05 +0800
+	2015-11-18 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,6 +167,40 @@ FetchVisualStyleNames(String default_name)
 }
 
 } // namespace UI;
+
+void
+InstallFile(const string& dst, const string& src)
+{
+	IO::CopyFile(dst.c_str(), src.c_str(), IO::PreserveModificationTime);
+}
+
+void
+InstallDirectory(const string& dst, const string& src)
+{
+	IO::CopyTree(IO::Path(dst), IO::Path(src), IO::PreserveModificationTime);
+}
+
+void
+InstallHardLink(const string& dst, const string& src)
+{
+	uremove(dst.c_str());
+	TryExpr(platform::CreateHardLink(dst.c_str(), src.c_str()))
+	CatchExpr(..., InstallFile(dst, src))
+}
+
+void
+InstallSymbolicLink(const string& dst, const string& src)
+{
+	uremove(dst.c_str());
+	TryExpr(platform::CreateSymbolicLink(dst.c_str(), src.c_str()))
+	CatchExpr(..., InstallFile(dst, src))
+}
+
+void
+InstallExecutable(const string& dst, const string& src)
+{
+	InstallFile(dst, src);
+}
 
 } // namespace YSLib;
 

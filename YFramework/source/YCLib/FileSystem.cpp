@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3021
+\version r3070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-10-20 14:09 +0800
+	2015-11-18 11:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,30 @@
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::MakeFile;
 #	include <time.h> // for ::localtime_s;
+
+//! \since build 651
+namespace
+{
+
+namespace YCL_Impl_details
+{
+
+// NOTE: To avoid hiding of global name, the declarations shall not be under
+//	namespace %platform.
+YCL_DeclW32Call(CreateSymbolicLinkW, kernel32, unsigned char, const wchar_t*, \
+	const wchar_t*, unsigned long)
+using platform::wcast;
+
+// NOTE: As %SYMBOLIC_LINK_FLAG_DIRECTORY, but with correct type.
+yconstexpr auto SymbolicLinkFlagDirectory(1UL);
+
+inline PDefH(void, W32_CreateSymbolicLink, const char16_t* dst,
+	const char16_t* src, unsigned long flags)
+	ImplExpr(YCL_CallWin32F(CreateSymbolicLinkW, wcast(dst), wcast(src), flags))
+
+}
+
+} // unnamed namespace;
 
 //! \since build 549
 using platform_ex::DirectoryFindData;
@@ -96,7 +120,7 @@ CreateHardLink(const char* dst, const char* src)
 	yunused(dst), yunused(src);
 	ystdex::throw_error(std::errc::not_supported);
 #else
-	if(::link(Nonnull(dst), Nonnull(src)) != 0)
+	if(::link(Nonnull(src), Nonnull(dst)) != 0)
 		ystdex::throw_error(errno);
 #endif
 }
@@ -112,6 +136,37 @@ CreateHardLink(const char16_t* dst, const char16_t* src)
 	ystdex::throw_error(std::errc::not_supported);
 #else
 	CreateHardLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str());
+#endif
+}
+
+void
+CreateSymbolicLink(const char* dst, const char* src, bool is_dir)
+{
+#if YCL_Win32
+	using namespace platform_ex;
+
+	CreateSymbolicLink(ucast(UTF8ToWCS(dst).c_str()),
+		ucast(UTF8ToWCS(src).c_str()), is_dir);
+#elif YCL_DS
+	yunused(dst), yunused(src), yunused(is_dir);
+	ystdex::throw_error(std::errc::not_supported);
+#else
+	yunused(is_dir);
+	if(::symlink(Nonnull(src), Nonnull(dst)) != 0)
+		ystdex::throw_error(errno);
+#endif
+}
+void
+CreateSymbolicLink(const char16_t* dst, const char16_t* src, bool is_dir)
+{
+#if YCL_Win32
+	YCL_Impl_details::W32_CreateSymbolicLink(dst, src,
+		is_dir ? YCL_Impl_details::SymbolicLinkFlagDirectory : 0UL);
+#elif YCL_DS
+	yunused(dst), yunused(src), yunused(is_dir);
+	ystdex::throw_error(std::errc::not_supported);
+#else
+	CreateSymbolicLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str(), is_dir);
 #endif
 }
 
@@ -430,13 +485,13 @@ WriteNumericTail(string& alias, size_t k) ynothrowv
 namespace
 {
 
-yconstexpr bool
+yconstfn bool
 is_time_no_leap_valid(const std::tm& t)
 {
 	return !(t.tm_hour < 0 || 23 < t.tm_hour || t.tm_hour < 0 || 59 < t.tm_min
 		|| t.tm_sec < 0 || 59 < t.tm_min);
 }
-yconstexpr bool
+yconstfn bool
 is_date_range_valid(const std::tm& t)
 {
 	return !(t.tm_mon < 0 || 12 < t.tm_mon || t.tm_mday < 1 || 31 < t.tm_mday);

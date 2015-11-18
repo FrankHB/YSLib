@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r380
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-11-05 11:29 +0800
+	2015-11-05 11:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -288,6 +288,14 @@ template<typename _tInt, size_t _vN>
 using make_natural_sequence_t
 	= _t<make_natural_sequence<_tInt, _vN>>;
 //@}
+
+/*!
+\brief 判断是否具有相同的指定值。
+\since build 651
+*/
+template<typename _tInt, _tInt _vDefault, _tInt... _values>
+using same_value_as = std::is_same<integer_sequence<_tInt, _vDefault,
+	_values...>, integer_sequence<_tInt, _values..., _vDefault>>;
 //@}
 
 

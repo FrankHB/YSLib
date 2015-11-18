@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3064
+\version r3071
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-10-02 13:52 +0800
+	2015-11-12 11:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -195,8 +195,8 @@ build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
 @2.6 平台无关的字体缓存库 Font ：
 基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
 
-@3 核心构件系统：
-通称 Core ，位于 "/Core" 。
+@3 核心构件：
+位于 "/Core" 。
 除了核心定义 YShellDefinition 以外，主要包含以下几大部分：
 核心实用模块 YCoreUtilities ；
 平台无关的基础对象 YObject ；
@@ -350,7 +350,7 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 以 YSLib::ValueObject(@3.2) 作为内容的树形数据结构，可以保存层次组织的任意 C++ 对象。
 可以作为语言的语法（表达式树）和语义的基础实现。
 
-@4 服务系统：
+@4 服务：
 位于 "/Service" 。
 对以上组成部分提供内部和外部的常用功能的实现与封装。
 提供辅助性接口供用户程序使用。
@@ -386,6 +386,7 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 @4.4 应用程序资源管理模块 YResource
 
 @4.5 文件系统和文件抽象
+涉及文件系统的同步操作的接口默认异常安全保证同 [Documentation::YBase @@3.3.1] 。
 
 @4.5.1 平台无关的文件处理系统 FileSystem
 
@@ -410,7 +411,7 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 增加 text/x-cpp 项。
 配置读取失败时生成较少的默认配置，内容参见 YFramework 源文件 "Helper/Initialization.cpp" 。
 
-@5 界面系统：
+@5 用户界面：
 位于 "/UI" 。
 包含基本的部件/控件抽象、图形界面中较常用绘图例程以及样式管理。
 更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自于 Core::YGDIBase 、 Service::YGDI 和 Service::YResource 。
@@ -717,8 +718,6 @@ UI::BufferedRenderer::Validate(IWidget&, IWidget&, const PaintContext&) 是默�
 批量验证(@5.5.2.4) 后再更新，避免多个对象直接绘制之间的明显间断。
 
 @5.5.3 默认 GUI 绘制(@5.5.3.5) 逻辑：
-除非另行约定，所有默认 GUI 绘制操作具有强异常安全保证([Documentation::LanguageConvention @@5.10.5.1.2]) 。
-另见 [Documentation::LanguageConvention @@5.10.5.1.6] 。
 
 @5.5.3.1 渲染状态同步：
 部件通过与渲染器的交互保证渲染状态。

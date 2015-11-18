@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2750
+\version r2816
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-10-24 19:12 +0800
+	2015-11-18 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,12 +183,14 @@ public:
 	\sa Verify
 	\since build 409
 	*/
-	DefCvt(const, String, Verify())
+	explicit
+	DefCvt(const, String, GetString())
 	/*!
 	\brief 转换为窄字符串。
 	\since build 411
 	*/
-	DefCvt(const, string, GetMBCS())
+	explicit
+	DefCvt(const, string, String(*this).GetMBCS())
 
 	//! \since build 600
 	DefGetter(const ynothrow, const ypath&, Base, *this)
@@ -200,10 +202,6 @@ public:
 	PDefH(String, GetLeafString, char16_t delimiter = char16_t(YCL_PATH_DELIMITER))
 		const
 		ImplRet(ystdex::to_string(GetBase(), {delimiter}))
-	//! \brief 取指定分隔符和编码的多字节字符串。
-	PDefH(string, GetMBCS, char16_t delimiter = char16_t(YCL_PATH_DELIMITER),
-		Text::Encoding enc = Text::CS_Default) const
-		ImplRet(Verify(delimiter).GetMBCS(enc))
 	/*!
 	\brief 取指定分隔符的字符串表示。
 	\post 断言：结果为空或以分隔符结尾。
@@ -223,7 +221,7 @@ public:
 	Parse(const u16string&);
 
 	/*!
-	\brief 转换为指定分隔符表示的字符串并验证。
+	\brief 验证：转换为指定分隔符表示的字符串并检查分隔符。
 	\note 使用 VerifyDirectory 验证，当且仅当确认为可打开的目录时结果以分隔符结尾。
 	\sa GetString
 	\sa VerifyDirectory
@@ -231,6 +229,13 @@ public:
 	*/
 	String
 	Verify(char16_t = char16_t(YCL_PATH_DELIMITER)) const;
+	/*!
+	\brief 验证指定分隔符和编码的多字节字符串。
+	\since build 651
+	*/
+	PDefH(string, VerifyAsMBCS, char16_t delimiter = char16_t(
+		YCL_PATH_DELIMITER), Text::Encoding enc = Text::CS_Default) const
+		ImplRet(Verify(delimiter).GetMBCS(enc))
 
 	//! \since build 409
 	//@{
@@ -434,7 +439,7 @@ template<typename _func>
 inline void
 Traverse(const Path& pth, _func f)
 {
-	IO::Traverse(string(pth), f);
+	IO::Traverse(pth.VerifyAsMBCS(), f);
 }
 
 //! \since build 593
@@ -451,6 +456,27 @@ TraverseChildren(const string& path, _func f)
 //@}
 
 
+//! \since build 651
+//@{
+/*!
+\brief 复制文件处理器：通知文件复制事件。
+\note 函数参数分别对应目标和源。
+\since build 651
+*/
+using CopyFileHandler = std::function<void(FileDescriptor, FileDescriptor)>;
+
+//! \sa CopyFileHandler
+//@{
+//! \brief 保持修改时间。
+const auto PreserveModificationTime(ystdex::bind_forward(
+	&FileDescriptor::SetModificationTime, &FileDescriptor::GetModificationTime));
+//! \brief 保持修改和访问时间。
+const auto PreserveModificationAndAccessTime(ystdex::bind_forward(
+	&FileDescriptor::SetModificationAndAccessTime,
+	&FileDescriptor::GetModificationAndAccessTime));
+//@}
+//@}
+
 /*!
 \brief 复制文件。
 \pre 间接断言：表示目标和源的参数非空。
@@ -458,7 +484,7 @@ TraverseChildren(const string& path, _func f)
 \note mode_t 参数依次表示打开目标和源的权限模式。
 \note 不复制元数据。
 \see $2015-09 @ %Documentation::Workflow::Annual2015.
-\since build 639
+\since build 648
 */
 //@{
 /*!
@@ -469,24 +495,35 @@ YF_API void
 CopyFile(UniqueFile, FileDescriptor);
 //! \exception FileOperationFailure 打开文件失败。
 //@{
-/*!
-\note 不清空目标。
-\since build 648
-*/
+//! \note 不清空目标。
 YF_API YB_NONNULL(2) void
 CopyFile(UniqueFile, const char*);
-/*!
-\note 除第二参数外含义和 EnsureUniqueFile 的参数依次相同。
-\sa EnsureUniqueFile
-*/
+//! \sa EnsureUniqueFile
 //@{
+//! \note 除第二参数外含义和 EnsureUniqueFile 的参数依次相同。
+//@{
+//! \since build 639
 YF_API YB_NONNULL(1) void
 CopyFile(const char*, FileDescriptor, mode_t = DefaultPMode(),
 	size_t = 1, bool = {});
-//! \since build 648
 YF_API YB_NONNULL(1, 2) void
 CopyFile(const char*, const char*, mode_t = DefaultPMode(), size_t = 1,
 	bool = {});
+//@}
+/*!
+\exception std::bad_function_call 第三参数为空。
+\note 第三参数指定成功复制内容后关闭目标文件前的操作。
+\note 除第二和第三参数外含义和 EnsureUniqueFile 的参数依次相同。
+\since build 651
+*/
+//@{
+YF_API YB_NONNULL(1) void
+CopyFile(const char*, FileDescriptor, CopyFileHandler, mode_t = DefaultPMode(),
+	size_t = 1, bool = {});
+YF_API YB_NONNULL(1, 2) void
+CopyFile(const char*, const char*, CopyFileHandler, mode_t = DefaultPMode(),
+	size_t = 1, bool = {});
+//@}
 //@}
 //@}
 //@}
@@ -495,6 +532,7 @@ CopyFile(const char*, const char*, mode_t = DefaultPMode(), size_t = 1,
 //@{
 /*!
 \brief 复制目录树。
+\warning 不检查无限递归调用。
 \since build 648
 */
 template<typename... _tParams>
@@ -502,17 +540,18 @@ void
 CopyTree(const Path& dst, const Path& src, _tParams&&... args)
 {
 	EnsureDirectory(dst);
-	TraverseChildren(src, [&](NodeCategory c, NativePathView npv){
+	TraverseChildren(string(src), [&](NodeCategory c, NativePathView npv){
 		const String name(npv);
+		const auto& dname(dst / name);
 
 		// XXX: Blocked. 'yforward' cause G++ 5.2 crash: internal compiler
 		//	error: Aborted (program cc1plus).
 		if(c == NodeCategory::Directory)
-			IO::CopyTree(dst / name, src / name,
+			IO::CopyTree(dname, src / name,
 				std::forward<_tParams>(args)...);
 		else
-			IO::CopyFile(string(dst / name).c_str(), string(src / name).c_str(),
-				std::forward<_tParams>(args)...);
+			IO::CopyFile(dname.VerifyAsMBCS().c_str(), (src / name)
+				.VerifyAsMBCS().c_str(), std::forward<_tParams>(args)...);
 	});
 }
 
@@ -532,7 +571,7 @@ inline PDefH(void, ClearTree, const string& pth)
 //! \brief 删除参数指定路径的目录树。
 //@{
 inline PDefH(void, DeleteTree, const Path& pth)
-	ImplExpr(ClearTree(pth), TryRemove(string(pth).c_str()))
+	ImplExpr(ClearTree(pth), TryRemove(pth.VerifyAsMBCS().c_str()))
 //! \since build 593
 inline PDefH(void, DeleteTree, const string& pth)
 	ImplExpr(DeleteTree(Path(pth)))

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4833
+\version r4837
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-11-06 09:12 +0800
+	2015-11-19 23:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -352,8 +352,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	: ShlReader(pth, h_dsk_up, h_dsk_dn),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
 	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
-	CurrentSetting.GetTimerSetting()),
-	boxReader({0, 160, 256, 32}), pnlBookmark(LoadBookmarks(pth), *this)
+	CurrentSetting.GetTimerSetting()), boxReader({0, 160, 256, 32}),
+	pnlBookmark(LoadBookmarks(pth.VerifyAsMBCS()), *this)
 {
 	const auto exit_session([this]{
 		session_ptr.reset();
@@ -492,7 +492,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 ShlTextReader::~ShlTextReader()
 {
 	FilterExceptions([this]{
-		SaveBookmarks(CurrentPath, pnlBookmark.bookmarks);
+		SaveBookmarks(CurrentPath.VerifyAsMBCS(), pnlBookmark.bookmarks);
 		SaveGlobalConfiguration(CurrentSetting);
 	}, yfsig);
 	FilterExceptions([this]{
@@ -785,7 +785,7 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 
 	auto& dsk_m(GetMainDesktop());
 	auto& dsk_s(GetSubDesktop());
-	const string& path_str(pth);
+	const string& path_str(pth.VerifyAsMBCS());
 
 	pnlFileInfo.lblPath.Text = u"文件路径：" + String(pth);
 

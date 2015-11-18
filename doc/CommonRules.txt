@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4388
+\version r4391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2015-10-09 13:37 +0800
+	2015-11-12 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,6 +186,7 @@ ISO C++11 ： ISO/IEC 14882:2011 。
 因此，不必消除所有耦合。
 
 @2.2 模型和构建原则：
+基本规则参见 [Documentation::ProjectRules @@3] 。
 
 @2.2.1 人类接口(human interface) ：
 本节阐述仅对人类用户有意义，并不直接体现在运行时的原则。
@@ -283,6 +284,7 @@ ISO C++11 ： ISO/IEC 14882:2011 。
 资源从使用开始到结束的时间段可以认为是连续的，这和对象有相似之处。
 利用 RAII（Resource Acquisition Is Initialization ，资源获取即初始化）惯用法可以把特定的对象和资源实例绑定，此时资源的获取和释放与对象的构造和销毁等价，对象的生存期称为资源的生存期。
 对 C++ 这样支持确定性析构的语言， RAII 直接使 RRID（Resource Reclamation Is Destruction ，资源回收即析构） 或 DIRR（Destruction Is Resource Reclamation ，析构即资源回收）成为可能。这在异常安全(@5.10.5.1) 等方面有重要意义。
+从特定已知来源获取资源的过程为分配(allocation) ，释放资源为去配(deallocation) 。
 
 @2.3.3 实体(entity) 、生存期(lifetime) 和对象(object) ：
 
@@ -760,6 +762,7 @@ API 的直接用户是程序员。
 @3.6.4.1 避免非自动存储错误状态：
 除非兼容性、相似接口设计风格或环境互操作性的需要，避免使用 errno 等依赖非自动存储的机制以避免对可重入性、线程安全性的限制以及阻碍优化。
 使用其它替代机制（返回表示错误的返回值或异常）保证错误处理的局域性。
+注意避免 throw-expression 的操作数中直接对使用这些机制的变量求值，除非能保证 throw 求值的过程中不改变错误关联的值（ throw 可能分配存储， errno 没有这个保证）。
 
 @3.6.4.2 错误传播(propagation) ：
 具体例程调用的错误通常不总是能原地处理，需要被显式或隐式地传递。

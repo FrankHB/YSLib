@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1151
+\version r1237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-10-20 00:40 +0800
+	2015-11-18 10:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
 //	YSLib::CheckPositiveScalar;
 #	include YFM_YCLib_FileIO // for platform::FileOperationFailure;
+#	include <functional> // for std::bind, std::placeholders::_1;
 
 using namespace YSLib;
 #endif
@@ -278,6 +279,36 @@ WCSToMBCS(int l, const wchar_t* str, unsigned cp)
 }
 //@}
 
+
+//! \since build 651
+//@{
+template<typename _func>
+auto
+FetchFileInfo(_func f, UniqueHandle::pointer h)
+	-> decltype(f(std::declval<::BY_HANDLE_FILE_INFORMATION&>()))
+{
+	::BY_HANDLE_FILE_INFORMATION info;
+
+	YCL_CallWin32F(GetFileInformationByHandle, h, &info);
+	return f(info);
+}
+
+template<typename _func, typename... _tParams>
+auto
+MakeFileToDo(_func f, _tParams&&... args)
+	-> decltype(f(UniqueHandle::pointer()))
+{
+	if(const auto h = MakeFile(yforward(args)...))
+		return f(h.get());
+	YCL_Raise_Win32Exception("CreateFileW");
+}
+
+//! \since build 651
+PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
+	ImplRet(follow_reparse_point ? FileAttributesAndFlags::NormalWithDirectory
+		: FileAttributesAndFlags::NormalAll)
+//@}
+
 } // unnamed namespace;
 
 Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
@@ -318,6 +349,13 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 	}
 	CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."))
 	return {};
+}
+
+
+ModuleProc*
+LoadProc(::HMODULE h_module, const char* proc)
+{
+	return YCL_CallWin32F(GetProcAddress, h_module, proc);
 }
 
 
@@ -416,7 +454,7 @@ DirectoryFindData::~DirectoryFindData()
 void
 DirectoryFindData::Close() ynothrow
 {
-	FilterExceptions(YCL_WrapCallWin32F(FindClose, h_node), yfsig);
+	FilterExceptions(std::bind(YCL_WrapCallWin32(FindClose, h_node), yfsig), yfsig);
 }
 
 wstring*
@@ -455,36 +493,32 @@ DirectoryFindData::Rewind() ynothrow
 pair<VolumeID, FileID>
 QueryFileNodeID(UniqueHandle::pointer h)
 {
-	::BY_HANDLE_FILE_INFORMATION info;
-
-	YCL_CallWin32F(GetFileInformationByHandle, h, &info);
-	return {VolumeID(info.dwVolumeSerialNumber),
-		FileID(info.nFileSizeHigh) << 32 | info.nFileSizeLow};
+	return FetchFileInfo([](::BY_HANDLE_FILE_INFORMATION& info) ynothrow
+		-> pair<VolumeID, FileID>{
+		return {VolumeID(info.dwVolumeSerialNumber),
+			FileID(info.nFileSizeHigh) << 32 | info.nFileSizeLow};
+	}, h);
 }
 pair<VolumeID, FileID>
 QueryFileNodeID(const wchar_t* path)
 {
-	if(const auto h = MakeFile(path))
-		return QueryFileNodeID(h.get());
-	YCL_Raise_Win32Exception("CreateFileW");
+	return MakeFileToDo<pair<VolumeID, FileID>(UniqueHandle::pointer)>(
+		QueryFileNodeID, path);
 }
 
 size_t
 QueryFileLinks(UniqueHandle::pointer h)
 {
-	::BY_HANDLE_FILE_INFORMATION info;
-
-	YCL_CallWin32F(GetFileInformationByHandle, h, &info);
-//	if(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-//		ProcessReparsePoint(info);
-	return size_t(info.nNumberOfLinks);
+	return FetchFileInfo([](::BY_HANDLE_FILE_INFORMATION& info){
+	//	if(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+		//	ProcessReparsePoint(info);
+		return size_t(info.nNumberOfLinks);
+	}, h);
 }
 size_t
 QueryFileLinks(const wchar_t* path)
 {
-	if(const auto h = MakeFile(path))
-		return QueryFileLinks(h.get());
-	YCL_Raise_Win32Exception("CreateFileW");
+	return MakeFileToDo<size_t(UniqueHandle::pointer)>(QueryFileLinks, path);
 }
 
 void
@@ -504,12 +538,35 @@ void
 QueryFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime, bool follow_reparse_point)
 {
-	if(const auto h = MakeFile(path, AccessRights::GenericRead,
-		follow_reparse_point ? FileAttributesAndFlags::NormalWithDirectory
-		: FileAttributesAndFlags::NormalAll))
-		QueryFileTime(h.get(), p_ctime, p_atime, p_mtime);
-	else
-		YCL_Raise_Win32Exception("CreateFileW");
+	MakeFileToDo(std::bind<void(UniqueHandle::pointer, ::FILETIME*, ::FILETIME*,
+		::FILETIME*)>(QueryFileTime, std::placeholders::_1, p_ctime, p_atime,
+		p_mtime), path, AccessRights::GenericRead,
+		FollowToAttr(follow_reparse_point));
+}
+
+void
+SetFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime)
+{
+	using ::SetFileTime;
+
+	YCL_CallWin32F(SetFileTime, h, p_ctime, p_atime, p_mtime);
+}
+void
+SetFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime, bool follow_reparse_point)
+{
+	SetFileTime(UTF8ToWCS(path).c_str(), p_ctime, p_atime, p_mtime,
+		follow_reparse_point);
+}
+void
+SetFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime, bool follow_reparse_point)
+{
+	MakeFileToDo(std::bind<void(UniqueHandle::pointer, ::FILETIME*, ::FILETIME*,
+		::FILETIME*)>(SetFileTime, std::placeholders::_1, p_ctime, p_atime,
+		p_mtime), path, AccessRights::GenericRead,
+		FollowToAttr(follow_reparse_point));
 }
 
 std::chrono::nanoseconds
@@ -531,6 +588,19 @@ ConvertTime(const ::FILETIME& file_time)
 	}
 	else
 		throw std::system_error(ENOSYS, std::generic_category());
+}
+::FILETIME
+ConvertTime(std::chrono::nanoseconds file_time)
+{
+	::FILETIME res;
+	::LARGE_INTEGER date;
+
+	date.QuadPart = file_time.count() / 100LL + 116444736000000000LL;
+	yunseq(res.dwHighDateTime = static_cast<unsigned long>(date.HighPart),
+		res.dwLowDateTime = date.LowPart);
+	if(res.dwLowDateTime != 0 || res.dwHighDateTime != 0)
+		return res;
+	throw std::system_error(ENOSYS, std::generic_category());
 }
 
 wstring

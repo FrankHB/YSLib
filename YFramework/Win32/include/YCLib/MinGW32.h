@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1253
+\version r1394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-10-20 00:42 +0800
+	2015-11-18 12:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_Debug // for string, wstring, pair;
+#include YFM_YCLib_Debug // for string, platform::Deref, wstring, pair;
 #include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
 #if !YCL_Win32
 #	error "This file is only for Win32."
@@ -143,56 +143,122 @@ public:
 		if(err != ERROR_SUCCESS) \
 			throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
 	}
-
-//! \brief 调用 WinAPI ，若失败抛出 Windows::Win32Exception 对象。
-//@{
-#	define YCL_WrapCallWin32(_fn, _msg, ...) \
-	[&]{ \
-		const auto res(::_fn(__VA_ARGS__)); \
-	\
-		if(YB_UNLIKELY(!res)) \
-			YCL_Raise_Win32Exception(#_fn, _msg); \
-		return res; \
-	}
-
-//! \since build 638
-#	define YCL_WrapCallWin32F(_fn, ...) \
-	YCL_WrapCallWin32(_fn, yfsig, __VA_ARGS__)
-
-//! \since build 628
-#	define YCL_CallWin32(_fn, ...) YCL_WrapCallWin32(_fn, __VA_ARGS__)()
-
-//! \since build 638
-#	define YCL_CallWin32F(_fn, ...) YCL_WrapCallWin32F(_fn, __VA_ARGS__)()
 //@}
 
 /*!
-\brief 调用 WinAPI ，若失败跟踪 ::GetLastError 的结果。
-\note 格式转换说明符置于最前以避免宏参数影响结果。
+\brief 调用 Win32 API 或其它可用 ::GetLastError 取得调用状态的例程。
+\note 调用时直接使用实际参数，可指定非标识符的表达式，不保证是全局名称。
 */
 //@{
-#	define YCL_WrapCallWin32_Trace(_fn, _msg, ...) \
-	[&]{ \
-		const auto res(::_fn(__VA_ARGS__)); \
+/*!
+\note 若失败抛出 Windows::Win32Exception 对象。
+\since build 651
+*/
+//@{
+#	define YCL_WrapCallWin32(_fn, ...) \
+	[&](const char* msg) YB_NONNULL(1){ \
+		const auto res(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res)) \
-			YTraceDe(Warning, "Error %lu: failed calling " #_fn " @ %s.", \
-				::GetLastError(), _msg); \
+			YCL_Raise_Win32Exception(#_fn, msg); \
 		return res; \
 	}
 
-//! \since build 638
-#	define YCL_WrapCallWin32F_Trace(_fn, ...) \
-	YCL_WrapCallWin32_Trace(_fn, yfsig, __VA_ARGS__)
+#	define YCL_CallWin32(_fn, _msg, ...) YCL_WrapCallWin32(_fn, __VA_ARGS__)(_msg)
 
-//! \since build 628
-#	define YCL_CallWin32_Trace(_fn, ...) \
-	YCL_WrapCallWin32_Trace(_fn, __VA_ARGS__)()
+//! \since build 638
+#	define YCL_CallWin32F(_fn, ...) YCL_CallWin32(_fn, yfsig, __VA_ARGS__)
+//@}
+
+/*!
+\note 若失败跟踪 ::GetLastError 的结果。
+\note 格式转换说明符置于最前以避免宏参数影响结果。
+\since build 651
+*/
+//@{
+#	define YCL_WrapCallWin32_Trace(_fn, ...) \
+	[&](const char* msg) YB_NONNULL(1){ \
+		const auto res(_fn(__VA_ARGS__)); \
+	\
+		if(YB_UNLIKELY(!res)) \
+			YTraceDe(Warning, "Error %lu: failed calling " #_fn " @ %s.", \
+				::GetLastError(), msg); \
+		return res; \
+	}
+
+#	define YCL_CallWin32_Trace(_fn, _msg, ...) \
+	YCL_WrapCallWin32_Trace(_fn, __VA_ARGS__)(_msg)
 
 //! \since build 638
 #	define YCL_CallWin32F_Trace(_fn, ...) \
-	YCL_WrapCallWin32F_Trace(_fn, __VA_ARGS__)()
+	YCL_CallWin32_Trace(_fn, yfsig, __VA_ARGS__)
 //@}
+//@}
+
+
+//! \since build 651
+//@{
+//! \brief 加载过程地址得到的指针类型。
+using ModuleProc
+	= ystdex::decay_t<decltype(*::GetProcAddress(::HMODULE(), {}))>;
+
+/*!
+\brief 从模块加载指定过程的指针。
+\pre 参数非空。
+*/
+//@{
+YF_API YB_ATTR(returns_nonnull) YB_NONNULL(2) ModuleProc*
+LoadProc(::HMODULE, const char*);
+template<typename _func>
+inline YB_NONNULL(2) _func&
+LoadProc(::HMODULE h_module, const char* proc)
+{
+	return platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
+}
+template<typename _func>
+YB_NONNULL(1, 2) _func&
+LoadProc(const wchar_t* module, const char* proc)
+{
+	return LoadProc<_func>(YCL_CallWin32F(GetModuleHandleW, module), proc);
+}
+//@}
+
+
+#define YCL_Impl_W32Call_Fn(_fn) W32_##_fn##_t
+#define YCL_Impl_W32Call_FnCall(_fn) W32_##_fn##_call
+
+/*!
+\brief 声明调用 WinAPI 的例程。
+\note 为避免歧义，应在非全局命名空间中使用；注意类作用域名称查找顺序会引起歧义。
+\note 当没有合式调用时从指定模块加载。
+*/
+#define YCL_DeclW32Call(_fn, _module, _tRet, ...) \
+	YCL_DeclCheck_t(_fn, _fn) \
+	using YCL_Impl_W32Call_Fn(_fn) = _tRet __stdcall(__VA_ARGS__); \
+	\
+	template<typename... _tParams> \
+	auto \
+	YCL_Impl_W32Call_FnCall(_fn)(_tParams&&... args) \
+		-> YCL_CheckDecl_t(_fn)<_tParams...> \
+	{ \
+		return _fn(yforward(args)...); \
+	} \
+	template<typename... _tParams> \
+	ystdex::enable_fallback_t<YCL_CheckDecl_t(_fn), \
+		YCL_Impl_W32Call_Fn(_fn), _tParams...> \
+	YCL_Impl_W32Call_FnCall(_fn)(_tParams&&... args) \
+	{ \
+		return platform_ex::Windows::LoadProc<YCL_Impl_W32Call_Fn(_fn)>( \
+			L###_module, #_fn)(yforward(args)...); \
+	} \
+	\
+	template<typename... _tParams> \
+	auto \
+	_fn(_tParams&&... args) \
+		-> decltype(YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...)) \
+	{ \
+		return YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...); \
+	}
 //@}
 
 
@@ -643,30 +709,65 @@ QueryFileNodeID(const wchar_t*);
 //@}
 //@}
 
-/*!
-\brief 查询文件的创建、访问和修改时间。
+/*
 \note 后三个参数可选，指针为空时忽略。
+\throw Win32Exception 访问文件失败。
+\note 最高精度取决于文件系统。
+*/
+//@{
+/*!
+\brief 查询文件的创建、访问和/或修改时间。
 \since build 629
 */
 //@{
-//! \pre 文件句柄不为 \c INVALID_HANDLE_VALUE 且具有 AccessRights::GenericRead 权限。
+/*!
+\pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
+	且具有 AccessRights::GenericRead权限。
+*/
 YF_API void
 QueryFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {});
 /*!
 \pre 间接断言：路径参数非空。
-\throw Win32Exception 访问文件失败。
 \note 即使可选参数都为空指针时仍访问文件。最后参数表示跟踪重解析点。
 \since build 632
 */
 //@{
 //! \note 使用 UTF-8 路径。
 YF_API YB_NONNULL(1) void
-QueryFileTime(const char*, ::FILETIME* = {}, ::FILETIME* = {},
-	::FILETIME* = {}, bool = {});
+QueryFileTime(const char*, ::FILETIME* = {}, ::FILETIME* = {}, ::FILETIME* = {},
+	bool = {});
 YF_API YB_NONNULL(1) void
 QueryFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {}, bool = {});
+//@}
+//@}
+
+/*!
+\brief 设置文件的创建、访问和/或修改时间。
+\since build 651
+*/
+//@{
+/*!
+\pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
+	且具有 FileSpecificAccessRights::WriteAttributes 权限。
+*/
+YF_API void
+SetFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
+	::FILETIME* = {});
+/*!
+\pre 间接断言：路径参数非空。
+\note 即使可选参数都为空指针时仍访问文件。最后参数表示跟踪重解析点。
+*/
+//@{
+//! \note 使用 UTF-8 路径。
+YF_API YB_NONNULL(1) void
+SetFileTime(const char*, ::FILETIME* = {}, ::FILETIME* = {}, ::FILETIME* = {},
+	bool = {});
+YF_API YB_NONNULL(1) void
+SetFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
+	::FILETIME* = {}, bool = {});
+//@}
 //@}
 //@}
 
@@ -677,6 +778,13 @@ QueryFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 */
 YF_API std::chrono::nanoseconds
 ConvertTime(const ::FILETIME&);
+/*!
+\brief 转换以 POSIX 历元起始度量的时间间隔为文件时间。
+\throw std::system_error 输入的时间表示不被实现支持。
+\since build 651
+*/
+YF_API ::FILETIME
+ConvertTime(std::chrono::nanoseconds);
 
 /*!
 \brief 展开字符串中的环境变量。

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r5661
+\version r5922
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-11-07 11:01 +0800
+	2015-11-18 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,263 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Memory $=
+		(
+			/ "nested allocator detection"
+			(
+				* @ !'YCL_IMPL_GNUCPP < 49200' $since b650 $=
+				(
+					(
+					* "wrong nested type %allocator detected instead of \
+						%allocator_type",
+						// As a result, nested allocator type would be ignored \
+							unless %allocator is declared.
+					+ "%rebind check";
+					* $comp $forced "wrong detecting expression"
+						// However, if the %allocator_type is existed, the \
+							program is ill-formed.
+					)
+				);
+				- $re_ex(b650) "conditional inclusion for nested allocator \
+					detection as workaround"
+			),
+			/ DLDI "simplified return type" @ "%const_addressof#2"
+		),
+		/ %TypeTraits $=
+		(
+			/ "metafunctions %(meta_apply, meta_apply_t)"
+				-> ("%(apply, apply_t)" @ "namespace %ystdex::vseq" @ %Variaic),
+			+ "unary type trait %is_array_of_unknown_bound"
+		),
+		/ %Variadic $=
+		(
+			+ DD "Doxygen group %composition";
+			+ "metafunctions %(bind_back, bind_front)" @ "group %composition"
+				// Name 'quote' has already in use at %String.
+		),
+		/ %Tuple $=
+		(
+			/ DLDI "simplified %fold" @ %Tuple ^ $dep_from
+				("%apply_t" @ %Variadic),
+				// See $2015-11 @ %Documentation::Workflow::Annual2015.
+			+ "metafunction %_q" @ $dep_from ("group %composition" @ %Variadic),
+			(
+			// See WG21/P0088R0.
+			+ "constexpr object %tuple_not_found";
+			+ "metafunction %tuple_find with 5 specializations for \
+				%std::(tuple, pair)"
+			)
+		),
+		+ "metafunction %same_value_as" @ %IntegerSequence,
+		/ %Functional $=
+		(
+			+ "function template %bind_forward",
+			+ "metafunction %enable_fallback_t"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			* $impl $re_ex(b594) "wrong use of 'yconstexpr'" @ "functions"
+				@ %YCLib.FileSystem $since b607,
+			/ %FileIO $=
+			(
+				/ DLDI "simplified file handle cast" @ "platform %Win32",
+				/ @ "class %FileDescriptor" @ $=
+				(
+					- $dev "redundant 'YF_API'"
+						@ "functions %(GetAccessTime, GetFlags, \
+						GetModificationTime, GetModificationAndAccessTime)",
+					+ "functions %(SetAccessTime, SetModificationTime,
+						SetModificationAndAccessTime)" $=
+					(
+						^ $dep_from ("%SetFileTime" @ %'YCLib_(Win32)'.MinGW32)
+							@ "platform %Win32"
+						^ $dep_from ("%::futimens" @ %NativeAPI)
+							@ !"platform Win32"
+							// For platform %DS it would always throw \
+								%std::system_error with \
+								%std::errc::function_not_supported, since \
+								%::devoptab_t currently has no support to set \
+								time of files.
+					)
+				),
+				+ "set %errno to %ENOMEM" @ "handling %std::bad_alloc for \
+					'ynothrow' functions" $effective @ "functions \
+					%(FileDescriptor::(GetNodeID, GetNumberOfLinks), 2 \
+					(uaccess, uopen, 2 ufopen, upopen, uchdir, umkdir, \
+					urmdir, uunlink, uremove, IsNodeShared))",
+				+ DLDI 'ynothrow' @ "file ID lookup"
+			),
+			/ @ !"platform %Android" @ "namespace %platform_ex"
+				@ %NativeAPI $=
+			(
+				// It seems that Android before KitKat does not define the \
+					function. The declaration is missing as of NDK r9c even if \
+					it has been defined. See http://reviews.llvm.org/D2357.
+				+ "macros %(UTIME_NOW, UTIME_OMIT)" @ "not defined",
+				+ "functions %::(futimens, utimensat)"
+			),
+			* "parameters wrongly swapped" @ !"platform %(Win32, DS)"
+				@ "functions %CreateHardLink" $since b633
+		),
+		/ @ %YSLib.Service.FileSystem $=
+		(
+			/ @ "function template %CopyTree" $=
+			(
+				+ $doc "'\warning' directive to explicitly warn about \
+					recursive traverse"
+				/ DLDI "reduced temporary path creation",
+				(
+				^ DLDI "explicit string conversion" $dep_to
+					"explicit path conversion for CopyTree";
+				/ $comp "reduced verfying call" $dep_from
+					"%Path::operator string"
+					// This is intended since the resulted path component is \
+						always to be parsed by %Path::Path, where trailing \
+						delimiter is insignificant.
+				)
+			),
+			+ "alias %CopyFileHandler",
+			/ @ "functions %CopyFile" $=
+			(
+				+ DLDI 'YB_NONNULL' @ "internal function",
+				+ "2 overloaded functions with handlers after copying"
+					^ $dep_from "%CopyFileHandler",
+			),
+			+ "const objects %(PreserveModificationTime, \
+				PreserveAndModificationTime)" ^ $dep_from
+				("%ystdex::bind_forward" @ %YBase.YStandardEx.Functional,
+				"%FileDescriptor::(SetModificationTime,
+				SetAccessAndModificationTime)" @ %YCLib.FileIO),
+			/ @ "class %Path" $=
+			(
+				+ "function %VerifyAsMBCS";
+					// Essentially as same as previous %GetMBCS. However this \
+						cannot be simply renamed directly.
+				/ @ "functions %operator(string, String)" $=
+				(
+					/ "verifying calls replaced by non-verified string \
+						conversions" $=
+					(
+						/ $impl "%operator String" ^ "%GetString" ~ "%Verify";
+						/ $impl "%operator string" ^ "%operator String"
+							~ "%GetMBCS" $dep_from ("made explicit path \
+							verfication", "explicit SHBuild path verification",
+							"explicit YReader path verification")
+					),
+					+ 'explicit' $dep_from
+						"explicit path conversion for CopyTree"
+				),
+				- "function %GetMBCS" $dep_from ("%operator string",
+					"removal SHBuild GetMBCS path verification",
+					"removal ProjectGenerator GetMBCS path verification")
+			),
+			/ $impl ("function %DeleteTree#1, function templates %(CopyTree, \
+				Traverse#4)", DLD "function %(MakeNormalizedAbsolute, \
+				ClearTree, ClassifyNode)") ^ ($dep_from "%Path::VerifyAsMBCS")
+				~ "conversion %Path to %string" $dep_to
+				"made explicit path verfication"
+		),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ "3 functions %SetFileTime",
+			/ DLDI "simplified %(QueryFileNodeID, QueryFileLinks, \
+				QueryFileTime)",
+			+ "function %ConvertTime for conversion from \
+				%std::chrono::nanoseconds to ::FILETIME",
+			(
+			/ "macros %(YCL_WrapCallWin32, YCL_WrapCallWin32_Trace) took \
+				message as lambda parameter" ~ "as macro parameter";
+			(
+			/ $forced $impl "macro %YCL_CallWin32";
+			/ DLDI "simplified macro %YCL_CallWin32F" ^ "%YCL_CallWin32"
+				~ "%YCL_WrapCallWin32F";
+			/ @ "merged macro %YCL_WrapCallWin32F"
+				-> "macro %YCL_WrapCallWin32";
+			/ $forced DLDI "DirectoryFindData::Close" ^ "%YCL_WrapCallWin32"
+				~ "%YCL_WrapCallWin32F"
+			),
+			(
+			/ $forced $impl "macro %YCL_CallWin32_Trace";
+			/ DLDI "simplified macro %YCL_WrapCallWin32F_Trace"
+				^ "%YCL_CallWin32_Trace" ~ "%YCL_WrapCallWin32F_Trace";
+			/ @ "merged macro %YCL_WrapCallWin32F_Trace"
+				-> "macro %YCL_WrapCallWin32_Trace"
+			),
+			* $comp "message signature intercepted by lambda %operator()"
+				@ "macros %(YCL_CallWin32F, YCL_CallWin32F_Trace)" $since b638
+				// The content of %__func__ is implementation-defined. So as \
+					some extensions. However in fact at least G++ could not \
+					avoid the lambda signature by default. See also \
+					http://stackoverflow.com/questions/12728318/is-there-are-nice-way-of-logging-function-names-when-inside-a-lambda.
+			),
+			/ "calling postfix-expression took function identifier without '::'"
+				@ "macros %(YCL_WrapCallWin32, YCL_WrapCallWin32_Trace)"
+				// This allows interception declarations before the calls. \
+					Note 'using ::Func' or even 'const auto& Func(::Func)' is \
+					needed sometimes.
+			/ DLDI "parameter type" @ "constructor %GlobalLocked"
+				-> 'GlobalDelete::pointer' ~ '::HGLOBAL',
+			(
+			+ "alias %ModuleProc";
+			+ "(function; 2 function templates) %LoadProc";
+			+ "macro %YCL_DeclW32Call" $dep_from
+				("%(YCL_CheckDecl_t, YCL_DeclCheck_t)" @ %YCommon)
+			)
+		),
+		+ "macros %(YCL_CheckDecl_t; YCL_DeclCheck_t)" @ %YCommon,
+		(
+		+ '#undef CreateSymbolicLink' @ "platform %Win32" @ %NativeAPI;
+		+ "2 functions %CreateSymbolicLink" @ %FileSystem
+		),
+		+ "functions %(InstallFile, InstallDir, InstallHardLink, \
+			InstallSymbolicLink, InstallExecutable)" @ %Helper.ShellHelper
+	),
+	/ $impl %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			^ $dep_from ("%String::VerifyAsMBCS" ~ "%String::GetMBCS"
+				@ %YFramework.YSLib.Service.FileSystem) $dep_to
+				"removal SHBuild GetMBCS path verification",
+			^ $dep_from ("%Path::VerifyAsMBCS" ~ "implicit conversion %Path to \
+				%string" @ %YFramework.YSLib.Service.FileSystem)
+				$dep_to "explicit SHBuild path verification"
+		),
+		/ @ %ProjectGenerator $=
+		(
+			^ ($dep_from "%Path::VerifyAsMBCS" ~ "%Path::GetMBCS")
+				@ %YFramework.YSLib.Service.FileSystem) $dep_to
+				"removal ProjectGenerator GetMBCS path verification",
+			/ $comp DLD "reduced verifying call" @ "explicit conversion %Path \
+				to %string" @ "unit check" $dep_from ("%Path::operator string"
+				@ %YFramework.YSLib.Service.FileSystem)
+				// This is intended since the path should always not to be a \
+					directory for checing units, or the resulted path \
+					component is always to be parsed by %Path::Path.
+		)
+	),
+	/ %YReader.ShlReader $=
+	(
+		/ $impl @ "functions %ShlTextReader::(ShlTextReader, ~ShlTextReader), \
+			ShlHexBrowser::ShlHexBrowser" ^ $dep_from ("%Path::VerifyAsMBCS"
+			~ "implicit conversion %Path to %string"
+			@ %YFramework.YSLib.Service.FileSystem)
+			$dep_to "explicit YReader path verification"
+		/ $comp DLD "reduced verifying call" @ "explicit conversion %Path to \
+			%string" @ "%ShlTextReader::LoadFile" $dep_from
+			("%Path::operator string" @ %YFramework.YSLib.Service.FileSystem)
+			// This is intended since the path should always not to be a \
+				directory.
+	);
+),
+
+b650
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -436,7 +693,7 @@ b647
 				routines (i.e. 'Make*').
 		/ %YCLib.FileSystem $=
 		(
-			/ "function %platform_ex::FS_IsRoot" -> "2 overloading functions \
+			/ "function %platform_ex::FS_IsRoot" -> "2 overloaded functions \
 				for %(string_view, u16string_view)";
 			+ "support for multiple character type" @ "YCL_FS_StringIsCurrent, \
 				YCL_FS_StringIsParent, YCL_FS_CharIsDelimiter, \
@@ -1960,7 +2217,7 @@ b633
 				+ $lib 'YB_NONNULL(1, 2)' @ "2 functions %ufopen without \
 					pointer mode parameter"
 			),
-			+ '#	undef CreateHardLink' @ "platform %Win32" @ %NativeAPI
+			+ '#undef CreateHardLink' @ "platform %Win32" @ %NativeAPI
 		),
 		/ %YSLib $=
 		(
@@ -2190,7 +2447,7 @@ b631
 					(
 					/ $impl ^ "%ystdex::aligned_store_cast"
 						~ 'reinterpret_cast';
-					- $revert(b) $impl "static assertion" @ "destructor"
+					- $revert(b592) $impl "static assertion" @ "destructor"
 					)
 					)
 				)
@@ -3003,7 +3260,7 @@ b624
 						),
 						/ "test type for value" ^ "%ystdex::decay_t"
 							~ "%ystdex::remove_reference_t"
-						/ $dev $impl $re(b590) "static assertion" ^ '()'
+						/ $re(b590) $dev $impl "static assertion" ^ '()'
 							~ '::value'
 					)
 				),
@@ -3119,7 +3376,7 @@ b623
 				$dep_to "library dependency",
 			* "building skipped when .d file corrupted or opening failed" $since
 				b557,
-			/ $revert_ex(b520) $impl "clean waiting" !^ "duration" $dep_from
+			/ $impl $revert_ex(b520) "clean waiting" !^ "duration" $dep_from
 				("%task_pool" @ %YBase.YStandardEx.Concurrency)
 		),
 		/ $forced "updated %LIBS" @ "%SHBuild-bootstrap.sh" $dep_from

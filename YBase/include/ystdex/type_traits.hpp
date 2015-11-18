@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r736
+\version r766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2015-11-06 12:59 +0800
+	2015-11-10 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -554,19 +554,6 @@ using cond_t = conditional_t<_tCond::value, _tThen, _tElse>;
 template<class _tClass, typename _tParam, typename _type = void>
 using exclude_self_ctor_t
 	= enable_if_t<!is_same<_tClass&, decay_t<_tParam>&>::value, _type>;
-
-
-/*!
-\brief 元函数应用。
-\since build 650
-*/
-//@{
-template<class _func, typename... _tParams>
-using meta_apply = typename _func::template apply<_tParams...>;
-
-template<class _func, typename... _tParams>
-using meta_apply_t = _t<meta_apply<_func, _tParams...>>;
-//@}
 //@}
 
 
@@ -575,26 +562,18 @@ using meta_apply_t = _t<meta_apply<_func, _tParams...>>;
 \tparam _type 需要判断特征的类型参数。
 */
 //@{
-/*!
-\brief 判断指定类型是否为 const 或 volatile 类型。
-\since build 590
-*/
-template<typename _type>
-struct is_cv : or_<is_const<_type>, is_volatile<_type>>
-{};
-
-
-/*!
-\brief 判断指定类型是否已退化。
-\since build 529
-*/
-template<typename _type>
-struct is_decayed : or_<is_same<decay_t<_type>, _type>>
-{};
-
-
 //! \note 以下参数可能是 cv 修饰的类型，结果和去除 cv 修饰符的类型一致。
 //@{
+/*!
+\brief 判断是否为未知大小的数组类型。
+\since build 651
+*/
+template<typename _type>
+struct is_array_of_unknown_bound
+	: bool_constant<is_array<_type>::value && extent<_type>::value == 0>
+{};
+
+
 /*!
 \brief 判断指定类型是否为对象或 void 类型。
 \since build 630
@@ -701,6 +680,24 @@ struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
 //@}
 //@}
 //@}
+
+
+/*!
+\brief 判断指定类型是否为 const 或 volatile 类型。
+\since build 590
+*/
+template<typename _type>
+struct is_cv : or_<is_const<_type>, is_volatile<_type>>
+{};
+
+
+/*!
+\brief 判断指定类型是否已退化。
+\since build 529
+*/
+template<typename _type>
+struct is_decayed : or_<is_same<decay_t<_type>, _type>>
+{};
 
 
 /*!
