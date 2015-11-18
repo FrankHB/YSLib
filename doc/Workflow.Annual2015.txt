@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r450
+\version r475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2015-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-10-25 15:27 +0800
+	2015-11-08 20:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -418,6 +418,33 @@ Options for threads should be cautious for portable build.
 	For Clang++, there is no specs and '-dumpspecs' is unavailable.
 	Currently all compilers without specs are treated as the same. The pthread support is assumed to be existed in the hosted implementations in all cases.
 		This also eliminate hard-coded check for specific OS.
+
+$2015-11:
+
+report.impl:
+Some metaprograming interface design is concerned.
+	Higher-ranked polymorphism is distinct than prenix polymorphism. The difference is the rank, i.e. the number of universal quantifiers appered to the left of arrows in the type signature.
+	Some programing languages has native support on this feature based on a monomorphic type system.
+		In C++, a type refers to monomorphic type in type theory. Polymorphic types are class templates. Template type parameter is prenix, while template template parameter is higher-ranked. Function templates in class templates can also considered higher-ranked.
+		In Haskell 98 (without extensions), types are prenix by default.
+	There are some complexity and interface limitations dealing with higher-ranked polymorphic types in genereal.
+		Type inference for rank-2 polymorphism is decidable, but reconstruction for rank-3 and above is not.
+	Kinds can be a replacement to higher order metaprogramming.
+		Though it is also often limited in languages. Until GHC 8, types and kinds are treated differently. See https://typesandkinds.wordpress.com/2015/08/19/planned-change-to-ghc-merging-types-and-kinds/.
+		In C++, there are no native support. However class template partial specializations and custom members can be used to achieve similar effect.
+			Most notably, member 'type' is used as intermediate implementation for higher-ranked alias templates. This is also fit where alias templates are not available, e.g. TR1 and boost.mpl.
+			Function kind '* -> *' can be simulated as boost.mpl style, which expose an 'apply' metafunction to call the specialized class templates as metafunction.
+				See http://www.boost.org/doc/libs/1_59_0/libs/mpl/doc/refmanual/apply.html.
+			In meta library of range-v3, there are some differences.
+				The nested member alias template 'apply' in metafunctions is directed to the result, rather than a type with nested member type 'type'.
+				Some helpers like 'quote' are used to help creation of metafunction expressions.
+					There are some subtle issues with C++, e.g. CWG1430.
+				See https://github.com/ericniebler/range-v3/blob/master/include/meta/meta.hpp.
+		Higher-ordered kind is not supported by standard Haskell but GHC. This is not considered here to avoid extra complexity.
+	To avoid complexity, in YBase, design is limited.
+		Higher-ordered polymorphism are avoid in template parameters except for several exceptions.
+			One is the implementation proposed detection API, see WG21/N4502.
+			Another case is some underlying helpers like 'vseq::defer'.
 
 ////
 

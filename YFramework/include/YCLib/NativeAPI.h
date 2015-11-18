@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1085
+\version r1112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-09-26 16:51 +0800
+	2015-11-18 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ UninitializeFileSystem() ynothrow;
 #	endif
 
 #	include <Windows.h>
-#	include <direct.h> // for ::_wmkdir;
+#	include <direct.h>
 
 //! \ingroup name_collision_workarounds
 //@{
@@ -157,6 +157,8 @@ UninitializeFileSystem() ynothrow;
 #	undef CopyFile
 //! \since build 633
 #	undef CreateHardLink
+//! \since build 651
+#	undef CreateSymbolicLink
 //! \since build 297
 #	undef DialogBox
 //! \since build 298
@@ -183,13 +185,6 @@ _gmtime32(const ::__time32_t*);
 #	endif
 
 } // extern "C";
-
-
-namespace platform_ex
-{
-
-} // namespace platform_ex;
-
 #endif
 
 #if YCL_Win32 || YCL_API_POSIXFileSystem
@@ -281,6 +276,33 @@ yconstfn PDefH(bool, HasExtraMode, Mode m)
 //@}
 
 } // namespace platform;
+#endif
+
+#if YCL_Android
+/*!
+\see https://android.googlesource.com/platform/bionic/+/840a114eb12773c5af39c0c97675b27aa6dee78c/libc/include/sys/stat.h 。
+\since build 651
+*/
+extern "C"
+{
+
+#	ifndef UTIME_NOW
+#		define UTIME_NOW ((1L << 30) - 1L)
+#	endif
+#	ifndef UTIME_OMIT
+#		define UTIME_OMIT ((1L << 30) - 2L)
+#	endif
+
+//! \see http://pubs.opengroup.org/onlinepubs/9699919799/functions/utimensat.html 。
+//@{
+int
+futimens(int, const ::timespec times[2]) ynothrow;
+
+int
+utimensat(int, const char*, const ::timespec[2], int) ynothrow;
+//@}
+
+} // extern "C";
 #endif
 
 #endif

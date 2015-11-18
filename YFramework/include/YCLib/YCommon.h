@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3651
+\version r3663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2015-09-14 10:15 +0800
+	2015-11-18 11:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,20 @@ namespace platform
 */
 YB_NORETURN YF_API void
 terminate() ynothrow;
+
+
+/*!
+\brief 声明检查存在合式调用的辅助宏。
+\sa ystdex::is_detected
+\since build 651
+*/
+//@{
+#define YCL_CheckDecl_t(_fn) CheckDecl##_fn##_t
+#define YCL_DeclCheck_t(_fn, _call) \
+	template<typename... _tParams> \
+	using YCL_CheckDecl_t(_fn) \
+		= decltype(_call(std::declval<_tParams&&>()...));
+//@}
 
 
 /*!

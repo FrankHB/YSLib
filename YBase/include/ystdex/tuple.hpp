@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r468
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2015-11-06 12:24 +0800
+	2015-11-09 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,7 +157,7 @@ struct fold<_fBinary, _tState, std::tuple<>>
 template<class _fBinary, typename _tState, typename _type>
 struct fold<_fBinary, _tState, std::tuple<_type>>
 {
-	using type = typename _fBinary::template apply<_tState, _type>::type;
+	using type = apply_t<_fBinary, _tState, _type>;
 };
 
 template<class _fBinary, typename _tState, typename... _types>
@@ -193,6 +193,60 @@ struct vec_subtract<std::tuple<integral_constant<_tInt, _vSeq1>...>,
 
 
 /*!
+\since build 651
+\see WG21/P0088R0 。
+*/
+//@{
+//! \brief 表示没有找到的索引。
+static yconstexpr const auto tuple_not_found(size_t(-1));
+
+
+namespace details
+{
+
+template<class _tSize, class _tIndex>
+using index_conv = integral_constant<size_t,
+	_tSize::value == _tIndex::value ? tuple_not_found : _tIndex::value>;
+
+} // namespace details;
+
+/*!
+\ingroup metafunctions
+\brief 查找类型对应的索引位置，若不存在则为 tuple_not_found 。
+\sa tuple_not_found
+*/
+//@{
+template<typename, class>
+struct tuple_find;
+
+template<typename _type, class _tTuple>
+struct tuple_find<_type, const _tTuple> : tuple_find<_type, _tTuple>
+{};
+
+template<typename _type, class _tTuple>
+struct tuple_find<_type, volatile _tTuple> : tuple_find<_type, _tTuple>
+{};
+
+template<typename _type, class _tTuple>
+struct tuple_find<_type, const volatile _tTuple> : tuple_find<_type, _tTuple>
+{};
+
+template<typename _type, typename... _types>
+struct tuple_find<_type, std::tuple<_types...>>
+	: details::index_conv<vseq::seq_size<std::tuple<_types...>>,
+	vseq::find<std::tuple<_types...>, _type>>
+{};
+
+template<typename _type, typename _type1, typename _type2>
+struct tuple_find<_type, std::pair<_type1, _type2>>
+	: tuple_find<_type, std::tuple<_type1, _type2>>
+{};
+//@}
+//@}
+
+
+/*!
+\ingroup metafunctions
 \brief 可变参数类型列表延迟求值。
 \sa vseq::defer
 \since build 650
@@ -200,6 +254,27 @@ struct vec_subtract<std::tuple<integral_constant<_tInt, _vSeq1>...>,
 template<template<typename...> class _gfunc, typename... _types>
 struct vdefer : vseq::defer<_gfunc, std::tuple<_types...>>
 {};
+
+
+/*!
+\ingroup metafunction_composition
+\brief 引用：延迟求值变换。
+\since b651
+\todo 支持没有 \c apply 成员的非元函数。
+*/
+template<class _func>
+struct _q
+{
+	// NOTE: Call of 'defer' is necessary in range-v3 meta. See https://github.com/ericniebler/range-v3/blob/master/include/meta/meta.hpp,
+	//	also http://wg21.cmeerw.net/cwg/issue1430. However, here it is natural
+	//	and no higher-ranked polymorphism (template template argument) is
+	//	directly used.
+	// NOTE: Ideally, the templatec argument should be limited to enable check.
+	//	However this is impossible since the arity of '_func::apply' is
+	//	unknown.
+	template<typename... _types>
+	using apply = vdefer<vseq::apply, _func, _types...>;
+};
 
 } // namespace ystdex;
 

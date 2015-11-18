@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r240
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2015-10-28 16:07 +0800
+	2015-11-19 00:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,7 +219,8 @@ build 600 起的发布版本。
 build 438 前及 build 497 - build 499 起测试环境 Windows 7 Ultimate 。
 build 438 - build 452 测试环境 Windows 2012 Datacenter 。
 build 453 - build 496 及 build 500 - build 648 测试环境 Windows 2012 R2 Datacenter 。
-build 649 起 Windows 10 Enterprise 。
+build 649 - build 650 Windows 10 Enterprise 。
+build 651 起 Windows 10 Threshold 2 Professional 。
 
 @5.1.3 Android ：
 所有 Android 版本通过 PC 测试。测试环境 Windows x64 + Android 模拟器 Nexus S ，宿主操作系统版本同 MinGW 。

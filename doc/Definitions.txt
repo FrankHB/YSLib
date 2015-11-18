@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13892
+\version r13919
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-11-01 18:21 +0800
+	2015-11-18 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,8 @@ $unit $unit_n //单元：指称一个编译单元（一般应为语言规范中�
 
 $region $synopsis $begin
 
-// 保留名称规则参照 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。
-// 既定宏名和生成标识符污染列表。
+// 保留名称规则参照 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。另见 [Documentation::Designation @@4.2] 。
+// 以下为既定宏名和生成标识符污染列表。
 // ! 默认由外部（如预定义标识符或编译器命令行）提供。
 // # 可能由外部提供。
 // ~ 由宏替换生成而不是宏定义引入的标识符。
@@ -62,8 +62,10 @@ $dir YBase
 {
 
 YB_* // 保留给 YBase 使用。（除了 ydef.h 中定义的宏和包含守护宏外，可能使用后被 #undef 取消定义。）
+	YB_IMPL_* // 指示语言实现。
+	YB_INC_* // YBase 公开包含守护宏。
+	YB_Impl_* // 保留用于 YBase 实现。
 YPP_* // 是通用于预处理阶段的辅助宏。
-YB_INC_*
 
 $header YDefinition
 {
@@ -146,18 +148,21 @@ $dir YFramework // YFramework 既定宏污染列表。
 {
 
 YF_* // 保留给 YFramework 使用。
-YFM_* // 保留给 YFramework 使用作为模块包含文件宏。
+	YF_Impl_* // 保留用于 YFramework 实现。
+YFM_* // 保留作为 YFramework 模块包含文件宏。
 CHRLib_* // 保留给 YFramework.CHRLib 使用。
 YCL_* // 保留给 YFramework.YCLib 使用。
+	YCL_INC_* // YCLib 公开头文件包含守护宏。
+	YCL_Inc_* // YCLib 非公开头文件包含守护宏。
 YSL_* // 保留给 YFramework.YSLib 使用。
+	YSL_DEBUG_*
+	YSL_INC_* // YSLib 公开头文件包含守护宏。
+	YSL_Inc_* // YSLib 非公开头文件包含守护宏。
 NPL_* // 保留给 YFramework.NPL 使用。
-INC_* // 公开头文件守护宏，保留给 YFramework 的其它部分和客户程序使用。
-Inc_* // 非公开头文件守护宏，保留给 YFramework 的其它部分和客户程序使用。
-YCL_INC_* // YCLib 公开头文件包含守护宏。
-YCL_Inc_* // YCLib 非公开头文件包含守护宏。
-YSL_INC_* // YSLib 公开头文件包含守护宏。
-YSL_Inc_* // YSLib 非公开头文件包含守护宏。
-YSL_DEBUG_*
+// 对 YFramework 的次级子项目 $lib ，同时保留以下名称：
+INC_$lib_* // 保留作为（除 YCLib 和 YSLib 外）公开头文件守护宏使用。
+Inc_$lib_* // 保留作为（除 YCLib 和 YSLib 外）非公开头文件守护宏使用。
+$lib_Impl* // 保留作为实现相关的宏。
 
 $dir CHRLib
 {
@@ -180,6 +185,11 @@ YF_Hosted
 YCL_API_*
 YCL_DS
 YCL_MinGW32
+}
+$header YCommon
+{
+YCL_CheckDecl_t(_fn)
+YCL_DeclCheck_t(_fn, _call)
 }
 $header Debug
 {
@@ -217,11 +227,9 @@ $header MinGW32
 YCL_Raise_Win32Exception(...)
 YCL_Raise_Win32Exception_On_Failure(_expr, ...)
 YCL_WrapCallWin32(_fn, ...)
-YCL_WrapCallWin32F(_fn, ...)
 YCL_CallWin32(_fn, _msg, ...)
 YCL_CallWin32F(_fn, ...)
 YCL_WrapCallWin32_Trace(_fn, ...)
-YCL_WrapCallWin32F_Trace(_fn, ...)
 YCL_CallWin32_Trace(_fn, _msg, ...)
 YCL_CallWin32F_Trace(_fn, ...)
 }

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1386
+\version r1419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-11-06 13:49 +0800
+	2015-11-07 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,40 +61,20 @@ using is_copy_constructible_class
 	= and_<is_copy_constructible<_type>, is_class_type<_type>>;
 
 
-// NOTE: Workaround for G++ from NDK.
-#if YB_IMPL_GNUCPP < 49200
-template<typename, typename = void>
-struct has_nested_allocator : false_type
-{};
+//! \since build 651
+template<class _tAlloc, typename _type>
+using rebind_t = typename _tAlloc::template rebind<_type>::other;
 
-template<class _type>
-struct has_nested_allocator<_type, enable_if_t<is_copy_constructible_class<
-	typename _type::allocator_type>::value>> : true_type
-{};
-
-
-template<typename _type, class, bool _vHasAlloc>
-struct nested_allocator
-{
-	using type = typename _type::allocator_type;
-};
-
-template<typename _type, class _tAlloc>
-struct nested_allocator<_type, _tAlloc, false>
-{
-	using type = _tAlloc;
-};
-#else
+// XXX: Details member across headers?
 //! \since build 650
 template<typename _type>
 using check_allocator = and_<cond_t<has_mem_value_type<_type>,
-	vdefer<details::mem_value_type_t, _type>>,
+	is_detected<rebind_t, _type, vdefer<details::mem_value_type_t, _type>>>,
 	is_copy_constructible_class<_type>>;
 
 //! \since build 650
 template<typename _type>
-using nested_allocator_t = typename _type::allocator;
-#endif
+using nested_allocator_t = typename _type::allocator_type;
 
 
 //! \since build 617
@@ -152,11 +132,7 @@ struct is_allocatable : is_nonconst_object<_type>
 */
 template<typename _type>
 struct has_nested_allocator
-#if YB_IMPL_GNUCPP < 49200
-	: details::has_nested_allocator<_type>
-#else
 	: details::check_allocator<detected_t<details::nested_allocator_t, _type>>
-#endif
 {};
 
 
@@ -166,13 +142,8 @@ struct has_nested_allocator
 */
 template<typename _type, class _tDefault = std::allocator<_type>>
 struct nested_allocator
-#if YB_IMPL_GNUCPP < 49200
-	: details::nested_allocator<_type, _tDefault,
-	has_nested_allocator<_type>::value>
-#else
 	: conditional<has_nested_allocator<_type>::value,
 	detected_t<details::nested_allocator_t, _type>, _tDefault>
-#endif
 {};
 //@}
 
@@ -190,7 +161,7 @@ constfn_addressof(_type& r)
 }
 template<typename _type,
 	yimpl(typename = enable_if_t<has_overloaded_addressof<_type>::value>)>
-inline yimpl(enable_if_t)<has_overloaded_addressof<_type>::value, _type*>
+inline _type*
 constfn_addressof(_type& r)
 {
 	return std::addressof(r);

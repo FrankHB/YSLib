@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2637
+\version r2659
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-11-06 12:43 +0800
+	2015-11-16 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -549,6 +549,15 @@ struct make_function_type<_tRet, std::tuple<_tParams...>>
 //@}
 
 
+/*!
+\brief 启用备用重载。
+\since build 651
+*/
+template<template<typename...> class _gOp, typename _func, typename... _tParams>
+using enable_fallback_t = enable_if_t<!is_detected<_gOp, _tParams&&...>::value,
+	decltype(std::declval<_func>()(std::declval<_tParams&&>()...))>;
+
+
 //! \brief 取指定维数和指定参数类型的多元映射扩展恒等函数类型。
 template<typename _type, size_t _vN = 1, typename _tParam = _type>
 using id_func_t
@@ -575,6 +584,22 @@ bind1(_func&& f, _tParams&&... args) -> decltype(
 	std::bind(yforward(f), std::placeholders::_1, yforward(args)...))
 {
 	return std::bind(yforward(f), std::placeholders::_1, yforward(args)...);
+}
+
+/*!
+\brief 复合调用 ystdex::bind1 和 std::placeholders::_2 以实现值的设置。
+\note 从右到左逐个应用参数。
+\note ISO C++ 要求 std::placeholders::_2 被实现支持。
+\since build 651
+*/
+template<typename _func, typename _func2, typename... _tParams>
+inline auto
+bind_forward(_func&& f, _func2&& f2, _tParams&&... args)
+	-> decltype(ystdex::bind1(yforward(f), std::bind(yforward(f2),
+	std::placeholders::_2, yforward(args)...)))
+{
+	return ystdex::bind1(yforward(f), std::bind(yforward(f2),
+		std::placeholders::_2, yforward(args)...));
 }
 
 

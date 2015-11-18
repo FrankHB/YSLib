@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1662
+\version r1718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-10-24 19:27 +0800
+	2015-11-13 09:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,7 +178,7 @@ public:
 	*/
 	//@{
 	//! \brief 取访问时间。
-	YF_API FileTime
+	FileTime
 	GetAccessTime() const;
 	//! \since build 637
 	//@{
@@ -186,20 +186,23 @@ public:
 	\brief 取旗标。
 	\note 非 POSIX 平台：不支持操作。
 	*/
-	YF_API int
+	int
 	GetFlags() const ynothrow;
 	//! \brief 取模式。
 	mode_t
 	GetMode() const ynothrow;
 	//@}
 	//! \brief 取修改时间。
-	YF_API FileTime
+	FileTime
 	GetModificationTime() const;
 	//! \brief 取修改和访问时间。
-	YF_API array<FileTime, 2>
+	array<FileTime, 2>
 	GetModificationAndAccessTime() const;
 	//@}
-	//! \since build 638
+	/*!
+	\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
+	\since build 638
+	*/
 	//@{
 	//! \brief 取文件系统节点标识。
 	FileNodeID
@@ -219,6 +222,15 @@ public:
 	//@}
 
 	/*!
+	\brief 设置访问时间。
+	\throw std::system_error 系统错误。
+	\throw FileOperationFailure 设置失败。
+	\note DS 平台：不支持操作。
+	\since build 651
+	*/
+	void
+	SetAccessTime(FileTime) const;
+	/*!
 	\note 非 POSIX 平台：不支持操作。
 	\since build 637
 	*/
@@ -236,6 +248,26 @@ public:
 	//! \brief 设置访问模式。
 	bool
 	SetMode(mode_t) const ynothrow;
+	//@}
+	/*!
+	\throw std::system_error 系统错误。
+	\throw FileOperationFailure 设置失败。
+	\note DS 平台：不支持操作。
+	\since build 651
+	*/
+	//@{
+	//! \brief 设置修改时间。
+	void
+	SetModificationTime(FileTime) const;
+	//! \brief 设置修改和访问时间。
+	void
+	SetModificationAndAccessTime(array<FileTime, 2>) const;
+	//@}
+	/*!
+	\note 非 POSIX 平台：不支持操作。
+	\since build 637
+	*/
+	//@{
 	/*!
 	\brief 设置非阻塞模式。
 	\note 对不支持非阻塞的文件描述符， POSIX 未指定是否忽略 \c O_NONBLOCK 。
@@ -385,7 +417,10 @@ YF_API YB_STATELESS int
 omode_convb(std::ios_base::openmode) ynothrow;
 //@}
 
-//! \pre 断言：第一参数非空。
+/*!
+\pre 断言：第一参数非空。
+\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
+*/
 //@{
 /*!
 \brief 测试路径可访问性。
@@ -448,13 +483,8 @@ ufopen(const char* filename, std::ios_base::openmode mode) ynothrow;
 YF_API YB_NONNULL(1) std::FILE*
 ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow;
 //@}
-//@}
-//@}
 
-/*!
-\note 使用 ufopen 二进制只读模式打开测试实现。
-\pre 间接断言：参数非空。
-*/
+//! \note 使用 ufopen 二进制只读模式打开测试实现。
 //@{
 //! \brief 判断指定 UTF-8 文件名的文件是否存在。
 YF_API YB_NONNULL(1) bool
@@ -462,6 +492,7 @@ ufexists(const char*) ynothrow;
 //! \brief 判断指定 UCS-2 文件名的文件是否存在。
 YF_API YB_NONNULL(1) bool
 ufexists(const char16_t*) ynothrow;
+//@}
 //@}
 
 /*!
@@ -473,6 +504,8 @@ ufexists(const char16_t*) ynothrow;
 YF_API YB_NONNULL(1) int
 upclose(std::FILE*) ynothrow;
 
+//! \note 若存储分配失败，设置 errno 为 \c ENOMEM 。
+//@{
 /*!
 \param filename 文件名，意义同 POSIX \c ::popen 。
 \param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
@@ -497,7 +530,6 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow;
 \return 若成功为 buf ，否则为空指针。
 \note 当 <tt>!buf || size == 0</tt> 时失败，设置 errno 为 EINVAL 。
 \note 指定的 size 不能容纳结果时失败，设置 errno 为 \c ERANGE 。
-\note 若分配存储失败，设置 errno 为 \c ENOMEM 。
 \since build 324
 */
 YF_API YB_NONNULL(1) char16_t*
@@ -506,13 +538,14 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow;
 /*!
 \pre 断言：参数非空。
 \return 操作是否成功。
-\note errno 在出错时会被设置，具体值由实现定义。
+\note errno 在出错时会被设置，具体值除以上明确的外，由实现定义。
+\note 参数表示路径，使用 UTF-8 编码。
 \note DS 使用 newlib 实现。 MinGW32 使用 MSVCRT 实现。 Android 使用 bionic 实现。
 	其它 Linux 使用 GLibC 实现。
 */
 //@{
 /*!
-\brief 切换当前工作路径至指定的 UTF-8 字符串。
+\brief 切换当前工作路径至指定路径。
 \note POSIX 平台：除路径和返回值外语义同 \c ::chdir 。
 \since build 476
 */
@@ -520,7 +553,7 @@ YF_API YB_NONNULL(1) bool
 uchdir(const char*) ynothrow;
 
 /*!
-\brief 按 UTF-8 路径以默认权限新建一个目录。
+\brief 按路径以默认权限新建一个目录。
 \note 权限由实现定义： DS 使用最大权限； MinGW32 使用 \c ::_wmkdir 指定的默认权限。
 \since build 475
 */
@@ -528,7 +561,7 @@ YF_API YB_NONNULL(1) bool
 umkdir(const char*) ynothrow;
 
 /*!
-\brief 按 UTF-8 路径删除一个空目录。
+\brief 按路径删除一个空目录。
 \note POSIX 平台：除路径和返回值外语义同 \c ::rmdir 。
 \since build 475
 */
@@ -536,7 +569,7 @@ YF_API YB_NONNULL(1) bool
 urmdir(const char*) ynothrow;
 
 /*!
-\brief 按 UTF-8 路径删除一个非目录文件。
+\brief 按路径删除一个非目录文件。
 \note POSIX 平台：除路径和返回值外语义同 \c ::unlink 。
 \note Win32 平台：支持移除只读文件，但删除打开的文件总是失败。
 \since build 476
@@ -545,7 +578,7 @@ YF_API YB_NONNULL(1) bool
 uunlink(const char*) ynothrow;
 
 /*!
-\brief 按 UTF-8 路径移除一个文件。
+\brief 按路径移除一个文件。
 \note POSIX 平台：除路径和返回值外语义同 \c ::remove 。移除非空目录总是失败。
 \note Win32 平台：支持移除空目录和只读文件，但删除打开的文件总是失败。
 \see https://msdn.microsoft.com/en-us/library/kc07117k.aspx 。
@@ -553,6 +586,7 @@ uunlink(const char*) ynothrow;
 */
 YF_API YB_NONNULL(1) bool
 uremove(const char*) ynothrow;
+//@}
 //@}
 
 

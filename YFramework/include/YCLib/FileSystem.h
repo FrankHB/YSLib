@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2542
+\version r2563
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-10-20 14:08 +0800
+	2015-11-18 10:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,10 +178,15 @@ DefBitmaskEnum(NodeCategory)
 
 
 /*!
-\brief 创建硬链接。
 \pre 路径非空。
 \exception std::system_error 系统错误。
-\note 参数为目标路径和源路径。源路径符号链接时行为未指定。
+\note 参数为目标路径和源路径。
+\note DS 平台：当前实现不支持替换文件系统，因此始终不支持操作。
+*/
+//@{
+/*!
+\brief 创建硬链接。
+\note 源路径指定符号链接时，行为未指定。
 \since build 633
 */
 //@{
@@ -189,6 +194,21 @@ YF_API YB_NONNULL(1, 2) void
 CreateHardLink(const char*, const char*);
 YF_API YB_NONNULL(1, 2) void
 CreateHardLink(const char16_t*, const char16_t*);
+//@}
+
+/*!
+\brief 创建符号链接。
+\note 第三参数指定是否创建目录链接。
+\note Win32 平台：成功调用需要操作系统和权限（或组策略）支持。
+\note 非 Win32 平台：忽略第三参数。
+\since build 651
+*/
+//@{
+YF_API YB_NONNULL(1, 2) void
+CreateSymbolicLink(const char*, const char*, bool = {});
+YF_API YB_NONNULL(1, 2) void
+CreateSymbolicLink(const char16_t*, const char16_t*, bool = {});
+//@}
 //@}
 
 

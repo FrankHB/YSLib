@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3283
+\version r3288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-10-21 20:44 +0800
+	2015-11-18 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -416,14 +416,14 @@ BuildFile(const Rule& rule)
 {
 	const auto& bctx(rule.Context);
 	const auto& ipth(rule.Source.first);
-	const auto& fullname(ipth.GetMBCS());
+	const auto& fullname(ipth.VerifyAsMBCS());
 	const auto& cmd_type(rule.GetCommandType(GetExtensionOf(fullname)));
 	const auto& cmd(rule.LookupCommand(cmd_type));
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
 
 	if(!cmd.empty())
 	{
-		const auto& ofullname(rule.Source.second.GetMBCS());
+		const auto& ofullname(rule.Source.second.VerifyAsMBCS());
 		bool build{true};
 
 		try
@@ -471,7 +471,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 {
 	const auto& ipth(rule.Source.first);
 	const auto& opth(rule.Source.second);
-	const auto& path(ipth.GetMBCS());
+	const auto& path(ipth.VerifyAsMBCS());
 	vector<string> subdirs, ofiles;
 	vector<pair<string, string>> src_files;
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Search));
@@ -512,7 +512,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 		+ '.', Informative);
 	if(snum != 0)
 	{
-		EnsureOutputDirectory(opth);
+		EnsureOutputDirectory(opth.VerifyAsMBCS());
 		for(const auto& pr : src_files)
 		{
 			const auto& name(pr.second);
@@ -610,7 +610,7 @@ BuildContext::Build()
 
 			YAssert(!pth.empty(), "Invalid path found.");
 			pth.pop_back();
-			EnsureOutputDirectory(pth);
+			EnsureOutputDirectory(pth.VerifyAsMBCS());
 
 			auto target(to_string(opth).GetMBCS());
 			const auto& LDFLAGS(GetEnv("LDFLAGS"));

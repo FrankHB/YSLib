@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r773
+\version r809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2015-11-06 11:13 +0800
+	2015-11-09 10:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,21 @@ namespace vseq
 \since build 589
 */
 //@{
+/*!
+\brief 元函数应用。
+\since build 651
+
+要求被应用的函数是具有可作为元函数调用的嵌套成员 apply 的类型。
+*/
+//@{
+template<class _func, typename... _tParams>
+using apply = typename _func::template apply<_tParams...>;
+
+template<class _func, typename... _tParams>
+using apply_t = _t<apply<_func, _tParams...>>;
+//@}
+
+
 #define YB_Impl_Variadic_SeqOp(_n, _tparams, _targs) \
 	template<_tparams> \
 	struct _n; \
@@ -377,6 +392,36 @@ YB_Impl_Variadic_SeqOpB(vec_subtract)
 #undef YB_Impl_Variadic_SeqOpI
 #undef YB_Impl_Variadic_SeqOpU
 #undef YB_Impl_Variadic_SeqOp
+//@}
+
+
+/*!	\defgroup metafunction_composition Metafunction Compositions
+\ingroup metafunctions
+\brief 元函数组合操作。
+\sa vseq::apply
+\since build 651
+
+组合满足元函数应用条件的类型的模板。
+要求输入的元函数是满足元函数应用条件的类型。
+*/
+//@{
+//! \brief 部分应用。
+//@{
+template<class _func, typename... _tParams>
+struct bind_back
+{
+	template<typename... _types>
+	using apply = vseq::apply<_func, _types..., _tParams...>;
+};
+
+
+template<class _func, typename... _tParams>
+struct bind_front
+{
+	template<typename... _types>
+	using apply = vseq::apply<_func, _tParams..., _types...>;
+};
+//@}
 //@}
 
 } // namespace vseq;
