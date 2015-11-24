@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4837
+\version r4838
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-11-19 23:19 +0800
+	2015-11-24 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -492,7 +492,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 ShlTextReader::~ShlTextReader()
 {
 	FilterExceptions([this]{
-		SaveBookmarks(CurrentPath.VerifyAsMBCS(), pnlBookmark.bookmarks);
+		SaveBookmarks(string(CurrentPath), pnlBookmark.bookmarks);
 		SaveGlobalConfiguration(CurrentSetting);
 	}, yfsig);
 	FilterExceptions([this]{

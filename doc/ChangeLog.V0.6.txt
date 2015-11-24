@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r5922
+\version r6033
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-11-18 23:58 +0800
+	2015-11-24 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,109 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YReader.ShlExplorer $=
+	(
+		* "missing trailing path verfication led to wrong current path"
+			@ "constructor %ShlExplorer" $since b651
+			$= (DLDI ^ "%Path::Verify"
+				~ "explicit conversion from %Path to %String")
+		* $comp "failed to open file" @ !"platform %Win32" $since b651
+			// These POSIX paths are treated as directories, which is stricter \
+				than in Win32.
+	),
+	+ $doc %YCLib @ %Documentation,
+	/ %YFramework $=
+	(
+		/ %YSLib.Service.FileSystem $=
+		(
+			(
+			/ "all functions %IsRelative" -> "function template";
+			+ $comp "support for 'const char16_t*' and potentional other types"
+				@ "%IsRelative"
+			),
+			/ @ "class %Path" $=
+			(
+				/ @ "function %Parse" $=
+				(
+					/ DLDI "simplified" ^ "%IsRelative",
+					/ "ignored empty path components"
+						// Both POSIX and Win32 should ignore subsequent \
+							separators unless there is double separators (e.g. \
+							"//") in the front.
+				),
+				/ ("operator %String", $comp "%operator %string")
+					^ "%GetLeafString" ~ "%GetString"
+			),
+			/ "directory verifying" @ "function %ClassifyNode" $=
+			(
+				* "recognized all directories as %NodeCategory::Missing" $since
+					b475,
+				/ DLDI "simplified" ^ $dep_from "%Path::String"
+					~ "%Path::VerifyAsMBCS"
+			)
+		),
+		/ %YCLib $=
+		(
+			/ @ "functions %IsAbsolute" -> ("6 functions %IsAbsolute_P \
+				supporting platform %(DS, Win32) and others"
+				^ $dep_from ("%BaseIDTag, IDTag" @ %YCommon),
+				"function template %IsAbsolute" ^ $dep_from
+				("%YCL_DefPlatformFwdTmpl" @ %YCommon)) @ %FileSystem $=
+			(
+				/ "reduced ':/' check" @ !"platform %DS",
+				(
+				/ @ "platform %DS" $=
+				(
+					- "second ':/' check",
+						// Thus paths as "fat:/xx:/" is now considered \
+							absolute, even it is not valid.
+					/ DLD "simplified char16_t" @ "platform %DS"
+						^ "%ystdex::(str_find, ntctslen)"
+				);
+				+ 'ynothrowv'
+				)
+			),
+			/ $doc %Platform $=
+			(
+				+ "Doxygen group %TopLevelPlatformNamespaces" $=
+					(+ "'\ingroup' directive"
+						@ "namespaces %(platform, platform_ex)"),
+				+ "Doxygen group %PlatformEmulation",
+				+ "abstrct platform macros %(YF_Platform_Android, \
+					YF_Platform_Linux)"
+			),
+			/ %YCommon $=
+			(
+				+ 'using ID = std::uintmax_t;',
+					// The most large standard unsigned integer type is used \
+						to avoid conversions.
+				+ "alias template %MetaID",
+				+ "structs %(IDTagBase; HostedIDTagBase)";
+				+ "class template %IDTag";
+				(
+				+ "macros %(YCL_IDTag_Spec; YCL_IDTag_SpecHost, \
+					YCL_IDTag_SpecOnBase)";
+				+ "%IDTag specializations for platforms %(Win32, Win64, \
+					MinGW32, MinGW64)",
+				+ "%IDTag specializations for platforms %(Linux, Android, \
+					Linux_x86, Linux_x64, Android_ARM)" $dep_from
+					"%(YF_Platform_Android, YF_Platform_Linux)" @ %Platform
+				),
+				+ "class template %IDTagSet",
+				+ "macro %YCL_DefPlatformFwdTmpl" ^ $dep_from
+					("%DefFwdTmplTrailing" @ %YBaseMacro)
+			)
+		),
+		+ "macro %DefFwdTmplTrailing" @ %YBaseMacro
+	),
+	/ "saving bookmark without verifying path"
+		@ "destructor %ShlTextReader" @ %ShlReader
+		$= (/ DLDI ^ "conversion from %Path to %string"
+			 ~ "%Path::VerifyAsMBCS")
+),
+
+b651
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -199,7 +302,7 @@ $now
 			/ DLDI "simplified %(QueryFileNodeID, QueryFileLinks, \
 				QueryFileTime)",
 			+ "function %ConvertTime for conversion from \
-				%std::chrono::nanoseconds to ::FILETIME",
+				%std::chrono::nanoseconds to %::FILETIME",
 			(
 			/ "macros %(YCL_WrapCallWin32, YCL_WrapCallWin32_Trace) took \
 				message as lambda parameter" ~ "as macro parameter";
@@ -255,8 +358,8 @@ $now
 			^ $dep_from ("%String::VerifyAsMBCS" ~ "%String::GetMBCS"
 				@ %YFramework.YSLib.Service.FileSystem) $dep_to
 				"removal SHBuild GetMBCS path verification",
-			^ $dep_from ("%Path::VerifyAsMBCS" ~ "implicit conversion %Path to \
-				%string" @ %YFramework.YSLib.Service.FileSystem)
+			^ $dep_from ("%Path::VerifyAsMBCS" ~ "implicit conversion from \
+				%Path to %string" @ %YFramework.YSLib.Service.FileSystem)
 				$dep_to "explicit SHBuild path verification"
 		),
 		/ @ %ProjectGenerator $=
@@ -264,9 +367,9 @@ $now
 			^ ($dep_from "%Path::VerifyAsMBCS" ~ "%Path::GetMBCS")
 				@ %YFramework.YSLib.Service.FileSystem) $dep_to
 				"removal ProjectGenerator GetMBCS path verification",
-			/ $comp DLD "reduced verifying call" @ "explicit conversion %Path \
-				to %string" @ "unit check" $dep_from ("%Path::operator string"
-				@ %YFramework.YSLib.Service.FileSystem)
+			/ $comp DLD "reduced verifying call" @ "explicit conversion from \
+				%Path to %string" @ "unit check" $dep_from ("%Path::operator \
+				string" @ %YFramework.YSLib.Service.FileSystem)
 				// This is intended since the path should always not to be a \
 					directory for checing units, or the resulted path \
 					component is always to be parsed by %Path::Path.
@@ -276,11 +379,11 @@ $now
 	(
 		/ $impl @ "functions %ShlTextReader::(ShlTextReader, ~ShlTextReader), \
 			ShlHexBrowser::ShlHexBrowser" ^ $dep_from ("%Path::VerifyAsMBCS"
-			~ "implicit conversion %Path to %string"
+			~ "implicit conversion from %Path to %string"
 			@ %YFramework.YSLib.Service.FileSystem)
 			$dep_to "explicit YReader path verification"
-		/ $comp DLD "reduced verifying call" @ "explicit conversion %Path to \
-			%string" @ "%ShlTextReader::LoadFile" $dep_from
+		/ $comp DLD "reduced verifying call" @ "explicit conversion from %Path \
+			to %string" @ "%ShlTextReader::LoadFile" $dep_from
 			("%Path::operator string" @ %YFramework.YSLib.Service.FileSystem)
 			// This is intended since the path should always not to be a \
 				directory.

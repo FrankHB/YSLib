@@ -1,0 +1,330 @@
+﻿/*
+	© 2012-2015 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file YCLib.txt
+\ingroup Documentation
+\brief YCLib 说明。
+\version r329
+\author FrankHB <frankhb1989@gmail.com>
+\since build 651
+\par 创建时间:
+	2015-11-19 09:05:02 +0800
+\par 修改时间:
+	2015-11-21 18:22 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::YCLib
+*/
+
+
+/*
+
+@0 体例和适用范围：
+引用标记参见 [Documentation::CommonRules @@0.1] 。
+项目范围参见 [Documentation::ProjectRules @@1] 。
+本文档适用于 YFramework 子项目中的 YCLib 库，是基于 YBase 的平台隔离用库。
+
+@1 约束、组成和架构：
+关于显式外部依赖项规则，参见 [Documentation::YFramework @@2.1] 。
+YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（包括平台扩展，另见  [Documentation::YFramework @@2.1.2.1] ）。
+YCLib 允许平台中立的接口具有实现定义的行为差异。平台中立的接口的对应实体一般位于 namespace platform(@7) 。
+
+@1.1 环境实现：
+参见 [Documentation::Designation @@5.2] 。
+
+@1.2 头文件依赖性：
+YCLib::Platform(@5.1) 不直接包含 YDefinition([Documentation::YBase @@2.4]) 以外的文件。
+YCLib::NativeAPI(@5.2) 不直接被 YCLib 的公开头文件包含。
+除了 YCLib::Platform(@5.1) 、 YCLib::NativeAPI(@5.2) 和适配模块(@5.3) 外， YCLib 公开头文件直接或间接包含 YCLib::YCommon(@5.4) 。
+宿主平台的平台扩展总是直接或间接包含 YCLib::Host(@6.2) 。
+
+@1.3 名称：
+基本内容参见 [Documentation::YFramework @@2.3] 。
+
+@1.3.1 命名空间分配：
+顶级平台命名空间([Documentation::YFramework @@2.3.4]) 按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间，具体平台使用非内联命名空间。
+
+@1.3.1.1 命名空间 platform ：
+platform 命名空间包含平台无关([Documentation::CommonRules @@2.2.2.1]) 的底层 API ，包括以下子命名空间：
+inline platform::basic_types ：基本类型声明内联命名空间。
+inline platform::containers ：容器声明内联命名空间。
+inline platform::references ：引用声明内联命名空间。
+platform::ColorSpace ：颜色空间。
+platform::Concurrency ： 平台并发操作接口。
+platform::FAT ： 文件分配表接口。
+inline platform::FAT::FAT16 ： FAT16 接口（ FAT12 共享实现）。
+inline platform::FAT::FAT32 ： FAT32 接口。
+platform::FAT::Clusters ：簇接口。
+platform::FAT::LFN ：长文件名接口。
+platform::KeyCategory ：按键类别。
+platform::Threading ： 平台线程操作接口。
+
+@1.3.1.2 命名空间 platform_ex ：
+platform_ex 命名空间包含可能和特定平台相关的底层 API ，包括以下子命名空间：
+platform_ex::FAT ：基于文件分配表的文件系统扩展接口（当前仅支持 DS 平台）。
+inline platform_ex::Windows ： Windows 平台内联命名空间。
+
+@1.4 调用安全性：
+一般规则参见 [Documentation::YFramework @@1.4.1.4] 。
+
+@1.5 平台扩展使用：
+仅在特定独立平台可用的 API 通过平台扩展([Documentation::ProjectRules @@3.3]) 提供。
+
+@1.6 一般保证：
+涉及的具体要求的定义参见 ISO C++11 。
+
+@1.6.1 平台兼容性：
+
+@1.6.1.1 platform 命名空间实体：
+platform 命名空间中的实体保证构建时在每个独立平台上都可用（但运行时可因为特定目标平台不支持而出错），因此仅被排除限定平台集合支持模块([Documentation::YFramework @@2.1.4]) 的非平台扩展扩充；除本节另行约定外的实体和宏保持各个平台中可用且语义一致。
+platform 中可提供平台中立的程序模拟 API([Documentation::Designation @@2.3.1.2]) ，需对所有独立平台提供实现。
+platform 中 API 的实现一般平台相关。
+
+@1.6.1.2 platform_ex 命名空间实体：
+和 platform 命名空间不同，platform_ex 命名空间提供的 API 并不保证在每个独立平台上都可用，可以被限定平台集合支持模块([Documentation::YFramework @@2.1.4]) 和平台扩展扩充，包括：
+作为程序模拟 API([Documentation::Designation @@2.3.1.2]) 及实现支持；
+作为特定已知平台相关的其它底层 API ，并辅助 platform 命名空间(@1.3.1.1) 中接口的实现。
+platform_ex 的程序模拟 API 及实现支持包括：
+YCLib 支持的特定平台子集的平台中立的接口（不需对所有独立平台提供实现）；
+平台中立程序模拟 API （可能位于 platform_ex 外）的实现支持（可能非平台中立，位于平台扩展）。
+platform_ex 中接口的实现一般依赖特定平台特性。
+
+@1.6.1.3 平台模拟支持：
+基本概念参见 [Documentation::Designation @@2.3.1.2] 。
+只提供程序模拟。
+程序模拟 API 在命名空间中的可用性见 @1.6.1.1 和 @1.6.1.2 。
+platform 命名空间内的平台中立程序模拟 API 可在基本平台模拟模块中提供。
+platform_ex 命名空间内的平台中立程序模拟 API 可在基本平台模拟模块限定平台支持模块(@6) 中提供。
+其中，基本平台模拟模块是平台中立模块(@5) 中的系统功能模块(@5.6) 和 UI 支持模块(@5.7) 。
+YCommon(@5.4) 不直接提供接口，但可提供这些接口的实现支持(@5.4.1) 。
+约定 platform 命名空间中后缀 _P 的例程（若存在）是支持具体平台的实现，其它例程不支持模拟其它平台。
+
+@1.6.1.4 二进制兼容性：
+当前仅作为 YFramework 平台兼容层，没有二进制兼容策略。
+另见 @5.1 。
+
+@1.6.2 platform::KeyCodes 命名空间：
+platform::KeyCodes 命名空间用于公开输入设备的按键设置，其中的成员的一部分满足平台中立接口。
+具体按键由可以转换为 platform::KeyIndex 类型的值标识，转换后的值称为按键值，保证能被 platform::KeyBitsetWidth 个二进制位表示，用于按键类别（由 platform::KeyCategory 的成员定义）判断，但不被依赖作为公开接口。
+特定平台支持的本机按键值集合使用枚举类型 NativeSet 表示，具体按键值由具体平台定义，一般不变。
+不特定由平台直接支持的按键值使用枚举类型 ExtendedSet 表示，具体按键值由 YCLib 定义，作为 ABI 的一部分，但不保证长期稳定。
+为了兼容，提供 constexpr 对象作为按键别名。即按键可以由转换为按键值的具名实体标识。
+NativeSet 外的按键值的实体名都可以兼容以实现平台中立。
+当前 NativeSet 以 Win32 平台为基准的按键名称都保证兼容，因此平台中立按键名即当前 Win32 实现的按键集合。
+
+@1.6.3 文件系统接口：
+文件系统的一般概念（包括路径等）同 WG21/N4099 。
+
+@2.1 环境资源占用：
+
+@2.1.1 DS 计时器：
+build 291 前占用计时器 0 和计时器 1 ； build 291 起占用计时器 2 。
+占用计时器用于实现底层计时接口(@5.6.4) 。
+若用户占用计时器或修改计数，则计时相关接口结果未定义。
+
+@3 实现定义行为：
+
+@3.1 对未说明字符串参数编码的文件操作接口：
+必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.7]) 或保证成功转换时未被文档另行约定的隐式行为一致的特定平台的实现。
+DS 平台直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
+Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
+注意 CHRLib 和 YCLib 相关接口中 UCS-2 在 Win32 平台下即为 UCS-2LE 。
+
+@4 平台 API 使用策略：
+适当使用别名声明提供透明的包装类型。
+在公开接口中，仅在有必要且尚未存在被包装过的类型时可直接使用特定平台 API 提供的类型。
+
+@4.1 Windows API ：
+当前只支持以 Windows NT 或兼容接口为底层实现的 Win32 平台，但在接口和实现上不应依赖这个假设。
+
+@4.1.1 版本宏：
+使用当前支持的最低版本 Windows 操作系统对应的版本视为主流(mainstream) 版本，在对应的 SDK 中以宏 WINVER 标识。
+注意 WINVER 和 Win32 SDK 实现中 _WIN32_WINNT 等宏的值决定某些 API 是否被声明。
+这些宏之间的关联和差异参见 http://blogs.msdn.com/b/oldnewthing/archive/2007/04/11/2079137.aspx 。
+选择宏的使用遵循最小依赖原则，如确定 Windows NT 实现的 Win32 使用 _WIN32_WINNT 而不是 WINVER 。后者一般只在 YCLib::NativeAPI(@5.2) 出现。
+当前不涉及 DDK ，因此不适用 NTDDI_VERSION 以避免混淆。
+
+@4.1.2 API 版本兼容性：
+不直接调用 Windows Vista 后支持的 API ，以动态加载（通过 ::GetProcessAddress ）代替。
+对于需编译时确定特定 API 声明存在性的场合，若有可能，使用 SFINAE([Documentation::Designation @@3.2.4)] 而不是显式判断版本宏(@4.1.1) 检查可用性并自动匹配调用。
+不使用当前主流版本 Win32 SDK 中被标记为过时的 API 如 IsBadReadPtr 。
+
+@4.1.3 后缀：
+为避免宏名污染和简化可能需要的动态加载，需 #undef 消除引起冲突的宏名，不依赖 A 和 W 后缀。
+显式使用带后缀的函数（若存在）。注意某些兼容问题，如 Windows CE 下 GetProcAddress 存在后缀而 Win32 下不存在。
+存在后缀时，优先使用 W ，避免 ANSI 版本接口的一些限制（如文件系统 API ）和主流实现的 A 后缀需要转换间接调用 W 后缀版本。
+例外： ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
+
+@5 平台中立接口模块：
+提供平台中立接口，可引入 platform 命名空间实体的模块，用于以公共接口引入平台相关特性。
+
+@5.1 Platform ：
+模块 Platform 只有头文件，用于提供必要的一般平台标识支持。
+对正式支持的独立平台，定义 YF_Platform_ 起始的宏。宏 YF_Platform 指示实际的独立平台。标识不同平台的宏替换为不相等的整数字面量，但具体数值不保证长期稳定，因此依赖这些具体值的接口不保证二进制兼容性。
+对正式支持的公共平台，定义 YCL_ 起始的宏，保证替换得到的值非零。使用 #if （而不需要 #ifdef ）直接检测这些宏以确定是否支持。
+提供整数类型 platform::ID 表示这些值； platform::MakeID 构造的对应值可用于元编程。
+Platform 从 YDefinition([Documentation::YBase @@2.4]) 引入(@1.2) 基本类型，在顶级平台命名空间([Documentation::YFramework @@2.3.4]) 内对这些名称直接使用标识符，而不需使用限定名称。
+用于表示符号可见性的宏 YF_API 、 YF_BUILD_DLL 和 YF_DLL 相关内容也在此处理，使用参见 [Documentation::YFrmaework @@2.1.1] 。
+
+@5.2 NativeAPI ：
+提供平台相关的 API 实现，也可在全局命名空间补充特定平台的兼容接口声明或定义的修复。
+
+@5.3 适配模块：
+类似 YSLib::Adaptor([Documentation::YSLib @@2.1]) ，在 YCLib 的顶级平台命名空间([Documentation::YFramework @@2.3.4]) 引入声明。
+
+@5.3.1 Reference 指针和引用访问操作模块：
+在这个模块中配置和声明智能指针等引用对象类型。
+之前被作为 YSLib::Adaptor::YReference ，在 YSLib 命名空间引入外部名称。
+可包装 Loki 或 std::tr1 指针智能等实现。
+YSLib 早期包装 Loki 指针实现句柄；
+build 208 起包装 ISO C++11 标准库智能指针实现；
+build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
+build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引入外部名称。
+
+@5.3.2 容器、拟容器和适配器 Container ：
+包含标准库容器相关的头，并在顶级平台命名空间([Documentation::YFramework @@2.3.4]) 引入相关名称。
+之前被作为 YSLib::Adaptor::YContainer ，在 YSLib 命名空间引入外部名称。
+包含 CHRLib([Documentation::CHRLib]) 的 CHRDefinition 。
+build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引入外部名称。
+
+@5.3.3 互斥量 Mutex ：
+基于 YBase 的 YStandardEx::PseudoMutex([Documentation::YBase @@2.5.7.24]) 为多线程和单线程环境提供统一的同步接口。
+在命名空间 platform 中提供 Concurrency 和 Threading 两个子命名空间，再在其中引入外部名称。
+
+@5.4 平台相关的公共组件无关函数与宏定义集合 YCommon ：
+提供除了 Platform 、 NativeAPI 和适配模块外的公共依赖接口。
+
+@5.4.1 平台模拟支持：
+基本内容参见 @1.6.1.3 。
+提供了标记类型和宏，以便于使用重载来支持实现程序模拟 API 。
+此外，提供了 SFINAE 检查的便利宏 YCL_DefPlatformFwdTmpl 。
+
+@5.4.2 终止例程 terminate ：
+提供和平台相关的终止例程实现，用于替换 std::terminate 的默认行为。
+
+@5.4.3 命名空间 Descriptions ：
+提供日志等级等。
+
+@5.4.4 标准库例程替换：
+为了避免某些 C 标准库的实现缺陷，提供了少量替代例程。
+
+@5.4.5 C 风格字符串转换模板：
+提供模板 ucast 和 wcast ，在特定平台使使用 wchar_t 和 char16_t 或 char32_t 的例程可互换。
+
+@5.4.6 函数模板 RetryOnError ：
+允许简单实现当错误小于默认构造的值时重复操作。
+用于判断的错误的值可以是 int 类型。许多平台的 API 中返回小于 0 的 int 值表示错误。
+
+@5.4.7 函数 usystem ：
+同 std::system ，但始终使用 UTF-8 字符串参数。
+
+@5.4.8 扩展接口：
+只适用于具体平台，不适合其它模块但有普遍适用性的接口也在这里提供，如独立实现中的电源管理 API 。
+
+@5.5 辅助模块：
+提供开发者常用和基本功能。
+
+@5.5.1 YCLib 调试设施 Debug ：
+提供日志等接口以及相关宏，以及断言。
+其中日志不限于调试使用，也可用于实现一般交互程序的文本 UI 。
+
+@5.6 系统功能模块：
+适配一般的底层系统 API 。
+
+@5.6.1 内存映射文件 MemoryMapping：
+提供内存映射文件接口。
+
+@5.6.2 平台相关的文件访问和输入/输出接口 FileIO ：
+提供文件读写相关接口。
+
+@5.6.3 平台相关的文件系统接口 FileSystem ：
+提供文件系统相关接口。
+
+@5.6.4 平台相关的计时器接口 Timer ：
+提供计时器底层接口。
+在 ISO C++ 独立实现上 <chrono> 并没有被要求提供，因此不能保证可用。
+这里利用特定系统资源提供了计时接口。
+
+@5.7 UI 支持模块：
+适配对交互式程序中的 UI 必要的底层 API 。
+
+@5.7.1 平台相关的基本按键输入定义 Keys ：
+对不同平台提供不同按键码集合以及用于分类等的相关 API 。
+
+@5.7.2 平台相关的扩展输入接口 Input ：
+提供非按键输入的 API 。
+
+@5.7.3 平台相关的视频输出接口 Video ：
+提供视频输出使用的 API ，包括基本的像素数据结构和颜色定义，可能还有环境初始化和状态设置等。
+类型 Pixel 满足 EqualityComparable 要求。
+
+@6 YCLib 限定平台支持 YCLibLimitedPlatforms ：
+
+@6.1 POSIX 线程接口包装 POSIXThread ：
+提供 pthread 相关 API 包装。
+
+@6.2 YCLib 宿主平台公共扩展 Host ：
+提供仅在宿主实现上通用的 API 包装。
+
+@6.3 XCB GUI 接口 XCB ：
+提供 XCB API 包装。
+
+@6.4 宿主 GUI 接口 HostedGUI ：
+提供宿主实现支持的 GUI API 包装。
+可能包含 XCB(@6.3) 。
+
+@6.5 Java 本机接口包装 JNI：
+提供 JNI 相关 API 包装。
+
+@7 平台扩展：
+
+@7.1 DS 平台扩展：
+提供适用于 DS 目标平台的专用 API 。
+支持在 Win32 和 Android 平台上模拟 DS 平台。
+
+@7.1.1 DS 底层输入输出接口 DSIO ：
+提供替代 libfat([Documentation::Dependencies @@1.4]) 的文件系统实现的和 DS 相关的主要部分。
+
+@7.1.2 DS 视频输出接口 DSVideo ：
+提供 DS 专用的视频输出相关 API 。
+
+@7.2 Win32 平台扩展：
+提供适用于 Win32 平台的专用 API 。
+暂时不支持被模拟。
+
+@7.2.1 YCLib MinGW32 平台公共扩展：
+在 MinGW 环境测试的公共平台扩展，提供主要的特定于 Win32 的系统 API 包装。
+当前只支持 MinGW ，代表 Win32 。
+当前其它头文件直接或间接包含此文件。
+
+@7.2.2 注册表 Registry ：
+提供 Win32 注册表 API 包装。
+
+@7.2.3 Win32 平台自然语言处理支持扩展接口 NLS ：
+提供 Win32 NLS API 包装。
+
+@7.2.4 控制台 Console ：
+提供 Win32 控制台 API 包装。
+
+@7.2.5 COM 接口 COM ：
+提供组件对象模型相关的 API 包装。
+
+@7.3 Android 平台扩展：
+提供适用于 Android 目标平台的专用 API 。
+暂时不支持被模拟。
+
+@7.3.1 Android API 包装：
+当前所有的公共 API 包装都在此模块中提供，且仅支持 Android 目标平台。
+
+*/
+
+////
+

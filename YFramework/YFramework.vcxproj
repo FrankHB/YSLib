@@ -31,6 +31,7 @@
     <Text Include="..\doc\Workflow.Annual2015.txt" />
     <None Include="..\doc\ProjectRules.txt" />
     <Text Include="..\doc\YBase.txt" />
+    <Text Include="..\doc\YCLib.txt" />
     <Text Include="..\doc\YFramework.txt" />
     <None Include="..\doc\YSLib.txt" />
     <None Include="..\doc\vsd\YFramework.vsd" />

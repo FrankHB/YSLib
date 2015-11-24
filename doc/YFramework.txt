@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1185
+\version r1231
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-11-18 11:51 +0800
+	2015-11-21 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,13 +67,16 @@ YSLib 仅提供有限的调度设施保证，通过加入线程模型相关的�
 基本内容参见 [Documentation::CommonRules @@2.5.3] 。
 YSLib 支持消息队列。
 YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
-默认 Shell 消息列表参见 [Documentation::YSLib @@2] 。
-消息、消息队列、消息分派和消息循环的实现参见 [Documentation::YSLib @@2.5.10] 。
+消息、消息队列、消息分派和消息循环的实现参见 [Documentation::YSLib @@3.10] 。
+默认 Shell 消息列表参见 [Documentation::YSLib @@6] 。
 
 @1.4.1.4 调用安全性：
 基本内容参见 [Documentation::CommonRules @@3.11] 。
 按 [Documenation::LanguageConvention @@5.15.3.4] 不依赖异步安全性，不在 YFramework 的任何实现中直接调用 std::exit 退出函数，不直接调用 std::atexit 注册回调，直接调用或使用 YFramework 中的接口导致退出函数或对应终止程序或对应注册回调的函数被调用时需给出文档说明。
-除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.8 、 [Documentation::Designation @@5.2] 、 [Documentation::YSLib @@1.3] 和 [Documentation::CHRLib] 。
+除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.8 、 [Documentation::YSLib @@1.3] 、 [Documentation::CHRLib] 和 [Documentation::YCLib @@1.3] 。
+除非另行约定，仅保证非成员或静态成员函数的线程安全性。
+除非另行约定，所有不提供无异常抛出保证的公开接口不直接设置外部库提供的外部状态（如 ISO C 的 errno ）。注意实现明确地间接调用公开接口仍然可能设置这些状态。
+除非另行约定，实现可能访问外部库提供的外部状态，且假定这些状态不被并发访问。
 
 @1.4.1.4.1 例程和包含的可调用对象(callable object) 的调用：
 仅包含可调用对象的调用时，此例程的可重入性和线程安全性等价于包含的所有调用：
@@ -85,7 +88,7 @@ YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 
 @1.4.2 资源分类：
 基本内容参见 [Documentation::CommonRules @@2.3.2.2] 。
-YSLib 对资源的直接使用仅限软件资源（硬件资源通过语言抽象和 YCLib([Documentation::Designation @@5.2.2]) 等平台兼容层包装后间接使用）。
+YSLib 对资源的直接使用仅限软件资源（硬件资源通过语言抽象和 YCLib([Documentation::YCLib]) 等平台兼容层包装后间接使用）。
 
 @1.4.3 资源管理：
 基本内容参见 [Documentation::CommonRules @@2.3.2.3] 。
@@ -335,7 +338,7 @@ YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3
 除了 YSLib 和第三方库， YFramework 也集成了一些附加的库作为非第三方次级子项目。
 
 @2.1.2.1 依赖性概览：
-其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::Designation @@5.2.2]) 。
+其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::YCLib]) 。
 另一部分总是依赖 YSLib 库，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 基础附加库被 YSLib 库的 Adaptor 直接依赖，其它附加库不应被这些组件依赖。
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
@@ -351,8 +354,8 @@ YCLib 除平台扩展外不依赖 YSLib ，被作为 YSLib 平台中立([Documen
 综上所述， YFramework 有以下非第三方次级子项目： CHRLib 、 YCLib 、 YSLib 、 NPL 和 Helper 。
 只有 YCLib 和 Helper 存在平台扩展，不保证接口或实现平台中立；另见 @2.1.4 。
 除了上述接口， YFramework 公开接口是平台中立的：其它组件（附加库和 YSLib 库）没有平台扩展，公开接口保证平台中立，特定具体平台的功能扩展由 Helper 提供。
-平台扩展一般直接作为目标平台的接口，但也可以包括专用于模拟目标平台([Documentation::CommonRules @@2.2.4]) 的接口。
-使用 YCLib::Platform 中定义的平台宏([Documentation Designation @@5.2.2.4.1]) 确定程序实际运行的目标平台。
+平台扩展一般直接作为目标平台的接口，但也可以包括专用于模拟目标平台([Documentation::Designation @@2.3.1.2]) 的接口。
+使用 YCLib::Platform 中定义的平台宏([Documentation::YCLib @@5.1]) 确定程序实际运行的目标平台。
 
 @2.1.3.1 接口使用限制：
 在 Win32 上 YFramework 不直接静态依赖 COM ，不链接实现 COM 的库。
@@ -426,11 +429,10 @@ Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。
 除 @2.2.1 限制外，Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
 
 @2.3 名称：
-对模块，基本使用参见 [Documentation::ProjectRules @@3.2] 。
-对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 和 [Documentation::LanguageRules @@5.15.1.1] 。
+对模块和语言支持的命名空间的基本使用同 [Documentation::YBase @@2.3] 。
 
 @2.3.1 标识符限制：
-公开头文件不使用保留标识符([Documentation::LanguageConvention @@5.15.1]) ，包括使用实现扩展提供的宏。使用 ydef.h([Documentation::YBase @@2.3]) 包装的宏代替。
+参见 [Documentation::YBase @@2.3.1] 。
 
 @2.3.2 模块名称宏：
 YFramework 使用模块名称进行组织。使用公开头文件时，以模块名称（接口）代替头文件名（实现）以保持良好的兼容性。
@@ -447,31 +449,24 @@ YFramework 使用模块名称进行组织。使用公开头文件时，以模块
 为保证以上变换可逆，约定内联模块名和非内联模块名不重复。
 此外，为了标识符符合 ISO C++ 要求([Documentation::LanguageConvention @@5.15.1.2.2])，任何 name-expression 需要满足此规则对标识符的命名限制，且不得以 _ 起始或结束，以避免出现 __ 。
 
-@2.3.2 YFramework 引入的命名空间：
-YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
+@2.3.3 头文件附加准则：
+禁止在头文件中使用未命名命名空间(unnamed namespace) ，除非其中仅含 inline 函数和模板或需要和每一个翻译单元独立地相关的对象。
+禁止在头文件中使用全局 using 指示，除非是有意的（例如减少别名个数；需在文档中说明）。
+
+@2.3.4 YFramework 引入的命名空间：
 除 YCLib 和 Helper 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
-platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）此命名空间。
-inline platform::basic_types ： 基本类型声明内联命名空间。
-inline platform::containers ： 容器声明内联命名空间。
-inline platform::references ： 引用声明内联命名空间。
-platform::ColorSpace ：颜色空间。
-platform::Concurrency ： 平台并发操作接口。
-platform::FAT ： 文件分配表接口。
-inline platform::FAT::FAT16 ： FAT16 接口（ FAT12 共享实现）。
-inline platform::FAT::FAT32 ： FAT32 接口。
-platform::FAT::Clusters ：簇接口。
-platform::FAT::LFN ：长文件名接口。
-platform::KeyCategory ：按键类别。
-platform::Threading ： 平台线程操作接口。
-platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
-platform_ex::FAT ：基于文件分配表的文件系统扩展接口（当前仅支持 DS 平台）。
-inline platform_ex::Windows ： Windows 平台内联命名空间。
-platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖此命名空间，但可能依赖该命名空间中成员包装的宏。
-CHRLib ：次级子项目库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）此命名空间。
+YCLib 在全局命名空间内引入命名空间 platform 和 platform_ex ，称为顶级平台命名空间。
+CHRLib ：次级子项目库 CHRLib 的命名空间。
 NPL ：次级子项目库 NPL(@2.9) 的命名空间。
 YSLib ： YSLib 库命名空间，也被 Helper 扩展。
+关于顶级平台命名空间及其子命名空间，参见 [Documentation::YCLib @@1.3] 。
 关于 YSLib 的子命名空间，参见 [Documentation::YSLib @@1.1.5] 。
-非公开实现命名空间规则同 [Documentation::YBase @@2.4.2.1] ，但使用 YFramework 保留的标识符。
+非公开实现命名空间规则同 [Documentation::YBase @@2.5.3.1] ，但使用 YFramework 保留的标识符。
+
+@2.3.5 命名空间依赖：
+YSLib 本体不直接但间接依赖（可配置 using 声明的名称） platform 命名空间及其中的接口。
+YSLib 本体直接依赖（固定使用 using 声明的名称） CHRLib 命名空间及其中的接口。
+YSLib 不依赖 platform_ex 命名空间。
 
 @2.4 实体实现规则：
 
@@ -510,12 +505,12 @@ YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无
 
 @2.5.1 基础宏 YBaseMacro ：
 包括若干作为扩展语言特性的宏。
-宏 ImplUnseq 依赖 YBase 的宏 yunseq([Documentation::YBase @@2.3.7.3]) 。格式化代码方式类似，但始终视为函数调用。
+宏 ImplUnseq 依赖 YBase 的宏 yunseq([Documentation::YBase @@2.4.7.3]) 。格式化代码方式类似，但始终视为函数调用。
 
 @2.5.2 接口
 
 @2.5.3 断言：
-基于 YBase ([Documentation::YBase @@2.4.4.1]) 的接口和实现在特定平台上提供替代断言。异常规范和 YBase 的接口相同。
+基于 YBase([Documentation::YBase @@2.5.7.4]) 的接口和实现在特定平台上提供替代断言。异常规范和 YBase 的接口相同。
 
 @2.5.4 成员函数简写（代码生成器）
 
@@ -658,7 +653,7 @@ Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 此外， YSLib 不排斥在部件实现([Documentation::YSLib @3.3]) 中提供（有限的）复制和转移支持以保证值语义。
 
 @3.5.4 泛型值类型：
-适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.4.7.5]) 等类型实现。允许空值。
+适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.5.8.5]) 等类型实现。允许空值。
 
 @3.5.5 虚函数：
 不要求总是使用 NVI 模式([Documentation::LanguageConvention @5.13.6.3]) ，但适合复用（如检查代码）时应当使用。
@@ -704,10 +699,10 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 注意非访问器的谓词不适用以上规则。
 
 @4.3 附加编码规则：
-对 YDefinition([Documentation::YBase @@2.3]) 中的每个表达式宏([Documentation::CommonRules @@5.10]) M ，使用特定的以下规则：
+对 YDefinition([Documentation::YBase @@2.4]) 中的每个表达式宏([Documentation::CommonRules @@5.10]) M ，使用特定的以下规则：
 删除 M( 和对应的 ) 、删除原紧接 ) 之后的 ; 之前的空白符并去除多余的空行后应保证余下的代码遵循其它规则。
 这避免表达式宏参数内的多行代码使用过多的缩进而影响可读性，且可能减少重构需要修改的代码。
-另见 [Documentation::YBase @@2.3.7.3] 。
+另见 [Documentation::YBase @@2.4.7.3] 。
 
 @4.4 实现语用规则：
 基本内容见 [Documentation::LanguageConvention] 和 [Documentation::Designation @@6.2] 。

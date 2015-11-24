@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9754
+\version r9829
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-11-05 11:16 +0800
+	2015-11-21 13:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,13 +100,24 @@ Shell 和 Core 的关系是相对的，例如：
 @2.3.1 可移植性相关：
 基本内容参见 [Documentation::CommonRules @@2.2.2] 。
 语言使用规则参见 [Documentation::LanguageConvention @@5] 。
-依赖的语言实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md ，实际使用的具体语言实现参见 @5.2 。
+
+@2.3.1.1 实现要求：
+依赖的语言实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。
+实际使用的具体语言实现参见 @5.2 。
+
+@2.3.1.2 平台模拟支持：
+概念参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md  。
+库提供程序模拟的接口（一般是 API ，也可以是 UI 等）支持平台模拟，包括以下形式：
+平台中立([Documentation::CommonRules @@2.2.2.1]) 接口：适合所有平台但针对不同平台指定不同的行为实现。
+非平台中立接口：适合特定的平台，不保证平台中立。
+平台中立接口通过提供额外信息指定支持的平台（如在调用 API 时传递标识平台的参数）以实现不同目标平台上的相似功能接口。
+非平台中立接口的 API 若仅适合特定的已知平台，在平台扩展([Documentation::ProjectRules @@3.3]) 提供。
 
 @2.3.2 环境依赖性：
 关于环境，参见 @2.2.1.2 。
 关于库配置，参见 @5 。
-关于语言特性使用，参见 [ProjectRules @@ 1.2.1] 。
-YSLib 基于基本的底层系统接口（由 YFramework/YCLib(@5.2.2) 支持）。
+关于语言特性使用，参见 [Documentation::ProjectRules @@ 1.2.1] 。
+YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YCLib] 支持）。
 
 @2.3.2.2
 YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
@@ -177,18 +188,20 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 使用仅使用基本字符集的字符串表示用户可读的消息。
 除非必要，消息中不出现表示代码位置（例如所在函数）的信息，以免冗余。
 
-@3.2.4 SFINAE(substition failure is not an error) 技巧：
+@3.3.2 SFINAE(substition failure is not an error) 技巧：
 使用 SFINAE 进行类型检查，实现复杂的重载匹配。避免暴露过于复杂的接口。
 在模板参数或函数参数中使用 ISO C++11 的 std::enable_if 实现 SFINAE 。需要考虑函数签名时，只能使用前者；需要考虑模板和非模板的匹配顺序时，一般使用后者。
 
 @4 标识符命名规约(naming convention) ：
 以下是 YSLib 风格标识符的命名规则和约定。
 
-@4.1
+@4.1 通用指引：
 参见 [Documentation::CommonRules @@4.1] 。
 
-@4.1.1 保留标识符：
-基本内容参见 [Documentation::CommonRules @@4.1.6] 。
+@4.1.1 保留标识符命名：
+保留标识符基本内容参见 [Documentation::CommonRules @@4.1.6] 。
+库保留的标识符参见 [Documentation::Defitioan] 。
+除此之外，以下规则指定保留的命名规则，不引起歧义时，可被用户程序共享。
 
 @4.1.1.1
 以 "INC_" 和 "Inc_" 起始的标识符专用于头文件包含标识（参见 [Documentation::Definitions] ）。
@@ -196,11 +209,12 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 @4.1.1.2 模板形式参数前缀：
 除可与用户定义的字面量后缀以及非全局命名空间作用域的元函数或占位符重名，以下前缀保留给的标识符保留作为库和用户代码的模板形式参数的名称（模板参数引用作为函数参数时可以是对应的对象类型引用）：
 "_b" ：布尔类型参数，包括内建 bool 类型的值或用于表示布尔值的 std::integral_constant 的实例（注意 value 成员不保证是 bool 类型）；
+"_c" ：表示概念(concept) 的类型参数；
 "_f" ：可调用类型(callable type) （可能是函数对象类型或成员指针）或作为元函数的类型参数；
 "_i" ：接口（纯虚类）类型参数；
 "_p" ：内建指针类型参数；
 "_r" ：引用类型参数；
-"_t" ：不保证以上类型的其它类型参数；
+"_t" ：不包含在以上用法内的其它类型参数；
 "_g" ：泛型类型（模板）参数，可能是元函数；
 "_gi" ：泛型接口（纯虚类模板）参数；
 "_gf" ：泛型函数/仿函数模板参数；
@@ -263,9 +277,9 @@ con 容器（特别是符合 _Con 、 _tSeqCon 或 _tAssocCon 类型或其引用
 使用 YSLib 前需要保证未定义，且之后无法使用，除非使用 #undef 取消定义。
 YSLib 保留宏名以 "YSL" 起始，其基础库使用保留宏名以 "YCL" 起始。
 
-@4.2.3.1 局部保留宏名：
+@4.2.4 局部保留宏名：
 使用 YSLib 前需要保证未定义，但库实现使用 #undef 限制作用域，因此之后可以使用。
-"This" 和 "CThis" 。
+"This" 和 "CThis" 被保留。
 
 @4.3 类型名：
 参见 [Documentation::CommonRules @@4.3] 。
@@ -292,7 +306,7 @@ YSLib 项目的依赖项都是库，其中一部分是不由 YSLib 项目维护�
 关于平台的详细含义参见 [Documentation::ProjectRules @@1.2] 。
 和本机语言实现相关的平台环境可使用经典系统类型名称(canonical system type name) 描述： architecture/vendor/OS/C library 四元组或 architecture/vendor/OS 三元组，除第一项外可能省略。
 使用的实现（参见 @5.2 ）不和平台环境一一对应。一个平台环境可能有多个实现。
-目标平台配置和 YCLib 平台定义文件(@5.2.2.4.1) 中定义的公共平台对应。
+目标平台配置和 YCLib 平台定义文件([Documentation::YCLib @@5.1]) 中定义的公共平台对应。
 
 @5.1.1 配置管理：
 基本配置管理参见 [Documentation::ProjectRules @@2.1]。
@@ -316,8 +330,8 @@ MinGW32 为 DLL 目标追加对应 debug 和 release 的配置 debug_DLL 和 rel
 外部依赖项参见 [Documentation::Dependencies @@1] 。
 ISO C++ 实现定义行为要求满足 [Documentation::Dependencies @@1.1] 。
 除了 ISO C++ 标准库外的非外部依赖项：
-基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx 等，独立于 YFramework 。
-基于 YBase 的平台隔离用库 YCLib(@5.2.2) ，包含于 YFramework 中。
+基于标准库的基础库 YBase([Documentation::YBase]) ，包含基于标准库的平台中立的扩展 YStandardEx 等，独立于 YFramework 。
+基于 YBase 的平台隔离用库 YCLib([Documentation::YCLib]) ，包含于 YFramework 中。
 平台工具链和标准库实现：
 Windows 构建宿主公共环境参见 [Documentation::Dependencies @@1.3] 。
 DS 平台参见 [Documentation::Dependencies @@1.4] 。
@@ -325,66 +339,10 @@ MinGW32 平台参见 [Documentation::Dependencies @@1.5] 。
 Android 平台参见 [Documentation::Dependencies @@1.6] 。
 
 @5.2.1 YBase ：
-参见 [Documentation::YBase] 和 [Documentation::Dependencies @@1.2]。
+参见 [Documentation::YBase] 和 [Documentation::Dependencies @@1.2] 。
 
 @5.2.2 YCLib ：
-YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.4.1 ）。
-YCLib 允许平台中立的接口具有实现定义的行为差异。平台中立的接口的对应实体一般位于 namespace platform 。
-除非另行约定， YCLib 仅保证非成员或静态成员函数的线程安全性。
-除非另行约定，所有不提供无异常抛出保证的接口不直接设置外部库提供的外部状态（如 ISO C 的 errno ）。注意实现间接调用仍然可能设置这些状态。
-除非另行约定，实现可能访问外部库提供的外部状态，且假定这些状态不被并发访问。
-平台定义文件 Platform.h(@5.2.4.4.1) 不直接包含 <ydef.h> 以外的文件。
-
-@5.2.2.1 环境资源占用：
-
-@5.2.2.1.1 DS 计时器：
-build 291 前占用计时器 0 和计时器 1 。
-build 291 起占用计时器 2 。
-占用计时器用于实现计时接口。若用户占用计时器或修改计数，则计时相关接口结果未定义。
-
-@5.2.2.2 实现定义行为：
-
-@5.2.2.2.1 对未说明字符串参数编码的文件操作接口：
-必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.7]) 。
-注意 CHRLib 和 YCLib 相关接口中 UCS-2 在 Win32 下即为 UCS-2LE 。
-DS 直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
-MinGW32 直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
-
-@5.2.2.3 平台 API 使用策略：
-
-@5.2.2.3.1 Win32 API ：
-需要 #undef 消除引起冲突的宏名，尽可能显式使用带后缀的函数（若存在）。
-当存在后缀时，一般尽可能使用 W ，因为大部分情况下 W 后缀为原始版本， A 后缀需要转换间接调用 W 后缀版本。
-但也存在例外，如使用 ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
-不使用被标记为过时的 API 如 IsBadReadPtr 。
-
-@5.2.2.4 平台文件：
-引入平台相关特性。
-
-@5.2.2.4.1 Platform ：
-定义了必要的平台支持。另见 @5.1 。
-对正式支持的独立平台定义 YF_Platform_ 起始的宏。宏 YF_Platform 指示实际的独立平台。
-对正式支持的公共平台定义 YCL_ 起始的宏，保证替换得到的值非零。使用 #if （而不需要 #ifdef ）直接检测这些宏以确定是否支持。
-宏 YF_API 、 YF_BUILD_DLL 和 YF_DLL 相关内容也在此处理，使用参见 [Documentation::YFrmaework @@2.1.1] 。
-
-@5.2.2.4.2 NativeAPI ：
-提供了平台相关的 API 实现。
-
-@5.2.2.5 公共约束：
-命名空间 platform 的成员满足以下约束（具体要求的定义参见 ISO C++11 ）。
-YCLib::Viedo 的 Pixel 满足 EqualityComparable 要求。
-
-@5.2.2.6 命名空间 platform ：
-命名空间 platform 中除以下另行约定外的实体和宏保持各个平台中可用且语义一致。
-
-@5.2.2.6.1 命名空间 platform::KeyCodes
-命名空间 platform::KeyCodes 用于公开输入设备的按键设置。其中的成员的一部分满足平台中立接口。
-具体的按键由可以转换为 platform::KeyIndex 类型的实体标识。
-按键值的数值不大于 platform::KeyBitsetWidth ，用于按键类别（由 platform::KeyCategory 的成员定义）判断，但不作为接口。
-平台支持的按键值使用枚举类型 NativeSet 表示，按键值的数值由具体平台定义，一般不变。
-不由平台直接支持的按键值使用枚举类型 ExtendedSet 表示，按键值的数值由 YCLib 定义，作为 ABI 的一部分，但不保证长期稳定。
-此外，为了兼容提供 constexpr 对象作为按键别名。
-NativeSet 外的按键名都可以兼容以实现平台中立。当前 NativeSet 以 Win32 平台为基准的按键名称都保证兼容，因此平台中立按键名即当前 Win32 实现的按键集合。
+参见 [Documentation::YCLib] 。
 
 @5.3 通用库：
 
@@ -402,7 +360,7 @@ Anti-Grain Geometry 参见 [Documentation::Dependencies @@2.3] 。
 FreeImage 参见 [Documentation::Dependencies @@2.4] 。
 
 @5.5 库基础结构：
-平台设置在 <YCLib/Platform.h>(@5.2.2.4.1) 中。
+平台设置在 YCLib::Platform([Documentation::YCLib @@ 5.1]) 中。
 除了 MinGW32 的平台运行时外，所有外部链接库为静态库。除了 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 中。这样有利于以子库为单位的移植。
 
 @5.6 全局命名空间：
@@ -418,7 +376,7 @@ ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本�
 ytest ：测试框架设施 YTest 。
 
 @5.6.3 YFramework 引入的命名空间：
-参见 [Documentation::YFramework @@2.3.2] 。
+参见 [Documentation::YFramework @@2.3.4] 。
 
 @6 编码风格导引：
 仅叙述之前章节未涉及的内容。
@@ -451,7 +409,7 @@ ytest ：测试框架设施 YTest 。
 指定顺序的段落指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \invariant 、 \return 、 \exception 、 \throw 、 \note 、 \warning 、 \bug 、 \deprecated 、 \relates 、 \sa 、 \see 、 \since  、 \todo 、 \par 。
 对连续的 \tparam 和 \param 指令，相同指令按参数在参数列表中出现的顺序排序；对连续的 \throw 和 \exception 指令，相同指令按异常类型名排序。
 从属的非段落指令如 \code 、 \endcode 、\tt 、 \verbatim 等不限制顺序。
-其它顺序参见 http://drupal.org/node/1354#links 。
+其它顺序参见 https://www.drupal.org/node/1354#order 未和以上规则冲突的部分。
 
 @6.1.5 组(grouping) ：
 仅在必要时使用分组指令。
@@ -473,7 +431,7 @@ ytest ：测试框架设施 YTest 。
 @6.2.3 限定名称：
 在建议 [Documentation::LanguageConvention @@5.3.3.1] 的基础上强制要求全局名称保留前缀 :: 规则。
 全局 operator new/delete 使用前缀 :: 以强调确定使用全局版本（对应非名称的 new/delete 表达式也同样使用）。
-其它一般全局名称的使用总是保留前缀 :: 以便移植。
+SFINAE(@3.3.2) 的需要以外的其它一般全局名称的使用总是保留前缀 :: 以便移植。
 同理，除非另有约定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
 
 @6.2.4 限制使用标识符：

@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r798
+\version r822
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2015-10-11 14:33 +0800
+	2015-11-23 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YCL_INC_Platform_h_
 #define YCL_INC_Platform_h_ 1
 
-#include <ydef.h>
+#include <ydef.h> // for std::uintmax_t, ystdex::byte, ystdex::octet,
+//	ystdex::ptrdiff_t, ystdex::size_t, ystdex::wint_t, ystdex::nullptr_t;
 
 /*!
 \def YF_DLL
@@ -72,12 +73,16 @@
 */
 
 /*!	\defgroup Platforms Platforms
-\brief YSLib 库平台。
+\brief 平台标识和相关接口。
 */
 /*!	\defgroup PlatformAPIs Platform APIs
 \brief 平台 API 支持。
 \note 若未另行约定，仅当定义为非零整数值表示有效。
 \since build 553
+*/
+/*!	\defgroup PlatformEmulation Platforms Emulation
+\brief 平台模拟和相关支持。
+\since build 562
 */
 /*!	\defgroup PlatformOptionalFeatures Platform Optional Features
 \brief 平台可选特性支持。
@@ -114,6 +119,7 @@
 /*!
 \ingroup Platforms
 \brief 目标平台标识。
+\note 替换为整数字面量。
 \note 只保证不同的目标平台值为不同的非零整数。具体值可能随版本不同变动。
 \since build 458
 */
@@ -152,11 +158,23 @@
 #define YF_Platform_MinGW64 0x4112
 
 /*!
+\brief Android 抽象平台。
+\since build 652
+*/
+#define YF_Platform_Android 0x4200
+
+/*!
 \brief Android ARM 平台。
 \note 兼容 API Level 9 。
 \since build 492
 */
 #define YF_Platform_Android_ARM 0x4201
+
+/*!
+\brief Linux 抽象平台。
+\since build 652
+*/
+#define YF_Platform_Linux 0x4300
 
 /*!
 \brief Linux x86 平台。
@@ -383,6 +401,12 @@
 #	define YF_Multithread 0
 #endif
 
+/*!	\defgroup TopLevelPlatformNamespaces Top-level Platform Namespaces
+\brief 顶级平台命名空间。
+\since build 652
+*/
+
+//! \ingroup TopLevelPlatformNamespaces
 namespace platform
 {
 
@@ -411,6 +435,7 @@ using ystdex::nullptr_t;
 
 } // namespace platform;
 
+//! \ingroup TopLevelPlatformNamespaces
 namespace platform_ex
 {
 

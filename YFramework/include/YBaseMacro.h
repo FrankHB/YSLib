@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2733
+\version r2740
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2015-05-24 21:40 +0800
+	2015-11-23 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -330,6 +330,14 @@ _t type
 	{ \
 		return (__VA_ARGS__); \
 	}
+
+/*!
+\brief 自动推断返回类型的传递模板。
+\since build 652
+*/
+#define DefFwdTmplAuto(_n, ...) \
+	DefFwdTmpl(ynoexcept_spec(decltype(__VA_ARGS__)(__VA_ARGS__)) \
+		-> decltype(__VA_ARGS__), auto, _n, __VA_ARGS__)
 
 
 /*!	\defgroup InterfaceTypeMacros Interface Type Macros

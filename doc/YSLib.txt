@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3071
+\version r3095
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-11-12 11:14 +0800
+	2015-11-21 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,13 @@
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
 项目范围参见 [Documentation::ProjectRules @@1] 。
-单独一行“//[”表示引用文本段落起始；单独一行“//]”表示引用文本段落终止。
 本文档适用于 YFramework 子项目中的 YSLib 库。
 
-@1 YSLib 库实现约束、组成和架构：
+@1 约束、组成和架构：
 关于显式外部依赖项规则，参见 [Documentation::YFramework @@2.1] 。
 YSLib 库下直接的子目录计有 Adaptor 、 Core 、 Service 和 UI 。
 
-@1.1 名称、命名空间和源代码一般规则：
+@1.1 名称和源代码一般规则：
 基本规则参见([Documentation::YFramework @@2.3]) 。另见 [Documentation::Designation @@6.3] 。
 注意本体([Documentation::YFramework @@2.1.5]) 相对其它代码有更严格的准则。
 
@@ -44,10 +43,6 @@ YSLib 库下直接的子目录计有 Adaptor 、 Core 、 Service 和 UI 。
 基本规则参见 [Documentation::YFramework @@2.3.1] 。
 除非没有替代实现，在本体内不直接使用 YCL_ 前缀的宏。
 关于宏的使用，另见 @1.4 。
-
-@1.1.2 头文件附加准则：
-禁止在头文件中使用未命名命名空间(unnamed namespace) ，除非其中仅含 inline 函数和模板或需要和每一个翻译单元独立地相关的对象。
-禁止在头文件中使用全局 using 指示，除非是有意的（例如减少别名个数；需在文档中说明）。
 
 @1.1.3 全局名称：
 YSLib 库的根命名空间为 YSLib ，应置于全局命名空间中，即为 ::YSLib 。
@@ -144,17 +139,17 @@ YWindow 依赖 YPanel 、 YRenderer 和 Service::YResource ；
 YDesktop 依赖 YWindow 和 Core::YDevice 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
-@1.3 YSLib 可重入性和线程安全性：
+@1.3 调用安全性：
 一般规则参见 [Documentation::YFramework @@1.4.1.4] 。
-YSLib 的可重入性和线程安全性参见 @2 、 @2.2 、 @3 、 @4 和 @5 。
+可重入性和线程安全性参见 @2 、 @2.2 、 @3 、 @4 和 @5 ，优先于一般规则。
 
 @1.4 预处理附加规则：
 头文件名使用符合规则 [Documentation::YFramework @@2.1.6] 。
-在头文件以及本体的其它文件内，仅允许 <YCLib/Platform.h>([Documentation::Designation @@5.2.2.4.1]) 内定义的名称以 YF_ 起始的宏用于以下上下文的条件编译：
+在头文件以及本体的其它文件内，仅允许 YCLib::Platform([Documentation::YCLib @@5.1]) 内引入的名称以 YF_ 起始的宏用于以下上下文的条件编译：
 用于 #include 指令包含和可选的 ISO C++ 标准库头；
 用于在块作用域内使用上述 ISO C++ 头文件的提供的接口；
 用于在类作用域内作为 private 成员使用上述 ISO C++ 头文件的提供的接口；
-用于其它 yimpl 宏([Documentation::YBase @@2.3.3]) 内部。
+用于其它 yimpl 宏([Documentation::YBase @@2.4.3]) 内部。
 
 @2 YSLib 适配器(Adaptor) ：
 位于 "/Adaptor" 。
@@ -178,21 +173,13 @@ MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定�
 可以用宏 ynew 代替 new/new[] ， ydelete 代替 delete ， ydelete_array 代替 delete[] ，配合 GetDebugMemoryList 检测内存泄露以及重复释放错误；但不适于智能指针，因为未使用 ydelete 和 ydelete_array 。
 YNew 的接口不保证可重入性，暂时不支持线程安全性。
 
-@2.3 引用对象 YReference ：
-在 YReference 中声明智能指针等引用对象类型。
-可包装 Loki 或 std::tr1 指针智能等实现。
-YSLib 早期包装 Loki 指针实现句柄；
-build 208 起包装 ISO C++11 标准库智能指针实现；
-build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
+@2.3 外部库关联：文本接口 YTextBase ：
+包含 CHRLib([Documentation::CHRLib]) 的 CharacterProcessing ，并在 YSLib 命名空间中引入相关名称。
 
-@2.4 YContainer
-包含标准库容器相关的头，并在 YSLib 命名空间 using 引用对应名称。
-包含 CHRLib([Documentation::CHRLib]) 的 CHRDefinition 。
+@2.4 平台无关的字体缓存库 Font ：
+基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
 
-@2.5 YTextBase
-包含 CHRLib([Documentation::CHRLib]) 的 CharacterProcessing 。
-
-@2.6 平台无关的字体缓存库 Font ：
+@2.5 平台中立的图像输入和输出 Image ：
 基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
 
 @3 核心构件：
@@ -217,7 +204,7 @@ Shell 定义 YShell ；
 
 @3.2 平台无关的基础对象 YObject ：
 包括值类型对象 ValueObject 类和相关接口。
-ValueObject 是以 ystdex::any([Documentation::YBase @@2.4.7.5]) 为基础实现的动态泛型值类型([Documentation::YFramework @@3.5.4]) ，增加了比较相等的泛型操作。
+ValueObject 是以 ystdex::any([Documentation::YBase @@2.5.8.5]) 为基础实现的动态泛型值类型([Documentation::YFramework @@3.5.4]) ，增加了比较相等的泛型操作。
 
 @3.3 对象计数器 YCounter
 
@@ -387,6 +374,7 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 
 @4.5 文件系统和文件抽象
 涉及文件系统的同步操作的接口默认异常安全保证同 [Documentation::YBase @@3.3.1] 。
+文件系统相关概念参照 YCLib([Documentation::YCLib @@8]) 。
 
 @4.5.1 平台无关的文件处理系统 FileSystem
 
