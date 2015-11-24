@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2159
+\version r2167
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-11-18 22:54 +0800
+	2015-11-23 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,10 +57,11 @@ Path::Parse(const u16string& str)
 	ystdex::split(str, [&](char16_t c){
 		return PathTraits::IsDelimiter(c);
 	}, [&](u16string::const_iterator b, u16string::const_iterator e){
-		res.push_back(u16string(b, e));
+		if(b != e)
+			res.push_back(u16string(b, e));
 	});
 	// NOTE: Fix first component for absolute path beginning with delimiter.
-	if(!res.empty() && !IsAbsolute(res.front()) && IsAbsolute(str.c_str()))
+	if(!res.empty() && IsRelative(res.front()) && IsAbsolute(str.c_str()))
 		res.insert(res.cbegin(), {{}});
 	return res;
 }
@@ -225,11 +226,9 @@ ClassifyNode(const Path& pth)
 	case ystdex::path_category::parent:
 		break;
 	default:
-		if(ufexists(pth.VerifyAsMBCS().c_str()))
-			return VerifyDirectory(pth)
-				? NodeCategory::Directory : NodeCategory::Regular;
-		else
-			return NodeCategory::Missing;
+		return VerifyDirectory(pth) ? NodeCategory::Directory
+			: (ufexists(String(pth).c_str()) ? NodeCategory::Regular
+			: NodeCategory::Missing);
 	// TODO: Implementation for other categories.
 	}
 	return NodeCategory::Unknown;

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2816
+\version r2836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-11-18 23:46 +0800
+	2015-11-24 09:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,7 @@ public:
 	\since build 409
 	*/
 	explicit
-	DefCvt(const, String, GetString())
+	DefCvt(const, String, GetLeafString())
 	/*!
 	\brief 转换为窄字符串。
 	\since build 411
@@ -199,8 +199,8 @@ public:
 	//! \since build 641
 	//@{
 	//! \brief 取不带分隔符结尾的字符串。
-	PDefH(String, GetLeafString, char16_t delimiter = char16_t(YCL_PATH_DELIMITER))
-		const
+	PDefH(String, GetLeafString,
+		char16_t delimiter = char16_t(YCL_PATH_DELIMITER)) const
 		ImplRet(ystdex::to_string(GetBase(), {delimiter}))
 	/*!
 	\brief 取指定分隔符的字符串表示。
@@ -216,7 +216,11 @@ public:
 	PDefH(void, Normalize, )
 		ImplExpr(ystdex::normalize(*this))
 
-	//! \since build 641
+	/*!
+	\brief 解析字符串为路径。
+	\note 忽略空路径组件。
+	\since build 641
+	*/
 	static ypath
 	Parse(const u16string&);
 
@@ -344,17 +348,17 @@ inline PDefH(bool, IsAbsolute, const Path& pth)
 	ImplRet(!pth.empty() && IsAbsolute(pth.GetString()))
 //@}
 
-//! \brief 判断路径表示相对路径（包括空路径）。
-//@{
-inline PDefH(bool, IsRelative, const char* path)
-	ImplRet(!IsAbsolute(path))
-inline PDefH(bool, IsRelative, const string& path)
-	ImplRet(!IsAbsolute(path))
-inline PDefH(bool, IsRelative, const String& path)
-	ImplRet(!IsAbsolute(path))
-inline PDefH(bool, IsRelative, const Path& pth)
-	ImplRet(!IsAbsolute(pth))
-//@}
+/*!
+\brief 判断路径表示相对路径（包括空路径）。
+\note 使用 ADL \c IsAbsolute 。
+\since build 652
+*/
+template<typename _type>
+inline bool
+IsRelative(const _type& arg)
+{
+	return !IsAbsolute(arg);
+}
 
 /*!
 \brief 根据当前工作目录和指定路径取绝对路径。
@@ -591,6 +595,7 @@ ListFiles(const Path&, vector<String>&);
 /*!
 \brief 按文件系统节点类别对路径分类。
 \since build 410
+\todo 支持目录和常规文件外的其它类别。
 */
 YF_API NodeCategory
 ClassifyNode(const Path&);

@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3663
+\version r3720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2015-11-18 11:35 +0800
+	2015-11-23 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,11 +42,68 @@ namespace platform
 {
 
 /*!
-\brief 异常终止函数。
-\since build 319
+\ingroup Platforms
+\since build 652
 */
-YB_NORETURN YF_API void
-terminate() ynothrow;
+//@{
+//! \brief \c YF_Platform_* 宏替换值的公共类型。
+using ID = std::uintmax_t;
+
+//! \brief \c YF_Platform_* 宏替换值的对应的元类型。
+template<ID _vN>
+using MetaID = ystdex::integral_constant<ID, _vN>;
+
+//! \brief 平台标识的公共标记类型：指定任意平台。
+struct IDTagBase
+{};
+
+//! \brief 宿主平台标识的公共标记类型：指定任意宿主平台。
+struct HostedIDTagBase : virtual IDTagBase
+{};
+
+//! \brief 平台标识的整数标记类型。
+template<ID _vN>
+struct IDTag : virtual IDTagBase, virtual MetaID<_vN>
+{};
+
+//! \brief 指定特定基类类型的 IDTag 特化。
+#define YCL_IDTag_Spec(_n, _base) \
+	template<> \
+	struct IDTag<YF_Platform_##_n> : virtual _base, \
+		virtual MetaID<YF_Platform_##_n> \
+	{};
+
+//! \brief 指定宿主平台的 IDTag 特化。
+#define YCL_IDTag_SpecHost(_n) \
+	YCL_IDTag_Spec(_n, HostedIDTagBase)
+
+//! \brief 指定基于特定平台的 IDTag 特化。
+#define YCL_IDTag_SpecOnBase(_n, _b) \
+	YCL_IDTag_Spec(_n, IDTag<YF_Platform_##_b>)
+
+YCL_IDTag_SpecHost(Win32)
+YCL_IDTag_SpecOnBase(Win64, Win32)
+YCL_IDTag_SpecOnBase(MinGW32, Win32)
+YCL_IDTag_SpecOnBase(MinGW64, Win64)
+YCL_IDTag_SpecHost(Linux)
+YCL_IDTag_SpecOnBase(Linux_x86, Linux)
+YCL_IDTag_SpecOnBase(Linux_x64, Linux)
+YCL_IDTag_SpecOnBase(Android, Linux)
+YCL_IDTag_SpecOnBase(Android_ARM, Android)
+
+//! \brief 取平台标识的整数标记集合类型。
+template<ID... _vN>
+struct IDTagSet : virtual IDTag<_vN>...
+{};
+//@}
+
+/*!
+\ingroup PlatformEmulation
+\brief 定义用于平台模拟的传递模板。
+\since build 652
+*/
+#define YCL_DefPlatformFwdTmpl(_n, _fn) \
+	DefFwdTmplAuto(_n, _fn(platform::IDTag<YF_Platform>(), yforward(args)...))
 
 
 /*!
@@ -61,6 +118,14 @@ terminate() ynothrow;
 	using YCL_CheckDecl_t(_fn) \
 		= decltype(_call(std::declval<_tParams&&>()...));
 //@}
+
+
+/*!
+\brief 异常终止函数。
+\since build 319
+*/
+YB_NORETURN YF_API void
+terminate() ynothrow;
 
 
 /*!

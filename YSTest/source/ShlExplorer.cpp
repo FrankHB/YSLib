@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1490
+\version r1494
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-10-02 18:49 +0800
+	2015-11-19 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,7 +245,7 @@ SwitchScreensButton::SwitchScreensButton(ShlDS& shl, const Point& pt)
 ImplDeDtor(SwitchScreensButton)
 
 
-ShlExplorer::ShlExplorer(const IO::Path& path,
+ShlExplorer::ShlExplorer(const IO::Path& pth,
 	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
 	: ShlDS(h_dsk_up, h_dsk_dn),
 	dynWgts_Main(FetchWidgetLoader(), TU_Explorer_Main),
@@ -348,7 +348,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	root.Background = nullptr,
 	root_sub.Background = nullptr,
 	lblTitle.Text = G_APP_NAME,
-	lblPath.AutoWrapLine = true, lblPath.Text = String(path),
+	lblPath.AutoWrapLine = true, lblPath.Text = pth.Verify(),
 	lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
 // TODO: Show current working directory properly.
 	btnOK.Text = u"确定(A)",
@@ -389,7 +389,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	btnPrevBackground.Text = u"<<",
 	btnNextBackground.Font.SetStyle(FontStyle::Bold),
 	btnNextBackground.Text = u">>",
-	fbMain.SetPath(path),
+	fbMain.SetPath(pth),
 	dsk_s.BoundControlPtr = [&, this](const KeyInput& k)->IWidget*{
 		if(k.count() == 1)
 		{
@@ -411,7 +411,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	},
 	// TODO: Improve UI action when %ViewChanged being called?
 	fbMain.GetSelected() += [&]{
-		lblPath.Text = String(fbMain.GetPath()),
+		lblPath.Text = fbMain.GetPath().Verify(),
 		Invalidate(lblPath),
 		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
 	},

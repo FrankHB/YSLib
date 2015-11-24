@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3070
+\version r3118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-11-18 11:25 +0800
+	2015-11-24 09:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 //	std::min, ystdex::write_uint_le;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include YFM_YCLib_FileIO // for ystdex::throw_error, std::errc::not_supported,
-//	FileOperationFailure, std::strchr, std::wctob, std::towupper, std::min,
+//	FileOperationFailure, Deref, ystdex::str_find, ystdex::ntctslen,
+//	std::strchr, std::wctob, std::towupper, ystdex::restrict_length, std::min,
 //	ystdex::ntctsicmp, std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
@@ -111,14 +112,14 @@ FetchNodeCategoryFromStat(_type& st)
 void
 CreateHardLink(const char* dst, const char* src)
 {
-#if YCL_Win32
+#if YCL_DS
+	yunused(dst), yunused(src);
+	ystdex::throw_error(std::errc::not_supported);
+#elif YCL_Win32
 	using namespace platform_ex;
 
 	CreateHardLink(ucast(UTF8ToWCS(dst).c_str()),
 		ucast(UTF8ToWCS(src).c_str()));
-#elif YCL_DS
-	yunused(dst), yunused(src);
-	ystdex::throw_error(std::errc::not_supported);
 #else
 	if(::link(Nonnull(src), Nonnull(dst)) != 0)
 		ystdex::throw_error(errno);
@@ -127,14 +128,14 @@ CreateHardLink(const char* dst, const char* src)
 void
 CreateHardLink(const char16_t* dst, const char16_t* src)
 {
-	// TODO: To make the behavior specific and same as on platform %Win32, use
-	//	%::realpath on platform %Linux, etc.
-#if YCL_Win32
-	YCL_CallWin32F(CreateHardLinkW, wcast(dst), wcast(src), {});
-#elif YCL_DS
+#if YCL_DS
 	yunused(dst), yunused(src);
 	ystdex::throw_error(std::errc::not_supported);
+#elif YCL_Win32
+	YCL_CallWin32F(CreateHardLinkW, wcast(dst), wcast(src), {});
 #else
+	// TODO: To make the behavior specific and same as on platform %Win32, use
+	//	%::realpath on platform %Linux, etc.
 	CreateHardLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str());
 #endif
 }
@@ -336,36 +337,28 @@ HDirectory::GetNativeName() const ynothrow
 
 
 bool
-IsAbsolute(const char* path)
+IsAbsolute_P(IDTag<YF_Platform_DS>, const char* path) ynothrowv
 {
-#if YCL_Win32
-	return Deref(path) == YCL_PATH_DELIMITER
-		|| (*path != char() && path[1] == ':');
-#else
-	if(Deref(path) == '/')
-		return true;
-
-	const auto p(std::strstr(path, ":/"));
-
-	return p && p != path && !std::strstr(p, ":/");
-#endif
+	return Deref(path) == '/' || std::strstr(path, ":/");
 }
 bool
-IsAbsolute(const char16_t* path)
+IsAbsolute_P(IDTag<YF_Platform_DS>, const char16_t* path) ynothrowv
 {
-#if YCL_Win32
-	return Deref(path) == u'\\' || (*path != char16_t() && path[1] == u':');
-#else
-	if(Deref(path) == u'/')
-		return true;
-
-	const u16string upath(path);
-	const auto n(upath.find(u":/"));
-
-	// TODO: Optimize for performance.
-	return n != u16string::npos && n != 0
-		&& upath.substr(n).find(u":/") == u16string::npos;
-#endif
+	// TODO: Simplify NTCTS finding further.
+	return Deref(path) == u'/' || ystdex::str_find(path, ystdex::ntctslen(path),
+		u":/", size_t(0), size_t(2));
+}
+bool
+IsAbsolute_P(IDTag<YF_Platform_Win32>, const char* path) ynothrowv
+{
+	return Deref(path) == YCL_PATH_DELIMITER
+		|| (*path != char() && path[1] == ':');
+}
+bool
+IsAbsolute_P(IDTag<YF_Platform_Win32>, const char16_t* path) ynothrowv
+{
+	return Deref(path) == char16_t(YCL_PATH_DELIMITER)
+		|| (*path != char16_t() && path[1] == u':');
 }
 
 size_t

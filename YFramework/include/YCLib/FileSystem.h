@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2563
+\version r2584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-11-18 10:39 +0800
+	2015-11-23 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@
 #endif
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 #include <ctime> // for std::time_t;
-#include YFM_YCLib_Debug // for Nonnull;
+#include YFM_YCLib_Debug // for Nonnull, Deref;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le;
 
 namespace platform
@@ -399,14 +399,29 @@ using FileIterator = ystdex::indirect_input_iterator<HDirectory*>;
 /*!
 \brief 判断指定路径字符串是否表示一个绝对路径。
 \pre 间接断言：参数非空。
+\note 空路径不是绝对路径。
+\since build 652
 */
 //@{
-//! \since build 412
-YF_API YB_NONNULL(1) bool
-IsAbsolute(const char*);
-//! \since build 559
-YF_API YB_NONNULL(1) bool
-IsAbsolute(const char16_t*);
+YF_API YB_NONNULL(2) bool
+IsAbsolute_P(IDTag<YF_Platform_DS>, const char*) ynothrowv;
+YF_API YB_NONNULL(2) bool
+IsAbsolute_P(IDTag<YF_Platform_DS>, const char16_t*) ynothrowv;
+YF_API YB_NONNULL(2) bool
+IsAbsolute_P(IDTag<YF_Platform_Win32>, const char*) ynothrowv;
+YF_API YB_NONNULL(2) bool
+IsAbsolute_P(IDTag<YF_Platform_Win32>, const char16_t*) ynothrowv;
+//! \bug 非 POSIX 文件路径可能不适用。
+//@{
+inline YB_NONNULL(2) PDefH(bool, IsAbsolute_P, IDTagBase, const char* path)
+	ynothrowv
+	ImplRet(Deref(path) == '/')
+inline YB_NONNULL(2) PDefH(bool, IsAbsolute_P, IDTagBase, const char16_t* path)
+	ynothrowv
+	ImplRet(Deref(path) == u'/')
+//@}
+
+YCL_DefPlatformFwdTmpl(IsAbsolute, IsAbsolute_P)
 //@}
 
 /*!
