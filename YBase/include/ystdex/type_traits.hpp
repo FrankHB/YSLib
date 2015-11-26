@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r766
+\version r787
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2015-11-10 02:17 +0800
+	2015-11-10 13:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -385,13 +385,36 @@ using bool_constant = integral_constant<bool, _b>;
 //@{
 //! \brief 表达式 SFINAE 别名模板。
 //@{
+//! \since build 653
+template<typename _type>
+struct always
+{
+private:
+	template<typename...>
+	struct impl
+	{
+		using type = _type;
+	};
+
+public:
+	template<typename... _types>
+	using apply = impl<_types...>;
+};
+
 /*!
 \see WG21/N3911 。
 \see WG21/N4296 20.10.2[meta.type.synop] 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
+\see http://wg21.cmeerw.net/cwg/issue1558 。
 \since build 591
 */
+#if YB_IMPL_GNUCPP >= 50000
 template<typename...>
 using void_t = void;
+#else
+template<typename... _types>
+using void_t = _t<always<void>::template apply<_types...>>;
+#endif
 
 /*!
 \sa enable_if_t

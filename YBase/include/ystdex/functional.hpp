@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2659
+\version r2671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-11-16 18:23 +0800
+	2015-11-24 15:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -576,8 +576,9 @@ using id_func_rr_t = id_func_t<_type, _vN, _type&&>;
 /*!
 \brief 复合调用 std::bind 和 std::placeholders::_1 。
 \note ISO C++ 要求 std::placeholders::_1 被实现支持。
-\since build 628
 */
+//@{
+//! \since build 628
 template<typename _func, typename... _tParams>
 inline auto
 bind1(_func&& f, _tParams&&... args) -> decltype(
@@ -585,6 +586,15 @@ bind1(_func&& f, _tParams&&... args) -> decltype(
 {
 	return std::bind(yforward(f), std::placeholders::_1, yforward(args)...);
 }
+//! \since build 653
+template<typename _tRes, typename _func, typename... _tParams>
+inline auto
+bind1(_func&& f, _tParams&&... args) -> decltype(
+	std::bind<_tRes>(yforward(f), std::placeholders::_1, yforward(args)...))
+{
+	return std::bind<_tRes>(yforward(f), std::placeholders::_1, yforward(args)...);
+}
+//@}
 
 /*!
 \brief 复合调用 ystdex::bind1 和 std::placeholders::_2 以实现值的设置。

@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2368
+\version r2508
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-10-06 11:03 +0800
+	2015-11-26 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "type_pun.hpp" // for or_, is_same, enable_if_t, not_,
 //	is_trivially_replaceable, cond_t, replace_cast, enable_if_replaceable_t;
-#include <cstring> // for std::strlen, std::strcpy, std::memchr, std::strncpy;
+#include <cstring> // for std::strlen, std::strcpy, std::strncpy;
 #include <string> // for std::char_traits;
 #include "cassert.h" // for yconstraint;
 #include "cctype.h" // for ystdex::tolower;
@@ -118,13 +118,12 @@ using uchar_t = cond_t<is_trivially_replaceable<wchar_t, char16_t>, char16_t,
 //@}
 
 
-/*!
-\brief 使用 <tt>std::char_traits::eq</tt> 判断是否为空字符。
-\since build 329
-*/
+//! \since build 653
+//@{
+//! \brief 使用 <tt>std::char_traits::eq</tt> 判断是否为空字符。
 template<typename _tChar>
 yconstfn YB_STATELESS bool
-is_null(_tChar c)
+is_null(_tChar c) ynothrow
 {
 	return std::char_traits<_tChar>::eq(c, _tChar());
 }
@@ -140,14 +139,12 @@ is_null(_tChar c)
 //@{
 //! \pre 断言： <tt>s1 && s2</tt> 。
 //@{
-//! \since build 640
-//@{
 //! \brief 按字典序比较简单 NTCTS 。
 //@{
 //! \note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
 template<typename _tChar>
 YB_NONNULL(1, 2) YB_PURE int
-ntctscmp(const _tChar* s1, const _tChar* s2)
+ntctscmp(const _tChar* s1, const _tChar* s2) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
@@ -161,7 +158,7 @@ ntctscmp(const _tChar* s1, const _tChar* s2)
 //! \note 语义同 std::basic_string<_tChar>::compare 。
 template<typename _tChar>
 YB_NONNULL(1, 2) YB_PURE int
-ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
+ntctscmp(const _tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	return yconstraint(s1), yconstraint(s2),
 		std::char_traits<_tChar>::compare(s1, s2, n);
@@ -175,7 +172,7 @@ ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 */
 template<typename _tChar>
 YB_NONNULL(1, 2) YB_PURE int
-ntctsicmp(const _tChar* s1, const _tChar* s2)
+ntctsicmp(const _tChar* s1, const _tChar* s2) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
@@ -195,7 +192,7 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 */
 template<typename _tChar>
 YB_NONNULL(1, 2) YB_PURE int
-ntctsicmp(const _tChar* s1, const _tChar* s2, size_t n)
+ntctsicmp(const _tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
@@ -209,19 +206,14 @@ ntctsicmp(const _tChar* s1, const _tChar* s2, size_t n)
 		yunseq(++s1, ++s2);
 	return int(d);
 }
-//@}
 
 //! \pre 复制的 NTCTS 存储不重叠。
 //@{
-/*!
-\brief 复制 NTCTS 。
-\since build 604
-*/
+//! \brief 复制 NTCTS 。
 //@{
-//! \since build 641
 template<typename _tChar>
 YB_NONNULL(1, 2) yimpl(enable_if_irreplaceable_char_t<_tChar, _tChar*>)
-ntctscpy(_tChar* s1, const _tChar* s2)
+ntctscpy(_tChar* s1, const _tChar* s2) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
@@ -233,58 +225,48 @@ ntctscpy(_tChar* s1, const _tChar* s2)
 	return res;
 }
 inline YB_NONNULL(1, 2) char*
-ntctscpy(char* s1, const char* s2)
+ntctscpy(char* s1, const char* s2) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
-
 	return std::strcpy(s1, s2);
 }
 inline YB_NONNULL(1, 2) wchar_t*
-ntctscpy(wchar_t* s1, const wchar_t* s2)
+ntctscpy(wchar_t* s1, const wchar_t* s2) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
-
 	return std::wcscpy(s1, s2);
 }
-//! \since build 630
 inline YB_NONNULL(1, 2) wchar_t*
-ntctscpy(uchar_t* s1, const uchar_t* s2)
+ntctscpy(uchar_t* s1, const uchar_t* s2) ynothrowv
 {
 	return ntctscpy(replace_cast<wchar_t*>(s1),
 		replace_cast<const wchar_t*>(s2));
 }
-//! \since build 641
-//@{
 template<typename _tChar,
 	yimpl(typename = enable_if_replaceable_t<_tChar, char>)>
 inline YB_NONNULL(1, 2) _tChar*
-ntctscpy(_tChar* s1, const _tChar* s2)
+ntctscpy(_tChar* s1, const _tChar* s2) ynothrowv
 {
 	return ystdex::replace_cast<_tChar*>(ystdex::ntctscpy(ystdex::replace_cast<
 		char*>(s1), ystdex::replace_cast<const char*>(s2)));
 }
 template<typename _tChar>
 inline YB_NONNULL(1, 2) yimpl(enable_if_replaceable_t)<_tChar, wchar_t, _tChar*>
-ntctscpy(_tChar* s1, const _tChar* s2)
+ntctscpy(_tChar* s1, const _tChar* s2) ynothrowv
 {
 	return ystdex::replace_cast<_tChar*>(ystdex::ntctscpy(ystdex::replace_cast<
 		wchar_t*>(s1), ystdex::replace_cast<const wchar_t*>(s2)));
 }
 //@}
-//@}
-/*!
-\brief 复制确定源长度的 NTCTS 。
-\since build 329
-*/
+//! \brief 复制确定源长度的 NTCTS 。
 template<typename _tChar>
 YB_NONNULL(1, 2) _tChar*
-ntctscpy(_tChar* s1, const _tChar* s2, size_t n)
+ntctscpy(_tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
-
 	return yunseq(std::char_traits<_tChar>::copy(s1, s2, n), s1[n] = _tChar());
 }
 
@@ -292,12 +274,11 @@ ntctscpy(_tChar* s1, const _tChar* s2, size_t n)
 \brief 复制不超过指定长度的 NTCTS 。
 \note 目标字符串短于指定长度的部分会被填充空字符。
 \warning 源字符串在指定长度内没有空字符则目标字符串不以空字符结尾。
-\since build 604
 */
 //@{
 template<typename _tChar>
 YB_NONNULL(1, 2) yimpl(enable_if_irreplaceable_char_t<_tChar, _tChar*>)
-ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
+ntctsncpy(_tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
@@ -315,61 +296,53 @@ ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
 	return res;
 }
 inline YB_NONNULL(1, 2) char*
-ntctsncpy(char* s1, const char* s2, size_t n)
+ntctsncpy(char* s1, const char* s2, size_t n) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
-
 	return std::strncpy(s1, s2, n);
 }
 inline YB_NONNULL(1, 2) wchar_t*
-ntctsncpy(wchar_t* s1, const wchar_t* s2, size_t n)
+ntctsncpy(wchar_t* s1, const wchar_t* s2, size_t n) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
-
 	return std::wcsncpy(s1, s2, n);
 }
-//! \since build 630
 inline YB_NONNULL(1, 2) wchar_t*
-ntctsncpy(uchar_t* s1, const uchar_t* s2, size_t n)
+ntctsncpy(uchar_t* s1, const uchar_t* s2, size_t n) ynothrowv
 {
 	return ntctsncpy(replace_cast<wchar_t*>(s1),
 		replace_cast<const wchar_t*>(s2), n);
 }
-//! \since build 610
-//@{
 template<typename _tChar,
 	yimpl(typename = enable_if_replaceable_t<_tChar, char>)>
 inline YB_NONNULL(1, 2) _tChar*
-ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
+ntctsncpy(_tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	return ystdex::replace_cast<_tChar*>(ystdex::ntctsncpy(ystdex::replace_cast<
 		char*>(s1), ystdex::replace_cast<const char*>(s2), n));
 }
 template<typename _tChar>
 inline YB_NONNULL(1, 2) yimpl(enable_if_replaceable_t)<_tChar, wchar_t, _tChar*>
-ntctsncpy(_tChar* s1, const _tChar* s2, size_t n)
+ntctsncpy(_tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	return ystdex::replace_cast<_tChar*>(ystdex::ntctsncpy(ystdex::replace_cast<
 		wchar_t*>(s1), ystdex::replace_cast<const wchar_t*>(s2), n));
 }
 //@}
 //@}
-//@}
 
 /*!
 \brief 转移 NTCTS 。
 \note 复制可能重叠的 NTCTS 存储。
-\since build 641
 */
 template<typename _tChar>
 YB_NONNULL(1, 2) _tChar*
-ntctsmove(_tChar* s1, const _tChar* s2, size_t n)
+ntctsmove(_tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	yconstraint(s1),
 	yconstraint(s2);
-
 	return yunseq(std::char_traits<_tChar>::move(s1, s2, n), s1[n] = _tChar());
 }
 //@}
@@ -377,14 +350,65 @@ ntctsmove(_tChar* s1, const _tChar* s2, size_t n)
 //! \pre 断言： \c s 。
 //@{
 /*!
+\brief 在简单 NTCTS 内查找字符。
+\return 若未找到为空指针值，否则为指向首个查找到的字符的指针值。
+*/
+//@{
+template<typename _tChar>
+YB_NONNULL(1) YB_PURE _tChar*
+ntctschr(_tChar* s, remove_const_t<_tChar> c) ynothrowv
+{
+	yconstraint(s);
+	for(auto p(s); !ystdex::is_null(*p); ++p)
+		if(*p == c)
+			return p;
+	return {};
+}
+inline YB_NONNULL(1) YB_PURE char*
+ntctschr(char* s, char c) ynothrowv
+{
+	yconstraint(s);
+	return std::strchr(s, c);
+}
+inline YB_NONNULL(1) YB_PURE const char*
+ntctschr(const char* s, char c) ynothrowv
+{
+	yconstraint(s);
+	return std::strchr(s, c);
+}
+inline YB_NONNULL(1) YB_PURE wchar_t*
+ntctschr(wchar_t* s, wchar_t c) ynothrowv
+{
+	yconstraint(s);
+	return std::wcschr(s, c);
+}
+inline YB_NONNULL(1) YB_PURE const wchar_t*
+ntctschr(const wchar_t* s, wchar_t c) ynothrowv
+{
+	yconstraint(s);
+	return std::wcschr(s, c);
+}
+inline YB_NONNULL(1) YB_PURE uchar_t*
+ntctschr(uchar_t* s, uchar_t c) ynothrowv
+{
+	return replace_cast<uchar_t*>(
+		ntctschr(replace_cast<wchar_t*>(s), wchar_t(c)));
+}
+inline YB_NONNULL(1) YB_PURE const uchar_t*
+ntctschr(const uchar_t* s, uchar_t c) ynothrowv
+{
+	return replace_cast<const uchar_t*>(
+		ntctschr(replace_cast<const wchar_t*>(s), wchar_t(c)));
+}
+//@}
+/*!
 \brief 在简单 NTCTS 的指定前若干字符内查找字符。
 \pre <tt>[s, s + n)</tt> 有效。
 \note 语义同 std::char_traits<_tChar>::find 。
-\since build 641
 */
 template<typename _tChar>
 inline YB_NONNULL(1) YB_PURE size_t
-ntctschr(const _tChar* s, size_t n, _tChar c)
+ntctsfind(const _tChar* s, size_t n, _tChar c) ynothrowv
 {
 	return yconstraint(s), std::char_traits<_tChar>::find(s, n, c);
 }
@@ -392,25 +416,19 @@ ntctschr(const _tChar* s, size_t n, _tChar c)
 /*!
 \brief 计算简单 NTCTS 长度。
 \note 语义同 std::char_traits<_tChar>::length 。
-\since build 329
 */
 template<typename _tChar>
 inline YB_NONNULL(1) YB_PURE size_t
-ntctslen(const _tChar* s)
+ntctslen(const _tChar* s) ynothrowv
 {
 	return yconstraint(s), std::char_traits<_tChar>::length(s);
 }
-/*!
-\brief 计算不超过指定长度的简单 NTCTS 长度。
-\since build 641
-*/
+//! \brief 计算不超过指定长度的简单 NTCTS 长度。
 template<typename _tChar>
 inline YB_NONNULL(1) YB_PURE size_t
-ntctslen(const _tChar* s, size_t n)
+ntctslen(const _tChar* s, size_t n) ynothrowv
 {
-	const auto p(ystdex::ntctschr(s, n, _tChar()));
-
-	return p ? p - s : n;
+	return ystdex::ntctsfind(s, n, _tChar());
 }
 //@}
 //@}
@@ -421,22 +439,18 @@ ntctslen(const _tChar* s, size_t n)
 /*!
 \brief 计算简单 NTCTS 长度。
 \note 语义同 std::char_traits<_tChar>::length 。
-\since build 329
 */
 template<typename _tChar>
 yconstfn YB_NONNULL(1) YB_PURE size_t
-const_ntctslen(const _tChar* s)
+const_ntctslen(const _tChar* s) ynothrowv
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctslen(s + 1) + 1;
 }
 
-/*!
-\brief 计算简单 NTCTS 中的指定字符数。
-\since build 329
-*/
+//! \brief 计算简单 NTCTS 中的指定字符数。
 template<typename _tChar>
 yconstfn YB_NONNULL(1) YB_PURE size_t
-const_ntctscnt(const _tChar* s, _tChar c)
+const_ntctscnt(const _tChar* s, _tChar c) ynothrowv
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctscnt(s + 1, c)
 		+ std::char_traits<_tChar>::eq(*s, c);
@@ -445,11 +459,10 @@ const_ntctscnt(const _tChar* s, _tChar c)
 /*!
 \brief 比较简单 NTCTS 。
 \note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
-\since build 329
 */
 template<typename _tChar>
 yconstfn YB_NONNULL(1, 2) YB_PURE typename std::char_traits<_tChar>::int_type
-const_ntctscmp(const _tChar* s1, const _tChar* s2)
+const_ntctscmp(const _tChar* s1, const _tChar* s2) ynothrowv
 {
 	return !std::char_traits<_tChar>::eq(*s1, *s2) || ystdex::is_null(*s1)
 		|| ystdex::is_null(*s2) ? *s1 - *s2
@@ -458,11 +471,10 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2)
 /*!
 \brief 比较不超过指定长度的简单 NTCTS 。
 \note 语义同 std::basic_string<_tChar>::compare 。
-\since build 329
 */
 template<typename _tChar>
 yconstfn YB_NONNULL(1, 2) YB_PURE typename std::char_traits<_tChar>::int_type
-const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
+const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n) ynothrowv
 {
 	return n == 0 ? _tChar() : (!std::char_traits<_tChar>::eq(*s1, *s2)
 		|| ystdex::is_null(*s1) || ystdex::is_null(*s2) ? *s1 - *s2
@@ -472,53 +484,48 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 /*!
 \brief 在简单 NTCTS 中顺序查找指定字符。
 \return 在查找结束时经过的字符数。
-\since build 329
 */
 template<typename _tChar>
 yconstfn YB_NONNULL(1) YB_PURE size_t
-const_ntctschr(const _tChar* s, _tChar c)
+const_ntctsfind(const _tChar* s, _tChar c) ynothrowv
 {
 	return ystdex::is_null(*s) || std::char_traits<_tChar>::eq(*s, c)
-		? 0 : ystdex::const_ntctschr(s + 1, c) + 1;
+		? 0 : ystdex::const_ntctsfind(s + 1, c) + 1;
 }
-
 /*!
 \brief 在简单 NTCTS 中顺序查找第指定次数出现的指定字符。
 \return 在查找结束时经过的字符数。
-\since build 329
 */
 template<typename _tChar>
 yconstfn YB_NONNULL(1) YB_PURE size_t
-const_ntctschrn(const _tChar* s, _tChar c, size_t n)
+const_ntctsfind(const _tChar* s, _tChar c, size_t n) ynothrowv
 {
 	return n == 0 || ystdex::is_null(*s) ? 0 : (std::char_traits<_tChar>
-		::eq(*s, c) ? ystdex::const_ntctschrn(s + 1, c, n - 1) + (n != 1)
-		: ystdex::const_ntctschrn(s + 1, c, n) + 1);
+		::eq(*s, c) ? ystdex::const_ntctsfind(s + 1, c, n - 1) + (n != 1)
+		: ystdex::const_ntctsfind(s + 1, c, n) + 1);
 }
-
 /*!
 \brief 在简单 NTCTS 中顺序查找作为子串的指定 NTCTS 。
 \return 在查找结束时经过的字符数。
-\since build 329
 */
 template<typename _tChar>
 yconstfn YB_NONNULL(1) YB_PURE size_t
-const_ntctsstr(const _tChar* s1, const _tChar* s2)
+const_ntctsfind(const _tChar* s1, const _tChar* s2) ynothrowv
 {
 	return ystdex::is_null(*s1) ? 0 : (ystdex::const_ntctscmp(s1, s2,
 		ystdex::const_ntctslen(s2)) == _tChar()? 0
-		: ystdex::const_ntctsstr(s1 + 1, s2) + 1);
+		: ystdex::const_ntctsfind(s1 + 1, s2) + 1);
 }
 //@}
 //@}
 
 
-//! \since build 640
+//! \brief 查找字符或子串。
 //@{
 template<typename _tChar, typename _tSize,
 	class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
-str_find(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrow
+str_find(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrowv
 {
 	yconstraint(p || sz == 0);
 	if(pos < sz)
@@ -530,7 +537,7 @@ template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
 str_find(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos, _tSize n)
-	ynothrow
+	ynothrowv
 {
 	yconstraint((p || sz == 0) && (s || n == 0));
 	if(n == 0)
@@ -546,7 +553,7 @@ str_find(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos, _tSize n)
 template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
-str_rfind(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrow
+str_rfind(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrowv
 {
 	yconstraint(p || sz == 0);
 	if(0 < sz)
@@ -563,7 +570,7 @@ template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
 str_rfind(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos, _tSize n)
-	ynothrow
+	ynothrowv
 {
 	yconstraint((p || sz == 0) && (s || n == 0));
 	if(n <= sz)
@@ -581,7 +588,7 @@ template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
 str_find_first_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
-	_tSize n) ynothrow
+	_tSize n) ynothrowv
 {
 	yconstraint((p || sz == 0) && (s || n == 0));
 	if(n != 0)
@@ -597,7 +604,7 @@ template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
 str_find_last_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
-	_tSize n) ynothrow
+	_tSize n) ynothrowv
 {
 	yconstraint((p || sz == 0) && (s || n == 0));
 	if(sz != 0 && n != 0)
@@ -615,7 +622,8 @@ str_find_last_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
 template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
-str_find_first_not_of(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrow
+str_find_first_not_of(const _tChar* p, _tSize sz, _tChar c, _tSize pos)
+	ynothrowv
 {
 	yconstraint(p || sz == 0);
 	for(; pos < sz; ++pos)
@@ -627,7 +635,7 @@ template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
 str_find_first_not_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
-	_tSize n) ynothrow
+	_tSize n) ynothrowv
 {
 	yconstraint((p || sz == 0) && (s || n == 0));
 	for(; pos < sz; ++pos)
@@ -639,7 +647,7 @@ str_find_first_not_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
 template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
-str_find_last_not_of(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrow
+str_find_last_not_of(const _tChar* p, _tSize sz, _tChar c, _tSize pos) ynothrowv
 {
 	yconstraint(p || sz == 0);
 	if(sz != 0)
@@ -657,7 +665,7 @@ template<typename _tChar, typename _tSize,
 class _tTraits = std::char_traits<_tChar>, _tSize _vNPos = _tSize(-1)>
 yconstfn_relaxed _tSize
 str_find_last_not_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
-	_tSize n) ynothrow
+	_tSize n) ynothrowv
 {
 	yconstraint((p || sz == 0) && (s || n == 0));
 	if(sz != 0)
@@ -671,6 +679,7 @@ str_find_last_not_of(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos,
 	}
 	return _vNPos;
 }
+//@}
 //@}
 
 } // namespace ystdex;
