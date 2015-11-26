@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3118
+\version r3186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-11-24 09:35 +0800
+	2015-11-26 08:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,10 +76,10 @@ using namespace CHRLib;
 namespace platform
 {
 
-#if !YCL_Win32
 namespace
 {
 
+#if !YCL_Win32
 //! \since build 560
 template<typename _type>
 NodeCategory
@@ -104,9 +104,56 @@ FetchNodeCategoryFromStat(_type& st)
 		res |= NodeCategory::Socket;
 	return res;
 }
+#endif
+
+//! \since build 653
+//@{
+template<typename _tChar>
+size_t
+FetchRootNameLength_P_DS(const _tChar* path) ynothrowv
+{
+	if(auto p = ystdex::ntctschr(Nonnull(path), _tChar(':')))
+	{
+		++p;
+		return size_t(p - path) + size_t(*p == _tChar('/'));
+	}
+	return 0;
+}
+template<typename _tChar>
+size_t
+FetchRootNameLength_P_DS(const basic_string_view<_tChar> path) ynothrowv
+{
+	const auto n(path.find(_tChar(':')));
+
+	return n != basic_string_view<_tChar>::npos ? n + size_t(path.length() > n
+		&& path[n + 1] == _tChar('/')) : 0;
+}
+
+template<typename _tChar>
+size_t
+FetchRootNameLength_P_Win32(const _tChar* path) ynothrowv
+{
+	if(Deref(path) != _tChar() && path[1] == _tChar(':'))
+	{
+		if(path[2] == _tChar())
+			return 2;
+		if(YCL_FS_CharIsDelimiter(path[2], _tChar))
+			return 3;
+	}
+	return 0;
+}
+template<typename _tChar>
+size_t
+FetchRootNameLength_P_Win32(const basic_string_view<_tChar> path) ynothrowv
+{
+	const auto l(path.length());
+
+	return l >= 2 && path[1] == _tChar(':')
+		? (l > 2 && YCL_FS_CharIsDelimiter(path[2], _tChar) ? 3 : 2) : 0;
+}
+//@}
 
 } // unnamed namespace;
-#endif
 
 
 void
@@ -339,36 +386,44 @@ HDirectory::GetNativeName() const ynothrow
 bool
 IsAbsolute_P(IDTag<YF_Platform_DS>, const char* path) ynothrowv
 {
-	return Deref(path) == '/' || std::strstr(path, ":/");
+	return Deref(path) == '/' || ystdex::ntctschr(path, ':');
 }
 bool
 IsAbsolute_P(IDTag<YF_Platform_DS>, const char16_t* path) ynothrowv
 {
-	// TODO: Simplify NTCTS finding further.
-	return Deref(path) == u'/' || ystdex::str_find(path, ystdex::ntctslen(path),
-		u":/", size_t(0), size_t(2));
+	return Deref(path) == u'/' || ystdex::ntctschr(path, u':');
 }
 bool
 IsAbsolute_P(IDTag<YF_Platform_Win32>, const char* path) ynothrowv
 {
 	return Deref(path) == YCL_PATH_DELIMITER
-		|| (*path != char() && path[1] == ':');
+		|| (*path != char() && *++path == ':');
 }
 bool
 IsAbsolute_P(IDTag<YF_Platform_Win32>, const char16_t* path) ynothrowv
 {
 	return Deref(path) == char16_t(YCL_PATH_DELIMITER)
-		|| (*path != char16_t() && path[1] == u':');
+		|| (*path != char16_t() && *++path == u':');
 }
 
-size_t
-GetRootNameLength(const char* path)
-{
-	const char* p(std::strchr(Nonnull(path), ':'));
 
-	return !p ? 0 : size_t(p - path + 1);
-}
+#define YCL_Impl_FetchRootNameLength_P(_p, _s) \
+	size_t \
+	FetchRootNameLength_P(IDTag<YF_Platform_##_p>, _s path) ynothrowv \
+	{ \
+		return FetchRootNameLength_P_##_p(path); \
+	}
+#define YCL_Impl_FetchRootNameLength_P_P(_p) \
+	YCL_Impl_FetchRootNameLength_P(_p, const char*) \
+	YCL_Impl_FetchRootNameLength_P(_p, const char16_t*) \
+	YCL_Impl_FetchRootNameLength_P(_p, string_view) \
+	YCL_Impl_FetchRootNameLength_P(_p, u16string_view)
 
+YCL_Impl_FetchRootNameLength_P_P(DS)
+YCL_Impl_FetchRootNameLength_P_P(Win32)
+
+#undef YCL_Impl_FetchRootNameLength_P_P
+#undef YCL_Impl_FetchRootNameLength_P
 
 namespace FAT
 {

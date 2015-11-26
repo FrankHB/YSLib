@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2580
+\version r2582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-11-06 13:39 +0800
+	2015-11-06 14:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -348,8 +348,8 @@ using member_target_type_t = _t<details::member_target_type_impl<_type>>;
 \since build 562
 */
 template<typename _type, typename... _types>
-using common_nonvoid_t
-	= cond_t<is_void<_type>, vdefer<common_type_t, _types...>, _type>;
+using common_nonvoid_t = _t<cond_t<is_void<_type>,
+	vdefer<common_type_t, _types...>, identity<_type>>>;
 
 /*!
 \brief 取公共底层类型。

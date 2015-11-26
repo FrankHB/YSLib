@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r6033
+\version r6114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-11-24 09:41 +0800
+	2015-11-24 10:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,81 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "function template %bind1 with result type parameter support"
+			@ %Functional,
+		/ %CString $=
+		(
+			+ 'ynothrow' @ "function template %is_null",
+			+ 'ynothrowv' @ "all function templates and inline functions \
+				%(ntctscmp, ntctsicmp, ntctscpy, ntctsncpy, ntctsmove, \
+				ntctschr, ntctslen, const_ntctslen, const_ntctscnt, \
+				const_ntctscmp)",
+				// Since there are pointers as parameters. Note that ISO C++ \
+					[res.on.exception.handling]/3 guarantees no exceptions \
+					thrown by C standard library routines without \
+					user-provided callbacks.
+			/ 'ynothrow' @ "all 10 function templates '*str_find_*'"
+				-> 'ynothrowv',
+				// Since there are pointers as parameters.
+			(
+			/ "function template %ntctschr" -> "%ntctsfind";
+			+ "(functions, function template) %ntctschr for strings without \
+				specifying a lenghth parameter",
+			* "%ntctslen with 2 parameters" $since b641
+			),
+			/ "function templates %(ntctschr, ntctschrn, ntctsstr)"
+				-> "%ntctsfind"
+		),
+		/ %TypeTraits $=
+		(
+			+ "metafunction %always";
+			/ $impl "%void_t" @ !'YB_IMPL_GNUCPP >= 50000' ^ "%always"
+		),
+		(
+		* $impl "metafunction %common_nonvoid_t" @ %TypeOperation $since b650;
+		* $comp "ill-formed when 'void' specified for deducing common type"
+			@ "%common_array_t; make_array; forward_as_array, cast_array)"
+			@ %Array $since b650
+		),
+		* $comp "hard errors for SFINAE causing build to fail" @ ("detectors"
+			@ %TypeTraits, "metafunction %vdefer" @ %Tuple;
+			"metafunction %common_nonvoid_t" @ %TypeOperation,
+			"metafunctions %(has_nested_allocator, nested_allocator)" @ %Memory)
+			$since b650 $dep_from ("%void_t" @ %TypeTraits) $dep_to "void_t alias"
+	),
+	/ %YReader.ShlReader $=
+	(
+		* "wrong implementation caused recursive painting and assertion failure"
+			@ "member function %TextInfoBox::Refresh" $since b650,
+		/ DLDI "member function %ShlReader::Exit"
+	),
+	/ %YFramework $=
+	(
+		* $comp "failed to build" @ "platform %DS" @ %'YCLib(DS)'.DSIO $dep_from
+			%YBase.YStandard.(Memory, TypeOperation) $since b650,
+		/ %YCLib.FileSystem $=
+		(
+			/ @ "function template %IsAbsolute_P for platform %DS" ^ $dep_from
+				("%ystdex::ststr" @ %YBase.YStandardEx.CString) $=
+			(
+				* "absolute path without trailing '/' not recognized" $orig
+					(@ "%IsAbsolute" @ "%platform %DS" $since b152);
+				* "'/fat:' formatted as relative string result" @ "platform %DS"
+					$since b652	
+			),
+			/ "function %GetRootNameLength" -> "(8 functions, 2 function \
+				templates) %FetchRootNameLength_P; function template \
+				%FetchRootNameLength supporting program emulation and %char16_t"
+				$dep_from %YSLib.Adaptor.YAdaptor
+		)
+		- $revert(b171) 'using platform::GetRootNameLength' @ %YSLib.Adaptor.YAdaptor
+	)
+),
+
+b652
 (
 	/ %YReader.ShlExplorer $=
 	(
@@ -85,9 +160,14 @@ $now
 				(
 				/ @ "platform %DS" $=
 				(
-					- "second ':/' check",
+					(
+					- "second ':/' check";
 						// Thus paths as "fat:/xx:/" is now considered \
-							absolute, even it is not valid.
+							absolute by design, even it is not valid, though \
+							the design was always wrongly implmented previously.
+					* "always failed at second ':/' check to get all paths as \
+						absolute paths" $since b334
+					),
 					/ DLD "simplified char16_t" @ "platform %DS"
 						^ "%ystdex::(str_find, ntctslen)"
 				);

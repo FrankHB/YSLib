@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4838
+\version r4859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2015-11-24 08:54 +0800
+	2015-11-26 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,8 +137,13 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 {
 	DialogBox::Refresh(std::move(e));
 
+#if 0
+	// NOTE: G++ 4.9 would complain.
+	unseq_apply(ystdex::bind1<void(IWidget&, const PaintContext&)>(PaintChild,
+		std::ref(e)), lblEncoding, lblSize, lblTop, lblBottom);
+#endif
 	unseq_apply([&](IWidget& wgt){
-		PaintChild(wgt, std::move(e));
+		PaintChild(wgt, e);
 	}, lblEncoding, lblSize, lblTop, lblBottom);
 	UpdateClipSize(e, GetSizeOf(*this));
 }
@@ -185,18 +190,20 @@ ShlReader::ShlReader(const IO::Path& pth,
 void
 ShlReader::Exit()
 {
-	if(bExit)
-		return;
-	bExit = true;
-	fBackgroundTask = nullptr;
-//	SetShellTo(make_shared<ShlExplorer>());
-	const auto h_up(GetMainDesktopHandle());
-	const auto h_dn(GetSubDesktopHandle());
+	if(!bExit)
+	{
+		yunseq(bExit = true, fBackgroundTask = nullptr);
+	//	SetShellTo(make_shared<ShlExplorer>());
 
-	PostTask([=]{
-		ResetDSDesktops(*h_up, *h_dn);
-		NowShellTo(make_shared<ShlExplorer>(CurrentPath / u"..", h_up, h_dn));
-	}, 0xF8);
+		const auto h_up(GetMainDesktopHandle());
+		const auto h_dn(GetSubDesktopHandle());
+
+		PostTask([=]{
+			ResetDSDesktops(*h_up, *h_dn);
+			NowShellTo(make_shared<ShlExplorer>(CurrentPath / u"..", h_up,
+				h_dn));
+		}, 0xF8);
+	}
 }
 
 BookmarkList

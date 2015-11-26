@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2584
+\version r2623
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-11-23 18:23 +0800
+	2015-11-26 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -396,6 +396,8 @@ inline PDefH(bool, is_undereferenceable, const HDirectory& i) ynothrow
 using FileIterator = ystdex::indirect_input_iterator<HDirectory*>;
 
 
+//! \todo 支持非 POSIX 文件路径特化。
+//@{
 /*!
 \brief 判断指定路径字符串是否表示一个绝对路径。
 \pre 间接断言：参数非空。
@@ -411,26 +413,56 @@ YF_API YB_NONNULL(2) bool
 IsAbsolute_P(IDTag<YF_Platform_Win32>, const char*) ynothrowv;
 YF_API YB_NONNULL(2) bool
 IsAbsolute_P(IDTag<YF_Platform_Win32>, const char16_t*) ynothrowv;
-//! \bug 非 POSIX 文件路径可能不适用。
-//@{
 inline YB_NONNULL(2) PDefH(bool, IsAbsolute_P, IDTagBase, const char* path)
 	ynothrowv
 	ImplRet(Deref(path) == '/')
 inline YB_NONNULL(2) PDefH(bool, IsAbsolute_P, IDTagBase, const char16_t* path)
 	ynothrowv
 	ImplRet(Deref(path) == u'/')
-//@}
 
 YCL_DefPlatformFwdTmpl(IsAbsolute, IsAbsolute_P)
 //@}
 
 /*!
 \brief 取指定路径的文件系统根节点名称的长度。
-\pre 间接断言：参数非空。
-\since build 412
+\pre 间接断言：指针参数非空。
+\note 计入可能存在的紧随在根名称后的文件分隔符。
+\since build 653
 */
-YF_API YB_NONNULL(1) size_t
-GetRootNameLength(const char*);
+//@{
+YF_API YB_NONNULL(2) size_t
+FetchRootNameLength_P(IDTag<YF_Platform_DS>, const char*) ynothrowv;
+YF_API YB_NONNULL(2) size_t
+FetchRootNameLength_P(IDTag<YF_Platform_DS>, const char16_t*) ynothrowv;
+YF_API size_t
+FetchRootNameLength_P(IDTag<YF_Platform_DS>, string_view) ynothrowv;
+YF_API size_t
+FetchRootNameLength_P(IDTag<YF_Platform_DS>, u16string_view) ynothrowv;
+YF_API YB_NONNULL(2) size_t
+FetchRootNameLength_P(IDTag<YF_Platform_Win32>, const char*) ynothrowv;
+YF_API YB_NONNULL(2) size_t
+FetchRootNameLength_P(IDTag<YF_Platform_Win32>, const char16_t*) ynothrowv;
+YF_API size_t
+FetchRootNameLength_P(IDTag<YF_Platform_Win32>, string_view) ynothrowv;
+YF_API size_t
+FetchRootNameLength_P(IDTag<YF_Platform_Win32>, u16string_view) ynothrowv;
+template<typename _tChar>
+inline YB_NONNULL(2) size_t
+FetchRootNameLength_P(IDTagBase, const _tChar* path) ynothrowv
+{
+	return Deref(path) == _tChar('/') ? 1 : 0;
+}
+template<typename _tChar>
+inline size_t
+FetchRootNameLength_P_(IDTagBase, const basic_string_view<_tChar> path)
+	ynothrowv
+{
+	return !path.empty() && path[0] == _tChar('/') ? 1 : 0;
+}
+
+YCL_DefPlatformFwdTmpl(FetchRootNameLength, FetchRootNameLength_P)
+//@}
+//@}
 
 
 /*!
