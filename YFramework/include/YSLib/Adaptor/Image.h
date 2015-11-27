@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1340
+\version r1348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2015-04-24 04:24 +0800
+	2015-11-26 14:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,7 @@
 #define YSL_INC_Adaptor_Image_h_ 1
 
 #include "../Core/YModules.h"
-#include YFM_YSLib_Core_YGraphics
-#include <ystdex/exception.h> // for ystdex::unsupported;
+#include YFM_YSLib_Core_YGraphics // for ystdex::unsupported;
 #include YFM_YSLib_Core_YClock // for TimeSpan;
 //#include <FreeImage.h>
 
@@ -320,7 +319,7 @@ public:
 		等于图像的宽乘以每像素字节数与输入的扫描线跨距增量之和。
 	\since build 471
 	*/
-	explicit YB_NONNULL(1)
+	explicit YB_NONNULL(2)
 	HBitmap(BitmapPtr, const Size&, size_t = 0);
 	//@}
 	/*!
@@ -330,6 +329,7 @@ public:
 	*/
 	HBitmap(const CompactPixmap&);
 	/*!
+	\pre 间接断言：路径参数非空。
 	\throw std::invalid_argument 文件打开失败。
 	\throw GeneralEvent 读取失败。
 	\since build 556
@@ -339,16 +339,20 @@ public:
 	\brief 构造：使用指定 UTF-8 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
+	YB_NONNULL(2)
 	HBitmap(const char*, ImageDecoderFlags = ImageDecoderFlags::Default);
 	//! \brief 构造：使用指定 UTF-8 文件名、指定格式和解码器标识。
+	YB_NONNULL(2)
 	HBitmap(const char*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*!
 	\brief 构造：使用指定 UCS-2 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
+	YB_NONNULL(2)
 	HBitmap(const char16_t*, ImageDecoderFlags = ImageDecoderFlags::Default);
 	//! \brief 构造：使用指定 UCS-2 文件名、指定格式和解码器标识。
+	YB_NONNULL(2)
 	HBitmap(const char16_t*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*!

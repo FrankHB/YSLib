@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2623
+\version r2783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-11-26 01:53 +0800
+	2015-11-26 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,9 @@
 #define YCL_INC_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_Container // for std::is_same, yalignof,
-//	ystdex::string_length, std::is_integral, std::is_array,
-//	ystdex::remove_reference_t, arrlen, string, std::uint8_t,
-//	std::uint32_t, pair, tuple, u16string, ystdex::restrict_length;
-#include <ystdex/cstring.h> // for ystdex::is_null;
+#include YFM_YCLib_Container // for std::is_integral, std::is_array,
+//	ystdex::remove_reference_t, arrlen, ystdex::is_null, string, u16string,
+//	ystdex::to_array, std::uint8_t, std::uint32_t, pair, tuple;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
 #if YCL_DS || YCL_MinGW || YCL_Linux || YCL_OS_X
@@ -67,12 +65,6 @@ namespace platform
 \since build 409
 */
 
-/*!
-\def YCL_FS_StringIsRoot
-\brief 判断字符是否表示根目录路径。
-\since build 409
-*/
-
 #if YCL_Win32
 	/*!
 	\brief 文件路径分隔符。
@@ -93,9 +85,6 @@ namespace platform
 #	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
 #	define YCL_FS_CharIsDelimiter(_c, _p) (_c == _p('/') || _c == _p('\\'))
-#	define YCL_FS_StringIsRoot(_s, _p) \
-		(ystdex::string_length(_s) == 3 \
-		&& _s[1] == _p(':') && YCL_FS_CharIsDelimiter(_s[2], _p))
 #elif defined(YCL_API_POSIXFileSystem)
 	/*!
 	\brief 文件路径分隔符。
@@ -113,7 +102,6 @@ namespace platform
 #	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
 #	define YCL_FS_CharIsDelimiter(_c, _p) (_c == _p(YCL_PATH_DELIMITER))
-#	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
 #else
 #	error "Unsupported platform found."
 #endif
@@ -228,7 +216,7 @@ public:
 protected:
 	/*!
 	\brief 目录路径。
-	\invariant <tt>string_length(sDirPath.c_str()) > 0 && \
+	\invariant <tt>ystdex::string_length(sDirPath.c_str()) > 0 && \
 		sDirPath.back() == YCL_PATH_DELIMITER</tt> 。
 	\since build 593
 	*/
@@ -241,14 +229,16 @@ private:
 public:
 	/*!
 	\brief 构造：打开目录路径。
+	\pre 间接断言：参数非空。
 	\throw FileOperationFailure 打开失败。
-	\note 路径可以一个或多个分隔符结尾；当路径为空指针或空字符串时视为 "." 。
-	\note 对 MinGW32 实现， "/" 也被作为分隔符支持。
-	\note 对 MinGW32 实现， 前缀 "\\?\" 关闭非结尾的 "/" 分隔符支持，
+	\note 路径可以一个或多个分隔符结尾；当路径为空字符串时视为 "." 。
+	\note Win32 平台： "/" 可能也被作为分隔符支持。
+	\note Win32 平台： 前缀 "\\?\" 关闭非结尾的 "/" 分隔符支持，
 		且无视 MAX_PATH 限制。
+	\since build 654
 	*/
 	explicit
-	DirectorySession(const char* path = {});
+	DirectorySession(const char* path = ".");
 	//! \since build 560
 	DirectorySession(DirectorySession&& h) ynothrow
 		: dir(h.dir)
@@ -314,9 +304,11 @@ private:
 public:
 	/*!
 	\brief 构造：使用目录路径。
+	\note 路径要求同 DirectorySession 构造。
+	\sa DirectorySession::DirectorySession
 	\since build 541
 	*/
-	explicit
+	explicit YB_NONNULL(2)
 	HDirectory(const char* path)
 		: DirectorySession(path), p_dirent()
 	{}
@@ -373,7 +365,7 @@ public:
 	\note 返回的结果在析构和下一次迭代前保持有效。
 	\since build 648
 	*/
-	YB_ATTR(returns_nonnull) const NativeChar* 
+	YB_ATTR(returns_nonnull) const NativeChar*
 	GetNativeName() const ynothrow;
 
 	//! \brief 复位。
@@ -396,56 +388,152 @@ inline PDefH(bool, is_undereferenceable, const HDirectory& i) ynothrow
 using FileIterator = ystdex::indirect_input_iterator<HDirectory*>;
 
 
-//! \todo 支持非 POSIX 文件路径特化。
+//! \since build 654
+//@{
+template<typename _tChar>
+yconstfn bool
+IsColon(_tChar c) ynothrow
+{
+	return c == _tChar(':');
+}
+
+template<typename _tChar>
+yconstfn bool
+IsSlash(_tChar c) ynothrow
+{
+	return c == _tChar('/');
+}
+
+template<typename _tChar>
+inline YB_NONNULL(1) const _tChar*
+FindColon(const _tChar* p) ynothrowv
+{
+	return ystdex::ntctschr(Nonnull(p), _tChar(':'));
+}
+
+/*!
+\pre 间接断言：指针路径参数或路径参数的数据指针非空。
+\todo 支持非 POSIX 文件路径特化。
+*/
 //@{
 /*!
 \brief 判断指定路径字符串是否表示一个绝对路径。
-\pre 间接断言：参数非空。
 \note 空路径不是绝对路径。
-\since build 652
 */
 //@{
-YF_API YB_NONNULL(2) bool
-IsAbsolute_P(IDTag<YF_Platform_DS>, const char*) ynothrowv;
-YF_API YB_NONNULL(2) bool
-IsAbsolute_P(IDTag<YF_Platform_DS>, const char16_t*) ynothrowv;
-YF_API YB_NONNULL(2) bool
-IsAbsolute_P(IDTag<YF_Platform_Win32>, const char*) ynothrowv;
-YF_API YB_NONNULL(2) bool
-IsAbsolute_P(IDTag<YF_Platform_Win32>, const char16_t*) ynothrowv;
-inline YB_NONNULL(2) PDefH(bool, IsAbsolute_P, IDTagBase, const char* path)
-	ynothrowv
-	ImplRet(Deref(path) == '/')
-inline YB_NONNULL(2) PDefH(bool, IsAbsolute_P, IDTagBase, const char16_t* path)
-	ynothrowv
-	ImplRet(Deref(path) == u'/')
+template<typename _tChar>
+inline YB_NONNULL(2) bool
+IsAbsolute_P(IDTag<YF_Platform_DS>, const _tChar* path) ynothrowv
+{
+	return IsSlash(Deref(path)) || FindColon(path);
+}
+template<typename _tChar>
+inline bool
+IsAbsolute_P(IDTag<YF_Platform_DS>, basic_string_view<_tChar> path) ynothrowv
+{
+	YAssertNonnull(path.data());
+	return !path.empty() && (IsSlash(path[0])
+		|| path.find(_tChar(':')) != basic_string_view<_tChar>::npos);
+}
+template<typename _tChar>
+inline YB_NONNULL(2) bool
+IsAbsolute_P(IDTag<YF_Platform_Win32>, const _tChar* path) ynothrowv
+{
+	return Deref(path) == YCL_PATH_DELIMITER
+		|| (*path != _tChar() && IsColon(*++path));
+}
+template<typename _tChar>
+inline bool
+IsAbsolute_P(IDTag<YF_Platform_Win32>, basic_string_view<_tChar> path) ynothrowv
+{
+	YAssertNonnull(path.data());
+	return path.length() > 1
+		&& (path[0] == _tChar(YCL_PATH_DELIMITER) || IsColon(path[2]));
+}
+template<typename _tChar>
+inline YB_NONNULL(2) bool
+IsAbsolute_P(IDTagBase, const _tChar* path) ynothrowv
+{
+	return IsSlash(Deref(path));
+}
+template<typename _tChar>
+inline bool
+IsAbsolute_P(IDTagBase, basic_string_view<_tChar> path) ynothrowv
+{
+	YAssertNonnull(path.data());
+	return !path.empty() && IsSlash(path[0]);
+}
 
+//! \since build 652
 YCL_DefPlatformFwdTmpl(IsAbsolute, IsAbsolute_P)
 //@}
 
 /*!
 \brief 取指定路径的文件系统根节点名称的长度。
-\pre 间接断言：指针参数非空。
-\note 计入可能存在的紧随在根名称后的文件分隔符。
-\since build 653
+\note 计入可能存在的紧随在根名称后的一个或多个文件分隔符。
 */
 //@{
-YF_API YB_NONNULL(2) size_t
-FetchRootNameLength_P(IDTag<YF_Platform_DS>, const char*) ynothrowv;
-YF_API YB_NONNULL(2) size_t
-FetchRootNameLength_P(IDTag<YF_Platform_DS>, const char16_t*) ynothrowv;
-YF_API size_t
-FetchRootNameLength_P(IDTag<YF_Platform_DS>, string_view) ynothrowv;
-YF_API size_t
-FetchRootNameLength_P(IDTag<YF_Platform_DS>, u16string_view) ynothrowv;
-YF_API YB_NONNULL(2) size_t
-FetchRootNameLength_P(IDTag<YF_Platform_Win32>, const char*) ynothrowv;
-YF_API YB_NONNULL(2) size_t
-FetchRootNameLength_P(IDTag<YF_Platform_Win32>, const char16_t*) ynothrowv;
-YF_API size_t
-FetchRootNameLength_P(IDTag<YF_Platform_Win32>, string_view) ynothrowv;
-YF_API size_t
-FetchRootNameLength_P(IDTag<YF_Platform_Win32>, u16string_view) ynothrowv;
+template<typename _tChar>
+YB_NONNULL(2) size_t
+FetchRootNameLength_P(IDTag<YF_Platform_DS>, const _tChar* path) ynothrowv
+{
+	auto p(FindColon(path));
+
+	if(!p)
+		p = path;
+	while(*p == '/')
+		++p;
+	return size_t(p - path);
+}
+template<typename _tChar>
+size_t
+FetchRootNameLength_P(IDTag<YF_Platform_DS>, basic_string_view<_tChar> path)
+	ynothrowv
+{
+	YAssertNonnull(path.data());
+
+	auto n(path.find_first_not_of(_tChar(':')));
+
+	if(n != basic_string_view<_tChar>::npos)
+		n = path.find_first_not_of(_tChar('/'), n);
+	return n != basic_string_view<_tChar>::npos ? n : path.length();
+}
+template<typename _tChar>
+YB_NONNULL(2) size_t
+FetchRootNameLength_P(IDTag<YF_Platform_Win32>, const _tChar* path) ynothrowv
+{
+	if(Deref(path) != _tChar() && IsColon(path[1]))
+	{
+		size_t n = 2;
+
+		// TODO: Extract as %ystdex::tstr_find_first_not_of?
+		while(path[n] != _tChar()
+			&& !YCL_FS_CharIsDelimiter(path[n], _tChar))
+			++n;
+		return n;
+	}
+	return 0;
+}
+template<typename _tChar>
+size_t
+FetchRootNameLength_P(IDTag<YF_Platform_Win32>, basic_string_view<_tChar> path)
+	ynothrowv
+{
+	YAssertNonnull(path.data());
+
+	const auto l(path.length());
+
+	if(l >= 2 && IsColon(path[1]))
+	{
+		// XXX: Use %YCL_FS_CharIsDelimiter?
+		const auto
+			n(path.find_first_not_of(&ystdex::to_array<_tChar>("/\\")[0], 2));
+
+		return n != basic_string_view<_tChar>::npos ? n : 2;
+	}
+	return 0;
+}
+//! \since build 653
 template<typename _tChar>
 inline YB_NONNULL(2) size_t
 FetchRootNameLength_P(IDTagBase, const _tChar* path) ynothrowv
@@ -454,13 +542,16 @@ FetchRootNameLength_P(IDTagBase, const _tChar* path) ynothrowv
 }
 template<typename _tChar>
 inline size_t
-FetchRootNameLength_P_(IDTagBase, const basic_string_view<_tChar> path)
+FetchRootNameLength_P(IDTagBase, const basic_string_view<_tChar> path)
 	ynothrowv
 {
+	YAssertNonnull(path.data());
 	return !path.empty() && path[0] == _tChar('/') ? 1 : 0;
 }
 
+//! \since build 653
 YCL_DefPlatformFwdTmpl(FetchRootNameLength, FetchRootNameLength_P)
+//@}
 //@}
 //@}
 
@@ -909,16 +1000,6 @@ CheckColons(const char*);
 
 namespace platform_ex
 {
-
-#if !YCL_Win32
-//! \since build 647
-//@{
-char
-FS_IsRoot(string_view);
-char16_t
-FS_IsRoot(u16string_view);
-//@}
-#endif
 
 } // namespace platform_ex;
 

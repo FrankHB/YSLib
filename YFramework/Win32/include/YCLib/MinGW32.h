@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1394
+\version r1399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-11-18 12:22 +0800
+	2015-11-26 14:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -622,7 +622,12 @@ public:
 	*/
 	//@{
 	//! \note 使用 UTF-8 目录路径。
+	//@{
+	//! \since build 654
+	YB_NONNULL(2)
+	DirectoryFindData(const char*);
 	DirectoryFindData(const string&);
+	//@}
 	//! \note 使用 UTF-16 目录路径。
 	DirectoryFindData(const wstring&);
 	//@}

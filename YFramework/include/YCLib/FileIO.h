@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1718
+\version r1730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-11-13 09:53 +0800
+	2015-11-26 16:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1077,6 +1077,20 @@ public:
 	*/
 	~FileOperationFailure() override;
 };
+
+
+/*!
+\build 抛出由 errno 和参数指定的 FileOperationFailure 对象。
+\throw FileOperationFailure errno 和指定参数构造的异常。
+\relates FileOperationFaiure
+\since build 654
+*/
+template<typename _tParam>
+YB_NORETURN void
+ThrowFileOperationFailure(_tParam&& arg)
+{
+	ystdex::throw_error<FileOperationFailure>(errno, yforward(arg));
+}
 
 
 //! \exception FileOperationFailure 参数无效或文件时间查询失败。

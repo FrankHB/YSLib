@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r661
+\version r1135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2015-05-29 19:27 +0800
+	2015-11-27 14:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,10 @@ YF_API KeyIndex
 FindNextKey(const KeyInput&, KeyIndex) ynothrow;
 
 
-//! \since build 489
+/*!
+\brief 按键类别。
+\since build 489
+*/
 //@{
 namespace KeyCategory
 {
@@ -200,254 +203,284 @@ yconstfn PDefH(char, MapKeyChar, const KeyInput&, KeyIndex) ynothrow
 namespace KeyCodes
 {
 
-#if YCL_DS
-//! \since build 416
-enum NativeSet
-{
-	//! \warning 不保证名称可移植。
-	//@{
-	A = 0,
-	B = 1,
-	Select = 2,
-	Start = 3,
-	//@}
-	Right = 4,
-	Left = 5,
-	Up = 6,
-	Down = 7,
-	//! \warning 不保证名称可移植。
-	//@{
-	R = 8,
-	L = 9,
-	X = 10,
-	Y = 11,
-	Touch = 12,
-	Lid = 13
-	//@}
-};
-
-//! \brief 按键别名。
+//! \since build 654
 //@{
-yconstexpr const NativeSet Enter(A), Esc(B), PgUp(L), PgDn(R);
-//! \since build 490
-yconstexpr const NativeSet Home(X), End(Y);
-//! \since build 493
-yconstexpr const NativeSet Primary(Touch);
+namespace DS
+{
+	//! \since build 416
+	enum NativeSet
+	{
+		//! \warning 不保证名称可移植。
+		//@{
+		A = 0,
+		B = 1,
+		Select = 2,
+		Start = 3,
+		//@}
+		Right = 4,
+		Left = 5,
+		Up = 6,
+		Down = 7,
+		//! \warning 不保证名称可移植。
+		//@{
+		R = 8,
+		L = 9,
+		X = 10,
+		Y = 11,
+		Touch = 12,
+		Lid = 13
+		//@}
+	};
+
+	//! \brief 按键别名。
+	//@{
+	static yconstexpr const NativeSet Enter = A, Esc = B, PgUp = L, PgDn = R;
+	//! \since build 490
+	static yconstexpr const NativeSet Home = X, End = Y;
+	//! \since build 493
+	static yconstexpr const NativeSet Primary = Touch;
+	//@}
+
+	/*!
+	\brief 扩展集：作为 DS 可直接被 KeyInput 表示的非物理键按键编码。
+	\note LibNDS 不使用 14 及以上的移位值。
+	\since build 490
+	*/
+	enum ExtendedSet
+	{
+		Backspace = 14,
+		Tab,
+		Shift,
+		Ctrl,
+		Alt,
+		Pause,
+		CapsLock,
+		//! \since build 491
+		Space,
+		Insert,
+		Delete,
+		//! \since build 493
+		Secondary,
+		//! \since build 493
+		Tertiary
+	};
+} // namespace DS;
+
+
+namespace Win32
+{
+	/*!
+	\brief 基本公用按键集合。
+	\note 值和 WinSDK 的 VK_* 宏替换结果对应。
+	\since build 416
+	*/
+	enum NativeSet
+	{
+		Empty = 0,
+		//! \since build 493
+		//@{
+		//! \note 同 VK_LBUTTON 。
+		Primary = 0x01,
+		//! \note 同 VK_RBUTTON 。
+		Secondary = 0x02,
+		//! \note 同 VK_MBUTTON 。
+		Tertiary = 0x04,
+		//@}
+		//! \since build 490
+		//@{
+		//! \note 同 VK_BACK 。
+		Backspace = 0x08,
+		//! \note 同 VK_TAB 。
+		Tab = 0x09,
+		//@}
+		//! \note 同 VK_RETURN 。
+		Enter = 0x0D,
+		//! \since build 490
+		//@{
+		//! \note 同 VK_SHIFT 。
+		Shift = 0x10,
+		//! \note 同 VK_CONTROL 。
+		Ctrl = 0x11,
+		//! \note 同 VK_MENU 。
+		Alt = 0x12,
+		//! \note 同 VK_PAUSE 。
+		Pause = 0x13,
+		//! \note 同 VK_CAPITAL 。
+		CapsLock = 0x14,
+		//@}
+		//! \note 同 VK_ESCAPE 。
+		Esc = 0x1B,
+		/*!
+		\note 同 VK_SPACE 。
+		\since build 491
+		*/
+		Space = 0x20,
+		//! \note 同 VK_PRIOR 。
+		PgUp = 0x21,
+		//! \note 同 VK_NEXT 。
+		PgDn = 0x22,
+		//! \since build 490
+		//@{
+		//! \note 同 VK_END 。
+		End = 0x23,
+		//! \note 同 VK_HOME 。
+		Home = 0x24,
+		//@}
+		//! \note 同 VK_LEFT 。
+		Left = 0x25,
+		//! \note 同 VK_UP 。
+		Up = 0x26,
+		//! \note 同 VK_RIGHT 。
+		Right = 0x27,
+		//! \note 同 VK_DOWN 。
+		Down = 0x28,
+		//! \since build 490
+		//@{
+		//! \note 同 VK_INSERT 。
+		Insert = 0x2D,
+		//! \note 同 VK_DELETE 。
+		Delete = 0x2E
+		//@}
+	};
+} // namespace Win32;
+
+
+namespace Android
+{
+	/*!
+	\brief 基本公用按键集合。
+	\note 值和 Android SDK 的 android.view.KeyEvent 的 KEYCODE_* 值对应。
+	\since build 492
+	*/
+	enum NativeSet
+	{
+		//! \note 同 KEYCODE_UNKNOWN 。
+		Empty = 0,
+		//! \note 同 KEYCODE_DPAD_UP 。
+		Up = 0x13,
+		//! \note 同 KEYCODE_DPAD_DOWN 。
+		Down = 0x14,
+		//! \note 同 KEYCODE_DPAD_LEFT 。
+		Left = 0x15,
+		//! \note 同 KEYCODE_DPAD_RIGHT 。
+		Right = 0x16,
+		//! \note 同 KEYCODE_ALT_LEFT 。
+		Alt = 0x39,
+		//! \note 同 KEYCODE_SHIFT_LEFT 。
+		Shift = 0x3B,
+		//! \note 同 KEYCODE_TAB 。
+		Tab = 0x3D,
+		//! \note 同 KEYCODE_SPACE 。
+		Space = 0x3E,
+		//! \note 同 KEYCODE_ENTER 。
+		Enter = 0x42,
+		//! \note 同 KEYCODE_DEL 。
+		Backspace = 0x43,
+		//! \note 同 KEYCODE_PAGE_UP 。
+		PgUp = 0x5C,
+		//! \note 同 KEYCODE_PAGE_DOWN 。
+		PgDn = 0x5D,
+		//! \note 同 KEYCODE_ESCAPE 。
+		Esc = 0x6F,
+		//! \note 同 KEYCODE_FORWARD_DEL 。
+		Delete = 0x70,
+		//! \note 同 KEYCODE_CTRL_LEFT 。
+		Ctrl = 0x71,
+		//! \note 同 KEYCODE_CAPS_LOCK 。
+		CapsLock = 0x73,
+		//! \note 同 KEYCODE_BREAK 。
+		Pause = 0x79,
+		//! \note 同 KEYCODE_MOVE_HOME 。
+		Home = 0x7A,
+		//! \note 同 KEYCODE_MOVE_END 。
+		End = 0x7B,
+		//! \note 同 KEYCODE_INSERT 。
+		Insert = 0x7C
+	};
+
+	//! \since build 493
+	enum ExtendedSet
+	{
+		Primary = 0xE0,
+		Secondary = 0xE1,
+		Tertiary = 0xE2
+	};
+} // namespace Android;
+
+
+namespace Linux
+{
+	/*!
+	\brief 基本公用按键集合。
+	\note 值和 Linux 头文件 <tt>\<linux/input.h\></tt> 中的宏 KEY_* 替换的值对应。
+	\since build 562
+	*/
+	enum NativeSet
+	{
+		//! \note 同 KEY_RESERVED 。
+		Empty = 0,
+		//! \note 同 KEY_ESC 。
+		Esc = 1,
+		//! \note 同 KEY_BACKSPACE 。
+		Backspace = 14,
+		//! \note 同 KEY_TAB 。
+		Tab = 15,
+		//! \note 同 KEY_ENTER 。
+		Enter = 28,
+		//! \note 同 KEY_LEFTCTRL 。
+		Ctrl = 29,
+		//! \note 同 KEY_LEFTSHIFT 。
+		Shift = 42,
+		//! \note 同 KEY_LEFTALT 。
+		Alt = 56,
+		//! \note 同 KEY_SPACE 。
+		Space = 57,
+		//! \note 同 KEY_CAPSLOCK 。
+		CapsLock = 58,
+		//! \note 同 KEY_HOME 。
+		Home = 102,
+		//! \note 同 KEY_UP 。
+		Up = 103,
+		//! \note 同 KEY_PAGEUP 。
+		PgUp = 104,
+		//! \note 同 KEY_LEFT 。
+		Left = 105,
+		//! \note 同 KEY_RIGHT 。
+		Right = 106,
+		//! \note 同 KEY_END 。
+		End = 107,
+		//! \note 同 KEY_DOWN 。
+		Down = 108,
+		//! \note 同 KEY_PAGEDOWN 。
+		PgDn = 109,
+		//! \note 同 KEY_INSERT 。
+		Insert = 110,
+		//! \note 同 KEY_DELETE 。
+		Delete = 111,
+		//! \note 同 KEYCODE_PAUSE 。
+		Pause = 119,
+		//! \note 同 BTN_LEFT 。
+		Primary = 0x110,
+		//! \note 同 BTN_RIGHT 。
+		Secondary = 0x111,
+		//! \note 同 BTN_MIDDLE 。
+		Tertiary = 0x112
+	};
+} // namespace Linux;
 //@}
 
-/*!
-\brief 扩展集：作为 DS 可直接被 KeyInput 表示的非物理键按键编码。
-\note LibNDS 不使用 14 及以上的移位值。
-\since build 490
-*/
-enum ExtendedSet
-{
-	Backspace = 14,
-	Tab,
-	Shift,
-	Ctrl,
-	Alt,
-	Pause,
-	CapsLock,
-	//! \since build 491
-	Space,
-	Insert,
-	Delete,
-	//! \since build 493
-	Secondary,
-	//! \since build 493
-	Tertiary
-};
+#if YCL_DS
+//! \since build 654
+using namespace DS;
 #elif YCL_Win32
-/*!
-\brief 基本公用按键集合。
-\note 值和 WinSDK 的 VK_* 宏替换结果对应。
-\since build 416
-*/
-enum NativeSet
-{
-	Empty = 0,
-	//! \since build 493
-	//@{
-	//! \note 同 VK_LBUTTON 。
-	Primary = 0x01,
-	//! \note 同 VK_RBUTTON 。
-	Secondary = 0x02,
-	//! \note 同 VK_MBUTTON 。
-	Tertiary = 0x04,
-	//@}
-	//! \since build 490
-	//@{
-	//! \note 同 VK_BACK 。
-	Backspace = 0x08,
-	//! \note 同 VK_TAB 。
-	Tab = 0x09,
-	//@}
-	//! \note 同 VK_RETURN 。
-	Enter = 0x0D,
-	//! \since build 490
-	//@{
-	//! \note 同 VK_SHIFT 。
-	Shift = 0x10,
-	//! \note 同 VK_CONTROL 。
-	Ctrl = 0x11,
-	//! \note 同 VK_MENU 。
-	Alt = 0x12,
-	//! \note 同 VK_PAUSE 。
-	Pause = 0x13,
-	//! \note 同 VK_CAPITAL 。
-	CapsLock = 0x14,
-	//@}
-	//! \note 同 VK_ESCAPE 。
-	Esc = 0x1B,
-	/*!
-	\note 同 VK_SPACE 。
-	\since build 491
-	*/
-	Space = 0x20,
-	//! \note 同 VK_PRIOR 。
-	PgUp = 0x21,
-	//! \note 同 VK_NEXT 。
-	PgDn = 0x22,
-	//! \since build 490
-	//@{
-	//! \note 同 VK_END 。
-	End = 0x23,
-	//! \note 同 VK_HOME 。
-	Home = 0x24,
-	//@}
-	//! \note 同 VK_LEFT 。
-	Left = 0x25,
-	//! \note 同 VK_UP 。
-	Up = 0x26,
-	//! \note 同 VK_RIGHT 。
-	Right = 0x27,
-	//! \note 同 VK_DOWN 。
-	Down = 0x28,
-	//! \since build 490
-	//@{
-	//! \note 同 VK_INSERT 。
-	Insert = 0x2D,
-	//! \note 同 VK_DELETE 。
-	Delete = 0x2E
-	//@}
-};
+//! \since build 654
+using namespace Win32;
 #elif YCL_Android
-/*!
-\brief 基本公用按键集合。
-\note 值和 Android SDK 的 android.view.KeyEvent 的 KEYCODE_* 值对应。
-\since build 492
-*/
-enum NativeSet
-{
-	//! \note 同 KEYCODE_UNKNOWN 。
-	Empty = 0,
-	//! \note 同 KEYCODE_DPAD_UP 。
-	Up = 0x13,
-	//! \note 同 KEYCODE_DPAD_DOWN 。
-	Down = 0x14,
-	//! \note 同 KEYCODE_DPAD_LEFT 。
-	Left = 0x15,
-	//! \note 同 KEYCODE_DPAD_RIGHT 。
-	Right = 0x16,
-	//! \note 同 KEYCODE_ALT_LEFT 。
-	Alt = 0x39,
-	//! \note 同 KEYCODE_SHIFT_LEFT 。
-	Shift = 0x3B,
-	//! \note 同 KEYCODE_TAB 。
-	Tab = 0x3D,
-	//! \note 同 KEYCODE_SPACE 。
-	Space = 0x3E,
-	//! \note 同 KEYCODE_ENTER 。
-	Enter = 0x42,
-	//! \note 同 KEYCODE_DEL 。
-	Backspace = 0x43,
-	//! \note 同 KEYCODE_PAGE_UP 。
-	PgUp = 0x5C,
-	//! \note 同 KEYCODE_PAGE_DOWN 。
-	PgDn = 0x5D,
-	//! \note 同 KEYCODE_ESCAPE 。
-	Esc = 0x6F,
-	//! \note 同 KEYCODE_FORWARD_DEL 。
-	Delete = 0x70,
-	//! \note 同 KEYCODE_CTRL_LEFT 。
-	Ctrl = 0x71,
-	//! \note 同 KEYCODE_CAPS_LOCK 。
-	CapsLock = 0x73,
-	//! \note 同 KEYCODE_BREAK 。
-	Pause = 0x79,
-	//! \note 同 KEYCODE_MOVE_HOME 。
-	Home = 0x7A,
-	//! \note 同 KEYCODE_MOVE_END 。
-	End = 0x7B,
-	//! \note 同 KEYCODE_INSERT 。
-	Insert = 0x7C
-};
-
-//! \since build 493
-enum ExtendedSet
-{
-	Primary = 0xE0,
-	Secondary = 0xE1,
-	Tertiary = 0xE2
-};
+//! \since build 654
+using namespace Android;
 #elif YCL_Linux
-/*!
-\brief 基本公用按键集合。
-\note 值和 Linux 头文件 <tt>\<linux/input.h\></tt> 中的宏 KEY_* 替换的值对应。
-\since build 562
-*/
-enum NativeSet
-{
-	//! \note 同 KEY_RESERVED 。
-	Empty = 0,
-	//! \note 同 KEY_ESC 。
-	Esc = 1,
-	//! \note 同 KEY_BACKSPACE 。
-	Backspace = 14,
-	//! \note 同 KEY_TAB 。
-	Tab = 15,
-	//! \note 同 KEY_ENTER 。
-	Enter = 28,
-	//! \note 同 KEY_LEFTCTRL 。
-	Ctrl = 29,
-	//! \note 同 KEY_LEFTSHIFT 。
-	Shift = 42,
-	//! \note 同 KEY_LEFTALT 。
-	Alt = 56,
-	//! \note 同 KEY_SPACE 。
-	Space = 57,
-	//! \note 同 KEY_CAPSLOCK 。
-	CapsLock = 58,
-	//! \note 同 KEY_HOME 。
-	Home = 102,
-	//! \note 同 KEY_UP 。
-	Up = 103,
-	//! \note 同 KEY_PAGEUP 。
-	PgUp = 104,
-	//! \note 同 KEY_LEFT 。
-	Left = 105,
-	//! \note 同 KEY_RIGHT 。
-	Right = 106,
-	//! \note 同 KEY_END 。
-	End = 107,
-	//! \note 同 KEY_DOWN 。
-	Down = 108,
-	//! \note 同 KEY_PAGEDOWN 。
-	PgDn = 109,
-	//! \note 同 KEY_INSERT 。
-	Insert = 110,
-	//! \note 同 KEY_DELETE 。
-	Delete = 111,
-	//! \note 同 KEYCODE_PAUSE 。
-	Pause = 119,
-	//! \note 同 BTN_LEFT 。
-	Primary = 0x110,
-	//! \note 同 BTN_RIGHT 。
-	Secondary = 0x111,
-	//! \note 同 BTN_MIDDLE 。
-	Tertiary = 0x112
-};
+//! \since build 654
+using namespace Linux;
 #endif
 
 

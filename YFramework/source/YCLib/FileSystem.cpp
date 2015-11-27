@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3186
+\version r3292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-11-26 08:50 +0800
+	2015-11-26 16:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #include YFM_YCLib_FileSystem // for std::accumulate, ystdex::read_uint_le,
 //	std::min, ystdex::write_uint_le;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
-#include YFM_YCLib_FileIO // for ystdex::throw_error, std::errc::not_supported,
-//	FileOperationFailure, Deref, ystdex::str_find, ystdex::ntctslen,
+#include YFM_YCLib_FileIO // for Deref, ystdex::to_array, ystdex::throw_error,
+//	std::errc::not_supported, ThrowFileOperationFailure, ystdex::ntctslen,
 //	std::strchr, std::wctob, std::towupper, ystdex::restrict_length, std::min,
 //	ystdex::ntctsicmp, std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
@@ -106,53 +106,6 @@ FetchNodeCategoryFromStat(_type& st)
 }
 #endif
 
-//! \since build 653
-//@{
-template<typename _tChar>
-size_t
-FetchRootNameLength_P_DS(const _tChar* path) ynothrowv
-{
-	if(auto p = ystdex::ntctschr(Nonnull(path), _tChar(':')))
-	{
-		++p;
-		return size_t(p - path) + size_t(*p == _tChar('/'));
-	}
-	return 0;
-}
-template<typename _tChar>
-size_t
-FetchRootNameLength_P_DS(const basic_string_view<_tChar> path) ynothrowv
-{
-	const auto n(path.find(_tChar(':')));
-
-	return n != basic_string_view<_tChar>::npos ? n + size_t(path.length() > n
-		&& path[n + 1] == _tChar('/')) : 0;
-}
-
-template<typename _tChar>
-size_t
-FetchRootNameLength_P_Win32(const _tChar* path) ynothrowv
-{
-	if(Deref(path) != _tChar() && path[1] == _tChar(':'))
-	{
-		if(path[2] == _tChar())
-			return 2;
-		if(YCL_FS_CharIsDelimiter(path[2], _tChar))
-			return 3;
-	}
-	return 0;
-}
-template<typename _tChar>
-size_t
-FetchRootNameLength_P_Win32(const basic_string_view<_tChar> path) ynothrowv
-{
-	const auto l(path.length());
-
-	return l >= 2 && path[1] == _tChar(':')
-		? (l > 2 && YCL_FS_CharIsDelimiter(path[2], _tChar) ? 3 : 2) : 0;
-}
-//@}
-
 } // unnamed namespace;
 
 
@@ -221,16 +174,15 @@ CreateSymbolicLink(const char16_t* dst, const char16_t* src, bool is_dir)
 
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
-	: dir(new DirectoryFindData(path ? path : ""))
+	: dir(new DirectoryFindData(Nonnull(path)))
 #else
-	: sDirPath(path && *path != char() ? path : "."),
+	: sDirPath(Deref(path) != char() ? path : "."),
 	dir(::opendir(sDirPath.c_str()))
 #endif
 {
 #if !YCL_Win32
 	if(!dir)
-		ystdex::throw_error<FileOperationFailure>(errno,
-			"Opening directory failed.");
+		ThrowFileOperationFailure("Opening directory failed.");
 	ystdex::rtrim(sDirPath, YCL_PATH_DELIMITER);
 	YAssert(sDirPath.empty() || sDirPath.back() != YCL_PATH_DELIMITER,
 		"Invalid directory name state found.");
@@ -382,48 +334,6 @@ HDirectory::GetNativeName() const ynothrow
 #endif
 }
 
-
-bool
-IsAbsolute_P(IDTag<YF_Platform_DS>, const char* path) ynothrowv
-{
-	return Deref(path) == '/' || ystdex::ntctschr(path, ':');
-}
-bool
-IsAbsolute_P(IDTag<YF_Platform_DS>, const char16_t* path) ynothrowv
-{
-	return Deref(path) == u'/' || ystdex::ntctschr(path, u':');
-}
-bool
-IsAbsolute_P(IDTag<YF_Platform_Win32>, const char* path) ynothrowv
-{
-	return Deref(path) == YCL_PATH_DELIMITER
-		|| (*path != char() && *++path == ':');
-}
-bool
-IsAbsolute_P(IDTag<YF_Platform_Win32>, const char16_t* path) ynothrowv
-{
-	return Deref(path) == char16_t(YCL_PATH_DELIMITER)
-		|| (*path != char16_t() && *++path == u':');
-}
-
-
-#define YCL_Impl_FetchRootNameLength_P(_p, _s) \
-	size_t \
-	FetchRootNameLength_P(IDTag<YF_Platform_##_p>, _s path) ynothrowv \
-	{ \
-		return FetchRootNameLength_P_##_p(path); \
-	}
-#define YCL_Impl_FetchRootNameLength_P_P(_p) \
-	YCL_Impl_FetchRootNameLength_P(_p, const char*) \
-	YCL_Impl_FetchRootNameLength_P(_p, const char16_t*) \
-	YCL_Impl_FetchRootNameLength_P(_p, string_view) \
-	YCL_Impl_FetchRootNameLength_P(_p, u16string_view)
-
-YCL_Impl_FetchRootNameLength_P_P(DS)
-YCL_Impl_FetchRootNameLength_P_P(Win32)
-
-#undef YCL_Impl_FetchRootNameLength_P_P
-#undef YCL_Impl_FetchRootNameLength_P
 
 namespace FAT
 {
@@ -729,27 +639,6 @@ CheckColons(const char* path)
 
 namespace platform_ex
 {
-
-#if !YCL_Win32
-char
-FS_IsRoot(string_view sv)
-{
-	return sv == "/"
-#	if YCL_DS
-		|| sv == "fat:/" || sv == "sd:/"
-#	endif
-	;
-}
-char16_t
-FS_IsRoot(u16string_view sv)
-{
-	return sv == u"/"
-#	if YCL_DS
-		|| sv == u"fat:/" || sv == u"sd:/"
-#	endif
-	;
-}
-#endif
 
 } // namespace platform_ex;
 

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3288
+\version r3293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-11-18 23:14 +0800
+	2015-11-27 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,14 @@ See readme file for details.
 
 
 #include <ysbuild.h>
-#include YFM_YSLib_Core_YStorage // for YSLib::FetchStaticRef;
+#include YFM_YSLib_Core_YStorage // for YSLib::FetchStaticRef,
+//	ystdex::raise_exception;
 #include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/mixin.hpp>
 #include YFM_YCLib_Host // for platform_ex::EncodeArg, platform_ex::DecodeArg,
 //	platform_ex::Terminal;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
-#include <ystdex/exception.h> // for ystdex::raise_exception;
 #include YFM_NPL_Dependency // for NPL::DepsEventType,
 //	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies;
 #include YFM_YSLib_Core_YConsole
@@ -734,7 +734,8 @@ main(int argc, char* argv[])
 			return !ystdex::qualify(LogDisabled)[size_t(LastLogGroup)]
 				&& Logger::DefaultFilter(lv, l);
 		});
-		logger.SetSender([&](Logger::Level lv, Logger&, const char* str){
+		logger.SetSender([&](Logger::Level lv, Logger&, const char* str)
+			YB_NONNULL(4){
 			const auto stream(lv <= Warning ? stderr : stdout);
 			auto& term_ref(lv <= Warning ? term_err : term);
 			const auto dcnt(duration_cast<milliseconds>(

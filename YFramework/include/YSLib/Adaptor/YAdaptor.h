@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1885
+\version r1889
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-11-26 00:55 +0800
+	2015-11-26 16:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -365,6 +365,8 @@ using platform::omode_conv;
 using platform::omode_convb;
 //! \since build 411
 using platform::FileOperationFailure;
+//! \since build 654
+using platform::ThrowFileOperationFailure;
 //! \since build 631
 using platform::GetFileAccessTimeOf;
 //! \since build 547
@@ -385,6 +387,8 @@ using platform::FileIterator;
 //@}
 //! \since build 171
 using platform::IsAbsolute;
+//! \since build 654
+using platform::FetchRootNameLength;
 //@}
 //! \since build 648
 using NativePathView = basic_string_view<HDirectory::NativeChar>;

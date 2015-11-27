@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1989
+\version r1997
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-11-13 09:54 +0800
+	2015-11-26 16:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,14 +91,6 @@ static_assert(std::is_same<::mode_t, ystdex::underlying_type_t<Mode>>(),
 
 namespace
 {
-
-//! \since build 637
-template<typename _tParam>
-YB_NORETURN void
-ThrowFileOperationFailure(_tParam&& arg)
-{
-	ystdex::throw_error<FileOperationFailure>(errno, yforward(arg));
-}
 
 //! \since build 625
 //@{
@@ -1030,7 +1022,7 @@ EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 #endif
 
 	mode &= mode_t(Mode::User);
-	if(UniqueFile p_file{uopen(dst, 
+	if(UniqueFile p_file{uopen(dst,
 #if YCL_Win32
 		de_oflag | _O_EXCL
 #else

@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r329
+\version r362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2015-11-21 18:22 +0800
+	2015-11-27 14:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@ YCLib 允许平台中立的接口具有实现定义的行为差异。平台中�
 
 @1.1 环境实现：
 参见 [Documentation::Designation @@5.2] 。
+附加依赖限制： Win32 平台不依赖 Shlwapi 。
 
 @1.2 头文件依赖性：
 YCLib::Platform(@5.1) 不直接包含 YDefinition([Documentation::YBase @@2.4]) 以外的文件。
@@ -65,6 +66,7 @@ inline platform::FAT::FAT32 ： FAT32 接口。
 platform::FAT::Clusters ：簇接口。
 platform::FAT::LFN ：长文件名接口。
 platform::KeyCategory ：按键类别。
+platform::KeyCodes ：本机按键编码（参见 @1.6.2 ）。
 platform::Threading ： 平台线程操作接口。
 
 @1.3.1.2 命名空间 platform_ex ：
@@ -78,7 +80,7 @@ inline platform_ex::Windows ： Windows 平台内联命名空间。
 @1.5 平台扩展使用：
 仅在特定独立平台可用的 API 通过平台扩展([Documentation::ProjectRules @@3.3]) 提供。
 
-@1.6 一般保证：
+@1.6 概念设计和一般保证：
 涉及的具体要求的定义参见 ISO C++11 。
 
 @1.6.1 平台兼容性：
@@ -105,20 +107,43 @@ platform 命名空间内的平台中立程序模拟 API 可在基本平台模拟
 platform_ex 命名空间内的平台中立程序模拟 API 可在基本平台模拟模块限定平台支持模块(@6) 中提供。
 其中，基本平台模拟模块是平台中立模块(@5) 中的系统功能模块(@5.6) 和 UI 支持模块(@5.7) 。
 YCommon(@5.4) 不直接提供接口，但可提供这些接口的实现支持(@5.4.1) 。
-约定 platform 命名空间中后缀 _P 的例程（若存在）是支持具体平台的实现，其它例程不支持模拟其它平台。
+
+@1.6.1.3.1 可调用对象模拟：
+特定的 API 以可调用对象提供，对每个平台或平台特性集标记参数(@5.4.1) 提供不同（重载）的版本。
+本机版本按宏定义确定标记，通过定义函数模板等可调用对象转发调用到上述程序模拟 API 。
+约定 platform 命名空间中后缀 _P 的例程（若存在）是支持具体平台的实现，其它例程不用于此方式模拟其它平台。
+
+@1.6.1.3.2 类模板特化：
+特定的 API 集合以作为可被特化的类模板的形式提供。
+具体平台或平台特性集标记(@5.4.1) 提供特化版本。
+顶级平台命名空间([Documentation::YFramework @@2.3.4]) 中使用别名声明重定向名称到具体平台模拟 API 。
+
+@1.6.1.3.3 命名空间：
+特定的 API 在 platform_ex 的平台命名空间中提供。
+在 platform_ex 命名空间中使用 using 声明方式提供公共接口。
 
 @1.6.1.4 二进制兼容性：
 当前仅作为 YFramework 平台兼容层，没有二进制兼容策略。
 另见 @5.1 。
 
-@1.6.2 platform::KeyCodes 命名空间：
+@1.6.2 命名空间 platform::KeyCodes ：
 platform::KeyCodes 命名空间用于公开输入设备的按键设置，其中的成员的一部分满足平台中立接口。
+
+@1.6.2.1 按键值：
 具体按键由可以转换为 platform::KeyIndex 类型的值标识，转换后的值称为按键值，保证能被 platform::KeyBitsetWidth 个二进制位表示，用于按键类别（由 platform::KeyCategory 的成员定义）判断，但不被依赖作为公开接口。
 特定平台支持的本机按键值集合使用枚举类型 NativeSet 表示，具体按键值由具体平台定义，一般不变。
 不特定由平台直接支持的按键值使用枚举类型 ExtendedSet 表示，具体按键值由 YCLib 定义，作为 ABI 的一部分，但不保证长期稳定。
 为了兼容，提供 constexpr 对象作为按键别名。即按键可以由转换为按键值的具名实体标识。
 NativeSet 外的按键值的实体名都可以兼容以实现平台中立。
 当前 NativeSet 以 Win32 平台为基准的按键名称都保证兼容，因此平台中立按键名即当前 Win32 实现的按键集合。
+
+@1.6.2.2 平台命名空间：
+当前对每个平台使用不同的命名空间以支持程序模拟(@1.6.1.3.3) ，包括以下子命名空间：
+platform::KeyCodes::DS DS 平台。
+platform::KeyCodes::Win32 Win32 平台。
+platform::KeyCodes::Android Android 平台。
+platform::KeyCodes::Linux Linux 兼容平台（不包括 Android ）。
+platform::KeyCodes 中使用单一 using 指令支持本机名称。
 
 @1.6.3 文件系统接口：
 文件系统的一般概念（包括路径等）同 WG21/N4099 。
@@ -162,6 +187,17 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 显式使用带后缀的函数（若存在）。注意某些兼容问题，如 Windows CE 下 GetProcAddress 存在后缀而 Win32 下不存在。
 存在后缀时，优先使用 W ，避免 ANSI 版本接口的一些限制（如文件系统 API ）和主流实现的 A 后缀需要转换间接调用 W 后缀版本。
 例外： ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
+
+@4.1.4 路径：
+除非文档另行约定，使用的路径对 Win32 API 透明。
+关于 Windows 文件路径和命名空间，参见 https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx 。
+至少有以下 Win32 API 可能使用 "\\?\" 前缀：
+CreateFileW
+CreateHardLinkW
+CreateSymbolicW
+FindFirstFileW
+GetFileAttributesW
+注意附加前缀可能导致分隔符 "/" 不被接受为合法的路径。
 
 @5 平台中立接口模块：
 提供平台中立接口，可引入 platform 命名空间实体的模块，用于以公共接口引入平台相关特性。

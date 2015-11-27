@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1237
+\version r1240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-11-18 10:45 +0800
+	2015-11-26 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -420,6 +420,9 @@ WCSToMBCS(wstring_view sv, unsigned cp)
 }
 
 
+DirectoryFindData::DirectoryFindData(const char* name)
+	: DirectoryFindData(UTF8ToWCS(name))
+{}
 DirectoryFindData::DirectoryFindData(const string& name)
 	: DirectoryFindData(UTF8ToWCS(name))
 {}
