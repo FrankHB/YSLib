@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r633
+\version r644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-10-04 15:16 +0800
+	2015-11-27 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ class YF_API Logger
 public:
 	using Level = Descriptions::RecordLevel;
 	using Filter = std::function<bool(Level, Logger&)>;
-	//! \note 通过 Logger 默认实现传递的第三参数非空。
+	//! \note 传递的第三参数非空。
 	using Sender = std::function<void(Level, Logger&, const char*)>;
 
 #ifdef NDEBUG
@@ -334,7 +334,16 @@ LogAssert(const char*, const char*, int, const char*) ynothrow;
 #	endif
 #endif
 
-#if YCL_Android
+#if YCL_Win32
+/*!
+\brief 发送字符串至调试器。
+\pre 间接断言：参数非空。
+\note 当前直接调用 ::OutputDebugStringA 。
+\since build 654
+*/
+YF_API YB_NONNULL(1) void
+SendDebugString(const char*) ynothrowv;
+#elif YCL_Android
 /*!
 \brief 映射 Descriptions::RecordLevel 为 Android 日志 API 使用的日志优先级。
 \return 介于 ANDROID_LOG_FATAL 和 ANDROID_LOG_VERBOSE 的日志优先级。

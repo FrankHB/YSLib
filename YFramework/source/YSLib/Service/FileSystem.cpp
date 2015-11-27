@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2167
+\version r2170
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-11-23 23:16 +0800
+	2015-11-26 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,13 +189,12 @@ CopyFile(const char* dst, const char* src, CopyFileHandler f, mode_t dst_mode,
 void
 ClearTree(const Path& pth)
 {
-	TraverseChildren(pth.VerifyAsMBCS(),
-		[&](NodeCategory c, NativePathView npv){
+	TraverseChildren(pth, [&](NodeCategory c, NativePathView npv){
 		const auto child(pth / String(npv));
 
 		if(c == NodeCategory::Directory)
 			DeleteTree(child);
-		TryRemove(child.VerifyAsMBCS().c_str());
+		TryRemove(string(child).c_str());
 	});
 }
 

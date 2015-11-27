@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r543
+\version r550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2015-09-11 17:39 +0800
+	2015-11-26 14:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,9 +60,10 @@ public:
 	DefDeCtor(HexModel)
 	/*!
 	\brief 构造：以二进制只读模式打开文件并初始化大小。
-	\pre 间接断言；参数非空。
+	\pre 间接断言：路径参数非空。
 	\since build 412
 	*/
+	YB_NONNULL(2)
 	HexModel(const char*);
 	DefDeMoveCtor(HexModel)
 
@@ -178,8 +179,11 @@ public:
 	using HexView::GetItemNum;
 	DefGetter(const ynothrow, const HexModel&, Model, model)
 
-	//! \since build 412
-	void
+	/*!
+	\pre 间接断言：路径参数非空。
+	\since build 412
+	*/
+	YB_NONNULL(2) void
 	Load(const char*);
 
 	/*!

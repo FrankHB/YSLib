@@ -11,19 +11,19 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1956
+\version r1958
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-09-18 01:01 +0800
+	2015-11-27 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see ISO WG21/N4081 6[optional] 。
+\see ISO WG21/N4081 6[any] 。
 \see http://www.boost.org/doc/libs/1_57_0/doc/html/any/reference.html 。
 */
 
@@ -575,7 +575,7 @@ public:
 	}
 	//@}
 
-	virtual const char*
+	virtual YB_ATTR(returns_nonnull) const char*
 	what() const ynothrow override
 	{
 		return "Failed conversion: any_cast.";

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r2403
+\version r2405
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2014-04-07 21:12 +0800
+	2015-11-27 09:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,7 @@ Shell::DefShlProc(const Message& msg)
 		}
 		break;
 	case SM_Quit:
+		YTraceDe(Notice, "Quit message handled.");
 		std::exit(FetchTarget<SM_Quit>(msg));
 	case SM_Bound:
 		{

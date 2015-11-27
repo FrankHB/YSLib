@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2836
+\version r2878
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-11-24 09:15 +0800
+	2015-11-26 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,13 @@ struct PathTraits
 	static yconstfn bool
 	is_root(const _tString& str) ynothrow
 	{
-		return YCL_FS_StringIsRoot(str, decltype(str[0]));
+		return ystdex::string_length(str) == FetchRootNameLength(str);
+	}
+	//! \since build 654
+	static bool
+	is_root(const String& str) ynothrow
+	{
+		return str.length() == FetchRootNameLength(u16string_view(str));
 	}
 
 	template<class _tString>
@@ -424,10 +430,14 @@ Traverse(HDirectory& dir, _func f)
 			f(dir.GetNodeCategory(), npv);
 	});
 }
+//! \note 允许目录路径以分隔符结尾。
+//@{
+//! \pre 间接断言：指针参数非空。
 template<typename _func>
-inline void
+inline YB_NONNULL(1) void
 Traverse(const char* path, _func f)
 {
+	// NOTE: Separators at end of path is allowed by %HDirectory::HDirectory.
 	HDirectory dir(path);
 
 	IO::Traverse(dir, f);
@@ -439,23 +449,44 @@ Traverse(const string& path, _func f)
 {
 	IO::Traverse(path.c_str(), f);
 }
+//@}
 template<typename _func>
 inline void
 Traverse(const Path& pth, _func f)
 {
-	IO::Traverse(pth.VerifyAsMBCS(), f);
+	IO::Traverse(string(pth), f);
 }
 
-//! \since build 593
+//! \note 允许目录路径以分隔符结尾。
+//@{
+/*!
+\pre 间接断言：指针参数非空。
+\since build 654
+*/
 template<typename _func>
-void
-TraverseChildren(const string& path, _func f)
+YB_NONNULL(1) void
+TraverseChildren(const char* path, _func f)
 {
 	IO::Traverse(path, [f](NodeCategory c, NativePathView npv)
 		ynoexcept_spec(f(c, npv)){
 		if(!PathTraits::is_parent(npv))
 			f(c, npv);
 	});
+}
+//! \since build 593
+template<typename _func>
+void
+TraverseChildren(const string& path, _func f)
+{
+	IO::TraverseChildren(path.c_str(), f);
+}
+//@}
+//! \since build 654
+template<typename _func>
+inline void
+TraverseChildren(const Path& pth, _func f)
+{
+	IO::TraverseChildren(string(pth), f);
 }
 //@}
 
@@ -537,6 +568,7 @@ CopyFile(const char*, const char*, CopyFileHandler, mode_t = DefaultPMode(),
 /*!
 \brief 复制目录树。
 \warning 不检查无限递归调用。
+\note 使用 ADL \c TraverseChildren 递归遍历。
 \since build 648
 */
 template<typename... _tParams>
@@ -544,7 +576,7 @@ void
 CopyTree(const Path& dst, const Path& src, _tParams&&... args)
 {
 	EnsureDirectory(dst);
-	TraverseChildren(string(src), [&](NodeCategory c, NativePathView npv){
+	TraverseChildren(src, [&](NodeCategory c, NativePathView npv){
 		const String name(npv);
 		const auto& dname(dst / name);
 
@@ -554,8 +586,8 @@ CopyTree(const Path& dst, const Path& src, _tParams&&... args)
 			IO::CopyTree(dname, src / name,
 				std::forward<_tParams>(args)...);
 		else
-			IO::CopyFile(dname.VerifyAsMBCS().c_str(), (src / name)
-				.VerifyAsMBCS().c_str(), std::forward<_tParams>(args)...);
+			IO::CopyFile(string(dname).c_str(), string(src / name).c_str(),
+				std::forward<_tParams>(args)...);
 	});
 }
 
@@ -575,7 +607,7 @@ inline PDefH(void, ClearTree, const string& pth)
 //! \brief 删除参数指定路径的目录树。
 //@{
 inline PDefH(void, DeleteTree, const Path& pth)
-	ImplExpr(ClearTree(pth), TryRemove(pth.VerifyAsMBCS().c_str()))
+	ImplExpr(ClearTree(pth), TryRemove(string(pth).c_str()))
 //! \since build 593
 inline PDefH(void, DeleteTree, const string& pth)
 	ImplExpr(DeleteTree(Path(pth)))

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r6114
+\version r6272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-11-24 10:10 +0800
+	2015-11-27 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,164 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Adaptor $=
+			(
+				/ %YAdaptor $=
+				(
+					+ 'using platform::FetchRootNameLength;',
+					+ 'using platform::ThrowFileOperationFailure;' $dep_from
+						("%ThrowFileOperationFailure" @ %FileIO)
+				),
+				/ DLD @ "class %Image" @ %Image $=
+				(
+					/ 'YB_NONNULL(1)' @ "constructor with %BitmapPtr parameter"
+						@ %Image -> 'YB_NONNULL(2)'
+					+ 'YB_NONNULL(2)' @ "all 4 constructors with character \
+						pointer parameter"
+				)
+			),
+			/ %Service $=
+			(
+				/ %FileSystem $=
+				(
+					(
+					/ @ "struct %PathTraits" $=
+					(
+						/ $impl "static member function template %is_root"
+							^ ("%FetchRootNameLength" @ %Adaptor.YAdaptor)
+							~ "%YCL_FS_StringIsRoot" $dep_to
+							"removal use of YCL_FS_StringIsRoot",
+						+ $forced "static function %is_root for 'const String&'"
+					);
+					/ $comp "non 'sd:/' or 'fat:/' supported as root"
+						@ "platform %DS",
+					/ $comp "more than one trailing separators at end of root"
+						$dep_from ("%platform::FetchRootNameLength"
+						@ %YCLib.FileSystem)
+					),
+					/ "simplified path conversion" @ "function template \
+						%CopyTree, functions %(DeleteTree, ClearTree)"
+						^ "explicit conversion from %Path to %string"
+						~ "%Path::VerifyAsMBCS",
+					+ "function template %TraverseChildren with 'const char*' \
+						parameter",
+					(
+					+ "function template %TraverseChildren with 'const Path&' \
+						parameter";
+					/ DLDI "simplified %(ClearTree, CopyTree)"
+					),
+					/ @ "function template %Traverse with pointer parameter" $=
+					(
+						/ $doc "explicitly forbade null pointer as argument",
+						+ 'YB_NONNULL(1)'
+					)
+				),
+				/ DLDI "simplified" @ (!"platform %Win32" @ "function \
+					templates %(TryRemove, TryUnlink), function %OpenFile"
+					@ %File ^ $dep_from ("%ThrowFileOperationFailure"
+					@ %Adaptor.YAdaptor)
+			),
+			+ "trace with level 'Notice'" @ "handling %SM_Quit"
+				@ "static member function %Shell::DefShlProc" @ %Core.YShell
+		),
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				(
+				- "macro %YCL_FS_StringIsRoot" $dep_from
+					"removal use of YCL_FS_StringIsRoot";
+				- "function %platformex::FS_IsRoot" @ !"platform_Win32"
+				),
+				/ "supported more than one trailing separators at end of root"
+					@ "functions %FetchRootNameLength_P; function template \
+					%FetchRootNameLength"
+				(
+				+ "function templates %(IsColon, IsSlash, FindColon)";
+				/ "all functions %(IsAbsolute_P, FetchRootNameLength_P)"
+					-> "function templates supporting 'const _tChar*' and \
+					'basic_string_view<_tChar>' parameters"
+				),
+				* "wrong name of %FetchRootNameLength_P for %basic_string_view"
+					$since b653
+					$= ("%FetchRootNameLength_P_" => "%FetchRootNameLength_P"),
+				(
+				/ "default argument" @ "parameter"
+					@ "constructor %DirectorySession" -> '"."' ~ '{}';
+				/ "asserted for null parameter" @ "classes"
+					("%DirectorySession", $comp "%HDirectory") $dep_from
+					("%IO::Traverse" @ %YSLib.Service.FileSystem)
+				)
+			),
+			+ "function template %ThrowFileOperationFailure" @ %FileIO,
+			/ DLDI "simplified" @ ("constructor %DirectorySession" @%FileSystem,
+				("function %FetchCommandOutput",
+				!"platform %Win32" @ "function %MakePipe") @ %Host,
+				"constructor %MappedFile" @ %MemoryMapping)
+				^ $dep_from ("%ThrowFileOperationFailure" @ %FileIO),
+			+ "keycode platform emulation" @ "namespace %platform::KeyCodes"
+				@ %Keys $=
+			(
+				+ "class template %PlatformSet and specializations";
+				/ $dev "ported key codes" @ "all platforms"
+					^ "%PlatformSet specializations"
+			),
+			/ %Debug $=
+			(
+				/ @ "class %platform::Logger" $=
+				(
+					/ $impl "simplified" @ "function %DoLogException"
+						$= (- "nullary check for message")
+							// See $2015-11 \
+								@ %Documentation::Workflow::Annual2015.
+					/ $doc "explicitly guaranteed 3rd parameter not null"
+						@ "type %Sender"
+				),
+				+ "function %platform_ex::SendDebugString" @ "platform %Win32"
+			)
+		),
+		+ "constructor %DirectoryFindData with 'const char*' parameter"
+			@ %'YCLib_(Win32)'.MinGW32,
+			// To reduce empty string conversion overhead.
+		/ %Helper.Initialization $=
+		(
+			/ DLDI "simplified %InitializeSystemFontCache"
+				^ "IO::TraverseChildren" ~ "%HDirectory"
+			+ "setting default logger sender when environment variable \
+				%YF_DEBUG_OUTPUT is '1'" @ "platform %Win32"
+				@ "function %InitializeEnvironment" @ %Helper.Initialization
+				^ $dep_from ("%platform_ex::SendDebugString" @ %YCLib.Debug)
+		)
+	),
+	/ DLDI "simplified" @ %Tools.ProjectGenerator.Main $dep_from
+		("%TraverseChildren" @ %YFramework.YSLib.Service.FileSystem),
+	/ %YReader $=
+	(
+		/ %ShlReader $=
+		(
+			/ DLDI "simplified path conversion" @ "constructor %HexBrowser",
+			/ $impl "constructor %ShlTextReader" ^ "explicit conversion from \
+				%Path to %string" ~ "%Path::VerifyAsMBCS"
+				// The group name should not be end with slash.
+		),
+		+ DLD 'YB_NONNULL(2)' @ "constructor %HexModel, member function \
+			%HexViewArea::Load" @ %HexBrowser
+	),
+	+ DLDI 'YB_NONNULL' @ "setting logger sender" @ %Tools.SHBuild.Main,
+	+ DLD 'YB_ATTR(returns_nonnull)' @ "virtual member function %what"
+		@ "all exception classes" $effective @ ("class %ystdex::bad_any_cast"
+		@ %YBase.YStandardEx.Any),
+	/ $dev $repo $re_ex(b650) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.YSLib.Core.("%yshell.cpp" => "%YShell.cpp")
+),
+
+b653
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1147,7 +1305,7 @@ b644
 					@ "functions %(MBCSToWCS, WCSToMBCS)" $mismatch $since b431
 			)
 		),
-		+ $lib 'YB_NONNULL(1, 2)' @ "function %LoadNPLA1File"
+		+ DLD 'YB_NONNULL(1, 2)' @ "function %LoadNPLA1File"
 			@ %Helper.Initialization,
 		/ %CHRLib $=
 		(

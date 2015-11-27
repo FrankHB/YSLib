@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2425
+\version r2449
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-10-20 13:44 +0800
+	2015-11-27 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,10 @@
 #include YFM_Helper_Initialization // for ystdex::handle_nested;
 #include YFM_YSLib_Core_YApplication
 #include YFM_Helper_GUIApplication
-#include YFM_YCLib_Debug
+#include YFM_YCLib_Debug // for platform_ex::SendDebugString;
 #include YFM_CHRLib_MappingEx
 #include YFM_YCLib_MemoryMapping
-#include YFM_YSLib_Service_FileSystem
+#include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
 #include <ystdex/string.hpp> // for ystdex::sfmt;
 #include <cerrno> // for errno;
 //#include <clocale>
@@ -82,8 +82,6 @@ bool at_init(true);
 #	define YF_Init_puts(_lv, _str) std::puts(_str)
 #endif
 
-//! \since build 549
-using platform::MappedFile;
 //! \since build 425
 //@{
 stack<std::function<void()>> app_exit;
@@ -437,6 +435,19 @@ InitializeEnvironment()
 		throw GeneralEvent("Call of std::setlocale() with %s failed.\n",
 			locale_str);
 #endif
+#if YCL_Win32
+	string env_str;
+
+	// TODO: Extract as %YCoreUtilities functions?
+	if(FetchEnvironmentVariable(env_str, "YF_DEBUG_OUTPUT"))
+		FilterExceptions([&]{
+			if(env_str == "1")
+				FetchCommonLogger().SetSender([&](Logger::Level, Logger&,
+					const char* str) YB_NONNULL(4) ynothrowv{
+					platform_ex::SendDebugString(str);
+				});
+		});
+#endif
 }
 
 ValueNode
@@ -474,18 +485,13 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 		size_t nFileLoaded(fc.LoadTypefaces(fong_file) != 0);
 
 		if(!font_dir.empty())
-			//读取字体文件目录并载入目录下指定后缀名的字体文件。
 			try
 			{
-				HDirectory dir{font_dir.c_str()};
-
-				std::for_each(FileIterator(&dir), FileIterator(),
-					[&](NativePathView npv){
-					if(!PathTraits::is_self(npv)
-						&& dir.GetNodeCategory() != NodeCategory::Directory
-						/*&& IsExtensionOf(ext, string(dir))*/)
+				IO::TraverseChildren(font_dir,
+					[&](NodeCategory c, NativePathView npv){
+					if(!bool(c & NodeCategory::Directory))
 					{
-						FontPath path(font_dir + string(dir));
+						const FontPath path(font_dir + String(npv).GetMBCS());
 
 						if(path != fong_file)
 							nFileLoaded += fc.LoadTypefaces(path) != 0;

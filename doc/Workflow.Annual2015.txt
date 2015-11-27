@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r475
+\version r479
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2015-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-11-08 20:29 +0800
+	2015-11-27 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -445,6 +445,10 @@ Some metaprograming interface design is concerned.
 		Higher-ordered polymorphism are avoid in template parameters except for several exceptions.
 			One is the implementation proposed detection API, see WG21/N4502.
 			Another case is some underlying helpers like 'vseq::defer'.
+The 'what()' in classes derived from 'std::exception' shall always returns a nonnull pointer value.
+	Since ISO C++ [exception]/2 specifies explicitly that it should be a valid pointer suitable as an argument of 'std::strcmp'.
+	Thus it is redundant to check nullary of value of 'what()'.
+	And the 'what' overriders can be declaraed 'YB_ATTR(returns_nonnull)'.
 
 ////
 
