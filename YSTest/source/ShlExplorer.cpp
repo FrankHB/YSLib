@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1494
+\version r1501
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-11-19 00:36 +0800
+	2015-11-29 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,6 +301,11 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	DeclDynWidgetN(Button, btnTestEx, node_pnlPage3)
 	DeclDynWidgetN(CheckButton, cbDisableSetting, node_pnlPage3)
 	DeclDynWidgetN(CheckButton, cbShowTextBoxContent, node_pnlPage3)
+	const auto f_refresh_current([&]{
+		lblPath.Text = fbMain.GetPath().Verify(),
+		Invalidate(lblPath),
+		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
+	});
 
 	YTraceDe(Debug, "Initialization of ShlExplorer began.");
 	{
@@ -410,11 +415,8 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		}
 	},
 	// TODO: Improve UI action when %ViewChanged being called?
-	fbMain.GetSelected() += [&]{
-		lblPath.Text = fbMain.GetPath().Verify(),
-		Invalidate(lblPath),
-		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
-	},
+	fbMain.GetSelected() += f_refresh_current,
+	fbMain.GetViewChanged() += f_refresh_current,
 	FetchEvent<Click>(btnOK) += [&]{
 		if(fbMain.IsSelected())
 		{

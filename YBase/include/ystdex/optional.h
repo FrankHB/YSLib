@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r550
+\version r583
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2015-09-05 01:02 +0800
+	2015-11-28 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 \see http://www.boost.org/doc/libs/1_57_0/libs/optional/doc/html/optional/reference.html 。
 
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明外，
-其它接口同 std::experimental::optional 。
+其它接口除命名空间成员扩展外，同 std::experimental::optional 。
 */
 
 
@@ -118,8 +118,8 @@ public:
 template<typename _type>
 class optional_base<_type, true>
 {
-	// NOTE: See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3770.html#FI15 .
-	//	Also http://wg21.cmeerw.net/cwg/issue1776 .
+	// NOTE: See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3770.html#FI15.
+	//	Also http://wg21.cmeerw.net/cwg/issue1776.
 	static_assert(!is_cv<_type>(), "Cv-qualified type found.");
 
 protected:
@@ -382,7 +382,7 @@ public:
 	yconstfn_relaxed _type*
 	operator->()
 	{
-		std::addressof(this->get());
+		return std::addressof(this->get());
 	}
 	yconstfn const _type*
 	operator->() const
@@ -447,7 +447,7 @@ public:
 	value_or(_tOther&& other) const&
 	{
 		static_assert(is_copyable<_type>(), "Invalid type found.");
-		
+
 		return this->is_engaged() ? this->get()
 			: static_cast<_type>(yforward(other));
 	}
@@ -499,7 +499,6 @@ operator<(const optional<_type>& x, const optional<_type>& y)
 }
 //@}
 
-
 //! \see ISO WG21/N4081 5.10[optional.specalg] 。
 //@{
 template<typename _type> void
@@ -512,6 +511,37 @@ yconstfn optional<decay_t<_type>>
 make_optional(_type&& v)
 {
 	return optional<decay_t<_type>>(yforward(v));
+}
+//@}
+
+/*!
+\note YBase optional 扩展。
+\since build 655
+*/
+//@{
+//! \brief 使用指定参数构造指定 optional 实例的值。
+template<typename _type, typename... _tParams>
+yconstfn optional<_type>
+make_optional_inplace(_tParams&&... args)
+{
+	return optional<_type>(in_place, yforward(args)...);
+}
+
+/*!
+\brief 从 optional 实例的临时对象取左值引用。
+\warning 应仅在确认生存期时使用。
+*/
+template<typename _type>
+yconstfn _type&
+ref_opt(optional<_type>&& o) ynothrowv
+{
+	return *o.operator->();
+}
+template<typename _type>
+yconstfn _type&
+ref_opt() ynothrowv
+{
+	return ref_opt(make_optional_inplace<_type>());
 }
 //@}
 //@}

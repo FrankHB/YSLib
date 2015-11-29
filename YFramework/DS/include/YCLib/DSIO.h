@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1024
+\version r1062
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-10-07 23:56 +0800
+	2015-11-29 03:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,6 +405,27 @@ public:
 };
 
 
+/*!
+\brief 路径解析找到最终项后的动作。
+\since build 655
+*/
+enum class LeafAction
+{
+	//! \brief 找到最终项后直接返回。
+	Return = 0,
+	/*!
+	\brief 若找到最终项，
+		抛出 std::errc::file_exists 的 std::system_error 。
+	*/
+	ThrowExisted,
+	/*!
+	\brief 进一步查询簇，若发现最终项非目录项，
+		则抛出 std::errc::not_a_directory 的 std::system_error 。
+	*/
+	EnsureDirectory
+};
+
+
 class Partition;
 
 //! \brief 目录项。
@@ -445,7 +466,7 @@ public:
 	*/
 	DEntry(Partition&, const NamePosition&);
 	/*!
-	\pre 路径参数的数据指针指针非空。
+	\pre 断言：路径参数的数据指针指针非空。
 	\since build 642
 	*/
 	//@{
@@ -454,8 +475,15 @@ public:
 	\exception std::system_error 调用失败。
 		\li std::errc::filename_too_long 路径太长。
 		\li std::errc::no_such_file_or_directory 项不存在。
+		\li std::errc::file_exists 指定最终项已存在。
+		\li std::errc::not_a_directory 非目录项。
+	\note 路径相对于分区，无根前缀，空串路径视为根目录。
+	\since build 655
 	*/
-	DEntry(Partition&, string_view);
+	//@{
+	DEntry(Partition&, string_view, LeafAction = LeafAction::Return);
+	DEntry(Partition&, string_view, LeafAction, ClusterIndex&);
+	//@}
 
 	/*!
 	\exception std::system_error 调用失败。
@@ -549,6 +577,7 @@ class FileInfo;
 
 /*!
 \brief FAT 分区。
+\note 成员函数参数路径默认相对于此分区，无根前缀，空串路径视为根目录。
 \todo 添加修改卷标的接口。
 */
 class Partition final : private ystdex::noncopyable, private ystdex::nonmovable
@@ -716,13 +745,16 @@ public:
 
 	/*!
 	\brief 重命名路径。
-	\pre 间接断言：路径参数的数据指针非空。
+	\pre 间接断言：第一路径参数的数据指针非空。
+	\pre 断言：第二路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
 		\li std::errc::cross_device_link 路径指定的不是同一分区。
 		\li std::errc::read_only_file_system 文件系统只读。
-		\li std::errc::no_such_file_or_directory 指定的旧项不存在。
+		\li std::errc::no_such_file_or_directory 指定的旧项不存在或新路径为空串。
 		\li std::errc::file_exists 指定的新项已存在；
 		std::errc::io_error 读写错误。
+	\note 第一个参数指定已有项的路径，第二个参数指定新项的路径。
+	\note 第二个路径是完整路径，可能有根前缀。
 	\since build 643
 	*/
 	void
@@ -784,7 +816,7 @@ public:
 \pre 间接断言：参数非空。
 */
 YF_API YB_NONNULL(1) Partition*
-FetchPartitionFromPath(const char*) ynothrow;
+FetchPartitionFromPath(const char*) ynothrowv;
 
 
 //! \brief 目录状态。
@@ -801,7 +833,8 @@ private:
 
 public:
 	/*!
-	\pre 间接断言：参数非空。
+	\pre 间接断言：路径参数非空。
+	\pre 断言：路径参数非空串。
 	\sa CheckColons
 	*/
 	//@{
@@ -888,6 +921,7 @@ public:
 		\lic std::errc::file_exists 要求创建不存在的文件但文件已存在。
 		\lic std::errc::read_only_file_system 创建文件但文件系统只读。
 		\lic std::errc::no_such_file_or_directory 文件不存在。
+	\note 路径相对于分区，无根前缀，空串路径视为根目录。
 	\note 访问标识包含 O_RDONLY 、 O_WRONLY 或 O_RDWR 指定读写权限。
 	\since build 643
 	*/

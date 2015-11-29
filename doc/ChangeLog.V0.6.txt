@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r6272
+\version r6395
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-11-27 20:14 +0800
+	2015-11-29 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,119 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Operators $=
+		(
+			/ $dev $impl "stopped early for %void parameters for ADL binary \
+				operands",
+			/ "worked around to disable ADL binary operands overloadings"
+				@ 'YB_IMPL_GNUCPP < 50000'
+				// Not tested for G++ 5.
+		),
+		/ %Optional $=
+		(
+			* "missing returning value" @ "function %operator->#1"
+				@ "class template %optional" $since b591,
+			+ "function templates %(make_optional_inplace; 2 ref_opt)"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %'YCLib_(DS)'.DSIO $=
+		(
+			+ "enum class %LeafAction";
+			/ "constructor with path resolution" @ "class %DEntry"
+				-> "2 constructors" ^ $dep_from "%LeafAction" $=
+			(
+				+ "treating empty path as root entry" ~ "current directory"
+					$dep_to "empty directory path handling",
+				+ "optional throwing exception when action is specified as \
+					%LeafAction::ThrowExisted and entry is existed",
+				+ "optional throwing exception when action is specified as \
+					%LeafAction::EnsureDirectory and directory entry is \
+					nonexisted",
+				+ "treated path as one single slash if empty" $dep_from
+					"directory state empty path assertion" $dep_to
+					"handling null string path"
+			),
+			/ DLDI "simplified member function %Partition::ChangeDir, \
+				private constructor %DEntry, constructor %DirState#2"
+				^ "%LeafAction::EnsrueDirectory",
+			/ @ "class %Partition" $=
+			(
+				/ DLDI "simplified functions %(MakeDir, Rename)"
+					^ "%LeafAction::ThrowExisted",
+				/ @ "function %Rename" $=
+				(
+					+ "direct assertion to ensure nonnull new path",
+						// To check first even if the 1st parameter is an \
+							empty string.
+					/ "checked empty string to throw %std::system_error \
+						with %std::no_such_file_or_directory" $dep_to
+						"check empty new name"
+				)
+			),
+			/ 'ynothrow' @ "function %FetchPartitionFromPath" -> 'ynothrowv',
+			/ $doc "explicitly specified empty path string for (1st) parameter \
+				would be treated as root directory" @ "constructor %FileInfo, \
+				member functions %Partition::(ChangeDir, Rename, MakeDir)"
+				$dep_from "handling null string path",
+			/ @ "device table handling" $=
+			(
+				* $impl "wrong 'ynothrowv' for locking failure" $since b611,
+					// When locking failed and %YB_Use_StrictNoThrow used it \
+						can call %std::terminate.
+				* $impl "wrong 'ynothrowv' for error conditions" $since b637,
+					// When expected error occurred and %YB_Use_StrictNoThrow \
+						used it can call %std::terminate.
+			),
+			+ "set %errno to %ENOENT if directory name is an empty string"
+				@ "%devoptab_t routine %opendir_r" $dep_to
+				"check empty directory name",
+			+ "assertion to ensure path is not an empty string" @ "constructor \
+				%DirState#2" $dep_from "check empty directory name" $dep_to
+				"directory state empty path assertion"
+		),
+		/ @ "function %SendDebugString" @ "platform %Win32" @ %YCLib.Debug $=
+		(
+			+ "parameters for logger";
+			+ "logged thread id and level information" 
+		),
+		/ $forced DLDI @ "platform %Win32" @ "function %InitializeEnvironment"
+			@ %Helper.Initialization $dep_from %YCLib.Debug;
+
+	),
+	/ @ "platform %DS" $=
+	(
+		(
+		/ $comp "pathnames without trailing slash(es) handled as if one slash \
+			is at end for root" @ "%::(opendir, mkdir, chdir) and variants"
+			$dep_from "empty directory path handling",
+			// See https://github.com/devkitPro/libfat/issues/7.
+		* $comp "missing path for 'fat:/' directory session causing nothing \
+			shown in file box" @ $since b654
+		),
+		* $re_ex(b642) "strict POSIX.1-2013 compatibility" $since $before b132
+			$=
+		(
+			* $comp "nonconforming behavior treating empty path parameters"
+				@ "new path for %::rename and variants" $dep_from
+				"check empty new name"
+				$= ("set %errno to %ENOENT" ~ "set %errno to %EXDEV")
+			* $comp "nonconforming behavior treating empty path parameters"
+				@ "%::opendir and variants" $dep_from
+				"check empty directory name"
+				$= ("set %errno to %ENOENT"
+					~ "treating empty string path as current working directory")
+		)
+	),
+	* "current file not updated when file box list reloaded"
+		@ %YReader.ShlExplorer $since b634
+),
+
+b654
 (
 	/ %YFramework $=
 	(
@@ -67,8 +180,8 @@ $now
 					);
 					/ $comp "non 'sd:/' or 'fat:/' supported as root"
 						@ "platform %DS",
-					/ $comp "more than one trailing separators at end of root"
-						$dep_from ("%platform::FetchRootNameLength"
+					/ $comp "supported more than one trailing separators at \
+						end as root" $dep_from ("%platform::FetchRootNameLength"
 						@ %YCLib.FileSystem)
 					),
 					/ "simplified path conversion" @ "function template \
@@ -1607,8 +1720,8 @@ b642
 				@ %YBase.YStandardEx.TStringView),
 		)
 	),
-	* "strict POSIX.1-2013 compatibility" @ "platform %DS" $since $before b132
-		$=
+	* $re_ex(b626) "strict POSIX.1-2013 compatibility" @ "platform %DS" $since
+		$before b132 $=
 	(
 		* "wrongly setting %ENOENT instead of %ENOTDIR" @ "%::(unlink, mkdir, \
 			rename, opendir, open) and variants for path parameters where path \
@@ -3272,8 +3385,8 @@ b627
 	(
 		+ "function %ResetSize";
 		/ DLDI "simplified menu item for resizing size" ^ "%ResetSize",
-		* "%Tertiary key (middle mouse button) wrongly caused very large \
-			scale of image being updated" $since b580
+		* $resolve(#26) "%Tertiary key (middle mouse button) wrongly caused \
+			very large scale of image being updated" $since b580
 			// See issue #27.
 	),
 	/ %YFramework $=
@@ -3384,7 +3497,8 @@ b626
 					* "wrong check" @ "platform %Win32"
 						// It is not used in MSVCRT, even MinGW has 'S_ISBLK'.
 				),
-				* "strict POSIX.1-2013 compatibility for comparing file type"
+				* $re_ex(b625)
+					"strict POSIX.1-2013 compatibility for comparing file type"
 			),
 			/ %Debug $=
 			(
@@ -3478,8 +3592,8 @@ b625
 			/ @ "function %MakePipe" @ 'YCL_API_Has_unistd_h' @ %Host $=
 			(
 				^ $dev $impl "%FileDescriptor::SetNonblocking";
-				* DLDI "strict POSIX.1-2013 compatibility for future flags values"
-					$since b553,
+				* $re_ex(b623) DLDI "strict POSIX.1-2013 compatibility for \
+					future flags values" $since b553,
 				* "broken basic exception guarantee" $since b553
 					// Handle might leak when throwing.
 			),
@@ -4749,7 +4863,7 @@ b611
 				// In function %_FAT_directory_entryFromPosition of "fatfile.c".
 				- "redundant name entry traverse" $dep_to
 					"removal of stat name entry traverse",
-				* "missing check error %EIO" $since b132 $dep_to
+				* "missing check error %EIO" $since $before b132 $dep_to
 					"missing stat I/O error"
 					// On calling %_FAT_cache_readPartialSector.
 			),
@@ -5004,7 +5118,6 @@ b607
 	/ $re_ex(b604) DLDI @ "main function" @ "platform %Android" @ %Main
 		^ 'yunused',
 		// To eliminated warning: [-Wunused-variable].
-
 	/ %YBase.YStandardEx $=
 	(
 		+ "functor %lref_less" @ %Functional,
@@ -5038,7 +5151,7 @@ b607
 				+ "yconstexpr object %IllegalAliasCharacters",
 				(
 				+ "alias %FileSize";
-				+ "yconstexpr object %MaxFileSize"
+				+ $resolve(#18) "yconstexpr object %MaxFileSize"
 				),
 				(
 				+ "alias %EntryDataUnit";

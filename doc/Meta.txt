@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1448
+\version r1484
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2015-09-24 13:18 +0800
+	2015-11-29 04:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,35 +43,25 @@ __unfold.(__m($ctor, $dtor)) $= __pstate.behavior.ignore
 	$= __m($true, $false);
 __unfold __iterators.for_labeled_paragraph
 (
-	$DONE,
-	$DOING,
-	$NEXT_TODO,
-	$TODO,
-	$LOW_PRIOR_TODO,
-	$FURTHER_WORK,
-	$KNOWN_ISSUE,
-	$TO_BE_REVIEWED_ENVIRONMENT_ISSUE,
-	$RESOLVED_ENVIRONMENT_ISSUE,
 	$HISTORY,
 	$STATE
 );
-
-// Since b539, tracked issues are hosted on BitBucket, see https://bitbucket.org/FrankHB/yslib/issues .
-// These issue are referenced by 'issue #NUM' with NUM indicating issue number.
 
 // See "ex.cpp" for escaped abbreviation schema.
 
 $parser.state.style $= $natral_NPL;
 
 // External expressions.
-$lambda(_params)(...); // The lambda abstraction form.
-$map(_f); // The map higher order function.
+$lambda(_params)(...); // the lambda abstraction form;
+$map(_f); // the 'map' higher order function;
 
-// Parameters.
-$rev; // Revision token, e.g. 'b*'.
-$rev_list; // Revision list: one or more revision tokens;
-$spec; // Spec token, including revision token or other documentation materials;
-$spec_list; // Specs list: one or more spec tokens;
+// Parameters:
+$inum; // issue number token, i.e. '#*';
+$inum_list; // issue number list: one or more issue number tokens;
+$rev; // revision token, e.g. 'b*';
+$rev_list; // revision list: one or more revision tokens;
+$spec; // spec token, including revision token or other documentation materials;
+$spec_list; // specs list: one or more spec tokens;
 
 // Abstract operations for dependencies:
 $dep_from; // take evaluation dependence from;
@@ -122,17 +112,19 @@ $repo; // for repositories of version control system;
 $term; // for terminology;
 
 // Project management:
-$depr_clean; // for deprecated contents cleanup,
-$re($rev_list); // for same repeated operations,
-$re_add($rev_list); // for additional similar repeated operations,
-$re_ex($rev_list); // for repeated operations with evolution(update),
+$depr_clean; // for deprecated contents cleanup;
+$re($rev_list); // for same repeated operations;
+$re_add($rev_list); // for additional similar repeated operations;
+$re_ex($rev_list); // for repeated operations with evolution(update);
+$resolve($inum_list); // for marking resolving issues;
 $revert($rev_list); // for actions reverting changes in previous revision(s), \
 	with all explicit modification and effection restored to the original state.
 $revert_ex($rev_list); // same for $revert except for the modification not \
-	reset to the original state.
-$workaround; // for issues currently or temporarily cannot be resolved through \
-	a preferred clean way for certain reasons, but exist alternative ways to \
-	get being settled and work expectedly for outer observers of the system.
+	reset to the original state;
+$workaround($inum_list); // for issues currently or temporarily cannot be \
+	resolved through a preferred clean way for certain reasons, but exist \
+	alternative ways to get being settled and work expectedly for outer \
+	observers of the system;
 
 // General features modification:
 $add_features +; // features added;
@@ -160,6 +152,11 @@ DLB $dev $lib $build;
 
 $HISTORY:
 
+// Since b539, tracked issues are hosted on BitBucket, see https://bitbucket.org/FrankHB/yslib/issues.
+// These issues are referenced by 'issue #NUM' with NUM indicating issue number.
+//	See also '$inum' for use in tags.
+$resolve(#1);
+
 // Code refactoring/fixing for quality across multiple files and probably \
 	multiple revisions.
 // '$end_at $revision' is the last revision of the valid remained result. \
@@ -174,7 +171,7 @@ $long_term_code_evolution $=
 		Convention unavailable"
 		$interval([$b448, $now]),
 		// Head schema: "© <year> <holder>.".
-		// See http://www.copyrightservice.co.uk/copyright/p14_universal_copyright_convention .
+		// See http://www.copyrightservice.co.uk/copyright/p14_universal_copyright_convention.
 		// Conforms to: %Documentation::ProjectRules @2.7.
 	"removal of spaces between years and hyphen in copyright notice"
 		$interval([b441, $now]),
@@ -290,7 +287,7 @@ uLibrary @ DS: rejected.
 // $2013-07.
 (FTGL, GLFW, FMOD) @ !DS: considerable, shelved.
 Cairo: rejected.
-	Reasons: http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf .
+	Reasons: http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf.
 // $2013-08.
 df.operators(https://github.com/d-frey/operators): considerable, shelved.
 	// $2015-02: partially merged.
