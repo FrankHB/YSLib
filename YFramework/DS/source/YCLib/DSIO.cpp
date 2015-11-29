@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r2967
+\version r3084
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-10-07 23:58 +0800
+	2015-11-29 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,10 +41,11 @@
 #	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
 //	ystdex::write_uint_le, CHRLib::MakeUCS2LE, ystdex::ntctsicmp,
 //	ystdex::ntctsncpy;
-#	include <cerrno> // for E*;
+#	include <ystdex/optional.h> // for ystdex::ref_opt;
+#	include <cerrno> // for ENOENT, EIO, ENOMEM, ENOTSUP, EFBIG, EINVAL;
 #	include YFM_YCLib_NativeAPI // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC,
 //	O_APPEND, O_CREAT, O_EXCL;
-#	include <ystdex/scope_guard.hpp> // for ystdex::guard;
+#	include <ystdex/scope_guard.hpp> // for ystdex::make_guard;
 #	include <sys/iosupport.h> // for ::_reent, ::size_t, ::ssize_t, ::off_t,
 //	sturct ::stat, struct ::statvfs, ::DIR_ITER, ::devoptab_t;
 #endif
@@ -684,13 +685,18 @@ DEntry::DEntry(Partition& part, const NamePosition& name_pos)
 			: LFN::ConvertToMBCS(long_name);
 	}())
 {}
-DEntry::DEntry(Partition& part, string_view sv)
+DEntry::DEntry(Partition& part, string_view sv, LeafAction act)
+	: DEntry(part, sv, act, ystdex::ref_opt<ClusterIndex>())
+{}
+DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
+	ClusterIndex& dclus)
 {
+	string tmp;
+
 	YAssertNonnull(sv.data());
-
-	ClusterIndex dclus;
-
-	if(!sv.empty() && sv.front() == YCL_PATH_DELIMITER)
+	if(sv.empty())
+		goto found_root;
+	if(sv.front() == YCL_PATH_DELIMITER)
 	{
 		const auto pos(sv.find_first_not_of(YCL_PATH_DELIMITER));
 
@@ -743,12 +749,19 @@ DEntry::DEntry(Partition& part, string_view sv)
 			}, leaf);
 		}
 		if(leaf)
-			return true;
+		{
+			if(act == LeafAction::ThrowExisted)
+				throw_error(errc::file_exists);
+			if(act == LeafAction::Return)
+				return true;
+		}
 		if(Data.IsDirectory())
 		{
 			dclus = part.EntryGetCluster(Data);
 			if(dclus == Clusters::Root)
 				dclus = part.GetRootDirCluster();
+			if(leaf)
+				return true;
 			sv.remove_prefix(next_pos);
 			sv.remove_prefix(std::min(sv.find_first_not_of(YCL_PATH_DELIMITER),
 				sv.length()));
@@ -764,6 +777,8 @@ DEntry::DEntry(Partition& part, string_view sv)
 found_root:
 		this->~DEntry();
 		::new(this) DEntry(part);
+		if(act == LeafAction::EnsureDirectory)
+			dclus = part.GetRootDirCluster();
 	}
 }
 DEntry::DEntry(ClusterIndex& parent_clus, Partition& part, string_view sv)
@@ -782,11 +797,9 @@ DEntry::DEntry(ClusterIndex& parent_clus, Partition& part, string_view sv)
 	else
 	{
 		this->~DEntry();
-		::new(this) DEntry(part, {path, spos});
-		if(Data.IsDirectory())
-			yunseq(parent_clus = part.EntryGetCluster(Data), ++spos);
-		else
-			throw_error(errc::not_a_directory);
+		::new(this) DEntry(part, {path, spos}, LeafAction::EnsureDirectory,
+			parent_clus);
+		++spos;
 	}
 	name = ystdex::rtrim(string_view(path + spos, sv.length() - spos), ' ')
 		.to_string();
@@ -1103,20 +1116,15 @@ Partition::CheckPositionForNextCluster(FilePosition& pos) ythrow(system_error)
 	{
 		auto t(Table.QueryNext(pos.GetCluster()));
 
-		pos = {Clusters::IsFreeOrEOF(t) ? Table.TryLinkFree(pos.GetCluster()) : t,
-			0, pos.GetByte()};
+		pos = {Clusters::IsFreeOrEOF(t)
+			? Table.TryLinkFree(pos.GetCluster()) : t, 0, pos.GetByte()};
 	}
 }
 
 void
 Partition::ChangeDir(string_view path) ythrow(system_error)
 {
-	DEntry entry(*this, path);
-
-	if(entry.Data.IsDirectory())
-		cwd_cluster = EntryGetCluster(entry.Data);
-	else
-		throw_error(errc::not_a_directory);
+	DEntry(*this, path, LeafAction::EnsureDirectory, cwd_cluster);
 }
 
 void
@@ -1314,11 +1322,7 @@ Partition::LinkFreeClusterCleared(ClusterIndex c) ythrow(system_error)
 void
 Partition::MakeDir(string_view path) ythrow(system_error)
 {
-	try
-	{
-		DEntry(*this, path);
-		throw_error(errc::file_exists);
-	}
+	TryExpr(DEntry(*this, path, LeafAction::ThrowExisted))
 	catch(system_error& e)
 	{
 		if(e.code().value() == ENOENT)
@@ -1334,7 +1338,7 @@ Partition::MakeDir(string_view path) ythrow(system_error)
 				de.Data.WriteDateTime();
 				dclus = LinkFreeClusterCleared(Clusters::Free);
 				de.Data.WriteCluster(dclus);
-				// XXX: Only %ENOSPCE may be expected.
+				// XXX: Only %ENOSPC may be expected.
 			}, path, parent_clus);
 
 			// NOTE: Create the dot entry within the directory.
@@ -1387,40 +1391,43 @@ Partition::ReadFSInfo()
 void
 Partition::Rename(string_view old, string_view new_name) ythrow(system_error)
 {
-	if(FetchPartitionFromPath(new_name.data()) == this)
+	YAssertNonnull(new_name.data());
+	if(!new_name.empty())
 	{
-		// FIXME: errc::invalid_argument: The old pathname names an
-		//	ancestor directory of the new pathname.
-		if(!read_only)
+		if(FetchPartitionFromPath(new_name.data()) == this)
 		{
-			DEntry old_dir_entry(*this, old);
-			try
+			// FIXME: errc::invalid_argument: The old pathname names an
+			//	ancestor directory of the new pathname.
+			if(!read_only)
 			{
-				DEntry new_dir_entry(*this, new_name);
+				DEntry old_dir_entry(*this, old);
 
-				throw_error(errc::file_exists);
-			}
-			catch(system_error& e)
-			{
-				if(e.code().value() == ENOENT)
+				TryExpr(DEntry(*this, new_name, LeafAction::ThrowExisted))
+				catch(system_error& e)
 				{
-					DEntry(*this, [&](DEntry& de) ynothrow{
-						yunseq(de.Data = old_dir_entry.Data,
-							de.NamePos = old_dir_entry.NamePos);
-						// XXX: Only %ENOSPC may be expected?
-					}, new_name);
-					RemoveEntry(old_dir_entry.NamePos);
-					Flush();
+					if(e.code().value() == ENOENT)
+					{
+						DEntry(*this, [&](DEntry& de) ynothrow{
+							yunseq(de.Data = old_dir_entry.Data,
+								de.NamePos = old_dir_entry.NamePos);
+							// XXX: Only %ENOSPC may be expected?
+						}, new_name);
+						// FIXME: Exception safety.
+						RemoveEntry(old_dir_entry.NamePos);
+						Flush();
+					}
+					else
+						throw;
 				}
-				else
-					throw;
 			}
+			else
+				throw_error(errc::read_only_file_system);
 		}
 		else
-			throw_error(errc::read_only_file_system);
+			throw_error(errc::cross_device_link);
 	}
 	else
-		throw_error(errc::cross_device_link);
+		throw_error(errc::no_such_file_or_directory);
 }
 
 void
@@ -1575,8 +1582,10 @@ Partition::WriteFSInfo() const
 
 
 Partition*
-FetchPartitionFromPath(const char* path) ynothrow
+FetchPartitionFromPath(const char* path) ynothrowv
 {
+	// NOTE: %::chdir or %::setDefaultDevice call is needed before relative
+	//	paths available here.
 	if(const auto p_devops = ::GetDeviceOpTab(Nonnull(path)))
 		return static_cast<Partition*>(p_devops->deviceData);
 	return {};
@@ -1587,6 +1596,7 @@ DirState::DirState(const char* path) ythrow(system_error)
 	: DirState([=]() -> Partition&{
 		if(const auto p = FetchPartitionFromPath(path))
 			return *p;
+		// XXX: This is not POSIX error.
 		throw_error(errc::no_such_device);
 	}(), path, unique_lock<mutex>(GetPartitionRef().GetMutexRef()))
 {}
@@ -1594,13 +1604,13 @@ DirState::DirState(Partition& part, const char* path, unique_lock<mutex>)
 	// XXX: Extended partition mutex to lock directory states.
 	ythrow(system_error)
 	: part_ref(part), start_cluster([&]{
+		ClusterIndex dclus;
+
+		YAssert(Deref(path) != char(), "Path shall not be an empty string.");
+		// XXX: %EINVAL is not POSIX error for path.
 		path = CheckColons(path);
-
-		DEntry dentry(part, path);
-
-		if(dentry.Data.IsDirectory())
-			return part.EntryGetCluster(dentry.Data);
-		throw_error(errc::not_a_directory);
+		DEntry(part, path, LeafAction::EnsureDirectory, dclus);
+		return dclus;
 	}()), current_entry(start_cluster),
 	valid_entry(current_entry.QueryNextFrom(GetPartitionRef()))
 {}
@@ -2043,8 +2053,8 @@ FileInfo::TrySeek(::off_t offset, int whence) ythrow(system_error)
 ::ssize_t
 FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 {
-	// FIXME: Only write up to the maximum file size, taking into
-	//	account wrap-around of integers. Overflow?
+	// FIXME: Only write up to the maximum file size, taking wrap-around of
+	//	integers into account. Overflow?
 	if(nbyte + file_size > MaxFileSize || nbyte + file_size < file_size)
 		nbyte = MaxFileSize - file_size;
 	if(nbyte != 0)
@@ -2204,7 +2214,7 @@ FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 
 template<typename _func>
 YB_NONNULL(1) auto
-op_path(::_reent* r, const char*& path, _func f) ynothrowv
+op_path(::_reent* r, const char*& path, _func f)
 	-> FilterRes<_func, Partition&>
 {
 	return FilterDevOps(r, [=, &path]{
@@ -2217,15 +2227,17 @@ op_path(::_reent* r, const char*& path, _func f) ynothrowv
 				return f(*p_part);
 			}
 			// XXX: This is not POSIX error.
-			throw_error(std::errc::no_such_device);
+			throw_error(errc::no_such_device);
 		}
-		throw_error(ENOENT);
+		throw_error(errc::no_such_file_or_directory);
 	});
 }
 
+//! \since build 655
+//@{
 template<typename _func>
 YB_NONNULL(1) auto
-op_path_locked(::_reent* r, const char*& path, _func f) ynothrowv
+op_path_locked(::_reent* r, const char*& path, _func f)
 	-> FilterRes<_func, Partition&>
 {
 	return op_path(r, path, [f](Partition& part){
@@ -2238,7 +2250,7 @@ op_path_locked(::_reent* r, const char*& path, _func f) ynothrowv
 
 template<typename _func>
 YB_NONNULL(1) auto
-op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _func f) ynothrowv
+op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _func f)
 	-> FilterRes<_func, DirState&>
 {
 	return FilterDevOps(r, [=]{
@@ -2251,6 +2263,7 @@ op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _func f) ynothrowv
 	});
 }
 
+//! \since build 611
 bool
 check_true(const FileInfo&) ynothrow
 {
@@ -2260,7 +2273,7 @@ check_true(const FileInfo&) ynothrow
 template<typename _func, typename _fCheck = bool(*)(const FileInfo&)>
 YB_NONNULL(1) auto
 op_file_locked(::_reent* r, int fd, _func f, _fCheck check = check_true)
-	ynothrowv -> FilterRes<_func, FileInfo&>
+	-> FilterRes<_func, FileInfo&>
 {
 	return FilterDevOps(r, [=]{
 		// NOTE: Check of %fd is similar to %::close_r.
@@ -2275,6 +2288,7 @@ op_file_locked(::_reent* r, int fd, _func f, _fCheck check = check_true)
 		throw_error(errc::bad_file_descriptor);
 	});
 }
+//@}
 
 // NOTE: %REENTRANT_SYSCALLS_PROVIDED is configured for libgloss for
 //	arm-*-*-eabi targets in devkitPro ports. See source
@@ -2306,7 +2320,7 @@ const ::devoptab_t dotab_fat{
 		return FilterDevOps(r, [=]{
 			auto& file_info(Deref(reinterpret_cast<FileInfo*>(fd)));
 			auto& part(file_info.GetPartitionRef());
-			const auto guard(ystdex::make_guard([&]{
+			const auto gd(ystdex::make_guard([&]{
 				Deref(part.LockOpenFiles()).erase(file_info);
 				file_info.~FileInfo();
 			}));
@@ -2353,10 +2367,15 @@ const ::devoptab_t dotab_fat{
 	}, sizeof(DirState), [](::_reent* r, ::DIR_ITER* dir_state,
 		const char* path) YB_NONNULL(1, 2, 3) ynothrowv{
 		return FilterDevOps(r, [=]() -> ::DIR_ITER*{
-			const auto p(dir_state->dirStruct);
+			if(Deref(path) != char())
+			{
+				const auto p(dir_state->dirStruct);
 
-			::new(Nonnull(p)) DirState(path);
-			return static_cast<::DIR_ITER*>(p);
+				::new(Nonnull(p)) DirState(path);
+				return static_cast<::DIR_ITER*>(p);
+			}
+			seterr(r, ENOENT);
+			return {};
 		});
 	}, [](::_reent* r, ::DIR_ITER* dir_state) YB_NONNULL(1, 2) ynothrowv{
 		return op_dir_locked(r, dir_state, mem_fn(&DirState::Reset));
@@ -2366,10 +2385,9 @@ const ::devoptab_t dotab_fat{
 		return op_dir_locked(r, dir_state,
 			bind1(&DirState::Iterate, filename, filestat));
 	}, [](::_reent* r, ::DIR_ITER* dir_state) YB_NONNULL(1, 2) ynothrowv{
-		return op_dir_locked(r, dir_state,
-			[=](DirState& state) ynothrow{
-				state.~DirState();
-			});
+		return op_dir_locked(r, dir_state, [](DirState& state) ynothrow{
+			state.~DirState();
+		});
 	}, [](::_reent* r, const char* path, struct ::statvfs* buf)
 		YB_NONNULL(1, 2, 3) ynothrowv{
 		return
@@ -2404,7 +2422,8 @@ Mount(string_view name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 			if(auto p_part = make_unique<Partition>(intf, pages,
 				sectors_per_page_shift, start_sector))
 			{
-				const auto p_name(ystdex::aligned_store_cast<char*>(p.get() + 1));
+				const auto
+					p_name(ystdex::aligned_store_cast<char*>(p.get() + 1));
 
 				yunseq(ystdex::trivially_copy_n(&dotab_fat, 1, p.get()),
 					ystdex::ntctscpy(p_name, name.data(), name.length()),

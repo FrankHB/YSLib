@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1782
+\version r1797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2015-11-05 01:30 +0800
+	2015-11-28 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ namespace ystdex
 
 #define YB_Impl_Operators_friend(_op, _tRet, _spec, _expr, ...) \
 	friend yconstfn _tRet \
-	operator _op (__VA_ARGS__) ynoexcept(_spec) \
+	operator _op(__VA_ARGS__) ynoexcept(_spec) \
 	{ \
 		return (_expr); \
 	}
@@ -75,17 +75,31 @@ struct op_idt
 	using type = _type;
 };
 
+//! \since build 655
+template<>
+struct op_idt<void>;
+
 template<typename _type = void>
 using op_idt_t = _t<op_idt<_type>>;
 //@}
 
-#define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
+// NOTE: The trunk libstdc++ std::experimental::string_view comparison should
+//	depend on the same technique.
+// TODO: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52072. It is strange
+//	to still have this bug. Not fully tested for G++ 5.
+#if YCL_IMPL_GNUCPP < 50000
+#	define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
+	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
+		const _param_type2& y)
+#else
+#	define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
 		const _param_type2& y) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, \
 		const op_idt_t<_param_type>& x, const _param_type2& y) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, \
 		const _param_type& x, const op_idt_t<_param_type2>& y)
+#endif
 #define YB_Impl_Operators_Compare1(_op, _expr, _param_type) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
 		const _param_type& y)

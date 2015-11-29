@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r696
+\version r706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-11-27 19:43 +0800
+	2015-11-29 05:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,10 +329,18 @@ LogAssert(const char* expr_str, const char* file, int line,
 
 #if YCL_Win32
 void
-SendDebugString(const char* str) ynothrowv
+SendDebugString(Logger::Level lv, Logger&, const char* str) ynothrowv
 {
-	// TODO: Use %::WaitForDebugEventEx if possible. See https://msdn.microsoft.com/en-us/library/windows/desktop/mt171594(v=vs.85).aspx.
-	::OutputDebugStringA(Nonnull(str));
+	try
+	{
+		const auto& t_id(FetchCurrentThreadID());
+
+		// TODO: Use %::WaitForDebugEventEx if possible. See https://msdn.microsoft.com/en-us/library/windows/desktop/mt171594(v=vs.85).aspx.
+		::OutputDebugStringA((!t_id.empty() ? ystdex::sfmt("[%s:%#X]: %s",
+			t_id.c_str(), unsigned(lv), Nonnull(str)) : ystdex::sfmt(
+			"[%#X]: %s", unsigned(lv), Nonnull(str))).c_str());
+	}
+	CatchIgnore(...)
 }
 #elif YCL_Android
 int

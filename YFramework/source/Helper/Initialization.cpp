@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2449
+\version r2453
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-11-27 19:53 +0800
+	2015-11-29 05:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -442,10 +442,8 @@ InitializeEnvironment()
 	if(FetchEnvironmentVariable(env_str, "YF_DEBUG_OUTPUT"))
 		FilterExceptions([&]{
 			if(env_str == "1")
-				FetchCommonLogger().SetSender([&](Logger::Level, Logger&,
-					const char* str) YB_NONNULL(4) ynothrowv{
-					platform_ex::SendDebugString(str);
-				});
+				FetchCommonLogger().SetSender(
+					platform_ex::SendDebugString);
 		});
 #endif
 }
