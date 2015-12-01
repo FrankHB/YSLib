@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3292
+\version r3295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-11-26 16:16 +0800
+	2015-11-26 09:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -513,12 +513,12 @@ EntryData::CopyLFN(char16_t* str) const ynothrowv
 }
 
 bool
-EntryData::FindAlias(const char* name, size_t len) const
+EntryData::FindAlias(string_view name) const
 {
 	const auto alias(GenerateAlias());
 
-	return ystdex::ntctsicmp(name, alias.c_str(),
-		std::min<size_t>(alias.length(), len)) == 0;
+	return ystdex::ntctsicmp(Nonnull(name.data()), alias.c_str(),
+		std::min<size_t>(name.length(), alias.length())) == 0;
 }
 
 string

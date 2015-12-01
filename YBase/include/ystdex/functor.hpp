@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r432
+\version r504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2015-09-01 10:15 +0800
+	2015-12-01 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,78 +151,135 @@ struct ref_eq
 \since build 578
 */
 //@{
-#define YB_Impl_Functional_Ops2(_n, _op, _tRet) \
+//! \since build 656
+//@{
+#define YB_Impl_Functional_Ops_Primary(_n, _op, _tRet, _using_stmt, _expr, ...) \
 	template<typename _type = void> \
 	struct _n \
 	{ \
 		using first_argument_type = _type; \
-		using second_argument_type = _type; \
+		_using_stmt \
 		using result_type = _tRet; \
 		\
-		yconstfn bool \
-		operator()(const _type& x, const _type& y) const \
+		yconstfn _tRet \
+		operator()(__VA_ARGS__) const \
 		{ \
-			return x _op y; \
+			return _expr; \
 		} \
-	}; \
-	\
+	};
+
+#define YB_Impl_Functional_Ops_Spec(_n, _op, _tparams, _params, _expr) \
 	template<> \
 	struct _n<void> \
 	{ \
 		using is_transparent = yimpl(void); \
 		\
-		template<typename _type1, typename _type2> \
-		auto operator()(_type1&& x, _type2&& y) const \
-			-> decltype(yforward(x) < yforward(y)) \
+		template<_tparams> \
+		auto operator()(_params) const \
+			-> decltype(_expr) \
 		{ \
-			return yforward(x) < yforward(y); \
+			return _expr; \
 		} \
 	};
 
-#define YB_Impl_Functional_Arithmetic(_n, _op) \
+#define YB_Impl_Functional_Ops_using(_tRet) using second_argument_type = _tRet;
+
+#define YB_Impl_Functional_Ops1(_n, _op, _tRet) \
+	YB_Impl_Functional_Ops_Primary(_n, _op, _tRet, , _op x, const _type& x) \
+	\
+	YB_Impl_Functional_Ops_Spec(_n, _op, typename _type, _type&& x, _op yforward(x))
+//@}
+
+#define YB_Impl_Functional_Ops2(_n, _op, _tRet) \
+	YB_Impl_Functional_Ops_Primary(_n, _op, _tRet, \
+		YB_Impl_Functional_Ops_using(_tRet), x _op y, const _type& x, \
+		const _type& y) \
+	\
+	YB_Impl_Functional_Ops_Spec(_n, _op, typename _type1 YPP_Comma typename \
+		_type2, _type1&& x YPP_Comma _type2&& y, yforward(x) _op yforward(y))
+
+//! \since build 656
+#define YB_Impl_Functional_Binary(_n, _op) \
 	YB_Impl_Functional_Ops2(_n, _op, _type)
 
+//! \since build 656
+#define YB_Impl_Functional_Unary(_n, _op) \
+	YB_Impl_Functional_Ops1(_n, _op, _type)
+
 //! \brief 加法仿函数。
-YB_Impl_Functional_Arithmetic(plus, +)
+YB_Impl_Functional_Binary(plus, +)
 
 //! \brief 减法仿函数。
-YB_Impl_Functional_Arithmetic(minus, -)
+YB_Impl_Functional_Binary(minus, -)
 
 //! \brief 乘法仿函数。
-YB_Impl_Functional_Arithmetic(multiplies, *)
+YB_Impl_Functional_Binary(multiplies, *)
 
 //! \brief 除法仿函数。
-YB_Impl_Functional_Arithmetic(devides, /)
+YB_Impl_Functional_Binary(devides, /)
 
 //! \brief 模运算仿函数。
-YB_Impl_Functional_Arithmetic(modulus, %)
+YB_Impl_Functional_Binary(modulus, %)
 
-#undef YB_Impl_Functional_Arithmetic
+/*!
+\brief 取反仿函数。
+\since build 656
+*/
+YB_Impl_Functional_Unary(negate, -)
 
-#define YB_Impl_Functional_Comparison(_n, _op) \
+#define YB_Impl_Functional_bool(_n, _op) \
 	YB_Impl_Functional_Ops2(_n, _op, bool)
 
 //! \brief 等于关系仿函数。
-YB_Impl_Functional_Comparison(equal_to, ==)
+YB_Impl_Functional_bool(equal_to, ==)
 
 //! \brief 不等于关系仿函数。
-YB_Impl_Functional_Comparison(not_equal_to, !=)
+YB_Impl_Functional_bool(not_equal_to, !=)
 
 //! \brief 大于关系仿函数。
-YB_Impl_Functional_Comparison(greater, >)
+YB_Impl_Functional_bool(greater, >)
 
 //! \brief 小于关系仿函数。
-YB_Impl_Functional_Comparison(less, <)
+YB_Impl_Functional_bool(less, <)
 
 //! \brief 大于等于关系仿函数。
-YB_Impl_Functional_Comparison(greater_equal, >=)
+YB_Impl_Functional_bool(greater_equal, >=)
 
 //! \brief 小于等于关系仿函数。
-YB_Impl_Functional_Comparison(less_equal, <=)
+YB_Impl_Functional_bool(less_equal, <=)
 
-#undef YB_Impl_Functional_Comparison
+//! \since build 656
+//@{
+//! \brief 逻辑与仿函数。
+YB_Impl_Functional_bool(logical_and, &&)
 
+//! \brief 逻辑或仿函数。
+YB_Impl_Functional_bool(logical_or, ||)
+
+//! \brief 逻辑非仿函数。
+YB_Impl_Functional_Ops1(logical_not, !, bool)
+
+//! \brief 位与仿函数。
+YB_Impl_Functional_Binary(bit_and, &)
+
+//! \brief 位或仿函数。
+YB_Impl_Functional_Binary(bit_or, |)
+
+//! \brief 位异或仿函数。
+YB_Impl_Functional_Binary(bit_xor, ^)
+
+//! \brief 位取反仿函数。
+YB_Impl_Functional_Unary(bit_not, ~)
+//@}
+
+#undef YB_Impl_Functional_bool
+#undef YB_Impl_Functional_Unary
+#undef YB_Impl_Functional_Binary
 #undef YB_Impl_Functional_Ops2
+#undef YB_Impl_Functional_Ops1
+#undef YB_Impl_Functional_Ops_using
+#undef YB_Impl_Functional_Ops_Spec
+#undef YB_Impl_Functional_Ops_Primary
 //@}
 
 

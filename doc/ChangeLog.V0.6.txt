@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r6395
+\version r6515
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-11-29 13:36 +0800
+	2015-12-01 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,121 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ @ "class template %path" @ %YStandardEx.Path $=
+		(
+			/ @ "specifying parameter is parent node" @ "%operator/= with \
+				string parameter" $=
+			(
+				* "missing check self node" $since b600 $orig (@
+					"%Path::operator/=" @ %YSLib.Core.YFileSystem $since b152),
+				* "missing ignoring parameter when root path could not be \
+					reduced" $since b600 $orig (@ %YSLib.Core.YFileSystem
+					$since b409) $dep_to "wrong root reduction"
+			),
+			* "missing ignoring absolute path parameter"
+				@ "%operator/= with path parameter" $since b600 $orig
+				(@ %YSLib.Core.YFileSystem $since b410)
+		),
+		/ %Functor $=
+		(
+			* "all standard operator functors except %operator<" $since b578 $=
+			(
+				* "returned %bool except to 'void' specializations",
+				* "as '<'"
+			),
+			+ "standard operator functors %(negate, logical_and, logical_or, \
+				logical_not, bit_and, bit_or, bit_xor, bit_not)"
+		),
+		* "wrong macro detection for GNU C++" @ ("%(yfname, yfsig)" %YDefinition
+			$since b638, $impl %YStandardEx.Operators $since b655)
+			$= (/ 'YCL_IMPL_GNUCPP' -> 'YB_IMPL_GNUCPP')
+	),
+	* $comp "reduced parent path of root like '/../../' shown" @ "current path"
+		@ %YReader.ShlExplorer @ !"platforms %(DS, Win32)" $since b654 $dep_from
+		"wrong root reduction",
+		// Note b654 would not refresh the current path if only switching \
+			'..', but b655 would.
+	/ %YFramework $=
+	(
+		/ %'YCLib_(DS)'.DSIO $=
+		(
+			(
+			/ "merged 2 constructor templates, 2 constructor with %LeafAction \
+				parameter, function %AddTo" -> "constructor function"
+				@ "class %DEntry" ^ "%ystdex::ref_opt" $=
+			(
+				/ "merged path resolution",
+				/ $forced DLDI ^ $dep_from "%Partiton::IncrementPosition",
+				/ DLDI "simplified %retry_on_cond call"
+					^ ("%ystdex::logical_not" @ %YBase.YStandardEx.Functor)
+			);
+			/ "member function %Partition::(MakeDir, Rename), constructor \
+				%FileInfo" ^ "merged check on creation"
+			),
+			(
+			/ $impl "treated allocation failure as conversion failure"
+				~ "%ENOMEM" @ "member function %Partition::EntryExists";
+			/ $forced DLDI "simplified" @ "constructor %DEntry, member function \
+				Partition::EntryExists" $dep_from %YCLib.FileSystem
+			),
+			/ DLDI "simplified by merging throwing %std::system_error with \
+				%std::errc::io_error",
+			/ @ "class %Partition" $=
+			(
+				+ "%Flush call at end" @ "function %RemoveEntry",
+				(
+				/ "return type" @ "function %IncrementPosition"
+					-> $dep_from "%ExtensionResult" ~ 'bool';
+				/ $impl "simplified %ExtendPosition" ^ "%IncrementPosition",
+				/ $forced DLDI "function %RemoveEntry"
+				)
+			),
+			/ @ "class %FileInfo" $=
+			(
+				/ @ "function %SyncToDisc" $=
+				(
+					/ "allowed throwing %std::system_error with \
+						%std::errc::io_error",
+					/ "return type" -> 'void' ~ 'int' $dep_to
+						"file synchronization return value";
+					* "wrong 'ynothrow' since call to underlying \
+						%Partition::Sync may throw" $since b611
+				),
+				* "missing throwing %std::system_error with \
+					%std::errc::io_error" @ "appending error"
+					@ "member function %FileInfo::TryWrite" $since b611 $dep_to
+					"missing setting appending error"
+			),
+			/ $forced DLDI ("destructor %Partition", "%devoptab_t routine \
+				%close_r") $dep_from "file synchronization return value",
+			(
+			/ "constructor %DirState accepted partition and path without root \
+				parameters";
+			/ $impl "simplified %devoptab_t routine %opendir_r"
+			),
+			+ "enum class %ExtensionResult",
+			/ $forced $impl "constructor %DEntry#2" ^ $dep_from
+				"%Partition::ExtendPosition" ~ "%Partiton::IncrementPosition",
+				// It is not actually used.
+			/ $forced DLDI "member function %DEntry::QueryNextFrom" $dep_from
+				"%Partiton::IncrementPosition"
+				// %Partition::RemoveEntry is not allowed to throw this \
+					condition.
+		),
+		/ "parameters" @ "member function %FAT::EntryData::FindAlias"
+			@ %YCLib.FileSystem -> 'string_view' ~ 'const char*, size_t',
+	),
+	* "strict POSIX.1-2013 compatibility" @ "platform %DS" $since $before b132
+		$= (* "missing setting %EIO for %::write and variants when appending \
+			witout enough space" $dep_from "missing setting appending error"),
+	+ $dev $repo "pattern glob '*.VC.opendb'" @ "file %.hgignore"
+		// For VC++ 2015 Update 1.
+),
+
+b655
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -255,7 +370,7 @@ b654
 			(
 				/ @ "class %platform::Logger" $=
 				(
-					/ $impl "simplified" @ "function %DoLogException"
+					/ $impl "simplified function %DoLogException"
 						$= (- "nullary check for message")
 							// See $2015-11 \
 								@ %Documentation::Workflow::Annual2015.
@@ -422,7 +537,7 @@ b652
 		/ %YCLib $=
 		(
 			/ @ "functions %IsAbsolute" -> ("6 functions %IsAbsolute_P \
-				supporting platform %(DS, Win32) and others"
+				supporting platforms %(DS, Win32) and others"
 				^ $dep_from ("%BaseIDTag, IDTag" @ %YCommon),
 				"function template %IsAbsolute" ^ $dep_from
 				("%YCL_DefPlatformFwdTmpl" @ %YCommon)) @ %FileSystem $=
@@ -586,7 +701,7 @@ b651
 				+ "macros %(UTIME_NOW, UTIME_OMIT)" @ "not defined",
 				+ "functions %::(futimens, utimensat)"
 			),
-			* "parameters wrongly swapped" @ !"platform %(Win32, DS)"
+			* "parameters wrongly swapped" @ !"platforms %(DS, Win32)"
 				@ "functions %CreateHardLink" $since b633
 		),
 		/ @ %YSLib.Service.FileSystem $=
@@ -2244,7 +2359,7 @@ b638
 			(
 			+ "constructor %Win32Exception with 'const char*' parameter as \
 				enclosing function name";
-			/ $impl "simplified" @ "macro %YCL_WrapCallWin32";
+			/ $impl "simplified macro %YCL_WrapCallWin32";
 			+ "macro %YCL_WrapCallWin32F" ^ $dep_from
 				("%yfsig" @ %YBase.YDefinition);
 			+ "macro %YCL_CallWin32F"
@@ -3624,7 +3739,7 @@ b625
 			/ DLDI ^ "explicitly cast for integer types"
 		)
 	),
-	/ DLDI "simplified" @ "%allocator_delete::operator()"
+	/ DLDI "simplified %allocator_delete::operator()"
 		@ %YBase.YStandardEx.Memory ^ 'traits'
 ),
 
@@ -3819,7 +3934,7 @@ b623
 		(
 			* "catch-clause" @ "platform %Win32" $since b
 				$= (+ "log and calling %ystdex::assert"),
-			/ DLDI "simplified" @ "platform !%(Win32, Android)" ^ "%TryExpr"
+			/ DLDI "simplified platform !%(Win32, Android)" ^ "%TryExpr"
 		)
 	),
 	/ %Tools $=

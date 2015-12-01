@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1062
+\version r1202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-11-29 03:00 +0800
+	2015-12-01 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,9 +39,10 @@
 #	include <ystdex/cstdio.h> //for ystdex::block_buffer;
 #	include YFM_YCLib_FileSystem // for platform::FAT, platform::Deref,
 //	platform::Concurrency, platform::FileSystemType, std::system_error, array,
-//	string, string_view, ystdex::replace_cast;
-#	include <bitset> // for std::bitset;
+//	string, string_view;
 #	include <sys/syslimits.h> // for NAME_MAX.
+#	include <ystdex/optional.h> // for ystdex::ref_opt;
+#	include <bitset> // for std::bitset;
 #endif
 
 namespace platform_ex
@@ -101,8 +102,9 @@ public:
 	~SectorCache();
 
 private:
+	//! \since build 656
 	size_t
-	GetBlockCount(::sec_t) const ynothrow;
+	GetBlockCount(::sec_t) const ynothrowv;
 
 public:
 	//! \since build 609
@@ -111,8 +113,9 @@ public:
 private:
 	PDefH(size_t, GetKey, ::sec_t sec) const ynothrowv
 		ImplRet(sec & ~((1 << sectors_per_page_shift) - 1))
+	//! \since build 656
 	ystdex::block_buffer*
-	GetPage(::sec_t) ynothrow;
+	GetPage(::sec_t) ynothrowv;
 
 public:
 	//! \since build 608
@@ -134,11 +137,13 @@ private:
 	bool
 	FlushEntry(UsedListCache::value_type&) ynothrow;
 
-	//! \since build 608
+	//! \since build 656
 	//@{
 	template<typename _func>
 	bool
 	PerformPartialSectorIO(_func f, ::sec_t sec, size_t offset, size_t n)
+		ynoexcept_spec(f(
+		std::declval<ystdex::block_buffer&>(), (sec - size_t(0)) * bytes_per_sector))
 	{
 		if(!(bytes_per_sector < offset + n))
 		{
@@ -155,7 +160,8 @@ private:
 
 	template<typename _func>
 	bool
-	PerformSectorsIO(_func f, ::sec_t& sec, size_t& n)
+	PerformSectorsIO(_func f, ::sec_t& sec, size_t& n) ynoexcept_spec(
+		f(std::declval<ystdex::block_buffer&>(), sec - size_t(0), size_t(0)))
 	{
 		while(0 < n)
 		{
@@ -425,6 +431,18 @@ enum class LeafAction
 	EnsureDirectory
 };
 
+/*!
+\brief 扩展目录项位置的结果。
+\sa Partition::IncrementPosition
+\since build 656
+*/
+enum class ExtensionResult
+{
+	Success,
+	EndOfFile,
+	NoSpace
+};
+
 
 class Partition;
 
@@ -457,7 +475,13 @@ public:
 	DEntry(ClusterIndex c)
 		: NamePos(GenerateBeforeFirstNamePos(c))
 	{}
-	//! \brief 构造：分区根目录项。
+	/*!
+	\brief 构造：分区根目录项。
+	\exception std::system_error 调用失败。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::io_error 写错误。
+	\sa Partition::ExtendPosition
+	*/
 	DEntry(Partition&);
 	/*!
 	\brief 构造：使用分区上的指定名称位置。
@@ -466,62 +490,28 @@ public:
 	*/
 	DEntry(Partition&, const NamePosition&);
 	/*!
+	\brief 构造：使用分区上的指定路径，必要时添加项。
 	\pre 断言：路径参数的数据指针指针非空。
-	\since build 642
-	*/
-	//@{
-	/*!
-	\brief 构造：使用分区上的指定路径。
 	\exception std::system_error 调用失败。
+		\li std::errc::file_exists 指定最终项或添加项时项已存在。
+		\li std::errc::invalid_argument
+			添加项时，去除右端空格的名称为空，
+			或含有 LFN::IllegalCharacters 中的字符，
+			或非法导致生成后缀失败。
 		\li std::errc::filename_too_long 路径太长。
-		\li std::errc::no_such_file_or_directory 项不存在。
-		\li std::errc::file_exists 指定最终项已存在。
+		\li std::errc::io_error 添加项时读写错误。
+		\li std::errc::no_space_on_device 添加项时空间不足。
+		\li std::errc::no_such_file_or_directory
+			路径前缀的项或添加时指定的最终项不存在。
 		\li std::errc::not_a_directory 非目录项。
 	\note 路径相对于分区，无根前缀，空串路径视为根目录。
-	\since build 655
+	\note 当最后一个参数非空时初始化和添加新项并输出父目录簇，忽略第三参数。
+	\note 若添加项，长短文件名由 FindEntryGap 调用设置。
+	\since build 656
 	*/
-	//@{
-	DEntry(Partition&, string_view, LeafAction = LeafAction::Return);
-	DEntry(Partition&, string_view, LeafAction, ClusterIndex&);
-	//@}
-
-	/*!
-	\exception std::system_error 调用失败。
-		\li std::errc::filename_too_long 路径太长。
-		\li std::errc::no_such_file_or_directory 项不存在。
-		\li std::errc::not_a_directory 非目录项。
-		\li std::errc::invalid_argument 名称为空，
-			或含有 LFN::IllegalCharacters 中的字符。
-	\note 长短文件名由之后的 FindEntryGap 调用设置。
-	*/
-	//@{
-private:
-	//! \brief 构造：初始化用于被添加的新项。
-	DEntry(ClusterIndex&, Partition&, string_view);
-
-public:
-	//! \brief 构造：初始化和添加新项。
-	template<typename _func>
-	DEntry(Partition& part, _func f, string_view path)
-	{
-		ClusterIndex parent_clus;
-
-		this->~DEntry();
-		::new(this) DEntry(parent_clus, part, path);
-		f(*this);
-		AddTo(part, parent_clus);
-	}
-	//! \brief 构造：初始化和添加新项并输出父目录簇。
-	template<typename _func>
-	DEntry(Partition& part, _func f, string_view path,
-		ClusterIndex& parent_clus)
-		: DEntry(parent_clus, part, path)
-	{
-		f(*this);
-		AddTo(part, parent_clus);
-	}
-	//@}
-	//@}
+	DEntry(Partition&, string_view, LeafAction = LeafAction::Return,
+		std::function<void(DEntry&)> = {},
+		ClusterIndex& = ystdex::ref_opt<ClusterIndex>());
 
 	DefPred(const ynothrow, Dot, name == "." || name == "..")
 
@@ -529,23 +519,12 @@ public:
 	DefGetter(ynothrow, string&, NameRef, name)
 
 	/*!
-	\brief 添加项。
-	\pre 使用 int 起始参数类型构造，且之前没有被调用。
-	\exception std::system_error 调用失败。
-		\li std::errc::file_exists ：项已存在。
-		\li std::errc::no_space_on_device 空间不足。
-		\li std::errc::invalid_argument 文件名非法导致生成后缀失败。
-		\li std::errc::io_error 读写错误。
-	*/
-	void
-	AddTo(Partition&, ClusterIndex);
-
-	/*!
 	\brief 查找指定簇后的空闲空间并分配位置。
 	\pre 参数指定的分区和之前所有成员函数调用一致。
 	\exception std::system_error 调用失败。
 		\li std::errc::no_space_on_device 空间不足。
 		\li std::errc::io_error 读写错误。
+	\sa ExtendPosition
 	*/
 	void
 	FindEntryGap(Partition&, ClusterIndex, size_t) ythrow(std::system_error);
@@ -678,7 +657,8 @@ public:
 	\brief 移动目录项位置至下一个项，当遇到文件结束时扩展。
 	\exception std::system_error 调用失败。
 		\li std::errc::no_space_on_device 空间不足。
-	\todo 合并 IncrementPosition 实现。
+		\li std::errc::io_error 写错误。
+	\sa LinkFreeClusterCleared
 	*/
 	void
 	ExtendPosition(DEntryPosition&) ythrow(std::system_error);
@@ -692,8 +672,11 @@ public:
 		ImplExpr(GetCacheRef().Flush() ? void()
 			: ystdex::throw_error(std::errc::io_error))
 
-	//! \brief 移动目录项位置至下一个项。
-	bool
+	/*!
+	\brief 移动目录项位置至下一个项。
+	\since build 656
+	*/
+	ExtensionResult
 	IncrementPosition(DEntryPosition&) ynothrow;
 
 	/*!
@@ -718,6 +701,7 @@ public:
 		\li std::errc::not_a_directory 路径前缀不是目录。
 		\li std::errc::io_error 读写错误。
 		\li std::errc::no_space_on_device 空间不足。
+	\note 最后调用 Flush 。
 	\since build 643
 	*/
 	void
@@ -738,7 +722,11 @@ public:
 
 	/*!
 	\brief 移除名称位置指定的项。
-	\exception std::system_error 调用失败。\li std::errc::io_error 读写错误。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 读写错误。
+	\note 先写入新项覆盖，因此底层可能空间不足，此时作为写错误处理。
+	\note 最后调用 Flush 。
+	\sa IncrementPosition
 	*/
 	void
 	RemoveEntry(const DEntry::NamePosition&) ythrow(std::system_error);
@@ -833,39 +821,20 @@ private:
 
 public:
 	/*!
-	\pre 间接断言：路径参数非空。
+	\brief 构造：使用分区和路径。
+	\pre 间接断言：路径参数的数据指针非空。
 	\pre 断言：路径参数非空串。
-	\sa CheckColons
-	*/
-	//@{
-	/*!
-	\brief 构造：使用路径。
 	\exception std::system_error 构造失败。
 		\li std::errc::no_such_device 无法访问路径指定的分区。
 		\li std::errc::invalid_argument 路径非法。
 		\li std::errc::not_a_directory 路径指定的不是目录。
 		\li std::errc::no_such_file_or_directory 路径指定的目录项不存在。
 		\li std::errc::io_error 查询项时读错误。
-	\sa FetchPartitionFromPath
+	\note 路径相对于分区，无根前缀，空串路径视为根目录。
+	\since build 656
 	*/
-	YB_NONNULL(2)
-	DirState(const char*) ythrow(std::system_error);
+	DirState(Partition&, string_view) ythrow(std::system_error);
 
-private:
-	/*!
-	\exception std::system_error 构造失败。
-		\li std::errc::invalid_argument 路径非法。
-		\li std::errc::not_a_directory 路径指定的不是目录。
-		\li std::errc::no_such_file_or_directory 路径指定的目录项不存在。
-		\li std::errc::io_error 查询项时读错误。
-	\sa CheckColons
-	*/
-	YB_NONNULL(3)
-	DirState(Partition&, const char*, unique_lock<mutex>)
-		ythrow(std::system_error);
-	//@}
-
-public:
 	DefGetter(const ynothrow, Partition&, PartitionRef, part_ref)
 
 	/*!
@@ -923,6 +892,7 @@ public:
 		\lic std::errc::no_such_file_or_directory 文件不存在。
 	\note 路径相对于分区，无根前缀，空串路径视为根目录。
 	\note 访问标识包含 O_RDONLY 、 O_WRONLY 或 O_RDWR 指定读写权限。
+	\note 锁定分区访问。
 	\since build 643
 	*/
 	FileInfo(Partition&, string_view, int);
@@ -966,8 +936,14 @@ public:
 	void
 	Shrink() ynothrow;
 
-	int
-	SyncToDisc() ynothrow;
+	/*!
+	\brief 同步：写入底层存储并清空修改状态。
+	\exception std::system_error 同步失败。
+		\li std::errc::io_error 读写错误。
+	\since build 656
+	*/
+	void
+	SyncToDisc() ythrow(std::system_error);
 
 	/*!
 	\brief 读取文件信息并保存到参数。

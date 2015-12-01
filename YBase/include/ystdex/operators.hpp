@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1797
+\version r1798
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2015-11-28 12:34 +0800
+	2015-12-01 15:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ using op_idt_t = _t<op_idt<_type>>;
 //	depend on the same technique.
 // TODO: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52072. It is strange
 //	to still have this bug. Not fully tested for G++ 5.
-#if YCL_IMPL_GNUCPP < 50000
+#if YB_IMPL_GNUCPP < 50000
 #	define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
 		const _param_type2& y)

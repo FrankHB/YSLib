@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1045
+\version r1057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-10-19 15:50 +0800
+	2015-11-29 17:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,12 +172,16 @@ public:
 	path&
 	operator/=(const value_type& s)
 	{
-		if(traits_type::is_parent(s) && (is_absolute() ? 1U : 0U) < size())
+		if(!empty() && traits_type::is_parent(s))
 		{
-			if(!traits_type::is_parent(back()))
-				pop_back();
-			else
-				push_back(s);
+			if(!traits_type::is_root(front()) || 1U < size())
+			{
+				if(!(traits_type::is_parent(back())
+					|| traits_type::is_self(back())))
+					pop_back();
+				else
+					push_back(s);
+			}
 		}
 		else if(!traits_type::is_self(s))
 			push_back(s);
@@ -187,8 +191,9 @@ public:
 	path&
 	operator/=(const path& pth)
 	{
-		for(const auto& s : pth)
-			*this /= s;
+		if(pth.is_relative())
+			for(const auto& s : pth)
+				*this /= s;
 		return *this;
 	}
 

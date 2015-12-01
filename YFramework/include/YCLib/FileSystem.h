@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2783
+\version r2788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-11-26 14:19 +0800
+	2015-11-30 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -957,8 +957,12 @@ public:
 	PDefH(void, FillLast, ) ynothrow
 		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this), 1, Last))
 
+	/*!
+	\pre 间接断言：参数的数据指针非空。
+	\since build 656
+	*/
 	bool
-	FindAlias(const char*, size_t) const;
+	FindAlias(string_view) const;
 
 	string
 	GenerateAlias() const;
