@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3295
+\version r3371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-11-26 09:21 +0800
+	2015-12-06 22:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,14 +27,16 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileSystem // for std::accumulate, ystdex::read_uint_le,
-//	std::min, ystdex::write_uint_le;
+//	std::min, ystdex::write_uint_le, YAssertNonnull, std::bind, std::ref,
+//	ystdex::retry_on_cond;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include YFM_YCLib_FileIO // for Deref, ystdex::to_array, ystdex::throw_error,
 //	std::errc::not_supported, ThrowFileOperationFailure, ystdex::ntctslen,
 //	std::strchr, std::wctob, std::towupper, ystdex::restrict_length, std::min,
 //	ystdex::ntctsicmp, std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
-#include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
+#include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
+//	CHRLib::MakeUCS2LE;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::MakeFile;
 #	include <time.h> // for ::localtime_s;
@@ -59,7 +61,7 @@ inline PDefH(void, W32_CreateSymbolicLink, const char16_t* dst,
 	const char16_t* src, unsigned long flags)
 	ImplExpr(YCL_CallWin32F(CreateSymbolicLinkW, wcast(dst), wcast(src), flags))
 
-}
+} // namespace YCL_Impl_details;
 
 } // unnamed namespace;
 
@@ -68,10 +70,10 @@ using platform_ex::DirectoryFindData;
 #elif YCL_API_POSIXFileSystem
 #	include <dirent.h>
 #	include <time.h> // for ::localtime_r;
+#endif
 
 //! \since build 475
 using namespace CHRLib;
-#endif
 
 namespace platform
 {
@@ -422,7 +424,17 @@ GenerateAliasChecksum(const EntryDataUnit* p) ynothrowv
 		});
 }
 
-YF_API void
+bool
+ValidateName(string_view name) ynothrowv
+{
+	YAssertNonnull(name.data());
+	return std::all_of(begin(name), end(name), [](char c) ynothrow{
+		// TODO: Use interval arithmetic.
+		return c >= 0x20 && static_cast<unsigned char>(c) < 0xF0;
+	});
+}
+
+void
 WriteNumericTail(string& alias, size_t k) ynothrowv
 {
 	YAssert(!(MaxAliasMainPartLength < alias.length()), "Invalid alias found.");
@@ -510,6 +522,72 @@ EntryData::CopyLFN(char16_t* str) const ynothrowv
 		if(pos + i < LFN::MaxLength - 1)
 			str[pos + i]
 				= ystdex::read_uint_le<16>(data() + LFN::OffsetTable[i]);
+}
+
+pair<EntryDataUnit, size_t>
+EntryData::FillNewName(string_view name,
+	std::function<bool(const string&)> verify)
+{
+	YAssertNonnull(name.data()),
+	YAssertNonnull(verify);
+
+	EntryDataUnit alias_check_sum(0);
+	size_t entry_size;
+
+	ClearAlias();
+	if(name == ".")
+	{
+		SetDot(0),
+		entry_size = 1;
+	}
+	else if(name == "..")
+	{
+		SetDot(0),
+		SetDot(1),
+		entry_size = 1;
+	}
+	else
+	{
+		const auto& long_name(MakeUCS2LE(name));
+		const auto len(long_name.length());
+
+		if(len < LFN::MaxLength)
+		{
+			auto alias_tp(LFN::ConvertToAlias(long_name));
+			auto& pri(get<0>(alias_tp));
+			const auto& ext(get<1>(alias_tp));
+			auto alias(pri);
+			const auto check(std::bind(verify, std::ref(alias)));
+
+			if(!ext.empty())
+				alias += '.' + ext;
+			if((get<2>(alias_tp) ? alias.length() : 0) == 0)
+				entry_size = 1;
+			else
+			{
+				entry_size
+					= (len + LFN::EntryLength - 1) / LFN::EntryLength + 1;
+				if(ystdex::ntctsicmp(alias.c_str(), name.data(),
+					LFN::MaxAliasLength) != 0 || check())
+				{
+					size_t i(1);
+
+					pri.resize(LFN::MaxAliasMainPartLength, '_');
+					alias = pri + '.' + ext;
+					ystdex::retry_on_cond(check, [&]{
+						if(YB_UNLIKELY(LFN::MaxNumericTail < i))
+							ystdex::throw_error(std::errc::invalid_argument);
+						LFN::WriteNumericTail(alias, i++);
+					});
+				}
+			}
+			WriteAlias(alias);
+		}
+		else
+			ystdex::throw_error(std::errc::invalid_argument);
+		alias_check_sum = LFN::GenerateAliasChecksum(data());
+	}
+	return {alias_check_sum, entry_size};
 }
 
 bool

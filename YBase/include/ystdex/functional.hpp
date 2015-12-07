@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2671
+\version r2682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-11-24 15:48 +0800
+	2015-12-05 13:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -840,7 +840,17 @@ struct expand_proxy : private call_projection<_fCallable,
 	make_index_sequence<_vLen>>, private expand_proxy<_fCallable, _vLen - 1>
 {
 	using call_projection<_fCallable, make_index_sequence<_vLen>>::call;
-	using expand_proxy<_fCallable, _vLen - 1>::call;
+	/*!
+	\note 为避免歧义，不直接使用 using 声明。
+	\since build 657
+	*/
+	template<typename... _tParams>
+	static auto
+	call(_tParams&&... args)
+		-> decltype(expand_proxy<_fCallable, _vLen - 1>::call(yforward(args)...))
+	{
+		return expand_proxy<_fCallable, _vLen - 1>::call(yforward(args)...);
+	}
 };
 
 template<typename _fCallable>

@@ -8,16 +8,15 @@ YSLib headers should be put in proper directories to be found by the compiler.
 YSLib libraries should be put in proper directories to be found by the linker.
 YBase.dll and YFramework.dll should be found in PATH.
 Currently only windows host is supported.
-The source requires (limited) ISO C++11 support.
-Only MinGW-W64 G++ 4.9.1 has been tested.
-To use the script "build.cmd", the executable "g++" should be found in PATH.
+The source requires ISO C++11 support as it uses YSLib libraries. The build environment is same.
+See YSLib project wiki for details.
 
 = Build
-Because there is only one file, no project files provided.
-Simply run "build.cmd".
+See directory "../Scripts".
+See also YSLib project wiki for details.
 
 = Test
-Currently only one script "self-host.cmd" to test if this program can run successfully.
+Currently only self host test script is provided.
 
 = Use for hosted environment
 Compile the source, then run in the command line shell.
@@ -25,12 +24,12 @@ Type "shbuild SRCPATH [CXXFLAGS ...]" to build a project, where:
 	SRCPATH is the source directory to be recursively searched.
 	CXXFLAGS are the options to be pass to the C++ compiler.
 All empty arguments would be ignored.
-SRCPATH is verified to be exist. If not, or other file system operations fail, the program stops and returns 1.
+SRCPATH is verified to be existed. If not, or other file system operations fail, the program stops and returns 1.
 The directory reading is currently implemented by YSLib::DirectorySession. Only Windows style path is supported for MinGW32.
 Once the SRCPATH is verified, the program will create a directory named ".shbuild" in the current working directory to be the root of output directory. If this operation fails, the program stops and returns 2.
-If the compiler returns non-zero value, the program stops and returns this value plus 0x10000.
-If the archiver returns non-zero value, the program stops and returns this value plus 0x20000.
-Otherwise, if any error occures during the following operations, the program stops and returns 3.
+If the compiler returns non-zero value, the program stops and exited in failure state.
+If the archiver returns non-zero value, the program stops and exited in failure state.
+The program returns 0 if and only if there is no failure.
 The program then performs recursively depth-first search for any probable source to be built.
 	Files and directories whose name begins with "." are ignored.
 	In each directory, each file whose name matches glob patterns "*.a" or "*.o" would be deleted.

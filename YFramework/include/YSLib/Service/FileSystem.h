@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2878
+\version r2911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-11-26 14:52 +0800
+	2015-12-07 12:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -490,6 +490,33 @@ TraverseChildren(const Path& pth, _func f)
 }
 //@}
 
+/*!
+\brief 递归遍历目录树。
+\warning 不检查无限递归调用。
+\note 使用 ADL \c TraverseChildren 遍历子目录。
+\note 函数传入的路径参数可以被修改。
+\since build 657
+*/
+template<typename _func, typename... _tParams>
+auto
+TraverseTree(_func f, const Path& dst, const Path& src, _tParams&&... args)
+	-> decltype(f(std::declval<Path&>(), std::declval<Path&>(),
+	std::forward<_tParams>(args)...))
+{
+	EnsureDirectory(dst);
+	TraverseChildren(src, [&](NodeCategory c, NativePathView npv){
+		const String name(npv);
+		// NOTE: Allowed to be modified.
+		auto dname(dst / name), sname(src / name);
+
+		// XXX: Blocked. 'yforward' cause G++ 5.2 crash: internal compiler
+		//	error: Aborted (program cc1plus) or crash silently.
+		return c == NodeCategory::Directory
+			? IO::TraverseTree(f, dname, sname, std::forward<_tParams>(args)...)
+			: f(dname, sname, std::forward<_tParams>(args)...);
+	});
+}
+
 
 //! \since build 651
 //@{
@@ -575,20 +602,12 @@ template<typename... _tParams>
 void
 CopyTree(const Path& dst, const Path& src, _tParams&&... args)
 {
-	EnsureDirectory(dst);
-	TraverseChildren(src, [&](NodeCategory c, NativePathView npv){
-		const String name(npv);
-		const auto& dname(dst / name);
-
-		// XXX: Blocked. 'yforward' cause G++ 5.2 crash: internal compiler
-		//	error: Aborted (program cc1plus).
-		if(c == NodeCategory::Directory)
-			IO::CopyTree(dname, src / name,
-				std::forward<_tParams>(args)...);
-		else
-			IO::CopyFile(string(dname).c_str(), string(src / name).c_str(),
-				std::forward<_tParams>(args)...);
-	});
+	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
+	IO::TraverseTree([](const Path& dname, const Path& sname,
+		_tParams&&... fargs){
+		IO::CopyFile(string(dname).c_str(), string(sname).c_str(),
+			std::forward<_tParams>(fargs)...);
+	}, dst, src, std::forward<_tParams>(args)...);
 }
 
 //! \exception FileOperationFailure 路径指向的不是一个目录或删除失败。

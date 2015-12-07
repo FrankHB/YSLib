@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r239
+\version r243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2015-11-04 10:55 +0800
+	2015-12-07 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,15 +73,15 @@ get_nested_exception_ptr(const _tEx& e)
 
 /*!
 \brief 引发异常：若当前存在正在处理的异常则抛出嵌套异常，否则抛出异常。
-\since build 522
+\since build 657
 */
 template<typename _type>
 YB_NORETURN inline void
-raise_exception(const _type& e)
+raise_exception(_type&& e)
 {
 	if(std::current_exception())
-		std::throw_with_nested(e);
-	throw e;
+		std::throw_with_nested(yforward(e));
+	throw yforward(e);
 }
 
 

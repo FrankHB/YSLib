@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2788
+\version r2807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-11-30 09:20 +0800
+	2015-12-05 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -873,6 +873,14 @@ YF_API EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
 
 /*!
+\brief 检查名称是否为合法的可被 UCS-2 表示的非控制字符组成。
+\pre 断言：字符串参数的数据指针非空。
+\since build 657
+*/
+YF_API bool
+ValidateName(string_view) ynothrowv;
+
+/*!
 \brief 在指定字符串写 '~' 和整数的后缀以作为短文件名。
 \pre 字符串长度不小于 MaxAliasMainPartLength 。
 \since build 608
@@ -956,6 +964,19 @@ public:
 
 	PDefH(void, FillLast, ) ynothrow
 		ImplExpr(ystdex::trivially_fill_n(static_cast<Base*>(this), 1, Last))
+
+	/*!
+	\brief 为添加的项填充名称数据，按需生成短名称后缀。
+	\pre 断言：字符串参数的数据指针非空。
+	\pre 断言：第二参数非空。
+	\return 别名校验值（若不存在别名则为 0 ）和项的大小。
+	\note 第二参数是校验别名项存在性的例程。
+	\sa LFN::GenerateAliasChecksum
+	\sa LFN::WriteNumericTail
+	\since build 657
+	*/
+	pair<EntryDataUnit, size_t>
+	FillNewName(string_view, std::function<bool(const string&)>);
 
 	/*!
 	\pre 间接断言：参数的数据指针非空。

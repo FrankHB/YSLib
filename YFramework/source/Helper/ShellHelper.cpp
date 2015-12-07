@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r564
+\version r570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2015-11-18 19:24 +0800
+	2015-12-07 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,13 +171,17 @@ FetchVisualStyleNames(String default_name)
 void
 InstallFile(const string& dst, const string& src)
 {
-	IO::CopyFile(dst.c_str(), src.c_str(), IO::PreserveModificationTime);
+	// FIXME: Blocked. TOCTTOU access.
+	if(!platform::HaveSameContents(dst, src))
+		IO::CopyFile(dst.c_str(), src.c_str(), IO::PreserveModificationTime);
 }
 
 void
 InstallDirectory(const string& dst, const string& src)
 {
-	IO::CopyTree(IO::Path(dst), IO::Path(src), IO::PreserveModificationTime);
+	IO::TraverseTree([](const IO::Path& dname, const IO::Path& sname){
+		InstallFile(string(dname).c_str(), string(sname).c_str());
+	}, IO::Path(dst), IO::Path(src));
 }
 
 void
