@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r6515
+\version r6705
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-12-01 16:03 +0800
+	2015-12-07 19:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,188 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(DS)'.DSIO $=
+		(
+			(
+			/ @ "class %AllocationTable" $=
+			(
+				(
+				+ "check at end to ensure returned cluster valid"
+					@ "%AllocationTable";
+				+ "function %TryLinkFreeCleared"
+				),
+				+ $doc "Doxygen comments to explicitly warn about missing of \
+					transaction semantics",
+				(
+				/ "function %IsValidCluster" => "%IsValid";
+				+ "function %IsFreeOrValid"
+				),
+				/ @ "function %TrimChain" $=
+				(
+					(
+					/ "accepted 2nd parameter value more 1 than old value";
+						// Removing '--' on parameter before iteration \
+							effectively means input parameter should be minus \
+							1. than before to keep compatibility.
+					- DLDI "handling of 0 case"
+						// This is different with %::_FAT_fat_trimChain in \
+							libfat. If the length is 0, it should have made \
+							call directly to %ClearLinks instead of %TrimChain.
+					),
+					(
+					/ 'ynothrow' -> 'ythrow(std::system_error)';
+					+ "check next cluster in iteration and throwing \
+						%std::system_error with %std::errc::io_error if failed"
+					)
+				)
+			),
+			/ "all linking and clearing free cluster" ^ ($dep_from
+				"%AllocationTable::TryLinkFreeCleared")
+				~ "%Partition::LinkFreeClusterCleared",
+				$effective "%Partition::(ExtendPosition, MakeDir)";
+			* $comp "possible trying to writing invlaid cluster on linking and \
+				clearing free cluster" $since b611
+				// Validity should be checked before filling.
+			),
+			/ @ "class %Partition" $=
+			(
+				/ "function %LinkFreeClusterCleared"
+					-> "%AllocationTable::TryLinkFreeCleared" $dep_from
+					"all linking and clearing free cluster",
+				* "%Unlink throw %std::system_error with %std::errc::io_error \
+					on success but ignored error on clearing links failure"
+					$since b611,
+				/ @ "function %IncrementPosition" $=
+				(
+					/ "treated invalid cluster as EOF cluster",
+					+ $comp "cluster component of parameter as invariant"
+				),
+				+ "indirect assertion" @ "function %ExtendPosition" $dep_from
+					"assertion for invalid clusters",
+				/ "function %EntryGetCluster" -> "%TryGetClusterFromEntry"
+					^ $dep_from "%AllocationTable::IsFreeOrValid",
+				/ "allowed %StatFromEntry to report when read cluster is \
+					invalid" $=
+				(
+					/ 'ynothrow' -> 'ythrow(std::system_error)';
+					+ $forced "throwing %std::system_error with \
+						%std::errc::io_error on invalid cluster for \
+						%st_ino found" ^ "%TryGetClusterFromEntry"
+				),
+				/ @ "class %FileInfo" $=
+				(
+					/ $forced DLDI "simplified cluster number argument"
+						@ "function %Truncate" $dep_from
+						"AllocationTable::TrimChain",
+					/ "merged function %Shrink" -> "function %Truncate"
+				),
+				/ "merged function %Sync"
+					-> "member function %FileInfo::SyncToDisc"
+			),
+			/ $re_ex(b634) DLDI "simplified member function \
+				%AllocationTable::ClearLinks" ^ "%ystdex::exchange",
+			* "%Partition::Unlink throw %std::system_error with \
+				%std::errc::io_error on success but ignored error on clearing \
+				links failure" $since b611,
+			(
+			/ @ "member functions %(AllocationTable::QueryNext, \
+				Partition::IncrementPosition)" $=
+			(
+				/ 'ynothrow' -> 'ynothrowv',
+				+ "assertion to ensure parameter is valid when it is allocated"
+			),
+			/ $forced DLDI @ "functions %(AllocationTable::(ClearLinks, \
+				QueryLast, TrimChain), FileInfo::TrySeek)" ^ ($dep_from \
+				"%AllocationTable::IsValid") ~ "%Clusters::IsFreeOrEOF",
+			+ $forced "throwing %std::system_error with %std::errc::io_error" 
+				@ "constructor %DEntry with leaf action parameter, member \
+				function %Partition::Unlink"
+				^ ($dep_from "%Partition::TryGetClusterFromEntry");
+			+ $forced "check for invalid cluster"
+				@ "member function %Partition::CheckPositionForNextCluster"
+				^ ($dep_from "%IsFreeOrValid");
+			* $comp "missing invalid cluster check" $since b623 $orig
+				(@ "libfat" $since $before b132) $dep_from
+				"%Partition::(IncrementPosition, ExtendPosition, \
+				StatFromEntry)"
+			),
+			/ DLDI "simplified constructor %DEntry with leaf action parameter"
+				^ $dep_from ("%(LFN::ValidateName, EntryData::FillNewName)"
+				@ %YCLib.FileSystem)
+		),
+		/ %YCLib $=
+		(
+			/ @ "platform_ex::FAT" @ %FileSystem $=
+			(
+				/ @ "namespace %LFN" $=
+				(
+					+ "function %ValidateName",
+					* "redundant 'YF_API'" @ "definition"
+						@ "function %WriteNumericTail" $since b608
+				),
+				+ "function %FillNewName" @ "class %EntryData"
+			),
+			/ @ "all 2 functions %IsNodeShared with character pointer \
+				parameters" @ %FileIO $=
+			(
+				/ 'ynothrow' -> 'ynothrowv',
+				+ $impl "assertions" ^ "%Nonnull",
+				+ $impl "check for string equality before calling native API"
+			)
+		),
+		/ %YSLib.Service.FileSystem $=
+		(
+			+ "function template %TraverseTree";
+			/ DLDI "simplified function template %CopyTree" ^ "%TraverseTree"
+		),
+		/ $impl %Helper.ShellHelper $=
+		(
+			/ "skipped copy if file is same" @ "function %InstallFile"
+				^ "%platform::HaveSameContents",
+			/ "function %InstallDirectory" ^ ($dep_from ("%IO::TraverseTree"
+				@ %YSLib.Service.FileSystem), "%InstallFile") ~ "%IO::CopyTree"
+		)
+	),
+	* $re(b656) $comp "strict POSIX.1-2013 compatibility" @ "platform %DS"
+		$since b611 $=
+	(
+		* "wrong %EIO set on success and ignored on failure %::unlink and \
+			variants" $dep_from "%Partition::Unlink"
+			@ %YFramework.'YCLib_(DS)'.DSIO
+		* "missing setting %EIO for %::ftruncate and variants" $dep_from
+			"%Partition::Trucate"
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Functional $=
+		(
+			* "no optimized order would cause probable ambiguity" @ "class \
+				template %expand_proxy" $since b634 $orig (@ $impl $since b448)
+				$= (/ "using-declaration of base class %call"
+				-> "static function template %call");
+			* "possible ambiguity for zero and one argument"
+				@ "call of condition function object"
+				@ "function template %retry_on_cond" $since b634
+		),
+		/ "parameter" @ "function template %raise_exception" @ %Exception
+			-> '_type&&' ~ 'const _type&';
+			// As 'std::throw_with_nested'.
+	),
+	/ %Tools.SHBuild $=
+	(
+		+ DLDI 'YB_NONNULL(1)' @ "exception filter handler" @ %Main,
+		* $doc "out-of-date contents" @ %Readme $since b539 $=
+		(
+			* "description of return values" $since b539,
+			* "build and test" $since b546
+		)
+	)
+),
+
+b656
 (
 	/ %YBase $=
 	(
@@ -138,7 +320,8 @@ $now
 		/ "parameters" @ "member function %FAT::EntryData::FindAlias"
 			@ %YCLib.FileSystem -> 'string_view' ~ 'const char*, size_t',
 	),
-	* "strict POSIX.1-2013 compatibility" @ "platform %DS" $since $before b132
+	* $re(b655) $comp "strict POSIX.1-2013 compatibility" @ "platform %DS"
+		$since $before b132
 		$= (* "missing setting %EIO for %::write and variants when appending \
 			witout enough space" $dep_from "missing setting appending error"),
 	+ $dev $repo "pattern glob '*.VC.opendb'" @ "file %.hgignore"
@@ -243,7 +426,7 @@ b655
 		* $re_ex(b642) "strict POSIX.1-2013 compatibility" $since $before b132
 			$=
 		(
-			* $comp "nonconforming behavior treating empty path parameters"
+			* "nonconforming behavior treating empty path parameters"
 				@ "new path for %::rename and variants" $dep_from
 				"check empty new name"
 				$= ("set %errno to %ENOENT" ~ "set %errno to %EXDEV")
@@ -563,7 +746,7 @@ b652
 			/ $doc %Platform $=
 			(
 				+ "Doxygen group %TopLevelPlatformNamespaces" $=
-					(+ "'\ingroup' directive"
+					(+ "'\ingroup' command"
 						@ "namespaces %(platform, platform_ex)"),
 				+ "Doxygen group %PlatformEmulation",
 				+ "abstrct platform macros %(YF_Platform_Android, \
@@ -708,7 +891,7 @@ b651
 		(
 			/ @ "function template %CopyTree" $=
 			(
-				+ $doc "'\warning' directive to explicitly warn about \
+				+ $doc "'\warning' command to explicitly warn about \
 					recursive traverse"
 				/ DLDI "reduced temporary path creation",
 				(
@@ -1835,8 +2018,8 @@ b642
 				@ %YBase.YStandardEx.TStringView),
 		)
 	),
-	* $re_ex(b626) "strict POSIX.1-2013 compatibility" @ "platform %DS" $since
-		$before b132 $=
+	* $re_ex(b626) $comp "strict POSIX.1-2013 compatibility" @ "platform %DS"
+		$since $before b132 $=
 	(
 		* "wrongly setting %ENOENT instead of %ENOTDIR" @ "%::(unlink, mkdir, \
 			rename, opendir, open) and variants for path parameters where path \
@@ -3886,7 +4069,7 @@ b623
 (
 	/ %YFramework $=
 	(
-		* DD "wrong precondition" @ "wrong '\pre' Doxygen directive"
+		* DD "wrong precondition" @ "wrong '\pre' Doxygen command"
 			@ "comments" @ "constructor %TextFileBuffer"
 			@ %YSLib.Service.TextManager $since b622,
 		+ %Dependency @ %NPL
@@ -5668,7 +5851,7 @@ b601
 		(
 			- $revert(b286) "alias %NativePathCharType" @ "namespace %platform"
 				@ %FileSystem $dep_from %YSLib.Adaptor.YAdaptor
-			* "missing update header for %YGraphics caused ill-formed use of \
+			* "missing updating header for %YGraphics caused ill-formed use of \
 				undeclared %YSLib::Drawing::ConstGraphics" @ %XCB
 				$= (/ '#include YFM_YSLib_Core_YGDIBase'
 					-> '#include YFM_YSLib_Core_YGraphics'),

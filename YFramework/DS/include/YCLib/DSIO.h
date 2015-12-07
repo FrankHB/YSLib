@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1202
+\version r1320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-12-01 10:18 +0800
+	2015-12-04 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,10 @@ using namespace platform::Threading;
 //	if each creation of lock is not in a try-block.
 
 
-//! \brief 分配表。
+/*!
+\brief 分配表。
+\warning 不具有事务语义。无异常抛出的操作总是假定读写成功。介质损坏可能引起数据丢失。
+*/
 class YF_API AllocationTable final
 {
 private:
@@ -242,9 +245,12 @@ private:
 	size_t root_dir_start;
 	size_t root_dir_sectors_num;
 	size_t data_sectors_num;
+	//! \invariant <tt>IsValid(first_free)</tt> 。
 	ClusterIndex first_free = Clusters::First;
 	ClusterIndex free_cluster = 0;
+	//! \invariant <tt>IsValid(last_alloc_cluster)</tt> 。
 	ClusterIndex last_alloc_cluster = 0;
+	//! \invariant <tt>IsValid(last_cluster)</tt> 。
 	ClusterIndex last_cluster;
 	FileSystemType fs_type;
 	ClusterIndex root_dir_cluster;
@@ -257,7 +263,11 @@ public:
 
 	DefDeCopyAssignment(AllocationTable)
 
-	PDefH(bool, IsValidCluster, ClusterIndex c) const ynothrow
+	//! \since build 657
+	PDefH(bool, IsFreeOrValid, ClusterIndex c) const ynothrow
+		ImplRet(c == Clusters::Free || IsValid(c))
+	//! \since build 657
+	PDefH(bool, IsValid, ClusterIndex c) const ynothrow
 		// NOTE: This will catch Clusters::Error.
 		ImplRet(Clusters::First <= c && c <= last_cluster)
 
@@ -280,17 +290,33 @@ public:
 		ImplRet((c >= Clusters::First ? (c - Clusters::First) * ::sec_t(
 			sectors_per_cluster) + root_dir_sectors_num : 0) + root_dir_start)
 
+	/*!
+	\brief 若指定簇有效，清除之后链接的所有簇。
+	\return 参数指定的簇是否有效。
+	\sa IsValid
+	*/
 	bool
 	ClearLinks(ClusterIndex) ynothrow;
 
 	ClusterIndex
 	CountFreeCluster() const ynothrow;
 
+	/*!
+	\brief 分配空闲的簇。
+	\return 成功分配的簇或 Clusters::Error 。
+	*/
 	ClusterIndex
 	LinkFree(ClusterIndex) ynothrow;
 
+	/*!
+	\brief 查询参数指定的簇的下一簇。
+	\pre 断言： <tt>IsFreeOrValid(c)</tt> 。
+	\return 若指定空闲簇则为空闲簇；若文件系统类型非法则为错误簇；
+		否则为读取的下一簇。
+	\since build 657
+	*/
 	ClusterIndex
-	QueryNext(ClusterIndex) const ynothrow;
+	QueryNext(ClusterIndex c) const ynothrowv;
 
 	ClusterIndex
 	QueryLast(ClusterIndex) const ynothrow;
@@ -298,9 +324,22 @@ public:
 	YB_NONNULL(2) void
 	ReadClusters(const byte*) ynothrowv;
 
-	ClusterIndex
-	TrimChain(ClusterIndex, size_t) ynothrow;
+	/*!
+	\brief 修剪存储的簇链：跳过指定保留的簇，移除之后链接的所有簇。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 下一簇有效性校验失败。
+	\note 第二个参数指定保留的簇的数量上限减 1 。
+	\sa ClearLinks
+	\sa QueryNext
 
+	以 ClearLinks 调用清除连续的簇。
+	若保留簇，标记参数指定的为文件结束。
+	*/
+	ClusterIndex
+	TrimChain(ClusterIndex, size_t) ythrow(std::system_error);
+
+	//! \sa LinkFree
+	//@{
 	/*!
 	\brief 链接空闲空间。
 	\exception std::system_error 调用失败。
@@ -308,6 +347,16 @@ public:
 	*/
 	ClusterIndex
 	TryLinkFree(ClusterIndex) ythrow(std::system_error);
+
+	/*!
+	\brief 分配已填充零的空间。
+	\exception std::system_error 调用失败。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::io_error 写错误。
+	*/
+	ClusterIndex
+	TryLinkFreeCleared(ClusterIndex) ythrow(std::system_error);
+	//@}
 
 	YB_NONNULL(2) void
 	WriteClusters(byte*) const ynothrowv;
@@ -460,7 +509,11 @@ public:
 
 	//! \brief 目录项数据。
 	EntryData Data;
-	//! \brief 名称项位置。
+	/*!
+	\brief 名称项位置。
+	\invariant 对确定的文件分配表，分量的簇满足 AllocationTable::IsFreeOrValid 。
+	\warning 不检查不变量。
+	*/
 	NamePosition NamePos;
 
 private:
@@ -499,13 +552,13 @@ public:
 			或含有 LFN::IllegalCharacters 中的字符，
 			或非法导致生成后缀失败。
 		\li std::errc::filename_too_long 路径太长。
-		\li std::errc::io_error 添加项时读写错误。
+		\li std::errc::io_error 添加项时读写错误或读取的项指定错误的簇。
 		\li std::errc::no_space_on_device 添加项时空间不足。
 		\li std::errc::no_such_file_or_directory
 			路径前缀的项或添加时指定的最终项不存在。
 		\li std::errc::not_a_directory 非目录项。
 	\note 路径相对于分区，无根前缀，空串路径视为根目录。
-	\note 当最后一个参数非空时初始化和添加新项并输出父目录簇，忽略第三参数。
+	\note 当最后一个参数非空时初始化和添加新文件并输出父目录簇，忽略第三参数。
 	\note 若添加项，长短文件名由 FindEntryGap 调用设置。
 	\since build 656
 	*/
@@ -557,6 +610,7 @@ class FileInfo;
 /*!
 \brief FAT 分区。
 \note 成员函数参数路径默认相对于此分区，无根前缀，空串路径视为根目录。
+\warning 除非另行约定，不保证并发读写安全。
 \todo 添加修改卷标的接口。
 */
 class Partition final : private ystdex::noncopyable, private ystdex::nonmovable
@@ -581,6 +635,7 @@ private:
 	/*!
 	\brief 构造：使用临时缓冲区、底层存储接口、分页数、每页扇区数的二进制位数
 		和起始扇区。
+	\note 锁定读写。
 	*/
 	Partition(byte*, Disc, size_t, size_t, ::sec_t);
 
@@ -588,6 +643,7 @@ public:
 	/*!
 	\brief 构造：使用底层存储接口、分页数、每页扇区数的二进制位数和起始扇区。
 	\note 分配 MaxSectorSize 字节的临时缓冲区用于构造时读写分区。
+	\note 锁定读写。
 	*/
 	Partition(Disc, size_t, size_t, ::sec_t);
 	//! \brief 析构：刷新并关闭打开的文件。
@@ -612,7 +668,8 @@ public:
 	/*!
 	\brief 切换当前工作目录至参数指定路径的目录。
 	\pre 间接断言：路径参数的数据指针非空。
-	\exception std::system_error 调用失败。\li std::errc::not_a_directory 指定的路径不是目录。
+	\exception std::system_error 调用失败。
+		\li std::errc::not_a_directory 指定的路径不是目录。
 	\since build 643
 	*/
 	void
@@ -649,16 +706,14 @@ public:
 	bool
 	EntryExists(string_view, ClusterIndex) ythrow(system_error);
 
-	//! \brief 从项数据中读取簇索引。
-	ClusterIndex
-	EntryGetCluster(const EntryData&) const ynothrow;
-
 	/*!
 	\brief 移动目录项位置至下一个项，当遇到文件结束时扩展。
+	\pre 间接断言： <tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
 	\exception std::system_error 调用失败。
 		\li std::errc::no_space_on_device 空间不足。
 		\li std::errc::io_error 写错误。
-	\sa LinkFreeClusterCleared
+	\sa AllocationTable::TryLinkFreeCleared
+	\sa IncremntPosition
 	*/
 	void
 	ExtendPosition(DEntryPosition&) ythrow(std::system_error);
@@ -674,20 +729,13 @@ public:
 
 	/*!
 	\brief 移动目录项位置至下一个项。
-	\since build 656
+	\pre 断言： <tt>Table.IsFreeOrValid(pos.GetCluster())</tt> 。
+	\invariant <tt>Table.IsFreeOrValid(pos.GetCluster())<tt> 。
+	\note 读到的无效簇视为文件结束标记。
+	\since build 657
 	*/
 	ExtensionResult
-	IncrementPosition(DEntryPosition&) ynothrow;
-
-	/*!
-	\brief 分配已填充零的空间。
-	\exception std::system_error 调用失败。
-		\li std::errc::no_space_on_device 空间不足。
-		\li std::errc::io_error 写错误。
-	\sa AllocationTable::LinkFree
-	*/
-	ClusterIndex
-	LinkFreeClusterCleared(ClusterIndex) ythrow(std::system_error);
+	IncrementPosition(DEntryPosition& pos) ynothrowv;
 
 	PDefH(locked_ptr<OpenFilesSet>, LockOpenFiles, )
 		ImplRet({&open_files, GetMutexRef()})
@@ -724,7 +772,7 @@ public:
 	\brief 移除名称位置指定的项。
 	\exception std::system_error 调用失败。
 		\li std::errc::io_error 读写错误。
-	\note 先写入新项覆盖，因此底层可能空间不足，此时作为写错误处理。
+	\note 先写入新文件覆盖，因此底层可能空间不足，此时作为写错误处理。
 	\note 最后调用 Flush 。
 	\sa IncrementPosition
 	*/
@@ -738,10 +786,11 @@ public:
 	\exception std::system_error 调用失败。
 		\li std::errc::cross_device_link 路径指定的不是同一分区。
 		\li std::errc::read_only_file_system 文件系统只读。
-		\li std::errc::no_such_file_or_directory 指定的旧项不存在或新路径为空串。
+		\li std::errc::no_such_file_or_directory
+			指定的旧文件不存在或新路径为空串。
 		\li std::errc::file_exists 指定的新项已存在；
 		std::errc::io_error 读写错误。
-	\note 第一个参数指定已有项的路径，第二个参数指定新项的路径。
+	\note 第一个参数指定已有文件的路径，第二个参数指定新文件的路径。
 	\note 第二个路径是完整路径，可能有根前缀。
 	\since build 643
 	*/
@@ -753,28 +802,35 @@ public:
 	StatFS(struct ::statvfs&);
 
 	/*!
-	\brief 查询指定路径的项信息并填充到第一参数。
+	\brief 查询指定路径的文件信息并填充到第一参数。
 	\pre 间接断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
-		\li std::errc::io_error 读写错误。
+		\li std::errc::io_error 读写错误或读取的项指定错误的簇。
 	\since build 643
 	*/
 	PDefH(void, Stat, struct ::stat& st, string_view path)
 		ythrow(std::system_error)
 		ImplExpr(StatFromEntry(DEntry(*this, path).Data, st))
 
-	//! \brief 查询项数据的项信息并填充到第二参数。
+	/*!
+	\brief 查询项数据的文件信息并填充到第一参数。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 读取的项指定错误的簇。
+	\sa TryGetClusterFromEntry
+	\since build 657
+	*/
 	void
-	StatFromEntry(const EntryData&, struct ::stat&) const ynothrow;
+	StatFromEntry(const EntryData&, struct ::stat&) const
+		ythrow(std::system_error);
 
 	/*!
-	\brief 同步：更新文件信息到底层存储。
-	\return 是否成功（刷新时没有发生读写错误）。
+	\brief 从项数据中读取簇索引并校验有效性。
 	\exception std::system_error 调用失败。
-		\li std::errc::io_error 刷新前发生读写错误。
+		\li std::errc::io_error 校验失败：读取的项指定错误的簇。
+	\since build 657
 	*/
-	bool
-	Sync(const FileInfo&) const ythrow(system_error);
+	ClusterIndex
+	TryGetClusterFromEntry(const EntryData&) const ythrow(std::system_error);
 
 	/*!
 	\brief 移除路径参数指定的链接。
@@ -783,7 +839,8 @@ public:
 		\li std::errc::read_only_file_system 文件系统只读。
 		\li std::errc::no_such_file_or_directory 指定的项不存在。
 		\li std::errc::operation_not_permitted 无法移除 . 或 .. 项。
-		\li std::errc::io_error 读写错误。
+		\li std::errc::io_error 读写错误或读取的项指定错误的簇。
+	\sa TryGetClusterFromEntry
 	\since build 643
 	*/
 	void
@@ -807,7 +864,10 @@ YF_API YB_NONNULL(1) Partition*
 FetchPartitionFromPath(const char*) ynothrowv;
 
 
-//! \brief 目录状态。
+/*!
+\brief 目录状态。
+\warning 除非另行约定，不保证并发读写安全。
+*/
 class DirState final
 {
 private:
@@ -842,8 +902,9 @@ public:
 	\pre 间接断言：路径参数非空。
 	\exception std::system_error 迭代失败。
 		\li std::errc::no_such_device 无法访问路径指定的分区。
-		\li std::errc::io_error 查询项时读错误。
+		\li std::errc::io_error 查询项时读错误或读取的项指定错误的簇。
 	\note ::stat 指针参数指定需要更新的项信息，为空时忽略。
+	\sa Partition::StatFromEntry
 	*/
 	YB_NONNULL(2) void
 	Iterate(char*, struct ::stat*) ythrow(std::system_error);
@@ -858,7 +919,10 @@ public:
 };
 
 
-//! \brief 文件信息。
+/*!
+\brief 文件信息。
+\warning 除非另行约定，不保证并发读写安全。
+*/
 class FileInfo final
 {
 private:
@@ -873,6 +937,10 @@ private:
 	std::uint32_t file_size;
 	ClusterIndex start_cluster;
 	std::uint32_t current_position;
+	/*!
+	\invariant <tt>GetPartitionRef().Table.IsFreeOrValid</tt>
+		<tt>(rw_position.GetCluster())</tt> 。
+	*/
 	FilePosition rw_position;
 	FilePosition append_position;
 	//! \since build 642
@@ -918,6 +986,7 @@ public:
 
 	DefSetter(ynothrow, const FilePosition&, AppendPosition, append_position)
 	DefSetter(ynothrow, FileSize, CurrentPosition, current_position)
+	//! \pre 参数是先前由此对象的 GetRWPosition 取得的结果。
 	DefSetter(ynothrow, const FilePosition&, RWPosition, rw_position)
 
 	void
@@ -932,9 +1001,6 @@ public:
 	*/
 	void
 	Extend() ythrow(std::system_error);
-
-	void
-	Shrink() ynothrow;
 
 	/*!
 	\brief 同步：写入底层存储并清空修改状态。
@@ -957,7 +1023,9 @@ public:
 	\brief 截断文件。
 	\exception std::system_error 调用失败。
 		\li std::errc::invalid_argument 参数非法。
+		\li std::errc::io_error 缩减簇链时检验失败。
 		\li std::errc::no_space_on_device 空间不足。
+	\sa AllocationTable::TrimChain
 	*/
 	void
 	Truncate(FileSize) ythrow(std::system_error);

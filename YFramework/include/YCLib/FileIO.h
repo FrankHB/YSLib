@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1730
+\version r1736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-11-26 16:08 +0800
+	2015-12-06 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1212,12 +1212,15 @@ HaveSameContents(UniqueFile, UniqueFile);
 yconstfn YB_PURE PDefH(bool, IsNodeShared, const FileNodeID& x,
 	const FileNodeID& y) ynothrow
 	ImplRet(x != FileNodeID() && x == y)
-//! \pre 间接断言：参数非空。
+/*!
+\pre 间接断言：参数非空。
+\since build 657
+*/
 //@{
 YF_API YB_NONNULL(1, 2) bool
-IsNodeShared(const char*, const char*) ynothrow;
+IsNodeShared(const char*, const char*) ynothrowv;
 YF_API YB_NONNULL(1, 2) bool
-IsNodeShared(const char16_t*, const char16_t*) ynothrow;
+IsNodeShared(const char16_t*, const char16_t*) ynothrowv;
 //@}
 /*!
 \note 取节点失败视为不共享。

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1995
+\version r2000
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-11-18 19:24 +0800
+	2015-12-07 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -307,9 +307,11 @@ FetchVisualStyleNames(String = u"<Default>");
 \todo 检查可能存在于目标路径的旧项的权限；设置权限。
 */
 //@{
-//! \todo 检查内容（类似 rsync -a ）以避免冗余复制。
 //@{
-//! \brief 安装文件：复制单个文件。
+/*!
+\brief 安装文件：复制单个文件。
+\note 复制前检查内容，若相同则不进行冗余复制（类似 rsync -a ）。
+*/
 YF_API void
 InstallFile(const string&, const string&);
 

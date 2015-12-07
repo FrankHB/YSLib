@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1997
+\version r2040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-11-26 16:08 +0800
+	2015-12-06 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,6 +88,12 @@ namespace platform
 //! \since build 627
 static_assert(std::is_same<::mode_t, ystdex::underlying_type_t<Mode>>(),
 	"Mismatched mode types found.");
+
+// XXX: Catch %std::bad_alloc?
+#define YCL_Impl_RetTryCatchAll(...) \
+	TryRet(__VA_ARGS__) \
+	CatchExpr(std::bad_alloc&, errno = ENOMEM) \
+	CatchIgnore(...)
 
 namespace
 {
@@ -312,6 +318,41 @@ FetchFileTime(_func f, _tParams... args)
 #endif
 }
 
+//! \since build 657
+bool
+IsNodeShared_Impl(const char* a, const char* b) ynothrow
+{
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(QueryFileNodeID(UTF8ToWCS(a).c_str())
+		== QueryFileNodeID(UTF8ToWCS(b).c_str()))
+	return {};
+#else
+	struct ::stat st;
+
+	if(cstat(st, a) != 0)
+		return {};
+
+	const auto id(get_file_node_id(st));
+
+	if(cstat(st, b) != 0)
+		return {};
+
+	return IsNodeShared(id, get_file_node_id(st));
+#endif
+}
+//! \since build 657
+bool
+IsNodeShared_Impl(const char16_t* a, const char16_t* b) ynothrow
+{
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(
+		QueryFileNodeID(wcast(a)) == QueryFileNodeID(wcast(b)))
+	return {};
+#else
+	return IsNodeShared(MakeMBCS(a).c_str(), MakeMBCS(b).c_str());
+#endif
+}
+
 } // unnamed namespace;
 
 
@@ -324,13 +365,6 @@ MakePathString(const char16_t* s)
 	return MakeMBCS(s);
 #endif
 }
-
-
-// XXX: Catch %std::bad_alloc?
-#define YCL_Impl_RetTryCatchAll(...) \
-	TryRet(__VA_ARGS__) \
-	CatchExpr(std::bad_alloc&, errno = ENOMEM) \
-	CatchIgnore(...)
 
 
 void
@@ -1084,36 +1118,16 @@ HaveSameContents(UniqueFile p_a, UniqueFile p_b)
 }
 
 bool
-IsNodeShared(const char* a, const char* b) ynothrow
+IsNodeShared(const char* a, const char* b) ynothrowv
 {
-#if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileNodeID(UTF8ToWCS(a).c_str())
-		== QueryFileNodeID(UTF8ToWCS(b).c_str()))
-	return {};
-#else
-	struct ::stat st;
-
-	if(cstat(st, a) != 0)
-		return {};
-
-	const auto id(get_file_node_id(st));
-
-	if(cstat(st, b) != 0)
-		return {};
-
-	return IsNodeShared(id, get_file_node_id(st));
-#endif
+	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
+		|| IsNodeShared_Impl(a, b);
 }
 bool
-IsNodeShared(const char16_t* a, const char16_t* b) ynothrow
+IsNodeShared(const char16_t* a, const char16_t* b) ynothrowv
 {
-#if YCL_Win32
-	YCL_Impl_RetTryCatchAll(
-		QueryFileNodeID(wcast(a)) == QueryFileNodeID(wcast(b)))
-	return {};
-#else
-	return IsNodeShared(MakeMBCS(a).c_str(), MakeMBCS(b).c_str());
-#endif
+	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
+		|| IsNodeShared_Impl(a, b);
 }
 bool
 IsNodeShared(FileDescriptor x, FileDescriptor y) ynothrow

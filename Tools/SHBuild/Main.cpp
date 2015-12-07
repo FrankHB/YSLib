@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3293
+\version r3294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-11-27 19:57 +0800
+	2015-12-07 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -814,7 +814,7 @@ main(int argc, char* argv[])
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel l){
 		return ExtractException([](const char* str, RecordLevel lv,
-			size_t level){
+			size_t level) YB_NONNULL(1){
 			const auto print([=](const string& s){
 				PrintInfo(string(level, ' ') + s, lv, LogGroup::General);
 			});
