@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r371
+\version r373
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-10-13 09:06 +0800
+	2015-12-10 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,14 +63,14 @@ TraceException(const char* str, RecordLevel lv, size_t level) ynothrow
 }
 
 void
-TraceExceptionType(std::exception& e, RecordLevel lv) ynothrow
+TraceExceptionType(const std::exception& e, RecordLevel lv) ynothrow
 {
 	YCL_TraceRaw(lv, "Caught std::exception[%s]: %s", typeid(e).name(),
 		e.what());
 }
 
 void
-ExtractAndTrace(std::exception& e, RecordLevel lv) ynothrow
+ExtractAndTrace(const std::exception& e, RecordLevel lv) ynothrow
 {
 	TraceExceptionType(e, lv);
 	ExtractException(TraceException, e, lv);

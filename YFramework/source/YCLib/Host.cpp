@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r387
+\version r393
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-11-26 16:15 +0800
+	2015-12-10 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,12 +83,12 @@ HandleDelete::operator()(pointer h) const ynothrow
 
 
 string
-FetchCommandOutput(const string& cmd, size_t buf_size)
+FetchCommandOutput(const char* cmd, size_t buf_size)
 {
 	if(YB_UNLIKELY(buf_size == 0))
 		throw std::invalid_argument("Zero buffer size found.");
 	// TODO: Improve Win32 implementation?
-	if(const auto fp = ystdex::unique_raw(platform::upopen(cmd.c_str(), "r"),
+	if(const auto fp = ystdex::unique_raw(platform::upopen(cmd, "r"),
 		platform::upclose))
 	{
 		ystdex::setnbuf(fp.get());
@@ -121,16 +121,19 @@ FetchCachedCommandResult(const string& cmd, size_t buf_size)
 {
 	auto p_locked(LockCommandCache());
 	auto& cache(Deref(p_locked));
+
 	try
 	{
+		// TODO: Blocked. Use %string_view as argument using C++14 heterogeneous
+		//	%find template.
 		const auto i_entry(cache.find(cmd));
 
 		return (i_entry != cache.cend() ? i_entry : (cache.emplace(cmd,
 			YB_UNLIKELY(cmd.empty()) ? string()
-			: FetchCommandOutput(cmd, buf_size))).first)->second;
+			: FetchCommandOutput(cmd.c_str(), buf_size))).first)->second;
 	}
 	CatchExpr(FileOperationFailure& e,
-		YTraceDe(Err, "Command execution failed: %s.", e.what()))
+		YTraceDe(Err, "Command execution failed: %s", e.what()))
 	return cache[string()];
 }
 

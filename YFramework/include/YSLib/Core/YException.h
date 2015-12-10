@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r595
+\version r602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-10-13 09:13 +0800
+	2015-12-10 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,13 +123,13 @@ public:
 //@{
 /*!
 \brief 打印带有层次信息的函数类型。
-\warning 不保证检查第一个参数非空。
+\note 约定第一个参数非空。
 */
 using ExtractedLevelPrinter
 	= std::function<void(const char*, RecordLevel, size_t)>;
 template<typename _type>
 using GLevelTracer = std::function<void(_type, RecordLevel)>;
-using ExceptionTracer = GLevelTracer<std::exception&>;
+using ExceptionTracer = GLevelTracer<const std::exception&>;
 
 
 /*!
@@ -141,21 +141,21 @@ TraceException(const char*, RecordLevel = Err, size_t level = 0) ynothrow;
 
 /*!
 \brief 通过 YCL_TraceRaw 跟踪记录异常类型。
+\since build 658
 \todo 处理类型名称。
 */
 YF_API void
-TraceExceptionType(std::exception&, RecordLevel = Err)
-	ynothrow;
+TraceExceptionType(const std::exception&, RecordLevel = Err) ynothrow;
 
 /*!
 \brief 使用 TraceException 展开和跟踪异常类型和信息。
 \sa ExtraceException
 \sa TraceException
 \sa TraceExceptionType
-\since build 645
+\since build 658
 */
 YF_API void
-ExtractAndTrace(std::exception&, RecordLevel = Err) ynothrow;
+ExtractAndTrace(const std::exception&, RecordLevel = Err) ynothrow;
 
 //! \brief 展开指定层次的异常并使用指定参数记录。
 YF_API void

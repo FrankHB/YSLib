@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r361
+\version r369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 00:13:53 +0800
 \par 修改时间:
-	2015-07-22 02:56 +0800
+	2015-12-10 11:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,13 +36,14 @@
 //	4.9. So here just adds them.
 // NOTE: No exception propagation and nested exception supported by libstdc++
 //	when 'ATOMIC_INT_LOCK_FREE < 2'. This module is mainly for workaround it.
-//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58938 .
+//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58938.
 // NOTE: It is initially intended to be binary-compatible with libstdc++ 4.8 +
-//	with '-std=c++11' enabled, except for deprecated std::copy_exception.
+//	with '-std=c++11' enabled, except for deprecated std::copy_exception. (See
+//	LWG1170, also notes below for std::make_exception_ptr.)
 //	However, the implementation of nested exception in libstdc++ previous than
 //	5.0 is not conforming to the formal standard, so 5.0 trunk code is adapted.
-//	See http://stackoverflow.com/questions/25324262/stdthrow-with-nested-expects-polymorphic-type-in-c11 .
-//	See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=62154 .
+//	See http://stackoverflow.com/questions/25324262/stdthrow-with-nested-expects-polymorphic-type-in-c11.
+//	See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=62154.
 // NOTE: To avoid 'error: attributes are not allowed on a function-definition',
 //	'[[noreturn]]' or '__attribute__((__noreturn__))' can be used at front of,
 //	the function definition instead of '__attribute__((__noreturn__))' after a
@@ -202,6 +203,8 @@ swap(exception_ptr& __lhs, exception_ptr& __rhs)
 
 } // namespace __exception_ptr;
 
+// NOTE: See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56905. Symbol for
+//	compatibility with experimental C++0x implementation is not supported.
 template<typename _Ex>
 exception_ptr
 make_exception_ptr(_Ex __ex) noexcept
@@ -320,7 +323,7 @@ struct _Rethrow_if_nested_impl
 	static void
 	_S_rethrow(const _Tp& __t)
 	{
-		if(auto __tp = dynamic_cast<const nested_exception*>(&__t))
+		if(const auto __tp = dynamic_cast<const nested_exception*>(&__t))
 			__tp->rethrow_nested();
 	}
 };

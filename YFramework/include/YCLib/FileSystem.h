@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2807
+\version r2850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-12-05 12:31 +0800
+	2015-12-08 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,48 +121,8 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 //@}
 
 
-/*!
-\brief 文件系统节点类别。
-\since build 412
-*/
-enum class NodeCategory : std::uint_least32_t
-{
-	Empty = 0,
-	//! \since build 474
-	//@{
-	Invalid = 1 << 0,
-	Regular = 1 << 1,
-	//@}
-	Unknown = Invalid | Regular,
-	//! \since build 474
-	//@{
-	Device = 1 << 9,
-	Block = Device,
-	Character = Device | 1 << 7,
-	Communicator = 2 << 9,
-	FIFO = Communicator | 1 << 6,
-	Socket = Communicator | 2 << 6,
-	//@}
-	SymbolicLink = 1 << 12,
-	MountPoint = 2 << 12,
-	Junction = MountPoint,
-	//! \since build 474
-	//@{
-	Link = SymbolicLink | Junction,
-	//@}
-	Directory = 1 << 15,
-	//! \since build 474
-	//@{
-	Missing = 1 << 16,
-	Special = Link | Missing
-	//@}
-};
-
-/*!
-\relates NodeCategory
-\since build 543
-*/
-DefBitmaskEnum(NodeCategory)
+//! \since build 658
+enum class NodeCategory : std::uint_least32_t;
 
 
 /*!
@@ -881,8 +841,8 @@ YF_API bool
 ValidateName(string_view) ynothrowv;
 
 /*!
-\brief 在指定字符串写 '~' 和整数的后缀以作为短文件名。
-\pre 字符串长度不小于 MaxAliasMainPartLength 。
+\brief 在指定字符串写前缀字符 '~' 和整数的后缀以作为短文件名。
+\pre 字符串长度不小于 MaxAliasMainPartLength 且可保存前缀字符和第二参数转换的数值。
 \since build 608
 */
 YF_API void

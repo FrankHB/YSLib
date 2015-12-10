@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r570
+\version r584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2015-12-07 13:05 +0800
+	2015-12-10 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,14 +27,17 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_ShellHelper
+#include YFM_Helper_GUIApplication // for FetchGlobalInstance;
+#include YFM_Helper_Initialization // for FetchDefaultFontCache;
+#include YFM_YSLib_Service_FileSystem // for IO::*;
 #include <cstdio> // for std::sprintf;
 
 namespace YSLib
 {
 
 #ifndef NDEBUG
-DebugTimer::DebugTimer(const string& str)
-	: event_info(str), base_tick()
+DebugTimer::DebugTimer(string_view str)
+	: event_info((Nonnull(str.data()), str)), base_tick()
 {
 	YTraceDe(0xF0, "Start tick of [%s] :", event_info.c_str());
 	base_tick = Timers::HighResolutionClock::now();
@@ -172,7 +175,11 @@ void
 InstallFile(const string& dst, const string& src)
 {
 	// FIXME: Blocked. TOCTTOU access.
-	if(!platform::HaveSameContents(dst, src))
+	if(![&](const char* d, const char* s) YB_NONNULL(1, 2) -> bool{
+		TryRet(platform::HaveSameContents(d, s))
+		CatchIgnore(platform::FileOperationFailure&)
+		return {};
+	}(dst.c_str(), src.c_str()))
 		IO::CopyFile(dst.c_str(), src.c_str(), IO::PreserveModificationTime);
 }
 
@@ -187,7 +194,10 @@ InstallDirectory(const string& dst, const string& src)
 void
 InstallHardLink(const string& dst, const string& src)
 {
-	uremove(dst.c_str());
+	if(IO::VerifyDirectory(src))
+		throw std::invalid_argument("Source is a directory.");
+	else
+		uremove(dst.c_str());
 	TryExpr(platform::CreateHardLink(dst.c_str(), src.c_str()))
 	CatchExpr(..., InstallFile(dst, src))
 }

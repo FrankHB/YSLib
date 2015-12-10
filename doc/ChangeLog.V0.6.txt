@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r6705
+\version r6887
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-12-07 19:30 +0800
+	2015-12-10 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,187 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ @ "namespace %platform" @ %FileSystem $=
+			(
+				(
+				+ 'enum class NodeCategory : std::uint_least32_t';
+				/ "enum class %NodeCategory, 'DefBitmaskEnum(NodeCategory)'"
+					>> %FileIO
+				),
+				/ DLDI "simplified member function %HDirectory::GetNodeCategory"
+					$=
+				(
+					/ !"platform %Win32" ^ ("%CategorizeNode" @ %FileIO)
+					(
+					/ "platform %Win32"
+						^ ("%platform_ex::DirectoryFindData::GetNodeCategory"
+						@ %'YCLib(Win32)'.MinGW32);
+					+ $comp "support for %NodeCategory::Unknown result"
+					)
+				),
+				+ "assertion to ensure the alias can store the prefix and \
+					converted value" @ "function %FAT::LFN::WriteNumericTail"
+			),
+			/ %FileIO $=
+			(
+				+ "function %CategorizeNode" $dep_from "%NodeCategory",
+				+ "function %GetCategory" @ "class %FileDescriptor" $=
+				(
+					// Note for directory verfication, using %DirectorySession \
+						may be more efficient. Since there is no need to check \
+						mode, this is easier to be optimized in the file \
+						system implementation.
+					+ DLDI @ "platform %Win32" $dep_from
+						("%platform_ex::CategorizeNode"
+						@ %'YCLib(Win32)'.MinGW32),
+					+ DLDI @ "platform %Win32" $dep_from "%CategorizeNode"
+				),
+				* "initialized '0'" @ "constructor %FileDescriptor with \
+					'nullptr_t' parameter" $since b629,
+				* $comp "files of paths with same first character are \
+					considered same" @ "functions %(IsNodeShared; \
+					HaveSameContents) with path parameters" $since b657
+					$dep_from (%ntctscmp @ %YBase.YStandardEx.CString),
+				/ DLDI @ !"platform %Win32" @ "functions %IsNodeShared",
+				/ @ "functions %HaveSameContent" $=
+				(
+					* "possible %errno polluted by node comparison" $since
+						b638
+						$= (/ DLDI "cleared %errno between %IsNodeShared call \
+							and buffer creation"),
+					(
+					/ "merged overloded function for %string"
+						-> "overloded function for 'const char*'";
+					+ "%mode_t" @ "overloaded function with path parameters"
+					),
+					(
+					+ "2 name parameters to be used in exceptions" 
+						@ "overloaded function with %UniqueFile parameters";
+					/ DLDI "overloaded function with paths"
+						^ "overloaded function with %UniqueFile parameters"
+					),
+					* "missing directory check" $since b636 ^ $dep_from
+						"%FileDescriptor::GetCategory"
+						// It is implementation-defined to open the stream of \
+							a directory file. So the result was unspecified.
+				),
+				/ "parameter 'const u16string&'" @ "function %MakePathString#4"
+					-> 'u16string_view',
+				- "trailing '.'" @ "exception message" @ "fetching time"
+					@ "platform %Win32"
+			),
+			/ @ "constructor#4 %WindowClass" @ "platform %Win32" @ %HostedGUI $=
+			(
+				/ "parameter type 'const wstring&'" -> 'wstring_view',
+				+ "assertion to ensure data pointer of string view nonnull"
+			),
+			/ @ ("class %AndroidLogSender" @ "platform %Android", "static \
+				member function %Logger::FetchDefaultSender") @ %Debug $=
+			(
+				/ "parameter type 'const string&'" -> 'string_view',
+				+ "assertion to ensure data pointer of string view nonnull"
+			),
+			/ %Host $=
+			(
+				/ @ "function %FetchCommandOutput" @ %Host $=
+				(
+					/ "1st pamameter type 'const string&'"  -> 'const char*';
+					+ 'YB_NONNULL(1)'
+				),
+				/ @ "function %FetchCachedCommandResult" $=
+				(
+					/ $forced DLDI $dep_from "%FetchCommandOutput",
+					- "trailing '.'" @ "traced exception message"
+				)
+			)
+		),
+		/ %'YCLib(Win32)' $=
+		(
+			/ %MinGW32 $=
+			(
+				+ "2 functions %CategorizeNode with \
+					'const ::WIN32_FIND_DATAW&' and 'UniqueHandle::pointer' \
+					parameter respectively";
+				+ "function %GetNodeCategory" @ "class %DirectoryFindData",
+				* "wrongly treated file size as file index"
+					@ "functions %QueryFileNodeID" $since b638,
+				/ @ "class %DirectoryFindData" $=
+				(
+					/ "parameter type 'const string&'" @ "constructor#2"
+						-> 'string_view',
+					/ "parameter type 'const wstring&'" @ "constructor#3"
+						-> 'wstring_view'
+				),
+				- "overloaded function %ExpandEnvironmentStrings with \
+					'const wstring&' parameter",
+				/ @ "function %ExpandEnvironmentStrings with character pointer \
+					parameter" @ %Registry $=
+				(
+					- "2nd parameter" @ "function %ExpandEnvironmentStrings",
+						// The length is actually useless and misleading.
+					+ ("explicitly requiring parameter to be nonnull by \
+						assertion"; 'YB_NONNULL(1)'),
+					/ DLDI "simplified" ^ "%YCL_CallWin32F"
+				),
+			),
+			/ "1st parameter type 'const wstring&'" @ "member function \
+				%RegistryKey::GetRawValue#2" @ %Registry -> 'wstring_view'
+		),
+		/ %Helper $=
+		(
+			/ %ShellHelper $=
+			(
+				* "function %InstallFile threw exceptions if destination file \
+					is not existed" $since b657,
+				* $comp "functions %(IstanllFile; InstallTree) wrongly skipped \
+					for paths with same first character" $since b657 $dep_from
+					("function %platform::HaveSameContents" @ %YCLib.FileIO),
+				+ "check hardlink source and threw %std::invalid_argument if \
+					source is a valid directory before creation hardlink"
+					@ "function %InstallHardLink",
+				/ '#include <ysbuild.h>' -> "including headers only used"
+					@ "header" -> "simplified shell helper header",
+					// To make the use of header cleaer and reduce some build \
+						performance overhead.
+				/ "1st parameter 'const string& = {}'" -> 'string_view = ""'
+					@ "class %DebugTimer"
+			),
+			/ "traced exception message" @ "exception handler"
+				@ "function %LoadComponents" @ %Initialization
+		),
+		+ 'const' @ "parameter type 'std::exception&'" @ ("parameter list"
+			@ "type argument" %ExceptionTracer), "functions \
+			%(TraceExceptionType, TraceExceptionType)") @ %YSLib.Core.YException
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %CString $=
+			(
+				* $re_ex(b604) "missing check termination of string" $since b329
+					$orig (@ "function template %sntctscmp" $since b245),
+				/ DLDI "simplified function template %ntctsicmp",
+				+ "3 overloaded functions %ntctscmp without length parameter \
+					for %(char, wchar_t, uchar)"
+			),
+			+ "assertion to ensure data pointer nonnull"
+				@ "function templates %(operator std::basic_string, to_string)"
+				@ "class template %basic_string_view" @ %StringView
+		),
+		+ $doc DLD "notes for LWG1130" @ "comments" @ "header"
+			@ %LibDefect.Exception
+	),
+	/ $forced DLDI "including headers" @ %YReader.Shells $dep_from
+		"simplified shell helper header"
+),
+
+b657
 (
 	/ %YFramework $=
 	(
@@ -4254,7 +4435,7 @@ b622
 				)
 			)
 		),
-		* $design "missing '.' at end of assertion string for device \
+		* $design "missing trailing '.' of assertion string for device \
 			operations exception handling" @ %'YCLib_(DS)'.DSIO $since b611,
 		(
 		+ "functions %(ConvertToErrno; GetErrnoFromWin32)"
@@ -5639,7 +5820,7 @@ b604
 			(
 				* "wrong comparison for difference" $since b329,
 				* "missing check termination of string" $orig
-					(@ "function template %sntctsicmp" $since b117)
+					(@ "function template %sntctsicmp" $since b245)
 			),
 			+ "function templates %(ntctsnicmp, ntctsnlen)",
 			+ "2 inline functions %ntctsnlen for %(char, wchar_t)"

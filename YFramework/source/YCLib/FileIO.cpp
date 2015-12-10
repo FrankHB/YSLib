@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2040
+\version r2140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-12-06 22:41 +0800
+	2015-12-10 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -307,7 +307,7 @@ FetchFileTime(_func f, _tParams... args)
 	// XXX: Error handling for indirect calls.
 	TryRet(f(args...))
 	CatchThrow(std::system_error& e, FileOperationFailure(e.code(),
-		std::string("Failed querying file time: ") + e.what() + "."))
+		std::string("Failed querying file time: ") + e.what()))
 #else
 	// TODO: Get more precise time count.
 	struct ::stat st;
@@ -349,7 +349,7 @@ IsNodeShared_Impl(const char16_t* a, const char16_t* b) ynothrow
 		QueryFileNodeID(wcast(a)) == QueryFileNodeID(wcast(b)))
 	return {};
 #else
-	return IsNodeShared(MakeMBCS(a).c_str(), MakeMBCS(b).c_str());
+	return IsNodeShared_Impl(MakeMBCS(a).c_str(), MakeMBCS(b).c_str());
 #endif
 }
 
@@ -364,6 +364,36 @@ MakePathString(const char16_t* s)
 #else
 	return MakeMBCS(s);
 #endif
+}
+
+
+NodeCategory
+CategorizeNode(mode_t st_mode) ynothrow
+{
+	auto res(NodeCategory::Empty);
+	const auto m(Mode(st_mode) & Mode::FileType);
+
+	if((m & Mode::Directory) == Mode::Directory)
+		res |= NodeCategory::Directory;
+#if !YCL_Win32
+	if((m & Mode::Link) == Mode::Link)
+		res |= NodeCategory::Link;
+#endif
+	if((m & Mode::Regular) == Mode::Regular)
+		res |= NodeCategory::Regular;
+	if(YB_UNLIKELY((m & Mode::Character) == Mode::Character))
+		res |= NodeCategory::Character;
+#if !YCL_Win32
+	else if(YB_UNLIKELY((m & Mode::Block) == Mode::Block))
+		res |= NodeCategory::Block;
+#endif
+	if(YB_UNLIKELY((m & Mode::FIFO) == Mode::FIFO))
+		res |= NodeCategory::FIFO;
+#if !YCL_Win32
+	if((m & Mode::Socket) == Mode::Socket)
+		res |= NodeCategory::Socket;
+#endif
+	return res;
 }
 
 
@@ -387,6 +417,20 @@ FileTime
 FileDescriptor::GetAccessTime() const
 {
 	return FetchFileTime(get_st_atime, desc);
+}
+NodeCategory
+FileDescriptor::GetCategory() const ynothrow
+{
+#if YCL_Win32
+	const auto h(::HANDLE(::_get_osfhandle(desc)));
+
+	return h ? platform_ex::CategorizeNode(h) : NodeCategory::Invalid;
+#else
+	struct ::stat st;
+
+	return estat(st, desc) == 0 ? CategorizeNode(st.st_mode)
+		: NodeCategory::Invalid;
+#endif
 }
 int
 FileDescriptor::GetFlags() const ynothrow
@@ -1078,43 +1122,55 @@ EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 }
 
 bool
-HaveSameContents(const char* path_a, const char* path_b)
+HaveSameContents(const char* path_a, const char* path_b, mode_t mode)
 {
-	return HaveSameContents(string(Nonnull(path_a)), string(Nonnull(path_b)));
+	if(UniqueFile p_a{uopen(path_a,
+#if YCL_Win32
+		_O_RDONLY | _O_BINARY
+#else
+		O_RDONLY
+#endif
+		, mode)})
+		if(UniqueFile p_b{uopen(path_b,
+#if YCL_Win32
+			_O_RDONLY | _O_BINARY
+#else
+			O_RDONLY
+#endif
+		, mode)})
+			return HaveSameContents(std::move(p_a), std::move(p_b), path_a,
+				path_b);
+	return {};
 }
 bool
-HaveSameContents(const string& path_a, const string& path_b)
+HaveSameContents(UniqueFile p_a, UniqueFile p_b, const char* name_a,
+	const char* name_b)
 {
-	filebuf fb_a, fb_b;
+	if(Nonnull(p_a)->GetCategory() != NodeCategory::Directory
+		&& Nonnull(p_b)->GetCategory() != NodeCategory::Directory)
+	{
+		if(IsNodeShared(p_a.get(), p_b.get()))
+			return true;
 
-	errno = 0;
-	// FIXME: Blocked. TOCTTOU access.
-	if(IsNodeShared(path_a.c_str(), path_b.c_str()))
-		return true;
-	if(!fb_a.open(path_a, std::ios_base::in | std::ios_base::binary))
-		ThrowFileOperationFailure("Failed opening first file '" + path_a
-			+ "'.");
-	if(!fb_b.open(path_b, std::ios_base::in | std::ios_base::binary))
-		ThrowFileOperationFailure("Failed opening second file '" + path_b +
-			"'.");
-	// XXX: Check opened file identity here?
-	return ystdex::streambuf_equal(fb_a, fb_b);
-}
-bool
-HaveSameContents(UniqueFile p_a, UniqueFile p_b)
-{
-	errno = 0;
-	if(IsNodeShared(Nonnull(p_a).get(), Nonnull(p_b).get()))
-		return true;
+		filebuf fb_a, fb_b;
 
-	filebuf fb_a, fb_b;
-
-	// FIXME: Implement for streams without open-by-raw-file extension.
-	if(!fb_a.open(std::move(p_a), std::ios_base::in | std::ios_base::binary))
-		ThrowFileOperationFailure("Failed opening first file.");
-	if(!fb_b.open(std::move(p_b), std::ios_base::in | std::ios_base::binary))
-		ThrowFileOperationFailure("Failed opening second file.");
-	return ystdex::streambuf_equal(fb_a, fb_b);
+		errno = 0;
+		// FIXME: Implement for streams without open-by-raw-file extension.
+		// TODO: Throw a nested error with errno if errno != 0.
+		if(!fb_a.open(std::move(p_a),
+			std::ios_base::in | std::ios_base::binary))
+			ThrowFileOperationFailure(name_a ? ("Failed opening first file '"
+				+ string(name_a) + "'.").c_str()
+				: "Failed opening first file.");
+		// TODO: Throw a nested error with errno if errno != 0.
+		if(!fb_b.open(std::move(p_b),
+			std::ios_base::in | std::ios_base::binary))
+			ThrowFileOperationFailure(name_b ? ("Failed opening second file '"
+				+ string(name_b) + "'.").c_str()
+				: "Failed opening second file.");
+		return ystdex::streambuf_equal(fb_a, fb_b);
+	}
+	return {};
 }
 
 bool

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1561
+\version r1566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-10-02 19:35 +0800
+	2015-12-10 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -392,11 +392,11 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 YF_API ::HBITMAP
 CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 {
-	// NOTE: There is no resolution information created. See https://msdn.microsoft.com/en-us/library/dd183494.aspx .
+	// NOTE: There is no resolution information created. See https://msdn.microsoft.com/en-us/library/dd183494.aspx.
 	// NOTE: It would return %ERROR_INVALID_PARAMETER for many calls if
 	//	allocated memory is not on 32-bit boundary. Anyway it is not a matter
 	//	here because the pixel is at least 32-bit. See
-	//	http://msdn2.microsoft.com/en-us/library/ms532292.aspx and https://msdn.microsoft.com/en-us/library/dd183494.aspx .
+	//	http://msdn2.microsoft.com/en-us/library/ms532292.aspx and https://msdn.microsoft.com/en-us/library/dd183494.aspx.
 	// NOTE: Bitmap format is hard coded here for explicit buffer
 	//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
 	//	windows.
@@ -702,9 +702,10 @@ WindowClass::WindowClass(const ::WNDCLASSEXW& wc)
 	: WindowClass(wc.lpszClassName, YCL_CallWin32F(RegisterClassExW, &wc),
 	wc.hInstance)
 {}
-WindowClass::WindowClass(const wstring& class_name,
+WindowClass::WindowClass(wstring_view class_name,
 	unsigned short class_atom, ::HINSTANCE h_inst)
-	: name(class_name), atom(class_atom), h_instance(h_inst)
+	: name((Nonnull(class_name.data), class_name)), atom(class_atom),
+	h_instance(h_inst)
 {
 	if(YB_UNLIKELY(atom == 0))
 		throw std::invalid_argument("Invalid atom value found.");

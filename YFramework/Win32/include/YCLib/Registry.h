@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 注册表。
-\version r130
+\version r141
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2015-09-12 19:33:37 +0800
 \par 修改时间:
-	2015-09-12 20:06 +0800
+	2015-12-10 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,15 +81,21 @@ public:
 	\brief 取指定名称和类型的值的存储表示。
 	\return 成功得到的值的类型和内容。
 	\note 类型为 \c REG_NONE 时表示允许任意类型的值。
-	\since build 593
 	*/
 	//@{
-	//! \brief 间接断言：第一参数非空。
+	/*!
+	\brief 间接断言：第一参数非空。
+	\since build 593
+	*/
 	pair<unsigned long, vector<byte>>
 	GetRawValue(const wchar_t*, unsigned long = REG_NONE) const;
+	/*!
+	\brief 间接断言：第一参数的数据指针非空。
+	\since build 658
+	*/
 	PDefH(pair<unsigned long YPP_Comma vector<byte>>, GetRawValue,
-		const wstring& name, unsigned long type = REG_NONE) const
-		ImplRet(GetRawValue(name.c_str(), type))
+		wstring_view name, unsigned long type = REG_NONE) const
+		ImplRet(GetRawValue(name.data(), type))
 	//@}
 	size_t
 	GetSubKeyCount() const;
