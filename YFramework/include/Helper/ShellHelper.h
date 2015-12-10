@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2000
+\version r2015
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-12-07 13:06 +0800
+	2015-12-10 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,13 @@
 #ifndef INC_Helper_ShellHelper_h_
 #define INC_Helper_ShellHelper_h_ 1
 
-#include "../ysbuild.h"
-#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
+#include <Helper/YModules.h>
+#include <YCLib/YModules.h>
 #include YFM_YCLib_Debug
+#include YFM_YSLib_UI_YDesktop // for UI::Desktop;
+#include YFM_YSLib_Core_YApplication // for Shell, FetchAppInstance;
 #include YFM_YSLib_Service_YTimer // for Timers::HighResolutionClock;
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include YFM_YSLib_UI_ListControl // for UI::TextList::ListType;
 
 namespace YSLib
@@ -52,8 +55,11 @@ protected:
 	Timers::HighResolutionClock::time_point base_tick;
 
 public:
-	//! \since build 593
-	DebugTimer(const string& str = {});
+	/*!
+	\pre 间接断言：参数的数据指针非空。
+	\since build 658
+	*/
+	DebugTimer(string_view = "");
 	~DebugTimer();
 };
 #	define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer _name(__VA_ARGS__);
@@ -320,7 +326,10 @@ YF_API void
 InstallDirectory(const string&, const string&);
 //@}
 
-//! \brief 安装硬链接：创建硬链接，失败则安装文件。
+/*!
+\brief 安装硬链接：创建硬链接，失败则安装文件。
+\throw std::invalid_argument 安装前发现源是有效的目录。
+*/
 YF_API void
 InstallHardLink(const string&, const string&);
 

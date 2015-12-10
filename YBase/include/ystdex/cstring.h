@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2508
+\version r2541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-11-26 00:36 +0800
+	2015-12-09 14:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,6 +142,7 @@ is_null(_tChar c) ynothrow
 //! \brief 按字典序比较简单 NTCTS 。
 //@{
 //! \note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
+//@{
 template<typename _tChar>
 YB_NONNULL(1, 2) YB_PURE int
 ntctscmp(const _tChar* s1, const _tChar* s2) ynothrowv
@@ -149,12 +150,34 @@ ntctscmp(const _tChar* s1, const _tChar* s2) ynothrowv
 	yconstraint(s1),
 	yconstraint(s2);
 
-	typename std::char_traits<_tChar>::int_type d(0);
-
-	while(!ystdex::is_null(d = *s1 - *s2))
+	while(*s1 == *s2 && !ystdex::is_null(*s1))
 		yunseq(++s1, ++s2);
-	return int(d);
+	return int(*s1 - *s2);
 }
+//! \since build 658
+//@{
+inline YB_NONNULL(1, 2) YB_PURE int
+ntctscmp(const char* s1, const char* s2) ynothrowv
+{
+	yconstraint(s1),
+	yconstraint(s2);
+	return std::strcmp(s1, s2);
+}
+inline YB_NONNULL(1, 2) YB_PURE int
+ntctscmp(const wchar_t* s1, const wchar_t* s2) ynothrowv
+{
+	yconstraint(s1),
+	yconstraint(s2);
+	return std::wcscmp(s1, s2);
+}
+inline YB_NONNULL(1, 2) YB_PURE int
+ntctscmp(const uchar_t* s1, const uchar_t* s2) ynothrowv
+{
+	return ntctscmp(replace_cast<const wchar_t*>(s1),
+		replace_cast<const wchar_t*>(s2));
+}
+//@}
+//@}
 //! \note 语义同 std::basic_string<_tChar>::compare 。
 template<typename _tChar>
 YB_NONNULL(1, 2) YB_PURE int
@@ -177,13 +200,9 @@ ntctsicmp(const _tChar* s1, const _tChar* s2) ynothrowv
 	yconstraint(s1),
 	yconstraint(s2);
 
-	using int_type = typename std::char_traits<_tChar>::int_type;
-	int_type d(0);
-
-	while((d = int_type(ystdex::tolower(*s1)) - int_type(ystdex::tolower(*s2)))
-		== int_type(0) && !ystdex::is_null(s2))
+	while(ystdex::tolower(*s1) == ystdex::tolower(*s2) && !ystdex::is_null(s2))
 		yunseq(++s1, ++s2);
-	return int(d);
+	return int(ystdex::tolower(*s1) - ystdex::tolower(*s2));
 }
 /*!
 \brief 按字典序比较不超过指定长度的简单 NTCTS （忽略大小写）。

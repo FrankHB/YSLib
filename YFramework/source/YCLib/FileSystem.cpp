@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3371
+\version r3457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-12-06 22:43 +0800
+	2015-12-08 15:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,14 +26,15 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem // for std::accumulate, ystdex::read_uint_le,
-//	std::min, ystdex::write_uint_le, YAssertNonnull, std::bind, std::ref,
-//	ystdex::retry_on_cond;
+#include YFM_YCLib_FileSystem // for std::tm, std::accumulate,
+//	ystdex::read_uint_le, std::min, ystdex::write_uint_le, YAssertNonnull,
+//	std::bind, std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
-#include YFM_YCLib_FileIO // for Deref, ystdex::to_array, ystdex::throw_error,
-//	std::errc::not_supported, ThrowFileOperationFailure, ystdex::ntctslen,
-//	std::strchr, std::wctob, std::towupper, ystdex::restrict_length, std::min,
-//	ystdex::ntctsicmp, std::errc::invalid_argument;
+#include YFM_YCLib_FileIO // for CategorizeNode, Deref, ystdex::to_array, 
+//	ystdex::throw_error, std::errc::not_supported, ThrowFileOperationFailure,
+//	ystdex::ntctslen, std::strchr, std::wctob, std::towupper,
+//	ystdex::restrict_length, std::min, ystdex::ntctsicmp,
+//	std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
 //	CHRLib::MakeUCS2LE;
@@ -77,39 +78,6 @@ using namespace CHRLib;
 
 namespace platform
 {
-
-namespace
-{
-
-#if !YCL_Win32
-//! \since build 560
-template<typename _type>
-NodeCategory
-FetchNodeCategoryFromStat(_type& st)
-{
-	auto res(NodeCategory::Empty);
-	const auto m(Mode(st.st_mode) & Mode::FileType);
-
-	if((m & Mode::Directory) == Mode::Directory)
-		res |= NodeCategory::Directory;
-	if((m & Mode::Link) == Mode::Link)
-		res |= NodeCategory::Link;
-	if((m & Mode::Regular) == Mode::Regular)
-		res |= NodeCategory::Regular;
-	if(YB_UNLIKELY((m & Mode::Character) == Mode::Character))
-		res |= NodeCategory::Character;
-	else if(YB_UNLIKELY((m & Mode::Block) == Mode::Block))
-		res |= NodeCategory::Block;
-	if(YB_UNLIKELY((m & Mode::FIFO) == Mode::FIFO))
-		res |= NodeCategory::FIFO;
-	if((m & Mode::Socket) == Mode::Socket)
-		res |= NodeCategory::Socket;
-	return res;
-}
-#endif
-
-} // unnamed namespace;
-
 
 void
 CreateHardLink(const char* dst, const char* src)
@@ -234,56 +202,14 @@ HDirectory::GetNodeCategory() const ynothrow
 	{
 		YAssert(bool(GetNativeHandle()), "Invariant violation found.");
 
-		NodeCategory res(NodeCategory::Empty);
 #if YCL_Win32
-		using namespace platform_ex;
-		const auto&
-			dir_data(Deref(static_cast<DirectoryFindData*>(GetNativeHandle())));
-		const auto& find_data(dir_data.GetFindData());
-		const auto attr(FileAttributes(find_data.dwFileAttributes));
-
-		if(attr & FileAttributes::Directory)
-			res |= NodeCategory::Directory;
-		if(attr & FileAttributes::ReparsePoint)
-		{
-			switch(find_data.dwReserved0)
-			{
-			case IO_REPARSE_TAG_SYMLINK:
-				res |= NodeCategory::SymbolicLink;
-				break;
-			case IO_REPARSE_TAG_MOUNT_POINT:
-				res |= NodeCategory::MountPoint;
-			default:
-				// TODO: Implement for other tags?
-				;
-			}
-		}
-
-		auto name(dir_data.GetDirName());
-
-		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
-		name.pop_back();
-		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
 		YAssert(!static_cast<wstring*>(p_dirent)->empty(),
 			"Invariant violation found.");
-		// NOTE: Only existed and accessable files are considered.
-		// FIXME: Blocked. TOCTTOU access.
-		if(const auto h = MakeFile((name + Deref(static_cast<wstring*>(
-			p_dirent))).c_str(), FileSpecificAccessRights::ReadAttributes,
-			FileAttributesAndFlags::NormalWithDirectory))
-			switch(::GetFileType(h.get())
-				& ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
-			{
-			case FILE_TYPE_CHAR:
-				res |= NodeCategory::Character;
-				break;
-			case FILE_TYPE_PIPE:
-				res |= NodeCategory::FIFO;
-				break;
-			default:
-				;
-			}
+
+		const auto res(Deref(static_cast<platform_ex::DirectoryFindData*>(
+			GetNativeHandle())).GetNodeCategory());
 #else
+		auto res(NodeCategory::Empty);
 		auto name(sDirPath + Deref(p_dirent).d_name);
 		struct ::stat st;
 
@@ -292,10 +218,10 @@ HDirectory::GetNodeCategory() const ynothrow
 #	else
 		// TODO: Set error properly.
 		if(::lstat(name.c_str(), &st) == 0)
-			res |= FetchNodeCategoryFromStat(st);
+			res |= CategorizeNode(st.st_mode);
 		if(bool(res & NodeCategory::Link) && ::stat(name.c_str(), &st) == 0)
 #	endif
-			res |= FetchNodeCategoryFromStat(st);
+			res |= CategorizeNode(st.st_mode);
 #endif
 		return res != NodeCategory::Empty ? res : NodeCategory::Invalid;
 	}
@@ -327,10 +253,10 @@ HDirectory::GetNativeName() const ynothrow
 #else
 	if(p_dirent)
 	{
-		const auto& d_name(Deref(static_cast<wstring*>(p_dirent)));
+		const auto& child(Deref(static_cast<wstring*>(p_dirent)));
 
-		YAssert(!d_name.empty(), "Invariant violation found.");
-		return ucast(d_name.data());
+		YAssert(!child.empty(), "Invariant violation found.");
+		return ucast(child.data());
 	}
 	return u".";
 #endif
@@ -443,6 +369,7 @@ WriteNumericTail(string& alias, size_t k) ynothrowv
 
 	while(k > 0)
 	{
+		YAssert(p != &alias[0], "Value is too much to store in the alias.");
 		*p-- = '0' + k % 10;
 		k /= 10;
 	}
@@ -461,6 +388,7 @@ is_time_no_leap_valid(const std::tm& t)
 	return !(t.tm_hour < 0 || 23 < t.tm_hour || t.tm_hour < 0 || 59 < t.tm_min
 		|| t.tm_sec < 0 || 59 < t.tm_min);
 }
+
 yconstfn bool
 is_date_range_valid(const std::tm& t)
 {

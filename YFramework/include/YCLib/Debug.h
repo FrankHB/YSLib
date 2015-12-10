@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r649
+\version r657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-11-29 05:05 +0800
+	2015-12-10 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,10 +200,11 @@ public:
 
 	/*!
 	\brief 取新建的平台相关的默认发送：按指定的标签取平台相关实现。
-	\since build 593
+	\pre 断言：参数的数据指针非空。
+	\since build 658
 	*/
 	static Sender
-	FetchDefaultSender(const string& = "YFramework");
+	FetchDefaultSender(string_view = "YFramework");
 
 	template<typename _fCaller, typename... _tParams>
 	void
@@ -375,7 +376,11 @@ private:
 	string tag;
 
 public:
-	AndroidLogSender(const string&);
+	/*!
+	\pre 间接断言：参数的数据指针非空。
+	\since build 658
+	*/
+	AndroidLogSender(string_view);
 	//! \since build 560
 	DefDeCopyMoveCtorAssignment(AndroidLogSender)
 	~AndroidLogSender();

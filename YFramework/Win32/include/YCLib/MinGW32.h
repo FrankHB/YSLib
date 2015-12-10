@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1399
+\version r1459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-11-26 14:08 +0800
+	2015-12-10 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,12 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_Debug // for string, platform::Deref, wstring, pair;
-#include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
+#include YFM_YCLib_Debug // for string, platform::Deref, wstring, pair;
+#include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
+#include YFM_YCLib_FileIO // for platform::NodeCategory;
 #include <chrono> // for std::chrono::nanoseconds;
 
 namespace platform_ex
@@ -481,7 +482,26 @@ inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAA& d) ynothrow
 inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
 	ImplRet(d.dwFileAttributes & Directory)
 
-  
+/*!
+\brief 按 \c ::WIN32_FIND_DATAW 归类节点类别。
+\return 指定非目录或不被支持的重分析标签时为 NodeCategory::Empty ，
+	否则为对应的其它节点类别。
+\since build 658
+\todo 对目录链接和符号链接的重分析标签提供适当实现。
+*/
+YF_API platform::NodeCategory
+CategorizeNode(const ::WIN32_FIND_DATAW&) ynothrow;
+/*!
+\brief 按打开的文件句柄归类节点类别。
+\pre 断言：参数非空。
+\return 指定句柄非打开的文件或调用失败时 NodeCategory::Invalid ，
+	否则为对应的其它节点类别。
+\since build 658
+*/
+YF_API platform::NodeCategory
+CategorizeNode(UniqueHandle::pointer) ynothrowv;
+
+
 //! \since build 632
 //@{
 /*!
@@ -616,20 +636,28 @@ public:
 	/*!
 	\brief 构造：使用指定的目录路径。
 	\throw platform::FileOperationFailure 打开路径失败，或指定的路径不是目录。
-	\note 目录路径无视结尾的斜杠和反斜杠。
-	\note 去除结尾斜杠和反斜杠后若为空则视为当前路径。
 	\since build 638
+
+	打开路径指定的目录。
+	目录路径无视结尾的斜杠和反斜杠。 去除结尾斜杠和反斜杠后若为空则视为当前路径。
+	*/
+	//@{
+	/*!
+	\note 使用 UTF-8 目录路径。
+	\since build 654
+	*/
+	YB_NONNULL(2)
+	DirectoryFindData(const char*);
+	/*!
+	\pre 间接断言：路径参数的数据指针非空。
+	\since build 658
 	*/
 	//@{
 	//! \note 使用 UTF-8 目录路径。
-	//@{
-	//! \since build 654
-	YB_NONNULL(2)
-	DirectoryFindData(const char*);
-	DirectoryFindData(const string&);
-	//@}
+	DirectoryFindData(string_view);
 	//! \note 使用 UTF-16 目录路径。
-	DirectoryFindData(const wstring&);
+	DirectoryFindData(wstring_view);
+	//@}
 	//@}
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	~DirectoryFindData();
@@ -643,6 +671,19 @@ public:
 	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
 	//! \since build 593
 	DefGetter(const ynothrow, const wstring&, DirName, dir_name)
+
+	/*!
+	\brief 取子节点的类型。
+	\return 当前节点无效或查找的项目名称为空时为 platform::NodeCategory::Empty ，
+		否则为处理文件信息得到的值。
+	\sa CategorizeNode
+	\since build 658
+
+	处理文件信息时，首先调用 CategorizeNode 对查找数据归类；
+	然后打开名称指定的文件进一步调用 CategorizeNode 对打开的文件判断归类。
+	*/
+	platform::NodeCategory
+	GetNodeCategory() const ynothrow;
 
 private:
 	/*!
@@ -793,15 +834,11 @@ ConvertTime(std::chrono::nanoseconds);
 
 /*!
 \brief 展开字符串中的环境变量。
-\since build 593
+\pre 间接断言：参数非空。
+\since build 658
 */
-//@{
-//! \note 第一参数为空指针或第二参数等于 0 时返回空串。
-YF_API wstring
-ExpandEnvironmentStrings(const wchar_t*, size_t);
-inline PDefH(wstring, ExpandEnvironmentStrings, const wstring& str)
-	ImplRet(ExpandEnvironmentStrings(str.c_str(), str.length()))
-//@}
+YF_API YB_NONNULL(1) wstring
+ExpandEnvironmentStrings(const wchar_t*);
 
 /*!
 \brief 取系统目录路径。

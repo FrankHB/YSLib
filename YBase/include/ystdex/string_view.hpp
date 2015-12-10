@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r450
+\version r460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2015-10-04 17:12 +0800
+	2015-12-10 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,10 +221,13 @@ public:
 		std::swap(size_, s.size_);
 	}
 
+	//! \pre 断言：数据指针非空。
+	//@{
 	template<class _tAlloc>
 	explicit
 	operator std::basic_string<_tChar, _tTraits, _tAlloc>() const
 	{
+		yconstraint(data_);
 		return {data_, size_};
 	}
 
@@ -232,8 +235,10 @@ public:
 	std::basic_string<_tChar, _tTraits, _tAlloc>
 	to_string(const _tAlloc& a = _tAlloc()) const
 	{
+		yconstraint(data_);
 		return {data_, size_, a};
 	}
+	//@}
 
 	YB_NONNULL(2) size_type
 	copy(_tChar* s, size_type n, size_type pos = 0) const
@@ -304,23 +309,23 @@ public:
 	_n(__VA_ARGS__) const _spec \
 	{
 #define YB_Impl_StringView_search1(_n, _arg) \
-	YB_Impl_StringView_search_fn_head(_n,, ynothrow, basic_string_view s, \
+	YB_Impl_StringView_search_fn_head(_n, , ynothrow, basic_string_view s, \
 		size_type pos = _arg) \
 		return ystdex::str_##_n<value_type, size_type, traits_type, \
 			npos>(data_, size_, s.data_, pos, s.size_); \
 	}
 #define YB_Impl_StringView_search34(_n, _arg) \
-	YB_Impl_StringView_search_fn_head(_n, YB_NONNULL(2),, const _tChar* s, \
+	YB_Impl_StringView_search_fn_head(_n, YB_NONNULL(2), , const _tChar* s, \
 		size_type pos, size_type n) \
 		return yconstraint(s), _n(basic_string_view(s, n), pos); \
 	} \
-	YB_Impl_StringView_search_fn_head(_n, YB_NONNULL(2),, const _tChar* s, \
+	YB_Impl_StringView_search_fn_head(_n, YB_NONNULL(2), , const _tChar* s, \
 		size_type pos = _arg) \
 		return _n(s, pos, traits_type::length(s)); \
 	}
 #define YB_Impl_StringView_search_mf(_n, _arg) \
 	YB_Impl_StringView_search1(_n, _arg) \
-	YB_Impl_StringView_search_fn_head(_n,, ynothrow, _tChar c, \
+	YB_Impl_StringView_search_fn_head(_n, , ynothrow, _tChar c, \
 		size_type pos = _arg) \
 		return ystdex::str_##_n<value_type, size_type, traits_type, \
 			npos>(data_, size_, c, pos); \
@@ -328,7 +333,7 @@ public:
 	YB_Impl_StringView_search34(_n, _arg)
 #define YB_Impl_StringView_search_mf2(_n, _arg, _n2) \
 	YB_Impl_StringView_search1(_n, _arg) \
-	YB_Impl_StringView_search_fn_head(_n,, ynothrow, _tChar c, \
+	YB_Impl_StringView_search_fn_head(_n, , ynothrow, _tChar c, \
 		size_type pos = _arg) \
 		return _n2(c, pos); \
 	} \

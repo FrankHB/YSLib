@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1240
+\version r1333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-11-26 15:11 +0800
+	2015-12-10 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,15 +29,18 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_Win32_YCLib_Registry // for RegistryKey;
+#	include YFM_Win32_YCLib_Registry // for platform::FileOperationFailure,
+//	RegistryKey;
 #	include <cerrno>
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
 //	YSLib::CheckPositiveScalar;
-#	include YFM_YCLib_FileIO // for platform::FileOperationFailure;
 #	include <functional> // for std::bind, std::placeholders::_1;
 
 using namespace YSLib;
 #endif
+
+//! \since build 658
+using platform::NodeCategory;
 
 namespace platform_ex
 {
@@ -171,21 +174,6 @@ GlobalLocked::~GlobalLocked()
 }
 
 
-UniqueHandle
-MakeFile(const wchar_t* path, FileAccessRights desired_access,
-	FileShareMode shared_mode, CreationDisposition creation_disposition,
-	FileAttributesAndFlags attributes_and_flags) ynothrowv
-{
-	using ystdex::underlying;
-	const auto h(::CreateFileW(Nonnull(path), underlying(
-		desired_access), underlying(shared_mode), {}, underlying(
-		creation_disposition), underlying(attributes_and_flags), {}));
-
-	return UniqueHandle(h != INVALID_HANDLE_VALUE ? h
-		: UniqueHandle::pointer());
-}
-
-
 //! \since build 545
 namespace
 {
@@ -311,6 +299,69 @@ PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 
 } // unnamed namespace;
 
+
+NodeCategory
+CategorizeNode(const ::WIN32_FIND_DATAW& d) ynothrow
+{
+	auto res(NodeCategory::Empty);
+
+	if(IsDirectory(d))
+		res |= NodeCategory::Directory;
+	if(d.dwFileAttributes & FileAttributes::ReparsePoint)
+	{
+		switch(d.dwReserved0)
+		{
+		case IO_REPARSE_TAG_SYMLINK:
+			res |= NodeCategory::SymbolicLink;
+			break;
+		case IO_REPARSE_TAG_MOUNT_POINT:
+			res |= NodeCategory::MountPoint;
+		default:
+			;
+		}
+	}
+	return res;
+}
+NodeCategory
+CategorizeNode(UniqueHandle::pointer h) ynothrowv
+{
+	YAssertNonnull(h);
+
+	auto res(NodeCategory::Empty);
+
+	switch(::GetFileType(h)
+		& ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
+	{
+	case FILE_TYPE_CHAR:
+		res |= NodeCategory::Character;
+		break;
+	case FILE_TYPE_PIPE:
+		res |= NodeCategory::FIFO;
+		break;
+	case FILE_TYPE_UNKNOWN:
+		res |= NodeCategory::Unknown;
+	default:
+		;
+	}
+	return res;
+}
+
+
+UniqueHandle
+MakeFile(const wchar_t* path, FileAccessRights desired_access,
+	FileShareMode shared_mode, CreationDisposition creation_disposition,
+	FileAttributesAndFlags attributes_and_flags) ynothrowv
+{
+	using ystdex::underlying;
+	const auto h(::CreateFileW(Nonnull(path), underlying(
+		desired_access), underlying(shared_mode), {}, underlying(
+		creation_disposition), underlying(attributes_and_flags), {}));
+
+	return UniqueHandle(h != INVALID_HANDLE_VALUE ? h
+		: UniqueHandle::pointer());
+}
+
+
 Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
 	: Exception(int(ec), GetErrorCategory(), msg, lv)
 {
@@ -423,10 +474,10 @@ WCSToMBCS(wstring_view sv, unsigned cp)
 DirectoryFindData::DirectoryFindData(const char* name)
 	: DirectoryFindData(UTF8ToWCS(name))
 {}
-DirectoryFindData::DirectoryFindData(const string& name)
+DirectoryFindData::DirectoryFindData(string_view name)
 	: DirectoryFindData(UTF8ToWCS(name))
 {}
-DirectoryFindData::DirectoryFindData(const wstring& name)
+DirectoryFindData::DirectoryFindData(wstring_view name)
 	: dir_name(name), find_data()
 {
 	if(ystdex::rtrim(dir_name, L"/\\").empty())
@@ -452,6 +503,28 @@ DirectoryFindData::~DirectoryFindData()
 {
 	if(h_node)
 		Close();
+}
+
+NodeCategory
+DirectoryFindData::GetNodeCategory() const ynothrow
+{
+	if(h_node && !d_name.empty())
+	{
+		auto res(CategorizeNode(find_data));
+		auto name(GetDirName());
+
+		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
+		name.pop_back();
+		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
+		// NOTE: Only existed and accessable files are considered.
+		// FIXME: Blocked. TOCTTOU access.
+		if(const auto h = MakeFile((name + d_name).c_str(),
+			FileSpecificAccessRights::ReadAttributes,
+			FileAttributesAndFlags::NormalWithDirectory))
+			res |= CategorizeNode(h.get());
+		return res;
+	}
+	return NodeCategory::Empty;
 }
 
 void
@@ -499,7 +572,7 @@ QueryFileNodeID(UniqueHandle::pointer h)
 	return FetchFileInfo([](::BY_HANDLE_FILE_INFORMATION& info) ynothrow
 		-> pair<VolumeID, FileID>{
 		return {VolumeID(info.dwVolumeSerialNumber),
-			FileID(info.nFileSizeHigh) << 32 | info.nFileSizeLow};
+			FileID(info.nFileIndexHigh) << 32 | info.nFileIndexLow};
 	}, h);
 }
 pair<VolumeID, FileID>
@@ -607,23 +680,14 @@ ConvertTime(std::chrono::nanoseconds file_time)
 }
 
 wstring
-ExpandEnvironmentStrings(const wchar_t* p_src, size_t len)
+ExpandEnvironmentStrings(const wchar_t* p_src)
 {
-	if(p_src && len != 0)
-	{
-		const size_t w_len(::ExpandEnvironmentStringsW(p_src, {}, 0));
+	const auto w_len(YCL_CallWin32F(ExpandEnvironmentStringsW, Nonnull(p_src),
+		{}, 0));
+	wstring wstr(w_len, wchar_t());
 
-		if(w_len != 0)
-		{
-			wstring wstr(w_len, wchar_t());
-
-			if(::ExpandEnvironmentStringsW(p_src, &wstr[0],
-				static_cast<unsigned long>(w_len)) != 0)
-				return wstr;
-		}
-		YCL_Raise_Win32Exception("ExpandEnvironmentStringsW");
-	}
-	return {};
+	YCL_CallWin32F(ExpandEnvironmentStringsW, p_src, &wstr[0], w_len);
+	return wstr;
 }
 
 wstring

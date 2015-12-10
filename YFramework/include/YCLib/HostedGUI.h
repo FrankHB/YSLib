@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1316
+\version r1319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-09-26 14:51 +0800
+	2015-12-10 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -727,13 +727,14 @@ public:
 	WindowClass(const ::WNDCLASSEXW&);
 	//@}
 	/*!
+	\pre 间接断言：第一参数的数据指针非空。
 	\pre 原子表示已注册的窗口类。
 	\pre 实例句柄和注册时使用的值相等。
 	\throw std::invalid_argument 原子值等于 \c 0 。
 	\note 使用指定名称和原子并取得窗口类的所有权。名称不影响原子。
-	\since build 593
+	\since build 658
 	*/
-	WindowClass(const wstring&, unsigned short, ::HINSTANCE);
+	WindowClass(wstring_view, unsigned short, ::HINSTANCE);
 	//@}
 	~WindowClass();
 

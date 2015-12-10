@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1736
+\version r1814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-12-06 22:32 +0800
+	2015-12-10 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,14 +54,17 @@ namespace platform
 \since build 634
 */
 //@{
+//! \pre 间接断言：参数非空。
 inline PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
 inline PDefH(const string&, MakePathString, const string& s)
 	ImplRet(s)
+//! \pre 间接断言：参数非空。
 YF_API string
 MakePathString(const char16_t*);
-inline PDefH(string, MakePathString, const u16string& s)
-	ImplRet(MakePathString(s.c_str()))
+//! \since build 658
+inline PDefH(string, MakePathString, u16string_view sv)
+	ImplRet(MakePathString(sv.data()))
 //@}
 
 
@@ -83,8 +86,10 @@ yconstfn PDefHOp(bool, !=, const FileNodeID& x, const FileNodeID& y)
 	ImplRet(!(x == y))
 //@}
 
+
 //! \since build 628
 using FileTime = std::chrono::nanoseconds;
+
 
 /*!
 \brief 文件模式类型。
@@ -98,9 +103,58 @@ using mode_t = ::mode_t;
 #endif
 //@}
 
+
+/*!
+\brief 文件节点类别。
+\since build 412
+*/
+enum class NodeCategory : std::uint_least32_t
+{
+	Empty = 0,
+	//! \since build 474
+	//@{
+	Invalid = 1 << 0,
+	Regular = 1 << 1,
+	//@}
+	Unknown = Invalid | Regular,
+	//! \since build 474
+	//@{
+	Device = 1 << 9,
+	Block = Device,
+	Character = Device | 1 << 7,
+	Communicator = 2 << 9,
+	FIFO = Communicator | 1 << 6,
+	Socket = Communicator | 2 << 6,
+	//@}
+	SymbolicLink = 1 << 12,
+	MountPoint = 2 << 12,
+	Junction = MountPoint,
+	//! \since build 474
+	//@{
+	Link = SymbolicLink | Junction,
+	//@}
+	Directory = 1 << 15,
+	//! \since build 474
+	//@{
+	Missing = 1 << 16,
+	Special = Link | Missing
+	//@}
+};
+
+//! \relates NodeCategory
+//@{
+//! \since build 543
+DefBitmaskEnum(NodeCategory)
+
+//! \brief 取指定模式对应的文件节点类型。
+YF_API NodeCategory
+CategorizeNode(mode_t) ynothrow;
+//@}
+
+
 /*!
 \brief 文件描述符包装类。
-\note 除非另行约定，具有无异常抛出保证的操作可能设置 errno 。
+\note 除非另行约定，具有无异常抛出保证的操作失败时可能设置 errno 。
 \note 不支持的平台操作失败设置 errno 为 ENOSYS 。
 \note 除非另行约定，无异常抛出的操作使用值初始化的返回类型表示失败结果。
 \note 以 \c int 为返回值的操作返回 \c -1 表示失败。
@@ -136,7 +190,6 @@ public:
 	//! \since build 644
 	yconstfn
 	FileDescriptor(nullptr_t) ynothrow
-		: desc()
 	{}
 	/*!
 	\brief 构造：使用标准流。
@@ -180,6 +233,13 @@ public:
 	//! \brief 取访问时间。
 	FileTime
 	GetAccessTime() const;
+	/*!
+	\brief 取节点类别。
+	\return 失败时为 NodeCategory::Invalid ，否则为对应类别。
+	\since build 638
+	*/
+	NodeCategory
+	GetCategory() const ynothrow;
 	//! \since build 637
 	//@{
 	/*!
@@ -1186,26 +1246,30 @@ EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
 /*!
 \brief 比较文件内容相等。
 \throw FileOperationFailure 文件按流打开失败。
-\note 首先清除 errno ；可能设置 errno 。
 \warning 读取失败时即截断返回，因此需要另行比较文件大小。
+\sa IsNodeShared
+\since build 658
+
+首先比较文件节点，若为相同文件直接相等，否则清除 errno ，打开文件读取内容并比较。
 */
 //@{
-/*!
-\note 间接断言：参数非空。
-\since build 637
-*/
+//! \note 间接断言：参数非空。
 YF_API YB_NONNULL(1, 2) bool
-HaveSameContents(const char*, const char*);
-//! \since build 638
-YF_API bool
-HaveSameContents(const string&, const string&);
-//! \since build 636
-YF_API bool
-HaveSameContents(UniqueFile, UniqueFile);
+HaveSameContents(const char*, const char*, mode_t = DefaultPMode());
+/*!
+\note 间接断言：文件指针非空。
+\note 使用表示文件名称的字符串，仅用于在异常消息中显示（若为空则省略）。
+\note 参数表示的文件已以可读形式打开，否则按流打开失败。
+\note 视文件起始于当前读位置。
+\since build 658
+*/
+YF_API YB_NONNULL(3, 4) bool
+HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
 //@}
 
 /*!
 \brief 判断参数是否表示共享的文件节点。
+\note 可能设置 errno 。
 \nsince build 638
 */
 //@{

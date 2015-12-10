@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2453
+\version r2456
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-11-29 05:03 +0800
+	2015-12-10 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -263,9 +263,10 @@ LoadComponents(const ValueNode& node)
 			throw GeneralEvent("Failed loading CHRMapEx.");
 		YF_Init_puts(Notice, "CHRMapEx loaded successfully.");
 	}
-	catch(std::exception&)
+	catch(std::exception& e)
 	{
-		YTraceDe(Notice, "Module cp113.bin loading failed.");
+		YTraceDe(Notice, "Module cp113.bin loading failed, error: %s",
+			e.what());
 #	if YCL_Win32
 		LoadCP936_NLS();
 		if(p_dbcs_off_936)
