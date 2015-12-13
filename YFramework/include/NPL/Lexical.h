@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1461
+\version r1492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2015-10-11 13:56 +0800
+	2015-12-12 17:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Adaptor_YTextBase // for ystdex::byte, YSLib::list,
-//	YSLib::string, YSLib::vector, YSLib::begin, YSLib::end;
+//	YSLib::string, YSLib::string_view, YSLib::vector, YSLib::begin, YSLib::end;
 #include <cctype> // for std::isgraph;
 
 namespace NPL
@@ -43,6 +43,8 @@ using YSLib::byte;
 using YSLib::list;
 using YSLib::string;
 //@}
+//! \since build 659
+using YSLib::string_view;
 //! \since build 545
 using YSLib::vector;
 //! \since build 546
@@ -70,8 +72,12 @@ public:
 	DefDeCopyMoveCtorAssignment(UnescapeContext)
 
 	DefPred(const ynothrow, Handling, !Prefix.empty())
-	PDefH(bool, IsHandling, const string& prefix) const
-		ImplRet(Prefix == prefix)
+	/*!
+	\pre 断言：参数的数据指针非空。
+	\since build 659
+	*/
+	PDefH(bool, IsHandling, string_view pfx) const
+		ImplRet((YAssertNonnull(pfx.data()), Prefix == pfx))
 
 	DefGetter(const ynothrow, const string&, Sequence, sequence)
 
@@ -236,29 +242,30 @@ public:
 
 
 /*!
+\pre 断言：字符串参数的数据指针非空。
+\since build 659
+*/
+//@{
+/*!
 \brief 检查指定字符串是否为字面量。
 \return 若为字面量（首尾字符都为 '\'' 或 '"' 之一），则为首字符，否则为 char() 。
-\since build 304
-\todo 实现 UTF-8 字符串末尾兼容性。
 */
 YF_API char
-CheckLiteral(const string&);
+CheckLiteral(string_view) ynothrowv;
 
 /*!
 \brief 去除字面量边界分隔符。
 \return 若首尾字符都为 '\'' 或 '"' 之一，则为去除首尾字符之后的副本；否则为原串。
-\since build 343
 */
-YF_API string
-Deliteralize(const string&);
+YF_API string_view
+Deliteralize(string_view) ynothrowv;
 
 /*!
 \brief 编码转义字符串：替换指定字符串中的可转义字符为转义序列。
 \sa LexicalAnalyzer
-\since build 545
 */
 YF_API string
-Escape(const string&);
+Escape(string_view);
 
 /*!
 \brief 编码转义字符串字面量。
@@ -266,21 +273,19 @@ Escape(const string&);
 \note 使用 Escape 转义。
 \note 若转义后最后一个字符为 '\\' 则添加一个 '\\' 以避免转义末尾分隔符。
 \sa LexicalAnalyzer
-\since build 545
 */
 YF_API string
-EscapeLiteral(const string&);
+EscapeLiteral(string_view);
 
 /*!
 \brief 编码 XML 字符串。
 \see http://www.w3.org/TR/2006/REC-xml11-20060816/#charsets 。
-\since build 597
 
 允许 XML 1.1 字符，仅对空字符使用 YTraceDe 进行警告。
 仅对 XML 1.0 和 XML 1.1 规定的有条件使用字符 \c & 、 \c < 和 \c > 生成转义序列。
 */
 YF_API string
-EscapeXML(const string&);
+EscapeXML(string_view);
 
 /*!
 \brief 修饰字符串为字面量。
@@ -289,7 +294,8 @@ EscapeXML(const string&);
 \since build 597
 */
 YF_API string
-Literalize(const string&, char = '"');
+Literalize(string_view, char = '"');
+//@}
 
 
 /*!
@@ -317,11 +323,12 @@ IsDelimeter(char c)
 
 /*!
 \brief 分解字符串为记号。
+\pre 断言：字符串参数的数据指针非空。
 \post 结果中字符串两端不包括 "C" 区域 \tt std::isspace 返回非零的字符。
-\since build 335
+\since build 659
 */
 YF_API list<string>
-Decompose(const string&);
+Decompose(string_view);
 
 /*!
 \brief 记号化：提取字符串列表中的记号。

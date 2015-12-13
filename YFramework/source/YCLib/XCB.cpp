@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r519
+\version r538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2015-08-19 16:10 +0800
+	2015-12-11 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,10 @@ using namespace YSLib;
 using namespace Drawing;
 using namespace platform::Concurrency;
 using ystdex::cast_array;
+//! \since build 659
+using YSLib::string;
+//! \since build 659
+using YSLib::string_view;
 
 namespace platform_ex
 {
@@ -80,8 +84,9 @@ FetchGlobalTableRef()
 	return Deref(FetchGlobalTablePtr());
 }
 
+//! \since build 659
 pair<string, Atom>
-MakeAtomPair(::xcb_connection_t& c_ref, const string& name, bool e)
+MakeAtomPair(::xcb_connection_t& c_ref, string_view name, bool e) ynothrowv
 {
 	return {name, Atom(c_ref, name, e)};
 }
@@ -236,7 +241,14 @@ FetchGeometry(::xcb_connection_t& c_ref, ::xcb_drawable_t id,
 } // unnamed namespace;
 
 
-XCBException::XCBException(const string& msg, std::uint8_t resp,
+XCBException::XCBException(const char* msg, std::uint8_t resp,
+	std::uint8_t ec, std::uint16_t seq, std::uint32_t rid, std::uint16_t minor,
+	std::uint8_t major, std::uint32_t full_seq, RecordLevel lv)
+	: Exception(resp, FetchXCBErrorCategory(), msg, lv),
+	error_code(ec), sequence(seq), resource_id(rid), minor_code(minor),
+	major_code(major), full_sequence(full_seq)
+{}
+XCBException::XCBException(string_view msg, std::uint8_t resp,
 	std::uint8_t ec, std::uint16_t seq, std::uint32_t rid, std::uint16_t minor,
 	std::uint8_t major, std::uint32_t full_seq, RecordLevel lv)
 	: Exception(resp, FetchXCBErrorCategory(), msg, lv),
@@ -323,21 +335,23 @@ Connection::~Connection()
 }
 
 
-Atom::Atom(::xcb_connection_t& c_ref, const string& n,
-	bool only_if_exists) ynothrow
+Atom::Atom(::xcb_connection_t& c_ref, string_view n,
+	bool only_if_exists) ynothrowv
 	: atom([&](::xcb_intern_atom_cookie_t cookie) -> ::xcb_atom_t {
 		if(const auto p = unique_raw(
 			::xcb_intern_atom_reply(&c_ref, cookie, {}), std::free))
 			return p->atom;
 		return XCB_ATOM_NONE;
 	}(::xcb_intern_atom_unchecked(&c_ref, only_if_exists, n.length(),
-		n.c_str())))
+		(Nonnull(n.data()), n.data()))))
 {}
 
 
 Atom::NativeType
 LookupAtom(::xcb_connection_t& c_ref, const string& name)
 {
+	// TODO: Blocked. Use %string_view as argument using C++14 heterogeneous
+	//	%find template.
 	return Deref(LockAtoms(c_ref)).at(name);
 }
 

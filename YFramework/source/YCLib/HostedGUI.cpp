@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1566
+\version r1576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-12-10 19:12 +0800
+	2015-12-11 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,10 @@
 
 using namespace YSLib;
 using namespace Drawing;
+//! \since build 659
+using YSLib::string;
+//! \since build 659
+using platform::string_view;
 
 #if YF_Hosted
 
@@ -857,14 +861,16 @@ Clipboard::ReceiveRaw(FormatType fmt, std::function<void(const void*)> f)
 }
 
 void
-Clipboard::Send(const string& str)
+Clipboard::Send(string_view sv)
 {
-	SendRaw(CF_TEXT, CopyGlobalString<char>(str));
+	YAssertNonnull(sv.data());
+	SendRaw(CF_TEXT, CopyGlobalString<char>(sv));
 }
 void
-Clipboard::Send(const String& str)
+Clipboard::Send(u16string_view sv)
 {
-	SendRaw(CF_UNICODETEXT, CopyGlobalString<char16_t>(str));
+	YAssertNonnull(sv.data());
+	SendRaw(CF_UNICODETEXT, CopyGlobalString<char16_t>(sv));
 }
 void
 Clipboard::Send(ConstBitmapPtr p_bmp, const Size& s)

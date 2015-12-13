@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2419
+\version r2423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-11-06 11:10 +0800
+	2015-12-12 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -336,12 +336,13 @@ ClearSequence(_tOut dst, size_t n) ynothrowv
 
 /*!
 \brief 查询第二参数指定名称的环境变量写入第一参数。
+\pre 断言：参数非空。
 \note 若不存在则不修改第一参数。
 \return 是否修改第一参数。
-\since build 539
+\since build 659
 */
-YF_API bool
-FetchEnvironmentVariable(string&, const string&);
+YF_API YB_NONNULL(2) bool
+FetchEnvironmentVariable(string&, const char*);
 
 } // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2911
+\version r2912
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-12-07 12:28 +0800
+	2015-12-13 03:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,7 +383,7 @@ MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
 \note 受权限限制。
 */
 //@{
-YF_API bool
+YF_API YB_NONNULL(1) bool
 VerifyDirectory(const char*);
 inline PDefH(bool, VerifyDirectory, const string& path)
 	ImplRet(VerifyDirectory(path.c_str()))

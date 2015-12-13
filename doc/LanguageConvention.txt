@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1575
+\version r1577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-11-19 02:45 +0800
+	2015-12-11 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -535,6 +535,8 @@ inline 对 ODR(@5.1.8) 发生影响。
 
 @5.5.7 using ：
 注意 using 声明优先于 using 指令。
+在 using 指令引入同名声明指称不同实体而造成歧义时，可使用适当的 using 声明消除歧义。
+注意只使用 using 声明可能歧义的名称之一，否则仍然会造成歧义。具体选择应考虑语义、可转换性和用户代码的适配难度。
 
 @5.5.7.1 using 声明：
 不使用冗余的 using 声明。

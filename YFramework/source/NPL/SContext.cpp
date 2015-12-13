@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1510
+\version r1512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2015-07-29 10:06 +0800
+	2015-12-12 02:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,8 +105,9 @@ Analyze(ValueNode& root, const Session& session)
 	Analyze(root, session.GetTokenList());
 }
 void
-Analyze(ValueNode& root, const string& unit)
+Analyze(ValueNode& root, string_view unit)
 {
+	YAssertNonnull(unit.data());
 	Analyze(root, Session(unit).GetTokenList());
 }
 

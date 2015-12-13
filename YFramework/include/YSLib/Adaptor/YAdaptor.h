@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1889
+\version r1896
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-11-26 16:08 +0800
+	2015-12-13 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -375,10 +375,17 @@ using platform::GetFileModificationTimeOf;
 using platform::GetFileModificationAndAccessTimeOf;
 using platform::FetchNumberOfLinks;
 using platform::EnsureUniqueFile;
+//! \since build 659
+//@{
+using platform::HaveSameContents;
+using platform::IsNodeShared;
 
 //! \since build 474
 using platform::NodeCategory;
 
+using platform::CreateHardLink;
+using platform::CreateSymbolicLink;
+//@}
 //! \since build 411
 //@{
 using platform::DirectorySession;

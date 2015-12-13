@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r213
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2015-09-24 12:40 +0800
+	2015-12-12 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,8 +45,9 @@ using namespace ystdex;
 PatchMap
 Analyze(std::istream& in)
 {
-	const auto rtrcrlf([](const string& str, size_t idx){
-		return string(rtrim(str.substr(idx), "\r\n"));
+	const auto rtrcrlf([](string_view sv, size_t idx){
+		YAssert(sv.size() >= idx, "Invalid string found.");
+		return string(rtrim(sv.substr(idx), "\r\n"));
 	});
 	const auto& vpfx("version r");
 	PatchMap res;
@@ -142,8 +143,9 @@ CalcLines(EntryMap& m, size_t base, size_t limit = 2)
 		{
 			const auto i(std::adjacent_find(entry.begin(), entry.end(),
 				[](const string& x, const string& y){
-					return (x[0] == '+' && y[0] == '-')
-						|| (x[0] == '-' && y[0] == '+');
+					YAssert(!(x.empty() || y.empty()), "Invalid string found");
+					return (x.front() == '+' && y.front() == '-')
+						|| (x.front() == '-' && y.front() == '+');
 				}));
 
 			if(i == entry.cend())

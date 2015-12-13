@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1432
+\version r1438
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2015-07-29 11:03 +0800
+	2015-12-12 02:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,17 +138,20 @@ YF_API void
 Analyze(ValueNode&, const TokenList&);
 YF_API void
 Analyze(ValueNode&, const Session&);
+/*!
+\pre 断言：字符串参数的数据指针非空。
+\since build 659
+*/
 YF_API void
-Analyze(ValueNode&, const string&);
+Analyze(ValueNode&, string_view);
 template<typename _type>
-//! ADL \c Analyze 分析节点。 
+//! ADL \c Analyze 分析节点。
 ValueNode
 Analyze(const _type& arg)
 {
 	ValueNode root;
 
 	Analyze(root, arg);
-
 	return root;
 }
 //@}

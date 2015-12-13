@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3457
+\version r3458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-12-08 15:50 +0800
+	2015-12-11 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -454,7 +454,7 @@ EntryData::CopyLFN(char16_t* str) const ynothrowv
 
 pair<EntryDataUnit, size_t>
 EntryData::FillNewName(string_view name,
-	std::function<bool(const string&)> verify)
+	std::function<bool(string_view)> verify)
 {
 	YAssertNonnull(name.data()),
 	YAssertNonnull(verify);

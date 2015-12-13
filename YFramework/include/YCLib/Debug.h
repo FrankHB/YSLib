@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r657
+\version r668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-12-10 19:57 +0800
+	2015-12-11 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
-#include YFM_YCLib_Container // for platform::string, std::ostream,
+#include YFM_YCLib_Container // for string_view, string, std::ostream,
 //	platform::sfmt;
 #include YFM_YCLib_Mutex
 
@@ -163,29 +163,29 @@ public:
 
 	/*!
 	\brief 转发等级和日志至发送器。
+	\note 忽略字符串参数对应的空数据指针参数。
 	\note 保证串行发送。
 	*/
 	//@{
-	//! \note 忽略空指针参数。
 	void
 	DoLog(Level, const char*);
-	//! \since build 593
-	PDefH(void, DoLog, Level lv, const string& str)
-		ImplRet(DoLog(lv, str.c_str()))
+	//! \since build 659
+	PDefH(void, DoLog, Level lv, string_view sv)
+		ImplRet(DoLog(lv, sv.data()))
 	//@}
 
 private:
 	/*!
 	\brief 转发等级和日志至发送器。
+	\pre 间接断言：字符串参数对应的数据指针非空。
 	\since build 510
 	*/
 	//@{
-	//! \pre 间接断言：指针参数非空。
 	YB_NONNULL(1) void
 	DoLogRaw(Level, const char*);
-	//! \since build 593
-	PDefH(void, DoLogRaw, Level lv, const string& str)
-		ImplRet(DoLogRaw(lv, str.c_str()))
+	//! \since build 659
+	PDefH(void, DoLogRaw, Level lv, string_view sv)
+		ImplRet(DoLogRaw(lv, sv.data()))
 	//@}
 
 public:

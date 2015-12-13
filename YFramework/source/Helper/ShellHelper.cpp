@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r584
+\version r624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2015-12-10 19:59 +0800
+	2015-12-13 14:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,51 +170,6 @@ FetchVisualStyleNames(String default_name)
 }
 
 } // namespace UI;
-
-void
-InstallFile(const string& dst, const string& src)
-{
-	// FIXME: Blocked. TOCTTOU access.
-	if(![&](const char* d, const char* s) YB_NONNULL(1, 2) -> bool{
-		TryRet(platform::HaveSameContents(d, s))
-		CatchIgnore(platform::FileOperationFailure&)
-		return {};
-	}(dst.c_str(), src.c_str()))
-		IO::CopyFile(dst.c_str(), src.c_str(), IO::PreserveModificationTime);
-}
-
-void
-InstallDirectory(const string& dst, const string& src)
-{
-	IO::TraverseTree([](const IO::Path& dname, const IO::Path& sname){
-		InstallFile(string(dname).c_str(), string(sname).c_str());
-	}, IO::Path(dst), IO::Path(src));
-}
-
-void
-InstallHardLink(const string& dst, const string& src)
-{
-	if(IO::VerifyDirectory(src))
-		throw std::invalid_argument("Source is a directory.");
-	else
-		uremove(dst.c_str());
-	TryExpr(platform::CreateHardLink(dst.c_str(), src.c_str()))
-	CatchExpr(..., InstallFile(dst, src))
-}
-
-void
-InstallSymbolicLink(const string& dst, const string& src)
-{
-	uremove(dst.c_str());
-	TryExpr(platform::CreateSymbolicLink(dst.c_str(), src.c_str()))
-	CatchExpr(..., InstallFile(dst, src))
-}
-
-void
-InstallExecutable(const string& dst, const string& src)
-{
-	InstallFile(dst, src);
-}
 
 } // namespace YSLib;
 

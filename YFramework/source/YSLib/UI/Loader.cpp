@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r312
+\version r330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-05-16 08:41 +0800
+	2014-12-12 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,18 +42,20 @@ namespace UI
 Rect
 ParseRect(const string& str)
 {
-	std::istringstream iss(str);
-	int buf[4];
+	Rect res;
 
-	for(size_t i(0); i < 4; ++i)
-		if(iss)
-			iss >> buf[i];
-		else
-			throw std::invalid_argument("Parse 'Rect' failed: bad state.");
+	try
+	{
+		std::istringstream iss(str);
 
-	const Rect res(buf[0], buf[1], CheckNonnegativeScalar<SDst>(buf[2]),
-		CheckNonnegativeScalar<SDst>(buf[3]));
-
+		iss.exceptions(std::ios::failbit | std::ios::badbit);
+		iss >> res.X >> res.Y >> res.Width >> res.Height;
+	}
+	catch(std::exception& e)
+	{
+		YTraceDe(Warning, "Error: %s", e.what());
+		throw std::invalid_argument("Parse 'Rect' failed: bad state.");
+	}
 	YTraceDe(Debug, "ParseRect: %s.", to_string(res).c_str());
 	return res;
 }
@@ -93,10 +95,9 @@ WidgetLoader::DetectWidgetNode(const ValueNode& node)
 }
 
 ValueNode
-WidgetLoader::LoadUILayout(const string& str)
+WidgetLoader::LoadUILayout(string_view sv)
 {
-	return TransformUILayout(
-		NPL::LoadNPLA1(NPL::SContext::Analyze(NPL::Session(str))));
+	return TransformUILayout(NPL::LoadNPLA1(NPL::SContext::Analyze(sv)));
 }
 
 ValueNode

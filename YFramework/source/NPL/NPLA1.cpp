@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r552
+\version r572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2015-06-30 17:35 +0800
+	2015-12-12 02:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,8 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1
+#include YFM_NPL_NPLA1 // for ystdex::unimplemented;
 #include YFM_NPL_SContext
-#include <ystdex/exception.h> // for ystdex::unimplemented;
 #include <ystdex/functional.hpp> // for ystdex::bind1;
 
 using namespace YSLib;
@@ -39,7 +38,7 @@ namespace NPL
 ValueNode
 MapNPLALeafNode(const ValueNode& node)
 {
-	return {0, string(),  Deliteralize(ParseNPLANodeString(node))};
+	return {0, string(), string(Deliteralize(ParseNPLANodeString(node)))};
 }
 
 ValueNode
@@ -88,16 +87,16 @@ ParseNPLANodeString(const ValueNode& node)
 
 
 void
-InsertNPLA1Child(ValueNode&& n, ValueNode::Container& con)
+InsertNPLA1Child(ValueNode&& node, ValueNode::Container& con)
 {
-	con.insert(n.GetName().empty() ? ValueNode(0, '$' + MakeIndex(con),
-		std::move(n.Value)) : std::move(n));
+	con.insert(node.GetName().empty() ? ValueNode(0, '$' + MakeIndex(con),
+		std::move(node.Value)) : std::move(node));
 }
 
 void
-InsertNPLA1SequenceChild(ValueNode&& n, NodeSequence& con)
+InsertNPLA1SequenceChild(ValueNode&& node, NodeSequence& con)
 {
-	con.emplace_back(std::move(n));
+	con.emplace_back(std::move(node));
 }
 
 ValueNode
@@ -123,11 +122,11 @@ TransformNPLA1(const ValueNode& node, NodeMapper mapper,
 		yunseq(++i, --s);
 	if(s == 1)
 	{
-		auto&& n(nested_call(*i));
+		auto&& nd(nested_call(*i));
 
-		if(n.GetName().empty())
-			return {0, name, std::move(n.Value)};
-		return {ValueNode::Container{std::move(n)}, name};
+		if(nd.GetName().empty())
+			return {0, name, std::move(nd.Value)};
+		return {ValueNode::Container{std::move(nd)}, name};
 	}
 
 	ValueNode::Container node_con;
@@ -306,8 +305,9 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 					{
 						res = "<?";
 						for(; i != cont.cend(); ++i)
-							res += Deliteralize(ConvertDocumentNode(Deref(i),
-								igen, depth, ParseOption::String)) + ' ';
+							res += string(Deliteralize(ConvertDocumentNode(
+								Deref(i), igen, depth, ParseOption::String)))
+								+ ' ';
 						if(!res.empty())
 							res.pop_back();
 						return res + "?>";
@@ -332,10 +332,12 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 							try
 							{
 								const auto& t(Access<string>(at(Deref(i), 0)));
+
 								if(t == "@")
 								{
-									head += Deliteralize(ConvertDocumentNode(*i,
-										igen, depth, ParseOption::Attribute));
+									head += string(Deliteralize(
+										ConvertDocumentNode(*i, igen, depth,
+										ParseOption::Attribute)));
 									++i;
 								}
 							}
@@ -354,8 +356,8 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 								res += '\n' + igen(depth + size_t(is_content));
 							else
 								res += ' ';
-							res += Deliteralize(ConvertDocumentNode(*i,
-								igen, depth + size_t(is_content)));
+							res += string(Deliteralize(ConvertDocumentNode(*i,
+								igen, depth + size_t(is_content))));
 						}
 						if(res.size() > 1 && res.front() == ' ')
 							res.erase(0, 1);

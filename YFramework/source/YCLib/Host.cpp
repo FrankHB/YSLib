@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r393
+\version r402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-12-10 21:06 +0800
+	2015-12-10 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,11 +41,15 @@
 #	include YFM_YSLib_Core_YConsole
 #endif
 
+using namespace YSLib;
 //! \since build 553
 using platform::FileOperationFailure;
 //! \since build 654
 using platform::ThrowFileOperationFailure;
-using namespace YSLib;
+//! \since build 659
+using YSLib::string;
+//! \since build 659
+using platform::string_view;
 
 #if YF_Hosted
 
@@ -53,21 +57,21 @@ namespace platform_ex
 {
 
 Exception::Exception(std::error_code ec, const char* str, RecordLevel lv)
-	: system_error(ec, str),
+	: system_error(ec, Nonnull(str)),
 	level(lv)
 {}
 Exception::Exception(std::error_code ec, string_view sv, RecordLevel lv)
-	: system_error(ec, std::string(sv)),
+	: system_error(ec, (Nonnull(sv.data()), std::string(sv))),
 	level(lv)
 {}
 Exception::Exception(int ev, const std::error_category& ecat, const char* str,
 	RecordLevel lv)
-	: system_error(ev, ecat, str),
+	: system_error(ev, ecat, Nonnull(str)),
 	level(lv)
 {}
 Exception::Exception(int ev, const std::error_category& ecat, string_view sv,
 	RecordLevel lv)
-	: system_error(ev, ecat, std::string(sv)),
+	: system_error(ev, ecat, (Nonnull(sv.data()), std::string(sv))),
 	level(lv)
 {}
 ImplDeDtor(Exception)

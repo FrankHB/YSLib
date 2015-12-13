@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3294
+\version r3396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-12-07 19:01 +0800
+	2015-12-13 14:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,12 +34,12 @@ See readme file for details.
 #include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/mixin.hpp>
+#include YFM_NPL_Dependency // for NPL::DepsEventType,
+//	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
+//	NPL::Install*;
+#include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include YFM_YCLib_Host // for platform_ex::EncodeArg, platform_ex::DecodeArg,
 //	platform_ex::Terminal;
-#include <ystdex/concurrency.h> // for ystdex::task_pool;
-#include YFM_NPL_Dependency // for NPL::DepsEventType,
-//	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies;
-#include YFM_YSLib_Core_YConsole
 
 using namespace YSLib;
 using namespace IO;
@@ -112,8 +112,9 @@ PrintInfo(const string& line, RecordLevel lv = Notice,
 
 
 #define OPT_des_mul "Multiple occurrence is allowed."
-#define OPT_des_last "If this option occurs more than once, only the last one" \
-	" is effective."
+#define OPT_des_last \
+	"If this option occurs more than once, only the last one is effective."
+string RequestedCommand;
 set<string> IgnoredDirs;
 string OutputDir;
 size_t MaxJobs(0);
@@ -173,6 +174,27 @@ const struct Option
 		IgnoredDirs.emplace(std::move(val));
 	}, {"The name of subdirectory which should be ignored when scanning.",
 		OPT_des_mul}},
+	{"-xcmd,", "command", "COMMAND", [](string&& val){
+		RequestedCommand = std::move(val);
+	}, {"Specified name of a command to run.", "If this option is set, all"
+		" other parameters not recognized as options are treated as parameters"
+		" of the command. Currently the following COMMAND name and parameters"
+		" combinations are supported:",
+		"  EnsureDirectory PATH",
+		"    Make PATH available as a directory, as 'mkdir -p PATH'.",
+		"  InstallFile DST SRC",
+		"    Copy file specified by SRC to DST if the contents are different.",
+		"  InstallDirectory DST SRC",
+		"    Recursively call of InstallFile for directory contents.",
+		"  InstallHardLink DST SRC",
+		"    Remove DST and then make hard link to SRC.",
+		"  InstallSymbolicLink DST SRC",
+		"    Remove DST and then make symbolic link to SRC. This may fail if"
+		" the call process has no proper permissions.",
+		"  InstallExecutable DST SRC",
+		"    Call InstallFile and then make DST be with executable permission"
+		" like 'chown +x DST'. Note it is empty operation, not fully"
+		" implemented yet for OS other than Windows.", OPT_des_mul}},
 	{"-xj,", "job max count", "MAX_JOB_COUNT", [](opt_uint uval){
 		PrintInfo("Set job max count = " + to_string(uval) + '.');
 		MaxJobs = size_t(uval);
@@ -768,23 +790,76 @@ main(int argc, char* argv[])
 					args.emplace_back(std::move(arg));
 			}
 
-			BuildContext ctx(MaxJobs);
-
-			for(const auto& env : DeEnvs)
+			if(!RequestedCommand.empty())
 			{
-				const string name(env[0]);
+				const auto sz(args.size());
+				const auto check_n([sz](size_t n){
+					if(sz != n)
+						throw std::runtime_error(sfmt("Wrong number %zu of"
+							" arguments (should be %zu) found.", sz, n));
+				});
 
-				FetchEnvironmentVariable(ctx.Envs[name], name);
-				PrintInfo(name + " = " + ctx.GetEnv(name));
+				try
+				{
+					using namespace NPL;
+
+					if(RequestedCommand == "EnsureDirectory")
+					{
+						check_n(1);
+						EnsureDirectory(args[0]);
+					}
+					else if(RequestedCommand == "InstallFile")
+					{
+						check_n(2);
+						InstallFile(args[0], args[1]);
+					}
+					else if(RequestedCommand == "InstallDirectory")
+					{
+						check_n(2);
+						InstallDirectory(args[0], args[1]);
+					}
+					else if(RequestedCommand == "InstallHardLink")
+					{
+						check_n(2);
+						InstallHardLink(args[0], args[1]);
+					}
+					else if(RequestedCommand == "InstallSymbolicLink")
+					{
+						check_n(2);
+						InstallSymbolicLink(args[0], args[1]);
+					}
+					else if(RequestedCommand == "InstallExecutable")
+					{
+						check_n(2);
+						InstallExecutable(args[0], args[1]);
+					}
+					else
+						throw std::runtime_error(sfmt("Specified command name"
+							" '%s' not supported.", RequestedCommand.c_str()));
+				}
+				CatchExpr(std::exception& e,
+					std::throw_with_nested(std::move(e)))
 			}
-			if(!OutputDir.empty())
-				ctx.OutputDir = std::move(OutputDir);
-			yunseq(ctx.IgnoredDirs = std::move(IgnoredDirs),
-				ctx.Options = std::move(args), ctx.Mode = Mode);
-			if(!TargetName.empty())
-				ctx.TargetName = std::move(TargetName);
-			PrintInfo("OutputDir = " + ctx.OutputDir);
-			ctx.Build();
+			else
+			{
+				BuildContext ctx(MaxJobs);
+
+				for(const auto& env : DeEnvs)
+				{
+					const string name(env[0]);
+
+					FetchEnvironmentVariable(ctx.Envs[name], env[0]);
+					PrintInfo(name + " = " + ctx.GetEnv(name));
+				}
+				if(!OutputDir.empty())
+					ctx.OutputDir = std::move(OutputDir);
+				yunseq(ctx.IgnoredDirs = std::move(IgnoredDirs),
+					ctx.Options = std::move(args), ctx.Mode = Mode);
+				if(!TargetName.empty())
+					ctx.TargetName = std::move(TargetName);
+				PrintInfo("OutputDir = " + ctx.OutputDir);
+				ctx.Build();
+			}
 		}
 		else if(argc == 1)
 		{
