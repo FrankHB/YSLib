@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r6887
+\version r7105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-12-10 21:22 +0800
+	2015-12-13 15:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,222 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Host $=
+			(
+				+ "assertion to ensure nonnull string pointer in parameter"
+					@ "all 4 constructor %Exception",
+				/ "checked for conversion to %string_view" @ "parameter"
+					@ "function, function template %DecodeArg"
+					@ "platform %Win32" ~ "checked for conversion to %string",
+				* $lib $impl "missing 'using YSLib::string;'" @ "non-headers"
+					$since b593,
+					// To allow %YSLib::string not same to %platform::string.
+				+ $lib $impl 'using platform::string_view;' @ "non-headers"
+					// To allow %YSLib::string_view not same to \
+						%platform::string_view.
+			),
+			/ %XCB $=
+			(
+				(
+				+ 'using platform::string_view;';
+				/ "constructor %XCBException" -> "2 constructors with \
+					'const char*' and 'string_view' parameters",
+				),
+				- $revert(b593) 'using platform::string;'
+					// Since only %YSLib::string can determine whether it is \
+						ambiguous.
+				+ $lib $impl 'using platform::string_view;' @ "non-headers",
+					// To allow %YSLib::string_view not same to \
+						%platform::string_view.
+				* $lib $impl "missing 'using YSLib::string;'" @ "non-headers"
+					$since b563,
+					// To allow %YSLib::string not same to %platform::string.
+				/ @ "constructor#2 %Atom" $=
+				(
+					/ "2nd parameter type 'const string&'" -> 'string_view',
+					+ "assertion to ensure nonnull data pointer of string view",
+					/ 'ynothrow' -> 'ynothrowv'
+				),
+				/ DLDI "simplified making atom" ^ 'string_view' ~ 'string'
+					// Also avoided exceptions in this particular call.
+			),
+			/ @ "class %Logger" @ %Debug $=
+			(
+				/ "parameter type 'const string&'" @ "function %DoLog"
+					-> 'string_view',
+				/ DLDI "private function pamameter type" ^ 'string_view'
+					~ 'const string&'
+			),
+			/ %HostedGUI $=
+			(
+				/ @ "class %Clipboard" @ "platform %Win32" @ $=
+				(
+					/ "parameter type 'const YSLib::string&'"
+						@ "function %Send#1" -> 'string_view'
+					/ "parameter type 'const YSLib::String&'"
+						@ "function %Send#2" -> 'u16string_view'
+				),
+				* $lib $impl "missing 'using YSLib::string;'" @ "non-headers" 
+					$since b612,
+					// To allow %YSLib::string not same to %platform::string.
+				+ $lib $impl 'using platform::string_view;' @ "non-headers"
+					// To allow %YSLib::string_view not same to \
+						%platform::string_view.
+			),
+			/ "2nd parameter type 'const string&'" @ "parameter list"
+				@ "2nd parameter" @ "member function %EntryData::FillNewName"
+				@ "namespace %platform::FAT" @ %FileSystem -> 'string_view'
+		),
+		/ %NPL $=
+		(
+			/ @ "namespace %NPL" @ %Lexical $=
+			(
+				(
+				+ 'using YSLib::string_view;';
+				/ @ "functions %(CheckLiteral, Deliteralize, Escape, \
+					EscapeLiteral, EscapeXML, Literalize, Decompose, \
+					UnescapeContext::IsHandling)" $=
+				(
+					/ "1st parameter type 'const string&'" -> 'string_view',
+					+ "assertion to ensure nonnull data pointer of string view"
+				)
+				),
+				+ 'ynothrowv' @ "function %CheckLiteral",
+				/ @ "function %Deliteralize" $=
+				(
+					/ "return type" -> 'string_view' ~ 'string';
+					+ 'ynothrowv' $dep_from "%CheckLiteral"
+				)
+			),
+			/ @ "function %Analyze#3" @ %NPL.SContext $dep_from
+				("%NPL::string_view" @ %Lexical) $=
+			(
+				/ "2nd parameter type 'const string&'" -> 'string_view',
+				+ "assertion to ensure nonnull data pointer of string view"
+			),
+			/ $forced DLDI @ "functions %(MapNPLALeafNode, ConvertDocumentNode)"
+				@ %NPLA1 $dep_from ("return type" @ "%Deliteralize" @ %Lexical)
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ "parameter type 'const char*'"
+					@ "function %FetchEnvironmentVariable" @ %YCoreUtilities
+					-> 'const char*',
+				/ %ValueNode $=
+				(
+					/ @ "function %IsPrefixedIndex" $=
+					(
+						/ "1st parameter type 'const string&'"
+							-> 'string_view',
+						+ "assertion to ensure nonnull data pointer of string \
+							view",
+						/ DLDI "simplified string creation"
+					),
+					* "wrong result when the size is not fit for 4 decimal \
+						digits" $since b599
+						$= (/ "threw %std::invalid_argument when the size is \
+							not less than 10000")
+				)
+			),
+			(
+			/ "overloded function templates %(PrintLine, PrintString, PutLine, \
+				PutString) with string class parameter passing string iterators"
+				@ %Service.TextRenderer ^ "%ystdex::(string_begin, string_end)";
+			/ $comp "null characters embedded in string would not treated as \
+				end of string" @ ("all functions %(DrawClippedText, DrawText)"
+				@ %Service.TextRenderer;
+				"member function %MLabel::DrawClippedText" @ %UI.Label)
+			),
+			/ %UI.Loader $=
+			(
+				/ "function %ParseRect" $=
+				(
+					/ DLDI ^ ("%istringstream::exceptions", "directly parsed"),
+					+ "trace with level 'Warning' on failure"
+				),
+				/ @ "member function %WidgetLoader::LoadUILayout" $=
+				(
+					/ "parameter type 'const string&'" -> 'string_view',
+					/ DLDI "simplified" ^ "%NPL::SContext::Analyze"
+				),
+				/ "2nd parameter type 'const string&'"
+					@ "constructor %DynamicWidget" -> 'string_view',
+				/ @ "function %CheckChildName" $=
+				(
+					/ "parameter type 'const string&'" -> 'string_view',
+					+ "assertion to ensure nonnull data pointer of string view"
+				),
+				/ "constructor %WidgetNotFound" -> "2 constructors with 1st \
+					parameter 'string_view' as well as 2nd parameter \
+					'const char*' and 'string_view' respectively"
+			),
+			+ 'YB_NONNULL(1)' @ "function %VerifyDirectory with \
+				'const char*' parameter" @ %Service.FileSystem,
+			+ "aliases %(HaveSameContents, IsNodeShared, CreateHardLink, \
+				CreateSymbolicLink) from namespace %platform"
+				@ "namespace %YSLib::IO" @ %Adaptor.YAdaptor
+		),
+		/ "functions %(InstallFile, InstallDirectory, InstallHardLink, \
+			InstallSymbolicLink, InstallExecutable)" @ %Helper.ShellHelper
+			-> ("overloded functions with 'const char*' and 'const string&' \
+			parameters" @ %NPL.Dependency $dep_From %YSLib.Adaptor.YAdaptor)
+	),
+	/ %YBase.YStandardEx.String $=
+	(
+		/ @ "string erasure operations" $=
+		(
+			+ DLDI 'yconstfn'
+				@ "specializatioin for %std::basic_string like instances" $=
+			(
+			+ DLDI "assertion to ensure no exception would be throw";
+			+ DLDI 'ynothrowv'
+			),
+			* DLDI ("missing '-1' handling" @ "%erase_left", "assertion"
+				@ "%erase_right") @ "specialization for %basic_string_view \
+				like instance" $since b640 $dep_to "string erasure length check"
+		),
+		* $comp "assertion failure for %string_view like instances for %rtrim"
+			$since b640 $dep_from "string erasure length check",
+		/ @ "function templates %(ltrim, rtrim, trim)" $=
+		(
+			(
+			+ $doc "explicit requirements about string operations and exceptions";
+			+ 'ynothrowv' @ "overloaded function template string parameters"
+			),
+			/ 'inline' -> 'yconstfn'
+		)
+	),
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			/ $forced DLDI $dep_from "function %FetchEnvironmentVariable"
+				@ %YFramework.YSLib.Core.YCoreUtilities,
+			+ "'-cmd,' option with commands %(EnsureDirectory, InstallFile, \
+				InstallDirectory, InstallHardLink, InstallSymbolicLink, \
+				InstallExecutable) available" $dep_from %NPL.Dependency $dep_to
+				"SHBuild installation commands support"
+		)
+		/ $impl %RevisionPatcher.Main $=
+		(
+			/ DLD "simplified" ^ "%string_view",
+			+ "2 assertions to ensure enough size for string access"
+		),
+		/ "all 4 stage 1 installation functions 'SHB_*'" @ "%install-sysroot.sh"
+			^ "stage 1 SHBuild commands"
+			~ ("shell functions" @ "SHBuild-common%.sh" @ %Scripts) $dep_from
+			"SHBuild installation commands support";
+	)
+),
+
+b658
 (
 	/ %YFramework $=
 	(
@@ -108,13 +324,13 @@ $now
 			/ @ "constructor#4 %WindowClass" @ "platform %Win32" @ %HostedGUI $=
 			(
 				/ "parameter type 'const wstring&'" -> 'wstring_view',
-				+ "assertion to ensure data pointer of string view nonnull"
+				+ "assertion to ensure nonnull data pointer of string view"
 			),
 			/ @ ("class %AndroidLogSender" @ "platform %Android", "static \
 				member function %Logger::FetchDefaultSender") @ %Debug $=
 			(
 				/ "parameter type 'const string&'" -> 'string_view',
-				+ "assertion to ensure data pointer of string view nonnull"
+				+ "assertion to ensure nonnull data pointer of string view"
 			),
 			/ %Host $=
 			(
@@ -200,7 +416,7 @@ $now
 				+ "3 overloaded functions %ntctscmp without length parameter \
 					for %(char, wchar_t, uchar)"
 			),
-			+ "assertion to ensure data pointer nonnull"
+			+ "assertion to ensure nonnull data pointer"
 				@ "function templates %(operator std::basic_string, to_string)"
 				@ "class template %basic_string_view" @ %StringView
 		),

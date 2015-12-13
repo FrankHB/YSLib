@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1609
+\version r1652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-11-05 01:28 +0800
+	2015-12-12 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,40 +144,50 @@ struct str_algos;
 template<>
 struct str_algos<0>
 {
+	//! \since build 659
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	erase_left(_tString& s, _tSize n) -> yimpl(decltype(s.remove_prefix(n), s))
+	erase_left(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.remove_prefix(n), s))
 	{
-		return s.remove_prefix(n), s;
+		return yconstraint(n < s.size() || n == _tSize(-1)),
+			s.remove_prefix(n != _tSize(-1) ? n : _tSize(s.size())), s;
 	}
 
+	//! \since build 659
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
-	erase_right(_tString& s, _tSize n) -> yimpl(decltype(s.remove_suffix(n), s))
+	erase_right(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.remove_suffix(n), s))
 	{
-		return yconstraint(n < s.size()), s.remove_suffix(s.size() - n - 1), s;
+		return yconstraint(n < s.size() || n == _tSize(-1)),
+			s.remove_suffix(s.size() - n - 1), s;
 	}
 };
 
 template<>
 struct str_algos<1>
 {
+	//! \since build 659
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
-	static auto
-	erase_left(_tString& s, _tSize n) -> yimpl(decltype(s.erase(0, n)))
+	static yconstfn auto
+	erase_left(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.erase(0, n)))
 	{
-		return s.erase(0, n);
+		return yconstraint(n < s.size() || n == _tSize(-1)), s.erase(0, n);
 	}
 
+	//! \since build 659
 	template<class _tString,
 		typename _tSize = typename string_traits<_tString>::size_type>
-	static auto
-	erase_right(_tString& s, _tSize n) -> yimpl(decltype(s.erase(n + 1)))
+	static yconstfn auto
+	erase_right(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.erase(n + 1)))
 	{
-		return s.erase(n + 1);
+		return yconstraint(n < s.size() || n == _tSize(-1)), s.erase(n + 1);
 	}
 };
 
@@ -190,6 +200,7 @@ struct str_algo<index_sequence<>>
 {
 	void
 	erase_left() = delete;
+
 	void
 	erase_right() = delete;
 };
@@ -481,6 +492,8 @@ concat(_tString& str, size_t n)
 	}
 }
 
+//! \pre 字符串类型满足 std::basic_string 或 basic_string_view 的操作及异常规范。
+//@{
 //! \since build 592
 //@{
 //! \brief 删除字符串中指定的连续字符左侧的字符串。
@@ -534,6 +547,7 @@ erase_right(_tString&& str, typename string_traits<_tString>::value_type c)
 	return static_cast<_tString&&>(ystdex::erase_right(str.find_last_of(c),
 		str));
 }
+//! \since build 659
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_right(_tString&& str, const remove_reference_t<_tString>& t)
@@ -562,12 +576,13 @@ erase_right(_tString&& str, typename string_traits<_tString>::const_pointer t
 //! \brief 删除字符串中指定的连续前缀字符。
 //@{
 template<class _tString>
-inline _tString&&
+yconstfn _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
 	return static_cast<_tString&&>(
 		details::str_algo<>::erase_left(str, str.find_first_not_of(c)));
 }
+//! \since build 659
 template<class _tString>
 inline _tString&&
 ltrim(_tString&& str, const _tString& t)
@@ -580,12 +595,11 @@ ltrim(_tString&& str, const _tString& t)
 \since build 600
 */
 template<class _tString>
-inline _tString&&
+yconstfn _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
-	yconstraint(t);
-	return static_cast<_tString&&>(
+	return yconstraint(t), static_cast<_tString&&>(
 		details::str_algo<>::erase_left(str, str.find_first_not_of(t)));
 }
 //@}
@@ -593,15 +607,16 @@ ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 //! \brief 删除字符串中指定的连续后缀字符。
 //@{
 template<class _tString>
-inline _tString&&
+yconstfn _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
 	return static_cast<_tString&&>(
 		details::str_algo<>::erase_right(str, str.find_last_not_of(c)));
 }
+//! \since build 659
 template<class _tString>
-inline _tString&&
-rtrim(_tString&& str, const remove_reference_t<_tString>& t)
+yconstfn _tString&&
+rtrim(_tString&& str, const remove_reference_t<_tString>& t) ynothrowv
 {
 	return static_cast<_tString&&>(
 		details::str_algo<>::erase_right(str, str.find_last_not_of(t)));
@@ -611,12 +626,11 @@ rtrim(_tString&& str, const remove_reference_t<_tString>& t)
 \since build 600
 */
 template<class _tString>
-inline _tString&&
+yconstfn _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
-	yconstraint(t);
-	return static_cast<_tString&&>(
+	return yconstraint(t), static_cast<_tString&&>(
 		details::str_algo<>::erase_right(str, str.find_last_not_of(t)));
 }
 //@}
@@ -624,14 +638,15 @@ rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 //! \brief 删除字符串中指定的连续前缀与后缀字符。
 //@{
 template<class _tString>
-inline _tString&&
+yconstfn _tString&&
 trim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
 	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), c)), c));
 }
+//! \since build 659
 template<class _tString>
-inline _tString&&
-trim(_tString&& str, const _tString& t)
+yconstfn _tString&&
+trim(_tString&& str, const _tString& t) ynothrowv
 {
 	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
 }
@@ -640,13 +655,14 @@ trim(_tString&& str, const _tString& t)
 \since build 600
 */
 template<class _tString>
-inline _tString&&
+yconstfn _tString&&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
-	yconstraint(t);
-	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
+	return yconstraint(t),
+		yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
 }
+//@}
 //@}
 //@}
 

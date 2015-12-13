@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2015
+\version r2049
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2015-12-10 19:59 +0800
+	2015-12-13 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,45 +305,6 @@ YF_API shared_ptr<TextList::ListType>
 FetchVisualStyleNames(String = u"<Default>");
 
 } // namespace UI;
-
-/*!
-\note 第一参数和第二参数分别为目标和源路径。
-\see 工具脚本 \c SHBuild-common.sh 。
-\since build 651
-\todo 检查可能存在于目标路径的旧项的权限；设置权限。
-*/
-//@{
-//@{
-/*!
-\brief 安装文件：复制单个文件。
-\note 复制前检查内容，若相同则不进行冗余复制（类似 rsync -a ）。
-*/
-YF_API void
-InstallFile(const string&, const string&);
-
-//! \brief 安装目录：复制目录树。
-YF_API void
-InstallDirectory(const string&, const string&);
-//@}
-
-/*!
-\brief 安装硬链接：创建硬链接，失败则安装文件。
-\throw std::invalid_argument 安装前发现源是有效的目录。
-*/
-YF_API void
-InstallHardLink(const string&, const string&);
-
-//! \brief 安装符号链接：创建文件符号链接，失败则安装文件。
-YF_API void
-InstallSymbolicLink(const string&, const string&);
-
-/*!
-\brief 安装可执行文件：安装文件并按需设置可执行权限。
-\todo 设置 chmod +x 或 NTFS 可执行权限。
-*/
-YF_API void
-InstallExecutable(const string&, const string&);
-//@}
 
 } // namespace YSLib;
 

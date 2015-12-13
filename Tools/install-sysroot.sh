@@ -96,7 +96,8 @@ echo Finished building YSLib libraries.
 # Installation functions.
 SHB_InstLibS()
 {
-	SHBuild_Install_HardLink "$1/$LIBPFX$3.a" "$2/lib$3.a"
+	# TODO: Error handling.
+	$SHBuild_S1_SHBuild -xcmd,InstallHardLink "$2/lib$3.a" "$1/$LIBPFX$3.a"
 }
 
 SHB_InstLibD()
@@ -104,7 +105,8 @@ SHB_InstLibD()
 	local target="$LIBPFX$2$DSOSFX"
 	local dest="$SR_DSO_Dest/$target"
 
-	SHBuild_Install_HardLink "$1/$target" "$dest"
+	# TODO: Error handling.
+	$SHBuild_S1_SHBuild -xcmd,InstallHardLink "$dest" "$1/$target"
 	if [[ "$SR_DSO_Imp" != "" ]]; then
 		SHBuild_Install_Link "$dest" "$SR_Lib/$target$SR_DSO_Imp"
 	fi
@@ -112,12 +114,14 @@ SHB_InstLibD()
 
 SHB_InstInc()
 {
-	SHBuild_InstallDir "$1" "$SR_Include"
+	# TODO: Error handling.
+	$SHBuild_S1_SHBuild -xcmd,InstallDirectory "$SR_Include" "$1"
 }
 
 SHB_InstTool()
 {
-	SHBuild_Install_Exe "$SHBuild_ToolDir/$1" "$SR_Bin/$1"
+	# TODO: Error handling.
+	$SHBuild_S1_SHBuild -xcmd,InstallExecutable "$SR_Bin/$1" "$SHBuild_ToolDir/$1"
 }
 
 echo Installing headers and libraries ...

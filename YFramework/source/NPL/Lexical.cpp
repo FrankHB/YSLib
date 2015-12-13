@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1549
+\version r1585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2015-05-23 02:17 +0800
+	2015-12-12 13:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,31 +231,34 @@ LexicalAnalyzer::Literalize() const
 
 
 char
-CheckLiteral(const string& str)
+CheckLiteral(string_view sv) ynothrowv
 {
-	if(str.size() < 2)
+	YAssertNonnull(sv.data());
+	if(sv.size() < 2)
 		return char();
-	if(str.front() == '\'' && str.back() == '\'')
+	if(sv.front() == '\'' && sv.back() == '\'')
 		return '\'';
-	if(str.front() == '"' && str.back() == '"')
+	if(sv.front() == '"' && sv.back() == '"')
 		return '"';
 	return char();
 }
 
-string
-Deliteralize(const string& str)
+string_view
+Deliteralize(string_view sv) ynothrowv
 {
-	return CheckLiteral(str) == char() ? str : ystdex::get_mid(str);
+	return CheckLiteral(sv) == char() ? sv : ystdex::get_mid(sv);
 }
 
 string
-Escape(const string& str)
+Escape(string_view sv)
 {
+	YAssertNonnull(sv.data());
+
 	char last{};
 	string res;
 
-	res.reserve(str.length());
-	for(char c : str)
+	res.reserve(sv.length());
+	for(char c : sv)
 	{
 		char unescaped{};
 
@@ -321,10 +324,11 @@ Escape(const string& str)
 }
 
 string
-EscapeLiteral(const string& str)
+EscapeLiteral(string_view sv)
 {
-	const char c(CheckLiteral(str));
-	auto content(Escape(c == char() ? str : ystdex::get_mid(str)));
+	const char c(CheckLiteral(sv));
+	// TODO: Use %get_mid for %string_view.
+	auto content(Escape(c == char() ? sv : ystdex::get_mid(string(sv))));
 
 	if(!content.empty() && content.back() == '\\')
 		content += '\\';
@@ -332,12 +336,14 @@ EscapeLiteral(const string& str)
 }
 
 string
-EscapeXML(const string& str)
+EscapeXML(string_view sv)
 {
+	YAssertNonnull(sv.data());
+
 	string res;
 
-	res.reserve(str.length());
-	for(char c : str)
+	res.reserve(sv.length());
+	for(char c : sv)
 		switch(c)
 		{
 		case '\0':
@@ -360,32 +366,35 @@ EscapeXML(const string& str)
 }
 
 string
-Literalize(const string& str, char c)
+Literalize(string_view sv, char c)
 {
-	return c != char() && CheckLiteral(str) == char() ? ystdex::quote(str, c)
-		: str;
+	return CheckLiteral(sv) == char() && c != char()
+		? ystdex::quote(string(sv), c) : string(sv);
 }
 
 
 list<string>
-Decompose(const string& src_str)
+Decompose(string_view src)
 {
+	YAssertNonnull(src.data());
+
 	list<string> dst;
 
-	ystdex::split_l(src_str, IsDelimeter,
-		[&](string::const_iterator b, string::const_iterator e){
-		string str(b, e);
+	ystdex::split_l(src, IsDelimeter,
+		[&](const char* b, const char* e) YB_NONNULL(1, 2){
+		YAssert(e >= b, "Invalid split result found.");
 
-		YAssert(!str.empty(), "Null token found.");
+		string_view sv(b, size_t(e - b));
+
+		YAssert(!sv.empty(), "Null token found.");
 		if(IsGraphicalDelimeter(*b))
 		{
-			dst.push_back({str.front()});
-			str.erase(0, 1);
+			dst.push_back({sv.front()});
+			sv.remove_prefix(1);
 		}
-		// TODO: Optimize using %std::experimental::string_view.
-		ystdex::trim(str);
-		if(!str.empty())
-			dst.push_back(std::move(str));
+		ystdex::trim(sv);
+		if(!sv.empty())
+			dst.push_back(string(sv));
 	});
 	return dst;
 }

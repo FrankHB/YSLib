@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r361
+\version r383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2015-08-19 16:08 +0800
+	2015-12-11 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 #include YFM_YCLib_Platform
 #if YF_Use_XCB
 //	#include <xcb/xcb.h>
-#	include YFM_YCLib_Host // for platform_ex::Exception;
+#	include YFM_YCLib_Host // for platform::string, platform::string_view,
+//	platform_ex::Exception;
 #	include YFM_YCLib_Debug // for platform::Deref;
 #	include <ystdex/pointer.hpp> // for ystdex::nptr;
 #	include YFM_YSLib_Core_YGraphics
@@ -56,8 +57,8 @@ namespace platform_ex
 namespace XCB
 {
 
-//! \since build 593
-using platform::string;
+//! \since build 659
+using platform::string_view;
 
 //! \brief XCB 异常。
 class YF_API XCBException : public Exception
@@ -74,10 +75,19 @@ private:
 	//@}
 
 public:
-	//! \since build 624
-	XCBException(const string&, std::uint8_t, std::uint8_t, std::uint16_t,
+	/*!
+	\pre 间接断言：字符串参数对应的数据指针非空。
+	\since build 659
+	*/
+	//@{
+	YB_NONNULL(2)
+	XCBException(const char*, std::uint8_t, std::uint8_t, std::uint16_t,
 		std::uint32_t, std::uint16_t, std::uint8_t, std::uint32_t,
 		YSLib::RecordLevel = YSLib::Emergent);
+	XCBException(string_view, std::uint8_t, std::uint8_t, std::uint16_t,
+		std::uint32_t, std::uint16_t, std::uint8_t, std::uint32_t,
+		YSLib::RecordLevel = YSLib::Emergent);
+	//@}
 
 	//! \since build 561
 	//@{
@@ -163,13 +173,13 @@ public:
 	/*!
 	\brief 构造：使用显示名称和屏幕编号。
 	\note 直接传递至 \c ::xcb_connect 。
-	\todo 使用 \c std::experimental::option 代替指针参数。
+	\todo 使用 std::experimental::option 代替指针参数。
 	*/
 	Connection(const char* = {}, int* = {});
 	/*!
 	\brief 构造：使用认证信息、显示名称和屏幕编号。
 	\note 直接传递至 \c ::xcb_connect_to_display_with_auth_info 。
-	\todo 使用封装的类和 \c std::experimental::option 代替指针参数。
+	\todo 使用封装的类和 std::experimental::option 代替指针参数。
 	*/
 	Connection(::xcb_auth_info_t*, const char* = {}, int* = {});
 	/*!
@@ -211,8 +221,12 @@ private:
 	std::uint32_t atom;
 
 public:
+	/*!
+	\pre 间接断言：字符串参数的数据指针非空。
+	\since build 659
+	*/
 	explicit
-	Atom(::xcb_connection_t&, const YSLib::string&, bool = {}) ynothrow;
+	Atom(::xcb_connection_t&, string_view, bool = {}) ynothrowv;
 
 	DefCvt(const ynothrow, NativeType, atom)
 };

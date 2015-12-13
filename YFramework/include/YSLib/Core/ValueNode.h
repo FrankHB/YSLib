@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1717
+\version r1723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-05-24 00:06 +0800
+	2015-12-12 23:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -342,7 +342,7 @@ at(const ValueNode& node, _tIn first, _tIn last)
 	});
 }
 /*!
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 使用 ADL \c begin 和 \c end 指定范围迭代器。
 \since build 597
 */
 template<typename _tRange>
@@ -498,15 +498,17 @@ PackNodes(_tString&& name, _tParams&&... args)
 
 /*!
 \brief 判断字符串是否是一个指定字符和非负整数的组合。
-\note 要求整数能被 unsigned long 表示。
-\since build 450
+\pre 断言：字符串参数的数据指针非空。
+\note 仅测试能被 <tt>unsigned long</tt> 表示的整数。
+\since build 659
 */
 YF_API bool
-IsPrefixedIndex(const string&, char = '$');
+IsPrefixedIndex(string_view, char = '$');
 
 /*!
 \brief 转换节点大小为新的节点索引值。
 \return 保证 4 位十进制数内按字典序递增的字符串。
+\throw std::invalid_argument 索引值过大，不能以 4 位十进制数表示。
 \note 重复使用作为新节点的名称，可用于插入不重复节点。
 \since build 598
 */

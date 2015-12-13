@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r487
+\version r496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2015-05-23 00:08 +0800
+	2015-12-12 23:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,14 +115,15 @@ AccessNodePtr(const ValueNode::Container& con, const string& name)
 
 
 bool
-IsPrefixedIndex(const string& name, char prefix)
+IsPrefixedIndex(string_view name, char prefix)
 {
-	if(name.length() > 1 && name[0] == prefix)
+	YAssertNonnull(name.data());
+	if(name.length() > 1 && name.front() == prefix)
 		try
 		{
-			const string ss(&name[1]);
+			const auto ss(name.substr(1));
 
-			return MakeIndex(std::stoul(ss)) == ss;
+			return MakeIndex(std::stoul(string(ss))) == ss;
 		}
 		CatchIgnore(std::invalid_argument&)
 	return {};
@@ -133,7 +134,10 @@ MakeIndex(size_t n)
 {
 	char str[5]{};
 
-	std::snprintf(str, 5, "%04u", unsigned(n));
+	if(n < 10000)
+		std::snprintf(str, 5, "%04u", unsigned(n));
+	else
+		throw std::invalid_argument("Argument is too large.");
 	return str;
 }
 

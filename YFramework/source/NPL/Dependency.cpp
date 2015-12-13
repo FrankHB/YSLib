@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r107
+\version r153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2015-08-09 22:57 +0800
+	2015-12-13 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency
 #include YFM_NPL_SContext
+#include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 
 using namespace YSLib;
 
@@ -102,6 +103,61 @@ FilterMakefileDependencies(vector<string>& lst)
 
 	return i_c != lst.cend()
 		&& (lst.erase(lst.cbegin(), i_c + 1), !lst.empty());
+}
+
+
+void
+InstallFile(const char* dst, const char* src)
+{
+	using namespace YSLib::IO;
+
+	// FIXME: Blocked. TOCTTOU access.
+	try
+	{
+		if(HaveSameContents(dst, src))
+			return;
+	}
+	CatchIgnore(FileOperationFailure&)
+	CopyFile(dst, src, PreserveModificationTime);
+}
+
+void
+InstallDirectory(const string& dst, const string& src)
+{
+	using namespace YSLib::IO;
+
+	TraverseTree([](const Path& dname, const Path& sname){
+		InstallFile(string(dname).c_str(), string(sname).c_str());
+	}, Path(dst), Path(src));
+}
+
+void
+InstallHardLink(const char* dst, const char* src)
+{
+	using namespace YSLib::IO;
+
+	if(VerifyDirectory(src))
+		throw std::invalid_argument("Source is a directory.");
+	else
+		uremove(dst);
+	TryExpr(CreateHardLink(dst, src))
+	CatchExpr(..., InstallFile(dst, src))
+}
+
+void
+InstallSymbolicLink(const char* dst, const char* src)
+{
+	using namespace YSLib::IO;
+
+	uremove(dst);
+	TryExpr(CreateSymbolicLink(dst, src))
+	CatchExpr(..., InstallFile(dst, src))
+}
+
+void
+InstallExecutable(const char* dst, const char* src)
+{
+	InstallFile(dst, src);
 }
 
 } // namespace NPL;

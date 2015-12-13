@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2850
+\version r2853
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-12-08 15:10 +0800
+	2015-12-11 22:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -930,13 +930,13 @@ public:
 	\pre 断言：字符串参数的数据指针非空。
 	\pre 断言：第二参数非空。
 	\return 别名校验值（若不存在别名则为 0 ）和项的大小。
-	\note 第二参数是校验别名项存在性的例程。
+	\note 第二参数是校验别名项存在性的例程，其中字符串的数据指针保证非空。
 	\sa LFN::GenerateAliasChecksum
 	\sa LFN::WriteNumericTail
-	\since build 657
+	\since build 659
 	*/
 	pair<EntryDataUnit, size_t>
-	FillNewName(string_view, std::function<bool(const string&)>);
+	FillNewName(string_view, std::function<bool(string_view)>);
 
 	/*!
 	\pre 间接断言：参数的数据指针非空。

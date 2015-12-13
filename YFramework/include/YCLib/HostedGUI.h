@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1319
+\version r1330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-12-10 19:13 +0800
+	2015-12-11 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,10 @@
 #define YCL_INC_HostedGUI_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for map, ystdex::aligned_storage_t, string;
+#include YFM_YCLib_Host // for map, ystdex::aligned_storage_t, wstring,
+//	wstring_view, string_view, u16string_view;
 #include <ystdex/pointer.hpp> // for ystdex::nptr;
-#include YFM_YSLib_Core_YEvent // for YSLib::GEvent;
+#include YFM_YSLib_Core_YEvent // for YSLib::GEvent, YSLib::string;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
 //	YSLib::Drawing::Point, YSLib::Drawing::Size;
 #include YFM_YSLib_Core_YString // for YSLib::String;
@@ -937,10 +938,16 @@ private:
 	ReceiveRaw(FormatType, std::function<void(const void*)>);
 
 public:
+	/*!
+	\pre 断言：字符串参数的数据指针非空。
+	\since build 659
+	*/
+	//@{
 	void
-	Send(const YSLib::string&);
+	Send(string_view);
 	void
-	Send(const YSLib::String&);
+	Send(u16string_view);
+	//@}
 	/*!
 	\pre 断言：指针非空。
 	\pre 断言：大小不为 YSLib::Drawing::Size::Invalid 。

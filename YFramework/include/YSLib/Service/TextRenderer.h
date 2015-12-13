@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r3112
+\version r3233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-10-02 19:18 +0800
+	2015-12-12 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,10 +39,11 @@ namespace Drawing
 {
 
 /*!
-\note 使用 ADL <tt>GetEndOfLineOffsetOf</tt> 判断行尾位置。
-\note 使用 ADL <tt>PrintChar</tt> 或 <tt>PutChar</tt> 渲染字符。
+\note 使用 ADL \c GetEndOfLineOffsetOf 判断行尾位置。
 \since build 483
 */
+//@{
+//! \note 使用 ADL \c PrintChar 渲染字符。
 //@{
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
@@ -87,6 +88,7 @@ PrintLine(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
 }
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
+\pre 断言：字符串参数的数据指针非空。
 \param rd 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
@@ -96,9 +98,64 @@ template<class _tRenderer, class _tString,
 inline String::size_type
 PrintLine(_tRenderer& rd, const _tString& str)
 {
-	return String::size_type(Drawing::PrintLine(rd, &str[0]) - &str[0]);
+	return String::size_type(Drawing::PrintLine(rd, ystdex::string_begin(str),
+		ystdex::string_end(str)) - ystdex::string_begin(str));
 }
 
+/*!
+\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
+\param rd 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
+\return 指向结束位置的迭代器。
+\note 迭代直至字符串结束符。
+*/
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PrintString(_tRenderer& rd, _tIter s)
+{
+	while(*s != 0 && *s != '\n')
+		PrintChar(rd, *s++);
+	return s;
+}
+/*!
+\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
+\param rd 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
+\param g 指示迭代终止位置的输入迭代器。
+\param c 指向迭代终止的字符。
+\return 指向结束位置的迭代器。
+\note 迭代直至 g 指定的位置或指定位置的字符为 c 。
+\since build 641
+*/
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PrintString(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
+{
+	while(s != g && char32_t(*s) != c && *s != '\n')
+		PrintChar(rd, *s++);
+	return s;
+}
+/*!
+\brief 打印字符串，直至区域末尾或字符串结束。
+\pre 断言：字符串参数的数据指针非空。
+\param rd 使用的字符渲染器。
+\param str 被输出的字符串。
+\return 打印字符数。
+*/
+template<class _tRenderer, class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
+inline String::size_type
+PrintString(_tRenderer& rd, const _tString& str)
+{
+	return String::size_type(Drawing::PrintString(rd, ystdex::string_begin(str),
+		ystdex::string_end(str)) - ystdex::string_begin(str));
+}
+//@}
+
+//! \note 使用 ADL \c PutChar 渲染字符。
+//@{
 /*!
 \brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
 \param rd 使用的字符渲染器。
@@ -156,6 +213,7 @@ PutLine(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
 }
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
+\pre 断言：字符串参数的数据指针非空。
 \param rd 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
@@ -166,56 +224,8 @@ template<class _tRenderer, class _tString,
 inline String::size_type
 PutLine(_tRenderer& rd, const _tString& str)
 {
-	return String::size_type(Drawing::PutLine(rd, &str[0]) - &str[0]);
-}
-
-/*!
-\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
-\param rd 使用的字符渲染器。
-\param s 指向字符串起始字符的输入迭代器。
-\return 指向结束位置的迭代器。
-\note 迭代直至字符串结束符。
-*/
-template<typename _tIter, class _tRenderer,
-	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-_tIter
-PrintString(_tRenderer& rd, _tIter s)
-{
-	while(*s != 0 && *s != '\n')
-		PrintChar(rd, *s++);
-	return s;
-}
-/*!
-\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
-\param rd 使用的字符渲染器。
-\param s 指向字符串起始字符的输入迭代器。
-\param g 指示迭代终止位置的输入迭代器。
-\param c 指向迭代终止的字符。
-\return 指向结束位置的迭代器。
-\note 迭代直至 g 指定的位置或指定位置的字符为 c 。
-\since build 641
-*/
-template<typename _tIter, class _tRenderer,
-	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
-_tIter
-PrintString(_tRenderer& rd, _tIter s, _tIter g, char32_t c = {})
-{
-	while(s != g && char32_t(*s) != c && *s != '\n')
-		PrintChar(rd, *s++);
-	return s;
-}
-/*!
-\brief 打印字符串，直至区域末尾或字符串结束。
-\param rd 使用的字符渲染器。
-\param str 被输出的字符串。
-\return 打印字符数。
-*/
-template<class _tRenderer, class _tString,
-	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-inline String::size_type
-PrintString(_tRenderer& rd, const _tString& str)
-{
-	return String::size_type(Drawing::PrintString(rd, &str[0]) - &str[0]);
+	return String::size_type(Drawing::PutLine(rd, ystdex::string_begin(str),
+		ystdex::string_end(str)) - ystdex::string_begin(str));
 }
 
 /*!
@@ -285,8 +295,10 @@ template<class _tRenderer, class _tString,
 inline String::size_type
 PutString(_tRenderer& rd, const _tString& str)
 {
-	return String::size_type(Drawing::PutString(rd, &str[0]) - &str[0]);
+	return String::size_type(Drawing::PutString(rd, ystdex::string_begin(str),
+		ystdex::string_end(str)) - ystdex::string_begin(str));
 }
+//@}
 //@}
 
 /*!
@@ -587,70 +599,57 @@ public:
 
 
 /*!
-\brief 绘制剪切区域的文本。
 \param g 输出图形接口上下文。
-\param bounds 相对输出图形接口上下文矩形，限定输出边界。
-\param ts 输出时使用的文本状态。
 \param str 待绘制的字符串。
 \param line_wrap 自动换行。
+\pre 间接断言：字符串参数的数据指针非空。
 \since build 309
 */
+//@{
+/*!
+\brief 绘制剪切区域的文本。
+\param bounds 相对输出图形接口上下文矩形，限定输出边界。
+*/
+//@{
+//! \param ts 输出时使用的文本状态。
 YF_API void
 DrawClippedText(const Graphics& g, const Rect& bounds, TextState& ts,
 	const String& str, bool line_wrap);
 /*!
-\brief 绘制剪切区域的文本。
-\param g 输出图形接口上下文。
-\param bounds 相对输出图形接口上下文矩形，限定输出边界。
 \param r 绘制区域的外边界。
-\param str 待绘制的字符串。
 \param m 绘制区域边界和外边界之间的边距。
-\param line_wrap 自动换行。
 \param fnt 输出时使用的字体。
-\since build 309
 */
 YF_API void
 DrawClippedText(const Graphics& g, const Rect& bounds, const Rect& r,
 	const String& str, const Padding& m, Color, bool line_wrap,
 	const Font& fnt = {});
+//@}
 
-/*!
-\brief 绘制文本。
-\param g 输出图形接口上下文。
-\param ts 输出时使用的文本状态。
-\param str 待绘制的字符串。
-\param line_wrap 自动换行。
-\since build 309
-*/
+//! \brief 绘制文本。
+//@{
+//! \param ts 输出时使用的文本状态。
 YF_API void
 DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
 /*!
-\brief 绘制文本。
-\param g 输出图形接口上下文。
 \param bounds 绘制区域的外边界。
-\param str 待绘制的字符串。
 \param m 绘制区域边界和外边界之间的边距。
-\param line_wrap 自动换行。
 \param fnt 输出时使用的字体。
-\since build 309
 */
 YF_API void
 DrawText(const Graphics& g, const Rect& bounds, const String& str,
 	const Padding& m, Color, bool line_wrap, const Font& fnt = {});
 /*!
-\brief 绘制文本。
 \param r 文本区域。
-\param g 输出图形接口上下文。
 \param pt 绘制区域左上角相对图形接口上下文的位置偏移。
 \param s 绘制区域大小。
-\param str 待绘制的字符串。
-\param line_wrap 自动换行。
-\note 间接绘制并贴图。
-\since build 309
+\note 使用块传输间接绘制。
 */
 YF_API void
 DrawText(TextRegion& r, const Graphics& g, const Point& pt, const Size& s,
 	const String& str, bool line_wrap);
+//@}
+//@}
 
 } // namespace Drawing;
 

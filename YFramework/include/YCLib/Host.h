@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r340
+\version r349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-12-10 20:27 +0800
+	2015-12-11 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 
 #include "YCLib/YModules.h"
 #include "YSLib/Core/YModules.h"
-#include YFM_YCLib_Container // for unordered_map, pair;
+#include YFM_YCLib_Container // for unordered_map, pair, string_view, string;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include YFM_YCLib_Reference // for unique_ptr;
 #include <system_error> // for std::system_error;
@@ -60,7 +60,10 @@ private:
 	YSLib::RecordLevel level = YSLib::Emergent;
 
 public:
-	//! \since build 643
+	/*!
+	\pre 间接断言：字符串参数对应的数据指针非空。
+	\since build 643
+	*/
 	//@{
 	YB_NONNULL(3)
 	Exception(std::error_code, const char* = "unknown host exception",
@@ -174,20 +177,20 @@ MakePipe();
 \since build 593
 
 对 Win32 平台调用当前代码页的 platform::MBCSToMBCS 编解码字符串，其它直接传递参数。
-此时和 platform::MBCSToMBCS 不同，参数为 \c string 时长度通过 NTCTS 计算。
+此时和 platform::MBCSToMBCS 不同，参数可转换为 \c string_view 时长度通过 NTCTS 计算。
 若需要使用 <tt>const char*</tt> 指针，可直接使用 <tt>&arg[0]</tt> 的形式。
 */
 //@{
 #	if YCL_Win32
 YF_API YB_NONNULL(1) string
 DecodeArg(const char*);
-inline PDefH(string, DecodeArg, const string& arg)
+inline PDefH(string, DecodeArg, string_view arg)
 	ImplRet(DecodeArg(&arg[0]))
 #	endif
 template<typename _type
 #if YCL_Win32
-	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<string,
-		_type&&>::value>)
+	, yimpl(typename = ystdex::enable_if_t<
+		!std::is_constructible<string_view, _type&&>::value>)
 #endif
 	>
 yconstfn auto

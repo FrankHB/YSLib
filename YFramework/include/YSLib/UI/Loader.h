@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r595
+\version r624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2015-08-19 16:07 +0800
+	2015-12-12 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,9 +70,12 @@ InsertWidget(IWidget& wgt, _tParams&&... args)
 }
 
 
-//! \since build 432
-inline PDefH(bool, CheckChildName, const string& str)
-	ImplRet(str.size() != 0 && str[0] != '$')
+/*!
+\pre 断言：参数的数据指针非空。
+\since build 659
+*/
+inline PDefH(bool, CheckChildName, string_view sv)
+	ImplRet((YAssertNonnull(sv.data()), !sv.empty() && sv.front() != '$'))
 
 
 /*!
@@ -85,11 +88,20 @@ class YF_API WidgetNotFound : public LoggedEvent
 public:
 	string NodeName;
 
-	//! \since build 624
-	WidgetNotFound(const string& name, const std::string& s,
+	/*!
+	\pre 间接断言：字符串参数对应的数据指针非空。
+	\since build 659
+	*/
+	YB_NONNULL(3)
+	WidgetNotFound(string_view name, const char* s,
 		RecordLevel lv = Warning)
 		: LoggedEvent(s, lv),
-		NodeName(name)
+		NodeName((Nonnull(name.data()), name))
+	{}
+	WidgetNotFound(string_view name, const string_view sv,
+		RecordLevel lv = Warning)
+		: LoggedEvent(sv, lv),
+		NodeName((Nonnull(name.data()), name))
 	{}
 
 	//! \since build 586
@@ -232,8 +244,12 @@ public:
 	unique_ptr<IWidget>
 	DetectWidgetNode(const ValueNode&);
 
+	/*!
+	\pre 间接断言：参数的数据指针非空。
+	\since build 659
+	*/
 	ValueNode
-	LoadUILayout(const string&);
+	LoadUILayout(string_view);
 
 	ValueNode
 	TransformUILayout(const ValueNode&);
@@ -251,8 +267,12 @@ public:
 	lref<WidgetLoader> Loader;
 	ValueNode WidgetNode;
 
-	DynamicWidget(WidgetLoader& ldr, const string& str)
-		: Loader(ldr), WidgetNode(ldr.LoadUILayout(str))
+	/*!
+	\pre 间接断言：参数的数据指针非空。
+	\since build 659
+	*/
+	DynamicWidget(WidgetLoader& ldr, string_view sv)
+		: Loader(ldr), WidgetNode(ldr.LoadUILayout(sv))
 	{}
 };
 
