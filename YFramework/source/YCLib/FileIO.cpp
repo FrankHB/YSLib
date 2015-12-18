@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2140
+\version r2174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-12-10 21:04 +0800
+	2015-12-15 12:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,6 +146,14 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 inline PDefH(::HANDLE, ToHandle, int fd) ynothrow
 	ImplRet(::HANDLE(::_get_osfhandle(fd)))
 
+//! \since build 660
+void
+QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
+	::FILETIME* p_mtime, bool follow_reparse_point)
+{
+	QueryFileTime(UTF8ToWCS(path).c_str(), p_ctime, p_atime, p_mtime,
+		follow_reparse_point);
+}
 //! \since build 632
 //@{
 void
@@ -212,7 +220,7 @@ CallFuncWithAttr(_func f, const char* path)
 	const auto& wstr(wpath.c_str());
 	const auto attr(FileAttributes(::GetFileAttributesW(wstr)));
 
-	return attr != FileAttributes::Invalid ? f(wstr, attr)
+	return attr != platform_ex::Invalid ? f(wstr, attr)
 		: (errno = GetErrnoFromWin32(), false);
 }
 //@}
@@ -261,10 +269,6 @@ static_assert(std::is_unsigned<::ino_t>(),
 
 inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
 	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
-
-inline YB_NONNULL(2) PDefH(int, cstat, struct ::stat& st, const char* path)
-	ynothrow
-	ImplRet(::stat(Nonnull(path), &st))
 //@}
 
 //! \since build 632
@@ -274,7 +278,7 @@ estat(struct ::stat& st, const char* path, bool follow_link)
 {
 #	if YCL_DS
 	yunused(follow_link);
-	return cstat(st, path);
+	return ::stat(Nonnull(path), &st);
 #	else
 	return (follow_link ? ::stat : ::lstat)(Nonnull(path), &st);
 #	endif
@@ -318,38 +322,38 @@ FetchFileTime(_func f, _tParams... args)
 #endif
 }
 
-//! \since build 657
+//! \since build 660
 bool
-IsNodeShared_Impl(const char* a, const char* b) ynothrow
+IsNodeShared_Impl(const char* a, const char* b, bool follow_link) ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileNodeID(UTF8ToWCS(a).c_str())
-		== QueryFileNodeID(UTF8ToWCS(b).c_str()))
+	YCL_Impl_RetTryCatchAll(QueryFileNodeID(UTF8ToWCS(a).c_str(), follow_link)
+		== QueryFileNodeID(UTF8ToWCS(b).c_str(), follow_link))
 	return {};
 #else
 	struct ::stat st;
 
-	if(cstat(st, a) != 0)
+	if(estat(st, a, follow_link) != 0)
 		return {};
 
 	const auto id(get_file_node_id(st));
 
-	if(cstat(st, b) != 0)
+	if(estat(st, b, follow_link) != 0)
 		return {};
 
 	return IsNodeShared(id, get_file_node_id(st));
 #endif
 }
-//! \since build 657
+//! \since build 660
 bool
-IsNodeShared_Impl(const char16_t* a, const char16_t* b) ynothrow
+IsNodeShared_Impl(const char16_t* a, const char16_t* b, bool follow_link) ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(
-		QueryFileNodeID(wcast(a)) == QueryFileNodeID(wcast(b)))
+	YCL_Impl_RetTryCatchAll(QueryFileNodeID(wcast(a), follow_link)
+		== QueryFileNodeID(wcast(b), follow_link))
 	return {};
 #else
-	return IsNodeShared_Impl(MakeMBCS(a).c_str(), MakeMBCS(b).c_str());
+	return IsNodeShared_Impl(MakeMBCS(a).c_str(), MakeMBCS(b).c_str(), follow_link);
 #endif
 }
 
@@ -1066,24 +1070,24 @@ GetFileModificationAndAccessTimeOf(const char16_t* filename, bool follow_link)
 }
 
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char* path) ynothrow
+FetchNumberOfLinks(const char* path, bool follow_link) ynothrow
 {
 #if YCL_Win32
-	return QueryFileLinks(UTF8ToWCS(path).c_str());
+	return QueryFileLinks(UTF8ToWCS(path).c_str(), follow_link);
 #else
 	struct ::stat st;
 
-	cstat(st, path);
+	estat(st, path, follow_link);
 	return size_t(st.st_nlink > 0 ? st.st_nlink : 0);
 #endif
 }
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t* path) ynothrow
+FetchNumberOfLinks(const char16_t* path, bool follow_link) ynothrow
 {
 #if YCL_Win32
-	return QueryFileLinks(wcast(path));
+	return QueryFileLinks(wcast(path), follow_link);
 #else
-	return FetchNumberOfLinks(MakeMBCS(path).c_str());
+	return FetchNumberOfLinks(MakeMBCS(path).c_str(), follow_link);
 #endif
 }
 
@@ -1174,16 +1178,16 @@ HaveSameContents(UniqueFile p_a, UniqueFile p_b, const char* name_a,
 }
 
 bool
-IsNodeShared(const char* a, const char* b) ynothrowv
+IsNodeShared(const char* a, const char* b, bool follow_link) ynothrowv
 {
 	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
-		|| IsNodeShared_Impl(a, b);
+		|| IsNodeShared_Impl(a, b, follow_link);
 }
 bool
-IsNodeShared(const char16_t* a, const char16_t* b) ynothrowv
+IsNodeShared(const char16_t* a, const char16_t* b, bool follow_link) ynothrowv
 {
 	return a == b || ystdex::ntctscmp(Nonnull(a), Nonnull(b)) == 0
-		|| IsNodeShared_Impl(a, b);
+		|| IsNodeShared_Impl(a, b, follow_link);
 }
 bool
 IsNodeShared(FileDescriptor x, FileDescriptor y) ynothrow

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1333
+\version r1533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-12-10 20:49 +0800
+	2015-12-16 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,12 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Registry // for platform::FileOperationFailure,
-//	RegistryKey;
-#	include <cerrno>
+//	RegistryKey, ystdex::pun_storage_t, ystdex::throw_error,
+//	std::errc::not_supported, std::invalid_argument;
+#	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
+//	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
-//	YSLib::CheckPositiveScalar;
+//	YSLib::CheckPositiveScalar, YSLib::FilterExceptions;
 #	include <functional> // for std::bind, std::placeholders::_1;
 
 using namespace YSLib;
@@ -152,25 +154,6 @@ ConvertToErrno(ErrorCode err) ynothrow
 		ERROR_INFLOOP_IN_RELOC_CHAIN))
 		return ENOEXEC;
 	return EINVAL;
-}
-
-
-ImplDeDtor(Win32Exception)
-
-
-void
-GlobalDelete::operator()(pointer h) const ynothrow
-{
-	YCL_CallWin32F_Trace(GlobalFree, h);
-}
-
-
-GlobalLocked::GlobalLocked(::HGLOBAL h)
-	: p_locked(YCL_CallWin32F(GlobalLock, h))
-{}
-GlobalLocked::~GlobalLocked()
-{
-	YCL_CallWin32F_Trace(GlobalUnlock, p_locked);
 }
 
 
@@ -297,7 +280,116 @@ PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 		: FileAttributesAndFlags::NormalAll)
 //@}
 
+
+//! \since build 660
+struct REPARSE_DATA_BUFFER
+{
+	unsigned long ReparseTag;
+	unsigned short ReparseDataLength;
+	unsigned short Reserved;
+	union
+	{
+		struct
+		{
+			unsigned short SubstituteNameOffset;
+			unsigned short SubstituteNameLength;
+			unsigned short PrintNameOffset;
+			unsigned short PrintNameLength;
+			unsigned long Flags;
+			wchar_t PathBuffer[1];
+
+			DefGetter(const ynothrow, wstring_view, PrintName,
+				{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
+				size_t(PrintNameLength / sizeof(wchar_t))})
+		} SymbolicLinkReparseBuffer;
+		struct
+		{
+			unsigned short SubstituteNameOffset;
+			unsigned short SubstituteNameLength;
+			unsigned short PrintNameOffset;
+			unsigned short PrintNameLength;
+			wchar_t PathBuffer[1];
+
+			DefGetter(const ynothrow, wstring_view, PrintName,
+				{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
+				size_t(PrintNameLength / sizeof(wchar_t))})
+		} MountPointReparseBuffer;
+		struct
+		{
+			unsigned char DataBuffer[1];
+		} GenericReparseBuffer;
+	};
+};
+
+//! \since build 660
+yconstexpr const auto FSCTL_GET_REPARSE_POINT(0x000900A8UL);
+
 } // unnamed namespace;
+
+
+Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
+	: Exception(int(ec), GetErrorCategory(), msg, lv)
+{
+	YAssert(ec != 0, "No error should be thrown.");
+}
+Win32Exception::Win32Exception(ErrorCode ec, string_view msg, const char* fn,
+	RecordLevel lv)
+	: Win32Exception(ec, msg.to_string() + " @ " + Nonnull(fn), lv)
+{}
+ImplDeDtor(Win32Exception)
+
+const std::error_category&
+Win32Exception::GetErrorCategory()
+{
+	static const Win32ErrorCategory ecat{};
+
+	return ecat;
+}
+
+std::string
+Win32Exception::FormatMessage(ErrorCode ec) ynothrow
+{
+	try
+	{
+		wchar_t* buf{};
+
+		::FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER
+			| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM, {},
+			ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+			reinterpret_cast<wchar_t*>(&buf), 1, {});
+
+		auto res(WCSToMBCS(buf, unsigned(CP_UTF8)));
+
+		// FIXME: For some platforms, no ::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
+		::LocalFree(buf);
+		return res;
+	}
+	CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."))
+	return {};
+}
+
+
+ModuleProc*
+LoadProc(::HMODULE h_module, const char* proc)
+{
+	return YCL_CallWin32F(GetProcAddress, h_module, proc);
+}
+
+
+void
+GlobalDelete::operator()(pointer h) const ynothrow
+{
+	YCL_CallWin32F_Trace(GlobalFree, h);
+}
+
+
+GlobalLocked::GlobalLocked(::HGLOBAL h)
+	: p_locked(YCL_CallWin32F(GlobalLock, h))
+{}
+GlobalLocked::~GlobalLocked()
+{
+	YCL_CallWin32F_Trace(GlobalUnlock, p_locked);
+}
 
 
 NodeCategory
@@ -307,7 +399,7 @@ CategorizeNode(const ::WIN32_FIND_DATAW& d) ynothrow
 
 	if(IsDirectory(d))
 		res |= NodeCategory::Directory;
-	if(d.dwFileAttributes & FileAttributes::ReparsePoint)
+	if(d.dwFileAttributes & ReparsePoint)
 	{
 		switch(d.dwReserved0)
 		{
@@ -359,54 +451,6 @@ MakeFile(const wchar_t* path, FileAccessRights desired_access,
 
 	return UniqueHandle(h != INVALID_HANDLE_VALUE ? h
 		: UniqueHandle::pointer());
-}
-
-
-Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
-	: Exception(int(ec), GetErrorCategory(), msg, lv)
-{
-	YAssert(ec != 0, "No error should be thrown.");
-}
-Win32Exception::Win32Exception(ErrorCode ec, string_view msg, const char* fn,
-	RecordLevel lv)
-	: Win32Exception(ec, msg.to_string() + " @ " + Nonnull(fn), lv)
-{}
-
-const std::error_category&
-Win32Exception::GetErrorCategory()
-{
-	static const Win32ErrorCategory ecat{};
-
-	return ecat;
-}
-
-std::string
-Win32Exception::FormatMessage(ErrorCode ec) ynothrow
-{
-	try
-	{
-		wchar_t* buf{};
-
-		::FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER
-			| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM, {},
-			ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-			reinterpret_cast<wchar_t*>(&buf), 1, {});
-
-		auto res(WCSToMBCS(buf, unsigned(CP_UTF8)));
-
-		// FIXME: For some platforms, no ::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
-		::LocalFree(buf);
-		return res;
-	}
-	CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."))
-	return {};
-}
-
-
-ModuleProc*
-LoadProc(::HMODULE h_module, const char* proc)
-{
-	return YCL_CallWin32F(GetProcAddress, h_module, proc);
 }
 
 
@@ -471,12 +515,6 @@ WCSToMBCS(wstring_view sv, unsigned cp)
 }
 
 
-DirectoryFindData::DirectoryFindData(const char* name)
-	: DirectoryFindData(UTF8ToWCS(name))
-{}
-DirectoryFindData::DirectoryFindData(string_view name)
-	: DirectoryFindData(UTF8ToWCS(name))
-{}
 DirectoryFindData::DirectoryFindData(wstring_view name)
 	: dir_name(name), find_data()
 {
@@ -488,9 +526,9 @@ DirectoryFindData::DirectoryFindData(wstring_view name)
 	const auto attr(FileAttributes(::GetFileAttributesW(dir_name.c_str())));
 	yconstexpr const auto& msg("Opening directory failed.");
 
-	if(attr != FileAttributes::Invalid)
+	if(attr != Invalid)
 	{
-		if(attr & FileAttributes::Directory)
+		if(attr & Directory)
 			dir_name += L"\\*";
 		else
 			ystdex::throw_error<FileOperationFailure>(ENOTDIR, msg);
@@ -511,17 +549,17 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 	if(h_node && !d_name.empty())
 	{
 		auto res(CategorizeNode(find_data));
-		auto name(GetDirName());
+		FilterExceptions([&]{
+			wstring_view name(GetDirName());
 
-		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
-		name.pop_back();
-		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
-		// NOTE: Only existed and accessable files are considered.
-		// FIXME: Blocked. TOCTTOU access.
-		if(const auto h = MakeFile((name + d_name).c_str(),
-			FileSpecificAccessRights::ReadAttributes,
-			FileAttributesAndFlags::NormalWithDirectory))
-			res |= CategorizeNode(h.get());
+			name.remove_suffix(1);
+			// NOTE: Only existed and accessable files are considered.
+			// FIXME: Blocked. TOCTTOU access.
+			if(const auto h = MakeFile((wstring(name) + d_name).c_str(),
+				FileSpecificAccessRights::ReadAttributes,
+				FileAttributesAndFlags::NormalWithDirectory))
+				res |= CategorizeNode(h.get());
+		}, yfsig);
 		return res;
 	}
 	return NodeCategory::Empty;
@@ -538,10 +576,7 @@ DirectoryFindData::Read()
 {
 	if(!h_node)
 	{
-		// NOTE: See MSDN "FindFirstFile function" for details.
-		YAssert(!dir_name.empty(), "Invalid directory name found.");
-		YAssert(dir_name.back() != L'\\', "Invalid directory name found.");
-		if((h_node = ::FindFirstFileW(dir_name.c_str(), &find_data))
+		if((h_node = ::FindFirstFileW(GetDirName().c_str(), &find_data))
 			== INVALID_HANDLE_VALUE)
 			h_node = {};
 	}
@@ -566,6 +601,52 @@ DirectoryFindData::Rewind() ynothrow
 }
 
 
+wstring
+ResolveReparsePoint(const wchar_t* path)
+{
+	return wstring(MakeFileToDo([=](UniqueHandle::pointer h){
+		return FetchFileInfo([&](::BY_HANDLE_FILE_INFORMATION& info)
+			-> wstring_view{
+			if(info.dwFileAttributes & ReparsePoint)
+			{
+				ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE]>
+					target_buffer;
+				const auto rdb(reinterpret_cast<REPARSE_DATA_BUFFER*>(
+					&target_buffer));
+
+				YCL_CallWin32F(DeviceIoControl, h, FSCTL_GET_REPARSE_POINT, {},
+					0, &target_buffer, sizeof(target_buffer), {}, {});
+				switch(rdb->ReparseTag)
+				{
+				case IO_REPARSE_TAG_SYMLINK:
+					return rdb->SymbolicLinkReparseBuffer.GetPrintName();
+				case IO_REPARSE_TAG_MOUNT_POINT:
+					return rdb->MountPointReparseBuffer.GetPrintName();
+				default:
+					ystdex::throw_error(std::errc::not_supported);
+				}
+			}
+			throw std::invalid_argument(
+				"Specified file is not a reparse point.");
+		}, h);
+	}, path, FileAttributesAndFlags::NormalWithDirectory));
+}
+
+
+size_t
+QueryFileLinks(UniqueHandle::pointer h)
+{
+	return FetchFileInfo([](::BY_HANDLE_FILE_INFORMATION& info){
+		return size_t(info.nNumberOfLinks);
+	}, h);
+}
+size_t
+QueryFileLinks(const wchar_t* path, bool follow_reparse_point)
+{
+	return MakeFileToDo<size_t(UniqueHandle::pointer)>(QueryFileLinks, path,
+		FollowToAttr(follow_reparse_point));
+}
+
 pair<VolumeID, FileID>
 QueryFileNodeID(UniqueHandle::pointer h)
 {
@@ -576,25 +657,10 @@ QueryFileNodeID(UniqueHandle::pointer h)
 	}, h);
 }
 pair<VolumeID, FileID>
-QueryFileNodeID(const wchar_t* path)
+QueryFileNodeID(const wchar_t* path, bool follow_reparse_point)
 {
 	return MakeFileToDo<pair<VolumeID, FileID>(UniqueHandle::pointer)>(
-		QueryFileNodeID, path);
-}
-
-size_t
-QueryFileLinks(UniqueHandle::pointer h)
-{
-	return FetchFileInfo([](::BY_HANDLE_FILE_INFORMATION& info){
-	//	if(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-		//	ProcessReparsePoint(info);
-		return size_t(info.nNumberOfLinks);
-	}, h);
-}
-size_t
-QueryFileLinks(const wchar_t* path)
-{
-	return MakeFileToDo<size_t(UniqueHandle::pointer)>(QueryFileLinks, path);
+		QueryFileNodeID, path, FollowToAttr(follow_reparse_point));
 }
 
 void
@@ -602,13 +668,6 @@ QueryFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
 {
 	YCL_CallWin32F(GetFileTime, h, p_ctime, p_atime, p_mtime);
-}
-void
-QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
-	::FILETIME* p_mtime, bool follow_reparse_point)
-{
-	QueryFileTime(UTF8ToWCS(path).c_str(), p_ctime, p_atime, p_mtime,
-		follow_reparse_point);
 }
 void
 QueryFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
@@ -629,19 +688,12 @@ SetFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	YCL_CallWin32F(SetFileTime, h, p_ctime, p_atime, p_mtime);
 }
 void
-SetFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
-	::FILETIME* p_mtime, bool follow_reparse_point)
-{
-	SetFileTime(UTF8ToWCS(path).c_str(), p_ctime, p_atime, p_mtime,
-		follow_reparse_point);
-}
-void
 SetFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime, bool follow_reparse_point)
 {
 	MakeFileToDo(std::bind<void(UniqueHandle::pointer, ::FILETIME*, ::FILETIME*,
 		::FILETIME*)>(SetFileTime, std::placeholders::_1, p_ctime, p_atime,
-		p_mtime), path, AccessRights::GenericRead,
+		p_mtime), path, AccessRights::GenericWrite,
 		FollowToAttr(follow_reparse_point));
 }
 
@@ -663,7 +715,7 @@ ConvertTime(const ::FILETIME& file_time)
 			* 100U);
 	}
 	else
-		throw std::system_error(ENOSYS, std::generic_category());
+		ystdex::throw_error(std::errc::not_supported);
 }
 ::FILETIME
 ConvertTime(std::chrono::nanoseconds file_time)
@@ -676,7 +728,7 @@ ConvertTime(std::chrono::nanoseconds file_time)
 		res.dwLowDateTime = date.LowPart);
 	if(res.dwLowDateTime != 0 || res.dwHighDateTime != 0)
 		return res;
-	throw std::system_error(ENOSYS, std::generic_category());
+	ystdex::throw_error(std::errc::not_supported);
 }
 
 wstring

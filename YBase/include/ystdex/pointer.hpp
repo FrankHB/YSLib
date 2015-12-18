@@ -11,26 +11,28 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r318
+\version r324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2015-09-05 00:59 +0800
+	2015-12-17 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YStandardEx::Iterator
+	YStandardEx::Pointer
+
+间接扩展标准库头 <iterator> ，提供指针的迭代器适配器包装和其它模板。
 */
 
 
 #ifndef YB_INC_ystdex_pointer_hpp_
 #define YB_INC_ystdex_pointer_hpp_ 1
 
-#include "iterator_op.hpp" // for ../ydef.h, totally_ordered,
+#include "iterator_op.hpp" // for totally_ordered,
 //	iterator_operators_t, std::iterator_traits, yconstraint;
-#include "utility.hpp" // for is_nothrow_swappable;
+#include <functional> // for std::equal_to, std::less;
 
 namespace ystdex
 {
@@ -122,14 +124,14 @@ public:
 	friend yconstfn bool
 	operator==(const nptr& x, const nptr& y) ynothrow
 	{
-		return x.ptr == y.ptr;
+		return std::equal<pointer>()(x.ptr, y.ptr);
 	}
 
 	//! \since build 600
 	friend yconstfn bool
 	operator<(const nptr& x, const nptr& y) ynothrow
 	{
-		return x.ptr == y.ptr;
+		return std::less<pointer>()(x.ptr, y.ptr);
 	}
 
 	//! \since build 628

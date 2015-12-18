@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3389
+\version r3411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-10-02 19:22 +0800
+	2015-12-18 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -236,7 +236,7 @@ public:
 
 
 /*!
-\brief 字型标识。
+\brief 字型。
 \since build 145
 */
 class YF_API Typeface final : private noncopyable, private nonmovable
@@ -478,9 +478,12 @@ class YF_API FontCache final : private noncopyable,
 	friend class Font;
 
 public:
+	//! \brief 字型组类型。
 	using FaceSet = set<Typeface*, ystdex::deref_comp<const Typeface>>; \
-		//!< 字型组类型。
-	//! \brief 字型家族组索引类型。
+	/*!
+	\brief 字型家族组索引类型。
+	\invariant 被映射的值非空。
+	*/
 	using FamilyMap = unordered_map<FamilyName, unique_ptr<FontFamily>>;
 
 	/*!
@@ -488,16 +491,19 @@ public:
 	\note 单位为字节。
 	\since build 277
 	*/
-	static yconstexpr const size_t DefaultGlyphCacheSize = 128U << 10;
+	static yconstexpr const size_t DefaultGlyphCacheSize = yimpl(128U << 10);
 
 private:
-	::FT_Library library; //!< 库实例。
+	//! \brief 库实例。
+	::FT_Library library;
 
 protected:
-	FaceSet sFaces; //!< 字型组。
-	FamilyMap mFamilies; //!< 字型家族组索引。
-
-	Typeface* pDefaultFace; //!< 默认字型指针。
+	//! \brief 字型组。
+	FaceSet sFaces;
+	//! \brief 字型家族组索引。
+	FamilyMap mFamilies;
+	//! \brief 默认字型指针。
+	Typeface* pDefaultFace;
 
 public:
 	/*!
@@ -586,7 +592,14 @@ public:
 	size_t
 	LoadTypefaces(const FontPath&);
 
-public:
+	/*!
+	\brief 在索引中查找字型家族。
+	\note 若索引中不存在，先初始化。
+	\since build 660
+	*/
+	FontFamily&
+	LookupFamily(const FamilyName&);
+
 	/*!
 	\brief 初始化默认字型。
 	*/

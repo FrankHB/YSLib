@@ -11,24 +11,28 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r504
+\version r609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2015-12-01 15:39 +0800
+	2015-12-17 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Functor
+
+扩展标准库头 <functional> ，提供若干函数对象。
 */
 
 
 #ifndef YB_INC_ystdex_functor_hpp_
 #define YB_INC_ystdex_functor_hpp_ 1
 
-#include "ref.hpp" // for std::addressof, enable_if_t, wrapped_traits;
+#include "ref.hpp" // for ystdex::constfn_addressof, enable_if_t,
+//	wrapped_traits, std::greater, std::less, std::greater_equal,
+//	std::less_equal;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
 
@@ -54,17 +58,31 @@ namespace ystdex
 //@{
 /*!
 \brief std::addressof 仿函数。
-\since build 537
+\since build 660
 */
-template<typename _type>
+//@{
+template<typename _type = void>
 struct addressof_op
 {
-	_type*
+	yconstfn _type*
 	operator()(_type& x) const ynothrow
 	{
-		return std::addressof(x);
+		return ystdex::constfn_addressof(x);
 	}
 };
+
+template<>
+struct addressof_op<void>
+{
+	template<typename _type>
+	yconstfn _type*
+	operator()(_type& x) const ynothrow
+	{
+		return ystdex::constfn_addressof(x);
+	}
+};
+//@}
+
 
 /*!
 \brief 成员 get 操作。
@@ -146,14 +164,7 @@ struct ref_eq
 	}
 };
 
-/*!
-\note 同 ISO WG21/N4296 对应标准库仿函数。
-\since build 578
-*/
-//@{
-//! \since build 656
-//@{
-#define YB_Impl_Functional_Ops_Primary(_n, _op, _tRet, _using_stmt, _expr, ...) \
+#define YB_Impl_Functional_Ops_Primary(_n, _tRet, _using_stmt, _expr, ...) \
 	template<typename _type = void> \
 	struct _n \
 	{ \
@@ -168,44 +179,60 @@ struct ref_eq
 		} \
 	};
 
-#define YB_Impl_Functional_Ops_Spec(_n, _op, _tparams, _params, _expr) \
+#define YB_Impl_Functional_Ops_Spec(_n, _tparams, _params, _expr) \
 	template<> \
 	struct _n<void> \
 	{ \
 		using is_transparent = yimpl(void); \
 		\
 		template<_tparams> \
-		auto operator()(_params) const \
-			-> decltype(_expr) \
+		auto operator()(_params) const -> decltype(_expr) \
 		{ \
 			return _expr; \
+		} \
+	};
+
+#define YB_Impl_Functional_Ops_Spec_Ptr(_n) \
+	template<typename _type> \
+	struct _n<_type*> \
+	{ \
+		using first_argument_type = _type*; \
+		using second_argument_type = _type*; \
+		using result_type = bool; \
+		\
+		yconstfn bool \
+		operator()(_type* x, _type* y) const \
+		{ \
+			return std::_n<_type*>()(x, y); \
 		} \
 	};
 
 #define YB_Impl_Functional_Ops_using(_tRet) using second_argument_type = _tRet;
 
 #define YB_Impl_Functional_Ops1(_n, _op, _tRet) \
-	YB_Impl_Functional_Ops_Primary(_n, _op, _tRet, , _op x, const _type& x) \
+	YB_Impl_Functional_Ops_Primary(_n, _tRet, , _op x, const _type& x) \
 	\
-	YB_Impl_Functional_Ops_Spec(_n, _op, typename _type, _type&& x, _op yforward(x))
-//@}
+	YB_Impl_Functional_Ops_Spec(_n, typename _type, _type&& x, _op yforward(x))
 
 #define YB_Impl_Functional_Ops2(_n, _op, _tRet) \
-	YB_Impl_Functional_Ops_Primary(_n, _op, _tRet, \
+	YB_Impl_Functional_Ops_Primary(_n, _tRet, \
 		YB_Impl_Functional_Ops_using(_tRet), x _op y, const _type& x, \
 		const _type& y) \
 	\
-	YB_Impl_Functional_Ops_Spec(_n, _op, typename _type1 YPP_Comma typename \
+	YB_Impl_Functional_Ops_Spec(_n, typename _type1 YPP_Comma typename \
 		_type2, _type1&& x YPP_Comma _type2&& y, yforward(x) _op yforward(y))
 
-//! \since build 656
 #define YB_Impl_Functional_Binary(_n, _op) \
 	YB_Impl_Functional_Ops2(_n, _op, _type)
 
-//! \since build 656
 #define YB_Impl_Functional_Unary(_n, _op) \
 	YB_Impl_Functional_Ops1(_n, _op, _type)
 
+/*!
+\note 同 ISO WG21/N4296 对应标准库仿函数。
+\since build 578
+*/
+//@{
 //! \brief 加法仿函数。
 YB_Impl_Functional_Binary(plus, +)
 
@@ -230,6 +257,11 @@ YB_Impl_Functional_Unary(negate, -)
 #define YB_Impl_Functional_bool(_n, _op) \
 	YB_Impl_Functional_Ops2(_n, _op, bool)
 
+#define YB_Impl_Functional_bool_Ordered(_n, _op) \
+	YB_Impl_Functional_bool(_n, _op) \
+	\
+	YB_Impl_Functional_Ops_Spec_Ptr(_n)
+
 //! \brief 等于关系仿函数。
 YB_Impl_Functional_bool(equal_to, ==)
 
@@ -237,16 +269,16 @@ YB_Impl_Functional_bool(equal_to, ==)
 YB_Impl_Functional_bool(not_equal_to, !=)
 
 //! \brief 大于关系仿函数。
-YB_Impl_Functional_bool(greater, >)
+YB_Impl_Functional_bool_Ordered(greater, >)
 
 //! \brief 小于关系仿函数。
-YB_Impl_Functional_bool(less, <)
+YB_Impl_Functional_bool_Ordered(less, <)
 
 //! \brief 大于等于关系仿函数。
-YB_Impl_Functional_bool(greater_equal, >=)
+YB_Impl_Functional_bool_Ordered(greater_equal, >=)
 
 //! \brief 小于等于关系仿函数。
-YB_Impl_Functional_bool(less_equal, <=)
+YB_Impl_Functional_bool_Ordered(less_equal, <=)
 
 //! \since build 656
 //@{
@@ -271,7 +303,9 @@ YB_Impl_Functional_Binary(bit_xor, ^)
 //! \brief 位取反仿函数。
 YB_Impl_Functional_Unary(bit_not, ~)
 //@}
+//@}
 
+#undef YB_Impl_Functional_bool_Ordered
 #undef YB_Impl_Functional_bool
 #undef YB_Impl_Functional_Unary
 #undef YB_Impl_Functional_Binary
@@ -280,7 +314,6 @@ YB_Impl_Functional_Unary(bit_not, ~)
 #undef YB_Impl_Functional_Ops_using
 #undef YB_Impl_Functional_Ops_Spec
 #undef YB_Impl_Functional_Ops_Primary
-//@}
 
 
 //! \brief 选择自增/自减运算仿函数。
@@ -352,39 +385,8 @@ delta_assign(_tScalar1& _x, _tScalar2& _y)
 }
 
 
-//! \brief 引用仿函数。
-template<typename _type>
-struct deref_op
-{
-	/*!
-	\brief 对指定对象使用 operator& 并返回结果。
-	*/
-	yconstfn _type*
-	operator()(_type& _x) const
-	{
-		return &_x;
-	}
-};
-
-
-//! \brief const 引用仿函数。
-template<typename _type>
-struct const_deref_op
-{
-	/*!
-	\brief 对指定 const 对象使用 operator& 并返回结果。
-	*/
-	inline const _type*
-	operator()(const _type& _x) const
-	{
-		return &_x;
-	}
-};
-
-
 /*!
 \brief 间接访问比较仿函数。
-\warning 非虚析构。
 \since build 315
 */
 template<typename _type, typename _tPointer = _type*,
@@ -399,29 +401,6 @@ struct deref_comp
 	operator()(const _tPointer& _x, const _tPointer& _y) const
 	{
 		return bool(_x) && bool(_y) && _fCompare()(*_x, *_y);
-	}
-};
-
-
-/*!
-\brief 间接访问字符串比较仿函数。
-\warning 非虚析构。
-\since build 315
-*/
-template<typename _tChar, class _fCompare = std::less<_tChar>>
-struct deref_str_comp
-{
-	/*!
-	\brief 比较指定字符串首字符的指针。
-	\return 若参数有空指针则 false ，否则判断指定字符串是否满足字典序严格偏序关系。
-	*/
-	bool
-	operator()(const _tChar* x, const _tChar* y) const
-	{
-		using traits_type = std::char_traits<_tChar>;
-
-		return x && y && std::lexicographical_compare(x, x + traits_type
-			::length(x), y, y + traits_type::length(y), _fCompare());
 	}
 };
 //@}

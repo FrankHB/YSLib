@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1814
+\version r1828
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-12-10 20:40 +0800
+	2015-12-14 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,8 +283,8 @@ public:
 
 	/*!
 	\brief 设置访问时间。
-	\throw std::system_error 系统错误。
 	\throw FileOperationFailure 设置失败。
+	\throw std::system_error 本机 API 调用失败。
 	\note DS 平台：不支持操作。
 	\since build 651
 	*/
@@ -310,9 +310,10 @@ public:
 	SetMode(mode_t) const ynothrow;
 	//@}
 	/*!
-	\throw std::system_error 系统错误。
 	\throw FileOperationFailure 设置失败。
+	\throw std::system_error 本机 API 调用失败。
 	\note DS 平台：不支持操作。
+	\note Win32 平台：要求打开的文件具有写权限。
 	\since build 651
 	*/
 	//@{
@@ -1220,12 +1221,13 @@ GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 /*!
 \brief 取路径指定的文件链接数。
 \return 若成功为连接数，否则为 0 。
-\since build 639
+\note 最后参数表示跟踪连接。
+\since build 660
 */
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char*) ynothrow;
+FetchNumberOfLinks(const char*, bool = true) ynothrow;
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t*) ynothrow;
+FetchNumberOfLinks(const char16_t*, bool = true) ynothrow;
 
 
 /*!
@@ -1277,14 +1279,15 @@ yconstfn YB_PURE PDefH(bool, IsNodeShared, const FileNodeID& x,
 	const FileNodeID& y) ynothrow
 	ImplRet(x != FileNodeID() && x == y)
 /*!
-\pre 间接断言：参数非空。
-\since build 657
+\pre 间接断言：字符串参数非空。
+\note 最后参数表示跟踪连接。
+\since build 660
 */
 //@{
 YF_API YB_NONNULL(1, 2) bool
-IsNodeShared(const char*, const char*) ynothrowv;
+IsNodeShared(const char*, const char*, bool = true) ynothrowv;
 YF_API YB_NONNULL(1, 2) bool
-IsNodeShared(const char16_t*, const char16_t*) ynothrowv;
+IsNodeShared(const char16_t*, const char16_t*, bool = true) ynothrowv;
 //@}
 /*!
 \note 取节点失败视为不共享。

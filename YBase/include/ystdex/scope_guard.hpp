@@ -11,25 +11,27 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r366
+\version r369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2015-11-06 13:04 +0800
+	2015-12-17 10:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::ScopeGuard
+
+提供作用域守护的便利接口。
 */
 
 
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "type_traits.hpp" // for is_constructible, is_reference, std::swap,
-//	is_nothrow_copyable;
+#include "utility.hpp" // for is_constructible, is_reference,
+//	is_nothrow_swappable, std::swap, std::declval, is_nothrow_copyable;
 #include <memory> // for std::addressof;
 
 namespace ystdex

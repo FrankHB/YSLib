@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2853
+\version r2872
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-12-11 22:35 +0800
+	2015-12-16 13:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,15 +126,18 @@ enum class NodeCategory : std::uint_least32_t;
 
 
 /*!
-\pre 路径非空。
+\pre 间接断言：路径指针非空。
+\exception Win32Exception Win32 平台：本机 API 调用失败。
 \exception std::system_error 系统错误。
-\note 参数为目标路径和源路径。
+	\li std::errc::function_not_supported 操作不被文件系统支持。
 \note DS 平台：当前实现不支持替换文件系统，因此始终不支持操作。
 */
 //@{
+//! \note 前两个参数为目标路径和源路径。
+//@{
 /*!
 \brief 创建硬链接。
-\note 源路径指定符号链接时，行为未指定。
+\note 源路径指定符号链接时，跟随符号链接目标。
 \since build 633
 */
 //@{
@@ -156,6 +159,20 @@ YF_API YB_NONNULL(1, 2) void
 CreateSymbolicLink(const char*, const char*, bool = {});
 YF_API YB_NONNULL(1, 2) void
 CreateSymbolicLink(const char16_t*, const char16_t*, bool = {});
+//@}
+//@}
+
+/*!
+\brief 读取链接指向的路径。
+\throw std::runtime_error POSIX 平台：读取连接得到的长度有误。
+\bug 不保证支持不完全符合 POSIX 的文件系统（如 Linux 的 /proc ）。
+\since build 660
+*/
+//@{
+YF_API YB_NONNULL(1) string
+ReadLink(const char*);
+YF_API YB_NONNULL(1) u16string
+ReadLink(const char16_t*);
 //@}
 //@}
 

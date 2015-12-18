@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1219
+\version r1222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2015-11-05 01:37 +0800
+	2015-12-17 13:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_cast_hpp_
 #define YB_INC_ystdex_cast_hpp_ 1
 
-#include "type_traits.hpp" // for is_object, is_void, is_function, decay_t,
-//	is_same, _t;
+#include "type_op.hpp" // for is_object, is_void, is_function, decay_t,
+//	is_same, have_common_nonempty_virtual_base, _t;
 #include <memory> // for std::addressof;
 #include <typeinfo> // for std::bad_cast;
 #include "cassert.h" // for yassume;
@@ -316,7 +316,7 @@ struct general_cast_helper<_tFrom, _tTo, false>
 	cast(_tFrom v)
 	{
 		return general_polymorphic_cast_helper<_tFrom, _tTo, and_<is_base_of<
-			_tFrom, _tTo>, not_<has_common_nonempty_virtual_base<
+			_tFrom, _tTo>, not_<have_common_nonempty_virtual_base<
 			_t<remove_rp<_tFrom>>, _t<remove_rp<_tTo>>>>>::value>::cast(v);
 	}
 };

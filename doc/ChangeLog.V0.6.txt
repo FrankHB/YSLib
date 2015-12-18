@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r7105
+\version r7326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-12-13 15:19 +0800
+	2015-12-18 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,226 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				* "assertion string" @ "function \
+					%platform::FAT::LFN::WriteNumericTail" $since b658,
+				/ "functions %(CreateHardLink, CreateSymbolicLink)" $=
+				(
+					^ "assertion to ensure nonnull parameters" $effective
+						@ "platform %DS",
+					/ "thrown error code" ^ "%std::errc::function_not_supported"
+						~ "%std::errc::not_supported"
+				),
+				+ "function %ReadLink" $=
+				(
+					/ "threw %std::system_error with \
+						%std::errc::function_not_supported" @ "platform %DS",
+					/ DLDI ^ $dep_from ("%platform_ex::ResolveReparsePoint"
+						@ %'YCLib_(Win32)'.MinGW32) @ "platform %Win32",
+					/ DLDI ^ "%::(lstat, readlink)" @ !"platforms %(DS, Win32)"
+				),
+				/ $forced DLDI @ "platform %Win32" @ "member function \
+					%HDirectory::GetNodeCategory" $dep_from
+					("%DirectoryFindData" @ %'YCLib_(Win32)'.MinGW32),
+				* "exceptions might be thrown" @ "'ynothrow' member function \
+					%HDirectory::GetNodeCategory" @ %FileSystem $since b543 $=
+				(
+					/ $comp $impl @ "platform %Win32" $dep_from
+						("%DirectoryFindData::GetNodeCategory"
+						@ %'YCLib_(Win32)'.MinGW32),
+					/ $impl "caught all exceptions" @ !"platform %Win32"
+						^ 'CatchIgnore(...)'
+						// Not quite the same to %Win32 since there is no \
+							logging.
+				),
+				/ "specified following symbolic link for source"
+					@ "function %CreateHardLink"
+					$= (/ $impl ^ "%::linkat" @ !"platform %(DS, Win32)"
+						$dep_from %NativeAPI)
+			),
+			+ "parameter 'bool = true' to allow specifying following link \
+				behavior" @ "functions %(FetchNumberOfLinks, IsNodeShared)"
+				@ %FileIO $=
+			(
+			
+				/ $forced @ "platform %Win32" @ "%FetchNumberOfLinks" $dep_from
+					("platform_ex::QueryFileLinks" @ %'YCLib_(Win32)'.MinGW32),
+				/ $forced @ "platform %Win32" @ "%IsNodeShared" $dep_from
+					("platform_ex::QueryFileNodeID" @ %'YCLib_(Win32)'.MinGW32),
+				/ DLDI "simplified" @ !"platform %Win32"
+			),
+			/ $forced DLDI "functions %('FileDescriptor::Get*Time', \
+				'GetFile*TimeOf')" $dep_from
+				("%QueryFileTime" @ %'YCLib_(Win32)'.MinGW32),
+			+ "function ::linkat" @ "platform %Android" @ %NativeAPI
+		),
+		/ @ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			* "always failed" @ "functions %SetFileTime with path parameter"
+				$since b651
+				$= (/ $impl ^ "%AccessRights::GenericWrite"
+					~ "%AccessRights::GenericRead"),
+			/ @ "functions %MakeFile" $=
+			(
+				* "ambiguity call between %MakeFile#1 and %MakeFile#2 with 4 \
+					arguments" $since b632
+					$= (- "default argument" @ "%MakeFile#2"),
+				/ "4th parameter ignored and always treated as \
+					%FileAttributesAndFlags::NormalAll" @ "%MakeFile#4" $since
+					b632,
+				+ "4 inline overloaded funtions"
+			),
+			+ "2nd parameter 'bool = {}' to allow specifying following reparse \
+				point behavior" @ "functions \
+				%(QueryFileLinks, QueryFileNodeID) with path parameter",
+			* DD "wrong directive '\breif' used" ~ '\brief' @ "Doxygen comments"
+				@ "function %GetErrnoFromWin32" $since b622,
+			/ @ "all 2 functions %ConvertTime" $=
+			(
+				/ DLDI "simplified" ^ "%ystdex:throw_error"
+					~ "throw-expression";
+				/ "thrown error code" ^ "%std::errc::not_supported" ~ "%ENOSYS"
+			),
+			+ "function %ResolveReparsePoint",
+			- "UTF-8 string dependency on non-conversion routines which has \
+				wide string replacement" $=
+			(
+				// User code should call corresponding wide string versions \
+					and 'UTF8ToWCS' on arguments, if needed.
+				- "constructor %DirectoryFindData with ('const char*', \
+					'string_view') respectively",
+				- "functions %(QueryFileTime, SetFileTime) with 'const char*' \
+					parameter"
+			),
+			/ @ "class %DirectoryFindData" $=
+			(
+				(
+				/ $doc "explicitly guaranteed directory name invariant";
+				+ "assertion to ensure directory name invariant"
+					@ "function %GetDirName";
+				/ $impl "simplified assertions"
+					@ "functions %(GetNodeCategory, Read)" ^ "%GetDirName"
+				),
+				/ DLDI "simplified function %GetNodeCategory" ^ 'string_view'
+					~ "%wstring deduced from 'auto'",
+					// Possibly a bit more efficient of cleanup of trailing \
+						backslash.
+				* "exceptions might be thrown" @ "'ynothrow' member function \
+					%DirectoryFindData::GetNodeCategory" $since b658 $orig
+					(@ "member function %HDirectory::GetNodeCategory"
+					@ %FileSystem $since b543)
+					$= (/ $impl "caught all exceptions" ^ "%FilterExceptions")
+			)
+		),
+		/ %YSLib.Adaptor.Font $=
+		(
+			/ @ "class %FontCache" $=
+			(
+				/ DLDI "simplified function %GetTypefacePtr" !^ "%YB_UNLIKELY",
+				+ "function %LookupFamily",
+				+ $doc "explicitly invariant to ensure nonnull mapped family \
+					pointer" @ "alias %FontCache::FamilyMap" $dep_from
+					"constructor %Typeface"
+			),
+			/ DLDI "simplified constructor %Typeface" ^ $dep_from
+				"%FontCache::LookupFamily"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Functor $=
+		(
+			/ @ "standard functors" $=
+			(
+				/ DLDI "simplified macro replacement",
+				* "total order not kept on %(greater, less, greater_equal, \
+					less_equal) for pointers" $since b588 $orig
+					(@ %Fuctional $since b578)
+					$= (+ DLDI "specializations for pointer types"
+						^ "%std::(greater, less, greater_equal, less_equal)")
+			),
+			- "functors %(deref_op, const_deref_op)",
+				// Function template %ystdex::constfn_addressof should be used \
+					instead in general. Overloaded %operator& should be rare.
+			- "functor %deref_str_comp",
+				// Newly added function template %ystdex::ntctscmp should be \
+					used instead in general. Custom order is rare and confusing.
+			/ "functor %addressof_op" $=
+			(
+				+ "default template argument 'void'",
+				+ "specialization for 'void' with member function template \
+					%operator()",
+				/ "member %operator()" $=
+				(
+					/ $impl ^ $dep_from
+						("%ystdex::constfn_addressof" @ %AddressOf);
+					+ 'yconstfn'
+				)
+			)
+		),
+		* "missing including %Utilities for %is_nothrow_swappable" @ %ScopeGuard
+			$since b588,
+		/ "supported deterministic comparison" @ "class template %nptr"
+			@ %Pointer $=
+		(
+			/ "friend function %operator(==, <)"
+				^ "%std::(equal_to, less) respectively" ~ ('==', '<');
+				// Now '<' guarantees it is totally-ordered. See ISO C++ \
+					[comparisons].
+			* $comp "wrong result" @ "friend function %operator<" $since b600
+		),
+		/ %CString $=
+		(
+			+ "function template %ntctscmp with 2 length parameters"
+				^ "%std::lexicographical_compare",
+			/ $doc "group %NTCTSUtil" $=
+			(
+				+ '\ingroup nonmodifying_algorithms',
+				+ '\ingroup string_algorithms',
+				+ "details"
+			)
+		),
+		(
+		+ %AddressOf;
+		/ ("metafunction %has_overloaded_addressof" @ %TypeOperation,
+			"function templates %constfn_addressof" @ %Memory) >> %AddressOf;
+		* "invalid 'constfn'" @ "constructor %lref" @ %Ref $since b588 $orig
+			(@ %Functional $since b554) ^ "%ystdex::constfn_addressof"
+			~ "%std::addressof",
+		/ DLDI "function template %constructor" ^ "%ystdex::constfn_addressof"
+			~ "%std::addressof"
+		),
+		/ %TypeOperation $=
+		(
+			- DLDI "redundant diagnostic pragma",
+			/ DLDI "simplified details traits",
+			/ "metafunction %has_common_nonempty_virtual_base"
+				-> "%have_common_nonempty_virtual_base"
+				// Now only differenct types can be considered to have common \
+					virtual bases.
+		),
+		/ %Cast $=
+		(
+			* "missing including %TypeOperation for traits" $since b650,
+			/ $forced DLDI "%general_cast" ^ $dep_from
+				("%have_common_nonempty_virtual_base" @ %TypeOperation)
+		)
+	),
+	/ %Test.YBase.Main $=
+	(
+		+ "6 test cases for %ystdex::has_nonempty_virtual_base",
+		+ "5 test cases for %ystdex::have_common_nonempty_virtual_base"
+			$dep_from %YBase.YStandardEx.TypeOperation
+	)
+),
+
+b659
 (
 	/ %YFramework $=
 	(
@@ -2171,9 +2391,9 @@ b644
 		$effective "%noncopyable" @ ("class %thread_pool" @ %Concurrency,
 		"class %block_buffer" @ %CStandardIO, "class template %guard"
 		@ %ScopeGuard) @ %YBase
-		// Since the classes have already met the requirement. Also too much \
-			base class is not friendly to EBO, if these types are used for \
-			class members.
+		// Since the classes have already met the requirement. Also using \
+			too many base classes is not friendly to EBO, if these types are \
+			used for class members.
 ),
 
 b643
