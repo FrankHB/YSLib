@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1233
+\version r1235
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-11-27 20:01 +0800
+	2015-12-15 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 包含可调用对象的调用时，此例程线程安全，仅当包含的所有调用线程安全。
 
 @1.4.1.5 全局初始化：
-除另行约定，仅保证可重入的调用可用于全局初始化。
+除非另行约定，仅保证可重入的调用可用于全局初始化。
 
 @1.4.2 资源分类：
 基本内容参见 [Documentation::CommonRules @@2.3.2.2] 。
@@ -616,7 +616,7 @@ FetchDefaultFontCache ：取默认字体缓存。
 使用 [Documentation::YBase @@3.2] 的别名策略规则，除 ystdex 相关命名空间替换为 YSLib 。
 
 @3.2 异常使用规则：
-使用 [Documentation::YBase @@3.3] 的异常使用规则。
+使用 [Documentation::YBase @@3.3] 的异常使用规则，但抛出异常明确性([Documentation::YBase @@3.3.2]) 除外。
 作为例外，接口和实现非平台中立的部分(@2.1.3) 可以使用 catch(...) 捕获所有异常。
 
 @3.3 文本操作：

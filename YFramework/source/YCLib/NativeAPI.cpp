@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r948
+\version r960
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2015-11-12 23:59 +0800
+	2015-12-16 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,6 +140,18 @@ _gmtime32(const ::__time32_t* p)
 
 } // extern "C";
 #elif YCL_Android
+// NOTE: For versions where syscalls available, see http://man7.org/linux/man-pages/man2/syscalls.2.html.
+// NOTE: Linux kernel version since 2.6.23 should be all OK. For early kernel
+//	versions Android used, see http://elinux.org/Android_Kernel_Versions.
+//	Also https://en.wikipedia.org/wiki/Android_version_history.
+int
+linkat(int fd1, const char* path1, int fd2, const char* path2, int flag)
+	ynothrow
+{
+	// NOTE: The 'linkat' syscall was introduced in Linux 2.6.16.
+	return ::syscall(__NR_linkat, fd1, path1, fd2, path2, flag);
+}
+
 int
 futimens(int fd, const ::timespec times[2]) ynothrow
 {
@@ -151,6 +163,7 @@ int
 utimensat(int fd, const char* path, const ::timespec times[2], int flags)
 	ynothrow
 {
+	// NOTE: The 'utimesat' syscall was introduced in Linux 2.6.22.
 	// NOTE: See http://stackoverflow.com/questions/19374749/how-to-work-around-absence-of-futimes-in-android-ndk.
 	return ::syscall(__NR_utimensat, fd, path, times, flags);
 }

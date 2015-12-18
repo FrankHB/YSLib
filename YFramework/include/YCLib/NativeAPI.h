@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1112
+\version r1118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-11-18 10:30 +0800
+	2015-12-16 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,6 +285,13 @@ yconstfn PDefH(bool, HasExtraMode, Mode m)
 */
 extern "C"
 {
+
+/*!
+\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/link.html 。
+\since build 660
+*/
+int
+linkat(int, const char*, int, const char*, int) ynothrow;
 
 #	ifndef UTIME_NOW
 #		define UTIME_NOW ((1L << 30) - 1L)

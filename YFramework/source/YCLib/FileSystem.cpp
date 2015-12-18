@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3458
+\version r3557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-12-11 22:34 +0800
+	2015-12-16 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,9 @@
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
 //	CHRLib::MakeUCS2LE;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::MakeFile;
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
+//	platform_ex::WCSToUTF8, platform_ex::ResolveReparsePoint,
+//	platform_ex::DirectoryFindData;
 #	include <time.h> // for ::localtime_s;
 
 //! \since build 651
@@ -66,6 +68,10 @@ inline PDefH(void, W32_CreateSymbolicLink, const char16_t* dst,
 
 } // unnamed namespace;
 
+//! \since build 660
+using platform_ex::UTF8ToWCS;
+//! \since build 660
+using platform_ex::WCSToUTF8;
 //! \since build 549
 using platform_ex::DirectoryFindData;
 #elif YCL_API_POSIXFileSystem
@@ -79,19 +85,46 @@ using namespace CHRLib;
 namespace platform
 {
 
+namespace
+{
+
+#if YCL_Win32
+//! \since build 660
+inline PDefH(u16string, WToU16, const wstring& wstr)
+	ImplRet({ucast(wstr.c_str()), wstr.length()})
+#endif
+
+//! \since build 607
+yconstfn bool
+is_time_no_leap_valid(const std::tm& t)
+{
+	return !(t.tm_hour < 0 || 23 < t.tm_hour || t.tm_hour < 0 || 59 < t.tm_min
+		|| t.tm_sec < 0 || 59 < t.tm_min);
+}
+
+//! \since build 607
+yconstfn bool
+is_date_range_valid(const std::tm& t)
+{
+	return !(t.tm_mon < 0 || 12 < t.tm_mon || t.tm_mday < 1 || 31 < t.tm_mday);
+}
+
+} // unnamed namespace;
+
 void
 CreateHardLink(const char* dst, const char* src)
 {
 #if YCL_DS
-	yunused(dst), yunused(src);
+	Nonnull(dst), Nonnull(src);
 	ystdex::throw_error(std::errc::not_supported);
 #elif YCL_Win32
-	using namespace platform_ex;
-
 	CreateHardLink(ucast(UTF8ToWCS(dst).c_str()),
 		ucast(UTF8ToWCS(src).c_str()));
 #else
-	if(::link(Nonnull(src), Nonnull(dst)) != 0)
+	// NOTE: POSIX %::link is implementation-defined to following symbolic
+	//	link target.
+	if(::linkat(AT_FDCWD, Nonnull(src), AT_FDCWD, Nonnull(dst),
+		AT_SYMLINK_FOLLOW) != 0)
 		ystdex::throw_error(errno);
 #endif
 }
@@ -99,8 +132,8 @@ void
 CreateHardLink(const char16_t* dst, const char16_t* src)
 {
 #if YCL_DS
-	yunused(dst), yunused(src);
-	ystdex::throw_error(std::errc::not_supported);
+	Nonnull(dst), Nonnull(src);
+	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
 	YCL_CallWin32F(CreateHardLinkW, wcast(dst), wcast(src), {});
 #else
@@ -141,10 +174,56 @@ CreateSymbolicLink(const char16_t* dst, const char16_t* src, bool is_dir)
 #endif
 }
 
+string
+ReadLink(const char* path)
+{
+#if YCL_DS
+	Nonnull(path);
+	ystdex::throw_error(std::errc::function_not_supported);
+#elif YCL_Win32
+	// TODO: Simplify?
+	return WCSToUTF8(wcast(ReadLink(ucast(UTF8ToWCS(path).c_str())).c_str()));
+#else
+	struct ::stat st;
+
+	if(::lstat(Nonnull(path), &st) == 0)
+	{
+		const auto n(st.st_size);
+
+		if(n > 0)
+		{
+			string res(size_t(n), char{});
+			const auto size(::readlink(path, &res[0], size_t(n)));
+
+			if(size >= 0)
+				return {res.c_str(), size_t(size)};
+		}
+		else if(n == 0)
+			return {};
+		else
+			throw std::runtime_error("Invalid length of link target found.");
+	}
+	ystdex::throw_error(errno);
+#endif
+}
+u16string
+ReadLink(const char16_t* path)
+{
+#if YCL_DS
+	Nonnull(path);
+	ystdex::throw_error(std::errc::function_not_supported);
+#elif YCL_Win32
+	// TODO: Simplify?
+	return WToU16(platform_ex::ResolveReparsePoint(wcast(path)));
+#else
+	return MakeUCS2LE(ReadLink(MakeMBCS(path).c_str()));
+#endif
+}
+
 
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
-	: dir(new DirectoryFindData(Nonnull(path)))
+	: dir(new DirectoryFindData(UTF8ToWCS(path)))
 #else
 	: sDirPath(Deref(path) != char() ? path : "."),
 	dir(::opendir(sDirPath.c_str()))
@@ -210,18 +289,23 @@ HDirectory::GetNodeCategory() const ynothrow
 			GetNativeHandle())).GetNodeCategory());
 #else
 		auto res(NodeCategory::Empty);
-		auto name(sDirPath + Deref(p_dirent).d_name);
-		struct ::stat st;
+		try
+		{
+			auto name(sDirPath + Deref(p_dirent).d_name);
+			struct ::stat st;
 
 #	if YCL_DS
-		if(::stat(name.c_str(), &st) == 0)
+			if(::stat(name.c_str(), &st) == 0)
 #	else
-		// TODO: Set error properly.
-		if(::lstat(name.c_str(), &st) == 0)
-			res |= CategorizeNode(st.st_mode);
-		if(bool(res & NodeCategory::Link) && ::stat(name.c_str(), &st) == 0)
+			// XXX: Value of %errno might be overwrite.
+			if(::lstat(name.c_str(), &st) == 0)
+				res |= CategorizeNode(st.st_mode);
+			if(bool(res & NodeCategory::Link) && ::stat(name.c_str(), &st) == 0)
 #	endif
-			res |= CategorizeNode(st.st_mode);
+				res |= CategorizeNode(st.st_mode);
+		}
+		// TODO: Log on failure.
+		CatchIgnore(...)
 #endif
 		return res != NodeCategory::Empty ? res : NodeCategory::Invalid;
 	}
@@ -233,7 +317,7 @@ HDirectory::operator string() const
 #if !YCL_Win32
 	return GetNativeName();
 #else
-	return platform_ex::WCSToUTF8(wcast(GetNativeName()));
+	return WCSToUTF8(wcast(GetNativeName()));
 #endif
 }
 HDirectory::operator u16string() const
@@ -332,7 +416,7 @@ string
 ConvertToMBCS(const char16_t* path)
 {
 	// TODO: Optimize?
-	ImplRet(ystdex::restrict_length(CHRLib::MakeMBCS({path,
+	ImplRet(ystdex::restrict_length(MakeMBCS({path,
 		std::min<size_t>(ystdex::ntctslen(path), MaxLength)}), MaxMBCSLength))
 }
 
@@ -369,7 +453,7 @@ WriteNumericTail(string& alias, size_t k) ynothrowv
 
 	while(k > 0)
 	{
-		YAssert(p != &alias[0], "Value is too much to store in the alias.");
+		YAssert(p != &alias[0], "Value is too large to store in the alias.");
 		*p-- = '0' + k % 10;
 		k /= 10;
 	}
@@ -377,25 +461,6 @@ WriteNumericTail(string& alias, size_t k) ynothrowv
 }
 
 } // namespace LFN;
-
-//! \since build 607
-namespace
-{
-
-yconstfn bool
-is_time_no_leap_valid(const std::tm& t)
-{
-	return !(t.tm_hour < 0 || 23 < t.tm_hour || t.tm_hour < 0 || 59 < t.tm_min
-		|| t.tm_sec < 0 || 59 < t.tm_min);
-}
-
-yconstfn bool
-is_date_range_valid(const std::tm& t)
-{
-	return !(t.tm_mon < 0 || 12 < t.tm_mon || t.tm_mday < 1 || 31 < t.tm_mday);
-}
-
-} // unnamed namespace;
 
 std::time_t
 ConvertFileTime(Timestamp d, Timestamp t) ynothrow

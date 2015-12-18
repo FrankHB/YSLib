@@ -11,26 +11,28 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r265
+\version r270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2015-11-06 11:18 +0800
+	2015-12-17 10:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Ref
+
+扩展标准库头 <functional> ，提供替代 std::reference_wrapper 的接口。
 */
 
 
 #ifndef YB_INC_ystdex_ref_hpp_
 #define YB_INC_ystdex_ref_hpp_ 1
 
-#include "type_traits.hpp" // for exclude_self_ctor_t, cond_t, not_, is_object;
+#include "addressof.hpp" // for ystdex::constfn_addressof, exclude_self_ctor_t,
+//	cond_t, not_, is_object;
 #include <functional> // for std::reference_wrapper;
-#include <memory> // for std::addressof;
 
 namespace ystdex
 {
@@ -59,7 +61,7 @@ private:
 public:
 	yconstfn
 	lref(_type& t) ynothrow
-		: ptr(std::addressof(t))
+		: ptr(ystdex::constfn_addressof(t))
 	{}
 	yconstfn
 	lref(std::reference_wrapper<_type> t) ynothrow

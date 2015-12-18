@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3524
+\version r3553
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-10-02 19:26 +0800
+	2015-12-18 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,7 +249,7 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 			// XXX: Moving instead of copying should be safe if the library
 			//	memory handlers are not customized.
 			// NOTE: Be cautious for DLLs. For documented default behavior, see:
-			//	http://www.freetype.org/freetype2/docs/design/design-4.html .
+			//	http://www.freetype.org/freetype2/docs/design/design-4.html.
 			return;
 		}
 #undef SBIT_CHECK_CHAR
@@ -290,15 +290,11 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, std::uint32_t i)
 		if(YB_UNLIKELY(error))
 			throw LoggedEvent(ystdex::sfmt("Face loading failed"
 				" with face request error: %08x\n.", error), Critical);
-
-		const FamilyName family_name(face->family_name);
-		auto& p_ff(cache.mFamilies[family_name]);
-
-		if(!p_ff)
-			p_ff.reset(new FontFamily(cache, family_name));
-		return pair<lref<FontFamily>, lref<::FT_FaceRec_>>(*p_ff.get(), *face);
+		return pair<lref<FontFamily>, lref<::FT_FaceRec_>>(
+			cache.LookupFamily(face->family_name), *face);
 	}()), bitmap_cache(2047U), glyph_index_cache()
 {
+	// FIXME: This should be exception, but not assertion for malformed fonts.
 	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(ref.second.get().num_charmaps),
 		"Invalid CMap index found.");
 	style_name = ref.second.get().style_name;
@@ -414,11 +410,9 @@ FontCache::FontCache(size_t /*cache_size*/)
 	if(YB_LIKELY((error = ::FT_Init_FreeType(&library)) == 0))
 		YTraceDe(Informative, "FreeType library instance initialized.");
 	else
-	{
-		// TODO: Format without allocating memory.
+		// TODO: More precise error message.
 		throw LoggedEvent(
 			ystdex::sfmt("Font init failed: %08x\n;", error).c_str(), Alert);
-	}
 }
 FontCache::~FontCache()
 {
@@ -437,7 +431,7 @@ FontCache::GetFontFamilyPtr(const FamilyName& family_name) const
 const Typeface*
 FontCache::GetDefaultTypefacePtr() const
 {
-	// NOTE: Guaranteed to be non-null for default typeface in default cache.
+	// NOTE: Guaranteed to be not null for default typeface in default cache.
 	return pDefaultFace ? pDefaultFace
 		: FetchDefaultFontCache().GetDefaultTypefacePtr();
 }
@@ -445,11 +439,9 @@ const Typeface*
 FontCache::GetTypefacePtr(const FamilyName& family_name,
 	const StyleName& style_name) const
 {
-	const FontFamily* f(GetFontFamilyPtr(family_name));
-
-	if(YB_UNLIKELY(!f))
-		return {};
-	return f->GetTypefacePtr(style_name);
+	if(const auto f = GetFontFamilyPtr(family_name))
+		return f->GetTypefacePtr(style_name);
+	return {};
 }
 
 void
@@ -490,6 +482,7 @@ FontCache::LoadTypefaces(const FontPath& path)
 	{
 		::FT_Face face(nullptr);
 
+		// TODO: Log.
 		if(::FT_New_Face(library, path.c_str(), -1, &face) != 0)
 			return 0;
 
@@ -508,6 +501,21 @@ FontCache::LoadTypefaces(const FontPath& path)
 		return size_t(face_num);
 	}
 	return 0;
+}
+
+FontFamily&
+FontCache::LookupFamily(const FamilyName& name)
+{
+	auto& p_ff(mFamilies[name]);
+
+	if(!p_ff)
+		TryExpr(p_ff.reset(new FontFamily(*this, name)))
+		catch(...)
+		{
+			mFamilies.erase(name);
+			throw;
+		}
+	return *p_ff;
 }
 
 void

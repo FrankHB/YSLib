@@ -11,17 +11,19 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2541
+\version r2560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-12-09 14:05 +0800
+	2015-12-17 10:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::CString
+
+扩展标准库头 <cstring> ，提供可在翻译时求值的 C 风格字符串操作等接口。
 */
 
 
@@ -35,7 +37,7 @@
 #include "cassert.h" // for yconstraint;
 #include "cctype.h" // for ystdex::tolower;
 #include <cwchar> // for std::wcscpy, std::wcsncpy;
-#include <algorithm> // for std::min;
+#include <algorithm> // for std::min, std::lexicographical_compare;
 
 namespace ystdex
 {
@@ -130,11 +132,16 @@ is_null(_tChar c) ynothrow
 
 
 /*!	\defgroup NTCTSUtil null-terminated character string utilities
+\ingroup nonmodifying_algorithms
+\ingroup string_algorithms
 \brief 简单 NTCTS 操作。
-\note NTCTS(null-terminated character string) 即空字符标记结束的字符串，
-\note 除了结束字符外没有空字符。
-\note 简单指不包括 NTMBS(null-terminated mutibyte string) ，按等宽字符考虑。
+\pre 指针指定的字符串或指针和长度指定的范围为 NTCTS 。
 \see ISO C++03 (17.1.12, 17.3.2.1.3.2) 。
+
+以指针或指针和长度指定的范围参数作为 NTCTS 对字符串序列进行非修改操作。
+NTCTS(null-terminated character string) 即空字符标记结束的字符串，
+除了结束字符外没有空字符。简单指不包括 NTMBS(null-terminated mutibyte string) ，
+按等宽字符考虑。
 */
 //@{
 //! \pre 断言： <tt>s1 && s2</tt> 。
@@ -186,6 +193,15 @@ ntctscmp(const _tChar* s1, const _tChar* s2, size_t n) ynothrowv
 	return yconstraint(s1), yconstraint(s2),
 		std::char_traits<_tChar>::compare(s1, s2, n);
 }
+//! \note 语义同 std::lexicographical_compare 。
+template<typename _tChar>
+YB_NONNULL(1, 2) YB_PURE int
+ntctscmp(const _tChar* s1, const _tChar* s2, size_t n1, size_t n2) ynothrowv
+{
+	return yconstraint(s1), yconstraint(s2),
+		std::lexicographical_compare(s1, s1 + n1, s2, s2 + n2);
+}
+
 //@}
 
 /*!

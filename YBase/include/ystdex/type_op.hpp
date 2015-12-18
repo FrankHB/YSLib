@@ -11,17 +11,20 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2582
+\version r2660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-11-06 14:42 +0800
+	2015-12-17 14:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::TypeOperation
+
+间接扩展标准库头 <type_traits> ，包括一些不适用于所有类型或组合的类型特征，
+以及其它元编程设施。
 */
 
 
@@ -37,30 +40,6 @@ namespace ystdex
 namespace details
 {
 
-#ifdef YB_IMPL_GNUCPP
-#	if YB_IMPL_GNUCPP >= 40600
-#		pragma GCC diagnostic push
-#		pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
-#	else
-#		pragma GCC system_header
-//临时处理：关闭所有警告。
-/*
-关闭编译警告：(C++ only) Ambiguous virtual bases. ，
-参见 http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html 。
-*/
-#	endif
-#endif
-
-
-//! \since build 649
-//@{
-template<typename _type>
-using addressof_mem_t = decltype(std::declval<const _type&>().operator&());
-
-template<typename _type>
-using addressof_free_t = decltype(operator&(std::declval<const _type&>()));
-//@}
-
 //! \since build 649
 template<typename _type, typename _type2>
 using subscription_t
@@ -70,12 +49,6 @@ using subscription_t
 template<typename _type, typename _type2>
 using equality_operator_t
 	= decltype(std::declval<_type>() == std::declval<_type2>());
-
-
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 40600
-//#	pragma GCC diagnostic warning "-Wctor-dtor-privacy"
-#	pragma GCC diagnostic pop
-#endif
 
 
 //! \ingroup binary_type_traits
@@ -89,32 +62,20 @@ struct has_nonempty_virtual_base
 
 private:
 	struct A : _type
-	{
-		//! \since build 461
-		~A()
-		{}
-	};
+	{};
+
 	struct B : _type
-	{
-		//! \since build 461
-		~B()
-		{}
-	};
+	{};
+
 	struct C : A, B
-	{
-		//! \since build 461
-		~C()
-		{}
-	};
+	{};
 
 public:
 	static yconstexpr const bool value = sizeof(C) < sizeof(A) + sizeof(B);
 };
 
 
-/*!
-\since build 306
-*/
+//! \since build 306
 template<class _type1, class _type2>
 struct have_common_nonempty_virtual_base
 {
@@ -123,11 +84,10 @@ struct have_common_nonempty_virtual_base
 
 private:
 	struct A : virtual _type1
-	{
-		//! \since build 461
-		~A()
-		{}
-	};
+	{};
+
+	struct B : virtual _type2
+	{};
 
 #ifdef YB_IMPL_GNUCPP
 #	if YB_IMPL_GNUCPP >= 40600
@@ -138,18 +98,8 @@ private:
 #	endif
 #endif
 
-	struct B : virtual _type2
-	{
-		//! \since build 461
-		~B()
-		{}
-	};
 	struct C : A, B
-	{
-		//! \since build 461
-		~C()
-		{}
-	};
+	{};
 
 #if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 40600
 //#	pragma GCC diagnostic warning "-Wextra"
@@ -208,19 +158,6 @@ struct has_mem_value : is_detected<details::mem_value_t, _type>
 template<class _type>
 struct has_mem_value_type : is_detected<details::mem_value_type_t, _type>
 {};
-
-
-
-/*!
-\brief 判断是否存在合式重载 & 操作符接受指定类型的表达式。
-\pre 参数不为不完整类型。
-\since build 649
-*/
-template<typename _type>
-struct has_overloaded_addressof
-	: or_<is_detected<details::addressof_mem_t, _type>,
-	is_detected<details::addressof_free_t, _type>>
-{};
 //@}
 
 
@@ -260,12 +197,13 @@ struct has_nonempty_virtual_base
 
 /*!
 \ingroup unary_type_traits
-\brief 判断指定的两个类类型是否有非空虚基类。
-\since build 175
+\brief 判断指定的两个类类型是否不同且有公共非空虚基类。
+\since build 660
 */
 template<class _type1, class _type2>
-struct has_common_nonempty_virtual_base : bool_constant<
-	details::have_common_nonempty_virtual_base<_type1, _type2>::value>
+struct have_common_nonempty_virtual_base
+	: bool_constant<!is_same<_type1, _type2>::value
+	&& details::have_common_nonempty_virtual_base<_type1, _type2>::value>
 {};
 
 
@@ -274,11 +212,11 @@ struct has_common_nonempty_virtual_base : bool_constant<
 /*!
 \brief 恒等元函数。
 \note 功能可以使用 ISO C++ 11 的 std::common_type 的单一参数实例替代。
-\note ISO C++ LWG 2141 建议更改 std::common 的实现，无法替代。
+\note LWG2141 建议更改 std::common 的实现，无法替代。
 \note 这里的实现不依赖 std::common_type 。
 \note 同 boost::mpl::identity 。
-\note Microsoft Visual C++ 2013 使用 LWG 2141 建议的实现。
-\see http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2141 。
+\note Microsoft Visual C++ 2013 使用 LWG2141 建议的实现。
+\see http://wg21.cmeerw.net/lwg/issue2141 。
 \see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
 \see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx 。
 \see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。

@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r375
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-11-01 19:06 +0800
+	2015-12-17 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,6 +93,7 @@ t_constfn() ynothrow
 }
 
 } // namespace memory_test;
+//@}
 
 //! \since build 549
 namespace bitseg_test
@@ -117,7 +118,49 @@ expect(const string& str, vector<byte>&& seq)
 }
 
 } // namespace bitseg_test;
-//@}
+
+//! \since build 549
+namespace vbase_test
+{
+
+template<class _type>
+yconstfn bool
+v() ynothrow
+{
+	return has_nonempty_virtual_base<_type>();
+}
+
+template<class _type1, class _type2>
+yconstfn bool
+cv() ynothrow
+{
+	return have_common_nonempty_virtual_base<_type1, _type2>();
+}
+
+struct eb
+{};
+
+struct neb
+{
+	int i;
+};
+
+struct ed : eb
+{};
+
+struct ned : neb
+{};
+
+struct ved : virtual eb
+{};
+
+struct vned : virtual neb
+{};
+
+struct vned2 : virtual neb
+{};
+
+} // namespace bitseg_test;
 
 } // unnamed namespace;
 
@@ -141,6 +184,21 @@ main()
 	});
 
 	// TODO: Check stream error.
+	// 10 cases covering: ystdex::has_nonempty_virtual_base,
+	//	ystdex::have_common_nonempty_virtual_base.
+	seq_apply(make_guard("YStandard.TypeOperations").get(pass, fail),
+		!vbase_test::v<vbase_test::eb>(),
+		!vbase_test::v<vbase_test::neb>(),
+		!vbase_test::v<vbase_test::ed>(),
+		!vbase_test::v<vbase_test::ned>(),
+		!vbase_test::v<vbase_test::ved>(),
+		vbase_test::v<vbase_test::vned>(),
+		!vbase_test::cv<vbase_test::neb, vbase_test::neb>(),
+		!vbase_test::cv<vbase_test::ed, vbase_test::ved>(),
+		!vbase_test::cv<vbase_test::ved, vbase_test::ved>(),
+		!vbase_test::cv<vbase_test::ved, vbase_test::vned>(),
+		vbase_test::cv<vbase_test::vned, vbase_test::vned2>()
+	);
 	// 2 cases covering: ystdex::constfn_addressof.
 	seq_apply(make_guard("YStandard.Memory").get(pass, fail),
 		memory_test::t_constfn<memory_test::t1>(),

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1459
+\version r1564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-12-10 19:18 +0800
+	2015-12-16 10:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
-#include YFM_YCLib_Debug // for string, platform::Deref, wstring, pair;
+#include YFM_YCLib_Debug // for string, platform::Deref, wstring, ystdex::ends_with, pair;
 #include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
 #include YFM_YCLib_FileIO // for platform::NodeCategory;
 #include <chrono> // for std::chrono::nanoseconds;
@@ -62,7 +62,7 @@ YF_API YB_STATELESS int
 ConvertToErrno(ErrorCode) ynothrow;
 
 /*!
-\breif 取转换为 errno 的 Win32 错误。
+\brief 取转换为 errno 的 Win32 错误。
 \since build 622
 */
 inline PDefH(int, GetErrnoFromWin32, ) ynothrow
@@ -502,12 +502,11 @@ YF_API platform::NodeCategory
 CategorizeNode(UniqueHandle::pointer) ynothrowv;
 
 
-//! \since build 632
-//@{
 /*!
 \brief 创建或打开独占的文件或设备。
 \pre 间接断言：路径参数非空。
 \note 调用 \c ::CreateFileW 实现。
+\since build 632
 */
 //@{
 YF_API YB_NONNULL(1) UniqueHandle
@@ -515,10 +514,10 @@ MakeFile(const wchar_t*, FileAccessRights = AccessRights::None,
 	FileShareMode = FileShareMode::All, CreationDisposition
 	= CreationDisposition::OpenExisting,
 	FileAttributesAndFlags = FileAttributesAndFlags::NormalAll) ynothrowv;
+//! \since build 660
 inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAccessRights desired_access, FileShareMode shared_mode,
-	FileAttributesAndFlags attributes_and_flags
-	= FileAttributesAndFlags::NormalAll) ynothrowv
+	FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, desired_access, shared_mode,
 		CreationDisposition::OpenExisting, attributes_and_flags))
 inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
@@ -532,6 +531,29 @@ inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAccessRights desired_access,
 	FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
+		CreationDisposition::OpenExisting, attributes_and_flags))
+//! \since build 660
+//@{
+inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+	FileShareMode shared_mode, CreationDisposition creation_disposition
+	= CreationDisposition::OpenExisting, FileAttributesAndFlags
+	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
+	ImplRet(MakeFile(path, AccessRights::None, shared_mode,
+		creation_disposition, attributes_and_flags))
+inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+	CreationDisposition creation_disposition
+	= CreationDisposition::OpenExisting, FileAttributesAndFlags
+	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
+	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
+		creation_disposition, attributes_and_flags))
+inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+	FileShareMode shared_mode, FileAttributesAndFlags
+	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
+	ImplRet(MakeFile(path, AccessRights::None, shared_mode,
+		CreationDisposition::OpenExisting, attributes_and_flags))
+inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+	FileAttributesAndFlags attributes_and_flags) ynothrowv
+	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
 //@}
 //@}
@@ -619,6 +641,9 @@ class YF_API DirectoryFindData : private ystdex::noncopyable
 private:
 	/*!
 	\brief 查找起始的目录名称。
+	\invariant <tt>dir_name.length() > 1
+		&& ystdex::ends_with(dir_name, L"\\*")</tt> 。
+	\sa GetDirName
 	\since build 593
 	*/
 	wstring dir_name;
@@ -635,30 +660,14 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定的目录路径。
+	\pre 间接断言：路径参数的数据指针非空。
 	\throw platform::FileOperationFailure 打开路径失败，或指定的路径不是目录。
-	\since build 638
+	\since build 658
 
-	打开路径指定的目录。
+	打开 UTF-16 路径指定的目录。
 	目录路径无视结尾的斜杠和反斜杠。 去除结尾斜杠和反斜杠后若为空则视为当前路径。
 	*/
-	//@{
-	/*!
-	\note 使用 UTF-8 目录路径。
-	\since build 654
-	*/
-	YB_NONNULL(2)
-	DirectoryFindData(const char*);
-	/*!
-	\pre 间接断言：路径参数的数据指针非空。
-	\since build 658
-	*/
-	//@{
-	//! \note 使用 UTF-8 目录路径。
-	DirectoryFindData(string_view);
-	//! \note 使用 UTF-16 目录路径。
 	DirectoryFindData(wstring_view);
-	//@}
-	//@}
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	~DirectoryFindData();
 
@@ -670,7 +679,9 @@ public:
 		find_data.dwFileAttributes)
 	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
 	//! \since build 593
-	DefGetter(const ynothrow, const wstring&, DirName, dir_name)
+	DefGetter(const ynothrow, const wstring&, DirName, (YAssert(
+		dir_name.length() > 1 && ystdex::ends_with(dir_name, L"\\*"),
+		"Invalid directory name found."), dir_name))
 
 	/*!
 	\brief 取子节点的类型。
@@ -712,9 +723,23 @@ public:
 };
 
 
-//! \since build 638
-//@{
-//! \see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
+/*!
+\brief 读取重分析点内容。
+\pre 断言：参数非空。
+\exception Win32Exception 打开文件失败。
+\throw std::invalid_argument 打开的文件不是重分析点。
+\throw std::system_error 重分析点检查失败。
+	\li std::errc::not_supported 重分析点标签不被支持。
+\since build 660
+*/
+YF_API YB_NONNULL(1) wstring
+ResolveReparsePoint(const wchar_t*);
+
+
+/*!
+\see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
+\since build 638
+*/
 //@{
 //! \brief 文件标识。
 using FileID = std::uint64_t;
@@ -722,19 +747,21 @@ using FileID = std::uint64_t;
 using VolumeID = std::uint32_t;
 //@}
 
-/*!
-\brief 查询文件链接数。
-\since build 637
-*/
+//! \throw Win32Exception 访问文件或查询文件元数据失败。
 //@{
+//! \since build 660
+//@{
+//! \brief 查询文件链接数。
+//@{
+//! \since build 637
 YF_API size_t
 QueryFileLinks(UniqueHandle::pointer);
 /*!
 \pre 间接断言：路径参数非空。
-\throw Win32Exception 访问文件失败。
+\note 最后参数表示跟踪重解析点。
 */
 YF_API YB_NONNULL(1) size_t
-QueryFileLinks(const wchar_t*);
+QueryFileLinks(const wchar_t*, bool = {});
 //@}
 
 /*!
@@ -744,31 +771,29 @@ QueryFileLinks(const wchar_t*);
 \see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
 */
 //@{
+//! \since build 638
 YF_API pair<VolumeID, FileID>
 QueryFileNodeID(UniqueHandle::pointer);
 /*!
 \pre 间接断言：路径参数非空。
-\throw Win32Exception 访问文件失败。
+\note 最后参数表示跟踪重解析点。
 */
 YF_API YB_NONNULL(1) pair<VolumeID, FileID>
-QueryFileNodeID(const wchar_t*);
+QueryFileNodeID(const wchar_t*, bool = {});
 //@}
 //@}
 
 /*
 \note 后三个参数可选，指针为空时忽略。
-\throw Win32Exception 访问文件失败。
 \note 最高精度取决于文件系统。
 */
 //@{
-/*!
-\brief 查询文件的创建、访问和/或修改时间。
-\since build 629
-*/
+//! \brief 查询文件的创建、访问和/或修改时间。
 //@{
 /*!
 \pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
 	且具有 AccessRights::GenericRead权限。
+\since build 629
 */
 YF_API void
 QueryFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
@@ -778,15 +803,9 @@ QueryFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
 \note 即使可选参数都为空指针时仍访问文件。最后参数表示跟踪重解析点。
 \since build 632
 */
-//@{
-//! \note 使用 UTF-8 路径。
-YF_API YB_NONNULL(1) void
-QueryFileTime(const char*, ::FILETIME* = {}, ::FILETIME* = {}, ::FILETIME* = {},
-	bool = {});
 YF_API YB_NONNULL(1) void
 QueryFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {}, bool = {});
-//@}
 //@}
 
 /*!
@@ -805,11 +824,6 @@ SetFileTime(UniqueHandle::pointer, ::FILETIME* = {}, ::FILETIME* = {},
 \pre 间接断言：路径参数非空。
 \note 即使可选参数都为空指针时仍访问文件。最后参数表示跟踪重解析点。
 */
-//@{
-//! \note 使用 UTF-8 路径。
-YF_API YB_NONNULL(1) void
-SetFileTime(const char*, ::FILETIME* = {}, ::FILETIME* = {}, ::FILETIME* = {},
-	bool = {});
 YF_API YB_NONNULL(1) void
 SetFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 	::FILETIME* = {}, bool = {});
@@ -818,19 +832,23 @@ SetFileTime(const wchar_t*, ::FILETIME* = {}, ::FILETIME* = {},
 //@}
 
 /*!
+\throw std::system_error 调用失败。
+	\li std::errc::not_supported 输入的时间表示不被实现支持。
+*/
+//@{
+/*!
 \brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。
-\throw std::system_error 输入的时间表示不被实现支持。
 \since build 632
 */
 YF_API std::chrono::nanoseconds
 ConvertTime(const ::FILETIME&);
 /*!
 \brief 转换以 POSIX 历元起始度量的时间间隔为文件时间。
-\throw std::system_error 输入的时间表示不被实现支持。
 \since build 651
 */
 YF_API ::FILETIME
 ConvertTime(std::chrono::nanoseconds);
+//@}
 
 /*!
 \brief 展开字符串中的环境变量。
