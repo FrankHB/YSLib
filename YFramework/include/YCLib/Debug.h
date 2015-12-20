@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r668
+\version r673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-12-11 20:53 +0800
+	2015-12-19 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,12 +149,15 @@ public:
 
 	//! \pre 间接断言：第三参数非空。
 	//@{
-	//! \brief 默认发送器：使用 std::cerr 输出。
+	/*!
+	\brief 默认发送器：使用 std::cerr 输出。
+	\note DS 平台：空操作。
+	*/
 	static YB_NONNULL(3) void
 	DefaultSendLog(Level, Logger&, const char*) ynothrowv;
 
 	/*!
-	\brief 默认发送器：使用 \c stderr 输出。
+	\brief 默认发送器：使用 stderr 输出。
 	\since build 626
 	*/
 	static YB_NONNULL(3) void

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1935
+\version r1946
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2015-07-01 20:51 +0800
+	2015-12-19 20:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -196,7 +196,17 @@ main()
 	#ifdef YSL_USE_MEMORY_DEBUG
 		OnExit_DebugMemory();
 	#endif
-	}, "main") ? EXIT_FAILURE : EXIT_SUCCESS);
+#if YCL_DS
+	}, "::main", Alert, [](const std::exception& e, RecordLevel l){
+		if(const auto p = dynamic_cast<const YSLib::FatalError*>(&e))
+			HandleFatalError(*p);
+		else
+			ExtractAndTrace(e, l);
+	})
+#else
+	}, "::main")
+#endif
+	? EXIT_FAILURE : EXIT_SUCCESS);
 #if YCL_DS
 	if(res != EXIT_SUCCESS)
 		terminate();

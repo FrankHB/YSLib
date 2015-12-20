@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3411
+\version r3473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-12-18 09:52 +0800
+	2015-12-19 15:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,27 +179,28 @@ public:
 
 
 /*!
-\brief 字型家族 (Typeface Family) 标识。
+\brief 字型家族。
 \since build 145
 */
 class YF_API FontFamily final : private noncopyable
 {
 public:
-	using FaceMap = map<const StyleName, Typeface*>; //!< 字型组索引类型。
-
-	FontCache& Cache;
+	//! \brief 字型组索引类型。
+	using FaceMap = map<const StyleName, lref<Typeface>>;
 
 private:
 	FamilyName family_name;
 
 protected:
-	FaceMap mFaces; //!< 字型组索引类型。
+	//! \brief 字型组索引类型。
+	FaceMap mFaces;
 
 public:
 	/*!
-	\brief 使用字体缓存引用和名称构造字型家族。
+	\brief 构造：使用指定名称。
+	\since build 661
 	*/
-	FontFamily(FontCache&, const FamilyName&);
+	FontFamily(const FamilyName&);
 
 	/*!
 	\brief 向字型组和字型组索引添加字型对象。
@@ -245,9 +246,6 @@ class YF_API Typeface final : private noncopyable, private nonmovable
 	friend class Font;
 	//! \since build 612
 	friend class CharBitmap;
-
-public:
-	const FontPath Path;
 
 private:
 	//! \since build 419
@@ -323,17 +321,6 @@ public:
 	Typeface(FontCache&, const FontPath&, std::uint32_t = 0);
 	//! since build 461
 	~Typeface();
-
-	/*!
-	\brief 比较：相等关系。
-	*/
-	bool
-	operator==(const Typeface&) const;
-	/*!
-	\brief 比较：严格递增偏序关系。
-	*/
-	bool
-	operator<(const Typeface&) const;
 
 	DefGetterMem(const ynothrow, FamilyName, FamilyName, GetFontFamily())
 	/*!
@@ -478,8 +465,12 @@ class YF_API FontCache final : private noncopyable,
 	friend class Font;
 
 public:
-	//! \brief 字型组类型。
-	using FaceSet = set<Typeface*, ystdex::deref_comp<const Typeface>>; \
+	/*!
+	\brief 字型映射类型。
+	\invariant 被映射的值非空。
+	\since build 661
+	*/
+	using FaceMap = map<FontPath, unique_ptr<Typeface>>;
 	/*!
 	\brief 字型家族组索引类型。
 	\invariant 被映射的值非空。
@@ -498,8 +489,11 @@ private:
 	::FT_Library library;
 
 protected:
-	//! \brief 字型组。
-	FaceSet sFaces;
+	/*!
+	\brief 字型映射。
+	\since build 661
+	*/
+	FaceMap mFaces;
 	//! \brief 字型家族组索引。
 	FamilyMap mFamilies;
 	//! \brief 默认字型指针。
@@ -521,12 +515,12 @@ public:
 
 public:
 	/*!
-	\brief 取字型组。
-	\since build 281
+	\brief 取字型映射。
+	\since build 661
 	*/
-	DefGetter(const ynothrow, const FaceSet&, Faces, sFaces)
-	DefGetter(const ynothrow, const FamilyMap&, FamilyIndices, mFamilies) \
-		//!< 取字型家族组索引。
+	DefGetter(const ynothrow, const FaceMap&, Faces, mFaces)
+	//! \brief 取字型家族组索引。
+	DefGetter(const ynothrow, const FamilyMap&, FamilyIndices, mFamilies)
 //	Font*
 //	GetFontPtr() const;
 	/*!
@@ -551,37 +545,11 @@ public:
 
 private:
 	/*!
-	\brief 向字型家族组添加字型家族。
-	\since build 418
+	\brief 向字型组添加字体路径和字型对象的映射。
+	\since build 661
 	*/
 	void
-	operator+=(unique_ptr<FontFamily>);
-	/*!
-	\brief 向字型组添加字型对象。
-	\since build 277
-	*/
-	void
-	operator+=(Typeface&);
-
-	/*!
-	\brief 从字型家族组中移除指定字型对象。
-	\since build 572
-	*/
-	bool
-	operator-=(FontFamily&) ynothrow;
-	/*!
-	\brief 从字型组中移除指定字型对象。
-	\since build 572
-	*/
-	bool
-	operator-=(Typeface&) ynothrow;
-
-	/*!
-	\brief 清除容器。
-	\since build 572
-	*/
-	void
-	ClearContainers() ynothrow;
+	Add(const FontPath&, unique_ptr<Typeface>);
 
 public:
 	/*!
@@ -662,7 +630,6 @@ public:
 	*/
 	std::int8_t
 	GetAscender() const;
-	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
 	/*!
 	\brief 取降部。
 	\since build 280

@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r270
+\version r274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2015-12-17 10:52 +0800
+	2015-12-19 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,8 @@ namespace ystdex
 /*!
 \brief 左值引用包装。
 \tparam _type 被包装的类型。
+\note 满足 TrivialCopyable 要求。
+\see WG21/N4277 。
 
 类似 std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
 	引用包装类实现。
@@ -63,6 +65,8 @@ public:
 	lref(_type& t) ynothrow
 		: ptr(ystdex::constfn_addressof(t))
 	{}
+	//! \since build 661
+	lref(_type&&) = delete;
 	yconstfn
 	lref(std::reference_wrapper<_type> t) ynothrow
 		: lref(t.get())

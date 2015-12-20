@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2787
+\version r2788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-10-02 19:20 +0800
+	2015-12-19 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,6 @@ public:
 	{}
 
 	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, Font)
-	DefGetterMem(const ynothrow, FontCache&, Cache, Font)
 };
 
 

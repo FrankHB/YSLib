@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1235
+\version r1237
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-12-15 09:42 +0800
+	2015-12-20 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -582,9 +582,6 @@ const SDst MainScreenWidth, MainScreenHeight;
 
 unspecified-class-type&
 FetchGlobalInstance() ynothrow;
-
-bool
-InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel);
 
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
 YSLib 不依赖这些接口以外的特性。

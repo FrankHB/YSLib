@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r7326
+\version r7436
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-12-18 10:07 +0800
+	2015-12-21 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,106 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		* "friend function operator%==" @ "class template %nptr" @ %Pointer
+			$since b660
+			$= (/ $impl ^ "%std::equal_to" ~ "%std::equal"),
+		/ @ "class template %lref" $=
+		(
+			+ 'lref(_type&&) = delete;'
+			+ $doc "conformance to WG21/N4277 as %std::reference_wrapper",
+		),
+		/ %Functor $=
+		(
+			* "missing 'yconstfn' as specified for %void specializations"
+				@ "standard functors" @ %Functor $since b588 $orig
+				(@ %Functional $since b578),
+			- "functor %deref_comp" $dep_from
+				("%FontCache::FaceMap" @ %YFramework.YSLib.Adaptor.Font)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			- "member function %PenStyle::GetCache" @ %Service.TextBase,
+			/ %Adaptor.Font $=
+			(
+				- "member function %Font::GetCache" $dep_from %Service.TextBase,
+				/ "class %FontFamily" $=
+				(
+					(
+					- "reference data member %Cache" @ "class %Typeface";
+					- "1st parameter" @ "constructor"
+					),
+					(
+					/ DLDI "alias %FaceMap" ^ "%lref<Typeface>" ~ 'Typeface*';
+					/ $forced DLDI "functions %(operator-=, GetTypefacePtr)"
+					)
+				),
+				/ @ "class %FontCache" $=
+				(
+					/ $forced DLDI "function %LookupFamily" $dep_from
+						"constructor %FontFamily",
+					(
+					/ "alias %FaceSet" -> "%FaceMap" !^ "%ystdex::deref_comp",
+					/ "protected data member %sFace" -> "mFace";
+					/ $forced "return type" @ "function %GetFaces",
+					/ $forced DLDI "private functions, functions \
+						%(InitializeDefaultTypeface, LoadTypefaces)"
+					),
+					- DLDI "private functions for dynamic adding or removing \
+						%FontFamily"
+				),
+				/ @ "class %Typeface" $=
+				(
+					(
+					/ DLDI "constructor" $dep_from "%FontCache::LoadTypefaces",
+					- "function %operator<" $dep_from "%Font::FaceMap"
+					),
+					- "function %operator==";
+					- "data member %Path"
+				)
+			),
+			* "wrong assertion" @ "member function %FileBox::GetPath"
+				@ %UI.ComboList $since b639
+				// The range shall be determined by list but not by view. This \
+					is rare to be triggered.
+		),
+		/ @ "class %Logger" @ %YCLib.Debug $=
+		(
+			(
+			/ "emptied operations" @ "platform %DS"
+				@ "static function %DefaultSendLog";
+			- "including <iostream>" @ "platform %DS"
+				// This would reduced ~6 KiB in the output binary file for \
+					%YReader.
+			),
+			- "screen initialization" @ "platform %DS"
+				@ "functions %(SendLog, SendLogToFile)"
+		),
+		/ %Helper.Initialization $=
+		(
+			/ DLDI "simplified 21 instancces of initalization trace"
+				^ "%YTraceDe" $effective @ "functions %(LoadComponents, \
+				CreateDefaultNPLA1File, HandleFatalError, LoadNPLA1File, \
+				LoadConfiguration, InitializeInstalled, \
+				InitializeSystemFontCache, Uninitialize") $dep_from
+				%YCLib.Debug;
+			/ $impl "simplified" @ "function %HandleFatalError"
+		),
+		- "function %InitConsole" @ %'Helper_(DS)'.DSMain
+	),
+	/ @ "function %::main" @ %Main $=
+	(
+		* "fatal error handling" @ "platform %DS" $since b604,
+		/ $re_add(b633) $design "exception decription" -> '::main' ~ 'main'
+	)
+),
+
+b660
 (
 	/ %YFramework $=
 	(
@@ -200,9 +300,11 @@ $now
 			@ %Pointer $=
 		(
 			/ "friend function %operator(==, <)"
-				^ "%std::(equal_to, less) respectively" ~ ('==', '<');
+				^ "standard functor respectively" ~ ('==', '<');
 				// Now '<' guarantees it is totally-ordered. See ISO C++ \
-					[comparisons].
+					[comparisons]. Note this is not necessary to provide \
+					specific result for '==' as '<', etc. However, the \
+					behavior about template specialization would be consistent.
 			* $comp "wrong result" @ "friend function %operator<" $since b600
 		),
 		/ %CString $=
@@ -1211,7 +1313,7 @@ b654
 	+ DLD 'YB_ATTR(returns_nonnull)' @ "virtual member function %what"
 		@ "all exception classes" $effective @ ("class %ystdex::bad_any_cast"
 		@ %YBase.YStandardEx.Any),
-	/ $dev $repo $re_ex(b650) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b650) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YSLib.Core.("%yshell.cpp" => "%YShell.cpp")
 ),
@@ -1813,7 +1915,7 @@ b650
 		/ @ "constructors (ReaderBox, TextInfoBox)"
 			^ "%(ystdex::bind1, SetContainerPtrOf)" ~ "%ContainerSetter"
 	),
-	/ $dev $repo $re_ex(b641) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b641) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YSLib.UI.("%ywindow.h" => "%YWindow.h")
 ),
@@ -1952,7 +2054,7 @@ b649
 	),
 	+ "2 test cases" @ %Test.YBase ^ $dep_from "%constfn_addressof"
 		@ %YBase.YStandardEx.Memory),
-	/ $dev $repo $re_ex(b641) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b641) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %Tools.CreationTimeManager.("%main.cpp" => "%Main.cpp")
 ),
@@ -2815,7 +2917,7 @@ b641
 		@ %TextManager, ("function %GetContext" @ "class template \
 		%GTextRendererBase" $since b566, "constructor %TextRenderer#2"
 		$since b265) @ %TextRenderer) @ %YSLib.Service) @ %YFramework,
-	/ $dev $repo $re_ex(b640) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b640) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.CHRLib.("%chrdef.h" => "%CharacterDefinition.h")
 ),
@@ -2967,7 +3069,7 @@ b640
 		- "functions %ExecuteCommand" @ "class %ShlCLI"
 			@ %'Helper_(DS)'.Shell_DS
 	),
-	/ $dev $repo $re_ex(b633) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b633) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.'Helper_(DS)'.Shell_DS.("shlds.h" => "Shell_DS.h",
 		"%shlds.cpp" => "%Shell_DS.cpp")
@@ -3660,7 +3762,7 @@ b633
 	),
 	/ $re(b386) $dev $doc $term "all" ('标量' -> '纯量') $effective
 		@ %(YFramework.YSLib.Core.YCoreUtilities, Documentation.Designation);
-	/ $dev $repo $re_ex(b611) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b611) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YCommon.("%ycommon.cpp" => "%YCommon.cpp")
 ),
@@ -5889,7 +5991,7 @@ b611
 		@ %YBase.YStandardEx.Functional) ~ "%std::bind" $effective
 		@ %(YFramework.(NPL.NPLA1, YSLib.(Adaptor.YNew, UI.(Scroll,
 		YUIContainer))), YReader.(ShlReader, ShlExplorer)),
-	/ $dev $repo $re_ex(b595) "all edited file with module name not the same \
+	/ $dev $repo $re_add(b595) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YSLib.Adaptor.("%ynew.cpp" => "%YNew.cpp")
 ),
