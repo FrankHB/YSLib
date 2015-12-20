@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3553
+\version r3606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-12-18 09:56 +0800
+	2015-12-19 15:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,14 +137,14 @@ NativeFontSize::Activate() const
 }
 
 
-FontFamily::FontFamily(FontCache& cache, const FamilyName& name)
-	: Cache(cache), family_name(name), mFaces()
+FontFamily::FontFamily(const FamilyName& name)
+	: family_name(name), mFaces()
 {}
 
 void
 FontFamily::operator+=(Typeface& face)
 {
-	mFaces.emplace(face.GetStyleName(), &face);
+	mFaces.emplace(face.GetStyleName(), face);
 }
 
 bool
@@ -164,9 +164,11 @@ FontFamily::GetTypefacePtr(FontStyle fs) const
 Typeface*
 FontFamily::GetTypefacePtr(const StyleName& style_name) const
 {
+	// TODO: Blocked. Use %string_view as argument using C++14 heterogeneous
+	//	%find template.
 	const auto i(mFaces.find(style_name));
 
-	return (i == mFaces.cend()) ? nullptr : i->second;
+	return (i == mFaces.cend()) ? nullptr : &i->second.get();
 }
 Typeface&
 FontFamily::GetTypefaceRef(FontStyle fs) const
@@ -273,13 +275,13 @@ Typeface::SmallBitmapData::~SmallBitmapData()
 
 Typeface::Typeface(FontCache& cache, const FontPath& path, std::uint32_t i)
 	// XXX: Conversion to 'long' might be implementation-defined.
-	: Path(path), face_index(long(i)), cmap_index(-1), style_name(),
+	: face_index(long(i)), cmap_index(-1), style_name(),
 	ref([&, this]{
-		if(YB_UNLIKELY(ystdex::exists(cache.sFaces, this)))
+		if(YB_UNLIKELY(ystdex::exists(cache.mFaces, path)))
 			throw LoggedEvent("Duplicate typeface found.", Critical);
 
 		::FT_Face face;
-		auto error(::FT_New_Face(cache.library, Path.c_str(), face_index,
+		auto error(::FT_New_Face(cache.library, path.c_str(), face_index,
 			&face));
 
 		if(YB_LIKELY(!error))
@@ -324,18 +326,6 @@ Typeface::~Typeface()
 	}
 #endif
 	::FT_Done_Face(face);
-}
-
-bool
-Typeface::operator==(const Typeface& rhs) const
-{
-	return Path == rhs.Path && face_index == rhs.face_index;
-}
-bool
-Typeface::operator<(const Typeface& rhs) const
-{
-	return Path < rhs.Path
-		|| (Path == rhs.Path && face_index < rhs.face_index);
 }
 
 Typeface::SmallBitmapData&
@@ -416,13 +406,16 @@ FontCache::FontCache(size_t /*cache_size*/)
 }
 FontCache::~FontCache()
 {
-	ClearContainers();
+	mFaces.clear();
+	mFamilies.clear();
 	::FT_Done_FreeType(library);
 }
 
 const FontFamily*
 FontCache::GetFontFamilyPtr(const FamilyName& family_name) const
 {
+	// TODO: Blocked. Use %string_view as argument using C++14 heterogeneous
+	//	%find template.
 	const auto i(mFamilies.find(family_name));
 
 	return (i == mFamilies.cend()) ? nullptr : i->second.get();
@@ -445,34 +438,9 @@ FontCache::GetTypefacePtr(const FamilyName& family_name,
 }
 
 void
-FontCache::operator+=(unique_ptr<FontFamily> p_family)
+FontCache::Add(const FontPath& path, unique_ptr<Typeface> face)
 {
-	mFamilies.emplace(p_family->GetFamilyName(), std::move(p_family));
-}
-void
-FontCache::operator+=(Typeface& face)
-{
-	sFaces.insert(&face);
-}
-
-bool
-FontCache::operator-=(FontFamily& family) ynothrow
-{
-	return mFamilies.erase(family.GetFamilyName()) != 0;
-}
-bool
-FontCache::operator-=(Typeface& face) ynothrow
-{
-	return &face != pDefaultFace && sFaces.erase(&face) != 0;
-}
-
-void
-FontCache::ClearContainers() ynothrow
-{
-	std::for_each(sFaces.cbegin(), sFaces.cend(),
-		std::default_delete<Typeface>());
-	sFaces.clear();
-	mFamilies.clear();
+	mFaces.emplace(path, std::move(face));
 }
 
 size_t
@@ -495,7 +463,8 @@ FontCache::LoadTypefaces(const FontPath& path)
 			return 0;
 		for(long i(0); i < face_num; ++i)
 			// XXX: Conversion to 'long' might be implementation-defined.
-			TryExpr(*this += *(new Typeface(*this, path, std::uint32_t(i))))
+			TryExpr(
+				Add(path, make_unique<Typeface>(*this, path, std::uint32_t(i))))
 			CatchExpr(..., YTraceDe(Warning, "Failed loading face of path"
 				" '%s', index '%ld'.", path.c_str(), i))
 		return size_t(face_num);
@@ -509,7 +478,7 @@ FontCache::LookupFamily(const FamilyName& name)
 	auto& p_ff(mFamilies[name]);
 
 	if(!p_ff)
-		TryExpr(p_ff.reset(new FontFamily(*this, name)))
+		TryExpr(p_ff.reset(new FontFamily(name)))
 		catch(...)
 		{
 			mFamilies.erase(name);
@@ -521,8 +490,8 @@ FontCache::LookupFamily(const FamilyName& name)
 void
 FontCache::InitializeDefaultTypeface()
 {
-	if(YB_LIKELY(!(pDefaultFace || sFaces.empty())))
-		pDefaultFace = *sFaces.cbegin();
+	if(YB_LIKELY(!(pDefaultFace || mFaces.empty())))
+		pDefaultFace = mFaces.cbegin()->second.get();
 }
 
 

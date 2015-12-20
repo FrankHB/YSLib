@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r609
+\version r629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2015-12-17 10:50 +0800
+	2015-12-19 15:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,7 +186,8 @@ struct ref_eq
 		using is_transparent = yimpl(void); \
 		\
 		template<_tparams> \
-		auto operator()(_params) const -> decltype(_expr) \
+		yconstfn auto \
+		operator()(_params) const -> decltype(_expr) \
 		{ \
 			return _expr; \
 		} \
@@ -383,26 +384,6 @@ delta_assign(_tScalar1& _x, _tScalar2& _y)
 {
 	return delta_assignment<_bIsPositive, _tScalar1, _tScalar2>()(_x, _y);
 }
-
-
-/*!
-\brief 间接访问比较仿函数。
-\since build 315
-*/
-template<typename _type, typename _tPointer = _type*,
-	class _fCompare = std::less<_type>>
-struct deref_comp
-{
-	/*
-	\brief 比较指针指向的对象。
-	\return 若参数有空指针则 false ，否则判断是否满足 _fCompare()(*_x, *_y) 。
-	*/
-	bool
-	operator()(const _tPointer& _x, const _tPointer& _y) const
-	{
-		return bool(_x) && bool(_y) && _fCompare()(*_x, *_y);
-	}
-};
 //@}
 
 } // namespace ystdex;

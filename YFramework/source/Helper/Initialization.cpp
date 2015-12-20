@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2456
+\version r2526
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-12-10 21:03 +0800
+	2015-12-19 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,29 +59,10 @@ using namespace IO;
 namespace
 {
 
-/*!
-\def YF_Init_printf
-\brief 初始化时使用的格式化输出函数。
-\since build 505
-*/
-/*!
-\def YF_Init_puts
-\brief 初始化时使用的行输出函数。
-\since build 505
-*/
 #if YCL_DS
-// \since build 608
+//! \since build 608
 bool at_init(true);
-#	define YF_Init_printf(_lv, ...) (at_init ? std::printf(__VA_ARGS__) : 0)
-#	define YF_Init_puts(_lv, _str) (at_init ? std::puts(_str) : 0)
-#elif YCL_Android
-#	define YF_Init_printf(_lv, ...) YTraceDe(_lv, __VA_ARGS__)
-#	define YF_Init_puts(_lv, _str) YTraceDe(_lv, _str)
-#else
-#	define YF_Init_printf(_lv, ...) std::printf(__VA_ARGS__)
-#	define YF_Init_puts(_lv, _str) std::puts(_str)
 #endif
-
 //! \since build 425
 //@{
 stack<std::function<void()>> app_exit;
@@ -242,7 +223,7 @@ LoadComponents(const ValueNode& node)
 	const auto& font_dir(AccessChild<string>(node, "FontDirectory"));
 
 	if(!data_dir.empty() && !font_path.empty() && !font_dir.empty())
-		YF_Init_printf(Notice, "Loaded default directory:\n%s\n"
+		YTraceDe(Notice, "Loaded default directory:\n%s\n"
 			"Loaded default font path:\n%s\n"
 			"Loaded default font directory:\n%s\n",
 			data_dir.c_str(), font_path.c_str(), font_dir.c_str());
@@ -252,7 +233,7 @@ LoadComponents(const ValueNode& node)
 
 	const string mapping_name(data_dir + "cp113.bin");
 
-	YF_Init_printf(Notice, "Loading character mapping file '%s' ...\n",
+	YTraceDe(Notice, "Loading character mapping file '%s' ...\n",
 		mapping_name.c_str());
 	try
 	{
@@ -261,7 +242,7 @@ LoadComponents(const ValueNode& node)
 			CHRLib::cp113 = p_mapped->GetPtr();
 		else
 			throw GeneralEvent("Failed loading CHRMapEx.");
-		YF_Init_puts(Notice, "CHRMapEx loaded successfully.");
+		YTraceDe(Notice, "CHRMapEx loaded successfully.");
 	}
 	catch(std::exception& e)
 	{
@@ -277,12 +258,12 @@ LoadComponents(const ValueNode& node)
 			CHRLib::cp113_lkp = [](byte, byte) YB_ATTR(noreturn) -> char16_t{
 				throw LoggedEvent("Failed calling conversion for CHRMapEx.");
 			};
-			YF_Init_puts(Warning, "CHRMapEx conversion calls would lead to"
+			YTraceDe(Warning, "CHRMapEx conversion calls would lead to"
 				" exception thrown.");
 		}
 	}
 #endif
-	YF_Init_printf(Notice, "Trying entering directory '%s' ...\n",
+	YTraceDe(Notice, "Trying entering directory '%s' ...\n",
 		data_dir.c_str());
 	if(!IO::VerifyDirectory(data_dir))
 		throw GeneralEvent("Invalid default data directory found.");
@@ -297,7 +278,7 @@ CreateDefaultNPLA1File(const char* disp, const char* path,
 	YAssertNonnull(disp),
 	YAssertNonnull(path);
 	if(show_info)
-		YF_Init_printf(Notice, "Creating %s '%s'...\n", disp, path);
+		YTraceDe(Notice, "Creating %s '%s'...\n", disp, path);
 	if(creator)
 	{
 		YTraceDe(Debug, "Creator found.");
@@ -319,11 +300,11 @@ void
 HandleFatalError(const FatalError& e) ynothrow
 {
 #if YCL_DS
-	platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
+	at_init = {};
 
 	const char* line("--------------------------------");
 
-	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
+	YTraceDe(Emergent, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
 		e.GetContent().data(), line);
 #else
 #	if YCL_Win32
@@ -334,7 +315,7 @@ HandleFatalError(const FatalError& e) ynothrow
 			MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR);
 	});
 #	endif
-	YF_Init_printf(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent().data());
+	YTraceDe(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent().data());
 #endif
 	terminate();
 }
@@ -351,7 +332,7 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 			return {};
 	}
 	if(show_info)
-		YF_Init_printf(Notice, "Found %s '%s'.\n", Nonnull(disp), path);
+		YTraceDe(Notice, "Found %s '%s'.\n", Nonnull(disp), path);
 	if(ifstream ifs{path, std::ios_base::in})
 	{
 		array<char, 3> buf;
@@ -407,6 +388,25 @@ InitializeEnvironment()
 	::powerOn(POWER_ALL);
 	::defaultExceptionHandler();
 	platform_ex::DSConsoleInit(true, ColorSpace::Lime);
+	FetchCommonLogger().SetSender([&](Logger::Level lv, Logger&,
+		const char* str) YB_NONNULL(4) ynothrowv{
+		if(at_init || lv <= Descriptions::Alert)
+		{
+			if(!at_init)
+			{
+				static struct Init
+				{
+					Init()
+					{
+						platform_ex::DSConsoleInit({}, ColorSpace::White,
+							ColorSpace::Blue);
+					}
+				} init;
+			}
+			std::fprintf(stderr, "%s\n", Nonnull(str));
+			std::fflush(stderr);
+		}
+	});
 	if(!platform_ex::InitializeFileSystem())
 		throw FatalError("         LibFAT Failure         ",
 			" An error is preventing the\n"
@@ -427,16 +427,7 @@ InitializeEnvironment()
 			" Note: Some cards only\n"
 			" autopatch .nds files stored in\n"
 			" the root folder of the card.\n");
-#endif
-#if 0
-	// TODO: Review locale APIs compatibility.
-	static yconstexpr const char locale_str[]{"zh_CN.GBK"};
-
-	if(!std::setlocale(LC_ALL, locale_str))
-		throw GeneralEvent("Call of std::setlocale() with %s failed.\n",
-			locale_str);
-#endif
-#if YCL_Win32
+#elif YCL_Win32
 	string env_str;
 
 	// TODO: Extract as %YCoreUtilities functions?
@@ -447,6 +438,14 @@ InitializeEnvironment()
 					platform_ex::SendDebugString);
 		});
 #endif
+#if 0
+	// TODO: Review locale APIs compatibility.
+	static yconstexpr const char locale_str[]{"zh_CN.GBK"};
+
+	if(!std::setlocale(LC_ALL, locale_str))
+		throw GeneralEvent("Call of std::setlocale() with %s failed.\n",
+			locale_str);
+#endif
 }
 
 ValueNode
@@ -454,7 +453,7 @@ InitializeInstalled()
 {
 	string res;
 
-	YF_Init_puts(Notice, "Checking installation...");
+	YTraceDe(Notice, "Checking installation...");
 	try
 	{
 		auto node(LoadConfiguration(true));
@@ -462,7 +461,7 @@ InitializeInstalled()
 		if(node.GetName() == "YFramework")
 			node = PackNodes(string(), std::move(node));
 		LoadComponents(node.at("YFramework"));
-		YF_Init_puts(Notice, "OK!");
+		YTraceDe(Notice, "OK!");
 		return node;
 	}
 	CatchExpr(std::exception& e, Extract(e, res))
@@ -473,15 +472,15 @@ InitializeInstalled()
 }
 
 void
-InitializeSystemFontCache(FontCache& fc, const string& fong_file,
+InitializeSystemFontCache(FontCache& fc, const string& font_file,
 	const string& font_dir)
 {
 	string res;
 
-	YF_Init_puts(Notice, "Loading font files...");
+	YTraceDe(Notice, "Loading font files...");
 	try
 	{
-		size_t nFileLoaded(fc.LoadTypefaces(fong_file) != 0);
+		size_t nFileLoaded(fc.LoadTypefaces(font_file) != 0);
 
 		if(!font_dir.empty())
 			try
@@ -492,7 +491,7 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 					{
 						const FontPath path(font_dir + String(npv).GetMBCS());
 
-						if(path != fong_file)
+						if(path != font_file)
 							nFileLoaded += fc.LoadTypefaces(path) != 0;
 					}
 				});
@@ -500,13 +499,13 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 			CatchIgnore(FileOperationFailure&)
 		fc.InitializeDefaultTypeface();
 		if(const auto nFaces = fc.GetFaces().size())
-			YF_Init_printf(Notice, "%zu face(s) in %zu font file(s)"
+			YTraceDe(Notice, "%zu face(s) in %zu font file(s)"
 				" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
 		else
 			throw GeneralEvent("No fonts found.");
-		YF_Init_puts(Notice, "Setting default font face...");
+		YTraceDe(Notice, "Setting default font face...");
 		if(const auto* const pf = fc.GetDefaultTypefacePtr())
-			YF_Init_printf(Notice, "\"%s\":\"%s\",\nsuccessfully.\n",
+			YTraceDe(Notice, "\"%s\":\"%s\",\nsuccessfully.\n",
 				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 		else
 			throw GeneralEvent("Setting default font face failed.");
@@ -522,7 +521,7 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 void
 Uninitialize() ynothrow
 {
-	YF_Init_printf(Notice, "Uninitialization entered with %zu handler(s) to be"
+	YTraceDe(Notice, "Uninitialization entered with %zu handler(s) to be"
 		" called.\n", app_exit.size());
 	while(!app_exit.empty())
 	{
@@ -543,7 +542,7 @@ Uninitialize() ynothrow
 	}
 #	endif
 	p_mapped.reset();
-	YF_Init_puts(Notice, "Character mapping deleted.");
+	YTraceDe(Notice, "Character mapping deleted.");
 #endif
 }
 
@@ -593,8 +592,8 @@ FetchMIMEBiMapping()
 		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
 			(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory")
 			+ "MIMEExtMap.txt").c_str(), []{
-			return
-				NPL::LoadNPLA1(NPL::SContext::Analyze(NPL::Session(TU_MIME)));
+				return NPL::LoadNPLA1(
+					NPL::SContext::Analyze(NPL::Session(TU_MIME)));
 			}, true));
 		app_exit.push([]() ynothrow{
 			ydelete(p_mapping);

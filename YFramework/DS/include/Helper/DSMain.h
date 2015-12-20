@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r900
+\version r906
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2015-05-29 19:20 +0800
+	2015-12-20 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,13 +136,6 @@ public:
 	SwapScreens();
 };
 
-
-/*!
-\brief 以指定前景色和背景色初始化指定屏幕的控制台。
-\since build 148
-*/
-YF_API bool
-InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel);
 
 #	if YCL_Win32
 namespace Windows

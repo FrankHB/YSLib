@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r711
+\version r737
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-12-10 19:57 +0800
+	2015-12-19 20:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,9 @@
 #if YF_Multithread == 1
 #	include <ystdex/concurrency.h>
 #endif
-#include <iostream> // for std::cerr;
+#if !YCL_DS
+#	include <iostream> // for std::cerr;
+#endif
 #include <cstdarg>
 
 namespace platform
@@ -68,19 +70,7 @@ FetchCurrentThreadID() ynothrow
 }
 #endif
 
-#if YCL_DS
-//! \since build 626
-bool
-PrepareLog(Logger::Level lv) ynothrow
-{
-	if(lv <= Descriptions::Alert)
-	{
-		platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
-		return true;
-	}
-	return {};
-}
-#elif YCL_Android
+#if YCL_Android
 //! \since build 498
 template<typename... _tParams>
 inline int
@@ -120,7 +110,11 @@ Logger::DefaultFilter(Level lv, Logger& logger) ynothrow
 void
 Logger::DefaultSendLog(Level lv, Logger& logger, const char* str) ynothrowv
 {
+#if YCL_DS
+	yunused(lv), yunused(logger), yunused(str);
+#else
 	SendLog(std::cerr, lv, logger, str);
+#endif
 }
 
 void
@@ -191,10 +185,6 @@ void
 Logger::SendLog(std::ostream& os, Level lv, Logger&, const char* str)
 	ynothrowv
 {
-#if YCL_DS
-	if(!PrepareLog(lv))
-		return;
-#endif
 	try
 	{
 #if YF_Multithread == 1
@@ -216,10 +206,6 @@ Logger::SendLogToFile(std::FILE* stream, Level lv, Logger&, const char* str)
 	ynothrowv
 {
 	YAssertNonnull(stream);
-#if YCL_DS
-	if(!PrepareLog(lv))
-		return;
-#endif
 #if YF_Multithread == 1
 	const auto& t_id(FetchCurrentThreadID());
 

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3209
+\version r3226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-08-19 10:27 +0800
+	2015-12-20 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,25 +173,6 @@ DSApplication::SwapScreens()
 #endif
 }
 
-
-bool
-#if YCL_DS
-InitConsole(Devices::Screen& scr, Drawing::Pixel fc, Drawing::Pixel bc)
-{
-	using namespace platform_ex;
-
-	if(&FetchGlobalInstance<DSApplication>().GetScreenUp() == &scr)
-		DSConsoleInit(true, fc, bc);
-	else if(&FetchGlobalInstance<DSApplication>().GetScreenDown() == &scr)
-		DSConsoleInit(false, fc, bc);
-	else
-		return {};
-#else
-InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel)
-{
-#endif
-	return true;
-}
 
 #if YCL_Win32
 namespace Windows

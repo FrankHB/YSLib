@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r324
+\version r325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2015-12-17 10:51 +0800
+	2015-12-18 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,7 +124,7 @@ public:
 	friend yconstfn bool
 	operator==(const nptr& x, const nptr& y) ynothrow
 	{
-		return std::equal<pointer>()(x.ptr, y.ptr);
+		return std::equal_to<pointer>()(x.ptr, y.ptr);
 	}
 
 	//! \since build 600
