@@ -11,13 +11,13 @@
 /*!	\file mixin.hpp
 \ingroup YStandardEx
 \brief 基于类继承的混入接口。
-\version r163
+\version r181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 477
 \par 创建时间:
 	2014-02-17 00:07:20 +0800
 \par 修改时间:
-	2015-03-31 11:03 +0800
+	2015-12-22 10:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,16 +28,16 @@
 #ifndef YB_INC_ystdex_mixin_hpp_
 #define YB_INC_ystdex_mixin_hpp_ 1
 
-#include "tuple.hpp" // for std::tuple, ystdex::index_sequence_for,
-//	ystdex::tuple_element_t
-#include "utility.hpp" // for ../ydef.h, ystdex::classify_value_t;
+#include "tuple.hpp" // for std::tuple, std::get, index_sequence_for,
+//	tuple_element_t;
+#include "utility.hpp" // for classify_value_t;
 
 namespace ystdex
 {
 
 //! \since build 477
 //@{
-/*
+/*!
 \brief 混入对象。
 \warning 非显式虚析构；是否为多态类取决于参数。
 */
@@ -115,30 +115,13 @@ public:
 };
 
 
-namespace details
-{
-
-template<class, class>
-struct wrap_mixin_helper;
-
-template<size_t... _vSeq, typename... _types>
-struct wrap_mixin_helper<index_sequence<_vSeq...>, std::tuple<_types...>>
-{
-	using type = mixin<
-		classify_value_t<tuple_element_t<_vSeq, std::tuple<_types...>>>...>;
-};
-
-} // namespace details;
-
-
 /*!
 \ingroup metafunctions
 \brief 包装为混入类。
-\note 对非类类型首先使用 classify_value_t 包装。
+\note 使用 classify_value_t 对非类类型包装为 boxed_value 实例。
 */
 template<typename... _types>
-using wrap_mixin_t = typename details::wrap_mixin_helper<
-	index_sequence_for<_types...>, std::tuple<_types...>>::type;
+using wrap_mixin_t = mixin<classify_value_t<_types>...>;
 //@}
 
 } // namespace ystdex;

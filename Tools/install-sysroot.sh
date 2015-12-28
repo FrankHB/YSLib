@@ -124,11 +124,17 @@ SHB_InstTool()
 	$SHBuild_S1_SHBuild -xcmd,InstallExecutable "$SR_Bin/$1" "$SHBuild_ToolDir/$1"
 }
 
+SHB_EnsureDirectory()
+{
+	# TODO: Error handling.
+	$SHBuild_S1_SHBuild -xcmd,EnsureDirectory "$1"
+}
+
 echo Installing headers and libraries ...
-mkdir -p "$SR_Bin"
-mkdir -p "$SR_Include"
-mkdir -p "$SR_Lib"
-mkdir -p "$SR_Share"
+SHB_EnsureDirectory "$SR_Bin"
+SHB_EnsureDirectory "$SR_Include"
+SHB_EnsureDirectory "$SR_Lib"
+SHB_EnsureDirectory "$SR_Share"
 
 if [[ "$SHBuild_No3rd" == '' ]]; then
 	if [[ "$INCLUDES_freetype" != '' ]]; then

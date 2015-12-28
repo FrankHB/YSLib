@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r240
+\version r245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2014-12-14 22:07 +0800
+	2015-12-27 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ public:
 	DefDeCopyCtor(Bookmark)
 	DefDeMoveCtor(Bookmark)
 
-	//! \since build 399	
+	//! \since build 399
 	explicit
 	operator ValueNode::Container() const;
 };
@@ -105,9 +105,11 @@ public:
 	explicit
 	operator ValueNode::Container() const;
 
-	// !\since build 404
+	//! \since build 404
+	//@{
 	using GAccessList<Bookmark>::IsAtBegin;
 	using GAccessList<Bookmark>::IsAtEnd;
+	//@}
 
 	/*!
 	\brief 清除所有记录。

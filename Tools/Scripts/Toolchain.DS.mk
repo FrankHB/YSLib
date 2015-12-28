@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for DS toolchain
-# Version = r74
+# Version = r78
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2015-06-03 12:28 +0800
+# Updated = 2015-12-26 02:32 +0800
 # Encoding = ANSI
 
 
@@ -22,7 +22,11 @@ C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
 	-Wmissing-declarations -Wmissing-include-dirs -Wmultichar \
 	-Wno-format-nonliteral -Wredundant-decls -Wshadow
 # NOTE: Workaround for libnds: do not use '-Wdouble-promotion'.
-C_CXXFLAGS_IMPL_WARNING ?= -Wlogical-op -Wtrampolines 
+C_CXXFLAGS_IMPL_WARNING ?= -Wlogical-op -Wtrampolines
+
+# NOTE: It is redundant to emit code for thread-safe initialization since the \
+	implementation is with single thread model.
+C_CXXFLAGS_COMMON += -fno-threadsafe-statics
 
 # NOTE: Binary size is more important for DS. LTO is also disabled by default.
 ifneq ($(CONF),debug)

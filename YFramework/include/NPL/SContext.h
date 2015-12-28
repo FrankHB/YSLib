@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1438
+\version r1441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2015-12-12 02:01 +0800
+	2015-12-28 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,9 +64,8 @@ public:
 	Session(_tIn first, _tIn last, CharParser parse = DefaultParseByte)
 		: Lexer()
 	{
-		std::for_each(first, last, [&](char c){
-			parse(Lexer, c);
-		});
+		std::for_each(first, last,
+			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
 	}
 	template<typename _tRange,
 		yimpl(typename = ystdex::exclude_self_ctor_t<Session, _tRange>)>

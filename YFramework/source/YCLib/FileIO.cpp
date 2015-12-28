@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2174
+\version r2187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-12-15 12:23 +0800
+	2015-12-26 02:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,7 +163,7 @@ QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	QueryFileTime(ToHandle(fd), p_ctime, p_atime, p_mtime);
 }
 
-// TODO: Use ISO C++14 generic lambda expressions.
+// TODO: Blocked. Use ISO C++14 generic lambda expressions.
 yconstexpr const struct
 {
 	template<typename _tParam, typename... _tParams>
@@ -909,7 +909,10 @@ int
 upclose(std::FILE* fp) ynothrow
 {
 	YAssertNonnull(fp);
-#if YCL_Win32
+#if YCL_DS
+	errno = ENOSYS;
+	return -1;
+#elif YCL_Win32
 	return ::_pclose(fp);
 #else
 	return ::pclose(fp);
@@ -921,7 +924,10 @@ upopen(const char* filename, const char* mode) ynothrow
 {
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
-#if YCL_Win32
+#if YCL_DS
+	errno = ENOSYS;
+	return {};
+#elif YCL_Win32
 	YCL_Impl_RetTryCatchAll(::_wpopen(UTF8ToWCS(filename).c_str(),
 		UTF8ToWCS(mode).c_str()))
 	return {};
@@ -934,7 +940,10 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrow
 {
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
-#if YCL_Win32
+#if YCL_DS
+	errno = ENOSYS;
+	return {};
+#elif YCL_Win32
 	return ::_wpopen(wcast(filename), wcast(mode));
 #else
 	YCL_Impl_RetTryCatchAll(::popen(MakeMBCS(filename).c_str(),

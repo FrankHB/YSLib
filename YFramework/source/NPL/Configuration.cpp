@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r935
+\version r944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2015-07-30 22:28 +0800
+	2015-12-28 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,12 +44,16 @@ operator<<(std::ostream& os, const Configuration& conf)
 std::istream&
 operator>>(std::istream& is, Configuration& conf)
 {
-	Session sess;
-	char c;
+	using sb_it_t = std::istreambuf_iterator<char>;
+	// TODO: Validate for S-expression?
+	Session sess(sb_it_t(is), sb_it_t{});
 
-	while((c = is.get()), is)
-		Session::DefaultParseByte(sess.Lexer, c);
-	conf.root = LoadNPLA1(SContext::Analyze(std::move(sess)));
+	TryExpr(conf.root = LoadNPLA1(SContext::Analyze(std::move(sess))))
+	catch(...)
+	{
+		is.setstate(std::ios_base::failbit);
+		throw;
+	}
 	return is;
 }
 

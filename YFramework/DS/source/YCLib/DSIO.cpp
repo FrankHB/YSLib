@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r3809
+\version r3812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-12-05 13:10 +0800
+	2015-12-25 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -732,9 +732,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 	std::function<void(DEntry&)> add_entry, ClusterIndex& dclus)
 {
 	YAssertNonnull(sv.data());
-	if(sv.empty())
-		goto found_root;
-	if(sv.front() == YCL_PATH_DELIMITER)
+	if(!sv.empty() && sv.front() == YCL_PATH_DELIMITER)
 	{
 		const auto pos(sv.find_first_not_of(YCL_PATH_DELIMITER));
 

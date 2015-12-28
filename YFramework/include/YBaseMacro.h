@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2740
+\version r2747
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2015-11-23 15:38 +0800
+	2015-12-27 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,8 +148,8 @@ _t type
 //@{
 /*!
 \brief 定义默认析构函数。
-\note CWG defect 906 的解决禁止显式默认虚函数，但 CWG defect 1135
-	的解决撤销了这一限制。 ISO C++11 最终没有此限制。
+\note CWG906 的解决禁止显式默认虚函数，但 CWG1135 的解决撤销了这一限制。
+	ISO C++11 最终没有此限制。
 \note ISO C++11 不需要显式使用异常规范，可自动推导（参见 ISO C++11 12.4/3 ）。
 	显式异常规范导致使用隐式继承需要保证成员函数的异常规范限制。
 */
@@ -345,8 +345,8 @@ _t type
 \since build 161
 */
 //@{
-//! \since build 562
-#define YInterface struct
+//! \since build 662
+#define YInterface(_attr, _n) struct _attr _n
 
 #define implements public
 
@@ -361,14 +361,14 @@ protected: \
 \
 public:
 
-#define FwdDeclI(_n) YInterface _n;
+#define FwdDeclI(_n) YInterface(, _n);
 
 /*!
 \brief 定义接口类型。
 \since build 362
 */
 #define DeclI(_attr, _n) \
-	YInterface _attr _n \
+	YInterface(_attr, _n) \
 	YInterfaceHead(_n) \
 	virtual ~_n();
 
@@ -378,7 +378,7 @@ public:
 \since build 362
 */
 #define DeclDerivedI(_attr, _n, ...) \
-	YInterface _attr _n : __VA_ARGS__ \
+	YInterface(_attr, _n) : __VA_ARGS__ \
 	YInterfaceHead(_n) \
 	~_n() ImplI(__VA_ARGS__);
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1533
+\version r1536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-12-16 11:11 +0800
+	2015-12-20 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -623,13 +623,15 @@ ResolveReparsePoint(const wchar_t* path)
 				case IO_REPARSE_TAG_MOUNT_POINT:
 					return rdb->MountPointReparseBuffer.GetPrintName();
 				default:
+					YTraceDe(Warning, "Unsupported reparse tag '%lu' found",
+						rdb->ReparseTag);
 					ystdex::throw_error(std::errc::not_supported);
 				}
 			}
 			throw std::invalid_argument(
 				"Specified file is not a reparse point.");
 		}, h);
-	}, path, FileAttributesAndFlags::NormalWithDirectory));
+	}, path, FileAttributesAndFlags::NormalAll));
 }
 
 

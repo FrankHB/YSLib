@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1320
+\version r1324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-12-04 13:45 +0800
+	2015-12-04 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -557,7 +557,7 @@ public:
 		\li std::errc::no_such_file_or_directory
 			路径前缀的项或添加时指定的最终项不存在。
 		\li std::errc::not_a_directory 非目录项。
-	\note 路径相对于分区，无根前缀，空串路径视为根目录。
+	\note 路径相对于分区，无根前缀，空串路径视为当前工作目录。
 	\note 当最后一个参数非空时初始化和添加新文件并输出父目录簇，忽略第三参数。
 	\note 若添加项，长短文件名由 FindEntryGap 调用设置。
 	\since build 656
@@ -609,7 +609,7 @@ class FileInfo;
 
 /*!
 \brief FAT 分区。
-\note 成员函数参数路径默认相对于此分区，无根前缀，空串路径视为根目录。
+\note 成员函数参数路径默认相对于此分区，无根前缀，空串路径视为当前工作目录。
 \warning 除非另行约定，不保证并发读写安全。
 \todo 添加修改卷标的接口。
 */
@@ -890,7 +890,7 @@ public:
 		\li std::errc::not_a_directory 路径指定的不是目录。
 		\li std::errc::no_such_file_or_directory 路径指定的目录项不存在。
 		\li std::errc::io_error 查询项时读错误。
-	\note 路径相对于分区，无根前缀，空串路径视为根目录。
+	\note 路径相对于分区，无根前缀，空串路径视为当前工作目录。
 	\since build 656
 	*/
 	DirState(Partition&, string_view) ythrow(std::system_error);
@@ -958,7 +958,7 @@ public:
 		\lic std::errc::file_exists 要求创建不存在的文件但文件已存在。
 		\lic std::errc::read_only_file_system 创建文件但文件系统只读。
 		\lic std::errc::no_such_file_or_directory 文件不存在。
-	\note 路径相对于分区，无根前缀，空串路径视为根目录。
+	\note 路径相对于分区，无根前缀，空串路径视为当前工作目录。
 	\note 访问标识包含 O_RDONLY 、 O_WRONLY 或 O_RDWR 指定读写权限。
 	\note 锁定分区访问。
 	\since build 643

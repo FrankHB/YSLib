@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r821
+\version r823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-05-24 23:02 +0800
+	2015-12-26 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,11 +229,11 @@ public:
 	DefGetter(const ynothrow ImplI(AView), Point, Location,
 		View::GetBounds().GetPoint())
 	//! \since build 307
-	DefGetter(ynothrow, Point&, LocationRef, GetBounds().GetPointRef())
+	DefGetter(ynothrow, Point&, LocationRef, visual.Bounds.GetPointRef())
 	//! \since build 569
 	DefGetterMem(const ynothrow ImplI(AView), Size, Size, View::GetBounds())
 	//! \since build 307
-	DefGetterMem(ynothrow, Size&, SizeRef, GetBounds())
+	DefGetterMem(ynothrow, Size&, SizeRef, visual.Bounds)
 
 	DefSetter(override, SDst, Height, GetSizeRef().Height)
 	void

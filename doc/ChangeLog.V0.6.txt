@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r7436
+\version r7597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-12-21 10:11 +0800
+	2015-12-28 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,122 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "function %ResolveReparsePoint" @ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ "trace with level 'Warning'" @ "unspported tag",
+			* "opened reparse point already resolved" $since b558
+		),
+		* $comp "resolved link target instead of link" @ "platform %Win32"
+			@ "function %ReadLink" $since b558 $dep_from
+			("%ResolveReparsePoint" @ %'YCLib_(Win32)'.MinGW32),
+		/ %YBaseMacro $=
+		(
+			/ "required explicit 2 arguments for attribute list and interface \
+				name" @ "macro %YInterface";
+			/ $forced DLDI "macros %(FwdDeclI, DeclDerivedI)"
+		),
+		/ %YCLib $=
+		(
+			/ $impl "made trailing normailzation of paths earlier than call to \
+				%::opendir" @ "constructor %DirectorySession"
+				@ !"platform %Win32" @ %FileSystem,
+			/ "directly failed and set %errno to %ENOSYS" @ "platform %DS"
+				@ "functions %(upopen, upclose)" @ %FileIO,
+			+ "functions %(IsAssignableFrom, IsInstanceOf, IsSameObject)"
+				@ "class %JNIBase" @ %JNI
+		),
+		/ $revert(b655) "directory resolving empty string" %'YCLib_(DS)'.DSIO
+			$dep_from %YCLib.FileSystem $=
+		(
+			/ "treated empty path as current working directory" ~ "root entry"
+				@ "constructor %DEntry with path resolution",
+			/ $forced $doc "explicitly specified empty path string for 1st \
+				parameter would be treated as current working directory"
+				@ "constructors %(FileInfo, DirState), class%Partition)"
+		),
+		/ %YSLib $=
+		(
+			* $revert(b440) "returned lvalue reference bound on temporary"
+				@ "member functions %View::(GetLocationRef, GetSizeRef)"
+				@ %UI.YWidgetView $since b569,
+				// To eliminate warning: [-Wreturn-local-addr].
+			+ DLD 'YB_ATTR(returns_nonnnull)' @ "allocation functions which \
+				may throw" @ "'#if 0' code" @ %YSLib.Adaptor.YNew
+		),
+		/ %Helper $=
+		(
+			+ $doc "comments" @ "class %InputManager" @ %InputManager,
+			/ DLDI "simplified function %LoadNPLA1File" @ %Initialization
+				!^ "%std::ios_base::in"
+		),
+		/ %NPL $=
+		(
+			/ DLDI "simplified constructor template %SContext with iterator \
+				pair" @ %SContext ^ "%std::bind",
+			/ @ "function %operator>> for %Configuration" @ %Configuration $=
+			(
+				/ DLDI "simplified" ^ "%std::istreambuf_iterator"
+					~ "%std::istream::get",
+				* "missing set %std::ios_base::failbit on failure" $since b619
+			)
+		)
+	),
+	/ @ %Tools.Scripts $=
+	(
+		/ @ "install-sysroot.sh" $=
+		(
+			+ "function %SHB_EnsureDirectory"
+				^ '$SHBuild_S1_SHBuild -xcmd,EnsureDirectory';
+			/ "all 4 'mkdir -p'" -> 'SHB_EnsureDirectory'
+		),
+		+ 'C_CXXFLAGS_COMMON += -fno-threadsafe-statics' @ "%Toolchain.DS.mk"
+			// See $2015-12 @ %Documentation::Workflow::Annual2015.
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %Mixin $=
+			(
+				/ DLDI "simplified metafunction %wrap_mixin_t",
+				* $re_add(b644) DD "missing '!'" @ "end of '/*'" @ "multiline \
+					Doxygen comments" @ "class template %mixin" $since b477
+			),
+			/ $re_ex(b655) "switched to workaround" @ 'YB_IMPL_GNUCPP == 50300'
+				@ %Operators,
+			+ 'ynothrow' @ "all 3 functions %(iswprint, iswspace, iswgraph)"
+				@ %CWideCharacterType
+		),
+		* DLD "mixed EOL markers" @ %LibDefect.CMath $since b556 $=
+			(/ $re_add(b431) "all EOL markers are normalized as CR+LF")
+	),
+	/ DLP "toolchain and library using" @ "platform %DS" $=
+	(
+		// See $2015-12 @ %Documentation::Workflow::Annual2015. 
+		^ $re_ex(b558) "updated devkitARM release 45"
+			~ "devkitARM release 44" $dep_from %(YBase.YStandardEx.Operators,
+				"%upopen" @ %YCLib.FileIO),
+			// Now there are no %::popen definition provided by devkitARM.
+		^ $re_ex(b558) "updated libnds 1.5.12" ~ "libnds 1.5.10"
+	),
+	/ %YReader $=
+	(
+		/ DD %ReadingList $=
+		(
+			- $design "redundant trailing '\t'"
+				@ "function %operator ValueNode::Container" @ "class %Bookmark",
+			* "invalid Doxygen comments" @ "%(IsAtBegin, IsAtEnd)"
+				@ "class %ReadingList" $since b404
+		),
+		- "redundant ';' after in-class member function definition \
+			%DualScreenReader::BufferReady" @ %DSReader
+	)
+),
+
+b661
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1074,16 +1190,13 @@ b655
 			/ "constructor with path resolution" @ "class %DEntry"
 				-> "2 constructors" ^ $dep_from "%LeafAction" $=
 			(
-				+ "treating empty path as root entry" ~ "current directory"
-					$dep_to "empty directory path handling",
+				/ "treated empty path as root entry" ~ "current working \
+					directory" $dep_to "empty directory path handling",
 				+ "optional throwing exception when action is specified as \
 					%LeafAction::ThrowExisted and entry is existed",
 				+ "optional throwing exception when action is specified as \
 					%LeafAction::EnsureDirectory and directory entry is \
-					nonexisted",
-				+ "treated path as one single slash if empty" $dep_from
-					"directory state empty path assertion" $dep_to
-					"handling null string path"
+					nonexisted"
 			),
 			/ DLDI "simplified member function %Partition::ChangeDir, \
 				private constructor %DEntry, constructor %DirState#2"
@@ -1103,10 +1216,10 @@ b655
 				)
 			),
 			/ 'ynothrow' @ "function %FetchPartitionFromPath" -> 'ynothrowv',
-			/ $doc "explicitly specified empty path string for (1st) parameter \
-				would be treated as root directory" @ "constructor %FileInfo, \
-				member functions %Partition::(ChangeDir, Rename, MakeDir)"
-				$dep_from "handling null string path",
+			/ $forced $doc "explicitly specified empty path string for 1st \
+				parameter would be treated as root directory"
+				@ "constructors %(FileInfo, DirState), class%Partition)"
+				$dep_from "empty directory path handling",
 			/ @ "device table handling" $=
 			(
 				* $impl "wrong 'ynothrowv' for locking failure" $since b611,
@@ -2454,7 +2567,8 @@ b644
 		/ %NPL.Lexical $=
 		(
 			/ DLDI 'using platform::byte;' -> 'using YSLib::byte;',
-			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
+			* $re_add(b642) DD "missing '!'" @ "end of '/*'"
+				@ "multiline Doxygen comments"
 				@ "member functions %LexicalAnalyzer::'Parse*'" $orig
 				(@ "member function %LexicalAnalyzer::ParseByte" $since b207)
 		),
@@ -2464,8 +2578,9 @@ b644
 			(
 				+ 'usint ystdex::nullptr_t'
 					@ "inline namespace %platform::basic_types",
-				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
-					comments" @ "macro %YCL_Device_Cursor_FixedKey" $since b436
+				* $re_add(b642) DD "missing '!'" @ "end of '/*'"
+					@ "multiline Doxygen comments"
+					@ "macro %YCL_Device_Cursor_FixedKey" $since b436
 			),
 			/ "parameter type 'std::nullptr_t'" -> 'nullptr_t'
 				@ "constructor#3 %FileDescriptor" @ %FileIO
@@ -2600,9 +2715,9 @@ b642
 				// Though LWG2234 still counts for 'yassume', blocked by \
 					%(__func__, __PRETTY_FUNCTION__): 'body of constexpr \
 					function not a return-statement'.
-			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				@ "function templates %(for_each_equal, for_each_if)" $since
-				b532
+			* $re_add(b641) DD "missing '!'" @ "end of '/*'" @ "multiline \
+				Doxygen comments" @ "function templates %(for_each_equal, \
+				for_each_if)" $since b532
 		),
 		* "missing functions (2 %operator==, %operator<) for %basic_string_view"
 			@ %StringView $since b640,
@@ -2911,12 +3026,13 @@ b641
 		$effective %YFramework.YSLib.(Core.YString, Service.FileSystem) $dep_to
 		"removal of %ucs2string",
 	/ DLDI %YReader.(DSReader, ShlExplorer) ^ 'char32_t' ~ 'ucs4_t';
-	* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments" @ ("enum \
-		%Encoding" @ %CHRLib.Encoding $since b249, (("class %TextFileBuffer"
-		$since b272, "%operator!= for %TextFileBuffer::iterator" $since b460)
-		@ %TextManager, ("function %GetContext" @ "class template \
-		%GTextRendererBase" $since b566, "constructor %TextRenderer#2"
-		$since b265) @ %TextRenderer) @ %YSLib.Service) @ %YFramework,
+	* $re_add(b639) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+		comments" @ ("enum %Encoding" @ %CHRLib.Encoding $since b249, (("class \
+		%TextFileBuffer" $since b272, "%operator!= for \
+		%TextFileBuffer::iterator" $since b460) @ %TextManager, ("function \
+		%GetContext" @ "class template %GTextRendererBase" $since b566,
+		"constructor %TextRenderer#2" $since b265) @ %TextRenderer)
+		@ %YSLib.Service) @ %YFramework,
 	/ $dev $repo $re_add(b640) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.CHRLib.("%chrdef.h" => "%CharacterDefinition.h")
@@ -3198,7 +3314,7 @@ b639
 						GetFileModificationAndAccessTimeOf)"
 						@ "namespace %YSLib" >> "namespace %YSLib::IO"
 				),
-				* DD "missing '!'" @ "end of '/*'"
+				* $re_add(b638) DD "missing '!'" @ "end of '/*'"
 					@ "multiline Doxygen comments" @ "namespace %YSLib" $since
 					b265
 			),
@@ -3237,9 +3353,10 @@ b639
 						/ DLDI "simplified path opertions" @ "constructo, \
 							function %GetPath without parameters" ^ "%GetPath"
 					),
-					* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
-						comments" @ "protected data member %pTetList" $since
-						b534 $orig (@ "%lstText" $since b282) @ "class %ListBox"
+					* $re_add(b638) DD "missing '!'" @ "end of '/*'"
+						@ "multiline Doxygen comments" @ "protected data member \
+						%pTetList" $since b534 $orig (@ "%lstText" $since b282)
+						@ "class %ListBox"
 				)
 			)
 		)
@@ -3349,8 +3466,8 @@ b638
 		/ %YDefinition $=
 		(
 			+ "macros %(yfname, yfsig)";
-			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				@ "macros %(YPP_Concat, YPP_Join)" $orig
+			* $re_add(b637) DD "missing '!'" @ "end of '/*'" @ "multiline \
+				Doxygen comments" @ "macros %(YPP_Concat, YPP_Join)" $orig
 				(@ "macros %(yjoin, yJOIN)" $since b409)
 		),
 		/ %YStandardEx $=
@@ -3358,8 +3475,9 @@ b638
 			/ %CStandardIO $=
 			(
 				+ $dev 'YB_PURE' @ "all 2 functions %openmode_conv",
-				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
-					comments" @ ("all 2 functions %openmode_conv" $since b326,
+				* $re_add(b637) DD "missing '!'" @ "end of '/*'"
+					@ "multiline Doxygen comments"
+					@ ("all 2 functions %openmode_conv" $since b326,
 					"member function %ifile_iterator::operator++" $since b301)
 			)
 			/ DLDI @ %CString $=
@@ -3389,8 +3507,8 @@ b637
 					/ "inline function %ConvertToMBCS" -> "non-inline function",
 					- $revert(b538) "static assertions for %CHRLib types"
 				),
-				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
-					comments" @ ("macros %(YCL_FS_StringIsCurrent, \
+				* $re_add(b633) DD "missing '!'" @ "end of '/*'" @ "multiline \
+					Doxygen comments" @ ("macros %(YCL_FS_StringIsCurrent, \
 					YCL_FS_StringIsParent, YCL_FS_CharIsDelimiter, \
 					YCL_FS_StringIsRoot)" $since b409, ("enum \
 					%EntryData::Offsets" $since b609, "alias %VolumeLabel"
@@ -3726,8 +3844,8 @@ b633
 				+ 'ynothrow' @ "functions %(ConvertToErrno, GetErrnoFromWin32)",
 				+ 'YB_STATELESS' @ "function %ConvertToErrno"
 			),
-			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				@ ("class %WConsole" $since b304,
+			* $re_add(b632) DD "missing '!'" @ "end of '/*'"
+				@ "multiline Doxygen comments" @ ("class %WConsole" $since b304,
 				"enum %WConsole::Style" $since b519) @ %Consoles
 			+ %Registry
 		),
@@ -3805,8 +3923,8 @@ b632
 				// %FILE_ATTRIBUTE_DEVICE is reserved, thus should not be \
 					used. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/gg258117(v=vs.85).aspx.
 		),
-		* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-			@ ("functions 'u*'" $orig (@ %FileSystem $since b476),
+		* $re_add(b630) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+			comments" @ ("functions 'u*'" $orig (@ %FileSystem $since b476),
 			"functions 'omode_conv*'" $since b617, ("%(FullWrite, GetSize)"
 			$since b624, "'Get*Time'" $since b628) @ "member functions"
 			@ "class %FileDescriptor")
@@ -3814,8 +3932,8 @@ b632
 	/ %MinGW32 $=
 	(
 		* "missing 'const'" @ "parameter" @ "function %ConvertTime" $since b544,
-		* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-			@ "class %DirectoryFindData" $since b549,
+		* $re_add(b630) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+			comments" @ "class %DirectoryFindData" $since b549,
 		(
 		+ "enum %FileAttributesAndFlags";
 		+ 'DefBitmaskEnum(FileAttributesAndFlags)';
@@ -7150,9 +7268,9 @@ b600
 		(
 			^ $re_ex(b558) "updated devkitARM release 44"
 				~ "devkitARM release 43",
-			^ $re_ex(b558) "updated libnds 1.5.8" ~ "libnds 1.5.7",
-			^ $re_ex(b558) "updated default arm7 0.5.25"
-				~ "default arm7 0.5.24",
+			^ $re_ex(b558) "updated libnds 1.5.10" ~ "libnds 1.5.9",
+			^ $re_ex(b558) "updated default arm7 0.5.27"
+				~ "default arm7 0.5.26",
 			^ $re_ex(b558) "updated libfat 1.0.12" ~ "libfat 1.0.11";
 			/ $re_ex(b520) "recompiled library %FreeImage" $dep_from
 				"updated library %FreeImage"
