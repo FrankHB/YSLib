@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3097
+\version r3098
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-12-11 21:47 +0800
+	2015-12-28 15:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,7 +391,7 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 
 @4.6.3 内容类型接口 ContentType
 检查和访问特定内容类型的接口。
-当前支持 MIME 类型和文件扩展名的双向映射，基于 NPLA1 配置([Documentation::NPL @@5.8]) 实现 ，但初始化逻辑在 Helper::Initialization 中。
+当前支持 MIME 类型和文件扩展名的双向映射，基于 NPLA1 配置([Documentation::NPL @@5.6]) 实现 ，但初始化逻辑在 Helper::Initialization 中。
 支持外部配置文件。默认外部配置位于 "Data/MIMEExtMap.txt" ，内容由 https://github.com/dvv/mimetypes/blob/master/priv/mime.types 转换，并进行以下修正：
 修正 text/plain 扩展名 "ini" ；
 修正 text/x-c 的扩展名；

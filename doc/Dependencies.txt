@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r616
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2015-08-29 22:26 +0800
+	2015-12-22 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,11 +40,11 @@
 至少支持 std::placeholders::_7 （按 ISO C++11 Annex B [implimits] ，符合标准的下限为 10 ）。
 当前仅经过实际验证支持的实现包括 G++ 4.8.2 或以上版本。
 除以上列出外的其它实现不保证支持。
-未来可能会提升实现的最低支持版本要求，并移除针对特定版本的 workaround 代码。
+未来可能会提升实现的最低支持版本要求，并移除针对特定版本的变通(workaround) 代码。
 本节内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
 
 @1.2 YBase ：
-YBase 版本 b452-b589 （包括若干 workaround ） 非正式支持 Microsoft Visual C++ 2013 ：
+YBase 版本 b452-b589 （包括若干变通） 非正式支持 Microsoft Visual C++ 2013 ：
 仅保证编译成功；
 已知 ystdex::pod_storage::operator= 等使用递归重载会被错误地递归调用因此导致相关接口如 ystdex::any 不可用；
 b590 起开始依赖 std::integral_constant 实例的 constexpr 成员函数 operator() ，放弃支持。
@@ -90,7 +90,7 @@ devkitARM release 29 / libnds 1.4.3 / default arm7 0.5.12 / libfat 1.0.7 。
 2010-04-06 起：
 devkitARM release 30 。
 2010-05-09 起：
-集成 ARM7 代码，不使用 default arm7 。
+集成 ARM7 代码，不再依赖 default arm7 。
 2010-08-08(build 139) 起：
 devkitARM release 31 / libnds 1.4.5 。
 2010-11-18(build 171) 起：
@@ -100,7 +100,7 @@ libnds 1.4.9 。
 2011-02-16(build 192) 起：
 libnds 1.5.0 / libfat 1.0.9 。
 2011-06-24(build 221) 起：
-devkitARM release 33 / libnds 1.5.0 。
+devkitARM release 33 。
 注：文件系统目录访问接口变化，需要使用 devkitARM release 33 或自行配置所需的 POSIX API 。
 2011-07-03(build 223) 起：
 libnds 1.5.1 。
@@ -128,6 +128,10 @@ devkitARM release 42 / libnds 1.5.8 / libfat 1.0.12 。
 devkitARM release 43 / libnds 1.5.9 / libfat 1.0.13 。
 2015-05-25(build 600) 起：
 devkitARM release 44 / libnds 1.5.10 / libfat 1.0.14 。
+2015-07-01(build 611) 起：
+集成 DSIO 实现 FAT ，不再依赖 libfat 。
+2015-12-22(build 662) 起：
+devkitARM release 45 / libnds 1.5.12 。
 
 @1.4.1 DS 平台构建说明：
 需要使用宏 DEVKITARM 指定 devkitARM 的路径。
@@ -160,30 +164,43 @@ mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼�
 2014-04-15(build 493) 起：
 基础环境更改参见 @1.3 。
 使用包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.8.2-7 。
+使用包 mingw32/mingw-w64-i686-headers-svn 版本 4.0.0.6558-1 。
 使用包 mingw32/mingw-w64-i686-crt-svn 版本 4.0.0.6568-1 。
+使用包 mingw32/mingw-w64-i686-winpthreads-svn 和 mingw32/mingw-w64-i686-libwinpthread-svn 版本 4.0.0.6486-1 。
 使用的工具链版本、线程模型和异常模型及外部库的依赖和之前保持一致，因此二进制兼容。
 2014-05-28(build 499) 起：
-使用包 mingw32/mingw-w64-i686-crt-git 版本 4.0.0.4044.502c720-1 代替包 mingw32/mingw-w64-i686-crt-svn 。
+使用以下版本 4.0.0.4044.502c720-1 的包：
+使用包 mingw32/mingw-w64-i686-headers-git 代替包 mingw32/mingw-w64-i686-crt-svn 。
+使用包 mingw32/mingw-w64-i686-crt-git 代替包 mingw32/mingw-w64-i686-headers-svn 。
+使用包 mingw32/mingw-w64-i686-winpthreads-svn 代替包 mingw32/mingw-w64-i686-winpthreads-svn 。
+使用包 mingw32/mingw-w64-i686-libwinpthread-svn 代替包 mingw32/mingw-w64-i686-libwinpthread-svn 。
 2014-07-19(build 520) 起：
 升级包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.9.1-1 。
+升级包 mingw32/mingw-w64-i686-headers-git 、 mingw32/mingw-w64-i686-crt-git 、 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 4.0.0.4091.09564a0-1 。
 使用包 mingw32/mingw-w64-i686-nasm 版本 2.11.02-1 代替外部依赖项 NASM 。
 2014-10-01(build 539) 起：
 去除了 -ffat-lto-objects 编译选项（默认 GCC 4.9 不包括此选项），启用 -flto 时要求 ar 支持插件。
 需要使用 MSYS2 的 mingw-w64-i686-binutils-git 带插件支持的链接器（已测试包 mingw32/mingw-w64-i686-binutils-git 版本 2.24.78559.d43808f-1 的 GNU ar 2.24.0.20140810 可用），参见 http://sourceforge.net/p/msys2/tickets/62/ 。
 2014-12-19(build 560) 起：
+升级包 mingw32/mingw-w64-i686-headers-git 版本 4.0.0.4374.811484d-1 。
 升级包 mingw32/mingw-w64-i686-crt-git 版本 4.0.0.4376.d6916b1-1 。
-2014-12-19(build 560) 起：
-升级包 mingw32/mingw-w64-i686-crt-git 版本 4.0.0.4402.95c900f-1 。
+升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 4.0.0.4370.d008dc5-1 。
+2015-01-11(build 565) 起：
+升级包 mingw32/mingw-w64-i686-headers-git 、 mingw32/mingw-w64-i686-crt-git 、 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 4.0.0.4402.95c900f-1 。
+2015-04-30(build 595) 起：
+升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 5.0.0.4497.4254261-1 。
 2015-05-07(build 596) 起：
+升级包 mingw32/mingw-w64-i686-headers-git 和 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4501.4421b4a-1 。
 使用包 mingw32/mingw-w64-i686-binutils 版本 2.25-3 代替包 mingw32/mingw-w64-i686-binutils-git （测试可用 LTO 插件支持）。
-升级包 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4501.4421b4a-1 。
 2015-05-25(build 600) 起：
 升级包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.9.2-5 。
 升级包 mingw32/mingw-w64-i686-binutils 版本 2.25-4 。
 使用包 mingw32/mingw-w64-i686-yasm 版本 1.3.0-1 代替包 mingw32/mingw-w64-i686-nasm 。
 2015-08-08(build 622) 起：
+之前 pacman 仓库为 MINGW ，升级 GCC 后批量升级包。旧仓库最终迁移至 MINGW_GCC_4_9 ： http://sourceforge.net/projects/msys2/files/REPOS/MINGW_GCC_4_9/i686/ 。
 升级包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 5.2.0-3 。
-升级包 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4531.49c7046-1 。
+升级包 mingw32/mingw-w64-i686-headers-git 和 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4531.49c7046-1 。
+升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 5.0.0.4538.78dca70-1 。
 升级包 mingw32/mingw-w64-i686-binutils 版本 2.25.1-1 。
 
 @1.5.1 MinGW32 库部署：
@@ -219,13 +236,14 @@ Android SDK Build-tools 20.0.0 。
 注意 zipalign 工具自 19.1.0 起已被移入 Build-tools 。
 2014-11-15(build 554) 起：
 Oracle JDK 8u25 x64 / Android NDK r10c x86_64 / Android SDK Build-tools 21.1.1 。
-重新构建独立工具链。
-使用 G++ 4.9 ；使用 gnu-ar 代替 ar 。
+重新构建独立工具链。使用 G++ 4.9 （版本 4.9 20140827 (prerelease) ）；使用 gcc-ar 代替 ar 。
 
 @1.7 MinGW64 平台工具链和标准库实现：
 除非以下说明，配置同 MinGW32(@1.5) 。
 目标为 x86_64-w64-mingw32 ，操作系统 Windows XP x64/Windows Server 2003 x64 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
-2014-07-22(build 520) 起非正式支持 mingw64/mingw-w64-x86_64-gcc 版本 4.9.1-1 （对 YFramework 仅支持静态链接）。
+2014-07-22(build 520) 起非正式支持：
+使用包 mingw64/mingw-w64-x86_64-gcc 和 mingw64/mingw-w64-x86_64-gcc-libs 版本 4.9.1-1 （对 YFramework 仅支持静态链接）。
+使用包 mingw32/mingw-w64-i686-headers-git 、 mingw32/mingw-w64-i686-crt-git 、 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 4.0.0.4091.09564a0-1 。
 使用包 mingw64/mingw-w64-x86_64-FreeImage 3.16.0-3 和 mingw64/mingw-w64-x86_64-freetype 2.5.3-2 未另行编译并静态链接至 YFramework 内。
 
 @1.8 Linux x86 平台工具链和标准库实现：
@@ -235,7 +253,7 @@ build 562 前：
 无（不支持的平台）。
 2014-12-16(build 560) 起：
 非正式支持。
-仅用于构建 stage1 SHBuild （未测试）。
+仅用于构建 stage 1 SHBuild （未测试）。
 2014-12-24(build 562) 起：
 非正式支持。
 仅用于构建 FreeImage （未测试）。
@@ -251,11 +269,11 @@ build 560 前：
 使用包 extra/clang 版本 3.5.0-2.1，包括以下依赖：
 直接依赖： extra/llvm 版本 3.5.0-2.1；
 间接依赖： extra/llvm-libs 版本 3.5.0-2.1 、 core/gcc 版本 4.9.2-1 和 core/gcc-libs 版本 4.9.2-1。
-仅用于构建 stage1 SHBuild 。
+仅用于构建 stage 1 SHBuild 。
 包 gcc-4.9.2-1 会导致段错误，当前不被支持。
 2014-12-26(build 562) 起：
 使用包 extra/nasm 版本 2.11.06-1，仅用于构建 FreeImage 。
-使用包 gcc 测试构建 stage1 SHBuild 以外的项目。
+使用包 gcc 测试构建 stage 1 SHBuild 以外的项目。
 2015-05-27(build 601) 起：
 升级包 core/binutils 版本 2.25-5 。
 升级包 extra/clang 版本 3.6.1-1，包括以下依赖：

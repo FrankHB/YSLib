@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r709
+\version r730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2015-08-25 11:39 +0800
+	2015-12-28 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@
 名称(name) ：一种特殊的广义实体，用于指称另一个广义实体。
 实体(entity) ：非名称的广义实体。
 语言实现(language implementation) ：语言提供的接口的实现，是语言的表现形式，可以是具体语言实现或抽象语言实现之一。
-具体语言实现(concreate language implementation) ：在机器上能够最终表达为指令流或其它形式表达可计算性的实现，一般应为程序。
+具体语言实现(concreate language implementation) ：能最终完全表达为可预测的物理现象一一对应的表达可计算性的实现（如机器指令），一般应为程序。
 抽象语言实现(abstract language implementation) ：非具体语言实现的语言实现。形式意义的标准定义的语言属于此类。
 派生语言实现(derived language implementation) ：派生已有实现的部分或全部得到的语言实现。以下简作“派生实现”。
 代码(code)：任意有限的语言的实例片段。
@@ -456,46 +456,40 @@ NPLA 的参考实现 NPLA1 是具体语言实现，约定特定于当前参考�
 规范形式(@4.4.1) 是特定类型的 C++ 对象。
 一字节占用的位和宿主环境一致（至少占用 8 个二进制位）。
 
-@5.3 NPLA1 约定：
-NPLA1 的规范形式(@4.4.1) 使用宿主语言的单一节点类型作为多个阶段的规范形式的实现。
-仅使用宿主语言的类型和值作为状态。类型等价性由 C++ 定义。值等价性由宿主实现的 == 表达式的结果定义。
-当前不特别约定类型系统，所有类型都是同宿主类型的空字符结尾的字符串（ C++ NTCTS ）。
-
-@5.3.1 宿主实现类型：
+@5.3 NPLA 公共实现：
+词法分析参见 @3.3.4 和参考实现 NPL::Lexical 。
+语法分析参考实现 NPL::SContext 。
+派生实现可能检查更多语法规则。
+抽象语法树以 ValueNode 类型表示。
 规范形式单一节点以 ValueNode 类型表示。
 名称以 string 类型表示。
 以上类型都在 namespace NPL 中声明，从 namespace YSLib 引入。
 关于 YSLib::ValueNode， 参见 [Documentation::YSLib @@3.16] 。
 
-@5.4 NPLA1 词法分析实现：
-参见 @3.3.4 和参考实现 NPL::Lexical 。
-
-@5.5 NPLA1 语法分析实现：
-派生实现可能检查更多语法规则。
-抽象语法树以 ValueNode 类型表示。
-
-@5.6 NPLA1 附加规则：
+@5.4 NPLA1 约定：
+NPLA1 的规范形式(@4.4.1) 使用宿主语言的单一节点类型作为多个阶段的规范形式的实现。
+仅使用宿主语言的类型和值作为状态。类型等价性由 C++ 定义。值等价性由宿主实现的 == 表达式的结果定义。
+当前不特别约定类型系统，所有类型都是同宿主类型的空字符结尾的字符串（ C++ NTCTS ）。
+附加规则：
 当前仅支持标识符(@3.3.1) 作为名称。
 当前要求函数是名称（不支持表达 λ 抽象，只通过宿主引入）。
 函数的求值结果被宿主实现以 ValueNode 表示为 string 类型或 ValueNode 类型的节点。
 
-@5.7 NPLA1 解释实现：
+@5.5 NPLA1 解释实现：
 NPL::TransformNPLA1 通过 ValueNode 变换实现解释，参数指定映射例程，结果为 NPL 序列语义结构。
 复合表达式中的经过节点到字符串的映射例程被解释为序列语义结构的名称，余下的项一一映射为子节点。
 变体 NPL::TransformNPLA1Sequence 使用 NodeSequence 代替 ValueNode::Container 作为结果中子节点的容器，其它行为和 NPL::TransformNPLA1 相同。
 
-@5.8 应用实例：
-
-@5.8.1 NPLA1 应用实例：
+@5.6 NPLA1 应用实例：
 NPLA1 当前加入特定的序列化和反序列化作为配置文件，参见 NPL::Configuration 。
 NPLA1 的上述配置文件加入特定的匹配和初始化机制作为 YSLib::UI::Loader([Documenatation::YSLib @@5.6.8]) 在运行时读取用户界面布局和配置的脚本。
 NPLA1 用于 MIME 类型和文件名映射([Documentation::YSLib @@4.6.3]) 的实现，上述配置文件对应的外部配置格式。
+NPL::SXML 命名空间提供的 API 部分支持以 NPLA1 分析 SXML 及构造 NPLA1 表示的节点并转换为 XML 输出。
 
-@5.8 NPL 其它实现应用实例：
-NPL 自定义分析器被用于 Tools::SHBuild 解析 GCC 输出的兼容 GNU make 包含依赖字符串。
-NPL 部分支持分析 SXML 并转换为 XML 输出。
+@5.7 NPLA 其它实现应用实例：
+NPL 自定义分析器被用于 NPL::DecomposeMakefileDepList 实现解析 GCC 输出的兼容 GNU make 包含依赖字符串。
 
-@5.9 兼容性：
+@5.8 兼容性：
 除非在此另行约定， YSLib 中的 NPL 实现保持兼容。
 影响向前兼容的变更：
 b449 增加对多个未命名节点（叶节点或首个子节点未能解析为名称的分支节点）作为非名称子节点时的反序列化支持。多个值会被以 $ 前缀接序号（从 0 起始）命名。之前的版本中读取的节点名称为空串，值被覆盖为第一个节点值。

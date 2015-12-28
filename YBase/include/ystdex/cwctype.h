@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file cwtype.h
+/*!	\file cwctype.h
 \ingroup YStandardEx
 \brief ISO C 宽字符分类操作扩展。
-\version r72
+\version r78
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 15:34:34 +0800
 \par 修改时间:
-	2014-08-04 05:09 +0800
+	2015-12-27 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 namespace ystdex
 {
 
-//! \since build 513
+//! \since build 662
 //@{
 /*!
 \brief 区域无关的 std::isprint 实现。
@@ -43,7 +43,7 @@ namespace ystdex
 \sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
 */
 YB_API bool
-iswprint(wchar_t);
+iswprint(wchar_t) ynothrow;
 
 /*!
 \brief 区域无关的 std::iswspace 实现。
@@ -52,14 +52,14 @@ iswprint(wchar_t);
 \since build 514
 */
 YB_API bool
-iswspace(wchar_t);
+iswspace(wchar_t) ynothrow;
 
 /*!
 \brief 区域无关的 std::iswgraph 实现。
 \see ISO C11 7.30.2.1.6 。
 */
 inline bool
-iswgraph(wchar_t wc)
+iswgraph(wchar_t wc) ynothrow
 {
 	return !iswspace(wc) && iswprint(wc);
 }

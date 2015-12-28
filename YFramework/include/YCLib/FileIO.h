@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1828
+\version r1831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-12-14 23:34 +0800
+	2015-12-26 02:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,7 +159,7 @@ CategorizeNode(mode_t) ynothrow;
 \note 除非另行约定，无异常抛出的操作使用值初始化的返回类型表示失败结果。
 \note 以 \c int 为返回值的操作返回 \c -1 表示失败。
 \note 满足 NullablePointer 要求。
-\see ISO WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
+\see WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
 \since build 565
 */
 class YF_API FileDescriptor : ystdex::totally_ordered<FileDescriptor>
@@ -560,6 +560,7 @@ ufexists(const char16_t*) ynothrow;
 \brief 关闭管道流。
 \param 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
 \pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
+\note DS 平台：不支持操作，总是失败并设置 errno 为 ENOSYS 。
 \since build 566
 */
 YF_API YB_NONNULL(1) int
@@ -573,6 +574,7 @@ upclose(std::FILE*) ynothrow;
 \pre 断言：\c filename 。
 \pre 间接断言： \c mode 。
 \warning 应使用 upclose 而不是 std::close 关闭管道流，否则行为可能未定义。
+\note DS 平台：不支持操作，总是失败并设置 errno 为 ENOSYS 。
 \since build 566
 */
 //@{

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cmath.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<cmath\> 修正。
-\version r399
+\version r412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2014-11-24 06:53:27 +0800
 \par 修改时间:
-	2014-11-24 08:15 +0800
+	2015-12-27 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,7 +152,7 @@ namespace std _GLIBCXX_VISIBILITY(default)
 	using ::float_t;
 #endif
 
-// TODO: Detecting "having long double" instead.
+// TODO: Deferred. How to detect if 'long double' available?
 #	define YB_LibDefect_CMath_using_f(_fn) \
 	using ::_fn; \
 	using ::_fn##f;
@@ -384,7 +384,7 @@ namespace std _GLIBCXX_VISIBILITY(default)
 	YB_LibDefect_CMath_builtin(scalbn, __x, __ex)
 
 	YB_LibDefect_CMath_fns(tgamma)
-	
+
 	YB_LibDefect_CMath_fns(trunc)
 
 #undef YB_LibDefect_CMath_fns

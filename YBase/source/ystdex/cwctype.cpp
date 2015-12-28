@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file cwtype.cpp
+/*!	\file cwctype.cpp
 \ingroup YStandardEx
 \brief ISO C 宽字符分类操作扩展。
-\version r61
+\version r68
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 15:36:20 +0800
 \par 修改时间:
-	2014-07-18 15:36 +0800
+	2015-12-27 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,10 @@ namespace ystdex
 {
 
 bool
-iswprint(wchar_t wc)
+iswprint(wchar_t wc) ynothrow
 {
-	// TODO: See https://www.sourceware.org/cgi-bin/cvsweb.cgi/src/newlib/libc/ctype/iswprint.c?cvsroot=src .
-	// NOTE: See http://git.musl-libc.org/cgit/musl/tree/src/ctype/iswprint.c .
+	// TODO: See https://www.sourceware.org/cgi-bin/cvsweb.cgi/src/newlib/libc/ctype/iswprint.c?cvsroot=src.
+	// NOTE: See http://git.musl-libc.org/cgit/musl/tree/src/ctype/iswprint.c.
 	const auto c = unsigned(wc);
 
 	if(c < 0xFFU)
@@ -46,9 +46,9 @@ iswprint(wchar_t wc)
 }
 
 bool
-iswspace(wchar_t wc)
+iswspace(wchar_t wc) ynothrow
 {
-	// NOTE: See https://www.sourceware.org/cgi-bin/cvsweb.cgi/src/newlib/libc/ctype/iswprint.c?cvsroot=src .
+	// NOTE: See https://www.sourceware.org/cgi-bin/cvsweb.cgi/src/newlib/libc/ctype/iswprint.c?cvsroot=src.
 	return (wc >= 0x0009 && wc <= 0x000D) || wc == 0x0020 || wc == 0x1680
 		|| wc == 0x180e || (wc >= 0x2000 && wc <= 0x200A && wc != 2007)
 		|| wc == 0x2028 || wc == 0x2029 || wc == 0x205F || wc == 0x3000;

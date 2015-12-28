@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r166
+\version r178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2014-11-14 22:23 +0800
+	2015-12-27 21:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,10 @@ namespace Devices
 class YF_API InputManager : private noncopyable
 {
 private:
-	//! \since build 554
+	/*!
+	\brief GUI 状态。
+	\since build 554
+	*/
 	lref<UI::GUIState> GUI_state;
 	/*!
 	\brief 指针设备光标位置。
@@ -72,10 +75,15 @@ private:
 #endif
 
 public:
+	/*!
+	\sa FetchEnvironment
+	\sa UI::FetchGUIState
+	*/
 	InputManager();
 
 	/*!
 	\brief 向指定部件分发响应输入状态。
+	\note Win32 平台：更新文本焦点缓存和插入符位置缓存。
 	\since build 387
 
 	指定平台相关的用户界面输入处理。
@@ -85,8 +93,8 @@ public:
 
 	/*!
 	\brief 更新输入状态。
-	\return 非宿主实现总是 nullptr ，否则是待分发输入状态的顶层部件指针。
-	\note 对宿主实现，当前忽略顶层窗口不是 Host::Window 的情形。
+	\return 非宿主实现总是空指针，否则是待分发输入状态的顶层部件指针。
+	\note 对宿主实现，当前忽略顶级窗口不是 Host::Window 的情形。
 	\since build 387
 	*/
 	UI::IWidget*

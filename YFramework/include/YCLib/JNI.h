@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r198
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2015-04-24 04:01 +0800
+	2015-12-27 23:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,6 +185,17 @@ public:
 	using NativeMethod = ::JNINativeMethod;
 
 	using JNIBase::JNIBase;
+
+	//! \since build 662
+	//@{
+	PDefH(Boolean, IsAssignableFrom, Class& clazz1, Class& clazz2) const
+		ynothrow
+		ImplRet(GetEnvRef().IsAssignableFrom(&clazz1, &clazz2))
+	PDefH(Boolean, IsInstanceOf, Object& obj, Class& clazz) const ynothrow
+		ImplRet(GetEnvRef().IsInstanceOf(&obj, &clazz))
+	PDefH(Boolean, IsSameObject, Object& ref1, Object& ref2) const ynothrow
+		ImplRet(GetEnvRef().IsSameObject(&ref1, &ref2))
+	//@}
 
 	using JNIBase::GetEnvRef;
 	using JNIBase::GetVMRef;

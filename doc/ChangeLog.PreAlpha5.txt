@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r14812
+\version r15034
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-10-16 00:28 +0800
+	2015-12-25 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,16 +173,15 @@ b599
 				@ "platform %Win32" @ %HostedGUI $since b592,
 			/ %FileSystem $=
 			(
-				/ DLDI "simplified" @ "platform %Win32"
-					@ "constructor %DirectorySession" $dep_from
-					%'YCLib_(MinGW32)'.MinGW32,
+				/ DLDI "simplified platform %Win32" @ "constructor \
+					%DirectorySession" $dep_from %'YCLib_(MinGW32)'.MinGW32,
 				+ "functions %platform::(SetBinaryIO; SetupBinaryStdIO)"
 			)
 		),
 		/ "constructor %DirectoryFindData" @ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
 			/ $lib "allowed empty directory after trailing slashes and \
-				backslashes removed and treated as current directory",
+				backslashes removed and treated as current working directory",
 			* DD "wrong precondition" $since b549
 		)
 	),
@@ -207,10 +206,10 @@ b599
 			@ %BookmarkUI $since b595 $dep_from
 			("%ShlTextReader::GetReaderPosition" @ %ShlReader)
 	),
-	/ $re_ex(b598) DLDI "all string arguments containing '""' for \
+	/ $re_add(b598) DLDI "all string arguments containing '""' for \
 		non-dependent class type parameters" -> '{}' $effective
 		@ %YFramework.YSLib.Service.FileSystem,
-	/ $re_ex(b598) DLDI "all string arguments '""' for dependent parameters"
+	/ $re_add(b598) DLDI "all string arguments '""' for dependent parameters"
 		-> 'string()' $effective @ %(YFramework.(Helper.Initialization, \
 		NPL.NPLA1), Tools.SHBuild.Main),
 	/ DLDI "printed new line" @ %Tools.SHBuild.Main ^ "%std::putchar"
@@ -285,7 +284,7 @@ b599
 					%CodeBlocks_project_file/Project/Option pch_mode" $since
 					b598,
 				* "missing unit 'include/YCLib/HostedGUI.h'" $since b560,
-				* "missing update freetype headers" $since b563,
+				* "missing updating freetype headers" $since b563,
 				* "redundant %DS header" $since b585,
 				- "unit 'data/default_font.bin'"
 					// For consistent with other files.
@@ -406,7 +405,7 @@ b598
 					@ "function %PrintSyntaxNode" $since b597
 					// This would cause undefined behavior for empty nodes.
 			),
-			/ DLDI "simplified" @ "%operator<<" @ %Configuration ^ $dep_from
+			/ DLDI "simplified %operator<<" @ %Configuration ^ $dep_from
 				("%LiteralizeEscapeNodeLiteral" @ %NPLA1)
 		)
 	),
@@ -445,8 +444,8 @@ b598
 			b217
 		)
 	),
-	/ $comp $src $dep_from %YBase.YStandardEx.Any $effective @ YSLib.Core $since
-		b351 $=
+	/ $comp $src $since b351 $dep_from %YBase.YStandardEx.Any $effective
+		@ %YSLib.Core $=
 	(
 		/ "size of %ValueObject" @ %YObject,
 			// Same as %ystdex::any.
@@ -541,7 +540,7 @@ b597
 					MapNPLA1LeafNode)";
 				+ "function template %LoadNPLA1Sequence"
 				),
-				/ DLDI "simplified" @ "function %LoadNPLA1",
+				/ DLDI "simplified function %LoadNPLA1",
 				/ "merged (function, function template) %LoadNPLA1 as function \
 					template",
 				/ $dev "structs %(NPLA, NPLA1)" => "%(NPLATag, NPLA1Tag)"
@@ -656,8 +655,7 @@ b596
 		),
 		/ %'Helper_(Android)' $=
 		(
-			/ DLD "simplified implementation" @ "constructor %NativeHost"
-				@ %AndroidHost,
+			/ DLDI "simplified constructor %NativeHost" @ %AndroidHost,
 			/ $dev $design "missing checking %::ANativeWindow_lock failure"
 				@ "screen size detection" @ "screen initialization" $since b504
 				$= (+ "throwing %LoggedEvent on failure")
@@ -769,8 +767,7 @@ b595
 					/ "%operator== only compare master iterators",
 					+ "function %get",
 					- "conversion operator template",
-					- "member %(first, second)" $dep_to
-						"removal of members (first, second)"
+					- "member %(first, second)"
 				),
 				/ $lib "function templates %(make_reverse_iterator, \
 					make_move_iterator_pair, make_move_iterator_pair), alias \
@@ -909,7 +906,7 @@ b595
 			),
 			/ @ "class template %used_list_cache" @ %Cache $=
 			(
-				/ DLD "simplified implementation" @ "function template %emplace"
+				/ DLDI "simplified function template %emplace"
 					^ 'is_undereferenceable' ~ 'ystdex::undereferenceable',
 				+ 'ynothrowv' @ "function %set_max_use",
 				* "wrong exception-specification" @ "function %clear" $orig
@@ -989,7 +986,8 @@ b595
 			(
 				/ $forced DLD @ %TextManager $dep_from %CHRLib.MappingEx,
 				/ $forced DLD @ %(TextManager, CharRenderer, YBlend) $dep_from
-					"removal of members (first, second)"
+					("%pair_iterator::(first, second)"
+					@ %YBase.YStandardEx.Iterator)
 			),
 			* "missing invalidate drop down list on handling %Confirmed"
 				@ "constructor %DropDownList" @ %UI.ComboList $since b482,
@@ -1003,9 +1001,9 @@ b595
 	),
 	+ '$C_CXXFLAGS_ARCH' @ "default value" @ "variable %C_CXXFLAGS_COMMON"
 		@ "%SHBuild-common-options.sh" @ %Tools,
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.(CHRLib.(
-		"%MapEx.h" => "%MappingEx.h")
+	/ $dev $repo $re_add(b594) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.(CHRLib.("%MapEx.h" => "%MappingEx.h")
 ),
 
 b594
@@ -1017,7 +1015,7 @@ b594
 			/ %Core $=
 			(
 				+ "function template %CopyBitmapBuffer" @ %YGraphics,
-				/ "implemented %String::GetMBCS" @ %Core.String ^ $dep_from
+				/ "implemented %String::GetMBCS" @ %Core.YString ^ $dep_from
 					("%MakeMBCS" @ %CHRLib.CharacterProcessing) ~ "GetMBCSOf"
 			),
 			- $revert(b209) 'using ystdex::errno_t' @ %Adaptor.YAdaptor
@@ -1115,9 +1113,8 @@ b594
 				+ "function %UCS2ToUCS4";
 				+ "8 function templates %MakeUCS4LE"
 				),
-				/ DLD "simplified implementation" @ "function %UCS4ToUCS2"
-					^ $dep_from ("function template %transform_when"
-					@ %Algorithm),
+				/ DLDI "simplified function %UCS4ToUCS2" ^ $dep_from
+					("function template %transform_when" @ %Algorithm),
 				- "'yconstraint' assertion" @ "function template %MakeUCS2LE#3",
 					// Since %ntctslen would assert.
 				* "missing 3 function templates %MakeUCS2LE accepting \
@@ -1139,7 +1136,7 @@ b594
 							destination type as template arguments.
 				),
 				- $revert(b305) "function template %GetMBCSOf" $dep_from
-					%YSLib.Core.String,
+					%YSLib.Core.YString,
 				(
 				+ "function %UCS4ToMBCS";
 				+ 2 "function templates %MakeMBCS for %ucs4_t"
@@ -1182,7 +1179,7 @@ b594
 				(/ "implemented inner loop" ^ "%FilterException")
 		)
 	),
-	/ DLD "simplified implementation" @ "sized buffer copy" ^ $dep_from
+	/ DLDI "simplified sized buffer copy" ^ $dep_from
 		("%CopyBitmapBuffer" @ %YSLib.Core.YGraphics) $effective @YFramework.(
 		YCLib.HostedGUI, YSLib.(Core.YDevice, Service.(YBlit, YGDI)));
 	/ $build "all '#!/usr/bin'" @ ".sh files" -> '#!/usr/bin/env '
@@ -1257,9 +1254,9 @@ b594
 		@ %YFramework.YCLib.HostedGUI,
 	/ "simplified widgets invalidation" ^ $dep_from ("%InvalidateWidgets"
 		@ %YFramework.YSLib.UI.YWidget) @ %YReader.(ShlExplorer, ShlReader),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ %YFramework.(CHRLib.(
-		"%encoding.h" => "%Encoding.h"),
+	/ $dev $repo $re_add(b593) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.(CHRLib.("%encoding.h" => "%Encoding.h"),
 		YSLib.Core.("%ystring.h" => "%YString.h"))
 ),
 
@@ -1373,8 +1370,7 @@ b593
 			/ DLDI @ %UI.TreeView ^ $dep_from ("%ystdex::as_const"
 				@ %YBase.YStandardEx.Cast) ~ "%ystdex::qualify"
 		),
-		/ DLD "simplified implementation" @ "function %MBCSToUCS2"
-			@ %CHRLib.CharacterProcessing,
+		/ DLDI "simplified function %MBCSToUCS2" @ %CHRLib.CharacterProcessing,
 		/ %YCLib $=
 		(
 			+ 'using namespace platform::basic_types;'
@@ -1392,7 +1388,7 @@ b593
 					(
 					/ "protected members %(pBuffer, hBitmap)"
 						@ "platform %Win32" -> "private members";
-					/ DLD "simplified implementation" @ ("move constructor"
+					/ DLDI "simplified" @ ("move constructor"
 						@ "platform %Win32", "destructor")
 					),
 					/ @ "function %operator=" $=
@@ -1415,7 +1411,9 @@ b593
 						// Only text supported currently.
 					+ "function %CreateCompatibleDIBSection"
 				)
-			)
+			),
+			/ 'using std::string;' @ "namespace %XCB" @ %XCB
+				-> 'using platform::string'
 		),
 		/ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
@@ -1430,10 +1428,10 @@ b593
 			@ (%'YCLib_(MinGW32)'.(Consoles, MinGW32), "platform %Win32"
 			@ %(Helper.Environment, YCLib.(FileSystem, Host, HostedGUI)))
 	),
-	/ DLD "all temporary of const string '[0]' operation with length required \
-		for string type with 'c_str' member" -> '.c_str()' $effective
+	/ DLD "all temporary of '[0]' operation on 'const string' with length \
+		required for string type with 'c_str' member" -> '.c_str()' $effective
 		@ %YFramework.(YCLib.FileSystem, YSLib.Service.TextLayout),
-	/ DLD "all temporary of const string '[0]' operation without length \
+	/ DLD "all temporary of '[0]' operation on 'const string' without length \
 		required for string type with 'data' member" -> '.data()' $effective
 		@ %(YBase.YStandardEx.String, YFramework.YSLib.Service.TextLayout),
 	/ "all 'std::unique_ptr'" -> 'YSLib::unique_ptr'
@@ -1459,10 +1457,10 @@ b593
 		@ %YFramework.('Helper_(Android)'.AndroidHost, YCLib.(XCB, FileSystem,
 		Host, HostedGUI), YSLib.Core.ValueNode, YCLib_(MinGW32)::Consoles),
 		// Also several types change.
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ %(Adaptor.("%config.h"
-		=> "%Configure.h"), Core.("%ysdef.h" => "%YShellDefinition.h"))
-		@ %YFramework.YSLib
+	/ $dev $repo $re_add(b590) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %(Adaptor.("%config.h" => "%Configure.h"),
+		Core.("%ysdef.h" => "%YShellDefinition.h")) @ %YFramework.YSLib
 ),
 
 b592
@@ -1615,7 +1613,7 @@ b592
 				window shown at 1/4 top and left position of the screen.
 		(
 		- "handling of %Win32Exception" @ "platform %Win32";
-		/ DLD "simplified implementation" ^ "%FilterExceptions"
+		/ DLDI "simplified" ^ "%FilterExceptions"
 		)
 	),
 	/ %YBase.YStandardEx $=
@@ -1654,7 +1652,7 @@ b591
 					e.g. in VC++ 2013.
 			(
 			+ "macro %YB_HAS_CPP14_CONSTEXPR detecting C++ constexpr support";
-			+ "pseudo keyword %yconstfn_relaxed"
+			+ $workaround(#22) "pseudo keyword %yconstfn_relaxed"
 			),
 			+ "pseudo keywords %(yalignas, yalignas_type)",
 			+ "feature tests support from WG21/N4200" $=
@@ -1898,7 +1896,7 @@ b590
 		),
 		/ @ "metafunction %is_char_specialized_in_std" @ %CString $=
 		(
-			/ $re_ex(b578) DLD "simplified" ^ "%or_" ~ "%integral_constant",
+			/ $re_add(b578) DLD "simplified" ^ "%or_" ~ "%integral_constant",
 			* "wrong implementation for non %char type" $since b544
 		),
 		+ "unary type trait %is_cv" @ %TypeTraits,
@@ -1906,7 +1904,7 @@ b590
 			%std::integral_constant" @ %Any $since b503
 		/ %Rational $=
 		(
-			/ $re_ex(b578) DLD "simplified metafunction %is_normalizable"
+			/ $re_add(b578) DLD "simplified metafunction %is_normalizable"
 				^ "%or_" ~ "%integral_constant",
 			+ "%std::hash specialization for %ystdex::fixed_point instances"
 		),
@@ -1960,17 +1958,16 @@ b590
 				(
 					+ "call to adjusting buffer" @ "function %Refresh" $dep_from
 						"%HostRenderer::AdjustSize",
-					/ DLD "simplified implementation" ^ $dep_from
-						"%Host::RefreshForWidget"
+					/ DLDI "simplified" ^ $dep_from "%Host::RefreshForWidget"
 				),
-				/ DLD "simplified implementation" @ "static member function \
+				/ DLDI "simplified static member function \
 					%WindowThread::DefaultGenerateGuard" ^ $dep_from
-					("%ystdex::make_shared_guard" @ %YBase.YStandardEx.Utility)
+					("%ystdex::make_shared_guard" @ %YBase.YStandardEx.Utilities)
 			),
 			/ %HostedUI $=
 			(
 				* $dep_to "tip depending on top level window" $since b583,
-				/ DLD "simplified implementation" @ "function %ShowTopLevel"
+				/ DLDI "simplified function %ShowTopLevel"
 					!^ "%WaitForHostWindow"
 			)
 		),
@@ -2042,8 +2039,8 @@ b590
 		^ 'ynoexcept_spec' ~ "nested 'ynoexcept'" $effective
 		@ %YBase.YStandardEx.(Any, Examiner),
 	+ DD "option strategies" @ %Documentation.Defintions,
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%yref.hpp"
+	/ $dev $repo $re_add(b587) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yref.hpp"
 		=> "%YReference.hpp") @ %YFramework.YSLib.Adaptor,
 	* $dev $build "missing VC++ project dependencies setting"
 		@ "platform %Android"
@@ -2441,10 +2438,10 @@ b588
 	/ "3rd argument" @ "function template %make_transposed kept unsigned"
 		$effective @ %YFramework.YSLib.Service.(YBlit, YBrush),
 		// To eliminate warning: [-Wsign-conversion].
-	/ $ex(b587) DD $term $lib $design "all 'C++1y'" -> 'C++14'
+	/ $re_ex(b587) DD $term $lib $design "all 'C++1y'" -> 'C++14'
 		!@ %Documentation::(ChangLog, Workflow) $effective
 		%Documentation.CommonRules,
-	/ DLD "simplified implementation" ^ $dep_from
+	/ DLDI "simplified" ^ $dep_from
 		("%Rect::(GetBottom, GetRight)" @ %YFramework.YSLib.Core.YGDIBase)
 		$effective @ %YFramework.(YSLib.(Core.YGDIBase, Service.(YStyle, YDraw),
 		UI.(Menu, Scroll)), YCLib.HostedGUI))
@@ -2556,7 +2553,7 @@ b587
 						-> 'size_t' ~ 'SDst',
 					/ "function %Padding::operator* for %Padding" $=
 					(
-						/ "parameter type" @  -> 'size_t' ~ 'SDst',
+						/ "parameter type" @ -> 'size_t' ~ 'SDst',
 						/ DLD "cast to ('SPos', 'ptrdiff_t') for components"
 							// To eliminate warning: [-Wsign-conversion].
 					),
@@ -2843,8 +2840,8 @@ b587
 		@ "variable %CXXFLAGS_WARNING", "compiler options"
 		@ "platform %Win32" @ "Code::Blocks projects"),
 	(
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ((("%progress.h"
+	/ $dev $repo $re_add(b586) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ((("%progress.h"
 		=> "%Progress.h") @ %UI, "%yblit.cpp" => "%YBlit.cpp" @ %Service)
 		@ %YSLib, ("%MapEx.cpp" => "%MappingEx.cpp", "%smap.hpp"
 		=> "%StaticMapping.hpp", "%chrproc.cpp" => "%CharacterProcessing.cpp")
@@ -3237,13 +3234,13 @@ b586
 		UI.YWidget, Service.YResource) @ %YFramework,
 		// Also to eliminate Clang++ warning: [-Wweak-vtables].
 	(
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%main.cpp" => "%Main.cpp"
-		@ %YSTest.Main, ((("%ydevice.h" => "%YDevice.h", "%yexcept.cpp"
-		=> "%YException.cpp", "%ymsg.h" => "%YMessage.h", "%ydevice.cpp"
-		=> "%YDevice.cpp", "%yobject.cpp" => "%YObject.cpp") @ %Core,
-		("%ydraw.h" => "%YDraw.h", "%yres.cpp" => "%YResource.cpp") @ %Service,
-		("%scroll.h" => "%Scroll.h", "%ydesktop.h" => "%YDesktop.h",
+	/ $dev $repo $re_add(b584) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%main.cpp"
+		=> "%Main.cpp" @ %YReader.Main, ((("%ydevice.h" => "%YDevice.h",
+		"%yexcept.cpp" => "%YException.cpp", "%ymsg.h" => "%YMessage.h",
+		"%ydevice.cpp" => "%YDevice.cpp", "%yobject.cpp" => "%YObject.cpp")
+		@ %Core, ("%ydraw.h" => "%YDraw.h", "%yres.cpp" => "%YResource.cpp")
+		@ %Service, ("%scroll.h" => "%Scroll.h", "%ydesktop.h" => "%YDesktop.h",
 		"%ydesktop.cpp" => "%YDesktop.cpp", "%button.h" => "%Button.h",
 		"%uicontx.h" => "%UIContainerEx.h", "%uicontx.cpp"
 		=> "%UIContainerEx.cpp", "%textarea.h" => "%TextArea.h",
@@ -3280,12 +3277,12 @@ b585
 				%pseudo_iterator",
 				// It always returns zero for '-' and compares underlying \
 					value for '<'.
-			/ $re_ex(b461) @ "class template %pointer_iterator" $=
+			/ $re_add(b461) @ "class template %pointer_iterator" $=
 			(
 				+ 'ynothrowv' @ "functions %operator(+=, -=, ++, --)"
 				+ 'ynothrow' @ "function %operator pointer"
 			),
-			+ $re_ex(b461) 'ynothrow'
+			+ $re_add(b461) 'ynothrow'
 				@ "function template %operator== for %pointer_iterator",
 			/ @ "class template %pseudo_iterator" $=
 			(
@@ -3477,15 +3474,14 @@ b584
 	/ %YFramework.YSLib $=
 	(
 		* DLB "wrong data files path" @ "Code::Block projects"
-			@ "platform %(DS, ())" $since b252,
+			@ "platforms %(DS, ())" $since b252,
 		/ %UI $=
 		(
 			+ "functions %(ActAfter; DisplayFor)" @ %Animation,
 			(
 			+ "2 constructors color parameters" @ "class %BorderStyle"
 				@ %Border;
-			/ DLD "simplified implementation" @ "constructor %ProgressBar"
-				@ %Progress
+			/ DLDI "simplified constructor %ProgressBar" @ %Progress
 			)
 		),
 		/ %Service $=
@@ -3559,8 +3555,8 @@ b584
 		+ "protected data member %lblCenter";
 		+ "showed scale value on %CursorWheel and hiding after 1 second"
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ (("%progress.cpp"
+	/ $dev $repo $re_add(b580) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%progress.cpp"
 		=> "%Progress.cpp") @ %UI, "%ydraw.cpp" => "%YDraw.cpp" @ %Service)
 		@ YFramework.YSLib
 ),
@@ -3676,7 +3672,7 @@ b583
 	)
 	/ @ "function template %pseudo_iterator" @ %YBase.YStandardEx.Iterator $=
 	(
-		/ "default argument" @ "2nd template parameter"  -> 'const _type*'
+		/ "default argument" @ "2nd template parameter" -> 'const _type*'
 			~ '_type*',
 		+ "%operator* for non-const '*this'"
 	)
@@ -3735,7 +3731,7 @@ b582
 							reference" ~ "sender from event argument";
 						* $comp "wrong widget used for %GotFocus handler when \
 							the sender is not the widget being invalidated"
-							$dep_from %YFocus $since b483
+							$since b483 $dep_from %YFocus
 							// This would lead to assertion failure when \
 								%TextBox::InvalidateDefaultCaret is called.
 					)
@@ -3747,7 +3743,7 @@ b582
 						+ "releasing cascaded focuses with routed event \
 							arguments before releasing direct focus"
 							@ "function %ReleaseFocusFrom";
-						/ DLD "simplified implementation"
+						/ DLDI "simplified"
 							@ "function %DoRequestFocus" ^ "%ReleaseFocusFrom"
 					),
 					+ "requesting cascaded focuses with routed event arguments \
@@ -3783,8 +3779,7 @@ b581
 				/ @ "functions %(IsEnabled, SetEnabledOf)" @ %YControl $=
 				(
 					- "try block and catch clause for %BadEvent",
-					/ DLD "simplified implementation"
-						^ "macros %(PDefH, ImplExpr, ImplRet)"
+					/ DLDI "simplified" ^ "macros %(PDefH, ImplExpr, ImplRet)"
 				),
 				/ @ "class %AMUnitList" @ %Viewer $=
 				(
@@ -4015,8 +4010,8 @@ b580
 			+ "menu item for recovering to original size"
 		)
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%ywgtevent.cpp"
+	/ $dev $repo $re_add(b578) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%ywgtevent.cpp"
 		=> "%YWidgetEvent.cpp") @ YFramework.YSLib.UI
 ),
 
@@ -4132,8 +4127,7 @@ b579
 	),
 	/ %YDE.ImageBrowser.ImageControl $=
 	(
-		/ DLD "simplified implementation" @ $dep_from
-			%YFramework.YSLib.Service.YBrush,
+		/ DLDI "simplified" @ $dep_from %YFramework.YSLib.Service.YBrush,
 		* $comp "probable wrong initial image scale calculated when size \
 			component is too large and scale enabled" $dep_from
 			%YFramework.YSLib.Service.ImageProcessing $since b554,
@@ -4175,7 +4169,7 @@ b578
 				("%ystdex::less" @ %Functional),
 				// They should be used as %std::(min, max) with 'constexpr' \
 					in ISO C++14.
-  			* "strict ISO C++ code conformance" $since b532
+			* "strict ISO C++ code conformance" $since b532
 				$= (* "missing including <functional>")
 		),
 		/ @ "function templates %unique_raw" %Memory $=
@@ -4205,8 +4199,7 @@ b578
 			(
 				/ %YBlit $=
 				(
-					/ DLD "simplified implementation" @ "function template \
-						%BlitScaleComponent"
+					/ DLDI "simplified function template %BlitScaleComponent"
 						^ ("%max" $dep_from %Adaptor.YAdaptor)
 						~ "%BlitScaleRestricted";
 					- "function %BlitScaleRestricted",
@@ -4215,7 +4208,7 @@ b578
 			),
 			/ @ %Core.YGDIBase $=
 			(
-				/ DLD "simplified implementation" @ "'yconstfn' functions"
+				/ DLDI "simplified 'yconstfn' functions"
 					^ ("%(min, max)" $dep_from %Adaptor.YAdaptor),
 				+ 'ScaleMin' @ "function template %ScaleMin"
 			),
@@ -4252,8 +4245,8 @@ b578
 		+ "3 menu items to support flip and rotation"
 		)
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ (("%ygdibase.cpp"
+	/ $dev $repo $re_add(b577) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%ygdibase.cpp"
 		=> "%YGDIBase.cpp", "%ymsg.cpp" => "%YMessage.cpp")
 		@ %Core, ("%ycontrol.cpp" => "%YControl.cpp") @ %UI,
 		("%yres.h" => "%YResource.h") @ %Service) @ YFramework.YSLib
@@ -4342,9 +4335,9 @@ b577
 					screensaver. Seems can also occur on pressing Ctrl+Alt+Del.
 		)
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ (("%yblit.h" => "%YBlit.h")
-		@ %Service, ("%yapp.h" => "%YApplication.h", "%yapp.cpp"
+	/ $dev $repo $re_add(b573) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%yblit.h"
+		=> "%YBlit.h") @ %Service, ("%yapp.h" => "%YApplication.h", "%yapp.cpp"
 		=> "%Label.YApplication") @ %Core) @ YFramework.YSLib
 ),
 
@@ -4616,9 +4609,9 @@ b574
 						%(RequestFocusCascade, ReleaseFocusCascade)"
 						^ "for statement" ~ "do-while statement"
 				),
-				/ DLD "simplified implementation" @ "function %Invalidate#2"
-					@ %YWidget ^ "for statement" ~ "do-while statement",
-				/ DLD "simplified implementation"
+				/ DLDI "simplified function %Invalidate#2" @ %YWidget
+					^ "for statement" ~ "do-while statement",
+				/ DLDI "simplified"
 					@ "functions %(FetchTrace, LocateForTrace)"
 					@ %YUIContainer ^ "for statement" ~ "do-while statement",
 				/ %Menu $=
@@ -4666,12 +4659,12 @@ b574
 					// So the menu would probably not hide.
 			)
 		),
-		/ DLD "simplified implementation" @ "function %FetchCommandOutput"
+		/ DLDI "simplified function %FetchCommandOutput"
 			@ %Helper.Host ^ "for statement" ~ "do-while statement",
 	),
 	/ %YReader $=
 	(
-		/ DLD "simplified implementation" @ %DSReader ^ "for statement"
+		/ DLDI "simplified" @ %DSReader ^ "for statement"
 			~ "do-while statement",
 		* "missing requesting focus" @ "event %TouchDown" @ "class %FrmAbout"
 			@ %About $since b390,
@@ -4775,8 +4768,8 @@ b573
 		+ "protected member 'Label lblCloseTips{};'";
 		+ "tool tip for close button"
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%yuicont.cpp"
+	/ $dev $repo $re_add(b572) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yuicont.cpp"
 		=> "%YUIContainer.cpp", "%label.h" => "%Label.h", "%label.cpp"
 		=> "%Label.cpp", "%menu.h" => "%Menu.h", "%menu.cpp" => "%Menu.cpp")
 		@ YFramework.YSLib.UI
@@ -4896,11 +4889,12 @@ b572
 				id_func_rr_t)" $dep_from %Tuple
 		)
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ (("%ytimer.h" => "%YTimer.h",
-		"%ytimer.cpp" => "%YTimer.cpp") @ %Service, ("%ygui.h" => "%YGUI.h",
-		"%ygui.cpp" => "%YGUI.cpp", "%ycontrol.h" => "%YControl.h",
-		"%ywgtevt.h" => "%YWidgetEvent.h") @ %UI) @ YFramework.YSLib
+	/ $dev $repo $re_add(b571) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%ytimer.h"
+		=> "%YTimer.h", "%ytimer.cpp" => "%YTimer.cpp") @ %Service, ("%ygui.h"
+		=> "%YGUI.h", "%ygui.cpp" => "%YGUI.cpp", "%ycontrol.h"
+		=> "%YControl.h", "%ywgtevt.h" => "%YWidgetEvent.h") @ %UI)
+		@ YFramework.YSLib
 ),
 
 b571
@@ -4912,7 +4906,7 @@ b571
 		/ %Helper $=
 		(
 			+ "function %Wait" @ "class %HostRenderer" @ %HostRenderer;
-			/ DLD "simplified implementation" @ "function %WaitForHostWindow"
+			/ DLDI "simplified function %WaitForHostWindow"
 				^ "%HostRenderer::Wait",
 			/ @ "function %InputManager::Update" @ %InputManager $=
 			(
@@ -5009,9 +5003,9 @@ b571
 		/ "set root mode according to host renderer state" @ %Main $dep_from
 			%YFramework.Helper.HostRenderer
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%yfocus.h" => "%yfocus.h",
-		"%yfocus.cpp" => "%YFocus.cpp") @ YFramework.YSLib.UI
+	/ $dev $repo $re_add(b570) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yfocus.h"
+		=> "%yfocus.h", "%yfocus.cpp" => "%YFocus.cpp") @ YFramework.YSLib.UI
 ),
 
 b570
@@ -5062,8 +5056,8 @@ b570
 				// See $2015-01 @ %Documentation::Workflow::Annual2015.
 		)
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective
+	/ $dev $repo $re_add(b569) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ ("%yrender.cpp" => "%YRenderer.cpp") @ YFramework.YSLib.UI;
 ),
 
@@ -5130,8 +5124,8 @@ b569
 		+ "class template %state_guard";
 		/ "class template %swap_guard" -> "alias template"
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%ywidget.h"
+	/ $dev $repo $re_add(b568) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%ywidget.h"
 		=> "%YWidget.h", "%ywidget.cpp" => "%YWidget.cpp", "%scroll.cpp"
 		=> "%Scroll.cpp") @ %YSLib.UI, ("%yglobal.h" => "%YGlobal.h" @ %Helper)
 		@ YFramework
@@ -5195,8 +5189,8 @@ b568
 			)
 		)
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective
+	/ $dev $repo $re_add(b567) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
 ),
 
@@ -5297,8 +5291,8 @@ b567
 		~ 'beginned' $effective @ (%YReader.ShlExplorer $since b534,
 		%YFramework.(Helper.(Environment $orig (@ %Host $since b381)),
 		'Helper_(DS)'.DSMain $orig (@ %Helper.DSMain) $since b383)),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective
+	/ $dev $repo $re_add(b566) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
 ),
 
@@ -5444,10 +5438,11 @@ b566
 		+ "function template %search_map with inserter function object \
 			parameter" @ %Container
 	),
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%yshell.h" => "%YShell.h"
-		@ Core, ("%ygdi.h" => "%YGDI.h", "%ygdi.cpp" => "%YGDI.cpp") @ Service,
-		"%yrender.h"=> "%yrenderer.h" @ %UI) @ %YFramework.YSLib
+	/ $dev $repo $re_add(b565) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yshell.h"
+		=> "%YShell.h" @ Core, ("%ygdi.h" => "%YGDI.h", "%ygdi.cpp"
+		=> "%YGDI.cpp") @ Service, "%yrender.h"=> "%yrenderer.h" @ %UI)
+		@ %YFramework.YSLib
 ),
 
 b565
@@ -5574,8 +5569,8 @@ b565
 	),
 	* $dev $design "location for %Documentation::Workflow::Annual2015"
 		@ "filter of Visual C++ project" $since b564,
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%chrproc.h"
+	/ $dev $repo $re_add(b564) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%chrproc.h"
 		=> "%Character.h" @ %YFramework.CHRLib)
 ),
 
@@ -5636,7 +5631,7 @@ b564
 				>> %YSLib.Core.YGDIBase,
 			/ %HostedGUI $=
 			(
-				* DD "wrong Doxygen directive '\t'"
+				* DD "wrong Doxygen command '\t'"
 					@ "member function %WindowReference::Show"
 					@ "platform %Win32" $since b548,
 				/ @ "platforms ^%XCB" @ "constructor %HostWindow" $=
@@ -5763,8 +5758,8 @@ b564
 		@ "platforms %(MinGW32, Android)" @ "Code::Blocks projects",
 		// Note that for %Android it is not actually effective.
 	+ $repo "pattern 'Tools/SHBuild/stdinc.h.gch'" @ "file '.hgignore'",
-	/ $dev $repo "all edited file with module name not the same as base file \
-		name" @ !%YBase ^ 'hg mv' $effective @ ("%yadaptor.h"
+	/ $dev $repo $re_add(b563) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yadaptor.h"
 		=> "%YAdaptor.h" @ %YFramework.YSLib.Adaptor.YGDIBase)
 ),
 
@@ -5795,8 +5790,8 @@ b563
 				@ %YCLib.Platform;
 			+ "check for known platforms with hosted GUI" @ %HostedGUI,
 			/ $dev "simplified conditional inclusion" ^ "%YCL_HostedUI",
-				// Also reduce risk about missing update implementations when \
-					new hosted UI platform added.
+				// Also reduce risk about missing updating implementations \
+					when new hosted UI platform added.
 			+ %XCB $=
 			(
 				+ "classes %((ConnectionReference; Connection), Atom, \
@@ -5889,7 +5884,7 @@ b563
 				^ $dep_from ("%EXESFX" @ "%SHBuild-common-options.sh"
 				@ %Scripts),
 			/ DLD "simplified installation implementation and other functions",
-			* "missing quoting library directory for '-L' on building stage2 \
+			* "missing quoting library directory for '-L' on building stage 2 \
 				%SHBuild" $since b546,
 			/ "exported %LIBS" ^ $dep_from ("%LIBS_RPATH"
 				@ "%SHBuild-common-options.sh" @ %Scripts),
@@ -5923,9 +5918,8 @@ b563
 					SHBuild_Install_Link)",
 				/ "hid stderr output (i.e. command not found) of 'cygpath' call"
 					@ "functions %(SHBuild_2u, SHBuild_2w)",
-				/ DLD "simplified implementation"
-					@ "functions %(SHBuild_Install, SHBuild_InstallDir)"
-					^ "logical (AND, OR)",
+				/ DLDI "simplified functions %(SHBuild_Install, \
+					SHBuild_InstallDir)" ^ "logical (AND, OR)",
 				+ "variable %LIBS_RPATH with default value: \
 					-Wl,-rpath,'\$ORIGIN:\$ORIGIN/../lib'" @ !"platform %Win32"
 			),
@@ -5981,8 +5975,8 @@ b563
 	* $comp "mismatched 'ythrow' exception-specification between definition \
 		and non-definition declarations" @ "all functions %EnsureDirectory"
 		@ %YFramework.YSLib.Service.FileSystem $since b476,
-	/ $dev $repo "all edited file with module name not the same as base \
-		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
+	/ $dev $repo $re_add(b561) "all edited file with module name not the same \
+		as base file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
 		@ (((("%ygdibase.h" => "%YGDIBase.h" @ %Core.YGDIBase, ("%textmgr.h"
 		=> "%TextManager.h", "%textmgr.cpp" => "%TextManager.cpp")
 		@ %Service.TextManager, "%yuicont.h" => "%YUIContainer.h"
@@ -6045,7 +6039,7 @@ b562
 				+ "functions %(SHBuild_AssertNonempty, SHBuild_CheckedCall, \
 					SHBuild_InitReadonly; SHBuild_CheckUName)",
 				+ $dev "early return as guard for scripts to be used by 'source' \
-					or '.' directive",
+					or '.' command",
 				+ 'exit 1' @ "handling signal %SIGINT"
 			),
 			+ "linked libraries support for non Windows systems"
@@ -6219,7 +6213,7 @@ b561
 					+ 'yconstfn' @ "function template %Blend for \
 						%RGBA<5, 5, 5, 1>",
 					+ "function templates %BlendAlpha",
-					+ "overloading function template %Composite optimized for \
+					+ "overloaded function template %Composite optimized for \
 						%RGBA<5, 5, 5, 1>",
 					/ @ "struct %BlitAlphaPoint" $=
 					(
@@ -6234,9 +6228,9 @@ b561
 					/ "simplified implementation" ^ "%ystdex::make_fixed_t"
 						@ %YPixel $dep_from
 						("%make_fixed_t" @ %YBase.YStandardEx.Rational),
-					/ $dev "simplified implementation" @ %YPixel
-						!^ "%ystdex::normalized_max" $dep_to
-						"removal of %normalized_max"
+					/ $forced $dev "simplified implementation" @ %YPixel
+						!^ $dep_from ("%ystdex::normalized_max"
+						@ %YBase.YStandardEx.Rational)
 				),
 				/ %YStyle $=
 				(
@@ -6259,7 +6253,7 @@ b561
 		(
 			* "wrong assertion" @ "constructor %DirectorySession"
 				@ !"platform %Win32" $since b560,
-			/ 'inline' @ "function template %Deref"  -> 'yconstfn' @ %Debug,
+			/ 'inline' @ "function template %Deref" -> 'yconstfn' @ %Debug,
 			/ @ "platform %Win32" @ %YCLib.HostedGUI $=
 			(
 				* "wrong 'ynothrow'" @ "member functions (2 \
@@ -6335,8 +6329,7 @@ b561
 		/ %Rational $=
 		(
 			+ "alias template %make_fixed_t" @ %Rational,
-			- $revert(b439) "class template %normalized_max" @ %Rational
-				$dep_to "removal of %normalized_max"
+			- $revert(b439) "class template %normalized_max" @ %Rational,
 				// It is somewhat misleading.
 			- "specialization of %is_normailzable for %bool" @ %Rational
 		),
@@ -6388,8 +6381,8 @@ b561
 			(/ "283 regex instances of '\$\{(\w+)\}([^0-9A-Za-z])' -> '$$$1$2' \
 				including 106 matches with '$2' is '/'"),
 	),
-	/ $dev $repo "all edited file with module name not the same as base \
-		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
+	/ $dev $repo $re_add(b560) "all edited file with module name not the same \
+		as base file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
 		@ (((("%yobject.h" => "%YObject.h" @ %Core.YObject, (("%ystyle.h"
 		=> "%YStyle.h", "%ystyle.cpp" => "%YStyle.cpp") @ %YStyle),
 		"%button.cpp" => "%Button.cpp" @ %Button) @ %UI, "%ynew.h" => "%YNew.h"
@@ -6467,7 +6460,7 @@ b560
 		(
 			/ $design "initialization macros" %Initialization $=
 			(
-				/ "simplified" @ "platform %Win32"
+				/ "simplified platform %Win32"
 				+ "default initialization macros" @ "platform %Linux"
 			),
 			/ "set %Opacity data member as %true for window when extra window \
@@ -6546,7 +6539,7 @@ b560
 				-> 'const ImagePages&&',
 			+ "function template %Load"
 		),
-		/ DLD "simplified" @ "main function" %Main @ $dep_from
+		/ DLD "simplified main function" %Main @ $dep_from
 			%YFramework.Helper.HostedUI;
 	),
 	/ $dev $repo "all edited file with module name not the same as base \
@@ -6646,9 +6639,8 @@ b559
 		/ "namespace %Android" @ %'YCLib_(Android)'.Android $=
 		(
 			+ "function %UpdateContentTo";
-			/ DLD "simplified implementation"
-				@ "member function %ScreenRegionBuffer::UpdateTo"
-					^ "%UpdateContentTo"
+			/ DLDI "simplified member function %ScreenRegionBuffer::UpdateTo"
+				^ "%UpdateContentTo"
 				// Actually it locked a little more content than before, but \
 					can be ignored.
 		),
@@ -6874,7 +6866,7 @@ b558
 				),
 				* $dev $lib "asymmetric parameter types" $since b439
 			),
-			/ DLD "simplified implementation" ^ "more macros"
+			/ DLDI "simplified" ^ "more macros"
 		),
 		/ "constructor template" -> "inheriting constructor"
 			@ "classes %(unsupported, unimplemented)" @ %Exception,
@@ -6968,8 +6960,7 @@ b558
 	(
 		^ $re_ex(b321) "updated devkitARM release 43" ~ "devkitARM release 42",
 		^ $re_ex(b308) "updated libnds 1.5.9" ~ "libnds 1.5.8",
-		^ $re_ex(b308) "updated libfat 1.0.13" ~ "libfat 1.0.12",
-		^ $re_ex(b308) "updated default arm7 0.5.26" ~ "default arm7 0.5.25"
+		^ $re_ex(b308) "updated libfat 1.0.13" ~ "libfat 1.0.12"
 	),
 	/ DLD "simplified implementation by inclusion" @ "all 5 makefiles"
 		@ "platform %DS" $dep_from ("%Toolchain.DS.mk" @ %Tools) $=
@@ -7000,9 +6991,9 @@ b557
 	(
 		/ %SHBuild.Main $=
 		(
-			* $build "missing update header name" @ $since b556
+			* $build "missing updating header name" @ $since b556
 				$= ('<ystdex/exception.hpp>' -> '<ystdex/exception.h>'),
-			* "undefined behavior when .d file not exist"  $since b546,
+			* "undefined behavior when .d file not exist" $since b546,
 				// Actually crashed on Windows XP when assertion disabled, but \
 					not Windows 7 or above.
 		),
@@ -7125,7 +7116,7 @@ b556
 (
 	/ %YBase $=
 	(
-		+ %CMath @ %LibDefect,
+		+ $resolve(#3) %CMath @ %LibDefect,
 			// To make as many as possible ISO C++11 math functions work with \
 				libstdc++ even if no %_GLIBCXX_USE_C99_MATH_TR1 is defined.
 		/ DLD ^ "%std::llround" ~ "%::round" @ %Rational $dep_from
@@ -7611,11 +7602,11 @@ b554
 				b553,
 				// To eliminate Clang++ warning: warning: declaration shadows \
 					a field [-Wshadow].
-			* DD "wrong Doxygen directive '\t'" ~ '\c'
+			* DD "wrong Doxygen command '\t'" ~ '\c'
 				@ "function %usystem" @ %YCommon $since b539,
 				// To eliminate Clang++ warning: unknown command tag name \
 					[-Wdocumentation-unknown-command].
-			* DD "wrong Doxygen directive '\note'" ~ '\return'
+			* DD "wrong Doxygen command '\note'" ~ '\return'
 				@ "function %ToggleLockState" @ %Keys $since b490
 				// To eliminate Clang++ warning: '\return' command used in a \
 					comment that is attached to a function returning void \
@@ -7831,7 +7822,7 @@ b553
 			(
 				+ "class %platform::file_desc";
 				+ "struct %file_desc_deleter";
-				/ DLD "simplified implementation"
+				/ DLDI "simplified"
 			),
 			/ %Host $=
 			(
@@ -7940,7 +7931,7 @@ b552
 		(
 			/ %Adaptor.YNew $=
 			(
-				* "strict ISO C/C++ compatibility" @  $since b173
+				* "strict ISO C/C++ compatibility" @ $since b173
 					$= (/ "cast to 'void*' for argument for '%p' of \
 						'std::fprintf' call" ^ "%ystdex::pvoid" $dep_from
 						%YBase.YStandardEx.Cast),
@@ -8111,8 +8102,7 @@ b551
 				* "constructors" @ "class templates %(lock_guard, unique_lock) \
 					with 1 mutex parameter"
 			),
-			/ DLD "simplified implementation" @ "function %lock"
-				@ "class template %unique_lock",
+			/ DLDI "simplified function %lock" @ "class template %unique_lock",
 			+ "namespace %threading" %PseudoMutex $=
 				(+ "class template %unlock_deleter; alias template \
 					%locked_ptr"),
@@ -8144,7 +8134,7 @@ b551
 			+ "function templates %polymorphic_downcast for \
 				%std::(unique_ptr, shared_ptr)",
 			/ "static assertions" -> "explicitly returned with SFINAE check \
-				for overloaded templates with reference parameter",
+				for overloaded function templates with reference parameter",
 			+ 'ynothrow' @ "all function templates %polymorphic_downcast"
 		),
 		+ "using-declarations %std::(is_default_constructible, \
@@ -8770,7 +8760,7 @@ b547
 				CatchRet)" @ %YBaseMacro),
 			(
 			/ DLD "simplified options and environment variables handling";
-			/ DLD "simplified implementation" @ "function %PrintUsage",
+			/ DLDI "simplified function %PrintUsage",
 			* $comp "wrong description for %LIBS" $since b546,
 			- $dev "option macros"
 			)
@@ -8817,7 +8807,7 @@ b546
 				@ %Service.File,
 			/ %Core.YCoreUtilities $=
 			(
-				* DLB "missing update Visual C++ project for renaming" $since
+				* DLB "missing updating Visual C++ project for renaming" $since
 					b539,
 				/ "function %WriteEnvironmentVariable"
 					=> "%FetchEnvironmentVariable"
@@ -9190,7 +9180,7 @@ b543
 			/ DLD "implemented inline functions %EnsureNonNull" @ %COM
 				^ "macros %(PDefH, ImplExpr)"
 		),
-		/ DLD "simplified implementation" @ "constructor template %WindowThread"
+		/ DLDI "simplified constructor template %WindowThread"
 			@ %HostRenderer !^ "%std::mem_fn" @ %Helper.HostRenderer,
 		/ %YCLib $=
 		(
@@ -9276,7 +9266,7 @@ b543
 			(
 				+ "entering and exiting callbacks as parameter"
 					@ "constructors %(thread_pool; task_pool)",
-				/ @ "class %task_pool" @  $=
+				/ @ "class %task_pool" @ $=
 				(
 					+ "function templates %(poll, poll_for, poll_until)";
 					/ DLD "simplified function templates %(wait, wait_for,
@@ -9331,7 +9321,7 @@ b542
 			/ @ "member function %Build" $dep_from
 				%YFramework.YSLib.Service.FileSystem $=
 			(
-				/ DLD "simplified implementation" ^ "%MakeNormalizedAbsolute"
+				/ DLDI "simplified" ^ "%MakeNormalizedAbsolute"
 				- $comp "check for empty %SRCPATH input"
 			)
 		),
@@ -9434,7 +9424,7 @@ b541
 			@ %YFramework.YSLib.UI.Animation;
 		/ "other types not suited for pointer to members" -> "%_func"
 			~ "%_fCallable" $effective @ %(YBase.(YStandardEx.(Algorithm, Cache,
-			Container, Exception, Functional, Utility), YTest.(Test, Timing)),
+			Container, Exception, Functional, Utilities), YTest.(Test, Timing)),
 			YFramework.(Helper.(HostedUI, HostRenderer, HostWindow),
 			YSLib.(Adaptor.Image, Core.(Task, YApplication, YEvent, YFunc),
 			Service.FileSystem, UI.(Animation, YWidgetEvent))))
@@ -9787,7 +9777,7 @@ b539
 				)
 			),
 			/ "all failure exit code" -> 'EXIT_FAILURE' ~ '3',
-			/ @ "function %main" $=
+			/ @ "function %::main" $=
 			(
 				- "handler with return value other than 'EXIT_FAILURE' or '0'",
 					// Now the exit code of the program is 0 on success, \
@@ -10260,7 +10250,7 @@ b535
 				/ %ListControl $=
 				(
 					* "missing committing invalidation of unit control"
-						@ "function %UpdateView" @  $since b530;
+						@ "function %UpdateView" @ $since b530;
 						// Only effective when buffered renderer is set.
 					* $comp "missing invalidating first line when %ResetView \
 						called" @ "class %MTextList" @ %ListControl $since b530
@@ -10367,7 +10357,7 @@ b534
 	(
 		/ "all 7 '额外说明', 19 '另有说明', 11 '另行说明', 2 '另外说明'"
 			-> '另行约定',
-		/ "all 3 '附加说明' exception in Doxygen directive" -> '另行约定',
+		/ "all 3 '附加说明' exception in Doxygen command" -> '另行约定',
 		/ "normalized by explicitly filtered regular expression \
 			pattern '[^ （，例形]如[^ 上下何果]', \
 			'若无[^法效(歧义)(容器)(父部件)]'" $=
@@ -10848,11 +10838,11 @@ b528
 							$dep_from "class %AMUnitControlList";
 						/ "function %GetUnitRef" >> "class %AMUnitControlList",
 						/ DLD "text unit implementation",
-						- "data member %Unit" $dep_from "removal of %Unit"
+						- "data member %Unit" $dep_from "%MTextList::Unit"
 						),
 						- $revert($orig(b282))
 							"member function %GetMaxTextWidth" $orig (@ %Label)
-							$dep_from "removal of %GetMaxTextWidth"
+							$dep_from "%TextList::GetMaxTextWidth"
 					),
 					/ @ "class %TextList" $=
 					(
@@ -10861,13 +10851,11 @@ b528
 							"function %MTextList::CheckPoint",
 						/ "merged 2 functions %SetSelected for point as with \
 							parameter 'const Point&'",
-						/ DLD "simplified implementation" @ "function %Refresh",
+						/ DLDI "simplified function %Refresh",
 						/ 'using MTextList::Unit'
 							-> 'using MTextList::GetLabelRef' $dep_from
-							"%MTextList::GetLabelRef" $dep_to
-							"removal of %Unit",
-						- 'using MTextList::GetMaxTextWidth;' $dep_to
-							"removal of %GetMaxTextWidth"
+							"%MTextList::GetLabelRef",
+						- 'using MTextList::GetMaxTextWidth;'
 					),
 					+ "class %AMUnitControlList"
 				),
@@ -10966,7 +10954,7 @@ b527
 			+ DLD 'explicit' @ "base class constructors"
 		)
 	),
-	/ DD $term $re_ex(b462) "all '依赖于'" -> '依赖'
+	/ DD $term $re_add(b462) "all '依赖于'" -> '依赖'
 ),
 
 b526
@@ -11008,14 +10996,14 @@ b526
 			/ %TextList $=
 			(
 				- $revert(b316) 'using MTextList::Find;' @ "class %TextList"
-					$dep_from %ComboList $dep_to "removal of %TextList::Find",
+					$dep_from %ComboList,
 				/ @ "class %MTextList" $=
 				(
 					/ DLDI @ "member function %Refresh"
 						// Note now the unit widget state is not updated on \
 							%Refresh.
 					- $revert(b316) "function %Find" $dep_from
-						"removal of %TextList::Find",
+						"%TextList::Find",
 						// Just use 'std::find' on 'GetList()' instead.
 					- $revert(b523) "function %GetChildrenByIndices",
 					+ "assertion for nonzero check" @ "function %GetItemHeight"
@@ -11078,8 +11066,7 @@ b525
 					$dep_to "removal of %RefreshTextState call of %TextList",
 				- DLD "%MTextList::(GetTotal, SetContainer) calls"
 					$dep_to "removal containers of viewer",
-				- 'using MTextList::ViewerType;' @ "class %Textist"
-					$dep_to "removal of %ViewerType"
+				- 'using MTextList::ViewerType;'
 			),
 			/ @ "class %MTextList" $=
 			(
@@ -11092,14 +11079,14 @@ b525
 				),
 				- $revert(b524) "data member %LineGap",
 				- "alias-declaration %ViewerType" @ "class %MTextList"
-					$dep_from "removal of %ViewerType",
+					$dep_from "%TextList::ViewerType",
 				/ "function %CheckSelected" -> ("member function \
 					%SequenceViewer::CheckSelected" @ %Viewer) $dep_from %Viewer
 			),
 			/ DLD "viewer calls"
 		),
 		- DLD "calls of %MTextList::RefreshTextState" @ "classes %(TextList, \
-			Menu)" $dep_to "removal of %RefreshTextState of %Menu",
+			Menu)" $dep_to "removal of %RefreshTextState call of %Menu",
 		/ %Viewer $=
 		(
 			/ "class template %GSequenceViewer" -> "class %SequenceViewer" $=
@@ -11215,9 +11202,9 @@ b525
 			+ "class template %thunk"
 			)
 		),
-		/ DLD "simplified implementation" @ %AnyIterator
-			^ 'wrapped_traits_t<_type>' ~ 'typename wrapped_traits<_type>::type'
-			$dep_from "%wrapped_traits_t" @ %Functional,
+		/ DLDI "simplified" @ %AnyIterator ^ 'wrapped_traits_t<_type>'
+			~ 'typename wrapped_traits<_type>::type' $dep_from
+			"%wrapped_traits_t" @ %Functional,
 		+ "class template %swap_guard and its partial specialization" %Utilities
 	)
 ),
@@ -11255,7 +11242,8 @@ b524
 						- "data member %tsList",
 						),
 						/ "base class %MLabel" -> "data members %(Font, Margin)"
-							$dep_from "removal of redundant members"
+							$dep_from "%TextList::(HorizontalAlignment, \
+							VerticalAlignment, Text)
 					),
 					/ @ "class %TextList" $=
 					(
@@ -11268,8 +11256,7 @@ b524
 							"text list refresh"
 						),
 						- "using-declarations %(HorizontalAlignment, \
-							VerticalAlignment, Text) from %MTextList" $dep_to
-							"removal of redundant members",
+							VerticalAlignment, Text) from %MTextList"
 					)
 				),
 				(
@@ -11300,7 +11287,7 @@ b524
 		(
 			+ 'YB_NONNULL(1, 3)' @ "function %LogWithSource" @ %Debug
 				$dep_from %YBase.YDefinition,
-			* $revert_ex(b501) DD "missing '\def' directive" @ "Doxygen \
+			* $revert_ex(b501) DD "missing '\def' command" @ "Doxygen \
 				comments" @ "macro %YCL_KEYSTATE_DIRECT" @ %Input $since b501
 		)
 	),
@@ -11362,8 +11349,7 @@ b523
 					+ "using-declarations %MTextList::(GetViewPosition, \
 						GetFullViewHeight)"
 					),
-					/ DLD "simplified implementation" $dep_from
-						"text list model members" $=
+					/ DLDI "simplified" $dep_from "text list model members" $=
 					(
 						/ @ "function %AdjustViewForContent"
 							^ "macros %(PDefH, ImplExpr), \
@@ -11381,8 +11367,7 @@ b523
 					),
 					(
 					$dep_from "%MTextList::GetUnitLocation";
-					/ DLD "simplified implementation"
-						@ "function %GetUnitBounds" ^ "function \
+					/ DLDI "simplified function %GetUnitBounds" ^ "function \
 						%MTextList::GetUnitBounds, macros %(PDefH, ImplRet)",
 					+ 'using MTextList::GetUnitLocation;'
 					)
@@ -11397,12 +11382,13 @@ b523
 				assertion for nonnull pointer check for instance on debug \
 				configuration or just crash on release configuration.
 			$= (+ "%::ANativeActivity_finish call after %::y_android_main call"
-				@ "host thread"  @ %'Helper_(Android)'.AndroidHost)
+				@ "host thread" @ %'Helper_(Android)'.AndroidHost)
 	)
 ),
 
 b522
 (
+	/ $dev $resolve(#24) "updated MSYS2 GDB",
 	/ %YBase.YStandardEx $=
 	(
 		+ %Exception
@@ -11423,7 +11409,7 @@ b522
 		)
 	),
 	/ %Tools.SHBuild.Main
-		$= (/ DLD "simplified implementation"
+		$= (/ DLDI "simplified"
 			^ $dep_from %YBase.YStandardEx.Exception),
 	/ %YFramework.YSLib $=
 	(
@@ -11569,8 +11555,7 @@ b520
 		(
 			/ %UI $=
 			(
-				/ DLD "simplified implementation"
-					@ "checkbox background drawing" @ %Selector,
+				/ DLDI "simplified checkbox background drawing" @ %Selector,
 					// Removed unnecessary calculation.
 				- DLD "unused redundant internal constant object" @ %TextList
 			),
@@ -11621,7 +11606,7 @@ b520
 			converted to 'unsigned long'" (@ %'YCLib_(MinGW32)'.MinGW32
 			$orig (@ %Helper)) $since b387,
 			// It would fail to compile for Win64.
-		/ DLD "simplified implementation" @ "member function \
+		/ DLDI "simplified member function \
 			%InputManager::DispatchInput" @ %Helper.InputManager
 			// Also to eliminate Visual C++ warning C4457.
 	),
@@ -12000,9 +11985,9 @@ b518
 		),
 		/ %Helper $=
 		(
-			/ DLD "simplified implementation" @ "member function \
-				%Environment::MapCursor" @ "platform %Win32" @ %Host
-				$dep_from %'YCLib_(MinGW32)'.Win32GUI,
+			/ DLDI "simplified member function %Environment::MapCursor"
+				@ "platform %Win32" @ %Host $dep_from
+				%'YCLib_(MinGW32)'.Win32GUI,
 			- "simplified DS window input boundary implementation"
 				@ "platform %Win32" $dep_from "%HostWindow::MapPoint"
 				@ %'YCLib_(MinGW32)'.Win32GUI $dep_to "removal of bounds limit",
@@ -12136,7 +12121,7 @@ b517
 		* "platform neutrality" @ "types %(SPos, SDst)" @ "member function \
 			%HexViewArea::Refresh" @ %HexBrowser $since b253
 	),
-	* DLD "missing update header search paths"
+	* DLD "missing updating header search paths"
 		@ "Visual C++ project %YFramework_MinGW32" $since b493,
 ),
 
@@ -12436,8 +12421,8 @@ b512
 					(
 						(
 						+ "function %GetCaretLocation";
-						/ DLD "simplified implementation"
-							@ "static function %InvalidateDefaultCaret"
+						/ DLDI
+							"simplified static function %InvalidateDefaultCaret"
 						),
 						+ "functions %(UpdateCaret; CollapsedAndUpdateCaret)";
 						/ "updated caret location to GUI state after caret \
@@ -12491,13 +12476,12 @@ b512
 					// Ditto.
 				) $dep_to "hosted caret",
 				+ "function %BindDefaultWindowProc";
-				/ DLD "simplified implementation" @ "constructor"
-					^ "function %BindDefaultWindowProc"
+				/ DLDI "simplified constructor" ^ "function %BindDefaultWindowProc"
 			),
 			^ DLD "macro %YFM_DS_Helper_Shell_DS" @ %Shells
 		),
-		/ DLD "simplified implementation" @ "all 5 inline functions"
-			@ "%CHRLib.CharacterMapping" ^ "%(PDefH, ImplRet),
+		/ DLDI "simplified all 5 inline functions" @ "%CHRLib.CharacterMapping"
+			^ "%(PDefH, ImplRet),
 		+ "(2 function, 1 template) %IsPrint" @ %YCLib.YCommon
 	),
 	/ DLD "all '::UINT'" -> 'unsigned',
@@ -12643,7 +12627,7 @@ b510
 		),
 		* "wrong state after scrolling" @ "release configurations",
 	),
-	/ DLD "simplified implementation" ^ "initializer list"
+	/ DLDI "simplified" ^ "braced-init-list"
 		~ "explicit %ucs2string construction" $effective @ ("friend function \
 		%to_string for %Path", "member function %Path::Parse"
 		@ %YFramework.YSLib.Service.FileSystem $dep_from
@@ -12708,7 +12692,7 @@ b509
 				$= (/ "%InitializeEnviornment" => "%InitializeEnvironment"),
 			(
 			+ "function %MapCursor" @ "class %Environment" @ %Host;
-			/ DLD "simplified implementation" @ "member function
+			/ DLDI "simplified member function
 				%InputManager::Update" @ 'defined(YF_Hosted)' @ %InputManager
 			)
 		)
@@ -13141,14 +13125,14 @@ b502
 				/ DLDI @ "member function \
 					%WidgetLoader::TransformUILayout" @ %Loader
 					$dep_from "split value node children container",
-				* DD "wrong Doxygen directive '\build'" ~ '\brief'
+				* DD "wrong Doxygen command '\build'" ~ '\brief'
 					@ "class %InvalidationUpdater" @ %Animation $=
 				(
 					* @ "data member %Invalidate" $since b457,
 					* @ "static function %DefaultInvalidate" $since b462,
 					* @ "data member %Invalidate" $since b482
 				),
-				* DD "wrong Doxygen directive '\build'" ~ '\since'
+				* DD "wrong Doxygen command '\build'" ~ '\since'
 					@ "data member %TextBox::CaretBrush" @ %TextBox $since b484
 			)
 		),
@@ -13172,7 +13156,7 @@ b502
 					@ "member function %InputManager::Update"
 					$dep_from "Android host declarations",
 					// So %GUIShell is now are usable.
-				/ DLD "simplified implementation" ^ "%CheckPositiveScalar"
+				/ DLDI "simplified" ^ "%CheckPositiveScalar"
 					$dep_from %YSLib.Core.CoreUtilities
 			),
 			/ %Host $=
@@ -13274,8 +13258,7 @@ b500
 				// Ditto.
 			- "function %UI::DrawArrow" @ %YWidget
 			),
-			/ DLD "simplified implementation" @ "function %RectDrawArrow"
-				@ %YStyle
+			/ DLDI "simplified function %RectDrawArrow" @ %YStyle
 		),
 		/ "default configuration" @ "platform %Win32" @ %Helper.Initialization
 			$=
@@ -13295,7 +13278,7 @@ b500
 		/ %ShlExplorer $=
 		(
 			/ "test widget location"
-			/ @ "class %ShlExplorer"  $=
+			/ @ "class %ShlExplorer" $=
 			(
 				+ "default text" @ "test label",
 				/ "avoided potentional leak for %unique_ptr setting"
