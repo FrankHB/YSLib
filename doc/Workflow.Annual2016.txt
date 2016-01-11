@@ -1,0 +1,45 @@
+﻿/*
+	© 2016 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Workflow.Annual2016.txt
+\ingroup Documentation
+\brief 工作流汇总报告 - 2016 年度。
+\version r44
+\author FrankHB <frankhb1989@gmail.com>
+\since build 663
+\par 创建时间:
+	2016-01-11 09:35:01 +0800
+\par 修改时间:
+	2016-01-11 09:41 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::Workflow::Annual2016
+*/
+
+// See "Meta.cpp" for meta descriptions.
+
+$import $WORKFLOW;
+$LINE-WIDTH-RESTRICT 0;
+
+$WORKFLOW:
+// Following lines are only for logging informal project information.
+// See Meta.txt for formal project information.
+// See ChangeLog.*.txt for accepted contents.
+
+$2016-01:
+
+report.impl:
+Overloaded function templates for 'std::size' works as expected only with core issue resolutions.
+	The overloaded version for array accept non-static member access of array type depends on the change in CWG616 available in ISO C++14, which forbids it to be a prvalue.
+	The deduction for 'std::initializer_list' instance for overloaded version for array depends on the resolution of CWG1591.
+
+////
+

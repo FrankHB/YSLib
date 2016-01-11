@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1652
+\version r1657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-12-12 16:49 +0800
+	2015-12-28 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,7 @@
 #include "cstring.h" // for ntctslen;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array, arrlen;
 #include <istream> // for std::basic_istream;
+#include "ios.hpp" // for rethrow_badstate;
 #include <ostream> // for std::basic_ostream;
 #include <cstdarg>
 
@@ -258,7 +259,7 @@ using enable_for_string_class_t
 \note 同 std::begin 和 std::end ，但字符数组除外。
 \note 此处 string_end 语义和 boost::end 相同，但对数组类型不同于 std::end 。
 \bug decltype 指定的返回类型不能使用 ADL 。
-\see ISO WG21/N3936 20.4.7[iterator.range] 。
+\see WG21/N3936 20.4.7[iterator.range] 。
 \since build 519
 */
 //@{
@@ -912,8 +913,8 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 		}
 		catch(...)
 		{
-			// NOTE: May rethrow.
-			is.setstate(std::ios_base::badbit);
+			// NOTE: See http://wg21.cmeerw.net/lwg/issue91.
+			rethrow_badstate(is, std::ios_base::badbit);
 		}
 	}
 	if(n == 0)
@@ -1161,6 +1162,7 @@ ston(const _tString& str, _tParams&&... args)
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
 \throw std::runtime_error 格式化字符串输出失败。
+\note 对 _tString 构造异常中立。
 */
 template<typename _tChar, class _tString = std::basic_string<_tChar>>
 YB_NONNULL(1) _tString

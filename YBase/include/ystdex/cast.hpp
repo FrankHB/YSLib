@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1222
+\version r1234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2015-12-17 13:46 +0800
+	2016-01-10 03:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,19 +69,6 @@ pvoid_ref(_type&& ref)
 	return ystdex::pvoid(std::addressof(ref));
 }
 //@}
-
-
-/*!
-\brief 转换 const 引用。
-\see WG21/N4380 。
-\since build 593
-*/
-template<typename _type>
-inline add_const_t<_type>&
-as_const(_type& t)
-{
-	return t;
-}
 
 
 /*!	\defgroup cast Cast

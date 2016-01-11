@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2935
+\version r2949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-11-06 11:07 +0800
+	2016-01-10 03:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,24 @@
 #include "type_pun.hpp" // for is_standard_layout, pun_storage_t,
 //	std::swap, aligned_replace_cast, _t;
 #include "cassert.h" // for yassume;
-#include <memory> // for std::addressof;
 
 namespace ystdex
 {
 
 //! \ingroup helper_functions
 //@{
+/*!
+\brief 转换 const 引用。
+\see WG21/N4380 。
+\since build 593
+*/
+template<typename _type>
+inline add_const_t<_type>&
+as_const(_type& t)
+{
+	return t;
+}
+
 /*!
 \brief 交换相同标准布局类型可修改左值的存储。
 \since build 620
@@ -64,7 +75,7 @@ using std::exchange;
 /*!
 \brief 交换值并返回旧值。
 \return 被替换的原值。
-\see ISO WG21/N3797 20.2.3[utility.exchange] 。
+\see WG21/N3797 20.2.3[utility.exchange] 。
 \see http://www.open-std.org/JTC1/sc22/WG21/docs/papers/2013/n3668.html 。
 */
 template<typename _type, typename _type2 = _type>

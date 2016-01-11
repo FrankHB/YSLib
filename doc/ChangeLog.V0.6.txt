@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r7597
+\version r7685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2015-12-28 18:19 +0800
+	2016-01-11 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,92 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ %IOS $=
+			// Note that libstdc++ has %_M_setstate which sets state without \
+				throwing and VC++ also has extention to do rethrowing \
+				directly, but since %YBase.YStandardEx is required to rely on \
+				no specific implementation, they are not available.
+			(+ "function templates %(setstate; rethrow_badstate")),
+		* "exception thrown by %setstate instead of rethrown exception when \
+			exception mask is set for %std::ios_base::badbit"
+			@ "function template %extract" @ %String $since b565 ^ $dep_from
+			("rethrow_badstate" @ %IOS),
+			// This violates the requirements of ISO C++ as an unformatted \
+				input function.
+		/ %Container $=
+		(
+			+ "function template %erase_all for iterator range",
+			/ @ "function templates %(erase_all, erase_all_if)" $=
+			(
+				/ "optimized function template %(erase_all, erase_all_if) for \
+					entire range of sequence container" ^ "member function \
+					%(remove, remove_if)" ~ "%std::(erase, remove, remove_if)",
+					// To effect optimized operations for types like \
+						%std::list and %std::forward_list.
+				+ "member %key_type detection for non-sequence container types",
+				+ "adaptive overloaded templates for container or iterator \
+					range"
+			),
+			* "missing %yforward for range pareameter passing"
+				@ "function templates" ("%concat#2" $since b546,
+				"%make_container#2" $since b532),
+			/ $impl "assertions" @ "%erase_n" ^ "ADL %(end, cend)" ~ "member",
+			/ $impl "function template %search_map#1" $=
+			(
+				^ $dep_from "%as_const" @ %Utilities,
+				^ "non-member ADL %cend" ~ "member %end"
+			),
+			/ "all 2 function template %vector_size" ^ "non-member ADL %size"
+				~ "member %size" $dep_from %Range,
+			(
+			// See $2016-01 @ %Documentation::Workflow::Annual2016.
+			/ "function templates %range_size" ^ "non-member ADL %size"
+				$dep_from %Range;
+				// Funtion templates %ystdex::arrlen are delayed to be removed \
+					since it has many instance of usage.
+			- "%range_size for arrays and %std::initializer_list instances",
+				// Now this is covered by ADL %size provided by %ystdex::size.
+			* DD "wrong group separator '//{'" @ "Doxygen comments" $since b546
+			)
+		),
+		/ "function template %as_const" @ %Cast >> %Utilities,
+		/ %Range $=
+		(
+			// See $2016-01 @ %Documentation::Workflow::Annual2016.
+			+ "function templates %(2 size, 3 empty, 4 data)"
+				// See WG21/N4280.
+			+ "overloaded templates %(empty, data) for rvalue reference of \
+				array types" @ '__cplusplus <= 201103L',
+			+ "overloaded template %size for rvalue reference of array types"
+				@ '__cplusplus <= 201402L'
+		)
+	),
+	/ %YFramework $=
+	(
+		* "exception thrown by %setstate instead of rethrown exception when \
+			exception mask is set for %std::ios_base::failbit"
+			@ "function %operator>>" @ %NPL.Configuration $since b662
+			^ $dep_from ("rethrow_badstate" @ %IOS),
+		/ %NPL $=
+		(
+			/ DLDI "simplified function %ConvertAttributeNodeString" @ %NPLA1
+				^ "%Access for %ValueNode",
+			+ %NPLA;
+			/ "all 13 alias-declarations, struct %NPLATag, all function \
+				templates (2 %InsertSyntaxNode, 3 %InsertChildSyntaxNode), \
+				functions %(MapNPLALeafNode, TransformToSyntaxNode, \
+				EscapeNodeLiteral, LiteralizeEscapeNodeLiteral, \
+				ParseNPLANodeString, DefaultGenerateIndent, PrintIndent, \
+				PrintNode, PrintNodeChild, PrintNodeString), namespace %SXML"
+				@ %NPLA1 => %NPLA
+		)
+	)
+),
+
+b662
 (
 	/ %YFramework $=
 	(
@@ -2363,8 +2449,8 @@ b646
 					)
 				)
 			),
-			/ "range_size for std::initializer_list instances passed parameter \
-				by value" @ %Container ~ "by const reference",
+			/ "%range_size for %std::initializer_list instances passed \
+				parameter by value" @ %Container ~ "by const reference",
 			+ "function template %to_array for %std::initializer_list instances"
 				@ %Array,
 			/ %Path $=
