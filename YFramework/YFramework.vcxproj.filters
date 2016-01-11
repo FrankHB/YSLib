@@ -907,6 +907,9 @@
     <ClInclude Include="Win32\include\YCLib\Registry.h">
       <Filter>Win32\include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\NPL\NPLA.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp">
@@ -1244,6 +1247,9 @@
     </ClCompile>
     <ClCompile Include="Win32\source\YCLib\Registry.cpp">
       <Filter>Win32\source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\NPLA.cpp">
+      <Filter>source\NPL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

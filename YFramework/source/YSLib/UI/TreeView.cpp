@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r720
+\version r725
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2015-05-16 08:51 +0800
+	2016-01-10 03:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_TreeView
-#include <ystdex/cast.hpp> // for ystdex::as_const;
+#include <ystdex/utility.hpp> // for ystdex::as_const;
 
 namespace YSLib
 {
@@ -360,7 +360,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		YAssert(vec_ins.back().first > j->first,
 			"Invalid insertion sequence found");
 		// TODO: Strong exception guarantee.
-		// See $2014-09 @ %Documentation::Workflow::Annual2014.
+		// NOTE: See $2014-09 @ %Documentation::Workflow::Annual2014.
 		{
 			// XXX: Use %std::make_move_iterator if proper.
 			vector<pair<IndentType, IndexType>>
@@ -379,7 +379,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		auto& lst(GetListRef());
 
 		// XXX: Reuse previous operation.
-		// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63500 .
+		// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63500.
 #if defined(_GLIBCXX_DEBUG) && YB_IMPL_GNUCPP < 40902
 		lst.insert(lst.cbegin() + ptrdiff_t(idx) + 1, text_list.begin(),
 			text_list.end());
@@ -425,7 +425,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 					indent_map.end()), vec.rbegin(), vec.rend());
 			}
 #else
-			// See $2014-09 @ %Documentation::Workflow::Annual2014.
+			// NOTE: See $2014-09 @ %Documentation::Workflow::Annual2014.
 			for(; j != indent_map.cend(); ++j)
 				j = ystdex::replace_value(indent_map, j->first,
 					[n](decltype(*indent_map.cbegin()) pr){

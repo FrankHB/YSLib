@@ -154,6 +154,7 @@
     <ClInclude Include="include\NPL\Dependency.h" />
     <ClInclude Include="include\NPL\Lexical.h" />
     <ClInclude Include="include\NPL\NPL.h" />
+    <ClInclude Include="include\NPL\NPLA.h" />
     <ClInclude Include="include\NPL\NPLA1.h" />
     <ClInclude Include="include\NPL\SContext.h" />
     <ClInclude Include="include\NPL\YModules.h" />
@@ -279,6 +280,7 @@
     <ClCompile Include="DS\source\Helper\Shell_DS.cpp" />
     <ClCompile Include="DS\source\YCLib\DSIO.cpp" />
     <ClCompile Include="DS\source\YCLib\DSVideo.cpp" />
+    <ClCompile Include="source\NPL\NPLA.cpp" />
     <ClCompile Include="Win32\source\Helper\Win32Control.cpp" />
     <ClCompile Include="Win32\source\YCLib\Consoles.cpp" />
     <ClCompile Include="Win32\source\YCLib\MinGW32.cpp" />

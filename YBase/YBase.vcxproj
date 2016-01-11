@@ -44,6 +44,7 @@
     <ClInclude Include="include\ystdex\future.hpp" />
     <ClInclude Include="include\ystdex\hash.hpp" />
     <ClInclude Include="include\ystdex\integer_sequence.hpp" />
+    <ClInclude Include="include\ystdex\ios.hpp" />
     <ClInclude Include="include\ystdex\istream.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
     <ClInclude Include="include\ystdex\iterator_op.hpp" />

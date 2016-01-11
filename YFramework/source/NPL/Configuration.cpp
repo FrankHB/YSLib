@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r944
+\version r949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2015-12-28 18:11 +0800
+	2015-12-28 20:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,11 +49,7 @@ operator>>(std::istream& is, Configuration& conf)
 	Session sess(sb_it_t(is), sb_it_t{});
 
 	TryExpr(conf.root = LoadNPLA1(SContext::Analyze(std::move(sess))))
-	catch(...)
-	{
-		is.setstate(std::ios_base::failbit);
-		throw;
-	}
+	CatchExpr(..., ystdex::rethrow_badstate(is, std::ios_base::failbit))
 	return is;
 }
 

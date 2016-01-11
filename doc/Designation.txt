@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9829
+\version r9839
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-11-21 13:46 +0800
+	2016-01-11 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,13 +225,15 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 若在同一个作用域中出现多个不同的以下约定相同类别内的名称，可以后缀正整数以示区分。
 
 @4.1.2.1 YBase 和 YFramework 约定：
+用于实现标准库兼容接口时，优先使用以下名称的对应或一致形式。
 使用以下固定含义的模板形式参数名称（前缀参见 @4.1.1.2 ），同时表示对应的类型要求（模板参数引用作为函数参数时可以是对应的对象类型引用）：
-_type ：一般类型参数；
-_type2 ：第二类型参数；
+_type ：一般类型参数（对应标准库的 T ）；
+_type2 ：第二类型参数（对应标准库的 U ）；
 _bCond ：表示选择结果的条件的 bool 参数。
+_tElem ：元素类型（如 std::initializer_list 的模板参数等，对应标准库的 E ）；
+_tEx ：异常类型（除非另行约定，应为类类型）；
 _tSeq ：表示序列的类型参数（一般需要是类类型；注意可以是元类型的实例，而不一定是容器类型）。
 _tScalar ：纯量类型（和向量类型相对；注意不一定是 ISO C++ 定义的纯量类型，即不需要保证满足 std::is_scalar 类型特征）；
-_tEx ：异常类型（除非另行约定，应为类类型）；
 _func ：函数对象类型；
 _fCallable ：可调用类型；
 _fPred ：谓词函数类型；
@@ -254,7 +256,9 @@ begin 和 end 以 ADL 为使用形式，一般使用命名空间作用域包装�
 无歧义时，优先使用约定的对象或对象引用类型的参数名称：
 c 一般范围；
 c 字符（特别是符合 _tChar 类型的）；
-con 容器（特别是符合 _Con 、 _tSeqCon 或 _tAssocCon 类型或其引用类型的）。
+c 范围（特别是和容器并列时）；
+con 容器（特别是符合 _tCon 、 _tSeqCon 或 _tAssocCon 类型或其引用类型的）；
+il std::initializer_list 示例类型的参数（和标准库一致）。
 
 @4.1.2.2 YFramework 约定：
 
@@ -395,7 +399,7 @@ ytest ：测试框架设施 YTest 。
 当多种指令等价时使用 Doxygen 手册中直接说明（而非指示同义词即 "Equivalent to" ）的一项。
 例外：
 对外部参考使用 \see 而不是 \sa ；
-\throw 指显式抛出确定类型的异常， \exception 指内部调用间接抛出的可被特定异常处理器捕获的异常（可能为派生类）。
+\throw 指通过 throw 表达式或调用 throw 的专用助手例程显式抛出确定类型的异常， \exception 指内部调用间接抛出的可被特定异常处理器捕获的异常（可能为派生类）。
 
 @6.1.3 指令行风格：
 组(group) 相关指令（ \defgroup 、 \ingroup 、 \name 等）、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \relates 、 \sa 、 \since 、 \version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对中文注释以全角标点结束；不成句的不视为完整的注释）。
