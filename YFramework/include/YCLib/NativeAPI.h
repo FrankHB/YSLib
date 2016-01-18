@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1118
+\version r1121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-12-16 13:43 +0800
+	2016-01-16 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,6 +167,8 @@ UninitializeFileSystem() ynothrow;
 #	undef ExpandEnvironmentStrings
 //! \since build 381
 #	undef FindWindow
+//! \since build 664
+#	undef FormatMessage
 //! \since build 592
 #	undef GetMessage
 //! \since build 313

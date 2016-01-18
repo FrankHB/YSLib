@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2872
+\version r2877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-12-16 13:46 +0800
+	2016-01-17 02:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Container // for std::is_integral, std::is_array,
-//	ystdex::remove_reference_t, arrlen, ystdex::is_null, string, u16string,
+//	ystdex::remove_reference_t, size, ystdex::is_null, string, u16string,
 //	ystdex::to_array, std::uint8_t, std::uint32_t, pair, tuple;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
@@ -112,7 +112,7 @@ static_assert(std::is_integral<decltype(YCL_PATH_DELIMITER)>(),
 	"Illegal type of delimiter found.");
 static_assert(std::is_array<ystdex::remove_reference_t<decltype(
 	YCL_PATH_SEPARATOR)>>(), "Non-array type of separator found.");
-static_assert(arrlen(YCL_PATH_SEPARATOR) == 2,
+static_assert(size(YCL_PATH_SEPARATOR) == 2,
 	"Wrong length of separator found.");
 static_assert(YCL_PATH_SEPARATOR[0] == YCL_PATH_DELIMITER,
 	"Mismatched path delimiter and separator found.");
@@ -735,7 +735,7 @@ using FileSize = std::uint32_t;
 \brief 最大文件大小。
 \note 等于 4GiB - 1B 。
 */
-static yconstexpr auto MaxFileSize(FileSize(0xFFFFFFFF));
+static yconstexpr const auto MaxFileSize(FileSize(0xFFFFFFFF));
 
 
 //! \brief 时间戳：表示日期和时间的整数类型。
@@ -796,7 +796,7 @@ enum : size_t
 	MaxLength = 256,
 	//! \brief UTF-8 项最大长度。
 	MaxMBCSLength = MaxLength * 3,
-	EntryLength = arrlen(OffsetTable),
+	EntryLength = size(OffsetTable),
 	AliasEntryLength = 11,
 	MaxAliasMainPartLength = 8,
 	MaxAliasExtensionLength = 3,

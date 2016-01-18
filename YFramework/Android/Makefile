@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2015 FrankHB.
+#	(C) 2009-2016 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r354
+# Version = r356
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2015-05-29 21:35 +0800
+# Updated = 2016-01-11 10:54 +0800
 # Encoding = ANSI
 
 
@@ -197,8 +197,8 @@ define bin2o
 	bin2s $(notdir $(*)) | $(AS) $(ARCH_AS) -o $(DEPSDIR)/$(@)
 	rm $(notdir $(*))
 
-	echo "extern const u8" $(notdir $(*))"[];" > $(DEPSDIR)/$(*).h
-	echo "extern const u32" $(notdir $(*))_size";" >> $(DEPSDIR)/$(*).h
+	echo "extern const unsigned char" $(notdir $(*))"[];" > $(DEPSDIR)/$(*).h
+	echo "extern const unsigned" $(notdir $(*))_size";" >> $(DEPSDIR)/$(*).h
 endef
 
 %.mp3.o	:	%.mp3

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1564
+\version r1575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-12-16 10:53 +0800
+	2016-01-16 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -304,6 +304,19 @@ public:
 	}
 };
 //@}
+
+
+/*!
+\brief 局部存储删除器。
+\since build 658
+*/
+struct YF_API LocalDelete
+{
+	using pointer = ::HLOCAL;
+
+	void
+	operator()(pointer) const ynothrow;
+};
 
 
 //! \since build 629

@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1394
+\version r1408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-01-11 10:05 +0800
+	2016-01-11 23:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,6 +378,7 @@ range_size(const _tRange& c, false_type)
 若可调用结果可转换为 \c size_t 的 ADL 函数 \c size 则使用 ADL \c size ；
 否则使用 std::distance 计算范围迭代器确定范围大小。
 */
+//@{
 template<typename _tRange>
 yconstfn auto
 range_size(const _tRange& c)
@@ -385,6 +386,19 @@ range_size(const _tRange& c)
 {
 	return details::range_size(c, details::has_range_size<_tRange>());
 }
+#if __cplusplus <= 201402L
+/*!
+\see http://wg21.cmeerw.net/cwg/issue1591 。
+\since build 664
+*/
+template<typename _tElem>
+yconstfn size_t
+range_size(std::initializer_list<_tElem> il)
+{
+	return size(il);
+}
+#endif
+//@}
 
 
 /*!

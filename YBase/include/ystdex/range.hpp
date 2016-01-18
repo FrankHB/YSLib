@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r259
+\version r345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2016-01-11 10:04 +0800
+	2016-01-18 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,21 @@ inline namespace cpp2011
 {
 
 using std::begin;
+//! \since build 664
+template<typename _type, size_t _vN>
+yconstfn _type*
+begin(_type(&&array)[_vN]) ynothrow
+{
+	return array;
+}
 using std::end;
+//! \since build 664
+template<typename _type, size_t _vN>
+yconstfn _type*
+end(_type(&&array)[_vN]) ynothrow
+{
+	return array + _vN;
+}
 
 } // inline namespace cpp2011;
 
@@ -62,7 +76,8 @@ using std::crend;
 
 template<typename _tRange>
 yconstfn auto
-cbegin(const _tRange& c) ynoexcept_spec(std::begin(c)) -> decltype(std::begin(c))
+cbegin(const _tRange& c) ynoexcept_spec(std::begin(c))
+	-> decltype(std::begin(c))
 {
 	return std::begin(c);
 }
@@ -75,12 +90,14 @@ cend(const _tRange& c) ynoexcept_spec(std::end(c)) -> decltype(std::end(c))
 }
 
 template<class _tRange>
-auto rbegin(_tRange& c) -> decltype(c.rbegin())
+auto
+rbegin(_tRange& c) -> decltype(c.rbegin())
 {
 	return c.rbegin();
 }
 template<class _tRange>
-auto rbegin(const _tRange& c) -> decltype(c.rbegin())
+auto
+rbegin(const _tRange& c) -> decltype(c.rbegin())
 {
 	return c.rbegin();
 }
@@ -90,6 +107,7 @@ rbegin(_type(&array)[_vN])
 {
 	return std::reverse_iterator<_type*>(array + _vN);
 }
+
 template<typename _tElem>
 std::reverse_iterator<const _tElem*>
 rbegin(std::initializer_list<_tElem> il)
@@ -121,17 +139,84 @@ rend(std::initializer_list<_tElem> il)
 }
 
 template<typename _tRange>
-auto crbegin(const _tRange& c) -> decltype(ystdex::rbegin(c))
+auto
+crbegin(const _tRange& c) -> decltype(ystdex::rbegin(c))
 {
 	return ystdex::rbegin(c);
 }
 
 template<typename _tRange>
-auto crend(const _tRange& c) -> decltype(ystdex::rend(c))
+auto
+crend(const _tRange& c) -> decltype(ystdex::rend(c))
 {
 	return ystdex::rend(c);
 }
 #endif
+
+//! \since build 664
+//@{
+template<typename _type, size_t _vN>
+yconstfn _type*
+cbegin(_type(&&array)[_vN]) ynothrow
+{
+	return array;
+}
+
+template<typename _type, size_t _vN>
+yconstfn _type*
+cend(_type(&&array)[_vN]) ynothrow
+{
+	return array + _vN;
+}
+
+template<typename _type, size_t _vN>
+std::reverse_iterator<_type*>
+rbegin(_type(&&array)[_vN])
+{
+	return std::reverse_iterator<_type*>(array + _vN);
+}
+
+template<typename _type, size_t _vN>
+std::reverse_iterator<_type*>
+rend(_type(&&array)[_vN])
+{
+	return std::reverse_iterator<_type*>(array);
+}
+
+#if __cplusplus <= 201402L
+//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+//@{
+template<typename _tElem>
+yconstfn const _tElem*
+cbegin(std::initializer_list<_tElem> il) ynothrow
+{
+	return il.begin();
+}
+
+//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+template<typename _tElem>
+yconstfn const _tElem*
+cend(std::initializer_list<_tElem> il) ynothrow
+{
+	return il.end();
+}
+
+template<typename _tElem>
+yconstfn std::reverse_iterator<const _tElem*>
+crbegin(std::initializer_list<_tElem> il) ynothrow
+{
+	return ystdex::rbegin(il);
+}
+
+template<typename _tElem>
+yconstfn std::reverse_iterator<const _tElem*>
+crend(std::initializer_list<_tElem> il) ynothrow
+{
+	return ystdex::rend(il);
+}
+//@}
+#endif
+//@}
 
 } // inline namespace cpp2014;
 //@}
@@ -177,15 +262,12 @@ empty(const _type(&)[_vN]) ynothrow
 {
 	return {};
 }
-#if __cplusplus <= 201103L
-//! \see http://wg21.cmeerw.net/cwg/issue616 。
 template<typename _type, size_t _vN>
 yconstfn bool
 empty(const _type(&&)[_vN]) ynothrow
 {
 	return {};
 }
-#endif
 template<typename _tElem>
 yconstfn bool
 empty(std::initializer_list<_tElem> il) ynothrow
@@ -211,15 +293,12 @@ data(_type(&array)[_vN]) ynothrow
 {
 	return array;
 }
-#if __cplusplus <= 201103L
-//! \see http://wg21.cmeerw.net/cwg/issue616 。
 template<typename _type, size_t _vN>
 yconstfn _type*
 data(_type(&&array)[_vN]) ynothrow
 {
 	return array;
 }
-#endif
 template<typename _tElem>
 yconstfn const _tElem*
 data(std::initializer_list<_tElem> il) ynothrow

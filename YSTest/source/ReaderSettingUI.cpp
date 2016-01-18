@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r494
+\version r497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2015-05-29 21:51 +0800
+	2016-01-11 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ using std::chrono::milliseconds;
 String
 FetchEncodingString(MTextList::IndexType i)
 {
-	if(YB_LIKELY(i < arrlen(Encodings)))
+	if(YB_LIKELY(i < size(Encodings)))
 	{
 		const auto& pr(Encodings[i]);
 
@@ -127,7 +127,7 @@ SettingPanel::SettingPanel()
 	ddlFont.SetList(FetchFontFamilyNames()),
 	ddlEncoding.SetList(
 		make_shared<TextList::ListType>(Encodings | ystdex::get_value,
-		(Encodings + arrlen(Encodings)) | ystdex::get_value)),
+		ystdex::cend(Encodings) | ystdex::get_value)),
 	yunseq(
 	root.Background = nullptr,
 	btnFontSizeDecrease.Text = u"减小字体",

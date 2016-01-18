@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1303
+\version r1306
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2016-01-10 03:25 +0800
+	2016-01-11 11:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ DetectBOM(const char* buf)
 {
 #define YSL_Impl_DetectBOM(_n) \
 	if(CheckBOM(buf, BOM_##_n)) \
-		return {CharSet::_n, arrlen(BOM_##_n) - 1};
+		return {CharSet::_n, size(BOM_##_n) - 1};
 	YSL_Impl_DetectBOM(UTF_16LE)
 	YSL_Impl_DetectBOM(UTF_16BE)
 	YSL_Impl_DetectBOM(UTF_8)
@@ -100,7 +100,7 @@ DetectBOM(std::istream& is, std::size_t fsize, Encoding enc)
 
 	char s[64U];
 
-	return {VerifyEncoding(is, s, arrlen(s), size_t(fsize), enc), 0};
+	return {VerifyEncoding(is, s, size(s), size_t(fsize), enc), 0};
 }
 
 size_t
@@ -111,7 +111,7 @@ WriteBOM(std::ostream& os, Encoding enc)
 #define YSL_Impl_WriteBOM(_n) \
 	case CharSet::_n: \
 		ystdex::write_literal(os, BOM_##_n); \
-		return arrlen(BOM_##_n) - 1;
+		return size(BOM_##_n) - 1;
 	YSL_Impl_WriteBOM(UTF_16LE)
 	YSL_Impl_WriteBOM(UTF_16BE)
 	YSL_Impl_WriteBOM(UTF_8)

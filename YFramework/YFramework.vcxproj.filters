@@ -1292,5 +1292,8 @@
     <Text Include="..\doc\YCLib.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\Workflow.Annual2016.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1576
+\version r1587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-12-11 22:01 +0800
+	2016-01-11 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -746,10 +746,10 @@ HostWindow::HostWindow(NativeWindowHandle h)
 	YAssert(::GetWindowLongPtrW(h, GWLP_USERDATA) == 0,
 		"Invalid user data of window found.");
 
-	wchar_t buf[arrlen(WindowClassName)];
+	wchar_t buf[size(WindowClassName)];
 
 	YCL_CallWin32F(GetClassNameW, GetNativeHandle(), buf,
-		arrlen(WindowClassName));
+		size(WindowClassName));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
@@ -933,14 +933,15 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	case SE_ERR_DDEBUSY:
 	{
 		using boxed_exception = ystdex::wrap_mixin_t<std::runtime_error, int>;
-		const auto throw_ex([=](int ec) YB_ATTR(noreturn){
-			std::throw_with_nested(Win32Exception(ErrorCode(ec),
-				ystdex::sfmt("ShellExecuteW: %d", res), Err));
-		});
 
 		TryExpr(throw boxed_exception{std::runtime_error("ShellExecuteW"), res})
 		catch(boxed_exception& e)
 		{
+			const auto throw_ex([=](int ec) YB_ATTR(noreturn){
+				std::throw_with_nested(Win32Exception(ErrorCode(ec),
+					ystdex::sfmt("ShellExecuteW: %d", res), Err));
+			});
+
 			switch(e.value)
 			{
 			case SE_ERR_ASSOCINCOMPLETE:

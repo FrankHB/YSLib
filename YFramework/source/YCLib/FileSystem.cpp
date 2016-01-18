@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3568
+\version r3570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-12-16 11:31 +0800
+	2016-01-17 02:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ YCL_DeclW32Call(CreateSymbolicLinkW, kernel32, unsigned char, const wchar_t*, \
 using platform::wcast;
 
 // NOTE: As %SYMBOLIC_LINK_FLAG_DIRECTORY, but with correct type.
-yconstexpr auto SymbolicLinkFlagDirectory(1UL);
+yconstexpr const auto SymbolicLinkFlagDirectory(1UL);
 
 inline PDefH(void, W32_CreateSymbolicLink, const char16_t* dst,
 	const char16_t* src, unsigned long flags)
@@ -283,7 +283,6 @@ HDirectory::GetNodeCategory() const ynothrow
 	if(p_dirent)
 	{
 		YAssert(bool(GetNativeHandle()), "Invariant violation found.");
-
 #if YCL_Win32
 		YAssert(!static_cast<wstring*>(p_dirent)->empty(),
 			"Invariant violation found.");
@@ -292,6 +291,7 @@ HDirectory::GetNodeCategory() const ynothrow
 			GetNativeHandle())).GetNodeCategory());
 #else
 		auto res(NodeCategory::Empty);
+
 		try
 		{
 			auto name(sDirPath + Deref(p_dirent).d_name);
