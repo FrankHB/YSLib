@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2015 FrankHB.
+#	(C) 2009-2016 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1394
+# Version = r1396
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2015-06-29 13:09 +0800
+# Updated = 2016-01-11 10:53 +0800
 # Encoding = ANSI
 
 
@@ -230,8 +230,8 @@ define bin2o
 	bin2s $(notdir $(*)) | $(AS) $(ARCH_AS) -o $(DEPSDIR)/$(@)
 	rm $(notdir $(*))
 
-	echo "extern const u8" $(*)"[];" > $(*).h
-	echo "extern const u32" $(*)_size";" >> $(*).h
+	echo "extern const unsigned char" $(*)"[];" > $(*).h
+	echo "extern const unsigned" $(*)_size";" >> $(*).h
 endef
 
 #----

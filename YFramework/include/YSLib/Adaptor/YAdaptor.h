@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1896
+\version r1900
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2015-12-13 15:06 +0800
+	2016-01-11 11:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 #include YFM_YCLib_Debug // for <array>, <deque>, <forward_list>, <istream>,
 //	<ostream>, <queue>, <set>, <stack>, <unordered_map>, <unordered_set>,
 //	YFM_YCLib_Container, <vector>, '*string_view', forward_as_tuple, get,
-//	ignore, make_pair, make_tuple, pair, tie, tuple, tuple_cat, arrlen;
+//	ignore, make_pair, make_tuple, pair, tie, tuple, tuple_cat, size;
 #include YFM_YCLib_Timer
 #include YFM_YCLib_FileIO // for uopen, 'uf*', 'up*', etc;
 #include YFM_YCLib_FileSystem
@@ -146,7 +146,8 @@ using platform::stack;
 using platform::priority_queue;
 using platform::queue;
 
-using platform::arrlen;
+//! \since build 664
+using platform::size;
 
 //! \since build 597
 using platform::basic_string;

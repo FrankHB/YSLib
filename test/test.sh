@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Script for testing.
 # Requires: G++/Clang++, Tools/Scripts, YBase source.
 
@@ -48,7 +48,8 @@ SHBuild_CheckPCH_()
 
 SHBuild_CheckPCH_ "$INCLUDE_PCH" "$TestDir/stdinc.h"
 
-"$CXX" YBase.cpp -oYBase $CXXFLAGS $LDFLAGS $SHBuild_IncPCH $INCLUDES $LIBS "$@"
+"$CXX" YBase.cpp -oYBase$EXESFX $CXXFLAGS $LDFLAGS $SHBuild_IncPCH $INCLUDES \
+	$LIBS "$@"
 
 ./YBase
 

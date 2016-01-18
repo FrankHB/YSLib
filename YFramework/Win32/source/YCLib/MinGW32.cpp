@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1536
+\version r1567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-12-20 16:02 +0800
+	2016-01-17 02:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,23 +349,22 @@ Win32Exception::GetErrorCategory()
 std::string
 Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 {
-	try
-	{
-		wchar_t* buf{};
+	return TryInvoke([=]{
+		try
+		{
+			wchar_t* buf{};
 
-		::FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER
-			| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM, {},
-			ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-			reinterpret_cast<wchar_t*>(&buf), 1, {});
+			YCL_CallWin32F(FormatMessageW, FORMAT_MESSAGE_ALLOCATE_BUFFER
+				| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
+				{}, ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+				reinterpret_cast<wchar_t*>(&buf), 1, {});
 
-		auto res(WCSToMBCS(buf, unsigned(CP_UTF8)));
+			const auto p(unique_raw(buf, LocalDelete()));
 
-		// FIXME: For some platforms, no ::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
-		::LocalFree(buf);
-		return res;
-	}
-	CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."))
-	return {};
+			return WCSToMBCS(buf, unsigned(CP_UTF8));
+		}
+		CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."), throw)
+	});
 }
 
 
@@ -379,7 +378,10 @@ LoadProc(::HMODULE h_module, const char* proc)
 void
 GlobalDelete::operator()(pointer h) const ynothrow
 {
-	YCL_CallWin32F_Trace(GlobalFree, h);
+	// NOTE: %::GlobalFree does not ignore null handle value.
+	if(h && YB_UNLIKELY(::GlobalFree(h)))
+		YTraceDe(Warning, "Error %lu: failed calling GlobalFree @ %s.",
+			::GetLastError(), yfsig);
 }
 
 
@@ -389,6 +391,17 @@ GlobalLocked::GlobalLocked(::HGLOBAL h)
 GlobalLocked::~GlobalLocked()
 {
 	YCL_CallWin32F_Trace(GlobalUnlock, p_locked);
+}
+
+
+void
+LocalDelete::operator()(pointer h) const ynothrow
+{
+	// FIXME: For some platforms, no %::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
+	// NOTE: %::LocalFree ignores null handle value.
+	if(YB_UNLIKELY(::LocalFree(h)))
+		YTraceDe(Warning, "Error %lu: failed calling LocalFree @ %s.",
+			::GetLastError(), yfsig);
 }
 
 
@@ -549,6 +562,7 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 	if(h_node && !d_name.empty())
 	{
 		auto res(CategorizeNode(find_data));
+
 		FilterExceptions([&]{
 			wstring_view name(GetDirName());
 
@@ -568,7 +582,8 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 void
 DirectoryFindData::Close() ynothrow
 {
-	FilterExceptions(std::bind(YCL_WrapCallWin32(FindClose, h_node), yfsig), yfsig);
+	FilterExceptions(std::bind(YCL_WrapCallWin32(FindClose, h_node), yfsig),
+		yfsig);
 }
 
 wstring*

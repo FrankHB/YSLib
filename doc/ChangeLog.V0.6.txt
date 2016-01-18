@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r7685
+\version r7822
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-01-11 10:15 +0800
+	2016-01-18 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,136 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	* $dev $design "missing %Documentation::Workflow::Annual2016"
+		@ "filter of Visual C++ project" $since b663,
+	* $build "generated code with dependency on ('u8', 'u32')" @ "makefiles"
+		@ ("platform %DS" $since $before b132, "platform %Android" $since b492),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ 'using ystdex::arrlen;' -> 'using ystdex::size;' @ %Container,
+			/ $forced DLDI @ %(FileSystem, HostedGUI, Keys)
+			* "missing '#undef FormatMessage'" @ "platform %Win32" @ %NativeAPI
+				$since b435
+				// This caused %Win32Exception::FormatMessage is actually \
+					'FormatMessageW'.
+		),
+		/ %YSLib $=
+		(
+			(
+			/ $forced 'using ystdex::arrlen' -> 'using platform::size;'
+				@ %Adaptor.YAdaptor $dep_from %YCLib.Container;
+			/ $forced DLDI @ %Service.TextFile
+			),
+			/ @ "class %ValueNode" @ %ValueNode $=
+			(
+				+ "function %ValueNode::GetContainer",
+				+ "function templates %(SelectChildren, SplitChildren)"
+			)
+		),
+		/ @ "function %PrintNode" @ %NPL.NPLA $=
+		(
+			* "empty node ignored to handle" $orig (@ %NPLA1 $since b597),
+				// Empty node should be handled if intended.
+			/ "always inserted single ' ' after the prefix even if handling of \
+				node printing nothing"
+				// To simplify the implementation. Note that with default \
+					arguments, the suffix ' ' would already be outputted when \
+					the non-name term is a list which is beginning next to the \
+					line containing the name.
+		),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ "struct %LocalDelete",
+			/ @ "static member function %Win32Exception::FormatMessage" $=
+			(
+				* "resource leak on encoding conversion failure" $since b435
+					^ $dep_from "%LocalDelete",
+				/ "simplified exception handling" ^ "%TryInvoke"
+					// Trace warning would be remained.
+			),
+			* "missing error handling" $since b435
+				^ ("%YCL_CallWin32F" $dep_from %YCLib.NativeAPI)
+			/ @ "member function %GlobalDelete::operator()" $=
+			(
+				* "missing check null handle befroe calling %::GlobalFree"
+					$since b593
+				* "wrong trace for error handling" $since b593
+			)
+		)
+	),
+	/ $forced @ %YReader.(ShlReader, ReaderSettingUI) $dep_from
+		%YFramework.YSLib.Adaptor.YAdaptor
+		$= (/ DLDI ^ "%(size, ystdex::cend)" ~ "%arrlen"),
+	/ %YBase.YStandardEx $=
+	(
+		(
+		/ DLDI "function templates %(write, write_literal)" ^ "%size"
+			~ "%ystdex::arrlen";
+		- "all 2 function templates %arrlen" @ %Utilities $dep_from %(YReader,
+			YFramework.(YCLib.Container, YSLib.Adaptor.YAdaptor))
+		),
+		/ %String $=
+		(
+			(
+			/ "function template %string_end" ^ "%ystdex::ntctslen",
+			/ "function template %string_length" -> "3 overloaded function \
+				templates with parameters of pointers and \
+				%std::initializer_list instances";
+			/ $forced "function templates %(string_begin, string_end)"
+				^ "pointer type parameter" ~ "array reference type parameter",
+			/ $comp "function templates %(begins_with, ends_with; split, \
+				split_iter, split_l) treated array as NTCTS"
+			),
+			+ "overloaded function templates %(to_string, to_wstring) for \
+				class types" ^ "%std::(wstringstream, wostringstream)",
+			* "wrong assumption on nonzero formatted string length caused \
+				assertion failure" @ "function template %vsfmt" $since b564
+		),
+		* "missing overloaded %range_size for %std::initializer_list instances"
+			@ '__cplusplus <= 201402L' @ %Container $since b663
+			$= (+ $revert_ex(b663) "function template %range_size for \
+				%std::initializer_list instances"),
+		/ %Range $=
+		(
+			+ $re_add(b663) "overloaded %(cbegin, cend, crbegin, crend) for \
+				%std::initializer_list instances" @ '__cplusplus <= 201402L',
+			+ $re_add(b663) "overloaded function template %(begin, end, \
+				cbegin, cend) for rvalue reference to array types",
+			* "conditional inclusion for overloaded function templates for \
+				rvalue reference parameter without conditional inclusion"
+				$since b663
+				// This is actually irrelevant to CWG616. To make C++14 works, \
+					they should be defined unconditionally.
+		)
+	),
+	/ $re_add(b601) "all 'yconstexpr auto'" -> 'yconstexpr const auto'
+		@ "namespace scope variable declarations" $effective
+		@ %YFramework.YCLib.FileSystem,
+	/ %Test $=
+	(
+		/ %YBase.Main $=
+		(
+			/ $forced "test case for %ystdex::string_length" $dep_from
+				("%string_length" @ %YBase.YStandardEx.String),
+			+ "1 test case" ^ "%ystdex::string_begin",
+			+ "2 test cases"
+				^ ("%ystdex::string_end" $dep_from @ %YBase.YStandardEx.String),
+			+ "30 test cases" ^ ("%ystdex::(begin, end, cbegin, cend, cbegin, \
+				cend, crbegin, crend, size, data)" $dep_from
+				@ %YBase.YStandardEx.Range),
+			/ DLDI "worked around to superfluous Clang++ warning"
+				// To eliminate warning: [-Wunneeded-internal-declaration]. \
+					This seems to be a bug.
+		),
+		+ "'$EXESFX' at end of output file name" @ "%test.sh"
+			// This makes Clang++ also produce '.exe' file on MinGW like G++.
+	)
+),
+
+b663
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -57,7 +187,7 @@ $now
 					// To effect optimized operations for types like \
 						%std::list and %std::forward_list.
 				+ "member %key_type detection for non-sequence container types",
-				+ "adaptive overloaded templates for container or iterator \
+				+ "adaptive overloaded function templates for container or iterator \
 					range"
 			),
 			* "missing %yforward for range pareameter passing"
@@ -88,10 +218,10 @@ $now
 			// See $2016-01 @ %Documentation::Workflow::Annual2016.
 			+ "function templates %(2 size, 3 empty, 4 data)"
 				// See WG21/N4280.
-			+ "overloaded templates %(empty, data) for rvalue reference of \
-				array types" @ '__cplusplus <= 201103L',
-			+ "overloaded template %size for rvalue reference of array types"
-				@ '__cplusplus <= 201402L'
+			+ "overloaded function templates %(empty, data) for rvalue \
+				reference of array types" @ '__cplusplus <= 201103L',
+			+ "overloaded function template %size for rvalue reference \
+				to array types" @ '__cplusplus <= 201402L'
 		)
 	),
 	/ %YFramework $=
@@ -548,9 +678,9 @@ b660
 	),
 	/ %Test.YBase.Main $=
 	(
-		+ "6 test cases for %ystdex::has_nonempty_virtual_base",
-		+ "5 test cases for %ystdex::have_common_nonempty_virtual_base"
-			$dep_from %YBase.YStandardEx.TypeOperation
+		+ "6 test cases" ^ "%ystdex::has_nonempty_virtual_base",
+		+ "5 test cases" ^ ("%ystdex::have_common_nonempty_virtual_base"
+			$dep_from %YBase.YStandardEx.TypeOperation)
 	)
 ),
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r674
+\version r684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-01-07 10:37 +0800
+	2016-01-14 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,7 +143,7 @@ EscapeNodeLiteral(const ValueNode&);
 
 /*!
 \brief 转义 NPLA 节点字面量。
-\return 调用 Literalize 字面量化 EscapeNodeLiteral 的结果。
+\return 参数为控节点则空串，否则调用 Literalize 字面量化 EscapeNodeLiteral 的结果。
 \exception ystdex::bad_any_cast 异常中立：由 EscapeNodeLiteral 抛出。
 \sa EscapeNodeLiteral
 \since build 598
@@ -211,9 +211,11 @@ PrintIndent(std::ostream&, IndentGenerator = DefaultGenerateIndent, size_t = 1);
 \sa PrintNodeChild
 \sa PrintNodeString
 
-打印缩进前缀后递归遍历，打印自身内容，按需调用 PrintNodeChild 打印子节点内容。
-先尝试打印节点字符串；若失败则尝试调用 PrintNodeChild 打印 NodeSequence ；
+调用第四参数输出最后一个参数决定的缩进作为前缀和一个空格，然后打印节点内容：
+先尝试调用 PrintNodeString 打印节点字符串，若成功直接返回；
+否则打印换行，然后尝试调用 PrintNodeChild 打印 NodeSequence ；
 再次失败则调用 PrintNodeChild 打印子节点。
+调用 PrintNodeChild 打印后输出回车。
 */
 YF_API void
 PrintNode(std::ostream&, const ValueNode&, NodeToString = EscapeNodeLiteral,
@@ -225,9 +227,9 @@ PrintNode(std::ostream&, const ValueNode&, NodeToString = EscapeNodeLiteral,
 \sa PrintIdent
 \sa PrintNodeString
 
-打印缩进前缀后打印节点内容。
-对满足 IsPrefixedIndex 判断的节点调用 PrintNodeString 作为节点字符串打印；
-否则，递归打印子节点。
+调用第四参数输出最后一个参数决定的缩进作为前缀，然后打印子节点内容。
+对满足 IsPrefixedIndex 的节点调用 PrintNodeString 作为节点字符串打印；
+否则，调用 PrintNode 递归打印子节点，忽略此过程中的 std::out_of_range 异常。
 */
 YF_API void
 PrintNodeChild(std::ostream&, const ValueNode&, NodeToString
@@ -237,8 +239,10 @@ PrintNodeChild(std::ostream&, const ValueNode&, NodeToString
 \brief 打印节点字符串。
 \return 是否成功访问节点字符串并输出。
 \note ystdex::bad_any_cast 外异常中立。
+\sa PrintNode
 
 使用最后一个参数指定的访问节点，打印得到的字符串和换行符。
+忽略 ystdex::bad_any_cast 。
 */
 YF_API bool
 PrintNodeString(std::ostream&, const ValueNode&,

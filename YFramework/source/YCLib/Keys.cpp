@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1242
+\version r1247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2015-05-29 19:38 +0800
+	2016-01-11 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_YCLib_Keys
 #include YFM_YCLib_Debug
 #include YFM_YCLib_NativeAPI
+#include YFM_YCLib_Container // for size;
 
 namespace platform
 {
@@ -90,7 +91,7 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	Editing | NonKeyboard // Extended tertiary key.
 };
 #elif YCL_Win32
-// See http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx .
+// See http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx.
 yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	None, // 0 is not assigned.
 	Editing | NonKeyboard, // VK_LBUTTON is a mouse key.
@@ -349,7 +350,7 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	OEM | Function // VK_OEM_CLEAR.
 };
 #elif YCL_Android
-// See http://developer.android.com/reference/android/view/KeyEvent.html .
+// See http://developer.android.com/reference/android/view/KeyEvent.html.
 yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	None, // KEYCODE_UNKNOWN.
 	Function, // KEYCODE_SOFT_LEFT.
@@ -1095,7 +1096,7 @@ yconstexpr const Category KeyCategoryTable[]{
 };
 
 //! \since build 562
-static_assert(ystdex::arrlen(KeyCategoryTable) == KeyBitsetWidth,
+static_assert(size(KeyCategoryTable) == KeyBitsetWidth,
 	"Key table is invalid.");
 #else
 #	error "Unsupported platform found."

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r817
+\version r820
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2015-10-03 01:13 +0800
+	2016-01-11 11:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,8 +126,8 @@ using ystdex::sfmt;
 using ystdex::vsfmt;
 //@}
 
-//! \since build 291
-using ystdex::arrlen;
+//! \since build 664
+using ystdex::size;
 //! \since build 308
 using std::to_string;
 //! \since build 308

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r423
+\version r487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2015-12-17 13:58 +0800
+	2016-01-18 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,20 @@ using namespace placeholders;
 using namespace ystdex;
 using namespace ytest;
 
+//! \since build 664
+struct cwam
+{
+	// NOTE: Class with array member, used to test member prvalue before CWG616
+	//	is resoved, or member xvalue after CWG616 is resolved.
+	char foo[42];
+
+	cwam()
+		: foo()
+	{
+		yunseq(foo[0] = 'B', foo[sizeof(foo) - 1] = 'E');
+	}
+};
+
 //! \since build 649
 //@{
 namespace memory_test
@@ -80,6 +94,10 @@ operator&(const t2&) ynothrow
 }
 
 static_assert(!ystdex::has_overloaded_addressof<void>(), "Type check failed.");
+// NOTE: Use '&x' to suppress Clang++ warning:
+//	[-Wunneeded-internal-declaration].
+//! \since build 664
+const void* unused = &t2();
 
 template<class _type>
 bool
@@ -119,7 +137,7 @@ expect(const string& str, vector<byte>&& seq)
 
 } // namespace bitseg_test;
 
-//! \since build 549
+//! \since build 660
 namespace vbase_test
 {
 
@@ -160,7 +178,7 @@ struct vned : virtual neb
 struct vned2 : virtual neb
 {};
 
-} // namespace bitseg_test;
+} // namespace vbase_test;
 
 } // unnamed namespace;
 
@@ -184,6 +202,41 @@ main()
 	});
 
 	// TODO: Check stream error.
+	// 30 cases covering: ystdex::begin, ystdex::end, ystdex::cbegin,
+	//	ystdex::cend, ystdex::rbegin, ystdex::rend, ystdex::crbegin,
+	//	ystdex::crend, ystdex::size, ystdex::data.
+	seq_apply(make_guard("YStandard.Range").get(pass, fail),
+		'a' == *begin({'a', 'b', 'c', char(), 'd', 'e'}),
+		u'a' == *begin(u"abc\0de"),
+		'B' == *begin(cwam().foo),
+		'e' == *(end({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
+		u'e' == *(end(u"abc\0de") - 2),
+		'B' == *(end(cwam().foo) - sizeof(cwam::foo)),
+		'a' == *cbegin({'a', 'b', 'c', char(), 'd', 'e'}),
+		u'a' == *cbegin(u"abc\0de"),
+		'B' == *cbegin(cwam().foo),
+		'e' == *(cend({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
+		u'e' == *(cend(u"abc\0de") - 2),
+		'B' == *(cend(cwam().foo) - sizeof(cwam::foo)),
+		'e' == *rbegin({'a', 'b', 'c', char(), 'd', 'e'}),
+		u'\0' == *rbegin(u"abc\0de"),
+		'E' == *rbegin(cwam().foo),
+		'a' == *(rend({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
+		u'a' == *(rend(u"abc\0de") - 1),
+		'E' == *(rend(cwam().foo) - sizeof(cwam::foo)),
+		'e' == *crbegin({'a', 'b', 'c', char(), 'd', 'e'}),
+		u'e' == *(crbegin(u"abc\0de") + 1),
+		'E' == *crbegin(cwam().foo),
+		'a' == *(crend({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
+		u'a' == *(crend(u"abc\0de") - 1),
+		'E' == *(crend(cwam().foo) - sizeof(cwam::foo)),
+		6 == size({'a', 'b', 'c', char(), 'd', 'e'}),
+		7 == size(u"abc\0de"),
+		sizeof(cwam::foo) == size(cwam().foo),
+		'a' == *data({'a', 'b', 'c', char(), 'd', 'e'}),
+		u'a' == *data(u"abc\0de"),
+		'B' == *data(cwam().foo)
+	);
 	// 10 cases covering: ystdex::has_nonempty_virtual_base,
 	//	ystdex::have_common_nonempty_virtual_base.
 	seq_apply(make_guard("YStandard.TypeOperations").get(pass, fail),
@@ -280,13 +333,19 @@ main()
 		4U == integral_constant<unsigned, ystdex::min({5U, 6U, 7U, 8U, 4U})>(),
 		4 == ystdex::max({4, -5, -6, -7})
 	);
-	// 27 cases covering: ystdex::string_length, ystdex::begins_with,
-	//	ystdex::ends_with, ystdex::erase_left, ystdex::erase_right,
-	//	ystdex::ltrim, ystdex::rtrim, ystdex::trim.
+	// 32 cases covering: ystdex::string_begin, ystdex::string_end,
+	//	ystdex::string_length, ystdex::begins_with, ystdex::ends_with,
+	//	ystdex::erase_left, ystdex::erase_right, ystdex::ltrim, ystdex::rtrim,
+	//	ystdex::trim.
 	seq_apply(make_guard("YStandard.String").get(pass, fail),
+		'a' == *string_begin({'a', 'b', 'c', char(), 'd', 'e'}),
+		u'a' == *string_begin(u"abc\0de"),
+		'e' == *(string_end({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
+		u'c' == *(string_end(u"abc\0de") - 1),
 		0 == string_length(u8""),
 		5 == string_length("abcde"),
-		6 == string_length(u"abc\0de"),
+		3 == string_length(u"abc\0de"),
+		6 == string_length({'a', 'b', 'c', char(), 'd', 'e'}),
 		3 == string_length(wstring(L"abc\0de")),
 		6 == string_length(u16string{'a', 'b', 'c', 0, 'd', 'e'}),
 		true == begins_with("test_string", "test"),

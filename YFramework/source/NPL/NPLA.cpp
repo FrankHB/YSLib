@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r652
+\version r660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2015-12-31 10:40 +0800
+	2016-01-14 20:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,14 +103,12 @@ PrintNode(std::ostream& os, const ValueNode& node, NodeToString node_to_str,
 	IndentGenerator igen, size_t depth)
 {
 	PrintIndent(os, igen, depth);
-	os << EscapeLiteral(node.GetName());
+	os << EscapeLiteral(node.GetName()) << ' ';
+	if(PrintNodeString(os, node, node_to_str))
+		return;
+	os << '\n';
 	if(node)
 	{
-		os << ' ';
-		if(PrintNodeString(os, node, node_to_str))
-			return;
-		os << '\n';
-
 		const auto nested_call(std::bind(PrintNodeChild, std::ref(os),
 			std::placeholders::_1, node_to_str, igen, depth));
 

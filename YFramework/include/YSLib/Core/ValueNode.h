@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1723
+\version r1766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2015-12-12 23:28 +0800
+	2016-01-14 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,6 +181,11 @@ public:
 
 	/*!
 	\brief 取子节点容器引用。
+	\since build 664
+	*/
+	DefGetter(const ynothrow, const Container&, Container, container)
+	/*!
+	\brief 取子节点容器引用。
 	\since build 598
 	*/
 	DefGetter(const ynothrow, Container&, ContainerRef, container)
@@ -202,14 +207,14 @@ public:
 
 	/*!
 	\brief 清除节点。
-	\post <tt>!Value && GetContainerRef().empty()</tt> 。
+	\post <tt>!Value && empty()</tt> 。
 	*/
 	PDefH(void, Clear, ) const ynothrow
 		ImplExpr(Value.Clear(), ClearContainer())
 
 	/*!
 	\brief 清除节点容器。
-	\post <tt>GetContainerRef().empty()</tt> 。
+	\post \c empty() 。
 	\since build 592
 	*/
 	PDefH(void, ClearContainer, ) const ynothrow
@@ -221,6 +226,44 @@ public:
 	//! \since build 403
 	PDefH(bool, Remove, const string& str) const
 		ImplRet(Remove({0, str}))
+
+	//! \since build 664
+	//@{
+	//! \brief 复制满足条件的子节点。
+	template<typename _func>
+	Container
+	SelectChildren(_func f) const
+	{
+		Container res;
+
+		ystdex::for_each_if(begin(), end(), f, [&](const ValueNode& nd){
+			res.insert(nd);
+		});
+		return res;
+	}
+
+	//! \brief 转移满足条件的子节点。
+	template<typename _func>
+	Container
+	SplitChildren(_func f) const
+	{
+		Container res;
+
+		std::for_each(begin(), end(), [&](const ValueNode& nd){
+			res.emplace(0, nd.GetName());
+		});
+		ystdex::for_each_if(begin(), end(), f, [&, this](const ValueNode& nd){
+			const auto& child_name(nd.GetName());
+
+			// TODO: Blocked. Use %string_view as argument using C++14
+			//	heterogeneous %find template.
+			Deref(res.find(ValueNode(0, child_name))).Value
+				= std::move(nd.Value);
+			Remove(child_name);
+		});
+		return res;
+	}
+	//@}
 
 	//! \since build 595
 	//@{
@@ -470,9 +513,9 @@ UnpackToNode(_tPack&& pk)
 \since build 598
 */
 //@{
-template<typename _type>
+template<typename _tElem>
 inline ValueNode::Container
-CollectNodes(std::initializer_list<_type> il)
+CollectNodes(std::initializer_list<_tElem> il)
 {
 	return il;
 }

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2949
+\version r2968
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-01-10 03:19 +0800
+	2016-01-11 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,26 +107,6 @@ decay_copy(_type&& arg)
 	return std::forward<_type>(arg);
 }
 
-
-/*!
-\ingroup helper_functions
-\brief 计算指定数组类型对象的长度。
-\since build 291
-*/
-//@{
-template<typename _type, size_t _vN>
-yconstfn size_t
-arrlen(_type(&)[_vN])
-{
-	return _vN;
-}
-template<typename _type, size_t _vN>
-yconstfn size_t
-arrlen(_type(&&)[_vN])
-{
-	return _vN;
-}
-//@}
 
 /*!
 \brief 取枚举值的底层整数。

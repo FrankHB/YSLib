@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1657
+\version r1766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-12-28 20:21 +0800
+	2016-01-18 09:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,18 +29,19 @@
 #define YB_INC_ystdex_string_hpp_ 1
 
 #include "memory.hpp" // for decay_t, remove_rcv_t, std::declval,
-//	has_nested_allocator;
+//	nested_allocator, is_enum, is_class;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
 #include "container.hpp" // for make_index_sequence, index_sequence, begin, end,
-//	sort_unique, underlying;
+//	sort_unique, size, underlying;
 #include "cstdio.h" // for yconstraint, vfmtlen;
 #include "cstring.h" // for ntctslen;
-#include "array.hpp" // for std::bidirectional_iterator_tag, to_array, arrlen;
+#include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
 #include <istream> // for std::basic_istream;
 #include "ios.hpp" // for rethrow_badstate;
 #include <ostream> // for std::basic_ostream;
-#include <cstdarg>
+#include <sstream> // for std::ostringstream, std::wostring_stream;
+#include <cstdarg> // for std::va_list;
 
 namespace ystdex
 {
@@ -85,39 +86,6 @@ template<typename _type>
 struct is_string_like<_type, enable_when<
 	is_object<decay_t<decltype(std::declval<_type>()[0])>>::value>> : true_type
 {};
-//@}
-
-//! \since build 519
-//@{
-template<typename _type>
-struct string_length_dispatcher
-{
-	static size_t
-	length(const _type& str)
-	{
-		return str.size();
-	}
-};
-
-template<typename _type, size_t _vN>
-struct string_length_dispatcher<_type[_vN]>
-{
-	static yconstfn size_t
-	length(const _type(&)[_vN]) ynothrow
-	{
-		return _vN - 1U;
-	}
-};
-
-template<typename _type>
-struct string_length_dispatcher<_type*>
-{
-	static inline size_t
-	length(const _type* str) ynothrow
-	{
-		return std::char_traits<_type>::length(str);
-	}
-};
 //@}
 
 
@@ -275,12 +243,24 @@ string_begin(const _tRange& c) -> decltype(c.begin())
 {
 	return begin(c);
 }
-template<typename _type, size_t _vN>
-yconstfn _type*
-string_begin(_type(&arr)[_vN]) ynothrow
+//! \since build 664
+//@{
+template<typename _tChar>
+yconstfn _tChar*
+string_begin(_tChar* str) ynothrow
 {
-	return arr;
+	return yconstraint(str), str;
 }
+#if __cplusplus <= 201402L
+//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+template<typename _tElem>
+yconstfn auto
+string_begin(std::initializer_list<_tElem> il) -> decltype(il.begin())
+{
+	return il.begin();
+}
+#endif
+//@}
 
 template<class _tRange>
 yconstfn auto
@@ -294,12 +274,24 @@ string_end(const _tRange& c) -> decltype(c.end())
 {
 	return end(c);
 }
-template<typename _type, size_t _vN>
-yconstfn _type*
-string_end(_type(&arr)[_vN]) ynothrow
+//! \since build 664
+//@{
+template<typename _tChar>
+yconstfn _tChar*
+string_end(_tChar* str) ynothrow
 {
-	return arr + _vN - 1U;
+	return str + ystdex::ntctslen(str);
 }
+#if __cplusplus <= 201402L
+//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+template<typename _tElem>
+yconstfn auto
+string_end(std::initializer_list<_tElem> il) -> decltype(il.end())
+{
+	return il.end();
+}
+#endif
+//@}
 //@}
 
 
@@ -312,14 +304,31 @@ string_end(_type(&arr)[_vN]) ynothrow
 //@{
 /*!
 \brief 计算字符串长度。
-\since build 519
+\since build 664
 */
+//@{
 template<typename _type>
-yconstfn size_t
-string_length(const _type& str)
+inline size_t
+string_length(const _type* str) ynothrow
 {
-	return details::string_length_dispatcher<_type>::length(str);
+	return std::char_traits<_type>::length(str);
 }
+template<typename _type>
+yconstfn auto
+string_length(const _type& str) -> decltype(size(str))
+{
+	return size(str);
+}
+#if __cplusplus <= 201402L
+//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+template<typename _tElem>
+yconstfn size_t
+string_length(std::initializer_list<_tElem> il)
+{
+	return il.size();
+}
+#endif
+//@}
 
 
 /*!
@@ -1013,7 +1022,7 @@ template<typename _tChar, class _tTraits, size_t _vN>
 std::basic_ostream<_tChar, _tTraits>&
 write(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
 {
-	return os.write(std::addressof(s[0]), std::streamsize(ystdex::arrlen(s)));
+	return os.write(std::addressof(s[0]), std::streamsize(size(s)));
 }
 
 /*!
@@ -1027,7 +1036,7 @@ write_literal(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
 	static_assert(0 < _vN, "Empty string literal found.");
 
 	return
-		os.write(std::addressof(s[0]), std::streamsize(ystdex::arrlen(s) - 1));
+		os.write(std::addressof(s[0]), std::streamsize(size(s) - 1));
 }
 //@}
 
@@ -1059,6 +1068,17 @@ to_string(_type val)
 
 	return to_string(ystdex::underlying(val));
 }
+//! \since build 664
+template<typename _type, class _tStream = std::ostringstream>
+yimpl(enable_if_t)<is_class<_type>::value,
+	decltype(std::declval<_tStream&>().str())>
+to_string(const _type& x)
+{
+	_tStream oss;
+
+	oss << x;
+	return oss.str();
+}
 //@}
 
 //! \since build 565
@@ -1073,6 +1093,7 @@ to_wstring(unsigned short val)
 {
 	return std::to_wstring(unsigned(val));
 }
+//! \since build 664
 template<typename _type>
 inline yimpl(enable_if_t)<is_enum<_type>::value, std::wstring>
 to_wstring(_type val)
@@ -1081,6 +1102,16 @@ to_wstring(_type val)
 	using ystdex::to_wstring;
 
 	return to_wstring(ystdex::underlying(val));
+}
+template<typename _type, class _tStream = std::wostringstream>
+yimpl(enable_if_t)<is_class<_type>::value,
+	decltype(std::declval<_tStream&>().str())>
+to_wstring(const _type& x)
+{
+	_tStream oss;
+
+	oss << x;
+	return oss.str();
 }
 //@}
 //@}
@@ -1180,8 +1211,11 @@ vsfmt(const _tChar* fmt, std::va_list args)
 
 	_tString str(l, _tChar());
 
-	yassume(str.length() > 0 && str[0] == _tChar());
-	std::vsprintf(&str[0], fmt, args);
+	if(l != 0)
+	{
+		yassume(str.length() > 0 && str[0] == _tChar());
+		std::vsprintf(&str[0], fmt, args);
+	}
 	return str;
 }
 
