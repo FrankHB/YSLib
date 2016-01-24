@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r7822
+\version r7825
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-01-18 13:29 +0800
+	2016-01-18 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,10 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+),
+
+b664
 (
 	* $dev $design "missing %Documentation::Workflow::Annual2016"
 		@ "filter of Visual C++ project" $since b663,

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r496
+\version r501
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2015-12-12 23:26 +0800
+	2016-01-24 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ ValueNode::operator%=(const ValueNode&& node) const
 const ValueNode&
 ValueNode::operator[](const string& n) const
 {
-	auto i(container.lower_bound({0, n}));
+	auto i(ystdex::as_const(container).lower_bound({0, n}));
 
 	if(i == container.end() || container.key_comp()({0, n}, *i))
 		i = container.emplace_hint(i, 0, n);
@@ -62,7 +62,7 @@ ValueNode::operator[](const string& n) const
 bool
 ValueNode::Remove(const ValueNode& node) const
 {
-	return container.erase({0, node.name}) != 0;
+	return container.erase(ValueNode(0, node.name)) != 0;
 }
 
 void
@@ -75,7 +75,7 @@ ValueNode::SwapContent(const ValueNode& node) const ynothrow
 const ValueNode&
 ValueNode::at(const string& n) const
 {
-	return AccessNode(GetContainerRef(), n);
+	return AccessNode(GetContainer(), n);
 }
 
 void
@@ -88,7 +88,7 @@ ValueNode::swap(ValueNode& node) ynothrow
 const ValueNode&
 at(const ValueNode& node, size_t n)
 {
-	auto& con(node.GetContainerRef());
+	auto& con(node.GetContainer());
 
 	if(n < con.size())
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.

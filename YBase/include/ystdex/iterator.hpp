@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5631
+\version r5785
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2015-11-06 11:05 +0800
+	2016-01-24 17:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,15 +133,18 @@ public:
 		return value;
 	}
 
-	pseudo_iterator&
+	yconstfn_relaxed pseudo_iterator&
 	operator++() ynothrow
 	{
 		return *this;
 	}
 
-	//! \brief 满足双向迭代器要求。
-	yconstfn pseudo_iterator&
-	operator--() const ynothrow
+	/*!
+	\brief 满足双向迭代器要求。
+	\since build 665
+	*/
+	yconstfn_relaxed pseudo_iterator&
+	operator--() ynothrow
 	{
 		return *this;
 	}
@@ -177,13 +180,13 @@ namespace details
 {
 
 //! \since build 576
-template<typename _tIter, typename _fTransformer, typename _tReference>
+template<typename _tIter, typename _fTrans, typename _tReference>
 struct transit_traits
 {
 	using iterator_type = _t<pointer_classify<_tIter>>;
 	using iterator_category
 		= typename std::iterator_traits<iterator_type>::iterator_category;
-	using transformed_type = result_of_t<_fTransformer&(_tIter&)>;
+	using transformed_type = result_of_t<_fTrans&(_tIter&)>;
 	using difference_type
 		= typename std::iterator_traits<iterator_type>::difference_type;
 	using reference
@@ -204,28 +207,31 @@ struct transit_traits
 使用指定参数转换得到新迭代器的间接操作替代指定原始类型的间接操作的迭代器适配器。
 被替代的原始类型是迭代器类型，或除间接操作（可以不存在）外符合迭代器要求的类型。
 */
-template<typename _tIter, typename _fTransformer, typename _tReference = void>
+template<typename _tIter, typename _fTrans, typename _tReference = void>
 class transformed_iterator : public pointer_classify<_tIter>::type,
-	public iterator_operators_t<transformed_iterator<_tIter, _fTransformer,
-	_tReference>,
-	yimpl(details::transit_traits<_tIter, _fTransformer, _tReference>)>
+	public iterator_operators_t<transformed_iterator<_tIter, _fTrans,
+	_tReference>, yimpl(details::transit_traits<_tIter, _fTrans, _tReference>)>
 {
 	//! \since build 529
 	static_assert(is_decayed<_tIter>(), "Invalid type found.");
 	//! \since build 529
-	static_assert(is_decayed<_fTransformer>(), "Invalid type found.");
+	static_assert(is_decayed<_fTrans>(), "Invalid type found.");
+
+	//! \since build 665
+	template<typename, typename, typename>
+	friend class transformed_iterator;
 
 private:
 	//! \since build 576
 	using impl_traits
-		= details::transit_traits<_tIter, _fTransformer, _tReference>;
+		= details::transit_traits<_tIter, _fTrans, _tReference>;
 public:
 	/*!
 	\brief 原迭代器类型。
 	\since build 290
 	*/
 	using iterator_type = typename impl_traits::iterator_type;
-	using transformer_type = _fTransformer;
+	using transformer_type = _fTrans;
 	//! \since build 439
 	using transformed_type = typename impl_traits::transformed_type;
 	//! \since build 415
@@ -243,12 +249,29 @@ protected:
 public:
 	//! \since build 496
 	transformed_iterator() = default;
-	//! \since build 494
-	template<typename _tIterOrig, typename _tTran,
-		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIterOrig>)>
+	//! \since build 665
+	template<typename _tIter2, typename _fTrans2 = _fTrans,
+		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter2>)>
 	explicit yconstfn
-	transformed_iterator(_tIterOrig&& i, _tTran f = {})
+	transformed_iterator(_tIter2&& i, _fTrans2 f = {})
 		: iterator_type(yforward(i)), transformer(f)
+	{}
+	//! \since build 665
+	template<typename _tIter2, typename _fTrans2, typename _tRef2,
+		yimpl(typename = enable_if_t<and_<is_constructible<_tIter,
+		const _tIter2&>, is_constructible<_fTrans, const _fTrans2&>>::value>)>
+	yconstfn
+	transformed_iterator(const transformed_iterator<_tIter2, _fTrans2, _tRef2>& i)
+		: iterator_type(i.get()), transformer(i.transformer)
+	{}
+	//! \since build 665
+	template<typename _tIter2, typename _fTrans2, typename _tRef2,
+		yimpl(typename = enable_if_t<and_<is_constructible<_tIter, _tIter2&&>,
+		is_constructible<_fTrans, _fTrans2&&>>::value>)>
+	yconstfn
+	transformed_iterator(transformed_iterator<_tIter2, _fTrans2, _tRef2>&& i)
+		: iterator_type(std::move(i.get())),
+		transformer(std::move(i.transformer))
 	{}
 	//! \since build 415
 	//@{
@@ -289,13 +312,28 @@ public:
 	}
 
 	//! \since build 585
-	//@{
 	reference
 	operator*() const
 		ynoexcept_spec(reference(std::declval<transformed_iterator&>().
 		transformer(std::declval<transformed_iterator&>().get())))
 	{
 		return transformer(get());
+	}
+
+	//! \since build 665
+	transformed_iterator&
+	operator++()
+	{
+		++get();
+		return *this;
+	}
+
+	//! \since build 665
+	transformed_iterator&
+	operator--()
+	{
+		--get();
+		return *this;
 	}
 
 	//! \since build 600
@@ -314,6 +352,8 @@ public:
 		return bool(x.get() < y.get());
 	}
 
+	//! \since build 585
+	//@{
 	/*!
 	\brief 转换为原迭代器引用。
 	*/
@@ -372,51 +412,109 @@ public:
 \relates transformed_iterator
 \since build 529
 */
-template<typename _tIter, typename _fTransformer>
-inline transformed_iterator<decay_t<_tIter>, _fTransformer>
-make_transform(_tIter&& i, _fTransformer f)
+template<typename _tIter, typename _fTrans>
+inline transformed_iterator<decay_t<_tIter>, _fTrans>
+make_transform(_tIter&& i, _fTrans f)
 {
-	return transformed_iterator<decay_t<_tIter>, _fTransformer>(yforward(i), f);
+	return transformed_iterator<decay_t<_tIter>, _fTrans>(yforward(i), f);
 }
 
 
 /*!
-\brief 迭代转换操作。
+\brief 迭代变换操作。
 \since build 358
 */
 namespace iterator_transformation
 {
 
-//! \since build 412
+//! \since build 665
 //@{
-template<typename _tIter>
-static yconstfn auto
-first(const _tIter& i) -> decltype((i->first))
+template<typename _tIter = void>
+struct first
 {
-	return i->first;
-}
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype((i->first))
+	{
+		return i->first;
+	}
+};
 
-//! \since build 536
-template<typename _tIter>
-static yconstfn auto
-get(const _tIter& i) -> decltype(((*i).get()))
+template<>
+struct first<void>
 {
-	return (*i).get();
-}
+	template<typename _tIter>
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype((i->first))
+	{
+		return i->first;
+	}
+};
 
-template<typename _tIter>
-static yconstfn auto
-indirect(const _tIter& i) -> decltype((**i))
-{
-	return **i;
-}
 
-template<typename _tIter>
-static yconstfn auto
-second(const _tIter& i) -> decltype((i->second))
+template<typename _tIter = void>
+struct get
 {
-	return i->second;
-}
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype(((*i).get()))
+	{
+		return (*i).get();
+	}
+};
+
+template<>
+struct get<void>
+{
+	template<typename _tIter>
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype(((*i).get()))
+	{
+		return (*i).get();
+	}
+};
+
+
+template<typename _tIter = void>
+struct indirect
+{
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype((**i))
+	{
+		return **i;
+	}
+};
+
+template<>
+struct indirect<void>
+{
+	template<typename _tIter>
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype((**i))
+	{
+		return **i;
+	}
+};
+
+
+template<typename _tIter = void>
+struct second
+{
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype((i->second))
+	{
+		return i->second;
+	}
+};
+
+template<>
+struct second<void>
+{
+	template<typename _tIter>
+	yconstfn auto
+	operator()(const _tIter& i) const -> decltype((i->second))
+	{
+		return i->second;
+	}
+};
 //@}
 
 } // namespace iterator_transformation;
@@ -438,40 +536,37 @@ yconstexpr const struct get_tag{} get_get{};
 
 /*!
 \brief 管道匹配操作符。
+\note 使用 ADL \c make_transform 。
 \since build 650
 */
 //@{
 template<typename _tIter>
 inline auto
 operator|(_tIter&& i, first_tag) -> decltype(make_transform(yforward(i),
-	iterator_transformation::first<decay_t<_tIter>>))
+	iterator_transformation::first<>()))
 {
-	return make_transform(yforward(i), iterator_transformation::first<
-		decay_t<_tIter>>);
+	return make_transform(yforward(i), iterator_transformation::first<>());
 }
 template<typename _tIter>
 inline auto
 operator|(_tIter&& i, second_tag) -> decltype(make_transform(yforward(i),
-	iterator_transformation::second< decay_t<_tIter>>))
+	iterator_transformation::second<>()))
 {
-	return make_transform(yforward(i), iterator_transformation::second<
-		decay_t<_tIter>>);
+	return make_transform(yforward(i), iterator_transformation::second<>());
 }
 template<typename _tIter>
 inline auto
 operator|(_tIter&& i, indirect_tag) -> decltype(make_transform(yforward(i),
-	iterator_transformation::indirect<decay_t<_tIter>>))
+	iterator_transformation::indirect<>()))
 {
-	return make_transform(yforward(i), iterator_transformation::indirect<
-		decay_t<_tIter>>);
+	return make_transform(yforward(i), iterator_transformation::indirect<>());
 }
 template<typename _tIter>
 inline auto
-operator|(_tIter&& i, get_tag) -> decltype(make_transform(yforward(i),
-	iterator_transformation::get<decay_t<_tIter>>))
+operator|(_tIter&& i, get_tag)
+	-> decltype(make_transform(yforward(i), iterator_transformation::get<>()))
 {
-	return make_transform(yforward(i),
-		iterator_transformation::get<decay_t<_tIter>>);
+	return make_transform(yforward(i), iterator_transformation::get<>());
 }
 //@}
 

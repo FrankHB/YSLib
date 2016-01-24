@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1512
+\version r1523
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2015-12-12 02:00 +0800
+	2016-01-22 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,7 @@ Validate(TLCIter b, TLCIter e)
 	while(b != e && *b != ")")
 		if(*b == "(")
 		{
+			// FIXME: Potential overflow.
 			auto res(Validate(++b, e));
 
 			if(res == e || *res != ")")
@@ -67,11 +68,12 @@ Validate(TLCIter b, TLCIter e)
 }
 
 TLCIter
-Reduce(ValueNode& node, TLCIter b, TLCIter e)
+Reduce(const ValueNode& node, TLCIter b, TLCIter e)
 {
 	while(b != e && *b != ")")
 		if(*b == "(")
 		{
+			// FIXME: Potential overflow.
 			auto nd(MakeNode(MakeIndex(node)));
 			auto res(Reduce(nd, ++b, e));
 
@@ -86,12 +88,8 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 }
 
 void
-Analyze(ValueNode& root, const TokenList& token_list)
+Analyze(const ValueNode& root, const TokenList& token_list)
 {
-#if 0
-	if(token_list.empty())
-		throw LoggedEvent("Empty token list found;", Alert);
-#endif
 	if(Validate(token_list.cbegin(), token_list.cend()) != token_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
 
@@ -100,12 +98,12 @@ Analyze(ValueNode& root, const TokenList& token_list)
 	yassume(res == token_list.end());
 }
 void
-Analyze(ValueNode& root, const Session& session)
+Analyze(const ValueNode& root, const Session& session)
 {
 	Analyze(root, session.GetTokenList());
 }
 void
-Analyze(ValueNode& root, string_view unit)
+Analyze(const ValueNode& root, string_view unit)
 {
 	YAssertNonnull(unit.data());
 	Analyze(root, Session(unit).GetTokenList());

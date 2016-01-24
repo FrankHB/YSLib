@@ -1,0 +1,73 @@
+# See http://clang.llvm.org/docs/ClangFormatStyleOptions.html.
+# NOTE: http://clangformat.com/ may be outdated.
+# BasedOnStyle: None
+Language: Cpp
+Standard: Auto # Cpp11 is preferred in general.
+AccessModifierOffset: -4
+# AlignAfterOpenBracket: true # 'DontAlign' for clang 3.8+.
+AlignConsecutiveAssignments: false
+# AlignConsecutiveDeclarations: false
+AlignEscapedNewlinesLeft: false
+AlignOperands: false
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine:  false
+AlwaysBreakAfterDefinitionReturnType: All # Deprecated.
+# AlwaysBreakAfterReturnType: All # http://reviews.llvm.org/D10774
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: false
+BinPackParameters: false
+# BraceWrapping # Overriden by 'BreakBeforeBraces'.
+# BreakAfterJavaFieldAnnotations: true
+BreakBeforeBinaryOperators: All
+BreakBeforeBraces: Allman
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializersBeforeComma: false
+ColumnLimit: 80
+CommentPragmas: ''
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+DisableFormat: false
+# ExperimentalAutoDetectBinPacking: true # Warning: This is an experimental flag, that might go away or be renamed.
+ForEachMacros: [ 'BOOST_FOREACH' ]
+# IncludeCategories: # Unused.
+IndentCaseLabels: false
+IndentWidth: 4
+IndentWrappedFunctionNames: false
+KeepEmptyLinesAtTheStartOfBlocks: true # This seems to also apply to namespaces.
+#MacroBlockBegin: '^\t*(Decl|Def|Impl|PDefH|Try|YInterface|YB_LibDefect_CMath_builtin)'
+MacroBlockBegin: '^\t*YInterface'
+MacroBlockEnd: '^\t*EndDecl'
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: None
+ObjCBlockIndentWidth: 4
+ObjCSpaceAfterProperty: false
+ObjCSpaceBeforeProtocolList: false
+PenaltyBreakBeforeFirstCallParameter: 80
+PenaltyBreakComment: 40
+PenaltyBreakFirstLessLess: 2
+PenaltyBreakString: 160
+PenaltyExcessCharacter: 320
+PenaltyReturnTypeOnItsOwnLine: 0
+PointerAlignment: Left
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: Never
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+TabWidth: 4
+UseTab: Always
+

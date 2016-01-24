@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2527
+\version r2532
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-12-28 03:46 +0800
+	2016-01-22 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,7 +372,7 @@ SaveConfiguration(const ValueNode& node)
 	{
 		YTraceDe(Debug, "Writing configuration...");
 		ystdex::write_literal(ofs, Text::BOM_UTF_8)
-			<< NPL::Configuration(ValueNode(node.GetContainerRef()));
+			<< NPL::Configuration(ValueNode(node.GetContainer()));
 	}
 	else
 		throw GeneralEvent("Invalid file found when writing configuration.");
@@ -588,12 +588,13 @@ FetchMIMEBiMapping()
 {
 	if(YB_UNLIKELY(!p_mapping))
 	{
+		using namespace NPL;
+
 		p_mapping = ynew MIMEBiMapping();
 		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
 			(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory")
 			+ "MIMEExtMap.txt").c_str(), []{
-				return NPL::LoadNPLA1(
-					NPL::SContext::Analyze(NPL::Session(TU_MIME)));
+				return A1::LoadNode(SContext::Analyze(NPL::Session(TU_MIME)));
 			}, true));
 		app_exit.push([]() ynothrow{
 			ydelete(p_mapping);

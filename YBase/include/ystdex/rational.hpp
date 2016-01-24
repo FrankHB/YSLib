@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2072
+\version r2074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2015-11-06 11:24 +0805
+	2016-01-24 05:07 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,7 +168,7 @@ class fixed_point : public operators<YB_Impl_Rational_fp_T>
 	static_assert(_vInt + _vFrac == size_t(std::numeric_limits<_tBase>::digits),
 		"Wrong total bits found.");
 
-	template<typename _OtherBase, size_t _vOtherInt, size_t _vOtherFrac>
+	template<typename, size_t, size_t>
 	friend class fixed_point;
 	friend class std::numeric_limits<YB_Impl_Rational_fp_T>;
 

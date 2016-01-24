@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r868
+\version r893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-01-07 10:43 +0800
+	2016-01-22 15:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,10 @@
 namespace NPL
 {
 
+//! \since build 665
+namespace A1
+{
+
 /*!
 \brief NPLA1 元标签。
 \note NPLA1 是 NPLA 的具体实现。
@@ -44,8 +48,15 @@ struct YF_API NPLA1Tag : NPLATag
 {};
 
 
-//! \since build 597
-//@{
+//! \brief 值记号：节点中的值的占位符。
+enum class ValueToken
+{
+	Null,
+	GroupingAnchor,
+	OrderedAnchor
+};
+
+
 //! \brief 插入 NPLA1 子节点。
 //@{
 /*!
@@ -55,7 +66,7 @@ struct YF_API NPLA1Tag : NPLATag
 若映射操作返回节点名称为空则根据当前容器内子节点数量加前缀 $ 命名以避免重复。
 */
 YF_API void
-InsertNPLA1Child(ValueNode&&, ValueNode::Container&);
+InsertChild(ValueNode&&, ValueNode::Container&);
 
 /*!
 \note 保持顺序。
@@ -63,8 +74,7 @@ InsertNPLA1Child(ValueNode&&, ValueNode::Container&);
 直接插入 NPLA1 子节点到序列容器末尾。
 */
 YF_API void
-InsertNPLA1SequenceChild(ValueNode&&, NodeSequence&);
-//@}
+InsertSequenceChild(ValueNode&&, NodeSequence&);
 
 /*!
 \brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
@@ -81,26 +91,26 @@ InsertNPLA1SequenceChild(ValueNode&&, NodeSequence&);
 		当剩余一个子节点（即源节点有两个子节点）时，直接递归变换这个节点并返回。
 		若变换后的结果名称非空，则作为结果的值；否则，结果作为容器内单一的值。
 	否则，新建节点容器，遍历并变换剩余的节点插入这个容器，返回以这个容器构造的节点。
-		第二参数指定此时的映射操作，若为空则默认使用递归 TransformNPLA1 调用。
+		第二参数指定此时的映射操作，若为空则默认使用递归 TransformNode 调用。
 		调用第五参数插入映射的结果到容器。
 */
 YF_API ValueNode
-TransformNPLA1(const ValueNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
-	NodeToString = ParseNPLANodeString, NodeInserter = InsertNPLA1Child);
+TransformNode(const ValueNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
+	NodeToString = ParseNPLANodeString, NodeInserter = InsertChild);
 
 /*!
 \brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 序列语义结构。
 \exception std::bad_function_call 第三至五参数为空。
 \return 变换后的新节点（及子节点）。
-\sa TransformNPLA1
+\sa TransformNode
 
-和 TransformNPLA1 变换规则相同，
+和 TransformNode 变换规则相同，
 但插入的子节点以 NodeSequence 的形式作为变换节点的值而不是子节点，可保持顺序。
 */
 YF_API ValueNode
-TransformNPLA1Sequence(const ValueNode&, NodeMapper = {},
+TransformNodeSequence(const ValueNode&, NodeMapper = {},
 	NodeMapper = MapNPLALeafNode, NodeToString = ParseNPLANodeString,
-	NodeSequenceInserter = InsertNPLA1SequenceChild);
+	NodeSequenceInserter = InsertSequenceChild);
 
 
 /*!
@@ -110,9 +120,9 @@ TransformNPLA1Sequence(const ValueNode&, NodeMapper = {},
 //@{
 template<typename _type, typename... _tParams>
 ValueNode
-LoadNPLA1(_type&& tree, _tParams&&... args)
+LoadNode(_type&& tree, _tParams&&... args)
 {
-	TryRet(NPL::TransformNPLA1(std::forward<ValueNode&&>(tree),
+	TryRet(A1::TransformNode(std::forward<ValueNode&&>(tree),
 		yforward(args)...))
 	CatchThrow(ystdex::bad_any_cast& e, YSLib::LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
@@ -121,15 +131,17 @@ LoadNPLA1(_type&& tree, _tParams&&... args)
 
 template<typename _type, typename... _tParams>
 ValueNode
-LoadNPLA1Sequence(_type&& tree, _tParams&&... args)
+LoadNodeSequence(_type&& tree, _tParams&&... args)
 {
-	TryRet(NPL::TransformNPLA1Sequence(std::forward<ValueNode&&>(tree),
+	TryRet(A1::TransformNodeSequence(std::forward<ValueNode&&>(tree),
 		yforward(args)...))
 	CatchThrow(ystdex::bad_any_cast& e, YSLib::LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
 		e.to()), YSLib::Warning))
 }
 //@}
+
+} // namesapce A1;
 
 } // namespace NPL;
 
