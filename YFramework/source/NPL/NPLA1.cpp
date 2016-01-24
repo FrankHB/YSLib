@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r841
+\version r850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-01-07 10:42 +0800
+	2016-01-22 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,21 +35,24 @@ using namespace YSLib;
 namespace NPL
 {
 
+namespace A1
+{
+
 void
-InsertNPLA1Child(ValueNode&& node, ValueNode::Container& con)
+InsertChild(ValueNode&& node, ValueNode::Container& con)
 {
 	con.insert(node.GetName().empty() ? ValueNode(0, '$' + MakeIndex(con),
 		std::move(node.Value)) : std::move(node));
 }
 
 void
-InsertNPLA1SequenceChild(ValueNode&& node, NodeSequence& con)
+InsertSequenceChild(ValueNode&& node, NodeSequence& con)
 {
 	con.emplace_back(std::move(node));
 }
 
 ValueNode
-TransformNPLA1(const ValueNode& node, NodeMapper mapper,
+TransformNode(const ValueNode& node, NodeMapper mapper,
 	NodeMapper map_leaf_node, NodeToString node_to_str,
 	NodeInserter insert_child)
 {
@@ -59,7 +62,7 @@ TransformNPLA1(const ValueNode& node, NodeMapper mapper,
 		return map_leaf_node(node);
 
 	auto i(node.begin());
-	const auto nested_call(ystdex::bind1(TransformNPLA1, mapper, map_leaf_node,
+	const auto nested_call(ystdex::bind1(TransformNode, mapper, map_leaf_node,
 		node_to_str, insert_child));
 
 	if(s == 1)
@@ -87,7 +90,7 @@ TransformNPLA1(const ValueNode& node, NodeMapper mapper,
 }
 
 ValueNode
-TransformNPLA1Sequence(const ValueNode& node, NodeMapper mapper, NodeMapper
+TransformNodeSequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 	map_leaf_node, NodeToString node_to_str, NodeSequenceInserter insert_child)
 {
 	auto s(node.size());
@@ -96,7 +99,7 @@ TransformNPLA1Sequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 		return map_leaf_node(node);
 
 	auto i(node.begin());
-	auto nested_call(ystdex::bind1(TransformNPLA1Sequence, mapper,
+	auto nested_call(ystdex::bind1(TransformNodeSequence, mapper,
 		map_leaf_node, node_to_str, insert_child));
 
 	if(s == 1)
@@ -122,6 +125,8 @@ TransformNPLA1Sequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 	});
 	return {0, name, std::move(node_con)};
 }
+
+} // namesapce A1;
 
 } // namespace NPL;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r856
+\version r873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2015-12-17 10:46 +0800
+	2016-01-24 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,7 +240,7 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 使用元编程和模板匹配检查特定类型是否存在特定操作。
 
 @2.5.5 基本头文件扩展：
-用于构建其它库但不提供标准接口的替代或扩展，只直接依赖上述 YDefinition 的头文件，可被以下其它 YStandardEx 头文件依赖。
+用于构建其它库但不提供标准接口的替代或扩展，只直接依赖上述 YDefinition 的头文件或本节内前述的头文件，可被以下其它 YStandardEx 头文件依赖。
 
 @2.5.5.1 C++ 变长参数相关操作 Variadic ：
 使用 ISO C++11 起提供的变长参数包(pack) 的特性提供序列等基本接口的模板库。
@@ -251,9 +251,7 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 @2.5.5.3 一元操作符 & 和取指针的相关接口 AddressOf
 
 @2.5.5.4 重载操作符 Operators ：
-Boost.Operators 的重新实现。
-
-@2.5.5.5 作用域守护 ScopeGuard
+Boost.Operators 的重新实现，添加部分 df.operators 接口和其它 ISO C++11 特性支持。
 
 @2.5.6 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
@@ -324,19 +322,22 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 @2.5.7.20 数组操作 Array ：
 扩展了标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.5.7.21 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+@2.5.7.21 集合容器 Set ：
+扩展标准库头 <map> ，但提供和 std::set 类似的容器。
+
+@2.5.7.22 ISO C++ 标准流缓冲扩展 StreamBuffer ：
 扩展了标准库头 <streambuf> 。
 
-@2.5.7.22 ISO C++ 标准输入流扩展 InputStream ：
+@2.5.7.23 ISO C++ 标准输入流扩展 InputStream ：
 扩展了标准库头 <istream> 。
 
-@2.5.7.23 ISO C 标准输入/输出扩展 CStandardIO ：
+@2.5.7.24 ISO C 标准输入/输出扩展 CStandardIO ：
 头文件扩展了标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.7.24 ISO C++ <future> 扩展 Future ：
+@2.5.7.25 ISO C++ <future> 扩展 Future ：
 扩展了标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.7.25 伪互斥量 PseudoMutex ：
+@2.5.7.26 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.8 其它扩展接口：
@@ -372,19 +373,21 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 @2.5.8.9 间接和惰性求值 Thunk ：
 提供组合惰性求值的可调用对象。
 
-@2.5.8.10 有理数运算 Rational ：
+@2.5.8.10 作用域守护 ScopeGuard
+
+@2.5.8.11 有理数运算 Rational ：
 提供定点数模板等有理数算术类型接口。
 
-@2.5.8.11 位段数据结构和访问 BitSegment ：
+@2.5.8.12 位段数据结构和访问 BitSegment ：
 提供访问位集合的类型和操作。
 
-@2.5.8.12 并发操作 Concurrency ：
+@2.5.8.13 并发操作 Concurrency ：
 提供线程池等实用并发特性。
 
-@2.5.8.13 抽象路径模板 Path ：
+@2.5.8.14 抽象路径模板 Path ：
 提供抽象的路径模板及操作。
 
-@2.5.8.14 高速缓冲容器模板 Cache ：
+@2.5.8.15 高速缓冲容器模板 Cache ：
 提供抽象的缓冲容器模板及操作。
 
 @2.6 LibDefect ：

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1801
+\version r1808
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2015-12-22 13:33 +0800
+	2016-01-24 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,8 @@
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "type_traits.hpp" // for _t, false_type, true_type;
-#include <memory> // for std::addressof;
+#include "addressof.hpp" // for _t, false_type, true_type,
+//	ystdex::constfn_addressof;
 
 namespace ystdex
 {
@@ -259,16 +259,18 @@ YB_Impl_Operators_TmplHead1(decrementable) : _tBase
 //! \since build 576
 YB_Impl_Operators_TmplHead2(dereferenceable) : _tBase
 {
-	yconstfn _type2
+	// TODO: Add non-const overloaded version? SFINAE?
+	yconstfn decltype(ystdex::constfn_addressof(std::declval<const _type2&>()))
 	operator->() const ynoexcept_spec(*std::declval<const _type&>())
 	{
-		return std::addressof(*static_cast<const _type&>(*this));
+		return ystdex::constfn_addressof(*static_cast<const _type&>(*this));
 	}
 };
 
 //! \since build 576
 YB_Impl_Operators_TmplHead3(indexable) : _tBase
 {
+	// TODO: Add non-const overloaded version? SFINAE?
 	yconstfn _type3
 	operator[](_type2 n) const
 		ynoexcept_spec(*(std::declval<const _type&>() + n))

@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1441
+\version r1452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2015-12-28 16:09 +0800
+	2016-01-22 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,6 +113,8 @@ namespace SContext
 YF_API TLCIter
 Validate(TLCIter b, TLCIter e);
 
+//! \since build 665
+//@{
 /*!
 \brief 遍历规约记号列表，取抽象语法树储存至指定值类型节点。
 \param node 节点。
@@ -124,7 +126,7 @@ Validate(TLCIter b, TLCIter e);
 \since build 330
 */
 YF_API TLCIter
-Reduce(ValueNode& node, TLCIter b, TLCIter e);
+Reduce(const ValueNode& node, TLCIter b, TLCIter e);
 
 
 /*!
@@ -134,15 +136,13 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e);
 */
 //@{
 YF_API void
-Analyze(ValueNode&, const TokenList&);
+Analyze(const ValueNode&, const TokenList&);
 YF_API void
-Analyze(ValueNode&, const Session&);
-/*!
-\pre 断言：字符串参数的数据指针非空。
-\since build 659
-*/
+Analyze(const ValueNode&, const Session&);
+//! \pre 断言：字符串参数的数据指针非空。
 YF_API void
-Analyze(ValueNode&, string_view);
+Analyze(const ValueNode&, string_view);
+//@}
 template<typename _type>
 //! ADL \c Analyze 分析节点。
 ValueNode

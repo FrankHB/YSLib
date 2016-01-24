@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1766
+\version r1769
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-01-14 13:25 +0800
+	2016-01-23 00:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -289,7 +289,7 @@ public:
 	PDefH(iterator, begin, )
 		ImplRet(GetContainerRef().begin())
 	PDefH(const_iterator, begin, ) const
-		ImplRet(GetContainerRef().begin())
+		ImplRet(GetContainer().begin())
 
 	//! \since build 598
 	//@{
@@ -307,7 +307,7 @@ public:
 	PDefH(iterator, end, )
 		ImplRet(GetContainerRef().end())
 	PDefH(const_iterator, end, ) const
-		ImplRet(GetContainerRef().end())
+		ImplRet(GetContainer().end())
 	//@}
 
 	//! \since build 598
@@ -561,7 +561,7 @@ MakeIndex(size_t);
 inline PDefH(string, MakeIndex, const ValueNode::Container& con)
 	ImplRet(MakeIndex(con.size()))
 inline PDefH(string, MakeIndex, const ValueNode& node)
-	ImplRet(MakeIndex(node.GetContainerRef()))
+	ImplRet(MakeIndex(node.GetContainer()))
 //@}
 
 
