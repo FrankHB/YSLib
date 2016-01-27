@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015 FrankHB.
+	© 2012-2013, 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r387
+\version r399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2015-11-05 11:43 +0800
+	2016-01-26 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,25 +101,11 @@ struct seq_size<integer_sequence<_tInt, _vSeq...>>
 {};
 
 
-template<typename _tInt, _tInt... _vSeq>
-struct back<integer_sequence<_tInt, _vSeq...>>
-	: at_t<integer_sequence<_tInt, _vSeq...>,
-	seq_size<integer_sequence<_tInt, _vSeq...>>::value - 1>
-{};
-
-
 template<typename _tInt, _tInt _vHead, _tInt... _vSeq>
 struct front<integer_sequence<_tInt, _vHead, _vSeq...>>
 	: integral_constant<_tInt, _vHead>
 {};
 
-
-template<typename _tInt, _tInt... _vSeq>
-struct pop_back<integer_sequence<_tInt, _vSeq...>>
-{
-	using type = split_n_t<seq_size<integer_sequence<_tInt, _vSeq...>>::value
-		- 1, integer_sequence<_tInt, _vSeq...>>;
-};
 
 
 template<typename _tInt, _tInt _vHead, _tInt... _vTail>

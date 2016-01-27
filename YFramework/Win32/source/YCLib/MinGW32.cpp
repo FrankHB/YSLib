@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1567
+\version r1621
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-01-17 02:11 +0800
+	2016-01-25 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -284,40 +284,44 @@ PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 //! \since build 660
 struct REPARSE_DATA_BUFFER
 {
+	struct tagSymbolicLinkReparseBuffer
+	{
+		unsigned short SubstituteNameOffset;
+		unsigned short SubstituteNameLength;
+		unsigned short PrintNameOffset;
+		unsigned short PrintNameLength;
+		unsigned long Flags;
+		wchar_t PathBuffer[1];
+
+		DefGetter(const ynothrow, wstring_view, PrintName,
+			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
+			size_t(PrintNameLength / sizeof(wchar_t))})
+	};
+	struct tagMountPointReparseBuffer
+	{
+		unsigned short SubstituteNameOffset;
+		unsigned short SubstituteNameLength;
+		unsigned short PrintNameOffset;
+		unsigned short PrintNameLength;
+		wchar_t PathBuffer[1];
+
+		DefGetter(const ynothrow, wstring_view, PrintName,
+			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
+			size_t(PrintNameLength / sizeof(wchar_t))})
+	};
+	struct tagGenericReparseBuffer
+	{
+		unsigned char DataBuffer[1];
+	};
+
 	unsigned long ReparseTag;
 	unsigned short ReparseDataLength;
 	unsigned short Reserved;
 	union
 	{
-		struct
-		{
-			unsigned short SubstituteNameOffset;
-			unsigned short SubstituteNameLength;
-			unsigned short PrintNameOffset;
-			unsigned short PrintNameLength;
-			unsigned long Flags;
-			wchar_t PathBuffer[1];
-
-			DefGetter(const ynothrow, wstring_view, PrintName,
-				{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
-				size_t(PrintNameLength / sizeof(wchar_t))})
-		} SymbolicLinkReparseBuffer;
-		struct
-		{
-			unsigned short SubstituteNameOffset;
-			unsigned short SubstituteNameLength;
-			unsigned short PrintNameOffset;
-			unsigned short PrintNameLength;
-			wchar_t PathBuffer[1];
-
-			DefGetter(const ynothrow, wstring_view, PrintName,
-				{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
-				size_t(PrintNameLength / sizeof(wchar_t))})
-		} MountPointReparseBuffer;
-		struct
-		{
-			unsigned char DataBuffer[1];
-		} GenericReparseBuffer;
+		tagSymbolicLinkReparseBuffer SymbolicLinkReparseBuffer;
+		tagMountPointReparseBuffer MountPointReparseBuffer;
+		tagGenericReparseBuffer GenericReparseBuffer;
 	};
 };
 

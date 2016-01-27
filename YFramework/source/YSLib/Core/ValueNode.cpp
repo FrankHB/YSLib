@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r501
+\version r522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2016-01-24 13:08 +0800
+	2016-01-27 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,9 +52,10 @@ ValueNode::operator%=(const ValueNode&& node) const
 const ValueNode&
 ValueNode::operator[](const string& n) const
 {
-	auto i(ystdex::as_const(container).lower_bound({0, n}));
+	auto& con(ystdex::as_const(container));
+	auto i(con.lower_bound({0, n}));
 
-	if(i == container.end() || container.key_comp()({0, n}, *i))
+	if(i == con.cend() || con.key_comp()({0, n}, *i))
 		i = container.emplace_hint(i, 0, n);
 	return *i;
 }
@@ -72,6 +73,11 @@ ValueNode::SwapContent(const ValueNode& node) const ynothrow
 	Value.swap(node.Value);
 }
 
+ValueNode&
+ValueNode::at(const string& n)
+{
+	return AccessNode(GetContainerRef(), n);
+}
 const ValueNode&
 ValueNode::at(const string& n) const
 {
@@ -97,6 +103,13 @@ at(const ValueNode& node, size_t n)
 }
 
 
+ValueNode&
+AccessNode(ValueNode::Container* p_con, const string& name)
+{
+	if(const auto p = AccessNodePtr(p_con, name))
+		return *p;
+	throw std::out_of_range("Wrong name found.");
+}
 const ValueNode&
 AccessNode(const ValueNode::Container* p_con, const string& name)
 {
@@ -105,6 +118,13 @@ AccessNode(const ValueNode::Container* p_con, const string& name)
 	throw std::out_of_range("Wrong name found.");
 }
 
+ValueNode*
+AccessNodePtr(ValueNode::Container& con, const string& name)
+{
+	const auto i(con.find(ValueNode(0, name)));
+
+	return i != end(con) ? &*i : nullptr;
+}
 const ValueNode*
 AccessNodePtr(const ValueNode::Container& con, const string& name)
 {

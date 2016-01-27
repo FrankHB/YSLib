@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5029
+\version r5031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-11-05 01:23 +0800
+	2016-01-25 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,7 +151,7 @@ public:
 	DefDeCopyMoveCtorAssignment(GHEvent)
 
 	//! \since build 520
-	yconstfn friend bool
+	friend yconstfn bool
 	operator==(const GHEvent& x, const GHEvent& y)
 	{
 		return

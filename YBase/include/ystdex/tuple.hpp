@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r530
+\version r543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2015-11-09 14:06 +0800
+	2016-01-26 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,26 +86,10 @@ struct seq_size<std::tuple<_types...>>
 {};
 
 
-template<typename... _types>
-struct back<std::tuple<_types...>>
-{
-	using type = at_t<std::tuple<_types...>,
-		seq_size<std::tuple<_types...>>::value - 1>;
-};
-
-
 template<typename _tHead, typename... _tTail>
 struct front<std::tuple<_tHead, _tTail...>>
 {
-	using type = std::tuple<_tHead>;
-};
-
-
-template<typename... _types>
-struct pop_back<std::tuple<_types...>>
-{
-	using type = split_n_t<seq_size<std::tuple<_types...>>::value - 1,
-		std::tuple<_types...>>;
+	using type = _tHead;
 };
 
 

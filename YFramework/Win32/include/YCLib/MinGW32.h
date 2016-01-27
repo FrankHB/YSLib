@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1575
+\version r1577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-01-16 20:11 +0800
+	2016-01-25 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,9 +199,9 @@ public:
 
 //! \since build 651
 //@{
-//! \brief 加载过程地址得到的指针类型。
+//! \brief 加载过程地址得到的过程类型。
 using ModuleProc
-	= ystdex::decay_t<decltype(*::GetProcAddress(::HMODULE(), {}))>;
+	= ystdex::remove_reference_t<decltype(*::GetProcAddress(::HMODULE(), {}))>;
 
 /*!
 \brief 从模块加载指定过程的指针。

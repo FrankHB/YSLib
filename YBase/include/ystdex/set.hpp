@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r584
+\version r613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-01-24 20:04 +0800
+	2016-01-27 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@ namespace ystdex
 
 /*!
 \brief 允许指定不同于值类型的键的集合。
+\note 和 std::set 类似，但迭代器可修改，且插入操作要求参数满足 CopyInsertable 。
 \see WG21/N3456 23.2.4 [associative.reqmts] 。
 \since build 665
 */
@@ -63,15 +64,7 @@ private:
 	private:
 		using wrapper = lref<const _type>;
 
-		union
-		{
-			nullptr_t x;
-			mutable wrapper k;
-		};
-
-		mapped_key_type()
-			: x(nullptr)
-		{}
+		mutable wrapper k;
 
 	public:
 		mapped_key_type(const key_type& key)
@@ -311,22 +304,18 @@ public:
 	std::pair<iterator, bool>
 	emplace(_tParams&&... args)
 	{
-		// XXX: %value_type needs to be MoveInsertable.
-		const auto res(m_map.emplace(mapped_key_type(),
-			value_type(yforward(args)...)));
-
-		if(res.second)
-			amend_pair(*res.first);
-		return {iterator(res.first), res.second};
+		// XXX: %value_type needs to be CopyInsertable, not EmplaceInsertable.
+		return insert(value_type(yforward(args)...));
 	}
 
 	template<typename... _tParams>
 	iterator
 	emplace_hint(const_iterator position, _tParams&&... args)
 	{
-		// XXX: %value_type needs to be MoveInsertable.
-		const auto res(m_map.emplace_hint(position.get(), mapped_key_type(),
-			value_type(yforward(args)...)));
+		const value_type x(yforward(args)...);
+
+		// XXX: %value_type needs to be CopyInsertable, not MoveInsertable.
+		const auto res(m_map.emplace_hint(position.get(), mapped_key_type(x), x));
 
 		amend_pair(*res);
 		return iterator(res);
@@ -335,7 +324,7 @@ public:
 	std::pair<iterator, bool>
 	insert(const value_type& x)
 	{
-		const auto res(m_map.insert({mapped_key_type(), x}));
+		const auto res(m_map.insert({mapped_key_type(x), x}));
 
 		if(res.second)
 			amend_pair(*res.first);
@@ -344,17 +333,14 @@ public:
 	std::pair<iterator, bool>
 	insert(value_type&& x)
 	{
-		const auto res(m_map.insert({mapped_key_type(), std::move(x)}));
-
-		if(res.second)
-			amend_pair(*res.first);
-		return {iterator(res.first), res.second};
+		// XXX: %value_type needs to be CopyInsertable, not MoveInsertable.
+		return insert(x);
 	}
 	iterator
 	insert(const_iterator position, const value_type& x)
 	{
 		const auto
-			res(m_map.insert(position, {mapped_key_type(), std::move(x)}));
+			res(m_map.insert(position, {mapped_key_type(x), x}));
 
 		if(res.second)
 			amend_pair(*res.first);
@@ -363,12 +349,8 @@ public:
 	iterator
 	insert(const_iterator position, value_type&& x)
 	{
-		const auto
-			res(m_map.insert(position, {mapped_key_type(), std::move(x)}));
-
-		if(res.second)
-			amend_pair(*res.first);
-		return {iterator(res.first), res.second};
+		// XXX: %value_type needs to be CopyInsertable, not MoveInsertable.
+		insert(position, x);
 	}
 	template<typename _tIn>
 	void

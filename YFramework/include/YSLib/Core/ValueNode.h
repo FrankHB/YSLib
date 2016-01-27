@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1769
+\version r1866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-01-23 00:12 +0800
+	2016-01-27 23:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
 #include <ystdex/path.hpp>
+#include <ystdex/set.hpp> // for ystdex::mapped_set;
 #include <numeric> // for std::accumulate;
 
 namespace YSLib
@@ -46,7 +47,7 @@ namespace YSLib
 class YF_API ValueNode
 {
 public:
-	using Container = set<ValueNode>;
+	using Container = ystdex::mapped_set<ValueNode>;
 	//! \since build 460
 	using iterator = Container::iterator;
 	//! \since build 460
@@ -55,7 +56,7 @@ public:
 private:
 	string name{};
 	/*!
-	\brief 子节点容器指针。
+	\brief 子节点容器。
 	\since build 598
 	*/
 	mutable Container container{};
@@ -281,8 +282,13 @@ public:
 	\throw std::out_of_range 未找到对应节点。
 	\since build 433
 	*/
+	//@{
+	//! \since build 666
+	ValueNode&
+	at(const string&);
 	const ValueNode&
 	at(const string&) const;
+	//@}
 
 	//! \since build 460
 	//@{
@@ -328,38 +334,58 @@ public:
 
 //! \relates ValueNode
 //@{
+//! \since build 666
+//@{
 /*!
 \brief 访问节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败 。
-\since build 399
 */
+//@{
 template<typename _type>
 inline _type&
+Access(ValueNode& node)
+{
+	return node.Value.Access<_type>();
+}
+template<typename _type>
+inline const _type&
 Access(const ValueNode& node)
 {
 	return node.Value.Access<_type>();
 }
+//@}
 
-/*!
-\brief 访问节点的指定类型对象指针。
-\since build 399
-*/
+//! \brief 访问节点的指定类型对象指针。
+//@{
 template<typename _type>
 inline _type*
+AccessPtr(ValueNode& node) ynothrow
+{
+	return node.Value.AccessPtr<_type>();
+}
+template<typename _type>
+inline const _type*
 AccessPtr(const ValueNode& node) ynothrow
 {
 	return node.Value.AccessPtr<_type>();
 }
-/*!
-\brief 访问节点的指定类型对象指针。
-\since build 432
-*/
+//@}
+//! \brief 访问节点的指定类型对象指针。
+//@{
 template<typename _type>
 inline _type*
+AccessPtr(ValueNode* p_node) ynothrow
+{
+	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
+}
+template<typename _type>
+inline const _type*
 AccessPtr(const ValueNode* p_node) ynothrow
 {
 	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
 }
+//@}
+//@}
 
 /*!
 \brief 访问节点。
@@ -402,63 +428,89 @@ inline DefSwap(ynothrow, ValueNode)
 //@}
 
 
-/*!
-\brief 访问容器中的节点。
-\since build 399
-*/
+//! \since build 666
 //@{
+//! \brief 访问容器中的节点。
+//@{
+YF_API ValueNode&
+AccessNode(ValueNode::Container*, const string&);
 //! \since build 433
 YF_API const ValueNode&
 AccessNode(const ValueNode::Container*, const string&);
+inline PDefH(ValueNode&, AccessNode, ValueNode::Container& con,
+	const string& name)
+	ImplRet(AccessNode(&con, name))
+//! \since build 399
 inline PDefH(const ValueNode&, AccessNode, const ValueNode::Container& con,
 	const string& name)
 	ImplRet(AccessNode(&con, name))
 //@}
 
-/*!
-\brief 访问容器中的节点指针。
-\since build 432
-*/
+//! \brief 访问容器中的节点指针。
 //@{
+YF_API ValueNode*
+AccessNodePtr(ValueNode::Container&, const string&);
+//! \since build 432
 YF_API const ValueNode*
 AccessNodePtr(const ValueNode::Container&, const string&);
+inline PDefH(ValueNode*, AccessNodePtr, ValueNode::Container* p_con,
+	const string& name)
+	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
+//! \since build 432
 inline PDefH(const ValueNode*, AccessNodePtr, const ValueNode::Container* p_con,
 	const string& name)
 	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
 //@}
 
 /*!
-\brief 访问指定名称的子节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败 。
 \relates ValueNode
-\since build 432
 */
+//@{
+//! \brief 访问指定名称的子节点的指定类型对象。
+//@{
 template<typename _type>
 inline _type&
+AccessChild(ValueNode& node, const string& name)
+{
+	return Access<_type>(node.at(name));
+}
+template<typename _type>
+inline const _type&
 AccessChild(const ValueNode& node, const string& name)
 {
 	return Access<_type>(node.at(name));
 }
+//@}
 
-/*!
-\brief 访问指定名称的子节点的指定类型对象的指针。
-\exception std::bad_cast 空实例或类型检查失败 。
-\relates ValueNode
-\since build 432
-*/
+//! \brief 访问指定名称的子节点的指定类型对象的指针。
 //@{
 template<typename _type>
 inline _type*
-AccessChildPtr(const ValueNode& node, const string& name)
+AccessChildPtr(ValueNode& node, const string& name)
 {
 	return AccessPtr<_type>(AccessNodePtr(node.GetContainerRef(), name));
 }
 template<typename _type>
+inline const _type*
+AccessChildPtr(const ValueNode& node, const string& name)
+{
+	return AccessPtr<_type>(AccessNodePtr(node.GetContainer(), name));
+}
+template<typename _type>
 inline _type*
+AccessChildPtr(ValueNode* p_node, const string& name)
+{
+	return p_node ? AccessChildPtr<_type>(*p_node, name) : nullptr;
+}
+template<typename _type>
+inline const _type*
 AccessChildPtr(const ValueNode* p_node, const string& name)
 {
 	return p_node ? AccessChildPtr<_type>(*p_node, name) : nullptr;
 }
+//@}
+//@}
 //@}
 
 

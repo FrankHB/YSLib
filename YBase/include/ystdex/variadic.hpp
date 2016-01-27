@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r809
+\version r880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2015-11-09 10:43 +0800
+	2016-01-26 15:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,8 @@ YB_Impl_Variadic_SeqOp(defer_i, typename _type YPP_Comma template<_type...>
 	_type YPP_Comma _gfunc YPP_Comma _tSeq YPP_Comma _tEnabler)
 //@}
 
-
+//! \note 不提供默认实现，需对具体序列特化。
+//@{
 //! \brief 单位元：取空序列。
 YB_Impl_Variadic_SeqOpU(clear)
 
@@ -114,16 +115,8 @@ YB_Impl_Variadic_SeqOpB(concat)
 YB_Impl_Variadic_SeqOpU(seq_size)
 
 
-//! \brief 取序列最后一个元素。
-YB_Impl_Variadic_SeqOpU(back)
-
-
 //! \brief 取序列第一个元素。
 YB_Impl_Variadic_SeqOpU(front)
-
-
-//! \brief 取序列最后元素以外的元素的序列。
-YB_Impl_Variadic_SeqOpU(pop_back)
 
 
 //! \brief 取序列第一个元素以外的元素的序列。
@@ -143,9 +136,13 @@ YB_Impl_Variadic_SeqOp(push_front, class _tSeq YPP_Comma typename _tItem,
 //! \brief 投影操作。
 YB_Impl_Variadic_SeqOp(project, class _tSeq YPP_Comma class _tIdxSeq,
 	_tSeq YPP_Comma _tIdxSeq)
+//@}
 
 
-//! \brief 取指定位置的元素。
+/*!
+\brief 取指定位置的元素。
+\note 默认实现依赖 front 和 pop_front 。
+*/
 //@{
 YB_Impl_Variadic_SeqOpI(at)
 
@@ -159,7 +156,24 @@ struct at<_tSeq, 0> : front<_tSeq>
 //@}
 
 
-//! \brief 拆分序列前若干元素。
+/*!
+\brief 取序列最后一个元素。
+\note 默认实现依赖 seq_size 和 at 。
+*/
+//@{
+YB_Impl_Variadic_SeqOpU(back)
+
+//! \since build 666
+template<class _tSeq>
+struct back : at<_tSeq, seq_size<_tSeq>::value - 1>
+{};
+//@}
+
+
+/*!
+\brief 拆分序列前若干元素。
+\note 默认实现依赖 clear 、 front 、 push_front 、 pop_front 和 concat 。
+*/
 //@{
 YB_Impl_Variadic_SeqOpN(split_n)
 
@@ -186,13 +200,30 @@ struct split_n<0, _tSeq>
 template<class _tSeq>
 struct split_n<1, _tSeq>
 {
-	using type = push_back_t<clear_t<_tSeq>, front_t<_tSeq>>;
+	using type = push_front_t<clear_t<_tSeq>, front_t<_tSeq>>;
 	using tail = pop_front_t<_tSeq>;
 };
 //@}
 
 
-//! \brief 删除指定位置的元素。
+/*!
+\brief 取序列最后元素以外的元素的序列。
+\note 默认实现依赖 seq_size 和 split 。
+*/
+//@{
+YB_Impl_Variadic_SeqOpU(pop_back)
+
+//! \since build 666
+template<class _tSeq>
+struct pop_back : split_n<seq_size<_tSeq>::value - 1, _tSeq>
+{};
+//@}
+
+
+/*!
+\brief 删除指定位置的元素。
+\note 默认实现依赖 split 和 concat 。
+*/
 //@{
 YB_Impl_Variadic_SeqOp(erase, class _tSeq YPP_Comma size_t _vIdx YPP_Comma \
 	size_t _vEnd = _vIdx + 1, _tSeq YPP_Comma _vIdx YPP_Comma _vEnd)
@@ -209,7 +240,10 @@ public:
 //@}
 
 
-//! \brief 查找元素。
+/*!
+\brief 查找元素。
+\note 默认实现依赖 front 和 pop_front 。
+*/
 //@{
 YB_Impl_Variadic_SeqOp(find, class _tSeq YPP_Comma typename _type,
 	_tSeq YPP_Comma _type)
@@ -239,7 +273,11 @@ struct find : integral_constant<size_t,
 //@}
 
 
-//! \brief 取合并相同元素后的序列。
+/*!
+\brief 取合并相同元素后的序列。
+\note 默认实现依赖 seq_size 、 pop_front 、 front 、 find 和 push_front 。
+\note 默认实现保留尾端元素。
+*/
 //@{
 YB_Impl_Variadic_SeqOpU(deduplicate)
 
@@ -250,13 +288,13 @@ template<size_t, class _tSeq>
 struct deduplicate
 {
 private:
-	using head = pop_back_t<_tSeq>;
-	using tail = back_t<_tSeq>;
-	using sub = deduplicate_t<head>;
+	using head = front_t<_tSeq>;
+	using tail = pop_front_t<_tSeq>;
+	using sub = deduplicate_t<tail>;
 
 public:
-	using type = conditional_t<vseq::find<head, tail>::value
-		== seq_size<head>::value, concat_t<sub, tail>, sub>;
+	using type = conditional_t<vseq::find<tail, head>::value
+		== seq_size<tail>::value, push_front_t<sub, head>, sub>;
 };
 
 template<class _tSeq>
@@ -281,7 +319,10 @@ struct deduplicate
 //@}
 
 
-//! \brief 重复连接序列元素。
+/*!
+\brief 重复连接序列元素。
+\note 默认实现依赖 clear 和 concat 。
+*/
 //@{
 YB_Impl_Variadic_SeqOpN(join_n)
 
@@ -311,7 +352,10 @@ struct join_n<1, _tSeq>
 //@}
 
 
-//! \brief 取逆序列。
+/*!
+\brief 取逆序列。
+\note 默认实现依赖 seq_size 、 clear 和 pop_front 。
+*/
 //@{
 YB_Impl_Variadic_SeqOpU(reverse)
 
@@ -324,7 +368,10 @@ struct reverse
 //@}
 
 
-//! \brief 取合并相邻相同元素后的序列。
+/*!
+\brief 取合并相邻相同元素后的序列。
+\note 默认实现依赖 seq_size 、 clear 、 pop_front 和 concat 。
+*/
 //@{
 YB_Impl_Variadic_SeqOpU(unique)
 
@@ -347,8 +394,8 @@ private:
 	using last_front = front_t<last>;
 
 public:
-	using type = concat_t<cond_t<is_same<half_back, last_front>,
-		pop_back_t<half>, half>, last>;
+	using type = concat_t<half, cond_t<is_same<half_back, last_front>,
+		pop_front_t<last>, last>>;
 };
 
 template<class _tSeq>
@@ -373,6 +420,8 @@ struct unique
 };
 
 
+//! \note 不提供默认实现，需对具体序列特化。
+//@{
 /*!
 \brief 二元操作合并应用。
 \pre 二元操作符合交换律和结合律。
@@ -392,6 +441,7 @@ YB_Impl_Variadic_SeqOpB(vec_subtract)
 #undef YB_Impl_Variadic_SeqOpI
 #undef YB_Impl_Variadic_SeqOpU
 #undef YB_Impl_Variadic_SeqOp
+//@}
 //@}
 
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r7825
+\version r8048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-01-18 14:17 +0800
+	2016-01-27 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,229 @@ $import $HISTORY;
 
 $now
 (
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			* DLB $impl "ill-formed member access"
+				@ "constructor %WindowClass#4" @ %HostedGUI $since b658
+				// G++ accepts it, Clang++ rejects. It is in the assertion \
+					check so normally it does not alter the behavior.
+		),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			* $impl "strict ISO C++ code conformance" $since b660
+				// To eliminate Clang++ error: [-Werror,-Wnested-anon-types].
+			* DLB "alias declartion %ModuleProc" $since b651
+				// This occasionally worked for G++, but not for Clang++.
+		),
+		/ %YSLib.Core.ValueNode $=
+		(
+			/ @ "class %ValueNode" $=
+			(
+				/ DLDI "function %operator[]" ^ "const iterator",
+				/ "alias %Container" -> 'ystdex::mapped_set<ValueNode>'
+					~ 'set<ValueNode>' $dep_from %YBase.YStandardEx.Set,
+				+ "function 'ValueNode& at(const string&);'" $dep_from
+					"%AccessNode"
+			),
+			/ @ "function template %(Access, AccessPtr; AccessNode, \
+				AccessNodePtr, AccessChild, AccessChildPtr)" $dep_from
+				"%ValueNode::Container" $=
+			(
+				+ "overloaded function template for 'ValueNode&'"
+				+ 'const' @ "return type"
+					@ "overloaded function templates for 'const ValueNode&'"
+			)
+		),
+		- 'const' @ "parameter type 'const ValueNode&'"
+			@ "function template %InsertChildSyntaxNode#1" @ %NPL.NPLA
+	),
+	+ $build '-Wno-missing-braces' @ "%CXXFLAGS_IMPL_WARNING for Clang++"
+		@ "%SHBuild-common-options.sh" @ %Tools,
+		// To eliminate Clang++ warning: [-Wmissing-braces]. See \
+			https://llvm.org/bugs/show_bug.cgi?id=21629. Since it is resolved \
+			for GCC at frontend but not per library API level (possible by \
+			'#pragma's), make it done manually here as well. G++ < 4.9 is \
+			formally not being used for test, so no backport effort.
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "class template %pointer_iterator" @ %Pointer $=
+		(
+			+ 'yconstfn' @ "function %operator*, friend function %operator==",
+			+ 'yconstfn_relaxed' @ "functions %operator(+=, -=, ++, --)",
+			+ "friend function %operaotr<"
+		),
+		/ %Tuple $=
+		(
+			* "metafunction specialization %front for %std::tuple" $since b589,
+				// The result should be an element rather than a sequence.
+			- "metafunction specialization %back for %std::tuple" $dep_from
+				("%back" @ %Variadic),
+			- "metafunction specialization %pop_back for %std::tuple" $dep_from
+				("%pop_back" @ %Variadic)
+		),
+		/ %Variadic $=
+		(
+			/ @ "metafunction %deduplicate" $=
+			(
+				* $dep_from ("%front" @ %Tuple) $since b589
+					$= (/ $impl ^ "%push_back_t" ~ "%concat_t");
+				/ $impl "optimized" ^ "%(front_t, pop_front_t, push_front_t)"
+					~ "%back_t, pop_back_t, push_back_t)"
+					// This is more efficient by default since it avoids \
+						expensive %split_n instantiation used by %pop_back.
+			),
+			+ "primary templates %(back, pop_back)"
+			/ $impl "optimized primary template %unique" ^ "%pop_front_t"
+				~ "%pop_back_t"
+				// Ditto for performance, though %split_n has already been used.
+			/ $impl "primary template %split_n" ^ "%push_front_t"
+				~ "%push_back_t"
+				// To reduce dependencies conceptually.
+		),
+		/ @ %IntegerSequence $=
+		(
+			(
+			- "metafunction specialization %back for %integer_sequence"
+				$dep_from ("%back" @ %Variadic);
+			* $comp "wrong %back result for %integer_sequence" $since b589
+				// It should have used %at rather than %at_t at base-specifier.
+			),
+			- "metafunction specialization %pop_back for %integer_sequence"
+				$dep_from ("%pop_back" @ %Variadic);
+		),
+		/ @ "class template %mapped_set" @ %Set $=
+		(
+			/ @ "function templates %(emplace, emplace_hint), 2 functions \
+				%insert" $=
+			(
+				/ "always used copy instead of move or emplacement";
+				* $comp "invalid key access" $since b665
+			);
+			/ DLDI "simplified %mapped_key_type"
+		)
+	),
+	/ DLD "all 'yconstfn friend'" -> 'friend yconstfn' $effective
+		@ %YFramework.YSLib.Core.YEvent,
+	/ %Test.YBase $=
+	(
+		/ DLDI "test namesapce order",
+		+ "static assertions for %vseq operations",
+		+ "1 test case" ^ "%ystdex::(integer_sequence, make_peano_sequence_t)"
+	)
+),
+
+b665
+(
+	+ $fmt "YAML configuration %.clang-format",
+		// This is not sufficient. Manually tweaking is also needed, see wiki \
+			page %Development.zh-CN.md for details.
+	/ %YBase $=
+	(
+		* $fmt DLDI "redundant indent" @ "namespace scope declarations"
+			@ %LibDefect.CMath $since b556,
+		/ %YStandardEx $=
+		(
+			* $fmt DLDI "redundant space after 'template'"
+				@ "deleted function template %ref" @ %Ref $since b588,
+			/ @ %Iterator $=
+			(
+				/ @ "class template %transformed_iterator" $=
+				(
+					(
+					+ $dev "friend class template declaration";
+					+ "2 constructor templates for parameters of \
+						%transformed_iterator with other template parameters",
+					),
+					* "wrong type for %(++, --)" $since b301
+						$= (+ "functions %operator(++, --)"),
+					* "default function parameter unusable due to missing \
+						default template argument" @ "constructor template \
+						with deduced transformer" $since b288
+				),
+				/ @ "class template %pseudo_iterator" $=
+				(
+					/ @ "function %operator--" $=
+					(
+						/ 'yconstfn' -> 'yconstfn_relaxed';
+						* "wrong 'const'" $since b412
+					),
+					+ 'yconstfn_relaxed' @ "function %operator++"
+						// As same as %operator--.
+				),
+				(
+				/ "all function templates %(first, get, indirect, second)"
+					@ "namespace %iterator_transformation" -> "functors \
+					with 'void' specialization as ISO C++14 standard functors"
+					$dep_from %Operators;
+					// It will be ill-formed if the bug of return type of \
+						generated %operator-> remains.
+				/ $forced "all 4 function templates %operator|"
+				)
+			),
+			/ "implemented function %operator->" @ "struct %dereferenceable"
+				@ %Operators $=
+			(
+				^ $re_ex(b576) "%ystdex::constfn_addressof" ~ 'std::addressof',
+				* "wrong return type" $since b576
+			)
+		),
+		* "reserved identifier used" @ "friend class template declaration"
+			@ "class template %fixed_point" @ %Rational $since b260
+		+ %Set
+			$= (+ "class template %mapped_set" $dep_from
+				("%(transformed_iterator, iterator_transformation::second)"
+				@ %Iterator))
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				+ "namespace %A1";
+				/ "wrapped all entities" @ "namespace %NPL"
+					>> "namespace %NPL::A1" $=
+				(
+					/ "%InsertNPLA1Child" => "%InsertChild",
+					/ "%InsertNPLA1SequenceChild" => "%InsertSequenceChild",
+					/ "%TransformNPLA1Sequence" => "%TransformNodeSequence",
+					/ "%LoadNPLA1" => "%LoadNode",
+					/ "%LoadNPLA1Sequence" => "%LoadNodeSequence"
+				),
+				+ "enum class %ValueToken" @ "namesapce %A1"
+			),
+			/ "1st parameter type" @ "functions (%Reduce, all 3 %Analyze)"
+				@ %SContext -> 'const ValueNode&' ~ 'ValueNode&'
+		),
+		/ %YSLib $=
+		(
+			/ %Core.ValueNode $=
+			(
+				/ DLDI @ ("functions %(begin, end) with 'const', function %at"
+					@ "class %ValueNode", "functions %(MakeIndex#2, at)")
+					^ "%ValueNode::GetContainer"
+					~ "%ValueNode::GetContainerRef",
+				/ @ "class %ValueNode" $=
+				(
+					* $impl "invalid argument used for %erase"
+						@ "function %Remove" $since b403,
+						// The iterator type of container is unspecified and \
+							there are multiple overloaded %erase, so there may \
+							be ambiguity for brace-initializer.
+					* $impl "wrong iterator type used" $since b338
+						// The type 'const_iterator' is not guaranteed to be \
+							convertible to 'iterator'.
+						$= (/ DLD ^ "%ystdex::as_const")
+				)
+			),
+			/ DLDI @ "function %AddMIMEItems" @ %Service.ContentType
+				^ "%ValueNode::GetContainer" ~ "%ValueNode::GetContainerRef"
+		),
+		/ DLDI @ "function %SaveConfiguration" ^ "%ValueNode::GetContainer"
+			~ "%ValueNode::GetContainerRef"
+	)
 ),
 
 b664
@@ -2174,7 +2397,7 @@ b650
 				// Ditto.
 		),
 		* "wrong 'YB_NORETURN' specifier order" @ "function %yassert"
-			@ %CAssert $since b641,
+			@ %CAssert $since b642,
 			// 'YB_API YB_NORETURN' is wrong and Clang++ treats it as error \
 				but G++ does not. However G++ does warn about \
 				'inline YB_NORETURN'.
