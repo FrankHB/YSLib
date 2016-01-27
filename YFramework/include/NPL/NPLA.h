@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r684
+\version r686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-01-14 20:05 +0800
+	2016-01-27 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,9 +168,10 @@ ParseNPLANodeString(const ValueNode&);
 在指定的节点插入以节点大小字符串为名称的节点，可用于语法分析树。
 */
 //@{
+//! \since build 666
 template<class _tNodeOrCon>
 ValueNode::iterator
-InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const ValueNode& child)
+InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, ValueNode& child)
 {
 	return InsertSyntaxNode(yforward(node_or_con), child.GetContainerRef());
 }

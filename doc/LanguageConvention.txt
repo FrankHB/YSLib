@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1577
+\version r1593
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-12-11 22:11 +0800
+	2016-01-25 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,7 +134,7 @@ ISO C++ 和 ISO C 的兼容性参见 ISO C++ Annex C 。
 禁止程序引起语言标准指定的未定义行为(undefined behavior) ，除非为以下情形之一，且另有文档说明：
 明确依赖定义了明确行为并作为扩展的兼容标准；
 明确可使用的特定平台环境；
-作为依赖特定平台环境的语言实现。
+依赖特定平台环境的语言实现，保证可预期的行为，且不违反公开接口约束（如内部实现使用的 noexcept 保证不被违反时，可指定实现省略检查）。
 注意使用未初始化对象具有未决定值(indeterminate value) 。读取未初始化对象的值引起未定义行为。
 禁止接口行为依赖未决定值。
 
@@ -494,14 +494,16 @@ const 或 constexpr 静态数据成员可直接在类定义内初始化。在没
 ISO C++ 指定实现需要支持 extern "C" （ C 语言链接）和 extern "C++" （ C++ 语言链接），默认隐式为后者。
 特定的 C++ 语言构造要求使用 C 语言链接（如 @5.15.3.2.3 ）。除此之外，使用 C 语言链接以兼容 C 实现，并在 C++ 实现之间的互操作时取得一般较好的兼容性。
 
-@5.5.6 内联 ：
+@5.5.6 inline 和 constexpr ：
+注意 constexpr 隐含 inline 。
+inline 对 namespace 的使用参见 @5.5.8.3 。
 
 @5.5.6.1 语法：
 在必要时使用 inline 关键字。
-不使用冗余的 inline （类模板的成员不适用）。
-inline 对 namespace 的使用参见 @5.5.8.3 。
+类定义内不使用冗余的 inline （类模板的成员不适用）。
 使用 static inline 而不是 inline static ，使用 thread_local inline 而不是 inline thread_local ；原因参见 @5.5.4.5 。
-保持和 static inline 风格一致性，一般使用 explicit inline ，而不是 inline explicit 。
+保持和 static inline 风格一致性，一般使用 explicit inline ，而不是 inline explicit 。 friend 及修饰整个声明的属性（如 [[noreturn]] ）和 explicit 类似。
+constexpr 及表示链接的扩展标签和其它关键字连用的顺序和 inline 类似。
 
 @5.5.6.2 语义：
 注意 ISO C++ 规定一个 inline 函数总是应被声明为 inline ，这和 ISO C 不同。
@@ -533,7 +535,8 @@ inline 对 ODR(@5.1.8) 发生影响。
 按 ISO C++03 3.5 Program and linkage [basic.link] 规定可知，非外部链接的嵌套类名的成员函数不具有外部链接。
 因此需要注意当使用内联成员函数且在其中定义静态对象时类名具有的链接。
 
-@5.5.7 using ：
+@5.5.7 typedef 和 using ：
+不使用 typedef ，使用 using 别名声明代替。
 注意 using 声明优先于 using 指令。
 在 using 指令引入同名声明指称不同实体而造成歧义时，可使用适当的 using 声明消除歧义。
 注意只使用 using 声明可能歧义的名称之一，否则仍然会造成歧义。具体选择应考虑语义、可转换性和用户代码的适配难度。
@@ -591,6 +594,8 @@ inline 对 ODR(@5.1.8) 发生影响。
 按需使用属性。在实现支持时可以使用扩展，如 GNU C++ 的 __attribute__ 和 Microsoft Visual C++ 的 __declspec ，并考虑用宏统一包装。
 注意 ISO C++ 的属性被设计为尽量减少语义的改变，参见 http://herbsutter.com/2012/04/05/reader-qa-what-does-it-mean-for-attributes-to-affect-language-semantics/ 。
 属性可以修饰声明或声明符。若两者效果等价（如 [[noreturn]](@5.5.11.1) 修饰函数声明），当声明中只有一个声明符时，直接使用声明的属性而不是声明符的属性。
+注意 ISO C++ 属性和扩展不一定通用。如 [[noreturn]] 不支持修饰 lambda 表达式（尽管 G++ 错误接受，但 Clang++ 拒绝），而 __attribute__((noreturn)) 可用。
+另见 @5.5.6.1 。
 
 @5.5.11.1 [[noreturn]] ：
 注意一个翻译单元中 [[noreturn]] 如在函数声明中出现，则每一个函数声明中都必须出现，否则程序形式非法但不要求诊断(@5.1.7) 。
@@ -607,8 +612,6 @@ inline 对 ODR(@5.1.8) 发生影响。
 仅在必要时使用 volatile 关键字。
 
 @5.6.3 例外：
-使用 constexpr 时不使用 const ，除保留修饰成员函数的 const 外。
-可使用 constexpr 或 const 时尽量使用 constexpr 而不是 const ，除非有必要考虑兼容性。
 在函数参数列表中，省略不直接修饰参数的 const 。
 在异常捕获块和异常规范中，省略形式参数顶层的 const 和 volatile 修饰符。
 函数参数类型在语义上必要时，考虑不使用 const ，参见 @5.12.2 。
@@ -749,6 +752,8 @@ auto 使用模板推导规则。另见 @5.5.1 。
 @5.8.11 常量表达式：
 特定的表达式可以在翻译时静态求值。
 注意一些字面量、 const 修饰类型的特定表达式，以及 constexpr 决定的表达式是常量表达式。
+注意超过实现限制的表达式不是常量表达式。
+注意未指定行为，如浮点计算精度导致某些表达式不能作为可移植的常量表达式。
 
 @5.9 声明符和初始化：
 注意区分涉及声明符的语法歧义，参见 ISO C++11 8.2 。

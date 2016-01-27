@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r487
+\version r625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2016-01-18 12:01 +0800
+	2016-01-26 15:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,73 +70,6 @@ struct cwam
 	}
 };
 
-//! \since build 649
-//@{
-namespace memory_test
-{
-
-struct t1
-{
-	const t1*
-	operator&() const ynothrow
-	{
-		return {};
-	}
-};
-
-struct t2
-{};
-
-const t2*
-operator&(const t2&) ynothrow
-{
-	return {};
-}
-
-static_assert(!ystdex::has_overloaded_addressof<void>(), "Type check failed.");
-// NOTE: Use '&x' to suppress Clang++ warning:
-//	[-Wunneeded-internal-declaration].
-//! \since build 664
-const void* unused = &t2();
-
-template<class _type>
-bool
-t_constfn() ynothrow
-{
-	static_assert(ystdex::has_overloaded_addressof<_type>(),
-		"Type check failed.");
-	_type x;
-
-	return constfn_addressof(x) == std::addressof(x);
-}
-
-} // namespace memory_test;
-//@}
-
-//! \since build 549
-namespace bitseg_test
-{
-
-template<size_t _vN, bool _bEndian = false>
-static bool
-expect(const string& str, vector<byte>&& seq)
-{
-	using bit = bitseg_iterator<_vN, _bEndian>;
-
-	if(seq.empty())
-		return str.empty();
-
-	const bit e(&seq[0] + seq.size());
-	ostringstream oss;
-
-	oss << hex;
-	for(bit b(&seq[0]); b != e; ++b)
-		oss << int(*b);
-	return str == oss.str();
-}
-
-} // namespace bitseg_test;
-
 //! \since build 660
 namespace vbase_test
 {
@@ -180,6 +113,141 @@ struct vned2 : virtual neb
 
 } // namespace vbase_test;
 
+//! \since build 666
+namespace vseq_test
+{
+
+using namespace vseq;
+static_assert(at_t<integer_sequence<int, 3>, 0>() == 3,
+	"Integer sequence check failed.");
+static_assert(at_t<make_peano_sequence_t<int, -3, 4>, 2>() == -1,
+	"Peano sequence check failed.");
+
+using test_t = tuple<int, int, void, void, int>;
+static_assert(is_same<front_t<test_t>, int>(), "");
+static_assert(is_same<back_t<test_t>, int>(), "");
+static_assert(is_same<pop_back_t<test_t>, tuple<int, int, void, void>>(), "");
+static_assert(is_same<pop_front_t<test_t>, tuple<int, void, void, int>>(), "");
+static_assert(is_same<deduplicate_t<test_t>, tuple<void, int>>(), "");
+static_assert(is_same<unique_t<test_t>, tuple<int, void, int>>(), "");
+
+static_assert(is_same<concat_t<index_sequence<1, 2>,
+	index_sequence<2, 3>>, index_sequence<1, 2, 2, 3>>(), "");
+static_assert(is_same<unique_t<index_sequence<>>, index_sequence<>>(), "");
+static_assert(is_same<unique_t<index_sequence<1>>, index_sequence<1>>(),
+	"");
+static_assert(at_t<index_sequence<1, 2, 3>, 0>() == 1, "");
+static_assert(at_t<index_sequence<1, 2, 3>, 1>() == 2, "");
+static_assert(at_t<index_sequence<1, 2, 3>, 2>() == 3, "");
+static_assert(at_t<index_sequence<1, 2>, 0>() == 1, "");
+static_assert(at_t<index_sequence<1, 2>, 1>() == 2, "");
+static_assert(at_t<index_sequence<1>, 0>() == 1, "");
+static_assert(is_same<unique_t<index_sequence<1, 1>>, index_sequence<1>>(),
+	"");
+static_assert(is_same<unique_t<index_sequence<1, 2, 2, 3>>,
+	index_sequence<1, 2, 3>>(), "");
+
+static_assert(is_same<vseq::vec_subtract_t<integer_sequence<long, 1, 2, 3>,
+	integer_sequence<long, -1, 4, 7>>,
+	integer_sequence<long, 2, -2, -4>>(), "");
+
+template<typename... S1, typename... S2, size_t... SD, size_t... SS>
+void
+copy_tail_impl(tuple<S1...>& d, const tuple<S2...>& s,
+	index_sequence<SD...>, index_sequence<SS...>)
+{
+	yunseq((get<SD>(d) = get<SS>(s))...);
+}
+
+template<typename... S1, typename... S2>
+void
+copy_tail(const tuple<S2...>& s, tuple<S1...>& d)
+{
+	copy_tail_impl(d, s, index_sequence_for<S1...>(),
+		make_peano_sequence_t<size_t, sizeof...(S2) - sizeof...(S1),
+		sizeof...(S1)>());
+}
+
+using A = tuple<int, double, float>;
+using C = tuple<float>;
+
+float
+f()
+{
+	A a{1, 2, 3};
+	C c;
+
+	copy_tail(a, c);
+	return get<0>(c);
+}
+
+} // namespace vseq_test;
+
+//! \since build 649
+namespace memory_test
+{
+
+struct t1
+{
+	const t1*
+	operator&() const ynothrow
+	{
+		return {};
+	}
+};
+
+struct t2
+{};
+
+const t2*
+operator&(const t2&) ynothrow
+{
+	return {};
+}
+
+static_assert(!ystdex::has_overloaded_addressof<void>(), "Type check failed.");
+// NOTE: Use '&x' to suppress Clang++ warning:
+//	[-Wunneeded-internal-declaration].
+//! \since build 664
+const void* volatile unused = &t2();
+
+template<class _type>
+bool
+t_constfn() ynothrow
+{
+	static_assert(ystdex::has_overloaded_addressof<_type>(),
+		"Type check failed.");
+	_type x;
+
+	return constfn_addressof(x) == std::addressof(x);
+}
+
+} // namespace memory_test;
+
+//! \since build 549
+namespace bitseg_test
+{
+
+template<size_t _vN, bool _bEndian = false>
+static bool
+expect(const string& str, vector<byte>&& seq)
+{
+	using bit = bitseg_iterator<_vN, _bEndian>;
+
+	if(seq.empty())
+		return str.empty();
+
+	const bit e(&seq[0] + seq.size());
+	ostringstream oss;
+
+	oss << hex;
+	for(bit b(&seq[0]); b != e; ++b)
+		oss << int(*b);
+	return str == oss.str();
+}
+
+} // namespace bitseg_test;
+
 } // unnamed namespace;
 
 
@@ -206,51 +274,67 @@ main()
 	//	ystdex::cend, ystdex::rbegin, ystdex::rend, ystdex::crbegin,
 	//	ystdex::crend, ystdex::size, ystdex::data.
 	seq_apply(make_guard("YStandard.Range").get(pass, fail),
+		// 3 cases covering: ystdex::begin.
 		'a' == *begin({'a', 'b', 'c', char(), 'd', 'e'}),
 		u'a' == *begin(u"abc\0de"),
 		'B' == *begin(cwam().foo),
+		// 3 cases covering: ystdex::end.
 		'e' == *(end({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
 		u'e' == *(end(u"abc\0de") - 2),
 		'B' == *(end(cwam().foo) - sizeof(cwam::foo)),
+		// 3 cases covering: ystdex::cbegin.
 		'a' == *cbegin({'a', 'b', 'c', char(), 'd', 'e'}),
 		u'a' == *cbegin(u"abc\0de"),
 		'B' == *cbegin(cwam().foo),
+		// 3 cases covering: ystdex::cend.
 		'e' == *(cend({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
 		u'e' == *(cend(u"abc\0de") - 2),
 		'B' == *(cend(cwam().foo) - sizeof(cwam::foo)),
+		// 3 cases covering: ystdex::rbegin.
 		'e' == *rbegin({'a', 'b', 'c', char(), 'd', 'e'}),
 		u'\0' == *rbegin(u"abc\0de"),
 		'E' == *rbegin(cwam().foo),
+		// 3 cases covering: ystdex::rend.
 		'a' == *(rend({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
 		u'a' == *(rend(u"abc\0de") - 1),
 		'E' == *(rend(cwam().foo) - sizeof(cwam::foo)),
+		// 3 cases covering: ystdex::crbegin.
 		'e' == *crbegin({'a', 'b', 'c', char(), 'd', 'e'}),
 		u'e' == *(crbegin(u"abc\0de") + 1),
 		'E' == *crbegin(cwam().foo),
+		// 3 cases covering: ystdex::crend.
 		'a' == *(crend({'a', 'b', 'c', char(), 'd', 'e'}) - 1),
 		u'a' == *(crend(u"abc\0de") - 1),
 		'E' == *(crend(cwam().foo) - sizeof(cwam::foo)),
+		// 3 cases covering: ystdex::size.
 		6 == size({'a', 'b', 'c', char(), 'd', 'e'}),
 		7 == size(u"abc\0de"),
 		sizeof(cwam::foo) == size(cwam().foo),
+		// 3 cases covering: ystdex::data.
 		'a' == *data({'a', 'b', 'c', char(), 'd', 'e'}),
 		u'a' == *data(u"abc\0de"),
 		'B' == *data(cwam().foo)
 	);
-	// 10 cases covering: ystdex::has_nonempty_virtual_base,
+	// 11 cases covering: ystdex::has_nonempty_virtual_base,
 	//	ystdex::have_common_nonempty_virtual_base.
-	seq_apply(make_guard("YStandard.TypeOperations").get(pass, fail),
+	seq_apply(make_guard("YStandard.TypeOperation").get(pass, fail),
+		// 6 cases covering: ystdex::has_nonempty_virtual_base.
 		!vbase_test::v<vbase_test::eb>(),
 		!vbase_test::v<vbase_test::neb>(),
 		!vbase_test::v<vbase_test::ed>(),
 		!vbase_test::v<vbase_test::ned>(),
 		!vbase_test::v<vbase_test::ved>(),
 		vbase_test::v<vbase_test::vned>(),
+		// 5 cases covering: ystdex::have_common_nonempty_virtual_base.
 		!vbase_test::cv<vbase_test::neb, vbase_test::neb>(),
 		!vbase_test::cv<vbase_test::ed, vbase_test::ved>(),
 		!vbase_test::cv<vbase_test::ved, vbase_test::ved>(),
 		!vbase_test::cv<vbase_test::ved, vbase_test::vned>(),
 		vbase_test::cv<vbase_test::vned, vbase_test::vned2>()
+	);
+	// 1 case covering: ystdex::index_sequence, ystdex::make_peano_sequence.
+	seq_apply(make_guard("YStandard.IntegerSequence").get(pass, fail),
+		std::fabs(vseq_test::f() - 3.F) < numeric_limits<float>::epsilon()
 	);
 	// 2 cases covering: ystdex::constfn_addressof.
 	seq_apply(make_guard("YStandard.Memory").get(pass, fail),

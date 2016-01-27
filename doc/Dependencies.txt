@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r651
+\version r660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2015-12-22 12:55 +0800
+	2016-01-25 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,14 +34,14 @@
 本文档用于描述 YSLib 的外部依赖([Documentation::CommonRules @@1]) 。
 
 @1 实现环境和库部署：
-除非另行约定，使用默认配置的 ABI 。
-
-@1.1 ISO C++ 实现定义行为要求：
-至少支持 std::placeholders::_7 （按 ISO C++11 Annex B [implimits] ，符合标准的下限为 10 ）。
-当前仅经过实际验证支持的实现包括 G++ 4.8.2 或以上版本。
-除以上列出外的其它实现不保证支持。
+基准实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。
+除非另行约定，使用同基准实现要求的默认配置的 ABI 。
+本章内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的变通(workaround) 代码。
-本节内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
+
+@1.1 具体实现支持：
+当前仅经过实际验证支持的实现包括 G++ 4.9 或以上版本； 4.8.2 以上的 G++ 可用但未测试，也不作为特定编译器选项的优化目标。
+除以上列出外的其它实现不保证支持。
 
 @1.2 YBase ：
 YBase 版本 b452-b589 （包括若干变通） 非正式支持 Microsoft Visual C++ 2013 ：

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
@@ -60,6 +60,7 @@ if echo "$CXX" | grep clang++ > /dev/null; then
 	: ${CXXFLAGS_IMPL_WARNING:=" \
 		-Wno-deprecated-register \
 		-Wno-mismatched-tags \
+		-Wno-missing-braces \
 		-Wshorten-64-to-32 \
 		-Wweak-vtables \
 		"}

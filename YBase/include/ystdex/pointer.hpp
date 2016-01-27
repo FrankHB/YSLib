@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r325
+\version r340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2015-12-18 10:27 +0800
+	2016-01-26 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,7 +221,7 @@ public:
 
 	//! \since build 585
 	//@{
-	pointer_iterator&
+	yconstfn_relaxed pointer_iterator&
 	operator+=(difference_type n) ynothrowv
 	{
 		yconstraint(raw);
@@ -229,7 +229,7 @@ public:
 		return *this;
 	}
 
-	pointer_iterator&
+	yconstfn_relaxed pointer_iterator&
 	operator-=(difference_type n) ynothrowv
 	{
 		yconstraint(raw);
@@ -238,14 +238,13 @@ public:
 	}
 
 	//! \since build 461
-	reference
+	yconstfn reference
 	operator*() const ynothrowv
 	{
-		yconstraint(raw);
-		return *raw;
+		return yconstraint(raw), *raw;
 	}
 
-	inline pointer_iterator&
+	yconstfn_relaxed pointer_iterator&
 	operator++() ynothrowv
 	{
 		yconstraint(raw);
@@ -253,7 +252,7 @@ public:
 		return *this;
 	}
 
-	inline pointer_iterator&
+	yconstfn_relaxed pointer_iterator&
 	operator--() ynothrowv
 	{
 		--raw;
@@ -261,10 +260,17 @@ public:
 	}
 
 	//! \since build 600
-	friend bool
+	friend yconstfn bool
 	operator==(const pointer_iterator& x, const pointer_iterator& y) ynothrow
 	{
 		return x.raw == y.raw;
+	}
+
+	//! \since build 666
+	friend yconstfn bool
+	operator<(const pointer_iterator& x, const pointer_iterator& y) ynothrow
+	{
+		return x.raw < y.raw;
 	}
 
 	yconstfn
