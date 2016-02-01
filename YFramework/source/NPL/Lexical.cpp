@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1585
+\version r1587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2015-12-12 13:49 +0800
+	2016-02-01 13:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -380,7 +380,7 @@ Decompose(string_view src)
 
 	list<string> dst;
 
-	ystdex::split_l(src, IsDelimeter,
+	ystdex::split_l(src.cbegin(), src.cend(), IsDelimeter,
 		[&](const char* b, const char* e) YB_NONNULL(1, 2){
 		YAssert(e >= b, "Invalid split result found.");
 

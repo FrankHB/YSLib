@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r522
+\version r533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2016-01-27 22:21 +0800
+	2016-01-28 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,41 +33,40 @@ namespace YSLib
 {
 
 const ValueNode&
-ValueNode::operator%=(const ValueNode& node) const
+ValueNode::operator%=(const ValueNode& node)
 {
-	const auto& n((*this)[node.name]);
+	auto& n((*this)[node.name]);
 
 	n.Value = node.Value;
 	return n;
 }
 const ValueNode&
-ValueNode::operator%=(const ValueNode&& node) const
+ValueNode::operator%=(const ValueNode&& node)
 {
-	const auto& n((*this)[node.name]);
+	auto& n((*this)[node.name]);
 
 	n.Value = std::move(node.Value);
 	return n;
 }
 
-const ValueNode&
-ValueNode::operator[](const string& n) const
+ValueNode&
+ValueNode::operator[](const string& n)
 {
-	auto& con(ystdex::as_const(container));
-	auto i(con.lower_bound({0, n}));
+	auto i(container.lower_bound({0, n}));
 
-	if(i == con.cend() || con.key_comp()({0, n}, *i))
+	if(i == container.end() || container.key_comp()({0, n}, *i))
 		i = container.emplace_hint(i, 0, n);
 	return *i;
 }
 
 bool
-ValueNode::Remove(const ValueNode& node) const
+ValueNode::Remove(const ValueNode& node)
 {
 	return container.erase(ValueNode(0, node.name)) != 0;
 }
 
 void
-ValueNode::SwapContent(const ValueNode& node) const ynothrow
+ValueNode::SwapContent(ValueNode& node) ynothrow
 {
 	SwapContainer(node),
 	Value.swap(node.Value);

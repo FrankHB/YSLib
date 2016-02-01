@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r379
+\version r381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2015-11-04 09:23 +0800
+	2016-01-28 17:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -154,7 +154,7 @@ public:
 	}
 	//@}
 
-	yconstfn explicit
+	explicit yconstfn
 	operator pointer() const ynothrow
 	{
 		return base;

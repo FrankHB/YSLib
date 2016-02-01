@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r8048
+\version r8169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-01-27 23:51 +0800
+	2016-02-01 13:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,128 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ DLDI "function %SXML::ConvertDocumentNode" @ %NPLA
+				^ "%ValueNode::GetContainer" ~ "%ValueNode::GetContainerRef",
+			- 'const' @ "1st parameter type"
+				@ "functions %(all 3 Analyze; Reduce)" @ %Scontext,
+			/ DLDI "simplified function %DecomposeMakefileDepList"
+				@ %Dependency,
+			/ DLDI "function %Decompose" @ $Lexical
+				!^ "%ystdex::split_l with range parameter"
+		),
+		/ %YSLib $=
+		(
+			/ @ "class %ValueNode" %Core.ValueNode $=
+			(
+				(
+				- 'const' @ ("function %GetContainerRef" $dep_from
+					%(NPL.NPLA, YReader.ShlReader), "functions %(SetChildren, \
+					(Clear; ClearContainer))", "all 2 functions %(operaotr+=, \
+					Add)" $dep_from %(NPL.SContext, YReader.Shells), "function \
+					template %SplitChildren; all functions %(2 operaotr-=, \
+					Remove)", "functions %(SwapContainer, SwapContent) and \
+					their parameter type", "function template %(insert, \
+					emplace_hint)", ("return type" @ "all 2 functions \
+					%operator/=", ("return type" @ "function %operator[]";
+					"function %operator[]");
+					"all 2 functions %operator(/=; %=)"));
+				- 'mutable' @ "%Value, container data member"			
+				),
+				* $re_add(b662) DD "missing '!'" @ "end of '/*'"
+					@ "multiline Doxygen comments"
+					@ ("%operator=" $since b502, "%swap" $since b501)
+			),
+			- 'const' @ ("1st parameter type" @ "all 2 function templates \
+				%AccessWidget"; "parameter type; return type" @ "(function \
+				template; function) %AccessWidgetNode") @ %UI.Loader,
+			/ DLDI "static member function %Path::Parse" @ %Service.FileSystem
+				!^ "%ystdex::split with range parameter"
+		)
+	),
+	/ %YReader $=
+	(
+		- 'const' @ "2nd parameter type" @ "function %AddButtonToTabBar"
+			@ %Shells $dep_from %YFramework.YSLib.UI.Loader,
+		/ DLDI @ "class %ShlReader" @ %ShlReader $=
+		(
+			/ "functions %LoadGlobalConfiguration" ^ "%ValueNode::GetContainer"
+				~ "%ValueNode::GetContainerRef",
+			/ $comp "functions %SaveGlobalConfiguration" $dep_from
+				("%ValueNode::operator[]" @ %YFramework.YSLib.Core.ValueNode),
+			/ "function %LoadBookmarks" !^ "%ystdex::split with range parameter"
+		)
+	),
+	/ "all 'yconstfn explicit'" -> 'explicit yconstfn' $effective
+		@ %(YBase.YStandardEx.(BitSegment, Pointer),
+		YFramework.YSLib.Core.YGDIBase),
+	/ @ %YBase.YStandardEx $=
+	(
+		/ %Operators $=
+		(
+			* $re_ex(b656) "workaround for G++" @ $since b655,
+			* "wrong corresponding expression argument and function argument \
+				order"
+				@ "friend function %operator(==, !=#2)"
+					@ "%equality_comparable2" $since b260
+				// This may lead to recursive instantiation. The order is \
+					different to Boost.Operators.
+		),
+		- 'explicit' @ "constructor template"
+			@ "class template %pointer_iterator" @ %Pointer,
+		/ %Iterator $=
+		(
+			* "missing including %TypeOperation for %(first_tag, second_tag)"
+				$since b627,
+			/ DLD "simplified return type" @ "friend function %operator-"
+				@ "class template %pseudo_iterator",
+			/ @ "class template %transformed_iterator" $=
+			(
+				+ 'yconstfn' @ "friend function %operator(==, <)",
+				+ 'yconstfn_relaxed' @ "function %get_transformer",
+				(
+					(
+					+ "aliases %(pointer, iterator_category, value_type)",
+					- "function %operator (iterator&, const iterator_type&)",
+						// To avoid ambiguity.
+					+ "3 friend function %operator- for difference",
+					+ "friend functions %operator(==, <) for comparison with \
+						underlying iterator",
+					+ "base classes for comparison with underlying iterator"
+						^ "%totally_ordered2" $dep_from %Operators
+					);
+					/ "public base iterator" -> "private member" $dep_from
+						%Pointer;
+						// Behavior other than bug fix should not change \
+							surprisingly.
+					* $comp "ambiguous %operator-> calls of friend function \
+						declared in %iterator_operators_t but not declared in \
+						class explicitly" $since b576
+				)
+			)
+		),
+		/ %Set $=
+		(
+			* "missing including %Functor for %less" $since b665,
+			* "function %erase with 2 arguments" @ "class templates %mapped_set"
+				$since b665
+		),
+		/ @ "function templates %(split, split_if_iter, split_l)" @ %String $=
+		(
+			- "overloaded version for ranges" $dep_from
+				%YFramework.(NPL.Lexical, YSLib.Service.FileSystem),
+			/ "overloaded version for iterators" >> %Algorithm
+		)
+	),
+	/ $forced DLDI @ %Tools.ProjectGenerator.Main $dep_from
+		("%ValueNode" @ %YFramework.YSLib.Core.ValueNode)
+),
+
+b666
 (
 	/ %YFramework $=
 	(

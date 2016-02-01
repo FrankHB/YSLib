@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1866
+\version r1924
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-01-27 23:05 +0800
+	2016-02-01 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,13 +57,13 @@ private:
 	string name{};
 	/*!
 	\brief 子节点容器。
-	\since build 598
+	\since build 667
 	*/
-	mutable Container container{};
+	Container container{};
 
 public:
-	//! \since build 399
-	mutable ValueObject Value{};
+	//! \since build 667
+	ValueObject Value{};
 
 	DefDeCtor(ValueNode)
 	/*!
@@ -112,7 +112,7 @@ public:
 	{}
 	DefDeCopyMoveCtor(ValueNode)
 
-	/*
+	/*!
 	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 502
 	*/
@@ -122,39 +122,37 @@ public:
 	//! \since build 336
 	DefBoolNeg(explicit, bool(Value) || !container.empty())
 
-	//! \since build 403
+	//! \since build 667
 	//@{
-	PDefHOp(const ValueNode&, +=, const ValueNode& node) const
+	PDefHOp(const ValueNode&, +=, const ValueNode& node)
 		ImplRet(Add(node), *this)
-	PDefHOp(const ValueNode&, +=, ValueNode&& node) const
+	PDefHOp(const ValueNode&, +=, ValueNode&& node)
 		ImplRet(Add(std::move(node)), *this)
 
-	PDefHOp(const ValueNode&, -=, const ValueNode& node) const
+	PDefHOp(const ValueNode&, -=, const ValueNode& node)
 		ImplRet(Remove(node), *this)
-	PDefHOp(const ValueNode&, -=, const string& str) const
+	PDefHOp(const ValueNode&, -=, const string& str)
 		ImplRet(Remove(str), *this)
-	//@}
 	/*!
 	\brief 替换同名子节点。
 	\return 自身引用。
-	\since build 398
 	*/
 	//@{
-	PDefHOp(const ValueNode&, /=, const ValueNode& node) const
+	PDefHOp(ValueNode&, /=, const ValueNode& node)
 		ImplRet(*this %= node, *this)
-	PDefHOp(const ValueNode&, /=, ValueNode&& node) const
+	PDefHOp(ValueNode&, /=, ValueNode&& node)
 		ImplRet(*this %= std::move(node), *this)
 	//@}
 	/*!
 	\brief 替换同名子节点。
 	\return 子节点引用。
-	\since build 399
 	*/
 	//@{
 	const ValueNode&
-	operator%=(const ValueNode&) const;
+	operator%=(const ValueNode&);
 	const ValueNode&
-	operator%=(const ValueNode&&) const;
+	operator%=(const ValueNode&&);
+	//@}
 	//@}
 
 	PDefHOp(bool, ==, const ValueNode& node) const
@@ -163,13 +161,13 @@ public:
 	PDefHOp(bool, <, const ValueNode& node) const
 		ImplRet(name < node.name)
 
-	//! \since build 398
-	const ValueNode&
-	operator[](const string&) const;
-	//! \since build 497
+	//! \since build 667
+	ValueNode&
+	operator[](const string&);
+	//! \since build 667
 	template<class _tCon>
 	const ValueNode&
-	operator[](const ystdex::path<_tCon>& pth) const
+	operator[](const ystdex::path<_tCon>& pth)
 	{
 		auto p(this);
 
@@ -187,50 +185,46 @@ public:
 	DefGetter(const ynothrow, const Container&, Container, container)
 	/*!
 	\brief 取子节点容器引用。
-	\since build 598
+	\since build 667
 	*/
-	DefGetter(const ynothrow, Container&, ContainerRef, container)
+	DefGetter(ynothrow, Container&, ContainerRef, container)
 	DefGetter(const ynothrow, const string&, Name, name)
 
-	/*!
-	\brief 设置子节点容器内容。
-	\since build 503
-	*/
-	PDefH(void, SetChildren, Container con) const
+	//! \since build 666
+	//@{
+	//! \brief 设置子节点容器内容。
+	PDefH(void, SetChildren, Container con)
 		ImplExpr(container = std::move(con))
 
-	//! \since build 403
-	PDefH(bool, Add, const ValueNode& node) const
+	PDefH(bool, Add, const ValueNode& node)
 		ImplRet(insert(node).second)
-	//! \since build 403
-	PDefH(bool, Add, ValueNode&& node) const
+	PDefH(bool, Add, ValueNode&& node)
 		ImplRet(insert(std::move(node)).second)
 
 	/*!
 	\brief 清除节点。
 	\post <tt>!Value && empty()</tt> 。
 	*/
-	PDefH(void, Clear, ) const ynothrow
+	PDefH(void, Clear, ) ynothrow
 		ImplExpr(Value.Clear(), ClearContainer())
 
 	/*!
 	\brief 清除节点容器。
 	\post \c empty() 。
-	\since build 592
 	*/
-	PDefH(void, ClearContainer, ) const ynothrow
+	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
 
-	//! \since build 403
 	bool
-	Remove(const ValueNode&) const;
-	//! \since build 403
-	PDefH(bool, Remove, const string& str) const
+	Remove(const ValueNode&);
+	PDefH(bool, Remove, const string& str)
 		ImplRet(Remove({0, str}))
+	//@}
 
-	//! \since build 664
-	//@{
-	//! \brief 复制满足条件的子节点。
+	/*!
+	\brief 复制满足条件的子节点。
+	\since build 664
+	*/
 	template<typename _func>
 	Container
 	SelectChildren(_func f) const
@@ -243,10 +237,12 @@ public:
 		return res;
 	}
 
+	//! \since build 667
+	//@{
 	//! \brief 转移满足条件的子节点。
 	template<typename _func>
 	Container
-	SplitChildren(_func f) const
+	SplitChildren(_func f)
 	{
 		Container res;
 
@@ -264,17 +260,14 @@ public:
 		});
 		return res;
 	}
-	//@}
 
-	//! \since build 595
-	//@{
 	//! \brief 交换容器。
-	PDefH(void, SwapContainer, const ValueNode& node) const ynothrow
+	PDefH(void, SwapContainer, ValueNode& node) ynothrow
 		ImplExpr(container.swap(node.container))
 
 	//! \brief 交换容器和值。
 	void
-	SwapContent(const ValueNode&) const ynothrow;
+	SwapContent(ValueNode&) ynothrow;
 	//@}
 
 	/*!
@@ -302,8 +295,8 @@ public:
 	DefFwdTmpl(const, pair<iterator YPP_Comma bool>, emplace,
 		container.emplace(yforward(args)...))
 
-	//! \since build 599
-	DefFwdTmpl(const, iterator, emplace_hint,
+	//! \since build 667
+	DefFwdTmpl(, iterator, emplace_hint,
 		container.emplace_hint(yforward(args)...))
 
 	PDefH(bool, empty, ) const ynothrow
@@ -316,15 +309,15 @@ public:
 		ImplRet(GetContainer().end())
 	//@}
 
-	//! \since build 598
-	DefFwdTmpl(const -> decltype(container.insert(yforward(args)...)), auto,
+	//! \since build 667
+	DefFwdTmpl(-> decltype(container.insert(yforward(args)...)), auto,
 		insert, container.insert(yforward(args)...))
 
 	//! \since build 598
 	PDefH(size_t, size, ) const ynothrow
 		ImplRet(container.size())
 
-	/*
+	/*!
 	\brief 交换。
 	\since build 501
 	*/

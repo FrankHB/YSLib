@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1766
+\version r1866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2016-01-18 09:57 +0800
+	2016-02-01 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -762,111 +762,6 @@ get_mid(const _tString& str, typename _tString::size_type l,
 {
 	yassume(!(str.size() < l + r));
 	return str.substr(l, str.size() - l - r);
-}
-//@}
-
-//! \note 只保留非空结果，不保留分隔字符。
-//@{
-/*!
-\brief 以指定字符分割字符序列。
-\since build 304
-*/
-template<typename _fPred, typename _fInsert, typename _tIn>
-void
-split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
-{
-	while(b != e)
-	{
-		_tIn i(std::find_if_not(b, e, is_delim));
-
-		b = std::find_if(i, e, is_delim);
-		if(i != b)
-			insert(i, b);
-		else
-			break;
-	}
-}
-/*!
-\brief 以指定字符分割范围指定的字符串。
-\note 使用 ADL string_begin 和 string_end 指定范围迭代器。
-\since build 399
-*/
-template<typename _fPred, typename _fInsert, typename _tRange>
-inline void
-split(_tRange&& c, _fPred is_delim, _fInsert insert)
-{
-	split(string_begin(c), string_end(c), is_delim, insert);
-}
-//@}
-
-/*!
-\brief 以满足迭代器谓词的指定字符分割字符串。
-\since build 545
-*/
-//@{
-template<typename _fPred, typename _fInsert, typename _func, typename _tIn>
-void
-split_if_iter(_tIn b, _tIn e, _fPred is_delim, _fInsert insert, _func pred)
-{
-	while(b != e)
-	{
-		_tIn i(b);
-		while(i != e && is_delim(*i) && pred(i))
-			++i;
-		for(b = i; b != e; ++b)
-		{
-			b = std::find_if(b, e, is_delim);
-			if(pred(b))
-				break;
-		}
-		if(i != b)
-			insert(i, b);
-		else
-			break;
-	}
-}
-template<typename _fPred, typename _fInsert, typename _func, typename _tRange>
-inline void
-split_if_iter(_tRange&& c, _fPred is_delim, _fInsert insert, _func pred)
-{
-	split_if_iter(string_begin(c), string_end(c), is_delim, insert, pred);
-}
-//@}
-
-//! \note 只保留非空结果；保留起始分隔字符，除非无法匹配分隔字符。
-//@{
-/*!
-\brief 以指定字符分割字符序列。
-\since build 408
-*/
-template<typename _fPred, typename _fInsert, typename _tIn>
-_tIn
-split_l(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
-{
-	_tIn i(b);
-
-	while(b != e)
-	{
-		if(is_delim(*b) && i != b)
-		{
-			insert(i, b);
-			i = b;
-		}
-		++b;
-	}
-	if(i != b)
-		insert(i, b);
-	return i;
-}
-/*!
-\brief 以指定字符分割范围指定的字符串。
-\since build 408
-*/
-template<typename _fPred, typename _fInsert, typename _tRange>
-inline void
-split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
-{
-	split_l(string_begin(c), string_end(c), is_delim, insert);
 }
 //@}
 //@}

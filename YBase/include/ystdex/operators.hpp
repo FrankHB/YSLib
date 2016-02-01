@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1808
+\version r1813
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2016-01-24 19:41 +0800
+	2016-01-30 07:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,9 +86,8 @@ using op_idt_t = _t<op_idt<_type>>;
 // NOTE: The trunk libstdc++ std::experimental::string_view comparison should
 //	depend on the same technique.
 // TODO: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52072. It is strange
-//	to still have this bug. Not fully tested for G++ 5. Test on MSYS2 MinGW 5.2
-//	shows it works well, however, see also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67426.
-#if YB_IMPL_GNUCPP < 50000 || YB_IMPL_GNUCPP == 50300
+//	to still have this bug. Not fully tested for G++ 5. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67426.
+#if YB_IMPL_GNUCPP
 #	define YB_Impl_Operators_Compare2(_op, _expr, _param_type, _param_type2) \
 	YB_Impl_Operators_friend_s(_op, bool, _expr, const _param_type& x, \
 		const _param_type2& y)
@@ -126,9 +125,9 @@ YB_Impl_Operators_TmplHead1(less_than_comparable1) : _tBase
 
 YB_Impl_Operators_TmplHead2(equality_comparable2) : _tBase
 {
-	YB_Impl_Operators_Compare2(==, x == y, _type2, _type)
+	YB_Impl_Operators_Compare2(==, y == x, _type2, _type)
 	YB_Impl_Operators_Compare2(!=, !bool(x == y), _type2, _type)
-	YB_Impl_Operators_Compare2(!=, !bool(y == x), _type, _type2)
+	YB_Impl_Operators_Compare2(!=, !bool(x == y), _type, _type2)
 };
 
 YB_Impl_Operators_TmplHead1(equality_comparable1) : _tBase

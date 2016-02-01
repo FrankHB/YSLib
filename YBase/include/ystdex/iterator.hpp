@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5785
+\version r5871
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-01-24 17:14 +0800
+	2016-01-30 06:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,8 @@
 #include "pointer.hpp" // for iterator_operators_t, std::iterator_traits,
 //	_t, pointer_classify, cond_t, *_tag, yassume, is_undereferenceable,
 //	yconstraint;
-#include <tuple> // for std::tuple, std::get;
-#include "integer_sequence.hpp" // for make_index_sequence, index_sequence;
+#include "type_op.hpp" // for first_tag, second_tag, std::tuple,
+//	make_index_sequence, index_sequence, std::get;
 #include "ref.hpp" // for lref;
 
 namespace ystdex
@@ -166,8 +166,7 @@ public:
 		return x.value < y.value;
 	}
 
-	friend yconstfn
-		typename pseudo_iterator<_type, _tIter, _tTraits>::difference_type
+	friend yconstfn difference_type
 	operator-(const pseudo_iterator&, const pseudo_iterator&) ynothrow
 	{
 		return 0;
@@ -191,6 +190,11 @@ struct transit_traits
 		= typename std::iterator_traits<iterator_type>::difference_type;
 	using reference
 		= cond_t<is_same<_tReference, void>, transformed_type, _tReference>;
+	/*!
+	\since build 667
+	\todo 测试 operator-> 并支持代理指针。
+	*/
+	using pointer = decay_t<reference>*;
 };
 
 } // namespace details;
@@ -208,9 +212,11 @@ struct transit_traits
 被替代的原始类型是迭代器类型，或除间接操作（可以不存在）外符合迭代器要求的类型。
 */
 template<typename _tIter, typename _fTrans, typename _tReference = void>
-class transformed_iterator : public pointer_classify<_tIter>::type,
-	public iterator_operators_t<transformed_iterator<_tIter, _fTrans,
-	_tReference>, yimpl(details::transit_traits<_tIter, _fTrans, _tReference>)>
+class transformed_iterator : public iterator_operators_t<transformed_iterator<
+	_tIter, _fTrans, _tReference>, details::transit_traits<_tIter, _fTrans,
+	_tReference>>, public totally_ordered2<transformed_iterator<_tIter, _fTrans,
+	_tReference>, typename
+	details::transit_traits<_tIter, _fTrans, _tReference>::iterator_type>
 {
 	//! \since build 529
 	static_assert(is_decayed<_tIter>(), "Invalid type found.");
@@ -225,6 +231,7 @@ private:
 	//! \since build 576
 	using impl_traits
 		= details::transit_traits<_tIter, _fTrans, _tReference>;
+
 public:
 	/*!
 	\brief 原迭代器类型。
@@ -232,10 +239,17 @@ public:
 	*/
 	using iterator_type = typename impl_traits::iterator_type;
 	using transformer_type = _fTrans;
+	//! \since build 667
+	//@{
+	using iterator_category = typename impl_traits::iterator_category;
+	using value_type = typename impl_traits::transformed_type;
+	//@}
 	//! \since build 439
 	using transformed_type = typename impl_traits::transformed_type;
 	//! \since build 415
 	using difference_type = typename impl_traits::difference_type;
+	//! \since build 667
+	using pointer = typename impl_traits::pointer;
 	/*!
 	\note 仅当参数 _tReference 为引用时可符合 ISO C++ 对 ForwardIterator 的要求。
 	\since build 357
@@ -246,6 +260,10 @@ protected:
 	//! \note 当为空类时作为第一个成员可启用空基类优化。
 	mutable transformer_type transformer;
 
+private:
+	//! \since build 667
+	typename pointer_classify<_tIter>::type ptr;
+
 public:
 	//! \since build 496
 	transformed_iterator() = default;
@@ -254,7 +272,7 @@ public:
 		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter2>)>
 	explicit yconstfn
 	transformed_iterator(_tIter2&& i, _fTrans2 f = {})
-		: iterator_type(yforward(i)), transformer(f)
+		: transformer(f), ptr(yforward(i))
 	{}
 	//! \since build 665
 	template<typename _tIter2, typename _fTrans2, typename _tRef2,
@@ -262,7 +280,7 @@ public:
 		const _tIter2&>, is_constructible<_fTrans, const _fTrans2&>>::value>)>
 	yconstfn
 	transformed_iterator(const transformed_iterator<_tIter2, _fTrans2, _tRef2>& i)
-		: iterator_type(i.get()), transformer(i.transformer)
+		: transformer(i.transformer), ptr(i.get())
 	{}
 	//! \since build 665
 	template<typename _tIter2, typename _fTrans2, typename _tRef2,
@@ -270,8 +288,7 @@ public:
 		is_constructible<_fTrans, _fTrans2&&>>::value>)>
 	yconstfn
 	transformed_iterator(transformed_iterator<_tIter2, _fTrans2, _tRef2>&& i)
-		: iterator_type(std::move(i.get())),
-		transformer(std::move(i.transformer))
+		: transformer(std::move(i.transformer)), ptr(i.get())
 	{}
 	//! \since build 415
 	//@{
@@ -337,63 +354,75 @@ public:
 	}
 
 	//! \since build 600
-	friend bool
+	friend yconstfn bool
 	operator==(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(bool(x.get() == y.get()))
 	{
 		return x.get() == y.get();
 	}
+	//! \since build 667
+	//@{
+	friend yconstfn bool
+	operator==(const transformed_iterator& x, const iterator_type& y)
+		ynoexcept_spec(bool(x.get() == y))
+	{
+		return x.get() == y;
+	}
 
 	//! \since build 600
-	friend bool
+	friend yconstfn bool
 	operator<(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(bool(x.get() < y.get()))
 	{
 		return bool(x.get() < y.get());
 	}
+	friend yconstfn bool
+	operator<(const transformed_iterator& x, const iterator_type& y)
+		ynoexcept_spec(bool(x.get() < y))
+	{
+		return bool(x.get() < y);
+	}
+
+	friend yconstfn difference_type
+	operator-(const transformed_iterator& x, const transformed_iterator& y)
+		ynoexcept_spec(difference_type(x.get() - y.get()))
+	{
+		return difference_type(x.get() - y.get());
+	}
+	friend yconstfn difference_type
+	operator-(const transformed_iterator& x, const iterator_type& y)
+		ynoexcept_spec(difference_type(x.get() - y))
+	{
+		return difference_type(x.get() - y);
+	}
+	friend yconstfn difference_type
+	operator-(const iterator_type& x, const transformed_iterator& y)
+		ynoexcept_spec(difference_type(x - y.get()))
+	{
+		return difference_type(x - y.get());
+	}
+	//@}
 
 	//! \since build 585
 	//@{
-	/*!
-	\brief 转换为原迭代器引用。
-	*/
-	yconstfn_relaxed
-	operator iterator_type&() ynothrow
-	{
-		return *this;
-	}
-
-	/*!
-	\brief 转换为原迭代器 const 引用。
-	*/
-	yconstfn
-	operator const iterator_type&() const ynothrow
-	{
-		return *this;
-	}
-
-	/*!
-	\brief 取原迭代器引用。
-	*/
-	iterator_type&
+	//! \brief 取原迭代器引用。
+	yconstfn_relaxed iterator_type&
 	get() ynothrow
 	{
-		return *this;
+		return ptr;
 	}
 
-	/*!
-	\brief 取原迭代器 const 引用。
-	*/
+	//! \brief 取原迭代器 const 引用。
 	yconstfn const iterator_type&
 	get() const ynothrow
 	{
-		return *this;
+		return ptr;
 	}
 	//@}
 
 	//! \since build 412
 	//@{
-	transformer_type&
+	yconstfn_relaxed transformer_type&
 	get_transformer() ynothrow
 	{
 		return transformer;
