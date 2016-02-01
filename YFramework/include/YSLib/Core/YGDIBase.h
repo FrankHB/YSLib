@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2199
+\version r2202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-09-01 01:17 +0800
+	2016-01-28 17:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -345,7 +345,7 @@ public:
 	\brief 判断是否为空或非空。
 	\since build 320
 	*/
-	yconstfn DefBoolNeg(yconstfn explicit, Width != 0 || Height != 0)
+	yconstfn DefBoolNeg(explicit yconstfn, Width != 0 || Height != 0)
 
 	/*!
 	\brief 求与另一个屏幕区域大小的交。
@@ -433,7 +433,7 @@ yconstfn PDefH(size_t, GetAreaOf, const Size& s) ynothrow
 	ImplRet(size_t(s.Width * s.Height))
 
 /*!
-\brief 计算第一参数和第二参数为大小的矩形中心重合时左上角相对于第一个矩形的位置。
+\brief 计算第一参数和第二参数为大小的矩形中心重合时左上角相对第一个矩形的位置。
 \since build 583
 */
 yconstfn PDefH(Point, LocateCenter, const Size& x, const Size& y)

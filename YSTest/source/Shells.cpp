@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6396
+\version r6398
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2015-05-29 20:03 +0800
+	2016-01-28 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ FetchWidgetLoader()
 }
 
 void
-AddButtonToTabBar(TabControl& tc, const ValueNode& node, const string& name,
+AddButtonToTabBar(TabControl& tc, ValueNode& node, const string& name,
 	const String& text, SDst w)
 {
 	auto& tb(tc.GetTabBarRef());

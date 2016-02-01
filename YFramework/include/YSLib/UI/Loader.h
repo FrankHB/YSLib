@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r624
+\version r642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2015-12-12 23:21 +0800
+	2016-01-28 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,18 +114,19 @@ public:
 };
 
 
-/*!
-\brief 按指定名称访问子部件节点。
+/*
 \throw WidgetNotFound 没有找到指定名称的部件。
 \note 不抛出 std::out_of_range （已全部捕获并抛出为 WidgetNotFound ）。
-\since build 498
+\since build 667
 */
 //@{
-yconstfn PDefH(const ValueNode&, AccessWidgetNode, const ValueNode& nd)
+//! \brief 按指定名称访问子部件节点。
+//@{
+yconstfn PDefH(ValueNode&, AccessWidgetNode, ValueNode& nd)
 	ImplRet(nd)
 template<typename... _tParams>
-const ValueNode&
-AccessWidgetNode(const ValueNode& node, const string& name, _tParams&&... args)
+ValueNode&
+AccessWidgetNode(ValueNode& node, const string& name, _tParams&&... args)
 {
 	TryRet(AccessWidgetNode(node.at("$children").at(name), yforward(args)...))
 	CatchThrow(std::out_of_range&,
@@ -133,28 +134,24 @@ AccessWidgetNode(const ValueNode& node, const string& name, _tParams&&... args)
 }
 //@}
 
-/*!
-\brief 按指定名称访问子部件。
-\exception WidgetNotFound 没有找到指定名称的部件。
-\note 不抛出 std::out_of_range （已全部捕获并抛出为 WidgetNotFound ）。
-\since build 433
-*/
+//! \brief 按指定名称访问子部件。
 //@{
 YF_API IWidget&
 AccessWidget(const ValueNode&);
 template<typename... _tParams>
 IWidget&
-AccessWidget(const ValueNode& node, const string& name, _tParams&&... args)
+AccessWidget(ValueNode& node, const string& name, _tParams&&... args)
 {
 	return AccessWidget(AccessWidgetNode(node, name, yforward(args)...));
 }
 //! \throw std::bad_cast 不存在指定类型的部件。
 template<class _tWidget, typename... _tParams>
 _tWidget&
-AccessWidget(const ValueNode& node, _tParams&&... args)
+AccessWidget(ValueNode& node, _tParams&&... args)
 {
 	return dynamic_cast<_tWidget&>(AccessWidget(node, yforward(args)...));
 }
+//@}
 //@}
 
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r660
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-01-14 20:42 +0800
+	2016-01-28 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,7 +192,7 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 			if(opt == ParseOption::String)
 				throw LoggedEvent("Invalid non-string node found.");
 
-			const auto& cont(node.GetContainerRef());
+			const auto& cont(node.GetContainer());
 
 			if(!cont.empty())
 				try

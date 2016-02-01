@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r613
+\version r617
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-01-27 22:21 +0800
+	2016-01-30 10:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_set_hpp_
 #define YB_INC_ystdex_set_hpp_ 1
 
-#include "iterator.hpp" // for lref, transformed_iterator,
+#include "functor.hpp" // for less, lref;
+#include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::make_transform;
 #include <memory> // for std::allocator, std::allocator_traits;
 #include <map> // for std::map, std::initializer_list;
@@ -115,7 +116,7 @@ private:
 	//	'const_iterator' and 'iterator'.
 	template<typename _tIter>
 	using wrap_iter
-		= transformed_iterator<_tIter, iterator_transformation::second<void>>;
+		= transformed_iterator<_tIter, iterator_transformation::second<>>;
 
 public:
 	using iterator = yimpl(wrap_iter<typename umap_type::iterator>);
@@ -385,7 +386,7 @@ public:
 	iterator
 	erase(const_iterator first, const_iterator last)
 	{
-		return iterator(m_map(erase(first.get(), last.get())));
+		return iterator(m_map.erase(first.get(), last.get()));
 	}
 
 	void

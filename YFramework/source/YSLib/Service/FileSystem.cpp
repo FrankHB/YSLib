@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2170
+\version r2176
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2015-11-26 14:52 +0800
+	2016-02-01 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ Path::Parse(const u16string& str)
 {
 	ypath res;
 
-	ystdex::split(str, [&](char16_t c){
+	ystdex::split(str.cbegin(), str.cend(), [&](char16_t c){
 		return PathTraits::IsDelimiter(c);
 	}, [&](u16string::const_iterator b, u16string::const_iterator e){
 		if(b != e)
@@ -176,13 +176,16 @@ CopyFile(const char* dst, FileDescriptor src_fd, CopyFileHandler f,
 		share));
 
 	FileDescriptor::WriteContent(p_dst.get(), Nonnull(src_fd));
+	// NOTE: Guards are not used since the post operations should only be
+	//	performed after success copying.
 	f(p_dst.get(), src_fd);
 }
 void
 CopyFile(const char* dst, const char* src, CopyFileHandler f, mode_t dst_mode,
 	size_t allowed_links, bool share)
 {
-	CopyFile(dst, OpenFileForCopy(src).get(), f, dst_mode, allowed_links, share);
+	CopyFile(dst, OpenFileForCopy(src).get(), f, dst_mode, allowed_links,
+		share);
 }
 
 

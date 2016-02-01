@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r877
+\version r949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-10-04 14:03 +0800
+	2016-02-01 12:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ namespace ystdex
 \pre _type 满足 EqualityComparable 要求。
 \return 转移的 f 。
 \note 时间复杂度： 不大于 <tt>last - first</tt> 次 \c f 的调用。
-\see ISO WG21/N3936 25.2.4[alg.foreach] 。
+\see WG21/N3936 25.2.4[alg.foreach] 。
 \see 其它参考实现： http://stackoverflow.com/questions/234482/using-stl-to-find-all-elements-in-a-vector 。
 
 分别应用操作至范围 <tt>[first, last)</tt> 内的解应用的迭代器 \c i 满足以下条件：
@@ -121,6 +121,81 @@ equal(_tIn1 first1, _tIn1 last1, _tIn2 first2, _tIn2 last2)
 #endif
 
 } // inline namespace cpp2014;
+
+
+//! \note 只保留非空结果，不保留分隔符。
+//@{
+/*!
+\brief 以指定分隔符分割序列。
+\since build 304
+*/
+template<typename _fPred, typename _fInsert, typename _tIn>
+void
+split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
+{
+	while(b != e)
+	{
+		_tIn i(std::find_if_not(b, e, is_delim));
+
+		b = std::find_if(i, e, is_delim);
+		if(i != b)
+			insert(i, b);
+		else
+			break;
+	}
+}
+
+/*!
+\brief 以满足迭代器谓词的指定分隔符分割序列。
+\since build 545
+*/
+template<typename _fPred, typename _fInsert, typename _func, typename _tIn>
+void
+split_if_iter(_tIn b, _tIn e, _fPred is_delim, _fInsert insert, _func pred)
+{
+	while(b != e)
+	{
+		_tIn i(b);
+		while(i != e && is_delim(*i) && pred(i))
+			++i;
+		for(b = i; b != e; ++b)
+		{
+			b = std::find_if(b, e, is_delim);
+			if(pred(b))
+				break;
+		}
+		if(i != b)
+			insert(i, b);
+		else
+			break;
+	}
+}
+
+/*!
+\brief 以指定分隔符分割保留起始分隔符的序列。
+\note 除非无法匹配，保留起始分隔符。
+\since build 408
+*/
+template<typename _fPred, typename _fInsert, typename _tIn>
+_tIn
+split_l(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
+{
+	_tIn i(b);
+
+	while(b != e)
+	{
+		if(is_delim(*b) && i != b)
+		{
+			insert(i, b);
+			i = b;
+		}
+		++b;
+	}
+	if(i != b)
+		insert(i, b);
+	return i;
+}
+//@}
 //@}
 
 
@@ -293,7 +368,7 @@ trivially_move(const _type* first, const _type* last, _type* result)
 \note 输出范围元素之间的相对顺序和输入的范围保持一致。
 \note 时间复杂度： O(n^2) ，其中 n 满足 <tt>std::advance(first, n) == last</tt> 。
 \note 使用 ADL 交换。
-\see ISO WG21/N3936 25.3.9[alg.unique] 。
+\see WG21/N3936 25.3.9[alg.unique] 。
 \since build 531
 */
 //@{

@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1523
+\version r1527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2016-01-22 16:02 +0800
+	2016-01-28 10:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ Validate(TLCIter b, TLCIter e)
 }
 
 TLCIter
-Reduce(const ValueNode& node, TLCIter b, TLCIter e)
+Reduce(ValueNode& node, TLCIter b, TLCIter e)
 {
 	while(b != e && *b != ")")
 		if(*b == "(")
@@ -88,7 +88,7 @@ Reduce(const ValueNode& node, TLCIter b, TLCIter e)
 }
 
 void
-Analyze(const ValueNode& root, const TokenList& token_list)
+Analyze(ValueNode& root, const TokenList& token_list)
 {
 	if(Validate(token_list.cbegin(), token_list.cend()) != token_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
@@ -98,12 +98,12 @@ Analyze(const ValueNode& root, const TokenList& token_list)
 	yassume(res == token_list.end());
 }
 void
-Analyze(const ValueNode& root, const Session& session)
+Analyze(ValueNode& root, const Session& session)
 {
 	Analyze(root, session.GetTokenList());
 }
 void
-Analyze(const ValueNode& root, string_view unit)
+Analyze(ValueNode& root, string_view unit)
 {
 	YAssertNonnull(unit.data());
 	Analyze(root, Session(unit).GetTokenList());

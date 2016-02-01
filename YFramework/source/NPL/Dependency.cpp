@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r153
+\version r160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2015-12-13 15:09 +0800
+	2016-02-01 12:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,8 @@ DecomposeMakefileDepList(std::istream& is)
 
 	using s_it_t = std::istream_iterator<char>;
 	set<size_t> spaces;
-	Session sess(s_it_t(is), s_it_t(), [&](LexicalAnalyzer& lexer, char c){
+	const auto sbuf(Session(s_it_t(is), s_it_t(),
+		[&](LexicalAnalyzer& lexer, char c){
 		lexer.ParseQuoted(c,
 			[&](string& buf, const UnescapeContext& uctx, char) -> bool{
 			const auto& escs(uctx.GetSequence());
@@ -79,16 +80,15 @@ DecomposeMakefileDepList(std::istream& is)
 				return {};
 			return true;
 		});
-	});
-	const auto& buf(sess.GetBuffer());
+	}).GetBuffer());
 	vector<string> lst;
 
-	ystdex::split_if_iter(buf.begin(), buf.end(), [](char c){
+	ystdex::split_if_iter(sbuf.begin(), sbuf.end(), [](char c){
 		return std::isspace(c);
 	}, [&](string::const_iterator b, string::const_iterator e){
 		lst.push_back(string(b, e));
 	}, [&](string::const_iterator i){
-		return !ystdex::exists(spaces, size_t(i - buf.cbegin()));
+		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
 	});
 	return lst;
 }

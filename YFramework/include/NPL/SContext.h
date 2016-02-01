@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1452
+\version r1466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2016-01-22 16:02 +0800
+	2016-01-28 10:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,6 @@ namespace SContext
 YF_API TLCIter
 Validate(TLCIter b, TLCIter e);
 
-//! \since build 665
-//@{
 /*!
 \brief 遍历规约记号列表，取抽象语法树储存至指定值类型节点。
 \param node 节点。
@@ -123,28 +121,31 @@ Validate(TLCIter b, TLCIter e);
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 警报：找到冗余的 '(' 。
-\since build 330
+\since build 667
 */
 YF_API TLCIter
-Reduce(const ValueNode& node, TLCIter b, TLCIter e);
+Reduce(ValueNode& node, TLCIter b, TLCIter e);
 
 
 /*!
 \brief 分析指定源，取抽象语法树储存至指定值类型节点。
 \throw LoggedEvent 警报：找到冗余的 ')' 。
-\since build 335
+\since build 667
 */
 //@{
 YF_API void
-Analyze(const ValueNode&, const TokenList&);
+Analyze(ValueNode&, const TokenList&);
 YF_API void
-Analyze(const ValueNode&, const Session&);
+Analyze(ValueNode&, const Session&);
 //! \pre 断言：字符串参数的数据指针非空。
 YF_API void
-Analyze(const ValueNode&, string_view);
+Analyze(ValueNode&, string_view);
 //@}
+/*!
+\note 调用 ADL \c Analyze 分析节点。
+\since build 665
+*/
 template<typename _type>
-//! ADL \c Analyze 分析节点。
 ValueNode
 Analyze(const _type& arg)
 {
@@ -153,7 +154,6 @@ Analyze(const _type& arg)
 	Analyze(root, arg);
 	return root;
 }
-//@}
 
 } // namespace SContext;
 

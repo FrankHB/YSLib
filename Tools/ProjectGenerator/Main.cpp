@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r750
+\version r760
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2015-11-26 13:45 +0800
+	2016-02-01 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,10 +170,11 @@ AddCompilerNode(_tNodeOrCon&& node_or_con, const string& platform)
 		LookupCompilerName(platform));
 }
 
-using HostHandler = std::function<void(const ValueNode&, bool, bool)>;
+using HostHandler = std::function<void(ValueNode&, bool, bool)>;
 
+//! \since build 667
 void
-InsertTargetNode(const ValueNode& node, const string& project,
+InsertTargetNode(ValueNode& node, const string& project,
 	const string& platform, bool custom_makefile, bool debug, BuildType btype,
 	HostHandler hosted_handler = {})
 {
@@ -340,12 +341,11 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 {
 
 	auto doc(MakeXMLDoc({}, "1.0", "UTF-8", "yes"));
-	const auto& file(Deref(InsertChildSyntaxNode(doc,
-		NodeLiteral("CodeBlocks_project_file"))));
+	auto& file(Deref(
+		InsertChildSyntaxNode(doc, NodeLiteral("CodeBlocks_project_file"))));
 	InsertAttributeNode(file, "FileVersion", {{"major", "1"}, {"minor", "6"}});
 
-	const auto& proj(Deref(InsertChildSyntaxNode(file,
-		NodeLiteral("Project"))));
+	auto& proj(Deref(InsertChildSyntaxNode(file, NodeLiteral("Project"))));
 	const auto btype(exe ? BuildType::Executable : BuildType::Default);
 	string title(project);
 
@@ -363,11 +363,11 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 	if(!custom_makefile)
 		AddOptionNode(proj, "extended_obj_names", "1");
 
-	const auto& build(Deref(InsertChildSyntaxNode(proj, NodeLiteral("Build"))));
+	auto& build(Deref(InsertChildSyntaxNode(proj, NodeLiteral("Build"))));
 	HostHandler handler;
 
 	if(!custom_makefile)
-		handler = [&, btype](const ValueNode& nd, bool debug, bool is_static){
+		handler = [&, btype](ValueNode& nd, bool debug, bool is_static){
 			auto child(TransformToSyntaxNode(NodeLiteral("Compiler")));
 			const auto opt_add([&child](const string& str){
 				InsertAttributeNode(child, "Add", "option", str);

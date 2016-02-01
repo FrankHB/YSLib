@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r340
+\version r343
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2016-01-26 11:03 +0800
+	2016-01-30 07:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ public:
 	}
 
 	//! \since build 628
-	yconstfn explicit
+	explicit yconstfn
 	operator bool() const ynothrow
 	{
 		return bool(ptr);
@@ -212,7 +212,7 @@ public:
 	{}
 	//! \since build 347
 	template<typename _tPointer>
-	explicit yconstfn
+	yconstfn
 	pointer_iterator(_tPointer&& ptr)
 		: raw(yforward(ptr))
 	{}
