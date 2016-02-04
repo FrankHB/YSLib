@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r949
+\version r952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-02-01 12:54 +0800
+	2016-02-01 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,21 +147,22 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 
 /*!
 \brief 以满足迭代器谓词的指定分隔符分割序列。
-\since build 545
+\since build 668
 */
 template<typename _fPred, typename _fInsert, typename _func, typename _tIn>
 void
-split_if_iter(_tIn b, _tIn e, _fPred is_delim, _fInsert insert, _func pred)
+split_if(_tIn b, _tIn e, _fPred is_delim, _fInsert insert, _func pred)
 {
 	while(b != e)
 	{
 		_tIn i(b);
+
 		while(i != e && is_delim(*i) && pred(i))
 			++i;
 		for(b = i; b != e; ++b)
 		{
 			b = std::find_if(b, e, is_delim);
-			if(pred(b))
+			if(b == e || pred(b))
 				break;
 		}
 		if(i != b)

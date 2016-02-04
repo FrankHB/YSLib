@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r850
+\version r855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-01-22 15:35 +0800
+	2016-02-04 17:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ TransformNode(const ValueNode& node, NodeMapper mapper,
 		auto&& nd(nested_call(*i));
 
 		if(nd.GetName().empty())
-			return {0, name, std::move(nd.Value)};
+			return AsNode(name, std::move(nd.Value));
 		return {ValueNode::Container{std::move(nd)}, name};
 	}
 
@@ -113,9 +113,8 @@ TransformNodeSequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 	{
 		auto&& n(nested_call(*i));
 
-		if(n.GetName().empty())
-			return {0, name, std::move(n.Value)};
-		return {0, name, NodeSequence{std::move(n)}};
+		return AsNode(name, n.GetName().empty() ? std::move(n.Value)
+			: ValueObject(NodeSequence{std::move(n)}));
 	}
 
 	NodeSequence node_con;
@@ -123,7 +122,7 @@ TransformNodeSequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 	std::for_each(i, node.end(), [&](const ValueNode& nd){
 		insert_child(mapper ? mapper(nd) : nested_call(nd), node_con);
 	});
-	return {0, name, std::move(node_con)};
+	return AsNode(name, std::move(node_con));
 }
 
 } // namesapce A1;

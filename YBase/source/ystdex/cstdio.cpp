@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r233
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2015-07-15 00:16 +0800
+	2016-02-04 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,11 @@
 */
 
 
-#include "ystdex/cstdio.h"
+#include "ystdex/cstdio.h" // for ystdex::call_value_or;
 #include "ystdex/cassert.h"
 #include <libdefect/string.h> // for std::char_traits<char>::length and
 //	possible fix for std::vsnprintf;
+#include "ystdex/functional.hpp" // for ystdex::compose, addrof;
 #include "ystdex/algorithm.hpp" // for ystdex::trivially_copy_n;
 
 namespace ystdex
@@ -58,12 +59,8 @@ bool
 fexists(const char* path) ynothrow
 {
 	yconstraint(path);
-	if(const auto fp = std::fopen(path, "rb"))
-	{
-		std::fclose(fp);
-		return true;
-	}
-	return {};
+	return ystdex::call_value_or(ystdex::compose(std::fclose, addrof<>()),
+		std::fopen(path, "rb"), yimpl(1)) == 0;
 }
 
 

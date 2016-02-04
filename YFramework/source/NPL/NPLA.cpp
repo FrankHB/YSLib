@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r661
+\version r704
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-01-28 10:15 +0800
+	2016-02-04 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,27 +37,25 @@ namespace NPL
 ValueNode
 MapNPLALeafNode(const ValueNode& node)
 {
-	return {0, string(), string(Deliteralize(ParseNPLANodeString(node)))};
+	return AsNode(string(), string(Deliteralize(ParseNPLANodeString(node))));
 }
 
 ValueNode
 TransformToSyntaxNode(const ValueNode& node, const string& name)
 {
-	ValueNode::Container con{{0, MakeIndex(0), node.GetName()}};
+	ValueNode::Container con{AsNode(MakeIndex(0), node.GetName())};
 	const auto nested_call([&](const ValueNode& nd){
 		con.emplace(TransformToSyntaxNode(nd, MakeIndex(con)));
 	});
 
 	if(node.empty())
-		try
-		{
-			auto& seq(Access<NodeSequence>(node));
-
-			for(auto& nd : seq)
+	{
+		if(const auto p = AccessPtr<NodeSequence>(node))
+			for(auto& nd : *p)
 				nested_call(nd);
-		}
-		CatchExpr(ystdex::bad_any_cast&,
-			con.emplace(0, MakeIndex(1), Literalize(ParseNPLANodeString(node))))
+		else
+			con.emplace(0, MakeIndex(1), Literalize(ParseNPLANodeString(node)));
+	}
 	else
 		for(auto& nd : node)
 			nested_call(nd);
@@ -79,9 +77,7 @@ LiteralizeEscapeNodeLiteral(const ValueNode& node)
 string
 ParseNPLANodeString(const ValueNode& node)
 {
-	TryRet(Access<string>(node))
-	CatchIgnore(ystdex::bad_any_cast&)
-	return {};
+	return ystdex::value_or<string>(AccessPtr<string>(node));
 }
 
 
@@ -112,17 +108,13 @@ PrintNode(std::ostream& os, const ValueNode& node, NodeToString node_to_str,
 		const auto nested_call(std::bind(PrintNodeChild, std::ref(os),
 			std::placeholders::_1, node_to_str, igen, depth));
 
-		try
-		{
-			auto& seq(Access<NodeSequence>(node));
-
-			for(const auto& nd : seq)
+		// TODO: Null coalescing or variant value?
+		if(const auto p = AccessPtr<NodeSequence>(node))
+			for(const auto& nd : *p)
 				nested_call(nd);
-			return;
-		}
-		CatchIgnore(ystdex::bad_any_cast&)
-		for(const auto& nd : node)
-			nested_call(nd);
+		else
+			for(const auto& nd : node)
+				nested_call(nd);
 	}
 }
 
@@ -166,10 +158,9 @@ ConvertAttributeNodeString(const ValueNode& node)
 	case 2:
 		{
 			auto i(node.begin());
-			const auto& n1(Access<string>(Deref(i)));
-			const auto& n2(Access<string>(Deref(++i)));
+			const auto& n(Access<string>(Deref(i)));
 
-			return n1 + '=' + n2;
+			return n + '=' + Access<string>(Deref(++i));
 		}
 	case 1:
 		return Access<string>(Deref(node.begin()));
@@ -237,22 +228,15 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 							YTraceDe(Warning, "Invalid *TOP* found.");
 						if(i != cont.end())
 						{
-							try
+							if(!Deref(i).empty()
+								&& (i->begin())->Value == string("@"))
 							{
-								const auto& t(Access<string>(at(Deref(i), 0)));
-
-								if(t == "@")
-								{
-									head += string(Deliteralize(
-										ConvertDocumentNode(*i, igen, depth,
-										ParseOption::Attribute)));
-									++i;
-								}
+								head += string(
+									Deliteralize(ConvertDocumentNode(*i, igen,
+									depth, ParseOption::Attribute)));
+								if(++i == cont.cend())
+									return head + " />";
 							}
-							CatchIgnore(std::out_of_range&)
-							CatchIgnore(ystdex::bad_any_cast&)
-							if(i == cont.cend())
-								return head + " />";
 							head += '>';
 						}
 						else
@@ -292,9 +276,7 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 string
 ConvertStringNode(const ValueNode& node)
 {
-	TryRet(EscapeXML(Access<string>(node)))
-	CatchIgnore(ystdex::bad_any_cast&)
-	return {};
+	return ystdex::call_value_or<string>(EscapeXML, AccessPtr<string>(node));
 }
 
 void
@@ -318,8 +300,8 @@ MakeXMLDecl(const string& name, const string& ver, const string& enc,
 		decl += " encoding=\"" + enc + '"';
 	if(!sd.empty())
 		decl += " standalone=\"" + sd + '"';
-	return NodeLiteral{0, name, {{MakeIndex(0), "*PI*"}, {MakeIndex(1), "xml"},
-		{MakeIndex(2), decl + ' '}}};
+	return AsNodeLiteral(name, {{MakeIndex(0), "*PI*"}, {MakeIndex(1), "xml"},
+		{MakeIndex(2), decl + ' '}});
 }
 
 ValueNode

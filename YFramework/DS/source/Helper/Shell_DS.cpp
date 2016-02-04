@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 接口。
-\version r1390
+\version r1395
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2015-10-02 17:35 +0800
+	2016-02-04 10:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,10 +79,8 @@ ShlDS::OnGotMessage(const Message& msg)
 		return;
 	case SM_Input:
 #if YF_Hosted && !YCL_Android
-		if(const auto p_wgt = imMain.Update())
-			imMain.DispatchInput(*p_wgt);
-		else
-			imMain.DispatchInput(*cursor_desktop_ptr);
+		imMain.DispatchInput(ystdex::value_or<YSLib::UI::IWidget&>(imMain.Update(),
+			*cursor_desktop_ptr));
 #else
 		imMain.Update();
 		imMain.DispatchInput(*cursor_desktop_ptr);

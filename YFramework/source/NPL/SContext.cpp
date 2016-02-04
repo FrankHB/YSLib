@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1527
+\version r1528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2016-01-28 10:45 +0800
+	2016-02-04 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 			b = ++res;
 		}
 		else
-			node += {0, MakeIndex(node), *b++};
+			node += AsNode(MakeIndex(node), *b++);
 	return b;
 }
 

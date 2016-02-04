@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r629
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2015-12-19 15:14 +0800
+	2016-02-04 15:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -302,8 +302,32 @@ YB_Impl_Functional_Binary(bit_or, |)
 YB_Impl_Functional_Binary(bit_xor, ^)
 
 //! \brief 位取反仿函数。
+// NOTE: Available in %std since ISO C++14.
 YB_Impl_Functional_Unary(bit_not, ~)
 //@}
+//@}
+
+//! \since build 668
+namespace details
+{
+
+template<typename _type>
+using addrof_res_t = decltype(&std::declval<_type>());
+template<typename _type>
+using indirect_res_t = decltype(*std::declval<_type>());
+
+} // namespace details;
+
+/*!
+\note YStandardEx 扩展。
+\since build 668
+*/
+//@{
+//! \brief 一元 & 操作。
+YB_Impl_Functional_Ops1(addrof, &, details::addrof_res_t<const _type&>)
+
+//! \brief 一元 * 操作。
+YB_Impl_Functional_Ops1(indirect, *, details::indirect_res_t<const _type&>)
 //@}
 
 #undef YB_Impl_Functional_bool_Ordered

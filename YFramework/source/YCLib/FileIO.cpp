@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2187
+\version r2201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2015-12-26 02:11 +0800
+	2016-02-04 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 //	Mode, ::HANDLE, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl,
 //	F_GETFL, _O_*, O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd,
 //	::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens;
+#include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
@@ -884,12 +885,8 @@ bool
 ufexists(const char* filename) ynothrow
 {
 #if YCL_Win32
-	if(const auto file = ufopen(filename, "rb"))
-	{
-		std::fclose(file);
-		return true;
-	}
-	return {};
+	return ystdex::call_value_or(ystdex::compose(std::fclose, ystdex::addrof<>()),
+		ufopen(filename, "rb"), yimpl(1)) == 0;
 #else
 	return ystdex::fexists(filename);
 #endif
@@ -897,12 +894,8 @@ ufexists(const char* filename) ynothrow
 bool
 ufexists(const char16_t* filename) ynothrow
 {
-	if(const auto file = ufopen(filename, u"rb"))
-	{
-		std::fclose(file);
-		return true;
-	}
-	return {};
+	return ystdex::call_value_or(ystdex::compose(std::fclose, ystdex::addrof<>()),
+		ufopen(filename, u"rb"), yimpl(1)) == 0;
 }
 
 int

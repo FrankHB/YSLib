@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3906
+\version r3912
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-08-20 21:40 +0800
+	2016-02-04 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Core_YCoreUtilities
 #include <ystdex/any.h> // for ystdex::any_ops::holder, ystdex::any;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
+#include <ystdex/operators.hpp> // for ystdex::equality_comparable
 
 namespace YSLib
 {
@@ -172,7 +173,8 @@ public:
 	DefDeMoveAssignment(ValueHolder)
 
 	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
-		ImplRet(AreEqualHeld(held, static_cast<const ValueHolder&>(obj).held))
+		ImplRet(type() == obj.type()
+		&& AreEqualHeld(held, static_cast<const ValueHolder&>(obj).held))
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), ValueHolder)
@@ -231,7 +233,7 @@ public:
 
 	//! \since build 332
 	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
-		ImplRet(AreEqualHeld(*p_held,
+		ImplRet(type() == obj.type() && AreEqualHeld(*p_held,
 			Deref(static_cast<const PointerHolder&>(obj).p_held)))
 
 	//! \since build 409
@@ -256,7 +258,7 @@ public:
 
 具有值语义和深复制语义的对象。
 */
-class YF_API ValueObject
+class YF_API ValueObject : public ystdex::equality_comparable<ValueObject>
 {
 public:
 	//! \since build 332

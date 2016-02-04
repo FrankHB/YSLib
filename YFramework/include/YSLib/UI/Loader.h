@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r642
+\version r660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2016-01-28 11:16 +0800
+	2016-02-04 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,7 @@ InsertWidget(IWidget& wgt, _tParams&&... args)
 
 
 /*!
+\brief 检查是否为元数据名称。
 \pre 断言：参数的数据指针非空。
 \since build 659
 */
@@ -134,7 +135,10 @@ AccessWidgetNode(ValueNode& node, const string& name, _tParams&&... args)
 }
 //@}
 
-//! \brief 按指定名称访问子部件。
+/*!
+\brief 按指定名称访问子部件。
+\exception ystdex::bad_any_cast 异常中立：由 Access 抛出。
+*/
 //@{
 YF_API IWidget&
 AccessWidget(const ValueNode&);
@@ -238,16 +242,30 @@ public:
 	//! \since build 555
 	GWidgetInserterRegister<IWidget&, const ZOrder&> InsertZOrdered{};
 
+	//! \exception std::out_of_range 异常中立：找不到内部类型节点。
 	unique_ptr<IWidget>
 	DetectWidgetNode(const ValueNode&);
 
 	/*!
+	\brief 加载 NPLA1 翻译单元，翻译后变换为 UI 布局树。
 	\pre 间接断言：参数的数据指针非空。
+	\sa TransformUILayout
 	\since build 659
 	*/
 	ValueNode
 	LoadUILayout(string_view);
+	
+	/*!
+	\brief 变换 UI 布局树：根据 NPLA1 中间表示动态创建部件树。
+	\exception std::out_of_range 异常中立：找不到 $type 节点。
+	\exception ystdex::bad_any_cast 异常中立：$type 节点的值不是 string 类型。
+	\sa CheckChildName
 
+	参数指定的树中，使用以下元数据名称的节点表示数据：
+	$type 指定部件的类型；
+	$pointer 使用 shared_ptr<IWidget> 类型的值指定部件；
+	可选 $z 指定 Z 顺序值。
+	*/
 	ValueNode
 	TransformUILayout(const ValueNode&);
 };

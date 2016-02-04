@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1924
+\version r1977
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-02-01 12:39 +0800
+	2016-02-04 17:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,8 +270,9 @@ public:
 	SwapContent(ValueNode&) ynothrow;
 	//@}
 
+	//! \brief 按名称访问节点。
+	//@{
 	/*!
-	\exception ystdex::bad_any_cast 容器不存在。
 	\throw std::out_of_range 未找到对应节点。
 	\since build 433
 	*/
@@ -281,6 +282,18 @@ public:
 	at(const string&);
 	const ValueNode&
 	at(const string&) const;
+	//@}
+
+	/*!
+	\return 若对应节点存在则为指向这个节点的指针，否则为空指针值。
+	\since build 668
+	*/
+	//@{
+	ValueNode*
+	at_p(const string&) ynothrow;
+	const ValueNode*
+	at_p(const string&) const ynothrow;
+	//@}
 	//@}
 
 	//! \since build 460
@@ -439,19 +452,20 @@ inline PDefH(const ValueNode&, AccessNode, const ValueNode::Container& con,
 	ImplRet(AccessNode(&con, name))
 //@}
 
-//! \brief 访问容器中的节点指针。
+/*!
+\brief 访问容器中的节点指针。
+\since build 668
+*/
 //@{
 YF_API ValueNode*
-AccessNodePtr(ValueNode::Container&, const string&);
-//! \since build 432
+AccessNodePtr(ValueNode::Container&, const string&) ynothrow;
 YF_API const ValueNode*
-AccessNodePtr(const ValueNode::Container&, const string&);
+AccessNodePtr(const ValueNode::Container&, const string&) ynothrow;
 inline PDefH(ValueNode*, AccessNodePtr, ValueNode::Container* p_con,
-	const string& name)
+	const string& name) ynothrow
 	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
-//! \since build 432
 inline PDefH(const ValueNode*, AccessNodePtr, const ValueNode::Container* p_con,
-	const string& name)
+	const string& name) ynothrow
 	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
 //@}
 
@@ -476,29 +490,32 @@ AccessChild(const ValueNode& node, const string& name)
 }
 //@}
 
-//! \brief 访问指定名称的子节点的指定类型对象的指针。
+/*!
+\brief 访问指定名称的子节点的指定类型对象的指针。
+\since build 668
+*/
 //@{
 template<typename _type>
 inline _type*
-AccessChildPtr(ValueNode& node, const string& name)
+AccessChildPtr(ValueNode& node, const string& name) ynothrow
 {
 	return AccessPtr<_type>(AccessNodePtr(node.GetContainerRef(), name));
 }
 template<typename _type>
 inline const _type*
-AccessChildPtr(const ValueNode& node, const string& name)
+AccessChildPtr(const ValueNode& node, const string& name) ynothrow
 {
 	return AccessPtr<_type>(AccessNodePtr(node.GetContainer(), name));
 }
 template<typename _type>
 inline _type*
-AccessChildPtr(ValueNode* p_node, const string& name)
+AccessChildPtr(ValueNode* p_node, const string& name) ynothrow
 {
 	return p_node ? AccessChildPtr<_type>(*p_node, name) : nullptr;
 }
 template<typename _type>
 inline const _type*
-AccessChildPtr(const ValueNode* p_node, const string& name)
+AccessChildPtr(const ValueNode* p_node, const string& name) ynothrow
 {
 	return p_node ? AccessChildPtr<_type>(*p_node, name) : nullptr;
 }
@@ -506,6 +523,17 @@ AccessChildPtr(const ValueNode* p_node, const string& name)
 //@}
 //@}
 
+
+/*!
+\brief 传递参数构造值类型节点。
+\since build 668
+*/
+template<typename _tString, typename... _tParams>
+inline ValueNode
+AsNode(_tString&& name, _tParams&&... args)
+{
+	return {0, yforward(name), yforward(args)...};
+}
 
 /*!
 \brief 取指定名称和退化参数的值类型节点。
@@ -659,6 +687,18 @@ public:
 	DefCvt(ynothrow, ValueNode&, node)
 	DefCvt(const ynothrow, const ValueNode&, node)
 };
+
+/*!
+\brief 传递参数构造值类型节点字面量。
+\relates NodeLiteral
+\since build 668
+*/
+template<typename _tString, typename _tLiteral = NodeLiteral>
+inline NodeLiteral
+AsNodeLiteral(_tString&& name, std::initializer_list<_tLiteral> il)
+{
+	return {0, yforward(name), il};
+}
 
 } // namespace YSLib;
 

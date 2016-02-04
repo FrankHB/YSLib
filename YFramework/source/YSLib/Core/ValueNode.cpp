@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r533
+\version r550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
-	2012-08-03 23:04:03 +0800;
+	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-01-28 12:13 +0800
+	2016-02-04 09:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,6 +83,17 @@ ValueNode::at(const string& n) const
 	return AccessNode(GetContainer(), n);
 }
 
+ValueNode*
+ValueNode::at_p(const string& n) ynothrow
+{
+	return AccessNodePtr(GetContainerRef(), n);
+}
+const ValueNode*
+ValueNode::at_p(const string& n) const ynothrow
+{
+	return AccessNodePtr(GetContainer(), n);
+}
+
 void
 ValueNode::swap(ValueNode& node) ynothrow
 {
@@ -118,18 +129,16 @@ AccessNode(const ValueNode::Container* p_con, const string& name)
 }
 
 ValueNode*
-AccessNodePtr(ValueNode::Container& con, const string& name)
+AccessNodePtr(ValueNode::Container& con, const string& name) ynothrow
 {
-	const auto i(con.find(ValueNode(0, name)));
-
-	return i != end(con) ? &*i : nullptr;
+	return ystdex::call_value_or<ValueNode*>(ystdex::addrof<>(),
+		con.find(ValueNode(0, name)), {}, end(con));
 }
 const ValueNode*
-AccessNodePtr(const ValueNode::Container& con, const string& name)
+AccessNodePtr(const ValueNode::Container& con, const string& name) ynothrow
 {
-	const auto i(con.find(ValueNode(0, name)));
-
-	return i != end(con) ? &*i : nullptr;
+	return ystdex::call_value_or<const ValueNode*>(ystdex::addrof<>(),
+		con.find(ValueNode(0, name)), {}, end(con));
 }
 
 
