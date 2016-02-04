@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r873
+\version r875
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-01-24 21:19 +0800
+	2016-02-04 09:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -435,6 +435,9 @@ YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出�
 @3.3.2 抛出异常明确性：
 在明确异常基类的基础上， YBase 保证 API 中抛出的异常在文档（若存在）中明确：不抛出被文档描述外的异常。
 若实现在公开头文件可见，文档可仅指出异常中立而不需要明确具体异常；否则应明确异常类型。
+
+@3.3.3 捕获异常明确性：
+除非文档说明，不捕获调用用户代码时抛出的异常。
 
 */
 ////

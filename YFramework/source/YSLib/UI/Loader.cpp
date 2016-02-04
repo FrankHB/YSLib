@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r333
+\version r353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2016-01-22 15:39 +0800
+	2016-02-04 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,30 +67,30 @@ ImplDeDtor(WidgetNotFound)
 IWidget&
 AccessWidget(const ValueNode& node)
 {
-	TryRet(Deref(AccessChild<shared_ptr<IWidget>>(node, "$pointer")))
-	CatchThrow(std::out_of_range&,
-		WidgetNotFound(node.GetName(), "Widget pointer not found."))
+	if(const auto p = node.at_p("$pointer"))
+		// NOTE: It may still throw %ystdex::bad_any_cast.
+		return Deref(Access<shared_ptr<IWidget>>(*p));
+	throw WidgetNotFound(node.GetName(), "Widget pointer not found.");
 }
 
 
 unique_ptr<IWidget>
 WidgetLoader::DetectWidgetNode(const ValueNode& node)
 {
-	try
-	{
-		const auto& type_str(AccessChild<string>(node, "$type"));
+	const auto& child(node.at("$type"));
 
+	if(const auto p_type_str = AccessPtr<string>(child))
+	{
 		if(const auto* p_bounds_str = AccessChildPtr<string>(node, "$bounds"))
 			try
 			{
 				const Rect& bounds(ParseRect(*p_bounds_str));
 
-				return Bounds.Call(type_str, bounds);
+				return Bounds.Call(*p_type_str, bounds);
 			}
 			CatchIgnore(std::invalid_argument&)
-		return Default.Call(type_str);
+		return Default.Call(*p_type_str);
 	}
-	CatchIgnore(ystdex::bad_any_cast&)
 	return {};
 }
 
@@ -118,12 +118,15 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 
 			for(const auto& vn : node)
 				if(CheckChildName(vn.GetName()))
-					try
+					if(ValueNode child{TransformUILayout(vn)})
 					{
-						if(ValueNode child{TransformUILayout(vn)})
+						const auto& wgt_ptr_nd(child.at("$pointer"));
+
+						if(const auto p_wgt_ptr
+							= AccessPtr<shared_ptr<IWidget>>(wgt_ptr_nd))
 						{
-							auto& wgt(*AccessChild<shared_ptr<IWidget>>(child,
-								"$pointer"));
+							const auto& wgt_ptr(Deref(p_wgt_ptr));
+
 							const auto p_z(AccessChildPtr<string>(vn, "$z"));
 							auto z(DefaultZOrder);
 
@@ -132,13 +135,15 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 								{
 									const auto r(std::stoul(*p_z));
 
-									// XXX: Do not use magic number.
+									// TODO: Do not use magic number.
 									if(r < 0x100)
 										z = r;
 								}
 								CatchIgnore(std::invalid_argument&)
 							if(node_con.insert(std::move(child)).second)
 							{
+								auto& wgt(*wgt_ptr);
+
 								if(insz && (p_z || !ins))
 									InsertZOrdered.Call(key, *p_new_widget, wgt,
 										z);
@@ -147,10 +152,9 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 							}
 						}
 					}
-					CatchIgnore(ystdex::bad_any_cast&)
 			res += {std::move(node_con), "$children"};
 		}
-		res += {0, "$pointer", shared_ptr<IWidget>(std::move(p_new_widget))};
+		res += AsNode("$pointer", shared_ptr<IWidget>(std::move(p_new_widget)));
 		return res;
 	}
 	return {};

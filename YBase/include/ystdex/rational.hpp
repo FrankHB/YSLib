@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2074
+\version r2092
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2016-01-24 05:07 +0805
+	2016-02-04 17:03 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -681,7 +681,9 @@ struct hash<ystdex::YB_Impl_Rational_fp_T>
 
 
 /*!
-\brief std::numeric_traits 的 ystdex::fixed_point 特化类型。
+\brief std::numeric_rational 的 ystdex::fixed_point 特化类型。
+\see http://wg21.cmeerw.net/lwg/issue201
+\see http://stackoverflow.com/questions/16122912/is-it-ok-to-specialize-stdnumeric-limitst-for-user-defined-number-like-class
 \since build 260
 */
 template<YB_Impl_Rational_fp_PList>
@@ -778,6 +780,24 @@ public:
 	static yconstexpr const bool tinyness_before = {};
 	static yconstexpr const float_round_style round_style = round_toward_zero;
 };
+
+//! \since build 688
+//@{
+template<YB_Impl_Rational_fp_PList>
+class numeric_limits<const ystdex::YB_Impl_Rational_fp_T>
+	: yimpl(public) numeric_limits<ystdex::YB_Impl_Rational_fp_T>
+{};
+
+template<YB_Impl_Rational_fp_PList>
+class numeric_limits<volatile ystdex::YB_Impl_Rational_fp_T>
+	: yimpl(public) numeric_limits<ystdex::YB_Impl_Rational_fp_T>
+{};
+
+template<YB_Impl_Rational_fp_PList>
+class numeric_limits<const volatile ystdex::YB_Impl_Rational_fp_T>
+	: yimpl(public) numeric_limits<ystdex::YB_Impl_Rational_fp_T>
+{};
+//@}
 
 #undef YB_Impl_Rational_fp_PList2
 #undef YB_Impl_Rational_fp_PList1

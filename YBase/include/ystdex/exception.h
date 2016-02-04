@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r243
+\version r254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2015-12-07 17:35 +0800
+	2016-02-03 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,13 @@
 #ifndef YB_INC_ystdex_exception_hpp_
 #define YB_INC_ystdex_exception_hpp_ 1
 
-#include "type_traits.hpp" // for remove_cv_t;
-#include <libdefect/exception.h>
-#include <stdexcept> // for std::logic_error;
+#include <libdefect/exception.h> // for std::exception_ptr,
+//	std::nested_exception;
+#include "deref_op.hpp" // for call_value_or;
+#include <functional> // for std::mem_fn;
 #include <memory> // for std::addressof;
+#include "type_traits.hpp" // for remove_cv_t;
+#include <stdexcept> // for std::logic_error;
 #include <system_error> // for std::error_category, std::generic_category,
 //	std::system_error, std::errc;
 
@@ -65,10 +68,9 @@ template<class _tEx>
 inline std::exception_ptr
 get_nested_exception_ptr(const _tEx& e)
 {
-	if(const auto p_cast
-		= dynamic_cast<const std::nested_exception*>(std::addressof(e)))
-		return p_cast->nested_ptr();
-	return {};
+	return ystdex::call_value_or<std::exception_ptr>(
+		std::mem_fn(&std::nested_exception::nested_ptr),
+		dynamic_cast<const std::nested_exception*>(std::addressof(e)));
 }
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r160
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2016-02-01 12:47 +0800
+	2016-02-01 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,7 @@ DecomposeMakefileDepList(std::istream& is)
 	is.unsetf(std::ios_base::skipws);
 
 	using s_it_t = std::istream_iterator<char>;
+	// NOTE: Escaped spaces would be saved to prevent being used as delimiter.
 	set<size_t> spaces;
 	const auto sbuf(Session(s_it_t(is), s_it_t(),
 		[&](LexicalAnalyzer& lexer, char c){
@@ -83,9 +84,8 @@ DecomposeMakefileDepList(std::istream& is)
 	}).GetBuffer());
 	vector<string> lst;
 
-	ystdex::split_if_iter(sbuf.begin(), sbuf.end(), [](char c){
-		return std::isspace(c);
-	}, [&](string::const_iterator b, string::const_iterator e){
+	ystdex::split_if(sbuf.begin(), sbuf.end(), static_cast<int(&)(int)>(
+		std::isspace), [&](string::const_iterator b, string::const_iterator e){
 		lst.push_back(string(b, e));
 	}, [&](string::const_iterator i){
 		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
