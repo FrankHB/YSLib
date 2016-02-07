@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r3812
+\version r3819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2015-12-25 11:31 +0800
+	2016-02-07 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 #include YFM_DS_YCLib_DSIO // for platform::Descriptions, std::runtime_error,
 //	ystdex::throw_error, std::system_error, string_view, ystdex::retry_on_cond,
 //	YAssertNonnull, YCL_PATH_DELIMITER, std::bind, std::placeholder::_1,
-//	std::ref, YTraceDe, std::exception, ystdex::trivially_copy_n, ptrdiff_t,
-//	DISC_INTERFACE, unique_raw, ystdex::aligned_store_cast;
+//	ystdex::exchange, std::ref, YTraceDe, std::exception,
+//	ystdex::trivially_copy_n, ptrdiff_t, DISC_INTERFACE, unique_raw,
+//	ystdex::aligned_store_cast;
 #if YCL_DS
 #	include "YSLib/Core/YModules.h"
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
@@ -2259,7 +2260,6 @@ Mount(string_view name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 		if(auto p = unique_raw(static_cast<::devoptab_t*>(::operator new(
 			sizeof(::devoptab_t) + name.length() + 1)),
 			static_cast<void(&)(void*)>(::operator delete)))
-		{
 			if(auto p_part = make_unique<Partition>(intf, pages,
 				sectors_per_page_shift, start_sector))
 			{
@@ -2275,7 +2275,6 @@ Mount(string_view name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 				p.release();
 				return true;
 			}
-		}
 		YTraceDe(Alert, "Memory allocation failure @ FATMount.");
 	}
 	return {};
@@ -2287,7 +2286,7 @@ Unmount(const char* name) ynothrow
 	if(const auto p_devops = ::GetDeviceOpTab(Nonnull(name)))
 		if(p_devops->open_r == dotab_fat.open_r && ::RemoveDevice(name) != -1)
 		{
-			::delete static_cast<Partition*>(p_devops->deviceData);
+			delete static_cast<Partition*>(p_devops->deviceData);
 			::operator delete(const_cast<::devoptab_t*>(p_devops));
 			return true;
 		}

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1443
+\version r1593
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-12-17 10:51 +0800
+	2016-02-07 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,14 +30,15 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "addressof.hpp" // for <memory>, ystdex::constfn_addressof;
-#include "type_op.hpp" // for is_class_type, is_nonconst_object, detected_t,
-//	conditional, enable_if_t, has_overloaded_addressof, std::declval,
-//	is_pointer, is_array, extent, remove_extent_t;
+#include "addressof.hpp" // for <memory>, detected_t, conditional,
+//	ystdex::constfn_addressof, indirect_t, is_pointer, enable_if_t,
+//	is_array, extent, remove_extent_t;
+#include "type_op.hpp" // for is_class_type, is_nonconst_object;
 #include <iterator> // for std::iterator_traits;
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
 #include <new> // for placement ::operator new from standard library;
+#include "operators.hpp" // for totally_ordered, equality_comparable;
 
 #if YB_IMPL_MSCPP >= 1800
 /*!
@@ -453,7 +454,7 @@ public:
 //@{
 //! \brief 使用分配器复制指定指针指向的对象。
 template<typename _type, class _tAlloc
-	= std::allocator<remove_reference_t<decltype(*std::declval<_type>())>>>
+	= std::allocator<remove_reference_t<indirect_t<_type>>>>
 auto
 clone_monomorphic(const _type& p, _tAlloc&& a = _tAlloc())
 	-> decltype(std::addressof(*p))
@@ -484,7 +485,7 @@ clone_polymorphic(const _type& p) -> decltype(std::addressof(*p))
 //@}
 
 
-/*!	\defgroup get_raw Get get_raw Pointers
+/*!	\defgroup get_raw Get Raw Pointers
 \brief 取内建指针。
 \since build 422
 */
@@ -663,8 +664,8 @@ using std::make_unique;
 /*!
 \note 使用值初始化。
 \see http://herbsutter.com/gotw/_102/ 。
-\see ISO WG21/N3656 。
-\see ISO WG21/N3797 20.7.2[memory.syn] 。
+\see WG21/N3656 。
+\see WG21/N3797 20.7.2[memory.syn] 。
 \since build 476
 */
 //@{
@@ -691,7 +692,7 @@ make_unique(_tParams&&...) = delete;
 
 /*!
 \note 使用默认初始化。
-\see ISO WG21/N3588 A4 。
+\see WG21/N3588 A4 。
 \since build 526
 */
 //@{
@@ -851,6 +852,141 @@ const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 //@}
 
 
+//! \since build 669
+//@{
+/*!
+\brief 观察者指针：无所有权的智能指针。
+\see WG21/N4529 8.12[memory.observer.ptr] 。
+*/
+template<typename _type>
+class observer_ptr : public totally_ordered<observer_ptr<_type>>,
+	public equality_comparable<observer_ptr<_type>, nullptr_t>
+{
+public:
+	using element_type = _type;
+	using pointer = yimpl(add_pointer_t<_type>);
+	using reference = yimpl(add_lvalue_reference_t<_type>);
+
+private:
+	_type* ptr{};
+
+public:
+	//! \post <tt>get() == nullptr</tt> 。
+	//@{
+	yconstfn
+	observer_ptr() ynothrow yimpl(= default);
+	yconstfn
+	observer_ptr(nullptr_t) ynothrow
+		: ptr()
+	{}
+	//@}
+	explicit yconstfn
+	observer_ptr(pointer p) ynothrow
+		: ptr(p)
+	{}
+	template<typename _tOther>
+	yconstfn
+	observer_ptr(observer_ptr<_tOther> other) ynothrow
+		: ptr(other.ptr)
+	{}
+
+	//! \pre 断言： <tt>get() != nullptr</tt> 。
+	yconstfn reference
+	operator*() const ynothrowv
+	{
+		return yconstraint(get() != nullptr), *ptr;
+	}
+
+	yconstfn pointer
+	operator->() const ynothrow
+	{
+		return ptr;
+	}
+
+	friend yconstfn bool
+	operator==(const observer_ptr& p, nullptr_t)
+	{
+		return !p.ptr;
+	}
+	template<typename _type1, typename _type2>
+	friend yconstfn bool
+	operator==(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+	{
+		return p1.ptr == p2.ptr;
+	}
+
+	template<typename _type1, typename _type2>
+	friend yconstfn bool
+	operator!=(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+	{
+		return !(p1 == p2);
+	}
+
+	template<typename _type1, typename _type2>
+	friend yconstfn bool
+	operator<(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+	{
+		return std::less<common_type_t<_type1, _type2>>(p1.ptr, p2.ptr);
+	}
+
+	explicit yconstfn
+	operator bool() const ynothrow
+	{
+		return ptr;
+	}
+
+	explicit yconstfn
+	operator pointer() const ynothrow
+	{
+		return ptr;
+	}
+
+	yconstfn pointer
+	get() const ynothrow
+	{
+		return ptr;
+	}
+
+	yconstfn_relaxed pointer
+	release() ynothrow
+	{
+		const auto res(ptr);
+
+		reset();
+		return res;
+	}
+
+	yconstfn_relaxed void
+	reset(pointer p = {}) ynothrow
+	{
+		ptr = p;
+	}
+
+	yconstfn_relaxed void
+	swap(observer_ptr& other) ynothrow
+	{
+		std::swap(ptr, other.ptr);
+	}
+};
+
+//! \relates observer_ptr
+//@{
+template<typename _type>
+inline void
+swap(observer_ptr<_type>& p1, observer_ptr<_type>& p2) ynothrow
+{
+	p1.swap(p2);
+}
+template<typename _type>
+inline observer_ptr<_type>
+make_observer(_type* p) ynothrow
+{
+	return observer_ptr<_type>(p);
+}
+//@}
+//@}
+
+
 //! \since build 588
 //@{
 /*!
@@ -899,6 +1035,32 @@ public:
 //@}
 
 } // namespace ystdex;
+
+
+namespace std
+{
+
+/*!
+\brief ystdex::optional 散列支持。
+\see ISO WG21/N4081 5.11[optional.hash] 。
+\since build 591
+*/
+//@{
+template<typename>
+struct hash;
+
+template<typename _type>
+struct hash<ystdex::observer_ptr<_type>>
+{
+	size_t
+	operator()(const ystdex::observer_ptr<_type>& p) const yimpl(ynothrow)
+	{
+		return hash<_type*>(p.get());
+	}
+};
+//@}
+
+} // namespace std;
 
 #endif
 

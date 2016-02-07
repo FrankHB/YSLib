@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2877
+\version r2923
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-01-17 02:02 +0800
+	2016-02-07 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "YModules.h"
 #include YFM_YCLib_Container // for std::is_integral, std::is_array,
 //	ystdex::remove_reference_t, size, ystdex::is_null, string, u16string,
-//	ystdex::to_array, std::uint8_t, std::uint32_t, pair, tuple;
+//	wstring, ystdex::to_array, std::uint8_t, std::uint32_t, pair, tuple;
+#include YFM_YCLib_Reference // for unique_ptr, nptr;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
 #if YCL_DS || YCL_MinGW || YCL_Linux || YCL_OS_X
@@ -186,10 +187,26 @@ class YF_API DirectorySession
 {
 public:
 #if YCL_Win32
-	using NativeHandle = void*;
+	//! \since build 669
+	class Data;
 #else
-	using NativeHandle = ::DIR*;
+	//! \since build 669
+	using Data = ::DIR;
+#endif
+	using NativeHandle = Data*;
 
+private:
+	//! \since build 669
+	class YF_API Deleter
+	{
+	public:
+		using pointer = NativeHandle;
+
+		void
+		operator()(pointer) ynothrowv;
+	};
+
+#if !YCL_Win32
 protected:
 	/*!
 	\brief 目录路径。
@@ -201,7 +218,8 @@ protected:
 #endif
 
 private:
-	NativeHandle dir;
+	//! \since build 669
+	unique_ptr<Data, Deleter> dir;
 
 public:
 	/*!
@@ -217,22 +235,18 @@ public:
 	explicit
 	DirectorySession(const char* path = ".");
 	//! \since build 560
-	DirectorySession(DirectorySession&& h) ynothrow
-		: dir(h.dir)
-	{
-		h.dir = {};
-	}
+	DefDeMoveCtor(DirectorySession)
 	/*!
 	\brief 析构：关闭目录路径。
 	\since build 461
 	*/
-	~DirectorySession();
+	DefDeDtor(DirectorySession)
 
 	//! \since build 549
 	DefDeMoveAssignment(DirectorySession)
 
 	//! \since build 413
-	DefGetter(const ynothrow, NativeHandle, NativeHandle, dir)
+	DefGetter(const ynothrow, NativeHandle, NativeHandle, dir.get())
 
 	//! \brief 复位目录状态。
 	void
@@ -262,21 +276,18 @@ public:
 
 private:
 #if YCL_Win32
-	/*!
-	\brief 节点信息。
-	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt> 。
-	\invariant <tt>!p_dirent || !static_cast<wstring*>(p_dirent).empty()</tt> 。
-	\since build 474
-	*/
-	void* p_dirent;
+	using DirentData = wstring;
 #else
+	using DirentData = ::dirent;
+#endif
+
 	/*!
 	\brief 节点信息。
 	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt> 。
-	\since build 298
+	\invariant <tt>!(YCL_Win32 && p_dirent && p_dirent->empty())</tt> 。
+	\since build 669
 	*/
-	::dirent* p_dirent;
-#endif
+	tidy_ptr<DirentData> p_dirent;
 
 public:
 	/*!
@@ -289,12 +300,8 @@ public:
 	HDirectory(const char* path)
 		: DirectorySession(path), p_dirent()
 	{}
-	//! \since build 543
-	HDirectory(HDirectory&& h) ynothrow
-		: DirectorySession(std::move(h)), p_dirent(h.p_dirent)
-	{
-		h.p_dirent = {};
-	}
+	//! \since build 669
+	DefDeMoveCtor(HDirectory)
 
 	//! \since build 549
 	DefDeMoveAssignment(HDirectory)
@@ -319,7 +326,7 @@ public:
 	\brief 判断文件系统节点无效或有效性。
 	\since build 561
 	*/
-	DefBoolNeg(explicit, p_dirent)
+	DefBoolNeg(explicit, bool(p_dirent))
 
 	//! \since build 648
 	DefCvt(const ynothrow, basic_string_view<NativeChar>, GetNativeName())

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3570
+\version r3605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-01-17 02:02 +0800
+	2016-02-07 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,9 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem // for std::tm, std::accumulate,
-//	ystdex::read_uint_le, std::min, ystdex::write_uint_le, YAssertNonnull,
-//	std::bind, std::ref, ystdex::retry_on_cond;
+#include YFM_YCLib_FileSystem // for std::tm, default_delete, make_observer,
+//	std::accumulate, std::min, ystdex::read_uint_le, YAssertNonnull,
+//	ystdex::write_uint_le, std::bind, std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include YFM_YCLib_FileIO // for CategorizeNode, Deref, ystdex::to_array, 
 //	ystdex::throw_error, std::errc::not_supported, ThrowFileOperationFailure,
@@ -221,9 +221,30 @@ ReadLink(const char16_t* path)
 }
 
 
+#if YCL_Win32
+class DirectorySession::Data : public DirectoryFindData
+{
+public:
+	using DirectoryFindData::DirectoryFindData;
+};
+#endif
+void
+DirectorySession::Deleter::operator()(pointer p) ynothrowv
+{
+#if YCL_Win32
+	default_delete<Data>()(p);
+#else
+	const auto res(::closedir(p));
+
+	YAssert(res == 0, "No valid directory found.");
+	yunused(res);
+#endif
+}
+
+
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
-	: dir(new DirectoryFindData(UTF8ToWCS(path)))
+	: dir(new Data(UTF8ToWCS(path)))
 #else
 	: sDirPath([](const char* p) YB_NONNULL(1){
 		const auto res(ystdex::rtrim(string(Deref(p) != char() ? p : "."),
@@ -241,26 +262,15 @@ DirectorySession::DirectorySession(const char* path)
 		ThrowFileOperationFailure("Opening directory failed.");
 #endif
 }
-DirectorySession::~DirectorySession()
-{
-#if !YCL_Win32
-	const auto res(::closedir(dir));
-
-	YAssert(res == 0, "No valid directory found.");
-	yunused(res);
-#else
-	delete static_cast<DirectoryFindData*>(dir);
-#endif
-}
 
 void
 DirectorySession::Rewind() ynothrow
 {
 	YAssert(dir, "Invalid native handle found.");
 #if YCL_Win32
-	static_cast<DirectoryFindData*>(dir)->Rewind();
+	Deref(dir.get()).Rewind();
 #else
-	::rewinddir(dir);
+	::rewinddir(dir.get());
 #endif
 }
 
@@ -269,11 +279,13 @@ HDirectory&
 HDirectory::operator++()
 {
 	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
+	p_dirent = make_observer(
 #if YCL_Win32
-	p_dirent = static_cast<DirectoryFindData*>(GetNativeHandle())->Read();
+		static_cast<DirectoryFindData*>(GetNativeHandle())->Read()
 #else
-	p_dirent = ::readdir(GetNativeHandle());
+		::readdir(GetNativeHandle())
 #endif
+	);
 	return *this;
 }
 
@@ -284,8 +296,7 @@ HDirectory::GetNodeCategory() const ynothrow
 	{
 		YAssert(bool(GetNativeHandle()), "Invariant violation found.");
 #if YCL_Win32
-		YAssert(!static_cast<wstring*>(p_dirent)->empty(),
-			"Invariant violation found.");
+		YAssert(!p_dirent->empty(), "Invariant violation found.");
 
 		const auto res(Deref(static_cast<platform_ex::DirectoryFindData*>(
 			GetNativeHandle())).GetNodeCategory());
@@ -340,7 +351,7 @@ HDirectory::GetNativeName() const ynothrow
 #else
 	if(p_dirent)
 	{
-		const auto& child(Deref(static_cast<wstring*>(p_dirent)));
+		const auto& child(Deref(p_dirent));
 
 		YAssert(!child.empty(), "Invariant violation found.");
 		return ucast(child.data());

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1831
+\version r1887
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2015-12-26 02:08 +0800
+	2016-02-07 17:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -427,14 +427,15 @@ using UniqueFile = unique_ptr<FileDescriptor, FileDescriptor::Deleter>;
 YF_API YB_STATELESS mode_t
 DefaultPMode() ynothrow;
 
+//! \since build 669
+//@{
 /*!
 \brief 设置标准库流二进制输入/输出模式。
 \pre 间接断言：参数非空。
-\since build 599
 */
 //@{
 YF_API void
-SetBinaryIO(std::FILE*) ynothrow;
+SetBinaryIO(std::FILE*) ynothrowv;
 
 /*!
 \warning 改变默认日志默认发送器前，不应使用 std::cerr 和 std::clog
@@ -443,21 +444,21 @@ SetBinaryIO(std::FILE*) ynothrow;
 \sa Logger::DefaultSendLog
 */
 inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
-	std::FILE* out = stdout, bool sync = {}) ynothrow
+	std::FILE* out = stdout, bool sync = {}) ynothrowv
 	ImplExpr(SetBinaryIO(in), SetBinaryIO(out),
 		std::ios_base::sync_with_stdio(sync))
 //@}
 
 /*!
 \brief 重复尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
-\pre 参数非空。
+\pre 断言：参数非空。
 \return 非 EINTR 的错误。
 \note 首先清除 errno ；遇 EINTR 时重试。
 \note 使用 std::fclose 关闭流。
-\since build 634
 */
 YF_API YB_NONNULL(1) int
-RetryClose(std::FILE*) ynothrow;
+RetryClose(std::FILE*) ynothrowv;
+//@}
 
 
 /*!
@@ -481,6 +482,7 @@ omode_convb(std::ios_base::openmode) ynothrow;
 /*!
 \pre 断言：第一参数非空。
 \note 若存储分配失败，设置 errno 为 \c ENOMEM 。
+\since build 669
 */
 //@{
 /*!
@@ -488,28 +490,26 @@ omode_convb(std::ios_base::openmode) ynothrow;
 \param path 路径，意义同 POSIX <tt>::open</tt> 。
 \param amode 模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。 。
 \note errno 在出错时会被设置，具体值由实现定义。
-\since build 549
 */
 //@{
 YF_API YB_NONNULL(1) int
-uaccess(const char* path, int amode) ynothrow;
+uaccess(const char* path, int amode) ynothrowv;
 YF_API YB_NONNULL(1) int
-uaccess(const char16_t* path, int amode) ynothrow;
+uaccess(const char16_t* path, int amode) ynothrowv;
 //@}
 
 /*!
 \param filename 文件名，意义同 POSIX \c ::open 。
 \param oflag 打开旗标，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
-\since build 626
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
 YF_API YB_NONNULL(1) int
-uopen(const char* filename, int oflag, mode_t pmode = 0) ynothrow;
+uopen(const char* filename, int oflag, mode_t pmode = 0) ynothrowv;
 //! \brief 以 UCS-2 文件名无缓冲打开文件。
 YF_API YB_NONNULL(1) int
-uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrow;
+uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrowv;
 //@}
 
 //! \param filename 文件名，意义同 std::fopen 。
@@ -519,40 +519,31 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrow;
 \pre 断言：<tt>mode && *mode != 0</tt> 。
 */
 //@{
-/*!
-\brief 以 UTF-8 文件名打开文件。
-\since build 299
-*/
+//! \brief 以 UTF-8 文件名打开文件。
 YF_API YB_NONNULL(1, 2) std::FILE*
-ufopen(const char* filename, const char* mode) ynothrow;
-/*!
-\brief 以 UCS-2 文件名打开文件。
-\since build 324
-*/
+ufopen(const char* filename, const char* mode) ynothrowv;
+//! \brief 以 UCS-2 文件名打开文件。
 YF_API YB_NONNULL(1, 2) std::FILE*
-ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
+ufopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 //@}
-/*!
-\param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
-\since build 616
-*/
+//! \param mode 打开模式，基本语义与 ISO C++11 对应，具体行为取决于实现。
 //@{
 //! \brief 以 UTF-8 文件名打开文件。
 YF_API YB_NONNULL(1) std::FILE*
-ufopen(const char* filename, std::ios_base::openmode mode) ynothrow;
+ufopen(const char* filename, std::ios_base::openmode mode) ynothrowv;
 //! \brief 以 UCS-2 文件名打开文件。
 YF_API YB_NONNULL(1) std::FILE*
-ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow;
+ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv;
 //@}
 
 //! \note 使用 ufopen 二进制只读模式打开测试实现。
 //@{
 //! \brief 判断指定 UTF-8 文件名的文件是否存在。
 YF_API YB_NONNULL(1) bool
-ufexists(const char*) ynothrow;
+ufexists(const char*) ynothrowv;
 //! \brief 判断指定 UCS-2 文件名的文件是否存在。
 YF_API YB_NONNULL(1) bool
-ufexists(const char16_t*) ynothrow;
+ufexists(const char16_t*) ynothrowv;
 //@}
 //@}
 
@@ -561,10 +552,9 @@ ufexists(const char16_t*) ynothrow;
 \param 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
 \pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
 \note DS 平台：不支持操作，总是失败并设置 errno 为 ENOSYS 。
-\since build 566
 */
 YF_API YB_NONNULL(1) int
-upclose(std::FILE*) ynothrow;
+upclose(std::FILE*) ynothrowv;
 
 //! \note 若存储分配失败，设置 errno 为 \c ENOMEM 。
 //@{
@@ -575,15 +565,14 @@ upclose(std::FILE*) ynothrow;
 \pre 间接断言： \c mode 。
 \warning 应使用 upclose 而不是 std::close 关闭管道流，否则行为可能未定义。
 \note DS 平台：不支持操作，总是失败并设置 errno 为 ENOSYS 。
-\since build 566
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开管道流。
 YF_API YB_NONNULL(1, 2) std::FILE*
-upopen(const char* filename, const char* mode) ynothrow;
+upopen(const char* filename, const char* mode) ynothrowv;
 //! \brief 以 UCS-2 文件名无缓冲打开管道流。
 YF_API YB_NONNULL(1, 2) std::FILE*
-upopen(const char16_t* filename, const char16_t* mode) ynothrow;
+upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 //@}
 
 /*!
@@ -610,45 +599,41 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow;
 /*!
 \brief 切换当前工作路径至指定路径。
 \note POSIX 平台：除路径和返回值外语义同 \c ::chdir 。
-\since build 476
 */
 YF_API YB_NONNULL(1) bool
-uchdir(const char*) ynothrow;
+uchdir(const char*) ynothrowv;
 
 /*!
 \brief 按路径以默认权限新建一个目录。
 \note 权限由实现定义： DS 使用最大权限； MinGW32 使用 \c ::_wmkdir 指定的默认权限。
-\since build 475
 */
 YF_API YB_NONNULL(1) bool
-umkdir(const char*) ynothrow;
+umkdir(const char*) ynothrowv;
 
 /*!
 \brief 按路径删除一个空目录。
 \note POSIX 平台：除路径和返回值外语义同 \c ::rmdir 。
-\since build 475
 */
 YF_API YB_NONNULL(1) bool
-urmdir(const char*) ynothrow;
+urmdir(const char*) ynothrowv;
 
 /*!
 \brief 按路径删除一个非目录文件。
 \note POSIX 平台：除路径和返回值外语义同 \c ::unlink 。
 \note Win32 平台：支持移除只读文件，但删除打开的文件总是失败。
-\since build 476
 */
 YF_API YB_NONNULL(1) bool
-uunlink(const char*) ynothrow;
+uunlink(const char*) ynothrowv;
 
 /*!
 \brief 按路径移除一个文件。
 \note POSIX 平台：除路径和返回值外语义同 \c ::remove 。移除非空目录总是失败。
 \note Win32 平台：支持移除空目录和只读文件，但删除打开的文件总是失败。
 \see https://msdn.microsoft.com/en-us/library/kc07117k.aspx 。
-\since build 476
 */
 YF_API YB_NONNULL(1) bool
-uremove(const char*) ynothrow;
+uremove(const char*) ynothrowv;
+//@}
 //@}
 //@}
 
@@ -1185,11 +1170,11 @@ GetFileAccessTimeOf(const char16_t*, bool = {});
 //@{
 inline YB_NONNULL(1) PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetModificationTime())
+
 /*!
 \pre 断言：第一参数非空。
 \note 最后一个参数指定若文件系统支持，访问链接的文件而不是链接自身。
 */
-
 //@{
 YF_API YB_NONNULL(1) FileTime
 GetFileModificationTimeOf(const char*, bool = {});
@@ -1224,12 +1209,14 @@ GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 \brief 取路径指定的文件链接数。
 \return 若成功为连接数，否则为 0 。
 \note 最后参数表示跟踪连接。
-\since build 660
+\since build 669
 */
+//@{
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char*, bool = true) ynothrow;
+FetchNumberOfLinks(const char*, bool = true) ynothrowv;
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t*, bool = true) ynothrow;
+FetchNumberOfLinks(const char16_t*, bool = true) ynothrowv;
+//@}
 
 
 /*!

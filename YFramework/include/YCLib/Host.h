@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r349
+\version r363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-12-11 20:54 +0800
+	2016-02-06 18:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,17 +89,13 @@ public:
 };
 
 
-#	if !YCL_Win32 && YCL_API_Has_unistd_h
-//! \since build 592
-using HandleDelete = platform::FileDescriptor::Deleter;
-#	else
+#	if YCL_Win32
 /*!
 \brief 句柄删除器。
 \since build 592
 */
 struct YF_API HandleDelete
 {
-#		if YCL_Win32
 	/*!
 	\warning 只检查空句柄作为空值。对不同的 Win32 API 可能需要额外检查。
 	\see http://blogs.msdn.com/b/oldnewthing/archive/2004/03/02/82639.aspx 。
@@ -108,14 +104,13 @@ struct YF_API HandleDelete
 
 	void
 	operator()(pointer) const ynothrow;
-#		else
-	using pointer = int*;
-
-	PDefHOp(void, (), pointer h) const ynothrow
-		ImplExpr(delete h)
-#		endif
 };
-#endif
+#	elif YCL_API_Has_unistd_h
+//! \since build 592
+using HandleDelete = platform::FileDescriptor::Deleter;
+#	else
+#		error "Unsupported platform found."
+#	endif
 
 //! \since build 520
 using UniqueHandle = unique_ptr<HandleDelete::pointer, HandleDelete>;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1010
+\version r1015
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2015-11-06 11:01 +0800
+	2016-02-07 00:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_any_iterator_hpp_
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
-#include "any.h" // for any, wrapped_traits, cond_t, _t;
+#include "any.h" // for any_ops, ref_handler, ptrdiff_t, any, remove_rcv_t,
+//	is_convertible, indirect_t, wrapped_traits, cond_t, _t;
 #include "iterator.hpp" // for is_undereferenceable, std::iterator;
 
 namespace ystdex
@@ -247,8 +248,8 @@ public:
 		using param_obj_type = remove_rcv_t<_tIter>;
 		using handler = any_ops::input_iterator_handler<param_obj_type>;
 
-		static_assert(is_convertible<decltype(*std::declval<typename
-			wrapped_traits<param_obj_type>::type&>()), reference>::value,
+		static_assert(is_convertible<indirect_t<typename
+			wrapped_traits<param_obj_type>::type&>, reference>::value,
 			"Wrong target iterator type found.");
 
 		manager = handler::manage;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r129
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2015-08-22 19:59 +0800
+	2016-02-07 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,41 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
+#include YFM_YCLib_Reference // for default_delete, unique_ptr;
+#include YFM_YCLib_FileIO
+#include YFM_YBaseMacro
 
 namespace platform
 {
+
+#if YCL_DS
+//! \since build 669
+using UnmapDelete = default_delete<byte[]>;
+#else
+//! \since build 669
+class YF_API UnmapDelete
+{
+public:
+	using pointer = byte*;
+
+#	if !YCL_Win32
+private:
+	size_t size;
+#	endif
+
+public:
+#	if YCL_Win32
+	DefDeCtor(UnmapDelete)
+#	else
+	UnmapDelete(size_t s)
+		: size(s)
+	{}
+#	endif
+
+	void
+	operator()(pointer) ynothrow;
+};
+#endif
 
 /*!
 \brief 只读内存映射文件。
@@ -42,9 +74,11 @@ namespace platform
 class YF_API MappedFile
 {
 private:
-	int fd;
+	//! \since build 669
+	UniqueFile file;
 	std::uint64_t size;
-	byte* addr;
+	//! \since build 669
+	unique_ptr<byte[], UnmapDelete> addr;
 
 public:
 	/*!
@@ -62,10 +96,10 @@ public:
 		: MappedFile(filename.c_str())
 	{}
 	//@}
-	~MappedFile();
+	DefDeDtor(MappedFile)
 
 	//! \since build 413
-	DefGetter(const ynothrow, byte*, Ptr, addr)
+	DefGetter(const ynothrow, byte*, Ptr, addr.get())
 	//! \since build 475
 	DefGetter(const ynothrow, std::uint64_t, Size, size)
 };
