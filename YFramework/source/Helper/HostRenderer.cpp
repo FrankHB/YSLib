@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r662
+\version r671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-09-24 12:14 +0800
+	2015-02-08 06:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,14 +81,14 @@ RenderWindow::Refresh()
 
 WindowThread::~WindowThread()
 {
-	const auto p_wnd_val(Nonnull(GetWindowPtr()));
+	const unique_ptr<Window> p_hold(Nonnull(GetWindowPtr()));
 
 	YTraceDe(Debug, "Ready to close window '%p' on leaving window"
-		" thread.", ystdex::pvoid(p_wnd_val));
+		" thread.", ystdex::pvoid(p_hold.get()));
 
-	FilterExceptions([this, p_wnd_val]{
+	FilterExceptions([&, this]{
 #	if !YCL_Android
-		TryExpr(p_wnd_val->Close())
+		TryExpr(p_hold->Close())
 		// TODO: Log.
 #		if YCL_HostedUI_XCB
 		CatchIgnore(XCB::XCBException&)
@@ -100,12 +100,11 @@ WindowThread::~WindowThread()
 #		endif
 #	endif
 		YTraceDe(Informative, "Ready to join the window thread '%p' of closed"
-			" window '%p'.", ystdex::pvoid(&thrd), ystdex::pvoid(p_wnd_val));
+			" window '%p'.", ystdex::pvoid(&thrd), ystdex::pvoid(p_hold.get()));
 		thrd.join();
 		YTraceDe(Debug, "Window thread '%p' joined.",
 			ystdex::pvoid(&thrd));
 	}, yfsig);
-	delete p_wnd_val;
 }
 
 WindowThread::Guard
@@ -190,9 +189,9 @@ WindowThread::WindowLoop(Window& wnd)
 	YTraceDe(Informative, "Host loop ended.");
 }
 void
-WindowThread::WindowLoop(Window& wnd, GuardGenerator guard_gen)
+WindowThread::WindowLoop(Window& wnd, GuardGenerator gd_gen)
 {
-	const auto guard(guard_gen ? guard_gen(wnd) : Guard());
+	const auto gd(gd_gen ? gd_gen(wnd) : Guard());
 
 	WindowLoop(wnd);
 }

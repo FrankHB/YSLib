@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1330
+\version r1344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-12-11 21:07 +0800
+	2016-02-07 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,8 @@
 #define YCL_INC_HostedGUI_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for map, ystdex::aligned_storage_t, wstring,
-//	wstring_view, string_view, u16string_view;
-#include <ystdex/pointer.hpp> // for ystdex::nptr;
+#include YFM_YCLib_Host // for nptr, map, unique_ptr, ystdex::aligned_storage_t,
+//	wstring, wstring_view, string_view, u16string_view;
 #include YFM_YSLib_Core_YEvent // for YSLib::GEvent, YSLib::string;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
 //	YSLib::Drawing::Point, YSLib::Drawing::Size;
@@ -83,7 +82,7 @@ namespace platform_ex
 
 #	if YCL_HostedUI_XCB
 //! \since build 562
-using NativeWindowHandle = ystdex::nptr<XCB::WindowData*>;
+using NativeWindowHandle = nptr<XCB::WindowData*>;
 #	elif YCL_Win32
 //! \since build 389
 using NativeWindowHandle = ::HWND;
@@ -93,6 +92,17 @@ using WindowStyle = unsigned long;
 //! \since build 492
 using NativeWindowHandle = ::ANativeWindow*;
 #	endif
+
+
+//! \since build 669
+class YF_API HostWindowDelete
+{
+public:
+	using pointer = NativeWindowHandle;
+
+	void
+	operator()(pointer) ynothrow;
+};
 
 
 #	if YCL_Win32
@@ -157,7 +167,7 @@ BindDefaultWindowProc(NativeWindowHandle, MessageMap&, unsigned,
 \warning 非虚析构。
 \since build 427
 */
-class YF_API WindowReference : private ystdex::nptr<NativeWindowHandle>
+class YF_API WindowReference : private nptr<NativeWindowHandle>
 {
 public:
 	//! \since build 563

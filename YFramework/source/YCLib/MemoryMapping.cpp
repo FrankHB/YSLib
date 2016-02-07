@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r248
+\version r282
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2015-11-26 16:18 +0800
+	2016-02-06 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,25 +38,36 @@
 namespace platform
 {
 
-MappedFile::MappedFile(const char* path)
-	: fd(uopen(path, O_RDONLY, mode_t(Mode::UserReadWrite))), size([this]{
-		if(fd < 0)
-			ThrowFileOperationFailure("Failed mapping file.");
-		return FileDescriptor(fd).GetSize();
-	}())
+#if !YCL_DS
+void
+UnmapDelete::operator()(pointer p) ynothrow
 {
-#if YCL_DS
-	addr = new byte[size];
-
-	if(YB_UNLIKELY(::read(fd, addr, size) < 0))
-		throw std::runtime_error("Mapping failed.");
+	// XXX: Error ignored.
+#if YCL_Win32
+	::UnmapViewOfFile(p);
 #else
+	::munmap(p, size);
+#endif
+}
+#endif
+
+
+MappedFile::MappedFile(const char* path)
+	: file(uopen(path, O_RDONLY, mode_t(Mode::UserReadWrite))), size([this]{
+		if(!file)
+			ThrowFileOperationFailure("Failed mapping file.");
+		return file->GetSize();
+	}()), addr(
+#if YCL_DS
+	new byte[size]
+#else
+	[this]{
 #	if YCL_Win32
 	auto p(reinterpret_cast<void*>(-1));
 
 	if(size != 0)
 	{
-		const auto h(::HANDLE(::_get_osfhandle(fd)));
+		const auto h(::HANDLE(::_get_osfhandle(*file.get())));
 
 		if(h != INVALID_HANDLE_VALUE)
 			if(::HANDLE fm = ::CreateFileMapping(h, {}, PAGE_READONLY, 0,
@@ -67,25 +78,24 @@ MappedFile::MappedFile(const char* path)
 			}
 	}
 #	else
-	const auto p(::mmap({}, size, PROT_READ, MAP_PRIVATE, fd, 0));
+	const auto p(::mmap({}, size, PROT_READ, MAP_PRIVATE, *file.get(), 0));
 #	endif
 
 	if(p == reinterpret_cast<void*>(-1))
 		throw std::runtime_error("Mapping failed.");
 	// TODO: Create specific exception type.
-	addr = static_cast<byte*>(p);
+	return static_cast<byte*>(p);
+	}()
 #endif
-}
-MappedFile::~MappedFile()
+#if !(YCL_DS || YCL_Win32)
+	, size
+#endif
+	)
 {
 #if YCL_DS
-	delete addr;
-#elif YCL_Win32
-	::UnmapViewOfFile(addr);
-#else
-	::munmap(addr, size);
+	if(YB_UNLIKELY(::read(*file.get(), GetPtr(), size) < 0))
+		throw std::runtime_error("Mapping failed.");
 #endif
-	::close(fd);
 }
 
 } // namespace platform;

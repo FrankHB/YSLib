@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_trait.hpp
 \ingroup YStandardEx
 \brief 迭代器特征。
-\version r61
+\version r63
 \author FrankHB <frankhb1989@gmail.com>
 \since build 627
 \par 创建时间:
 	2015-08-30 16:29:07 +0800
 \par 修改时间:
-	2015-11-04 11:00 +0800
+	2016-02-06 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ struct have_same_iterator_category : and_<is_same<
 \since build 483
 */
 template<typename _tParam, typename _type = void, typename = yimpl(std::pair<
-	decltype(*std::declval<_tParam&>()), decltype(++std::declval<_tParam&>())>)>
+	indirect_t<_tParam&>, decltype(++std::declval<_tParam&>())>)>
 using enable_for_iterator_t = enable_if_t<
 	is_same<decltype(++std::declval<_tParam&>()), _tParam&>::value, _type>;
 

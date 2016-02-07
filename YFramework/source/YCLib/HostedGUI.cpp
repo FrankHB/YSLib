@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1588
+\version r1610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-01-25 17:47 +0800
+	2016-02-07 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_HostedGUI
+#include YFM_YCLib_HostedGUI // for default_delete;
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar,
 //	ystdex::aligned_store_cast;
 #if YCL_Win32
@@ -62,6 +62,23 @@ using platform::string_view;
 
 namespace platform_ex
 {
+
+void
+HostWindowDelete::operator()(pointer p) ynothrow
+{
+#	if YCL_HostedUI_XCB
+	default_delete<XCB::WindowData>()(p.get());
+#	elif YCL_Win32
+	// NOTE: The window could be already destroyed in window procedure.
+	if(::IsWindow(p))
+		// XXX: Error ignored.
+		::DestroyWindow(p);
+#	elif YCL_Android
+	// XXX: Error ignored.
+	::ANativeWindow_release(p);
+#	endif
+}
+
 
 #	if YCL_Win32
 void
@@ -773,17 +790,11 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 HostWindow::~HostWindow()
 {
-#	if YCL_HostedUI_XCB
-	delete GetNativeHandle().get();
-#	elif YCL_Win32
-	const auto h_wnd(GetNativeHandle());
+	const unique_ptr<NativeWindowHandle, HostWindowDelete>
+		p_wnd(GetNativeHandle());
 
-	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR());
-	// NOTE: The window could be already destroyed in window procedure.
-	if(::IsWindow(h_wnd))
-		::DestroyWindow(h_wnd);
-#	elif YCL_Android
-	::ANativeWindow_release(GetNativeHandle());
+#	if YCL_Win32
+	::SetWindowLongPtrW(p_wnd.get(), GWLP_USERDATA, ::LONG_PTR());
 #	endif
 }
 

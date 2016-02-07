@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2201
+\version r2222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-02-04 10:26 +0800
+	2016-02-06 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -427,7 +427,7 @@ NodeCategory
 FileDescriptor::GetCategory() const ynothrow
 {
 #if YCL_Win32
-	const auto h(::HANDLE(::_get_osfhandle(desc)));
+	const auto h(ToHandle(desc));
 
 	return h ? platform_ex::CategorizeNode(h) : NodeCategory::Invalid;
 #else
@@ -499,8 +499,7 @@ FileDescriptor::GetSize() const
 	::LARGE_INTEGER sz;
 
 	// XXX: Error handling for indirect calls.
-	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(desc)), &sz) != 0
-		&& YB_LIKELY(sz.QuadPart >= 0))
+	if(::GetFileSizeEx(ToHandle(desc), &sz) != 0 && YB_LIKELY(sz.QuadPart >= 0))
 		return std::uint64_t(sz.QuadPart);
 	ystdex::throw_error<FileOperationFailure>(GetErrnoFromWin32(),
 		"Failed getting file size.");
@@ -724,7 +723,7 @@ DefaultPMode() ynothrow
 }
 
 void
-SetBinaryIO(std::FILE* stream) ynothrow
+SetBinaryIO(std::FILE* stream) ynothrowv
 {
 #if YCL_Win32
 	FileDescriptor(Nonnull(stream)).SetTranslationMode(_O_BINARY);
@@ -735,7 +734,7 @@ SetBinaryIO(std::FILE* stream) ynothrow
 }
 
 int
-RetryClose(std::FILE* fp) ynothrow
+RetryClose(std::FILE* fp) ynothrowv
 {
 	// NOTE: However, on some implementations, '::close' and some other
 	//	function calls may always cause file descriptor to be closed
@@ -788,7 +787,7 @@ omode_convb(std::ios_base::openmode mode) ynothrow
 
 
 int
-uaccess(const char* path, int amode) ynothrow
+uaccess(const char* path, int amode) ynothrowv
 {
 	YAssertNonnull(path);
 #if YCL_Win32
@@ -799,7 +798,7 @@ uaccess(const char* path, int amode) ynothrow
 #endif
 }
 int
-uaccess(const char16_t* path, int amode) ynothrow
+uaccess(const char16_t* path, int amode) ynothrowv
 {
 	YAssertNonnull(path);
 #if YCL_Win32
@@ -811,7 +810,7 @@ uaccess(const char16_t* path, int amode) ynothrow
 }
 
 int
-uopen(const char* filename, int oflag, mode_t pmode) ynothrow
+uopen(const char* filename, int oflag, mode_t pmode) ynothrowv
 {
 	YAssertNonnull(filename);
 #if YCL_Win32
@@ -823,7 +822,7 @@ uopen(const char* filename, int oflag, mode_t pmode) ynothrow
 #endif
 }
 int
-uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrow
+uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrowv
 {
 	YAssertNonnull(filename);
 #if YCL_Win32
@@ -835,7 +834,7 @@ uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrow
 }
 
 std::FILE*
-ufopen(const char* filename, const char* mode) ynothrow
+ufopen(const char* filename, const char* mode) ynothrowv
 {
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
@@ -848,7 +847,7 @@ ufopen(const char* filename, const char* mode) ynothrow
 #endif
 }
 std::FILE*
-ufopen(const char16_t* filename, const char16_t* mode) ynothrow
+ufopen(const char16_t* filename, const char16_t* mode) ynothrowv
 {
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
@@ -861,14 +860,14 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 #endif
 }
 std::FILE*
-ufopen(const char* filename, std::ios_base::openmode mode) ynothrow
+ufopen(const char* filename, std::ios_base::openmode mode) ynothrowv
 {
 	if(const auto c_mode = ystdex::openmode_conv(mode))
 		return ufopen(filename, c_mode);
 	return {};
 }
 std::FILE*
-ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow
+ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv
 {
 	YAssertNonnull(filename);
 	if(const auto c_mode = ystdex::openmode_conv(mode))
@@ -882,7 +881,7 @@ ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrow
 }
 
 bool
-ufexists(const char* filename) ynothrow
+ufexists(const char* filename) ynothrowv
 {
 #if YCL_Win32
 	return ystdex::call_value_or(ystdex::compose(std::fclose, ystdex::addrof<>()),
@@ -892,14 +891,14 @@ ufexists(const char* filename) ynothrow
 #endif
 }
 bool
-ufexists(const char16_t* filename) ynothrow
+ufexists(const char16_t* filename) ynothrowv
 {
 	return ystdex::call_value_or(ystdex::compose(std::fclose, ystdex::addrof<>()),
 		ufopen(filename, u"rb"), yimpl(1)) == 0;
 }
 
 int
-upclose(std::FILE* fp) ynothrow
+upclose(std::FILE* fp) ynothrowv
 {
 	YAssertNonnull(fp);
 #if YCL_DS
@@ -913,7 +912,7 @@ upclose(std::FILE* fp) ynothrow
 }
 
 std::FILE*
-upopen(const char* filename, const char* mode) ynothrow
+upopen(const char* filename, const char* mode) ynothrowv
 {
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
@@ -929,7 +928,7 @@ upopen(const char* filename, const char* mode) ynothrow
 #endif
 }
 std::FILE*
-upopen(const char16_t* filename, const char16_t* mode) ynothrow
+upopen(const char16_t* filename, const char16_t* mode) ynothrowv
 {
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
@@ -977,7 +976,7 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow
 
 #define YCL_Impl_FileSystem_ufunc_1(_n) \
 bool \
-_n(const char* path) ynothrow \
+_n(const char* path) ynothrowv \
 { \
 	YAssertNonnull(path); \
 
@@ -1072,7 +1071,7 @@ GetFileModificationAndAccessTimeOf(const char16_t* filename, bool follow_link)
 }
 
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char* path, bool follow_link) ynothrow
+FetchNumberOfLinks(const char* path, bool follow_link) ynothrowv
 {
 #if YCL_Win32
 	return QueryFileLinks(UTF8ToWCS(path).c_str(), follow_link);
@@ -1084,7 +1083,7 @@ FetchNumberOfLinks(const char* path, bool follow_link) ynothrow
 #endif
 }
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t* path, bool follow_link) ynothrow
+FetchNumberOfLinks(const char16_t* path, bool follow_link) ynothrowv
 {
 #if YCL_Win32
 	return QueryFileLinks(wcast(path), follow_link);

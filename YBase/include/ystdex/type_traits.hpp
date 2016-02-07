@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r787
+\version r800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2015-11-10 13:41 +0800
+	2016-02-06 22:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -370,6 +370,7 @@ using result_of_t = typename result_of<_type>::type;
 \ingroup meta_types
 \brief bool 常量。
 \sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4389.html
+\see WG21/N4389 。
 \see WG21/N4527 20.10.3[meta.help] 。
 \since build 617
 */
@@ -607,7 +608,7 @@ struct is_object_or_void : or_<is_object<_type>, is_void<_type>>
 
 
 /*!
-\brief 判断指定类型是否可作为返回值类型。
+\brief 判断指定类型是否可作为返回类型。
 \note 即排除数组类型、抽象类类型和函数类型的所有类型。
 \see ISO C++11 8.3.5/8 和 ISO C++11 10.4/3 。
 \since build 333
@@ -780,6 +781,18 @@ struct is_interoperable
 {};
 
 
+//! \ingroup transformation_traits
+//@{
+//! \since build 669
+//@{
+template<typename _type>
+using addrof_t = decltype(&std::declval<_type>());
+
+template<typename _type>
+using indirect_t = decltype(*std::declval<_type>());
+//@}
+
+
 /*!
 \sa enable_if_t
 \since build 575
@@ -797,6 +810,7 @@ using enable_if_interoperable_t
 template<typename _type1, typename _type2, typename _type = void>
 using enable_if_same_t
 	= enable_if_t<is_same<_type1, _type2>::value, _type>;
+//@}
 //@}
 //@}
 

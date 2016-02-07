@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r649
+\version r660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-02-04 15:27 +0800
+	2016-02-07 00:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 
 #include "ref.hpp" // for ystdex::constfn_addressof, enable_if_t,
 //	wrapped_traits, std::greater, std::less, std::greater_equal,
-//	std::less_equal;
+//	std::less_equal, addrof_t, indirect_t;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
 
@@ -307,27 +307,16 @@ YB_Impl_Functional_Unary(bit_not, ~)
 //@}
 //@}
 
-//! \since build 668
-namespace details
-{
-
-template<typename _type>
-using addrof_res_t = decltype(&std::declval<_type>());
-template<typename _type>
-using indirect_res_t = decltype(*std::declval<_type>());
-
-} // namespace details;
-
 /*!
 \note YStandardEx 扩展。
 \since build 668
 */
 //@{
 //! \brief 一元 & 操作。
-YB_Impl_Functional_Ops1(addrof, &, details::addrof_res_t<const _type&>)
+YB_Impl_Functional_Ops1(addrof, &, addrof_t<const _type&>)
 
 //! \brief 一元 * 操作。
-YB_Impl_Functional_Ops1(indirect, *, details::indirect_res_t<const _type&>)
+YB_Impl_Functional_Ops1(indirect, *, indirect_t<const _type&>)
 //@}
 
 #undef YB_Impl_Functional_bool_Ordered
