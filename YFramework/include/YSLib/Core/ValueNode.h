@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1977
+\version r2164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-02-04 17:10 +0800
+	2016-02-09 15:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,32 +270,6 @@ public:
 	SwapContent(ValueNode&) ynothrow;
 	//@}
 
-	//! \brief 按名称访问节点。
-	//@{
-	/*!
-	\throw std::out_of_range 未找到对应节点。
-	\since build 433
-	*/
-	//@{
-	//! \since build 666
-	ValueNode&
-	at(const string&);
-	const ValueNode&
-	at(const string&) const;
-	//@}
-
-	/*!
-	\return 若对应节点存在则为指向这个节点的指针，否则为空指针值。
-	\since build 668
-	*/
-	//@{
-	ValueNode*
-	at_p(const string&) ynothrow;
-	const ValueNode*
-	at_p(const string&) const ynothrow;
-	//@}
-	//@}
-
 	//! \since build 460
 	//@{
 	PDefH(iterator, begin, )
@@ -361,16 +335,18 @@ Access(const ValueNode& node)
 }
 //@}
 
+//! \since build 670
+//@{
 //! \brief 访问节点的指定类型对象指针。
 //@{
 template<typename _type>
-inline _type*
+inline observer_ptr<_type>
 AccessPtr(ValueNode& node) ynothrow
 {
 	return node.Value.AccessPtr<_type>();
 }
 template<typename _type>
-inline const _type*
+inline observer_ptr<const _type>
 AccessPtr(const ValueNode& node) ynothrow
 {
 	return node.Value.AccessPtr<_type>();
@@ -379,54 +355,19 @@ AccessPtr(const ValueNode& node) ynothrow
 //! \brief 访问节点的指定类型对象指针。
 //@{
 template<typename _type>
-inline _type*
-AccessPtr(ValueNode* p_node) ynothrow
+inline observer_ptr<_type>
+AccessPtr(observer_ptr<ValueNode> p_node) ynothrow
 {
 	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
 }
 template<typename _type>
-inline const _type*
-AccessPtr(const ValueNode* p_node) ynothrow
+inline const observer_ptr<const _type>
+AccessPtr(observer_ptr<const ValueNode> p_node) ynothrow
 {
 	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
 }
 //@}
 //@}
-
-/*!
-\brief 访问节点。
-\exception ystdex::bad_any_cast 容器不存在。
-\throw std::out_of_range 未找到对应节点。
-\since build 531
-*/
-//@{
-//! \note 时间复杂度 O(n) 。
-YF_API const ValueNode&
-at(const ValueNode&, size_t);
-//! \note 调用对应成员函数。
-inline PDefH(const ValueNode&, at, const ValueNode& node, const string& name)
-	ImplRet(node.at(name))
-//! \note 使用 ADL 指定使用的 at 调用。
-template<typename _tIn>
-const ValueNode&
-at(const ValueNode& node, _tIn first, _tIn last)
-{
-	return std::accumulate(first, last, ystdex::ref(node),
-		[](const ValueNode& nd, decltype(*first) c){
-		return ystdex::ref(at(nd, c));
-	});
-}
-/*!
-\note 使用 ADL \c begin 和 \c end 指定范围迭代器。
-\since build 597
-*/
-template<typename _tRange>
-inline auto
-at(const ValueNode& node, const _tRange& c)
-	-> decltype(YSLib::at(node, begin(c), end(c)))
-{
-	return YSLib::at(node, begin(c), end(c));
-}
 //@}
 
 //! \since build 501
@@ -434,15 +375,26 @@ inline DefSwap(ynothrow, ValueNode)
 //@}
 
 
+//! \since build 670
+//@{
+/*!
+\brief 访问节点。
+\throw std::out_of_range 未找到对应节点。
+*/
+//@{
 //! \since build 666
-//@{
-//! \brief 访问容器中的节点。
-//@{
 YF_API ValueNode&
 AccessNode(ValueNode::Container*, const string&);
 //! \since build 433
 YF_API const ValueNode&
 AccessNode(const ValueNode::Container*, const string&);
+inline PDefH(ValueNode&, AccessNode, observer_ptr<ValueNode::Container> p_con,
+	const string& name)
+	ImplRet(AccessNode(p_con.get(), name))
+inline PDefH(const ValueNode&, AccessNode,
+	observer_ptr<const ValueNode::Container> p_con, const string& name)
+	ImplRet(AccessNode(p_con.get(), name))
+//! \since build 666
 inline PDefH(ValueNode&, AccessNode, ValueNode::Container& con,
 	const string& name)
 	ImplRet(AccessNode(&con, name))
@@ -450,23 +402,95 @@ inline PDefH(ValueNode&, AccessNode, ValueNode::Container& con,
 inline PDefH(const ValueNode&, AccessNode, const ValueNode::Container& con,
 	const string& name)
 	ImplRet(AccessNode(&con, name))
+//! \note 时间复杂度 O(n) 。
+//@{
+YF_API ValueNode&
+AccessNode(ValueNode&, size_t);
+YF_API const ValueNode&
+AccessNode(const ValueNode&, size_t);
+//@}
+inline PDefH(ValueNode&, AccessNode, ValueNode& node,
+	const string& name)
+	ImplRet(AccessNode(node.GetContainerRef(), name))
+inline PDefH(const ValueNode&, AccessNode, const ValueNode& node,
+	const string& name)
+	ImplRet(AccessNode(node.GetContainer(), name))
+//! \note 使用 ADL \c AccessNode 。
+template<class _tNode, typename _tIn>
+_tNode&&
+AccessNode(_tNode&& node, _tIn first, _tIn last)
+{
+	return std::accumulate(first, last, ystdex::ref(node),
+		[](_tNode&& nd, decltype(*first) c){
+		return ystdex::ref(AccessNode(nd, c));
+	});
+}
+//! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
+template<class _tNode, typename _tRange,
+	yimpl(typename = typename ystdex::enable_if_t<
+	!std::is_constructible<const string&, const _tRange&>::value>)>
+inline auto
+AccessNode(_tNode&& node, const _tRange& c)
+	-> decltype(YSLib::AccessNode(yforward(node), begin(c), end(c)))
+{
+	return YSLib::AccessNode(yforward(node), begin(c), end(c));
+}
 //@}
 
-/*!
-\brief 访问容器中的节点指针。
-\since build 668
-*/
+//! \brief 访问节点指针。
 //@{
-YF_API ValueNode*
+YF_API observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container&, const string&) ynothrow;
-YF_API const ValueNode*
+YF_API observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container&, const string&) ynothrow;
-inline PDefH(ValueNode*, AccessNodePtr, ValueNode::Container* p_con,
-	const string& name) ynothrow
+inline PDefH(observer_ptr<ValueNode>, AccessNodePtr,
+	ValueNode::Container* p_con, const string& name) ynothrow
 	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
-inline PDefH(const ValueNode*, AccessNodePtr, const ValueNode::Container* p_con,
-	const string& name) ynothrow
+inline PDefH(observer_ptr<const ValueNode>, AccessNodePtr,
+	const ValueNode::Container* p_con, const string& name) ynothrow
 	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
+inline PDefH(observer_ptr<ValueNode>, AccessNodePtr,
+	observer_ptr<ValueNode::Container> p_con, const string& name) ynothrow
+	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
+inline PDefH(observer_ptr<const ValueNode>, AccessNodePtr,
+	observer_ptr<const ValueNode::Container> p_con, const string& name) ynothrow
+	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
+//! \note 时间复杂度 O(n) 。
+//@{
+YF_API observer_ptr<ValueNode>
+AccessNodePtr(ValueNode&, size_t);
+YF_API observer_ptr<const ValueNode>
+AccessNodePtr(const ValueNode&, size_t);
+//@}
+inline PDefH(observer_ptr<ValueNode>, AccessNodePtr, ValueNode& node,
+	const string& name)
+	ImplRet(AccessNodePtr(node.GetContainerRef(), name))
+inline PDefH(observer_ptr<const ValueNode>, AccessNodePtr, const ValueNode& node,
+	const string& name)
+	ImplRet(AccessNodePtr(node.GetContainer(), name))
+//! \note 使用 ADL \c AccessNodePtr 。
+template<class _tNode, typename _tIn>
+auto
+AccessNodePtr(_tNode&& node, _tIn first, _tIn last)
+	-> decltype(make_obsrever(std::addressof(node)))
+{
+	// TODO: Simplified using algorithm template?
+	for(auto p(make_observer(std::addressof(node))); p && first != last;
+		++first)
+		p = AccessNodePtr(*p, *first);
+	return first;
+}
+//! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
+template<class _tNode, typename _tRange,
+	yimpl(typename = typename ystdex::enable_if_t<
+	!std::is_constructible<const string&, const _tRange&>::value>)>
+inline auto
+AccessNodePtr(_tNode&& node, const _tRange& c)
+	-> decltype(YSLib::AccessNodePtr(yforward(node), begin(c), end(c)))
+{
+	return YSLib::AccessNodePtr(yforward(node), begin(c), end(c));
+}
+
 //@}
 
 /*!
@@ -474,50 +498,52 @@ inline PDefH(const ValueNode*, AccessNodePtr, const ValueNode::Container* p_con,
 \relates ValueNode
 */
 //@{
-//! \brief 访问指定名称的子节点的指定类型对象。
+/*!
+\brief 访问子节点的指定类型对象。
+\note 使用 ADL \c AccessNode 。
+*/
 //@{
-template<typename _type>
+template<typename _type, typename... _tParams>
 inline _type&
-AccessChild(ValueNode& node, const string& name)
+AccessChild(ValueNode& node, _tParams&&... args)
 {
-	return Access<_type>(node.at(name));
+	return Access<_type>(AccessNode(node, yforward(args)...));
 }
-template<typename _type>
+template<typename _type, typename... _tParams>
 inline const _type&
-AccessChild(const ValueNode& node, const string& name)
+AccessChild(const ValueNode& node, _tParams&&... args)
 {
-	return Access<_type>(node.at(name));
+	return Access<_type>(AccessNode(node, yforward(args)...));
 }
 //@}
 
-/*!
-\brief 访问指定名称的子节点的指定类型对象的指针。
-\since build 668
-*/
+//! \brief 访问指定名称的子节点的指定类型对象的指针。
 //@{
-template<typename _type>
-inline _type*
-AccessChildPtr(ValueNode& node, const string& name) ynothrow
+template<typename _type, typename... _tParams>
+inline observer_ptr<_type>
+AccessChildPtr(ValueNode& node, _tParams&&... args) ynothrow
 {
-	return AccessPtr<_type>(AccessNodePtr(node.GetContainerRef(), name));
+	return AccessPtr<_type>(
+		AccessNodePtr(node.GetContainerRef(), yforward(args)...));
 }
-template<typename _type>
-inline const _type*
-AccessChildPtr(const ValueNode& node, const string& name) ynothrow
+template<typename _type, typename... _tParams>
+inline observer_ptr<const _type>
+AccessChildPtr(const ValueNode& node, _tParams&&... args) ynothrow
 {
-	return AccessPtr<_type>(AccessNodePtr(node.GetContainer(), name));
+	return AccessPtr<_type>(
+		AccessNodePtr(node.GetContainer(), yforward(args)...));
 }
-template<typename _type>
-inline _type*
-AccessChildPtr(ValueNode* p_node, const string& name) ynothrow
+template<typename _type, typename... _tParams>
+inline observer_ptr<_type>
+AccessChildPtr(ValueNode* p_node, _tParams&&... args) ynothrow
 {
-	return p_node ? AccessChildPtr<_type>(*p_node, name) : nullptr;
+	return p_node ? AccessChildPtr<_type>(*p_node, yforward(args)...) : nullptr;
 }
-template<typename _type>
-inline const _type*
-AccessChildPtr(const ValueNode* p_node, const string& name) ynothrow
+template<typename _type, typename... _tParams>
+inline observer_ptr<const _type>
+AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 {
-	return p_node ? AccessChildPtr<_type>(*p_node, name) : nullptr;
+	return p_node ? AccessChildPtr<_type>(*p_node, yforward(args)...) : nullptr;
 }
 //@}
 //@}

@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r660
+\version r662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2016-02-04 10:02 +0800
+	2016-02-04 14:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,7 +129,8 @@ template<typename... _tParams>
 ValueNode&
 AccessWidgetNode(ValueNode& node, const string& name, _tParams&&... args)
 {
-	TryRet(AccessWidgetNode(node.at("$children").at(name), yforward(args)...))
+	TryRet(AccessWidgetNode(AccessNode(AccessNode(node, "$children"), name),
+		yforward(args)...))
 	CatchThrow(std::out_of_range&,
 		WidgetNotFound(node.GetName(), "Widget children not found."))
 }

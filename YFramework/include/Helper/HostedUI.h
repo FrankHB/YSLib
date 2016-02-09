@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r452
+\version r463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-09-26 14:50 +0800
+	2016-02-09 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,26 +41,28 @@ namespace YSLib
 namespace Host
 {
 
+//! \since build 670
+//@{
 /*!
 \brief 取宿主渲染器指针。
 \return 若渲染器类型能转换为 HostRenderer 则返回转换后的指针；否则为空。
-\since build 430
 */
-inline PDefH(HostRenderer*, GetHostRendererPtrOf, UI::IWidget& wgt)
-	ImplRet(dynamic_cast<HostRenderer*>(&wgt.GetRenderer()))
+inline PDefH(observer_ptr<HostRenderer>, GetHostRendererPtrOf, UI::IWidget& wgt)
+	ImplRet(make_observer(dynamic_cast<HostRenderer*>(&wgt.GetRenderer())))
 
 /*!
 \brief 取宿主渲染器对应的窗口。
 \return 若渲染器类型能转换为 HostRenderer 且有对应窗口则返回窗口指针；否则为空。
 \since build 430
 */
-inline Window*
+inline observer_ptr<Window>
 GetWindowPtrOf(UI::IWidget& wgt)
 {
-	if(const auto p_r = dynamic_cast<HostRenderer*>(&wgt.GetRenderer()))
-		return p_r->GetWindowPtr();
-	return {};
+	return ystdex::call_value_or<observer_ptr<Window>>(
+		std::mem_fn(&HostRenderer::GetWindowPtr),
+		dynamic_cast<HostRenderer*>(&wgt.GetRenderer()));
 }
+//@}
 
 /*!
 \brief 等待宿主渲染器窗口就绪。

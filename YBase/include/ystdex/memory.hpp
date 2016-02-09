@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1593
+\version r1633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-02-07 13:58 +0800
+	2016-02-07 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -887,7 +887,7 @@ public:
 	template<typename _tOther>
 	yconstfn
 	observer_ptr(observer_ptr<_tOther> other) ynothrow
-		: ptr(other.ptr)
+		: ptr(other.get())
 	{}
 
 	//! \pre 断言： <tt>get() != nullptr</tt> 。
@@ -907,26 +907,6 @@ public:
 	operator==(const observer_ptr& p, nullptr_t)
 	{
 		return !p.ptr;
-	}
-	template<typename _type1, typename _type2>
-	friend yconstfn bool
-	operator==(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
-	{
-		return p1.ptr == p2.ptr;
-	}
-
-	template<typename _type1, typename _type2>
-	friend yconstfn bool
-	operator!=(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
-	{
-		return !(p1 == p2);
-	}
-
-	template<typename _type1, typename _type2>
-	friend yconstfn bool
-	operator<(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
-	{
-		return std::less<common_type_t<_type1, _type2>>(p1.ptr, p2.ptr);
 	}
 
 	explicit yconstfn
@@ -971,6 +951,30 @@ public:
 
 //! \relates observer_ptr
 //@{
+//! \since build 670
+//@{
+template<typename _type1, typename _type2>
+yconstfn bool
+operator==(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+{
+	return p1.get() == p2.get();
+}
+
+template<typename _type1, typename _type2>
+yconstfn bool
+operator!=(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+{
+	return !(p1 == p2);
+}
+
+template<typename _type1, typename _type2>
+yconstfn bool
+operator<(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+{
+	return std::less<common_type_t<_type1, _type2>>(p1.get(), p2.get());
+}
+//@}
+
 template<typename _type>
 inline void
 swap(observer_ptr<_type>& p1, observer_ptr<_type>& p2) ynothrow

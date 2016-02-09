@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1344
+\version r1350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-02-07 13:44 +0800
+	2016-02-07 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -908,6 +908,10 @@ public:
 */
 class YF_API Clipboard : private YSLib::noncopyable, private YSLib::nonmovable
 {
+private:
+	//! \since build 670
+	class Data;
+
 public:
 	//! \brief 格式标识类型。
 	using FormatType = unsigned;
@@ -917,7 +921,7 @@ public:
 
 	/*!
 	\brief 判断指定格式是否可用。
-	\note Win32 平台：不可用时可能会改变 ::GetLastError() 的结果。
+	\note Win32 平台：不可用时可能会改变 <tt>::GetLastError()</tt> 的结果。
 	*/
 	static bool
 	IsAvailable(FormatType) ynothrow;
@@ -944,8 +948,9 @@ public:
 	Receive(YSLib::String&);
 
 private:
+	//! \since build 670
 	bool
-	ReceiveRaw(FormatType, std::function<void(const void*)>);
+	ReceiveRaw(FormatType, std::function<void(const Data&)>);
 
 public:
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r725
+\version r727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2016-01-10 03:25 +0800
+	2016-02-09 14:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,7 +249,7 @@ TreeList::GetNodePath(TreeList::IndexType idx) const
 const ValueNode&
 TreeList::GetNodeRef(IndexType idx) const
 {
-	return at(TreeRoot, GetNodePath(idx));
+	return AccessNode(TreeRoot, GetNodePath(idx));
 }
 
 void
@@ -320,7 +320,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		// TODO: Check state.
 		expanded.insert(branch_pth);
 
-		const auto& branch(at(TreeRoot, branch_pth));
+		const auto& branch(AccessNode(TreeRoot, branch_pth));
 		auto i(ystdex::as_const(indent_map).lower_bound(idx));
 
 		YAssert(i != indent_map.cend(), "Invalid state found.");

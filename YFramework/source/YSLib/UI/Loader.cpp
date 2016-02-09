@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r353
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2016-02-04 16:57 +0800
+	2016-02-09 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ ImplDeDtor(WidgetNotFound)
 IWidget&
 AccessWidget(const ValueNode& node)
 {
-	if(const auto p = node.at_p("$pointer"))
+	if(const auto p = AccessNodePtr(node, "$pointer"))
 		// NOTE: It may still throw %ystdex::bad_any_cast.
 		return Deref(Access<shared_ptr<IWidget>>(*p));
 	throw WidgetNotFound(node.GetName(), "Widget pointer not found.");
@@ -77,11 +77,11 @@ AccessWidget(const ValueNode& node)
 unique_ptr<IWidget>
 WidgetLoader::DetectWidgetNode(const ValueNode& node)
 {
-	const auto& child(node.at("$type"));
+	const auto& child(AccessNode(node, "$type"));
 
 	if(const auto p_type_str = AccessPtr<string>(child))
 	{
-		if(const auto* p_bounds_str = AccessChildPtr<string>(node, "$bounds"))
+		if(const auto p_bounds_str = AccessChildPtr<string>(node, "$bounds"))
 			try
 			{
 				const Rect& bounds(ParseRect(*p_bounds_str));
@@ -120,7 +120,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 				if(CheckChildName(vn.GetName()))
 					if(ValueNode child{TransformUILayout(vn)})
 					{
-						const auto& wgt_ptr_nd(child.at("$pointer"));
+						const auto& wgt_ptr_nd(AccessNode(child, "$pointer"));
 
 						if(const auto p_wgt_ptr
 							= AccessPtr<shared_ptr<IWidget>>(wgt_ptr_nd))

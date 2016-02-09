@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1610
+\version r1622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-02-07 11:49 +0800
+	2016-02-07 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -794,6 +794,7 @@ HostWindow::~HostWindow()
 		p_wnd(GetNativeHandle());
 
 #	if YCL_Win32
+	// XXX: Error ignored.
 	::SetWindowLongPtrW(p_wnd.get(), GWLP_USERDATA, ::LONG_PTR());
 #	endif
 }
@@ -808,6 +809,12 @@ HostWindow::MapPoint(const Point& pt) const
 
 
 #	if YCL_Win32
+class Clipboard::Data : public GlobalLocked
+{
+	using GlobalLocked::GlobalLocked;
+};
+
+
 Clipboard::Clipboard(NativeWindowHandle h_wnd)
 {
 	// FIXME: Spin for remote desktops?
@@ -845,27 +852,27 @@ Clipboard::GetOpenWindow() ynothrow
 bool
 Clipboard::Receive(YSLib::string& str)
 {
-	return ReceiveRaw(CF_TEXT, [&](const void* p) ynothrowv{
-		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<char>();
+	return ReceiveRaw(CF_TEXT, [&](const Data& d) ynothrowv{
+		str = d.GetPtr<char>();
 	});
 }
 bool
 Clipboard::Receive(YSLib::String& str)
 {
-	return ReceiveRaw(CF_UNICODETEXT, [&](const void* p) ynothrowv{
-		str = Deref(static_cast<const GlobalLocked*>(p)).GetPtr<char16_t>();
+	return ReceiveRaw(CF_UNICODETEXT, [&](const Data& d) ynothrowv{
+		str = d.GetPtr<char16_t>();
 	});
 }
 
 bool
-Clipboard::ReceiveRaw(FormatType fmt, std::function<void(const void*)> f)
+Clipboard::ReceiveRaw(FormatType fmt, std::function<void(const Data&)> f)
 {
 	if(IsAvailable(fmt))
 		if(const auto h = ::GetClipboardData(fmt))
 		{
-			const GlobalLocked gl(h);
+			const Data d(h);
 
-			Nonnull(f)(&gl);
+			Nonnull(f)(d);
 			return true;
 		}
 	return {};

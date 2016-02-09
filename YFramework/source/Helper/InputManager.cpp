@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r550
+\version r564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2015-03-24 09:42 +0800
+	2016-02-09 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,9 +51,9 @@ InputManager::InputManager()
 {}
 
 #if YCL_DS
-#	define YCL_CURSOR_VALID
+#	define YF_Impl_CursorValid
 #elif YF_Hosted
-#	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
+#	define YF_Impl_CursorValid if(cursor_state != Point::Invalid)
 #else
 #	error "Unsupported platform found."
 #endif
@@ -66,7 +66,7 @@ InputManager::DispatchInput(IWidget& wgt)
 		if(keyset[KeyCodes::Primary] || keyset[KeyCodes::Secondary]
 			|| keyset[KeyCodes::Tertiary])
 		{
-			YCL_CURSOR_VALID
+			YF_Impl_CursorValid
 			{
 				CursorEventArgs e(wgt, keyset, cursor_state);
 
@@ -84,7 +84,7 @@ InputManager::DispatchInput(IWidget& wgt)
 
 	disp(keys, KeyUp, TouchUp);
 #if YCL_Win32
-	YCL_CURSOR_VALID
+	YF_Impl_CursorValid
 	{
 		CursorEventArgs e(wgt, keys, cursor_state);
 
@@ -108,7 +108,8 @@ InputManager::DispatchInput(IWidget& wgt)
 			p_wnd->RawMouseButton = 0;
 		}
 
-		// TODO: Use ISO C++14 lambda initializers to simplify implementation.
+		// TODO: Blocked. Use ISO C++14 lambda initializers to simplify
+		//	implementation.
 		const auto p_input(st.ExternalTextInputFocusPtr);
 
 		p_wnd->AccessInputString([=, &st](String& ustr){
@@ -148,7 +149,7 @@ InputManager::DispatchInput(IWidget& wgt)
 #endif
 }
 
-IWidget*
+observer_ptr<IWidget>
 InputManager::Update()
 {
 	using namespace platform::KeyCodes;
@@ -160,29 +161,29 @@ InputManager::Update()
 	platform_ex::UpdateKeyStates();
 
 #if YF_Hosted
-	Host::Window* p_wnd{};
+	observer_ptr<Host::Window> p_wnd;
 
 #endif
 #if YCL_Win32
 	tie(p_wnd, cursor_state) = env.get().MapCursor();
 	if(!p_wnd)
-		return &env.get().Desktop;
+		return make_observer(&env.get().Desktop);
 #elif YF_Hosted
 	// TODO: Determine which inactive window should be used.
 	cursor_state = env.get().MapCursor().second;
-	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
-		return &p_render_wnd->GetRenderer().GetWidgetRef();
+	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd.get()))
+		return make_observer(&p_render_wnd->GetRenderer().GetWidgetRef());
 #elif YCL_DS
 	if(platform_ex::FetchKeyState()[Touch])
 		cursor_state = platform_ex::FetchCursor();
 #endif
 #if YCL_Android
-	return &Android::FetchNativeHostInstance().GetDesktopRef();
+	return make_observer(&Android::FetchNativeHostInstance().GetDesktopRef());
 #else
 	return {};
 #endif
 }
-#undef YCL_CURSOR_VALID
+#undef YF_Impl_CursorValid
 
 } // namespace Devices;
 
