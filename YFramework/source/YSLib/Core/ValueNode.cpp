@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r550
+\version r611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-02-04 09:17 +0800
+	2016-02-09 15:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,46 +72,12 @@ ValueNode::SwapContent(ValueNode& node) ynothrow
 	Value.swap(node.Value);
 }
 
-ValueNode&
-ValueNode::at(const string& n)
-{
-	return AccessNode(GetContainerRef(), n);
-}
-const ValueNode&
-ValueNode::at(const string& n) const
-{
-	return AccessNode(GetContainer(), n);
-}
-
-ValueNode*
-ValueNode::at_p(const string& n) ynothrow
-{
-	return AccessNodePtr(GetContainerRef(), n);
-}
-const ValueNode*
-ValueNode::at_p(const string& n) const ynothrow
-{
-	return AccessNodePtr(GetContainer(), n);
-}
-
 void
 ValueNode::swap(ValueNode& node) ynothrow
 {
 	std::swap(name, node.name),
 	SwapContent(node);
 }
-
-const ValueNode&
-at(const ValueNode& node, size_t n)
-{
-	auto& con(node.GetContainer());
-
-	if(n < con.size())
-		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-		return *std::next(con.cbegin(), ptrdiff_t(n));
-	throw std::out_of_range("Index is out of range.");
-}
-
 
 ValueNode&
 AccessNode(ValueNode::Container* p_con, const string& name)
@@ -127,18 +93,54 @@ AccessNode(const ValueNode::Container* p_con, const string& name)
 		return *p;
 	throw std::out_of_range("Wrong name found.");
 }
+ValueNode&
+AccessNode(ValueNode& node, size_t n)
+{
+	const auto p(AccessNodePtr(node, n));
 
-ValueNode*
+	if(p)
+		return *p;
+	throw std::out_of_range("Index is out of range.");
+}
+const ValueNode&
+AccessNode(const ValueNode& node, size_t n)
+{
+	const auto p(AccessNodePtr(node, n));
+
+	if(p)
+		return *p;
+	throw std::out_of_range("Index is out of range.");
+}
+
+observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container& con, const string& name) ynothrow
 {
-	return ystdex::call_value_or<ValueNode*>(ystdex::addrof<>(),
-		con.find(ValueNode(0, name)), {}, end(con));
+	return make_observer(ystdex::call_value_or<ValueNode*>(ystdex::addrof<>(),
+		con.find(ValueNode(0, name)), {}, end(con)));
 }
-const ValueNode*
+observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container& con, const string& name) ynothrow
 {
-	return ystdex::call_value_or<const ValueNode*>(ystdex::addrof<>(),
-		con.find(ValueNode(0, name)), {}, end(con));
+	return make_observer(ystdex::call_value_or<const ValueNode*>(
+		ystdex::addrof<>(), con.find(ValueNode(0, name)), {}, end(con)));
+}
+observer_ptr<ValueNode>
+AccessNodePtr(ValueNode& node, size_t n)
+{
+	auto& con(node.GetContainerRef());
+
+	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+	return n < con.size() ? make_observer(&*std::next(con.begin(), ptrdiff_t(n)))
+		: nullptr;
+}
+observer_ptr<const ValueNode>
+AccessNodePtr(const ValueNode& node, size_t n)
+{
+	auto& con(node.GetContainer());
+
+	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+	return n < con.size() ? make_observer(&*std::next(con.cbegin(), ptrdiff_t(n)))
+		: nullptr;
 }
 
 

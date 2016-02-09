@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3912
+\version r3920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-04 18:38 +0800
+	2016-02-08 14:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,7 +100,7 @@ struct HeldEqual : private ystdex::examiners::equal_examiner
 template<typename _type1, typename _type2>
 struct HeldEqual<weak_ptr<_type1>, weak_ptr<_type2>>
 {
-	static inline bool
+	static bool
 	are_equal(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
 	{
 		return x == y;
@@ -390,24 +390,24 @@ public:
 
 	/*!
 	\brief 访问指定类型对象指针。
-	\since build 398
+	\since build 670
 	*/
 	//@{
 	template<typename _type>
-	inline _type*
+	inline observer_ptr<_type>
 	AccessPtr() ynothrow
 	{
-		return ystdex::any_cast<_type*>(&content);
+		return YSLib::make_observer(ystdex::any_cast<_type*>(&content));
 	}
 	template<typename _type>
-	inline const _type*
+	inline observer_ptr<const _type>
 	AccessPtr() const ynothrow
 	{
-		return ystdex::any_cast<const _type*>(&content);
+		return YSLib::make_observer(ystdex::any_cast<const _type*>(&content));
 	}
 	//@}
 
-	/*
+	/*!
 	\brief 清除。
 	\post <tt>*this == ValueObject()</tt> 。
 	\since build 296
@@ -435,7 +435,7 @@ inline DefSwap(ynothrow, ValueObject)
 \tparam _type 被依赖的对象类型，需能被无参数构造。
 \tparam _tOwnerPointer 依赖所有者指针类型。
 \warning 依赖所有者指针需要实现所有权语义，
-	否则出现无法释放资源导致内存泄漏或其它非预期行为。
+	否则出现无法释放资源引起内存泄漏或其它非预期行为。
 \since build 195
 \todo 线程模型及安全性。
 

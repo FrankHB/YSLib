@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r839
+\version r858
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2015-01-31 02:21 +0800
+	2016-02-09 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,9 +71,9 @@ private:
 		并避免和其它代码冲突。
 	\warning 销毁窗口前移除映射，否则可能引起未定义行为。
 	\warning 非线程安全，应仅在宿主线程上操作。
-	\since build 389
+	\since build 670
 	*/
-	map<Host::NativeWindowHandle, Host::Window*> wnd_map;
+	map<Host::NativeWindowHandle, observer_ptr<Host::Window>> wnd_map;
 	/*!
 	\brief 窗口对象映射锁。
 	\since build 551
@@ -100,10 +100,10 @@ public:
 	/*!
 	\brief 点映射例程。
 	\sa MapCursor
-	\since build 571
+	\since build 670
 	*/
-	std::function<pair<Host::Window*, Drawing::Point>(const Drawing::Point&)>
-		MapPoint{};
+	std::function<pair<observer_ptr<Host::Window>, Drawing::Point>(
+		const Drawing::Point&)> MapPoint{};
 	/*!
 	\brief 宿主环境桌面。
 	\since build 571
@@ -131,22 +131,23 @@ public:
 	~Environment();
 
 #if YF_Hosted
+	//! \since build 670
+	//@{
 	/*!
 	\brief 取 GUI 前景窗口。
-	\since build 381
 	\todo 线程安全。
 	\todo 非 Win32 宿主平台实现。
 	*/
-	Host::Window*
+	observer_ptr<Host::Window>
 	GetForegroundWindow() const ynothrow;
 
 	/*!
 	\brief 插入窗口映射项。
 	\note 线程安全。
-	\since build 389
 	*/
 	void
-	AddMappedItem(Host::NativeWindowHandle, Host::Window*);
+	AddMappedItem(Host::NativeWindowHandle, observer_ptr<Host::Window>);
+	//@}
 
 #	if YF_Multithread == 1
 	/*!
@@ -161,9 +162,9 @@ public:
 	/*!
 	\brief 取本机句柄对应的窗口指针。
 	\note 线程安全。
-	\since build 389
+	\since build 670
 	*/
-	Host::Window*
+	observer_ptr<Host::Window>
 	FindWindow(Host::NativeWindowHandle) const ynothrow;
 
 #	if YF_Multithread == 1
@@ -180,24 +181,24 @@ public:
 	/*!
 	\brief 映射宿主光标位置到相对顶级窗口输入的光标位置。
 	\return 使用的顶级窗口指针（若使用屏幕则为空）和相对顶级窗口或屏幕的位置。
-	\since build 571
+	\since build 670
 	\todo 支持 Win32 和 Android 以外的平台。
 
 	首先确定屏幕光标位置，若 MapPoint 非空则调用 MapPoint 确定顶级窗口及变换坐标，
 	最后返回结果。
 	*/
-	pair<Host::Window*, Drawing::Point>
+	pair<observer_ptr<Host::Window>, Drawing::Point>
 	MapCursor() const;
 
 #	if YCL_Win32
 	/*!
 	\brief 映射顶级窗口的点。
-	\since build 571
+	\since build 670
 
 	首先调用使用指定的参数作为屏幕光标位置确定顶级窗口。
 	若存在指定的顶级窗口，则调用窗口的 MapCursor 方法确定结果，否则返回无效值。
 	*/
-	pair<Host::Window*, Drawing::Point>
+	pair<observer_ptr<Host::Window>, Drawing::Point>
 	MapTopLevelWindowPoint(const Drawing::Point&) const;
 #	endif
 	/*!

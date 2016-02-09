@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r551
+\version r556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2015-10-02 19:36 +0800
+	2016-02-09 16:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 #	endif
 {
 #	if YCL_Win32
-	e.AddMappedItem(h, this);
+	e.AddMappedItem(h, make_observer(this));
 	yunseq(
 	MessageMap[WM_MOVE] += [this]{
 		UpdateCandidateWindowLocation();
@@ -66,7 +66,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 		ystdex::pun_storage_t<::RAWINPUT> buf;
 		unsigned size(sizeof(buf));
 
-		// TODO: Use '{}' to simplify after resolving CWG 1368. See $2015-09
+		// TODO: Use '{}' to simplify after resolving CWG1368. See $2015-09
 		//	@ %Documentation::Workflow::Annual2015.
 		ystdex::trivially_fill_n(&buf);
 		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &buf,
@@ -78,7 +78,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 			{
 				if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
 					// NOTE: This value is safe to cast because it is
-					//	specified as a signed value, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms645578(v=vs.85).aspx .
+					//	specified as a signed value, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms645578(v=vs.85).aspx.
 					RawMouseButton = short(p_raw->data.mouse.usButtonData);
 			}
 		}
@@ -150,7 +150,7 @@ Window::UpdateCandidateWindowLocationUnlocked()
 		}
 		// FIXME: Correct implementation for non-Chinese IME.
 		// NOTE: See comment on %IMM32Manager::MoveImeWindow in
-		//	https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc .
+		//	https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc.
 		::SetCaretPos(caret_location.X, caret_location.Y);
 	}
 }

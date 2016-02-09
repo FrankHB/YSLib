@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r671
+\version r673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-02-08 06:12 +0800
+	2015-02-09 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ RenderWindow::Refresh()
 
 WindowThread::~WindowThread()
 {
-	const unique_ptr<Window> p_hold(Nonnull(GetWindowPtr()));
+	const unique_ptr<Window> p_hold(Nonnull(GetWindowPtr().get()));
 
 	YTraceDe(Debug, "Ready to close window '%p' on leaving window"
 		" thread.", ystdex::pvoid(p_hold.get()));
@@ -344,7 +344,7 @@ HostRenderer::Update(ConstBitmapPtr p, const Rect& r)
 Window&
 HostRenderer::Wait()
 {
-	Host::Window* p_wnd{};
+	observer_ptr<Host::Window> p_wnd;
 
 	// XXX: Busy wait.
 	while(!p_wnd)

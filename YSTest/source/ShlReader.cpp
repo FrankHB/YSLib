@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4873
+\version r4877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2016-02-01 13:14 +0800
+	2016-02-09 14:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,8 +214,8 @@ ShlReader::LoadBookmarks(const string& group)
 	try
 	{
 		// TODO: Complete unexpected input handling.
-		const auto& value(Access<string>(
-			FetchRoot().at("YReader")["Bookmarks"].at(ystdex::quote(group))));
+		const auto& value(Access<string>(AccessNode(AccessNode(FetchRoot(),
+			"YReader")["Bookmarks"], ystdex::quote(group))));
 
 		YTraceDe(Informative, "Loaded bookmark value '%s'.",
 			value.c_str());
@@ -238,8 +238,8 @@ ShlReader::LoadBookmarks(const string& group)
 ReaderSetting
 ShlReader::LoadGlobalConfiguration()
 {
-	TryRet(ReaderSetting((FetchRoot() %= LoadConfiguration().at("YReader"))
-		.at("ReaderSetting").GetContainer()))
+	TryRet(ReaderSetting(AccessNode(FetchRoot() %= AccessNode(LoadConfiguration(),
+		"YReader"), "ReaderSetting").GetContainer()))
 	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.
 		"Loading global configuration failed, type = [%s].", typeid(e).name()))

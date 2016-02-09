@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1900
+\version r1919
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-01-11 11:19 +0800
+	2016-02-07 19:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,16 @@
 #define YSL_INC_Adaptor_YAdaptor_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Adaptor_YNew // for <cstddef>, <cstdint>, <climits>, <new>,
-//	<initializer_list>, <string>, <list>, <map>, <utility>;
+#include YFM_YSLib_Adaptor_YNew // for <cstddef>, <cstdint>, <climits>,
+//	mandated <new>, mandated <initializer_list>, <string>, <list>, <map>,
+//	mandated <utility>;
 #include <libdefect/cmath.h> // for <cmath>, std::round;
-#include <ystdex/algorithm.hpp> // for <type_traits>, <algorithm>, ystdex::min,
-//	ystdex::max;
-#include <ystdex/functional.hpp> // for ystdex::seq_apply, ystdex::unseq_apply;
-#include YFM_YCLib_Keys // for platform::basic_types, <bitset>, YCLib key space;
+#include <ystdex/algorithm.hpp> // for mandated header, mandated <type_traits>,
+//	mandated <algorithm>, ystdex::min, ystdex::max;
+#include <ystdex/functional.hpp> // for mandated header, mandated <functional>,
+//	ystdex::seq_apply, ystdex::unseq_apply;
+#include YFM_YCLib_Keys // for platform::basic_types, mandated <bitset>,
+//	YCLib key space;
 #include YFM_YCLib_Debug // for <array>, <deque>, <forward_list>, <istream>,
 //	<ostream>, <queue>, <set>, <stack>, <unordered_map>, <unordered_set>,
 //	YFM_YCLib_Container, <vector>, '*string_view', forward_as_tuple, get,
@@ -174,11 +177,15 @@ using platform::const_pointer_cast;
 using platform::dynamic_pointer_cast;
 using platform::enable_shared_from_this;
 using platform::get_deleter;
+//! \since build 670
+using platform::make_observer;
 using platform::make_shared;
 using platform::make_unique;
 //! \since build 602
 using platform::make_unique_default_init;
 using platform::get_raw;
+//! \since build 670
+using platform::observer_ptr;
 using platform::owner_less;
 using platform::reset;
 using platform::share_raw;
@@ -189,6 +196,13 @@ using platform::unique_ptr;
 using platform::weak_ptr;
 
 using platform::lref;
+//@}
+
+//! \since build 670
+//@{
+using platform::nptr;
+using platform::tidy_ptr;
+using platform::pointer_iterator;
 //@}
 
 /*!

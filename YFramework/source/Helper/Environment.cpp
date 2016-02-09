@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1597
+\version r1607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-09-24 12:08 +0800
+	2016-02-09 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,8 +61,8 @@ namespace
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, unsigned msg, ::WPARAM w_param, ::LPARAM l_param)
 {
-	if(const auto p = reinterpret_cast<Window*>(::GetWindowLongPtrW(h_wnd,
-		GWLP_USERDATA)))
+	if(const auto p = static_cast<Window*>(reinterpret_cast<HostWindow*>(
+		::GetWindowLongPtrW(h_wnd, GWLP_USERDATA))))
 	{
 		YSL_DEBUG_DECL_TIMER(tmr, to_string(msg));
 		auto& m(p->MessageMap);
@@ -112,7 +112,7 @@ Environment::~Environment()
 	using ystdex::get_value;
 
 	std::for_each(wnd_map.cbegin() | get_value, wnd_map.cend() | get_value,
-		[](Window* const& p) ynothrow{
+		[](observer_ptr<Window> p) ynothrow{
 		FilterExceptions([&]{
 			p->Close();
 		});
@@ -122,7 +122,7 @@ Environment::~Environment()
 }
 
 #if YF_Hosted
-Window*
+observer_ptr<Window>
 Environment::GetForegroundWindow() const ynothrow
 {
 #	ifdef YCL_Win32
@@ -133,7 +133,7 @@ Environment::GetForegroundWindow() const ynothrow
 }
 
 void
-Environment::AddMappedItem(NativeWindowHandle h, Window* p)
+Environment::AddMappedItem(NativeWindowHandle h, observer_ptr<Window> p)
 {
 	lock_guard<mutex> lck(wmap_mtx);
 
@@ -146,7 +146,7 @@ Environment::EnterWindowThread()
 	++wnd_thrd_count;
 }
 
-Window*
+observer_ptr<Window>
 Environment::FindWindow(NativeWindowHandle h) const ynothrow
 {
 	lock_guard<mutex> lck(wmap_mtx);
@@ -165,7 +165,7 @@ Environment::LeaveWindowThread()
 }
 #	endif
 
-pair<Window*, Point>
+pair<observer_ptr<Window>, Point>
 Environment::MapCursor() const
 {
 #	if YCL_Win32
@@ -176,7 +176,7 @@ Environment::MapCursor() const
 
 	const Point pt{cursor.x, cursor.y};
 
-	return MapPoint ? MapPoint(pt) : pair<Window*, Point>({}, pt);
+	return MapPoint ? MapPoint(pt) : pair<observer_ptr<Window>, Point>({}, pt);
 #	elif YCL_Android
 	// TODO: Support floating point coordinates.
 	const auto& cursor(platform_ex::FetchCursor());
@@ -189,7 +189,7 @@ Environment::MapCursor() const
 }
 
 #	if YCL_Win32
-pair<Window*, Point>
+pair<observer_ptr<Window>, Point>
 Environment::MapTopLevelWindowPoint(const Point& pt) const
 {
 	::POINT cursor{pt.X, pt.Y};

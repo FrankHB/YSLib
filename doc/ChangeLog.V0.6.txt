@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r8448
+\version r8604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-02-07 17:36 +0800
+	2016-02-09 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,163 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx.Memory $=
+	(
+		* "ambiguity of friend comparison calls for %observer_ptr instances"
+			$since b669
+			$= (/ "all friend function templates %operator(==, !=, <)"
+				-> "non-member function templates"),
+		/ "ill-formed constructor template due to invalid access"
+			@ "class template %observer_ptr" $since b669
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ "using %platform::(nptr, tidy_ptr, pointer_iterator, \
+				make_observer, observer_ptr)" @ "namespace %YSLib"
+				@ %Adaptor.YAdaptor,
+			/ DLDI "class %TextFileBuffer" @ %YSLib.Service.TextManager
+				^ $dep_from ("%tidy_ptr" @ %Adaptor.YAdaptor) $dep_from
+				%YBase.YStandardEx.Memory ~ "%ystdex::nptr",
+			/ %Core $=
+			(
+				/ @ "class %ValueObject" @ %YObject $=
+				(
+					"all 2 function template %AccessPtr" $=
+					(
+						/ "wrapped return type with %observer_ptr";
+						/ $impl ^ $dep_from ("%YSLib::make_observer"
+							@ %Adaptor.YAdaptor)
+					),
+					* $re_add(b667) DD "missing '!'" @ "end of '/*'"
+						@ "multiline Doxygen comments"
+						@ "function %Clear" $since b296
+				),
+				/ %ValueNode $=
+				(
+					/ $forced "wrapped return type with %observer_ptr"
+						@ "all 4 function template %(AccessPtr; AccessChildPtr)"
+						$dep_from %YObject $dep_to
+						"observer pointer for node pointer access",
+					(
+					/ "wrapped return type with %observer_ptr"
+						@ "all 4 functions %AccessNodePtr",
+					+ "2 inline functions %(AccessNode, AccessNodePtr) with \
+						wrapped container pointer parameter type with \
+						%observer_ptr";
+						// Instead of replacing, to keep efficiency on ABI. \
+							Also to minimal modification and to keep ABI \
+							compatibility.
+					/ $forced "wrapped container pointer parameter type with \
+						%observer_ptr" @ "all 2 function templates %AccessPtr \
+						with container pointer parameter",
+						// This could be inefficient than builtin pointers in \
+							passing parameters on some ABI, but it is \
+							acceptable as in templates.
+					/ $forced "all 2 member function %ValueNode::at_p"
+						-> "non-member functions %AccessNodePtr with wrapped \
+						return type with %observer_ptr"
+					),
+					/ "all 2 function template %AccessChild supported \
+						forwarding parameters to %AccessNode",
+					(
+					/ "merged all non-member %at" -> "%AccessNode"
+						!^ "member function %ValueNode::at" $=
+					(
+						^ "ADL %AccessNode" ~ "%at",
+						/ "supported node references for range access",
+							// To support const tranparency.
+						/ "disabled range of string to avoid ambiguity"
+					);
+					- "all 2 member functions %ValueNode::at" $dep_from
+						%(Helper.Initialization, UI.(Loader, TreeView), \
+						YReader.ShlReader)
+					),
+					+ "inline function %AccessNode for non-const %ValueNode",
+					+ "function %AccessNode for non-const %ValueNode with \
+						index parameter",
+					+ "2 functions %AccessNodePtr for %ValueNode with index \
+						parameter",
+					(
+					+ "function template %AccessNodePtr for node references \
+						and iterator pair",
+					+ "function template %AccessNodePtr for node references \
+						and range"
+					),
+					/ "all 4 function template %AccessChildPtr supported \
+						forwarding parameters to %AccessNodePtr",
+				),
+				/ %YFunc $=
+				(
+					- $revert(b171) "class template %ExpandMemberFirstBinder",
+						// This should better be replaced other call wrappers \
+							with explicit 'dynamic_cast' at construction site.
+					- $revert(b167) "class template %ExpandMemberFirst",
+						// This should better be replaced by lambda-expression.
+					/ DLD "cleanup '#if 0' code",
+						// Polymorphic functors should be better typed in \
+							construction side. Other removed call wrappers \
+							should be better be replaced by lambda-expressions.
+					- "including <functional> and <typeinfo>" $dep_from
+						%(UI.YComponent, Documentation.YSLib)
+						// No YFramework code will be implicitly break due to \
+							new guarantees.
+				)
+			),
+			/ %UI $=
+			(
+				/ DLDI %UI.Loader $=
+				(
+					/ @ "member function %WidgetLoader::DetectWidgetNode" $=
+					(
+						/ $forced $dep_from
+							"observer pointer for node pointer access",
+						^ "AccessNode" ~ "%ValueNode::at"
+					),
+					/ "function template %AccessWidgetNode, member function \
+						%WidgetLoader::TransformUILayout" ^ "%AccessNode"
+						~ "%ValueNode::at",
+					/ $forced "function %AccessWidget" ^ "%AccessWidget"
+						~ $dep_from ("%ValueNode::at_p" @ %Core.ValueNode)
+				),
+				+ "including <typeinfo>" @ %UI.YComoponent,
+				/ DLDI @ "class %TreeList" @ %TreeView ^ "%AccessNode"
+					~ "%at for %ValueNode"
+			)
+		),
+		/ DLDI "data receive" @ "class %Clipboard" @ %YCLib.HostedGUI
+			^ "private data class" ~ 'void*',
+		/ %Helper $=
+		(
+			/ DLDI "function %InitializeInstalled" @ %Initialization
+				^ "%AccessNode" ~ "%ValueNode::at",
+			/ %Envrionment $=
+			(
+				* $impl "wrong pointer cast" @ "window procedure" $since b430,
+					// Not synchronized with %HostWindow, insignificant since \
+						the ABI uses same representation for different pointers.
+				/ $dev "all 'Host::Window*'" -> 'observer_ptr<Host::Window>'
+					$dep_from ("%observer_ptr" @ %YSLib.Adaptor.YAdaptor)
+					$dep_to "wrapping window pointer"
+			),
+			/ $forced DLDI ("member function %InputManager::Update"
+				@ %InputManager, "constructor %Window#2") @ %HostWindow
+				$dep_from "wrapping window pointer",
+			/ "wrapped return type with %observer_ptr"
+				@ ("functons %(GetHostRendererPtrOf, GetWindowPtrOf)"
+				@ %HostedUI, "member function %InputManager::Update"
+				@ %InputManager, "function %GetWindowPtr"
+				@ "classes %(WindowThread, HostRenderer)" @ %HostRenderer)
+		)
+	),
+	+ "new guaranteed including of headers" @ %Documentation.YSLib,
+	/ DLDI "member functions %ShlReader::(LoadBookmarks, \
+		LoadGlobalConfiguration)" @ %YReader.ShlReader
+),
+
+b669
 (
 	/ %YBase.YStandardEx $=
 	(

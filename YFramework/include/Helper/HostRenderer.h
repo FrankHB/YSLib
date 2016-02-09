@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r514
+\version r527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-08-15 08:54 +0800
+	2016-02-09 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,15 +29,14 @@
 #define INC_Helper_HostRenderer_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_HostWindow // for Host::Window;
+#include YFM_Helper_HostWindow // for Host::Window, ystdex::unimplemented;
 #if YF_Multithread == 1
 #	include <atomic>
 #	include <thread>
 #endif
-#include YFM_YSLib_UI_YRenderer
+#include YFM_YSLib_UI_YRenderer // for UI::BufferedRenderer;
 #include YFM_YSLib_UI_YWidget // for UI::GetSizeOf;
 #include YFM_Helper_ScreenBuffer // for ScreenRegionBuffer;
-#include <ystdex/exception.h> // for ystdex::unimplemented;
 
 namespace YSLib
 {
@@ -124,8 +123,12 @@ public:
 	*/
 	~WindowThread();
 
-	//! \note 线程安全。
-	DefGetter(const ynothrow, Window*, WindowPtr, p_window)
+	/*!
+	\note 线程安全。
+	\since build 670
+	*/
+	DefGetter(const ynothrow, observer_ptr<Window>, WindowPtr,
+		make_observer(static_cast<Window*>(p_window)))
 
 	/*!
 	\brief 默认生成守护对象。
@@ -267,7 +270,8 @@ public:
 	//! \since build 536
 	DefGetter(ynothrow, ScreenRegionBuffer&, BufferRef, rbuf)
 	DefGetter(const ynothrow, UI::IWidget&, WidgetRef, widget.get())
-	DefGetterMem(const ynothrow, Window*, WindowPtr, thrd)
+	//! \since build 670
+	DefGetterMem(const ynothrow, observer_ptr<Window>, WindowPtr, thrd)
 
 	/*!
 	\brief 设置 BufferedRenderer 缓冲区和本机缓冲区大小。
@@ -334,8 +338,8 @@ public:
 	/*!
 	\brief 调整和更新指定缓冲区内指定边界的内容至宿主窗口。
 	\pre 断言：指针参数非空。
-	\note 若宿主窗口未就绪则忽略。
 	\throw LoggedEvent 宿主窗口就绪时本机缓冲区大小和视图大小不一致。
+	\note 若宿主窗口未就绪则忽略。
 	\sa AdjustSize
 	\since build 591
 

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2532
+\version r2534
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-01-22 00:10 +0800
+	2016-02-09 14:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -460,7 +460,7 @@ InitializeInstalled()
 
 		if(node.GetName() == "YFramework")
 			node = PackNodes(string(), std::move(node));
-		LoadComponents(node.at("YFramework"));
+		LoadComponents(AccessNode(node, "YFramework"));
 		YTraceDe(Notice, "OK!");
 		return node;
 	}
@@ -530,7 +530,7 @@ Uninitialize() ynothrow
 		app_exit.pop();
 	}
 #if YCL_DS
-	// XXX: Ignored error.
+	// XXX: Error ignored.
 	platform_ex::UninitializeFileSystem();
 #endif
 #if !CHRLib_NoDynamicMapping

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r178
+\version r181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2015-12-27 21:45 +0800
+	2016-02-09 18:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,9 +95,9 @@ public:
 	\brief 更新输入状态。
 	\return 非宿主实现总是空指针，否则是待分发输入状态的顶层部件指针。
 	\note 对宿主实现，当前忽略顶级窗口不是 Host::Window 的情形。
-	\since build 387
+	\since build 670
 	*/
-	UI::IWidget*
+	observer_ptr<UI::IWidget>
 	Update();
 };
 
