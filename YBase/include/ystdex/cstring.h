@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2560
+\version r2566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2015-12-17 10:49 +0800
+	2016-02-11 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #ifndef YB_INC_ystdex_cstring_h_
 #define YB_INC_ystdex_cstring_h_ 1
 
-#include "type_pun.hpp" // for or_, is_same, enable_if_t, not_,
+#include "type_pun.hpp" // for is_in_types, enable_if_t, not_, or_,
 //	is_trivially_replaceable, cond_t, replace_cast, enable_if_replaceable_t;
 #include <cstring> // for std::strlen, std::strcpy, std::strncpy;
 #include <string> // for std::char_traits;
@@ -88,13 +88,12 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 \ingroup unary_type_traits
 \brief 判断字符类型是否被 ISO C++ 指定提供 <tt>std::char_traits</tt> 的特化。
 \note 同时是 WG21/N4100 指定的编码字符类型。
-\see ISO WG21/N4100 5[fs.req]/1 。
+\see WG21/N4100 5[fs.req]/1 。
 \since build 544
 */
 template<typename _tChar>
-struct is_char_specialized_in_std : or_<is_same<_tChar, char>,
-	is_same<_tChar, wchar_t>, is_same<_tChar, char16_t>,
-	is_same<_tChar, char32_t>>
+struct is_char_specialized_in_std
+	: is_in_types<_tChar, char, wchar_t, char16_t, char32_t>
 {};
 
 

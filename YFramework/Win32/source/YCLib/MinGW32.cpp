@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1621
+\version r1623
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-01-25 00:26 +0800
+	2016-02-10 00:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -590,7 +590,7 @@ DirectoryFindData::Close() ynothrow
 		yfsig);
 }
 
-wstring*
+observer_ptr<wstring>
 DirectoryFindData::Read()
 {
 	if(!h_node)
@@ -606,7 +606,7 @@ DirectoryFindData::Read()
 	}
 	if(h_node && h_node != INVALID_HANDLE_VALUE)
 		d_name = find_data.cFileName;
-	return h_node && d_name[0] != wchar_t() ? &d_name : nullptr;
+	return h_node && d_name[0] != wchar_t() ? make_observer(&d_name) : nullptr;
 }
 
 void

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2660
+\version r2693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2015-12-17 14:04 +0800
+	2016-02-11 17:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,9 @@
 #ifndef YB_INC_ystdex_type_op_hpp_
 #define YB_INC_ystdex_type_op_hpp_ 1
 
-#include "tuple.hpp" // for is_class, std::declval, or_, bool_constant,
-//	is_detected, is_void, _t, remove_reference_t, vdefer, common_type_t;
+#include "tuple.hpp" // for is_class, std::declval, or_, bool_constant, is_same,
+//	is_detected, is_void, _t, remove_reference_t, and_, cond_t, is_enum, vdefer,
+//	underlying_type_t, common_type_t;
 
 namespace ystdex
 {
@@ -210,32 +211,6 @@ struct have_common_nonempty_virtual_base
 //! \ingroup transformation_traits
 //@{
 /*!
-\brief 恒等元函数。
-\note 功能可以使用 ISO C++ 11 的 std::common_type 的单一参数实例替代。
-\note LWG2141 建议更改 std::common 的实现，无法替代。
-\note 这里的实现不依赖 std::common_type 。
-\note 同 boost::mpl::identity 。
-\note Microsoft Visual C++ 2013 使用 LWG2141 建议的实现。
-\see http://wg21.cmeerw.net/lwg/issue2141 。
-\see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
-\see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx 。
-\see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。
-\since build 334
-*/
-//@{
-template<typename _type>
-struct identity
-{
-	using type = _type;
-};
-
-//! \since build 595
-template<typename _type>
-using identity_t = _t<identity<_type>>;
-//@}
-
-
-/*!
 \brief 移除可能被 cv-qualifier 修饰的引用类型。
 \note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
 \since build 376
@@ -282,6 +257,15 @@ using member_target_type_t = _t<details::member_target_type_impl<_type>>;
 //! \ingroup metafunctions
 //@{
 /*!
+\brief 取底层类型。
+\note 同 underlying_type_t ，但对非枚举类型结果为参数类型。
+\since build 671
+*/
+template<typename _type>
+using underlying_cond_type_t
+	= cond_t<is_enum<_type>, vdefer<underlying_type_t, _type>, _type>;
+
+/*!
 \brief 取公共非空类型：若第一参数为非空类型则为第一参数，否则从其余参数推断。
 \since build 562
 */
@@ -294,7 +278,7 @@ using common_nonvoid_t = _t<cond_t<is_void<_type>,
 \since build 629
 */
 template<typename... _types>
-using common_underlying_t = common_type_t<underlying_type_t<_types>...>;
+using common_underlying_t = common_type_t<underlying_cond_type_t<_types>...>;
 
 
 /*!	\defgroup tags Tags

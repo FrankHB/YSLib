@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3775
+\version r3782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2015-06-30 17:38 +0800
+	2016-02-11 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 {
 	const auto& g(e.Target);
 	const auto& pt(e.Location);
-	const Rect bounds(Rect(pt, GetSizeOf(trk)) & e.ClipArea);
+	const Rect& bounds(Rect(pt, GetSizeOf(trk)) & e.ClipArea);
 	auto& pal(FetchGUIConfiguration().Colors);
 
 	FillRect(g, bounds, pal[Styles::Track]);
@@ -423,7 +423,7 @@ ScrollBar::InitializeArrowPainters(Rotation prev, Rotation next)
 	);
 }
 
-IWidget*
+observer_ptr<IWidget>
 ScrollBar::GetBoundControlPtr(const KeyInput& k)
 {
 	if(k.count() == 1)
@@ -431,16 +431,16 @@ ScrollBar::GetBoundControlPtr(const KeyInput& k)
 		if(GetOrientation() == Horizontal)
 		{
 			if(k[KeyCodes::Left])
-				return &btnPrev;
+				return make_observer(&btnPrev);
 			if(k[KeyCodes::Right])
-				return &btnNext;
+				return make_observer(&btnNext);
 		}
 		else
 		{
 			if(k[KeyCodes::Up])
-				return &btnPrev;
+				return make_observer(&btnPrev);
 			if(k[KeyCodes::Down])
-				return &btnNext;
+				return make_observer(&btnNext);
 		}
 	}
 	return {};

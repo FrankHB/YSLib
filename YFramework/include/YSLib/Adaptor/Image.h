@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1348
+\version r1402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2015-11-26 14:14 +0800
+	2016-02-11 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ using BitPerPixel = std::uint8_t;
 
 /*!
 \brief 图像格式。
-\note 枚举值和 ::FREE_IMAGE_FORMAT 兼容。
+\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_FORMAT 。
 \see FreeImage 宏 FI_ENUM 。
 \since build 457
 */
@@ -114,7 +114,7 @@ DefBitmaskEnum(ImageDecoderFlags)
 
 /*!
 \brief 采样过滤算法。
-\note 和 ::FREE_IMAGE_FILTER 兼容。
+\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_FILTER 。
 \see FreeImage 宏 FI_ENUM 。
 \since build 430
 */
@@ -131,7 +131,7 @@ enum class SamplingFilter
 
 /*!
 \brief 图像元数据模型标识。
-\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_MDMODEL 类型。
+\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_MDMODEL 。
 \since build 557
 */
 enum class ImageMetadataModel
@@ -223,9 +223,20 @@ public:
 	using Buffer = vector<octet>;
 
 private:
+	//! \since build 671
+	class YF_API ImageMemoryDelete
+	{
+	public:
+		using pointer = NativeHandle;
+
+		void
+		operator()(pointer) const ynothrow;
+	};
+
 	Buffer buffer;
-	NativeHandle handle;
 	ImageFormat format;
+	//! \since build 671
+	unique_ptr_from<ImageMemoryDelete> p_memory;
 
 public:
 	/*!
@@ -236,10 +247,11 @@ public:
 	//@{
 	/*!
 	\brief 构造：从现有图像打开。
-	\post <tt>GetBuffer().empty()</tt> 。
-	\throw UnknownImageFormat 未知图像格式。
+	\post \c GetBuffer().empty() 。
+	\throw BadImageAlloc 创建内存数据结构失败。
 	\throw GeneralEvent 图像为空。
 	\throw GeneralEvent 图像保存到缓冲区失败。
+	\throw UnknownImageFormat 未知图像格式。
 	*/
 	explicit
 	ImageMemory(const HBitmap&, ImageFormat = ImageFormat::BMP,
@@ -268,12 +280,12 @@ public:
 	DefDelMoveCtor(ImageMemory)
 	//@}
 	//! \since build 461
-	~ImageMemory();
+	DefDeDtor(ImageMemory)
 
 	//! \since build 470
 	DefGetter(const ynothrow, const Buffer&, Buffer, buffer)
 	DefGetter(const ynothrow, ImageFormat, Format, format)
-	DefGetter(const ynothrow, NativeHandle, NativeHandle, handle)
+	DefGetter(const ynothrow, NativeHandle, NativeHandle, p_memory.get())
 };
 //@}
 
@@ -286,25 +298,34 @@ public:
 class YF_API HBitmap final
 {
 public:
-	using DataPtr = ::FIBITMAP*;
+	using DataPtr = observer_ptr<::FIBITMAP>;
+	//! \since build 671
+	class YF_API Deleter
+	{
+	public:
+		using pointer = ::FIBITMAP*;
+
+		void
+		operator()(pointer) const ynothrow;
+	};
 
 private:
-	//! \since build 556
-	DataPtr p_bitmap;
+	//! \since build 671
+	unique_ptr_from<Deleter> p_bitmap;
 
 public:
 	/*!
-	\post <tt>!*this</tt> 。
+	\post \c !*this 。
 	\since build 556
 	*/
 	DefDeCtor(HBitmap)
-	/*
+	/*!
 	\brief 构造：使用现有数据指针。
 	\note 取得所有权。
 	\since build 556
 	*/
 	HBitmap(DataPtr ptr) ynothrow
-		: p_bitmap(ptr)
+		: p_bitmap(ptr.get())
 	{}
 	//! \exception LoggedEvent 异常中立：输入的大小分量过大。
 	//@{
@@ -335,7 +356,7 @@ public:
 	\since build 556
 	*/
 	//@{
-	/*
+	/*!
 	\brief 构造：使用指定 UTF-8 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
@@ -400,9 +421,9 @@ public:
 	HBitmap(const HBitmap&, const Size&, SamplingFilter);
 	//! \throw BadImageAlloc 存储分配失败。
 	HBitmap(const HBitmap&);
-	HBitmap(HBitmap&&) ynothrow;
+	DefDeMoveCtor(HBitmap)
 	//! \since build 461
-	~HBitmap();
+	DefDeDtor(HBitmap)
 	//@}
 
 	//! \since build 430
@@ -415,11 +436,11 @@ public:
 		return *this;
 	}
 
-	DefBoolNeg(explicit, p_bitmap)
+	DefBoolNeg(explicit, bool(p_bitmap))
 
 	/*!
 	\brief 取扫描线数据。
-	\pre 断言： <tt>bool(*this)</tt> 。
+	\pre 断言： \c bool(*this) 。
 	\pre 断言： 参数值小于高。
 	\return 扫描线数据的起始指针。
 	\note 扫描线宽为跨距。
@@ -438,7 +459,7 @@ public:
 	BitPerPixel
 	GetBPP() const ynothrow;
 	//! \since build 417
-	DefGetter(const ynothrow, DataPtr, DataPtr, p_bitmap)
+	DefGetter(const ynothrow, DataPtr, DataPtr, make_observer(p_bitmap.get()))
 	SDst
 	GetHeight() const ynothrow;
 	//! \since build 417
@@ -458,7 +479,7 @@ public:
 	\brief 取扫描线数据。
 	\pre 间接断言：参数值小于高。
 	\return 若数据指针为空则为空指针，否则为扫描线数据起始非空指针。
-	\note 使用 <tt>operator[]</tt> 实现。
+	\note 使用 \c operator[] 实现。
 	\sa operator[]
 	\since build 471
 	*/
@@ -470,9 +491,9 @@ public:
 	/*!
 	\brief 释放所有权。
 	\post <tt>!*this</tt>
-	\since build 566
+	\since build 671
 	*/
-	DataPtr
+	Deleter::pointer
 	Release() ynothrow;
 
 	/*!
@@ -510,7 +531,7 @@ public:
 	}
 	//@}
 
-	/*
+	/*!
 	\brief 交换。
 	\since build 430
 	*/
@@ -520,7 +541,6 @@ public:
 
 //! \relates HBitmap
 //@{
-
 /*!
 \brief 取图像延时。
 \return CheckNonnegativeScalar 检查后的元数据指定的被显示为帧的图像的时间间隔。
@@ -577,12 +597,12 @@ private:
 public:
 	/*!
 	\brief 无参数构造：默认实现。
-	\post <tt>*!this</tt> 。
+	\post \c *!this 。
 	\since build 556
 	*/
 	DefDeCtor(HMultiBitmap)
 	/*!
-	\post <tt>bool(*this)</tt> 。
+	\post \c bool(*this) 。
 	\throw BadImageAlloc 存储分配失败。
 	\throw std::invalid_argument 文件打开失败。
 	\since build 457
@@ -703,11 +723,11 @@ private:
 
 public:
 	/*!
-	\post <tt>!*this</tt> 。
-	\post <tt>!owns</tt> 。
+	\post \c !*this 。
+	\post \c !owns 。
 	*/
 	DefDeCtor(ImageTag)
-	/*
+	/*!
 	\brief 构造：使用现有数据指针。
 	\param o 所有权标签，若为 true 取得所有权。
 	\post <tt>owns == o</tt> 。
@@ -718,11 +738,11 @@ public:
 	{}
 	/*!
 	\pre 断言：表示名称的指针参数非空。
-	\post <tt>!owns</tt> 。
+	\post \c !owns 。
 	\throw GeneralEvent 没有找到指定的标签。
 	\throw std::invalid_argument 位图为空。
 	\since build 557
-	\todo 使用 <tt>YB_NONNULL(3)</tt> 。
+	\todo 使用 \c YB_NONNULL(3) 。
 	*/
 	//@{
 	//! \brief 构造：使用依赖的位图指针、模型和元数据名称。
@@ -735,10 +755,10 @@ public:
 		: ImageTag(bmp, model, &name[0])
 	{}
 	//@}
-	//! \post <tt>owns</tt> 。
+	//! \post \c owns 。
 	ImageTag(const ImageTag&) ythrow(BadImageAlloc);
 	/*!
-	\post <tt>!owns</tt> 。
+	\post \c !owns 。
 	\since build 557
 	*/
 	ImageTag(const ImageTag& tag, std::false_type) ynothrow
@@ -785,7 +805,7 @@ public:
 
 	/*!
 	\brief 释放所有权。
-	\post <tt>!*this</tt> 。
+	\post \c !*this 。
 	*/
 	DataPtr
 	Release() ynothrow;

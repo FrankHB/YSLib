@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1633
+\version r1661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-02-07 14:59 +0800
+	2016-02-11 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,10 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "addressof.hpp" // for <memory>, detected_t, conditional,
-//	ystdex::constfn_addressof, indirect_t, is_pointer, enable_if_t,
+#include "addressof.hpp" // for <memory>, and_, is_copy_constructible,
+//	is_class_type, cond_t, vdefer, detected_t, conditional,
+//	ystdex::constfn_addressof, indirect_element_t, remove_reference_t,
+//	detected_or_t, is_void, remove_pointer_t, is_pointer, enable_if_t,
 //	is_array, extent, remove_extent_t;
 #include "type_op.hpp" // for is_class_type, is_nonconst_object;
 #include <iterator> // for std::iterator_traits;
@@ -454,7 +456,7 @@ public:
 //@{
 //! \brief 使用分配器复制指定指针指向的对象。
 template<typename _type, class _tAlloc
-	= std::allocator<remove_reference_t<indirect_t<_type>>>>
+	= std::allocator<indirect_element_t<_type>>>
 auto
 clone_monomorphic(const _type& p, _tAlloc&& a = _tAlloc())
 	-> decltype(std::addressof(*p))
@@ -471,17 +473,43 @@ clone_monomorphic(const _type& p, _tAlloc&& a = _tAlloc())
 
 /*!
 \brief 使用 \c clone 成员函数复制指定指针指向的多态类类型对象。
-\pre 断言： <tt>std::is_polymorphic<remove_reference_t(decltype(*p))>()</tt> 。
+\pre 断言： <tt>is_polymorphic<indirect_element_t<decltype(p)>>()</tt> 。
 */
 template<class _type>
 auto
 clone_polymorphic(const _type& p) -> decltype(std::addressof(*p))
 {
-	static_assert(std::is_polymorphic<remove_reference_t<decltype(*p)>>(),
+	static_assert(is_polymorphic<indirect_element_t<decltype(p)>>(),
 		"Non-polymorphic class type found.");
 
 	return p->clone();
 }
+//@}
+
+
+/*!
+\ingroup metafunctions
+\since build 671
+*/
+//@{
+//! \brief 取删除器的 \c pointer 成员类型。
+template<class _tDeleter>
+using deleter_member_pointer_t
+	= typename remove_reference_t<_tDeleter>::pointer;
+
+//! \brief 取 unique_ptr 包装的指针类型。
+template<typename _type, class _tDeleter>
+using unique_ptr_pointer
+	= detected_or_t<_type*, deleter_member_pointer_t, _tDeleter>;
+
+/*!
+\brief 取指针对应的元素类型。
+
+当指针为空指针时为 \c void ，否则间接操作的元素类型。
+*/
+template<typename _tPointer, typename _tDefault = void>
+using defer_element = cond_t<is_void<remove_pointer_t<_tPointer>>, _tDefault,
+	vdefer<indirect_element_t, _tPointer>>;
 //@}
 
 

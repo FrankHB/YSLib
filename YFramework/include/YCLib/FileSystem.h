@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2923
+\version r2928
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-02-07 17:30 +0800
+	2016-02-11 01:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,8 +202,9 @@ private:
 	public:
 		using pointer = NativeHandle;
 
+		//! \since build 671
 		void
-		operator()(pointer) ynothrowv;
+		operator()(pointer) const ynothrowv;
 	};
 
 #if !YCL_Win32
@@ -218,8 +219,8 @@ protected:
 #endif
 
 private:
-	//! \since build 669
-	unique_ptr<Data, Deleter> dir;
+	//! \since build 671
+	unique_ptr_from<Deleter> dir;
 
 public:
 	/*!
@@ -853,7 +854,7 @@ ConvertToMBCS(const char16_t* path);
 \pre 断言：参数非空。
 \see Microsoft FAT specification Section 7.2 。
 */
-YF_API EntryDataUnit
+YF_API YB_NONNULL(1) EntryDataUnit
 GenerateAliasChecksum(const EntryDataUnit*) ynothrowv;
 
 /*!

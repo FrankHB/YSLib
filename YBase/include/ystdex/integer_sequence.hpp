@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r399
+\version r410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-01-26 14:25 +0800
+	2016-02-11 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,13 +203,19 @@ struct vdefer_i
 {};
 
 /*!
-\brief 直接接受 size_t 类型值二元操作合并应用。
 \sa vseq::fold
-\since build 589
+\since build 671
 */
+//@{
+//! \brief 整数类型值二元操作合并应用。
+template<typename _tInt, class _fBinary, _tInt _vState, _tInt... _vSeq>
+using vfold_i = vseq::fold_t<_fBinary, std::integral_constant<_tInt, _vState>,
+	integer_sequence<_tInt, _vSeq...>>;
+
+//! \brief size_t 类型值二元操作合并应用。
 template<class _fBinary, size_t _vState, size_t... _vSeq>
-using vfold = vseq::fold<_fBinary, std::integral_constant<size_t, _vState>,
-	index_sequence<_vSeq...>>;
+using vfold_s = vfold_i<size_t, _fBinary, _vState, _vSeq...>;
+//@}
 
 
 /*!
@@ -280,7 +286,7 @@ using make_natural_sequence_t
 \since build 651
 */
 template<typename _tInt, _tInt _vDefault, _tInt... _values>
-using same_value_as = std::is_same<integer_sequence<_tInt, _vDefault,
+using same_value_as = is_same<integer_sequence<_tInt, _vDefault,
 	_values...>, integer_sequence<_tInt, _values..., _vDefault>>;
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2792
+\version r2803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2016-02-07 17:29 +0800
+	2016-02-11 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,6 +69,18 @@ using yimpl(std)::shared_ptr;
 using yimpl(std)::static_pointer_cast;
 using ystdex::unique_raw;
 using yimpl(std)::unique_ptr;
+/*!
+\ingroup metafunctions
+\brief 取删除器对应的 unique_ptr 实例。
+\sa ystdex::defer_element
+\sa ystdex::unique_ptr_pointer
+\since build 671
+
+元素类型通过 unique_ptr_pointer 按指定的删除器推断，若失败则为第二参数。
+*/
+template<class _tDeleter, typename _tDefault = void>
+using unique_ptr_from = unique_ptr<ystdex::defer_element<
+	ystdex::unique_ptr_pointer<void, _tDeleter>, _tDefault>, _tDeleter>;
 using yimpl(std)::weak_ptr;
 
 //! \since build 554

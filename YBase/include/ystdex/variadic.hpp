@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r880
+\version r890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-01-26 15:18 +0800
+	2016-02-11 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -455,6 +455,17 @@ YB_Impl_Variadic_SeqOpB(vec_subtract)
 要求输入的元函数是满足元函数应用条件的类型。
 */
 //@{
+/*!
+\brief 构造具有 \c apply 成员的一阶元函数。
+\since build 671
+*/
+template<template<typename...> class _gOp>
+struct _a
+{
+	template<typename... _types>
+	using apply = identity<_gOp<_types...>>;
+};
+
 //! \brief 部分应用。
 //@{
 template<class _func, typename... _tParams>

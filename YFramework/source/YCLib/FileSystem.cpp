@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3605
+\version r3610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-02-07 14:01 +0800
+	2016-02-11 01:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,7 +229,7 @@ public:
 };
 #endif
 void
-DirectorySession::Deleter::operator()(pointer p) ynothrowv
+DirectorySession::Deleter::operator()(pointer p) const ynothrowv
 {
 #if YCL_Win32
 	default_delete<Data>()(p);
@@ -279,13 +279,12 @@ HDirectory&
 HDirectory::operator++()
 {
 	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
-	p_dirent = make_observer(
+	p_dirent
 #if YCL_Win32
-		static_cast<DirectoryFindData*>(GetNativeHandle())->Read()
+		= static_cast<DirectoryFindData*>(GetNativeHandle())->Read();
 #else
-		::readdir(GetNativeHandle())
+		= make_observer(::readdir(GetNativeHandle()));
 #endif
-	);
 	return *this;
 }
 

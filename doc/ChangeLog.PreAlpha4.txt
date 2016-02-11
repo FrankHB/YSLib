@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9079
+\version r9135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2015-10-12 11:47 +0800
+	2016-02-10 01:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ b499
 	(
 		/ %YCLib.Debug $=
 		(
-			/ $revert_ex(b298) $dev $impl "YCL_Trace"  $=
+			/ $revert_ex(b298) $dev $impl "YCL_Trace" $=
 			(
 				^ '[&]' ~ '[=]';
 				* $comp "capture failure for non-copyable bound variables"
@@ -89,8 +89,8 @@ b499
 				@ %Helper.(GUIApplication, DSApplication)
 				// This allows the application instance recreated for a \
 					reentrant process.
-			/ DLD "simplified implementation" ^ 'make_unique' ~ ('unique_ptr', \
-				'new') @ "function templates %(MakeRenderWindow, \
+			/ DLDI "simplified" ^ 'make_unique' ~ ('unique_ptr', 'new')
+				@ "function templates %(MakeRenderWindow, \
 				MakeRenderWindowEx)" @ "class %HostRenderer" @ %HostRenderer
 		),
 		+ "nonnull argument assertions"
@@ -176,8 +176,8 @@ b498
 			/ @ %UI.Loader $=
 			(
 				+ "(function; function template) %AccessWidgetNode";
-				/ DLD "simplified implementation"
-					@ "function template %AccessWidget" ^ "%AccessWidgetNode"
+				/ DLDI "simplified function template %AccessWidget"
+					^ "%AccessWidgetNode"
 			),
 			- "alias-declaration %SizeType" @ "class %MessageQueue"
 				@ %Core.Message
@@ -607,7 +607,7 @@ b494
 				(
 					(
 					+ "function %PaintVisibleChild";
-					/ DLD "simplified implementation"
+					/ DLDI "simplified"
 						@ "function %Widget::Refresh" ^ "%PaintVisibleChild"
 					),
 					/ "functions %(SetLocationOf, SetSizeOf; $comp \
@@ -617,14 +617,13 @@ b494
 				),
 				/ %"YUIContainer" $=
 				(
-					/ DLD "simplified implementation"
-						@ "function %MUIContainer::PaintVisibleChildren"
+					/ DLDI "simplified function %MUIContainer::PaintVisibleChildren"
 						^ "%PaintVisibleChild" $dep_from "%PaintVisibleChild",
 					/ "assertion text" @ "function %MUIContainer::operator-=",
 					+ "class %MLinearUIContainer,
 					+ "function %RemoveFrom"
 				),
-				/ DLD "simplified implementation"
+				/ DLDI "simplified"
 					@ "function %Panel::operator-=" $dep_from
 					"function %RemoveFrom" @ %YPanel,
 				+ %TabControl
@@ -759,9 +758,9 @@ b492
 (
 	/ DLP "toolchain and library using" @ "platform %DS" $=
 	(
-		^ $re_ex(b321) "updated devkitARM release 42" ~ "devkitARM release 41",
+		^ $re_ex(b321) $resolve(#14, #16, #21) "updated devkitARM release 42"
+			~ "devkitARM release 41",
 		^ $re_ex(b308) "updated libnds 1.5.8" ~ "libnds 1.5.7",
-		^ $re_ex(b308) "updated default arm7 0.5.25" ~ "default arm7 0.5.24",
 		^ $re_ex(b308) "updated libfat 1.0.12" ~ "libfat 1.0.11"
 	),
 	/ $dev $build "only use 'thread_local' with also defined(_MT)"
@@ -796,7 +795,7 @@ b492
 				/ "allowed %YCL_Android as valid target platform category",
 				+ 'yconstexpr KeyIndex KeyBitsetWidth(256);' @ %Keys,
 				+ "combined with %YCL_Win32" @ %Video
-				/ "conditional directives" @ %Video,
+				/ "conditional inclusion directives" @ %Video,
 				+ "native APIs implementation for %YCL_Android"
 					@ %(Timer, MemoryMapping, FileSystem),
 			),
@@ -943,7 +942,7 @@ b490
 		(
 			(
 			+ 'using platform::KeyIndex' @ %Adaptor.YAdaptor;
-			+ "class %KeyInpuDevice" @ %Core.YDevice
+			+ "class %KeyInputDevice" @ %Core.YDevice
 			),
 			/ %UI $=
 			(
@@ -1056,8 +1055,7 @@ b488
 		),
 		/ %YSLib $=
 		(
-			/ DLD "simplified implementation" ^ "%ystdex::exists"
-				$dep_from "%ystdex::exists",
+			/ DLDI "simplified" ^ "%ystdex::exists" $dep_from "%ystdex::exists",
 			/ %UI $=
 			(
 				+ "exited for Empty clipped area"
@@ -1085,8 +1083,7 @@ b488
 		/ %String $=
 		(
 			+ "function template %vsfmt";
-			/ DLD "simplified implementation" @ "function template %sfmt"
-				^ "%vsfmt"
+			/ DLDI "simplified function template %sfmt" ^ "%vsfmt"
 		)
 	),
 	+ DLB '-Wno-psabi' @ "CFLAGS" @ "makefiles" @ "platform %DS"
@@ -1152,7 +1149,7 @@ b486
 			/ @ "class %TextState" @ %Service.CharBase $=
 			(
 				+ "function %GetCharBounds",
-				/ DLD "simplified implementation" @ "functions %operator="
+				/ DLDI "simplified functions %operator="
 					^ "macros %(PDefHOp, ImplExpr)"
 			),
 			/ %UI $=
@@ -1205,7 +1202,7 @@ b486
 					/ @ "constructor %Control" $=
 					(
 						- "handlers" @ "events %(GotFocus, LostFocus)",
-						/ DLD "simplified implementation" $dep_from
+						/ DLDI "simplified" $dep_from
 							"function %OnUIEvent_Invalidate"
 					)
 				),
@@ -1263,7 +1260,7 @@ b485
 		),
 		/ %Service $=
 		(
-			/ DLD "simplified implementation"
+			/ DLDI "simplified"
 				@ "function %EmptyTextRenderer::operator()"
 				@ %TextRenderer ^ "%(PDefHOp, ImplExpr)",
 			/ %TextRenderer $=
@@ -1604,8 +1601,8 @@ b480
 			+ "function %ShareTo" @ "classes %(MRadioBox, RadioBox)",
 			* "wrong color" @ "background" @ "default visual style"
 				@ "%RadioBox",
-			/ DLD "simplified implementation" @ "function \
-				%(CheckBox::SetTicked, RadioBox::SetSelected)" !^ "%UpdateState"
+			/ DLDI "simplified function %(CheckBox::SetTicked, \
+				RadioBox::SetSelected)" !^ "%UpdateState"
 				// Reduced unnecessary duplicate update of state.
 		)
 	),
@@ -1763,7 +1760,7 @@ b476
 					^ "macros %(PDefHOp, ImplRet)",
 				/ DLD "implemented function %swap for %Path" ^ "macro %DefSwap"
 			),
-			/ DLD "simplified implementation"
+			/ DLDI "simplified"
 				^ "%make_unique for %unique_ptr with array type argument"
 				@ "%(GetFormatFromFilename, HBitmap::operator CompactPixmap)"
 				@ %Adaptor.Image $dep_from %YBase.YStandardEx.Memory,
@@ -1851,7 +1848,8 @@ b475
 			- "macro %YCL_MAX_PATH_LENGTH" @ %YCLib.FileSystem,
 			- $depr_clean "function %getcwd_n",
 			- "function %mkdirs",
-			+ "functions %(umkdir, urmdir)"
+			+ "functions %(umkdir, urmdir)",
+			/ DLDI "simplified string encoding conversion"
 		),
 		/ %CHRLib $=
 		(
@@ -1879,7 +1877,7 @@ b475
 		/ "common encoding conversion implementation" @ %YCLib.FileSystem
 			$dep_from "function %CHRLib::ucsdup" $=
 		(
-			/ DLD "simplified implementation";
+			/ DLDI "simplified";
 			* $comp "missing check for %ucsdup call success" $since b313,
 				// This could cause null pointer be passed to constructor of \
 					%std::string on UCS-to-MBCS conversion, which causes \
@@ -2052,7 +2050,7 @@ b473
 		),
 		/ @ %CHRLib.CharacterProcessing $=
 		(
-			+ "static assertion for type parameter"
+			+ $dev "static assertion for type parameter"
 				@ "function template %ToASCII",
 			/ DLD "simplified 4 inline functions %MBCToUC"
 				^ "macros %(PDefH, ImplRet)"
@@ -2127,8 +2125,8 @@ b472
 				+ "function %InitExStyles",
 				+ "style %Aoi"
 			),
-			/ DLD "simplified implementation"
-				@ "function %WidgetLoader::TransformUILayout" @ %Loader
+			/ DLDI "simplified function %WidgetLoader::TransformUILayout"
+				@ %Loader
 		)
 	)
 ),
@@ -2191,7 +2189,7 @@ b470
 		(
 			+ "range assertions of hue, saturation and light components of \
 				input value",
-			/ DLD "simplified implementation" ^ "function %MakeGray"
+			/ DLDI "simplified" ^ "function %MakeGray"
 		),
 		/ %Adaptor.Image $=
 		(
@@ -2453,7 +2451,7 @@ b464
 		),
 		/ @ "makefiles" @ "platform %DS" $=
 		(
-			+ ("-Wunreachable-code" @ "%CFLAGS",  "-Wnon-virtual-dtor"
+			+ ("-Wunreachable-code" @ "%CFLAGS", "-Wnon-virtual-dtor"
 				@ "%CXXFLAGS"),
 			+ "-Wcast-align" @ "%CFLAGS" @ "project %(YBase, YSTest_ARM7)"
 		)
@@ -4870,6 +4868,7 @@ b429
 
 b428
 (
+	* $resolve(#12) "tested issue" ^ "new toolchain",
 	/ %YFramework $=
 	(
 		/ %YSLib $=
@@ -4968,7 +4967,7 @@ b427
 					%Window::GetInputBounds" @ "platform %MinGW32" $since b388
 				+ $dev 'using namespace platform_ex' @ "namespace %Host"
 					@ "platform %MinGW32" @ %HostWindow,
-				/ DLD "simplified implementation" @ "class %Host::Window"
+				/ DLDI "simplified class %Host::Window"
 					^ "private inheritance %Windows::WindowReference"
 					$dep_from %'YCLib_(MinGW32)'.Win32GUI,
 				+ 'std::atomic<bool> BoundsLimited{false};'
@@ -5347,8 +5346,8 @@ b420
 		- "module configuration ('HINTING_MODULES += autofit',
 			'AUX_MODULES += cache', 'BASE_EXTENSIONS += ftfstype.c',
 			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c');
-		^ $re_ex(b366) "updated FreeType 2.5.0.1 with several files remained"
-			~ "FreeType 2.4.11"
+		^ $re_ex(b366) $workaround(#19) "updated FreeType 2.5.0.1 with several \
+			files remained" ~ "FreeType 2.4.11"
 			// See [Documentation::Dependencies @@2.2.3] .
 	)
 ),
@@ -5563,8 +5562,8 @@ b415
 			/ "text rendering supporting negative pitch and non 255 gray level \
 				bitmaps" $dep_from %YBase.YStandardEx.Iterator;
 			* $comp "wrong dispatch of char format" $since b414,
-			* $comp "bitmap rendering corrupting for font with non 255 \
-				gray level embedded bitmaps" $since b185
+			* $comp $resolve(#2) "bitmap rendering corrupting for font with \
+				non 255 gray level embedded bitmaps" $since b185
 			)
 			/ $dev "all '%u8' for alpha value" -> ('Color::AlphaType'
 				| "template parameter %_tAlpha") @ %YBlit
@@ -5703,7 +5702,7 @@ b412
 							iterator as input.
 					+ "2 function %get_transformer"
 				),
-				+ "class template %indirect_input_iterator";
+				+ "class template %indirect_input_iterator"
 			)
 		)
 	),
@@ -5735,13 +5734,13 @@ b412
 				silencely.
 			/ %Core $=
 			(
-				* $dev "strictly use of constexpr conforming to ISO C++11 for \
-					static data object %Invalid"
+				* $dev $workaround(#11) "strictly use of constexpr conforming \
+					to ISO C++11 for static data object %Invalid"
 					@ "class template %GBinaryObject" @ %GDIBase $since b311
-					// Resolved $known_issue_b351_1. Though C++1y may loose \
-						the restrictions as allowing this invalid C++11 \
-						construct. Note another restriction is already relaxed \
-						in the draft WG21/N3691. See $ref b412 $note "N3652".
+					// Though C++1y may loose the restrictions as allowing \
+						this invalid C++11 construct. Note another restriction \
+						is already relaxed in the draft WG21/N3691. See $ref \
+						b412 $note "N3652".
 				* $dev "wrong %yconstfn" @ "constructor %Message" @ %YMessage
 					$since b368,
 					// Though G++ accepts invalid code, it is conforming \
@@ -5765,8 +5764,11 @@ b412
 				@ "constructor template %Widget" @ %UI.YWidget $since b293
 		)
 	)
-	+ DLD "'const' for 'yconstfn' functions and function templates to \
-		eliminate Clang++ [-Wno-constexpr-not-const]"
+	+ DLD "'const' for 'yconstfn' functions and function templates" $effective
+		@ "functions %operator(++, --)" @ "class templates %(pointer_iterator, \
+		pseudo_iterator)" @ %YBase.YStandardEx.Iterator
+		// To eliminate Clang++ warning: [-Wno-constexpr-not-const].
+)
 ),
 
 b411
@@ -6001,6 +6003,7 @@ b408
 
 b407
 (
+	/ $workaround(#20) "Visual C++ project configuration names",
 	/ %YFramework.YSLib $=
 	(
 		/ $dev @ %Service.YGDI $=
@@ -6244,8 +6247,10 @@ b402
 					wide-oriented directory APIs" ~ "custom UTF-8 APIs",
 				* "spelling error" $since b171
 					$= (/ %YCL_PATH_SEPERATOR => %YCL_PATH_SEPARATOR),
-				+ "static asserts to check delimiter and separator constraints",
-				+ "file system path encoding constant %CS_Path";
+				+ $dev "static assertion to check delimiter and separator \
+					constraints",
+				+ $workaround(#18) "file system path encoding constant \
+					%CS_Path";
 				$dep_to "FileSystem"
 			)
 		),

@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1887
+\version r1890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-02-07 17:31 +0800
+	2016-02-11 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,8 +173,9 @@ public:
 	{
 		using pointer = FileDescriptor;
 
+		//! \since build 671
 		void
-		operator()(pointer) ynothrow;
+		operator()(pointer) const ynothrow;
 	};
 
 private:
@@ -417,7 +418,7 @@ public:
 
 
 //! \since build 626
-using UniqueFile = unique_ptr<FileDescriptor, FileDescriptor::Deleter>;
+using UniqueFile = unique_ptr_from<FileDescriptor::Deleter>;
 
 
 /*!

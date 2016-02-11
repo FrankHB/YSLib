@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1350
+\version r1355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-02-07 21:23 +0800
+	2016-02-11 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ public:
 	using pointer = NativeWindowHandle;
 
 	void
-	operator()(pointer) ynothrow;
+	operator()(pointer) const ynothrow;
 };
 
 
@@ -112,6 +112,7 @@ struct YF_API GDIObjectDelete
 {
 	using pointer = void*;
 
+	//! \since build 671
 	void
 	operator()(pointer) const ynothrow;
 };
@@ -439,10 +440,10 @@ private:
 	//! \since build 593
 	YSLib::Drawing::BitmapPtr p_buffer;
 	/*!
-	\invariant bool(p_bitmap;) 。
-	\since build 593
+	\invariant \c bool(p_bitmap) 。
+	\since build 671
 	*/
-	unique_ptr<void, GDIObjectDelete> p_bitmap;
+	unique_ptr_from<GDIObjectDelete> p_bitmap;
 #	endif
 
 public:

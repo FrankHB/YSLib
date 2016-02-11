@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r8604
+\version r8830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-02-09 19:16 +0800
+	2016-02-11 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,228 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				+ 'YB_NONNULL(1)' @ "function %FAT::LFN::GenerateAliasChecksum"
+					@ "namespace %platform",
+				/ $forced DLDI "simplified member function \
+					%HDirectory::operator++" @ %FileSystem $dep_from
+					("%DirectoryFindData::Read" @ %'YCLib_(Win32)'.MinGW32)
+			),
+			/ $forced DLDI "member functions %(Clipboard::Receive#(1, 2), Send#3)"
+				@ %HostedGUI $dep_from ("%GlobalLocked::GetPtr"
+				@ %'YCLib_(Win32)'.MinGW32),
+			+ "metafunction %unique_ptr_from" @ %Reference ^ $dep_from
+				("%ystdex::(defer_element, unique_ptr_pointer)"
+				@ %YBase.YStandardEx.Memory),
+			/ "abandoned element type"
+				@ ("alias %UniqueFile", "alias %UniqueHandle") @ %FileIO
+				^ $dep_from ("%unique_ptr_from" @ %Reference),
+				// The element type is not used.
+			/ DLDI "simpilified private data" @ ("class %DirectorySession"
+				@ %FileSystem, "platform %Win32" @ "class %ScreenBuffer, \
+				desturctor %HostWindow, clipboard string copy" @ %HostedGUI)
+				^ $dep_from ("%unique_ptr_from" @ %Reference),
+				// The element type is not changed.
+			+ 'const' @ "member function %operator()"
+				@ ("class %UnmapDelete" @ !"platform %DS" @ %MemroyMapping,
+				"class %FileDescriptor::Deleter" @ %FileIO, "private deleter"
+				@ "class %DirectorySession" @ %FileSystem,
+				"class %HostWindowDelete" @ %HostedGUI)
+				// To be consistent with %default_delete::operator().
+		),
+		/ %YSLib $=
+		(
+			/ $forced DLDI "all 2 functions %AccessPtr" @ "class %ValueObject"
+				@ %Core.YObject $dep_from
+				("%ystdex::any_cast" @ %YBase.YStandardEx.Any),
+			/ %Adaptor $=
+			(
+				+ 'using platform::unique_ptr_from;' @ "namespace %YSLib"
+					@ %YAdaptor,
+				/ %Image $=
+				(
+					/ @ "class %ImageMemory" $=
+					(
+						/ DLDI "private data members order",
+						/ "threw %BadImageAlloc on native handle allocation \
+							failure" ~ "%GeneralEvent",
+						(
+						/ "explictly defaulted move constructor",
+						+ $re_add(b669) DLDI "private deleter class";
+						(
+						^ DLDI $dep_from
+							("%unique_ptr_from" @ %Adaptor.YAdaptor);
+						* $comp $revert(b470) "leak for native resource when \
+							buffer is not used" @ "destructor" $since b470
+						),
+						/ $forced DLDI @ "function %GetNativeHandle"
+						)
+					),
+					/ @ "class %HBitmap" $=
+					(
+						* $re_add(b670) DD "missing '!'" @ "end of '/*'"
+							@ "multiline Doxygen comments" @ ("constructor#2"
+							$since b430, "constructor#6" $since b431,
+							"function %swap" $since b430),
+						(
+						(
+						+ "class %Deleter";
+						^ DLDI ("%unique_ptr_from" @ %Adaptor.YAdaptor);
+						/ "explicitly defaulted (move constructor, destructor)"
+						),
+						/ "wrapped %DataPtr with %observer_ptr";
+						/ $forced "function %Release"
+						)
+					)
+				),
+				/ %Font $=
+				(
+					/ @ "class %FontFamily" $=
+					(
+						/ $re_add(b670) "wrapped return type with %observer_ptr"
+							@ "all 2 functions %GetTypefacePtr"
+						/ DLDI "simplified all 2 functions %GetTypefaceRef"
+					),
+					/ @ "class %FontCache" $=
+					(
+						/ "wrapped protected data member %pDefaultFace with \
+							%observer_ptr",
+						/ $re_add(b670) "wrapped return type with %observer_ptr"
+							@ "functions %(GetDefaultTypefacePtr, \
+							GetTypefacePtr, GetFontFamilyPtr)",
+						/ "simplified %GetTypefacePtr"
+							^ "%ystdex::call_value_or"
+					),
+					/ DLDI "simplified function %FetchDefaultTypeface"
+				)
+			),
+			/ %UI $=
+			(
+				/ %YControl $=
+				(
+					/ @ "class %Control" $=
+					(
+						/ "wrapped %observer_ptr" @ "return type" @ "template \
+							argument" @ "type" @ "data member %BoundControlPtr",
+						/ $re_add(b670) "wrapped return type"
+							@ "function %GetBoundControlPtr"
+					),
+					* $re_add(b670) DD "missing '!'" @ "end of '/*'"
+						@ "multiline Doxygen comments"
+						@ "function template %OnEvent_StopRouting" $since b285
+				),
+				/ $forced "member function %ScrollBar::GetBoundControlPtr"
+					@ %Scroll $dep_from ("%Control" @ %YControl)
+			)
+		),
+		/ $re_add(b670) "wrapped return type with %observer_ptr"
+			@ "member function %DirectoryFindData::Read", "member function \
+				template %GlobalLocked::GetPtr" @ %'YCLib_(Win32)'.MinGW32,
+		/ $re_add(b670) $forced DLDI "function %InitializeSystemFontCache"
+			@ %Helper.Initialization $dep_from
+			("%FontCache::GetDefaultTypefacePtr" @ %YSLib.Adaptor.Font)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Any $=
+		(
+			+ "unary type trait %is_any_cast_dest",
+			/ @ "function template %any_cast" $=
+			(
+				(
+				/ $revert(b398) "cast template parameter type"
+					@ "all 2 overloads for pointer";
+				* $comp $doc "semantics equivalency with %boost::any_cast"
+					$mismatch $since b398,
+					// The interface was updated to WG21/N3508 (which was \
+						superseded by WG21/N3804), but 'boost::any_cast' \
+						actually did not changed all the time. So at least the \
+						documentation was (solely) wrong.
+				* $comp "conformance for WG21/N4081" $mismatch $since b590,
+				/ $forced DLDI "all 2 overloads for reference"
+				),
+				* "missing overload for rvalue reference" $mismatch $since b590,
+					// This overload was also introduced by WG21/N3804.
+				+ $dev "static assertion for destination type"
+					@ "all overloads for reference" ^ $dep_from
+					"%is_any_cast_dest"
+			),
+			(
+			/ "made 2nd default template argument 'true' only when 1st \
+				template argument meets %is_nothrow_move_constructible"
+				@ "class template %value_handler" @ "namespace %any_ops";
+			* $comp "conformance of %any storage for WG21/N4081 \
+				[any.class]/3" $mismatch $since b590
+				// It requires that the small object optimization can only \
+					apply to "nothrow copyable types". This was added since \
+					WG21/N3804.
+			)
+		),
+		/ %TypeTraits $=
+		(
+			+ "metafunctions %(indirect_element_t, are_same, is_in_types)",
+			/ DLDI "simplified speicialization" @ "metafunctions %(and_, or_)"
+		),
+		/ %Memory $=
+		(
+			/ $re_add(b670) DLDI "simplified default template argument"
+				@ "function template %clone_monomorphic"
+				^ $dep_from ("%indirect_element_t" @ %TypeTraits),
+			+ "metafunctions %(deleter_member_pointer_t; unique_ptr_pointer)",
+			+ "metafunction %defer_element" ^ $dep_from
+				("%indirect_element_t" @ %TypeTraits),
+			/ DLDI "simplified static assertion"
+				@ "function template %clone_polymorphic" $=
+			(
+				- "'std::' before 'is_polymorphic'",
+				^ $dep_from ("indirect_element_t" @ %TypeTraits)
+			)
+		),
+		/ %IntegerSequence $=
+		(
+			/ "metafunction %vfold" -> "metafunctions %(vfold_i; vfold_s)",
+			/ DLDI "simplified metafunction %same_value_as"
+				$= (- "'std::' before %is_same")
+		),
+		/ @ "namespace %ystdex" @ %Tuple $=
+		(
+			(
+			* "wrong %vseq::fold result" $since b589 $orig
+				(@ %sequence_fold $since b507);
+			+ "metafunction %vfold" @ %Tuple $dep_from
+				("%vfold" @ %IntegerSequence)
+			),
+			/ "metafunction %_q" => "namespace %vseq",
+		),
+		/ %TypeOperation $=
+		(
+			(
+			+ "metafunction %underlying_cond_type_t";
+			/ "metafunction supported non-enumeration types"
+				^ "%underlying_cond_type_t" ~ "%underlying_type_t"
+			),
+			/ "metafunctions %(identity, identity_t)" >> %TypeTraits
+		),
+		+ "metafunctions %_a" @ "group %composition" @ "namespace %vseq"
+			@ %Variadic ^ $dep_from ("%identity" @ %TypeOperation),
+		/ DLDI "simplified" ("static assertion"
+			@ "class template %used_list_cache" @ %Cache,
+			"metafunction %have_same_iterator_category" @ %IteratorTrait)
+			^ $dep_from ("%are_same" @ %TypeTraits) ~ "%(and_, is_same)"
+		/ DLDI "simplified unary type trait %is_char_specialized_in_std"
+			^ $dep_from ("%is_in_types" @ %TypeTraits) ~ "%(or_, is_in_types)"
+	),
+	/ $forced DLDI "constructor %ShlExplorer" @ %YReader.ShlExplorer
+		@ ("%Control::BoundControlPtr" @ %YFramework.YSLib.UI.YControl)
+),
+
+b670
 (
 	/ %YBase.YStandardEx.Memory $=
 	(
@@ -270,10 +492,10 @@ b669
 					@ "platform %Win32"
 					// Though it is still an incomplete type.
 				),
-				+ DLDI "private class %Deleter",
+				+ DLDI "private deleter class",
 				^ DLDI "%unique_ptr";
 				/ DLDI "simplified function %Rewind",
-				/ $forced DLDI "explictly move constructor",
+				/ $forced DLDI "explictly defaulted move constructor",
 				/ DLDI "simplified by explictly defaulted destructor"
 					@ "non-header file",
 					// Also avoided explicit delete-expression.
@@ -366,7 +588,7 @@ b668
 		),
 		/ %YSLib $=
 		(
-			/ DLDI "simplfied function %AddMIMEItems" @ %Service.ContentType
+			/ DLDI "simplified function %AddMIMEItems" @ %Service.ContentType
 				^ "%AccessPtr" ~ "%Access",
 				// To avoid explicit exception handling immediately.
 			/ %UI.Loader $=
@@ -4078,7 +4300,7 @@ b640
 			),
 			/ %String $=
 			(
-				/ DLDI "simplfied %is_string_class" ^ "%void_t",
+				/ DLDI "simplified %is_string_class" ^ "%void_t",
 				+ $lib 'YB_NONNULL(1)' @ "function templates %(vsfmt, sfmt)",
 				+ "support for %string_view like class types"
 					@ "functions templates %(erase_left, erase_right)",
@@ -5399,7 +5621,7 @@ b628
 				* $comp "wrong exception-specification" $since b421
 			)
 		),
-		+ "static assertions to ensure no throw copying of component type"
+		+ $dev "static assertions to ensure no throw copying of component type"
 			@ "%GBinaryGroup" @ %YSLib.Core.YGDIBase
 	),
 	/ %YBase $=

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4850
+\version r4857
 \author FrankHB <frankhb1989@gmail.com>
 \since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2015-04-10 01:27 +0800
+	2016-02-11 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,7 +175,7 @@ OnEvent_Call(_tEventArgs&& e)
 	CallEvent<_vID>(e.GetSender(), e);
 }
 
-/*
+/*!
 \brief 处理事件：停止事件路由。
 \since build 285
 */
@@ -283,16 +283,13 @@ protected:
 	DefExtendEventMap(YF_API ControlEventMap, VisualEventMap)
 
 public:
-	//标准控件事件见 VisualEvent 。
-
-	//事件组映射。
 	/*!
 	\brief 按键-指针设备输入事件组映射。
 	\note 默认为 Control::GetBoundControlPtr 。
 
 	转换按键输入事件为指定部件的指针设备输入事件。
 	*/
-	std::function<IWidget*(const KeyInput&)> BoundControlPtr;
+	std::function<observer_ptr<IWidget>(const KeyInput&)> BoundControlPtr;
 
 	/*!
 	\brief 构造：使用指定边界，无背景。
@@ -324,8 +321,9 @@ public:
 
 	/*!
 	\brief 取按键-指针设备输入默认事件组映射。
+	\since build 671
 	*/
-	virtual PDefH(IWidget*, GetBoundControlPtr, const KeyInput&)
+	virtual PDefH(observer_ptr<IWidget>, GetBoundControlPtr, const KeyInput&)
 		ImplRet(nullptr)
 
 	/*!

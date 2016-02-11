@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3473
+\version r3501
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2015-12-19 15:17 +0800
+	2016-02-11 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -216,17 +216,18 @@ public:
 	operator-=(Typeface&) ynothrow;
 
 	DefGetter(const ynothrow, const FamilyName&, FamilyName, family_name)
+	//! \since build 671
+	//@{
 	/*!
 	\brief 取指定样式的字型指针。
 	\note 若非 Regular 样式失败则尝试取 Regular 样式的字型指针。
 	*/
-	Typeface*
+	observer_ptr<Typeface>
 	GetTypefacePtr(FontStyle) const;
-	/*!
-	\brief 取指定样式名称的字型指针。
-	*/
-	Typeface*
+	//! \brief 取指定样式名称的字型指针。
+	observer_ptr<Typeface>
 	GetTypefacePtr(const StyleName&) const;
+	//@}
 	//! \since build 419
 	Typeface&
 	GetTypefaceRef(FontStyle) const;
@@ -496,8 +497,11 @@ protected:
 	FaceMap mFaces;
 	//! \brief 字型家族组索引。
 	FamilyMap mFamilies;
-	//! \brief 默认字型指针。
-	Typeface* pDefaultFace;
+	/*!
+	\brief 默认字型指针。
+	\since build 671
+	*/
+	observer_ptr<Typeface> pDefaultFace;
 
 public:
 	/*!
@@ -521,27 +525,21 @@ public:
 	DefGetter(const ynothrow, const FaceMap&, Faces, mFaces)
 	//! \brief 取字型家族组索引。
 	DefGetter(const ynothrow, const FamilyMap&, FamilyIndices, mFamilies)
-//	Font*
-//	GetFontPtr() const;
-	/*!
-	\brief 取指定名称的字型家族指针。
-	*/
-	const FontFamily*
+	//! \since build 671
+	//@{
+	//! \brief 取指定名称的字型家族指针。
+	observer_ptr<const FontFamily>
 	GetFontFamilyPtr(const FamilyName&) const;
 	/*!
 	\brief 取默认字型指针。
-	\throw LoggedEvent 记录异常事件。
-	\since build 425
+	\exception LoggedEvent 异常中立：初始化时发生的异常。
 	*/
-	const Typeface*
+	observer_ptr<const Typeface>
 	GetDefaultTypefacePtr() const;
-//	Typeface*
-//	GetTypefacePtr(u16) const; //!< 取字型组储存的指定索引的字型指针。
-	/*!
-	\brief 取指定名称的字型指针。
-	*/
-	const Typeface*
+	//! \brief 取指定名称的字型指针。
+	observer_ptr<const Typeface>
 	GetTypefacePtr(const FamilyName&, const StyleName&) const;
+	//@}
 
 private:
 	/*!

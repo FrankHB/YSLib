@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1577
+\version r1582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-01-25 00:43 +0800
+	2016-02-10 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,10 +297,10 @@ public:
 	~GlobalLocked();
 
 	template<typename _type = void>
-	_type*
+	observer_ptr<_type>
 	GetPtr() const ynothrow
 	{
-		return static_cast<_type*>(p_locked);
+		return make_observer(static_cast<_type*>(p_locked));
 	}
 };
 //@}
@@ -585,7 +585,7 @@ inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 若第一参数为空，则使用具有以下行为的处理器：
 对 \c CTRL_C_EVENT \c CTRL_CLOSE_EVENT 、 \c CTRL_BREAK_EVENT 、
 \c CTRL_LOGOFF_EVENT 、和 \c CTRL_SHUTDOWN_EVENT ，调用
-<tt>std::_Exit(STATUS_CONTROL_C_EXIT)</tt> 。
+\c std::_Exit(STATUS_CONTROL_C_EXIT) 。
 第二参数指定添加或移除。
 */
 YF_API void
@@ -721,13 +721,13 @@ public:
 	/*!
 	\brief 读取：迭代当前查找状态。
 	\return 若迭代结束后节点且文件名非空，表示当前查找项目名的指针；否则为空指针。
-	\since build 593
+	\since build 671
 
 	若查找节点句柄非空则迭代当前查找状态查找下一个文件系统项。
 	否则查找节点句柄为空或迭代失败则关闭查找状态并置查找节点句柄空。
 	最终查找节点非空时保存记录当前查找的项目状态。
 	*/
-	wstring*
+	observer_ptr<wstring>
 	Read();
 
 	//! \brief 复位查找状态：若查找节点句柄非空则关闭查找状态并置查找节点句柄空。
