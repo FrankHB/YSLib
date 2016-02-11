@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2534
+\version r2535
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-02-09 14:10 +0800
+	2016-02-11 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -504,7 +504,7 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 		else
 			throw GeneralEvent("No fonts found.");
 		YTraceDe(Notice, "Setting default font face...");
-		if(const auto* const pf = fc.GetDefaultTypefacePtr())
+		if(const auto pf = fc.GetDefaultTypefacePtr())
 			YTraceDe(Notice, "\"%s\":\"%s\",\nsuccessfully.\n",
 				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 		else

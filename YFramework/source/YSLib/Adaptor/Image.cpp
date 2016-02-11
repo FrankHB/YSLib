@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1130
+\version r1201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2015-09-08 01:06 +0800
+	2016-02-11 03:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ namespace Drawing
 //! \since build 430
 static_assert(int(SamplingFilter::Box) == ::FILTER_BOX
 	&& int(SamplingFilter::Bicubic) == ::FILTER_BICUBIC
-	&& int(SamplingFilter::Bilinear) == FILTER_BILINEAR
+	&& int(SamplingFilter::Bilinear) == ::FILTER_BILINEAR
 	&& int(SamplingFilter::BSpline) == ::FILTER_BSPLINE
 	&& int(SamplingFilter::CatmullRom) == ::FILTER_CATMULLROM
 	&& int(SamplingFilter::Lanczos3) == ::FILTER_LANCZOS3,
@@ -183,7 +183,7 @@ GetFormatFromFilename(const char16_t* filename)
 ::FI_PluginRec&
 LookupPlugin(::FREE_IMAGE_FORMAT fif)
 {
-	if(auto p_node = ::FreeImageEx_GetPluginNodeFromFIF(fif))
+	if(const auto p_node = ::FreeImageEx_GetPluginNodeFromFIF(fif))
 	{
 		if(const auto p_plugin = p_node->m_plugin)
 			return *p_plugin;
@@ -230,42 +230,57 @@ ImplDeDtor(UnsupportedImageFormat)
 ImplDeDtor(UnknownImageFormat)
 
 
+void
+ImageMemory::ImageMemoryDelete::operator()(pointer p) const ynothrow
+{
+	::FreeImage_CloseMemory(p);
+}
+
+
 ImageMemory::ImageMemory(const HBitmap& pixmap, ImageFormat fmt,
 	ImageDecoderFlags flags)
-	: buffer(), handle(), format(fmt)
+	: buffer(), format([=]{
+		if(fmt == ImageFormat::Unknown)
+			throw UnknownImageFormat("Unknown image format found when saving.");
+		return fmt;
+	}()), p_memory([&]{
+		if(!pixmap.GetDataPtr())
+			throw GeneralEvent("Source image is empty.");
+		return ::FreeImage_OpenMemory();
+	}())
 {
-	if(fmt == ImageFormat::Unknown)
-		throw UnknownImageFormat("Unknown image format found when saving.");
-
-	const auto p_data(pixmap.GetDataPtr());
-
-	if(!p_data)
-		throw GeneralEvent("Source image is empty.");
-	handle = ::FreeImage_OpenMemory();
-	if(!::FreeImage_SaveToMemory(::FREE_IMAGE_FORMAT(format), p_data,
-		handle, int(flags)))
-		throw GeneralEvent("Saving image to memory failed.");
+	if(p_memory)
+	{
+		if(!::FreeImage_SaveToMemory(::FREE_IMAGE_FORMAT(format),
+			pixmap.GetDataPtr().get(), GetNativeHandle(), int(flags)))
+			throw GeneralEvent("Saving image to memory failed.");
+	}
+	else
+		throw BadImageAlloc();
 }
 ImageMemory::ImageMemory(Buffer buf)
 	: ImageMemory(std::move(buf), ImageFormat::Unknown)
 {
-	format = ImageCodec::DetectFormat(handle, buffer.size());
+	format = ImageCodec::DetectFormat(GetNativeHandle(), buffer.size());
 }
 ImageMemory::ImageMemory(Buffer buf, ImageFormat fmt)
 	: buffer([&]{
 		if(buf.empty())
 			throw GeneralEvent("Null buffer found.");
 		return std::move(buf);
-	}()), handle(::FreeImage_OpenMemory(static_cast<byte*>(buffer.data()),
-	static_cast<unsigned long>(buffer.size()))), format(fmt)
+	}()), format(fmt),
+	p_memory(::FreeImage_OpenMemory(static_cast<byte*>(buffer.data()),
+	static_cast<unsigned long>(buffer.size())))
 {
-	if(!handle)
+	if(!p_memory)
 		throw GeneralEvent("Opening image memory failed.");
 }
-ImageMemory::~ImageMemory()
+
+
+void
+HBitmap::Deleter::operator()(pointer p) const ynothrow
 {
-	if(!buffer.empty())
-		::FreeImage_CloseMemory(handle);
+	::FreeImage_Unload(p);
 }
 
 
@@ -327,32 +342,24 @@ HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
 		default:
 			throw UnsupportedImageFormat("Unsupported bit per pixel found.");
 		}
-	}(pixmap.p_bitmap))
+	}(pixmap.p_bitmap.get()))
 {
 	if(!p_bitmap)
 		throw GeneralEvent("Converting bitmap failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap, const Size& s, SamplingFilter sf)
-	: p_bitmap(::FreeImage_Rescale(pixmap.p_bitmap, CheckScalar<int>(s.Width),
-	CheckScalar<int>(s.Height), ::FREE_IMAGE_FILTER(sf)))
+	: p_bitmap(::FreeImage_Rescale(pixmap.p_bitmap.get(),
+	CheckScalar<int>(s.Width), CheckScalar<int>(s.Height),
+	::FREE_IMAGE_FILTER(sf)))
 {
 	if(!p_bitmap)
 		throw GeneralEvent("Rescaling image failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap)
-	: p_bitmap(::FreeImage_Clone(pixmap.p_bitmap))
+	: p_bitmap(::FreeImage_Clone(pixmap.p_bitmap.get()))
 {
 	if(!p_bitmap)
 		throw BadImageAlloc();
-}
-HBitmap::HBitmap(HBitmap&& pixmap) ynothrow
-	: p_bitmap(pixmap.p_bitmap)
-{
-	pixmap.p_bitmap = {};
-}
-HBitmap::~HBitmap()
-{
-	::FreeImage_Unload(p_bitmap);
 }
 
 byte*
@@ -360,7 +367,7 @@ HBitmap::operator[](size_t idx) const ynothrowv
 {
 	YAssertNonnull(*this);
 	YAssert(idx < GetHeight(), "Index is out of range.");
-	return ::FreeImage_GetScanLine(Nonnull(p_bitmap), int(idx));
+	return ::FreeImage_GetScanLine(Nonnull(p_bitmap.get()), int(idx));
 }
 
 HBitmap::operator CompactPixmap() const
@@ -370,44 +377,41 @@ HBitmap::operator CompactPixmap() const
 	auto pixels(make_unique_default_init<Pixel[]>(size_t(GetAreaOf(s))));
 
 	::FreeImage_ConvertToRawBits(ystdex::aligned_store_cast<byte*>(&pixels[0]),
-		GetDataPtr(), CheckScalar<int>(s.Width * sizeof(Pixel)), YF_PixConvSpec,
-		true);
+		GetDataPtr().get(), CheckScalar<int>(s.Width * sizeof(Pixel)),
+		YF_PixConvSpec, true);
 	return CompactPixmap(std::move(pixels), s);
 }
 
 BitPerPixel
 HBitmap::GetBPP() const ynothrow
 {
-	return ::FreeImage_GetBPP(p_bitmap);
+	return ::FreeImage_GetBPP(p_bitmap.get());
 }
 SDst
 HBitmap::GetHeight() const ynothrow
 {
-	return ::FreeImage_GetHeight(p_bitmap);
+	return ::FreeImage_GetHeight(p_bitmap.get());
 }
 SDst
 HBitmap::GetPitch() const ynothrow
 {
-	return ::FreeImage_GetPitch(p_bitmap);
+	return ::FreeImage_GetPitch(p_bitmap.get());
 }
 byte*
 HBitmap::GetPixels() const ynothrow
 {
-	return ::FreeImage_GetBits(p_bitmap);
+	return ::FreeImage_GetBits(p_bitmap.get());
 }
 SDst
 HBitmap::GetWidth() const ynothrow
 {
-	return ::FreeImage_GetWidth(p_bitmap);
+	return ::FreeImage_GetWidth(p_bitmap.get());
 }
 
-HBitmap::DataPtr
+HBitmap::Deleter::pointer
 HBitmap::Release() ynothrow
 {
-	const auto ptr(p_bitmap);
-
-	p_bitmap = {};
-	return ptr;
+	return p_bitmap.release();
 }
 
 void
@@ -420,13 +424,13 @@ void
 HBitmap::SaveTo(const char* filename, ImageFormat fmt, ImageDecoderFlags flags)
 	const
 {
-	SaveImage(fmt, GetDataPtr(), filename, flags);
+	SaveImage(fmt, GetDataPtr().get(), filename, flags);
 }
 void
 HBitmap::SaveTo(const char16_t* filename, ImageFormat fmt,
 	ImageDecoderFlags flags) const
 {
-	SaveImage(fmt, GetDataPtr(), filename, flags);
+	SaveImage(fmt, GetDataPtr().get(), filename, flags);
 }
 
 TimeSpan
@@ -475,7 +479,8 @@ public:
 
 	DefGetter(const ynothrow, size_t, PageCount, page_count)
 
-	::FIBITMAP*
+	//! \since build 671
+	observer_ptr<::FIBITMAP>
 	LockPage(size_t = 0) const ynothrow;
 };
 
@@ -508,13 +513,14 @@ MultiBitmapData::~MultiBitmapData()
 		close(&io_ref.get(), handle, data);
 }
 
-::FIBITMAP*
+observer_ptr<::FIBITMAP>
 MultiBitmapData::LockPage(size_t index) const ynothrow
 {
 	YAssert(index < page_count, sfmt("Invalid page index %zu found, should be"
 		" less than %zu.", index, page_count).c_str());
 	if(const auto load = plugin_ref.get().load_proc)
-		return load(&io_ref.get(), handle, int(index), load_flags, data);
+		return make_observer(load(&io_ref.get(), handle, int(index), load_flags,
+			data));
 	return {};
 }
 
@@ -592,8 +598,8 @@ ImageTag::ImageTag(HBitmap::DataPtr p_bmp, ImageMetadataModel model,
 
 		::FITAG* p_new_tag{};
 
-		if(::FreeImage_GetMetadata(::FREE_IMAGE_MDMODEL(model), p_bmp, name,
-			&p_new_tag) && p_new_tag)
+		if(::FreeImage_GetMetadata(::FREE_IMAGE_MDMODEL(model), p_bmp.get(),
+			name, &p_new_tag) && p_new_tag)
 			return p_new_tag;
 		throw GeneralEvent("Specified tag not found.");
 	}())
@@ -731,7 +737,7 @@ ImageMetadataFindData::Read() ynothrow
 {
 	if(!p_metadata)
 		p_metadata = ::FreeImage_FindFirstMetadata(
-			::FREE_IMAGE_MDMODEL(CurrentModel), p_bitmap, &p_tag);
+			::FREE_IMAGE_MDMODEL(CurrentModel), p_bitmap.get(), &p_tag);
 	else if(!::FreeImage_FindNextMetadata(p_metadata, &p_tag))
 	{
 		Close();
@@ -783,17 +789,17 @@ ImageCodec::DetectFormat(const char16_t* filename)
 {
 	const auto fmt(GetFileType(filename));
 
+	// TODO: Implement detection based on file content rather than filename.
 	return fmt == ImageFormat::Unknown ? GetFormatFromFilename(filename) : fmt;
 }
 
 CompactPixmap
 ImageCodec::Load(ImageMemory::Buffer buf)
 {
-	ImageMemory mem(std::move(buf));
+	const ImageMemory mem(std::move(buf));
 
 	if(mem.GetFormat() == ImageFormat::Unknown)
 		throw UnknownImageFormat("Unknown image format found when loading.");
-
 	return HBitmap(mem);
 }
 

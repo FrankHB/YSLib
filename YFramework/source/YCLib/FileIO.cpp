@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2222
+\version r2223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-02-06 13:04 +0800
+	2016-02-11 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,7 +403,7 @@ CategorizeNode(mode_t st_mode) ynothrow
 
 
 void
-FileDescriptor::Deleter::operator()(pointer p) ynothrow
+FileDescriptor::Deleter::operator()(pointer p) const ynothrow
 {
 	if(p)
 		::close(*p);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15034
+\version r15056
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-12-25 12:05 +0800
+	2016-02-11 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -318,7 +318,7 @@ b598
 				aligned_storage_t<sizeof(void*), sizeof(void*)>>'
 				~ 'pod_storage<>>';
 				// From 8B to 4B on i686 targets.
-			/ $comp $src "%any size" $since b351
+			/ $comp $src $since b351 "%any size"
 				// Made the storage compact (from 32B to 8B on i686 targets),
 					same with implementation of %std::experimental::any in
 					libstdc++ 5.
@@ -359,8 +359,8 @@ b598
 					),
 					/ "function %GetSize" -> "%size",
 					+ "function %empty",
-					/ $src "node children allocation" ^ "in place class storage"
-						~ "%unique_ptr" $since b502,
+					/ $src $since b502 "node children allocation"
+						^ "in place class storage" ~ "%unique_ptr" ,
 					/ "removal of unique pointer node container interface" $=
 					(
 						- $revert(b502) "constructor (function, template) with \
@@ -374,8 +374,8 @@ b598
 							// For 'const', 'DefSetter' cannot be used here.
 						/ $dev $src -> "inline function"
 					),
-					/ $dev $src "functions %SwapContainer" -> "inline function"
-						^ "macros %(PDefH, ImplExpr)" $since b595
+					/ $dev $src $since b595 "functions %SwapContainer"
+						-> "inline function" ^ "macros %(PDefH, ImplExpr)"
 				),
 				/ $forced "return type" @ "all 2 function %CollectNodes"
 					-> 'ValueNode::Container'
@@ -687,7 +687,7 @@ b596
 				constructor templates" -> "2 constructor templates"
 				^ "%ystdex::exclude_self_ctor_t")
 	),
-	/ %Tools $=
+	/ $build %Tools $=
 	(
 		* "C frontend rejected '-Wsign-promo'" $since $orig (@ "default value"
 			@ "%CFLAGS_WARNING" @ (b540 @ "SHBuild-common-options.sh", b558
@@ -999,8 +999,8 @@ b595
 				// Similar to %ystdex::any.
 		)
 	),
-	+ '$C_CXXFLAGS_ARCH' @ "default value" @ "variable %C_CXXFLAGS_COMMON"
-		@ "%SHBuild-common-options.sh" @ %Tools,
+	+ $build '$C_CXXFLAGS_ARCH' @ "default value"
+		@ "variable %C_CXXFLAGS_COMMON" @ "%SHBuild-common-options.sh" @ %Tools,
 	/ $dev $repo $re_add(b594) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.(CHRLib.("%MapEx.h" => "%MappingEx.h")
@@ -1536,7 +1536,7 @@ b592
 		),
 		/ %YCLib $=
 		(
-			/ %NativeAPI $=
+			/ @ "platform %Win32" @ %NativeAPI $=
 			(
 				* "missing '#undef GetMessage'" $since b437,
 					// This caused %Win32Exception::GetMessage is actually \
@@ -2972,7 +2972,8 @@ b586
 				/ @ "function template %RestrictUnsigned" @ %YCoreUtilities $=
 				(
 					/ "2nd parameter" -> '_type' ~ 'unsigned',
-					+ "static assertion to confirm '_type' is unsigned integer"
+					+ $dev "static assertion to confirm '_type' is \
+						unsigned integer"
 					// Also to eliminate Clang++ warning: [-Wshorten-64-to-32] \
 						for %TextBox::UpdateTextBoxClippedText without cast.
 				)
@@ -3249,9 +3250,9 @@ b586
 	* $comp "mismatched header file name"
 		@ %YFramework.YSLib.(Core, Service).YModule $since b585
 	),
-	/ %Tool.Scripts $=
+	/ $build %Tool.Scripts $=
 	(
-		+ $build '-Wshorten-64-to-32 -Wweak-vtables' @ "default value"
+		+ '-Wshorten-64-to-32 -Wweak-vtables' @ "default value"
 			@ "variable %CXXFLAGS_IMPL_WARNING for Clang++"
 			@ "%SHBuild-common-options.sh",
 			// See $2015-03 @ %Documentation::Workflow::Annual2015 for details \
@@ -4372,7 +4373,7 @@ b576
 					qualified, to coordinate with the standard library style.
 			+ "noexcept exception specifications",
 			/ "implemented function %operator->" @ "struct %dereferenceable"
-				^ "%std::iterator" ~ '&',
+				^ "%std::addressof" ~ '&',
 			/ DLD "class-key for '_type2'" -> 'typename' ~ 'class',
 				// This can be a non-class type, e.g. parameter of %operator[].
 			/ @ "class templates %(dereferenceable, indexable)" $=
@@ -4853,7 +4854,7 @@ b572
 				(
 					(
 					+ "2 functions %Insert";
-					/ DLD "simplfied 2 functions %Add" ^ "%Insert",
+					/ DLD "simplified 2 functions %Add" ^ "%Insert",
 					+ "2 function templates %Insert"
 					),
 					+ 'ynothrow' @ "function %clear",
@@ -7565,7 +7566,7 @@ b555
 	),
 	- "-D_MT" @ "%CFLAGS" @ "makefiles" @ "platform %Android" $dep_from
 		%YFramework.YCLib.Platform,
-	/ $dev @ "%SHBuild-common-options.sh" @ %Tools.Scripts $=
+	/ $dev $build @ "%SHBuild-common-options.sh" @ %Tools.Scripts $=
 	(
 		(
 		+ "%CXXFLAGS_IMPL_COMMON with default values for G++ and Clang++";
@@ -8414,7 +8415,7 @@ b549
 					SHBuild_Install_HardLink_Exe)"),
 			/ "%common-options.sh" => "%SHBuild-common-options.sh",
 			/ "%common-toolchain.sh" => "%SHBuild-common-toolchain.sh",
-			/ @ "%SHBuild-appconf.sh" -> "%SHBuild-BuildApp.sh" $=
+			/ "%SHBuild-appconf.sh" -> "%SHBuild-BuildApp.sh" $=
 			(
 				(
 				+ "variable %SHBuild_Bin";
@@ -8427,7 +8428,7 @@ b549
 				+ "function %SHBuild_BuildApp"
 				)
 			);
-			/ @ "%install-sysroot.sh" $=
+			/ $install @ "%install-sysroot.sh" $=
 			(
 				+ "tried hard link for installing files from build directory \
 					at first",
@@ -10710,7 +10711,7 @@ b529
 				/ "using alias %difference_type" ^ "%std::iterator_traits",
 				+ "explicitly defaulted copy and move constructors"
 			),
-			/ "return type" @ "function template %make_transformed"
+			/ "return type" @ "function template %make_transforme"
 				^ "%decay_t" ~ "%array_type_decay"
 		),
 		/ %Memory $=
@@ -12104,7 +12105,7 @@ b517
 		),
 		/ %YCLib.Video $=
 		(
-			+ "static assertions for screen measurement types",
+			+ $dev "static assertions for screen measurement types",
 				// Now integer types are explicitly required.
 			/ "alias-declarations of %(SDst, SPos)" ^ "%(long, unsigned long)"
 				~ "%(std::int16_t, std::uint16_t) respectively"

@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r543
+\version r556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2016-01-26 14:25 +0800
+	2016-02-11 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,7 +148,7 @@ template<class _fBinary, typename _tState, typename... _types>
 struct fold<_fBinary, _tState, std::tuple<_types...>>
 {
 private:
-	using parts = split_n_t<sizeof...(_types) / 2, std::tuple<_types...>>;
+	using parts = split_n<sizeof...(_types) / 2, std::tuple<_types...>>;
 	using head = _t<parts>;
 	using tail = typename parts::tail;
 
@@ -239,6 +239,17 @@ template<template<typename...> class _gfunc, typename... _types>
 struct vdefer : vseq::defer<_gfunc, std::tuple<_types...>>
 {};
 
+/*!
+\brief 直接接受类型的二元操作合并应用。
+\sa vseq::fold
+\since build 671
+*/
+template<class _fBinary, typename _tState, typename... _types>
+using vfold = vseq::fold_t<_fBinary, _tState, std::tuple<_types...>>;
+
+
+namespace vseq
+{
 
 /*!
 \ingroup metafunction_composition
@@ -253,12 +264,14 @@ struct _q
 	//	also http://wg21.cmeerw.net/cwg/issue1430. However, here it is natural
 	//	and no higher-ranked polymorphism (template template argument) is
 	//	directly used.
-	// NOTE: Ideally, the templatec argument should be limited to enable check.
+	// NOTE: Ideally, the template argument should be limited to enable check.
 	//	However this is impossible since the arity of '_func::apply' is
 	//	unknown.
 	template<typename... _types>
-	using apply = vdefer<vseq::apply, _func, _types...>;
+	using apply = vdefer<apply, _func, _types...>;
 };
+
+}
 
 } // namespace ystdex;
 

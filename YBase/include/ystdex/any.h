@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,19 +11,19 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1958
+\version r2031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2015-11-27 19:57 +0800
+	2016-02-10 01:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see ISO WG21/N4081 6[any] 。
+\see WG21/N4081 6[any] 。
 \see http://www.boost.org/doc/libs/1_57_0/doc/html/any/reference.html 。
 */
 
@@ -42,7 +42,12 @@
 namespace ystdex
 {
 
-//! \since build 354
+/*!
+\brief any 操作的命名空间。
+\note YStandardEx 扩展。
+\sa any
+\since build 354
+*/
 namespace any_ops
 {
 
@@ -235,10 +240,11 @@ struct holder_tag
 
 /*!
 \brief 动态泛型对象处理器。
-\since build 355
+\since build 671
 */
 template<typename _type,
-	bool _bStoredLocally = is_aligned_storable<any_storage, _type>::value>
+	bool _bStoredLocally = and_<is_nothrow_move_constructible<_type>,
+	is_aligned_storable<any_storage, _type>>::value>
 class value_handler
 {
 public:
@@ -277,7 +283,7 @@ private:
 
 public:
 	//! \since build 352
-	static inline value_type*
+	static value_type*
 	get_pointer(const any_storage& s)
 	{
 		return get_pointer_impl(local_storage(), s);
@@ -285,13 +291,13 @@ public:
 
 private:
 	//! \since build 595
-	static inline value_type*
+	static value_type*
 	get_pointer_impl(false_type, const any_storage& s)
 	{
 		return s.access<value_type*>();
 	}
 	//! \since build 595
-	static inline value_type*
+	static value_type*
 	get_pointer_impl(true_type, const any_storage& s)
 	{
 		return std::addressof(get_reference_impl(true_type(), s));
@@ -515,12 +521,23 @@ public:
 
 
 /*!
+\ingroup unary_type_traits
+\brief 判断类型是否可以作为 any 引用转换的目标。
+\note YStandardEx 扩展。
+\sa any_cast
+\since build 671
+*/
+template<typename _type>
+using is_any_cast_dest = or_<is_reference<_type>, is_copy_constructible<_type>>;
+
+
+/*!
 \ingroup exceptions
 \brief 动态泛型转换失败异常。
 \note 基本接口和语义同 boost::bad_any_cast 。
 \note 非标准库提案扩展：提供标识转换失败的源和目标类型。
 \sa any_cast
-\see ISO WG21/N4081 6.2[any.bad_any_cast] 。
+\see WG21/N4081 6.2[any.bad_any_cast] 。
 \since build 586
 */
 class YB_API bad_any_cast : public std::bad_cast
@@ -548,6 +565,8 @@ public:
 	*/
 	~bad_any_cast() override;
 
+	//! \note YStandardEx 扩展。
+	//@{
 	const char*
 	from() const ynothrow
 	{
@@ -574,6 +593,7 @@ public:
 		return to_ti.get();
 	}
 	//@}
+	//@}
 
 	virtual YB_ATTR(returns_nonnull) const char*
 	what() const ynothrow override
@@ -588,7 +608,7 @@ public:
 \note 值语义。基本接口和语义同 std::experimental::any 提议
 	和 boost::any （对应接口以前者为准）。
 \warning 非虚析构。
-\see ISO WG21/N4081 6.3[any.class] 。
+\see WG21/N4081 6.3[any.class] 。
 \see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
 \todo allocator_arg 支持。
@@ -680,6 +700,8 @@ public:
 		return *this;
 	}
 
+	//! \note YStandardEx 扩展。
+	//@{
 	bool
 	operator!() const ynothrow
 	{
@@ -691,6 +713,7 @@ public:
 	{
 		return !empty();
 	}
+	//@}
 
 	bool
 	empty() const ynothrow
@@ -698,20 +721,28 @@ public:
 		return !manager;
 	}
 
+	//! \note YStandardEx 扩展。
+	//@{
 	//! \since build 352
 	void*
 	get() const ynothrow;
 
 	any_ops::holder*
 	get_holder() const;
+	//@}
 
 	void
 	clear() ynothrow;
 
 	void
-	swap(any& a) ynothrow;
+	swap(any&) ynothrow;
 
-	//! \since build 352
+	/*!
+	\brief 取目标指针。
+	\return 若存储目标类型和模板参数相同则为指向存储对象的指针值，否则为空指针值。
+	\note YStandardEx 扩展。
+	\since build 352
+	*/
 	//@{
 	template<typename _type>
 	_type*
@@ -735,7 +766,7 @@ public:
 
 /*!
 \relates any
-\see ISO WG21/N4081 6.4[any.nonmembers] 。
+\see WG21/N4081 6.4[any.nonmembers] 。
 */
 //@{
 /*!
@@ -752,24 +783,24 @@ swap(any& x, any& y) ynothrow
 \brief 动态泛型转换。
 \return 当 <tt>p && p->type() == typeid(remove_pointer_t<_tPointer>)</tt> 时
 	为指向对象的指针，否则为空指针。
-\note 语义同 boost::any_cast 。
+\note 语义同 \c boost::any_cast 。
 \relates any
-\since build 398
+\since build 671
 \todo 检验特定环境（如使用动态库时）比较 std::type_info::name() 的必要性。
 */
 //@{
 //@{
-template<typename _tPointer>
-inline _tPointer
+template<typename _type>
+inline _type*
 any_cast(any* p) ynothrow
 {
-	return p ? p->target<remove_pointer_t<_tPointer>>() : nullptr;
+	return p ? p->target<_type>() : nullptr;
 }
-template<typename _tPointer>
-inline _tPointer
+template<typename _type>
+inline const _type*
 any_cast(const any* p) ynothrow
 {
-	return p ? p->target<remove_pointer_t<_tPointer>>() : nullptr;
+	return p ? p->target<_type>() : nullptr;
 }
 //@}
 /*!
@@ -781,29 +812,43 @@ template<typename _tValue>
 inline _tValue
 any_cast(any& x)
 {
-	const auto p(any_cast<remove_reference_t<_tValue>*>(&x));
+	static_assert(is_any_cast_dest<_tValue>(),
+		"Invalid cast destination type found.");
 
-	if(!p)
-		throw bad_any_cast(x.type(), typeid(_tValue));
-	return static_cast<_tValue>(*p);
+	if(const auto p = any_cast<remove_reference_t<_tValue>>(&x))
+		return static_cast<_tValue>(*p);
+	throw bad_any_cast(x.type(), typeid(_tValue));
 }
 template<typename _tValue>
 _tValue
 any_cast(const any& x)
 {
-	const auto p(any_cast<remove_reference_t<_tValue>*>(&x));
+	static_assert(is_any_cast_dest<_tValue>(),
+		"Invalid cast destination type found.");
 
-	if(!p)
-		throw bad_any_cast(x.type(), typeid(_tValue));
-	return static_cast<_tValue>(*p);
+	if(const auto p = any_cast<const remove_reference_t<_tValue>>(&x))
+		return static_cast<_tValue>(*p);
+	throw bad_any_cast(x.type(), typeid(_tValue));
+}
+//! \since build 671
+template<typename _tValue>
+_tValue
+any_cast(any&& x)
+{
+	static_assert(is_any_cast_dest<_tValue>(),
+		"Invalid cast destination type found.");
+
+	if(const auto p = any_cast<remove_reference_t<_tValue>>(&x))
+		return static_cast<_tValue>(*p);
+	throw bad_any_cast(x.type(), typeid(_tValue));
 }
 //@}
 //@}
 
 /*!
 \brief 非安全动态泛型转换。
-\note 语义同 boost::unsafe_any_cast 。
-\pre 断言： <tt>p</tt> 。
+\note YSandardEx 扩展：语义同非公开接口 \c boost::unsafe_any_cast 。
+\pre 断言： \c p 。
 \relates any
 \since build 331
 */

@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r800
+\version r852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-02-06 22:43 +0800
+	2016-02-11 17:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -429,7 +429,7 @@ using enable_when = void_t<enable_if_t<_bCond>>;
 
 /*!
 \brief 逻辑操作元函数。
-\note 和 libstdc++ 实现以及 Boost.MPL 兼容。
+\note 接口和 libstdc++ 实现以及 Boost.MPL 兼容。
 \since build 578
 */
 //@{
@@ -444,13 +444,10 @@ template<typename _b1>
 struct and_<_b1> : _b1
 {};
 
-template<typename _b1, typename _b2>
-struct and_<_b1, _b2> : conditional_t<_b1::value, _b2, _b1>
-{};
-
-template<typename _b1, typename _b2, typename _b3, typename... _bn>
-struct and_<_b1, _b2, _b3, _bn...>
-	: conditional_t<_b1::value, and_<_b2, _b3, _bn...>, _b1>
+//! \since build 671
+template<typename _b1, typename _b2, typename... _bn>
+struct and_<_b1, _b2, _bn...>
+	: conditional_t<_b1::value, and_<_b2, _bn...>, _b1>
 {};
 
 
@@ -465,13 +462,10 @@ template<typename _b1>
 struct or_<_b1> : _b1
 {};
 
-template<typename _b1, typename _b2>
-struct or_<_b1, _b2> : conditional_t<_b1::value, _b1, _b2>
-{};
-
-template<typename _b1, typename _b2, typename _b3, typename... _bn>
-struct or_<_b1, _b2, _b3, _bn...>
-	: conditional_t<_b1::value, _b1, or_<_b2, _b3, _bn...>>
+//! \since build 671
+template<typename _b1, typename _b2, typename... _bn>
+struct or_<_b1, _b2, _bn...>
+	: conditional_t<_b1::value, _b1, or_<_b2, _bn...>>
 {};
 
 
@@ -781,8 +775,51 @@ struct is_interoperable
 {};
 
 
+/*!
+\ingroup metafunctions
+\since build 671
+*/
+//@{
+//! \brief 判断第一个参数和之后的参数指定的类型相同。
+template<typename _type, typename... _types>
+struct are_same : and_<is_same<_type, _types>...>
+{};
+
+//! \brief 判断第一个参数在之后参数指定的类型中出现。
+template<typename _type, typename... _types>
+struct is_in_types : or_<is_same<_type, _types...>>
+{};
+//@}
+
+
 //! \ingroup transformation_traits
 //@{
+/*!
+\brief 恒等元函数。
+\note 功能可以使用 ISO C++ 11 的 std::common_type 的单一参数实例替代。
+\note LWG2141 建议更改 std::common_type 的实现，无法替代。
+\note 这里的实现不依赖 std::common_type 。
+\note 同 boost::mpl::identity 。
+\note Microsoft Visual C++ 2013 使用 LWG2141 建议的实现。
+\see http://wg21.cmeerw.net/lwg/issue2141 。
+\see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
+\see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx 。
+\see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。
+\since build 334
+*/
+//@{
+template<typename _type>
+struct identity
+{
+	using type = _type;
+};
+
+//! \since build 595
+template<typename _type>
+using identity_t = _t<identity<_type>>;
+//@}
+
+
 //! \since build 669
 //@{
 template<typename _type>
@@ -791,6 +828,10 @@ using addrof_t = decltype(&std::declval<_type>());
 template<typename _type>
 using indirect_t = decltype(*std::declval<_type>());
 //@}
+
+//! \since build 671
+template<typename _type>
+using indirect_element_t = remove_reference_t<indirect_t<_type>>;
 
 
 /*!

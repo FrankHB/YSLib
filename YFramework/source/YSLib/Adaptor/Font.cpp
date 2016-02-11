@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3606
+\version r3636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-12-19 15:17 +0800
+	2016-02-11 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,40 +153,36 @@ FontFamily::operator-=(Typeface& face) ynothrow
 	return mFaces.erase(face.GetStyleName()) != 0;
 }
 
-Typeface*
+observer_ptr<Typeface>
 FontFamily::GetTypefacePtr(FontStyle fs) const
 {
-	Typeface* const p(GetTypefacePtr(FetchName(fs)));
+	const auto p(GetTypefacePtr(FetchName(fs)));
 
 	return p ? p : (fs == FontStyle::Regular ? nullptr
 		: GetTypefacePtr("Regular"));
 }
-Typeface*
+observer_ptr<Typeface>
 FontFamily::GetTypefacePtr(const StyleName& style_name) const
 {
 	// TODO: Blocked. Use %string_view as argument using C++14 heterogeneous
 	//	%find template.
 	const auto i(mFaces.find(style_name));
 
-	return (i == mFaces.cend()) ? nullptr : &i->second.get();
+	return (i == mFaces.cend()) ? nullptr : make_observer(&i->second.get());
 }
 Typeface&
 FontFamily::GetTypefaceRef(FontStyle fs) const
 {
-	const auto p(GetTypefacePtr(fs));
-
-	if(YB_UNLIKELY(!p))
-		throw LoggedEvent("No matching face found.", Critical);
-	return *p;
+	if(const auto p = GetTypefacePtr(fs))
+		return *p;
+	throw LoggedEvent("No matching face found.", Critical);
 }
 Typeface&
 FontFamily::GetTypefaceRef(const StyleName& style_name) const
 {
-	const auto p(GetTypefacePtr(style_name));
-
-	if(YB_UNLIKELY(!p))
-		throw LoggedEvent("No matching face found.", Critical);
-	return *p;
+	if(const auto p = GetTypefacePtr(style_name))
+		return *p;
+	throw LoggedEvent("No matching face found.", Critical);
 }
 
 
@@ -383,12 +379,9 @@ Typeface::LookupSize(FontSize s) const
 const Typeface&
 FetchDefaultTypeface()
 {
-	const Typeface* const pDefaultTypeface(
-		FetchDefaultFontCache().GetDefaultTypefacePtr());
-
-	if(YB_UNLIKELY(!pDefaultTypeface))
-		throw LoggedEvent("Null default font face pointer found.", Critical);
-	return *pDefaultTypeface;
+	if(const auto p = FetchDefaultFontCache().GetDefaultTypefacePtr())
+		return *p;
+	throw LoggedEvent("Null default font face pointer found.", Critical);
 }
 
 
@@ -411,30 +404,33 @@ FontCache::~FontCache()
 	::FT_Done_FreeType(library);
 }
 
-const FontFamily*
+observer_ptr<const FontFamily>
 FontCache::GetFontFamilyPtr(const FamilyName& family_name) const
 {
 	// TODO: Blocked. Use %string_view as argument using C++14 heterogeneous
 	//	%find template.
 	const auto i(mFamilies.find(family_name));
 
-	return (i == mFamilies.cend()) ? nullptr : i->second.get();
+	return (i == mFamilies.cend()) ? nullptr : make_observer(i->second.get());
 }
 
-const Typeface*
+observer_ptr<const Typeface>
 FontCache::GetDefaultTypefacePtr() const
 {
 	// NOTE: Guaranteed to be not null for default typeface in default cache.
-	return pDefaultFace ? pDefaultFace
+	// XXX: Exceptions during initialization?
+	// XXX: Use %common_type?
+	return pDefaultFace ? observer_ptr<const Typeface>(pDefaultFace)
 		: FetchDefaultFontCache().GetDefaultTypefacePtr();
 }
-const Typeface*
+observer_ptr<const Typeface>
 FontCache::GetTypefacePtr(const FamilyName& family_name,
 	const StyleName& style_name) const
 {
-	if(const auto f = GetFontFamilyPtr(family_name))
-		return f->GetTypefacePtr(style_name);
-	return {};
+	return ystdex::call_value_or<observer_ptr<Typeface>>(
+		[&](const FontFamily& f){
+		return f.GetTypefacePtr(style_name);
+	}, GetFontFamilyPtr(family_name));
 }
 
 void
@@ -491,7 +487,7 @@ void
 FontCache::InitializeDefaultTypeface()
 {
 	if(YB_LIKELY(!(pDefaultFace || mFaces.empty())))
-		pDefaultFace = mFaces.cbegin()->second.get();
+		pDefaultFace = make_observer(mFaces.cbegin()->second.get());
 }
 
 

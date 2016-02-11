@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3920
+\version r3922
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-08 14:26 +0800
+	2016-02-10 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -397,13 +397,13 @@ public:
 	inline observer_ptr<_type>
 	AccessPtr() ynothrow
 	{
-		return YSLib::make_observer(ystdex::any_cast<_type*>(&content));
+		return YSLib::make_observer(ystdex::any_cast<_type>(&content));
 	}
 	template<typename _type>
 	inline observer_ptr<const _type>
 	AccessPtr() const ynothrow
 	{
-		return YSLib::make_observer(ystdex::any_cast<const _type*>(&content));
+		return YSLib::make_observer(ystdex::any_cast<const _type>(&content));
 	}
 	//@}
 

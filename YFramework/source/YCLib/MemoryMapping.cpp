@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r282
+\version r283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-02-06 12:51 +0800
+	2016-02-11 01:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ namespace platform
 
 #if !YCL_DS
 void
-UnmapDelete::operator()(pointer p) ynothrow
+UnmapDelete::operator()(pointer p) const ynothrow
 {
 	// XXX: Error ignored.
 #if YCL_Win32

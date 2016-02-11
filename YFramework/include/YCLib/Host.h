@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r363
+\version r364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-02-06 18:18 +0800
+	2016-02-11 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,7 +113,7 @@ using HandleDelete = platform::FileDescriptor::Deleter;
 #	endif
 
 //! \since build 520
-using UniqueHandle = unique_ptr<HandleDelete::pointer, HandleDelete>;
+using UniqueHandle = unique_ptr_from<HandleDelete>;
 
 
 //! \since build 567

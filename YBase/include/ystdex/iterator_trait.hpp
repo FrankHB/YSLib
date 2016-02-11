@@ -11,13 +11,13 @@
 /*!	\file iterator_trait.hpp
 \ingroup YStandardEx
 \brief 迭代器特征。
-\version r63
+\version r67
 \author FrankHB <frankhb1989@gmail.com>
 \since build 627
 \par 创建时间:
 	2015-08-30 16:29:07 +0800
 \par 修改时间:
-	2016-02-06 22:34 +0800
+	2016-02-11 17:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_iterator_trait_hpp_
 #define YB_INC_ystdex_iterator_trait_hpp_ 1
 
-#include "type_traits.hpp" // for std::pair, std::declval, enable_if_t, is_same;
+#include "type_traits.hpp" // for std::pair, std::declval, enable_if_t,
+//	are_same;
 #include <iterator> // for std::iterator_traits;
 
 namespace ystdex
@@ -40,8 +41,8 @@ namespace ystdex
 \since build 627
 */
 template<class _type, typename... _tIter>
-struct have_same_iterator_category : and_<is_same<
-	typename std::iterator_traits<_tIter>::iterator_category, _type>...>
+struct have_same_iterator_category : are_same<_type,
+	typename std::iterator_traits<_tIter>::iterator_category...>
 {};
 
 /*!

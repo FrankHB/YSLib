@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1622
+\version r1631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-02-07 21:22 +0800
+	2016-02-11 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,7 @@ namespace platform_ex
 {
 
 void
-HostWindowDelete::operator()(pointer p) ynothrow
+HostWindowDelete::operator()(pointer p) const ynothrow
 {
 #	if YCL_HostedUI_XCB
 	default_delete<XCB::WindowData>()(p.get());
@@ -175,8 +175,8 @@ SetWindowBounds(::HWND h_wnd, int x, int y, SDst w, SDst h)
 //@}
 
 
-//! \since build 593
-inline unique_ptr<void, GlobalDelete>
+//! \since build 671
+inline unique_ptr_from<GlobalDelete>
 MakeMoveableGlobalMemory(size_t size)
 {
 	auto p(unique_raw(::GlobalAlloc(GMEM_MOVEABLE, size), GlobalDelete()));
@@ -196,7 +196,7 @@ CopyGlobalString(const _tString& str)
 	auto p(MakeMoveableGlobalMemory((len + 1) * sizeof(_tChar)));
 	{
 		const GlobalLocked gl(Nonnull(p));
-		const auto p_buf(gl.GetPtr<_tChar>());
+		const auto p_buf(gl.GetPtr<_tChar>().get());
 
 		ystdex::ntctscpy(p_buf, str.data(), len);
 	}
@@ -790,8 +790,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 HostWindow::~HostWindow()
 {
-	const unique_ptr<NativeWindowHandle, HostWindowDelete>
-		p_wnd(GetNativeHandle());
+	const unique_ptr_from<HostWindowDelete> p_wnd(GetNativeHandle());
 
 #	if YCL_Win32
 	// XXX: Error ignored.
@@ -853,14 +852,14 @@ bool
 Clipboard::Receive(YSLib::string& str)
 {
 	return ReceiveRaw(CF_TEXT, [&](const Data& d) ynothrowv{
-		str = d.GetPtr<char>();
+		str = d.GetPtr<char>().get();
 	});
 }
 bool
 Clipboard::Receive(YSLib::String& str)
 {
 	return ReceiveRaw(CF_UNICODETEXT, [&](const Data& d) ynothrowv{
-		str = d.GetPtr<char16_t>();
+		str = d.GetPtr<char16_t>().get();
 	});
 }
 
@@ -900,7 +899,7 @@ Clipboard::Send(ConstBitmapPtr p_bmp, const Size& s)
 		+ GetAreaOf(s) * sizeof(Pixel)));
 	{
 		const GlobalLocked gl(Nonnull(p));
-		const auto p_buf(gl.GetPtr<::BITMAPV5HEADER>());
+		const auto p_buf(gl.GetPtr<::BITMAPV5HEADER>().get());
 
 		*p_buf = {sizeof(::BITMAPV5HEADER), CheckPositiveScalar<long>(s.Width,
 			"width"), -CheckPositiveScalar<long>(s.Height, "height"), 1, 32,
