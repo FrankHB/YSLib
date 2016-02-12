@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3218
+\version r3223
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2015-10-02 18:49 +0800
+	2016-02-12 01:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -308,9 +308,11 @@ DualScreenReader::Detach()
 {
 	using YSLib::UI::Window;
 
-	if(const auto p_con = dynamic_cast<Window*>(FetchContainerPtr(area_up)))
+	if(const auto p_con
+		= dynamic_cast<Window*>(FetchContainerPtr(area_up).get()))
 		*p_con -= area_up;
-	if(const auto p_con = dynamic_cast<Window*>(FetchContainerPtr(area_dn)))
+	if(const auto p_con
+		= dynamic_cast<Window*>(FetchContainerPtr(area_dn).get()))
 		*p_con -= area_dn;
 }
 

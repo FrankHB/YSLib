@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1037
+\version r1060
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2015-06-16 05:44 +0800
+	2016-02-12 00:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,17 +59,23 @@ class YF_API Menu : public TextList
 	friend class MenuHost;
 
 public:
-	using SubMap = map<IndexType, Menu*>; //!< 子菜单映射表类型。
-	using ValueType = SubMap::value_type; //!< 子菜单映射表项目类型。
+	//! \brief 子菜单映射表类型。
+	using SubMap = map<IndexType, observer_ptr<Menu>>;
+	//! \brief 子菜单映射表项目类型。
+	using ValueType = SubMap::value_type;
 
 protected:
-	//! 宿主指针。
-	MenuHost* pHost{};
-	//! 父菜单指针。
-	Menu* pParent{};
-	//! 子菜单映射表：存储非空子菜单指针。
+	//! \since build 672
+	//@{
+	//! \brief 宿主指针。
+	observer_ptr<MenuHost> pHost{};
+	//! \brief 父菜单指针。
+	observer_ptr<Menu> pParent{};
+	//@}
+	//! \brief 子菜单映射表：存储非空子菜单指针。
 	SubMap mSubMenus{};
-	mutable vector<bool> vDisabled; //!< 未启用菜单项。
+	//! \brief 未启用菜单项。
+	mutable vector<bool> vDisabled;
 
 public:
 	/*!
@@ -112,7 +118,8 @@ public:
 	bool
 	IsItemEnabled(ListType::size_type) const;
 
-	DefGetter(const ynothrow, Menu*, ParentPtr, pParent)
+	//! \since build 672
+	DefGetter(const ynothrow, observer_ptr<Menu>, ParentPtr, pParent)
 
 	/*!
 	\brief 设置 idx 指定的菜单项的可用性。
@@ -145,9 +152,9 @@ public:
 	\brief 显示索引指定的子菜单。
 	\note 菜单宿主指针为空时忽略。
 	\return 菜单宿主指针非空且索引指定的子菜单存在时为子菜单指针，否则为空指针。
-	\since build 574
+	\since build 672
 	*/
-	Menu*
+	observer_ptr<Menu>
 	ShowSub(IndexType);
 
 	/*!
@@ -190,17 +197,17 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 class YF_API MenuHost : private noncopyable
 {
 private:
-	//! \since build 607
-	set<lref<Menu>, ystdex::lref_less<Menu>> menus{};
+	//! \since build 672
+	set<lref<Menu>, ystdex::get_less<Menu>> menus{};
 
 public:
 	/*!
 	\brief 根菜单关联映射。
-	\since build 537
+	\since build 672
 
 	指定向指定部件转移焦点时不进行隐藏的菜单的映射。
 	*/
-	map<IWidget*, Menu*> Roots{};
+	map<lref<IWidget>, observer_ptr<Menu>, ystdex::get_less<IWidget>> Roots{};
 
 	//! \since build 574
 	DefDeCtor(MenuHost)

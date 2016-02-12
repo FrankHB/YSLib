@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1324
+\version r1326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2015-12-04 12:06 +0800
+	2016-02-12 22:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -616,7 +616,7 @@ class FileInfo;
 class Partition final : private ystdex::noncopyable, private ystdex::nonmovable
 {
 public:
-	using OpenFilesSet = set<lref<FileInfo>, ystdex::lref_less<FileInfo>>;
+	using OpenFilesSet = set<lref<FileInfo>, ystdex::get_less<FileInfo>>;
 
 private:
 	Disc disc;

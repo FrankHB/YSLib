@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1506
+\version r1511
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2016-02-11 19:29 +0800
+	2016-02-12 22:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,7 @@ CheckReaderEnability(FileBox& fb, RadioBox& hex)
 		case FileCategory::Text:
 			return true;
 		case FileCategory::Binary:
-			return hex.GetState() == &hex;
+			return hex.GetState().get() == &hex;
 		default:
 			;
 		}
@@ -341,7 +341,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1, *pFrmAbout),
 	unseq_apply(bind(&ShlDS::WrapForSwapScreens, this, _1, ref(SwapMask)),
 		dsk_m, dsk_s),
-	ani.Reset(&pnlTest1),
+	ani.Reset(make_observer(&pnlTest1)),
 	ddlStyle.SetList(FetchVisualStyleNames()),
 	rbTxt.ShareTo(rbHex),
 	rbTxt.Select(),
@@ -561,7 +561,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		InvalidateWidgets(cbFPS, rbTxt, rbHex);
 	},
 	cbShowTextBoxContent.Ticked += [&](CheckBox::TickedArgs&& e){
-		(tpDefault.GetCapturedPtr() == &tbTest ? tpDefault.MaskChar
+		(tpDefault.GetCapturedPtr().get() == &tbTest ? tpDefault.MaskChar
 			: tbTest.MaskChar) = e ? char32_t() : u'●';
 		Invalidate(tbTest);
 	},
@@ -603,8 +603,8 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		},
 		AddWidgetsZ(GetSubDesktop(), DefaultMenuZOrder, m0, m1),
 		mhMain += m0, mhMain += m1,
-		m0 += {0u, &m1};
-		mhMain.Roots[&btnMenu] = &m0;
+		m0 += {0u, make_observer(&m1)};
+		mhMain.Roots[btnMenu] = make_observer(&m0);
 		unseq_apply(ResizeForContent, m0, m1),
 		// XXX: Conversion to 'SPos' might be implementation-defined.
 		SetLocationOf(m0,

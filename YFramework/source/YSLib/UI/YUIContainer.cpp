@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1930
+\version r1942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2015-06-30 17:40 +0800
+	2016-02-12 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,13 +59,14 @@ FetchTopLevel(IWidget& wgt, Point& pt)
 	return wgt_ref;
 }
 
-vector<pair<const IWidget*, Point>>
+vector<pair<observer_ptr<const IWidget>, Point>>
 FetchTrace(const IWidget& wgt)
 {
-	vector<pair<const IWidget*, Point>> lst;
+	vector<pair<observer_ptr<const IWidget>, Point>> lst;
 	Point pt;
 
-	for(auto p_wgt(&wgt); p_wgt; p_wgt = FetchContainerPtr(*p_wgt))
+	for(auto p_wgt(make_observer(&wgt)); p_wgt;
+		p_wgt = FetchContainerPtr(*p_wgt))
 	{
 		lst.emplace_back(p_wgt, pt);
 		pt += GetLocationOf(*p_wgt);
@@ -75,7 +76,8 @@ FetchTrace(const IWidget& wgt)
 
 
 Point
-LocateOffset(const IWidget* p_end, Point pt, const IWidget* p_wgt)
+LocateOffset(observer_ptr<const IWidget> p_end, Point pt,
+	observer_ptr<const IWidget> p_wgt)
 {
 	while(p_wgt && p_wgt != p_end)
 	{
@@ -95,12 +97,13 @@ LocateForTopOffset(const Point& origin, IWidget& wgt, const Point& pt)
 }
 
 Point
-LocateForTrace(const vector<pair<const IWidget*, Point>>& lst,
+LocateForTrace(const vector<pair<observer_ptr<const IWidget>, Point>>& lst,
 	const IWidget& wgt)
 {
 	Point pt;
 
-	for(auto p_wgt(&wgt); p_wgt; p_wgt = FetchContainerPtr(*p_wgt))
+	for(auto p_wgt(make_observer(&wgt)); p_wgt;
+		p_wgt = FetchContainerPtr(*p_wgt))
 	{
 		const auto
 			i(std::find(lst.cbegin() | get_key, lst.cend() | get_key, p_wgt));
@@ -160,10 +163,10 @@ MoveToTop(IWidget& wgt)
 bool
 RemoveFrom(IWidget& wgt, IWidget& con)
 {
-	if(FetchContainerPtr(wgt) == &con)
+	if(FetchContainerPtr(wgt).get() == &con)
 	{
 		SetContainerPtrOf(wgt);
-		if(FetchFocusingPtr(con) == &wgt)
+		if(FetchFocusingPtr(con).get() == &wgt)
 			con.GetView().FocusingPtr = {};
 		return true;
 	}

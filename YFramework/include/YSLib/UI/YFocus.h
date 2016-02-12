@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1755
+\version r1758
 \author FrankHB <frankhb1989@gmail.com>
 \since build 571
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-01-26 08:16 +0800
+	2016-02-12 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,10 +106,10 @@ ClearFocusingOf(IWidget&);
 \note 逐级向父部件判断。
 \note 若指针指定的部件不包含指定判断焦点的部件或为空，则判断到顶层部件。
 \note 和 IsFocused 不同，若无父部件则认为是焦点。
-\since build 482
+\since build 672
 */
 YF_API bool
-IsFocusedCascade(const IWidget&, const IWidget* = {});
+IsFocusedCascade(const IWidget&, observer_ptr<const IWidget> = {});
 
 /*!
 \brief 级联请求部件及上层容器焦点。

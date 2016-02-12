@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3261
+\version r3267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2015-12-21 10:05 +0800
+	2016-02-12 01:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,12 +45,12 @@ const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
 
 /*!
 \brief 从容器分离指定部件并无效化部件区域。
-\since build 282
+\since build 672
 */
 void
-Detach(IWidget* pCon, IWidget& wgt)
+Detach(observer_ptr<IWidget> p_con, IWidget& wgt)
 {
-	if(const auto p = dynamic_cast<Panel*>(pCon))
+	if(const auto p = dynamic_cast<Panel*>(p_con.get()))
 	{
 		Invalidate(wgt);
 		*p -= wgt;
@@ -65,7 +65,7 @@ ListBox::ListBox(const Rect& r, unique_ptr<TextList> p_textlist)
 	pTextList(std::move(p_textlist))
 {
 	Background = nullptr,
-	SetContainerPtrOf(GetTextListRef(), this),
+	SetContainerPtrOf(GetTextListRef(), make_observer(this)),
 	vsbVertical.GetTrackRef().Scroll += [this](ScrollEventArgs&& e){
 		GetTextListRef().LocateViewPosition(SDst(round(e.GetValue())));
 	},
@@ -205,7 +205,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 	Margin.Left = 4,
 	Margin.Right = 18,
 	HorizontalAlignment = TextAlignment::Left,
-	lbContent.GetView().DependencyPtr = this,
+	lbContent.GetView().DependencyPtr = make_observer(this),
 	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 		if(!FetchContainerPtr(lbContent))
 		{

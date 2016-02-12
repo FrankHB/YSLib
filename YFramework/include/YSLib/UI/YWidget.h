@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5800
+\version r5809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-05-24 21:40 +0800
+	2016-02-12 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,18 +131,18 @@ inline PDefH(bool, ContainsVisible, const IWidget& wgt, const Point& pt)
 \ingroup helper_functions
 \brief 取部件的容器指针。
 \note 使用此函数确保返回值传递的值语义。
-\since build 225
+\since build 672
 */
-inline PDefH(IWidget*, FetchContainerPtr, const IWidget& wgt)
+inline PDefH(observer_ptr<IWidget>, FetchContainerPtr, const IWidget& wgt)
 	ImplRet(wgt.GetView().ContainerPtr)
 
 /*!
 \ingroup helper_functions
 \brief 取焦点对象指针。
 \return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
-\since build 473
+\since build 672
 */
-inline PDefH(IWidget*, FetchFocusingPtr, const IWidget& wgt)
+inline PDefH(observer_ptr<IWidget>, FetchFocusingPtr, const IWidget& wgt)
 	ImplRet(wgt.GetView().FocusingPtr)
 
 /*!
@@ -178,10 +178,11 @@ SetBoundsOf(IWidget&, const Rect&);
 
 /*!
 \brief 设置部件的容器指针。
-\since build 269
+\since build 672
 */
-inline PDefH(void, SetContainerPtrOf, IWidget& wgt, IWidget* pCon = {})
-	ImplExpr(wgt.GetView().ContainerPtr = pCon)
+inline PDefH(void, SetContainerPtrOf, IWidget& wgt,
+	observer_ptr<IWidget> p_con = {})
+	ImplExpr(wgt.GetView().ContainerPtr = p_con)
 
 /*!
 \brief 设置部件的无效区域。

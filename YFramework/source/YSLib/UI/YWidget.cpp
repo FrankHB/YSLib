@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4479
+\version r4484
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-08-21 21:41 +0800
+	2016-02-12 01:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,8 @@ Invalidate(IWidget& wgt, const Rect& bounds)
 {
 	Rect r(bounds);
 
-	for(auto p_wgt(&wgt); p_wgt; p_wgt = FetchContainerPtr(*p_wgt))
+	for(auto p_wgt(make_observer(&wgt)); p_wgt;
+		p_wgt = FetchContainerPtr(*p_wgt))
 	{
 		r = p_wgt->GetRenderer().CommitInvalidation(r);
 		r.GetPointRef() += GetLocationOf(*p_wgt);
@@ -146,7 +147,7 @@ InvalidateParent(IWidget& wgt)
 void
 InvalidateVisible(IWidget& wgt, const Rect& bounds)
 {
-	auto p_wgt(&wgt);
+	auto p_wgt(make_observer(&wgt));
 	Rect r(bounds);
 
 	while(IsVisible(*p_wgt))
@@ -193,7 +194,7 @@ PaintChildAndCommit(IWidget& wgt, PaintEventArgs& e)
 void
 RequestToFront(IWidget& wgt)
 {
-	if(const auto p_pnl = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
+	if(const auto p_pnl = dynamic_cast<Panel*>(FetchContainerPtr(wgt).get()))
 		p_pnl->MoveToFront(wgt);
 }
 

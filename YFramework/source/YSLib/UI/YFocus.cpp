@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r666
+\version r678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-03-07 00:32 +0800
+	2016-02-12 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ IsFocused(const IWidget& wgt)
 {
 	const auto p(FetchContainerPtr(wgt));
 
-	return p ? FetchFocusingPtr(*p) == &wgt : false;
+	return p ? FetchFocusingPtr(*p).get() == &wgt : false;
 }
 
 bool
@@ -49,7 +49,7 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 	{
 		auto& p_focusing(p->GetView().FocusingPtr);
 
-		if(p_focusing != &wgt)
+		if(p_focusing.get() != &wgt)
 		{
 			if(p_focusing)
 			{
@@ -58,7 +58,7 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 				if(release_event)
 					ReleaseFocusFrom(*p_focusing, wgt);
 			}
-			p_focusing = &wgt;
+			p_focusing = make_observer(&wgt);
 			return true;
 		}
 	}
@@ -72,7 +72,7 @@ DoReleaseFocus(IWidget& wgt)
 	{
 		auto& p_focusing(p->GetView().FocusingPtr);
 
-		if(p_focusing == &wgt)
+		if(p_focusing.get() == &wgt)
 		{
 			p_focusing = {};
 			return true;
@@ -93,11 +93,11 @@ RequestFocusFrom(IWidget& dst, IWidget& src)
 void
 ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
-	auto p(&dst);
+	auto p(make_observer(&dst));
 
 	while(const auto p_foc = FetchFocusingPtr(*p))
 		p = p_foc;
-	for(; p != &dst; p = FetchContainerPtr(*p))
+	for(; p.get() != &dst; p = FetchContainerPtr(*p))
 	{
 		YAssert(p, "Wrong child focus state found.");
 		if(DoReleaseFocus(*p))
@@ -118,11 +118,11 @@ ClearFocusingOf(IWidget& wgt)
 }
 
 bool
-IsFocusedCascade(const IWidget& wgt, const IWidget* p_top)
+IsFocusedCascade(const IWidget& wgt, observer_ptr<const IWidget> p_top)
 {
-	auto p_wgt(&wgt);
+	auto p_wgt(make_observer(&wgt));
 
-	while(auto p_con = FetchContainerPtr(*p_wgt))
+	while(const auto p_con = FetchContainerPtr(*p_wgt))
 	{
 		if(p_con == p_top)
 			break;
@@ -136,14 +136,14 @@ IsFocusedCascade(const IWidget& wgt, const IWidget* p_top)
 void
 RequestFocusCascade(IWidget& wgt)
 {
-	for(auto p(&wgt); p; p = FetchContainerPtr(*p))
+	for(auto p(&wgt); p; p = FetchContainerPtr(*p).get())
 		RequestFocus(*p);
 }
 
 void
 ReleaseFocusCascade(IWidget& wgt)
 {
-	for(auto p(&wgt); p; p = FetchContainerPtr(*p))
+	for(auto p(&wgt); p; p = FetchContainerPtr(*p).get())
 		ReleaseFocus(*p);
 }
 

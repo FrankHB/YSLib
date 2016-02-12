@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4331
+\version r4365
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-05-29 19:40 +0800
+	2016-02-12 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,8 +41,8 @@ namespace UI
 namespace
 {
 
-//! \since build 580
-IWidget*
+//! \since build 672
+observer_ptr<IWidget>
 FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt,
 	VisualEvent id)
 {
@@ -50,17 +50,17 @@ FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt,
 		return {};
 	for(auto pr(con.GetChildren()); pr.first != pr.second; ++pr.first)
 	{
-		IWidget& wgt(*pr.first);
+		auto& wgt(*pr.first);
 
 		if(Contains(wgt, pt) && IsVisible(wgt)
 			&& wgt.GetController().IsEventEnabled(id))
-			return &wgt;
+			return make_observer(&wgt);
 	}
-	return &con;
+	return make_observer(&con);
 }
 
-//! \since build 483
-IWidget*
+//! \since build 672
+observer_ptr<IWidget>
 FetchVisibleEnabledFocusingPtr(IWidget& con)
 {
 	if(const auto p = FetchFocusingPtr(con))
@@ -145,7 +145,7 @@ GUIState::CheckHeldState(const KeyInput& keys, InputTimer::HeldStateType& s)
 }
 
 bool
-GUIState::CheckDraggingOffset(IWidget* p)
+GUIState::CheckDraggingOffset(observer_ptr<IWidget> p)
 {
 	if(!p)
 		p = p_indp_focus;
@@ -162,26 +162,27 @@ GUIState::CheckDraggingOffset(IWidget* p)
 void
 GUIState::CleanupReferences(IWidget& wgt)
 {
-	if(p_CursorOver == &wgt)
+	// TODO: Simplify using %unseq_apply?
+	if(p_CursorOver.get() == &wgt)
 		p_CursorOver = {};
-	if(p_indp_focus == &wgt)
+	if(p_indp_focus.get() == &wgt)
 		p_indp_focus = {};
-	if(p_cascade_focus == &wgt)
+	if(p_cascade_focus.get() == &wgt)
 		p_cascade_focus = {};
-	if(p_entered_toplevel == &wgt)
+	if(p_entered_toplevel.get() == &wgt)
 		p_entered_toplevel = {};
-	if(ExternalTextInputFocusPtr == &wgt)
+	if(ExternalTextInputFocusPtr.get() == &wgt)
 		ExternalTextInputFocusPtr = {};
 }
 
 void
 GUIState::HandleCascade(RoutedEventArgs& e, IWidget& wgt)
 {
-	if(p_cascade_focus != &wgt && IsFocused(e.GetSender()))
+	if(p_cascade_focus.get() != &wgt && IsFocused(e.GetSender()))
 	{
 		if(p_cascade_focus)
 			CallEvent<LostFocus>(*p_cascade_focus, e);
-		p_cascade_focus = &wgt;
+		p_cascade_focus = make_observer(&wgt);
 		CallEvent<GotFocus>(*p_cascade_focus, e);
 	}
 }
@@ -256,7 +257,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 			e.Strategy = RoutedEventArgs::Direct;
 			switch(op)
 			{
-				case TouchUp:
+			case TouchUp:
 				// NOTE: See %Wrap.
 				if(p_indp_focus)
 				{
@@ -289,7 +290,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 				return;
 			goto handle_bubbled;
 		}
-		if(t == p_con)
+		if(t.get() == p_con)
 			break;
 		e.SetSender(wgt_ref);
 		ResponseCursorBase(e, op);
@@ -301,7 +302,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 	if(op == TouchDown)
 		HandleCascade(e, wgt_ref);
 	e.Strategy = RoutedEventArgs::Bubble;
-	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref)))
+	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref).get()))
 	{
 		e.Position += GetLocationOf(wgt_ref);
 		e.SetSender(wgt_ref = *p_con);
@@ -350,7 +351,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 
 		const auto t(FetchVisibleEnabledFocusingPtr(*p_con));
 
-		if(!t || t == p_con)
+		if(!t || t.get() == p_con)
 			break;
 		e.SetSender(wgt_ref);
 		ResponseKeyBase(e, op);
@@ -362,7 +363,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 	if(op == KeyDown)
 		HandleCascade(e, wgt_ref);
 	e.Strategy = RoutedEventArgs::Bubble;
-	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref)))
+	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref).get()))
 	{
 		e.SetSender(wgt_ref = *p_con);
 		ResponseKeyBase(e, op);
@@ -429,12 +430,12 @@ GUIState::Wrap(IWidget& wgt)
 		master_key
 			= FindFirstKeyInCategroy(checked_held, KeyCategory::Character);
 		ResetHeldState(KeyHeldState, e.Keys);
-		if(p_indp_focus == &sender)
+		if(p_indp_focus.get() == &sender)
 			CallEvent<KeyPress>(sender, e);
 		p_indp_focus = {};
 	}, 0x00),
 	FetchEvent<KeyDown>(controller).Add([this](KeyEventArgs&& e){
-		p_indp_focus = &e.GetSender();
+		p_indp_focus = make_observer(&e.GetSender());
 	}, 0xFF),
 	FetchEvent<CursorOver>(controller).Add([this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
@@ -443,22 +444,22 @@ GUIState::Wrap(IWidget& wgt)
 
 			auto& sender(e.GetSender());
 
-			if(p_CursorOver != &sender || WidgetIdentity != shared_wgt_id)
+			if(p_CursorOver.get() != &sender || WidgetIdentity != shared_wgt_id)
 			{
 				if(p_CursorOver)
 				{
 					Point pt;
-					const auto p_toplevel(&FetchTopLevel(sender, pt));
 
-					if(YB_LIKELY(p_toplevel == p_entered_toplevel))
+					if(p_entered_toplevel.get() == &FetchTopLevel(sender, pt))
 						CallEvent<Leave>(*p_CursorOver, CursorEventArgs(sender,
 							e.Keys, e.Position - entered_top_location + pt));
 				}
 				CallEvent<Enter>(sender, CursorEventArgs(e));
 				entered_top_location = {};
-				p_entered_toplevel
-					= &FetchTopLevel(sender, entered_top_location);
-				yunseq(p_CursorOver = &sender, shared_wgt_id = WidgetIdentity);
+				p_entered_toplevel = make_observer(&FetchTopLevel(sender,
+					entered_top_location));
+				yunseq(p_CursorOver = make_observer(&sender),
+					shared_wgt_id = WidgetIdentity);
 			}
 		}
 	}, 0xFF),
@@ -475,7 +476,7 @@ GUIState::Wrap(IWidget& wgt)
 			}
 			ResetHeldState(TouchHeldState, e.Keys),
 			DraggingOffset = Vec::Invalid;
-			if(p_indp_focus == &sender)
+			if(p_indp_focus.get() == &sender)
 				CallEvent<Click>(sender, e);
 			else if(p_indp_focus)
 				CallEvent<ClickAcross>(*p_indp_focus, e);
@@ -485,7 +486,7 @@ GUIState::Wrap(IWidget& wgt)
 	FetchEvent<TouchDown>(controller).Add([this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
-			p_indp_focus = &e.GetSender();
+			p_indp_focus = make_observer(&e.GetSender());
 			TryEntering(std::move(e));
 		}
 	}, 0xFF),
@@ -494,7 +495,7 @@ GUIState::Wrap(IWidget& wgt)
 		{
 			auto& sender(e.GetSender());
 
-			if(p_indp_focus == &sender)
+			if(p_indp_focus.get() == &sender)
 				TryEntering(CursorEventArgs(e));
 		//	else
 		//		TryLeaving(CursorEventArgs(*p_indp_focus, e.Keys,

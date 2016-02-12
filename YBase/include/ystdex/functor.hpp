@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r660
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-02-07 00:34 +0800
+	2016-02-11 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ struct mem_get<void>
 {
 	template<typename _type>
 	auto
-	operator()(_type&& x) const ynoexcept(std::declval<_type&&>().get())
+	operator()(_type&& x) const ynoexcept_spec(std::declval<_type&&>().get())
 		-> decltype(x.get())
 	{
 		return yforward(x.get());

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2423
+\version r2454
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-10-02 19:38 +0800
+	2016-02-12 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,9 +150,9 @@ public:
 	/*!
 	\brief 外部文本输入焦点部件指针。
 	\note 对宿主实现，值可能由环境修改。可用于支持宿主环境的输入法相关状态。
-	\since build 535
+	\since build 672
 	*/
-	IWidget* ExternalTextInputFocusPtr = {};
+	observer_ptr<IWidget> ExternalTextInputFocusPtr = {};
 	/*!
 	\brief 输入接触状态。
 	\since build 300
@@ -213,26 +213,16 @@ private:
 	\since build 533
 	*/
 	size_t shared_wgt_id = size_t(-1);
-	/*!
-	\brief 设备指针光标对应的部件。
-	\since build 422
-	*/
-	IWidget* p_CursorOver = {};
-	/*!
-	\brief 级联焦点指针：缓冲最后一次通过直接策略路由事件的进入的部件状态。
-	\since build 483
-	*/
-	IWidget* p_cascade_focus = {};
-	/*!
-	\brief 指定最近 CursorOver 中触发 Enter 事件的部件所在的顶层部件。
-	\since build 533
-	*/
-	IWidget* p_entered_toplevel = {};
-	/*!
-	\brief 独立焦点指针：自由状态时即时输入（按下）状态捕获的部件指针。
-	\since build 464
-	*/
-	IWidget* p_indp_focus = {};
+	//! \since build 672
+	//@{
+	//! \brief 设备指针光标对应的部件。
+	observer_ptr<IWidget> p_CursorOver = {};
+	//! \brief 级联焦点指针：缓冲最后一次通过直接策略路由事件的进入的部件状态。
+	observer_ptr<IWidget> p_cascade_focus = {};
+	//! \brief 指定最近 CursorOver 中触发 Enter 事件的部件所在的顶层部件。
+	observer_ptr<IWidget> p_entered_toplevel = {};
+	//! \brief 独立焦点指针：自由状态时即时输入（按下）状态捕获的部件指针。
+	observer_ptr<IWidget> p_indp_focus = {};
 	/*!
 	\brief 重复输入计数。
 	\sa RefreshTap
@@ -257,10 +247,11 @@ public:
 
 	//! \since build 487
 	DefGetter(const ynothrow, const KeyInput&, CheckedHeldKeys, checked_held)
-	//! \since build 422
-	DefGetter(const ynothrow, IWidget*, CursorOverPtr, p_CursorOver)
-	//! \since build 464
-	DefGetter(const ynothrow, IWidget*, IndependentFocusPtr, p_indp_focus)
+	//! \since build 672
+	DefGetter(const ynothrow, observer_ptr<IWidget>, CursorOverPtr, p_CursorOver)
+	//! \since build 672
+	DefGetter(const ynothrow, observer_ptr<IWidget>, IndependentFocusPtr,
+		p_indp_focus)
 	//! \since build 533
 	DefGetter(const ynothrow, size_t, SharedWidgetIdentity, shared_wgt_id)
 	//! \since build 540
@@ -289,10 +280,10 @@ public:
 	\brief 若拖放偏移量无效则按指定部件的屏幕坐标更新拖放偏移量。
 	\return 是否已在拖放状态。
 	\note 若参数为空则检查独立焦点指针，如已被按下则指定为独立焦点，否则忽略。
-	\since build 434
+	\since build 672
 	*/
 	bool
-	CheckDraggingOffset(IWidget* = {});
+	CheckDraggingOffset(observer_ptr<IWidget> = {});
 
 	/*!
 	\brief 清除状态对指定部件的引用。
@@ -440,7 +431,7 @@ FetchGUIState() ynothrow;
 */
 inline PDefH(bool, IsFocusedByShell, const IWidget& wgt,
 	const GUIState& st = FetchGUIState()) ynothrow
-	ImplRet(st.GetIndependentFocusPtr() == &wgt)
+	ImplRet(st.GetIndependentFocusPtr().get() == &wgt)
 
 
 /*!

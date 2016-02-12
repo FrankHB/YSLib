@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2014, 2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ypanel.cpp
+/*!	\file YPanel.cpp
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r295
+\version r299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:44:51 +0800
 \par 修改时间:
-	2014-11-21 09:23 +0800
+	2016-02-12 01:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ void
 Panel::operator+=(IWidget& wgt)
 {
 	MUIContainer::operator+=(wgt);
-	SetContainerPtrOf(wgt, this);
+	SetContainerPtrOf(wgt, make_observer(this));
 }
 
 bool
@@ -55,7 +55,7 @@ void
 Panel::Add(IWidget& wgt, ZOrder z)
 {
 	MUIContainer::Add(wgt, z);
-	SetContainerPtrOf(wgt, this);
+	SetContainerPtrOf(wgt, make_observer(this));
 }
 
 void

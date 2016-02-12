@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2014, 2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ywindow.cpp
+/*!	\file YWindow.cpp
 \ingroup UI
 \brief 样式无关的 GUI 窗口。
-\version r3418
+\version r3427
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2014-11-21 09:22 +0800
+	2016-02-12 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,22 +48,22 @@ void
 Window::operator+=(IWidget& wgt)
 {
 	MUIContainer::operator+=(wgt);
-	SetContainerPtrOf(wgt, this);
+	SetContainerPtrOf(wgt, make_observer(this));
 }
 void
 Window::operator+=(Window& wnd)
 {
 	MUIContainer::Add(wnd, DefaultWindowZOrder);
-	SetContainerPtrOf(wnd, this);
+	SetContainerPtrOf(wnd, make_observer(this));
 }
 
 bool
 Window::operator-=(IWidget& wgt)
 {
-	if(FetchContainerPtr(wgt) == this)
+	if(FetchContainerPtr(wgt).get() == this)
 	{
 		SetContainerPtrOf(wgt);
-		if(FetchFocusingPtr(*this) == &wgt)
+		if(FetchFocusingPtr(*this).get() == &wgt)
 			GetView().FocusingPtr = {};
 		return MUIContainer::operator-=(wgt);
 	}
@@ -72,10 +72,10 @@ Window::operator-=(IWidget& wgt)
 bool
 Window::operator-=(Window& wnd)
 {
-	if(FetchContainerPtr(wnd) == this)
+	if(FetchContainerPtr(wnd).get() == this)
 	{
 		SetContainerPtrOf(wnd);
-		if(FetchFocusingPtr(*this) == &wnd)
+		if(FetchFocusingPtr(*this).get() == &wnd)
 			GetView().FocusingPtr = {};
 		return MUIContainer::operator-=(wnd);
 	}
@@ -86,7 +86,7 @@ void
 Window::Add(IWidget& wgt, ZOrder z)
 {
 	MUIContainer::Add(wgt, z);
-	SetContainerPtrOf(wgt, this);
+	SetContainerPtrOf(wgt, make_observer(this));
 }
 
 } // namespace UI;

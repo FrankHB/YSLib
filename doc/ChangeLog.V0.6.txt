@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r8830
+\version r9046
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-02-11 19:39 +0800
+	2016-02-12 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,223 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ $re_add(b671) "wrapped return type with %observer_ptr"
+				@ "member function %TextFileBuffer::iterator::GetBufferPtr"
+				@ %Service.TextManager,
+			/ %UI $=
+			(
+				* $re_add(b671) DD "missing '!'" @ "end of '/*'" @ "multiline \
+					Doxygen comments" @ (("function %UpdateState" @ "class \
+					template %GMSelector" $since b478, "private data member"
+					@ "class %MSharedSelection" $since b479) @ %Selector,
+					"data member %Visual::Visible" @ %YWidgetView $since b568,
+					"protected data members" ("%MLinearUIContainer::vWidgets"
+					$since b494, "%MUIContainer::mWidgets" $since b279)
+					@ %YUIContainer, "function %clone" $orig (@ "function \
+					%Clone" $since b243) @ "class %AController" @ %YWidgetEvent)
+				),
+				/ %Selector $=
+				(
+					/ "wrapped %StateType with %observer_ptr"
+						@ "class %MSharedSelection";
+					/ $forced DLDI "member function %RadioBox::(IsSelected, \
+						SetSelected, UpdateState)"
+				),
+				/ @ "class %TextPlaceholder" @ %TextBox $=
+				(
+					/ DLDI "wrapped private data member with %observer_ptr",
+					/ $re_add(b671) "wrapped return type with %observer_ptr"
+						@ "function %GetCapturedPtr";
+					/ $forced DLDI "function template %BindByFocus"
+				),
+				/ %Menu $=
+				(
+					/ @ "class %MenuHost" $=
+					(
+						/ $forced "private menu map type" ^ $dep_from
+							("%ystdex::lref_less"
+							@ %YBase.YStandardEx.Functional),
+						/ "type" @ "data member %Roots" $=
+						(
+							(
+							/ "key type" -> 'lref<IWidget>' ~ 'IWidget*';
+							/ $forced "comparator type"
+								^ $dep_from ("%ystdex::lref_less"
+								@ %YBase.YStandardEx.Functional)
+								~ "implicit %less<IWidget*>"
+							),
+							/ "wrapped key and mapped type with %observer_ptr"
+						),
+						/ $forced DLDI @ "operator+=" $dep_from "%Menu::pHost",
+						/ $forced DLDI @ "HideUnrelated" $dep_from
+							"%Menu::GetParentPtr",
+						/ "wrapped mapped type with %observer_ptr"
+							@ "alias %SubMap",
+						/ $re_add(b671) "wrapped return type with %observer_ptr"
+							@ "function %ShowSub"
+					),
+					/ @ "class %Menu" $=
+					(
+						/ $forced DLDI @ "constructor" $dep_from
+							"%(Roots, GetParentPtr)",
+						/ "wrapped protected data members %(pHost, pParent) \
+							with %observer_ptr",
+						/ $re_add(b671) "wrapped return type with %observer_ptr"
+							@ "function %GetParentPtr",
+						/ $forced DLDI @ "operator+=" $dep_from "%pParent"
+					)
+				),
+				/ "wrapped data members %AView::(ContainerPtr, DependencyPtr, \
+					FocusingPtr) with %observer_ptr" @ %YWidgetView,
+				/ %YWidget $=
+				(
+					(
+					/ $re_add(b671) $forced ("wrapped return type with \
+						%observer_ptr" @ "function %FetchContainerPtr",
+						"wrapped 3rd parameter type" @ "function \
+						%SetContainerPtrOf") $dep_from
+						("%AView::ContainerPtr" @ %YWidgetView);
+					/ $foced DLDI @ "functions %(Invalidate, \
+						InvalidateVisible, RequestToFront)"
+					),
+					/ $re_add(b671) $forced "wrapped return type with \
+						%observer_ptr" @ "function %FetchFocusingPtr"
+						$dep_from ("%AView::FocusingPtr" @ %YWidgetView)
+				),
+				/ %YUIContainer $=
+				(
+					/ $re_add(b671) $forced "wrapped type with %observer_ptr"
+						@ "1st element" @ ("return type"
+						@ "function %FetchTrace", "1st parameter type"
+						@ "function %LocateForTrace") $dep_from
+						("%FetchContainerPtr" @ %YWidget),
+					(
+					/ $re_add(b671) $forced "wrapped (1st, 3rd) parameter type \
+						with %observer_ptr" @ "function %LocateOffset",
+						$dep_from ("%FetchContainerPtr" @ %YWidget);
+					/ $forced DLDI @ "function template %LocateForWidgetNode"
+					)
+				),
+				/ $forced DLDI @ ("constructor %ListBox, detaching"
+					@ %ComboList, "constructors %(ATrack, ScrollBar, \
+					ScrollableContainer)" @ %Scroll, "member functions \
+					%(TabBar, TabControl)::operator+=" @ %TabControl,
+					"constructor %DialogBox" @ %UIContainerEx,
+					"constructor %TextList" @ %ListControl,
+					("all 2 functions %operator+=", "function %Add")
+					@ "class %Window" @ %Window, "member functions \
+					%Panel::(operator+=, Add)" @ %Panel)
+					$dep_from ("%SetContainerPtrOf" @ %YWidget),
+				/ $forced DLDI @ ("constructor %Menu" @ %Menu, "functions \
+					%(RequestFocusCascade, ReleaseFocusCascade, \
+					ReleaseFocusFrom)" @ %YFocus, "all 2 member functions \
+					%Window::operator-=" @ %Window, "function %RemoveFrom"
+					@ %YUIContainer, "member functions \
+					%GUIState::(ResponseCursor, ResponseKey)" @ %YGUI)
+					$dep_from ("%FetchContainerPtr" @ %YWidget),
+				/ %YFocus $=
+				(
+					/ $re_add(b671) $forced "wrapped type with %observer_ptr"
+						@ "2nd parameter type" @ "function %IsFocusedCascade",
+						$dep_from
+						("%(FetchContainerPtr, FetchFocusingPtr)" @ %YWidget);
+					/ $forced DLDI @ "functions %(IsFocused, DoRequestFocus, \
+						DoReleaseFocus)"
+				),
+				/ $forced DLDI @ ("all 2 member functions %Window::operator-="
+					@ %Window, "function %RemoveFrom" @ %YUIContainer,
+					"member functions %GUIState::ResponseKey" @ %YGUI)
+					$dep_from ("%FetchFocusingPtr" @ %YWidget),
+				/ $forced DLDI @ "constructor %DropDownList" $dep_from
+					("%AView::DependencyPtr" @ %YWidgetView),
+				/ %YGUI $=
+				(
+					/ $re_add(b671) "wrapped with %observer_ptr"
+						@ ("private widget pointer data members",
+						"parameter type" @ "function %CheckDraggingOffset",
+						"return type" @ "functions %(GetIndependentFocusPtr, \
+						GetCursorOverPtr)", "type" @ "data member \
+						%ExternalTextInputFocusPtr") @ "class %GUIState";
+					/ $forced DLDI @ "function %IsFocusedByShell, member \
+						function %GUIState::(CleanupReferences, Wrap, \
+						HandleCascade)"
+				),
+				/ $forced DLDI ("function %OnTouchHeld_DraggingRaw"
+					@ %YControl, "function template %ActOnHover" @ %Hover,
+					"constructors %(TextBox, Caret), member functions \
+					%TextBox::(ExportCaretLocation, Caret::Check)" @ %TextBox)
+					$dep_from ("%GUIState" @ %YGUI),
+				/ DLDI "private data member" @ "class %UIEventArgs"
+					@ %YWidgetEvent ^ 'lref<IWidget>' ~ 'IWidget*',
+				/ %Animation $=
+				(
+					/ $re_add(b671) @ "class %InvalidationUpdater" $=
+					(
+						/ "wrapped type with %observer_ptr"
+							@ "data member %WidgetPtr",
+						/ "wrapped 1st parameter type with %observer_ptr"
+							@ "constructor"
+					);
+					/ $forced DLDI @ "function template %Restart"
+				),
+				/ @ "class %TabControl" @ %TabControl $=
+				(
+					/ $re_add(b671) DLDI "wrapped private data member types \
+						with %observer_ptr";
+					/ $re_add(b671) $forced "wrapped type with %observer_ptr"
+						@ "element type" @ "return type" @ "function %GetPages",
+					/ $forced DLDI @ "functions %(operator([], +=), Find)"
+				)
+			)
+		),
+		/ $re_add(b671) "wrapped private input cache type with %observer_ptr"
+			@ "platform %Win32" @ "class %InputManager" @ %Helper.InputManager,
+		/ $forced "alias %OpenFileSet" @ "class %Partition" @ %'YCLib_(DS)'.DSIO
+			^ $dep_from ("%ystdex::lref_less" @ %YBase.YStandardEx.Functional)
+	),
+	/ $forced DLDI %YReader $=
+	(
+		/ %ShlExplorer $=
+		(
+			/ $re_add(b671) "radio box" $dep_from
+				("%MSharedSelection" @ %YFramework.YSLib.UI.Selector),
+			/ @ "constructor %ShlExplorer" $=
+			(
+				/ $re_add(b671) $dep_from ("%TextPlaceholder::GetCapturedPtr"
+					@ %YFramework.YSLib.UI.TextBox),
+				/ "menu roots setting" $dep_from ("%Menu::(Roots, SubMap)"
+					@ %YFramework.YSLib.UI.Menu),
+				/ "animation reset" $dep_from %YFramework.YSLib.UI.Animation
+			)
+		),
+		/ %ShlReader $=
+		(
+			/ "constructor %ShlTextReader" $dep_from
+				("%Menu::Roots" @ %YFramework.YSLib.UI.Menu),
+			/ "constructors %(TextInfoBox, ReaderBox)" $dep_from
+				("%SetContainerPtrOf" @ %YFramework.YSLib.UI.YWidget)
+		),
+		/ "member function %DualScreenReader::Detach" @ %DSReader $dep_from
+			("%FetchContainerPtr" @ %YFramework.YSLib.UI.YWidget)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* "wrong noexcept-specification" @ "member function template \
+			%mem_get::operator()" @ %Functor $orig (@ %Functional $since b537);
+		/ "functor %lref_less" -> "%get_less" @ %Functional
+	),
+	/ $dev $repo $re_add(b654) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.YSLib.UI.("%ywindow.cpp" => "%YWindow.cpp",
+		"%ypanel.cpp" => "%YPanel.cpp")
+),
+
+b671
 (
 	/ %YFramework $=
 	(

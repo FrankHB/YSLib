@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r409
+\version r416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2015-10-02 19:17 +0800
+	2016-02-11 20:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,8 +48,8 @@ namespace UI
 class YF_API TextPlaceholder
 {
 private:
-	//! \since build 517
-	IWidget* p_captured = {};
+	//! \since build 672
+	observer_ptr<IWidget> p_captured = {};
 
 public:
 	Drawing::Font Font{};
@@ -57,8 +57,8 @@ public:
 	String Text{};
 	char32_t MaskChar = char32_t();
 
-	//! \since build 517
-	DefGetter(const ynothrow, IWidget*, CapturedPtr, p_captured)
+	//! \since build 672
+	DefGetter(const ynothrow, observer_ptr<IWidget>, CapturedPtr, p_captured)
 
 	template<class _tControl, typename _fSwap>
 	void
@@ -66,7 +66,7 @@ public:
 	{
 		yunseq(
 		FetchEvent<GotFocus>(ctl) += [&, f, this]{
-			if(p_captured == std::addressof(ctl) && Text.empty())
+			if(p_captured.get() == std::addressof(ctl) && Text.empty())
 			{
 				f(this, ctl);
 				p_captured = {};
@@ -76,7 +76,7 @@ public:
 			if(!p_captured && ctl.Text.empty())
 			{
 				f(this, ctl);
-				p_captured = std::addressof(ctl);
+				p_captured = YSLib::make_observer(std::addressof(ctl));
 			}
 		}
 		);
