@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r298
+\version r304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2015-03-24 21:59 +0800
+	2016-02-12 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ void
 TabBar::operator+=(IWidget& tab)
 {
 	MLinearUIContainer::operator+=(tab);
-	SetContainerPtrOf(tab, this);
+	SetContainerPtrOf(tab, make_observer(this));
 }
 
 bool
@@ -134,8 +134,8 @@ ImplDeDtor(TabControl)
 void
 TabControl::operator+=(IWidget& wgt)
 {
-	tab_pages.push_back(&dynamic_cast<Panel&>(wgt));
-	SetContainerPtrOf(wgt, this);
+	tab_pages.push_back(make_observer(&dynamic_cast<Panel&>(wgt)));
+	SetContainerPtrOf(wgt, make_observer(this));
 	SetVisibleOf(wgt, {});
 }
 
@@ -161,8 +161,8 @@ TabControl::GetPageBounds() const ynothrow
 size_t
 TabControl::Find(IWidget& wgt) const
 {
-	return size_t(std::find(tab_pages.cbegin(), tab_pages.cend(), &wgt)
-		- tab_pages.cbegin());
+	return size_t(std::find(tab_pages.cbegin(), tab_pages.cend(),
+		make_observer(&wgt)) - tab_pages.cbegin());
 }
 
 bool

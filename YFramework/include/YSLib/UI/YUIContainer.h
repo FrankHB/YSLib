@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2117
+\version r2131
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2015-03-11 12:24 +0800
+	2016-04-12 01:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,18 +57,18 @@ FetchTopLevel(IWidget&, Point&);
 /*!
 \brief 取指定部件向上遍历的轨迹：相对自身和所有父部件的位置。
 \return 部件视图树向上遍历的指针和对应相对其指向的部件相对位置序列。
-\since build 533
+\since build 672
 */
-YF_API vector<pair<const IWidget*, Point>>
+YF_API vector<pair<observer_ptr<const IWidget>, Point>>
 FetchTrace(const IWidget&);
 
 
 /*!
 \brief 取相对第三参数指向的部件的点相对第一参数指向的容器的偏移坐标。
-\since build 229
+\since build 672
 */
 YF_API Point
-LocateOffset(const IWidget*, Point, const IWidget*);
+LocateOffset(observer_ptr<const IWidget>, Point, observer_ptr<const IWidget>);
 
 /*!
 \brief 取相对部件 wgt 的点 pt 相对 wgt 的容器的偏移坐标。
@@ -88,10 +88,11 @@ LocateForTopOffset(const Point&, IWidget&, const Point& = {});
 
 /*!
 \brief 取指定部件相对轨迹的偏移坐标。
-\since build 533
+\since build 672
 */
 YF_API Point
-LocateForTrace(const vector<pair<const IWidget*, Point>>&, const IWidget&);
+LocateForTrace(const vector<pair<observer_ptr<const IWidget>, Point>>&,
+	const IWidget&);
 
 /*!
 \brief 取部件 wgt 相对部件 base 指定的部件的偏移坐标。
@@ -115,7 +116,8 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 
 	_tWidget* const pNode(fetch_ptr(wgt));
 
-	return pNode ? LocateOffset(pNode, Point(), &wgt) : Point::Invalid;
+	return pNode ? LocateOffset(pNode, Point(), YSLib::make_observer(&wgt))
+		: Point::Invalid;
 }
 
 /*!
@@ -209,9 +211,7 @@ public:
 	using iterator = WidgetIterator;
 
 protected:
-	/*
-	\brief 部件组：存储部件引用。
-	*/
+	//! \brief 部件组：存储部件引用。
 	WidgetVector vWidgets;
 
 public:
@@ -326,7 +326,7 @@ public:
 	using iterator = WidgetIterator;
 
 protected:
-	/*
+	/*!
 	\brief 部件映射：存储 Z 顺序映射至部件引用。
 	\since build 279
 	*/

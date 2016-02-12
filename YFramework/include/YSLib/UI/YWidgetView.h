@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r823
+\version r831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-12-26 01:53 +0800
+	2016-02-12 01:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,7 @@ protected:
 class YF_API Visual
 {
 public:
-	/*
+	/*!
 	\brief 可见性。
 	\since build 568
 	*/
@@ -111,16 +111,18 @@ public:
 class YF_API AView : public ystdex::cloneable
 {
 public:
-	//! \since build 375
+	//! \since build 672
 	//@{
-	mutable IWidget* ContainerPtr{}; //!< 从属的部件容器的指针。
+	//! \brief 从属的部件容器的指针。
+	mutable observer_ptr<IWidget> ContainerPtr{};
 	/*!
 	\brief 从属的部件指针。
 
 	逻辑依赖的部件指针，用于提供边界、容器和焦点以外属性的默认值。
 	*/
-	mutable IWidget* DependencyPtr{};
-	mutable IWidget* FocusingPtr{}; //!< 焦点指针。
+	mutable observer_ptr<IWidget> DependencyPtr{};
+	//! \brief 焦点指针。
+	mutable observer_ptr<IWidget> FocusingPtr{};
 	//@}
 
 	DefDeCtor(AView)

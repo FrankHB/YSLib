@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4877
+\version r4883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2016-02-09 14:43 +0800
+	2016-02-12 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,9 @@ ReaderBox::ReaderBox(const Rect& r)
 {
 	Background = nullptr,
 	SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(ystdex::bind1(SetContainerPtrOf, this), btnMenu, btnSetting, btnInfo,
-		btnBookmark, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
+	unseq_apply(ystdex::bind1(SetContainerPtrOf, make_observer(this)), btnMenu,
+		btnSetting, btnInfo, btnBookmark, btnReturn, btnPrev, btnNext, pbReader,
+		lblProgress);
 	SetBufferRendererAndText(btnMenu, u"M"),
 	SetBufferRendererAndText(btnSetting, u"S"),
 	SetBufferRendererAndText(btnInfo, u"I"),
@@ -128,7 +129,8 @@ TextInfoBox::TextInfoBox()
 	lblTop({4, 60, 192, 18}),
 	lblBottom({4, 80, 192, 18})
 {
-	unseq_apply(ystdex::bind1(SetContainerPtrOf, this), lblEncoding, lblSize);
+	unseq_apply(ystdex::bind1(SetContainerPtrOf, make_observer(this)),
+		lblEncoding, lblSize);
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld_Dragging;
 }
 
@@ -463,7 +465,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		},
 		GetSubDesktop().Add(mnu, DefaultMenuZOrder),
 		mhMain += mnu,
-		mhMain.Roots[&boxReader.btnMenu] = &mnu,
+		mhMain.Roots[boxReader.btnMenu] = make_observer(&mnu),
 		ResizeForContent(mnu);
 	}
 

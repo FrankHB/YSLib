@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3782
+\version r3788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2016-02-11 19:26 +0800
+	2016-02-12 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	tmbScroll(Size(defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
-	SetContainerPtrOf(tmbScroll, this);
+	SetContainerPtrOf(tmbScroll, make_observer(this));
 	yunseq(
 	Background = ystdex::bind1(DrawTrackBackground, std::ref(*this)),
 	ThumbDrag += [this]{
@@ -348,9 +348,9 @@ ScrollBar::ScrollBar(const Rect& r, Orientation o, SDst min_thumb)
 	r.Width, r.Height - r.Width * 2), min_thumb))),
 	btnPrev(Rect()), btnNext(Rect()), small_delta(2)
 {
-	SetContainerPtrOf(*pTrack, this),
-	SetContainerPtrOf(btnPrev, this);
-	SetContainerPtrOf(btnNext, this);
+	SetContainerPtrOf(*pTrack, make_observer(this)),
+	SetContainerPtrOf(btnPrev, make_observer(this));
+	SetContainerPtrOf(btnNext, make_observer(this));
 	yunseq(
 	FetchEvent<Resize>(*this) += [this](UIEventArgs&& e){
 		auto& track(GetTrackRef());
@@ -453,8 +453,8 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	vsbVertical(Size(defMinScrollBarWidth, r.Height), Vertical)
 {
 	// TODO: Allow user to choose whether background is drawn.
-	SetContainerPtrOf(hsbHorizontal, this),
-	SetContainerPtrOf(vsbVertical, this),
+	SetContainerPtrOf(hsbHorizontal, make_observer(this)),
+	SetContainerPtrOf(vsbVertical, make_observer(this)),
 	MoveToBottom(hsbHorizontal),
 	MoveToRight(vsbVertical),
 	FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){

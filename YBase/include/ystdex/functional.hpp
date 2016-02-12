@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2682
+\version r2691
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-12-05 13:16 +0800
+	2016-02-12 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -323,6 +323,9 @@ invoke_impl(_func&& f, _tParams&&... args)
 \brief 调用可调用对象。
 \sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4169.html
 \see WG21/N4527 20.9.2[func.require] ， WG21/N4527 20.9.3[func.invoke] 。
+\see http://wg21.cmeerw.net/lwg/issue2013 。
+\see http://wg21.cmeerw.net/cwg/issue1581 。
+\see https://llvm.org/bugs/show_bug.cgi?id=23141 。
 \since build 612
 */
 template<typename _fCallable, typename... _tParams>
@@ -654,13 +657,12 @@ compose(_func1 f, _func2 g, _funcs... args)
 
 /*!
 \ingroup functors
-\brief lref 小于仿函数。
-\sa lref
-\since build 607
+\brief get 成员小于仿函数。
+\since build 672
 */
 template<typename _type>
-using lref_less = composed<less<_type*>, composed<addressof_op<_type>,
-	mem_get<lref<_type>>>>;
+using get_less
+	= composed<less<_type*>, composed<addressof_op<_type>, mem_get<>>>;
 
 
 //! \since build 606

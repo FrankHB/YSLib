@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1444
+\version r1458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2015-05-05 04:21 +0800
+	2016-02-12 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,8 +71,8 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 		auto p_mnu = dynamic_cast<Menu*>(&wgt);
 
 		if(!p_mnu)
-			p_mnu = dynamic_cast<Menu*>(FetchContainerPtr(wgt));
-		return p_mnu ? p_mnu->GetParentPtr() == this : false;
+			p_mnu = dynamic_cast<Menu*>(FetchContainerPtr(wgt).get());
+		return p_mnu ? p_mnu->GetParentPtr().get() == this : false;
 	},
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(pHost)
@@ -114,11 +114,11 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 		if(pHost)
 		{
 			{
-				const auto i(pHost->Roots.find(&e.GetSender()));
+				const auto i(pHost->Roots.find(e.GetSender()));
 
 				if(i != pHost->Roots.end())
 				{
-					auto p_mnu(this);
+					auto p_mnu(make_observer(this));
 
 					while(const auto p = p_mnu->GetParentPtr())
 						p_mnu = p;
@@ -128,7 +128,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 			}
 			if(const auto p_mnu = dynamic_cast<Menu*>(&e.GetSender()))
 			{
-				if(p_mnu->GetParentPtr() != this)
+				if(p_mnu->GetParentPtr().get() != this)
 					pHost->HideUnrelated(*this, *p_mnu);
 			}
 			else
@@ -164,7 +164,7 @@ Menu::operator+=(const ValueType& val)
 {
 	if(val.second && IsInInterval(val.first, GetList().size()))
 	{
-		val.second->pParent = this;
+		val.second->pParent = make_observer(this);
 		mSubMenus.insert(val);
 	}
 }
@@ -233,7 +233,7 @@ Menu::Show()
 	return {};
 }
 
-Menu*
+observer_ptr<Menu>
 Menu::ShowSub(IndexType idx)
 {
 	if(pHost)
@@ -246,7 +246,7 @@ Menu::ShowSub(IndexType idx)
 
 			LocateMenu(mnu, *this, idx);
 			mnu.Show();
-			return &mnu;
+			return make_observer(&mnu);
 		}
 	}
 	return {};
@@ -262,7 +262,7 @@ Menu::TryShowingSub(IndexType idx)
 void
 LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 {
-	const auto& r(GetBoundsOf(src));
+	const Rect& r(GetBoundsOf(src));
 
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	SetLocationOf(dst, {r.GetRight(), r.Y + SPos(src.GetItemHeight() * idx)});
@@ -273,7 +273,7 @@ void
 MenuHost::operator+=(Menu& mnu)
 {
 	menus.insert(mnu);
-	mnu.pHost = this;
+	mnu.pHost = make_observer(this);
 	UI::Hide(mnu);
 }
 
@@ -356,9 +356,10 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnu_parent)
 {
 	if(Contains(mnu_parent))
 	{
-		auto p_mnu(&mnu);
+		auto p_mnu(make_observer(&mnu));
 
-		for(; p_mnu && p_mnu != &mnu_parent; p_mnu = p_mnu->GetParentPtr())
+		for(; p_mnu && p_mnu != make_observer(&mnu_parent);
+			p_mnu = p_mnu->GetParentPtr())
 			// XXX: %Hide or %HideRaw?
 			Hide(*p_mnu);
 		if(!p_mnu)
@@ -380,7 +381,6 @@ BindTopLevelPopupMenu(MenuHost& mh, Menu& mnu, IWidget& wgt, KeyIndex k)
 		}
 	};
 }
-
 
 } // namespace UI;
 

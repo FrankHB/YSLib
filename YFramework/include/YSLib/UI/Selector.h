@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r667
+\version r673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2015-05-24 21:41 +0800
+	2016-02-11 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,14 +65,14 @@ public:
 		: State(st)
 	{}
 
-	/*
+	/*!
 	\brief 更新状态。
 	\return 是否和旧状态相同。
 	*/
 	bool
 	UpdateState(StateType st)
 	{
-		const StateType old(State);
+		const auto old(State);
 
 		State = st;
 		return st != old;
@@ -224,14 +224,14 @@ public:
 	//! \since build 480
 	//@{
 	//! \brief 单选框选中状态类型。
-	using StateType = IWidget*;
+	using StateType = observer_ptr<IWidget>;
 	using MSelector = GMSelector<StateType>;
 	//! \brief 单选框选中状态参数类型。
 	using SelectedArgs = MSelector::SelectedArgs;
 	//@}
 
 private:
-	/*
+	/*!
 	\brief 共享状态。
 	\invariant <tt>bool(p_selector)</tt> 。
 	\since build 480
@@ -297,7 +297,7 @@ public:
 	DefDeMoveCtor(RadioBox)
 
 	//! \since build 480
-	DefPred(const ynothrow, Selected, GetState() == this)
+	DefPred(const ynothrow, Selected, GetState().get() == this)
 
 	using MSharedSelection::GetState;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r723
+\version r736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-10-02 18:50 +0800
+	2016-02-12 02:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 	FetchEvent<GotFocus>(wgt) += [&, this]{
 		// NOTE: Necessary cleanup.
 		Stop();
-		FetchGUIState().ExternalTextInputFocusPtr = &wgt;
+		FetchGUIState().ExternalTextInputFocusPtr = make_observer(&wgt);
 		Restart(caret_animation, wgt, CursorInvalidator);
 	},
 	FetchEvent<LostFocus>(wgt) += [this]{
@@ -70,8 +70,9 @@ Caret::~Caret()
 bool
 Caret::Check(IWidget& sender)
 {
-	if(FetchGUIState().ExternalTextInputFocusPtr == &sender && caret_animation
-		.GetConnectionPtr() && caret_animation.GetConnectionRef().Ready)
+	if(FetchGUIState().ExternalTextInputFocusPtr.get() == &sender
+		&& caret_animation.GetConnectionPtr()
+		&& caret_animation.GetConnectionRef().Ready)
 	{
 		if(IsEnabled(sender) && IsFocusedCascade(sender))
 			return CaretTimer.RefreshRemainder() < CaretTimer.Interval / 2;
@@ -212,9 +213,10 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		{
 			auto& st(FetchGUIState());
 
-			if(st.GetIndependentFocusPtr() == this
-				&& st.CheckDraggingOffset(this) && st.DraggingOffset
-				!= GetLocationOf(*this) - st.CursorLocation)
+			if(st.GetIndependentFocusPtr().get() == this
+				&& st.CheckDraggingOffset(make_observer(this))
+				&& st.DraggingOffset != GetLocationOf(*this)
+				- st.CursorLocation)
 			{
 				const auto& sender(e.GetSender());
 
@@ -302,7 +304,7 @@ TextBox::ExportCaretLocation() const
 {
 	auto& st(FetchGUIState());
 
-	if(st.ExternalTextInputFocusPtr == this)
+	if(st.ExternalTextInputFocusPtr.get() == this)
 		st.CaretLocation = GetCaretLocation();
 }
 
@@ -327,7 +329,7 @@ TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 void
 TextBox::Refresh(PaintEventArgs&& e)
 {
-	ystdex::swap_guard<String> guard(MaskChar != char32_t(), Text, [this]{
+	ystdex::swap_guard<String> gd(MaskChar != char32_t(), Text, [this]{
 		return String(Text.length(), MaskChar);
 	}());
 
@@ -380,7 +382,8 @@ TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
 		if(x2 < x1)
 			std::swap(x1, x2);
 
-		// TODO: Use ISO C++14 lambda initializers to simplify implementation.
+		// TODO: Blocked. Use ISO C++14 lambda initializers to simplify
+		//	implementation.
 		auto p(&Text[0]);
 		const auto q1(p + x1), q2(p + x2);
 		const auto& g(pc.Target);

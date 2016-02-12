@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1077
+\version r1084
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2015-03-29 01:02 +0800
+	2016-02-11 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,19 +92,19 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 
 //! \since build 569
 void
-BoxRefresh(AView& v, MLabel& lbl, PaintEventArgs& e, std::function<void()> f1)
+BoxRefresh(AView& v, MLabel& lbl, PaintEventArgs& e, std::function<void()> f)
 {
 	{
 		using namespace std::placeholders;
-		ystdex::state_guard<Size, void> guard([&](bool, Size& s){
+		ystdex::state_guard<Size, void> gd([&](bool, Size& s){
 			SwapSizeOf(v, s);
 		}, 13, 13);
 
-		f1();
+		f();
 	}
 	{
 		ystdex::swap_guard<SPos, void>
-			guard(lbl.Margin.Left, SPos(lbl.Margin.Left + 13));
+			gd(lbl.Margin.Left, SPos(lbl.Margin.Left + 13));
 
 		lbl(std::move(e));
 	}
@@ -211,7 +211,7 @@ RadioBox::SetSelected()
 {
 	const auto p_wgt(GetState());
 
-	if(p_wgt != this)
+	if(p_wgt.get() != this)
 	{
 		if(p_wgt)
 			Invalidate(*p_wgt);
@@ -229,7 +229,7 @@ RadioBox::Refresh(PaintEventArgs&& e)
 void
 RadioBox::Select()
 {
-	UpdateState(this);
+	UpdateState(make_observer(this));
 	Selected(SelectedArgs(*this, this));
 }
 

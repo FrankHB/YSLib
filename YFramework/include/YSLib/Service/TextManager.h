@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3902
+\version r3906
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2015-10-02 19:38 +0800
+	2016-02-11 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,7 +105,9 @@ public:
 		YF_API friend bool
 		operator==(const iterator&, const iterator&) ynothrow;
 
-		DefGetter(const ynothrow, TextFileBuffer*, BufferPtr, p_buffer)
+		//! \since build 672
+		DefGetter(const ynothrow, observer_ptr<TextFileBuffer>, BufferPtr,
+			make_observer(p_buffer))
 		DefGetter(const ynothrow, size_t, BlockN, block)
 		DefGetter(const ynothrow, size_t, IndexN, index)
 	};

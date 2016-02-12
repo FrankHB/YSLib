@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r441
+\version r447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2015-05-29 19:33 +0800
+	2016-02-12 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,7 +128,8 @@ class YF_API InvalidationUpdater
 public:
 	//! \since build 462
 	using Invalidator = std::function<bool(IWidget&)>;
-	IWidget* WidgetPtr;
+	//! \since build 672
+	observer_ptr<IWidget> WidgetPtr;
 	//! \brief 准备和最后持续状态：更新函数的最后结果。
 	mutable bool Ready;
 
@@ -140,7 +141,8 @@ public:
 	Invalidator Invalidate{DefaultInvalidate};
 
 public:
-	InvalidationUpdater(IWidget* p_wgt = {}, bool ready = {})
+	//! \since build 672
+	InvalidationUpdater(observer_ptr<IWidget> p_wgt = {}, bool ready = {})
 		: WidgetPtr(p_wgt), Ready(ready)
 	{}
 
@@ -181,7 +183,7 @@ template<class _tAnimation, typename _fCallable>
 inline void
 Restart(_tAnimation& ani, IWidget& wgt, _fCallable f)
 {
-	ani.Reset(&wgt, true);
+	ani.Reset(make_observer(&wgt), true);
 	ani.GetConnectionRef().Invalidate = f;
 	ani.Start();
 }
