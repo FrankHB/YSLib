@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1528
+\version r1529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2016-02-04 16:56 +0800
+	2016-02-21 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 		if(*b == "(")
 		{
 			// FIXME: Potential overflow.
-			auto nd(MakeNode(MakeIndex(node)));
+			auto nd(AsNode(MakeIndex(node)));
 			auto res(Reduce(nd, ++b, e));
 
 			if(res == e || *res != ")")

@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3501
+\version r3506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2016-02-11 19:04 +0800
+	2016-02-15 16:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -261,9 +261,11 @@ private:
 		//! \since build 421
 		FontStyle Style;
 
-		PDefHOp(bool, ==, const BitmapKey& key) const ynothrow
-			ImplRet(Flags == key.Flags && GlyphIndex == key.GlyphIndex
-				&& Size == key.Size && Style == key.Style)
+		//! \since build 673
+		friend PDefHOp(bool, ==, const BitmapKey& x, const BitmapKey& y)
+			ynothrow
+			ImplRet(x.Flags == y.Flags && x.GlyphIndex == y.GlyphIndex
+				&& x.Size == y.Size && x.Style == y.Style)
 	};
 
 	struct BitmapKeyHash

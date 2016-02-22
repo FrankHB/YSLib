@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5031
+\version r5081
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-01-25 17:30 +0800
+	2016-02-16 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
 #include <ystdex/base.h> // for ystdex::cloneable;
 #include <ystdex/functional.hpp> // for ystdex::make_expanded;
+#include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
 namespace YSLib
 {
@@ -67,7 +68,9 @@ class GHEvent;
 //! \warning 非虚析构。
 template<typename _tRet, typename... _tParams>
 class GHEvent<_tRet(_tParams...)>
-	: protected std::function<_tRet(_tParams...)>
+	: protected std::function<_tRet(_tParams...)>,
+	public ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>>,
+	public ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>, nullptr_t>
 {
 public:
 	using TupleType = tuple<_tParams...>;
@@ -93,7 +96,7 @@ private:
 			const auto p(x.template target<decayed_type>());
 
 			if(const auto q = y.template target<decayed_type>())
-				return p == q || *p == *q;
+				return p == q || (p && *p == *q);
 			else
 				return !p;
 			return {};
@@ -163,9 +166,7 @@ public:
 			&& (x.comp_eq(x, y));
 	}
 
-	/*!
-	\brief 调用。
-	*/
+	//! \brief 调用。
 	using BaseType::operator();
 
 	//! \since build 516
@@ -200,40 +201,12 @@ private:
 \relates GHEvent
 \since build 520
 */
-//@{
 template<typename _tRet, typename... _tParams>
 yconstfn bool
 operator==(const GHEvent<_tRet(_tParams...)>& x, nullptr_t)
 {
 	return !x;
 }
-template<typename _tRet, typename... _tParams>
-yconstfn bool
-operator==(nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
-{
-	return !y;
-}
-
-template<typename _tRet, typename... _tParams>
-yconstfn bool
-operator!=(const GHEvent<_tRet(_tParams...)>& x,
-	const GHEvent<_tRet(_tParams...)>& y)
-{
-	return !(x == y);
-}
-template<typename _tRet, typename... _tParams>
-yconstfn bool
-operator!=(const GHEvent<_tRet(_tParams...)>& x, nullptr_t)
-{
-	return bool(x);
-}
-template<typename _tRet, typename... _tParams>
-yconstfn bool
-operator!=(nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
-{
-	return bool(y);
-}
-//@}
 
 
 /*!
@@ -560,7 +533,7 @@ public:
 		ImplRet(handlers.size())
 	//@}
 
-	/*
+	/*!
 	\brief 交换。
 	\since build 409
 	*/
@@ -785,10 +758,14 @@ public:
 	using Base::operator();
 	//@}
 
-	//! \todo 实现比较 Function 相等。
-	PDefHOp(bool, ==, const GHandlerAdaptor& adaptor) const ynothrow
-		ImplRet(std::addressof(adaptor.ObjectRef.get())
-			== std::addressof(ObjectRef.get()))
+	/*!
+	\since build 673
+	\todo 实现比较 Function 相等。
+	*/
+	friend PDefHOp(bool, ==, const GHandlerAdaptor& x, const GHandlerAdaptor& y)
+		ynothrow
+		ImplRet(std::addressof(x.ObjectRef.get())
+			== std::addressof(y.ObjectRef.get()))
 };
 
 //! \since build 537
@@ -823,9 +800,13 @@ public:
 		CatchIgnore(std::bad_function_call&)
 	}
 
-	//! \todo 实现比较 Function 相等。
-	PDefHOp(bool, ==, const GHandlerAdaptor& adaptor) const ynothrow
-		ImplRet(this == &adaptor)
+	/*!
+	\since build 673
+	\todo 实现比较 Function 相等。
+	*/
+	friend PDefHOp(bool, ==, const GHandlerAdaptor& x, const GHandlerAdaptor& y)
+		ynothrow
+		ImplRet(&x == &y)
 };
 //@}
 

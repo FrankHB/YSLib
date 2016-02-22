@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r9046
+\version r9177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-02-12 23:48 +0800
+	2016-02-22 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,138 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ "class %GUIState" @ %UI.YGUI $=
+			(
+				/ DLDI "simplified function %ResponseKey" !^ 'IWidget*',
+				/ @ "function %ResponseCursor" $=
+				(
+					/ "set %RoutedEventArgs::Bubble only when event argument \
+						handled flag not set yet" @ "function %ResoponseCursor",
+					/ DLDI "simplified"
+				)
+			),
+			/ %Core $=
+			(
+				/ @ "class %ValueNode" @ %ValueNode $=
+				(
+					/ "member functions %operator(==, <)"
+						-> "friend functions %operator(==, <) with 'ynothrow'",
+						// To avoid unintuitive asymmetric behavior involving \
+							implicit conversions.
+					(
+					+ "friend function %set_value_move";
+					/ $comp $lib "improved insertion and emplacement \
+						performance" $dep_from
+						("%ystdex::mapped_set" @ %YBase.YStandardEx.Set)
+					)
+				),
+				/ "class %ValueObject" %YObject $=
+				(
+					/ "member function %operator==" $=
+					(
+						/ "member function" -> "friend function",
+							// Ditto.
+						/ "returned 'true' when parameters are empty"
+							// Like %GEvent comparator. This is a breaking \
+								change, but it should not change the current \
+								behavior as no interface implementation has \
+								been relying on it.
+					),
+					/ @ "all 2 function templates %GetObject" $=
+					(
+						/ DLDI "simplified" ^ ("%ystdex::unsafe_any_cast"
+							@ %YBase.YStandardEx.Any);
+						+ 'ynothrowv'
+					)
+				),
+				/ %YEvent $=
+				(
+					/ "member function %operator==" @ "all 2 class template \
+						specializations %GHandlerAdaptor" -> "friend function"
+						// Ditto.
+					/ @ "class %GHEvent specialization" $=
+					(
+						+ "base class" ^ "%ystdex::equality_comparable" $dep_to
+							"simplified event comparison",
+						* "possible null pointer access" @ "equality comparison"
+							$since b516
+					),
+					- "redundant function templates (%operator==, all 3 \
+						%operator!=) for %GHEvent specialization" $dep_from
+						"simplified event comparison",
+					* $re_add(b672) DD "missing '!'" @ "end of '/*'"
+						@ "multiline Doxygen comments" @ "function %swap"
+						$orig (@ "function %Swap" $since b188)
+						@ "class template specialization %GEvent"
+				),
+				/ @ "class template %GBinaryGroup, classes %(Size, Rect)"
+					@ %YGDIBase $=
+				(
+					+ "base class" ^ "%ystdex::equality_comparable" $dep_from
+						%Service.YDraw,
+					- "all redundant functions %operator!="
+				)
+			),
+			/ DLDI "member function %operator== for private data"
+				@ "class %Typeface" -> "friend function" @ %Adaptor.Font,
+			/ %Service $=
+			(
+				/ "simplified class %TextFileBuffer::iterator" @ %TextManager $=
+				(
+					+ "base class" ^ "%ystdex::bidirectional_iteratable";
+					- "friend function %operator!=",
+					* $comp "missing postfix %(++, --) for bidirectional \
+						iterator requirements" $orig
+						(@ "class %TextFileBuffer::Iterator" since b145)
+				),
+				/ $impl "avoid potentional ambiguity" @ %YDraw ^ "%std::cref"
+					~ "%cref"
+			)
+		),
+		* $re_add(b669) DD "missing document" @ "function %operator!= for \
+			%FileNodeID" @ %YCLib.FileIO $since b638,
+		/ DLDI "function %Reduce" @ %NPL.SContext ^ "%AsNode" ~ "%MakeNode"
+	),
+	/ $re_add(b613) $dev @ "%DrMemory-YSLib-suppress.txt" @ %Tools $=
+	(
+		+ "1 'INVALID HEAP ARGUMENT' case concerned with %std::string \
+			allocation and deallocation for libstdc++ with C++11 ABI",
+		+ "1 'POSSIBLE LEAK' case concerned with %operator<< for %std::cerr \
+			allocation for libstdc++"
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "all 2 function templates %unsafe_any_cast" @ %Any $=
+		(
+			+ 'ynothrowv',
+			+ "assertion for type precondition"
+		),
+		/ %Set $=
+		(
+			+ "function template %set_value_move",
+			/  @ "class template %mapped_set" $=
+			(
+				/ "optimized value move" ^ "ADL %set_value_move" $dep_from
+					"%set_value_move" $=
+				(
+					/ "implemented optimized %insert for types meet \
+						MoveConstructible",
+					/ "implemented optimized %emplace_hint for types meet \
+						MoveConstructible rather than CopyConstructible"
+				),
+				* "missing %std::move call" @ "move constructor" $since b665
+			)
+		)
+	),
+	/ DLDI "function %Reduce" @ %YReader.ReaderSetting ^ "%AsNode" ~ "%MakeNode"
+),
+
+b672
 (
 	/ %YFramework $=
 	(

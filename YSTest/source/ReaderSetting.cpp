@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015 FrankHB.
+	© 2012-2013, 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r588
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2015-04-24 04:32 +0800
+	2016-02-21 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ FetchSetting<Color>(const ValueNode::Container& con, const string& name)
 ValueNode
 ColorToNode(const string& name, const Color& value)
 {
-	return YSLib::MakeNode(name, to_string(value.GetR()) + ' '
+	return YSLib::AsNode(name, to_string(value.GetR()) + ' '
 		+ to_string(value.GetG()) + ' ' + to_string(value.GetB()));
 }
 
@@ -92,7 +92,7 @@ FetchFontSetting(const ValueNode::Container& con, const string& family,
 	if(const auto p = FetchDefaultFontCache().GetFontFamilyPtr(
 		FetchSetting<string>(con, family)))
 		return Font(*p, FetchSetting<int>(con, size));
-	return Font();
+	return {};
 }
 
 } // unnamed namespace;
@@ -116,7 +116,7 @@ ReaderSetting::operator ValueNode::Container() const
 	return ValueNode::Container{ColorToNode("UpColor", UpColor),
 		ColorToNode("DownColor", DownColor),
 		ColorToNode("FontColor", FontColor),
-		MakeNode("FontFamily", Font.GetFontFamily().GetFamilyName()),
+		AsNode("FontFamily", Font.GetFontFamily().GetFamilyName()),
 		StringifyToNode("FontSize", Font.GetSize()),
 		StringifyToNode("SmoothScroll", int(SmoothScroll)),
 		StringifyToNode("ScrollDuration", ScrollDuration.count()),

@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1890
+\version r1896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-02-11 01:43 +0800
+	2016-02-21 20:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,11 +79,16 @@ using FileNodeID = pair<std::uint64_t, std::uint64_t>;
 #endif
 //@}
 
-//! \relates FileNodeID
+/*!
+\bug 结构化类型污染。
+\relates FileNodeID
+*/
+//@{
 yconstfn PDefHOp(bool, ==, const FileNodeID& x, const FileNodeID& y)
 	ImplRet(x.first == y.first && x.second == y.second)
 yconstfn PDefHOp(bool, !=, const FileNodeID& x, const FileNodeID& y)
 	ImplRet(!(x == y))
+//@}
 //@}
 
 

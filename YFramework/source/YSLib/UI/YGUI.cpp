@@ -11,13 +11,13 @@
 /*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4365
+\version r4411
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-12 23:09 +0800
+	2016-02-13 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,33 +41,25 @@ namespace UI
 namespace
 {
 
-//! \since build 672
-observer_ptr<IWidget>
-FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt,
+//! \since build 673
+IWidget&
+FetchTopEnabledAndVisibleWidget(IWidget& con, const Point& pt,
 	VisualEvent id)
 {
-	if(con.GetView().HitChildren(pt))
-		return {};
 	for(auto pr(con.GetChildren()); pr.first != pr.second; ++pr.first)
 	{
 		auto& wgt(*pr.first);
 
 		if(Contains(wgt, pt) && IsVisible(wgt)
 			&& wgt.GetController().IsEventEnabled(id))
-			return make_observer(&wgt);
+			return wgt;
 	}
-	return make_observer(&con);
+	return con;
 }
 
-//! \since build 672
-observer_ptr<IWidget>
-FetchVisibleEnabledFocusingPtr(IWidget& con)
-{
-	if(const auto p = FetchFocusingPtr(con))
-		if(IsVisible(*p) && IsEnabled(*p))
-			return p;
-	return {};
-}
+//! \since build 673
+inline PDefH(bool, IsVisibleEnabled, IWidget& wgt)
+	ImplRet(IsVisible(wgt) && IsEnabled(wgt))
 
 } // unnamed namespace;
 
@@ -244,13 +236,9 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 	e.Strategy = UI::RoutedEventArgs::Tunnel;
 	while(true)
 	{
-		if(!(IsVisible(wgt_ref) && IsEnabled(wgt_ref)) || e.Handled)
+		if(!IsVisibleEnabled(wgt_ref) || e.Handled)
 			return;
-		p_con = &wgt_ref.get();
-
-		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*p_con, e, op));
-
-		if(!t)
+		if(wgt_ref.get().GetView().HitChildren(e))
 		{
 			// NOTE: Following code simulates a %Control at (0, 0) is
 			//	responsible directly without user-defined event handlers.
@@ -274,7 +262,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 				// NOTE: See %Wrap.
 				p_indp_focus = {};
 				// NOTE: See %OnTouchDown_RequestToFrontFocused.
-				ClearFocusingOf(*p_con);
+				ClearFocusingOf(wgt_ref);
 				break;
 			// TODO: %CursorOver.
 			case TouchHeld:
@@ -285,17 +273,20 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 			default:
 				break;
 			}
-			e.Strategy = RoutedEventArgs::Bubble;
 			if(e.Handled)
 				return;
+			e.Strategy = RoutedEventArgs::Bubble;
 			goto handle_bubbled;
 		}
-		if(t.get() == p_con)
+
+		auto& t(FetchTopEnabledAndVisibleWidget(wgt_ref, e, op));
+
+		if(&t == &wgt_ref.get())
 			break;
-		e.SetSender(wgt_ref);
 		ResponseCursorBase(e, op);
-		e.Position -= GetLocationOf(wgt_ref = *t);
-	};
+		e.SetSender(wgt_ref = t);
+		e.Position -= GetLocationOf(wgt_ref);
+	}
 	e.Strategy = RoutedEventArgs::Direct;
 	e.SetSender(wgt_ref);
 	ResponseCursorBase(e, op);
@@ -340,22 +331,20 @@ void
 GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 {
 	auto wgt_ref(ystdex::ref(e.GetSender()));
-	IWidget* p_con;
 
 	e.Strategy = RoutedEventArgs::Tunnel;
 	while(true)
 	{
-		if(!(IsVisible(wgt_ref) && IsEnabled(wgt_ref)) || e.Handled)
+		if(!IsVisibleEnabled(wgt_ref) || e.Handled)
 			return;
-		p_con = &wgt_ref.get();
-
-		const auto t(FetchVisibleEnabledFocusingPtr(*p_con));
-
-		if(!t || t.get() == p_con)
-			break;
-		e.SetSender(wgt_ref);
-		ResponseKeyBase(e, op);
-		wgt_ref = *t;
+		if(const auto p = FetchFocusingPtr(wgt_ref))
+			if(IsVisibleEnabled(*p))
+			{
+				ResponseKeyBase(e, op);
+				e.SetSender(wgt_ref = *p);
+				continue;
+			}
+		break;
 	}
 	e.Strategy = RoutedEventArgs::Direct;
 	e.SetSender(wgt_ref);
@@ -363,11 +352,14 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 	if(op == KeyDown)
 		HandleCascade(e, wgt_ref);
 	e.Strategy = RoutedEventArgs::Bubble;
-	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref).get()))
-	{
-		e.SetSender(wgt_ref = *p_con);
-		ResponseKeyBase(e, op);
-	}
+	while(!e.Handled)
+		if(const auto p_con = FetchContainerPtr(wgt_ref))
+		{
+			e.SetSender(wgt_ref = *p_con);
+			ResponseKeyBase(e, op);
+		}
+		else
+			break;
 }
 
 void

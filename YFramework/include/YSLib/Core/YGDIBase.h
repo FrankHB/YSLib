@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2202
+\version r2226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2016-01-28 17:06 +0800
+	2016-02-15 17:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::GeneralEvent,
 //	YSLib::HalfDifference;
 #include <limits>
+#include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
 namespace YSLib
 {
@@ -49,7 +50,7 @@ class Rect;
 \since build 242
 */
 template<typename _type>
-class GBinaryGroup
+class GBinaryGroup : public ystdex::equality_comparable<GBinaryGroup<_type>>
 {
 	//! \since build 630
 	static_assert(ystdex::is_nothrow_copyable<_type>(),
@@ -168,17 +169,6 @@ operator==(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
 }
 
 /*!
-\brief 比较：屏幕二元组不等关系。
-\since build 319
-*/
-template<typename _type>
-yconstfn bool
-operator!=(const GBinaryGroup<_type>& x, const GBinaryGroup<_type>& y) ynothrow
-{
-	return !(x == y);
-}
-
-/*!
 \brief 加法：屏幕二元组。
 \since build 319
 */
@@ -285,7 +275,7 @@ using Vec = GBinaryGroup<SPos>;
 \warning 非虚析构。
 \since build 161
 */
-class YF_API Size
+class YF_API Size : public ystdex::equality_comparable<Size>
 {
 public:
 	/*!
@@ -404,10 +394,6 @@ public:
 //! \brief 比较：屏幕区域大小相等关系。
 yconstfn PDefHOp(bool, ==, const Size& x, const Size& y) ynothrow
 	ImplRet(x.Width == y.Width && x.Height == y.Height)
-
-//! \brief 比较：屏幕区域大小不等关系。
-yconstfn PDefHOp(bool, !=, const Size& x, const Size& y) ynothrow
-	ImplRet(!(x == y))
 
 /*!
 \brief 求两个屏幕区域大小的交。
@@ -528,7 +514,8 @@ ScaleMin(const Size& x, const Size& y, _tScalar threshold = 1.F)
 \warning 非虚析构。
 \since build 161
 */
-class YF_API Rect : private Point, private Size
+class YF_API Rect : private Point, private Size,
+	public ystdex::equality_comparable<Rect>
 {
 public:
 	/*!
@@ -763,13 +750,6 @@ public:
 */
 yconstfn PDefHOp(bool, ==, const Rect& x, const Rect& y) ynothrow
 	ImplRet(x.GetPoint() == y.GetPoint() && x.GetSize() == y.GetSize())
-
-/*!
-\brief 比较：屏幕标准矩形不等关系。
-\since build 319
-*/
-yconstfn PDefHOp(bool, !=, const Rect& x, const Rect& y) ynothrow
-	ImplRet(!(x == y))
 
 /*!
 \brief 加法：使用标准矩形 r 和偏移向量 v 构造屏幕标准矩形。

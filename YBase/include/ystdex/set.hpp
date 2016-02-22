@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r617
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-01-30 10:03 +0800
+	2016-01-30 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,19 @@
 
 namespace ystdex
 {
+
+/*!
+\brief 转移集合元素。
+\post 转移后元素和参数比较相等。
+\since build 673
+*/
+template<typename _type>
+yconstfn const _type&
+set_value_move(const _type& x) ynothrow
+{
+	return x;
+}
+
 
 /*!
 \brief 允许指定不同于值类型的键的集合。
@@ -148,13 +161,13 @@ public:
 	{
 		amend_all();
 	}
-	mapped_set(const mapped_set& x)
-		: m_map(x.m_map)
+	mapped_set(const mapped_set& s)
+		: m_map(s.m_map)
 	{
 		amend_all();
 	}
-	mapped_set(mapped_set&& x)
-		: m_map(x.m_map)
+	mapped_set(mapped_set&& s)
+		: m_map(std::move(s.m_map))
 	{
 		amend_all();
 	}
@@ -194,7 +207,7 @@ public:
 	mapped_set&
 	operator=(mapped_set&& s)
 #if 0
-	// TODO: Blocked. Apply exception specification after ISO C++17 published.
+	// TODO: Blocked. Apply exception specification after published ISO C++17.
 		ynoexcept(std::allocator_traits<_tAlloc>::is_always_equal()
 		&& is_nothrow_move_assignable<_fComp>())
 #endif
@@ -309,14 +322,19 @@ public:
 		return insert(value_type(yforward(args)...));
 	}
 
+	//! \note 使用 ADL set_value_move 转移元素。
 	template<typename... _tParams>
 	iterator
 	emplace_hint(const_iterator position, _tParams&&... args)
 	{
-		const value_type x(yforward(args)...);
+		value_type x(yforward(args)...);
 
-		// XXX: %value_type needs to be CopyInsertable, not MoveInsertable.
-		const auto res(m_map.emplace_hint(position.get(), mapped_key_type(x), x));
+		// XXX: %value_type needs to be MoveConstructible after wrapped by ADL
+		//	%set_value_move rather than EmplaceConstructible into %mapped_set.
+		// XXX: %umap_pair needs to be EmplaceConstructible into %umap_type from
+		//	its components.
+		const auto res(m_map.emplace_hint(position.get(),
+			mapped_key_type(x), set_value_move(x)));
 
 		amend_pair(*res);
 		return iterator(res);
@@ -325,17 +343,27 @@ public:
 	std::pair<iterator, bool>
 	insert(const value_type& x)
 	{
+		// XXX: %value_type needs to be CopyConstructible rather than
+		//	CopyInsertable into %mapped_set.
+		// XXX: %umap_pair needs to be MoveInsertable into %umap_type.
 		const auto res(m_map.insert({mapped_key_type(x), x}));
 
 		if(res.second)
 			amend_pair(*res.first);
 		return {iterator(res.first), res.second};
 	}
+	//! \note 使用 ADL set_value_move 转移元素。
 	std::pair<iterator, bool>
 	insert(value_type&& x)
 	{
-		// XXX: %value_type needs to be CopyInsertable, not MoveInsertable.
-		return insert(x);
+		// XXX: %value_type needs to be MoveConstructible after wrapped by ADL
+		//	%set_value_move rather than EmplaceConstructible into %mapped_set.
+		// XXX: %umap_pair needs to be MoveInsertable into %umap_type.
+		const auto res(m_map.insert({mapped_key_type(x), set_value_move(x)}));
+
+		if(res.second)
+			amend_pair(*res.first);
+		return {iterator(res.first), res.second};
 	}
 	iterator
 	insert(const_iterator position, const value_type& x)
@@ -392,7 +420,7 @@ public:
 	void
 	swap(mapped_set& s)
 #if 0
-	// TODO: Blocked. Apply exception specification after ISO C++17 published.
+	// TODO: Blocked. Apply exception specification after published ISO C++17.
 		ynoexcept(std::allocator_traits<_tAlloc>::is_always_equal()
 		&& is_nothrow_swappable<_fComp>())
 #endif
