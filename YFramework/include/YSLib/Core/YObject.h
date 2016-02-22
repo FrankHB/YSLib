@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3922
+\version r3947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-10 00:46 +0800
+	2016-02-20 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -333,38 +333,31 @@ public:
 	*/
 	DefBoolNeg(explicit, content.get_holder())
 
-	bool
-	operator==(const ValueObject&) const;
+	//! \since build 673
+	//@{
+	//! \brief 比较相等：参数都为空或都非空且存储的对象相等。
+	YF_API friend bool
+	operator==(const ValueObject&, const ValueObject&);
 
-private:
 	/*!
 	\brief 取指定类型的对象。
-	\tparam _type 指定类型。
-	\pre 断言： bool(content) && content.type() == typeid(_type) 。
-	\since build 337
+	\pre 间接断言：存储对象类型和访问的类型一致。
 	*/
+	//@{
 	template<typename _type>
 	inline _type&
-	GetMutableObject() const
+	GetObject() ynothrowv
 	{
-		YAssertNonnull(content);
-		YAssert(content.type() == typeid(_type), "Invalid type found.");
-		return Deref(static_cast<_type*>(content.get()));
-	}
-
-public:
-	template<typename _type>
-	inline _type&
-	GetObject()
-	{
-		return GetMutableObject<_type>();
+		return Deref(ystdex::unsafe_any_cast<_type>(&content));
 	}
 	template<typename _type>
 	inline const _type&
-	GetObject() const
+	GetObject() const ynothrowv
 	{
-		return GetMutableObject<_type>();
+		return Deref(ystdex::unsafe_any_cast<const _type>(&content));
 	}
+	//@}
+	//@}
 	//! \since build 340
 	DefGetter(const ynothrow, const std::type_info&, Type, content.type())
 

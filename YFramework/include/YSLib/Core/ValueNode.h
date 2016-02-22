@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2164
+\version r2184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-02-09 15:34 +0800
+	2016-02-22 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,11 +155,13 @@ public:
 	//@}
 	//@}
 
-	PDefHOp(bool, ==, const ValueNode& node) const
-		ImplRet(name == node.name)
+	//! \since build 673
+	friend PDefHOp(bool, ==, const ValueNode& x, const ValueNode& y) ynothrow
+		ImplRet(x.name == y.name)
 
-	PDefHOp(bool, <, const ValueNode& node) const
-		ImplRet(name < node.name)
+	//! \since build 673
+	friend PDefHOp(bool, <, const ValueNode& x, const ValueNode& y) ynothrow
+		ImplRet(x.name < y.name)
 
 	//! \since build 667
 	ValueNode&
@@ -261,6 +263,8 @@ public:
 		return res;
 	}
 
+	//! \warning 不检查容器之间的所有权，保持循环引用状态析构导致行为未定义。
+	//@{
 	//! \brief 交换容器。
 	PDefH(void, SwapContainer, ValueNode& node) ynothrow
 		ImplExpr(container.swap(node.container))
@@ -268,6 +272,7 @@ public:
 	//! \brief 交换容器和值。
 	void
 	SwapContent(ValueNode&) ynothrow;
+	//@}
 	//@}
 
 	//! \since build 460
@@ -310,6 +315,18 @@ public:
 	*/
 	void
 	swap(ValueNode&) ynothrow;
+
+	/*!
+	\sa ystdex::mapped_set
+	\sa ystdex::set_value_move
+	\since build 671
+	*/
+	friend ValueNode
+	set_value_move(ValueNode&& node)
+	{
+		return {std::move(node.GetContainerRef()), node.GetName(),
+			std::move(node.Value)};
+	}
 };
 
 //! \relates ValueNode

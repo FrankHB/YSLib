@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3906
+\version r3916
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-02-11 20:07 +0800
+	2016-02-15 17:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YString
 #include YFM_YSLib_Service_TextFile
+#include <ystdex/iterator_op.hpp> // for ystdex::bidirectional_iteratable;
 
 namespace YSLib
 {
@@ -66,7 +67,8 @@ public:
 	//@{
 	class YF_API iterator : public std::iterator<
 		std::bidirectional_iterator_tag, char16_t, ptrdiff_t, const char16_t*,
-		const char16_t&>
+		const char16_t&>, public ystdex::bidirectional_iteratable<
+		TextFileBuffer::iterator, const char16_t&>
 	{
 		friend class TextFileBuffer;
 
@@ -225,14 +227,6 @@ public:
 	end() ynothrow;
 	//@}
 };
-
-/*!
-\relates TextFileBuffer::iterator
-\since build 460
-*/
-inline PDefHOp(bool, !=, const TextFileBuffer::iterator& x,
-	const TextFileBuffer::iterator y) ynothrow
-	ImplRet(!(x == y))
 
 
 /*!

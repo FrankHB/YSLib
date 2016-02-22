@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1112
+\version r1116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2015-08-19 10:27 +0800
+	2016-02-16 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,7 +167,7 @@ PlotCircle(void(*plotter)(const Graphics&, const Rect&, SPos, SPos, SPos, SPos,
 		"The boundary is out of the buffer.");
 	if(r != 0)
 		// Bresenham circle algorithm implementation.
-		// See http://willperone.net/Code/codecircle.php .
+		// See http://willperone.net/Code/codecircle.php.
 		// XXX: Conversion to 'SPos' might be implementation-defined.
 		for(SPos x(0), y((SPos(r))), p(SPos(3 - 2 * r)); y >= x;
 			p += p < 0 ? (4 * x++ + 6) : (4 * (x++ - y--) + 10))
@@ -184,7 +184,7 @@ DrawCircle(const Graphics& g_, const Rect& bounds_, const Point& pt, SDst r,
 		SPos dx, SPos dy, Color c){
 		using namespace std;
 		using namespace placeholders;
-		const auto plot(bind(PlotPixel, g.GetBufferPtr(), cref(bounds),
+		const auto plot(bind(PlotPixel, g.GetBufferPtr(), std::cref(bounds),
 			g.GetWidth(), _1, _2, c));
 
 		plot(x + dx, y + dy),
@@ -206,7 +206,7 @@ FillCircle(const Graphics& g_, const Rect& bounds_, const Point& pt, SDst r,
 		SPos dx, SPos dy, Color c){
 		using namespace std;
 		using namespace placeholders;
-		const auto plot(bind(PlotHLineSeg, g.GetBufferPtr(), cref(bounds),
+		const auto plot(bind(PlotHLineSeg, g.GetBufferPtr(), std::cref(bounds),
 			g.GetWidth(), _1, _2, _3, c));
 
 		plot(y + dy, x - dx, x + dx + 1),

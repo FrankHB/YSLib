@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2031
+\version r2039
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-02-10 01:10 +0800
+	2016-02-20 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -848,24 +848,25 @@ any_cast(any&& x)
 /*!
 \brief 非安全动态泛型转换。
 \note YSandardEx 扩展：语义同非公开接口 \c boost::unsafe_any_cast 。
-\pre 断言： \c p 。
 \relates any
-\since build 331
+\since build 673
 */
 //@{
+//! \pre 断言： <tt>p && p->type() == typeid(_type)</tt> 。
 template<typename _type>
 inline _type*
-unsafe_any_cast(any* p)
+unsafe_any_cast(any* p) ynothrowv
 {
-	yconstraint(p);
+	yconstraint(p && p->type() == typeid(_type));
 	return static_cast<_type*>(p->get());
 }
 
+//! \pre 断言： <tt>p && p->type() == typeid(const _type)</tt> 。
 template<typename _type>
 inline const _type*
-unsafe_any_cast(const any* p)
+unsafe_any_cast(const any* p) ynothrowv
 {
-	yconstraint(p);
+	yconstraint(p && p->type() == typeid(const _type));
 	return static_cast<const _type*>(p->get());
 }
 //@}

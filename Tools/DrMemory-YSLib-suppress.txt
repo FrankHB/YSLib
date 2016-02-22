@@ -37,6 +37,11 @@ name=libstc++ std::string#2
 ...
 *!YSLib::InitializeInstalled
 
+INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
+name=libstc++ std::string#3
+...
+*!std::__cxx11::basic_string<>::_M_dispose
+
 LEAK
 name=libwinpthread leak#1
 libwinpthread-1.dll!...
@@ -63,4 +68,10 @@ name=any_cast#1
 libgcc_s*!...
 libstdc++-6.dll!...
 *!ystdex::any_cast<>
+
+POSSIBLE LEAK
+name=libstdc++ cerr <<
+libgcc_s*!*
+...
+*!platform::Logger::SendLog*
 
