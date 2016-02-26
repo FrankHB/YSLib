@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1529
+\version r1538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2016-02-21 19:06 +0800
+	2016-02-26 08:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,27 +68,28 @@ Validate(TLCIter b, TLCIter e)
 }
 
 TLCIter
-Reduce(ValueNode& node, TLCIter b, TLCIter e)
+Reduce(TermNode& term, TLCIter b, TLCIter e)
 {
 	while(b != e && *b != ")")
 		if(*b == "(")
 		{
 			// FIXME: Potential overflow.
-			auto nd(AsNode(MakeIndex(node)));
-			auto res(Reduce(nd, ++b, e));
+			// NOTE: Explicit type 'TermNode' is intended.
+			TermNode tm(AsNode(MakeIndex(term)));
+			auto res(Reduce(tm, ++b, e));
 
 			if(res == e || *res != ")")
 				throw LoggedEvent("Redundant '(' found.", Alert);
-			node += std::move(nd);
+			term += std::move(tm);
 			b = ++res;
 		}
 		else
-			node += AsNode(MakeIndex(node), *b++);
+			term += AsNode(MakeIndex(term), *b++);
 	return b;
 }
 
 void
-Analyze(ValueNode& root, const TokenList& token_list)
+Analyze(TermNode& root, const TokenList& token_list)
 {
 	if(Validate(token_list.cbegin(), token_list.cend()) != token_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
@@ -98,12 +99,12 @@ Analyze(ValueNode& root, const TokenList& token_list)
 	yassume(res == token_list.end());
 }
 void
-Analyze(ValueNode& root, const Session& session)
+Analyze(TermNode& root, const Session& session)
 {
 	Analyze(root, session.GetTokenList());
 }
 void
-Analyze(ValueNode& root, string_view unit)
+Analyze(TermNode& root, string_view unit)
 {
 	YAssertNonnull(unit.data());
 	Analyze(root, Session(unit).GetTokenList());

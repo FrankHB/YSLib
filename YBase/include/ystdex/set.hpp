@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r653
+\version r694
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-01-30 19:47 +0800
+	2016-02-23 13:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,12 @@
 #ifndef YB_INC_ystdex_set_hpp_
 #define YB_INC_ystdex_set_hpp_ 1
 
-#include "functor.hpp" // for less, lref;
+#include "functor.hpp" // for less, lref, std::move, std::piecewise_construct;
 #include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::make_transform;
 #include <memory> // for std::allocator, std::allocator_traits;
 #include <map> // for std::map, std::initializer_list;
-#include <utility> // for std::move;
+#include <tuple> // for std::forward_as_tuple;
 
 namespace ystdex
 {
@@ -318,7 +318,8 @@ public:
 	std::pair<iterator, bool>
 	emplace(_tParams&&... args)
 	{
-		// XXX: %value_type needs to be CopyInsertable, not EmplaceInsertable.
+		// XXX: %value_type needs to be MoveConstructible, not
+		//	EmplaceInsertable.
 		return insert(value_type(yforward(args)...));
 	}
 
@@ -327,17 +328,9 @@ public:
 	iterator
 	emplace_hint(const_iterator position, _tParams&&... args)
 	{
-		value_type x(yforward(args)...);
-
-		// XXX: %value_type needs to be MoveConstructible after wrapped by ADL
-		//	%set_value_move rather than EmplaceConstructible into %mapped_set.
-		// XXX: %umap_pair needs to be EmplaceConstructible into %umap_type from
-		//	its components.
-		const auto res(m_map.emplace_hint(position.get(),
-			mapped_key_type(x), set_value_move(x)));
-
-		amend_pair(*res);
-		return iterator(res);
+		// XXX: %value_type needs to be MoveConstructible, not
+		//	EmplaceInsertable.
+		return insert(position, value_type(yforward(args)...));
 	}
 
 	std::pair<iterator, bool>
@@ -345,8 +338,11 @@ public:
 	{
 		// XXX: %value_type needs to be CopyConstructible rather than
 		//	CopyInsertable into %mapped_set.
-		// XXX: %umap_pair needs to be MoveInsertable into %umap_type.
-		const auto res(m_map.insert({mapped_key_type(x), x}));
+		// XXX: %mapped_key_type and %value_type need to be EmplaceConstructible
+		//	into %umap_type.
+		const auto res(m_map.emplace(std::piecewise_construct,
+			std::forward_as_tuple(mapped_key_type(x)),
+			std::forward_as_tuple(x)));
 
 		if(res.second)
 			amend_pair(*res.first);
@@ -356,10 +352,11 @@ public:
 	std::pair<iterator, bool>
 	insert(value_type&& x)
 	{
-		// XXX: %value_type needs to be MoveConstructible after wrapped by ADL
-		//	%set_value_move rather than EmplaceConstructible into %mapped_set.
-		// XXX: %umap_pair needs to be MoveInsertable into %umap_type.
-		const auto res(m_map.insert({mapped_key_type(x), set_value_move(x)}));
+		// XXX: %mapped_key_type and moved %value_type need to be
+		//	EmplaceConstructible into %umap_type.
+		const auto res(m_map.emplace(std::piecewise_construct,
+			std::forward_as_tuple(mapped_key_type(x)),
+			std::forward_as_tuple(set_value_move(x))));
 
 		if(res.second)
 			amend_pair(*res.first);
@@ -368,18 +365,29 @@ public:
 	iterator
 	insert(const_iterator position, const value_type& x)
 	{
-		const auto
-			res(m_map.insert(position, {mapped_key_type(x), x}));
+		// XXX: %mapped_key_type and %value_type need to be EmplaceConstructible
+		//	into %umap_type.
+		const auto res(m_map.emplace_hint(position.get(),
+			std::piecewise_construct, std::forward_as_tuple(mapped_key_type(x)),
+			std::forward_as_tuple(x)));
 
-		if(res.second)
-			amend_pair(*res.first);
-		return {iterator(res.first), res.second};
+		// TODO: Blocked. Use ISO C++1z %try_emplace result.
+		amend_pair(*res);
+		return iterator(res);
 	}
+	//! \note 使用 ADL set_value_move 转移元素。
 	iterator
 	insert(const_iterator position, value_type&& x)
 	{
-		// XXX: %value_type needs to be CopyInsertable, not MoveInsertable.
-		insert(position, x);
+		// XXX: %mapped_key_type and moved %value_type need to be
+		//	EmplaceConstructible into %umap_type.
+		const auto res(m_map.emplace_hint(position.get(),
+			std::piecewise_construct, std::forward_as_tuple(mapped_key_type(x)),
+			std::forward_as_tuple(set_value_move(x))));
+
+		// TODO: Blocked. Use ISO C++1z %try_emplace result.
+		amend_pair(*res);
+		return iterator(res);
 	}
 	template<typename _tIn>
 	void
@@ -540,14 +548,14 @@ public:
 	{
 		const auto pr(m_map.equal_range(mapped_key_type(x)));
 
-		return {iterator(x.first), iterator(x.second)};
+		return {iterator(pr.first), iterator(pr.second)};
 	}
 	std::pair<const_iterator, const_iterator>
 	equal_range(const key_type& x) const
 	{
 		const auto pr(m_map.equal_range(mapped_key_type(x)));
 
-		return {const_iterator(x.first), const_iterator(x.second)};
+		return {const_iterator(pr.first), const_iterator(pr.second)};
 	}
 #if 0
 	template<typename _tKey>

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPL.h
 \ingroup NPL
 \brief NPL 公共接口。
-\version r73
+\version r78
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:44:40 +0800
 \par 修改时间:
-	2015-05-11 11:41 +0800
+	2016-02-25 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,7 @@
 #define NPL_INC_NPL_h_ 1
 
 #include "YModules.h"
-#include "YCLib/YModules.h"
-#include YFM_YCLib_Platform // for YF_API;
-#include <ydef.h>
+#include YFM_YSLib_Adaptor_YAdaptor // for YF_API, YSLib::byte;
 
 namespace NPL
 {
@@ -46,7 +44,7 @@ struct YF_API NPLTag
 {};
 
 
-using ystdex::byte;
+using YSLib::byte;
 //@}
 
 

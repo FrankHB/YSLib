@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r686
+\version r706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-01-27 23:10 +0800
+	2016-02-25 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,31 +29,19 @@
 #define NPL_INC_NPLA_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPL
-#include YFM_YSLib_Core_ValueNode // for YSLib::string, YSLib::ValueNode;
-#include <ystdex/functional.hpp> // for ystdex::id_func_clr_t;
+#include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode;
 
 namespace NPL
 {
 
 //! \since build 598
 using YSLib::pair;
-
-//! \since build 341
-using YSLib::string;
-
 //! \since build 598
 using YSLib::to_string;
-
-//! \since build 335
-using YSLib::ValueNode;
-
 //! \since build 599
 using YSLib::MakeIndex;
-
 //! \since build 600
 using YSLib::NodeSequence;
-
 //! \since build 600
 using YSLib::NodeLiteral;
 
@@ -96,16 +84,16 @@ InsertSyntaxNode(_tNodeOrCon&& node_or_con, _type&& arg, _tParams&&... args)
 \brief 节点映射操作类型：变换节点为另一个节点。
 \since buld 501
 */
-using NodeMapper = std::function<ystdex::id_func_clr_t<ValueNode>>;
+using NodeMapper = std::function<ValueNode(const TermNode&)>;
 
 //! \since buld 597
 //@{
 using NodeToString = std::function<string(const ValueNode&)>;
 
 template<class _tCon>
-using GNodeInserter = std::function<void(ValueNode&&, _tCon&)>;
+using GNodeInserter = std::function<void(TermNode&&, _tCon&)>;
 
-using NodeInserter = GNodeInserter<ValueNode::Container&>;
+using NodeInserter = GNodeInserter<TermNode::Container&>;
 
 using NodeSequenceInserter = GNodeInserter<NodeSequence>;
 //@}
@@ -115,13 +103,13 @@ using NodeSequenceInserter = GNodeInserter<NodeSequence>;
 //@{
 /*!
 \brief 映射 NPLA 叶节点。
-\since build 597
+\since build 674
 \sa ParseNPLANodeString
 
 创建新节点。若参数为空则返回值为空串的新节点；否则值以 ParseNPLANodeString 取得。
 */
 YF_API ValueNode
-MapNPLALeafNode(const ValueNode&);
+MapNPLALeafNode(const TermNode&);
 
 /*!
 \brief 变换节点为语法分析树叶节点。
@@ -253,13 +241,15 @@ PrintNodeString(std::ostream&, const ValueNode&,
 namespace SXML
 {
 
+//! \since build 674
+//@{
 /*!
 \brief 转换 SXML 节点为 XML 属性字符串。
 \throw LoggedEvent 没有子节点。
 \note 当前不支持 annotation ，在超过 2 个子节点时使用 YTraceDe 警告。
 */
 YF_API string
-ConvertAttributeNodeString(const ValueNode&);
+ConvertAttributeNodeString(const TermNode&);
 
 /*!
 \brief 转换 SXML 文档节点为 XML 字符串。
@@ -274,7 +264,7 @@ ConvertAttributeNodeString(const ValueNode&);
 因为当前 SXML 规范未指定注解(annotation) ，所以直接忽略。
 */
 YF_API string
-ConvertDocumentNode(const ValueNode&, IndentGenerator = DefaultGenerateIndent,
+ConvertDocumentNode(const TermNode&, IndentGenerator = DefaultGenerateIndent,
 	size_t = 0, ParseOption = ParseOption::Normal);
 
 /*!
@@ -282,7 +272,7 @@ ConvertDocumentNode(const ValueNode&, IndentGenerator = DefaultGenerateIndent,
 \sa EscapeXML
 */
 YF_API string
-ConvertStringNode(const ValueNode&);
+ConvertStringNode(const TermNode&);
 
 /*!
 \brief 打印 SContext::Analyze 分析取得的 SXML 语法树节点并刷新流。
@@ -293,8 +283,9 @@ ConvertStringNode(const ValueNode&);
 参数节点中取第一个节点作为 SXML 文档节点调用 ConvertStringNode 输出并刷新流。
 */
 YF_API void
-PrintSyntaxNode(std::ostream& os, const ValueNode&,
+PrintSyntaxNode(std::ostream& os, const TermNode&,
 	IndentGenerator = DefaultGenerateIndent, size_t = 0);
+//@}
 
 
 //! \since build 599
@@ -305,7 +296,7 @@ template<typename... _tParams>
 ValueNode
 MakeTop(const string& name, _tParams&&... args)
 {
-	return NodeLiteral(0, name,
+	return YSLib::AsNodeLiteral(name,
 		{{MakeIndex(0), "*TOP*"}, NodeLiteral(yforward(args))...});
 }
 inline PDefH(ValueNode, MakeTop, )

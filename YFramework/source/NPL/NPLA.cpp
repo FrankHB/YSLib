@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r704
+\version r727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-02-04 16:56 +0800
+	2016-02-26 08:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,10 @@ namespace NPL
 {
 
 ValueNode
-MapNPLALeafNode(const ValueNode& node)
+MapNPLALeafNode(const TermNode& term)
 {
-	return AsNode(string(), string(Deliteralize(ParseNPLANodeString(node))));
+	return AsNode(string(),
+		string(Deliteralize(ParseNPLANodeString(MapToValueNode(term)))));
 }
 
 ValueNode
@@ -54,7 +55,8 @@ TransformToSyntaxNode(const ValueNode& node, const string& name)
 			for(auto& nd : *p)
 				nested_call(nd);
 		else
-			con.emplace(0, MakeIndex(1), Literalize(ParseNPLANodeString(node)));
+			ValueNode::EmplaceValueTo(con, MakeIndex(1),
+				Literalize(ParseNPLANodeString(node)));
 	}
 	else
 		for(auto& nd : node)
@@ -149,41 +151,41 @@ namespace SXML
 {
 
 string
-ConvertAttributeNodeString(const ValueNode& node)
+ConvertAttributeNodeString(const TermNode& term)
 {
-	switch(node.size())
+	switch(term.size())
 	{
 	default:
-		YTraceDe(Warning, "Invalid node with more than 2 children found.");
+		YTraceDe(Warning, "Invalid term with more than 2 children found.");
 	case 2:
 		{
-			auto i(node.begin());
+			auto i(term.begin());
 			const auto& n(Access<string>(Deref(i)));
 
 			return n + '=' + Access<string>(Deref(++i));
 		}
 	case 1:
-		return Access<string>(Deref(node.begin()));
+		return Access<string>(Deref(term.begin()));
 	case 0:
 		break;
 	}
-	throw LoggedEvent("Invalid node with less than 1 children found.", Warning);
+	throw LoggedEvent("Invalid term with less than 1 children found.", Warning);
 }
 
 string
-ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
+ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 	ParseOption opt)
 {
-	if(node)
+	if(term)
 	{
-		string res(ConvertStringNode(node));
+		string res(ConvertStringNode(term));
 
 		if(res.empty())
 		{
 			if(opt == ParseOption::String)
-				throw LoggedEvent("Invalid non-string node found.");
+				throw LoggedEvent("Invalid non-string term found.");
 
-			const auto& cont(node.GetContainer());
+			const auto& cont(term.GetContainer());
 
 			if(!cont.empty())
 				try
@@ -199,7 +201,7 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 						return res;
 					}
 					if(opt == ParseOption::Attribute)
-						throw LoggedEvent("Invalid non-attribute node found.");
+						throw LoggedEvent("Invalid non-attribute term found.");
 					if(str == "*PI*")
 					{
 						res = "<?";
@@ -270,22 +272,22 @@ ConvertDocumentNode(const ValueNode& node, IndentGenerator igen, size_t depth,
 		}
 		return res;
 	}
-	throw LoggedEvent("Empty node found.", Warning);
+	throw LoggedEvent("Empty term found.", Warning);
 }
 
 string
-ConvertStringNode(const ValueNode& node)
+ConvertStringNode(const TermNode& term)
 {
-	return ystdex::call_value_or<string>(EscapeXML, AccessPtr<string>(node));
+	return ystdex::call_value_or<string>(EscapeXML, AccessPtr<string>(term));
 }
 
 void
-PrintSyntaxNode(std::ostream& os, const ValueNode& node, IndentGenerator igen,
+PrintSyntaxNode(std::ostream& os, const TermNode& term, IndentGenerator igen,
 	size_t depth)
 {
-	if(!node.empty())
+	if(!term.empty())
 		ystdex::write(os,
-			ConvertDocumentNode(Deref(node.begin()), igen, depth), 1);
+			ConvertDocumentNode(Deref(term.begin()), igen, depth), 1);
 	os << std::flush;
 }
 

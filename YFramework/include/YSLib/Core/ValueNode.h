@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2184
+\version r2270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-02-22 15:38 +0800
+	2016-02-25 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,16 @@
 
 namespace YSLib
 {
+
+//! \since build 674
+//@{
+//! \brief 标记列表构造容器。
+yconstexpr const struct ListContainerTag{} ListContainer{};
+
+//! \brief 标记不使用容器。
+yconstexpr const struct NoContainerTag{} NoContainer{};
+//@}
+
 
 /*!
 \brief 值类型节点。
@@ -75,12 +85,12 @@ public:
 	{}
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
-	\note 第一个参数不使用，仅用于避免参与单参数重载，便于其它类使用转换函数。
-	\since build 376
+	\note 不使用容器。
+	\since build 674
 	*/
 	template<typename _tString, typename... _tParams>
 	inline
-	ValueNode(int, _tString&& str, _tParams&&... args)
+	ValueNode(NoContainerTag, _tString&& str, _tParams&&... args)
 		: name(yforward(str)), Value(yforward(args)...)
 	{}
 	/*!
@@ -202,6 +212,30 @@ public:
 		ImplRet(insert(node).second)
 	PDefH(bool, Add, ValueNode&& node)
 		ImplRet(insert(std::move(node)).second)
+	//! \since build 674
+	template<typename _tString, typename... _tParams>
+	inline bool
+	Add(_tString&& str, _tParams&&... args)
+	{
+		return AddValueTo(container, yforward(str), yforward(args)...);
+	}
+
+	//! \since build 674
+	template<typename _tString, typename... _tParams>
+	static bool
+	AddValueTo(Container& con, _tString&& str, _tParams&&... args)
+	{
+		// TODO: Blocked. Use %string as argument using C++14
+		//	heterogeneous %equal_range template.
+		const auto pr(con.equal_range(ValueNode(NoContainer, str)));
+
+		if(pr.first == pr.second)
+		{
+			con.emplace_hint(pr.first, NoContainer, yforward(str), yforward(args)...);
+			return true;
+		}
+		return {};
+	}
 
 	/*!
 	\brief 清除节点。
@@ -217,10 +251,29 @@ public:
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
 
+	//! \since build 674
+	template<typename _tString, typename... _tParams>
+	static inline auto
+	EmplaceValueTo(Container& con, _tString&& str, _tParams&&... args)
+		-> decltype(con.emplace(NoContainer, yforward(str), yforward(args)...))
+	{
+		return con.emplace(NoContainer, yforward(str), yforward(args)...);
+	}
+
+	//! \since build 674
+	template<typename _tString, typename... _tParams>
+	static inline auto
+	EmplaceValueWithHintTo(Container& con, Container::const_iterator i,
+		_tString&& str, _tParams&&... args) -> decltype(con.emplace_hint(i,
+		NoContainer, yforward(str), yforward(args)...))
+	{
+		return con.emplace_hint(i, NoContainer, yforward(str), yforward(args)...);
+	}
+
 	bool
 	Remove(const ValueNode&);
 	PDefH(bool, Remove, const string& str)
-		ImplRet(Remove({0, str}))
+		ImplRet(Remove({NoContainer, str}))
 	//@}
 
 	/*!
@@ -249,14 +302,15 @@ public:
 		Container res;
 
 		std::for_each(begin(), end(), [&](const ValueNode& nd){
-			res.emplace(0, nd.GetName());
+			EmplaceValueTo(res, nd.GetName());
 		});
 		ystdex::for_each_if(begin(), end(), f, [&, this](const ValueNode& nd){
 			const auto& child_name(nd.GetName());
 
-			// TODO: Blocked. Use %string_view as argument using C++14
+			// TODO: Blocked. Use %string as argument using C++14
 			//	heterogeneous %find template.
-			Deref(res.find(ValueNode(0, child_name))).Value
+			// XXX: 'AsNode' is not declared here yet.
+			Deref(res.find(ValueNode(NoContainer, child_name))).Value
 				= std::move(nd.Value);
 			Remove(child_name);
 		});
@@ -378,7 +432,7 @@ AccessPtr(observer_ptr<ValueNode> p_node) ynothrow
 	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
 }
 template<typename _type>
-inline const observer_ptr<const _type>
+inline observer_ptr<const _type>
 AccessPtr(observer_ptr<const ValueNode> p_node) ynothrow
 {
 	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
@@ -567,27 +621,30 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 //@}
 
 
+//! \note 结果不含子节点。
+//@{
 /*!
-\brief 传递参数构造值类型节点。
+\brief 传递指定名称和值参数构造值类型节点。
 \since build 668
 */
 template<typename _tString, typename... _tParams>
 inline ValueNode
 AsNode(_tString&& name, _tParams&&... args)
 {
-	return {0, yforward(name), yforward(args)...};
+	return {NoContainer, yforward(name), yforward(args)...};
 }
 
 /*!
-\brief 取指定名称和退化参数的值类型节点。
+\brief 传递指定名称和退化值参数构造值类型节点。
 \since build 337
 */
 template<typename _tString, typename... _tParams>
 inline ValueNode
 MakeNode(_tString&& name, _tParams&&... args)
 {
-	return {0, yforward(name), ystdex::decay_copy(args)...};
+	return {NoContainer, yforward(name), ystdex::decay_copy(args)...};
 }
+//@}
 
 /*!
 \brief 取指定名称和转换为字符串的值类型节点。
@@ -598,7 +655,7 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 StringifyToNode(_tString&& name, _tParams&&... args)
 {
-	return {0, yforward(name), to_string(yforward(args)...)};
+	return {NoContainer, yforward(name), to_string(yforward(args)...)};
 }
 
 /*!
@@ -655,6 +712,25 @@ PackNodes(_tString&& name, _tParams&&... args)
 }
 
 
+//! \since build 674
+//@{
+//! \brief 移除空子节点。
+YF_API void
+RemoveEmptyChildren(ValueNode::Container&) ynothrow;
+
+/*!
+\brief 移除首个子节点。
+\pre 断言：节点非空。
+*/
+//@{
+YF_API void
+RemoveHead(ValueNode::Container&) ynothrowv;
+inline PDefH(void, RemoveHead, ValueNode& term) ynothrowv
+	ImplExpr(RemoveHead(term.GetContainerRef()))
+//@}
+//@}
+
+
 /*!
 \brief 判断字符串是否是一个指定字符和非负整数的组合。
 \pre 断言：字符串参数的数据指针非空。
@@ -709,19 +785,20 @@ public:
 		: node(std::move(nd))
 	{}
 	NodeLiteral(const string& str)
-		: node(0, str)
+		: node(NoContainer, str)
 	{}
 	NodeLiteral(const string& str, string val)
-		: node(0, str, std::move(val))
+		: node(NoContainer, str, std::move(val))
 	{}
 	template<typename _tLiteral = NodeLiteral>
 	NodeLiteral(const string& str, std::initializer_list<_tLiteral> il)
-		: node(0, str, NodeSequence(il.begin(), il.end()))
+		: node(NoContainer, str, NodeSequence(il.begin(), il.end()))
 	{}
+	//! \since build 674
 	template<typename _tLiteral = NodeLiteral, class _tString,
 		typename... _tParams>
-	NodeLiteral(int, _tString&& str, std::initializer_list<_tLiteral> il,
-		_tParams&&... args)
+	NodeLiteral(ListContainerTag, _tString&& str,
+		std::initializer_list<_tLiteral> il, _tParams&&... args)
 		: node(ValueNode::Container(il.begin(), il.end()), yforward(str),
 		yforward(args)...)
 	{}
@@ -740,7 +817,7 @@ template<typename _tString, typename _tLiteral = NodeLiteral>
 inline NodeLiteral
 AsNodeLiteral(_tString&& name, std::initializer_list<_tLiteral> il)
 {
-	return {0, yforward(name), il};
+	return {ListContainer, yforward(name), il};
 }
 
 } // namespace YSLib;

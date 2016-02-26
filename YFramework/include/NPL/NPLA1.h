@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r893
+\version r945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-01-22 15:37 +0800
+	2016-02-25 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define NPL_INC_NPLA1_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA // for NPLATag, ValueNode;
-#include <ystdex/functional.hpp> // for ystdex::id_func_clr_t;
+#include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent;
+#include YFM_YSLib_Core_YEvent // for ystdex::id_func_clr_t, YSLib::GHEvent;
 
 namespace NPL
 {
@@ -57,6 +57,8 @@ enum class ValueToken
 };
 
 
+//! \since build 674
+//@{
 //! \brief 插入 NPLA1 子节点。
 //@{
 /*!
@@ -66,7 +68,7 @@ enum class ValueToken
 若映射操作返回节点名称为空则根据当前容器内子节点数量加前缀 $ 命名以避免重复。
 */
 YF_API void
-InsertChild(ValueNode&&, ValueNode::Container&);
+InsertChild(TermNode&&, TermNode::Container&);
 
 /*!
 \note 保持顺序。
@@ -74,7 +76,8 @@ InsertChild(ValueNode&&, ValueNode::Container&);
 直接插入 NPLA1 子节点到序列容器末尾。
 */
 YF_API void
-InsertSequenceChild(ValueNode&&, NodeSequence&);
+InsertSequenceChild(TermNode&&, NodeSequence&);
+//@}
 
 /*!
 \brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
@@ -95,7 +98,7 @@ InsertSequenceChild(ValueNode&&, NodeSequence&);
 		调用第五参数插入映射的结果到容器。
 */
 YF_API ValueNode
-TransformNode(const ValueNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
+TransformNode(const TermNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
 	NodeToString = ParseNPLANodeString, NodeInserter = InsertChild);
 
 /*!
@@ -108,23 +111,24 @@ TransformNode(const ValueNode&, NodeMapper = {}, NodeMapper = MapNPLALeafNode,
 但插入的子节点以 NodeSequence 的形式作为变换节点的值而不是子节点，可保持顺序。
 */
 YF_API ValueNode
-TransformNodeSequence(const ValueNode&, NodeMapper = {},
+TransformNodeSequence(const TermNode&, NodeMapper = {},
 	NodeMapper = MapNPLALeafNode, NodeToString = ParseNPLANodeString,
 	NodeSequenceInserter = InsertSequenceChild);
+//@}
 
 
 /*!
 \brief 加载 NPLA1 翻译单元。
-\throw YSLib::LoggedEvent 警告：被加载配置中的实体转换失败。
+\throw LoggedEvent 警告：被加载配置中的实体转换失败。
 */
 //@{
 template<typename _type, typename... _tParams>
 ValueNode
 LoadNode(_type&& tree, _tParams&&... args)
 {
-	TryRet(A1::TransformNode(std::forward<ValueNode&&>(tree),
+	TryRet(A1::TransformNode(std::forward<TermNode&&>(tree),
 		yforward(args)...))
-	CatchThrow(ystdex::bad_any_cast& e, YSLib::LoggedEvent(YSLib::sfmt(
+	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
 		e.to()), YSLib::Warning))
 }
@@ -133,12 +137,58 @@ template<typename _type, typename... _tParams>
 ValueNode
 LoadNodeSequence(_type&& tree, _tParams&&... args)
 {
-	TryRet(A1::TransformNodeSequence(std::forward<ValueNode&&>(tree),
+	TryRet(A1::TransformNodeSequence(std::forward<TermNode&&>(tree),
 		yforward(args)...))
-	CatchThrow(ystdex::bad_any_cast& e, YSLib::LoggedEvent(YSLib::sfmt(
+	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(YSLib::sfmt(
 		"Bad NPLA1 tree found: cast failed from [%s] to [%s] .", e.from(),
 		e.to()), YSLib::Warning))
 }
+//@}
+
+
+//! \since build 674
+//@{
+//! \brief 上下文节点类型。
+using ContextNode = ValueNode;
+//! \brief 上下文处理器类型。
+using ContextHandler = YSLib::GHEvent<void(TermNode&, ContextNode&)>;
+//! \brief 字面量处理器类型。
+using LiteralHandler = YSLib::GHEvent<bool(const ContextNode&)>;
+
+//! \brief 注册上下文处理器。
+inline PDefH(void, RegisterContextHandler, ContextNode& node,
+	const string& name, ContextHandler f)
+	ImplExpr(node[name].Value = f)
+
+//! \brief 注册字面量处理器。
+inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
+	const string& name, LiteralHandler f)
+	ImplExpr(node[name].Value = f)
+
+
+//! \brief 形式上下文处理器。
+class YF_API FormContextHandler
+{
+public:
+	ContextHandler Handler;
+
+	template<typename _func>
+	FormContextHandler(_func f)
+		: Handler(f)
+	{}
+
+	/*!
+	\brief 处理函数。
+	\throw LoggedEvent 类型错误：由 Handler 抛出的 ystdex::bad_any_cast 转换。
+	\throw LoggedEvent 一般错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
+		std::exception 转换。
+	\throw std::invalid_argument 项为空。
+
+	对非空项调用 Hanlder ，否则抛出异常。
+	*/
+	void
+	operator()(TermNode&, ContextNode&) const;
+};
 //@}
 
 } // namesapce A1;
