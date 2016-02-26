@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r9177
+\version r9325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-02-22 16:02 +0800
+	2016-02-26 08:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,154 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "class template %mapped_set" @ %Set $=
+		(
+			/ "optimizated insertion and emplacement" $=
+			(
+				(
+				^ $impl "%emplace for underlying map" ~ "pair %insert";
+				/ $comp "requireed EmplaceConstructible on key and value types \
+					rather than MoveInsertable on the underlying pair type"
+				),
+				(
+				^ "%std::(piecewise_construct, forward_as_tuple)"
+					~ "direct pair construction";
+				/ $comp
+					"requireed no MoveConstructible on %set_value_move result"
+				),
+				(
+				/ $re_add(b673) "optimized %insert rvalue with hint"
+					^ "%set_value_move";
+				/ $impl "simplified %emplace_hint" ^ "%insert"
+				)
+			),
+			* "all 2 functions %equal_range" $since b665
+		),
+		/ 'ynothrow' @ "all 5 function templates %polymorphic_downcast" @ %Cast
+			-> 'ynothrowv'
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core.ValueNode $=
+			(
+				/ $re_ex(b673) DLDI "all 2 functions %AccessNodePtr"
+					^ "%AsNode",
+				+ "yconstexpr tag %NoContainerTag %NoContainer",
+				/ @ "class %ValueNode" $=
+				(
+					+ "static function templates %(EmplaceValueTo, \
+						EmplaceValueWithHintTo)" $dep_from "%NoContainer",
+					(
+					+ "static function template %AddValueTo" ^ $dep_from
+						("%NoContainer", "%mapped_set::equal_range"
+						@ %YBase.YStandardEx.Set);
+					+ "function template %Add" $dep_from "constructor template"
+					),
+					(
+					/ $re_ex(b673) DLDI "functions %(Remove#2, operator[]), \
+						function template %SplitChildren" ^ "%AsNode";
+					/ "1st parameter type 'int'" @ "constructor template"
+						-> ($dep_from "%NoContainerTag") $dep_from
+						("%WidgetLoader::TransformUILayout" @ %UI.Loader,
+						"%AccessNodePtr");
+					/ $forced DLDI @ "function %operator[]" ^ $dep_from
+						"%EmplaceValueWithHintTo",
+					/ $forced DLDI @ "function template %Split" ^ $dep_from
+						"%EmplaceValueTo"
+					),
+					+ "functions %(RemoveEmptyChildren, 2 RemoveHead)"
+				),
+				/ $forced DLDI "function templates %(AsNode, MakeNode, \
+					StringifyToNode)" $dep_from "constructor template \
+					%ValueNode" ^ $dep_from "%NoContainer",
+				(
+				+ "yconstexpr tag %ListContainerTag %ListContainer";
+				/ "1st parameter type 'int'"
+					@ "constructor template %NodeLiteral" -> "%ListContainerTag"
+					$dep_from ("%MakeTop" @ %NPL.NPLA);
+				/ $forced DLDI @ "function template %AsNodeLiteral"
+				)
+			),
+			/ $re_ex(b673) DLDI
+				@ "member function %WidgetLoader::TransformUILayout" ^ "%AsNode"
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ $re_ex(b673) DLDI "simplified function %InsertChild"
+					^ "%AsNode",
+				(
+				+ "aliases %((ContextNode; ContextHandler), LiteralHandler)";
+				+ "functions %(RegisterContextHandler, RegisterLiteralHandler)",
+				+ "class %FormContextHandler"
+				),
+				/ $forced "type" @ ("parameters" @ "functions %(InsertChild, \
+					InsertSequenceChild; TransformNode, TransformNodeSequence)")
+					^ $dep_from ("%TermNode" @ %SContext) ~ "%ValueNode",
+				/ DLDI @ "function templates %(LoadNode, LoadNodeSequence)"
+					$dep_from %SContext $=
+				(
+					/ "all 'YSLib::LoggedEvent'" -> 'LoggedEvent',
+					^ "%TermNode" ~ "%ValueNode"
+				),
+				/ DLDI "functions %(InsertChild, InsertSequenceChild)"
+					^ ($dep_from "%MapToValueNode" @ %SContext)
+					// To be compatible with nominal typed %TermNode.
+			),
+			/ %NPLA $=
+			(
+				/ DLDI "function template %MakeTop" ^ "%YSLib::AsNodeLiteral",
+				/ DLDI "function %TransformToSyntaxNode" ^ ($dep_from
+					"%ValueNode::EmplaceValueTo" @ %YSLib.Core.ValueNode),
+				(
+				/ "included %SContext";
+				/ ("type and assertion strings" @ (("2nd parameter"
+					@ "function %PrintSyntaxNode", "1st parameter"
+					@ "functions %(ConvertDocumentNode, ConvertStringNode, \
+					ConvertAttributeNodeString)") @ "namespace %SXML",
+					"parameter type" @ "function %MapNPLALeafNode"),
+					"aliases %(NodeMapper, NodeInserter, GNodeInserter)")
+					^ $dep_from ("%TermNode" @ %SContext) ~ "%ValueNode",
+				/ $dev $lib "simplified aliases"
+				),
+				/ DLDI "function %MapNPLALeafNode"
+					^ ($dep_from "%MapToValueNode" @ %SContext)
+					// Ditto.
+			),
+			/ %SContext $=
+			(
+				+ 'using YSLib::observer_ptr',
+				+ 'using YSLib::LoggedEvnet',
+				(
+				+ 'using TermNode = ValueNode;';
+				+ "2 functions %(MapToValueNode,MapToTermNode)",
+				+ "aliases %(TNIter, TNCIter)",
+				/ "all %(Reduce, Analyze)" ^ "%TermNode" ~ "%ValueNode"
+				)
+			),
+			(
+			/ $dev $lib %NPL $=
+			(
+				/ "included %YSLib.Adaptor.YAdaptor" ~ "module %YCLib.Platform";
+				/ 'using ystdex::byte' -> 'using YSLib::byte'
+			);
+			/ %Lexical $=
+			(
+				+ "included %NPL.NPL";
+				/ $dev $lib "simplified aliases"
+			)
+			)
+		)
+	)
+),
+
+b673
 (
 	/ %YFramework $=
 	(
@@ -1343,6 +1491,7 @@ b665
 				(
 					/ "%InsertNPLA1Child" => "%InsertChild",
 					/ "%InsertNPLA1SequenceChild" => "%InsertSequenceChild",
+					/ "%TransformNPLA1" => "%TransformNode",
 					/ "%TransformNPLA1Sequence" => "%TransformNodeSequence",
 					/ "%LoadNPLA1" => "%LoadNode",
 					/ "%LoadNPLA1Sequence" => "%LoadNodeSequence"

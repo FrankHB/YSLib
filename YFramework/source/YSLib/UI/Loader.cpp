@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r357
+\version r358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2016-02-09 15:05 +0800
+	2016-02-24 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 {
 	if(unique_ptr<IWidget> p_new_widget{DetectWidgetNode(node)})
 	{
-		ValueNode res(0, node.GetName());
+		ValueNode res(AsNode(node.GetName()));
 		const auto& key(AccessChild<string>(node, "$type"));
 		const bool ins(Insert.Contains(key));
 		const bool insz(InsertZOrdered.Contains(key));

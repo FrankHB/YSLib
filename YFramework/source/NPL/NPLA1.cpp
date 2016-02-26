@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r855
+\version r892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-02-04 17:10 +0800
+	2016-02-26 08:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,29 +39,28 @@ namespace A1
 {
 
 void
-InsertChild(ValueNode&& node, ValueNode::Container& con)
+InsertChild(TermNode&& term, TermNode::Container& con)
 {
-	con.insert(node.GetName().empty() ? ValueNode(0, '$' + MakeIndex(con),
-		std::move(node.Value)) : std::move(node));
+	con.insert(term.GetName().empty() ? AsNode('$' + MakeIndex(con),
+		std::move(term.Value)) : std::move(MapToValueNode(term)));
 }
 
 void
-InsertSequenceChild(ValueNode&& node, NodeSequence& con)
+InsertSequenceChild(TermNode&& term, NodeSequence& con)
 {
-	con.emplace_back(std::move(node));
+	con.emplace_back(std::move(MapToValueNode(term)));
 }
 
 ValueNode
-TransformNode(const ValueNode& node, NodeMapper mapper,
-	NodeMapper map_leaf_node, NodeToString node_to_str,
-	NodeInserter insert_child)
+TransformNode(const TermNode& term, NodeMapper mapper, NodeMapper map_leaf_node,
+	NodeToString node_to_str, NodeInserter insert_child)
 {
-	auto s(node.size());
+	auto s(term.size());
 
 	if(s == 0)
-		return map_leaf_node(node);
+		return map_leaf_node(term);
 
-	auto i(node.begin());
+	auto i(term.begin());
 	const auto nested_call(ystdex::bind1(TransformNode, mapper, map_leaf_node,
 		node_to_str, insert_child));
 
@@ -83,22 +82,22 @@ TransformNode(const ValueNode& node, NodeMapper mapper,
 
 	ValueNode::Container node_con;
 
-	std::for_each(i, node.end(), [&](const ValueNode& nd){
-		insert_child(mapper ? mapper(nd) : nested_call(nd), node_con);
+	std::for_each(i, term.end(), [&](const TermNode& tm){
+		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
 	});
 	return {std::move(node_con), name};
 }
 
 ValueNode
-TransformNodeSequence(const ValueNode& node, NodeMapper mapper, NodeMapper
+TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 	map_leaf_node, NodeToString node_to_str, NodeSequenceInserter insert_child)
 {
-	auto s(node.size());
+	auto s(term.size());
 
 	if(s == 0)
-		return map_leaf_node(node);
+		return map_leaf_node(term);
 
-	auto i(node.begin());
+	auto i(term.begin());
 	auto nested_call(ystdex::bind1(TransformNodeSequence, mapper,
 		map_leaf_node, node_to_str, insert_child));
 
@@ -119,10 +118,30 @@ TransformNodeSequence(const ValueNode& node, NodeMapper mapper, NodeMapper
 
 	NodeSequence node_con;
 
-	std::for_each(i, node.end(), [&](const ValueNode& nd){
-		insert_child(mapper ? mapper(nd) : nested_call(nd), node_con);
+	std::for_each(i, term.end(), [&](const TermNode& tm){
+		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
 	});
 	return AsNode(name, std::move(node_con));
+}
+
+
+void
+FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
+{
+	// TODO: Is it worth matching specific builtin special forms here?
+	try
+	{
+		if(!term.empty())
+			Handler(term, ctx);
+		else
+			// TODO: Use more specific exceptions.
+			throw std::invalid_argument("Empty term found.");
+	}
+	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(
+		ystdex::sfmt("Mismatched types ('%s', '%s') found.",
+		e.from(), e.to()), Warning))
+	// TODO: Use nest exceptions?
+	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
 }
 
 } // namesapce A1;

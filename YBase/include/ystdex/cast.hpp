@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1234
+\version r1241
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2016-01-10 03:19 +0800
+	2016-02-26 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ polymorphic_cast(_tSrc* v)
 
 /*!
 \brief 多态类指针向派生类指针转换。
-\since build 551
+\since build 674
 */
 //@{
 /*!
@@ -130,7 +130,7 @@ polymorphic_cast(_tSrc* v)
 */
 template<typename _pDst, class _tSrc>
 inline _pDst
-polymorphic_downcast(_tSrc* v) ynothrow
+polymorphic_downcast(_tSrc* v) ynothrowv
 {
 	static_assert(is_polymorphic<_tSrc>(), "Non-polymorphic class found.");
 	static_assert(is_pointer<_pDst>(), "Non-pointer destination found.");
@@ -147,7 +147,7 @@ polymorphic_downcast(_tSrc* v) ynothrow
 */
 template<typename _rDst, class _tSrc>
 yconstfn yimpl(enable_if_t)<is_lvalue_reference<_rDst>::value, _rDst>
-polymorphic_downcast(_tSrc& v) ynothrow
+polymorphic_downcast(_tSrc& v) ynothrowv
 {
 	return *ystdex::polymorphic_downcast<remove_reference_t<_rDst>*>(
 		std::addressof(v));
@@ -160,7 +160,7 @@ polymorphic_downcast(_tSrc& v) ynothrow
 template<typename _rDst, class _tSrc>
 yconstfn yimpl(enable_if_t)<is_rvalue_reference<_rDst>::value
 	&& !is_reference<_tSrc>::value, _rDst>
-polymorphic_downcast(_tSrc&& v) ynothrow
+polymorphic_downcast(_tSrc&& v) ynothrowv
 {
 	return std::move(ystdex::polymorphic_downcast<_rDst&>(v));
 }
@@ -175,7 +175,7 @@ polymorphic_downcast(_tSrc&& v) ynothrow
 template<class _tDst, typename _tSrc, typename _tDeleter>
 inline yimpl(enable_if_t)<!is_reference<_tDst>::value
 	&& !is_array<_tDst>::value, std::unique_ptr<_tDst, _tDeleter>>
-polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& v) ynothrow
+polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& v) ynothrowv
 {
 	using dst_type = std::unique_ptr<_tDst, _tDeleter>;
 	using pointer = typename dst_type::pointer;
@@ -194,7 +194,7 @@ polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& v) ynothrow
 template<class _tDst, typename _tSrc>
 inline yimpl(enable_if_t)<!is_reference<_tDst>::value
 	&& !is_array<_tDst>::value, std::shared_ptr<_tDst>>
-polymorphic_downcast(const std::unique_ptr<_tSrc>& v) ynothrow
+polymorphic_downcast(const std::unique_ptr<_tSrc>& v) ynothrowv
 {
 	yassume(dynamic_cast<_tDst*>(v.get()) == v.get());
 
@@ -311,7 +311,7 @@ struct general_cast_helper<_tFrom, _tTo, false>
 template<typename _type>
 struct general_cast_helper<_type, _type, true>
 {
-	static inline _type
+	static _type
 	cast(_type v)
 	{
 		return v;
