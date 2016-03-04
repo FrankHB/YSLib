@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r945
+\version r954
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-02-25 12:09 +0800
+	2016-02-27 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,6 +189,18 @@ public:
 	void
 	operator()(TermNode&, ContextNode&) const;
 };
+//@}
+
+
+//! \since build 675
+//@{
+//! \brief 从指定上下文取指定名称指称的值。
+YF_API ValueObject
+FetchValue(const ContextNode&, const string&);
+
+//! \brief 从指定上下文查找名称对应的节点。
+YF_API observer_ptr<const ValueNode>
+LookupName(const ContextNode&, const string&) ynothrow;
 //@}
 
 } // namesapce A1;

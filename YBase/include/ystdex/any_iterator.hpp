@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1015
+\version r1026
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-02-07 00:33 +0800
+	2016-03-05 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YB_INC_ystdex_any_iterator_hpp_
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
-#include "any.h" // for any_ops, ref_handler, ptrdiff_t, any, remove_rcv_t,
-//	is_convertible, indirect_t, wrapped_traits, cond_t, _t;
+#include "any.h" // for any_ops, unwrap_reference_t, cond_t,
+//	is_reference_wrapper, ref_handler, _t. ptrdiff_t, any, exclude_self_ctor_t,
+//	decay_t, is_convertible, indirect_t;
 #include "iterator.hpp" // for is_undereferenceable, std::iterator;
 
 namespace ystdex
@@ -78,8 +79,8 @@ enum random_access_iteartor_op : op_code
 template<typename _type>
 struct wrap_handler
 {
-	using value_type = wrapped_traits_t<_type>;
-	using type = cond_t<wrapped_traits<_type>, ref_handler<value_type>,
+	using value_type = unwrap_reference_t<_type>;
+	using type = cond_t<is_reference_wrapper<_type>, ref_handler<value_type>,
 		value_handler<value_type>>;
 };
 
@@ -239,17 +240,18 @@ public:
 	any_input_iterator() = default;
 	/*!
 	\brief 构造：使用现有迭代器。
-	\since build 356
+	\since build 675
 	*/
-	template<typename _tIter>
+	template<typename _tIter,
+		yimpl(typename = exclude_self_ctor_t<any_input_iterator, _type>)>
 	any_input_iterator(_tIter&& i)
 		: any()
 	{
-		using param_obj_type = remove_rcv_t<_tIter>;
+		using param_obj_type = decay_t<_tIter>;
 		using handler = any_ops::input_iterator_handler<param_obj_type>;
 
-		static_assert(is_convertible<indirect_t<typename
-			wrapped_traits<param_obj_type>::type&>, reference>::value,
+		static_assert(is_convertible<indirect_t<unwrap_reference_t<
+			param_obj_type>&>, reference>::value,
 			"Wrong target iterator type found.");
 
 		manager = handler::manage;

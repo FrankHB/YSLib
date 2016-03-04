@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r952
+\version r1019
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-02-01 17:49 +0800
+	2016-03-03 15:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_algorithm_hpp_ 1
 
 #include "iterator_trait.hpp" // for have_same_iterator_category;
+#include <numeric> // for std::accumulate;
 #include "functor.hpp" // for <algorithm>,
 //	__cpp_lib_robust_nonmodifying_seq_ops, is_equal, std::bind,
 //	std::placeholders::_1, less;
@@ -52,6 +53,80 @@ namespace ystdex
 \since build 531
 */
 //@{
+/*!
+\brief 快速序列判断操作。
+\note 保证从序列起始判断，尽早确定返回值，保证若干个值被判断一次，之后的值不被判断。
+\since build 675
+*/
+//@{
+//! \note 若返回值，同 std::all_of 的返回结果。
+template<typename _tIn, typename _fPred>
+bool
+fast_all_of(_tIn first, _tIn last, _fPred pred)
+{
+	while(first != last && bool(pred(first)))
+		++first;
+	return first == last;
+}
+
+//! \note 若返回值，同 std::any_of 的返回结果。
+template<typename _tIn, typename _fPred>
+bool
+fast_any_of(_tIn first, _tIn last, _fPred pred)
+{
+	while(first != last && !bool(pred(first)))
+		++first;
+	return first != last;
+}
+
+//! \note 若返回值，同 std::none_of 的返回结果。
+template<typename _tIn, typename _fPred>
+bool
+fast_none_of(_tIn first, _tIn last, _fPred pred)
+{
+	return !ystdex::fast_any_of(first, last, pred);
+}
+//@}
+
+
+/*!
+\brief 严格序列判断操作。
+\note 保证从序列起始判断，返回时序列中的每个值被判断一次。
+\since build 675
+*/
+//@{
+//! \note 若返回值，同 std::all_of 的返回结果。
+template<typename _tIn, typename _fPred>
+bool
+strict_all_of(_tIn first, _tIn last, _fPred pred)
+{
+	return std::accumulate(first, last, true,
+		[](bool b, decltype(*first) val){
+		return b && bool(yforward(val));
+	});
+}
+
+//! \note 若返回值，同 std::any_of 的返回结果。
+template<typename _tIn, typename _fPred>
+bool
+strict_any_of(_tIn first, _tIn last, _fPred pred)
+{
+	return std::accumulate(first, last, false,
+		[](bool b, decltype(*first) val){
+		return b || bool(yforward(val));
+	});
+}
+
+//! \note 若返回值，同 std::none_of 的返回结果。
+template<typename _tIn, typename _fPred>
+bool
+strict_none_of(_tIn first, _tIn last, _fPred pred)
+{
+	return !ystdex::strict_any_of(first, last, pred);
+}
+//@}
+
+
 /*!
 \tparam _func 用于遍历范围的操作的可调用类型。
 \param first 输入范围起始迭代器。

@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3106
+\version r3107
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-02-08 17:23 +0800
+	2016-02-26 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,7 @@ Shell 定义 YShell ；
 
 @3.2 平台无关的基础对象 YObject ：
 包括值类型对象 ValueObject 类和相关接口。
-ValueObject 是以 ystdex::any([Documentation::YBase @@2.5.8.5]) 为基础实现的动态泛型值类型([Documentation::YFramework @@3.5.4]) ，增加了比较相等的泛型操作。
+ValueObject 是以 ystdex::any([Documentation::YBase @@2.5.8.6]) 为基础实现的动态泛型值类型([Documentation::YFramework @@3.5.4]) ，增加了比较相等的泛型操作。
 
 @3.3 对象计数器 YCounter
 

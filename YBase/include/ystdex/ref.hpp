@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r276
+\version r310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-01-22 15:50 +0800
+	2016-03-05 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ namespace ystdex
 类似 std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
 	引用包装类实现。
 和 std::reference_wrapper 不同而和 \c boost::reference_wrapper 类似，
-	不要求模板参数为完整类型。
+	不提供 weak result type ，不要求模板参数为完整类型。
 */
 //@{
 template<typename _type>
@@ -119,38 +119,56 @@ cref(const _type&&) = delete;
 //@}
 
 
+//! \since build 675
+//@{
 /*!
 \ingroup unary_type_traits
-\brief 取引用包装实例特征。
-\since build 348
+\brief 判断模板参数指定的类型是否。
+\note 接口含义类似 boost::is_reference_wrapper 。
 */
 //@{
 template<typename _type>
-struct wrapped_traits : false_type
-{
-	using type = _type;
-};
+struct is_reference_wrapper : false_type
+{};
 
-template<class _tWrapped>
-struct wrapped_traits<std::reference_wrapper<_tWrapped>> : true_type
-{
-	using type = _tWrapped;
-};
+template<typename _type>
+struct is_reference_wrapper<std::reference_wrapper<_type>> : true_type
+{};
 
-//! \since build 554
-template<class _tWrapped>
-struct wrapped_traits<lref<_tWrapped>> : true_type
-{
-	using type = _tWrapped;
-};
+template<typename _type>
+struct is_reference_wrapper<lref<_type>> : true_type
+{};
 //@}
 
 /*!
 \ingroup metafunctions
-\since build 525
+\brief 取引用包装的类型或未被包装的模板参数类型。
+\note 接口含义类似 boost::unwrap_reference 。
+\since build 675
 */
+//@{
 template<typename _type>
-using wrapped_traits_t = _t<wrapped_traits<_type>>;
+struct unwrap_reference
+{
+	using type = _type;
+};
+
+template<typename _type>
+using unwrap_reference_t = _t<unwrap_reference<_type>>;
+
+template<typename _type>
+struct unwrap_reference<std::reference_wrapper<_type>>
+{
+	using type = _type;
+};
+
+template<typename _type>
+struct unwrap_reference<lref<_type>>
+{
+	using type = _type;
+};
+//@}
+//@}
 
 
 /*!

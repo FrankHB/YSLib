@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r44
+\version r67
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-01-11 09:41 +0800
+	2016-03-01 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,32 @@ report.impl:
 Overloaded function templates for 'std::size' works as expected only with core issue resolutions.
 	The overloaded version for array accept non-static member access of array type depends on the change in CWG616 available in ISO C++14, which forbids it to be a prvalue.
 	The deduction for 'std::initializer_list' instance for overloaded version for array depends on the resolution of CWG1591.
+
+$2016-02:
+
+report.impl:
+It is intended that YBase.YStandardEx.Operators classes used in base are publicly derived.
+	If only friend functions are used, it does not requires 'public', 'private' can be OK.
+		See https://en.wikipedia.org/wiki/Barton–Nackman_trick.
+		This is the situation for Boost.Operators and several variants like The Art of C++ / Operators(https://github.com/taocpp/operators)(formally df.operators).
+	However, some overloaded operators like 'operator->' and 'operator[]' are only available as member functions.
+		Friend declaration is not helpful since they can be used out of the derived classes.
+		They are general for iterator overloaded operators.
+		Since YBase.YStandardEx.Operators provides such operators, they should be derived with 'public'.
+	For simplicity, all classes are derived with 'public', rather than optional 'private' to force users remembering which overloaded operators are used, even it will expose public non-polymorphic bases which should not be used to cast-from.
+The allocator '__gnu_cxx::debug_allocator' should not be used.
+	Because it is not meet the allocation requirements on nothrow 'deallocate' member.
+	There are generally more powerful and flexible debug methods (e.g. valgrind and DrMemory).
+		Even for freestanding implementations without them, memory debugging is still hard with the aid of such allocator rather than cutome ones with desired error handling.
+
+$2016-03:
+There are several changes in the library final fundamental TS final draft(WG21/N4480) since WG21/N4081.
+	There are several changes for 'optional' requires minor update for return type of member functions.
+	The implementation of class 'any' is not effected.
+		Note that 'allocator_arg_t' for constructors of 'any' are no longer required, which was not implemented.
+		Another change in the specification is explicitly 'is_nothrow_move_constructible_v' noted, which also requires no implementation change.
+	The member function 'clear' is removed from class tmeplate 'basic_string_view'. Assignment of empty string view should be used instead.
+		See WG21/N4288 (adopted 2014-11) for the modification.
 
 ////
 

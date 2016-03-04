@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2691
+\version r2808
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-02-12 02:35 +0800
+	2016-03-02 14:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 //	member_target_type_t, common_nonvoid_t, false_type, integral_constant,
 //	make_index_sequence;
 #include "functor.hpp" // for std::function, less, addressof_op, mem_get, lref;
+#include <numeric> // for std::accumulate;
 
 namespace ystdex
 {
@@ -380,50 +381,40 @@ struct make_parameter_tuple;
 template<typename _fCallable>
 using make_parameter_tuple_t = _t<make_parameter_tuple<_fCallable>>;
 
-template<typename _tRet, typename... _tParams>
-struct make_parameter_tuple<_tRet(_tParams...)>
-{
-	using type = std::tuple<_tParams...>;
-};
+//! \since build 675
+template<typename _fCallable>
+struct make_parameter_tuple<_fCallable&> : make_parameter_tuple<_fCallable>
+{};
 
-template<typename _tRet, typename... _tParams>
-struct make_parameter_tuple<_tRet(*)(_tParams...)>
-{
-	using type = std::tuple<_tParams...>;
-};
+//! \since build 675
+template<typename _fCallable>
+struct make_parameter_tuple<_fCallable&&> : make_parameter_tuple<_fCallable>
+{};
 
-template<typename _tRet, typename... _tParams>
-struct make_parameter_tuple<_tRet(&)(_tParams...)>
-{
-	using type = std::tuple<_tParams...>;
-};
+#define YB_Impl_Functional_ptuple_spec(_exp, _p, _q) \
+	template<typename _tRet, _exp typename... _tParams> \
+	struct make_parameter_tuple<_tRet _p (_tParams...) _q> \
+	{ \
+		using type = std::tuple<_tParams...>; \
+	};
 
-template<typename _tRet, class _tClass, typename... _tParams>
-struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...)>
-{
-	using type = std::tuple<_tParams...>;
-};
+YB_Impl_Functional_ptuple_spec(, , )
+YB_Impl_Functional_ptuple_spec(, (*), )
 
+#define YB_Impl_Functional_ptuple_spec_mf(_q) \
+	YB_Impl_Functional_ptuple_spec(class _tClass YPP_Comma, (_tClass::*), _q)
+
+YB_Impl_Functional_ptuple_spec_mf()
 //! \since build 358
 //@{
-template<typename _tRet, class _tClass, typename... _tParams>
-struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) const>
-{
-	using type = std::tuple<_tParams...>;
-};
-
-template<typename _tRet, class _tClass, typename... _tParams>
-struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) volatile>
-{
-	using type = std::tuple<_tParams...>;
-};
-
-template<typename _tRet, class _tClass, typename... _tParams>
-struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) const volatile>
-{
-	using type = std::tuple<_tParams...>;
-};
+YB_Impl_Functional_ptuple_spec_mf(const)
+YB_Impl_Functional_ptuple_spec_mf(volatile)
+YB_Impl_Functional_ptuple_spec_mf(const volatile)
 //@}
+
+#undef YB_Impl_Functional_ptuple_spec_mf
+
+#undef YB_Impl_Functional_ptuple_spec
 
 //! \since build 447
 template<typename _tRet, typename... _tParams>
@@ -447,50 +438,52 @@ struct return_of;
 template<typename _fCallable>
 using return_of_t = _t<return_of<_fCallable>>;
 
-template<typename _tRet, typename... _tParams>
-struct return_of<_tRet(_tParams...)>
-{
-	using type = _tRet;
-};
+//! \since build 675
+template<typename _fCallable>
+struct return_of<_fCallable&> : return_of<_fCallable>
+{};
 
-template<typename _tRet, typename... _tParams>
-struct return_of<_tRet(*)(_tParams...)>
-{
-	using type = _tRet;
-};
+//! \since build 675
+template<typename _fCallable>
+struct return_of<_fCallable&&> : return_of<_fCallable>
+{};
 
-template<typename _tRet, typename... _tParams>
-struct return_of<_tRet(&)(_tParams...)>
-{
-	using type = _tRet;
-};
+#define YB_Impl_Functional_ret_spec(_exp, _p, _e, _q) \
+	template<typename _tRet, _exp typename... _tParams> \
+	struct return_of<_tRet _p (_tParams... _e) _q> \
+	{ \
+		using type = _tRet; \
+	};
 
-template<typename _tRet, class _tClass, typename... _tParams>
-struct return_of<_tRet(_tClass::*)(_tParams...)>
-{
-	using type = _tRet;
-};
+#define YB_Impl_Functional_ret_spec_f(_e) \
+	YB_Impl_Functional_ret_spec(, , _e, )
+	YB_Impl_Functional_ret_spec(, (*), _e, )
 
-//! \since build 358
-//@{
-template<typename _tRet, class _tClass, typename... _tParams>
-struct return_of<_tRet(_tClass::*)(_tParams...) const>
-{
-	using type = _tRet;
-};
+YB_Impl_Functional_ret_spec_f()
+//! \since build 675
+YB_Impl_Functional_ret_spec_f(...)
 
-template<typename _tRet, class _tClass, typename... _tParams>
-struct return_of<_tRet(_tClass::*)(_tParams...) volatile>
-{
-	using type = _tRet;
-};
+#undef YB_Impl_Functional_ret_spec_f
 
-template<typename _tRet, class _tClass, typename... _tParams>
-struct return_of<_tRet(_tClass::*)(_tParams...) const volatile>
-{
-	using type = _tRet;
-};
-//@}
+#define YB_Impl_Functional_ret_spec_mf(_e, _q) \
+	YB_Impl_Functional_ret_spec(class _tClass YPP_Comma, (_tClass::*), \
+		_e, _q)
+
+#define YB_Impl_Functional_ret_spec_mfq(_e) \
+	YB_Impl_Functional_ret_spec_mf(_e, ) \
+	YB_Impl_Functional_ret_spec_mf(_e, const) \
+	YB_Impl_Functional_ret_spec_mf(_e, volatile) \
+	YB_Impl_Functional_ret_spec_mf(_e, const volatile)
+
+
+YB_Impl_Functional_ret_spec_mfq()
+//! \since build 675
+YB_Impl_Functional_ret_spec_mfq(...)
+
+#undef YB_Impl_Functional_ret_spec_mfq
+#undef YB_Impl_Functional_ret_spec_mf
+
+#undef YB_Impl_Functional_ret_spec
 
 //! \since build 447
 template<typename _tRet, typename... _tParams>
@@ -931,6 +924,40 @@ make_expanded(_fCallable&& f)
 {
 	return expanded_caller<_fHandler, decay_t<_fCallable>>(yforward(f));
 }
+
+
+/*!
+\brief 合并值序列。
+\note 语义同 Boost.Signal2 的 \c boost::last_value 但对非 \c void 类型使用默认值。
+\since build 675
+*/
+//@{
+template<typename _type>
+struct default_last_value
+{
+	template<typename _tIn>
+	_type
+	operator()(_tIn first, _tIn last, const _type& val = {}) const
+	{
+		return std::accumulate(first, last, val,
+			[](_type&, decltype(*first) v){
+			return yforward(v);
+		});
+	}
+};
+
+template<>
+struct default_last_value<void>
+{
+	template<typename _tIn>
+	void
+	operator()(_tIn first, _tIn last) const
+	{
+		for(; first != last; ++first)
+			*first;
+	}
+};
+//@}
 
 } // namespace ystdex;
 
