@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r9325
+\version r9496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-02-26 08:58 +0800
+	2016-03-05 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,163 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ $revert_ex(b527) "forbid ADL comparison overloadings unconditionally"
+			@ %Operators,
+			// It seems that Clang++ 3.7 does not support it as well. There \
+				was one additional usage note, see $2016-02 \
+				@ %Documentation::Workflow::Annual2016.
+		/ @ "class template %observer_ptr" @ %Memory $=
+		(
+			^ "passed by value" @ "comparison" ~ "passed by reference",
+			* "missing exception specification" $since b669,
+			* $doc "%std::hash specialization for %ystdex::observer_ptr" $since
+				b669
+		),
+		* $re_ex(b668)
+			"static member function template %always_equal::are_equal"
+			@ %Examiner $since b668 ^ "%has_equality_operator",
+			// To avoid ambiguity for Clang++ 3.7. Not now it requires \
+				complete types as arguments.
+		* $impl "missing 'std::' before 'strlen'" @ "function %strcatdup"
+			@ %CString $orig (@ %YCLib.YCommon $since $before b132),
+		/ "updated reference to library fundamental TS final draft(WG21/N4480)"
+			~ "WG21/N4081" $=
+			// See $2016-03 @ %Documentation::Workflow::Annual2016.
+		(
+			/ $doc "updated Doxygen comments" @ %Any,
+			/ %Optional $=
+			(
+				+ '&&' @ "return type" @ "2 member functions %(operator*, \
+					value)" @ "class template %optional"
+				/ $doc "updated Doxygen comments"
+			),
+			/ %StringView $=
+			(
+				- "member function %clear"
+					@ "class template %basic_string_view",
+				/ $doc "updated Doxygen comments"
+			)
+		),
+		+ "class template %default_last_value and its specialization for %void"
+			@ %Functional,
+		/ %Optional $=
+		(
+			+ "class template %optional_last_value and its specialization for \
+				%void" ^ $dep_from ("%default_last_value<void>" @ %Functional),
+			* "missing return-statement" @ "(functions, function templates) \
+				%operator=" @ "class template %optional" $since b591,
+			* "missing 'YB_API'" @ "class %bad_optional_access" $since b590
+		),
+		/ %Functional $=
+		(
+			/ @ "metafunctions %(make_parameter_tuple, return_of)" $=
+			(
+				/ DLDI "simplified" ^ "macros",
+				(
+				/ "specialization for lvalue references to functions"
+					-> "2 specializations for lvalue and rvalue types";
+				* $comp "missing specializations for rvalue reference types to \
+					function types" $since b333,
+				* $comp "missing specializations for reference types to \
+					non-function types" $since b358
+				)
+			),
+			* "missing specializations for types with variadic parameter in the \
+				parameter list" @ "metafunction %return_of" $since b333
+		),
+		- DLDI "redundant parenthese" @ "%operator()"
+			@ ("functors" $effective @ "functors %(get, indirect)")
+			@ "namespace %iterator_transformation" @ %Iterator,
+		+ "function templates %(fast_all_of, fast_any_of, fast_none_of, \
+			strict_all_of, strict_any_of, strict_none_of)" @ %Algorithm,
+		/ %Reference $=
+		(
+			+ "unary type trait %is_reference_wrapper",
+			+ "metafunctions %(unwrap_reference; unwrap_reference_t)",
+			(
+			- "metafunction %unwrap_reference_t" $dep_from
+				"removal of wrapped_traits_t";
+			- "metafunction %wrapped_traits" $dep_from %Functor
+			)
+		),
+		+ "support for general reference wrapper as construcor parameter"
+			~ "%lref instances handling" @ "class %any" @ %Any ^ $dep_from
+			("%(is_reference_wrapper, unwrap_reference_t)" @ %Reference),
+		/ %AnyIterator $=
+		(
+			/ DLDI @ "struct %any_ops::wrap_handler" $=
+			(
+				/ "%value_type" ^ $dep_from ("%unwrap_reference_t" @ %Reference)
+					~ "%wrapped_traits_t" $dep_to "removal of wrapped_traits_t",
+				/ "%type" ^ $dep_from ("%is_reference_wrapper" @ %Reference)
+					~ "%wrapped_traits"
+			),
+			/ @ "constructor template with 1 function parameter"
+				@ "class template %any_input_iterator" $=
+			(
+				/ DLDI "static assertion" ^ ("%unwrap_reference_t" @ %Reference)
+					~ "%wrapped_traits",
+				* $re_add(b376) "missing excluding of 'input_any_iterator&'"
+					$since b356,
+				/ $re_add(b595) "handled reference types" ^ "%decay_t"
+					~ "%remove_rcv_t"
+			)
+		),
+		/ @ "class template %thunk" $=
+		(
+			/ DLDI "default template argument, %value_type"
+				^ ("%unwrap_reference_t" @ %Reference) ~ "%wrapped_traits_t"
+				$dep_to "removal of wrapped_traits_t",
+			+ "support for general reference wrapper as construcor parameter"
+				~ "%std::reference_wrapper instances handling"
+		),
+		/ DLDI "functor %is_equal" ^ "%is_reference_wrapper"
+			~ "%(wrapped_traits, not_, or_, and_)"
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			+ 'using YSLib::ValueObject' @ %SContext,
+			/ %NPLA1 $=
+			(
+				+ "function %FetchValue" $dep_from %Scontext
+				+ "function %LookupName"
+			)
+		),
+		/ %YSLib.Core.YEvent $=
+		(
+			(
+			+ "struct %CountedHandlerInvoker";
+			+ "support for invoker" @ "function template %GEvent" $=
+			(
+				+ "template parameters with default argument \
+					%CountedHandlerInvoker",
+				+ "alias %InvokerType";
+				(
+				+ "data member %Invoker",
+				+ "%result_type"
+				);
+				/ @ "function %operator()" $=
+				(
+					/ "return type" -> 'result_type' ~ 'size_type';
+					/ "called by forwarding to invoker"
+				)
+			)
+			),
+			(
+			+ "class template %GCombinerInvoker";
+			+ "alias templates %(GDefaultLastValueInvoker, \
+				GOptionalLastValueInvoker)"
+			)
+		)
+	)
+),
+
+b674
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1009,7 +1166,7 @@ b669
 				+ "class %HostWindowDelete";
 				/ DLDI "simplified destructorr %HostWinddow"
 					^ "%HostWindowDelete"
-					// Also avoided explicit delete-expression.				
+					// Also avoided explicit delete-expression.
 			)
 		),
 		/ DLDI "simplified" @ "destructor %WindowThread"
@@ -1059,7 +1216,7 @@ b668
 		(
 			* $doc "wrong name" @ "'\brief' directive" $since b266,
 			* "strict ISO C++ conformance" $since b261
-				// See ISO C++11 18.3.2.3/2.
+				// See ISO C++11 18.3.2.3/2, also http://wg21.cmeerw.net/lwg/issue559.
 				$= (* "missing specialization for cv-qualified types")
 		)
 	),
@@ -1211,7 +1368,7 @@ b667
 					%operator/=", ("return type" @ "function %operator[]";
 					"function %operator[]");
 					"all 2 functions %operator(/=; %=)"));
-				- 'mutable' @ "%Value, container data member"			
+				- 'mutable' @ "%Value, container data member"
 				),
 				* $re_add(b662) DD "missing '!'" @ "end of '/*'"
 					@ "multiline Doxygen comments"
@@ -1841,7 +1998,7 @@ b662
 	),
 	/ DLP "toolchain and library using" @ "platform %DS" $=
 	(
-		// See $2015-12 @ %Documentation::Workflow::Annual2015. 
+		// See $2015-12 @ %Documentation::Workflow::Annual2015.
 		^ $re_ex(b558) "updated devkitARM release 45"
 			~ "devkitARM release 44" $dep_from %(YBase.YStandardEx.Operators,
 				"%upopen" @ %YCLib.FileIO),
@@ -2015,7 +2172,7 @@ b660
 				behavior" @ "functions %(FetchNumberOfLinks, IsNodeShared)"
 				@ %FileIO $=
 			(
-			
+
 				/ $forced @ "platform %Win32" @ "%FetchNumberOfLinks" $dep_from
 					("platform_ex::QueryFileLinks" @ %'YCLib_(Win32)'.MinGW32),
 				/ $forced @ "platform %Win32" @ "%IsNodeShared" $dep_from
@@ -2250,7 +2407,7 @@ b659
 					/ "parameter type 'const YSLib::String&'"
 						@ "function %Send#2" -> 'u16string_view'
 				),
-				* $lib $impl "missing 'using YSLib::string;'" @ "non-headers" 
+				* $lib $impl "missing 'using YSLib::string;'" @ "non-headers"
 					$since b612,
 					// To allow %YSLib::string not same to %platform::string.
 				+ $lib $impl 'using platform::string_view;' @ "non-headers"
@@ -2465,7 +2622,7 @@ b658
 					+ "%mode_t" @ "overloaded function with path parameters"
 					),
 					(
-					+ "2 name parameters to be used in exceptions" 
+					+ "2 name parameters to be used in exceptions"
 						@ "overloaded function with %UniqueFile parameters";
 					/ DLDI "overloaded function with paths"
 						^ "overloaded function with %UniqueFile parameters"
@@ -2683,7 +2840,7 @@ b657
 			/ $forced DLDI @ "functions %(AllocationTable::(ClearLinks, \
 				QueryLast, TrimChain), FileInfo::TrySeek)" ^ ($dep_from \
 				"%AllocationTable::IsValid") ~ "%Clusters::IsFreeOrEOF",
-			+ $forced "throwing %std::system_error with %std::errc::io_error" 
+			+ $forced "throwing %std::system_error with %std::errc::io_error"
 				@ "constructor %DEntry with leaf action parameter, member \
 				function %Partition::Unlink"
 				^ ($dep_from "%Partition::TryGetClusterFromEntry");
@@ -2960,7 +3117,7 @@ b655
 		/ @ "function %SendDebugString" @ "platform %Win32" @ %YCLib.Debug $=
 		(
 			+ "parameters for logger";
-			+ "logged thread id and level information" 
+			+ "logged thread id and level information"
 		),
 		/ $forced DLDI @ "platform %Win32" @ "function %InitializeEnvironment"
 			@ %Helper.Initialization $dep_from %YCLib.Debug;
@@ -3216,7 +3373,7 @@ b653
 				* "absolute path without trailing '/' not recognized" $orig
 					(@ "%IsAbsolute" @ "%platform %DS" $since b152);
 				* "'/fat:' formatted as relative string result" @ "platform %DS"
-					$since b652	
+					$since b652
 			),
 			/ "function %GetRootNameLength" -> "(8 functions, 2 function \
 				templates) %FetchRootNameLength_P; function template \
@@ -4899,7 +5056,7 @@ b640
 				@ YBase.YStandardEx.CString)
 		),
 		+ "using-declarations %platform::(basic_string_view, string_view, \
-			wstring_view;)" @ %YSLib.Adaptor.YTextBase $dep_from
+			wstring_view)" @ %YSLib.Adaptor.YTextBase $dep_from
 			%YCLib.Container,
 		/ $forced DLDI @ %'YCLib_(DS)'.DSIO $dep_from
 			("%ystdex::ntctsicmp" @ YBase.YStandardEx.CString),
@@ -5409,7 +5566,7 @@ b635
 	/ %YReader.ShlExplorer $=
 	(
 		* $comp "double delimiter" @ "paths component shown entered by list GUI"
-			@ ("platform %Win32" $since b600, !"platform %Win32" $since b633) 
+			@ ("platform %Win32" $since b600, !"platform %Win32" $since b633)
 			$dep_from ("%FileBox::GetPath" @ %YFramework.YSLib.UI.ComboList),
 			// The wrong result is caused by %FileBox::GetPath since b600, \
 				however for platform without the file system base path ended \
@@ -6373,7 +6530,7 @@ b626
 					)
 					),
 					+ "static functions %(SendLogToFile; DefaultSendLogToFile)"
-						// The old %stderr based stream output is now optional. 
+						// The old %stderr based stream output is now optional.
 				),
 				* DLDI "%YF_Multithread check" $since b579
 					// There are currently only two option value supported, \
@@ -7701,7 +7858,7 @@ b611
 						RATIONALE. Since newlib would clear %__SOFF state in \
 						higher-level stdio interface to require fresh seeking \
 						after reading failure, so the modification after \
-						failure is redundant. 
+						failure is redundant.
 			),
 			/ "lift path colon check before read-only file system check"
 				@ "%(unlink_r, rename_r)",
@@ -8137,7 +8294,7 @@ b605
 					class templates %(lock_guard, unique_lock), function \
 					templates %(lock, try_lock)"
 			),
-			+ "class template guard; 2 function templates %make_guard"
+			+ "class template %guard; 2 function templates %make_guard"
 				@ %ScopeGuard
 		),
 		/ "split macro %YB_ATTR" -> "%(YB_ATTR, YB_ATTR_STD)" @ %YDefinition
@@ -8890,7 +9047,7 @@ b600
 		* $comp "crashed on read automatically generated MIME data" $since b597
 			$dep_from %YFramework.Helper.Initialization
 			// After this fix the file extension category based on MIME \
-				mapping detected normally. 
+				mapping detected normally.
 	),
 	/ "regenerated Code::Blocks projects" $effective @ %YBase,
 	/ $forced "inserted qualifiers" @ "macro 'DefSetter' invocations" $dep_from

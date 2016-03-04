@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1661
+\version r1670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-02-11 01:25 +0800
+	2016-03-01 11:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -931,8 +931,9 @@ public:
 		return ptr;
 	}
 
+	//! \since build 675
 	friend yconstfn bool
-	operator==(const observer_ptr& p, nullptr_t)
+	operator==(observer_ptr p, nullptr_t) ynothrow
 	{
 		return !p.ptr;
 	}
@@ -979,25 +980,25 @@ public:
 
 //! \relates observer_ptr
 //@{
-//! \since build 670
+//! \since build 675
 //@{
 template<typename _type1, typename _type2>
 yconstfn bool
-operator==(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+operator==(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return p1.get() == p2.get();
 }
 
 template<typename _type1, typename _type2>
 yconstfn bool
-operator!=(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+operator!=(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return !(p1 == p2);
 }
 
 template<typename _type1, typename _type2>
 yconstfn bool
-operator<(const observer_ptr<_type1>& p1, const observer_ptr<_type2>& p2)
+operator<(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
 {
 	return std::less<common_type_t<_type1, _type2>>(p1.get(), p2.get());
 }
@@ -1073,9 +1074,9 @@ namespace std
 {
 
 /*!
-\brief ystdex::optional 散列支持。
-\see ISO WG21/N4081 5.11[optional.hash] 。
-\since build 591
+\brief ystdex::observer_ptr 散列支持。
+\see ISO WG21/N4529 8.12.7[memory.observer.ptr.hash] 。
+\since build 674
 */
 //@{
 template<typename>

@@ -11,19 +11,19 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2039
+\version r2059
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-02-20 18:32 +0800
+	2016-03-05 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see WG21/N4081 6[any] 。
+\see WG21/N4480 6[any] 。
 \see http://www.boost.org/doc/libs/1_57_0/doc/html/any/reference.html 。
 */
 
@@ -35,8 +35,8 @@
 #include <memory> // for std::addressof, std::unique_ptr;
 #include <typeinfo> // for typeid, std::bad_cast;
 #include "type_pun.hpp" // for pod_storage, aligned_storage_t,
-//	is_aligned_storable;
-#include "ref.hpp" // for lref;
+//	is_aligned_storable, exclude_self_ctor_t, enable_if_t, decay_t;
+#include "ref.hpp" // for lref, is_reference_wrapper, unwrap_reference_t;
 #include "cassert.h" // for yconstraint;
 
 namespace ystdex
@@ -537,7 +537,7 @@ using is_any_cast_dest = or_<is_reference<_type>, is_copy_constructible<_type>>;
 \note 基本接口和语义同 boost::bad_any_cast 。
 \note 非标准库提案扩展：提供标识转换失败的源和目标类型。
 \sa any_cast
-\see WG21/N4081 6.2[any.bad_any_cast] 。
+\see WG21/N4480 6.2[any.bad_any_cast] 。
 \since build 586
 */
 class YB_API bad_any_cast : public std::bad_cast
@@ -608,10 +608,9 @@ public:
 \note 值语义。基本接口和语义同 std::experimental::any 提议
 	和 boost::any （对应接口以前者为准）。
 \warning 非虚析构。
-\see WG21/N4081 6.3[any.class] 。
+\see WG21/N4480 6.3[any.class] 。
 \see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
-\todo allocator_arg 支持。
 */
 class YB_API any
 {
@@ -623,26 +622,28 @@ protected:
 	//@}
 
 public:
-	//! \post <tt>this->empty()</tt> 。
+	//! \post \c this->empty() 。
 	yconstfn
 	any() ynothrow
 		: storage(), manager()
 	{}
 	//! \since build 448
-	template<typename _type, yimpl(typename = exclude_self_ctor_t<any, _type>)>
+	template<typename _type, yimpl(typename = exclude_self_ctor_t<any, _type>,
+		typename = enable_if_t<!is_reference_wrapper<decay_t<_type>>::value>)>
 	any(_type&& x)
 		: manager(any_ops::value_handler<decay_t<_type>>::manage)
 	{
 		any_ops::value_handler<decay_t<_type>>::init(storage, yforward(x));
 	}
-	//! \since build 376
-	//@{
-	//! \since build 554
-	template<typename _type>
-	any(lref<_type> x)
-		: manager(any_ops::ref_handler<_type>::manage)
+	//! \since build 675
+	template<typename _type, yimpl(typename
+		= enable_if_t<is_reference_wrapper<decay_t<_type>>::value>)>
+	any(_type&& x)
+		: manager(
+		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>::manage)
 	{
-		any_ops::ref_handler<_type>::init(storage, x);
+		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>::init(storage,
+			x);
 	}
 	/*!
 	\brief 构造：使用指定持有者。
@@ -654,6 +655,7 @@ public:
 	{
 		any_ops::holder_handler<_tHolder>::init(storage, std::move(p));
 	}
+	//! \since build 376
 	template<typename _type>
 	any(_type&& x, any_ops::holder_tag)
 		: manager(any_ops::holder_handler<
@@ -662,7 +664,6 @@ public:
 		any_ops::holder_handler<any_ops::value_holder<
 			decay_t<_type>>>::init(storage, yforward(x));
 	}
-	//@}
 	any(const any&);
 	any(any&& a) ynothrow
 		: any()
@@ -766,7 +767,7 @@ public:
 
 /*!
 \relates any
-\see WG21/N4081 6.4[any.nonmembers] 。
+\see WG21/N4480 6.4[any.nonmembers] 。
 */
 //@{
 /*!

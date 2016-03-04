@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r110
+\version r116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2016-02-03 22:32 +0800
+	2016-02-26 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_examiner_hpp_
 #define YB_INC_ystdex_examiner_hpp_ 1
 
-#include "../ydef.h" // for ynoexcept_spec;
+#include "type_op.hpp" // for ynoexcept_spec, yimpl, enable_if_t,
+//	has_equality_operator;
 
 namespace ystdex
 {
@@ -63,10 +64,11 @@ struct equal
 */
 struct always_equal
 {
-	//! \since build 668
-	template<typename _type, typename... _types>
+	//! \since build 675
+	template<typename _type, typename _type2, yimpl(typename
+		= enable_if_t<!has_equality_operator<_type&&, _type2&&>::value>)>
 	static yconstfn YB_STATELESS bool
-	are_equal(const _type&, yimpl(_types&&...)) ynothrow
+	are_equal(_type&&, _type2&&) ynothrow
 	{
 		return true;
 	}

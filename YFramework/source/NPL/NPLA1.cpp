@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r892
+\version r903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-02-26 08:52 +0800
+	2016-02-27 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,6 +142,20 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 		e.from(), e.to()), Warning))
 	// TODO: Use nest exceptions?
 	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
+}
+
+
+ValueObject
+FetchValue(const ContextNode& ctx, const string& name)
+{
+	return ystdex::call_value_or<ValueObject>(
+		std::mem_fn(&ValueNode::Value), LookupName(ctx, name));
+}
+
+observer_ptr<const ValueNode>
+LookupName(const ContextNode& ctx, const string& id) ynothrow
+{
+	return AccessNodePtr(ctx, id);
 }
 
 } // namesapce A1;

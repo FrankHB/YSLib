@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1500
+\version r1502
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2016-02-26 08:46 +0800
+	2016-02-27 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,8 @@
 namespace NPL
 {
 
+//! \since build 675
+using YSLib::ValueObject;
 //! \since build 335
 using YSLib::ValueNode;
 using TokenList = list<string>;

@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5081
+\version r5198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-02-16 11:31 +0800
+	2016-03-02 14:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,9 @@
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
 #include <ystdex/base.h> // for ystdex::cloneable;
-#include <ystdex/functional.hpp> // for ystdex::make_expanded;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
+#include <ystdex/functional.hpp> // for ystdex::make_expanded, ystdex::default_last_value;
+#include <ystdex/optional.h> // for ystdex::optional_last_value;
 
 namespace YSLib
 {
@@ -223,32 +224,115 @@ using EventPriority = std::uint8_t;
 yconstexpr const EventPriority DefaultEventPriority(0x80);
 
 
+//! \since build 675
+//@{
+//! \brief 计数调用器：调用事件处理器并计数。
+struct CountedHandlerInvoker
+{
+	/*!
+	\exception std::bad_function_call 以外异常中立。
+	\return 成功调用的事件处理器个数。
+	*/
+	template<typename _tIn, typename... _tParams>
+	size_t
+	operator()(_tIn first, _tIn last, _tParams&&... args) const
+	{
+		size_t n(0);
+
+		while(first != last)
+		{
+			TryExpr((*first)(yforward(args)...))
+			CatchIgnore(std::bad_function_call&)
+			yunseq(++n, ++first);
+		}
+		return n;
+	}
+};
+
+
+//! \brief 结果组合调用器。
+template<typename _type, typename _tCombiner>
+struct GCombinerInvoker
+{
+	static_assert(ystdex::is_decayed<_tCombiner>(), "Invalid type found.");
+
+public:
+	using result_type = _type;
+
+private:
+	_tCombiner combiner;
+
+public:
+	template<typename _tIn, typename... _tParams>
+	result_type
+	operator()(_tIn first, _tIn last, _tParams&&... args) const
+	{
+		// XXX: Blocked. 'yforward' cause G++ 5.2 crash: internal
+		//	compiler error: Aborted (program cc1plus).
+#if 0
+		const auto tr([&](_tIn iter){
+			return ystdex::make_transform(iter, [&](_tIn i){
+				// XXX: Blocked. 'std::forward' still cause G++ 5.2 crash:
+				//	internal compiler error: in execute, at cfgexpand.c:6044.
+				// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65992.
+				return (*i)(std::forward<_tParams>(args)...);
+			});
+		});
+#else
+		const auto f([&](_tIn i){
+			return (*i)(std::forward<_tParams>(args)...);
+		});
+		const auto tr([f](_tIn iter){
+			return ystdex::make_transform(iter, f);
+		});
+#endif
+		return combiner(tr(first), tr(last));
+	}
+};
+
+
+//! \brief 默认结果组合调用器。
+template<typename _type>
+using GDefaultLastValueInvoker
+	= GCombinerInvoker<_type, ystdex::default_last_value<_type>>;
+
+//! \brief 可选结果组合调用器。
+template<typename _type>
+using GOptionalLastValueInvoker = GCombinerInvoker<ystdex::cond_t<std::is_void<
+	_type>, void, ystdex::optional<_type>>, ystdex::optional_last_value<_type>>;
+
+
+
 /*!
 \brief 事件模板。
 \note 支持顺序多播。
-\since build 333
 */
 //@{
-template<typename>
+template<typename, typename = CountedHandlerInvoker>
 class GEvent;
 
 /*!
 \note 深复制。
 \warning 非虚析构。
 */
-template<typename _tRet, typename... _tParams>
-class GEvent<_tRet(_tParams...)>
+template<typename _tRet, typename... _tParams, typename _tInvoker>
+class GEvent<_tRet(_tParams...), _tInvoker>
 {
 public:
+	//! \since build 333
+	//@{
 	using HandlerType = GHEvent<_tRet(_tParams...)>;
 	using TupleType = typename HandlerType::TupleType;
 	using FuncType = typename HandlerType::FuncType;
+	//@}
 	/*!
 	\brief 容器类型。
 	\since build 294
 	*/
 	using ContainerType
 		= multimap<EventPriority, HandlerType, std::greater<EventPriority>>;
+	//! \since build 675
+	using InvokerType = _tInvoker;
 	//! \since build 573
 	//@{
 	using const_iterator = typename ContainerType::const_iterator;
@@ -261,18 +345,29 @@ public:
 	using size_type = typename ContainerType::size_type;
 	using value_type = typename ContainerType::value_type;
 	//@}
+	//! \since build 675
+	using result_type = decltype(std::declval<_tInvoker&>()(
+		std::declval<const_iterator>(), std::declval<const_iterator>(),
+		std::declval<_tParams>()...));
+
+	/*!
+	\brief 调用器。
+	\since build 675
+	*/
+	InvokerType Invoker{};
 
 private:
 	/*!
 	\brief 响应列表。
 	\since build 572
 	*/
-	ContainerType handlers;
+	ContainerType handlers{};
 
 public:
 	/*!
 	\brief 无参数构造：默认实现。
 	\note 得到空实例。
+	\since build 333
 	*/
 	yconstfn DefDeCtor(GEvent)
 	/*!
@@ -286,6 +381,7 @@ public:
 	{
 		Add(yforward(h));
 	}
+	//! \since build 333
 	DefDeCopyMoveCtorAssignment(GEvent)
 
 	/*!
@@ -300,6 +396,8 @@ public:
 		return *this = GEvent(yforward(_arg));
 	}
 
+	//! \since build 333
+	//@{
 	/*!
 	\brief 添加事件响应：使用 const 事件处理器和优先级。
 	\note 不检查是否已经在列表中。
@@ -323,9 +421,7 @@ public:
 		return Add(HandlerType(yforward(_arg)));
 	}
 
-	/*!
-	\brief 移除事件响应：指定 const 事件处理器。
-	*/
+	//! \brief 移除事件响应：指定 const 事件处理器。
 	GEvent&
 	operator-=(const HandlerType& h)
 	{
@@ -351,31 +447,24 @@ public:
 	{
 		return *this -= HandlerType(yforward(_arg));
 	}
+	//@}
 
 	/*!
 	\brief 插入事件响应。
 	\note 不检查是否已经在列表中。
 	\sa Insert
-	*/
-	//@{
-	/*!
-	\note 使用 const 事件处理器和优先级。
 	\since build 294
 	*/
+	//@{
+	//! \note 使用 const 事件处理器和优先级。
 	inline PDefH(GEvent&, Add, const HandlerType& h,
 		EventPriority prior = DefaultEventPriority)
 		ImplRet(Insert(h, prior), *this)
-	/*!
-	\note 使用非 const 事件处理器和优先级。
-	\since build 294
-	*/
+	//! \note 使用非 const 事件处理器和优先级。
 	inline PDefH(GEvent&, Add, HandlerType&& h,
 		EventPriority prior = DefaultEventPriority)
 		ImplRet(Insert(std::move(h), prior), *this)
-	/*!
-	\note 使用单一构造参数指定的事件处理器和优先级。
-	\since build 294
-	*/
+	//! \note 使用单一构造参数指定的事件处理器和优先级。
 	template<typename _type>
 	inline GEvent&
 	Add(_type&& _arg, EventPriority prior = DefaultEventPriority)
@@ -440,6 +529,7 @@ public:
 
 	/*!
 	\brief 判断是否包含指定事件响应。
+	\since build 333
 	*/
 	bool
 	Contains(const HandlerType& h) const
@@ -461,24 +551,12 @@ public:
 	}
 
 	/*!
-	\brief 调用事件处理器。
-	\return 成功调用的事件处理器个数。
-	\exception std::bad_function_call 以外异常中立。
-	\since build 573
+	\brief 调用：传递参数到调用器。
+	\since build 675
 	*/
-	size_type
-	operator()(_tParams... args) const
-	{
-		size_type n(0);
-
-		for(const auto& pr : handlers)
-		{
-			TryExpr(pr.second(yforward(args)...))
-			CatchIgnore(std::bad_function_call&)
-			++n;
-		}
-		return n;
-	}
+	PDefHOp(result_type, (), _tParams... args) const
+		ImplRet(Invoker(handlers.cbegin() | ystdex::get_value,
+			handlers.cend() | ystdex::get_value, yforward(args)...))
 
 	//! \since build 573
 	PDefH(const_iterator, cbegin, ) const ynothrow
@@ -540,6 +618,7 @@ public:
 	PDefH(void, swap, GEvent& e) ynothrow
 		ImplRet(handlers.swap(e))
 };
+//@}
 //@}
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5871
+\version r5875
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-01-30 06:57 +0800
+	2016-03-02 11:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -484,7 +484,7 @@ template<typename _tIter = void>
 struct get
 {
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype(((*i).get()))
+	operator()(const _tIter& i) const -> decltype((*i).get())
 	{
 		return (*i).get();
 	}
@@ -495,7 +495,7 @@ struct get<void>
 {
 	template<typename _tIter>
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype(((*i).get()))
+	operator()(const _tIter& i) const -> decltype((*i).get())
 	{
 		return (*i).get();
 	}
@@ -506,7 +506,7 @@ template<typename _tIter = void>
 struct indirect
 {
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((**i))
+	operator()(const _tIter& i) const -> decltype(**i)
 	{
 		return **i;
 	}
@@ -517,7 +517,7 @@ struct indirect<void>
 {
 	template<typename _tIter>
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((**i))
+	operator()(const _tIter& i) const -> decltype(**i)
 	{
 		return **i;
 	}

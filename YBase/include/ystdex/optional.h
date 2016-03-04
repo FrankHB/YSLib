@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,18 +11,18 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r583
+\version r636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2015-11-28 13:21 +0800
+	2016-03-02 14:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Optonal
-\see ISO WG21/N4081 5[optional] 。
+\see WG21/N4480 5[optional] 。
 \see http://www.boost.org/doc/libs/1_57_0/libs/optional/doc/html/optional/reference.html 。
 
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明外，
@@ -39,9 +39,10 @@
 //	decay_t, is_nothrow_swappable, is_copyable;
 #include <stdexcept> // for std::logic_error;
 #include <new> // for placement ::operator new from standard library;
-#include "memory.hpp" // for std::addressof, ystdex::constfn_addressof;
-#include "operators.hpp" // for totally_ordered, totally_ordered2;
+#include "operators.hpp" // for std::addressof, ystdex::constfn_addressof,
+//	totally_ordered, totally_ordered2;
 #include <initializer_list> // for std::initializer_list;
+#include "functional.hpp" // for default_last_value, std::accumulate;
 
 namespace ystdex
 {
@@ -50,12 +51,12 @@ namespace ystdex
 //@{
 /*!
 \brief 原地构造标记。
-\see ISO WG21/N4081 5.4[optional.inplace] 。
+\see WG21/N4480 5.4[optional.inplace] 。
 */
 yconstexpr const struct in_place_t{} in_place{};
 
 
-//! \see ISO WG21/N4081 5.5[optional.nullopt] 。
+//! \see WG21/N4480 5.5[optional.nullopt] 。
 //@{
 //! \brief 无值状态指示。
 //@{
@@ -73,9 +74,9 @@ static_assert(std::is_literal_type<nullopt_t>(),
 \ingroup exceptions
 \brief 可选值操作失败异常。
 \note 实现定义：<tt>what()</tt> 返回 "bad optional access" 。
-\see ISO WG21/N4081 5.6[optional.bad_optional_access] 。
+\see WG21/N4480 5.6[optional.bad_optional_access] 。
 */
-class bad_optional_access : public std::logic_error
+class YB_API bad_optional_access : public std::logic_error
 {
 public:
 	bad_optional_access()
@@ -250,7 +251,7 @@ public:
 \note 值语义。基本接口和语义同 std::experimental::optional 提议
 	和 boost::optional （对应接口以前者为准）。
 \warning 非虚析构。
-\see ISO WG21/N4081 5.3[optional.object] 。
+\see WG21/N4480 5.3[optional.object] 。
 \todo allocator_arg 支持。
 */
 template<typename _type>
@@ -258,11 +259,11 @@ class optional : private details::optional_base<remove_cv_t<_type>>, yimpl(
 	public totally_ordered<optional<_type>>, public totally_ordered2<optional<
 	_type>, _type>, public totally_ordered2<optional<_type>, nullopt_t>)
 {
-	//! \see ISO WG21/N4081 5.2[optional.synopsis]/1 。
+	//! \see WG21/N4480 5.2[optional.synopsis]/1 。
 	static_assert(!or_<is_reference<_type>, is_same<remove_cv_t<_type>,
 		in_place_t>, is_same<remove_cv_t<_type>, nullopt_t>>(),
 		"Invalid type found.");
-	//! \see ISO WG21/N4081 5.3[optional.object]/3 。
+	//! \see WG21/N4480 5.3[optional.object]/3 。
 	static_assert(and_<is_nothrow_destructible<_type>, is_object<_type>>(),
 		"Invalid type found.");
 
@@ -314,12 +315,14 @@ public:
 	operator=(const optional& o)
 	{
 		get_base() = o.get_base();
+		return *this;
 	}
 	//! \since build 630
 	optional&
 	operator=(optional&& o) ynoexcept(is_nothrow_moveable<_type>())
 	{
 		get_base() = std::move(o.get_base());
+		return *this;
 	}
 	template<typename _tOther>
 	yimpl(enable_if_t)<is_same<decay_t<_tOther>, _type>::value, optional&>
@@ -329,6 +332,7 @@ public:
 			this->get() = yforward(v);
 		else
 			this->construct(yforward(v));
+		return *this;
 	}
 
 	template<typename... _tParams>
@@ -400,12 +404,14 @@ public:
 	{
 		return this->get();
 	}
-	yconstfn_relaxed _type
+	//! \since build 675
+	yconstfn_relaxed _type&&
 	operator*() &&
 	{
 		return std::move(this->get());
 	}
-	yconstfn _type
+	//! \since build 675
+	yconstfn _type&&
 	operator*() const&&
 	{
 		return std::move(this->get());
@@ -429,13 +435,15 @@ public:
 		return this->is_engaged() ? this->get() : (throw bad_optional_access(),
 			this->get());
 	}
-	yconstfn_relaxed _type
+	//! \since build 675
+	yconstfn_relaxed _type&&
 	value() &&
 	{
 		return this->is_engaged() ? std::move(this->get())
 			: (throw bad_optional_access(), std::move(this->get()));
 	}
-	yconstfn _type
+	//! \since build 675
+	yconstfn _type&&
 	value() const&&
 	{
 		return this->is_engaged() ? std::move(this->get())
@@ -467,9 +475,9 @@ public:
 /*!
 \brief 关系和比较操作。
 \note 未显式声明的部分由 \c operators 提供实现。
-\see ISO WG21/N4081 5.7[optional.relops] 。
-\see ISO WG21/N4081 5.8[optional.nullops] 。
-\see ISO WG21/N4081 5.9[optional.comp_with_t] 。
+\see WG21/N4480 5.7[optional.relops] 。
+\see WG21/N4480 5.8[optional.nullops] 。
+\see WG21/N4480 5.9[optional.comp_with_t] 。
 */
 //@{
 template<typename _type>
@@ -499,7 +507,7 @@ operator<(const optional<_type>& x, const optional<_type>& y)
 }
 //@}
 
-//! \see ISO WG21/N4081 5.10[optional.specalg] 。
+//! \see WG21/N4480 5.10[optional.specalg] 。
 //@{
 template<typename _type> void
 swap(optional<_type>& x, optional<_type>& y) ynoexcept_spec(x.swap(y))
@@ -529,6 +537,7 @@ make_optional_inplace(_tParams&&... args)
 
 /*!
 \brief 从 optional 实例的临时对象取左值引用。
+\note YStandardEx 扩展。
 \warning 应仅在确认生存期时使用。
 */
 template<typename _type>
@@ -544,6 +553,33 @@ ref_opt() ynothrowv
 	return ref_opt(make_optional_inplace<_type>());
 }
 //@}
+
+
+/*!
+\brief 合并可选值序列。
+\note YStandardEx 扩展。
+\note 语义同 Boost.Signal2 的 \c boost::optional_last_value 。
+\since build 675
+*/
+//@{
+template<typename _type>
+struct optional_last_value
+{
+	template<typename _tIn>
+	optional<_type>
+	operator()(_tIn first, _tIn last) const
+	{
+		return std::accumulate(first, last, optional<_type>(),
+			[](optional<_type>&, decltype(*first) val){
+			return yforward(val);
+		});
+	}
+};
+
+template<>
+struct optional_last_value<void> : default_last_value<void>
+{};
+//@}
 //@}
 
 } // namespace ystdex;
@@ -554,7 +590,7 @@ namespace std
 
 /*!
 \brief ystdex::optional 散列支持。
-\see ISO WG21/N4081 5.11[optional.hash] 。
+\see WG21/N4480 5.11[optional.hash] 。
 \since build 591
 */
 //@{

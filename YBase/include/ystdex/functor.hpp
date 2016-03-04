@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r661
+\version r723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-02-11 23:46 +0800
+	2016-03-05 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,8 @@
 #define YB_INC_ystdex_functor_hpp_ 1
 
 #include "ref.hpp" // for ystdex::constfn_addressof, enable_if_t,
-//	wrapped_traits, std::greater, std::less, std::greater_equal,
-//	std::less_equal, addrof_t, indirect_t;
+//	not_, or_, is_reference_wrapper, and_, std::greater, std::less,
+//	std::greater_equal, std::less_equal, addrof_t, indirect_t;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
 
@@ -119,33 +119,33 @@ struct mem_get<void>
 */
 struct is_equal
 {
-	//! \since build 554
-	//@{
 	//! \since build 594
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<!wrapped_traits<_type1>::value
-		&& !wrapped_traits<_type2>::value, bool>
+	yconstfn yimpl(enable_if_t)<not_<or_<is_reference_wrapper<_type1>,
+		is_reference_wrapper<_type2>>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynoexcept_spec(x == y)
 	{
 		return x == y;
 	}
+	//! \since build 554
+	//@{
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<wrapped_traits<_type1>::value
-		&& !wrapped_traits<_type2>::value, bool>
+	yconstfn yimpl(enable_if_t)<and_<is_reference_wrapper<_type1>,
+		not_<is_reference_wrapper<_type2>>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return std::addressof(x.get()) == std::addressof(y);
 	}
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<!wrapped_traits<_type1>::value
-		&& wrapped_traits<_type2>::value, bool>
+	yconstfn yimpl(enable_if_t)<and_<not_<is_reference_wrapper<_type1>>,
+		is_reference_wrapper<_type2>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return std::addressof(x) == std::addressof(y.get());
 	}
 	template<typename _type1, typename _type2>
-	yconstfn yimpl(enable_if_t)<wrapped_traits<_type1>::value
-		&& wrapped_traits<_type2>::value, bool>
+	yconstfn yimpl(enable_if_t)<and_<is_reference_wrapper<_type1>,
+		is_reference_wrapper<_type2>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return std::addressof(x.get()) == std::addressof(y.get());
@@ -164,7 +164,7 @@ struct ref_eq
 	}
 };
 
-#define YB_Impl_Functional_Ops_Primary(_n, _tRet, _using_stmt, _expr, ...) \
+#define YB_Impl_Functor_Ops_Primary(_n, _tRet, _using_stmt, _expr, ...) \
 	template<typename _type = void> \
 	struct _n \
 	{ \
@@ -179,7 +179,7 @@ struct ref_eq
 		} \
 	};
 
-#define YB_Impl_Functional_Ops_Spec(_n, _tparams, _params, _expr) \
+#define YB_Impl_Functor_Ops_Spec(_n, _tparams, _params, _expr) \
 	template<> \
 	struct _n<void> \
 	{ \
@@ -193,7 +193,7 @@ struct ref_eq
 		} \
 	};
 
-#define YB_Impl_Functional_Ops_Spec_Ptr(_n) \
+#define YB_Impl_Functor_Ops_Spec_Ptr(_n) \
 	template<typename _type> \
 	struct _n<_type*> \
 	{ \
@@ -208,26 +208,26 @@ struct ref_eq
 		} \
 	};
 
-#define YB_Impl_Functional_Ops_using(_tRet) using second_argument_type = _tRet;
+#define YB_Impl_Functor_Ops_using(_tRet) using second_argument_type = _tRet;
 
-#define YB_Impl_Functional_Ops1(_n, _op, _tRet) \
-	YB_Impl_Functional_Ops_Primary(_n, _tRet, , _op x, const _type& x) \
+#define YB_Impl_Functor_Ops1(_n, _op, _tRet) \
+	YB_Impl_Functor_Ops_Primary(_n, _tRet, , _op x, const _type& x) \
 	\
-	YB_Impl_Functional_Ops_Spec(_n, typename _type, _type&& x, _op yforward(x))
+	YB_Impl_Functor_Ops_Spec(_n, typename _type, _type&& x, _op yforward(x))
 
-#define YB_Impl_Functional_Ops2(_n, _op, _tRet) \
-	YB_Impl_Functional_Ops_Primary(_n, _tRet, \
-		YB_Impl_Functional_Ops_using(_tRet), x _op y, const _type& x, \
+#define YB_Impl_Functor_Ops2(_n, _op, _tRet) \
+	YB_Impl_Functor_Ops_Primary(_n, _tRet, \
+		YB_Impl_Functor_Ops_using(_tRet), x _op y, const _type& x, \
 		const _type& y) \
 	\
-	YB_Impl_Functional_Ops_Spec(_n, typename _type1 YPP_Comma typename \
+	YB_Impl_Functor_Ops_Spec(_n, typename _type1 YPP_Comma typename \
 		_type2, _type1&& x YPP_Comma _type2&& y, yforward(x) _op yforward(y))
 
-#define YB_Impl_Functional_Binary(_n, _op) \
-	YB_Impl_Functional_Ops2(_n, _op, _type)
+#define YB_Impl_Functor_Binary(_n, _op) \
+	YB_Impl_Functor_Ops2(_n, _op, _type)
 
-#define YB_Impl_Functional_Unary(_n, _op) \
-	YB_Impl_Functional_Ops1(_n, _op, _type)
+#define YB_Impl_Functor_Unary(_n, _op) \
+	YB_Impl_Functor_Ops1(_n, _op, _type)
 
 /*!
 \note 同 ISO WG21/N4296 对应标准库仿函数。
@@ -235,75 +235,75 @@ struct ref_eq
 */
 //@{
 //! \brief 加法仿函数。
-YB_Impl_Functional_Binary(plus, +)
+YB_Impl_Functor_Binary(plus, +)
 
 //! \brief 减法仿函数。
-YB_Impl_Functional_Binary(minus, -)
+YB_Impl_Functor_Binary(minus, -)
 
 //! \brief 乘法仿函数。
-YB_Impl_Functional_Binary(multiplies, *)
+YB_Impl_Functor_Binary(multiplies, *)
 
 //! \brief 除法仿函数。
-YB_Impl_Functional_Binary(devides, /)
+YB_Impl_Functor_Binary(devides, /)
 
 //! \brief 模运算仿函数。
-YB_Impl_Functional_Binary(modulus, %)
+YB_Impl_Functor_Binary(modulus, %)
 
 /*!
 \brief 取反仿函数。
 \since build 656
 */
-YB_Impl_Functional_Unary(negate, -)
+YB_Impl_Functor_Unary(negate, -)
 
-#define YB_Impl_Functional_bool(_n, _op) \
-	YB_Impl_Functional_Ops2(_n, _op, bool)
+#define YB_Impl_Functor_bool(_n, _op) \
+	YB_Impl_Functor_Ops2(_n, _op, bool)
 
-#define YB_Impl_Functional_bool_Ordered(_n, _op) \
-	YB_Impl_Functional_bool(_n, _op) \
+#define YB_Impl_Functor_bool_Ordered(_n, _op) \
+	YB_Impl_Functor_bool(_n, _op) \
 	\
-	YB_Impl_Functional_Ops_Spec_Ptr(_n)
+	YB_Impl_Functor_Ops_Spec_Ptr(_n)
 
 //! \brief 等于关系仿函数。
-YB_Impl_Functional_bool(equal_to, ==)
+YB_Impl_Functor_bool(equal_to, ==)
 
 //! \brief 不等于关系仿函数。
-YB_Impl_Functional_bool(not_equal_to, !=)
+YB_Impl_Functor_bool(not_equal_to, !=)
 
 //! \brief 大于关系仿函数。
-YB_Impl_Functional_bool_Ordered(greater, >)
+YB_Impl_Functor_bool_Ordered(greater, >)
 
 //! \brief 小于关系仿函数。
-YB_Impl_Functional_bool_Ordered(less, <)
+YB_Impl_Functor_bool_Ordered(less, <)
 
 //! \brief 大于等于关系仿函数。
-YB_Impl_Functional_bool_Ordered(greater_equal, >=)
+YB_Impl_Functor_bool_Ordered(greater_equal, >=)
 
 //! \brief 小于等于关系仿函数。
-YB_Impl_Functional_bool_Ordered(less_equal, <=)
+YB_Impl_Functor_bool_Ordered(less_equal, <=)
 
 //! \since build 656
 //@{
 //! \brief 逻辑与仿函数。
-YB_Impl_Functional_bool(logical_and, &&)
+YB_Impl_Functor_bool(logical_and, &&)
 
 //! \brief 逻辑或仿函数。
-YB_Impl_Functional_bool(logical_or, ||)
+YB_Impl_Functor_bool(logical_or, ||)
 
 //! \brief 逻辑非仿函数。
-YB_Impl_Functional_Ops1(logical_not, !, bool)
+YB_Impl_Functor_Ops1(logical_not, !, bool)
 
 //! \brief 位与仿函数。
-YB_Impl_Functional_Binary(bit_and, &)
+YB_Impl_Functor_Binary(bit_and, &)
 
 //! \brief 位或仿函数。
-YB_Impl_Functional_Binary(bit_or, |)
+YB_Impl_Functor_Binary(bit_or, |)
 
 //! \brief 位异或仿函数。
-YB_Impl_Functional_Binary(bit_xor, ^)
+YB_Impl_Functor_Binary(bit_xor, ^)
 
 //! \brief 位取反仿函数。
 // NOTE: Available in %std since ISO C++14.
-YB_Impl_Functional_Unary(bit_not, ~)
+YB_Impl_Functor_Unary(bit_not, ~)
 //@}
 //@}
 
@@ -313,21 +313,21 @@ YB_Impl_Functional_Unary(bit_not, ~)
 */
 //@{
 //! \brief 一元 & 操作。
-YB_Impl_Functional_Ops1(addrof, &, addrof_t<const _type&>)
+YB_Impl_Functor_Ops1(addrof, &, addrof_t<const _type&>)
 
 //! \brief 一元 * 操作。
-YB_Impl_Functional_Ops1(indirect, *, indirect_t<const _type&>)
+YB_Impl_Functor_Ops1(indirect, *, indirect_t<const _type&>)
 //@}
 
-#undef YB_Impl_Functional_bool_Ordered
-#undef YB_Impl_Functional_bool
-#undef YB_Impl_Functional_Unary
-#undef YB_Impl_Functional_Binary
-#undef YB_Impl_Functional_Ops2
-#undef YB_Impl_Functional_Ops1
-#undef YB_Impl_Functional_Ops_using
-#undef YB_Impl_Functional_Ops_Spec
-#undef YB_Impl_Functional_Ops_Primary
+#undef YB_Impl_Functor_bool_Ordered
+#undef YB_Impl_Functor_bool
+#undef YB_Impl_Functor_Unary
+#undef YB_Impl_Functor_Binary
+#undef YB_Impl_Functor_Ops2
+#undef YB_Impl_Functor_Ops1
+#undef YB_Impl_Functor_Ops_using
+#undef YB_Impl_Functor_Ops_Spec
+#undef YB_Impl_Functor_Ops_Primary
 
 
 //! \brief 选择自增/自减运算仿函数。
