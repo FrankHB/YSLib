@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r903
+\version r915
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-02-27 01:28 +0800
+	2016-03-08 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,8 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for ystdex::unimplemented;
+#include YFM_NPL_NPLA1 // for ystdex::bind1, YSLib::RemoveEmptyChildren;
 #include YFM_NPL_SContext
-#include <ystdex/functional.hpp> // for ystdex::bind1;
 
 using namespace YSLib;
 
@@ -156,6 +155,18 @@ observer_ptr<const ValueNode>
 LookupName(const ContextNode& ctx, const string& id) ynothrow
 {
 	return AccessNodePtr(ctx, id);
+}
+
+
+bool
+DetectReducible(TermNode& term, bool reducible)
+{
+	// TODO: Use explicit continuation parameters?
+//	if(reducible)
+	//	k(term);
+	YSLib::RemoveEmptyChildren(term.GetContainerRef());
+	// NOTE: Only stopping on getting a normal form.
+	return reducible && !term.empty();
 }
 
 } // namesapce A1;

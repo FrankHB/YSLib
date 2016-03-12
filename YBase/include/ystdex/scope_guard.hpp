@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r369
+\version r381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2015-12-17 10:54 +0800
+	2016-03-08 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,6 @@ namespace ystdex
 /*!
 \brief 作用域守护：析构时调用保存的函数对象或引用。
 \note 不可复制，不提供其它状态。
-\sa make_shared_guard
 */
 template<typename _func, bool _bNoThrow = true>
 struct guard
@@ -86,6 +85,18 @@ make_guard(_type f)
 	return guard<_type, _bNoThrow>(f);
 }
 //@}
+
+
+/*!
+\brief 创建共享作用域守护。
+\since build 676
+*/
+template<typename _func, typename _type = void>
+inline std::shared_ptr<_type>
+share_guard(_func f, _type* p = {})
+{
+	return ystdex::share_raw(p, f);
+}
 
 
 namespace details

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r638
+\version r671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-10-08 21:31 +0800
+	2016-03-12 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <cstdarg> // for std::va_list;
 #include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
-#include "iterator_op.hpp" // for iterator_operators_t, is_undereferenceable;
+#include "operators.hpp" // for input_iteratable;
 
 namespace ystdex
 {
@@ -111,16 +111,22 @@ openmode_conv(const char*) ynothrow;
 \brief 基于 ISO C 标准库的流只读迭代器。
 \since build 245
 */
-class YB_API ifile_iterator : public std::iterator<std::input_iterator_tag,
-	byte, ptrdiff_t, const byte*, const byte&>, public iterator_operators_t<
-	ifile_iterator, std::iterator_traits<yimpl(std::iterator<
-	std::input_iterator_tag, byte, ptrdiff_t, const byte*, const byte&>)>>
+class YB_API ifile_iterator
+	: public input_iteratable<ifile_iterator, const byte&>
 {
 protected:
 	using traits_type = std::iterator<std::input_iterator_tag, byte, ptrdiff_t,
 		const byte*, const byte&>;
 
 public:
+	//! \since build 676
+	//@{
+	using iterator_category = std::input_iterator_tag;
+	using value_type = byte;
+	using difference_type = ptrdiff_t;
+	using pointer = const byte*;
+	using reference = const byte&;
+	//@}
 	using char_type = byte;
 	//! \since build 607
 	using int_type = int;
@@ -199,6 +205,16 @@ public:
 	}
 
 	/*!
+	\ingroup is_undereferenceable
+	\since build 676
+	*/
+	friend bool
+	is_undereferenceable(const ifile_iterator& i) ynothrow
+	{
+		return !i.get_stream();
+	}
+
+	/*!
 	\brief 向流中写回字符。
 	\since build 607
 	*/
@@ -236,18 +252,6 @@ public:
 	}
 	//@}
 };
-
-
-/*!
-\ingroup is_undereferenceable
-\brief 判断 ifile_iterator 实例是否确定为不可解引用。
-\since build 461
-*/
-inline bool
-is_undereferenceable(const ifile_iterator& i) ynothrow
-{
-	return !i.get_stream();
-}
 
 
 /*!

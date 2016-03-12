@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r954
+\version r993
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-02-27 01:28 +0800
+	2016-03-11 14:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,10 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent;
-#include YFM_YSLib_Core_YEvent // for ystdex::id_func_clr_t, YSLib::GHEvent;
+#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
+//	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
+//	YSLib::GDefaultLastValueInvoker;
+#include <ystdex/any.h> // for ystdex::any;
 
 namespace NPL
 {
@@ -201,6 +204,51 @@ FetchValue(const ContextNode&, const string&);
 //! \brief 从指定上下文查找名称对应的节点。
 YF_API observer_ptr<const ValueNode>
 LookupName(const ContextNode&, const string&) ynothrow;
+//@}
+
+
+//! \since build 676
+//@{
+//! \brief 移除节点的空子节点并判断是否可继续规约。
+YF_API bool
+DetectReducible(TermNode&, bool);
+
+
+//! \brief 遍合并器。
+struct PassesCombiner
+{
+	template<typename _tIn>
+	bool
+	operator()(_tIn first, _tIn last) const
+	{
+		return ystdex::fast_any_of(first, last, ystdex::indirect<>());
+	}
+};
+
+
+//! \brief 一般合并遍。
+template<typename... _tParams>
+using GPasses = YSLib::GEvent<bool(_tParams...),
+	YSLib::GCombinerInvoker<bool, PassesCombiner>>;
+//! \brief 项合并遍。
+using TermPasses = GPasses<TermNode&>;
+//! \brief 求值合并遍。
+using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
+
+
+//! \brief 作用域守护类型。
+using Guard = ystdex::any;
+/*!
+\brief 作用域守护遍：用于需在规约例程的入口和出口关联执行的操作。
+\todo 支持迭代使用旧值。
+*/
+using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
+	YSLib::GDefaultLastValueInvoker<Guard>>;
+
+
+//! \brief 使用第二个参数指定的项的内容替换第一个项的内容。
+inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
+	ImplExpr(TermNode(std::move(tm)).SwapContent(term))
 //@}
 
 } // namesapce A1;

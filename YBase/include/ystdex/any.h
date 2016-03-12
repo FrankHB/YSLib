@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2059
+\version r2087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-03-05 00:37 +0800
+	2016-03-12 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -567,11 +567,8 @@ public:
 
 	//! \note YStandardEx 扩展。
 	//@{
-	const char*
-	from() const ynothrow
-	{
-		return from_type() == typeid(void) ? "unknown" : from_type().name();
-	}
+	YB_ATTR_returns_nonnull const char*
+	from() const ynothrow;
 
 	//! \since build 586
 	const std::type_info&
@@ -580,11 +577,8 @@ public:
 		return from_ti.get();
 	}
 
-	const char*
-	to() const ynothrow
-	{
-		return to_type() == typeid(void) ? "unknown" : to_type().name();
-	}
+	YB_ATTR_returns_nonnull const char*
+	to() const ynothrow;
 
 	//! \since build 586
 	const std::type_info&
@@ -595,11 +589,8 @@ public:
 	//@}
 	//@}
 
-	virtual YB_ATTR(returns_nonnull) const char*
-	what() const ynothrow override
-	{
-		return "Failed conversion: any_cast.";
-	}
+	virtual YB_ATTR_returns_nonnull const char*
+	what() const ynothrow override;
 };
 
 
@@ -700,21 +691,6 @@ public:
 		any(std::move(a)).swap(*this);
 		return *this;
 	}
-
-	//! \note YStandardEx 扩展。
-	//@{
-	bool
-	operator!() const ynothrow
-	{
-		return empty();
-	}
-
-	explicit
-	operator bool() const ynothrow
-	{
-		return !empty();
-	}
-	//@}
 
 	bool
 	empty() const ynothrow
