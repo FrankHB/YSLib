@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1026
+\version r1190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-03-05 00:43 +0800
+	2016-03-12 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "any.h" // for any_ops, unwrap_reference_t, cond_t,
 //	is_reference_wrapper, ref_handler, _t. ptrdiff_t, any, exclude_self_ctor_t,
 //	decay_t, is_convertible, indirect_t;
-#include "iterator.hpp" // for is_undereferenceable, std::iterator;
+#include "iterator.hpp" // for is_undereferenceable, input_iteratable,
+//	forward_iteratable, bidirectional_iteratable;
 
 namespace ystdex
 {
@@ -193,33 +194,6 @@ public:
 } // namespace any_ops;
 
 
-#define YB_Impl_AnyIterator_OpHead(_t) \
-	template<typename _type, typename _tDifference, typename _tPointer, \
-		typename _tReference> \
-	inline _t
-#define YB_Impl_AnyIterator_Op1(_n, _t, _it, _e) \
-	YB_Impl_AnyIterator_OpHead(_t) \
-	_n(const _it<_type, _tDifference, _tPointer, _tReference>& i) \
-	{ \
-		return _e; \
-	}
-#define YB_Impl_AnyIterator_Op2(_n, _t, _it, _e) \
-	YB_Impl_AnyIterator_OpHead(_t) \
-	_n(const _it<_type, _tDifference, _tPointer, _tReference>& x, \
-		const _it<_type, _tDifference, _tPointer, _tReference>& y) \
-	{ \
-		return _e; \
-	}
-#define YB_Impl_AnyIterator_OpPost(_op, _it) \
-	_it \
-	operator _op(int) \
-	{ \
-		auto tmp = *this; \
-	\
-		_op *this; \
-		return tmp; \
-	}
-
 //! \since build 400
 //@{
 /*!
@@ -229,10 +203,17 @@ public:
 */
 template<typename _type, typename _tDifference = ptrdiff_t,
 	typename _tPointer = _type*, typename _tReference = _type&>
-class any_input_iterator : public std::iterator<std::input_iterator_tag, _type,
-	_tDifference, _tPointer, _tReference>, protected any
+class any_input_iterator : protected any,
+	public input_iteratable<any_input_iterator<_type, _tDifference, _tPointer,
+	_tReference>, _tReference>
 {
 public:
+	//! \since build 676
+	//@{
+	using iterator_category = std::input_iterator_tag;
+	using value_type = _type;
+	using difference_type = _tDifference;
+	//@}
 	using pointer = _tPointer;
 	using reference = _tReference;
 
@@ -259,31 +240,15 @@ public:
 	}
 	//! \since build 356
 	any_input_iterator(const any_input_iterator&) = default;
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	any_input_iterator(any_input_iterator&& i)
-		: any(static_cast<any&&>(i))
-	{}
-#else
 	//! \since build 356
 	any_input_iterator(any_input_iterator&&) = default;
-#endif
 
 	//! \since build 454
 	//@{
 	any_input_iterator&
 	operator=(const any_input_iterator&) = default;
 	any_input_iterator&
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	operator=(any_input_iterator&& i)
-	{
-		static_cast<any&>(*this) = static_cast<any&&>(i);
-		return *this;
-	}
-#else
 	operator=(any_input_iterator&&) = default;
-#endif
 	//@}
 
 	reference
@@ -311,6 +276,20 @@ public:
 		return *this;
 	}
 
+	//! \since build 676
+	friend bool
+	operator==(const any_input_iterator& x, const any_input_iterator& y)
+	{
+		if(x.empty() && y.empty())
+			return true;
+		yassume(x.type() == y.type());
+
+		any_ops::any_storage t(&x.storage);
+
+		x.manager(t, y.storage, any_ops::equals);
+		return t.access<bool>();
+	}
+
 	//! \since build 615
 	//@{
 	any&
@@ -325,51 +304,30 @@ public:
 	}
 	//@}
 
-	//! \since build 400
-	bool
-	check_undereferenceable() const
+	/*!
+	\ingroup is_undereferenceable
+	\since build 676
+	*/
+	friend bool
+	is_undereferenceable(const any_input_iterator& i)
 	{
-		if(manager)
+		if(i.manager)
 		{
 			any_ops::any_storage t;
 
-			manager(t, storage, any_ops::check_undereferenceable);
+			i.manager(t, i.storage, any_ops::check_undereferenceable);
 			return t.access<bool>();
 		}
 		return true;
 	}
 
-	//! \since build 355
-	//@{
-	bool
-	equals(const any_input_iterator& i) const
-	{
-		if(!*this && !i)
-			return true;
-		yassume(type() == i.type());
-
-		any_ops::any_storage t(&storage);
-
-		manager(t, i.storage, any_ops::equals);
-		return t.access<bool>();
-	}
-
 	//! \since build 615
 	using any::target;
 
+	//! \since build 355
 	using any::type;
-	//@}
 };
 
-//! \relates any_input_iterator
-//@{
-YB_Impl_AnyIterator_Op2(operator==, bool, any_input_iterator, x.equals(y))
-
-YB_Impl_AnyIterator_Op2(operator!=, bool, any_input_iterator, !(x == y))
-
-YB_Impl_AnyIterator_Op1(is_undereferenceable, bool, any_input_iterator,
-	i.check_undereferenceable())
-//@}
 
 using input_monomorphic_iterator
 	= any_input_iterator<void_ref, ptrdiff_t, void*, void_ref>;
@@ -382,8 +340,9 @@ using input_monomorphic_iterator
 */
 template<typename _type, typename _tDifference = ptrdiff_t,
 	typename _tPointer = _type*, typename _tReference = _type&>
-class any_forward_iterator
-	: public any_input_iterator<_type, _tDifference, _tPointer, _tReference>
+class any_forward_iterator : public any_input_iterator<_type, _tDifference,
+	_tPointer, _tReference>, public forward_iteratable<any_forward_iterator<
+	_type, _tDifference, _tPointer, _tReference>, _tReference>
 {
 public:
 	using iterator_category = std::forward_iterator_tag;
@@ -396,31 +355,14 @@ public:
 		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}
 	any_forward_iterator(const any_forward_iterator&) = default;
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	any_forward_iterator(any_forward_iterator&& i)
-		: any_input_iterator(static_cast<any_input_iterator&&>(i))
-	{}
-#else
 	any_forward_iterator(any_forward_iterator&&) = default;
-#endif
 
 	//! \since build 454
 	//@{
 	any_forward_iterator&
 	operator=(const any_forward_iterator&) = default;
 	any_forward_iterator&
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	operator=(any_forward_iterator&& i)
-	{
-		static_cast<any_input_iterator&>(*this)
-			= static_cast<any_input_iterator&&>(i);
-		return *this;
-	}
-#else
 	operator=(any_forward_iterator&&) = default;
-#endif
 	//@}
 
 	any_forward_iterator&
@@ -429,18 +371,18 @@ public:
 		any_input_iterator<_type, _tPointer, _tReference>::operator++();
 		return *this;
 	}
-	YB_Impl_AnyIterator_OpPost(++, any_forward_iterator)
+
+	//! \since build 676
+	friend bool
+	operator==(const any_forward_iterator& x, const any_forward_iterator& y)
+	{
+		using base
+			= any_input_iterator<_type, _tDifference, _tPointer, _tReference>;
+
+		return static_cast<const base&>(x) == static_cast<const base&>(y);
+	}
 };
 
-//! \relates any_forward_iterator
-//@{
-YB_Impl_AnyIterator_Op2(operator==, bool, any_forward_iterator, x.equals(y))
-
-YB_Impl_AnyIterator_Op2(operator!=, bool, any_forward_iterator, !(x == y))
-
-YB_Impl_AnyIterator_Op1(is_undereferenceable, bool, any_forward_iterator,
-	i.check_undereferenceable())
-//@}
 
 using forward_monomorphic_iterator
 	= any_forward_iterator<void_ref, ptrdiff_t, void*, void_ref>;
@@ -452,8 +394,10 @@ using forward_monomorphic_iterator
 */
 template<typename _type, typename _tDifference = ptrdiff_t,
 	typename _tPointer = _type*, typename _tReference = _type&>
-class any_bidirectional_iterator
-	: public any_forward_iterator<_type, _tDifference, _tPointer, _tReference>
+class any_bidirectional_iterator : public any_forward_iterator<_type,
+	_tDifference, _tPointer, _tReference>, public bidirectional_iteratable<
+	any_bidirectional_iterator<_type, _tDifference, _tPointer, _tReference>,
+	_tReference>
 {
 public:
 	using iterator_category = std::bidirectional_iterator_tag;
@@ -466,31 +410,14 @@ public:
 		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}
 	any_bidirectional_iterator(const any_bidirectional_iterator&) = default;
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	any_bidirectional_iterator(any_bidirectional_iterator&& i)
-		: any_forward_iterator(static_cast<any_forward_iterator&&>(i))
-	{}
-#else
 	any_bidirectional_iterator(any_bidirectional_iterator&&) = default;
-#endif
 
 	//! \since build 454
 	//@{
 	any_bidirectional_iterator&
 	operator=(const any_bidirectional_iterator&) = default;
 	any_bidirectional_iterator&
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	operator=(any_bidirectional_iterator&& i)
-	{
-		static_cast<any_forward_iterator&>(*this)
-			= static_cast<any_forward_iterator&&>(i);
-		return *this;
-	}
-#else
 	operator=(any_bidirectional_iterator&&) = default;
-#endif
 	//@}
 
 	any_bidirectional_iterator&
@@ -499,7 +426,6 @@ public:
 		any_forward_iterator<_type, _tPointer, _tReference>::operator++();
 		return *this;
 	}
-	YB_Impl_AnyIterator_OpPost(++, any_bidirectional_iterator)
 
 	any_bidirectional_iterator&
 	operator--()
@@ -508,29 +434,22 @@ public:
 		this->manager(this->storage, this->storage, any_ops::decrease);
 		return *this;
 	}
-	YB_Impl_AnyIterator_OpPost(--, any_bidirectional_iterator)
+
+	//! \since build 676
+	friend bool
+	operator==(const any_bidirectional_iterator& x,
+		const any_bidirectional_iterator& y)
+	{
+		using base
+			= any_forward_iterator<_type, _tDifference, _tPointer, _tReference>;
+
+		return static_cast<const base&>(x) == static_cast<const base&>(y);
+	}
 };
 
-//! \relates any_bidirectional_iterator
-//@{
-YB_Impl_AnyIterator_Op2(operator==, bool,
-	any_bidirectional_iterator, x.equals(y))
-
-YB_Impl_AnyIterator_Op2(operator!=, bool, any_bidirectional_iterator, !(x == y))
-
-YB_Impl_AnyIterator_Op1(is_undereferenceable, bool, any_bidirectional_iterator,
-	i.check_undereferenceable())
-//@}
 
 using bidirectional_monomorphic_iterator
 	= any_bidirectional_iterator<void_ref, ptrdiff_t, void*, void_ref>;
-
-
-#undef YB_Impl_AnyIterator_OpPost
-#undef YB_Impl_AnyIterator_Op2
-#undef YB_Impl_AnyIterator_Op1
-#undef YB_Impl_AnyIterator_OpHead
-
 //@}
 
 } // namespace ystdex;

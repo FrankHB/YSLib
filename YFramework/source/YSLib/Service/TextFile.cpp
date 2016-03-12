@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1306
+\version r1320
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2016-01-11 11:21 +0800
+	2016-03-10 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,10 +43,13 @@ VerifyEncoding(std::FILE* fp, char* s, size_t buflen, size_t txt_len,
 	const auto n(min(txt_len, buflen));
 
 	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
-	std::fread(s, 1, n, Nonnull(fp));
-	std::rewind(fp);
-	return VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), enc) ? enc
-		: CharSet::Null;
+	if(std::fread(s, 1, n, Nonnull(fp)) == n)
+	{
+		std::rewind(fp);
+		if(VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), enc))
+			return enc;
+	}
+	return CharSet::Null;
 }
 Encoding
 VerifyEncoding(std::istream& stream, char* s, size_t buflen, size_t txt_len,
@@ -56,9 +59,13 @@ VerifyEncoding(std::istream& stream, char* s, size_t buflen, size_t txt_len,
 
 	std::char_traits<char>::assign(Nonnull(s) + n, buflen - n, char());
 	stream.read(s, std::streamsize(n));
-	stream.seekg(0);
-	return VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), enc) ? enc
-		: CharSet::Null;
+	if(stream)
+	{
+		stream.seekg(0);
+		if(VerifyUC(&ystdex::as_const(s[0]), ptrdiff_t(n), enc))
+			return enc;
+	}
+	return CharSet::Null;
 }
 
 pair<Encoding, size_t>

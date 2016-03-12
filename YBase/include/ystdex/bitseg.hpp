@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r381
+\version r389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2016-01-28 17:05 +0800
+	2016-03-12 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,10 +48,8 @@ namespace ystdex
 对字节分段提供的随机访问迭代器。
 */
 template<size_t _vN, bool _bEndian = false>
-class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
-	byte, ptrdiff_t, byte*, byte&>, public iterator_operators_t<bitseg_iterator<
-	_vN, _bEndian>, std::iterator_traits<yimpl(std::iterator<
-	std::random_access_iterator_tag, byte, ptrdiff_t, byte*, byte&>)>>
+class bitseg_iterator : public
+	random_access_iteratable<bitseg_iterator<_vN, _bEndian>, ptrdiff_t, byte&>
 {
 	static_assert(_vN != 0, "A bit segment should contain at least one bit.");
 	static_assert(_vN != CHAR_BIT, "A bit segment should not be a byte.");
@@ -59,6 +57,10 @@ class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
 		"A byte should be divided by number of segments without padding.");
 
 public:
+	//! \since build 676
+	using iterator_category = std::random_access_iterator_tag;
+	//! \since build 676
+	using value_type = byte;
 	using difference_type = ptrdiff_t;
 	using pointer = byte*;
 	using reference = byte&;

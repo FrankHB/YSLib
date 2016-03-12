@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2949
+\version r2971
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2015-12-01 15:57 +0800
+	2016-03-10 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,7 @@
 
 /*!
 \brief 带宏替换的记号连接。
-\see ISO WG21/N4140 16.3.3[cpp.concat]/3 。
+\see WG21/N4140 16.3.3[cpp.concat]/3 。
 \see http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
 \see https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
 
@@ -282,7 +282,7 @@
 /*!
 \def YB_HAS_THREAD_LOCAL
 \brief thread_local 支持。
-\see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=1773 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=1773 。
 \since build 425
 */
 #undef YB_HAS_THREAD_LOCAL
@@ -353,6 +353,21 @@
 #endif
 
 /*!
+\def YB_ATTR_returns_nonnull
+\brief 指示返回非空属性。
+\since build 676
+\see http://reviews.llvm.org/rL199626 。
+\see http://reviews.llvm.org/rL199790 。
+\todo 确认 Clang++ 最低可用的版本。
+*/
+#if __has_attribute(returns_nonnull) || YB_IMPL_GNUC >= 40900 \
+	|| YB_IMPL_CLANGPP >= 30500
+#	define YB_ATTR_returns_nonnull YB_ATTR(returns_nonnull)
+#else
+#	define YB_ATTR_returns_nonnull
+#endif
+
+/*!
 \def YB_ALLOCATOR
 \brief 指示修饰的是分配器，或返回分配器调用的函数或函数模板。
 \note 指示行为类似 std::malloc 或 std::calloc 等的函数。
@@ -406,7 +421,7 @@
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48731 。
 \since build 646
 */
-#if (__has_attribute(__noreturn__) || YB_IMPL_GNUCPP >= 40102) \
+#if (__has_attribute(__flatten__) || YB_IMPL_GNUCPP >= 40102) \
 	&& YB_IMPL_GNUCPP != 40600
 #	define YB_FLATTEN YB_ATTR(__flatten__)
 #else
@@ -471,6 +486,7 @@
 \note 不访问函数外部的存储；通常不调用不可被 YB_STATELESS 安全指定的函数。
 \note 可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集。
 \warning 要求满足指示的假定，否则行为未定义。
+\see WG21/P0078R0 。
 \since build 373
 
 指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
@@ -588,7 +604,6 @@
 \brief 指定特定类型的对齐。
 \note 同 C++11 alignof 作用于类型时的语义。
 \since build 315
-\todo 判断是否可使用 TR1 的情形。
 */
 #if YB_HAS_ALIGNOF
 #	define yalignof alignof
@@ -713,6 +728,7 @@
 按 ISO/IEC JTC1/SC22/WG21 N3248 要求，表示 narrow constraint 的无异常抛出接口。
 对应接口违反约束可引起未定义行为。
 因为可能显著改变程序的可观察行为，需要允许抛出异常进行验证时不适用。
+除非能静态验证不抛出异常，一般只应直接或间接调用 ynothrow 安全修饰的函数。
 验证结束后，确保不存在未定义行为时可以启用以提升性能。
 */
 #if YB_Use_StrictNoThrow
@@ -790,7 +806,7 @@ using std::nullptr_t;
 
 /*!
 \brief 空指针类。
-\see 代码参考：http://topic.csdn.net/u/20100924/17/BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
+\see https://en.wikibooks.org/wiki/More_C++_Idioms/nullptr 。
 */
 const class nullptr_t
 {

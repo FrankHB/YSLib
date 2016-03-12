@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Common source script: bootstrap configuration.
 
 echo Bootstrap beginned.
@@ -29,7 +29,7 @@ INCLUDES=" \
 	-I../../YBase/include \
 	"
 
-# Coordinated with build 633.
+# Coordinated with build 676.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -43,7 +43,7 @@ LIBS=" \
 	../../YFramework/source/YCLib/FileIO.cpp \
 	../../YFramework/source/YCLib/FileSystem.cpp \
 	../../YFramework/source/YCLib/Host.cpp \
-	../../YFramework/source/YCLib/ycommon.cpp \
+	../../YFramework/source/YCLib/YCommon.cpp \
 	../../YFramework/source/YSLib/Core/YCoreUtilities.cpp \
 	../../YFramework/source/YSLib/Core/YException.cpp \
 	../../YFramework/source/YSLib/Core/ValueNode.cpp \
@@ -62,7 +62,7 @@ if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 fi
 
 # Note '-fwhole-program' should not be used because there
-#	does exsit multiple translation units when linking with YSLib source,
+#	does exist multiple translation units when linking with YSLib source,
 #	otherwise there would be unresolved reference to names with external
 #	linkage which had been optimized away.
 export CXXFLAGS

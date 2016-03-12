@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r9496
+\version r9624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-03-05 01:13 +0800
+	2016-03-13 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,131 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %ScopeGuard $=
+			(
+				+ "function template %ystdex::make_shared_guard",
+				* "wrong '\sa' directive" @ "Doxygen comments" @ "class %guard"
+					$since b627
+			),
+			/ %Any $=
+			(
+				/ $lib @ "class %bad_any_cast" $=
+				(
+					/ "in-class defined member functions %(from, to, what)"
+						-> ("out-of-line defined functions"
+						@ "non-header file"),
+					+ ('YB_ATTR_returns_nonnull' $dep_from %YBase.YDefinition)
+						@ "functions %(from, to)"
+				),
+				/ @ "class %any" $=
+				(
+					/ DLDI "copy constructor" !^ "conversion to %bool";
+					- "member functions %operator(!, bool)" $dep_from \
+						("%any_input_iterator::equals" @ %AnyIterator)
+						// Use %any::empty instead, since it is more like a \
+							container.
+				)
+			),
+			/ "%void_t" ^ "%std::void_t" @ 'YB_IMPL_MSCPP >= 1900'
+				@ %TypeTraits,
+			/ %AnyIterator $=
+			(
+				/ @ "class template %any_input_iterator" $=
+				(
+					/ DLDI "member function %any_input_iterator::equals"
+						-> "friend function %operator==" ^ $dep_from
+						("%any::empty" @ %Any) ~ "%any conversion to bool",
+					/ "base class %std::iterator instance" -> "member types \
+						%(iterator_category, value_type, difference_type)"
+				),
+				/ @ "class templates %(any_input_iterator, \
+					any_forward_iterator, any_bidirectional_iterator)" $=
+				(
+					(
+					+ "instance %(input_iteratable, forward_iteratable, \
+						bidirectional_iteratable) as base class"
+					+ "friend function %operator==";
+					- "non-friend related comparison function templates, \
+						member postfix functions %operator(++, --)"
+					),
+					/ "function %check_undereferenceable, related non-member \
+						function %is_undereferenceable"
+						-> "friend function %is_undereferenceable"
+					- $revert(b454) "workaround for Microsoft Visual C++ 2013"
+						@ ("move %operator=", "move constructor")
+				)
+			),
+			/ @ "class %ifile_iterator" @ %CStandardIO $=
+			(
+				/ "base class %iterator_operators_t instance"
+					-> "%input_iteratable instance",
+				/ "base class %std::iterator instance" -> "member types \
+					%(iterator_category, value_type, difference_type, \
+					pointer_type, referece_type)",
+				/ "related non-member function %is_undereferenceable"
+					-> "friend function"
+			),
+			/ "base class %iterator_operators_t instance"
+				@ "class template %subscriptive_iterator" @ %Iterator
+				-> "%random_access_iteratable instance",
+			/ @ "class template %bitseg_iterator" @ %BitSegment $=
+			(
+				/ "base class %iterator_operators_t instance"
+					-> "%random_access_iteratable instance",
+				/ "base class %std::iterator instance"
+					-> "member types %(iterator_category, value_type)"
+			)
+		),
+		/ %YDefinition $=
+		(
+			* "%__has_attribute test wrongly tested %__noreturn__ for \
+				%__flatten__ attribute" $since b646,
+			+ "macro %YB_ATTR_returns_nonnull"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ @ "generated guard" @ "static member function \
+			%WindowThread::DefaultGenerateGuard" @ %Helper.HostRenderer $=
+		(
+			+ DLDI 'ynothrow' @ "guard handler",
+			^ $dep_from
+				("%ystdex::make_shared_guard" @ %YBase.YStandardEx.ScopeGuard)
+		),
+		/ %NPL.NPLA1 $=
+		(
+			+ "struct %PassesCombiner; alias template %GPasses; aliases \
+				%(TermPasses, EvaluationPasses)",
+			+ "aliases %(Guard; GuardPasses)",
+			+ "functions %(DetectReducible, LiftTerm)",
+		),
+		/ "missing handling reading failure" @ "all functions %VerifyEncoding"
+			@ %YSLib.Service.TextFile $since b614
+			$= ("returned %CharSet::Null before further check if reading calls \
+				failed")
+	),
+	/ %Tools $=
+	(
+		* "missing updating %LIBS for %YFramework.YCLib.YCommon"
+			@ "%SHBuild-bootstrap.sh" @ %Scripts $since b633,
+		* "silently exited when 'pkg-config' detection for package %freetype2 \
+			failed" @ "%install-sysroot.sh" $since b563
+	),
+	/ $dev DLDI "'YB_ATTR(returns_nonnull)'" -> $dep_from
+		("%YB_ATTR_returns_nonnull" @ %YBase.YDefinition) $effective
+		%(YBase.YStandardEx.Any, YFramework.(CHRLib.MappingEx, YCLib.(HostedGUI,
+		FileSystem), 'YCLib_(Win32)'.MinGW32, 'YCLib_(DS)'.DSVideo,
+		Helper.ShellHelper));
+		// Also to eliminate warning for unsupported implementations: \
+			[-Wignored-attributes].
+),
+
+b675
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1474,7 +1599,7 @@ b666
 		(
 			* $impl "strict ISO C++ code conformance" $since b660
 				// To eliminate Clang++ error: [-Werror,-Wnested-anon-types].
-			* DLB "alias declartion %ModuleProc" $since b651
+			* DLB "alias %ModuleProc" $since b651
 				// This occasionally worked for G++, but not for Clang++.
 		),
 		/ %YSLib.Core.ValueNode $=
@@ -4218,7 +4343,7 @@ b646
 		/ %YDefinition $=
 		(
 			* $doc "Doxygen comment block for %YB_ATTR_gnu_printf wrongly \
-				named for %YB_ATTR" $since b615,
+				named as %YB_ATTR" $since b615,
 			+ "macro %YB_FLATTEN"
 		),
 		/ %YStandardEx $=
@@ -7475,7 +7600,7 @@ b615
 		),
 		+ "macro %YB_ATTR_gnu_printf" @ %YDefinition;
 	),
-	/ $dev DLDI "attribute 'YB_ATTR(format (gnu_printf, ...))'" ^ $dep_from
+	/ $dev DLDI "'YB_ATTR(format (gnu_printf, ...))'" -> $dep_from
 		("%YB_ATTR_gnu_printf" @ %YBase.YDefinition)
 		// Also to eliminate Clang++ warning: [-Wignored-attributes].
 ),
@@ -7675,7 +7800,7 @@ b612
 				- $dev '#include FT_CACHE_H' @ "header",
 				(
 				/ $dev "all '::FT_UInt'" -> 'unsigned',
-				- $dev "explicit FreeType2 constants" @ "default argument"
+				- $dev "explicit freetype2 constants" @ "default argument"
 					@ "member function %Font::GetGlyph",
 				+ $dev "class name declarations and aliases declarations
 					%((FT_SizeRec_; FT_Size, FT_SizeRec), (FT_FaceRec_;

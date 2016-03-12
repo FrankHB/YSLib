@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r852
+\version r858
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-02-11 17:46 +0800
+	2016-03-10 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -369,9 +369,9 @@ using result_of_t = typename result_of<_type>::type;
 /*!
 \ingroup meta_types
 \brief bool 常量。
-\sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4389.html
 \see WG21/N4389 。
 \see WG21/N4527 20.10.3[meta.help] 。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
 \since build 617
 */
 #if YB_IMPL_MSCPP >= 1900
@@ -405,11 +405,14 @@ public:
 /*!
 \see WG21/N3911 。
 \see WG21/N4296 20.10.2[meta.type.synop] 。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
 \see http://wg21.cmeerw.net/cwg/issue1558 。
 \since build 591
 */
-#if YB_IMPL_GNUCPP >= 50000
+#if YB_IMPL_MSCPP >= 1900
+using std::void_t;
+#elif YB_IMPL_GNUCPP >= 50000
 template<typename...>
 using void_t = void;
 #else

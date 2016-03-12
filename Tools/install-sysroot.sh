@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # SHBuild installation script.
 
 set -e
@@ -43,7 +43,8 @@ if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
 else
 	: ${SHBuild_YSLib_Platform:=$SHBuild_Env_OS}
 	# TODO: Merge with SHBuild-BuildApp.sh?
-	INCLUDES_freetype="`pkg-config --cflags-only-I freetype2 2> /dev/null`"
+	INCLUDES_freetype="`pkg-config --cflags-only-I freetype2 2> /dev/null \
+		|| true`"
 	: ${INCLUDES_freetype:="-I/usr/include"}
 	SR_DSO_Dest="$SR_Lib"
 	SR_DSO_Imp=""
@@ -68,7 +69,7 @@ echo Bootstraping ...
 SHBuild_S1_SHBuild="$SHBuild_BaseDir/SHBuild"
 
 if command -v "$SHBuild_S1_SHBuild"; then
-	echo Found stage 1 SHBuild "$SHBuild_S1_SHBuild", building skipped.	
+	echo Found stage 1 SHBuild "$SHBuild_S1_SHBuild", building skipped.
 else
 	echo Stage 1 SHBuild not found. Building ...
 	$SHBuild_ToolDir/SHBuild-build.sh
@@ -90,7 +91,6 @@ if [[ "$SHBuild_UseRelease" != '' ]]; then
 else
 	echo Skipped building release libraries.
 fi
-
 echo Finished building YSLib libraries.
 
 # Installation functions.
@@ -157,7 +157,7 @@ if [[ "$SHBuild_UseDebug" != '' ]]; then
 		SHB_InstLibS "$SR_S1_SHBuild_debug" "$SR_Lib" YBased
 		SHB_InstLibS "$SR_S1_SHBuild_debug" "$SR_Lib" YFrameworkd
 	else
-		echo Skipped installing debug static libraries.		
+		echo Skipped installing debug static libraries.
 	fi
 	if [[ "$SHBuild_NoDynamic" == '' ]]; then
 		SHB_InstLibD "$SR_S1_SHBuild_DLL_debug" YBased

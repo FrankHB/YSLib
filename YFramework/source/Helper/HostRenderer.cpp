@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r673
+\version r676
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-02-09 19:06 +0800
+	2016-03-08 10:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@
 #	include YFM_Win32_Helper_Win32Control
 #endif
 #include <ystdex/cast.hpp> // for ystdex::pvoid;
+#include <ystdex/scope_guard.hpp> // for ystdex::share_guard;
 
 namespace YSLib
 {
@@ -112,11 +113,11 @@ WindowThread::DefaultGenerateGuard(Window& wnd)
 {
 #if YF_Multithread == 1
 	wnd.GetEnvironmentRef().EnterWindowThread();
-	return share_raw(&wnd, [](Window* p_wnd){
+	return ystdex::share_guard([](Window* p_wnd) ynothrow{
 		FilterExceptions([=]{
 			Deref(p_wnd).GetEnvironmentRef().LeaveWindowThread();
 		}, "default event guard destructor");
-	});
+	}, &wnd);
 #else
 	return {};
 #endif

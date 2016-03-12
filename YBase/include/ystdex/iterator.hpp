@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5875
+\version r5879
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-03-02 11:43 +0800
+	2016-03-12 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "pointer.hpp" // for iterator_operators_t, std::iterator_traits,
 //	_t, pointer_classify, cond_t, *_tag, yassume, is_undereferenceable,
-//	yconstraint;
+//	yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
 #include "ref.hpp" // for lref;
@@ -1207,10 +1207,9 @@ make_prototyped_iterator(_type& proto, size_t i, _fUpdater f)
 */
 template<class _tCon, typename _type, typename _tDifference = ptrdiff_t,
 	typename _tPointer = _type*, typename _tReference = _type&>
-class subscriptive_iterator : public iterator_operators_t<
+class subscriptive_iterator : public random_access_iteratable<
 	subscriptive_iterator<_tCon, _type, _tDifference, _tPointer, _type>,
-	yimpl(std::iterator<std::random_access_iterator_tag, _type, _tDifference,
-	_tPointer, _tReference>)>
+	_tDifference, _tReference>
 {
 public:
 	//! \since build 356
