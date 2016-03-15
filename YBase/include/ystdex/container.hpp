@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1408
+\version r1472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-01-11 23:13 +0800
+	2016-03-15 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -875,39 +875,88 @@ replace_value(_tAssocCon& con, const _tKey& k, _func f)
 }
 
 
+//! \since build 677
+//@{
+namespace details
+{
+
+template<class _type>
+using mapped_type_t = typename _type::mapped_type;
+
+template<class _tAssocCon>
+const typename _tAssocCon::key_type&
+extract_key(const typename _tAssocCon::value_type& val, false_type)
+{
+	return val;
+}
+template<class _tAssocCon>
+const typename _tAssocCon::key_type&
+extract_key(const typename _tAssocCon::value_type& val, true_type)
+{
+	return val.first;
+}
+
+} // unnamed namespace details;
+
+//! \brief 从关联容器的值取键。
+template<class _tAssocCon>
+const typename _tAssocCon::key_type&
+extract_key(const typename _tAssocCon::value_type& val)
+{
+	return details::extract_key<_tAssocCon>(val,
+		is_detected<details::mapped_type_t, _tAssocCon>());
+}
+
+
 /*!
-\note 行为类似 std::map::operator[] 。
-\since build 595
+\brief 按指定键值搜索指定关联容器。
+\return 一个用于表示结果的 std::pair 对象，其成员 \c first 为迭代器，
+	\c second 表示是否不存在而需要插入。
+\note 使用 ADL extract_key 。
 */
 //@{
-/*!
-\brief 按指定键值搜索指定映射。
-\return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
-	second 表示是否不存在而需要插入。
-*/
-template<class _tMap>
-std::pair<typename _tMap::const_iterator, bool>
-search_map(_tMap& m, const typename _tMap::key_type& k)
+template<class _tAssocCon, typename _tKey>
+std::pair<typename _tAssocCon::iterator, bool>
+search_map(_tAssocCon& con, const _tKey& k)
 {
-	const auto i(ystdex::as_const(m).lower_bound(k));
+	const auto i(con.lower_bound(k));
 
-	return {i, (i == cend(m) || m.key_comp()(k, i->first))};
+	return
+		{i, i == cend(con) || con.key_comp()(k, extract_key<_tAssocCon>(*i))};
 }
+template<class _tAssocCon, typename _tKey>
+std::pair<typename _tAssocCon::const_iterator, bool>
+search_map(const _tAssocCon& con, const _tKey& k)
+{
+	const auto i(con.lower_bound(k));
+
+	return {i, i == end(con) || con.key_comp()(k, extract_key<_tAssocCon>(*i))};
+}
+//@}
 /*!
 \brief 按指定键值搜索指定映射并执行操作。
 \pre 最后的参数构造新的值。
 \return 插入成员的迭代器。
 \note 行为类似 std::map::operator[] 。
-\since build 566
 */
-template<class _tMap, typename _func>
-typename _tMap::const_iterator
-search_map(_tMap& m, const typename _tMap::key_type& k, _func f)
+//@{
+template<class _tAssocCon, typename _tKey, typename _func>
+typename _tAssocCon::iterator
+search_map(_tAssocCon& con, const _tKey& k, _func f)
 {
-	const auto pr(ystdex::search_map(m, k));
+	const auto pr(ystdex::search_map(con, k));
 
 	return pr.second ? pr.first : f(pr.first);
 }
+template<class _tAssocCon, typename _tKey, typename _func>
+typename _tAssocCon::const_iterator
+search_map(const _tAssocCon& con, const _tKey& k, _func f)
+{
+	const auto pr(ystdex::search_map(con, k));
+
+	return pr.second ? pr.first : f(pr.first);
+}
+//@}
 //@}
 //@}
 

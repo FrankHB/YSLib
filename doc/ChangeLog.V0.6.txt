@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r9624
+\version r9754
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-03-13 00:01 +0800
+	2016-03-15 13:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,118 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				+ "empty class template %in_place_t",
+				/ @ "class template %value_holder" $=
+				(
+					/ "protected data member %held"
+						-> "protected base %boxed_value instance" $dep_from
+						("%boxed_value" @ %Utilities);
+					/ DLDI "member functions %(clone, get)",
+					/ "2 constructors" -> "explicitly defaulted default \
+						construcor, inherited constructor, constructor \
+						template with 1 template"
+				)
+			),
+			/ @ "class %any" $=
+			(
+				+ "member function templates %(emplace_with_handler; 2 \
+					emplace)",
+				+ "constructor template" ^ $dep_from "%in_place_t instance",
+				/ DLDI "simplified all constructor templates",
+				(
+				^ DLDI "empty braced-init-list" @ "data members";
+				/ DLD "explicitly defaulted default constructor"
+					$= (- 'yconstfn')
+					// Since it is first declared as defaulted, 'constexpr' \
+						will be implictly implied. This will also meet the \
+						requirements of the standard, see \
+						http://wg21.cmeerw.net/lwg/issue2013.
+				),
+				+ "constructor template with holder rvalue reference parameter"
+					$dep_to "non-pointer holder construction",
+				(
+				+ "functions %(unchecked_get, unchecked_get_holder, \
+					unchecked_type)";
+				/ DLDI "simplified functions %(get, get_holder, type)"
+					^ "%(unchecked_get, unchecked_get_holder, unchecked_type)"
+				)
+			),
+			+ "2 function templates %unchecked_any_cast" ^ $dep_from
+				"%any::(unchecked_get, unchecked_type)",
+			+ "function template %extract_key",
+			/ @ "all function templats %search_map" @ %Container $=
+			(
+				/ "differentiate const and non-const map types"
+					$= (/ "2 function templates" -> "4 function templates"),
+				/ "%key_type for map" -> "key template parameter",
+				+ "support set-like type" ^ $dep_from "%extract_key"
+			),
+			* "ill-formed function %value_comp" @ "class template %mapped_set"
+				@ %Set $since b665
+		),
+		/ %Utilities $=
+		(
+			+ "struct %default_init_t; object %default_init",
+			/ @ "class template %boxed_value" $=
+			(
+				+ 'mutable' @ "data member %value",
+				+ "exception specification" @ "all non-defaulted constructors",
+				+ "constructor with %default_init_t parameter for uninialized \
+					member initialization" $dep_from "%default_init_t",
+				/ "default constructor" ^ "value-initialized member"
+					~ "default-initialized member"
+			)
+		)
+	),
+	/ %YFramework.YSLib.Core $=
+	(
+		/ %YObject $=
+		(
+			/ @ "class %ValueObject" $=
+			(
+				/ "constructors templates with holders" !^ "%unique_ptr"
+					$dep_from "non-pointer holder construction",
+					// To utilize small object optimization of %ystdex::any. \
+						Also to reduce size of binary code (esp. in debug \
+						release).
+				+ "2 function templates %(Emplace; EmplaceIfEmpty)" ^ $dep_from
+					("%ystdex::any::emplace" @ %YBase.YStandardEx.Any),
+				/ $lib $impl "all 2 function templates %GetObject" ^ $dep_from
+					("%ystdex::unchecked_any_cast" @ %YBase.YStandardEx.Any)
+					~ "%ystdex::unsafe_any_cast"
+					// To improve performance a little.
+			),
+			/ @ "class template %ValueHolder" $=
+			(
+				/ "protected data member %held"
+					-> "protected base %boxed_value instance" $dep_from
+					("%ystdex::boxed_value" @ %YBase.YStandardEx.Utilities);
+				/ DLDI "member functions %(clone, get, operator==)",
+				/ "2 constructors" -> "explicitly defaulted default \
+					construcor, inherited constructor, constructor template \
+					with 1 template"
+			)
+		),
+		/ @ "class template specialization %GEvent" @ %YEvent $=
+		(
+			+ "constructor with invoker parameter",
+			+ "optional invoker parameter with empty default argument"
+				@ "constructor template"
+		),
+		/ DLDI "simplified member function %ValueNode::operator[]" ((^ $dep_from
+			("%ystdex::search_map" @ %Container), $dep_from
+			"%ystdex::mapped_set::value_comp" @ %Set) @ %YBase.YStandardEx)
+	);
+),
+
+b676
 (
 	/ %YBase $=
 	(
@@ -178,8 +290,8 @@ b675
 				complete types as arguments.
 		* $impl "missing 'std::' before 'strlen'" @ "function %strcatdup"
 			@ %CString $orig (@ %YCLib.YCommon $since $before b132),
-		/ "updated reference to library fundamental TS final draft(WG21/N4480)"
-			~ "WG21/N4081" $=
+		/ "updated reference to library fundamental TS final draft(WG21 N4480)"
+			~ "WG21 N4081" $=
 			// See $2016-03 @ %Documentation::Workflow::Annual2016.
 		(
 			/ $doc "updated Doxygen comments" @ %Any,
@@ -949,15 +1061,15 @@ b671
 					@ "all 2 overloads for pointer";
 				* $comp $doc "semantics equivalency with %boost::any_cast"
 					$mismatch $since b398,
-					// The interface was updated to WG21/N3508 (which was \
-						superseded by WG21/N3804), but 'boost::any_cast' \
+					// The interface was updated to WG21 N3508 (which was \
+						superseded by WG21 N3804), but 'boost::any_cast' \
 						actually did not changed all the time. So at least the \
 						documentation was (solely) wrong.
-				* $comp "conformance for WG21/N4081" $mismatch $since b590,
+				* $comp "conformance for WG21 N4081" $mismatch $since b590,
 				/ $forced DLDI "all 2 overloads for reference"
 				),
 				* "missing overload for rvalue reference" $mismatch $since b590,
-					// This overload was also introduced by WG21/N3804.
+					// This overload was also introduced by WG21 N3804.
 				+ $dev "static assertion for destination type"
 					@ "all overloads for reference" ^ $dep_from
 					"%is_any_cast_dest"
@@ -966,11 +1078,11 @@ b671
 			/ "made 2nd default template argument 'true' only when 1st \
 				template argument meets %is_nothrow_move_constructible"
 				@ "class template %value_handler" @ "namespace %any_ops";
-			* $comp "conformance of %any storage for WG21/N4081 \
+			* $comp "conformance of %any storage for WG21 N4081 \
 				[any.class]/3" $mismatch $since b590
 				// It requires that the small object optimization can only \
 					apply to "nothrow copyable types". This was added since \
-					WG21/N3804.
+					WG21 N3804.
 			)
 		),
 		/ %TypeTraits $=
@@ -1999,7 +2111,7 @@ b663
 		(
 			// See $2016-01 @ %Documentation::Workflow::Annual2016.
 			+ "function templates %(2 size, 3 empty, 4 data)"
-				// See WG21/N4280.
+				// See WG21 N4280.
 			+ "overloaded function templates %(empty, data) for rvalue \
 				reference of array types" @ '__cplusplus <= 201103L',
 			+ "overloaded function template %size for rvalue reference \
@@ -2154,7 +2266,7 @@ b661
 		/ @ "class template %lref" $=
 		(
 			+ 'lref(_type&&) = delete;'
-			+ $doc "conformance to WG21/N4277 as %std::reference_wrapper",
+			+ $doc "conformance to WG21 N4277 as %std::reference_wrapper",
 		),
 		/ %Functor $=
 		(
@@ -3662,7 +3774,7 @@ b651
 				// See $2015-11 @ %Documentation::Workflow::Annual2015.
 			+ "metafunction %_q" @ $dep_from ("group %composition" @ %Variadic),
 			(
-			// See WG21/P0088R0.
+			// See WG21 P0088R0.
 			+ "constexpr object %tuple_not_found";
 			+ "metafunction %tuple_find with 5 specializations for \
 				%std::(tuple, pair)"
@@ -3908,7 +4020,7 @@ b650
 		(
 			/ "enabled only when result type convertible"
 				@ "function template %decay_copy" ^ "%enable_if_convertible_t",
-				// To fully conform WG21/N3255.
+				// To fully conform WG21 N3255.
 			- $revert(b383) "function template %decay_forward"
 				// Not useful.
 		),
@@ -4080,7 +4192,7 @@ b649
 			(
 			+ "metafunctions %_t",
 			+ "struct %nonsuch";
-				// See WG21/N4502.
+				// See WG21 N4502.
 			+ "metafunctions %(is_detected, (detected_t; is_detected_exact, \
 				is_detected_convertible), (detected_or; detected_or_t))"
 			),
@@ -5051,7 +5163,7 @@ b640
 			(
 				+ "wrapped parameter overloading for binary comparison \
 					operators",
-					// To make ADL work with just one argument. See WG21/N3766 \
+					// To make ADL work with just one argument. See WG21 N3766 \
 						for the motivated example.
 				* "wrong chained operator specializations for \
 					%(derefereceable, indexable, input_iteratable, \
@@ -5137,7 +5249,7 @@ b640
 			)
 		),
 		+ "feature-test macro %__cpp_lib_tuple_element_t recommended by \
-			WG21/N4200 when \
+			WG21 N4200 when \
 			not defined" @ 'YB_IMPL_MSCPP >= 1900' @ YDefinition
 		// See $2015-10 @ %Documentation::Workflow::Annual2015.
 	),
@@ -6439,13 +6551,13 @@ b628
 			/ %Memory $=
 			(
 				+ "all 1 feature-test macro %__cpp_lib_make_unique recommended \
-					by WG21/N4200 when not defined" @ 'YB_IMPL_MSCPP >= 1800';
+					by WG21 N4200 when not defined" @ 'YB_IMPL_MSCPP >= 1800';
 				/ $dev $lib "simplified inclusion condition for %make_unique"
 					@ "inline namespace %ystdex::cpp2014" !^ 'YB_IMPL_MSCPP'
 			),
 			(
 			+ "all 1 feature-test macro %__cpp_lib_make_unique recommended by \
-				WG21/N4200 when not defined" @ 'YB_IMPL_MSCPP >= 1900'
+				WG21 N4200 when not defined" @ 'YB_IMPL_MSCPP >= 1900'
 				@ %Functor;
 			* $comp "template %equal conflicted with %std::equal"
 				@ "inline namespace %ystdex::cpp2014" @ 'YB_MSCPP >= 1900'
@@ -6458,12 +6570,12 @@ b628
 		/ %YDefinition $=
 		(
 			+ "2 feature-test macros %(__cpp_lib_integer_sequence, \
-				__cpp_lib_exchange_function) recommended by WG21/N4200 when \
+				__cpp_lib_exchange_function) recommended by WG21 N4200 when \
 				not defined" @ 'YB_IMPL_MSCPP >= 1900',
 				// See https://msdn.microsoft.com/en-us/library/Hh409293.aspx.
 			(
 			+ "predefined feature-test macro %__cpp_constexpr recommended by \
-				WG21/N4200 when not defined";
+				WG21 N4200 when not defined";
 			/ "conditional macro definition %yconstexpr"
 				@ ^ '__cpp_constexpr >= 201304' ~ 'YB_HAS_CONSTEXPR_CPP14',
 			/ "conditional macro definition %yconstexpr_relaxed"

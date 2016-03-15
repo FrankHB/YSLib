@@ -11,19 +11,19 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2087
+\version r2254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-03-12 22:36 +0800
+	2016-03-15 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see WG21/N4480 6[any] 。
+\see WG21 N4480 6[any] 。
 \see http://www.boost.org/doc/libs/1_57_0/doc/html/any/reference.html 。
 */
 
@@ -34,10 +34,10 @@
 #include "base.h" // for cloneable;
 #include <memory> // for std::addressof, std::unique_ptr;
 #include <typeinfo> // for typeid, std::bad_cast;
-#include "type_pun.hpp" // for pod_storage, aligned_storage_t,
-//	is_aligned_storable, exclude_self_ctor_t, enable_if_t, decay_t;
+#include "utility.hpp" // for boxed_value, pod_storage, aligned_storage_t,
+//	is_aligned_storable, exclude_self_ctor_t, enable_if_t, decay_t,
+//	yconstraint;
 #include "ref.hpp" // for lref, is_reference_wrapper, unwrap_reference_t;
-#include "cassert.h" // for yconstraint;
 
 namespace ystdex
 {
@@ -79,13 +79,19 @@ public:
 };
 
 
+//! \since build 677
+template<typename>
+struct in_place_t
+{};
+
+
 /*!
 \brief 值类型动态泛型持有者。
 \pre 值类型不被 cv-qualifier 修饰。
 \since build 331
 */
 template<typename _type>
-class value_holder : public holder
+class value_holder : protected boxed_value<_type>, public holder
 {
 	static_assert(is_object<_type>(), "Non-object type found.");
 	static_assert(!is_cv<_type>(), "Cv-qualified type found.");
@@ -94,22 +100,17 @@ public:
 	//! \since build 352
 	using value_type = _type;
 
-protected:
-	//! \since build 348
-	mutable _type held;
-
-public:
-	value_holder(const _type& value)
-		: held(value)
+	//! \since build 677
+	//@{
+	value_holder() = default;
+	template<typename _tParam,
+		yimpl(typename = exclude_self_ctor_t<value_holder, _tParam>)>
+	value_holder(_tParam&& arg)
+		ynoexcept(is_nothrow_constructible<_type, _tParam&&>())
+		: boxed_value<_type>(yforward(arg))
 	{}
-	/*!
-	\brief 转移构造。
-	\note 不一定保证无异常抛出；不被 ystdex::any 直接使用。
-	\since build 352
-	*/
-	value_holder(_type&& value) ynoexcept_spec(_type(std::move(value)))
-		: held(std::move(value))
-	{}
+	using boxed_value<_type>::boxed_value;
+	//@}
 	//! \since build 555
 	//@{
 	value_holder(const value_holder&) = default;
@@ -124,14 +125,14 @@ public:
 	value_holder*
 	clone() const override
 	{
-		return new value_holder(held);
+		return new value_holder(this->value);
 	}
 
 	//! \since build 348
 	void*
 	get() const override
 	{
-		return std::addressof(held);
+		return std::addressof(this->value);
 	}
 
 	//! \since build 340
@@ -537,7 +538,7 @@ using is_any_cast_dest = or_<is_reference<_type>, is_copy_constructible<_type>>;
 \note 基本接口和语义同 boost::bad_any_cast 。
 \note 非标准库提案扩展：提供标识转换失败的源和目标类型。
 \sa any_cast
-\see WG21/N4480 6.2[any.bad_any_cast] 。
+\see WG21 N4480 6.2[any.bad_any_cast] 。
 \since build 586
 */
 class YB_API bad_any_cast : public std::bad_cast
@@ -599,7 +600,7 @@ public:
 \note 值语义。基本接口和语义同 std::experimental::any 提议
 	和 boost::any （对应接口以前者为准）。
 \warning 非虚析构。
-\see WG21/N4480 6.3[any.class] 。
+\see WG21 N4480 6.3[any.class] 。
 \see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
 */
@@ -608,53 +609,56 @@ class YB_API any
 protected:
 	//! \since build 355
 	//@{
-	any_ops::any_storage storage;
-	any_ops::any_manager manager;
+	any_ops::any_storage storage{};
+	any_ops::any_manager manager{};
 	//@}
 
 public:
 	//! \post \c this->empty() 。
-	yconstfn
-	any() ynothrow
-		: storage(), manager()
-	{}
+	any() ynothrow = default;
 	//! \since build 448
 	template<typename _type, yimpl(typename = exclude_self_ctor_t<any, _type>,
 		typename = enable_if_t<!is_reference_wrapper<decay_t<_type>>::value>)>
 	any(_type&& x)
-		: manager(any_ops::value_handler<decay_t<_type>>::manage)
-	{
-		any_ops::value_handler<decay_t<_type>>::init(storage, yforward(x));
-	}
+		: manager(construct<any_ops::value_handler<decay_t<_type>>>(
+		yforward(x)))
+	{}
+	//! \note YStandardEx 扩展。
+	//@{
 	//! \since build 675
 	template<typename _type, yimpl(typename
 		= enable_if_t<is_reference_wrapper<decay_t<_type>>::value>)>
 	any(_type&& x)
-		: manager(
-		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>::manage)
-	{
-		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>::init(storage,
-			x);
-	}
-	/*!
-	\brief 构造：使用指定持有者。
-	\since build 395
-	*/
+		: manager(construct<
+		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>>(x))
+	{}
+	//! \since build 677
+	template<typename _type, typename... _tParams>
+	any(any_ops::in_place_t<_type>, _tParams&&... args)
+		: manager(construct<
+		any_ops::value_handler<_type>>(yforward(args)...))
+	{}
+	//! \brief 构造：使用指定持有者。
+	//@{
+	//! \since build 395
 	template<typename _tHolder>
 	any(any_ops::holder_tag, std::unique_ptr<_tHolder> p)
-		: manager(any_ops::holder_handler<_tHolder>::manage)
-	{
-		any_ops::holder_handler<_tHolder>::init(storage, std::move(p));
-	}
+		: manager(construct<any_ops::holder_handler<_tHolder>>(std::move(p)))
+	{}
+	//! \since build 677
+	template<typename _tHolder>
+	any(any_ops::holder_tag, _tHolder&& h)
+		: manager(construct<
+		any_ops::holder_handler<_tHolder>>(std::move(h)))
+	{}
+	//@}
 	//! \since build 376
 	template<typename _type>
 	any(_type&& x, any_ops::holder_tag)
-		: manager(any_ops::holder_handler<
-		any_ops::value_holder<decay_t<_type>>>::manage)
-	{
-		any_ops::holder_handler<any_ops::value_holder<
-			decay_t<_type>>>::init(storage, yforward(x));
-	}
+		: manager(construct<any_ops::holder_handler<
+		any_ops::value_holder<decay_t<_type>>>>(yforward(x)))
+	{}
+	//@}
 	any(const any&);
 	any(any&& a) ynothrow
 		: any()
@@ -702,14 +706,59 @@ public:
 	//@{
 	//! \since build 352
 	void*
-	get() const ynothrow;
+	get() const ynothrow
+	{
+		return manager ? unchecked_get() : nullptr;
+	}
 
 	any_ops::holder*
-	get_holder() const;
+	get_holder() const
+	{
+		return manager ? unchecked_get_holder() : nullptr;
+	}
 	//@}
 
 	void
 	clear() ynothrow;
+
+	//! \since build 677
+	//@{
+private:
+	template<class _tHandler, typename... _tParams>
+	any_ops::any_manager
+	construct(_tParams&&... args)
+	{
+		_tHandler::init(storage, yforward(args)...);
+		return _tHandler::manage;
+	}
+
+public:
+	//! \note YStandardEx 扩展。
+	//@{
+	template<typename _type, typename... _tParams>
+	void
+	emplace(_tParams&&... args)
+	{
+		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
+			yforward(args)...);
+	}
+	template<typename _tHolder, typename... _tParams>
+	void
+	emplace(any_ops::holder_tag, _tParams&&... args)
+	{
+		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
+			yforward(args)...);
+	}
+
+	template<typename _tHandler, typename... _tParams>
+	void
+	emplace_with_handler(_tParams&&... args)
+	{
+		clear();
+		manager = construct<decay_t<_tHandler>>(yforward(args)...);
+	}
+	//@}
+	//@}
 
 	void
 	swap(any&) ynothrow;
@@ -738,13 +787,34 @@ public:
 
 	//! \since build 340
 	const std::type_info&
-	type() const ynothrow;
+	type() const ynothrow
+	{
+		return manager ? unchecked_type() : typeid(void);
+	}
+
+	/*!
+	\note YStandardEx 扩展。
+	\pre 断言：\c !empty()。
+	\since build 677
+	*/
+	//@{
+	//! \brief 取包含对象的指针。
+	void*
+	unchecked_get() const ynothrowv;
+
+	//! \brief 取持有者指针。
+	any_ops::holder*
+	unchecked_get_holder() const;
+
+	//! \brief 取包含对象的类型。
+	const std::type_info&
+	unchecked_type() const ynothrowv;
+	//@}
 };
 
-/*!
-\relates any
-\see WG21/N4480 6.4[any.nonmembers] 。
-*/
+//! \relates any
+//@{
+//! \see WG21 N4480 6.4[any.nonmembers] 。
 //@{
 /*!
 \brief 交换对象。
@@ -786,7 +856,7 @@ any_cast(const any* p) ynothrow
 */
 //@{
 template<typename _tValue>
-inline _tValue
+_tValue
 any_cast(any& x)
 {
 	static_assert(is_any_cast_dest<_tValue>(),
@@ -821,11 +891,43 @@ any_cast(any&& x)
 }
 //@}
 //@}
+//@}
+
+//! \note YSandardEx 扩展。
+//@{
+/*!
+\brief 未检查的动态泛型转换。
+\note 对非空对象语义同非公开接口 \c boost::unsafe_any_cast 。
+\since build 677
+*/
+//@{
+/*!
+\pre 断言： <tt>p && !p->empty() && p->unchecked_type() == typeid(_type)</tt> 。
+*/
+template<typename _type>
+inline _type*
+unchecked_any_cast(any* p) ynothrowv
+{
+	yconstraint(p && !p->empty() && p->unchecked_type() == typeid(_type));
+	return static_cast<_type*>(p->unchecked_get());
+}
+
+/*!
+\pre 断言： <tt>p && !p->empty()
+	&& p->unchecked_type() == typeid(const _type)</tt> 。
+*/
+template<typename _type>
+inline const _type*
+unchecked_any_cast(const any* p) ynothrowv
+{
+	yconstraint(p && !p->empty() && p->unchecked_type() == typeid(const _type));
+	return static_cast<const _type*>(p->unchecked_get());
+}
+//@}
 
 /*!
 \brief 非安全动态泛型转换。
-\note YSandardEx 扩展：语义同非公开接口 \c boost::unsafe_any_cast 。
-\relates any
+\note 语义同非公开接口 \c boost::unsafe_any_cast 。
 \since build 673
 */
 //@{
@@ -846,6 +948,7 @@ unsafe_any_cast(const any* p) ynothrowv
 	yconstraint(p && p->type() == typeid(const _type));
 	return static_cast<const _type*>(p->get());
 }
+//@}
 //@}
 //@}
 

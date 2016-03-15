@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r146
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2016-03-12 22:50 +0800
+	2016-03-15 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,25 @@ namespace any_ops
 holder::~holder() = default;
 
 } // namespace any_ops;
+
+
+//! \since build 677
+namespace
+{
+
+template<typename _type>
+_type
+unchecked_access(any_ops::any_manager m, const any_ops::any_storage& s,
+	any_ops::base_op op)
+{
+	any_ops::any_storage t;
+
+	yconstraint(m);
+	m(t, s, op);
+	return t.access<_type>();
+}
+
+} // unnamed namespace;
 
 
 bad_any_cast::~bad_any_cast() = default;
@@ -74,32 +93,6 @@ any::~any()
 		manager(storage, storage, any_ops::destroy);
 }
 
-void*
-any::get() const ynothrow
-{
-	if(manager)
-	{
-		any_ops::any_storage t;
-
-		manager(t, storage, any_ops::get_ptr);
-		return t.access<void*>();
-	}
-	return {};
-}
-
-any_ops::holder*
-any::get_holder() const
-{
-	if(manager)
-	{
-		any_ops::any_storage t;
-
-		manager(t, storage, any_ops::get_holder_ptr);
-		return t.access<any_ops::holder*>();
-	}
-	return {};
-}
-
 void
 any::clear() ynothrow
 {
@@ -117,17 +110,24 @@ any::swap(any& a) ynothrow
 	std::swap(manager, a.manager);
 }
 
-const std::type_info&
-any::type() const ynothrow
+void*
+any::unchecked_get() const ynothrowv
 {
-	if(manager)
-	{
-		any_ops::any_storage t;
+	return unchecked_access<void*>(manager, storage, any_ops::get_ptr);
+}
 
-		manager(t, storage, any_ops::get_type);
-		return *t.access<const std::type_info*>();
-	}
-	return typeid(void);
+any_ops::holder*
+any::unchecked_get_holder() const
+{
+	return unchecked_access<any_ops::holder*>(manager, storage,
+		any_ops::get_holder_ptr);
+}
+
+const std::type_info&
+any::unchecked_type() const ynothrowv
+{
+	return *unchecked_access<const std::type_info*>(manager, storage,
+		any_ops::get_type);
 }
 
 } // namespace ystdex;

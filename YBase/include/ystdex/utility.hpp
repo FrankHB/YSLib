@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2968
+\version r2992
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-01-11 11:30 +0800
+	2016-03-14 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace ystdex
 //@{
 /*!
 \brief 转换 const 引用。
-\see WG21/N4380 。
+\see WG21 N4380 。
 \since build 593
 */
 template<typename _type>
@@ -75,8 +75,8 @@ using std::exchange;
 /*!
 \brief 交换值并返回旧值。
 \return 被替换的原值。
-\see WG21/N3797 20.2.3[utility.exchange] 。
-\see http://www.open-std.org/JTC1/sc22/WG21/docs/papers/2013/n3668.html 。
+\see WG21 N3797 20.2.3[utility.exchange] 。
+\see http://www.open-std.org/JTC1/sc22/WG21 docs/papers/2013/n3668.html 。
 */
 template<typename _type, typename _type2 = _type>
 _type
@@ -97,7 +97,7 @@ exchange(_type& obj, _type2&& new_val)
 \ingroup helper_functions
 \brief 退化复制。
 \see ISO C++11 30.2.6 [thread.decaycopy] 。
-\see WG21/N3255 。
+\see WG21 N3255 。
 \since build 650
 */
 template<typename _type>
@@ -191,6 +191,13 @@ struct is_nothrow_swappable<_type> : is_nothrow_default_constructible<
 
 
 /*!
+\brief 默认初始化标记。
+\since build 677
+*/
+yconstexpr const struct default_init_t{} default_init{};
+
+
+/*!
 \brief 包装类类型的值的对象。
 \warning 非虚析构。
 \since build 477
@@ -198,23 +205,35 @@ struct is_nothrow_swappable<_type> : is_nothrow_default_constructible<
 template<typename _type>
 struct boxed_value
 {
-	_type value;
+	//! \since build 677
+	mutable _type value;
 
-	//! \since build 539
+	//! \since build 677
 	//@{
 	yconstfn
-	boxed_value() = default;
+	boxed_value() ynoexcept(is_nothrow_constructible<_type>())
+		: value()
+	{}
+	yconstfn
+	boxed_value(default_init_t) ynothrow
+	{}
 	template<typename _tParam,
 		yimpl(typename = exclude_self_ctor_t<boxed_value, _tParam>)>
 	yconstfn
 	boxed_value(_tParam&& arg)
+		ynoexcept(is_nothrow_constructible<_type, _tParam&&>())
 		: value(yforward(arg))
 	{}
 	template<typename _tParam1, typename _tParam2, typename... _tParams>
 	yconstfn
 	boxed_value(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
+		ynoexcept(is_nothrow_constructible<_type, _tParam1&&, _tParam2&&,
+		_tParams&&...>())
 		: value(yforward(arg1), yforward(arg2), yforward(args)...)
 	{}
+	//@}
+	//! \since build 539
+	//@{
 	boxed_value(const boxed_value&) = default;
 	boxed_value(boxed_value&&) = default;
 
