@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3947
+\version r4001
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-20 18:39 +0800
+	2016-03-15 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YCoreUtilities
-#include <ystdex/any.h> // for ystdex::any_ops::holder, ystdex::any;
+#include <ystdex/any.h> // for ystdex::any_ops::holder, ystdex::boxed_value,
+//	ystdex::any;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable
 
@@ -143,7 +144,8 @@ AreEqualHeld(const _type1& x, const _type2& y)
 \since build 332
 */
 template<typename _type>
-class ValueHolder : implements IValueHolder
+class ValueHolder
+	: protected ystdex::boxed_value<_type>, implements IValueHolder
 {
 	static_assert(std::is_object<_type>(), "Non-object type found.");
 	static_assert(!ystdex::is_cv<_type>(), "Cv-qualified type found.");
@@ -152,18 +154,17 @@ public:
 	//! \since build 352
 	using value_type = _type;
 
-protected:
-	//! \since build 348
-	mutable _type held;
-
-public:
-	ValueHolder(const _type& value)
-		: held(value)
+	//! \since build 677
+	//@{
+	DefDeCtor(ValueHolder)
+	template<typename _tParam,
+		yimpl(typename = ystdex::exclude_self_ctor_t<ValueHolder, _tParam>)>
+	ValueHolder(_tParam&& arg)
+		ynoexcept(std::is_nothrow_constructible<_type, _tParam&&>())
+		: ystdex::boxed_value<_type>(yforward(arg))
 	{}
-	//! \since build 340
-	ValueHolder(_type&& value)
-		: held(std::move(value))
-	{}
+	using ystdex::boxed_value<_type>::boxed_value;
+	//@}
 	DefDeCopyCtor(ValueHolder)
 	DefDeMoveCtor(ValueHolder)
 
@@ -173,15 +174,15 @@ public:
 	DefDeMoveAssignment(ValueHolder)
 
 	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
-		ImplRet(type() == obj.type()
-		&& AreEqualHeld(held, static_cast<const ValueHolder&>(obj).held))
+		ImplRet(type() == obj.type() && AreEqualHeld(this->value,
+			static_cast<const ValueHolder&>(obj).value))
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), ValueHolder)
 
 	//! \since build 348
 	PDefH(void*, get, ) const ImplI(IValueHolder)
-		ImplRet(std::addressof(held))
+		ImplRet(std::addressof(this->value))
 
 	//! \since build 340
 	PDefH(const std::type_info&, type, ) const ynothrow ImplI(IValueHolder)
@@ -279,8 +280,8 @@ public:
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
-		: content(ystdex::any_ops::holder_tag(), make_unique<ValueHolder<
-		ystdex::decay_t<_type>>>(yforward(obj)))
+		: content(ystdex::any_ops::holder_tag(), ValueHolder<
+		ystdex::decay_t<_type>>(yforward(obj)))
 	{}
 	/*!
 	\brief 构造：使用对象指针。
@@ -290,8 +291,8 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
-		: content(ystdex::any_ops::holder_tag(), make_unique<PointerHolder<
-		_type>>(p))
+		: content(ystdex::any_ops::holder_tag(), PointerHolder<
+		_type>(p))
 	{}
 	/*!
 	\brief 构造：使用对象 unique_ptr 指针。
@@ -348,13 +349,13 @@ public:
 	inline _type&
 	GetObject() ynothrowv
 	{
-		return Deref(ystdex::unsafe_any_cast<_type>(&content));
+		return Deref(ystdex::unchecked_any_cast<_type>(&content));
 	}
 	template<typename _type>
 	inline const _type&
 	GetObject() const ynothrowv
 	{
-		return Deref(ystdex::unsafe_any_cast<const _type>(&content));
+		return Deref(ystdex::unchecked_any_cast<const _type>(&content));
 	}
 	//@}
 	//@}
@@ -397,6 +398,39 @@ public:
 	AccessPtr() const ynothrow
 	{
 		return YSLib::make_observer(ystdex::any_cast<const _type>(&content));
+	}
+	//@}
+
+	//! \since build 677
+	//@{
+	template<typename _type, typename... _tParams>
+	void
+	Emplace(_tParams&&... args)
+	{
+		using Holder = ValueHolder<ystdex::decay_t<_type>>;
+
+		content.emplace<Holder>(ystdex::any_ops::holder_tag(),
+			Holder(yforward(args)...));
+	}
+	template<typename _type>
+	void
+	Emplace(_type* p, PointerTag)
+	{
+		using Holder = PointerHolder<ystdex::decay_t<_type>>;
+
+		content.emplace<Holder>(ystdex::any_ops::holder_tag(), Holder(p));
+	}
+
+	template<typename _type, typename... _tParams>
+	_type&
+	EmplaceIfEmpty(_tParams&&... args)
+	{
+		if(!*this)
+		{
+			Emplace<_type>(yforward(args)...);
+			return GetObject<_type>();
+		}
+		return Access<_type>();
 	}
 	//@}
 

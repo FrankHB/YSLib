@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r637
+\version r642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-02-24 22:12 +0800
+	2016-03-15 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,14 +52,11 @@ ValueNode::operator%=(const ValueNode&& node)
 ValueNode&
 ValueNode::operator[](const string& n)
 {
-	const auto nd(AsNode(n));
 	// TODO: Blocked. Use %string as argument using C++14 heterogeneous
 	//	%lower_bound template.
-	auto i(container.lower_bound(nd));
-
-	if(i == container.end() || container.key_comp()(nd, *i))
-		i = EmplaceValueWithHintTo(container, i, n);
-	return *i;
+	return *ystdex::search_map(container, AsNode(n), [&](Container::iterator i){
+		return EmplaceValueWithHintTo(container, i, n);
+	});
 }
 
 bool

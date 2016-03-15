@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5198
+\version r5209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-03-02 14:39 +0800
+	2016-03-15 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -371,13 +371,20 @@ public:
 	*/
 	yconstfn DefDeCtor(GEvent)
 	/*!
-	\brief 构造：添加事件处理器。
-	\since build 448
+	\brief 构造：使用指定调用器。
+	\since build 677
+	*/
+	GEvent(InvokerType ivk)
+		: Invoker(std::move(ivk))
+	{}
+	/*!
+	\brief 构造：使用指定调用器并添加事件处理器。
+	\since build 598
 	*/
 	template<typename _tHandler,
 		yimpl(typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>)>
-	GEvent(_tHandler&& h)
-		: handlers()
+	GEvent(_tHandler&& h, InvokerType ivk = {})
+		: Invoker(std::move(ivk))
 	{
 		Add(yforward(h));
 	}
