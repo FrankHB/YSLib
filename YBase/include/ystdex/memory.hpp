@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1670
+\version r1682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-03-01 11:25 +0800
+	2016-03-17 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,8 @@
 
 #if YB_IMPL_MSCPP >= 1800
 /*!
-\brief WG21/N4200 \<memory\> 特性测试宏。
-\see WG21/N4200 3.4 。
+\brief WG21 N4200 \<memory\> 特性测试宏。
+\see WG21 N4200 3.4 。
 \since build 628
 */
 #	ifndef __cpp_lib_make_unique
@@ -239,7 +239,7 @@ destroy_range(_tIter first, _tIter last)
 /*!
 \param last 输出范围终止迭代器。
 \note 和 std::unitialized_fill 类似，但允许指定多个初始化参数。
-\see WG21/N4431 20.7.12.3[uninitialized.fill] 。
+\see WG21 N4431 20.7.12.3[uninitialized.fill] 。
 */
 template<typename _tFwd, typename... _tParams>
 void
@@ -264,7 +264,7 @@ uninitialized_construct(_tFwd first, _tFwd last, _tParams&&... args)
 \tparam _tSize 范围大小类型。
 \param n 范围大小。
 \note 和 std::unitialized_fill_n 类似，但允许指定多个初始化参数。
-\see WG21/N4431 20.7.12.4[uninitialized.fill.n] 。
+\see WG21 N4431 20.7.12.4[uninitialized.fill.n] 。
 */
 template<typename _tFwd, typename _tSize, typename... _tParams>
 void
@@ -274,7 +274,7 @@ uninitialized_construct_n(_tFwd first, _tSize n, _tParams&&... args)
 
 	try
 	{
-		// NOTE: This form is by specification (WG21/N4431) of
+		// NOTE: This form is by specification (WG21 N4431) of
 		//	'std::unitialized_fill' literally.
 		for(; n--; ++i)
 			ystdex::construct(i, yforward(args)...);
@@ -692,8 +692,8 @@ using std::make_unique;
 /*!
 \note 使用值初始化。
 \see http://herbsutter.com/gotw/_102/ 。
-\see WG21/N3656 。
-\see WG21/N3797 20.7.2[memory.syn] 。
+\see WG21 N3656 。
+\see WG21 N3797 20.7.2[memory.syn] 。
 \since build 476
 */
 //@{
@@ -720,7 +720,7 @@ make_unique(_tParams&&...) = delete;
 
 /*!
 \note 使用默认初始化。
-\see WG21/N3588 A4 。
+\see WG21 N3588 A4 。
 \since build 526
 */
 //@{
@@ -884,11 +884,11 @@ const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 //@{
 /*!
 \brief 观察者指针：无所有权的智能指针。
-\see WG21/N4529 8.12[memory.observer.ptr] 。
+\see WG21 N4529 8.12[memory.observer.ptr] 。
 */
 template<typename _type>
-class observer_ptr : public totally_ordered<observer_ptr<_type>>,
-	public equality_comparable<observer_ptr<_type>, nullptr_t>
+class observer_ptr : private totally_ordered<observer_ptr<_type>>,
+	private equality_comparable<observer_ptr<_type>, nullptr_t>
 {
 public:
 	using element_type = _type;
@@ -1075,7 +1075,7 @@ namespace std
 
 /*!
 \brief ystdex::observer_ptr 散列支持。
-\see ISO WG21/N4529 8.12.7[memory.observer.ptr.hash] 。
+\see ISO WG21 N4529 8.12.7[memory.observer.ptr.hash] 。
 \since build 674
 */
 //@{

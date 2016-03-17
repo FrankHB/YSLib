@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5879
+\version r5893
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-03-12 23:51 +0800
+	2016-03-17 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,7 +214,7 @@ struct transit_traits
 template<typename _tIter, typename _fTrans, typename _tReference = void>
 class transformed_iterator : public iterator_operators_t<transformed_iterator<
 	_tIter, _fTrans, _tReference>, details::transit_traits<_tIter, _fTrans,
-	_tReference>>, public totally_ordered2<transformed_iterator<_tIter, _fTrans,
+	_tReference>>, private totally_ordered2<transformed_iterator<_tIter, _fTrans,
 	_tReference>, typename
 	details::transit_traits<_tIter, _fTrans, _tReference>::iterator_type>
 {
@@ -267,11 +267,20 @@ private:
 public:
 	//! \since build 496
 	transformed_iterator() = default;
-	//! \since build 665
+	//! \since build 678
+	template<typename _tIter2, typename _fTrans2 = _fTrans,
+		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter2>),
+		yimpl(typename
+		= enable_if_t<!is_convertible<_tIter2&&, transformed_iterator>::value>)>
+	explicit yconstfn
+	transformed_iterator(_tIter2&& i)
+		: transformer(), ptr(yforward(i))
+	{}
+	//! \since build 678
 	template<typename _tIter2, typename _fTrans2 = _fTrans,
 		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter2>)>
 	explicit yconstfn
-	transformed_iterator(_tIter2&& i, _fTrans2 f = {})
+	transformed_iterator(_tIter2&& i, _fTrans2 f)
 		: transformer(f), ptr(yforward(i))
 	{}
 	//! \since build 665
@@ -279,7 +288,8 @@ public:
 		yimpl(typename = enable_if_t<and_<is_constructible<_tIter,
 		const _tIter2&>, is_constructible<_fTrans, const _fTrans2&>>::value>)>
 	yconstfn
-	transformed_iterator(const transformed_iterator<_tIter2, _fTrans2, _tRef2>& i)
+	transformed_iterator(const transformed_iterator<_tIter2, _fTrans2, _tRef2>&
+		i)
 		: transformer(i.transformer), ptr(i.get())
 	{}
 	//! \since build 665

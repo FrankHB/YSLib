@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2226
+\version r2229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2016-02-15 17:18 +0800
+	2016-03-17 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ class Rect;
 \since build 242
 */
 template<typename _type>
-class GBinaryGroup : public ystdex::equality_comparable<GBinaryGroup<_type>>
+class GBinaryGroup : private ystdex::equality_comparable<GBinaryGroup<_type>>
 {
 	//! \since build 630
 	static_assert(ystdex::is_nothrow_copyable<_type>(),
@@ -275,7 +275,7 @@ using Vec = GBinaryGroup<SPos>;
 \warning 非虚析构。
 \since build 161
 */
-class YF_API Size : public ystdex::equality_comparable<Size>
+class YF_API Size : private ystdex::equality_comparable<Size>
 {
 public:
 	/*!
@@ -515,7 +515,7 @@ ScaleMin(const Size& x, const Size& y, _tScalar threshold = 1.F)
 \since build 161
 */
 class YF_API Rect : private Point, private Size,
-	public ystdex::equality_comparable<Rect>
+	private ystdex::equality_comparable<Rect>
 {
 public:
 	/*!

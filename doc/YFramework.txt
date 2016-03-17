@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1240
+\version r1241
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-02-26 14:27 +0800
+	2016-03-17 15:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -653,7 +653,7 @@ Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.5.8.6]) 等类型实现。允许空值。
 
 @3.5.5 虚函数：
-不要求总是使用 NVI 模式([Documentation::LanguageConvention @5.13.6.3]) ，但适合复用（如检查代码）时应当使用。
+不要求总是使用 NVI 模式([Documentation::LanguageConvention @5.13.7.3]) ，但适合复用（如检查代码）时应当使用。
 
 @4 命名和编码风格导引：
 基本内容参见 [Documentation::Designation @@4] 和 [Documentation::Designation @@6] 。

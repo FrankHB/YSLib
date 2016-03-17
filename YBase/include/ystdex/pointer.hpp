@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r343
+\version r344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2016-01-30 07:28 +0800
+	2016-03-17 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace ystdex
 \pre _type 满足 \c NullablePointer 要求。
 */
 template<typename _type>
-class nptr : public totally_ordered<nptr<_type>>
+class nptr : private totally_ordered<nptr<_type>>
 {
 	//! \since build 630
 	static_assert(is_nothrow_copyable<_type>(), "Invalid type found.");

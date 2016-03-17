@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r186
+\version r191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-03-21 16:15 +0800
+	2016-03-15 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,11 +118,9 @@ EventMapping::ItemType&
 GetEvent(EventMapping::MapType& m, VisualEvent id,
 	EventMapping::MappedType(&f)())
 {
-	auto pr(ystdex::search_map(m, id));
-
-	if(pr.second)
-		pr.first = m.emplace_hint(pr.first, EventMapping::PairType(id, f()));
-	return pr.first->second;
+	return ystdex::search_map(m, id, [&](EventMapping::MapType::iterator i){
+		return m.emplace_hint(i, EventMapping::PairType(id, f()));
+	})->second;
 }
 
 } // namespace UI;

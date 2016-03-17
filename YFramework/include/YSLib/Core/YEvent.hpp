@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5209
+\version r5211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-03-15 09:07 +0800
+	2016-03-17 15:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,8 @@ class GHEvent;
 template<typename _tRet, typename... _tParams>
 class GHEvent<_tRet(_tParams...)>
 	: protected std::function<_tRet(_tParams...)>,
-	public ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>>,
-	public ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>, nullptr_t>
+	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>>,
+	private ystdex::equality_comparable<GHEvent<_tRet(_tParams...)>, nullptr_t>
 {
 public:
 	using TupleType = tuple<_tParams...>;

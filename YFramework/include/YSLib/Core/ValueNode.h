@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2270
+\version r2374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-02-25 12:07 +0800
+	2016-03-17 16:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,22 @@ yconstexpr const struct NoContainerTag{} NoContainer{};
 //@}
 
 
+//! \since build 678
+//@{
+class ValueNode;
+
+inline PDefH(const ValueNode&, AsNode, const ValueNode& node)
+	ImplRet(node)
+/*!
+\brief 传递指定名称和值参数构造值类型节点。
+\since build 668
+*/
+template<typename _tString, typename... _tParams>
+inline ValueNode
+AsNode(_tString&&, _tParams&&...);
+//@}
+
+
 /*!
 \brief 值类型节点。
 \warning 非虚析构。
@@ -54,10 +70,13 @@ yconstexpr const struct NoContainerTag{} NoContainer{};
 
 包含名称字符串和值类型对象的对象节点。
 */
-class YF_API ValueNode
+class YF_API ValueNode : private ystdex::totally_ordered<ValueNode>,
+	private ystdex::totally_ordered<ValueNode, string>
 {
 public:
-	using Container = ystdex::mapped_set<ValueNode>;
+	using Container = ystdex::mapped_set<ValueNode, ystdex::less<>>;
+	//! \since build 678
+	using key_type = typename Container::key_type;
 	//! \since build 460
 	using iterator = Container::iterator;
 	//! \since build 460
@@ -172,6 +191,9 @@ public:
 	//! \since build 673
 	friend PDefHOp(bool, <, const ValueNode& x, const ValueNode& y) ynothrow
 		ImplRet(x.name < y.name)
+	//! \since build 678
+	friend PDefHOp(bool, <, const ValueNode& x, const string& str) ynothrow
+		ImplRet(x.name < str)
 
 	//! \since build 667
 	ValueNode&
@@ -187,8 +209,6 @@ public:
 			p = &(*p)[n];
 		return *p;
 	}
-
-	DefCvt(const ynothrow, const string&, name)
 
 	/*!
 	\brief 取子节点容器引用。
@@ -227,11 +247,12 @@ public:
 	{
 		// TODO: Blocked. Use %string as argument using C++14
 		//	heterogeneous %equal_range template.
-		const auto pr(con.equal_range(ValueNode(NoContainer, str)));
+		const auto pr(con.equal_range(YSLib::AsNode(str)));
 
 		if(pr.first == pr.second)
 		{
-			con.emplace_hint(pr.first, NoContainer, yforward(str), yforward(args)...);
+			con.emplace_hint(pr.first, NoContainer, yforward(str),
+				yforward(args)...);
 			return true;
 		}
 		return {};
@@ -251,6 +272,46 @@ public:
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
 
+	//! \since build 678
+	//@{
+	template<typename _type, typename _tString, typename... _tParams>
+	_type&
+	EmplaceForTypedValue(_tString&& str, _tParams&&... args)
+	{
+		return EmplaceForTypedValueTo<_type>(GetContainerRef(), yforward(str),
+			yforward(args)...);
+	}
+	template<typename _type, typename _tString, typename... _tParams>
+	static _type&
+	EmplaceForTypedValueTo(Container& con, _tString&& str, _tParams&&... args)
+	{
+		return EmplaceTypedValueTo<_type>(con, yforward(str), yforward(args)...)
+			.first->Value.template GetObject<_type>();
+	}
+
+	template<typename _type, typename _tString, typename... _tParams>
+	static std::pair<iterator, bool>
+	EmplaceTypedValueTo(Container& con, _tString&& str, _tParams&&... args)
+	{
+		// TODO: Blocked. Use %string as argument using C++14
+		//	heterogeneous %find template.
+		auto pr(ystdex::search_map(con, YSLib::AsNode(str)));
+
+		if(pr.second)
+			pr.first = EmplaceTypedValueTo<_type>(con, const_iterator(pr.first),
+				yforward(str), yforward(args)...);
+		return pr;
+	}
+	template<typename _type, typename _tString, typename... _tParams>
+	static inline iterator
+	EmplaceTypedValueTo(Container& con, const_iterator hint, _tString&& str,
+		_tParams&&... args)
+	{
+		return EmplaceValueWithHintTo(con, hint, yforward(str),
+			InPlaceTag<_type>(), yforward(args)...);
+	}
+	//@}
+
 	//! \since build 674
 	template<typename _tString, typename... _tParams>
 	static inline auto
@@ -260,20 +321,21 @@ public:
 		return con.emplace(NoContainer, yforward(str), yforward(args)...);
 	}
 
-	//! \since build 674
+	//! \since build 678
 	template<typename _tString, typename... _tParams>
 	static inline auto
-	EmplaceValueWithHintTo(Container& con, Container::const_iterator i,
-		_tString&& str, _tParams&&... args) -> decltype(con.emplace_hint(i,
-		NoContainer, yforward(str), yforward(args)...))
+	EmplaceValueWithHintTo(Container& con, const_iterator i, _tString&& str,
+		_tParams&&... args) -> decltype(con.emplace_hint(i, NoContainer,
+		yforward(str), yforward(args)...))
 	{
-		return con.emplace_hint(i, NoContainer, yforward(str), yforward(args)...);
+		return
+			con.emplace_hint(i, NoContainer, yforward(str), yforward(args)...);
 	}
 
 	bool
 	Remove(const ValueNode&);
 	PDefH(bool, Remove, const string& str)
-		ImplRet(Remove({NoContainer, str}))
+		ImplRet(Remove(AsNode(str)))
 	//@}
 
 	/*!
@@ -309,8 +371,7 @@ public:
 
 			// TODO: Blocked. Use %string as argument using C++14
 			//	heterogeneous %find template.
-			// XXX: 'AsNode' is not declared here yet.
-			Deref(res.find(ValueNode(NoContainer, child_name))).Value
+			Deref(res.find(AsNode(child_name))).Value
 				= std::move(nd.Value);
 			Remove(child_name);
 		});
@@ -358,6 +419,34 @@ public:
 	//! \since build 667
 	DefFwdTmpl(-> decltype(container.insert(yforward(args)...)), auto,
 		insert, container.insert(yforward(args)...))
+
+	//! \since build 678
+	//@{
+	template<typename... _tParams>
+	std::pair<iterator, bool>
+	try_emplace(const key_type& k, _tParams&&... args)
+	{
+		return EmplaceValueTo(container, k, yforward(args)...);
+	}
+	template<typename... _tParams>
+	iterator
+	try_emplace(const key_type&& k, _tParams&&... args)
+	{
+		return EmplaceValueWithHintTo(container, k, yforward(args)...);
+	}
+	template<typename... _tParams>
+	std::pair<iterator, bool>
+	try_emplace(key_type&& k, _tParams&&... args)
+	{
+		return EmplaceValueTo(container, std::move(k), yforward(args)...);
+	}
+	template<typename... _tParams>
+	iterator
+	try_emplace(key_type&& k, _tParams&&... args)
+	{
+		return EmplaceValueWithHintTo(container, std::move(k), yforward(args)...);
+	}
+	//@}
 
 	//! \since build 598
 	PDefH(size_t, size, ) const ynothrow
@@ -623,15 +712,11 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 
 //! \note 结果不含子节点。
 //@{
-/*!
-\brief 传递指定名称和值参数构造值类型节点。
-\since build 668
-*/
 template<typename _tString, typename... _tParams>
 inline ValueNode
-AsNode(_tString&& name, _tParams&&... args)
+AsNode(_tString&& str, _tParams&&... args)
 {
-	return {NoContainer, yforward(name), yforward(args)...};
+	return {NoContainer, yforward(str), yforward(args)...};
 }
 
 /*!
@@ -640,9 +725,9 @@ AsNode(_tString&& name, _tParams&&... args)
 */
 template<typename _tString, typename... _tParams>
 inline ValueNode
-MakeNode(_tString&& name, _tParams&&... args)
+MakeNode(_tString&& str, _tParams&&... args)
 {
-	return {NoContainer, yforward(name), ystdex::decay_copy(args)...};
+	return {NoContainer, yforward(str), ystdex::decay_copy(args)...};
 }
 //@}
 
@@ -653,9 +738,9 @@ MakeNode(_tString&& name, _tParams&&... args)
 */
 template<typename _tString, typename... _tParams>
 inline ValueNode
-StringifyToNode(_tString&& name, _tParams&&... args)
+StringifyToNode(_tString&& str, _tParams&&... args)
 {
-	return {NoContainer, yforward(name), to_string(yforward(args)...)};
+	return {NoContainer, yforward(str), to_string(yforward(args)...)};
 }
 
 /*!

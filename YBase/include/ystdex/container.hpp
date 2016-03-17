@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1472
+\version r1474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-03-15 13:25 +0800
+	2016-03-15 17:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -946,7 +946,7 @@ search_map(_tAssocCon& con, const _tKey& k, _func f)
 {
 	const auto pr(ystdex::search_map(con, k));
 
-	return pr.second ? pr.first : f(pr.first);
+	return pr.second ? f(pr.first) : pr.first;
 }
 template<class _tAssocCon, typename _tKey, typename _func>
 typename _tAssocCon::const_iterator
@@ -954,7 +954,7 @@ search_map(const _tAssocCon& con, const _tKey& k, _func f)
 {
 	const auto pr(ystdex::search_map(con, k));
 
-	return pr.second ? pr.first : f(pr.first);
+	return pr.second ? f(pr.first) : pr.first;
 }
 //@}
 //@}
