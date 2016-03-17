@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2912
+\version r2917
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2015-12-13 03:07 +0800
+	2016-03-17 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,8 +106,8 @@ using ypath = ystdex::path<vector<String>, PathTraits>;
 \brief 路径。
 \warning 非虚析构。
 */
-class YF_API Path : private ypath, public ystdex::totally_ordered<Path>,
-	public ystdex::dividable<Path, String>, public ystdex::dividable<Path>
+class YF_API Path : private ypath, private ystdex::totally_ordered<Path>,
+	private ystdex::dividable<Path, String>, private ystdex::dividable<Path>
 {
 public:
 	using ypath::iterator;
@@ -144,8 +144,8 @@ public:
 		: ypath(first, last)
 	{}
 	//! \since build 599
-	template<typename _type>
-	Path(std::initializer_list<_type> il)
+	template<typename _tElem>
+	Path(std::initializer_list<_tElem> il)
 		: ypath(il)
 	{}
 	/*!

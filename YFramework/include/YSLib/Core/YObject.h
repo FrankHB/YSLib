@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4001
+\version r4025
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-03-15 10:09 +0800
+	2016-03-16 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,14 @@ struct MoveTag
 */
 struct PointerTag
 {};
+
+
+/*!
+\brief 目标类型原地构造标记。
+\since build 678
+*/
+template<typename _type>
+using InPlaceTag = ystdex::any_ops::in_place_t<_type>;
 
 
 /*!
@@ -259,13 +267,12 @@ public:
 
 具有值语义和深复制语义的对象。
 */
-class YF_API ValueObject : public ystdex::equality_comparable<ValueObject>
+class YF_API ValueObject : private ystdex::equality_comparable<ValueObject>
 {
 public:
 	//! \since build 332
 	ystdex::any content;
 
-public:
 	/*!
 	\brief 无参数构造。
 	\note 得到空实例。
@@ -280,8 +287,20 @@ public:
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
-		: content(ystdex::any_ops::holder_tag(), ValueHolder<
-		ystdex::decay_t<_type>>(yforward(obj)))
+		: content(ystdex::any_ops::holder_tag(),
+		InPlaceTag<ValueHolder<ystdex::decay_t<_type>>>(), yforward(obj))
+	{}
+	/*!
+	\brief 构造：使用对象初始化参数。
+	\tparam _type 目标类型。
+	\tparam _tParams 目标类型初始化参数类型。
+	\pre _type 可被 _tParams 参数初始化。
+	\since build 678
+	*/
+	template<typename _type, typename... _tParams>
+	ValueObject(InPlaceTag<_type>, _tParams&&... args)
+		: content(ystdex::any_ops::holder_tag(),
+		InPlaceTag<ValueHolder<_type>>(), yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用对象指针。
@@ -291,8 +310,8 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
-		: content(ystdex::any_ops::holder_tag(), PointerHolder<
-		_type>(p))
+		: content(ystdex::any_ops::holder_tag(),
+		InPlaceTag<PointerHolder<_type>>(), p)
 	{}
 	/*!
 	\brief 构造：使用对象 unique_ptr 指针。

@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r696
+\version r710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-03-15 12:52 +0800
+	2016-03-17 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -459,27 +459,25 @@ public:
 	{
 		return iterator(m_map.find(mapped_key_type(x)));
 	}
-
 	const_iterator
 	find(const key_type& x) const
 	{
 		return const_iterator(m_map.find(mapped_key_type(x)));
 	}
-
-#if 0
+	//! \since build 678
 	template<typename _tKey>
 	iterator
 	find(const _tKey& x)
 	{
-		return iterator(m_map.find(x));
+		return iterator(m_map.find(mapped_key_type(x)));
 	}
+	//! \since build 678
 	template<typename _tKey>
 	const_iterator
 	find(const _tKey& x) const
 	{
-		return const_iterator(m_map.find(x));
+		return const_iterator(m_map.find(mapped_key_type(x)));
 	}
-#endif
 
 	size_type
 	count(const key_type& x) const
@@ -503,20 +501,20 @@ public:
 	{
 		return const_iterator(m_map.lower_bound(mapped_key_type(x)));
 	}
-#if 0
+	//! \since build 678
 	template<typename _tKey>
 	iterator
 	lower_bound(const _tKey& x)
 	{
 		return iterator(m_map.lower_bound(x));
 	}
+	//! \since build 678
 	template<typename _tKey>
 	const_iterator
 	lower_bound(const _tKey& x) const
 	{
 		return const_iterator(m_map.lower_bound(x));
 	}
-#endif
 
 	iterator
 	upper_bound(const key_type& x)
@@ -528,20 +526,20 @@ public:
 	{
 		return const_iterator(m_map.upper_bound(mapped_key_type(x)));
 	}
-#if 0
+	//! \since build 678
 	template<typename _tKey>
 	iterator
 	upper_bound(const _tKey& x)
 	{
 		return iterator(m_map.upper_bound(x));
 	}
+	//! \since build 678
 	template<typename _tKey>
 	const_iterator
 	upper_bound(const _tKey& x) const
 	{
 		return const_iterator(m_map.upper_bound(x));
 	}
-#endif
 
 	std::pair<iterator, iterator>
 	equal_range(const key_type& x)
@@ -557,7 +555,7 @@ public:
 
 		return {const_iterator(pr.first), const_iterator(pr.second)};
 	}
-#if 0
+	//! \since build 678
 	template<typename _tKey>
 	std::pair<iterator, iterator>
 	equal_range(const _tKey& x)
@@ -566,6 +564,7 @@ public:
 
 		return {iterator(x.first), iterator(x.second)};
 	}
+	//! \since build 678
 	template<typename _tKey>
 	std::pair<const_iterator, const_iterator>
 	equal_range(const _tKey& x) const
@@ -574,7 +573,6 @@ public:
 
 		return {const_iterator(x.first), const_iterator(x.second)};
 	}
-#endif
 
 private:
 	void

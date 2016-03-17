@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2092
+\version r2093
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2016-02-04 17:03 +0805
+	2016-03-17 14:59 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@ struct is_normalizable : or_<is_floating_point<_type>>
 template<typename _tBase = std::int32_t,
 	size_t _vInt = std::numeric_limits<_tBase>::digits - 6U,
 	size_t _vFrac = std::numeric_limits<_tBase>::digits - _vInt>
-class fixed_point : public operators<YB_Impl_Rational_fp_T>
+class fixed_point : private operators<YB_Impl_Rational_fp_T>
 {
 	static_assert(is_integral<_tBase>(), "Non-integral type found.");
 	static_assert(_vInt < size_t(std::numeric_limits<_tBase>::digits),

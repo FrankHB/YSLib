@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1896
+\version r1898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-02-21 20:29 +0800
+	2016-03-17 14:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,10 +164,10 @@ CategorizeNode(mode_t) ynothrow;
 \note 除非另行约定，无异常抛出的操作使用值初始化的返回类型表示失败结果。
 \note 以 \c int 为返回值的操作返回 \c -1 表示失败。
 \note 满足 NullablePointer 要求。
-\see WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
+\see WG21 N4140 17.6.3.3[nullablepointer.requirements] 。
 \since build 565
 */
-class YF_API FileDescriptor : ystdex::totally_ordered<FileDescriptor>
+class YF_API FileDescriptor : private ystdex::totally_ordered<FileDescriptor>
 {
 public:
 	/*!

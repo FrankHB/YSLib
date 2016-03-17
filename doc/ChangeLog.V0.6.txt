@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r9754
+\version r9875
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-03-15 13:30 +0800
+	2016-03-17 17:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,127 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		* "%search_map with functor parameter" @ %Container $since b566,
+		/ %Any $=
+		(
+			/ @ "class %any" $=
+			(
+				* "missing decaying for non rvalue reference type"
+					@ "constructor template with holder parameter" $since b677,
+					// Tested on saving for %release configuration in all \
+						platforms.
+				+ "constructor with holder tag and in-place initialization \
+					parameters"
+			),
+			/ @ "namespace %any_ops" $=
+			(
+				/ "reduced redandant holder construction"
+					@ "class template %holder_handler",
+					$= (/ "(function, function template %init) other than with \
+						%unique_ptr instance parameter" -> 'using base::init;')
+				/ "supported reference wrappers" @ ^ "%is_reference_wrapper"
+					~ "%lref"
+			)
+		),
+		* $re_ex(b665) "constructor template with other iterator and optional \
+			transformer parameter selected explicit cast before conversion to \
+			other instance of %tranformed_iterator" @ "class template \
+			%transformed_iterator" @ %Iterator $since b665
+			$= (/ "constructor template" -> "2 constructor templates"
+				^ "%enable_if_t" ~ "default argument"),
+		/ @ "class template %mapped_set" @ %Set $=
+		(
+			+ "non %key_type key support"
+				$= (+ "function templates %(find, 2 lower_bound, 2 \
+					upper_bound, 2 equal_range) with key template parameter"),
+				// As %count. See also WG21 N3567 adopted in C++14.
+			* $comp "failed explicit cast from %iterator to %const_iterator"
+				$since b665 $dep_from ("%transformed_iterator" @ %Iterator)
+				$dep_to "mapped_set iterator cast"
+		)
+	),
+	/ %YFramework.YSLib $=
+	(
+		/ %Core $=
+		(
+			/ %ValueNode $=
+			(
+				(
+				+ DLD "class name declaration %ValueNode";
+				+ "inline function %AsNode for 'const ValueNode&' parameter",
+				+ "function template declaration %AsNode" $dep_to "simple node \
+					creation"
+					// Defined later with previously .
+				);
+				/ @ "class %ValueNode" $=
+				(
+					* $comp "invalid access when the value not existed"
+						@ "%operator[]" $since b667 $dep_from
+						%YBase.YStandardEx.Container,
+					/ DLD "2nd parameter type function template \
+						%EmplaceValueWithHintTo" -> "%const_iterator"
+						~ "%ContainerType::const_iterator"
+					(
+					(
+					+ "static function templates %(2 EmplaceTypedValueTo; \
+						EmplaceForTypedValueTo)";
+					+ "function template %EmplaceForTypedValue" $dep_from
+						"mapped_set iterator cast"
+					),
+					/ "function template %AddValueTo" ^ 'YSLib::AsNode',
+					/ "function %Remove, function template %SplitChildren"
+						^ 'AsNode'
+					) $dep_from "simple node creation",
+					(
+					+ 'using key_type = typename Container::key_type;';
+					+ "4 function templates %try_emplace"
+					),
+					/ "alias %Container" ^ "comparator %ystdex::less"
+						~ "default comparator",
+					+ "%operaotr< for 'const ValueNode&' and 'const string&'",
+					- "%operator const string&",
+					+ "private base class %ystdex::totally_ordered<ValueNode>",
+					+ "private base class %ystdex::totally_ordered<ValueNode, \
+						string>"
+				)
+			)
+			/ %YObject $=
+			(
+				+ "alias template %InPlaceTag";
+				/ @ "class %ValueObject" ^ "%InPlaceTag" $=
+				(
+					+ "constructor template with %InPlaceTag instance \
+						parameter",
+					/ "reduced redendant holder construction"
+						@ "constructor templates"
+				)
+			)
+		),
+		/ DLDI "simplified function %GetEvent" @ %UI.YWidgetEvent
+			^ $dep_from ("%ystdex::search_map with functor parameter"
+			@ %YBase.YStandardEx.Container)
+	),
+	* $comp "crash when accessing empty configuration nodes" @ %YReader $since
+		b667 $dep_from %YFramework.YSLib.Core.ValueNode,
+	/ "access-specifier" @ "non member operators basees" ^ "explicit 'private'"
+		$effective @ (("class template %path" @ %Path, "class template \
+		%observer_ptr" @ %Memory, ("class template %transformed_iterator")
+		@ %Iterator, "class template %optional" @ %Optional, "class template \
+		%nptr" @ %Pointer, "class template %basic_string_view" @ %StringView,
+		"class template %basic_tstring_view" @ %TStringView, "class template \
+		%fixed_point" @ %Rational, %"class %ifile_iterator" @ %CStandardIO)
+		@ %YBase.YStandardEx, ("class %FileDescriptor" @ %YCLib.FileIO,
+		("class %Path" @ %Service.FileSystem, ("class template specialization \
+		%GHEvent" @ %YEvent, ("class template %GBinaryGroup",
+		"classes %(Size, Rect)") @ %YGDIBase, "class %ValueObject" @ %YObject)
+		@ %Core) @ %YSLib) @ %YFramework);
+		// see $2016-03 @ %Documentation::Workflow::Annual2016.
+),
+
+b677
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1764,7 +1885,7 @@ b666
 		(
 			/ @ "metafunction %deduplicate" $=
 			(
-				* $dep_from ("%front" @ %Tuple) $since b589
+				* "wrong result" $since b589 $dep_from ("%front" @ %Tuple)
 					$= (/ $impl ^ "%push_back_t" ~ "%concat_t");
 				/ $impl "optimized" ^ "%(front_t, pop_front_t, push_front_t)"
 					~ "%back_t, pop_back_t, push_back_t)"

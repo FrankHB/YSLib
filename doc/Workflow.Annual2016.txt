@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r67
+\version r74
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-03-01 12:09 +0800
+	2016-03-17 15:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,13 +59,19 @@ The allocator '__gnu_cxx::debug_allocator' should not be used.
 		Even for freestanding implementations without them, memory debugging is still hard with the aid of such allocator rather than cutome ones with desired error handling.
 
 $2016-03:
-There are several changes in the library final fundamental TS final draft(WG21/N4480) since WG21/N4081.
+
+report.impl:
+There are several changes in the library final fundamental TS final draft(WG21 N4480) since WG21 N4081.
 	There are several changes for 'optional' requires minor update for return type of member functions.
 	The implementation of class 'any' is not effected.
 		Note that 'allocator_arg_t' for constructors of 'any' are no longer required, which was not implemented.
 		Another change in the specification is explicitly 'is_nothrow_move_constructible_v' noted, which also requires no implementation change.
 	The member function 'clear' is removed from class tmeplate 'basic_string_view'. Assignment of empty string view should be used instead.
-		See WG21/N4288 (adopted 2014-11) for the modification.
+		See WG21 N4288 (adopted 2014-11) for the modification.
+Rules on access specifier for operator bases are amended, based on $2016-02 report.impl.
+	Now classes with these bases use 'private' at first, to conform to the general language rules.
+	For %iterator_operators_t it is still remained to be 'public' due to possible 'operator[]' and 'operator->' members.
+	User code is still not restricted.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2254
+\version r2279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-03-15 10:06 +0800
+	2016-03-16 15:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 #include "utility.hpp" // for boxed_value, pod_storage, aligned_storage_t,
 //	is_aligned_storable, exclude_self_ctor_t, enable_if_t, decay_t,
 //	yconstraint;
-#include "ref.hpp" // for lref, is_reference_wrapper, unwrap_reference_t;
+#include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 
 namespace ystdex
 {
@@ -407,9 +407,12 @@ public:
 		return *get_pointer(s);
 	}
 
-	//! \since build 554
-	static void
-	init(any_storage& d, lref<value_type> x)
+	//! \since build 678
+	template<typename _tWrapper,
+		yimpl(typename = enable_if_t<is_reference_wrapper<_tWrapper>::value>)>
+	static auto
+	init(any_storage& d, _tWrapper x)
+		-> decltype(base::init(d, std::addressof(x.get())))
 	{
 		base::init(d, std::addressof(x.get()));
 	}
@@ -483,17 +486,8 @@ public:
 	{
 		init(typename base::local_storage(), d, std::move(p));
 	}
-	static void
-	init(any_storage& d, _tHolder&& x)
-	{
-		base::init(d, std::move(x));
-	}
-	template<typename... _tParams>
-	static void
-	init(any_storage& d, _tParams&&... args)
-	{
-		init(d, _tHolder(yforward(args)...));
-	}
+	//! \since build 678
+	using base::init;
 
 	static void
 	manage(any_storage& d, const any_storage& s, op_code op)
@@ -649,7 +643,13 @@ public:
 	template<typename _tHolder>
 	any(any_ops::holder_tag, _tHolder&& h)
 		: manager(construct<
-		any_ops::holder_handler<_tHolder>>(std::move(h)))
+		any_ops::holder_handler<decay_t<_tHolder>>>(std::move(h)))
+	{}
+	//! \since build 678
+	template<typename _tHolder, typename... _tParams>
+	any(any_ops::holder_tag, any_ops::in_place_t<_tHolder>, _tParams&&... args)
+		: manager(construct<
+		any_ops::holder_handler<_tHolder>>(yforward(args)...))
 	{}
 	//@}
 	//! \since build 376

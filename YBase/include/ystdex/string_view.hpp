@@ -11,18 +11,18 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r468
+\version r471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2016-03-01 12:01 +0800
+	2016-03-17 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::StringView
-\see WG21/N4480 7[string_view] 。
+\see WG21 N4480 7[string_view] 。
 \bug 关系操作使用 operators 导致不必要的 ODR-used 。
 
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明及散列支持提供偏特化外，
@@ -47,7 +47,7 @@ namespace ystdex
 //@{
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
 class basic_string_view
-	: yimpl(public totally_ordered<basic_string_view<_tChar, _tTraits>>)
+	: yimpl(private totally_ordered<basic_string_view<_tChar, _tTraits>>)
 {
 public:
 	using traits_type = _tTraits;
@@ -426,7 +426,7 @@ namespace std
 
 /*!
 \brief ystdex::optional 散列支持。
-\see WG21/N4480 5.11[optional.hash] 。
+\see WG21 N4480 5.11[optional.hash] 。
 \since build 640
 */
 //@{

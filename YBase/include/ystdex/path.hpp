@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1057
+\version r1063
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2015-11-29 17:04 +0800
+	2016-03-17 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_path_hpp_ 1
 
 #include "string_view.hpp" // for std::basic_string, string_view,
-//	sequence_container_adaptor, totally_ordered, dividable,
+//	sequence_container_adaptor, dividable, totally_ordered,
 //	ystdex::erase_all_if, to_array, string_traits;
 
 namespace ystdex
@@ -121,9 +121,9 @@ classify_path(const _tString& name) ynothrow
 template<class _tSeqCon,
 	class _tTraits = path_traits<typename _tSeqCon::value_type>>
 class path : private sequence_container_adaptor<_tSeqCon>,
-	public dividable<path<_tSeqCon, _tTraits>, typename _tSeqCon::value_type>,
-	public totally_ordered<path<_tSeqCon, _tTraits>>,
-	dividable<path<_tSeqCon, _tTraits>>
+	private dividable<path<_tSeqCon, _tTraits>, typename _tSeqCon::value_type>,
+	private totally_ordered<path<_tSeqCon, _tTraits>>,
+	private dividable<path<_tSeqCon, _tTraits>>
 {
 private:
 	//! \since build 473
@@ -286,7 +286,7 @@ public:
 	void
 	merge_parents()
 	{
-		for(auto i(this->begin()); i != this->end();)
+		for(auto i(this->begin()); i != this->end(); )
 		{
 			auto j(std::adjacent_find(i, this->end(),
 				[&](const value_type& x, const value_type& y){
