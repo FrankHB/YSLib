@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r642
+\version r652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-03-15 12:30 +0800
+	2016-03-18 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,9 +52,7 @@ ValueNode::operator%=(const ValueNode&& node)
 ValueNode&
 ValueNode::operator[](const string& n)
 {
-	// TODO: Blocked. Use %string as argument using C++14 heterogeneous
-	//	%lower_bound template.
-	return *ystdex::search_map(container, AsNode(n), [&](Container::iterator i){
+	return *ystdex::search_map(container, n, [&](Container::iterator i){
 		return EmplaceValueWithHintTo(container, i, n);
 	});
 }
@@ -62,7 +60,7 @@ ValueNode::operator[](const string& n)
 bool
 ValueNode::Remove(const ValueNode& node)
 {
-	return container.erase(AsNode(node.name)) != 0;
+	return container.erase(node) != 0;
 }
 
 void
@@ -115,18 +113,14 @@ AccessNode(const ValueNode& node, size_t n)
 observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container& con, const string& name) ynothrow
 {
-	// TODO: Blocked. Use %string as argument using C++14 heterogeneous %find
-	//	template.
 	return make_observer(ystdex::call_value_or<ValueNode*>(ystdex::addrof<>(),
-		con.find(AsNode(name)), {}, end(con)));
+		con.find(name), {}, end(con)));
 }
 observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container& con, const string& name) ynothrow
 {
-	// TODO: Blocked. Use %string as argument using C++14 heterogeneous %find
-	//	template.
 	return make_observer(ystdex::call_value_or<const ValueNode*>(
-		ystdex::addrof<>(), con.find(AsNode(name)), {}, end(con)));
+		ystdex::addrof<>(), con.find(name), {}, end(con)));
 }
 observer_ptr<ValueNode>
 AccessNodePtr(ValueNode& node, size_t n)

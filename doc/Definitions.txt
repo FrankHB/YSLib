@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13925
+\version r13934
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2016-03-10 14:48 +0800
+	2016-03-19 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,8 @@ YB_IMPL_CLANGPP
 #__has_extension(...)
 #__has_builtin(...)
 #__cpp_constexpr
+#__cpp_lib_bool_constant
+#__cpp_lib_void_t
 #__cpp_lib_integer_sequence
 #__cpp_lib_exchange_function
 #__cpp_lib_tuple_element_t
@@ -134,13 +136,18 @@ $header CAssert
 YAssert(*)
 YTrace(*)
 }
+$header Ref
+{
+#__cpp_lib_transparent_operators
+#__cpp_lib_invoke
+}
 $header Memory
 {
-#__cpp_lib_robust_nonmodifying_seq_ops
+#__cpp_lib_make_unique
 }
 $header Functor
 {
-#__cpp_lib_make_unique
+#__cpp_lib_robust_nonmodifying_seq_ops
 }
 } // $dir ystdex;
 } // $dir YBase;

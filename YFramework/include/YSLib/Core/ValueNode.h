@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2374
+\version r2390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-03-17 16:38 +0800
+	2016-03-18 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,6 +187,9 @@ public:
 	//! \since build 673
 	friend PDefHOp(bool, ==, const ValueNode& x, const ValueNode& y) ynothrow
 		ImplRet(x.name == y.name)
+	//! \since build 679
+	friend PDefHOp(bool, ==, const ValueNode& x, const string& str) ynothrow
+		ImplRet(x.name == str)
 
 	//! \since build 673
 	friend PDefHOp(bool, <, const ValueNode& x, const ValueNode& y) ynothrow
@@ -194,6 +197,9 @@ public:
 	//! \since build 678
 	friend PDefHOp(bool, <, const ValueNode& x, const string& str) ynothrow
 		ImplRet(x.name < str)
+	//! \since build 679
+	friend PDefHOp(bool, >, const ValueNode& x, const string& str) ynothrow
+		ImplRet(x.name > str)
 
 	//! \since build 667
 	ValueNode&
@@ -245,9 +251,7 @@ public:
 	static bool
 	AddValueTo(Container& con, _tString&& str, _tParams&&... args)
 	{
-		// TODO: Blocked. Use %string as argument using C++14
-		//	heterogeneous %equal_range template.
-		const auto pr(con.equal_range(YSLib::AsNode(str)));
+		const auto pr(con.equal_range(str));
 
 		if(pr.first == pr.second)
 		{
@@ -293,9 +297,7 @@ public:
 	static std::pair<iterator, bool>
 	EmplaceTypedValueTo(Container& con, _tString&& str, _tParams&&... args)
 	{
-		// TODO: Blocked. Use %string as argument using C++14
-		//	heterogeneous %find template.
-		auto pr(ystdex::search_map(con, YSLib::AsNode(str)));
+		auto pr(ystdex::search_map(con, str));
 
 		if(pr.second)
 			pr.first = EmplaceTypedValueTo<_type>(con, const_iterator(pr.first),
@@ -369,10 +371,7 @@ public:
 		ystdex::for_each_if(begin(), end(), f, [&, this](const ValueNode& nd){
 			const auto& child_name(nd.GetName());
 
-			// TODO: Blocked. Use %string as argument using C++14
-			//	heterogeneous %find template.
-			Deref(res.find(AsNode(child_name))).Value
-				= std::move(nd.Value);
+			Deref(res.find(child_name)).Value = std::move(nd.Value);
 			Remove(child_name);
 		});
 		return res;
