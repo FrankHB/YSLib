@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2971
+\version r2994
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2016-03-10 14:48 +0800
+	2016-03-19 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,8 +142,8 @@
 //@}
 
 /*!
-\brief WG21/N4200 \c constexpr 特性测试宏。
-\see WG21/N4200 3.4 和 3.5 。
+\brief \c constexpr 特性测试宏。
+\see WG21 P0096R1 3.5 和 3.6 。
 \since build 628
 */
 //! \since build 628
@@ -168,9 +168,24 @@
 #include <type_traits> // for std::is_class, std::is_standard_layout;
 
 #if YB_IMPL_MSCPP >= 1900
+//! \see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+//@{
 /*!
-\brief WG21/N4200 \<utility\> 特性测试宏。
-\see WG21/N4200 3.4 。
+\brief \<type_traits\> 特性测试宏。
+\see WG21 P0096R1 3.4 。
+\since build 679
+*/
+//@{
+#	ifndef __cpp_lib_bool_constant
+#		define __cpp_lib_bool_constant 201505
+#	endif
+#	ifndef __cpp_lib_void_t
+#		define __cpp_lib_void_t 201411
+#	endif
+//@}
+/*!
+\brief \<utility\> 特性测试宏。
+\see WG21 P0096R1 3.5 。
 \since build 628
 */
 //@{
@@ -183,6 +198,7 @@
 #	ifndef __cpp_lib_tuple_element_t
 #		define __cpp_lib_tuple_element_t 201402
 #	endif
+//@}
 //@}
 #endif
 
@@ -209,7 +225,7 @@
 
 /*!
 \brief 带宏替换的记号连接。
-\see WG21/N4140 16.3.3[cpp.concat]/3 。
+\see WG21 N4140 16.3.3[cpp.concat]/3 。
 \see http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
 \see https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
 
@@ -486,7 +502,7 @@
 \note 不访问函数外部的存储；通常不调用不可被 YB_STATELESS 安全指定的函数。
 \note 可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集。
 \warning 要求满足指示的假定，否则行为未定义。
-\see WG21/P0078R0 。
+\see WG21 P0078R0 。
 \since build 373
 
 指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
@@ -725,7 +741,7 @@
 \sa ynothrow
 \since build 461
 
-按 ISO/IEC JTC1/SC22/WG21 N3248 要求，表示 narrow constraint 的无异常抛出接口。
+按 WG21/N3248 要求，表示 narrow constraint 的无异常抛出接口。
 对应接口违反约束可引起未定义行为。
 因为可能显著改变程序的可观察行为，需要允许抛出异常进行验证时不适用。
 除非能静态验证不抛出异常，一般只应直接或间接调用 ynothrow 安全修饰的函数。

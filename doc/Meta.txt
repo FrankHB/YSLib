@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1491
+\version r1513
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2016-01-20 10:32 +0800
+	2016-03-21 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,25 +77,19 @@ $redundant; // redundant dependencies;
 $since; // first revision involved;
 
 // Project stakeholders:
-$dev; // issues concerned by developers, which end-users could ignore without \
-	risk if the code with no undefined behavior (including ahead-of-time build \
-	characteristics such as static assertions but not runtime observative \
-	behaviors like runtime assertions);
-$lib; // issues only concerned with library as one of following cases:
-	only implementation changing, no code would be broken switching between \
-		implementations if the underlying external implementation would behave \
-		correctly according to interface specification, and current programs \
-		would behave exactly same as befrore as long as confoming to the \
-		interface specification (no undefined behavior, etc); \
-	or interface modifying including no deletion unless some replacements are \
-		provided, no current source code would be broken (except for which has \
-		undefined behavior); \
-	so no need for library users to modify code behavior using the \
-	library interface to adapt to the upgrading, as long as they don't depend \
-	on new interfaces;
+$dev; // issues concerned by developers, which end-users of the product can \
+	observe no behavior change as long as the code has no undefined behavior \
+	(including ahead-of-time build characteristics such as static assertions \
+	but not runtime observable behavior like runtime assertions);
+$lib; // issues only concerned with library, with no interface changed, or \
+	with no deletion of interface unless some backward compatible replacements \
+	are provided, as long as being confoming to the interface specification \
+	(no undefined behavior, etc) and the correct behavior of external \
+	environment remained, no need for library users to modify code using the \
+	to adapt to the modification unless they depend on the new interface;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
-$src; // issues known to breaking public ABI but remaining source compatibility;
+$src; // issues known to break public ABI but remain source compatibility;
 
 // Project usage:
 $build; // issues on build, such as build scripts and diagnostic messages;
@@ -146,6 +140,7 @@ $renamed_to =>;
 // Abbreviations.
 DD $dev $doc;
 DLD $dev $lib $design;
+DLI $dev $lib $impl;
 DLDI $dev $lib $design $impl;
 DLP $dev $lib $deploy;
 DLB $dev $lib $build;
@@ -212,7 +207,7 @@ $URL http://stackoverflow.com/questions/10463851/what-is-gccs-vstring
 ),
 b448
 (
-$note "CWG226"
+$note "CWG 226"
 $URL http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#226
 $URL http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2003/n1459.html
 ),
@@ -239,13 +234,13 @@ b351 $=
 (
 $note "cv-qualifier for function types"
 $URL http://stackoverflow.com/questions/1117873/pointer-to-const-vs-usual-pointer-for-functions
-// Also CWG295.
+// Also CWG 295.
 ),
 b349 $=
 (
 $note "N3047"
 $URL http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3047.html
-// Also LWG1260.
+// Also LWG 1260.
 ),
 b298 $=
 (
@@ -346,7 +341,7 @@ dep.merge:
 libwibble(https://packages.debian.org/sid/libwibble-dev): tentatively rejected.
 	This is a package about some general/low-level C++ utilities for developers.
 	The interface is not up-to-date to modern C++ style.
-	The functinoality should be covered by YBase and YFramework.YCLib intentionally, though most of them are not done yet.	
+	The functinoality should be covered by YBase and YFramework.YCLib intentionally, though most of them are not done yet.
 folly(https://github.com/facebook/folly): tentatively rejected.
 	Though used productively and is under actively development, this library is not fit for YSLib as a dependency.
 		The API design is awful.

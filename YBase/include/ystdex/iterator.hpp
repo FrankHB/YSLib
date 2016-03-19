@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5893
+\version r5901
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-03-17 16:56 +0800
+	2016-03-17 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_iterator_hpp_ 1
 
 #include "pointer.hpp" // for iterator_operators_t, std::iterator_traits,
-//	_t, pointer_classify, cond_t, *_tag, yassume, is_undereferenceable,
+//	_t, pointer_classify, cond_t, and_, exclude_self_ctor_t, true_type,
+//	enable_if_inconvertible_t, *_tag, yassume, is_undereferenceable,
 //	yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
@@ -267,11 +268,12 @@ private:
 public:
 	//! \since build 496
 	transformed_iterator() = default;
-	//! \since build 678
-	template<typename _tIter2, typename _fTrans2 = _fTrans,
-		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter2>),
-		yimpl(typename
-		= enable_if_t<!is_convertible<_tIter2&&, transformed_iterator>::value>)>
+	//! \since build 679
+	// TODO: Use multiple template parameters to simplify after CWG 1227
+	//	resolved by C++14.
+	template<typename _tIter2, yimpl(typename
+		= and_<exclude_self_ctor_t<transformed_iterator, _tIter2, true_type>,
+		enable_if_inconvertible_t<_tIter2&&, transformed_iterator, true_type>>)>
 	explicit yconstfn
 	transformed_iterator(_tIter2&& i)
 		: transformer(), ptr(yforward(i))

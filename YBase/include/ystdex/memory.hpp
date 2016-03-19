@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1682
+\version r1684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-03-17 14:51 +0800
+	2016-03-19 19:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,8 @@
 
 #if YB_IMPL_MSCPP >= 1800
 /*!
-\brief WG21 N4200 \<memory\> 特性测试宏。
-\see WG21 N4200 3.4 。
+\brief \<memory\> 特性测试宏。
+\see WG21 P0096R1 3.5 。
 \since build 628
 */
 #	ifndef __cpp_lib_make_unique

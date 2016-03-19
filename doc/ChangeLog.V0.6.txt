@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r9875
+\version r10010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-03-17 17:12 +0800
+	2016-03-19 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			+ "metafunction %enable_if_inconvertible_t" @ %TypeTraits,
+			/ DLD "simplified constructor template with iterator template \
+				parameter type" @ "class template %transformed_iterator"
+				@ %Iterator $=
+			(
+				- "redundant template parameter",
+				/ $impl ^ $dep_from
+					("%enable_if_inconvertible_t" @ %TypeTraits)
+			),
+			+ "non %value_type parameter support"
+				@ "function template %search_map" @ %Container
+				$= (/ "function template" -> "2 overloaded function templates")
+					^ $dep_from ("%enable_if_inconvertible_t" @ %TypeTraits)),
+			/ %Set $=
+			(
+				/ DLDI "flattened nested types",
+					// To shorten mangled name and reuse generic key types.
+				/ DLI "comparator initialization" ^ "move" ~ "copy",
+				(
+				* "function templates %(2 lower_bound, 2 upper_bound, 2 \
+					equal_range)" $since b678;
+				/ "function templates %(count, 2 find) support without generic \
+					associative lookup" ^ "function template %equal_range"
+				),
+				+ "support generic associative lookup" @ "function templates \
+					%(2 lower_bound, 2 upper_bound, 2 equal_range, count, 2 \
+					find)" @ '__cpp_lib_generic_associative_lookup >= 201304 \
+					|| __cplusplus >= 201402L',
+					// See WG21 P0096R1.
+				/ "limited all 9 generic associative lookup function templates \
+					only for comparator with member type %is_transparent"
+					^ $dep_from ("%enable_if_transparent_t" @ %Functor)
+					// As WG21 N3657.
+			),
+			/ DLDI '201402' -> '201402L' @ "condition test for %__cplusplus"
+				@ %IteratorOperation,
+			/ %Functor $=
+			(
+				(
+				* "wrong spelling for %divides" $orig
+					(@ %Functional $since b578)
+					$= (/ "%devides" => "%divides");
+				/ "functors %(plus, minus, multiplies, divides, modulus, \
+					negate, equal_to, not_equal_to, greater, greater_equal, \
+					less_equal, logical_and, logical_or, logical_not, bit_and, \
+					bit_xor, bit_not") $=
+				(
+					>> "inline namespace %cpp2014"
+						@ !'__cpp_lib_transparent_operators >= 201210 \
+						|| __cplusplus >= 201402L';
+					+ "using functors from namespace %std"
+						@ '__cpp_lib_transparent_operators >= 201210 \
+						|| __cplusplus >= 201402L' $dep_from
+						("%__cpp_lib_transparent_operators" @ %Ref)
+				)
+				),
+				+ "unary type trait %has_member_is_transparent; metafunction \
+					%enable_if_transparent"
+			)
+		),
+		/ $dev $re_add(b628) "updated feature-testing macros" $=
+		(
+			/ $doc "updated Doxygen comments" @ %YDefinition,
+			(
+			+ "2 feature-test macros %(__cpp_lib_bool_constant, \
+				__cpp_lib_void_t recommended) by WG21 P0096R1 when not defined"
+				@ 'YB_IMPL_MSCPP >= 1900' @ %YDefinition;
+			/ %YStandardEx.TypeTraits $=
+			(
+				/ $lib "simplified inclusion condition for %(void_t, \
+					bool_constant)" !^ 'YB_IMPL_MSCPP',
+				/ $lib "simplified inclusion condition for %void_t"
+					!^ 'YB_IMPL_MSCPP'
+			)
+			),
+			/ %YStandardEx
+			(
+				(
+				+ "feature-test macro %__cpp_lib_invoke by WG21 P0096R1 when \
+					not defined" @ 'YB_IMPL_MSCPP >= 1900' @ %Ref;
+				/ $lib "simplified inclusion condition for %invoke"
+					!^ 'YB_IMPL_MSCPP' @ %Function
+				),
+				/ $doc "updated Doxygen comments" @ %Functor,
+				+ "feature-test macro %__cpp_lib_transparent_operators by WG21 \
+					P0096R1 when not defined" @ 'YB_IMPL_MSCPP >= 1800' @ %Ref
+			)
+		)
+	),
+	/ %YFramework.YSLib.Core $=
+	(
+		/ @ "class %ValueNode" @ %ValueNode $=
+		(
+			(
+			* "missing friend functions %operator(>, ==) between \
+				'const ValueNode&' and 'const string&'" $since b678;
+			/ DLI "simplified (function %operator[], function template \
+				%EmplaceTypedValueTo)" !^ "%AsNode" $dep_from
+				(("%ystdex::search_map" @ %Container,
+				"%mapped_set::lower_bound" @ %Set) @ %YBase.YStandardEx)
+				// Temporary %ValueNode avoided.
+			),
+			/ DLI "simplified function templates %SplitChildren" !^ "%AsNode"
+				$dep_from ("%mapped_set::find" @ %YBase.YStandardEx.Set)
+				// Ditto.
+			/ DLI "simplified function templates %AddValueTo" !^ "%AsNode"
+				$dep_from ("%mapped_set::equal_range" @ %YBase.YStandardEx.Set)
+				// Ditto.
+			/ DLI "simplified function %Remove with node" !^ "%AsNode"
+				// Ditto, but this was purely redundant even without generic \
+					associative lookup support.
+		),
+		/ DLI "simplified all 2 functions %AccessNodePtr with name parameter"
+			!^ "%AsNode" $dep_from
+			("%mapped_set::find" @ %YBase.YStandardEx.Set)
+			// Ditto.
+	),
+	* $dev $doc "wrong macro lists between %YBase.YStandardEx.(Memory, Functor)"
+		@ %Documentation.Definitions $since b649
+),
+
+b678
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -2147,7 +2274,7 @@ b664
 			* "conditional inclusion for overloaded function templates for \
 				rvalue reference parameter without conditional inclusion"
 				$since b663
-				// This is actually irrelevant to CWG616. To make C++14 works, \
+				// This is actually irrelevant to CWG 616. To make C++14 works, \
 					they should be defined unconditionally.
 		)
 	),
@@ -3094,7 +3221,7 @@ b658
 				@ "function templates %(operator std::basic_string, to_string)"
 				@ "class template %basic_string_view" @ %StringView
 		),
-		+ $doc DLD "notes for LWG1130" @ "comments" @ "header"
+		+ $doc DLD "notes for LWG 1130" @ "comments" @ "header"
 			@ %LibDefect.Exception
 	),
 	/ $forced DLDI "including headers" @ %YReader.Shells $dep_from
@@ -4833,7 +4960,7 @@ b644
 					-> 'using namespace platform::basic_types;' $dep_from
 					%YCLib.Platform
 			),
-			- $dev $lib $impl "dependency on %YFM_YSLib_Adaptor_YTextBase"
+			- DLI "dependency on %YFM_YSLib_Adaptor_YTextBase"
 				@ %Core.YCoreUtilities $dep_from %YTextBase
 				// To improve build performance.
 		)
@@ -4942,13 +5069,13 @@ b642
 				// To enable ISO C++11 'constexpr' compatibility without \
 					'__func__', etc. Note for MinGW-w64 it is OK, but not for \
 					devkitARM or Android.
-			/ $forced $dev $lib $impl "macro %yassume"
+			/ $forced DLI "macro %yassume"
 		),
 		/ %Algorithm $=
 		(
 			+ $impl "assertion" @ "function template %clamp"
 				^ $dep_from ('yconstraint' @ %CAssert),
-				// Though LWG2234 still counts for 'yassume', blocked by \
+				// Though LWG 2234 still counts for 'yassume', blocked by \
 					%(__func__, __PRETTY_FUNCTION__): 'body of constexpr \
 					function not a return-statement'.
 			* $re_add(b641) DD "missing '!'" @ "end of '/*'" @ "multiline \
@@ -4989,7 +5116,7 @@ b642
 							platform %Win32, it can return, no 'YB_NORETURN' \
 							added as 'ystdex::yassert'.
 				);
-				/ $forced $dev $lib $impl "macro %YAssert"
+				/ $forced DLI "macro %YAssert"
 			),
 			+ 'ynothrow' @ "function %FAT::Clusters::IsFreeOrEOF" @ %FileSystem
 		),
@@ -5372,7 +5499,7 @@ b640
 		+ "feature-test macro %__cpp_lib_tuple_element_t recommended by \
 			WG21 N4200 when \
 			not defined" @ 'YB_IMPL_MSCPP >= 1900' @ YDefinition
-		// See $2015-10 @ %Documentation::Workflow::Annual2015.
+			// See $2015-10 @ %Documentation::Workflow::Annual2015.
 	),
 	/ %Test $=
 	(
@@ -6669,11 +6796,11 @@ b628
 				@ %IntegerSequence $dep_from ("%__cpp_lib_exchange_function"
 				@ %YDefinition) -> '__cpp_lib_integer_sequence >= 201304 \
 				|| __cplusplus > 201103L' ~ '__cplusplus > 201103L',
-			/ %Memory $=
+			/ $dev %Memory $=
 			(
 				+ "all 1 feature-test macro %__cpp_lib_make_unique recommended \
 					by WG21 N4200 when not defined" @ 'YB_IMPL_MSCPP >= 1800';
-				/ $dev $lib "simplified inclusion condition for %make_unique"
+				/ $lib "simplified inclusion condition for %make_unique"
 					@ "inline namespace %ystdex::cpp2014" !^ 'YB_IMPL_MSCPP'
 			),
 			(

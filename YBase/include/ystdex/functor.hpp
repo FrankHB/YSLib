@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r723
+\version r786
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-03-05 01:09 +0800
+	2016-03-19 20:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #ifndef YB_INC_ystdex_functor_hpp_
 #define YB_INC_ystdex_functor_hpp_ 1
 
-#include "ref.hpp" // for ystdex::constfn_addressof, enable_if_t,
+#include "ref.hpp" // for enable_if_t, is_detected, ystdex::constfn_addressof,
 //	not_, or_, is_reference_wrapper, and_, std::greater, std::less,
 //	std::greater_equal, std::less_equal, addrof_t, indirect_t;
 #include <string> // for std::char_traits;
@@ -38,8 +38,8 @@
 
 #if YB_IMPL_MSCPP >= 1900
 /*!
-\brief WG21/N4200 \<algorithm\> 特性测试宏。
-\see WG21/N4200 3.4 。
+\brief \<algorithm\> 特性测试宏。
+\see WG21 P0096R1 3.5 。
 \since build 628
 */
 #	ifndef __cpp_lib_robust_nonmodifying_seq_ops
@@ -49,6 +49,40 @@
 
 namespace ystdex
 {
+
+//! \since build 679
+//@{
+namespace details
+{
+
+template<class _type>
+using member_is_transparent_t = typename _type::is_transparent;
+
+} // namespace details;
+
+//! \since build 679
+//@{
+/*!
+\ingroup unary_type_traits
+\brief 判断 _type 是否包含 is_transparent 成员类型。
+*/
+template<typename _type>
+using has_member_is_transparent
+	= is_detected<details::member_is_transparent_t, _type>;
+
+/*!
+\ingroup metafunction
+\brief 移除不满足包含 is_transparent 成员类型比较器的重载。
+\note 第二参数用于传递 SFINAE 模板参数，可为键类型。
+\sa enable_if_t
+\sa has_member_is_transparent
+\see WG21 N3657 。
+*/
+template<typename _fComp, typename, typename _type = void>
+using enable_if_transparent_t
+	= enable_if_t<has_member_is_transparent<_fComp>::value, _type>;
+//@}
+//@}
 
 /*!	\defgroup functors General Functors
 \brief 仿函数。
@@ -164,6 +198,7 @@ struct ref_eq
 	}
 };
 
+// NOTE: There is 'constexpr' in WG21 N3936; but it is in ISO/IEC 14882:2014.
 #define YB_Impl_Functor_Ops_Primary(_n, _tRet, _using_stmt, _expr, ...) \
 	template<typename _type = void> \
 	struct _n \
@@ -229,8 +264,34 @@ struct ref_eq
 #define YB_Impl_Functor_Unary(_n, _op) \
 	YB_Impl_Functor_Ops1(_n, _op, _type)
 
+//! \since build 679
+inline namespace cpp2014
+{
+
+#if __cpp_lib_transparent_operators >= 201210 || __cplusplus >= 201402L
+using std::plus;
+using std::minus;
+using std::multiplies;
+using std::divides;
+using std::modulus;
+using std::negate;
+
+using std::equal_to;
+using std::not_equal_to;
+using std::greater;
+using std::greater_equal;
+using std::less_equal;
+
+using std::logical_and;
+using std::logical_or;
+using std::logical_not;
+
+using std::bit_and;
+using std::bit_xor;
+using std::bit_not;
+#else
 /*!
-\note 同 ISO WG21/N4296 对应标准库仿函数。
+\note 同 ISO WG21 N4296 对应标准库仿函数。
 \since build 578
 */
 //@{
@@ -243,8 +304,11 @@ YB_Impl_Functor_Binary(minus, -)
 //! \brief 乘法仿函数。
 YB_Impl_Functor_Binary(multiplies, *)
 
-//! \brief 除法仿函数。
-YB_Impl_Functor_Binary(devides, /)
+/*!
+\brief 除法仿函数。
+\since build 679
+*/
+YB_Impl_Functor_Binary(divides, /)
 
 //! \brief 模运算仿函数。
 YB_Impl_Functor_Binary(modulus, %)
@@ -306,6 +370,9 @@ YB_Impl_Functor_Binary(bit_xor, ^)
 YB_Impl_Functor_Unary(bit_not, ~)
 //@}
 //@}
+#endif
+
+} // inline namespace cpp2014;
 
 /*!
 \note YStandardEx 扩展。

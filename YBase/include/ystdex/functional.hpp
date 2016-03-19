@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2808
+\version r2814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-03-02 14:26 +0800
+	2016-03-19 03:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 //	bool_constant, index_sequence_for, _t, std::tuple_size, vseq::join_n_t,
 //	member_target_type_t, common_nonvoid_t, false_type, integral_constant,
 //	make_index_sequence;
-#include "functor.hpp" // for std::function, less, addressof_op, mem_get, lref;
+#include "functor.hpp" // for <functional>, std::function, __cpp_lib_invoke,
+//	less, addressof_op, mem_get;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex
@@ -244,7 +245,8 @@ unseq_apply(_func&& f, _tParams&&... args)
 //@}
 //@}
 
-#if YB_IMPL_MSCPP >= 1900
+// TODO: Blocked. Wait for upcoming ISO C++17 for %__cplusplus.
+#if __cpp_lib_invoke >= 201411
 //! \since build 617
 using std::invoke;
 #else
@@ -323,7 +325,7 @@ invoke_impl(_func&& f, _tParams&&... args)
 /*!
 \brief 调用可调用对象。
 \sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4169.html
-\see WG21/N4527 20.9.2[func.require] ， WG21/N4527 20.9.3[func.invoke] 。
+\see WG21 N4527 20.9.2[func.require] ， WG21 N4527 20.9.3[func.invoke] 。
 \see http://wg21.cmeerw.net/lwg/issue2013 。
 \see http://wg21.cmeerw.net/cwg/issue1581 。
 \see https://llvm.org/bugs/show_bug.cgi?id=23141 。
@@ -812,7 +814,7 @@ struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 \brief 应用函数对象和参数元组。
 \tparam _func 函数对象及其引用类型。
 \tparam _tTuple 元组及其引用类型。
-\see WG21/N3936 20.5.1[intseq.general] 。
+\see WG21 N3936 20.5.1[intseq.general] 。
 \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4023.html#tuple.apply 。
 \since build 547
 */

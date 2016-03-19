@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r227
+\version r230
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2015-11-05 01:33 +0800
+	2016-03-19 09:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,11 +95,11 @@ prev_if_eq(_tBi i, const _type& val,
 //@{
 /*!
 \brief 构造反向迭代器。
-\see WG21/N3936 24.5.1.3.21[reverse.iter.make] 。
+\see WG21 N3936 24.5.1.3.21[reverse.iter.make] 。
 \see http://wg21.cmeerw.net/lwg/issue2285 。
 \since build 531
 */
-#if __cpp_lib_make_reverse_iterator >= 201402 || __cplusplus >= 201402
+#if __cpp_lib_make_reverse_iterator >= 201402 || __cplusplus >= 201402L
 using std::make_reverse_iterator;
 #else
 template<typename _tIter>

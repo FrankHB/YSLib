@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r310
+\version r330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-03-05 00:59 +0800
+	2016-03-19 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,25 @@
 //	cond_t, not_, is_object;
 #include <functional> // for std::reference_wrapper;
 
+/*!
+\brief \<functional\> 特性测试宏。
+\see WG21 P0096R1 3.5 。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+\since build 679
+*/
+//@{
+#if YB_IMPL_MSCPP >= 1800
+#	ifndef __cpp_lib_transparent_operators
+#		define __cpp_lib_transparent_operators 201210
+#	endif
+#endif
+#if YB_IMPL_MSCPP >= 1900
+#	ifndef __cpp_lib_invoke
+#		define __cpp_lib_invoke 201411
+#	endif
+#endif
+//@}
+
 namespace ystdex
 {
 
@@ -43,7 +62,7 @@ namespace ystdex
 \brief 左值引用包装。
 \tparam _type 被包装的类型。
 \note 满足 TrivialCopyable 要求。
-\see WG21/N4277 。
+\see WG21 N4277 。
 
 类似 std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
 	引用包装类实现。
@@ -262,7 +281,7 @@ struct pseudo_output
 /*!
 \ingroup metafunctions
 \since build 636
-\see 关于相关的核心语言特性： WG21/P0146R0 。
+\see 关于相关的核心语言特性： WG21 P0146R0 。
 */
 //@{
 //! \brief 若类型不是空类型则取后备结果类型（默认为 pseudo_output ）。

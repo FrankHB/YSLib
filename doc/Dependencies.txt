@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r660
+\version r673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2016-01-25 09:54 +0800
+	2016-03-18 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,14 +34,27 @@
 本文档用于描述 YSLib 的外部依赖([Documentation::CommonRules @@1]) 。
 
 @1 实现环境和库部署：
-基准实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。
+基准实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md ；
+使用的标准特性参见 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
 除非另行约定，使用同基准实现要求的默认配置的 ABI 。
 本章内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的变通(workaround) 代码。
 
 @1.1 具体实现支持：
-当前仅经过实际验证支持的实现包括 G++ 4.9 或以上版本； 4.8.2 以上的 G++ 可用但未测试，也不作为特定编译器选项的优化目标。
+当前仅经过实际验证支持的实现包括 G++ 4.9 或以上版本； 其它版本当前未测试，也不作为特定编译器选项的优化目标。
+一般地，仅有 YBase.LibDefect 保持提供对旧版本具体实现的支持；对其它代码，除上述(@1) 要求外，不保证未来版本保持支持；不符合标准实现的变通可能在之后逐渐移除。
+YBase.YDefinition 检查特性对应的实现版本。
 除以上列出外的其它实现不保证支持。
+
+@1.1.1 支持实现的已知问题：
+以下问题提供有限变通：
+G++ 5 之前未完整实现 C++11 特性标准库； 4.9 之前的变通已移除。
+
+@1.1.2 非支持实现的历史问题：
+以下问题不提供变通：
+G++ 4.8.2(4.8.2-17ubuntu1) ：
+在启用 -flto 时，仅使用 std::thread 而不显式使用 pthread 的代码无法链接 pthread 导致运行时出错；
+编译器问题导致 CHRLib SFINAE 得到错误的例程，运行时访问空指针。
 
 @1.2 YBase ：
 YBase 版本 b452-b589 （包括若干变通） 非正式支持 Microsoft Visual C++ 2013 ：

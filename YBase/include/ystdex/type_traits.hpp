@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r858
+\version r878
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-03-10 23:44 +0800
+	2016-03-19 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_type_traits_hpp_
 #define YB_INC_ystdex_type_traits_hpp_ 1
 
-#include "../ydef.h" // for <type_traits>;
+#include "../ydef.h" // for <type_traits>, __cpp_lib_bool_constant,
+//	__cpp_lib_void_t;
 
 namespace ystdex
 {
@@ -369,12 +370,12 @@ using result_of_t = typename result_of<_type>::type;
 /*!
 \ingroup meta_types
 \brief bool 常量。
-\see WG21/N4389 。
-\see WG21/N4527 20.10.3[meta.help] 。
-\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+\see WG21 N4389 。
+\see WG21 N4527 20.10.3[meta.help] 。
 \since build 617
 */
-#if YB_IMPL_MSCPP >= 1900
+// TODO: Blocked. Wait for upcoming ISO C++17 for %__cplusplus.
+#if __cpp_lib_bool_constant >= 201505
 using std::bool_constant;
 #else
 template<bool _b>
@@ -403,14 +404,14 @@ public:
 };
 
 /*!
-\see WG21/N3911 。
-\see WG21/N4296 20.10.2[meta.type.synop] 。
-\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+\see WG21 N3911 。
+\see WG21 N4296 20.10.2[meta.type.synop] 。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
 \see http://wg21.cmeerw.net/cwg/issue1558 。
 \since build 591
 */
-#if YB_IMPL_MSCPP >= 1900
+// TODO: Blocked. Wait for upcoming ISO C++17 for %__cplusplus.
+#if __cpp_lib_void_t >= 201411
 using std::void_t;
 #elif YB_IMPL_GNUCPP >= 50000
 template<typename...>
@@ -491,7 +492,7 @@ struct any_constructible
 
 /*!
 \brief 不接受任意参数类型构造的类型。
-\see WG21/N4502 6.6 。
+\see WG21 N4502 6.6 。
 \since build 649
 */
 struct nonesuch
@@ -508,7 +509,7 @@ struct nonesuch
 /*!
 \ingroup metafunctions
 \since build 649
-\see WG21/N4502 。
+\see WG21 N4502 。
 */
 //@{
 namespace details
@@ -800,10 +801,10 @@ struct is_in_types : or_<is_same<_type, _types...>>
 /*!
 \brief 恒等元函数。
 \note 功能可以使用 ISO C++ 11 的 std::common_type 的单一参数实例替代。
-\note LWG2141 建议更改 std::common_type 的实现，无法替代。
+\note LWG 2141 建议更改 std::common_type 的实现，无法替代。
 \note 这里的实现不依赖 std::common_type 。
 \note 同 boost::mpl::identity 。
-\note Microsoft Visual C++ 2013 使用 LWG2141 建议的实现。
+\note Microsoft Visual C++ 2013 使用 LWG 2141 建议的实现。
 \see http://wg21.cmeerw.net/lwg/issue2141 。
 \see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
 \see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx 。
@@ -845,6 +846,11 @@ using indirect_element_t = remove_reference_t<indirect_t<_type>>;
 template<typename _tFrom, typename _tTo, typename _type = void>
 using enable_if_convertible_t
 	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
+
+//! \since build 679
+template<typename _tFrom, typename _tTo, typename _type = void>
+using enable_if_inconvertible_t
+	= enable_if_t<!is_convertible<_tFrom, _tTo>::value, _type>;
 
 template<typename _type1, typename _type2, typename _type = void>
 using enable_if_interoperable_t

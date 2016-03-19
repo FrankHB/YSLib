@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r710
+\version r869
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-03-17 12:46 +0800
+	2016-03-19 20:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,9 @@
 #ifndef YB_INC_ystdex_set_hpp_
 #define YB_INC_ystdex_set_hpp_ 1
 
-#include "functor.hpp" // for less, lref, std::move, std::piecewise_construct;
+#include "functor.hpp" // for less, lref, std::move, std::piecewise_construct,
+//	enable_if_transparent, std::count, std::lower_bound, std::upper_bound,
+//	std::equal_range;
 #include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::make_transform;
 #include <memory> // for std::allocator, std::allocator_traits;
@@ -51,6 +53,55 @@ set_value_move(const _type& x) ynothrow
 }
 
 
+//! \since build 679
+namespace details
+{
+
+template<typename _type>
+class wrapped_key
+{
+public:
+	using key_type = _type;
+	using wrapper = lref<const key_type>;
+	template<typename _fComp>
+	struct compare
+	{
+		_fComp comp;
+
+		compare(_fComp c)
+			: comp(std::move(c))
+		{}
+
+		bool
+		operator()(const wrapped_key& x, const wrapped_key& y) const
+		{
+			return comp(x.get(), y.get());
+		}
+	};
+
+private:
+	mutable wrapper k;
+
+public:
+	wrapped_key(const key_type& key)
+		: k(key)
+	{}
+
+	void
+	amend(const _type& key) const ynothrow
+	{
+		k = wrapper(key);
+	}
+
+	const _type&
+	get() const ynothrow
+	{
+		return k;
+	}
+};
+
+} // namespace details;
+
 /*!
 \brief 允许指定不同于值类型的键的集合。
 \note 和 std::set 类似，但迭代器可修改，且插入操作要求参数满足 CopyInsertable 。
@@ -71,56 +122,29 @@ public:
 	using const_reference =  const value_type&;
 
 private:
-	class mapped_key_type
+#if !(__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L)
+	//! \since build 679
+	struct gcompare
 	{
-		friend class mapped_set;
-
-	private:
-		using wrapper = lref<const _type>;
-
-		mutable wrapper k;
-
-	public:
-		mapped_key_type(const key_type& key)
-			: k(key)
-		{}
-
-	private:
-		void
-		amend(const _type& key) const ynothrow
-		{
-			k = wrapper(key);
-		}
-
-	public:
-		const _type&
-		get() const ynothrow
-		{
-			return k;
-		}
-	};
-	class mapped_key_compare
-	{
-		friend class mapped_set;
-
-	protected:
 		_fComp comp;
 
-		mapped_key_compare(_fComp c)
-			: comp(c)
-		{}
-
-	public:
-		using result_type = bool;
-		using first_argument_type = value_type;
-		using second_argument_type = value_type;
-
+		template<typename _tKey>
 		bool
-		operator()(const mapped_key_type& x, const mapped_key_type& y) const
+		operator()(const value_type& v, const _tKey& k) const
 		{
-			return comp(x.get(), y.get());
+			return bool(comp(v, k));
+		}
+		template<typename _tKey>
+		bool
+		operator()(const _tKey& k, const value_type& v) const
+		{
+			return bool(comp(k, v));
 		}
 	};
+#endif
+	using mapped_key_type = details::wrapped_key<_type>;
+	using mapped_key_compare
+		= typename mapped_key_type::template compare<_fComp>;
 	using umap_type
 		= std::map<mapped_key_type, value_type, mapped_key_compare, _tAlloc>;
 	using umap_pair = typename umap_type::value_type;
@@ -143,6 +167,8 @@ public:
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
+	// XXX: It is undefined behavior when %value_type is incomplete, however
+	//	some implementations actually supports this.
 	umap_type m_map;
 
 public:
@@ -371,7 +397,7 @@ public:
 			std::piecewise_construct, std::forward_as_tuple(mapped_key_type(x)),
 			std::forward_as_tuple(x)));
 
-		// TODO: Blocked. Use ISO C++1z %try_emplace result.
+		// TODO: Blocked. Use C++1z %try_emplace result.
 		amend_pair(*res);
 		return iterator(res);
 	}
@@ -385,7 +411,7 @@ public:
 			std::piecewise_construct, std::forward_as_tuple(mapped_key_type(x)),
 			std::forward_as_tuple(set_value_move(x))));
 
-		// TODO: Blocked. Use ISO C++1z %try_emplace result.
+		// TODO: Blocked. Use C++1z %try_emplace result.
 		amend_pair(*res);
 		return iterator(res);
 	}
@@ -454,6 +480,12 @@ public:
 		return m_map.key_comp().comp;
 	}
 
+#define YB_Impl_Set_GenericLookupHead(_n, _r) \
+	template<typename _tKey, \
+		yimpl(typename = enable_if_transparent_t<_fComp, _tKey>)> \
+	_r \
+	_n(const _tKey& x)
+	
 	iterator
 	find(const key_type& x)
 	{
@@ -465,18 +497,26 @@ public:
 		return const_iterator(m_map.find(mapped_key_type(x)));
 	}
 	//! \since build 678
-	template<typename _tKey>
-	iterator
-	find(const _tKey& x)
+	YB_Impl_Set_GenericLookupHead(find, iterator)
 	{
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
 		return iterator(m_map.find(mapped_key_type(x)));
+#else
+		const auto i(lower_bound(x));
+
+		return i != end() && !gcomp()(x, *i) ? i : end();
+#endif
 	}
 	//! \since build 678
-	template<typename _tKey>
-	const_iterator
-	find(const _tKey& x) const
+	YB_Impl_Set_GenericLookupHead(find, const_iterator) const
 	{
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
 		return const_iterator(m_map.find(mapped_key_type(x)));
+#else
+		const auto i(lower_bound(x));
+
+		return i != cend() && !gcomp()(x, *i) ? i : cend();
+#endif
 	}
 
 	size_type
@@ -484,11 +524,15 @@ public:
 	{
 		return m_map.count(mapped_key_type(x));
 	}
-	template<typename _tKey>
-	size_type
-	count(const _tKey& x) const
+	YB_Impl_Set_GenericLookupHead(count, size_type) const
 	{
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
 		return m_map.count(mapped_key_type(x));
+#else
+		const auto pr(equal_range(x));
+
+		return std::count(pr.first, pr.second, gcomp());
+#endif
 	}
 
 	iterator
@@ -502,18 +546,22 @@ public:
 		return const_iterator(m_map.lower_bound(mapped_key_type(x)));
 	}
 	//! \since build 678
-	template<typename _tKey>
-	iterator
-	lower_bound(const _tKey& x)
+	YB_Impl_Set_GenericLookupHead(lower_bound, iterator)
 	{
-		return iterator(m_map.lower_bound(x));
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
+		return iterator(m_map.lower_bound(mapped_key_type(x)));
+#else
+		return std::lower_bound(begin(), end(), x, gcomp());
+#endif
 	}
 	//! \since build 678
-	template<typename _tKey>
-	const_iterator
-	lower_bound(const _tKey& x) const
+	YB_Impl_Set_GenericLookupHead(lower_bound, const_iterator) const
 	{
-		return const_iterator(m_map.lower_bound(x));
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
+		return const_iterator(m_map.lower_bound(mapped_key_type(x)));
+#else
+		return std::lower_bound(cbegin(), cend(), x, gcomp());
+#endif
 	}
 
 	iterator
@@ -527,18 +575,22 @@ public:
 		return const_iterator(m_map.upper_bound(mapped_key_type(x)));
 	}
 	//! \since build 678
-	template<typename _tKey>
-	iterator
-	upper_bound(const _tKey& x)
+	YB_Impl_Set_GenericLookupHead(upper_bound, iterator)
 	{
-		return iterator(m_map.upper_bound(x));
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
+		return iterator(m_map.upper_bound(mapped_key_type(x)));
+#else
+		return std::upper_bound(begin(), end(), x, gcomp());
+#endif
 	}
 	//! \since build 678
-	template<typename _tKey>
-	const_iterator
-	upper_bound(const _tKey& x) const
+	YB_Impl_Set_GenericLookupHead(upper_bound, const_iterator) const
 	{
-		return const_iterator(m_map.upper_bound(x));
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
+		return const_iterator(m_map.upper_bound(mapped_key_type(x)));
+#else
+		return std::upper_bound(cbegin(), cend(), x, gcomp());
+#endif
 	}
 
 	std::pair<iterator, iterator>
@@ -556,23 +608,30 @@ public:
 		return {const_iterator(pr.first), const_iterator(pr.second)};
 	}
 	//! \since build 678
-	template<typename _tKey>
-	std::pair<iterator, iterator>
-	equal_range(const _tKey& x)
+	YB_Impl_Set_GenericLookupHead(equal_range,
+		std::pair<iterator YPP_Comma iterator>)
 	{
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
 		const auto pr(m_map.equal_range(x));
 
 		return {iterator(x.first), iterator(x.second)};
+#else
+		return std::equal_range(begin(), end(), x, gcomp());
+#endif
 	}
 	//! \since build 678
-	template<typename _tKey>
-	std::pair<const_iterator, const_iterator>
-	equal_range(const _tKey& x) const
+	YB_Impl_Set_GenericLookupHead(equal_range,
+		std::pair<const_iterator YPP_Comma const_iterator>) const
 	{
+#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
 		const auto pr(m_map.equal_range(x));
 
 		return {const_iterator(x.first), const_iterator(x.second)};
+#else
+		return std::equal_range(cbegin(), cend(), x, gcomp());
+#endif
 	}
+#undef YB_Impl_Set_GenericLookupHead
 
 private:
 	void
@@ -587,6 +646,14 @@ private:
 	{
 		pr.first.amend(pr.second);
 	}
+
+#if !(__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L)
+	gcompare
+	gcomp() const
+	{
+		return gcompare{key_comp()};
+	}
+#endif
 
 	template<typename _tIter>
 	static umap_pair

@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1474
+\version r1498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-03-15 17:25 +0800
+	2016-03-19 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -537,20 +537,20 @@ template<class _type, typename... _tParams>
 using mem_remove_t
 	= decltype(std::declval<_type>().remove(std::declval<_tParams>()...));
 
-template<class _type, typename... _tParams>
+template<typename _type, typename... _tParams>
 using has_mem_remove = is_detected<mem_remove_t, _type, _tParams...>;
 
 template<class _type, typename... _tParams>
 using mem_remove_if_t
 	= decltype(std::declval<_type>().remove_if(std::declval<_tParams>()...));
 
-template<class _type, typename... _tParams>
+template<typename _type, typename... _tParams>
 using has_mem_remove_if = is_detected<mem_remove_if_t, _type, _tParams...>;
 
 template<class _type>
 using key_type_t = typename _type::key_type;
 
-template<class _type>
+template<typename _type>
 using has_mem_key_type = is_detected<key_type_t, _type>;
 
 
@@ -884,13 +884,13 @@ template<class _type>
 using mapped_type_t = typename _type::mapped_type;
 
 template<class _tAssocCon>
-const typename _tAssocCon::key_type&
+inline const typename _tAssocCon::key_type&
 extract_key(const typename _tAssocCon::value_type& val, false_type)
 {
 	return val;
 }
 template<class _tAssocCon>
-const typename _tAssocCon::key_type&
+inline const typename _tAssocCon::key_type&
 extract_key(const typename _tAssocCon::value_type& val, true_type)
 {
 	return val.first;
@@ -898,14 +898,29 @@ extract_key(const typename _tAssocCon::value_type& val, true_type)
 
 } // unnamed namespace details;
 
-//! \brief 从关联容器的值取键。
-template<class _tAssocCon>
-const typename _tAssocCon::key_type&
-extract_key(const typename _tAssocCon::value_type& val)
+/*!
+\brief 从关联容器的值取键。
+\since build 679
+*/
+//@{
+template<class _tAssocCon, typename _type,
+	yimpl(typename = enable_if_convertible_t<const _type&,
+	const typename _tAssocCon::value_type&>)>
+inline const typename _tAssocCon::key_type&
+extract_key(const _type& val)
 {
 	return details::extract_key<_tAssocCon>(val,
 		is_detected<details::mapped_type_t, _tAssocCon>());
 }
+template<class _tAssocCon, typename _tKey,
+	yimpl(typename = enable_if_inconvertible_t<const _tKey&,
+	const typename _tAssocCon::value_type&>)>
+inline const _tKey&
+extract_key(const _tKey& k)
+{
+	return k;
+}
+//@}
 
 
 /*!
