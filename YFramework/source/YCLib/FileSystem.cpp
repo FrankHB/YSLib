@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3610
+\version r3620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-02-11 01:44 +0800
+	2016-03-21 12:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,6 +227,13 @@ class DirectorySession::Data : public DirectoryFindData
 public:
 	using DirectoryFindData::DirectoryFindData;
 };
+#else
+//! \since build 680
+namespace
+{
+PDefH(::DIR*, ToDirPtr, DirectorySession::NativeHandle p)
+	ImplRet(static_cast<::DIR*>(p))
+} // unnamed namespace;
 #endif
 void
 DirectorySession::Deleter::operator()(pointer p) const ynothrowv
@@ -234,7 +241,7 @@ DirectorySession::Deleter::operator()(pointer p) const ynothrowv
 #if YCL_Win32
 	default_delete<Data>()(p);
 #else
-	const auto res(::closedir(p));
+	const auto res(::closedir(ToDirPtr(p)));
 
 	YAssert(res == 0, "No valid directory found.");
 	yunused(res);
@@ -270,7 +277,7 @@ DirectorySession::Rewind() ynothrow
 #if YCL_Win32
 	Deref(dir.get()).Rewind();
 #else
-	::rewinddir(dir.get());
+	::rewinddir(ToDirPtr(dir.get()));
 #endif
 }
 
@@ -283,7 +290,7 @@ HDirectory::operator++()
 #if YCL_Win32
 		= static_cast<DirectoryFindData*>(GetNativeHandle())->Read();
 #else
-		= make_observer(::readdir(GetNativeHandle()));
+		= make_observer(::readdir(ToDirPtr(GetNativeHandle())));
 #endif
 	return *this;
 }

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2279
+\version r2297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-03-16 15:25 +0800
+	2016-03-20 11:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -233,9 +233,11 @@ using any_storage
 using any_manager = void(*)(any_storage&, const any_storage&, op_code);
 
 
-//! \brief 使用持有者标记。
-struct holder_tag
-{};
+/*!
+\brief 使用持有者标记。
+\since build 680
+*/
+yconstexpr const struct use_holder_t{} use_holder{};
 //@}
 
 
@@ -632,29 +634,28 @@ public:
 		: manager(construct<
 		any_ops::value_handler<_type>>(yforward(args)...))
 	{}
-	//! \brief 构造：使用指定持有者。
+	/*!
+	\brief 构造：使用指定持有者。
+	\since build 680
+	*/
 	//@{
-	//! \since build 395
 	template<typename _tHolder>
-	any(any_ops::holder_tag, std::unique_ptr<_tHolder> p)
+	any(any_ops::use_holder_t, std::unique_ptr<_tHolder> p)
 		: manager(construct<any_ops::holder_handler<_tHolder>>(std::move(p)))
 	{}
-	//! \since build 677
 	template<typename _tHolder>
-	any(any_ops::holder_tag, _tHolder&& h)
+	any(any_ops::use_holder_t, _tHolder&& h)
 		: manager(construct<
 		any_ops::holder_handler<decay_t<_tHolder>>>(std::move(h)))
 	{}
-	//! \since build 678
 	template<typename _tHolder, typename... _tParams>
-	any(any_ops::holder_tag, any_ops::in_place_t<_tHolder>, _tParams&&... args)
+	any(any_ops::use_holder_t, any_ops::in_place_t<_tHolder>, _tParams&&... args)
 		: manager(construct<
 		any_ops::holder_handler<_tHolder>>(yforward(args)...))
 	{}
 	//@}
-	//! \since build 376
 	template<typename _type>
-	any(_type&& x, any_ops::holder_tag)
+	any(_type&& x, any_ops::use_holder_t)
 		: manager(construct<any_ops::holder_handler<
 		any_ops::value_holder<decay_t<_type>>>>(yforward(x)))
 	{}
@@ -744,7 +745,7 @@ public:
 	}
 	template<typename _tHolder, typename... _tParams>
 	void
-	emplace(any_ops::holder_tag, _tParams&&... args)
+	emplace(any_ops::use_holder_t, _tParams&&... args)
 	{
 		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
 			yforward(args)...);

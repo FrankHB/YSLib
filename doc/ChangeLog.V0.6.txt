@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10010
+\version r10173
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-03-19 20:59 +0800
+	2016-03-22 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,170 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Conatainer $=
+		(
+			/ "all 2 function templates %concat" ^ "ADL %end" ~ "member %end",
+			(
+			+ "2 function templates %cast_mutable";
+			(
+			+ "2 function templates %search_map with hint iterator parameter";
+			+ "function templates %(try_emplace, try_emplace_hint)"
+			)
+			/ DLDI "simplified non-const overloading" @ "template %search_map \
+				with container and key parameter" ^ "%cast_mutable"
+			),
+			+ "function template %erase_first",
+			+ "2 function templates %erase_multi",
+			/ "all 2 function templates %search_map with callback" $=
+			(
+				/ "return type" -> "pair" ~ "iterator",
+				/ DLDI "simplified non-const overloading" ^ $dep_from
+					"%cast_mutable"
+			)
+		),
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				/ "%holder_tag" => "%use_holder_t";
+				+ "yconstexpr object %use_holder"
+			);
+			/ $forced "constructors" @ "class %any"
+		),
+		/ %Iterator $=
+		(
+			/ "struct %indirect_tag" => "%get_indirect_t",
+			/ "struct %get_tag" => "%get_get_t";
+			/ $forced "2 function template %operator| with 'indirect', 'get' \
+				tag"
+		),
+		/ %Functor $=
+		(
+			(
+			/ "metafunction %has_member_is_transparent"
+				-> "%has_mem_is_transparent"
+				$= (+ "support for dummy SFINAE parameter");
+			* "dummy SFINAE type not dependent"
+				@ "metafunction %enable_if_transparent_t" $since b679
+			),
+			/ "missing 'using std::less;'" @ "inline namespace %cpp2014"
+				@ '__cpp_lib_transparent_operators >= 201210 \
+				|| __cplusplus >= 201402L' $since b679
+		),
+		/ %Set $=
+		(
+			/ @ "class template %mapped_set" $=
+			(
+				* $comp "ill-formed generic associative lookup for failed \
+					%is_transparent merber type detection" $since b679
+					$dep_from ("%enable_if_transparent_t" @ %Functor),
+				* $comp "ill-formed default comparator"
+					@ '__cpp_lib_transparent_operators >= 201210 \
+					|| __cplusplus >= 201402L' @ $since b679 $dep_from
+					("%less" @ %Functor),
+				+ "4 function templates %try_emplace" ^ $dep_from
+					("%ystdex::(try_emplace, try_emplace_hint)" @ %Container)
+			),
+			* $comp "ill-formed default comparator"
+				@ "functions %(min, max, minmax, clamp, clamp_range)"
+				@ '__cpp_lib_transparent_operators >= 201210 \
+				|| __cplusplus >= 201402L' @ %Algorithm $since b679 $dep_from
+				("%less" @ %Functor),
+			* $dev "generic associative lookup failed to work"
+				@ '_GLIBCXX_DEBUG' $since b679
+				// Only works for libstdc++ reversion after 2015-06-07. Note \
+				%(try_emplace, insert_or_assign) would work since revision \
+				2015-08-27.
+				$= (+ "workaround for libstdc++"),
+			/ DLDI "simplified generic associative comparator"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %ValueNode $=
+				(
+					/ @ "class %ValueNode" $=
+					(
+						/ "function %operator[]"
+							-> "function template %operator[] for generic key"
+							^ $dep_from ("%ystdex::try_emplace"
+							@ %YBase.YStandardEx.Container),
+						* "missing hint iterator parameter" @ "2 function \
+							templates try_emplace#(1, 3)" $since b678,
+						* "wrong key parameter type" @ "function template \
+							%try_empalce#2" $since b678,
+						/ @ "%try_emplace" $=
+						(
+							/ "all 4 function templates" -> "forwarding \
+								template" ^ ("%DefFwdTmpl", $dep_from
+								("ystdex::mapped_set::try_emplace")
+								@ %YBase.YStandardEx.Set);
+							* $comp "wrong behavior of unnecessary \
+								initialization of value type" $678,
+							* "not specifying container" $since b678
+								// To be consistent to WG21 N4279.
+						),
+						/ $impl "function template %EmplaceTypedValueTo \
+							without hint" ^ "%EmplaceValueTo",
+						- "function template %EmplaceTypedValueTo with hint",
+						/ "function %Remove with name parameter" -> "function \
+							template" ^ $dep_from ("ystdex::erase_first"
+							@ %YBase.YStandardEx.Container) $dep_to "removal \
+							explicit node conversion in ValueNode definition",
+						/ DLDI "non-inline function %Remove with \
+							'const ValueNode&' parameter" -> "inline function",
+						(
+						(
+						/ "function templates %(SplitChildren, \
+							EmplaceTypedValueTo)" ^ "%NoContainer"
+							~ "%EmplaceValueTo";
+						* "ill-formed %SplitChildren" $since b674
+						);
+						- "static function template %EmplaceValueTo" $dep_from
+							%NPL.NPLA1
+						),
+						- "static function template %EmplaceValueWithHintTo"
+							$dep_from "%try_emplace"
+					),
+					/ $revert(b678) $dev "simplified declarations" $dep_from
+						"removal explicit node conversion in ValueNode \
+						definition" $=
+					(
+						- "class name declaration %ValueNode",
+						- "non-definition declaration %AsNode"
+					)
+				),
+				/ $forced DLDI "class %ValueObject" @ %YObject $dep_from
+					%YBase.YStandardEx.Any
+			),
+			/ $forced DLDI "function %GetEvent" @ %UI.YWidgetEvent $dep_from
+				("%search_map" @ %YBase.YStandardEx.Container)
+		),
+		(
+		/ $dev "hid '<dirent.h>'" @ "header" @ %YCLib.FileSystem $=
+		(
+			/ @ "class %DirectorySession" $=
+			(
+				/ "alias %Data" @ !"platform %Win32" ^ 'void' ~ '::DIR';
+				/ $forced DLDI "member functions"
+			),
+			- '#include <dirent.h>'
+		);
+		* $comp $doc "%YFramework header dependency" $since b553
+		),
+		/ DLDI "function %TransformToSyntaxNode" @ %NPL.NPLA1 ^ "%NoContainer"
+			~ "%ValueNode::EmplaceValueTo"
+	)
+),
+
+b679
 (
 	/ %YBase $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2390
+\version r2470
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-03-18 21:34 +0800
+	2016-03-22 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,22 +44,6 @@ yconstexpr const struct ListContainerTag{} ListContainer{};
 
 //! \brief 标记不使用容器。
 yconstexpr const struct NoContainerTag{} NoContainer{};
-//@}
-
-
-//! \since build 678
-//@{
-class ValueNode;
-
-inline PDefH(const ValueNode&, AsNode, const ValueNode& node)
-	ImplRet(node)
-/*!
-\brief 传递指定名称和值参数构造值类型节点。
-\since build 668
-*/
-template<typename _tString, typename... _tParams>
-inline ValueNode
-AsNode(_tString&&, _tParams&&...);
 //@}
 
 
@@ -201,9 +185,14 @@ public:
 	friend PDefHOp(bool, >, const ValueNode& x, const string& str) ynothrow
 		ImplRet(x.name > str)
 
-	//! \since build 667
+	//! \since build 680
+	template<typename _tString>
 	ValueNode&
-	operator[](const string&);
+	operator[](_tString&& str)
+	{
+		return *ystdex::try_emplace(container, str, NoContainer, yforward(str))
+			.first;
+	}
 	//! \since build 667
 	template<class _tCon>
 	const ValueNode&
@@ -275,6 +264,7 @@ public:
 	*/
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
+	//@}
 
 	//! \since build 678
 	//@{
@@ -285,6 +275,7 @@ public:
 		return EmplaceForTypedValueTo<_type>(GetContainerRef(), yforward(str),
 			yforward(args)...);
 	}
+
 	template<typename _type, typename _tString, typename... _tParams>
 	static _type&
 	EmplaceForTypedValueTo(Container& con, _tString&& str, _tParams&&... args)
@@ -297,47 +288,21 @@ public:
 	static std::pair<iterator, bool>
 	EmplaceTypedValueTo(Container& con, _tString&& str, _tParams&&... args)
 	{
-		auto pr(ystdex::search_map(con, str));
-
-		if(pr.second)
-			pr.first = EmplaceTypedValueTo<_type>(con, const_iterator(pr.first),
-				yforward(str), yforward(args)...);
-		return pr;
-	}
-	template<typename _type, typename _tString, typename... _tParams>
-	static inline iterator
-	EmplaceTypedValueTo(Container& con, const_iterator hint, _tString&& str,
-		_tParams&&... args)
-	{
-		return EmplaceValueWithHintTo(con, hint, yforward(str),
-			InPlaceTag<_type>(), yforward(args)...);
+		return con.emplace(NoContainer, yforward(str), InPlaceTag<_type>(),
+			yforward(args)...);
 	}
 	//@}
 
-	//! \since build 674
-	template<typename _tString, typename... _tParams>
-	static inline auto
-	EmplaceValueTo(Container& con, _tString&& str, _tParams&&... args)
-		-> decltype(con.emplace(NoContainer, yforward(str), yforward(args)...))
+	PDefH(bool, Remove, const ValueNode& node)
+		ImplRet(container.erase(node) != 0)
+	//! \since build 680
+	//@{
+	template<typename _tKey>
+	inline bool
+	Remove(const _tKey& k)
 	{
-		return con.emplace(NoContainer, yforward(str), yforward(args)...);
+		return ystdex::erase_first(container, k);
 	}
-
-	//! \since build 678
-	template<typename _tString, typename... _tParams>
-	static inline auto
-	EmplaceValueWithHintTo(Container& con, const_iterator i, _tString&& str,
-		_tParams&&... args) -> decltype(con.emplace_hint(i, NoContainer,
-		yforward(str), yforward(args)...))
-	{
-		return
-			con.emplace_hint(i, NoContainer, yforward(str), yforward(args)...);
-	}
-
-	bool
-	Remove(const ValueNode&);
-	PDefH(bool, Remove, const string& str)
-		ImplRet(Remove(AsNode(str)))
 	//@}
 
 	/*!
@@ -366,7 +331,7 @@ public:
 		Container res;
 
 		std::for_each(begin(), end(), [&](const ValueNode& nd){
-			EmplaceValueTo(res, nd.GetName());
+			container.emplace(NoContainer, res, nd.GetName());
 		});
 		ystdex::for_each_if(begin(), end(), f, [&, this](const ValueNode& nd){
 			const auto& child_name(nd.GetName());
@@ -419,33 +384,9 @@ public:
 	DefFwdTmpl(-> decltype(container.insert(yforward(args)...)), auto,
 		insert, container.insert(yforward(args)...))
 
-	//! \since build 678
-	//@{
-	template<typename... _tParams>
-	std::pair<iterator, bool>
-	try_emplace(const key_type& k, _tParams&&... args)
-	{
-		return EmplaceValueTo(container, k, yforward(args)...);
-	}
-	template<typename... _tParams>
-	iterator
-	try_emplace(const key_type&& k, _tParams&&... args)
-	{
-		return EmplaceValueWithHintTo(container, k, yforward(args)...);
-	}
-	template<typename... _tParams>
-	std::pair<iterator, bool>
-	try_emplace(key_type&& k, _tParams&&... args)
-	{
-		return EmplaceValueTo(container, std::move(k), yforward(args)...);
-	}
-	template<typename... _tParams>
-	iterator
-	try_emplace(key_type&& k, _tParams&&... args)
-	{
-		return EmplaceValueWithHintTo(container, std::move(k), yforward(args)...);
-	}
-	//@}
+	//! \since build 680
+	DefFwdTmpl(-> decltype(container.try_emplace(yforward(args)...)), auto,
+		try_emplace, container.try_emplace(yforward(args)...))
 
 	//! \since build 598
 	PDefH(size_t, size, ) const ynothrow
@@ -711,6 +652,13 @@ AccessChildPtr(const ValueNode* p_node, _tParams&&... args) ynothrow
 
 //! \note 结果不含子节点。
 //@{
+//! \since build 678
+inline PDefH(const ValueNode&, AsNode, const ValueNode& node)
+	ImplRet(node)
+/*!
+\brief 传递指定名称和值参数构造值类型节点。
+\since build 668
+*/
 template<typename _tString, typename... _tParams>
 inline ValueNode
 AsNode(_tString&& str, _tParams&&... args)

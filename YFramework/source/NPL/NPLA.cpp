@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r727
+\version r728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-02-26 08:49 +0800
+	2016-03-21 16:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ TransformToSyntaxNode(const ValueNode& node, const string& name)
 			for(auto& nd : *p)
 				nested_call(nd);
 		else
-			ValueNode::EmplaceValueTo(con, MakeIndex(1),
+			con.emplace(NoContainer, MakeIndex(1),
 				Literalize(ParseNPLANodeString(node)));
 	}
 	else

@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r191
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2016-03-15 17:43 +0800
+	2016-03-21 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,9 +118,9 @@ EventMapping::ItemType&
 GetEvent(EventMapping::MapType& m, VisualEvent id,
 	EventMapping::MappedType(&f)())
 {
-	return ystdex::search_map(m, id, [&](EventMapping::MapType::iterator i){
+	return ystdex::search_map([&](EventMapping::MapType::const_iterator i){
 		return m.emplace_hint(i, EventMapping::PairType(id, f()));
-	})->second;
+	}, m, id).first->second;
 }
 
 } // namespace UI;

@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r869
+\version r1010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-03-19 20:37 +0800
+	2016-03-22 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,14 +28,13 @@
 #ifndef YB_INC_ystdex_set_hpp_
 #define YB_INC_ystdex_set_hpp_ 1
 
-#include "functor.hpp" // for less, lref, std::move, std::piecewise_construct,
-//	enable_if_transparent, std::count, std::lower_bound, std::upper_bound,
-//	std::equal_range;
-#include "iterator.hpp" // for transformed_iterator,
-//	iterator_transformation::second, ystdex::make_transform;
-#include <memory> // for std::allocator, std::allocator_traits;
+#include "container.hpp" // for less, lref, std::move, std::allocator,
+//	transformed_iterator, std::allocator_traits,
+//	iterator_transformation::second, ystdex::make_transform,
+//	std::piecewise_construct, std::forward_as_tuple, ystdex::try_emplace,
+//	ystdex::try_emplace_hint, enable_if_transparent_t, std::count,
+//	std::lower_bound, std::upper_bound, std::equal_range;
 #include <map> // for std::map, std::initializer_list;
-#include <tuple> // for std::forward_as_tuple;
 
 namespace ystdex
 {
@@ -53,9 +52,67 @@ set_value_move(const _type& x) ynothrow
 }
 
 
+// XXX: G++ 5.2.0 rejects generic associative lookup in debug mode of %std::map.
+// TODO: Find precise version supporting debug mode.
+#if (__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L) \
+	&& !(defined(__GLIBCXX__) && defined(_GLIBCXX_DEBUG))
+#	define YB_Impl_Set_UseGenericLookup 1
+#else
+#	define YB_Impl_Set_GenericLookup 0
+#endif
+
 //! \since build 679
 namespace details
 {
+
+//! \since build 680
+template<typename _tWrappedKey, typename _fComp,
+	bool = has_mem_is_transparent<_fComp>::value>
+struct tcompare
+{
+	_fComp comp;
+
+	tcompare(_fComp c)
+		: comp(std::move(c))
+	{}
+
+	bool
+	operator()(const _tWrappedKey& x, const _tWrappedKey& y) const
+	{
+		return bool(comp(x.get(), y.get()));
+	}
+};
+
+//! \since build 680
+template<typename _tWrappedKey, typename _fComp>
+struct tcompare<_tWrappedKey, _fComp, true>
+	: private tcompare<_tWrappedKey, _fComp, false>
+{
+private:
+	using base = tcompare<_tWrappedKey, _fComp, false>;
+
+public:
+	using is_transparent = yimpl(void);
+
+	using base::comp;
+
+	using base::tcompare;
+
+	using base::operator();
+	template<typename _tKey>
+	bool
+	operator()(const _tWrappedKey& x, const _tKey& y) const
+	{
+		return bool(comp(x.get(), y));
+	}
+	template<typename _tKey>
+	bool
+	operator()(const _tKey& x, const _tWrappedKey& y) const
+	{
+		return bool(comp(x, y.get()));
+	}
+};
+
 
 template<typename _type>
 class wrapped_key
@@ -63,21 +120,6 @@ class wrapped_key
 public:
 	using key_type = _type;
 	using wrapper = lref<const key_type>;
-	template<typename _fComp>
-	struct compare
-	{
-		_fComp comp;
-
-		compare(_fComp c)
-			: comp(std::move(c))
-		{}
-
-		bool
-		operator()(const wrapped_key& x, const wrapped_key& y) const
-		{
-			return comp(x.get(), y.get());
-		}
-	};
 
 private:
 	mutable wrapper k;
@@ -122,29 +164,8 @@ public:
 	using const_reference =  const value_type&;
 
 private:
-#if !(__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L)
-	//! \since build 679
-	struct gcompare
-	{
-		_fComp comp;
-
-		template<typename _tKey>
-		bool
-		operator()(const value_type& v, const _tKey& k) const
-		{
-			return bool(comp(v, k));
-		}
-		template<typename _tKey>
-		bool
-		operator()(const _tKey& k, const value_type& v) const
-		{
-			return bool(comp(k, v));
-		}
-	};
-#endif
 	using mapped_key_type = details::wrapped_key<_type>;
-	using mapped_key_compare
-		= typename mapped_key_type::template compare<_fComp>;
+	using mapped_key_compare = details::tcompare<mapped_key_type, _fComp>;
 	using umap_type
 		= std::map<mapped_key_type, value_type, mapped_key_compare, _tAlloc>;
 	using umap_pair = typename umap_type::value_type;
@@ -430,6 +451,40 @@ public:
 		insert(il.begin(), il.end());
 	}
 
+	/*!
+	\see WG21 N4279 。
+	\since build 680
+	\todo 添加 \c insert_or_assign 。
+	*/
+	//@{
+	template<typename... _tParams>
+	std::pair<iterator, bool>
+	try_emplace(const key_type& k, _tParams&&... args)
+	{
+		return ystdex::try_emplace(*this, k, yforward(args)...);
+	}
+	template<typename... _tParams>
+	std::pair<iterator, bool>
+	try_emplace(key_type&& k, _tParams&&... args)
+	{
+		return ystdex::try_emplace(*this, std::move(k), yforward(args)...);
+	}
+	template<typename... _tParams>
+	iterator
+	try_emplace(const_iterator hint, const key_type& k, _tParams&&... args)
+	{
+		return
+			ystdex::try_emplace_hint(*this, hint, k, yforward(args)...).first;
+	}
+	template<typename... _tParams>
+	iterator
+	try_emplace(const_iterator hint, key_type&& k, _tParams&&... args)
+	{
+		return ystdex::try_emplace_hint(*this, hint, std::move(k),
+			yforward(args)...).first;
+	}
+	//@}
+
 	iterator
 	erase(iterator position)
 	{
@@ -499,8 +554,8 @@ public:
 	//! \since build 678
 	YB_Impl_Set_GenericLookupHead(find, iterator)
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
-		return iterator(m_map.find(mapped_key_type(x)));
+#if YB_Impl_Set_UseGenericLookup
+		return iterator(m_map.find(x));
 #else
 		const auto i(lower_bound(x));
 
@@ -510,8 +565,8 @@ public:
 	//! \since build 678
 	YB_Impl_Set_GenericLookupHead(find, const_iterator) const
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
-		return const_iterator(m_map.find(mapped_key_type(x)));
+#if YB_Impl_Set_UseGenericLookup
+		return const_iterator(m_map.find(x));
 #else
 		const auto i(lower_bound(x));
 
@@ -526,8 +581,8 @@ public:
 	}
 	YB_Impl_Set_GenericLookupHead(count, size_type) const
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
-		return m_map.count(mapped_key_type(x));
+#if YB_Impl_Set_UseGenericLookup
+		return m_map.count(x);
 #else
 		const auto pr(equal_range(x));
 
@@ -548,8 +603,8 @@ public:
 	//! \since build 678
 	YB_Impl_Set_GenericLookupHead(lower_bound, iterator)
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
-		return iterator(m_map.lower_bound(mapped_key_type(x)));
+#if YB_Impl_Set_UseGenericLookup
+		return iterator(m_map.lower_bound(x));
 #else
 		return std::lower_bound(begin(), end(), x, gcomp());
 #endif
@@ -557,8 +612,8 @@ public:
 	//! \since build 678
 	YB_Impl_Set_GenericLookupHead(lower_bound, const_iterator) const
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
-		return const_iterator(m_map.lower_bound(mapped_key_type(x)));
+#if YB_Impl_Set_UseGenericLookup
+		return const_iterator(m_map.lower_bound(x));
 #else
 		return std::lower_bound(cbegin(), cend(), x, gcomp());
 #endif
@@ -577,8 +632,8 @@ public:
 	//! \since build 678
 	YB_Impl_Set_GenericLookupHead(upper_bound, iterator)
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
-		return iterator(m_map.upper_bound(mapped_key_type(x)));
+#if YB_Impl_Set_UseGenericLookup
+		return iterator(m_map.upper_bound(x));
 #else
 		return std::upper_bound(begin(), end(), x, gcomp());
 #endif
@@ -586,8 +641,8 @@ public:
 	//! \since build 678
 	YB_Impl_Set_GenericLookupHead(upper_bound, const_iterator) const
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
-		return const_iterator(m_map.upper_bound(mapped_key_type(x)));
+#if YB_Impl_Set_UseGenericLookup
+		return const_iterator(m_map.upper_bound(x));
 #else
 		return std::upper_bound(cbegin(), cend(), x, gcomp());
 #endif
@@ -611,7 +666,7 @@ public:
 	YB_Impl_Set_GenericLookupHead(equal_range,
 		std::pair<iterator YPP_Comma iterator>)
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
+#if YB_Impl_Set_UseGenericLookup
 		const auto pr(m_map.equal_range(x));
 
 		return {iterator(x.first), iterator(x.second)};
@@ -623,7 +678,7 @@ public:
 	YB_Impl_Set_GenericLookupHead(equal_range,
 		std::pair<const_iterator YPP_Comma const_iterator>) const
 	{
-#if __cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L
+#if YB_Impl_Set_UseGenericLookup
 		const auto pr(m_map.equal_range(x));
 
 		return {const_iterator(x.first), const_iterator(x.second)};
@@ -647,11 +702,12 @@ private:
 		pr.first.amend(pr.second);
 	}
 
-#if !(__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L)
-	gcompare
+#if !YB_Impl_Set_UseGenericLookup
+	//! \since build 680
+	mapped_key_compare
 	gcomp() const
 	{
-		return gcompare{key_comp()};
+		return m_map.key_comp();
 	}
 #endif
 
@@ -662,6 +718,8 @@ private:
 		return {mapped_key_type(*i), *i};
 	}
 };
+
+#undef YB_Impl_Set_UseGenericLookup
 
 } // namespace ystdex;
 
