@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1326
+\version r1330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2016-02-12 22:46 +0800
+	2016-03-22 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,6 +44,11 @@
 #	include <ystdex/optional.h> // for ystdex::ref_opt;
 #	include <bitset> // for std::bitset;
 #endif
+
+//! \since build 680
+struct stat;
+//! \since build 680
+struct statvfs;
 
 namespace platform_ex
 {

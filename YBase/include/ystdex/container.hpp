@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1498
+\version r1653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-03-19 20:20 +0800
+	2016-03-21 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -424,6 +424,7 @@ assign(_tCon& con, const _type(&arr)[_vN])
 /*!
 \brief 插入元素到容器末尾。
 \pre 指定元素的范围和容器不重叠。
+\note 使用 ADL end 。
 \since build 546
 \todo 返回非 \c void 。
 */
@@ -432,14 +433,14 @@ template<class _tCon, typename _tIn>
 void
 concat(_tCon& con, _tIn first, _tIn last)
 {
-	con.insert(con.end(), std::make_move_iterator(first),
+	con.insert(end(con), std::make_move_iterator(first),
 		std::make_move_iterator(last));
 }
 template<class _tCon, typename _tRange>
 void
 concat(_tCon& con, _tRange&& c)
 {
-	con.insert(con.end(), begin(yforward(c)), end(yforward(c)));
+	con.insert(end(con), begin(yforward(c)), end(yforward(c)));
 }
 //@}
 
@@ -732,6 +733,55 @@ erase_all_if(_tCon& con, _fPred pred)
 //@}
 //@}
 
+//! \since build 680
+//@{
+/*!
+\brief 删除指定关联容器中等价于指定键的起始元素。
+\return 是否成功删除。
+*/
+template<class _tAssocCon, typename _tKey>
+bool
+erase_first(_tAssocCon& con, const _tKey& k)
+{
+	const auto i(con.find(k));
+
+	if(i != end(con))
+	{
+		con.erase(i);
+		return true;
+	}
+	return {};
+}
+
+/*!
+\brief 删除指定关联容器中等价于指定键的所有元素。
+\return 删除的元素数。
+*/
+//@{
+template<class _tAssocCon>
+inline typename _tAssocCon::size_type
+erase_multi(_tAssocCon& con, const typename _tAssocCon::key_type& k)
+{
+	return con.erase(k);
+}
+template<class _tAssocCon, typename _tKey>
+typename _tAssocCon::size_type
+erase_multi(_tAssocCon& con, const _tKey& k)
+{
+	const auto pr(con.equal_range(k));
+
+	if(pr.first != pr.second)
+	{
+		const auto n(std::distance(pr.first, pr.second));
+
+		con.erase(pr.first, pr.second);
+		return n;
+	}
+	return 0;
+}
+//@}
+//@}
+
 /*!
 \brief 删除指定容器中指定迭代器起始指定数量的元素。
 \pre 指定的迭代器是指定容器的迭代器。
@@ -755,6 +805,27 @@ erase_n(_tCon& con, typename _tCon::iterator i,
 {
 	yassume(n <= std::distance(i, end(con)));
 	return con.erase(i, std::next(i, n));
+}
+//@}
+
+
+/*!
+\brief 移除 const_iterator 的 const 限定。
+\since build 680
+*/
+//@{
+template<class _tCon>
+inline typename _tCon::iterator
+cast_mutable(_tCon& con, typename _tCon::const_iterator i)
+{
+	return con.erase(i, i);
+}
+template<class _tCon, typename _type>
+inline std::pair<typename _tCon::iterator, _type>
+cast_mutable(_tCon& con,
+	const std::pair<typename _tCon::const_iterator, _type>& pr)
+{
+	return {ystdex::cast_mutable(con, pr.first), pr.second};
 }
 //@}
 
@@ -876,7 +947,6 @@ replace_value(_tAssocCon& con, const _tKey& k, _func f)
 
 
 //! \since build 677
-//@{
 namespace details
 {
 
@@ -922,23 +992,17 @@ extract_key(const _tKey& k)
 }
 //@}
 
-
 /*!
-\brief 按指定键值搜索指定关联容器。
-\return 一个用于表示结果的 std::pair 对象，其成员 \c first 为迭代器，
-	\c second 表示是否不存在而需要插入。
-\note 使用 ADL extract_key 。
+\return 一个用于表示结果的 std::pair 值，其成员 \c first 为迭代器，
+	\c second 表示是否没有找到。
+\note 使用 ADL cend 和 extract_key 。
 */
 //@{
-template<class _tAssocCon, typename _tKey>
-std::pair<typename _tAssocCon::iterator, bool>
-search_map(_tAssocCon& con, const _tKey& k)
-{
-	const auto i(con.lower_bound(k));
-
-	return
-		{i, i == cend(con) || con.key_comp()(k, extract_key<_tAssocCon>(*i))};
-}
+/*!
+\brief 按指定键搜索指定关联容器。
+\since build 677
+*/
+//@{
 template<class _tAssocCon, typename _tKey>
 std::pair<typename _tAssocCon::const_iterator, bool>
 search_map(const _tAssocCon& con, const _tKey& k)
@@ -946,6 +1010,49 @@ search_map(const _tAssocCon& con, const _tKey& k)
 	const auto i(con.lower_bound(k));
 
 	return {i, i == end(con) || con.key_comp()(k, extract_key<_tAssocCon>(*i))};
+}
+template<class _tAssocCon, typename _tKey>
+inline std::pair<typename _tAssocCon::iterator, bool>
+search_map(_tAssocCon& con, const _tKey& k)
+{
+	return ystdex::cast_mutable(con, ystdex::search_map(ystdex::as_const(con), k));
+}
+//@}
+//! \since build 680
+//@{
+/*!
+\brief 按指定键和提示的迭代器位置搜索指定关联容器。
+\pre 容器非空或提示的迭代器位置指向尾部。
+\note 使用 ADL cbegin 。
+*/
+//@{
+template<class _tAssocCon, typename _tKey>
+std::pair<typename _tAssocCon::const_iterator, bool>
+search_map(const _tAssocCon& con, typename _tAssocCon::const_iterator hint,
+	const _tKey& k)
+{
+	if(!con.empty())
+	{
+		const auto& comp(con.key_comp());
+		const bool fit_before(hint == cbegin(con)
+			|| bool(comp(extract_key(*std::prev(hint)), k))),
+			fit_after(hint == cend(con)
+			|| bool(comp(k, extract_key(*std::next(hint)))));
+
+		if(fit_before == fit_after)
+			return {hint, fit_before && fit_after};
+		return ystdex::search_map(con, k);
+	}
+	yconstraint(hint == cend(con));
+	return {hint, true};
+}
+template<class _tAssocCon, typename _tKey>
+inline std::pair<typename _tAssocCon::iterator, bool>
+search_map(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
+	const _tKey& k)
+{
+	return ystdex::cast_mutable(con,
+		ystdex::search_map(ystdex::as_const(con), hint, k));
 }
 //@}
 /*!
@@ -955,23 +1062,52 @@ search_map(const _tAssocCon& con, const _tKey& k)
 \note 行为类似 std::map::operator[] 。
 */
 //@{
-template<class _tAssocCon, typename _tKey, typename _func>
-typename _tAssocCon::iterator
-search_map(_tAssocCon& con, const _tKey& k, _func f)
+template<typename _func, class _tAssocCon, typename... _tParams>
+std::pair<typename _tAssocCon::const_iterator, bool>
+search_map(_func f, const _tAssocCon& con, _tParams&&... args)
 {
-	const auto pr(ystdex::search_map(con, k));
+	auto pr(ystdex::search_map(con, yforward(args)...));
 
-	return pr.second ? f(pr.first) : pr.first;
+	if(pr.second)
+		pr.first = f(pr.first);
+	return pr;
 }
-template<class _tAssocCon, typename _tKey, typename _func>
-typename _tAssocCon::const_iterator
-search_map(const _tAssocCon& con, const _tKey& k, _func f)
+template<typename _func, class _tAssocCon, typename... _tParams>
+inline std::pair<typename _tAssocCon::iterator, bool>
+search_map(_func f, _tAssocCon& con, _tParams&&... args)
 {
-	const auto pr(ystdex::search_map(con, k));
-
-	return pr.second ? f(pr.first) : pr.first;
+	return ystdex::cast_mutable(con,
+		ystdex::search_map(f, ystdex::as_const(con), yforward(args)...));
 }
 //@}
+//@}
+//@}
+
+/*!
+\since build 680
+\see WG21 N4279 。
+*/
+//@{
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+std::pair<typename _tAssocCon::iterator, bool>
+try_emplace(_tAssocCon& con, _tKey&& k, _tParams&&... args)
+{
+	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
+	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
+		return con.emplace_hint(i, std::forward<_tParams>(args)...);
+	}, con, k);
+}
+
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+std::pair<typename _tAssocCon::iterator, bool>
+try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
+	_tKey&& k, _tParams&&... args)
+{
+	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
+	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
+		return con.emplace_hint(i, std::forward<_tParams>(args)...);
+	}, con, hint, k);
+}
 //@}
 //@}
 

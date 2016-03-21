@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r652
+\version r664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-03-18 23:45 +0800
+	2016-03-20 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,20 +47,6 @@ ValueNode::operator%=(const ValueNode&& node)
 
 	n.Value = std::move(node.Value);
 	return n;
-}
-
-ValueNode&
-ValueNode::operator[](const string& n)
-{
-	return *ystdex::search_map(container, n, [&](Container::iterator i){
-		return EmplaceValueWithHintTo(container, i, n);
-	});
-}
-
-bool
-ValueNode::Remove(const ValueNode& node)
-{
-	return container.erase(node) != 0;
 }
 
 void

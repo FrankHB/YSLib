@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r786
+\version r801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-03-19 20:34 +0800
+	2016-03-20 15:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,32 +55,34 @@ namespace ystdex
 namespace details
 {
 
-template<class _type>
-using member_is_transparent_t = typename _type::is_transparent;
+//! \since build 680
+template<class _type, typename = void>
+using mem_is_transparent_t = typename _type::is_transparent;
 
 } // namespace details;
 
-//! \since build 679
+//! \note 第二参数用于传递 SFINAE 模板参数，可为键类型。
 //@{
 /*!
 \ingroup unary_type_traits
 \brief 判断 _type 是否包含 is_transparent 成员类型。
+\since build 681
 */
-template<typename _type>
-using has_member_is_transparent
-	= is_detected<details::member_is_transparent_t, _type>;
+template<typename _type, typename _tDummy = void>
+using has_mem_is_transparent
+	= is_detected<details::mem_is_transparent_t, _type, _tDummy>;
 
 /*!
 \ingroup metafunction
 \brief 移除不满足包含 is_transparent 成员类型比较器的重载。
-\note 第二参数用于传递 SFINAE 模板参数，可为键类型。
 \sa enable_if_t
-\sa has_member_is_transparent
+\sa has_mem_is_transparent
 \see WG21 N3657 。
+\since build 679
 */
-template<typename _fComp, typename, typename _type = void>
+template<typename _fComp, typename _tDummy, typename _type = void>
 using enable_if_transparent_t
-	= enable_if_t<has_member_is_transparent<_fComp>::value, _type>;
+	= enable_if_t<has_mem_is_transparent<_fComp, _tDummy>::value, _type>;
 //@}
 //@}
 
@@ -279,6 +281,8 @@ using std::negate;
 using std::equal_to;
 using std::not_equal_to;
 using std::greater;
+//! \since build 680
+using std::less;
 using std::greater_equal;
 using std::less_equal;
 

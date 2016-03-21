@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4025
+\version r4030
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-03-16 18:54 +0800
+	2016-03-20 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,7 +287,7 @@ public:
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
-		: content(ystdex::any_ops::holder_tag(),
+		: content(ystdex::any_ops::use_holder,
 		InPlaceTag<ValueHolder<ystdex::decay_t<_type>>>(), yforward(obj))
 	{}
 	/*!
@@ -299,7 +299,7 @@ public:
 	*/
 	template<typename _type, typename... _tParams>
 	ValueObject(InPlaceTag<_type>, _tParams&&... args)
-		: content(ystdex::any_ops::holder_tag(),
+		: content(ystdex::any_ops::use_holder,
 		InPlaceTag<ValueHolder<_type>>(), yforward(args)...)
 	{}
 	/*!
@@ -310,7 +310,7 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
-		: content(ystdex::any_ops::holder_tag(),
+		: content(ystdex::any_ops::use_holder,
 		InPlaceTag<PointerHolder<_type>>(), p)
 	{}
 	/*!
@@ -428,7 +428,7 @@ public:
 	{
 		using Holder = ValueHolder<ystdex::decay_t<_type>>;
 
-		content.emplace<Holder>(ystdex::any_ops::holder_tag(),
+		content.emplace<Holder>(ystdex::any_ops::use_holder,
 			Holder(yforward(args)...));
 	}
 	template<typename _type>
@@ -437,7 +437,7 @@ public:
 	{
 		using Holder = PointerHolder<ystdex::decay_t<_type>>;
 
-		content.emplace<Holder>(ystdex::any_ops::holder_tag(), Holder(p));
+		content.emplace<Holder>(ystdex::any_ops::use_holder, Holder(p));
 	}
 
 	template<typename _type, typename... _tParams>

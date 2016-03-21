@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5901
+\version r5909
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-03-17 21:35 +0800
+	2016-03-20 11:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -568,10 +568,10 @@ struct second<void>
 //@{
 yconstexpr const first_tag get_first{}, get_key{};
 yconstexpr const second_tag get_second{}, get_value{};
-//! \since build 358
-yconstexpr const struct indirect_tag{} get_indirect{};
-//! \since build 536
-yconstexpr const struct get_tag{} get_get{};
+//! \since build 680
+yconstexpr const struct get_indirect_t{} get_indirect{};
+//! \since build 680
+yconstexpr const struct get_get_t{} get_get{};
 //@}
 
 
@@ -595,16 +595,18 @@ operator|(_tIter&& i, second_tag) -> decltype(make_transform(yforward(i),
 {
 	return make_transform(yforward(i), iterator_transformation::second<>());
 }
+//! \since build 680
 template<typename _tIter>
 inline auto
-operator|(_tIter&& i, indirect_tag) -> decltype(make_transform(yforward(i),
+operator|(_tIter&& i, get_indirect_t) -> decltype(make_transform(yforward(i),
 	iterator_transformation::indirect<>()))
 {
 	return make_transform(yforward(i), iterator_transformation::indirect<>());
 }
+//! \since build 680
 template<typename _tIter>
 inline auto
-operator|(_tIter&& i, get_tag)
+operator|(_tIter&& i, get_get_t)
 	-> decltype(make_transform(yforward(i), iterator_transformation::get<>()))
 {
 	return make_transform(yforward(i), iterator_transformation::get<>());

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2929
+\version r2936
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-03-10 14:53 +0800
+	2016-03-21 12:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,13 +35,15 @@
 #include YFM_YCLib_Reference // for unique_ptr, nptr;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
-#if YCL_DS || YCL_MinGW || YCL_Linux || YCL_OS_X
-#	include <dirent.h>
-#endif
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 #include <ctime> // for std::time_t;
 #include YFM_YCLib_Debug // for Nonnull, Deref;
 #include <ystdex/cstdint.hpp> // for ystdex::read_uint_le;
+
+#if !YCL_Win32
+//! \since build 680
+struct dirent;
+#endif
 
 namespace platform
 {
@@ -191,7 +193,7 @@ public:
 	class Data;
 #else
 	//! \since build 669
-	using Data = ::DIR;
+	using Data = void;
 #endif
 	using NativeHandle = Data*;
 
