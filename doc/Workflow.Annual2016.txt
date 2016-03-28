@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r74
+\version r86
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-03-17 15:17 +0800
+	2016-03-22 09:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,18 @@ Rules on access specifier for operator bases are amended, based on $2016-02 repo
 	Now classes with these bases use 'private' at first, to conform to the general language rules.
 	For %iterator_operators_t it is still remained to be 'public' due to possible 'operator[]' and 'operator->' members.
 	User code is still not restricted.
+WG21 N4279 introduces 'try_emplace' and 'insert_or_assign' for map-like containers. There are some points to be noted.
+	Only 'std::map' and 'std::unordered_map' have such interface. Set-like containers do not.
+	If needed for set-like containers, it is better to be emulated directly by 'ystdex::try_emplace' and 'ystd::try_emplace_hint' directly because they avoid some significant shortcomings.
+		They have less ambiguity (between iterator and key parameter) with generic key type support.
+		For overloading with hint, the return value type is richer, i.e. with also 'bool' component to detect whether the insertion has been succeeded.
+		They are more generic.
+	As emulating 'std::set' rather than 'std::map', 'ystdex::mapped_set' now does not provide such extensions.
+		It also avoid heavy dependency on header 'ystdex/container.h'.
+	On the other hand, 'YSLib::ValueNode' still provides 'try_emplace', with generic key types support.
+		Since it is emulating 'std::map' and non-generic key are too limited.
+		To be compatible, overloading with hint is still named as 'try_emplace' and using single iterator return value, with SFINAE detection to avoid ambiguity.
+		Some other extensions like typed insertion (for 'ValueNode::Value') are still provided in other names.
 
 ////
 

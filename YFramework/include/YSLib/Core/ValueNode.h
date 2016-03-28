@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2470
+\version r2577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-03-22 00:58 +0800
+	2016-03-24 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,6 +123,53 @@ public:
 	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str)
 		: name(yforward(str)), container(pr.first, pr.second)
 	{}
+	/*!
+	\brief 原地构造：使用容器、名称和值的参数元组。
+	\since build 681
+	*/
+	//@{
+	template<typename... _tParams1, size_t... _vIdxSeq1>
+	inline
+	ValueNode(std::tuple<_tParams1...> args1)
+		: ValueNode(ystdex::index_sequence_for<_tParams1...>(),
+		ystdex::index_sequence<>(), ystdex::index_sequence<>(), args1,
+		std::tuple<>(), std::tuple<>())
+	{}
+	template<typename... _tParams1, size_t... _vIdxSeq1, typename... _tParams2,
+		size_t... _vIdxSeq2>
+	inline
+	ValueNode(std::tuple<_tParams1...> args1, std::tuple<_tParams2...> args2)
+		: ValueNode(ystdex::index_sequence_for<_tParams1...>(),
+		ystdex::index_sequence_for<_tParams2...>(), ystdex::index_sequence<>(),
+		args1, args2, std::tuple<>())
+	{}
+	template<typename... _tParams1, size_t... _vIdxSeq1, typename... _tParams2,
+		size_t... _vIdxSeq2, typename... _tParams3, size_t... _vIdxSeq3>
+	inline
+	ValueNode(std::tuple<_tParams1...> args1, std::tuple<_tParams2...> args2,
+		std::tuple<_tParams3...> args3)
+		: ValueNode(ystdex::index_sequence_for<_tParams1...>(),
+		ystdex::index_sequence_for<_tParams2...>(),
+		ystdex::index_sequence_for<_tParams3...>(), args1, args2, args3)
+	{}
+
+private:
+	template<typename... _tParams1, size_t... _vIdxSeq1, typename... _tParams2,
+		size_t... _vIdxSeq2, typename... _tParams3, size_t... _vIdxSeq3>
+	inline
+	ValueNode(ystdex::index_sequence<_vIdxSeq1...>,
+		ystdex::index_sequence<_vIdxSeq2...>,
+		ystdex::index_sequence<_vIdxSeq3...>,
+		std::tuple<_tParams1...> args1,
+		std::tuple<_tParams2...> args2,
+		std::tuple<_tParams3...> args3)
+		: name(std::get<_vIdxSeq2>(args2)...),
+		container(std::get<_vIdxSeq1>(args1)...),
+		Value(std::get<_vIdxSeq3>(args3)...)
+	{}
+	//@}
+
+public:
 	DefDeCopyMoveCtor(ValueNode)
 
 	/*!
@@ -266,32 +313,18 @@ public:
 		ImplExpr(container.clear())
 	//@}
 
-	//! \since build 678
-	//@{
+	/*!
+	\brief 若指定名称子节点不存在则按指定值初始化。
+	\return 按指定名称查找的指定类型的子节点的值的引用。
+	\since build 681
+	*/
 	template<typename _type, typename _tString, typename... _tParams>
-	_type&
-	EmplaceForTypedValue(_tString&& str, _tParams&&... args)
+	inline _type&
+	Place(_tString&& str, _tParams&&... args)
 	{
-		return EmplaceForTypedValueTo<_type>(GetContainerRef(), yforward(str),
-			yforward(args)...);
+		return try_emplace(str, NoContainer, yforward(str), InPlaceTag<_type>(),
+			yforward(args)...).first->Value.template GetObject<_type>();
 	}
-
-	template<typename _type, typename _tString, typename... _tParams>
-	static _type&
-	EmplaceForTypedValueTo(Container& con, _tString&& str, _tParams&&... args)
-	{
-		return EmplaceTypedValueTo<_type>(con, yforward(str), yforward(args)...)
-			.first->Value.template GetObject<_type>();
-	}
-
-	template<typename _type, typename _tString, typename... _tParams>
-	static std::pair<iterator, bool>
-	EmplaceTypedValueTo(Container& con, _tString&& str, _tParams&&... args)
-	{
-		return con.emplace(NoContainer, yforward(str), InPlaceTag<_type>(),
-			yforward(args)...);
-	}
-	//@}
 
 	PDefH(bool, Remove, const ValueNode& node)
 		ImplRet(container.erase(node) != 0)
@@ -384,9 +417,32 @@ public:
 	DefFwdTmpl(-> decltype(container.insert(yforward(args)...)), auto,
 		insert, container.insert(yforward(args)...))
 
-	//! \since build 680
-	DefFwdTmpl(-> decltype(container.try_emplace(yforward(args)...)), auto,
-		try_emplace, container.try_emplace(yforward(args)...))
+	//! \since build 681
+	//@{
+	template<typename _tKey, class _tParam>
+	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator,
+		std::pair<iterator, bool>>
+	insert_or_assign(_tKey&& k, _tParam&& arg)
+	{
+		return ystdex::insert_or_assign(container, yforward(k), yforward(arg));
+	}
+	template<typename _tKey, class _tParam>
+	iterator
+	insert_or_assign(const_iterator hint, _tKey&& k, _tParam&& arg)
+	{
+		return ystdex::insert_or_assign_hint(container, hint, yforward(k),
+			yforward(arg));
+	}
+	//@}
+
+	/*!
+	\sa ystdex::mapped_set
+	\sa ystdex::set_value_move
+	\since build 681
+	*/
+	friend PDefH(ValueNode, set_value_move, ValueNode& node)
+		ImplRet({std::move(node.GetContainerRef()), node.GetName(),
+			std::move(node.Value)})
 
 	//! \since build 598
 	PDefH(size_t, size, ) const ynothrow
@@ -399,17 +455,23 @@ public:
 	void
 	swap(ValueNode&) ynothrow;
 
-	/*!
-	\sa ystdex::mapped_set
-	\sa ystdex::set_value_move
-	\since build 671
-	*/
-	friend ValueNode
-	set_value_move(ValueNode&& node)
+	//! \since build 681
+	//@{
+	template<typename _tKey, typename... _tParams>
+	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator,
+		std::pair<iterator, bool>>
+	try_emplace(_tKey&& k, _tParams&&... args)
 	{
-		return {std::move(node.GetContainerRef()), node.GetName(),
-			std::move(node.Value)};
+		return ystdex::try_emplace(container, yforward(k), yforward(args)...);
 	}
+	template<typename _tKey, typename... _tParams>
+	iterator
+	try_emplace(const_iterator hint, _tKey&& k, _tParams&&... args)
+	{
+		return ystdex::try_emplace_hint(container, hint, yforward(k),
+			yforward(args)...);
+	}
+	//@}
 };
 
 //! \relates ValueNode

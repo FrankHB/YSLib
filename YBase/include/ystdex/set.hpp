@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1010
+\version r1050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-03-22 00:06 +0800
+	2016-03-22 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,12 @@
 #ifndef YB_INC_ystdex_set_hpp_
 #define YB_INC_ystdex_set_hpp_ 1
 
-#include "container.hpp" // for less, lref, std::move, std::allocator,
-//	transformed_iterator, std::allocator_traits,
+#include "functor.hpp" // for lref, std::move, less, std::allocator,
+//	std::allocator_traits, std::piecewise_construct, enable_if_transparent,
+//	std::count, std::lower_bound, std::upper_bound, std::equal_range;
+#include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::make_transform,
-//	std::piecewise_construct, std::forward_as_tuple, ystdex::try_emplace,
-//	ystdex::try_emplace_hint, enable_if_transparent_t, std::count,
-//	std::lower_bound, std::upper_bound, std::equal_range;
+//	std::forward_as_tuple;
 #include <map> // for std::map, std::initializer_list;
 
 namespace ystdex
@@ -450,40 +450,6 @@ public:
 	{
 		insert(il.begin(), il.end());
 	}
-
-	/*!
-	\see WG21 N4279 。
-	\since build 680
-	\todo 添加 \c insert_or_assign 。
-	*/
-	//@{
-	template<typename... _tParams>
-	std::pair<iterator, bool>
-	try_emplace(const key_type& k, _tParams&&... args)
-	{
-		return ystdex::try_emplace(*this, k, yforward(args)...);
-	}
-	template<typename... _tParams>
-	std::pair<iterator, bool>
-	try_emplace(key_type&& k, _tParams&&... args)
-	{
-		return ystdex::try_emplace(*this, std::move(k), yforward(args)...);
-	}
-	template<typename... _tParams>
-	iterator
-	try_emplace(const_iterator hint, const key_type& k, _tParams&&... args)
-	{
-		return
-			ystdex::try_emplace_hint(*this, hint, k, yforward(args)...).first;
-	}
-	template<typename... _tParams>
-	iterator
-	try_emplace(const_iterator hint, key_type&& k, _tParams&&... args)
-	{
-		return ystdex::try_emplace_hint(*this, hint, std::move(k),
-			yforward(args)...).first;
-	}
-	//@}
 
 	iterator
 	erase(iterator position)
