@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1653
+\version r1729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-03-21 23:55 +0800
+	2016-03-23 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "iterator.hpp" // for begin, end, make_transform, size, std::distance,
-//	std::make_move_iterator, cbegin, cend;
+//	std::make_move_iterator, cbegin, cend, std::piecewise_construct_t,
+//	std::piecewise_construct;
 #include "functional.hpp" // for std::declval, is_detected_convertible;
 #include "utility.hpp" // for std::initializer_list, ystdex::as_const;
 #include "algorithm.hpp" // for is_undereferenceable, sort_unique;
@@ -366,8 +367,8 @@ range_size(const _tRange& c, false_type)
 \ingroup algorithms
 \pre 参数指定的迭代器范围（若存在）有效。
 \note 参数 \c first 和 \c last 指定迭代器范围。
-\note 对不以迭代器指定的范围，使用 ADL \c begin 和 \c end 取迭代器的值及其类型，
-	但确定为 const 迭代器时使用 ADL \c cbegin 和 \c cend 代替。
+\note 对不以迭代器指定的范围，使用 ADL begin 和 end 取迭代器的值及其类型，
+	但确定为 const 迭代器时使用 ADL cbegin 和 cend 代替。
 */
 //@{
 /*!
@@ -946,6 +947,41 @@ replace_value(_tAssocCon& con, const _tKey& k, _func f)
 }
 
 
+/*!
+\ingroup metafunctions
+\brief 判断关联容器、键和参数类型是否可以按 map 的方式无转移地构造。
+\since build 681
+*/
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+using is_piecewise_mapped = is_constructible<typename _tAssocCon::value_type,
+	std::piecewise_construct_t, std::tuple<_tKey&&>, std::tuple<_tParams&&...>>;
+
+
+/*!
+\brief 带有提示的原地插入构造。
+\since build 681
+*/
+//@{
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+inline yimpl(enable_if_t)<is_piecewise_mapped<_tAssocCon, _tKey,
+	_tParams...>::value, typename _tAssocCon::iterator>
+emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
+	_tKey&& k, _tParams&&... args)
+{
+	return con.emplace_hint(hint, std::piecewise_construct,
+		std::forward_as_tuple(yforward(k)),
+		std::forward_as_tuple(yforward(args)...));
+}
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+inline yimpl(enable_if_t)<!is_piecewise_mapped<_tAssocCon, _tKey,
+	_tParams...>::value, typename _tAssocCon::iterator>
+emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
+	_tKey&&, _tParams&&... args)
+{
+	return con.emplace_hint(hint, yforward(args)...);
+}
+//@}
+
 //! \since build 677
 namespace details
 {
@@ -964,6 +1000,21 @@ inline const typename _tAssocCon::key_type&
 extract_key(const typename _tAssocCon::value_type& val, true_type)
 {
 	return val.first;
+}
+
+
+//! \since build 681
+template<class _tAssocCon, typename _tKey, typename _tParam>
+std::pair<typename _tAssocCon::iterator, bool>
+insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
+	_tAssocCon& con, _tKey&& k, _tParam&& arg)
+{
+	if(pr.first)
+		pr.first
+			= emplace_hint_in_place(con, pr.second, yforward(k), yforward(arg));
+	else
+		pr.second = yforward(arg);
+	return pr;
 }
 
 } // unnamed namespace details;
@@ -991,6 +1042,7 @@ extract_key(const _tKey& k)
 	return k;
 }
 //@}
+
 
 /*!
 \return 一个用于表示结果的 std::pair 值，其成员 \c first 为迭代器，
@@ -1084,9 +1136,12 @@ search_map(_func f, _tAssocCon& con, _tParams&&... args)
 //@}
 
 /*!
-\since build 680
+\note 使用 ADL emplace_hint_in_place 。
+\sa emplace_hint_in_place
 \see WG21 N4279 。
 */
+//@{
+//! \since build 680
 //@{
 template<class _tAssocCon, typename _tKey, typename... _tParams>
 std::pair<typename _tAssocCon::iterator, bool>
@@ -1094,7 +1149,8 @@ try_emplace(_tAssocCon& con, _tKey&& k, _tParams&&... args)
 {
 	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
 	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
-		return con.emplace_hint(i, std::forward<_tParams>(args)...);
+		return emplace_hint_in_place(con, i, yforward(k),
+			std::forward<_tParams>(args)...);
 	}, con, k);
 }
 
@@ -1105,9 +1161,31 @@ try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 {
 	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
 	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
-		return con.emplace_hint(i, std::forward<_tParams>(args)...);
+		return emplace_hint_in_place(con, i, yforward(k),
+			std::forward<_tParams>(args)...);
 	}, con, hint, k);
 }
+//@}
+
+//! \since build 681
+//@{
+template<class _tAssocCon, typename _tKey, typename _tParam>
+inline std::pair<typename _tAssocCon::iterator, bool>
+insert_or_assign(_tAssocCon& con, _tKey&& k, _tParam&& arg)
+{
+	return details::insert_or_assign(ystdex::search_map(con, k), con,
+		yforward(k), yforward(arg));
+}
+
+template<class _tAssocCon, typename _tKey, typename _tParam>
+inline std::pair<typename _tAssocCon::iterator, bool>
+insert_or_assign_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
+	_tKey&& k, _tParam&& arg)
+{
+	return details::insert_or_assign(ystdex::search_map(con, hint, k), con,
+		yforward(k), yforward(arg));
+}
+//@}
 //@}
 //@}
 

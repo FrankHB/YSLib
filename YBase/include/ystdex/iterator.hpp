@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5909
+\version r5910
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-03-20 11:53 +0800
+	2016-03-27 12:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,7 +215,7 @@ struct transit_traits
 template<typename _tIter, typename _fTrans, typename _tReference = void>
 class transformed_iterator : public iterator_operators_t<transformed_iterator<
 	_tIter, _fTrans, _tReference>, details::transit_traits<_tIter, _fTrans,
-	_tReference>>, private totally_ordered2<transformed_iterator<_tIter, _fTrans,
+	_tReference>>, private totally_ordered<transformed_iterator<_tIter, _fTrans,
 	_tReference>, typename
 	details::transit_traits<_tIter, _fTrans, _tReference>::iterator_type>
 {

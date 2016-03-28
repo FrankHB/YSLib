@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r650
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2016-03-17 14:53 +0800
+	2016-03-27 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #include <stdexcept> // for std::logic_error;
 #include <new> // for placement ::operator new from standard library;
 #include "operators.hpp" // for std::addressof, ystdex::constfn_addressof,
-//	totally_ordered, totally_ordered2;
+//	totally_ordered;
 #include <initializer_list> // for std::initializer_list;
 #include "functional.hpp" // for default_last_value, std::accumulate;
 
@@ -256,8 +256,8 @@ public:
 */
 template<typename _type>
 class optional : private details::optional_base<remove_cv_t<_type>>, yimpl(
-	private totally_ordered<optional<_type>>, public totally_ordered2<optional<
-	_type>, _type>, private totally_ordered2<optional<_type>, nullopt_t>)
+	private totally_ordered<optional<_type>>, public totally_ordered<optional<
+	_type>, _type>, private totally_ordered<optional<_type>, nullopt_t>)
 {
 	//! \see WG21 N4480 5.2[optional.synopsis]/1 。
 	static_assert(!or_<is_reference<_type>, is_same<remove_cv_t<_type>,
