@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1396
+# Version = r1398
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2016-01-11 10:53 +0800
+# Updated = 2016-03-29 08:54 +0800
 # Encoding = ANSI
 
 
@@ -61,8 +61,7 @@ CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
 	-fno-threadsafe-statics -fuse-cxa-atexit \
 	-Wnon-virtual-dtor -Wsign-promo
 #	-Wnoexcept -Wold-style-cast -Wsign-promo
-LDFLAGS := $(LDFLAGS_OPT_DBG) -specs=ds_arm9.specs $(ARCH) -Wl,--gc-sections \
-	-Wl,-Map,$(notdir $*.map)
+LDFLAGS := $(LDFLAGS_OPT_DBG) -specs=ds_arm9.specs $(ARCH) -Wl,--gc-sections
 
 #CFLAGS	:=	-g -Wformat=2 -Winline -Wall \
 #		-mcpu=arm946e-s -mtune=arm946e-s -fomit-frame-pointer \

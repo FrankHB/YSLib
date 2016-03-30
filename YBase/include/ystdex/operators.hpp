@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2347
+\version r2779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2016-03-28 12:42 +0800
+	2016-03-30 14:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,67 +32,47 @@
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "addressof.hpp" // for _t, false_type, true_type,
-//	ystdex::constfn_addressof;
+#include "addressof.hpp" // for _t, true_type, ystdex::constfn_addressof;
+#include "integer_sequence.hpp" // for index_sequence;
 
 namespace ystdex
 {
 
 /*!
 \brief 依赖名称查找操作：作为 ADL 的边界。
-\since build 586
+\note 操作模板不指定为类模板或别名模板。
+\since build 682
 */
-namespace dependent_operators
+namespace dep_ops
 {
 
 //! \since build 682
 using use_constfn = yimpl(true_type);
 
-} // namespace dependent_operators;
+} // namespace dep_ops;
 
-#define YB_Impl_Operators_friend(_c, _op, _tRet, _spec, _expr, ...) \
-	friend _c _tRet \
-	operator _op(__VA_ARGS__) ynoexcept(_spec) \
-	{ \
-		return (_expr); \
-	}
-#define YB_Impl_Operators_friend_s(_c, _op, _tRet, _expr, ...) \
-	YB_Impl_Operators_friend(_c, _op, _tRet, noexcept(_expr), _expr, __VA_ARGS__)
-#define YB_Impl_Operators_friend_l(_c, _op, _type, _type2) \
-	YB_Impl_Operators_friend_s(_c, _op, _type, x _op##= y, _type x, \
-		const _type2& y)
-#define YB_Impl_Operators_friend_r(_c, _op, _type, _type2) \
-	YB_Impl_Operators_friend_s(_c, _op, _type, x _op##= std::move(y), _type x, \
-		_type2&& y)
-#define YB_Impl_Operators_Head1(_name) \
-	template<class _type, class _tOpt = yimpl(use_constfn)> \
-	struct _name
-#define YB_Impl_Operators_Head2(_name) \
-	template<class _type, typename _type2, \
-		class _tOpt = yimpl(true_type)> \
-	struct _name
-#define YB_Impl_Operators_Head2_de(_name) \
-	template<class _type, typename _type2 = _type, \
-		class _tOpt = yimpl(use_constfn)> \
-	struct _name
-#define YB_Impl_Operators_Head2_spec(_name) \
-	template<class _type, class _tOpt> \
-	struct _name<_type, _type, _tOpt>
-#define YB_Impl_Operators_Head3(_name) \
-	template<class _type, typename _type2, typename _type3, \
-		class _tOpt = yimpl(use_constfn)> \
-	struct _name
+#define YB_Impl_Operators_DeOpt = yimpl(use_constfn)
+#define YB_Impl_Operators_H_n(_tSeq, _arg) \
+	template<class _type, _tSeq class _tOpt _arg>
+#define YB_Impl_Operators_H1 \
+	YB_Impl_Operators_H_n(, YB_Impl_Operators_DeOpt)
+#define YB_Impl_Operators_H2 \
+	YB_Impl_Operators_H_n(typename _type2 YPP_Comma, YB_Impl_Operators_DeOpt)
+#define YB_Impl_Operators_H2_de \
+	YB_Impl_Operators_H_n(typename _type2 = _type YPP_Comma, \
+		YB_Impl_Operators_DeOpt)
+#define YB_Impl_Operators_H2_Alias(_name, ...) \
+	YB_Impl_Operators_H2 \
+	yimpl(using) _name = __VA_ARGS__;
+#define YB_Impl_Operators_H2_Alias_de(_name, ...) \
+	YB_Impl_Operators_H2_de \
+	yimpl(using) _name = __VA_ARGS__;
+#define YB_Impl_Operators_H3 \
+	YB_Impl_Operators_H_n(typename _type2 YPP_Comma typename _type3 \
+		YPP_Comma, YB_Impl_Operators_DeOpt)
 
 namespace details
 {
-
-#define YB_Impl_Operators_SHead2(_name) \
-	template<class _type, typename _type2, class _tOpt> \
-	struct _name
-#define YB_Impl_Operators_SHead1(_name) \
-	template<class _type, class _tOpt> \
-	struct _name
-
 
 //! \since build 640
 //@{
@@ -111,273 +91,233 @@ using op_idt_t = _t<op_idt<_type>>;
 //@}
 
 
+//! \since build 682
+//@{
+template<class... _types>
+struct ebases : _types...
+{};
+
+template<size_t _vN, class _type, typename _type2, class _tOpt> \
+struct bin_ops;
+
+template<class, typename, class, class>
+struct ops_seq;
+
+template<class _type, typename _type2, class _tOpt, size_t... _vSeq>
+struct ops_seq<_type, _type2, _tOpt, index_sequence<_vSeq...>>
+{
+	using type = ebases<bin_ops<_vSeq, _type, _type2, _tOpt>...>;
+};
+//@}
+
+
+#define YB_Impl_Operators_f(_c, _op, _tRet, _expr, ...) \
+	friend _c _tRet \
+	operator _op(__VA_ARGS__) ynoexcept(noexcept(_expr)) \
+	{ \
+		return (_expr); \
+	}
+// TODO: Replace 'yconstfn' to deduced '_tOpt' result.
+#define YB_Impl_Operators_bin_spec(_n, _f, ...) \
+	YB_Impl_Operators_H_n(typename _type2 YPP_Comma, ) \
+	struct bin_ops<_n, _type, _type2, _tOpt> \
+	{ \
+		_f(yconstfn, __VA_ARGS__) \
+	};
+
 // NOTE: The trunk libstdc++ std::experimental::string_view comparison should
 //	depend on the same technique.
 // TODO: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52072. It is strange
 //	to still have this bug. Not fully tested for G++ 5. See also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67426.
 #if true // YB_IMPL_GNUCPP
-#	define YB_Impl_Operators_Compare2(_c, _op, _expr, _ptp, _ptp2) \
-	YB_Impl_Operators_friend_s(_c, _op, bool, _expr, const _ptp& x, \
-		const _ptp2& y)
+#	define YB_Impl_Operators_cmpf(_c, _op, _expr, _ptp, _ptp2) \
+	YB_Impl_Operators_f(_c, _op, bool, _expr, const _ptp& x, const _ptp2& y)
 #else
-#	define YB_Impl_Operators_Compare2(_c, _op, _expr, _ptp, _ptp2) \
-	YB_Impl_Operators_friend_s(_c, _op, bool, _expr, const _ptp& x, \
+#	define YB_Impl_Operators_cmpf(_c, _op, _expr, _ptp, _ptp2) \
+	YB_Impl_Operators_f(_c, _op, bool, _expr, const _ptp& x, const _ptp2& y) \
+	YB_Impl_Operators_f(_c, _op, bool, _expr, const op_idt_t<_ptp>& x, \
 		const _ptp2& y) \
-	YB_Impl_Operators_friend_s(_c, _op, bool, _expr, \
-		const details::op_idt_t<_ptp>& x, const _ptp2& y) \
-	YB_Impl_Operators_friend_s(_c, _op, bool, _expr, \
-		const _ptp& x, const details::op_idt_t<_ptp2>& y)
+	YB_Impl_Operators_f(_c, _op, bool, _expr, const _ptp& x, \
+		const op_idt_t<_ptp2>& y)
 #endif
-#define YB_Impl_Operators_Compare1(_c, _op, _expr, _ptp) \
-	YB_Impl_Operators_friend_s(_c, _op, bool, _expr, const _ptp& x, \
-		const _ptp& y)
 
-//! \since build 681
+//! \since build 682
 //@{
-// TODO: Replace 'yconstfn' to deduced '_tOpt' result.
-#define YB_Impl_Operators_Scmp2(_name, _op, _expr, _ptp, _ptp2) \
-	YB_Impl_Operators_SHead2(_name) \
-	{ \
-		YB_Impl_Operators_Compare2(yconstfn, _op, _expr, _ptp, _ptp2) \
-	};
-#define YB_Impl_Operators_Scmp1(_name, _op, _expr, _ptp) \
-	YB_Impl_Operators_SHead1(_name) \
-	{ \
-		YB_Impl_Operators_Compare1(yconstfn, _op, _expr, _ptp) \
-	};
+#define YB_Impl_Operators_cmp(_n, _op, _expr, _ptp, _ptp2) \
+	YB_Impl_Operators_bin_spec(_n, YB_Impl_Operators_cmpf, _op, _expr, \
+		_ptp, _ptp2)
 
 // TODO: Add strictly partial order comparison support to reduce duplicate code
-//	between 'lt_*' and 'po_*'.
-YB_Impl_Operators_Scmp2(lt_1, <=, !bool(x > y), _type, _type2)
-YB_Impl_Operators_Scmp2(lt_2, >=, !bool(x < y), _type, _type2)
-YB_Impl_Operators_Scmp2(lt_3, >, y < x, _type2, _type)
-YB_Impl_Operators_Scmp2(lt_4, <, y > x, _type2, _type)
-YB_Impl_Operators_Scmp2(lt_5, <=, !bool(y < x), _type2, _type)
-YB_Impl_Operators_Scmp2(lt_6, >=, !bool(y > x), _type2, _type)
+//	between 'less_than_comparable' and 'partially_ordered'.
 
-YB_Impl_Operators_Scmp1(lts_1, >, y < x, _type)
-YB_Impl_Operators_Scmp1(lts_2, <=, !bool(y < x), _type)
-YB_Impl_Operators_Scmp1(lts_3, >=, !bool(x < y), _type)
+// NOTE: Range 0-5 is reserved for %less_than_comparable. Range 2-3 is also
+//	used by %partially_ordered.
+YB_Impl_Operators_cmp(0, <=, !bool(x > y), _type, _type2)
+YB_Impl_Operators_cmp(1, >=, !bool(x < y), _type, _type2)
+YB_Impl_Operators_cmp(2, >, y < x, _type2, _type)
+YB_Impl_Operators_cmp(3, <, y > x, _type2, _type)
+YB_Impl_Operators_cmp(4, <=, !bool(y < x), _type2, _type)
+YB_Impl_Operators_cmp(5, >=, !bool(y > x), _type2, _type)
 
-YB_Impl_Operators_Scmp2(ec_1, ==, y == x, _type2, _type)
-YB_Impl_Operators_Scmp2(ec_2, !=, !bool(x == y), _type2, _type)
-YB_Impl_Operators_Scmp2(ec_3, !=, !bool(x == y), _type, _type2)
+// NOTE: Range 6-8 is reserved for %equality_comparable.
+YB_Impl_Operators_cmp(6, ==, y == x, _type2, _type)
+YB_Impl_Operators_cmp(7, !=, !bool(x == y), _type2, _type)
+YB_Impl_Operators_cmp(8, !=, !bool(x == y), _type, _type2)
 
-YB_Impl_Operators_Scmp1(ecs_1, !=, !bool(x == y), _type)
+// NOTE: Range 9-10 is reserved for %equivalent.
+YB_Impl_Operators_cmp(9, !=, !bool(x < y) && !bool(x > y), _type, _type2)
+YB_Impl_Operators_cmp(10, !=, !bool(x < y) && !bool(y < x), _type, _type2)
 
-YB_Impl_Operators_Scmp2(eq_1, !=, !bool(x < y) && !bool(x > y), _type, _type2)
+// NOTE: Range 11-14 is reserved for %partially_ordered.
+YB_Impl_Operators_cmp(11, <=, bool(x < y) || bool(x == y), _type, _type2)
+YB_Impl_Operators_cmp(12, >=, bool(x > y) || bool(x == y), _type, _type2)
+YB_Impl_Operators_cmp(13, <=, bool(y > x) || bool(y == x), _type2, _type)
+YB_Impl_Operators_cmp(14, >=, bool(y < x) || bool(y == x), _type2, _type)
 
-YB_Impl_Operators_Scmp1(eqs_1, !=, !bool(x < y) && !bool(y < x), _type)
+#undef YB_Impl_Operators_cmp
+#undef YB_Impl_Operators_cmpf
 
-YB_Impl_Operators_Scmp2(po_1, <=, bool(x < y) || bool(x == y), _type, _type2)
-YB_Impl_Operators_Scmp2(po_2, >=, bool(x > y) || bool(x == y), _type, _type2)
-YB_Impl_Operators_Scmp2(po_5, <=, bool(y > x) || bool(y == x), _type2, _type)
-YB_Impl_Operators_Scmp2(po_6, >=, bool(y < x) || bool(y == x), _type2, _type)
 
-YB_Impl_Operators_Scmp1(pos_1, >, y < x, _type)
-YB_Impl_Operators_Scmp1(pos_2, <=, !bool(y < x), _type)
-YB_Impl_Operators_Scmp1(pos_3, >=, !bool(x < y), _type)
+// NOTE: Offset range 0-1 is reserved for general binary operations. Range 2-3
+//	is for commutative operations. Range 4-5 is for non commutative "left"
+//	operations.
+yconstfn size_t
+ops_bin_id(size_t id, size_t off) ynothrow
+{
+	return (id + 1) * 16 + off;
+}
 
-#undef YB_Impl_Operators_Scmp1
-#undef YB_Impl_Operators_Scmp2
+template<size_t _vID, size_t... _vSeq>
+using ops_bin_id_seq = index_sequence<ops_bin_id(_vID, _vSeq)...>;
 
-#undef YB_Impl_Operators_Compare2
-#undef YB_Impl_Operators_Compare1
+#define YB_Impl_Operators_bin_tmpl(_id, _off, _op, ...) \
+	YB_Impl_Operators_bin_spec(ops_bin_id(_id YPP_Comma _off), \
+		YB_Impl_Operators_f, _op, _type, __VA_ARGS__)
+#define YB_Impl_Operators_bin(_id, _op) \
+	YB_Impl_Operators_bin_tmpl(_id, 0, _op, x _op##= y, _type x, \
+		const _type2& y) \
+	YB_Impl_Operators_bin_tmpl(_id, 1, _op, x _op##= std::move(y), _type x, \
+		_type2&& y)
+#define YB_Impl_Operators_con(_id, _op) \
+	YB_Impl_Operators_bin(_id, _op) \
+	YB_Impl_Operators_bin_tmpl(_id, 2, _op, y _op##= x, const _type2& x, \
+		_type y) \
+	YB_Impl_Operators_bin_tmpl(_id, 3, _op, y _op##= std::move(x), _type2&& x, \
+		_type y)
+#define YB_Impl_Operators_left(_id, _op) \
+	YB_Impl_Operators_bin(_id, _op) \
+	YB_Impl_Operators_bin_tmpl(_id, 4, _op, _type(x) _op##= y, \
+		const _type2& x, const _type& y) \
+	YB_Impl_Operators_bin_tmpl(_id, 5, _op, \
+		_type(x) _op##= std::move(y), const _type2& x, _type&& y)
 
-// TODO: Replace 'yconstfn' to deduced '_tOpt' result.
-#define YB_Impl_Operators_Scon_or_ncon(_name, _op) \
-	YB_Impl_Operators_SHead1(_name##_l) \
-	{ \
-		YB_Impl_Operators_friend_l(yconstfn, _op, _type, _type) \
-	}; \
-	\
-	YB_Impl_Operators_SHead1(_name##_r) \
-	{ \
-		YB_Impl_Operators_friend_r(yconstfn, _op, _type, _type) \
-	};
-#define YB_Impl_Operators_Scon_or_ncon_lr(_name, _op) \
-	YB_Impl_Operators_SHead2(_name##_lr_l) \
-	{ \
-		YB_Impl_Operators_friend_l(yconstfn, _op, _type, _type2) \
-	}; \
-	\
-	YB_Impl_Operators_SHead2(_name##_lr_r) \
-	{ \
-		YB_Impl_Operators_friend_r(yconstfn, _op, _type, _type2) \
-	};
-#define YB_Impl_Operators_Scon2(_name, _op) \
-	YB_Impl_Operators_SHead2(_name##_s1) \
-	{ \
-		YB_Impl_Operators_friend_s(yconstfn, _op, _type, y _op##= x, \
-			const _type2& x, _type y) \
-	}; \
-	\
-	YB_Impl_Operators_SHead2(_name##_s2) \
-	{ \
-		YB_Impl_Operators_friend_s(yconstfn, _op, _type, \
-			y _op##= std::move(x), _type2&& x, _type y) \
-	};
-#define YB_Impl_Operators_Sncon2(_name, _op) \
-	YB_Impl_Operators_SHead2(_name##_left_s1) \
-	{ \
-		YB_Impl_Operators_friend_s(yconstfn, _op, _type, _type(x) _op##= y, \
-			const _type2& x, const _type& y) \
-	}; \
-	\
-	YB_Impl_Operators_SHead2(_name##_left_s2) \
-	{ \
-		YB_Impl_Operators_friend_s(yconstfn, _op, _type, \
-			_type(x) _op##= std::move(y), const _type2& x, _type&& y) \
-	};
-#define YB_Impl_Operators_Scon(_name, _op) \
-	YB_Impl_Operators_Scon_or_ncon_lr(_name, _op) \
-	YB_Impl_Operators_Scon2(_name, _op) \
-	YB_Impl_Operators_Scon_or_ncon(_name, _op)
-#define YB_Impl_Operators_Sncon(_name, _op) \
-	YB_Impl_Operators_Scon_or_ncon_lr(_name, _op) \
-	YB_Impl_Operators_Sncon2(_name, _op) \
-	YB_Impl_Operators_Scon_or_ncon(_name, _op)
+YB_Impl_Operators_con(0, +)
+YB_Impl_Operators_left(1, -)
+YB_Impl_Operators_con(2, *)
+YB_Impl_Operators_left(3, /)
+YB_Impl_Operators_left(4, %)
+YB_Impl_Operators_con(5, ^)
+YB_Impl_Operators_con(6, &)
+YB_Impl_Operators_con(7, |)
+YB_Impl_Operators_bin(8, <<)
+YB_Impl_Operators_bin(9, >>)
 
-YB_Impl_Operators_Scon(con_mul, *)
-YB_Impl_Operators_Scon(con_add, +)
-YB_Impl_Operators_Sncon(ncon_sub, -)
-YB_Impl_Operators_Sncon(ncon_div, /)
-YB_Impl_Operators_Sncon(ncon_mod, %)
-YB_Impl_Operators_Scon(con_xor, ^)
-YB_Impl_Operators_Scon(con_and, &)
-YB_Impl_Operators_Scon(con_or, |)
+#undef YB_Impl_Operators_left
+#undef YB_Impl_Operators_con
+#undef YB_Impl_Operators_bin
+#undef YB_Impl_Operators_bin_tmpl
 
-#undef YB_Impl_Operators_Sncon
-#undef YB_Impl_Operators_Scon
-#undef YB_Impl_Operators_Sncon2
-#undef YB_Impl_Operators_Scon2
-#undef YB_Impl_Operators_Scon_or_ncon_lr
-#undef YB_Impl_Operators_Scon_or_ncon
+#undef YB_Impl_Operators_bin_spec
+#undef YB_Impl_Operators_f
 
-// TODO: Replace 'yconstfn' to deduced '_tOpt' result.
-#define YB_Impl_Operators_Sbin(_name, _op) \
-	YB_Impl_Operators_SHead2(_name##_l) \
-	{ \
-		YB_Impl_Operators_friend_l(yconstfn, _op, _type, _type2) \
-	}; \
-	\
-	YB_Impl_Operators_SHead2(_name##_r) \
-	{ \
-		YB_Impl_Operators_friend_r(yconstfn, _op, _type, _type2) \
-	};
-
-YB_Impl_Operators_Sbin(con_lshl, <<)
-YB_Impl_Operators_Sbin(con_rshl, >>)
-
-#undef YB_Impl_Operators_Sbin
-
-#undef YB_Impl_Operators_SHead1
-#undef YB_Impl_Operators_SHead2
+template<class _type, typename _type2, class _tOpt,
+	template<typename...> class... _g>
+using flat_ops = ebases<_g<_type, _type2, _tOpt>...>;
 //@}
 
 } // namespace details;
 
 
-namespace dependent_operators
+namespace dep_ops
 {
 
-//! \since build 681
+//! \since build 682
 //@{
-YB_Impl_Operators_Head2_de(less_than_comparable)
-	: details::lt_1<_type, _type2, _tOpt>,
-	details::lt_2<_type, _type2, _tOpt>,
-	details::lt_3<_type, _type2, _tOpt>, details::lt_4<_type, _type2, _tOpt>,
-	details::lt_5<_type, _type2, _tOpt>, details::lt_6<_type, _type2, _tOpt>
-{};
+#define YB_Impl_Operators_Compare(_name, _bseq, _bseq_s) \
+	YB_Impl_Operators_H2_Alias_de(_name, _t<details::ops_seq<_type, _type2, \
+		_tOpt, cond_t<is_same<_type, _type2>, index_sequence<_bseq_s>, \
+		index_sequence<_bseq>>>>)
 
-YB_Impl_Operators_Head2_spec(less_than_comparable)
-	: details::lts_1<_type, _tOpt>, details::lts_2<_type, _tOpt>,
-	details::lts_3<_type, _tOpt>
-{};
+YB_Impl_Operators_Compare(less_than_comparable, 0 YPP_Comma 1 YPP_Comma 2
+	YPP_Comma 3 YPP_Comma 4 YPP_Comma 5, 2 YPP_Comma 4 YPP_Comma 1)
 
 
-YB_Impl_Operators_Head2_de(equality_comparable)
-	: details::ec_1<_type, _type2, _tOpt>, details::ec_2<_type, _type2, _tOpt>,
-	details::ec_3<_type, _type2, _tOpt>
-{};
-
-YB_Impl_Operators_Head2_spec(equality_comparable)
-	: details::ecs_1<_type, _tOpt>
-{};
+YB_Impl_Operators_Compare(equality_comparable, 6 YPP_Comma 7 YPP_Comma 8,
+	7)
 
 
-YB_Impl_Operators_Head2_de(equivalent)
-	: details::eq_1<_type, _type2, _tOpt>
-{};
-
-YB_Impl_Operators_Head2_spec(equivalent)
-	: details::eqs_1<_type, _tOpt>
-{};
+YB_Impl_Operators_Compare(equivalent, 9, 10)
 
 
-YB_Impl_Operators_Head2_de(partially_ordered)
-	: details::po_1<_type, _type2, _tOpt>, details::po_2<_type, _type2, _tOpt>,
-	details::lt_3<_type, _type2, _tOpt>, details::lt_4<_type, _type2, _tOpt>,
-	details::po_5<_type, _type2, _tOpt>, details::po_6<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_Compare(partially_ordered, 11 YPP_Comma 12 YPP_Comma 2
+	YPP_Comma 3 YPP_Comma 13 YPP_Comma 14, 2 YPP_Comma 11 YPP_Comma 14)
 
-YB_Impl_Operators_Head2_spec(partially_ordered)
-	: details::pos_1<_type, _tOpt>, details::pos_2<_type, _tOpt>,
-	details::pos_3<_type, _tOpt>
-{};
+#undef YB_Impl_Operators_Compare
 
 
-#define YB_Impl_Operators_Commutative(_name, _op, _dname) \
-	YB_Impl_Operators_Head2_de(_name) \
-		: _dname##_lr_l<_type, _type2, _tOpt>, \
-		_dname##_lr_r<_type, _type2, _tOpt>, \
-		_dname##_s1<_type, _type2, _tOpt>, _dname##_s2<_type, _type2, _tOpt> \
-	{}; \
-	\
-	YB_Impl_Operators_Head2_spec(_name) \
-		: _dname##_l<_type, _tOpt>, _dname##_r<_type, _tOpt> \
-	{};
+#define YB_Impl_Operators_Binary_Tmpl(_id, _name, _bseq) \
+	YB_Impl_Operators_H2_Alias_de(_name, _t<details::ops_seq<_type, _type2, \
+		_tOpt, details::ops_bin_id_seq<_id, _bseq>>>)
+#define YB_Impl_Operators_Binary(_id, _name) \
+	YB_Impl_Operators_Binary_Tmpl(_id, _name, 0 YPP_Comma 1)
+#define YB_Impl_Operators_Commutative(_id, _name) \
+	YB_Impl_Operators_H2_Alias_de(_name, _t< \
+		details::ops_seq<_type, _type2, _tOpt, cond_t<is_same<_type, _type2>, \
+		details::ops_bin_id_seq<_id, 0 YPP_Comma 1>, \
+		details::ops_bin_id_seq<_id, 0 YPP_Comma 1 YPP_Comma 2 YPP_Comma 3>>>>)
+#define YB_Impl_Operators_Left(_id, _name) \
+	YB_Impl_Operators_H2_Alias_de(_name, _t<details::ops_seq<_type, _type2, \
+		_tOpt, details::ops_bin_id_seq<_id, 0 YPP_Comma 1>>>) \
+	YB_Impl_Operators_H2_Alias_de(_name##_left, _t<details::ops_seq<_type, \
+		_type2, _tOpt, details::ops_bin_id_seq<_id, 4 YPP_Comma 5>>>)
+
+YB_Impl_Operators_Commutative(0, addable)
 
 
-#define YB_Impl_Operators_NonCommutative(_name, _op, _dname) \
-	YB_Impl_Operators_Head2_de(_name) \
-		: _dname##_lr_l<_type, _type2, _tOpt>, _dname##_lr_r<_type, _type2, _tOpt> \
-	{}; \
-	\
-	YB_Impl_Operators_Head2(_name##_left) \
-		: _dname##_left_s1<_type, _type2, _tOpt>, \
-		_dname##_left_s2<_type, _type2, _tOpt> \
-	{}; \
-	\
-	YB_Impl_Operators_Head2_spec(_name) \
-		: _dname##_l<_type, _tOpt>, _dname##_r<_type, _tOpt> \
-	{};
+YB_Impl_Operators_Left(1, subtractable)
 
-YB_Impl_Operators_Commutative(multipliable, *, details::con_mul)
-YB_Impl_Operators_Commutative(addable, +, details::con_add)
-YB_Impl_Operators_NonCommutative(subtractable, -, details::ncon_sub)
-YB_Impl_Operators_NonCommutative(dividable, /, details::ncon_div)
-YB_Impl_Operators_NonCommutative(modable, %, details::ncon_mod)
-YB_Impl_Operators_Commutative(xorable, ^, details::con_xor)
-YB_Impl_Operators_Commutative(andable, &, details::con_and)
-YB_Impl_Operators_Commutative(orable, |, details::con_or)
 
-#undef YB_Impl_Operators_NonCommutative
+YB_Impl_Operators_Commutative(2, multipliable)
+
+
+YB_Impl_Operators_Left(3, dividable)
+
+
+YB_Impl_Operators_Left(4, modable)
+
+
+YB_Impl_Operators_Binary(5, left_shiftable)
+
+
+YB_Impl_Operators_Binary(6, right_shiftable)
+
+
+YB_Impl_Operators_Commutative(7, xorable)
+
+
+YB_Impl_Operators_Commutative(8, andable)
+
+
+YB_Impl_Operators_Commutative(9, orable)
+
+#undef YB_Impl_Operators_Binary_Tmpl
+#undef YB_Impl_Operators_Left
 #undef YB_Impl_Operators_Commutative
-
-
-#define YB_Impl_Operators_Binary(_name, _op, _dname) \
-	YB_Impl_Operators_Head2_de(_name) \
-		: _dname##_l<_type, _type2, _tOpt>, _dname##_r<_type, _type2, _tOpt> \
-	{};
-
-YB_Impl_Operators_Binary(left_shiftable, <<, details::con_lshl)
-YB_Impl_Operators_Binary(right_shiftable, >>, details::con_rshl)
-
 #undef YB_Impl_Operators_Binary
-//@}
 
-YB_Impl_Operators_Head1(incrementable)
+
+YB_Impl_Operators_H1
+yimpl(struct) incrementable
 {
 	//! \since build 576
 	friend _type
@@ -391,7 +331,8 @@ YB_Impl_Operators_Head1(incrementable)
 	}
 };
 
-YB_Impl_Operators_Head1(decrementable)
+YB_Impl_Operators_H1
+yimpl(struct) decrementable
 {
 	//! \since build 576
 	friend _type
@@ -405,9 +346,8 @@ YB_Impl_Operators_Head1(decrementable)
 	}
 };
 
-//! \since build 681
-//@{
-YB_Impl_Operators_Head2(dereferenceable)
+YB_Impl_Operators_H2
+yimpl(struct) dereferenceable
 {
 	// TODO: Add non-const overloaded version? SFINAE?
 	// TODO: Use '_tOpt'.
@@ -418,7 +358,8 @@ YB_Impl_Operators_Head2(dereferenceable)
 	}
 };
 
-YB_Impl_Operators_Head3(indexable)
+YB_Impl_Operators_H3
+yimpl(struct) indexable
 {
 	// TODO: Add non-const overloaded version? SFINAE?
 	// TODO: Use '_tOpt'.
@@ -431,146 +372,111 @@ YB_Impl_Operators_Head3(indexable)
 };
 
 
-YB_Impl_Operators_Head2_de(totally_ordered)
-	: less_than_comparable<_type, _type2, _tOpt>,
-	equality_comparable<_type, _type2, _tOpt>
-{};
+#define YB_Impl_Operators_FlatAlias2_de(_name, ...) \
+	YB_Impl_Operators_H2_Alias_de(_name, details::flat_ops<_type, _type2, \
+		_tOpt, __VA_ARGS__>)
+	
+YB_Impl_Operators_FlatAlias2_de(totally_ordered, less_than_comparable,
+	equality_comparable)
 
 
-YB_Impl_Operators_Head2_de(additive)
-	: addable<_type, _type2, _tOpt>, subtractable<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(additive, addable, subtractable)
 
 
-YB_Impl_Operators_Head2_de(multiplicative)
-	: multipliable<_type, _type2, _tOpt>, dividable<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(multiplicative, multipliable, dividable)
 
 
-YB_Impl_Operators_Head2_de(integer_multiplicative)
-	: multiplicative<_type, _type2, _tOpt>, modable<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(integer_multiplicative, multiplicative, modable)
 
 
-YB_Impl_Operators_Head2_de(arithmetic)
-	: additive<_type, _type2, _tOpt>, multiplicative<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(arithmetic, additive, multiplicative)
 
 
-YB_Impl_Operators_Head2_de(integer_arithmetic)
-	: additive<_type, _type2, _tOpt>,
-	integer_multiplicative<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(integer_arithmetic, additive,
+	integer_multiplicative)
 
 
-YB_Impl_Operators_Head2_de(bitwise)
-	: xorable<_type, _type2, _tOpt>, andable<_type, _type2, _tOpt>,
-	orable<_type, _type2, _tOpt>
-{};
-//@}
+YB_Impl_Operators_FlatAlias2_de(bitwise, xorable, andable, orable)
 
 
-YB_Impl_Operators_Head1(unit_steppable)
-	: incrementable<_type>, decrementable<_type>
-{};
+YB_Impl_Operators_H1
+yimpl(using) unit_steppable
+	= details::ebases<incrementable<_type>, decrementable<_type>>;
 
 
-//! \since build 681
-//@{
-YB_Impl_Operators_Head2_de(shiftable) : left_shiftable<_type, _type2, _tOpt>,
-	right_shiftable<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(shiftable, left_shiftable, right_shiftable)
 
 
-YB_Impl_Operators_Head2_de(ring_operators) : additive<_type, _type2, _tOpt>,
-	subtractable_left<_type, _type2, _tOpt>, multipliable<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(ring_operators, additive, subtractable_left,
+	multipliable)
 
 
-YB_Impl_Operators_Head2_de(ordered_ring_operators) : ring_operators<_type,
-	_type2, _tOpt>, totally_ordered<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(ordered_ring_operators, ring_operators,
+	totally_ordered)
 
 
-YB_Impl_Operators_Head2_de(field_operators)
-	: ring_operators<_type, _type2, _tOpt>, dividable<_type, _type2, _tOpt>,
-	dividable_left<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(field_operators, ring_operators, dividable,
+	dividable_left)
 
 
-YB_Impl_Operators_Head2_de(ordered_field_operators) : field_operators<_type,
-	_type2, _tOpt>, totally_ordered<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(ordered_field_operators, field_operators,
+	totally_ordered)
 
 
-YB_Impl_Operators_Head2_de(euclidean_ring_operators)
-	: ring_operators<_type, _type2, _tOpt>, dividable<_type, _type2, _tOpt>,
-	dividable_left<_type, _type2, _tOpt>, modable<_type, _type2, _tOpt>,
-	modable_left<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(euclidean_ring_operators, ring_operators,
+	dividable, dividable_left, modable, modable_left)
 
 
-YB_Impl_Operators_Head2_de(ordered_euclidean_ring_operators)
-	: totally_ordered<_type, _type2, _tOpt>,
-	euclidean_ring_operators<_type, _type2, _tOpt>
-{};
-//@}
+YB_Impl_Operators_FlatAlias2_de(ordered_euclidean_ring_operators,
+	totally_ordered, euclidean_ring_operators)
 
 
-//! \since build 576
-YB_Impl_Operators_Head2(input_iteratable) : equality_comparable<_type, _type,
-	_tOpt>, incrementable<_type>, dereferenceable<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_H2_Alias(input_iteratable, details::ebases<
+	equality_comparable<_type, _type, _tOpt>, incrementable<_type>,
+	dereferenceable<_type, _type2, _tOpt>>)
 
 
-//! \since build 681
-YB_Impl_Operators_Head2(output_iteratable) : incrementable<_type>
-{};
+YB_Impl_Operators_H2_Alias(output_iteratable,
+	details::ebases<incrementable<_type>>)
 
 
-//! \since build 576
-//@{
-YB_Impl_Operators_Head2(forward_iteratable)
-	: input_iteratable<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_H2_Alias(forward_iteratable,
+	details::ebases<input_iteratable<_type, _type2, _tOpt>>)
 
 
-YB_Impl_Operators_Head2(bidirectional_iteratable)
-	: forward_iteratable<_type, _type2, _tOpt>, decrementable<_type>
-{};
+YB_Impl_Operators_H2_Alias(bidirectional_iteratable, details::ebases<
+	forward_iteratable<_type, _type2, _tOpt>, decrementable<_type>>)
 
 
-YB_Impl_Operators_Head3(random_access_iteratable) : bidirectional_iteratable<
-	_type, _type3, _tOpt>, less_than_comparable<_type, _type, _tOpt>,
-	additive<_type, _type2, _tOpt>, indexable<_type, _type2, _type, _tOpt>
-{};
-//@}
+YB_Impl_Operators_H3
+yimpl(using) random_access_iteratable
+	= details::ebases<bidirectional_iteratable<_type, _type3, _tOpt>,
+	less_than_comparable<_type, _type, _tOpt>,
+	additive<_type, _type2, _tOpt>, indexable<_type, _type2, _type, _tOpt>>;
 
 /*!
-\since build 682
 \note 第三模板参数调整生成的操作符的声明。
 \note 当前二元和三元操作符都使用 yconstfn 。
 \todo 实现调整选项。
 */
-template<class _type, typename _type2 = _type, class _tOpt = use_constfn>
-struct operators : totally_ordered<_type, _type2, _tOpt>,
-	integer_arithmetic<_type, _type2, _tOpt>, bitwise<_type, _type2, _tOpt>
-{};
+YB_Impl_Operators_FlatAlias2_de(operators, totally_ordered, integer_arithmetic,
+	bitwise)
 
-} // namespace dependent_operators;
+#undef YB_Impl_Operators_FlatAlias2_de
+//@}
+
+} // namespace dep_ops;
 
 //! \since build 586
-using namespace dependent_operators;
+using namespace dep_ops;
 
-#undef YB_Impl_Operators_Head1
-#undef YB_Impl_Operators_Head2
-#undef YB_Impl_Operators_Head2_de
-#undef YB_Impl_Operators_Head2_spec
-#undef YB_Impl_Operators_Head3
-#undef YB_Impl_Operators_friend_l
-#undef YB_Impl_Operators_friend_r
-#undef YB_Impl_Operators_friend_s
-#undef YB_Impl_Operators_friend
+#undef YB_Impl_Operators_H3
+#undef YB_Impl_Operators_H2_Alias_de
+#undef YB_Impl_Operators_H2_Alias
+#undef YB_Impl_Operators_H2
+#undef YB_Impl_Operators_H1
+#undef YB_Impl_Operators_H_n
+#undef YB_Impl_Operators_DeOpt
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2992
+\version r3001
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-03-14 20:10 +0800
+	2016-03-29 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_utility_hpp_ 1
 
 #include "type_pun.hpp" // for is_standard_layout, pun_storage_t,
-//	std::swap, aligned_replace_cast, _t;
+//	std::swap, aligned_replace_cast;
 #include "cassert.h" // for yassume;
 
 namespace ystdex
@@ -76,7 +76,7 @@ using std::exchange;
 \brief 交换值并返回旧值。
 \return 被替换的原值。
 \see WG21 N3797 20.2.3[utility.exchange] 。
-\see http://www.open-std.org/JTC1/sc22/WG21 docs/papers/2013/n3668.html 。
+\see http://www.open-std.org/JTC1/sc22/WG21/docs/papers/2013/n3668.html 。
 */
 template<typename _type, typename _type2 = _type>
 _type
@@ -122,9 +122,9 @@ underlying(_type val) ynothrow
 
 /*!
 \brief 引入 std::swap 实现为 ADL 提供重载的命名空间。
-\since build 586
+\since build 682
 */
-namespace dependent_swap
+namespace dep_swap
 {
 
 using std::swap;
@@ -144,7 +144,7 @@ struct yimpl(helper)
 	{}
 };
 
-} // namespace dependent_swap;
+} // namespace dep_swap;
 
 
 /*!
@@ -161,13 +161,13 @@ struct is_swappable;
 //! \ingroup binary_type_traits
 template<typename _type, typename _type2>
 struct is_swappable<_type, _type2>
-	: bool_constant<yimpl(dependent_swap::helper<_type, _type2>::value)>
+	: bool_constant<yimpl(dep_swap::helper<_type, _type2>::value)>
 {};
 
 //! \ingroup unary_type_traits
 template<typename _type>
 struct is_swappable<_type>
-	: bool_constant<yimpl(dependent_swap::helper<_type, _type>::value)>
+	: bool_constant<yimpl(dep_swap::helper<_type, _type>::value)>
 {};
 //@}
 
@@ -179,12 +179,12 @@ struct is_nothrow_swappable;
 
 template<typename _type, typename _type2>
 struct is_nothrow_swappable<_type, _type2> : is_nothrow_default_constructible<
-	yimpl(dependent_swap::helper<_type, _type2>)>
+	yimpl(dep_swap::helper<_type, _type2>)>
 {};
 
 template<typename _type>
 struct is_nothrow_swappable<_type> : is_nothrow_default_constructible<
-	yimpl(dependent_swap::helper<_type, _type>)>
+	yimpl(dep_swap::helper<_type, _type>)>
 {};
 //@}
 //@}
