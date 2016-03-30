@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10259
+\version r10302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-03-28 13:04 +0800
+	2016-03-30 15:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,47 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Operators $=
+		(
+			/ DLDI "simplified" ^ "sequenced bases",
+			* "specialization with same parameter type for %partially_ordered \
+				wrongly as same as %less_than_comparable" $since b581,
+			/ $re_add(b586) "namespace %dependent_operators"
+				@ "namespace %ystdex" $=
+			(
+				/ "%equivalent only depended on '<'" !^ "dependency on '>'",
+					// This makes the code more consistent, also same to \
+						equivalent key definition in [associative.reqmts].
+				/ $re_add(b586) => "%dep_ops",
+					// To reduce length of symbols.
+				/ "operator class templates with bases" -> "alias templates"
+					// This would reduce binary size after flattened the class \
+						hierechy.
+			),
+		),
+		/ %Utilities $=
+		(
+			/ "namespace %dependent_swap" @ "namespace %ystdex" => "%dep_swap",
+				// To be consistent with %Operators even this namespace does \
+					not bloat binary size in release configurations.
+			* $doc "bad URL" @ "Doxygen comment" @ "function template %exchange"
+				$sicne b677
+		)
+	),
+	+ $build '-fvisibility=hidden' @ "variable %C_CXXFLAGS_COMMON"
+		@ "%Toolchain.DS.mk" @ %Tools.Scripts,
+		// To reduce size of binary images as possible, though actually has \
+			little effect on %DS. Note this cannot be used on %Android \
+			otherwise the library file loading would fail.
+	- $build '-Wl,-Map,$(notdir $*.map)' @ "%LDFLAGS" @ "makefile"
+		@ "project %DS_ARM9" @ "platform %DS"
+		// Map file is useful for test but not normal build.
+),
+
+b681
 (
 	/ %YFramework.YSLib.Core.ValueNode $=
 	(
@@ -98,7 +139,9 @@ $now
 				// This was hidden by the fact the parameter was not used by \
 					implementation. However, call site in %iterator_operators \
 					did provide the argument.
-			/ DLDI "simplified" !^ "base chaining";
+			/ $dev $impl "simplified" !^ "base chaining";
+				// This would have side effects on object size and layout when \
+					using implementations without proper EBO.
 			- "metafunction %dependent_operators::is_chained_base"
 			),
 			/ "operator templates" @ "namespace %dependent_operators" $=
@@ -115,6 +158,7 @@ $now
 		)
 	);
 ),
+
 b680
 (
 	/ %YBase.YStandardEx $=
