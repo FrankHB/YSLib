@@ -1,5 +1,5 @@
 #
-#	(C) 2014 FrankHB.
+#	(C) 2014, 2016 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r301
+# Version = r305
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-12-31 11:29 +0800
+# Updated = 2016-04-01 10:20 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -69,8 +69,8 @@ CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
 #	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
 
 LDFLAGS := $(LDFLAGS_OPT_DBG) $(ARCH) -Wl,--gc-sections \
-	-Wl,-Map,$(notdir $*.map) -Wl,--no-undefined -Wl,--dynamic-list-data \
-	-Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo
+	-Wl,--no-undefined -Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new \
+	-Wl,--dynamic-list-cpp-typeinfo
 
 # any extra libraries we wish to link with the project
 LIBS :=-llog -landroid -lEGL -lGLESv1_CM
@@ -126,7 +126,6 @@ clean:
 	@echo Cleaning releases ...
 	@rm -f $(foreach file,$(OFILES:.o=.d),$(DEPSDIR)/$(file))
 	@rm -f $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
-	@rm -f $(BUILDDIR)/.map
 	@rm -fr $(OUTPUTSODIR)
 	@rm -f $(RESOURCES)
 	@rm -f $(OUTPUT_FINAL) $(OUTPUT_SIGNED) $(OUTPUT_APK)

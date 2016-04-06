@@ -230,6 +230,9 @@
     <ClInclude Include="include\ystdex\set.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\typeinfo.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

@@ -8,15 +8,15 @@
 #	understand and accept it fully.
 #
 # Makefile for DS toolchain
-# Version = r81
+# Version = r82
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2016-03-28 19:46 +0800
+# Updated = 2016-03-31 13:21 +0800
 # Encoding = ANSI
 
 
 # NOTE: Workaround for libnds: do not use '-pedantic-errors'.
 C_CXXFLAGS_COMMON ?= -pipe -fdata-sections -ffunction-sections \
-	-fvisibility=hidden
+	-fvisibility=hidden -DYB_Use_LightweightTypeID=1
 
 # NOTE: Workaround for libnds: do not use '-Wsign-conversion'.
 C_CXXFLAGS_WARNING ?= -Wall -Wcast-align -Wdeprecated \
