@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r410
+\version r422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-02-11 16:26 +0800
+	2016-04-05 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_sequence_hpp_
 #define YB_INC_ystdex_sequence_hpp_ 1
 
-#include "variadic.hpp" // for vseq::defer_i, _t, common_type_t;
+#include "variadic.hpp" // for "variadic.hpp", vseq::defer_i, _t, common_type_t;
 
 namespace ystdex
 {
@@ -72,11 +72,11 @@ namespace vseq
 {
 
 //! \since build 650
-template<typename _tInt, template<_tInt...> class _gfunc, _tInt... _vSeq>
-struct defer_i<_tInt, _gfunc, integer_sequence<_tInt, _vSeq...>,
-	void_t<_gfunc<_vSeq...>>>
+template<typename _tInt, template<_tInt...> class _gOp, _tInt... _vSeq>
+struct defer_i<_tInt, _gOp, integer_sequence<_tInt, _vSeq...>,
+	void_t<_gOp<_vSeq...>>>
 {
-	using type = _gfunc<_vSeq...>;
+	using type = _gOp<_vSeq...>;
 };
 
 
@@ -92,6 +92,13 @@ struct concat<integer_sequence<_tInt, _vSeq1...>,
 	integer_sequence<_tInt, _vSeq2...>>
 {
 	using type = integer_sequence<_tInt, _vSeq1..., _vSeq2...>;
+};
+
+
+template<class _tCtor, typename _tInt, _tInt... _vSeq>
+struct fmap<_tCtor, integer_sequence<_tInt, _vSeq...>>
+{
+	using type = apply_t<_tCtor, integral_constant<_tInt, _vSeq>...>;
 };
 
 
@@ -197,9 +204,9 @@ struct vec_subtract<integer_sequence<_tInt, _vSeq1...>,
 \sa vseq::defer_i
 \since build 650
 */
-template<typename _tInt, template<_tInt...> class _gfunc, _tInt... _vSeq>
+template<typename _tInt, template<_tInt...> class _gOp, _tInt... _vSeq>
 struct vdefer_i
-	: vseq::defer_i<_tInt, _gfunc, integer_sequence<_tInt, _vSeq...>>
+	: vseq::defer_i<_tInt, _gOp, integer_sequence<_tInt, _vSeq...>>
 {};
 
 /*!

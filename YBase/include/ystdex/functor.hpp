@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r801
+\version r805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-03-20 15:43 +0800
+	2016-04-04 22:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,11 +66,12 @@ using mem_is_transparent_t = typename _type::is_transparent;
 /*!
 \ingroup unary_type_traits
 \brief 判断 _type 是否包含 is_transparent 成员类型。
-\since build 681
+\since build 683
 */
 template<typename _type, typename _tDummy = void>
-using has_mem_is_transparent
-	= is_detected<details::mem_is_transparent_t, _type, _tDummy>;
+struct has_mem_is_transparent
+	: is_detected<details::mem_is_transparent_t, _type, _tDummy>
+{};
 
 /*!
 \ingroup metafunction

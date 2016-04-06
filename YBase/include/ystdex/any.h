@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2297
+\version r2353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-03-20 11:48 +0800
+	2016-04-01 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,12 @@
 #ifndef YB_INC_ystdex_any_h_
 #define YB_INC_ystdex_any_h_ 1
 
-#include "base.h" // for cloneable;
+#include "typeinfo.h" // for "typeinfo.h", cloneable, type_id_info,
+//	ystdex::type_id, std::bad_cast;
 #include <memory> // for std::addressof, std::unique_ptr;
-#include <typeinfo> // for typeid, std::bad_cast;
-#include "utility.hpp" // for boxed_value, pod_storage, aligned_storage_t,
-//	is_aligned_storable, exclude_self_ctor_t, enable_if_t, decay_t,
-//	yconstraint;
+#include "utility.hpp" // "utility.hpp", for boxed_value, pod_storage,
+//	aligned_storage_t, is_aligned_storable, exclude_self_ctor_t, enable_if_t,
+//	decay_t, yconstraint;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 
 namespace ystdex
@@ -73,8 +73,8 @@ public:
 	virtual holder*
 	clone() const override = 0;
 
-	//! \since build 340
-	virtual const std::type_info&
+	//! \since build 683
+	virtual const type_info&
 	type() const ynothrow = 0;
 };
 
@@ -135,11 +135,11 @@ public:
 		return std::addressof(this->value);
 	}
 
-	//! \since build 340
-	const std::type_info&
+	//! \since build 683
+	const type_info&
 	type() const ynothrow override
 	{
-		return typeid(_type);
+		return ystdex::type_id<_type>();
 	}
 };
 
@@ -198,11 +198,11 @@ public:
 		return p_held.get();
 	}
 
-	//! \since build 340
-	const std::type_info&
+	//! \since build 683
+	const type_info&
 	type() const ynothrow override
 	{
-		return p_held ? typeid(_type) : typeid(void);
+		return p_held ? ystdex::type_id<_type>() : ystdex::type_id<void>();
 	}
 };
 
@@ -362,7 +362,7 @@ public:
 		switch(op)
 		{
 		case get_type:
-			d = &typeid(value_type);
+			d = &ystdex::type_id<value_type>();
 			break;
 		case get_ptr:
 			d = get_pointer(s);
@@ -374,7 +374,7 @@ public:
 			dispose(d);
 			break;
 		case get_holder_type:
-			d = &typeid(void);
+			d = &ystdex::type_id<void>();
 			break;
 		case get_holder_ptr:
 			d = static_cast<holder*>(nullptr);
@@ -425,7 +425,7 @@ public:
 		switch(op)
 		{
 		case get_type:
-			d = &typeid(value_type);
+			d = &ystdex::type_id<value_type>();
 			break;
 		case get_ptr:
 			d = get_pointer(s);
@@ -497,13 +497,13 @@ public:
 		switch(op)
 		{
 		case get_type:
-			d = &typeid(value_type);
+			d = &ystdex::type_id<value_type>();
 			break;
 		case get_ptr:
 			d = get_pointer(s);
 			break;
 		case get_holder_type:
-			d = &typeid(_tHolder);
+			d = &ystdex::type_id<_tHolder>();
 			break;
 		case get_holder_ptr:
 			d = static_cast<holder*>(get_holder_pointer(s));
@@ -540,17 +540,18 @@ using is_any_cast_dest = or_<is_reference<_type>, is_copy_constructible<_type>>;
 class YB_API bad_any_cast : public std::bad_cast
 {
 private:
-	//! \since build 586
-	lref<const std::type_info> from_ti, to_ti;
+	//! \since build 683
+	lref<const type_info> from_ti, to_ti;
 
 public:
 	//! \since build 342
 	//@{
 	bad_any_cast()
 		: std::bad_cast(),
-		from_ti(typeid(void)), to_ti(typeid(void))
+		from_ti(ystdex::type_id<void>()), to_ti(ystdex::type_id<void>())
 	{}
-	bad_any_cast(const std::type_info& from_, const std::type_info& to_)
+	//! \since build 683
+	bad_any_cast(const type_info& from_, const type_info& to_)
 		: std::bad_cast(),
 		from_ti(from_), to_ti(to_)
 	{}
@@ -567,8 +568,8 @@ public:
 	YB_ATTR_returns_nonnull const char*
 	from() const ynothrow;
 
-	//! \since build 586
-	const std::type_info&
+	//! \since build 683
+	const type_info&
 	from_type() const ynothrow
 	{
 		return from_ti.get();
@@ -577,8 +578,8 @@ public:
 	YB_ATTR_returns_nonnull const char*
 	to() const ynothrow;
 
-	//! \since build 586
-	const std::type_info&
+	//! \since build 683
+	const type_info&
 	to_type() const ynothrow
 	{
 		return to_ti.get();
@@ -775,22 +776,23 @@ public:
 	_type*
 	target() ynothrow
 	{
-		return type() == typeid(_type) ? static_cast<_type*>(get()) : nullptr;
+		return type() == ystdex::type_id<_type>() ? static_cast<_type*>(get())
+			: nullptr;
 	}
 	template<typename _type>
 	const _type*
 	target() const ynothrow
 	{
-		return type() == typeid(_type)
+		return type() == ystdex::type_id<_type>()
 			? static_cast<const _type*>(get()) : nullptr;
 	}
 	//@}
 
-	//! \since build 340
-	const std::type_info&
+	//! \since build 683
+	const type_info&
 	type() const ynothrow
 	{
-		return manager ? unchecked_type() : typeid(void);
+		return manager ? unchecked_type() : ystdex::type_id<void>();
 	}
 
 	/*!
@@ -807,8 +809,11 @@ public:
 	any_ops::holder*
 	unchecked_get_holder() const;
 
-	//! \brief 取包含对象的类型。
-	const std::type_info&
+	/*!
+	\brief 取包含对象的类型。
+	\since build 683
+	*/
+	const type_info&
 	unchecked_type() const ynothrowv;
 	//@}
 };
@@ -829,7 +834,8 @@ swap(any& x, any& y) ynothrow
 
 /*!
 \brief 动态泛型转换。
-\return 当 <tt>p && p->type() == typeid(remove_pointer_t<_tPointer>)</tt> 时
+\return 当 <tt>p
+	&& p->type() == ystdex::type_id<remove_pointer_t<_tPointer>>()</tt> 时
 	为指向对象的指针，否则为空指针。
 \note 语义同 \c boost::any_cast 。
 \relates any
@@ -853,7 +859,7 @@ any_cast(const any* p) ynothrow
 //@}
 /*!
 \throw bad_any_cast 当 <tt>x.type()
-	!= typeid(remove_reference_t<_tValue>)</tt> 。
+	!= ystdex::type_id<remove_reference_t<_tValue>>()</tt> 。
 */
 //@{
 template<typename _tValue>
@@ -865,7 +871,7 @@ any_cast(any& x)
 
 	if(const auto p = any_cast<remove_reference_t<_tValue>>(&x))
 		return static_cast<_tValue>(*p);
-	throw bad_any_cast(x.type(), typeid(_tValue));
+	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
 }
 template<typename _tValue>
 _tValue
@@ -876,7 +882,7 @@ any_cast(const any& x)
 
 	if(const auto p = any_cast<const remove_reference_t<_tValue>>(&x))
 		return static_cast<_tValue>(*p);
-	throw bad_any_cast(x.type(), typeid(_tValue));
+	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
 }
 //! \since build 671
 template<typename _tValue>
@@ -888,7 +894,7 @@ any_cast(any&& x)
 
 	if(const auto p = any_cast<remove_reference_t<_tValue>>(&x))
 		return static_cast<_tValue>(*p);
-	throw bad_any_cast(x.type(), typeid(_tValue));
+	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
 }
 //@}
 //@}
@@ -903,25 +909,28 @@ any_cast(any&& x)
 */
 //@{
 /*!
-\pre 断言： <tt>p && !p->empty() && p->unchecked_type() == typeid(_type)</tt> 。
+\pre 断言： <tt>p && !p->empty()
+	&& p->unchecked_type() == ystdex::type_id<_type>()</tt> 。
 */
 template<typename _type>
 inline _type*
 unchecked_any_cast(any* p) ynothrowv
 {
-	yconstraint(p && !p->empty() && p->unchecked_type() == typeid(_type));
+	yconstraint(p && !p->empty()
+		&& p->unchecked_type() == ystdex::type_id<_type>());
 	return static_cast<_type*>(p->unchecked_get());
 }
 
 /*!
 \pre 断言： <tt>p && !p->empty()
-	&& p->unchecked_type() == typeid(const _type)</tt> 。
+	&& p->unchecked_type() == ystdex::type_id<const _type>()</tt> 。
 */
 template<typename _type>
 inline const _type*
 unchecked_any_cast(const any* p) ynothrowv
 {
-	yconstraint(p && !p->empty() && p->unchecked_type() == typeid(const _type));
+	yconstraint(p && !p->empty()
+		&& p->unchecked_type() == ystdex::type_id<const _type>());
 	return static_cast<const _type*>(p->unchecked_get());
 }
 //@}
@@ -932,21 +941,21 @@ unchecked_any_cast(const any* p) ynothrowv
 \since build 673
 */
 //@{
-//! \pre 断言： <tt>p && p->type() == typeid(_type)</tt> 。
+//! \pre 断言： <tt>p && p->type() == ystdex::type_id<_type>()</tt> 。
 template<typename _type>
 inline _type*
 unsafe_any_cast(any* p) ynothrowv
 {
-	yconstraint(p && p->type() == typeid(_type));
+	yconstraint(p && p->type() == ystdex::type_id<_type>());
 	return static_cast<_type*>(p->get());
 }
 
-//! \pre 断言： <tt>p && p->type() == typeid(const _type)</tt> 。
+//! \pre 断言： <tt>p && p->type() == ystdex::type_id<const _type>()</tt> 。
 template<typename _type>
 inline const _type*
 unsafe_any_cast(const any* p) ynothrowv
 {
-	yconstraint(p && p->type() == typeid(const _type));
+	yconstraint(p && p->type() == ystdex::type_id<const _type>());
 	return static_cast<const _type*>(p->get());
 }
 //@}

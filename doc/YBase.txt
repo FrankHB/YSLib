@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r905
+\version r910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-03-29 09:17 +0800
+	2016-03-31 12:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,6 +65,7 @@ YBase 包括 YDefinition(@2.4) 、YStandardEx(@2.5) 、LibDefect(@2.6) 和 Test(
 不降低性能时尽量保证可重入性。
 
 @2.1.2 语言规范：
+遵守的具体标准规范及替代和扩展接口约定参见 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
 尽量严格遵守 ISO C++ ，涉及未指定行为和实现定义的行为时应由文档说明。
 默认使用 ISO C++11 的一个严格子集，基本内容参见 [Documentation::ProjectRules @@1.2.1] ，不符合此规则的例外由本节指定或文档另行约定。
 允许在预处理指令中使用特定实现的宏检查支持的特性，作为进行非正式的变通。
@@ -184,7 +185,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
 "functional.hpp" 、 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
 "functional.hpp" 依赖 "ref.hpp" ；
-"any.h" 依赖 "utility.hpp" ；
+"any.h" 依赖 "typeinfo.h" 和 "utility.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
 "string.hpp" 依赖 "container.hpp" 。
 另见 @2.5.4 、 @2.5.5 、 @2.5.6 和 @2.5.7 。
@@ -259,6 +260,9 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 
 @2.5.6.2 标准库异常扩展接口 Exception ：
 扩展了标准库头 <exception> 、 <stdexcept> 和 <system_error> ，提供便利接口和若干异常基类。
+
+@2.5.6.3 ISO C++ 类型信息扩展 TypeInfo ：
+扩展了标准库头 <typeinfo> ，提供了无 RTTI 开销的静态类型信息类和兼容接口。
 
 @2.5.7 其它 ISO C++ 标准库扩展和替代：
 扩展或替代标准库文件，提供和标准库对应的相似接口，除 @2.5.1.2 外，不依赖之前提及以外的 YStandardEx 头文件。
@@ -361,6 +365,7 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 主要提供 Boost.Any 和提议的 ISO C++ std::experiment::any 的类似的基于类型擦除实现的用于保存运行时确定类型的值的对象，默认使用和 libstdc++ 5 类似的小对象优化实现。
 命名空间 any_ops 提供更多可供用户调整的内部接口。
 提供了一些其它不和 any 类直接相关的类型擦除接口。
+使用非零宏 YB_Use_LightweightTypeID 指定不依赖 RTTI 的 type_info 。
 
 @2.5.8.7 动态泛型迭代器 AnyIterator ：
 基于 ystdex::any(@2.5.8.6) 实现的用于保存运行时确定类型迭代器的对象。

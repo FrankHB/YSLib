@@ -11,7 +11,7 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r760
+\version r761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
@@ -389,6 +389,8 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 						: "-DYF_DLL");
 				}
 			}
+			if(IsDS(platform))
+				opt_add("-DYB_Use_LightweightTypeID=1");
 			InsertChildSyntaxNode(nd, std::move(child));
 			if(!debug || (project != "YBase"
 				&& !(project == "YFramework" && is_static)))

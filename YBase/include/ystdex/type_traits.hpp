@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r878
+\version r890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-03-19 03:51 +0800
+	2016-04-06 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -711,6 +711,21 @@ struct is_pod_union : and_<is_pod<_type>, is_union<_type>>
 template<typename _type>
 struct is_cv : or_<is_const<_type>, is_volatile<_type>>
 {};
+
+
+/*!
+\brief 判断指定类型是否可分解为一个参数为类型的模板和类型参数。
+\since build 683
+*/
+//@{
+template<typename>
+struct is_decomposable : false_type
+{};
+
+template<template<typename...> class _gOp, typename... _types>
+struct is_decomposable<_gOp<_types...>> : true_type
+{};
+//@}
 
 
 /*!

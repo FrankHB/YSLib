@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r890
+\version r910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-02-11 15:58 +0800
+	2016-04-05 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_variadic_hpp_
 #define YB_INC_ystdex_variadic_hpp_ 1
 
-#include "type_traits.hpp" // for _t, size_t, is_same, integral_constant,
-//	conditional_t, cond_t;
+#include "type_traits.hpp" // for "type_traits.hpp", _t, size_t, is_same,
+//	integral_constant, conditional_t, cond_t;
 
 namespace ystdex
 {
@@ -91,14 +91,14 @@ using apply_t = _t<apply<_func, _tParams...>>;
 \since build 650
 */
 //@{
-YB_Impl_Variadic_SeqOp(defer, template<typename...> class _gfunc YPP_Comma class
+YB_Impl_Variadic_SeqOp(defer, template<typename...> class _gOp YPP_Comma class
 	_tSeq YPP_Comma typename _tEnabler = void,
-	_gfunc YPP_Comma _tSeq YPP_Comma _tEnabler)
+	_gOp YPP_Comma _tSeq YPP_Comma _tEnabler)
 
 
 YB_Impl_Variadic_SeqOp(defer_i, typename _type YPP_Comma template<_type...>
-	class _gfunc YPP_Comma class _tSeq YPP_Comma typename _tEnabler = void,
-	_type YPP_Comma _gfunc YPP_Comma _tSeq YPP_Comma _tEnabler)
+	class _gOp YPP_Comma class _tSeq YPP_Comma typename _tEnabler = void,
+	_type YPP_Comma _gOp YPP_Comma _tSeq YPP_Comma _tEnabler)
 //@}
 
 //! \note 不提供默认实现，需对具体序列特化。
@@ -109,6 +109,14 @@ YB_Impl_Variadic_SeqOpU(clear)
 
 //! \brief 连接：合并序列。
 YB_Impl_Variadic_SeqOpB(concat)
+
+
+/*!
+\brief 函子映射：使用指定类型构造器和序列参数构造新的类型。
+\since build 683
+*/
+YB_Impl_Variadic_SeqOp(fmap, class _tCtor YPP_Comma class _tSeq,
+	_tSeq YPP_Comma _tCtor)
 
 
 //! \brief 取序列元素数。
@@ -455,17 +463,6 @@ YB_Impl_Variadic_SeqOpB(vec_subtract)
 要求输入的元函数是满足元函数应用条件的类型。
 */
 //@{
-/*!
-\brief 构造具有 \c apply 成员的一阶元函数。
-\since build 671
-*/
-template<template<typename...> class _gOp>
-struct _a
-{
-	template<typename... _types>
-	using apply = identity<_gOp<_types...>>;
-};
-
 //! \brief 部分应用。
 //@{
 template<class _func, typename... _tParams>

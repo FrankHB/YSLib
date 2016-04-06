@@ -67,6 +67,7 @@
     <ClInclude Include="include\ystdex\thunk.hpp" />
     <ClInclude Include="include\ystdex\tstring_view.hpp" />
     <ClInclude Include="include\ystdex\tuple.hpp" />
+    <ClInclude Include="include\ystdex\typeinfo.h" />
     <ClInclude Include="include\ystdex\type_op.hpp" />
     <ClInclude Include="include\ystdex\type_pun.hpp" />
     <ClInclude Include="include\ystdex\type_traits.hpp" />

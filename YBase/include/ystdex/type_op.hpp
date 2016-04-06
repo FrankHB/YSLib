@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2693
+\version r2711
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2016-02-11 17:32 +0800
+	2016-04-04 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 #ifndef YB_INC_ystdex_type_op_hpp_
 #define YB_INC_ystdex_type_op_hpp_ 1
 
-#include "tuple.hpp" // for is_class, std::declval, or_, bool_constant, is_same,
-//	is_detected, is_void, _t, remove_reference_t, and_, cond_t, is_enum, vdefer,
-//	underlying_type_t, common_type_t;
+#include "tuple.hpp" // for is_class, std::declval, is_detected, vseq::apply,
+//	_t, bool_constant, is_void, is_same, remove_reference_t, and_, cond_t,
+//	is_enum, vdefer, underlying_type_t, common_type_t;
 
 namespace ystdex
 {
@@ -142,7 +142,24 @@ struct member_target_type_impl<_type _tClass::*>
 //! \ingroup unary_type_traits
 //@{
 /*!
-\ingroup unary_type_traits
+\brief 判断 _type 是否包含可以指定参数应用得到类型的成员 apply 模板。
+\since build 683
+*/
+template<class _type, typename... _tParams>
+struct has_mem_apply : is_detected<vseq::apply, _type, _tParams...>
+{};
+
+
+/*!
+\brief 判断 _type 是否包含 type 类型成员。
+\since build 683
+*/
+template<class _type>
+struct has_mem_type : is_detected<_t, _type>
+{};
+
+
+/*!
 \brief 判断 _type 是否包含 value 成员。
 \since build 440
 */
@@ -152,7 +169,6 @@ struct has_mem_value : is_detected<details::mem_value_t, _type>
 
 
 /*!
-\ingroup unary_type_traits
 \brief 判断 _type 是否包含 value_type 类型成员。
 \since build 650
 */

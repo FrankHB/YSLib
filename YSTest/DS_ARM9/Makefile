@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1398
+# Version = r1399
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2016-03-29 08:54 +0800
+# Updated = 2016-04-01 10:11 +0800
 # Encoding = ANSI
 
 
@@ -168,7 +168,6 @@ $(CONF):
 #----
 clean:
 	@echo Cleaning $(TARGET) ...
-	@rm -f $(BUILDDIR)/.map
 	@rm -f $(BUILDDIR)/*.d
 	@rm -f $(BUILDDIR)/*.o
 	@rm -f $(ARM9BIN)

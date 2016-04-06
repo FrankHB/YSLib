@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4030
+\version r4040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-03-20 11:49 +0800
+	2016-03-31 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,9 @@
 namespace YSLib
 {
 
-//特征类策略：对象类型标签模板。
+//! \since build 683
+using ystdex::type_info;
+
 
 /*!
 \brief 指定对参数指定类型的成员具有所有权的标签。
@@ -192,9 +194,9 @@ public:
 	PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(std::addressof(this->value))
 
-	//! \since build 340
-	PDefH(const std::type_info&, type, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(typeid(_type))
+	//! \since build 683
+	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(ystdex::type_id<_type>())
 };
 
 
@@ -252,9 +254,9 @@ public:
 	PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(p_held.get())
 
-	//! \since build 340
-	PDefH(const std::type_info&, type, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(p_held ? typeid(_type) : typeid(void))
+	//! \since build 683
+	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(p_held ? ystdex::type_id<_type>() : ystdex::type_id<void>())
 };
 
 
@@ -378,8 +380,8 @@ public:
 	}
 	//@}
 	//@}
-	//! \since build 340
-	DefGetter(const ynothrow, const std::type_info&, Type, content.type())
+	//! \since build 683
+	DefGetter(const ynothrow, const type_info&, Type, content.type())
 
 	/*!
 	\brief 访问指定类型对象。

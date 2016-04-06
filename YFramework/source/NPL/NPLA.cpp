@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r728
+\version r730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-03-21 16:59 +0800
+	2016-03-31 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,7 +245,8 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 							return head + " />";
 						for(; i != cont.cend(); ++i)
 						{
-							nl = Deref(i).Value.GetType() != typeid(string);
+							nl = Deref(i).Value.GetType()
+								!= ystdex::type_id<string>();
 							if(nl)
 								res += '\n' + igen(depth + size_t(is_content));
 							else
