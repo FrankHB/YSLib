@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r591
+\version r703
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2016-04-05 12:07 +0800
+	2016-04-10 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,67 +59,10 @@ using tuple_element_t = _t<std::tuple_element<_vIdx, _type>>;
 namespace vseq
 {
 
-//! \since build 650
-template<template<typename...> class _gOp, typename... _types>
-struct defer<_gOp, std::tuple<_types...>, void_t<_gOp<_types...>>>
-{
-	using type = _gOp<_types...>;
-};
-
-
-template<typename... _types>
-struct clear<std::tuple<_types...>>
-{
-	using type = std::tuple<>;
-};
-
-
-template<typename... _types1, typename... _types2>
-struct concat<std::tuple<_types1...>, std::tuple<_types2...>>
-{
-	using type = std::tuple<_types1..., _types2...>;
-};
-
-
-template<class _tCtor, typename... _types>
-struct fmap<_tCtor, std::tuple<_types...>>
-{
-	using type = apply_t<_tCtor, _types...>;
-};
-
-
 template<typename... _types>
 struct seq_size<std::tuple<_types...>>
 	: std::tuple_size<std::tuple<_types...>>::type
 {};
-
-
-template<typename _tHead, typename... _tTail>
-struct front<std::tuple<_tHead, _tTail...>>
-{
-	using type = _tHead;
-};
-
-
-template<typename _tHead, typename... _tTail>
-struct pop_front<std::tuple<_tHead, _tTail...>>
-{
-	using type = std::tuple<_tTail...>;
-};
-
-
-template<typename... _types, typename _type>
-struct push_back<std::tuple<_types...>, _type>
-{
-	using type = std::tuple<_types..., _type>;
-};
-
-
-template<typename... _types, typename _type>
-struct push_front<std::tuple<_types...>, _type>
-{
-	using type = std::tuple<_type, _types...>;
-};
 
 
 template<typename... _types, size_t... _vIdxSeq>
@@ -137,31 +80,6 @@ public:
 #else
 	using type = std::tuple<tuple_element_t<_vIdxSeq, tuple_type>...>;
 #endif
-};
-
-
-template<class _fBinary, typename _tState>
-struct fold<_fBinary, _tState, std::tuple<>>
-{
-	using type = _tState;
-};
-
-template<class _fBinary, typename _tState, typename _type>
-struct fold<_fBinary, _tState, std::tuple<_type>>
-{
-	using type = apply_t<_fBinary, _tState, _type>;
-};
-
-template<class _fBinary, typename _tState, typename... _types>
-struct fold<_fBinary, _tState, std::tuple<_types...>>
-{
-private:
-	using parts = split_n<sizeof...(_types) / 2, std::tuple<_types...>>;
-	using head = _t<parts>;
-	using tail = typename parts::tail;
-
-public:
-	using type = fold_t<_fBinary, fold_t<_fBinary, _tState, head>, tail>;
 };
 
 
@@ -235,65 +153,6 @@ struct tuple_find<_type, std::pair<_type1, _type2>>
 {};
 //@}
 //@}
-
-
-/*!
-\ingroup metafunctions
-\brief 可变参数类型列表延迟求值。
-\sa vseq::defer
-\since build 650
-*/
-template<template<typename...> class _gOp, typename... _types>
-struct vdefer : vseq::defer<_gOp, std::tuple<_types...>>
-{};
-
-/*!
-\brief 直接接受类型的二元操作合并应用。
-\sa vseq::fold
-\since build 671
-*/
-template<class _fBinary, typename _tState, typename... _types>
-using vfold = vseq::fold_t<_fBinary, _tState, std::tuple<_types...>>;
-
-
-namespace vseq
-{
-
-/*!
-\ingroup metafunction_composition
-\note vdefer 是必要的，否则别名模板作为元函数时无法推导参数。
-\sa vdefer
-\see http://wg21.cmeerw.net/lwg/issue1430 。
-*/
-//@{
-/*!
-\brief 构造具有 \c apply 成员的一阶元函数。
-\since build 671
-*/
-template<template<typename...> class _gOp>
-struct _a
-{
-	template<typename... _types>
-	using apply = vdefer<_gOp, _types...>;
-};
-
-/*!
-\brief 引用：延迟求值变换。
-\since build 651
-\todo 支持没有 \c apply 成员的非元函数。
-*/
-template<class _func>
-struct _q
-{
-	// NOTE: Ideally, the template argument should be limited to enable check.
-	//	However this is impossible since the arity of '_func::apply' is
-	//	unknown.
-	template<typename... _types>
-	using apply = vdefer<apply, _func, _types...>;
-};
-//@}
-
-}
 
 } // namespace ystdex;
 

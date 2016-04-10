@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10378
+\version r10525
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-04-06 20:43 +0800
+	2016-04-10 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,148 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		// Metafunctions 'vfold*' are not used in the library, and were not \
+			consistent on aspect of '_t' with 'vdefer*'. They were also not \
+			so useful unless all other 'vseq' operations were provided with \
+			'v*' operations in same way.
+		/ %Tuple $=
+		(
+			(
+			/ "metafunction %vdefer" @ "namespace %ystdex"
+				>> "namespace %ystdex::vseq";
+				// To allow internal use.
+			+ $forced 'using vseq::vdefer;' @ "namespace %ystdex"
+			),
+			- $revert(b671) "metafunction %vfold" @ %Tuple,
+			/ @ "namespace %vseq" $=
+			(
+				(
+				/ "specialization of %defer for %std::tuple specializations"
+					-> ("specializations for types with same kind as \
+					%std::tuple" @ %Variadic);
+				/ "metafunctions %(_a, _q)" >> %Variadic
+				),
+				- "specialization of %(clear, front, pop_front, push_back, \
+					push_front, fmap, fold) for %std::tuple" $dep_from
+					("%(clear, front, pop_front, push_back, push_front, fmap, \
+					fold)" @ %Variadic)
+			)
+		),
+		/ %IntegerSequence $=
+		(
+			(
+			/ "metafunction %vdefer_i" @ "namespace %ystdex"
+				>> "namespace %ystdex::vseq";
+			+ $forced 'using vseq::vdefer_i;' @ "namespace %ystdex"
+			),
+			- $revert(b671) "metafunctions %(vfold, vfold_s, vfold_i)",
+			/ "specialization of %defer for %integer_sequence specializations"
+				-> ("specializations for types with same kind as \
+				%integer_sequence" @ %Variadic);
+			+ "specialization of %ctor_of for %integer_sequence" $dep_from
+				("%ctor_of" @ %Variadic),
+			+ "specialization of %project for types and sequence as default \
+				implementation" ^ "%index_sequence",
+			+ "specialization of %params_of for %integer_sequence" $dep_from
+				("%params_of" @ %Variadic);
+			- "specialization of %(clear, concat, fmap, front, pop_back, \
+				pop_front, push_back, push_front, seq_size, project, fold) \
+				for %integer_sequence" $dep_from ("%(clear, concat, fmap, \
+				front, pop_back, pop_front, push_back, push_front, seq_size, \
+				fold)" @ %Variadic),
+		),
+		/ %Variadic $=
+		(
+			(
+			+ "metafunctions %(ctor_of; ctor_of_t) and specialization for \
+				types with same kind as %std::tuple";
+			+ "specialization of %ctor_of for types with same kind as \
+				%std::tuple" $dep_from ("%_a" @ %Tuple)
+			),
+			(
+			(
+			+ "metafunctions %(params_of; params_of_t) and specialization for \
+				types with same kind as %std::tuple";
+			+ "specialization of %params_of for types with same kind as \
+				%std::tuple",
+			+ "metafunction %defer_apply_t; instance_apply_t; is_instance";
+			+ "metafunction %same_instance";
+			+ "metafunction %enable_for_instances" ^ $dep_from
+				("%enable_when" @ %TypeTraits)
+			),
+			+ "enabler with partial order support" @ "metafunctions allowing \
+				user spefifying specifications" $=
+			(
+				/ DLDI "split declarations of metafunction %split for default \
+					template arguments";
+					// To avoid template argument redefinition.
+				/ DLDI "template parameter" @ "macros" $=
+				(
+					+ "template parameter 'typename = void'"
+						@ "end of template parameter list",
+					+ "primary template forwarding default argument to \
+						'when<true>'"
+				);			
+				/ $forced DLDI "simplified %(defer, defer_i)",
+				/ $forced $impl "primary templates as default implementation \
+					%(at, back, clear, split_n, pop_back, erase, find, \
+					deduplicate, join_n, reverse, unique)"
+					-> "template specialization with argument 'when<true>'"
+					$dep_to "%split_t"
+			);
+			+ "support matching for general kinds" @ "default implementation"
+				@ "metafunctions %(concat, fmap, front, pop_front, push_back, \
+				push_front, clear, seq_size)" ^ $dep_from
+				("%(enable_for_instances, instance_apply_t, defer_apply_t, \
+				params_of_t, ctor_of_t)") $dep_to "%front_t",
+				// Note %std::tuple has more specialized implentation. So no \
+					other deletion like %clear will be made.
+			+ "default implementation with matching for general kinds"
+				@ "metafunctions %(fold, vec_add, vec_subtract)" ^ $dep_from
+				("%(enable_for_instances, seq_size_t, front_t, split_n_t)")
+				$dep_to "%fold_t"
+			)
+		),
+		/ $re_ex(b649) DLDI "simplified unary type trait %is_string_class"
+			@ %String ^ "%enable_if_t" ~ "%enable_when",
+		/ %TypeTraits $=
+		(
+			+ "class template declaration %when";
+			* "class template %enable_when behaved same as %void_t" $since b648
+				// This is now like %when, but without need to specialize for \
+					'when<false>'.
+				$= (/ $impl ^ "%when")
+		),
+		/ %Operators $=
+		(
+			/ DLDI "flattened bases" @ "operators templates" ^ ($dep_from
+				("%vseq::(defer_apply_t, _a, fold_t)" $dep_from %Variadic),
+				"%empty_base"),
+			(
+			+ $re_add(b682) "alias %no_constfn" @ "namespace %dep_ops",
+			/ @ "operator templates except for all 4 explictly implemented \
+				operator templates %(incrementable, decrementable, \
+				dereferenceable, indexable)" $=
+			(
+				+ "'template<yimpl(typename = void)>'";
+					// This is not only to implement deduction of 'yconstfn', \
+						but also for ability of being overriden in derived \
+						classes.
+				+ "selective 'yconstfn' detection"
+			);
+			* $comp "ill-formed 'yconstfn' when underlying operations not \
+				implemented as constant expressions" $since b439
+			),
+			+ DLDI 'YB_ATTR(always_inline)' @ "specialized friends"
+				@ "binary operator templates"
+		)
+	)
+),
+
+b683
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -284,7 +426,7 @@ b680
 			* "dummy SFINAE type not dependent"
 				@ "metafunction %enable_if_transparent_t" $since b679
 			),
-			/ "missing 'using std::less;'" @ "inline namespace %cpp2014"
+			* "missing 'using std::less;'" @ "inline namespace %cpp2014"
 				@ '__cpp_lib_transparent_operators >= 201210 \
 				|| __cplusplus >= 201402L' $since b679
 		),
@@ -341,7 +483,7 @@ b680
 								("ystdex::mapped_set::try_emplace")
 								@ %YBase.YStandardEx.Set);
 							* $comp "wrong behavior of unnecessary \
-								initialization of value type" $678,
+								initialization of value type" $since b678,
 							* "not specifying container" $since b678
 								// To be consistent to WG21 N4279.
 						),
@@ -631,6 +773,7 @@ b678
 	),
 	* $comp "crash when accessing empty configuration nodes" @ %YReader $since
 		b667 $dep_from %YFramework.YSLib.Core.ValueNode,
+		// The error was "BOM mismatch" for a fresh install.
 	/ "access-specifier" @ "non member operators basees" ^ "explicit 'private'"
 		$effective @ (("class template %path" @ %Path, "class template \
 		%observer_ptr" @ %Memory, ("class template %transformed_iterator")
@@ -726,8 +869,8 @@ b677
 				/ "constructors templates with holders" !^ "%unique_ptr"
 					$dep_from "non-pointer holder construction",
 					// To utilize small object optimization of %ystdex::any. \
-						Also to reduce size of binary code (esp. in debug \
-						release).
+						Also to reduce size of binary code (esp. in %debug \
+						configurations).
 				+ "2 function templates %(Emplace; EmplaceIfEmpty)" ^ $dep_from
 					("%ystdex::any::emplace" @ %YBase.YStandardEx.Any),
 				/ $lib $impl "all 2 function templates %GetObject" ^ $dep_from
@@ -7683,7 +7826,7 @@ b623
 		),
 		/ @ "function %LogAssert" @ %YCLib.Debug $=
 		(
-			* "catch-clause" @ "platform %Win32" $since b
+			* "catch-clause" @ "platform %Win32" $since b558
 				$= (+ "log and calling %ystdex::assert"),
 			/ DLDI "simplified platform !%(Win32, Android)" ^ "%TryExpr"
 		)

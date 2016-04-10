@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r910
+\version r937
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-03-31 12:32 +0800
+	2016-04-10 14:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,6 +199,7 @@ ystdex 的类型在声明所在的同一头文件中，可能存在 std 命名�
 @2.5.2.1 非公开实现命名空间：
 命名空间 ystdex 内 details 命名空间和声明以宏 yimpl(@2.4.3) 修饰的命名空间保留为非公开实现。
 非头文件的非公开实现命名空间中，在未命名命名空间内使用库保留标识符([Documentation::CommonRules @@4.1.6]) 命名具有内部链接([Documentation::LanguageConvention @@5.5.8.1]) 的非公开命名空间，以避免任意公开命名空间的改动造成污染。
+另见 [Documentation::ProjectRules @@2.2.4.2] 。
 
 @2.5.2.2 公开命名空间：
 ystdex ： YStandardEx 使用的默认命名空间。
@@ -250,7 +251,10 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 
 @2.5.5.3 一元操作符 & 和取指针的相关接口 AddressOf
 
-@2.5.5.4 重载操作符 Operators
+@2.5.5.4 整数序列元编程接口 IntegerSequence ：
+扩展了 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
+
+@2.5.5.5 重载操作符 Operators
 
 @2.5.6 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
@@ -280,66 +284,63 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 头文件扩展了标准库头 <cassert> ，提供若干断言函数。这些函数提供无异常抛出保证的异常规范以便于在隐式指定异常规范的无异常抛出的析构函数([Documentation::LanguageConvention @@5.10.5.5]) 中使用。
 在库使用约定([Documentation::CommonRules @@3.13.2]) 和语言使用规约([Documentation::LanguageConvention @@5.15.3.3]) 的基础上使用方式同 <cassert> 和 <assert.h> （允许定义宏控制重复包含的内容）。
 
-@2.5.7.5 标准库 Utilities 元编程扩展接口 IntegerSequence ：
-扩展了 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
+@2.5.7.5 存储和智能指针特性 Memory
 
-@2.5.7.6 存储和智能指针特性 Memory
-
-@2.5.7.7 实用设施 Utilities ：
+@2.5.7.6 实用设施 Utilities ：
 扩展了标准库头 <utility> ，提供一些常用杂项功能。
 
-@2.5.7.8 ISO C 字符分类操作扩展 CCharacterCtype ：
+@2.5.7.7 ISO C 字符分类操作扩展 CCharacterCtype ：
 头文件扩展了标准库头 <cctype> ，提供一些扩展和替代实现。
 
-@2.5.7.9 ISO C 标准字符串扩展 CString
+@2.5.7.8 ISO C 标准字符串扩展 CString
 
-@2.5.7.10 引用包装 Ref
+@2.5.7.9 引用包装 Ref
 
-@2.5.7.11 通用仿函数 Functor
+@2.5.7.10 通用仿函数 Functor
 
-@2.5.7.12 元组类型和操作 Tuple ：
+@2.5.7.11 元组类型和操作 Tuple ：
 扩展了标准库头 <tuple> ，提供类型特征和序列相关的特化操作等。
 
-@2.5.7.13 函数和可调用对象 Functional ：
+@2.5.7.12 函数和可调用对象 Functional ：
 扩展了标准库头 <functional> ，提供函数类型操作和各种一般调用的实现。
 
-@2.5.7.14 通用指针 Pointer
+@2.5.7.13 通用指针 Pointer
 
-@2.5.7.15 通用迭代器 Iterator ：
+@2.5.7.14 通用迭代器 Iterator ：
 间接扩展了标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
 
-@2.5.7.16 迭代器特征 IteratorTrait ：
+@2.5.7.15 迭代器特征 IteratorTrait ：
 扩展标准库头 <iterator> ，提供迭代器相关的类型特征。
 
-@2.5.7.17 泛型算法 Algorithm ：
+@2.5.7.16 泛型算法 Algorithm ：
 扩展了标准库头 <algorithm> ，提供一些泛型算法。
 除非另行约定，使用 first 和 last 为名称的参数指定同一个范围，否则不保证结果正确，可能引起未定义行为。
 
-@2.5.7.18 ISO C++ 标准字符串扩展 String ：
+@2.5.7.17 ISO C++ 标准字符串扩展 String ：
 间接扩展了标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
-@2.5.7.19 ISO C 宽字符分类操作扩展 CWideCharacterType ：
+@2.5.7.18 ISO C 宽字符分类操作扩展 CWideCharacterType ：
 头文件扩展了标准库头 <cwctype> ，提供一些替代实现。
 
-@2.5.7.20 数组操作 Array ：
+@2.5.7.19 数组操作 Array ：
 扩展了标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.5.7.21 集合容器 Set ：
+@2.5.7.20 集合容器 Set ：
 扩展标准库头 <map> ，但提供和 std::set 类似的容器。
 
-@2.5.7.22 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+@2.5.7.21 ISO C++ 标准流缓冲扩展 StreamBuffer ：
 扩展了标准库头 <streambuf> 。
 
-@2.5.7.23 ISO C++ 标准输入流扩展 InputStream ：
+@2.5.7.22 ISO C++ 标准输入流扩展 InputStream ：
 扩展了标准库头 <istream> 。
 
-@2.5.7.24 ISO C 标准输入/输出扩展 CStandardIO ：
+@2.5.7.23 ISO C 标准输入/输出扩展 CStandardIO ：
 头文件扩展了标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.7.25 ISO C++ <future> 扩展 Future ：
+@2.5.7.24 ISO C++ <future> 扩展 Future ：
 扩展了标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.7.26 伪互斥量 PseudoMutex ：
+@2.5.7.25 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.8 其它扩展接口：
@@ -353,7 +354,7 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 
 @2.5.8.3 通用容器操作 Container ：
 实现通用容器适配器模板和对容器类型及构建数组容器的操作。
-参数限制同 Algorithm (@2.5.7.15) 。
+参数限制同 Algorithm (@2.5.7.16) 。
 
 @2.5.8.4 枚举相关操作 Enum ：
 提供枚举相关操作和类型。
