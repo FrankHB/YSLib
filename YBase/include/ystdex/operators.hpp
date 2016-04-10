@@ -11,18 +11,18 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2779
+\version r2809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2016-03-30 14:05 +0800
+	2016-04-10 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Operators
-\see http://www.boost.org/doc/libs/1_54_0/boost/operators.hpp 。
+\see http://www.boost.org/doc/libs/1_60_0/boost/operators.hpp 。
 \see https://github.com/taocpp/operators 。
 
 用法同 Boost.Operators ，但不公开带数字后缀的接口。
@@ -32,8 +32,10 @@
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "addressof.hpp" // for _t, true_type, ystdex::constfn_addressof;
-#include "integer_sequence.hpp" // for index_sequence;
+#include "addressof.hpp" // for _t, true_type, empty_base,
+//	ystdex::constfn_addressof;
+#include "integer_sequence.hpp" // for index_sequence, vseq::defer_apply_t,
+//	vseq::_a, vseq::fold_t;
 
 namespace ystdex
 {
@@ -46,20 +48,21 @@ namespace ystdex
 namespace dep_ops
 {
 
+//! \since build 684
+using no_constfn = yimpl(false_type);
 //! \since build 682
 using use_constfn = yimpl(true_type);
 
 } // namespace dep_ops;
 
-#define YB_Impl_Operators_DeOpt = yimpl(use_constfn)
-#define YB_Impl_Operators_H_n(_tSeq, _arg) \
-	template<class _type, _tSeq class _tOpt _arg>
+#define YB_Impl_Operators_DeOpt class _tOpt = yimpl(use_constfn)
+#define YB_Impl_Operators_H_n(_args) template<class _type, _args>
 #define YB_Impl_Operators_H1 \
-	YB_Impl_Operators_H_n(, YB_Impl_Operators_DeOpt)
+	YB_Impl_Operators_H_n(YB_Impl_Operators_DeOpt)
 #define YB_Impl_Operators_H2 \
-	YB_Impl_Operators_H_n(typename _type2 YPP_Comma, YB_Impl_Operators_DeOpt)
+	YB_Impl_Operators_H_n(typename _type2 YPP_Comma YB_Impl_Operators_DeOpt)
 #define YB_Impl_Operators_H2_de \
-	YB_Impl_Operators_H_n(typename _type2 = _type YPP_Comma, \
+	YB_Impl_Operators_H_n(typename _type2 = _type YPP_Comma \
 		YB_Impl_Operators_DeOpt)
 #define YB_Impl_Operators_H2_Alias(_name, ...) \
 	YB_Impl_Operators_H2 \
@@ -69,7 +72,7 @@ using use_constfn = yimpl(true_type);
 	yimpl(using) _name = __VA_ARGS__;
 #define YB_Impl_Operators_H3 \
 	YB_Impl_Operators_H_n(typename _type2 YPP_Comma typename _type3 \
-		YPP_Comma, YB_Impl_Operators_DeOpt)
+		YPP_Comma YB_Impl_Operators_DeOpt)
 
 namespace details
 {
@@ -112,19 +115,21 @@ struct ops_seq<_type, _type2, _tOpt, index_sequence<_vSeq...>>
 
 
 #define YB_Impl_Operators_f(_c, _op, _tRet, _expr, ...) \
-	friend _c _tRet \
+	friend _c YB_ATTR(always_inline) _tRet \
 	operator _op(__VA_ARGS__) ynoexcept(noexcept(_expr)) \
 	{ \
 		return (_expr); \
 	}
-// TODO: Replace 'yconstfn' to deduced '_tOpt' result.
-#define YB_Impl_Operators_bin_spec(_n, _f, ...) \
-	YB_Impl_Operators_H_n(typename _type2 YPP_Comma, ) \
-	struct bin_ops<_n, _type, _type2, _tOpt> \
+#define YB_Impl_Operators_bin_ts(_n, _f, _c, _opt, ...) \
+	YB_Impl_Operators_H_n(typename _type2) \
+	struct bin_ops<_n, _type, _type2, dep_ops::_opt> \
 	{ \
-		_f(yconstfn, __VA_ARGS__) \
+		template<yimpl(typename = void)> \
+		_f(_c, __VA_ARGS__) \
 	};
-
+#define YB_Impl_Operators_bin_spec(_n, _f, ...) \
+	YB_Impl_Operators_bin_ts(_n, _f, inline, no_constfn, __VA_ARGS__) \
+	YB_Impl_Operators_bin_ts(_n, _f, yconstfn, use_constfn, __VA_ARGS__)
 // NOTE: The trunk libstdc++ std::experimental::string_view comparison should
 //	depend on the same technique.
 // TODO: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52072. It is strange
@@ -228,11 +233,14 @@ YB_Impl_Operators_bin(9, >>)
 #undef YB_Impl_Operators_bin_tmpl
 
 #undef YB_Impl_Operators_bin_spec
+#undef YB_Impl_Operators_bin_ts
 #undef YB_Impl_Operators_f
 
 template<class _type, typename _type2, class _tOpt,
-	template<typename...> class... _g>
-using flat_ops = ebases<_g<_type, _type2, _tOpt>...>;
+	template<typename...> class... _gOps>
+using flat_ops = vseq::defer_apply_t<vseq::_a<ebases>, vseq::fold_t<vseq::_a<
+	vseq::concat_t>, empty_base<>, empty_base<vseq::defer_apply_t<
+	vseq::_a<empty_base>, _gOps<_type, _type2, _tOpt>>...>>>;
 //@}
 
 } // namespace details;

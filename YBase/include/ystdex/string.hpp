@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1866
+\version r1871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2016-02-01 12:57 +0800
+	2016-04-09 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,8 @@
 //	nested_allocator, is_enum, is_class;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
-#include "container.hpp" // for make_index_sequence, index_sequence, begin, end,
-//	sort_unique, size, underlying;
+#include "container.hpp" // for "container.hpp", make_index_sequence,
+//	index_sequence, begin, end, sort_unique, size, underlying;
 #include "cstdio.h" // for yconstraint, vfmtlen;
 #include "cstring.h" // for ntctslen;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
@@ -83,7 +83,7 @@ struct is_string_like : false_type
 {};
 
 template<typename _type>
-struct is_string_like<_type, enable_when<
+struct is_string_like<_type, enable_if_t<
 	is_object<decay_t<decltype(std::declval<_type>()[0])>>::value>> : true_type
 {};
 //@}
@@ -227,7 +227,7 @@ using enable_for_string_class_t
 \note 同 std::begin 和 std::end ，但字符数组除外。
 \note 此处 string_end 语义和 boost::end 相同，但对数组类型不同于 std::end 。
 \bug decltype 指定的返回类型不能使用 ADL 。
-\see WG21/N3936 20.4.7[iterator.range] 。
+\see WG21 N3936 20.4.7[iterator.range] 。
 \since build 519
 */
 //@{
@@ -1023,7 +1023,7 @@ struct ston_dispatcher;
 	template<> \
 	struct ston_dispatcher<_tString, _type> \
 	{ \
-		static inline _type \
+		static _type \
 		cast(const _tString& str, __VA_ARGS__) \
 		{ \
 			return _n(str

@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r890
+\version r901
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-04-06 13:20 +0800
+	2016-04-10 12:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -422,12 +422,23 @@ using void_t = _t<always<void>::template apply<_types...>>;
 #endif
 
 /*!
-\sa enable_if_t
+\brief 类似 void_t 的元函数，但具有较低匹配优先级，避免偏特化歧义。
 \sa void_t
+\note 无定义。
+\since build 684
+*/
+template<bool _bCond>
+struct when;
+
+
+/*!
+\brief 类似 enable_if_t 的元函数，但具有较低匹配优先级，避免偏特化歧义。
+\sa enable_if_t
+\sa when
 \since build 649
 */
 template<bool _bCond>
-using enable_when = void_t<enable_if_t<_bCond>>;
+using enable_when = enable_if_t<_bCond, when<true>>;
 //@}
 
 

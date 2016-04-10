@@ -10,14 +10,14 @@
 
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
-\brief C++ 变长参数相关操作。
-\version r422
+\brief 整数序列元编程接口。
+\version r518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-04-05 12:05 +0800
+	2016-04-10 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_sequence_hpp_
 #define YB_INC_ystdex_sequence_hpp_ 1
 
-#include "variadic.hpp" // for "variadic.hpp", vseq::defer_i, _t, common_type_t;
+#include "variadic.hpp" // for "variadic.hpp", empty_base, vseq::defer_i, _t,
+//	common_type_t;
 
 namespace ystdex
 {
@@ -71,113 +72,34 @@ using index_sequence = integer_sequence<size_t, _vSeq...>;
 namespace vseq
 {
 
-//! \since build 650
-template<typename _tInt, template<_tInt...> class _gOp, _tInt... _vSeq>
-struct defer_i<_tInt, _gOp, integer_sequence<_tInt, _vSeq...>,
-	void_t<_gOp<_vSeq...>>>
+//! \since build 684
+//@{
+template<class _tSeq, size_t... _vIdxSeq>
+struct project<_tSeq, index_sequence<_vIdxSeq...>, enable_for_instances<_tSeq>>
 {
-	using type = _gOp<_vSeq...>;
+	using type = defer_apply_t<ctor_of_t<_tSeq>,
+		empty_base<at_t<params_of_t<_tSeq>, _vIdxSeq>...>>;
 };
 
 
 template<typename _tInt, _tInt... _vSeq>
-struct clear<integer_sequence<_tInt, _vSeq...>>
-{
-	using type = integer_sequence<_tInt>;
-};
-
-
-template<typename _tInt, _tInt... _vSeq1, _tInt... _vSeq2>
-struct concat<integer_sequence<_tInt, _vSeq1...>,
-	integer_sequence<_tInt, _vSeq2...>>
-{
-	using type = integer_sequence<_tInt, _vSeq1..., _vSeq2...>;
-};
-
-
-template<class _tCtor, typename _tInt, _tInt... _vSeq>
-struct fmap<_tCtor, integer_sequence<_tInt, _vSeq...>>
-{
-	using type = apply_t<_tCtor, integral_constant<_tInt, _vSeq>...>;
-};
-
-
-template<typename _tInt, _tInt... _vSeq>
-struct seq_size<integer_sequence<_tInt, _vSeq...>>
-	: integral_constant<size_t, sizeof...(_vSeq)>
-{};
-
-
-template<typename _tInt, _tInt _vHead, _tInt... _vSeq>
-struct front<integer_sequence<_tInt, _vHead, _vSeq...>>
-	: integral_constant<_tInt, _vHead>
-{};
-
-
-
-template<typename _tInt, _tInt _vHead, _tInt... _vTail>
-struct pop_front<integer_sequence<_tInt, _vHead, _vTail...>>
-{
-	using type = integer_sequence<_tInt, _vTail...>;
-};
-
-
-template<typename _tInt, _tInt... _vSeq, _tInt _vItem>
-struct push_back<integer_sequence<_tInt, _vSeq...>,
-	integral_constant<_tInt, _vItem>>
-{
-	using type = integer_sequence<_tInt, _vSeq..., _vItem>;
-};
-
-
-template<typename _tInt, _tInt... _vSeq, _tInt _vItem>
-struct push_front<integer_sequence<_tInt, _vSeq...>,
-	integral_constant<_tInt, _vItem>>
-{
-	using type = integer_sequence<_tInt, _vItem, _vSeq...>;
-};
-
-
-template<typename _tInt, _tInt... _vSeq, size_t... _vIdxSeq>
-struct project<integer_sequence<_tInt, _vSeq...>,
-	index_sequence<_vIdxSeq...>>
-{
-	using type = integer_sequence<_tInt,
-		at<integer_sequence<_tInt, _vSeq...>, _vIdxSeq>::value...>;
-};
-
-
-template<typename _tInt, class _fBinary, class _tState>
-struct fold<_fBinary, _tState, integer_sequence<_tInt>>
-{
-	using type = _tState;
-
-	static yconstexpr const auto value = _tState::value;
-};
-
-template<typename _tInt, class _fBinary, class _tState, _tInt _vHead>
-struct fold<_fBinary, _tState, integer_sequence<_tInt, _vHead>>
-{
-	static yconstexpr const auto value = _fBinary()(_tState::value, _vHead);
-
-	using type = integer_sequence<_tInt, value>;
-};
-
-template<typename _tInt, class _fBinary, class _tState, _tInt... _vSeq>
-struct fold<_fBinary, _tState, integer_sequence<_tInt, _vSeq...>>
+struct ctor_of<integer_sequence<_tInt, _vSeq...>>
 {
 private:
-	using parts = split_n<sizeof...(_vSeq) / 2,
-		integer_sequence<_tInt, _vSeq...>>;
-	using head = _t<parts>;
-	using tail = typename parts::tail;
+	template<typename... _types>
+	using bound = integer_sequence<_tInt, _types::value...>;
 
 public:
-	static yconstexpr const auto value = fold<_fBinary, std::integral_constant<
-		size_t, fold<_fBinary, _tState, head>::value>, tail>::value;
-
-	using type = index_sequence<value>;
+	using type = _a<bound>;
 };
+
+
+template<typename _tInt, _tInt... _vSeq>
+struct params_of<integer_sequence<_tInt, _vSeq...>>
+{
+	using type = empty_base<integral_constant<_tInt, _vSeq>...>;
+};
+//@}
 
 
 template<typename _tInt, _tInt... _vSeq1, _tInt... _vSeq2>
@@ -195,13 +117,10 @@ struct vec_subtract<integer_sequence<_tInt, _vSeq1...>,
 	using type = integer_sequence<_tInt, (_vSeq1 - _vSeq2)...>;
 };
 
-} // namespace vseq;
-//@}
-
 
 /*!
 \brief 可变参数整数列表延迟求值。
-\sa vseq::defer_i
+\sa defer_i
 \since build 650
 */
 template<typename _tInt, template<_tInt...> class _gOp, _tInt... _vSeq>
@@ -209,21 +128,11 @@ struct vdefer_i
 	: vseq::defer_i<_tInt, _gOp, integer_sequence<_tInt, _vSeq...>>
 {};
 
-/*!
-\sa vseq::fold
-\since build 671
-*/
-//@{
-//! \brief 整数类型值二元操作合并应用。
-template<typename _tInt, class _fBinary, _tInt _vState, _tInt... _vSeq>
-using vfold_i = vseq::fold_t<_fBinary, std::integral_constant<_tInt, _vState>,
-	integer_sequence<_tInt, _vSeq...>>;
-
-//! \brief size_t 类型值二元操作合并应用。
-template<class _fBinary, size_t _vState, size_t... _vSeq>
-using vfold_s = vfold_i<size_t, _fBinary, _vState, _vSeq...>;
+} // namespace vseq;
 //@}
 
+//! \since build 684
+using vseq::vdefer_i;
 
 /*!
 \ingroup metafunctions
