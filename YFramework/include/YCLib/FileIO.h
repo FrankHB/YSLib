@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1898
+\version r1911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-03-17 14:56 +0800
+	2016-04-13 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -433,11 +433,10 @@ using UniqueFile = unique_ptr_from<FileDescriptor::Deleter>;
 YF_API YB_STATELESS mode_t
 DefaultPMode() ynothrow;
 
-//! \since build 669
-//@{
 /*!
 \brief 设置标准库流二进制输入/输出模式。
 \pre 间接断言：参数非空。
+\since build 669
 */
 //@{
 YF_API void
@@ -453,17 +452,6 @@ inline PDefH(void, SetupBinaryStdIO, std::FILE* in = stdin,
 	std::FILE* out = stdout, bool sync = {}) ynothrowv
 	ImplExpr(SetBinaryIO(in), SetBinaryIO(out),
 		std::ios_base::sync_with_stdio(sync))
-//@}
-
-/*!
-\brief 重复尝试关闭流：设置 \c error 后关闭参数指定的流，必要时重试。
-\pre 断言：参数非空。
-\return 非 EINTR 的错误。
-\note 首先清除 errno ；遇 EINTR 时重试。
-\note 使用 std::fclose 关闭流。
-*/
-YF_API YB_NONNULL(1) int
-RetryClose(std::FILE*) ynothrowv;
 //@}
 
 

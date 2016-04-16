@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2015 FrankHB.
+#	(C) 2009-2016 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YBase
-# Version = r258
+# Version = r263
 # Created = 2014-04-07 12:41:43 +0800
-# Updated = 2015-05-26 14:24 +0800
+# Updated = 2016-04-12 22:20 +0800
 # Encoding = ANSI
 
 
@@ -90,7 +90,6 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 .PHONY: $(CONF) clean rebuild all
 
-#----
 $(CONF):
 	@echo Building configuration: $(notdir $@) ...
 	@[ -d $(BUILDDIR)/dummy ] || mkdir -p $(BUILDDIR)/dummy
@@ -98,10 +97,10 @@ $(CONF):
 	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@).
 
-#----
 clean:
 	@echo Cleaning $(TARGET) of $(PLATFORM) ...
-	@rm -fr $(BUILDDIR)/* 2> /dev/null || true
+	@rm -f $(foreach file,$(OFILES:.o=.d),$(DEPSDIR)/$(file))
+	@rm -f $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
 	@rm -f $(OUTPUT)
 	@echo Cleaned.
 

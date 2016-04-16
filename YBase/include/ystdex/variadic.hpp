@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1297
+\version r1304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-04-10 15:52 +0800
+	2016-04-12 10:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,9 +75,6 @@ using apply_t = _t<apply<_func, _tParams...>>;
 
 #define YB_Impl_Variadic_SeqOp(_n, _tparams, _targs) \
 	template<_tparams, typename = void> \
-	struct _n; \
-	\
-	template<_tparams, typename> \
 	struct _n : _n<_targs, when<true>> \
 	{}; \
 	\
@@ -559,11 +556,7 @@ struct pop_back<_tSeq, when<true>> : split_n<seq_size<_tSeq>::value - 1, _tSeq>
 */
 //@{
 YB_Impl_Variadic_SeqOp(erase, class _tSeq YPP_Comma size_t _vIdx YPP_Comma
-	size_t _vEnd, _tSeq YPP_Comma _vIdx YPP_Comma _vEnd)
-
-//! \since build 684
-template<class, size_t _vIdx, size_t _vEnd = _vIdx + 1, typename>
-struct erase;
+	size_t _vEnd = _vIdx + 1, _tSeq YPP_Comma _vIdx YPP_Comma _vEnd)
 
 //! \since build 684
 template<class _tSeq, size_t _vIdx, size_t _vEnd>

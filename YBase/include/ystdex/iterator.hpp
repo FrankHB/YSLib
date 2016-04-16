@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5910
+\version r5937
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-03-27 12:36 +0800
+	2016-04-16 12:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,10 @@
 #ifndef YB_INC_ystdex_iterator_hpp_
 #define YB_INC_ystdex_iterator_hpp_ 1
 
-#include "pointer.hpp" // for iterator_operators_t, std::iterator_traits,
-//	_t, pointer_classify, cond_t, and_, exclude_self_ctor_t, true_type,
-//	enable_if_inconvertible_t, *_tag, yassume, is_undereferenceable,
-//	yconstraint, random_access_iteratable;
+#include "pointer.hpp" // for "iterator_op.hpp", iterator_operators_t,
+//	std::iterator_traits, _t, pointer_classify, cond_t, and_,
+//	exclude_self_ctor_t, true_type, enable_if_inconvertible_t, *_tag,
+//	yassume, is_undereferenceable, yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
 #include "ref.hpp" // for lref;
@@ -365,15 +365,20 @@ public:
 		return *this;
 	}
 
-	//! \since build 600
+	//! \since build 685
+	//@{
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
+	template<yimpl(typename = void)>
+#endif
 	friend yconstfn bool
 	operator==(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(bool(x.get() == y.get()))
 	{
 		return x.get() == y.get();
 	}
-	//! \since build 667
-	//@{
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
+	template<yimpl(typename = void)>
+#endif
 	friend yconstfn bool
 	operator==(const transformed_iterator& x, const iterator_type& y)
 		ynoexcept_spec(bool(x.get() == y))
@@ -381,13 +386,18 @@ public:
 		return x.get() == y;
 	}
 
-	//! \since build 600
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
+	template<yimpl(typename = void)>
+#endif
 	friend yconstfn bool
 	operator<(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(bool(x.get() < y.get()))
 	{
 		return bool(x.get() < y.get());
 	}
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
+	template<yimpl(typename = void)>
+#endif
 	friend yconstfn bool
 	operator<(const transformed_iterator& x, const iterator_type& y)
 		ynoexcept_spec(bool(x.get() < y))
@@ -395,18 +405,27 @@ public:
 		return bool(x.get() < y);
 	}
 
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
+	template<yimpl(typename = void)>
+#endif
 	friend yconstfn difference_type
 	operator-(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(difference_type(x.get() - y.get()))
 	{
 		return difference_type(x.get() - y.get());
 	}
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
+	template<yimpl(typename = void)>
+#endif
 	friend yconstfn difference_type
 	operator-(const transformed_iterator& x, const iterator_type& y)
 		ynoexcept_spec(difference_type(x.get() - y))
 	{
 		return difference_type(x.get() - y);
 	}
+#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
+	template<yimpl(typename = void)>
+#endif
 	friend yconstfn difference_type
 	operator-(const iterator_type& x, const transformed_iterator& y)
 		ynoexcept_spec(difference_type(x - y.get()))

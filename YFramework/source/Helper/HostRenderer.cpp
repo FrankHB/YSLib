@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r676
+\version r678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-03-08 10:00 +0800
+	2016-04-16 11:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_HostRenderer
+#include YFM_Helper_HostRenderer // for ystdex::pvoid;
 #include YFM_Helper_Environment // for Environment;
 //#include YFM_Helper_GUIApplication
 #if YCL_HostedUI_XCB
@@ -36,7 +36,6 @@
 #	include YFM_Helper_Environment
 #	include YFM_Win32_Helper_Win32Control
 #endif
-#include <ystdex/cast.hpp> // for ystdex::pvoid;
 #include <ystdex/scope_guard.hpp> // for ystdex::share_guard;
 
 namespace YSLib

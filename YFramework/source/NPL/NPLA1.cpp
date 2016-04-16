@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r915
+\version r1018
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-03-08 10:25 +0800
+	2016-04-16 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,10 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for ystdex::bind1, YSLib::RemoveEmptyChildren;
+#include YFM_NPL_NPLA1 // for ystdex::bind1, YSLib::RemoveEmptyChildren,
+//	ystdex::pvoid;
 #include YFM_NPL_SContext
+#include <ystdex/scope_guard.hpp> // for ystdex::share_guard;
 
 using namespace YSLib;
 
@@ -167,6 +169,123 @@ DetectReducible(TermNode& term, bool reducible)
 	YSLib::RemoveEmptyChildren(term.GetContainerRef());
 	// NOTE: Only stopping on getting a normal form.
 	return reducible && !term.empty();
+}
+
+
+//! \since build 685
+namespace
+{
+
+yconstexpr const auto GuardName("__$!");
+yconstexpr const auto LeafTermName("__$$@");
+yconstexpr const auto ListTermName("__$$");
+
+} // unnamed namespace;
+
+GuardPasses&
+AccessGuardPassesRef(ContextNode& ctx)
+{
+	return ctx.Place<GuardPasses>(GuardName);
+}
+
+EvaluationPasses&
+AccessLeafPassesRef(ContextNode& ctx)
+{
+	return ctx.Place<EvaluationPasses>(LeafTermName);
+}
+
+EvaluationPasses&
+AccessListPassesRef(ContextNode& ctx)
+{
+	return ctx.Place<EvaluationPasses>(ListTermName);
+}
+
+Guard
+EvaluateGuard(TermNode& term, ContextNode& ctx)
+{
+	return InvokePasses<GuardPasses>(term, ctx, GuardName);
+}
+
+bool
+EvaluateLeafPasses(TermNode& term, ContextNode& ctx)
+{
+	return InvokePasses<EvaluationPasses>(term, ctx, LeafTermName);
+}
+
+bool
+EvaluateListPasses(TermNode& term, ContextNode& ctx)
+{
+	return InvokePasses<EvaluationPasses>(term, ctx, ListTermName);
+}
+
+
+bool
+Reduce(TermNode& term, ContextNode& ctx)
+{
+	const auto gd(EvaluateGuard(term, ctx));
+
+	// NOTE: Rewriting loop until the normal form is got.
+	return ystdex::retry_on_cond(std::bind(DetectReducible, std::ref(term),
+		std::placeholders::_1), [&]() -> bool{
+		if(!term.empty())
+		{
+			YAssert(term.size() != 0, "Invalid node found.");
+			if(term.size() != 1)
+				// NOTE: List evaluation.
+				return EvaluateListPasses(term, ctx);
+			else
+			{
+				// NOTE: List with single element shall be reduced to its value.
+				LiftFirst(term);
+				return Reduce(term, ctx);
+			}
+		}
+		else if(!term.Value)
+			// NOTE: Empty list.
+			term.Value = ValueToken::Null;
+		else if(AccessPtr<ValueToken>(term))
+			// TODO: Handle special value token.
+			;
+		else
+			return EvaluateLeafPasses(term, ctx);
+		// NOTE: Exited loop has produced normal form by default.
+		return {};
+	});
+}
+
+void
+ReduceArguments(TermNode::Container& con, ContextNode& ctx)
+{
+	if(con.size() > 1)
+		// NOTE: The order of evaluation is unspecified by the language
+		//	specification. However here it can only be either left-to-right
+		//	or right-to-left unless the separators has been predicted.
+		std::for_each(std::next(con.begin()), con.end(),
+			[&](decltype(*con.end())& sub_term){
+			Reduce(sub_term, ctx);
+		});
+	else
+		throw LoggedEvent("Invalid term to handle found.", Err);
+}
+
+
+void
+SetupTraceDepth(ContextNode& root, const string& name)
+{
+	yunseq(
+	root.Place<size_t>(name),
+	AccessGuardPassesRef(root) = [name](TermNode& term, ContextNode& ctx){
+		using ystdex::pvoid;
+		auto& depth(AccessChild<size_t>(ctx, name));
+
+		YTraceDe(Informative, "Depth = %zu, context = %p, semantics = %p.",
+			depth, pvoid(&ctx), pvoid(&term));
+		++depth;
+		return ystdex::share_guard([&](void*) ynothrow{
+			--depth;
+		});
+	}
+	);
 }
 
 } // namesapce A1;

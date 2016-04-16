@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r993
+\version r1079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-03-11 14:05 +0800
+	2016-04-16 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,6 +153,8 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 //@{
 //! \brief 上下文节点类型。
 using ContextNode = ValueNode;
+//! \since build 685
+using YSLib::AccessChildPtr;
 //! \brief 上下文处理器类型。
 using ContextHandler = YSLib::GHEvent<void(TermNode&, ContextNode&)>;
 //! \brief 字面量处理器类型。
@@ -182,8 +184,9 @@ public:
 
 	/*!
 	\brief 处理函数。
-	\throw LoggedEvent 类型错误：由 Handler 抛出的 ystdex::bad_any_cast 转换。
-	\throw LoggedEvent 一般错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
+	\throw LoggedEvent 警告：类型不匹配，
+		由 Handler 抛出的 ystdex::bad_any_cast 转换。
+	\throw LoggedEvent 错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
 		std::exception 转换。
 	\throw std::invalid_argument 项为空。
 
@@ -209,12 +212,18 @@ LookupName(const ContextNode&, const string&) ynothrow;
 
 //! \since build 676
 //@{
-//! \brief 移除节点的空子节点并判断是否可继续规约。
+/*!
+\brief 移除节点的空子节点，然后判断是否可继续规约。
+\return 可继续规约：第二参数为 true 且移除空子节点后的节点非空。
+*/
 YF_API bool
 DetectReducible(TermNode&, bool);
 
 
-//! \brief 遍合并器。
+/*!
+\brief 遍合并器：逐次调用直至返回 true 。
+\note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
+*/
 struct PassesCombiner
 {
 	template<typename _tIn>
@@ -249,6 +258,95 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 //! \brief 使用第二个参数指定的项的内容替换第一个项的内容。
 inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
 	ImplExpr(TermNode(std::move(tm)).SwapContent(term))
+//@}
+
+/*!
+\brief 使用首个子项替换项的内容。
+\since build 685
+*/
+inline PDefH(void, LiftFirst, TermNode& term)
+	ImplExpr(LiftTerm(term, Deref(term.begin())))
+
+
+//! \since build 685
+//@{
+//! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
+template<class _tPasses>
+typename _tPasses::result_type
+InvokePasses(TermNode& term, ContextNode& ctx, const string& name)
+{
+	return ystdex::call_value_or<typename _tPasses::result_type>(
+		[&](_tPasses& passes){
+		return passes(term, ctx);
+	}, AccessChildPtr<_tPasses>(ctx, name));
+}
+
+
+//! \brief 访问守护遍。
+YF_API GuardPasses&
+AccessGuardPassesRef(ContextNode&);
+
+//! \brief 访问叶节点遍。
+YF_API EvaluationPasses&
+AccessLeafPassesRef(ContextNode&);
+
+//! \brief 访问列表节点遍。
+YF_API EvaluationPasses&
+AccessListPassesRef(ContextNode&);
+
+//! \brief 求值守护。
+YF_API Guard
+EvaluateGuard(TermNode& term, ContextNode&);
+
+//! \brief 求值叶节点遍。
+YF_API bool
+EvaluateLeafPasses(TermNode& term, ContextNode&);
+
+//! \brief 求值列表节点遍。
+YF_API bool
+EvaluateListPasses(TermNode& term, ContextNode&);
+
+
+/*!
+\brief NPLA1 节点规约。
+\note 可能使参数中容器的迭代器失效。
+\return 确定是否需要重新规约。
+\sa DetectReducible
+\sa EvaluateGuard
+\sa EvaluateLeafPasses
+\sa EvaluateListPasses
+\sa ValueToken
+\todo 实现 ValueToken 保留处理。
+
+规约表达式节点：调用至少一次求值例程递归规约子表达式。
+调用 EvaluateGuard 进行必要的上下文重置。
+对非空列表节点调用 EvaluateListPasses 求值。
+对空表节点替换为 ValueToken::Null 。
+对已替换为 ValueToken 的叶节点保留处理。 
+对其它叶节点调用 EvaluateLeafPasses 求值。
+单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否重新规约。
+*/
+YF_API bool
+Reduce(TermNode&, ContextNode&);
+
+/*!
+\brief 对容器中的第二项开始逐项规约。
+\throw LoggedEvent 错误：容器内的子表达式不大于一项。
+\note 语言规范指定规约顺序不确定。
+\note 可能使参数中容器的迭代器失效。
+\sa Reduce
+*/
+YF_API void
+ReduceArguments(TermNode::Container&, ContextNode&);
+
+
+/*!
+\brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
+\note 主要用于调试。
+\sa EvaluateGuard
+*/
+YF_API void
+SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
 //@}
 
 } // namesapce A1;
