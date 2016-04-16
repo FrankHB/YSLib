@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10525
+\version r10627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-04-10 20:04 +0800
+	2016-04-16 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,85 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		* "unconditional 'yconstfn' overloaded operators might cause \
+			ill-fomred calls" @ '!(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)'
+			@ "class template %transformed_iterator" @ %Iterator $since b667
+			$= (+ $impl 'template<yimpl(typename = void)>'
+			@ "all friend operators" $effective
+			@ ("2 %operator=, 2 %operator<, 3 %operator-")),
+			// G++ 4.9 for platform %Android would not work for this.
+		* $re_add(b684) "ill-formed static assertions when the related '==' \
+			operations are not constexpr functions" @ "class template %nptr"
+			@ %Pointer $orig (@ %Utilities $since b595),
+		/ DLDI %Variadic $=
+		(
+			/ "simplified macros";
+			/ $revert(b684)
+				"merged template declarations with default argument %erase"
+		),
+		/ "funtion templates %(pvoid, pvoid_ref)" @ %Cast >> %AddressOf,
+		+ $impl "workaround" @ "operator templates"
+			@ 'YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000' @ %Operators $=
+			// Ditto.
+			(/ $revert(b684) "friend templates"
+				-> "non-template friend functions")
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Adaptor.YAdaptor %=
+			(
+				+ 'using platform::XYZAMaskTrait;',
+				+ 'using platform::AXYZMaskTrait;'
+			),
+			/ %Service.Pixel $=
+			(
+				+ "metafunctions %(MaskTrait, EnableForMask)";
+				+ "class template %GBlender";
+				/ "merged function templates with overloaded for %RGBA<5, 5, \
+					5, 1> %(Blend, BlendAlpha, Composite)" ^ "%%GBlend";
+				+ $comp "support for specialized operation based on traits \
+					extending RGBA5551" $dep_from
+					("%XYZAMaskTrait" @ %AdaptorYAdaptor)
+			)
+		),
+		/ @ "namesapce %A1" @ %NPL.NPLA1 $=
+		(
+			(
+			+ 'using YSLib::AccessChildPtr';
+			+ "function template %InvokePasses"
+			),
+			+ "functions %(AccessGuardPassesRef, AccessLeafPassesRef, \
+				AccessListPassesRef, EvaluateGuard, EvaluateLeafPasses, \
+				EvaluateListPasses, LiftFirst; (Reduce; ReduceArguments), \
+				SetupTraceDepth)"
+		),
+		- $revert(b669) "function %RetryClose" @ %YCLib.FileIO,
+			// See $2016-04 @ %Documentation::Workflow::Annual2016. Note \
+				calling 'std::fclose' instead of '::close' is almost always \
+				wrong.
+		* $comp "failed to build" @ "platform %Android" $since b684 $dep_from
+			%YBase.YStandardEx.Operators
+	),
+	- $re_ex(b682) $build "removing directory contents beyond '*.d', '*.o' \
+		and output library file" @ "target %clean"
+		@ "makefiles" @ "platforms %(DS, Android)" @ %(YBase, YFramework),
+		// Now '*.log' from Microsoft Visual Studio would not be cleaned.
+	/ DLDI "replaced inclusion of <ystdex/cast.hpp>" $effective @ ("non-header \
+		files" @ %YFramework) $dep_from %YBase.YStandardEx.Cast $=
+	(
+		- "redundant inclusion of <ystdex/cast.hpp>" $effective
+			@ %(Helper.(HostedUI, HostRenderer), NPL.NPLA1, YSLib.Adaptor.YNew),
+		/ $forced "inclusion of <ystdex/cast.hpp>"
+			-> '#include <ystdex/addressof.hpp>' $effective @ %YCLib.XCB
+	)
+),
+
+b684
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -146,6 +225,7 @@ $now
 					'when<false>'.
 				$= (/ $impl ^ "%when")
 		),
+		(
 		/ %Operators $=
 		(
 			/ DLDI "flattened bases" @ "operators templates" ^ ($dep_from
@@ -168,6 +248,10 @@ $now
 			),
 			+ DLDI 'YB_ATTR(always_inline)' @ "specialized friends"
 				@ "binary operator templates"
+		);
+		/ $comp "ill-formed static assertions even if the related '==' \
+			operations are constexpr functions" @ "class template %nptr"
+			@ %Pointer $orig (@ %Utilities $since b595)
 		)
 	)
 ),
@@ -957,7 +1041,7 @@ b676
 					/ "function %check_undereferenceable, related non-member \
 						function %is_undereferenceable"
 						-> "friend function %is_undereferenceable"
-					- $revert(b454) "workaround for Microsoft Visual C++ 2013"
+					- $revert(b454) "workaround for Microsoft VC++ 2013"
 						@ ("move %operator=", "move constructor")
 				)
 			),
@@ -2686,7 +2770,7 @@ b665
 b664
 (
 	* $dev $design "missing %Documentation::Workflow::Annual2016"
-		@ "filter of Visual C++ project" $since b663,
+		@ "filter of Microsoft VC++ project" $since b663,
 	* $build "generated code with dependency on ('u8', 'u32')" @ "makefiles"
 		@ ("platform %DS" $since $before b132, "platform %Android" $since b492),
 	/ %YFramework $=
@@ -2819,7 +2903,7 @@ b663
 	(
 		+ %IOS $=
 			// Note that libstdc++ has %_M_setstate which sets state without \
-				throwing and VC++ also has extention to do rethrowing \
+				throwing and Microsoft VC++ also has extention to do rethrowing \
 				directly, but since %YBase.YStandardEx is required to rely on \
 				no specific implementation, they are not available.
 			(+ "function templates %(setstate; rethrow_badstate")),
@@ -4034,7 +4118,7 @@ b656
 		$= (* "missing setting %EIO for %::write and variants when appending \
 			witout enough space" $dep_from "missing setting appending error"),
 	+ $dev $repo "pattern glob '*.VC.opendb'" @ "file %.hgignore"
-		// For VC++ 2015 Update 1.
+		// For Microsoft VC++ 2015 Update 1.
 ),
 
 b655
@@ -4046,7 +4130,7 @@ b655
 			/ $dev $impl "stopped early for %void parameters for ADL binary \
 				operands",
 			/ "worked around to disable ADL binary operands overloadings"
-				@ 'YB_IMPL_GNUCPP < 50000'
+				@ 'YCL_IMPL_GNUCPP < 50000'
 				// Not tested for G++ 5.
 		),
 		/ %Optional $=
@@ -4496,7 +4580,7 @@ b651
 		(
 			/ "nested allocator detection"
 			(
-				* @ !'YCL_IMPL_GNUCPP < 49200' $since b650 $=
+				* @ !'YB_IMPL_GNUCPP < 49200' $since b650 $=
 				(
 					(
 					* "wrong nested type %allocator detected instead of \
@@ -5381,7 +5465,7 @@ b645
 				)
 			),
 			+ 'using ystdex::basic_string_view;' @ %CharacterDefinition,
-			* DLB "missing renaming 'chrdef.h'" @ "VC++ project filter" $since
+			* DLB "missing renaming 'chrdef.h'" @ "Microsoft VC++ project filter" $since
 				b641,
 			/ %MappingEx $=
 			(
@@ -6332,8 +6416,8 @@ b638
 		+ 'YB_ATTR(returns_nonnull)' @ ("functions %(InitScrUp, InitScrDown)"
 			@ %'YCLib_(DS)'.DSVideo, "all 2 functions %TranslateTime"
 			@ %Helper.ShellHelper),
-		/ $revert(b459) $dev $build "disabled warning C4520" @ "VC++ project",
-			// It seems that the bug is no longer in VC++ 2015.
+		/ $revert(b459) $dev $build "disabled warning C4520" @ "Microsoft VC++ project",
+			// It seems that the bug is no longer in Microsoft VC++ 2015.
 	),
 	/ %YBase $=
 	(
@@ -6739,10 +6823,10 @@ b633
 	/ $forced "including paths"
 		@ "%(SHBuild-bootstrap.sh, SHBuild-YSLib-common.sh)"
 		@ %Tools.Scripts $dep_from %YFramework.'YCLib_(Win32)',
-	/ @ "VC++ project" @ %YBase $=
+	/ @ "Microsoft VC++ project" @ %YBase $=
 	(
 		/ $revert(b457) "warning level" -> '/W3',
-			// To eliminate VC++2015 warning: C4514.
+			// To eliminate Microsoft VC++ 2015 warning: C4514.
 		/ $dev $build "disabled warning LNK4006"
 	),
 	/ %Tools.ProjectGenerator $=
@@ -7238,7 +7322,7 @@ b628
 					%GetFileModificationTimeOf" @ %FileSystem) $since b544,
 				/ DLDI "simplified %GetFileModificationTimeOf" ^ "%UniqueFile"
 			),
-			- $revert(b458) "workaround for Microsoft VC++2013"
+			- $revert(b458) "workaround for Microsoft VC++ 2013"
 				@ %(Video, FileSystem),
 			/ @ "platform %Win32" @ "member function \
 				%HDirectory::GetNodeCategory" @ %FileSystem $=
@@ -8316,19 +8400,19 @@ b617
 				~ ('const_cast' @ "function %rdbuf");
 			* "undefined behavior" @ "function %rdbuf" @ $since b616
 				// It seems that all libstdc++, libc++ and implementation of \
-					VC++ use cast. However this is not portable for client \
+					Microsoft VC++ use cast. However this is not portable for client \
 					code.
 			)
 		)
 	),
-	+ $build "VC++ 2015 support" @ "VC++ projects",
+	+ $build "Microsoft VC++ 2015 support" @ "Microsoft VC++ projects",
 	/ %YBase $=
 	(
 		/ %YDefinition $=
 		(
 			/ "enabled %(YB_HAS_CONSTEXPR, YB_HAS_NOEXCEPT)"
 				@ 'YB_IMPL_MSCPP >= 1900',
-				// For VC++ 2015.
+				// For Microsoft VC++ 2015.
 			* "wrongly defined %YB_ATTR as empty sequence for non GNU \
 				compatible implementations" ~ "%YB_ATTR_gnu_printf" $since b615
 		),
@@ -8340,7 +8424,7 @@ b617
 		(
 			/ DLDI @ "function %operator/=" @ "class template %path" @ %Path
 				^ "%unsigned literal" ~ "%int literal";
-				// To eliminate VC++2015 warning: C4018.
+				// To eliminate Microsoft VC++ 2015 warning: C4018.
 			/ %Memory $=
 			(
 				* "invalid overloaded signatures" @ "template %pack_object"
@@ -8393,7 +8477,7 @@ b616
 		(
 			+ "2 functions %ufopen for %std::ios_base::openmode mode \
 				parameter",
-			+ "function %TryClose";
+			+ "function %TryClose",
 			+ "alternative %fstream interface" $=
 			(
 				/ @ '__GLIBCXX__' $=
@@ -9370,7 +9454,7 @@ b604
 		+ "class %SectionCache" ^ $dep_from
 			("%block_buffer" @ %YBase.StandardEx.CStandardIO)
 	),
-	* $dev "wrongly placed %test.cpp in filter %ystdex" @ "VC++ project %YBase"
+	* $dev "wrongly placed %test.cpp in filter %ystdex" @ "Microsoft VC++ project %YBase"
 		$since b519,
 	/ @ "main function" @ %Main $=
 	(
@@ -9412,7 +9496,7 @@ b603
 			@ "%Tools/Scripts/Toolchain.DS.mk" $since b558
 			// It seemed to be OK, but is not intended.
 	),
-	/ $build @ "VC++ projects" $=
+	/ $build @ "Microsoft VC++ projects" $=
 	(
 		(
 		* "missing wrapping output for Visual Studio"

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r950
+\version r1147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2015-04-10 01:28 +0800
+	2016-04-12 11:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,21 @@ namespace Drawing
 \note 当前支持的类型：目标迭代器×源迭代器→ void 。
 \since build 442
 */
+
+/*!
+\ingroup metafunctions
+\since build 685
+*/
+//@{
+template<class _tPixel>
+using MaskTrait = typename _tPixel::MaskTrait;
+
+
+template<class _tPixel, class _tMask>
+using EnableForMask = ystdex::enable_when<std::is_same<ystdex::detected_or_t<
+	void, MaskTrait, _tPixel>, _tMask>::value>;
+//@}
+
 
 /*!
 \brief 着色器命名空间。
@@ -528,127 +543,171 @@ BlendCore(std::uint32_t d, std::uint32_t s, std::uint8_t a)
 /*
 \note 使用引用传递像素类型以便优化。
 \todo 支持浮点数。
-*/
-//@{
-/*!
-\brief 像素混合：使用指定的源 Alpha 。
-\note 输出背景不透明， Alpha 饱和。
-\sa Drawing::BlendComponent
 \since build 442
 */
 //@{
-//! \note 使用 ADL BlendComponent 指定混合像素分量。
+/*!
+\brief 分发像素混合操作。
+\since build 685
+*/
+template<typename _tPixel, typename = void>
+struct GBlender : GBlender<_tPixel, ystdex::when<true>>
+{};
+
+template<typename _tPixel, bool _bCond>
+struct GBlender<_tPixel, ystdex::when<_bCond>>
+{
+	/*!
+	\note 使用 ADL BlendComponent 指定混合像素分量。
+	\sa Drawing::BlendComponent
+	*/
+	//@{
+	template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
+	static yconstfn _tPixel
+	Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
+	{
+		static_assert(std::is_integral<_tSrcAlphaInt>(),
+			"Invalid integer source alpha type found.");
+
+		return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
+			BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa),
+			BlendComponent<_vSrcAlphaBits>(d.GetB(), s.GetB(), sa),
+			(1 << _vSrcAlphaBits) - 1);
+	}
+
+	template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits,
+		typename _tSrcAlphaInt>
+	static yconstfn _tPixel
+	BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
+	{
+		static_assert(std::is_integral<_tSrcAlphaInt>(),
+			"Invalid integer source alpha type found.");
+		using namespace ystdex;
+		using pixd = make_fixed_t<_vDstAlphaBits>;
+		using pix = make_fixed_t<_vSrcAlphaBits>;
+
+		return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
+			BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa),
+			BlendComponent<_vSrcAlphaBits>(d.GetB(), s.GetB(), sa),
+			GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>
+			::CompositeAlphaOver(pixd(d.GetA(), raw_tag()),
+			pix(sa, raw_tag())).get());
+	}
+	//@}
+
+	/*!
+	\note 使用 ADL CompositeComponent 指定组合像素分量。
+	\sa Drawing::CompositeComponent
+	*/
+	template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits,
+		typename _tSrcAlphaInt, typename _tAlphaInt>
+	static yconstfn _tPixel
+	Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa,
+		_tAlphaInt a)
+	{
+		static_assert(std::is_integral<_tSrcAlphaInt>(),
+			"Invalid integer source alpha type found.");
+		static_assert(std::is_integral<_tAlphaInt>(),
+			"Invalid integer result alpha type found.");
+
+		return Color(CompositeComponent<_vDstAlphaBits, _vSrcAlphaBits>(
+			d.GetR(), s.GetR(), sa, a), CompositeComponent<_vDstAlphaBits,
+			_vSrcAlphaBits>(d.GetG(), s.GetG(), sa, a), CompositeComponent<
+			_vDstAlphaBits, _vSrcAlphaBits>(d.GetB(), s.GetB(), sa, a), a);
+	}
+};
+
+/*!
+\note 使用 ADL BlendCore 代理混合像素调用。
+\sa BlendCore
+*/
+template<typename _tPixel>
+struct GBlender<_tPixel, EnableForMask<_tPixel, XYZAMaskTrait<5, 5, 5, 1>>>
+{
+	template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
+	static yconstfn _tPixel
+	Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
+	{
+		static_assert(std::is_integral<_tSrcAlphaInt>(),
+			"Invalid integer source alpha type found.");
+
+		return BlendCore<_vSrcAlphaBits>(d, s, sa) | 1 << 15;
+	}
+
+	template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits,
+		typename _tSrcAlphaInt>
+	static yconstfn _tPixel
+	BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
+	{
+		static_assert(std::is_integral<_tSrcAlphaInt>(),
+			"Invalid integer source alpha type found.");
+		using namespace ystdex;
+		using pixd = make_fixed_t<_vDstAlphaBits>;
+		using pix = make_fixed_t<_vSrcAlphaBits>;
+
+		return BlendCore<_vSrcAlphaBits>(d, s, sa) | (GPixelCompositor<
+			_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(pixd(d.GetA(),
+			raw_tag()), pix(sa, raw_tag())).get() != 0 ? 1 << 15 : 0);
+	}
+
+	template<size_t, size_t _vSrcAlphaBits, typename _tSrcAlphaInt,
+		typename _tAlphaInt>
+	static yconstfn _tPixel
+	Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa,
+		_tAlphaInt a)
+	{
+		static_assert(std::is_integral<_tSrcAlphaInt>(),
+			"Invalid integer source alpha type found.");
+		static_assert(std::is_integral<_tAlphaInt>(),
+			"Invalid integer alpha type found.");
+
+		return BlendCore<_vSrcAlphaBits>(d, s, sa) | ((a != 0) ? 1 << 15 : 0);
+	}
+};
+
+
+/*!
+\brief 像素混合：使用指定的源 Alpha 。
+\note 输出背景不透明， Alpha 饱和。
+\sa GBlender::Blend
+*/
 template<size_t _vSrcAlphaBits, typename _tPixel, typename _tSrcAlphaInt>
 yconstfn _tPixel
 Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>(),
-		"Invalid integer source alpha type found.");
-
-	return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
-		BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa), BlendComponent<
-		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa), (1 << _vSrcAlphaBits) - 1);
+	return GBlender<_tPixel>::template Blend<_vSrcAlphaBits>(d, s, sa);
 }
-//! \note 使用 ADL BlendCore 代理混合像素调用。
-template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
-yconstfn RGBA<5, 5, 5, 1>
-Blend(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s, _tSrcAlphaInt sa)
-{
-	static_assert(std::is_integral<_tSrcAlphaInt>(),
-		"Invalid integer source alpha type found.");
-
-	return BlendCore<_vSrcAlphaBits>(d, s, sa) | 1 << 15;
-}
-//@}
 
 
+//! \sa Drawing::GPixelCompositor
+//@{
 /*!
 \brief Alpha 像素混合：使用指定的源 Alpha 同时组合透明背景 Alpha 。
 \note 忽略源像素中的 Alpha 。
+\sa GBlender::BlendAlpha
 \since build 561
-\sa Drawing::BlendComponent
-\sa Drawing::GPixelCompositor
 */
-//@{
-//! \note 使用 ADL BlendComponent 指定混合像素分量。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tSrcAlphaInt>
 yconstfn _tPixel
 BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>(),
-		"Invalid integer source alpha type found.");
-	using namespace ystdex;
-	using pixd = make_fixed_t<_vDstAlphaBits>;
-	using pix = make_fixed_t<_vSrcAlphaBits>;
-
-	return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
-		BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa), BlendComponent<
-		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa),
-		GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(
-		pixd(d.GetA(), raw_tag()), pix(sa, raw_tag())).get());
+	return GBlender<_tPixel>::template BlendAlpha<_vDstAlphaBits, 
+		_vSrcAlphaBits>(d, s, sa);
 }
-//! \note 使用 ADL BlendCore 代理混合像素调用。
-template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
-yconstfn RGBA<5, 5, 5, 1>
-BlendAlpha(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s,
-	_tSrcAlphaInt sa)
-{
-	static_assert(std::is_integral<_tSrcAlphaInt>(),
-		"Invalid integer source alpha type found.");
-	using namespace ystdex;
-	using pixd = make_fixed_t<_vDstAlphaBits>;
-	using pix = make_fixed_t<_vSrcAlphaBits>;
-
-	return BlendCore<_vSrcAlphaBits>(d, s, sa) | (GPixelCompositor<
-		_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(pixd(d.GetA(),
-		raw_tag()), pix(sa, raw_tag())).get() != 0 ? 1 << 15 : 0);
-}
-//@}
 
 
-/*!
-\sa Drawing::CompositeComponent
-\sa Drawing::GPixelCompositor
-\since build 442
-*/
+//! \sa GBlender::Composite
 //@{
 //! \brief 像素组合：使用指定的源 Alpha 和结果 Alpha 。
-//@{
-//! \note 使用 ADL CompositeComponent 指定组合像素分量。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tSrcAlphaInt, typename _tAlphaInt>
 yconstfn _tPixel
 Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa, _tAlphaInt a)
 {
-	static_assert(std::is_integral<_tSrcAlphaInt>(),
-		"Invalid integer source alpha type found.");
-	static_assert(std::is_integral<_tAlphaInt>(),
-		"Invalid integer result alpha type found.");
-
-	return Color(CompositeComponent<_vDstAlphaBits, _vSrcAlphaBits>(d.GetR(),
-		s.GetR(), sa, a), CompositeComponent<_vDstAlphaBits, _vSrcAlphaBits>(
-		d.GetG(), s.GetG(), sa, a), CompositeComponent<_vDstAlphaBits,
-		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa, a), a);
+	return GBlender<_tPixel>::template Composite<_vDstAlphaBits,
+		_vSrcAlphaBits>(d, s, sa, a);
 }
-/*!
-\note 使用 ADL BlendCore 代理混合像素调用。
-\since build 561
-*/
-template<size_t, size_t _vSrcAlphaBits, typename _tSrcAlphaInt,
-	typename _tAlphaInt>
-yconstfn RGBA<5, 5, 5, 1>
-Composite(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s,
-	_tSrcAlphaInt sa, _tAlphaInt a)
-{
-	static_assert(std::is_integral<_tSrcAlphaInt>(),
-		"Invalid integer source alpha type found.");
-	static_assert(std::is_integral<_tAlphaInt>(),
-		"Invalid integer alpha type found.");
-
-	return BlendCore<_vSrcAlphaBits>(d, s, sa) | ((a != 0) ? 1 << 15 : 0);
-}
-//@}
 //! \note 使用 ADL Composite 代理组合像素调用。
 //@{
 //! \brief 像素组合：使用指定的结果 Alpha 。
@@ -672,6 +731,7 @@ Composite(const _tPixel& d, const _tPixel& s)
 		_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(pixd(d.GetA(),
 		raw_tag()), pix(s.GetA(), raw_tag())).get());
 }
+//@}
 //@}
 //@}
 //@}

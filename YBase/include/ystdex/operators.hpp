@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2809
+\version r2819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2016-04-10 19:50 +0800
+	2016-04-16 12:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,13 +120,22 @@ struct ops_seq<_type, _type2, _tOpt, index_sequence<_vSeq...>>
 	{ \
 		return (_expr); \
 	}
-#define YB_Impl_Operators_bin_ts(_n, _f, _c, _opt, ...) \
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000
+#	define YB_Impl_Operators_bin_ts(_n, _f, _c, _opt, ...) \
+	YB_Impl_Operators_H_n(typename _type2) \
+	struct bin_ops<_n, _type, _type2, dep_ops::_opt> \
+	{ \
+		_f(_c, __VA_ARGS__) \
+	};
+#else
+#	define YB_Impl_Operators_bin_ts(_n, _f, _c, _opt, ...) \
 	YB_Impl_Operators_H_n(typename _type2) \
 	struct bin_ops<_n, _type, _type2, dep_ops::_opt> \
 	{ \
 		template<yimpl(typename = void)> \
 		_f(_c, __VA_ARGS__) \
 	};
+#endif
 #define YB_Impl_Operators_bin_spec(_n, _f, ...) \
 	YB_Impl_Operators_bin_ts(_n, _f, inline, no_constfn, __VA_ARGS__) \
 	YB_Impl_Operators_bin_ts(_n, _f, yconstfn, use_constfn, __VA_ARGS__)

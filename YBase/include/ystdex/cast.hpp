@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1241
+\version r1271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2016-02-26 08:41 +0800
+	2016-04-16 11:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,39 +37,6 @@
 //! \since build 175
 namespace ystdex
 {
-
-/*!
-\brief 取 \c void* 类型的指针。
-\note 适合 std::fprintf 等的 \c %p 转换规格。
-\since build 563
-*/
-//@{
-template<typename _type>
-yconstfn yimpl(enable_if_t)<or_<is_object<_type>, is_void<_type>>::value, void*>
-pvoid(_type* p) ynothrow
-{
-	return const_cast<void*>(static_cast<const volatile void*>(p));
-}
-//! \note ISO C++11 指定函数指针 \c reinterpret_cast 为对象指针有条件支持。
-template<typename _type>
-inline yimpl(enable_if_t)<is_function<_type>::value, void*>
-pvoid(_type* p) ynothrow
-{
-	return const_cast<void*>(reinterpret_cast<const volatile void*>(p));
-}
-
-/*!
-\return 非空指针。
-\since build 552
-*/
-template<typename _type>
-yconstfn void*
-pvoid_ref(_type&& ref)
-{
-	return ystdex::pvoid(std::addressof(ref));
-}
-//@}
-
 
 /*!	\defgroup cast Cast
 \brief 显式类型转换。

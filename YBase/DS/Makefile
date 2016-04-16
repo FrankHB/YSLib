@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2015 FrankHB.
+#	(C) 2009-2016 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r2001
+# Version = r2004
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2015-05-26 14:25 +0800
+# Updated = 2016-04-12 22:21 +0800
 # Encoding = ANSI
 
 
@@ -107,7 +107,8 @@ $(CONF):
 #----
 clean:
 	@echo Cleaning $(TARGET) of $(PLATFORM) ...
-	@rm -fr $(BUILDDIR)/* 2> /dev/null || true
+	@rm -f $(foreach file,$(OFILES:.o=.d),$(DEPSDIR)/$(file))
+	@rm -f $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
 	@rm -f $(OUTPUT)
 	@echo Cleaned.
 

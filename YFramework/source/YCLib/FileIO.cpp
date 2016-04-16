@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2223
+\version r2236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-02-11 01:43 +0800
+	2016-04-13 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,7 @@ QueryFileTime(int fd, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	QueryFileTime(ToHandle(fd), p_ctime, p_atime, p_mtime);
 }
 
-// TODO: Blocked. Use ISO C++14 generic lambda expressions.
+// TODO: Blocked. Use C++14 generic lambda expressions.
 yconstexpr const struct
 {
 	template<typename _tParam, typename... _tParams>
@@ -406,6 +406,8 @@ void
 FileDescriptor::Deleter::operator()(pointer p) const ynothrow
 {
 	if(p)
+		// NOTE: Error is ignored.
+		//	See $2016-03 @ %Documentation::Workflow::Annual2016.
 		::close(*p);
 }
 
@@ -731,17 +733,6 @@ SetBinaryIO(std::FILE* stream) ynothrowv
 	// NOTE: No effect.
 	Nonnull(stream);
 #endif
-}
-
-int
-RetryClose(std::FILE* fp) ynothrowv
-{
-	// NOTE: However, on some implementations, '::close' and some other
-	//	function calls may always cause file descriptor to be closed
-	//	even if returning 'EINTR'. Thus it should be ignored. See https://www.python.org/dev/peps/pep-0475/#modified-functions.
-	return RetryOnInterrupted([=]{
-		return std::fclose(Nonnull(fp));
-	});
 }
 
 

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r356
+# Version = r360
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2016-01-11 10:54 +0800
+# Updated = 2016-04-12 22:20 +0800
 # Encoding = ANSI
 
 
@@ -135,7 +135,6 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 .PHONY: $(CONF) clean rebuild all
 
-#----
 $(CONF):
 	@echo Building configuration: $(notdir $@) ...
 	@[ -d $(BUILDDIR)/dummy ] || mkdir -p $(BUILDDIR)/dummy
@@ -143,10 +142,10 @@ $(CONF):
 	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@).
 
-#----
 clean:
 	@echo Cleaning $(TARGET) of $(PLATFORM) ...
-	@rm -fr $(BUILDDIR)/* 2> /dev/null || true
+	@rm -f $(foreach file,$(OFILES:.o=.d),$(DEPSDIR)/$(file))
+	@rm -f $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
 	@rm -f $(OUTPUT)
 	@echo Cleaned.
 

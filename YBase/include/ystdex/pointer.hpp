@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r344
+\version r356
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2016-03-17 14:54 +0800
+	2016-04-11 17:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,17 @@
 namespace ystdex
 {
 
+//! \since build 685
+namespace details
+{
+
+template<typename _type>
+using nptr_eq1 = bool_constant<_type() == _type()>;
+template<typename _type>
+using nptr_eq2 = bool_constant<_type(nullptr) == nullptr>;
+
+} // namespace details;
+
 //! \since build 560
 //@{
 /*!
@@ -50,8 +61,10 @@ class nptr : private totally_ordered<nptr<_type>>
 	//! \since build 630
 	static_assert(is_nothrow_copyable<_type>(), "Invalid type found.");
 	static_assert(is_destructible<_type>(), "Invalid type found.");
-	static_assert(_type() == _type(), "Invalid type found.");
-	static_assert(_type(nullptr) == nullptr, "Invalid type found.");
+	static_assert(detected_or_t<true_type, details::nptr_eq1, _type>(),
+		"Invalid type found.");
+	static_assert(detected_or_t<true_type, details::nptr_eq2, _type>(),
+		"Invalid type found.");
 
 public:
 	using pointer = _type;
