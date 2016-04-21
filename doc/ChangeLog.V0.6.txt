@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10627
+\version r10741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-04-16 13:44 +0800
+	2016-04-21 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,121 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	+ $re_add(b656) $dev $repo "pattern glob '*.VC.db'" @ "file %.hgignore",
+		// For VC++ 2015 Update 2.
+	/ $repo "engineering falut bookmarks" $=
+	(
+		- "bookmark 'engineering-defect-b225'",
+			// To prevent redundancy with 'engineering-fault-b225'.
+		+ "bookmark 'engineering-fault-b684'",
+			// Failed to build for platform %Android in 2rd supporting class. \
+				See also below.
+		+ "bookmark 'engineering-fault-b685'"
+			// Failed to build for platform %DS in 2rd and 3rd supporting \
+				classes.
+	),
+	/ %YFramework $=
+	(
+		+ "function %ReduceFirst" @ %NPL.NPLA1,
+		/ %YSLib $=
+		(
+			/ $comp "class %ValueObject threw %any_ops::invalid_construction \
+				when initialized with value of noncopyable target types"
+				@ %Core.YObject $dep_from %YBase.YStandardEx.Any,
+			* "failed to build" @ "specialized pixel types fit for \
+				%XYZAMaskTrait<5, 5, 5, 1>" @ "class template %GBlender"
+				@ 'YB_IMPL_GNUCPP' @ %Service.YPixel $since b685
+				// This should be a bug of G++. See Boost.Hana \
+					'hana::when_valid' documentation: https://boostorg.github.io/hana/group__group-core.html#ga0f5d717bbf6646619bb6219b104384dc.
+				$= (+ "workaround")
+		),
+		/ DLDI "simplified guard" ^ "%ystdex::unique_guard"
+			~ "%ystdex::share_guard"
+			@ ("member function %WindowThread::DefaultGenerateGuard"
+			@ %Helper.HostRenderer, "function %SetupTraceDepth" @ %NPL.NPLA1)
+			$dep_from %YBase.YStandardEx.(Any, ScopeGuard)
+	),
+	/ $doc "migrated release notes" @ "file %Readme.zh-CN.txt"
+		-> %Documentation.(Dependencies, Test),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				(
+				+ "class %invalid_construction";
+				+ "function %throw_invalid_construction";
+				/ "class template %value_holder supported throwing"
+					~ "ill-formed construction for copy"
+					^ "%throw_invalid_construction",
+				),
+				+ 'yconstexpr const struct use_handler_t{} use_handler{};'
+			),
+			/ @ "class %any" $=
+			(
+				/ $comp "threw %any_ops::invalid_construction when initialized \
+					with value of noncopyable target types" $dep_from
+					"%any_ops::value_holder",
+				+ "constructor template with %any_ops::use_handler_t parameter"
+					$dep_to "handler initialization" $dep_from "%use_handler",
+				+ "protected function %call; 2 protected function template \
+					%unchecked_access",
+				- "all protected data members %(manager, storage)" $dep_from
+					%AnyIterator
+			)
+		),
+		(
+		+ "class template %one_shot with 3 additional specializations"
+			@ %Functional;
+		+ "function template %unique_guard" @ %ScopeGuard
+		),
+		(
+		// To syncronize with WG21 N4582.
+		/ "namespace %dep_swap" @ %Utilities >> %TypeTraits;
+		+ "binary type traits %(is_swappable_with, is_nothrow_swappable_with)"
+			@ %TypeTraits;
+		/ "type traits %(is_swappable, is_nothrow_swappable)" @ %Utilities
+			-> ("unary type traits" @ %TypeTraits)
+			^ ("%(is_swappable_with, is_nothrow_swappable_with)" @ %TypeTraits);
+		- DLDI "including %Utilities" @ %Optional,
+		/ DLDI "including %Utilities" >> "including %TypeTraits" @ %ScopeGuard
+		),
+		/ DLDI "simplified flatterned template" ^ "%vseq::defer_t" @ %Operators
+			~ "%vseq::(defer_apply_t, _a)",
+		/ DLDI "simplified" @ "namespace %vseq" ^ "%instance_apply_t"
+			$effective @ %(Variadic, IntegerSequence),
+		/ %AnyIterator $=
+		(
+			/ @ "class templates %(any_input_iterator, any_forward_iterator, \
+				any_bidirectional_iterator)" $=
+			(
+				+ "protected alias %base";
+				+ "protected constructor template" $dep_from "hanlder initialization"
+			);
+			/ $impl @ "class template %any_input_iterator" $=
+			(
+				/ "simplified constructor tempalte" @ $dep_from
+					"handler initialization",
+				/ "simplified %operator++" ^ ($dep_from "%any::call" @ %Any)
+				/ "simplified %(operator(*, ==), is_undereferenceable)"
+					^ ($dep_from "%any::unchecked_access" @ %Any)
+			),
+			/ $impl "simplified %operator--" @ "class template \
+				%any_bidirectional_iterator" ^ ($dep_from "%any::call" @ %Any),
+			* "constructor template" @ "class templates %(any_forward_iterator, \
+				any_bidirectional_iterator)" $since b400 $=
+			(
+				* $re_add(b675) "missing excluding of self type",
+				* "wrong initialization of handlers" $dep_from
+					"handler initialization"
+			)
+		)
+	)
+),
+
+b685
 (
 	/ %YBase.YStandardEx $=
 	(

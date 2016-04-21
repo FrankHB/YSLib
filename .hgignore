@@ -31,6 +31,7 @@ build/*/*
 *.suo
 *.sdf
 *.opensdf
+*.VC.db
 *.VC.opendb
 *.layout
 UpgradeLog.XML

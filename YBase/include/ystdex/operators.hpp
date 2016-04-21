@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2819
+\version r2823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2016-04-16 12:32 +0800
+	2016-04-21 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "addressof.hpp" // for _t, true_type, empty_base,
+#include "addressof.hpp" // for "type_traits.hpp", _t, true_type, empty_base,
 //	ystdex::constfn_addressof;
 #include "integer_sequence.hpp" // for index_sequence, vseq::defer_apply_t,
 //	vseq::_a, vseq::fold_t;
@@ -247,9 +247,9 @@ YB_Impl_Operators_bin(9, >>)
 
 template<class _type, typename _type2, class _tOpt,
 	template<typename...> class... _gOps>
-using flat_ops = vseq::defer_apply_t<vseq::_a<ebases>, vseq::fold_t<vseq::_a<
-	vseq::concat_t>, empty_base<>, empty_base<vseq::defer_apply_t<
-	vseq::_a<empty_base>, _gOps<_type, _type2, _tOpt>>...>>>;
+using flat_ops = vseq::defer_t<ebases, vseq::fold_t<vseq::_a<vseq::concat_t>,
+	empty_base<>,
+	empty_base<vseq::defer_t<empty_base, _gOps<_type, _type2, _tOpt>>...>>>;
 //@}
 
 } // namespace details;

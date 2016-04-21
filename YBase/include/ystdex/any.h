@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2353
+\version r2444
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-04-01 09:56 +0800
+	2016-04-21 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,25 @@ namespace ystdex
 */
 namespace any_ops
 {
+
+//! \since build 686
+//@{
+//! \brief 使用不满足构造限制检查导致的异常。
+class YB_API invalid_construction : public std::invalid_argument
+{
+public:
+	invalid_construction();
+};
+
+/*!
+\brief 抛出 invalid_construction 异常。
+\throw invalid_construction
+\relates invalid_construction
+*/
+YB_NORETURN YB_API void
+throw_invalid_construction();
+//@}
+
 
 /*!
 \brief 抽象动态泛型持有者接口。
@@ -234,6 +253,12 @@ using any_manager = void(*)(any_storage&, const any_storage&, op_code);
 
 
 /*!
+\brief 使用处理器标记。
+\since build 686
+*/
+yconstexpr const struct use_handler_t{} use_handler{};
+
+/*!
 \brief 使用持有者标记。
 \since build 680
 */
@@ -262,7 +287,8 @@ public:
 	static void
 	copy(any_storage& d, const any_storage& s)
 	{
-		init_impl(local_storage(), d, get_reference(s));
+		try_init(is_copy_constructible<value_type>(), local_storage(), d,
+			get_reference(s));
 	}
 
 	static void
@@ -341,13 +367,13 @@ public:
 
 private:
 	template<typename... _tParams>
-	static void
+	static YB_ATTR(always_inline) void
 	init_impl(false_type, any_storage& d, _tParams&&... args)
 	{
 		d = new value_type(yforward(args)...);
 	}
 	template<typename... _tParams>
-	static void
+	static YB_ATTR(always_inline) void
 	init_impl(true_type, any_storage& d, _tParams&&... args)
 	{
 		new(d.access()) value_type(yforward(args)...);
@@ -380,6 +406,23 @@ public:
 			d = static_cast<holder*>(nullptr);
 		}
 	}
+
+private:
+	//! \since build 686
+	//@{
+	template<typename... _tParams>
+	YB_NORETURN static YB_ATTR(always_inline) void
+	try_init(false_type, _tParams&&...)
+	{
+		throw_invalid_construction();
+	}
+	template<class _bInPlace, typename... _tParams>
+	static YB_ATTR(always_inline) void
+	try_init(true_type, _bInPlace b, any_storage& d, _tParams&&... args)
+	{
+		init_impl(b, d, yforward(args)...);
+	}
+	//@}
 };
 
 
@@ -603,8 +646,8 @@ public:
 */
 class YB_API any
 {
-protected:
-	//! \since build 355
+private:
+	//! \since build 676
 	//@{
 	any_ops::any_storage storage{};
 	any_ops::any_manager manager{};
@@ -659,6 +702,12 @@ public:
 	any(_type&& x, any_ops::use_holder_t)
 		: manager(construct<any_ops::holder_handler<
 		any_ops::value_holder<decay_t<_type>>>>(yforward(x)))
+	{}
+	//! \since build 686
+	template<class _tHandler, typename... _tParams>
+	any(any_ops::use_handler_t, any_ops::in_place_t<_tHandler>,
+		_tParams&&... args)
+		: manager(construct<_tHandler>(yforward(args)...))
 	{}
 	//@}
 	any(const any&);
@@ -720,10 +769,35 @@ public:
 	}
 	//@}
 
+protected:
+	/*!
+	\note YStandardEx 扩展。
+	\since build 686
+	*/
+	//@{
+	any_ops::any_storage&
+	get_storage()
+	{
+		return storage;
+	}
+	const any_ops::any_storage&
+	get_storage() const
+	{
+		return storage;
+	}
+
+	any_ops::any_storage&
+	call(any_ops::any_storage&, any_ops::op_code) const;
+	//@}
+
+public:
 	void
 	clear() ynothrow;
 
-	//! \since build 677
+	/*!
+	\note YStandardEx 扩展。
+	\since build 677
+	*/
 	//@{
 private:
 	template<class _tHandler, typename... _tParams>
@@ -735,8 +809,6 @@ private:
 	}
 
 public:
-	//! \note YStandardEx 扩展。
-	//@{
 	template<typename _type, typename... _tParams>
 	void
 	emplace(_tParams&&... args)
@@ -759,7 +831,6 @@ public:
 		clear();
 		manager = construct<decay_t<_tHandler>>(yforward(args)...);
 	}
-	//@}
 	//@}
 
 	void
@@ -801,6 +872,25 @@ public:
 	\since build 677
 	*/
 	//@{
+protected:
+	//! \since build 686
+	template<typename _type>
+	inline _type
+	unchecked_access(any_ops::op_code op) const
+	{
+		any_ops::any_storage t;
+
+		return unchecked_access<_type>(t, op);
+	}
+	//! \since build 686
+	template<typename _type>
+	inline _type
+	unchecked_access(any_ops::any_storage& t, any_ops::op_code op) const
+	{
+		return call(t, op).access<_type>();
+	}
+
+public:
 	//! \brief 取包含对象的指针。
 	void*
 	unchecked_get() const ynothrowv;

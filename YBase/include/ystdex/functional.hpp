@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2814
+\version r2946
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-03-19 03:53 +0800
+	2016-04-20 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,13 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "type_op.hpp" // for true_type, std::tuple, is_convertible, vseq::at,
-//	bool_constant, index_sequence_for, _t, std::tuple_size, vseq::join_n_t,
-//	member_target_type_t, common_nonvoid_t, false_type, integral_constant,
+#include "type_op.hpp" // for "tuple.hpp", true_type, std::tuple,
+//	is_convertible, vseq::at, bool_constant, index_sequence_for,
+//	member_target_type_t, _t, std::tuple_size, vseq::join_n_t, std::swap,
+//	common_nonvoid_t, false_type, integral_constant, is_nothrow_swappable,
 //	make_index_sequence;
-#include "functor.hpp" // for <functional>, std::function, __cpp_lib_invoke,
-//	less, addressof_op, mem_get;
+#include "functor.hpp" // for "ref.hpp", <functional>, std::function,
+//	__cpp_lib_invoke, less, addressof_op, mem_get;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex
@@ -651,6 +652,152 @@ compose(_func1 f, _func2 g, _funcs... args)
 
 
 /*!
+\brief 调用一次的函数包装模板。
+\pre 静态断言：函数对象和结果转移以及默认状态构造和状态交换不抛出异常。
+\since build 686
+\todo 优化 std::function 等可空类型的实现。
+\todo 复用静态断言。
+\todo 简化转移实现。
+*/
+//@{
+template<typename _func, typename _tRes = void, typename _tState = bool>
+struct one_shot
+{
+	static_assert(is_nothrow_move_constructible<_func>(),
+		"Invalid target type found.");
+	static_assert(is_nothrow_move_constructible<_tRes>(),
+		"Invalid result type found.");
+	static_assert(is_nothrow_default_constructible<_tState>(),
+		"Invalid state type found.");
+	static_assert(is_nothrow_swappable<_tState>(),
+		"Invalid state type found.");
+
+	_func func;
+	mutable _tRes result;
+	mutable _tState fresh{};
+
+	one_shot(_func f, _tRes r = {}, _tState s = {})
+		: func(f), result(r), fresh(s)
+	{}
+	one_shot(one_shot&& f) ynothrow
+		: func(std::move(f.func)), result(std::move(f.result))
+	{
+		using std::swap;
+
+		swap(fresh, f.fresh);
+	}
+
+	template<typename... _tParams>
+	yconstfn_relaxed auto
+	operator()(_tParams&&... args) const
+		ynoexcept(noexcept(func(yforward(args)...)))
+		-> decltype(func(yforward(args)...))
+	{
+		if(fresh)
+		{
+			result = func(yforward(args)...);
+			fresh = {};
+		}
+		return std::forward<_tRes>(result);
+	}
+};
+
+template<typename _func, typename _tState>
+struct one_shot<_func, void, _tState>
+{
+	static_assert(is_nothrow_move_constructible<_func>(),
+		"Invalid target type found.");
+	static_assert(is_nothrow_default_constructible<_tState>(),
+		"Invalid state type found.");
+	static_assert(is_nothrow_swappable<_tState>(),
+		"Invalid state type found.");
+
+	_func func;
+	mutable _tState fresh{};
+
+	one_shot(_func f, _tState s = {})
+		: func(f), fresh(s)
+	{}
+	one_shot(one_shot&& f) ynothrow
+		: func(std::move(f.func))
+	{
+		using std::swap;
+
+		swap(fresh, f.fresh);
+	}
+
+	template<typename... _tParams>
+	yconstfn_relaxed void
+	operator()(_tParams&&... args) const
+		ynoexcept(noexcept(func(yforward(args)...)))
+	{
+		if(fresh)
+		{
+			func(yforward(args)...);
+			fresh = {};
+		}
+	}
+};
+
+template<typename _func, typename _tRes>
+struct one_shot<_func, _tRes, void>
+{
+	static_assert(is_nothrow_move_constructible<_func>(),
+		"Invalid target type found.");
+	static_assert(is_nothrow_move_constructible<_tRes>(),
+		"Invalid result type found.");
+
+
+	mutable _func func;
+	mutable _tRes result;
+
+	one_shot(_func f, _tRes r = {})
+		: func(f), result(r)
+	{}
+
+	template<typename... _tParams>
+	yconstfn_relaxed auto
+	operator()(_tParams&&... args) const
+		ynoexcept(noexcept(func(yforward(args)...)))
+		-> decltype(func(yforward(args)...) && noexcept(func = {}))
+	{
+		if(func)
+		{
+			result = func(yforward(args)...);
+			func = {};
+		}
+		return std::forward<_tRes>(result);
+	}
+};
+
+template<typename _func>
+struct one_shot<_func, void, void>
+{
+	static_assert(is_nothrow_move_constructible<_func>(),
+		"Invalid target type found.");
+
+	mutable _func func;
+
+	one_shot(_func f)
+		: func(f)
+	{}
+
+	template<typename... _tParams>
+	yconstfn_relaxed void
+	operator()(_tParams&&... args) const
+		ynoexcept(noexcept(func(yforward(args)...) && noexcept(func = {})))
+	{
+		if(func)
+		{
+			func(yforward(args)...);
+			func = {};
+		}
+	}
+};
+//@}
+
+
+/*!
 \ingroup functors
 \brief get 成员小于仿函数。
 \since build 672
@@ -716,7 +863,6 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 	{
 		return yforward(f)(std::get<_vSeq>(std::move(args))...);
 	}
-
 	//! \since build 634
 	//@{
 	template<typename _func>

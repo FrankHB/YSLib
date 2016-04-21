@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3001
+\version r3058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-03-29 09:22 +0800
+	2016-04-20 15:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "type_pun.hpp" // for is_standard_layout, pun_storage_t,
-//	std::swap, aligned_replace_cast;
+#include "type_pun.hpp" // for "type_pun.hpp", is_standard_layout,
+//	pun_storage_t, std::swap, aligned_replace_cast;
 #include "cassert.h" // for yassume;
 
 namespace ystdex
@@ -118,76 +118,6 @@ underlying(_type val) ynothrow
 {
 	return underlying_type_t<_type>(val);
 }
-
-
-/*!
-\brief 引入 std::swap 实现为 ADL 提供重载的命名空间。
-\since build 682
-*/
-namespace dep_swap
-{
-
-using std::swap;
-
-//! \since build 496
-nonesuch
-swap(any_constructible, any_constructible);
-
-template<typename _type, typename _type2>
-struct yimpl(helper)
-{
-	static yconstexpr const bool value = !is_same<decltype(swap(std::declval<
-		_type&>(), std::declval<_type2&>())), nonesuch>::value;
-
-	helper()
-		ynoexcept_spec(swap(std::declval<_type&>(), std::declval<_type2&>()))
-	{}
-};
-
-} // namespace dep_swap;
-
-
-/*!
-\ingroup type_traits_operations
-\see ISO C++11 [swappable.requirements] 。
-\since build 586
-*/
-//@{
-//! \brief 判断是否可以调用 \c swap 。
-//@{
-template<typename...>
-struct is_swappable;
-
-//! \ingroup binary_type_traits
-template<typename _type, typename _type2>
-struct is_swappable<_type, _type2>
-	: bool_constant<yimpl(dep_swap::helper<_type, _type2>::value)>
-{};
-
-//! \ingroup unary_type_traits
-template<typename _type>
-struct is_swappable<_type>
-	: bool_constant<yimpl(dep_swap::helper<_type, _type>::value)>
-{};
-//@}
-
-
-//! \brief 判断是否可以无抛出地调用 \c swap 。
-//@{
-template<typename...>
-struct is_nothrow_swappable;
-
-template<typename _type, typename _type2>
-struct is_nothrow_swappable<_type, _type2> : is_nothrow_default_constructible<
-	yimpl(dep_swap::helper<_type, _type2>)>
-{};
-
-template<typename _type>
-struct is_nothrow_swappable<_type> : is_nothrow_default_constructible<
-	yimpl(dep_swap::helper<_type, _type>)>
-{};
-//@}
-//@}
 
 
 /*!

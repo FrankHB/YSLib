@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r673
+\version r979
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2016-03-18 21:16 +0800
+	2016-04-17 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ YBase 版本 b452-b589 （包括若干变通） 非正式支持 Microsoft Visual
 b590 起开始依赖 std::integral_constant 实例的 constexpr 成员函数 operator() ，放弃支持。
 
 @1.3 Windows 构建宿主公共环境：
-Msys 用于 Windows 上版本的构建环境。
+使用 MSYS 作为 Windows 上版本的基础构建环境。
 build 458 前：
 使用 devkitPro 附带的实现。
 2013-11-22(build 458) 起：
@@ -148,6 +148,12 @@ devkitARM release 45 / libnds 1.5.12 。
 
 @1.4.1 DS 平台构建说明：
 需要使用宏 DEVKITARM 指定 devkitARM 的路径。
+
+@1.4.2 历史源代码说明：
+初始发布使用 GNU GPLv2 发布的 VNDS 代码，原仅适用于 DS 平台；在撤换 GNU GPLv2 许可证前移除。
+关于 VNDS ，参见：
+http://weeaboo.nl/projects/
+http://digital-haze.net/projects/vnds.html
 
 @1.5 MinGW32 平台工具链和标准库实现：
 目标为 i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
@@ -469,6 +475,313 @@ YSLib 实现对所有平台的 FreeType2 库添加检查。
 语言和语言实现（如标准库实现）相关的依赖规则见 [Documentation::Project @@1.2] 和 [Documentation::Base @@2.1.2] 。
 一般外部依赖规则参见 [Documentation::YFramework @@2.1.2.1] 。
 特定平台依赖规则参见 [Documentation::YFramework @@2.1.3.1] 。
+
+@5 历史发布注记整理：
+本章整理来源于 Readme.zh-CN.txt 的原历史发布注记，其中运行时配置内容被移除，参见 [Documentation::Test @@5] 。
+
+@5.1 PreAlpha 1 ：
+2011-04-09 ：
+修复前述优化选项相关问题。
+发现新的 DeSmuMe 的 release 已在两个月前发布，但测试环境仍使用更新的 SVN 版。
+2011-03-20 ：
+发现优化 -O0 以上除了 -Os （二进制映像大小差异 1 KiB ）外出问题（控件状态混乱），排除优化选项问题。
+原因不明。
+2011-01-21 ：
+补遗：使用新版本 DeSmuME 可以运行。
+因为测试环境不定期更新 SVN 版，之前并没有注意 devkitPro.org 提及最近 libnds 无法在最新的 DeSmuMe 的 release 版（0.9.6；这个版本还有关于 FAT 访问的 bug ）中运行。
+删除了 makefile 里面的 DLDI patch 命令行（使用的模拟器会自动打补丁）。
+2011-01-19 ：
+为继续减少重复编译的工作量，拆分 ARM9 和 ARM7 目标文件为不同的项目。
+依赖存在问题，导致在更新被依赖的库的时候导致生成的 .nds 不是最新版本（因为 ARM9/ARM7 的目标文件都是最新的）；
+需手动仅用于项目→仅清除，选择清理 ARM9 目标文件的项目才可以保证生成最新的 .nds 。
+另外 Microsoft Visual Studio 可能会把配置 debug 作为 Debug （注意这里区分大小写）导致构建错误的配置或失败。
+因为 makefile 中定义了 NDEBUG 宏，可能会导致不同的行为。关闭 Visual Studio 重新打开解决方案应可解决。
+安全做法是手动分别调用 make 。测试环境（硬件配置： Intel Core 2 Duo P8600 + 2GiB RAM ）构建需要约 5 分钟。
+2011-01-16 ：
+为减少重复编译的工作量，自制的库改用 Microsoft Visual Studio 2010 项目。
+清理项目删除不掉VS生成的 .log 文件。
+2010-10-27 ：
+Visual Studio 项目添加 debug/release 配置。
+2010-10-09 ：
+补 Loki 的 MIT License 。
+2010-09-29 ：
+迁移至 Visual Studio 2010 。
+自动转换解决方案和工程文件（保留了旧版本）。
+环境变量 NDSEmulator 去除引号，例如 F:\devkitPro\PALib\emulators\DeSmuME\DeSmuME.exe 。
+模拟器命令行：
+$(NDSEmulator) $(ProjectDir)$(NMakeOutput) --cflash-path=H:\NDS\efsroot
+2010-05-09(PreAlpha 1 @ yayabo.cn) ：
+以配合 PALibAppWizard 创建的 Microsoft Visual Studio 2008 项目的形式发布，生成文件使用基于 devkitPro 的 makefile ，可自行 make 。
+使用 DLDIrc ，若不需要，在 makefile 中找 dlditool 所在的命令行修改。
+开发环境变量：
+DEVKITARM = /F/devkitPro/devkitARM
+DEVKITPPC = /F/devkitPro/devkitPPC
+DEVKITPRO = /F/devkitPro
+DEVKITPSP = /F/devkitPro/devkitPSP
+DKP_HOME = F:\devkitPro
+NDSEmulator = "F:\devkitPro\PALib\emulators\DeSmuME\DeSmuME.exe"
+模拟器命令行：
+$(NDSEmulator) $(TargetPath) --cflash-path=H:\NDS\efsroot
+
+@5.2 PreAlpha 2 ：
+2012-04-09 ：
+完善框架实现：
+基础架构和核心抽象实现调整；
+增加各种语言层次上的优化；
+增加高精度计时器；
+消息类型调整和消息队列实现；
+增加事件类型优先级支持；
+微调块传输贴图算法；
+部分完成 MVC 分离；
+增加允许在运行时调整渲染策略的部件渲染支持；
+增加基于无效矩形算法实现的部分渲染……
+完善示例程序：
+release 版本对于某些字体来说效率上可以基本适应实际需要，但仍然无法使用带有位图的字体（显示错误，疑似 freetype 的 bug ）。
+文本阅读器修正若干文件读取和布局渲染 bug （重新实现缓冲算法）；增加菜单和设置界面；增加进度显示和随机定位功能；增加背景色和文本色调整、字体调整、字体大小调整；增加阅读历史记录（前进/后退）；增加自动（可选以文本或像素行作为单位）滚屏；增加编码自动识别。
+增加十六进制浏览功能。
+主界面增加可选的 FPS 显示（伪；实际上是消息循环速率）。
+增加 IDE 支持：
+可使用 Code::Blocks 。
+增加生成平台：
+Build 299 起支持 MinGW(g++4.7.0) 编译生成 Win32 本机程序。 MinGW 下载： http://code.google.com/p/mingw-builds 。
+使用 Code::Blocks 打开工作空间文件直接生成（暂不支持 Visual Studio 生成）。
+其它注意事项：
+已确认 DeSmuMe SVN r4030 起有 bug 打开 .nds 后无法正确读取文件。
+配置文件默认路径仍然是硬编码的（见YSLib/Helper/Initialization），根目录为 "H:\\NDS\\EFSRoot" ，所以运行的时候可能有些麻烦……
+“本机程序←→×”等无法显示（大概也是 freetype 问题），于是有些按钮没文本看起来是空的。
+2011-04-11(PreAlpha 2) ：
+PreAlpha 2(Build 200) 发布。
+维护地址： http://code.google.com/p/yslib  。源码可以在那边下载。
+界面完善了点。其它么……没什么对最终用户而言特别突出的特性。当作阅读器而言仍然很不完善，书签啥的都没有。唯一一个显著的进步是效率（界面响应在 release 版本下比较流畅）。此外就是细节上（但实现起来比较麻烦）的东西了，像是连续响应输入之类。
+代价……重构掉的代码少说也是之前的 5 倍。
+增加的特性除了以上内容外，主要是只对于开发而言有用的：
+自定义宏（缩减代码长度用，否则光是写getter就会疯掉）；
+多播委托模板；
+事件映射表（只是用来压缩接口个数……）；
+字符光栅化模板和渲染器（我真的只是重复发明轮子没刻意山寨M$- -，即使类名类似也不要脑补有相同的功能）；
+依赖事件（同上）；
+事件路由（同上）。
+注释文档可以用 Doxygen 编译（我用的好像是 1.7.2 ）。
+还是集成测试代替单元测试，所以版本号不表示实际编译次数。 Build 是全编译版本号，每次预定平均增量编译64次。
+测试基本完全语句覆盖，不过应该还有很多 bug 。
+
+@5.3 PreAlpha 3 ：
+2012-07-10 ：
+更改了 CHRLib 载入非 Unicode 编码（目前只有 GBK ）的方式，由纯静态链接改为数据从路径 /Data 中的编码表文件读入。当前 GBK 对应的编码表文件为 cp113.bin 。
+需要在初始化时保证载入正确，否则可能引起断言失败（ debug 配置下）或未定义行为（ release 配置下）。
+2012-04-12(PreAlpha 3) ：
+增加 MinGW 动态链接库。
+增加配置文件生成，文件名为 config.txt ，编码为 UTF-8 （默认生成的有 BOM ，不过读取的不限，反正没 BOM 全 ASCII 按 ANSI 读也一样，有非 ASCII 字符一般能自动猜出来……）。
+当前配置文件内容只有三行路径，依次为程序工作目录（初始化完毕后getcwd()取得的目录），矢量字体路径（会优先读取此路径的字体文件），矢量字体目录（会读取此目录下所有字体文件）。路径长度不超过 80 字节（多了会被截断）。
+默认配置内容硬编码于 YSLib/Helper/Initialization.cpp 。
+
+@5.4 PreAlpha 4 ：
+2013-10-12(build 449) ：
+build 449 起使用 2-Clause BSD 许可证风格的条款进行基本授权。
+[Config]
+外部依赖库移至 "/3rdparty" ，其中 FreeType 需要在头文件中显式依赖。（需要对显式依赖项指定搜索包含路径 "/3rdparty/include" 。）
+[YBase]
+增加容器适配器和序列容器适配器模板。
+增加路径类模板 ystdex::path 。
+[YFramework]
+用户 Shell 可以设置延时；
+使用 MinGW 的 ::dirent 和 ::opendir 等。
+BufferedRenderer 支持更换缓冲区。
+一些命名调整，便于配合标准库使用（ Swap → swap ）以及和 YBase 保持一致性（ Clone → clone ）。
+调整 YCLib 文件系统接口。
+重新设计 Path 类（使用ystdex::path）。
+清理 YSLib 文件系统接口。
+[MinGW] COM通用代码（需要自行增加链接库）。
+修复非 255 阶灰度字符位图（包括矢量字体的内嵌位图）渲染错误。
+增加图像读取支持（使用 FreeImage 实现）。
+不使用 FreeType Cache Subsystem 重新实现字体缓存（减少大小并提高加载效率）。
+支持渲染粗体和斜体字形位图。
+TouchEventArgs 重命名为 CursorEventArgs 。
+TouchMove 事件合并至 TouchHeld 事件。原逻辑固定。
+支持新的 UI 事件 CursorOver 和 CursorWheel （在 DS 无法自动产生但可以由用户程序触发）。
+[MinGW] 修复 GUI 响应坐标转换。
+按键绑定自动生成复合事件，不需要单独绑定 KeyPress 到 Click 。
+滚动条和列表框控件支持滚轮事件。
+增加 DS 屏幕切换功能。
+[MinGW] 允许设置顶层窗口透明性或使用 Alpha 位图。
+增加简单的动态界面加载。
+增加像素格式模板。
+扩展 Alpha 组合算法为模板。
+增加用于部件调整大小的边框（支持宿主窗口）。
+修复圆光栅化算法实现。
+增加填充圆绘制。
+事件处理器支持省略末尾部分参数的可调用类型。
+NPLA1 配置增加读写多个未命名节点项。
+[YReader]
+更改界面：缩减背景，增大文件选择区域。
+2013-04-24(PreAlpha 4) ：
+更明确的许可证说明；
+显式导出符号的 DLL （便于直接比较事件处理器函数指针等）。
+YBase 中增加以下内容：
+变参模版和一些元编程接口；
+libdefect，当前仅修正 (MinGW32) libstdc++ 4.8 以下字符串函数（ std::stoi 等）缺失；
+YTest，当前仅测试计时；
+C/C++ 标准库 I/O 参数转换；
+一些实现支持的特性（ C++11 关键字等）判断和替代宏；
+constexpr 字符串操作；
+动态泛型值 any 类和动态泛型输入迭代器 any_input_iterator ；
+nonmovable 类。
+YFramework 中增加以下内容：
+按钮色调；
+值节点ValueNode类；
+部分 YCLib 接口；
+NPL（用于配置的语言的简单实现）；
+默认框架配置文件；
+部件遍历迭代器；
+GUI 子部件接口；
+菜单部件映射；
+MinGW32 简单宿主窗口控制（传递输入、改变宿主窗口大小、宿主窗口客户区为目标的部件渲染器）；
+支持指针设备传递按键状态（区分是否有键同时按下、右键等）；
+GUI 应用程序和 Shell 基类。
+YFramework 中移除以下内容：
+部件透明性（直接修改背景代替）。
+YFramework 中修正以下内容：
+文本渲染边距计算；
+MinGW32 下的一些线程安全问题；
+若干资源泄漏。
+YFramework 中修改以下内容：
+改进值对象ValueObject类的可扩展性；
+单选框外观；
+消息实现、输入分发、主消息循环性能优化；
+测试界面（增加关于窗口）；
+文本渲染剪切接口和算法优化；
+使用不可转移和复制的 GUI 状态；
+用户界面命名空间： YSLib::Components → YSLib::UI ；
+Core 不依赖 Desktop 类。
+YReader 改进：
+增加保存设置配置；
+修正那个设置颜色改变后取消无效；
+修改设置中上屏幕直接显示背景色；
+修正设置下屏幕背景色后按钮角落遗漏重绘；
+MinGW32 下文本阅读界面增加右键显示上下文菜单；
+增加书签界面；
+增加书签保存和读取。
+
+@5.5 PreAlpha 5 ：
+2014-05-30(PreAlpha 5) ：
+更改输出目录结构：目标文件和源代码分离。
+添加 MinGW.org 支持（不用于发布）。
+添加非正式的 Android 支持（ YBase 外未完成）。
+更新 Doxygen 文档忽略列表，启用短文件名设置以避免含有制表符的文件名导致生成失败。
+[YBase]
+添加 Microsoft Visual Studio C++ 2013 支持。
+[YFramework]
+添加 MIME 类型和扩展名映射。
+修整光栅化接口和实现，修复未显示右下边界线段和矩形右下角的点。
+限制部件渲染区域保证绘制区域被渲染一次而正确显示。
+调整消息宏命名风格。
+添加基于界面无效化的简单逐帧动画支持。
+添加多页面图像读取支持（基于 FreeImage 独立实现）。
+添加 MRU 缓存并应用于字形缓存的实现。
+在包含中使用模块标识宏代替文件名的直接使用。
+添加 MinGW.org 运行时支持。
+按钮和单选框增加悬停控件状态并修改对应状态的外观。
+单选框禁用时渲染为灰色外观。
+添加视觉样式支持。
+添加图像缓冲区转换和保存为文件。
+未启用或隐藏的部件不响应键盘焦点。
+添加级联焦点缓冲（通过多级容器和部件的焦点确定键盘焦点）。
+添加本机按键编码分类和相关操作；支持更多虚拟按键。
+添加 TextBox 和 TabControl 控件。
+增强日志输出接口。
+[MinGW32]
+修复终止时栈溢出。
+本机窗口增加消息映射。
+[YReader]
+更改部分按键。
+添加界面风格设置。
+更改项目目录结构。
+添加界面动画、文本框和标签页测试。
+阅读器设置界面使用标签页。
+
+@5.6 V0.6 ：
+2015-05-25(V0.6) ：
+[YSLib]
+添加简易测试框架 [Test] 。
+[Test]
+添加 YBase 的部分测试用例。
+[Tools]
+添加 sysroot 构建工具脚本 [Sysroot] 。
+添加 SXML 到 XML 文档转换工具 [SXML2XML] 。
+添加项目文件生成 [ProjectGenerator] 。
+[Tools.SHBuild]
+支持并行构建和文件时间戳检查。
+及构建脚本支持控制台彩色输出。
+支持按等级和分组过滤输出消息。
+[Sysroot]
+Stage1 SHBuild 支持 Linux 。
+[YBase]
+添加部分 ctype 替代实现以避免某些标准库实现的 bug 。
+添加测试支持。
+从 YFramework 转移通用 MRU 缓存模板 used_list_cache 。
+添加标准库异常扩展接口。
+添加原型迭代器模板 prototyped_iterator 。
+添加临时暂存对象支持模板 swap_guard 。
+添加若干算法和容器操作函数模板。
+添加链式调用模板 chain_apply 。
+添加函数复合模板 compose 。
+添加单线程标准库兼容锁接口支持。
+变长参数序列兼容 C++14 std::integer_sequence 等的接口。
+[YFramework]
+[YFramework.YSLib]
+[YFramework.YSLib.Core]
+添加若干 ValueNode 相关接口。
+移除事件宏。
+[YFramework.YSLib.UI]
+修复若干列表框滚动条显示及断言失败问题。
+完善 TextBox 支持。
+移除 Widget 及派生类中不必要的前景色数据成员。
+重构 TextList ，抽取实现为 AMUnitList 和 AMUnitControlList ，使用共享部件代替直接渲染。
+Enter 事件和 Leave 事件支持共享部件对象。
+添加 TreeList 和 TreeView 控件。
+简化菜单相关的接口，移除 MenuHost 对 Menu 的所有权以及菜单标识。
+添加连续点击支持。
+控件保存特定事件的启用状态。
+支持基于 CursorOver 事件的悬停菜单。
+明确 CursorOver 引起的 Leave 事件的发送者和订阅者。
+GotFocus 和 LostFocus 可被所在的直接或间接容器部件焦点的改变引发。
+[YFramework.YSLib.Service]
+添加 HSV 和对应 RGB 转换支持。
+添加图像缓存和辅助的像素块传输模板。
+修复块传输算法在转置时的一个剪切边界计算错误。
+[YFramework.NPL]
+添加 NPLA1 变换映射。
+修复 NPL 转义序列写入。
+修复 NPL 词法分析器的断行连接转义并允许配置其它反转义算法。
+添加 SXML 解析转换到 XML 的基本支持。
+[YFramework.YCLib]
+移除旧调试接口（如 yprintf ）。
+YCLib 添加命令缓存和终端接口，非 Win32 控制台支持通过 tput 输出彩色文本。
+添加执行 Shell 命令的接口（当前仅适用于 Win32 ）。
+[YFramework.CHRLib]
+添加解码 UTF-16 文本支持（但上层 API 仍然只使用 UCS-2 ）。
+添加 UCS-4 中间代码支持和相关接口。
+修复编码转换操作的容错性。
+使用非包装的迭代器实现字符串转换接口，显著提升性能。
+UTF-8 解码默认使用新算法，显著提升性能。
+[YFramework.Helper]
+宿主窗口线程支持自定义进入/退出操作。
+默认以宿主桌面代替顶级窗口作为视图树根部件（当前仅适用于 Win32 ）。
+非前景宿主窗口响应非键盘输入（当前仅适用于 Win32 ）。
+添加宿主工具提示和菜单相关接口（当前仅适用于 Win32 ）。
+[Win32]
+添加文本框调整输入法候选窗口位置的支持（部分输入法可能因为 bug 无法实现）。
+修复因 MSVCRT 的 bug 导致部分字符无法正确显示。
+添加控制台接口。
+扩大屏幕相关整数类型的取值范围。
+允许读取 cp113.bin 失败时使用系统 NLS 代码页数据用于 GBK 编码转换。
+优化窗口绘制实现，允许使用无效区域。
+[Android]
+添加宿主支持。
+[Linux]
+添加工具和 YBase 支持。
+[YReader]
+修复保存设置崩溃及破坏配置文件。
 
 */
 ////
