@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1018
+\version r1020
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-04-16 11:26 +0800
+	2016-04-20 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include YFM_NPL_NPLA1 // for ystdex::bind1, YSLib::RemoveEmptyChildren,
 //	ystdex::pvoid;
 #include YFM_NPL_SContext
-#include <ystdex/scope_guard.hpp> // for ystdex::share_guard;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 
 using namespace YSLib;
 
@@ -281,7 +281,7 @@ SetupTraceDepth(ContextNode& root, const string& name)
 		YTraceDe(Informative, "Depth = %zu, context = %p, semantics = %p.",
 			depth, pvoid(&ctx), pvoid(&term));
 		++depth;
-		return ystdex::share_guard([&](void*) ynothrow{
+		return ystdex::unique_guard([&]() ynothrow{
 			--depth;
 		});
 	}

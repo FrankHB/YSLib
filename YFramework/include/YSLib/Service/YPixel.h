@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r1147
+\version r1165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2016-04-12 11:46 +0800
+	2016-04-21 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -549,13 +549,26 @@ BlendCore(std::uint32_t d, std::uint32_t s, std::uint8_t a)
 /*!
 \brief 分发像素混合操作。
 \since build 685
+\todo 变通或解决 GCC 偏特化顺序问题。
 */
+#if YB_IMPL_GNUCPP
+template<typename _tPixel, typename = void>
+struct GBlender : GBlender<_tPixel, _t<std::is_same<ystdex::detected_or_t<void,
+	MaskTrait, _tPixel>, XYZAMaskTrait<5, 5, 5, 1>>>>
+{};
+#else
 template<typename _tPixel, typename = void>
 struct GBlender : GBlender<_tPixel, ystdex::when<true>>
 {};
+#endif
 
+#if YB_IMPL_GNUCPP
+template<typename _tPixel>
+struct GBlender<_tPixel, std::false_type>
+#else
 template<typename _tPixel, bool _bCond>
 struct GBlender<_tPixel, ystdex::when<_bCond>>
+#endif
 {
 	/*!
 	\note 使用 ADL BlendComponent 指定混合像素分量。
@@ -621,8 +634,13 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 \note 使用 ADL BlendCore 代理混合像素调用。
 \sa BlendCore
 */
+#if YB_IMPL_GNUCPP
+template<typename _tPixel>
+struct GBlender<_tPixel, std::true_type>
+#else
 template<typename _tPixel>
 struct GBlender<_tPixel, EnableForMask<_tPixel, XYZAMaskTrait<5, 5, 5, 1>>>
+#endif
 {
 	template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
 	static yconstfn _tPixel

@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1190
+\version r1277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-03-12 23:43 +0800
+	2016-04-21 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_any_iterator_hpp_
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
-#include "any.h" // for any_ops, unwrap_reference_t, cond_t,
+#include "any.h" // for "any.h", any_ops, unwrap_reference_t, cond_t,
 //	is_reference_wrapper, ref_handler, _t. ptrdiff_t, any, exclude_self_ctor_t,
 //	decay_t, is_convertible, indirect_t;
 #include "iterator.hpp" // for is_undereferenceable, input_iteratable,
@@ -207,6 +207,10 @@ class any_input_iterator : protected any,
 	public input_iteratable<any_input_iterator<_type, _tDifference, _tPointer,
 	_tReference>, _tReference>
 {
+protected:
+	//! \since build 686
+	using base = any;
+
 public:
 	//! \since build 676
 	//@{
@@ -226,18 +230,23 @@ public:
 	template<typename _tIter,
 		yimpl(typename = exclude_self_ctor_t<any_input_iterator, _type>)>
 	any_input_iterator(_tIter&& i)
-		: any()
+		: any_input_iterator(any_ops::use_handler, any_ops::in_place_t<
+		any_ops::input_iterator_handler<decay_t<_tIter>>>(),  yforward(i))
+	{}
+
+protected:
+	//! \since build 686
+	template<typename _tIter, typename _tHandler>
+	any_input_iterator(any_ops::use_handler_t,
+		any_ops::in_place_t<_tHandler> inp, _tIter&& i)
+		: any(any_ops::use_handler, inp, yforward(i))
 	{
-		using param_obj_type = decay_t<_tIter>;
-		using handler = any_ops::input_iterator_handler<param_obj_type>;
-
 		static_assert(is_convertible<indirect_t<unwrap_reference_t<
-			param_obj_type>&>, reference>::value,
+			decay_t<_tIter>>&>, reference>::value,
 			"Wrong target iterator type found.");
-
-		manager = handler::manage;
-		handler::init(storage, yforward(i));
 	}
+
+public:
 	//! \since build 356
 	any_input_iterator(const any_input_iterator&) = default;
 	//! \since build 356
@@ -254,12 +263,7 @@ public:
 	reference
 	operator*() const
 	{
-		yassume(manager);
-
-		any_ops::any_storage t;
-
-		manager(t, storage, any_ops::dereference);
-		return reference(t.access<void_ref>());
+		return reference(unchecked_access<void_ref>(any_ops::dereference));
 	}
 
 	pointer
@@ -271,8 +275,7 @@ public:
 	any_input_iterator&
 	operator++()
 	{
-		yassume(manager);
-		manager(storage, storage, any_ops::increase);
+		call(get_storage(), any_ops::increase);
 		return *this;
 	}
 
@@ -284,10 +287,9 @@ public:
 			return true;
 		yassume(x.type() == y.type());
 
-		any_ops::any_storage t(&x.storage);
+		any_ops::any_storage t(&x.get_storage());
 
-		x.manager(t, y.storage, any_ops::equals);
-		return t.access<bool>();
+		return y.unchecked_access<bool>(t, any_ops::equals);
 	}
 
 	//! \since build 615
@@ -311,14 +313,8 @@ public:
 	friend bool
 	is_undereferenceable(const any_input_iterator& i)
 	{
-		if(i.manager)
-		{
-			any_ops::any_storage t;
-
-			i.manager(t, i.storage, any_ops::check_undereferenceable);
-			return t.access<bool>();
-		}
-		return true;
+		return !i.empty()
+			? i.unchecked_access<bool>(any_ops::check_undereferenceable) : true;
 	}
 
 	//! \since build 615
@@ -344,16 +340,41 @@ class any_forward_iterator : public any_input_iterator<_type, _tDifference,
 	_tPointer, _tReference>, public forward_iteratable<any_forward_iterator<
 	_type, _tDifference, _tPointer, _tReference>, _tReference>
 {
+protected:
+	//! \since build 686
+	using base
+		= any_input_iterator<_type, _tDifference, _tPointer, _tReference>;
+
 public:
 	using iterator_category = std::forward_iterator_tag;
 	using pointer = _tPointer;
 	using reference = _tReference;
 
 	any_forward_iterator() = default;
-	template<typename _tIter>
+	/*!
+	\brief 构造：使用现有迭代器。
+	\since build 686
+	*/
+	template<typename _tIter,
+		yimpl(typename = exclude_self_ctor_t<any_forward_iterator, _type>)>
 	any_forward_iterator(_tIter&& i)
-		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
+		: any_forward_iterator(any_ops::use_handler, any_ops::in_place_t<
+		any_ops::forward_iterator_handler<decay_t<_tIter>>>(),  yforward(i))
+	{
+		static_assert(is_convertible<indirect_t<unwrap_reference_t<
+			decay_t<_tIter>>&>, reference>::value,
+			"Wrong target iterator type found.");
+	}
+
+protected:
+	//! \since build 686
+	template<typename _tIter, typename _tHandler>
+	any_forward_iterator(any_ops::use_handler_t,
+		any_ops::in_place_t<_tHandler> inp, _tIter&& i)
+		: base(any_ops::use_handler, inp, yforward(i))
 	{}
+
+public:
 	any_forward_iterator(const any_forward_iterator&) = default;
 	any_forward_iterator(any_forward_iterator&&) = default;
 
@@ -368,7 +389,7 @@ public:
 	any_forward_iterator&
 	operator++()
 	{
-		any_input_iterator<_type, _tPointer, _tReference>::operator++();
+		base::operator++();
 		return *this;
 	}
 
@@ -376,9 +397,6 @@ public:
 	friend bool
 	operator==(const any_forward_iterator& x, const any_forward_iterator& y)
 	{
-		using base
-			= any_input_iterator<_type, _tDifference, _tPointer, _tReference>;
-
 		return static_cast<const base&>(x) == static_cast<const base&>(y);
 	}
 };
@@ -399,16 +417,36 @@ class any_bidirectional_iterator : public any_forward_iterator<_type,
 	any_bidirectional_iterator<_type, _tDifference, _tPointer, _tReference>,
 	_tReference>
 {
+protected:
+	//! \since build 686
+	using base
+		= any_forward_iterator<_type, _tDifference, _tPointer, _tReference>;
+
 public:
 	using iterator_category = std::bidirectional_iterator_tag;
 	using pointer = _tPointer;
 	using reference = _tReference;
 
 	any_bidirectional_iterator() = default;
+	/*!
+	\brief 构造：使用现有迭代器。
+	\since build 686
+	*/
 	template<typename _tIter>
 	any_bidirectional_iterator(_tIter&& i)
-		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
+		: any_forward_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}
+
+protected:
+	//! \since build 686
+	template<typename _tIter, typename _tHandler>
+	any_bidirectional_iterator(any_ops::use_handler_t,
+		any_ops::in_place_t<_tHandler> inp, _tIter&& i)
+		: any_forward_iterator<_type, _tDifference, _tPointer, _tReference>(
+		any_ops::use_handler, inp, yforward(i))
+	{}
+
+public:
 	any_bidirectional_iterator(const any_bidirectional_iterator&) = default;
 	any_bidirectional_iterator(any_bidirectional_iterator&&) = default;
 
@@ -423,15 +461,14 @@ public:
 	any_bidirectional_iterator&
 	operator++()
 	{
-		any_forward_iterator<_type, _tPointer, _tReference>::operator++();
+		base::operator++();
 		return *this;
 	}
 
 	any_bidirectional_iterator&
 	operator--()
 	{
-		yassume(this->manager);
-		this->manager(this->storage, this->storage, any_ops::decrease);
+		this->call(this->get_storage(), any_ops::decrease);
 		return *this;
 	}
 
@@ -440,9 +477,6 @@ public:
 	operator==(const any_bidirectional_iterator& x,
 		const any_bidirectional_iterator& y)
 	{
-		using base
-			= any_forward_iterator<_type, _tDifference, _tPointer, _tReference>;
-
 		return static_cast<const base&>(x) == static_cast<const base&>(y);
 	}
 };

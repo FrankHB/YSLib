@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r518
+\version r519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-04-10 15:45 +0800
+	2016-04-21 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ namespace vseq
 template<class _tSeq, size_t... _vIdxSeq>
 struct project<_tSeq, index_sequence<_vIdxSeq...>, enable_for_instances<_tSeq>>
 {
-	using type = defer_apply_t<ctor_of_t<_tSeq>,
+	using type = instance_apply_t<_tSeq,
 		empty_base<at_t<params_of_t<_tSeq>, _vIdxSeq>...>>;
 };
 

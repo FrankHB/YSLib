@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1304
+\version r1310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-04-12 10:33 +0800
+	2016-04-21 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,8 +383,7 @@ struct pop_front<empty_base<_tHead, _tTail...>>
 template<class _tSeq>
 struct pop_front<_tSeq, enable_for_instances<_tSeq>>
 {
-	using type
-		= defer_apply_t<ctor_of_t<_tSeq>, pop_front_t<params_of_t<_tSeq>>>;
+	using type = instance_apply_t<_tSeq, pop_front_t<params_of_t<_tSeq>>>;
 };
 //@}
 
@@ -408,8 +407,8 @@ struct push_back<empty_base<_types...>, _type>
 template<class _tSeq, typename _type>
 struct push_back<_tSeq, _type, enable_for_instances<_tSeq>>
 {
-	using type = defer_apply_t<ctor_of_t<_tSeq>,
-		push_back_t<params_of_t<_tSeq>, _type>>;
+	using type
+		= instance_apply_t<_tSeq, push_back_t<params_of_t<_tSeq>, _type>>;
 };
 //@}
 
@@ -434,8 +433,8 @@ struct push_front<empty_base<_types...>, _type>
 template<class _tSeq, typename _type>
 struct push_front<_tSeq, _type, enable_for_instances<_tSeq>>
 {
-	using type = defer_apply_t<ctor_of_t<_tSeq>,
-		push_front_t<params_of_t<_tSeq>, _type>>;
+	using type
+		= instance_apply_t<_tSeq, push_front_t<params_of_t<_tSeq>, _type>>;
 };
 //@}
 

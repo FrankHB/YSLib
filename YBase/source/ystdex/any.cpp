@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r202
+\version r234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2016-03-31 13:43 +0800
+	2016-04-21 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,28 +33,20 @@ namespace ystdex
 namespace any_ops
 {
 
+invalid_construction::invalid_construction()
+	: invalid_argument("Violation on construction found.")
+{}
+
+void
+throw_invalid_construction()
+{
+	throw invalid_construction();
+}
+
+
 holder::~holder() = default;
 
 } // namespace any_ops;
-
-
-//! \since build 677
-namespace
-{
-
-template<typename _type>
-_type
-unchecked_access(any_ops::any_manager m, const any_ops::any_storage& s,
-	any_ops::base_op op)
-{
-	any_ops::any_storage t;
-
-	yconstraint(m);
-	m(t, s, op);
-	return t.access<_type>();
-}
-
-} // unnamed namespace;
 
 
 bad_any_cast::~bad_any_cast() = default;
@@ -94,6 +86,15 @@ any::~any()
 		manager(storage, storage, any_ops::destroy);
 }
 
+any_ops::any_storage&
+any::call(any_ops::any_storage& t, any_ops::op_code op) const
+{
+	yconstraint(manager);
+
+	manager(t, get_storage(), op);
+	return t;
+}
+
 void
 any::clear() ynothrow
 {
@@ -114,21 +115,19 @@ any::swap(any& a) ynothrow
 void*
 any::unchecked_get() const ynothrowv
 {
-	return unchecked_access<void*>(manager, storage, any_ops::get_ptr);
+	return unchecked_access<void*>(any_ops::get_ptr);
 }
 
 any_ops::holder*
 any::unchecked_get_holder() const
 {
-	return unchecked_access<any_ops::holder*>(manager, storage,
-		any_ops::get_holder_ptr);
+	return unchecked_access<any_ops::holder*>(any_ops::get_holder_ptr);
 }
 
 const type_info&
 any::unchecked_type() const ynothrowv
 {
-	return *unchecked_access<const type_info*>(manager, storage,
-		any_ops::get_type);
+	return *unchecked_access<const type_info*>(any_ops::get_type);
 }
 
 } // namespace ystdex;

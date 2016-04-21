@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r901
+\version r955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-04-10 12:27 +0800
+	2016-04-20 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,6 +381,75 @@ using std::bool_constant;
 template<bool _b>
 using bool_constant = integral_constant<bool, _b>;
 #endif
+
+
+//! \since build 686
+struct any_constructible;
+//! \since build 686
+struct nonesuch;
+
+/*!
+\brief 引入 std::swap 实现为 ADL 提供重载的命名空间。
+\since build 682
+*/
+namespace dep_swap
+{
+
+using std::swap;
+
+//! \since build 496
+nonesuch
+swap(any_constructible, any_constructible);
+
+template<typename _type, typename _type2>
+struct yimpl(helper)
+{
+	static yconstexpr const bool value = !is_same<decltype(swap(std::declval<
+		_type>(), std::declval<_type2>())), nonesuch>::value;
+
+	helper()
+		ynoexcept_spec(swap(std::declval<_type&>(), std::declval<_type2&>()))
+	{}
+};
+
+} // namespace dep_swap;
+
+
+/*!
+\ingroup type_traits_operations
+\see ISO C++11 [swappable.requirements] 。
+\since build 586
+*/
+//@{
+//! \brief 判断是否可以调用 \c swap 。
+//@{
+//! \ingroup binary_type_traits
+template<typename _type, typename _type2>
+struct is_swappable_with
+	: bool_constant<yimpl(dep_swap::helper<_type, _type2>::value)>
+{};
+
+
+//! \ingroup unary_type_traits
+template<typename _type>
+struct is_swappable : is_swappable_with<_type&, _type&>
+{};
+//@}
+
+
+//! \brief 判断是否可以无抛出地调用 \c swap 。
+//@{
+template<typename _type, typename _type2>
+struct is_nothrow_swappable_with
+	: is_nothrow_default_constructible<yimpl(dep_swap::helper<_type, _type2>)>
+{};
+
+
+template<typename _type>
+struct is_nothrow_swappable : is_nothrow_swappable_with<_type&, _type&>
+{};
+//@}
+//@}
 
 
 //! \ingroup metafunctions
@@ -830,7 +899,7 @@ struct is_in_types : or_<is_same<_type, _types...>>
 \note LWG 2141 建议更改 std::common_type 的实现，无法替代。
 \note 这里的实现不依赖 std::common_type 。
 \note 同 boost::mpl::identity 。
-\note Microsoft Visual C++ 2013 使用 LWG 2141 建议的实现。
+\note Microsoft VC++ 2013 使用 LWG 2141 建议的实现。
 \see http://wg21.cmeerw.net/lwg/issue2141 。
 \see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
 \see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx 。

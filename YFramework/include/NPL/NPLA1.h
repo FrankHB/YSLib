@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1079
+\version r1089
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-04-16 11:10 +0800
+	2016-04-17 06:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,16 +338,26 @@ Reduce(TermNode&, ContextNode&);
 */
 YF_API void
 ReduceArguments(TermNode::Container&, ContextNode&);
+//@}
+
+/*!
+\brief 规约首项。
+\note 快速严格性分析：无条件求值第一项以避免非确定性推断子表达式是否需要求值的复杂度。
+\see https://en.wikipedia.org/wiki/Fexpr 。
+\since build 686
+*/
+inline PDefH(bool, ReduceFirst, TermNode& term, ContextNode& ctx)
+	ImplRet(Reduce(Deref(term.begin()), ctx))
 
 
 /*!
 \brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
 \note 主要用于调试。
 \sa EvaluateGuard
+\since build 685
 */
 YF_API void
 SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
-//@}
 
 } // namesapce A1;
 

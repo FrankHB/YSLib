@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r381
+\version r392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-03-08 10:05 +0800
+	2016-04-20 15:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "utility.hpp" // for is_constructible, is_reference,
+#include "type_traits.hpp" // for is_constructible, is_reference,
 //	is_nothrow_swappable, std::swap, std::declval, is_nothrow_copyable;
 #include <memory> // for std::addressof;
 
@@ -83,6 +83,15 @@ make_guard(_type f)
 	ynoexcept_spec(guard<_type, _bNoThrow>(guard<_type, _bNoThrow>(f)))
 {
 	return guard<_type, _bNoThrow>(f);
+}
+
+//! \since build 686
+template<bool _bNoThrow = true, typename _type>
+guard<one_shot<_type>>
+unique_guard(_type f) ynoexcept_spec(
+	guard<one_shot<_type>, _bNoThrow>(guard<one_shot<_type>, _bNoThrow>(f)))
+{
+	return guard<one_shot<_type>, _bNoThrow>(f, true);
 }
 //@}
 
@@ -310,8 +319,8 @@ public:
 \todo 支持分配器。
 \todo 支持有限的复制和转移。
 */
-template<typename _type, typename _tCond = bool, typename _tRef = _type&>
-using swap_guard = state_guard<_type, _tCond, _tRef>;
+template<typename _type, typename _tCond = bool, typename _tReference = _type&>
+using swap_guard = state_guard<_type, _tCond, _tReference>;
 
 } // namespace ystdex;
 
