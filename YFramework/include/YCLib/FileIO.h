@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1911
+\version r1914
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-04-13 13:21 +0800
+	2016-04-23 03:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -796,7 +796,7 @@ public:
 	}
 	//! \since build 627
 	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_ctor_t<basic_ifstream, _tParam>)>
+		yimpl(typename = ystdex::exclude_self_t<basic_ifstream, _tParam>)>
 	explicit
 	basic_ifstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::in)
@@ -894,7 +894,7 @@ public:
 	}
 	//! \since build 627
 	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_ctor_t<basic_ofstream, _tParam>)>
+		yimpl(typename = ystdex::exclude_self_t<basic_ofstream, _tParam>)>
 	explicit
 	basic_ofstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::out)
@@ -991,7 +991,7 @@ public:
 		this->init(&fbuf);
 	}
 	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_ctor_t<basic_fstream, _tParam>)>
+		yimpl(typename = ystdex::exclude_self_t<basic_fstream, _tParam>)>
 	explicit
 	basic_fstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)

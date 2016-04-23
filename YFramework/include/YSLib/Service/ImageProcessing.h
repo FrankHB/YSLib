@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r276
+\version r282
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2015-04-24 03:16 +0800
+	2016-04-23 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ private:
 public:
 	//! \since build 555
 	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<ZoomedImageCache, _type>)>
+		yimpl(typename = ystdex::exclude_self_t<ZoomedImageCache, _type>)>
 	explicit
 	ZoomedImageCache(const _type& path)
 		: bitmaps(ImageCodec::LoadSequence<Container>(path)),
@@ -136,7 +136,7 @@ public:
 	//! \since build 443
 	ImageBrush Brush{};
 
-	/*
+	/*!
 	\pre 断言：区域上限严格非空。
 	\pre 断言：区域下限分量不大于区域上限分量。
 	\note 若起始缩放比例小于下限则由图像大小计算。
@@ -144,7 +144,7 @@ public:
 	//@{
 	//! \brief 构造：使用指定路径、显示区域下限、显示区域上限和起始缩放比例。
 	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<ImagePages, _type>)>
+		yimpl(typename = ystdex::exclude_self_t<ImagePages, _type>)>
 	ImagePages(const _type& path, const Size& min_size, const Size& max_size,
 		ImageScale init_scale = {})
 		: ImagePages(ZoomedImageCache(path), min_size, max_size, init_scale)
@@ -177,7 +177,7 @@ private:
 	LoadContent();
 
 public:
-	/*
+	/*!
 	\pre 断言： <tt>Brush.ImagePtr</tt> 。
 	\since build 554
 	*/
@@ -197,7 +197,7 @@ public:
 
 	/*!
 	\return 是否成功进行了缩放。
-	\note 偏移量相对于画刷左上角。
+	\note 偏移量相对画刷左上角。
 	*/
 	//@{
 	/*!

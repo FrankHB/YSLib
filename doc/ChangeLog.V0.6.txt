@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10741
+\version r10792
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-04-21 17:50 +0800
+	2016-04-23 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,58 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	+ '-fno-merge-all-constants' @ "variables %(CFLAGS, CXXFLAGS) when using \
+		Clang++" @ "%SHBuild-common.options.sh" @ %Tools.Script,
+		// See https://llvm.org/bugs/show_bug.cgi?id=27443.
+	/ %YBase.YStandardEx $=
+	(
+		/ %Any $=
+		(
+			(
+			* "template %operator=" @ "class %any" $since b590
+				// The signature was lagged as Boost.Any and WG21 N1939. It \
+					had been changed in WG21 N3390.
+				$= (/ "parameter type" ^ "forwarding reference"
+					~ "const reference");
+			/ $doc "updated base specification to current working paper(WG21 \
+				N4582)" ~ "library fundamental TS final draft(WG21 N4480)"
+				// With specified extension reserved.
+			),
+			/ @ "namespace %any_ops" $=
+			(
+				+ "function template %construct",
+				+ "empty class template %with_handler_t",
+				- $revert(b686) "%(use_handler; use_handler_t)" $dep_from
+					"constructor with parameter type %use_handler_t"
+					@ "class %any"
+			),
+			/ @ "class %any" $=
+			(
+				/ DLI "simplified" ^ "%any_ops::construct",
+				+ "constructor with %any_ops::with_handler_t instance \
+					parameter" $dep_from "%any_ops::with_handler_t"
+				- $revert(b686) "constructor with parameter type \
+					%use_handler_t" $dep_from %AnyIterator,
+				* "lvalue holders moved with holder forwarding reference \
+					parameter" $since b677,
+				/ DLDI "simplified copy constructor",
+				/ DLI ^ "private base classes"
+					// This also reduces redundant check, e.g. for %target.
+			)
+		),
+		/ "metafunction %exclude_self_ctor_t" => "%exclude_self_t",
+			// This is not only for constructors but also %operator=.
+		/ DLDI "simplified class templates %(any_input_iterator, \
+			any_forward_iterator, any_bidirectional_iterator)"
+			^ $dep_from ("constructor with %any_ops::with_handler_t instance \
+			parameter" @ "%any" @ %Any)
+	),
+	* $re_add(b673) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+		comments" @ %YFramework.YSLib.Service.ImageProcessing $since b555
+),
+
+b686
 (
 	+ $re_add(b656) $dev $repo "pattern glob '*.VC.db'" @ "file %.hgignore",
 		// For VC++ 2015 Update 2.

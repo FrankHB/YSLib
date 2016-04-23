@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9839
+\version r9843
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-01-11 01:16 +0800
+	2016-04-22 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,7 +258,8 @@ c 一般范围；
 c 字符（特别是符合 _tChar 类型的）；
 c 范围（特别是和容器并列时）；
 con 容器（特别是符合 _tCon 、 _tSeqCon 或 _tAssocCon 类型或其引用类型的）；
-il std::initializer_list 示例类型的参数（和标准库一致）。
+il std::initializer_list 示例类型的参数（和标准库一致）；
+str 字符串（字符指针或类）类型。
 
 @4.1.2.2 YFramework 约定：
 
@@ -447,7 +448,8 @@ reinterpret_cast
 关于 new 的例外，另见 [Documentation::LanguageConvention @@5.15.9.2] 。
 
 @6.2.5 宏定义：
-不在代码中定义或取消定义影响实现特性的宏([Documentation::LanguageConvention @@5.3.6.2])，除非文档约定，此时不假定这些宏之前未被外部环境预定义([Documentation::LanguageConvention @@5.3.6]) ，且需保证在标准库头之前包含([Documentation::LanguageConvention @@5.3.9]) 。
+除非文档约定，不在代码中定义或取消定义影响实现特性的宏([Documentation::LanguageConvention @@5.3.5.2]) 。
+不假定这些宏之前未被外部环境预定义([Documentation::LanguageConvention @@5.3.6]) ，且需保证在标准库头之前包含([Documentation::LanguageConvention @@5.3.9]) 。
 
 @7 一般实现导引：
 自定义应用程序 Shell 类，继承默认 Shells::Shell 类或其派生类并产生实例。

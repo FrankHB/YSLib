@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2917
+\version r2918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-03-17 14:49 +0800
+	2016-04-23 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,7 +132,7 @@ public:
 		: Path(Parse(str))
 	{}
 	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<Path, _type>)>
+		yimpl(typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
 	Path(_type&& arg, Text::Encoding enc = Text::CS_Default)
 		: ypath(Parse(String(yforward(arg), enc)))

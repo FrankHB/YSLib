@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5211
+\version r5215
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-03-17 15:00 +0800
+	2016-04-23 03:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,7 +382,7 @@ public:
 	\since build 598
 	*/
 	template<typename _tHandler,
-		yimpl(typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>)>
+		yimpl(typename = ystdex::exclude_self_t<GEvent, _tHandler>)>
 	GEvent(_tHandler&& h, InvokerType ivk = {})
 		: Invoker(std::move(ivk))
 	{
@@ -396,7 +396,7 @@ public:
 	\since build 448
 	*/
 	template<typename _tHandler,
-		yimpl(typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>)>
+		yimpl(typename = ystdex::exclude_self_t<GEvent, _tHandler>)>
 	inline GEvent&
 	operator=(_tHandler&& _arg)
 	{
@@ -867,7 +867,7 @@ public:
 		: Caller(f)
 	{}
 	template<typename _fCaller, yimpl(
-		typename = ystdex::exclude_self_ctor_t<GHandlerAdaptor, _fCaller>)>
+		typename = ystdex::exclude_self_t<GHandlerAdaptor, _fCaller>)>
 	GHandlerAdaptor(_fCaller&& f)
 		: Caller(ystdex::make_expanded<CallerType>(yforward(f)))
 	{}
@@ -943,7 +943,7 @@ private:
 public:
 	//! \since build 586
 	template<typename _type, yimpl(
-		typename = ystdex::exclude_self_ctor_t<GEventPointerWrapper, _type>)>
+		typename = ystdex::exclude_self_t<GEventPointerWrapper, _type>)>
 	inline
 	GEventPointerWrapper(_type&& p)
 		ynoexcept(std::is_nothrow_constructible<PointerType, _type>())

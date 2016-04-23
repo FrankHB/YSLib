@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1502
+\version r1503
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2016-02-27 01:26 +0800
+	2016-04-23 03:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ public:
 			std::bind(parse, std::ref(Lexer), std::placeholders::_1));
 	}
 	template<typename _tRange,
-		yimpl(typename = ystdex::exclude_self_ctor_t<Session, _tRange>)>
+		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>)>
 	Session(const _tRange& c, CharParser parse = DefaultParseByte)
 		: Session(begin(c), end(c), parse)
 	{}

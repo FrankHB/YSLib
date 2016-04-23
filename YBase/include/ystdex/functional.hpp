@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2946
+\version r2948
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-04-20 15:38 +0800
+	2016-04-23 03:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 //	is_convertible, vseq::at, bool_constant, index_sequence_for,
 //	member_target_type_t, _t, std::tuple_size, vseq::join_n_t, std::swap,
 //	common_nonvoid_t, false_type, integral_constant, is_nothrow_swappable,
-//	make_index_sequence;
+//	make_index_sequence, exclude_self_t;
 #include "functor.hpp" // for "ref.hpp", <functional>, std::function,
 //	__cpp_lib_invoke, less, addressof_op, mem_get;
 #include <numeric> // for std::accumulate;
@@ -1045,7 +1045,7 @@ struct expanded_caller
 
 	//! \since build 448
 	template<typename _fCaller,
-		yimpl(typename = exclude_self_ctor_t<expanded_caller, _fCaller>)>
+		yimpl(typename = exclude_self_t<expanded_caller, _fCaller>)>
 	expanded_caller(_fCaller&& f)
 		: caller(yforward(f))
 	{}

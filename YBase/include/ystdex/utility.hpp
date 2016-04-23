@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3058
+\version r3060
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-04-20 15:31 +0800
+	2016-04-23 03:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_utility_hpp_ 1
 
 #include "type_pun.hpp" // for "type_pun.hpp", is_standard_layout,
-//	pun_storage_t, std::swap, aligned_replace_cast;
+//	pun_storage_t, std::swap, aligned_replace_cast, exclude_self_t;
 #include "cassert.h" // for yassume;
 
 namespace ystdex
@@ -148,7 +148,7 @@ struct boxed_value
 	boxed_value(default_init_t) ynothrow
 	{}
 	template<typename _tParam,
-		yimpl(typename = exclude_self_ctor_t<boxed_value, _tParam>)>
+		yimpl(typename = exclude_self_t<boxed_value, _tParam>)>
 	yconstfn
 	boxed_value(_tParam&& arg)
 		ynoexcept(is_nothrow_constructible<_type, _tParam&&>())

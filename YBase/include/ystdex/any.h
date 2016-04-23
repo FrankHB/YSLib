@@ -11,20 +11,20 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2444
+\version r2672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-04-21 15:49 +0800
+	2016-04-23 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see WG21 N4480 6[any] 。
-\see http://www.boost.org/doc/libs/1_57_0/doc/html/any/reference.html 。
+\see WG21 N4582 20.6[any] 。
+\see http://www.boost.org/doc/libs/1_60_0/doc/html/any/reference.html 。
 */
 
 
@@ -35,7 +35,7 @@
 //	ystdex::type_id, std::bad_cast;
 #include <memory> // for std::addressof, std::unique_ptr;
 #include "utility.hpp" // "utility.hpp", for boxed_value, pod_storage,
-//	aligned_storage_t, is_aligned_storable, exclude_self_ctor_t, enable_if_t,
+//	aligned_storage_t, is_aligned_storable, exclude_self_t, enable_if_t,
 //	decay_t, yconstraint;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 
@@ -70,6 +70,18 @@ throw_invalid_construction();
 //@}
 
 
+//! \since build 677
+template<typename>
+struct in_place_t
+{};
+
+
+//! \since build 687
+template<typename>
+struct with_handler_t
+{};
+
+
 /*!
 \brief 抽象动态泛型持有者接口。
 \since build 454
@@ -98,12 +110,6 @@ public:
 };
 
 
-//! \since build 677
-template<typename>
-struct in_place_t
-{};
-
-
 /*!
 \brief 值类型动态泛型持有者。
 \pre 值类型不被 cv-qualifier 修饰。
@@ -123,7 +129,7 @@ public:
 	//@{
 	value_holder() = default;
 	template<typename _tParam,
-		yimpl(typename = exclude_self_ctor_t<value_holder, _tParam>)>
+		yimpl(typename = exclude_self_t<value_holder, _tParam>)>
 	value_holder(_tParam&& arg)
 		ynoexcept(is_nothrow_constructible<_type, _tParam&&>())
 		: boxed_value<_type>(yforward(arg))
@@ -246,24 +252,29 @@ enum base_op : op_code
 
 
 //! \since build 352
-//@{
 using any_storage
 	= pod_storage<aligned_storage_t<sizeof(void*), sizeof(void*)>>;
+//! \since build 352
 using any_manager = void(*)(any_storage&, const any_storage&, op_code);
 
-
 /*!
-\brief 使用处理器标记。
-\since build 686
+\brief 使用指定处理器初始化存储。
+\since build 687
 */
-yconstexpr const struct use_handler_t{} use_handler{};
+template<class _tHandler, typename... _tParams>
+any_manager
+construct(any_storage& storage, _tParams&&... args)
+{
+	_tHandler::init(storage, yforward(args)...);
+	return _tHandler::manage;
+}
+
 
 /*!
 \brief 使用持有者标记。
 \since build 680
 */
 yconstexpr const struct use_holder_t{} use_holder{};
-//@}
 
 
 /*!
@@ -577,7 +588,7 @@ using is_any_cast_dest = or_<is_reference<_type>, is_copy_constructible<_type>>;
 \note 基本接口和语义同 boost::bad_any_cast 。
 \note 非标准库提案扩展：提供标识转换失败的源和目标类型。
 \sa any_cast
-\see WG21 N4480 6.2[any.bad_any_cast] 。
+\see WG21 N4582 20.6.2[any.bad_any_cast] 。
 \since build 586
 */
 class YB_API bad_any_cast : public std::bad_cast
@@ -635,48 +646,170 @@ public:
 };
 
 
+//! \since build 687
+namespace details
+{
+
+struct any_base
+{
+	any_ops::any_storage storage{};
+	any_ops::any_manager manager{};
+
+	any_base() = default;
+	template<class _tHandler, typename... _tParams>
+	inline
+	any_base(any_ops::with_handler_t<_tHandler>, _tParams&&... args)
+		: manager(any_ops::construct<_tHandler>(storage, yforward(args)...))
+	{}
+
+	YB_API any_ops::any_storage&
+	call(any_ops::any_storage&, any_ops::op_code) const;
+
+	YB_API void
+	clear() ynothrowv;
+
+	void
+	copy(const any_base&);
+
+	void
+	destroy() ynothrowv;
+
+	bool
+	empty() const ynothrow
+	{
+		return !manager;
+	}
+
+	//! \pre 断言：\c manager 。
+	//@{
+	YB_API void*
+	get() const ynothrowv;
+
+	YB_API any_ops::holder*
+	get_holder() const;
+
+	any_ops::any_storage&
+	get_storage()
+	{
+		return storage;
+	}
+	const any_ops::any_storage&
+	get_storage() const
+	{
+		return storage;
+	}
+
+	YB_API void
+	swap(any_base&) ynothrow;
+
+	template<typename _type>
+	_type*
+	target() ynothrowv
+	{
+		return type() == ystdex::type_id<_type>() ? static_cast<_type*>(get())
+			: nullptr;
+	}
+	template<typename _type>
+	const _type*
+	target() const ynothrowv
+	{
+		return type() == ystdex::type_id<_type>()
+			? static_cast<const _type*>(get()) : nullptr;
+	}
+
+	YB_API const type_info&
+	type() const ynothrowv;
+
+	//! \since build 686
+	template<typename _type>
+	inline _type
+	unchecked_access(any_ops::op_code op) const
+	{
+		any_ops::any_storage t;
+
+		return unchecked_access<_type>(t, op);
+	}
+	//! \since build 686
+	template<typename _type>
+	inline _type
+	unchecked_access(any_ops::any_storage& t, any_ops::op_code op) const
+	{
+		return call(t, op).access<_type>();
+	}
+	//@}
+};
+
+
+template<class _tAny>
+struct any_emplace
+{
+	template<typename _type, typename... _tParams>
+	void
+	emplace(_tParams&&... args)
+	{
+		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
+			yforward(args)...);
+	}
+	template<typename _tHolder, typename... _tParams>
+	void
+	emplace(any_ops::use_holder_t, _tParams&&... args)
+	{
+		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
+			yforward(args)...);
+	}
+
+	template<typename _tHandler, typename... _tParams>
+	void
+	emplace_with_handler(_tParams&&... args)
+	{
+		auto& a(static_cast<_tAny&>(*this));
+
+		a.clear();
+		a.manager = any_ops::construct<decay_t<_tHandler>>(yforward(args)...);
+	}
+};
+
+} // namespace details;
+
+
 /*!
 \brief 基于类型擦除的动态泛型对象。
 \note 值语义。基本接口和语义同 std::experimental::any 提议
 	和 boost::any （对应接口以前者为准）。
 \warning 非虚析构。
-\see WG21 N4480 6.3[any.class] 。
+\see WG21 N4582 20.6.3[any.class] 。
 \see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
 */
-class YB_API any
+class YB_API any : private details::any_base, private details::any_emplace<any>
 {
-private:
-	//! \since build 676
-	//@{
-	any_ops::any_storage storage{};
-	any_ops::any_manager manager{};
-	//@}
-
 public:
 	//! \post \c this->empty() 。
 	any() ynothrow = default;
 	//! \since build 448
-	template<typename _type, yimpl(typename = exclude_self_ctor_t<any, _type>,
+	template<typename _type, yimpl(typename = exclude_self_t<any, _type>,
 		typename = enable_if_t<!is_reference_wrapper<decay_t<_type>>::value>)>
+	inline
 	any(_type&& x)
-		: manager(construct<any_ops::value_handler<decay_t<_type>>>(
-		yforward(x)))
+		: any(any_ops::with_handler_t<
+		any_ops::value_handler<decay_t<_type>>>(), yforward(x))
 	{}
 	//! \note YStandardEx 扩展。
 	//@{
 	//! \since build 675
 	template<typename _type, yimpl(typename
 		= enable_if_t<is_reference_wrapper<decay_t<_type>>::value>)>
+	inline
 	any(_type&& x)
-		: manager(construct<
-		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>>(x))
+		: any(any_ops::with_handler_t<
+		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>>(), x)
 	{}
 	//! \since build 677
 	template<typename _type, typename... _tParams>
+	inline
 	any(any_ops::in_place_t<_type>, _tParams&&... args)
-		: manager(construct<
-		any_ops::value_handler<_type>>(yforward(args)...))
+		: any(any_ops::with_handler_t<
+		any_ops::value_handler<_type>>(), yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用指定持有者。
@@ -684,30 +817,36 @@ public:
 	*/
 	//@{
 	template<typename _tHolder>
+	inline
 	any(any_ops::use_holder_t, std::unique_ptr<_tHolder> p)
-		: manager(construct<any_ops::holder_handler<_tHolder>>(std::move(p)))
+		: any(any_ops::with_handler_t<
+		any_ops::holder_handler<_tHolder>>(), std::move(p))
 	{}
 	template<typename _tHolder>
+	inline
 	any(any_ops::use_holder_t, _tHolder&& h)
-		: manager(construct<
-		any_ops::holder_handler<decay_t<_tHolder>>>(std::move(h)))
+		: any(any_ops::with_handler_t<
+		any_ops::holder_handler<decay_t<_tHolder>>>(), yforward(h))
 	{}
 	template<typename _tHolder, typename... _tParams>
-	any(any_ops::use_holder_t, any_ops::in_place_t<_tHolder>, _tParams&&... args)
-		: manager(construct<
-		any_ops::holder_handler<_tHolder>>(yforward(args)...))
+	inline
+	any(any_ops::use_holder_t, any_ops::in_place_t<_tHolder>,
+		_tParams&&... args)
+		: any(any_ops::with_handler_t<any_ops::holder_handler<_tHolder>>(),
+		yforward(args)...)
 	{}
 	//@}
 	template<typename _type>
+	inline
 	any(_type&& x, any_ops::use_holder_t)
-		: manager(construct<any_ops::holder_handler<
-		any_ops::value_holder<decay_t<_type>>>>(yforward(x)))
+		: any(any_ops::with_handler_t<any_ops::holder_handler<
+		any_ops::value_holder<decay_t<_type>>>>(), yforward(x))
 	{}
-	//! \since build 686
+	//! \since build 687
 	template<class _tHandler, typename... _tParams>
-	any(any_ops::use_handler_t, any_ops::in_place_t<_tHandler>,
-		_tParams&&... args)
-		: manager(construct<_tHandler>(yforward(args)...))
+	inline
+	any(any_ops::with_handler_t<_tHandler> t, _tParams&&... args)
+		: any_base(t, yforward(args)...)
 	{}
 	//@}
 	any(const any&);
@@ -719,11 +858,12 @@ public:
 	//! \since build 382
 	~any();
 
-	template<typename _type>
+	//! \since build 687
+	template<typename _type, yimpl(typename = exclude_self_t<any, _type>)>
 	any&
-	operator=(const _type& x)
+	operator=(_type&& x)
 	{
-		any(x).swap(*this);
+		any(yforward(x)).swap(*this);
 		return *this;
 	}
 	/*!
@@ -747,11 +887,8 @@ public:
 		return *this;
 	}
 
-	bool
-	empty() const ynothrow
-	{
-		return !manager;
-	}
+	//! \since build 687
+	using any_base::empty;
 
 	//! \note YStandardEx 扩展。
 	//@{
@@ -772,22 +909,12 @@ public:
 protected:
 	/*!
 	\note YStandardEx 扩展。
-	\since build 686
+	\since build 687
 	*/
 	//@{
-	any_ops::any_storage&
-	get_storage()
-	{
-		return storage;
-	}
-	const any_ops::any_storage&
-	get_storage() const
-	{
-		return storage;
-	}
+	using any_base::get_storage;
 
-	any_ops::any_storage&
-	call(any_ops::any_storage&, any_ops::op_code) const;
+	using any_base::call;
 	//@}
 
 public:
@@ -796,45 +923,19 @@ public:
 
 	/*!
 	\note YStandardEx 扩展。
-	\since build 677
+	\since build 687
 	*/
 	//@{
-private:
-	template<class _tHandler, typename... _tParams>
-	any_ops::any_manager
-	construct(_tParams&&... args)
-	{
-		_tHandler::init(storage, yforward(args)...);
-		return _tHandler::manage;
-	}
+	using any_emplace<any>::emplace;
 
-public:
-	template<typename _type, typename... _tParams>
-	void
-	emplace(_tParams&&... args)
-	{
-		emplace_with_handler<any_ops::value_handler<decay_t<_type>>>(
-			yforward(args)...);
-	}
-	template<typename _tHolder, typename... _tParams>
-	void
-	emplace(any_ops::use_holder_t, _tParams&&... args)
-	{
-		emplace_with_handler<any_ops::holder_handler<decay_t<_tHolder>>>(
-			yforward(args)...);
-	}
-
-	template<typename _tHandler, typename... _tParams>
-	void
-	emplace_with_handler(_tParams&&... args)
-	{
-		clear();
-		manager = construct<decay_t<_tHandler>>(yforward(args)...);
-	}
+	using any_emplace<any>::emplace_with_handler;
 	//@}
 
 	void
-	swap(any&) ynothrow;
+	swap(any& a) ynothrow
+	{
+		any_base::swap(a);
+	}
 
 	/*!
 	\brief 取目标指针。
@@ -847,15 +948,13 @@ public:
 	_type*
 	target() ynothrow
 	{
-		return type() == ystdex::type_id<_type>() ? static_cast<_type*>(get())
-			: nullptr;
+		return manager ? any_base::template target<_type>() : nullptr;
 	}
 	template<typename _type>
 	const _type*
 	target() const ynothrow
 	{
-		return type() == ystdex::type_id<_type>()
-			? static_cast<const _type*>(get()) : nullptr;
+		return manager ? any_base::template target<_type>() : nullptr;
 	}
 	//@}
 
@@ -868,49 +967,44 @@ public:
 
 	/*!
 	\note YStandardEx 扩展。
-	\pre 断言：\c !empty()。
+	\pre 断言：\c !empty() 。
 	\since build 677
 	*/
 	//@{
 protected:
-	//! \since build 686
-	template<typename _type>
-	inline _type
-	unchecked_access(any_ops::op_code op) const
-	{
-		any_ops::any_storage t;
-
-		return unchecked_access<_type>(t, op);
-	}
-	//! \since build 686
-	template<typename _type>
-	inline _type
-	unchecked_access(any_ops::any_storage& t, any_ops::op_code op) const
-	{
-		return call(t, op).access<_type>();
-	}
+	//! \since build 687
+	using any_base::unchecked_access;
 
 public:
 	//! \brief 取包含对象的指针。
 	void*
-	unchecked_get() const ynothrowv;
+	unchecked_get() const ynothrowv
+	{
+		return any_base::get();
+	}
 
 	//! \brief 取持有者指针。
 	any_ops::holder*
-	unchecked_get_holder() const;
+	unchecked_get_holder() const
+	{
+		return any_base::get_holder();
+	}
 
 	/*!
 	\brief 取包含对象的类型。
 	\since build 683
 	*/
 	const type_info&
-	unchecked_type() const ynothrowv;
+	unchecked_type() const ynothrowv
+	{
+		return any_base::type();
+	}
 	//@}
 };
 
 //! \relates any
 //@{
-//! \see WG21 N4480 6.4[any.nonmembers] 。
+//! \see WG21 N4582 20.6.4[any.nonmembers] 。
 //@{
 /*!
 \brief 交换对象。

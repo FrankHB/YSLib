@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r234
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2016-04-21 14:32 +0800
+	2016-04-23 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,23 +71,11 @@ bad_any_cast::what() const ynothrow
 }
 
 
-any::any(const any& a)
-	: any()
+namespace details
 {
-	if(a.manager)
-	{
-		manager = a.manager,
-		a.manager(storage, a.storage, any_ops::clone);
-	}
-}
-any::~any()
-{
-	if(manager)
-		manager(storage, storage, any_ops::destroy);
-}
 
 any_ops::any_storage&
-any::call(any_ops::any_storage& t, any_ops::op_code op) const
+any_base::call(any_ops::any_storage& t, any_ops::op_code op) const
 {
 	yconstraint(manager);
 
@@ -96,38 +84,75 @@ any::call(any_ops::any_storage& t, any_ops::op_code op) const
 }
 
 void
-any::clear() ynothrow
+any_base::clear() ynothrowv
 {
-	if(manager)
-	{
-		manager(storage, storage, any_ops::destroy);
-		manager = {};
-	}
+	yconstraint(manager);
+
+	manager(storage, storage, any_ops::destroy);
+	manager = {};
 }
 
 void
-any::swap(any& a) ynothrow
+any_base::copy(const any_base& a)
 {
-	std::swap(storage, a.storage),
-	std::swap(manager, a.manager);
+	yconstraint(manager);
+
+	manager(storage, a.storage, any_ops::clone);
+}
+
+void
+any_base::destroy() ynothrowv
+{
+	yconstraint(manager);
+
+	manager(storage, storage, any_ops::destroy);
 }
 
 void*
-any::unchecked_get() const ynothrowv
+any_base::get() const ynothrowv
 {
 	return unchecked_access<void*>(any_ops::get_ptr);
 }
 
 any_ops::holder*
-any::unchecked_get_holder() const
+any_base::get_holder() const
 {
 	return unchecked_access<any_ops::holder*>(any_ops::get_holder_ptr);
 }
 
+void
+any_base::swap(any_base& a) ynothrow
+{
+	std::swap(storage, a.storage),
+	std::swap(manager, a.manager);
+}
+
 const type_info&
-any::unchecked_type() const ynothrowv
+any_base::type() const ynothrowv
 {
 	return *unchecked_access<const type_info*>(any_ops::get_type);
+}
+
+} // namespace details;
+
+
+any::any(const any& a)
+	: any_base(a)
+{
+	if(manager)
+		copy(a);
+}
+any::~any()
+{
+	if(manager)
+		destroy();
+}
+
+void
+any::clear() ynothrow
+{
+	if(manager)
+		any_base::clear();
 }
 
 } // namespace ystdex;

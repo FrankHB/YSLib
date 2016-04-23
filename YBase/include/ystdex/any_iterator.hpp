@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1277
+\version r1295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-04-21 16:35 +0800
+	2016-04-23 04:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
 #include "any.h" // for "any.h", any_ops, unwrap_reference_t, cond_t,
-//	is_reference_wrapper, ref_handler, _t. ptrdiff_t, any, exclude_self_ctor_t,
-//	decay_t, is_convertible, indirect_t;
+//	is_reference_wrapper, ref_handler, _t. ptrdiff_t, any, exclude_self_t,
+//	any_ops::with_handler_t, decay_t, is_convertible, indirect_t;
 #include "iterator.hpp" // for is_undereferenceable, input_iteratable,
 //	forward_iteratable, bidirectional_iteratable;
 
@@ -228,18 +228,17 @@ public:
 	\since build 675
 	*/
 	template<typename _tIter,
-		yimpl(typename = exclude_self_ctor_t<any_input_iterator, _type>)>
+		yimpl(typename = exclude_self_t<any_input_iterator, _type>)>
 	any_input_iterator(_tIter&& i)
-		: any_input_iterator(any_ops::use_handler, any_ops::in_place_t<
-		any_ops::input_iterator_handler<decay_t<_tIter>>>(),  yforward(i))
+		: any_input_iterator(any_ops::with_handler_t<
+		any_ops::input_iterator_handler<decay_t<_tIter>>>(), yforward(i))
 	{}
 
 protected:
 	//! \since build 686
 	template<typename _tIter, typename _tHandler>
-	any_input_iterator(any_ops::use_handler_t,
-		any_ops::in_place_t<_tHandler> inp, _tIter&& i)
-		: any(any_ops::use_handler, inp, yforward(i))
+	any_input_iterator(any_ops::with_handler_t<_tHandler> t, _tIter&& i)
+		: base(t, yforward(i))
 	{
 		static_assert(is_convertible<indirect_t<unwrap_reference_t<
 			decay_t<_tIter>>&>, reference>::value,
@@ -356,10 +355,10 @@ public:
 	\since build 686
 	*/
 	template<typename _tIter,
-		yimpl(typename = exclude_self_ctor_t<any_forward_iterator, _type>)>
+		yimpl(typename = exclude_self_t<any_forward_iterator, _type>)>
 	any_forward_iterator(_tIter&& i)
-		: any_forward_iterator(any_ops::use_handler, any_ops::in_place_t<
-		any_ops::forward_iterator_handler<decay_t<_tIter>>>(),  yforward(i))
+		: any_forward_iterator(any_ops::with_handler_t<
+		any_ops::forward_iterator_handler<decay_t<_tIter>>>(), yforward(i))
 	{
 		static_assert(is_convertible<indirect_t<unwrap_reference_t<
 			decay_t<_tIter>>&>, reference>::value,
@@ -369,9 +368,8 @@ public:
 protected:
 	//! \since build 686
 	template<typename _tIter, typename _tHandler>
-	any_forward_iterator(any_ops::use_handler_t,
-		any_ops::in_place_t<_tHandler> inp, _tIter&& i)
-		: base(any_ops::use_handler, inp, yforward(i))
+	any_forward_iterator(any_ops::with_handler_t<_tHandler> t, _tIter&& i)
+		: base(t, yforward(i))
 	{}
 
 public:
@@ -440,10 +438,8 @@ public:
 protected:
 	//! \since build 686
 	template<typename _tIter, typename _tHandler>
-	any_bidirectional_iterator(any_ops::use_handler_t,
-		any_ops::in_place_t<_tHandler> inp, _tIter&& i)
-		: any_forward_iterator<_type, _tDifference, _tPointer, _tReference>(
-		any_ops::use_handler, inp, yforward(i))
+	any_bidirectional_iterator(any_ops::with_handler_t<_tHandler> t, _tIter&& i)
+		: base(t, yforward(i))
 	{}
 
 public:

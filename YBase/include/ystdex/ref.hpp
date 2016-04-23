@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r330
+\version r333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-03-19 11:49 +0800
+	2016-04-23 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 #ifndef YB_INC_ystdex_ref_hpp_
 #define YB_INC_ystdex_ref_hpp_ 1
 
-#include "addressof.hpp" // for ystdex::constfn_addressof, exclude_self_ctor_t,
-//	cond_t, not_, is_object;
+#include "addressof.hpp" // for "addressof.hpp", ystdex::constfn_addressof,
+//	exclude_self_t, cond_t, not_, is_object;
 #include <functional> // for std::reference_wrapper;
 
 /*!
@@ -262,7 +262,7 @@ struct pseudo_output
 	//! \since build 640
 	//@{
 	template<typename _tParam,
-		yimpl(exclude_self_ctor_t<pseudo_output, _tParam>)>
+		yimpl(exclude_self_t<pseudo_output, _tParam>)>
 	yconstfn const pseudo_output&
 	operator=(_tParam&&) const
 	{

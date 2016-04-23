@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file mixin.hpp
 \ingroup YStandardEx
 \brief 基于类继承的混入接口。
-\version r181
+\version r185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 477
 \par 创建时间:
 	2014-02-17 00:07:20 +0800
 \par 修改时间:
-	2015-12-22 10:28 +0800
+	2016-04-23 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_mixin_hpp_
 #define YB_INC_ystdex_mixin_hpp_ 1
 
-#include "tuple.hpp" // for std::tuple, std::get, index_sequence_for,
-//	tuple_element_t;
+#include "tuple.hpp" // for for "tuple.hpp", std::tuple, exclude_self_t,
+//	std::get, index_sequence_for, tuple_element_t;
 #include "utility.hpp" // for classify_value_t;
 
 namespace ystdex
@@ -50,7 +50,7 @@ public:
 	yconstfn
 	mixin() = default;
 	template<typename _tParam,
-		yimpl(typename = exclude_self_ctor_t<mixin, _tParam>)>
+		yimpl(typename = exclude_self_t<mixin, _tParam>)>
 	yconstfn
 	mixin(_tParam&& arg)
 		: _tBases(yforward(arg))...
