@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r314
+\version r321
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2015-11-06 12:37 +0800
+	2016-04-23 03:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YB_INC_ystdex_type_pun_hpp_
 #define YB_INC_ystdex_type_pun_hpp_ 1
 
-#include "type_traits.hpp" // for bool_constant, yalignof, and_, is_trivial,
-//	enable_if_t, is_object_pointer, remove_pointer_t, aligned_storage_t,
-//	is_reference, remove_reference_t, exclude_self_ctor_t, decay_t;
+#include "type_traits.hpp" // for "type_traits.hpp", bool_constant, yalignof,
+//	and_, is_trivial, enable_if_t, is_object_pointer, remove_pointer_t,
+//	aligned_storage_t, is_reference, remove_reference_t, exclude_self_t,
+//	decay_t;
 #include <new> // for placement ::operator new from standard library;
 
 namespace ystdex
@@ -242,7 +243,7 @@ union pod_storage
 	pod_storage(const pod_storage&) = default;
 	//! \since build 454
 	template<typename _type,
-		yimpl(typename = exclude_self_ctor_t<pod_storage, _type>)>
+		yimpl(typename = exclude_self_t<pod_storage, _type>)>
 	inline
 	pod_storage(_type&& x)
 	{
@@ -257,7 +258,7 @@ union pod_storage
 	\since build 454
 	*/
 	template<typename _type,
-		yimpl(typename = exclude_self_ctor_t<pod_storage, _type>)>
+		yimpl(typename = exclude_self_t<pod_storage, _type>)>
 	inline pod_storage&
 	operator=(_type&& x)
 	{

@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4040
+\version r4042
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-03-31 13:53 +0800
+	2016-04-23 03:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,7 +168,7 @@ public:
 	//@{
 	DefDeCtor(ValueHolder)
 	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_ctor_t<ValueHolder, _tParam>)>
+		yimpl(typename = ystdex::exclude_self_t<ValueHolder, _tParam>)>
 	ValueHolder(_tParam&& arg)
 		ynoexcept(std::is_nothrow_constructible<_type, _tParam&&>())
 		: ystdex::boxed_value<_type>(yforward(arg))
@@ -287,7 +287,7 @@ public:
 	\since build 448
 	*/
 	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<ValueObject, _type>)>
+		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
 		: content(ystdex::any_ops::use_holder,
 		InPlaceTag<ValueHolder<ystdex::decay_t<_type>>>(), yforward(obj))

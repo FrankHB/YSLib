@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r210
+\version r214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2016-03-05 00:58 +0800
+	2016-04-23 03:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_thunk_hpp_
 #define YB_INC_ystdex_thunk_hpp_ 1
 
-#include "type_traits.hpp" // for decay_t, std::forward, exclude_self_ctor_t,
+#include "type_traits.hpp" // for decay_t, std::forward, exclude_self_t,
 //	enable_if_t, is_same, enable_if_convertible_t, std::move, result_of_t;
 #include "functional.hpp" // for is_reference_wrapper, unwrap_reference_t,
 //	ystdex::invoke;
@@ -77,7 +77,7 @@ struct thunk_caller
 		})
 	{}
 	//! \since build 675
-	template<typename _type, yimpl(typename = exclude_self_ctor_t<thunk_caller,
+	template<typename _type, yimpl(typename = exclude_self_t<thunk_caller,
 		_type>, typename = enable_if_t<is_reference_wrapper<_type>::value
 		&& is_same<unwrap_reference_t<_type>, value_type>::value>)>
 	thunk_caller(_type arg)
@@ -127,8 +127,8 @@ public:
 		: base(lref<value_type>(arg.get()))
 	{}
 	//! \since build 527
-	template<typename _fCaller, yimpl(typename
-		= exclude_self_ctor_t<thunk, _fCaller>, typename
+	template<typename _fCaller, yimpl(
+		typename = exclude_self_t<thunk, _fCaller>, typename
 		= enable_if_convertible_t<_fCaller&&, caller_type>)>
 	thunk(_fCaller&& f)
 		: base(std::move(caller_type(f)))

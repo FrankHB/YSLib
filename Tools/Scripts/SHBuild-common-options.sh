@@ -57,6 +57,7 @@ fi
 # NOTE: The compiler should be specified earlier than this line to
 #	automatically determine if these values should be used.
 if echo "$CXX" | grep clang++ > /dev/null; then
+	: ${C_CXXFLAGS_COMMON_IMPL_:='-fno-merge-all-constants'}
 	: ${CXXFLAGS_IMPL_WARNING:=" \
 		-Wno-deprecated-register \
 		-Wno-mismatched-tags \
@@ -119,10 +120,12 @@ else
 fi
 
 # XXX: Rename %CXXFLAGS_OPT_DBG to CFLAGS_OPT_DBG or C_CXXFLAGS_OPT_DBG?
-: ${CFLAGS:="$C_CXXFLAGS_PIC $CFLAGS_COMMON $CXXFLAGS_OPT_DBG"}
+: ${CFLAGS:="$C_CXXFLAGS_PIC $CFLAGS_COMMON $C_CXXFLAGS_COMMON_IMPL_ \
+	$CXXFLAGS_OPT_DBG"}
 CFLAGS="${CFLAGS//	/ }"
 
-: ${CXXFLAGS:="$C_CXXFLAGS_PIC $CXXFLAGS_COMMON $CXXFLAGS_OPT_DBG"}
+: ${CXXFLAGS:="$C_CXXFLAGS_PIC $CXXFLAGS_COMMON $C_CXXFLAGS_COMMON_IMPL_ \
+	$CXXFLAGS_OPT_DBG"}
 CXXFLAGS="${CXXFLAGS//	/ }"
 
 : ${LDFLAGS_OPT_DBG:="$LDFLAGS_IMPL_OPT $LDFLAGS_GC"}

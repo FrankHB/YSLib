@@ -11,13 +11,13 @@
 /*!	\file YFunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1282
+\version r1283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2016-02-08 17:07 +0800
+	2016-04-23 03:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ private:
 
 public:
 	template<typename _func, yimpl(typename
-		= ystdex::exclude_self_ctor_t<GRecursiveCallContext, _func>)>
+		= ystdex::exclude_self_t<GRecursiveCallContext, _func>)>
 	GRecursiveCallContext(_func f)
 		: build(f)
 	{}

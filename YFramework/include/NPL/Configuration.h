@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r361
+\version r364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2015-07-29 15:13 +0800
+	2016-04-23 03:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@ namespace NPL
 
 /*!
 \brief 设置：使用 S 表达式存储外部状态。
+\warning 非虚析构。
 \since build 334
 */
 class YF_API Configuration
@@ -57,7 +58,7 @@ public:
 	//! \since build 596
 	//@{
 	template<typename _tParam,
-		yimpl(typename = ystdex::exclude_self_ctor_t<Configuration, _tParam>)>
+		yimpl(typename = ystdex::exclude_self_t<Configuration, _tParam>)>
 	yconstfn
 	Configuration(_tParam&& arg)
 		: root(0, yforward(arg))

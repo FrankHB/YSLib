@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r955
+\version r958
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-04-20 15:46 +0800
+	2016-04-23 03:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -648,13 +648,13 @@ template<typename _tCond, typename _tThen = true_type,
 using cond_t = conditional_t<_tCond::value, _tThen, _tElse>;
 
 /*!
-\brief 移除选择类类型的特定重载避免构造模板和复制/转移构造函数冲突。
+\brief 移除选择类类型的特定重载避免构造模板和复制/转移特殊成员函数冲突。
 \pre 第一参数为类类型。
 \sa enable_if_t
-\since build 538
+\since build 687
 */
 template<class _tClass, typename _tParam, typename _type = void>
-using exclude_self_ctor_t
+using exclude_self_t
 	= enable_if_t<!is_same<_tClass&, decay_t<_tParam>&>::value, _type>;
 //@}
 
