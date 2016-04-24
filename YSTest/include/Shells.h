@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2936
+\version r2937
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2016-01-28 10:55 +0800
+	2016-04-24 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #ifndef INC_YReader_Shells_h_
 #define INC_YReader_Shells_h_ 1
 
-#include <ysbuild.h>
+#include <YSBuild.h>
 #include YFM_DS_Helper_Shell_DS
 #include YFM_Helper_ShellHelper
 #include YFM_YCLib_Input

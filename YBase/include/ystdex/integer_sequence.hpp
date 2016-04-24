@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r519
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-04-21 09:41 +0800
+	2016-04-23 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,15 +82,19 @@ struct project<_tSeq, index_sequence<_vIdxSeq...>, enable_for_instances<_tSeq>>
 };
 
 
+//! \since build 688
+template<typename _tInt>
+struct bound_integer_sequence
+{
+	template<typename... _types>
+	using apply = identity<integer_sequence<_tInt, _types::value...>>;
+};
+
+
 template<typename _tInt, _tInt... _vSeq>
 struct ctor_of<integer_sequence<_tInt, _vSeq...>>
 {
-private:
-	template<typename... _types>
-	using bound = integer_sequence<_tInt, _types::value...>;
-
-public:
-	using type = _a<bound>;
+	using type = bound_integer_sequence<_tInt>;
 };
 
 

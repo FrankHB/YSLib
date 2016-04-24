@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r958
+\version r982
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-04-23 03:53 +0800
+	2016-04-23 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -473,6 +473,19 @@ public:
 };
 
 /*!
+\brief void_t 的一般化，允许指定别名类型。
+\since build 688
+*/
+template<bool _bCond>
+#if YB_IMPL_GNUCPP >= 50000
+template<typename _type, typename...>
+using well_formed_t = _type;
+#else
+template<typename _type, typename... _types>
+using well_formed_t = typename always<_type>::template apply<_types...>::type;
+#endif
+
+/*!
 \see WG21 N3911 。
 \see WG21 N4296 20.10.2[meta.type.synop] 。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
@@ -482,16 +495,13 @@ public:
 // TODO: Blocked. Wait for upcoming ISO C++17 for %__cplusplus.
 #if __cpp_lib_void_t >= 201411
 using std::void_t;
-#elif YB_IMPL_GNUCPP >= 50000
-template<typename...>
-using void_t = void;
 #else
 template<typename... _types>
-using void_t = _t<always<void>::template apply<_types...>>;
+using void_t = well_formed_t<void, _types...>;
 #endif
 
 /*!
-\brief 类似 void_t 的元函数，但具有较低匹配优先级，避免偏特化歧义。
+\brief 类似 void_t 的元函数，具有较低匹配优先级，避免偏特化歧义；但使用条件表达式。
 \sa void_t
 \note 无定义。
 \since build 684
@@ -499,6 +509,13 @@ using void_t = _t<always<void>::template apply<_types...>>;
 template<bool _bCond>
 struct when;
 
+/*!
+\brief 类似 void_t 的元函数，但具有较低匹配优先级，避免偏特化歧义。
+\sa void_t
+\since build 688
+*/
+template<typename... _types>
+using when_valid = well_formed_t<when<true>, _types...>;
 
 /*!
 \brief 类似 enable_if_t 的元函数，但具有较低匹配优先级，避免偏特化歧义。

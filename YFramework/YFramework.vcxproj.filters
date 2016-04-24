@@ -235,7 +235,7 @@
     <ClInclude Include="include\YSLib\Service\YTimer.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\ysbuild.h">
+    <ClInclude Include="include\YSBuild.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\YGDIBase.h">

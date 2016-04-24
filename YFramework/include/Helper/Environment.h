@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r858
+\version r901
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2016-02-09 15:55 +0800
+	2016-04-24 20:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,10 @@
 #define INC_Helper_Environment_h_ 1
 
 #include "YModules.h"
+#include YFM_YSLib_Core_ValueNode // for ValueNode;
 #include YFM_Helper_HostWindow // for Host::Window;
+#include <ystdex/any.h> // for ystdex::any;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #if YF_Multithread == 1
 #	include <atomic>
 #endif
@@ -63,7 +66,20 @@ class NativeHost;
 */
 class YF_API Environment
 {
+public:
+	/*!
+	\brief 环境根节点。
+	\since build 688
+	*/
+	ValueNode Root;
+
 private:
+	/*!
+	\brief 初始化守护。
+	\since build 688
+	*/
+	stack<ystdex::any> app_exit;
+
 #if YF_Hosted
 	/*!
 	\brief 本机窗口对象映射。
@@ -140,7 +156,38 @@ public:
 	*/
 	observer_ptr<Host::Window>
 	GetForegroundWindow() const ynothrow;
+#endif
+	//! \since build 688
+	//@{
+	/*!
+	\brief 取值类型根节点。
+	\pre 断言：已初始化。
+	\sa InitializeEnvironment
+	*/
+	ValueNode&
+	GetRootRef() ynothrowv;
 
+	//! \pre 参数调用无异常抛出。
+	template<typename _func>
+	void
+	AddExitGuard(_func f)
+	{
+		static_assert(std::is_nothrow_copy_constructible<_func>(),
+			"Invalid guard function found.");
+
+		try
+		{
+			app_exit.push(ystdex::unique_guard(f));
+		}
+		catch(...)
+		{
+			f();
+			throw;
+		}
+	}
+	//@}
+
+#if YF_Hosted
 	/*!
 	\brief 插入窗口映射项。
 	\note 线程安全。

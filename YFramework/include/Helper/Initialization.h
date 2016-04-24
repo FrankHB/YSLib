@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r763
+\version r789
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2015-10-09 23:16 +0800
+	2016-04-24 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define INC_Helper_Initialization_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_Configuration
-#include YFM_YSLib_Service_TextFile
+#include YFM_YSLib_Core_ValueNode // for ValueNode;
+#include YFM_Helper_YGlobal // for Environment;
 #include YFM_YSLib_Adaptor_Font // for Drawing::FontCache;
 #include YFM_YSLib_Service_ContentType // for MIMEBiMapping;
 
@@ -78,19 +78,12 @@ SaveConfiguration(const ValueNode&);
 
 /*!
 \brief 初始化环境。
-\since build 509
+\note 其中初始化已安装项后初始化根节点：检查安装完整性并载入主配置文件的配置项。
+\warning 不保证涉及 CHRLib 初始化的线程安全性。
+\since build 688
 */
 YF_API void
-InitializeEnvironment();
-
-/*!
-\brief 初始化已安装项：检查安装完整性并载入主配置文件的配置项。
-\return 被载入的配置项。
-\warning 不保证涉及 CHRLib 初始化的线程安全性。
-\since build 344
-*/
-YF_API ValueNode
-InitializeInstalled();
+InitializeEnvironment(Environment&);
 
 /*!
 \brief 初始化系统字体缓存。
@@ -103,23 +96,15 @@ InitializeInstalled();
 YF_API void
 InitializeSystemFontCache(Drawing::FontCache&, const string&, const string&);
 
-/*!
-\brief 反初始化。
-\warning 不保证线程安全性。
-\since build 324
-
-释放初始化的资源。
-*/
-YF_API void
-Uninitialize() ynothrow;
-
 
 /*!
 \brief 取值类型根节点。
-\since build 425
+\pre 断言：已初始化。
+\sa InitializeEnvironment
+\since build 688
 */
 YF_API ValueNode&
-FetchRoot();
+FetchRoot() ynothrow;
 
 /*!
 \brief 取默认字体缓存。

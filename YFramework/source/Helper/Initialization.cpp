@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2535
+\version r2635
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-02-11 18:07 +0800
+	2016-04-24 21:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,15 +26,19 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization // for ystdex::handle_nested;
-#include YFM_YSLib_Core_YApplication
-#include YFM_Helper_GUIApplication
-#include YFM_YCLib_Debug // for platform_ex::SendDebugString;
-#include YFM_CHRLib_MappingEx
-#include YFM_YCLib_MemoryMapping
-#include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
-#include <ystdex/string.hpp> // for ystdex::sfmt;
+#include YFM_Helper_Initialization
+#include YFM_YCLib_MemoryMapping // for MappedFile;
+#include YFM_YSLib_Core_YException // for ExtractException;
+#include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
+#include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
+#include YFM_NPL_Configuration // for NPL::Configuration;
+#include YFM_Helper_GUIApplication // for FetchEnvironment;
+#include YFM_Helper_Environment // for Environment::AddExitGuard;
+#include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
 #include <cerrno> // for errno;
+#include YFM_YSLib_Core_YCoreUtilities // for FetchEnvironmentVariable;
+#include YFM_YCLib_Debug // for platform_ex::SendDebugString;
+#include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
 //#include <clocale>
 #if YCL_DS
 #	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
@@ -63,22 +67,10 @@ namespace
 //! \since build 608
 bool at_init(true);
 #endif
-//! \since build 425
-//@{
-stack<std::function<void()>> app_exit;
 //! \since build 551
 unique_ptr<ValueNode> p_root;
-//! \since build 551
-unique_ptr<Drawing::FontCache> p_font_cache;
-//@}
-#if !CHRLib_NoDynamicMapping
-//! \since build 549
-unique_ptr<MappedFile> p_mapped;
-#endif
 //! \since build 450
-MIMEBiMapping* p_mapping;
-//! \since build 450
-const char TU_MIME[]{u8R"NPLA1(
+yconstexpr const char TU_MIME[]{u8R"NPLA1(
 (application
 	(octet-stream "bin" "so")
 	(x-msdownload "exe" "dll" "com" "bat" "msi")
@@ -216,7 +208,7 @@ LoadCP936_NLS()
 #endif
 
 void
-LoadComponents(const ValueNode& node)
+LoadComponents(Environment& env, const ValueNode& node)
 {
 	const auto& data_dir(AccessChild<string>(node, "DataDirectory"));
 	const auto& font_path(AccessChild<string>(node, "FontFile"));
@@ -231,6 +223,7 @@ LoadComponents(const ValueNode& node)
 		throw GeneralEvent("Empty path loaded.");
 #if !CHRLib_NoDynamicMapping
 
+	static unique_ptr<MappedFile> p_mapped;
 	const string mapping_name(data_dir + "cp113.bin");
 
 	YTraceDe(Notice, "Loading character mapping file '%s' ...\n",
@@ -262,6 +255,17 @@ LoadComponents(const ValueNode& node)
 				" exception thrown.");
 		}
 	}
+	env.AddExitGuard([]() ynothrow{
+#	if YCL_Win32
+		if(cp113_lkp_backup)
+		{
+			CHRLib::cp113_lkp = cp113_lkp_backup;
+			cp113_lkp_backup = {};
+		}
+#	endif
+		p_mapped.reset();
+		YTraceDe(Notice, "Character mapping deleted.");
+	});
 #endif
 	YTraceDe(Notice, "Trying entering directory '%s' ...\n",
 		data_dir.c_str());
@@ -381,7 +385,7 @@ SaveConfiguration(const ValueNode& node)
 
 
 void
-InitializeEnvironment()
+InitializeEnvironment(Environment& env)
 {
 	std::set_terminate(terminate);
 #if YCL_DS
@@ -427,6 +431,8 @@ InitializeEnvironment()
 			" Note: Some cards only\n"
 			" autopatch .nds files stored in\n"
 			" the root folder of the card.\n");
+	// XXX: Error ignored.
+	env.AddExitGuard(platform_ex::UninitializeFileSystem);
 #elif YCL_Win32
 	string env_str;
 
@@ -446,23 +452,20 @@ InitializeEnvironment()
 		throw GeneralEvent("Call of std::setlocale() with %s failed.\n",
 			locale_str);
 #endif
-}
-
-ValueNode
-InitializeInstalled()
-{
+	// NOTE: Ensure root node is initialized before environment begin.
 	string res;
 
 	YTraceDe(Notice, "Checking installation...");
 	try
 	{
-		auto node(LoadConfiguration(true));
+		auto& node(env.Root);
 
+		node = LoadConfiguration(true);
 		if(node.GetName() == "YFramework")
 			node = PackNodes(string(), std::move(node));
-		LoadComponents(AccessNode(node, "YFramework"));
+		LoadComponents(env, AccessNode(node, "YFramework"));
 		YTraceDe(Notice, "OK!");
-		return node;
+		return;
 	}
 	CatchExpr(std::exception& e, Extract(e, res))
 	CatchExpr(..., res += "Unknown exception @ InitializeInstalled.\n")
@@ -480,7 +483,7 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 	YTraceDe(Notice, "Loading font files...");
 	try
 	{
-		size_t nFileLoaded(fc.LoadTypefaces(font_file) != 0);
+		size_t loaded(fc.LoadTypefaces(font_file) != 0 ? 1 : 0);
 
 		if(!font_dir.empty())
 			try
@@ -491,16 +494,19 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 					{
 						const FontPath path(font_dir + String(npv).GetMBCS());
 
-						if(path != font_file)
-							nFileLoaded += fc.LoadTypefaces(path) != 0;
+						if(path != font_file && fc.LoadTypefaces(path) != 0)
+							++loaded;
 					}
 				});
 			}
 			CatchIgnore(FileOperationFailure&)
 		fc.InitializeDefaultTypeface();
-		if(const auto nFaces = fc.GetFaces().size())
+
+		const auto faces(fc.GetFaces().size());
+
+		if(faces != 0)
 			YTraceDe(Notice, "%zu face(s) in %zu font file(s)"
-				" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
+				" are loaded\nsuccessfully.\n", faces, loaded);
 		else
 			throw GeneralEvent("No fonts found.");
 		YTraceDe(Notice, "Setting default font face...");
@@ -518,59 +524,28 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 		" stored in correct path.\n" + res);
 }
 
-void
-Uninitialize() ynothrow
-{
-	YTraceDe(Notice, "Uninitialization entered with %zu handler(s) to be"
-		" called.\n", app_exit.size());
-	while(!app_exit.empty())
-	{
-		if(YB_LIKELY(app_exit.top()))
-			app_exit.top()();
-		app_exit.pop();
-	}
-#if YCL_DS
-	// XXX: Error ignored.
-	platform_ex::UninitializeFileSystem();
-#endif
-#if !CHRLib_NoDynamicMapping
-#	if YCL_Win32
-	if(cp113_lkp_backup)
-	{
-		CHRLib::cp113_lkp = cp113_lkp_backup;
-		cp113_lkp_backup = {};
-	}
-#	endif
-	p_mapped.reset();
-	YTraceDe(Notice, "Character mapping deleted.");
-#endif
-}
-
 
 ValueNode&
-FetchRoot()
+FetchRoot() ynothrow
 {
-	if(YB_UNLIKELY(!p_root))
-	{
-		p_root.reset(new ValueNode(InitializeInstalled()));
-		app_exit.push([]{
-			p_root.reset();
-		});
-	}
-	return *p_root;
+	return FetchEnvironment().Root;
 }
 
 Drawing::FontCache&
 FetchDefaultFontCache()
 {
+	static unique_ptr<Drawing::FontCache> p_font_cache;
+
 	if(YB_UNLIKELY(!p_font_cache))
 	{
+		auto& env(FetchEnvironment());
+
 		p_font_cache.reset(new Drawing::FontCache());
-		app_exit.push([]{
+		env.AddExitGuard([&]() ynothrow{
 			p_font_cache.reset();
 		});
 
-		const auto& node(FetchRoot()["YFramework"]);
+		const auto& node(env.Root["YFramework"]);
 
 		InitializeSystemFontCache(*p_font_cache,
 			AccessChild<string>(node, "FontFile"),
@@ -586,18 +561,21 @@ FetchDefaultFontCache()
 MIMEBiMapping&
 FetchMIMEBiMapping()
 {
+	static unique_ptr<MIMEBiMapping> p_mapping;
+
 	if(YB_UNLIKELY(!p_mapping))
 	{
 		using namespace NPL;
+		auto& env(FetchEnvironment());
 
-		p_mapping = ynew MIMEBiMapping();
+		p_mapping.reset(new MIMEBiMapping());
 		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
-			(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory")
+			(AccessChild<string>(env.Root["YFramework"], "DataDirectory")
 			+ "MIMEExtMap.txt").c_str(), []{
 				return A1::LoadNode(SContext::Analyze(NPL::Session(TU_MIME)));
 			}, true));
-		app_exit.push([]() ynothrow{
-			ydelete(p_mapping);
+		env.AddExitGuard([&]() ynothrow{
+			p_mapping.reset();
 		});
 	}
 	return *p_mapping;

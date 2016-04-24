@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1607
+\version r1619
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2016-02-09 16:01 +0800
+	2016-04-24 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,16 +38,6 @@ namespace YSLib
 {
 
 using namespace Drawing;
-
-namespace
-{
-
-#if YCL_Win32 && 0
-yconstexpr const double g_max_free_fps(1000);
-std::chrono::nanoseconds host_sleep(std::uint64_t(1000000000 / g_max_free_fps));
-#endif
-
-} // unnamed namespace;
 
 
 #if YF_Hosted
@@ -101,7 +91,7 @@ Environment::Environment()
 		make_unique<Windows::UI::ControlView>(::GetDesktopWindow()));
 	Desktop.SetRenderer(make_unique<UI::PseudoRenderer>());
 #endif
-	InitializeEnvironment();
+	InitializeEnvironment(*this);
 	YCL_Trace(Debug, "Environment lifetime began.");
 }
 Environment::~Environment()
@@ -118,7 +108,10 @@ Environment::~Environment()
 		});
 	});
 #	endif
-	Uninitialize();
+	YTraceDe(Notice, "Uninitialization entered with %zu handler(s) to be"
+		" called.\n", app_exit.size());
+	while(!app_exit.empty())
+		app_exit.pop();
 }
 
 #if YF_Hosted

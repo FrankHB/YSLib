@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2672
+\version r2675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-04-23 08:37 +0800
+	2016-04-24 12:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1053,7 +1053,7 @@ any_cast(any& x)
 	static_assert(is_any_cast_dest<_tValue>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = any_cast<remove_reference_t<_tValue>>(&x))
+	if(const auto p = x.template target<remove_reference_t<_tValue>>())
 		return static_cast<_tValue>(*p);
 	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
 }
@@ -1064,7 +1064,7 @@ any_cast(const any& x)
 	static_assert(is_any_cast_dest<_tValue>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = any_cast<const remove_reference_t<_tValue>>(&x))
+	if(const auto p = x.template target<const remove_reference_t<_tValue>>())
 		return static_cast<_tValue>(*p);
 	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
 }
@@ -1076,7 +1076,7 @@ any_cast(any&& x)
 	static_assert(is_any_cast_dest<_tValue>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = any_cast<remove_reference_t<_tValue>>(&x))
+	if(const auto p = x.template target<remove_reference_t<_tValue>>())
 		return static_cast<_tValue>(*p);
 	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
 }
