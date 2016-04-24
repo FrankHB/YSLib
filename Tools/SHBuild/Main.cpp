@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3396
+\version r3398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2015-12-13 14:40 +0800
+	2016-04-24 22:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@ See readme file for details.
 */
 
 
-#include <ysbuild.h>
+#include <YSBuild.h>
 #include YFM_YSLib_Core_YStorage // for YSLib::FetchStaticRef,
 //	ystdex::raise_exception;
 #include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;

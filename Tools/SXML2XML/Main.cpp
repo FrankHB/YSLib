@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup Tools
 \brief SXML 文档转换工具。
-\version r52
+\version r55
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-09 16:32:08 +0800
 \par 修改时间:
-	2015-09-24 12:39 +0800
+	2016-04-26 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@ See readme file for details.
 */
 
 
-#include <ysbuild.h>
-#include YFM_NPL_SContext
+#include <YSBuild.h>
+#include YFM_NPL_NPLA
 #include <iostream>
 
 using namespace YSLib;

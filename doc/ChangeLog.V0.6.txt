@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10792
+\version r10888
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-04-23 14:18 +0800
+	2016-04-24 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,102 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %TypeTraits $=
+		(
+			+ "metafunction %well_formed_t";
+			/ DLDI "simplified %void_t",
+			+ "metafunction %when_valid"
+		),
+		/ @ "namespace %vseq" @ %Variadic $=
+		(
+			* "%(defer, defer_i) specialization" $since b684
+				$= (/ "specializations" ^ $dep_from
+					("%when_valid" @ %TypeTraits) ~ "%void_t")
+			* "%seq_size specialization for instances did not directly \
+				inherited integral constant" $since b649
+				// This made almost all 'seq_size<...>::value' ill-formed \
+					while 'seq_size_t<...>::value' remained working.
+		),
+		/ @ "namespace %vseq" @ %IntegerSequence $=
+		(
+			+ "metafunction %bound_integer_sequence";
+			* "%ctor_of specialization for %integer_sequence instances" $since
+				b684
+		),
+		/ DLDI "simplified all 3 overloaded function templates %any_cast with \
+			reference parameter" @ %Any
+	),
+	* $comp "failed to build" @ %Test.YBase $since b684 $dep_from
+		%YBase.YStandardEx.(Variadic, IntegerSequence),
+	+ $repo "bookmark 'engineering-fault-b687'" @ b684
+		@ "engineering fault bookmarks",
+		// Failed to build test.
+	/ %YFramework.Helper $=
+	(
+		/ @ "class %Enviornment" @ %Environment $=
+		(
+			+ "data member 'ValueNode Root;'",
+			(
+			+ "application exit guard stack";
+			+ "function template %AddExitGuard"
+			)
+		),
+		/ %Initialization $=
+		(
+			/ DLDI "function %FetchMIMEBiMapping" ^ "%unique_ptr"
+				~ ('ynew', 'ydelete'),
+			/ @ "function %InitializeEnvironment" $=
+			(
+				(
+				/ "merged function %InitializeInstalled at end";
+					// This would be awared by users through output about \
+						uninitialization handlers number.
+				/ $comp "always initialized root at end of call"
+					@ "function %InitializeEnvironment"
+				),
+				+ "environment reference parameter",
+					// This is now necessary. The call of 'FetchEnvironment' \
+						cannot be used when initialization is not finished.
+			),
+			/ "accessing root" ^ ("%Environment::Root" $dep_from %Environment),
+			/ @ "functions %FetchRoot" $dep_from %Environment $=
+			(
+				/ DLDI "simplified",
+				+ 'ynothrow'
+			),
+			(
+			/ "registered uninitialization"
+				^ ("%Environment::AddExitGuard" $dep_from %Environment);
+			* $comp "exception safety when registering application exit \
+				handlers" $since b425,
+				// If 'push' failed, the routine should have been executed \
+					before exception thrown.
+			- "functions %Unitialize"
+			),
+			/ ('#include YFM_NPL_Configuration',
+				'#include YFM_YSLib_Service_TextFile') @ "header" >> %YSBuild
+		)
+	),
+	* DLDI "wrong header inclusion" @ %Tools.SXML2XML $since b599,
+		// Since %SXML was used, %YFramework.NPL.SContext was never enough, \
+			instead %YFramework.NPL.NPLA1 was needed. Now it needs \
+			%YFramework.NPL.SContext.
+	(
+	/ $dev $repo $re_add(b654) "all edited file with module name not the same \
+		as base file name" @ !%YBase ^ 'hg mv' $effective
+		@ %YFramework.("%ysbuild.h" => "%YSBuild.h");
+	/ $forced "header inclusion" @ %(YReader.Shells, Tools.(ProjectGenerator,
+		RevisionPatcher, SHBuild, SXML2XML).Main, YDE.(Clock.Main,
+		ImageBrowser.ImageControl)
+	),
+	- DLD "outdated project file %YSTest_DS.vcproj" @ "platform %DS"
+		@ "project %YSTest"
+),
+
+b687
 (
 	+ '-fno-merge-all-constants' @ "variables %(CFLAGS, CXXFLAGS) when using \
 		Clang++" @ "%SHBuild-common.options.sh" @ %Tools.Script,
@@ -86,7 +182,7 @@ b686
 (
 	+ $re_add(b656) $dev $repo "pattern glob '*.VC.db'" @ "file %.hgignore",
 		// For VC++ 2015 Update 2.
-	/ $repo "engineering falut bookmarks" $=
+	/ $repo "engineering fault bookmarks" $=
 	(
 		- "bookmark 'engineering-defect-b225'",
 			// To prevent redundancy with 'engineering-fault-b225'.

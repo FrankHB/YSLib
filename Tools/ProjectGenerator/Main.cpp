@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r761
+\version r762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2016-02-01 12:44 +0800
+	2016-04-24 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@ See readme file for details.
 */
 
 
-#include <ysbuild.h>
+#include <YSBuild.h>
 #include YFM_NPL_NPLA1 // for NPL::MakeAttributeLiteral,
 //	NPL::InsertAttributeNode, NPL::InsertChildSyntaxNode, etc;
 #include YFM_YCLib_Host // for platform_ex::DecodeArg, platform_ex::EncodeArg;

@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1310
+\version r1318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-04-21 09:42 +0800
+	2016-04-23 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,16 +92,15 @@ using apply_t = _t<apply<_func, _tParams...>>;
 
 /*!
 \brief 延迟求值。
-\since build 650
+\since build 688
 */
 //@{
 YB_Impl_Variadic_SeqOp(defer, template<typename...> class _gOp YPP_Comma class
 	_tSeq, _gOp YPP_Comma _tSeq)
 
-//! \since build 684
 template<template<typename...> class _gOp, template<typename...> class _gSeq,
 	typename... _types>
-struct defer<_gOp, _gSeq<_types...>, void_t<_gOp<_types...>>>
+struct defer<_gOp, _gSeq<_types...>, when_valid<_gOp<_types...>>>
 {
 	using type = _gOp<_types...>;
 };
@@ -110,10 +109,9 @@ struct defer<_gOp, _gSeq<_types...>, void_t<_gOp<_types...>>>
 YB_Impl_Variadic_SeqOp(defer_i, typename _type YPP_Comma template<_type...>
 	class _gOp YPP_Comma class _tSeq, _type YPP_Comma _gOp YPP_Comma _tSeq)
 
-//! \since build 684
 template<typename _tInt, template<_tInt...> class _gOp,
 	template<typename, _tInt...> class _gSeq, _tInt... _vSeq>
-struct defer_i<_tInt, _gOp, _gSeq<_tInt, _vSeq...>, void_t<_gOp<_vSeq...>>>
+struct defer_i<_tInt, _gOp, _gSeq<_tInt, _vSeq...>, when_valid<_gOp<_vSeq...>>>
 {
 	using type = _gOp<_vSeq...>;
 };
@@ -455,9 +453,8 @@ struct seq_size<empty_base<_types...>>
 //! \since build 684
 template<class _tSeq>
 struct seq_size<_tSeq, enable_for_instances<_tSeq>>
-{
-	using type = seq_size_t<params_of_t<_tSeq>>;
-};
+	: seq_size_t<params_of_t<_tSeq>>
+{};
 //@}
 //@}
 

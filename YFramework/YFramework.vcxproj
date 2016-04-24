@@ -181,7 +181,7 @@
     <ClInclude Include="include\YCLib\YCommon.h" />
     <ClInclude Include="include\YCLib\YModules.h" />
     <ClInclude Include="include\YModules.h" />
-    <ClInclude Include="include\ysbuild.h" />
+    <ClInclude Include="include\YSBuild.h" />
     <ClInclude Include="include\YSLib\Adaptor\Configuration.h" />
     <ClInclude Include="include\YSLib\Adaptor\Image.h" />
     <ClInclude Include="include\YSLib\Adaptor\YAdaptor.h" />

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2014, 2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ysbuild.h
+/*!	\file YSBuild.h
 \ingroup YFramework
 \brief YSLib 库配置文件。
-\version r780
+\version r785
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 688
 \par 创建时间:
 	2009-11-12 21:53:55 +0800
 \par 修改时间:
-	2014-12-27 23:48 +0800
+	2016-04-24 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,11 +33,13 @@
 #include YFM_YSLib_UI_YDesktop
 #include YFM_YSLib_UI_YGUI
 #include YFM_Helper_Initialization
+#include YFM_NPL_Configuration
 #if !YCL_OS_X
 #	include YFM_Helper_HostedUI
 #	include YFM_DS_Helper_DSMain
 #endif
 #include YFM_YSLib_Service_YBlit
+#include YFM_YSLib_Service_TextFile
 #include YFM_YSLib_Service_TextManager
 #include YFM_YSLib_Service_ImageProcessing
 #include YFM_YSLib_UI_Selector

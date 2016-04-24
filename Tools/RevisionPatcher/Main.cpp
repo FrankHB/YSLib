@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r219
+\version r221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2015-12-12 23:48 +0800
+	2016-04-24 22:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@ See readme file for details.
 */
 
 
-#include <ysbuild.h>
+#include <YSBuild.h>
 #include YFM_YCLib_FileSystem
 #include <iostream>
 

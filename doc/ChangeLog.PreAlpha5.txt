@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15056
+\version r15102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2016-02-11 19:09 +0800
+	2016-04-24 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -551,7 +551,6 @@ b597
 				+ "function %EscapeNodeLiteral";
 				+ "functions %(PrintNode, PrintNodeChild, PrintNodeString)"
 				),
-
 				+ "namespace %SXML" $=
 				(
 					+ "function %ConvertAttributeNodeString",
@@ -762,7 +761,7 @@ b595
 				/ $comp @ "%pair_iterator instances" $=
 				(
 					- "%pair_type",
-					- $revert(b453) "defaulted move %operator= workaround VC++ \
+					- $revert(b453) "defaulted move %operator= workaround Microsoft VC++ \
 						2013",
 					/ "%operator== only compare master iterators",
 					+ "function %get",
@@ -792,12 +791,12 @@ b595
 					("%YB_IMPL_GNUC" @ %YDefinition),
 				(
 				+ "inline namespace %cpp2014_traits";
-				/ $dev "wrapped ISO C++14 names from WG21/N3655",
+				/ $dev "wrapped ISO C++14 names from WG21 N3655",
 					@ "namespace %cpp2011_traits"
 					@ !'__cpp_lib_transformation_trait_aliases >= 201304 \
 					|| __cplusplus > 201103L',
 				+ "using-declarations from namespace %std for names introduced \
-					by ISO C++14 <type_traits> from WG21/N3655"
+					by ISO C++14 <type_traits> from WG21 N3655"
 					@ '__cpp_lib_transformation_trait_aliases >= 201304 \
 					|| __cplusplus > 201103L'
 					// Though libstdc++ 5 only introduced 6 names of \
@@ -818,7 +817,7 @@ b595
 						'__cplusplus > 201103', there is no such thing in \
 						libstdc++ 4.9.
 				+ "using-declarations from namespace %std for names introduced \
-					by ISO C++14 <type_traits> from resolved LWG2285"
+					by ISO C++14 <type_traits> from resolved LWG 2285"
 					@ '__cpp_lib_make_reverse_iterator >= 201402 \
 					|| __cplusplus >= 201402'
 			),
@@ -883,7 +882,7 @@ b595
 					"%any_ops::any_storage"
 				/ "constructors with value argument" @ "class %any" $=
 				(
-					// Also to be conforming to WG21/N4081.
+					// Also to be conforming to WG21 N4081.
 					/ "initialized manager and handler" ^ "%decay_t"
 						~ "%(remove_reference_t, %remove_rcv_t)";
 					* $comp $re_ex(b594) "initialized mismatched manager and \
@@ -1287,7 +1286,7 @@ b593
 		(
 			- $revert(b297) "function template %union_cast",
 				// Similar to removal of %initializer_cast @ b555. Note at \
-					least currently (as per WG21/N4296) access value of \
+					least currently (as per WG21 N4296) access value of \
 					inactive non-static member is still undefined behavior in \
 					C++, which is different than ISO C99. Use \
 					'reinterpret_cast' instead if type punning is really needed.
@@ -1638,7 +1637,7 @@ b592
 		)
 	),
 	* $dev "missing updating project file for renaming of \
-		%YFramework.YSLib.Adaptor.YReference" @ "VC++ project" $since b590
+		%YFramework.YSLib.Adaptor.YReference" @ "Microsoft VC++ project" $since b590
 ),
 
 b591
@@ -1649,13 +1648,13 @@ b591
 		(
 			/ $dev $impl $revert(b590) '()' @ "macro %yoffsetof" -> '::value',
 				// This is required when 'constexpr' is not even supported, \
-					e.g. in VC++ 2013.
+					e.g. in Microsoft VC++ 2013.
 			(
 			+ "macro %YB_HAS_CPP14_CONSTEXPR detecting C++ constexpr support";
 			+ $workaround(#22) "pseudo keyword %yconstfn_relaxed"
 			),
 			+ "pseudo keywords %(yalignas, yalignas_type)",
-			+ "feature tests support from WG21/N4200" $=
+			+ "feature tests support from WG21 N4200" $=
 			(
 				(
 				+ "macro %__has_cpp_attribute" @ "!defined";
@@ -1676,7 +1675,7 @@ b591
 			/ "unary type trait %has_addressof" $=
 			(
 				/ DLD "implemented" ^ "expression SFINAE" $dep_from "%void_t",
-					// This require C++11 support introduced_rom WG21/N2634.
+					// This require C++11 support introduced_rom WG21 N2634.
 				* DD "comments" $since b588,
 				/ "allowed non class types"
 			),
@@ -1892,7 +1891,7 @@ b590
 			/ "marked group %exceptions for exception classes" @ $effective
 				@ %(Exception, Any)
 			),
-			/ "mark WG21/N4081 reference, ordered interface" @ %Any
+			/ "marked WG21 N4081 reference, ordered interface" @ %Any
 		),
 		/ @ "metafunction %is_char_specialized_in_std" @ %CString $=
 		(
@@ -2042,7 +2041,7 @@ b590
 	/ $dev $repo $re_add(b587) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yref.hpp"
 		=> "%YReference.hpp") @ %YFramework.YSLib.Adaptor,
-	* $dev $build "missing VC++ project dependencies setting"
+	* $dev $build "missing Microsoft VC++ project dependencies setting"
 		@ "platform %Android"
 ),
 
@@ -2289,7 +2288,7 @@ b588
 				(
 					* "missing check for finite scale value"
 						@ "function %ZoomTo" $since b580 $orig (@ "function
-						%(Zoom, ZoomByRatio)" $since b555), 
+						%(Zoom, ZoomByRatio)" $since b555),
 					+ "3rd parameter 'float = 0.F' to specify allowed error"
 						@ "function %ZoomByRatio",
 					/ "disallowed modification when the rescaled size is equal \
@@ -2780,7 +2779,7 @@ b587
 			(
 				/ DLD "cast to 'short'" @ "function %CursorUp"
 					// To eliminate warning: [-Wsign-conversion].
-				* "missing check for positive console size components" $since 
+				* "missing check for positive console size components" $since
 					b520
 					// Also to eliminate warning: [-Wsign-conversion].
 			)
@@ -3013,8 +3012,8 @@ b586
 			/ $dev @ ("classes %(GraphicDevice, KeyInputDevice)"
 				@ %Core.YDevice, "class %AController" @ %UI.YWidgetEvent) $=
 			(
-				/ "inline defined destructor" -> ("defined virtual destructor \
-					out-of-line" @ "non-header file"),
+				/ $lib "inline defined destructor" -> ("defined virtual \
+					destructor out-of-line" @ "non-header file"),
 					// To eliminate Clang++ warning: [-Wweak-vtables].
 				+ "explicitly defaulted default constructor"
 					// To eliminate Clang++ warning: [-Wdeprecated] due to \
@@ -3313,7 +3312,7 @@ b585
 		),
 		+ 'ynothrow' @ "function template %underlying" @ %Utilities
 	),
-	/ $dev "packed common target files to main project" @ "Visual C++ projects",
+	/ $dev "packed common target files to main project" @ "Microsoft VC++ projects",
 		// Since there are some files are acutally used by multiple target \
 			platforms, put them in projects of particular platform is not \
 			reasonable.
@@ -3403,7 +3402,7 @@ b585
 	(
 		// To eliminate G++ warning: [-Wshadow].
 		/ "renamed parameter %wait" -> "%waiter" @ "functions"
-			@ "class template %thread_pool" @ %YBase.YStandardEx.Concurrency, 
+			@ "class template %thread_pool" @ %YBase.YStandardEx.Concurrency,
 		/ "renamed local variable" @ (((("member functions %(TabBar::Refresh, \
 			TabControl::SwitchPage)" @ %TabControl, "constructor %DropDownList"
 			@ %ComboList, "constructor %TextList" @ %ListControl, "functions \
@@ -3764,7 +3763,7 @@ b582
 		@ "specialized '<void>' functors" $effective @ %("plus, minus, \
 		multiplies, devides, modulus, equal_to, not_equal_to, greater, less, \
 		greater_equal, less_equal") @ %YBase.YStandardEx.Functinoal
-		// See WG21/N3657. This 'void' implementation is occasionally equal to \
+		// See WG21 N3657. This 'void' implementation is occasionally equal to \
 			that in libc++, and is also same with libstdc++ from the aspect of \
 			being an incomplete type.
 ),
@@ -4160,7 +4159,7 @@ b578
 (
 	/ %YBase.YStandardEx $=
 	(
-		/ "functors %(plus, multiply)" @ %Functional -> "WG21/N4296 compliant \
+		/ "functors %(plus, multiply)" @ %Functional -> "WG21 N4296 compliant \
 			binary functors except for no %is_transparent support %(plus, \
 			minus, multiplies, divides, modulus, equal_to, not_equal_to, \
 			greater, less, greater_equal, less_equal)",
@@ -4901,7 +4900,7 @@ b572
 b571
 (
 	* $dev "wrong DS extension file paths" @ "platform %MinGW32"
-		@ "Visual C++ project" $since b433,
+		@ "Microsoft VC++ project" $since b433,
 	/ %YFramework $=
 	(
 		/ %Helper $=
@@ -5569,7 +5568,7 @@ b565
 			// To ignore revision patching backup file.
 	),
 	* $dev $design "location for %Documentation::Workflow::Annual2015"
-		@ "filter of Visual C++ project" $since b564,
+		@ "filter of Microsoft VC++ project" $since b564,
 	/ $dev $repo $re_add(b564) "all edited file with module name not the same \
 		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%chrproc.h"
 		=> "%Character.h" @ %YFramework.CHRLib)
@@ -5736,7 +5735,7 @@ b564
 					used in the build of debug executable for platforms other \
 					than %DS, otherwise it would crash.
 			/ "overridden %C_CXXFLAGS_OPT_DBG" !^ '-D_GLIBCXX_DEBUG \
-				-D_GLIBCXX_DEBUG_PEDANTIC' @ "Toolchain.DS.mk",
+				-D_GLIBCXX_DEBUG_PEDANTIC' @ "%Toolchain.DS.mk",
 				// It was too slow even with '-D_GLIBCXX_DEBUG'.
 			/ @ "%SHBuild-BuildApp.sh" $=
 			(
@@ -5768,7 +5767,7 @@ b563
 (
 	/ $repo @ "file '.hgignore'" $=
 	(
-		+ "glob patterns ('*/.Debug*/', '*/.Release*/') for Visual C++ default \
+		+ "glob patterns ('*/.Debug*/', '*/.Release*/') for Microsoft VC++ default \
 			output directories",
 		+ "glob patterns ('*/.debug*/', '*/.release*/', '*/.static*/') for \
 			%SHBuild-BuildApp configurations",
@@ -6178,7 +6177,7 @@ b562
 				(
 					/ 'inline' -> 'yconstfn',
 					/ "supported omitting first function parameter as \
-						[WG21/N4315]"
+						[WG21 N4315]"
 						// However, %reference_wrapper stuff is not supported \
 							to avoid some complexity.
 				),
@@ -6974,7 +6973,7 @@ b558
 			// Optimization option like '-flto' should be in both compiler and \
 				linker command lines.
 	),
-	/ DLD "updated header search paths" @ "Visual C++ projects" $=
+	/ DLD "updated header search paths" @ "Microsoft VC++ projects" $=
 	(
 		/ @ "platform %DS",
 		* @ "platform %Android" $since b554
@@ -6983,7 +6982,7 @@ b558
 		for standard containers" $effective @ %(YFramework.YSLib.UI.TreeView,
 		YReader.BookmarkUI) $dep_from ("toolchain and library using"
 		@ "platform %DS")
-		// See WG21/N1913.
+		// See WG21 N1913.
 ),
 
 b557
@@ -7490,7 +7489,7 @@ b555
 			)
 		),
 		* "missing added files into filter for" %YSLib.Service.ImageProcessing
-			@ "Visual C++ project",
+			@ "Microsoft VC++ project",
 		/ %YCLib $=
 		(
 			/ $dev %Video $=
@@ -7613,16 +7612,16 @@ b554
 					comment that is attached to a function returning void \
 					[-Wdocumentation].
 		),
-		/ $dev $build "wrong Visual C++ project include directory settings"
+		/ $dev $build "wrong Microsoft VC++ project include directory settings"
 			@ "all configurations" @ "platform %Win32" $since b544,
-			// Instead of Visual C++ toolchain, MinGW headers would be used.
+			// Instead of Microsoft VC++ toolchain, MinGW headers would be used.
 		/ DLB $impl "explicitly truncated value" %CHRLib $=
 		(
 			@ "function %UCS4ToUCS2" @ %CharacterProcessing,
-				// To eliminate warning C4244 on Visual C++ 2015 Preview with \
+				// To eliminate warning C4244 on Microsoft VC++ 2015 Preview with \
 					warning level /W3.
 			@ "constructor %ConversionState" @ %CharacterMapping
-				// To eliminate warning C4267 on Visual C++ 2015 Preview with \
+				// To eliminate warning C4267 on Microsoft VC++ 2015 Preview with \
 					warning level /W3.
 		),
 		/ @ %YSLib.Adaptor.YReference $dep_from %YBase.YStandardEx.Functional $=
@@ -7753,7 +7752,7 @@ b554
 	/ $dev $build "removed use of 'typename' when unnecessary" $effecitive
 		@ ("macro %DefBitmaskOperations" @ %YFramework.YBaseMacro)
 		// To eliminate some [-Wc++98-compat] by Clang++ even if allowed by \
-			C++11, see [CWG382].
+			C++11, see [CWG 382].
 ),
 
 b553
@@ -8668,7 +8667,7 @@ b547
 				+ "specialization for std::tuple instances" $dep_to "apply_impl"
 			),
 			+ "function template %apply" $dep_from "apply_impl"
-				// Implementated of %std::experimental::apply in WG21/N4023.
+				// Implementated of %std::experimental::apply in WG21 N4023.
 		),
 		* "missing '&'" @ "1st parameter" @ "function template %expect"
 			@ %YTest.Test,
@@ -8808,7 +8807,7 @@ b546
 				@ %Service.File,
 			/ %Core.YCoreUtilities $=
 			(
-				* DLB "missing updating Visual C++ project for renaming" $since
+				* DLB "missing updating Microsoft VC++ project for renaming" $since
 					b539,
 				/ "function %WriteEnvironmentVariable"
 					=> "%FetchEnvironmentVariable"
@@ -9122,9 +9121,9 @@ b544
 			- "all functions and function template %strdup"
 		)
 	),
-	/ $dev @ "Visual C++ projects" $=
+	/ $dev @ "Microsoft VC++ projects" $=
 	(
-		/ DLD "united all Visual C++ include directories with NMake include \
+		/ DLD "united all Microsoft VC++ include directories with NMake include \
 			search paths (if any)",
 		/ "merged All platforms based on platform %MinGW32 for IntelliSense"
 			@ "project %YFramework"
@@ -11314,7 +11313,7 @@ b524
 
 b523
 (
-	/ DLD "updated header search paths" @ "Visual C++ projects" $=
+	/ DLD "updated header search paths" @ "Microsoft VC++ projects" $=
 	(
 		/ "order" @ "project %YFramework_Android",
 		* "redundant slash" @ "project %YFramework" $since b518,
@@ -11609,7 +11608,7 @@ b520
 			// It would fail to compile for Win64.
 		/ DLDI "simplified member function \
 			%InputManager::DispatchInput" @ %Helper.InputManager
-			// Also to eliminate Visual C++ warning C4457.
+			// Also to eliminate Microsoft VC++ warning C4457.
 	),
 	/ %Tools.SHBuild $=
 	(
@@ -11957,7 +11956,7 @@ b519
 
 b518
 (
-	/ DLD "updated header search paths" @ "Visual C++ projects" $=
+	/ DLD "updated header search paths" @ "Microsoft VC++ projects" $=
 	(
 		/ "missing %Android inline module and %YBase paths"
 			@ "project %YFramework_Android" $since b492,
@@ -12123,7 +12122,7 @@ b517
 			%HexViewArea::Refresh" @ %HexBrowser $since b253
 	),
 	* DLD "missing updating header search paths"
-		@ "Visual C++ project %YFramework_MinGW32" $since b493,
+		@ "Microsoft VC++ project %YFramework_MinGW32" $since b493,
 ),
 
 b516
@@ -13035,9 +13034,9 @@ b503
 	),
 	/ %YBase.YStandardEx $=
 	(
-		* "missing workaround for Visual C++ 2013" @ "move constructor"
+		* "missing workaround for Microsoft VC++ 2013" @ "move constructor"
 			@ "class template %transformed_iterator" @ %Iterator $since b415,
-		/ @ "workaround for Visual C++ 2013" %Utilities $=
+		/ @ "workaround for Microsoft VC++ 2013" %Utilities $=
 		(
 			- DLD "redundant ';' after move constructor definition",
 			* "missing defaulted default and copy constructors" $since b483
@@ -13046,7 +13045,7 @@ b503
 		(
 			/ DLDI ^ "alias-declaration",
 				// It might improve some performance.
-			* $revert_ex(b477) "missing workaround for Visual C++ 2013"
+			* $revert_ex(b477) "missing workaround for Microsoft VC++ 2013"
 				$since b477
 		),
 		/ %Any $=
@@ -13071,7 +13070,7 @@ b503
 				(
 				+ "function template %assign";
 				/ "implemented function template %operator=" ^ "%assign";
-				* $comp "workaround of Visual C++ 2013 warning C4717"
+				* $comp "workaround of Microsoft VC++ 2013 warning C4717"
 				),
 				+ $dev "static assertion for size and alignment constraints"
 					@ "2 function templates %access" $dep_from

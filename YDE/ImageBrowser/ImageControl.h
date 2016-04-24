@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r655
+\version r657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-08-27 09:46 +0800
+	2016-04-24 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_ImageBrowser_ImageControl_h_
 #define INC_ImageBrowser_ImageControl_h_ 1
 
-#include <ysbuild.h>
+#include <YSBuild.h>
 
 namespace ImageBrowser
 {
