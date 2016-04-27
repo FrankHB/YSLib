@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2093
+\version r2097
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2016-03-17 14:59 +0805
+	2016-04-25 15:39 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -503,13 +503,13 @@ public:
 	YB_Impl_Rational_fp_TmplBody_Impl_2(_op) \
 	\
 	YB_Impl_Rational_fp_TmplHead_2_l \
-	yconstfn enable_if_t<std::is_floating_point<_type>::value, \
+	yconstfn enable_if_t<is_arithmetic<_type>::value, \
 		common_type_t<YB_Impl_Rational_fp_T, _type>> \
 	YB_Impl_Rational_fp_TmplSig_2_l(_op) \
 	YB_Impl_Rational_fp_TmplBody_Impl_2(_op) \
 	\
 	YB_Impl_Rational_fp_TmplHead_2_r \
-	yconstfn enable_if_t<std::is_floating_point<_type>::value, \
+	yconstfn enable_if_t<is_arithmetic<_type>::value, \
 		common_type_t<_type, YB_Impl_Rational_fp_T>> \
 	YB_Impl_Rational_fp_TmplSig_2_r(_op) \
 	YB_Impl_Rational_fp_TmplBody_Impl_2(_op)
@@ -642,7 +642,7 @@ private:
 
 public:
 	using type = ystdex::cond_t<is_floating_point<_type>
-#if 0
+#if false
 		|| !(std::double_t(std::numeric_limits<fixed>::min())
 		< std::double_t(std::numeric_limits<_type>::min())
 		|| std::double_t(std::numeric_limits<_type>::max())
@@ -781,7 +781,7 @@ public:
 	static yconstexpr const float_round_style round_style = round_toward_zero;
 };
 
-//! \since build 688
+//! \since build 668
 //@{
 template<YB_Impl_Rational_fp_PList>
 class numeric_limits<const ystdex::YB_Impl_Rational_fp_T>

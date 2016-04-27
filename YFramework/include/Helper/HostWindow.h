@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r451
+\version r521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2015-04-19 11:33 +0800
+	2016-04-27 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,8 +52,8 @@ namespace Host
 class YF_API Window : public HostWindow
 {
 private:
-	//! \since build 554
-	lref<Environment> env;
+	//! \since build 689
+	lref<GUIHost> host;
 
 #	if YCL_Win32
 public:
@@ -72,29 +72,9 @@ public:
 	\since build 435
 	*/
 	Drawing::AlphaType Opacity{0xFF};
-	//! \since build 511
-	//@{
-	//! \brief 鼠标键输入。
-	std::atomic<short> RawMouseButton{0};
 
-private:
-	/*!
-	\brief 标识宿主插入符。
-	\since build 512
-	\see https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc
-		IMM32Manager::CreateImeWindow 的注释。
-	*/
-	bool has_hosted_caret;
-	/*!
-	\brief 输入组合字符串锁。
-	\since build 551
-	*/
-	recursive_mutex input_mutex{};
-	//! \brief 输入法组合字符串。
-	String comp_str{};
-	//! \brief 相对窗口的宿主插入符位置缓存。
-	Drawing::Point caret_location{Drawing::Point::Invalid};
-	//@}
+	//! \since build 689
+	WindowInputHost InputHost;
 #	endif
 
 public:
@@ -104,12 +84,13 @@ public:
 	*/
 	//@{
 	Window(NativeWindowHandle);
-	Window(NativeWindowHandle, Environment&);
+	//! \since build 689
+	Window(NativeWindowHandle, GUIHost&);
 	//@}
 	~Window() override;
 
-	//! \since build 570
-	DefGetter(const ynothrow, Environment&, EnvironmentRef, env)
+	//! \since build 689
+	DefGetter(const ynothrow, GUIHost&, GUIHostRef, host)
 
 	/*!
 	\brief 刷新：保持渲染状态同步。
@@ -117,52 +98,6 @@ public:
 	*/
 	virtual PDefH(void, Refresh, )
 		ImplExpr(void())
-
-#	if YCL_Win32
-	/*!
-	\brief 访问输入法状态。
-	\note 线程安全：互斥访问。
-	\since build 511
-	*/
-	template<typename _func>
-	auto
-	AccessInputString(_func f) -> decltype(f(comp_str))
-	{
-		lock_guard<recursive_mutex> lck(input_mutex);
-
-		return f(comp_str);
-	}
-
-	/*!
-	\brief 更新输入法编辑器候选窗口位置。
-	\note 位置为相对窗口客户区的坐标。
-	\note 若位置为 Drawing::Point::Invalid 则忽略。
-	\sa caret_location
-	\since build 512
-	*/
-	//@{
-	//! \note 线程安全。
-	//@{
-	//! \note 取缓存的位置。
-	void
-	UpdateCandidateWindowLocation();
-	//! \note 首先无条件更新缓存。
-	void
-	UpdateCandidateWindowLocation(const Drawing::Point&);
-	//@}
-
-	//! \note 无锁版本，仅供内部实现。
-	void
-	UpdateCandidateWindowLocationUnlocked();
-	//@}
-
-	/*!
-	\brief 更新文本焦点：根据指定的部件和相对部件的位置调整状态。
-	\since build 518
-	*/
-	virtual void
-	UpdateTextInputFocus(UI::IWidget&, const Drawing::Point&);
-#	endif
 
 	/*!
 	\brief 更新：同步缓冲区。
@@ -183,6 +118,13 @@ public:
 	YB_NONNULL(1) void
 	UpdateFromBounds(Drawing::ConstBitmapPtr, ScreenBuffer&,
 		const Drawing::Rect&, const Drawing::Point& = {});
+
+	/*!
+	\brief 更新文本焦点：根据指定的部件和相对部件的位置调整状态。
+	\since build 518
+	*/
+	virtual void
+	UpdateTextInputFocus(UI::IWidget&, const Drawing::Point&);
 #endif
 };
 

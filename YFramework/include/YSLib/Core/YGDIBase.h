@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2229
+\version r2256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2016-03-17 15:01 +0800
+	2016-04-27 23:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 //	YSLib::HalfDifference;
 #include <limits>
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
+#include <ystdex/string.hpp> // for ystdex::quote;
 
 namespace YSLib
 {
@@ -253,6 +254,20 @@ get(const GBinaryGroup<_type>& val)
 	return _vIdx == 0 ? val.X : val.Y;
 }
 //@}
+
+/*!
+\brief 转换为字符串。
+\note 使用 ADL 。
+\since build 308
+*/
+template<typename _type>
+string
+to_string(const GBinaryGroup<_type>& val)
+{
+	using YSLib::to_string;
+
+	return ystdex::quote(to_string(val.X) + ", " + to_string(val.Y), '(', ')');
+}
 //@}
 
 
@@ -458,6 +473,14 @@ get(const Size& s)
 	return _vIdx == 0 ? s.Width : s.Height;
 }
 //@}
+
+/*!
+\brief 转换为字符串。
+\note 使用 ADL 。
+\since build 308
+*/
+YF_API string
+to_string(const Size&);
 //@}
 
 
@@ -838,6 +861,14 @@ get(const Rect& r)
 		r.X, r.Y, r.Width, r.Height));
 }
 //@}
+
+/*!
+\brief 转换为字符串。
+\note 使用 ADL 。
+\since build 308
+*/
+YF_API string
+to_string(const Rect&);
 //@}
 
 

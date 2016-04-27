@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r564
+\version r575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2016-02-09 19:00 +0800
+	2016-04-27 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include YFM_YCLib_Input
 #include YFM_Helper_Environment
 #include YFM_Helper_HostRenderer // for Host::Window, Host::RenderWindow;
-#include YFM_Helper_GUIApplication // for FetchEnvironment;
+#include YFM_Helper_GUIApplication // for FetchGUIHost;
 #if YCL_Win32
 #	include YFM_YSLib_UI_YControl // for UI::CallEvent;
 #elif YCL_Android
@@ -47,7 +47,7 @@ namespace Devices
 {
 
 InputManager::InputManager()
-	: GUI_state(FetchGUIState()), cursor_state(), env(FetchEnvironment())
+	: GUI_state(FetchGUIState()), cursor_state(), host(FetchGUIHost())
 {}
 
 #if YCL_DS
@@ -96,23 +96,24 @@ InputManager::DispatchInput(IWidget& wgt)
 	keys = platform_ex::FetchKeyState();
 	disp(keys, KeyHeld, TouchHeld);
 #if YCL_Win32
-	if(const auto p_wnd = env.get().GetForegroundWindow())
+	if(const auto p_wnd = host.get().GetForegroundWindow())
 	{
-		const UI::WheelDelta raw_mouse(p_wnd->RawMouseButton);
+		auto& input_host(p_wnd->InputHost);
+		const UI::WheelDelta raw_mouse(input_host.RawMouseButton);
 
 		if(raw_mouse != 0)
 		{
 			CursorWheelEventArgs e(wgt, raw_mouse, keys, cursor_state);
 
 			st.ResponseCursor(e, CursorWheel);
-			p_wnd->RawMouseButton = 0;
+			input_host.RawMouseButton = 0;
 		}
 
-		// TODO: Blocked. Use ISO C++14 lambda initializers to simplify
+		// TODO: Blocked. Use C++14 lambda initializers to simplify
 		//	implementation.
 		const auto p_input(st.ExternalTextInputFocusPtr);
 
-		p_wnd->AccessInputString([=, &st](String& ustr){
+		input_host.AccessInputString([=, &st](String& ustr){
 			if(YB_UNLIKELY(p_input != p_text_focus_cache))
 			{
 				ustr.clear();
@@ -165,12 +166,12 @@ InputManager::Update()
 
 #endif
 #if YCL_Win32
-	tie(p_wnd, cursor_state) = env.get().MapCursor();
+	tie(p_wnd, cursor_state) = host.get().MapCursor();
 	if(!p_wnd)
-		return make_observer(&env.get().Desktop);
+		return make_observer(&host.get().Desktop);
 #elif YF_Hosted
 	// TODO: Determine which inactive window should be used.
-	cursor_state = env.get().MapCursor().second;
+	cursor_state = host.get().MapCursor().second;
 	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd.get()))
 		return make_observer(&p_render_wnd->GetRenderer().GetWidgetRef());
 #elif YCL_DS

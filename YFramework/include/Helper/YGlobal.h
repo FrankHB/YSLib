@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGlobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1942
+\version r1945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2015-09-12 12:46 +0800
+	2016-04-27 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,8 @@ class Desktop;
 
 //! \since build 502
 class Environment;
+//! \since build 689
+class GUIHost;
 #if YF_Hosted
 /*!
 \brief 宿主环境支持。

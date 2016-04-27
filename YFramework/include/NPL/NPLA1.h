@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1089
+\version r1090
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-04-17 06:17 +0800
+	2016-04-26 08:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,7 +230,7 @@ struct PassesCombiner
 	bool
 	operator()(_tIn first, _tIn last) const
 	{
-		return ystdex::fast_any_of(first, last, ystdex::indirect<>());
+		return ystdex::fast_any_of(first, last, ystdex::id<>());
 	}
 };
 

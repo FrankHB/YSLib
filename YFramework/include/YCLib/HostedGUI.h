@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1355
+\version r1427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-02-11 01:45 +0800
+	2016-04-27 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,16 +31,19 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for nptr, map, unique_ptr, ystdex::aligned_storage_t,
-//	wstring, wstring_view, string_view, u16string_view;
+//	wstring, wstring_view, string_view, YSLib::recursive_mutex,
+//	YSLib::lock_guard, u16string_view;
 #include YFM_YSLib_Core_YEvent // for YSLib::GEvent, YSLib::string;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
 //	YSLib::Drawing::Point, YSLib::Drawing::Size;
 #include YFM_YSLib_Core_YString // for YSLib::String;
 #if YCL_HostedUI_XCB
 #	include YFM_YCLib_XCB
-#elif YCL_Win32 || YCL_Android
+#elif YCL_Win32
+#	include <atomic> // for std::atomic;
+#elif YCL_Android
 #elif YF_Hosted
-#	error "Unknown platform with XCB support found."
+#	error "Unknown platform without XCB support found."
 #endif
 
 #if YF_Hosted && YCL_HostedUI
@@ -898,6 +901,80 @@ public:
 	using WindowReference::Show;
 	//@}
 #	endif
+};
+
+
+/*!
+\brief 窗口输入宿主。
+\warning 非虚析构。
+\since build 689
+*/
+class YF_API WindowInputHost
+{
+public:
+	HostWindow& Window;
+
+#	if YCL_Win32
+public:
+	//! \brief 鼠标键输入。
+	std::atomic<short> RawMouseButton{0};
+
+private:
+	/*!
+	\brief 标识宿主插入符。
+	\see https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc
+		IMM32Manager::CreateImeWindow 的注释。
+	*/
+	bool has_hosted_caret;
+	//! \brief 输入组合字符串锁。
+	YSLib::recursive_mutex input_mutex{};
+	//! \brief 输入法组合字符串。
+	YSLib::String comp_str{};
+	//! \brief 相对窗口的宿主插入符位置缓存。
+	YSLib::Drawing::Point caret_location{YSLib::Drawing::Point::Invalid};
+#	endif
+public:
+	//! \brief 构造：使用指定窗口引用，按需初始化光标和输入消息映射。
+	WindowInputHost(HostWindow&);
+	~WindowInputHost();
+
+#if YCL_Win32
+	/*!
+	\brief 访问输入法状态。
+	\note 线程安全：互斥访问。
+	*/
+	template<typename _func>
+	auto
+	AccessInputString(_func f) -> decltype(f(comp_str))
+	{
+		using namespace YSLib;
+		lock_guard<recursive_mutex> lck(input_mutex);
+
+		return f(comp_str);
+	}
+
+	/*!
+	\brief 更新输入法编辑器候选窗口位置。
+	\note 位置为相对窗口客户区的坐标。
+	\note 若位置为 Drawing::Point::Invalid 则忽略。
+	\sa caret_location
+	*/
+	//@{
+	//! \note 线程安全。
+	//@{
+	//! \note 取缓存的位置。
+	void
+	UpdateCandidateWindowLocation();
+	//! \note 首先无条件更新缓存。
+	void
+	UpdateCandidateWindowLocation(const YSLib::Drawing::Point&);
+	//@}
+
+	//! \note 无锁版本，仅供内部实现。
+	void
+	UpdateCandidateWindowLocationUnlocked();
+	//@}
+#endif
 };
 
 

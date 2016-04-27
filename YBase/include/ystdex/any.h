@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2675
+\version r2682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-04-24 12:22 +0800
+	2016-04-26 08:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,6 +58,14 @@ class YB_API invalid_construction : public std::invalid_argument
 {
 public:
 	invalid_construction();
+	//! \since build 689
+	invalid_construction(const invalid_construction&) = default;
+
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 689
+	*/
+	~invalid_construction() override;
 };
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2948
+\version r2952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-04-23 03:47 +0800
+	2016-04-26 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -453,18 +453,18 @@ struct return_of<_fCallable&&> : return_of<_fCallable>
 
 #define YB_Impl_Functional_ret_spec(_exp, _p, _e, _q) \
 	template<typename _tRet, _exp typename... _tParams> \
-	struct return_of<_tRet _p (_tParams... _e) _q> \
+	struct return_of<_tRet _p (_tParams... YPP_Args _e) _q> \
 	{ \
 		using type = _tRet; \
 	};
 
 #define YB_Impl_Functional_ret_spec_f(_e) \
-	YB_Impl_Functional_ret_spec(, , _e, )
+	YB_Impl_Functional_ret_spec(, , _e, ) \
 	YB_Impl_Functional_ret_spec(, (*), _e, )
 
 YB_Impl_Functional_ret_spec_f()
 //! \since build 675
-YB_Impl_Functional_ret_spec_f(...)
+YB_Impl_Functional_ret_spec_f((, ...))
 
 #undef YB_Impl_Functional_ret_spec_f
 
@@ -481,7 +481,7 @@ YB_Impl_Functional_ret_spec_f(...)
 
 YB_Impl_Functional_ret_spec_mfq()
 //! \since build 675
-YB_Impl_Functional_ret_spec_mfq(...)
+YB_Impl_Functional_ret_spec_mfq((, ...))
 
 #undef YB_Impl_Functional_ret_spec_mfq
 #undef YB_Impl_Functional_ret_spec_mf

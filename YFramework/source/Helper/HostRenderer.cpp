@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r683
+\version r690
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-04-20 13:24 +0800
+	2016-04-27 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,13 +27,12 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_HostRenderer // for ystdex::pvoid;
-#include YFM_Helper_Environment // for Environment;
-//#include YFM_Helper_GUIApplication
+#include YFM_Helper_Environment
+#include YFM_Helper_GUIApplication // for GUIHost;
 #if YCL_HostedUI_XCB
 #	include <xcb/xcb.h>
 #	include YFM_YCLib_XCB
 #elif YCL_Win32
-#	include YFM_Helper_Environment
 #	include YFM_Win32_Helper_Win32Control
 #endif
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
@@ -111,10 +110,10 @@ WindowThread::Guard
 WindowThread::DefaultGenerateGuard(Window& wnd)
 {
 #if YF_Multithread == 1
-	wnd.GetEnvironmentRef().EnterWindowThread();
+	wnd.GetGUIHostRef().EnterWindowThread();
 	return ystdex::unique_guard([&]() ynothrow{
 		FilterExceptions([&]{
-			wnd.GetEnvironmentRef().LeaveWindowThread();
+			wnd.GetGUIHostRef().LeaveWindowThread();
 		}, "default event guard destructor");
 	});
 #else
@@ -205,7 +204,7 @@ HostRenderer::~HostRenderer()
 		{
 			auto& wnd(Wait());
 
-			wnd.GetEnvironmentRef().Desktop -= widget;
+			wnd.GetGUIHostRef().Desktop -= widget;
 			if(const auto p_wgt = dynamic_cast<UI::Widget*>(&widget.get()))
 				p_wgt->SetView({});
 		}
@@ -248,7 +247,7 @@ HostRenderer::InitWidgetView()
 	if(const auto p_wgt = dynamic_cast<UI::Widget*>(&widget.get()))
 		p_wgt->SetView(
 			make_unique<Windows::UI::ControlView>(wnd.GetNativeHandle()));
-	wnd.GetEnvironmentRef().Desktop += widget;
+	wnd.GetGUIHostRef().Desktop += widget;
 #endif
 	// FIXME: Allow user to specify which kinds of views should be adjusted.
 	auto& view_ref(widget.get().GetView());

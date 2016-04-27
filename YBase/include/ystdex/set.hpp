@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1050
+\version r1057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-03-22 09:20 +0800
+	2016-04-26 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,12 @@ public:
 
 	using base::comp;
 
+#if YB_IMPL_CLANGPP
+	// NOTE: See https://llvm.org/bugs/show_bug.cgi?id=27504.
+	using tcompare<_tWrappedKey, _fComp, false>::tcompare;
+#else
 	using base::tcompare;
+#endif
 
 	using base::operator();
 	template<typename _tKey>
@@ -253,7 +258,7 @@ public:
 	}
 	mapped_set&
 	operator=(mapped_set&& s)
-#if 0
+#if false
 	// TODO: Blocked. Apply exception specification after published ISO C++17.
 		ynoexcept(std::allocator_traits<_tAlloc>::is_always_equal()
 		&& is_nothrow_move_assignable<_fComp>())
@@ -474,7 +479,7 @@ public:
 
 	void
 	swap(mapped_set& s)
-#if 0
+#if false
 	// TODO: Blocked. Apply exception specification after published ISO C++17.
 		ynoexcept(std::allocator_traits<_tAlloc>::is_always_equal()
 		&& is_nothrow_swappable<_fComp>())

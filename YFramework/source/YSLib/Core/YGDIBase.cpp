@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r709
+\version r724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2015-03-25 15:46 +0800
+	2016-04-28 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,16 @@ namespace Drawing
 
 const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 	std::numeric_limits<SDst>::lowest());
+
+string
+to_string(const Size& s)
+{
+	using YSLib::to_string;
+
+	return ystdex::quote(to_string(s.Width) + ", " + to_string(s.Height), '(',
+		')');
+}
+
 
 //! \since build 453
 namespace
@@ -125,6 +135,15 @@ Rect::operator|=(const Rect& r) ynothrow
 
 	return *this = Rect(mx, my, SDst(max(GetRight(), r.GetRight())
 		- mx), SDst(max(GetBottom(), r.GetBottom()) - my));
+}
+
+string
+to_string(const Rect& r)
+{
+	using YSLib::to_string;
+
+	return ystdex::quote(to_string(r.X) + ", " + to_string(r.Y) + ", "
+		+ to_string(r.Width) + ", " + to_string(r.Height), '(', ')');
 }
 
 } // namespace Drawing;

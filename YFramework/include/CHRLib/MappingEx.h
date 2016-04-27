@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r403
+\version r411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2016-03-10 14:54 +0800
+	2016-04-27 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,6 +234,12 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 //@}
 
 
+// NOTE: See https://llvm.org/bugs/show_bug.cgi?id=25306.
+#if YB_IMPL_CLANGPP
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
+
 //! \since build 595
 //@{
 template<Encoding, typename _tRet, typename... _tParams>
@@ -260,6 +266,10 @@ FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 {
 	return GUCSMapper<_vEnc>::Encode;
 }
+
+#if YB_IMPL_CLANGPP
+#	pragma GCC diagnostic pop
+#endif
 
 //! \since build 645
 template<typename _tRet, typename... _tParams>

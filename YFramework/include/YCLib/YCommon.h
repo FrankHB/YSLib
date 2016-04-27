@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3720
+\version r3728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2015-11-23 15:30 +0800
+	2016-04-27 08:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,11 @@ using MetaID = ystdex::integral_constant<ID, _vN>;
 //! \brief 平台标识的公共标记类型：指定任意平台。
 struct IDTagBase
 {};
+
+#if YB_IMPL_CLANGPP
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wweak-vtables"
+#endif
 
 //! \brief 宿主平台标识的公共标记类型：指定任意宿主平台。
 struct HostedIDTagBase : virtual IDTagBase
@@ -96,6 +101,10 @@ template<ID... _vN>
 struct IDTagSet : virtual IDTag<_vN>...
 {};
 //@}
+
+#if YB_IMPL_CLANGPP
+#	pragma GCC diagnostic pop
+#endif
 
 /*!
 \ingroup PlatformEmulation
