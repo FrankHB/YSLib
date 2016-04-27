@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2403
+\version r2421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2016-02-08 17:21 +0800
+	2016-04-27 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,26 +47,6 @@ namespace Drawing
 
 //! \since build 319
 class Image;
-
-/*!
-\brief 转换为字符串。
-\note 使用 ADL 。
-\since build 308
-*/
-//@{
-template<typename _type>
-string
-to_string(const GBinaryGroup<_type>& val)
-{
-	using YSLib::to_string;
-
-	return ystdex::quote(to_string(val.X) + ", " + to_string(val.Y), '(', ')');
-}
-YF_API string
-to_string(const Size&);
-YF_API string
-to_string(const Rect&);
-//@}
 
 } // namespace Drawing;
 

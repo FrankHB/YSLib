@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1019
+\version r1031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-03-03 15:00 +0800
+	2016-04-25 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,13 +43,13 @@ namespace ystdex
 /*!	\defgroup algorithms Gerneral Algorithms
 \brief 算法。
 \note 范围包含序列容器及内建数组等。容器概念和容器要求参见 ISO C++ Clause 23 。
-\see WG21/N3936 25.1[algorithms.general] 。
+\see WG21 N3936 25.1[algorithms.general] 。
 \since build 189
 */
 //@{
 /*!	\defgroup nonmodifying_algorithms Non-modifying Sequence Operations
 \brief 非修改序列操作。
-\see WG21/N3936 25.2[alg.nonmodifying] 。
+\see WG21 N3936 25.2[alg.nonmodifying] 。
 \since build 531
 */
 //@{
@@ -64,7 +64,7 @@ template<typename _tIn, typename _fPred>
 bool
 fast_all_of(_tIn first, _tIn last, _fPred pred)
 {
-	while(first != last && bool(pred(first)))
+	while(first != last && bool(pred(*first)))
 		++first;
 	return first == last;
 }
@@ -74,7 +74,7 @@ template<typename _tIn, typename _fPred>
 bool
 fast_any_of(_tIn first, _tIn last, _fPred pred)
 {
-	while(first != last && !bool(pred(first)))
+	while(first != last && !bool(pred(*first)))
 		++first;
 	return first != last;
 }
@@ -101,8 +101,8 @@ bool
 strict_all_of(_tIn first, _tIn last, _fPred pred)
 {
 	return std::accumulate(first, last, true,
-		[](bool b, decltype(*first) val){
-		return b && bool(yforward(val));
+		[pred](bool b, decltype(*first) val){
+		return b && bool(pred(yforward(val)));
 	});
 }
 
@@ -112,8 +112,8 @@ bool
 strict_any_of(_tIn first, _tIn last, _fPred pred)
 {
 	return std::accumulate(first, last, false,
-		[](bool b, decltype(*first) val){
-		return b || bool(yforward(val));
+		[pred](bool b, decltype(*first) val){
+		return b || bool(pred(yforward(val)));
 	});
 }
 
@@ -136,7 +136,7 @@ strict_none_of(_tIn first, _tIn last, _fPred pred)
 \pre _type 满足 EqualityComparable 要求。
 \return 转移的 f 。
 \note 时间复杂度： 不大于 <tt>last - first</tt> 次 \c f 的调用。
-\see WG21/N3936 25.2.4[alg.foreach] 。
+\see WG21 N3936 25.2.4[alg.foreach] 。
 \see 其它参考实现： http://stackoverflow.com/questions/234482/using-stl-to-find-all-elements-in-a-vector 。
 
 分别应用操作至范围 <tt>[first, last)</tt> 内的解应用的迭代器 \c i 满足以下条件：
@@ -277,7 +277,7 @@ split_l(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 
 /*!	\defgroup mutating_algorithms Mutating Sequence Operations
 \brief 可变序列操作。
-\see WG21/N3936 25.3[alg.modifying.operations] 。
+\see WG21 N3936 25.3[alg.modifying.operations] 。
 \since build 531
 */
 //@{
@@ -444,7 +444,7 @@ trivially_move(const _type* first, const _type* last, _type* result)
 \note 输出范围元素之间的相对顺序和输入的范围保持一致。
 \note 时间复杂度： O(n^2) ，其中 n 满足 <tt>std::advance(first, n) == last</tt> 。
 \note 使用 ADL 交换。
-\see WG21/N3936 25.3.9[alg.unique] 。
+\see WG21 N3936 25.3.9[alg.unique] 。
 \since build 531
 */
 //@{
@@ -488,7 +488,7 @@ stable_unique(_tFwd first, _tFwd last, _fPred pred)
 
 /*!	\defgroup sorting_and_related_algorithms Sorting and Related Operations
 \brief 排序相关操作。
-\see WG21/N3936 25.4[alg.sorting] 。
+\see WG21 N3936 25.4[alg.sorting] 。
 \since build 531
 */
 //@{

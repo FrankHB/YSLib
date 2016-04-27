@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1632
+\version r1733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-03-10 14:52 +0800
+	2016-04-26 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #	if SW_SHOWNORMAL != 1 || WS_POPUP != 0x80000000L || WS_EX_LTRREADING != 0L
 #		error "Wrong macro defined."
 #	endif
+#	include YFM_YCLib_Input // for ClearKeyStates;
 #	include "YSLib/Service/YModules.h"
 #	include YFM_YSLib_Service_YBlit
 #	include <Shellapi.h> // for ::ShellExecuteW;
@@ -649,6 +650,7 @@ WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 {
 	UpdateBounds(sbuf, {pt, sbuf.GetSize()});
 }
+
 void
 WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 	const Point& sp) ynothrow
@@ -657,6 +659,7 @@ WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 
 	YCL_CallWin32F_Trace(BitBlt, h_owner_dc, int(r.X), int(r.Y), int(r.Width),
 		int(r.Height), h_mem_dc, int(sp.X), int(sp.Y), SRCCOPY);
+	// XXX: Error ignored?
 	::SelectObject(h_mem_dc, h_old);
 }
 
@@ -803,6 +806,118 @@ Point
 HostWindow::MapPoint(const Point& pt) const
 {
 	return pt;
+}
+#	endif
+
+
+WindowInputHost::WindowInputHost(HostWindow& wnd)
+	: Window(wnd)
+#	if YCL_Win32
+	, has_hosted_caret(::CreateCaret(wnd.GetNativeHandle(), {}, 1, 1))
+#	endif
+{
+#	if YCL_Win32
+	auto& m(wnd.MessageMap);
+
+	yunseq(
+	m[WM_MOVE] += [this]{
+		UpdateCandidateWindowLocation();
+	},
+	m[WM_KILLFOCUS] += []{
+		ClearKeyStates();
+	},
+	m[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param) ynothrow{
+		ystdex::pun_storage_t<::RAWINPUT> buf;
+		unsigned size(sizeof(buf));
+
+		// TODO: Use '{}' to simplify after CWG 1368 resolved by C++14. See
+		//	$2015-09 @ %Documentation::Workflow::Annual2015.
+		ystdex::trivially_fill_n(&buf);
+		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &buf,
+			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1)))
+		{
+			const auto p_raw(ystdex::replace_cast<::RAWINPUT*>(&buf));
+
+			if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
+			{
+				if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
+					// NOTE: This value is safe to cast because it is
+					//	specified as a signed value, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms645578(v=vs.85).aspx.
+					RawMouseButton = short(p_raw->data.mouse.usButtonData);
+			}
+		}
+	},
+	m[WM_CHAR] += [this](::WPARAM w_param, ::LPARAM l_param){
+		lock_guard<recursive_mutex> lck(input_mutex);
+		size_t n(l_param & 0x7FFF);
+
+		while(n-- != 0)
+			comp_str += char16_t(w_param);
+	},
+	m[WM_IME_COMPOSITION] += [this]{
+		UpdateCandidateWindowLocation();
+	}
+	);
+	ystdex::unseq_apply([&](int msg){
+		BindDefaultWindowProc(wnd.GetNativeHandle(), m, unsigned(msg));
+	}, WM_MOVE, WM_IME_COMPOSITION);
+#	endif
+}
+WindowInputHost::~WindowInputHost()
+{
+#	if YCL_Win32
+	if(has_hosted_caret)
+		::DestroyCaret();
+#	endif
+}
+
+#	if YCL_Win32
+void
+WindowInputHost::UpdateCandidateWindowLocation()
+{
+	lock_guard<recursive_mutex> lck(input_mutex);
+
+	UpdateCandidateWindowLocationUnlocked();
+}
+void
+WindowInputHost::UpdateCandidateWindowLocation(const Point& pt)
+{
+	if(pt != Point::Invalid)
+	{
+		lock_guard<recursive_mutex> lck(input_mutex);
+
+		caret_location = pt;
+		UpdateCandidateWindowLocationUnlocked();
+	}
+}
+void
+WindowInputHost::UpdateCandidateWindowLocationUnlocked()
+{
+	if(YB_LIKELY(caret_location != Point::Invalid))
+	{
+		YTraceDe(Informative, "Update composition form position: %s.",
+			to_string(caret_location).c_str());
+
+		const auto h_wnd(Nonnull(Window.GetNativeHandle()));
+
+		if(const auto h_imc = ::ImmGetContext(h_wnd))
+		{
+			// FIXME: Correct location?
+			const auto client_pt(caret_location + Window.GetClientLocation()
+				- Window.GetClientLocation());
+
+			::CANDIDATEFORM cand_form{0, CFS_CANDIDATEPOS,
+				{client_pt.X, client_pt.Y}, {0, 0, 0, 0}};
+
+			// TODO: Error handling.
+			::ImmSetCandidateWindow(h_imc, &cand_form);
+			::ImmReleaseContext(h_wnd, h_imc);
+		}
+		// FIXME: Correct implementation for non-Chinese IME.
+		// NOTE: See comment on %IMM32Manager::MoveImeWindow in
+		//	https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc.
+		::SetCaretPos(caret_location.X, caret_location.Y);
+	}
 }
 #	endif
 

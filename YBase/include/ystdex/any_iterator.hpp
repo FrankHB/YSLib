@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1295
+\version r1298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-04-23 04:56 +0800
+	2016-04-25 02:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -288,7 +288,7 @@ public:
 
 		any_ops::any_storage t(&x.get_storage());
 
-		return y.unchecked_access<bool>(t, any_ops::equals);
+		return y.template unchecked_access<bool>(t, any_ops::equals);
 	}
 
 	//! \since build 615
@@ -312,8 +312,8 @@ public:
 	friend bool
 	is_undereferenceable(const any_input_iterator& i)
 	{
-		return !i.empty()
-			? i.unchecked_access<bool>(any_ops::check_undereferenceable) : true;
+		return !i.empty() ? i.template unchecked_access<bool>(
+			any_ops::check_undereferenceable) : true;
 	}
 
 	//! \since build 615

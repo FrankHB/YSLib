@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r805
+\version r830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-04-04 22:43 +0800
+	2016-04-26 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,6 +93,34 @@ using enable_if_transparent_t
 \since build 243
 */
 //@{
+/*!
+\brief 恒等仿函数。
+\since build 689
+*/
+//@{
+template<typename _type = void>
+struct id
+{
+	yconstfn _type
+	operator()(const _type& x) const ynothrow
+	{
+		return x;
+	}
+};
+
+template<>
+struct id<void>
+{
+	template<typename _type>
+	yconstfn _type
+	operator()(_type&& x) const ynothrow
+	{
+		return yforward(x);
+	}
+};
+//@}
+
+
 /*!
 \brief std::addressof 仿函数。
 \since build 660

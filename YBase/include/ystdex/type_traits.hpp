@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r982
+\version r985
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-04-23 18:09 +0800
+	2016-04-26 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,9 +474,10 @@ public:
 
 /*!
 \brief void_t 的一般化，允许指定别名类型。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
+\see http://wg21.cmeerw.net/cwg/issue1558 。
 \since build 688
 */
-template<bool _bCond>
 #if YB_IMPL_GNUCPP >= 50000
 template<typename _type, typename...>
 using well_formed_t = _type;
@@ -488,8 +489,6 @@ using well_formed_t = typename always<_type>::template apply<_types...>::type;
 /*!
 \see WG21 N3911 。
 \see WG21 N4296 20.10.2[meta.type.synop] 。
-\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
-\see http://wg21.cmeerw.net/cwg/issue1558 。
 \since build 591
 */
 // TODO: Blocked. Wait for upcoming ISO C++17 for %__cplusplus.

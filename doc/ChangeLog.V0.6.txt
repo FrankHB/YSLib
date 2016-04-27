@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r10888
+\version r11004
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-04-24 22:23 +0800
+	2016-04-24 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,120 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %YStandardEx $=
+		(
+			* "extraneous template parameter list 'template<bool _bCond>' "
+				@ "alias template %well_formed_t" @ %TypeTraits $since b688;
+				// G++ 4.9.0 accepts it while Clang++ 3.8 rejects it. See \
+					https://llvm.org/bugs/show_bug.cgi?id=5559. See also \
+					http://wg21.cmeerw.net/cwg/issue293.
+			/ @ "specializations" @ "metafunction %return_of" @ %Functional $=
+			(
+				* "missing some function pointer specialization at macro \
+					expansion" $since b675,
+				/ "avoided disambiguity of ellipse function parameter"
+					^ $dep_from ("%YPP_Args" @ %YDefinition),
+					// To eliminate Clang++ warning: [-Wambiguous-ellipsis].
+			),
+			/ %Algorithm $=
+			(
+				* "function templates %(fast_all_of, fast_any_of, \
+					fast_none_of) were missing of predicate indirection" $since
+					b675,
+				* "function templates %(strict_all_of, strict_any_of, \
+					strict_none_of) ignored predicate parameter" $since b675
+			),
+			* "missing 'template' for dependent function template \
+				%unchecked_access call" @ "friend functions %(operator==, \
+				is_undereferenceable)" @ "class template %any_input_iterator"
+				@ %AnyIterator $since b686.
+			* "missing '&&' for other arguments" @ "all 2 function templates \
+				%(nonnull_or, value_or, call_value_or)" @ %DereferenceOperation
+				$since b668
+				// This would return reference to automatic object if the \
+					template parameter type of other argument is not a \
+					reference.
+			+ $impl "workaround for internal comparator" @ 'YB_IMPL_CLANGPP'
+				@ %Set,
+				// See https://llvm.org/bugs/show_bug.cgi?id=27504.
+			/ @ "class %invalid_construction" @ %Any $=
+			(
+				+ $re_add(b615) $dev "defined out-of-line virtual destructor",
+					// To eliminate Clang++ warning: [-Wweak-vtable].
+				+ "default copy constructor"
+					// To prevent Clang++ warning: [-Wdeprecated].
+			),
+			* "ambiguity cased by missing integral overloads for binary \
+				arithmetic function templates with %fixed_point instances"
+				@ %Rational $since b558,
+				// Mixed arithmetic operations concerned with integral type \
+					operands would not compile on Clang++ long ago, not only \
+					for this reason (e.g. conversion functions) and not \
+					resolved previously.
+				$= (/ "overloaded SFINAE type check" ^ "%is_arithmetic"
+					~ "%std::is_floating_point")
+			+ "functor %id" @ %Functor
+		),
+		+ "macro %YPP_Args" @ %YDefinition
+	),
+	/ %YFramework $=
+	(
+		/ $forced DLDI @ "class template %PassesCombiner" @ %NPL.NPLA1 $dep_from
+			("%ystdex::fast_any_of" @ %YBase.YStandardEx.Algorithm)
+			$= (/ "changed predicate" ^ $dep_from
+				("%id" @ %YBase.YStandardEx.Functor))
+		/ %YSLib.UI $=
+		(
+			/ DLDI "removed redundant pessimizing 'std::move' call" @ ("constructor %YDesitop" @ %YDesktop, "member function %TreeList::GetNodePath" @ %TreeView),
+				// To eliminate Clang++ warning: [-Wpessimizing-move]. See also https://news.ycombinator.com/item?id=9915300.
+			/ "all (function template, 2 functions) %to_string" @ %YComponent >> %Core.YGDIBase
+		),
+		/ %YCLib $=
+		(
+			+ $dev "workaround to ignore Clang++ warnings for virtual bases" @ "namespace %platform" @ %YCommon,
+				// To eliminate Clang++ warning: [-Wweak-vtables].
+			* $dev "wrong message" @ "'#error' directive" @ "unknown host platforms" @ %HostedGUI $since b563,
+			+ "class %WindowInputHost" @ %HostedGUI,
+		),
+		+ $dev $workaround(#28) "workaround to ignore Clang++ warnings" @ %CHRLib.MappingEx,
+			// To eliminate Clang++ warning: [-Wignored-attributes]. See https://llvm.org/bugs/show_bug.cgi?id=25306.
+		/ %Helper
+		(
+			+ "class declaration %GUIHost" @ %YGlobal,
+			(
+			+ "class %GUIHost" @ %GUIApplication;
+			/ "declarations" @ "platform %Android" @ %Environment >> %GUIApplication;
+			+ $forced %GUIApplication $=
+			(
+				/ "split GUI state" ^ "%GUIHost";
+				+ "member function %GetGUIHostRef";
+				+ "function %FetchGUIHost"
+			),
+			/ "function %GetEnvironmentRef" @ "class %Host::Window" -> "%GetHostRef",
+			/ "%Environment" -> "%GUIHost" $effective @ %(HostWindow, GUIApplication, GUIShell, HostedUI, HostRenderer, InputManager);
+			- "all GUI state and methods" @ "class %Environment" @ %Environment
+			),
+			/ @ "class %Host::Window" @ %HostWindow $=
+			(
+				/ "input host" ^ $dep_from ("%WindowInputHost" @ %YCLib.HostedGUI) $=
+				(
+					+ 'WindowInputHost InputHost;',
+					- "function template %AccessInputString, functions %(UpdateCandidateWindowLocation, UpdateCandidateWindowLocation, UpdateCandidateWindowLocationUnlocked)" $dep_from "lifted input host methods"
+				),
+				* $comp "%AddMappedItem called only on platform %Win32" @ "constructor" $since b497
+					// It should also be called for other hosted platforms.
+			)
+		),
+		/ $forced "%Environment" -> "%GUIHost" $effective @ %('Helper_(DS)'.DSMain, 'Helper_(Win32)'.Win32Control) $dep_from %Helper,
+		/ DLDI "member functions" ("%DSWindow::UpdateTextInputFocus" @ %'Helper_(DS)'.DSWindow, "%InputManager::DispatchInput" @ %Helper.InputManager)
+			^ ("%Host::Window::InputHost" @ %Helper.HostWindow) $dep_to "lifted input host methods"
+	);
+),
+
+b688
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1257,7 +1371,7 @@ b676
 			/ %ScopeGuard $=
 			(
 				+ "function template %ystdex::make_shared_guard",
-				* "wrong '\sa' directive" @ "Doxygen comments" @ "class %guard"
+				* "wrong '\sa' command" @ "Doxygen comments" @ "class %guard"
 					$since b627
 			),
 			/ %Any $=
@@ -2557,7 +2671,8 @@ b668
 		/ @ "%std::numeric_limits specialization for %ystdex::fixed_point \
 			instances" @ %Rational $=
 		(
-			* $doc "wrong name" @ "'\brief' directive" $since b266,
+			* $doc "wrong name" @ "'\brief' command" @ "Doxygen comments" $since
+				b266,
 			* "strict ISO C++ conformance" $since b261
 				// See ISO C++11 18.3.2.3/2, also http://wg21.cmeerw.net/lwg/issue559.
 				$= (* "missing specialization for cv-qualified types")

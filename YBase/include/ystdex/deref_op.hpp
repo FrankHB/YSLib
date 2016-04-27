@@ -11,13 +11,13 @@
 /*!	\file deref_op.hpp
 \ingroup YStandardEx
 \brief 解引用操作。
-\version r141
+\version r148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-10 13:12:26 +0800
 \par 修改时间:
-	2016-02-04 10:20 +0800
+	2016-04-25 09:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,19 +55,19 @@ is_undereferenceable(_type* p) ynothrow
 //@}
 
 
-//! \since build 668
+//! \since build 689
 //@{
 //! \brief 取非空引用或默认值。
 //@{
 template<typename _tOther, typename _type>
 yconstfn auto
-nonnull_or(_type p, _tOther other = {}) -> decltype(p ? p : other)
+nonnull_or(_type p, _tOther&& other = {}) -> decltype(p ? p : other)
 {
 	return p ? p : other;
 }
 template<typename _tOther, typename _type, typename _tNull = nullptr_t>
 yconstfn auto
-nonnull_or(_type p, _tOther other, _tNull null)
+nonnull_or(_type p, _tOther&& other, _tNull null)
 	-> decltype(!bool(p == null) ? p : other)
 {
 	return !bool(p == null) ? p : other;
@@ -79,13 +79,13 @@ nonnull_or(_type p, _tOther other, _tNull null)
 //@{
 template<typename _tOther, typename _type>
 yconstfn auto
-value_or(_type p, _tOther other = {}) -> decltype(p ? *p : other)
+value_or(_type p, _tOther&& other = {}) -> decltype(p ? *p : other)
 {
 	return p ? *p : other;
 }
 template<typename _tOther, typename _type, typename _tSentinal = nullptr_t>
 yconstfn auto
-value_or(_type p, _tOther other, _tSentinal last)
+value_or(_type p, _tOther&& other, _tSentinal last)
 	-> decltype(!bool(p == last) ? *p : other)
 {
 	return !bool(p == last) ? *p : other;
@@ -97,7 +97,7 @@ value_or(_type p, _tOther other, _tSentinal last)
 //@{
 template<typename _tOther, typename _func, typename _type>
 yconstfn auto
-call_value_or(_func f, _type p, _tOther other = {})
+call_value_or(_func f, _type p, _tOther&& other = {})
 	-> decltype(p ? f(*p) : other)
 {
 	return p ? f(*p) : other;
@@ -105,7 +105,7 @@ call_value_or(_func f, _type p, _tOther other = {})
 template<typename _tOther, typename _func, typename _type,
 	typename _tSentinal = nullptr_t>
 yconstfn auto
-call_value_or(_func f, _type p, _tOther other, _tSentinal last)
+call_value_or(_func f, _type p, _tOther&& other, _tSentinal last)
 	-> decltype(!bool(p == last) ? f(*p) : other)
 {
 	return !bool(p == last) ? f(*p) : other;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3226
+\version r3233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-12-20 01:03 +0800
+	2016-04-27 15:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ DSApplication::DSApplication()
 		return unique_ptr<Window>(new DSWindow(CreateNativeWindow(
 			WindowClassName, {256, 384}, L"YSTest", WS_TILED | WS_CAPTION
 			| WS_SYSMENU | WS_MINIMIZEBOX), Deref(scrs[0]), Deref(scrs[1]),
-			GetEnvironmentRef()));
+			GetGUIHostRef()));
 	}));
 	while(!p_wnd_thrd->GetWindowPtr())
 		// TODO: Resolve magic sleep duration.
@@ -104,15 +104,15 @@ DSApplication::DSApplication()
 
 	const auto h_wnd(p_wnd_thrd->GetWindowPtr()->GetNativeHandle());
 
-	GetEnvironmentRef().MapPoint = [this](const Point& pt){
-		return GetEnvironmentRef().MapTopLevelWindowPoint(pt);
+	GetGUIHostRef().MapPoint = [this](const Point& pt){
+		return GetGUIHostRef().MapTopLevelWindowPoint(pt);
 	};
 #elif YCL_Android
 	const auto h_wnd(&Android::FetchDefaultWindow());
 //	auto& host(Android::FetchNativeHostInstance());
 
 //	host.ResizeScreen({MainScreenWidth, MainScreenHeight << 1}),
-	GetEnvironmentRef().MapPoint = [](const Point& pt) ynothrow{
+	GetGUIHostRef().MapPoint = [](const Point& pt) ynothrow{
 		// XXX: Use alternative implementation rather than Win32's.
 		yconstexpr const Rect
 			bounds(0, MainScreenHeight, MainScreenWidth, MainScreenHeight << 1);
@@ -167,7 +167,7 @@ DSApplication::SwapScreens()
 #if YF_Hosted
 	std::swap(GetDSScreenUp().Offset, GetDSScreenDown().Offset);
 #	if !YCL_Android
-	if(const auto p_wnd = GetEnvironmentRef().GetForegroundWindow())
+	if(const auto p_wnd = GetGUIHostRef().GetForegroundWindow())
 		p_wnd->Invalidate();
 #	endif
 #endif
@@ -187,7 +187,7 @@ TestFramework(size_t idx)
 	yunused(idx);
 }
 
-} // namespace MinGW32;
+} // namespace Windows;
 #endif
 
 } // namespace YSLib;

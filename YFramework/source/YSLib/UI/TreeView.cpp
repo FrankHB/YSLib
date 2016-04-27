@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r727
+\version r729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2016-02-09 14:29 +0800
+	2016-04-27 08:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,7 +242,7 @@ TreeList::GetNodePath(TreeList::IndexType idx) const
 		});
 		YAssert(indent > 0, "Invalid indent found");
 		seq[indent - 1] += n + last.first;
-		return std::move(seq);
+		return seq;
 	}
 	return {};
 }
@@ -413,7 +413,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 			// XXX: Conversion to 'SPos' might be implementation-defined.
 			yunseq(ystdex::erase_n(lst, std::next(lst.cbegin(),
 				ptrdiff_t(idx + 1)), ptrdiff_t(n)), indent_map.erase(i, j));
-#if 1
+#if true
 			{
 				// XXX: Use %std::make_move_iterator if proper.
 				vector<pair<IndentType, IndexType>>

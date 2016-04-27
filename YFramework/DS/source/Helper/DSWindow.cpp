@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r171
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:36:43 +0800
 \par 修改时间:
-	2015-04-11 22:44 +0800
+	2016-04-27 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -43,9 +43,9 @@ using namespace Drawing;
 namespace Host
 {
 
-DSWindow::DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
-	Environment& e)
-	: Window(h, e), scr_up(s_up), scr_dn(s_dn)
+DSWindow::DSWindow(NativeWindowHandle h_wnd, DSScreen& s_up, DSScreen& s_dn,
+	GUIHost& h)
+	: Window(h_wnd, h), scr_up(s_up), scr_dn(s_dn)
 {
 #	if YCL_Win32
 	yunseq(
@@ -86,7 +86,7 @@ DSWindow::UpdateTextInputFocus(UI::IWidget& wgt, const Point& pt)
 		ystdex::polymorphic_downcast<Desktop&>(top_level)
 		.GetScreen()) == &scr_dn, "Wrong screen of text input found");
 	yunused(top_level);
-	UpdateCandidateWindowLocation(loc + Point(0, MainScreenHeight));
+	InputHost.UpdateCandidateWindowLocation(loc + Point(0, MainScreenHeight));
 }
 #	endif
 

@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r183
+\version r187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2016-02-12 02:13 +0800
+	2016-02-27 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,10 +56,10 @@ private:
 	*/
 	Drawing::Point cursor_state;
 	/*!
-	\brief 宿主环境。
-	\since build 554
+	\brief GUI 宿主。
+	\since build 689
 	*/
-	lref<Environment> env;
+	lref<GUIHost> host;
 
 #if YCL_Win32
 	/*!
@@ -76,7 +76,7 @@ private:
 
 public:
 	/*!
-	\sa FetchEnvironment
+	\sa FetchGUIHost
 	\sa UI::FetchGUIState
 	*/
 	InputManager();
