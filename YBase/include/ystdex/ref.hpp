@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r333
+\version r339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-04-23 03:52 +0800
+	2016-04-30 07:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,24 +253,23 @@ public:
 */
 struct pseudo_output
 {
-	//! \since build 636
+	//! \since build 690
+	//@{
 	template<typename... _tParams>
 	yconstfn
-	pseudo_output(_tParams&&...)
+	pseudo_output(_tParams&&...) ynothrow
 	{}
 
-	//! \since build 640
-	//@{
 	template<typename _tParam,
 		yimpl(exclude_self_t<pseudo_output, _tParam>)>
 	yconstfn const pseudo_output&
-	operator=(_tParam&&) const
+	operator=(_tParam&&) const ynothrow
 	{
 		return *this;
 	}
 	template<typename... _tParams>
 	yconstfn const pseudo_output&
-	operator()(_tParams&&...) const
+	operator()(_tParams&&...) const ynothrow
 	{
 		return *this;
 	}

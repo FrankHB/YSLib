@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for DS toolchain
-# Version = r82
+# Version = r83
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2016-03-31 13:21 +0800
+# Updated = 2016-05-01 21:49 +0800
 # Encoding = ANSI
 
 
@@ -51,7 +51,7 @@ export PLATFORM ?= DS
 
 ifeq ($(PLATFORM),DS)
 	ifeq ($(strip $(DEVKITARM)),)
-		$(error "Please set DEVKITARM in your environment. \
+ 		$(error "Please set DEVKITARM in your environment. \
 export DEVKITARM=<path to>devkitARM")
 	endif
 	include $(DEVKITARM)/ds_rules

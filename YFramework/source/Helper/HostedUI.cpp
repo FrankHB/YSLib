@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r543
+\version r546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2016-04-27 14:56 +0800
+	2016-05-02 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_HostedUI
+#include YFM_Helper_HostedUI // for UI::WrapRenderer;
 #include YFM_Helper_HostRenderer
 #include YFM_YSLib_UI_YControl // for UI::FetchEvent;
 #include YFM_YSLib_UI_YGUI // for UI::FetchGUIState;
@@ -133,7 +133,7 @@ ShowTopLevel(Widget& wgt, WindowThread::GuardGenerator guard_gen,
 		YTraceDe(Informative, "Layered style ignored for non-popup window.");
 	}
 
-	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, guard_gen, [=, &wgt]{
+	auto& res(WrapRenderer<HostRenderer>(wgt, wgt, guard_gen, [=, &wgt]{
 		WindowReference wnd_ref(CreateNativeWindow(WindowClassName,
 			GetSizeOf(wgt), title, wstyle, wstyle_ex));
 
@@ -197,8 +197,6 @@ void
 SetupTopLevelTimedTips(IWidget& wgt, TimedHoverState& st, Label& lbl,
 	const String& text, const Rect& r, const Font& fnt, const Padding& m)
 {
-	using namespace UI;
-
 	SetupContentsOf(lbl, text, r, fnt, m);
 	// TODO: Border style setting, font, background, allowing host shadow,
 	//	etc.

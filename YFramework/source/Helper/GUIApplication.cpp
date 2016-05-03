@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r534
+\version r562
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2016-04-27 22:17 +0800
+	2016-05-02 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 #include YFM_Helper_Environment
 #include YFM_YCLib_Input // for platform_ex::FetchCursor;
 #if YCL_Win32
-#	include YFM_Helper_ShellHelper // for YSL_DEBUG_DECL_TIMER;
 #	include YFM_Win32_Helper_Win32Control // for Windows::UI::ControlView;
+#elif YCL_Android
+#	include YFM_Android_Helper_AndroidHost // for Android::NativeHost;
 #endif
 
 namespace YSLib
@@ -44,32 +45,6 @@ using namespace Host;
 
 namespace
 {
-
-#if YCL_Win32
-::LRESULT CALLBACK
-WndProc(::HWND h_wnd, unsigned msg, ::WPARAM w_param, ::LPARAM l_param)
-{
-	using namespace Host;
-
-	if(const auto p = static_cast<Window*>(reinterpret_cast<HostWindow*>(
-		::GetWindowLongPtrW(h_wnd, GWLP_USERDATA))))
-	{
-		YSL_DEBUG_DECL_TIMER(tmr, to_string(msg));
-		auto& m(p->MessageMap);
-		const auto i(m.find(msg));
-
-		if(i != m.cend())
-		{
-			::LRESULT res(0);
-
-			i->second(w_param, l_param, res);
-			return res;
-		}
-	}
-	return ::DefWindowProcW(h_wnd, msg, w_param, l_param);
-}
-#endif
-
 
 //! \since build 550
 recursive_mutex ApplicationMutex;
@@ -105,8 +80,11 @@ GUIHost::GUIHost()
 	: wnd_map(), wmap_mtx()
 #	if YF_Multithread == 1
 #		if YCL_Win32
-	, window_class(WindowClassName, WndProc)
+	, window_class(WindowClassName)
 #		endif
+#	endif
+#	if YCL_Android
+	, Desktop(Android::FetchNativeHostInstance().GetHostScreenRef())
 #	endif
 #endif
 {

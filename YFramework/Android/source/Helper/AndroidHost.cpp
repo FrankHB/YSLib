@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r430
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2015-08-31 22:18 +0800
+	2016-04-30 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 	size_t state_size)
 	: activity(ac), p_config(::AConfiguration_new()),
 	looper(FetchNativeLooper({})), msg_pipe(platform_ex::MakePipe()),
-	p_screen(), p_desktop()
+	p_screen()
 {
 	NativeAppHostPtr = this;
 	YAssert(NativeAppHostPtr, "Duplicate instance found.");
@@ -110,15 +110,12 @@ NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 			YTraceDe(Debug, "Starting native main thread...");
 			host.thrdMain = std::thread([&host, p_activity, p_window]{
 				host.p_screen.reset(new Devices::AndroidScreen(*p_window));
-				host.p_desktop.reset(new Desktop(host.GetScreenRef()));
 				::y_android_main();
 				YTraceDe(Debug, "Application main routine exited.");
 				::ANativeActivity_finish(p_activity);
 				host.RunOnUIThread([]{
 					YTraceDe(Notice, "Finish method called.");
 				});
-				YTraceDe(Debug, "Clearing desktop pointer...");
-				host.p_desktop.reset();
 				YTraceDe(Debug, "Clearing screen pointer...");
 				host.p_screen.reset();
 				YTraceDe(Informative, "Native main thread finished.");
@@ -207,6 +204,13 @@ NativeHost::~NativeHost()
 	YTraceDe(Debug, "Input queue detached.");
 	p_config.reset();
 	YTraceDe(Debug, "Native host terminated.");
+}
+
+Devices::Screen&
+NativeHost::GetHostScreenRef() const ynothrow
+{
+	// TODO: Expose screen type and use %GetScreenRef instead.
+	return Deref(p_screen);
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11004
+\version r11122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-04-24 23:32 +0800
+	2016-05-03 10:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,111 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "platform %Win32" @ %YCLib.HostedUI $=
+		(
+			+ "static member function %WindowProcedure" @ "class %HostWindow";
+			/ "initialized with %HostWindow::WindowProcedure when window \
+				procedure parameter is null" @ "constructor#1"
+				@ "class %WindowClass"
+		),
+		/ %Helper $=
+		(
+			/ @ "class %GUIHost" @ %GUIApplication $=
+			(		
+				/ @ "platform %Win32" @ "constructor" $=
+				(
+					/ DLDI "simplified" $dep_from %YCLib.HostedUI;
+					/ @ "hosted window procedure" $=
+					(
+						* $comp "missing catch exceptions" @ "boundary" $orig
+							(@ %DSMain $since b299),
+						- "%YSL_DEBUG_DECL_TIMER call"
+					)
+				),
+				/ @ "platform %Android" $=
+				(
+					+ 'UI::Desktop Desktop;';
+					+ "initialized desktop fron native host screen"
+						@ "constructor" ^ $dep_from
+						("%NativeHost::GetHostScreenRef"
+						@ %'Helper(Android)'.AndroidHost)
+				)
+			),
+			/ DLDI "simplified member function %InputManager::Update"
+				@ "platform %Android" @ %InputManager ^ $dep_from
+				("%GUIHost::Desktop" @ %GUIApplication)
+				~ "%AndroidHost::GetDesktopRef",
+			/ %Initialization $=
+			(
+				(
+				+ 'extern bool ShowInitializedLog;' @ "platform %DS",
+				+ "functions %(LoadComponents, ExtractInitException)";
+				/ "merged function %InitializeEnvironment"
+					-> ("constructor %Environment" @ %Environment) $dep_to
+					"merged environment initialization"
+				),
+				/ @ "platform %DS" @ "function %HandleFatalError" $=
+				(
+					/ "removed dashes and traling newline"
+						@ "printed error message";
+					* $re_ex(b601) $comp
+						"redundant '\n' printed at last after horizontal line"
+						@ "function %HandleFatalError" $since b508
+						// This cause LibFAT error title disappeared. The old \
+							fix was not enough because %YTraceDe introduced \
+							another space in additional to error message \
+							content.
+				)
+			),
+			/ @ "constructor %Environment" @ %Environment $dep_from
+				"merged environment initialization" $=
+			(
+				/ "set terminate handler before fixing console handler"
+					@ "platform %Win32",
+				/ $forced DLDI @ "platform %DS" $dep_from %NativeAPI
+			),
+			/ %HostedUI $=
+			(
+				/ DLDI "simplified function %PrepareTopLevelPopupMenu" ^ '{}'
+					~ 'WindowThread::GuardGenerator()',
+				* $doc "wrong comments about detaching"
+					@ "functions %(SetupTopLevelTimedTips, \
+					SetupTopLevelContextMenu)" $since b591,
+				- DLDI "redundant 'UI::'"
+			)
+		),
+		/ @ "class %NativeHost" @ %'Helper(Android)'.AndroidHost $dep_from
+			%Helper.InputManager $=
+		(
+			(
+			- "initialization and deinitialization of desktop object out of \
+				the call of %::y_android_main",
+			- "function %GetDesktopRef";
+			- $impl "desktop pointer member"
+			),
+			+ "function %GetHostScreenRef"
+				// %GetScreenRef is usable but %Devices::AndroidScreen is not \
+					complete type for non platform extension, so there need \
+					one more getter to convert the reference.
+		),
+		/ "functions %(InitializeFileSystem, UninitializeFileSystem)"
+			-> "class %FileSystem" @ "namespace %platform_ex" @ "platform %DS"
+			@ %YCLib.NativeAPI
+	),
+	+ 'ynothrow' @ "all member functions" @ "class %pseudo_output"
+		@ %YBase.YStandardEx.Ref,
+		// See also https://llvm.org/bugs/show_bug.cgi?id=15481.
+	* "line of calling %error beginned wrongly with HT" @ "environment \
+		variable check failed" @ "%(Toolchain.Android.mk, Toolchain.DS.mk)"
+		@ %Tools $orig (@ "makefiles" @ "platform %DS"
+		@ "projects %(YBase, YFramework, YSTest)" $since b270)
+		// Lines beginned with horizontal tab is treated as command in makefile.
+),
+
+b689
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -10069,6 +10174,14 @@ b601
 				- $revert(b195) "function template %ReleaseStored" $dep_from
 					"%Cleanup" @ %YReader.Shells,
 				- $revert($before b132) "function template %SetShellToNew"
+			),
+			/ @ "platform %DS" @ %Initialization $=
+			(
+				/ $impl "InitializeEnvironment"
+					^ "%InitializeFileSystem" $dep_to "hiding libfat interface",
+				* "redundant '\n' printed at last after horizontal line"
+					@ "function %HandleFatalError" $since b508
+					// This cause LibFAT error title disappeared.
 			)
 		),
 		* $dev "missing macro guard" @ !"platform %Win32"
@@ -10084,14 +10197,6 @@ b601
 			),
 			- $revert(b297) "macros %(SCREEN_WIDTH, SCREEN_HEIGHT)" $dep_from
 				"hard coded screen measurement"
-		),
-		/ @ "platform %DS" @ %Helper.Initialization $=
-		(
-			/ $impl "InitializeEnvironment"
-				^ "%InitializeFileSystem" $dep_to "hiding libfat interface",
-			* "redundant '\n' printed at last after horizontal line"
-				@ "function %HandleFatalError" $since b508
-				// This cause LibFAT error titil disappeared.
 		)
 	),
 	/ %YBase $=

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1733
+\version r1758
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-04-26 23:58 +0800
+	2016-04-28 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -714,8 +714,9 @@ WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
 	unsigned style, ::HBRUSH h_bg, ::HINSTANCE h_inst)
 	// NOTE: Intentionally no %CS_OWNDC or %CS_CLASSDC, so %::ReleaseDC
 	//	is always needed.
-	: WindowClass(::WNDCLASSW{style, wnd_proc, 0, 0, h_inst ? h_inst
-		: ::GetModuleHandleW({}), ::LoadIconW({}, IDI_APPLICATION),
+	: WindowClass(::WNDCLASSW{style, wnd_proc ? wnd_proc
+		: HostWindow::WindowProcedure, 0, 0, h_inst
+		? h_inst : ::GetModuleHandleW({}), ::LoadIconW({}, IDI_APPLICATION),
 		::LoadCursorW({}, IDC_ARROW), h_bg, nullptr, Nonnull(class_name)})
 {}
 WindowClass::WindowClass(const ::WNDCLASSW& wc)
@@ -806,6 +807,32 @@ Point
 HostWindow::MapPoint(const Point& pt) const
 {
 	return pt;
+}
+
+::LRESULT __stdcall
+HostWindow::WindowProcedure(::HWND h_wnd, unsigned msg, ::WPARAM w_param,
+	::LPARAM l_param) ynothrowv
+{
+	if(const auto p = reinterpret_cast<HostWindow*>(
+		::GetWindowLongPtrW(h_wnd, GWLP_USERDATA)))
+	{
+		auto& m(p->MessageMap);
+
+		try
+		{
+			const auto i(m.find(msg));
+
+			if(i != m.cend())
+			{
+				::LRESULT res(0);
+
+				i->second(w_param, l_param, res);
+				return res;
+			}
+		}
+		CatchExpr(..., YTraceDe(Warning, "HostWindow::WindowPrecedure failed."))
+	}
+	return ::DefWindowProcW(h_wnd, msg, w_param, l_param);
 }
 #	endif
 
