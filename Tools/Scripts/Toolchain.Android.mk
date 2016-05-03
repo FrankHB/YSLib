@@ -1,5 +1,5 @@
 #
-#	(C) 2014 FrankHB.
+#	(C) 2014, 2016 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for Android toolchain
-# Version = r63
+# Version = r65
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2014-12-06 22:26 +0800
+# Updated = 2016-05-01 21:49 +0800
 # Encoding = ANSI
 
 
@@ -35,7 +35,7 @@ export NM := $(PREFIX)nm
 
 ifeq ($(PLATFORM),Android)
 	ifeq ($(strip $(ANDROID_SDK)),)
-		$(error "Please set ANDROID_SDK in your environment. \
+ 		$(error "Please set ANDROID_SDK in your environment. \
 			export ANDROID_SDK=<path to>ANDROID_SDK")
 	endif
 	ANDROID_PLATFORM := 9

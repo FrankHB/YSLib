@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r521
+\version r529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2016-04-27 23:04 +0800
+	2016-04-30 00:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,8 @@
 #endif
 #if YCL_Win32
 #	include YFM_YSLib_UI_YPanel
+#elif YCL_Android
+#	include YFM_YSLib_UI_YDesktop
 #endif
 
 namespace YSLib
@@ -79,6 +81,7 @@ public:
 	std::atomic<bool> ExitOnAllWindowThreadCompleted{true};
 #	endif
 
+public:
 #	if YCL_Win32
 	/*!
 	\brief 点映射例程。
@@ -88,6 +91,7 @@ public:
 		const Drawing::Point&)> MapPoint{};
 	//! \brief 宿主环境桌面。
 	UI::Panel Desktop{};
+
 private:
 	Host::WindowClass window_class;
 #	elif YCL_Android
@@ -96,6 +100,11 @@ private:
 	\note 若非空则 MapCursor 调用此实现，否则使用恒等变换。
 	*/
 	ystdex::id_func_clr_t<Drawing::Point>* MapPoint = {};
+	/*!
+	\brief 宿主环境桌面。
+	\since build 690
+	*/
+	UI::Desktop Desktop;
 #	endif
 #endif
 

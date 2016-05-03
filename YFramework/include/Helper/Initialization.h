@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r789
+\version r813
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-04-24 21:16 +0800
+	2016-05-02 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,21 @@
 
 namespace YSLib
 {
+
+#if YCL_DS
+/*!
+\brief 设置是否显示初始化的诊断消息。
+\since build 690
+*/
+extern bool ShowInitializedLog;
+#endif
+
+/*!
+\brief 展开初始化异常。
+\since build 690
+*/
+YF_API void
+ExtractInitException(const std::exception&, string&) ynothrow;
 
 /*!
 \brief 处理致命错误：显示错误信息并终止程序。
@@ -57,6 +72,12 @@ YF_API YB_NONNULL(1, 2) ValueNode
 LoadNPLA1File(const char* disp, const char* path,
 	ValueNode(*creator)(), bool show_info = {});
 
+/*!
+\brief 初始化环境组件。
+\since build 690
+*/
+YF_API void
+LoadComponents(Environment&, const ValueNode&);
 
 /*!
 \brief 载入默认配置。
@@ -75,15 +96,6 @@ LoadConfiguration(bool = {});
 YF_API void
 SaveConfiguration(const ValueNode&);
 
-
-/*!
-\brief 初始化环境。
-\note 其中初始化已安装项后初始化根节点：检查安装完整性并载入主配置文件的配置项。
-\warning 不保证涉及 CHRLib 初始化的线程安全性。
-\since build 688
-*/
-YF_API void
-InitializeEnvironment(Environment&);
 
 /*!
 \brief 初始化系统字体缓存。

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1427
+\version r1443
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-04-27 23:24 +0800
+	2016-04-28 23:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -733,10 +733,13 @@ public:
 	/*!
 	\pre 间接断言：第一参数非空。
 	\note 应用程序实例句柄参数为空则使用 <tt>::GetModuleHandleW()</tt> 。
+	\note 窗口过程参数为空时视为 HostWindow::WindowProcedure 。
 	\note 默认画刷参数等于 <tt>::HBRUSH(COLOR_MENU + 1)</tt> 。
+	\sa HostWindow::WindowProcedure
+	\since build 690
 	*/
 	YB_NONNULL(1)
-	WindowClass(const wchar_t*, ::WNDPROC, unsigned = 0,
+	WindowClass(const wchar_t*, ::WNDPROC = {}, unsigned = 0,
 		::HBRUSH = ::HBRUSH(4 + 1), ::HINSTANCE = {});
 	WindowClass(const ::WNDCLASSW&);
 	WindowClass(const ::WNDCLASSEXW&);
@@ -900,6 +903,20 @@ public:
 
 	using WindowReference::Show;
 	//@}
+#		if YCL_Win32
+
+	/*!
+	\brief 窗口过程。
+	\pre 窗口句柄非空；对应的 GWLP_USERDATA 域为保证回调时可访问的 HostWindow 指针，
+		或空值。
+	\since build 690
+
+	访问窗口句柄对应的 GWLP_USERDATA 域，当存储的值非空时作为 HostWindow 的指针值，
+	访问其中消息映射分发和执行消息；否则，调用默认窗口处理过程。
+	*/
+	static ::LRESULT __stdcall
+	WindowProcedure(::HWND, unsigned, ::WPARAM, ::LPARAM) ynothrowv;
+#		endif
 #	endif
 };
 

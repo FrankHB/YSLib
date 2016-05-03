@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1121
+\version r1162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-01-16 21:33 +0800
+	2016-05-03 09:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,6 +82,7 @@ static_assert(std::is_signed<platform::ssize_t>(),
 
 #if YCL_DS
 #	include <nds.h>
+#	include <ystdex/base.h> // for ystdex::nonmovable;
 
 namespace platform_ex
 {
@@ -106,23 +107,41 @@ DMAFillWordsAsync(std::uint8_t chan, std::uint32_t val, void* p_dst,
 	DMA_CR(3) = DMA_SRC_FIX | DMA_COPY_WORDS | size >> 2;
 }
 
-/*!
-\brief 初始化文件系统。
-\return 是否成功。
-\note 若已初始化则直接返回不成功。
-\since build 601
-*/
-YF_API bool
-InitializeFileSystem() ynothrow;
 
 /*!
-\brief 反初始化文件系统。
-\return 是否成功。
-\note 若未初始化则直接返回不成功。
-\since build 611
+\brief 文件系统。
+\since build 690
 */
-YF_API bool
-UninitializeFileSystem() ynothrow;
+class YF_API FileSystem final
+	: private ystdex::noncopyable, private ystdex::nonmovable
+{
+public:
+	enum class RootKind
+	{
+		Null,
+		SD,
+		FAT
+	};
+
+private:
+	RootKind root;
+	const char* init_dev;
+
+public:
+	/*!
+	\brief 构造：使用指定缓冲页数初始化文件系统，成功后切换当前目录。
+	\post <tt>root != RootKind::Null && init_dev</tt> 。
+	\throw std::runtime_error 初始化失败。
+	\note 参数及默认值对应 LibFAT 源码。
+	\see LibFAT 源码文件 "common.h" 的宏 DEFAULT_CACHE_PAGES 。
+	*/
+	FileSystem(size_t = 16);
+	/*!
+	\brief 析构：反初始化文件系统。
+	\pre 间接断言： \c init_dev 。
+	*/
+	~FileSystem();
+};
 
 } // namespace platform_ex;
 

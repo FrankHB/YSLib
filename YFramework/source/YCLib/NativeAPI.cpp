@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r960
+\version r998
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2015-12-16 13:51 +0800
+	2016-05-03 10:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,33 +51,10 @@ namespace platform_ex
 {
 
 //! \since build 602
-//@{
 using namespace platform::Descriptions;
 
-namespace
-{
-
-enum class DSFATRoot
-{
-	Null,
-	SD,
-	FAT
-};
-//@}
-
-//! \since build 611;
-const char* init_dev;
-
-} // unnamed namespace;
-
-bool
-InitializeFileSystem() ynothrow
-{
-	if(init_dev)
-		return {};
-
-	// NOTE: %DEFAULT_CACHE_PAGES is 16 in "common.h" in libfat source.
-	const auto res([](size_t pages) ynothrow -> DSFATRoot{
+FileSystem::FileSystem(size_t pages)
+	: root([pages]() ynothrow -> RootKind{
 		const auto init([=](const char* name, const ::DISC_INTERFACE& disc_io)
 			ynothrow -> bool{
 			// NOTE: %DEFAULT_SECTORS_PAGE is 8 in "common.h" in libfat source.
@@ -92,7 +69,7 @@ InitializeFileSystem() ynothrow
 		});
 
 		if(init("sd", ::__io_dsisd))
-			return DSFATRoot::SD;
+			return RootKind::SD;
 		// NOTE: As %::dldiGetInternal.
 		if((::_io_dldi_stub.ioInterface.features
 			& (FEATURE_SLOT_GBA | FEATURE_SLOT_NDS)) != 0)
@@ -100,27 +77,23 @@ InitializeFileSystem() ynothrow
 			//	to the volatile lvalue.
 			REG_EXMEMCNT &= ~ARM7_OWNS_CARD;
 		if(init("fat", ::_io_dldi_stub.ioInterface))
-			return DSFATRoot::FAT;
-		return DSFATRoot::Null;
-	}(16));
-
-	if(res != DSFATRoot::Null)
-	{
-		init_dev = res == DSFATRoot::FAT ? "fat" : "sd";
-		// NOTE: No %ARGV_MAGIC here as libnds does.
-		::chdir(res == DSFATRoot::FAT ? "fat:/" : "sd:/");
-		return true;
-	}
-	return {};
+			return RootKind::FAT;
+		return RootKind::Null;
+	}()), init_dev([this]{
+		if(root != RootKind::Null)
+			return root == RootKind::FAT ? "fat" : "sd";
+		// TODO: More descriptive message with underlying reason?
+		throw std::runtime_error("Failed initializing file system.");
+	}())
+{
+	// NOTE: No %ARGV_MAGIC here as libnds does.
+	::chdir(root == RootKind::FAT ? "fat:/" : "sd:/");
 }
 
-bool
-UninitializeFileSystem() ynothrow
+FileSystem::~FileSystem()
 {
-	const bool res(init_dev ? FAT::Unmount(init_dev) : false);
-
-	init_dev = {};
-	return res;
+	if(!YB_UNLIKELY(FAT::Unmount(init_dev)))
+		YCL_TraceRaw(Err, "Failed uninitializing file system.");
 }
 
 } // namespace platform_ex;

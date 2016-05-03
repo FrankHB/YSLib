@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r233
+\version r239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2015-09-07 23:06 +0800
+	2016-04-30 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,8 +114,6 @@ private:
 	std::atomic<bool> paused{{}};
 	//! \note Devices::AndroidScreen 是不完整类型，因此不能在类定义内初始化。
 	unique_ptr<Devices::AndroidScreen> p_screen;
-	//! \note Desktop 是不完整类型，因此不能在类定义内初始化。
-	unique_ptr<Desktop> p_desktop;
 
 public:
 	NativeHost(::ANativeActivity&, void*, size_t);
@@ -125,7 +123,9 @@ public:
 	DefPred(const ynothrow, Paused, paused)
 	//! \since build 503
 	DefGetter(const ynothrow, ::ANativeActivity&, ActivityRef, activity.get())
-	DefGetter(const ynothrow, Desktop&, DesktopRef, Deref(p_desktop))
+	//! \since build 690
+	Devices::Screen&
+	GetHostScreenRef() const ynothrow;
 	DefGetter(const ynothrow, Devices::AndroidScreen&, ScreenRef,
 		Deref(p_screen))
 

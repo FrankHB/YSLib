@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2635
+\version r2836
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-04-24 21:20 +0800
+	2016-05-03 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,20 +32,16 @@
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
 #include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
 #include YFM_NPL_Configuration // for NPL::Configuration;
-#include YFM_Helper_GUIApplication // for FetchEnvironment;
 #include YFM_Helper_Environment // for Environment::AddExitGuard;
 #include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
 #include <cerrno> // for errno;
-#include YFM_YSLib_Core_YCoreUtilities // for FetchEnvironmentVariable;
-#include YFM_YCLib_Debug // for platform_ex::SendDebugString;
 #include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
+#include YFM_Helper_GUIApplication // for FetchEnvironment;
 //#include <clocale>
-#if YCL_DS
-#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
-#elif YCL_Android
+#if YCL_Android
 #	include <unistd.h> // for F_OK;
 #elif YCL_Win32
-#	include YFM_Win32_YCLib_NLS
+#	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset;
 #endif
 #include YFM_NPL_SContext
 
@@ -60,13 +56,13 @@ namespace YSLib
 using namespace Drawing;
 using namespace IO;
 
+#if YCL_DS
+bool ShowInitializedLog(true);
+#endif
+
 namespace
 {
 
-#if YCL_DS
-//! \since build 608
-bool at_init(true);
-#endif
 //! \since build 551
 unique_ptr<ValueNode> p_root;
 //! \since build 450
@@ -174,16 +170,6 @@ LoadMappedModule(const string& path)
 	YAssert(false, "Unreachable control found.");
 }
 
-//! \since build 591
-void
-Extract(const std::exception& e, string& res) ynothrow
-{
-	ExtractException(
-		[&](const string& str, RecordLevel, size_t level){
-		res += string(level, ' ') + "ERROR: " + str + '\n';
-	}, e);
-}
-
 #if YCL_Win32
 //! \since build 641
 char16_t(*cp113_lkp_backup)(byte, byte);
@@ -206,6 +192,95 @@ LoadCP936_NLS()
 }
 //@}
 #endif
+
+YB_NONNULL(1, 2) bool
+CreateDefaultNPLA1File(const char* disp, const char* path,
+	ValueNode(*creator)(), bool show_info)
+{
+	YAssertNonnull(disp),
+	YAssertNonnull(path);
+	if(show_info)
+		YTraceDe(Notice, "Creating %s '%s'...\n", disp, path);
+	if(creator)
+	{
+		YTraceDe(Debug, "Creator found.");
+		if(ofstream ofs{path, std::ios_base::out | std::ios_base::trunc})
+			ystdex::write_literal(ofs, Text::BOM_UTF_8)
+				<< NPL::Configuration(creator());
+		else
+			throw GeneralEvent(ystdex::sfmt("Cannot create file,"
+				" error = %d: %s.", errno, std::strerror(errno)));
+		YTraceDe(Debug, "Created configuration.");
+		return {};
+	}
+	return true;
+}
+
+} // unnamed namespace;
+
+void
+ExtractInitException(const std::exception& e, string& res) ynothrow
+{
+	ExtractException(
+		[&](const string& str, RecordLevel, size_t level){
+		res += string(level, ' ') + "ERROR: " + str + '\n';
+	}, e);
+}
+
+void
+HandleFatalError(const FatalError& e) ynothrow
+{
+#if YCL_DS
+	ShowInitializedLog = {};
+	YTraceDe(Emergent, "%s\n\n%s", e.GetTitle(), e.GetContent().data());
+#else
+#	if YCL_Win32
+	using platform_ex::MBCSToWCS;
+
+	FilterExceptions([&]{
+		::MessageBoxW({}, MBCSToWCS(e.GetContent()).c_str(),
+			MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR);
+	});
+#	endif
+	YTraceDe(Emergent, "%s\n%s", e.GetTitle(), e.GetContent().data());
+#endif
+	terminate();
+}
+
+
+ValueNode
+LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
+	bool show_info)
+{
+	if(!ufexists(path))
+	{
+		YTraceDe(Debug, "Path '%s' access failed.", path);
+		if(CreateDefaultNPLA1File(disp, path, creator, show_info))
+			return {};
+	}
+	if(show_info)
+		YTraceDe(Notice, "Found %s '%s'.\n", Nonnull(disp), path);
+	if(ifstream ifs{path})
+	{
+		array<char, 3> buf;
+
+		YTraceDe(Debug, "Found accessible configuration file.");
+		ifs.read(buf.data(), 3);
+		if(Text::CheckBOM(buf.data(), Text::BOM_UTF_8))
+		{
+			NPL::Configuration conf;
+
+			ifs >> conf;
+			YTraceDe(Debug, "Plain configuration loaded.");
+			if(!conf.GetNodeRRef().empty())
+				return conf.GetNodeRRef();
+			YTraceDe(Warning, "Empty configuration found.");
+		}
+		else
+			throw GeneralEvent("Wrong encoding of configuration file.");
+	}
+	throw GeneralEvent("Invalid file found when reading configuration.");
+}
 
 void
 LoadComponents(Environment& env, const ValueNode& node)
@@ -275,90 +350,6 @@ LoadComponents(Environment& env, const ValueNode& node)
 		throw GeneralEvent("Invalid default font file path found.");
 }
 
-YB_NONNULL(1, 2) bool
-CreateDefaultNPLA1File(const char* disp, const char* path,
-	ValueNode(*creator)(), bool show_info)
-{
-	YAssertNonnull(disp),
-	YAssertNonnull(path);
-	if(show_info)
-		YTraceDe(Notice, "Creating %s '%s'...\n", disp, path);
-	if(creator)
-	{
-		YTraceDe(Debug, "Creator found.");
-		if(ofstream ofs{path, std::ios_base::out | std::ios_base::trunc})
-			ystdex::write_literal(ofs, Text::BOM_UTF_8)
-				<< NPL::Configuration(creator());
-		else
-			throw GeneralEvent(ystdex::sfmt("Cannot create file,"
-				" error = %d: %s.", errno, std::strerror(errno)));
-		YTraceDe(Debug, "Created configuration.");
-		return {};
-	}
-	return true;
-}
-
-} // unnamed namespace;
-
-void
-HandleFatalError(const FatalError& e) ynothrow
-{
-#if YCL_DS
-	at_init = {};
-
-	const char* line("--------------------------------");
-
-	YTraceDe(Emergent, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
-		e.GetContent().data(), line);
-#else
-#	if YCL_Win32
-	using platform_ex::MBCSToWCS;
-
-	FilterExceptions([&]{
-		::MessageBoxW({}, MBCSToWCS(e.GetContent()).c_str(),
-			MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR);
-	});
-#	endif
-	YTraceDe(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent().data());
-#endif
-	terminate();
-}
-
-
-ValueNode
-LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
-	bool show_info)
-{
-	if(!ufexists(path))
-	{
-		YTraceDe(Debug, "Path '%s' access failed.", path);
-		if(CreateDefaultNPLA1File(disp, path, creator, show_info))
-			return {};
-	}
-	if(show_info)
-		YTraceDe(Notice, "Found %s '%s'.\n", Nonnull(disp), path);
-	if(ifstream ifs{path})
-	{
-		array<char, 3> buf;
-
-		YTraceDe(Debug, "Found accessible configuration file.");
-		ifs.read(buf.data(), 3);
-		if(Text::CheckBOM(buf.data(), Text::BOM_UTF_8))
-		{
-			NPL::Configuration conf;
-
-			ifs >> conf;
-			YTraceDe(Debug, "Plain configuration loaded.");
-			if(!conf.GetNodeRRef().empty())
-				return conf.GetNodeRRef();
-			YTraceDe(Warning, "Empty configuration found.");
-		}
-		else
-			throw GeneralEvent("Wrong encoding of configuration file.");
-	}
-	throw GeneralEvent("Invalid file found when reading configuration.");
-}
-
 ValueNode
 LoadConfiguration(bool show_info)
 {
@@ -383,96 +374,6 @@ SaveConfiguration(const ValueNode& node)
 	YTraceDe(Debug, "Writing configuration done.");
 }
 
-
-void
-InitializeEnvironment(Environment& env)
-{
-	std::set_terminate(terminate);
-#if YCL_DS
-	::powerOn(POWER_ALL);
-	::defaultExceptionHandler();
-	platform_ex::DSConsoleInit(true, ColorSpace::Lime);
-	FetchCommonLogger().SetSender([&](Logger::Level lv, Logger&,
-		const char* str) YB_NONNULL(4) ynothrowv{
-		if(at_init || lv <= Descriptions::Alert)
-		{
-			if(!at_init)
-			{
-				static struct Init
-				{
-					Init()
-					{
-						platform_ex::DSConsoleInit({}, ColorSpace::White,
-							ColorSpace::Blue);
-					}
-				} init;
-			}
-			std::fprintf(stderr, "%s\n", Nonnull(str));
-			std::fflush(stderr);
-		}
-	});
-	if(!platform_ex::InitializeFileSystem())
-		throw FatalError("         LibFAT Failure         ",
-			" An error is preventing the\n"
-			" program from accessing\n"
-			" external files.\n"
-			"\n"
-			" If you're using an emulator,\n"
-			" make sure it supports DLDI\n"
-			" and that it's activated.\n"
-			"\n"
-			" In case you're seeing this\n"
-			" screen on a real DS, make sure\n"
-			" you've applied the correct\n"
-			" DLDI patch (most modern\n"
-			" flashcards do this\n"
-			" automatically).\n"
-			"\n"
-			" Note: Some cards only\n"
-			" autopatch .nds files stored in\n"
-			" the root folder of the card.\n");
-	// XXX: Error ignored.
-	env.AddExitGuard(platform_ex::UninitializeFileSystem);
-#elif YCL_Win32
-	string env_str;
-
-	// TODO: Extract as %YCoreUtilities functions?
-	if(FetchEnvironmentVariable(env_str, "YF_DEBUG_OUTPUT"))
-		FilterExceptions([&]{
-			if(env_str == "1")
-				FetchCommonLogger().SetSender(
-					platform_ex::SendDebugString);
-		});
-#endif
-#if 0
-	// TODO: Review locale APIs compatibility.
-	static yconstexpr const char locale_str[]{"zh_CN.GBK"};
-
-	if(!std::setlocale(LC_ALL, locale_str))
-		throw GeneralEvent("Call of std::setlocale() with %s failed.\n",
-			locale_str);
-#endif
-	// NOTE: Ensure root node is initialized before environment begin.
-	string res;
-
-	YTraceDe(Notice, "Checking installation...");
-	try
-	{
-		auto& node(env.Root);
-
-		node = LoadConfiguration(true);
-		if(node.GetName() == "YFramework")
-			node = PackNodes(string(), std::move(node));
-		LoadComponents(env, AccessNode(node, "YFramework"));
-		YTraceDe(Notice, "OK!");
-		return;
-	}
-	CatchExpr(std::exception& e, Extract(e, res))
-	CatchExpr(..., res += "Unknown exception @ InitializeInstalled.\n")
-	throw FatalError("      Invalid Installation      ",
-		" Please make sure the data is\n"
-		" stored in correct directory.\n" + res);
-}
 
 void
 InitializeSystemFontCache(FontCache& fc, const string& font_file,
@@ -517,7 +418,7 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 			throw GeneralEvent("Setting default font face failed.");
 		return;
 	}
-	CatchExpr(std::exception& e, Extract(e, res))
+	CatchExpr(std::exception& e, ExtractInitException(e, res))
 	CatchExpr(..., res += "Unknown exception @ InitializeSystemFontCache.\n")
 	throw FatalError("      Font Caching Failure      ",
 		" Please make sure the fonts are\n"
@@ -553,7 +454,7 @@ FetchDefaultFontCache()
 	}
 #if YCL_DS
 	// XXX: Actually this should be set after %InitVideo call.
-	at_init = {};
+	ShowInitializedLog = {};
 #endif
 	return *p_font_cache;
 }

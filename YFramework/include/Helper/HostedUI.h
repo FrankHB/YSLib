@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r463
+\version r472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2016-02-09 19:09 +0800
+	2016-05-02 13:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,6 +153,10 @@ ShowTopLevelDraggable(UI::Widget&);
 \note 第一参数指定悬停时引起动作的部件。
 \note 第二参数指定显示为顶级窗口的部件。
 \since build 567
+
+使用空窗口守护创建窗口。
+不需要设置窗口销毁的回调操作复位默认渲染器来保证销毁其它顶层窗口退出程序时，
+同时使顶层部件宿主线程终止。
 */
 //@{
 #	if YCL_Win32
@@ -215,16 +219,13 @@ BindTimedTips(UI::TimedHoverState&, UI::IWidget&, UI::Widget&);
 \todo 非 Win32 宿主平台实现。
 
 关联菜单宿主和菜单部件并设置菜单为具有适合显式为菜单的样式的宿主顶级窗口。
+使用空窗口守护创建窗口，同 ActOnHover_ShowTopLevel 。
 */
 YF_API void
 PrepareTopLevelPopupMenu(UI::Menu&, UI::Panel&);
 
 /*!
 \note 前两个参数分别指定顶层窗口对应的部件和在宿主桌面触发显示新顶层窗口的部件。
-\note 在其它操作成功后，设置 <tt>FetchEnvironment().Exit 设置回调操作，
-	用于复位默认渲染器以保证销毁其它顶层窗口退出程序时同时使顶层部件宿主线程终止。
-\sa AttachToHost
-\sa Environment::Desktop
 \since build 591
 */
 //@{
@@ -243,6 +244,7 @@ SetupTopLevelTimedTips(UI::IWidget&, UI::TimedHoverState&,
 
 /*!
 \brief 设置根模式的宿主顶级窗口中的部件的上下文菜单。
+\sa GUIHost::Desktop
 \sa PrepareTopLevelPopupMenu
 \sa UI::BindTopLevelPopupMenu
 

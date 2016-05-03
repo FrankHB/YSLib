@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r575
+\version r577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2016-04-27 23:30 +0800
+	2016-04-30 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,6 @@
 #if YCL_Win32
 #	include YFM_YSLib_UI_YControl // for UI::CallEvent;
 #elif YCL_Android
-#	include YFM_Android_Helper_AndroidHost // for Android::NativeHost;
 #	include YFM_YSLib_UI_YDesktop // for Desktop converting to IWidget;
 #endif
 
@@ -179,7 +178,7 @@ InputManager::Update()
 		cursor_state = platform_ex::FetchCursor();
 #endif
 #if YCL_Android
-	return make_observer(&Android::FetchNativeHostInstance().GetDesktopRef());
+	return make_observer(&host.get().Desktop);
 #else
 	return {};
 #endif
