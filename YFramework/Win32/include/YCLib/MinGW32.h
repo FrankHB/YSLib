@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1583
+\version r1594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-03-10 14:52 +0800
+	2016-05-09 13:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ inline PDefH(int, GetErrnoFromWin32, ) ynothrow
 
 
 /*!
-\ingroup exception_types
+\ingroup exceptions
 \brief Win32 错误引起的宿主异常。
 \since build 426
 */
@@ -147,6 +147,14 @@ public:
 //@}
 
 /*!
+\brief 跟踪 ::GetLastError 取得的调用状态结果。
+\since build 691
+*/
+#	define YCL_Trace_Win32Error(_lv, _fn, _msg) \
+	YTraceDe(_lv, "Error %lu: failed calling " #_fn " @ %s.", \
+		::GetLastError(), _msg)
+
+/*!
 \brief 调用 Win32 API 或其它可用 ::GetLastError 取得调用状态的例程。
 \note 调用时直接使用实际参数，可指定非标识符的表达式，不保证是全局名称。
 */
@@ -174,6 +182,7 @@ public:
 /*!
 \note 若失败跟踪 ::GetLastError 的结果。
 \note 格式转换说明符置于最前以避免宏参数影响结果。
+\sa YCL_Trace_Win32Error
 \since build 651
 */
 //@{
@@ -182,8 +191,7 @@ public:
 		const auto res(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res)) \
-			YTraceDe(Warning, "Error %lu: failed calling " #_fn " @ %s.", \
-				::GetLastError(), msg); \
+			YCL_Trace_Win32Error(platform::Descriptions::Warning, _fn, msg); \
 		return res; \
 	}
 

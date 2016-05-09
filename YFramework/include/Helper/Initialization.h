@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r813
+\version r819
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-02 00:06 +0800
+	2016-05-05 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,11 +53,13 @@ YF_API void
 ExtractInitException(const std::exception&, string&) ynothrow;
 
 /*!
-\brief 处理致命错误：显示错误信息并终止程序。
-\since build 342
+\brief 处理最外层边界的异常，若捕获致命错误则在之后终止程序。
+\note 可作为 FilterException 的参数，用于统一处理抛出到主函数的异常。
+\sa FilterException
+\since build 691
 */
-YF_API YB_NORETURN void
-HandleFatalError(const FatalError&) ynothrow;
+YF_API void
+TraceForOutermost(const std::exception&, RecordLevel) ynothrow;
 
 
 /*!

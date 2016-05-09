@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r662
+\version r663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2016-02-04 14:13 +0800
+	2016-05-09 13:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ inline PDefH(bool, CheckChildName, string_view sv)
 
 
 /*!
-\ingroup exception_types
+\ingroup exceptions
 \brief 找不到部件。
 \since build 495
 */
@@ -255,7 +255,7 @@ public:
 	*/
 	ValueNode
 	LoadUILayout(string_view);
-	
+
 	/*!
 	\brief 变换 UI 布局树：根据 NPLA1 中间表示动态创建部件树。
 	\exception std::out_of_range 异常中立：找不到 $type 节点。

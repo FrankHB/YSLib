@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3001
+\version r3006
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2016-04-26 19:49 +0800
+	2016-05-09 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -993,13 +993,6 @@ unsequenced(_type&& arg, _tParams&&...) ynothrow -> decltype(yforward(arg))
 \since build 266
 */
 #define yunseq ystdex::unsequenced
-
-
-/*!	\defgroup exception_types Types for Exceptions
-\ingroup YSLib
-\brief 专用于异常的类型。
-\since build 444
-*/
 
 } // namespace ystdex;
 

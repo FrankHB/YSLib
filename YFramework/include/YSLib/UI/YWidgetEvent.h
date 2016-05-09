@@ -11,13 +11,13 @@
 /*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1756
+\version r1762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2016-02-12 22:00 +0800
+	2016-05-09 13:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,8 @@ public:
 	\brief 虚析构：类定义外默认实现。
 	\since build 423
 	*/
-	virtual ~UIEventArgs();
+	virtual
+	~UIEventArgs();
 
 	/*!
 	\brief 复制赋值：默认实现。
@@ -491,7 +492,7 @@ using VisualEventMap = EventMapping::MapType;
 
 
 /*!
-\ingroup exception_types
+\ingroup exceptions
 \brief 错误或不存在的部件事件异常。
 \since build 241
 */
@@ -512,7 +513,7 @@ public:
 
 
 /*!
-\ingroup exception_types
+\ingroup exceptions
 \brief 用户事件信号：表示携带用户事件的消息处理中断的异常。
 \since build 444
 */
@@ -525,7 +526,8 @@ public:
 
 	DefDeCopyCtor(UIEventSignal)
 	//! \brief 虚析构：类定义外默认实现。
-	virtual ~UIEventSignal();
+	virtual
+	~UIEventSignal();
 	//@}
 };
 

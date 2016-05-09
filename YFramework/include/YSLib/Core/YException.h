@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r602
+\version r607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2015-12-10 20:59 +0800
+	2016-05-09 13:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShellDefinition
-#include <exception>
-#include <stdexcept>
+#include <exception> // for mandated header;
+#include <stdexcept> // for mandated header;
 #include YFM_YSLib_Adaptor_YTextBase // for string_view;
 #include <string> // for std::string;
 #include <ystdex/functional.hpp> // for ystdex::result_of_t, ystdex::invoke;
@@ -39,7 +39,7 @@
 namespace YSLib
 {
 
-//! \ingroup exception_types
+//! \ingroup exceptions
 //@{
 //! \brief 一般运行时异常事件类。
 using GeneralEvent = std::runtime_error;
@@ -92,6 +92,7 @@ private:
 	/*!
 	\invariant \c content 。
 	\since build 646
+	\todo 使用引用计数实现的字符串。
 	*/
 	shared_ptr<string> content;
 

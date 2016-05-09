@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r706
+\version r767
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-02-25 12:24 +0800
+	2016-05-09 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -369,6 +369,82 @@ InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
 //@}
 
 } // namespace SXML;
+//@}
+
+
+//! \since build 691
+//@{
+//! \ingroup exceptions
+//@{
+//! \brief NPL 异常基类。
+class YF_API NPLException : public LoggedEvent
+{
+public:
+	YB_NONNULL(2)
+	NPLException(const char* str = "", YSLib::RecordLevel lv = YSLib::Err)
+		: LoggedEvent(str, lv)
+	{}
+	NPLException(const YSLib::string_view sv,
+		YSLib::RecordLevel lv = YSLib::Err)
+		: LoggedEvent(sv, lv)
+	{}
+	DefDeCtor(NPLException)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~NPLException() override;
+};
+
+
+//! \brief 语法错误。
+class YF_API InvalidSyntax : public NPLException
+{
+public:
+	using NPLException::NPLException;
+	DefDeCtor(InvalidSyntax)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~InvalidSyntax() override;
+};
+
+
+//! \brief 未声明标识符错误。
+class YF_API UndeclaredIdentifier : public NPLException
+{
+public:
+	using NPLException::NPLException;
+	DefDeCtor(UndeclaredIdentifier)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~UndeclaredIdentifier() override;
+};
+
+
+//! \brief 元数不匹配错误。
+class YF_API ArityMismatch : public NPLException
+{
+private:
+	size_t expected;
+	size_t received;
+
+public:
+	//! \note 参数表示期望和实际的元数。
+	ArityMismatch(size_t, size_t);
+	DefDeCtor(ArityMismatch)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~ArityMismatch() override;
+
+	DefGetter(const ynothrow, size_t, Expected, expected)
+	DefGetter(const ynothrow, size_t, Received, received)
+};
+//@}
+
+/*!
+\relates ArityMismatch
+\note 参数表示期望和实际的元数。
+*/
+YB_NORETURN YF_API void
+ThrowArityMismatch(size_t, size_t);
 //@}
 
 } // namespace NPL;

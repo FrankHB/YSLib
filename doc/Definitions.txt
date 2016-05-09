@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13940
+\version r13943
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2016-04-25 01:56 +0800
+	2016-05-05 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -239,7 +239,8 @@ $header MinGW32
 {
 YCL_Raise_Win32Exception(...)
 YCL_Raise_Win32Exception_On_Failure(_expr, ...)
-YCL_WrapCallWin32(_fn, ...)
+YCL_Trace_Win32Error(_fn, _msg)
+YCL_WrapCallWin32(_lv, _fn, ...)
 YCL_CallWin32(_fn, _msg, ...)
 YCL_CallWin32F(_fn, ...)
 YCL_WrapCallWin32_Trace(_fn, ...)
@@ -410,7 +411,7 @@ FetchAppInstance() ynothrow;
 $unit Helper::YGlobal
 {
 #if YCL_Android
-extern void
+extern int
 ::y_android_main();
 #endif
 } // $unit Helper::YGlobal;

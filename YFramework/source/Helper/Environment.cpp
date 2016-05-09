@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1854
+\version r1859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2016-05-03 10:29 +0800
+	2016-05-05 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,7 +134,8 @@ Environment::Environment()
 		if(Root.GetName() == "YFramework")
 			Root = PackNodes(string(), std::move(Root));
 		LoadComponents(*this, AccessNode(Root, "YFramework"));
-		YTraceDe(Notice, "OK!");
+		YTraceDe(Notice, "Check of installation succeeded.");
+		YCL_Trace(Debug, "Environment lifetime began.");
 		return;
 	}
 	CatchExpr(std::exception& e, ExtractInitException(e, res))
@@ -142,13 +143,12 @@ Environment::Environment()
 	throw FatalError("      Invalid Installation      ",
 		" Please make sure the data is\n"
 		" stored in correct directory.\n" + res);
-	YCL_Trace(Debug, "Base environment lifetime began.");
 }
 Environment::~Environment()
 {
-	YCL_Trace(Debug, "Base environment lifetime ended.");
+	YCL_Trace(Debug, "Environment lifetime ended.");
 	YTraceDe(Notice, "Uninitialization entered with %zu handler(s) to be"
-		" called.\n", app_exit.size());
+		" called.", app_exit.size());
 	// NOTE: This is needed because the standard containers (and adaptors)
 	//	guarantee nothing about destruction order of contained elements.
 	while(!app_exit.empty())

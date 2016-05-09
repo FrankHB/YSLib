@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r730
+\version r745
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-03-31 13:58 +0800
+	2016-05-09 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ MapNPLALeafNode(const TermNode& term)
 ValueNode
 TransformToSyntaxNode(const ValueNode& node, const string& name)
 {
-	ValueNode::Container con{AsNode(MakeIndex(0), node.GetName())};
+	ValueNode::Container con{AsIndexNode(size_t(), node.GetName())};
 	const auto nested_call([&](const ValueNode& nd){
 		con.emplace(TransformToSyntaxNode(nd, MakeIndex(con)));
 	});
@@ -318,6 +318,29 @@ MakeXMLDoc(const string& name, const string& ver, const string& enc,
 }
 
 } // namespace SXML;
+
+
+ImplDeDtor(NPLException)
+
+
+ImplDeDtor(InvalidSyntax)
+
+
+ImplDeDtor(UndeclaredIdentifier)
+
+
+ArityMismatch::ArityMismatch(size_t e, size_t r)
+	: NPLException(ystdex::sfmt("Arity mismatch: expected %zu, received %zu.",
+	e, r)),
+	expected(e), received(r)
+{}
+ImplDeDtor(ArityMismatch)
+
+void
+ThrowArityMismatch(size_t expected, size_t received)
+{
+	throw ArityMismatch(expected, received);
+}
 
 } // namespace NPL;
 

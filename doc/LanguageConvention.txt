@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1642
+\version r1649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2016-04-22 20:23 +0800
+	2016-05-04 13:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,7 @@ WG21 ： ISO/IEC JTC1/SC22/WG21 。
 预处理记号(preprocessing token) ：(2.4 [lex.pptoken])；
 记号(token) ：(2.6 [lex.token])；
 注释(comment) ：(2.7 [lex.comment])；
-头文件名(header name) ：(2.8 [lex.header])；
+头名(header name) ：(2.8 [lex.header])；
 标识符(identifier) ：(2.10 [lex.name])；
 关键字(keyword) ：(2.11 [lex.key])；
 操作符(operator) ：(2.11 [lex.operators])；
@@ -381,7 +381,7 @@ begin 和 end 被 range-based for 使用。
 在确定环境支持时，可使用 #warning 。
 
 @5.3.8 #include 指令：
-使用 <文件名> 或 <相对路径> 表示外部库依赖项（仅允许头文件）， "文件名" 或 "相对路径" 表示内部库依赖向（特殊情况下允许源文件，但需在文档中说明目的）。
+使用 <头名> 或 <相对路径> 表示外部库依赖项（仅允许头）， "文件名" 或 "相对路径" 表示内部库依赖向（特殊情况下允许源文件，但需在文档中说明目的）。
 关于搜索路径，另见 @5.1.3.1 。
 在非正式测试等临时用途以外的情况下不使用绝对路径。
 在翻译单元中一般应保持 #include 指令最前，除以下例外：
@@ -516,7 +516,7 @@ inline 对 ODR(@5.1.8) 发生影响。
 对模板实例，使用显式实例化和 extern 声明保证。
 必要时使用实现的扩展禁止内联。
 以下情形应考虑避免内联：
-典型实现的虚析构函数的符号位置可能影响虚表的位置（若所有虚函数定义在头文件，则在每个翻译单元生成虚表： Clang++ 警告 [-Wweak-vtables] ）。需要确保符号唯一时，至少一个虚函数（通常是虚析构函数）应仅在类中声明，而定义在确定的翻译单元中（通常非头文件），即使使用显式默认的析构函数。
+典型实现的虚析构函数的符号位置可能影响虚表的位置（若所有虚函数定义通过 #include 指令引入，则在每个翻译单元生成虚表： Clang++ 警告 [-Wweak-vtables] ）。需要确保符号唯一时，至少一个虚函数（通常是虚析构函数）应仅在类中声明，而定义在确定的翻译单元中（通常非头文件），即使使用显式默认的析构函数。
 作为公开接口的回调函数在库中应保留明确的定义以便确定唯一实体。对动态库，应避免实现自动导入或其它修饰。
 
 @5.5.6.3 链接：
@@ -1268,16 +1268,17 @@ ISO C11 7.1.3/1 指定的保留名称被 ISO C++11 覆盖。
 对其中依赖头的保留符号，除非对应的头未被包含，对应的名称禁止被声明或作为宏定义。
 对其它的保留符号，对应的名称禁止被声明或作为宏定义。
 
-@5.15.2 ISO C++11 直接指定的依赖项：
+@5.15.2 标准库头：
+注意标准库头受到 ISO C++ [using.headers] 的约束。
 本节“包含”的含义参见 ISO C++11 17.6.5.2/1 ，即被指示为包含的头中的标准库接口的声明和定义保证和包含此头等效。
 
-@5.15.2.1 由 Synopsis 节显式指定：
+@5.15.2.1 由 Synopsis 节显式指定的依赖项：
 <algorithm> 、 <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <random> 、 <regex> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <valarray> 、 <vector> 、 <utility> 包含 <initializer_list> ；
 <ios> 包含 <iosfwd> ；
 <bitset> 包含 <string> 和 <iosfwd> ；
 <iotream> 包含 <ios> 、 <streambuf> 、 <istream> 、 <ostream> 。
 
-@5.15.2.2 补充指定：
+@5.15.2.2 补充指定的依赖项：
 ISO C++11 24.6.5/1 指定，除 <iterator> 外，以下标准库头被包含时 24.6.5 的函数模板（即 std::begin 和 std::end ）也可用：
 <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <regex> 、 <set> 、 <string> 、 <unordered_map> 、 <unordered_set> 和 <vector> 。
 

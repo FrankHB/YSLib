@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2836
+\version r2853
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-03 10:07 +0800
+	2016-05-05 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,25 +228,27 @@ ExtractInitException(const std::exception& e, string& res) ynothrow
 }
 
 void
-HandleFatalError(const FatalError& e) ynothrow
+TraceForOutermost(const std::exception& e, RecordLevel lv) ynothrow
 {
 #if YCL_DS
 	ShowInitializedLog = {};
-	YTraceDe(Emergent, "%s\n\n%s", e.GetTitle(), e.GetContent().data());
-#else
-#	if YCL_Win32
-	using platform_ex::MBCSToWCS;
-
-	FilterExceptions([&]{
-		::MessageBoxW({}, MBCSToWCS(e.GetContent()).c_str(),
-			MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR);
-	});
-#	endif
-	YTraceDe(Emergent, "%s\n%s", e.GetTitle(), e.GetContent().data());
 #endif
-	terminate();
-}
+	if(const auto p = dynamic_cast<const YSLib::FatalError*>(&e))
+	{
+#if YCL_Win32
+		using platform_ex::MBCSToWCS;
 
+		FilterExceptions([&]{
+			::MessageBoxW({}, MBCSToWCS(p->GetContent()).c_str(),
+				MBCSToWCS(p->GetTitle()).data(), MB_ICONERROR);
+		});
+#endif
+		YTraceDe(Emergent, "%s\n\n%s", p->GetTitle(), p->GetContent().data());
+		terminate();
+	}
+	else
+		ExtractAndTrace(e, lv);
+}
 
 ValueNode
 LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),

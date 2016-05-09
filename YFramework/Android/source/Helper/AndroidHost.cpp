@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r441
+\version r442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2016-04-30 01:11 +0800
+	2016-05-05 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 			YTraceDe(Debug, "Starting native main thread...");
 			host.thrdMain = std::thread([&host, p_activity, p_window]{
 				host.p_screen.reset(new Devices::AndroidScreen(*p_window));
-				::y_android_main();
+				host.MainReturnValue = ::y_android_main();
 				YTraceDe(Debug, "Application main routine exited.");
 				::ANativeActivity_finish(p_activity);
 				host.RunOnUIThread([]{

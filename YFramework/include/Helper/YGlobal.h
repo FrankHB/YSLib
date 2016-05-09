@@ -11,13 +11,13 @@
 /*!	\file YGlobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1945
+\version r1947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2016-04-27 14:58 +0800
+	2016-05-05 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,9 +140,9 @@ using UI::Desktop;
 #if YCL_Android
 /*!
 \brief 用户提供定义的入口函数。
-\since build 498
+\since build 691
 */
-extern "C" void
+extern int
 y_android_main();
 #endif
 
