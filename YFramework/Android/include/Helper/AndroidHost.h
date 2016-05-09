@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r239
+\version r246
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2016-04-30 00:54 +0800
+	2016-05-05 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,14 @@ protected:
 	//! \brief 暂存状态。
 	vector<byte> vecSavedState{};
 	std::function<void(void*&, size_t&)> fSaveState{};
+
+public:
+	/*!
+	\brief 调用用户入口的返回值。
+	\sa ::y_android_main
+	\since build 691
+	*/
+	int MainReturnValue = EXIT_SUCCESS;
 
 private:
 	//! \since build 559

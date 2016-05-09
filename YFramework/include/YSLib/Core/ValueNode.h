@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2577
+\version r2588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-03-24 22:38 +0800
+	2016-05-08 02:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -849,6 +849,18 @@ inline PDefH(string, MakeIndex, const ValueNode::Container& con)
 inline PDefH(string, MakeIndex, const ValueNode& node)
 	ImplRet(MakeIndex(node.GetContainer()))
 //@}
+
+/*!
+\brief 传递作为索引名称的值和其它参数构造值类型节点。
+\note 使用 ADL AsNode 和 MakeIndex 。
+\since build 691
+*/
+template<typename _tParam, typename... _tParams>
+inline ValueNode
+AsIndexNode(_tParam&& arg, _tParams&&... args)
+{
+	return AsNode(MakeIndex(yforward(arg)), yforward(args)...);
+}
 
 
 /*!

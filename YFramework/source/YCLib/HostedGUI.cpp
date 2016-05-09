@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1758
+\version r1767
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-04-28 23:29 +0800
+	2016-05-04 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,14 +38,14 @@
 #	endif
 #	include YFM_YCLib_Input // for ClearKeyStates;
 #	include "YSLib/Service/YModules.h"
-#	include YFM_YSLib_Service_YBlit
+#	include YFM_YSLib_Service_YBlit // for ystdex::pvoid, YSLib::BlitLines;
 #	include <Shellapi.h> // for ::ShellExecuteW;
 #	include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #	include <android/native_window.h>
 #	include "YSLib/Service/YModules.h"
-#	include YFM_YSLib_Service_YBlit
+#	include YFM_YSLib_Service_YBlit // for YSLib::BlitLines;
 #endif
 #if YCL_HostedUI_XCB || YCL_Android
 #	include "YSLib/Service/YModules.h"
@@ -334,18 +334,23 @@ WindowReference::GetParent() const
 void
 WindowReference::SetText(const wchar_t* str)
 {
+	YTraceDe(Debug, "Setting text '%p' to window reference '%p'...",
+		ystdex::pvoid(str), ystdex::pvoid(this));
 	YCL_CallWin32F(SetWindowTextW, GetNativeHandle(), str);
 }
 
 void
 WindowReference::Close()
 {
+	YTraceDe(Debug, "Closing window reference '%p'...", ystdex::pvoid(this));
 	YCL_CallWin32F(SendNotifyMessageW, GetNativeHandle(), WM_CLOSE, 0, 0);
 }
 
 void
 WindowReference::Invalidate()
 {
+	YTraceDe(Debug, "Invalidating window reference '%p'...",
+		ystdex::pvoid(this));
 	YCL_CallWin32F(InvalidateRect, GetNativeHandle(), {}, {});
 }
 
@@ -784,8 +789,9 @@ HostWindow::HostWindow(NativeWindowHandle h)
 	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
 
 	YCL_CallWin32F(RegisterRawInputDevices, &rid, 1, sizeof(rid));
-	MessageMap[WM_DESTROY] += []{
+	MessageMap[WM_DESTROY] += []() ynothrow{
 		::PostQuitMessage(0);
+		YTraceDe(Debug, "Host quit message posted.");
 	};
 #	elif YCL_Android
 	::ANativeWindow_acquire(GetNativeHandle());

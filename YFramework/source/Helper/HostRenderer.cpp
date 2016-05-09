@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r690
+\version r702
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-04-27 14:58 +0800
+	2016-05-04 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,20 +168,21 @@ WindowThread::WindowLoop(Window& wnd)
 #	else
 	yunused(wnd);
 #		if YCL_Win32
-	while(true)
-	{
-		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}};
 
-		if(::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+	::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}};
+	int res;
+
+	while((res = ::GetMessageW(&msg, nullptr, 0, 0)) != 0)
+	{
+
+		// XXX: Error ignored.
+		if(res != -1)
 		{
-			if(msg.message == WM_QUIT)
-				break;
 			::TranslateMessage(&msg);
 			::DispatchMessageW(&msg);
 		}
 		else
-			// NOTE: Failure ignored.
-			::WaitMessage();
+			YCL_Trace_Win32Error(Warning, GetMessageW, yfsig);
 	}
 #		endif
 #	endif

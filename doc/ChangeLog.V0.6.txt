@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11122
+\version r11250
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-05-03 10:39 +0800
+	2016-05-09 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,128 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			/ "function %HandleFatalError" -> "%TraceForOutermost"
+				@ %Initialization
+			(
+				/ "simplified fatal error handling" $=
+				(
+					/ $impl "merged for different platforms";
+					/ $comp "split by one more newline after title"
+						@ !"platform %DS"
+				),
+				/ "stopped showing initialization log for non-fatal error \
+					handling" @ !"platform %DS"
+			),
+			/ "trace" ^ "clearer messages" @ "constructor, destructor"
+				@ ("class %Environment" @ %Environment,
+				"class %GUIHost" @ %GUIApplication),
+			/ @ "platform %Win32" @ "static function %WindowThread::WindowLoop"
+				@ %HostRenderer $=
+			(
+				/ DLDI "simplified" ^ "%::GetMessageW"
+					~ "%(::PeekMessageW, WaitMessage)";
+				* $comp "race condition after message insertion before \
+					%::WaitMessage call caused probable infinite wait" $orig
+					@ ("function %Environment::HostLoop" @ %DSMain $since b378)
+			),
+			/ @ "class %Environment" @ %Environment $=
+			(
+				- "redundant '\n'" @ "trace message" @ "destructor",
+				* "trace" @ "constructor %Environment unused" $since b690
+			),
+			/ ('extern "C" void y_android_main();' -> 'extern int \
+				y_android_main();') @ "platform %Android" @ %YGlobal
+		),
+		/ @ "platform %Win32" @ %YCLib.HostedGUI $=
+		(
+			+ "trace with level 'Debug' before Win32 API call" @ "member \
+				functions %WindowReference::(SetText, Close, Invalidate)",
+			/ @ "hosted message callback for %WM_DESTROY"
+				@ "constructor %HostWindow" $=
+			(
+				+ DLDI 'ynothrow',
+				+ "trace with level 'Debug' after posting quit message"
+			)
+		),
+		/ @ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ "macro %YCL_Trace_Win32Error",
+			/ @ "macro %YCL_WrapCallWin32_Trace" $=
+			(
+				/ DLDI "simplified" ^ $dep_from "%YCL_Trace_Win32Error",
+				* "missing qualified prefix" @ "trace level" $orig
+					(@ "macro %YCL_CallWin32_Trace" $since b464)
+			)
+		),
+		/ %'Helper_(Android)'.AndroidHost $=
+		(
+			+ 'int MainReturnValue = EXIT_SUCCESS;' @ "class %NativeHost",
+			/ "saved user entry call value to %MainReturnValue"
+				@ "thread handler" $dep_from "Android main return value"
+		),
+		/ %YSLib.Core $=
+		(
+			+ "function template %AsIndexNode" @ %ValueNode,
+			* $re_add(b687) DD "missing '!'" @ "end of '/*'"
+				@ "multiline Doxygen comments" @ %Core.YMessage $since b296
+		),
+		/ %NPL $=
+		(
+			/ DLDI ("simplified %TransformToSyntaxNode" @ %NPLA,
+				"%Reduce" @ %SContext) ^ $dep_from
+				("%AsIndexNode" @ %YSLib.Core.ValueNode),
+			+ "function %HasValue" @ %SContext,
+			/ %NPLA1 $=
+			(
+				+ "class %NPLException"
+				(
+				+ "class %ArityMismatch";
+				+ "function %ThrowArityMismatch"
+				),
+				+ "classes %(InvalidSyntax, UndeclaredIdentifier)"
+			)
+		)
+	),
+	/ %YReader $=
+	(
+		* $comp "probably froze for invalid %yconf.txt" @ "debug configurations"
+			@ "platform %Win32" $since b378 $dep_from
+			%YFramework.Helper.HostRenderer,
+			// However, it would be exited quickly if font caching failure \
+				raised.
+		/ @ "main function" @ %Main $=
+		(
+			(
+			/ DLDI "simplified" ^ $dep_from
+				("%TraceForOutermost" @ %YFramework.Helper.Initialization);
+			* $re_add(b661) $comp
+				"main error handling did not called %FatalError handling \
+				method and content message would be ignored"
+				@ !"platform %DS" $since b604
+			),
+			/ $forced @ "platform %Android" $dep_from
+				%YFramework.Helper.YGlobal $=
+			(
+				/ "simplified prototype",
+				/ "returned value" !^ "%yunused" $dep_to
+					"Android main return value"
+			)
+		)
+	),
+	(
+	/ $doc "merged Doxygen group %exception_types" -> "%exceptions"
+		$effective @ %YFramework.(YCLib.Host, YSLib.(Core.(YException,
+		YMessage), UI.(Loader, YWidgetEvent)), 'YCLib_(Win32)'.MinGW32);
+	- $revert(b444) $doc "Doxygen group %exception_types" @ %YBase.YDefinition
+	)
+),
+
+b690
 (
 	/ %YFramework $=
 	(
@@ -128,11 +250,11 @@ $now
 	+ 'ynothrow' @ "all member functions" @ "class %pseudo_output"
 		@ %YBase.YStandardEx.Ref,
 		// See also https://llvm.org/bugs/show_bug.cgi?id=15481.
-	* "line of calling %error beginned wrongly with HT" @ "environment \
-		variable check failed" @ "%(Toolchain.Android.mk, Toolchain.DS.mk)"
+	* "line of calling %error began wrongly with HT" @ "environment variable \
+		check failed" @ "%(Toolchain.Android.mk, Toolchain.DS.mk)"
 		@ %Tools $orig (@ "makefiles" @ "platform %DS"
 		@ "projects %(YBase, YFramework, YSTest)" $since b270)
-		// Lines beginned with horizontal tab is treated as command in makefile.
+		// Lines began with horizontal tab is treated as command in makefile.
 ),
 
 b689
@@ -285,7 +407,7 @@ b688
 		// Failed to build test.
 	/ %YFramework.Helper $=
 	(
-		/ @ "class %Enviornment" @ %Environment $=
+		/ @ "class %Environment" @ %Environment $=
 		(
 			+ "data member 'ValueNode Root;'",
 			(
@@ -3670,7 +3792,7 @@ b661
 		),
 		/ %Helper.Initialization $=
 		(
-			/ DLDI "simplified 21 instancces of initalization trace"
+			/ DLDI "simplified 21 instances of initalization trace"
 				^ "%YTraceDe" $effective @ "functions %(LoadComponents, \
 				CreateDefaultNPLA1File, HandleFatalError, LoadNPLA1File, \
 				LoadConfiguration, InitializeInstalled, \
@@ -3680,7 +3802,7 @@ b661
 		),
 		- "function %InitConsole" @ %'Helper_(DS)'.DSMain
 	),
-	/ @ "function %::main" @ %Main $=
+	/ @ "function %::main" @ %YReader.Main $=
 	(
 		* "fatal error handling" @ "platform %DS" $since b604,
 		/ $re_add(b633) $design "exception decription" -> '::main' ~ 'main'
@@ -9942,7 +10064,7 @@ b604
 	/ @ "main function" @ %Main $=
 	(
 		(
-		/ "simplified exception handling" ^ "%FilterException";
+		/ "simplified exception handling" ^ "%FilterException" ~ "%HandleFatalError";
 		/ $comp "reserved original error level in %LoggedEvent objects instead \
 			OF 0"
 		),
