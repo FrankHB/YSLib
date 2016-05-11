@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11250
+\version r11351
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-05-09 14:46 +0800
+	2016-05-11 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,108 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL.NPLA $=
+		(
+			+ "class %ListReductionFailure",
+			/ "rethrew %NPLException on catching at first"
+				@ "member function %FormContextHandler::operator()" @ %NPLA1
+		),
+		/ @ "namespace %Concurrency" @ %YCLib.Mutex $dep_from
+			%YBase.YStandardEx.PseudoMutex $=
+		(
+			+ 'using YCL_Mutex_Namespace::once_flag;',
+			+ 'using YCL_Mutex_Namespace::call_once;'
+		),
+		/ DLI "initialization of host and environment before application \
+			internal instance pointer initialization" @ "class GUIApplication"
+			@ %Helper.GUIApplication
+			^ ("%ystdex::call_once_init", "%once_flag" $dep_from %YCLib.Mutex)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "struct %once_flag" @ "namespace %single_thread" @ %PseudoMutex,
+		/ "function template %call_once for 'bool'" -> ("function template for \
+			%once_flag" @ "namespace %single_thread" @ %PseudoMutex) $dep_from
+			%PseudoMutex,
+		/ @ "class template %state_guard" %ScopeGuard $=
+		(
+			/ DLDI "simplified" ^ "%noncopyable",
+			- "data member %data" @ "all specializations",
+				// It is dangerous to leave different types as union members.
+			/ ("mutable data member %enabled" -> "function %engaged")
+				@ "non %void condition type specialization",
+			(
+			/ DLDI "simplified" ^ $dep_from
+				("%ystdex::(construct_in, destroy_in)" @ %Memory);
+			* $comp "missing '::' before placement 'new' expression for \
+				construction" $since b525 $orig (@ %Utilities)
+			)
+		),
+		/ %Any $=
+		(
+			+ DLDI 'muatble' @ "any storage" @ "class %any" $dep_to
+				"mutable any storage";
+			/ "all 'const any_stroage&' parameter type" @ "manager"
+				-> 'any_storage&' $effective @ ("alias %any_manager",
+				"all static functions %manage" @ "class templates \
+				%(value_handler, ref_handler)", "static functions \
+				%(get_reference, get_pointer)" @ "class template %ref_handler",
+				"static functions %(get_holder_pointer, get_pointer)"
+				@ "class template %holder_handler" @ "namespace %any_ops");
+			/ $forced "split for const qualifier" @ "functions %(get_pointer, \
+				get_reference)" @ "class template %value_handler",
+			/ $forced DLDI ("function %call" !^ "%get_reference")
+				@ "class %any",
+			/ $forced "merged all 2 functions %get_reference"
+				// Otherwise client code (e.g. %YObject) may be ill-formed.
+		),
+		/ $forced "'const any_storage&' parameter type" @ "all static \
+			functions %manager" @ "class templates %(iterator_handler, \
+			input_iterator_handler, bidirectional_iterator_handler)"
+			-> 'any_storage&' $dep_from %Any,
+		/ @ "class template union %pod_storage"
+			-> "non-union class template %standard_layout_storage" @ %TypePun $=
+		(
+			/ $forced "constructors",
+				// For non-trivial underlying type, the defaulted constructors \
+					would be deleted if the class-key is still 'union'.
+			+ 'ynothrow' @ "all member (functions, function templates) %access",
+			(
+			/ DLDI "functions %access" ^ "%object" ~ "%data";
+			/ $revert(b595) "split merged members" $dep_from
+				"mutable any storage" $=
+			(
+				// To make the check of const correctness useful, 'mutable' \
+					should better be put at client code only when necessary.
+				/ "split (function, function template) %access as const \
+					qualified and unqualified versions";
+				- 'mutable' @ "data member %object"
+			),
+			/ "data member %data" -> "2 functions %data"
+				// Like %state_guard.
+			),
+			/ $dev "loose static assertion" ^ "%is_standard_layout" ~ "%is_pod"
+		),
+		/ %Memory $=
+		(
+			(
+			+ "function template %construct_in";
+			/ DLDI "simplified %construct" ^ "%construct_in"
+			),
+			(
+			+ "function template %destroy_in";
+			/ DLDI "simplified %destroy" ^ "%destroy_in"
+			)
+		),
+		/ DLDI "simplified %optional" ^ $dep_from
+			("%ystdex::construct_in, destroy_in" @ %Memory)
+	)
+),
+
+b691
 (
 	/ %YFramework $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2682
+\version r2746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-04-26 08:58 +0800
+	2016-05-11 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,9 +34,9 @@
 #include "typeinfo.h" // for "typeinfo.h", cloneable, type_id_info,
 //	ystdex::type_id, std::bad_cast;
 #include <memory> // for std::addressof, std::unique_ptr;
-#include "utility.hpp" // "utility.hpp", for boxed_value, pod_storage,
-//	aligned_storage_t, is_aligned_storable, exclude_self_t, enable_if_t,
-//	decay_t, yconstraint;
+#include "utility.hpp" // "utility.hpp", for boxed_value,
+//	standard_layout_storage, aligned_storage_t, is_aligned_storable,
+//	exclude_self_t, enable_if_t, decay_t, yconstraint;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 
 namespace ystdex
@@ -261,9 +261,9 @@ enum base_op : op_code
 
 //! \since build 352
 using any_storage
-	= pod_storage<aligned_storage_t<sizeof(void*), sizeof(void*)>>;
+	= standard_layout_storage<aligned_storage_t<sizeof(void*), sizeof(void*)>>;
 //! \since build 352
-using any_manager = void(*)(any_storage&, const any_storage&, op_code);
+using any_manager = void(*)(any_storage&, any_storage&, op_code);
 
 /*!
 \brief 使用指定处理器初始化存储。
@@ -330,39 +330,63 @@ private:
 	//@}
 
 public:
-	//! \since build 352
+	//! \since build 692
+	//@{
 	static value_type*
+	get_pointer(any_storage& s)
+	{
+		return get_pointer_impl(local_storage(), s);
+	}
+	static const value_type*
 	get_pointer(const any_storage& s)
 	{
 		return get_pointer_impl(local_storage(), s);
 	}
 
 private:
-	//! \since build 595
 	static value_type*
-	get_pointer_impl(false_type, const any_storage& s)
+	get_pointer_impl(false_type, any_storage& s)
 	{
 		return s.access<value_type*>();
 	}
-	//! \since build 595
+	static const value_type*
+	get_pointer_impl(false_type, const any_storage& s)
+	{
+		return s.access<const value_type*>();
+	}
 	static value_type*
+	get_pointer_impl(true_type, any_storage& s)
+	{
+		return std::addressof(get_reference_impl(true_type(), s));
+	}
+	static const value_type*
 	get_pointer_impl(true_type, const any_storage& s)
 	{
 		return std::addressof(get_reference_impl(true_type(), s));
 	}
 
 public:
-	//! \since build 355
 	static value_type&
+	get_reference(any_storage& s)
+	{
+		return get_reference_impl(local_storage(), s);
+	}
+	static const value_type&
 	get_reference(const any_storage& s)
 	{
 		return get_reference_impl(local_storage(), s);
 	}
 
 private:
-	//! \since build 595
-	//@{
 	static value_type&
+	get_reference_impl(false_type, any_storage& s)
+	{
+		const auto p(get_pointer_impl(false_type(), s));
+
+		yassume(p);
+		return *p;
+	}
+	static const value_type&
 	get_reference_impl(false_type, const any_storage& s)
 	{
 		const auto p(get_pointer_impl(false_type(), s));
@@ -371,12 +395,20 @@ private:
 		return *p;
 	}
 	static value_type&
-	get_reference_impl(true_type, const any_storage& s)
+	get_reference_impl(true_type, any_storage& s)
 	{
 		return s.access<value_type>();
 	}
+	static const value_type&
+	get_reference_impl(true_type, const any_storage& s)
+	{
+		return s.access<const value_type>();
+	}
+	//@}
 
 public:
+	//! \since build 595
+	//@{
 	template<typename... _tParams>
 	static void
 	init(any_storage& d, _tParams&&... args)
@@ -400,9 +432,9 @@ private:
 	//@}
 
 public:
-	//! \since build 352
+	//! \since build 692
 	static void
-	manage(any_storage& d, const any_storage& s, op_code op)
+	manage(any_storage& d, any_storage& s, op_code op)
 	{
 		switch(op)
 		{
@@ -456,16 +488,16 @@ public:
 	using value_type = _type;
 	using base = value_handler<value_type*>;
 
-	//! \since build 355
+	//! \since build 692
 	static value_type*
-	get_pointer(const any_storage& s)
+	get_pointer(any_storage& s)
 	{
 		return base::get_reference(s);
 	}
 
-	//! \since build 355
+	//! \since build 692
 	static value_type&
-	get_reference(const any_storage& s)
+	get_reference(any_storage& s)
 	{
 		yassume(get_pointer(s));
 		return *get_pointer(s);
@@ -481,8 +513,9 @@ public:
 		base::init(d, std::addressof(x.get()));
 	}
 
+	//! \since build 692
 	static void
-	manage(any_storage& d, const any_storage& s, op_code op)
+	manage(any_storage& d, any_storage& s, op_code op)
 	{
 		switch(op)
 		{
@@ -515,13 +548,13 @@ public:
 
 	//! \since build 595
 	static _tHolder*
-	get_holder_pointer(const any_storage& s)
+	get_holder_pointer(any_storage& s)
 	{
 		return base::get_pointer(s);
 	}
 
 	static value_type*
-	get_pointer(const any_storage& s)
+	get_pointer(any_storage& s)
 	{
 		const auto p(get_holder_pointer(s));
 
@@ -553,8 +586,9 @@ public:
 	//! \since build 678
 	using base::init;
 
+	//! \since build 692
 	static void
-	manage(any_storage& d, const any_storage& s, op_code op)
+	manage(any_storage& d, any_storage& s, op_code op)
 	{
 		switch(op)
 		{
@@ -660,7 +694,8 @@ namespace details
 
 struct any_base
 {
-	any_ops::any_storage storage{};
+	//! \since build 692
+	mutable any_ops::any_storage storage{};
 	any_ops::any_manager manager{};
 
 	any_base() = default;
@@ -696,12 +731,8 @@ struct any_base
 	YB_API any_ops::holder*
 	get_holder() const;
 
+	//! \since build 692
 	any_ops::any_storage&
-	get_storage()
-	{
-		return storage;
-	}
-	const any_ops::any_storage&
 	get_storage() const
 	{
 		return storage;

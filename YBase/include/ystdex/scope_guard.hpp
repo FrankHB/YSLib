@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r392
+\version r416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-04-20 15:33 +0800
+	2016-05-11 11:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 
 #include "type_traits.hpp" // for is_constructible, is_reference,
 //	is_nothrow_swappable, std::swap, std::declval, is_nothrow_copyable;
-#include <memory> // for std::addressof;
+#include "base.h" // for noncopyable;
+#include "memory.hpp" // for ystdex::construct_in, ystdex::destroy_in;
 
 namespace ystdex
 {
@@ -158,7 +159,8 @@ struct state_guard_traits<_type, _tToken, true>
 
 
 template<typename _type, typename _tToken>
-struct state_guard_impl : private state_guard_traits<_type, _tToken>
+struct state_guard_impl
+	: private state_guard_traits<_type, _tToken>, private noncopyable
 {
 	using value_type = _type;
 	using token_type = _tToken;
@@ -167,13 +169,11 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 	union
 	{
 		value_type value;
-		byte data[sizeof(value_type)];
 	};
 
 	state_guard_impl(token_type t)
 		: token(t)
 	{}
-	state_guard_impl(const state_guard_impl&) = delete;
 	~state_guard_impl()
 	{}
 
@@ -184,7 +184,7 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 		ynoexcept(noexcept(value_type(yforward(args)...))
 		&& noexcept(std::declval<state_guard_impl&>().save()))
 	{
-		new(std::addressof(value)) value_type(yforward(args)...);
+		ystdex::construct_in(value, yforward(args)...);
 		save();
 	}
 
@@ -192,7 +192,7 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 	void
 	destroy() ynoexcept(is_nothrow_destructible<value_type>())
 	{
-		value.~value_type();
+		ystdex::destroy_in(value);
 	}
 
 	void
@@ -234,6 +234,9 @@ template<typename _type, typename _tCond = bool,
 	typename _tToken = std::function<void(bool, _type&)>>
 class state_guard : private details::state_guard_impl<_type, _tToken>
 {
+	static_assert(is_nothrow_copy_constructible<_tCond>(),
+		"Invalid condition type found.");
+
 private:
 	using base = details::state_guard_impl<_type, _tToken>;
 
@@ -244,9 +247,12 @@ public:
 
 	using base::token;
 	using base::value;
-	using base::data;
-	mutable condition_type enabled{};
 
+private:
+	//! \since build 692
+	condition_type enabled{};
+
+public:
 	//! \since build 586
 	//@{
 	template<typename... _tParams>
@@ -267,6 +273,7 @@ public:
 		if(enabled)
 			base::restore_and_destroy();
 	}
+	//@}
 
 	//! \since build 630
 	void
@@ -276,7 +283,13 @@ public:
 			base::destroy();
 		enabled = condition_type();
 	}
-	//@}
+
+	//! \since build 692
+	condition_type
+	engaged() const ynothrow
+	{
+		return engaged;
+	}
 };
 
 template<typename _type, typename _tToken>
@@ -293,7 +306,6 @@ public:
 
 	using base::token;
 	using base::value;
-	using base::data;
 
 	template<typename... _tParams>
 	state_guard(token_type t, _tParams&&... args) ynoexcept(

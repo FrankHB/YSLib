@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3060
+\version r3083
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-04-23 03:42 +0800
+	2016-05-10 13:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -196,28 +196,6 @@ using classify_value_t = cond_t<std::is_class<_type>, _type,
 
 
 /*!
-\brief 按标识调用函数，保证调用一次。
-\note 类似 std::call_once ，但不保证线程安全性。
-\note ISO C++11（至 N3691 ） 30.4 synopsis 处的声明存在错误。
-\bug 未实现支持成员指针。
-\see https://github.com/cplusplus/draft/issues/151 。
-\since build 327
-
-当标识为 true 时候无作用，否则调用函数。
-*/
-template<typename _fCallable, typename... _tParams>
-inline void
-call_once(bool& b, _fCallable&& f, _tParams&&... args)
-{
-	if(!b)
-	{
-		f(yforward(args)...);
-		b = true;
-	}
-}
-
-
-/*!
 \brief 类型参数化静态对象。
 \warning 不可重入。
 \warning 非线程安全。
@@ -370,11 +348,10 @@ public:
 \ingroup init_mgr
 \brief 使用 call_once 的静态初始化管理器。
 \tparam _tOnceFlag 初始化调用标识。
+\note 使用 ADL call_once 。
 \note 线程安全取决于 call_once 对 _tOnceFlag 的支持。
 	若对支持 \c \<mutex\> 的实现使用 std::once_flag ，
-	对应 std::call_once ，则是线程安全的；
-	若使用 bool ，对应 ystdex::call_once ，不保证线程安全。
-	其它类型可使用用户自行定义 call_once 。
+	对应 std::call_once ，则是线程安全的。
 \since build 328
 \todo 使用支持 lambda pack 展开的实现构造模板。
 \todo 支持分配器。

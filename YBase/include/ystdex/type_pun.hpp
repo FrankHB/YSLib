@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r321
+\version r376
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2016-04-23 03:53 +0800
+	2016-05-11 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -220,68 +220,83 @@ replace_cast(_tSrc&& v) ynothrow
 
 
 /*!
-\brief 任意 POD 类型存储。
-\note POD 的含义参考 ISO C++11 。
-\since build 351
+\brief 任意标准布局类型存储。
+\since build 692
 */
-template<typename _tPOD = aligned_storage_t<sizeof(void*)>>
-union pod_storage
+template<typename _tUnderlying = aligned_storage_t<sizeof(void*)>>
+struct standard_layout_storage
 {
-	static_assert(is_pod<_tPOD>(), "Non-POD underlying type found.");
+	static_assert(is_standard_layout<_tUnderlying>(),
+		"Invalid underlying type found.");
 
-	using underlying = _tPOD;
+	using underlying = _tUnderlying;
 
-	//! \since build 595
-	mutable underlying object;
-	//! \since build 595
-	mutable byte data[sizeof(underlying)];
+	underlying object;
 
-	//! \since build 352
-	//@{
-	pod_storage() = default;
-	//! \since build 503
-	pod_storage(const pod_storage&) = default;
+	standard_layout_storage() = default;
+	standard_layout_storage(const standard_layout_storage&) = default;
 	//! \since build 454
 	template<typename _type,
-		yimpl(typename = exclude_self_t<pod_storage, _type>)>
+		yimpl(typename = exclude_self_t<standard_layout_storage, _type>)>
 	inline
-	pod_storage(_type&& x)
+	standard_layout_storage(_type&& x)
 	{
 		new(access()) decay_t<_type>(yforward(x));
 	}
 
-	//! \since build 503
-	pod_storage&
-	operator=(const pod_storage&) = default;
+	standard_layout_storage&
+	operator=(const standard_layout_storage&) = default;
 	/*!
 	\note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
 	\since build 454
 	*/
 	template<typename _type,
-		yimpl(typename = exclude_self_t<pod_storage, _type>)>
-	inline pod_storage&
+		yimpl(typename = exclude_self_t<standard_layout_storage, _type>)>
+	inline standard_layout_storage&
 	operator=(_type&& x)
 	{
 		assign(yforward(x));
 		return *this;
 	}
-	//@}
 
-	//! \since build 595
-	yconstfn YB_PURE void*
-	access() const
+	yconstfn_relaxed YB_PURE void*
+	access() ynothrow
 	{
-		return &data[0];
+		return &object;
 	}
-	//! \since build 595
-	template<typename _type>
-	yconstfn YB_PURE _type&
-	access() const
+	yconstfn YB_PURE const void*
+	access() const ynothrow
 	{
-		static_assert(is_aligned_storable<pod_storage, _type>(),
+		return &object;
+	}
+	template<typename _type>
+	yconstfn_relaxed YB_PURE _type&
+	access() ynothrow
+	{
+		static_assert(is_aligned_storable<standard_layout_storage, _type>(),
 			"Invalid type found.");
 
 		return *static_cast<_type*>(access());
+	}
+	template<typename _type>
+	yconstfn YB_PURE const _type&
+	access() const ynothrow
+	{
+		static_assert(is_aligned_storable<standard_layout_storage, _type>(),
+			"Invalid type found.");
+
+		return *static_cast<const _type*>(access());
+	}
+
+	yconstfn_relaxed YB_PURE byte*
+	data() ynothrow
+	{
+		return static_cast<byte*>(access());
+	}
+	yconstfn YB_PURE const byte*
+	data() const ynothrow
+	{
+		return static_cast<const byte*>(access());
 	}
 
 	//! \since build 503

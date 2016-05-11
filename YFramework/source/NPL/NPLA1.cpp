@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1020
+\version r1021
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-04-20 13:23 +0800
+	2016-05-09 15:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,6 +138,7 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 			// TODO: Use more specific exceptions.
 			throw std::invalid_argument("Empty term found.");
 	}
+	CatchExpr(NPLException&, throw)
 	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(
 		ystdex::sfmt("Mismatched types ('%s', '%s') found.",
 		e.from(), e.to()), Warning))

@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1298
+\version r1304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-04-25 02:28 +0800
+	2016-05-11 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,8 +97,9 @@ public:
 
 	using base::init;
 
+	//! \since build 692
 	static void
-	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
+	manage(any_storage& d, any_storage& s, any_ops::op_code op)
 	{
 		switch(op)
 		{
@@ -129,8 +130,9 @@ public:
 
 	using base::init;
 
+	//! \since build 692
 	static void
-	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
+	manage(any_storage& d, any_storage& s, any_ops::op_code op)
 	{
 		switch(op)
 		{
@@ -177,8 +179,9 @@ public:
 
 	using base::init;
 
+	//! \since build 692
 	static void
-	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
+	manage(any_storage& d, any_storage& s, any_ops::op_code op)
 	{
 		switch(op)
 		{
