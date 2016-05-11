@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1684
+\version r1718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-03-19 19:51 +0800
+	2016-05-11 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,11 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "addressof.hpp" // for <memory>, and_, is_copy_constructible,
-//	is_class_type, cond_t, vdefer, detected_t, conditional,
-//	ystdex::constfn_addressof, indirect_element_t, remove_reference_t,
-//	detected_or_t, is_void, remove_pointer_t, is_pointer, enable_if_t,
-//	is_array, extent, remove_extent_t;
+#include "addressof.hpp" // for "addressof.hpp", <memory>, and_,
+//	is_copy_constructible, is_class_type, cond_t, vdefer, detected_t,
+//	conditional, ystdex::constfn_addressof, indirect_element_t,
+//	remove_reference_t, detected_or_t, is_void, remove_pointer_t,
+//	is_pointer, enable_if_t, is_array, extent, remove_extent_t;
 #include "type_op.hpp" // for is_class_type, is_nonconst_object;
 #include <iterator> // for std::iterator_traits;
 #include "cassert.h" // for yconstraint;
@@ -153,6 +153,20 @@ struct nested_allocator
 //@}
 
 
+/*!
+\brief 原地构造。
+\tparam _tParams 用于构造对象的参数包类型。
+\param args 用于构造对象的参数包。
+\since build 692
+*/
+template<typename _type, typename... _tParams>
+inline void
+construct_in(_type& obj, _tParams&&... args)
+{
+	::new(static_cast<void*>(static_cast<_type*>(
+		ystdex::constfn_addressof(obj)))) _type(yforward(args)...);
+}
+
 //! \since build 602
 //@{
 //! \tparam _tIter 迭代器类型。
@@ -168,7 +182,7 @@ struct nested_allocator
 \param i 迭代器。
 \note 显式转换为 void* 指针以实现标准库算法 uninitialized_* 实现类似的语义。
 \see libstdc++ 5 和 Microsoft VC++ 2013 标准库在命名空间 std 内对指针类型的实现：
-	_Contruct 模板。
+	_Construct 模板。
 */
 template<typename _tIter, typename... _tParams>
 void
@@ -177,8 +191,7 @@ construct(_tIter i, _tParams&&... args)
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
 	yconstraint(!is_undereferenceable(i));
-	::new(static_cast<void*>(static_cast<value_type*>(
-		ystdex::constfn_addressof(*i)))) value_type(yforward(args)...);
+	ystdex::construct_in<value_type>(*i, yforward(args)...);
 }
 
 /*!
@@ -195,6 +208,20 @@ construct_range(_tIter first, _tIter last, _tParams&&... args)
 //@}
 
 /*!
+\brief 原地销毁。
+\tparam _tParams 用于构造对象的参数包类型。
+\param args 用于构造对象的参数包。
+\since build 692
+*/
+template<typename _type>
+inline void
+destroy_in(_type& obj)
+{
+	obj.~_type();
+}
+
+
+/*!
 \brief 销毁迭代器指向的对象。
 \param i 迭代器。
 \pre 断言：<tt>!is_undereferenceable(i)</tt> 。
@@ -208,7 +235,7 @@ destroy(_tIter i)
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
 	yconstraint(!is_undereferenceable(i));
-	i->~value_type();
+	ystdex::destroy_in<value_type>(*i);
 }
 
 /*!

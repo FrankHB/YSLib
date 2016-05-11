@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r298
+\version r299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2016-04-26 19:27 +0800
+	2016-05-11 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ any_base::call(any_ops::any_storage& t, any_ops::op_code op) const
 {
 	yconstraint(manager);
 
-	manager(t, get_storage(), op);
+	manager(t, storage, op);
 	return t;
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Mutex.h
 \ingroup YCLib
 \brief 互斥量。
-\version r81
+\version r86
 \author FrankHB <frankhb1989@gmail.com>
 \since build 551
 \par 创建时间:
 	2014-11-04 05:17:14 +0800
 \par 修改时间:
-	2015-04-03 02:47 +0800
+	2016-05-10 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,6 +58,11 @@ using YCL_Mutex_Namespace::unique_lock;
 
 using YCL_Mutex_Namespace::lock;
 using YCL_Mutex_Namespace::try_lock;
+
+//! \since build 692
+using YCL_Mutex_Namespace::once_flag;
+//! \since build 692
+using YCL_Mutex_Namespace::call_once;
 
 } // namespace Concurrency;
 

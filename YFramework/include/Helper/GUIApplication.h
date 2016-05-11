@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r529
+\version r542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2016-04-30 00:55 +0800
+	2016-05-10 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,9 @@
 #include YFM_YCLib_HostedGUI
 #if YF_Multithread == 1
 #	include <atomic>
+#	include <mutex> // for std::once_flag;
 #endif
+#include <ystdex/utility.hpp> // for ystdex::call_once_init;
 #if YCL_Win32
 #	include YFM_YSLib_UI_YPanel
 #elif YCL_Android
@@ -200,16 +202,19 @@ public:
 class YF_API GUIApplication : public Application
 {
 private:
-	/*!
-	\brief 环境状态。
-	\since build 502
-	*/
-	unique_ptr<Environment> p_env;
-	/*!
-	\brief GUI 宿主状态。
-	\since build 689
-	*/
-	unique_ptr<GUIHost> p_host;
+	//! \since build 692
+	struct InitBlock final
+	{
+		//! \brief 环境状态。
+		unique_ptr<Environment> p_env;
+		//! \brief GUI 宿主状态。
+		mutable GUIHost host{};
+
+		InitBlock();
+	};
+
+	//! \since build 692
+	ystdex::call_once_init<InitBlock, once_flag> init;
 
 public:
 	/*!

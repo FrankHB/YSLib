@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r564
+\version r572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2016-05-04 10:24 +0800
+	2016-05-10 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,15 +223,17 @@ GUIHost::UpdateRenderWindows()
 #endif
 
 
+GUIApplication::InitBlock::InitBlock()
+	: p_env(new Environment())
+{}
+
 GUIApplication::GUIApplication()
-	: Application(), p_env(), p_host()
+	: Application(), init()
 {
 	lock_guard<recursive_mutex> lck(ApplicationMutex);
 
 	YAssert(!ApplicationPtr, "Duplicate instance found.");
 	ApplicationPtr = this;
-	p_env.reset(new Environment());
-	p_host.reset(new GUIHost());
 }
 
 GUIApplication::~GUIApplication()
@@ -244,12 +246,12 @@ GUIApplication::~GUIApplication()
 Environment&
 GUIApplication::GetEnvironmentRef() const ynothrow
 {
-	return Deref(p_env);
+	return Deref(init.get().p_env);
 }
 GUIHost&
 GUIApplication::GetGUIHostRef() const ynothrow
 {
-	return Deref(p_host);
+	return init.get().host;
 }
 
 bool
