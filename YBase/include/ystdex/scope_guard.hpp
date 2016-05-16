@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r416
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-05-11 11:47 +0800
+	2016-05-11 18:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include "type_traits.hpp" // for is_constructible, is_reference,
 //	is_nothrow_swappable, std::swap, std::declval, is_nothrow_copyable;
 #include "base.h" // for noncopyable;
-#include "memory.hpp" // for ystdex::construct_in, ystdex::destroy_in;
+#include "memory.hpp" // for ystdex::construct_in, ystdex::destruct_in;
 
 namespace ystdex
 {
@@ -192,7 +192,7 @@ struct state_guard_impl
 	void
 	destroy() ynoexcept(is_nothrow_destructible<value_type>())
 	{
-		ystdex::destroy_in(value);
+		ystdex::destruct_in(value);
 	}
 
 	void

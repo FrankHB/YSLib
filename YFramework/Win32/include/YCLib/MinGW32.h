@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1594
+\version r1609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-05-09 13:27 +0800
+	2016-05-15 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
-#include YFM_YCLib_NativeAPI
+#include YFM_YCLib_NativeAPI // for MAX_PATH;
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
@@ -871,6 +871,8 @@ YF_API ::FILETIME
 ConvertTime(std::chrono::nanoseconds);
 //@}
 
+//! \throw Win32Exception 调用失败。
+//@{
 /*!
 \brief 展开字符串中的环境变量。
 \pre 间接断言：参数非空。
@@ -879,13 +881,23 @@ ConvertTime(std::chrono::nanoseconds);
 YF_API YB_NONNULL(1) wstring
 ExpandEnvironmentStrings(const wchar_t*);
 
+//! \note 保证以一个分隔符结尾。
+//@{
 /*!
 \brief 取系统目录路径。
-\note 保证以一个分隔符结尾。
 \since build 593
 */
 YF_API wstring
-FetchSystemPath(size_t s = MAX_PATH);
+FetchSystemPath(size_t = MAX_PATH);
+
+/*!
+\brief 取系统目录路径。
+\since build 693
+*/
+YF_API wstring
+FetchWindowsPath(size_t = MAX_PATH);
+//@}
+//@}
 
 } // inline namespace Windows;
 

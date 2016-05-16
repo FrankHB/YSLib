@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11351
+\version r11441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-05-11 11:57 +0800
+	2016-05-16 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,97 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "function templates %(destroy_in, destroy, destroy_range)"
+			=> "%(descruct_in, destruct, destruct_range)" @ %Memory,
+		/ $forced DLDI @ %(ScopeGuard, Optional) $dep_from %Memory,
+		+ "alias template %replace_pun_t" @ %TypePun,
+		/ "class template %call_once_init" %Utilities $=
+		(
+			/ "all static member functions" -> "2 member functions %get"
+				^ $dep_from ("%replace_pun_t" @ %TypePun),
+			/ "static instance" -> "memberwise instance",
+			/ "prevented copying or moving" ^ "%(noncopyable, nonmovable)"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)' $=
+		(
+			/ DLDI %NLS $=
+			(
+				/ "prevented copying or moving" @ "NLS table entry"
+					^ "%ystdex::(noncopyable, nonmovable)",
+				/ "simplified NLS table entry initialization"
+					^ "%ystdex::try_emplace"
+			),
+			/ %'YCLib_(Win32)'.MinGW32 $=
+			(
+				/ DLDI "simplified" @ "assertion"
+					@ "constructor %DirectoryFindData" ^ $dep_from
+					("%platform::EndsWithNonSeperator" @ %YCLib.FileSystem),
+				+ "function %FetchWindowsPath",
+				* "missing error checking" @ "function %FetchSystemPath" $since
+					b593
+			)
+		),
+		/ %YCLib.FileSystem $=
+		(
+			* $doc "redundant '//@}'" @ "class %HDirectory" $since b411,
+			(
+			+ "2 function tmeplates %EndsWithNonSeperator_P";
+			+ "function template %EndsWithNonSeperator";
+			/ DLDI "simplified" @ "assertion" @ !"platform %Win32"
+				@ "constructor %DirectorySession" ^ "%EndsWithNonSeperator"
+			)
+		),
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				/ "supported for system font directory" @ "platform %Win32"
+					~ ("hard-coded 'C:\Windows\Fonts'" @ "platform %MinGW32")
+					^ $dep_from ("%platform_ex::FetchWindowsPath"
+					@ %'YCLib_(Win32)'.MinGW32),
+				/ $forced "1st parameter" -> 'Application&' ~ 'Environment&'
+					@ "functino %LoadComponents" $dep_from
+					"guard stack trasportation"
+			),
+			/ @ "class %Enviornment" @ %Environment $=
+			(
+				/ "guard stack" >> "class %Application"
+					@ %YSLib.Core.Application $dep_to
+					"guard stack trasportation";
+				/ $forced "constructor" ^ $dep_from
+					("%Application::(AddExit, AddExitGuard)" @ %YApplication)
+			),
+			/ "loading file failed after possible creation on missing"
+				@ "function %LoadNPLA1File" $=
+			(
+				/ "avoided throwing" ^ "%TryInvoke",
+				+ "tracing with level 'Warning' and fallback"
+			)
+		),
+		/ @ "class %Application" @ %YSLib.Core.YApplication $=
+		(
+			- "data member %ApplicationExit",
+			+ "function templates %(AddExit; AddExitGuard)" $dep_from
+				"guard stack trasportation"
+		)
+	),
+	* $comp "assertion failed for invalid MIME data file loaded" @ %YReader
+		$since b450 $dep_from
+		("%LoadNPLA1File" @ %YFramework.Helper.Initialization)
+		// This includes empty file. Before b552, there would be a runtime \
+			error dialog for Win32 release build. Since b552 it would silently \
+			fail. For invalid 'yconf.txt' the program would exit by a fatal \
+			error dialog. This was expected but still superseded by current \
+			behavior.
+),
+
+b692
 (
 	/ %YFramework $=
 	(

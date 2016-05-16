@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3083
+\version r3130
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-05-10 13:47 +0800
+	2016-05-14 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,11 @@
 #define YB_INC_ystdex_utility_hpp_ 1
 
 #include "type_pun.hpp" // for "type_pun.hpp", is_standard_layout,
-//	pun_storage_t, std::swap, aligned_replace_cast, exclude_self_t;
-#include "cassert.h" // for yassume;
+//	pun_storage_t, std::swap, aligned_replace_cast, exclude_self_t,
+//	replace_storage_t;
+#include <functional> // for std::bind, std::ref
+#include "memory.hpp" // for yassume, ystdex::construct_in, ystdex::destruct_in;
+#include "base.h" // for noncopyable, nonmovable;
 
 namespace ystdex
 {
@@ -364,65 +367,43 @@ public:
 	应与 std::call_once 和 ystdex::call_once 形式一致。
 */
 template<typename _type, typename _tOnceFlag>
-class call_once_init
+class call_once_init : private noncopyable, private nonmovable
 {
 public:
 	using object_type = _type;
 	using flag_type = _tOnceFlag;
 
+private:
+	//! \since build 693
+	flag_type init_flag, uninit_flag;
+	//! \since build 693
+	replace_storage_t<_type> storage;
+
+public:
 	template<typename... _tParams>
 	call_once_init(_tParams&&... args)
+		: init_flag(), uninit_flag()
 	{
-		call_once(get_init_flag(), init<_tParams...>, yforward(args)...);
+		call_once(init_flag, std::bind(ystdex::construct_in<_type,
+			_tParams&&...>, std::ref(get()), std::ref(args)...));
 	}
 	~call_once_init()
 	{
-		call_once(get_uninit_flag(), uninit);
+		call_once(init_flag, std::bind(ystdex::destruct_in<_type>,
+			std::ref(get())));
 	}
 
-	static object_type&
-	get()
+	//! \since build 693
+	object_type&
+	get() ynothrow
 	{
-		yassume(get_object_ptr());
-		return *get_object_ptr();
+		return storage.template access<object_type>();
 	}
-
-private:
-	static flag_type&
-	get_init_flag()
+	//! \since build 693
+	const object_type&
+	get() const ynothrow
 	{
-		static flag_type flag;
-
-		return flag;
-	}
-
-	static object_type*&
-	get_object_ptr()
-	{
-		static object_type* ptr;
-
-		return ptr;
-	}
-
-	static flag_type&
-	get_uninit_flag()
-	{
-		static flag_type flag;
-
-		return flag;
-	}
-
-	template<typename... _tParams>
-	static void
-	init(_tParams&&... args)
-	{
-		get_object_ptr() = new object_type(yforward(args)...);
-	}
-
-	static void
-	uninit()
-	{
-		delete get_object_ptr();
+		return storage.template access<const object_type>();
 	}
 };
 

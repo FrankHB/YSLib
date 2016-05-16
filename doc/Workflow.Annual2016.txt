@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r109
+\version r126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-04-13 13:38 +0800
+	2016-05-12 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,6 +107,25 @@ The POSIX function '::close' may return error and set 'errno' to 'EINVAL' or 'EI
 	To assume 'EINTR' leaving the file descriptor open and then retry to close it is particular dangerous at least in Linux.
 		See http://lwn.net/Articles/576478/. In fact, Linux is hard to raise 'EINTR' here.
 		If flush is required, the caller should do it before closing the file descriptor, and '::fsync' call may be needed.
+
+$2016-05:
+
+report.impl:
+Android GUI architecture in YFramework has been reviewed in progress.
+	Early stage is finished. The remained work is delayed to v0.7. Some conclusions remains vaild.
+	It is intended to keep the android native "UI" thread as main thread without full inversion of control by design.
+		That is, the original thread in call of '::ANativeActivity_onCreate' has a longer lifetime than main routine call on spawned thread.
+		Since this thread partially plays a role like Win32 (GUI) subsystem of 'csrss.exe', it should be lived at any time when a GUI client is running in a system-provided GUI session.
+	Current implementation only supports DS window emulation.
+		This should be updated to a broader capability even if the native Android GUI does not have a window manager supporting multiple windows like a stacking window manager in general.
+		It is implemented using direct binding to 'Desktop' instance as a non-hosted platform (i.e. DS).
+		This should be changed using a middle layaer as 'WindowThread' under Win32, to get more flexibility for implementing features in future.
+			It can still be 'WindowThread' but without requiring a real thread, since there is only one event loop active at any time in one process.
+		Problems remained on design of event loop related APIs, for example:
+			A class of loop is generally not needed, but since there is direct "looper" out of the box proveded by Android native API, is it reqired to be wrapped?
+			The loop is now implemented in 'AndroidHost' of 'YCLib' Android extensions. Should it also be configurable in 'Helper'?
+			It is not clear that which precise sets of functionality should be exposed in 'Helper' and 'YCLib' Android extensions.
+		It is also not clear that if it necessary to emulate a window manager between 'YCLib' Android extension and 'Helper'.
 
 ////
 

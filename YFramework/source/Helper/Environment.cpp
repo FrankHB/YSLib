@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1859
+\version r1869
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2016-05-05 12:33 +0800
+	2016-05-16 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ using namespace platform_ex;
 using namespace Host;
 #endif
 
-Environment::Environment()
+Environment::Environment(Application& app)
 {
 	std::set_terminate(terminate);
 #if YCL_DS
@@ -77,8 +77,7 @@ Environment::Environment()
 			std::fflush(stderr);
 		}
 	});
-	TryExpr(
-		app_exit.push(ystdex::any(ystdex::any_ops::in_place_t<FileSystem>())))
+	TryExpr(app.AddExit(ystdex::any(ystdex::any_ops::in_place_t<FileSystem>())))
 	// TODO: Use 'std::throw_with_nested'?
 	CatchThrow(..., FatalError(
 		"         LibFAT Failure         ",
@@ -133,7 +132,7 @@ Environment::Environment()
 		Root = LoadConfiguration(true);
 		if(Root.GetName() == "YFramework")
 			Root = PackNodes(string(), std::move(Root));
-		LoadComponents(*this, AccessNode(Root, "YFramework"));
+		LoadComponents(app, AccessNode(Root, "YFramework"));
 		YTraceDe(Notice, "Check of installation succeeded.");
 		YCL_Trace(Debug, "Environment lifetime began.");
 		return;
@@ -147,12 +146,6 @@ Environment::Environment()
 Environment::~Environment()
 {
 	YCL_Trace(Debug, "Environment lifetime ended.");
-	YTraceDe(Notice, "Uninitialization entered with %zu handler(s) to be"
-		" called.", app_exit.size());
-	// NOTE: This is needed because the standard containers (and adaptors)
-	//	guarantee nothing about destruction order of contained elements.
-	while(!app_exit.empty())
-		app_exit.pop();
 }
 
 } // namespace YSLib;

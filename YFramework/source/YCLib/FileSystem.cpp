@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3620
+\version r3622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-03-21 12:19 +0800
+	2016-05-15 08:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 //	std::accumulate, std::min, ystdex::read_uint_le, YAssertNonnull,
 //	ystdex::write_uint_le, std::bind, std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
-#include YFM_YCLib_FileIO // for CategorizeNode, Deref, ystdex::to_array, 
+#include YFM_YCLib_FileIO // for CategorizeNode, Deref, ystdex::to_array,
 //	ystdex::throw_error, std::errc::not_supported, ThrowFileOperationFailure,
 //	ystdex::ntctslen, std::strchr, std::wctob, std::towupper,
 //	ystdex::restrict_length, std::min, ystdex::ntctsicmp,
@@ -257,7 +257,7 @@ DirectorySession::DirectorySession(const char* path)
 		const auto res(ystdex::rtrim(string(Deref(p) != char() ? p : "."),
 			YCL_PATH_DELIMITER));
 
-		YAssert(res.empty() || res.back() != YCL_PATH_DELIMITER,
+		YAssert(EndsWithNonSeperator(res),
 			"Invalid directory name state found.");
 		return res + YCL_PATH_DELIMITER;
 	}(path)),

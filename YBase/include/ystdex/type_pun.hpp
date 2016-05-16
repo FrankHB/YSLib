@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r376
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2016-05-11 01:07 +0800
+	2016-05-12 05:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,7 @@ using enable_if_replaceable_t
 
 /*!
 \ingroup transformation_traits
-\brief 用于显式转换的替代对齐存储 POD 类型。
+\brief 显式转换的替代对齐存储对齐存储类型。
 */
 template<typename _type, size_t _vAlign = yalignof(_type)>
 using pun_storage_t = aligned_storage_t<sizeof(_type), _vAlign>;
@@ -307,6 +307,16 @@ struct standard_layout_storage
 		access<decay_t<_type>>() = yforward(x);
 	}
 };
+
+
+/*!
+\ingroup transformation_traits
+\brief 显式转换的替代标准布局替代存储类型。
+\since build 693
+*/
+template<typename _type, size_t _vAlign = yalignof(_type)>
+using replace_storage_t
+	= standard_layout_storage<pun_storage_t<_type, _vAlign>>;
 
 } // namespace ystdex;
 

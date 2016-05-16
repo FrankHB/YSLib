@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1718
+\version r1729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-05-11 11:41 +0800
+	2016-05-11 19:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,21 +208,21 @@ construct_range(_tIter first, _tIter last, _tParams&&... args)
 //@}
 
 /*!
-\brief 原地销毁。
+\brief 原地析构。
 \tparam _tParams 用于构造对象的参数包类型。
 \param args 用于构造对象的参数包。
-\since build 692
+\since build 693
 */
 template<typename _type>
 inline void
-destroy_in(_type& obj)
+destruct_in(_type& obj)
 {
 	obj.~_type();
 }
 
 
 /*!
-\brief 销毁迭代器指向的对象。
+\brief 析构迭代器指向的对象。
 \param i 迭代器。
 \pre 断言：<tt>!is_undereferenceable(i)</tt> 。
 \see libstdc++ 5 和 Microsoft VC++ 2013 标准库在命名空间 std 内对指针类型的实现：
@@ -230,25 +230,25 @@ destroy_in(_type& obj)
 */
 template<typename _tIter>
 void
-destroy(_tIter i)
+destruct(_tIter i)
 {
 	using value_type = typename std::iterator_traits<_tIter>::value_type;
 
 	yconstraint(!is_undereferenceable(i));
-	ystdex::destroy_in<value_type>(*i);
+	ystdex::destruct_in<value_type>(*i);
 }
 
 /*!
-\brief 销毁迭代器范围内的对象序列。
+\brief 析构d迭代器范围内的对象序列。
 \note 保证顺序析构。
 \see libstdc++ 5 标准库在命名空间 std 内的实现： _Destroy 模板。
 */
 template<typename _tIter>
 void
-destroy_range(_tIter first, _tIter last)
+destruct_range(_tIter first, _tIter last)
 {
 	for(; first != last; ++first)
-		ystdex::destroy(first);
+		ystdex::destruct(first);
 }
 //@}
 
@@ -282,7 +282,7 @@ uninitialized_construct(_tFwd first, _tFwd last, _tParams&&... args)
 	catch(...)
 	{
 		// NOTE: The order is unspecified.
-		ystdex::destroy_range(first, i);
+		ystdex::destruct_range(first, i);
 		throw;
 	}
 }
@@ -309,7 +309,7 @@ uninitialized_construct_n(_tFwd first, _tSize n, _tParams&&... args)
 	catch(...)
 	{
 		// NOTE: The order is unspecified.
-		ystdex::destroy_range(first, i);
+		ystdex::destruct_range(first, i);
 		throw;
 	}
 }

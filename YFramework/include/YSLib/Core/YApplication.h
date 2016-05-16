@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1677
+\version r1727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2015-02-15 14:49 +0800
+	2016-05-16 13:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,10 @@
 #define YSL_INC_Core_YApplication_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YShell
+#include YFM_YSLib_Core_YShell // for Shell, stack,
+//	std::is_nothrow_copy_constructible;
+#include <ystdex/any.h> // for ystdex::any;
+#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 
 namespace YSLib
 {
@@ -43,6 +46,11 @@ using Messaging::MessageQueue;
 class YF_API Application : public Shell
 {
 private:
+	/*!
+	\brief 初始化守护。
+	\since build 693
+	*/
+	stack<ystdex::any> on_exit{};
 	/*
 	\brief 主消息队列互斥锁。
 	\since build 551
@@ -62,24 +70,13 @@ protected:
 	shared_ptr<Shell> hShell{};
 
 public:
-	//标准程序实例事件。
-	std::function<void()> ApplicationExit; //!< 资源释放函数。
-//	std::function<void()> Idle;
-
-	/*!
-	\brief 无参数构造。
-	*/
+	//! \brief 无参数构造：默认构造。
 	Application();
 
-	/*!
-	\brief 析构：释放 Shell 所有权和其它资源。
-	*/
-	virtual
-	~Application();
+	//! \brief 析构：释放 Shell 所有权和其它资源。
+	~Application() override;
 
-	/*!
-	\brief 取得线程空间中当前运行的 Shell 的句柄。
-	*/
+	//! \brief 取得线程空间中当前运行的 Shell 的句柄。
 	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShell)
 
 	/*!
@@ -97,6 +94,34 @@ public:
 	}
 
 	/*!
+	\pre 参数调用无异常抛出。
+	\since build 693
+	*/
+	//@{
+	template<typename _tParam>
+	inline void
+	AddExit(_tParam&& arg)
+	{
+		on_exit.push(yforward(arg));
+	}
+
+	template<typename _func>
+	void
+	AddExitGuard(_func f)
+	{
+		static_assert(std::is_nothrow_copy_constructible<_func>(),
+			"Invalid guard function found.");
+
+		TryExpr(AddExit(ystdex::unique_guard(f)))
+		catch(...)
+		{
+			f();
+			throw;
+		}
+	}
+	//@}
+
+	/*!
 	\brief 处理消息：分发消息。
 	\pre 断言：当前 Shell 句柄有效。
 	\exception 捕获并忽略 Messaging::MessageSignal ，其它异常中立。
@@ -104,10 +129,6 @@ public:
 	*/
 	void
 	OnGotMessage(const Message&) override;
-
-	//启动线程消息循环。
-//	void
-//	Run(shared_ptr<Shell>);
 
 	/*!
 	\brief 线程切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。

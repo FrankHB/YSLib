@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r1039
+\version r1068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2016-04-27 15:38 +0800
+	2016-05-16 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,6 @@
 #include "YModules.h"
 #include YFM_Helper_YGlobal
 #include YFM_YSLib_Core_ValueNode // for ValueNode;
-#include <ystdex/any.h> // for ystdex::any;
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 
 namespace YSLib
 {
@@ -70,19 +68,14 @@ public:
 	*/
 	ValueNode Root;
 
-private:
-	/*!
-	\brief 初始化守护。
-	\since build 688
-	*/
-	stack<ystdex::any> app_exit;
-
 public:
 	/*!
 	\brief 构造：初始化环境。
 	\note Win32 平台：尝试无参数调用 FixConsoleHandler ，若失败则跟踪警告。
+	\sa Application::AddExitGuard
+	\since build 693
 	*/
-	Environment();
+	Environment(Application&);
 	~Environment();
 
 	//! \since build 688
@@ -90,29 +83,9 @@ public:
 	/*!
 	\brief 取值类型根节点。
 	\pre 断言：已初始化。
-	\sa InitializeEnvironment
 	*/
 	ValueNode&
 	GetRootRef() ynothrowv;
-
-	//! \pre 参数调用无异常抛出。
-	template<typename _func>
-	void
-	AddExitGuard(_func f)
-	{
-		static_assert(std::is_nothrow_copy_constructible<_func>(),
-			"Invalid guard function found.");
-
-		try
-		{
-			app_exit.push(ystdex::unique_guard(f));
-		}
-		catch(...)
-		{
-			f();
-			throw;
-		}
-	}
 	//@}
 };
 
