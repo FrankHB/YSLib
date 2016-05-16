@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r572
+\version r575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2016-05-10 13:57 +0800
+	2016-05-16 14:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,12 +223,12 @@ GUIHost::UpdateRenderWindows()
 #endif
 
 
-GUIApplication::InitBlock::InitBlock()
-	: p_env(new Environment())
+GUIApplication::InitBlock::InitBlock(Application& app)
+	: p_env(new Environment(app))
 {}
 
 GUIApplication::GUIApplication()
-	: Application(), init()
+	: Application(), init(*this)
 {
 	lock_guard<recursive_mutex> lck(ApplicationMutex);
 

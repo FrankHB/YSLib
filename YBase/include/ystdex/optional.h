@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r663
+\version r665
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2016-05-11 11:48 +0800
+	2016-05-11 18:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@
 #include <new> // for placement ::operator new from standard library;
 #include <initializer_list> // for std::initializer_list;
 #include "functional.hpp" // for default_last_value, std::accumulate;
-#include "memory.hpp" // for ystdex::construct_in, ystdex::destroy_in;
+#include "memory.hpp" // for ystdex::construct_in, ystdex::destruct_in;
 
 namespace ystdex
 {
@@ -219,7 +219,7 @@ protected:
 	{
 		ynoexcept_assert("Invalid type found.", value.~type());
 
-		ystdex::destroy_in(value);
+		ystdex::destruct_in(value);
 	}
 
 public:

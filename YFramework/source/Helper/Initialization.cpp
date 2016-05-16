@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2853
+\version r2919
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-05 11:28 +0800
+	2016-05-16 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,12 +101,18 @@ yconstexpr const char TU_MIME[]{u8R"NPLA1(
 #	define DEF_FONT_PATH ROOTW "Font/FZYTK.TTF"
 #	define DEF_FONT_DIRECTORY ROOTW "Font/"
 #	define CONF_PATH "yconf.txt"
-#elif YCL_MinGW
+#elif YCL_Win32
 #	define ROOTW ".\\"
 #	define DATA_DIRECTORY ROOTW
-#	define DEF_FONT_PATH "C:\\Windows\\Fonts\\SimSun.ttc"
+#	define DEF_FONT_PATH (FetchSystemFontDirectory_Win32() + "SimSun.ttc").c_str()
 #	define DEF_FONT_DIRECTORY ROOTW
 #	define CONF_PATH "yconf.txt"
+
+//! \since build 693
+inline PDefH(string, FetchSystemFontDirectory_Win32, )
+	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
+	//	%CSIDL_FONTS. See https://msdn.microsoft.com/en-us/library/dd378457.aspx.
+	ImplRet(platform_ex::WCSToMBCS(platform_ex::FetchWindowsPath()) + "Fonts\\")
 #elif YCL_Android
 //! \since build 506
 string
@@ -140,11 +146,8 @@ FetchWorkingRoot_Android()
 }
 
 //! \since build 506
-inline string
-FetchDataDirectory_Android()
-{
-	return FetchWorkingRoot_Android() + "Data/";
-}
+inline PDefH(string, FetchDataDirectory_Android, )
+	ImplRet(FetchWorkingRoot_Android() + "Data/")
 #	define ROOTW FetchWorkingRoot_Android()
 #	define DATA_DIRECTORY FetchDataDirectory_Android()
 #	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
@@ -193,6 +196,35 @@ LoadCP936_NLS()
 //@}
 #endif
 
+//! \since build 693
+void
+CreateDefaultNPLA1ForStream(std::ostream& os, ValueNode(*creator)())
+{
+	ystdex::write_literal(os, Text::BOM_UTF_8)
+		<< NPL::Configuration(creator());
+}
+
+ValueNode
+TryReadNPLStream(std::istream& is)
+{
+	array<char, 3> buf;
+
+	is.read(buf.data(), 3);
+	if(Text::CheckBOM(buf.data(), Text::BOM_UTF_8))
+	{
+		NPL::Configuration conf;
+
+		is >> conf;
+		YTraceDe(Debug, "Plain configuration loaded.");
+		if(!conf.GetNodeRRef().empty())
+			return conf.GetNodeRRef();
+		YTraceDe(Warning, "Empty configuration found.");
+		throw GeneralEvent("Invalid file found when reading configuration.");
+	}
+	else
+		throw GeneralEvent("Wrong encoding of configuration file.");
+}
+
 YB_NONNULL(1, 2) bool
 CreateDefaultNPLA1File(const char* disp, const char* path,
 	ValueNode(*creator)(), bool show_info)
@@ -205,8 +237,7 @@ CreateDefaultNPLA1File(const char* disp, const char* path,
 	{
 		YTraceDe(Debug, "Creator found.");
 		if(ofstream ofs{path, std::ios_base::out | std::ios_base::trunc})
-			ystdex::write_literal(ofs, Text::BOM_UTF_8)
-				<< NPL::Configuration(creator());
+			CreateDefaultNPLA1ForStream(ofs, creator);
 		else
 			throw GeneralEvent(ystdex::sfmt("Cannot create file,"
 				" error = %d: %s.", errno, std::strerror(errno)));
@@ -262,30 +293,30 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	}
 	if(show_info)
 		YTraceDe(Notice, "Found %s '%s'.\n", Nonnull(disp), path);
-	if(ifstream ifs{path})
-	{
-		array<char, 3> buf;
 
-		YTraceDe(Debug, "Found accessible configuration file.");
-		ifs.read(buf.data(), 3);
-		if(Text::CheckBOM(buf.data(), Text::BOM_UTF_8))
+	auto res(TryInvoke([&]() -> ValueNode{
+		if(ifstream ifs{path})
 		{
-			NPL::Configuration conf;
-
-			ifs >> conf;
-			YTraceDe(Debug, "Plain configuration loaded.");
-			if(!conf.GetNodeRRef().empty())
-				return conf.GetNodeRRef();
-			YTraceDe(Warning, "Empty configuration found.");
+			YTraceDe(Debug, "Found accessible configuration file.");
+			return TryReadNPLStream(ifs);
 		}
-		else
-			throw GeneralEvent("Wrong encoding of configuration file.");
-	}
-	throw GeneralEvent("Invalid file found when reading configuration.");
+		return {};
+	}));
+
+	if(res)
+		return res;
+
+	YTraceDe(Warning, "Newly created configuration corrupted,"
+		" trying fallback in memory...");
+
+	std::stringstream oss;
+
+	CreateDefaultNPLA1ForStream(oss, creator);
+	return TryReadNPLStream(oss);
 }
 
 void
-LoadComponents(Environment& env, const ValueNode& node)
+LoadComponents(Application& app, const ValueNode& node)
 {
 	const auto& data_dir(AccessChild<string>(node, "DataDirectory"));
 	const auto& font_path(AccessChild<string>(node, "FontFile"));
@@ -332,7 +363,7 @@ LoadComponents(Environment& env, const ValueNode& node)
 				" exception thrown.");
 		}
 	}
-	env.AddExitGuard([]() ynothrow{
+	app.AddExitGuard([]() ynothrow{
 #	if YCL_Win32
 		if(cp113_lkp_backup)
 		{
@@ -441,14 +472,12 @@ FetchDefaultFontCache()
 
 	if(YB_UNLIKELY(!p_font_cache))
 	{
-		auto& env(FetchEnvironment());
-
 		p_font_cache.reset(new Drawing::FontCache());
-		env.AddExitGuard([&]() ynothrow{
+		FetchAppInstance().AddExitGuard([&]() ynothrow{
 			p_font_cache.reset();
 		});
 
-		const auto& node(env.Root["YFramework"]);
+		const auto& node(FetchEnvironment().Root["YFramework"]);
 
 		InitializeSystemFontCache(*p_font_cache,
 			AccessChild<string>(node, "FontFile"),
@@ -469,15 +498,14 @@ FetchMIMEBiMapping()
 	if(YB_UNLIKELY(!p_mapping))
 	{
 		using namespace NPL;
-		auto& env(FetchEnvironment());
 
 		p_mapping.reset(new MIMEBiMapping());
 		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
-			(AccessChild<string>(env.Root["YFramework"], "DataDirectory")
+			(AccessChild<string>(FetchEnvironment().Root["YFramework"], "DataDirectory")
 			+ "MIMEExtMap.txt").c_str(), []{
 				return A1::LoadNode(SContext::Analyze(NPL::Session(TU_MIME)));
 			}, true));
-		env.AddExitGuard([&]() ynothrow{
+		FetchAppInstance().AddExitGuard([&]() ynothrow{
 			p_mapping.reset();
 		});
 	}

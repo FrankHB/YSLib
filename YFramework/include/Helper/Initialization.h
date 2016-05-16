@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r819
+\version r825
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-05 11:30 +0800
+	2016-05-16 14:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_ValueNode // for ValueNode;
-#include YFM_Helper_YGlobal // for Environment;
+#include YFM_YSLib_Core_YApplication // for Application;
 #include YFM_YSLib_Adaptor_Font // for Drawing::FontCache;
 #include YFM_YSLib_Service_ContentType // for MIMEBiMapping;
 
@@ -67,7 +67,7 @@ TraceForOutermost(const std::exception&, RecordLevel) ynothrow;
 \param show_info 是否在标准输出中显示信息。
 \pre 间接断言：指针参数非空。
 \return 读取的配置。
-\note 预设行为、配置文件和配置项参考 YSLib.txt 。
+\note 预设行为、配置文件和配置项参考 Documentation::YSLib 。
 \since build 450
 */
 YF_API YB_NONNULL(1, 2) ValueNode
@@ -75,11 +75,11 @@ LoadNPLA1File(const char* disp, const char* path,
 	ValueNode(*creator)(), bool show_info = {});
 
 /*!
-\brief 初始化环境组件。
-\since build 690
+\brief 初始化应用程序组件。
+\since build 693
 */
 YF_API void
-LoadComponents(Environment&, const ValueNode&);
+LoadComponents(Application&, const ValueNode&);
 
 /*!
 \brief 载入默认配置。
@@ -114,7 +114,6 @@ InitializeSystemFontCache(Drawing::FontCache&, const string&, const string&);
 /*!
 \brief 取值类型根节点。
 \pre 断言：已初始化。
-\sa InitializeEnvironment
 \since build 688
 */
 YF_API ValueNode&

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1623
+\version r1658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-02-10 00:16 +0800
+	2016-05-15 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,8 @@
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
-//	YSLib::CheckPositiveScalar, YSLib::FilterExceptions;
+//	YSLib::CheckPositiveScalar, YSLib::make_unique_default_init,
+//	platform::EndsWithNonSeperator, YSLib::FilterExceptions;
 #	include <functional> // for std::bind, std::placeholders::_1;
 
 using namespace YSLib;
@@ -328,6 +329,35 @@ struct REPARSE_DATA_BUFFER
 //! \since build 660
 yconstexpr const auto FSCTL_GET_REPARSE_POINT(0x000900A8UL);
 
+
+//! \since build 693
+//@{
+enum class SystemPaths
+{
+	System,
+	Windows
+};
+
+wstring
+FetchFixedSystemPath(SystemPaths e, size_t s)
+{
+	// XXX: Depends right behavior on external API.
+	const auto p_buf(make_unique_default_init<wchar_t[]>(s));
+	const auto str(p_buf.get());
+
+	switch(e)
+	{
+	case SystemPaths::System:
+		YCL_CallWin32F(GetSystemDirectoryW, str, unsigned(s));
+		break;
+	case SystemPaths::Windows:
+		YCL_CallWin32F(GetSystemWindowsDirectoryW, str, unsigned(s));
+		break;
+	}
+	return ystdex::rtrim(wstring(str), L'\\') + L'\\';
+}
+//@}
+
 } // unnamed namespace;
 
 
@@ -537,7 +567,8 @@ DirectoryFindData::DirectoryFindData(wstring_view name)
 {
 	if(ystdex::rtrim(dir_name, L"/\\").empty())
 		dir_name = L'.';
-	YAssert(dir_name.back() != '\\', "Invalid argument found.");
+	YAssert(platform::EndsWithNonSeperator(dir_name),
+		"Invalid argument found.");
 
 	using platform::FileOperationFailure;
 	const auto attr(FileAttributes(::GetFileAttributesW(dir_name.c_str())));
@@ -766,11 +797,13 @@ ExpandEnvironmentStrings(const wchar_t* p_src)
 wstring
 FetchSystemPath(size_t s)
 {
-	// XXX: Depends right behavior on external API.
-	const auto res(make_unique_default_init<wchar_t[]>(s));
+	return FetchFixedSystemPath(SystemPaths::System, s);
+}
 
-	::GetSystemDirectoryW(&res[0], unsigned(s));
-	return ystdex::rtrim(wstring(&res[0]), L'\\') + L'\\';
+wstring
+FetchWindowsPath(size_t s)
+{
+	return FetchFixedSystemPath(SystemPaths::Windows, s);
 }
 
 } // inline namespace Windows;

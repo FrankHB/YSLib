@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r204
+\version r226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2015-09-12 20:04 +0800
+	2016-05-14 17:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,10 @@
 #if YCL_Win32
 #	include YFM_Win32_YCLib_NLS // for map;
 #	include YFM_Win32_YCLib_Registry // for FetchRegistryString;
+#	include <ystdex/base.h> // for ystdex::noncopyable, ystdex::nonmovable;
 #	include YFM_YCLib_MemoryMapping // for platform::MappedFile;
 #	include <ystdex/algorithm.hpp> // for ystdex::trivially_copy_n;
+#	include <ystdex/container.hpp> // for ystdex::try_emplace;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -46,7 +48,8 @@ namespace platform_ex
 inline namespace Windows
 {
 
-std::wstring
+//! \see https://technet.microsoft.com/en-us/library/cc976084.aspx 。
+YB_NONNULL(1) std::wstring
 FetchNLSItemFromRegistry(const wchar_t* name)
 {
 	return FetchRegistryString(HKEY_LOCAL_MACHINE,
@@ -89,7 +92,7 @@ struct CPTABLEINFO
 };
 
 
-class NLSTableEntry
+class NLSTableEntry : private noncopyable, private nonmovable
 {
 private:
 	unique_ptr<platform::MappedFile> p_mapped;
@@ -131,20 +134,8 @@ NLSTableEntry::NLSTableEntry(int cp)
 
 
 mutex NLSCacheMutex;
-
-map<int, unique_ptr<NLSTableEntry>> NLSCache;
-
-NLSTableEntry&
-FetchNLSTableEntry(int cp)
-{
-	lock_guard<mutex> lck(NLSCacheMutex);
-
-	auto& p(NLSCache[cp]);
-
-	if(YB_UNLIKELY(!p))
-		p.reset(new NLSTableEntry(cp));
-	return *p;
-}
+//! \since build 693
+map<int, NLSTableEntry> NLSCache;
 
 } // unnamed namespace;
 
@@ -152,16 +143,18 @@ const unsigned short*
 FetchDBCSOffset(int cp) ynothrow
 {
 	return TryInvoke([=]{
-		auto& tbl(FetchNLSTableEntry(cp).GetTable());
+		lock_guard<mutex> lck(NLSCacheMutex);
+		// TODO: Enable concurrent initialization using 'call_once', etc?
+		auto& tbl(ystdex::try_emplace(NLSCache, cp, cp).first
+			->second.GetTable());
 
 		return tbl.DBCSCodePage ? tbl.DBCSOffsets : nullptr;
 	});
-	return {};
 }
 
 } // inline namespace Windows;
 
 #endif
 
-} // namespace YSLib;
+} // namespace platform_ex;
 

@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r542
+\version r544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2016-05-10 14:16 +0800
+	2016-05-16 14:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,7 +210,8 @@ private:
 		//! \brief GUI 宿主状态。
 		mutable GUIHost host{};
 
-		InitBlock();
+		//! \since build 693
+		InitBlock(Application&);
 	};
 
 	//! \since build 692
