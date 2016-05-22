@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1609
+\version r1615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-05-15 22:55 +0800
+	2016-05-23 04:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,6 +269,15 @@ LoadProc(const wchar_t* module, const char* proc)
 		return YCL_Impl_W32Call_FnCall(_fn)(yforward(args)...); \
 	}
 //@}
+
+
+/*!
+\brief 取模块映像路径。
+\since build 694
+*/
+YF_API wstring
+FetchModuleFileName(::HMODULE = {});
+
 
 
 //! \since build 593

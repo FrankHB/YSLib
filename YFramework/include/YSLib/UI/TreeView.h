@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r262
+\version r268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2015-03-21 15:32 +0800
+	2015-05-22 11:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,10 @@ public:
 	GEvent<void(IndexType)> Collapse;
 	//! \brief 展开节点前的回调。
 	GEvent<void(IndexType)> Expand;
-	//! \brief 文本提取。
+	/*!
+	\brief 提取文本。
+	\warning 要求不改变列表的状态，否则可能引起未定义行为。
+	*/
 	std::function<String(const ValueNode&)> ExtractText{DefaultExtractText};
 	/*!
 	\brief 响应 CursorOver 事件时节点分支图标的颜色。
@@ -103,7 +106,7 @@ private:
 	/*!
 	\brief 判断是否已经展开的索引。
 	\since build 532
-	\note 使用 trie 树优化。
+	\todo 使用 trie 树优化。
 	*/
 	set<NodePath> expanded{};
 
@@ -199,7 +202,7 @@ private:
 
 /*!
 \brief 带滚动条的树形视图。
-\invariant dynamic_cast<TreeList*>(pTextList.get())
+\invariant <tt>dynamic_cast<TreeList*>(pTextList.get())</tt> 。
 \since build 534
 \todo 实现 Resize 事件调整内容布局。
 */

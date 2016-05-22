@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r977
+\version r993
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-08-05 09:43 +0800
+	2016-05-19 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,7 @@ namespace Text
 \brief 验证流的编码。
 \note 第二参数和第三参数指定缓冲区，第四参数指定最大文本长度，
 	第五参数参数指定验证的编码。
+\note 假定调用前流状态正常。
 \since build 621
 */
 //@{
@@ -69,13 +70,15 @@ yconstexpr const char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 
 /*!
 \brief 检查缓冲区是否具有指定的 BOM 。
+\pre 指针参数非空。
 \since build 619
 */
 //@{
-inline PDefH(bool, CheckBOM, const char* buf, const char* str, size_t n)
+inline YB_NONNULL(1, 2) PDefH(bool, CheckBOM, const char* buf, const char* str,
+	size_t n)
 	ImplRet(std::char_traits<char>::compare(buf, str, n) == 0)
 template<size_t _vN>
-inline bool
+inline YB_NONNULL(1) bool
 CheckBOM(const char* buf, const char(&str)[_vN])
 {
 	return CheckBOM(buf, str, _vN - 1);
@@ -86,12 +89,21 @@ CheckBOM(const char* buf, const char(&str)[_vN])
 //@{
 /*!
 \pre 参数指定的缓冲区至少具有 4 个字节可读。
+\pre 断言：参数非空。
 \return 检查的编码和 BOM 长度，若失败为 <tt>{CharSet::Null, 0}</tt> 。
 \since build 619
 */
-YF_API pair<Encoding, size_t>
+YF_API YB_NONNULL(1) pair<Encoding, size_t>
 DetectBOM(const char*);
 /*!
+\pre 断言：参数的数据指针非空。
+\return 检查的编码和 BOM 长度，若失败为 <tt>{CharSet::Null, 0}</tt> 。
+\since build 694
+*/
+YF_API pair<Encoding, size_t>
+DetectBOM(string_view);
+/*!
+\exception LoggedEvent 流在检查 BOM 时候读取的字符数不是非负数。
 \sa VerifyEncoding
 \since build 621
 

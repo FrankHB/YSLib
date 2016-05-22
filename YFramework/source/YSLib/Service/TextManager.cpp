@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4032
+\version r4042
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-02-07 19:45 +0800
+	2016-05-18 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,7 +116,7 @@ TextFileBuffer::iterator::iterator(TextFileBuffer* p_buf, size_t b, size_t idx)
 TextFileBuffer::iterator&
 TextFileBuffer::iterator::operator++() ynothrow
 {
-	YAssert(GetBlockN() < Deref(p_buffer).nBlock, "End iterator found.");
+	YAssert(GetBlockN() < Deref(p_buffer).n_block, "End iterator found.");
 
 	auto& vec((*p_buffer)[GetBlockN()].first);
 
@@ -130,7 +130,7 @@ TextFileBuffer::iterator&
 TextFileBuffer::iterator::operator--() ynothrow
 {
 	YAssert(block != 0 || index != 0, "Begin iterator found.");
-	YAssert(block < Deref(p_buffer).nBlock || *this == p_buffer->end(),
+	YAssert(block < Deref(p_buffer).n_block || *this == p_buffer->end(),
 		"Invalid iterator found.");
 	if(index == 0)
 	{
@@ -188,7 +188,7 @@ TextFileBuffer::TextFileBuffer(std::istream& file, Encoding enc)
 			return blen;
 		}
 		return 0;
-	}()), nTextSize(fsize - bl), nBlock((nTextSize + BlockSize - 1)
+	}()), n_text_size(fsize - bl), n_block((n_text_size + BlockSize - 1)
 	/ BlockSize), fixed_width(FetchFixedCharWidth(encoding)), max_width(
 	fixed_width == 0 ? FetchMaxVariantCharWidth(encoding) : fixed_width)
 {
@@ -202,9 +202,9 @@ TextFileBuffer::TextFileBuffer(std::istream& file, Encoding enc)
 TextFileBuffer::BlockType&
 TextFileBuffer::operator[](size_t idx)
 {
-	YAssert(idx < nBlock, "Invalid index found.");
+	YAssert(idx < n_block, "Invalid index found.");
 
-	auto& b(mBuffer[idx]);
+	auto& b(buffer[idx]);
 	auto& vec(b.first);
 
 	if(YB_UNLIKELY(vec.empty()))
@@ -216,8 +216,8 @@ TextFileBuffer::operator[](size_t idx)
 			//	implementation-defined.
 			File.seekg(fstream::off_type(bl + idx * BlockSize));
 
-			size_t len(idx == nBlock - 1 && nTextSize % BlockSize != 0
-				? nTextSize % BlockSize : BlockSize);
+			size_t len(idx == n_block - 1 && n_text_size % BlockSize != 0
+				? n_text_size % BlockSize : BlockSize);
 
 			vec.reserve(len / fixed_width);
 
@@ -243,12 +243,12 @@ TextFileBuffer::begin() ynothrow
 TextFileBuffer::iterator
 TextFileBuffer::end() ynothrow
 {
-	return TextFileBuffer::iterator(this, nBlock);
+	return TextFileBuffer::iterator(this, n_block);
 }
 TextFileBuffer::iterator
 TextFileBuffer::GetIterator(size_t pos)
 {
-	if(pos < nTextSize)
+	if(pos < n_text_size)
 	{
 		const size_t idx(pos / BlockSize);
 
@@ -281,7 +281,7 @@ size_t
 TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 {
 	if(i == end())
-		return nTextSize;
+		return n_text_size;
 
 	auto idx(i.GetBlockN());
 	const auto pos(i.GetIndexN());

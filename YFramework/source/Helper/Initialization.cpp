@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2919
+\version r2940
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-16 21:08 +0800
+	2016-05-23 05:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,12 +102,32 @@ yconstexpr const char TU_MIME[]{u8R"NPLA1(
 #	define DEF_FONT_DIRECTORY ROOTW "Font/"
 #	define CONF_PATH "yconf.txt"
 #elif YCL_Win32
-#	define ROOTW ".\\"
+#	define ROOTW FetchExecutableImageDirectory_Win32().c_str()
 #	define DATA_DIRECTORY ROOTW
 #	define DEF_FONT_PATH (FetchSystemFontDirectory_Win32() + "SimSun.ttc").c_str()
 #	define DEF_FONT_DIRECTORY ROOTW
-#	define CONF_PATH "yconf.txt"
+// TODO: Reduce overhead?
+#	define CONF_PATH (FetchExecutableImageDirectory_Win32() + "yconf.txt").c_str()
 
+//! \since build 694
+string
+FetchExecutableImageDirectory_Win32()
+{
+	// XXX: Pedantic.
+	// TODO: Reuse the string literal for other functions?
+	const auto sp(L"/\\");
+	const auto image(ystdex::rtrim(platform_ex::FetchModuleFileName(), sp));
+	wstring_view sv(image);
+	const auto epos(sv.find_last_of(sp));
+
+	// TODO: Simplify?
+	if(epos != wstring_view::npos)
+		sv.remove_suffix(sv.size() - epos - 1);
+
+	// XXX: Pedantic.
+	ystdex::rtrim(sv, sp);
+	return platform_ex::WCSToMBCS(sv) + '\\';
+}
 //! \since build 693
 inline PDefH(string, FetchSystemFontDirectory_Win32, )
 	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
@@ -152,6 +172,7 @@ inline PDefH(string, FetchDataDirectory_Android, )
 #	define DATA_DIRECTORY FetchDataDirectory_Android()
 #	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
 #	define DEF_FONT_DIRECTORY "/system/fonts/"
+// TODO: Reduce overhead?
 #	define CONF_PATH (FetchWorkingRoot_Android() + "yconf.txt").c_str()
 #elif YCL_Linux
 #	define ROOTW "./"

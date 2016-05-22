@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r985
+\version r1061
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-04-26 19:27 +0800
+	2016-05-22 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,10 +383,89 @@ using bool_constant = integral_constant<bool, _b>;
 #endif
 
 
+/*!
+\ingroup metafunctions
+\brief 逻辑操作元函数。
+\note 接口和 libstdc++ 实现以及 Boost.MPL 兼容。
+\since build 578
+*/
+//@{
+template<typename...>
+struct and_;
+
+template<>
+struct and_<> : true_type
+{};
+
+template<typename _b1>
+struct and_<_b1> : _b1
+{};
+
+//! \since build 671
+template<typename _b1, typename _b2, typename... _bn>
+struct and_<_b1, _b2, _bn...>
+	: conditional_t<_b1::value, and_<_b2, _bn...>, _b1>
+{};
+
+
+template<typename...>
+struct or_;
+
+template<>
+struct or_<> : false_type
+{};
+
+template<typename _b1>
+struct or_<_b1> : _b1
+{};
+
+//! \since build 671
+template<typename _b1, typename _b2, typename... _bn>
+struct or_<_b1, _b2, _bn...>
+	: conditional_t<_b1::value, _b1, or_<_b2, _bn...>>
+{};
+
+
+template<typename _b>
+struct not_ : bool_constant<!_b::value>
+{};
+//@}
+
+
+namespace details
+{
+
+template<typename _type>
+struct is_referenceable_function : false_type
+{};
+
+template<typename _tRes, typename... _tParams>
+struct is_referenceable_function<_tRes(_tParams...)> : true_type
+{};
+
+template<typename _tRes, typename... _tParams>
+struct is_referenceable_function<_tRes(_tParams..., ...)> : true_type
+{};
+
+} // namespace details;
+
+/*!
+\ingroup unary_type_traits
+\brief 判断指定类型是否为可引用类型。
+\see ISO C++11 17.3.20 [defns.referenceable] 。
+\since build 694
+*/
+template<typename _type>
+struct is_referenceable : or_<is_object<_type>, is_reference<_type>,
+	details::is_referenceable_function<_type>>
+{};
+
+
 //! \since build 686
 struct any_constructible;
 //! \since build 686
 struct nonesuch;
+
 
 /*!
 \brief 引入 std::swap 实现为 ADL 提供重载的命名空间。
@@ -407,8 +486,9 @@ struct yimpl(helper)
 	static yconstexpr const bool value = !is_same<decltype(swap(std::declval<
 		_type>(), std::declval<_type2>())), nonesuch>::value;
 
+	//! \since build 694
 	helper()
-		ynoexcept_spec(swap(std::declval<_type&>(), std::declval<_type2&>()))
+		ynoexcept_spec(swap(std::declval<_type>(), std::declval<_type2>()))
 	{}
 };
 
@@ -432,7 +512,8 @@ struct is_swappable_with
 
 //! \ingroup unary_type_traits
 template<typename _type>
-struct is_swappable : is_swappable_with<_type&, _type&>
+struct is_swappable
+	: and_<is_referenceable<_type>, is_swappable_with<_type&, _type&>>
 {};
 //@}
 
@@ -446,7 +527,8 @@ struct is_nothrow_swappable_with
 
 
 template<typename _type>
-struct is_nothrow_swappable : is_nothrow_swappable_with<_type&, _type&>
+struct is_nothrow_swappable
+	: and_<is_referenceable<_type>, is_nothrow_swappable_with<_type&, _type&>>
 {};
 //@}
 //@}
@@ -524,54 +606,6 @@ using when_valid = well_formed_t<when<true>, _types...>;
 */
 template<bool _bCond>
 using enable_when = enable_if_t<_bCond, when<true>>;
-//@}
-
-
-/*!
-\brief 逻辑操作元函数。
-\note 接口和 libstdc++ 实现以及 Boost.MPL 兼容。
-\since build 578
-*/
-//@{
-template<typename...>
-struct and_;
-
-template<>
-struct and_<> : true_type
-{};
-
-template<typename _b1>
-struct and_<_b1> : _b1
-{};
-
-//! \since build 671
-template<typename _b1, typename _b2, typename... _bn>
-struct and_<_b1, _b2, _bn...>
-	: conditional_t<_b1::value, and_<_b2, _bn...>, _b1>
-{};
-
-
-template<typename...>
-struct or_;
-
-template<>
-struct or_<> : false_type
-{};
-
-template<typename _b1>
-struct or_<_b1> : _b1
-{};
-
-//! \since build 671
-template<typename _b1, typename _b2, typename... _bn>
-struct or_<_b1, _b2, _bn...>
-	: conditional_t<_b1::value, _b1, or_<_b2, _bn...>>
-{};
-
-
-template<typename _b>
-struct not_ : bool_constant<!_b::value>
-{};
 //@}
 //@}
 
