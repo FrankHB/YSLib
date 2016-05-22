@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1658
+\version r1677
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-05-15 23:00 +0800
+	2016-05-23 05:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -407,6 +407,31 @@ LoadProc(::HMODULE h_module, const char* proc)
 {
 	return YCL_CallWin32F(GetProcAddress, h_module, proc);
 }
+
+
+wstring
+FetchModuleFileName(::HMODULE h_module)
+{
+	wstring res;
+
+	for(size_t s(MAX_PATH); s < res.max_size(); s *= 2)
+	{
+		res.resize(s);
+
+		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0], s)));
+		const auto e(::GetLastError());
+
+		if(e != ERROR_SUCCESS && e != ERROR_INSUFFICIENT_BUFFER)
+			throw Win32Exception(e, "GetModuleFileNameW");
+		if(r < s)
+		{
+			res.resize(r);
+			break;
+		}
+	}
+	return res;
+}
+
 
 
 void

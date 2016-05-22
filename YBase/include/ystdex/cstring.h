@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2566
+\version r2569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2016-02-11 17:48 +0800
+	2016-05-23 04:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,8 +87,8 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 /*!
 \ingroup unary_type_traits
 \brief 判断字符类型是否被 ISO C++ 指定提供 <tt>std::char_traits</tt> 的特化。
-\note 同时是 WG21/N4100 指定的编码字符类型。
-\see WG21/N4100 5[fs.req]/1 。
+\note 同时是 WG21 N4100 指定的编码字符类型。
+\see WG21 N4100 5[fs.req]/1 。
 \since build 544
 */
 template<typename _tChar>
@@ -609,7 +609,7 @@ str_rfind(const _tChar* p, _tSize sz, const _tChar* s, _tSize pos, _tSize n)
 	yconstraint((p || sz == 0) && (s || n == 0));
 	if(n <= sz)
 	{
-		pos = std::min(size_type(sz - n), pos);
+		pos = std::min(_tSize(sz - n), pos);
 		do
 			if(_tTraits::compare(p + pos, s, n) == 0)
 				return pos;

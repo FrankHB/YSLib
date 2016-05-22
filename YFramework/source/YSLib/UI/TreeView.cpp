@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r729
+\version r766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2016-04-27 08:47 +0800
+	2016-05-22 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,8 +209,8 @@ TreeList::GetIndentWidth(IndexType idx) const
 {
 	const auto i(indent_map.lower_bound(idx));
 
-	return SDst((i != indent_map.end() ? i->second : 0) * UnitIndent);
-	// TODO: Enable more concrete exception class.
+	return SDst((i != indent_map.cend() ? i->second : 0) * UnitIndent);
+	// TODO: Use more concrete exception class.
 //	throw std::runtime_error("Invalid tree list state found.");
 }
 TreeList::NodePath
@@ -255,26 +255,45 @@ TreeList::GetNodeRef(IndexType idx) const
 void
 TreeList::Bind(size_t max_depth)
 {
+	IndentMap imap;
+	ListType lst;
+	decltype(expanded) exp;
+	// TODO: Simplify using tuple or similar construct?
+#if false
+	// XXX: These checkes cannot be used since %propagate_on_container_swap or
+	//	ISO C++17 %is_always_equal member of %allocator_traits
+	//	is not used and container types are meeting nothrow swapping guarantee
+	//	but not noexcept specificication yet.
+	static_assert(ystdex::is_nothrow_swappable<ListType>(),
+		"Invalid type found.");
+	static_assert(ystdex::is_nothrow_swappable<IndentMap>(),
+		"Invalid type found.");
+	static_assert(ystdex::is_nothrow_swappable<decltype(exp)>(),
+		"Invalid type found.");
+#endif
 	IndentType indent(1);
 	auto index(IndexType(-1));
 
 	// TODO: Optimize implementation.
 	bind_node(TreeRoot, [&, this](const ValueNode& node,
 		const NodePath& pth, size_t depth){
-		GetListRef().push_back(ExtractText(node));
+		lst.push_back(ExtractText(node));
 		if(indent != depth)
 		{
-			indent_map.emplace(index, indent);
+			imap.emplace(index, indent);
 			indent = depth;
 		}
 		if(depth < max_depth && !node.empty())
-			expanded.insert(pth);
+			exp.insert(pth);
 		++index;
 	}, [=](const NodePath&, size_t depth) ynothrow{
 		return depth < max_depth;
 	}, NodePath());
 	if(index != IndexType(-1))
-		indent_map.emplace(index, indent);
+		imap.emplace(index, indent);
+	std::swap(GetListRef(), lst),
+	std::swap(indent_map, imap),
+	std::swap(expanded, exp);
 }
 
 TreeList::NodeState
@@ -283,13 +302,18 @@ TreeList::CheckNodeState(IndexType idx) const
 	if(!GetNodeRef(idx).empty())
 	{
 		auto i(indent_map.find(idx));
-		const auto indent(i->second);
 		const auto e(indent_map.cend());
 
-		// TODO: Optimize.
-		return i != e && ++i != e && i->second == indent + 1
-			&& ystdex::exists(expanded, GetNodePath(idx))
-			? NodeState::Expanded : NodeState::Branch;
+		if(i != e)
+		{
+			const auto indent(i->second);
+
+			// TODO: Optimize.
+			return ++i != e && i->second == indent + 1
+				&& ystdex::exists(expanded, GetNodePath(idx))
+				? NodeState::Expanded : NodeState::Branch;
+		}
+		return {};
 	}
 	return NodeState::None;
 }
@@ -314,6 +338,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 
 	if(YB_UNLIKELY(branch_pth.empty()))
 		throw std::runtime_error("Invalid state found.");
+	// FIXME: Strong exception safety guarantee.
 	if(st == NodeState::Branch)
 	{
 		Expand(idx);
@@ -359,7 +384,7 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		vec_ins.emplace_back(index, indent);
 		YAssert(vec_ins.back().first > j->first,
 			"Invalid insertion sequence found");
-		// TODO: Strong exception guarantee.
+		// FIXME: Strong exception safety guarantee.
 		// NOTE: See $2014-09 @ %Documentation::Workflow::Annual2014.
 		{
 			// XXX: Use %std::make_move_iterator if proper.

@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3916
+\version r3934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-02-15 17:06 +0800
+	2016-05-18 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,23 +136,15 @@ private:
 	Encoding encoding;
 	size_t bl;
 	//@}
-
-public:
-	/*!
-	\brief 文本大小。
-	\since build 273
-	*/
-	size_t nTextSize;
-	/*!
-	\brief 区块数。
-	\since build 273
-	*/
-	size_t nBlock;
-	/*!
-	\brief 缓冲映射。
-	\since build 552
-	*/
-	MapType mBuffer{};
+	//! \since build 694
+	//@{
+	//! \brief 文本大小。
+	size_t n_text_size;
+	//! \brief 区块数。
+	size_t n_block;
+	//! \brief 缓冲映射。
+	MapType buffer{};
+	//@}
 
 private:
 	/*!
@@ -192,10 +184,10 @@ public:
 	\brief 取缓冲区块数。
 	\since build 273
 	*/
-	DefGetter(const ynothrow, size_t, BlockN, nBlock)
+	DefGetter(const ynothrow, size_t, BlockN, n_block)
 	DefGetter(const ynothrow, Encoding, Encoding, encoding)
 	DefGetter(const ynothrow, size_t, Size, fsize)
-	DefGetter(const ynothrow, size_t, TextSize, nTextSize)
+	DefGetter(const ynothrow, size_t, TextSize, n_text_size)
 
 	/*!
 	\brief 取文本字节位置对应的迭代器。

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3006
+\version r3008
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2016-05-09 13:29 +0800
+	2016-05-18 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -688,7 +688,7 @@
 \since build 628
 \todo 判断语言实现版本。
 */
-#if YB_IMPL_GNUCPP
+#if YB_IMPL_GNUCPP || YB_IMPL_CLANGPP
 #	define yfsig __PRETTY_FUNCTION__
 #elif defined(__FUNCSIG__)
 #	define yfsig __FUNCSIG__
@@ -770,6 +770,7 @@
 /*!
 \def ythread
 \brief 线程局部存储：若实现支持，指定为 \c thread_local 。
+\warning MinGW GCC 使用的 emutls 实现缺陷导致静态初始化可能失败。
 \since build 425
 \todo 加入 \c __thread 和 \c __declspec(thread) 。
 */

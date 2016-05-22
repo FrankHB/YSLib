@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11441
+\version r11539
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-05-16 21:35 +0800
+	2016-05-23 05:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,105 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ "macro %yfsig" @ 'YB_IMPL_CLANGPP' @ %YDefinition
+			^ '__PRETTY_FUNCTION__',
+			// Now Clang++ should behave similar as G++.
+		/ %YStandardEx $=
+		(
+			/ %TypeTraits $=
+			(
+				+ "unary type trait %is_referenceable",
+				/ "binary type traits %(is_swappable_with, \
+					is_nothrow_swappable_with)" $=
+				(
+					* "wrongly implied for lvalue reference type as parameters"
+						$since b686,
+					* "missing referenceable type check" $since b686
+						$= (/ $impl ^ $dep_from "%is_referenceable")
+				)
+			),
+			* "ill-formed use of 'size_type'" @ "function template %str_rfind#2"
+				@ %CString $since b640
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ "public data members %(nTextSize, nBlock, mBuffer)" @ "class \
+					%TextFileBuffer" @ %TextManager -> "private data members",
+					// It is dangerous to make them public. This also make \
+						names conforming to convention about access-specifiers.
+				/ %TextFile $=
+				(
+					/ $dev $lib "declarations of %(CheckBOM, DetectBOM) with \
+						pointer parameters" ^ 'YB_NONNULL',
+					+ "function %DetectBOM with %string_view parameter",
+					/ @ "function %DetectBOM with 'istream&' parameter" $=
+					(
+						(
+						/ "checked nonnegative read count result"
+							^ "%(istream::gount, CheckNonnegativeScalar)",
+						/ "tested BOM" ^ "%string_view" $dep_from
+							"function %DetectBOM with %string_view parameter"
+						);
+						* $comp "non-empty BOM less than 4 bytes (that is, one \
+							of UTF-8, UTF-16LE or UTF-16BE) not detected when \
+							for files whose size is not greater than 4" $since
+							b621,
+					),
+					* "wrongly detected UTF-16LE for UTF-32LE BOM"
+						@ "functions %DetectBOM" $orig (@ "member function \
+						%TextFile::CheckBOM" $since $before b132)
+						// The order makes sense. Since UTF-16LE BOM is the \
+							prefix of UTF-32LE BOM, it should be checked later.
+				),
+				* $comp "assertion failed for files with only a non-empty BOM \
+					less than 4 bytes" @ "member function \
+					%TextManager::operator[]" @ %TextManager $since b621
+					$dep_from "%DecetBOM" @ %TextFile;
+			),
+			/ @ "class %TreeList" @ %UI.TreeView $=
+			(
+				* $doc "missing requirement on %ExtractText" $since b532,
+				/ DLDI "function %GetIndentWidth" ^ "%IndentMap::cend"
+					~ "%IndentMap::end",
+				/ @ "function %Bind" $=
+				(
+					* "missing strong exception safety" $since b532;
+					* $comp "corruptied contents by duplicate calls due to \
+						missing clearing list, indent map and expanded set"
+						$since b532
+				),
+				* "invalid access at end of indent map"
+					@ "function %CheckNodeState" $since b532
+			)
+		),
+		(
+		+ "function %FetchModuleFileName" @ %'YCLib_(Win32)'.MinGW32;
+		/ "adjusted default base path for root of configuartion and \
+			configuration file path based on image base path" @ "platform \
+			%Win32" @ %Helper.Initialization ~ "current working directory"
+		)
+	),
+	/ %YReader $=
+	(
+		* $comp "assertion failed for files with only a non-empty BOM less \
+			than 4 bytes" @ %DSReader $since b621 $dep_from
+			%YFramework.YSLib.Service.TextManager,
+			// This would cause inifinte loop with identical conversion states for specific files after the assertion is suppressed.
+		* $comp "crash after collapse and expanding at last node" @ "tree view \
+			test" @ %ShlExplorer $since b534 $dep_from
+			("%TreeList::CheckNodeState" @ %YFramework.YSLib.UI.TreeView)
+	);
+),
+
+b693
 (
 	/ %YBase.YStandardEx $=
 	(
