@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1511
+\version r1518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2016-02-12 22:46 +0800
+	2016-05-24 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -250,7 +250,6 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	: ShlDS(h_dsk_up, h_dsk_dn),
 	dynWgts_Main(FetchWidgetLoader(), TU_Explorer_Main),
 	dynWgts_Sub(FetchWidgetLoader(), TU_Explorer_Sub),
-	pFrmAbout(make_unique<FrmAbout>()),
 	fpsCounter(std::chrono::milliseconds(500)),
 	btnSwitchMain(*this, {234, 170}), btnSwitchSub(*this, {234, 170})
 {
@@ -312,9 +311,11 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		DeclDynWidgetN(TreeView, tvNodes, node_pnlPage3)
 
 		tvNodes.GetExtractText() = [](const ValueNode& nd) -> String{
-			TryRet(TreeList::DefaultExtractText(nd))
+			const String& n(nd.GetName());
+
+			TryRet(n + u": " + TreeList::DefaultExtractText(nd))
 			CatchIgnore(ystdex::bad_any_cast&)
-			return "<NONE>";
+			return n;
 		};
 		tvNodes.GetTreeRootRef() = FetchRoot();
 		tvNodes.BindView();
@@ -334,11 +335,11 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	dsk_s += root_sub,
 	// XXX: NPL script should be used to describe Z-order variable.
 	dsk_s.Add(btnSwitchSub, 96),
-	AddWidgetsZ(root_sub, DefaultWindowZOrder, *pFrmAbout);
+	AddWidgetsZ(root_sub, DefaultWindowZOrder, pnlAbout);
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1, *pFrmAbout),
+	unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1, pnlAbout),
 	unseq_apply(bind(&ShlDS::WrapForSwapScreens, this, _1, ref(SwapMask)),
 		dsk_m, dsk_s),
 	ani.Reset(make_observer(&pnlTest1)),
@@ -585,7 +586,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 			switch(e.Value)
 			{
 			case 1U:
-				Show(*pFrmAbout);
+				Show(pnlAbout);
 				break;
 			case 2U:
 				SwitchVisibleToFront(pnlSetting);

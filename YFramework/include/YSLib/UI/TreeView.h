@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r268
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2015-05-22 11:17 +0800
+	2016-05-24 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,15 +97,20 @@ protected:
 private:
 	/*!
 	\brief 列表项位置索引。
+	\sa QueryNodeState
 	\since build 532
 
 	以列表项的最大位置为键，映射到缩进值和相同缩进的连续列表项数量。
+	折叠的节点即便和之后的项具有相同缩进仍占单独的项，以避免无法和叶节点区分。
 	*/
 	IndentMap indent_map{};
 	SPos tmp_margin_left = 0;
 	/*!
 	\brief 判断是否已经展开的索引。
+	\warning 当前不支持设置状态，修改子节点后若状态无法保持一致，需要重新绑定。
+	\sa Bind
 	\since build 532
+	\todo 除了重新绑定外，允许设置状态，避免修改子节点后的状态不一致。
 	\todo 使用 trie 树优化。
 	*/
 	set<NodePath> expanded{};
@@ -161,9 +166,6 @@ public:
 	PDefH(void, BindView, size_t max_depth = size_t(-1))
 		ImplExpr(Bind(max_depth), ResetView())
 
-	NodeState
-	CheckNodeState(IndexType) const;
-
 	/*!
 	\brief 满足节点折叠条件（状态为 NodeState::Expanded ）时折叠节点。
 	\return 折叠前节点的状态。
@@ -197,6 +199,14 @@ private:
 	void
 	ExpandOrCollapseNodeImpl(NodeState, size_t);
 	//@}
+
+public:
+	/*!
+	\brief 查询指定索引的列表项对应的节点状态。
+	\since build 695
+	*/
+	NodeState
+	QueryNodeState(IndexType) const;
 };
 
 
@@ -246,8 +256,12 @@ public:
 	PDefH(void, BindView, size_t max_depth = size_t(-1))
 		ImplExpr(GetTreeListRef().BindView(max_depth))
 
-	PDefH(void, CheckNodeState, IndexType idx)
-		ImplExpr(GetTreeListRef().CheckNodeState(idx))
+	/*!
+	\brief 查询指定索引的列表项对应的节点状态。
+	\since build 695
+	*/
+	PDefH(void, QueryNodeState, IndexType idx)
+		ImplExpr(GetTreeListRef().QueryNodeState(idx))
 };
 
 } // namespace UI;

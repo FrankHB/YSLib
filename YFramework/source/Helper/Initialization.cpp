@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2940
+\version r3029
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-23 05:08 +0800
+	2016-05-24 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,9 +38,7 @@
 #include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
 #include YFM_Helper_GUIApplication // for FetchEnvironment;
 //#include <clocale>
-#if YCL_Android
-#	include <unistd.h> // for F_OK;
-#elif YCL_Win32
+#if YCL_Win32
 #	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset;
 #endif
 #include YFM_NPL_SContext
@@ -95,60 +93,37 @@ yconstexpr const char TU_MIME[]{u8R"NPLA1(
 )
 )NPLA1"};
 
-#if YCL_DS
-#	define ROOTW "/"
-#	define DATA_DIRECTORY ROOTW "Data/"
-#	define DEF_FONT_PATH ROOTW "Font/FZYTK.TTF"
-#	define DEF_FONT_DIRECTORY ROOTW "Font/"
-#	define CONF_PATH "yconf.txt"
-#elif YCL_Win32
-#	define ROOTW FetchExecutableImageDirectory_Win32().c_str()
-#	define DATA_DIRECTORY ROOTW
-#	define DEF_FONT_PATH (FetchSystemFontDirectory_Win32() + "SimSun.ttc").c_str()
-#	define DEF_FONT_DIRECTORY ROOTW
-// TODO: Reduce overhead?
-#	define CONF_PATH (FetchExecutableImageDirectory_Win32() + "yconf.txt").c_str()
-
-//! \since build 694
-string
-FetchExecutableImageDirectory_Win32()
+#undef CONF_PATH
+#undef DATA_DIRECTORY
+#undef DEF_FONT_DIRECTORY
+#undef DEF_FONT_PATH
+#if YCL_Win32 || YCL_Android
+//! \since build 695
+const string&
+FetchWorkingRoot()
 {
-	// XXX: Pedantic.
-	// TODO: Reuse the string literal for other functions?
-	const auto sp(L"/\\");
-	const auto image(ystdex::rtrim(platform_ex::FetchModuleFileName(), sp));
-	wstring_view sv(image);
-	const auto epos(sv.find_last_of(sp));
-
-	// TODO: Simplify?
-	if(epos != wstring_view::npos)
-		sv.remove_suffix(sv.size() - epos - 1);
-
-	// XXX: Pedantic.
-	ystdex::rtrim(sv, sp);
-	return platform_ex::WCSToMBCS(sv) + '\\';
-}
-//! \since build 693
-inline PDefH(string, FetchSystemFontDirectory_Win32, )
-	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
-	//	%CSIDL_FONTS. See https://msdn.microsoft.com/en-us/library/dd378457.aspx.
-	ImplRet(platform_ex::WCSToMBCS(platform_ex::FetchWindowsPath()) + "Fonts\\")
-#elif YCL_Android
-//! \since build 506
-string
-FetchWorkingRoot_Android()
-{
-	static struct Init
+	static const struct Init
 	{
 		string Path;
 
 		Init()
 			: Path([]{
+#	if YCL_Win32
+				IO::Path image(platform::ucast(
+					platform_ex::FetchModuleFileName().data()));
+
+				if(!image.empty())
+					image.pop_back();
+				auto res(image.GetString().GetMBCS());
+
+				if(Verify(res))
+					return res;
+#	else
 				const char*
 					sd_paths[]{"/sdcard/", "/mnt/sdcard/", "/storage/sdcard0/"};
 
 				for(const auto& path : sd_paths)
-					if(uaccess(path, F_OK) == 0)
+					if(Verify(path))
 					{
 						YTraceDe(Informative, "Successfully found SD card path"
 							" '%s' as root path.", path);
@@ -157,31 +132,59 @@ FetchWorkingRoot_Android()
 					else
 						YTraceDe(Informative,
 							"Failed accessing SD card path '%s'.", path);
+#	endif
 				throw GeneralEvent("Failed finding working root path.");
 			}())
 		{}
+
+		static bool
+		Verify(const string& path)
+		{
+			if(IO::VerifyDirectory(path))
+			{
+				YTraceDe(Informative, "Initialized image path '%s'.",
+					path.c_str());
+				return true;
+			}
+			return {};
+		}
 	} init;
 
 	return init.Path;
 }
 
-//! \since build 506
-inline PDefH(string, FetchDataDirectory_Android, )
-	ImplRet(FetchWorkingRoot_Android() + "Data/")
-#	define ROOTW FetchWorkingRoot_Android()
-#	define DATA_DIRECTORY FetchDataDirectory_Android()
-#	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
-#	define DEF_FONT_DIRECTORY "/system/fonts/"
 // TODO: Reduce overhead?
-#	define CONF_PATH (FetchWorkingRoot_Android() + "yconf.txt").c_str()
+#	define CONF_PATH (FetchWorkingRoot() + "yconf.txt").c_str()
+#endif
+#if YCL_DS
+#	define DATA_DIRECTORY "/Data/"
+#	define DEF_FONT_DIRECTORY "/Font/"
+#	define DEF_FONT_PATH "/Font/FZYTK.TTF"
+#elif YCL_Win32
+#	define DATA_DIRECTORY FetchWorkingRoot()
+#	define DEF_FONT_PATH (FetchSystemFontDirectory_Win32() + "SimSun.ttc")
+//! \since build 693
+inline PDefH(string, FetchSystemFontDirectory_Win32, )
+	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
+	//	%CSIDL_FONTS. See https://msdn.microsoft.com/en-us/library/dd378457.aspx.
+	ImplRet(platform_ex::WCSToMBCS(platform_ex::FetchWindowsPath()) + "Fonts\\")
+#elif YCL_Android
+#	define DATA_DIRECTORY (FetchWorkingRoot() + "Data/")
+#	define DEF_FONT_DIRECTORY "/system/fonts/"
+#	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
 #elif YCL_Linux
-#	define ROOTW "./"
-#	define DATA_DIRECTORY ROOTW
-#	define DEF_FONT_PATH ROOTW "SimSun.ttc"
-#	define DEF_FONT_DIRECTORY ROOTW
-#	define CONF_PATH "yconf.txt"
+#	define DEF_FONT_PATH "./SimSun.ttc"
 #else
 #	error "Unsupported platform found."
+#endif
+#ifndef CONF_PATH
+#	define CONF_PATH "yconf.txt"
+#endif
+#ifndef DATA_DIRECTORY
+#	define DATA_DIRECTORY "./"
+#endif
+#ifndef DEF_FONT_DIRECTORY
+#	define DEF_FONT_DIRECTORY DATA_DIRECTORY
 #endif
 
 //! \since build 549

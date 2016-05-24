@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1871
+\version r1888
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2016-04-09 23:51 +0800
+	2016-05-23 07:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,25 +188,22 @@ struct str_algo<index_sequence<_vIdx, _vSeq...>>
 } // unnamed namespace;
 
 
+//! \ingroup unary_type_traits
+//@{
 /*!
-\ingroup unary_type_traits
+\brief 判断指定类型是否为类字符串类型。
+\since build 695
+*/
+template<typename _type>
+struct is_string_like : details::is_string_like<_type>
+{};
+
+/*!
 \brief 判断指定类型是否为字符串类类型。
 \since build 557
 */
-//@{
 template<typename _type>
-struct is_string_class : bool_constant<std::is_class<_type>::value
-	&& details::is_string_like<_type>::value>
-{};
-
-//! \note 排除不完整类型的指针。
-template<typename _type>
-struct is_string_class<_type&> : false_type
-{};
-
-//! \note 排除不完整类型的引用。
-template<typename _type>
-struct is_string_class<_type*> : false_type
+struct is_string_class : and_<is_class<_type>, is_string_like<_type>>
 {};
 //@}
 
