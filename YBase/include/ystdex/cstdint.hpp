@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015 FrankHB.
+	© 2012-2013, 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r318
+\version r354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2015-08-11 09:35 +0800
+	2016-05-24 13:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_cstdint_hpp_
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
-#include "iterator_op.hpp" // for integral_constant, size_t, make_signed_t,
-//	make_unsigned_t, std::int64_t, std::uint64_t, yconstraint,
+#include "iterator_op.hpp" // for CHAR_BIT, integral_constant, size_t,
+//	make_signed_t, make_unsigned_t, std::int64_t, std::uint64_t, yconstraint,
 //	is_undereferenceable, ystdex::make_reverse_iterator;
 #include <limits>
 #include <numeric> // for std::accumulate;
@@ -37,10 +37,11 @@
 namespace ystdex
 {
 
+//! \todo 使用单独的头文件。
+//@{
 /*!
 \brief 字节序。
 \since build 594
-\todo 使用单独的头文件。
 */
 enum class byte_order
 {
@@ -50,6 +51,44 @@ enum class byte_order
 	big = 3,
 	PDP = 4
 };
+
+
+//! \since build 695
+//@{
+namespace details
+{
+
+struct bit_order_tester
+{
+	unsigned char le : 4, : CHAR_BIT - 4;
+};
+
+union byte_order_tester
+{
+	std::uint_least32_t n;
+	byte p[4];
+};
+
+} // namespace details;
+
+//! \brief 测试本机字节序。
+yconstfn_relaxed YB_STATELESS byte_order
+native_byte_order()
+{
+	yconstexpr const details::byte_order_tester x = {0x01020304};
+
+	return x.p[0] == 4 ? byte_order::little : (x.p[0] == 1 ? byte_order::big
+		: (x.p[0] == 2 ? byte_order::PDP : byte_order::unknown));
+}
+
+//! \brief 测试本机位序。
+yconstfn YB_STATELESS bool
+native_little_bit_order()
+{
+	return bool(details::bit_order_tester{1}.le & 1);
+}
+//@}
+//@}
 
 
 /*!

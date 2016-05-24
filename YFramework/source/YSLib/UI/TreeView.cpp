@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r766
+\version r820
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2016-05-22 14:54 +0800
+	2016-05-24 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ void
 bind_node(const _tNode& node, _fCallable f, _fPred pred, const _tPath& pth,
 	size_t depth = 0)
 {
-	if(pred(pth, depth) && !node.empty())
+	if(!node.empty() && pred(pth, depth))
 	{
 		auto cur_path(pth);
 
@@ -113,7 +113,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 		e.Handled = true;
 	},
 	FetchEvent<TouchDown>(unit) += [this](CursorEventArgs&& e){
-		const auto st(CheckNodeState(idxShared));
+		const auto st(QueryNodeState(idxShared));
 
 		if(st != NodeState::None)
 		{
@@ -130,7 +130,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 	},
 	FetchEvent<CursorOver>(unit) += [this](CursorEventArgs&& e)
 	{
-		if(CheckNodeState(idxShared) != NodeState::None)
+		if(QueryNodeState(idxShared) != NodeState::None)
 		{
 			const Rect& box(GetIndentBoxBounds(idxShared));
 			const auto old(idxCursorOver);
@@ -142,7 +142,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 	},
 	FetchEvent<Leave>(unit) += [this]{
 		if(idxCursorOver != size_t(-1)
-			&& CheckNodeState(idxCursorOver) != NodeState::None)
+			&& QueryNodeState(idxCursorOver) != NodeState::None)
 		{
 			Invalidate(GetUnitRef(), GetIndentBoxBounds(idxCursorOver));
 			idxCursorOver = size_t(-1);
@@ -153,7 +153,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 		tmp_margin_left = LabelBrush.Margin.Left;
 		// XXX: Conversion to 'SPos' might be implementation-defined.
 		LabelBrush.Margin.Left += SPos(GetIndentWidth(idxShared));
-		switch(CheckNodeState(idxShared))
+		switch(QueryNodeState(idxShared))
 		{
 		case NodeState::Branch:
 			DrawArrow(e.Target, e.ClipArea, GetIndentBox() + Vec(e.Location.X,
@@ -260,7 +260,7 @@ TreeList::Bind(size_t max_depth)
 	decltype(expanded) exp;
 	// TODO: Simplify using tuple or similar construct?
 #if false
-	// XXX: These checkes cannot be used since %propagate_on_container_swap or
+	// XXX: These checks cannot be used since %propagate_on_container_swap or
 	//	ISO C++17 %is_always_equal member of %allocator_traits
 	//	is not used and container types are meeting nothrow swapping guarantee
 	//	but not noexcept specificication yet.
@@ -273,21 +273,26 @@ TreeList::Bind(size_t max_depth)
 #endif
 	IndentType indent(1);
 	auto index(IndexType(-1));
+	const auto bind_insert([&](size_t depth){
+		imap.emplace(index, indent);
+		indent = depth;
+	});
 
 	// TODO: Optimize implementation.
+	// TODO: Merge implementation with %ExpandOrCollapseNodeImpl?
 	bind_node(TreeRoot, [&, this](const ValueNode& node,
 		const NodePath& pth, size_t depth){
 		lst.push_back(ExtractText(node));
 		if(indent != depth)
-		{
-			imap.emplace(index, indent);
-			indent = depth;
-		}
+			bind_insert(depth);
 		if(depth < max_depth && !node.empty())
 			exp.insert(pth);
 		++index;
-	}, [=](const NodePath&, size_t depth) ynothrow{
-		return depth < max_depth;
+	}, [&](const NodePath&, size_t depth) ynothrow -> bool{
+		if(depth < max_depth)
+			return true;
+		bind_insert(depth);
+		return {};
 	}, NodePath());
 	if(index != IndexType(-1))
 		imap.emplace(index, indent);
@@ -297,31 +302,9 @@ TreeList::Bind(size_t max_depth)
 }
 
 TreeList::NodeState
-TreeList::CheckNodeState(IndexType idx) const
-{
-	if(!GetNodeRef(idx).empty())
-	{
-		auto i(indent_map.find(idx));
-		const auto e(indent_map.cend());
-
-		if(i != e)
-		{
-			const auto indent(i->second);
-
-			// TODO: Optimize.
-			return ++i != e && i->second == indent + 1
-				&& ystdex::exists(expanded, GetNodePath(idx))
-				? NodeState::Expanded : NodeState::Branch;
-		}
-		return {};
-	}
-	return NodeState::None;
-}
-
-TreeList::NodeState
 TreeList::ExpandOrCollapseNode(NodeState expected, size_t idx)
 {
-	const auto st(CheckNodeState(idx));
+	const auto st(QueryNodeState(idx));
 
 	if(st == expected)
 		ExpandOrCollapseNodeImpl(expected, idx);
@@ -331,7 +314,7 @@ TreeList::ExpandOrCollapseNode(NodeState expected, size_t idx)
 void
 TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 {
-	YAssert(CheckNodeState(idx) == st, "Invalid internal state found."),
+	YAssert(QueryNodeState(idx) == st, "Invalid internal state found."),
 	YAssert(st != NodeState::None, "Invalid state argument found.");
 
 	const auto& branch_pth(GetNodePath(idx));
@@ -366,19 +349,24 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		IndentType indent(idt + 1);
 		vector<pair<IndexType, IndentType>> vec_ins;
 		vector<String> text_list;
+		const auto bind_insert([&](size_t depth){
+			vec_ins.emplace_back(index, indent);
+			indent = depth;
+		});
 
 		// TODO: Optimize implementation.
+		// TODO: Merge implementation with %Bind?
 		bind_node(branch,
 			[&, this](const ValueNode& node, const NodePath&, size_t depth){
 			text_list.push_back(ExtractText(node));
 			if(indent != depth)
-			{
-				vec_ins.emplace_back(index, indent);
-				indent = depth;
-			}
+				bind_insert(depth);
 			++index;
-		}, [this](const NodePath& pth, size_t){
-			return ystdex::exists(expanded, pth);
+		}, [&, this](const NodePath& pth, size_t depth) -> bool{
+			if(ystdex::exists(expanded, pth))
+				return true;
+			bind_insert(depth);
+			return {};
 		}, branch_pth, idt);
 		YAssert(index != idx, "Invalid state found.");
 		vec_ins.emplace_back(index, indent);
@@ -462,6 +450,27 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 			Collapse(idx);
 		}
 	}
+}
+
+TreeList::NodeState
+TreeList::QueryNodeState(IndexType idx) const
+{
+	if(!GetNodeRef(idx).empty())
+	{
+		auto i(indent_map.find(idx));
+		const auto e(indent_map.cend());
+
+		if(i != e)
+		{
+			const auto indent(i->second);
+
+			// TODO: Optimize.
+			return ++i != e && i->second == indent + 1
+				&& ystdex::exists(expanded, GetNodePath(idx))
+				? NodeState::Expanded : NodeState::Branch;
+		}
+	}
+	return NodeState::None;
 }
 
 

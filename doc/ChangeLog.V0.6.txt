@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11539
+\version r11628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-05-23 05:31 +0800
+	2016-05-24 21:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,96 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %String $=
+			(
+				+ "unary type trait %is_string_like",
+				/ @ "unary type trait %is_string_class" $=
+				(
+					(
+					- "unnecessary specializations";
+					* $doc "comments mismatched" $since b557
+					),
+					/ DLDI "simplified" ^ $dep_from "%is_string_like"
+				)
+			),
+			+ "functions %(native_byte_order, native_little_bit_order)"
+				@ %CStandardInteger
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %Helper.Initialization $=
+		(
+			/ DLDI "simplified paths configuration",
+			/ "path getting" $=
+			(
+				/ @ "platform %Win32" $=
+				(
+					/ DLDI "simplified" ^ "%IO::Path",
+					+ DLDI "caching" ^ "static object",
+					+ "log for directory path with level 'Informative'"
+				),
+				+ "uniform path verification" ^ "%IO::VerifyDirectory",
+				* "SUID programs broke due to %uaccess check"
+					@ "platform %Android" $since b506
+					// It should do nothing with process elevation.
+					$= (/ "verifying path" ^ "uniform path verification"
+						~ "%uaccess")
+			)
+		),
+		/  @ %YSLib.UI.TreeView $=
+		(
+			/ @ "class %TreeList" $=
+			(
+				* "binding collapsed first branch subnodes as leaf nodes"
+					@ "function %Bind" $since b532
+					// This would only occur when the argument is small \
+						enough, but not zero. Note %CheckNodeState will only \
+						consider a branch node when the node is in the indent \
+						map, otherwise the leaf and branch nodes in same \
+						implied range cannot be differentiated.
+				/ DLDI "simplified function %CheckNodeState",
+				* "collapsed first branch subnodes treated as leaf nodes on \
+					expanding collpsed branch nodes" @ "function \
+					%ExpandOrCollapseNode" $orig (@ "constructor" $since b532)
+					// Ditto.
+			),
+			/ "function %CheckNodeState" @ "classes %(TreeList, TreeView)"
+				=> "%QueryNodeState"
+		)
+	),
+	/ %YReader $=
+	(
+		/ "class %FrmAbout" @ %About -> "%AboutPanel" $=
+		(
+			(
+			- "button %btnClose";
+				// Also to prevent warning: [-Wshadow].
+			/ "base class %Form" -> "%DialogPanel"
+			),
+			/ "version text" $=
+			(
+				* "duplicate 'PreAlpha'" $since b565,
+				* "outdated" $since b600
+			),
+			/ $comp $revert(b443)
+				"stopped splitting color changing when being clipped"
+		),
+		/ @ "class %ShlExplorer" @ %ShlExplorer $=
+		(
+			/ $forced "protected data member 'unique_ptr<FrmAbout> pFrmAbout;'"
+				-> 'AboutPanel pnlAbout{};' $dep_from %About,
+			/ "made node name shown" @ "tree view test" @ "constructor"
+		)
+	)
+),
+
+b694
 (
 	/ %YBase $=
 	(
