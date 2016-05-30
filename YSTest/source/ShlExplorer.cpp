@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1518
+\version r1528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2016-05-24 21:12 +0800
+	2016-05-30 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -328,18 +328,24 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	p_ChkFPS = &cbFPS,
 	tpDefault.Text = u"请输入文本",
 	tpDefault.BindByFocus(tbTest, bind(&TextPlaceholder::SwapTextBox<TextBox>,
-		_1, _2));
-	tpDefault.Font.SetStyle(FontStyle::Italic);
+		_1, _2)),
+	tpDefault.Font.SetStyle(FontStyle::Italic),
+	pnlAbout.OnCommand += [this]{
+		YTraceDe(Informative, "System information panel request received.");
+		pnlSysInfo.UpdateContents();
+		Show(pnlSysInfo);
+	};
 	dsk_m += root,
 	dsk_m.Add(btnSwitchMain, 96),
 	dsk_s += root_sub,
 	// XXX: NPL script should be used to describe Z-order variable.
 	dsk_s.Add(btnSwitchSub, 96),
-	AddWidgetsZ(root_sub, DefaultWindowZOrder, pnlAbout);
+	AddWidgetsZ(root_sub, DefaultWindowZOrder, pnlAbout, pnlSysInfo);
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1, pnlAbout),
+	unseq_apply(bind1(SetVisibleOf, false), pnlSetting, pnlTest1, pnlAbout,
+		pnlSysInfo),
 	unseq_apply(bind(&ShlDS::WrapForSwapScreens, this, _1, ref(SwapMask)),
 		dsk_m, dsk_s),
 	ani.Reset(make_observer(&pnlTest1)),

@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3506
+\version r3507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2016-02-15 16:42 +0800
+	2016-05-25 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -652,7 +652,7 @@ public:
 	\since build 641
 	*/
 	CharBitmap
-	GetGlyph(char32_t c, unsigned flags = 4UL) const;
+	GetGlyph(char32_t c, yimpl(unsigned flags = 4U)) const;
 	/*!
 	\brief 取字体对应的字符高度。
 	\since build 280

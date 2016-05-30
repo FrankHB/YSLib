@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2052
+\version r2054
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2016-03-10 14:54 +0800
+	2016-05-25 08:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,9 +70,9 @@ public:
 
 /*!
 \brief Shell 连接会话。
-\since build 391
+\since build 696
 */
-template<class _tShell, typename _tConnection = std::reference_wrapper<_tShell>>
+template<class _tShell, typename _tConnection = lref<_tShell>>
 class GShellSession
 {
 public:
