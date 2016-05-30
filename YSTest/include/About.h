@@ -11,13 +11,13 @@
 /*!	\file About.h
 \ingroup YReader
 \brief 关于界面。
-\version r66
+\version r90
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:07:32 +0800
 \par 修改时间:
-	2016-05-24 20:40 +0800
+	2016-05-30 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,15 @@ namespace YReader
 */
 class AboutPanel : public DialogPanel
 {
+public:
+	//! \since build 697
+	enum class Command
+	{
+		SystemInfo
+	};
+	//! \since build 697
+	GEvent<void(Command)> OnCommand{};
+
 protected:
 	//! \since build 434
 	DynamicWidget dynWgts;
@@ -50,6 +59,26 @@ public:
 	\since build 601
 	*/
 	~AboutPanel() override;
+};
+
+
+/*!
+\brief 系统信息面板。
+\since build 696
+*/
+class SystemInformationPanel : public DialogPanel
+{
+private:
+	TreeView view;
+
+public:
+	SystemInformationPanel();
+	//! \brief 虚析构：类定义外默认实现。
+	~SystemInformationPanel() override;
+
+	//! \brief 更新内容。
+	void
+	UpdateContents();
 };
 
 } // namespace YReader;

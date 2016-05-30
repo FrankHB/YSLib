@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1091
+\version r1167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-05-09 15:42 +0800
+	2016-05-30 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,33 +169,6 @@ inline PDefH(void, RegisterContextHandler, ContextNode& node,
 inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
 	const string& name, LiteralHandler f)
 	ImplExpr(node[name].Value = f)
-
-
-//! \brief 形式上下文处理器。
-class YF_API FormContextHandler
-{
-public:
-	ContextHandler Handler;
-
-	template<typename _func>
-	FormContextHandler(_func f)
-		: Handler(f)
-	{}
-
-	/*!
-	\brief 处理函数。
-	\exception NPLException 异常中立。
-	\throw LoggedEvent 警告：类型不匹配，
-		由 Handler 抛出的 ystdex::bad_any_cast 转换。
-	\throw LoggedEvent 错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
-		std::exception 转换。
-	\throw std::invalid_argument 项为空。
-
-	对非空项调用 Hanlder ，否则抛出异常。
-	*/
-	void
-	operator()(TermNode&, ContextNode&) const;
-};
 //@}
 
 
@@ -261,12 +234,22 @@ inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
 	ImplExpr(TermNode(std::move(tm)).SwapContent(term))
 //@}
 
+//! \pre 间接断言：参数指定的项非空。
+//@{
 /*!
 \brief 使用首个子项替换项的内容。
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
 	ImplExpr(LiftTerm(term, Deref(term.begin())))
+
+/*!
+\brief 使用最后一个子项替换项的内容。
+\since build 696
+*/
+inline PDefH(void, LiftLast, TermNode& term)
+	ImplExpr(LiftTerm(term, Deref(term.rbegin())))
+//@}
 
 
 //! \since build 685
@@ -359,6 +342,87 @@ inline PDefH(bool, ReduceFirst, TermNode& term, ContextNode& ctx)
 */
 YF_API void
 SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
+
+
+//! \since build 696
+//@{
+//! \brief 变换分隔符中缀表达式为前缀表达式。
+YF_API TermNode
+TransformForSeperator(const TermNode&, const ValueObject&, const ValueObject&,
+	const string& = {});
+
+//! \brief 递归变换分隔符中缀表达式为前缀表达式。
+YF_API TermNode
+TransformForSeperatorRecursive(const TermNode&, const ValueObject&,
+	const ValueObject&, const string& = {});
+
+/*!
+\brief 在项中查找指定分隔符，若找到则替换为前缀表达式。
+\return 是否找到并替换了项。
+\sa EvaluationPasses
+\sa TransformForSeperator
+*/
+YF_API bool
+ReplaceTermForSeperator(TermNode&, const ValueObject&, const ValueObject&);
+//@}
+
+
+/*!
+\brief 形式上下文处理器。
+\since build 674
+*/
+class YF_API FormContextHandler
+{
+public:
+	ContextHandler Handler;
+
+	template<typename _func>
+	FormContextHandler(_func f)
+		: Handler(f)
+	{}
+
+	/*!
+	\brief 处理函数。
+	\exception NPLException 异常中立。
+	\throw LoggedEvent 警告：类型不匹配，
+		由 Handler 抛出的 ystdex::bad_any_cast 转换。
+	\throw LoggedEvent 错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
+		std::exception 转换。
+	\throw std::invalid_argument 项为空。
+
+	对非空项调用 Hanlder ，否则抛出异常。
+	*/
+	void
+	operator()(TermNode&, ContextNode&) const;
+};
+
+
+//! \since build 696
+//@{
+//! \brief 函数上下文处理器。
+struct YF_API FunctionContextHandler
+{
+public:
+	FormContextHandler Handler;
+
+	template<typename _func>
+	FunctionContextHandler(_func f)
+		: Handler(f)
+	{}
+
+	void
+	operator()(TermNode&, ContextNode&) const;
+};
+
+
+//! \brief 注册函数上下文处理器。
+template<typename _func>
+void
+RegisterFunction(ContextNode& node, const string& name, _func f)
+{
+	A1::RegisterContextHandler(node, name, FunctionContextHandler(f));
+}
+//@}
 
 } // namesapce A1;
 

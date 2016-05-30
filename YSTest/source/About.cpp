@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r233
+\version r265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2016-05-24 21:24 +0800
+	2016-05-25 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,8 @@ const char TU_About[]{u8R"NPL(root
 	($type "Label")($bounds "8 36 192 40"))
 (lblCopyright
 	($type "Label")($bounds "8 80 192 20"))
+(btnSysInfo
+	($type "Button")($bounds "12 106 60 22"))
 (btnExit
 	($type "Button")($bounds "84 106 60 22"))
 )NPL"};
@@ -57,10 +59,12 @@ AboutPanel::AboutPanel()
 	DeclDynWidgetNode(Label, lblTitle)
 	DeclDynWidgetNode(Label, lblVersion)
 	DeclDynWidgetNode(Label, lblCopyright)
+	DeclDynWidgetNode(Button, btnSysInfo)
 	DeclDynWidgetNode(Button, btnExit)
 
-	AddWidgets(*this, root),
+	AddWidgetsZ(*this, 32, root),
 	lblTitle.Font.SetSize(20),
+	lblTitle.Font.SetStyle(FontStyle::Bold),
 	yunseq(
 	lblTitle.Background = nullptr,
 	lblTitle.Text = G_APP_NAME,
@@ -74,6 +78,7 @@ AboutPanel::AboutPanel()
 	lblCopyright.Background = nullptr,
 	lblCopyright.Text = String("(C)2009-2015 by ") + G_COMP_NAME,
 	lblCopyright.ForeColor = ColorSpace::Maroon,
+	btnSysInfo.Text = u"系统信息",
 	btnExit.Text = u"退出",
 	root.Background = SolidBrush({248, 120, 120}),
 	FetchEvent<TouchDown>(root) += [&](CursorEventArgs&& e){
@@ -87,15 +92,38 @@ AboutPanel::AboutPanel()
 	},
 	FetchEvent<TouchHeld>(root) += std::bind(OnTouchHeld_DraggingRaw,
 		std::placeholders::_1, std::ref(*this)),
-	FetchEvent<Click>(btnExit) += []{
-		YSLib::PostQuitMessage(0);
-	}
+	FetchEvent<Click>(btnSysInfo) += std::bind(std::ref(OnCommand),
+		Command::SystemInfo),
+	FetchEvent<Click>(btnSysInfo) += std::bind(Close, std::ref(*this)),
+	FetchEvent<Click>(btnExit)
+		+= std::bind(YSLib::PostQuitMessage, 0, DefaultQuitPriority)
 	);
-	MoveToFront(btnOK),
-	MoveToFront(btnClose),
 	SetInvalidationOf(*this);
 }
 ImplDeDtor(AboutPanel)
+
+
+SystemInformationPanel::SystemInformationPanel()
+	: DialogPanel({0, 0, 256, 170}),
+	view({0, 20, 256, 170})
+{
+	*this += view;
+}
+ImplDeDtor(SystemInformationPanel)
+
+void
+SystemInformationPanel::UpdateContents()
+{
+	view.GetExtractText() = [](const ValueNode& nd) -> String{
+		const String& n(nd.GetName());
+
+		TryRet(n + u": " + TreeList::DefaultExtractText(nd))
+		CatchIgnore(ystdex::bad_any_cast&)
+		return n;
+	};
+	view.GetTreeRootRef() = FetchRoot();
+	view.BindView();
+}
 
 } // namespace YReader;
 

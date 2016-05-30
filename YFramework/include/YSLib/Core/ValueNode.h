@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2588
+\version r2604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-05-08 02:05 +0800
+	2016-05-26 14:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,6 +65,10 @@ public:
 	using iterator = Container::iterator;
 	//! \since build 460
 	using const_iterator = Container::const_iterator;
+	//! \since build 696
+	using reverse_iterator = Container::reverse_iterator;
+	//! \since build 696
+	using const_reverse_iterator = Container::const_reverse_iterator;
 
 private:
 	string name{};
@@ -395,7 +399,6 @@ public:
 		ImplRet(GetContainer().begin())
 
 	//! \since build 598
-	//@{
 	DefFwdTmpl(const, pair<iterator YPP_Comma bool>, emplace,
 		container.emplace(yforward(args)...))
 
@@ -403,9 +406,9 @@ public:
 	DefFwdTmpl(, iterator, emplace_hint,
 		container.emplace_hint(yforward(args)...))
 
+	//! \since build 598
 	PDefH(bool, empty, ) const ynothrow
 		ImplRet(container.empty())
-	//@}
 
 	PDefH(iterator, end, )
 		ImplRet(GetContainerRef().end())
@@ -433,6 +436,19 @@ public:
 		return ystdex::insert_or_assign_hint(container, hint, yforward(k),
 			yforward(arg));
 	}
+	//@}
+
+	//! \since build 696
+	//@{
+	PDefH(reverse_iterator, rbegin, )
+		ImplRet(GetContainerRef().rbegin())
+	PDefH(const_reverse_iterator, rbegin, ) const
+		ImplRet(GetContainer().rbegin())
+
+	PDefH(reverse_iterator, rend, )
+		ImplRet(GetContainerRef().rend())
+	PDefH(const_reverse_iterator, rend, ) const
+		ImplRet(GetContainer().rend())
 	//@}
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1727
+\version r1735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2016-05-16 13:28 +0800
+	2016-05-25 09:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,6 +177,12 @@ inline PDefH(bool, Activate, const shared_ptr<Shell>& hShl)
 
 
 /*!
+\brief 默认退出消息优先级。
+\since build 696
+*/
+yconstexpr const Messaging::Priority DefaultQuitPriority(0xF0);
+
+/*!
 \brief 全局默认队列消息发送函数。
 \exception LoggedEvent 找不到全局应用程序实例或消息发送失败。
 \note 线程安全。
@@ -201,10 +207,11 @@ PostMessage(Messaging::Priority prior,
 //@}
 
 /*!
-\brief 以优先级 p 发起 Shell 终止请求，返回 nExitCode。
+\brief 以指定错误码和优先级发起 Shell 终止请求。
+\since build 696
 */
 YF_API void
-PostQuitMessage(int nExitCode, Messaging::Priority p = 0xF0);
+PostQuitMessage(int = 0, Messaging::Priority p = DefaultQuitPriority);
 
 } // namespace YSLib;
 

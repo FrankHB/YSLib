@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1021
+\version r1113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-05-09 15:43 +0800
+	2016-05-30 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,27 +123,6 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 		insert_child(mapper ? mapper(tm) : nested_call(tm), node_con);
 	});
 	return AsNode(name, std::move(node_con));
-}
-
-
-void
-FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
-{
-	// TODO: Is it worth matching specific builtin special forms here?
-	try
-	{
-		if(!term.empty())
-			Handler(term, ctx);
-		else
-			// TODO: Use more specific exceptions.
-			throw std::invalid_argument("Empty term found.");
-	}
-	CatchExpr(NPLException&, throw)
-	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(
-		ystdex::sfmt("Mismatched types ('%s', '%s') found.",
-		e.from(), e.to()), Warning))
-	// TODO: Use nest exceptions?
-	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
 }
 
 
@@ -287,6 +266,113 @@ SetupTraceDepth(ContextNode& root, const string& name)
 		});
 	}
 	);
+}
+
+
+TermNode
+TransformForSeperator(const TermNode& term, const ValueObject& pfx,
+	const ValueObject& delim, const string& name)
+{
+	auto res(AsNode(name, term.Value));
+
+	if(!term.empty())
+	{
+		res += AsIndexNode(res, pfx);
+		ystdex::split(term.begin(), term.end(), std::bind(HasValue,
+			std::placeholders::_1, std::ref(delim)), [&](TNCIter b, TNCIter e){
+			auto child(AsIndexNode(res));
+
+			while(b != e)
+			{
+				child += {b->GetContainer(), MakeIndex(child), b->Value};
+				++b;
+			}
+			res += std::move(child);
+		});
+	}
+	return res;
+}
+
+TermNode
+TransformForSeperatorRecursive(const TermNode& term, const ValueObject& pfx,
+	const ValueObject& delim, const string& name)
+{
+	auto res(AsNode(name, term.Value));
+
+	if(!term.empty())
+	{
+		res += AsIndexNode(res, pfx);
+		ystdex::split(term.begin(), term.end(), std::bind(HasValue,
+			std::placeholders::_1, std::ref(delim)), [&](TNCIter b, TNCIter e){
+			while(b != e)
+				res += TransformForSeperatorRecursive(*b++, pfx, delim,
+					MakeIndex(res));
+		});
+	}
+	return res;
+}
+
+bool
+ReplaceTermForSeperator(TermNode& term, const ValueObject& pfx,
+	const ValueObject& delim)
+{
+	if(std::find_if(term.begin(), term.end(), std::bind(HasValue,
+		std::placeholders::_1, std::ref(delim))) != term.end())
+		term = TransformForSeperator(term, pfx, delim);
+	return {};
+}
+
+
+void
+FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
+{
+	// TODO: Is it worth matching specific builtin special forms here?
+	try
+	{
+		if(!term.empty())
+			Handler(term, ctx);
+		else
+			// TODO: Use more specific exceptions.
+			throw std::invalid_argument("Empty term found.");
+	}
+	CatchExpr(NPLException&, throw)
+	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(
+		ystdex::sfmt("Mismatched types ('%s', '%s') found.",
+		e.from(), e.to()), Warning))
+	// TODO: Use nest exceptions?
+	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
+}
+
+
+void
+FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
+{
+	auto& con(term.GetContainerRef());
+
+	// NOTE: Arguments evaluation: applicative order.
+	ReduceArguments(con, ctx);
+
+	const auto n(con.size());
+
+	if(n > 1)
+	{
+		// NOTE: Matching function calls.
+		auto i(con.begin());
+
+		// NOTE: Adjust null list argument application
+		//	to function call without arguments.
+		// TODO: Improve performance of comparison?
+		if(n == 2 && Deref(++i).Value == ValueToken::Null)
+			con.erase(i);
+		Handler(term, ctx);
+	}
+	// TODO: Unreduced form check.
+#if false
+	if(n == 0)
+		YTraceDe(Warning, "Empty reduced form found.");
+	else
+		YTraceDe(Warning, "%zu term(s) not reduced found.", n);
+#endif
 }
 
 } // namesapce A1;

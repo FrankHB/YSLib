@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11628
+\version r11712
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-05-24 21:28 +0800
+	2016-05-30 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,91 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %YApplication $=
+				(
+					+ "yconstexpr object %DefaultQuitPriority",
+					/ @ "function %PostQuitMessage" $=
+					(
+						/ "hard-coded default argument for 2nd parameter"
+							-> $dep_from "%DefaultQuitPriority",
+						+ "default argument '0' for 1st parameter"
+					)
+				),
+				/ @ "class %ValueNode" @ %Core.ValueNode $=
+				(
+					+ "aliases %(reverse_iterator, const_reverse_iterator)";
+					+ "2 functions %(rbegin, rend)"
+				)
+			),
+			/ $dev $lib @ "class %Font" %Adaptor.Font $=
+			(
+				/ "explicitly specified default argument as internal"
+					@ "function %GetGlyph" ^ "%yimpl",
+				/ $design $impl "simplified check" @ "function %SetSize"
+					^ "%IsInClosedInterval"
+			)
+		),
+		/ "default template argument" @ "class template %GShellSession"
+			@ %Helper.ShellHelper ^ "%lref" ~ "%std::reference_wrapper",
+		/ %YCLib.JNI $=
+		(
+			/ $lib $impl "class %JNIBase" ^ "%lref" ~ "%std::reference_wrapper",
+				// This means now %::JavaVM and %::JNIEnv do not need to be \
+					complete types. They should not violate ODR, though.
+			/ DLDI "minimalized header dependencies"
+		),
+		/ %NPL.NPLA1 $=
+		(
+			+ "function %LiftLast" ^ $dep_from
+				("%ValueNode::rbegin" @ %YSLib.Core.ValueNode),
+			+ "functions %(TransformForSeperator, \
+				TransformForSeperatorRecursive; ReplaceTermForSeperator)",
+			+ "class %FunctionContextHandler; function template \
+				%RegisterFunction"
+		)
+	),
+	/ %YReader $=
+	(
+		/ "class %AboutPanel" @ %About $=
+		(
+			(
+			+ "enum class %Command";
+			+ "event OnCommand"
+			),
+			/ @ "constructor" $=
+			(
+				/ DLDI "simplified quit message binding" ^ ("%std::bind",
+					$dep_from "%DefaultQuitPriority"
+					@ %YFramework.YSLib.Core.YApplication),
+				* "touched panel contents caused dialog buttons hidden in the \
+					back side of the dynamic widget root" $since b695
+					$= (/ ^ "Z order 32 for dynamic widget root"),
+				/ "set font of title of application with bold style",
+				(
+				+ "button %btnSysInfo";
+				+ "command binding for %btnSysInfo" ^ $dep_from "%OnCommand"
+				)
+			),
+			+ "class %SystemInformationPanel"
+		);
+		+ "support for system information UI by clicking %btnSysInfo on about \
+			panel" @ "class %ShlExplorer" @ %ShlExplorer
+		(
+			+ "protected data member %pnlSysInfoPanel";
+			+ "updating contents and showing system information panel"
+				@ "about panel %OnCommand handler"
+		)
+	)
+),
+
+b695
 (
 	/ %YBase $=
 	(

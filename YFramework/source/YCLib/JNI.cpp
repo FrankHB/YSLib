@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r145
+\version r149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2015-09-08 08:51 +0800
+	2016-05-25 08:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,12 +27,12 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_JNI // for platform::Descriptions, platform::Deref,
+#include YFM_YCLib_JNI
+#if YF_Use_JNI
+#include YFM_YCLib_Debug // for platform::Descriptions, platform::Deref,
 //	ystdex::replace_cast;
 #include YFM_YCLib_POSIXThread
 #include <ystdex/exception.h> // for ystdex::unsupported;
-
-#if YF_Use_JNI
 
 namespace platform_ex
 {

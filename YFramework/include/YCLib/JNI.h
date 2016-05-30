@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r209
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2015-12-27 23:08 +0800
+	2016-05-25 08:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,12 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Platform
-#include <ydef.h>
 #if YF_Use_JNI
-#	include <jni.h>
+#	include YFM_YCLib_Reference // for lref;
+#	include <jni.h> // for ::JavaVM, ::JNIEnv;
+#	include YFM_YCLib_Container // for pair;
 #	include <stdexcept>
 #	include <utility>
-#	include YFM_YCLib_Debug
 
 namespace platform_ex
 {
@@ -69,8 +69,10 @@ public:
 class YF_API JNIBase
 {
 private:
-	std::reference_wrapper<::JavaVM> vm_ref;
-	std::reference_wrapper<::JNIEnv> env_ref;
+	//! \since build 696
+	lref<::JavaVM> vm_ref;
+	//! \since build 696
+	lref<::JNIEnv> env_ref;
 	//! \since build 554
 	bool owns{};
 

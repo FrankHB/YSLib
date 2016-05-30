@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3636
+\version r3637
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2016-02-11 19:13 +0800
+	2016-05-25 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -536,7 +536,7 @@ Font::GetInternalInfo() const
 void
 Font::SetSize(FontSize s)
 {
-	if(YB_LIKELY(s >= MinimalSize && s <= MaximalSize))
+	if(IsInClosedInterval(s, MinimalSize, MaximalSize))
 		font_size = s;
 }
 bool
