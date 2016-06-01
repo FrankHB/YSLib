@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r149
+\version r150
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2016-05-25 08:48 +0800
+	2016-05-30 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ FetchJNIEnvRef(::JavaVM& vm, ::jint version)
 JNIBase::JNIBase(::JavaVM& vm, ::jint version)
 	: JNIBase(vm, FetchJNIEnvRef(vm, version))
 {}
-JNIBase::~JNIBase() ynothrow
+JNIBase::~JNIBase()
 {
 	if(owns)
 		vm_ref.get().DetachCurrentThread();

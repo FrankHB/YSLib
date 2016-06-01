@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r781
+\version r884
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-05-09 15:24 +0800
+	2016-06-01 12:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,12 @@
 #define NPL_INC_NPLA_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode;
+#include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode,
+//	LoggedEvent;
+#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
+//	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
+//	YSLib::GDefaultLastValueInvoker;
+#include <ystdex/any.h> // for ystdex::any, ystdex::exclude_self_t;
 
 namespace NPL
 {
@@ -463,6 +468,126 @@ public:
 YB_NORETURN YF_API void
 ThrowArityMismatch(size_t, size_t);
 //@}
+
+
+//! \since build 674
+//@{
+//! \brief 上下文节点类型。
+using ContextNode = ValueNode;
+
+//! \since build 685
+using YSLib::AccessChildPtr;
+
+//! \brief 上下文处理器类型。
+using ContextHandler = YSLib::GHEvent<void(TermNode&, ContextNode&)>;
+//! \brief 字面量处理器类型。
+using LiteralHandler = YSLib::GHEvent<bool(const ContextNode&)>;
+
+//! \brief 注册上下文处理器。
+inline PDefH(void, RegisterContextHandler, ContextNode& node,
+	const string& name, ContextHandler f)
+	ImplExpr(node[name].Value = std::move(f))
+
+//! \brief 注册字面量处理器。
+inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
+	const string& name, LiteralHandler f)
+	ImplExpr(node[name].Value = std::move(f))
+//@}
+
+
+//! \since build 675
+//@{
+//! \brief 从指定上下文取指定名称指称的值。
+YF_API ValueObject
+FetchValue(const ContextNode&, const string&);
+
+//! \brief 从指定上下文查找名称对应的节点。
+YF_API observer_ptr<const ValueNode>
+LookupName(const ContextNode&, const string&) ynothrow;
+//@}
+
+
+//! \since build 676
+//@{
+/*!
+\brief 移除节点的空子节点，然后判断是否可继续规约。
+\return 可继续规约：第二参数为 true 且移除空子节点后的节点非空。
+*/
+YF_API bool
+DetectReducible(TermNode&, bool);
+
+
+/*!
+\brief 遍合并器：逐次调用直至返回 true 。
+\note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
+*/
+struct PassesCombiner
+{
+	template<typename _tIn>
+	bool
+	operator()(_tIn first, _tIn last) const
+	{
+		return ystdex::fast_any_of(first, last, ystdex::id<>());
+	}
+};
+
+
+//! \brief 一般合并遍。
+template<typename... _tParams>
+using GPasses = YSLib::GEvent<bool(_tParams...),
+	YSLib::GCombinerInvoker<bool, PassesCombiner>>;
+//! \brief 项合并遍。
+using TermPasses = GPasses<TermNode&>;
+//! \brief 求值合并遍。
+using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
+
+
+//! \brief 作用域守护类型。
+using Guard = ystdex::any;
+/*!
+\brief 作用域守护遍：用于需在规约例程的入口和出口关联执行的操作。
+\todo 支持迭代使用旧值。
+*/
+using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
+	YSLib::GDefaultLastValueInvoker<Guard>>;
+
+
+//! \brief 使用第二个参数指定的项的内容替换第一个项的内容。
+inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
+	ImplExpr(TermNode(std::move(tm)).SwapContent(term))
+//@}
+
+//! \pre 间接断言：参数指定的项非空。
+//@{
+/*!
+\brief 使用首个子项替换项的内容。
+\since build 685
+*/
+inline PDefH(void, LiftFirst, TermNode& term)
+	ImplExpr(LiftTerm(term, Deref(term.begin())))
+
+/*!
+\brief 使用最后一个子项替换项的内容。
+\since build 696
+*/
+inline PDefH(void, LiftLast, TermNode& term)
+	ImplExpr(LiftTerm(term, Deref(term.rbegin())))
+//@}
+
+
+/*!
+\brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
+\since build 685
+*/
+template<class _tPasses>
+typename _tPasses::result_type
+InvokePasses(TermNode& term, ContextNode& ctx, const string& name)
+{
+	return ystdex::call_value_or<typename _tPasses::result_type>(
+		[&](_tPasses& passes){
+		return passes(term, ctx);
+	}, AccessChildPtr<_tPasses>(ctx, name));
+}
 
 } // namespace NPL;
 

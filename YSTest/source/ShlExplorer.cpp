@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1528
+\version r1541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2016-05-30 11:03 +0800
+	2016-06-01 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,8 +210,6 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 				($type "CheckButton")($bounds "8 64 104 22"))
 			(cbShowTextBoxContent
 				($type "CheckButton")($bounds "8 88 104 22"))
-			(tvNodes
-				($type "TreeView")($bounds "116 4 100 108"))
 		)
 	)
 )
@@ -307,19 +305,6 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	});
 
 	YTraceDe(Debug, "Initialization of ShlExplorer began.");
-	{
-		DeclDynWidgetN(TreeView, tvNodes, node_pnlPage3)
-
-		tvNodes.GetExtractText() = [](const ValueNode& nd) -> String{
-			const String& n(nd.GetName());
-
-			TryRet(n + u": " + TreeList::DefaultExtractText(nd))
-			CatchIgnore(ystdex::bad_any_cast&)
-			return n;
-		};
-		tvNodes.GetTreeRootRef() = FetchRoot();
-		tvNodes.BindView();
-	}
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab1", u"基本测试");
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab2", u"动画测试");
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab3", u"附加测试");
