@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11712
+\version r11780
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-05-30 12:15 +0800
+	2016-06-01 12:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,75 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		- "explicit exception specification" @ "destructor %JNIBase" %YCLib.JNI,
+		/ %NPL.NPLA1 $=
+		(
+			/ DLI "improved performance"
+				@ "functions %(RegisterContextHandler, \
+				RegisterLiteralHandler)" ^ "%std::move",
+			/ "constructor template" @ "classes %(FormContextHandler, \
+				FunctionContextHandler)" ^ "forwarding reference parameter",
+			+ "function template %ToContextHandler",
+			/ @ "function template %RegisterFunction" $=
+			(
+				/ "forwarding reference parameter",
+				/ DLDI "simplified" $dep_from "%ToContextHandler",
+				/ $forced DLDI $dep_from "%RegisterContextHandler" ^ 'NPL::'
+					~ 'A1::'
+			),
+			/ "supportted empty node" @ "function %ReduceFirst"
+				~ "undefined behavior",
+				// Even if for %Reduce it is guaranteed the parameter in first \
+					iteration of list evaluation would not be an empty list \
+					term, it is necessary for others. This is different to \
+					%RemoveHead which has no sense for an empty node.
+			+ "function %EvaluateContextFirst"
+			/ "threw %ListEvaluationFailure if terms are not greater than 1"
+				@ "member function %FunctionContextHandler::operator()",
+			(
+			+ "function %ReduceChildren";
+			+ "2 inline overloaded functions %ReduceChildren",
+			/ DLDI "simplified function %ReduceArguments" ^ "%ReduceChildren"
+			),
+			(
+			/ "function %(TransformForSeperator, \
+				TransformForSeperatorRecursive, ReplaceTermForSeperator)"
+				=> "%(TransformForSeparator, TransformForSeparatorRecursive, \
+				ReplaceSeparatedChildren)";
+			* "spelling error" $since b696,
+			* "name not reserved if transformation occurred"
+				@ "function %ReplaceSeparatedChildren"
+				$orig (@ "function %ReplaceTermForSeperator" $since b696)
+			);
+			/ ("aliases %(ContextNode, ContextHandler, LiteralHandler), \
+				'using YSLib::AccessChildPtr', functions \
+				%(RegisterContextHandler, RegisterLiteralHandler, FetchValue, \
+				LookupName, DetectReducible, LiftTerm, LiftFirst, LiftLast), \
+				(class %PassCombinator; alias template %GPasses; aliases \
+				%(TermPasses, EvaluationPasses)), aliases %(Guard; \
+				GuardPasses), function template %InvokePasses"
+				@ "namespace %A1") >> ("namespace %NPL" @ %NPLA)
+		),
+		* "unexpected ADL of %PostMessage call" @ "function template %PostTask"
+			@ %YSLib.Core.Task $orig (@ %Helper.ShellHelper $since b448)
+	),
+	/ %YReader $=
+	(
+		- $revert(b534) "test for class %TreeView" @ "constructor %ShlExplorer"
+			@ %ShlExplorer,
+			// It has been effectively replaced by system information UI in \
+				the "About" dialog.
+		/ "made height of tree view 1pt less" @ "constructor \
+			%SystemInformationPanel" @ %About
+			// To avoid the border of the tree view touches the border of \
+				buttons.
+	)
+),
+
+b696
 (
 	/ %YFramework $=
 	(

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r219
+\version r221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2016-05-25 08:48 +0800
+	2016-05-30 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,11 +100,10 @@ private:
 public:
 	/*!
 	\brief 析构：当具有所有权时调用 \c DetachCurrentThread 。
-	\note 无异常抛出：因为 \c JNI 提供的接口没有异常规范，在此处明确。
 	\note 忽略 \c DetachCurrentThread 返回的错误。
 	\sa https://bugs.openjdk.java.net/browse/JDK-6616502
 	*/
-	~JNIBase() ynothrow;
+	~JNIBase();
 
 	DefGetter(const ynothrow, ::JNIEnv&, EnvRef, env_ref)
 	DefGetter(const ynothrow, ::JavaVM&, VMRef, vm_ref)

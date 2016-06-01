@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r265
+\version r266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2016-05-25 11:29 +0800
+	2016-06-01 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,7 +105,7 @@ ImplDeDtor(AboutPanel)
 
 SystemInformationPanel::SystemInformationPanel()
 	: DialogPanel({0, 0, 256, 170}),
-	view({0, 20, 256, 170})
+	view({0, 21, 256, 170})
 {
 	*this += view;
 }

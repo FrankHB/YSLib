@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r109
+\version r111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2015-04-10 01:32 +0800
+	2016-05-31 16:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ template<typename _fCallable>
 inline void
 PostTask(_fCallable&& f, Messaging::Priority prior = Messaging::NormalPriority)
 {
-	PostMessage<SM_Task>(prior, yforward(f));
+	YSLib::PostMessage<SM_Task>(prior, yforward(f));
 }
 
 namespace Messaging

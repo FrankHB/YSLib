@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1167
+\version r1348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-05-30 10:27 +0800
+	2016-06-01 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,6 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent;
-#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
-//	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
-//	YSLib::GDefaultLastValueInvoker;
-#include <ystdex/any.h> // for ystdex::any;
 
 namespace NPL
 {
@@ -149,123 +145,8 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 //@}
 
 
-//! \since build 674
-//@{
-//! \brief 上下文节点类型。
-using ContextNode = ValueNode;
-//! \since build 685
-using YSLib::AccessChildPtr;
-//! \brief 上下文处理器类型。
-using ContextHandler = YSLib::GHEvent<void(TermNode&, ContextNode&)>;
-//! \brief 字面量处理器类型。
-using LiteralHandler = YSLib::GHEvent<bool(const ContextNode&)>;
-
-//! \brief 注册上下文处理器。
-inline PDefH(void, RegisterContextHandler, ContextNode& node,
-	const string& name, ContextHandler f)
-	ImplExpr(node[name].Value = f)
-
-//! \brief 注册字面量处理器。
-inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
-	const string& name, LiteralHandler f)
-	ImplExpr(node[name].Value = f)
-//@}
-
-
-//! \since build 675
-//@{
-//! \brief 从指定上下文取指定名称指称的值。
-YF_API ValueObject
-FetchValue(const ContextNode&, const string&);
-
-//! \brief 从指定上下文查找名称对应的节点。
-YF_API observer_ptr<const ValueNode>
-LookupName(const ContextNode&, const string&) ynothrow;
-//@}
-
-
-//! \since build 676
-//@{
-/*!
-\brief 移除节点的空子节点，然后判断是否可继续规约。
-\return 可继续规约：第二参数为 true 且移除空子节点后的节点非空。
-*/
-YF_API bool
-DetectReducible(TermNode&, bool);
-
-
-/*!
-\brief 遍合并器：逐次调用直至返回 true 。
-\note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
-*/
-struct PassesCombiner
-{
-	template<typename _tIn>
-	bool
-	operator()(_tIn first, _tIn last) const
-	{
-		return ystdex::fast_any_of(first, last, ystdex::id<>());
-	}
-};
-
-
-//! \brief 一般合并遍。
-template<typename... _tParams>
-using GPasses = YSLib::GEvent<bool(_tParams...),
-	YSLib::GCombinerInvoker<bool, PassesCombiner>>;
-//! \brief 项合并遍。
-using TermPasses = GPasses<TermNode&>;
-//! \brief 求值合并遍。
-using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
-
-
-//! \brief 作用域守护类型。
-using Guard = ystdex::any;
-/*!
-\brief 作用域守护遍：用于需在规约例程的入口和出口关联执行的操作。
-\todo 支持迭代使用旧值。
-*/
-using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
-	YSLib::GDefaultLastValueInvoker<Guard>>;
-
-
-//! \brief 使用第二个参数指定的项的内容替换第一个项的内容。
-inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
-	ImplExpr(TermNode(std::move(tm)).SwapContent(term))
-//@}
-
-//! \pre 间接断言：参数指定的项非空。
-//@{
-/*!
-\brief 使用首个子项替换项的内容。
-\since build 685
-*/
-inline PDefH(void, LiftFirst, TermNode& term)
-	ImplExpr(LiftTerm(term, Deref(term.begin())))
-
-/*!
-\brief 使用最后一个子项替换项的内容。
-\since build 696
-*/
-inline PDefH(void, LiftLast, TermNode& term)
-	ImplExpr(LiftTerm(term, Deref(term.rbegin())))
-//@}
-
-
 //! \since build 685
 //@{
-//! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
-template<class _tPasses>
-typename _tPasses::result_type
-InvokePasses(TermNode& term, ContextNode& ctx, const string& name)
-{
-	return ystdex::call_value_or<typename _tPasses::result_type>(
-		[&](_tPasses& passes){
-		return passes(term, ctx);
-	}, AccessChildPtr<_tPasses>(ctx, name));
-}
-
-
 //! \brief 访问守护遍。
 YF_API GuardPasses&
 AccessGuardPassesRef(ContextNode&);
@@ -293,8 +174,10 @@ EvaluateListPasses(TermNode& term, ContextNode&);
 
 /*!
 \brief NPLA1 节点规约。
+\return 需要重规约。
 \note 可能使参数中容器的迭代器失效。
-\return 确定是否需要重新规约。
+\note 递归规约子项，子项需要重规约时在调用内循环。
+\note 默认不需要重规约。这可被求值遍改变。
 \sa DetectReducible
 \sa EvaluateGuard
 \sa EvaluateLeafPasses
@@ -308,17 +191,36 @@ EvaluateListPasses(TermNode& term, ContextNode&);
 对空表节点替换为 ValueToken::Null 。
 对已替换为 ValueToken 的叶节点保留处理。 
 对其它叶节点调用 EvaluateLeafPasses 求值。
-单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否重新规约。
+单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否重规约。
 */
 YF_API bool
 Reduce(TermNode&, ContextNode&);
+//@}
+
+/*!
+\note 按语言规范，子项规约顺序未指定。
+\note 可能使参数中容器的迭代器失效。
+\note 忽略子项重规约要求。
+\sa Reduce
+*/
+//@{
+/*!
+\brief 规约子项。
+\since build 697
+*/
+//@{
+YF_API void
+ReduceChildren(TermNode::iterator, TermNode::iterator, ContextNode&);
+inline PDefH(void, ReduceChildren, TermNode::Container& con, ContextNode& ctx)
+	ImplExpr(ReduceChildren(con.begin(), con.end(), ctx))
+inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
+	ImplExpr(ReduceChildren(term.GetContainerRef(), ctx))
+//@}
 
 /*!
 \brief 对容器中的第二项开始逐项规约。
-\throw LoggedEvent 错误：容器内的子表达式不大于一项。
-\note 语言规范指定规约顺序不确定。
-\note 可能使参数中容器的迭代器失效。
-\sa Reduce
+\throw LoggedEvent 错误：容器内的子项数不大于 1 。
+\since build 685
 */
 YF_API void
 ReduceArguments(TermNode::Container&, ContextNode&);
@@ -326,12 +228,14 @@ ReduceArguments(TermNode::Container&, ContextNode&);
 
 /*!
 \brief 规约首项。
+\return 需要重规约。
 \note 快速严格性分析：无条件求值第一项以避免非确定性推断子表达式是否需要求值的复杂度。
+\sa Reduce
 \see https://en.wikipedia.org/wiki/Fexpr 。
 \since build 686
 */
 inline PDefH(bool, ReduceFirst, TermNode& term, ContextNode& ctx)
-	ImplRet(Reduce(Deref(term.begin()), ctx))
+	ImplRet(!term.empty() ? Reduce(Deref(term.begin()), ctx) : false)
 
 
 /*!
@@ -344,26 +248,36 @@ YF_API void
 SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
 
 
-//! \since build 696
+/*!
+\note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
+\since build 697
+*/
+//@{
+/*!
+\note 移除子项中值和指定分隔符指定的项，并以 AsIndexNode 添加指定前缀值作为子项。
+\note 最后一个参数指定返回值的名称。
+\sa AsIndexNode
+*/
 //@{
 //! \brief 变换分隔符中缀表达式为前缀表达式。
 YF_API TermNode
-TransformForSeperator(const TermNode&, const ValueObject&, const ValueObject&,
+TransformForSeparator(const TermNode&, const ValueObject&, const ValueObject&,
 	const string& = {});
 
 //! \brief 递归变换分隔符中缀表达式为前缀表达式。
 YF_API TermNode
-TransformForSeperatorRecursive(const TermNode&, const ValueObject&,
+TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
 	const ValueObject&, const string& = {});
+//@}
 
 /*!
-\brief 在项中查找指定分隔符，若找到则替换为前缀表达式。
+\brief 查找项中的指定分隔符，若找到则替换项为去除分隔符并添加替换前缀的形式。
 \return 是否找到并替换了项。
 \sa EvaluationPasses
-\sa TransformForSeperator
+\sa TransformForSeparator
 */
 YF_API bool
-ReplaceTermForSeperator(TermNode&, const ValueObject&, const ValueObject&);
+ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 //@}
 
 
@@ -376,13 +290,15 @@ class YF_API FormContextHandler
 public:
 	ContextHandler Handler;
 
-	template<typename _func>
-	FormContextHandler(_func f)
-		: Handler(f)
+	//! \since build 697
+	template<typename _func,
+		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
+	FormContextHandler(_func&& f)
+		: Handler(yforward(f))
 	{}
 
 	/*!
-	\brief 处理函数。
+	\brief 处理一般形式。
 	\exception NPLException 异常中立。
 	\throw LoggedEvent 警告：类型不匹配，
 		由 Handler 抛出的 ystdex::bad_any_cast 转换。
@@ -397,32 +313,67 @@ public:
 };
 
 
-//! \since build 696
-//@{
-//! \brief 函数上下文处理器。
+/*!
+\brief 函数上下文处理器。
+\since build 696
+*/
 struct YF_API FunctionContextHandler
 {
 public:
 	FormContextHandler Handler;
 
-	template<typename _func>
-	FunctionContextHandler(_func f)
-		: Handler(f)
+	//! \since build 697
+	template<typename _func,
+		yimpl(typename = ystdex::exclude_self_t<FunctionContextHandler, _func>)>
+	FunctionContextHandler(_func&& f)
+		: Handler(yforward(f))
 	{}
 
+	/*!
+	\brief 处理函数。
+	\throw ListReductionFailure 列表子项不大于一项。
+	\sa ReduceArguments
+
+	对每一个子项求值；然后检查项数，对可调用的项调用 Hanlder ，否则抛出异常。
+	*/
 	void
 	operator()(TermNode&, ContextNode&) const;
 };
 
 
-//! \brief 注册函数上下文处理器。
+//! \since build 697
+//@{
+//! \brief 转换上下文处理器。
+template<typename _func>
+ContextHandler
+ToContextHandler(_func&& f)
+{
+	return FunctionContextHandler(yforward(f));
+}
+
+/*!
+\brief 注册函数上下文处理器。
+\note 使用 ADL ToContextHandler 。
+*/
 template<typename _func>
 void
-RegisterFunction(ContextNode& node, const string& name, _func f)
+RegisterFunction(ContextNode& node, const string& name, _func&& f)
 {
-	A1::RegisterContextHandler(node, name, FunctionContextHandler(f));
+	NPL::RegisterContextHandler(node, name, ToContextHandler(yforward(f)));
 }
 //@}
+
+
+/*!
+\brief 检查非空项的首项并尝试按上下文列表求值。
+\return \c false 表示总是不需要重规约。
+\throw ListReductionFailure 规约失败：找不到可规约项。
+\sa ContextHandler
+\sa Reduce
+\since build 697
+*/
+YF_API bool
+EvaluateContextFirst(TermNode&, ContextNode&);
 
 } // namesapce A1;
 

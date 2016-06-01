@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1113
+\version r1179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-05-30 10:27 +0800
+	2016-06-01 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,32 +126,6 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 }
 
 
-ValueObject
-FetchValue(const ContextNode& ctx, const string& name)
-{
-	return ystdex::call_value_or<ValueObject>(
-		std::mem_fn(&ValueNode::Value), LookupName(ctx, name));
-}
-
-observer_ptr<const ValueNode>
-LookupName(const ContextNode& ctx, const string& id) ynothrow
-{
-	return AccessNodePtr(ctx, id);
-}
-
-
-bool
-DetectReducible(TermNode& term, bool reducible)
-{
-	// TODO: Use explicit continuation parameters?
-//	if(reducible)
-	//	k(term);
-	YSLib::RemoveEmptyChildren(term.GetContainerRef());
-	// NOTE: Only stopping on getting a normal form.
-	return reducible && !term.empty();
-}
-
-
 //! \since build 685
 namespace
 {
@@ -234,16 +208,22 @@ Reduce(TermNode& term, ContextNode& ctx)
 }
 
 void
+ReduceChildren(TermNode::iterator first, TermNode::iterator last,
+	ContextNode& ctx)
+{
+	// NOTE: Here it can only be either left-to-right or right-to-left unless
+	//	the separators has been predicted.
+	std::for_each(first, last,
+		std::bind(Reduce, std::placeholders::_1, std::ref(ctx)));
+}
+
+void
 ReduceArguments(TermNode::Container& con, ContextNode& ctx)
 {
 	if(con.size() > 1)
 		// NOTE: The order of evaluation is unspecified by the language
-		//	specification. However here it can only be either left-to-right
-		//	or right-to-left unless the separators has been predicted.
-		std::for_each(std::next(con.begin()), con.end(),
-			[&](decltype(*con.end())& sub_term){
-			Reduce(sub_term, ctx);
-		});
+		//	specification. It should not be depended on.
+		ReduceChildren(std::next(con.begin()), con.end(), ctx);
 	else
 		throw LoggedEvent("Invalid term to handle found.", Err);
 }
@@ -270,7 +250,7 @@ SetupTraceDepth(ContextNode& root, const string& name)
 
 
 TermNode
-TransformForSeperator(const TermNode& term, const ValueObject& pfx,
+TransformForSeparator(const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const string& name)
 {
 	auto res(AsNode(name, term.Value));
@@ -294,7 +274,7 @@ TransformForSeperator(const TermNode& term, const ValueObject& pfx,
 }
 
 TermNode
-TransformForSeperatorRecursive(const TermNode& term, const ValueObject& pfx,
+TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const string& name)
 {
 	auto res(AsNode(name, term.Value));
@@ -305,7 +285,7 @@ TransformForSeperatorRecursive(const TermNode& term, const ValueObject& pfx,
 		ystdex::split(term.begin(), term.end(), std::bind(HasValue,
 			std::placeholders::_1, std::ref(delim)), [&](TNCIter b, TNCIter e){
 			while(b != e)
-				res += TransformForSeperatorRecursive(*b++, pfx, delim,
+				res += TransformForSeparatorRecursive(*b++, pfx, delim,
 					MakeIndex(res));
 		});
 	}
@@ -313,12 +293,12 @@ TransformForSeperatorRecursive(const TermNode& term, const ValueObject& pfx,
 }
 
 bool
-ReplaceTermForSeperator(TermNode& term, const ValueObject& pfx,
+ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim)
 {
 	if(std::find_if(term.begin(), term.end(), std::bind(HasValue,
 		std::placeholders::_1, std::ref(delim))) != term.end())
-		term = TransformForSeperator(term, pfx, delim);
+		term = TransformForSeparator(term, pfx, delim, term.GetName());
 	return {};
 }
 
@@ -349,7 +329,7 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	auto& con(term.GetContainerRef());
 
-	// NOTE: Arguments evaluation: applicative order.
+	// NOTE: This implementes arguments evaluation in applicative order.
 	ReduceArguments(con, ctx);
 
 	const auto n(con.size());
@@ -366,13 +346,42 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 			con.erase(i);
 		Handler(term, ctx);
 	}
-	// TODO: Unreduced form check.
+	else
+		// TODO: Use other exception type for this type of error?
+		// TODO: Capture contextual information in error.
+		throw ListReductionFailure(ystdex::sfmt("Invalid list form with"
+			" %zu term(s) not reduced found.", n), YSLib::Warning);
+	// TODO: Add unreduced form check? Is this better to be inserted in other
+	//	passes?
 #if false
-	if(n == 0)
+	if(con.empty())
 		YTraceDe(Warning, "Empty reduced form found.");
 	else
 		YTraceDe(Warning, "%zu term(s) not reduced found.", n);
 #endif
+}
+
+
+bool
+EvaluateContextFirst(TermNode& term, ContextNode& ctx)
+{
+	if(!term.empty())
+	{
+		const auto& fm(Deref(ystdex::as_const(term).begin()));
+
+		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
+			(*p_handler)(term, ctx);
+		else
+		{
+			const auto p(AccessPtr<string>(fm));
+
+			// TODO: Capture contextual information in error.
+			throw ListReductionFailure(ystdex::sfmt("No matching form '%s'"
+				" with %zu argument(s) found.", p ? p->c_str()
+				: "#<unknown>", term.size()));
+		}
+	}
+	return false;
 }
 
 } // namesapce A1;

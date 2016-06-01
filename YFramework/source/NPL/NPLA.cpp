@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r746
+\version r767
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-05-09 15:24 +0800
+	2016-06-01 12:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,6 +343,32 @@ void
 ThrowArityMismatch(size_t expected, size_t received)
 {
 	throw ArityMismatch(expected, received);
+}
+
+
+ValueObject
+FetchValue(const ContextNode& ctx, const string& name)
+{
+	return ystdex::call_value_or<ValueObject>(
+		std::mem_fn(&ValueNode::Value), LookupName(ctx, name));
+}
+
+observer_ptr<const ValueNode>
+LookupName(const ContextNode& ctx, const string& id) ynothrow
+{
+	return AccessNodePtr(ctx, id);
+}
+
+
+bool
+DetectReducible(TermNode& term, bool reducible)
+{
+	// TODO: Use explicit continuation parameters?
+//	if(reducible)
+	//	k(term);
+	YSLib::RemoveEmptyChildren(term.GetContainerRef());
+	// NOTE: Only stopping on getting a normal form.
+	return reducible && !term.empty();
 }
 
 } // namespace NPL;
