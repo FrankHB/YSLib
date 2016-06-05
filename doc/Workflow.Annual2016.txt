@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r126
+\version r147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-05-12 11:26 +0800
+	2016-06-05 07:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,6 +126,29 @@ Android GUI architecture in YFramework has been reviewed in progress.
 			The loop is now implemented in 'AndroidHost' of 'YCLib' Android extensions. Should it also be configurable in 'Helper'?
 			It is not clear that which precise sets of functionality should be exposed in 'Helper' and 'YCLib' Android extensions.
 		It is also not clear that if it necessary to emulate a window manager between 'YCLib' Android extension and 'Helper'.
+
+$2016-06:
+
+report.impl:
+There is one change concerned with FreeType2 not clear yet. That is, loading same typefaces might trigger an error message depending on different version of FreeType.
+	On platform 'DS', the error message would be explicitly shown and an extra input was needed to continue the program.
+		The message is like 'error: Face request error: 00000090' for same fonts.
+			According to "fterrdef.h", the error code 0x90 stands for 'Locations_Missing'.
+			In normal cases, this indicates missing location table of specific TrueType typeface in the font file.
+		This occurred since b357 due to call to 'platform::YSetDebugStatus'. The error should exist earlier, but not shown.
+		This was eliminated since b420 due to update to (modified) FreeType 2.5.0.1 from FreeType 2.4.11.
+	Further test shows that this was introduced in FreeType 2.5.0.
+		The replaced files for YSLib used had no effect on this issue.
+			For the issue worked around, see http://savannah.nongnu.org/bugs/index.php?39383.
+		For newer toolchain, the YSLib source may need be patched to make it compile.
+			Current version of 'string.h' of YBase.LibDefect should be used.
+			For 'iterator.h' in YBase.YStandard, type of data member 'transformer' of class template 'transformed_iterator' need to be decayed.
+		FreeType 2.4.12 would not prevent the error message.
+		The effective change was introduced in Git commit '760d342d37ec9b26420956e3421075d410571b65' of official repository by Behdad Esfahbod.
+			The brief commit message is 'Add support for color embedded bitmaps (eg. color emoji)'.
+			Change to file 'src/sfnt/ttsbit.c' caused the behavior change.
+		The above change was once (wrongly) suspected to be a side effect and filed as http://savannah.nongnu.org/bugs/index.php?48117.
+	The reason is that font may contain CBDT and CBLT (for color emoji) tables which would only be recognized since FreeType 2.5.0. If it does not contain other table, the error trigged as expected.
 
 ////
 

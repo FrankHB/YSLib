@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1587
+\version r1594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2016-02-01 13:15 +0800
+	2016-06-03 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,13 +234,13 @@ char
 CheckLiteral(string_view sv) ynothrowv
 {
 	YAssertNonnull(sv.data());
-	if(sv.size() < 2)
-		return char();
-	if(sv.front() == '\'' && sv.back() == '\'')
-		return '\'';
-	if(sv.front() == '"' && sv.back() == '"')
-		return '"';
-	return char();
+	if(sv.size() > 1)
+		if(const char c = ystdex::get_quote_mark_nonstrict(sv))
+		{
+			if(c == '\'' || c == '"')
+				return c;
+		}
+	return {};
 }
 
 string_view
