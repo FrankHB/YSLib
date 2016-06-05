@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r886
+\version r895
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2016-04-23 19:23 +0800
+	2016-06-03 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -302,19 +302,11 @@ typedef 名称和别名声明中被声明标识符以外的变更是闭合的；
 typedef 声明、 using 声明、 using 指示 、友元声明和别名声明可独立加注版本，以声明的名称确定版本一致性。
 static_assert 声明可独立加注版本，以记号序列等价性确定版本一致性。
 
-@2.2.6 头文件包含守护宏(include guard marco) ：
-除非重复包含不影响语义，否则应使用特定名称的宏以保证头文件不被包含超过一次。
-一般包含模式如下：
-
-#ifndef 宏名
-#define 宏名 非零整数字面量
-
-//被保护的代码，常以 #include 起始。
-
-#endif
-
-不同头文件应使用不同的宏名。
-具体宏名由实现定义。一般应使用特定保留前缀（但不应与标准名称冲突，除非实现标准库，参见 [Documentation::LanguageConvention @@5.3.2.2.2] ）。可能包含模块命名空间(@3.2) 的名称。
+@2.2.6 头文件包含：
+基本规则参见 [Documentation::CommonRules @@3.13.2.1] 。
+头文件包含守护宏名可能包含模块命名空间(@3.2) 的名称。
+不使用实现相关的方式如 #pragma([LanguageConvention @@5.3.9]) 等代替头文件包含守护宏，以避免影响可移植性。
+注意 #pragma once 无法保证可移植，因为无法确定代码所在的文件在不同实现环境（操作系统和文件系统等）中唯一性的精确含义。
 
 @2.2.7 变更日志：
 主分支版本的变更活动应保留到变更日志，保存为 [Documentation::ChangeLog] 。

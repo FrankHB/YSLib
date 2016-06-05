@@ -11,13 +11,13 @@
 /*!	\file About.h
 \ingroup YReader
 \brief 关于界面。
-\version r90
+\version r92
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:07:32 +0800
 \par 修改时间:
-	2016-05-30 10:50 +0800
+	2016-06-05 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,6 +70,8 @@ class SystemInformationPanel : public DialogPanel
 {
 private:
 	TreeView view;
+	//! \since build 698
+	Label lbl_title;
 
 public:
 	SystemInformationPanel();

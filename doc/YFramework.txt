@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1241
+\version r1328
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-03-17 15:31 +0800
+	2016-06-03 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,7 @@ YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 除非另行约定，仅保证非成员或静态成员函数的线程安全性。
 除非另行约定，所有不提供无异常抛出保证的公开接口不直接设置外部库提供的外部状态（如 ISO C 的 errno ）。注意实现明确地间接调用公开接口仍然可能设置这些状态。
 除非另行约定，实现可能访问外部库提供的外部状态，且假定这些状态不被并发访问。
+thread_local 和线程局部存储使用限制同 [Documentation::YBase @@2.1.1] 。
 
 @1.4.1.4.1 例程和包含的可调用对象(callable object) 的调用：
 仅包含可调用对象的调用时，此例程的可重入性和线程安全性等价于包含的所有调用：
@@ -103,6 +104,7 @@ RAII 在异常安全和可维护性等方面具有其它方法不可替代的优
 
 @1.4.4.2 程序实体：
 Shell 实体（简称 Shell ）是一种包含状态的有限片段控制流抽象，是动态映像(@1.5.1.1) 或静态映像(@1.5.1.2) 之一。
+在宿主环境中的实现实例参见 https://en.wikipedia.org/wiki/Operating-system-level_virtualization 。
 
 @1.4.5 会话(session) ：
 会话是用于在一段连续的时间间隔内访问连接([Documentation::CommonRules @@2.5.4]) 且所有权不属于此连接的实体，其中的连接称为会话连接。
@@ -360,6 +362,8 @@ YCLib 除平台扩展外不依赖 YSLib ，被作为 YSLib 平台中立([Documen
 @2.1.3.1 接口使用限制：
 在 Win32 上 YFramework 不直接静态依赖 COM ，不链接实现 COM 的库。
 除非另行约定， YFramework 的实现不使用可能要求 COM 已被初始化的接口。
+Helper 不引入 YCLib 和语言运行时以外的动态库直接依赖。
+其它限制参见 [Documentation::YCLib] 。
 
 @2.1.4 YCLib 限定平台集合支持模块：
 YCLib 支持限定特定平台集合支持的非平台扩展：使用特定的宏整体启用支持或不支持。当启用支持时接口平台中立，因此不是平台扩展。
@@ -596,7 +600,8 @@ YSLib 不依赖这些接口以外的特性。
 减少可能的外部依赖（如不需要使用文字的程序就不初始化字体缓存，也不需要依赖外部字体文件和字体配置等）；
 减少可能的资源占用；
 保留静态链接时优化去除没有调用的代码以减少二进制可执行文件体积的可能性。
-因此，对一些全局资源使用静态函数内 static 对象实现单态(monostate) 模式，保存全局状态。当前取得单态状态的接口包括：
+因此，对一些全局资源使用静态函数内 static 对象实现单态(monostate) 模式，保存全局状态。
+除 @2.8.2 外，当前取得单态状态的接口包括：
 FetchRoot ：取值类型根节点；
 FetchDefaultFontCache ：取默认字体缓存。
 其它如 ImageCodec 因为未包含复杂副作用，当前不提供接口。用户可以自行初始化这些对象。
@@ -713,16 +718,28 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 框架初始化在 DS 平台被直接调用。其它平台可延迟初始化，按需调用。
 使用默认字体缓存或 MIME 数据时自动调用。
 
-@5.1 配置：
+@5.1 运行时环境：
+基本内容参见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
+
+@5.2 基本配置：
+基本配置是必要的。
 自 build 300 起，配置不再硬编码，初始化时读取配置文件的内容。
 读取行为、配置文件格式和默认配置见以下说明。
+关于当前支持的配置，另见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
 
-@5.1.1 build 343 前：
+@5.2.1 build 343 前：
 配置文件路径 "config.txt" 。
-若配置不存在则首先生成。
+若配置不存在则首先生成，以文本模式输出： Windows 使用 CR+LF ，其它使用 LF 换行。
 要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
 读取的默认配置内容和之前硬编码项相同。
-默认配置如下：
+DS 生成的默认配置如下：
+//[
+/Data/
+/Font/FZYTK.TTF
+/Font/
+
+//]
+MinGW32 默认配置如下：
 //[
 H:\NDS\EFSRoot\Data\
 H:\NDS\EFSRoot\Font\FZYTK.TTF
@@ -730,12 +747,26 @@ H:\NDS\EFSRoot\Font\
 
 //]
 
-@5.1.2 build 343 起：
+@5.2.2 build 343 起：
 配置文件路径 "yconf.txt" ，格式和之前不兼容。
-若配置不存在则首先使用 NPL 生成。
-要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
+若配置不存在则首先使用 NPL 生成，以文本模式输出： Windows 使用 CR+LF ，其它使用 LF 换行。
+要求配置文件为 UTF-8 编码，否则出错。
 读取的默认配置内容中项的值和之前相同。
-生成的默认配置如下：
+DS 生成的默认配置如下：
+//[
+YFramework
+(
+	DataDirectory "/Data/"
+)
+(
+	FontDirectory "/Font/"
+)
+(
+	FontFile "/Font/FZYTK.TTF"
+)
+
+//]
+MinGW32 生成的默认配置如下：
 //[
 YFramework
 (
@@ -750,9 +781,9 @@ YFramework
 
 //]
 
-@5.1.2 build 344 起：
+@5.2.2 build 344 起：
 增加无名节点配置支持。
-生成的默认配置不变，但支持以下形式（直接编辑或追加其它配置项时变换为此形式）：
+生成的默认配置不变，但支持以下形式（以 MinGW32 为例）：
 //[
 
 (
@@ -768,8 +799,62 @@ YFramework
 	)
 )
 //]
+直接编辑或追加其它配置项时变换为此形式。
 
-@5.2 环境变量：
+@5.2.3 build 500 起：
+修改 Win32 生成的默认配置如下：
+//[
+YFramework
+(
+	DataDirectory ".\\"
+)
+(
+	FontDirectory ".\Font\\"
+)
+(
+	FontFile "C:\\Windows\\Fonts\\SimSun.ttc"
+)
+
+//]
+
+@5.2.4 build 506 起：
+添加 Android 配置文件，内容形式和 DS 一致，仅有部分项的值不同。
+Android 使用运行时检查得到的 SD 卡作为工作目录，为以下值之一：
+/sdcard/
+/mnt/sdcard/
+/storage/sdcard0/
+配置文件路径为以上工作目录下的 yconf.txt 的绝对路径。
+DataDirectory 的值为以上工作目录路径。
+FontDirectory 的值为 "/system/fonts/" 。
+FontFile 的值为 "/system/fonts/DroidSansFallback.ttf" 。
+以上值仅作用于开发时配置测试使用。
+
+@5.2.5 build 560 起：
+添加 Linux 配置文件，路径及内容形式和 DS 一致 ；生成的默认配置如下：
+//[
+YFramework
+(
+	DataDirectory "./"
+)
+(
+	FontDirectory "./"
+)
+(
+	FontFile "./SimSun.ttc"
+)
+
+//]
+以上配置仅用于开发时配置测试使用。实际构建需要修改源代码。
+
+@5.2.6 build 693 起：
+Win32 配置文件中，默认配置生成的 FontFile 的值修改为以运行时取得的 Windows 字体文件安装目录而不是硬编码的 "C:\Windows\Fonts" 作为目录。
+典型安装下值仍然一致。
+
+@5.2.6 build 694 起：
+Win32 配置文件路径修改为以程序映像所在的目录下的 yconf.txt 的绝对路径（不再是依赖初始化时当前工作目录的相对路径）。
+
+@5.3 附加配置：
+附加配置是可选的。
 build 654 起， Win32 平台支持环境变量 YF_DEBUG_OUTPUT 设置值为 1 时初始化默认日志记录跟踪发送到调试器。
 
 */

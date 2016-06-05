@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9135
+\version r9185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2016-02-10 01:14 +0800
+	2016-06-05 07:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ b499
 		/ %Helper $=
 		(
 			* "missing explicit atomic initialization"
-				@ "%Enviornment::ExitOnAllWindowThreadCompleted"
+				@ "%Environment::ExitOnAllWindowThreadCompleted"
 				@ %Host $since b399,
 			/ "message in thrown exception" @ "function %Execute"
 				@ %GUIApplication,
@@ -294,7 +294,7 @@ b497
 		)
 	),
 	+ "project %YSTest_Android",
-	* "Visual C++ projects" @ "platform %Android" ^ "Clang++ predefined macros"
+	* "Microsoft VC++ projects" @ "platform %Android" ^ "Clang++ predefined macros"
 		$since b492
 		// However actually G++ is used.
 		$= (^ "G++" ~ "Clang++"),
@@ -316,7 +316,7 @@ b497
 				@ "functions %GetFileSizeOf" @ %FileSystem
 		),
 	),
-	/ @ "main function" @ %Main $=
+	/ @ "main function" @ %YReader.Main $=
 	(
 		* $revert "missing exception handler for %FatalError" $since b342,
 		+ "exception handler for %LoggedEvent",
@@ -837,7 +837,7 @@ b492
 		+ "Clang++ support"
 			// See http://clang.llvm.org/docs/LanguageExtensions.html.
 	),
-	/ $dev @ "Visual C++ projects" $=
+	/ $dev @ "Microsoft VC++ projects" $=
 	(
 		/ "predefined macros" $=
 		(
@@ -909,7 +909,7 @@ b491
 				@ "class template %GBinaryGroup" @ %Core.YGDIBase
 		),
 		/ DLD "initialization" @ "%Environment::RawMouseButton"
-			@ "platform %Win32" @ %Helper.Host ^ "member-initializer"
+			@ "platform %Win32" @ %Helper.Host ^ "braced-init-list"
 	)
 ),
 
@@ -1366,7 +1366,7 @@ b483
 			+ "metafunction %enable_for_string_class_t"
 		),
 		+ "metafunction %enable_for_iterator_t" @ %Iterator,
-		* "missing workaround for Visual C++" @ "move constructor"
+		* "missing workaround for Microsoft VC++" @ "move constructor"
 			@ "class %cloneable" @ %Utilities $since b475,
 		* $revert(b467) "wrong 'yconstfn' for function template %hash_combine"
 			@ %Functional $since b467
@@ -1660,7 +1660,7 @@ b478
 	(
 		+ "build library '/build/'";
 		/ "Code::Blocks projects",
-		/ "Visual C++ projects",
+		/ "Microsoft VC++ projects",
 		/ "DS makefiles" $=
 		(
 			* "unsupported relative paths" @ "macro %bin2o" $since $before b132,
@@ -1975,7 +1975,7 @@ b474
 					well" @ "platform %MinGW32"
 					// See $2014-02 @ %Documentation::Workflow::Annual2014.
 			),
-			/ DLB $comp "implemented more compatible with Visual C++ 2013",
+			/ DLB $comp "implemented more compatible with Microsoft VC++ 2013",
 			),
 			(
 			/ @ "function %mkdirs" $=
@@ -1990,7 +1990,7 @@ b474
 			)
 		),
 		* $dev $build "warning MSB8027 caused by generated object from source \
-			files with same name in different directories" @ "all Visual C++ \
+			files with same name in different directories" @ "all Microsoft VC++ \
 			projects with platform configuration 'Win32'" $since b473
 			$= (/ "object file name" @ "output files" @ "C/C++ options"
 				-> '$(IntDir)/%(RelativeDir)/' ~ '$(IntDir)'),
@@ -2162,7 +2162,7 @@ b471
 				// Inherited constructors are not supported until G++ 4.8.
 			)
 		)
-		* DLB "VC++ project and filter did not reflect the update of freetype \
+		* DLB "Microsoft VC++ project and filter did not reflect the update of freetype \
 			directory structure" $since b459
 	)
 ),
@@ -2203,11 +2203,12 @@ b470
 					initializing type %Buffer (and format)",
 					// For ownership safety, raw or empty buffers are no \
 						longer supported.
-				+ "explicitied deleted move constructor",
+				+ "explicitly deleted move constructor",
 				+ 'explicit ImageMemory(const HBitmap&, ImageFormat \
 					= ImageFormat::BMP, ImageDecoderFlags \
 					= ImageDecoderFlags::Default);' $dep_from
-					"forward %HBitmap declaration"
+					"forward %HBitmap declaration",
+				/ "destructor"
 			),
 			/ "parameter type of %ImageCodec::Load" -> 'ImageMemory::Buffer'
 				~ 'const vector<octet>&',
@@ -2523,7 +2524,7 @@ b461
 		+ "macro %ynothrowv" @ %YDefinition;
 		+ 'const' @ "%subscriptive_iterator::operator(*, ->)"
 			@ %YStandardEx.Iterator,
-		/ "nothrow exception specifications according to WG21/N3242"
+		/ "nothrow exception specifications according to WG21 N3242"
 			^ "macros %(ynothrow, ynothorwv)"
 			// Macro %ynothrow used for explicit specification, \
 				and %ynothrowv used for narrow constraints.
@@ -2656,7 +2657,7 @@ b459
 (
 	/ %YFramework $=
 	(
-		/ $dev $build "disabled warning (C4520, C4800)" @ "VC++ project",
+		/ $dev $build "disabled warning (C4520, C4800)" @ "Microsoft VC++ project",
 			// See $2013-11 @ %Documentation::Workflow::Annual2013.
 		/ $dev %YCLib $=
 		(
@@ -2729,20 +2730,20 @@ b458
 			/ $dev "all %YCL_MinGW32 without MinGW interface dependencies"
 				-> "%YCL_Win32" $dep_from "%YCL_Win32",
 			+ $build "workaround of color enumerator constant definition \
-				without constexpr for Visual C++ 2013" @ %Video
+				without constexpr for Microsoft VC++ 2013" @ %Video
 		),
 		* "missing '../MinGW/include' for inclusion" @ "Code::Blocks project"
 			@ "platform %MinGW32" $since b431
 	),
 	/ %YBase $=
 	(
-		/ $dev $build "specified option '/Za'" @ "VC++ project configuration",
+		/ $dev $build "specified option '/Za'" @ "Microsoft VC++ project configuration",
 			// Disabled extensions.
 		/ %YStandardEx $=
 		(
 			* "wrong use of %yconstexpr for function templates" @ %CString
 				$since b329 $= (^ "%yconstfn" ~ "%yconstexpr"),
-				// This would cause warning C4180 on VC++ 2013 with warning \
+				// This would cause warning C4180 on Microsoft VC++ 2013 with warning \
 					level /W1.
 			/ $dev %Iterator $=
 			(
@@ -2755,15 +2756,15 @@ b458
 				/ @ "class template %pseudo_iterator" $=
 				(
 					- "all 'yconstfn inline'" -> yconstfn,
-						// This would cause warning C4141 on VC++ 2013 with \
+						// This would cause warning C4141 on Microsoft VC++ 2013 with \
 							warning level /W1.
 					* "missing workaround of move constructor and move \
-						%operator= for Visual C++ 2013" $since b454
+						%operator= for Microsoft VC++ 2013" $since b454
 				),
-				* "missing workaround of move %operator= for Visual C++ 2013"
+				* "missing workaround of move %operator= for Microsoft VC++ 2013"
 					@ "class templates %(pair_iterator, \
 					indirect_input_iterator)" $since b454
-				+ "workaround for Visual C++ 2013 and Clang++ 3.4 of ''"
+				+ "workaround for Microsoft VC++ 2013 and Clang++ 3.4 of ''"
 					$dep_from "%YB_IMPL_CLANGPP"
 			),
 			/ @ "class %ifile_iteraotr" @ %CStandardIO $=
@@ -2783,7 +2784,7 @@ b458
 			+ "macro %YB_IMPL_CLANGPP for LLVM/Clang++ implemntation",
 			+ '#	define ynothrow __attribute__ ((nothrow))'
 				@ "!YB_HAS_NOEXCEPT && YB_IMPL_GNUCPP >= 30300";
-				// For Visual C++ when 'YB_IMPL_MSCPP >= 1200', there exists \
+				// For Microsoft VC++ when 'YB_IMPL_MSCPP >= 1200', there exists \
 					'__declspec(nothrow)' with almost same semantics with \
 					'throw()' but different syntax.
 		)
@@ -2842,7 +2843,7 @@ b457
 	(
 		+ $design "assertion for non-EOF value" @ "%ifile_iterator::operator++"
 			@ %YStandardEx.CStandardIO,
-		/ $dev $build "promoted warning level" @ "VC++ project" ~ '/W3'
+		/ $dev $build "promoted warning level" @ "Microsoft VC++ project" ~ '/W3'
 	),
 	^ DLD "%noncopyable" ~ "all use of %DelCopyCtor" @ "class definitions",
 	^ "%DefDeCtor" ~ "class %ReadingList" @ %YReader.ReadingList
@@ -2921,7 +2922,7 @@ b456
 b455
 (
 	- $dev $build "redundant solution platforms %('Any CPU', 'Mixed Platforms')"
-		@ "VC++ project platform configuration",
+		@ "Microsoft VC++ project platform configuration",
 	/ %YFramework $=
 	(
 		/ %Helper $=
@@ -3130,7 +3131,7 @@ b454
 					/ $dev "explicitly defaulted constructors as workaround \
 						guarded by conditional inclusion 'YB_IMPL_GNUCPP && \
 						YB_IMPL_GNUCPP < 47200'"
-						// Visual C++ 2013 complains about explicitly \
+						// Microsoft VC++ 2013 complains about explicitly \
 							defaulted move constructor.
 				),
 				* $dev "missing excluding of 'pod_storage&'" @ "member \
@@ -3140,7 +3141,7 @@ b454
 			+ "defaulted operator=" @ "class templates %(any_input_iterator, \
 				any_forward_iterator, any_bidirectional_iterator)"
 				@ %AnyIterator;
-			+ "Microsoft Visual C++ 2013 compatibility" $=
+			+ "Microsoft VC++ 2013 compatibility" $=
 			(
 				+ "conditional not included corresponding code as workaround \
 					of compiler crash about 'YB_HAS_MEMBER(value)', \
@@ -3153,11 +3154,11 @@ b454
 			)
 		)
 	),
-	/ $dev $build "Visual C++ projects" $=
+	/ $dev $build "Microsoft VC++ projects" $=
 	(
 		/ "set DS projects as platform %ARM",
 		/ "set Win32 projects with uniformed settings on project targets, \
-			optimization options(to default), VC++ directories, \
+			optimization options(to default), Microsoft VC++ directories, \
 			warning level('/W3'), character set(to default) and linker \
 			options(to default)"
 	),
@@ -3835,9 +3836,9 @@ b444
 (
 	/ %YFramework.YSLib $=
 	(
-		/ "dragging and touch held handler implementation"
-			@ %(YSLib.UI, Helper.HostedUI) ^ "%GUIState::\
-			ControlLocation" ~ "%GUIState::LastControlLocation";
+		/ $impl "dragging and touch held handler" @ %(YSLib.UI,
+			Helper.HostedUI) ^ "%GUIState::ControlLocation"
+			~ "%GUIState::LastControlLocation";
 		/ %UI $=
 		(
 			- $revert(b169) "last control location"
@@ -3918,7 +3919,7 @@ b443
 			^ "preferred ISO C++11 braced initializers" ~ "equal initializers"
 	),
 	/ %YReader $dep_from %YFramework.YSLib.UI.YControl
-		$= (/ $comp "about window colors changed only for area clipped by the \
+		$= (/ $comp "about form colors changed only for area clipped by the \
 			desktop" @ %ShlAbout),
 	/ DLD "simplified indents of all multi-line yunseq blocks"
 ),
@@ -4133,7 +4134,7 @@ b439
 	(
 		* $dev $build "wrong case of including header %YBlit"
 			@ "file %textlist.cpp" @ %UI $since b319,
-			// It can cause build fail on case-sensitive file system.
+			// It can cause build failure on case-sensitive file system.
 		* $comp "class template %MoreConvertible" @ %Core.YCoreUtilities
 			$since b206
 	),
@@ -4270,7 +4271,7 @@ b437
 	/ %Tools $=
 	(
 		+ %CreationTimeManager,
-		+ DLD "readme file" @ "Visual C++ projects" @ %PredefinedMacroDetector
+		+ DLD "readme file" @ "Microsoft VC++ projects" @ %PredefinedMacroDetector
 	),
 	/ %YFramework $=
 	(
@@ -4453,7 +4454,7 @@ b434
 			@ %YControl
 		)
 	),
-	* DLB $revert(b432) "wrong location of VC++ project file for projects \
+	* DLB $revert(b432) "wrong location of Microsoft VC++ project file for projects \
 		%YFramework_(MinGW32)" $since b432,
 	/ %YReader $=
 	(
@@ -4522,7 +4523,7 @@ b433
 
 b432
 (
-	* DLB "missing relocation of VC++ project file for projects %(YBase_(DS), \
+	* DLB "missing relocation of Microsoft VC++ project file for projects %(YBase_(DS), \
 		YFramework_(DS), YFramework_(MinGW32))",
 	/ %YBase $=
 	(
@@ -4686,7 +4687,7 @@ b431
 			// Generator to detect predefined macros. Generated file is a C++ \
 				source file. Use preprocessing command line like "gcc -E" then \
 				compile in hosted environment to get macros for cross compilers.
-	+ DLD "common pre-defined macros" @ "platform %DS" @ "Visual C++ projects",
+	+ DLD "common pre-defined macros" @ "platform %DS" @ "Microsoft VC++ projects",
 	+ $dev $repo "pattern globs ('__gen_*.*', '*.pdb', '*.idb', '*.ilk', \
 		'*.exe', '*.obj', '*.tlog', '*.lastbuildstate', '*.unsuccessfulbuild')"
 		@ "file %.hgignore",
@@ -4924,7 +4925,7 @@ b428
 		(
 			/ %HostWindow
 				$= (+ 'using WindowReference::SetText;' @ "class %Host::Window"
-					$dep_from "%WindowReference::SetText";),
+					$dep_from "%WindowReference::SetText"),
 			/ @ "namespace %Host" @ %HosteUI $=
 			(
 				(
@@ -5016,7 +5017,7 @@ b427
 			)
 		)
 	)
-	+ $dev "empty Visual C++ projects %YFramework_MinGW32",
+	+ $dev "empty Microsoft VC++ projects %YFramework_MinGW32",
 		// Only for convenience, no ability for building.
 	/ $doc @ "directory %doc" $=
 	(
@@ -5027,7 +5028,7 @@ b427
 
 b426
 (
-	/ DLB "Visual C++ projects" $=
+	/ DLB "Microsoft VC++ projects" $=
 	(
 		- "all filters of extensions",
 		/ "reconstructed files as directories"
@@ -5347,8 +5348,11 @@ b420
 			'AUX_MODULES += cache', 'BASE_EXTENSIONS += ftfstype.c',
 			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c');
 		^ $re_ex(b366) $workaround(#19) "updated FreeType 2.5.0.1 with several \
-			files remained" ~ "FreeType 2.4.11"
+			files remained" ~ "FreeType 2.4.11",
 			// See [Documentation::Dependencies @@2.2.3] .
+		/ $comp "hid error message of font requesting" @ "platform %DS"
+			// See $2016-06 @ %Documentation::Workflow::Annual2016 for further \
+				analysis.
 	)
 ),
 
@@ -5415,7 +5419,7 @@ b418
 					^ "%unordered_map with %unique_ptr for %FontFamily \
 						stored",
 					/ "function %ClearCache" => "%Reset",
-					- "FreeType CMap caching"
+					- "FreeType character map caching"
 						// Binary size enlarged. No performance impact.
 				),
 				+ "CMap caching" ^ "%unordered_map"
@@ -5739,7 +5743,7 @@ b412
 					@ "class template %GBinaryObject" @ %GDIBase $since b311
 					// Though C++1y may loose the restrictions as allowing \
 						this invalid C++11 construct. Note another restriction \
-						is already relaxed in the draft WG21/N3691. See $ref \
+						is already relaxed in the draft WG21 N3691. See $ref \
 						b412 $note "N3652".
 				* $dev "wrong %yconstfn" @ "constructor %Message" @ %YMessage
 					$since b368,
@@ -6003,7 +6007,7 @@ b408
 
 b407
 (
-	/ $workaround(#20) "Visual C++ project configuration names",
+	/ $workaround(#20) "Microsoft VC++ project configuration names",
 	/ %YFramework.YSLib $=
 	(
 		/ $dev @ %Service.YGDI $=
@@ -6257,7 +6261,7 @@ b402
 		/ %YSLib $=
 		(
 			* DLB "missing header %(YSLib/YAdaptor/YTextBase.h, \
-				CHRLib/Convert.hpp)" @ "VC++ project" $since b400,
+				CHRLib/Convert.hpp)" @ "Microsoft VC++ project" $since b400,
 			/ %Adaptor.YAdaptor $=
 			(
 				+ "using %CS_Path" @ "namespace %YSLib::IO" $dep_from
@@ -6307,7 +6311,7 @@ b401
 	),
 	/ $build "headers of library %freetype" @ "project %YFramework"
 		>> "directory %3rdparty/include" ~ "directory %YFramework/include"
-		// For convenience, the main YFramework VC++ project is still \
+		// For convenience, the main YFramework Microsoft VC++ project is still \
 			containing these items, as for "/doc". And it is required to put \
 			the directory "3rdpraty" into the header searching path by user, \
 			since FreeType2 headers are explicitly included by header \

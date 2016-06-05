@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1888
+\version r1906
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2016-05-23 07:47 +0800
+	2016-06-03 09:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -709,6 +709,25 @@ find_suffix(const _tString& str, _tParams&&... args)
 	return {};
 }
 //@}
+//@}
+
+/*!
+\brief 取相同的前缀和后缀元素。
+\pre 取前缀和后缀操作无副作用。
+\pre 字符串非空。
+\since build 697
+\todo 检查非成员 \c front 和 back \c 。
+\todo 支持前缀和后缀字符串。
+\todo 扩展到一般容器。
+*/
+//@{
+template<typename _tString>
+yconstfn typename string_traits<_tString>::value_type
+get_quote_mark_nonstrict(const _tString& str)
+{
+	return str.front() == str.back() ? str.front()
+		: typename string_traits<_tString>::value_type();
+}
 //@}
 
 /*!

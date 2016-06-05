@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r266
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2016-06-01 12:42 +0800
+	2016-06-05 23:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,9 +105,13 @@ ImplDeDtor(AboutPanel)
 
 SystemInformationPanel::SystemInformationPanel()
 	: DialogPanel({0, 0, 256, 170}),
-	view({0, 21, 256, 170})
+	view({0, 24, 256, 170}), lbl_title({3, 2, 80, 20})
 {
-	*this += view;
+	AddWidgets(*this, view, lbl_title),
+	yunseq(
+	lbl_title.Background = nullptr,
+	lbl_title.Text = u"系统信息"
+	);
 }
 ImplDeDtor(SystemInformationPanel)
 
