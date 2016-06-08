@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3622
+\version r3749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-05-15 08:34 +0800
+	2016-06-08 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 //	ystdex::write_uint_le, std::bind, std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include YFM_YCLib_FileIO // for CategorizeNode, Deref, ystdex::to_array,
-//	ystdex::throw_error, std::errc::not_supported, ThrowFileOperationFailure,
-//	ystdex::ntctslen, std::strchr, std::wctob, std::towupper,
-//	ystdex::restrict_length, std::min, ystdex::ntctsicmp,
+//	ystdex::throw_error, std::errc::function_not_supported,
+//	ThrowFileOperationFailure, ystdex::ntctslen, std::strchr, std::wctob,
+//	std::towupper, ystdex::restrict_length, std::min, ystdex::ntctsicmp,
 //	std::errc::invalid_argument;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
@@ -109,14 +109,107 @@ is_date_range_valid(const std::tm& t)
 	return !(t.tm_mon < 0 || 12 < t.tm_mon || t.tm_mday < 1 || 31 < t.tm_mday);
 }
 
+//! \since build 699
+//@{
+// TODO: Simplify and expose as public API.
+YB_NONNULL(1) bool
+IsDirectoryImpl(const char*);
+YB_NONNULL(1) bool
+IsDirectoryImpl(const char16_t*);
+bool
+IsDirectoryImpl(const char* path)
+{
+#if YCL_Win32
+	return IsDirectoryImpl(ucast(UTF8ToWCS(path).c_str()));
+#else
+	// TODO: Merge imlementation. See %estat in %FileIO?
+	struct ::stat st;
+
+	return ::stat(path, &st) == 0 && bool(Mode(st.st_mode) & Mode::Directory);
+#endif
+}
+bool
+IsDirectoryImpl(const char16_t* path)
+{
+	// TODO: Simplify.
+#if YCL_Win32
+	return platform_ex::FileAttributes(::GetFileAttributesW(wcast(path))
+		& platform_ex::Directory);
+#else
+	return IsDirectoryImpl(MakeMBCS(path).c_str());
+#endif
+}
+
+template<typename _tChar>
+YB_NONNULL(1) basic_string<_tChar>
+ResolvePathImpl(const _tChar* path, size_t n)
+{
+	YAssertNonnull(path);
+#if YCL_DS
+	yunused(n);
+#endif
+
+	using string_t = basic_string<_tChar>;
+	basic_string_view<_tChar> s(path);
+	string_t res;
+	const bool absolute(IsAbsolute(path));
+
+	if(!absolute)
+	{
+		res = TryGetCurrentWorkingDirectory<_tChar>(yimpl(PATH_MAX));
+		YAssert(!res.empty() && res.back() != YCL_PATH_DELIMITER,
+			"Invalid path converted.");
+	}
+	ystdex::split(s.cbegin(), s.cend(), [](_tChar c){
+		return YCL_FS_CharIsDelimiter(c, _tChar);
+	}, [&](decltype(s.cend()) b, decltype(s.cend()) e){
+		if(b != e)
+		{
+			if(!res.empty())
+				res += string_t(b, e);
+			else
+			{
+				string_t head(b, e);
+
+				if(absolute && !IsAbsolute(head.c_str()))
+					res += YCL_PATH_DELIMITER;
+				res += std::move(head);
+			}
+			if(!res.empty())
+			{
+#if !YCL_DS
+				try
+				{
+					// TODO: Throw with context information about failed path?
+					res = ReadLink(res.c_str());
+					if(n != 0)
+						--n;
+					else
+						// XXX: Enumerator
+						//	%std::errc::too_many_symbolic_link_levels is
+						//	commented out in MinGW-w64 configuration of
+						//	libstdc++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71444.
+						ystdex::throw_error(ELOOP);
+				}
+				CatchIgnore(std::invalid_argument&)
+#endif
+			}
+			if(IsDirectoryImpl(res.c_str()))
+				res += YCL_PATH_DELIMITER;
+		}
+	});
+	return res;
+}
+//@}
+
 } // unnamed namespace;
 
 void
 CreateHardLink(const char* dst, const char* src)
 {
 #if YCL_DS
-	Nonnull(dst), Nonnull(src);
-	ystdex::throw_error(std::errc::not_supported);
+	YAssertNonnull(dst), YAssertNonnull(src);
+	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
 	CreateHardLink(ucast(UTF8ToWCS(dst).c_str()),
 		ucast(UTF8ToWCS(src).c_str()));
@@ -132,7 +225,7 @@ void
 CreateHardLink(const char16_t* dst, const char16_t* src)
 {
 #if YCL_DS
-	Nonnull(dst), Nonnull(src);
+	YAssertNonnull(dst), YAssertNonnull(src);
 	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
 	YCL_CallWin32F(CreateHardLinkW, wcast(dst), wcast(src), {});
@@ -153,7 +246,7 @@ CreateSymbolicLink(const char* dst, const char* src, bool is_dir)
 		ucast(UTF8ToWCS(src).c_str()), is_dir);
 #elif YCL_DS
 	yunused(dst), yunused(src), yunused(is_dir);
-	ystdex::throw_error(std::errc::not_supported);
+	ystdex::throw_error(std::errc::function_not_supported);
 #else
 	yunused(is_dir);
 	if(::symlink(Nonnull(src), Nonnull(dst)) != 0)
@@ -168,7 +261,7 @@ CreateSymbolicLink(const char16_t* dst, const char16_t* src, bool is_dir)
 		is_dir ? YCL_Impl_details::SymbolicLinkFlagDirectory : 0UL);
 #elif YCL_DS
 	yunused(dst), yunused(src), yunused(is_dir);
-	ystdex::throw_error(std::errc::not_supported);
+	ystdex::throw_error(std::errc::function_not_supported);
 #else
 	CreateSymbolicLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str(), is_dir);
 #endif
@@ -178,7 +271,7 @@ string
 ReadLink(const char* path)
 {
 #if YCL_DS
-	Nonnull(path);
+	YAssertNonnull(path);
 	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
 	// TODO: Simplify?
@@ -196,12 +289,15 @@ ReadLink(const char* path)
 			const auto size(::readlink(path, &res[0], size_t(n)));
 
 			if(size >= 0)
-				return {res.c_str(), size_t(size)};
+			{
+				res.resize(size_t(size));
+				return res;
+			}
 		}
 		else if(n == 0)
 			return {};
-		else
-			throw std::runtime_error("Invalid length of link target found.");
+		else if(errno == EINVAL)
+			throw std::invalid_argument("Specified file is not a link.");
 	}
 	ystdex::throw_error(errno);
 #endif
@@ -210,7 +306,7 @@ u16string
 ReadLink(const char16_t* path)
 {
 #if YCL_DS
-	Nonnull(path);
+	YAssertNonnull(path);
 	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
 	// TODO: Simplify?
@@ -218,6 +314,17 @@ ReadLink(const char16_t* path)
 #else
 	return MakeUCS2LE(ReadLink(MakeMBCS(path).c_str()));
 #endif
+}
+
+YB_NONNULL(1) string
+ResolvePath(const char* path, size_t n)
+{
+	return ResolvePathImpl<char>(path, n);
+}
+YB_NONNULL(1) u16string
+ResolvePath(const char16_t* path, size_t n)
+{
+	return ResolvePathImpl<char16_t>(path, n);
 }
 
 
@@ -231,8 +338,10 @@ public:
 //! \since build 680
 namespace
 {
+
 PDefH(::DIR*, ToDirPtr, DirectorySession::NativeHandle p)
 	ImplRet(static_cast<::DIR*>(p))
+
 } // unnamed namespace;
 #endif
 void
@@ -249,6 +358,13 @@ DirectorySession::Deleter::operator()(pointer p) const ynothrowv
 }
 
 
+DirectorySession::DirectorySession()
+#if YCL_Win32
+	: DirectorySession(u".")
+#else
+	: DirectorySession(".")
+#endif
+{}
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
 	: dir(new Data(UTF8ToWCS(path)))
@@ -269,6 +385,13 @@ DirectorySession::DirectorySession(const char* path)
 		ThrowFileOperationFailure("Opening directory failed.");
 #endif
 }
+DirectorySession::DirectorySession(const char16_t* path)
+#if YCL_Win32
+	: dir(new Data(wcast(path)))
+#else
+	: DirectorySession(MakeMBCS(path).c_str())
+#endif
+{}
 
 void
 DirectorySession::Rewind() ynothrow

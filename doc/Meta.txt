@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1513
+\version r1514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2016-03-21 21:05 +0800
+	2016-06-08 06:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,6 +112,7 @@ $re($rev_list); // for same repeated operations;
 $re_add($rev_list); // for additional similar repeated operations;
 $re_ex($rev_list); // for repeated operations with evolution(update);
 $resolve($inum_list); // for marking resolving issues;
+$resolve($rev_list); // for marking resolved issues (in the issue tracker);
 $revert($rev_list); // for actions reverting changes in previous revision(s), \
 	with all explicit modification and effection restored to the original state.
 $revert_ex($rev_list); // same for $revert except for the modification not \

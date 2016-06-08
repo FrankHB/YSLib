@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9185
+\version r9187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2016-06-05 07:10 +0800
+	2016-06-08 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,7 +171,7 @@ b498
 		),
 		/ %YSLib $=
 		(
-			+ "inclusion %YFM_YCLib_Keys" @ %YAdaptor.Adaptor,
+			+ "inclusion %YFM_YCLib_Keys" @ %Adaptor.YAdaptor,
 				// To prevent %YTraceDe undefined.
 			/ @ %UI.Loader $=
 			(
@@ -1210,7 +1210,7 @@ b486
 					LostFocus)" @ "controls" $effective %TextBox
 					// See $2014-03 @ %Documentation::Workflow::Annual2014.
 			),
-			/ @ %YAdaptor.Adaptor $=
+			/ @ %Adaptor.YAdaptor $=
 			(
 				+ 'using platform::FindFirstKey' $dep_from %YCLib.Keys,
 				+ 'using platform::KeyBitsetWidth'

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2176
+\version r2194
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2016-02-01 13:04 +0800
+	2016-06-08 09:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ FetchCurrentWorkingDirectory(size_t len)
 {
 	u16string str(len, char16_t());
 
-	u16getcwd_n(&str[0], len);
+	ugetcwd(&str[0], len);
 	return str;
 }
 
@@ -100,8 +100,13 @@ MakeNormalizedAbsolute(const Path& pth, size_t len)
 }
 
 
-bool
-VerifyDirectory(const char* path)
+//! \since build 699
+namespace
+{
+
+template<typename _tChar>
+YB_NONNULL(1) bool
+VerifyDirectoryImpl(const _tChar* path)
 {
 	try
 	{
@@ -113,6 +118,18 @@ VerifyDirectory(const char* path)
 	return {};
 }
 
+} // unnamed namespace;
+
+bool
+VerifyDirectory(const char* path)
+{
+	return VerifyDirectoryImpl(path);
+}
+bool
+VerifyDirectory(const char16_t* path)
+{
+	return VerifyDirectoryImpl(path);
+}
 
 void
 EnsureDirectory(const Path& pth)

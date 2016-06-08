@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11806
+\version r11898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-06-05 23:22 +0800
+	2016-06-08 09:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,99 @@ $import $HISTORY;
 // Scope: [b600, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				/ @ !"platforms %(DS, Windows)" @ "function %ReadLink" $=
+				(
+					/ DLI "avoided redundant copy of result",
+					/ "threw %std::invalid_argument for existed file which is \
+						not a link" 
+						// This matches the behavior on platform %Win32
+				),
+				/ @ "platform %DS" @ "all functions %(ReadLink, \
+					CreateHardLink, CreateSymbolicLink)" $=
+				(
+					+ 'YB_NORETURN',
+					(
+					* "wrongly threw %std::system_error with \
+						%std::errc::not_supported for 'char' overloadings"
+						~ "with %std::errc::function_not_supported" $since b652;
+					* $doc "wrong exception condition" @ "'\exception' command"
+						@ "Doxygen comments" @ "'char' overloadings" $since b660
+					),
+					/ $design "assertion" ^ "%YAssertNonnull" ~ "%Nonnull"
+				),
+				+ "2 functions %ResolvePath",
+				* "missing 'platform::'" @ "call of %FindColon" @ "function \
+					templates %(IsAbsolute_P, FetchRootNameLength_P) with \
+					%IDTag<YF_Platform_DS> parameter" $since b654,
+				/ "constructor %DirectorySession" -> "default constructor and \
+					2 explicit constructors with different string types and \
+					'YB_NONNULL'",
+					// To allow optimal initialization.
+				/ "class %HDirectory" $=
+				(
+					/ DLDI "private data member"
+						^ "brace-or-equal-initializer ' = 0'";
+					/ "constructor %HDirectory"
+						-> 'using DirectorySession::DirectorySession;'
+				)
+			),
+			/ %FileIO $=
+			(
+				(
+				/ "function %u16getcwd_n" -> "2 functions %ugetcwd with \
+					overloading for both UTF-8 and UCS-2 buffer" $=
+				(
+					/ 'ynothrow' -> 'ynothrowv';
+					+ "assertion to ensure nonnull parameter";
+					* $comp "invalid 'YB_NONNULL'" $orig
+						(@ %FileSystem $since b592)
+						// The documents explicitly allowed null parameter.
+				);
+				+ "function template %TryGetCurrentWorkingDirectory" ^ $dep_from
+					("%retry_for_vector" @ %YBase.YStandardEx.Container)
+				)
+				* "wrong '\param' command" @ "Doxygen comments"
+					@ "function %upclose" $orig (@ %FileSystem $since b566)
+			)
+		),
+		/ %YSLib
+		(
+			/ $forced DLD 'using platform::u16getcwd_n;'
+				-> 'using platform::ugetcwd' @ %Adaptor.YAdaptor $dep_from
+				%YCLib.FileIO,
+			/ %Service.FileSystem $=
+			(
+				/ $forced DLDI "function %FetchCurrentWorkingDirectory"
+					$dep_from %Adaptor.YAdaptor,
+				/ @ "functions %VerifyDirectory" $=
+				(
+					// To utilize optimal %DirectorySession constructors, esp. \
+						on platform %Win32.
+					+ "overloadings of %VerifyDirectory for \
+						('const char16_t*'; 'const u16string&')";
+					/ DLP "optimized overloading for 'const String&'" ^ "%c_str"
+						~ "%GetMBCS";
+					/ $comp "optimized overloading for 'const Path&'"
+				)
+			)
+		),
+		/ DLDI "simplified %FetchModuleFileName" @ %'YCLib_(Win32)'.MinGW32
+			^ $dep_from ("%retry_for_vector" @ %YBase.YStandardEx.Container)
+	),
+	+ "function template %retry_for_vector" @ %YBase.YStandardEx.Container
+		// This is concerned with http://wg21.cmeerw.net/lwg/issue2466 but not \
+			a big issue in general. It throws when allocation failed. It is \
+			user's responsibility to keep it usable.
+),
+
+b698
 (
 	+ "function template %get_quote_mark_nonstrict" @ %YBase.YStandardEx.String;
 	/ %YFramework $=

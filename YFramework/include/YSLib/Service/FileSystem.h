@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2918
+\version r2925
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-04-23 03:39 +0800
+	2016-06-08 09:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -385,10 +385,16 @@ MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
 //@{
 YF_API YB_NONNULL(1) bool
 VerifyDirectory(const char*);
+//! \since build 699
+YF_API YB_NONNULL(1) bool
+VerifyDirectory(const char16_t*);
 inline PDefH(bool, VerifyDirectory, const string& path)
 	ImplRet(VerifyDirectory(path.c_str()))
+//! \since build 699
+inline PDefH(bool, VerifyDirectory, const u16string& path)
+	ImplRet(VerifyDirectory(path.c_str()))
 inline PDefH(bool, VerifyDirectory, const String& path)
-	ImplRet(VerifyDirectory(path.GetMBCS()))
+	ImplRet(VerifyDirectory(path.c_str()))
 inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
 //@}
