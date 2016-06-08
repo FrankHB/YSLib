@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1729
+\version r1748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-03-23 01:51 +0800
+	2016-06-07 09:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -930,6 +930,28 @@ vector_concat(_tVector& vec, _tRange&& c)
 
 
 /*!
+\brief 从第一参数指定的起始缓冲区大小循环取向量结果，按需扩大缓冲区。
+\pre 断言：第一参数不等于 0 。
+\note 可用于支持 \c max_size 和 \c resize 的字符串类型。
+\see http://wg21.cmeerw.net/lwg/issue2466 。
+\since build 699
+*/
+template<class _tVector, typename _func>
+_tVector
+retry_for_vector(typename _tVector::size_type s, _func f)
+{
+	yconstraint(s != 0);
+
+	_tVector res;
+
+	for(res.resize(s); f(res, s) && s < res.max_size() yimpl(/ 2); )
+		res.resize(s *= yimpl(2));
+	return res;
+}
+
+
+
+/*!
 \ingroup helper_functions
 \brief 替换关联容器的值。
 \note 使用 \c end 指定范围迭代器。
@@ -1147,7 +1169,7 @@ template<class _tAssocCon, typename _tKey, typename... _tParams>
 std::pair<typename _tAssocCon::iterator, bool>
 try_emplace(_tAssocCon& con, _tKey&& k, _tParams&&... args)
 {
-	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
+	// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
 	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
 		return emplace_hint_in_place(con, i, yforward(k),
 			std::forward<_tParams>(args)...);
@@ -1159,7 +1181,7 @@ std::pair<typename _tAssocCon::iterator, bool>
 try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	_tKey&& k, _tParams&&... args)
 {
-	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
+	// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
 	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
 		return emplace_hint_in_place(con, i, yforward(k),
 			std::forward<_tParams>(args)...);

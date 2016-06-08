@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1925
+\version r1927
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-04-12 11:09 +0800
+	2016-06-06 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,8 +270,8 @@ using platform::ufexists;
 using platform::upclose;
 //! \since build 566
 using platform::upopen;
-//! \since build 304
-using platform::u16getcwd_n;
+//! \since build 698
+using platform::ugetcwd;
 //! \since build 313
 using platform::uchdir;
 //! \since build 475

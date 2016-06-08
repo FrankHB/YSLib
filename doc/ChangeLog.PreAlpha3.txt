@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5610
+\version r5626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2016-01-18 12:12 +0800
+	2016-06-07 20:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,7 +285,7 @@ b392
 					^ DLD "operator(<, !)" ~ "operator>="
 						@ "functions implementation",
 					+ "function %AdjustForContent",
-					+ "static assertion for member typedefs %(SizeType, \
+					+ $dev "static assertion for member typedefs %(SizeType, \
 						DifferenceType)",
 				),
 				/ "split function %GetList for constness" @ "class %MTextList"
@@ -328,9 +328,9 @@ b392
 	),
 	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ DLP $re_ex(b346) "MinGW[gcc version 4.8.0 (Built by MinGW-builds \
-			project)] x32-4.8.0-release-posix-sjlj-rev0" ~ "MinGW[gcc version \
-			4.7.2 (Built by MinGW-builds project)] \
+		^ DLP $re_ex(b346) $resolved(#8) "MinGW[gcc version 4.8.0 (Built by \
+			MinGW-builds project)] x32-4.8.0-release-posix-sjlj-rev0"
+			~ "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
 			x32-4.7.2-release-posix-sjlj-rev0 [release-sjlj]"
 			@ "platform %MinGW32",
 				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
@@ -455,7 +455,7 @@ b388
 		/ %Helper $=
 		(
 			(
-			/ $dev $lib $impl "input manager" @ "hosted platforms",
+			/ DLI "input manager" @ "hosted platforms",
 			/ $dev $lib "cursor adjusting interface" @ "platform %MinGW32";
 			* "out-of-bound touch event transferred" @ "platform %MinGW32"
 				$since b377
@@ -755,7 +755,7 @@ b377
 	),
 	/ $dev %YBase.YStandarEx $=
 	(
-		+ "static assertions" @ "pointer version of function templates \
+		+ $dev "static assertions" @ "pointer version of function templates \
 			%(polymorphic_cast, polymorphic_crosscast)" @ %Cast,
 		^ ("ADL" 'begin' ~ '.begin', 'end' ~ '.end') @ "function templates"
 	)
@@ -767,7 +767,7 @@ b376
 	(
 		+ "metafunctions %(remove_rcv, remove_rcvp)" %TypeOperation,
 		/ DLD "explicitly" !^ 'std::' @ "%wrap_handler" @ %AnyIterator,
-		* $dev "missing excluding of 'any&'" @ "constructor template with 1 \
+		* "missing excluding of 'any&'" @ "constructor template with 1 \
 			function parameter" @ "class %any" $since b352
 	),
 	/ %YFramework $=
@@ -811,7 +811,7 @@ b376
 
 b375
 (
-	/ DLD "updated proper devkitPro paths" @ "Visual C++ project",
+	/ DLD "updated proper devkitPro paths" @ "Microsoft VC++ project",
 	/ %YBase $=
 	(
 		/ %LibDefect.String $=
@@ -834,7 +834,7 @@ b375
 			(
 				/ "explicitly" !^ 'std::' @ "static assertion"
 					$= (^ is_object ~ 'std::is_object'),
-				+ "static assertion to confirm types with cv-qualified \
+				+ $dev "static assertion to confirm types with cv-qualified \
 					argument types not instantiated"
 			)
 		)
@@ -1242,7 +1242,7 @@ b363
 		),
 		(
 		/ "macros 'G_*'" @ %main >> "unit %ShlExplorer";
-		+ 'about form'
+		+ "about form %FrmAbout"
 		)
 	)
 ),
@@ -1757,7 +1757,7 @@ b349
 			$= (/ $impl ^ "%std::is_explicitly_convertible"
 			~ "%std::is_constructible"),
 			// See $ref b349.
-		- "iterator type definition and unnecessary header including"
+		- "iterator type definition and unnecessary header inclusion"
 			@ %NPL.Lexical
 	),
 	/ $dev %YBase $=
@@ -1823,7 +1823,7 @@ b348
 	),
 	/ %YFramework.YSLib.Core.YObject $=
 	(
-		/ $dev $lib $impl "class templates %(ValueHolder, PointerHolder)"
+		/ DLI "class templates %(ValueHolder, PointerHolder)"
 			^ "%ystdex::examiners::equal_examiner" $dep_from "examiners",
 		/ "member 'public _type held'" @ "class template %ValueHolder"
 			-> "'protected mutable _type held'";
@@ -2584,7 +2584,7 @@ b323
 		/ DLD "host implementation" @ "platform %MinGW32" @ DSMain,
 		/ DLD "several header dependencies improved"
 	),
-	/ DLP "duplicate entries removed" @ "Visual C++ project filters"
+	/ DLP "duplicate entries removed" @ "Microsoft VC++ project filters"
 		@ "platform %DS",
 	* DLP "wrong position for directory %Helper"
 		@ "Code::Blocks project %YFramework" $since b303,
@@ -2824,7 +2824,7 @@ b318
 		$= (^ $re_ex(b292) "updated library freetype 2.4.10"
 			~ "modified freetype 2.4.9"),
 	^ DLB "parallel command line option '-j'"
-		@ "all Visual C++ projects makefile command lines",
+		@ "all Microsoft VC++ projects makefile command lines",
 	* $comp "submenu test using right arrow key" $since b285
 		@ %YReader.'shells test example' $dep_from "wrong textlist length"
 ),
@@ -2971,7 +2971,7 @@ b313
 		(
 		+ "separate unit %Keys for keyboard/keypad constants",
 		+ "separate unit %Timer for timers";
-		/ "header including",
+		/ "header inclusion",
 			// Making more loose coupling.
 		),
 		/ @ FileSystem $=
@@ -2998,7 +2998,7 @@ b312
 				+ "function %udirexists"
 			),
 			- "redundant types and macros definition" @ "header %NativeAPI.h",
-			/ "header including"
+			/ "header inclusion"
 				// Making less of directly including header %NativeAPI.h from \
 					public headers for less pollution \
 					in global namespace and macros.

@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1649
+\version r1653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2016-05-04 13:11 +0800
+	2016-06-08 07:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1266,7 +1266,11 @@ ISO C11 7.1.3/1 指定的保留名称被 ISO C++11 覆盖。
 @5.15.1.4.2 POSIX 保留符号：
 关于 POSIX.1-2004 指定保留的符号对应的名称参见 http://pubs.opengroup.org/onlinepubs/007904975/functions/xsh_chap02_02.html 。
 对其中依赖头的保留符号，除非对应的头未被包含，对应的名称禁止被声明或作为宏定义。
-对其它的保留符号，对应的名称禁止被声明或作为宏定义。
+
+@5.15.1.4.3 宏名：
+保留标识符不应作为宏名被 #define 指令定义。
+不应该使用依赖保留操作符作为宏名被替换的结果（如直接出现在 #if 后）。
+在预处理指令中检查宏是否被定义不引入保留名称，所以允许引用保留标识符作为 defined 的操作数。
 
 @5.15.2 标准库头：
 注意标准库头受到 ISO C++ [using.headers] 的约束。

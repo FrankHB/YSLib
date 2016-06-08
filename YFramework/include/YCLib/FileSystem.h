@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3182
+\version r3241
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-05-15 09:17 +0800
+	2016-06-08 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,7 +166,7 @@ template<typename _tChar>
 inline YB_NONNULL(2) bool
 IsAbsolute_P(IDTag<YF_Platform_DS>, const _tChar* path) ynothrowv
 {
-	return IsSlash(Deref(path)) || FindColon(path);
+	return IsSlash(Deref(path)) || platform::FindColon(path);
 }
 template<typename _tChar>
 inline bool
@@ -218,7 +218,7 @@ template<typename _tChar>
 YB_NONNULL(2) size_t
 FetchRootNameLength_P(IDTag<YF_Platform_DS>, const _tChar* path) ynothrowv
 {
-	auto p(FindColon(path));
+	auto p(platform::FindColon(path));
 
 	if(!p)
 		p = path;
@@ -321,12 +321,14 @@ enum class NodeCategory : std::uint_least32_t;
 
 
 /*!
-\pre 间接断言：路径指针非空。
+\pre 断言：路径指针非空。
 \exception Win32Exception Win32 平台：本机 API 调用失败。
 \exception std::system_error 系统错误。
 	\li std::errc::function_not_supported 操作不被文件系统支持。
-\note DS 平台：当前实现不支持替换文件系统，因此始终不支持操作。
+	\li 可能有其它错误。
 */
+//@{
+//! \note DS 平台：当前实现不支持替换文件系统，因此始终不支持操作。
 //@{
 //! \note 前两个参数为目标路径和源路径。
 //@{
@@ -336,8 +338,14 @@ enum class NodeCategory : std::uint_least32_t;
 \since build 633
 */
 //@{
+#if YCL_DS
+YB_NORETURN
+#endif
 YF_API YB_NONNULL(1, 2) void
 CreateHardLink(const char*, const char*);
+#if YCL_DS
+YB_NORETURN
+#endif
 YF_API YB_NONNULL(1, 2) void
 CreateHardLink(const char16_t*, const char16_t*);
 //@}
@@ -350,8 +358,14 @@ CreateHardLink(const char16_t*, const char16_t*);
 \since build 651
 */
 //@{
+#if YCL_DS
+YB_NORETURN
+#endif
 YF_API YB_NONNULL(1, 2) void
 CreateSymbolicLink(const char*, const char*, bool = {});
+#if YCL_DS
+YB_NORETURN
+#endif
 YF_API YB_NONNULL(1, 2) void
 CreateSymbolicLink(const char16_t*, const char16_t*, bool = {});
 //@}
@@ -359,15 +373,37 @@ CreateSymbolicLink(const char16_t*, const char16_t*, bool = {});
 
 /*!
 \brief 读取链接指向的路径。
-\throw std::runtime_error POSIX 平台：读取连接得到的长度有误。
+\throw std::invalid_argument 指定的路径存在但不是连接。
+\note 支持 Windows 目录链接和符号链接，不特别区分。
 \bug 不保证支持不完全符合 POSIX 的文件系统（如 Linux 的 /proc ）。
 \since build 660
 */
 //@{
+#if YCL_DS
+YB_NORETURN
+#endif
 YF_API YB_NONNULL(1) string
 ReadLink(const char*);
+#if YCL_DS
+YB_NORETURN
+#endif
 YF_API YB_NONNULL(1) u16string
 ReadLink(const char16_t*);
+//@}
+//@}
+
+/*!
+\brief 解析路径：取跟踪链接的绝对路径。
+\note 第二参数指定解析链接的次数上限。
+\throw std::system_error std::errc::too_many_symbolic_link_levels 超过链接限制。
+\since build 698
+\return 解析得到的绝对路径。
+*/
+//@{
+YF_API YB_NONNULL(1) string
+ResolvePath(const char*, size_t = 1);
+YF_API YB_NONNULL(1) u16string
+ResolvePath(const char16_t*, size_t = 1);
 //@}
 //@}
 
@@ -421,14 +457,22 @@ public:
 	\brief 构造：打开目录路径。
 	\pre 间接断言：参数非空。
 	\throw FileOperationFailure 打开失败。
-	\note 路径可以一个或多个分隔符结尾；当路径为空字符串时视为 "." 。
+	\note 路径可以一个或多个分隔符结尾；结尾的分隔符会被视为单一分隔符。
+	\note 当路径只包含分隔符或为空字符串时视为当前目录。
+	\note 实现中 Win32 使用 UCS2-LE ，其它平台使用 UTF-8 ；否则需要编码转换。
 	\note Win32 平台： "/" 可能也被作为分隔符支持。
 	\note Win32 平台： 前缀 "\\?\" 关闭非结尾的 "/" 分隔符支持，
 		且无视 MAX_PATH 限制。
-	\since build 654
+	\since build 699
 	*/
-	explicit
-	DirectorySession(const char* path = ".");
+	//@{
+	//! \note 使用当前目录。
+	DirectorySession();
+	explicit YB_NONNULL(2)
+	DirectorySession(const char*);
+	explicit YB_NONNULL(2)
+	DirectorySession(const char16_t*);
+	//@}
 	//! \since build 560
 	DefDeMoveCtor(DirectorySession)
 	/*!
@@ -482,19 +526,14 @@ private:
 	\invariant <tt>!(YCL_Win32 && p_dirent && p_dirent->empty())</tt> 。
 	\since build 669
 	*/
-	tidy_ptr<DirentData> p_dirent;
+	tidy_ptr<DirentData> p_dirent{};
 
 public:
 	/*!
 	\brief 构造：使用目录路径。
-	\note 路径要求同 DirectorySession 构造。
-	\sa DirectorySession::DirectorySession
-	\since build 541
+	\since build 699
 	*/
-	explicit YB_NONNULL(2)
-	HDirectory(const char* path)
-		: DirectorySession(path), p_dirent()
-	{}
+	using DirectorySession::DirectorySession;
 	//! \since build 669
 	DefDeMoveCtor(HDirectory)
 

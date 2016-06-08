@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1677
+\version r1685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-05-23 05:02 +0800
+	2016-06-07 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
 //	YSLib::CheckPositiveScalar, YSLib::make_unique_default_init,
 //	platform::EndsWithNonSeperator, YSLib::FilterExceptions;
+#	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
 #	include <functional> // for std::bind, std::placeholders::_1;
 
 using namespace YSLib;
@@ -412,12 +413,8 @@ LoadProc(::HMODULE h_module, const char* proc)
 wstring
 FetchModuleFileName(::HMODULE h_module)
 {
-	wstring res;
-
-	for(size_t s(MAX_PATH); s < res.max_size(); s *= 2)
-	{
-		res.resize(s);
-
+	return ystdex::retry_for_vector<wstring>(MAX_PATH,
+		[=](wstring& res, size_t s) -> bool{
 		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0], s)));
 		const auto e(::GetLastError());
 
@@ -426,12 +423,11 @@ FetchModuleFileName(::HMODULE h_module)
 		if(r < s)
 		{
 			res.resize(r);
-			break;
+			return {};
 		}
-	}
-	return res;
+		return true;
+	});
 }
-
 
 
 void

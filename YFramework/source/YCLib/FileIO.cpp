@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2236
+\version r2274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-04-13 13:23 +0800
+	2016-06-07 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
-#	include YFM_CHRLib_CharacterProcessing
+#	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
 
 //! \since build 475
 using namespace CHRLib;
@@ -54,7 +54,7 @@ using namespace CHRLib;
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform::WCSToUTF8, platform_ex::UTF8ToWCS, platform_ex::ConvertTime,
+//	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS, platform_ex::ConvertTime,
 //	platform_ex::SetFileTime;
 
 //! \since build 639
@@ -74,7 +74,7 @@ using platform_ex::ConvertTime;
 //@}
 #elif YCL_API_POSIXFileSystem
 #	include "CHRLib/YModules.h"
-#	include YFM_CHRLib_CharacterProcessing
+#	include YFM_CHRLib_CharacterProcessing // for MakeMBCS;
 #	include <dirent.h>
 
 //! \since build 475
@@ -935,12 +935,44 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #endif
 }
 
-char16_t*
-u16getcwd_n(char16_t* buf, size_t size) ynothrow
+char*
+ugetcwd(char* buf, size_t size) ynothrowv
 {
-	if(YB_UNLIKELY(!buf || size == 0))
-		errno = EINVAL;
+	YAssertNonnull(buf);
+	if(size != 0)
+	{
+		using namespace std;
+
+#if YCL_Win32
+		try
+		{
+			const auto p(make_unique<wchar_t[]>(size));
+
+			if(const auto cwd = ::_wgetcwd(p.get(), int(size)))
+			{
+				const auto res(WCSToUTF8(cwd));
+				const auto len(res.length());
+
+				if(size < len + 1)
+					errno = ERANGE;
+				else
+					return ystdex::ntctscpy(buf, res.data(), len);
+			}
+		}
+		CatchExpr(std::bad_alloc&, errno = ENOMEM);
+#else
+		return ucast(::getcwd(wcast(buf), size));
+#endif
+	}
 	else
+		errno = EINVAL;
+	return {};
+}
+char16_t*
+ugetcwd(char16_t* buf, size_t size) ynothrowv
+{
+	YAssertNonnull(buf);
+	if(size != 0)
 	{
 		using namespace std;
 
@@ -962,6 +994,8 @@ u16getcwd_n(char16_t* buf, size_t size) ynothrow
 			CatchExpr(std::bad_alloc&, errno = ENOMEM)
 #endif
 	}
+	else
+		errno = EINVAL;
 	return {};
 }
 

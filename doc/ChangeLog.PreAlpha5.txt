@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15102
+\version r15120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2016-04-24 22:11 +0800
+	2016-06-08 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -885,7 +885,7 @@ b595
 					// Also to be conforming to WG21 N4081.
 					/ "initialized manager and handler" ^ "%decay_t"
 						~ "%(remove_reference_t, %remove_rcv_t)";
-					* $comp $re_ex(b594) "initialized mismatched manager and \
+					* $re_ex(b594) $comp "initialized mismatched manager and \
 						handler types" @ "constructor with only one value \
 						argument" $since b376,
 					* $comp "ill-formed for values of array type" $since b331
@@ -897,7 +897,7 @@ b595
 					/ "merged function templates %access to allow non-const \
 						reference returned by const functions";
 					$dep_to "allowing const access"
-					)
+					),
 					+ $dev "static assertion to disallow cv-qualified \
 						underlying type" @ "%pod_storage"
 						// Similar to %optional.
@@ -1237,7 +1237,7 @@ b594
 		/ %YDefinition $=
 		(
 			- 'using errno_t = int;' $dep_from
-				%YFramework.YSLib.YAdaptor.Adaptor
+				%YFramework.YSLib.Adaptor.YAdaptor
 			+ 'ynothrow' @ "function template %unsequenced"
 		)
 	),
@@ -3332,7 +3332,7 @@ b585
 				/ @ "class %Color" $=
 				(
 					/ DLD "all data members"
-						^ "brace-or-equal-initializer ' = 0'"";
+						^ "brace-or-equal-initializer ' = 0'";
 					/ "explicitly defaulted default constructor"
 				),
 				/ "namespace %Consoles" >> $dep_from %YSLib.Core.YConsole
@@ -4512,7 +4512,7 @@ b575
 				// Still only implemented for platform %Win32.
 		)
 	),
-	/ %YDE $=
+	/ %YDE.ImageBrowser $=
 	(
 		/ @ "class %ImageControl" @ %ImageControl $=
 		(
@@ -8525,8 +8525,8 @@ b549
 			* "wrong result returned" @ "member function %operator* when \
 				%_bEndian is %false or %_vN is not %CHAR_BIT" $since b414
 		),
-		* $dep_from "template parameter type" $comp $re_ex(b428)
-			"unavailable comparing operations" $since b414
+		* $re_ex(b428) $comp "unavailable comparing operations" $since b414
+			$dep_from "template parameter type"
 			// No operator would be found because of the mismatched template \
 				parameter.
 	),
@@ -8982,7 +8982,7 @@ b546
 				// Headers are not guaranteed to be files.
 		/ "all '导致未定义行为'" -> '引起未定义行为' $effective
 			@ %Documentation.(YBase, YFramework), YBase.YDefinition,
-			YFramework.(Helper.Enviornment, YSLib.(Service.File, UI.TreeView))
+			YFramework.(Helper.Environment, YSLib.(Service.File, UI.TreeView))
 	),
 	+ $dev $repo "pattern glob 'sysroot/*'" @ "file %.hgignore"
 ),
@@ -12561,8 +12561,8 @@ b511
 						focus is not set",
 					+ "invalidation after replacing text" @ "handler"
 						@ "event %TextInput",
-					/ "explicitly performed no-op for horizontal tab character"
-						// To avoid width problem.
+					/ "explicitly performed no-op for HT"
+						// To avoid width problem of horizontal tab.
 				)
 			)
 		)
@@ -12923,17 +12923,19 @@ b505
 		~ "Null pointer found." @ %YBase.YStandardEx.CAssert,
 	/ "all nonnull handle, shell handle, array pointer, buffer pointer, text \
 		buffer pointer or updater assertions" ^ "%YAssertNonnull" ~ "YAssert",
-	/ %Main $=
+	/ %YReader.Main $=
 	(
-		- "explicit 'return 0;'" @ "function ::main";
+		(
+		- "explicit 'return 0;'" @ "main function";
 			// So both function 'int main()' with implicit 'return 0;' and \
 				entry point function with void return type can be simply \
 				coexisted without modifying return-statement. Note that now \
 				the program is still not fully supported so it would crash \
 				intentionally.
-		/ "merged entry point function %::y_android_main with function %::main"
-			^ "conditional inclusion",
-		+ "debug trace" @ "function %::main" ^ 'YTraceDe' @ %Main
+		/ $dev "merged entry point function %::y_android_main with function \
+			%::main" ^ "conditional inclusion"
+		),
+		+ "debug trace" @ "main function" ^ 'YTraceDe'
 	),
 	* DLB "missing dependency for target %OUTPUTSO on .a files" @ "makefile"
 		@ "platform %Android" $since b497

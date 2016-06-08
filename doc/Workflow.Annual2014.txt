@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r828
+\version r917
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2015-08-15 22:07 +0800
+	2016-06-07 20:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,26 +38,26 @@ $2014-01:
 
 report.impl:
 The MinGW.org and MinGW-W64 runtime can be distinguished by predefined macros, though version macros are not predefined:
-	See http://sourceforge.net/mailarchive/forum.php?thread_name=CAEwic4b-B8%3DQ%3DSV2ptwO36SsCQW%2B6b0N%3DX41t3NHPoDQV%2BKeTw%40mail.gmail.com&forum_name=mingw-w64-public .
-	See also http://sourceforge.net/p/predef/wiki/Compilers/ .
+	See http://sourceforge.net/mailarchive/forum.php?thread_name=CAEwic4b-B8%3DQ%3DSV2ptwO36SsCQW%2B6b0N%3DX41t3NHPoDQV%2BKeTw%40mail.gmail.com&forum_name=mingw-w64-public.
+	See also http://sourceforge.net/p/predef/wiki/Compilers/.
 There may be some wrong impression of border thickness due to the colors.
 	It is easy to see the left vertical line of boundary of the checkbox is thicker in setting panel with violet background.
 	When the panel background color is some lighter, here is no such illusion.
 	Indeed they have the same thickness. It would be obvious after zoomed (esp. > 2x).
 	Actually, no rendering code of checkbox has been changed.
-Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Microsoft Visual C++ library(MSVCRT). There are some issues:
+Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Microsoft VC++ library(MSVCRT). There are some issues:
 	Different verstions of MSVCRT define different symbols with some subtle problems. So they should be same in different toolchain configurations for best compatibility.
-		Both of them support at least version 6.0, which is probably the most wide-adopted by Microsoft Windows(they came by default install). The library file name is "msvcrt.lib" for Microsoft Visual C++, accordingly "msvcrt.dll" of the dynamic library and "libmsvcrt.a" as static library for both runtime.
+		Both of them support at least version 6.0, which is probably the most wide-adopted by Microsoft Windows(they came by default install). The library file name is "msvcrt.lib" for Microsoft VC++, accordingly "msvcrt.dll" of the dynamic library and "libmsvcrt.a" as static library for both runtime.
 			Though acceptable, but deployment depend on it is not good. The are not publicly guaranteed to be compatible within different versions of Windows.
-		For newer versions, the dyanmic libraries name schema is "msvcrXX.dll", in which "XX" is the corresponding concatenated Microsoft Visual C++ main and minor version numbers. For example "msvcrt90.dll" is of VS2008.
+		For newer versions, the dyanmic libraries name schema is "msvcrXX.dll", in which "XX" is the corresponding concatenated Microsoft VC++ main and minor version numbers. For example "msvcrt90.dll" is of VS2008.
 			The architecture names (such as "x86" or "amd64") are not related of the file names.
-			They are required to be deployed along with the applications, or the end users might able to install corresponding version of Microsoft Visual C++ Redistributable Package.
+			They are required to be deployed along with the applications, or the end users might able to install corresponding version of Microsoft VC++ Redistributable Package.
 		MinGW.org uses 6.0 as default. Things about MinGW-W64 are some complicated, see below.
-		Currently MinGW.org's distribution has "libmsvcrt.a", "libmsvcp60.a"(the C++ runtime of VC++ 6.0), and "libmsvcr70.a" to "libmsvcr100.a"(the whole "XX" are 70, 71, 80, 90, 100). It also has corresponding debug versions for latter, i.e. "libmsvcr70d.a" to "libmsvcr100d.a". No newer MSVCRT are supported.
+		Currently MinGW.org's distribution has "libmsvcrt.a", "libmsvcp60.a"(the C++ runtime of Microsoft VC++ 6.0), and "libmsvcr70.a" to "libmsvcr100.a"(the whole "XX" are 70, 71, 80, 90, 100). It also has corresponding debug versions for latter, i.e. "libmsvcr70d.a" to "libmsvcr100d.a". No newer MSVCRT are supported.
 		On the other hand, MinGW.org's distribution also has "libmsvcrt.a", "libmsvcp60.a", and "libmsvcr80.a" to "libmsvcr100.a", but neither other versions("libmsvcr70.a", "libmsvcr71.a") nor debug libraries. However, it has "libmsvcr110.a", which MinGW.org's does not supported.
 	There is one extra library, "oldname.lib", to contains the original version of symbol names deprecated by Microsoft (such as POSIX-specific functions, because they are not strictly comforming to ISO C), to map to new names(usually added prefix underscore).
 		They are also different in MinGW.org's and MinGW-W64's runtime. There are "libmoldname.a" and "libmoldnameXX.a"("XX" here is also the version numbers, see above) for the former, and only one "libmoldname.a" for the latter.
-		See http://sourceforge.net/mailarchive/message.php?msg_id=30556805 .
+		See http://sourceforge.net/mailarchive/message.php?msg_id=30556805.
 	Most notable problem is backward compatibility. For example if new "secure" functions(ISO TR 24731-1) like "scanf_s" are used, MSVCRT older than version 8.0 can not be used.
 		Actually it is not version 6.0 of MinGW-W64's "libmsvcrt.a". It even exports "__gmtime32" comes from version 8.0.
 	Both toolchains use the same built-in specs in compiler driver for use of these libraries, i.e. "-lmsvcrt".
@@ -84,8 +84,8 @@ Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Micro
 	There are several optional version of MSVCRT containing "_gmtime32", but no one are proper for this scene.
 		No MSVCRT 7.0 and 7.1 available for MinGW-W64 toolchain.
 		The deployment of MSVCRT 8.0 and 9.0 makes a lot of trouble, if there is no manifest provided.
-			For side-by-side assemblies, see http://msdn.microsoft.com/en-us/library/ms235624%28v=vs.80%29.aspx .
-			For newer VC++ deployment, see http://stackoverflow.com/questions/6623780/visual-c-2010-changes-to-msvc-runtime-deployment-no-more-sxs-with-manifest .
+			For side-by-side assemblies, see http://msdn.microsoft.com/en-us/library/ms235624%28v=vs.80%29.aspx.
+			For newer Microsoft VC++ deployment, see http://stackoverflow.com/questions/6623780/visual-c-2010-changes-to-msvc-runtime-deployment-no-more-sxs-with-manifest.
 		For MSVCRT 10.0, symbols "_wstat", "_imp__findfirst" and "_imp__findnext" are not defined.
 		No MSVCRT 11.0 or newer available for MinGW.org toolchain.
 	Though rebuilt libraries are needed sooner or later, now it is better to have a fix in the project configurations.
@@ -101,9 +101,9 @@ Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Micro
 		It is relatively safe to use a newer library together with older headers.
 		So the final resolution is to implement a custom "_gmtime32" function for MinGW.org toolchain.
 Currently object files compiled with '-ffunction-sections -fdata-sections' for GNU ld with '--gc-sections' doesn't work for MinGW PE-COFF targets. It might be fixed in future.
-	See https://sourceware.org/bugzilla/show_bug.cgi?id=11539 .
-	See http://cygwin.com/ml/binutils/2012-08/msg00216.html .
-	See http://sourceforge.net/mailarchive/forum.php?thread_name=CALc40c_v46OnoopJXWbPpQk651JAxWU3UYFmDJy998mPKzD9DA%40mail.gmail.com&forum_name=mingw-w64-public .
+	See https://sourceware.org/bugzilla/show_bug.cgi?id=11539.
+	See http://cygwin.com/ml/binutils/2012-08/msg00216.html.
+	See http://sourceforge.net/mailarchive/forum.php?thread_name=CALc40c_v46OnoopJXWbPpQk651JAxWU3UYFmDJy998mPKzD9DA%40mail.gmail.com&forum_name=mingw-w64-public.
 Skin is the top level of GUI an application's shell to reflect look and feel. For a reusable GUI toolkit, a visual style is a set of visualized features for UI elements, being a major part of the skin.
 YFramework should implement the visual style support. It has been planned from very early reversions.
 	Basically, the styles are not for each widgets. They are only effective to style-related widgets.
@@ -153,7 +153,7 @@ YFramework should implement the visual style support. It has been planned from v
 ISO C++11 still uses copy elision for some cases as C++03. There are some special rules.
 	See ISO C++11 12.8/31 for conditions.
 	If these requirements are met, move constructor of a class can be selected by the overloading resolution without explicitly using 'std::move' or rvalue reference cast. See ISO C++ 12.8/32 for details.
-	See also http://isocpp.org/blog/2012/12/quick-q-a-unique-ptr-is-not-copyable-so-why-can-i-return-one-by-value-stack .
+	See also http://isocpp.org/blog/2012/12/quick-q-a-unique-ptr-is-not-copyable-so-why-can-i-return-one-by-value-stack.
 Since now ISO C++11 is mandated '<::' to be distinguished as '<' and '::' but not '<:' and ':' if the consequence character is not '>' or ':' , no need to always add space to between '<' and '::'.
 	G++ 4.7.1 has not supported.
 	G++ 4.8.2 is conforming.
@@ -163,18 +163,18 @@ $2014-02:
 report.impl:
 Trailing path delimiters are allowed in YCLib::FileSystem.
 	IEEE POSIX-1003.2 allowed trailing slashes.
-		See http://mail-index.netbsd.org/tech-kern/2002/04/28/0016.html .
+		See http://mail-index.netbsd.org/tech-kern/2002/04/28/0016.html.
 	Windows API 'FindFirstFile' does not expect trailing delimiters in pattern, so preprocessing of the path string is needed.
 		Some implementations may only consider one delimiter. See 'diropen' implemented by MinGW.org.
 Both slashes and backslashes can be supported as file system delimiter by Windows API.
 	Adding prefix '\\?\' can ignore 'MAX_PATH' limitation and enable large path support.
 		Not all API support it.
 		Currently, YCLib do not explicitly use it.
-	See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx .
+	See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx.
 There are some issues against aggresive optimization of moving an object in several contexts.
 	For initialization of exception objects, the copy elision would not be performed.
 		See N3690 comment CA 23 and CWG 1493.
-		See also http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3771.pdf .
+		See also http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3771.pdf.
 	Currently moving from returned object is tied closely to the criteria for copy elision.
 		See N3690 comment US 13 and CWG 1579.
 		Explicit use of 'std::move' can be a workaround.
@@ -222,7 +222,7 @@ $2014-04:
 
 report.impl:
 Call by value or by rvalue refernce for a callable object, a call wrapper or an iterator might be significant different.
-	For the notion of call wrappers, see ISO C++11 20.8.1, which was intially introduced in http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2004/n1673.html .
+	For the notion of call wrappers, see ISO C++11 20.8.1, which was intially introduced in http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2004/n1673.html.
 		A call wrapper "holds" a callable object, not necessarily "owns" a callable object. Be cautious for the lifetime of the underlying callable object.
 	Note a call wrapper is MoveConstructible; a call wrapper can be not CopyConstructible; A simple call wrapper is CopyConstructible. See ISO C++11 20.8.2/4.
 		Exceptions are strictly restricted to be thrown. No exception are allowed to be thrown in copying a simple call wrapper.
@@ -232,10 +232,10 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 				Such as the function parameter of the constructor of 'std::function' with exactly 1 parameter.
 				The function templates in algorithm library accept callable objects or simple call wrappers passed by value.
 			The are two important exceptions:
-				The first parameter for the constructor of 'std::bind'.
+				The 1st parameter for the constructor of 'std::bind'.
 					The forwarding call wrapper should have been accepted by design.
 					See http://wg21.cmeerw.net/lwg/issue817 for details.
-				The first parameter for the constructor of 'std::thread'.
+				The 1st parameter for the constructor of 'std::thread'.
 					The use cases and reasons are similiar.
 					See http://wg21.cmeerw.net/lwg/issue929 for details.
 	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved even if the copy elision criteria in ISO C++ 12.8/31 are not met.
@@ -263,7 +263,7 @@ Rules for exception handling should be uniformed.
 			Make sure the destructor is virtual.
 			Make sure the move constructor, if any, have nothrow guarantee.
 		For YSLib, the exception objects should be MoveConstructible or at least CopyConstructible with trivially copy can be performed. See below for reasons.
-	Boost exception handling guidelines are reviewed. See http://www.boost.org/community/error_handling.html .
+	Boost exception handling guidelines are reviewed. See http://www.boost.org/community/error_handling.html.
 		Note it is pre-ISO C++11.
 		However, currently most of these rules are not used in YSLib.
 			YSLib follows closely to ISO C++ standard library.
@@ -285,7 +285,7 @@ Rules for exception handling should be uniformed.
 			See $2014-02 report.impl about non-mandantory of move exception objects.
 		But anyway, for 'std::bad_alloc', even calling of 'std::terminate' is still probably acceptable. Note this handler can be set by 'std::set_terminate'.
 		Some standard library classes, notably 'std::exception', are following this guideline. Some others are not guaranteed, like 'std::runtime_error', which uses object of 'std::string' as a constructor parameter.
-		See also http://stackoverflow.com/questions/15831029/not-using-stdstring-in-exceptions .
+		See also http://stackoverflow.com/questions/15831029/not-using-stdstring-in-exceptions.
 		Because the YSLib exception objects are MoveConstructible or can be copied trivially, "not embedding" rule is not forced.
 	Ideally the constructor used other than copy-initialization should throw no exceptions. But this is also not always true.
 		Some standard library classes, notably 'std::exception', are following this guideline. Some others are not guaranteed, like 'std::runtime_error', whose constructors are without 'noexcept'.
@@ -298,7 +298,7 @@ Rules for exception handling should be uniformed.
 $2014-05:
 
 report.impl:
-	Select carefully between 'const_iterator' and 'iterator' for ODR issue. See http://wg21.cmeerw.net/lwg/issue1214 .
+	Select carefully between 'const_iterator' and 'iterator' for ODR issue. See http://wg21.cmeerw.net/lwg/issue1214.
 There are some similar measurement values for a given image with proper underlying image buffer, both are rectangular in sense of rasterization as pixels.
 	Width is the magnitude of the logical image or buffer area in horizontal, or X-axis for 2D coordinates.
 	Height is the magnitude of the logical image or buffer area in vertical, or Y-axis for 2D coordinates.
@@ -310,8 +310,8 @@ There are some similar measurement values for a given image with proper underlyi
 	Pitch is a particular kind of measurement for a buffer in several different units.
 		It is often the synonym of the stride, which is in pixels.
 		It is more often measured in bytes for the underlying scanline of the contiguous memory area.
-	E.g for stride vs. pitch: http://msdn.microsoft.com/en-us/library/windows/desktop/aa473780%28v=vs.85%29.aspx .
-	See also: http://www.gamedev.net/topic/496278-pitch--stride-/ .
+	E.g for stride vs. pitch: http://msdn.microsoft.com/en-us/library/windows/desktop/aa473780%28v=vs.85%29.aspx.
+	See also: http://www.gamedev.net/topic/496278-pitch--stride-/.
 	For images, it is clear the width is the same as the stride between horizontal edge of the pixels.
 		In this sense the width is equal to the stride.
 		However, usually only width is used to be clear.
@@ -319,32 +319,32 @@ There are some similar measurement values for a given image with proper underlyi
 		The meaning of stride is harmonized with Android NDK API.
 		The meaning of pitch is harmonized with FreeType.
 It seems that ::eglSwapBuffers hangs in SharedBufferStack waitForCondition is a bug of Android platform or underlying Linux kernel.
-	See: https://code.google.com/p/android/issues/detail?id=20833 .
+	See: https://code.google.com/p/android/issues/detail?id=20833.
 
 $2014-06:
 
 report.impl:
 There is nothing can be done with "channel '*' ~ Failed to receive dispatch signal.  status=-11" error log message from "NativeActivity" on Android.
-	See https://code.google.com/p/android/issues/detail?id=41755 .
-		From http://ps3computing.blogspot.ca/2012/12/anr-application-not-responding.html .
-			From http://stackoverflow.com/questions/18316046/when-build-with-latest-android-ndk-nativeactivity-spams-to-log-on-touch-events .
+	See https://code.google.com/p/android/issues/detail?id=41755.
+		From http://ps3computing.blogspot.ca/2012/12/anr-application-not-responding.html.
+			From http://stackoverflow.com/questions/18316046/when-build-with-latest-android-ndk-nativeactivity-spams-to-log-on-touch-events.
 Behavior changed in ::ANativeWindow after Android 4.0 (API level >= 14), and different way to get native window size should be used.
-	See http://www.klayge.org/2013/01/23/%E5%9C%A8android%E6%A8%A1%E6%8B%9F%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E9%99%B7%E9%98%B1/ .
+	See http://www.klayge.org/2013/01/23/%E5%9C%A8android%E6%A8%A1%E6%8B%9F%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E9%99%B7%E9%98%B1/.
 Call-by-value for parameter with object type for classes types should be refined when the overhead is significant.
 	Not all class type object can be passed by value.
 	Note that copy elision is not available. See $2014-04 report.impl for references.
 	A notable exception is unifying assignment, when copy-and-swap idiom is needed and the move constructor is implemented with little overhead.
-		See http://stackoverflow.com/questions/8968452/who-coined-the-term-unified-or-unifying-assignment-operator .
+		See http://stackoverflow.com/questions/8968452/who-coined-the-term-unified-or-unifying-assignment-operator.
 		Because at least one copy operation is performed, the parameter is needed.
-		Since the swapping operation is inteneded to provide nothrow guarantee, there should be a nothrow exception specification.
+		Since the swapping operation is inteneded to provide nothrow guarantee, there should be a nothrow exception-specification.
 			Note that even if exception is thrown by initialization of the parameter, the exception-specification is not affected.
 		The standard library is not using this style.
-			See https://github.com/cplusplus/draft/wiki/Specification-Style-Guidelines#specifying-implicitly-generated-special-member-functions .
+			See https://github.com/cplusplus/draft/wiki/Specification-Style-Guidelines#specifying-implicitly-generated-special-member-functions.
 		For simplicity in YSLib (including YBase), using this style is preferred.
 There are multiple issues for IME(Input Method Editor) support in Windows.
 	Input methods are supported through IMM32, TSF(Text Service Framework) and CUAS(Cicero Unaware Application Support) APIs.
 		IMM32 should be used for most compatibility for desktop enviornments.
-			Though it is not supported in Windows Store apps, see: http://msdn.microsoft.com/en-us/library/windows/apps/hh967425.aspx .
+			Though it is not supported in Windows Store apps, see: http://msdn.microsoft.com/en-us/library/windows/apps/hh967425.aspx.
 		TSF is a new set of API to substitute IMM32.
 			Though only supported from Windows NT 6 systems, it can be used and suggested to be used in Windows Store apps by Microsoft.
 			It may be superior in features and extensibility.
@@ -388,7 +388,7 @@ There are multiple issues for IME(Input Method Editor) support in Windows.
 				In Windows 2012 R2, wxScintilla editor of Code::Blocks svn9778 doesn't work at all, even before composing the input string). Seems a bug.
 				In Windows 2012 R2, (Qt-based) editor of MdCharm 1.0 and text field in Konversation 1.5 make the candidate window following only when switch fast enough. Seems a bug.
 			Currently YSLib chooses a simple implements that behaves like Scintilla of Code::Blocks as default, as well as disablility in Windows 2012 R2.
-	See also comments in https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc .
+	See also comments in https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc.
 
 $2014-07:
 
@@ -412,18 +412,18 @@ The type of handles varied.
 	However, since the 'shared_ptr<Shell>' is the public interface as well as the shell class itself, use of these method form shell is allowed.
 		This rule also fit for types with similiarily explicit use of template-id and type-id, unless otherwise explicitly stated.
 	In future, these types are going to be unchanged reasonably, unless some better interface is discussed and used.
-Both libstdc++-4.8 and standard library of Visual C++ 2013 have <memory> indirectly including <typeinfo> and <new>.
+Both libstdc++-4.8 and standard library of Microsoft VC++ 2013 have <memory> indirectly including <typeinfo> and <new>.
 	This is the implementation details, which is not in the synopsis of the standard. Don't rely on it.
 There are some implementation bugs related to std::enable_if.
-	For example, in Visual C++, there are several:
-		http://connect.microsoft.com/VisualStudio/feedback/details/632440/bug-enable-if-got-c2893-error ,
-		http://connect.microsoft.com/VisualStudio/feedback/details/811603/weird-behavior-of-std-enable-if-t-produces-c2995-in-visual-c ,
-		http://connect.microsoft.com/VisualStudio/feedback/details/894682/c-std-enable-if-breaks-within-template-alias .
-	In Visual C++ 2013, 'ystdex::exclude_self_ctor_t' or its direct implementation (using std::enable_if_t) would be wrongly ignored.
+	For example, in Microsoft VC++, there are several:
+		http://connect.microsoft.com/VisualStudio/feedback/details/632440/bug-enable-if-got-c2893-error,
+		http://connect.microsoft.com/VisualStudio/feedback/details/811603/weird-behavior-of-std-enable-if-t-produces-c2995-in-visual-c,
+		http://connect.microsoft.com/VisualStudio/feedback/details/894682/c-std-enable-if-breaks-within-template-alias.
+	In Microsoft VC++ 2013, 'ystdex::exclude_self_ctor_t' or its direct implementation (using std::enable_if_t) would be wrongly ignored.
 		This would cause swapping a 'ystdex::pod_storage' leading to infinite recursive calls of constructor template, which makes ystdex::any unusable.
-		Currently workaround is not researched, as of the buggy Visual C++ 2013 is still temporaily supported only for successfully compiling YBase, but not for actually working.
-	In Clang++, std::enable_if using with template parameter pack trapped into a bug http://llvm.org/bugs/show_bug.cgi?id=11723 .
-		Workaround: http://stackoverflow.com/questions/24454664/is-there-a-nicer-workaround-for-enable-if-bug-in-clang-bug-11723 .
+		Currently workaround is not researched, as of the buggy Microsoft VC++ 2013 is still temporaily supported only for successfully compiling YBase, but not for actually working.
+	In Clang++, std::enable_if using with template parameter pack trapped into a bug http://llvm.org/bugs/show_bug.cgi?id=11723.
+		Workaround: http://stackoverflow.com/questions/24454664/is-there-a-nicer-workaround-for-enable-if-bug-in-clang-bug-11723.
 		YSLib didn't be involved in it yet.
 For prefix comparison, implementation varies.
 	The current implementation of 'ystdex::begins_with' has switched to using 'std::equal'. This gains the chance to be optimized such as using '__builtin_memcmp' in libstdc++.
@@ -442,12 +442,12 @@ There are issues about LTO of gcc-4.9.
 		If not set this option, undefined reference would be found and static linking would fail.
 	As a result, the debug configurations have very significantly reduced of output size, i.e. about 1/5 for each binary file of YSLib.
 		However, as been tested, GDB can't break in breakpoint any more. So it is still only fit for release configurations.
-		See also http://sourceforge.net/p/mingw-w64/mailman/message/32551209/ .
+		See also http://sourceforge.net/p/mingw-w64/mailman/message/32551209/.
 The SHBuild tool might encounter 0xC0000005 error.
 	This issue probably occurs, may be very often.
 	This is abnormal, but has the nothing to do with SHBuild itself. Currently SHBuild builds tasks with only a simple 'std::system' call.
 	This issue can be seen if using ConEmu, but not cmd.exe.
-		It should be a bug of Windows. See https://code.google.com/p/conemu-maximus5/wiki/MicrosoftBugs .
+		It should be a bug of Windows. See https://code.google.com/p/conemu-maximus5/wiki/MicrosoftBugs.
 		Check "Inject ConEmuHk" as workaround, as suggested by the above page.
 		Make sure ConEmu has been updated. As tested on Windows 2012 R2, ConEmu x64 140104 doesn't work even with this workaround, but ConEmu x64 140707 works well.
 From the source of GCC LTO wrapper, the job server code is hard coded to call make.
@@ -456,8 +456,8 @@ From the source of GCC LTO wrapper, the job server code is hard coded to call ma
 On Windows, CPU usage is not the same in performance monitor(perfmon.exe) and task manager(taskmgr.exe). It's the normal case.
 	In task manager the CPU usage is often higher than the CPU time in performance monitor.
 		System idle process may take much.
-	They use different ways. See http://social.technet.microsoft.com/Forums/en/perfmon/thread/0435e7c5-3cda-41a0-953e-7fa462fde03b .
-	Task manager is not precise as perfomance monitor. There may have some bugs. See http://windowsitpro.com/windows/jsi-tip-8404-cpu-usage-task-manager-may-be-incorrect .
+	They use different ways. See http://social.technet.microsoft.com/Forums/en/perfmon/thread/0435e7c5-3cda-41a0-953e-7fa462fde03b.
+	Task manager is not precise as perfomance monitor. There may have some bugs. See http://windowsitpro.com/windows/jsi-tip-8404-cpu-usage-task-manager-may-be-incorrect.
 Distinguishing platforms should be care.
 	The platform "Win32" is somewhat fuzzy.
 		Win32 is initially for Windows that runs on 32-bit IA-32 or x86 systems.
@@ -465,7 +465,7 @@ Distinguishing platforms should be care.
 				The perhaps most common architecture name correspondingly called "i386" on UNIX-like systems, but now superseded by newer like "i686", and Linux (which is initially targeting i386) dropped i386 support.
 		Then Win32 also runs on systems being compatible with them, subsequently AMD64 and Intel EM64T, collectively called "x86_64" as the architecture name, or simply "x64".
 		But "32" in "Win32" is not truely only describing the CPU architecture.
-			Win16 can be run on Win32 by WOW(Windows on Windows), so a program targetting Win16 can still run on Win32. The 32-bit x86 is backward compatible with old 16-bit architecture, this is a necessary but not sufficient condition.
+			Win16 can be run on Win32 by WOW(Windows on Windows), so a program targeting Win16 can still run on Win32. The 32-bit x86 is backward compatible with old 16-bit architecture, this is a necessary but not sufficient condition.
 				The "system" directory of Win16 is called "system32" on Win32.
 			What a Win32 program runs is called Win32 subsystem in Windows NT.
 			And similarly, Win32 programs can be run on Win64, not only attributing to backward compatibility of x86_64 with x86.
@@ -473,14 +473,14 @@ Distinguishing platforms should be care.
 			Win16 support has been abandoned by Win64.
 			Windows on IA-64 (Itanium) do not be compatible with x86 Windows, but they might be also called "Win64".
 			Windows on non-Intel platforms (i.e. ARM) are significantly different (as runtime environment), though they are also on 32-bit architecture (and Win32 subsystem), they are normally not called "Win32".
-		Microsoft Visual C++ and some other C/C++ implementations predefined some macros to identify the system.
-			The macro "_WIN32" is both defined for Windows versions targetting x86 and x64.
-			The macro "_WIN64" is only defined for Windows versions targetting x64.
+		Microsoft VC++ and some other C/C++ implementations predefined some macros to identify the system.
+			The macro "_WIN32" is both defined for Windows versions targeting x86 and x64.
+			The macro "_WIN64" is only defined for Windows versions targeting x64.
 		Things even more complicated for MinGW platforms.
 			MinGW is short of "minimal GNU on Windows", forked from Cygwin (Cygnus POSIX-compliant platform on Windows).
 				It is firstly a set of GNU tools.
 				Then a runtime.
-				And finally a set of toolchain targetting x86 Win32, mostly identified as "i686-pc-mingw32", differentiated with Cygwin's "i686-pc-cygwin".
+				And finally a set of toolchain targeting x86 Win32, mostly identified as "i686-pc-mingw32", differentiated with Cygwin's "i686-pc-cygwin".
 				It is not devoted for POSIX compliance like Cygwin does, but literally like "minimal", a workable environment to use GNU tools.
 			Because unwilling of supporting x64 Windows targets, someone forked MinGW and named it MinGW-W64.
 				The "w64" is the vendor name, but not the architecture name.
@@ -493,7 +493,7 @@ Distinguishing platforms should be care.
 				Currently they are both maintained, but by different people.
 				Only MinGW-w64 is officially supported by GCC team (though as a secondary platform). The leader maintainer, Kai Tietz, has the commit permission of the official GCC repository.
 				MinGW.org runtime is mainly maintained by Keith Marshall.
-				They don't think same, e.g https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .
+				They don't think same, e.g https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015.
 				For generally use, MinGW-W64 is recommended by YSLib.
 				See also $2014-01 in this document.
 			The MinGW-w64 targeting both x86 and x64 Windows. There even exists mixture, i.e. multilib support, or cross-compilers between x86 and x64 Windows editions.
@@ -528,21 +528,21 @@ $2014-08:
 report.impl:
 Initialization should be cared.
 	There are several changes in ISO C++1y for initialization.
-		For value-initialization, as per WG21/N3936, from the resolution of CWG1301, the explicitly defaulted default constructors (declaring with '= default') are considered to ensure zero-initialization for classes without default constructor.
-			See http://wg21.cmeerw.net/cwg/issue1301 .
+		For value-initialization, as per WG21 N3936, from the resolution of CWG 1301, the explicitly defaulted default constructors (declaring with '= default') are considered to ensure zero-initialization for classes without default constructor.
+			See http://wg21.cmeerw.net/cwg/issue1301.
 			It differentiates with explicitly deleted constructor (declaring with '= delete') or user-provided ones.
 			Note for ISO C++11, The '= default' is not enough to ensure a value-initialized with no unitialized non-static data members. This is not intended.
-			It seems G++ 4.8 and Clang++ 3.3 have implemented it, see http://stackoverflow.com/questions/24043897/c11-value-initialization-with-defaulted-default-constructor .
-		List-initialization was also effected by CWG1301.
+			It seems G++ 4.8 and Clang++ 3.3 have implemented it, see http://stackoverflow.com/questions/24043897/c11-value-initialization-with-defaulted-default-constructor.
+		List-initialization was also effected by CWG 1301.
 			Aggregate initialization takes the first place for aggregates despite of default constructor.
-			See http://stackoverflow.com/questions/23882409/c14-value-initialization-with-deleted-constructor .
+			See http://stackoverflow.com/questions/23882409/c14-value-initialization-with-deleted-constructor.
 	Note it is not enougth for arbitrary class type objects (even with '= default' constructor) using member declaration as 'T x{}' to ensure initialized.
 		The defaulted default constructor does not ensure performing initialization for each data members in subobjects.
-			As per WG21/N3936 8.4.2/5, the definition an explicitly defaulted special member function shall be provided as implicit definition.
-			As per WG21/N3936 12.1, the implicitly defined default constructor performs initialization would be performed by a user-written default constructor for that class with no ctor-initializer and an empty compound-statement.
-			As per WG21/N3936 12.6.2/8, a non-static data member without brace-or-equal-initializer in class definition and no mem-initializer in ctor-initializer can be default-initialized, which can be with no initialization at all.
+			As per WG21 N3936 8.4.2/5, the definition an explicitly defaulted special member function shall be provided as implicit definition.
+			As per WG21 N3936 12.1, the implicitly defined default constructor performs initialization would be performed by a user-written default constructor for that class with no ctor-initializer and an empty compound-statement.
+			As per WG21 N3936 12.6.2/8, a non-static data member without brace-or-equal-initializer in class definition and no mem-initializer in ctor-initializer can be default-initialized, which can be with no initialization at all.
 		For example, when 'T' is 'std::atomic<int>'.
-			Since it is explicitly stated "in an uninitialized state" in 29.6.5/4 in ISO C++11 and WG21/N3936, for ISO C compatible semantics.
+			Since it is explicitly stated "in an uninitialized state" in 29.6.5/4 in ISO C++11 and WG21 N3936, for ISO C compatible semantics.
 	There are still ways to avoid redundant initiliazation of member data for default-initialization and value-initialization via default constructors (but perhaps not copy initialization).
 		Several cases are significant, e.g. for containers as buffer.
 			Since containers using allocators to construct elements, and at least the default allocator uses value-iniitialization to construct object, so it effects.
@@ -582,7 +582,7 @@ Function 'cbegin' and 'cend' are preferred to 'begin' and 'end' in some cases.
 		Note 'cbegin' and 'cend' are defined since ISO C++14.
 	The type of accessed range usually meets Container requirements.
 		Instances of 'std::initializer_list' are excluded.
-	Note that 'begin' and 'end' are usually 2 overloading functions respectively.
+	Note that 'begin' and 'end' are usually 2 overloaded functions respectively.
 		One is for const-qualified range, and the other is for cv-unqualified range.
 		The 'auto' keyword cannot deduce the const-qualified version for cv-unqualified range.
 	The 'cbegin' and 'cend' are only expected for const-qualified range.
@@ -599,10 +599,10 @@ Function 'cbegin' and 'cend' are preferred to 'begin' and 'end' in some cases.
 		Otherwise, for implementation of functions by directly forwarding calls, corresponding names shall be used.
 		Otherwise, 'cbegin' and 'cend' shall be used.
 	There may exist some bugs for implementations.
-		For example, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278 .
+		For example, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278.
 		Use 'begin' and 'end' instead of 'cbegin' and 'cend' as workaround when necessary.
 English allows bare passive clause, which omits the auxiliary verb (typically 'is').
-	See http://en.wikipedia.org/wiki/English_passive_voice .
+	See http://en.wikipedia.org/wiki/English_passive_voice.
 	In YSLib, for English passive voice in assertion strings or titles, this form is preferred to canonical form (e.g. "file not found"), even in a separate sentence.
 	For formal descriptions otherwise, auxiliary verbs should not be omitted.
 
@@ -617,7 +617,7 @@ There is some confilicts in 'ForwardIterator' requirements onwards ISO C++11 wit
 		This is generally hard to implement for underlying iterator does not store a long-lived object as result.
 		For example, 'boost::transform_iterator' is not strictly conforming to this.
 			See $2014-08 for other issues related to iterator requirements and 'boost::transform_iterator'.
-		This is a currently known problem, but not treated as a defect. See http://wg21.cmeerw.net/lwg/issue2107 .
+		This is a currently known problem, but not treated as a defect. See http://wg21.cmeerw.net/lwg/issue2107.
 	To reasonably resolve these problems, 'ystdex::transformed_iterator' in YBase::StandardEx::Functional now provide a third template parameter to allow the user to specify the 'reference' type.
 		If not explicitly specified, default argument 'void' is used, like 'use_default' in Boost iterator library.
 			Note now it is not conforming to ISO C++ if 'ForwardIterator' requirements are required and the default argument is used.
@@ -627,9 +627,9 @@ Keys of associative containers are const-qualified.
 	It is important to make the strict weak ordering stable to guarantee the container to work.
 	Nothing implied it would be OK to 'const_cast' it and back even the order is maintained. The implementation is free to cache the keys.
 	The key is not free to modify. It leads to several problems.
-		See http://stackoverflow.com/questions/3884572/how-to-modify-key-values-in-stdmap-container .
+		See http://stackoverflow.com/questions/3884572/how-to-modify-key-values-in-stdmap-container.
 			This is also the same problem met in implementation of tree list in YFramework::YSLib::UI.
-		See http://wg21.cmeerw.net/lwg/issue839 and http://wg21.cmeerw.net/lwg/issue1041 .
+		See http://wg21.cmeerw.net/lwg/issue839 and http://wg21.cmeerw.net/lwg/issue1041.
 		See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3645.pdf for proposal to resolve this issue (but not in the current standard).
 		See http://stackoverflow.com/questions/5743545/what-is-the-fastest-way-to-change-a-key-of-an-element-inside-stdmap for the problem and the status of the paper above.
 		The available resolustion are:
@@ -637,7 +637,7 @@ Keys of associative containers are const-qualified.
 				See http://stackoverflow.com/questions/3884572/how-to-modify-key-values-in-stdmap-container to the first method.
 				This is generally not efficient for multiple keys/values.
 				Function template 'ystdex::replace_value' has already reflect this resolution.
-				Anothor implementation is http://www.codeproject.com/Articles/36326/How-To-Update-Your-Const-Key-Fields-in-a-Map-Multi . It is not preferred to 'ystdex::replace_key' because:
+				Anothor implementation is http://www.codeproject.com/Articles/36326/How-To-Update-Your-Const-Key-Fields-in-a-Map-Multi. It is not preferred to 'ystdex::replace_key' because:
 					It is for a range rather than a single element, so generally less efficient.
 					It is limited to map types.
 					It explicitly use 'key_comp'. This is unnecessary.
@@ -647,11 +647,11 @@ Keys of associative containers are const-qualified.
 				This is generally more efficient than the first method.
 Implementations of clocks are cared.
 	For Windows systems, QPC is preferred for high resolution uses.
-		The related Windows APIs are fit for Windows 2000 or later, e.g. http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx .
+		The related Windows APIs are fit for Windows 2000 or later, e.g. http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx.
 		See http://stackoverflow.com/questions/22942123/is-queryperformancefrequency-acurate-when-using-hpet for some reasons.
 		See http://msdn.microsoft.com/en-us/library/windows/desktop/dn553408(v=vs.85).aspx for deteils.
 		For Windows 8, the RTC is buggy to be reliable for overlocking benchmarking.
-			See http://hwbot.org/news/9824_breaking_windows_8_benchmark_results_no_longer_accepted_at_hwbot/ .
+			See http://hwbot.org/news/9824_breaking_windows_8_benchmark_results_no_longer_accepted_at_hwbot/.
 	In current libstdc++ (in inline namespace 'std::chrono::_V2' or somewhat earlier), the static 'now' function of clocks in <chrono> uses different configurations.
 		The 'std::high_resolution clock' is alias of 'std::system_clock'.
 		For 'std::system_clock', if '_GLIBCXX_USE_CLOCK_REALTIME' is not defined, it uses fallback 'std::time' call.
@@ -667,7 +667,7 @@ Implementations of clocks are cared.
 				For 'CLOCK_THREAD_CPUTIME_ID', 'GetCurrentThread' is used.
 				So it should be resonably high accurate at least for 'std::steady_clock' in <chrono>.
 			It is tested to be significantly worse than 'boost::chrono' (using QPC APIs) on accuracy with 'i686-4.8.2-release-win32-dwarf-rt_v3-rev0.7z' even using 'std::steady_clock'.
-				See http://sourceforge.net/p/mingw-w64/mailman/message/31672495/ .
+				See http://sourceforge.net/p/mingw-w64/mailman/message/31672495/.
 				However, the zero results can not be reproduced on Windows 2012 R2 x64 machine with current MSYS2 GCC 4.9.1.
 					But it can be reproduced using 'std::system_clock' instead of 'std::steady_clock'.
 					As per the libstdc++-v3 source in GCC repository, the reason seemed to be the 'std::steady_clock' is an alias before 'std::chrono::_V2' was introduced.
@@ -712,11 +712,11 @@ Multiple tap operations are studied.
 	This is ordinarily called "click".
 		However, multiple click is often triggered at last tap down rather than up, like in Windows desktop or text controls.
 		Otherwise it can be triggered on subsequent tap up events, e.g. image preview in Tencent QQ.
-	The behavior may differs across platforms, see http://en.wikipedia.org/wiki/Double-click .
+	The behavior may differs across platforms, see http://en.wikipedia.org/wiki/Double-click.
 	For Windows, this is primarily for mouses. See register path: HKEY_CURRENT_USER/Control Panel/Mouse for settings.
 	There is an area setting for allowed error with initial tap with subsequent ones.
 		However, sometimes this is ignored and only precise subsequent (without any move) taps are allowed to avoid collision with dragging operations, e.g. for text selection.
-	Triple click is to select text in a line in general, and mostly used by browsers and text editors, see http://en.wikipedia.org/wiki/Triple-click .
+	Triple click is to select text in a line in general, and mostly used by browsers and text editors, see http://en.wikipedia.org/wiki/Triple-click.
 
 $2014-10:
 
@@ -724,10 +724,10 @@ report.impl:
 There is a bug on DST(daylight savings time) calculation on Windows CRT call of 'stat' family across file systems.
 	This can cause strange bugs on file system caching.
 		See comments in "src/fcstat.c"(previously in "src/fccache.c") from the FontConfig project(http://www.freedesktop.org/wiki/Software/fontconfig/).
-		See https://bugzilla.gnome.org/show_bug.cgi?id=154968 Comment 30, also https://bugs.freedesktop.org/show_bug.cgi?id=8526 .
+		See https://bugzilla.gnome.org/show_bug.cgi?id=154968 Comment 30, also https://bugs.freedesktop.org/show_bug.cgi?id=8526.
 	See http://www.codeproject.com/Articles/1144/Beating-the-Daylight-Savings-Time-bug-and-getting for details.
 	See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724290(v=vs.85).aspx for other general information.
-	New CRT source "fstat.c" and "fstat64.c" from Visual C++ 2013 shows that the implementation has been changed.
+	New CRT source "fstat.c" and "fstat64.c" from Microsoft VC++ 2013 shows that the implementation has been changed.
 		The Win32 API 'FindFirstFile' was not used any longer.
 		Also the code for Window Store App uses different APIs for time conversion.
 			'FileTimeToSystemTime' and 'SystemTimeToTzSpecificLocalTime' was used instead of 'FileTimeToLocalFileTime' and 'FileTimeToSystemTime'.
@@ -744,7 +744,7 @@ There are issues which make the flattened object files hardly be linked directly
 	GNU ar supported linker script.
 		See https://sourceware.org/binutils/docs/binutils/ar-scripts.html#ar-scripts for usage.
 		It can be used to workaround this problem, but still cumbersome with limitation, e.g. no '+' can be in the name or the '.a' file.
-		See also https://lists.gnu.org/archive/html/help-make/2008-03/msg00043.html .
+		See also https://lists.gnu.org/archive/html/help-make/2008-03/msg00043.html.
 	Thus it should generally directly be avoided. Direct use of '.o' to build shared library is preferred.
 		The performace is also significantly better for directories containing a few source files, because less archives should be built and waiting before linking can be reduced.
 Sometimes 'LANG=C' should be expicitly specified in the command line to prevent corrupted output from some tools built without NLS support.
@@ -753,27 +753,27 @@ Sometimes 'LANG=C' should be expicitly specified in the command line to prevent 
 $2014-11:
 
 report.impl:
-There should be general no explicit exception specification for destructors. However, exceptions of this rule are also allowed.
+There should be general no explicit exception-specification for destructors. However, exceptions of this rule are also allowed.
 	In gerenal, throwing an exception in a destructor is thought to be bad practice.
 		It would terminate the program during stack unwinding.
 		There is no good way to distinct it in the implementation of a destructor.
-			See http://www.gotw.ca/gotw/047.htm .
+			See http://www.gotw.ca/gotw/047.htm.
 		ISO C++ standard library follows this practice by Destructible requirements which explictly forbids exception exceptions propagated out of the destructors.
 	However, if the assumption of never throwing exception in stack unwinding is true, this is somewhat acceptable.
-		See https://akrzemi1.wordpress.com/2011/09/21/destructors-that-throw/ and http://www.kolpackov.net/projects/c++/eh/dtor-1.xhtml .
+		See https://akrzemi1.wordpress.com/2011/09/21/destructors-that-throw/ and http://www.kolpackov.net/projects/c++/eh/dtor-1.xhtml.
 		The root reason is that destructors are not necessarily used in RAII style.
 		To be simple, this should still be avoid in most cases: do use destructor to reclaim resources but not to perform arbitrary operations.
 	In ISO C++11 there is a subtle change in implictly specification for destructors.
-		See https://akrzemi1.wordpress.com/2013/08/20/noexcept-destructors/ .
+		See https://akrzemi1.wordpress.com/2013/08/20/noexcept-destructors/.
 		Do explicitly specify 'noexcept(false)' to allow throwing in destructors, if ultimately needed.
-	WG21/N3166 proposed to add noexcept specification on destructors by default.
+	WG21 N3166 proposed to add noexcept specification on destructors by default.
 		This is not accepted by ISO C++11.
 Note the 'std::reference_wrapper' is not equal to 'boost::reference_wrapper'.
 	The latter is simpler. 'std::reference_wrapper' has more interface about nested types and 'operator()', thus it needs a compelete type as template argument, otherwise the behavior is undefined.
-		See https://groups.google.com/a/isocpp.org/forum/?_escaped_fragment_=topic/std-discussion/_tavlfXkOrc#!topic/std-discussion/_tavlfXkOrc .
+		See https://groups.google.com/a/isocpp.org/forum/?_escaped_fragment_=topic/std-discussion/_tavlfXkOrc#!topic/std-discussion/_tavlfXkOrc.
 	Currently G++ 4.9 with libstdc++ allows the invalid use and would not detect the ODR violation.
-	Visual C++ denies this use with subtle diagnostics.
-		See https://connect.microsoft.com/VisualStudio/feedback/details/750448/std-reference-wrapper-fails-with-undefined-types .
+	Microsoft VC++ denies this use with subtle diagnostics.
+		See https://connect.microsoft.com/VisualStudio/feedback/details/750448/std-reference-wrapper-fails-with-undefined-types.
 	YBase now has introduced 'ystdex::lref' to simulate 'boost::reference_wrapper' allowing incomplete type as template argument, among with 'ref' and 'cref'.
 		Only limited interface is supported.
 			Standard library interface inconsistent with incomplete template argument are not supported.
@@ -797,8 +797,8 @@ $2014-12:
 
 report.impl:
 Keyboard input processing is complicated. There are a few key codes on Linux as options.
-	See https://www.berrange.com/tags/key-codes/ .
-	See https://stackoverflow.com/questions/8737566/rolling-ones-own-keyboard-input-system-in-c-c .
+	See https://www.berrange.com/tags/key-codes/.
+	See https://stackoverflow.com/questions/8737566/rolling-ones-own-keyboard-input-system-in-c-c.
 Convention of term "stride" used by XCB image is coordinized with YSLib. (See also $2014-05.)
 
 ////

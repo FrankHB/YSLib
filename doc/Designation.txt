@@ -10,14 +10,14 @@
 
 /*!	\file Designation.txt
 \ingroup Documentation
-\brief 设计规则指定和说明。
-\version r9844
+\brief 项目设计规则指定和说明。
+\version r9855
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-05-04 13:11 +0800
+	2016-06-08 07:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,8 @@
 
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
-项目规则及整体结构参见 [Documentation::ProjectRules] 。
+项目规则、整体结构和适用范围参见 [Documentation::ProjectRules] 。本文档是其具体实现和补充。
 其它说明和使用方法参见 https://bitbucket.org/FrankHB/yslib/wiki 。
-本文档适用于 YFramework 的开发。除非另行约定，编码细节和其它规范也适用于 YBase 。
 
 @1 需求(requirements) 和可行性(feasibility) ：
 
@@ -100,6 +99,8 @@ Shell 和 Core 的关系是相对的，例如：
 @2.3.1 可移植性相关：
 基本内容参见 [Documentation::CommonRules @@2.2.2] 。
 语言使用规则参见 [Documentation::LanguageConvention @@5] 。
+YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。
+其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
 
 @2.3.1.1 实现要求：
 依赖的语言实现要求参见 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。
@@ -114,15 +115,16 @@ Shell 和 Core 的关系是相对的，例如：
 非平台中立接口的 API 若仅适合特定的已知平台，在平台扩展([Documentation::ProjectRules @@3.3]) 提供。
 
 @2.3.2 环境依赖性：
-关于环境，参见 @2.2.1.2 。
+关于环境，参见 [Documentation::CommonRules @@2.2.2] 。
 关于库配置，参见 @5 。
 关于语言特性使用，参见 [Documentation::ProjectRules @@ 1.2.1] 。
 YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YCLib] 支持）。
 
-@2.3.2.2
-YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
+@2.3.2.1 文本编码：
+和环境交互的外部编码默认 UTF-8 ，按需检查 BOM 。库的接口和实现使用的内部编码以本节规则决定。
+必要时的转换编码或保证成功转换时未被文档另行约定的隐式行为一致的特定平台的实现。
 
-@2.3.2.3
+@2.3.2.2 二进制互操作：
 格式化输出及结构对齐时注意平台字长差异。
 
 @2.3.3 可维护性和架构设计：
@@ -193,7 +195,7 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 在模板参数或函数参数中使用 ISO C++11 的 std::enable_if 实现 SFINAE 。需要考虑函数签名时，只能使用前者；需要考虑模板和非模板的匹配顺序时，一般使用后者。
 
 @4 标识符命名规约(naming convention) ：
-以下是 YSLib 风格标识符的命名规则和约定。
+以下是 YSLib 项目中标识符的命名规则和约定。
 
 @4.1 通用指引：
 参见 [Documentation::CommonRules @@4.1] 。
