@@ -18,7 +18,8 @@ I := -I
 D := -D
 L := -l
 T := -o$(space)
-CFLAGS ?= -c -O3 -Wall -fdata-sections -ffunction-sections
+CFLAGS ?= -c -Os -Wall -fdata-sections -ffunction-sections \
+	-DFT_CONFIG_OPTION_OLD_INTERNALS
 ANSIFLAGS :=
 CLEAN_LIBRARY  = $(DELETE) $(OBJ_DIR)/*
 LINK_LIBRARY   = $(AR) -r $@ $(OBJECTS_LIST)

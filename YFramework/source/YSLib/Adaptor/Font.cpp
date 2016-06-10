@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3637
+\version r3638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2016-05-25 20:08 +0800
+	2016-06-09 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@
 #if defined(FT_CONFIG_OPTION_OLD_INTERNALS) \
 	&& (FREETYPE_MAJOR * 10000 + FREETYPE_MINOR * 100 + FREETYPE_PATCH >= 20500)
 #	define YF_Impl_Use_FT_Internal 1
-#	include <internal/internal.h> // for FreeType internal macros;
+#	include <freetype/internal/internal.h> // for FreeType internal macros;
 #	include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
 #endif
 

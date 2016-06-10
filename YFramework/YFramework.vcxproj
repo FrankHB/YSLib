@@ -20,6 +20,7 @@
     <None Include="..\doc\CommonRules.txt" />
     <None Include="..\doc\Definitions.txt" />
     <Text Include="..\doc\ChangeLog.V0.6.txt" />
+    <Text Include="..\doc\ChangeLog.V0.7.txt" />
     <Text Include="..\doc\Dependencies.txt" />
     <None Include="..\doc\Designation.txt" />
     <Text Include="..\doc\LanguageConvention.txt" />

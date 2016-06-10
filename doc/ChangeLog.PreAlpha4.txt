@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9187
+\version r9200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2016-06-08 08:54 +0800
+	2016-06-11 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -741,11 +741,12 @@ b493
 		),
 		/ DLP "updated library %freetype" @ "library using"
 			$= (^ $re_ex(b459) "updated freetype 2.5.3 with several files \
-				remained from freetype 2.4.11" ~ "freetype 2.5.2"),
+				remained from freetype 2.4.11" ~ "freetype 2.5.2");
 			// See [Documentation::Dependencies @@2.2.3].
 		/ "rebuilt"
 	),
-	/ $dev $build $re_ex(b431) "merged directories for %YSTest platform builds" $=
+	/ $dev $build $re_ex(b431) "merged directories for %YSTest platform builds"
+		$=
 	(
 		/ "project %YSText_DS" >> "directory 'YSTest/DS'",
 		/ "project %YSText_ARM7" >> "directory 'YSTest/DS_ARM7'",
@@ -1656,7 +1657,7 @@ b479
 
 b478
 (
-	$dev $build "default build location" $=
+	/ $dev $build "default build location" $=
 	(
 		+ "build library '/build/'";
 		/ "Code::Blocks projects",
@@ -1676,8 +1677,7 @@ b478
 		- 'YSTest_MinGW32/config.txt',
 		- 'YSTest_MinGW32/yconf.txt'
 	),
-	/ $doc "completed outline of %YSLib::UI documentation"
-		@ %Documentation.YSLib,
+	/ $doc "completed outline of %YSLib::UI" @ %Documentation.YSLib,
 	/ %YFramework.YSLib.UI $=
 	(
 		+ DD "Doxygen group %UIModels" @ "group %UI" @ %YWidget,
@@ -1700,7 +1700,9 @@ b478
 		/ "merged functions %(GetViewChanged, GetSelected, GetConfirmed)"
 			-> "events %(ViewChanged, Selected, Confirmed) respectively"
 			@ "class %TextList" @ %TextList
-	)
+	),
+	/ $re_ex(b383) "updated %SUBTITLE2 year" @ "makefile" @ "platform %DS"
+		@ "project %YSTest"
 ),
 
 b477
@@ -3265,8 +3267,8 @@ b453
 				Changed exceptions implementation: Dwarf2.
 		/ "recompiled library %FreeImage" $=
 		(
-			^ "libpng-1.6.6 with old libpng-1.6.3 standard configuration \
-				header file %Source/LibPNG/pnglibconf.h" ~ "libpng-1.6.3",
+			^ "libpng 1.6.6 with old libpng 1.6.3 standard configuration \
+				header file %Source/LibPNG/pnglibconf.h" ~ "libpng 1.6.3",
 			* $dev "slash of 'Source/LibJPEG/simd' file list which would cause \
 				object file of assembly source not be cleaned by 'make clean' \
 				call" $since b431
@@ -4719,8 +4721,8 @@ b431
 					+ "SIMD assembly files" @ "source list",
 					+ "modified MinGW makefile"
 				),
-				^ "libpng-1.6.3 with standard configuration header file \
-					%Source/LibPNG/pnglibconf.h" ~ "libpng-1.5.13",
+				^ "libpng 1.6.3 with standard configuration header file \
+					%Source/LibPNG/pnglibconf.h" ~ "libpng 1.5.13",
 				^ "zlib-1.2.8" ~ "zlib-1.2.7"
 			)
 		),

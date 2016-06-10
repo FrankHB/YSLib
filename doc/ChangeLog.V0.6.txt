@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11898
+\version r11913
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-06-08 09:44 +0800
+	2016-06-11 06:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,13 @@
 
 $import $HISTORY;
 
-// Scope: [b600, $now];
+// Scope: [b600, b700);
 
 $now
+(
+),
+
+b699
 (
 	/ %YFramework $=
 	(
@@ -42,7 +46,7 @@ $now
 				(
 					/ DLI "avoided redundant copy of result",
 					/ "threw %std::invalid_argument for existed file which is \
-						not a link" 
+						not a link"
 						// This matches the behavior on platform %Win32
 				),
 				/ @ "platform %DS" @ "all functions %(ReadLink, \
@@ -11390,7 +11394,8 @@ b600
 			// After this fix the file extension category based on MIME \
 				mapping detected normally.
 	),
-	/ "regenerated Code::Blocks projects" $effective @ %YBase,
+	/ "regenerated Code::Blocks projects"
+		^ ("%GenerateProjects.sh" @ %Tools.Scripts) $effective @ %YBase,
 	/ $forced "inserted qualifiers" @ "macro 'DefSetter' invocations" $dep_from
 		%YFramework.YBaseMacro $effective @ %YFramework.(YSLib.(Core.(YDevice, \
 		YGDIBase), Service.YGDI, UI.(Process, Scroll, Selector, YWidgetEvent, \
@@ -11444,7 +11449,8 @@ b600
 			/ "removed external plugin initialization"
 				@ "%Source/Plugin.cpp",
 				// Also eliminated update for it.
-			^ "libjpeg-turbo-1.4.0" @ "%Source/LibJPEG" $=
+			^ "libjpeg-turbo 1.4.0" ~ "libjpeg-turbo 1.3.1" @ "%Source/LibJPEG"
+				$=
 			(
 				+ $forced '#define BITS_IN_JSAMPLE 8'
 					@ "%(config.h, jconfig.h)",
@@ -11456,20 +11462,20 @@ b600
 				+ $forced "new file %jconfigint.h based on %jconfig.h",
 				/ $forced "updated %Makefile.srcs"
 			),
-			^ "libpng-1.6.17 with old libpng-1.6.3 standard configuration \
-				header file %Source/LibPNG/pnglibconf.h" ~ "libpng-1.6.12",
+			^ "libpng 1.6.17 with old libpng 1.6.3 standard configuration \
+				header file %Source/LibPNG/pnglibconf.h" ~ "libpng 1.6.12",
 				$=
 			(
-				+ $forced '#define \
-					PNG_WRITE_CUSTOMIZE_COMPRESSION_SUPPORTED'
+				+ $forced '#define PNG_WRITE_CUSTOMIZE_COMPRESSION_SUPPORTED'
 					// Otherwise 'png_set_compression_level' would not be \
 						declared.
 				/ "updated value of macros %(PNG_USER_CHUNK_CACHE_MAX, \
 					PNG_USER_CHUNK_MALLOC_MAX)"
-			)
+			);
 			// No other configuration update for libpng or libjpeg-turbo \
 				needed currently. If Linux platforms are supported in future, \
 				SIMD should be turned on by define 'WITH_SIMD'.
+			/ "rebuilt"
 		),
 		/ DLP "platform %MinGW32" $=
 		(

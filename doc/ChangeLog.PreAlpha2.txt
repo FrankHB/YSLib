@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3742
+\version r3749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2015-05-05 04:54 +0800
+	2016-06-08 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1175,11 +1175,13 @@ b275
 	);
 	* DLD "trivial comments not removed for %(is_not_null, is_null)"
 		$since b254,
+	(
 	+ "color picker class %ColorBox";
 	/ %YReader.'text reader' $=
 	(
 		/ "behavior on clicking menu button",
 		+ "setting panel"
+	)
 	),
 	/ DLP "all code and document files" @ "project %YSTest"
 		>> "project %YFramework",
@@ -1188,6 +1190,8 @@ b275
 	/ DLB "Makefile" @ "project %(YBase, YFramework)"
 		^ "-std=c++0x" ~ "-std=gnu++0x"
 	),
+	/ $re_ex(b187) "updated %SUBTITLE2 year" @ "makefile" @ "platform %DS"
+		@ "project %YSTest",
 	/ DLD "header %platform.h" -> ("header %Platform.h" @ %YCLib) $dep_from
 		%YFramework.YSLib
 ),
@@ -2272,10 +2276,10 @@ b227
 	* DLD "guard macro" @ "header %UIContainerEx" $since b203,
 	/ "simplified UI class inheritance" $=
 	(
-		/ $dev $lib $impl ^ "class %IWidget" ~ "class %IUIBox",
+		/ DLI ^ "class %IWidget" ~ "class %IUIBox",
 		- "class %IUIBox",
 		- "class %IUIContainer",
-		/ $dev $lib $impl ^ "class %IControl" ~ "class %IPanel",
+		/ DLI ^ "class %IControl" ~ "class %IPanel",
 		- "class %IPanel"
 	),
 	* $lib "strict ISO C++03 code compatibility" $since b190

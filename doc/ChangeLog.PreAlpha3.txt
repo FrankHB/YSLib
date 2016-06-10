@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5626
+\version r5633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2016-06-07 20:28 +0800
+	2016-06-08 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -575,7 +575,11 @@ b384
 
 b383
 (
-	/ ".nds titles" @ "platform %DS",
+	/ @ "makefile" @ "platform %DS" @ "project %YSTest" $=
+	(
+		/ "%SUBTITLE1 value" -> 'FrankHB' ~ 'Franksoft',
+		/ $re_ex(b275) "updated %SUBTITLE2 year"
+	),
 	/ %YReader $=
 	(
 		/ "year" @ %'about form',
@@ -1132,7 +1136,8 @@ b367
 	(
 		- "unused EFS file system support",
 		- "unused file extension rules" @ "project %YBase"
-	)
+	),
+	/ "%PROGNAME value" @ "makefile" @ "project %YSTest" -> 'YShell' ~ 'YSTest'
 ),
 
 b366

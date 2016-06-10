@@ -1,0 +1,105 @@
+﻿/*
+	© 2016 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ChangeLog.V0.7.txt
+\ingroup Documentation
+\brief 版本更新历史记录 - V0.7 。
+\version r111
+\author FrankHB <frankhb1989@gmail.com>
+\since build 700
+\par 创建时间:
+	2016-06-11 03:16:46 +0800
+\par 修改时间:
+	2016-06-11 08:52 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::ChangeLog::'V0.6'
+*/
+
+// See %Documentation::Meta for meta descriptions.
+
+$import $HISTORY;
+
+// Scope: [b700, $now];
+
+$now
+(
+	/ @ "3rdparty libraries" $=
+	(
+		/ @ "freetype" $=
+		(
+			(
+			+ "FreeType source replacement %(src/sfnt/ttmtx.c, \
+				src/smooth/ftgrays.c)";
+				// To make it work expectedly on platform %DS.
+			+ '-DFT_CONFIG_OPTION_OLD_INTERNALS' @ "%CFLAGS"
+				@ "freetype %config.mk" @ "platform %DS" $dep_to
+				"FreeType old internals command line",
+			),
+			/ $revert_ex(b563) $build "merged freetype including directory \
+				except for 'ft2build.h'" -> "%3rdparty/include"
+				~ "%3rdparty/freetype/include" $dep_to
+				"FreeType inclusion path",
+				// As of FreeType 2.6.1, the including directory of header \
+					files except for 'ft2build.h' had been changed back to \
+					resolve http://savannah.nongnu.org/bugs/index.php?45097.
+			/ DLP "updated library %freetype" @ "library using"
+				$= (^ $re_ex(b493) "updated freetype 2.6.3 with several files \
+					remained from freetype 2.4.11" ~ "freetype 2.5.3");
+				// See [Documentation::Dependencies @@2.2.3].
+			/ "rebuilt"
+		),
+		/ $re_ex(b600) "updated library %FreeImage" $=
+		(
+			^ "libjpeg-turbo 1.5.0" ~ "libjpeg-turbo 1.4.0" @ "%Source/LibJPEG"
+				$=
+			(
+				(
+				/ "updated %(config.h, jconfig.h, jconfigint.h) except for \
+					macro %WITH_SIMD" ^ './configure --build=i686-pc-mingw32',
+					// This is more accurate than old version though it \
+						worked with some manually configured macro definition.
+				/ $comp "value of macro %JPEG_LIB_VERSION" -> '62' ~ '80'
+				),
+				/ $forced "updated %Makefile.srcs"
+			),
+			^ "libpng 1.6.23" ~ "libpng 1.6.17" @ "%Source/LibPNG";
+				// With official prebuilt %pnglibconf.h.
+			/ "rebuilt"
+		)
+	),
+	/ %YFramework $=
+	(
+		+ $forced DLDI '-DFT_CONFIG_OPTION_OLD_INTERNALS' @ "%CPPFLAGS"
+			@ "makefile" @ "platform %DS" $dep_from
+			"FreeType old internals command line",
+		/ $forced DLDI "FreeType internal header path" @ %YSLib.Adaptor.Font
+			$dep_from "FreeType inclusion path"
+	),
+	/ $re_ex(b585) "updated %SUBTITLE2 year" @ "makefile" @ "platform %DS"
+		@ "project %YSTest",
+	(
+	/ %Tools.ProjectGenerator.Main $=
+	(
+		- $revert(b683) "option '-DYB_Use_LightweightTypeID=1' for generated \
+			platform %DS .cbp files",
+			// Since platform %DS uses custom makefile, this is useless.
+		* "wrong inclusion directory" @ "platform %MinGW32" $since b633
+	);
+	/ $re_ex(b600) "regenerated Code::Blocks projects"
+		^ ("%GenerateProjects.sh" @ %Tools.Scripts);
+	)
+),
+
+);
+
+////
+
