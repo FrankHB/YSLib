@@ -123,7 +123,6 @@
 			<Add option="-Wformat=2" />
 			<Add option="-Wmultichar" />
 			<Add option="-Wno-format-nonliteral" />
-			<Add option="-Wpacked" />
 			<Add option="-Wdouble-promotion" />
 			<Add option="-Wfloat-equal" />
 			<Add option="-Wlogical-op" />
@@ -137,7 +136,7 @@
 			<Add option="-pipe" />
 			<Add directory="../include" />
 			<Add directory="../../YFramework/DS/include" />
-			<Add directory="../../YFramework/MinGW32/include" />
+			<Add directory="../../YFramework/Win32/include" />
 			<Add directory="../../YFramework/include" />
 			<Add directory="../../YBase/include" />
 			<Add directory="../../3rdparty/include" />

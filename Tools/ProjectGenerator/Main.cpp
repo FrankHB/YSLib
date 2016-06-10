@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r762
+\version r765
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2016-04-24 21:56 +0800
+	2016-06-11 08:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,8 +389,6 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 						: "-DYF_DLL");
 				}
 			}
-			if(IsDS(platform))
-				opt_add("-DYB_Use_LightweightTypeID=1");
 			InsertChildSyntaxNode(nd, std::move(child));
 			if(!debug || (project != "YBase"
 				&& !(project == "YFramework" && is_static)))
@@ -480,10 +478,10 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 		if(project != "YBase")
 		{
 			if(project == "YFramework")
-				seq_apply(dir_add, "../DS/include", "../MinGW32/include");
+				seq_apply(dir_add, "../DS/include", "../Win32/include");
 			else
 				seq_apply(dir_add, "../../YFramework/DS/include",
-					"../../YFramework/MinGW32/include",
+					"../../YFramework/Win32/include",
 					"../../YFramework/include");
 			seq_apply(dir_add, "../../YBase/include", "../../3rdparty/include",
 				"../../3rdparty/freetype/include");

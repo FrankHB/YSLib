@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r265
+\version r269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2016-06-08 06:59 +0800
+	2016-06-11 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,7 @@ build 598 降低 DS 平台的 debug 配置为第三类支持。
 
 @1.4.3 非正式支持的平台配置：
 以下平台不保证存在可通过可构建和正确性测试的配置，但不否定未来计划支持的可能性：
+build 520 起 MinGW64 平台被保留平台标识符。
 build 559 起 Linux 平台（未完整实现）被保留平台占位符。
 build 561 起 OS X 平台（未完整实现）被保留平台占位符。
 build 561 起 MSYS2 平台为区分 MinGW32 被保留平台占位符。
@@ -77,7 +78,7 @@ build 561 起 MSYS2 平台为区分 MinGW32 被保留平台占位符。
 
 @2 测试项目 Test ：
 测试项目 Test 位于目录 /test ，依赖 YBase::Test 和 Tools::Scripts 的构建脚本。
-测试项目的二进制兼容性保证为依赖于被测试项目和 YBase 的二进制兼容性保证中较弱的一个。
+测试项目的二进制兼容性保证为依赖被测试项目和 YBase 的二进制兼容性保证中较弱的一个。
 当前仅支持 YBase 。
 详见目录 /test 下的自述文件。
 
@@ -237,8 +238,9 @@ build 651 起 Windows 10 Threshold 2 Professional 。
 所有 Android 版本通过 PC 测试。测试环境 Windows x64 + Android 模拟器 Nexus S ，宿主操作系统版本同 MinGW 。
 
 @5.1.4 非正式支持平台：
-2013-02-13: ArchLinux x86_64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。
+2013-02-13: Arch Linux x86_64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。
 2013-07-17: Chakra x86_64 使用 wine-1.5.31 i386 (WOW64) 测试 MinGW32 平台版本 b429 ，基本同上；性能明显降低（ debug 版本慢于 DS 版本）；覆盖配置会导致路径问题而不能再次启动（需要在 ":" 后补充 "\" ）；此外因为权限读写失败时程序错误退出，否则有可能成功。
+2014-07-22(build 520) 起 MinGW64 提供第四类支持。
 2014-12-20(build 561) 起 Linux 平台（未完整实现）可运行 stage 1 SHBuild ，提升为第四类支持。
 
 */

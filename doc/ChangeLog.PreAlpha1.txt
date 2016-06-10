@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r323
+\version r331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2016-02-08 16:53 +0800
+	2016-06-09 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,7 +113,7 @@ b192
 (
 	+ "empty constant of event arguments",
 	/ "event interfaces",
-	/ DLP "header %including",
+	/ DLP "header inclusion",
 	+ "unit %YUIContainerEx" @ "directory Shell",
 	+ "class %AUIBoxControl" @ "unit %YUIContainerEx",
 	+ "controls: class %YScrollableContainer" @ "unit %YGUIComponent",
@@ -168,10 +168,14 @@ b187
 (
 	/ DLP "header %files and source files put in separated directories"
 		@ "solution configuration",
-	^ $lib $build "-O3 & ARM specified options compiled library %libloki.a"
-		@ "project YSTest",
+	/ @ "makefile" @ "project %YSTest" $=
+	(
+		^ $lib $build "-O3 & ARM specified options compiled library %libloki.a",
+		/ "updated %SUBTITLE2 year"
+	),
 	+ "minor templates" @ "YCLib",
-	/ $impl "GDI blit"
+	/ $impl "GDI blit",
+	/ $re_ex(b187) "updated %SUBTITLE2 year"
 ),
 
 b186

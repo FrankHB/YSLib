@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r983
+\version r1143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2016-05-23 05:11 +0800
+	2016-06-11 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,6 +223,11 @@ mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼�
 升级包 mingw32/mingw-w64-i686-headers-git 和 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4531.49c7046-1 。
 升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 5.0.0.4538.78dca70-1 。
 升级包 mingw32/mingw-w64-i686-binutils 版本 2.25.1-1 。
+2015-06-11(build 700) 起：
+升级包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 5.4.0-1 。
+升级包 mingw32/mingw-w64-i686-headers-git 和 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4671.1b12b90-1 。
+升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 5.0.0.4670.00cda6f-1 。
+升级包 mingw32/mingw-w64-i686-binutils 版本 2.25.1-5 。
 
 @1.5.1 MinGW32 库部署：
 YSLib 内部使用固定的相对路径，不依赖库的部署。
@@ -232,6 +237,7 @@ YSLib 内部使用固定的相对路径，不依赖库的部署。
 动态库文件（文件名形如 '$(LIB).dll' ）在 PATH 环境变量内或直接依赖的文件所在的目录以便被搜索。
 在链接器命令行中引用 $LIB 指定库。静态库链接时同时需要在之前使用 -Wl,-dn 选项以避免链接至动态库（默认链接器优先链接 $(LIB).dll.a 而不是 lib$(LIB).a ）。
 以上部署方式中链接器搜索路径中的静态库和动态库的调试版本和非调试版本可以在一个目录内，不产生冲突。
+MinGW32 的 FreeType 可能使用动态链接编译的 DLL 。
 
 @1.5.2 最小外部运行依赖：
 当前示例程序只依赖 MinGW 运行时的以下 3 个动态库文件：
@@ -285,7 +291,7 @@ build 560 前：
 无（不支持的平台）。
 2014-12-16(build 560) 起：
 新增非正式支持。
-构建平台 ArchLinux x86_64 。
+构建平台 Arch Linux x86_64 。
 使用包 core/binutils 版本 2.24-8 。
 使用包 extra/clang 版本 3.5.0-2.1，包括以下依赖：
 直接依赖： extra/llvm 版本 3.5.0-2.1；
@@ -330,7 +336,7 @@ build 207 前使用 Loki 库的智能指针实现句柄。
 历史记录、版本信息和构建方法详见 "3rdparty/freetype/Readme.en-US.txt" 。
 
 @2.2.1 使用版本：
-以下库配置若之前版本已存在，除非另行约定，保持不变。
+以下的修改若之前版本已存在，除非另行约定，保持不变。
 除非另行约定，使用当时 devkitPro(@1.4) 自行编译 DS 库文件，使用当时 MinGW32(@1.5) 自行编译 MinGW32 库文件。
 
 @2.2.2 DS 库配置：
@@ -339,43 +345,29 @@ build 185 前：
 库文件版本：在 VNDSx-1.5.3 源代码中提取的 2.3.6 。
 build 185 起：
 头文件版本： 2.4.4 。
-库文件版本：使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 编译库文件。
-库配置： modules.cfg 配置包含以下有效行：
-FONT_MODULES += truetype
-FONT_MODULES += sfnt
-HINTING_MODULES += autofit
-HINTING_MODULES += pshinter
-RASTER_MODULES += smooth
-AUX_MODULES += cache
-AUX_MODULES += gzip
-AUX_MODULES += psnames
-BASE_EXTENSIONS += ftbitmap.c
-BASE_EXTENSIONS += ftglyph.c
-使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 。
+按构建命令行编译库文件。
+配置 "modules.cfg" 的有效行和使用的构建命令参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
 2011-07-03(build 223 rev 31) 起：
 头文件版本： 2.4.5 。
-库配置： modules.cfg 配置追加以下有效行：
-BASE_EXTENSIONS += ftbbox.c
-BASE_EXTENSIONS += ftstroke.c
-BASE_EXTENSIONS += ftsynth.c
+对配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
 build 224 rev 34 起：
-使用 FreeType 2.4.5 ，但源文件目录 "cache" 使用 2.4.4 版本替换，以修正不明原因的 FontCache::GetAscender 的结果错误。
+使用 FreeType 2.4.5 。
+对原始版本的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
 重新编译库文件。
 2011-12-01(build 266) 起：
-使用 FreeType 2.4.8 ，但源文件目录 "cache" 使用 2.4.4 版本替换，原因同上。
-库配置： modules.cfg 配置移除以下有效行：
-AUX_MODULES += psnames
+使用 FreeType 2.4.8 。
+对原始版本和配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
 重新编译库文件。
 2012-03-11(build 292) 起：
-使用 FreeType 2.4.9 。证实已修复 cache 错误。
+使用 FreeType 2.4.9 。
+撤销对原始版本的修改，参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
 重新编译库文件。
 
 @2.2.3 DS 和 MinGW32 库配置：
 2012-03-29(build 296) ：
-准备增加 MinGW32 库文件版本，预备 modules.cfg 配置不变。
+准备添加 MinGW32 库文件版本，预备 modules.cfg 配置不变。
 2012-04-06(build 299) 起：
-增加 MinGW32 库文件版本，使用 mingw32-make 直接构建默认提供的 makefile 。
-modules.cfg 配置不变。
+添加 MinGW32 库文件版本，使用 mingw32-make 直接构建默认提供的 makefile 。
 2012-06-17(build 318) 起：
 使用 FreeType 2.4.10 。
 2012-12-21(build 366) 起：
@@ -383,42 +375,30 @@ modules.cfg 配置不变。
 2013-05-18(build 405) ：
 测试发现 2.4.12 库在 DS 上的性能显著降低，因此决定暂不升级；仅重新编译减小二进制文件大小。
 2013-05-19(build 406) 起：
-modules.cfg 配置移除以下有效行：
-HINTING_MODULES += pshinter
-AUX_MODULES += gzip
-BASE_EXTENSIONS += ftbbox.c
 库配置和 DS 库构建文件已添加至版本库，参见 "3rdparty/freetype/builds/ds/modules.cfg" 。
-DS 库文件： 2.4.11 去除 -g 选项（以减小文件体积）重新编译。
-MinGW32 库文件： 重新编译。
+对配置 "modules.cfg" 的构建命令行修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
+DS 库文件： 2.4.11 按新的构建命令行重新编译。
+MinGW32 库文件：按新的构建命令行重新编译。
 2013-07-01(build 420) 起：
-使用 FreeType 2.5.0.1 ，但部分文件使用 2.4.11 版本替换，参见 [Documentation::Meta @@ $workaround_b420] 。
-对原始版本的修改：
-"include/freetype/config/ftoption.h" ：保持 2.4.11 版本。
-"src/sfnt/ttmtx.c" ：使用 2.4.11 版本。
-modules.cfg 配置移除以下有效行：
-HINTING_MODULES += autofit
-AUX_MODULES += cache
-BASE_EXTENSIONS += ftfstype.c
-BASE_EXTENSIONS += ftstroke.c
-BASE_EXTENSIONS += ftsynth.c
+使用 FreeType 2.5.0.1 ，但部分文件使用 2.4.11 版本替换，参见 b420 $workaround(#19) 和 [Documentation::Workflow::Annual2016 $2016-06] 。
+对原始版本和配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
 重新编译 DS 库文件。
-实际用于 MinGW32 的 modules.cfg 配置并未移除以上有效行。
-重新编译 MinGW32 库文件。
+使用上一版本 "modules.cfg" 重新编译 MinGW32 库文件。
 2013-11-30(build 459) 起：
 使用 FreeType 2.5.1 ，替换文件同上，除路径 "include/freetype/config/ftoption.h" 变更为 "include/config/ftoption.h" 。
-库配置： modules.cfg 配置追加以下有效行（否则 WOFF 支持会因为调用的 GZip 函数未定义而导致 YFramework 链接失败）：
-AUX_MODULES += gzip
-MinGW32 改为使用同 DS 一致的 modules.cfg 。
-重新编译 DS 和 MinGW32 库文件。
+对配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
+使用一致的 "modules.cfg" 重新编译 DS 和 MinGW32 库文件。
 2013-12-24(build 462) 起：
 使用 FreeType 2.5.2 ，替换文件同上。
+重新编译 DS 和 MinGW32 库文件。
 2014-04-13(build 493) 起：
 使用 FreeType 2.5.3 ，替换文件同上。
-MinGW32 库文件：使用命令行显式设置 CFLAGS="-c -O3 -Wall -fomit-frame-pointer -DNDEBUG" 重新编译。
+MinGW32 库文件的构建使用命令行显式设置，参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
+重新编译 DS 和 MinGW32 库文件。
 
 @2.2.4 DS 、 MinGW32 和 Android 库配置：
 2014-05-11(build 497) 起：
-新增 Android 库文件：使用 ./configure --host=arm-linux-androideabi --disable-shared --with-zlib=no --with-bzip2=no --with-png=no --with-harfbuzz=no CFLAGS="-O3 -Wall -Wl,--gc-sections -s -fdata-sections -ffunction-sections -fomit-frame-pointer -DNDEBUG" 配置并编译。
+添加 Android 库文件：使用 POSIX shell 命令行配置和编译，参见 "3rdparty/freetype/builds/ds/modules.cfg" 。
 2014-07-19(build 520) 起：
 重新编译 MinGW32 库文件。
 
@@ -429,9 +409,16 @@ YSLib 实现对所有平台的 FreeType2 库添加检查。
 因为未使用新的 API ，外部编译的库支持最早使用的 2.3.12 及以上版本，可能支持更早的 API 兼容版本（均未另行测试）。
 2014-12-29(build 563) 起：
 移除对未使用 FT_CONFIG_OPTION_OLD_INTERNALS 时 FreeType 内部头文件依赖。
-新增 Linux 支持。在 ArchLinux x86_64 上使用包 extra/freetype2 版本 2.5.4-3 （依赖包 extra/libpng 版本 1.6.16-1 和 extra/harfbuzz 版本 0.9.37-1）测试通过。
+新增 Linux 支持。在 Arch Linux x86_64 上使用包 extra/freetype2 版本 2.5.4-3 （依赖包 extra/libpng 版本 1.6.16-1 和 extra/harfbuzz 版本 0.9.37-1）测试通过。
 2015-05-27(build 601) 起：
-在 ArchLinux x86_64 上升级包 extra/freetype2 版本 2.5.5-1 （依赖包 extra/libpng 版本 1.6.16-1 和 extra/harfbuzz 版本 0.9.40-2）。
+在 Arch Linux x86_64 上升级包 extra/freetype2 版本 2.5.5-1 （依赖包 extra/libpng 版本 1.6.16-1 和 extra/harfbuzz 版本 0.9.40-2）。
+2016-06-11(build 700) 起：
+使用 FreeType 2.6.3 ，但部分文件使用 2.4.11 版本替换。
+对原始版本和配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
+DS 库文件： CFLAGS 加入以下配置 "-DFT_CONFIG_OPTION_OLD_INTERNALS" 重新编译。
+此配置迁移自 "freetype/config/ftoption.h" 中的宏定义，而其它修改未影响当前使用的特性，因此不再需要替换此文件。
+因为缺少 TT_CONFIG_OPTION_MAX_RUNNABLE_OPCODES 宏的默认定义，构建之前的一些版本可能还需在 CFLAGS 加入 -DTT_CONFIG_OPTION_MAX_RUNNABLE_OPCODES=1000000L 。
+重新编译 MinGW32 和 Android 库文件。
 
 @2.3 Anti-Grain Geometry ：
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。
@@ -447,16 +434,21 @@ YSLib 实现对所有平台的 FreeType2 库添加检查。
 2013-06-26(build 417) 起：
 使用裁剪的 FreeImage 3.15.4 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
 2013-07-21(build 431) 起：
-使用裁剪的 FreeImage 3.15.4 ，并使用 libjpeg-turbo-1.3.0 替换 libjpeg-8d ，更新了 zlib 和 libpng 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
+使用裁剪的 FreeImage 3.15.4 ，并使用 libjpeg-turbo-1.3.0 替换 libjpeg-8d ，更新 zlib 和 libpng 。
+对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
 注意增加的 libjpeg SIMD 代码在 MinGW32(@1.5) 和 Linux(@1.9) 平台依赖 NASM 兼容的汇编器构建。
 2013-10-21(build 453) 起：
 在上一版本的基础上更新 libpng ，并重新编译 MinGW32 库文件。
 2014-07-19(build 520) 起：
-使用 3.16.0 ，在此基础上合并上一版本的修改，更新 libjpeg-turbo 和 libpng ，并重新编译 MinGW32 库文件。
+使用 3.16.0 ，在此基础上合并上一版本的修改，更新 libjpeg-turbo 和 libpng 。
+重新编译 MinGW32 库文件。
 2014-05-24(build 562) 起：
-新增 Linux 支持。在 ArchLinux x86_64 编译。
-2014-05-25(build 600) 起：
-使用 3.17.0 ，在此基础上合并上一版本的修改，更新 libjpeg-turbo 和 libpng ，并重新编译 DS 和 MinGW32 库文件。
+添加 Linux 支持。在 Arch Linux x86_64 编译。
+2015-05-25(build 600) 起：
+使用 3.17.0 ，在此基础上合并上一版本的修改，更新 libjpeg-turbo 和 libpng 。
+重新编译 DS 和 MinGW32 库文件。
+2016-06-11(build 700) 起：
+更新 libjpeg-turbo 和 libpng ，并重新编译 DS 和 MinGW32 库文件。
 
 @3 可选外部依赖：
 
@@ -539,7 +531,7 @@ $(NDSEmulator) $(TargetPath) --cflash-path=H:\NDS\efsroot
 增加允许在运行时调整渲染策略的部件渲染支持；
 增加基于无效矩形算法实现的部分渲染……
 完善示例程序：
-release 版本对于某些字体来说效率上可以基本适应实际需要，但仍然无法使用带有位图的字体（显示错误，疑似 freetype 的 bug ）。
+release 版本对某些字体来说效率上可以基本适应实际需要，但仍然无法使用带有位图的字体（显示错误，疑似 freetype 的 bug ）。
 文本阅读器修正若干文件读取和布局渲染 bug （重新实现缓冲算法）；增加菜单和设置界面；增加进度显示和随机定位功能；增加背景色和文本色调整、字体调整、字体大小调整；增加阅读历史记录（前进/后退）；增加自动（可选以文本或像素行作为单位）滚屏；增加编码自动识别。
 增加十六进制浏览功能。
 主界面增加可选的 FPS 显示（伪；实际上是消息循环速率）。
@@ -557,7 +549,7 @@ PreAlpha 2(Build 200) 发布。
 维护地址： http://code.google.com/p/yslib  。源码可以在那边下载。
 界面完善了点。其它么……没什么对最终用户而言特别突出的特性。当作阅读器而言仍然很不完善，书签啥的都没有。唯一一个显著的进步是效率（界面响应在 release 版本下比较流畅）。此外就是细节上（但实现起来比较麻烦）的东西了，像是连续响应输入之类。
 代价……重构掉的代码少说也是之前的 5 倍。
-增加的特性除了以上内容外，主要是只对于开发而言有用的：
+增加的特性除了以上内容外，主要是只对开发而言有用的：
 自定义宏（缩减代码长度用，否则光是写getter就会疯掉）；
 多播委托模板；
 事件映射表（只是用来压缩接口个数……）；
@@ -704,10 +696,9 @@ MinGW32 下文本阅读界面增加右键显示上下文菜单；
 
 @5.6 V0.6 ：
 2015-05-25(V0.6) ：
-[YSLib]
 添加简易测试框架 [Test] 。
 [Test]
-添加 YBase 的部分测试用例。
+添加 YBase 的部分测试用例 [Test.YBase] 。
 [Tools]
 添加 sysroot 构建工具脚本 [Sysroot] 。
 添加 SXML 到 XML 文档转换工具 [SXML2XML] 。
@@ -716,11 +707,12 @@ MinGW32 下文本阅读界面增加右键显示上下文菜单；
 支持并行构建和文件时间戳检查。
 及构建脚本支持控制台彩色输出。
 支持按等级和分组过滤输出消息。
-[Sysroot]
 Stage1 SHBuild 支持 Linux 。
+[Tools.Scripts]
+添加部署环境 Sysroot 。
 [YBase]
+[YBase.YStandardEx]
 添加部分 ctype 替代实现以避免某些标准库实现的 bug 。
-添加测试支持。
 从 YFramework 转移通用 MRU 缓存模板 used_list_cache 。
 添加标准库异常扩展接口。
 添加原型迭代器模板 prototyped_iterator 。
@@ -730,10 +722,12 @@ Stage1 SHBuild 支持 Linux 。
 添加函数复合模板 compose 。
 添加单线程标准库兼容锁接口支持。
 变长参数序列兼容 C++14 std::integer_sequence 等的接口。
+[YBase.YTest]
+添加测试支持 API 。
 [YFramework]
 [YFramework.YSLib]
 [YFramework.YSLib.Core]
-添加若干 ValueNode 相关接口。
+ValueNode 允许子节点和值共存；添加若干相关接口。
 移除事件宏。
 [YFramework.YSLib.UI]
 修复若干列表框滚动条显示及断言失败问题。
@@ -753,7 +747,7 @@ GotFocus 和 LostFocus 可被所在的直接或间接容器部件焦点的改变
 添加图像缓存和辅助的像素块传输模板。
 修复块传输算法在转置时的一个剪切边界计算错误。
 [YFramework.NPL]
-添加 NPLA1 变换映射。
+添加 NPLA1 变换映射，支持用户指定节点映射方法。
 修复 NPL 转义序列写入。
 修复 NPL 词法分析器的断行连接转义并允许配置其它反转义算法。
 添加 SXML 解析转换到 XML 的基本支持。
@@ -779,13 +773,82 @@ UTF-8 解码默认使用新算法，显著提升性能。
 扩大屏幕相关整数类型的取值范围。
 允许读取 cp113.bin 失败时使用系统 NLS 代码页数据用于 GBK 编码转换。
 优化窗口绘制实现，允许使用无效区域。
-使用基于程序映像路径的目录定位配置。
 [Android]
 添加宿主支持。
 [Linux]
 添加工具和 YBase 支持。
 [YReader]
 修复保存设置崩溃及破坏配置文件。
+
+@5.7 V0.7 ：
+2016-06-?(V0.7) ：
+[Test]
+[Test.YBase]
+添加 YBase 的部分测试用例。
+[Tools]
+[Tools.SHBuild]
+[Sysroot]
+修复构建脚本对 FreeType2 的 pkgbuild 检查失败后直接退出。
+[YBase]
+[YBase.YStandardEx]
+添加缓冲区中按布局读写整数的接口。
+添加对齐特征和基于对齐检查的显式转换。
+添加兼容非特定字符类型转换的接口。
+添加作用域守护接口。
+线程池修复直接调用 wait 无限等待。
+添加只读字符串视图 string_view 等。
+扩展和修复部分字符串操作。
+固定 path 状态，使用特征代替状态对象。
+添加 optional 相关的扩展接口。
+公开代理调用接口 expand_proxy 。
+更新 any 接口以符合正式的 ISO/IEC TS 19568:2015 C++ Extensions for Library Fundamentals ，并另行添加使用不可复制构造对象初始化和原地构造扩展。
+添加关联容器 mapped_set 。
+添加 observer_ptr 。
+修复 examiner 。
+完善关联容器搜索通用模板，支持类似 set 的类型和迭代器提示参数；添加 try_emplace 和 insert_or_assign ，支持 ADL 定制插入。
+添加不依赖 RTTI 的 std::type_info 轻量级替代 type_id_info ；支持通过宏 YB_Use_LightweightTypeID 配置 type_info 选用 type_id_info 或 std::type_info 。
+any 使用 type_info 代替 std::type_info 。
+[YFramework]
+重命名 ysbuild.h 为 YSBuild.h 。
+[YFramework.CHRLib]
+移除单独的字符类型和对应的字符串类型，使用 char16_t 和 char32_t 和相关类型代替。
+完善编码转换接口，提供独立的使用默认编码的转换接口，提升性能。
+[YFramework.YCLib]
+添加 FAT 公共接口。
+添加支持 UTF-8 路径的文件缓冲和流替代标准库的对应 API 。
+完善文件输入/输出接口，提供链接、复制以及文件时间的支持。
+添加基于标签分派的接口，强化平台模拟支持。
+[YFramework.YSLib]
+[YFramework.YSLib.Adaptor]
+头文件不包含 FreeType2 头文件。
+[YFramework.YSLib.Core]
+移除过时的函数对象模板。
+修复 ValueObject 和 GHEvent 的比较操作。
+提供 ValueObject 原地构造，减少不必要的冗余初始化。
+扩充 ValueNode 接口，使用 observer_ptr 代替内建指针；使用 ystdex::mapped_set 代替标准库容器以改善 const 类型检查；添加原地构造和插入支持。
+GEvent 支持通过调用器模板参数指定不同的调用逻辑。
+Application 使用守护对象栈代替退出回调。
+ValueObject 使用 type_info 代替 std::type_info 。
+[YFramework.YSLib.Service]
+简化路径实现，默认只使用 UTF-8 作为外部编码。
+[YFramework.YSLib.UI]
+修复 TreeList 和 TreeView 关于绑定节点和展开节点相关行为。
+[YFramework.NPL]
+扩展 NPLA1 API 。
+分离 NPLA 公共实现。
+添加 NPLA1 规约实现。
+[YFramework.Helper]
+分离环境和 GUI 宿主，调整初始化实现。
+[DS]
+使用自定义 FAT 和缓存实现替换 libfat ，以修复 POSIX 兼容性。
+在 DS 平台上默认构建配置启用 YB_Use_LightweightTypeID 以减小二进制映像大小。
+[Win32]
+使用基于程序映像路径的目录定位配置。
+[Android]
+[Linux]
+[YReader]
+调整关于界面：使用对话框和粗体标题，关闭按钮改为系统信息界面按钮。
+移除的 TreeView 测试（使用关于界面代替）。
 
 */
 ////
