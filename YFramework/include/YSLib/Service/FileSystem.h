@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2925
+\version r2926
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-06-08 09:02 +0800
+	2016-06-13 17:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -517,7 +517,7 @@ TraverseTree(_func f, const Path& dst, const Path& src, _tParams&&... args)
 
 		// XXX: Blocked. 'yforward' cause G++ 5.2 crash: internal compiler
 		//	error: Aborted (program cc1plus) or crash silently.
-		return c == NodeCategory::Directory
+		return bool(c & NodeCategory::Directory)
 			? IO::TraverseTree(f, dname, sname, std::forward<_tParams>(args)...)
 			: f(dname, sname, std::forward<_tParams>(args)...);
 	});

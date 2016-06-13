@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1615
+\version r1683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-05-23 04:38 +0800
+	2016-06-14 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,10 @@
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
-#include YFM_YCLib_Debug // for string, platform::Deref, wstring, ystdex::ends_with, pair;
-#include <ystdex/enum.hpp> // for ystdex::enum_union, ystdex::wrapped_enum_traits_t;
+#include YFM_YCLib_Debug // for string, platform::Deref, wstring,
+//	ystdex::ends_with, pair;
+#include <ystdex/enum.hpp> // for ystdex::enum_union,
+//	ystdex::wrapped_enum_traits_t;
 #include YFM_YCLib_FileIO // for platform::NodeCategory;
 #include <chrono> // for std::chrono::nanoseconds;
 
@@ -173,7 +175,8 @@ public:
 		return res; \
 	}
 
-#	define YCL_CallWin32(_fn, _msg, ...) YCL_WrapCallWin32(_fn, __VA_ARGS__)(_msg)
+#	define YCL_CallWin32(_fn, _msg, ...) \
+	YCL_WrapCallWin32(_fn, __VA_ARGS__)(_msg)
 
 //! \since build 638
 #	define YCL_CallWin32F(_fn, ...) YCL_CallWin32(_fn, yfsig, __VA_ARGS__)
@@ -273,10 +276,10 @@ LoadProc(const wchar_t* module, const char* proc)
 
 /*!
 \brief 取模块映像路径。
-\since build 694
+\since build 701
 */
 YF_API wstring
-FetchModuleFileName(::HMODULE = {});
+FetchModuleFileName(::HMODULE = {}, YSLib::RecordLevel = YSLib::Err);
 
 
 
@@ -500,36 +503,76 @@ enum FileAttributesAndFlags : unsigned long
 
 
 /*!
+\brief 判断 \c FileAttributes 是否指定目录。
+\since build 701
+*/
+yconstfn PDefH(bool, IsDirectory, FileAttributes attr) ynothrow
+	ImplRet(attr & Directory)
+/*!
 \brief 判断 \c ::WIN32_FIND_DATAA 指定的节点是否为目录。
 \since build 298
 */
 inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAA& d) ynothrow
-	ImplRet(d.dwFileAttributes & Directory)
+	ImplRet(IsDirectory(FileAttributes(d.dwFileAttributes)))
 /*!
 \brief 判断 \c ::WIN32_FIND_DATAW 指定的节点是否为目录。
 \since build 299
 */
 inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
-	ImplRet(d.dwFileAttributes & Directory)
+	ImplRet(IsDirectory(FileAttributes(d.dwFileAttributes)))
 
 /*!
-\brief 按 \c ::WIN32_FIND_DATAW 归类节点类别。
-\return 指定非目录或不被支持的重分析标签时为 NodeCategory::Empty ，
-	否则为对应的其它节点类别。
-\since build 658
-\todo 对目录链接和符号链接的重分析标签提供适当实现。
+\throw Win32Exception 调用失败。
+\since build 701
+*/
+//@{
+/*!
+\brief 按打开的文件句柄归类节点从属的属性类别。
+\return 指定句柄为字符、管道或未知类别。
 */
 YF_API platform::NodeCategory
-CategorizeNode(const ::WIN32_FIND_DATAW&) ynothrow;
+TryCategorizeNodeAttributes(UniqueHandle::pointer);
+
+/*!
+\brief 按打开的文件句柄归类节点从属的设备类别。
+\return 指定句柄为字符、管道或未知类别。
+*/
+YF_API platform::NodeCategory
+TryCategorizeNodeDevice(UniqueHandle::pointer);
+//@}
+
+/*!
+\return 指定非目录或不被支持的重解析标签时为 NodeCategory::Empty ，
+	否则为对应的目录和重解析标签的组合节点类别。
+\since build 701
+\todo 对目录链接和符号链接的重解析标签提供适当实现。
+*/
+//@{
+//! \brief 按 FileAttributes 和重解析标签归类节点类别。
+YF_API platform::NodeCategory
+CategorizeNode(FileAttributes, unsigned long = 0) ynothrow;
+//! \brief 按 \c ::WIN32_FIND_DATAA 归类节点类别。
+inline PDefH(platform::NodeCategory, CategorizeNode,
+	const ::WIN32_FIND_DATAA& d) ynothrow
+	ImplRet(CategorizeNode(FileAttributes(d.dwFileAttributes), d.dwReserved0))
+/*!
+\brief 按 \c ::WIN32_FIND_DATAW 归类节点类别。
+\since build 658
+*/
+inline PDefH(platform::NodeCategory, CategorizeNode,
+	const ::WIN32_FIND_DATAW& d) ynothrow
+	ImplRet(CategorizeNode(FileAttributes(d.dwFileAttributes), d.dwReserved0))
+//@}
 /*!
 \brief 按打开的文件句柄归类节点类别。
-\pre 断言：参数非空。
-\return 指定句柄非打开的文件或调用失败时 NodeCategory::Invalid ，
-	否则为对应的其它节点类别。
-\since build 658
+\return 指定句柄空时为 NodeCategory::Invalid ，
+	否则为文件属性和设备类别查询的位或结果。
+\sa TryCategorizeNodeAttributes
+\sa TryCategorizeNodeDevice
+\since build 701
 */
 YF_API platform::NodeCategory
-CategorizeNode(UniqueHandle::pointer) ynothrowv;
+CategorizeNode(UniqueHandle::pointer) ynothrow;
 
 
 /*!
@@ -570,9 +613,9 @@ inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, shared_mode,
 		creation_disposition, attributes_and_flags))
+//! \since build 701
 inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
-	CreationDisposition creation_disposition
-	= CreationDisposition::OpenExisting, FileAttributesAndFlags
+	CreationDisposition creation_disposition, FileAttributesAndFlags
 	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
 		creation_disposition, attributes_and_flags))
@@ -610,7 +653,8 @@ FixConsoleHandler(int(WINAPI*)(unsigned long) = {}, bool = true);
 
 /*!
 \brief 判断是否在 Wine 环境下运行。
-\note 检查 HKEY_CURRENT_USER 和 HKEY_LOCAL_MACHINE 下的 Software\Wine 键实现。
+\note 检查 \c HKEY_CURRENT_USER 和 \c HKEY_LOCAL_MACHINE
+	下的 <tt>Software\Wine</tt> 键实现。
 \since build 435
 */
 YF_API bool
@@ -754,12 +798,12 @@ public:
 
 
 /*!
-\brief 读取重分析点内容。
+\brief 读取重解析点内容。
 \pre 断言：参数非空。
 \exception Win32Exception 打开文件失败。
-\throw std::invalid_argument 打开的文件不是重分析点。
-\throw std::system_error 重分析点检查失败。
-	\li std::errc::not_supported 重分析点标签不被支持。
+\throw std::invalid_argument 打开的文件不是重解析点。
+\throw std::system_error 重解析点检查失败。
+	\li std::errc::not_supported 重解析点标签不被支持。
 \since build 660
 */
 YF_API YB_NONNULL(1) wstring

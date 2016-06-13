@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r111
+\version r266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-06-11 08:52 +0800
+	2016-06-13 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,162 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ $impl "%std::terminate called on allocation failure due to wrong \
+			'ynothrow'" @ "DS screen initialization" @ %'Helper_(DS)' $since
+			b380,
+			// Also to eliminate G++ 6.1 warning: [-Wterminate].
+		/ %YCLib $=
+		(
+			/ DLDI "constructor %HostWindow" @ %HostedGUI,
+				// To eliminate G++ 6.1 warning: [-Wsign-conversion].
+			/ %FileIO $=
+			(
+				/ @ "function template %ThrowFileOperationFailure" $=
+				(
+					+ "parameter 'int err = errno'";
+					/ "allowed using parameter for the thrown exception"
+						~ "%errno"
+				),
+				/ @ "platform %Win32" @ "function %FileDescriptor::GetCategory"
+					$dep_from ("function %CategorizeNode with native handle \
+					parameter" @ %'YCLib_(Win32)'.MinGW32) $=
+				(
+					* $comp "missing attributes detection"  $since b658,
+					/ DLDI "simplified"
+						$= (- "branch for null handle")
+				),
+				/ @ "functions %HaveSameContents" $=
+				(
+					+ "overloading for 'const char16_T*' path parameters",
+					* $re_add(b560) "directory with other file system category \
+						not recognized as directory" $since b658
+					(
+					- 'YB_NONNULL(3, 4)' @ "overloading with handle parameters";
+					* $doc "wrong '\pre' command" @ "Doxygen comments" $since
+						b658
+					),
+					* $comp "directory attribute not used" @ "platform %Win32"
+						$since b658 $dep_from "%FileDescriptor::GetCategory"
+				)
+			),
+			/ @ "class %HDirectory" @ %YCLib.FileSystem $=
+			(
+				/ @ "function %operator++" $since b411 $=
+				(
+					(
+					* "missing throwing on error" $=
+						// This would cause some errors (e.g. dereferencing a \
+							broken reparse point to a directory) treated as \
+							normal end of directory iteration.
+					(
+						/ "checked to throw" @ "platform %Win32" $dep_from
+							("%DirectoryFindData::Read"
+							@ %'YCLib_(Win32)'.MinGW32),
+						/ $impl "check %errno and threw %std::system_error on \
+							demand" @ !"platform %Win32"
+					),
+					* $comp $doc "wrong '\throw' commands" @ "Doxygen comments"
+						$since b411
+					),
+					/ $doc "merged '\throw' commands" @ "Doxygen comments"
+				),
+				* $comp "missing attributes detection" @ "platform %Win32"
+					@ "member function %HDirectory::GetNodeCategory" $since b658
+					$dep_from ("%DirectoryFindData::GetNodeCategory"
+					@ %'YCLib_(Win32)'.MinGW32)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ $impl "%std::terminate called on failure due to wrong 'ynothrow'"
+				@ "member function %HBitmap::SaveTo" @ %Adaptor.Image $since
+				b556,
+				// Also to eliminate G++ 6.1 warning: [-Wterminate].
+			* "redundant tracing of exception message"
+				@ "function %TraceExceptionType" @ %Core.YException $since b591,
+				// To reduce duplicate message in calls of functions like \
+					%ExtractAndTrace since %ExtractException has already \
+					traced for 'what()' in each level of nested exception.
+			/ %Service $=
+			(
+				/ DLI "reduced excessive %errno access"
+					@ "function templates %(TryRemove, TryUnlink)" @ %File
+					$dep_from ("%ThrowFileOperationFailure" @ %YCLib.FileIO)
+				/ %FileSystem $=
+				(
+					* $re_add(b560) "directory with other file system category \
+						not recognized as directory"
+						@ "function template %TraverseTree" $orig
+						(@ "function template %CopyTree" @ $since b648),
+					* $comp "missing directory detection" @ "platform %Win32"
+						@ "function templates %(Traverse; TraverseChildren); \
+						function %ListFiles" $since b658 $dep_from
+						("%HDirectory::GetNodeCategory" @ %YCLib.FileIO)
+				)
+			)
+		),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			* "ambiguity call between %MakeFile#(1, 6) for single path argument"
+				$since b660
+				$= (- "default argument" @ "2nd parameter"
+					@ "function MakeFile#6")
+			/ @ "function %FetchModuleFileName" $=
+			(
+				+ "parameter 'YSLib::RecordLevel = YSLib::Err';
+				/ "%Win32Exception thrown with level specified by parameter"
+					~ "%YSLib::Emergent";
+				/ $comp "%Win32Exception thrown by call with 1 argument"
+					^ "%YSLib::Err" ~ "%YSLib::Emergernt"
+			),
+			/ @ "class %DirectoryFindData" $=
+			(
+				* "missing throwing error" @ "member function %Read" $since b549
+					$=
+				(
+					/ "threw %Win32Exception when error code is not \
+						%ERROR_FILE_NOT_FOUND for %::FindFirstFileW call",
+					/ "threw %Win32Exception when error code is not \
+						%ERROR_NO_MORE_FILES for %::FindNextFileW call"
+				),
+				* $comp "missing attributes detection" @ "function \
+					%GetNodeCategory" $since b658 $dep_from
+					"function %CategorizeNode with native handle parameter"
+			),
+			(
+			+ "function %IsDirectory with %FileAttributes parameter";
+			/ DLDI "2 %IsDirectory for ('const ::WIN32_FIND_DATAA&', \
+				'const ::WIN32_FIND_DATAW&')"
+				^ "%IsDirectory for %FileAttributes"
+			),
+			(
+			+ "function %CategorizeNode with %FileAttributes and reparse tag \
+				(i.e. 'unsigned long') parameters";
+			/ DLDI "simplified %CategorizeNode with \
+				'const ::WIN32_FIND_DATAW&' paramater"
+				^ "%CategorizeNode with 2 parameters",
+			+ "function %CategorizeNode with 'const ::WIN32_FIND_DATAA&' \
+				paramater",
+			+ "function %TryCategorizeNodeAttributes"
+			),
+			+ "function %TryCategorizeNodeDevice",
+			/ @ "function %CategorizeNode with native handle parameter" $=
+			(
+				- 'ynothrowv' -> 'ynothrow';
+				/ "accepted for null handle"
+					$= (- "assertion"),
+				* "missing attributes detection" $since b658
+					$= (/ DLDI ^ $dep_from ("%(TryCategorizeNodeAttributes, \
+						TryCategorizeNodeDevice)")),
+			)
+		)
+	)
+),
+
+b700
 (
 	/ @ "3rdparty libraries" $=
 	(

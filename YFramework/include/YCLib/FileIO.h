@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1955
+\version r1968
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-06-07 19:23 +0800
+	2016-06-13 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1126,10 +1126,10 @@ TryGetCurrentWorkingDirectory(size_t init)
 			return {};
 		}
 
-		const auto e(errno);
+		const int err(errno);
 
-		if(e != ERANGE)
-			ystdex::throw_error(e);
+		if(err != ERANGE)
+			ystdex::throw_error(err);
 		return true;
 	});
 }
@@ -1159,13 +1159,13 @@ public:
 \build 抛出由 errno 和参数指定的 FileOperationFailure 对象。
 \throw FileOperationFailure errno 和指定参数构造的异常。
 \relates FileOperationFaiure
-\since build 654
+\since build 701
 */
 template<typename _tParam>
 YB_NORETURN void
-ThrowFileOperationFailure(_tParam&& arg)
+ThrowFileOperationFailure(_tParam&& arg, int err = errno)
 {
-	ystdex::throw_error<FileOperationFailure>(errno, yforward(arg));
+	ystdex::throw_error<FileOperationFailure>(err, yforward(arg));
 }
 
 
@@ -1273,16 +1273,20 @@ EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
 */
 //@{
 //! \note 间接断言：参数非空。
+//@{
 YF_API YB_NONNULL(1, 2) bool
 HaveSameContents(const char*, const char*, mode_t = DefaultPMode());
+//! \since build 701
+YF_API YB_NONNULL(1, 2) bool
+HaveSameContents(const char16_t*, const char16_t*, mode_t = DefaultPMode());
+//@}
 /*!
-\note 间接断言：文件指针非空。
 \note 使用表示文件名称的字符串，仅用于在异常消息中显示（若为空则省略）。
 \note 参数表示的文件已以可读形式打开，否则按流打开失败。
 \note 视文件起始于当前读位置。
 \since build 658
 */
-YF_API YB_NONNULL(3, 4) bool
+YF_API bool
 HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
 //@}
 

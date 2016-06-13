@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3749
+\version r3766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-06-08 08:41 +0800
+	2016-06-13 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,8 @@
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
 //	platform_ex::WCSToUTF8, platform_ex::ResolveReparsePoint,
 //	platform_ex::DirectoryFindData;
+#	include <system_error> // for std::system_error;
+#	include <exception> // for std::throw_with_nested;
 #	include <time.h> // for ::localtime_s;
 
 //! \since build 651
@@ -409,11 +411,23 @@ HDirectory&
 HDirectory::operator++()
 {
 	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
-	p_dirent
 #if YCL_Win32
-		= static_cast<DirectoryFindData*>(GetNativeHandle())->Read();
+	TryExpr(p_dirent
+		= static_cast<DirectoryFindData*>(GetNativeHandle())->Read())
+	CatchExpr(std::system_error& e, std::throw_with_nested(
+		FileOperationFailure(e.code(), "Failed iterating directory.")))
 #else
-		= make_observer(::readdir(ToDirPtr(GetNativeHandle())));
+	if(const auto p = ::readdir(ToDirPtr(GetNativeHandle())))
+		p_dirent = make_observer(p);
+	else
+	{
+		int err(errno);
+
+		if(err == ENOENT)
+			p_dirent = {};
+		else
+			ThrowFileOperationFailure("Failed iterating directory.", err);
+	}
 #endif
 	return *this;
 }

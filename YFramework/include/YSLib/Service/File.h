@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1520
+\version r1534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2015-11-26 16:09 +0800
+	2016-06-13 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,18 +60,28 @@ template<typename _tChar>
 YB_NONNULL(1) void
 TryRemove(const _tChar* path)
 {
-	if(YB_UNLIKELY(!uremove(path) && errno != ENOENT))
-		ThrowFileOperationFailure("Failed removing destination file '"
-			+ IO::MakePathString(path) + "'.");
+	if(YB_UNLIKELY(!uremove(path)))
+	{
+		const int err(errno);
+
+		if(errno != ENOENT)
+			ThrowFileOperationFailure("Failed removing destination file '"
+				+ IO::MakePathString(path) + "'.", err);
+	}
 }
 
 template<typename _tChar>
 YB_NONNULL(1) void
 TryUnlink(const _tChar* path)
 {
-	if(YB_UNLIKELY(!uunlink(path) && errno != ENOENT))
-		ThrowFileOperationFailure("Failed unlinking destination file '"
-			+ IO::MakePathString(path) + "'.");
+	if(YB_UNLIKELY(!uunlink(path)))
+	{
+		const int err(errno);
+
+		if(errno != ENOENT)
+			ThrowFileOperationFailure("Failed unlinking destination file '"
+				+ IO::MakePathString(path) + "'.", err);
+	}
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2274
+\version r2313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-06-07 10:08 +0800
+	2016-06-14 02:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -358,6 +358,29 @@ IsNodeShared_Impl(const char16_t* a, const char16_t* b, bool follow_link) ynothr
 #endif
 }
 
+//! \since build 701
+template<typename _tChar>
+YB_NONNULL(1, 2) pair<UniqueFile, UniqueFile>
+HaveSameContents_Impl(const _tChar* path_a, const _tChar* path_b, mode_t mode)
+{
+	if(UniqueFile p_a{uopen(path_a,
+#if YCL_Win32
+		_O_RDONLY | _O_BINARY
+#else
+		O_RDONLY
+#endif
+		, mode)})
+		if(UniqueFile p_b{uopen(path_b,
+#if YCL_Win32
+			_O_RDONLY | _O_BINARY
+#else
+			O_RDONLY
+#endif
+		, mode)})
+			return {std::move(p_a), std::move(p_b)};
+	return {};
+}
+
 } // unnamed namespace;
 
 
@@ -429,9 +452,7 @@ NodeCategory
 FileDescriptor::GetCategory() const ynothrow
 {
 #if YCL_Win32
-	const auto h(ToHandle(desc));
-
-	return h ? platform_ex::CategorizeNode(h) : NodeCategory::Invalid;
+	return platform_ex::CategorizeNode(ToHandle(desc));
 #else
 	struct ::stat st;
 
@@ -1154,30 +1175,26 @@ EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 bool
 HaveSameContents(const char* path_a, const char* path_b, mode_t mode)
 {
-	if(UniqueFile p_a{uopen(path_a,
-#if YCL_Win32
-		_O_RDONLY | _O_BINARY
-#else
-		O_RDONLY
-#endif
-		, mode)})
-		if(UniqueFile p_b{uopen(path_b,
-#if YCL_Win32
-			_O_RDONLY | _O_BINARY
-#else
-			O_RDONLY
-#endif
-		, mode)})
-			return HaveSameContents(std::move(p_a), std::move(p_b), path_a,
-				path_b);
-	return {};
+	auto pr(HaveSameContents_Impl(path_a, path_b, mode));
+
+	return pr.first ? HaveSameContents(std::move(pr.first),
+		std::move(pr.second), path_a, path_b) : false;
+}
+bool
+HaveSameContents(const char16_t* path_a, const char16_t* path_b, mode_t mode)
+{
+	auto pr(HaveSameContents_Impl(path_a, path_b, mode));
+
+	// TODO: Support names in exception messages.
+	return pr.first ? HaveSameContents(std::move(pr.first),
+		std::move(pr.second), {}, {}) : false;
 }
 bool
 HaveSameContents(UniqueFile p_a, UniqueFile p_b, const char* name_a,
 	const char* name_b)
 {
-	if(Nonnull(p_a)->GetCategory() != NodeCategory::Directory
-		&& Nonnull(p_b)->GetCategory() != NodeCategory::Directory)
+	if(!(bool(Nonnull(p_a)->GetCategory() & NodeCategory::Directory)
+		|| bool(Nonnull(p_b)->GetCategory() & NodeCategory::Directory)))
 	{
 		if(IsNodeShared(p_a.get(), p_b.get()))
 			return true;
@@ -1186,13 +1203,13 @@ HaveSameContents(UniqueFile p_a, UniqueFile p_b, const char* name_a,
 
 		errno = 0;
 		// FIXME: Implement for streams without open-by-raw-file extension.
-		// TODO: Throw a nested error with errno if errno != 0.
+		// TODO: Throw a nested exception with %errno if 'errno != 0'.
 		if(!fb_a.open(std::move(p_a),
 			std::ios_base::in | std::ios_base::binary))
 			ThrowFileOperationFailure(name_a ? ("Failed opening first file '"
 				+ string(name_a) + "'.").c_str()
 				: "Failed opening first file.");
-		// TODO: Throw a nested error with errno if errno != 0.
+		// TODO: Throw a nested exception with %errno if 'errno != 0'.
 		if(!fb_b.open(std::move(p_b),
 			std::ios_base::in | std::ios_base::binary))
 			ThrowFileOperationFailure(name_b ? ("Failed opening second file '"

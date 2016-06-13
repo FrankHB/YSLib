@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1201
+\version r1209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2016-02-11 03:01 +0800
+	2016-06-11 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,10 +110,13 @@ LoadImage(ImageFormat fmt, const char16_t* filename, ImageDecoderFlags flags)
 {
 	return LoadImage(fmt, ufopen(filename, u"rb"), flags);
 }
+//@}
 
+//! \since build 701
+//@{
 void
 SaveImage(ImageFormat fmt, ::FIBITMAP* dib, std::FILE* fp,
-	ImageDecoderFlags flags) ynothrow
+	ImageDecoderFlags flags)
 {
 	if(dib)
 	{
@@ -128,13 +131,13 @@ SaveImage(ImageFormat fmt, ::FIBITMAP* dib, std::FILE* fp,
 }
 void
 SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char* filename,
-	ImageDecoderFlags flags) ynothrow
+	ImageDecoderFlags flags)
 {
 	SaveImage(fmt, dib, ufopen(filename, "wb"), flags);
 }
 void
 SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char16_t* filename,
-	ImageDecoderFlags flags) ynothrow
+	ImageDecoderFlags flags)
 {
 	SaveImage(fmt, dib, ufopen(filename, u"wb"), flags);
 }
@@ -171,8 +174,8 @@ ImageFormat
 GetFormatFromFilename(const char16_t* filename)
 {
 	const auto len(ystdex::ntctslen(filename));
-	const auto p(make_unique_default_init<char[]>(len + 1));
-	const auto str(p.get());
+	const auto p_buf(make_unique_default_init<char[]>(len + 1));
+	const auto str(p_buf.get());
 
 	for(size_t i{}; i < len; ++i)
 		str[i] = CHRLib::ToASCII(filename[i]);

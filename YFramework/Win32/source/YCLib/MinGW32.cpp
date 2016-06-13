@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1685
+\version r1742
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-06-07 19:23 +0800
+	2016-06-14 02:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -411,7 +411,7 @@ LoadProc(::HMODULE h_module, const char* proc)
 
 
 wstring
-FetchModuleFileName(::HMODULE h_module)
+FetchModuleFileName(::HMODULE h_module, RecordLevel lv)
 {
 	return ystdex::retry_for_vector<wstring>(MAX_PATH,
 		[=](wstring& res, size_t s) -> bool{
@@ -419,7 +419,7 @@ FetchModuleFileName(::HMODULE h_module)
 		const auto e(::GetLastError());
 
 		if(e != ERROR_SUCCESS && e != ERROR_INSUFFICIENT_BUFFER)
-			throw Win32Exception(e, "GetModuleFileNameW");
+			throw Win32Exception(e, "GetModuleFileNameW", lv);
 		if(r < s)
 		{
 			res.resize(r);
@@ -461,15 +461,50 @@ LocalDelete::operator()(pointer h) const ynothrow
 
 
 NodeCategory
-CategorizeNode(const ::WIN32_FIND_DATAW& d) ynothrow
+TryCategorizeNodeAttributes(UniqueHandle::pointer h)
+{
+	return FetchFileInfo([&](::BY_HANDLE_FILE_INFORMATION& info)
+		-> NodeCategory{
+		return CategorizeNode(FileAttributes(info.dwFileAttributes));
+	}, h);
+}
+
+NodeCategory
+TryCategorizeNodeDevice(UniqueHandle::pointer h)
+{
+	NodeCategory res;
+
+	switch(::GetFileType(h))
+	{
+	case FILE_TYPE_CHAR:
+		res = NodeCategory::Character;
+		break;
+	case FILE_TYPE_PIPE:
+		res = NodeCategory::FIFO;
+		break;
+	case FILE_TYPE_UNKNOWN:
+		{
+			const auto err(::GetLastError());
+
+			if(err != NO_ERROR)
+				throw Win32Exception(err, "GetFileType", Err);
+		}
+	default:
+		res = NodeCategory::Unknown;
+	}
+	return res;
+}
+
+NodeCategory
+CategorizeNode(FileAttributes attr, unsigned long reparse_tag) ynothrow
 {
 	auto res(NodeCategory::Empty);
 
-	if(IsDirectory(d))
+	if(IsDirectory(attr))
 		res |= NodeCategory::Directory;
-	if(d.dwFileAttributes & ReparsePoint)
+	if(attr & ReparsePoint)
 	{
-		switch(d.dwReserved0)
+		switch(reparse_tag)
 		{
 		case IO_REPARSE_TAG_SYMLINK:
 			res |= NodeCategory::SymbolicLink;
@@ -483,27 +518,11 @@ CategorizeNode(const ::WIN32_FIND_DATAW& d) ynothrow
 	return res;
 }
 NodeCategory
-CategorizeNode(UniqueHandle::pointer h) ynothrowv
+CategorizeNode(UniqueHandle::pointer h) ynothrow
 {
-	YAssertNonnull(h);
-
-	auto res(NodeCategory::Empty);
-
-	switch(::GetFileType(h)
-		& ~static_cast<unsigned long>(FILE_TYPE_REMOTE))
-	{
-	case FILE_TYPE_CHAR:
-		res |= NodeCategory::Character;
-		break;
-	case FILE_TYPE_PIPE:
-		res |= NodeCategory::FIFO;
-		break;
-	case FILE_TYPE_UNKNOWN:
-		res |= NodeCategory::Unknown;
-	default:
-		;
-	}
-	return res;
+	TryRet(TryCategorizeNodeAttributes(h) | TryCategorizeNodeDevice(h))
+	CatchIgnore(...)
+	return NodeCategory::Invalid;
 }
 
 
@@ -623,7 +642,7 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 			wstring_view name(GetDirName());
 
 			name.remove_suffix(1);
-			// NOTE: Only existed and accessable files are considered.
+			// NOTE: Only existed and accessible files are considered.
 			// FIXME: Blocked. TOCTTOU access.
 			if(const auto h = MakeFile((wstring(name) + d_name).c_str(),
 				FileSpecificAccessRights::ReadAttributes,
@@ -645,14 +664,25 @@ DirectoryFindData::Close() ynothrow
 observer_ptr<wstring>
 DirectoryFindData::Read()
 {
+	const auto chk_err([this](const char* fn, ErrorCode ec) YB_NONNULL(1) {
+		const auto err(::GetLastError());
+
+		if(err != ec)
+			throw Win32Exception(err, fn, Err);
+	});
+
 	if(!h_node)
 	{
 		if((h_node = ::FindFirstFileW(GetDirName().c_str(), &find_data))
 			== INVALID_HANDLE_VALUE)
+		{
+			chk_err("FindFirstFileW", ERROR_FILE_NOT_FOUND);
 			h_node = {};
+		}
 	}
 	else if(!::FindNextFileW(h_node, &find_data))
 	{
+		chk_err("FindNextFileW", ERROR_NO_MORE_FILES);
 		Close();
 		h_node = {};
 	}
