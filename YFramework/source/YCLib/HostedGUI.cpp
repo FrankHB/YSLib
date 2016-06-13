@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1767
+\version r1768
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-05-04 10:07 +0800
+	2016-06-11 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -775,7 +775,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 	wchar_t buf[size(WindowClassName)];
 
 	YCL_CallWin32F(GetClassNameW, GetNativeHandle(), buf,
-		size(WindowClassName));
+		int(size(WindowClassName)));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
