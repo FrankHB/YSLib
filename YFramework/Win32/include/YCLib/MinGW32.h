@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1683
+\version r1706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-06-14 02:12 +0800
+	2016-06-17 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #define YCL_MinGW32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host
+#include YFM_YCLib_Host // for unique_ptr_from;
 #include YFM_YCLib_NativeAPI // for MAX_PATH;
 #if !YCL_Win32
 #	error "This file is only for Win32."
@@ -708,11 +708,22 @@ inline PDefH(string, WCSToUTF8, wstring_view sv)
 
 /*!
 \brief 文件系统目录查找状态。
+\warning 非虚析构。
 \since build 549
 */
 class YF_API DirectoryFindData : private ystdex::noncopyable
 {
 private:
+	//! \since build 702
+	class YF_API Deleter
+	{
+	public:
+		using pointer = ::HANDLE;
+
+		void
+		operator()(pointer) const ynothrowv;
+	};
+
 	/*!
 	\brief 查找起始的目录名称。
 	\invariant <tt>dir_name.length() > 1
@@ -723,8 +734,11 @@ private:
 	wstring dir_name;
 	//! \brief Win32 查找数据。
 	::WIN32_FIND_DATAW find_data;
-	//! \brief 查找节点句柄。
-	::HANDLE h_node = {};
+	/*!
+	\brief 查找节点。
+	\since build 702
+	*/
+	unique_ptr_from<Deleter> p_node{};
 	/*!
 	\brief 当前查找的项目名称。
 	\since build 593
@@ -743,10 +757,10 @@ public:
 	*/
 	DirectoryFindData(wstring_view);
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
-	~DirectoryFindData();
+	DefDeDtor(DirectoryFindData)
 
 	//! \since build 556
-	DefBoolNeg(explicit, h_node)
+	DefBoolNeg(explicit, p_node.get())
 
 	//! \since build 564
 	DefGetter(const ynothrow, unsigned long, Attributes,
@@ -770,15 +784,6 @@ public:
 	platform::NodeCategory
 	GetNodeCategory() const ynothrow;
 
-private:
-	/*!
-	\brief 关闭查找状态。
-	\post 断言：关闭成功。
-	*/
-	void
-	Close() ynothrow;
-
-public:
 	/*!
 	\brief 读取：迭代当前查找状态。
 	\return 若迭代结束后节点且文件名非空，表示当前查找项目名的指针；否则为空指针。

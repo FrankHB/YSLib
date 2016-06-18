@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1084
+\version r1089
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2016-02-11 20:21 +0800
+	2016-06-15 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,8 +96,11 @@ BoxRefresh(AView& v, MLabel& lbl, PaintEventArgs& e, std::function<void()> f)
 {
 	{
 		using namespace std::placeholders;
-		ystdex::state_guard<Size, void> gd([&](bool, Size& s){
-			SwapSizeOf(v, s);
+		ystdex::state_guard<Size, void> gd([&](bool, Size& s) ynothrow{
+			// XXX: Possilble inconsistent state.
+			YSLib::FilterExceptions([&]{
+				SwapSizeOf(v, s);
+			}, yfsig);
 		}, 13, 13);
 
 		f();

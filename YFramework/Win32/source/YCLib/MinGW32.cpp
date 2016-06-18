@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1742
+\version r1791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-06-14 02:14 +0800
+	2016-06-17 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,9 +36,10 @@
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
 //	YSLib::CheckPositiveScalar, YSLib::make_unique_default_init,
-//	platform::EndsWithNonSeperator, YSLib::FilterExceptions;
+//	platform::EndsWithNonSeperator, YSLib::TryInvoke;
 #	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
-#	include <functional> // for std::bind, std::placeholders::_1;
+#	include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
+//	ystdex::dismiss, std::bind, std::placeholders::_1;
 
 using namespace YSLib;
 #endif
@@ -602,6 +603,14 @@ WCSToMBCS(wstring_view sv, unsigned cp)
 }
 
 
+void
+DirectoryFindData::Deleter::operator()(pointer p) const ynothrowv
+{
+	FilterExceptions(std::bind(YCL_WrapCallWin32(FindClose, p), yfsig),
+		"directory find data deleter");
+}
+
+
 DirectoryFindData::DirectoryFindData(wstring_view name)
 	: dir_name(name), find_data()
 {
@@ -625,80 +634,71 @@ DirectoryFindData::DirectoryFindData(wstring_view name)
 		ystdex::throw_error<FileOperationFailure>(GetErrnoFromWin32(), msg);
 }
 
-DirectoryFindData::~DirectoryFindData()
-{
-	if(h_node)
-		Close();
-}
-
 NodeCategory
 DirectoryFindData::GetNodeCategory() const ynothrow
 {
-	if(h_node && !d_name.empty())
+	if(p_node && !d_name.empty())
 	{
 		auto res(CategorizeNode(find_data));
+		wstring_view name(GetDirName());
 
-		FilterExceptions([&]{
-			wstring_view name(GetDirName());
+		name.remove_suffix(1);
+		TryInvoke([&]{
+			auto gd(ystdex::unique_guard([&]() ynothrow{
+				res |= NodeCategory::Invalid;
+			}));
 
-			name.remove_suffix(1);
 			// NOTE: Only existed and accessible files are considered.
 			// FIXME: Blocked. TOCTTOU access.
 			if(const auto h = MakeFile((wstring(name) + d_name).c_str(),
 				FileSpecificAccessRights::ReadAttributes,
 				FileAttributesAndFlags::NormalWithDirectory))
-				res |= CategorizeNode(h.get());
-		}, yfsig);
+				res |= TryCategorizeNodeAttributes(h.get())
+					| TryCategorizeNodeDevice(h.get());
+			ystdex::dismiss(gd);
+		});
 		return res;
 	}
 	return NodeCategory::Empty;
 }
 
-void
-DirectoryFindData::Close() ynothrow
-{
-	FilterExceptions(std::bind(YCL_WrapCallWin32(FindClose, h_node), yfsig),
-		yfsig);
-}
-
 observer_ptr<wstring>
 DirectoryFindData::Read()
 {
-	const auto chk_err([this](const char* fn, ErrorCode ec) YB_NONNULL(1) {
+	const auto chk_err([this](const char* fn, ErrorCode ec) YB_NONNULL(1){
 		const auto err(::GetLastError());
 
 		if(err != ec)
 			throw Win32Exception(err, fn, Err);
 	});
 
-	if(!h_node)
+	if(!p_node)
 	{
-		if((h_node = ::FindFirstFileW(GetDirName().c_str(), &find_data))
-			== INVALID_HANDLE_VALUE)
-		{
+		const auto h_node(::FindFirstFileW(GetDirName().c_str(), &find_data));
+
+		if(h_node != INVALID_HANDLE_VALUE)
+			p_node.reset(h_node);
+		else
 			chk_err("FindFirstFileW", ERROR_FILE_NOT_FOUND);
-			h_node = {};
-		}
 	}
-	else if(!::FindNextFileW(h_node, &find_data))
+	else if(!::FindNextFileW(p_node.get(), &find_data))
 	{
 		chk_err("FindNextFileW", ERROR_NO_MORE_FILES);
-		Close();
-		h_node = {};
+		p_node.reset();
 	}
-	if(h_node && h_node != INVALID_HANDLE_VALUE)
+	if(p_node)
+	{
 		d_name = find_data.cFileName;
-	return h_node && d_name[0] != wchar_t() ? make_observer(&d_name) : nullptr;
+		if(d_name[0] != wchar_t())
+			return make_observer(&d_name);
+	}
+	return {};
 }
 
 void
 DirectoryFindData::Rewind() ynothrow
 {
-	if(h_node)
-	{
-		Close();
-		h_node = {};
-	}
+	p_node.reset();
 }
 
 

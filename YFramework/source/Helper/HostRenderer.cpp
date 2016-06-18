@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r702
+\version r708
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-05-04 13:03 +0800
+	2016-06-19 05:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ RenderWindow::RenderWindow(HostRenderer& rd, NativeWindowHandle h)
 	MessageMap[XCB_EXPOSE] += [this]{
 		// TODO: Optimize using event parameter.
 		YSLib::Deref(renderer.get().GetBufferRef().Lock()).UpdateTo(
-			GetNativeHandle());
+			Nonnull(GetNativeHandle()));
 	};
 #	elif YCL_Win32
 	yunseq(
@@ -63,9 +63,10 @@ RenderWindow::RenderWindow(HostRenderer& rd, NativeWindowHandle h)
 	},
 	MessageMap[WM_PAINT] += [this]{
 		// NOTE: Parameters are not used.
-		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
+		GSurface<WindowRegionDeviceContext> sf(Nonnull(GetNativeHandle()));
+		const Rect& bounds(sf.GetInvalidatedArea());
 
-		renderer.get().UpdateBoundsToSurface(sf, sf.GetInvalidatedArea());
+		renderer.get().UpdateBoundsToSurface(sf, bounds, bounds.GetPoint());
 	}
 	);
 #	endif
@@ -334,11 +335,13 @@ HostRenderer::Update(ConstBitmapPtr p, const Rect& r)
 			p_wnd->UpdateFrom(p, buf);
 #endif
 		}
+		// TODO: Trace?
 #	if YCL_Win32
 		CatchIgnore(Win32Exception&)
 #	else
 		CatchIgnore(Exception&) // XXX: Use proper platform-dependent type.
 #	endif
+		CatchExpr(LoggedEvent& e, ExtractAndTrace(e, Warning))
 }
 
 Window&

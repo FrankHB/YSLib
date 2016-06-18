@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1443
+\version r1471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-04-28 23:28 +0800
+	2016-06-19 05:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -535,7 +535,10 @@ public:
 	UpdateFromBounds(YSLib::Drawing::ConstBitmapPtr,
 		const YSLib::Drawing::Rect&) ynothrow;
 
-	//! \since build 589
+	/*!
+	\pre 间接断言：本机句柄非空。
+	\since build 589
+	*/
 	void
 	UpdatePremultipliedTo(NativeWindowHandle, YSLib::Drawing::AlphaType = 0xFF,
 		const YSLib::Drawing::Point& = {});
@@ -657,6 +660,10 @@ public:
 class YF_API WindowDeviceContext : public WindowDeviceContextBase
 {
 protected:
+	/*!
+	\pre 间接断言：参数非空。
+	\throw YSLib::LoggedEvent 初始化失败。
+	*/
 	WindowDeviceContext(NativeWindowHandle);
 	~WindowDeviceContext();
 };
@@ -666,7 +673,8 @@ protected:
 \brief 窗口区域设备上下文。
 \note 仅对设备上下文有所有权。
 */
-class YF_API WindowRegionDeviceContext : public WindowDeviceContextBase
+class YF_API WindowRegionDeviceContext
+	: public WindowDeviceContextBase, private YSLib::noncopyable
 {
 private:
 	/*!
@@ -680,10 +688,21 @@ private:
 #endif
 
 protected:
+	/*!
+	\pre 间接断言：参数非空。
+	\throw YSLib::LoggedEvent 初始化失败。
+	*/
 	WindowRegionDeviceContext(NativeWindowHandle);
 	~WindowRegionDeviceContext();
 
 public:
+	/*!
+	\brief 判断背景是否仍然有效而无需整体重新绘制。
+	\since build 702
+	*/
+	bool
+	IsBackgroundValid() const ynothrow;
+
 	/*!
 	\exception 异常中立：由 CheckScalar 抛出。
 	\since build 591
@@ -703,9 +722,13 @@ template<typename _type = WindowDeviceContext>
 class GSurface : public _type, public WindowMemorySurface
 {
 public:
-	//! \since build 428
+	/*!
+	\pre 间接断言：参数非空。
+	\exception YSLib::LoggedEvent 基类子对象初始化失败。
+	*/
 	GSurface(NativeWindowHandle h_wnd)
-		: _type(h_wnd), WindowMemorySurface(_type::GetDeviceContextHandle())
+		: _type(YSLib::Nonnull(h_wnd)),
+		WindowMemorySurface(_type::GetDeviceContextHandle())
 	{}
 };
 
@@ -774,6 +797,7 @@ yconstexpr const wchar_t WindowClassName[]{L"YFramework Window"};
 /*!
 \brief 宿主窗口。
 \note Android 平台：保持引用计数。
+\invariant <tt>bool(GetNativeHandle())</tt> 。
 \since build 429
 */
 class YF_API HostWindow : private WindowReference, private YSLib::noncopyable
@@ -793,6 +817,7 @@ public:
 
 	/*!
 	\brief 使用指定宿主句柄初始化宿主窗口。
+	\pre 间接断言：句柄非空。
 	\pre 使用 XCB 的平台：间接断言：句柄非空。
 	\pre 使用 XCB 的平台：句柄通过 <tt>new XCB::WindowData</tt> 得到。
 	\pre Win32 平台：断言：句柄有效。

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1768
+\version r1788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-06-11 20:08 +0800
+	2016-06-19 05:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 #	if SW_SHOWNORMAL != 1 || WS_POPUP != 0x80000000L || WS_EX_LTRREADING != 0L
 #		error "Wrong macro defined."
 #	endif
-#	include YFM_YCLib_Input // for ClearKeyStates;
+#	include YFM_YCLib_Input // for platform::ClearKeyStates;
 #	include "YSLib/Service/YModules.h"
 #	include YFM_YSLib_Service_YBlit // for ystdex::pvoid, YSLib::BlitLines;
 #	include <Shellapi.h> // for ::ShellExecuteW;
@@ -660,7 +660,7 @@ void
 WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 	const Point& sp) ynothrow
 {
-	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
+	const auto h_old(::SelectObject(h_mem_dc, Nonnull(sbuf.GetNativeHandle())));
 
 	YCL_CallWin32F_Trace(BitBlt, h_owner_dc, int(r.X), int(r.Y), int(r.Width),
 		int(r.Height), h_mem_dc, int(sp.X), int(sp.Y), SRCCOPY);
@@ -690,8 +690,11 @@ WindowDeviceContext::WindowDeviceContext(NativeWindowHandle h_wnd)
 	// NOTE: Painting using %::GetDC and manually managing clipping areas
 	//	instead of %::GetDCEx, for performance and convenience calculation
 	//	of input boundary.
-	: WindowDeviceContextBase(h_wnd, ::GetDC(h_wnd))
-{}
+	: WindowDeviceContextBase(h_wnd, ::GetDC(Nonnull(h_wnd)))
+{
+	if(YB_UNLIKELY(!hDC))
+		throw LoggedEvent("Retrieving device context failure.");
+}
 WindowDeviceContext::~WindowDeviceContext()
 {
 	::ReleaseDC(hWindow, hDC);
@@ -699,12 +702,22 @@ WindowDeviceContext::~WindowDeviceContext()
 
 
 WindowRegionDeviceContext::WindowRegionDeviceContext(NativeWindowHandle h_wnd)
-	: WindowDeviceContextBase(h_wnd,
-	::BeginPaint(h_wnd, ystdex::aligned_store_cast<::PAINTSTRUCT*>(&ps)))
-{}
+	: WindowDeviceContextBase(h_wnd, ::BeginPaint(Nonnull(h_wnd),
+	ystdex::aligned_store_cast<::PAINTSTRUCT*>(&ps)))
+{
+	if(YB_UNLIKELY(!hDC))
+		throw LoggedEvent("Device context initialization failure.");
+}
 WindowRegionDeviceContext::~WindowRegionDeviceContext()
 {
+	// NOTE: Return value is ignored since it is always %TRUE.
 	::EndPaint(hWindow, ystdex::aligned_store_cast<::PAINTSTRUCT*>(&ps));
+}
+
+bool
+WindowRegionDeviceContext::IsBackgroundValid() const ynothrow
+{
+	return !bool(ystdex::aligned_store_cast<const ::PAINTSTRUCT&>(ps).fErase);
 }
 
 Rect
@@ -754,7 +767,7 @@ WindowClass::~WindowClass()
 
 
 HostWindow::HostWindow(NativeWindowHandle h)
-	: WindowReference(h)
+	: WindowReference(Nonnull(h))
 #	if YCL_HostedUI_XCB
 	, WM_PROTOCOLS(platform::Deref(h.get()).LookupAtom("WM_PROTOCOLS"))
 	, WM_DELETE_WINDOW(h.get()->LookupAtom("WM_DELETE_WINDOW"))
