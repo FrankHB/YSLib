@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r607
+\version r612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2016-05-09 13:28 +0800
+	2016-06-16 21:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include <stdexcept> // for mandated header;
 #include YFM_YSLib_Adaptor_YTextBase // for string_view;
 #include <string> // for std::string;
-#include <ystdex/functional.hpp> // for ystdex::result_of_t, ystdex::invoke;
+#include <ystdex/functional.hpp> // for ystdex::non_void_result_t,
+//	ystdex::result_of_t, ystdex::invoke_nonvoid;
 
 namespace YSLib
 {
@@ -178,13 +179,13 @@ TryExecute(std::function<void()>, const char* = {}, RecordLevel = Alert,
 
 /*!
 \brief 调用函数并试图返回。
-\since build 613
+\since build 702
 */
 template<typename _fCallable, typename... _tParams>
-ystdex::result_of_t<_fCallable&&(_tParams&&...)>
+ystdex::nonvoid_result_t<ystdex::result_of_t<_fCallable&&(_tParams&&...)>>
 TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 {
-	TryRet(ystdex::invoke(yforward(f), yforward(args)...))
+	TryRet(ystdex::invoke_nonvoid(yforward(f), yforward(args)...))
 	CatchExpr(std::exception& e, TraceExceptionType(e, Emergent))
 	CatchExpr(..., YCL_TraceRaw(Emergent, "Unknown exception found."))
 	return {};

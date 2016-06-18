@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r661
+\version r663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2016-04-27 23:27 +0800
+	2016-06-19 05:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ Window::~Window()
 void
 Window::UpdateFrom(Drawing::ConstBitmapPtr p, ScreenBuffer& buf)
 {
-	const auto h_wnd(GetNativeHandle());
+	const auto h_wnd(Nonnull(GetNativeHandle()));
 
 #	if YCL_Win32
 	if(UseOpacity)
@@ -84,7 +84,7 @@ void
 Window::UpdateFromBounds(Drawing::ConstBitmapPtr p, ScreenBuffer& buf,
 	const Rect& r, const Point& sp)
 {
-	const auto h_wnd(GetNativeHandle());
+	const auto h_wnd(Nonnull(GetNativeHandle()));
 
 	if(UseOpacity)
 	{

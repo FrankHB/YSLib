@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r3819
+\version r3827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2016-02-07 12:06 +0800
+	2016-06-16 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2064,9 +2064,11 @@ FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 	return def_val;
 }
 
+//! \since build 702
+//@{
 template<typename _func>
 YB_NONNULL(1) auto
-op_path(::_reent* r, const char*& path, _func f)
+op_path(::_reent* r, const char*& path, _func f) ynothrowv
 	-> FilterRes<_func, Partition&>
 {
 	return FilterDevOps(r, [=, &path]{
@@ -2085,11 +2087,9 @@ op_path(::_reent* r, const char*& path, _func f)
 	});
 }
 
-//! \since build 655
-//@{
 template<typename _func>
 YB_NONNULL(1) auto
-op_path_locked(::_reent* r, const char*& path, _func f)
+op_path_locked(::_reent* r, const char*& path, _func f) ynothrowv
 	-> FilterRes<_func, Partition&>
 {
 	return op_path(r, path, [f](Partition& part){
@@ -2101,7 +2101,7 @@ op_path_locked(::_reent* r, const char*& path, _func f)
 
 template<typename _func>
 YB_NONNULL(1) auto
-op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _func f)
+op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _func f) ynothrowv
 	-> FilterRes<_func, DirState&>
 {
 	return FilterDevOps(r, [=]{
@@ -2124,7 +2124,7 @@ check_true(const FileInfo&) ynothrow
 template<typename _func, typename _fCheck = bool(*)(const FileInfo&)>
 YB_NONNULL(1) auto
 op_file_locked(::_reent* r, int fd, _func f, _fCheck check = check_true)
-	-> FilterRes<_func, FileInfo&>
+	ynothrowv -> FilterRes<_func, FileInfo&>
 {
 	return FilterDevOps(r, [=]{
 		// NOTE: Check of %fd is similar to %::close_r.
@@ -2171,7 +2171,7 @@ const ::devoptab_t dotab_fat{
 		return FilterDevOps(r, [=]{
 			auto& file_info(Deref(reinterpret_cast<FileInfo*>(fd)));
 			auto& part(file_info.GetPartitionRef());
-			const auto gd(ystdex::make_guard([&]{
+			const auto gd(ystdex::make_guard([&]() ynothrow{
 				Deref(part.LockOpenFiles()).erase(file_info);
 				file_info.~FileInfo();
 			}));

@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r673
+\version r681
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2016-02-11 20:13 +0800
+	2016-06-15 09:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,6 +207,10 @@ public:
 	explicit
 	CheckButton(const Rect& = {});
 
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\note 不完全强异常安全：只保证视图设置大小不抛出异常时的一致性。
+	*/
 	void
 	Refresh(PaintEventArgs&&) override;
 };
@@ -343,6 +347,10 @@ public:
 	explicit
 	RadioButton(const Rect& = {});
 
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\note 不完全强异常安全：只保证视图设置大小不抛出异常时的一致性。
+	*/
 	void
 	Refresh(PaintEventArgs&&) override;
 };

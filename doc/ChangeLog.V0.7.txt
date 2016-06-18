@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r266
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-06-13 02:34 +0800
+	2016-06-19 06:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,155 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		+ $re_add(b642) DLDI ('ynothorw', 'ynothrowv') @ "%devoptab_t routines"
+			@ %'YCLib(DS)'.DSIO,
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				* "broken strong exception safety guarantee" @ "functions \
+					%(SwapLocationOf, SwapSizeOf)" @ %YWidgetView $since b569,
+				/ @ "member functions %(CheckButton, RadioButton)::Referesh"
+					@ %Selector $=
+				(
+					/ "undefined behavior after swapping of size failed by \
+						throwing an exception" $since b569
+						// This may only occurred for a custom view.
+					/ $doc "explicityly stated partial strong exception safety \
+						guarantee" @ "Doxygen comments"
+				)
+			),
+			+ "void return type support" @ "function template %TryInvoke"
+				@ %Core.YException $=
+			(
+				/ "wrapped return type with %ystdex::nonvoid_result_t",
+				/ $impl ^ "%ystdex::invoke_nonvoid" ~ "%ystdex::invoke"
+			),
+			/ $forced DLDI 'using platform::CheckIter;' @ %Adaptor.YAdaptor
+				-> 'using platform::FwdIter;' $dep_from
+				("%FwdIter" @ %YCLib.Debug)
+		),
+		/ @ "class %DirectoryFindData" %'YCLib_(Win32)'.MinGW32 $=
+		(
+			/ @ "function %GetNodeCategory" $=
+			(
+				(
+				/ DLDI ^ "%(TryCategorizeNodeAttributes, \
+					TryCategorizeNodeDevice)" ~ "%CategorizeNode",
+				/ DLDI ^ ("%ystdex::unique_guard", $dep_from "%TryInvoke"
+					@ %YSLib.Core.YException, $dep_from "%ystdex::dismiss"
+					@ %YBase.YStandardEx.ScopeGuard) ~ "%FilterExceptions";
+				+ $comp "traced when exception thrown for invalid handle",
+					// This should not occur unless %MakeFile get wrong handle \
+						due to bug of underlying system or drivers.
+				* "missing set %NodeCategory::Invalid on failure" $since b660
+				),
+				(
+				/ $re_add(b669) DLDI "simplified" ^ "%unique_ptr" $=
+				(
+					+ "private deleter class",
+					^ "data member of %unique_ptr instance";
+					/ "simplified function %Rewind",
+					/ DLDI "explictly defaulted move constructor",
+					/ "simplified by explictly defaulted destructor"
+						@ "non-header file";
+				);
+				* "always caught exception for invalid handle after %Read \
+					error occurred" @ "destructor" $since b701
+					// Becuase the handle is not closed on error, it will be \
+						closed again at destructor call.
+				)
+			)
+		),
+		/ %YCLib $=
+		(
+			/ @ "platform %Win32" @ %HostedGUI $=
+			(
+				/ @ "class %WindowRegionDeviceContext" $=
+				(
+					* $dev "missing noncopyable protect" $orig
+						(@ %Win32GUI $since b428)
+						$= (+ $impl "private base %ystdex::noncopyable"),
+					+ "function %IsBackgroundValid"
+				),
+				+ "assertion to ensure nonnull native window handle parameter"
+					@ ("constructor" @ "class template %GSurface") ^ "%Nonnull",
+					// NOTE: For simplicity and consistency, now null handle \
+						is not accepted in any base constructors even if for \
+						%GetDC it has well-defined behavior.
+				/ @ "constructors %(WindowDeviceContext, \
+					WindowRegionDeviceContext)" $=
+				(
+					+ "assertion to ensure nonnull native window handle \
+						parameter" ^ "%Nonnull",
+					+ "throwing %YSLib::LoggedEvent for initialization failure"
+				),
+				+ $comp "assertion to ensure nonnull parameter"
+					@ "member functions %ScreenBuffer::(UpdatePremultipliedTo, \
+					UpdateTo)" @ "platform %Win32" $dep_from "%GSurface",
+					// To be same as %UpdateTo for platforms other than %Win32.
+				+ DLDI "assertion to recheck nonnull native bitmap handle"
+					@ "function %WindowMemorySurface::UpdateBounds",
+				/ @ "class %HostWindow" $=
+				(
+					+ "assertion to ensure nonnull native window handle"
+						@ "constructor";
+					+ $doc "'\invariant' command to ensure %GetNativeWindow \
+						result nonnull"
+				),
+				(
+				/ $forced "caught member function %HostRenderer::Update"
+					@ %HostRenderer ~ "caught only platform specific exceptions"
+					$dep_from %YCLib.HostedGUI;
+					// Serface initialization now can throw.
+				* "unhandled %LoggedEvent due to mismatched view size and \
+					buffer size" $since b590
+					$= (/ "caught %LoggedEvent"
+						^ "%ExtractAndTrace with level 'Warning'")
+					// This may actually occur if the user changes the size \
+						too quickly. This is still to be resolved, see issue \
+						#27.
+				)
+			),
+			/ %Debug $=
+			(
+				/ 'ynothrow' @ "function template %Nonnull" -> 'ynothrowv',
+				(
+				/ "function template %CheckIter" -> "%FwdIter"
+					// 'Check*' is now reserved for check which can throw.
+					$= (/ 'ynothrow' -> 'ynothrow');
+				/ $forced "function template %Deref" ^ "ADL %FwdIter"
+					~ "ADL %CheckIter"
+				)
+			)
+		)
+		/ %Helper $=
+		(
+			* "UI drawing corruption when hosted window dragged to the edge of \
+				the screen when %Host::Window::UseOpacity is not set"
+				@ "platform %Win32" $since b591 $=
+				// When %UseOpacity is set, %WM_PAINT is not relied so this \
+					does not has effect. For full area it also behaves \
+					correctly so restoring minimized window does not have \
+					effect.
+			(
+				* "DS window screen update source coordinate calculation" $since
+					b591,
+				* "window renderer update source coordinate calculation"
+					@ "constructor %RenderWindow" @ %HostRenderer $since b591
+			),
+			+ DLDI "assertion to recheck nonnull window handle"
+				@ ("painting event handling", "member functions \
+				%Window::(UpdateFrom, UpdateFromBounds)" @ %HostWindow)
+		)
+	),
+	+ "3 function template %dismiss" @ %YBase.YStandardEx.ScopeGuard
+),
+
+b701
 (
 	/ %YFramework $=
 	(

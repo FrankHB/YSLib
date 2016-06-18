@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r418
+\version r444
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-05-11 18:31 +0800
+	2016-06-17 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,6 +107,34 @@ share_guard(_func f, _type* p = {})
 {
 	return ystdex::share_raw(p, f);
 }
+
+
+/*!
+\brief 解除操作。
+\since build 702
+*/
+//@{
+//! \brief 使用成员 \c dismiss 。
+template<class _type>
+yconstfn auto
+dismiss(_type& gd) -> decltype(gd.dismiss())
+{
+	return gd.dismiss();
+}
+template<typename _func, typename _tRes, typename _tState>
+yconstfn void
+dismiss(const one_shot<_func, _tRes, _tState>& gd)
+{
+	gd.fresh = {};
+}
+//! \brief 使用 ADL \c dismiss 。
+template<typename _func, bool _bNoThrow>
+yconstfn auto
+dismiss(guard<_func, _bNoThrow>& gd) -> decltype(dismiss(gd.func))
+{
+	return dismiss(gd.func);
+}
+//@}
 
 
 namespace details

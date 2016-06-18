@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r673
+\version r683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-12-19 19:41 +0800
+	2016-06-19 04:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -402,26 +402,26 @@ namespace platform
 {
 
 /*!
-\brief 断言并返回非空指针。
-\pre 断言：指针非空。
-\since build 563
+\brief 断言并返回非空参数。
+\pre 断言：参数非空。
+\since build 702
 */
 template<typename _type>
 inline _type&&
-Nonnull(_type&& p) ynothrow
+Nonnull(_type&& p) ynothrowv
 {
 	YAssertNonnull(p);
 	return yforward(p);
 }
 
 /*!
-\brief 检查迭代器。
+\brief 断言并返回可解引用的迭代器。
 \pre 断言：迭代器非确定不可解引用。
-\since build 566
+\since build 702
 */
 template<typename _type>
 inline _type&&
-CheckIter(_type&& i) ynothrow
+FwdIter(_type&& i) ynothrowv
 {
 	using ystdex::is_undereferenceable;
 
@@ -431,7 +431,7 @@ CheckIter(_type&& i) ynothrow
 
 /*!
 \brief 断言并解引用非空指针。
-\pre 使用 ADL 指定的 CheckIter 调用的表达式语义等价于 platform::CheckIter 。
+\pre 使用 ADL 指定的 FwdIter 调用表达式的值等价于调用 platform::FwdIter 。
 \pre 间接断言：指针非空。
 \since build 553
 */
@@ -439,7 +439,7 @@ template<typename _type>
 yconstfn auto
 Deref(_type&& p) -> decltype(*p)
 {
-	return *CheckIter(yforward(p));
+	return *FwdIter(yforward(p));
 }
 
 } // namespace platform;

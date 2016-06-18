@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r176
+\version r177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:36:43 +0800
 \par 修改时间:
-	2016-04-27 23:21 +0800
+	2016-06-19 05:04 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -55,7 +55,7 @@ DSWindow::DSWindow(NativeWindowHandle h_wnd, DSScreen& s_up, DSScreen& s_dn,
 		//	instance of %DSApplication.
 	},
 	MessageMap[WM_PAINT] += [this]{
-		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
+		GSurface<WindowRegionDeviceContext> sf(Nonnull(GetNativeHandle()));
 		const auto& r(sf.GetInvalidatedArea());
 
 		UpdateScreen(sf, scr_up, r);

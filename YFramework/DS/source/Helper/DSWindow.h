@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r128
+\version r130
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2016-04-27 15:05 +0800
+	2016-06-19 00:48 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -77,8 +77,9 @@ public:
 	UpdateScreen(_tSurface& sf, Devices::DSScreen& scr,
 		const YSLib::Drawing::Rect& r)
 	{
-		scr.UpdateBoundsToSurface(sf,
-			YSLib::Drawing::Rect(scr.Offset, scr.GetSize()) & r);
+		const auto& clip(YSLib::Drawing::Rect(scr.Offset, scr.GetSize()) & r);
+
+		scr.UpdateBoundsToSurface(sf, clip, clip.GetPoint() - scr.Offset);
 	}
 
 	/*!
