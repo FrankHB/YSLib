@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r736
+\version r739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2016-02-12 02:17 +0800
+	2016-06-20 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,9 +329,8 @@ TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 void
 TextBox::Refresh(PaintEventArgs&& e)
 {
-	ystdex::swap_guard<String> gd(MaskChar != char32_t(), Text, [this]{
-		return String(Text.length(), MaskChar);
-	}());
+	ystdex::swap_guard<String> gd(MaskChar != char32_t(), Text,
+		String(Text.length(), MaskChar));
 
 	(*this)(std::move(e));
 }

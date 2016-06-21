@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1791
+\version r1802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-06-17 18:55 +0800
+	2016-06-20 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,17 +35,16 @@
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
-//	YSLib::CheckPositiveScalar, YSLib::make_unique_default_init,
+//	YSLib::CheckPositive, YSLib::make_unique_default_init,
 //	platform::EndsWithNonSeperator, YSLib::TryInvoke;
 #	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
 #	include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
 //	ystdex::dismiss, std::bind, std::placeholders::_1;
 
 using namespace YSLib;
-#endif
-
 //! \since build 658
 using platform::NodeCategory;
+#endif
 
 namespace platform_ex
 {
@@ -204,7 +203,7 @@ MBCSToMBCS(int l, const char* str, unsigned cp_src, unsigned cp_dst)
 
 		if(w_len != 0)
 		{
-			wstring wstr(CheckPositiveScalar<size_t>(w_len), wchar_t());
+			wstring wstr(CheckPositive<size_t>(w_len), wchar_t());
 			const auto w_str(&wstr[0]);
 
 			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
@@ -225,7 +224,7 @@ MBCSToWCS(int l, const char* str, unsigned cp)
 
 	if(w_len != 0)
 	{
-		wstring res(CheckPositiveScalar<size_t>(w_len), wchar_t());
+		wstring res(CheckPositive<size_t>(w_len), wchar_t());
 
 		::MultiByteToWideChar(cp, 0, str, l, &res[0], w_len);
 		if(l == -1 && !res.empty())
@@ -242,7 +241,7 @@ WCSToMBCS(int l, const wchar_t* str, unsigned cp)
 
 	if(r_l != 0)
 	{
-		string res(CheckPositiveScalar<size_t>(r_l), char());
+		string res(CheckPositive<size_t>(r_l), char());
 
 		::WideCharToMultiByte(cp, 0, str, l, &res[0], r_l, {}, {});
 		if(l == -1 && !res.empty())
@@ -574,8 +573,8 @@ MBCSToMBCS(const char* str, unsigned cp_src, unsigned cp_dst)
 string
 MBCSToMBCS(string_view sv, unsigned cp_src, unsigned cp_dst)
 {
-	return sv.length() != 0 ? MBCSToMBCS(CheckNonnegativeScalar<int>(
-		sv.length()), sv.data(), cp_src, cp_dst) : string();
+	return sv.length() != 0 ? MBCSToMBCS(CheckNonnegative<int>(sv.length()),
+		sv.data(), cp_src, cp_dst) : string();
 }
 
 wstring
@@ -586,8 +585,8 @@ MBCSToWCS(const char* str, unsigned cp)
 wstring
 MBCSToWCS(string_view sv, unsigned cp)
 {
-	return sv.length() != 0 ? MBCSToWCS(CheckNonnegativeScalar<int>(
-		sv.length()), sv.data(), cp) : wstring();
+	return sv.length() != 0 ? MBCSToWCS(
+		CheckNonnegative<int>(sv.length()), sv.data(), cp) : wstring();
 }
 
 string
@@ -598,8 +597,8 @@ WCSToMBCS(const wchar_t* str, unsigned cp)
 string
 WCSToMBCS(wstring_view sv, unsigned cp)
 {
-	return sv.length() != 0 ? WCSToMBCS(CheckNonnegativeScalar<int>(
-		sv.length()), sv.data(), cp) : string();
+	return sv.length() != 0 ? WCSToMBCS(
+		CheckNonnegative<int>(sv.length()), sv.data(), cp) : string();
 }
 
 

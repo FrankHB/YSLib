@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r998
+\version r1018
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2016-05-03 10:28 +0800
+	2016-06-21 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,10 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_NativeAPI
+#include YFM_YCLib_NativeAPI // for ::stat, ::lstat;
+#if YCL_Win32 || YCL_API_POSIXFileSystem
+#	include YFM_YCLib_Debug // for platform::Nonnull;
+#endif
 #if YCL_DS
 #	include YFM_DS_YCLib_DSIO // for ::DISC_INTERFACE, Disc,
 //	platform_ex::FAT::Mount;
@@ -45,6 +48,28 @@ namespace
 {
 
 }
+
+
+#if YCL_Win32 || YCL_API_POSIXFileSystem
+namespace platform_ex
+{
+
+YB_NONNULL(2) int
+estat(struct ::stat& st, const char* path, bool follow_link) ynothrowv
+{
+	using platform::Nonnull;
+
+#	if YCL_DS || YCL_Win32
+	yunused(follow_link);
+	return ::stat(Nonnull(path), &st);
+#	else
+	return (follow_link ? ::stat : ::lstat)(Nonnull(path), &st);
+#	endif
+}
+
+} // namespace platform_ex;
+#endif
+
 
 #if YCL_DS
 namespace platform_ex

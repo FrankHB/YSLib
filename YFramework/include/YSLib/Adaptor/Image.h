@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1402
+\version r1405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2016-02-11 16:23 +0800
+	2016-06-19 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -543,7 +543,7 @@ public:
 //@{
 /*!
 \brief 取图像延时。
-\return CheckNonnegativeScalar 检查后的元数据指定的被显示为帧的图像的时间间隔。
+\return CheckNonnegative 检查后的元数据指定的被显示为帧的图像的时间间隔。
 \exception GeneralEvent 指定数据不存在。
 \exception LoggedEvent 数据小于 0 。
 \since build 584
@@ -553,7 +553,7 @@ GetFrameTimeOf(const HBitmap&);
 
 /*!
 \brief 取图像逻辑大小。
-\return CheckPositiveScalar 检查后的元数据指定分量的大小，保证分量大于 0 。
+\return CheckPositive 检查后的元数据指定分量的大小，保证分量大于 0 。
 \exception GenerlError 元数据读取失败或不完整。
 \exception LoggedEvent 大小分量溢出。
 \note 当前只支持 ImageMetadataModel::Animation 模型。
@@ -938,6 +938,7 @@ using HImageMetadataIterator = ystdex::indirect_input_iterator<HImageMetadata*>;
 class YF_API ImageCodec final
 {
 public:
+	//! \note 初始化时暂存和重置 errno 。
 	ImageCodec();
 	//! \since build 461
 	~ImageCodec();

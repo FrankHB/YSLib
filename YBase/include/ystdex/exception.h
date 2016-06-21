@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r254
+\version r269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2016-02-03 23:09 +0800
+	2016-06-19 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,6 +147,23 @@ public:
 	\since build 556
 	*/
 	~unimplemented() override;
+};
+
+
+/*!
+\brief 异常：无法表示数值范围的转换。
+\since build 703
+*/
+class YB_API narrowing_error : public std::logic_error
+{
+public:
+	narrowing_error()
+		: logic_error("Norrowing found.")
+	{}
+	using logic_error::logic_error;
+	narrowing_error(const narrowing_error&) = default;
+	//! \brief 虚析构：类定义外默认实现。
+	~narrowing_error() override;
 };
 //@}
 

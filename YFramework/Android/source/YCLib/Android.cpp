@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r562
+\version r564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2015-03-19 15:38 +0800
+	2016-06-19 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #endif
 #include "YSLib/Service/YModules.h"
 #include YFM_YCLib_Input // for platform::SaveInput;
-#include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
+#include YFM_YSLib_Core_YCoreUtilities
 
 using namespace YSLib;
 using namespace Drawing;

@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1209
+\version r1221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2016-06-11 20:13 +0800
+	2016-06-19 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -288,8 +288,8 @@ HBitmap::Deleter::operator()(pointer p) const ynothrow
 
 
 HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
-	: p_bitmap(::FreeImage_Allocate(CheckScalar<int>(s.Width),
-	CheckScalar<int>(s.Height), bpp, 0, 0, 0))
+	: p_bitmap(::FreeImage_Allocate(CheckArithmetic<int>(s.Width),
+	CheckArithmetic<int>(s.Height), bpp, 0, 0, 0))
 {
 	if(!p_bitmap)
 		throw BadImageAlloc();
@@ -297,8 +297,8 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: p_bitmap([&]{
 		return ::FreeImage_ConvertFromRawBits(ystdex::aligned_store_cast<byte*>(
-			Nonnull(src)), CheckScalar<int>(s.Width),
-			CheckScalar<int>(s.Height), CheckScalar<int>(
+			Nonnull(src)), CheckArithmetic<int>(s.Width),
+			CheckArithmetic<int>(s.Height), CheckArithmetic<int>(
 			s.Width * sizeof(Pixel) + pitch_delta), YF_PixConvSpec, true);
 	}())
 {
@@ -352,7 +352,7 @@ HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
 }
 HBitmap::HBitmap(const HBitmap& pixmap, const Size& s, SamplingFilter sf)
 	: p_bitmap(::FreeImage_Rescale(pixmap.p_bitmap.get(),
-	CheckScalar<int>(s.Width), CheckScalar<int>(s.Height),
+	CheckArithmetic<int>(s.Width), CheckArithmetic<int>(s.Height),
 	::FREE_IMAGE_FILTER(sf)))
 {
 	if(!p_bitmap)
@@ -380,7 +380,7 @@ HBitmap::operator CompactPixmap() const
 	auto pixels(make_unique_default_init<Pixel[]>(size_t(GetAreaOf(s))));
 
 	::FreeImage_ConvertToRawBits(ystdex::aligned_store_cast<byte*>(&pixels[0]),
-		GetDataPtr().get(), CheckScalar<int>(s.Width * sizeof(Pixel)),
+		GetDataPtr().get(), CheckArithmetic<int>(s.Width * sizeof(Pixel)),
 		YF_PixConvSpec, true);
 	return CompactPixmap(std::move(pixels), s);
 }
@@ -439,7 +439,7 @@ HBitmap::SaveTo(const char16_t* filename, ImageFormat fmt,
 TimeSpan
 GetFrameTimeOf(const HBitmap& bmp)
 {
-	return TimeSpan(CheckNonnegativeScalar<long>(ImageTag(bmp,
+	return TimeSpan(CheckNonnegative<long>(ImageTag(bmp,
 		ImageMetadataModel::Animation, "FrameTime").TryGetValue<long>(),
 		"frame time", Warning));
 }
@@ -447,11 +447,10 @@ GetFrameTimeOf(const HBitmap& bmp)
 Size
 GetLogicalSizeOf(const HBitmap& bmp)
 {
-	return {CheckPositiveScalar<SDst>(ImageTag(bmp,
-		ImageMetadataModel::Animation, "LogicalWidth").TryGetValue<short>(),
-		"logical width", Warning), CheckPositiveScalar<SDst>(ImageTag(bmp,
-		ImageMetadataModel::Animation, "LogicalHeight").TryGetValue<short>(),
-		"logical height", Warning)};
+	return {CheckPositive<SDst>(ImageTag(bmp, ImageMetadataModel::Animation,
+		"LogicalWidth").TryGetValue<short>(), "logical width", Warning),
+		CheckPositive<SDst>(ImageTag(bmp, ImageMetadataModel::Animation,
+		"LogicalHeight").TryGetValue<short>(), "logical height", Warning)};
 }
 
 

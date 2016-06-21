@@ -11,13 +11,13 @@
 /*!	\file YFunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1283
+\version r1285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2016-04-23 03:40 +0800
+	2016-06-21 04:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,8 @@ public:
 	Register(_tIn first, _tIn last)
 	{
 		YAssert(first != last && std::distance(first, last)
-			== std::tuple_size<_tTuple>::value + 1, "Wrong range found.");
+			== decltype(std::distance(first, last))(
+			std::tuple_size<_tTuple>::value + 1), "Wrong range found.");
 		Register<_type>(*first);
 		++first;
 		YAssert((first == last) == (std::tuple_size<_tTuple>::value == 0),

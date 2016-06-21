@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r540
+\version r541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2016-04-16 11:26 +0800
+	2016-06-20 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ FetchGlobalTableRef()
 pair<string, Atom>
 MakeAtomPair(::xcb_connection_t& c_ref, string_view name, bool e) ynothrowv
 {
-	return {name, Atom(c_ref, name, e)};
+	return pair<string, Atom>{name, Atom(c_ref, name, e)};
 }
 
 locked_ptr<map<string, Atom>>
