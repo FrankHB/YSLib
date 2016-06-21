@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r228
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-06-15 09:02 +0800
+	2016-06-20 05:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_YWidget
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 
 namespace YSLib
 {
@@ -52,19 +53,21 @@ AView::swap(AView& v) ynothrow
 void
 SwapLocationOf(AView& v, Point& pt)
 {
-	auto t(v.GetLocation());
+	ystdex::swap_guard<Point>
+		gd(true, pt, v.GetLocation());
 
-	v.SetLocation(t);
-	std::swap(t, pt);
+	v.SetLocation(gd.value);
+	gd.dismiss();
 }
 
 void
 SwapSizeOf(AView& v, Size& s)
 {
-	auto t(v.GetSize());
+	ystdex::swap_guard<Size>
+		gd(true, s, v.GetSize());
 
-	v.SetSize(t);
-	std::swap(t, s);
+	v.SetSize(gd.value);
+	gd.dismiss();
 }
 
 bool

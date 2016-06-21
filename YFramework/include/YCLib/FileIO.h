@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r1968
+\version r2006
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-06-13 19:29 +0800
+	2016-06-21 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,48 +114,15 @@ using mode_t = ::mode_t;
 \brief 文件节点类别。
 \since build 412
 */
-enum class NodeCategory : std::uint_least32_t
-{
-	Empty = 0,
-	//! \since build 474
-	//@{
-	Invalid = 1 << 0,
-	Regular = 1 << 1,
-	//@}
-	Unknown = Invalid | Regular,
-	//! \since build 474
-	//@{
-	Device = 1 << 9,
-	Block = Device,
-	Character = Device | 1 << 7,
-	Communicator = 2 << 9,
-	FIFO = Communicator | 1 << 6,
-	Socket = Communicator | 2 << 6,
-	//@}
-	SymbolicLink = 1 << 12,
-	MountPoint = 2 << 12,
-	Junction = MountPoint,
-	//! \since build 474
-	//@{
-	Link = SymbolicLink | Junction,
-	//@}
-	Directory = 1 << 15,
-	//! \since build 474
-	//@{
-	Missing = 1 << 16,
-	Special = Link | Missing
-	//@}
-};
+enum class NodeCategory : std::uint_least32_t;
 
-//! \relates NodeCategory
-//@{
-//! \since build 543
-DefBitmaskEnum(NodeCategory)
-
-//! \brief 取指定模式对应的文件节点类型。
+/*
+\brief 取指定模式对应的文件节点类型。
+\relates NodeCategory
+\since build 658
+*/
 YF_API NodeCategory
 CategorizeNode(mode_t) ynothrow;
-//@}
 
 
 /*!

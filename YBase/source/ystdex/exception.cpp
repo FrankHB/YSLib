@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014, 2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r38
+\version r40
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 12:15:16 +0800
 \par 修改时间:
-	2014-11-28 12:41 +0800
+	2016-06-19 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,9 @@ unsupported::~unsupported() = default;
 
 
 unimplemented::~unimplemented() = default;
+
+
+narrowing_error::~narrowing_error() = default;
 
 } // namespace ystdex;
 

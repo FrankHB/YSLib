@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r297
+\version r301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2015-10-23 23:36 +0800
+	2016-06-19 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for UTF8ToWCS;
-#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
+#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositive;
 
 using namespace YSLib;
 #endif
@@ -115,8 +115,8 @@ WConsole::Erase(wchar_t c)
 {
 	const auto size(GetScreenBufferInfo().dwSize);
 
-	Fill({short(), short()}, CheckPositiveScalar<unsigned long>(size.X)
-		* CheckPositiveScalar<unsigned long>(size.Y), c);
+	Fill({short(), short()}, CheckPositive<unsigned long>(size.X)
+		* CheckPositive<unsigned long>(size.Y), c);
 }
 
 void

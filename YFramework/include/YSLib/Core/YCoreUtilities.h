@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2423
+\version r2474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-12-12 23:50 +0800
+	2016-06-21 01:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -271,44 +271,81 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 
 
 /*!
-\since build 624
 \throw LoggedEvent 范围检查失败。
+\note 对运行时由外部引入数值的检查，失败抛出运行时异常。
+\note 不依赖运行时引入数值的检查可使用 ystdex::narrow 代替。
+\since build 624
+\sa ystdex::narrow
 */
 //@{
-//! \brief 检查纯量数值在指定类型的范围内。
+//! \since build 703
+//@{
+//! \brief 检查算术类型数值不小于指定类型的下界。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckScalar(_type val, const std::string& name = {}, RecordLevel lv = Err)
+CheckLowerBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
 {
-	using common_t = ystdex::common_type_t<_tDst, _type>;
+	using namespace ystdex;
+	// XXX: See WG21 N3387.
+	// TODO: Add and use safe %common_arithmetic_type interface instead.
+	using common1_t = common_type_t<_tDst, _type>;
+	using common_t = cond_t<and_<is_unsigned<common1_t>, is_signed<_tDst>>,
+		typename make_widen_int<common1_t, true>::type, common1_t>;
 
-	if(YB_UNLIKELY(common_t(val) > common_t(std::numeric_limits<_tDst>::max())))
-		throw LoggedEvent(name + " value out of range.", lv);
-	return _tDst(val);
+	if(!(common_t(val) < common_t(std::numeric_limits<_tDst>::min())))
+		return _tDst(val);
+	throw
+		LoggedEvent("Value of '" + name + "' is less than lower boundary.", lv);
 }
 
-//! \brief 检查非负纯量数值在指定类型的范围内。
+//! \brief 检查算术类型数值不大于指定类型的上界。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckNonnegativeScalar(_type val, const std::string& name = {},
-	RecordLevel lv = Err)
+CheckUpperBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
+{
+	using namespace ystdex;
+	// XXX: See WG21 N3387.
+	// TODO: Add and use safe %common_arithmetic_type interface instead.
+	using common1_t = common_type_t<_tDst, _type>;
+	using common_t = cond_t<and_<is_unsigned<common1_t>, is_signed<_tDst>>,
+		typename make_widen_int<common1_t, true>::type, common1_t>;
+
+	if(!(common_t(std::numeric_limits<_tDst>::max() < common_t(val))))
+		return _tDst(val);
+	throw LoggedEvent("Value of '" + name + "' is greater than upper boundary.",
+		lv);
+}
+
+//! \brief 检查算术类型数值在指定类型的范围内。
+template<typename _tDst, typename _type>
+inline _tDst
+CheckArithmetic(_type val, const std::string& name = {}, RecordLevel lv = Err)
+{
+	return
+		CheckUpperBound<_tDst>(CheckLowerBound<_tDst>(val, name, lv), name, lv);
+}
+//@}
+
+//! \brief 检查非负算术类型数值在指定类型的范围内。
+template<typename _tDst, typename _type>
+inline _tDst
+CheckNonnegative(_type val, const std::string& name = {}, RecordLevel lv = Err)
 {
 	if(val < 0)
 		// XXX: Use more specified exception type.
 		throw LoggedEvent("Failed getting nonnegative " + name + " value.", lv);
-	return CheckScalar<_tDst>(val, name, lv);
+	return CheckUpperBound<_tDst>(val, name, lv);
 }
 
-//! \brief 检查正纯量数值在指定类型的范围内。
+//! \brief 检查正算术类型数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckPositiveScalar(_type val, const std::string& name = {},
-	RecordLevel lv = Err)
+CheckPositive(_type val, const std::string& name = {}, RecordLevel lv = Err)
 {
 	if(!(0 < val))
 		// XXX: Use more specified exception type.
 		throw LoggedEvent("Failed getting positive " + name + " value.", lv);
-	return CheckScalar<_tDst>(val, name, lv);
+	return CheckUpperBound<_tDst>(val, name, lv);
 }
 //@}
 

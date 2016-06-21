@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1271
+\version r1304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2016-04-16 11:19 +0800
+	2016-06-19 20:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "type_op.hpp" // for is_object, is_void, is_function, decay_t,
 //	is_same, have_common_nonempty_virtual_base, _t;
-#include <memory> // for std::addressof;
+#include <limits> // for std::numeric_limits;
+#include "exception.h" // for narrowing_error, std::addressof;
 #include <typeinfo> // for std::bad_cast;
 #include "cassert.h" // for yassume;
 
@@ -59,6 +60,42 @@ qualify(_tSrc&& arg) ynothrow
 
 	return static_cast<_tDst>(arg);
 }
+
+
+//! \since build 703
+//@{
+//! \brief 可能缩小数值范围的显式转换。
+template<typename _tDst, typename _tSrc>
+yconstfn _tDst
+narrow_cast(_tSrc v) ynothrow
+{
+	static_assert(is_arithmetic<_tDst>(), "Invalid destination type found.");
+	static_assert(is_arithmetic<_tSrc>(), "Invalid source type found.");
+	static_assert(not_<is_same<_tDst, _tSrc>>(), "Invalid types found.");
+	static_assert(or_<and_<is_integral<_tDst>, is_floating_point<_tSrc>>,
+		and_<is_floating_point<_tDst>, is_floating_point<_tSrc>, is_same<
+		common_type_t<_tDst, _tSrc>, _tSrc>>, and_<is_unsigned<_tDst>,
+		is_signed<_tSrc>>, bool_constant<(std::numeric_limits<_tDst>::max()
+		< std::numeric_limits<_tSrc>::max())
+		|| (std::numeric_limits<_tSrc>::min()
+		< std::numeric_limits<_tDst>::min())>>(), "Invalid types found.");
+
+	return static_cast<_tDst>(v);
+}
+
+//! \note 使用 ADL narrow_cast 。
+template<typename _tDst, typename _tSrc>
+inline _tDst
+narrow(_tSrc v)
+{
+	const auto d(narrow_cast<_tDst>(v));
+
+	if(static_cast<_tSrc>(d) == v && ((is_signed<_tDst>()
+		== is_signed<_tSrc>()) || (d < _tDst()) == (v < _tSrc())))
+		return d;
+	throw narrowing_error();
+}
+//@}
 
 
 /*!

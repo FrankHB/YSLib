@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1162
+\version r1271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-05-03 09:38 +0800
+	2016-06-21 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,113 @@ namespace platform
 static_assert(std::is_signed<platform::ssize_t>(),
 	"Invalid signed size type found.");
 //@}
+#endif
+
+
+#if YCL_Win32 || YCL_API_POSIXFileSystem
+#	include <sys/stat.h> // for struct ::stat;
+
+namespace platform
+{
+
+//! \since build 626
+enum class Mode
+#	if YCL_Win32
+	: unsigned short
+#	else
+	: ::mode_t
+#	endif
+{
+#	if YCL_Win32
+	FileType = _S_IFMT,
+	Directory = _S_IFDIR,
+	Character = _S_IFCHR,
+	FIFO = _S_IFIFO,
+	Regular = _S_IFREG,
+	UserRead = _S_IREAD,
+	UserWrite = _S_IWRITE,
+	UserExecute = _S_IEXEC,
+	GroupRead = _S_IREAD >> 3,
+	GroupWrite = _S_IWRITE >> 3,
+	GroupExecute = _S_IEXEC >> 3,
+	OtherRead = _S_IREAD >> 6,
+	OtherWrite = _S_IWRITE >> 6,
+	OtherExecute = _S_IEXEC >> 6,
+#	else
+	FileType = S_IFMT,
+	Directory = S_IFDIR,
+	Character = S_IFCHR,
+	Block = S_IFBLK,
+	Regular = S_IFREG,
+	Link = S_IFLNK,
+	Socket = S_IFSOCK,
+	FIFO = S_IFIFO,
+	UserRead = S_IRUSR,
+	UserWrite = S_IWUSR,
+	UserExecute = S_IXUSR,
+	GroupRead = S_IRGRP,
+	GroupWrite = S_IWGRP,
+	GroupExecute = S_IXGRP,
+	OtherRead = S_IROTH,
+	OtherWrite = S_IWOTH,
+	OtherExecute = S_IXOTH,
+#	endif
+	UserReadWrite = UserRead | UserWrite,
+	User = UserReadWrite | UserExecute,
+	GroupReadWrite = GroupRead | GroupWrite,
+	Group = GroupReadWrite | GroupExecute,
+	OtherReadWrite = OtherRead | OtherWrite,
+	Other = OtherReadWrite | OtherExecute,
+	Read = UserRead | GroupRead | OtherRead,
+	Write = UserWrite | GroupWrite | OtherWrite,
+	Execute = UserExecute | GroupExecute | OtherExecute,
+	ReadWrite = Read | Write,
+	Access = ReadWrite | Execute,
+	//! \since build 627
+	//@{
+#	if !YCL_Win32
+	SetUserID = S_ISUID,
+	SetGroupID = S_ISGID,
+#	else
+	SetUserID = 0,
+	SetGroupID = 0,
+#	endif
+#	if YCL_Linux || _XOPEN_SOURCE
+	VTX = S_ISVTX,
+#	else
+	VTX = 0,
+#	endif
+	PMode = SetUserID | SetGroupID | VTX | Access,
+	All = PMode | FileType
+	//@}
+};
+
+//! \relates Mode
+//@{
+//! \since build 626
+DefBitmaskEnum(Mode)
+
+//! \since build 627
+yconstfn PDefH(bool, HasExtraMode, Mode m)
+	ImplRet(bool(m & ~(Mode::Access | Mode::FileType)))
+//@}
+
+} // namespace platform;
+
+//! \since build 703
+namespace platform_ex
+{
+
+/*!
+\note 第三参数表示是否跟随链接。
+\note DS 和 Win32 平台：忽略第三参数，始终不跟随链接。
+*/
+YF_API YB_NONNULL(2) int
+estat(struct ::stat&, const char*, bool) ynothrowv;
+inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
+	ImplRet(::fstat(fd, &st))
+
+} // namespace platform_ex;
 #endif
 
 
@@ -206,100 +313,8 @@ _gmtime32(const ::__time32_t*);
 #	endif
 
 } // extern "C";
-#endif
 
-#if YCL_Win32 || YCL_API_POSIXFileSystem
-#	include <sys/stat.h>
-
-namespace platform
-{
-
-//! \since build 626
-enum class Mode
-#	if YCL_Win32
-	: unsigned short
-#	else
-	: ::mode_t
-#	endif
-{
-#	if YCL_Win32
-	FileType = _S_IFMT,
-	Directory = _S_IFDIR,
-	Character = _S_IFCHR,
-	FIFO = _S_IFIFO,
-	Regular = _S_IFREG,
-	UserRead = _S_IREAD,
-	UserWrite = _S_IWRITE,
-	UserExecute = _S_IEXEC,
-	GroupRead = _S_IREAD >> 3,
-	GroupWrite = _S_IWRITE >> 3,
-	GroupExecute = _S_IEXEC >> 3,
-	OtherRead = _S_IREAD >> 6,
-	OtherWrite = _S_IWRITE >> 6,
-	OtherExecute = _S_IEXEC >> 6,
-#	else
-	FileType = S_IFMT,
-	Directory = S_IFDIR,
-	Character = S_IFCHR,
-	Block = S_IFBLK,
-	Regular = S_IFREG,
-	Link = S_IFLNK,
-	Socket = S_IFSOCK,
-	FIFO = S_IFIFO,
-	UserRead = S_IRUSR,
-	UserWrite = S_IWUSR,
-	UserExecute = S_IXUSR,
-	GroupRead = S_IRGRP,
-	GroupWrite = S_IWGRP,
-	GroupExecute = S_IXGRP,
-	OtherRead = S_IROTH,
-	OtherWrite = S_IWOTH,
-	OtherExecute = S_IXOTH,
-#	endif
-	UserReadWrite = UserRead | UserWrite,
-	User = UserReadWrite | UserExecute,
-	GroupReadWrite = GroupRead | GroupWrite,
-	Group = GroupReadWrite | GroupExecute,
-	OtherReadWrite = OtherRead | OtherWrite,
-	Other = OtherReadWrite | OtherExecute,
-	Read = UserRead | GroupRead | OtherRead,
-	Write = UserWrite | GroupWrite | OtherWrite,
-	Execute = UserExecute | GroupExecute | OtherExecute,
-	ReadWrite = Read | Write,
-	Access = ReadWrite | Execute,
-	//! \since build 627
-	//@{
-#	if !YCL_Win32
-	SetUserID = S_ISUID,
-	SetGroupID = S_ISGID,
-#	else
-	SetUserID = 0,
-	SetGroupID = 0,
-#	endif
-#	if YCL_Linux || _XOPEN_SOURCE
-	VTX = S_ISVTX,
-#	else
-	VTX = 0,
-#	endif
-	PMode = SetUserID | SetGroupID | VTX | Access,
-	All = PMode | FileType
-	//@}
-};
-
-//! \relates Mode
-//@{
-//! \since build 626
-DefBitmaskEnum(Mode)
-
-//! \since build 627
-yconstfn PDefH(bool, HasExtraMode, Mode m)
-	ImplRet(bool(m & ~(Mode::Access | Mode::FileType)))
-//@}
-
-} // namespace platform;
-#endif
-
-#if YCL_Android
+#elif YCL_Android
 /*!
 \see https://android.googlesource.com/platform/bionic/+/840a114eb12773c5af39c0c97675b27aa6dee78c/libc/include/sys/stat.h 。
 \since build 651

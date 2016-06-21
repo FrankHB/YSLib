@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r500
+\version r505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2015-04-24 04:00 +0800
+	2016-06-21 03:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,11 +42,11 @@ namespace platform
 */
 //@{
 #if !YCL_DS
-#	define YCL_KEY(X) (#X [0])
-#	define YCL_KEY_Start 'P'
+#	define YCL_KEY(X) size_t(#X [0])
+#	define YCL_KEY_Start size_t('P')
 #else
-#	define YCL_KEY(X) KeyCodes::X
-#	define YCL_KEY_Start KeyCodes::Start
+#	define YCL_KEY(X) size_t(KeyCodes::X)
+#	define YCL_KEY_Start size_t(KeyCodes::Start)
 #endif
 //@}
 

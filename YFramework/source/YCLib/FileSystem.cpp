@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3766
+\version r3790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-06-13 15:01 +0800
+	2016-06-21 11:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,8 +76,9 @@ using platform_ex::UTF8ToWCS;
 using platform_ex::WCSToUTF8;
 //! \since build 549
 using platform_ex::DirectoryFindData;
-#elif YCL_API_POSIXFileSystem
+#else
 #	include <dirent.h>
+#	include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 #	include <time.h> // for ::localtime_r;
 #endif
 
@@ -124,7 +125,7 @@ IsDirectoryImpl(const char* path)
 #if YCL_Win32
 	return IsDirectoryImpl(ucast(UTF8ToWCS(path).c_str()));
 #else
-	// TODO: Merge imlementation. See %estat in %FileIO?
+	// TODO: Merge? See %platform_ex::estat in %NativeAPI.
 	struct ::stat st;
 
 	return ::stat(path, &st) == 0 && bool(Mode(st.st_mode) & Mode::Directory);
@@ -372,10 +373,10 @@ DirectorySession::DirectorySession(const char* path)
 	: dir(new Data(UTF8ToWCS(path)))
 #else
 	: sDirPath([](const char* p) YB_NONNULL(1){
-		const auto res(ystdex::rtrim(string(Deref(p) != char() ? p : "."),
-			YCL_PATH_DELIMITER));
+		const auto res(Deref(p) != char()
+			? ystdex::rtrim(string(p), YCL_PATH_DELIMITER) : ".");
 
-		YAssert(EndsWithNonSeperator(res),
+		YAssert(res.empty() || EndsWithNonSeperator(res),
 			"Invalid directory name state found.");
 		return res + YCL_PATH_DELIMITER;
 	}(path)),
@@ -417,13 +418,32 @@ HDirectory::operator++()
 	CatchExpr(std::system_error& e, std::throw_with_nested(
 		FileOperationFailure(e.code(), "Failed iterating directory.")))
 #else
+	// TODO: To be compatible with possible volatile-qualified lvalue.
+#if YCL_Android
+	struct guard
+	{
+		int value = errno;
+
+		guard()
+		{
+			errno = 0;
+		}
+		~guard()
+		{
+			errno = value;
+		}
+	} gd;
+#else
+	ystdex::swap_guard<int, void> gd(errno, 0);
+#endif
+
 	if(const auto p = ::readdir(ToDirPtr(GetNativeHandle())))
 		p_dirent = make_observer(p);
 	else
 	{
 		int err(errno);
 
-		if(err == ENOENT)
+		if(err == 0)
 			p_dirent = {};
 		else
 			ThrowFileOperationFailure("Failed iterating directory.", err);

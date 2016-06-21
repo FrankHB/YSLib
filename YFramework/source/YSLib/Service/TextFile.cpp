@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1345
+\version r1346
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2016-06-04 17:00 +0800
+	2016-06-19 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ DetectBOM(std::istream& is, std::size_t fsize, Encoding enc)
 		if(bool(is) || is.eof())
 		{
 			const auto res(DetectBOM(string_view(buf.data(),
-				CheckNonnegativeScalar<size_t>(is.gcount()))));
+				CheckNonnegative<size_t>(is.gcount()))));
 
 			is.seekg(std::istream::off_type(res.second));
 			if(res.second != 0)

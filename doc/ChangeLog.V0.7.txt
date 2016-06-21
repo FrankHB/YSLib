@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r414
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-06-19 06:37 +0800
+	2016-06-21 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %YCoreUtilities $=
+				(
+					+ "function template %CheckLowerBound",
+					/ "function template %CheckScalar" -> "%CheckUpperBound";
+					+ "function template %CheckArithmetic",
+					/ $forced "function template %CheckNonnegativeScalar"
+						-> "%CheckNonnegative"
+					/ $forced "function template %CheckPositiveScalar"
+						-> "%CheckPositive"
+				),
+				/ "wrapped operand of compare with cast to difference type"
+					@ "assertion" @ "function template %Register#2"
+					@ "class template %GHandlerRegisterBase" @ %YFunc
+					// To make sure the type is expected. Also to eliminate \
+						G++ warning: [-Wsign-conversion] on some situations.
+			),
+			/ %UI $=
+			(
+				(
+				* "functions %(SwapLocationOf, SwapSizeOf)" @ %YWidgetView
+					$since b702
+					$= (/ DLDI ^ "ystdex::swap_guard");
+				* "wrong rendering %CheckButton and %RadioButton" @ %Selector
+					$since b702
+				),
+				/ DLDI "simplified member function %TextBox::Refresh"
+			)
+		),
+		/ $forced $dep_from %YSLib.Core.YCoreUtilities $=
+		(
+			(
+			/ "all 'CheckScalar'" -> 'CheckArithmetic' $effective
+				@ %(YCLib.HostedGUI, YSLib.Adaptor.Image);
+			* $comp "missing checking lower boundary '0' for %SDst when \
+				converting %Rect value from %::RECT" @ "platform %Win32"
+				@ %YCLib.HostedGUI $since b591 $dep_to "getting boundary \
+				components check"
+			),
+			/ "all 'CheckNonnegativeScalar'" -> 'CheckNonnegative' $effective
+				@ %(YSLib.(Adaptor.Image, Service.(TextFile, TextLayout)),
+				YCLib.FileIO, 'YCLib_(Win32)'.MinGW32),
+			/ "all 'CheckPositiveScalar'" -> 'CheckPositive' $effective
+				@ %(YSLib.Adaptor.Image, YCLib.HostedGUI,
+				'YCLib_(Win32)'.(Consoles, MinGW32), 'Helper_(Android)',
+				'YCLib_(Android)'.Android)
+		),
+		/ %YCLib
+		(
+			/ %HostedGUI $=
+			(
+				/ @ "platform %Win32" $=
+				(
+					(
+					/ $re_add(b591) "exception neutrality from %CheckArithmetic"
+						~ "assertion" $dep_from "getting boundary components \
+						check" $effective @ "member functions \
+						%WindowReference::(SetBounds, SetSize)";
+					* $comp "missing upper boundary check when getting window \
+						boundary component values" $orig
+						(@ %Win32GUI $since b445)
+					),
+					/ @ "member function %WindowMemorySurface::UpdateBounds" $=
+					(
+						* "missing check 1st %::SelectObject result" $orig
+							@ ("%DSScreen::UpdateToHost" @ %DSMain $since b299),
+						/ "logged for %::SelectObject calls failure"
+							^ "%(YTraceDe, Err)"
+					)
+				),
+				(
+					/ DLDI "member function %ScreenBuffer::UpdateToBounds"
+						^ "%WindowMemorySurface::UpdateBounds"
+						~ "%WindowMemorySurface::Update";
+					- "member function %WindowMemorySurface::Update"
+				)
+			),
+			* DLDI "atom operations relied on non-explicit constructor of \
+				%pair instance" %XCB $since b563,
+				// This cannot compile by G++ 6.1.
+			/ "wrapped %YCL_KEY values with 'size_t' cast" @ %Input,
+				// To make sure the type is determined. Also to eliminate G++ \
+					warning: [-Wsign-conversion] on some platforms.
+			/ %FileSystem $=
+			(
+				* "end-of-directory state treated as corruptied state due to \
+					wrong %errno handling" @ !"platform %Win32"
+					@ "member function %HDirectory::operator++" $since b701
+				* "wrong assertion for slash-only path parameter" @ !"platform \
+					%Win32" @ "constructor %DirectorySession" $since b693
+			),
+			/ %FileIO $=
+			(
+				/ $revert_ex(b658) ("enumerators" @ "enum class %NodeCategory",
+					"%NodeCategory mask operations") >> %FileSystem,
+				/ DLDI "simplified" ^ $dep_from
+					("%platform_ex::estat" @ %NativeAPI)
+			),
+			+ "2 functions %estat" @ "namespace %platform_ex"
+				@ 'YCL_Win32 || YCL_API_POSIXFileSystem' @ %NativeAPI
+		),
+		* $impl "stray 'using platform::NodeCategory;' not protected by \
+			conditional inclusion" @ %'YCLib_(Win32)'.MinGW32 $since b658
+			// This would break compiling on other platforms, e.g. platform \
+				%Linux.
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "exception class %narrowing_error" @ %Exception,
+		/ %Cast $=
+		(
+			+ "function template %narrow_cast";
+			+ "function template %narrow" ^ $dep_from
+				("%narrowing_error" @ %Exception)
+		)
+	),
+	+ DLDI 'ynothrow' @ "lambda-expression of movign command"
+		@ %Tools.SHBuild.Main
+),
+
+b702
 (
 	/ %YFramework $=
 	(

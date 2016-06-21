@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1471
+\version r1481
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-06-19 05:29 +0800
+	2016-06-19 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,7 +202,7 @@ public:
 	//@}
 #	elif YCL_Win32
 	/*!
-	\exception 异常中立：由 CheckScalar 抛出。
+	\exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 	\since build 543
 	*/
 	YSLib::Drawing::Rect
@@ -239,7 +239,7 @@ public:
 	//! \since build 538
 	WindowReference
 	GetParent() const;
-	//! \exception 异常中立：由 CheckScalar 抛出。
+	//! \exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 	YSLib::Drawing::Size
 	GetSize() const;
 #	elif YCL_Android
@@ -291,7 +291,7 @@ public:
 	SetBounds(const YSLib::Drawing::Rect&);
 	/*!
 	\brief 按参数指定的客户区边界设置窗口边界。
-	\exception 异常中立：由 CheckScalar 抛出。
+	\exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 	\since build 445
 	*/
 	void
@@ -343,7 +343,7 @@ public:
 
 	/*!
 	\brief 按参数指定的客户区大小调整窗口大小。
-	\exception 异常中立：由 CheckScalar 抛出。
+	\exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 	\note 线程安全。
 	*/
 	void
@@ -379,7 +379,7 @@ UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
 /*!
 \brief 创建指定大小的兼容位图。
 \post 第二参数非空。
-\exception 异常中立：由 YSLib::CheckScalar 抛出。
+\exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 \throw Win32Exception ::CreateDIBSection 调用失败。
 \throw std::runtime_error 后置条件检查失败（ ::CreateDIBSection 实现错误）。
 \return 非空句柄。
@@ -394,7 +394,7 @@ CreateCompatibleDIBSection(const YSLib::Drawing::Size&,
 /*!
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶级窗口。
 \note 最后的默认参数分别为 \c WS_POPUP 和 \c WS_EX_LTRREADING 。
-\exception 异常中立：由 CheckScalar 抛出。
+\exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 \since build 639
 */
 YF_API NativeWindowHandle
@@ -618,10 +618,6 @@ public:
 	DefGetter(const ynothrow, ::HDC, OwnerHandle, h_owner_dc)
 	DefGetter(const ynothrow, ::HDC, NativeHandle, h_mem_dc)
 
-	//! \since build 387
-	void
-	Update(ScreenBuffer&, const YSLib::Drawing::Point& = {}) ynothrow;
-
 	//! \since build 591
 	void
 	UpdateBounds(ScreenBuffer&, const YSLib::Drawing::Rect&,
@@ -704,7 +700,7 @@ public:
 	IsBackgroundValid() const ynothrow;
 
 	/*!
-	\exception 异常中立：由 CheckScalar 抛出。
+	\exception 异常中立：由 YSLib::CheckArithmetic 抛出。
 	\since build 591
 	*/
 	YSLib::Drawing::Rect

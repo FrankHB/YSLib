@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2313
+\version r2337
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-06-14 02:14 +0800
+	2016-06-21 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,11 @@
 #include YFM_YCLib_FileIO
 #include YFM_YCLib_Debug // for Nonnull, ystdex::throw_error,
 //	ystdex::temporary_buffer;
-#include YFM_YCLib_Reference // for unique_ptr;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
-//	Mode, ::HANDLE, struct ::stat, ::fstat, ::stat, ::lstat, ::close, ::fcntl,
+//	Mode, ::HANDLE, struct ::stat, platform_ex::estat, ::close, ::fcntl,
 //	F_GETFL, _O_*, O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd,
 //	::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens;
+#include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
@@ -271,31 +271,15 @@ static_assert(std::is_unsigned<::ino_t>(),
 inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
 	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
 //@}
-
+//! \since build 703
+using platform_ex::estat;
 //! \since build 632
-//@{
-YB_NONNULL(2) int
-estat(struct ::stat& st, const char* path, bool follow_link)
-{
-#	if YCL_DS
-	yunused(follow_link);
-	return ::stat(Nonnull(path), &st);
-#	else
-	return (follow_link ? ::stat : ::lstat)(Nonnull(path), &st);
-#	endif
-}
 YB_NONNULL(2) int
 estat(struct ::stat& st, const char16_t* path, bool follow_link)
 {
 	return estat(st, MakeMBCS(path).c_str(), follow_link);
 }
 #endif
-int
-estat(struct ::stat& st, int fd)
-{
-	return ::fstat(fd, &st);
-}
-//@}
 
 //! \since build 632
 template<typename _func, typename... _tParams>
@@ -475,7 +459,7 @@ FileDescriptor::GetMode() const ynothrow
 {
 	struct ::stat st;
 
-	return estat(st, desc) == 0 ? st.st_mode : 0;
+	return platform_ex::estat(st, desc) == 0 ? st.st_mode : 0;
 }
 FileTime
 FileDescriptor::GetModificationTime() const
@@ -530,7 +514,7 @@ FileDescriptor::GetSize() const
 	struct ::stat st;
 
 	if(estat(st, desc) == 0)
-		// TODO: Use YSLib::CheckNonnegativeScalar<std::uint64_t>?
+		// TODO: Use YSLib::CheckNonnegative<std::uint64_t>?
 		// XXX: No negative file size should be found. See also:
 		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed.
 		return std::uint64_t(st.st_size);

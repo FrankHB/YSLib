@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3398
+\version r3401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2016-04-24 22:03 +0800
+	2016-06-21 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@ See readme file for details.
 //	ystdex::raise_exception;
 #include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;
 #include YFM_YSLib_Service_FileSystem
-#include <ystdex/mixin.hpp>
+#include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #include YFM_NPL_Dependency // for NPL::DepsEventType,
 //	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
 //	NPL::Install*;
@@ -174,7 +174,7 @@ const struct Option
 		IgnoredDirs.emplace(std::move(val));
 	}, {"The name of subdirectory which should be ignored when scanning.",
 		OPT_des_mul}},
-	{"-xcmd,", "command", "COMMAND", [](string&& val){
+	{"-xcmd,", "command", "COMMAND", [](string&& val) ynothrow{
 		RequestedCommand = std::move(val);
 	}, {"Specified name of a command to run.", "If this option is set, all"
 		" other parameters not recognized as options are treated as parameters"
@@ -888,7 +888,7 @@ main(int argc, char* argv[])
 			}
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel l){
-		return ExtractException([](const char* str, RecordLevel lv,
+		ExtractException([](const char* str, RecordLevel lv,
 			size_t level) YB_NONNULL(1){
 			const auto print([=](const string& s){
 				PrintInfo(string(level, ' ') + s, lv, LogGroup::General);

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1788
+\version r1833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-06-19 05:01 +0800
+	2016-06-20 01:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_HostedGUI // for default_delete;
-#include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar,
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositive,
 //	ystdex::aligned_store_cast;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32
@@ -139,8 +139,8 @@ FetchWindowRect(::HWND h_wnd)
 Size
 FetchSizeFromBounds(const ::RECT& rect)
 {
-	return {CheckScalar<SDst>(rect.right - rect.left, "width"),
-		CheckScalar<SDst>(rect.bottom - rect.top, "height")};
+	return {CheckArithmetic<SDst>(rect.right - rect.left, "width"),
+		CheckArithmetic<SDst>(rect.bottom - rect.top, "height")};
 }
 
 //! \since build 591
@@ -158,11 +158,10 @@ FetchWindowStyle(::HWND h_wnd)
 }
 
 void
-AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
+AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = {})
 {
 	YCL_CallWin32F(AdjustWindowRect, &rect, FetchWindowStyle(h_wnd), b_menu);
-	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
-		"Invalid boundary found.");
+	FetchSizeFromBounds(rect);
 }
 
 //! \since build 587
@@ -310,8 +309,8 @@ WindowReference::SetBounds(const Rect& r)
 void
 WindowReference::SetClientBounds(const Rect& r)
 {
-	::RECT rect{r.X, r.Y, CheckScalar<SPos>(r.GetRight(), "width"),
-		CheckScalar<SPos>(r.GetBottom(), "height")};
+	::RECT rect{r.X, r.Y, CheckArithmetic<SPos>(r.GetRight(), "width"),
+		CheckArithmetic<SPos>(r.GetBottom(), "height")};
 	const auto h_wnd(GetNativeHandle());
 
 	AdjustWindowBounds(rect, h_wnd);
@@ -379,8 +378,8 @@ WindowReference::Resize(const Size& s)
 void
 WindowReference::ResizeClient(const Size& s)
 {
-	::RECT rect{0, 0, CheckScalar<SPos>(s.Width, "width"),
-		CheckScalar<SPos>(s.Height, "height")};
+	::RECT rect{0, 0, CheckArithmetic<SPos>(s.Width, "width"),
+		CheckArithmetic<SPos>(s.Height, "height")};
 	const auto h_wnd(GetNativeHandle());
 
 	AdjustWindowBounds(rect, h_wnd);
@@ -397,13 +396,13 @@ WindowReference::Show(int n_cmd_show) ynothrow
 SDst
 WindowReference::GetWidth() const
 {
-	return CheckPositiveScalar<SDst>(
+	return CheckPositive<SDst>(
 		::ANativeWindow_getWidth(GetNativeHandle()), "width");
 }
 SDst
 WindowReference::GetHeight() const
 {
-	return CheckPositiveScalar<SDst>(::ANativeWindow_getHeight(
+	return CheckPositive<SDst>(::ANativeWindow_getHeight(
 		GetNativeHandle()), "height");
 }
 #	endif
@@ -427,8 +426,8 @@ CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 	// NOTE: Bitmap format is hard coded here for explicit buffer
 	//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
 	//	windows.
-	::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositiveScalar<long>(
-		s.Width, "width"), -CheckPositiveScalar<long>(s.Height,
+	::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositive<long>(
+		s.Width, "width"), -CheckPositive<long>(s.Height,
 		"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
 		sizeof(Pixel) * s.Width * s.Height), 0, 0, 0, 0}, {}};
 	void* p_buf{};
@@ -449,8 +448,8 @@ NativeWindowHandle
 CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
 	const wchar_t* title, WindowStyle wstyle, WindowStyle wstyle_ex)
 {
-	::RECT rect{0, 0, CheckScalar<SPos>(s.Width, "width"),
-		CheckScalar<SPos>(s.Height, "height")};
+	::RECT rect{0, 0, CheckArithmetic<SPos>(s.Width, "width"),
+		CheckArithmetic<SPos>(s.Height, "height")};
 
 	::AdjustWindowRect(&rect, wstyle, false);
 	return ::CreateWindowExW(wstyle_ex, class_name, title, wstyle,
@@ -611,21 +610,17 @@ ScreenBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 #	if YCL_HostedUI_XCB || YCL_Android
 	UpdateContentTo(h_wnd, {pt, GetSize()}, GetContext());
 #	elif YCL_Win32
-	GSurface<> sf(h_wnd);
-
-	sf.Update(*this, pt);
+	GSurface<>(h_wnd).UpdateBounds(*this, {pt, GetSize()});
 #	endif
 }
-#if YCL_Win32
+#	if YCL_Win32
 void
 ScreenBuffer::UpdateToBounds(NativeWindowHandle h_wnd, const Rect& r,
 	const Point& sp) ynothrow
 {
-	GSurface<> sf(h_wnd);
-
-	sf.UpdateBounds(*this, r, sp);
+	GSurface<>(h_wnd).UpdateBounds(*this, r, sp);
 }
-#endif
+#	endif
 
 void
 ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
@@ -651,36 +646,39 @@ WindowMemorySurface::~WindowMemorySurface()
 }
 
 void
-WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
-{
-	UpdateBounds(sbuf, {pt, sbuf.GetSize()});
-}
-
-void
 WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 	const Point& sp) ynothrow
 {
+	// NOTE: %Nonnull is for invariant check.
 	const auto h_old(::SelectObject(h_mem_dc, Nonnull(sbuf.GetNativeHandle())));
 
-	YCL_CallWin32F_Trace(BitBlt, h_owner_dc, int(r.X), int(r.Y), int(r.Width),
-		int(r.Height), h_mem_dc, int(sp.X), int(sp.Y), SRCCOPY);
-	// XXX: Error ignored?
-	::SelectObject(h_mem_dc, h_old);
+	if(h_old)
+	{
+		YCL_CallWin32F_Trace(BitBlt, h_owner_dc, int(r.X), int(r.Y),
+			int(r.Width), int(r.Height), h_mem_dc, int(sp.X), int(sp.Y),
+			SRCCOPY);
+		if(YB_UNLIKELY(!::SelectObject(h_mem_dc, h_old)))
+			YTraceDe(Err, "Restoring GDI object failed"
+				" @ WindowMemorySurface::UpdateBounds.");
+	}
+	else
+		YTraceDe(Err, "Setting GDI object failed"
+			" @ WindowMemorySurface::UpdateBounds.");
 }
 
 void
 WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
-	NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a, const Point& pt)
+	NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a, const Point& sp)
 	ynothrow
 {
 	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
 	auto rect(FetchWindowRect(h_wnd));
 	::SIZE size{rect.right - rect.left, rect.bottom - rect.top};
-	::POINT ptx{pt.X, pt.Y};
+	::POINT pt{sp.X, sp.Y};
 	::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
 
 	YCL_CallWin32F_Trace(UpdateLayeredWindow, h_wnd, h_owner_dc,
-		ystdex::aligned_store_cast<::POINT*>(&rect), &size, h_mem_dc, &ptx, 0,
+		ystdex::aligned_store_cast<::POINT*>(&rect), &size, h_mem_dc, &pt, 0,
 		&bfunc, ULW_ALPHA);
 	::SelectObject(h_mem_dc, h_old);
 }
@@ -1062,8 +1060,8 @@ Clipboard::Send(ConstBitmapPtr p_bmp, const Size& s)
 		const GlobalLocked gl(Nonnull(p));
 		const auto p_buf(gl.GetPtr<::BITMAPV5HEADER>().get());
 
-		*p_buf = {sizeof(::BITMAPV5HEADER), CheckPositiveScalar<long>(s.Width,
-			"width"), -CheckPositiveScalar<long>(s.Height, "height"), 1, 32,
+		*p_buf = {sizeof(::BITMAPV5HEADER), CheckPositive<long>(s.Width,
+			"width"), -CheckPositive<long>(s.Height, "height"), 1, 32,
 			BI_BITFIELDS, static_cast<unsigned long>(sizeof(Pixel)
 			* GetAreaOf(s)), 0, 0, 0, 0, 0x00FF0000, 0x0000FF00, 0x000000FF,
 			0xFF000000, 0x73524742/*LCS_sRGB*/, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}
