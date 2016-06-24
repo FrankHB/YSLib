@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2006
+\version r2020
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-06-21 09:40 +0800
+	2016-06-23 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,18 +50,18 @@ namespace platform
 {
 
 /*!
-\brief 构造适合表示路径的字符串。
+\brief 构造适合表示路径的 \c char 字符串。
 \note 字符类型非 \c char 时转换，假定为 UTF-8 编码。
 \since build 634
 */
 //@{
 //! \pre 间接断言：参数非空。
-inline PDefH(string, MakePathString, const char* s)
+inline YB_NONNULL(1) PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
 inline PDefH(const string&, MakePathString, const string& s)
 	ImplRet(s)
 //! \pre 间接断言：参数非空。
-YF_API string
+YF_API YB_NONNULL(1) string
 MakePathString(const char16_t*);
 //! \since build 658
 inline PDefH(string, MakePathString, u16string_view sv)
@@ -604,7 +604,10 @@ uremove(const char*) ynothrowv;
 //@}
 
 
-//! \since build 616
+/*!
+\ingroup workarounds
+\since build 616
+*/
 //@{
 #if __GLIBCXX__
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
@@ -1147,7 +1150,7 @@ inline YB_NONNULL(1) PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetAccessTime())
 /*!
 \pre 断言：第一参数非空。
-\note 最后一个参数指定若文件系统支持，访问链接的文件而不是链接自身。
+\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
 */
 //@{
 YF_API YB_NONNULL(1) FileTime
@@ -1168,7 +1171,7 @@ inline YB_NONNULL(1) PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
 
 /*!
 \pre 断言：第一参数非空。
-\note 最后一个参数指定若文件系统支持，访问链接的文件而不是链接自身。
+\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
 */
 //@{
 YF_API YB_NONNULL(1) FileTime
@@ -1189,7 +1192,7 @@ inline YB_NONNULL(1) PDefH(array<FileTime YPP_Comma 2>,
 	ImplRet(FileDescriptor(fp).GetModificationAndAccessTime())
 /*!
 \pre 断言：第一参数非空。
-\note 最后一个参数指定若文件系统支持，访问链接的文件而不是链接自身。
+\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
 */
 //@{
 YF_API YB_NONNULL(1) array<FileTime, 2>
@@ -1203,14 +1206,14 @@ GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 /*!
 \brief 取路径指定的文件链接数。
 \return 若成功为连接数，否则为 0 。
-\note 最后参数表示跟踪连接。
-\since build 669
+\note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
+\since build 704
 */
 //@{
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char*, bool = true) ynothrowv;
+FetchNumberOfLinks(const char*, bool = {}) ynothrowv;
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t*, bool = true) ynothrowv;
+FetchNumberOfLinks(const char16_t*, bool = {}) ynothrowv;
 //@}
 
 

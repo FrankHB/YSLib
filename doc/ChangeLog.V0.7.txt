@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r540
+\version r624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-06-21 13:04 +0800
+	2016-06-25 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,91 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		(
+		/ %Utilities $=
+		(
+			+ "3 function templates %swap_volatile";
+			+ "2 function templates %vswap"
+		);
+		/ "class template %state_guard; alias %swap_guard" @ %ScopeGuard
+			^ ($dep_from "%ystdex::vswap" @ %Utilities)
+			~ "ADL swap with %std::swap"
+		),
+		+ %CTime
+			$= (+ "functions %(is_date_range_valid, is_time_no_leap_valid)")
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				/ DLDI "simplified member function %HDirectory::operator++"
+					@ !"platform %Win32" $dep_from
+					%YBase.YStandardEx.ScopeGuard,
+				/ DLDI "simplified function %FetchDateTime" ^ $dep_from
+					%YBase.YStandardEx.CTime,
+				/ "default argument" @ "all 2 functions %ResolvePath"
+					-> ('FetchLimit(SystemOption::MaxSymlinkLoop)'
+					$dep_from %YCommon) ~ '1',
+				/ $impl "functions %ResolvePath" $=
+				(
+					/ "converted strings in single direction for Win32 and \
+						non-Win32 platforms",
+						// To be efficient and consistent with other routines. \
+							The binary image size can also be smaller.
+					/ DLD "simplified underlying directory check"
+				),
+				/ DLI "avoided redundant copy of string" @ "platform %Win32"
+					@ "function %ReadLink" ^ $dep_from "function \
+					%ResolveReparsePoint with buffer pointer returning \
+					%wstring_view" @ %'YCLib_(Win32)'.MinGW32
+			),
+			+ "inline function %ToHandle" @ "namespace %platform_ex"
+				@ "platform %Win32" @ %NativeAPI,
+			/ %FileIO $=
+			(
+				/ DLDI "simplified" @ "platform %Win32" @ %FileIO ^ $dep_from
+					("platform_ex::ToHandle" @ %NativeAPI),
+				/ $doc "put types %*stream" @ "Doxygen group %workarounds",
+				(
+				/ DLDI "%EnsureUniqueFile"
+					!^ ("default argument" @ "%FetchNumberOfLinks");
+				/ "default argument" @ "all 2 functions %FetchNumberOfLinks" ->
+					'{}' ~ 'true'
+					// To be consistent with other functions.
+				),
+				+ 'YB_NONNULL(1)'
+					@ "2 functions %MakePathString with pointer parameter"
+			),
+			+ "enum class %SystemOption; function %FetchLimit" @ %YCommon,
+			/ DLDI "path conversion from UCS-2LE string to UTF-8 string"
+				@ !"platform %Win32" ^ "%MakePathString" ~ ("%CHRLib::MakeMBCS"
+				@ !"platform %Win32", "%platform_ex::WCSToUTF8"
+				@ "platform %Win32") $effecitive @ %(FileIO, FileSystem)
+		),
+		/ %YSLib.Adaptor.YAdaptor $dep_from %YCLib.YCommon $=
+		(
+			+ 'using platform::SystemOption;',
+			+ 'using platform::FetchLimit;'
+		),
+		* DLB "missing renaming 'ycommon.cpp' to 'YCommon.cpp'"
+			@ "Microsoft VC++ project" $since b633,
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ "function %ResolveReparsePoint with buffer pointer returning \
+				%wstring_view";
+			* "undefined behavior caused by buffer object accessed after \
+				lifetime end" @ "function %ResolveReparsePoint with single \
+				path parameter" $since b660
+		)
+	)
+),
+
+b703
 (
 	/ %YFramework $=
 	(

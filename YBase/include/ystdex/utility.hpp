@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3130
+\version r3219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-05-14 17:30 +0800
+	2016-06-22 12:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,18 +28,18 @@
 #ifndef YB_INC_ystdex_utility_hpp_
 #define YB_INC_ystdex_utility_hpp_ 1
 
-#include "type_pun.hpp" // for "type_pun.hpp", is_standard_layout,
-//	pun_storage_t, std::swap, aligned_replace_cast, exclude_self_t,
-//	replace_storage_t;
+#include "type_pun.hpp" // for "type_pun.hpp", add_const_t,
+//	is_nothrow_constructible, is_nothrow_assignable, std::move, add_volatile_t,
+//	is_standard_layout, is_nothrow_swappable_with, pun_storage_t, std::swap,
+//	aligned_replace_cast, exclude_self_t, replace_storage_t;
 #include <functional> // for std::bind, std::ref
-#include "memory.hpp" // for yassume, ystdex::construct_in, ystdex::destruct_in;
+#include "memory.hpp" // for std::addressof, yassume, ystdex::construct_in,
+//	ystdex::destruct_in;
 #include "base.h" // for noncopyable, nonmovable;
 
 namespace ystdex
 {
 
-//! \ingroup helper_functions
-//@{
 /*!
 \brief 转换 const 引用。
 \see WG21 N4380 。
@@ -51,6 +51,67 @@ as_const(_type& t)
 {
 	return t;
 }
+
+
+/*!
+\brief 交换非 volatile 左值和 volatile 左值。
+\pre 可赋值。
+\since build 704
+*/
+//@{
+template<typename _type>
+yimpl(enable_if_t)<is_nothrow_constructible<_type, volatile _type&&>()
+	&& is_nothrow_assignable<_type&, volatile _type&&>()
+	&& is_nothrow_assignable<volatile _type&, _type&&>()>
+swap_volatile(_type& x, volatile _type& y)
+	ynoexcept(is_nothrow_constructible<_type, volatile _type&>()
+	&& noexcept(x = std::move(y)) && noexcept(y = std::move(x)))
+{
+	auto t(std::move(x));
+
+	x = std::move(y);
+	y = std::move(t);
+}
+template<typename _type>
+inline auto
+swap_volatile(volatile _type& x, _type& y)
+	ynoexcept_spec(ystdex::swap_volatile(y, x))
+	-> decltype(ystdex::swap_volatile(y, x))
+{
+	ystdex::swap_volatile(y, x);
+}
+template<typename _type, size_t _vN>
+void
+swap_volatile(_type(&x)[_vN], add_volatile_t<_type[_vN]>& y)
+	ynoexcept(noexcept(ystdex::swap_volatile(x[0], y[0])))
+{
+	auto first(std::addressof(x[0]));
+	auto first2(std::addressof(y[0]));
+
+	for(const auto last(first + _vN); first != last; yunseq(++first, ++first2))
+		ystdex::swap_volatile(*first, *first2);
+}
+//@}
+
+//! \since build 704
+namespace details
+{
+
+template<typename _type, typename _type2>
+using swap_volatile_avail = bool_constant<is_volatile<remove_reference_t<_type>>
+	::value != is_volatile<remove_reference_t<_type2>>::value>;
+
+#if YB_HAS_NOEXCEPT
+template<typename _type, typename _type2>
+using swap_volatile_noexcept = and_<swap_volatile_avail<_type, _type2>,
+	bool_constant<noexcept(swap_volatile(
+	std::declval<_type>(), std::declval<_type2>()))>>;
+#else
+template<typename, typename>
+using swap_volatile_noexcept = swap_volatile_avail<_type, _type2>;
+#endif
+
+} // namespace details;
 
 /*!
 \brief 交换相同标准布局类型可修改左值的存储。
@@ -68,6 +129,36 @@ swap_underlying(_type& x, _type& y) ynothrow
 		ystdex::aligned_replace_cast<utype&>(y));
 }
 
+/*!
+\brief 交换可能是 volatile 的左值或右值。
+\pre 参数类型可交换，或具有一个 volatile 类型可用 swap_volatie 交换。
+\since build 704
+*/
+//@{
+//! \note 使用 ADL swap 或 std::swap 。
+template<typename _type, typename _type2, yimpl(typename
+	= enable_if_t<!details::swap_volatile_avail<_type, _type2>::value>)>
+void
+vswap(_type&& x, _type2&& y)
+	ynoexcept(is_nothrow_swappable_with<_type&&, _type2&&>())
+{
+	using std::swap;
+
+	swap(yforward(x), yforward(y));
+}
+//! \note 使用 ADL swap_volatile 或 ystdex::swap_volatile 。
+//@{
+template<typename _type, typename _type2>
+inline auto	
+vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_type,
+	details::swap_volatile_noexcept, _type, _type2>())
+	-> yimpl(enable_if_t)<details::swap_volatile_avail<_type, _type2>::value>
+{
+	swap_volatile(yforward(x), yforward(y));
+}
+//@}
+//@}
+
 
 inline namespace cpp2014
 {
@@ -80,6 +171,7 @@ using std::exchange;
 \return 被替换的原值。
 \see WG21 N3797 20.2.3[utility.exchange] 。
 \see http://www.open-std.org/JTC1/sc22/WG21/docs/papers/2013/n3668.html 。
+\since build 517
 */
 template<typename _type, typename _type2 = _type>
 _type
@@ -90,7 +182,6 @@ exchange(_type& obj, _type2&& new_val)
 	obj = std::forward<_type2>(new_val);
 	return old_val;
 }
-//@}
 #endif
 
 } // inline namespace cpp2014;

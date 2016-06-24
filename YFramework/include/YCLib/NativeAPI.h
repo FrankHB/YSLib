@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1271
+\version r1283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-06-21 11:28 +0800
+	2016-06-23 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,12 +38,12 @@
 #endif
 
 /*!	\defgroup workarounds Workarounds
-\brief 替代方案。
+\brief 变通：不便直接实现的替代方案。
 \since build 297
 */
 
 /*!	\defgroup name_collision_workarounds Name collision workarounds
-\brief 名称冲突替代方案。
+\brief 名称冲突变通。
 \note Windows API 冲突时显式使用带 A 或 W 的全局函数名称。
 \since build 381
 */
@@ -276,6 +276,7 @@ public:
 
 #	include <Windows.h>
 #	include <direct.h>
+#	include <io.h> // for ::_get_osfhandle;
 
 //! \ingroup name_collision_workarounds
 //@{
@@ -313,6 +314,18 @@ _gmtime32(const ::__time32_t*);
 #	endif
 
 } // extern "C";
+
+namespace platform_ex
+{
+
+/*!
+\brief 取文件描述符对应的句柄。
+\since build 704
+*/
+inline PDefH(::HANDLE, ToHandle, int fd) ynothrow
+	ImplRet(::HANDLE(::_get_osfhandle(fd)))
+
+} // namespace platform_ex;
 
 #elif YCL_Android
 /*!
