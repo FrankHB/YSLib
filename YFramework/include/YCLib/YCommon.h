@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3728
+\version r3750
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2016-04-27 08:35 +0800
+	2016-06-24 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -232,6 +232,32 @@ RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
 */
 YF_API int
 usystem(const char*);
+
+
+//! \since build 704
+//@{
+//! \brief 系统配置选项。
+enum class SystemOption
+{
+	MaxSymlinkLoop
+};
+
+
+/*!
+\brief 取限制配置。
+\return 选项存在且值能被返回类型表示时为转换后的对应选项值，否则为 \c size_t(-1) 。
+\note 某些平台调用结果总是翻译时确定的常数，调用此函数无副作用，使用 YB_STATELESS 修饰。
+\note 若无 YB_STATELESS 修饰，当找不到项时，可能使用跟踪输出警告。
+\note 若无 YB_STATELESS 修饰，当找不到项时，可能设置 errno 为 EINVAL 。
+\sa YTraceDe
+*/
+YF_API
+#if YCL_DS
+	YB_STATELESS
+#endif
+size_t
+FetchLimit(SystemOption) ynothrow;
+//@}
 
 } // namespace platform;
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3283
+\version r3287
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-06-21 09:40 +0800
+	2016-06-24 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YCLib_Container // for std::is_integral, std::is_array,
 //	ystdex::remove_reference_t, size, ystdex::is_null, string, u16string,
 //	wstring, ystdex::to_array, std::uint8_t, std::uint32_t, pair, tuple;
-#include YFM_YCLib_Reference // for unique_ptr, nptr;
+#include YFM_YCLib_Reference // for unique_ptr_from, tidy_ptr;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
@@ -436,14 +436,14 @@ ReadLink(const char16_t*);
 \brief 解析路径：取跟踪链接的绝对路径。
 \note 第二参数指定解析链接的次数上限。
 \throw std::system_error std::errc::too_many_symbolic_link_levels 超过链接限制。
-\since build 698
+\since build 704
 \return 解析得到的绝对路径。
 */
 //@{
 YF_API YB_NONNULL(1) string
-ResolvePath(const char*, size_t = 1);
+ResolvePath(const char*, size_t = FetchLimit(SystemOption::MaxSymlinkLoop));
 YF_API YB_NONNULL(1) u16string
-ResolvePath(const char16_t*, size_t = 1);
+ResolvePath(const char16_t*, size_t = FetchLimit(SystemOption::MaxSymlinkLoop));
 //@}
 //@}
 

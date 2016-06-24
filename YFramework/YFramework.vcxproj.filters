@@ -1008,7 +1008,7 @@
     <ClCompile Include="source\YSLib\UI\YRenderer.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YCLib\ycommon.cpp">
+    <ClCompile Include="source\YCLib\YCommon.cpp">
       <Filter>source\YCLib</Filter>
     </ClCompile>
     <ClCompile Include="source\CHRLib\chrmap.cpp">

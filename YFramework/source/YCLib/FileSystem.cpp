@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3790
+\version r3906
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-06-21 11:15 +0800
+	2016-06-25 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,21 +26,23 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem // for std::tm, default_delete, make_observer,
-//	std::accumulate, std::min, ystdex::read_uint_le, YAssertNonnull,
-//	ystdex::write_uint_le, std::bind, std::ref, ystdex::retry_on_cond;
-#include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
-#include YFM_YCLib_FileIO // for CategorizeNode, Deref, ystdex::to_array,
-//	ystdex::throw_error, std::errc::function_not_supported,
+#include YFM_YCLib_FileSystem // for basic_string, ystdex::pun_storage_t,
+//	default_delete, make_observer, std::min, std::accumulate, std::tm,
+//	ystdex::read_uint_le, YAssertNonnull, ystdex::write_uint_le, std::bind,
+//	std::ref, ystdex::retry_on_cond;
+#include YFM_YCLib_FileIO // for MakePathString, CategorizeNode, Deref,
+//	ystdex::to_array, ystdex::throw_error, std::errc::function_not_supported,
 //	ThrowFileOperationFailure, ystdex::ntctslen, std::strchr, std::wctob,
 //	std::towupper, ystdex::restrict_length, std::min, ystdex::ntctsicmp,
 //	std::errc::invalid_argument;
+#include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include "CHRLib/YModules.h"
-#include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
-//	CHRLib::MakeUCS2LE;
+#include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeUCS2LE;
+#include <ystdex/ctime.h> // for ystdex::is_date_range_valid,
+//	ystdex::is_time_no_leap_valid;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
-//	platform_ex::WCSToUTF8, platform_ex::ResolveReparsePoint,
+//	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, platform_ex::ResolveReparsePoint,
 //	platform_ex::DirectoryFindData;
 #	include <system_error> // for std::system_error;
 #	include <exception> // for std::throw_with_nested;
@@ -72,8 +74,6 @@ inline PDefH(void, W32_CreateSymbolicLink, const char16_t* dst,
 
 //! \since build 660
 using platform_ex::UTF8ToWCS;
-//! \since build 660
-using platform_ex::WCSToUTF8;
 //! \since build 549
 using platform_ex::DirectoryFindData;
 #else
@@ -91,57 +91,27 @@ namespace platform
 namespace
 {
 
-#if YCL_Win32
-//! \since build 660
-inline PDefH(u16string, WToU16, const wstring& wstr)
-	ImplRet({ucast(wstr.c_str()), wstr.length()})
-#endif
-
-//! \since build 607
-yconstfn bool
-is_time_no_leap_valid(const std::tm& t)
-{
-	return !(t.tm_hour < 0 || 23 < t.tm_hour || t.tm_hour < 0 || 59 < t.tm_min
-		|| t.tm_sec < 0 || 59 < t.tm_min);
-}
-
-//! \since build 607
-yconstfn bool
-is_date_range_valid(const std::tm& t)
-{
-	return !(t.tm_mon < 0 || 12 < t.tm_mon || t.tm_mday < 1 || 31 < t.tm_mday);
-}
-
 //! \since build 699
 //@{
 // TODO: Simplify and expose as public API.
-YB_NONNULL(1) bool
-IsDirectoryImpl(const char*);
-YB_NONNULL(1) bool
-IsDirectoryImpl(const char16_t*);
-bool
-IsDirectoryImpl(const char* path)
-{
 #if YCL_Win32
-	return IsDirectoryImpl(ucast(UTF8ToWCS(path).c_str()));
-#else
-	// TODO: Merge? See %platform_ex::estat in %NativeAPI.
-	struct ::stat st;
-
-	return ::stat(path, &st) == 0 && bool(Mode(st.st_mode) & Mode::Directory);
-#endif
-}
 bool
 IsDirectoryImpl(const char16_t* path)
 {
 	// TODO: Simplify.
-#if YCL_Win32
 	return platform_ex::FileAttributes(::GetFileAttributesW(wcast(path))
 		& platform_ex::Directory);
-#else
-	return IsDirectoryImpl(MakeMBCS(path).c_str());
-#endif
 }
+#else
+bool
+IsDirectoryImpl(const char* path)
+{
+	// TODO: Merge? See %platform_ex::estat in %NativeAPI.
+	struct ::stat st;
+
+	return ::stat(path, &st) == 0 && bool(Mode(st.st_mode) & Mode::Directory);
+}
+#endif
 
 template<typename _tChar>
 YB_NONNULL(1) basic_string<_tChar>
@@ -178,9 +148,9 @@ ResolvePathImpl(const _tChar* path, size_t n)
 					res += YCL_PATH_DELIMITER;
 				res += std::move(head);
 			}
+#if !YCL_DS
 			if(!res.empty())
 			{
-#if !YCL_DS
 				try
 				{
 					// TODO: Throw with context information about failed path?
@@ -195,8 +165,8 @@ ResolvePathImpl(const _tChar* path, size_t n)
 						ystdex::throw_error(ELOOP);
 				}
 				CatchIgnore(std::invalid_argument&)
-#endif
 			}
+#endif
 			if(IsDirectoryImpl(res.c_str()))
 				res += YCL_PATH_DELIMITER;
 		}
@@ -235,21 +205,21 @@ CreateHardLink(const char16_t* dst, const char16_t* src)
 #else
 	// TODO: To make the behavior specific and same as on platform %Win32, use
 	//	%::realpath on platform %Linux, etc.
-	CreateHardLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str());
+	CreateHardLink(MakePathString(dst).c_str(), MakePathString(src).c_str());
 #endif
 }
 
 void
 CreateSymbolicLink(const char* dst, const char* src, bool is_dir)
 {
-#if YCL_Win32
+#if YCL_DS
+	yunused(dst), yunused(src), yunused(is_dir);
+	ystdex::throw_error(std::errc::function_not_supported);
+#elif YCL_Win32
 	using namespace platform_ex;
 
 	CreateSymbolicLink(ucast(UTF8ToWCS(dst).c_str()),
 		ucast(UTF8ToWCS(src).c_str()), is_dir);
-#elif YCL_DS
-	yunused(dst), yunused(src), yunused(is_dir);
-	ystdex::throw_error(std::errc::function_not_supported);
 #else
 	yunused(is_dir);
 	if(::symlink(Nonnull(src), Nonnull(dst)) != 0)
@@ -259,14 +229,15 @@ CreateSymbolicLink(const char* dst, const char* src, bool is_dir)
 void
 CreateSymbolicLink(const char16_t* dst, const char16_t* src, bool is_dir)
 {
-#if YCL_Win32
-	YCL_Impl_details::W32_CreateSymbolicLink(dst, src,
-		is_dir ? YCL_Impl_details::SymbolicLinkFlagDirectory : 0UL);
-#elif YCL_DS
+#if YCL_DS
 	yunused(dst), yunused(src), yunused(is_dir);
 	ystdex::throw_error(std::errc::function_not_supported);
+#elif YCL_Win32
+	YCL_Impl_details::W32_CreateSymbolicLink(dst, src,
+		is_dir ? YCL_Impl_details::SymbolicLinkFlagDirectory : 0UL);
 #else
-	CreateSymbolicLink(MakeMBCS(dst).c_str(), MakeMBCS(src).c_str(), is_dir);
+	CreateSymbolicLink(MakePathString(dst).c_str(), MakePathString(src).c_str(),
+		is_dir);
 #endif
 }
 
@@ -278,7 +249,7 @@ ReadLink(const char* path)
 	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
 	// TODO: Simplify?
-	return WCSToUTF8(wcast(ReadLink(ucast(UTF8ToWCS(path).c_str())).c_str()));
+	return MakePathString(ReadLink(ucast(UTF8ToWCS(path).c_str())).c_str());
 #else
 	struct ::stat st;
 
@@ -312,22 +283,34 @@ ReadLink(const char16_t* path)
 	YAssertNonnull(path);
 	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
-	// TODO: Simplify?
-	return WToU16(platform_ex::ResolveReparsePoint(wcast(path)));
+	ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE]> target_buffer;
+	const auto sv(platform_ex::ResolveReparsePoint(wcast(path),
+		&target_buffer));
+
+	return ucast(sv.data());
 #else
-	return MakeUCS2LE(ReadLink(MakeMBCS(path).c_str()));
+	return MakeUCS2LE(ReadLink(MakePathString(path).c_str()));
 #endif
 }
 
 YB_NONNULL(1) string
 ResolvePath(const char* path, size_t n)
 {
+#if YCL_Win32
+	return
+		MakePathString(ResolvePath(ucast(UTF8ToWCS(path).c_str()),n).c_str());
+#else
 	return ResolvePathImpl<char>(path, n);
+#endif
 }
 YB_NONNULL(1) u16string
 ResolvePath(const char16_t* path, size_t n)
 {
+#if YCL_Win32
 	return ResolvePathImpl<char16_t>(path, n);
+#else
+	return MakeUCS2LE(ResolvePath(MakePathString(path).c_str(), n).c_str());
+#endif
 }
 
 
@@ -392,7 +375,7 @@ DirectorySession::DirectorySession(const char16_t* path)
 #if YCL_Win32
 	: dir(new Data(wcast(path)))
 #else
-	: DirectorySession(MakeMBCS(path).c_str())
+	: DirectorySession(MakePathString(path).c_str())
 #endif
 {}
 
@@ -418,30 +401,13 @@ HDirectory::operator++()
 	CatchExpr(std::system_error& e, std::throw_with_nested(
 		FileOperationFailure(e.code(), "Failed iterating directory.")))
 #else
-	// TODO: To be compatible with possible volatile-qualified lvalue.
-#if YCL_Android
-	struct guard
-	{
-		int value = errno;
-
-		guard()
-		{
-			errno = 0;
-		}
-		~guard()
-		{
-			errno = value;
-		}
-	} gd;
-#else
-	ystdex::swap_guard<int, void> gd(errno, 0);
-#endif
+	ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
 
 	if(const auto p = ::readdir(ToDirPtr(GetNativeHandle())))
 		p_dirent = make_observer(p);
 	else
 	{
-		int err(errno);
+		const int err(errno);
 
 		if(err == 0)
 			p_dirent = {};
@@ -491,27 +457,25 @@ HDirectory::GetNodeCategory() const ynothrow
 
 HDirectory::operator string() const
 {
-#if !YCL_Win32
-	return GetNativeName();
+#if YCL_Win32
+	return MakePathString(GetNativeName());
 #else
-	return WCSToUTF8(wcast(GetNativeName()));
+	return GetNativeName();
 #endif
 }
 HDirectory::operator u16string() const
 {
-#if !YCL_Win32
-	return MakeUCS2LE(GetNativeName());
-#else
+#if YCL_Win32
 	return ucast(GetNativeName());
+#else
+	return MakeUCS2LE(GetNativeName());
 #endif
 }
 
 const HDirectory::NativeChar*
 HDirectory::GetNativeName() const ynothrow
 {
-#if !YCL_Win32
-	return p_dirent ? p_dirent->d_name : ".";
-#else
+#if YCL_Win32
 	if(p_dirent)
 	{
 		const auto& child(Deref(p_dirent));
@@ -520,6 +484,8 @@ HDirectory::GetNativeName() const ynothrow
 		return ucast(child.data());
 	}
 	return u".";
+#else
+	return p_dirent ? p_dirent->d_name : ".";
 #endif
 }
 
@@ -593,7 +559,7 @@ string
 ConvertToMBCS(const char16_t* path)
 {
 	// TODO: Optimize?
-	ImplRet(ystdex::restrict_length(MakeMBCS({path,
+	ImplRet(ystdex::restrict_length(MakePathString({path,
 		std::min<size_t>(ystdex::ntctslen(path), MaxLength)}), MaxMBCSLength))
 }
 
@@ -673,9 +639,9 @@ FetchDateTime() ynothrow
 		// FIXME: For platforms without %::(localtime_r, localtime_s).
 #endif
 		// NOTE: Microsoft FAT base year is 1980.
-		return {is_date_range_valid(tmp) ? ((tmp.tm_year - 80) & 0x7F) << 9
-			| ((tmp.tm_mon + 1) & 0xF) << 5 | (tmp.tm_mday & 0x1F) : 0,
-			is_time_no_leap_valid(tmp) ? (tmp.tm_hour & 0x1F) << 11
+		return {ystdex::is_date_range_valid(tmp) ? ((tmp.tm_year - 80) & 0x7F)
+			<< 9 | ((tmp.tm_mon + 1) & 0xF) << 5 | (tmp.tm_mday & 0x1F) : 0,
+			ystdex::is_time_no_leap_valid(tmp) ? (tmp.tm_hour & 0x1F) << 11
 			| (tmp.tm_min & 0x3F) << 5 | ((tmp.tm_sec >> 1) & 0x1F) : 0};
 	}
 	return {0, 0};

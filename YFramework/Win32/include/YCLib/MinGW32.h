@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1706
+\version r1716
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-06-17 19:15 +0800
+	2016-06-25 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -809,10 +809,18 @@ public:
 \throw std::invalid_argument 打开的文件不是重解析点。
 \throw std::system_error 重解析点检查失败。
 	\li std::errc::not_supported 重解析点标签不被支持。
-\since build 660
 */
+//@{
+//! \since build 660
 YF_API YB_NONNULL(1) wstring
 ResolveReparsePoint(const wchar_t*);
+/*!
+\pre 第二参数指定至少具有 MAXIMUM_REPARSE_DATA_BUFFER_SIZE 字节可写的缓冲区。
+\since build 704
+*/
+YF_API YB_NONNULL(1, 2) wstring_view
+ResolveReparsePoint(const wchar_t*, void*);
+//@}
 
 
 /*!

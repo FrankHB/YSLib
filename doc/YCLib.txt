@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r418
+\version r432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2016-06-08 07:09 +0800
+	2016-06-23 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ YCLib 允许平台中立的接口具有实现定义的行为差异。平台中�
 
 @1.1 环境实现：
 参见 [Documentation::Designation @@5.2] 。
-附加依赖限制： Win32 平台不依赖 Shlwapi 。
+另见 @4.1.5 。
 
 @1.2 头文件依赖性：
 YCLib::Platform(@5.1) 不直接包含 YDefinition([Documentation::YBase @@2.4]) 以外的文件。
@@ -155,11 +155,15 @@ platform::KeyCodes::Linux Linux 兼容平台（不包括 Android ）。
 platform::KeyCodes 中使用单一 using 指令支持本机名称。
 
 @1.6.3 文件系统接口：
-文件系统的一般概念（包括路径等）同 WG21 N4099 。
+文件系统的一般概念（包括路径等）同 WG21 N4594 [filesystems] ，但不假定必须存在操作系统支持，也不适用对符合性(conformance) 和路径编码及转换的要求。
+YCLib 使用字符类型 char 和 char16_t 的 NTCTS 表示文件系统路径，约定编码为 UTF-8 和 UCS-2 。路径涉及的编码转换的实现未指定，可能和平台相关，相关支持另见 @3.2.1 。
+YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.8.15]) 提供的抽象路径，后者由上层用户代码协调使用。
+文件系统相关接口位于 YCLib.FileSystem 和 YCLib.FileIO 。前者提供依赖文件系统一般特性或具体文件系统的操作；后者提供和具体文件相关的其它操作。
+和 POSIX 不同，和特定文件关联的文件系统元数据（如文件修改时间）视为从属文件本身。因此相关操作位于 YCLib.FileIO 而非 YCLib.FileSystem 。注意其它项的操作（如创建新的符号链接）不属于此范围，仍位于 YCLib.FileSystem 。
 
 @1.6.3.1 长度限制：
 不一定直接使用本机的长度限制。
-直接使用依赖于系统 API 的宏仅适用于 YCLib 。在用户代码中可使用其它 API （如 YSLib 中使用 YSLib::IO::MaxPathLength ）。
+直接使用依赖系统 API 的宏仅适用于 YCLib 。在用户代码中可使用其它 API （如 YSLib 中使用 YSLib::IO::MaxPathLength ）。
 注意不一定能限制可安全使用的短路径；运行时限制可能不实用。
 作为尝试调用的路径长度参数时，这些宏可作为初始值。
 不引入新的宏。
@@ -207,7 +211,7 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 
 @4.1.2 API 版本兼容性：
 不直接调用 Windows Vista 后支持的 API ，以动态加载（通过 ::GetProcessAddress ）代替。
-对于需编译时确定特定 API 声明存在性的场合，若有可能，使用 SFINAE([Documentation::Designation @@3.2.4)] 而不是显式判断版本宏(@4.1.1) 检查可用性并自动匹配调用。
+对需编译时确定特定 API 声明存在性的场合，若有可能，使用 SFINAE([Documentation::Designation @@3.2.4)] 而不是显式判断版本宏(@4.1.1) 检查可用性并自动匹配调用。
 不使用当前主流版本 Win32 SDK 中被标记为过时的 API 如 IsBadReadPtr 。
 
 @4.1.3 后缀：
@@ -217,7 +221,7 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 例外： ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
 
 @4.1.4 路径：
-除非文档另行约定，使用的路径对 Win32 API 透明。
+除非文档说明，使用的路径对 Win32 API 透明。
 关于 Windows 文件路径和命名空间，参见 https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx 。
 限制可安全使用的短路径的长度时仅在 Win32 代码使用 MAX_PATH 宏；不使用其它宏。
 至少有以下 Win32 API 可能使用 "\\?\" 前缀：
@@ -238,13 +242,17 @@ kernel32
 除此之外，仅允许以下 Win32 DLL 依赖：
 gdi32
 imm32
-当前配置不直接依赖其它 DLL （尽管平台扩展提供 COM API 封装；另见 [Documentation::YFramework @@2.1.3.1] ）。
+当前配置不直接依赖其它 DLL 如 Shlwapi 和 COM 支持（尽管平台扩展提供 COM API 封装；另见 [Documentation::YFramework @@2.1.3.1] ）。
 因为仅有 YCLib 可能引入这些直接依赖，这也是 YFramework 映像的所有依赖。
 间接依赖项包括 MSVCRT 等运行时，不和这些依赖冲突。
 
+@4.1.5 共享状态：
+不依赖 ::SetLastError 和 ::GetLastError 操作的错误码持久不变。
+不调用 ::SetErrorMode 和 ::SetThreadErrorMode 等可能影响全局错误模式的 API 。
+
 @4.1.6 终端服务和远程桌面：
 感知终端服务，不使用和依赖被虚拟的远程桌面资源。
-如使用 ::GetSystemWindowsDirectoryW 而不是 ::GetWindowsDirectoryW （区别参见 http://stackoverflow.com/questions/13489746/difference-between-getwindowsdirectory-and-getsystemwindowsdirectory ）。
+例如使用 ::GetSystemWindowsDirectoryW 而不是 ::GetWindowsDirectoryW （区别参见 http://stackoverflow.com/questions/13489746/difference-between-getwindowsdirectory-and-getsystemwindowsdirectory ）。
 
 @4.2 POSIX
 DS 平台可沿用部分 POSIX 限制。

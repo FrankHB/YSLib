@@ -320,7 +320,7 @@
     <ClCompile Include="source\YCLib\Timer.cpp" />
     <ClCompile Include="source\YCLib\Video.cpp" />
     <ClCompile Include="source\YCLib\XCB.cpp" />
-    <ClCompile Include="source\YCLib\ycommon.cpp" />
+    <ClCompile Include="source\YCLib\YCommon.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Image.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp" />

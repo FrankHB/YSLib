@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r444
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-06-17 02:12 +0800
+	2016-06-21 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "type_traits.hpp" // for is_constructible, is_reference,
-//	is_nothrow_swappable, std::swap, std::declval, is_nothrow_copyable;
+#include "utility.hpp" // for is_constructible, is_reference,
+//	is_nothrow_swappable, ystdex::vswap, std::declval, is_nothrow_copyable;
 #include "base.h" // for noncopyable;
 #include "memory.hpp" // for ystdex::construct_in, ystdex::destruct_in;
 
@@ -165,22 +165,18 @@ struct state_guard_traits
 template<typename _type, typename _tToken>
 struct state_guard_traits<_type, _tToken, true>
 {
-	//! \since build 586
+	//! \since build 704
 	//@{
 	static void
-	save(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>())
+	save(_tToken t, _type& val) ynoexcept_spec(ystdex::vswap(val, t))
 	{
-		using std::swap;
-
-		swap(val, static_cast<_type&>(t));
+		ystdex::vswap(val, t);
 	}
 
 	static void
-	restore(_tToken t, _type& val) ynoexcept(is_nothrow_swappable<_type>())
+	restore(_tToken t, _type& val) ynoexcept_spec(ystdex::vswap(val, t))
 	{
-		using std::swap;
-
-		swap(val, static_cast<_type&>(t));
+		ystdex::vswap(val, t);
 	}
 	//@}
 };
@@ -254,6 +250,7 @@ struct state_guard_impl
 /*!
 \brief 使用临时状态暂存对象的作用域守护。
 \since build 569
+\warning 非虚析构。
 \todo 支持分配器。
 \todo 支持有限的复制和转移。
 */
@@ -354,7 +351,7 @@ public:
 
 
 /*!
-\brief 使用 ADL swap 调用暂存对象的作用域守护。
+\brief 使用 ystdex::vswap 调用暂存对象的作用域守护。
 \since build 569
 \todo 支持分配器。
 \todo 支持有限的复制和转移。

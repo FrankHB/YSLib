@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1802
+\version r1819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-06-20 12:45 +0800
+	2016-06-25 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -704,34 +704,38 @@ DirectoryFindData::Rewind() ynothrow
 wstring
 ResolveReparsePoint(const wchar_t* path)
 {
-	return wstring(MakeFileToDo([=](UniqueHandle::pointer h){
+	ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE]> target_buffer;
+	
+	return wstring(ResolveReparsePoint(path, &target_buffer));
+}
+wstring_view
+ResolveReparsePoint(const wchar_t* path, void* p_buf)
+{
+	return MakeFileToDo([=](UniqueHandle::pointer h){
 		return FetchFileInfo([&](::BY_HANDLE_FILE_INFORMATION& info)
 			-> wstring_view{
 			if(info.dwFileAttributes & ReparsePoint)
 			{
-				ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE]>
-					target_buffer;
-				const auto rdb(reinterpret_cast<REPARSE_DATA_BUFFER*>(
-					&target_buffer));
+				const auto p_rdb(static_cast<REPARSE_DATA_BUFFER*>(p_buf));
 
 				YCL_CallWin32F(DeviceIoControl, h, FSCTL_GET_REPARSE_POINT, {},
-					0, &target_buffer, sizeof(target_buffer), {}, {});
-				switch(rdb->ReparseTag)
+					0, p_buf, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, {}, {});
+				switch(p_rdb->ReparseTag)
 				{
 				case IO_REPARSE_TAG_SYMLINK:
-					return rdb->SymbolicLinkReparseBuffer.GetPrintName();
+					return p_rdb->SymbolicLinkReparseBuffer.GetPrintName();
 				case IO_REPARSE_TAG_MOUNT_POINT:
-					return rdb->MountPointReparseBuffer.GetPrintName();
+					return p_rdb->MountPointReparseBuffer.GetPrintName();
 				default:
 					YTraceDe(Warning, "Unsupported reparse tag '%lu' found",
-						rdb->ReparseTag);
+						p_rdb->ReparseTag);
 					ystdex::throw_error(std::errc::not_supported);
 				}
 			}
 			throw std::invalid_argument(
 				"Specified file is not a reparse point.");
 		}, h);
-	}, path, FileAttributesAndFlags::NormalAll));
+	}, path, FileAttributesAndFlags::NormalAll);
 }
 
 

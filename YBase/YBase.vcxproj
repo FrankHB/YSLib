@@ -34,6 +34,7 @@
     <ClInclude Include="include\ystdex\cstdint.hpp" />
     <ClInclude Include="include\ystdex\cstdio.h" />
     <ClInclude Include="include\ystdex\cstring.h" />
+    <ClInclude Include="include\ystdex\ctime.h" />
     <ClInclude Include="include\ystdex\cwctype.h" />
     <ClInclude Include="include\ystdex\deref_op.hpp" />
     <ClInclude Include="include\ystdex\enum.hpp" />

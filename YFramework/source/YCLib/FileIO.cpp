@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2337
+\version r2374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-06-21 11:11 +0800
+	2016-06-25 00:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,10 +40,9 @@
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
 #if YCL_DS
 #	include "CHRLib/YModules.h"
-#	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS;
+#	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
+//	CHRLib::MakeUCS2LE;
 
-//! \since build 475
-using namespace CHRLib;
 #elif YCL_Win32
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
 // At least one headers of <stdlib.h>, <stdio.h>, <Windows.h>, <Windef.h>
@@ -54,8 +53,8 @@ using namespace CHRLib;
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS, platform_ex::ConvertTime,
-//	platform_ex::SetFileTime;
+//	platform_ex::UTF8ToWCS, platform_ex::ConvertTime,
+//	platform_ex::WCSToUTF8, platform_ex::SetFileTime;
 
 //! \since build 639
 using platform_ex::FileAttributes;
@@ -68,13 +67,12 @@ using platform_ex::QueryFileNodeID;
 using platform_ex::QueryFileTime;
 //! \since build 540
 using platform_ex::UTF8ToWCS;
-//! \since build 639
-using platform_ex::WCSToUTF8;
 using platform_ex::ConvertTime;
 //@}
 #elif YCL_API_POSIXFileSystem
 #	include "CHRLib/YModules.h"
-#	include YFM_CHRLib_CharacterProcessing // for MakeMBCS;
+#	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
+//	CHRLib::MakeUCS2LE;
 #	include <dirent.h>
 
 //! \since build 475
@@ -143,9 +141,8 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 //@}
 
 #if YCL_Win32
-//! \since build 651
-inline PDefH(::HANDLE, ToHandle, int fd) ynothrow
-	ImplRet(::HANDLE(::_get_osfhandle(fd)))
+//! \since build 704
+using platform_ex::ToHandle;
 
 //! \since build 660
 void
@@ -274,11 +271,9 @@ inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
 //! \since build 703
 using platform_ex::estat;
 //! \since build 632
-YB_NONNULL(2) int
-estat(struct ::stat& st, const char16_t* path, bool follow_link)
-{
-	return estat(st, MakeMBCS(path).c_str(), follow_link);
-}
+inline YB_NONNULL(2) PDefH(int, estat, struct ::stat& st, const char16_t* path,
+	bool follow_link)
+	ImplRet(estat(st, MakePathString(path).c_str(), follow_link))
 #endif
 
 //! \since build 632
@@ -331,14 +326,16 @@ IsNodeShared_Impl(const char* a, const char* b, bool follow_link) ynothrow
 }
 //! \since build 660
 bool
-IsNodeShared_Impl(const char16_t* a, const char16_t* b, bool follow_link) ynothrow
+IsNodeShared_Impl(const char16_t* a, const char16_t* b, bool follow_link)
+	ynothrow
 {
 #if YCL_Win32
 	YCL_Impl_RetTryCatchAll(QueryFileNodeID(wcast(a), follow_link)
 		== QueryFileNodeID(wcast(b), follow_link))
 	return {};
 #else
-	return IsNodeShared_Impl(MakeMBCS(a).c_str(), MakeMBCS(b).c_str(), follow_link);
+	return IsNodeShared_Impl(MakePathString(a).c_str(),
+		MakePathString(b).c_str(), follow_link);
 #endif
 }
 
@@ -372,9 +369,9 @@ string
 MakePathString(const char16_t* s)
 {
 #if YCL_Win32
-	return WCSToUTF8(wcast(s));
+	return platform_ex::WCSToUTF8(wcast(s));
 #else
-	return MakeMBCS(s);
+	return CHRLib::MakeMBCS(s);
 #endif
 }
 
@@ -800,7 +797,7 @@ uaccess(const char16_t* path, int amode) ynothrowv
 #if YCL_Win32
 	return ::_waccess(wcast(path), amode);
 #else
-	YCL_Impl_RetTryCatchAll(::access(MakeMBCS(path).c_str(), amode))
+	YCL_Impl_RetTryCatchAll(::access(MakePathString(path).c_str(), amode))
 	return -1;
 #endif
 }
@@ -824,7 +821,8 @@ uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrowv
 #if YCL_Win32
 	return ::_wopen(wcast(filename), oflag, int(pmode));
 #else
-	YCL_Impl_RetTryCatchAll(::open(MakeMBCS(filename).c_str(), oflag, pmode))
+	YCL_Impl_RetTryCatchAll(::open(MakePathString(filename).c_str(), oflag,
+		pmode))
 	return -1;
 #endif
 }
@@ -850,8 +848,8 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #if YCL_Win32
 	return ::_wfopen(wcast(filename), wcast(mode));
 #else
-	YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(),
-		MakeMBCS(mode).c_str()))
+	YCL_Impl_RetTryCatchAll(std::fopen(MakePathString(filename).c_str(),
+		MakePathString(mode).c_str()))
 	return {};
 #endif
 }
@@ -871,7 +869,8 @@ ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv
 		YCL_Impl_RetTryCatchAll(
 			::_wfopen(wcast(filename), UTF8ToWCS(c_mode).c_str()))
 #else
-		YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(), c_mode))
+		YCL_Impl_RetTryCatchAll(std::fopen(MakePathString(filename).c_str(),
+			c_mode))
 #endif
 	return {};
 }
@@ -934,8 +933,8 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #elif YCL_Win32
 	return ::_wpopen(wcast(filename), wcast(mode));
 #else
-	YCL_Impl_RetTryCatchAll(::popen(MakeMBCS(filename).c_str(),
-		MakeMBCS(mode).c_str()))
+	YCL_Impl_RetTryCatchAll(::popen(MakePathString(filename).c_str(),
+		MakePathString(mode).c_str()))
 	return {};
 #endif
 }
@@ -955,7 +954,7 @@ ugetcwd(char* buf, size_t size) ynothrowv
 
 			if(const auto cwd = ::_wgetcwd(p.get(), int(size)))
 			{
-				const auto res(WCSToUTF8(cwd));
+				const auto res(MakePathString(ucast(cwd)));
 				const auto len(res.length());
 
 				if(size < len + 1)
@@ -988,7 +987,7 @@ ugetcwd(char16_t* buf, size_t size) ynothrowv
 			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), size))
 			try
 			{
-				const auto res(MakeUCS2LE(cwd));
+				const auto res(CHRLib::MakeUCS2LE(cwd));
 				const auto len(res.length());
 
 				if(size < len + 1)
@@ -1118,7 +1117,7 @@ FetchNumberOfLinks(const char16_t* path, bool follow_link) ynothrowv
 #if YCL_Win32
 	return QueryFileLinks(wcast(path), follow_link);
 #else
-	return FetchNumberOfLinks(MakeMBCS(path).c_str(), follow_link);
+	return FetchNumberOfLinks(MakePathString(path).c_str(), follow_link);
 #endif
 }
 
@@ -1145,7 +1144,7 @@ EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 		return p_file;
 	if(allowed_links != 0 && errno == EEXIST)
 	{
-		const auto n_links(FetchNumberOfLinks(dst));
+		const auto n_links(FetchNumberOfLinks(dst, true));
 
 		// FIXME: Blocked. TOCTTOU access.
 		if(!(allowed_links < n_links)
