@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r385
+\version r429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2016-05-12 05:32 +0800
+	2016-06-25 17:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "type_traits.hpp" // for "type_traits.hpp", bool_constant, yalignof,
 //	and_, is_trivial, enable_if_t, is_object_pointer, remove_pointer_t,
-//	aligned_storage_t, is_reference, remove_reference_t, exclude_self_t,
-//	decay_t;
+//	is_object, aligned_storage_t, is_reference, remove_reference_t,
+//	exclude_self_t, decay_t;
 #include <new> // for placement ::operator new from standard library;
 
 namespace ystdex
@@ -216,6 +216,55 @@ replace_cast(_tSrc&& v) ynothrow
 }
 //@}
 //@}
+//@}
+
+
+//! \since build 705
+//@{
+//! \brief 值初始化标记。
+yconstexpr const struct value_init_t{} value_init{};
+
+
+/*!
+\brief 避免严格别名分析限制的缓冲引用。
+\tparam _type 完整或不完整的对象类型。
+*/
+template<typename _type>
+class pun_ref
+{
+	static_assert(is_object<_type>(), "Invalid type found.");
+
+private:
+	//! \invariant \c alias 。
+	_type& alias;
+
+public:
+	//! \pre 实例化时对象类型完整。
+	//@{
+	//! \pre 参数非空。
+	//@{
+	YB_NONNULL(2)
+	pun_ref(void* p)
+		: alias(*::new(p) _type)
+	{}
+	template<typename... _tParams>
+	YB_NONNULL(3)
+	pun_ref(value_init_t, void* p, _tParams&&... args)
+		: alias(*::new(p) _type(yforward(args)...))
+	{}
+	//@}
+	~pun_ref()
+	{
+		alias.~_type();
+	}
+	//@}
+
+	_type&
+	get() const ynothrow
+	{
+		return alias;
+	}
+};
 //@}
 
 

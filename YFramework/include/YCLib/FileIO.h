@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2020
+\version r2023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-06-23 00:06 +0800
+	2016-06-25 20:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,12 +60,15 @@ inline YB_NONNULL(1) PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
 inline PDefH(const string&, MakePathString, const string& s)
 	ImplRet(s)
+//! \pre Win32 平台：严格别名要求实际动态类型为 wchar_t 字符或无法确定。
+//@{
 //! \pre 间接断言：参数非空。
 YF_API YB_NONNULL(1) string
 MakePathString(const char16_t*);
 //! \since build 658
 inline PDefH(string, MakePathString, u16string_view sv)
 	ImplRet(MakePathString(sv.data()))
+//@}
 //@}
 
 

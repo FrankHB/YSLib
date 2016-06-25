@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r432
+\version r443
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2016-06-23 19:01 +0800
+	2016-06-26 01:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,7 +156,8 @@ platform::KeyCodes 中使用单一 using 指令支持本机名称。
 
 @1.6.3 文件系统接口：
 文件系统的一般概念（包括路径等）同 WG21 N4594 [filesystems] ，但不假定必须存在操作系统支持，也不适用对符合性(conformance) 和路径编码及转换的要求。
-YCLib 使用字符类型 char 和 char16_t 的 NTCTS 表示文件系统路径，约定编码为 UTF-8 和 UCS-2 。路径涉及的编码转换的实现未指定，可能和平台相关，相关支持另见 @3.2.1 。
+YCLib 使用字符类型 char 和 char16_t 的 NTCTS 表示文件系统路径，约定编码为 UTF-8 和 UCS-2 。
+路径涉及的编码转换的实现未指定，可能和平台相关，相关支持另见 @3.2.1 。
 YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.8.15]) 提供的抽象路径，后者由上层用户代码协调使用。
 文件系统相关接口位于 YCLib.FileSystem 和 YCLib.FileIO 。前者提供依赖文件系统一般特性或具体文件系统的操作；后者提供和具体文件相关的其它操作。
 和 POSIX 不同，和特定文件关联的文件系统元数据（如文件修改时间）视为从属文件本身。因此相关操作位于 YCLib.FileIO 而非 YCLib.FileSystem 。注意其它项的操作（如创建新的符号链接）不属于此范围，仍位于 YCLib.FileSystem 。
@@ -193,7 +194,8 @@ DS 平台文件系统实现中，允许表示 EIO 实现定义含义的错误涵
 @3.2.2 内部实现：
 Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
 其它平台直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
-在 Win32 下使用 YCLib 的 Win32 平台扩展接口，其它平台使用 CHRLib([Documentation::YFramework @@2.7]) 。
+在 Win32 下使用 YCLib 的 Win32 平台扩展接口，参见 @7.2 ；其它平台使用 CHRLib([Documentation::YFramework @@2.7]) 。
+注意由于严格别名(@5.4.5) 限制， C++ 代码中使用 wchar_t 的左值不使用 CHRLib API 转换。
 
 @4 平台 API 使用策略：
 适当使用别名声明提供透明的包装类型。
@@ -314,6 +316,9 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 
 @5.4.5 C 风格字符串转换模板：
 提供模板 ucast 和 wcast ，在特定平台使使用 wchar_t 和 char16_t 或 char32_t 的例程可互换。
+注意严格别名问题，参见 [Documentation::LanguageConvention @@5.2.10.1] 和 [Documentation::Workflow::Annual2016 $2016-06] 。
+通过 reinterpret_cast 引用的 char16_t 和 wchar_t 的左值仅和以二进制库的形式提供的库函数交互时是安全的。
+另见 @1.6.3 和 @7.2 。
 
 @5.4.6 函数模板 RetryOnError ：
 允许简单实现当错误小于默认构造的值时重复操作。
@@ -395,6 +400,10 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 @7.2 Win32 平台扩展：
 提供适用于 Win32 平台的专用 API 。
 暂时不支持被模拟。
+除非文档说明，涉及作为参数传递 wchar_t 左值（可能含 cv ，包括其数组，下同）的公开接口符合以下约定，以对严格别名安全（如可使用通过 platform::wcast(@5.4.5) 转换的 char16_t 指针）：
+所有以 wchar_t 指针类型（可能含 const ，下同）出现的，都不被调用库函数以外的情形使用；
+所有以 wstring_view 类型出现的，若不存在对应（其它参数类型和返回值一致，下同）重载版本具有 char16_t 指针类型或具有 u16string_view 类型，则仅以数据指针调用该重载。
+其它以 wstring_view 类型作为参数出现的情形不保证严格别名安全，因为提供 char16_t 对应版本的接口而无需使用转换。
 
 @7.2.1 YCLib MinGW32 平台公共扩展：
 在 MinGW 环境测试的公共平台扩展，提供主要的特定于 Win32 的系统 API 包装。

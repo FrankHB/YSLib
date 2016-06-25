@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r147
+\version r170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-06-05 07:15 +0800
+	2016-06-25 20:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,6 +149,29 @@ There is one change concerned with FreeType2 not clear yet. That is, loading sam
 			Change to file 'src/sfnt/ttsbit.c' caused the behavior change.
 		The above change was once (wrongly) suspected to be a side effect and filed as http://savannah.nongnu.org/bugs/index.php?48117.
 	The reason is that font may contain CBDT and CBLT (for color emoji) tables which would only be recognized since FreeType 2.5.0. If it does not contain other table, the error trigged as expected.
+Alias analysing matters.
+	ISO C99 has strict aliasing rules. ISO C++ has more restrictions.
+		Void types and character types are ruled out in ISO C. Only 'cv void', 'cv char' and 'cv unsigned char' in ISO C++, however.
+			This is why 'ystdex::byte' mandated to be 'unsigned char' but not 'signed char'. (And though 'char' is available, its unspecified signedness may cause unnecessary problems.)
+		For object within its lifetime, see [basic.lval]/10; otherwise, see [basic.life]/6, [basic.life]/7 and [basic.life]/8.
+			[basic.life]/6 is stricter on 'static_cast'. Only cast sequence essentially to 'reinterpret_cast' to 'cv void', 'cv char' or 'cv unsigned char'.
+		Also note 'wchar_t', 'char16_t' and 'char32_t' is distinct to the underlying types. In C, they are just type alias to some integer types.
+			This diverges the alias analysis in C and C++.
+			For example, on Win32, 'wchar_t' lvalue may be safely accessible through 'unsigned short' pointers. This is not true on C++.
+			This may cause trouble in interoperations. Use carefully.
+		It is utilized as TBAA(type-based alias analysis) in various implementations, to generate better code.
+			GCC 4 enables '-fstrict-aliasing' for '-O2' or above, with `__attribute__((may_alias))` to revert it on types other than 'cv char', etc: https://gcc.gnu.org/onlinedocs/gcc-4.0.1/gcc/Type-Attributes.html.
+			Clang has implemented TBAA: https://llvm.org/bugs/show_bug.cgi?id=2547, but is lack of 'may_alias' attribute: https://llvm.org/bugs/show_bug.cgi?id=11082.
+			So bypassing the restrictions may be not portable anyway in a long time.
+		The extra attribute to bypass strict analysing is also considered like type qualifers (as 'const').
+			Such rules of the standard is a limitation with mandated 'may_alias' only on several character types, which may be improved in future version of languages or dialects.
+		If no aliased value can be used due to the strict aliasing, copying of the stored value in the lvalue may be needed.
+		In C++, objects can be dynamically allocated using placement '::new' expressions, though other rules still limit the access on the underlying storage.
+			The underlying object does not need to be array of 'cv char'.
+	ISO C99 has 'restrict' to ease alias analysis.
+		This is not type-based. However, violation of it also causes undefined behavior.
+		This imporves the performance of carefully written C programs, comparing with FORTRAN programs.
+		C++ has no similar features except for similar extension in dialects, typically spelled as '__restrict'.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3906
+\version r3933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-06-25 01:17 +0800
+	2016-06-26 05:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,11 +283,10 @@ ReadLink(const char16_t* path)
 	YAssertNonnull(path);
 	ystdex::throw_error(std::errc::function_not_supported);
 #elif YCL_Win32
-	ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE]> target_buffer;
-	const auto sv(platform_ex::ResolveReparsePoint(wcast(path),
-		&target_buffer));
+	using namespace platform_ex;
+	const auto sv(ResolveReparsePoint(wcast(path), ReparsePointData().Get()));
 
-	return ucast(sv.data());
+	return {sv.cbegin(), sv.cend()};
 #else
 	return MakeUCS2LE(ReadLink(MakePathString(path).c_str()));
 #endif
@@ -373,7 +372,7 @@ DirectorySession::DirectorySession(const char* path)
 }
 DirectorySession::DirectorySession(const char16_t* path)
 #if YCL_Win32
-	: dir(new Data(wcast(path)))
+	: dir(new Data(path))
 #else
 	: DirectorySession(MakePathString(path).c_str())
 #endif
@@ -394,13 +393,26 @@ DirectorySession::Rewind() ynothrow
 HDirectory&
 HDirectory::operator++()
 {
-	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
 #if YCL_Win32
-	TryExpr(p_dirent
-		= static_cast<DirectoryFindData*>(GetNativeHandle())->Read())
+	auto& find_data(*static_cast<DirectoryFindData*>(GetNativeHandle()));
+
+	try
+	{
+		if(find_data.Read())
+		{
+			const wstring_view sv(find_data.GetEntryName());
+
+			dirent_str = u16string(sv.cbegin(), sv.cend());
+			YAssert(!dirent_str.empty(), "Invariant violation found.");
+		}
+		else
+			dirent_str.clear();
+	}
 	CatchExpr(std::system_error& e, std::throw_with_nested(
 		FileOperationFailure(e.code(), "Failed iterating directory.")))
 #else
+	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
+
 	ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
 
 	if(const auto p = ::readdir(ToDirPtr(GetNativeHandle())))
@@ -421,12 +433,10 @@ HDirectory::operator++()
 NodeCategory
 HDirectory::GetNodeCategory() const ynothrow
 {
-	if(p_dirent)
+	if(*this)
 	{
 		YAssert(bool(GetNativeHandle()), "Invariant violation found.");
 #if YCL_Win32
-		YAssert(!p_dirent->empty(), "Invariant violation found.");
-
 		const auto res(Deref(static_cast<platform_ex::DirectoryFindData*>(
 			GetNativeHandle())).GetNodeCategory());
 #else
@@ -475,17 +485,11 @@ HDirectory::operator u16string() const
 const HDirectory::NativeChar*
 HDirectory::GetNativeName() const ynothrow
 {
+	return *this ?
 #if YCL_Win32
-	if(p_dirent)
-	{
-		const auto& child(Deref(p_dirent));
-
-		YAssert(!child.empty(), "Invariant violation found.");
-		return ucast(child.data());
-	}
-	return u".";
+		dirent_str.data() : u".";
 #else
-	return p_dirent ? p_dirent->d_name : ".";
+		p_dirent->d_name : ".";
 #endif
 }
 

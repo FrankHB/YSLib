@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r624
+\version r709
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-06-25 01:15 +0800
+	2016-06-26 05:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,92 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	+ $re_add(b611) $dev $repo "tag 'V0.7' to revision 572",
+	/ %YBase.YStandardEx.TypePun $=
+	(
+		+ 'yconstexpr const struct value_init_t{} value_init{};';
+		+ "class template %pun_ref"
+	),
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)' $=
+		(
+			/ %MinGW32 $=
+			(
+				+ "class %ReparsePointData" ^ $dep_from ("%ystdex::pun_ref"
+					@ %YBase.YStandardEx.TypePun);
+				/ @ "function %ResolveReparsePoint" $=
+				(
+					/ "2nd parameter type" @ "function with buffer parameter"
+						-> 'ReparsePointData::Data&' ~ 'void*';
+					* $forced "strict alias broken during allocation of \
+						reparse point buffer" $since b704,
+					* $comp DLI "unaligned buffer" $since b660
+				),
+				/ @ "class %DirectoryFindData" $=
+				(
+					(
+					+ "constructor with %wstring parameter";
+					/ DLDI "simplified constructor with %wstring_view \
+						parameter",
+					+ "constructor with %u16string_view parameter"
+					),
+					+ "function %GetEntryName",
+					(
+					/ "function %Read returning %bool"
+						~ "returning %observer_ptr<wstring>";
+					- $impl "redundnt internal string state"
+					)
+				)
+			),
+			* "strict aliasing broken"
+				@ "member function %WConsole::WriteString with \
+				%u16string_view parameter" $since b645
+				$= (/ $impl ^ "%wstring cast" ~ "%wcast")
+		),
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				* "strict aliasing broken" @ "platform %Win32"
+					@ "function %ReadLink" $since b660,
+				/ @ "platform %Win32" @ "class %HDirectory" $=
+				(
+					/ $impl ^ "%u16string as private data type"
+						~ "directory entry";
+					/ $forced DLDI "%operator++" ^
+						$dep_from ("%DirectoryFindData::(Read, GetEntryName)"
+						@ %'YCLib_(Win32)');
+					/ $forced DLDI "simplified function %GetNativeName";
+					* $comp "strict aliasing broken"
+						@ "functions %(GetNativeName; \
+						operator u16string)" $since b,
+					/ DLDI "simplified function 'operator u16string'"
+				)
+			),
+			/ %FileIO $=
+			(
+				// Cast between %ucast and %wcast is not necessary safe, but \
+					cast to and back is guaranteed to meet strict aliasing \
+					rules.
+				/ $doc "explicitly required dynamic type or parameter"
+					@ "platform %Win32"
+					@ "function %MakePathString for %char16_t character strings"
+				/ DLDI "simplified" @ !"platform %Win32"
+					@ "function %ugetcwd for 'char' string"
+					// This was also misleading.
+					$= (- "redundant %(wcast, ucast) calls"),
+				* "strict aliasing broken" @ "platform %Win32"
+					@ "constructor %DirectorySession" $since b699
+					$= (/ $impl ^ $dep_from ("%constructor %DirectoryFindData"
+						@ %'YCLib_(Win32)'.MinGW32) ~ "%wcast")
+			)
+		)
+	)
+),
+
+b704
 (
 	/ %YBase.YStandardEx $=
 	(

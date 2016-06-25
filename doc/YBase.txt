@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r937
+\version r940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-04-10 14:40 +0800
+	2016-06-26 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,7 @@ YBase 包括 YDefinition(@2.4) 、YStandardEx(@2.5) 、LibDefect(@2.6) 和 Test(
 除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
 不依赖异步安全性，不在任何实现中直接调用终止程序或对应注册回调的函数([Documenation::LanguageConvention @@5.15.3.4]) 。
 不降低性能时尽量保证可重入性。
+除非文档说明，库的实现不直接使用 thread_local 或其它实现相关的线程局部存储机制。（注意某些实现如 MinGW 存在静态释放可能失败等缺陷。）
 
 @2.1.2 语言规范：
 遵守的具体标准规范及替代和扩展接口约定参见 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
@@ -193,7 +194,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 @2.5.2 命名空间和模板特化：
 除在块作用域、非公开的实现命名空间和此处列明的例外，禁止其它的别名声明引入 std 成员命名空间：
 ystdex 中对标准库的元编程和类型特征名称使用别名声明；
-文档指定的以实现为 ADL([Documentation::LanguageConvention @@5.3.3.1]) 提供并行重载为目的的别名声明。
+文档指定的以实现为 ADL([Documentation::LanguageConvention @@5.2.4.1]) 提供并行重载为目的的别名声明。
 ystdex 的类型在声明所在的同一头文件中，可能存在 std 命名空间中的类模板的对应特化。
 
 @2.5.2.1 非公开实现命名空间：
@@ -222,7 +223,7 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 可能直接使用命名空间别名或别名声明，此时实体一致；
 不以别名声明时，为不同实体，同时使用（如作为重载函数的参数）时需要分别处理，避免违反 ODR([Documentation::LanguageConvention @@5.1.8]) ；
 不保证变更接口时会不在上述类别之间迁移。
-除非文档另行约定，保证使用 YStandard 接口可替换标准库接口或 TS 接口，但不保证逆向替换可行（ YStandardEx 可扩展标准库中不具备的特性）。
+除非文档说明，保证使用 YStandard 接口可替换标准库接口或 TS 接口，但不保证逆向替换可行（ YStandardEx 可扩展标准库中不具备的特性）。
 以下文档概要仅包括头文件没有详细明确的部分。
 
 @2.5.4 不依赖其它 YStandardEx 文件的基本头文件：
