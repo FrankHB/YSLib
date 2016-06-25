@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1819
+\version r1901
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-06-25 01:15 +0800
+	2016-06-26 02:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -282,50 +282,6 @@ PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 		: FileAttributesAndFlags::NormalAll)
 //@}
 
-
-//! \since build 660
-struct REPARSE_DATA_BUFFER
-{
-	struct tagSymbolicLinkReparseBuffer
-	{
-		unsigned short SubstituteNameOffset;
-		unsigned short SubstituteNameLength;
-		unsigned short PrintNameOffset;
-		unsigned short PrintNameLength;
-		unsigned long Flags;
-		wchar_t PathBuffer[1];
-
-		DefGetter(const ynothrow, wstring_view, PrintName,
-			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
-			size_t(PrintNameLength / sizeof(wchar_t))})
-	};
-	struct tagMountPointReparseBuffer
-	{
-		unsigned short SubstituteNameOffset;
-		unsigned short SubstituteNameLength;
-		unsigned short PrintNameOffset;
-		unsigned short PrintNameLength;
-		wchar_t PathBuffer[1];
-
-		DefGetter(const ynothrow, wstring_view, PrintName,
-			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
-			size_t(PrintNameLength / sizeof(wchar_t))})
-	};
-	struct tagGenericReparseBuffer
-	{
-		unsigned char DataBuffer[1];
-	};
-
-	unsigned long ReparseTag;
-	unsigned short ReparseDataLength;
-	unsigned short Reserved;
-	union
-	{
-		tagSymbolicLinkReparseBuffer SymbolicLinkReparseBuffer;
-		tagMountPointReparseBuffer MountPointReparseBuffer;
-		tagGenericReparseBuffer GenericReparseBuffer;
-	};
-};
 
 //! \since build 660
 yconstexpr const auto FSCTL_GET_REPARSE_POINT(0x000900A8UL);
@@ -610,8 +566,8 @@ DirectoryFindData::Deleter::operator()(pointer p) const ynothrowv
 }
 
 
-DirectoryFindData::DirectoryFindData(wstring_view name)
-	: dir_name(name), find_data()
+DirectoryFindData::DirectoryFindData(wstring name)
+	: dir_name(std::move(name)), find_data()
 {
 	if(ystdex::rtrim(dir_name, L"/\\").empty())
 		dir_name = L'.';
@@ -636,7 +592,7 @@ DirectoryFindData::DirectoryFindData(wstring_view name)
 NodeCategory
 DirectoryFindData::GetNodeCategory() const ynothrow
 {
-	if(p_node && !d_name.empty())
+	if(p_node && find_data.cFileName[0] != wchar_t())
 	{
 		auto res(CategorizeNode(find_data));
 		wstring_view name(GetDirName());
@@ -649,7 +605,7 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 
 			// NOTE: Only existed and accessible files are considered.
 			// FIXME: Blocked. TOCTTOU access.
-			if(const auto h = MakeFile((wstring(name) + d_name).c_str(),
+			if(const auto h = MakeFile((wstring(name) + GetEntryName()).c_str(),
 				FileSpecificAccessRights::ReadAttributes,
 				FileAttributesAndFlags::NormalWithDirectory))
 				res |= TryCategorizeNodeAttributes(h.get())
@@ -661,7 +617,7 @@ DirectoryFindData::GetNodeCategory() const ynothrow
 	return NodeCategory::Empty;
 }
 
-observer_ptr<wstring>
+bool
 DirectoryFindData::Read()
 {
 	const auto chk_err([this](const char* fn, ErrorCode ec) YB_NONNULL(1){
@@ -686,11 +642,8 @@ DirectoryFindData::Read()
 		p_node.reset();
 	}
 	if(p_node)
-	{
-		d_name = find_data.cFileName;
-		if(d_name[0] != wchar_t())
-			return make_observer(&d_name);
-	}
+		return find_data.cFileName[0] != wchar_t();
+	find_data.cFileName[0] = wchar_t();
 	return {};
 }
 
@@ -701,34 +654,83 @@ DirectoryFindData::Rewind() ynothrow
 }
 
 
+struct ReparsePointData::Data
+{
+	struct tagSymbolicLinkReparseBuffer
+	{
+		unsigned short SubstituteNameOffset;
+		unsigned short SubstituteNameLength;
+		unsigned short PrintNameOffset;
+		unsigned short PrintNameLength;
+		unsigned long Flags;
+		wchar_t PathBuffer[1];
+
+		DefGetter(const ynothrow, wstring_view, PrintName,
+			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
+			size_t(PrintNameLength / sizeof(wchar_t))})
+	};
+	struct tagMountPointReparseBuffer
+	{
+		unsigned short SubstituteNameOffset;
+		unsigned short SubstituteNameLength;
+		unsigned short PrintNameOffset;
+		unsigned short PrintNameLength;
+		wchar_t PathBuffer[1];
+
+		DefGetter(const ynothrow, wstring_view, PrintName,
+			{PathBuffer + size_t(PrintNameOffset) / sizeof(wchar_t),
+			size_t(PrintNameLength / sizeof(wchar_t))})
+	};
+	struct tagGenericReparseBuffer
+	{
+		unsigned char DataBuffer[1];
+	};
+
+	unsigned long ReparseTag;
+	unsigned short ReparseDataLength;
+	unsigned short Reserved;
+	union
+	{
+		tagSymbolicLinkReparseBuffer SymbolicLinkReparseBuffer;
+		tagMountPointReparseBuffer MountPointReparseBuffer;
+		tagGenericReparseBuffer GenericReparseBuffer;
+	};
+};
+
+
+ReparsePointData::ReparsePointData()
+	: pun(&target_buffer)
+{
+	static_assert(ystdex::is_aligned_storable<decltype(target_buffer), Data>(),
+		"Invalid buffer found.");
+}
+ImplDeDtor(ReparsePointData)
+
+
 wstring
 ResolveReparsePoint(const wchar_t* path)
 {
-	ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE]> target_buffer;
-	
-	return wstring(ResolveReparsePoint(path, &target_buffer));
+	return wstring(ResolveReparsePoint(path, ReparsePointData().Get()));
 }
 wstring_view
-ResolveReparsePoint(const wchar_t* path, void* p_buf)
+ResolveReparsePoint(const wchar_t* path, ReparsePointData::Data& rdb)
 {
-	return MakeFileToDo([=](UniqueHandle::pointer h){
+	return MakeFileToDo([=, &rdb](UniqueHandle::pointer h){
 		return FetchFileInfo([&](::BY_HANDLE_FILE_INFORMATION& info)
 			-> wstring_view{
 			if(info.dwFileAttributes & ReparsePoint)
 			{
-				const auto p_rdb(static_cast<REPARSE_DATA_BUFFER*>(p_buf));
-
 				YCL_CallWin32F(DeviceIoControl, h, FSCTL_GET_REPARSE_POINT, {},
-					0, p_buf, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, {}, {});
-				switch(p_rdb->ReparseTag)
+					0, &rdb, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, {}, {});
+				switch(rdb.ReparseTag)
 				{
 				case IO_REPARSE_TAG_SYMLINK:
-					return p_rdb->SymbolicLinkReparseBuffer.GetPrintName();
+					return rdb.SymbolicLinkReparseBuffer.GetPrintName();
 				case IO_REPARSE_TAG_MOUNT_POINT:
-					return p_rdb->MountPointReparseBuffer.GetPrintName();
+					return rdb.MountPointReparseBuffer.GetPrintName();
 				default:
 					YTraceDe(Warning, "Unsupported reparse tag '%lu' found",
-						p_rdb->ReparseTag);
+						rdb.ReparseTag);
 					ystdex::throw_error(std::errc::not_supported);
 				}
 			}

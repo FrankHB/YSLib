@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3287
+\version r3297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-06-24 20:54 +0800
+	2016-06-26 05:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -555,18 +555,16 @@ public:
 
 private:
 #if YCL_Win32
-	using DirentData = wstring;
+	//! \since build 705
+	u16string dirent_str;
 #else
-	using DirentData = ::dirent;
-#endif
-
 	/*!
 	\brief 节点信息。
 	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt> 。
-	\invariant <tt>!(YCL_Win32 && p_dirent && p_dirent->empty())</tt> 。
 	\since build 669
 	*/
-	tidy_ptr<DirentData> p_dirent{};
+	tidy_ptr<::dirent> p_dirent{};
+#endif
 
 public:
 	/*!
@@ -599,7 +597,11 @@ public:
 	\brief 判断文件系统节点无效或有效性。
 	\since build 561
 	*/
+#if YCL_Win32
+	DefBoolNeg(explicit, !dirent_str.empty())
+#else
 	DefBoolNeg(explicit, bool(p_dirent))
+#endif
 
 	//! \since build 648
 	DefCvt(const ynothrow, basic_string_view<NativeChar>, GetNativeName())

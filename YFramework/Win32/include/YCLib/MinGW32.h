@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1716
+\version r1768
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-06-25 00:59 +0800
+	2016-06-26 02:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,13 @@
 #define YCL_MinGW32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for unique_ptr_from;
-#include YFM_YCLib_NativeAPI // for MAX_PATH;
+#include YFM_YCLib_Host // for unique_ptr_from, byte;
+#include YFM_YCLib_NativeAPI // for MAX_PATH, MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
 #include YFM_YCLib_Debug // for string, platform::Deref, wstring,
-//	ystdex::ends_with, pair;
+//	ystdex::ends_with, ystdex::pun_storage_t, ystdex::pun_ref, pair;
 #include <ystdex/enum.hpp> // for ystdex::enum_union,
 //	ystdex::wrapped_enum_traits_t;
 #include YFM_YCLib_FileIO // for platform::NodeCategory;
@@ -755,7 +755,17 @@ public:
 	打开 UTF-16 路径指定的目录。
 	目录路径无视结尾的斜杠和反斜杠。 去除结尾斜杠和反斜杠后若为空则视为当前路径。
 	*/
-	DirectoryFindData(wstring_view);
+	//@{
+	DirectoryFindData(wstring_view sv)
+		: DirectoryFindData(sv.to_string())
+	{}
+	//! \since build 705
+	DirectoryFindData(u16string_view sv)
+		: DirectoryFindData(wstring(sv.cbegin(), sv.cend()))
+	{}
+	//! \since build 705
+	DirectoryFindData(wstring);
+	//@}
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	DefDeDtor(DirectoryFindData)
 
@@ -765,12 +775,18 @@ public:
 	//! \since build 564
 	DefGetter(const ynothrow, unsigned long, Attributes,
 		find_data.dwFileAttributes)
+	/*!
+	\brief 返回当前查找项目名。
+	\return 当前查找项目名。
+	\since build 705
+	*/
+	YB_PURE DefGetter(const ynothrow,
+		const wchar_t*, EntryName, find_data.cFileName)
 	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
 	//! \since build 593
 	DefGetter(const ynothrow, const wstring&, DirName, (YAssert(
 		dir_name.length() > 1 && ystdex::ends_with(dir_name, L"\\*"),
 		"Invalid directory name found."), dir_name))
-
 	/*!
 	\brief 取子节点的类型。
 	\return 当前节点无效或查找的项目名称为空时为 platform::NodeCategory::Empty ，
@@ -786,19 +802,48 @@ public:
 
 	/*!
 	\brief 读取：迭代当前查找状态。
-	\return 若迭代结束后节点且文件名非空，表示当前查找项目名的指针；否则为空指针。
-	\since build 671
+	\return 若迭代结束后节点且文件名非空。
+	\since build 705
 
 	若查找节点句柄非空则迭代当前查找状态查找下一个文件系统项。
 	否则查找节点句柄为空或迭代失败则关闭查找状态并置查找节点句柄空。
 	最终查找节点非空时保存记录当前查找的项目状态。
 	*/
-	observer_ptr<wstring>
+	bool
 	Read();
 
 	//! \brief 复位查找状态：若查找节点句柄非空则关闭查找状态并置查找节点句柄空。
 	void
 	Rewind() ynothrow;
+};
+
+
+/*!
+\brief 重解析点数据。
+\note 避免直接使用指针转换成显式不同的类型时引起未定义行为。
+\since build 705
+*/
+class YF_API ReparsePointData final
+{
+public:
+	class Data;
+
+private:
+	//! \note 显式未初始化。
+	ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE],
+		yalignof(void*)> target_buffer;
+	//! \invariant <tt>&pun.get() == &target_buffer</tt>
+	ystdex::pun_ref<Data> pun;
+
+public:
+	ReparsePointData();
+	/*!
+	\brief 析构：类定义外默认实现。
+	\note 允许 Data 作为不完整类型使用。
+	*/
+	~ReparsePointData();
+
+	DefGetter(const ynothrow, Data&, , pun.get())
 };
 
 
@@ -814,12 +859,9 @@ public:
 //! \since build 660
 YF_API YB_NONNULL(1) wstring
 ResolveReparsePoint(const wchar_t*);
-/*!
-\pre 第二参数指定至少具有 MAXIMUM_REPARSE_DATA_BUFFER_SIZE 字节可写的缓冲区。
-\since build 704
-*/
-YF_API YB_NONNULL(1, 2) wstring_view
-ResolveReparsePoint(const wchar_t*, void*);
+//! \since build 705
+YF_API YB_NONNULL(1) wstring_view
+ResolveReparsePoint(const wchar_t*, ReparsePointData::Data&);
 //@}
 
 

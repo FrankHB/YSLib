@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r285
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2015-10-11 23:43 +0800
+	2016-06-26 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -165,7 +165,7 @@ public:
 
 	/*!
 	\brief 输出字符串。
-	\pre 第一参数的数据指针非空。
+	\pre 断言：第一参数的数据指针非空。
 	\return 输出的字符数。
 	\since build 645
 	*/
@@ -178,7 +178,7 @@ public:
 	size_t
 	WriteString(wstring_view);
 	PDefH(size_t, WriteString, u16string_view sv)
-		ImplRet(WriteString({platform::wcast(sv.data()), sv.length()}))
+		ImplRet(WriteString(wstring(sv.cbegin(), sv.cend())))
 	//@}
 	//@}
 };
