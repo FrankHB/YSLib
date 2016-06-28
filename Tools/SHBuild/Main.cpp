@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3401
+\version r3403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2016-06-21 03:52 +0800
+	2016-06-28 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -508,7 +508,8 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 			{
 				if(ystdex::exists(rule.Context.IgnoredDirs, name))
 					print("Subdirectory " + Quote(path + name
-						+ YCL_PATH_DELIMITER) + " is ignored.", Informative);
+						+ IO::FetchSeparator<char>()) + " is ignored.",
+						Informative);
 				else
 					subdirs.push_back(name);
 			}

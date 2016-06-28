@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1933
+\version r1937
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-06-24 20:22 +0800
+	2016-06-28 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -416,6 +416,10 @@ using platform::DirectorySession;
 using platform::HDirectory;
 using platform::FileIterator;
 //@}
+//! \since build 705
+using platform::FetchSeparator;
+//! \since build 705
+using platform::IsSeparator;
 //! \since build 171
 using platform::IsAbsolute;
 //! \since build 654
