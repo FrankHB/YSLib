@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2375
+\version r2409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-06-25 21:53 +0800
+	2016-06-27 03:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,6 +69,8 @@ using platform_ex::QueryFileTime;
 using platform_ex::UTF8ToWCS;
 using platform_ex::ConvertTime;
 //@}
+//! \since build 706
+using platform_ex::MakePathStringW;
 #elif YCL_API_POSIXFileSystem
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
@@ -149,7 +151,7 @@ void
 QueryFileTime(const char* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime, bool follow_reparse_point)
 {
-	QueryFileTime(UTF8ToWCS(path).c_str(), p_ctime, p_atime, p_mtime,
+	QueryFileTime(MakePathStringW(path).c_str(), p_ctime, p_atime, p_mtime,
 		follow_reparse_point);
 }
 //! \since build 632
@@ -214,7 +216,7 @@ template<typename _func>
 YB_NONNULL(2) bool
 CallFuncWithAttr(_func f, const char* path)
 {
-	const auto& wpath(UTF8ToWCS(path));
+	const auto& wpath(MakePathStringW(path));
 	const auto& wstr(wpath.c_str());
 	const auto attr(FileAttributes(::GetFileAttributesW(wstr)));
 
@@ -307,8 +309,9 @@ bool
 IsNodeShared_Impl(const char* a, const char* b, bool follow_link) ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileNodeID(UTF8ToWCS(a).c_str(), follow_link)
-		== QueryFileNodeID(UTF8ToWCS(b).c_str(), follow_link))
+	YCL_Impl_RetTryCatchAll(
+		QueryFileNodeID(MakePathStringW(a).c_str(), follow_link)
+		== QueryFileNodeID(MakePathStringW(b).c_str(), follow_link))
 	return {};
 #else
 	struct ::stat st;
@@ -784,7 +787,7 @@ uaccess(const char* path, int amode) ynothrowv
 {
 	YAssertNonnull(path);
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_waccess(UTF8ToWCS(path).c_str(), amode))
+	YCL_Impl_RetTryCatchAll(::_waccess(MakePathStringW(path).c_str(), amode))
 	return -1;
 #else
 	return ::access(path, amode);
@@ -807,7 +810,7 @@ uopen(const char* filename, int oflag, mode_t pmode) ynothrowv
 {
 	YAssertNonnull(filename);
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wopen(UTF8ToWCS(filename).c_str(), oflag,
+	YCL_Impl_RetTryCatchAll(::_wopen(MakePathStringW(filename).c_str(), oflag,
 		int(pmode)))
 	return -1;
 #else
@@ -833,8 +836,8 @@ ufopen(const char* filename, const char* mode) ynothrowv
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wfopen(UTF8ToWCS(filename).c_str(),
-		UTF8ToWCS(mode).c_str()))
+	YCL_Impl_RetTryCatchAll(::_wfopen(MakePathStringW(filename).c_str(),
+		MakePathStringW(mode).c_str()))
 	return {};
 #else
 	return std::fopen(filename, mode);
@@ -867,7 +870,7 @@ ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv
 	if(const auto c_mode = ystdex::openmode_conv(mode))
 #if YCL_Win32
 		YCL_Impl_RetTryCatchAll(
-			::_wfopen(wcast(filename), UTF8ToWCS(c_mode).c_str()))
+			::_wfopen(wcast(filename), MakePathStringW(c_mode).c_str()))
 #else
 		YCL_Impl_RetTryCatchAll(std::fopen(MakePathString(filename).c_str(),
 			c_mode))
@@ -915,8 +918,8 @@ upopen(const char* filename, const char* mode) ynothrowv
 	errno = ENOSYS;
 	return {};
 #elif YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wpopen(UTF8ToWCS(filename).c_str(),
-		UTF8ToWCS(mode).c_str()))
+	YCL_Impl_RetTryCatchAll(::_wpopen(MakePathStringW(filename).c_str(),
+		MakePathStringW(mode).c_str()))
 	return {};
 #else
 	return ::popen(filename, mode);
@@ -983,11 +986,12 @@ ugetcwd(char16_t* buf, size_t size) ynothrowv
 #if YCL_Win32
 		return ucast(::_wgetcwd(wcast(buf), int(size)));
 #else
+		// XXX: Alias by %char array is safe. 
 		if(const auto cwd
 			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), size))
 			try
 			{
-				const auto res(CHRLib::MakeUCS2LE(cwd));
+				const auto res(platform_ex::MakePathStringU(cwd));
 				const auto len(res.length());
 
 				if(size < len + 1)
@@ -1011,7 +1015,7 @@ _n(const char* path) ynothrowv \
 
 #if YCL_Win32
 #	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
-	YCL_Impl_RetTryCatchAll(_wfn(UTF8ToWCS(path).c_str()) == 0) \
+	YCL_Impl_RetTryCatchAll(_wfn(MakePathStringW(path).c_str()) == 0) \
 	return {}; \
 }
 #else
@@ -1103,7 +1107,7 @@ YB_NONNULL(1) size_t
 FetchNumberOfLinks(const char* path, bool follow_link) ynothrowv
 {
 #if YCL_Win32
-	return QueryFileLinks(UTF8ToWCS(path).c_str(), follow_link);
+	return QueryFileLinks(MakePathStringW(path).c_str(), follow_link);
 #else
 	struct ::stat st;
 
@@ -1224,4 +1228,23 @@ IsNodeShared(FileDescriptor x, FileDescriptor y) ynothrow
 }
 
 } // namespace platform;
+
+namespace platform_ex
+{
+
+#if YCL_Win32
+wstring
+MakePathStringW(const char* s)
+{
+	return platform_ex::UTF8ToWCS(s);
+}
+#else
+u16string
+MakePathStringU(const char* s)
+{
+	return CHRLib::MakeUCS2LE(s);
+}
+#endif
+
+} // namespace platform_ex;
 

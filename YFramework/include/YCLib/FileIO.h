@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2023
+\version r2066
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-06-25 20:27 +0800
+	2016-06-27 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ namespace platform
 
 /*!
 \brief 构造适合表示路径的 \c char 字符串。
-\note 字符类型非 \c char 时转换，假定为 UTF-8 编码。
+\note 字符类型非 \c char 时转换。
 \since build 634
 */
 //@{
@@ -60,7 +60,7 @@ inline YB_NONNULL(1) PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
 inline PDefH(const string&, MakePathString, const string& s)
 	ImplRet(s)
-//! \pre Win32 平台：严格别名要求实际动态类型为 wchar_t 字符或无法确定。
+//! \pre Win32 平台：因实现不直接访问左值，字符的动态类型可为布局兼容的整数类型。
 //@{
 //! \pre 间接断言：参数非空。
 YF_API YB_NONNULL(1) string
@@ -1292,6 +1292,50 @@ IsNodeShared(FileDescriptor, FileDescriptor) ynothrow;
 //@}
 
 } // namespace platform;
+
+namespace platform_ex
+{
+
+//! \since build 706
+//@{
+#if YCL_Win32
+/*!
+\brief 构造适合表示路径的 \c char16_t 字符串。
+\note 字符类型非 \c char16_t 时转换。
+*/
+//@{
+//! \pre 间接断言：参数非空。
+inline YB_NONNULL(1) PDefH(wstring, MakePathStringW, const wchar_t* s)
+	ImplRet(platform::Nonnull(s))
+inline PDefH(const wstring&, MakePathStringW, const wstring& s)
+	ImplRet(s)
+//! \pre 间接断言：参数非空。
+YF_API YB_NONNULL(1) wstring
+MakePathStringW(const char*);
+inline PDefH(wstring, MakePathStringW, string_view sv)
+	ImplRet(MakePathStringW(sv.data()))
+//@}
+#else
+/*!
+\brief 构造适合表示路径的 \c char16_t 字符串。
+\note 字符类型非 \c char16_t 时转换。
+*/
+//@{
+//! \pre 间接断言：参数非空。
+inline YB_NONNULL(1) PDefH(u16string, MakePathStringU, const char16_t* s)
+	ImplRet(platform::Nonnull(s))
+inline PDefH(const u16string&, MakePathStringU, const u16string& s)
+	ImplRet(s)
+//! \pre 间接断言：参数非空。
+YF_API YB_NONNULL(1) u16string
+MakePathStringU(const char*);
+inline PDefH(u16string, MakePathStringU, string_view sv)
+	ImplRet(MakePathStringU(sv.data()))
+//@}
+#endif
+//@}
+
+} // namespace platform_ex;
 
 #endif
 

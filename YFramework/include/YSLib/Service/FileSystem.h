@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2926
+\version r2940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-06-13 17:55 +0800
+	2016-06-28 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ NormalizeDirectoryPathTail(_tString&& str, typename
 	typename ystdex::string_traits<_tString>::value_type>("/\\")[0])
 {
 	return ystdex::rtrim(yforward(str), tail) + typename
-		ystdex::string_traits<_tString>::value_type(YCL_PATH_DELIMITER);
+		ystdex::string_traits<_tString>::value_type(FetchSeparator<char16_t>());
 }
 
 
@@ -66,14 +66,17 @@ struct PathTraits
 	static yconstfn bool
 	IsDelimiter(_tChar c) ynothrow
 	{
-		return YCL_FS_CharIsDelimiter(c, _tChar);
+		return IO::IsSeparator(c);
 	}
 
 	template<class _tString>
 	static yconstfn bool
 	is_parent(const _tString& str) ynothrow
 	{
-		return YCL_FS_StringIsParent(str, decltype(str[0]));
+		using value_type = decltype(str[0]);
+
+		return ystdex::string_length(str) == 2 && str[0] == value_type('.')
+			&& str[1] == value_type('.');
 	}
 
 	template<class _tString>
@@ -93,7 +96,8 @@ struct PathTraits
 	static yconstfn bool
 	is_self(const _tString& str) ynothrow
 	{
-		return YCL_FS_StringIsCurrent(str, decltype(str[0]));
+		return
+			ystdex::string_length(str) == 1 && str[0] == decltype(str[0])('.');
 	}
 };
 
@@ -206,14 +210,14 @@ public:
 	//@{
 	//! \brief 取不带分隔符结尾的字符串。
 	PDefH(String, GetLeafString,
-		char16_t delimiter = char16_t(YCL_PATH_DELIMITER)) const
+		char16_t delimiter = FetchSeparator<char16_t>()) const
 		ImplRet(ystdex::to_string(GetBase(), {delimiter}))
 	/*!
 	\brief 取指定分隔符的字符串表示。
 	\post 断言：结果为空或以分隔符结尾。
 	*/
 	String
-	GetString(char16_t = char16_t(YCL_PATH_DELIMITER)) const;
+	GetString(char16_t = FetchSeparator<char16_t>()) const;
 	//@}
 	/*!
 	\brief 正规化：去除自指和父节点的路径成员。
@@ -238,13 +242,14 @@ public:
 	\since build 599
 	*/
 	String
-	Verify(char16_t = char16_t(YCL_PATH_DELIMITER)) const;
+	Verify(char16_t = FetchSeparator<char16_t>()) const;
 	/*!
 	\brief 验证指定分隔符和编码的多字节字符串。
 	\since build 651
 	*/
-	PDefH(string, VerifyAsMBCS, char16_t delimiter = char16_t(
-		YCL_PATH_DELIMITER), Text::Encoding enc = Text::CS_Default) const
+	PDefH(string, VerifyAsMBCS,
+		char16_t delimiter = char16_t(FetchSeparator<char16_t>()),
+		Text::Encoding enc = Text::CS_Default) const
 		ImplRet(Verify(delimiter).GetMBCS(enc))
 
 	//! \since build 409
@@ -297,7 +302,7 @@ public:
 
 	//! \since build 475
 	friend PDefH(String, to_string, const Path& pth)
-		ImplRet(to_string(pth.GetBase(), {char16_t(YCL_PATH_DELIMITER)}))
+		ImplRet(to_string(pth.GetBase(), {FetchSeparator<char16_t>()}))
 	//@}
 };
 

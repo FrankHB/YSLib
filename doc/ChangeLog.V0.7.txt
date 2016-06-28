@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r709
+\version r826
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-06-26 05:34 +0800
+	2016-06-28 11:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,122 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ @ "namespace %platform_ex" @ %FileIO $=
+			(
+				+ "4 functions %MakePathStringW" @ "platform %Win32",
+				+ "4 functions %MakePathStringU" @ !"platform %Win32"
+			),
+			/ "path string conversion" @ "platform %Win32"
+				^ ("%platform_ex::MakePathStringW" @ %FileIO)
+				~ "%platform_ex::UTF8ToWCS" $effective @ %(FileIO, FileSystem),
+				// Also decople string types if the implementation use other \
+					string types not convertible from %CHRLib::MakeUCS2LE \
+					result in future.
+			/ "path string conversion" @ "platform %Win32"
+				^ ("%platform_ex::MakePathStringU" @ %FileIO)
+				~ "%CHRLib::MakeUCS2LE" $effective @ %(FileIO, FileSystem),
+				// This does not FAT UCS name conversion in %FileIO which \
+					explicitly using UCS-2LE conversion.
+			/ %FileSystem $=
+			(
+				/ DLDI "simplified function 'operator u16string'"
+					@ "class %HDirectory",
+				(
+				/ "function template %IsSlash" -> "function templates %(2 \
+					FetchSeparator_P; FetchSeparator)";
+				+ "function templates %(2 IsSeparator_P, IsSeparator)";
+				(
+					/ $forced "function templates %EndsWithNonSeperator_P"
+						^ "%IsSeparator_P" ~ "ADL %IsSlash",
+					* $comp "%EndsWithNonSeperator_P for platform %Win32"
+						^ "native separator" ~ "target separator" $since b693
+				),
+				(
+				/ $forced "function templates %IsAbsolute_P not for platform \
+					%Win32" ^ "%FetchSeparator_P" ~ "ADL %IsSlash",
+				/ "function templates %IsAbsolute_P for platform %Win32"
+					^ "%IsSeparator_P"
+					~ "comparison to %YCL_PATH_DELIMITER";
+				* $comp "missing support of '/' as absolute path separator"
+					@ "%IsAbsolute_P for platform %Win32" $orig
+					@ ("platform %Win32" @ "function %IsAbsolute" @ %YCommon
+					$since b299)
+					// %::PathIsRelativeA only recognize backslash as separator.
+				),
+				- "function template %EndsWithNonSeperator_P for %Win32",
+					// It is now merged by using %IsSeparator_P.
+				/ "function templates %FetchRootNameLength_P (with pointer \
+					parameter for platform %DS, with string parameter for \
+					platform %Win32)" ^ "%IsSeparator_P"
+					~ ("comparison to '/' or %YCL_FS_CharIsDelimiter"),
+				/ "function templates %FetchRootNameLength_P for base platforms"
+					^ "%IsSeparator_P" ~ "comparison to '/'"
+				/ "functions %ResolvePath" ^ "%IsSeparator"
+					~ "%YCL_FS_CharIsDelimiter",
+				/ "all 'YCL_PATH_DELIMITER'" -> "call of %FetchSeparator \
+					instances" $dep_to "removal of %YCL_PATH_DELIMITER"
+				),
+				/ DLDI "%basic_string_view instance" ^ 'path.front()'
+					~ 'path[0]' $effective
+					@ %(IsAbsolute_P, FetchRootNameLength_P),
+				- $revert(b409) "macros %(YCL_FS_CharIsDelimiter, \
+					YCL_FS_StringIsCurrent, YCL_FS_StringIsParent)" $dep_from
+					("%PathTraits" @ %YSLib.Service.FileSystem),
+				(
+				- $revert(b297) "macro %YCL_PATH_ROOT",
+				- $revert(b402) $dev
+					"all 4 static assertions for %YCL_PATH_SEPARATOR";
+				- $revert(b402) "macro %YCL_PATH_SEPARATOR"
+				),
+				(
+				- $revert(b402) $dev "static assertion for %YCL_PATH_DELIMITER";
+				- $revert(b296) "macro %YCL_PATH_DELIMITER" $dep_from
+					(%(YSLib.Service.FileSystem, Tools.SHBuild.Main),
+					"removal of %YCL_PATH_DELIMITER")
+				),
+				* "access for colon overrun" @ "function template \
+					%IsAbsolute_P for platform %Win32 with %basic_string_view \
+					instance parameter" $since b654,
+					// This was not ever called since IO::IsAbsolute used \
+						%string::c_str instead.
+				/ @ "function %ResolvePath" $=
+				(
+					* "wrong assertion when path is root path"
+						@ !"platform %Win32" $since b699
+					* "wrong handling with assumption of trailing separator \
+						when path is root path" @ "function %ResolvePath" $since
+						b699
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			+ ('using platform::FetchSeparator;',
+				'using platform::IsSeparator;') $dep_from
+				"%platform::(FetchSeparator, IsSeparator)" @ %YCLib.FileSystem;
+			/ @ %Service.FileSystem $=
+			(
+				/ @ "class template %PathTraits" @ "namespace %IO" $=
+				(
+					/ "function template %IsDelimiter" ^ "%IO::IsSeparator"
+						~ "%YCL_FS_CharIsDelimiter",
+					/ "function template %is_self" !^ "%YCL_FS_StringIsCurrent",
+					/ "function template %is_parent" !^ "%YCL_FS_StringIsParent"
+				)
+				/ "all 'YCL_PATH_DELIMITER'"
+					-> "call of %FetchSeparator instances',
+			)
+		)
+	),
+	/ $impl %Tools.SHBuild.Main ^ "%IO::FetchSeparator" ~ 'YCL_PATH_DELIMITER'
+),
+
+b705
 (
 	+ $re_add(b611) $dev $repo "tag 'V0.7' to revision 572",
 	/ %YBase.YStandardEx.TypePun $=
@@ -91,8 +207,7 @@ $now
 					/ $forced DLDI "simplified function %GetNativeName";
 					* $comp "strict aliasing broken"
 						@ "functions %(GetNativeName; \
-						operator u16string)" $since b,
-					/ DLDI "simplified function 'operator u16string'"
+						operator u16string)" $since b648
 				)
 			),
 			/ %FileIO $=
