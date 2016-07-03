@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1937
+\version r1951
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-06-28 00:05 +0800
+	2016-07-01 03:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -273,8 +273,6 @@ using platform::ufexists;
 using platform::upclose;
 //! \since build 566
 using platform::upopen;
-//! \since build 698
-using platform::ugetcwd;
 //! \since build 313
 using platform::uchdir;
 //! \since build 475
@@ -307,6 +305,8 @@ using platform::wifstream;
 using platform::wofstream;
 using platform::wfstream;
 //@}
+//! \since build 707
+using platform::TryGetCurrentWorkingDirectory;
 //@}
 
 //系统处理函数。
@@ -407,23 +407,32 @@ using platform::IsNodeShared;
 //! \since build 474
 using platform::NodeCategory;
 
+//! \since build 707
+using platform::IsDirectory;
+
 using platform::CreateHardLink;
 using platform::CreateSymbolicLink;
 //@}
+//! \since build 707
+using platform::ReadLink;
+//! \since build 707
+using platform::IterateLink;
 //! \since build 411
 //@{
 using platform::DirectorySession;
 using platform::HDirectory;
 using platform::FileIterator;
 //@}
-//! \since build 705
+//! \since build 706
 using platform::FetchSeparator;
-//! \since build 705
+//! \since build 706
 using platform::IsSeparator;
 //! \since build 171
 using platform::IsAbsolute;
 //! \since build 654
 using platform::FetchRootNameLength;
+//! \since build 707
+using platform::TrimTrailingSeperator;
 //@}
 //! \since build 648
 using NativePathView = basic_string_view<HDirectory::NativeChar>;

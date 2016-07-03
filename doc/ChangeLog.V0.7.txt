@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r826
+\version r951
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-06-28 11:07 +0800
+	2016-07-04 02:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,130 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ "namespace %IO" @ %Service.FileSystem $=
+			(
+				* "ill-formed for %basic_string instance of string for \
+					%is_root due to no parameter type supported by \
+					%FetchRootNameLength" @ "class %PathTraits"
+					$since b654 $=
+				(
+					/ "function template" ^ "%auto and trailing-return-type";
+					/ $re_ex(b654) "static function with %String parameter"
+						-> "function template with %basic_string instance as \
+						parameter"
+				),
+				(
+				+ "function template %TryGetNormalizedCurrentWorkingDirectory"
+					^ $dep_from
+					("%TryGetCurrentWorkingDirectory" @ %Adaptor.YAdaptor);
+				+ "function template %PrepareBasePath"
+				),
+				+ "function template %ResolvePathWithBase" ^ $dep_from
+					"%(IsDirectory, IterateLink)" @ %Adaptor.YAdaptor,
+				(
+				/ @ "function %MakeNormalizedAbsolute" $=
+				(
+					/ $impl ^ $dep_from ("%TryGetCurrentWorkingDirectory"
+						@ %Adaptor.YAdaptor) ~ "%FetchCurrentWorkingDirectory";
+					/ $comp "size indicated initial buffer size"
+						~ "max buffer size"
+				);
+				- $revert(b475) "function %FetchCurrentWorkingDirectory"
+					$dep_from %YReader.ShlExplorer
+				),
+				/ "function template %NormalizeDirectoryPathTail" $=
+				(
+					^ $dep_from ("%TrimTrailingSeperator" @ %Adaptor.YAdaptor)
+						~ "%ystdex::rtrim",
+					+ $lib "assertion for intermediate state"
+				)
+			),
+			/ %Adaptor.YAdaptor $=
+			(
+				+ 'using platform::TrimTrailingSeperator;'
+					$dep_from "%TrimTrailingSeperator" @ %YCLib.FileSystem,
+				+ 'using platform::ReadLink;',
+				+ ('using platform::IsDirectory', 'using platform::IterateLink')
+					$dep_from "%(IsDirectory, IterateLink)" @ %YCLib.FileSystem,
+				+ 'using platform::TryGetCurrentWorkingDirectory;',
+				- $revert(b698) 'using platform::ugetcwd;'
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %FileSystem
+			(
+				+ "function templates %(2 TrimTrailingSeperator_P, \
+					TrimTrailingSeperator)";
+				/ DLDI "simplified functions %ResolvePath"
+					^ "%TrimTrailingSeperator",
+				+ "2 functions %IsDirectory",
+				+ "2 functions %IterateSymbolicLink",
+				(
+				/ $re_ex(b704) "2 functions %ResolvePath"
+					-> "function template %ResolvePath" @ "namespace %YSLib::IO"
+					@ %YSLib.Service.FileSystem ^ $dep_from
+					("%YSLib::IO::(PrepareBasePath, ResolvePathWithBase)"
+					@ %YSLib.Service.FileSystem);
+				/ $comp "platform %Win32" @ "functions %ResolvePath"
+					$=
+				(
+					* "invalid file system entry treated as directory" $since
+						b699,
+					* $comp "redundant absolute path check and duplicated \
+						seperator in resulted absolute path" $since b699
+				)
+				)
+			),
+			/ %FileIO $=
+			(
+				/ "functions %ugetcwd" @ "namespace %platform" $=
+				(
+					/ @ "platform %Win32" $=
+					(
+						+ $doc "clearified trailing slash guarantee" ,
+						/ "avoided excessive race conditions" $since
+							// Calls of %::GetCurrentDirectoryW and \
+								%::GetFullPathNameW in %::_wgetcwd might have \
+								risk with calls of %::(_chdrive, _chdir, \
+								SetCurrentDirectory) of user code. This is at \
+								least fit for the implementation of universal \
+								CRT in Windows SDK 10.0.10240.0.
+							$= (/ $impl ^ "%::(GetCurrentDirectoryW, \
+								GetErrnoFromWin32)" ~ "::_wgetcwd")
+					),
+					/ $doc @ !"platform %Win32"
+					(
+					/ "explicitly stated the trailing slash is unspecified as \
+						POSIX.1-2004";
+					* "wrong standard 'POSIX.1 2013' to conform" $since b699
+						// POSIX.1 2004 has no guarantee about slashes. \
+							POSIX.1 2013 mandates there are no redundant \
+							slashes.
+					)
+				),
+				/ @ "function template %TryGetCurrentWorkingDirectory" $=
+				(
+					^ "%platform::ugetcwd" ~ "ADL %ugetcwd"
+						@ "primary template",
+					+ "specializations for %string and %u16string"
+						@ "platform %Win32" ^ "::GetCurrentDirectoryW"
+				)
+			)
+		)
+	),
+	/ $impl @ !"platform %Android" @ "function %FetchDefaultShellDirectory"
+		@ %YReader.ShlExplorer ^ $dep_from ("%TryGetCurrentWorkingDirectory"
+		@ %YFramework.YSLib.YAdaptor.Adaptor)
+		~ "%FetchCurrentWorkingDirectory"
+),
+
+b706
 (
 	/ %YFramework $=
 	(
@@ -89,7 +213,7 @@ $now
 				/ "functions %ResolvePath" ^ "%IsSeparator"
 					~ "%YCL_FS_CharIsDelimiter",
 				/ "all 'YCL_PATH_DELIMITER'" -> "call of %FetchSeparator \
-					instances" $dep_to "removal of %YCL_PATH_DELIMITER"
+					instances" $dep_to "removal use of YCL_PATH_DELIMITER"
 				),
 				/ DLDI "%basic_string_view instance" ^ 'path.front()'
 					~ 'path[0]' $effective
@@ -107,7 +231,7 @@ $now
 				- $revert(b402) $dev "static assertion for %YCL_PATH_DELIMITER";
 				- $revert(b296) "macro %YCL_PATH_DELIMITER" $dep_from
 					(%(YSLib.Service.FileSystem, Tools.SHBuild.Main),
-					"removal of %YCL_PATH_DELIMITER")
+					"removal use of YCL_PATH_DELIMITER")
 				),
 				* "access for colon overrun" @ "function template \
 					%IsAbsolute_P for platform %Win32 with %basic_string_view \

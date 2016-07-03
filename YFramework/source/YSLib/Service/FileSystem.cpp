@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2196
+\version r2205
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2016-06-28 00:43 +0800
+	2016-06-30 06:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,22 +77,13 @@ Path::Verify(char16_t delimiter) const
 }
 
 
-String
-FetchCurrentWorkingDirectory(size_t len)
-{
-	u16string str(len, char16_t());
-
-	ugetcwd(&str[0], len);
-	return str;
-}
-
 Path
-MakeNormalizedAbsolute(const Path& pth, size_t len)
+MakeNormalizedAbsolute(const Path& pth, size_t init_size)
 {
 	Path res(pth);
 
 	if(IsRelative(res))
-		res = Path(FetchCurrentWorkingDirectory(len)) / res;
+		res = Path(TryGetCurrentWorkingDirectory<char16_t>(init_size)) / res;
 	res.Normalize();
 	YTraceDe(Debug, "Converted path is '%s'.", res.VerifyAsMBCS().c_str());
 	YAssert(IsAbsolute(res), "Invalid path converted.");
