@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3450
+\version r3506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-06-28 10:48 +0800
+	2016-06-30 02:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,9 @@
 #define YCL_INC_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_Container // for std::is_integral, std::is_array,
-//	ystdex::remove_reference_t, size, ystdex::is_null, string, u16string,
-//	wstring, ystdex::to_array, std::uint8_t, std::uint32_t, pair, tuple;
+#include YFM_YCLib_Container // for ystdex::to_array, ystdex::string_traits,
+//	ystdex::decay_t, ystdex::rtrim, string, u16string, std::uint8_t,
+//	std::uint32_t, size, pair, tuple;
 #include YFM_YCLib_Reference // for unique_ptr_from, tidy_ptr;
 #include <system_error> // for std::system_error;
 #include <ystdex/base.h> // for ystdex::deref_self;
@@ -78,7 +78,6 @@ FetchSeparator_P(IDTag<YF_Platform_Win32>) ynothrow
 {
 	return '\\';
 }
-
 template<typename _tChar>
 yconstfn YB_STATELESS _tChar
 FetchSeparator_P(IDTagBase) ynothrow
@@ -102,7 +101,6 @@ IsSeparator_P(IDTag<YF_Platform_Win32> tag, _tChar c) ynothrow
 {
 	return c == FetchSeparator_P<_tChar>(tag) || c == _tChar('/');
 }
-
 template<typename _tChar>
 yconstfn YB_STATELESS bool
 IsSeparator_P(IDTagBase tag, _tChar c) ynothrow
@@ -265,7 +263,10 @@ YCL_DefPlatformFwdTmpl(FetchRootNameLength, FetchRootNameLength_P)
 //@}
 //@}
 
-//! \since build 693
+/*!
+\brief 判断路径字符串是否以非分隔符结束。
+\since build 693
+*/
 //@{
 template<class _tString>
 yconstfn bool
@@ -275,6 +276,29 @@ EndsWithNonSeperator_P(IDTagBase tag, const _tString& path) ynothrow
 }
 
 YCL_DefPlatformFwdTmpl(EndsWithNonSeperator, EndsWithNonSeperator_P)
+//@}
+
+//! \since build 707
+//@{
+template<class _tString>
+yconstfn _tString&&
+TrimTrailingSeperator_P(IDTag<YF_Platform_Win32>, _tString&& path, typename
+	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
+	typename ystdex::string_traits<_tString>::value_type>("/\\")[0]) ynothrow
+{
+	return ystdex::rtrim(yforward(path), tail);
+}
+
+template<class _tString>
+yconstfn _tString&&
+TrimTrailingSeperator_P(IDTagBase tag, _tString&& path, typename
+	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
+	typename ystdex::string_traits<_tString>::value_type>("/")[0]) ynothrow
+{
+	return ystdex::rtrim(yforward(path), tail);
+}
+
+YCL_DefPlatformFwdTmpl(TrimTrailingSeperator, TrimTrailingSeperator_P)
 //@}
 //@}
 
@@ -321,6 +345,18 @@ enum class NodeCategory : std::uint_least32_t
 \since build 543
 */
 DefBitmaskEnum(NodeCategory)
+
+
+/*!
+\brief 判断指定路径是否指定目录。
+\since build 707
+*/
+//@{
+YF_API bool
+IsDirectory(const char*);
+YF_API bool
+IsDirectory(const char16_t*);
+//@}
 
 
 /*!
@@ -396,17 +432,25 @@ ReadLink(const char16_t*);
 //@}
 
 /*!
-\brief 解析路径：取跟踪链接的绝对路径。
-\note 第二参数指定解析链接的次数上限。
-\throw std::system_error std::errc::too_many_symbolic_link_levels 超过链接限制。
-\since build 704
-\return 解析得到的绝对路径。
+\brief 迭代访问链接：替换非空路径并按需减少允许链接计数。
+\throw std::system_error 系统错误：调用检查失败。
+	\li std::errc::too_many_symbolic_link_levels 减少计数后等于 0 。
+\note 忽略空路径。
+\note DS 平台：空实现。
+\since build 707
 */
 //@{
-YF_API YB_NONNULL(1) string
-ResolvePath(const char*, size_t = FetchLimit(SystemOption::MaxSymlinkLoop));
-YF_API YB_NONNULL(1) u16string
-ResolvePath(const char16_t*, size_t = FetchLimit(SystemOption::MaxSymlinkLoop));
+#if YCL_DS
+inline PDefH(void, IterateLink, string&, size_t&)
+	ImplExpr(void())
+inline PDefH(void, IterateLink, u16string&, size_t&)
+	ImplExpr(void())
+#else
+YF_API void
+IterateLink(string&, size_t&);
+YF_API void
+IterateLink(u16string&, size_t&);
+#endif
 //@}
 //@}
 
@@ -460,11 +504,11 @@ public:
 	\brief 构造：打开目录路径。
 	\pre 间接断言：参数非空。
 	\throw FileOperationFailure 打开失败。
-	\note 路径可以一个或多个分隔符结尾；结尾的分隔符会被视为单一分隔符。
+	\note 路径可以一个或多个分隔符结束；结束的分隔符会被视为单一分隔符。
 	\note 当路径只包含分隔符或为空字符串时视为当前目录。
 	\note 实现中 Win32 使用 UCS2-LE ，其它平台使用 UTF-8 ；否则需要编码转换。
 	\note Win32 平台： "/" 可能也被作为分隔符支持。
-	\note Win32 平台： 前缀 "\\?\" 关闭非结尾的 "/" 分隔符支持，
+	\note Win32 平台： 前缀 "\\?\" 关闭非结束的 "/" 分隔符支持，
 		且无视 MAX_PATH 限制。
 	\since build 699
 	*/

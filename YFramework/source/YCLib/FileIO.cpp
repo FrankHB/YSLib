@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2409
+\version r2463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-06-27 03:30 +0800
+	2016-07-04 00:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,14 @@
 #undef __STRICT_ANSI__ // for fileno, ::pclose, ::popen for POSIX platforms;
 //	_fileno, _wfopen for MinGW.org;
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileIO
+#include YFM_YCLib_FileIO // for is_integral;
 #include YFM_YCLib_Debug // for Nonnull, ystdex::throw_error,
 //	ystdex::temporary_buffer;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, ::HANDLE, struct ::stat, platform_ex::estat, ::close, ::fcntl,
 //	F_GETFL, _O_*, O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd,
-//	::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens;
+//	::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens,
+//	::LARGE_INTEGER, ::GetFileSizeEx, ::GetCurrentDirectoryW;
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
@@ -54,7 +55,7 @@
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
 //	platform_ex::UTF8ToWCS, platform_ex::ConvertTime,
-//	platform_ex::WCSToUTF8, platform_ex::SetFileTime;
+//	platform_ex::WCSToUTF8, platform_ex::SetFileTime, YCL_Raise_Win32Exception;
 
 //! \since build 639
 using platform_ex::FileAttributes;
@@ -968,6 +969,8 @@ ugetcwd(char* buf, size_t size) ynothrowv
 		}
 		CatchExpr(std::bad_alloc&, errno = ENOMEM);
 #else
+		// NOTE: POSIX.1 2004 has no guarantee about slashes. POSIX.1 2013
+		//	mandates there are no redundant slashes. See http://pubs.opengroup.org/onlinepubs/009695399/functions/getcwd.html.
 		return ::getcwd(buf, size);
 #endif
 	}
@@ -976,28 +979,36 @@ ugetcwd(char* buf, size_t size) ynothrowv
 	return {};
 }
 char16_t*
-ugetcwd(char16_t* buf, size_t size) ynothrowv
+ugetcwd(char16_t* buf, size_t len) ynothrowv
 {
 	YAssertNonnull(buf);
-	if(size != 0)
+	if(len != 0)
 	{
 		using namespace std;
 
 #if YCL_Win32
-		return ucast(::_wgetcwd(wcast(buf), int(size)));
+		// NOTE: Win32 guarantees there will be a separator if and only if when
+		//	the result is root directory for ::_wgetcwd, and actually it is
+		//	the same in ::%GetCurrentDirectoryW.
+		const auto n(::GetCurrentDirectoryW(len, wcast(buf)));
+
+		if(n != 0)
+			return buf;
+		errno = GetErrnoFromWin32();
+		return {};
 #else
 		// XXX: Alias by %char array is safe. 
 		if(const auto cwd
-			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), size))
+			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), len))
 			try
 			{
 				const auto res(platform_ex::MakePathStringU(cwd));
-				const auto len(res.length());
+				const auto rlen(res.length());
 
-				if(size < len + 1)
+				if(len < rlen + 1)
 					errno = ERANGE;
 				else
-					return ystdex::ntctscpy(buf, res.data(), len);
+					return ystdex::ntctscpy(buf, res.data(), rlen);
 			}
 			CatchExpr(std::bad_alloc&, errno = ENOMEM)
 #endif
@@ -1065,6 +1076,43 @@ YCL_Impl_FileSystem_ufunc_2(std::remove, )
 #undef YCL_Impl_FileSystem_ufunc_1
 #undef YCL_Impl_FileSystem_ufunc_2
 #undef YCL_Impl_FileSystem_ufunc
+
+
+#if YCL_Win32
+template<>
+YF_API string
+TryGetCurrentWorkingDirectory(size_t init)
+{
+	return MakePathString(TryGetCurrentWorkingDirectory<char16_t>(init));
+}
+template<>
+YF_API u16string
+TryGetCurrentWorkingDirectory(size_t)
+{
+	u16string res;
+	unsigned long len, rlen(0);
+
+	// NOTE: Retry is necessary to prevent failure due to modification of
+	//	current directory from other threads.
+	ystdex::retry_on_cond([&]() -> bool{
+		if(rlen < len)
+		{
+			res.pop_back();
+			return {};
+		}
+		if(rlen != 0)
+			return true;
+		YCL_Raise_Win32Exception("GetCurrentDirectoryW");
+	}, [&]{
+		if((len = ::GetCurrentDirectoryW(0, {})) != 0)
+		{
+			res.resize(size_t(len + 1));
+			rlen = ::GetCurrentDirectoryW(len, wcast(&res[0]));
+		}
+	});
+	return res;
+}
+#endif
 
 
 ImplDeDtor(FileOperationFailure)

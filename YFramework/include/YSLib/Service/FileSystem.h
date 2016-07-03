@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2940
+\version r3048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-06-28 01:07 +0800
+	2016-06-30 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Service_File // for TryRemove, TryUnlink;
 #include YFM_YSLib_Core_YString
-#include <ystdex/path.hpp>
+#include <ystdex/path.hpp> // for ystdex::path;
 
 namespace YSLib
 {
@@ -40,18 +40,11 @@ namespace IO
 {
 
 /*!
-\brief 目录路径结尾正规化。
-\since build 540
+\brief 默认目录路径长度。
+\note 适合一般情形分配空间大小。
+\since build 542
 */
-template<class _tString>
-inline ystdex::decay_t<_tString>
-NormalizeDirectoryPathTail(_tString&& str, typename
-	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
-	typename ystdex::string_traits<_tString>::value_type>("/\\")[0])
-{
-	return ystdex::rtrim(yforward(str), tail) + typename
-		ystdex::string_traits<_tString>::value_type(FetchSeparator<char16_t>());
-}
+yconstexpr const size_t MaxPathLength(yimpl(1 << 10));
 
 
 /*!
@@ -79,17 +72,20 @@ struct PathTraits
 			&& str[1] == value_type('.');
 	}
 
+	//! \since build 706
 	template<class _tString>
-	static yconstfn bool
+	static yconstfn auto
 	is_root(const _tString& str) ynothrow
+		-> decltype(ystdex::string_length(str) == FetchRootNameLength(str))
 	{
 		return ystdex::string_length(str) == FetchRootNameLength(str);
 	}
-	//! \since build 654
+	//! \since build 706
+	template<typename _tChar, class _tTraits, class _tAlloc>
 	static bool
-	is_root(const String& str) ynothrow
+	is_root(const basic_string<_tChar, _tTraits, _tAlloc>& str) ynothrow
 	{
-		return str.length() == FetchRootNameLength(u16string_view(str));
+		return str.length() == FetchRootNameLength(str.c_str());
 	}
 
 	template<class _tString>
@@ -100,6 +96,92 @@ struct PathTraits
 			ystdex::string_length(str) == 1 && str[0] == decltype(str[0])('.');
 	}
 };
+
+
+/*!
+\brief 目录路径结束正规化：保证以一个分隔符结束。
+\note 兼容根目录。
+\since build 540
+*/
+template<class _tString>
+inline ystdex::decay_t<_tString>
+NormalizeDirectoryPathTail(_tString&& str, typename
+	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
+	typename ystdex::string_traits<_tString>::value_type>("/\\")[0])
+{
+	using value_type = typename ystdex::string_traits<_tString>::value_type;
+
+	TrimTrailingSeperator(yforward(str), tail);
+	YAssert(str.empty() || !IsSeparator(str.back()), "Invalid path converted.");
+	str += FetchSeparator<value_type>();
+	return yforward(str);
+}
+
+//! \since build 707
+//@{
+template<typename _tChar>
+basic_string<_tChar>
+TryGetNormalizedCurrentWorkingDirectory(size_t init_size = MaxPathLength)
+{
+	return NormalizeDirectoryPathTail(
+		TryGetCurrentWorkingDirectory<_tChar>(init_size));
+}
+
+template<typename _tChar>
+basic_string<_tChar>
+PrepareBasePath(bool abs, size_t init_size = MaxPathLength)
+{
+	basic_string<_tChar> res;
+
+	if(!abs)
+		res = TryGetNormalizedCurrentWorkingDirectory<_tChar>(init_size);
+	return res;
+}
+
+//! \note 连续的分隔符视为同一分隔符。
+//@{
+//! \pre 断言：第二路径参数的数据指针指针非空。
+template<typename _tChar>
+basic_string<_tChar>
+ResolvePathWithBase(basic_string<_tChar> path,
+	basic_string_view<_tChar> sv, size_t n)
+{
+	YAssertNonnull(sv.data());
+	ystdex::split(sv.cbegin(), sv.cend(), [](_tChar c) ynothrow{
+		return IO::IsSeparator(c);
+	}, [&](decltype(sv.cend()) b, decltype(sv.cend()) e){
+		using string_t = basic_string<_tChar>;
+
+		if(b != e)
+		{
+			IO::IterateLink(path += string_t(b, e), n);
+			// XXX: No check of trailing separator.
+			if(IO::IsDirectory(path.c_str()))
+				path += FetchSeparator<_tChar>();
+		}
+	});
+	return std::move(path);
+}
+
+/*!
+\brief 解析路径：取跟踪链接的绝对路径。
+\return 解析得到的绝对路径。
+\throw std::system_error std::errc::too_many_symbolic_link_levels 超过链接限制。
+\note 第二参数指定解析链接的次数上限；第三参数指定分配起始路径时首先预留的空间大小。
+*/
+template<typename _tChar>
+YB_NONNULL(1) basic_string<_tChar>
+ResolvePath(const _tChar* path, size_t n
+	= FetchLimit(SystemOption::MaxSymlinkLoop), size_t init_size = MaxPathLength)
+{
+	basic_string<_tChar> res(IO::PrepareBasePath<_tChar>(IsAbsolute(path),
+		init_size));
+
+	return IO::ResolvePathWithBase(std::move(res),
+		ystdex::basic_string_view<_tChar>(path), n);
+}
+//@}
+//@}
 
 
 //! \since build 409
@@ -208,13 +290,13 @@ public:
 	DefGetter(ynothrow, ypath&, BaseRef, *this)
 	//! \since build 641
 	//@{
-	//! \brief 取不带分隔符结尾的字符串。
+	//! \brief 取不带分隔符结束的字符串。
 	PDefH(String, GetLeafString,
 		char16_t delimiter = FetchSeparator<char16_t>()) const
 		ImplRet(ystdex::to_string(GetBase(), {delimiter}))
 	/*!
 	\brief 取指定分隔符的字符串表示。
-	\post 断言：结果为空或以分隔符结尾。
+	\post 断言：结果为空或以分隔符结束。
 	*/
 	String
 	GetString(char16_t = FetchSeparator<char16_t>()) const;
@@ -236,7 +318,7 @@ public:
 
 	/*!
 	\brief 验证：转换为指定分隔符表示的字符串并检查分隔符。
-	\note 使用 VerifyDirectory 验证，当且仅当确认为可打开的目录时结果以分隔符结尾。
+	\note 使用 VerifyDirectory 验证，当且仅当确认为可打开的目录时结果以分隔符结束。
 	\sa GetString
 	\sa VerifyDirectory
 	\since build 599
@@ -331,22 +413,6 @@ inline PDefH(String, GetExtensionOf, const Path& pth)
 //@}
 
 
-/*!
-\brief 默认目录路径长度。
-\note 不小于 \c PATH_MAX 。
-\since build 542
-*/
-yconstexpr const size_t MaxPathLength(yimpl(1 << 10));
-
-/*!
-\brief 取当前工作目录。
-\post 结果长度不大于参数。
-\note 不含结尾分隔符。
-\since build 475
-*/
-YF_API String
-FetchCurrentWorkingDirectory(size_t = MaxPathLength);
-
 //! \since build 410
 //@{
 //! \brief 判断路径表示绝对路径。
@@ -375,8 +441,10 @@ IsRelative(const _type& arg)
 \brief 根据当前工作目录和指定路径取绝对路径。
 \post 断言：结果是绝对路径。
 \return 若指定路径为相对路径则为正规化当前工作目录追加此路径，否则为正规化指定路径。
-\sa IO::IsRelative
+\note 第二参数指定取当前工作目录指定的起始缓冲区大小。
+\sa IsRelative
 \sa Path::Normalize
+\sa TryGetCurrentWorkingDirectory
 \since build 542
 */
 YF_API Path
@@ -441,7 +509,7 @@ Traverse(HDirectory& dir, _func f)
 			f(dir.GetNodeCategory(), npv);
 	});
 }
-//! \note 允许目录路径以分隔符结尾。
+//! \note 允许目录路径以分隔符结束。
 //@{
 //! \pre 间接断言：指针参数非空。
 template<typename _func>
@@ -468,7 +536,7 @@ Traverse(const Path& pth, _func f)
 	IO::Traverse(string(pth), f);
 }
 
-//! \note 允许目录路径以分隔符结尾。
+//! \note 允许目录路径以分隔符结束。
 //@{
 /*!
 \pre 间接断言：指针参数非空。
@@ -613,7 +681,7 @@ template<typename... _tParams>
 void
 CopyTree(const Path& dst, const Path& src, _tParams&&... args)
 {
-	// XXX: Blocked. 'yforward' may cause G++ 5.2 silently crash.
+	// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
 	IO::TraverseTree([](const Path& dname, const Path& sname,
 		_tParams&&... fargs){
 		IO::CopyFile(string(dname).c_str(), string(sname).c_str(),

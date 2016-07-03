@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2066
+\version r2085
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-06-27 03:52 +0800
+	2016-07-04 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -544,7 +544,9 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 \brief 取当前工作目录复制至指定缓冲区中。
 \param size 缓冲区长。
 \return 若成功为第一参数，否则为空指针。
-\note 基本语义同 POSIX.1 2013 的 \c ::getcwd ，具体行为取决于实现。
+\note 基本语义同 POSIX.1 2004 的 \c ::getcwd 。
+\note Win32 平台：当且仅当结果为根目录时以分隔符结束。
+\note 其它平台：未指定结果是否以分隔符结束。
 \since build 699
 */
 //@{
@@ -1082,7 +1084,7 @@ using std::wfstream;
 /*!
 \brief 尝试按指定的起始缓冲区大小取当前工作目录的路径。
 \pre 间接断言：参数不等于 0 。
-\note 使用 ADL ugetcwd 。
+\note 未指定结果是否以分隔符结束。
 \since build 699
 */
 template<typename _tChar>
@@ -1091,7 +1093,7 @@ TryGetCurrentWorkingDirectory(size_t init)
 {
 	return ystdex::retry_for_vector<basic_string<_tChar>>(init,
 		[](basic_string<_tChar>& res, size_t) -> bool{
-		const auto r(ugetcwd(&res[0], res.length()));
+		const auto r(platform::ugetcwd(&res[0], res.length()));
 
 		if(r)
 		{
@@ -1106,6 +1108,20 @@ TryGetCurrentWorkingDirectory(size_t init)
 		return true;
 	});
 }
+#if YCL_Win32
+/*!
+\note 参数被忽略。
+\since build 707
+*/
+//@{
+template<>
+YF_API string
+TryGetCurrentWorkingDirectory(size_t);
+template<>
+YF_API u16string
+TryGetCurrentWorkingDirectory(size_t);
+//@}
+#endif
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3978
+\version r4083
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-06-28 11:03 +0800
+	2016-06-30 03:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,100 +94,59 @@ namespace platform
 namespace
 {
 
-//! \since build 699
+//! \since build 707
 //@{
-// TODO: Simplify and expose as public API.
-#if YCL_Win32
-bool
-IsDirectoryImpl(const char16_t* path)
+#if !YCL_DS
+template<typename _tChar>
+void
+IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 {
-	// TODO: Simplify.
-	return platform_ex::FileAttributes(::GetFileAttributesW(wcast(path))
-		& platform_ex::Directory);
+	if(!path.empty())
+		try
+		{
+			// TODO: Throw with context information about failed path?
+			// TODO: Use preallocted object to improve performance?
+			path = ReadLink(path.c_str());
+			if(n != 0)
+				--n;
+			else
+				// XXX: Enumerator
+				//	%std::errc::too_many_symbolic_link_levels is
+				//	commented out in MinGW-w64 configuration of
+				//	libstdc++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71444.
+				ystdex::throw_error(ELOOP);
+		}
+		CatchIgnore(std::invalid_argument&)
 }
-#else
+#endif
+
+} // unnamed namespace;
+
 bool
-IsDirectoryImpl(const char* path)
+IsDirectory(const char* path)
 {
+#if YCL_Win32
+	return IsDirectory(ucast(MakePathStringW(path).c_str()));
+#else
 	// TODO: Merge? See %platform_ex::estat in %NativeAPI.
 	struct ::stat st;
 
 	return ::stat(path, &st) == 0 && bool(Mode(st.st_mode) & Mode::Directory);
-}
 #endif
-
-template<typename _tChar>
-YB_NONNULL(1) basic_string<_tChar>
-ResolvePathImpl(const _tChar* path, size_t n)
+}
+bool
+IsDirectory(const char16_t* path)
 {
-	YAssertNonnull(path);
-#if YCL_DS
-	yunused(n);
-#endif
-
-	using string_t = basic_string<_tChar>;
-	using string_view_t = basic_string_view<_tChar>;
-	string_view_t s(path);
-	string_t res;
-	const bool absolute(IsAbsolute(path));
-
-	if(!absolute)
-	{
-		res = TryGetCurrentWorkingDirectory<_tChar>(yimpl(PATH_MAX));
-		// TODO: Extract to a common interface.
 #if YCL_Win32
-		ystdex::rtrim(res, &ystdex::to_array<_tChar>("/\\")[0]);
+	// TODO: Simplify?
+	const auto attr(::GetFileAttributesW(wcast(path)));
+
+	return attr != INVALID_FILE_ATTRIBUTES
+		&& (platform_ex::FileAttributes(attr) & platform_ex::Directory);
 #else
-		ystdex::rtrim(res, FetchSeparator<_tChar>());
+	return IsDirectory(MakePathString(path).c_str());
 #endif
-		YAssert((!res.empty() && !IsSeparator(res.back()))
-			|| FetchRootNameLength(string_view_t(res)) == res.length(),
-			"Invalid path converted.");
-		res += FetchSeparator<_tChar>();
-	}
-	ystdex::split(s.cbegin(), s.cend(), [](_tChar c) ynothrow{
-		return platform::IsSeparator(c);
-	}, [&](decltype(s.cend()) b, decltype(s.cend()) e){
-		if(b != e)
-		{
-			if(!res.empty())
-				res += string_t(b, e);
-			else
-			{
-				string_t head(b, e);
-
-				if(absolute && !IsAbsolute(head.c_str()))
-					res += FetchSeparator<_tChar>();
-				res += std::move(head);
-			}
-#if !YCL_DS
-			if(!res.empty())
-			{
-				try
-				{
-					// TODO: Throw with context information about failed path?
-					res = ReadLink(res.c_str());
-					if(n != 0)
-						--n;
-					else
-						// XXX: Enumerator
-						//	%std::errc::too_many_symbolic_link_levels is
-						//	commented out in MinGW-w64 configuration of
-						//	libstdc++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71444.
-						ystdex::throw_error(ELOOP);
-				}
-				CatchIgnore(std::invalid_argument&)
-			}
-#endif
-			if(IsDirectoryImpl(res.c_str()))
-				res += FetchSeparator<_tChar>();
-		}
-	});
-	return res;
 }
-//@}
-
-} // unnamed namespace;
 
 void
 CreateHardLink(const char* dst, const char* src)
@@ -305,26 +264,18 @@ ReadLink(const char16_t* path)
 #endif
 }
 
-YB_NONNULL(1) string
-ResolvePath(const char* path, size_t n)
+#if !YCL_DS
+void
+IterateLink(string& path, size_t& n)
 {
-#if YCL_Win32
-	return MakePathString(
-		ResolvePath(ucast(MakePathStringW(path).c_str()),n).c_str());
-#else
-	return ResolvePathImpl<char>(path, n);
-#endif
+	IterateLinkImpl(path, n);
 }
-YB_NONNULL(1) u16string
-ResolvePath(const char16_t* path, size_t n)
+void
+IterateLink(u16string& path, size_t& n)
 {
-#if YCL_Win32
-	return ResolvePathImpl<char16_t>(path, n);
-#else
-	return
-		MakePathStringU(ResolvePath(MakePathString(path).c_str(), n).c_str());
-#endif
+	IterateLinkImpl(path, n);
 }
+#endif
 
 
 #if YCL_Win32
