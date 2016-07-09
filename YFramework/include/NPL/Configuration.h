@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r364
+\version r370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2016-04-23 03:41 +0800
+	2016-07-05 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,17 +55,19 @@ public:
 		: root(std::move(node))
 	{}
 	//@}
-	//! \since build 596
+	//! \since build 708
 	//@{
 	template<typename _tParam,
 		yimpl(typename = ystdex::exclude_self_t<Configuration, _tParam>)>
-	yconstfn
+	explicit
 	Configuration(_tParam&& arg)
-		: root(0, yforward(arg))
+		: root(YSLib::NoContainer, yforward(arg))
 	{}
 	template<typename _tParam1, typename _tParam2, typename... _tParams>
+	explicit
 	Configuration(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
-		: root(0, yforward(arg1), yforward(arg2), yforward(args)...)
+		: root(YSLib::NoContainer, yforward(arg1), yforward(arg2),
+		yforward(args)...)
 	{}
 	//@}
 	DefDeCopyMoveCtorAssignment(Configuration)

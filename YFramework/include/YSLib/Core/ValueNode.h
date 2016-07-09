@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2604
+\version r2610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-05-26 14:07 +0800
+	2016-07-08 09:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,26 +129,25 @@ public:
 	{}
 	/*!
 	\brief 原地构造：使用容器、名称和值的参数元组。
-	\since build 681
+	\since build 708
 	*/
 	//@{
-	template<typename... _tParams1, size_t... _vIdxSeq1>
+	template<typename... _tParams1>
 	inline
 	ValueNode(std::tuple<_tParams1...> args1)
 		: ValueNode(ystdex::index_sequence_for<_tParams1...>(),
 		ystdex::index_sequence<>(), ystdex::index_sequence<>(), args1,
 		std::tuple<>(), std::tuple<>())
 	{}
-	template<typename... _tParams1, size_t... _vIdxSeq1, typename... _tParams2,
-		size_t... _vIdxSeq2>
+	template<typename... _tParams1, typename... _tParams2>
 	inline
 	ValueNode(std::tuple<_tParams1...> args1, std::tuple<_tParams2...> args2)
 		: ValueNode(ystdex::index_sequence_for<_tParams1...>(),
 		ystdex::index_sequence_for<_tParams2...>(), ystdex::index_sequence<>(),
 		args1, args2, std::tuple<>())
 	{}
-	template<typename... _tParams1, size_t... _vIdxSeq1, typename... _tParams2,
-		size_t... _vIdxSeq2, typename... _tParams3, size_t... _vIdxSeq3>
+	template<typename... _tParams1, typename... _tParams2,
+		typename... _tParams3>
 	inline
 	ValueNode(std::tuple<_tParams1...> args1, std::tuple<_tParams2...> args2,
 		std::tuple<_tParams3...> args3)

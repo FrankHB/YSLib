@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4083
+\version r4094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-06-30 03:08 +0800
+	2016-07-05 02:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@
 #include <ystdex/ctime.h> // for ystdex::is_date_range_valid,
 //	ystdex::is_time_no_leap_valid;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32 // for MAXIMUM_REPARSE_DATA_BUFFER_SIZE,
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::Invalid,
 //	platform_ex::ResolveReparsePoint, platform_ex::DirectoryFindData;
 #	include <system_error> // for std::system_error;
 #	include <exception> // for std::throw_with_nested;
@@ -94,11 +94,10 @@ namespace platform
 namespace
 {
 
-//! \since build 707
-//@{
+//! \since build 708
 #if !YCL_DS
 template<typename _tChar>
-void
+bool
 IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 {
 	if(!path.empty())
@@ -115,8 +114,10 @@ IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 				//	commented out in MinGW-w64 configuration of
 				//	libstdc++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71444.
 				ystdex::throw_error(ELOOP);
+			return true;
 		}
 		CatchIgnore(std::invalid_argument&)
+	return {};
 }
 #endif
 
@@ -141,7 +142,7 @@ IsDirectory(const char16_t* path)
 	// TODO: Simplify?
 	const auto attr(::GetFileAttributesW(wcast(path)));
 
-	return attr != INVALID_FILE_ATTRIBUTES
+	return attr != platform_ex::Invalid
 		&& (platform_ex::FileAttributes(attr) & platform_ex::Directory);
 #else
 	return IsDirectory(MakePathString(path).c_str());
@@ -265,15 +266,15 @@ ReadLink(const char16_t* path)
 }
 
 #if !YCL_DS
-void
+bool
 IterateLink(string& path, size_t& n)
 {
-	IterateLinkImpl(path, n);
+	return IterateLinkImpl(path, n);
 }
-void
+bool
 IterateLink(u16string& path, size_t& n)
 {
-	IterateLinkImpl(path, n);
+	return IterateLinkImpl(path, n);
 }
 #endif
 

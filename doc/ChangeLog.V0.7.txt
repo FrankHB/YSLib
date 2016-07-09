@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r951
+\version r1049
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-04 02:00 +0800
+	2016-07-09 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,105 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ DLDI "'::' before '_wrmdir'" @ "platform %Win32"
+				@ "function %uremove" @ %FileIO,
+			/ %FileSystem $=
+			(
+				/ @ "all 2 functions %IsDirectory" $=
+				(
+					/ DLDI
+						^ "%platform_ex::Invalid" ~ "%INVALID_FILE_ATTRIBUTES",
+					+ 'YB_NONNULL(1)' @ "all 2 functions %IsDirectory"
+				),
+				/ "return type" @ "all 2 functions %IterateLink" -> 'bool'
+					~ 'void'
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Service.FileSystem $=
+			(
+				(
+				+ "function template %ParsePath with functor",
+				+ "static member function template %PathTraits::AdjustForRoot";
+				/ "static member function %Path::Parse"
+					-> "function template %ParsePath without functor"
+					$=
+				(
+					/ $impl "root path check" ^ "%PathTraits::AdjustForRoot",
+					/ "checked root path at first"
+						// This should imporve performance a lot for long \
+							paths when push in front of the path is inefficent \
+							(e.g. for %ypath).
+				);
+				/ $forced DLDI "constructor with string parameter, constructor \
+					template" @ "class %Path" ^ "%ParsePath<ypath>"
+				),
+				(
+				+ 'using ypath::traits_type;' @ "class %Path";
+				/ @ "function templates %(ResolvePath, ResolvePathWithBase)" $=
+				(
+					/ ^ "path parameters and return type" ~ "string",
+					/ $impl ^ "%ParsePath with functor"
+						~ "%(IO::IsDictionary, ystdex::split)";
+						// Trailing slashes are now handled by %Path.
+					* $comp "missing handling self and parent components" $orig
+						(@ "%platform::ResolvePath" @ %YCLib.FileSystem $since
+						b699)
+				)
+				),
+				(
+				/ DLDI "simplified function template %ResolvePathWithBase"
+					^ "%(IsAbsolute, TryGetCurrentWorkingDirectory)"
+					~ "%PrepareBasePath";
+					// Path tail is handled by %Path, no normalization needed.
+				- $revert(b707) "function templates %(PrepareBasePath; \
+					TryGetNormalizedCurrentWorkingDirectory)"
+				)
+			),
+			* "redundant template parameter pack as groups of indices which \
+				cannot be deduced" @ "constructor templates %ValueNode"
+				@ %Core.ValueNode $since b681
+		),
+		/ @ "costructor templates %Configuration" @ %NPL.Configuration $=
+		(
+			* "ill-formed initializer" $since b674
+				/ $impl ^ "%NoContainer" ~ '0',
+			+ 'explicit',
+			- "redundant 'yconstfn'"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "class template %thread_pool" @ %Concurrency $=
+		(
+			/ DLDI ^ "brace-or-equal-initializer '{}'"
+				@ "private vector member",
+			* "redundant empty %std::thread caused by wrong vector \
+				initialization" @ "constructor"
+				// See downstream report: https://github.com/lucklove/ahttpd/issues/16.
+		),
+		* $impl "ill-formed program caused by missing template parameter names"
+			@ '!YB_HAS_NOEXCEPT' @ %Utilities $since b704,
+		/ %Container $=
+		(
+			* "same type of different specializations of function template \
+				%emplace_hint_in_place" since $b681
+				$= (/ "merged as 1 template"),
+			/ DLDI "dispatch" @ "function template %extract_key"
+		),
+		/ $impl "constructor template %transformed_iterator with multiple \
+			SFINAE conditions" @ %Iterator $since b679
+	),
+	+ $repo "glob pattern 'packages/VisualCppTools.*'" @ "file %.hgignore"
+),
+
+b707
 (
 	/ %YFramework $=
 	(

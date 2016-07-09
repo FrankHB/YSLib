@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5940
+\version r5943
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-04-23 03:47 +0800
+	2016-07-09 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,8 +269,9 @@ public:
 	//! \since build 496
 	transformed_iterator() = default;
 	//! \since build 679
-	// TODO: Use multiple template parameters to simplify after CWG 1227
-	//	resolved by C++14.
+	// XXX: This is not actually related to substitution order. For other cases,
+	//	use of multiple template parameters to simplify after CWG 1227 resolved
+	//	by C++14 may be necessary.
 	template<typename _tIter2, yimpl(typename
 		= and_<exclude_self_t<transformed_iterator, _tIter2, true_type>,
 		enable_if_inconvertible_t<_tIter2&&, transformed_iterator, true_type>>)>

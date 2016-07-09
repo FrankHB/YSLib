@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file concurrency.cpp
 \ingroup YStandardEx
 \brief 并发操作。
-\version r158
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 19:09:18 +0800
 \par 修改时间:
-	2015-08-18 10:28 +0800
+	2016-07-06 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,11 @@
 */
 
 
-#include "ystdex/any.h"
-#include <sstream>
+#include "ydef.h"
 #if __STDCPP_THREADS__ || (defined(__GLIBCXX__) \
 	&& defined(_GLIBCXX_HAS_GTHREADS) && defined(_GLIBCXX_USE_C99_STDINT_TR1)) \
 	|| (defined(_LIBCPP_VERSION) && !defined(_LIBCPP_HAS_NO_THREADS))
+#include <sstream>
 #include "ystdex/concurrency.h"
 
 namespace ystdex
@@ -49,8 +49,8 @@ to_string(const std::thread::id& id)
 	&& defined(_GLIBCXX_USE_C99_STDINT_TR1) && (ATOMIC_INT_LOCK_FREE > 1))
 thread_pool::thread_pool(size_t n, std::function<void()> on_enter,
 	std::function<void()> on_exit)
-	: workers(n)
 {
+	workers.reserve(n);
 	for(size_t i = 0; i < n; ++i)
 		workers.emplace_back([=]{
 			if(on_enter)
