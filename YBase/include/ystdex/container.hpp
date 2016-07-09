@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1748
+\version r1824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-06-07 09:31 +0800
+	2016-06-09 11:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -979,50 +979,47 @@ using is_piecewise_mapped = is_constructible<typename _tAssocCon::value_type,
 	std::piecewise_construct_t, std::tuple<_tKey&&>, std::tuple<_tParams&&...>>;
 
 
-/*!
-\brief 带有提示的原地插入构造。
-\since build 681
-*/
-//@{
-template<class _tAssocCon, typename _tKey, typename... _tParams>
-inline yimpl(enable_if_t)<is_piecewise_mapped<_tAssocCon, _tKey,
-	_tParams...>::value, typename _tAssocCon::iterator>
-emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
-	_tKey&& k, _tParams&&... args)
-{
-	return con.emplace_hint(hint, std::piecewise_construct,
-		std::forward_as_tuple(yforward(k)),
-		std::forward_as_tuple(yforward(args)...));
-}
-template<class _tAssocCon, typename _tKey, typename... _tParams>
-inline yimpl(enable_if_t)<!is_piecewise_mapped<_tAssocCon, _tKey,
-	_tParams...>::value, typename _tAssocCon::iterator>
-emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
-	_tKey&&, _tParams&&... args)
-{
-	return con.emplace_hint(hint, yforward(args)...);
-}
-//@}
-
 //! \since build 677
 namespace details
 {
 
+//! \since build 708
+//@{
+template<class _tAssocCon>
+struct assoc_con_traits
+{
+	template<typename _tKey, typename... _tParams>
+	static inline typename _tAssocCon::iterator
+	emplace_hint_in_place(false_type, _tAssocCon& con,
+		typename _tAssocCon::const_iterator hint, _tKey&&, _tParams&&... args)
+	{
+		return con.emplace_hint(hint, yforward(args)...);
+	}
+	template<typename _tKey, typename... _tParams>
+	static inline typename _tAssocCon::iterator
+	emplace_hint_in_place(true_type, _tAssocCon& con,
+		typename _tAssocCon::const_iterator hint, _tKey&& k, _tParams&&... args)
+	{
+		return con.emplace_hint(hint, std::piecewise_construct,
+			std::forward_as_tuple(yforward(k)),
+			std::forward_as_tuple(yforward(args)...));
+	}
+
+	static inline const typename _tAssocCon::key_type&
+	extract_key(false_type, const typename _tAssocCon::value_type& val)
+	{
+		return val;
+	}
+	static inline const typename _tAssocCon::key_type&
+	extract_key(true_type, const typename _tAssocCon::value_type& val)
+	{
+		return val.first;
+	}
+};
+//@}
+
 template<class _type>
 using mapped_type_t = typename _type::mapped_type;
-
-template<class _tAssocCon>
-inline const typename _tAssocCon::key_type&
-extract_key(const typename _tAssocCon::value_type& val, false_type)
-{
-	return val;
-}
-template<class _tAssocCon>
-inline const typename _tAssocCon::key_type&
-extract_key(const typename _tAssocCon::value_type& val, true_type)
-{
-	return val.first;
-}
 
 
 //! \since build 681
@@ -1042,6 +1039,20 @@ insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
 } // unnamed namespace details;
 
 /*!
+\brief 带有提示的原地插入构造。
+\since build 708
+*/
+template<class _tAssocCon, typename _tKey, typename... _tParams>
+inline auto
+emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
+	_tKey&& k, _tParams&&... args) -> typename _tAssocCon::iterator
+{
+	return details::assoc_con_traits<_tAssocCon>::emplace_hint_in_place(
+		is_piecewise_mapped<_tAssocCon, _tKey, _tParams...>(), con, hint,
+		yforward(k), yforward(args)...);
+}
+
+/*!
 \brief 从关联容器的值取键。
 \since build 679
 */
@@ -1052,8 +1063,8 @@ template<class _tAssocCon, typename _type,
 inline const typename _tAssocCon::key_type&
 extract_key(const _type& val)
 {
-	return details::extract_key<_tAssocCon>(val,
-		is_detected<details::mapped_type_t, _tAssocCon>());
+	return details::assoc_con_traits<_tAssocCon>::extract_key(
+		is_detected<details::mapped_type_t, _tAssocCon>(), val);
 }
 template<class _tAssocCon, typename _tKey,
 	yimpl(typename = enable_if_inconvertible_t<const _tKey&,
@@ -1089,7 +1100,8 @@ template<class _tAssocCon, typename _tKey>
 inline std::pair<typename _tAssocCon::iterator, bool>
 search_map(_tAssocCon& con, const _tKey& k)
 {
-	return ystdex::cast_mutable(con, ystdex::search_map(ystdex::as_const(con), k));
+	return
+		ystdex::cast_mutable(con, ystdex::search_map(ystdex::as_const(con), k));
 }
 //@}
 //! \since build 680

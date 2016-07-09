@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r507
+\version r515
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2015-10-09 21:33 +0800
+	2016-06-25 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,7 @@
 #ifndef YB_INC_ystdex_concurrency_h_
 #define YB_INC_ystdex_concurrency_h_ 1
 
-#include "pseudo_mutex.h" // for result_of_t, std::declval, std::make_shared,
-//	threading::unlock_delete;
+#include "pseudo_mutex.h" // for threading::unlock_delete;
 #include <mutex> // for std::mutex, std::unique_lock;
 #include <thread> // for std::thread;
 #include <vector> // for std::vector;
@@ -93,7 +92,7 @@ get_this_thread_id()
 class YB_API thread_pool
 {
 private:
-	std::vector<std::thread> workers;
+	std::vector<std::thread> workers{};
 	//! \since build 624
 	std::queue<std::packaged_task<void()>> tasks{};
 	mutable std::mutex queue_mutex{};
@@ -109,6 +108,7 @@ public:
 	/*!
 	\brief 初始化：使用指定的初始化和退出回调指定数量的工作线程。
 	\note 若回调为空则忽略。
+	\note 线程数为 0 时无任务，不提供特别的检查。
 	\warning 回调的执行不提供顺序和并发安全保证。
 	\since build 543
 	*/
@@ -172,7 +172,7 @@ public:
 			if(waiter(lck))
 			{
 				yassume(lck.owns_lock());
-				// TODO: Blocked. Use ISO C++14 lambda initializers to reduce
+				// TODO: Blocked. Use C++14 lambda initializers to reduce
 				//	initialization cost by directly moving from %bound.
 				tasks.push(std::packaged_task<void()>(
 					std::bind([](decltype(bound)& tsk){
@@ -303,10 +303,10 @@ public:
 					return {};
 			return true;
 		}, [=](_tParams&&... f_args){
-			// TODO: Blocked. Use ISO C++14 lambda initializers to implement
+			// TODO: Blocked. Use C++14 lambda initializers to implement
 			//	passing %f with %ystdex::decay_copy.
 			enqueue_condition.notify_one();
-			// XXX: Blocked. 'yforward' cause G++ 5.2 failed (perhaps silently)
+			// XXX: Blocked. 'yforward' cause G++ 5.2 to fail (perhaps silently)
 			//	with exit code 1.
 			return ystdex::invoke(f, std::forward<_tParams&&>(f_args)...);
 		}, yforward(args)...);

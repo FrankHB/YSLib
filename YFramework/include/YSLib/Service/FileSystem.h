@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3048
+\version r3209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-06-30 10:50 +0800
+	2016-07-05 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,30 @@ yconstexpr const size_t MaxPathLength(yimpl(1 << 10));
 
 
 /*!
+\brief 判断路径表示绝对路径。
+\since build 410
+*/
+//@{
+inline PDefH(bool, IsAbsolute, const string& path)
+	ImplRet(IsAbsolute(path.c_str()))
+inline PDefH(bool, IsAbsolute, const String& path)
+	ImplRet(IsAbsolute(path.GetMBCS()))
+//@}
+
+/*!
+\brief 判断路径表示相对路径（包括空路径）。
+\note 使用 ADL IsAbsolute 。
+\since build 652
+*/
+template<typename _type>
+inline bool
+IsRelative(const _type& arg)
+{
+	return !IsAbsolute(arg);
+}
+
+
+/*!
 \brief 文件路径特征。
 \since build 647
 */
@@ -60,6 +84,22 @@ struct PathTraits
 	IsDelimiter(_tChar c) ynothrow
 	{
 		return IO::IsSeparator(c);
+	}
+
+	/*!
+	\brief 调整绝对路径的第一组件。
+	\note 使用 ADL cbegin 。
+	\since build 708
+	\todo 支持更多根路径模式（如 Windows UNC ）。
+	*/
+	template<class _tPath, class _tString>
+	static void
+	AdjustForRoot(_tPath& pth, const _tString& sv)
+	{
+		using ystdex::cbegin;
+
+		if(!pth.empty() && IsRelative(pth.front()) && IsAbsolute(sv.data()))
+			pth.insert(cbegin(pth), {{}});
 	}
 
 	template<class _tString>
@@ -117,70 +157,49 @@ NormalizeDirectoryPathTail(_tString&& str, typename
 	return yforward(str);
 }
 
-//! \since build 707
-//@{
-template<typename _tChar>
-basic_string<_tChar>
-TryGetNormalizedCurrentWorkingDirectory(size_t init_size = MaxPathLength)
-{
-	return NormalizeDirectoryPathTail(
-		TryGetCurrentWorkingDirectory<_tChar>(init_size));
-}
-
-template<typename _tChar>
-basic_string<_tChar>
-PrepareBasePath(bool abs, size_t init_size = MaxPathLength)
-{
-	basic_string<_tChar> res;
-
-	if(!abs)
-		res = TryGetNormalizedCurrentWorkingDirectory<_tChar>(init_size);
-	return res;
-}
-
-//! \note 连续的分隔符视为同一分隔符。
-//@{
-//! \pre 断言：第二路径参数的数据指针指针非空。
-template<typename _tChar>
-basic_string<_tChar>
-ResolvePathWithBase(basic_string<_tChar> path,
-	basic_string_view<_tChar> sv, size_t n)
-{
-	YAssertNonnull(sv.data());
-	ystdex::split(sv.cbegin(), sv.cend(), [](_tChar c) ynothrow{
-		return IO::IsSeparator(c);
-	}, [&](decltype(sv.cend()) b, decltype(sv.cend()) e){
-		using string_t = basic_string<_tChar>;
-
-		if(b != e)
-		{
-			IO::IterateLink(path += string_t(b, e), n);
-			// XXX: No check of trailing separator.
-			if(IO::IsDirectory(path.c_str()))
-				path += FetchSeparator<_tChar>();
-		}
-	});
-	return std::move(path);
-}
 
 /*!
-\brief 解析路径：取跟踪链接的绝对路径。
-\return 解析得到的绝对路径。
-\throw std::system_error std::errc::too_many_symbolic_link_levels 超过链接限制。
-\note 第二参数指定解析链接的次数上限；第三参数指定分配起始路径时首先预留的空间大小。
+\brief 解析字符串为路径。
+\note 忽略空路径组件。
+\note 使用 ADL cbegin 和 cend 。
+\since build 708
 */
-template<typename _tChar>
-YB_NONNULL(1) basic_string<_tChar>
-ResolvePath(const _tChar* path, size_t n
-	= FetchLimit(SystemOption::MaxSymlinkLoop), size_t init_size = MaxPathLength)
+//@{
+template<class _tPath, typename _func,
+	class _tString = typename _tPath::value_type,
+	class _tTraits = typename _tPath::traits_type>
+_tPath
+ParsePath(const _tString& sv, _func f, _tPath res = {})
 {
-	basic_string<_tChar> res(IO::PrepareBasePath<_tChar>(IsAbsolute(path),
-		init_size));
+	using ystdex::cbegin;
+	using ystdex::cend;
 
-	return IO::ResolvePathWithBase(std::move(res),
-		ystdex::basic_string_view<_tChar>(path), n);
+	ystdex::split(cbegin(sv), cend(sv), [](decltype(*cbegin(sv)) c){
+		return _tTraits::IsDelimiter(c);
+	}, [&](decltype(cbegin(sv)) b, decltype(cend(sv)) e){
+		if(b != e)
+		{
+			f(res, b, e);
+			if(res.size() == 1)
+				_tTraits::AdjustForRoot(res,
+					typename _tPath::value_type(cbegin(sv), e));
+		}
+	});
+	return res;
 }
-//@}
+template<class _tPath, class _tString = typename _tPath::value_type,
+	class _tTraits = typename _tPath::traits_type>
+_tPath
+ParsePath(const _tString& sv, _tPath res = {})
+{
+	using ystdex::cbegin;
+	using ystdex::cend;
+
+	return IO::ParsePath<_tPath>(sv,
+		[](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
+		pth.push_back(typename _tPath::value_type(b, e));
+	}, std::move(res));
+}
 //@}
 
 
@@ -200,6 +219,8 @@ public:
 	using ypath::const_iterator;
 	//! \since build 409
 	using ypath::value_type;
+	//! \since build 708
+	using ypath::traits_type;
 
 public:
 	/*!
@@ -215,13 +236,13 @@ public:
 	//! \since build 641
 	explicit
 	Path(const u16string& str) ynothrow
-		: Path(Parse(str))
+		: Path(ParsePath<ypath>(str))
 	{}
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
 	Path(_type&& arg, Text::Encoding enc = Text::CS_Default)
-		: ypath(Parse(String(yforward(arg), enc)))
+		: ypath(ParsePath<ypath>(String(yforward(arg), enc)))
 	{}
 	//@}
 	//! \since build 599
@@ -307,14 +328,6 @@ public:
 	*/
 	PDefH(void, Normalize, )
 		ImplExpr(ystdex::normalize(*this))
-
-	/*!
-	\brief 解析字符串为路径。
-	\note 忽略空路径组件。
-	\since build 641
-	*/
-	static ypath
-	Parse(const u16string&);
 
 	/*!
 	\brief 验证：转换为指定分隔符表示的字符串并检查分隔符。
@@ -408,34 +421,20 @@ GetExtensionOf(const _tString& fname)
 {
 	return ystdex::find_suffix(fname, typename _tString::value_type('.'));
 }
+//! \relates Path
 inline PDefH(String, GetExtensionOf, const Path& pth)
 	ImplRet(pth.empty() ? String() : GetExtensionOf(pth.back()))
 //@}
 
 
-//! \since build 410
+//! \relates Path
 //@{
-//! \brief 判断路径表示绝对路径。
-//@{
-inline PDefH(bool, IsAbsolute, const string& path)
-	ImplRet(IsAbsolute(path.c_str()))
-inline PDefH(bool, IsAbsolute, const String& path)
-	ImplRet(IsAbsolute(path.GetMBCS()))
+/*!
+\brief 判断路径表示绝对路径。
+\since build 410
+*/
 inline PDefH(bool, IsAbsolute, const Path& pth)
 	ImplRet(!pth.empty() && IsAbsolute(pth.GetString()))
-//@}
-
-/*!
-\brief 判断路径表示相对路径（包括空路径）。
-\note 使用 ADL \c IsAbsolute 。
-\since build 652
-*/
-template<typename _type>
-inline bool
-IsRelative(const _type& arg)
-{
-	return !IsAbsolute(arg);
-}
 
 /*!
 \brief 根据当前工作目录和指定路径取绝对路径。
@@ -449,11 +448,13 @@ IsRelative(const _type& arg)
 */
 YF_API Path
 MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
+//@}
 
 
 /*!
 \brief 验证路径表示的目录是否存在且可打开。
 \note 受权限限制。
+\since build 410
 */
 //@{
 YF_API YB_NONNULL(1) bool
@@ -470,7 +471,6 @@ inline PDefH(bool, VerifyDirectory, const String& path)
 	ImplRet(VerifyDirectory(path.c_str()))
 inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
-//@}
 //@}
 
 
@@ -493,6 +493,58 @@ inline PDefH(void, EnsureDirectory, const String& path)
 
 
 /*!
+\brief 解析路径：取跟踪链接的绝对路径。
+\return 解析得到的绝对路径。
+\exception std::system_error std::errc::too_many_symbolic_link_levels
+	超过链接限制。
+\note 忽略空路径组件。
+\note 使用 ADL cbegin 和 cend 。
+\since build 708
+*/
+//@{
+/*!
+\note 第二参数指定起始路径。
+\note 第三参数指定解析链接的次数上限。
+*/
+template<class _tPath = Path, class _tString = typename _tPath::value_type,
+	class _tTraits = typename _tPath::traits_type>
+_tPath
+ResolvePathWithBase(const _tString& sv, _tPath base,
+	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop))
+{
+	using ystdex::cbegin;
+	using ystdex::cend;
+
+	return IO::ParsePath<_tPath>(sv,
+		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
+		pth /= typename _tPath::value_type(b, e);
+
+		auto str(to_string(pth));
+
+		if(IO::IterateLink(str, n))
+			pth = _tPath(std::move(str));
+	}, std::move(base));
+}
+
+/*!
+\note 第二参数指定解析链接的次数上限。
+\note 第三参数指定起始路径使用的初始缓冲区大小。
+*/
+template<class _tPath = Path, class _tString = typename _tPath::value_type,
+	class _tTraits = typename _tPath::traits_type>
+_tPath
+ResolvePath(const _tString& sv,
+	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop),
+	size_t init_len = MaxPathLength)
+{
+	return IO::ResolvePathWithBase(sv, IsAbsolute(sv.data()) ? _tPath()
+		: _tPath(TryGetCurrentWorkingDirectory<typename
+		_tString::value_type>(init_len)), n);
+}
+//@}
+
+
+/*!
 \brief 目录遍历操作。
 \since build 538
 */
@@ -504,8 +556,8 @@ Traverse(HDirectory& dir, _func f)
 	std::for_each(FileIterator(&dir), FileIterator(), [&, f](NativePathView npv)
 		ynoexcept_spec(f(dir.GetNodeCategory(), npv)){
 		YAssert(!npv.empty(), "Empty name found.");
+		// TODO: Allow user code to specify filtering on self node?
 		if(!PathTraits::is_self(npv))
-			// TODO: Simplify.
 			f(dir.GetNodeCategory(), npv);
 	});
 }

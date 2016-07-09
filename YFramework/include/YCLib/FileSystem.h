@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3506
+\version r3518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-06-30 02:44 +0800
+	2016-07-05 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,12 +349,13 @@ DefBitmaskEnum(NodeCategory)
 
 /*!
 \brief 判断指定路径是否指定目录。
+\pre 间接断言：参数非空。
 \since build 707
 */
 //@{
-YF_API bool
+YF_API YB_NONNULL(1) bool
 IsDirectory(const char*);
-YF_API bool
+YF_API YB_NONNULL(1) bool
 IsDirectory(const char16_t*);
 //@}
 
@@ -433,22 +434,23 @@ ReadLink(const char16_t*);
 
 /*!
 \brief 迭代访问链接：替换非空路径并按需减少允许链接计数。
+\return 是否成功访问了链接。
 \throw std::system_error 系统错误：调用检查失败。
 	\li std::errc::too_many_symbolic_link_levels 减少计数后等于 0 。
 \note 忽略空路径。
 \note DS 平台：空实现。
-\since build 707
+\since build 708
 */
 //@{
 #if YCL_DS
-inline PDefH(void, IterateLink, string&, size_t&)
-	ImplExpr(void())
-inline PDefH(void, IterateLink, u16string&, size_t&)
-	ImplExpr(void())
+inline PDefH(bool, IterateLink, string&, size_t&)
+	ImplExpr({})
+inline PDefH(bool, IterateLink, u16string&, size_t&)
+	ImplExpr({})
 #else
-YF_API void
+YF_API bool
 IterateLink(string&, size_t&);
-YF_API void
+YF_API bool
 IterateLink(u16string&, size_t&);
 #endif
 //@}
