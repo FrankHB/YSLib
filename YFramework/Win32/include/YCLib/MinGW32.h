@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1768
+\version r1770
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-06-26 02:42 +0800
+	2016-07-10 07:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -826,7 +826,7 @@ public:
 class YF_API ReparsePointData final
 {
 public:
-	class Data;
+	struct Data;
 
 private:
 	//! \note 显式未初始化。
@@ -989,7 +989,7 @@ ConvertTime(std::chrono::nanoseconds);
 YF_API YB_NONNULL(1) wstring
 ExpandEnvironmentStrings(const wchar_t*);
 
-//! \note 保证以一个分隔符结尾。
+//! \note 保证以一个分隔符结束。
 //@{
 /*!
 \brief 取系统目录路径。

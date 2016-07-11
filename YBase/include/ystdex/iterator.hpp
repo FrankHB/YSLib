@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5943
+\version r5970
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-07-09 13:24 +0800
+	2016-07-10 07:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -263,45 +263,59 @@ protected:
 
 private:
 	//! \since build 667
-	typename pointer_classify<_tIter>::type ptr;
+	iterator_type transformed;
 
 public:
 	//! \since build 496
 	transformed_iterator() = default;
-	//! \since build 679
 	// XXX: This is not actually related to substitution order. For other cases,
 	//	use of multiple template parameters to simplify after CWG 1227 resolved
 	//	by C++14 may be necessary.
-	template<typename _tIter2, yimpl(typename
-		= and_<exclude_self_t<transformed_iterator, _tIter2, true_type>,
-		enable_if_inconvertible_t<_tIter2&&, transformed_iterator, true_type>>)>
+	//! \since build 679
+	template<typename _tIter2,
+		yimpl(typename = exclude_self_t<transformed_iterator, _tIter2>,
+		typename = enable_if_convertible_t<_tIter2&&, iterator_type>)>
 	explicit yconstfn
 	transformed_iterator(_tIter2&& i)
-		: transformer(), ptr(yforward(i))
+		: transformer(), transformed(yforward(i))
 	{}
 	//! \since build 678
 	template<typename _tIter2, typename _fTrans2 = _fTrans,
 		yimpl(typename = exclude_self_t<transformed_iterator, _tIter2>)>
 	explicit yconstfn
 	transformed_iterator(_tIter2&& i, _fTrans2 f)
-		: transformer(f), ptr(yforward(i))
+		: transformer(f), transformed(yforward(i))
 	{}
 	//! \since build 665
 	template<typename _tIter2, typename _fTrans2, typename _tRef2,
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000
 		yimpl(typename = enable_if_t<and_<is_constructible<_tIter,
 		const _tIter2&>, is_constructible<_fTrans, const _fTrans2&>>::value>)>
+#else
+		yimpl(typename = enable_if_t<and_<not_<is_convertible<const
+		transformed_iterator<_tIter2, _fTrans2, _tRef2>&, iterator_type>>,
+		is_constructible<_tIter, const _tIter2&>,
+		is_constructible<_fTrans, const _fTrans2&>>::value>)>
+#endif
 	yconstfn
-	transformed_iterator(const transformed_iterator<_tIter2, _fTrans2, _tRef2>&
-		i)
-		: transformer(i.transformer), ptr(i.get())
+	transformed_iterator(
+		const transformed_iterator<_tIter2, _fTrans2, _tRef2>& i)
+		: transformer(i.transformer), transformed(i.get())
 	{}
 	//! \since build 665
 	template<typename _tIter2, typename _fTrans2, typename _tRef2,
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000
 		yimpl(typename = enable_if_t<and_<is_constructible<_tIter, _tIter2&&>,
 		is_constructible<_fTrans, _fTrans2&&>>::value>)>
+#else
+		yimpl(typename = enable_if_t<and_<not_<is_convertible<
+		transformed_iterator<_tIter2, _fTrans2, _tRef2>&&, iterator_type>>,
+		is_constructible<_tIter, _tIter2&&>,
+		is_constructible<_fTrans, _fTrans2&&>>::value>)>
+#endif
 	yconstfn
 	transformed_iterator(transformed_iterator<_tIter2, _fTrans2, _tRef2>&& i)
-		: transformer(std::move(i.transformer)), ptr(i.get())
+		: transformer(std::move(i.transformer)), transformed(i.get())
 	{}
 	//! \since build 415
 	//@{
@@ -441,14 +455,14 @@ public:
 	yconstfn_relaxed iterator_type&
 	get() ynothrow
 	{
-		return ptr;
+		return transformed;
 	}
 
 	//! \brief 取原迭代器 const 引用。
 	yconstfn const iterator_type&
 	get() const ynothrow
 	{
-		return ptr;
+		return transformed;
 	}
 	//@}
 

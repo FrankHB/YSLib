@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2499
+\version r2542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-10-19 08:53 +0800
+	2016-07-11 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,16 +29,20 @@
 #define INC_CHRLib_StaticMapping_hpp_ 1
 
 #include "YModules.h"
-#include YFM_CHRLib_CharacterMapping
-#include <ystdex/cstdio.h>
-#include <ystdex/ref.hpp> // for ystdex::pseudo_object;
+#include YFM_CHRLib_CharacterMapping // for std::is_constructible,
+//	ystdex::is_undereferenceable, ystdex::remove_reference_t,
+//	ystdex::pseudo_output, yconstraint;
+#include <ystdex/cast.hpp> // for ystdex::narrow_cast;
 
 namespace CHRLib
 {
 
 //! \since build 644
 //@{
-//! \pre is_undereferenceable 不抛出异常。
+/*!
+\brief 检查解码迭代器。
+\pre is_undereferenceable 不抛出异常。
+*/
 template<typename _tIn>
 inline bool
 CheckIterator(_tIn& i) ynothrow
@@ -50,7 +54,10 @@ CheckIterator(_tIn& i) ynothrow
 	return !is_undereferenceable(i);
 }
 
-//! \brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
+/*!
+\brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
+\note 使用 ADL CheckIterator 检查迭代器。
+*/
 //@{
 template<typename _tIn>
 inline bool
@@ -131,12 +138,30 @@ struct UCSMapperBase
 		uc = _tObj(c);
 	}
 	//@}
+
+	/*!
+	\brief 编码字符。
+	\pre is_undereferenceable 不抛出异常。
+	\note 使用 ADL is_undereferenceable 和 narrow_cast 。
+	\since build 709
+	*/
+	template<typename _tOut>
+	static void
+	EncodeChar(_tOut d, char32_t c) ynothrowv
+	{
+		using ystdex::is_undereferenceable;
+		using ystdex::narrow_cast;
+		ynoexcept_assert("Invalid type found.", !is_undereferenceable(d));
+
+		yconstraint(!is_undereferenceable(d));
+		*d = narrow_cast<ystdex::remove_reference_t<decltype(*d)>>(c);
+	}
 };
 
 
 /*!
 \brief 静态编码操作模板及 Unicode 编码特化。
-\note 使用 ADL FillByte 填充字节。
+\note 使用 ADL FillByte 填充解码的字节。
 \note 使用 ADL GetIndexOf 和 GetSequenceOf 操作状态。
 \sa UCSMapperBase
 
@@ -149,7 +174,7 @@ struct UCSMapperBase
 IsInvalid ：判断八元组是否被禁止的接口。
 Decode ：解码操作：从指定编码的字符序列映射到中间状态的字符。
 Encode ：编码操作：从中间状态的字符逆向映射到指定编码的字符序列。
-解码操作允许接受 ystdex::pseudo_object 忽略输出。
+解码操作允许接受 ystdex::pseudo_output 忽略输出。
 使用模板参数决定状态类型中，状态索引等于已解码的输入字节数；否则不予保证。
 */
 //@{
@@ -165,6 +190,8 @@ template<>
 struct GUCSMapper<CharSet::UTF_8> : UCSMapperBase
 {
 	using UCSMapperBase::Assign;
+	//! \since build 709
+	using UCSMapperBase::EncodeChar;
 
 private:
 	template<typename _tObj, typename _tSeq>
@@ -355,7 +382,7 @@ public:
 		default:
 			return ConversionResult::BadState;
 		}
-		uc = code;
+		Assign(uc, code);
 		return res ? ConversionResult::OK : ConversionResult::Invalid;
 #undef CHRLib_Impl_UTF8_Decode_FillTransTail
 #undef CHRLib_Impl_UTF8_Decode_Tail
@@ -373,28 +400,28 @@ public:
 	//! \since build 641
 	template<typename _tOut>
 	static size_t
-	Encode(_tOut d, char32_t s) ynothrow
+	Encode(_tOut d, char32_t c) ynothrow
 	{
-		ynoexcept_assert("Invalid type found.", *d = char());
 		using ystdex::is_undereferenceable;
 		size_t l(0);
 
 		yconstraint(!is_undereferenceable(d));
-		if(s < 0x80U)
+		if(c < 0x80U)
 		{
-			*d = s;
+			EncodeChar(d, c);
 			return 1;
 		}
-		if(s < 0x800U)
+		if(c < 0x800U)
 			l = 2;
 		else
 		{
-			*d = char(0xE0U | s >> 12U);
+			EncodeChar(d, byte(0xE0U | c >> 12U));
 			++d;
 			l = 3;
 		}
-		*d = char(0x80U | (s >> 6U & 0x3FU));
-		*++d = char(0x80U | (s & 0x3FU));
+		EncodeChar(d, byte(0x80U | (c >> 6U & 0x3FU)));
+		++d;
+		EncodeChar(d, byte(0x80U | (c & 0x3FU)));
 		return l;
 	}
 };

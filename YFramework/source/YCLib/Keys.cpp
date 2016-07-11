@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1247
+\version r1249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2016-01-11 11:20 +0800
+	2016-07-11 18:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1195,8 +1195,8 @@ ToggleLockState(KeyIndex code) ynothrow
 		::INPUT input[2]{{INPUT_KEYBOARD, {}}, {INPUT_KEYBOARD, {}}};
 
 		yunseq(
-		input[0].ki.wVk = code, input[1].ki.wVk = code,
-		input[1].ki.dwFlags = KEYEVENTF_KEYUP
+		input[0].ki.wVk = std::uint16_t(code), input[1].ki.wVk
+		= std::uint16_t(code), input[1].ki.dwFlags = KEYEVENTF_KEYUP
 		);
 		::SendInput(2, input, sizeof(::INPUT));
 	}

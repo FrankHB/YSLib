@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2711
+\version r2713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2015-09-28 01:05 +0800
+	2016-07-11 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,6 +234,7 @@ public:
 
 	/*!
 	\brief 遍历目录中的项目，更新至列表。
+	\exception IO::FileOperationFailure 异常中立：文件系统访问操作异常。
 	\since build 414
 	*/
 	ListType

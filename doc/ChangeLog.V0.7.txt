@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1049
+\version r1173
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-09 13:29 +0800
+	2016-07-11 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,129 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "class template %transformed_iterator" @ %Iterator $=
+		(
+			* "missing excluding nested %transformed_iterator instances"
+				@ "constructor templates with single \
+				parameter of %transformed_iterator instances of other template \
+				parameters" @ !'YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000' $since
+				b665;
+			* $re_ex(b708) "recursive instantiation of enclosing template"
+				@ "constructor template with single parameter for \
+				arbitrary iterator" @ %Iterator $since b679
+		),
+		/ %Cast $=
+		(
+			+ "binary type traits %(is_narrowing_from_floating_to_integer, \
+				is_narrowing_from_floating_to_floating, \
+				is_narrowing_from_floating)";
+			* $dev "wrong static assertion" @ "function template %narrow_cast"
+				$since b703
+		),
+		* $impl "redundant 'sizeof(tp), '" @ "SFINAE condition"
+			@ "4 constructor template %mixin" @ %Mixin $since b477
+			// This caused Microsoft VC++ error C2065.
+	),
+	/ %YFramework $=
+	(
+		* $re_add(b520) DLD "missing UTF-8 BOM" @ "header file %Win32Control.h"
+			@ %'Helper_(Win32)' $since b570,
+		/ DLDI "class-key" @ "private member type" @ "class "
+			@ %'YCLib_(Win32)'.MinGW32,
+			// To eliminate Microsoft VC++ warning: C4099.
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				* $impl "undeclared '::mode_t' may be used" @ "platform %Win32"
+					$since b627
+					(/ '::mode_t' -> 'mode_t' @ "namespace %platform"),
+				/ DLDI "simplified functions %(HaveSameContents, \
+					EnsureUniqueFile)" ^ $dep_from
+					("%YCL_ReservedGlobal" @ %NativeAPI)
+				* $doc "wrong name 'std::close'" @ "Doxygen comment"
+					@ "functions %upopen" $orig (@ %FileSystem $since b566)
+					$= (/ 'std::close' -> '::close'),
+				/ DLI "member function %FileDescriptor::Deleter::operator()"
+					^ $dep_from ("%YCL_CallGlobal" @ %NativeAPI),
+					// To eliminate Microsoft VC++ warning: C4996.
+				/ DLI "member functions %FileDescriptor::(Read, Write)"
+					^ $dep_from ("%YCL_ReservedGlobal" @ %NativeAPI)
+					// To eliminate Microsoft VC++ warning: C4996.
+			),
+			+ "macros %(YCL_ReservedGlobal; YCL_CallGlobal)" @ %NativeAPI,
+			+ "Microsoft VC++ 2015 support" @ "class templates \
+				%(basic_filebuf, basic_ofstream, basic_ifstream, basic_fstream)"
+				$=
+			(
+				+ "%(open, swap) support for VC++ standard library \
+					implementation",
+				/ $impl "ctor-initializer" @ "constructor templates"
+					@ "class templates %(basic_ifstream, basic_ofstream, \
+					basic_fstream)" ^ '(nullptr)' ~ '({})',
+					// To avoid possible ambiguity when base type has multiple \
+						constructor allowing initialization from '{}'. This is \
+						at least the case of VC++ 2015.
+			),
+			/ @ "platform %Win32" @ "constructor %MappedFile" @ %MemoryMapping
+				$=
+			(
+				+ "check for size by calling %ystdex::narrow";
+				* $comp "size truncated silently for file size larger than 2GiB"
+					@ !"platform %Win64"
+					$since b324
+			),
+			/ DLDI "cast to %std::uint32_t" @ "platform %Win32"
+				@ "function %ToggleLockState"
+				// To eliminate Microsoft VC++ warning: C4267.
+		),
+		/ %CHRLib.StaticMapping $=
+		(
+			+ "function template %EncodeChar" @ "struct %UCSMapperBase"
+				^ ("%ystdex::narrow_cast" @ %YBase.YStandardEx.Cast),
+			/ @ "class template specialization %GUCSMapper<CharSet::UTF_8>" $=
+			(
+				(
+				+ 'using UCSMapperBase::EncodeChar;';
+				/ DLI "character assignment" @ "function templates %Encode"
+					^ "EncodeChar"
+				),
+				/ DLI "character assignment" @ "function template %Decode#2"
+					^ "Assign"
+				// Also to eliminate Microsoft VC++ warning: C4244.
+			)
+		),
+		/ %YSLib $=
+		(
+			* $doc "'\pre' command" @ "Doxygen comment" @ "function template \
+				%ClearSequence" @ %Core.YCoreUtility $since b624,
+			/ @ "class %FileBox" @ %UI.ComboList $=
+			(
+				/ "made %ListItems neutural to exceptions",
+				/ @ "function %SetPath" $=
+				(
+					/ "caught and logged %IO::FileOperationFaiure exceptions",
+					* $comp "missing strong exception safety" $since b298
+						$= (/ "saved state and revoeved on failure"
+							^ "%ystdex::swap_guard")
+				),
+				(
+				/ "saved state and revoeved on failure"
+					@ "%Confirmed event handler" @ "constructor"
+					^ "%ystdex::swap_guard";
+				* $comp "no recovery way from directory access failure" $orig
+					@ ("member function %YFileBox::OnConfirmed"
+					@ %Shell.YGUIComponent $since b193)
+				)
+			)
+		)
+	)
+),
+
+b708
 (
 	/ %YFramework $=
 	(
@@ -123,8 +246,8 @@ $now
 				$= (/ "merged as 1 template"),
 			/ DLDI "dispatch" @ "function template %extract_key"
 		),
-		/ $impl "constructor template %transformed_iterator with multiple \
-			SFINAE conditions" @ %Iterator $since b679
+		/ $impl $doc "clearified issue related to CWG 1227"
+			@ "constructor template %transformed_iterator" @ %Iterator
 	),
 	+ $repo "glob pattern 'packages/VisualCppTools.*'" @ "file %.hgignore"
 ),

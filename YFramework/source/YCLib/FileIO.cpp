@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2466
+\version r2508
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-07-04 02:19 +0800
+	2016-07-10 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ namespace platform
 {
 
 //! \since build 627
-static_assert(std::is_same<::mode_t, ystdex::underlying_type_t<Mode>>(),
+static_assert(std::is_same<mode_t, ystdex::underlying_type_t<Mode>>::value,
 	"Mismatched mode types found.");
 
 // XXX: Catch %std::bad_alloc?
@@ -109,13 +109,17 @@ RetryOnInterrupted(_func f) -> decltype(RetryOnError(f, errno, EINTR))
 	return RetryOnError(f, errno, EINTR);
 }
 
+//! \since build 709
+#if YCL_Win64
+using rwsize_t = unsigned;
+#else
+using rwsize_t = size_t;
+#endif
+
+//! \since build 709
 template<typename _func, typename _tBuf>
 size_t
-#if YCL_Win64
-SafeReadWrite(_func f, int fd, _tBuf buf, unsigned nbyte) ynothrowv
-#else
-SafeReadWrite(_func f, int fd, _tBuf buf, size_t nbyte) ynothrowv
-#endif
+SafeReadWrite(_func f, int fd, _tBuf buf, rwsize_t nbyte) ynothrowv
 {
 	return size_t(RetryOnInterrupted([&]{
 		return f(fd, buf, nbyte);
@@ -348,18 +352,14 @@ template<typename _tChar>
 YB_NONNULL(1, 2) pair<UniqueFile, UniqueFile>
 HaveSameContents_Impl(const _tChar* path_a, const _tChar* path_b, mode_t mode)
 {
-	if(UniqueFile p_a{uopen(path_a,
+	if(UniqueFile p_a{uopen(path_a, YCL_ReservedGlobal(O_RDONLY)
 #if YCL_Win32
-		_O_RDONLY | _O_BINARY
-#else
-		O_RDONLY
+		| _O_BINARY
 #endif
 		, mode)})
-		if(UniqueFile p_b{uopen(path_b,
+		if(UniqueFile p_b{uopen(path_b, YCL_ReservedGlobal(O_RDONLY)
 #if YCL_Win32
-			_O_RDONLY | _O_BINARY
-#else
-			O_RDONLY
+			| _O_BINARY
 #endif
 		, mode)})
 			return {std::move(p_a), std::move(p_b)};
@@ -416,7 +416,7 @@ FileDescriptor::Deleter::operator()(pointer p) const ynothrow
 	if(p)
 		// NOTE: Error is ignored.
 		//	See $2016-03 @ %Documentation::Workflow::Annual2016.
-		::close(*p);
+		YCL_CallGlobal(close, *p);
 }
 
 
@@ -665,21 +665,13 @@ FileDescriptor::FullWrite(const void* buf, size_t nbyte) ynothrowv
 size_t
 FileDescriptor::Read(void* buf, size_t nbyte) ynothrowv
 {
-#if YCL_Win64
-	return SafeReadWrite(::read, desc, buf, unsigned(nbyte));
-#else
-	return SafeReadWrite(::read, desc, buf, nbyte);
-#endif
+	return SafeReadWrite(YCL_ReservedGlobal(read), desc, buf, rwsize_t(nbyte));
 }
 
 size_t
 FileDescriptor::Write(const void* buf, size_t nbyte) ynothrowv
 {
-#if YCL_Win64
-	return SafeReadWrite(::write, desc, buf, unsigned(nbyte));
-#else
-	return SafeReadWrite(::write, desc, buf, nbyte);
-#endif
+	return SafeReadWrite(YCL_ReservedGlobal(write), desc, buf, rwsize_t(nbyte));
 }
 
 void
@@ -1180,21 +1172,16 @@ UniqueFile
 EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 	bool share)
 {
-	static yconstexpr const int de_oflag
+	static yconstexpr const int de_oflag(YCL_ReservedGlobal(O_WRONLY)
+		| YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_TRUNC)
 #if YCL_Win32
-		(_O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY);
-#else
-		(O_WRONLY | O_CREAT | O_TRUNC);
+		| _O_BINARY
 #endif
+	);
 
 	mode &= mode_t(Mode::User);
-	if(UniqueFile p_file{uopen(dst,
-#if YCL_Win32
-		de_oflag | _O_EXCL
-#else
-		de_oflag | O_EXCL
-#endif
-		, mode)})
+	if(UniqueFile
+		p_file{uopen(dst, de_oflag | YCL_ReservedGlobal(O_EXCL), mode)})
 		return p_file;
 	if(allowed_links != 0 && errno == EEXIST)
 	{
