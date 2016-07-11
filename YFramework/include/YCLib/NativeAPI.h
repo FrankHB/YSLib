@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1283
+\version r1298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-06-23 09:45 +0800
+	2016-07-10 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,6 +78,23 @@ static_assert(std::is_signed<platform::ssize_t>(),
 	"Invalid signed size type found.");
 //@}
 #endif
+
+
+//! \since build 709
+//@{
+/*!
+\def YCL_ReservedGlobal
+\brief 按实现修饰全局保留名称。
+\see ISO C11 7.1.3 和 WG21 N4594 17.6.4.3[reserved.names] 。
+*/
+#if YCL_Win32
+#	define YCL_ReservedGlobal(_n) _##_n
+#else
+#	define YCL_ReservedGlobal(_n) _n
+#endif
+//! \brief 调用按实现修饰的具有全局保留名称的函数。
+#define YCL_CallGlobal(_n, ...) ::YCL_ReservedGlobal(_n)(__VA_ARGS__)
+//@}
 
 
 #if YCL_Win32 || YCL_API_POSIXFileSystem

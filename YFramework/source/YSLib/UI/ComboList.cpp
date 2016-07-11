@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3267
+\version r3293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2016-02-12 01:40 +0800
+	2016-07-11 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include YFM_YSLib_UI_YStyle
 #include YFM_YSLib_UI_YPanel
 #include YFM_YSLib_Service_TextLayout // for FetchMaxTextWidth;
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 
 namespace YSLib
 {
@@ -123,11 +124,19 @@ FileBox::FileBox(const Rect& r)
 	: ListBox(r), pthDirectory()
 {
 	GetConfirmed() += [this](IndexEventArgs&& e){
-		if(Contains(e) && bool(*this = GetPath(e.Value)))
+		ystdex::swap_guard<IO::Path> gd(true, pthDirectory, pthDirectory);
+
+		try
 		{
-			GetListRef() = ListItems();
-			ResetView();
+			if(Contains(e) && bool(*this = GetPath(e.Value)))
+			{
+				GetListRef() = ListItems();
+				gd.dismiss();
+				ResetView();
+			}
 		}
+		// TODO: Custom platform-dependent name converting.
+		CatchExpr(IO::FileOperationFailure& ex, ExtractAndTrace(ex, Warning))
 	};
 	ListItems();
 	UpdateView();
@@ -170,12 +179,20 @@ FileBox::operator/=(const IO::Path& d)
 bool
 FileBox::SetPath(const IO::Path& pth)
 {
-	if(operator=(pth))
+	ystdex::swap_guard<IO::Path> gd(true, pthDirectory, pthDirectory);
+
+	try
 	{
-		GetListRef() = ListItems();
-		UpdateView();
-		return true;
+		if(operator=(pth))
+		{
+			GetListRef() = ListItems();
+			gd.dismiss();
+			UpdateView();
+			return true;
+		}
 	}
+	// TODO: Custom platform-dependent name converting.
+	CatchExpr(IO::FileOperationFailure& e, ExtractAndTrace(e, Warning))
 	return {};
 }
 
@@ -184,10 +201,7 @@ FileBox::ListItems() const
 {
 	ListType lst;
 
-	TryExpr(ListFiles(pthDirectory, lst))
-	// TODO: Log errors?
-	CatchIgnore(IO::FileOperationFailure&)
-	// TODO: Platform-dependent name converting.
+	ListFiles(pthDirectory, lst);
 	return lst;
 }
 

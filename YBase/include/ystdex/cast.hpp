@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1304
+\version r1356
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2016-06-19 20:42 +0800
+	2016-07-10 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,6 +62,58 @@ qualify(_tSrc&& arg) ynothrow
 }
 
 
+//! \since build 709
+//@{
+//! \ingroup binary_type_traits
+//@{
+template<typename _tDst, typename _tSrc>
+using is_narrowing_from_floating_to_integer
+	= and_<is_integral<_tDst>, is_floating_point<_tSrc>>;
+
+template<typename _tDst, typename _tSrc>
+using is_narrowing_from_floating_to_floating
+	= and_<is_floating_point<_tDst>, is_floating_point<_tSrc>,
+	is_same<common_type_t<_tDst, _tSrc>, _tSrc>>;
+
+template<typename _tDst, typename _tSrc>
+using is_narrowing_from_floating
+	= or_<is_narrowing_from_floating_to_integer<_tDst, _tSrc>,
+	is_narrowing_from_floating_to_floating<_tDst, _tSrc>>;
+//@}
+
+namespace details
+{
+
+#if YB_IMPL_GNUCPP >= 50000
+template<typename _tDst>
+struct narrow_test
+{
+	_tDst i, j;
+
+	yconstfn false_type
+	get() const ynothrow
+	{
+		return {};
+	}
+};
+
+template<typename _tDst, typename _tSrc>
+yconstfn auto
+test_narrow(_tSrc v) ynothrow -> decltype(narrow_test<_tDst>{v}.get())
+{
+	return narrow_test<_tDst>{v};
+}
+template<typename>
+yconstfn true_type
+test_narrow(...) ynothrow
+{
+	return {};
+}
+#endif
+
+} // namespace details;
+//@}
+
 //! \since build 703
 //@{
 //! \brief 可能缩小数值范围的显式转换。
@@ -71,14 +123,12 @@ narrow_cast(_tSrc v) ynothrow
 {
 	static_assert(is_arithmetic<_tDst>(), "Invalid destination type found.");
 	static_assert(is_arithmetic<_tSrc>(), "Invalid source type found.");
-	static_assert(not_<is_same<_tDst, _tSrc>>(), "Invalid types found.");
-	static_assert(or_<and_<is_integral<_tDst>, is_floating_point<_tSrc>>,
-		and_<is_floating_point<_tDst>, is_floating_point<_tSrc>, is_same<
-		common_type_t<_tDst, _tSrc>, _tSrc>>, and_<is_unsigned<_tDst>,
-		is_signed<_tSrc>>, bool_constant<(std::numeric_limits<_tDst>::max()
-		< std::numeric_limits<_tSrc>::max())
-		|| (std::numeric_limits<_tSrc>::min()
-		< std::numeric_limits<_tDst>::min())>>(), "Invalid types found.");
+#if YB_IMPL_GNUCPP >= 50000
+	static_assert(is_narrowing_from_floating<_tDst, _tSrc>()
+		|| details::test_narrow<_tDst>(std::numeric_limits<_tSrc>::max())
+		|| details::test_narrow<_tDst>(std::numeric_limits<_tSrc>::min()),
+		"Invalid types found.");
+#endif
 
 	return static_cast<_tDst>(v);
 }

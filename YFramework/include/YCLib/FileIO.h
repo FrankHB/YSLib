@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2085
+\version r2148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-07-04 00:43 +0800
+	2016-07-11 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,9 @@
 #	include <ext/stdio_filebuf.h> // for __gnu_cxx::stdio_filebuf;
 #	include <ystdex/utility.hpp> // for ystdex::swap_underlying,
 //	ystdex::exchange;
+#elif YB_IMPL_MSCPP
+#	include <ystdex/cstdio.h> // for ystdex::openmode_conv;
+#	include <locale> // for std::use_facet, std::codecvt;
 #endif
 #include <system_error> // for std::system_error;
 #include <ystdex/container.hpp> // for ystdex::retry_for_vector;
@@ -528,7 +531,7 @@ upclose(std::FILE*) ynothrowv;
 \param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \pre 断言：\c filename 。
 \pre 间接断言： \c mode 。
-\warning 应使用 upclose 而不是 std::close 关闭管道流，否则可能引起未定义行为。
+\warning 应使用 upclose 而不是 ::close 关闭管道流，否则可能引起未定义行为。
 \note DS 平台：不支持操作，总是失败并设置 errno 为 ENOSYS 。
 */
 //@{
@@ -614,9 +617,14 @@ uremove(const char*) ynothrowv;
 \since build 616
 */
 //@{
-#if __GLIBCXX__
+#if __GLIBCXX__ || YB_IMPL_MSCPP
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
-class basic_filebuf : public yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>)
+class basic_filebuf
+#	if __GLIBCXX__
+	: public yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>)
+#	else
+	: public yimpl(std::basic_filebuf<_tChar, _tTraits>)
+#	endif
 {
 public:
 	using char_type = _tChar;
@@ -627,7 +635,12 @@ public:
 
 	//! \since build 620
 	DefDeCtor(basic_filebuf)
+#	if __GLIBCXX__
 	using yimpl(__gnu_cxx::stdio_filebuf<_tChar, _tTraits>::stdio_filebuf);
+#	else
+	//! \since build 709
+	using yimpl(std::basic_filebuf<_tChar, _tTraits>::basic_filebuf);
+#	endif
 #	if YB_IMPL_GNUCPP && !(YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922)
 	//! \since build 620
 	//@{
@@ -679,22 +692,29 @@ private:
 			rhs._M_state_cur = rhs._M_state_beg);
 	}
 	//@}
+#	else
+	DefDeCopyMoveCtorAssignment(basic_filebuf)
 #	endif
 
 public:
 	//! \since build 627
-	std::basic_filebuf<_tChar, _tTraits>*
+	basic_filebuf<_tChar, _tTraits>*
 	open(UniqueFile p, std::ios_base::openmode mode)
 	{
 		if(p)
 		{
+#	if __GLIBCXX__
 			this->_M_file.sys_open(*p.get(), mode);
-
 			if(open_check(mode))
 			{
 				p.release();
 				return this;
 			}
+#	else
+			if(!this->is_open())
+				if(const auto mode_str = ystdex::openmode_conv(mode))
+					return open_file_ptr(::_fdopen(*p.get(), mode_str));
+#	endif
 		}
 		return {};
 	}
@@ -704,10 +724,16 @@ public:
 	{
 		if(!this->is_open())
 		{
+#	if __GLIBCXX__
 			this->_M_file.sys_open(uopen(s, omode_convb(mode), DefaultPMode()),
 				mode);
 			if(open_check(mode))
 				return this;
+#	else
+			if(const auto mode_str = ystdex::openmode_conv(mode))
+				return open_file_ptr(
+					std::_Fiopen(s, mode, int(std::ios_base::_Openprot)));
+#	endif
 		}
 		return {};
 	}
@@ -721,6 +747,7 @@ public:
 	}
 
 private:
+#	if __GLIBCXX__
 	//! \since build 627
 	bool
 	open_check(std::ios_base::openmode mode)
@@ -738,9 +765,26 @@ private:
 				this->close();
 			else
 				return true;
+			return true;
 		}
 		return {};
 	}
+#	else
+	//! \since build 709
+	YB_NONNULL(1) basic_filebuf<_tChar, _tTraits>*
+	open_file_ptr(::_Filet* p_file)
+	{
+		if(p_file)
+		{
+			this->_Init(p_file, std::basic_filebuf<_tChar, _tTraits>::_Openfl);
+			this->_Initcvt(&std::use_facet<std::codecvt<_tChar, char,
+				typename _tTraits::state_type>>(
+				std::basic_streambuf<_tChar, _tTraits>::getloc()));
+			return this;
+		}
+		return {};
+	}
+#	endif
 };
 
 
@@ -770,7 +814,7 @@ private:
 
 public:
 	basic_ifstream()
-		: base_type({})
+		: base_type(nullptr)
 	{
 		this->init(&fbuf);
 	}
@@ -780,7 +824,7 @@ public:
 	explicit
 	basic_ifstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::in)
-		: base_type({})
+		: base_type(nullptr)
 	{
 		this->init(&fbuf);
 		this->open(yforward(s), mode);
@@ -803,7 +847,8 @@ public:
 		return *this;
 	}
 
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+#	if (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922) \
+		|| YB_IMPL_MSCPP
 	void
 	swap(basic_ifstream& rhs)
 	{
@@ -844,7 +889,7 @@ public:
 	}
 };
 
-#	if __GLIBCXX__ > 20140922
+#	if __GLIBCXX__ > 20140922 || YB_IMPL_MSCPP
 template<typename _tChar, class _tTraits>
 inline DefSwap(, basic_ifstream<_tChar YPP_Comma _tTraits>)
 #	endif
@@ -868,7 +913,7 @@ private:
 
 public:
 	basic_ofstream()
-		: base_type({})
+		: base_type(nullptr)
 	{
 		this->init(&fbuf);
 	}
@@ -878,7 +923,7 @@ public:
 	explicit
 	basic_ofstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::out)
-		: base_type({})
+		: base_type(nullptr)
 	{
 		this->init(&fbuf);
 		this->open(yforward(s), mode);
@@ -901,7 +946,8 @@ public:
 		return *this;
 	}
 
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+#	if (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922) \
+	|| YB_IMPL_MSCPP
 	void
 	swap(basic_ofstream& rhs)
 	{
@@ -966,7 +1012,7 @@ private:
 
 public:
 	basic_fstream()
-		: base_type({})
+		: base_type(nullptr)
 	{
 		this->init(&fbuf);
 	}
@@ -975,7 +1021,7 @@ public:
 	explicit
 	basic_fstream(_tParam&& s,
 		std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
-		: base_type({})
+		: base_type(nullptr)
 	{
 		this->init(&fbuf);
 		this->open(yforward(s), mode);
@@ -998,7 +1044,8 @@ public:
 		return *this;
 	}
 
-#	if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922
+#	if (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922) \
+	|| YB_IMPL_MSCPP
 	void
 	swap(basic_fstream& rhs)
 	{
@@ -1039,7 +1086,7 @@ public:
 	}
 };
 
-#	if __GLIBCXX__ > 20140922
+#	if __GLIBCXX__ > 20140922 || YB_IMPL_MSCPP
 template<typename _tChar, class _tTraits>
 inline DefSwap(, basic_fstream<_tChar YPP_Comma _tTraits>)
 #	endif

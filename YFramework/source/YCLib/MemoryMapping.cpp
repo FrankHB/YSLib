@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r283
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-02-11 01:41 +0800
+	2016-07-10 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,9 @@
 #include YFM_YCLib_FileIO // for uopen, ThrowFileOperationFailure;
 #include YFM_YCLib_NativeAPI
 #include <stdexcept> // for std::runtime_error;
-#if YCL_Linux || YCL_OS_X
+#if YCL_Win32
+#	include <ystdex/cast.hpp> // for ystdex::narrow;
+#elif YCL_Linux || YCL_OS_X
 #	include <sys/mman.h>
 #	include <sys/stat.h>
 #endif
@@ -73,7 +75,8 @@ MappedFile::MappedFile(const char* path)
 			if(::HANDLE fm = ::CreateFileMapping(h, {}, PAGE_READONLY, 0,
 				static_cast<unsigned long>(size), {}))
 			{
-				p = ::MapViewOfFile(fm, FILE_MAP_READ, 0, 0, size);
+				p = ::MapViewOfFile(fm, FILE_MAP_READ, 0, 0,
+					ystdex::narrow<size_t>(size));
 				::CloseHandle(fm);
 			}
 	}

@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2474
+\version r2475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-06-21 01:48 +0800
+	2016-07-11 17:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -353,7 +353,7 @@ CheckPositive(_type val, const std::string& name = {}, RecordLevel lv = Err)
 /*!
 \brief 清除指定的连续对象。
 \pre 设类型 T 为 <tt>ystdex::decay_t<decltype(*dst)></tt>， 则应满足
-	<tt>std::is_pod<T>() || (std::is_nothrow_default_constructible<T>:()
+	<tt>std::is_pod<T>() || (std::is_nothrow_default_constructible<T>()
 		&& std::is_nothrow_assignable<T, T>())</tt> 。
 \since build 624
 */
