@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4094
+\version r4146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-07-05 02:28 +0800
+	2016-07-13 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,6 +94,11 @@ namespace platform
 namespace
 {
 
+#if !YCL_Win32
+//! \since build 710
+using errno_guard = ystdex::swap_guard<int, void, decltype(errno)&>;
+#endif
+
 //! \since build 708
 #if !YCL_DS
 template<typename _tChar>
@@ -163,7 +168,7 @@ CreateHardLink(const char* dst, const char* src)
 	//	link target.
 	if(::linkat(AT_FDCWD, Nonnull(src), AT_FDCWD, Nonnull(dst),
 		AT_SYMLINK_FOLLOW) != 0)
-		ystdex::throw_error(errno);
+		ystdex::throw_error(errno, "::linkat");
 #endif
 }
 void
@@ -195,7 +200,7 @@ CreateSymbolicLink(const char* dst, const char* src, bool is_dir)
 #else
 	yunused(is_dir);
 	if(::symlink(Nonnull(src), Nonnull(dst)) != 0)
-		ystdex::throw_error(errno);
+		ystdex::throw_error(errno, "::symlink");
 #endif
 }
 void
@@ -228,25 +233,54 @@ ReadLink(const char* path)
 
 	if(::lstat(Nonnull(path), &st) == 0)
 	{
-		const auto n(st.st_size);
-
-		if(n > 0)
+		if((Mode(st.st_mode) & Mode::Link) == Mode::Link)
 		{
-			string res(size_t(n), char{});
-			const auto size(::readlink(path, &res[0], size_t(n)));
+			auto n(st.st_size);
 
-			if(size >= 0)
+			// NOTE: Some file systems like procfs on Linux are not
+			//	conforming to POSIX, thus %st.st_size is not always reliable. In
+			//	most cases, it is 0. Only 0 is currently supported.
+			if(n >= 0)
 			{
-				res.resize(size_t(size));
-				return res;
+				// FIXME: Blocked. TOCTTOU access.
+				if(n == 0)
+					// TODO: Use %::pathconf to determine initial length instead
+					//	of magic number.
+					n = yimpl(1024);
+				return ystdex::retry_for_vector<string>(n,
+					[&](string& res, size_t s) -> bool{
+					errno_guard gd(errno, 0);
+					const auto r(::readlink(path, &res[0], size_t(n)));
+
+					if(r < 0)
+					{
+						const int err(errno);
+
+						switch(err)
+						{
+						case EINVAL:
+							throw std::invalid_argument("Failed reading link:"
+								" Specified file is not a link.");
+						case 0:
+							throw std::runtime_error(
+								"Unknown error @ ::readlink.");
+						default:
+							ystdex::throw_error(err, "::readlink");
+						}
+					}
+					if(size_t(r) <= s)
+					{
+						res.resize(size_t(r));
+						return {};
+					}
+					return true;
+				});
 			}
+			throw std::invalid_argument("Invalid link size found.");
 		}
-		else if(n == 0)
-			return {};
-		else if(errno == EINVAL)
-			throw std::invalid_argument("Specified file is not a link.");
+		throw std::invalid_argument("Specified file is not a link.");
 	}
-	ystdex::throw_error(errno);
+	ystdex::throw_error(errno, "::lstat");
 #endif
 }
 u16string
@@ -379,7 +413,7 @@ HDirectory::operator++()
 #else
 	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
 
-	ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
+	const errno_guard gd(errno, 0);
 
 	if(const auto p = ::readdir(ToDirPtr(GetNativeHandle())))
 		p_dirent = make_observer(p);

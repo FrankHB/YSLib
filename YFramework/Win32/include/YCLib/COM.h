@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief COM 接口。
-\version r526
+\version r536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2015-09-12 13:23 +0800
+	2016-07-14 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,7 +303,7 @@ protected:
 	{
 		if(const auto tmp = pInterface)
 		{
-			pInterface = nullptr;
+			pInterface = {};
 			tmp->Release();
 		}
 	}
@@ -316,11 +316,9 @@ public:
 		return pInterface;
 	}
 
-	void
-	swap(COMPtr& ptr) ynothrow
-	{
-		std::swap(pInterface, ptr.pInterface);
-	}
+	//! \since build 710
+	PDefH(void, swap, COMPtr& x, COMPtr& y) ynothrow
+		ImplExpr(std::swap(x.pInterface, y.pInterface))
 };
 
 //! \relates COMPtr
@@ -411,14 +409,11 @@ Reset(COMPtr<_iCOM>& ptr) ynothrow
 
 	if(const auto tmp = ptr.Get())
 	{
-		ptr.GetRef() = nullptr;
+		ptr.GetRef() = {};
 		n = tmp->Release();
 	}
 	return n;
 }
-
-template<class _iCOM>
-inline DefSwap(ynothrow, COMPtr<_iCOM>)
 //@}
 //@}
 

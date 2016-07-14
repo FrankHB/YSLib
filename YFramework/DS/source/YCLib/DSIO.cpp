@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r3827
+\version r3832
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2016-06-16 18:21 +0800
+	2016-07-15 00:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include "YCLib/YModules.h"
 #include YFM_DS_YCLib_DSIO // for platform::Descriptions, std::runtime_error,
 //	ystdex::throw_error, std::system_error, string_view, ystdex::retry_on_cond,
-//	YAssertNonnull, YCL_PATH_DELIMITER, std::bind, std::placeholder::_1,
+//	YAssertNonnull, FetchSeparator, std::bind, std::placeholder::_1,
 //	ystdex::exchange, std::ref, YTraceDe, std::exception,
 //	ystdex::trivially_copy_n, ptrdiff_t, DISC_INTERFACE, unique_raw,
 //	ystdex::aligned_store_cast;
@@ -733,9 +733,9 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 	std::function<void(DEntry&)> add_entry, ClusterIndex& dclus)
 {
 	YAssertNonnull(sv.data());
-	if(!sv.empty() && sv.front() == YCL_PATH_DELIMITER)
+	if(!sv.empty() && sv.front() == FetchSeparator<char>())
 	{
-		const auto pos(sv.find_first_not_of(YCL_PATH_DELIMITER));
+		const auto pos(sv.find_first_not_of(FetchSeparator<char>()));
 
 		if(pos == string_view::npos)
 			goto found_root;
@@ -745,7 +745,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 	else
 		dclus = part.GetCWDCluster();
 	ystdex::retry_on_cond(ystdex::logical_not<>(), [&]() -> bool{
-		const auto next_pos(sv.find(YCL_PATH_DELIMITER));
+		const auto next_pos(sv.find(FetchSeparator<char>()));
 		const bool leaf(next_pos == string_view::npos);
 		string_view comp(sv.data(), leaf ? sv.length() : next_pos);
 
@@ -799,7 +799,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 				return true;
 			sv.remove_prefix(next_pos);
 			sv.remove_prefix(std::min(
-				sv.find_first_not_of(YCL_PATH_DELIMITER), sv.length()));
+				sv.find_first_not_of(FetchSeparator<char>()), sv.length()));
 			return sv.empty();
 		}
 		throw_error(errc::not_a_directory);

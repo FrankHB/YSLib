@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3293
+\version r3306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2016-07-11 20:04 +0800
+	2016-07-12 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,19 +124,8 @@ FileBox::FileBox(const Rect& r)
 	: ListBox(r), pthDirectory()
 {
 	GetConfirmed() += [this](IndexEventArgs&& e){
-		ystdex::swap_guard<IO::Path> gd(true, pthDirectory, pthDirectory);
-
-		try
-		{
-			if(Contains(e) && bool(*this = GetPath(e.Value)))
-			{
-				GetListRef() = ListItems();
-				gd.dismiss();
-				ResetView();
-			}
-		}
-		// TODO: Custom platform-dependent name converting.
-		CatchExpr(IO::FileOperationFailure& ex, ExtractAndTrace(ex, Warning))
+		if(Contains(e))
+			SetPath(GetPath(e.Value));
 	};
 	ListItems();
 	UpdateView();
@@ -187,7 +176,7 @@ FileBox::SetPath(const IO::Path& pth)
 		{
 			GetListRef() = ListItems();
 			gd.dismiss();
-			UpdateView();
+			ResetView();
 			return true;
 		}
 	}

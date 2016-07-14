@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YMessage.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1243
+\version r1253
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2015-03-21 16:16 +0800
+	2016-07-14 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,17 +34,17 @@ namespace YSLib
 namespace Messaging
 {
 
-void
-Message::swap(Message& msg) ynothrow
-{
-	std::swap(id, msg.id),
-	content.swap(msg.content);
-}
-
 bool
 operator==(const Message& x, const Message& y)
 {
 	return x.id == y.id && x.content == y.content;
+}
+
+void
+swap(Message& x, Message& y) ynothrow
+{
+	std::swap(x.id, y.id),
+	swap(x.content, y.content);
 }
 
 

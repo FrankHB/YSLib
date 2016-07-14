@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4042
+\version r4050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-04-23 03:40 +0800
+	2016-07-14 22:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -465,17 +465,11 @@ public:
 
 	/*!
 	\brief 交换。
-	\since build 409
+	\since build 710
 	*/
-	PDefH(void, swap, ValueObject& vo) ynothrow
-		ImplExpr(content.swap(vo.content))
+	friend PDefH(void, swap, ValueObject& x, ValueObject& y) ynothrow
+		ImplExpr(x.content.swap(y.content))
 };
-
-/*!
-\relates ValueObject
-\since build 409
-*/
-inline DefSwap(ynothrow, ValueObject)
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5215
+\version r5227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-04-23 03:40 +0800
+	2016-07-14 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,8 @@
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
 #include <ystdex/base.h> // for ystdex::cloneable;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
-#include <ystdex/functional.hpp> // for ystdex::make_expanded, ystdex::default_last_value;
+#include <ystdex/functional.hpp> // for ystdex::make_expanded,
+//	ystdex::default_last_value;
 #include <ystdex/optional.h> // for ystdex::optional_last_value;
 
 namespace YSLib
@@ -269,7 +270,7 @@ public:
 	{
 		// XXX: Blocked. 'yforward' cause G++ 5.2 crash: internal
 		//	compiler error: Aborted (program cc1plus).
-#if 0
+#if false
 		const auto tr([&](_tIn iter){
 			return ystdex::make_transform(iter, [&](_tIn i){
 				// XXX: Blocked. 'std::forward' still cause G++ 5.2 crash:
@@ -620,10 +621,10 @@ public:
 
 	/*!
 	\brief 交换。
-	\since build 409
+	\since build 710
 	*/
-	PDefH(void, swap, GEvent& e) ynothrow
-		ImplRet(handlers.swap(e))
+	friend PDefH(void, swap, GEvent& x, GEvent& y) ynothrow
+		ImplRet(x.handlers.swap(y.handlers))
 };
 //@}
 //@}
@@ -665,13 +666,6 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 		prior);
 }
 //@}
-
-/*!
-\relates GEvent
-\since build 409
-*/
-template<typename _tRet, typename... _tParams>
-inline DefSwap(ynothrow, GEvent<_tRet(_tParams...)>)
 
 
 /*!

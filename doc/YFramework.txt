@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1330
+\version r1342
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-06-08 07:13 +0800
+	2016-07-14 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -574,6 +574,7 @@ YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无
 YGlobal 是不可缺少的，它封装了必要的全局对象。
 main 函数由 Helper 的其它源文件封装，或由用户提供。
 Helper 定义的类型若适用于不同平台，不保证二进制兼容性，除非另行约定。
+除非文档说明， Helper 的实现对平台 API 的限制和 YCLib 实现([Documentation::YCLib @@4]) 相同。
 
 @2.8.1 内联平台模块：
 使用内联模块 [Documentation::ProjectRules @@3.2.2] 提供匹配特定平台主要功能的移植支持。
@@ -701,6 +702,9 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 基于 [ProjectRules @@5.5.4.1] 的扩展，这些访问器即使具有不同名称，其声明也不分行；但获取器之间各个子项（谓词、其它获取器和设置器三项之间）的声明应空 1 行。
 注意非访问器的谓词不适用以上规则。
 
+@4.2.3 一般操作：
+除非和标准库风格的接口兼容，使用 friend 启用 ADL swap 而不是成员 swap 、重载命名空间 swap 或特化 std::swap 。命名不变，参见 [Documentation::CommonRules @@4.1.7.3] 。
+
 @4.3 附加编码规则：
 对 YDefinition([Documentation::YBase @@2.4]) 中的每个表达式宏([Documentation::CommonRules @@5.10]) M ，使用特定的以下规则：
 删除 M( 和对应的 ) 、删除原紧接 ) 之后的 ; 之前的空白符并去除多余的空行后应保证余下的代码遵循其它规则。
@@ -711,8 +715,9 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 基本内容见 [Documentation::LanguageConvention] 和 [Documentation::Designation @@6.2] 。
 
 @4.4.1 实现特性宏：
-作为 [Documentation::Designation @@6.2.5] 指定允许的例外， YCLib 实现中，源文件 FileIO 使用以下预处理指令：
+作为 [Documentation::Designation @@6.2.5] 指定允许的例外，某些 YCLib 模块的非头文件中使用以下预处理指令：
 #undef __STRICT_ANSI__
+当前这些模块包括 FileIO 。未来可能有 YCommon 。
 
 @5 框架初始化：
 初始化由 Helper 进行。
@@ -724,7 +729,7 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 
 @5.2 基本配置：
 基本配置是必要的。
-自 build 300 起，配置不再硬编码，初始化时读取配置文件的内容。
+自 build 300 起，配置不再硬编码，初始化时读取框架公共配置文件的内容。
 读取行为、配置文件格式和默认配置见以下说明。
 关于当前支持的配置，另见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
 
@@ -803,7 +808,7 @@ YFramework
 直接编辑或追加其它配置项时变换为此形式。
 
 @5.2.3 build 500 起：
-修改 Win32 生成的默认配置如下：
+修改 Win32 生成的默认框架公共配置如下：
 //[
 YFramework
 (
@@ -819,7 +824,7 @@ YFramework
 //]
 
 @5.2.4 build 506 起：
-添加 Android 配置文件，内容形式和 DS 一致，仅有部分项的值不同。
+添加 Android 框架公共配置文件，内容形式和 DS 一致，仅有部分项的值不同。
 Android 使用运行时检查得到的 SD 卡作为工作目录，为以下值之一：
 /sdcard/
 /mnt/sdcard/
@@ -848,11 +853,14 @@ YFramework
 以上配置仅用于开发时配置测试使用。实际构建需要修改源代码。
 
 @5.2.6 build 693 起：
-Win32 配置文件中，默认配置生成的 FontFile 的值修改为以运行时取得的 Windows 字体文件安装目录而不是硬编码的 "C:\Windows\Fonts" 作为目录。
+Win32 框架公共配置文件中，默认配置生成的 FontFile 的值修改为以运行时取得的 Windows 字体文件安装目录而不是硬编码的 "C:\Windows\Fonts" 作为目录。
 典型安装下值仍然一致。
 
 @5.2.6 build 694 起：
-Win32 配置文件路径修改为以程序映像所在的目录下的 yconf.txt 的绝对路径（不再是依赖初始化时当前工作目录的相对路径）。
+Win32 框架公共配置文件路径修改为以程序映像所在的目录下的 yconf.txt 的绝对路径（不再是依赖初始化时当前工作目录的相对路径）。
+
+@5.2.7 build 710 起：
+Linux 框架公共配置文件路径修改为以程序映像所在的目录下的 yconf.txt 的绝对路径（不再是依赖初始化时当前工作目录的相对路径）。
 
 @5.3 附加配置：
 附加配置是可选的。

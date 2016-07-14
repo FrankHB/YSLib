@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3518
+\version r3525
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-07-05 11:28 +0800
+	2016-07-13 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -291,7 +291,7 @@ TrimTrailingSeperator_P(IDTag<YF_Platform_Win32>, _tString&& path, typename
 
 template<class _tString>
 yconstfn _tString&&
-TrimTrailingSeperator_P(IDTagBase tag, _tString&& path, typename
+TrimTrailingSeperator_P(IDTagBase, _tString&& path, typename
 	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
 	typename ystdex::string_traits<_tString>::value_type>("/")[0]) ynothrow
 {
@@ -415,7 +415,9 @@ CreateSymbolicLink(const char16_t*, const char16_t*, bool = {});
 \brief 读取链接指向的路径。
 \throw std::invalid_argument 指定的路径存在但不是连接。
 \note 支持 Windows 目录链接和符号链接，不特别区分。
-\bug 不保证支持不完全符合 POSIX 的文件系统（如 Linux 的 /proc ）。
+\note POSIX 平台：不同于 ::realpath ，分配合适的大小而不依赖 PATH_MAX 。自动重试
+	分配足够长的字符串以支持不完全符合 POSIX 的文件系统（如 Linux 的 procfs ）
+	导致文件大小为 0 时的情形。
 \since build 660
 */
 //@{
@@ -437,16 +439,16 @@ ReadLink(const char16_t*);
 \return 是否成功访问了链接。
 \throw std::system_error 系统错误：调用检查失败。
 	\li std::errc::too_many_symbolic_link_levels 减少计数后等于 0 。
-\note 忽略空路径。
+\note 忽略空路径。对路径类别中立，用户需自行判断是否为绝对路径或相对路径。
 \note DS 平台：空实现。
 \since build 708
 */
 //@{
 #if YCL_DS
 inline PDefH(bool, IterateLink, string&, size_t&)
-	ImplExpr({})
+	ImplRet({})
 inline PDefH(bool, IterateLink, u16string&, size_t&)
-	ImplExpr({})
+	ImplRet({})
 #else
 YF_API bool
 IterateLink(string&, size_t&);

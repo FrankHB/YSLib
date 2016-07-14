@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1481
+\version r1495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-06-19 19:27 +0800
+	2016-07-14 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -464,9 +464,12 @@ public:
 	ScreenBuffer(ScreenBuffer&&) ynothrow;
 	~ScreenBuffer();
 
-	//! \since build 593
-	ScreenBuffer&
-	operator=(ScreenBuffer&&) ynothrow;
+	/*!
+	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 710
+	*/
+	PDefHOp(ScreenBuffer&, =, ScreenBuffer sbuf) ynothrow
+		ImplRet(swap(sbuf, *this), *this)
 
 #	if YCL_HostedUI_XCB || YCL_Android
 	//! \since build 492
@@ -563,17 +566,11 @@ public:
 
 	/*!
 	\brief 交换。
-	\since build 430
+	\since build 710
 	*/
-	void
-	swap(ScreenBuffer&) ynothrow;
+	YF_API friend void
+	swap(ScreenBuffer&, ScreenBuffer&) ynothrow;
 };
-
-/*!
-\relates ScreenBuffer
-\since build 445
-*/
-inline DefSwap(ynothrow, ScreenBuffer)
 
 
 /*!

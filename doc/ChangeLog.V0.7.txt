@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1173
+\version r1284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-11 21:21 +0800
+	2016-07-15 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,118 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				* "missing returning value" @ "platform %DS"
+					@ "all 2 functions %IterateLink" $since b708
+					$= (/ $impl 'ImplExpr' -> 'ImplRet'),
+				/ @ !"platforms %(DS, Win32)" @ "function %ReadLink" $=
+				(
+					* "missing check %::lstat result mode" $since b660,
+					* "read empty string when size is zero" $since b660,
+						// This would fail on directories, for example.
+					/ "saving and recovering %errno" ^ "%ystdex::swap_guard"
+				),
+				- DLDI "unused parameter name 'tag'"
+					@ "function template %TrimTrailingSeperator_P#2",
+				/ @ "platform !(DS, Win32)" @ "function %ReadLink" $=
+				(
+					/ "retrying allocation" ^ "%ystdex::retry_for_vector";
+					* "unsupported when ::lstat result size is 0 on file \
+						systems non conforming to POSIX (e.g. procfs on Linux)"
+						$since b560
+				)
+			),
+			+ "native function name as argument with %errno in threw error"
+				@ "POSIX platforms" $effective ("functions %(CreateHardLink, \
+				CreateSymbolicLink, ReadLink)" @ %FileSystem),
+			/ "move %operator=" -> "unifying %operator=" @ "class %ScreenBuffer"
+				@ %HostedGUI
+		),
+		/ %YSLib $=
+		(
+			/ @ "class %FileBox" %UI.ComboList $=
+			(
+				* "missing reset list state" @ "function %" $since b298
+					$= (/ $impl ^ "%ResetView" ~ "%UpdateView");
+				/ DLDI "simplified" @ "event handler %Confirmend" ^ "%SetPath"
+			),
+			/ %Service.FileSystem $=
+			(
+				(
+				+ "function template %VerifyDirectoryPathTail";
+				/ DLDI "simplified member function %Path::Verify"
+					^ "%VerifyDirectoryPathTail"
+				),
+				* "function templates %(ResolvePathWithBase; ResolvePath) \
+					cannot work with path types not constructible from string \
+					type" $since b708
+					$= (/ DLDI "return conversion" ^ 'IO::ParsePath<_tPath>'
+						~ '_tPath'),
+				(
+				* "missing adjusting root path"
+					@ "function template %ResolvePathWithBase" $since b708;
+					// Even if adjusting would be performed again in \
+						%ParsePath later, it is necessary here before resolving.
+				* $comp "empty default path root for absolute paths"
+					@ "function template %ResolvePath" $since b708
+				),
+				(
+				* "missing hanling link contents of relative path"
+					@ "function template %ResolvePathWithBase" $since b708;
+				* $comp "wrong resolved intermediate result with path \
+					conponent of link with relative path"
+					@ "function template %(ResolvePathWithBase; ResolvePath)"
+					$since b708
+				)
+			)
+		),
+		/ @ "framework root directory initialization" @ %Helper.Initialization
+			$=
+		(
+			/ @ "platforms %(Win32, Android)" $=
+			(
+				/ "trace on validateion" -> "trace at end of initialization";
+				- "duplicate trace" @ "platform %Android",
+				/ DLDI "simplified"
+					// Also improved performance a little on platform %Win32.
+			);
+			+ "support for platform %Linux by resolving '/proc/self/exe'"
+				(^ $dep_from ("%IO::(ResolvePath, VerifyDirectoryPathTail)"
+				@ %YSLib.Service.FileSystem),
+				$dep_from "%ReadLink" @ %YCLib.FileSystem)
+		),
+		(
+		^ "member %swap and %swap non-member functions (if any)" -> "friend \
+			%swap" !@ %YCLib.FileIO $effecitve @ (("classes %(HBitmap, \
+			HMultiBitmap)" @ %Adaptor.Image, ("classes %ValueNode" @ %ValueNode,
+			"class %ValueObject" @ %YObject, "class template %GEvent" @ %YEvent,
+			"class %Message" @ %YMessage) @ %Core, ("class %Path" @ %FileSystem,
+			"classes %(CompactPixmap, CompactPixmapEx)" @ %YGDI) @ %Service,
+			"class %AView" @ %UI.YWidgetView) @ %YSLib,
+			"class %ScreenBuffer" @ %YCLib.HostedGUI,
+			"class template %COMPtr" @ %'YCLib_(Win32)'.COM);
+			// To simplify declarations and avoid excessive namespace names. \
+				Note for APIs compliant to the standard library (e.g. file \
+				stream class templates in YCLib) this strategy is not enabled.
+		/ $forced DLDI "function %Widget::SetView" @ %UI.YWidget
+		),
+		* $impl "missing cleanup ill-formed %YCL_PATH_DELIMITER"
+			@ %'YCLib_(DS)'.DSIO $since b706
+			$= (/ $re_add(b706) ^ 'FetchSeparator<char>()'
+				~ 'YCL_PATH_DELIMITER')
+	),
+	* $re_add(b676) $build
+		"missing updating %LIBS for %YFramework.YCLib.NativeAPI"
+		@ "%SHBuild-bootstrap.sh" @ %Tools.Scripts $since b703
+),
+
+b709
 (
 	/ %YBase.YStandardEx $=
 	(
