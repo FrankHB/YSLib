@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1833
+\version r1847
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-06-20 01:46 +0800
+	2016-07-14 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -512,13 +512,6 @@ ScreenBuffer::ScreenBuffer(ScreenBuffer&&) ynothrow = default;
 #	endif
 ImplDeDtor(ScreenBuffer)
 
-ScreenBuffer&
-ScreenBuffer::operator=(ScreenBuffer&& sbuf) ynothrow
-{
-	sbuf.swap(*this);
-	return *this;
-}
-
 #	if YCL_HostedUI_XCB || YCL_Android
 BitmapPtr
 ScreenBuffer::GetBufferPtr() const ynothrow
@@ -623,15 +616,15 @@ ScreenBuffer::UpdateToBounds(NativeWindowHandle h_wnd, const Rect& r,
 #	endif
 
 void
-ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
+swap(ScreenBuffer& x, ScreenBuffer& y) ynothrow
 {
 #	if YCL_HostedUI_XCB || YCL_Android
-	Deref(p_impl).swap(Deref(sbuf.p_impl)),
-	std::swap(width, sbuf.width);
+	swap(Deref(x.p_impl), Deref(y.p_impl)),
+	std::swap(x.width, y.width);
 #	elif YCL_Win32
-	std::swap(size, sbuf.size),
-	std::swap(p_buffer, sbuf.p_buffer),
-	std::swap(p_bitmap, sbuf.p_bitmap);
+	std::swap(x.size, y.size),
+	std::swap(x.p_buffer, y.p_buffer),
+	std::swap(x.p_bitmap, y.p_bitmap);
 #	endif
 }
 
@@ -1066,8 +1059,8 @@ Clipboard::Send(ConstBitmapPtr p_bmp, const Size& s)
 			* GetAreaOf(s)), 0, 0, 0, 0, 0x00FF0000, 0x0000FF00, 0x000000FF,
 			0xFF000000, 0x73524742/*LCS_sRGB*/, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}
 			}, 0, 0, 0, LCS_GM_IMAGES, 0, 0, 0},
-		CopyBitmapBuffer(ystdex::aligned_store_cast<Pixel*>(p_buf + 1),
-			p_bmp, s);
+		CopyBitmapBuffer(ystdex::aligned_store_cast<Pixel*>(p_buf + 1), p_bmp,
+			s);
 	}
 	SendRaw(CF_DIBV5, p.release());
 }

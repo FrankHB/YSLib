@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r831
+\version r834
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-12 01:38 +0800
+	2016-07-14 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,10 +181,10 @@ public:
 
 	/*!
 	\brief 交换：交换所有数据成员。
-	\since build 571
+	\since build 710
 	*/
-	void
-	swap(AView&) ynothrow;
+	YF_API friend void
+	swap(AView&, AView&) ynothrow;
 };
 
 //! \relates AView

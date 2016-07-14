@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2220
+\version r2224
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2016-07-04 09:14 +0800
+	2016-07-12 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,11 +52,7 @@ Path::GetString(char16_t delimiter) const
 String
 Path::Verify(char16_t delimiter) const
 {
-	auto res(GetString(delimiter));
-
-	if(!(res.empty() || VerifyDirectory(res)))
-		res.pop_back();
-	return res;
+	return VerifyDirectoryPathTail(GetString(delimiter));
 }
 
 

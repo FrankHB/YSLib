@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2610
+\version r2622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-07-08 09:02 +0800
+	2016-07-14 23:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,7 +180,7 @@ public:
 	\since build 502
 	*/
 	PDefHOp(ValueNode&, =, ValueNode node) ynothrow
-		ImplRet(node.swap(*this), *this)
+		ImplRet(swap(node, *this), *this)
 
 	//! \since build 336
 	DefBoolNeg(explicit, bool(Value) || !container.empty())
@@ -378,7 +378,7 @@ public:
 		return res;
 	}
 
-	//! \warning 不检查容器之间的所有权，保持循环引用状态析构导致行为未定义。
+	//! \warning 不检查容器之间的所有权，保持循环引用状态析构引起未定义行为。
 	//@{
 	//! \brief 交换容器。
 	PDefH(void, SwapContainer, ValueNode& node) ynothrow
@@ -465,10 +465,10 @@ public:
 
 	/*!
 	\brief 交换。
-	\since build 501
+	\since build 710
 	*/
-	void
-	swap(ValueNode&) ynothrow;
+	YF_API friend void
+	swap(ValueNode&, ValueNode&) ynothrow;
 
 	//! \since build 681
 	//@{
@@ -489,9 +489,10 @@ public:
 	//@}
 };
 
-//! \relates ValueNode
-//@{
-//! \since build 666
+/*!
+\relates ValueNode
+\since build 666
+*/
 //@{
 /*!
 \brief 访问节点的指定类型对象。
@@ -545,10 +546,6 @@ AccessPtr(observer_ptr<const ValueNode> p_node) ynothrow
 }
 //@}
 //@}
-//@}
-
-//! \since build 501
-inline DefSwap(ynothrow, ValueNode)
 //@}
 
 

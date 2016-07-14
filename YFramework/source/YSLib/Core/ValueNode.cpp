@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r664
+\version r668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-03-20 17:48 +0800
+	2016-07-14 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,14 +53,14 @@ void
 ValueNode::SwapContent(ValueNode& node) ynothrow
 {
 	SwapContainer(node),
-	Value.swap(node.Value);
+	swap(Value, node.Value);
 }
 
 void
-ValueNode::swap(ValueNode& node) ynothrow
+swap(ValueNode& x, ValueNode& y) ynothrow
 {
-	std::swap(name, node.name),
-	SwapContent(node);
+	std::swap(x.name, y.name),
+	x.SwapContent(y);
 }
 
 ValueNode&

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3934
+\version r3964
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-09-05 13:51 +0800
+	2016-07-14 23:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -276,7 +276,7 @@ public:
 	\since build 476
 	*/
 	PDefHOp(CompactPixmap&, =, CompactPixmap buf) ynothrow
-		ImplRet(buf.swap(*this), *this)
+		ImplRet(swap(buf, *this), *this)
 
 	//! \since build 566
 	//@{
@@ -325,20 +325,20 @@ public:
 
 	DefClone(const ImplI(IImage), CompactPixmap)
 
-	//! \brief 交换。
-	PDefH(void, swap, CompactPixmap& buf) ynothrow
-		ImplExpr(std::swap<BaseType>(*this, buf))
+	/*!
+	\brief 交换。
+	\since build 710
+	*/
+	friend PDefH(void, swap, CompactPixmap& x, CompactPixmap& y) ynothrow
+		ImplExpr(std::swap<BaseType>(x, y))
 };
 
-//! \relates CompactPixmap
-//@{
-//! \since build 630
+/*!
+\relates CompactPixmap
+\since build 630
+*/
 static_assert(ystdex::is_nothrow_moveable<CompactPixmap>(),
 	"Postcondition failed.");
-
-//! \since build 418
-inline DefSwap(ynothrow, CompactPixmap)
-//@}
 
 
 /*!
@@ -369,7 +369,7 @@ public:
 	\since build 566
 	*/
 	PDefHOp(CompactPixmapEx&, =, CompactPixmapEx buf) ynothrow
-		ImplRet(buf.swap(*this), *this)
+		ImplRet(swap(buf, *this), *this)
 
 	/*!
 	\brief 取 Alpha 缓冲区的指针。
@@ -401,21 +401,21 @@ public:
 
 	DefClone(const override, CompactPixmapEx)
 
-	//! \brief 交换。
-	PDefH(void, swap, CompactPixmapEx& buf) ynothrow
-		ImplExpr(std::swap<CompactPixmap>(*this, buf),
-			std::swap(pBufferAlpha, buf.pBufferAlpha))
+	/*!
+	\brief 交换。
+	\since build 710
+	*/
+	PDefH(void, swap, CompactPixmapEx& x, CompactPixmapEx& y) ynothrow
+		ImplExpr(std::swap<CompactPixmap>(x, y),
+			std::swap(x.pBufferAlpha, y.pBufferAlpha))
 };
 
-//! \relates CompactPixmapEx
-//@{
-//! \since build 630
+/*!
+\relates CompactPixmapEx
+\since build 630
+*/
 static_assert(ystdex::is_nothrow_moveable<CompactPixmapEx>(),
 	"Postcondition failed.");
-
-//! \since build 418
-inline DefSwap(ynothrow, CompactPixmapEx)
-//@}
 
 
 /*!

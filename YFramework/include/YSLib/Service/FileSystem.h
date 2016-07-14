@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3209
+\version r3253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-07-05 11:04 +0800
+	2016-07-14 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,21 +391,21 @@ public:
 	//! \since build 599
 	using ypath::size;
 
-	using ypath::swap;
-	PDefH(void, swap, Path& pth)
-		ImplExpr(pth.GetBaseRef().swap(*this))
+	//! \since build 710
+	//@{
+	friend PDefH(void, swap, Path& x, ypath& y)
+		ImplExpr(y.swap(x));
+	friend PDefH(void, swap, ypath& x, Path& y)
+		ImplExpr(x.swap(y));
+	friend PDefH(void, swap, Path& x, Path& y)
+		ImplExpr(y.GetBaseRef().swap(x))
+	//@}
 
 	//! \since build 475
 	friend PDefH(String, to_string, const Path& pth)
 		ImplRet(to_string(pth.GetBase(), {FetchSeparator<char16_t>()}))
 	//@}
 };
-
-/*!
-\brief 交换。
-\relates Path
-*/
-inline DefSwap(ynothrow, Path)
 
 
 /*!
@@ -473,6 +473,20 @@ inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
 //@}
 
+/*!
+\brief 验证目录路径结尾：确保当且仅当验证成功时保留结尾字符。
+\note 使用 ADL VerfiyDirectory 。
+\since build 710
+*/
+template<class _tString>
+inline ystdex::decay_t<_tString>
+VerifyDirectoryPathTail(_tString&& str)
+{
+	if(!(str.empty() || VerifyDirectory(str)))
+		str.pop_back();
+	return yforward(str);
+}
+
 
 /*!
 \brief 验证路径表示的目录是否存在，若不存在则逐级创建。
@@ -518,11 +532,28 @@ ResolvePathWithBase(const _tString& sv, _tPath base,
 	return IO::ParsePath<_tPath>(sv,
 		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
 		pth /= typename _tPath::value_type(b, e);
+		if(pth.size() == 1)
+			_tTraits::AdjustForRoot(pth,
+				typename _tPath::value_type(cbegin(sv), e));
 
 		auto str(to_string(pth));
 
+		// XXX: This may be not efficient because underlying calls will resolve
+		//	the path prefix repeatedly.
+		// FIXME: Blocked. TOCTTOU access.
 		if(IO::IterateLink(str, n))
-			pth = _tPath(std::move(str));
+		{
+			// XXX: Handle absolute device path, etc?
+			if(IsAbsolute(str))
+				pth = IO::ParsePath<_tPath>(std::move(str));
+			else
+			{
+				// TODO: Check condition?
+				if(!pth.empty())
+					pth.pop_back();
+				pth /= str;
+			}
+		}
 	}, std::move(base));
 }
 
@@ -538,7 +569,7 @@ ResolvePath(const _tString& sv,
 	size_t init_len = MaxPathLength)
 {
 	return IO::ResolvePathWithBase(sv, IsAbsolute(sv.data()) ? _tPath()
-		: _tPath(TryGetCurrentWorkingDirectory<typename
+		: IO::ParsePath<_tPath>(TryGetCurrentWorkingDirectory<typename
 		_tString::value_type>(init_len)), n);
 }
 //@}

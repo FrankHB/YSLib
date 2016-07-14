@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1405
+\version r1419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2016-06-19 19:27 +0800
+	2016-07-14 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -432,7 +432,7 @@ public:
 	HBitmap&
 	operator=(HBitmap pixmap) ynothrow
 	{
-		pixmap.swap(*this);
+		swap(pixmap, *this);
 		return *this;
 	}
 
@@ -533,10 +533,10 @@ public:
 
 	/*!
 	\brief 交换。
-	\since build 430
+	\since build 710
 	*/
-	PDefH(void, swap, HBitmap& pixmap) ynothrow
-		ImplExpr(std::swap(p_bitmap, pixmap.p_bitmap))
+	friend PDefH(void, swap, HBitmap& x, HBitmap& y) ynothrow
+		ImplExpr(std::swap(x.p_bitmap, y.p_bitmap))
 };
 
 //! \relates HBitmap
@@ -561,9 +561,6 @@ GetFrameTimeOf(const HBitmap&);
 */
 YF_API Size
 GetLogicalSizeOf(const HBitmap&);
-
-//! \since build 430
-inline DefSwap(ynothrow, HBitmap)
 //@}
 
 
@@ -660,9 +657,12 @@ public:
 	HBitmap
 	Lock(size_t = 0) const ynothrowv;
 
-	//! \brief 交换。
-	PDefH(void, swap, HMultiBitmap& multi_pixmap) ynothrow
-		ImplExpr(std::swap(pages, multi_pixmap.pages))
+	/*!
+	\brief 交换。
+	\since build 710
+	*/
+	friend PDefH(void, swap, HMultiBitmap& x, HMultiBitmap& y) ynothrow
+		ImplExpr(std::swap(x.pages, y.pages))
 
 	//! \since build 461
 	//@{
@@ -673,9 +673,6 @@ public:
 		ImplRet(HMultiBitmap::iterator(*this, GetPageCount()))
 	//@}
 };
-
-//! \relates HMultiBitmap
-inline DefSwap(ynothrow, HMultiBitmap)
 //@}
 
 

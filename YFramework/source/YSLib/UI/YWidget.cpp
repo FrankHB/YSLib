@@ -11,13 +11,13 @@
 /*!	\file YWidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4484
+\version r4487
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-02-12 01:08 +0800
+	2016-07-14 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,8 +92,8 @@ void
 Close(IWidget& wgt)
 {
 	Hide(wgt);
-	if(const auto pCon = FetchContainerPtr(wgt))
-		ClearFocusingOf(*pCon);
+	if(const auto p_con = FetchContainerPtr(wgt))
+		ClearFocusingOf(*p_con);
 }
 
 void
@@ -256,7 +256,7 @@ Widget::SetView(unique_ptr<AView> p)
 {
 	if(!p)
 		p.reset(new View(GetBoundsOf(*this)));
-	p->swap(*view_ptr);
+	swap(*p, *view_ptr);
 	view_ptr = std::move(p);
 }
 

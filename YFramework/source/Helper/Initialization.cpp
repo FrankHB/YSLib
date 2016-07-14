@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r3029
+\version r3067
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-24 00:58 +0800
+	2016-07-13 16:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ yconstexpr const char TU_MIME[]{u8R"NPLA1(
 #undef DATA_DIRECTORY
 #undef DEF_FONT_DIRECTORY
 #undef DEF_FONT_PATH
-#if YCL_Win32 || YCL_Android
+#if YCL_Win32 || YCL_Linux
 //! \since build 695
 const string&
 FetchWorkingRoot()
@@ -113,17 +113,20 @@ FetchWorkingRoot()
 					platform_ex::FetchModuleFileName().data()));
 
 				if(!image.empty())
+				{
 					image.pop_back();
-				auto res(image.GetString().GetMBCS());
 
-				if(Verify(res))
-					return res;
-#	else
+					const auto& dir(image.Verify());
+
+					if(!dir.empty() && dir.back() == FetchSeparator<char16_t>())
+						return dir.GetMBCS();
+				}
+#	elif YCL_Android
 				const char*
 					sd_paths[]{"/sdcard/", "/mnt/sdcard/", "/storage/sdcard0/"};
 
 				for(const auto& path : sd_paths)
-					if(Verify(path))
+					if(IO::VerifyDirectory(path))
 					{
 						YTraceDe(Informative, "Successfully found SD card path"
 							" '%s' as root path.", path);
@@ -132,21 +135,31 @@ FetchWorkingRoot()
 					else
 						YTraceDe(Informative,
 							"Failed accessing SD card path '%s'.", path);
+#	elif YCL_Linux
+				// FIXME: What if link reading failed (i.e. permission denied)?
+				// XXX: Link content like 'node_type:[inode]' is not supported.
+				// TODO: Use implemnetation for BSD family OS, etc.
+				auto image(IO::ResolvePath<ystdex::path<vector<string>,
+					IO::PathTraits>>(string_view("/proc/self/exe")));
+
+				if(!image.empty())
+				{
+					image.pop_back();
+				
+					const auto& dir(IO::VerifyDirectoryPathTail(
+						ystdex::to_string_d(image)));
+
+					if(!dir.empty() && dir.back() == FetchSeparator<char>())
+						return dir;
+				}
+#	else
+#		error "Unsupported platform found."
 #	endif
 				throw GeneralEvent("Failed finding working root path.");
 			}())
-		{}
-
-		static bool
-		Verify(const string& path)
 		{
-			if(IO::VerifyDirectory(path))
-			{
-				YTraceDe(Informative, "Initialized image path '%s'.",
-					path.c_str());
-				return true;
-			}
-			return {};
+			YTraceDe(Informative, "Initialized root directory path '%s'.",
+				Path.c_str());
 		}
 	} init;
 
@@ -173,6 +186,7 @@ inline PDefH(string, FetchSystemFontDirectory_Win32, )
 #	define DEF_FONT_DIRECTORY "/system/fonts/"
 #	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
 #elif YCL_Linux
+#	define DATA_DIRECTORY FetchWorkingRoot()
 #	define DEF_FONT_PATH "./SimSun.ttc"
 #else
 #	error "Unsupported platform found."
@@ -525,8 +539,8 @@ FetchMIMEBiMapping()
 
 		p_mapping.reset(new MIMEBiMapping());
 		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
-			(AccessChild<string>(FetchEnvironment().Root["YFramework"], "DataDirectory")
-			+ "MIMEExtMap.txt").c_str(), []{
+			(AccessChild<string>(FetchEnvironment().Root["YFramework"],
+			"DataDirectory") + "MIMEExtMap.txt").c_str(), []{
 				return A1::LoadNode(SContext::Analyze(NPL::Session(TU_MIME)));
 			}, true));
 		FetchAppInstance().AddExitGuard([&]() ynothrow{

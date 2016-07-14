@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2024
+\version r2033
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2016-05-09 13:28 +0800
+	2016-07-14 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ public:
 	\since build 331
 	*/
 	PDefHOp(Message&, =, Message msg) ynothrow
-		ImplRet(msg.swap(*this), *this)
+		ImplRet(swap(msg, *this), *this)
 
 	/*!
 	\brief 判断无效或有效性。
@@ -136,17 +136,11 @@ public:
 
 	/*!
 	\brief 交换。
-	\since build 409
+	\since build 710
 	*/
-	void
-	swap(Message&) ynothrow;
+	YF_API friend void
+	swap(Message&, Message&) ynothrow;
 };
-
-/*!
-\relates Message
-\since build 409
-*/
-inline DefSwap(ynothrow, Message)
 
 
 /*!
