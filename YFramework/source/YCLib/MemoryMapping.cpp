@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r288
+\version r413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-07-10 18:01 +0800
+	2016-07-21 09:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,14 +26,21 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_MemoryMapping
+#include YFM_YCLib_MemoryMapping // for wcast;
 #include YFM_YCLib_FileIO // for uopen, ThrowFileOperationFailure;
-#include YFM_YCLib_NativeAPI
-#include <stdexcept> // for std::runtime_error;
+#include YFM_YCLib_NativeAPI // for ::UnmapViewOfFile, CreateFileMapping,
+//	PAGE_READONLY, PAGE_READWRITE, MapViewOfFile, FILE_MAP_READ,
+//	FILE_MAP_ALL_ACCESS, FILE_MAP_COPY, ::lseek;
+#include <ystdex/exception.h> // for ystdex::throw_error,
+//	std::throw_with_nested, std::runtime_error;
+#include <cerrno> // for errno;
+#include <ystdex/cast.hpp> // for ystdex::narrow;
 #if YCL_Win32
-#	include <ystdex/cast.hpp> // for ystdex::narrow;
+#	include YFM_YCLib_Host // for platform_ex::UniqueHandle;
+#	include YFM_Win32_YCLib_MinGW32 // for YCL_CallWin32F;
 #elif YCL_Linux || YCL_OS_X
-#	include <sys/mman.h>
+#	include <sys/mman.h> // for ::munmap, ::mmap, PROT_READ, PROT_WRITE,
+//	MAP_PRIVATE, MAP_SHARED, MAP_FAILED;
 #	include <sys/stat.h>
 #endif
 
@@ -54,51 +61,130 @@ UnmapDelete::operator()(pointer p) const ynothrow
 #endif
 
 
-MappedFile::MappedFile(const char* path)
-	: file(uopen(path, O_RDONLY, mode_t(Mode::UserReadWrite))), size([this]{
-		if(!file)
-			ThrowFileOperationFailure("Failed mapping file.");
-		return file->GetSize();
-	}()), addr(
+MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
+	FileMappingOption opt, FileMappingKey key)
+	: file(std::move(f)), mapped(
 #if YCL_DS
-	new byte[size]
+	new byte[len]
 #else
-	[this]{
-#	if YCL_Win32
-	auto p(reinterpret_cast<void*>(-1));
-
-	if(size != 0)
-	{
-		const auto h(::HANDLE(::_get_osfhandle(*file.get())));
-
-		if(h != INVALID_HANDLE_VALUE)
-			if(::HANDLE fm = ::CreateFileMapping(h, {}, PAGE_READONLY, 0,
-				static_cast<unsigned long>(size), {}))
+	[=](){
+		try
+		{
+			if(len != 0)
 			{
-				p = ::MapViewOfFile(fm, FILE_MAP_READ, 0, 0,
-					ystdex::narrow<size_t>(size));
-				::CloseHandle(fm);
-			}
-	}
-#	else
-	const auto p(::mmap({}, size, PROT_READ, MAP_PRIVATE, *file.get(), 0));
-#	endif
+#	if YCL_Win32
+				const auto h(::HANDLE(::_get_osfhandle(*file.get())));
 
-	if(p == reinterpret_cast<void*>(-1))
-		throw std::runtime_error("Mapping failed.");
-	// TODO: Create specific exception type.
-	return static_cast<byte*>(p);
+				if(h != INVALID_HANDLE_VALUE)
+				{
+					platform_ex::UniqueHandle fm(YCL_CallWin32F(
+						CreateFileMapping, h, {},
+						opt != FileMappingOption::ReadWrite ? PAGE_READONLY
+						: PAGE_READWRITE, 0, 0, wcast(key)));
+
+					return static_cast<byte*>(YCL_CallWin32F(MapViewOfFile,
+						fm.get(), opt != FileMappingOption::CopyOnWrite ? 
+						(opt == FileMappingOption::ReadOnly
+						? FILE_MAP_READ : FILE_MAP_ALL_ACCESS) : FILE_MAP_COPY,
+						static_cast<unsigned long>(off >> 32UL),
+						static_cast<unsigned long>(off), len));
+				}
+				ystdex::throw_error(errno, "::_get_osfhandle");
+#	else
+				// NOTE: Since no %MAP_FIXED or extensions can be specified
+				//	here, there is no need to convert %ENOMEM to throwing
+				//	%std::bad_alloc or derived exceptions.
+				const auto
+					p(::mmap({}, len, opt != FileMappingOption::ReadWrite
+					? PROT_READ : PROT_READ | PROT_WRITE, opt
+					== FileMappingOption::CopyOnWrite || key == FileMappingKey()
+					? MAP_PRIVATE : MAP_SHARED, *file.get(), ::off_t(off)));
+
+				if(p != MAP_FAILED)
+					return static_cast<byte*>(p);
+				ystdex::throw_error(errno, "::mmap");
+#	endif
+			}
+			throw std::invalid_argument("Empty file found.");
+		}
+#if YCL_Win32
+		CatchExpr(ystdex::narrowing_error&, throw)
+#endif
+		// TODO: Create specific exception type?
+		CatchExpr(...,
+			std::throw_with_nested(std::runtime_error("Mapping failed.")))
 	}()
 #endif
-#if !(YCL_DS || YCL_Win32)
-	, size
+	// NOTE: For platform %Win32, relying on ::NtQuerySection is not allowed by
+	//	current platform implmentation policy.
+	, len)
+{
+#if !YF_Hosted
+	yunused(key);
 #endif
-	)
+#if YCL_DS
+	yunused(opt);
+	try
+	{
+		if(YB_UNLIKELY(off != 0
+			&& ::lseek(*file.get(), ::off_t(off), SEEK_SET) < 0))
+			ystdex::throw_error(errno);
+		if(YB_UNLIKELY(::read(*file.get(), GetPtr(), len) < 0))
+			ystdex::throw_error(errno);
+	}
+	CatchExpr(...,
+		std::throw_with_nested(std::runtime_error("Mapping failed.")))
+#endif
+}
+MappedFile::MappedFile(size_t len, UniqueFile f,
+	FileMappingOption opt, FileMappingKey key)
+	: MappedFile(std::uint64_t(0), len, std::move(f), opt, key)
+{}
+MappedFile::MappedFile(UniqueFile f, FileMappingOption opt, FileMappingKey key)
+	: MappedFile([&]{
+		if(!f)
+			ThrowFileOperationFailure(
+				"Failed mapping due to invalid file opened.");
+
+		const auto s(ystdex::narrow<size_t>(f->GetSize()));
+
+		return pair<size_t, UniqueFile>(s, std::move(f));
+	}(), opt, key)
+{}
+MappedFile::MappedFile(const char* path, FileMappingOption opt,
+	FileMappingKey key)
+	: MappedFile(UniqueFile(uopen(path, opt == FileMappingOption::ReadOnly
+		? YCL_ReservedGlobal(O_RDONLY) : YCL_ReservedGlobal(O_RDWR))), opt, key)
+{}
+MappedFile::~MappedFile()
+{
+	// NOTE: At least POSIX specifiy nothing about mandontory of flush on
+	//	unmapping.
+	// TODO: Simplified without exceptions?
+	// TODO: Flush underlying file (if any)?
+	TryExpr(FlushView())
+	CatchExpr(std::exception& e, YTraceDe(Descriptions::Err,
+		"Failed flushing mapped file: %s.", e.what()))
+	CatchExpr(..., YTraceDe(Descriptions::Err, "Failed flushing mapped file."));
+}
+
+void
+MappedFile::FlushView()
 {
 #if YCL_DS
-	if(YB_UNLIKELY(::read(*file.get(), GetPtr(), size) < 0))
-		throw std::runtime_error("Mapping failed.");
+	// NOTE: Nothing to do to flush the view.
+#elif YCL_Win32
+	YCL_CallWin32F(::FlushViewOfFile, GetPtr(), GetSize());
+	// NOTE: It should be noted %::FlushFileBuffers is required to flush file
+	//	buffer, but this will be called in file descriptor flush below.
+#else
+	// NOTE: It is unspecified that whether data in %MAP_PRIVATE mappings has
+	//	any permanent storage locations, see http://pubs.opengroup.org/onlinepubs/9699919799/functions/msync.html.
+	if(::msync(GetPtr(), GetSize(), MS_SYNC) < 0)
+		ystdex::throw_error(errno);
 #endif
+	// TODO: Flush underyling file. Use a new function?
+//	file->Flush();
 }
 
 } // namespace platform;

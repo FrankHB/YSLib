@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1284
+\version r1419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-15 01:26 +0800
+	2016-07-21 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,125 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	+ $repo "bookmark 'engineering-fault-b710'" @ b706
+		@ "engineering fault bookmarks",
+		// Failed to build for platform %DS.
+	/ %YFramework $=
+	(
+		/ @ %Helper.Initialization $=
+		(
+			/ @ "function %LoadNPLA1File" $=
+			(
+				(
+				/ "missing hanling %errno before opening file"
+					// It should be noted that file stream operations may or \
+						may not set %errno.
+					$= (/ $re_add(b710) "saved and restored %errno"
+						^ "%ystdex::swap_guard");
+				/ "traced with level 'Warning' on file stream failure"
+					~ "threw %GeneralEvent";
+				/ "used fallback stream in memory on file stream failure"
+					$dep_to "fallback on loading NPLA1 file failure"
+				),
+				/ "loading configuration from file" ^ $dep_from
+					("%ystdex::membuf" @ %YBase.YStandardEx.StreamBuffer,
+					"%std::istream", "%MappedFile") ~ "%ifstream"
+			),
+			* $comp "unhandled exception" @ "failure of creation of default \
+				MIME database file" @ "function %FetchMIMEBiMapping" $since b450
+				$dep_from "fallback on loading NPLA1 file failure",
+				// For example when permission denied, the program might \
+					silently exit in %release configurations.
+			- "all 6 instances of trailing '\n'"
+				@ "non exceptional trace messages"
+		),
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				+ 'YB_returns_nonnull' @ "all function %rdbuf" @ "class \
+					templates %(basic_ifstream, basic_ofstream, basic_fstream)",
+				/ @ "class %FileDescriptor" $=
+				(
+					+ "function %Flush",
+					+ "tracing error" @ "member function %Deleter::operator()"
+				)
+			),
+			/ %MemoryMapping $=
+			(
+				/ @ "class %MappedFile" $=
+				(
+					/ @ "constructors with pathname parameter" $=
+					(
+						* "missing hanlding %::MapViewOfFile failure"
+							@ "platform %Win32" $since b549;
+						/ "threw nested exception with underlying exception" $=
+						(
+							/ "threw %std::invalid_argument as nested \
+								exception for empty size of file",
+							/ "threw %std::system_error as nested exception \
+								for invalid file",
+							/ "threw system errors for underlying system API \
+								call failure"
+						),
+						+ 'YB_NONNULL(2)'
+							@ "constructor with pointer parameter",
+						/ $re_add(b709) DLI ^ 'YCL_ReservedGlobal',
+						- DLDI
+							"redandant default mode argument for opening file",
+						/ "check by narrowing" @ "all platforms"
+							~ "platform %Win32",
+						(
+						+ "3 overloaded constructors with %(UniqueFile, \
+							FileMappingOption, FileMappingKey) parameters with \
+							proper default arguments and optional offset and \
+							size for mapping" $dep_from ("enum class \
+							%FileMappingOption", "alias %FileMappingKey");
+						+ "writable file support"
+						+ "identification by key" @ "platform %Win32",
+							// This will inject name to device namespace.
+						(
+						+ "copy-on-write support";
+						/ $comp "shared on read only view"
+							@ !"platform %(DS, Win32)"
+							// Even if the underlying system allows private \
+								copy of read only pages, there is no sense to \
+								support it explicitly.
+						)
+						),
+						(
+						/ $impl "stored size uniformly in deleter"
+							^ $dep_from "%UnmapDelete";
+						/ "return type" @ "function %GetSize" -> "%size_t"
+							~ "%std::uint64_t"
+							// Only offset should be remained 64-bit on \
+								platform %Win32.
+						),
+						/ "constructor template" ^ "variadic parameters",
+						(
+						+ "function %FlushView";
+						/ "explicitly default descructor"
+							-> "user-defined destructor" ^ "%FlushView"
+						)
+					)
+				),
+				+ "enum class %FileMappingOption",
+				+ "alias %FileMappingKey",
+				/ "alias %UnmapDelete" @ "platform %DS" -> "class",
+				/ @ "class %UnmapDelete" $=
+				(
+					/ "stored size" @ "all platforms";
+					+ "function %GetSize"
+				)
+			)
+		)
+	),
+	+ "class template %basic_membuf; aliases %(membuf, wmembuf)"
+		@ %YBase.YStandardEx.StreamBuffer
+),
+
+b710
 (
 	/ %YFramework $=
 	(
@@ -46,7 +165,8 @@ $now
 					* "missing check %::lstat result mode" $since b660,
 					* "read empty string when size is zero" $since b660,
 						// This would fail on directories, for example.
-					/ "saving and recovering %errno" ^ "%ystdex::swap_guard"
+					/ $re_add(b703) "saved and restored %errno"
+						^ "%ystdex::swap_guard"
 				),
 				- DLDI "unused parameter name 'tag'"
 					@ "function template %TrimTrailingSeperator_P#2",
@@ -309,7 +429,7 @@ b708
 				+ 'using ypath::traits_type;' @ "class %Path";
 				/ @ "function templates %(ResolvePath, ResolvePathWithBase)" $=
 				(
-					/ ^ "path parameters and return type" ~ "string",
+					/ "pathname" ^ "path parameters and return type" ~ "string",
 					/ $impl ^ "%ParsePath with functor"
 						~ "%(IO::IsDictionary, ystdex::split)";
 						// Trailing slashes are now handled by %Path.
@@ -712,9 +832,9 @@ b704
 		(
 			/ %FileSystem $=
 			(
-				/ DLDI "simplified member function %HDirectory::operator++"
-					@ !"platform %Win32" $dep_from
-					%YBase.YStandardEx.ScopeGuard,
+				/ $re_ex(b703) DLDI "simplified member function \
+					%HDirectory::operator++" @ "platform %Android" ^ $dep_from
+					("%ystdex::swap_guard" @ %YBase.YStandardEx.ScopeGuard),
 				/ DLDI "simplified function %FetchDateTime" ^ $dep_from
 					%YBase.YStandardEx.CTime,
 				/ "default argument" @ "all 2 functions %ResolvePath"
@@ -769,7 +889,7 @@ b704
 				%wstring_view";
 			* "undefined behavior caused by buffer object accessed after \
 				lifetime end" @ "function %ResolveReparsePoint with single \
-				path parameter" $since b660
+				pathname parameter" $since b660
 		)
 	)
 ),
@@ -869,8 +989,15 @@ b703
 				* "end-of-directory state treated as corruptied state due to \
 					wrong %errno handling" @ !"platform %Win32"
 					@ "member function %HDirectory::operator++" $since b701
-				* "wrong assertion for slash-only path parameter" @ !"platform \
-					%Win32" @ "constructor %DirectorySession" $since b693
+					$= (/ "saved and restored %error"
+						^ ("%ystdex::swap_guard" @ !platform "%Android",
+						"guard class" @ "platform %Android")),
+						// On platform %Android, %error is volatile-qualified. \
+							This is not supported by %ystdex::swap_guard \
+							currently.
+				* "wrong assertion for slash-pathname path parameter"
+					@ !"platform %Win32" @ "constructor %DirectorySession"
+					$since b693
 			),
 			/ %FileIO $=
 			(
@@ -1080,7 +1207,7 @@ b701
 				),
 				/ @ "functions %HaveSameContents" $=
 				(
-					+ "overloading for 'const char16_T*' path parameters",
+					+ "overloading for 'const char16_t*' pathname parameters",
 					* $re_add(b560) "directory with other file system category \
 						not recognized as directory" $since b658
 					(

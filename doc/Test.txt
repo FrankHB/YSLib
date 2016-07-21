@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r269
+\version r273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2016-06-11 01:20 +0800
+	2016-07-18 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,6 +191,12 @@ Bookmarks
 @4.1.3.3 build 450 起：
 增加 MIME 类型和文件扩展名映射配置文件，参见 @5.6.3 。
 所有配置按 NPLA1 读取，共享实现。
+
+@4.1.3.4 build 711 起：
+公共配置写入失败时使用保存在内存中的临时配置映像。
+
+@4.1.3.5 build 711 起：
+NPLA1 配置写入失败时使用保存在内存中的临时配置映像。
 
 @5 测试注记：
 以下注记仅适用提交版本([Documentation::ProjectRules @@3.2.1.2]) ，对已提交的版本为测试记录，未提交的版本为测试计划。
