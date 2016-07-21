@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r3067
+\version r3107
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-07-13 16:22 +0800
+	2016-07-20 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization
+#include YFM_Helper_Initialization // for ystdex::replace_cast;
 #include YFM_YCLib_MemoryMapping // for MappedFile;
 #include YFM_YSLib_Core_YException // for ExtractException;
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
@@ -34,6 +34,7 @@
 #include YFM_NPL_Configuration // for NPL::Configuration;
 #include YFM_Helper_Environment // for Environment::AddExitGuard;
 #include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 #include <cerrno> // for errno;
 #include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
 #include YFM_Helper_GUIApplication // for FetchEnvironment;
@@ -41,7 +42,7 @@
 #if YCL_Win32
 #	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset;
 #endif
-#include YFM_NPL_SContext
+#include <ystdex/streambuf.hpp> // for ystdex::membuf;
 
 using namespace ystdex;
 using namespace platform;
@@ -263,6 +264,16 @@ TryReadNPLStream(std::istream& is)
 		throw GeneralEvent("Wrong encoding of configuration file.");
 }
 
+//! \since build 711
+ValueNode
+LoadNPLA1InMemory(ValueNode(*creator)())
+{
+	std::stringstream oss;
+
+	CreateDefaultNPLA1ForStream(oss, creator);
+	return TryReadNPLStream(oss);
+}
+
 YB_NONNULL(1, 2) bool
 CreateDefaultNPLA1File(const char* disp, const char* path,
 	ValueNode(*creator)(), bool show_info)
@@ -270,17 +281,21 @@ CreateDefaultNPLA1File(const char* disp, const char* path,
 	YAssertNonnull(disp),
 	YAssertNonnull(path);
 	if(show_info)
-		YTraceDe(Notice, "Creating %s '%s'...\n", disp, path);
+		YTraceDe(Notice, "Creating %s '%s'...", disp, path);
 	if(creator)
 	{
 		YTraceDe(Debug, "Creator found.");
+
+		ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
+
 		if(ofstream ofs{path, std::ios_base::out | std::ios_base::trunc})
+		{
 			CreateDefaultNPLA1ForStream(ofs, creator);
-		else
-			throw GeneralEvent(ystdex::sfmt("Cannot create file,"
-				" error = %d: %s.", errno, std::strerror(errno)));
-		YTraceDe(Debug, "Created configuration.");
-		return {};
+			YTraceDe(Debug, "Created configuration.");
+			return {};
+		}
+		YTraceDe(Warning, "Cannot create file, possible error (from errno)"
+			" = %d: %s.", errno, std::strerror(errno));
 	}
 	return true;
 }
@@ -327,30 +342,34 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	{
 		YTraceDe(Debug, "Path '%s' access failed.", path);
 		if(CreateDefaultNPLA1File(disp, path, creator, show_info))
-			return {};
+		{
+			YTraceDe(Warning, "Creating default file failed,"
+				" trying fallback in memory...");
+			return LoadNPLA1InMemory(creator);
+		}
 	}
 	if(show_info)
-		YTraceDe(Notice, "Found %s '%s'.\n", Nonnull(disp), path);
+		YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
 
 	auto res(TryInvoke([&]() -> ValueNode{
-		if(ifstream ifs{path})
+		MappedFile mfile(path);
+		ystdex::membuf mbuf(ystdex::replace_cast<const char*>(mfile.GetPtr()),
+			mfile.GetSize());
+		std::istream is(&mbuf);
+
+		if(is)
 		{
 			YTraceDe(Debug, "Found accessible configuration file.");
-			return TryReadNPLStream(ifs);
+			return TryReadNPLStream(is);
 		}
 		return {};
 	}));
 
 	if(res)
 		return res;
-
 	YTraceDe(Warning, "Newly created configuration corrupted,"
 		" trying fallback in memory...");
-
-	std::stringstream oss;
-
-	CreateDefaultNPLA1ForStream(oss, creator);
-	return TryReadNPLStream(oss);
+	return LoadNPLA1InMemory(creator);
 }
 
 void
@@ -361,9 +380,8 @@ LoadComponents(Application& app, const ValueNode& node)
 	const auto& font_dir(AccessChild<string>(node, "FontDirectory"));
 
 	if(!data_dir.empty() && !font_path.empty() && !font_dir.empty())
-		YTraceDe(Notice, "Loaded default directory:\n%s\n"
-			"Loaded default font path:\n%s\n"
-			"Loaded default font directory:\n%s\n",
+		YTraceDe(Notice, "Loaded default directory:\n%s\nLoaded default"
+			" font path:\n%s\nLoaded default font directory:\n%s",
 			data_dir.c_str(), font_path.c_str(), font_dir.c_str());
 	else
 		throw GeneralEvent("Empty path loaded.");
@@ -372,7 +390,7 @@ LoadComponents(Application& app, const ValueNode& node)
 	static unique_ptr<MappedFile> p_mapped;
 	const string mapping_name(data_dir + "cp113.bin");
 
-	YTraceDe(Notice, "Loading character mapping file '%s' ...\n",
+	YTraceDe(Notice, "Loading character mapping file '%s' ...",
 		mapping_name.c_str());
 	try
 	{
@@ -413,8 +431,7 @@ LoadComponents(Application& app, const ValueNode& node)
 		YTraceDe(Notice, "Character mapping deleted.");
 	});
 #endif
-	YTraceDe(Notice, "Trying entering directory '%s' ...\n",
-		data_dir.c_str());
+	YTraceDe(Notice, "Trying entering directory '%s' ...", data_dir.c_str());
 	if(!IO::VerifyDirectory(data_dir))
 		throw GeneralEvent("Invalid default data directory found.");
 	if(!(ufexists(font_path.c_str()) || IO::VerifyDirectory(font_dir)))
@@ -483,7 +500,7 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 			throw GeneralEvent("No fonts found.");
 		YTraceDe(Notice, "Setting default font face...");
 		if(const auto pf = fc.GetDefaultTypefacePtr())
-			YTraceDe(Notice, "\"%s\":\"%s\",\nsuccessfully.\n",
+			YTraceDe(Notice, "\"%s\":\"%s\",\nsuccessfully.",
 				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 		else
 			throw GeneralEvent("Setting default font face failed.");

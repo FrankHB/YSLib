@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2148
+\version r2158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-07-11 12:59 +0800
+	2016-07-21 08:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -337,6 +337,14 @@ public:
 	*/
 	int
 	SetTranslationMode(int) const ynothrow;
+
+	/*!
+	\brief 刷新。
+	\throw std::system_error 调用失败。
+	\since build 711
+	*/
+	void
+	Flush();
 
 	//! \note 每次读写首先清除 errno ；读写时遇 EINTR 时继续。
 	//@{
@@ -882,7 +890,7 @@ public:
 			this->setstate(std::ios_base::failbit);
 	}
 
-	std::basic_filebuf<_tChar, _tTraits>*
+	YB_ATTR_returns_nonnull std::basic_filebuf<_tChar, _tTraits>*
 	rdbuf() const
 	{
 		return &fbuf;
@@ -980,7 +988,7 @@ public:
 			this->setstate(std::ios_base::failbit);
 	}
 
-	std::basic_filebuf<_tChar, _tTraits>*
+	YB_ATTR_returns_nonnull std::basic_filebuf<_tChar, _tTraits>*
 	rdbuf() const
 	{
 		return &fbuf;
@@ -1079,7 +1087,7 @@ public:
 			this->setstate(std::ios_base::failbit);
 	}
 
-	std::basic_filebuf<_tChar, _tTraits>*
+	YB_ATTR_returns_nonnull std::basic_filebuf<_tChar, _tTraits>*
 	rdbuf() const
 	{
 		return &fbuf;

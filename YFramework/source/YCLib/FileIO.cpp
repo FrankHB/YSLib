@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2508
+\version r2531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-07-10 15:57 +0800
+	2016-07-21 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,8 @@
 //	ystdex::temporary_buffer;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, ::HANDLE, struct ::stat, platform_ex::estat, ::close, ::fcntl,
-//	F_GETFL, _O_*, O_*, ::fchmod, ::_chsize, ::ftruncate, ::setmode, ::_wgetcwd,
-//	::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens,
+//	F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize, ::ftruncate, ::fsync,
+//	::_wgetcwd, ::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens,
 //	::LARGE_INTEGER, ::GetFileSizeEx, ::GetCurrentDirectoryW;
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
@@ -413,10 +413,11 @@ CategorizeNode(mode_t st_mode) ynothrow
 void
 FileDescriptor::Deleter::operator()(pointer p) const ynothrow
 {
-	if(p)
-		// NOTE: Error is ignored.
-		//	See $2016-03 @ %Documentation::Workflow::Annual2016.
-		YCL_CallGlobal(close, *p);
+	if(p && YB_UNLIKELY(YCL_CallGlobal(close, *p) < 0))
+		// NOTE: This is not a necessarily error. See $2016-04
+		//	@ %Documentation::Workflow::Annual2016.
+		YTraceDe(Descriptions::Warning,
+			"Falied closing file descriptor, errno = %d.", errno);
 }
 
 
@@ -640,6 +641,19 @@ FileDescriptor::SetTranslationMode(int mode) const ynothrow
 	yunused(mode);
 	return 0;
 #endif
+}
+
+void
+FileDescriptor::Flush()
+{
+	if(
+#if YCL_Win32
+		YB_UNLIKELY(::_commit(desc) < 0)
+#else
+		YB_UNLIKELY(::fsync(desc) < 0)
+#endif
+		)
+		ystdex::throw_error(errno);
 }
 
 size_t
@@ -875,8 +889,8 @@ bool
 ufexists(const char* filename) ynothrowv
 {
 #if YCL_Win32
-	return ystdex::call_value_or(ystdex::compose(std::fclose, ystdex::addrof<>()),
-		ufopen(filename, "rb"), yimpl(1)) == 0;
+	return ystdex::call_value_or(ystdex::compose(std::fclose,
+		ystdex::addrof<>()), ufopen(filename, "rb"), yimpl(1)) == 0;
 #else
 	return ystdex::fexists(filename);
 #endif
@@ -884,8 +898,8 @@ ufexists(const char* filename) ynothrowv
 bool
 ufexists(const char16_t* filename) ynothrowv
 {
-	return ystdex::call_value_or(ystdex::compose(std::fclose, ystdex::addrof<>()),
-		ufopen(filename, u"rb"), yimpl(1)) == 0;
+	return ystdex::call_value_or(ystdex::compose(std::fclose,
+		ystdex::addrof<>()), ufopen(filename, u"rb"), yimpl(1)) == 0;
 }
 
 int
