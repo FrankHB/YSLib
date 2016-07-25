@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r413
+\version r445
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-07-21 09:57 +0800
+	2016-07-23 20:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ UnmapDelete::operator()(pointer p) const ynothrow
 
 MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 	FileMappingOption opt, FileMappingKey key)
-	: file(std::move(f)), mapped(
+	: option(opt), file(std::move(f)), mapped(
 #if YCL_DS
 	new byte[len]
 #else
@@ -83,9 +83,9 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 						: PAGE_READWRITE, 0, 0, wcast(key)));
 
 					return static_cast<byte*>(YCL_CallWin32F(MapViewOfFile,
-						fm.get(), opt != FileMappingOption::CopyOnWrite ? 
-						(opt == FileMappingOption::ReadOnly
-						? FILE_MAP_READ : FILE_MAP_ALL_ACCESS) : FILE_MAP_COPY,
+						fm.get(), opt != FileMappingOption::CopyOnWrite
+						? (opt == FileMappingOption::ReadOnly ? FILE_MAP_READ
+						: FILE_MAP_ALL_ACCESS) : FILE_MAP_COPY,
 						static_cast<unsigned long>(off >> 32UL),
 						static_cast<unsigned long>(off), len));
 				}
@@ -158,19 +158,26 @@ MappedFile::MappedFile(const char* path, FileMappingOption opt,
 {}
 MappedFile::~MappedFile()
 {
-	// NOTE: At least POSIX specifiy nothing about mandontory of flush on
-	//	unmapping.
-	// TODO: Simplified without exceptions?
-	// TODO: Flush underlying file (if any)?
-	TryExpr(FlushView())
-	CatchExpr(std::exception& e, YTraceDe(Descriptions::Err,
-		"Failed flushing mapped file: %s.", e.what()))
-	CatchExpr(..., YTraceDe(Descriptions::Err, "Failed flushing mapped file."));
+	if(*this)
+	{
+		// NOTE: At least POSIX specifiy nothing about mandontory of flush on
+		//	unmapping.
+		// NOTE: Windows will only flush when all shared mapping are closed, see
+		//	https://msdn.microsoft.com/en-us/library/windows/desktop/aa366532(v=vs.85).aspx
+		// TODO: Simplified without exceptions?
+		TryExpr(Flush())
+		CatchExpr(std::exception& e, YTraceDe(Descriptions::Err,
+			"Failed flushing mapped file: %s.", e.what()))
+		CatchExpr(..., YTraceDe(Descriptions::Err,
+			"Failed flushing mapped file."));
+	}
 }
 
 void
 MappedFile::FlushView()
 {
+	YAssertNonnull(GetPtr());
+
 #if YCL_DS
 	// NOTE: Nothing to do to flush the view.
 #elif YCL_Win32
@@ -180,11 +187,25 @@ MappedFile::FlushView()
 #else
 	// NOTE: It is unspecified that whether data in %MAP_PRIVATE mappings has
 	//	any permanent storage locations, see http://pubs.opengroup.org/onlinepubs/9699919799/functions/msync.html.
+	// NOTE: To notify the system scheduling at first. See https://jira.mongodb.org/browse/SERVER-12733.
+	if(::msync(GetPtr(), GetSize(), MS_ASYNC) < 0)
+		ystdex::throw_error(errno);
 	if(::msync(GetPtr(), GetSize(), MS_SYNC) < 0)
 		ystdex::throw_error(errno);
 #endif
-	// TODO: Flush underyling file. Use a new function?
-//	file->Flush();
+}
+
+void
+MappedFile::FlushFile()
+{
+	YAssertNonnull(file);
+
+	if(option != FileMappingOption::ReadOnly)
+		// XXX: In POSIX this is perhapers not required, but keeping uniformed
+		//	behavior is better. See https://groups.google.com/forum/#!topic/comp.unix.programmer/pIiaQ6CUKjU
+		// XXX: This would cause bad performance for some versions of Windows
+		//	supported by this project, see https://jira.mongodb.org/browse/SERVER-12401.
+		file->Flush();
 }
 
 } // namespace platform;

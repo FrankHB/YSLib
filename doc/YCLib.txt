@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r453
+\version r504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2016-06-30 06:46 +0800
+	2016-07-23 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ YCLib 允许平台中立的接口具有实现定义的行为差异。平台中�
 
 @1.1 环境实现：
 参见 [Documentation::Designation @@5.2] 。
-另见 @4.1.5 。
+另见 @4.1.3 。
 
 @1.2 头文件依赖性：
 YCLib::Platform(@5.1) 不直接包含 YDefinition([Documentation::YBase @@2.4]) 以外的文件。
@@ -160,7 +160,7 @@ YCLib 同时使用字符类型 char 和 char16_t 的 NTCTS 表示文件系统路
 YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.8.15]) 提供的抽象路径，后者由上层用户代码协调使用。
 文件访问和文件系统相关接口分别位于模块 FileIO(@5.6.2) 和 FileSystem(@5.6.3) 。前者提供依赖文件系统一般特性或具体文件系统的操作；后者提供和具体文件相关的其它操作。
 和 POSIX 不同，和特定文件关联的文件系统元数据（如文件修改时间）视为从属文件本身。因此相关操作位于 FileIO 而非 FileSystem 。注意其它项的操作（如创建新的符号链接）不属于此范围，仍位于 YCLib.FileSystem 。
-另见 @4.1.4 和 @4.2 。
+另见 @3.3 、 @4.1.6 和 @4.2.1 。
 
 @1.6.4 长度限制：
 不一定直接使用本机的长度限制。
@@ -169,7 +169,7 @@ YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.8.15]) 
 作为尝试调用的路径长度参数时，这些宏可作为初始值。
 不引入新的宏。
 不使用 MAXPATHLEN 宏。
-另见 @4.1.4 和 @4.2 。
+另见 @4.1.6 和 @4.2.1 。
 
 @2.1 环境资源占用：
 
@@ -186,19 +186,25 @@ DS 平台文件系统实现中，允许表示 EIO 实现定义含义的错误涵
 @3.2 文本编码：
 和环境交互的外部编码默认 UTF-8 ，按需检查 BOM 。库的接口和实现使用的内部编码以本节规则决定。
 必要时的转换编码或保证成功转换时未被文档另行约定的隐式行为一致的特定平台的实现。
+文件系统路径(@1.6.3) 符合本节约定。
 
-@3.2.1 接口编码：
+@3.2.1 接口约定：
 除非另行约定，使用 UTF-8 作为窄字符串的编码，使用 UCS-2LE 作为 char16_t 字符串的编码，使用 UCS4-LE 作为 char32_t 字符串的编码。
 注意 CHRLib 和 YCLib 相关接口中 UCS-2 在 Win32 平台下即为 UCS-2LE 。
-Windows 平台使用的 char16_t 同时互相兼容 wchar_t 的严格别名（类似平台扩展，参见 @7.2 ），即便为了可移植性和 ABI 兼容性，不使用方言扩展提供的特性（如 __attribute__((may_alias)) ）标记类型。
-但为了可移植性，用户代码（特别地，包括直接使用别名引入接口的 YSLib 库([Documentation::YSLib]) ）一般不应依赖此项特性。
-另见 @5.4.5 和 @7.2 。文件系统路径符合本节约定，参见 @1.6.3 。
+Windows 平台使用的 char16_t 同时互相兼容 wchar_t 的严格别名，即便为了可移植性和 ABI 兼容性，不使用方言扩展提供的特性（如 __attribute__((may_alias)) ）标记类型。
+但为了可移植性，除非另行约定，用户代码（包括直接使用别名声明引入接口的 YSLib 库([Documentation::YSLib]) ）应避免依赖此项特性；例外见 @5.4.5 和 @7.2 。
 
 @3.2.2 内部实现：
 Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
 其它平台直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
 在 Win32 下使用 YCLib 的 Win32 平台扩展接口，参见 @7.2 ；其它平台使用 CHRLib([Documentation::YFramework @@2.7]) 。
-注意由于严格别名(@5.4.5) 限制， C++ 代码中使用 wchar_t 的左值不使用 CHRLib API 转换。
+注意 Win32 下由于严格别名限制(@4.1.4) ，使用 wchar_t 的左值使用 Windows API 而不是 CHRLib API 转换。
+
+@3.3 文件路径解析：
+除非另行约定，接口对底层文件系统解析过程透明，不附加验证文件系统路径的操作。
+具体解析行为取决于使用的底层系统 API 。
+注意和 POSIX 不同，基于 Windows 内核的路径解析不保证解析相对路径时验证父路径的项的存在性。
+除 Win32 ，这也涉及 Cygwin 等，参见 https://cygwin.com/ml/cygwin/2013-01/msg00173.html 。
 
 @4 平台 API 使用策略：
 适当使用别名声明提供透明的包装类型。
@@ -207,37 +213,23 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 @4.1 Windows API ：
 当前只支持以 Windows NT 或兼容接口为底层实现的 Win32 平台，但在接口和实现上不应依赖这个假设。
 
-@4.1.1 版本宏：
+@4.1.1 API 版本：
+注意依赖的最低操作系统版本。
+当前使用的环境参见 [Documentation::Dependencies @@1.5] 和 [Documentation::Dependencies @@1.7] 。
+
+@4.1.1.1 版本宏：
 使用当前支持的最低版本 Windows 操作系统对应的版本视为主流(mainstream) 版本，在对应的 SDK 中以宏 WINVER 标识。
 注意 WINVER 和 Win32 SDK 实现中 _WIN32_WINNT 等宏的值决定某些 API 是否被声明。
 这些宏之间的关联和差异参见 http://blogs.msdn.com/b/oldnewthing/archive/2007/04/11/2079137.aspx 。
 选择宏的使用遵循最小依赖原则，如确定 Windows NT 实现的 Win32 使用 _WIN32_WINNT 而不是 WINVER 。后者一般只在 YCLib::NativeAPI(@5.2) 出现。
 当前不涉及 DDK ，因此不适用 NTDDI_VERSION 以避免混淆。
 
-@4.1.2 API 版本兼容性：
+@4.1.1.2 兼容性：
 不直接调用 Windows Vista 后支持的 API ，以动态加载（通过 ::GetProcessAddress ）代替。
-对需编译时确定特定 API 声明存在性的场合，若有可能，使用 SFINAE([Documentation::Designation @@3.2.4)] 而不是显式判断版本宏(@4.1.1) 检查可用性并自动匹配调用。
-不使用当前主流版本 Win32 SDK 中被标记为过时的 API 如 IsBadReadPtr 。
+对需编译时确定特定 API 声明存在性的场合，若有可能，使用 SFINAE([Documentation::Designation @@3.2.4)] 而不是显式判断版本宏(@4.1.1.1) 检查可用性并自动匹配调用。
+不使用当前最新版本 Win32 SDK 中被标记为过时的 API 如 IsBadReadPtr 。
 
-@4.1.3 后缀：
-为避免宏名污染和简化可能需要的动态加载，需 #undef 消除引起冲突的宏名，不依赖 A 和 W 后缀。
-显式使用带后缀的函数（若存在）。注意某些兼容问题，如 Windows CE 下 GetProcAddress 存在后缀而 Win32 下不存在。
-存在后缀时，优先使用 W ，避免 ANSI 版本接口的一些限制（如文件系统 API ）和主流实现的 A 后缀需要转换间接调用 W 后缀版本。
-例外： ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
-
-@4.1.4 路径：
-除非文档说明，使用的路径对 Win32 API 透明。
-关于 Windows 文件路径和命名空间，参见 https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx 。
-限制可安全使用的短路径的长度时仅在 Win32 代码使用 MAX_PATH 宏；不使用其它宏。
-至少有以下 Win32 API 可能使用 "\\?\" 前缀：
-CreateFileW
-CreateHardLinkW
-CreateSymbolicW
-FindFirstFileW
-GetFileAttributesW
-注意附加前缀可能导致分隔符 "/" 不被接受为合法的路径。
-
-@4.1.5 Win32 DLL 依赖：
+@4.1.2 二进制依赖：
 Win32 API 使用受本节的 Win32 DLL 使用限制。 
 允许典型 MinGW GCC -dumpspec 时默认隐含链接库被直接依赖：
 advapi32
@@ -251,11 +243,35 @@ imm32
 因为仅有 YCLib 可能引入这些直接依赖，这也是 YFramework 映像的所有依赖。
 间接依赖项包括 MSVCRT 等运行时，不和这些依赖冲突。
 
-@4.1.5 共享状态：
+@4.1.3 共享状态：
 不依赖 ::SetLastError 和 ::GetLastError 操作的错误码持久不变。
 不调用 ::SetErrorMode 和 ::SetThreadErrorMode 等可能影响全局错误模式的 API 。
 
-@4.1.6 终端服务和远程桌面：
+@4.1.4 参数：
+注意某些 Windows API 要求提供正确的表示其它参数的大小的值。
+注意显式转换可能造成严格别名问题，参见 [Documentation::LanguageConvention @@5.2.10.1] 。
+关于 YCLib 在文本相关接口中对用户代码提供的相关保证，参见 @3.2.1 。
+
+@4.1.5 名称后缀：
+为避免宏名污染和简化可能需要的动态加载，需 #undef 消除引起冲突的宏名，不依赖 A 和 W 后缀。
+显式使用带后缀的函数（若存在）。注意某些兼容问题，如 Windows CE 下 GetProcAddress 存在后缀而 Win32 下不存在。
+存在后缀时，优先使用 W ，避免 ANSI 版本接口的一些限制（如文件系统 API ）和主流实现的 A 后缀需要转换间接调用 W 后缀版本。
+例外： ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
+
+@4.1.6 路径：
+除非文档说明，使用的路径对 Win32 API 透明。
+关于 Windows 文件路径和命名空间，参见 https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx 。
+限制可安全使用的短路径的长度时仅在 Win32 代码使用 MAX_PATH 宏；不使用其它宏。
+至少有以下 Win32 API 可能使用 "\\?\" 前缀：
+CreateFileW
+CreateHardLinkW
+CreateSymbolicW
+FindFirstFileW
+GetFileAttributesW
+注意附加前缀可能导致分隔符 "/" 不被接受为合法的路径。
+另见 @3.2.2 。
+
+@4.1.7 终端服务和远程桌面：
 感知终端服务，不使用和依赖被虚拟的远程桌面资源。
 例如使用 ::GetSystemWindowsDirectoryW 而不是 ::GetWindowsDirectoryW （区别参见 http://stackoverflow.com/questions/13489746/difference-between-getwindowsdirectory-and-getsystemwindowsdirectory ）。
 
@@ -313,6 +329,8 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 
 @5.4.3 命名空间 Descriptions ：
 提供日志等级等。
+特定日志等级和非负整数关联。日志等级越高，对应的数值越小。
+仅使用 Critical 或以上等级表示可能无法恢复而导致程序退出的错误。
 
 @5.4.4 标准库例程替换：
 为了避免某些 C 标准库的实现缺陷，提供了少量替代例程。
@@ -320,8 +338,7 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 @5.4.5 C 风格字符串转换模板：
 提供模板 ucast 和 wcast ，在特定平台使使用 wchar_t 和 char16_t 或 char32_t 的例程可互换。
 注意严格别名问题，参见 [Documentation::LanguageConvention @@5.2.10.1] 和 [Documentation::Workflow::Annual2016 $2016-06] 。
-通过 reinterpret_cast 引用的 char16_t 和 wchar_t 的左值仅和以二进制库的形式提供的库函数交互时是安全的。
-另见 @1.6.3 和 @7.2 。
+另见 @1.6.3 、 @3.2.1 和 @7.2 。
 
 @5.4.6 函数模板 RetryOnError ：
 允许简单实现当错误小于默认构造的值时重复操作。

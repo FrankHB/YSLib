@@ -10,14 +10,14 @@
 
 /*!	\file Initialization.cpp
 \ingroup Helper
-\brief 程序启动时的通用初始化。
-\version r3107
+\brief 框架初始化。
+\version r3116
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-07-20 14:51 +0800
+	2016-07-23 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,11 +202,11 @@ inline PDefH(string, FetchSystemFontDirectory_Win32, )
 #	define DEF_FONT_DIRECTORY DATA_DIRECTORY
 #endif
 
-//! \since build 549
-unique_ptr<MappedFile>
+//! \since build 712
+MappedFile
 LoadMappedModule(const string& path)
 {
-	TryRet(make_unique<MappedFile>(path))
+	TryRet(MappedFile(path))
 	CatchExpr(..., std::throw_with_nested(
 		GeneralEvent("Loading module '" + path + "' failed.")))
 	YAssert(false, "Unreachable control found.");
@@ -387,16 +387,16 @@ LoadComponents(Application& app, const ValueNode& node)
 		throw GeneralEvent("Empty path loaded.");
 #if !CHRLib_NoDynamicMapping
 
-	static unique_ptr<MappedFile> p_mapped;
+	static MappedFile mapped;
 	const string mapping_name(data_dir + "cp113.bin");
 
 	YTraceDe(Notice, "Loading character mapping file '%s' ...",
 		mapping_name.c_str());
 	try
 	{
-		p_mapped = LoadMappedModule(data_dir + "cp113.bin");
-		if(p_mapped->GetSize() != 0)
-			CHRLib::cp113 = p_mapped->GetPtr();
+		mapped = LoadMappedModule(data_dir + "cp113.bin");
+		if(mapped.GetSize() != 0)
+			CHRLib::cp113 = mapped.GetPtr();
 		else
 			throw GeneralEvent("Failed loading CHRMapEx.");
 		YTraceDe(Notice, "CHRMapEx loaded successfully.");
@@ -427,7 +427,7 @@ LoadComponents(Application& app, const ValueNode& node)
 			cp113_lkp_backup = {};
 		}
 #	endif
-		p_mapped.reset();
+		mapped = MappedFile();
 		YTraceDe(Notice, "Character mapping deleted.");
 	});
 #endif

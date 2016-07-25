@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3750
+\version r3762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2016-06-24 21:38 +0800
+	2016-07-25 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,6 +109,7 @@ struct IDTagSet : virtual IDTag<_vN>...
 /*!
 \ingroup PlatformEmulation
 \brief 定义用于平台模拟的传递模板。
+\note 使用 ADL 调用第二参数。
 \since build 652
 */
 #define YCL_DefPlatformFwdTmpl(_n, _fn) \
@@ -183,7 +184,10 @@ IsPrint(_tChar c)
 //@}
 
 
-//! \since build 631
+/*!
+\warning 注意避免违反 ISO C++11 [basic.lval]/10 以引起未定义行为。
+\since build 631
+*/
 //@{
 inline PDefH(ystdex::uchar_t*, ucast, wchar_t* p) ynothrow
 	ImplRet(ystdex::replace_cast<ystdex::uchar_t*>(p))
@@ -239,6 +243,13 @@ usystem(const char*);
 //! \brief 系统配置选项。
 enum class SystemOption
 {
+	/*!
+	\brief 内存页面字节数。
+	\note 0 表示不支持分页。
+	\since build 712
+	*/
+	PageSize,
+	//! \brief 符号链接在路径解析中允许的最大次数。
 	MaxSymlinkLoop
 };
 

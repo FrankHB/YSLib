@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r301
+\version r326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2016-06-19 19:29 +0800
+	2016-07-25 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,36 @@ namespace platform_ex
 
 inline namespace Windows
 {
+
+//! \since build 712
+namespace
+{
+
+//! \since build 565
+int WINAPI
+ConsoleHandler(unsigned long ctrl)
+{
+	switch (ctrl)
+	{
+	case CTRL_C_EVENT:
+	case CTRL_BREAK_EVENT:
+	case CTRL_CLOSE_EVENT:
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_SHUTDOWN_EVENT:
+		std::_Exit(int(STATUS_CONTROL_C_EXIT));
+	}
+	return 0;
+}
+
+} // unnamed namespace;
+
+void
+FixConsoleHandler(int(WINAPI* handler)(unsigned long), bool add)
+{
+	YCL_CallWin32F(SetConsoleCtrlHandler, handler ? handler : ConsoleHandler,
+		add);
+}
+
 
 WConsole::WConsole(unsigned long dev)
 	: WConsole(::GetStdHandle(dev))

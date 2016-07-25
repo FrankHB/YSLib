@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1869
+\version r1873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2016-05-16 14:12 +0800
+	2016-07-25 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,8 @@
 #	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
 #	include YFM_YCLib_Video // for platform::ColorSpace;
 #elif YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FixConsoleHandler,
-//	platform_ex::Win32Exception;
+#	include YFM_Win32_YCLib_Consoles // for platform_ex::FixConsoleHandler;
+#	include YFM_Win32_YCLib_MinGW32 // for platform_ex::Win32Exception;
 #	include YFM_YSLib_Core_YCoreUtilities // for FetchEnvironmentVariable;
 #	include YFM_YCLib_Debug // for platform_ex::SendDebugString;
 #endif
@@ -110,8 +110,7 @@ Environment::Environment(Application& app)
 	if(FetchEnvironmentVariable(env_str, "YF_DEBUG_OUTPUT"))
 		FilterExceptions([&]{
 			if(env_str == "1")
-				FetchCommonLogger().SetSender(
-					platform_ex::SendDebugString);
+				FetchCommonLogger().SetSender(SendDebugString);
 		});
 #endif
 #if 0

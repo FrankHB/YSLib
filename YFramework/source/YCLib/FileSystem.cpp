@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4146
+\version r4148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-07-13 14:16 +0800
+	2016-07-13 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,7 +314,7 @@ IterateLink(u16string& path, size_t& n)
 
 
 #if YCL_Win32
-class DirectorySession::Data : public DirectoryFindData
+class DirectorySession::Data final : public DirectoryFindData
 {
 public:
 	using DirectoryFindData::DirectoryFindData;
@@ -333,7 +333,7 @@ void
 DirectorySession::Deleter::operator()(pointer p) const ynothrowv
 {
 #if YCL_Win32
-	default_delete<Data>()(p);
+	default_delete<Data>::operator()(p);
 #else
 	const auto res(::closedir(ToDirPtr(p)));
 

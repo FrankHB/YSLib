@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1847
+\version r1879
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-07-14 23:17 +0800
+	2016-07-23 20:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -692,9 +692,22 @@ WindowDeviceContext::~WindowDeviceContext()
 }
 
 
+struct PaintStructData::Data final : ::PAINTSTRUCT
+{};
+
+
+PaintStructData::PaintStructData()
+	: pun(&ps)
+{
+	static_assert(ystdex::is_aligned_storable<decltype(ps), Data>(),
+		"Invalid buffer found.");
+}
+ImplDeDtor(PaintStructData)
+
+
 WindowRegionDeviceContext::WindowRegionDeviceContext(NativeWindowHandle h_wnd)
-	: WindowDeviceContextBase(h_wnd, ::BeginPaint(Nonnull(h_wnd),
-	ystdex::aligned_store_cast<::PAINTSTRUCT*>(&ps)))
+	: PaintStructData(),
+	WindowDeviceContextBase(h_wnd, ::BeginPaint(Nonnull(h_wnd), &Get()))
 {
 	if(YB_UNLIKELY(!hDC))
 		throw LoggedEvent("Device context initialization failure.");
@@ -702,20 +715,19 @@ WindowRegionDeviceContext::WindowRegionDeviceContext(NativeWindowHandle h_wnd)
 WindowRegionDeviceContext::~WindowRegionDeviceContext()
 {
 	// NOTE: Return value is ignored since it is always %TRUE.
-	::EndPaint(hWindow, ystdex::aligned_store_cast<::PAINTSTRUCT*>(&ps));
+	::EndPaint(hWindow, &Get());
 }
 
 bool
 WindowRegionDeviceContext::IsBackgroundValid() const ynothrow
 {
-	return !bool(ystdex::aligned_store_cast<const ::PAINTSTRUCT&>(ps).fErase);
+	return !bool(Get().fErase);
 }
 
 Rect
 WindowRegionDeviceContext::GetInvalidatedArea() const
 {
-	return FetchRectFromBounds(
-		ystdex::aligned_store_cast<const ::PAINTSTRUCT&>(ps).rcPaint);
+	return FetchRectFromBounds(Get().rcPaint);
 }
 
 
@@ -864,25 +876,18 @@ WindowInputHost::WindowInputHost(HostWindow& wnd)
 		ClearKeyStates();
 	},
 	m[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param) ynothrow{
-		ystdex::pun_storage_t<::RAWINPUT> buf;
-		unsigned size(sizeof(buf));
+		::RAWINPUT ri;
+		unsigned size(sizeof(ri));
 
-		// TODO: Use '{}' to simplify after CWG 1368 resolved by C++14. See
-		//	$2015-09 @ %Documentation::Workflow::Annual2015.
-		ystdex::trivially_fill_n(&buf);
-		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &buf,
-			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1)))
-		{
-			const auto p_raw(ystdex::replace_cast<::RAWINPUT*>(&buf));
-
-			if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
-			{
-				if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
-					// NOTE: This value is safe to cast because it is
-					//	specified as a signed value, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms645578(v=vs.85).aspx.
-					RawMouseButton = short(p_raw->data.mouse.usButtonData);
-			}
-		}
+		// TODO: Use '{}' to simplify initialization after CWG 1368 resolved by
+		//	C++14. See $2015-09 @ %Documentation::Workflow::Annual2015.
+		ystdex::trivially_fill_n(&ri);
+		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, &ri,
+			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1) && ri.header.dwType
+			== RIM_TYPEMOUSE) && ri.data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
+			// NOTE: This value is safe to cast because it is
+			//	specified as a signed value, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms645578(v=vs.85).aspx.
+			RawMouseButton = short(ri.data.mouse.usButtonData);
 	},
 	m[WM_CHAR] += [this](::WPARAM w_param, ::LPARAM l_param){
 		lock_guard<recursive_mutex> lck(input_mutex);
