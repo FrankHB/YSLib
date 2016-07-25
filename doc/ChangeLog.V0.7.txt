@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1419
+\version r1521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-21 10:05 +0800
+	2016-07-25 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,106 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	(
+	+ $doc "limitation on moved-from state of user-defined class objects"
+		@ %Documentation.LanguageConvention;
+	/ $forced $doc "clearified moved-to state as '\note' command"
+		@ "Doxygen comment" $effective @ "class %DirectorySession"
+		@ %YFramework.YCLib.FileSystem
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				+ $doc "'\invariant' command" @ "Doxygen comment"
+					@ "class %HDirectory",
+				/ DLDI @ "platform %Win32" @ "class %DirectorySession" $=
+				(
+					+ 'final' @ "private class %DirectorySession::Data",
+					/ "avoided construction of %default_delete<Data>"
+						@ "member function %Deleter::operator()"
+				)
+			),
+			/ %MemoryMapping $=
+			(
+				+ "default constructor" @ "class %UnmapDelete";
+				/ @ "class %MappedFile" $=
+				(
+					/ "allowed empty state"
+					(
+						+ "default constructor",
+						+ "explicitly default move (constructor, %operator=)",
+						+ "functions operator(!, bool)" ^ "%DefBoolNeg",
+						+ "assertion" @ "function %FlushView"
+					),
+					(
+					+ DLDI "saved mapping option";
+					(
+					+ "functions %(FlushFile; Flush)";
+					/ "destructor" ^ "%Flush" ~ "%FlushView"
+					),
+					+ "function %GetMappingOption"
+					)
+				)
+			),
+			/ %HostedGUI $=
+			(
+				/ @ "%WM_INPUT handling" @ "constructor %WindowInputHost"
+					@ "platform %Win32" @ %HostedGUI $=
+				(
+					/ DLDI "simplified" ^ "%::RAWINPUT directly";
+					* $comp "strict aliasing broken" $orig
+						(@ %Helper.Host $since b423)
+				),
+				(
+				+ "class %PaintStructData";
+				/ @ "class %WindowRegionDeviceContext" $=
+				(
+					+ "protected base class %PaintStructData";
+					/ "member access for %::PAINTSTRUCT" ^ "%punning"
+						~ "%ystdex::(aligned_storage_t, aligned_store_cast)";
+					* $comp $re_ex(b565) "strict aliasing broken" $since b564
+				)
+				)
+			),
+			/ 'ynothrow' @ "member function %HandleDelete::operator()"
+				@ "platform %Win32" @ %Host -> 'ynothrowv',
+			/ %YCommon $=
+			(
+				+ "enumerator %SystemOption::PageSize";
+				+ "support for querying page size with parameter value \
+					%SystemOption::PageSize" @ "function %FetchLimit"
+			)
+		),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			- $re_add(b705) DLI "redundant private data member"
+				@ "class %DirectoryFindData",
+			/ @ "class %ReparsePointData" $=
+			(
+				/ DLDI "simplified"
+					^ "%ystdex::aligned_storage_t" ~ "%ystdex::pun_storage_t",
+				+ DLDI 'final' @ "struct %Data",
+				- 'final'
+					// To allow initialized before other bases.
+			),
+			/ "function %FixConsoleHandler" >> %Consoles
+		),
+		/ DLDI %Helper $=
+		(
+			/ "simplified CHRLib mapping initialization"
+				@ "function %LoadComponents" @ %Initialization $dep_from
+				("%MappedFile" @ %YCLib.MemoryMapping),
+			/ $forced %Enviornment $dep_from
+				("%FixConsoleHandler" @ %'YCLib_(Win32)'.MinGW32.Consoles)
+		)
+	)
+),
+
+b711
 (
 	+ $repo "bookmark 'engineering-fault-b710'" @ b706
 		@ "engineering fault bookmarks",
@@ -293,8 +393,9 @@ b709
 	(
 		* $re_add(b520) DLD "missing UTF-8 BOM" @ "header file %Win32Control.h"
 			@ %'Helper_(Win32)' $since b570,
-		/ DLDI "class-key" @ "private member type" @ "class "
-			@ %'YCLib_(Win32)'.MinGW32,
+		/ DLDI "uniformed class-key" @ "private member type"
+			@ "class %ReparsePointData" @ %'YCLib_(Win32)'.MinGW32
+			-> 'struct' ~ 'class',
 			// To eliminate Microsoft VC++ warning: C4099.
 		/ %YCLib $=
 		(

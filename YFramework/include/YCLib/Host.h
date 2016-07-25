@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r365
+\version r369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-05-09 13:29 +0800
+	2016-07-24 16:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include "YSLib/Core/YModules.h"
 #include YFM_YCLib_Container // for unordered_map, pair, string_view, string;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
-#include YFM_YCLib_Reference // for unique_ptr;
+#include YFM_YCLib_Reference // for unique_ptr_from, unique_ptr;
 #include <system_error> // for std::system_error;
 #if !YCL_Win32
 #	include YFM_YCLib_FileIO // for platform::FileDescriptor::Deleter;
@@ -97,13 +97,14 @@ public:
 struct YF_API HandleDelete
 {
 	/*!
-	\warning 只检查空句柄作为空值。对不同的 Win32 API 可能需要额外检查。
+	\warning 默认空句柄作为空值；对不同的 Win32 API 可能需要额外检查。
 	\see http://blogs.msdn.com/b/oldnewthing/archive/2004/03/02/82639.aspx 。
 	*/
 	using pointer = ::HANDLE;
 
+	//! \since build 712
 	void
-	operator()(pointer) const ynothrow;
+	operator()(pointer) const ynothrowv;
 };
 #	elif YCL_API_Has_unistd_h
 //! \since build 592

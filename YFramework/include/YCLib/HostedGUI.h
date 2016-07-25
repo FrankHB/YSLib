@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1495
+\version r1521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-07-14 23:17 +0800
+	2016-07-23 20:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for nptr, map, unique_ptr, ystdex::aligned_storage_t,
-//	wstring, wstring_view, string_view, YSLib::recursive_mutex,
+//	ystdex::pun_ref, wstring, wstring_view, string_view, YSLib::recursive_mutex,
 //	YSLib::lock_guard, u16string_view;
 #include YFM_YSLib_Core_YEvent // for YSLib::GEvent, YSLib::string;
 #include YFM_YSLib_Core_YGraphics // for YSLib::Drawing::Rect,
@@ -663,23 +663,40 @@ protected:
 
 
 /*!
-\brief 窗口区域设备上下文。
-\note 仅对设备上下文有所有权。
+\brief 多页面位图数据。
+\note 用于隐藏实现的非公开接口。
+\since build 712
 */
-class YF_API WindowRegionDeviceContext
-	: public WindowDeviceContextBase, private YSLib::noncopyable
+class PaintStructData
 {
+public:
+	struct Data;
+
 private:
-	/*!
-	\note 保持和 \c ::PAINTSTRUCT 二进制兼容。
-	\since build 631
-	*/
+	//! \note 保持和 \c ::PAINTSTRUCT 二进制兼容。
 #if YCL_Win64
 	ystdex::aligned_storage_t<72, 8> ps;
 #else
 	ystdex::aligned_storage_t<64, 4> ps;
 #endif
+	//! \invariant <tt>&pun.get() == &ps</tt>
+	ystdex::pun_ref<Data> pun;
 
+public:
+	PaintStructData();
+	~PaintStructData();
+
+	DefGetter(const ynothrow, Data&, , pun.get())
+};
+
+
+/*!
+\brief 窗口区域设备上下文。
+\note 仅对设备上下文有所有权。
+*/
+class YF_API WindowRegionDeviceContext : protected PaintStructData,
+	public WindowDeviceContextBase, private YSLib::noncopyable
+{
 protected:
 	/*!
 	\pre 间接断言：参数非空。

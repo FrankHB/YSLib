@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3525
+\version r3541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-07-13 13:31 +0800
+	2016-07-23 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -461,6 +461,7 @@ IterateLink(u16string&, size_t&);
 
 /*!
 \brief 目录会话：表示打开的目录。
+\note 转移后状态无法通过其它操作取得。
 \warning 非虚析构。
 \since build 411
 */
@@ -479,6 +480,9 @@ public:
 private:
 	//! \since build 669
 	class YF_API Deleter
+#if YCL_Win32
+		: private default_delete<Data>
+#endif
 	{
 	public:
 		using pointer = NativeHandle;
@@ -492,8 +496,8 @@ private:
 protected:
 	/*!
 	\brief 目录路径。
-	\invariant <tt>ystdex::string_length(sDirPath.c_str()) > 0 && \
-		sDirPath.back() == FetchSeparator<char>()</tt> 。
+	\invariant <tt>!dir || (ystdex::string_length(sDirPath.c_str()) > 0 && \
+		sDirPath.back() == FetchSeparator<char>())</tt> 。
 	\since build 593
 	*/
 	string sDirPath;
@@ -524,7 +528,10 @@ public:
 	explicit YB_NONNULL(2)
 	DirectorySession(const char16_t*);
 	//@}
-	//! \since build 560
+	/*!
+	\post \c !GetNativeHandle() 。
+	\since build 560
+	*/
 	DefDeMoveCtor(DirectorySession)
 	/*!
 	\brief 析构：关闭目录路径。
@@ -532,7 +539,10 @@ public:
 	*/
 	DefDeDtor(DirectorySession)
 
-	//! \since build 549
+	/*!
+	\post \c !GetNativeHandle() 。
+	\since build 549
+	*/
 	DefDeMoveAssignment(DirectorySession)
 
 	//! \since build 413
@@ -546,6 +556,7 @@ public:
 
 /*!
 \brief 目录句柄：表示打开的目录和内容迭代状态。
+\invariant <tt>!*this || bool(GetNativeHandle())</tt> 。
 \since build 411
 */
 class YF_API HDirectory final
@@ -571,7 +582,6 @@ private:
 #else
 	/*!
 	\brief 节点信息。
-	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt> 。
 	\since build 669
 	*/
 	tidy_ptr<::dirent> p_dirent{};

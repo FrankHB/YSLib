@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1901
+\version r1930
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-06-26 02:55 +0800
+	2016-07-25 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 #include YFM_YCLib_Platform
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Registry // for platform::FileOperationFailure,
-//	RegistryKey, ystdex::pun_storage_t, ystdex::throw_error,
-//	std::errc::not_supported, std::invalid_argument;
+//	RegistryKey, ystdex::throw_error, std::errc::not_supported,
+//	std::invalid_argument;
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
@@ -57,7 +57,7 @@ inline namespace Windows
 int
 ConvertToErrno(ErrorCode err) ynothrow
 {
-	// NOTE: This mapping is from Windows Kits 10.0.10150.0,
+	// NOTE: This mapping is from universal CRT in Windows SDK 10.0.10150.0,
 	//	ucrt/misc/errno.cpp, except for fix of the bug error 124: it shall be
 	//	%ERROR_INVALID_LEVEL but not %ERROR_INVALID_HANDLE. See https://connect.microsoft.com/VisualStudio/feedback/details/1641428.
 	switch(err)
@@ -162,22 +162,6 @@ ConvertToErrno(ErrorCode err) ynothrow
 //! \since build 545
 namespace
 {
-
-//! \since build 565
-int WINAPI
-ConsoleHandler(unsigned long ctrl)
-{
-	switch (ctrl)
-	{
-	case CTRL_C_EVENT:
-	case CTRL_BREAK_EVENT:
-	case CTRL_CLOSE_EVENT:
-	case CTRL_LOGOFF_EVENT:
-	case CTRL_SHUTDOWN_EVENT:
-		std::_Exit(int(STATUS_CONTROL_C_EXIT));
-	}
-	return 0;
-}
 
 class Win32ErrorCategory : public std::error_category
 {
@@ -369,13 +353,14 @@ LoadProc(::HMODULE h_module, const char* proc)
 wstring
 FetchModuleFileName(::HMODULE h_module, RecordLevel lv)
 {
+	// TODO: Avoid retry for NT 6 %::GetModuleFileNameW?
 	return ystdex::retry_for_vector<wstring>(MAX_PATH,
 		[=](wstring& res, size_t s) -> bool{
 		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0], s)));
-		const auto e(::GetLastError());
+		const auto err(::GetLastError());
 
-		if(e != ERROR_SUCCESS && e != ERROR_INSUFFICIENT_BUFFER)
-			throw Win32Exception(e, "GetModuleFileNameW", lv);
+		if(err != ERROR_SUCCESS && err != ERROR_INSUFFICIENT_BUFFER)
+			throw Win32Exception(err, "GetModuleFileNameW", lv);
 		if(r < s)
 		{
 			res.resize(r);
@@ -496,13 +481,6 @@ MakeFile(const wchar_t* path, FileAccessRights desired_access,
 		: UniqueHandle::pointer());
 }
 
-
-void
-FixConsoleHandler(int(WINAPI* handler)(unsigned long), bool add)
-{
-	YCL_CallWin32F(SetConsoleCtrlHandler, handler ? handler : ConsoleHandler,
-		add);
-}
 
 bool
 CheckWine()
@@ -654,7 +632,7 @@ DirectoryFindData::Rewind() ynothrow
 }
 
 
-struct ReparsePointData::Data
+struct ReparsePointData::Data final
 {
 	struct tagSymbolicLinkReparseBuffer
 	{

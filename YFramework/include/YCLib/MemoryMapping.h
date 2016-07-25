@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r276
+\version r317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2016-07-21 09:59 +0800
+	2016-07-23 20:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,9 +77,11 @@ public:
 	using pointer = byte*;
 
 private:
-	size_t size;
+	size_t size = 0;
 
 public:
+	//! \since build 712
+	DefDeCtor(UnmapDelete)
 	UnmapDelete(size_t s)
 		: size(s)
 	{}
@@ -102,17 +104,26 @@ public:
 \brief 只读内存映射文件。
 \note 可移植实现仅保证进程内生存期，但进程间可能共享。
 \note 对不支持内存映射的实现，使用 POSIX 文件 IO 模拟。
+\warning 转移后具有空状态。
+\warning 非虚析构。
 \since build 324
 */
 class YF_API MappedFile
 {
 private:
+	//! \since build 712
+	FileMappingOption option;
 	//! \since build 669
-	UniqueFile file;
+	UniqueFile file{};
 	//! \since build 711
-	unique_ptr<byte[], UnmapDelete> mapped;
+	unique_ptr<byte[], UnmapDelete> mapped{};
 
 public:
+	/*!
+	\brief 无参数构造：空状态。
+	\since build 712
+	*/
+	DefDeCtor(MappedFile)
 	/*!
 	\brief 构造：创建映射文件。
 	\exception ystdex::narrowing_error 映射的文件大小不被支持。
@@ -168,26 +179,56 @@ public:
 	MappedFile(const _tString& filename, _tParams&&... args)
 		: MappedFile(filename.c_str(), yforward(args)...)
 	{}
+	//! \since build 712
+	DefDeMoveCtor(MappedFile)
 	//@}
 	/*!
 	\brief 析构：刷新并捕获所有错误，然后释放资源。
+	\sa Flush
 	\since build 711
 	*/
 	~MappedFile();
 
+	//! \since build 712
+	//@{
+	DefDeMoveAssignment(MappedFile)
+
+	DefBoolNeg(explicit, bool(file))
+
+	DefGetter(const ynothrow, FileMappingOption, MappingOption, option)
+	//@}
 	//! \since build 413
 	DefGetter(const ynothrow, byte*, Ptr, mapped.get())
 	//! \since build 711
 	DefGetterMem(const ynothrow, size_t, Size, mapped.get_deleter())
 
+	//! \since build 712
+	//@{
 	/*!
-	\brief 刷新：刷新映射视图。
+	\brief 刷新映射视图和文件。
+	\pre 间接断言： <tt>GetPtr() && file</tt> 。
+	*/
+	PDefH(void, Flush, )
+		ImplExpr(FlushView(), FlushFile())
+
+	/*!
+	\brief 刷新映射视图。
+	\pre 断言： \c GetPtr() 。
 	\note DS 平台：空操作。
 	\note POSIX 平台：未指定只读视图关联的永久存储。
 	\since build 711
 	*/
 	void
 	FlushView();
+
+	/*!
+	\brief 刷新文件。
+	\pre 断言： \c file 。
+	\note 非可写时忽略。
+	*/
+	void
+	FlushFile();
+	//@}
 };
 
 } // namespace platform;

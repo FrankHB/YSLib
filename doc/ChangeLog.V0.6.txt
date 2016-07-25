@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r11913
+\version r12005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-06-11 06:32 +0800
+	2016-07-24 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -985,49 +985,68 @@ b689
 				("%id" @ %YBase.YStandardEx.Functor))
 		/ %YSLib.UI $=
 		(
-			/ DLDI "removed redundant pessimizing 'std::move' call" @ ("constructor %YDesitop" @ %YDesktop, "member function %TreeList::GetNodePath" @ %TreeView),
-				// To eliminate Clang++ warning: [-Wpessimizing-move]. See also https://news.ycombinator.com/item?id=9915300.
-			/ "all (function template, 2 functions) %to_string" @ %YComponent >> %Core.YGDIBase
+			/ DLDI "removed redundant pessimizing 'std::move' call"
+				@ ("constructor %YDesitop" @ %YDesktop, "member function \
+				%TreeList::GetNodePath" @ %TreeView),
+				// To eliminate Clang++ warning: [-Wpessimizing-move]. See \
+					also https://news.ycombinator.com/item?id=9915300.
+			/ "all (function template, 2 functions) %to_string" @ %YComponent
+				>> %Core.YGDIBase
 		),
 		/ %YCLib $=
 		(
-			+ $dev "workaround to ignore Clang++ warnings for virtual bases" @ "namespace %platform" @ %YCommon,
+			+ $dev "workaround to ignore Clang++ warnings for virtual bases"
+				@ "namespace %platform" @ %YCommon,
 				// To eliminate Clang++ warning: [-Wweak-vtables].
-			* $dev "wrong message" @ "'#error' directive" @ "unknown host platforms" @ %HostedGUI $since b563,
-			+ "class %WindowInputHost" @ %HostedGUI,
+			* $dev "wrong message" @ "'#error' directive"
+				@ "unknown host platforms" @ %HostedGUI $since b563,
+			+ "class %WindowInputHost" @ %HostedGUI
 		),
-		+ $dev $workaround(#28) "workaround to ignore Clang++ warnings" @ %CHRLib.MappingEx,
+		+ $dev $workaround(#28) "workaround to ignore Clang++ warnings"
+			@ %CHRLib.MappingEx,
 			// To eliminate Clang++ warning: [-Wignored-attributes]. See https://llvm.org/bugs/show_bug.cgi?id=25306.
 		/ %Helper
 		(
 			+ "class declaration %GUIHost" @ %YGlobal,
 			(
 			+ "class %GUIHost" @ %GUIApplication;
-			/ "declarations" @ "platform %Android" @ %Environment >> %GUIApplication;
+			/ "declarations" @ "platform %Android" @ %Environment
+				>> %GUIApplication;
 			+ $forced %GUIApplication $=
 			(
 				/ "split GUI state" ^ "%GUIHost";
 				+ "member function %GetGUIHostRef";
 				+ "function %FetchGUIHost"
 			),
-			/ "function %GetEnvironmentRef" @ "class %Host::Window" -> "%GetHostRef",
-			/ "%Environment" -> "%GUIHost" $effective @ %(HostWindow, GUIApplication, GUIShell, HostedUI, HostRenderer, InputManager);
+			/ "function %GetEnvironmentRef" @ "class %Host::Window"
+				-> "%GetHostRef",
+			/ "%Environment" -> "%GUIHost" $effective @ %(HostWindow, \
+				GUIApplication, GUIShell, HostedUI, HostRenderer, InputManager);
 			- "all GUI state and methods" @ "class %Environment" @ %Environment
 			),
 			/ @ "class %Host::Window" @ %HostWindow $=
 			(
-				/ "input host" ^ $dep_from ("%WindowInputHost" @ %YCLib.HostedGUI) $=
+				/ "input host" ^ $dep_from
+					("%WindowInputHost" @ %YCLib.HostedGUI) $=
 				(
 					+ 'WindowInputHost InputHost;',
-					- "function template %AccessInputString, functions %(UpdateCandidateWindowLocation, UpdateCandidateWindowLocation, UpdateCandidateWindowLocationUnlocked)" $dep_from "lifted input host methods"
+					- "function template %AccessInputString, functions \
+						%(UpdateCandidateWindowLocation, \
+						UpdateCandidateWindowLocation, \
+						UpdateCandidateWindowLocationUnlocked)" $dep_from
+						"lifted input host methods"
 				),
-				* $comp "%AddMappedItem called only on platform %Win32" @ "constructor" $since b497
+				* $comp "%AddMappedItem called only on platform %Win32"
+					@ "constructor" $since b497
 					// It should also be called for other hosted platforms.
 			)
 		),
-		/ $forced "%Environment" -> "%GUIHost" $effective @ %('Helper_(DS)'.DSMain, 'Helper_(Win32)'.Win32Control) $dep_from %Helper,
-		/ DLDI "member functions" ("%DSWindow::UpdateTextInputFocus" @ %'Helper_(DS)'.DSWindow, "%InputManager::DispatchInput" @ %Helper.InputManager)
-			^ ("%Host::Window::InputHost" @ %Helper.HostWindow) $dep_to "lifted input host methods"
+		/ $forced "%Environment" -> "%GUIHost" $dep_from %Helper $effective
+			@ %('Helper_(DS)'.DSMain, 'Helper_(Win32)'.Win32Control),
+		/ DLDI "member functions" ("%DSWindow::UpdateTextInputFocus"
+			@ %'Helper_(DS)'.DSWindow, "%InputManager::DispatchInput"
+			@ %Helper.InputManager) ^ ("%Host::Window::InputHost"
+			@ %Helper.HostWindow) $dep_to "lifted input host methods"
 	);
 ),
 
@@ -2358,7 +2377,7 @@ b676
 			$= ("returned %CharSet::Null before further check if reading calls \
 				failed")
 	),
-	/ %Tools $=
+	/ $build %Tools $=
 	(
 		* "missing updating %LIBS for %YFramework.YCLib.YCommon"
 			@ "%SHBuild-bootstrap.sh" @ %Scripts $since b633,
@@ -3481,22 +3500,25 @@ b669
 				%YCL_API_Has_unistd_h" @ %Host,
 				// The old declarations of %pointer as 'int*' is nonsense and \
 					confusing. The delete-expression is also removed now.
-			/ @ "class %DirectorySession" @ %FileSystem $=
+			/ @ %FileSystem $=
 			(
+				/ @ "class %DirectorySession" $=
 				(
-				+ DLDI "private class type %Data";
-				/ "%NativeHandle" -> 'Data*';
-				/ $comp DLD "native handle type changed" -> 'Data*' ~ 'void*'
-					@ "platform %Win32"
-					// Though it is still an incomplete type.
+					(
+					+ DLDI "private class type %Data";
+					/ "%NativeHandle" -> 'Data*';
+					/ $comp DLD "native handle type changed" -> 'Data*'
+						~ 'void*' @ "platform %Win32"
+						// Though it is still an incomplete type.
+					),
+					+ DLDI "private deleter class",
+					^ DLDI "data member of %unique_ptr instance";
+					/ DLDI "simplified function %Rewind",
+					/ $forced DLDI "explictly defaulted move constructor",
+					/ DLDI "simplified by explictly defaulted destructor"
+						@ "non-header file"
+						// Also avoided explicit delete-expression.
 				),
-				+ DLDI "private deleter class",
-				^ DLDI "%unique_ptr";
-				/ DLDI "simplified function %Rewind",
-				/ $forced DLDI "explictly defaulted move constructor",
-				/ DLDI "simplified by explictly defaulted destructor"
-					@ "non-header file",
-					// Also avoided explicit delete-expression.
 				/ DLDI @ "class %HDirectory" $=
 				(
 					/ "wrapped private data" ^ $dep_from
@@ -4109,8 +4131,8 @@ b664
 			(
 			/ "function template %string_end" ^ "%ystdex::ntctslen",
 			/ "function template %string_length" -> "3 overloaded function \
-				templates with parameters of pointers and \
-				%std::initializer_list instances";
+				templates with parameters of pointers, references and \
+				%std::initializer_list instances respectively";
 			/ $forced "function templates %(string_begin, string_end)"
 				^ "pointer type parameter" ~ "array reference type parameter",
 			/ $comp "function templates %(begins_with, ends_with; split, \
@@ -4531,7 +4553,7 @@ b660
 		),
 		/ @ %'YCLib_(Win32)'.MinGW32 $=
 		(
-			* "always failed" @ "functions %SetFileTime with path parameter"
+			* "always failed" @ "functions %SetFileTime with pathname parameter"
 				$since b651
 				$= (/ $impl ^ "%AccessRights::GenericWrite"
 					~ "%AccessRights::GenericRead"),
@@ -4547,7 +4569,7 @@ b660
 			),
 			+ "2nd parameter 'bool = {}' to allow specifying following reparse \
 				point behavior" @ "functions \
-				%(QueryFileLinks, QueryFileNodeID) with path parameter",
+				%(QueryFileLinks, QueryFileNodeID) with pathname parameter",
 			* DD "wrong directive '\breif' used" ~ '\brief' @ "Doxygen comments"
 				@ "function %GetErrnoFromWin32" $since b622,
 			/ @ "all 2 functions %ConvertTime" $=
@@ -4625,7 +4647,7 @@ b660
 				+ "default template argument 'void'",
 				+ "specialization for 'void' with member function template \
 					%operator()",
-				/ "member %operator()" $=
+				/ "member function %operator()" $=
 				(
 					/ $impl ^ $dep_from
 						("%ystdex::constfn_addressof" @ %AddressOf);
@@ -4952,7 +4974,7 @@ b658
 					'nullptr_t' parameter" $since b629,
 				* $comp "files of paths with same first character are \
 					considered same" @ "functions %(IsNodeShared; \
-					HaveSameContents) with path parameters" $since b657
+					HaveSameContents) with pathname parameters" $since b657
 					$dep_from (%ntctscmp @ %YBase.YStandardEx.CString),
 				/ DLDI @ !"platform %Win32" @ "functions %IsNodeShared",
 				/ @ "functions %HaveSameContent" $=
@@ -4964,7 +4986,7 @@ b658
 					(
 					/ "merged overloded function for %string"
 						-> "overloded function for 'const char*'";
-					+ "%mode_t" @ "overloaded function with path parameters"
+					+ "%mode_t" @ "overloaded function with pathname parameters"
 					),
 					(
 					+ "2 name parameters to be used in exceptions"
@@ -5481,11 +5503,11 @@ b655
 		* $re_ex(b642) "strict POSIX.1-2013 compatibility" $since $before b132
 			$=
 		(
-			* "nonconforming behavior treating empty path parameters"
+			* "nonconforming behavior treating empty pathname parameters"
 				@ "new path for %::rename and variants" $dep_from
 				"check empty new name"
 				$= ("set %errno to %ENOENT" ~ "set %errno to %EXDEV")
-			* $comp "nonconforming behavior treating empty path parameters"
+			* $comp "nonconforming behavior treating empty pathname parameters"
 				@ "%::opendir and variants" $dep_from
 				"check empty directory name"
 				$= ("set %errno to %ENOENT"
@@ -6290,9 +6312,9 @@ b649
 	(
 		/ @ "function templates %make_guard" @ %ScopeGuard $=
 		(
-			+ "overloading with variadic parameters",
+			+ "overloaded with variadic parameters",
 				// To support move.
-			- "overloading for %lref instances"
+			- "overloaded for %lref instances"
 		),
 		+ %TypeTraits $=
 		(
@@ -6854,11 +6876,11 @@ b643
 		/ %'YCLib_(DS)'.DSIO $=
 		(
 			/ DLDI "trimming" ^ "%string_view" @ "constructors %DEntry";
-				// Despite https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795, this \
-					actually seems to work on platform %DS.
-			/ "path parameter type" @ "member functions %Partition::(ChangeDir, \
-				akeDir, Rename, Stat, Unlink), FileInfo::FileInfo"
-				-> "%string_view" ~ 'const char*',
+				// Despite https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795, \
+					this actually seems to work on platform %DS.
+			/ "pathname parameter type" @ "member functions \
+				%Partition::(ChangeDir, akeDir, Rename, Stat, Unlink), \
+				FileInfo::FileInfo" -> "%string_view" ~ 'const char*',
 			/ DLD "function %Partition::Stat" -> "inline function"
 			/ @ "function %Mount" $=
 			(
@@ -6986,7 +7008,7 @@ b642
 			(
 				/ "merged 2 constructor %DEntry with character pointer" $=
 				(
-					/ "path parameter" ^ "%string_view" ~ 'const char*',
+					/ "pathname parameter" ^ "%string_view" ~ 'const char*',
 						// See $2015-10 @ %Documentation::Workflow::Annual2015.
 					/ DLDI "reduced %std::strlen calls",
 					/ "placed directory entry check before name and alias \
@@ -7013,7 +7035,7 @@ b642
 						// This value would be used in %DEntry::AddTo which \
 							might cause bad alias read. It also effects \
 							%FileInfo initialization.
-					/ "path parameter" ^ "%string_view" ~ 'const char*'
+					/ "pathname parameter" ^ "%string_view" ~ 'const char*'
 				),
 				/ @ "function %GetLabalString" @ "class %Partition" $=
 				(
@@ -7047,11 +7069,11 @@ b642
 				),
 				/ DLDI "simplified loop" @ "function %Unlink"
 			),
-			+ $re(600) DLDI 'ynothrow' @ "lambda-expressions" $effective
+			+ $re_add(b600) DLDI 'ynothrow' @ "lambda-expressions" $effective
 				@ "member functions %(SectorCache::SectorCache, \
 				DEntry::DEntry#3, Partition::(Rename, RemoveEntry), \
 				FileInfo::(FileInfo, TryRead))",
-			+ $re_ex(600) DLDI 'ynothrowv' @ "lambda-expressions" $effective
+			+ $re_ex(b600) DLDI 'ynothrowv' @ "lambda-expressions" $effective
 				@ ("member functions %AllocationTable::(AllocationTable, \
 				QueryLast)"),
 			* $comp "missing throwing %std::system_error of \
@@ -7079,9 +7101,9 @@ b642
 		$since $before b132 $=
 	(
 		* "wrongly setting %ENOENT instead of %ENOTDIR" @ "%::(unlink, mkdir, \
-			rename, opendir, open) and variants for path parameters where path \
-			prefix component naming a valid file but not a directory" $since
-			$before b132 $dep_from "non-directory checking"
+			rename, opendir, open) and variants for pathname parameters where\
+			path prefix component naming a valid file but not a directory"
+			$since $before b132 $dep_from "non-directory checking"
 			// See https://github.com/devkitPro/libfat/issues/6.
 	)
 ),
@@ -7468,8 +7490,8 @@ b639
 					$dep_from ("%IO::(UniqueFile, FileDescriptor, mode_t)"
 					@ %YSLib.Adaptor.YAdaptor) $=
 				(
-					/ @ "functions %CopyFile with destination path parameters"
-						$=
+					/ @ "functions %CopyFile with destination pathname \
+						parameters" $=
 					(
 						* $comp "wrongly deleted source when source is the \
 							same as destination" $since b637 $dep_from
@@ -7478,7 +7500,7 @@ b639
 							possible overwriting and sharing between link \
 							instances"
 					),
-					/ @ "functions %CopyFile with source path parameters" $=
+					/ @ "functions %CopyFile with source pathname parameters" $=
 					(
 						* "destination file created when source file access \
 							failed" $since b637,
@@ -7634,7 +7656,7 @@ b638
 				),
 				+ "function %IsNodeShared for %FileDescriptor parameters"
 					^ $dep_from "%FileDescriptor::NodeCompare",
-				+ "2 function %IsNodeShared for path parameters",
+				+ "2 function %IsNodeShared for pathname parameters",
 				/ @ "functions %HaveSameContents" $=
 				(
 					+ "overloading for 'const string&' parameters",
@@ -8169,7 +8191,7 @@ b632
 			+ "3 inline overloadings"
 		)
 		),
-		/ @ "functions %QueryFileTime with path parameter" $=
+		/ @ "functions %QueryFileTime with pathname parameter" $=
 		(
 			+ "parameter 'bool = {}' at last",
 			/ "forbade tracing reparse point by default"
@@ -8279,7 +8301,7 @@ b631
 				/ $lib $impl "simplified",
 				/ @ !"platform %Win32" $=
 				(
-					/ "function with path parameters" ^ '::(stat, lstat)'
+					/ "function with pathname parameters" ^ '::(stat, lstat)'
 						~ "%FileDescriptor"
 						// This allows file to be not opened. '::lstat' is \
 							used if available. For platform %DS, '::stat' is \
@@ -10189,9 +10211,10 @@ b611
 				@ "%(write_r, read_r, seek_r)",
 				// To be same as %close_r. Note it should be safe for external
 					interface.
-			/ "set %errno to %ENOENT for empty path parameter before checking \
-				device" ~ "%ENODEV" @ "%(open_r, stat_r, unlink_r, chdir_r, \
-				rename_r, mkdir_r, statvfs_r)" $dep_to "empty path errno",
+			/ "set %errno to %ENOENT for empty pathname parameter before \
+				checking device" ~ "%ENODEV" @ "%(open_r, stat_r, unlink_r, \
+				chdir_r, rename_r, mkdir_r, statvfs_r)" $dep_to
+				"empty path errno",
 			/ @ "routine %devoptab_t::read_r" $dep_to "read error handling" $=
 			(
 				/ "checked zero bytes to read after other file errors",
@@ -10246,7 +10269,7 @@ b611
 			// %EINVAL non-POSIX extension for invalid paths are kept, since \
 				POSIX paths do not care about colons.
 			* "%::(open, stat, unlink, chdir, rename, mkdir, statvfs) and \
-				variants for empty string path parameter"
+				variants for empty string pathname parameter"
 				$= (/ $comp "set %errno to %ENOENT" ~ "%ENODEV" $dep_from
 					"empty path errno"),
 			* "wrong result and wrong check for zero byte to read"
@@ -10277,7 +10300,7 @@ b611
 			calling %::(stat, fstat)" $dep_to
 			"removal of stat name entry traverse"
 	),
-	+ $dev $repo "tag 'V0.6' to revision 472",
+	+ $re_ex(b501) $dev $repo "tag 'V0.6' to revision 472",
 	// See $2015-06 @ %Documentation::Workflow::Annual2015.
 	/ %YBase.YStandardEx $=
 	(

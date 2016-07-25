@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r288
+\version r306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2016-06-26 01:15 +0800
+	2016-07-25 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,13 +34,33 @@
 #include <cstdlib> // for std::system;
 #include YFM_YCLib_Container // for array;
 #include YFM_YCLib_Video
-#include <wincon.h>
+#include <Wincon.h>
 
 namespace platform_ex
 {
 
 inline namespace Windows
 {
+
+/*!
+\brief 安装控制台处理器。
+\throw Win32Exception 设置失败。
+\note 默认行为使用 <tt>::ExitProcess</tt> ，可能造成 C/C++ 运行时无法正常清理。
+\warning 默认不应在 std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
+\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx
+\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx
+\see $2015-01 @ %Documentation::Workflow::Annual2015.
+\since build 565
+
+若第一参数为空，则使用具有以下行为的处理器：
+对 \c CTRL_C_EVENT \c CTRL_CLOSE_EVENT 、 \c CTRL_BREAK_EVENT 、
+\c CTRL_LOGOFF_EVENT 、和 \c CTRL_SHUTDOWN_EVENT ，调用
+\c std::_Exit(STATUS_CONTROL_C_EXIT) 。
+第二参数指定添加或移除。
+*/
+YF_API void
+FixConsoleHandler(int(WINAPI*)(unsigned long) = {}, bool = true);
+
 
 /*!
 \build Windows 控制台对象。

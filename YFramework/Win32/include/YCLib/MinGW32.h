@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1770
+\version r1800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-07-10 07:47 +0800
+	2016-07-25 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,13 @@
 #define YCL_MinGW32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for unique_ptr_from, byte;
+#include YFM_YCLib_Host // for string, wstring, unique_ptr_from,
+//	ystdex::ends_with, ystdex::aligned_storage_t, ystdex::pun_ref, pair;
 #include YFM_YCLib_NativeAPI // for MAX_PATH, MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
-#include YFM_YCLib_Debug // for string, platform::Deref, wstring,
-//	ystdex::ends_with, ystdex::pun_storage_t, ystdex::pun_ref, pair;
+#include YFM_YCLib_Debug // for platform::Deref;
 #include <ystdex/enum.hpp> // for ystdex::enum_union,
 //	ystdex::wrapped_enum_traits_t;
 #include YFM_YCLib_FileIO // for platform::NodeCategory;
@@ -633,25 +633,6 @@ inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 
 
 /*!
-\brief 安装控制台处理器。
-\throw Win32Exception 设置失败。
-\note 默认行为使用 <tt>::ExitProcess</tt> ，可能造成 C/C++ 运行时无法正常清理。
-\warning 默认不应在 std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
-\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx
-\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx
-\see $2015-01 @ %Documentation::Workflow::Annual2015.
-\since build 565
-
-若第一参数为空，则使用具有以下行为的处理器：
-对 \c CTRL_C_EVENT \c CTRL_CLOSE_EVENT 、 \c CTRL_BREAK_EVENT 、
-\c CTRL_LOGOFF_EVENT 、和 \c CTRL_SHUTDOWN_EVENT ，调用
-\c std::_Exit(STATUS_CONTROL_C_EXIT) 。
-第二参数指定添加或移除。
-*/
-YF_API void
-FixConsoleHandler(int(WINAPI*)(unsigned long) = {}, bool = true);
-
-/*!
 \brief 判断是否在 Wine 环境下运行。
 \note 检查 \c HKEY_CURRENT_USER 和 \c HKEY_LOCAL_MACHINE
 	下的 <tt>Software\Wine</tt> 键实现。
@@ -739,11 +720,6 @@ private:
 	\since build 702
 	*/
 	unique_ptr_from<Deleter> p_node{};
-	/*!
-	\brief 当前查找的项目名称。
-	\since build 593
-	*/
-	wstring d_name{};
 
 public:
 	/*!
@@ -821,16 +797,17 @@ public:
 /*!
 \brief 重解析点数据。
 \note 避免直接使用指针转换成显式不同的类型时引起未定义行为。
+\warning 非虚析构。
 \since build 705
 */
-class YF_API ReparsePointData final
+class YF_API ReparsePointData
 {
 public:
 	struct Data;
 
 private:
-	//! \note 显式未初始化。
-	ystdex::pun_storage_t<byte[MAXIMUM_REPARSE_DATA_BUFFER_SIZE],
+	//! \since build 712
+	ystdex::aligned_storage_t<MAXIMUM_REPARSE_DATA_BUFFER_SIZE,
 		yalignof(void*)> target_buffer;
 	//! \invariant <tt>&pun.get() == &target_buffer</tt>
 	ystdex::pun_ref<Data> pun;

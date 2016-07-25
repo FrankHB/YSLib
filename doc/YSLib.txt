@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3107
+\version r3117
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-02-26 14:27 +0800
+	2016-07-22 09:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,6 +405,11 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 位于 "/UI" 。
 包含基本的部件/控件抽象、图形界面中较常用绘图例程以及样式管理。
 更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自于 Core::YGDIBase 、 Service::YGDI 和 Service::YResource 。
+设计时可预期一些 GUI 特性在不同的平台可表现不同的行为，但其中一部分可有公共行为。
+这里对此类特性提供统一的抽象和实现，由非平台中立的调用方决定是否使用。
+这可能会引起二进制文件体积增加，但能直接保持 YSLib 平台中立性。这些特性包括：
+CursorWheel 事件(@5.2.1.2.3) ；
+GUIState 宿主交互特性(@5.1.1.1) 。
 
 @5.1 用于 GUI 的对象特性：
 GUI 基本对象主要包括部件和控件类：
@@ -420,6 +425,11 @@ GUI 基本对象主要包括部件和控件类：
 默认实例具有静态存储期。
 消息循环(@3.10.4) 对特定的用户输入消息进行（可能平台相关的）初步处理，转发至 GUIState 和 GUI 状态交互并以 GUI 事件(@5.2.1) 的形式响应。
 在 GUIState 实现中独立保存额外的部件独立焦点指针，捕获自由状态的控件指针并判断是否能够据此调用特定的 GUI 事件。
+
+@5.1.1.1 GUI 宿主交互特性：
+GUIState 中提供用于被宿主调用的 API 。这些 API 在一些平台上不被直接使用，但可被用户调用。
+GUI 保存了主要用于和宿主交互的一些状态，包括：
+GUIState::ExternalTextInputFocusPtr 。
 
 @5.1.2 视图组织：
 默认为视图树，其中的节点实现了 IWidget 接口(@5.1.4.1) 。
@@ -508,7 +518,7 @@ AController 使用事件机制(@5.2) 提供控制（在运行期加载供回调�
 
 @5.2 GUI 事件：
 YWidgetEvent 单元定义了基本的 GUI 事件参数和事件类型，包括用户界面事件参数基类 UIEventArgs ，可从这个类派生自定义参数类。
-除非另行约定， UIEventArgs 及其派生类的右值引用作为参数满足 [Documentation::LanguageConvention @@5.12.2.3.1] 的例外规则，允许使用右值引用传递不进行转移并保证之后的确定状态。
+除非另行约定， UIEventArgs 及其派生类的右值引用作为参数满足可共享右值引用例外([Documentation::LanguageConvention @@5.12.2.3.1]) ，通过限定转移同复制效果等价确保被转移后具有确定的状态。
 除此之外， YWidgetEvent 还定义了 Messaging::MessageSignal(@3.10.5) 的派生异常类 UI::UIEventSignal ，用于当状态失效（如 @5.5.2.1 图形缓冲区失效）且不适合恢复时终止当前事件处理，跳转至消息循环(@3.10.4) 。
 
 @5.2.1 默认 GUI 事件：

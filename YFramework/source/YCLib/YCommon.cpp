@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2788
+\version r2816
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2016-06-24 21:40 +0800
+	2016-07-25 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,9 @@
 #include YFM_YCLib_Debug
 #include <cstdlib> // for std::abort, std::system;
 #include YFM_YCLib_NativeAPI // for ::swiWaitForVBlank, _SC_SYMLOOP_MAX,
-//	::fifoSendValue32;
+//	::fifoSendValue32, ::SYSTEM_INFO, ::GetSystemInfo;
 #include <limits> // for std::numeric_limits;
-#include <limits.h> // for _POSIX_SYMLOOP_MAX;
+#include <limits.h> // for _SC_PAGESIZE, _POSIX_SYMLOOP_MAX;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32
 #	include <stdlib.h> // for ::_wsystem;
@@ -76,6 +76,26 @@ FetchLimit(SystemOption opt) ynothrow
 	//	use the value specified in POSIX.1-2013 instead. See http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html.
 	switch(opt)
 	{
+	case SystemOption::PageSize:
+		// NOTE: Value of 0 indicates the target system does not support paging.
+		//	Though POSIX requires 1 as minimum acceptable value, it is intended
+		//	here. For platforms without an appropriate page size, it should be
+		//	specified here explicitly, rather than relying on the system library
+		//	with POSIX compliance. For example, RTEMS: https://devel.rtems.org/ticket/1216.
+#if YCL_DS
+		return 0;
+#elif YCL_Win32
+		::SYSTEM_INFO info;
+		::GetSystemInfo(&info);
+
+		return size_t(info.dwPageSize);
+#elif defined(_SC_PAGESIZE)
+		return conf_conv(::sysconf(_SC_PAGESIZE));
+#else
+		// XXX: %::getpagesize is not used. Fallback to POSIX allowed minimum
+		//	value.
+		return 1;
+#endif
 	case SystemOption::MaxSymlinkLoop:
 #if YCL_DS
 		return 0;
@@ -84,6 +104,13 @@ FetchLimit(SystemOption opt) ynothrow
 #elif defined(_POSIX_SYMLOOP_MAX)
 		return _POSIX_SYMLOOP_MAX;
 #else
+		// NOTE: Windows has nothing about this concept. Win32 error
+		//	%ERROR_CANT_RESOLVE_FILENAME maps to Windows NT error
+		//	%STATUS_REPARSE_POINT_NOT_RESOLVED, which seems to be not
+		//	necessarily related to a fixed loop limit. To keep POSIX compliant
+		//	and better performance of loop detection, minimum allowed value is
+		//	used. See also https://cygwin.com/ml/cygwin/2009-03/msg00335.html.
+		// TODO: Make it configurable for Windows?
 		return 8;
 #endif
 	default:
