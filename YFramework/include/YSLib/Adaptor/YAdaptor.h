@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1951
+\version r1954
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-07-01 03:42 +0800
+	2016-07-28 09:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,8 +305,8 @@ using platform::wifstream;
 using platform::wofstream;
 using platform::wfstream;
 //@}
-//! \since build 707
-using platform::TryGetCurrentWorkingDirectory;
+//! \since build 713
+using platform::FetchCurrentWorkingDirectory;
 //@}
 
 //系统处理函数。
@@ -421,7 +421,6 @@ using platform::IterateLink;
 //@{
 using platform::DirectorySession;
 using platform::HDirectory;
-using platform::FileIterator;
 //@}
 //! \since build 706
 using platform::FetchSeparator;

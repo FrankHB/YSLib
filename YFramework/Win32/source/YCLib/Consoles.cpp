@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r326
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2016-07-25 10:17 +0800
+	2016-07-25 11:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #if YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for UTF8ToWCS;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositive;
+#	include YFM_Win32_YCLib_NLS // for platform_ex::MBCSToWCS;
 
 using namespace YSLib;
 #endif

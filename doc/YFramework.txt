@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1346
+\version r1347
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-07-19 15:20 +0800
+	2016-07-27 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,7 +343,7 @@ YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3
 另一部分总是依赖 YSLib 库，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 基础附加库被 YSLib 库的 Adaptor 直接依赖，其它附加库不应被这些组件依赖。
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
-YCLib 除平台扩展外不依赖 YSLib ，被作为 YSLib 平台中立([Documentation::CommonRules @@2.2.2]) 接口和实现的基础适配层； Helper 依赖 YSLib 。
+YCLib 除平台扩展的接口和实现以及限定平台集合支持模块(@2.1.4) 的实现(@2.2.5) 外，不依赖 YSLib ，被作为 YSLib 平台中立([Documentation::CommonRules @@2.2.2]) 接口和实现的基础适配层； Helper 依赖 YSLib 。
 其它附加库没有平台扩展且只依赖 YSLib 库的 Core 和 Service ，但当前不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立至 YFramework 外）。
 注意平台中立文件不一定只包括接口，可能通过条件包含等方式包含了非平台中立的非公开接口。
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1930
+\version r2044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-07-25 10:17 +0800
+	2016-07-25 23:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,9 @@
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
-//	YSLib::CheckPositive, YSLib::make_unique_default_init,
-//	platform::EndsWithNonSeperator, YSLib::TryInvoke;
+//	YSLib::make_unique_default_init, YSLib::TryInvoke,
+//	platform::EndsWithNonSeperator;
+#	include YFM_Win32_YCLib_NLS // for WCSToUTF8;
 #	include <ystdex/container.hpp> // for ystdex::retry_for_vector;
 #	include <ystdex/scope_guard.hpp> // for ystdex::unique_guard,
 //	ystdex::dismiss, std::bind, std::placeholders::_1;
@@ -175,68 +176,6 @@ public:
 };
 
 
-//! \since build 643
-//@{
-YB_NONNULL(2) string
-MBCSToMBCS(int l, const char* str, unsigned cp_src, unsigned cp_dst)
-{
-	if(cp_src != cp_dst)
-	{
-		const int
-			w_len(::MultiByteToWideChar(cp_src, 0, Nonnull(str), l, {}, 0));
-
-		if(w_len != 0)
-		{
-			wstring wstr(CheckPositive<size_t>(w_len), wchar_t());
-			const auto w_str(&wstr[0]);
-
-			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
-			if(l == -1 && !wstr.empty())
-				wstr.pop_back();
-			return WCSToMBCS({w_str, wstr.length()}, cp_dst);
-		}
-		return {};
-	}
-	return str;
-}
-
-YB_NONNULL(2) wstring
-MBCSToWCS(int l, const char* str, unsigned cp)
-{
-	const int
-		w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), l, {}, 0));
-
-	if(w_len != 0)
-	{
-		wstring res(CheckPositive<size_t>(w_len), wchar_t());
-
-		::MultiByteToWideChar(cp, 0, str, l, &res[0], w_len);
-		if(l == -1 && !res.empty())
-			res.pop_back();
-		return res;
-	}
-	return {};
-}
-
-YB_NONNULL(2) string
-WCSToMBCS(int l, const wchar_t* str, unsigned cp)
-{
-	const int r_l(::WideCharToMultiByte(cp, 0, Nonnull(str), l, {}, 0, {}, {}));
-
-	if(r_l != 0)
-	{
-		string res(CheckPositive<size_t>(r_l), char());
-
-		::WideCharToMultiByte(cp, 0, str, l, &res[0], r_l, {}, {});
-		if(l == -1 && !res.empty())
-			res.pop_back();
-		return res;
-	}
-	return {};
-}
-//@}
-
-
 //! \since build 651
 //@{
 template<typename _func>
@@ -336,7 +275,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 
 			const auto p(unique_raw(buf, LocalDelete()));
 
-			return WCSToMBCS(buf, unsigned(CP_UTF8));
+			return WCSToUTF8(buf);
 		}
 		CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."), throw)
 	});
@@ -496,43 +435,6 @@ CheckWine()
 	}
 	CatchIgnore(Win32Exception&)
 	return {};
-}
-
-
-string
-MBCSToMBCS(const char* str, unsigned cp_src, unsigned cp_dst)
-{
-	return MBCSToMBCS(-1, str, cp_src, cp_dst);
-}
-string
-MBCSToMBCS(string_view sv, unsigned cp_src, unsigned cp_dst)
-{
-	return sv.length() != 0 ? MBCSToMBCS(CheckNonnegative<int>(sv.length()),
-		sv.data(), cp_src, cp_dst) : string();
-}
-
-wstring
-MBCSToWCS(const char* str, unsigned cp)
-{
-	return MBCSToWCS(-1, str, cp);
-}
-wstring
-MBCSToWCS(string_view sv, unsigned cp)
-{
-	return sv.length() != 0 ? MBCSToWCS(
-		CheckNonnegative<int>(sv.length()), sv.data(), cp) : wstring();
-}
-
-string
-WCSToMBCS(const wchar_t* str, unsigned cp)
-{
-	return WCSToMBCS(-1, str, cp);
-}
-string
-WCSToMBCS(wstring_view sv, unsigned cp)
-{
-	return sv.length() != 0 ? WCSToMBCS(
-		CheckNonnegative<int>(sv.length()), sv.data(), cp) : string();
 }
 
 
@@ -719,6 +621,18 @@ ResolveReparsePoint(const wchar_t* path, ReparsePointData::Data& rdb)
 }
 
 
+wstring
+ExpandEnvironmentStrings(const wchar_t* p_src)
+{
+	const auto w_len(YCL_CallWin32F(ExpandEnvironmentStringsW, Nonnull(p_src),
+		{}, 0));
+	wstring wstr(w_len, wchar_t());
+
+	YCL_CallWin32F(ExpandEnvironmentStringsW, p_src, &wstr[0], w_len);
+	return wstr;
+}
+
+
 size_t
 QueryFileLinks(UniqueHandle::pointer h)
 {
@@ -817,16 +731,32 @@ ConvertTime(std::chrono::nanoseconds file_time)
 	ystdex::throw_error(std::errc::not_supported);
 }
 
-wstring
-ExpandEnvironmentStrings(const wchar_t* p_src)
-{
-	const auto w_len(YCL_CallWin32F(ExpandEnvironmentStringsW, Nonnull(p_src),
-		{}, 0));
-	wstring wstr(w_len, wchar_t());
 
-	YCL_CallWin32F(ExpandEnvironmentStringsW, p_src, &wstr[0], w_len);
-	return wstr;
+Mutex::Mutex(const wchar_t* name)
+	// TODO: Save last error and detect %ERROR_ALREADY_EXISTS?
+	// TODO: Use desired attributes with %::CreateMutexW?
+	: h_mutex(YCL_CallWin32F(CreateMutexW, {}, {}, name))
+{}
+
+void
+Mutex::lock()
+{
+	if(::WaitForSingleObject(native_handle(), INFINITE) == WAIT_FAILED)
+		YCL_Raise_Win32Exception("WaitForSingleObject");
 }
+
+bool
+Mutex::try_lock()
+{
+	return ::WaitForSingleObject(native_handle(), 0) == WAIT_OBJECT_0;
+}
+
+void
+Mutex::unlock()
+{
+	YCL_CallWin32F_Trace(ReleaseMutex, native_handle());
+}
+
 
 wstring
 FetchSystemPath(size_t s)

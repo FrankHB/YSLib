@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3253
+\version r3260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-07-14 23:00 +0800
+	2016-07-28 08:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_File // for TryRemove, TryUnlink;
+#include YFM_YSLib_Service_File // for Remove, Unlink;
 #include YFM_YSLib_Core_YString
 #include <ystdex/path.hpp> // for ystdex::path;
 
@@ -443,7 +443,7 @@ inline PDefH(bool, IsAbsolute, const Path& pth)
 \note 第二参数指定取当前工作目录指定的起始缓冲区大小。
 \sa IsRelative
 \sa Path::Normalize
-\sa TryGetCurrentWorkingDirectory
+\sa FetchCurrentWorkingDirectory
 \since build 542
 */
 YF_API Path
@@ -569,7 +569,7 @@ ResolvePath(const _tString& sv,
 	size_t init_len = MaxPathLength)
 {
 	return IO::ResolvePathWithBase(sv, IsAbsolute(sv.data()) ? _tPath()
-		: IO::ParsePath<_tPath>(TryGetCurrentWorkingDirectory<typename
+		: IO::ParsePath<_tPath>(FetchCurrentWorkingDirectory<typename
 		_tString::value_type>(init_len)), n);
 }
 //@}
@@ -584,13 +584,13 @@ template<typename _func>
 void
 Traverse(HDirectory& dir, _func f)
 {
-	std::for_each(FileIterator(&dir), FileIterator(), [&, f](NativePathView npv)
-		ynoexcept_spec(f(dir.GetNodeCategory(), npv)){
+	for(NativePathView npv : dir)
+	{
 		YAssert(!npv.empty(), "Empty name found.");
 		// TODO: Allow user code to specify filtering on self node?
 		if(!PathTraits::is_self(npv))
 			f(dir.GetNodeCategory(), npv);
-	});
+	}
 }
 //! \note 允许目录路径以分隔符结束。
 //@{
@@ -788,7 +788,7 @@ inline PDefH(void, ClearTree, const string& pth)
 //! \brief 删除参数指定路径的目录树。
 //@{
 inline PDefH(void, DeleteTree, const Path& pth)
-	ImplExpr(ClearTree(pth), TryRemove(string(pth).c_str()))
+	ImplExpr(ClearTree(pth), Remove(string(pth).c_str()))
 //! \since build 593
 inline PDefH(void, DeleteTree, const string& pth)
 	ImplExpr(DeleteTree(Path(pth)))

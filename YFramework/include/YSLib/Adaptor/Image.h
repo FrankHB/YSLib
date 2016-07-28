@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1419
+\version r1438
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2016-07-14 18:19 +0800
+	2016-07-27 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,8 +223,8 @@ public:
 	using Buffer = vector<octet>;
 
 private:
-	//! \since build 671
-	class YF_API ImageMemoryDelete
+	//! \since build 713
+	class YF_API Deleter
 	{
 	public:
 		using pointer = NativeHandle;
@@ -235,8 +235,8 @@ private:
 
 	Buffer buffer;
 	ImageFormat format;
-	//! \since build 671
-	unique_ptr_from<ImageMemoryDelete> p_memory;
+	//! \since build 713
+	unique_ptr_from<Deleter> p_memory;
 
 public:
 	/*!
@@ -779,6 +779,19 @@ public:
 	GetLength() const ynothrow;
 	Type
 	GetType() const ynothrow;
+	/*!
+	\brief 取指定类型的标签值。
+	\warning 不检查类型。
+	\since build 713
+	*/
+	template<typename _type>
+	const _type&
+	GetValue() const ythrow(GeneralEvent)
+	{
+		if(const auto p = GetValuePtr())
+			return Deref(static_cast<const _type*>(p));
+		throw GeneralEvent("Null tag value found.");
+	}
 	//! \since build 557
 	const void*
 	GetValuePtr() const ynothrow;
@@ -806,20 +819,6 @@ public:
 	*/
 	DataPtr
 	Release() ynothrow;
-
-	/*!
-	\brief 取指定类型的标签值。
-	\warning 不检查类型。
-	\since build 557
-	*/
-	template<typename _type>
-	const _type&
-	TryGetValue() const ythrow(GeneralEvent)
-	{
-		if(const auto p = GetValuePtr())
-			return Deref(static_cast<const _type*>(p));
-		throw GeneralEvent("Null tag value found.");
-	}
 };
 
 /*!

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r226
+\version r322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2016-05-14 17:47 +0800
+	2016-07-27 08:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,12 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_Win32_YCLib_NLS // for map;
+#	include YFM_Win32_YCLib_NLS // for map, ystdex::trivially_copy_n,
+//	ystdex::try_emplace;
 #	include YFM_Win32_YCLib_Registry // for FetchRegistryString;
+#	include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositive;
 #	include <ystdex/base.h> // for ystdex::noncopyable, ystdex::nonmovable;
 #	include YFM_YCLib_MemoryMapping // for platform::MappedFile;
-#	include <ystdex/algorithm.hpp> // for ystdex::trivially_copy_n;
-#	include <ystdex/container.hpp> // for ystdex::try_emplace;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -60,6 +60,68 @@ FetchNLSItemFromRegistry(const wchar_t* name)
 //! \since build 552
 namespace
 {
+
+//! \since build 713
+//@{
+YB_NONNULL(2) string
+MBCSToMBCSImpl(int l, const char* str, unsigned cp_src, unsigned cp_dst)
+{
+	if(cp_src != cp_dst)
+	{
+		const int
+			w_len(::MultiByteToWideChar(cp_src, 0, Nonnull(str), l, {}, 0));
+
+		if(w_len != 0)
+		{
+			wstring wstr(CheckPositive<size_t>(w_len), wchar_t());
+			const auto w_str(&wstr[0]);
+
+			::MultiByteToWideChar(cp_src, 0, str, l, w_str, w_len);
+			if(l == -1 && !wstr.empty())
+				wstr.pop_back();
+			return WCSToMBCS({w_str, wstr.length()}, cp_dst);
+		}
+		return {};
+	}
+	return str;
+}
+
+YB_NONNULL(2) wstring
+MBCSToWCSImpl(int l, const char* str, unsigned cp)
+{
+	const int
+		w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), l, {}, 0));
+
+	if(w_len != 0)
+	{
+		wstring res(CheckPositive<size_t>(w_len), wchar_t());
+
+		::MultiByteToWideChar(cp, 0, str, l, &res[0], w_len);
+		if(l == -1 && !res.empty())
+			res.pop_back();
+		return res;
+	}
+	return {};
+}
+
+YB_NONNULL(2) string
+WCSToMBCSImpl(int l, const wchar_t* str, unsigned cp)
+{
+	const int r_l(::WideCharToMultiByte(cp, 0, Nonnull(str), l, {}, 0, {}, {}));
+
+	if(r_l != 0)
+	{
+		string res(CheckPositive<size_t>(r_l), char());
+
+		::WideCharToMultiByte(cp, 0, str, l, &res[0], r_l, {}, {});
+		if(l == -1 && !res.empty())
+			res.pop_back();
+		return res;
+	}
+	return {};
+}
+//@}
+
 
 yconstexpr const size_t MAXIMUM_LEADBYTES(12);
 
@@ -92,10 +154,11 @@ struct CPTABLEINFO
 };
 
 
-class NLSTableEntry : private noncopyable, private nonmovable
+class NLSTableEntry final : private noncopyable, private nonmovable
 {
 private:
-	unique_ptr<platform::MappedFile> p_mapped;
+	//! \since build 713
+	platform::MappedFile mapped;
 	CPTABLEINFO table;
 
 public:
@@ -104,10 +167,9 @@ public:
 };
 
 NLSTableEntry::NLSTableEntry(int cp)
-	: p_mapped(new platform::MappedFile(WCSToMBCS(FetchSystemPath()
-	+ FetchCPFileNameFromRegistry(cp))))
+	: mapped(WCSToMBCS(FetchSystemPath() + FetchCPFileNameFromRegistry(cp)))
 {
-	const auto base(reinterpret_cast<unsigned short*>(p_mapped->GetPtr()));
+	const auto base(reinterpret_cast<unsigned short*>(mapped.GetPtr()));
 	auto& header(*reinterpret_cast<NLS_FILE_HEADER*>(base));
 
 	yunseq(
@@ -138,6 +200,43 @@ mutex NLSCacheMutex;
 map<int, NLSTableEntry> NLSCache;
 
 } // unnamed namespace;
+
+string
+MBCSToMBCS(const char* str, unsigned cp_src, unsigned cp_dst)
+{
+	return MBCSToMBCSImpl(-1, str, cp_src, cp_dst);
+}
+string
+MBCSToMBCS(string_view sv, unsigned cp_src, unsigned cp_dst)
+{
+	return sv.length() != 0 ? MBCSToMBCSImpl(CheckNonnegative<int>(sv.length()),
+		sv.data(), cp_src, cp_dst) : string();
+}
+
+wstring
+MBCSToWCS(const char* str, unsigned cp)
+{
+	return MBCSToWCSImpl(-1, str, cp);
+}
+wstring
+MBCSToWCS(string_view sv, unsigned cp)
+{
+	return sv.length() != 0 ? MBCSToWCSImpl(
+		CheckNonnegative<int>(sv.length()), sv.data(), cp) : wstring();
+}
+
+string
+WCSToMBCS(const wchar_t* str, unsigned cp)
+{
+	return WCSToMBCSImpl(-1, str, cp);
+}
+string
+WCSToMBCS(wstring_view sv, unsigned cp)
+{
+	return sv.length() != 0 ? WCSToMBCSImpl(
+		CheckNonnegative<int>(sv.length()), sv.data(), cp) : string();
+}
+
 
 const unsigned short*
 FetchDBCSOffset(int cp) ynothrow

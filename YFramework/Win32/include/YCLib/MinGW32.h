@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1800
+\version r1873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-07-25 10:15 +0800
+	2016-07-25 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -642,51 +642,6 @@ YF_API bool
 CheckWine();
 
 
-/*!	\defgroup native_encoding_conv Native Encoding Conversion
-\brief 本机文本编码转换。
-\exception YSLib::LoggedEvent 长度为负数或溢出 int 。
-\since build 644
-
-转换第一个 \c unsigned 参数指定编码的字符串为第二个 \c unsigned 参数指定的编码。
-*/
-//@{
-//! \pre 间接断言：字符串指针参数非空。
-YF_API YB_NONNULL(1) string
-MBCSToMBCS(const char*, unsigned = CP_UTF8, unsigned = CP_ACP);
-//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-YF_API string
-MBCSToMBCS(string_view, unsigned = CP_UTF8, unsigned = CP_ACP);
-
-//! \pre 间接断言：字符串指针参数非空。
-YF_API YB_NONNULL(1) wstring
-MBCSToWCS(const char*, unsigned = CP_ACP);
-//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-YF_API wstring
-MBCSToWCS(string_view, unsigned = CP_ACP);
-
-//! \pre 间接断言：字符串指针参数非空。
-YF_API YB_NONNULL(1) string
-WCSToMBCS(const wchar_t*, unsigned = CP_ACP);
-//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-YF_API string
-WCSToMBCS(wstring_view, unsigned = CP_ACP);
-
-//! \pre 间接断言：字符串指针参数非空。
-inline YB_NONNULL(1) PDefH(wstring, UTF8ToWCS, const char* str)
-	ImplRet(MBCSToWCS(str, CP_UTF8))
-//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-inline PDefH(wstring, UTF8ToWCS, string_view sv)
-	ImplRet(MBCSToWCS(sv, CP_UTF8))
-
-//! \pre 间接断言：字符串指针参数非空。
-inline YB_NONNULL(1) PDefH(string, WCSToUTF8, const wchar_t* str)
-	ImplRet(WCSToMBCS(str, CP_UTF8))
-//! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
-inline PDefH(string, WCSToUTF8, wstring_view sv)
-	ImplRet(WCSToMBCS(sv, CP_UTF8))
-//@}
-
-
 /*!
 \brief 文件系统目录查找状态。
 \warning 非虚析构。
@@ -843,6 +798,16 @@ ResolveReparsePoint(const wchar_t*, ReparsePointData::Data&);
 
 
 /*!
+\brief 展开字符串中的环境变量。
+\pre 间接断言：参数非空。
+\throw Win32Exception 调用失败。
+\since build 658
+*/
+YF_API YB_NONNULL(1) wstring
+ExpandEnvironmentStrings(const wchar_t*);
+
+
+/*!
 \see https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363788(v=vs.85).aspx 。
 \since build 638
 */
@@ -956,17 +921,43 @@ YF_API ::FILETIME
 ConvertTime(std::chrono::nanoseconds);
 //@}
 
-//! \throw Win32Exception 调用失败。
-//@{
-/*!
-\brief 展开字符串中的环境变量。
-\pre 间接断言：参数非空。
-\since build 658
-*/
-YF_API YB_NONNULL(1) wstring
-ExpandEnvironmentStrings(const wchar_t*);
 
-//! \note 保证以一个分隔符结束。
+/*!
+\brief 互斥量：可用于进程间同步。
+\note 满足 Lockable 要求。
+\since build 713
+*/
+class YF_API Mutex : private ystdex::noncopyable
+{
+public:
+	using native_handle_type = ::HANDLE;
+
+private:
+	UniqueHandle h_mutex;
+
+public:
+	//! \brief 使用内核对象名。
+	Mutex(const wchar_t*);
+
+	void
+	lock();
+
+	bool
+	try_lock();
+
+	void
+	unlock();
+
+	//! \see WG21 N4606 30.2.3[thread.req.native] 。
+	PDefH(native_handle_type, native_handle, )
+		ImplRet(h_mutex.get())
+};
+
+
+/*!
+\throw Win32Exception 调用失败。
+\note 保证以一个分隔符结束。
+*/
 //@{
 /*!
 \brief 取系统目录路径。
@@ -981,7 +972,6 @@ FetchSystemPath(size_t = MAX_PATH);
 */
 YF_API wstring
 FetchWindowsPath(size_t = MAX_PATH);
-//@}
 //@}
 
 } // inline namespace Windows;

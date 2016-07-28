@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2531
+\version r2544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-07-21 09:42 +0800
+	2016-07-26 22:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,8 +54,10 @@
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform_ex::UTF8ToWCS, platform_ex::ConvertTime,
-//	platform_ex::WCSToUTF8, platform_ex::SetFileTime, YCL_Raise_Win32Exception;
+//	platform_ex::ConvertTime, platform_ex::SetFileTime,
+//	YCL_Raise_Win32Exception;
+#	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS,
+//	platform_ex::WCSToUTF8;
 
 //! \since build 639
 using platform_ex::FileAttributes;
@@ -235,9 +237,9 @@ inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
 	ImplRet({std::time_t(ft.count() / 1000000000LL),
 		long(ft.count() % 1000000000LL)})
 
-//! \since build 651
+//! \since build 713
 YB_NONNULL(2) void
-TrySetFileTime(int fd, const ::timespec* times)
+SetFileTime(int fd, const ::timespec* times)
 {
 #if YCL_DS
 	// XXX: Hack.
@@ -534,7 +536,7 @@ FileDescriptor::SetAccessTime(FileTime ft) const
 #else
 	const ::timespec times[]{ToTimeSpec(ft), {yimpl(0), UTIME_OMIT}};
 
-	TrySetFileTime(desc, times);
+	SetFileTime(desc, times);
 #endif
 }
 bool
@@ -585,7 +587,7 @@ FileDescriptor::SetModificationTime(FileTime ft) const
 #else
 	const ::timespec times[]{{yimpl(0), UTIME_OMIT}, ToTimeSpec(ft)};
 
-	TrySetFileTime(desc, times);
+	SetFileTime(desc, times);
 #endif
 }
 void
@@ -598,7 +600,7 @@ FileDescriptor::SetModificationAndAccessTime(array<FileTime, 2> fts) const
 #else
 	const ::timespec times[]{ToTimeSpec(fts[0]), ToTimeSpec(fts[1])};
 
-	TrySetFileTime(desc, times);
+	SetFileTime(desc, times);
 #endif
 }
 bool
@@ -650,6 +652,7 @@ FileDescriptor::Flush()
 #if YCL_Win32
 		YB_UNLIKELY(::_commit(desc) < 0)
 #else
+		// XXX: http://austingroupbugs.net/view.php?id=672.
 		YB_UNLIKELY(::fsync(desc) < 0)
 #endif
 		)
@@ -1089,13 +1092,13 @@ YCL_Impl_FileSystem_ufunc_2(std::remove, )
 #if YCL_Win32
 template<>
 YF_API string
-TryGetCurrentWorkingDirectory(size_t init)
+FetchCurrentWorkingDirectory(size_t init)
 {
-	return MakePathString(TryGetCurrentWorkingDirectory<char16_t>(init));
+	return MakePathString(FetchCurrentWorkingDirectory<char16_t>(init));
 }
 template<>
 YF_API u16string
-TryGetCurrentWorkingDirectory(size_t)
+FetchCurrentWorkingDirectory(size_t)
 {
 	u16string res;
 	unsigned long len, rlen(0);

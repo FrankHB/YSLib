@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2158
+\version r2169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-07-21 08:49 +0800
+	2016-07-26 22:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1136,15 +1136,16 @@ using std::wfstream;
 //@}
 
 
+//! \since build 713
+//@{
 /*!
 \brief 尝试按指定的起始缓冲区大小取当前工作目录的路径。
 \pre 间接断言：参数不等于 0 。
 \note 未指定结果是否以分隔符结束。
-\since build 699
 */
 template<typename _tChar>
 basic_string<_tChar>
-TryGetCurrentWorkingDirectory(size_t init)
+FetchCurrentWorkingDirectory(size_t init)
 {
 	return ystdex::retry_for_vector<basic_string<_tChar>>(init,
 		[](basic_string<_tChar>& res, size_t) -> bool{
@@ -1164,19 +1165,17 @@ TryGetCurrentWorkingDirectory(size_t init)
 	});
 }
 #if YCL_Win32
-/*!
-\note 参数被忽略。
-\since build 707
-*/
+//! \note 参数被忽略。
 //@{
 template<>
 YF_API string
-TryGetCurrentWorkingDirectory(size_t);
+FetchCurrentWorkingDirectory(size_t);
 template<>
 YF_API u16string
-TryGetCurrentWorkingDirectory(size_t);
+FetchCurrentWorkingDirectory(size_t);
 //@}
 #endif
+//@}
 
 
 /*!

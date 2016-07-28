@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3541
+\version r3555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-07-23 14:49 +0800
+	2016-07-28 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -574,6 +574,8 @@ public:
 		char
 #endif
 		;
+	//! \since build 713
+	using iterator = ystdex::indirect_input_iterator<HDirectory*>;
 
 private:
 #if YCL_Win32
@@ -650,6 +652,15 @@ public:
 
 	//! \brief 复位。
 	using DirectorySession::Rewind;
+
+	//! \since build 713
+	//@{
+	PDefH(iterator, begin, )
+		ImplRet(this)
+
+	PDefH(iterator, end, )
+		ImplRet(iterator())
+	//@}
 };
 
 /*!
@@ -659,13 +670,6 @@ public:
 */
 inline PDefH(bool, is_undereferenceable, const HDirectory& i) ynothrow
 	ImplRet(!i)
-
-
-/*!
-\brief 文件迭代器。
-\since build 411
-*/
-using FileIterator = ystdex::indirect_input_iterator<HDirectory*>;
 
 
 /*!

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r3832
+\version r4066
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2016-07-15 00:02 +0800
+	2016-07-26 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,67 +285,70 @@ PosToSec(const AllocationTable& tbl, const _tPos& pos) ynothrow
 {
 	return tbl.ClusterToSector(pos.GetCluster()) + pos.GetSector();
 }
+//@}
 
-PDefH(void, TryFillPartialSectorOff, const AllocationTable& tbl,
+//! \since build 713
+//@{
+PDefH(void, CheckFillPartialSectorOff, const AllocationTable& tbl,
 	const FilePosition& pos, size_t offset, size_t n) ythrow(system_error)
 	ImplExpr(CheckThrowEIO(
 		tbl.Cache.FillPartialSector(PosToSec(tbl, pos), offset, n)))
 
-PDefH(void, TryFillPartialSector, const AllocationTable& tbl,
+PDefH(void, CheckFillPartialSector, const AllocationTable& tbl,
 	const FilePosition& pos, size_t n) ythrow(system_error)
-	ImplExpr(TryFillPartialSectorOff(tbl, pos, pos.GetByte(), n))
+	ImplExpr(CheckFillPartialSectorOff(tbl, pos, pos.GetByte(), n))
 
-PDefH(void, TryFillSectors, const AllocationTable& tbl,
+PDefH(void, CheckFillSectors, const AllocationTable& tbl,
 	const FilePosition& pos) ythrow(system_error)
 	ImplExpr(CheckThrowEIO(tbl.Cache.FillSectors(PosToSec(tbl, pos))))
 
 template<class _tPos>
 void
-TryReadPartialSectorOff(const AllocationTable& tbl, const _tPos& pos,
+CheckReadPartialSectorOff(const AllocationTable& tbl, const _tPos& pos,
 	void* data, size_t offset, size_t n) ythrow(system_error)
 {
 	CheckThrowEIO(
 		tbl.Cache.ReadPartialSector(data, PosToSec(tbl, pos), offset, n));
 }
 
-PDefH(void, TryReadPartialSector, const AllocationTable& tbl,
+PDefH(void, CheckReadPartialSector, const AllocationTable& tbl,
 	const DEntryPosition& pos, void* data) ythrow(system_error)
-	ImplExpr(TryReadPartialSectorOff(tbl, pos, data, pos.GetByte(),
+	ImplExpr(CheckReadPartialSectorOff(tbl, pos, data, pos.GetByte(),
 		EntryDataSize))
-PDefH(void, TryReadPartialSector, const AllocationTable& tbl,
+PDefH(void, CheckReadPartialSector, const AllocationTable& tbl,
 	const FilePosition& pos, void* data, size_t n) ythrow(system_error)
-	ImplExpr(TryReadPartialSectorOff(tbl, pos, data, pos.GetByte(), n))
+	ImplExpr(CheckReadPartialSectorOff(tbl, pos, data, pos.GetByte(), n))
 
-PDefH(void, TryReadSectors, const AllocationTable& tbl, ClusterIndex c,
+PDefH(void, CheckReadSectors, const AllocationTable& tbl, ClusterIndex c,
 	void* buf, size_t n) ythrow(system_error)
 	ImplExpr(CheckThrowEIO(
 		tbl.Cache.ReadSectors(buf, tbl.ClusterToSector(c), n)))
-PDefH(void, TryReadSectors, const AllocationTable& tbl,
+PDefH(void, CheckReadSectors, const AllocationTable& tbl,
 	const FilePosition& pos, void* buf, size_t n) ythrow(system_error)
 	ImplExpr(CheckThrowEIO(
 		tbl.Cache.ReadSectors(buf, PosToSec(tbl, pos), n)))
 
 template<class _tPos>
 void
-TryWritePartialSectorOff(const AllocationTable& tbl, const _tPos& pos,
+CheckWritePartialSectorOff(const AllocationTable& tbl, const _tPos& pos,
 	const void* data, size_t offset, size_t n) ythrow(system_error)
 {
 	CheckThrowEIO(
 		tbl.Cache.WritePartialSector(PosToSec(tbl, pos), offset, data, n));
 }
 
-PDefH(void, TryWritePartialSector, const AllocationTable& tbl,
+PDefH(void, CheckWritePartialSector, const AllocationTable& tbl,
 	const DEntryPosition& pos, const void* data) ythrow(system_error)
-	ImplExpr(TryWritePartialSectorOff(tbl, pos, data, pos.GetByte(),
+	ImplExpr(CheckWritePartialSectorOff(tbl, pos, data, pos.GetByte(),
 		EntryDataSize))
-PDefH(void, TryWritePartialSector, const AllocationTable& tbl, const
+PDefH(void, CheckWritePartialSector, const AllocationTable& tbl, const
 	FilePosition& pos, const void* data, size_t n) ythrow(system_error)
-	ImplExpr(TryWritePartialSectorOff(tbl, pos, data, pos.GetByte(), n))
+	ImplExpr(CheckWritePartialSectorOff(tbl, pos, data, pos.GetByte(), n))
 
-PDefH(void, TryWriteSectors, const AllocationTable& tbl, ClusterIndex c,
+PDefH(void, CheckWriteSectors, const AllocationTable& tbl, ClusterIndex c,
 	const void* buf, size_t n) ythrow(system_error) ImplRet(CheckThrowEIO(
 	tbl.Cache.WriteSectors(tbl.ClusterToSector(c), buf, n)))
-PDefH(void, TryWriteSectors, const AllocationTable& tbl, const FilePosition&
+PDefH(void, CheckWriteSectors, const AllocationTable& tbl, const FilePosition&
 	pos, const void* buf, size_t n) ythrow(system_error)
 	ImplRet(CheckThrowEIO(tbl.Cache.WriteSectors(PosToSec(tbl, pos), buf, n)))
 //@}
@@ -469,42 +472,49 @@ AllocationTable::CountFreeCluster() const ynothrow
 }
 
 ClusterIndex
-AllocationTable::LinkFree(ClusterIndex c) ynothrow
+AllocationTable::LinkFree(ClusterIndex c) ythrow(system_error)
 {
-	if(last_cluster < c)
-		return Clusters::Error;
+	// TODO: Remove redundant check of Clusters::Error.
+	if(c <= last_cluster)
+	{
+		const auto cur_link(QueryNext(c));
 
-	const auto cur_link(QueryNext(c));
-
-	if(IsValid(cur_link))
-		return cur_link;
-
-	auto first_valid(std::max<ClusterIndex>(first_free, Clusters::First));
-	bool loop_around = {};
-
-	while(QueryNext(first_valid) != Clusters::Free)
-		if(last_cluster < ++first_valid)
+		if(IsValid(cur_link))
 		{
-			if(loop_around)
-			{
-				first_free = first_valid;
-				return Clusters::Error;
-			}
+			if(cur_link != Clusters::Error)
+				return cur_link;
 			else
-			{
-				first_valid = Clusters::First;
-				loop_around = true;
-			}
+				throw_error(errc::no_space_on_device);
 		}
-	first_free = first_valid;
-	if(free_cluster != 0)
-		--free_cluster;
-	last_alloc_cluster = first_valid;
-	if(IsValid(c))
-		WriteEntry(c, first_valid);
-	WriteEntry(first_valid, Clusters::EndOfFile);
-	return IsValid(first_valid) ? first_valid
-		: ClusterIndex(Clusters::Error);
+
+		auto first_valid(std::max<ClusterIndex>(first_free, Clusters::First));
+		bool loop_around = {};
+
+		while(QueryNext(first_valid) != Clusters::Free)
+			if(last_cluster < ++first_valid)
+			{
+				if(loop_around)
+				{
+					first_free = first_valid;
+					throw_error(errc::no_space_on_device);
+				}
+				else
+				{
+					first_valid = Clusters::First;
+					loop_around = true;
+				}
+			}
+		first_free = first_valid;
+		if(free_cluster != 0)
+			--free_cluster;
+		last_alloc_cluster = first_valid;
+		if(IsValid(c))
+			WriteEntry(c, first_valid);
+		WriteEntry(first_valid, Clusters::EndOfFile);
+		if(IsValid(first_valid) && first_valid != Clusters::Error)
+			return first_valid;
+	}
+	throw_error(errc::no_space_on_device);
 }
 
 ClusterIndex
@@ -597,27 +607,14 @@ AllocationTable::TrimChain(ClusterIndex start, size_t len) ythrow(system_error)
 }
 
 ClusterIndex
-AllocationTable::TryLinkFree(ClusterIndex c) ythrow(system_error)
+AllocationTable::LinkFreeCleared(ClusterIndex c) ythrow(system_error)
 {
 	const auto t(LinkFree(c));
 
-	if(t != Clusters::Error)
-		return t;
-	throw_error(errc::no_space_on_device);
-}
-
-ClusterIndex
-AllocationTable::TryLinkFreeCleared(ClusterIndex c) ythrow(system_error)
-{
-	const auto t(LinkFree(c));
-
-	if(t != Clusters::Error)
-	{
-		for(size_t i(0); i < sectors_per_cluster; ++i)
-			CheckThrowEIO(Cache.FillSectors(ClusterToSector(t) + i));
-		return t;
-	}
-	throw_error(errc::no_space_on_device);
+	YAssert(t != Clusters::Error, "Invalid cluster found.");
+	for(size_t i(0); i < sectors_per_cluster; ++i)
+		CheckThrowEIO(Cache.FillSectors(ClusterToSector(t) + i));
+	return t;
 }
 
 void
@@ -718,7 +715,7 @@ DEntry::DEntry(Partition& part, const NamePosition& name_pos)
 		}, [&]() -> bool{
 			EntryData edata;
 
-			TryReadPartialSector(part.Table, pos, edata.data());
+			CheckReadPartialSector(part.Table, pos, edata.data());
 			if(pos == name_pos[1])
 				return Data = edata, true;
 			else
@@ -792,7 +789,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 		}
 		if(Data.IsDirectory())
 		{
-			dclus = part.TryGetClusterFromEntry(Data);
+			dclus = part.ReadClusterFromEntry(Data);
 			if(dclus == Clusters::Root)
 				dclus = part.GetRootDirCluster();
 			if(leaf)
@@ -866,13 +863,13 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 					);
 					write_uint_le<16>(
 						long_name_entry.data() + LFN::Reserved2, 0);
-					TryWritePartialSector(part.Table, cur_entry_pos,
+					CheckWritePartialSector(part.Table, cur_entry_pos,
 						long_name_entry.data());
 					--i;
 					return true;
 				}
 				else
-					TryWritePartialSector(part.Table, cur_entry_pos,
+					CheckWritePartialSector(part.Table, cur_entry_pos,
 						Data.data());
 				return {};
 			});
@@ -884,7 +881,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 	// NOTE: On FAT32 an actual cluster should be specified for the root
 	//	entry, not cluster 0 as on FAT16.
 	if(part.GetFileSystemType() == FileSystemType::FAT32 && Data.IsDirectory()
-		&& part.TryGetClusterFromEntry(Data) == Clusters::Root)
+		&& part.ReadClusterFromEntry(Data) == Clusters::Root)
 	{
 found_root:
 		if(add_entry)
@@ -909,7 +906,7 @@ DEntry::FindEntryGap(Partition& part, ClusterIndex dclus, size_t size)
 	if(size != 0)
 		while(true)
 		{
-			TryReadPartialSector(part.Table, gap_end, edata.data());
+			CheckReadPartialSector(part.Table, gap_end, edata.data());
 			if(edata[0] == EntryData::Last || edata[0] == EntryData::Free)
 			{
 				if(dentry_remain == size)
@@ -935,7 +932,7 @@ DEntry::FindEntryGap(Partition& part, ClusterIndex dclus, size_t size)
 			NamePos[1] = gap_end;
 			part.ExtendPosition(gap_end);
 			// NOTE: Fill the entry with blanks.
-			TryWritePartialSector(part.Table, gap_end, edata.data());
+			CheckWritePartialSector(part.Table, gap_end, edata.data());
 			--dentry_remain;
 		}
 	}
@@ -959,7 +956,7 @@ DEntry::QueryNextFrom(Partition& part) ythrow(system_error)
 
 	while(part.IncrementPosition(eend) == ExtensionResult::Success)
 	{
-		TryReadPartialSector(part.Table, eend, edata.data());
+		CheckReadPartialSector(part.Table, eend, edata.data());
 		if(edata.IsLongFileName())
 		{
 			const auto ord(edata[LFN::Ordinal]);
@@ -1086,7 +1083,7 @@ Partition::CheckPositionForNextCluster(FilePosition& pos) ythrow(system_error)
 		auto t(Table.QueryNext(c));
 
 		pos = {Clusters::IsFreeOrEOF(t)
-			? Table.TryLinkFree(pos.GetCluster()) : t, 0, pos.GetByte()};
+			? Table.LinkFree(pos.GetCluster()) : t, 0, pos.GetByte()};
 	}
 }
 
@@ -1138,7 +1135,7 @@ Partition::ExtendPosition(DEntryPosition& entry_pos) ythrow(system_error)
 			throw_error(errc::no_space_on_device);
 		case ExtensionResult::EndOfFile:
 			entry_pos.SetCluster(
-				Table.TryLinkFreeCleared(entry_pos.GetCluster()));
+				Table.LinkFreeCleared(entry_pos.GetCluster()));
 		default:
 			break;
 	}
@@ -1241,7 +1238,7 @@ Partition::MakeDir(string_view path) ythrow(system_error)
 		de.Data.Clear();
 		de.Data.SetDirectoryAttribute();
 		de.Data.WriteDateTime();
-		dclus = Table.TryLinkFreeCleared(Clusters::Free);
+		dclus = Table.LinkFreeCleared(Clusters::Free);
 		de.Data.WriteCluster(dclus);
 		// XXX: Only %ENOSPC may be expected.
 	}, parent_clus);
@@ -1264,6 +1261,21 @@ Partition::MakeDir(string_view path) ythrow(system_error)
 	CheckThrowENOSPC(cache.WritePartialSector(dir_sector, EntryDataSize,
 		edata.data(), EntryDataSize));
 	Flush();
+}
+
+ClusterIndex
+Partition::ReadClusterFromEntry(const EntryData& data) const
+	ythrow(system_error)
+{
+	// NOTE: Only high 16 bits of start cluster are used when they are certainly
+	//	correctly defined.
+	const auto dst(data.data());
+	ClusterIndex c(read_uint_le<16>(dst + EntryData::Cluster));
+
+	c = GetFileSystemType() == FileSystemType::FAT32
+		? c | (read_uint_le<16>(dst + EntryData::ClusterHigh) << 16) : c;
+	CheckThrowEIO(Table.IsFreeOrValid(c));
+	return c;
 }
 
 void
@@ -1353,10 +1365,11 @@ Partition::RemoveEntry(const DEntry::NamePosition& np) ythrow(system_error)
 	ystdex::retry_on_cond([&]() ynothrow{
 		return !(name_pos[0] == name_pos[1]);
 	}, [&]{
-		TryReadPartialSector(Table, name_pos[0], edata.data());
+		CheckReadPartialSector(Table, name_pos[0], edata.data());
 		edata[0] = EntryData::Free;
-		TryWritePartialSector(Table, name_pos[0], edata.data());
-		CheckThrowEIO(IncrementPosition(name_pos[0]) == ExtensionResult::Success);
+		CheckWritePartialSector(Table, name_pos[0], edata.data());
+		CheckThrowEIO(
+			IncrementPosition(name_pos[0]) == ExtensionResult::Success);
 	});
 	Flush();
 }
@@ -1367,7 +1380,7 @@ Partition::StatFromEntry(const EntryData& data, struct ::stat& st) const
 {
 	const auto dst(data.data());
 
-	st.st_ino = ::ino_t(TryGetClusterFromEntry(data));
+	st.st_ino = ::ino_t(ReadClusterFromEntry(data));
 	yunseq(
 	st.st_dev = disc.GetType(),
 	// NOTE: The file serial number is the start cluster.
@@ -1394,27 +1407,13 @@ Partition::StatFromEntry(const EntryData& data, struct ::stat& st) const
 	yunseq(st.st_rdev = st.st_dev, st.st_blocks = (st.st_size + bps - 1) / bps);
 }
 
-ClusterIndex
-Partition::TryGetClusterFromEntry(const EntryData& data) const ythrow(system_error)
-{
-	// NOTE: Only high 16 bits of start cluster are used when they are certainly
-	//	correctly defined.
-	const auto dst(data.data());
-	ClusterIndex c(read_uint_le<16>(dst + EntryData::Cluster));
-
-	c = GetFileSystemType() == FileSystemType::FAT32
-		? c | (read_uint_le<16>(dst + EntryData::ClusterHigh) << 16) : c;
-	CheckThrowEIO(Table.IsFreeOrValid(c));
-	return c;
-}
-
 void
 Partition::Unlink(string_view path) ythrow(system_error)
 {
 	if(!read_only)
 	{
 		DEntry dentry(*this, path);
-		const auto c(TryGetClusterFromEntry(dentry.Data));
+		const auto c(ReadClusterFromEntry(dentry.Data));
 
 		if(dentry.Data.IsDirectory())
 		{
@@ -1540,7 +1539,7 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 		if(CanWrite() && !de.Data.IsWritable())
 			throw_error(errc::read_only_file_system);
 		yunseq(part_ptr = &part,
-			start_cluster = part.TryGetClusterFromEntry(de.Data));
+			start_cluster = part.ReadClusterFromEntry(de.Data));
 		if((flags & O_TRUNC) != 0 && CanWrite() && start_cluster != 0)
 		{
 			part.Table.ClearLinks(start_cluster);
@@ -1607,12 +1606,12 @@ FileInfo::Extend() ythrow(system_error)
 
 	if(remain > 0 && file_size > 0 && file_pos.GetSector() == 0
 		&& file_pos.GetByte() == 0)
-		file_pos = {part.Table.TryLinkFree(file_pos.GetCluster()), 0,
+		file_pos = {part.Table.LinkFree(file_pos.GetCluster()), 0,
 			file_pos.GetByte()};
 	if(remain + file_pos.GetByte() < part.GetBytesPerSector())
 	{
 		// NOTE: Only need to clear to the end of the sector.
-		TryFillPartialSector(part.Table, file_pos, remain);
+		CheckFillPartialSector(part.Table, file_pos, remain);
 		file_pos.AddByte(remain);
 	}
 	else
@@ -1621,16 +1620,16 @@ FileInfo::Extend() ythrow(system_error)
 		{
 			const auto delta(part.GetBytesPerSector() - file_pos.GetByte());
 
-			TryFillPartialSector(part.Table, file_pos, delta);
+			CheckFillPartialSector(part.Table, file_pos, delta);
 			remain -= delta;
 			file_pos.IncSectorAndResetOffset();
 		}
 		while(remain >= part.GetBytesPerSector())
 		{
 			if(file_pos.GetSector() >= part.GetSectorsPerCluster())
-			file_pos = {part.Table.TryLinkFree(file_pos.GetCluster()),
+			file_pos = {part.Table.LinkFree(file_pos.GetCluster()),
 				0, file_pos.GetByte()};
-			TryFillSectors(part.Table, file_pos);
+			CheckFillSectors(part.Table, file_pos);
 			remain -= part.GetBytesPerSector();
 			file_pos.IncSector();
 		}
@@ -1638,106 +1637,15 @@ FileInfo::Extend() ythrow(system_error)
 		{
 			part.CheckPositionForNextCluster(file_pos);
 			file_pos.SetByte(remain);
-			TryFillPartialSectorOff(part.Table, file_pos, 0, remain);
+			CheckFillPartialSectorOff(part.Table, file_pos, 0, remain);
 		}
 	}
 	rw_position = file_pos;
 	file_size = current_position;
 }
 
-void
-FileInfo::SyncToDisc() ythrow(system_error)
-{
-	if(CanWrite() && IsModified())
-	{
-		auto& part(GetPartitionRef());
-		EntryData dir_entry_data;
-		const auto data(dir_entry_data.data());
-		const auto& dir_entry_end(GetNamePosition()[1]);
-		const auto c(GetStartCluster());
-		const auto date_time(FetchDateTime());
-
-		TryReadPartialSector(part.Table, dir_entry_end, data);
-		write_uint_le<32>(data + EntryData::FileSize, GetSize()),
-		dir_entry_data.WriteCluster(c),
-		write_uint_le<16>(data + EntryData::MTime, date_time.second),
-		write_uint_le<16>(data + EntryData::MDate, date_time.first),
-		write_uint_le<16>(data + EntryData::ADate, date_time.first);
-		data[EntryData::Attributes] |= EntryDataUnit(Attribute::Archive);
-		TryWritePartialSector(part.Table, dir_entry_end, data);
-		part.GetCacheRef().Flush();
-	}
-	attr.set(ModifiedBit, {});
-}
-
-void
-FileInfo::Stat(struct ::stat& st) const
-{
-	auto& part(GetPartitionRef());
-	EntryData edata;
-
-	TryReadPartialSector(part.Table, name_position[1], edata.data());
-	part.StatFromEntry(edata, st);
-	// NOTE: Update fields that have changed since the file was opened.
-	yunseq(st.st_ino = ::ino_t(start_cluster), st.st_size = file_size);
-}
-
-void
-FileInfo::Truncate(FileSize new_size) ythrow(system_error)
-{
-	auto& part(GetPartitionRef());
-
-	if(new_size > GetSize())
-	{
-		if(start_cluster == Clusters::Free)
-		{
-			ClusterIndex t(part.Table.TryLinkFree(Clusters::Free));
-
-			yunseq(start_cluster = t, rw_position = {t});
-		}
-
-		const FilePosition saved_position(GetRWPosition());
-		const FileSize saved_offset(GetCurrentPosition());
-
-		SetCurrentPosition(new_size);
-		Extend();
-		CheckAppend();
-		SetRWPosition(saved_position),
-		SetCurrentPosition(saved_offset);
-	}
-	else if(new_size < GetSize())
-	{
-		if(new_size == 0)
-		{
-			part.Table.ClearLinks(GetStartCluster());
-			yunseq(start_cluster = Clusters::Free,
-				append_position = {Clusters::Free});
-		}
-		else
-		{
-			// NOTE: Trim the file down to the required size. Drop the unneeded
-			//	end of the cluster chain. If the end falls on a cluster
-			//	boundary, drop that cluster too, then set a flag to allocate
-			//	a cluster as needed.
-			const auto last_cluster(part.Table.TrimChain(GetStartCluster(),
-				(new_size - 1) / part.GetBytesPerCluster()));
-
-			if(CanAppend())
-			{
-				const auto re(new_size % part.GetBytesPerCluster());
-
-				SetAppendPosition({last_cluster, re == 0
-					? part.GetSectorsPerCluster()
-					: re / part.GetBytesPerSector(),
-					new_size % part.GetBytesPerSector()});
-			}
-		}
-	}
-	UpdateSize(new_size);
-}
-
 ::ssize_t
-FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
+FileInfo::Read(char* buf, size_t nbyte) ythrow(system_error)
 {
 	auto& part(GetPartitionRef());
 
@@ -1755,7 +1663,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 
 		if(tmp < part.GetBytesPerSector())
 		{
-			TryReadPartialSector(part.Table, pos, buf, tmp);
+			CheckReadPartialSector(part.Table, pos, buf, tmp);
 			yunseq(remain -= tmp, buf += tmp),
 			pos.AddByte(tmp);
 			if(pos.GetByte() >= part.GetBytesPerSector())
@@ -1767,7 +1675,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 			- pos.GetSector() : remain / part.GetBytesPerSector();
 		if(tmp > 0)
 		{
-			TryReadSectors(part.Table, pos, buf, tmp);
+			CheckReadSectors(part.Table, pos, buf, tmp);
 
 			const auto n(tmp * part.GetBytesPerSector());
 
@@ -1799,7 +1707,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 						part.Table.QueryNext(next_start));
 				}));
 
-			TryReadSectors(part.Table, pos.GetCluster(), buf,
+			CheckReadSectors(part.Table, pos.GetCluster(), buf,
 				chunk_size / part.GetBytesPerSector());
 			yunseq(buf += chunk_size, remain -= chunk_size);
 			if(remain == 0 && next_start == Clusters::EndOfFile)
@@ -1811,7 +1719,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 		tmp = remain / part.GetBytesPerSector();
 		if(tmp > 0)
 		{
-			TryReadSectors(part.Table, pos.GetCluster(), buf, tmp);
+			CheckReadSectors(part.Table, pos.GetCluster(), buf, tmp);
 
 			const auto n(tmp * part.GetBytesPerSector());
 
@@ -1820,7 +1728,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 		}
 		if(remain > 0)
 		{
-			TryReadPartialSectorOff(part.Table, pos, buf, 0, remain);
+			CheckReadPartialSectorOff(part.Table, pos, buf, 0, remain);
 			pos.AddByte(remain);
 			remain = 0;
 		}
@@ -1832,7 +1740,7 @@ FileInfo::TryRead(char* buf, size_t nbyte) ythrow(system_error)
 }
 
 ::off_t
-FileInfo::TrySeek(::off_t offset, int whence) ythrow(system_error)
+FileInfo::Seek(::off_t offset, int whence) ythrow(system_error)
 {
 	::off_t new_pos(offset);
 
@@ -1903,8 +1811,99 @@ FileInfo::TrySeek(::off_t offset, int whence) ythrow(system_error)
 	throw_error(errc::value_too_large);
 }
 
+void
+FileInfo::Stat(struct ::stat& st) const
+{
+	auto& part(GetPartitionRef());
+	EntryData edata;
+
+	CheckReadPartialSector(part.Table, name_position[1], edata.data());
+	part.StatFromEntry(edata, st);
+	// NOTE: Update fields that have changed since the file was opened.
+	yunseq(st.st_ino = ::ino_t(start_cluster), st.st_size = file_size);
+}
+
+void
+FileInfo::SyncToDisc() ythrow(system_error)
+{
+	if(CanWrite() && IsModified())
+	{
+		auto& part(GetPartitionRef());
+		EntryData dir_entry_data;
+		const auto data(dir_entry_data.data());
+		const auto& dir_entry_end(GetNamePosition()[1]);
+		const auto c(GetStartCluster());
+		const auto date_time(FetchDateTime());
+
+		CheckReadPartialSector(part.Table, dir_entry_end, data);
+		write_uint_le<32>(data + EntryData::FileSize, GetSize()),
+		dir_entry_data.WriteCluster(c),
+		write_uint_le<16>(data + EntryData::MTime, date_time.second),
+		write_uint_le<16>(data + EntryData::MDate, date_time.first),
+		write_uint_le<16>(data + EntryData::ADate, date_time.first);
+		data[EntryData::Attributes] |= EntryDataUnit(Attribute::Archive);
+		CheckWritePartialSector(part.Table, dir_entry_end, data);
+		part.GetCacheRef().Flush();
+	}
+	attr.set(ModifiedBit, {});
+}
+
+void
+FileInfo::Truncate(FileSize new_size) ythrow(system_error)
+{
+	auto& part(GetPartitionRef());
+
+	if(new_size > GetSize())
+	{
+		if(start_cluster == Clusters::Free)
+		{
+			ClusterIndex t(part.Table.LinkFree(Clusters::Free));
+
+			yunseq(start_cluster = t, rw_position = {t});
+		}
+
+		const FilePosition saved_position(GetRWPosition());
+		const FileSize saved_offset(GetCurrentPosition());
+
+		SetCurrentPosition(new_size);
+		Extend();
+		CheckAppend();
+		SetRWPosition(saved_position),
+		SetCurrentPosition(saved_offset);
+	}
+	else if(new_size < GetSize())
+	{
+		if(new_size == 0)
+		{
+			part.Table.ClearLinks(GetStartCluster());
+			yunseq(start_cluster = Clusters::Free,
+				append_position = {Clusters::Free});
+		}
+		else
+		{
+			// NOTE: Trim the file down to the required size. Drop the unneeded
+			//	end of the cluster chain. If the end falls on a cluster
+			//	boundary, drop that cluster too, then set a flag to allocate
+			//	a cluster as needed.
+			const auto last_cluster(part.Table.TrimChain(GetStartCluster(),
+				(new_size - 1) / part.GetBytesPerCluster()));
+
+			if(CanAppend())
+			{
+				const auto re(new_size % part.GetBytesPerCluster());
+
+				SetAppendPosition({last_cluster, re == 0
+					? part.GetSectorsPerCluster()
+					: re / part.GetBytesPerSector(),
+					new_size % part.GetBytesPerSector()});
+			}
+		}
+	}
+	UpdateSize(new_size);
+}
+
 ::ssize_t
-FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
+FileInfo::Write(const char* buf, size_t nbyte) ythrow(system_error)
 {
 	// FIXME: Only write up to the maximum file size, taking wrap-around of
 	//	integers into account. Overflow?
@@ -1917,7 +1916,7 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 
 		if(start_cluster == Clusters::Free)
 		{
-			start_cluster = part.Table.TryLinkFree(Clusters::Free);
+			start_cluster = part.Table.LinkFree(Clusters::Free);
 			yunseq(append_position = {start_cluster},
 				rw_position = {start_cluster});
 		}
@@ -1941,7 +1940,7 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 
 		if(tmp < part.GetBytesPerSector())
 		{
-			TryWritePartialSector(part.Table, pos, buf, tmp);
+			CheckWritePartialSector(part.Table, pos, buf, tmp);
 			yunseq(remain -= tmp, buf += tmp);
 			pos.AddByte(tmp);
 			if(pos.GetByte() >= part.GetBytesPerSector())
@@ -1953,7 +1952,7 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 			- pos.GetSector() : remain / part.GetBytesPerSector();
 		if(tmp > 0 && tmp < part.GetSectorsPerCluster())
 		{
-			TryWriteSectors(part.Table, pos, buf, tmp);
+			CheckWriteSectors(part.Table, pos, buf, tmp);
 
 			const auto n(tmp * part.GetBytesPerSector());
 
@@ -1983,7 +1982,7 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 				yunseq(chunk_end = next_start,
 					chunk_size += part.GetBytesPerCluster());
 			}
-			TryWriteSectors(part.Table, pos.GetCluster(), buf,
+			CheckWriteSectors(part.Table, pos.GetCluster(), buf,
 				chunk_size / part.GetBytesPerSector());
 			yunseq(buf += chunk_size, remain -= chunk_size);
 			if(chunk_end != next_start && part.Table.IsValid(next_start))
@@ -1999,7 +1998,7 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 		tmp = remain / part.GetBytesPerSector();
 		if(tmp > 0)
 		{
-			TryWriteSectors(part.Table, pos.GetCluster(), buf, tmp);
+			CheckWriteSectors(part.Table, pos.GetCluster(), buf, tmp);
 
 			const auto n(tmp * part.GetBytesPerSector());
 
@@ -2012,7 +2011,7 @@ FileInfo::TryWrite(const char* buf, size_t nbyte) ythrow(system_error)
 				CheckThrowEIO(part.GetCacheRef().EraseWritePartialSector(
 					PosToSec(part.Table, pos), 0, buf, remain));
 			else
-				TryWritePartialSectorOff(part.Table, pos, buf, 0, remain);
+				CheckWritePartialSectorOff(part.Table, pos, buf, 0, remain);
 			pos.AddByte(remain);
 			remain = 0;
 		}
@@ -2181,16 +2180,16 @@ const ::devoptab_t dotab_fat{
 		});
 	}, [](::_reent* r, int fd, const char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_locked(r, fd, bind1(&FileInfo::TryWrite, buf, nbyte),
+		return op_file_locked(r, fd, bind1(&FileInfo::Write, buf, nbyte),
 			mem_fn(&FileInfo::CanWrite));
 	}, [](::_reent* r, int fd, char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_locked(r, fd, bind1(&FileInfo::TryRead, buf, nbyte),
+		return op_file_locked(r, fd, bind1(&FileInfo::Read, buf, nbyte),
 			mem_fn(&FileInfo::CanRead));
 	}, [](::_reent* r, int fd, ::off_t offset, int whence) YB_NONNULL(1)
 		ynothrowv{
 		return
-			op_file_locked(r, fd, bind1(&FileInfo::TrySeek, offset, whence));
+			op_file_locked(r, fd, bind1(&FileInfo::Seek, offset, whence));
 	}, [](::_reent* r, int fd, struct ::stat* buf) YB_NONNULL(2, 4)
 		ynothrowv{
 		return op_file_locked(r, fd, bind1(&FileInfo::Stat, ref(Deref(buf))));

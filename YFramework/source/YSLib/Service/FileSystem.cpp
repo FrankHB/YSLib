@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2224
+\version r2226
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2016-07-12 11:16 +0800
+	2016-07-26 22:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ MakeNormalizedAbsolute(const Path& pth, size_t init_size)
 	Path res(pth);
 
 	if(IsRelative(res))
-		res = Path(TryGetCurrentWorkingDirectory<char16_t>(init_size)) / res;
+		res = Path(FetchCurrentWorkingDirectory<char16_t>(init_size)) / res;
 	res.Normalize();
 	YTraceDe(Debug, "Converted path is '%s'.", res.VerifyAsMBCS().c_str());
 	YAssert(IsAbsolute(res), "Invalid path converted.");
@@ -184,7 +184,7 @@ ClearTree(const Path& pth)
 
 		if(c == NodeCategory::Directory)
 			DeleteTree(child);
-		TryRemove(string(child).c_str());
+		Remove(string(child).c_str());
 	});
 }
 
