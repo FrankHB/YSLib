@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r404
+\version r410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-07-24 16:34 +0800
+	2016-07-25 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,10 +34,11 @@
 //	platform::ThrowFileOperationFailure;
 #include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_Consoles
+#	include YFM_Win32_YCLib_NLS // for MBCSToMBCS;
+#	include YFM_Win32_YCLib_Consoles // for WConsole;
 #	include <io.h> // for ::_isatty;
-#	include YFM_YSLib_Core_YConsole
-#elif YF_Hosted
+#endif
+#if YF_Hosted
 #	include YFM_YSLib_Core_YConsole
 #endif
 
@@ -318,7 +319,8 @@ UpdateForeColorByLevel(Terminal& term, RecordLevel lv)
 			lvs[]{Err, Warning, Notice, Informative, Debug};
 		static yconstexpr const Color
 			colors[]{Red, Yellow, Cyan, Magenta, DarkGreen};
-		const auto i(std::lower_bound(ystdex::begin(lvs), ystdex::end(lvs), lv));
+		const auto
+			i(std::lower_bound(ystdex::begin(lvs), ystdex::end(lvs), lv));
 
 		if(i == ystdex::end(lvs))
 			term.RestoreAttributes();

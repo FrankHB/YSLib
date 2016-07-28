@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2816
+\version r2818
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2016-07-25 10:25 +0800
+	2016-07-25 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32
 #	include <stdlib.h> // for ::_wsystem;
+#	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS;
 #endif
 
 namespace platform
@@ -55,7 +56,7 @@ int
 usystem(const char* cmd)
 {
 #if YCL_Win32
-	return ::_wsystem(platform_ex::MBCSToWCS(cmd, CP_UTF8).c_str());
+	return ::_wsystem(platform_ex::UTF8ToWCS(cmd).c_str());
 #else
 	return std::system(cmd);
 #endif

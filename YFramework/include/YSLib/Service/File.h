@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1534
+\version r1538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2016-06-13 15:35 +0800
+	2016-07-26 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,15 +50,15 @@ OpenFile(const char*, int, mode_t = 0);
 
 
 /*!
-\brief 尝试移除文件链接。
+\brief 移除文件链接。
 \pre 间接断言：参数非空。
 \throw FileOperationFailure 文件存在且操作失败。
-\since build 634
+\since build 713
 */
 //@{
 template<typename _tChar>
 YB_NONNULL(1) void
-TryRemove(const _tChar* path)
+Remove(const _tChar* path)
 {
 	if(YB_UNLIKELY(!uremove(path)))
 	{
@@ -72,7 +72,7 @@ TryRemove(const _tChar* path)
 
 template<typename _tChar>
 YB_NONNULL(1) void
-TryUnlink(const _tChar* path)
+Unlink(const _tChar* path)
 {
 	if(YB_UNLIKELY(!uunlink(path)))
 	{

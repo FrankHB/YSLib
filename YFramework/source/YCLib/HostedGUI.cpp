@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1879
+\version r1880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-07-23 20:27 +0800
+	2016-07-25 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@
 #	include YFM_YCLib_Input // for platform::ClearKeyStates;
 #	include "YSLib/Service/YModules.h"
 #	include YFM_YSLib_Service_YBlit // for ystdex::pvoid, YSLib::BlitLines;
+#	include YFM_Win32_YCLib_NLS // for platform_ex::WCSToUTF8;
 #	include <Shellapi.h> // for ::ShellExecuteW;
 #	include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #elif YCL_Android

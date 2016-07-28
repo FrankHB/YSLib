@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1330
+\version r1419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2016-03-22 01:31 +0800
+	2016-07-26 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -250,12 +250,12 @@ private:
 	size_t root_dir_start;
 	size_t root_dir_sectors_num;
 	size_t data_sectors_num;
-	//! \invariant <tt>IsValid(first_free)</tt> 。
+	//! \invariant \c IsValid(first_free) 。
 	ClusterIndex first_free = Clusters::First;
 	ClusterIndex free_cluster = 0;
-	//! \invariant <tt>IsValid(last_alloc_cluster)</tt> 。
+	//! \invariant \c IsValid(last_alloc_cluster) 。
 	ClusterIndex last_alloc_cluster = 0;
-	//! \invariant <tt>IsValid(last_cluster)</tt> 。
+	//! \invariant <tt>Clusters::First <= last_cluster</tt> 。
 	ClusterIndex last_cluster;
 	FileSystemType fs_type;
 	ClusterIndex root_dir_cluster;
@@ -273,7 +273,7 @@ public:
 		ImplRet(c == Clusters::Free || IsValid(c))
 	//! \since build 657
 	PDefH(bool, IsValid, ClusterIndex c) const ynothrow
-		// NOTE: This will catch Clusters::Error.
+		// TODO: This will catch Clusters::Error?
 		ImplRet(Clusters::First <= c && c <= last_cluster)
 
 	DefGetter(const ynothrow, size_t, BytesPerCluster, bytes_per_cluster)
@@ -307,11 +307,28 @@ public:
 	CountFreeCluster() const ynothrow;
 
 	/*!
+	\return 成功分配的簇。
+	\since build 713
+	*/
+	//@{
+	/*!
 	\brief 分配空闲的簇。
-	\return 成功分配的簇或 Clusters::Error 。
+	\exception std::system_error 调用失败。
+		\li std::errc::no_space_on_device 空间不足。
 	*/
 	ClusterIndex
-	LinkFree(ClusterIndex) ynothrow;
+	LinkFree(ClusterIndex) ythrow(std::system_error);
+
+	/*!
+	\brief 分配已填充零的空间。
+	\exception std::system_error 调用失败。
+		\li std::errc::no_space_on_device 空间不足。
+		\li std::errc::io_error 写错误。
+	\sa LinkFree
+	*/
+	ClusterIndex
+	LinkFreeCleared(ClusterIndex) ythrow(std::system_error);
+	//@}
 
 	/*!
 	\brief 查询参数指定的簇的下一簇。
@@ -342,26 +359,6 @@ public:
 	*/
 	ClusterIndex
 	TrimChain(ClusterIndex, size_t) ythrow(std::system_error);
-
-	//! \sa LinkFree
-	//@{
-	/*!
-	\brief 链接空闲空间。
-	\exception std::system_error 调用失败。
-		\li std::errc::no_space_on_device 空间不足。
-	*/
-	ClusterIndex
-	TryLinkFree(ClusterIndex) ythrow(std::system_error);
-
-	/*!
-	\brief 分配已填充零的空间。
-	\exception std::system_error 调用失败。
-		\li std::errc::no_space_on_device 空间不足。
-		\li std::errc::io_error 写错误。
-	*/
-	ClusterIndex
-	TryLinkFreeCleared(ClusterIndex) ythrow(std::system_error);
-	//@}
 
 	YB_NONNULL(2) void
 	WriteClusters(byte*) const ynothrowv;
@@ -549,7 +546,7 @@ public:
 	DEntry(Partition&, const NamePosition&);
 	/*!
 	\brief 构造：使用分区上的指定路径，必要时添加项。
-	\pre 断言：路径参数的数据指针指针非空。
+	\pre 断言：路径参数的数据指针非空。
 	\exception std::system_error 调用失败。
 		\li std::errc::file_exists 指定最终项或添加项时项已存在。
 		\li std::errc::invalid_argument
@@ -562,7 +559,7 @@ public:
 		\li std::errc::no_such_file_or_directory
 			路径前缀的项或添加时指定的最终项不存在。
 		\li std::errc::not_a_directory 非目录项。
-	\note 路径相对于分区，无根前缀，空串路径视为当前工作目录。
+	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
 	\note 当最后一个参数非空时初始化和添加新文件并输出父目录簇，忽略第三参数。
 	\note 若添加项，长短文件名由 FindEntryGap 调用设置。
 	\since build 656
@@ -614,7 +611,7 @@ class FileInfo;
 
 /*!
 \brief FAT 分区。
-\note 成员函数参数路径默认相对于此分区，无根前缀，空串路径视为当前工作目录。
+\note 成员函数参数路径默认相对此分区，无根前缀，空串路径视为当前工作目录。
 \warning 除非另行约定，不保证并发读写安全。
 \todo 添加修改卷标的接口。
 */
@@ -717,7 +714,7 @@ public:
 	\exception std::system_error 调用失败。
 		\li std::errc::no_space_on_device 空间不足。
 		\li std::errc::io_error 写错误。
-	\sa AllocationTable::TryLinkFreeCleared
+	\sa AllocationTable::LinkFreeCleared
 	\sa IncremntPosition
 	*/
 	void
@@ -759,6 +756,15 @@ public:
 	*/
 	void
 	MakeDir(string_view) ythrow(std::system_error);
+
+	/*!
+	\brief 从项数据中读取簇索引并校验有效性。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 校验失败：读取的项指定错误的簇。
+	\since build 713
+	*/
+	ClusterIndex
+	ReadClusterFromEntry(const EntryData&) const ythrow(std::system_error);
 
 private:
 	//! \pre 断言：文件系统类型为 FAT32 。
@@ -821,21 +827,12 @@ public:
 	\brief 查询项数据的文件信息并填充到第一参数。
 	\exception std::system_error 调用失败。
 		\li std::errc::io_error 读取的项指定错误的簇。
-	\sa TryGetClusterFromEntry
+	\sa ReadClusterFromEntry
 	\since build 657
 	*/
 	void
 	StatFromEntry(const EntryData&, struct ::stat&) const
 		ythrow(std::system_error);
-
-	/*!
-	\brief 从项数据中读取簇索引并校验有效性。
-	\exception std::system_error 调用失败。
-		\li std::errc::io_error 校验失败：读取的项指定错误的簇。
-	\since build 657
-	*/
-	ClusterIndex
-	TryGetClusterFromEntry(const EntryData&) const ythrow(std::system_error);
 
 	/*!
 	\brief 移除路径参数指定的链接。
@@ -845,7 +842,7 @@ public:
 		\li std::errc::no_such_file_or_directory 指定的项不存在。
 		\li std::errc::operation_not_permitted 无法移除 . 或 .. 项。
 		\li std::errc::io_error 读写错误或读取的项指定错误的簇。
-	\sa TryGetClusterFromEntry
+	\sa ReadClusterFromEntry
 	\since build 643
 	*/
 	void
@@ -895,7 +892,7 @@ public:
 		\li std::errc::not_a_directory 路径指定的不是目录。
 		\li std::errc::no_such_file_or_directory 路径指定的目录项不存在。
 		\li std::errc::io_error 查询项时读错误。
-	\note 路径相对于分区，无根前缀，空串路径视为当前工作目录。
+	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
 	\since build 656
 	*/
 	DirState(Partition&, string_view) ythrow(std::system_error);
@@ -963,7 +960,7 @@ public:
 		\lic std::errc::file_exists 要求创建不存在的文件但文件已存在。
 		\lic std::errc::read_only_file_system 创建文件但文件系统只读。
 		\lic std::errc::no_such_file_or_directory 文件不存在。
-	\note 路径相对于分区，无根前缀，空串路径视为当前工作目录。
+	\note 路径相对分区，无根前缀，空串路径视为当前工作目录。
 	\note 访问标识包含 O_RDONLY 、 O_WRONLY 或 O_RDWR 指定读写权限。
 	\note 锁定分区访问。
 	\since build 643
@@ -1008,13 +1005,25 @@ public:
 	Extend() ythrow(std::system_error);
 
 	/*!
-	\brief 同步：写入底层存储并清空修改状态。
-	\exception std::system_error 同步失败。
-		\li std::errc::io_error 读写错误。
-	\since build 656
+	\brief 读文件内容到第一参数指定的缓冲区。
+	\pre 间接断言：第一参数非空。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 读错误。
+	\since build 713
 	*/
-	void
-	SyncToDisc() ythrow(std::system_error);
+	YB_NONNULL(2) ::ssize_t
+	Read(char*, size_t) ythrow(std::system_error);
+
+	/*!
+	\brief 设置文件读写位置。
+	\exception std::system_error 调用失败。
+		\li std::errc::invalid_argument 参数非法。
+		\li std::errc::value_too_large 位置溢出。
+	\note 第二参数取值为 SEEK_SET 、 SEEK_CUR 和 SEEK_END 之一。
+	\since build 713
+	*/
+	::off_t
+	Seek(::off_t, int) ythrow(std::system_error);
 
 	/*!
 	\brief 读取文件信息并保存到参数。
@@ -1023,6 +1032,15 @@ public:
 	*/
 	void
 	Stat(struct ::stat&) const;
+
+	/*!
+	\brief 同步：写入底层存储并清空修改状态。
+	\exception std::system_error 同步失败。
+		\li std::errc::io_error 读写错误。
+	\since build 656
+	*/
+	void
+	SyncToDisc() ythrow(std::system_error);
 
 	/*!
 	\brief 截断文件。
@@ -1036,33 +1054,15 @@ public:
 	Truncate(FileSize) ythrow(std::system_error);
 
 	/*!
-	\brief 读文件内容到第一参数指定的缓冲区。
-	\pre 间接断言：第一参数非空。
-	\exception std::system_error 调用失败。
-		\li std::errc::io_error 读错误。
-	*/
-	YB_NONNULL(2) ::ssize_t
-	TryRead(char*, size_t) ythrow(std::system_error);
-
-	/*!
-	\brief 设置文件读写位置。
-	\exception std::system_error 调用失败。
-		\li std::errc::invalid_argument 参数非法。
-		\li std::errc::value_too_large 位置溢出。
-	\note 第二参数取值为 SEEK_SET 、 SEEK_CUR 和 SEEK_END 之一。
-	*/
-	::off_t
-	TrySeek(::off_t, int) ythrow(std::system_error);
-
-	/*!
 	\brief 设置文件读写位置。
 	\exception std::system_error 调用失败。
 		\li std::errc::invalid_argument 参数非法。
 		\li std::errc::no_space_on_device 空间不足。
 		\li std::errc::io_error 写错误。
+	\since build 713
 	*/
 	YB_NONNULL(2) ::ssize_t
-	TryWrite(const char*, size_t) ythrow(std::system_error);
+	Write(const char*, size_t) ythrow(std::system_error);
 
 	PDefH(void, UpdateSize, std::uint32_t size) ynothrow
 		ImplUnseq(file_size = size, attr.set(ModifiedBit))

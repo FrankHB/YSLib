@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1521
+\version r1645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-25 10:25 +0800
+	2016-07-28 09:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,131 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(Win32)' $=
+		(
+			/ %MinGW32 $=
+			(
+				/ "all 2 functions %(MBCSToMBCS, MBCSToWCS, WCSToMBCS, \
+					UTF8ToWCS, WCSToUTF8)" >> %Consoles,
+				/ DLDI "simplified member function \
+					%Win32Exception::FormatMessage" ^ "%WCSToUTF8"
+					~ "%(WCSToMBCS, CP_UTF8)",
+				+ "class %Mutex"
+			),
+			/ DLDI @ "NLS table entry" @ %NLS $=
+			(
+				+ 'final',
+				^ $re_add(b) "%platform::MappedFile"
+					~ "%unique_ptr<platform::MappedFile>",
+				^ "%ystdex::aligned_store_cast" ~ 'reinterpret_cast'
+			)
+		),
+		/ %YCLib $=
+		(
+			/ "simplified function %usystem" ^ "%platform_ex::UTF8ToWCS"
+				@ %YCommon ~ "%(platform_ex::(MBCSToWCS), CP_UTF8)" $dep_to
+				"simplified Win32 common UTF-8 conversion",
+			/ $forced @ "platform %Win32" $dep_from %'YCLib_(Win32)'.MinGW32 $=
+			(
+				/ %Host $dep_from "%platform_ex::MBCSToMBCS",
+				/ %YCommon $dep_from "simplified Win32 common UTF-8 conversion",
+				/ %FileIO $dep_from "%platform_ex::(UTF8ToWCS, WCSToUTF8)",
+				/ %HostedGUI $dep_from "%platform_ex::WCSToUTF8"
+			),
+			/ $forced %FileIO $dep_from %Documentation.CommonRules $=
+			(
+				/ DLDI "renamed internal file time routines"
+					@ !"platform %Win32",
+				/ "function template %TryGetCurrentWorkingDirectory"
+					=> "%FetchGetCurrentWorkingDirectory"
+			),
+			/ %FileSystem $=
+			(
+				/ @ "class %HDirectory" $=
+				(
+					+ "alias %iterator";
+					+ "functions %(begin, end)"
+				),
+				- $revert(b411) "alias %FileIterator" $dep_from
+					("%YSLib::IO::FileIterator" @ %YSLib.Adaptor.YAdaptor)
+			)
+		),
+		/ @ "platform %Win32" @ %Helper.Initialization $=
+		(
+			* $re_add(b695) "initialized system font directory wrongly used \
+				current code page" ~ "UTF-8"  $since b695
+				$= (/ DLDI ^ "%platform_ex::WCSToUTF8"
+					~ "%platform_ex::WCSToMBCS")
+			* @ "function %TraceForOutermost wrongly used current code page"
+				$orig @ "function %HandleFatalError" $since b540
+				$= (/ DLDI ^ "%platform_ex::UTF8ToMBCS"
+					~ "%platform_ex::MBCSToWCS")
+		),
+		/ $forced %'YCLib_(DS)'.DSIO $dep_from %Documentation.CommonRules $=
+		(
+			/ "functions %(TryRead, TrySeek, TryWrite)" @ "class %FileInfo"
+				=> "%(Read, Seek, Write)",
+			/ "function %TryGetClusterFromEntry" @ "class %Partition"
+				=> "%ReadClusterFromEntry",
+			/ @ "class %AllocationTable" $=
+			(
+				/ "allwed %LinkFree to throw %std::system_error";
+				/ "merged function %TryLinkFree" -> "%LinkFree",
+				/ "function %TryLinkFreeCleared" -> "%LinkFreeCleared"
+			),
+			/ DLDI "renamed internal I/O helper routines"
+		),
+		/ %YSLib $=
+		(
+			/ %Adaptor $=
+			(
+				/ $forced $dep_from "%TryGetCurrentWorkingDirectory"
+					@ %YCLib.FileIO $=
+				(
+					/ 'using platform::TryGetCurrentWorkingDirectory;'
+						-> 'using platform::FetchCurrentWorkingDirectory;'
+						@ %YAdaptor,
+					/ "function template %TryGetValue" => "%GetValue"
+						@ "class %ImageTag" @ %Image
+				),
+				/ $impl "renamed private deleter class" @ "class %ImageMemory"
+					@ %Image,
+					// This change does not binary compatiblility.
+				- $revert(b411) 'using platform::FileIterator;' $dep_from
+					%Service.FileSystem 
+			),
+			/ $forced DLDI "function %MakeNormalizedAbsolute" $dep_from
+				("%FetchCurrentWorkingDirectory" @ %Adaptor.YAdaptor),
+			/ %Service $=
+			(
+				/ $forced "function templates %(TryRemove, TryUnlink)"
+					=> "%(Remove, Unlink)" @ %File $dep_from
+					%Documentation.CommonRules
+				/ DLI "simplified function template %Traverse"
+					^ "range-based for" ~ "%std::for_each" $dep_from
+					("%HDirectory::begin" @ %YCLib.FileSystem)
+			)
+		)
+	),
+	/ $doc %Documentation $=
+	(
+		/ "meaning of 'Try*' routines" @ %CommonRules $since b705,
+			// For example, the convention contradicted to %YSLib::TryInvoke, \
+				and the similar conterpart %try_lock in several mutual \
+				exclusive types in the ISO C++.
+		* "YCLib hosted module dependency rules" $since b585
+			// %YCLib.Host was allowed to depend on %YSLib.Core in its \
+				implemenation.
+	),
+	/ $forced DLDI "%FetchDefaultShellDirectory" @ %YReader.ShlExplorer
+		$dep_from
+		("%TryGetCurrentWorkingDirectory" @ %YFramework.YSLib.Adaptor.YAdaptor)
+),
+
+b712
 (
 	(
 	+ $doc "limitation on moved-from state of user-defined class objects"

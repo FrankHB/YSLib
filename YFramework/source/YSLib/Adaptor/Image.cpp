@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1221
+\version r1225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2016-06-19 19:28 +0800
+	2016-07-27 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,7 +234,7 @@ ImplDeDtor(UnknownImageFormat)
 
 
 void
-ImageMemory::ImageMemoryDelete::operator()(pointer p) const ynothrow
+ImageMemory::Deleter::operator()(pointer p) const ynothrow
 {
 	::FreeImage_CloseMemory(p);
 }
@@ -440,7 +440,7 @@ TimeSpan
 GetFrameTimeOf(const HBitmap& bmp)
 {
 	return TimeSpan(CheckNonnegative<long>(ImageTag(bmp,
-		ImageMetadataModel::Animation, "FrameTime").TryGetValue<long>(),
+		ImageMetadataModel::Animation, "FrameTime").GetValue<long>(),
 		"frame time", Warning));
 }
 
@@ -448,9 +448,9 @@ Size
 GetLogicalSizeOf(const HBitmap& bmp)
 {
 	return {CheckPositive<SDst>(ImageTag(bmp, ImageMetadataModel::Animation,
-		"LogicalWidth").TryGetValue<short>(), "logical width", Warning),
+		"LogicalWidth").GetValue<short>(), "logical width", Warning),
 		CheckPositive<SDst>(ImageTag(bmp, ImageMetadataModel::Animation,
-		"LogicalHeight").TryGetValue<short>(), "logical height", Warning)};
+		"LogicalHeight").GetValue<short>(), "logical height", Warning)};
 }
 
 

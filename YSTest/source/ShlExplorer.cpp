@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1542
+\version r1543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2016-06-30 14:17 +0800
+	2016-07-26 22:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,7 +225,7 @@ FetchDefaultShellDirectory()
 	return
 		Path(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory"));
 #else
-	return Path(TryGetCurrentWorkingDirectory<char16_t>(IO::MaxPathLength));
+	return Path(FetchCurrentWorkingDirectory<char16_t>(IO::MaxPathLength));
 #endif
 }
 

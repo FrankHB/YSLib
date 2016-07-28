@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3116
+\version r3122
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-07-23 13:24 +0800
+	2016-07-25 20:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,8 @@
 #include YFM_Helper_GUIApplication // for FetchEnvironment;
 //#include <clocale>
 #if YCL_Win32
-#	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset;
+#	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset,
+//	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS;
 #endif
 #include <ystdex/streambuf.hpp> // for ystdex::membuf;
 
@@ -181,7 +182,7 @@ FetchWorkingRoot()
 inline PDefH(string, FetchSystemFontDirectory_Win32, )
 	// NOTE: Hard-coded as Shell32 special path with %CSIDL_FONTS or
 	//	%CSIDL_FONTS. See https://msdn.microsoft.com/en-us/library/dd378457.aspx.
-	ImplRet(platform_ex::WCSToMBCS(platform_ex::FetchWindowsPath()) + "Fonts\\")
+	ImplRet(platform_ex::WCSToUTF8(platform_ex::FetchWindowsPath()) + "Fonts\\")
 #elif YCL_Android
 #	define DATA_DIRECTORY (FetchWorkingRoot() + "Data/")
 #	define DEF_FONT_DIRECTORY "/system/fonts/"
@@ -320,11 +321,11 @@ TraceForOutermost(const std::exception& e, RecordLevel lv) ynothrow
 	if(const auto p = dynamic_cast<const YSLib::FatalError*>(&e))
 	{
 #if YCL_Win32
-		using platform_ex::MBCSToWCS;
+		using platform_ex::UTF8ToWCS;
 
 		FilterExceptions([&]{
-			::MessageBoxW({}, MBCSToWCS(p->GetContent()).c_str(),
-				MBCSToWCS(p->GetTitle()).data(), MB_ICONERROR);
+			::MessageBoxW({}, UTF8ToWCS(p->GetContent()).c_str(),
+				UTF8ToWCS(p->GetTitle()).data(), MB_ICONERROR);
 		});
 #endif
 		YTraceDe(Emergent, "%s\n\n%s", p->GetTitle(), p->GetContent().data());
