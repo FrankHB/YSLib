@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r683
+\version r704
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2016-06-19 04:16 +0800
+	2016-07-30 16:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,13 +70,6 @@
 
 namespace platform
 {
-
-/*!
-\ingroup diagnostic
-*/
-//@{
-//@}
-
 
 /*!
 \ingroup tracing
@@ -441,6 +434,29 @@ Deref(_type&& p) -> decltype(*p)
 {
 	return *FwdIter(yforward(p));
 }
+
+/*!
+\ingroup diagnostic
+\brief 组合消息和函数签名字符串。
+\note 使用 ADL to_string 。
+\since build 714
+*/
+//@{
+inline YB_NONNULL(2) PDefH(string, ComposeMessageWithSignature,
+	const string& msg, const char* sig)
+	ImplRet(msg + " @ " + Nonnull(sig))
+inline YB_NONNULL(1, 2) PDefH(string, ComposeMessageWithSignature,
+	const char* msg, const char* sig)
+	ImplRet(string(Nonnull(msg)) + " @ " + Nonnull(sig))
+template<class _type>
+inline YB_NONNULL(2) string
+ComposeMessageWithSignature(const _type& msg, const char* sig)
+{
+	using ystdex::to_string;
+
+	return to_string(msg) + " @ " + Nonnull(sig);
+}
+//@}
 
 } // namespace platform;
 

@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2169
+\version r2257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-07-26 22:06 +0800
+	2016-07-30 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,13 @@
 #include "YModules.h"
 #include YFM_YCLib_Platform
 #include YFM_YBaseMacro
-#include <ystdex/string.hpp> // for std::uint32_t, std::uint64_t, ynothrow,
-//	ystdex::totally_ordered, std::FILE, ystdex::enable_for_string_class_t;
-#include YFM_YCLib_Debug // for Nonnull, string, u16string, array;
+#include YFM_YCLib_Debug // for YB_NONNULL, string, Nonnull, u16string_view,
+//	std::uint32_t, std::uint64_t, ynothrow, ystdex::totally_ordered, std::FILE,
+//	ystdex::enable_for_string_class_t, ystdex::retry_for_vector,
+//	ystdex::throw_error, u16string, std::system_error, YTraceDe, array, wstring,
+//	string_view;
 #include <chrono> // for std::chrono::nanoseconds;
-#include YFM_YCLib_Reference // for unique_ptr;
+#include YFM_YCLib_Reference // for unique_ptr_from;
 #include <ios> // for std::ios_base::sync_with_stdio;
 #include <fstream> // for std::filebuf;
 #if __GLIBCXX__
@@ -46,8 +48,7 @@
 #	include <ystdex/cstdio.h> // for ystdex::openmode_conv;
 #	include <locale> // for std::use_facet, std::codecvt;
 #endif
-#include <system_error> // for std::system_error;
-#include <ystdex/container.hpp> // for ystdex::retry_for_vector;
+#include <cerrno> // for errno;
 
 namespace platform
 {
@@ -1160,7 +1161,7 @@ FetchCurrentWorkingDirectory(size_t init)
 		const int err(errno);
 
 		if(err != ERANGE)
-			ystdex::throw_error(err);
+			ystdex::throw_error(err, yfsig);
 		return true;
 	});
 }
@@ -1197,7 +1198,6 @@ public:
 	~FileOperationFailure() override;
 };
 
-
 /*!
 \build 抛出由 errno 和参数指定的 FileOperationFailure 对象。
 \throw FileOperationFailure errno 和指定参数构造的异常。
@@ -1210,6 +1210,95 @@ ThrowFileOperationFailure(_tParam&& arg, int err = errno)
 {
 	ystdex::throw_error<FileOperationFailure>(err, yforward(arg));
 }
+
+
+//! \since build 714
+//@{
+/*!
+\note 省略第一参数时为 std::system_error 。
+*/
+//@{
+/*!
+\brief 按错误值和指定参数抛出第一参数指定类型的对象。
+\note 先保存可能是左值的 errno 以避免参数中的副作用影响结果。
+*/
+#define YCL_Raise_SysE(_t, _fn, _sig) \
+	{ \
+		const auto err_(errno); \
+	\
+		ystdex::throw_error<_t>(err_, \
+			platform::ComposeMessageWithSignature(#_fn YPP_Comma _sig)); \
+	}
+
+//! \note 按表达式求值，检查是否为零初始化的值。
+#define YCL_RaiseZ_SysE(_t, _expr, _fn, _sig) \
+	{ \
+		const auto err_(_expr); \
+	\
+		if(err_ != decltype(err_)()) \
+			ystdex::throw_error<_t>(err_, \
+				platform::ComposeMessageWithSignature(#_fn YPP_Comma _sig)); \
+	}
+//@}
+
+/*!
+\brief 跟踪 errno 取得的调用状态结果。
+\since build 691
+*/
+#define YCL_Trace_SysE(_lv, _fn, _sig) \
+	YTraceDe(_lv, "Error %d: failed calling " #_fn " @ %s.", errno, _sig)
+
+/*!
+\brief 调用系统 C API 或其它可用 errno 取得调用状态的例程。
+\pre 系统 C API 返回结果类型满足 DefaultConstructible 和 LessThanComparable 要求。
+\note 比较返回默认构造的结果值，相等表示成功，小于表示失败且设置 errno 。
+\note 调用时直接使用实际参数，可指定非标识符的表达式，不保证是全局名称。
+*/
+//@{
+/*!
+\note 若失败抛出第一参数指定类型的对象。
+\note 省略第一参数时为 std::system_error 。
+\sa YCL_Raise_SysE
+*/
+//@{
+#define YCL_WrapCall_CAPI(_t, _fn, ...) \
+	[&](const char* sig) YB_NONNULL(1){ \
+		const auto res_(_fn(__VA_ARGS__)); \
+	\
+		if(YB_UNLIKELY(res_ < decltype(res_)())) \
+			YCL_Raise_SysE(_t, _fn, sig); \
+		return res_; \
+	}
+
+#define YCL_Call_CAPI(_t, _fn, _sig, ...) \
+	YCL_WrapCall_CAPI(_t, _fn, __VA_ARGS__)(_sig)
+
+#define YCL_CallF_CAPI(_t, _fn, ...) YCL_Call_CAPI(_t, _fn, yfsig, __VA_ARGS__)
+//@}
+
+/*!
+\note 若失败跟踪 errno 的结果。
+\note 格式转换说明符置于最前以避免宏参数影响结果。
+\sa YCL_Trace_SysE
+*/
+//@{
+#define YCL_TraceWrapCall_CAPI(_fn, ...) \
+	[&](const char* sig) YB_NONNULL(1){ \
+		const auto res_(_fn(__VA_ARGS__)); \
+	\
+		if(YB_UNLIKELY(res_ < decltype(res_)())) \
+			YCL_Trace_SysE(platform::Descriptions::Warning, _fn, sig); \
+		return res_; \
+	}
+
+#define YCL_TraceCall_CAPI(_fn, _sig, ...) \
+	YCL_TraceWrapCall_CAPI(_fn, __VA_ARGS__)(_sig)
+
+#define YCL_TraceCallF_CAPI(_fn, ...) \
+	YCL_TraceCall_CAPI(_fn, yfsig, __VA_ARGS__)
+//@}
+//@}
+//@}
 
 
 //! \exception FileOperationFailure 参数无效或文件时间查询失败。

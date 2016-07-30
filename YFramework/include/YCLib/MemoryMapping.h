@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r317
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2016-07-23 20:18 +0800
+	2016-07-28 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ using FileMappingKey = bool;
 //! \since build 669
 class YF_API UnmapDelete
 #if YCL_DS
-	: public default_delete<byte[]>
+	: private default_delete<byte[]>
 #endif
 {
 public:

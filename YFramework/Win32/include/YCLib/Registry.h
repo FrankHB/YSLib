@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 注册表。
-\version r141
+\version r143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2015-09-12 19:33:37 +0800
 \par 修改时间:
-	2015-12-10 19:36 +0800
+	2016-07-30 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,7 @@ public:
 	RegistryKey(::HKEY h_parent, const wchar_t* name, unsigned long ul_opt = 0,
 		::REGSAM access = KEY_READ)
 	{
-		YCL_Raise_Win32Exception_On_Failure(::RegOpenKeyExW(h_parent,
+		YCL_RaiseZ_Win32E(::RegOpenKeyExW(h_parent,
 			platform::Nonnull(name), ul_opt, access, &h_key), "RegOpenKeyEx");
 	}
 	//! \since build 549

@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r575
+\version r576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2016-05-16 14:10 +0800
+	2016-07-30 19:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,7 +193,7 @@ GUIHost::MapTopLevelWindowPoint(const Point& pt) const
 			p_wnd = GetForegroundWindow();
 		if(p_wnd)
 		{
-			YCL_CallWin32F(ScreenToClient, p_wnd->GetNativeHandle(), &cursor);
+			YCL_CallF_Win32(ScreenToClient, p_wnd->GetNativeHandle(), &cursor);
 			return {p_wnd, p_wnd->MapPoint({cursor.x, cursor.y})};
 		}
 	}

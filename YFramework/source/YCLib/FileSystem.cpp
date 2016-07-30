@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4148
+\version r4177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-07-13 14:49 +0800
+	2016-07-30 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 //	std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
 //	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::to_array,
-//	ystdex::throw_error, std::errc::function_not_supported,
+//	ystdex::throw_error, std::errc::function_not_supported, YCL_CallF_CAPI,
 //	ThrowFileOperationFailure, CategorizeNode, ystdex::ntctslen, std::wctob,
 //	std::towupper, ystdex::restrict_length, std::min, ystdex::ntctsicmp,
 //	std::errc::invalid_argument, std::strchr;
@@ -66,7 +66,7 @@ yconstexpr const auto SymbolicLinkFlagDirectory(1UL);
 
 inline PDefH(void, W32_CreateSymbolicLink, const char16_t* dst,
 	const char16_t* src, unsigned long flags)
-	ImplExpr(YCL_CallWin32F(CreateSymbolicLinkW, wcast(dst), wcast(src), flags))
+	ImplExpr(YCL_CallF_Win32(CreateSymbolicLinkW, wcast(dst), wcast(src), flags))
 
 } // namespace YCL_Impl_details;
 
@@ -118,7 +118,7 @@ IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 				//	%std::errc::too_many_symbolic_link_levels is
 				//	commented out in MinGW-w64 configuration of
 				//	libstdc++. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71444.
-				ystdex::throw_error(ELOOP);
+				ystdex::throw_error(ELOOP, "ReadLink @ platform::IteratorLink");
 			return true;
 		}
 		CatchIgnore(std::invalid_argument&)
@@ -159,16 +159,15 @@ CreateHardLink(const char* dst, const char* src)
 {
 #if YCL_DS
 	YAssertNonnull(dst), YAssertNonnull(src);
-	ystdex::throw_error(std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	CreateHardLink(ucast(MakePathStringW(dst).c_str()),
 		ucast(MakePathStringW(src).c_str()));
 #else
 	// NOTE: POSIX %::link is implementation-defined to following symbolic
 	//	link target.
-	if(::linkat(AT_FDCWD, Nonnull(src), AT_FDCWD, Nonnull(dst),
-		AT_SYMLINK_FOLLOW) != 0)
-		ystdex::throw_error(errno, "::linkat");
+	YCL_CallF_CAPI(, ::linkat, AT_FDCWD, Nonnull(src), AT_FDCWD, Nonnull(dst),
+		AT_SYMLINK_FOLLOW);
 #endif
 }
 void
@@ -176,9 +175,9 @@ CreateHardLink(const char16_t* dst, const char16_t* src)
 {
 #if YCL_DS
 	YAssertNonnull(dst), YAssertNonnull(src);
-	ystdex::throw_error(std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
-	YCL_CallWin32F(CreateHardLinkW, wcast(dst), wcast(src), {});
+	YCL_CallF_Win32(CreateHardLinkW, wcast(dst), wcast(src), {});
 #else
 	// TODO: To make the behavior specific and same as on platform %Win32, use
 	//	%::realpath on platform %Linux, etc.
@@ -191,7 +190,7 @@ CreateSymbolicLink(const char* dst, const char* src, bool is_dir)
 {
 #if YCL_DS
 	yunused(dst), yunused(src), yunused(is_dir);
-	ystdex::throw_error(std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	using namespace platform_ex;
 
@@ -199,8 +198,7 @@ CreateSymbolicLink(const char* dst, const char* src, bool is_dir)
 		ucast(MakePathStringW(src).c_str()), is_dir);
 #else
 	yunused(is_dir);
-	if(::symlink(Nonnull(src), Nonnull(dst)) != 0)
-		ystdex::throw_error(errno, "::symlink");
+	YCL_CallF_CAPI(, ::symlink, Nonnull(src), Nonnull(dst));
 #endif
 }
 void
@@ -208,7 +206,7 @@ CreateSymbolicLink(const char16_t* dst, const char16_t* src, bool is_dir)
 {
 #if YCL_DS
 	yunused(dst), yunused(src), yunused(is_dir);
-	ystdex::throw_error(std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	YCL_Impl_details::W32_CreateSymbolicLink(dst, src,
 		is_dir ? YCL_Impl_details::SymbolicLinkFlagDirectory : 0UL);
@@ -223,7 +221,7 @@ ReadLink(const char* path)
 {
 #if YCL_DS
 	YAssertNonnull(path);
-	ystdex::throw_error(std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	// TODO: Simplify?
 	return
@@ -256,17 +254,12 @@ ReadLink(const char* path)
 					{
 						const int err(errno);
 
-						switch(err)
-						{
-						case EINVAL:
+						if(err == EINVAL)
 							throw std::invalid_argument("Failed reading link:"
 								" Specified file is not a link.");
-						case 0:
-							throw std::runtime_error(
-								"Unknown error @ ::readlink.");
-						default:
-							ystdex::throw_error(err, "::readlink");
-						}
+						YCL_RaiseZ_SysE(, err, "::readlink", yfsig);
+						throw std::runtime_error(
+							"Unknown error @ ::readlink.");
 					}
 					if(size_t(r) <= s)
 					{
@@ -280,7 +273,7 @@ ReadLink(const char* path)
 		}
 		throw std::invalid_argument("Specified file is not a link.");
 	}
-	ystdex::throw_error(errno, "::lstat");
+	YCL_Raise_SysE(, "::lstat", yfsig);
 #endif
 }
 u16string
@@ -288,7 +281,7 @@ ReadLink(const char16_t* path)
 {
 #if YCL_DS
 	YAssertNonnull(path);
-	ystdex::throw_error(std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #elif YCL_Win32
 	using namespace platform_ex;
 	const auto sv(ResolveReparsePoint(wcast(path), ReparsePointData().Get()));
@@ -717,7 +710,8 @@ EntryData::FillNewName(string_view name,
 					alias = pri + '.' + ext;
 					ystdex::retry_on_cond(check, [&]{
 						if(YB_UNLIKELY(LFN::MaxNumericTail < i))
-							ystdex::throw_error(std::errc::invalid_argument);
+							ystdex::throw_error(std::errc::invalid_argument,
+								yfsig);
 						LFN::WriteNumericTail(alias, i++);
 					});
 				}
@@ -725,7 +719,7 @@ EntryData::FillNewName(string_view name,
 			WriteAlias(alias);
 		}
 		else
-			ystdex::throw_error(std::errc::invalid_argument);
+			ystdex::throw_error(std::errc::invalid_argument, yfsig);
 		alias_check_sum = LFN::GenerateAliasChecksum(data());
 	}
 	return {alias_check_sum, entry_size};
@@ -847,7 +841,7 @@ CheckColons(const char* path)
 	{
 		path = p_col + 1;
 		if(std::strchr(path, ':'))
-			ystdex::throw_error(std::errc::invalid_argument);
+			ystdex::throw_error(std::errc::invalid_argument, yfsig);
 	}
 	return path;
 }

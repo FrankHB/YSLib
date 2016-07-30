@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2044
+\version r2068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-07-25 23:57 +0800
+	2016-07-30 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,7 +185,7 @@ FetchFileInfo(_func f, UniqueHandle::pointer h)
 {
 	::BY_HANDLE_FILE_INFORMATION info;
 
-	YCL_CallWin32F(GetFileInformationByHandle, h, &info);
+	YCL_CallF_Win32(GetFileInformationByHandle, h, &info);
 	return f(info);
 }
 
@@ -196,7 +196,7 @@ MakeFileToDo(_func f, _tParams&&... args)
 {
 	if(const auto h = MakeFile(yforward(args)...))
 		return f(h.get());
-	YCL_Raise_Win32Exception("CreateFileW");
+	YCL_Raise_Win32E("CreateFileW");
 }
 
 //! \since build 651
@@ -228,10 +228,10 @@ FetchFixedSystemPath(SystemPaths e, size_t s)
 	switch(e)
 	{
 	case SystemPaths::System:
-		YCL_CallWin32F(GetSystemDirectoryW, str, unsigned(s));
+		YCL_CallF_Win32(GetSystemDirectoryW, str, unsigned(s));
 		break;
 	case SystemPaths::Windows:
-		YCL_CallWin32F(GetSystemWindowsDirectoryW, str, unsigned(s));
+		YCL_CallF_Win32(GetSystemWindowsDirectoryW, str, unsigned(s));
 		break;
 	}
 	return ystdex::rtrim(wstring(str), L'\\') + L'\\';
@@ -248,7 +248,7 @@ Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
 }
 Win32Exception::Win32Exception(ErrorCode ec, string_view msg, const char* fn,
 	RecordLevel lv)
-	: Win32Exception(ec, msg.to_string() + " @ " + Nonnull(fn), lv)
+	: Win32Exception(ec, platform::ComposeMessageWithSignature(msg, fn), lv)
 {}
 ImplDeDtor(Win32Exception)
 
@@ -268,7 +268,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 		{
 			wchar_t* buf{};
 
-			YCL_CallWin32F(FormatMessageW, FORMAT_MESSAGE_ALLOCATE_BUFFER
+			YCL_CallF_Win32(FormatMessageW, FORMAT_MESSAGE_ALLOCATE_BUFFER
 				| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
 				{}, ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
 				reinterpret_cast<wchar_t*>(&buf), 1, {});
@@ -285,7 +285,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 ModuleProc*
 LoadProc(::HMODULE h_module, const char* proc)
 {
-	return YCL_CallWin32F(GetProcAddress, h_module, proc);
+	return YCL_CallF_Win32(GetProcAddress, h_module, proc);
 }
 
 
@@ -321,11 +321,11 @@ GlobalDelete::operator()(pointer h) const ynothrow
 
 
 GlobalLocked::GlobalLocked(::HGLOBAL h)
-	: p_locked(YCL_CallWin32F(GlobalLock, h))
+	: p_locked(YCL_CallF_Win32(GlobalLock, h))
 {}
 GlobalLocked::~GlobalLocked()
 {
-	YCL_CallWin32F_Trace(GlobalUnlock, p_locked);
+	YCL_TraceCallF_Win32(GlobalUnlock, p_locked);
 }
 
 
@@ -441,7 +441,7 @@ CheckWine()
 void
 DirectoryFindData::Deleter::operator()(pointer p) const ynothrowv
 {
-	FilterExceptions(std::bind(YCL_WrapCallWin32(FindClose, p), yfsig),
+	FilterExceptions(std::bind(YCL_WrapCall_Win32(FindClose, p), yfsig),
 		"directory find data deleter");
 }
 
@@ -600,7 +600,7 @@ ResolveReparsePoint(const wchar_t* path, ReparsePointData::Data& rdb)
 			-> wstring_view{
 			if(info.dwFileAttributes & ReparsePoint)
 			{
-				YCL_CallWin32F(DeviceIoControl, h, FSCTL_GET_REPARSE_POINT, {},
+				YCL_CallF_Win32(DeviceIoControl, h, FSCTL_GET_REPARSE_POINT, {},
 					0, &rdb, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, {}, {});
 				switch(rdb.ReparseTag)
 				{
@@ -611,7 +611,7 @@ ResolveReparsePoint(const wchar_t* path, ReparsePointData::Data& rdb)
 				default:
 					YTraceDe(Warning, "Unsupported reparse tag '%lu' found",
 						rdb.ReparseTag);
-					ystdex::throw_error(std::errc::not_supported);
+					ystdex::throw_error(std::errc::not_supported, yfsig);
 				}
 			}
 			throw std::invalid_argument(
@@ -624,11 +624,11 @@ ResolveReparsePoint(const wchar_t* path, ReparsePointData::Data& rdb)
 wstring
 ExpandEnvironmentStrings(const wchar_t* p_src)
 {
-	const auto w_len(YCL_CallWin32F(ExpandEnvironmentStringsW, Nonnull(p_src),
+	const auto w_len(YCL_CallF_Win32(ExpandEnvironmentStringsW, Nonnull(p_src),
 		{}, 0));
 	wstring wstr(w_len, wchar_t());
 
-	YCL_CallWin32F(ExpandEnvironmentStringsW, p_src, &wstr[0], w_len);
+	YCL_CallF_Win32(ExpandEnvironmentStringsW, p_src, &wstr[0], w_len);
 	return wstr;
 }
 
@@ -667,7 +667,7 @@ void
 QueryFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 	::FILETIME* p_mtime)
 {
-	YCL_CallWin32F(GetFileTime, h, p_ctime, p_atime, p_mtime);
+	YCL_CallF_Win32(GetFileTime, h, p_ctime, p_atime, p_mtime);
 }
 void
 QueryFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
@@ -685,7 +685,7 @@ SetFileTime(UniqueHandle::pointer h, ::FILETIME* p_ctime, ::FILETIME* p_atime,
 {
 	using ::SetFileTime;
 
-	YCL_CallWin32F(SetFileTime, h, p_ctime, p_atime, p_mtime);
+	YCL_CallF_Win32(SetFileTime, h, p_ctime, p_atime, p_mtime);
 }
 void
 SetFileTime(const wchar_t* path, ::FILETIME* p_ctime, ::FILETIME* p_atime,
@@ -715,7 +715,7 @@ ConvertTime(const ::FILETIME& file_time)
 			* 100U);
 	}
 	else
-		ystdex::throw_error(std::errc::not_supported);
+		ystdex::throw_error(std::errc::not_supported, yfsig);
 }
 ::FILETIME
 ConvertTime(std::chrono::nanoseconds file_time)
@@ -728,21 +728,21 @@ ConvertTime(std::chrono::nanoseconds file_time)
 		res.dwLowDateTime = date.LowPart);
 	if(res.dwLowDateTime != 0 || res.dwHighDateTime != 0)
 		return res;
-	ystdex::throw_error(std::errc::not_supported);
+	ystdex::throw_error(std::errc::not_supported, yfsig);
 }
 
 
 Mutex::Mutex(const wchar_t* name)
 	// TODO: Save last error and detect %ERROR_ALREADY_EXISTS?
 	// TODO: Use desired attributes with %::CreateMutexW?
-	: h_mutex(YCL_CallWin32F(CreateMutexW, {}, {}, name))
+	: h_mutex(YCL_CallF_Win32(CreateMutexW, {}, {}, name))
 {}
 
 void
 Mutex::lock()
 {
 	if(::WaitForSingleObject(native_handle(), INFINITE) == WAIT_FAILED)
-		YCL_Raise_Win32Exception("WaitForSingleObject");
+		YCL_Raise_Win32E("WaitForSingleObject");
 }
 
 bool
@@ -752,9 +752,12 @@ Mutex::try_lock()
 }
 
 void
-Mutex::unlock()
+Mutex::unlock() ynothrowv
 {
-	YCL_CallWin32F_Trace(ReleaseMutex, native_handle());
+	const auto res(YCL_TraceCallF_Win32(ReleaseMutex, native_handle()));
+
+	YAssert(res, "Narrow contract violated.");
+	yunused(res);
 }
 
 

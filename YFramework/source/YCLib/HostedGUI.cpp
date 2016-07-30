@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1880
+\version r1909
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-07-25 11:54 +0800
+	2016-07-30 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ GDIObjectDelete::operator()(pointer h) const ynothrow
 	static_assert(std::is_same<pointer, ::HGDIOBJ>::value,
 		"Mismatched type found.");
 
-	YCL_CallWin32F_Trace(DeleteObject, h);
+	YCL_TraceCallF_Win32(DeleteObject, h);
 }
 #	endif
 
@@ -111,7 +111,7 @@ CheckStride(SDst buf_stride, SDst w)
 void
 MoveWindow(::HWND h_wnd, SPos x, SPos y)
 {
-	YCL_CallWin32F(SetWindowPos, h_wnd, {}, x, y, 0, 0, SWP_ASYNCWINDOWPOS
+	YCL_CallF_Win32(SetWindowPos, h_wnd, {}, x, y, 0, 0, SWP_ASYNCWINDOWPOS
 		| SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING
 		| SWP_NOSIZE | SWP_NOZORDER);
 }
@@ -120,7 +120,7 @@ MoveWindow(::HWND h_wnd, SPos x, SPos y)
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
-	YCL_CallWin32F(SetWindowPos, h_wnd, {}, 0, 0, int(w), int(h),
+	YCL_CallF_Win32(SetWindowPos, h_wnd, {}, 0, 0, int(w), int(h),
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER
 		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
@@ -131,7 +131,7 @@ FetchWindowRect(::HWND h_wnd)
 {
 	::RECT rect;
 
-	YCL_CallWin32F(GetWindowRect, h_wnd, &rect);
+	YCL_CallF_Win32(GetWindowRect, h_wnd, &rect);
 	return rect;
 }
 
@@ -161,7 +161,7 @@ FetchWindowStyle(::HWND h_wnd)
 void
 AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = {})
 {
-	YCL_CallWin32F(AdjustWindowRect, &rect, FetchWindowStyle(h_wnd), b_menu);
+	YCL_CallF_Win32(AdjustWindowRect, &rect, FetchWindowStyle(h_wnd), b_menu);
 	FetchSizeFromBounds(rect);
 }
 
@@ -169,7 +169,7 @@ AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = {})
 void
 SetWindowBounds(::HWND h_wnd, int x, int y, SDst w, SDst h)
 {
-	YCL_CallWin32F(SetWindowPos, h_wnd, {}, x, y, int(w), int(h),
+	YCL_CallF_Win32(SetWindowPos, h_wnd, {}, x, y, int(w), int(h),
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
 		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
@@ -261,7 +261,7 @@ WindowReference::GetClientLocation() const
 {
 	::POINT point{0, 0};
 
-	YCL_CallWin32F(ClientToScreen, GetNativeHandle(), &point);
+	YCL_CallF_Win32(ClientToScreen, GetNativeHandle(), &point);
 	return {point.x, point.y};
 }
 Size
@@ -269,7 +269,7 @@ WindowReference::GetClientSize() const
 {
 	::RECT rect;
 
-	YCL_CallWin32F(GetClientRect, GetNativeHandle(), &rect);
+	YCL_CallF_Win32(GetClientRect, GetNativeHandle(), &rect);
 	return {rect.right, rect.bottom};
 }
 Point
@@ -277,8 +277,8 @@ WindowReference::GetCursorLocation() const
 {
 	::POINT cursor;
 
-	YCL_CallWin32F(GetCursorPos, &cursor);
-	YCL_CallWin32F(ScreenToClient, GetNativeHandle(), &cursor);
+	YCL_CallF_Win32(GetCursorPos, &cursor);
+	YCL_CallF_Win32(ScreenToClient, GetNativeHandle(), &cursor);
 	return {cursor.x, cursor.y};
 }
 Point
@@ -293,7 +293,7 @@ WindowReference::GetOpacity() const
 {
 	byte a;
 
-	YCL_CallWin32F(GetLayeredWindowAttributes, GetNativeHandle(), {}, &a, {});
+	YCL_CallF_Win32(GetLayeredWindowAttributes, GetNativeHandle(), {}, &a, {});
 	return a;
 }
 Size
@@ -321,7 +321,7 @@ WindowReference::SetClientBounds(const Rect& r)
 void
 WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
 {
-	YCL_CallWin32F(SetLayeredWindowAttributes, GetNativeHandle(), 0, a,
+	YCL_CallF_Win32(SetLayeredWindowAttributes, GetNativeHandle(), 0, a,
 		LWA_ALPHA);
 }
 WindowReference
@@ -336,14 +336,14 @@ WindowReference::SetText(const wchar_t* str)
 {
 	YTraceDe(Debug, "Setting text '%p' to window reference '%p'...",
 		ystdex::pvoid(str), ystdex::pvoid(this));
-	YCL_CallWin32F(SetWindowTextW, GetNativeHandle(), str);
+	YCL_CallF_Win32(SetWindowTextW, GetNativeHandle(), str);
 }
 
 void
 WindowReference::Close()
 {
 	YTraceDe(Debug, "Closing window reference '%p'...", ystdex::pvoid(this));
-	YCL_CallWin32F(SendNotifyMessageW, GetNativeHandle(), WM_CLOSE, 0, 0);
+	YCL_CallF_Win32(SendNotifyMessageW, GetNativeHandle(), WM_CLOSE, 0, 0);
 }
 
 void
@@ -351,7 +351,7 @@ WindowReference::Invalidate()
 {
 	YTraceDe(Debug, "Invalidating window reference '%p'...",
 		ystdex::pvoid(this));
-	YCL_CallWin32F(InvalidateRect, GetNativeHandle(), {}, {});
+	YCL_CallF_Win32(InvalidateRect, GetNativeHandle(), {}, {});
 }
 
 void
@@ -432,7 +432,7 @@ CreateCompatibleDIBSection(const YSLib::Drawing::Size& s, BitmapPtr& p_buffer)
 		"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
 		sizeof(Pixel) * s.Width * s.Height), 0, 0, 0, 0}, {}};
 	void* p_buf{};
-	const auto h(YCL_CallWin32F(CreateDIBSection, {}, &bmi, DIB_RGB_COLORS,
+	const auto h(YCL_CallF_Win32(CreateDIBSection, {}, &bmi, DIB_RGB_COLORS,
 		&p_buf, {}, 0));
 
 	if(YB_LIKELY(p_buf))
@@ -648,7 +648,7 @@ WindowMemorySurface::UpdateBounds(ScreenBuffer& sbuf, const Rect& r,
 
 	if(h_old)
 	{
-		YCL_CallWin32F_Trace(BitBlt, h_owner_dc, int(r.X), int(r.Y),
+		YCL_TraceCallF_Win32(BitBlt, h_owner_dc, int(r.X), int(r.Y),
 			int(r.Width), int(r.Height), h_mem_dc, int(sp.X), int(sp.Y),
 			SRCCOPY);
 		if(YB_UNLIKELY(!::SelectObject(h_mem_dc, h_old)))
@@ -671,7 +671,7 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 	::POINT pt{sp.X, sp.Y};
 	::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
 
-	YCL_CallWin32F_Trace(UpdateLayeredWindow, h_wnd, h_owner_dc,
+	YCL_TraceCallF_Win32(UpdateLayeredWindow, h_wnd, h_owner_dc,
 		ystdex::aligned_store_cast<::POINT*>(&rect), &size, h_mem_dc, &pt, 0,
 		&bfunc, ULW_ALPHA);
 	::SelectObject(h_mem_dc, h_old);
@@ -742,11 +742,11 @@ WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
 		::LoadCursorW({}, IDC_ARROW), h_bg, nullptr, Nonnull(class_name)})
 {}
 WindowClass::WindowClass(const ::WNDCLASSW& wc)
-	: WindowClass(wc.lpszClassName, YCL_CallWin32F(RegisterClassW, &wc),
+	: WindowClass(wc.lpszClassName, YCL_CallF_Win32(RegisterClassW, &wc),
 	wc.hInstance)
 {}
 WindowClass::WindowClass(const ::WNDCLASSEXW& wc)
-	: WindowClass(wc.lpszClassName, YCL_CallWin32F(RegisterClassExW, &wc),
+	: WindowClass(wc.lpszClassName, YCL_CallF_Win32(RegisterClassExW, &wc),
 	wc.hInstance)
 {}
 WindowClass::WindowClass(wstring_view class_name,
@@ -791,21 +791,21 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 	wchar_t buf[size(WindowClassName)];
 
-	YCL_CallWin32F(GetClassNameW, GetNativeHandle(), buf,
+	YCL_CallF_Win32(GetClassNameW, GetNativeHandle(), buf,
 		int(size(WindowClassName)));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
 	if(YB_UNLIKELY(::SetWindowLongPtrW(GetNativeHandle(), GWLP_USERDATA,
 		::LONG_PTR(this)) == 0 && GetLastError() != 0))
-		YCL_Raise_Win32Exception("SetWindowLongPtrW");
-	YCL_CallWin32F(SetWindowPos, GetNativeHandle(), {}, 0, 0, 0, 0,
+		YCL_Raise_Win32E("SetWindowLongPtrW");
+	YCL_CallF_Win32(SetWindowPos, GetNativeHandle(), {}, 0, 0, 0, 0,
 		SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW
 		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
 
 	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
 
-	YCL_CallWin32F(RegisterRawInputDevices, &rid, 1, sizeof(rid));
+	YCL_CallF_Win32(RegisterRawInputDevices, &rid, 1, sizeof(rid));
 	MessageMap[WM_DESTROY] += []() ynothrow{
 		::PostQuitMessage(0);
 		YTraceDe(Debug, "Host quit message posted.");
@@ -975,11 +975,11 @@ class Clipboard::Data : public GlobalLocked
 Clipboard::Clipboard(NativeWindowHandle h_wnd)
 {
 	// FIXME: Spin for remote desktops?
-	YCL_CallWin32F(OpenClipboard, h_wnd);
+	YCL_CallF_Win32(OpenClipboard, h_wnd);
 }
 Clipboard::~Clipboard()
 {
-	YCL_CallWin32F_Trace(CloseClipboard, );
+	YCL_TraceCallF_Win32(CloseClipboard, );
 }
 
 bool
@@ -991,13 +991,13 @@ Clipboard::IsAvailable(FormatType fmt) ynothrow
 void
 Clipboard::CheckAvailable(FormatType fmt)
 {
-	YCL_CallWin32F(IsClipboardFormatAvailable, fmt);
+	YCL_CallF_Win32(IsClipboardFormatAvailable, fmt);
 }
 
 void
 Clipboard::Clear() ynothrow
 {
-	YCL_CallWin32F_Trace(EmptyClipboard, );
+	YCL_TraceCallF_Win32(EmptyClipboard, );
 }
 
 NativeWindowHandle
@@ -1075,7 +1075,7 @@ void
 Clipboard::SendRaw(FormatType fmt, void* h)
 {
 	Clear();
-	YCL_CallWin32F(SetClipboardData, fmt, h);
+	YCL_CallF_Win32(SetClipboardData, fmt, h);
 }
 
 
