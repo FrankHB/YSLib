@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1873
+\version r1919
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-07-25 23:21 +0800
+	2016-07-30 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,33 +128,32 @@ public:
 };
 
 
-//! \since build 592
+//! \since build 714
 //@{
-//! \brief 按 ::GetLastError 的结果和指定参数抛出 Windows::Win32Exception 对象。
-#	define YCL_Raise_Win32Exception(...) \
+/*!
+\brief 按 \c ::GetLastError 的结果和指定参数抛出 Windows::Win32Exception 对象。
+\note 先调用 \c ::GetLastError 以避免参数中的副作用影响结果。
+*/
+#	define YCL_Raise_Win32E(...) \
 	{ \
-		const auto err(::GetLastError()); \
+		const auto err_(::GetLastError()); \
 	\
-		throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
+		throw platform_ex::Windows::Win32Exception(err_, __VA_ARGS__); \
 	}
 
 //! \brief 按表达式求值和指定参数抛出 Windows::Win32Exception 对象。
-#	define YCL_Raise_Win32Exception_On_Failure(_expr, ...) \
+#	define YCL_RaiseZ_Win32E(_expr, ...) \
 	{ \
-		const auto err(Windows::ErrorCode(_expr)); \
+		const auto err_(Windows::ErrorCode(_expr)); \
 	\
-		if(err != ERROR_SUCCESS) \
-			throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
+		if(err_ != ERROR_SUCCESS) \
+			throw platform_ex::Windows::Win32Exception(err_, __VA_ARGS__); \
 	}
-//@}
 
-/*!
-\brief 跟踪 ::GetLastError 取得的调用状态结果。
-\since build 691
-*/
-#	define YCL_Trace_Win32Error(_lv, _fn, _msg) \
+//! \brief 跟踪 ::GetLastError 取得的调用状态结果。
+#	define YCL_Trace_Win32E(_lv, _fn, _sig) \
 	YTraceDe(_lv, "Error %lu: failed calling " #_fn " @ %s.", \
-		::GetLastError(), _msg)
+		::GetLastError(), _sig)
 
 /*!
 \brief 调用 Win32 API 或其它可用 ::GetLastError 取得调用状态的例程。
@@ -163,47 +162,46 @@ public:
 //@{
 /*!
 \note 若失败抛出 Windows::Win32Exception 对象。
-\since build 651
+\sa YCL_Raise_Win32E
 */
 //@{
-#	define YCL_WrapCallWin32(_fn, ...) \
-	[&](const char* msg) YB_NONNULL(1){ \
-		const auto res(_fn(__VA_ARGS__)); \
+#	define YCL_WrapCall_Win32(_fn, ...) \
+	[&](const char* sig) YB_NONNULL(1){ \
+		const auto res_(_fn(__VA_ARGS__)); \
 	\
-		if(YB_UNLIKELY(!res)) \
-			YCL_Raise_Win32Exception(#_fn, msg); \
-		return res; \
+		if(YB_UNLIKELY(!res_)) \
+			YCL_Raise_Win32E(#_fn, sig); \
+		return res_; \
 	}
 
-#	define YCL_CallWin32(_fn, _msg, ...) \
-	YCL_WrapCallWin32(_fn, __VA_ARGS__)(_msg)
+#	define YCL_Call_Win32(_fn, _sig, ...) \
+	YCL_WrapCall_Win32(_fn, __VA_ARGS__)(_sig)
 
 //! \since build 638
-#	define YCL_CallWin32F(_fn, ...) YCL_CallWin32(_fn, yfsig, __VA_ARGS__)
+#	define YCL_CallF_Win32(_fn, ...) YCL_Call_Win32(_fn, yfsig, __VA_ARGS__)
 //@}
 
 /*!
 \note 若失败跟踪 ::GetLastError 的结果。
 \note 格式转换说明符置于最前以避免宏参数影响结果。
-\sa YCL_Trace_Win32Error
-\since build 651
+\sa YCL_Trace_Win32E
 */
 //@{
-#	define YCL_WrapCallWin32_Trace(_fn, ...) \
-	[&](const char* msg) YB_NONNULL(1){ \
-		const auto res(_fn(__VA_ARGS__)); \
+#	define YCL_TraceWrapCall_Win32(_fn, ...) \
+	[&](const char* sig) YB_NONNULL(1){ \
+		const auto res_(_fn(__VA_ARGS__)); \
 	\
-		if(YB_UNLIKELY(!res)) \
-			YCL_Trace_Win32Error(platform::Descriptions::Warning, _fn, msg); \
-		return res; \
+		if(YB_UNLIKELY(!res_)) \
+			YCL_Trace_Win32E(platform::Descriptions::Warning, _fn, sig); \
+		return res_; \
 	}
 
-#	define YCL_CallWin32_Trace(_fn, _msg, ...) \
-	YCL_WrapCallWin32_Trace(_fn, __VA_ARGS__)(_msg)
+#	define YCL_TraceCall_Win32(_fn, _sig, ...) \
+	YCL_TraceWrapCall_Win32(_fn, __VA_ARGS__)(_sig)
 
-//! \since build 638
-#	define YCL_CallWin32F_Trace(_fn, ...) \
-	YCL_CallWin32_Trace(_fn, yfsig, __VA_ARGS__)
+#	define YCL_TraceCallF_Win32(_fn, ...) \
+	YCL_TraceCall_Win32(_fn, yfsig, __VA_ARGS__)
+//@}
 //@}
 //@}
 
@@ -231,7 +229,7 @@ template<typename _func>
 YB_NONNULL(1, 2) _func&
 LoadProc(const wchar_t* module, const char* proc)
 {
-	return LoadProc<_func>(YCL_CallWin32F(GetModuleHandleW, module), proc);
+	return LoadProc<_func>(YCL_CallF_Win32(GetModuleHandleW, module), proc);
 }
 //@}
 
@@ -945,8 +943,12 @@ public:
 	bool
 	try_lock();
 
+	/*!
+	\pre 线程对互斥量具有所有权。
+	\since build 714
+	*/
 	void
-	unlock();
+	unlock() ynothrowv;
 
 	//! \see WG21 N4606 30.2.3[thread.req.native] 。
 	PDefH(native_handle_type, native_handle, )

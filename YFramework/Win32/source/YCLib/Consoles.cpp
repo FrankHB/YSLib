@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 控制台。
-\version r327
+\version r335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2016-07-25 11:46 +0800
+	2016-07-30 19:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ ConsoleHandler(unsigned long ctrl)
 void
 FixConsoleHandler(int(WINAPI* handler)(unsigned long), bool add)
 {
-	YCL_CallWin32F(SetConsoleCtrlHandler, handler ? handler : ConsoleHandler,
+	YCL_CallF_Win32(SetConsoleCtrlHandler, handler ? handler : ConsoleHandler,
 		add);
 }
 
@@ -93,7 +93,7 @@ WConsole::GetScreenBufferInfo() const
 {
 	::CONSOLE_SCREEN_BUFFER_INFO info;
 
-	YCL_CallWin32F(GetConsoleScreenBufferInfo, h_std, &info);
+	YCL_CallF_Win32(GetConsoleScreenBufferInfo, h_std, &info);
 	return info;
 }
 
@@ -115,7 +115,7 @@ void
 WConsole::SetCursorPosition(::COORD pos)
 {
 	// NOTE: %::SetConsoleCursorPosition expects 1-based.
-	YCL_CallWin32F(SetConsoleCursorPosition, h_std, {short(pos.X + 1), short(pos.Y + 1)});
+	YCL_CallF_Win32(SetConsoleCursorPosition, h_std, {short(pos.X + 1), short(pos.Y + 1)});
 }
 void
 WConsole::SetForeColor(std::uint8_t fc) ynothrow
@@ -153,9 +153,9 @@ WConsole::Erase(wchar_t c)
 void
 WConsole::Fill(::COORD coord, unsigned long n, wchar_t c)
 {
-	YCL_CallWin32F(FillConsoleOutputCharacterW, h_std, c, n, coord, {});
-	YCL_CallWin32F(FillConsoleOutputAttribute, h_std, Attributes, n, coord, {});
-	YCL_CallWin32F(SetConsoleCursorPosition, h_std, {coord.X, coord.Y});
+	YCL_CallF_Win32(FillConsoleOutputCharacterW, h_std, c, n, coord, {});
+	YCL_CallF_Win32(FillConsoleOutputAttribute, h_std, Attributes, n, coord, {});
+	YCL_CallF_Win32(SetConsoleCursorPosition, h_std, {coord.X, coord.Y});
 }
 
 void
@@ -173,7 +173,7 @@ WConsole::Update()
 void
 WConsole::Update(::WORD value)
 {
-	YCL_CallWin32F(SetConsoleTextAttribute, h_std, value);
+	YCL_CallF_Win32(SetConsoleTextAttribute, h_std, value);
 }
 
 void
@@ -210,7 +210,7 @@ WConsole::WriteString(wstring_view sv)
 
 	unsigned long n;
 
-	YCL_CallWin32F(WriteConsoleW, h_std, sv.data(),
+	YCL_CallF_Win32(WriteConsoleW, h_std, sv.data(),
 		static_cast<unsigned long>(sv.length()), &n, yimpl({}));
 	return size_t(n);
 }

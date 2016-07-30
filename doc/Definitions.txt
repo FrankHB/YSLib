@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13946
+\version r13965
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2016-07-10 15:38 +0800
+	2016-07-30 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -216,11 +216,17 @@ $header NativeAPI
 YCL_ReservedGlobal(_n)
 YCL_CallGlobal(_n, ...)
 }
-$header FileSystem
+$header FileIO
 {
-YCL_PATH_DELIMITER
-YCL_PATH_SEPARATOR
-YCL_PATH_ROOT
+YCL_Raise_SysE(_t, _fn, _sig)
+YCL_RaiseZ_SysE(_t, _expr, _fn, _sig)
+YCL_Trace_SysE(_lv, _fn, _sig)
+YCL_WrapCall_CAPI(_t, _fn, ...)
+YCL_Call_CAPI(_t, _fn, _sig, ...)
+YCL_CallF_CAPI(_t, _fn, ...)
+YCL_TraceWrapCall_CAPI(_fn, ...)
+YCL_TraceCall_CAPI(_fn, _sig, ...)
+YCL_TraceCallF_CAPI(_fn, ...)
 }
 $header Video
 {
@@ -236,15 +242,15 @@ $dir YCLib_(Win32)
 {
 $header MinGW32
 {
-YCL_Raise_Win32Exception(...)
-YCL_Raise_Win32Exception_On_Failure(_expr, ...)
-YCL_Trace_Win32Error(_fn, _msg)
-YCL_WrapCallWin32(_lv, _fn, ...)
-YCL_CallWin32(_fn, _msg, ...)
-YCL_CallWin32F(_fn, ...)
-YCL_WrapCallWin32_Trace(_fn, ...)
-YCL_CallWin32_Trace(_fn, _msg, ...)
-YCL_CallWin32F_Trace(_fn, ...)
+YCL_Raise_Win32E(...)
+YCL_RaiseZ_Win32E(_expr, ...)
+YCL_Trace_Win32E(_fn, _sig)
+YCL_WrapCall_Win32(_lv, _fn, ...)
+YCL_Call_Win32(_fn, _sig, ...)
+YCL_CallF_Win32(_fn, ...)
+YCL_TraceWrapCall_Win32(_fn, ...)
+YCL_TraceCall_Win32(_fn, _sig, ...)
+YCL_TraceCallF_Win32(_fn, ...)
 }
 } // $dir YCLib_(Win32);
 

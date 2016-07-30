@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1645
+\version r1748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-28 09:16 +0800
+	2016-07-30 20:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,110 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ "access-specifier" @ "base class" @ "platform %DS"
+				@ "class %UnmapDelete" @ %MemoryMapping -> 'private' ~ 'public',
+			+ "(2 functions; function template) %ComposeMessageWithSignature"
+				@ "namespace %platform" @ %Debug,
+			/ %FileIO $=
+			(
+				* "missing including <cerrno> for %errno" $since b701,
+				+ "macros %(YCL_Raise_SysE, \
+					YCL_RaiseZ_SysE, YCL_Trace_SysE)",
+				(
+				+ "macro %YCL_WrapCall_CAPI" ^ $dep_from
+					("%platform::ComposeMessageWithSignature" @ %Debug,
+					"%YCL_Raise_SysE");
+				+ "macros %(YCL_Call_CAPI; YCL_CallF_CAPI)"
+				),
+				(
+				+ "macro %YCL_TraceWrapCall_CAPI" ^ $dep_from
+					"%YCL_Trace_SysE";
+				+ "macros %(YCL_TraceCall_CAPI; YCL_TraceCallF_CAPI)"
+				),
+				/ "threw %std::system_error" @ ("function template \
+					%FetchCurrentWorkingDirectory", "platform %DS" @ "function \
+					%SetFileTime") ^ "%yfsig",
+				/ "simplified and threw %std::system_error with \
+					platform-dependent signature" @ "member function \
+					%FileDescriptor::Flush" ^ $dep_from "%YCL_CallF_CAPI"
+					~ "%ystdex::throw_error",
+				/ @ "class %FileDescriptor" $=
+				(
+					* $dev "static assertion string" @ !"platform %Win32"
+						@ "function %FileDescriptor::GetNumberOfLinks" $since
+						b638,
+					/ DLDI "simplified throwing %std::system_error"
+						@ "platform %Win32" @ "function %GetSize"
+						^ "%ThrowFileOperationFailure" ~ "%ystdex::throw_error"
+				)
+			),
+			/ %FileSystem $=
+			(
+				/ "threw %std::system_error" @ "functions %IterateLink"
+					^ "custom signature",
+				/ "threw %std::system_error" ^ "%yfsig" @ ("platform %DS"
+					@ "2 functions %(CreateHardLink, CreateSymbolicLink, \
+					ReadLink)", ("member function %EntryData::FillNewName",
+					"function %CheckColons") @ "namespace %FAT"),
+				/ "simplified" @ !"platforms %(DS, Win32)"
+					@ "functions %(CreateHardLink, CreateSymbolicLink)"
+					^ $dep_from ("%YCL_CallF_CAPI" @ %FileIO)
+					~ "%ystdex::throw_error",
+				/ "threw %std::system_error" @ "functions %ReadLink" ^ $dep_from
+					("%(YCL_Raise_SysE, \
+					YCL_RaiseZ_SysE)" @ %FileIO)
+			),
+			/ "threw %std::system_error" @ "constructor %MappedFile"
+				@ %MemoryMapping $=
+			(
+				/ @ !"platform %DS" ^ "%yfisg"
+				/ "simplified" @ !"platform %Win32" ^ $dep_from
+					("%YCL_CallF_CAPI" @ %FileIO) ~ "%ystdex::throw_error"
+			)
+		),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			/ @ "member function %Mutex::unlock" $=
+			(
+				+ 'ynothrowv',
+				(
+				+ $doc "'\pre' command" @ "Doxygen comment"; 
+				+ "assertion for narrow contract vaiolation"
+				)
+			),
+			/ $impl "constructor#2 %Win32Exception" ^ $dep_from
+				("%platform::ComposeMessageWithSignature" @ %YCLib.Debug),
+			/ "threw %std::system_error"
+				@ "functions %(ResolveReparsePoint, 2 ConvertTime)" ^ "%yfsig",
+			/ "macros %(YCL_Raise_Win32Exception, \
+				YCL_Raise_Win32Exception_On_Failure)"
+				-> "macros %(YCL_Raise_Win32E, YCL_RaiseZ_Win32E)"
+				// To eliminate G++ warning: [-Wshadow] when enclosing scope \
+					is using 'err'.
+				$= (/ "local variable name %err" -> "%err_")
+			/ "macros %(YCL_WrapCallWin32, YCL_WrapCallWin32_Trace)"
+				-> "%(YCL_WrapCall_Win32, YCL_TraceWrapCall_Win32)"
+				// To eliminate G++ warning: [-Wshadow] when enclosing scope \
+					is using 'res'.
+				$= (/ "local variable name %res" -> "%res_"),
+			/ "macro %(YCL_Trace_Win32Error, YCL_CallWin32, YCL_CallWin32F, \
+				YCL_CallWin32_Trace, YCL_CallWin32F_Trace)"
+				=> "%(YCL_Trace_Win32E, YCL_Call_Win32, YCL_CallF_Win32, \
+				YCL_TraceCall_Win32, YCL_TraceCallF_Win32)"
+		),
+	),
+	* "missing includeing %CAssert" @ %YBase.YStandardEx.Functional $since b612
+	/ $forced DLDI $dep_from %YFramework.YCLib_(Win32).MinGW32 $effective
+		@ %(YCLib_(Win32), YCLib.(Host, HostedGUI, FileIO, MemoryMapping,
+		FileSystem), Helper.(GUIApplication, HostRenderer)) @ %YFramework
+),
+
+b713
 (
 	/ %YFramework $=
 	(

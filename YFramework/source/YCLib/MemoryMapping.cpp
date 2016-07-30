@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r445
+\version r461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-07-23 20:15 +0800
+	2016-07-30 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,13 @@
 #include YFM_YCLib_NativeAPI // for ::UnmapViewOfFile, CreateFileMapping,
 //	PAGE_READONLY, PAGE_READWRITE, MapViewOfFile, FILE_MAP_READ,
 //	FILE_MAP_ALL_ACCESS, FILE_MAP_COPY, ::lseek;
-#include <ystdex/exception.h> // for ystdex::throw_error,
+#include <ystdex/exception.h> // for YCL_Raise_SysE, YCL_CallF_CAPI,
 //	std::throw_with_nested, std::runtime_error;
 #include <cerrno> // for errno;
 #include <ystdex/cast.hpp> // for ystdex::narrow;
 #if YCL_Win32
 #	include YFM_YCLib_Host // for platform_ex::UniqueHandle;
-#	include YFM_Win32_YCLib_MinGW32 // for YCL_CallWin32F;
+#	include YFM_Win32_YCLib_MinGW32 // for YCL_CallF_Win32;
 #elif YCL_Linux || YCL_OS_X
 #	include <sys/mman.h> // for ::munmap, ::mmap, PROT_READ, PROT_WRITE,
 //	MAP_PRIVATE, MAP_SHARED, MAP_FAILED;
@@ -77,19 +77,19 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 
 				if(h != INVALID_HANDLE_VALUE)
 				{
-					platform_ex::UniqueHandle fm(YCL_CallWin32F(
+					platform_ex::UniqueHandle fm(YCL_CallF_Win32(
 						CreateFileMapping, h, {},
 						opt != FileMappingOption::ReadWrite ? PAGE_READONLY
 						: PAGE_READWRITE, 0, 0, wcast(key)));
 
-					return static_cast<byte*>(YCL_CallWin32F(MapViewOfFile,
+					return static_cast<byte*>(YCL_CallF_Win32(MapViewOfFile,
 						fm.get(), opt != FileMappingOption::CopyOnWrite
 						? (opt == FileMappingOption::ReadOnly ? FILE_MAP_READ
 						: FILE_MAP_ALL_ACCESS) : FILE_MAP_COPY,
 						static_cast<unsigned long>(off >> 32UL),
 						static_cast<unsigned long>(off), len));
 				}
-				ystdex::throw_error(errno, "::_get_osfhandle");
+				YCL_Raise_SysE(, "::_get_osfhandle", yfsig);
 #	else
 				// NOTE: Since no %MAP_FIXED or extensions can be specified
 				//	here, there is no need to convert %ENOMEM to throwing
@@ -102,7 +102,7 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 
 				if(p != MAP_FAILED)
 					return static_cast<byte*>(p);
-				ystdex::throw_error(errno, "::mmap");
+				YCL_Raise_SysE(, "::mmap", yfsig);
 #	endif
 			}
 			throw std::invalid_argument("Empty file found.");
@@ -126,11 +126,9 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 	yunused(opt);
 	try
 	{
-		if(YB_UNLIKELY(off != 0
-			&& ::lseek(*file.get(), ::off_t(off), SEEK_SET) < 0))
-			ystdex::throw_error(errno);
-		if(YB_UNLIKELY(::read(*file.get(), GetPtr(), len) < 0))
-			ystdex::throw_error(errno);
+		if(off != 0)
+			YCL_CallF_CAPI(, ::lseek, *file.get(), ::off_t(off), SEEK_SET);
+		YCL_CallF_CAPI(, ::read, *file.get(), GetPtr(), len);
 	}
 	CatchExpr(...,
 		std::throw_with_nested(std::runtime_error("Mapping failed.")))
@@ -181,17 +179,15 @@ MappedFile::FlushView()
 #if YCL_DS
 	// NOTE: Nothing to do to flush the view.
 #elif YCL_Win32
-	YCL_CallWin32F(::FlushViewOfFile, GetPtr(), GetSize());
+	YCL_CallF_Win32(::FlushViewOfFile, GetPtr(), GetSize());
 	// NOTE: It should be noted %::FlushFileBuffers is required to flush file
 	//	buffer, but this will be called in file descriptor flush below.
 #else
 	// NOTE: It is unspecified that whether data in %MAP_PRIVATE mappings has
 	//	any permanent storage locations, see http://pubs.opengroup.org/onlinepubs/9699919799/functions/msync.html.
 	// NOTE: To notify the system scheduling at first. See https://jira.mongodb.org/browse/SERVER-12733.
-	if(::msync(GetPtr(), GetSize(), MS_ASYNC) < 0)
-		ystdex::throw_error(errno);
-	if(::msync(GetPtr(), GetSize(), MS_SYNC) < 0)
-		ystdex::throw_error(errno);
+	YCL_CallF_CAPI(, ::msync, GetPtr(), GetSize(), MS_ASYNC);
+	YCL_CallF_CAPI(, ::msync, GetPtr(), GetSize(), MS_SYNC);
 #endif
 }
 

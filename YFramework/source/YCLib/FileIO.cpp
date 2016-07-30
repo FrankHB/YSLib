@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2544
+\version r2560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-07-26 22:08 +0800
+	2016-07-30 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,8 @@
 #undef __STRICT_ANSI__ // for fileno, ::pclose, ::popen for POSIX platforms;
 //	_fileno, _wfopen for MinGW.org;
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileIO // for is_integral;
-#include YFM_YCLib_Debug // for Nonnull, ystdex::throw_error,
-//	ystdex::temporary_buffer;
+#include YFM_YCLib_FileIO // for ystdex::throw_error, std::is_integral,
+//	YCL_CallF_CAPI, ystdex::temporary_buffer, Nonnull;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, ::HANDLE, struct ::stat, platform_ex::estat, ::close, ::fcntl,
 //	F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize, ::ftruncate, ::fsync,
@@ -54,8 +53,7 @@
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform_ex::ConvertTime, platform_ex::SetFileTime,
-//	YCL_Raise_Win32Exception;
+//	platform_ex::ConvertTime, platform_ex::SetFileTime, YCL_Raise_Win32E;
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS,
 //	platform_ex::WCSToUTF8;
 
@@ -247,7 +245,7 @@ SetFileTime(int fd, const ::timespec* times)
 #	define UTIME_OMIT (-1L)
 #endif
 	yunused(fd), yunused(times);
-	ystdex::throw_error(std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #else
 	if(::futimens(fd, times) != 0)
 		ThrowFileOperationFailure("Failed setting file time.");
@@ -496,7 +494,7 @@ FileDescriptor::GetNumberOfLinks() const ynothrow
 #else
 	struct ::stat st;
 	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
-		"Unsupported '::nlink_t' type found.");
+		"Unsupported 'st_nlink' type found.");
 
 	if(estat(st, desc) == 0)
 		return size_t(st.st_nlink);
@@ -512,8 +510,7 @@ FileDescriptor::GetSize() const
 	// XXX: Error handling for indirect calls.
 	if(::GetFileSizeEx(ToHandle(desc), &sz) != 0 && YB_LIKELY(sz.QuadPart >= 0))
 		return std::uint64_t(sz.QuadPart);
-	ystdex::throw_error<FileOperationFailure>(GetErrnoFromWin32(),
-		"Failed getting file size.");
+	ThrowFileOperationFailure("Failed getting file size.", GetErrnoFromWin32());
 #else
 	struct ::stat st;
 
@@ -648,15 +645,12 @@ FileDescriptor::SetTranslationMode(int mode) const ynothrow
 void
 FileDescriptor::Flush()
 {
-	if(
 #if YCL_Win32
-		YB_UNLIKELY(::_commit(desc) < 0)
+	YCL_CallF_CAPI(, ::_commit, desc);
 #else
-		// XXX: http://austingroupbugs.net/view.php?id=672.
-		YB_UNLIKELY(::fsync(desc) < 0)
+	// XXX: http://austingroupbugs.net/view.php?id=672.
+	YCL_CallF_CAPI(, ::fsync, desc);
 #endif
-		)
-		ystdex::throw_error(errno);
 }
 
 size_t
@@ -1113,7 +1107,7 @@ FetchCurrentWorkingDirectory(size_t)
 		}
 		if(rlen != 0)
 			return true;
-		YCL_Raise_Win32Exception("GetCurrentDirectoryW");
+		YCL_Raise_Win32E("GetCurrentDirectoryW");
 	}, [&]{
 		if((len = ::GetCurrentDirectoryW(0, {})) != 0)
 		{

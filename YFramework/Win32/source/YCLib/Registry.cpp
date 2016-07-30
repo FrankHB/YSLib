@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 注册表。
-\version r140
+\version r148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2015-09-12 19:39:47 +0800
 \par 修改时间:
-	2015-09-12 20:08 +0800
+	2016-07-30 19:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ inline namespace Windows
 void
 RegistryKey::Flush()
 {
-	YCL_Raise_Win32Exception_On_Failure(::RegFlushKey(h_key), "RegFlushKey");
+	YCL_RaiseZ_Win32E(::RegFlushKey(h_key), "RegFlushKey");
 }
 
 pair<unsigned long, vector<byte>>
@@ -51,13 +51,13 @@ RegistryKey::GetRawValue(const wchar_t* name, unsigned long type) const
 {
 	unsigned long size;
 
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key,
+	YCL_RaiseZ_Win32E(::RegQueryValueExW(h_key,
 		platform::Nonnull(name), {}, type == REG_NONE ? &type : nullptr, {},
 		&size), "RegQueryValueExW");
 
 	vector<byte> res(size);
 
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, name,
+	YCL_RaiseZ_Win32E(::RegQueryValueExW(h_key, name,
 		{}, &type, &res[0], &size), "RegQueryValueExW");
 	return {type, std::move(res)};
 }
@@ -66,7 +66,7 @@ RegistryKey::GetSubKeyCount() const
 {
 	unsigned long res;
 
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {},
+	YCL_RaiseZ_Win32E(::RegQueryInfoKey(h_key, {}, {}, {},
 		&res, {}, {}, {}, {}, {}, {}, {}), "RegQueryInfoKey");
 	return size_t(res);
 }
@@ -82,7 +82,7 @@ RegistryKey::GetSubKeyNames() const
 		wchar_t name[256];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
-			YCL_Raise_Win32Exception_On_Failure(::RegEnumKeyExW(h_key,
+			YCL_RaiseZ_Win32E(::RegEnumKeyExW(h_key,
 				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
 				{}), "RegEnumKeyExW");
 	}
@@ -93,7 +93,7 @@ RegistryKey::GetValueCount() const
 {
 	unsigned long res;
 
-	YCL_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {}, {},
+	YCL_RaiseZ_Win32E(::RegQueryInfoKey(h_key, {}, {}, {}, {},
 		{}, {}, &res, {}, {}, {}, {}), "RegQueryInfoKey");
 	return size_t(res);
 }
@@ -109,7 +109,7 @@ RegistryKey::GetValueNames() const
 		wchar_t name[16384];
 
 		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
-			YCL_Raise_Win32Exception_On_Failure(::RegEnumValueW(h_key,
+			YCL_RaiseZ_Win32E(::RegEnumValueW(h_key,
 				static_cast<unsigned long>(res.size()), name, {}, {}, {}, {},
 				{}), "RegEnumValueW");
 	}

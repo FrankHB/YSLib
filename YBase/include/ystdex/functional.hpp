@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2952
+\version r2953
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-04-26 19:47 +0800
+	2016-07-30 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 //	make_index_sequence, exclude_self_t;
 #include "functor.hpp" // for "ref.hpp", <functional>, std::function,
 //	__cpp_lib_invoke, less, addressof_op, mem_get;
+#include "cassert.h" // for yconstraint;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex

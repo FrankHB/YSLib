@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r708
+\version r709
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-06-19 05:26 +0800
+	2016-07-30 19:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,7 +183,7 @@ WindowThread::WindowLoop(Window& wnd)
 			::DispatchMessageW(&msg);
 		}
 		else
-			YCL_Trace_Win32Error(Warning, GetMessageW, yfsig);
+			YCL_Trace_Win32E(Warning, GetMessageW, yfsig);
 	}
 #		endif
 #	endif
