@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3122
+\version r3125
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-07-25 20:09 +0800
+	2016-07-31 14:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_Initialization // for ystdex::replace_cast;
 #include YFM_YCLib_MemoryMapping // for MappedFile;
-#include YFM_YSLib_Core_YException // for ExtractException;
+#include YFM_YSLib_Core_YException // for ExtractException, ExtractAndTrace;
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
 #include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
 #include YFM_NPL_Configuration // for NPL::Configuration;
@@ -489,7 +489,8 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 					}
 				});
 			}
-			CatchIgnore(FileOperationFailure&)
+			CatchExpr(FileOperationFailure& e, YTraceDe(Warning,
+				"Failed loading font directory."), ExtractAndTrace(e, Warning))
 		fc.InitializeDefaultTypeface();
 
 		const auto faces(fc.GetFaces().size());

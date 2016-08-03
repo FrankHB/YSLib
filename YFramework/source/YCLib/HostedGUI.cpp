@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1909
+\version r1910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-07-30 19:45 +0800
+	2016-07-31 13:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -798,7 +798,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 	::SetLastError(0);
 	if(YB_UNLIKELY(::SetWindowLongPtrW(GetNativeHandle(), GWLP_USERDATA,
 		::LONG_PTR(this)) == 0 && GetLastError() != 0))
-		YCL_Raise_Win32E("SetWindowLongPtrW");
+		YCL_Raise_Win32E("SetWindowLongPtrW", yfsig);
 	YCL_CallF_Win32(SetWindowPos, GetNativeHandle(), {}, 0, 0, 0, 0,
 		SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW
 		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);

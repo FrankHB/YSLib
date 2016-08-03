@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13965
+\version r13967
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2016-07-30 19:47 +0800
+	2016-08-01 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,8 +85,9 @@ YB_IMPL_CLANGPP
 YPP_Args
 YPP_Empty
 YPP_Comma
-YPP_Join(_x, _y)
 YPP_Concat(_x, _y)
+YPP_Join(_x, _y)
+YPP_Stringify(_x)
 yimpl
 YB_HAS_ALIGNAS
 YB_HAS_ALIGNOF

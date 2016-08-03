@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3008
+\version r3015
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2016-05-18 20:13 +0800
+	2016-08-01 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,6 +240,12 @@
 注意宏定义内 ## 操作符修饰的形式参数为宏时，此宏不会被展开。
 */
 #define YPP_Join(_x, _y) YPP_Concat(_x, _y)
+
+/*!
+\brief 替换记号为字符串。
+\since build 715
+*/
+#define YPP_Stringify(_x) #_x
 //@}
 
 
@@ -504,6 +510,7 @@
 /*!
 \def YB_STATELESS
 \brief 指示函数或函数模板实例为无状态函数。
+\pre 若参数是对象指针或引用类型，必须保证指向或引用的对象是其它参数，或者不被使用。
 \note 假定函数调用的结果总是相同：返回值总是不可分辨的右值或指示同一个内存位置的
 	左值。任意以一次调用结果替代调用或合并重复调用时不改变可观察行为。
 \note 不访问函数外部的存储；通常不调用不可被 YB_STATELESS 安全指定的函数。
@@ -514,7 +521,6 @@
 
 指示函数或函数模板的求值仅用于计算返回值，无影响其它顶层块作用域外存储的副作用，
 且返回值只依赖参数的值，和其它存储无关。
-若参数是对象指针或引用类型，必须保证指向或引用的对象是其它参数，或者不被使用。
 */
 #if __has_attribute(__const__) || YB_IMPL_GNUCPP >= 20500
 #	define YB_STATELESS YB_ATTR(__const__)

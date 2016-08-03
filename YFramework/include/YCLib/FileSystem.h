@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3555
+\version r3556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-07-28 09:07 +0800
+	2016-07-31 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -511,7 +511,7 @@ public:
 	/*!
 	\brief 构造：打开目录路径。
 	\pre 间接断言：参数非空。
-	\throw FileOperationFailure 打开失败。
+	\throw FileOperationFailure 嵌套异常：打开失败。
 	\note 路径可以一个或多个分隔符结束；结束的分隔符会被视为单一分隔符。
 	\note 当路径只包含分隔符或为空字符串时视为当前目录。
 	\note 实现中 Win32 使用 UCS2-LE ，其它平台使用 UTF-8 ；否则需要编码转换。

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4177
+\version r4270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-07-30 19:47 +0800
+	2016-08-01 17:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,11 @@
 //	ystdex::read_uint_le, YAssertNonnull, ystdex::write_uint_le, std::bind,
 //	std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
-//	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::to_array,
-//	ystdex::throw_error, std::errc::function_not_supported, YCL_CallF_CAPI,
-//	ThrowFileOperationFailure, CategorizeNode, ystdex::ntctslen, std::wctob,
-//	std::towupper, ystdex::restrict_length, std::min, ystdex::ntctsicmp,
+//	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::throw_error,
+//	std::errc::function_not_supported, YCL_CallF_CAPI, std::throw_with_nested,
+//	FileOperationFailure, std::system_error,
+//	CategorizeNode, ystdex::ntctslen, std::wctob, std::towupper,
+//	ystdex::restrict_length, std::min, ystdex::ntctsicmp,
 //	std::errc::invalid_argument, std::strchr;
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include "CHRLib/YModules.h"
@@ -44,8 +45,6 @@
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::Invalid,
 //	platform_ex::ResolveReparsePoint, platform_ex::DirectoryFindData;
-#	include <system_error> // for std::system_error;
-#	include <exception> // for std::throw_with_nested;
 #	include <time.h> // for ::localtime_s;
 
 //! \since build 651
@@ -123,6 +122,22 @@ IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 		}
 		CatchIgnore(std::invalid_argument&)
 	return {};
+}
+#endif
+
+#define YCL_Impl_CatchSysE_ForNested(_msg) \
+	CatchExpr(std::system_error& e, \
+		std::throw_with_nested(FileOperationFailure(e.code(), Nonnull(_msg))))
+
+#if YCL_Win32
+//! \since build 715
+template<class _type, typename _tParam>
+_type*
+CreateDirectoryDataPtr(_tParam&& arg)
+{
+	TryRet(new _type(yforward(arg)))
+	// NOTE: This also catches %platform_ex::Win32Exception.
+	YCL_Impl_CatchSysE_ForNested("Failed opening directory")
 }
 #endif
 
@@ -229,51 +244,48 @@ ReadLink(const char* path)
 #else
 	struct ::stat st;
 
-	if(::lstat(Nonnull(path), &st) == 0)
+	YCL_CallF_CAPI(, ::lstat, Nonnull(path), &st);
+	if((Mode(st.st_mode) & Mode::Link) == Mode::Link)
 	{
-		if((Mode(st.st_mode) & Mode::Link) == Mode::Link)
+		auto n(st.st_size);
+
+		// NOTE: Some file systems like procfs on Linux are not
+		//	conforming to POSIX, thus %st.st_size is not always reliable. In
+		//	most cases, it is 0. Only 0 is currently supported.
+		if(n >= 0)
 		{
-			auto n(st.st_size);
+			// FIXME: Blocked. TOCTTOU access.
+			if(n == 0)
+				// TODO: Use %::pathconf to determine initial length instead
+				//	of magic number.
+				n = yimpl(1024);
+			return ystdex::retry_for_vector<string>(n,
+				[&](string& res, size_t s) -> bool{
+				errno_guard gd(errno, 0);
+				const auto r(::readlink(path, &res[0], size_t(n)));
 
-			// NOTE: Some file systems like procfs on Linux are not
-			//	conforming to POSIX, thus %st.st_size is not always reliable. In
-			//	most cases, it is 0. Only 0 is currently supported.
-			if(n >= 0)
-			{
-				// FIXME: Blocked. TOCTTOU access.
-				if(n == 0)
-					// TODO: Use %::pathconf to determine initial length instead
-					//	of magic number.
-					n = yimpl(1024);
-				return ystdex::retry_for_vector<string>(n,
-					[&](string& res, size_t s) -> bool{
-					errno_guard gd(errno, 0);
-					const auto r(::readlink(path, &res[0], size_t(n)));
+				if(r < 0)
+				{
+					const int err(errno);
 
-					if(r < 0)
-					{
-						const int err(errno);
-
-						if(err == EINVAL)
-							throw std::invalid_argument("Failed reading link:"
-								" Specified file is not a link.");
-						YCL_RaiseZ_SysE(, err, "::readlink", yfsig);
-						throw std::runtime_error(
-							"Unknown error @ ::readlink.");
-					}
-					if(size_t(r) <= s)
-					{
-						res.resize(size_t(r));
-						return {};
-					}
-					return true;
-				});
-			}
-			throw std::invalid_argument("Invalid link size found.");
+					if(err == EINVAL)
+						throw std::invalid_argument("Failed reading link:"
+							" Specified file is not a link.");
+					YCL_RaiseZ_SysE(, err, "::readlink", yfsig);
+					throw std::runtime_error(
+						"Unknown error @ ::readlink.");
+				}
+				if(size_t(r) <= s)
+				{
+					res.resize(size_t(r));
+					return {};
+				}
+				return true;
+			});
 		}
-		throw std::invalid_argument("Specified file is not a link.");
+		throw std::invalid_argument("Invalid link size found.");
 	}
-	YCL_Raise_SysE(, "::lstat", yfsig);
+	throw std::invalid_argument("Specified file is not a link.");
 #endif
 }
 u16string
@@ -345,7 +357,7 @@ DirectorySession::DirectorySession()
 {}
 DirectorySession::DirectorySession(const char* path)
 #if YCL_Win32
-	: dir(new Data(MakePathStringW(path)))
+	: dir(CreateDirectoryDataPtr<Data>(MakePathStringW(path)))
 #else
 	: sDirPath([](const char* p) YB_NONNULL(1){
 		const auto res(Deref(p) != char()
@@ -365,7 +377,7 @@ DirectorySession::DirectorySession(const char* path)
 }
 DirectorySession::DirectorySession(const char16_t* path)
 #if YCL_Win32
-	: dir(new Data(path))
+	: dir(CreateDirectoryDataPtr<Data>(path))
 #else
 	: DirectorySession(MakePathString(path).c_str())
 #endif
@@ -401,8 +413,7 @@ HDirectory::operator++()
 		else
 			dirent_str.clear();
 	}
-	CatchExpr(std::system_error& e, std::throw_with_nested(
-		FileOperationFailure(e.code(), "Failed iterating directory.")))
+	YCL_Impl_CatchSysE_ForNested("Failed iterating directory")
 #else
 	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
 
@@ -420,6 +431,7 @@ HDirectory::operator++()
 			ThrowFileOperationFailure("Failed iterating directory.", err);
 	}
 #endif
+#undef YCL_Impl_CatchSysE_ForNested
 	return *this;
 }
 
@@ -429,10 +441,12 @@ HDirectory::GetNodeCategory() const ynothrow
 	if(*this)
 	{
 		YAssert(bool(GetNativeHandle()), "Invariant violation found.");
+
 #if YCL_Win32
 		const auto res(Deref(static_cast<platform_ex::DirectoryFindData*>(
 			GetNativeHandle())).GetNodeCategory());
 #else
+		using Descriptions::Warning;
 		auto res(NodeCategory::Empty);
 
 		try
@@ -441,17 +455,25 @@ HDirectory::GetNodeCategory() const ynothrow
 			struct ::stat st;
 
 #	if YCL_DS
-			if(::stat(name.c_str(), &st) == 0)
+#		define YCL_Impl_lstatn ::stat
 #	else
-			// XXX: Value of %errno might be overwrite.
-			if(::lstat(name.c_str(), &st) == 0)
-				res |= CategorizeNode(st.st_mode);
-			if(bool(res & NodeCategory::Link) && ::stat(name.c_str(), &st) == 0)
+#		define YCL_Impl_lstatn ::lstat
 #	endif
+			// TODO: Simplify.
+			// XXX: Value of %errno might be overwritten.
+			if(YCL_TraceCallF_CAPI(YCL_Impl_lstatn, name.c_str(), &st) == 0)
 				res |= CategorizeNode(st.st_mode);
+#	if !YCL_DS
+			if(bool(res & NodeCategory::Link)
+				&& YCL_TraceCallF_CAPI(::stat, name.c_str(), &st) == 0)
+				res |= CategorizeNode(st.st_mode);
+#	endif
+#	undef YCL_Impl_lstatn
 		}
-		// TODO: Log on failure.
-		CatchIgnore(...)
+		CatchExpr(std::exception& e, YTraceDe(Warning, "Failed getting node "
+			"category (errno = %d) @ %s: %s.", errno, yfsig, e.what()))
+		CatchExpr(...,
+			YTraceDe(Warning, "Unknown error @ %s.", yfsig))
 #endif
 		return res != NodeCategory::Empty ? res : NodeCategory::Invalid;
 	}
