@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r548
+\version r605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 11:00:14 +0800
 \par 修改时间:
-	2015-01-08 17:53 +0800
+	2016-08-03 10:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include <atomic> // for <bits/atomic_lockfree_defines.h> if using libstdc++.
 
 #if defined(__GLIBCXX__) \
-	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
+	&&(defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& ATOMIC_INT_LOCK_FREE < 2
 
 #	include "libdefect/exception.h"
@@ -104,15 +104,12 @@ struct __cxa_eh_globals
 extern void
 __terminate(std::terminate_handler) throw() __attribute__((__noreturn__));
 
-} // namespace __cxxabiv1;
-
-using namespace __cxxabiv1;
 
 namespace
 {
 
 inline __cxa_exception*
-__get_exception_header_from_obj(void *ptr)
+__get_exception_header_from_obj(void* ptr)
 {
 	return reinterpret_cast<__cxa_exception*>(ptr) - 1;
 }
@@ -123,8 +120,15 @@ __get_refcounted_exception_header_from_obj(void* ptr)
 	return reinterpret_cast<__cxa_refcounted_exception*>(ptr) - 1;
 }
 
+//! \since build 715
+inline __cxa_refcounted_exception*
+__get_refcounted_exception_header_from_ue(_Unwind_Exception* exc)
+{
+	return reinterpret_cast<__cxa_refcounted_exception*>(exc + 1) - 1;
+}
+
 inline __cxa_dependent_exception*
-__get_dependent_exception_from_ue(_Unwind_Exception *exc)
+__get_dependent_exception_from_ue(_Unwind_Exception* exc)
 {
 	return reinterpret_cast<__cxa_dependent_exception*>(exc + 1) - 1;
 }
@@ -133,7 +137,8 @@ __get_dependent_exception_from_ue(_Unwind_Exception *exc)
 inline bool
 __is_gxx_exception_class(_Unwind_Exception_Class c)
 {
-	// TODO: Take advantage of the fact that c will always be word aligned.
+	// TODO: Deferred. Take advantage of the fact that 'c' will always be
+	//	word-aligned.
 	return c[0] == 'G' && c[1] == 'N' && c[2] == 'U' && c[3] == 'C'
 		&& c[4] == 'C' && c[5] == '+' && c[6] == '+'
 		&& (c[7] == '\0' || c[7] == '\x01');
@@ -143,6 +148,20 @@ inline bool
 __is_dependent_exception(_Unwind_Exception_Class c)
 {
 	return c[7] == '\x01';
+}
+
+//! \since build 715
+static inline void
+__GXX_INIT_PRIMARY_EXCEPTION_CLASS(_Unwind_Exception_Class c)
+{
+	c[0] = 'G';
+	c[1] = 'N';
+	c[2] = 'U';
+	c[3] = 'C';
+	c[4] = 'C';
+	c[5] = '+';
+	c[6] = '+';
+	c[7] = '\0';
 }
 
 inline void
@@ -159,7 +178,7 @@ __GXX_INIT_DEPENDENT_EXCEPTION_CLASS(_Unwind_Exception_Class c)
 }
 #	else
 const _Unwind_Exception_Class __gxx_primary_exception_class
-	= (((((((_Unwind_Exception_Class('G') 
+	= (((((((_Unwind_Exception_Class('G')
 	<< 8 | _Unwind_Exception_Class('N'))
 	<< 8 | _Unwind_Exception_Class('U'))
 	<< 8 | _Unwind_Exception_Class('C'))
@@ -191,6 +210,9 @@ __is_dependent_exception(_Unwind_Exception_Class c)
 	return c & 1;
 }
 
+//! \since build 715
+#		define __GXX_INIT_PRIMARY_EXCEPTION_CLASS(c) \
+	c = __gxx_primary_exception_class
 #		define __GXX_INIT_DEPENDENT_EXCEPTION_CLASS(c) \
 	c = __gxx_dependent_exception_class
 #	endif
@@ -281,7 +303,29 @@ __gxx_dependent_exception_cleanup(_Unwind_Reason_Code code,
 	}
 }
 
+//! \since build 715
+void
+__gxx_exception_cleanup(_Unwind_Reason_Code code, _Unwind_Exception* exc)
+{
+	const auto header(__get_refcounted_exception_header_from_ue(exc));
+
+	if(code != _URC_FOREIGN_EXCEPTION_CAUGHT && code != _URC_NO_REASON)
+		__terminate(header->exc.terminateHandler);
+
+	if(__atomic_sub_fetch(&header->referenceCount, 1, __ATOMIC_ACQ_REL) == 0)
+	{
+		if(header->exc.exceptionDestructor)
+			header->exc.exceptionDestructor(header + 1);
+
+		__cxa_free_exception(header + 1);
+	}
+}
+
 } // unnamed namespace;
+
+} // namespace __cxxabiv1;
+
+using namespace __cxxabiv1;
 
 #	pragma GCC visibility pop
 
@@ -297,6 +341,13 @@ exception_ptr::exception_ptr() noexcept
 exception_ptr::exception_ptr(void* obj) noexcept
 	: _M_exception_object(obj)
 {
+	// NOTE: Need to hack here because pre-built code in
+	//	%__cxxabiv1::__cxa_throw or transactional memory extension
+	//	may assume it is not reference-counted so it would crash on %_M_release
+	//	or %std::rethrow_exception called after the reference has been cleanup.
+	const auto header(__get_refcounted_exception_header_from_obj(obj));
+
+	header->exc.unwindHeader.exception_cleanup = __gxx_exception_cleanup;
 	_M_addref();
 }
 #	ifdef _GLIBCXX_EH_PTR_COMPAT
@@ -409,9 +460,10 @@ current_exception() noexcept
 {
 	const auto header(__cxa_get_globals()->caughtExceptions);
 
-	return !header || !__is_gxx_exception_class(
-		header->unwindHeader.exception_class) ? exception_ptr()
-		: exception_ptr(__get_object_from_ambiguous_exception (header));
+	return header && __is_gxx_exception_class(
+		header->unwindHeader.exception_class)
+		? exception_ptr(__get_object_from_ambiguous_exception(header))
+		: exception_ptr();
 }
 
 void
@@ -441,7 +493,7 @@ rethrow_exception(exception_ptr ep)
 #endif
 
 #if defined(__GLIBCXX__) \
-	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
+	&&(defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& __GNUC__ * 100 + __GNUC_MINOR__ < 409
 
 #	include <exception>
@@ -450,7 +502,9 @@ rethrow_exception(exception_ptr ep)
 #		include <ext/concurrence.h>
 namespace
 {
-	__gnu_cxx::__mutex mx;
+
+__gnu_cxx::__mutex mx;
+
 } // unnamed namespace;
 #	endif
 

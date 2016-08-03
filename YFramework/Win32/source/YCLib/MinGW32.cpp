@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2068
+\version r2077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-07-30 19:44 +0800
+	2016-07-31 16:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,8 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_Win32_YCLib_Registry // for platform::FileOperationFailure,
-//	RegistryKey, ystdex::throw_error, std::errc::not_supported,
-//	std::invalid_argument;
+#	include YFM_Win32_YCLib_Registry // for RegistryKey, ystdex::throw_error,
+//	std::errc::not_supported, std::invalid_argument;
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
@@ -196,7 +195,7 @@ MakeFileToDo(_func f, _tParams&&... args)
 {
 	if(const auto h = MakeFile(yforward(args)...))
 		return f(h.get());
-	YCL_Raise_Win32E("CreateFileW");
+	YCL_Raise_Win32E("CreateFileW", yfsig);
 }
 
 //! \since build 651
@@ -454,19 +453,17 @@ DirectoryFindData::DirectoryFindData(wstring name)
 	YAssert(platform::EndsWithNonSeperator(dir_name),
 		"Invalid argument found.");
 
-	using platform::FileOperationFailure;
 	const auto attr(FileAttributes(::GetFileAttributesW(dir_name.c_str())));
-	yconstexpr const auto& msg("Opening directory failed.");
 
 	if(attr != Invalid)
 	{
 		if(attr & Directory)
 			dir_name += L"\\*";
 		else
-			ystdex::throw_error<FileOperationFailure>(ENOTDIR, msg);
+			ystdex::throw_error(ENOTDIR, yfsig);
 	}
 	else
-		ystdex::throw_error<FileOperationFailure>(GetErrnoFromWin32(), msg);
+		YCL_Raise_Win32E("GetFileAttributesW", yfsig);
 }
 
 NodeCategory
@@ -742,7 +739,7 @@ void
 Mutex::lock()
 {
 	if(::WaitForSingleObject(native_handle(), INFINITE) == WAIT_FAILED)
-		YCL_Raise_Win32E("WaitForSingleObject");
+		YCL_Raise_Win32E("WaitForSingleObject", yfsig);
 }
 
 bool

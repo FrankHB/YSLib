@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r413
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-07-30 19:42 +0800
+	2016-07-31 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,7 +138,7 @@ FetchCachedCommandResult(const string& cmd, size_t buf_size)
 			: FetchCommandOutput(cmd.c_str(), buf_size))).first)->second;
 	}
 	CatchExpr(FileOperationFailure& e,
-		YTraceDe(Err, "Command execution failed: %s", e.what()))
+		YTraceDe(Err, "Failed execution of command."), ExtractAndTrace(e, Err))
 	return cache[string()];
 }
 

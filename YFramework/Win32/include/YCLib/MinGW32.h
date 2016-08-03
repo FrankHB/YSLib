@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1919
+\version r1921
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-07-30 19:45 +0800
+	2016-07-31 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -678,7 +678,8 @@ public:
 	/*!
 	\brief 构造：使用指定的目录路径。
 	\pre 间接断言：路径参数的数据指针非空。
-	\throw platform::FileOperationFailure 打开路径失败，或指定的路径不是目录。
+	\throw std::system_error 指定的路径不是目录。
+	\throw Win32Exception 路径属性查询失败。
 	\since build 658
 
 	打开 UTF-16 路径指定的目录。

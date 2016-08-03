@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2560
+\version r2574
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-07-30 19:46 +0800
+	2016-07-31 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
 //	Mode, ::HANDLE, struct ::stat, platform_ex::estat, ::close, ::fcntl,
 //	F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize, ::ftruncate, ::fsync,
-//	::_wgetcwd, ::getcwd, !defined(__STRICT_ANSI__) API, platform_ex::futimens,
+//	::_wgetcwd, ::getcwd, !defined(__STRICT_ANSI__) API, ::futimens,
 //	::LARGE_INTEGER, ::GetFileSizeEx, ::GetCurrentDirectoryW;
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
@@ -101,7 +101,6 @@ namespace
 {
 
 //! \since build 625
-//@{
 template<typename _func>
 auto
 RetryOnInterrupted(_func f) -> decltype(RetryOnError(f, errno, EINTR))
@@ -110,13 +109,13 @@ RetryOnInterrupted(_func f) -> decltype(RetryOnError(f, errno, EINTR))
 }
 
 //! \since build 709
+//@{
 #if YCL_Win64
 using rwsize_t = unsigned;
 #else
 using rwsize_t = size_t;
 #endif
 
-//! \since build 709
 template<typename _func, typename _tBuf>
 size_t
 SafeReadWrite(_func f, int fd, _tBuf buf, rwsize_t nbyte) ynothrowv
@@ -125,7 +124,9 @@ SafeReadWrite(_func f, int fd, _tBuf buf, rwsize_t nbyte) ynothrowv
 		return f(fd, buf, nbyte);
 	}));
 }
+//@}
 
+//! \since build 625
 template<int _vErr, typename _func, typename _tByteBuf>
 _tByteBuf
 FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
@@ -145,7 +146,6 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 	}
 	return ptr;
 }
-//@}
 
 #if YCL_Win32
 //! \since build 704
@@ -230,10 +230,14 @@ CallFuncWithAttr(_func f, const char* path)
 }
 //@}
 #else
-//! \since build 651
 inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
 	ImplRet({std::time_t(ft.count() / 1000000000LL),
 		long(ft.count() % 1000000000LL)})
+
+//! \since build 715
+#define YCL_Impl_CatchSysE_ForNested(_msg) \
+	CatchExpr(std::system_error& e, \
+		std::throw_with_nested(FileOperationFailure(e.code(), Nonnull(_msg))))
 
 //! \since build 713
 YB_NONNULL(2) void
@@ -247,10 +251,12 @@ SetFileTime(int fd, const ::timespec* times)
 	yunused(fd), yunused(times);
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #else
-	if(::futimens(fd, times) != 0)
-		ThrowFileOperationFailure("Failed setting file time.");
+	TryExpr(YCL_CallF_CAPI(, ::futimens, fd, times))
+	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
 #endif
 }
+
+#undef YCL_Impl_CatchSysE_ForNested
 
 //! \since build 631
 //@{
@@ -1107,7 +1113,7 @@ FetchCurrentWorkingDirectory(size_t)
 		}
 		if(rlen != 0)
 			return true;
-		YCL_Raise_Win32E("GetCurrentDirectoryW");
+		YCL_Raise_Win32E("GetCurrentDirectoryW", yfsig);
 	}, [&]{
 		if((len = ::GetCurrentDirectoryW(0, {})) != 0)
 		{

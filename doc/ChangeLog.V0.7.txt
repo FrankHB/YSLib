@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1748
+\version r1851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-07-30 20:32 +0800
+	2016-08-03 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,94 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ "all %YCL_Raise_Win32E" ^ 'yfsig'
+			$effective @ %'YCLib_(Win32)'.MinGW32, YCLib.(FileIO, HostedGUI),
+		/ "exception %FileOperationFailure handling" ^ "%CatchExpr"
+			~ "%CatchIgnore" @ "function %InitializeSystemFontCache"
+			@ %Helper.Initialization
+			$= (+ "trace with level 'Warning'" ^ "%ExtractAndTrace"),
+		/ "exception %FileOperationFailure handling" ^ "%CatchExpr"
+			~ "%CatchIgnore" @ "function %InstallFile" @ %NPL.Dependency
+			$= (+ "trace with level 'Err'" ^ "%ExtractAndTrace"),
+		/ %YCLib $=
+		(
+			/ "handled exception %FileOperationFailure with also nested \
+				exceptions" @ "function %FetchCachedCommandResult" @ %Host
+				^ "%ExtractAndTrace",
+			/ %FileSystem $=
+			(
+				/ @ "constructors %DirectorySession" $=
+				(
+					/ $forced DLDI "handled different underlying exceptions"
+						$dep_from ("constructors %DirectoryFindData"
+						@ %'YCLib_(Win32)'.MinGW32);
+					/ "threw nested exception %FileOperationFailure with \
+						%std::system_error on failure"
+				),
+				/ DLDI "simplified calling %::lstat" @ !"platforms %(Win32, DS)"
+					@ "function %ReadLink#1" ^ "%YCL_CallF_CAPI"
+					~ "%YCL_Raise_SysE",
+				/ @ "class %HDirectory" $=
+				(
+					/ @ "function %operator++" $=
+					(
+						/ DLDI "simplified" @ "platform %Win32"
+						/ "threw nested exception %FileOperationFailure with \
+							%std::system_error on failure" @ !"platform %Win32"
+					),
+					+ "trace for exception with level 'Warning'"
+						@ !"platform %Win32" @ "function %GetNodeCategory"
+						^ "%(YCL_TraceCallF_CAPI, CatchExpr)" ~ "%CatchIgnore"
+				)
+			),
+			/ %FileIO $=
+			(
+				+ "trace for %::(stat, lstat) calls",
+				/ DLDI "threw nested exception %FileOperationFailure with \
+					%std::system_error on failure" @ !"platforms %(DS, Win32)"
+					@ "member functions %FileDescriptor::(SetAccessTime, \
+					SetModificationTime, SetModificationAndAccessTime)"
+					^ "%YCL_CallF_CAPI" $dep_from %YBase.LibDefect.Exception
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Service.FileSystem $=
+			(
+				+ "exception %FileOperationFailure handling" !^ "%CatchIgnore"
+					@ "functions %VerfiyDirectory"
+					$= (+ "trace with level 'Debug'" ^ "%ExtractAndTrace"),
+				/ "threw %std::system_error" @ "function %EnsureDirectory"
+					^ 'yfsig'
+			),
+			+ "trace with level 'Warning'" @ "exception \
+				%FileOperationFailure handling" @ "member function \
+				%FileBox::SetPath" @ %UI.ComboList
+				// To avoid missing context.
+		),
+		/ @ "constructors %DirectoryFindData" @ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			/ "exception message" -> 'yfsig',
+			/ "threw %std::system_error" ~ "%platform::FileOperationFailure \
+				with %ENOTDIR",
+			/ "threw %Win32Exception" ~ "%platform::FileOperationFailure for \
+				::GetFileAttributesW call failure" ^ "%YCL_Raise_Win32E"
+		)
+	),
+	/ %YBase $=
+	(
+		+ "macro %YPP_Stringify" @ YDefinition,
+		* "cleanup of %std::exception_ptr or %std::rethrow_exception would \
+			cause undefined behavior due to pre-built library code working \
+			without reference-counted exception object" @ %LibDefect.Exception
+			$since b550
+	)
+),
+
+b714
 (
 	/ %YFramework $=
 	(
@@ -57,8 +145,10 @@ $now
 				+ "macros %(YCL_TraceCall_CAPI; YCL_TraceCallF_CAPI)"
 				),
 				/ "threw %std::system_error" @ ("function template \
-					%FetchCurrentWorkingDirectory", "platform %DS" @ "function \
-					%SetFileTime") ^ "%yfsig",
+					%FetchCurrentWorkingDirectory", "platform %DS" @ "member \
+					functions %FileDescriptor::(SetAccessTime, \
+					SetModificationTime, SetModificationAndAccessTime)")
+					^ "%yfsig",
 				/ "simplified and threw %std::system_error with \
 					platform-dependent signature" @ "member function \
 					%FileDescriptor::Flush" ^ $dep_from "%YCL_CallF_CAPI"
@@ -1527,9 +1617,10 @@ b701
 					/ "allowed using parameter for the thrown exception"
 						~ "%errno"
 				),
-				/ @ "platform %Win32" @ "function %FileDescriptor::GetCategory"
-					$dep_from ("function %CategorizeNode with native handle \
-					parameter" @ %'YCLib_(Win32)'.MinGW32) $=
+				/ @ "platform %Win32" @ "member function \
+					%FileDescriptor::GetCategory" $dep_from
+					("function %CategorizeNode with native handle parameter"
+					@ %'YCLib_(Win32)'.MinGW32) $=
 				(
 					* $comp "missing attributes detection"  $since b658,
 					/ DLDI "simplified"
@@ -1551,19 +1642,22 @@ b701
 			),
 			/ @ "class %HDirectory" @ %YCLib.FileSystem $=
 			(
-				/ @ "function %operator++" $since b411 $=
+				/ @ "function %operator++" $=
 				(
 					(
-					* "missing throwing on error" $=
+					* "missing throwing on error" $since b411 $=
 						// This would cause some errors (e.g. dereferencing a \
 							broken reparse point to a directory) treated as \
 							normal end of directory iteration.
 					(
-						/ "checked to throw" @ "platform %Win32" $dep_from
+						/ "checked to throw %FileOperationFailure with nested \
+							underlying %std::system_error" @ "platform %Win32"
+							^ "%std::throw_with_nested" $dep_from
 							("%DirectoryFindData::Read"
 							@ %'YCLib_(Win32)'.MinGW32),
-						/ $impl "check %errno and threw %std::system_error on \
-							demand" @ !"platform %Win32"
+						/ $impl "checked %errno and threw \
+							%FileOperationFailure on demand"
+							@ !"platform %Win32"
 					),
 					* $comp $doc "wrong '\throw' commands" @ "Doxygen comments"
 						$since b411

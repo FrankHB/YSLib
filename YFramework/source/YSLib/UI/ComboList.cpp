@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3306
+\version r3308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2016-07-12 08:54 +0800
+	2016-07-31 14:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,7 +181,8 @@ FileBox::SetPath(const IO::Path& pth)
 		}
 	}
 	// TODO: Custom platform-dependent name converting.
-	CatchExpr(IO::FileOperationFailure& e, ExtractAndTrace(e, Warning))
+	CatchExpr(IO::FileOperationFailure& e, YTraceDe(Warning,
+		"Failed setting path."), ExtractAndTrace(e, Warning))
 	return {};
 }
 
