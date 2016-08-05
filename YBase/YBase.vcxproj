@@ -55,6 +55,7 @@
     <ClInclude Include="include\ystdex\operators.hpp" />
     <ClInclude Include="include\ystdex\optional.h" />
     <ClInclude Include="include\ystdex\path.hpp" />
+    <ClInclude Include="include\ystdex\placement.hpp" />
     <ClInclude Include="include\ystdex\pointer.hpp" />
     <ClInclude Include="include\ystdex\pseudo_mutex.h" />
     <ClInclude Include="include\ystdex\range.hpp" />

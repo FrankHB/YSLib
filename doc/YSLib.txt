@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3117
+\version r3118
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-07-22 09:05 +0800
+	2016-08-05 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 /*
+
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
 项目范围参见 [Documentation::ProjectRules @@1] 。
@@ -88,7 +89,7 @@ Core::YException 包含 <string> （由于复用标准库异常需要的参数�
 @1.2.3 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头及唯一在其中声明的接口和包含的宏（但可能会间接依赖）：
 <csetjmp> 、 <csignal> 、 <ciso646> 、 <iostream> 、 <locale> 和 <strstream> 。
-其它要点参见 [Documentation::LanguageConvention @@5.22] 。
+其它要点参见 [Documentation::LanguageConvention @@6.14] 。
 
 @1.2.4 本体的必要头文件中显式包含的 C++ 标准库依赖项：
 Core::YException 包含 <exception> 和 <stdexcept> ；

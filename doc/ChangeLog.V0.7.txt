@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1851
+\version r1995
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-03 10:19 +0800
+	2016-08-06 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,137 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			(
+			+ %Placement $= (
+				+ "function templates %(construct_default_within; \
+					construct_default_in; construct_default; \
+					uninitialized_default_construct, \
+					uninitialized_default_construct_n)",
+				+ "function templates %(destroy_at, destroy, destroy_n, \
+					uninitialized_move, uninitialized_move_n)",
+				+ "function templates %uninitialized_value_construct"
+					^ $dep_from "%ystdex::construct_range",
+				// Some of these partially implement WG21 P0040R3, which was \
+					adapoted 2016-06.
+				+ "class templates %default_init_allocator",
+				+ "class template %placement_deleter; alias template \
+					%placement_ptr",
+				+ "function template %construct_within"
+			);
+			(
+			* "wrong '\tparam' commands contents" @ "Doxygen comments"
+				@ "function template %destroy_in" @ %Memory
+				$orig @ "function template %destroy_in" $since b692;
+			/ %Memory $=
+			(
+				/ "simplified function template %construct_in" >> %Placement
+					^ $dep_from ("%construct_within" @ %Placement),
+				/ "function templates %construct" $=
+				(
+					/ "allowed storage type different to type of object being \
+						constructed" ^ $dep_from
+						("%ystdex::construct_within" @ %Placement)
+						~ "%ystdex::construct_in",
+					>> %Placement
+				),
+				/ "function templates %(construct_range, destruct_in, \
+					destruct, destruct_range, uninitialized_construct, \
+					uninitialized_construct_n)" >> %Placement
+			)
+			),
+			/ DLPI "simplified header inclusion" @ %(Optionl, ScopeGuard)
+				^ %Placement ~ %Memory
+			),
+			/ %Utilities $=
+			(
+				/ 'yconstexpr const struct default_init_t{} default_init{};'
+					>> $dep_from %Placement,
+				* "wrong nothrow specification"
+					@ "constructor with %default_init_t parameter"
+					@ "class template %boxed_value" $since b677
+			),
+			/ %TypePun $=
+			(
+				/ @ "class template %pun_ref" $=
+				(
+					/ "constructor template with single 'void*' parameter"
+						-> "tagged constructor template with %default_init_t",
+					- 'value_init_t' @ "parameters"
+						@ "constructor template for value initialization"
+						// To be consistent with %boxed_value. Though keeping \
+							it will be good to avoid accidental unnecessary \
+							initialization, it is responsibility of users to \
+							keep it work efficiently as they want in general.
+				),
+				/ 'yconstexpr const struct value_init_t{} value_init{};'
+					>> $dep_from %Placement,
+					// Now it is not used. It may still be useful in future, \
+						at least as meta tag of initialization kinds; so keep \
+						it.
+				(
+				+ "alias template %pun_ptr" ^ $dep_from
+					("%placement_ptr" @ %Placement);
+				+ "function template %make_pun" ^ $dep_from
+					("%ystdex::construct_within" @ %Placement)
+				),
+				/ @ "class template %standard_layout_storage" $=
+				(
+					+ DD "Doxygen comments to warning about object lifetime and \
+						strict aliasing rules",
+					+ "function template %pun" ^ $dep_from "%make_pun",
+					+ "function templates %destroy",
+					(
+					+ "function templates %construct" ^ $dep_from
+						("%ystdex::construct_within" @ %Placement);
+					/ "constructor template" ^ "%construct";
+					* $comp "placement 'new' used" ~ '::new' $orig (@ \
+						"constructor template %pod_storage" @ %Any $since b352)
+					)
+				)
+			),
+			/ %Any $=
+			(
+				/ DLI @ "%any" $=
+				(
+					/ "protected any base class copy constructor and \
+						destructor";
+						// The semantics guarantees are different than %any. \
+							The base copy constructor does not construct a \
+							fully-initialized object for users of %any. So \
+							does the destructor. Also to avoid wrong use \
+							without protection from 'final'. If refactorized \
+							with union as underlying storage, this may be even \
+							forced by deleted copy constructor of the storage.
+					/ $comp "avoided redundant copy of underlying data on copy \
+						construction"
+				),
+				/ @ "classes %any_ops::(value_handler, holder_handler)" $=
+				(
+					(
+					/ "initialization" ^ $dep_from
+						("%standard_layout_storage::construct" @ %TypePun)
+					* $comp "placement 'new' used" ~ '::new' $orig
+						(@ "class template %any_handler" $since b352)
+					);
+					/ "dispose" ^ $dep_from
+						("%standard_layout_storage::destroy" @ %TypePun)
+				)
+			)
+		)
+	),
+	/ DLI ("constructor %PaintStructData" @ "platform %Win32"
+		@ %YCLib.HostedGUI, "constructor %ReparsePointData"
+		@ %'YCLib_(Win32)'.MinGW32) @ %YFramework $dep_from ("%ystdex::pun_ref"
+		@ %YBase.YStandardEx.TypePun) ^ "%ystdex::default_init"
+		// To avoid performance regression.
+),
+
+b715
 (
 	/ %YFramework $=
 	(
@@ -96,8 +227,11 @@ $now
 			),
 			+ "trace with level 'Warning'" @ "exception \
 				%FileOperationFailure handling" @ "member function \
-				%FileBox::SetPath" @ %UI.ComboList
+				%FileBox::SetPath" @ %UI.ComboList,
 				// To avoid missing context.
+			* $comp "function %ExtractException" @ %Core.YException
+				@ "platforms %(DS, Android)" $since b591 $dep_from
+				("%ystdex::handle_nested" @ %YBase.YStandardEx.Exception)
 		),
 		/ @ "constructors %DirectoryFindData" @ %'YCLib_(Win32)'.MinGW32 $=
 		(
@@ -111,10 +245,15 @@ $now
 	/ %YBase $=
 	(
 		+ "macro %YPP_Stringify" @ YDefinition,
-		* "cleanup of %std::exception_ptr or %std::rethrow_exception would \
-			cause undefined behavior due to pre-built library code working \
-			without reference-counted exception object" @ %LibDefect.Exception
-			$since b550
+		* "possible undefined behavior due to out-of-life exception object"
+			@ "working with pre-built library code working without \
+			reference-counted exception object" $since b550 $=
+		(
+			* "cleanup of %std::exception_ptr or %std::rethrow_exception would \
+				cause undefined behavior" @ %LibDefect.Exception;
+			* $comp "possible undefined behavior" @ "%handle_nested"
+				@ %YStandardEx.Exception
+		)
 	)
 ),
 
@@ -216,7 +355,7 @@ b714
 				YCL_CallWin32_Trace, YCL_CallWin32F_Trace)"
 				=> "%(YCL_Trace_Win32E, YCL_Call_Win32, YCL_CallF_Win32, \
 				YCL_TraceCall_Win32, YCL_TraceCallF_Win32)"
-		),
+		)
 	),
 	* "missing includeing %CAssert" @ %YBase.YStandardEx.Functional $since b612
 	/ $forced DLDI $dep_from %YFramework.YCLib_(Win32).MinGW32 $effective

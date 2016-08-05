@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1910
+\version r1911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-07-31 13:07 +0800
+	2016-08-04 23:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -698,7 +698,7 @@ struct PaintStructData::Data final : ::PAINTSTRUCT
 
 
 PaintStructData::PaintStructData()
-	: pun(&ps)
+	: pun(ystdex::default_init, &ps)
 {
 	static_assert(ystdex::is_aligned_storable<decltype(ps), Data>(),
 		"Invalid buffer found.");

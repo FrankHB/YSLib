@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r455
+\version r456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-06-21 09:40 +0800
+	2016-08-03 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include "utility.hpp" // for is_constructible, is_reference,
 //	is_nothrow_swappable, ystdex::vswap, std::declval, is_nothrow_copyable;
 #include "base.h" // for noncopyable;
-#include "memory.hpp" // for ystdex::construct_in, ystdex::destruct_in;
+#include "placement.hpp" // for ystdex::construct_in, ystdex::destruct_in;
 
 namespace ystdex
 {

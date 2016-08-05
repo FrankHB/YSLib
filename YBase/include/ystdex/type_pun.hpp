@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r429
+\version r497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2016-06-25 17:57 +0800
+	2016-08-06 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_type_pun_hpp_
 #define YB_INC_ystdex_type_pun_hpp_ 1
 
-#include "type_traits.hpp" // for "type_traits.hpp", bool_constant, yalignof,
+#include "placement.hpp" // for "placement.hpp", bool_constant, yalignof,
 //	and_, is_trivial, enable_if_t, is_object_pointer, remove_pointer_t,
 //	is_object, aligned_storage_t, is_reference, remove_reference_t,
 //	exclude_self_t, decay_t;
@@ -55,7 +55,7 @@ struct is_aligned_compatible : bool_constant<!(yalignof(_type)
 
 
 /*!
-\brief 判断是否可原地对齐存储。
+\brief 判断是否可放置对齐存储。
 \since build 610
 */
 template<typename _type, typename _tDst>
@@ -219,15 +219,10 @@ replace_cast(_tSrc&& v) ynothrow
 //@}
 
 
-//! \since build 705
-//@{
-//! \brief 值初始化标记。
-yconstexpr const struct value_init_t{} value_init{};
-
-
 /*!
 \brief 避免严格别名分析限制的缓冲引用。
 \tparam _type 完整或不完整的对象类型。
+\since build 705
 */
 template<typename _type>
 class pun_ref
@@ -241,15 +236,18 @@ private:
 public:
 	//! \pre 实例化时对象类型完整。
 	//@{
-	//! \pre 参数非空。
+	/*!
+	\pre 指针参数非空。
+	\since build 716
+	*/
 	//@{
-	YB_NONNULL(2)
-	pun_ref(void* p)
+	YB_NONNULL(3)
+	pun_ref(default_init_t, void* p)
 		: alias(*::new(p) _type)
 	{}
 	template<typename... _tParams>
-	YB_NONNULL(3)
-	pun_ref(value_init_t, void* p, _tParams&&... args)
+	YB_NONNULL(2)
+	pun_ref(void* p, _tParams&&... args)
 		: alias(*::new(p) _type(yforward(args)...))
 	{}
 	//@}
@@ -265,11 +263,32 @@ public:
 		return alias;
 	}
 };
+
+
+
+//! \since build 716
+//@{
+//! \brief 避免严格别名分析限制的缓冲独占所有权指针。
+template<typename _type>
+using pun_ptr = placement_ptr<decay_t<_type>>;
+
+
+//! \brief 构造避免严格别名分析限制的缓冲独占所有权指针指定的对象。
+template<typename _type, typename _tObj, typename... _tParams>
+inline pun_ptr<_type>
+make_pun(_tObj& obj, _tParams&&... args)
+{
+	return pun_ptr<_type>(
+		ystdex::construct_within<decay_t<_type>>(obj, yforward(args)...));
+}
 //@}
 
 
 /*!
-\brief 任意标准布局类型存储。
+\brief 任意标准布局类型对象提供空间的存储。
+\note 可能储存类型非标准布局类型对象。
+\see WG21 N4606 3.8[basic.life] 。
+\warning 应注意避免违反对象生存期规则。
 \since build 692
 */
 template<typename _tUnderlying = aligned_storage_t<sizeof(void*)>>
@@ -284,13 +303,16 @@ struct standard_layout_storage
 
 	standard_layout_storage() = default;
 	standard_layout_storage(const standard_layout_storage&) = default;
-	//! \since build 454
+	/*!
+	\warning 应注意避免违反严格别名分析规则。
+	\since build 454
+	*/
 	template<typename _type,
 		yimpl(typename = exclude_self_t<standard_layout_storage, _type>)>
 	inline
 	standard_layout_storage(_type&& x)
 	{
-		new(access()) decay_t<_type>(yforward(x));
+		construct<_type>(yforward(x));
 	}
 
 	standard_layout_storage&
@@ -318,6 +340,8 @@ struct standard_layout_storage
 	{
 		return &object;
 	}
+	//! \warning 应注意避免违反严格别名分析规则。
+	//@{
 	template<typename _type>
 	yconstfn_relaxed YB_PURE _type&
 	access() ynothrow
@@ -336,6 +360,35 @@ struct standard_layout_storage
 
 		return *static_cast<const _type*>(access());
 	}
+	//@}
+
+	//! \since build 716
+	//@{
+	//! \pre 对象未通过 construct 或构造模板创建。
+	template<typename _type, typename... _tParams>
+	inline _type*
+	construct(_tParams&&... args)
+	{
+		return ystdex::construct_within<decay_t<_type>>(object,
+			yforward(args)...);
+	}
+
+	//! \pre 指定类型的对象已通过 construct 或构造模板创建。
+	template<typename _type>
+	inline void
+	destroy()
+	{
+		ystdex::destruct_in(access<decay_t<_type>>());
+	}
+
+	//! \pre 对象未通过 construct 或构造模板创建。
+	template<typename _type, typename... _tParams>
+	inline pun_ptr<_type>
+	pun(_tParams&&... args)
+	{
+		return ystdex::make_pun<_type>(object, yforward(args)...);
+	}
+	//@}
 
 	yconstfn_relaxed YB_PURE byte*
 	data() ynothrow
@@ -348,7 +401,10 @@ struct standard_layout_storage
 		return static_cast<const byte*>(access());
 	}
 
-	//! \since build 503
+	/*!
+	\pre 指定类型的对象已通过 construct 或构造模板创建。
+	\since build 503
+	*/
 	template<typename _type>
 	inline void
 	assign(_type&& x)

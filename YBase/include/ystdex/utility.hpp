@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3220
+\version r3229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-07-09 13:29 +0800
+	2016-08-04 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "type_pun.hpp" // for "type_pun.hpp", add_const_t,
 //	is_nothrow_constructible, is_nothrow_assignable, std::move, add_volatile_t,
-//	is_standard_layout, is_nothrow_swappable_with, pun_storage_t, std::swap,
-//	aligned_replace_cast, exclude_self_t, replace_storage_t;
+//	is_standard_layout, pun_storage_t, is_nothrow_swappable_with, std::swap,
+//	aligned_replace_cast, exclude_self_t, default_init, replace_storage_t;
 #include <functional> // for std::bind, std::ref
 #include "memory.hpp" // for std::addressof, yassume, ystdex::construct_in,
 //	ystdex::destruct_in;
@@ -215,13 +215,6 @@ underlying(_type val) ynothrow
 
 
 /*!
-\brief 默认初始化标记。
-\since build 677
-*/
-yconstexpr const struct default_init_t{} default_init{};
-
-
-/*!
 \brief 包装类类型的值的对象。
 \warning 非虚析构。
 \since build 477
@@ -238,8 +231,9 @@ struct boxed_value
 	boxed_value() ynoexcept(is_nothrow_constructible<_type>())
 		: value()
 	{}
+	//! \since build 716
 	yconstfn
-	boxed_value(default_init_t) ynothrow
+	boxed_value(default_init_t) ynoexcept(is_nothrow_constructible<_type>())
 	{}
 	template<typename _tParam,
 		yimpl(typename = exclude_self_t<boxed_value, _tParam>)>

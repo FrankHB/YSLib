@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9861
+\version r9867
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-06-26 15:20 +0800
+	2016-08-05 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,8 +401,8 @@ ytest ：测试框架设施 YTest 。
 @6.1.2 指令同义词：
 当多种指令等价时使用 Doxygen 手册中直接说明（而非指示同义词即 "Equivalent to" ）的一项。
 例外：
-对外部参考使用 \see 而不是 \sa ；
-\throw 指通过 throw 表达式或调用 throw 的专用助手例程显式抛出确定类型的异常， \exception 指内部调用间接抛出的可被特定异常处理器捕获的异常（可能为派生类）。
+\sa 表示文档内部来源；对外部参考使用 \see 而不是 \sa 。
+\throw 表示通过带有显式操作数的 throw 表达式或调用使用这些表达式的专用助手例程显式抛出确定类型的异常，能保证异常类型直接匹配； \exception 表示其它情况抛出的可被特定异常处理器捕获的异常，不保证异常对象类型精确匹配（可能为派生类），如内部实现的调用间接抛出的。
 
 @6.1.3 指令行风格：
 组(group) 相关指令（ \defgroup 、 \ingroup 、 \name 等）、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \relates 、 \sa 、 \since 、 \version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对中文注释以全角标点结束；不成句的不视为完整的注释）。
@@ -414,7 +414,7 @@ ytest ：测试框架设施 YTest 。
 @6.1.4 指令格式和顺序：
 组相关指令在最前（且对 \defgroup ，跟随注释首行“*”后使用一个水平制表符分隔），然后依次为实体标识指令（除了 \def ，一般省略）和其它指令。
 指定顺序的段落指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \invariant 、 \return 、 \exception 、 \throw 、 \note 、 \warning 、 \bug 、 \deprecated 、 \relates 、 \sa 、 \see 、 \since  、 \todo 、 \par 。
-对连续的 \tparam 和 \param 指令，相同指令按参数在参数列表中出现的顺序排序；对连续的 \throw 和 \exception 指令，相同指令按异常类型名排序。
+对连续的 \tparam 和 \param 指令，相同指令按参数在参数列表中出现的顺序排序；对连续的 \exception 和 \throw 和指令，相同指令按异常类型名排序。
 从属的非段落指令如 \code 、 \endcode 、\tt 、 \verbatim 等不限制顺序。
 其它顺序参见 https://www.drupal.org/node/1354#order 未和以上规则冲突的部分。
 
@@ -431,7 +431,7 @@ ytest ：测试框架设施 YTest 。
 
 @6.2.2 替代语言特性：
 除非补充语言实现或类似场合的兼容性需要，为了使代码意图更明确且实现更简洁，考虑以下规则：
-尽量使用智能指针([Documentation::LanguageConvention @@5.15.9]) 而不是 new-expression 和 delete-expression 管理资源，除非实现智能指针或另有约定。
+尽量使用智能指针([Documentation::LanguageConvention @@6.9.2]) 而不是 new-expression 和 delete-expression 管理资源，除非实现智能指针或另有约定。
 显式转换：基本规则参见 [Documentation::LanguageConvention @@5.11.3] ；尽量使用 YBase::YStandardEx::TypePun(@2.4.4.2) 和 YBase::YStandardEx::Cast(@2.4.7.1) 中的转换模板代替内建显式转换。
 使用 ystdex::retry_on_cond 代替 do-while （特别是每次迭代都更新最后需要返回的值的）循环，避免不必要的中间变量。
 
@@ -440,7 +440,7 @@ ytest ：测试框架设施 YTest 。
 全局 operator new/delete 使用前缀 :: 以强调确定使用全局版本（对应非名称的 new/delete 表达式也同样使用）。
 SFINAE(@3.3.2) 的需要以外的其它一般全局名称的使用总是保留前缀 :: 以便移植。
 同理，除非另有约定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
-推论：包含使全局名称和不省略 :: 形式不一致的声明的头文件不能在其它作用域中使用。这已被 ISO C++ [using.headers] 涵盖，遵守 [Documentation::LanguageConvention @@5.15.2] 。
+推论：包含使全局名称和不省略 :: 形式不一致的声明的头文件不能在其它作用域中使用。这已被 ISO C++ [using.headers] 涵盖，遵守 [Documentation::LanguageConvention @@6.2] 。
 
 @6.2.4 限制使用标识符：
 项目全局范围内以下 C++ 关键字应尽量少使用，考虑是否合理的替代：
@@ -448,7 +448,7 @@ new
 delete
 reinterpret_cast
 参见 @6.2.2 。
-关于 new 的例外，另见 [Documentation::LanguageConvention @@5.15.9.2] 。
+关于 new 的使用和例外，详见 [Documentation::LanguageConvention @@6.9.2.3] 。
 
 @6.2.5 宏定义：
 除非文档说明，不在代码中定义或取消定义影响实现特性的宏([Documentation::LanguageConvention @@5.3.3.2]) 。

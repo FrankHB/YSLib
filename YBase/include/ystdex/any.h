@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2746
+\version r2761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-05-11 01:05 +0800
+	2016-08-05 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,7 +325,7 @@ private:
 	static void
 	dispose_impl(true_type, any_storage& d) ynothrowv
 	{
-		d.access<value_type>().~value_type();
+		d.destroy<value_type>();
 	}
 	//@}
 
@@ -421,13 +421,13 @@ private:
 	static YB_ATTR(always_inline) void
 	init_impl(false_type, any_storage& d, _tParams&&... args)
 	{
-		d = new value_type(yforward(args)...);
+		d.construct<value_type*>(new value_type(yforward(args)...));
 	}
 	template<typename... _tParams>
 	static YB_ATTR(always_inline) void
 	init_impl(true_type, any_storage& d, _tParams&&... args)
 	{
-		new(d.access()) value_type(yforward(args)...);
+		d.construct<value_type>(yforward(args)...);
 	}
 	//@}
 
@@ -565,15 +565,15 @@ public:
 private:
 	//! \since build 595
 	static void
-	init(true_type, any_storage& d, std::unique_ptr<_tHolder> p)
+	init(false_type, any_storage& d, std::unique_ptr<_tHolder> p)
 	{
-		new(d.access()) _tHolder(std::move(*p));
+		d.construct<value_type*>(p.release());
 	}
 	//! \since build 595
 	static void
-	init(false_type, any_storage& d, std::unique_ptr<_tHolder> p)
+	init(true_type, any_storage& d, std::unique_ptr<_tHolder> p)
 	{
-		d = p.release();
+		d.construct<_tHolder>(std::move(*p));
 	}
 
 public:
@@ -705,6 +705,15 @@ struct any_base
 		: manager(any_ops::construct<_tHandler>(storage, yforward(args)...))
 	{}
 
+protected:
+	//! \since build 714
+	any_base(const any_base& a)
+		: manager(a.manager)
+	{}
+	//! \since build 714
+	~any_base() = default;
+
+public:
 	YB_API any_ops::any_storage&
 	call(any_ops::any_storage&, any_ops::op_code) const;
 
