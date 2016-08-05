@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1729
+\version r1886
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-05-11 19:17 +0800
+	2016-08-03 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,16 +30,13 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "addressof.hpp" // for "addressof.hpp", <memory>, and_,
+#include "placement.hpp" // for "placement.hpp", <memory>, and_,
 //	is_copy_constructible, is_class_type, cond_t, vdefer, detected_t,
-//	conditional, ystdex::constfn_addressof, indirect_element_t,
-//	remove_reference_t, detected_or_t, is_void, remove_pointer_t,
-//	is_pointer, enable_if_t, is_array, extent, remove_extent_t;
-#include "type_op.hpp" // for is_class_type, is_nonconst_object;
-#include <iterator> // for std::iterator_traits;
+//	conditional, indirect_element_t, remove_reference_t, detected_or_t, is_void,
+//	remove_pointer_t, is_pointer, enable_if_t, is_array, extent,
+//	remove_extent_t;
+#include "type_op.hpp" // for has_mem_value_type;
 #include "cassert.h" // for yconstraint;
-#include "deref_op.hpp" // for is_undereferenceable;
-#include <new> // for placement ::operator new from standard library;
 #include "operators.hpp" // for totally_ordered, equality_comparable;
 
 #if YB_IMPL_MSCPP >= 1800
@@ -150,170 +147,6 @@ struct nested_allocator
 	: conditional<has_nested_allocator<_type>::value,
 	detected_t<details::nested_allocator_t, _type>, _tDefault>
 {};
-//@}
-
-
-/*!
-\brief 原地构造。
-\tparam _tParams 用于构造对象的参数包类型。
-\param args 用于构造对象的参数包。
-\since build 692
-*/
-template<typename _type, typename... _tParams>
-inline void
-construct_in(_type& obj, _tParams&&... args)
-{
-	::new(static_cast<void*>(static_cast<_type*>(
-		ystdex::constfn_addressof(obj)))) _type(yforward(args)...);
-}
-
-//! \since build 602
-//@{
-//! \tparam _tIter 迭代器类型。
-//@{
-/*!
-\tparam _tParams 用于构造对象的参数包类型。
-\param args 用于构造对象的参数包。
-\pre 断言：指定范围末尾以外的迭代器满足 <tt>!is_undereferenceable</tt> 。
-*/
-//@{
-/*!
-\brief 使用指定参数在迭代器指定的位置构造对象。
-\param i 迭代器。
-\note 显式转换为 void* 指针以实现标准库算法 uninitialized_* 实现类似的语义。
-\see libstdc++ 5 和 Microsoft VC++ 2013 标准库在命名空间 std 内对指针类型的实现：
-	_Construct 模板。
-*/
-template<typename _tIter, typename... _tParams>
-void
-construct(_tIter i, _tParams&&... args)
-{
-	using value_type = typename std::iterator_traits<_tIter>::value_type;
-
-	yconstraint(!is_undereferenceable(i));
-	ystdex::construct_in<value_type>(*i, yforward(args)...);
-}
-
-/*!
-\brief 使用指定的参数重复构造迭代器范围内的对象序列。
-\note 参数被传递的次数和构造的对象数相同。
-*/
-template<typename _tIter, typename... _tParams>
-void
-construct_range(_tIter first, _tIter last, _tParams&&... args)
-{
-	for(; first != last; ++first)
-		ystdex::construct(first, yforward(args)...);
-}
-//@}
-
-/*!
-\brief 原地析构。
-\tparam _tParams 用于构造对象的参数包类型。
-\param args 用于构造对象的参数包。
-\since build 693
-*/
-template<typename _type>
-inline void
-destruct_in(_type& obj)
-{
-	obj.~_type();
-}
-
-
-/*!
-\brief 析构迭代器指向的对象。
-\param i 迭代器。
-\pre 断言：<tt>!is_undereferenceable(i)</tt> 。
-\see libstdc++ 5 和 Microsoft VC++ 2013 标准库在命名空间 std 内对指针类型的实现：
-	_Destroy 模板。
-*/
-template<typename _tIter>
-void
-destruct(_tIter i)
-{
-	using value_type = typename std::iterator_traits<_tIter>::value_type;
-
-	yconstraint(!is_undereferenceable(i));
-	ystdex::destruct_in<value_type>(*i);
-}
-
-/*!
-\brief 析构d迭代器范围内的对象序列。
-\note 保证顺序析构。
-\see libstdc++ 5 标准库在命名空间 std 内的实现： _Destroy 模板。
-*/
-template<typename _tIter>
-void
-destruct_range(_tIter first, _tIter last)
-{
-	for(; first != last; ++first)
-		ystdex::destruct(first);
-}
-//@}
-
-
-/*!
-\brief 在迭代器指定的未初始化的范围上构造对象。
-\tparam _tFwd 输出范围前向迭代器类型。
-\tparam _tParams 用于构造对象的参数包类型。
-\param first 输出范围起始迭代器。
-\param args 用于构造对象的参数包。
-\note 参数被传递的次数和构造的对象数相同。
-\note 接口不保证失败时的析构顺序。
-*/
-//@{
-/*!
-\param last 输出范围终止迭代器。
-\note 和 std::unitialized_fill 类似，但允许指定多个初始化参数。
-\see WG21 N4431 20.7.12.3[uninitialized.fill] 。
-*/
-template<typename _tFwd, typename... _tParams>
-void
-uninitialized_construct(_tFwd first, _tFwd last, _tParams&&... args)
-{
-	auto i = first;
-
-	try
-	{
-		for(; i != last; ++i)
-			ystdex::construct(i, yforward(args)...);
-	}
-	catch(...)
-	{
-		// NOTE: The order is unspecified.
-		ystdex::destruct_range(first, i);
-		throw;
-	}
-}
-
-/*!
-\tparam _tSize 范围大小类型。
-\param n 范围大小。
-\note 和 std::unitialized_fill_n 类似，但允许指定多个初始化参数。
-\see WG21 N4431 20.7.12.4[uninitialized.fill.n] 。
-*/
-template<typename _tFwd, typename _tSize, typename... _tParams>
-void
-uninitialized_construct_n(_tFwd first, _tSize n, _tParams&&... args)
-{
-	auto i = first;
-
-	try
-	{
-		// NOTE: This form is by specification (WG21 N4431) of
-		//	'std::unitialized_fill' literally.
-		for(; n--; ++i)
-			ystdex::construct(i, yforward(args)...);
-	}
-	catch(...)
-	{
-		// NOTE: The order is unspecified.
-		ystdex::destruct_range(first, i);
-		throw;
-	}
-}
-//@}
 //@}
 
 

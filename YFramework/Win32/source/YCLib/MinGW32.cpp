@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2077
+\version r2078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-07-31 16:18 +0800
+	2016-08-04 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -576,7 +576,7 @@ struct ReparsePointData::Data final
 
 
 ReparsePointData::ReparsePointData()
-	: pun(&target_buffer)
+	: pun(ystdex::default_init, &target_buffer)
 {
 	static_assert(ystdex::is_aligned_storable<decltype(target_buffer), Data>(),
 		"Invalid buffer found.");

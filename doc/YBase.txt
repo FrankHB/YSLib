@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r947
+\version r961
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-07-31 14:12 +0800
+	2016-08-05 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ YBase 包括 YDefinition(@2.4) 、YStandardEx(@2.5) 、LibDefect(@2.6) 和 Test(
 除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
 实现可能访问外部库提供的外部状态。除非指定实现使用外部库（包括标准库）中明确定义的行为或另行约定，假定这些状态不被并发访问（如使用线程局部存储实现）。
 除非另行约定，所有不提供无异常抛出保证的公开接口不直接设置外部库提供的外部可见状态。此处直接指操作的唯一目的是设置状态的副作用，如对 errno 的赋值和 Win32 下调用 ::SetLastError ；另见 @3.6.4.1 。注意实现明确地间接调用公开接口仍然可能设置这些状态。
-不依赖异步安全性，不在任何实现中直接调用终止程序或对应注册回调的函数([Documenation::LanguageConvention @@5.15.3.4]) 。
+不依赖异步安全性，不在任何实现中直接调用终止程序或对应注册回调的函数([Documenation::LanguageConvention @@6.3.4]) 。
 不降低性能时尽量保证可重入性。
 除非文档说明，库的实现不直接使用 thread_local 或其它实现相关的线程局部存储机制。（注意某些实现如 MinGW 存在静态释放可能失败等缺陷。）
 
@@ -98,11 +98,11 @@ YBase 内使用这些宏时不依赖外部头文件的包含顺序，即在需�
 
 @2.3 名称：
 对模块，基本使用参见 [Documentation::ProjectRules @@3.2] 。
-对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 、 [Documentation::LanguageConvention @@5.15.1.1] 。
+对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 、 [Documentation::LanguageConvention @@6.1.1] 。
 代码中限定名称的语用参见 [Documentation::Designation @@6.2.3] 。
 
 @2.3.1 标识符限制：
-公开头文件不使用保留标识符([Documentation::LanguageConvention @@5.15.1]) ，包括使用实现扩展提供的宏。使用 YDefinition([Documentation::YBase @@2.4]) 包装的宏代替。
+公开头文件不使用保留标识符([Documentation::LanguageConvention @@6.1]) ，包括使用实现扩展提供的宏。使用 YDefinition([Documentation::YBase @@2.4]) 包装的宏代替。
 
 @2.3.2 YBase 引入的命名空间：
 YBase 引入的主要命名空间唯一且和次级子项目的模块名称一致（但 YDefinition(@2.4) 此处同 YStandardEx(@2.5) ）。
@@ -182,7 +182,8 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "integer_sequence.hpp" 依赖 "variadic.hpp" ；
 "tuple.hpp" 依赖 "integer_sequence.hpp" ；
 "type_op.hpp" 依赖 "tuple.hpp" ；
-"ref.hpp" 和 "memory.hpp" 依赖 "addressof.hpp" ；
+"ref.hpp" 和 "placement.hpp" 依赖 "addressof.hpp" ；
+"memory.hpp" 和 "type_pun.hpp" 依赖 "placement.hpp" ；
 "utility.hpp" 依赖 "type_pun.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
@@ -244,20 +245,23 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 提供适合被作为基类的通用接口。
 
 @2.5.5 基本头文件扩展：
-用于构建其它库但不提供标准接口的替代或扩展，只直接依赖上述 YDefinition 的头文件或本节内前述的头文件，可被以下其它 YStandardEx 头文件依赖。
+用于构建其它库但不提供标准库头的整体替代或扩展。
+除标准库头外只直接依赖上述 YDefinition 的头文件或本节内前述的头文件，可被以下其它 YStandardEx 头文件依赖。
 
 @2.5.5.1 C++ 变长参数相关操作 Variadic ：
 使用 ISO C++11 起提供的变长参数包(pack) 的特性提供序列等基本接口的模板库。
 
-@2.5.5.2 共享存储和直接转换 TypePun ：
+@2.5.5.2 一元操作符 & 和取指针的相关接口 AddressOf
+
+@2.5.5.3 放置对象管理操作 Placement
+
+@2.5.5.4 共享存储和直接转换 TypePun ：
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
-@2.5.5.3 一元操作符 & 和取指针的相关接口 AddressOf
-
-@2.5.5.4 整数序列元编程接口 IntegerSequence ：
+@2.5.5.5 整数序列元编程接口 IntegerSequence ：
 扩展了 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
 
-@2.5.5.5 重载操作符 Operators
+@2.5.5.6 重载操作符 Operators
 
 @2.5.6 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
@@ -285,7 +289,7 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 
 @2.5.7.4 ISO C 断言/调试跟踪扩展 CAssert ：
 头文件扩展了标准库头 <cassert> ，提供若干断言函数。这些函数提供无异常抛出保证的异常规范以便在隐式指定异常规范的无异常抛出的析构函数([Documentation::LanguageConvention @@5.10.5.6]) 中使用。
-在库使用约定([Documentation::CommonRules @@3.13.2]) 和语言使用规约([Documentation::LanguageConvention @@5.15.3.3]) 的基础上使用方式同 <cassert> 和 <assert.h> （允许定义宏控制重复包含的内容）。
+在库使用约定([Documentation::CommonRules @@3.13.2]) 和语言使用规约([Documentation::LanguageConvention @@6.3.3]) 的基础上使用方式同 <cassert> 和 <assert.h> （允许定义宏控制重复包含的内容）。
 
 @2.5.7.5 存储和智能指针特性 Memory
 

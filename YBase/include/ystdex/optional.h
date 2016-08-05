@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r665
+\version r668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2016-05-11 18:31 +0800
+	2016-08-03 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,12 +37,11 @@
 //	empty_base, is_nothrow_moveable, and_, std::addressof, remove_cv_t,
 //	totally_ordered, or_, is_reference, is_same, is_nothrow_destructible,
 //	is_object, enable_if_t, is_constructible, decay_t, is_nothrow_swappable,
-//	ystdex::constfn_addressof, is_copyable
+//	ystdex::constfn_addressof, is_copyable;
 #include <stdexcept> // for std::logic_error;
-#include <new> // for placement ::operator new from standard library;
+#include "placement.hpp" // for ystdex::construct_in, ystdex::destruct_in;
 #include <initializer_list> // for std::initializer_list;
 #include "functional.hpp" // for default_last_value, std::accumulate;
-#include "memory.hpp" // for ystdex::construct_in, ystdex::destruct_in;
 
 namespace ystdex
 {
