@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2097
+\version r2177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2016-04-25 15:39 +0805
+	2016-08-07 02:23 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,43 +382,13 @@ public:
 	}
 	//@}
 
-	//! \since build 595
-	//@{
-	yconstfn base_type
-	get() const ynothrow
+	//! \since build 717
+	friend yconstfn fixed_point
+	abs(fixed_point x) ynothrow
 	{
-		return value;
+		return fabs(x);
 	}
 
-private:
-	template<size_t _vShiftBits>
-	static yconstfn base_type
-	mul(base_type x, base_type y, true_type) ynothrowv
-	{
-		return mul_signed<_vShiftBits>(
-			_t<make_widen_int<base_type>>(x * y));
-	}
-	template<size_t _vShiftBits>
-	static yconstfn base_type
-	mul(base_type x, base_type y, false_type) ynothrowv
-	{
-		// NOTE: Only fit for unsigned type, due to there exists
-		//	implementation-defined behavior in conversion and right shifting on
-		//	operands of signed types.
-		return base_type((_t<make_widen_int<base_type>>(x) * y)
-			>> _vShiftBits);
-	}
-	//@}
-
-	//! \since build 650
-	template<size_t _vShiftBits>
-	static yconstfn base_type
-	mul_signed(_t<make_widen_int<base_type>> tmp) ynothrowv
-	{
-		return base_type(tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits);
-	}
-
-public:
 	/*!
 	\brief 取 \c base_type 表达的单位元。
 
@@ -428,6 +398,32 @@ public:
 	base_element() ynothrow
 	{
 		return base_type(1) << frac_bit_n;
+	}
+
+	friend yconstfn fixed_point
+	ceil(fixed_point x) ynothrow
+	{
+		return fixed_point(
+			(x.value + base_element() - 1) & ~(base_element() - 1), raw_tag());
+	}
+
+	friend yconstfn fixed_point
+	fabs(fixed_point x) ynothrow
+	{
+		return x.value < 0 ? -x : x;
+	}
+
+	friend yconstfn fixed_point
+	floor(fixed_point x) ynothrow
+	{
+		return fixed_point(x.value & ~(base_element() - 1), raw_tag());
+	}
+
+	//! \since build 595
+	yconstfn base_type
+	get() const ynothrow
+	{
+		return value;
 	}
 
 	/*!
@@ -441,25 +437,36 @@ public:
 		return fixed_point(base_element());
 	}
 
-	friend yconstfn fixed_point
-	fabs(fixed_point x) ynothrow
+private:
+	//! \since build 595
+	template<size_t _vShiftBits>
+	static yconstfn base_type
+	mul(base_type x, base_type y, true_type) ynothrowv
 	{
-		return x.value < 0 ? -x : x;
+		return mul_signed<_vShiftBits>(
+			_t<make_widen_int<base_type>>(x * y));
+	}
+	//! \since build 595
+	template<size_t _vShiftBits>
+	static yconstfn base_type
+	mul(base_type x, base_type y, false_type) ynothrowv
+	{
+		// NOTE: Only fit for unsigned type, due to there exists
+		//	implementation-defined behavior in conversion and right shifting on
+		//	operands of signed types.
+		return base_type((_t<make_widen_int<base_type>>(x) * y)
+			>> _vShiftBits);
 	}
 
-	friend yconstfn fixed_point
-	ceil(fixed_point x) ynothrow
+	//! \since build 650
+	template<size_t _vShiftBits>
+	static yconstfn base_type
+	mul_signed(_t<make_widen_int<base_type>> tmp) ynothrowv
 	{
-		return fixed_point(
-			(x.value + base_element() - 1) & ~(base_element() - 1), raw_tag());
+		return base_type(tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits);
 	}
 
-	friend yconstfn fixed_point
-	floor(fixed_point x) ynothrow
-	{
-		return fixed_point(x.value & ~(base_element() - 1), raw_tag());
-	}
-
+public:
 	friend yconstfn fixed_point
 	round(fixed_point x) ynothrow
 	{
@@ -468,6 +475,15 @@ public:
 	}
 };
 
+// XXX: These operators may be better in class definition to allow only ADL, for
+//	less name pollution and better diagnostics for failure on calling overloads
+//	of them. However, templates with different function parameters whose
+//	template argument list is specified explicitly for 'fixed_point' (needed to
+//	avoid ambiguity on call for function arguement of two different instances of
+//	'fixed_point') cannot be put into class definition without redefiniton error
+//	on instantiation. They also cannot be solely defined out of class definition
+//	because name lookup cannot find both in-class and out-of-class declarations
+//	without ambiguity.
 //! \relates fixed_point
 //@{
 #define YB_Impl_Rational_fp_TmplHead_2 \
@@ -560,14 +576,6 @@ YB_Impl_Rational_fp_rational2(>=)
 #undef YB_Impl_Rational_fp_TmplHead_2_r
 #undef YB_Impl_Rational_fp_TmplHead_2_l
 #undef YB_Impl_Rational_fp_TmplHead_2
-
-//! \since build 595
-template<YB_Impl_Rational_fp_PList>
-yconstfn YB_Impl_Rational_fp_T
-abs(YB_Impl_Rational_fp_T x) ynothrow
-{
-	return fabs(x);
-}
 //@}
 
 
@@ -719,7 +727,8 @@ public:
 	static yconstexpr const int digits = _vInt;
 	static yconstexpr const int digits10 = digits * 643L / 2136;
 	static yconstexpr const int max_digits10 = 0;
-	static yconstexpr const bool is_signed = numeric_limits<base_type>::is_signed;
+	static yconstexpr const bool is_signed
+		= numeric_limits<base_type>::is_signed;
 	static yconstexpr const bool is_integer = {};
 	static yconstexpr const bool is_exact = true;
 	static yconstexpr const int radix = 2;

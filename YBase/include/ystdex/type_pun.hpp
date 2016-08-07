@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r497
+\version r527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2016-08-06 00:03 +0800
+	2016-08-06 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -273,13 +273,25 @@ template<typename _type>
 using pun_ptr = placement_ptr<decay_t<_type>>;
 
 
-//! \brief 构造避免严格别名分析限制的缓冲独占所有权指针指定的对象。
+//! \brief 构造避免严格别名分析限制的缓冲独占所有权指针指定的值初始化对象。
 template<typename _type, typename _tObj, typename... _tParams>
 inline pun_ptr<_type>
 make_pun(_tObj& obj, _tParams&&... args)
 {
 	return pun_ptr<_type>(
 		ystdex::construct_within<decay_t<_type>>(obj, yforward(args)...));
+}
+
+/*!
+\brief 构造避免严格别名分析限制的缓冲独占所有权指针指定的默认初始化对象。
+\since build 717
+*/
+template<typename _type, typename _tObj>
+inline pun_ptr<_type>
+make_pun_default(_tObj& obj)
+{
+	return
+		pun_ptr<_type>(ystdex::construct_default_within<decay_t<_type>>(obj));
 }
 //@}
 
@@ -303,17 +315,6 @@ struct standard_layout_storage
 
 	standard_layout_storage() = default;
 	standard_layout_storage(const standard_layout_storage&) = default;
-	/*!
-	\warning 应注意避免违反严格别名分析规则。
-	\since build 454
-	*/
-	template<typename _type,
-		yimpl(typename = exclude_self_t<standard_layout_storage, _type>)>
-	inline
-	standard_layout_storage(_type&& x)
-	{
-		construct<_type>(yforward(x));
-	}
 
 	standard_layout_storage&
 	operator=(const standard_layout_storage&) = default;
@@ -382,12 +383,22 @@ struct standard_layout_storage
 	}
 
 	//! \pre 对象未通过 construct 或构造模板创建。
+	//@{
 	template<typename _type, typename... _tParams>
 	inline pun_ptr<_type>
 	pun(_tParams&&... args)
 	{
 		return ystdex::make_pun<_type>(object, yforward(args)...);
 	}
+
+	//! \since build 717
+	template<typename _type, typename... _tParams>
+	inline pun_ptr<_type>
+	pun_default()
+	{
+		return ystdex::make_pun_default<_type>(object);
+	}
+	//@}
 	//@}
 
 	yconstfn_relaxed YB_PURE byte*

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r1995
+\version r2148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-06 00:11 +0800
+	2016-08-07 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,155 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Placement $=
+		(
+			* "wrong member type %pointer" @ "class template %placement_delete"
+				$since b716,
+			(
+			// See WG21 P0032R3 adopted 2016-06.
+			+ "struct %in_place_tag";
+			+ "alias templates %(in_place_type_t, in_place_index_t)",
+			+ "(function, 2 function templates) %in_place"
+			)
+		),
+		/ %TypePun $=
+		(
+			+ "function template %make_pun_default";
+			+ "function template %pun_default" @ "class template \
+				%standard_layout_storage" ^ "%ystdex::make_pun_default"
+				$dep_from %Placement,
+			- "constructor template %standard_layout_storage" $dep_from
+				("friend function %operator=="
+				@ "class template %any_input_iterator" @ %AnyIterator)
+		),
+		/ %Any $=
+		(
+			/ @ "namespace %any_ops" $=
+			(
+				/ $impl "adjusted alignment" @ "alias %any_storage",
+					// As libstdc++.
+				(
+				/ DD "explicitly stated requirements on %(op_code, base_op) to \
+					avoid strict aliasing broken";
+				/ $forced DLDI "made %get_ptr handling" @ "all static member \
+					functions %manager conforming to requirements" $effective
+					@ "class templates %(value_handler, ref_handler, \
+					holder_handler)" $dep_to "generic pointer getting";
+				),
+				- $revert(b677) "class template %in_place_t" $dep_from
+					("simplified any type tag",
+					("YSLib::InPlaceTag" @ %YFrameework.YSLib.Core.YObject))
+			),
+			/ @ "class %any" $=
+			(
+				+ "default initialization and value initialization support"
+					@ "protected function templates %unchecked_access with \
+					deduced argument",
+				* "strict aliasing broken" @ "functions %(get, type, \
+					get_holder)" $since b352 $dep_from "generic pointer getting"
+					$= (/ DLDI "protected member access for %any_storage"
+						^ $dep_from
+						("%standard_layout_storage::pun_default" @ %TypePun))
+				+ $revert(b677) 'yconstfn' @ "default constructor",
+					// See WG21 P0032R3 adopted 2016-06. LWG 2013 is no longer \
+						an issue here when the standard added 'constexpr'.
+				(
+				/ "function %clear" => "%reset";
+					// See WG21 P0032R3 adopted 2016-06.
+				/ DLDI "function templates %(emplace_with_handler, emplace)"
+				),
+				/ "function %empty" -> "%has_value",
+					// Ditto.
+				+ "function template %emplace overloaded with \
+					%std::initializer_list instance",
+					// Ditto.
+				/ "constructor template with in place tag" ^ $dep_from
+					("%in_place_type_t" @ %Placement) ~ "%any_ops::in_place_t"
+					$dep_to "simplified any type tag"
+			),
+			+ "2 function templates %make_any" ^ $dep_from
+				("%in_place_t" @ %Placement);
+				// See WG21 P0032R3 adopted 2016-06.
+			/ $re_ex(b687) $doc "updated base specification to current working \
+				paper(WG21 N4606)" ~ "previous working paper(WG21 N4582)"
+		),
+		/ %AnyIterator $=
+		(
+			(
+			/ DD "explicitly stated requirements on %(iterator_op, \
+				input_iterator_op, bidirectional_iteartor_op, \
+				random_access_iteartor_op) to avoid strict aliasing broken";
+			/ $forced "made %dereference handling" @ "all static member \
+				functions %manager conforming to requirements" $effective
+				@ "class template %iterator_handler";
+			/ $forced DLDI "function %operator*"
+				@ "class templates %any_input_iterator"
+			),
+			/ "reinitailized result" @ "%equal handler" @ "static function \
+				%manager" @ "class template %input_iterator_handler"
+				$= (/ DLDI ^ '!=' ~ '==' $dep_from %Iterator),
+			* "strict aliasing broken" @ ("%equal handling" @ "class template \
+				%input_iterator_handler", "friend function %operator=="
+				@ "class template %any_input_iterator") $since b355,
+				// It is too error-prone.
+			* $impl "wrong excluding type" @ "constructor template"
+				@ ("class template %any_input_iterator" $since b675,
+				"class template %any_forward_iterator" $since b686),
+			* $re_add(b686) "missing excluding of self type"
+				@ "class template %any_bidirectional_iterator" $since b400,
+			/ $forced DLDI "friend functions %(operator==, \
+				is_undereferenceable)" @ "class template %is_undereferenceable"
+				$dep_from ("%any::empty" @ %Any)
+		),
+		/ "function template %abs for %fixed_point"
+			>> "friend function templates" @ %Rational,
+			// To make them work same to other friends, also to prevent too \
+				many unrelated diagnostic messages shown when some of \
+				fail to match. Note this is still not done for some overloaded \
+				operators, see comments in the source.
+		* "wrong base class template argument for reference type" @ "class \
+			template %subscriptive_iterator" @ %Iterator $since b576,
+		/ %Optional $=
+		(
+			/ 'yconstexpr const struct in_place_t{} in_place{};' -> (("alias \
+				%in_place_t" $dep_from "%in_place_tag") @ %Placement),
+				// See WG21 P0032R3 adopted 2016-06.
+			/ @ "class template %optional" $=
+			(
+				+ "functions %(reset, has_value)",
+					// Ditto.
+				/ $dev "update static assertion concerned with %in_place_t"
+			),
+			+ "function template %make_optional" -> "2 function templates";
+				// Ditto.
+			/ $re_add(b687) $doc "updated base specification to current \
+				working paper(WG21 N4606)"
+				~ "library fundamental TS final draft(WG21 N4480)"
+		)
+	),
+	/ %YFramework.YSLib.Core $=
+	(
+		/ %YObject $=
+		(
+			/ $forced DLDI "function %Clear" @ "class %ValueObject" $dep_from
+				("%any::clear" @ %YBase.YStandardEx.Any),
+			(
+			/ "constructors" @ "class %ValueObject" ^ $dep_from
+				("%ystdex::(in_place_type_t, in_place)"
+				@ %YBase.YStandardEx.Placement) ~ "%InPlaceTag";
+			- $revert(b678) "alias template %InPlaceTag" $dep_from %ValueNode
+			)
+		),
+		/ $impl "function template %Place" @ "class %ValueObject" @ %ValueNode
+			^ $dep_from ("%ystdex::in_place)" @ %YBase.YStandardEx.Placement)
+			~ "%InPlaceTag"
+	)
+),
+
+b716
 (
 	/ %YBase $=
 	(
@@ -146,7 +295,11 @@ $now
 					/ "initialization" ^ $dep_from
 						("%standard_layout_storage::construct" @ %TypePun)
 					* $comp "placement 'new' used" ~ '::new' $orig
-						(@ "class template %any_handler" $since b352)
+						(@ "class template %(any_handler, any_holder_handler)"
+						$since b352)
+					* $comp "strict aliasing broken" @ "initialization" $orig
+						(@ "class template %(any_handler, any_holder_handler)"
+						$since b352)
 					);
 					/ "dispose" ^ $dep_from
 						("%standard_layout_storage::destroy" @ %TypePun)

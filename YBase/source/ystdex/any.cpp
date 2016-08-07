@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r299
+\version r306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2016-05-11 00:22 +0800
+	2016-08-07 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 
-#include "ystdex/any.h"
+#include "ystdex/any.h" // for default_init;
 
 namespace ystdex
 {
@@ -113,13 +113,14 @@ any_base::destroy() ynothrowv
 void*
 any_base::get() const ynothrowv
 {
-	return unchecked_access<void*>(any_ops::get_ptr);
+	return unchecked_access<void*>(ystdex::default_init, any_ops::get_ptr);
 }
 
 any_ops::holder*
 any_base::get_holder() const
 {
-	return unchecked_access<any_ops::holder*>(any_ops::get_holder_ptr);
+	return unchecked_access<any_ops::holder*>(default_init,
+		any_ops::get_holder_ptr);
 }
 
 void
@@ -132,7 +133,7 @@ any_base::swap(any_base& a) ynothrow
 const type_info&
 any_base::type() const ynothrowv
 {
-	return *unchecked_access<const type_info*>(any_ops::get_type);
+	return *unchecked_access<const type_info*>(default_init, any_ops::get_type);
 }
 
 } // namespace details;
@@ -151,10 +152,10 @@ any::~any()
 }
 
 void
-any::clear() ynothrow
+any::reset() ynothrow
 {
 	if(manager)
-		any_base::clear();
+		clear();
 }
 
 } // namespace ystdex;

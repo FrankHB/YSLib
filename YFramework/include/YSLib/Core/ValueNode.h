@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2622
+\version r2625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-07-14 23:12 +0800
+	2016-08-07 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,8 +325,9 @@ public:
 	inline _type&
 	Place(_tString&& str, _tParams&&... args)
 	{
-		return try_emplace(str, NoContainer, yforward(str), InPlaceTag<_type>(),
-			yforward(args)...).first->Value.template GetObject<_type>();
+		return try_emplace(str, NoContainer, yforward(str),
+			ystdex::in_place<_type>, yforward(args)...).first->Value.template
+			GetObject<_type>();
 	}
 
 	PDefH(bool, Remove, const ValueNode& node)
