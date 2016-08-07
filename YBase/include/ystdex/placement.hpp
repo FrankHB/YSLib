@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r470
+\version r516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2016-08-06 00:02 +0800
+	2016-08-06 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 #ifndef YB_INC_ystdex_placement_hpp_
 #define YB_INC_ystdex_placement_hpp_ 1
 
-#include "addressof.hpp" // for "addressof.hpp", ystdex::constfn_addressof,
-//	yforward, is_lvalue_reference, std::pair, std::unique_ptr;
+#include "addressof.hpp" // for "addressof.hpp", empty_base, integral_constant,
+//	YB_ASSUME, ystdex::constfn_addressof, yforward, is_lvalue_reference,
+//	std::pair, std::unique_ptr;
 #include <new> // for placement ::operator new from standard library;
 #include <iterator> // for std::iterator_traits;
 #include "deref_op.hpp" // for is_undereferenceable;
@@ -51,6 +52,54 @@ yconstexpr const struct default_init_t{} default_init{};
 \since build 705
 */
 yconstexpr const struct value_init_t{} value_init{};
+
+
+/*!
+\see WG21 P0032R3 。
+\see WG21 N4606 20.2.7[utility.inplace] 。
+*/
+//@{
+//! \brief 原地标记类型。
+struct in_place_tag
+{
+	in_place_tag() = delete;
+};
+
+//! \brief 原地空标记类型。
+using in_place_t = in_place_tag(&)(yimpl(empty_base<>));
+
+//! \brief 原地类型标记模板。
+template<typename _type>
+using in_place_type_t = in_place_tag(&)(yimpl(empty_base<_type>));
+
+//! \brief 原地索引标记模板。
+template<size_t _vIdx>
+using in_place_index_t
+	= in_place_tag(&)(yimpl(integral_constant<size_t, _vIdx>));
+
+/*!
+\ingroup helper_functions
+\brief 原地标记函数。
+\warning 调用引起未定义行为。
+*/
+yimpl(YB_NORETURN) inline in_place_tag
+in_place(yimpl(empty_base<>))
+{
+	YB_ASSUME(false);
+}
+template<typename _type>
+yimpl(YB_NORETURN) in_place_tag
+in_place(yimpl(empty_base<_type>))
+{
+	YB_ASSUME(false);
+}
+template<size_t _vIdx>
+yimpl(YB_NORETURN) in_place_tag
+in_place(yimpl(integral_constant<size_t, _vIdx>))
+{
+	YB_ASSUME(false);
+}
+//@}
 
 
 /*!
@@ -442,7 +491,7 @@ public:
 template<typename _type, typename _tPointer = _type*>
 struct placement_delete
 {
-	using pointer = _type;
+	using pointer = _tPointer;
 
 	yconstfn placement_delete() ynothrow = default;
 	template<typename _type2,

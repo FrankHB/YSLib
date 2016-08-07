@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1304
+\version r1338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-05-11 00:17 +0800
+	2016-08-07 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
 #include "any.h" // for "any.h", any_ops, unwrap_reference_t, cond_t,
-//	is_reference_wrapper, ref_handler, _t. ptrdiff_t, any, exclude_self_t,
-//	any_ops::with_handler_t, decay_t, is_convertible, indirect_t;
+//	is_reference_wrapper, ref_handler, _t, ptrdiff_t, any, exclude_self_t,
+//	any_ops::with_handler_t, decay_t, is_convertible, indirect_t, default_init;
 #include "iterator.hpp" // for is_undereferenceable, input_iteratable,
 //	forward_iteratable, bidirectional_iteratable;
 
@@ -44,9 +44,14 @@ namespace any_ops
 //@{
 enum iterator_op : op_code
 {
-	//! \since build 400
+	/*!
+	\note 要求已构造对象类型 bool 。
+	\since build 400
+	*/
 	check_undereferenceable = end_base_op,
+	//! \note 要求已构造对象类型 void_ref 。
 	dereference,
+	//! \note 要求已构造目标对象。
 	increase,
 	end_iterator_op
 };
@@ -54,6 +59,7 @@ enum iterator_op : op_code
 
 enum input_iterator_op : op_code
 {
+	//! \note 要求已构造有效的 any_storage* ；转换为 bool 类型的值为操作结果。
 	equals = end_iterator_op,
 	end_input_iterator_op,
 	end_output_iterator_op = end_input_iterator_op,
@@ -63,6 +69,7 @@ enum input_iterator_op : op_code
 
 enum bidirectional_iteartor_op : op_code
 {
+	//! \note 要求已构造目标对象。
 	decrease = end_forward_iterator_op,
 	end_bidirectional_iterator_op
 };
@@ -70,6 +77,7 @@ enum bidirectional_iteartor_op : op_code
 
 enum random_access_iteartor_op : op_code
 {
+	//! \note 要求已构造目标对象。
 	advance = end_forward_iterator_op,
 	distance,
 	less_compare,
@@ -137,11 +145,8 @@ public:
 		switch(op)
 		{
 		case equals:
-			{
-				const auto p(d.access<any_storage*>());
-
-				d.access<bool>() = get_reference(*p) == get_reference(s);
-			}
+			if(get_reference(*d.access<any_storage*>()) != get_reference(s))
+				d = static_cast<any_storage*>(nullptr);
 			break;
 		default:
 			base::manage(d, s, op);
@@ -231,7 +236,7 @@ public:
 	\since build 675
 	*/
 	template<typename _tIter,
-		yimpl(typename = exclude_self_t<any_input_iterator, _type>)>
+		yimpl(typename = exclude_self_t<any_input_iterator, _tIter>)>
 	any_input_iterator(_tIter&& i)
 		: any_input_iterator(any_ops::with_handler_t<
 		any_ops::input_iterator_handler<decay_t<_tIter>>>(), yforward(i))
@@ -265,7 +270,9 @@ public:
 	reference
 	operator*() const
 	{
-		return reference(unchecked_access<void_ref>(any_ops::dereference));
+		// TODO: More graceful implementation for unused value?
+		return reference(unchecked_access<void_ref>(any_ops::dereference,
+			yimpl(*this)));
 	}
 
 	pointer
@@ -285,13 +292,18 @@ public:
 	friend bool
 	operator==(const any_input_iterator& x, const any_input_iterator& y)
 	{
-		if(x.empty() && y.empty())
-			return true;
-		yassume(x.type() == y.type());
+		if(x.has_value() || y.has_value())
+		{
+			yassume(x.type() == y.type());
 
-		any_ops::any_storage t(&x.get_storage());
+			using any_ops::any_storage;
+			any_storage t;
+			const auto gd(t.pun<any_storage*>(&x.get_storage()));
 
-		return y.template unchecked_access<bool>(t, any_ops::equals);
+			return y.template
+				unchecked_access<any_storage*>(t, any_ops::equals);
+		}
+		return true;
 	}
 
 	//! \since build 615
@@ -315,7 +327,7 @@ public:
 	friend bool
 	is_undereferenceable(const any_input_iterator& i)
 	{
-		return !i.empty() ? i.template unchecked_access<bool>(
+		return i.has_value() ? i.template unchecked_access<bool>(
 			any_ops::check_undereferenceable) : true;
 	}
 
@@ -358,7 +370,7 @@ public:
 	\since build 686
 	*/
 	template<typename _tIter,
-		yimpl(typename = exclude_self_t<any_forward_iterator, _type>)>
+		yimpl(typename = exclude_self_t<any_forward_iterator, _tIter>)>
 	any_forward_iterator(_tIter&& i)
 		: any_forward_iterator(any_ops::with_handler_t<
 		any_ops::forward_iterator_handler<decay_t<_tIter>>>(), yforward(i))
@@ -431,9 +443,10 @@ public:
 	any_bidirectional_iterator() = default;
 	/*!
 	\brief 构造：使用现有迭代器。
-	\since build 686
+	\since build 717
 	*/
-	template<typename _tIter>
+	template<typename _tIter,
+		yimpl(typename = exclude_self_t<any_bidirectional_iterator, _tIter>)>
 	any_bidirectional_iterator(_tIter&& i)
 		: any_forward_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}

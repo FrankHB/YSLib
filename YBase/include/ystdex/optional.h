@@ -11,18 +11,18 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r668
+\version r708
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2016-08-03 19:22 +0800
+	2016-08-07 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Optonal
-\see WG21 N4480 5[optional] 。
+\see WG21 N4606 20.6[optional] 。
 \see http://www.boost.org/doc/libs/1_57_0/libs/optional/doc/html/optional/reference.html 。
 
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明外，
@@ -48,14 +48,7 @@ namespace ystdex
 
 //! \since build 590
 //@{
-/*!
-\brief 原地构造标记。
-\see WG21 N4480 5.4[optional.inplace] 。
-*/
-yconstexpr const struct in_place_t{} in_place{};
-
-
-//! \see WG21 N4480 5.5[optional.nullopt] 。
+//! \see WG21 N4606 20.6.4[optional.nullopt] 。
 //@{
 //! \brief 无值状态指示。
 //@{
@@ -73,7 +66,7 @@ static_assert(std::is_literal_type<nullopt_t>(),
 \ingroup exceptions
 \brief 可选值操作失败异常。
 \note 实现定义：<tt>what()</tt> 返回 "bad optional access" 。
-\see WG21 N4480 5.6[optional.bad_optional_access] 。
+\see WG21 N4606 20.6.5[optional.bad_optional_access] 。
 */
 class YB_API bad_optional_access : public std::logic_error
 {
@@ -250,7 +243,7 @@ public:
 \note 值语义。基本接口和语义同 std::experimental::optional 提议
 	和 boost::optional （对应接口以前者为准）。
 \warning 非虚析构。
-\see WG21 N4480 5.3[optional.object] 。
+\see WG21 N4606 20.6.3[optional.object] 。
 \todo allocator_arg 支持。
 */
 template<typename _type>
@@ -258,11 +251,12 @@ class optional : private details::optional_base<remove_cv_t<_type>>, yimpl(
 	private totally_ordered<optional<_type>>, public totally_ordered<optional<
 	_type>, _type>, private totally_ordered<optional<_type>, nullopt_t>)
 {
-	//! \see WG21 N4480 5.2[optional.synopsis]/1 。
+	//! \see WG21 N4606 20.6.2[optional.synopsis]/1 。
 	static_assert(!or_<is_reference<_type>, is_same<remove_cv_t<_type>,
-		in_place_t>, is_same<remove_cv_t<_type>, nullopt_t>>(),
+		in_place_t>, is_same<remove_cv_t<_type>, in_place_t>,
+		is_same<remove_cv_t<_type>, nullopt_t>>(),
 		"Invalid type found.");
-	//! \see WG21 N4480 5.3[optional.object]/3 。
+	//! \see WG21 N4606 20.6.3[optional.object]/3 。
 	static_assert(and_<is_nothrow_destructible<_type>, is_object<_type>>(),
 		"Invalid type found.");
 
@@ -422,6 +416,13 @@ public:
 		return this->is_engaged();
 	}
 
+	//! \since build 717
+	bool
+	has_value() const ynothrow
+	{
+		return this->is_engaged();
+	}
+
 	yconstfn_relaxed _type&
 	value() &
 	{
@@ -474,9 +475,9 @@ public:
 /*!
 \brief 关系和比较操作。
 \note 未显式声明的部分由 \c operators 提供实现。
-\see WG21 N4480 5.7[optional.relops] 。
-\see WG21 N4480 5.8[optional.nullops] 。
-\see WG21 N4480 5.9[optional.comp_with_t] 。
+\see WG21 N4606 20.6.6[optional.relops] 。
+\see WG21 N4606 20.6.7[optional.nullops] 。
+\see WG21 N4606 20.6.8[optional.comp_with_t] 。
 */
 //@{
 template<typename _type>
@@ -506,19 +507,34 @@ operator<(const optional<_type>& x, const optional<_type>& y)
 }
 //@}
 
-//! \see WG21 N4480 5.10[optional.specalg] 。
+//! \see WG21 N4606 20.6.9[optional.specalg] 。
 //@{
 template<typename _type> void
 swap(optional<_type>& x, optional<_type>& y) ynoexcept_spec(x.swap(y))
 {
 	return x.swap(y);
 }
-template<typename _type>
-yconstfn optional<decay_t<_type>>
-make_optional(_type&& v)
+
+/*!
+\ingroup helper_functions
+\brief 创建 optional 对象。
+\see WG21 P0032R3 。
+\since build 717
+*/
+//@{
+template<typename _type, typename... _tParams>
+optional<_type>
+make_optional(_tParams&&... args)
 {
-	return optional<decay_t<_type>>(yforward(v));
+	return optional<_type>(in_place, yforward(args)...);
 }
+template<typename _type, typename _tOther, typename... _tParams>
+optional<_type>
+make_optional(std::initializer_list<_tOther> il, _tParams&&... args)
+{
+	return optional<_type>(in_place, il, yforward(args)...);
+}
+//@}
 //@}
 
 /*!
@@ -589,7 +605,7 @@ namespace std
 
 /*!
 \brief ystdex::optional 散列支持。
-\see WG21 N4480 5.11[optional.hash] 。
+\see WG21 N4606 20.6.10[optional.hash] 。
 \since build 591
 */
 //@{

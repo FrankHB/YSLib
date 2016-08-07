@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4050
+\version r4061
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-07-14 22:58 +0800
+	2016-08-07 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,14 +65,6 @@ struct MoveTag
 */
 struct PointerTag
 {};
-
-
-/*!
-\brief 目标类型原地构造标记。
-\since build 678
-*/
-template<typename _type>
-using InPlaceTag = ystdex::any_ops::in_place_t<_type>;
 
 
 /*!
@@ -290,7 +282,7 @@ public:
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
 		: content(ystdex::any_ops::use_holder,
-		InPlaceTag<ValueHolder<ystdex::decay_t<_type>>>(), yforward(obj))
+		ystdex::in_place<ValueHolder<ystdex::decay_t<_type>>>, yforward(obj))
 	{}
 	/*!
 	\brief 构造：使用对象初始化参数。
@@ -300,9 +292,9 @@ public:
 	\since build 678
 	*/
 	template<typename _type, typename... _tParams>
-	ValueObject(InPlaceTag<_type>, _tParams&&... args)
+	ValueObject(ystdex::in_place_type_t<_type>, _tParams&&... args)
 		: content(ystdex::any_ops::use_holder,
-		InPlaceTag<ValueHolder<_type>>(), yforward(args)...)
+		ystdex::in_place<ValueHolder<_type>>, yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用对象指针。
@@ -313,7 +305,7 @@ public:
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
 		: content(ystdex::any_ops::use_holder,
-		InPlaceTag<PointerHolder<_type>>(), p)
+		ystdex::in_place<PointerHolder<_type>>, p)
 	{}
 	/*!
 	\brief 构造：使用对象 unique_ptr 指针。
@@ -461,7 +453,7 @@ public:
 	\since build 296
 	*/
 	PDefH(void, Clear, ) ynothrow
-		ImplExpr(content.clear())
+		ImplExpr(content.reset())
 
 	/*!
 	\brief 交换。
