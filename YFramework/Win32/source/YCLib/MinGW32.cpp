@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2078
+\version r2094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-08-04 23:59 +0800
+	2016-08-10 09:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,6 +199,7 @@ MakeFileToDo(_func f, _tParams&&... args)
 }
 
 //! \since build 651
+yconstfn
 PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 	ImplRet(follow_reparse_point ? FileAttributesAndFlags::NormalWithDirectory
 		: FileAttributesAndFlags::NormalAll)
@@ -658,6 +659,24 @@ QueryFileNodeID(const wchar_t* path, bool follow_reparse_point)
 {
 	return MakeFileToDo<pair<VolumeID, FileID>(UniqueHandle::pointer)>(
 		QueryFileNodeID, path, FollowToAttr(follow_reparse_point));
+}
+
+std::uint64_t
+QueryFileSize(UniqueHandle::pointer h)
+{
+	::LARGE_INTEGER sz;
+
+	YCL_CallF_Win32(GetFileSizeEx, h, &sz);
+
+	if(sz.QuadPart >= 0)
+		return std::uint64_t(sz.QuadPart);
+	throw std::invalid_argument("Negative file size found.");
+}
+std::uint64_t
+QueryFileSize(const wchar_t* path)
+{
+	return MakeFileToDo<std::uint64_t(UniqueHandle::pointer)>(
+		QueryFileSize, path, FileAttributesAndFlags::NormalWithDirectory);
 }
 
 void

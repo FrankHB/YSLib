@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4270
+\version r4273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-08-01 17:29 +0800
+	2016-08-10 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,7 +372,7 @@ DirectorySession::DirectorySession(const char* path)
 {
 #if !YCL_Win32
 	if(!dir)
-		ThrowFileOperationFailure("Opening directory failed.");
+		FileOperationFailure::ThrowNested(yfsig, "Failed opening directory");
 #endif
 }
 DirectorySession::DirectorySession(const char16_t* path)
@@ -428,7 +428,8 @@ HDirectory::operator++()
 		if(err == 0)
 			p_dirent = {};
 		else
-			ThrowFileOperationFailure("Failed iterating directory.", err);
+			FileOperationFailure::ThrowNested(yfsig,
+				"Failed iterating directory", err);
 	}
 #endif
 #undef YCL_Impl_CatchSysE_ForNested

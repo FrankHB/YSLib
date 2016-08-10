@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r708
+\version r797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2016-08-07 16:27 +0800
+	2016-08-08 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,13 +33,13 @@
 #ifndef YB_INC_ystdex_optional_h_
 #define YB_INC_ystdex_optional_h_ 1
 
-#include "operators.hpp" // for is_trivially_destructible, is_cv, std::move,
-//	empty_base, is_nothrow_moveable, and_, std::addressof, remove_cv_t,
-//	totally_ordered, or_, is_reference, is_same, is_nothrow_destructible,
-//	is_object, enable_if_t, is_constructible, decay_t, is_nothrow_swappable,
-//	ystdex::constfn_addressof, is_copyable;
+#include "operators.hpp" // for nullptr_t, is_trivially_destructible, is_cv,
+//	std::move, empty_base, is_nothrow_moveable, and_, std::addressof,
+//	remove_cv_t, totally_ordered, or_, is_reference, is_same,
+//	is_nothrow_destructible, is_object, enable_if_t, is_constructible, decay_t,
+//	is_nothrow_swappable, ystdex::constfn_addressof, is_copyable;
 #include <stdexcept> // for std::logic_error;
-#include "placement.hpp" // for ystdex::construct_in, ystdex::destruct_in;
+#include "placement.hpp" // for tagged_value;
 #include <initializer_list> // for std::initializer_list;
 #include "functional.hpp" // for default_last_value, std::accumulate;
 
@@ -54,8 +54,14 @@ namespace ystdex
 //@{
 yconstexpr const struct nullopt_t
 {
-	yimpl()
-} nullopt{yimpl()};
+	/*!
+	\see http://wg21.cmeerw.net/lwg/issue2510 。
+	\since build 718
+	*/
+	yimpl(yconstfn
+	nullopt_t(nullptr_t)
+	{})
+} nullopt{yimpl(nullptr)};
 
 static_assert(std::is_literal_type<nullopt_t>(),
 	"Invalid implementation found.");
@@ -92,8 +98,8 @@ public:
 	using optional_base<_type, true>::optional_base;
 	~optional_base()
 	{
-		if(this->engaged)
-			this->destroy_raw();
+		if(this->has_value())
+			this->destroy_nothrow();
 	}
 
 	optional_base&
@@ -109,50 +115,45 @@ public:
 };
 
 template<typename _type>
-class optional_base<_type, true>
+class optional_base<_type, true> : protected tagged_value<bool, _type>
 {
 	// NOTE: See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3770.html#FI15.
 	//	Also http://wg21.cmeerw.net/cwg/issue1776.
 	static_assert(!is_cv<_type>(), "Cv-qualified type found.");
 
 protected:
-	union
-	{
-		empty_base<> empty;
-		mutable _type value;
-	};
-	bool engaged = {};
+	//! \since build 718
+	using base = tagged_value<bool, _type>;
+
+	//! \since build 718
+	using base::value;
 
 public:
 	yconstfn
-	optional_base() ynothrow
-		: empty()
-	{}
+	optional_base() = default;
 	template<typename... _tParams>
 	explicit yconstfn
 	optional_base(in_place_t, _tParams&&... args)
-		: value(yforward(args)...), engaged(true)
+		: base(true, in_place, yforward(args)...)
 	{}
 	optional_base(const optional_base& s)
-		: engaged(s.engaged)
+		: base(s)
 	{
-		if(engaged)
-			construct_raw(s.value);
+		if(has_value())
+			base::construct(s.value);
 	}
-	optional_base(const optional_base&& s)
-		ynoexcept_spec(is_nothrow_move_constructible<_type>())
-		: engaged(s.engaged)
+	//! \since build 718
+	optional_base(optional_base&& s)
+		: base(s)
 	{
-		if(engaged)
-			construct_raw(std::move(s.value));
+		if(has_value())
+			base::construct(std::move(s.value));
 	}
 	/*!
 	\brief 析构：空实现。
-	\note 不使用默认函数以避免派生此类的非平凡析构函数非合式而被删除。
 	\since build 609
 	*/
-	~optional_base()
-	{}
+	~optional_base() = default;
 
 	optional_base&
 	operator=(const optional_base& s)
@@ -172,9 +173,9 @@ public:
 	assign(_tParam&& arg) ynoexcept(and_<is_rvalue_reference<_tParam&&>,
 		is_nothrow_moveable<_type>>())
 	{
-		if(engaged && arg.engaged)
+		if(has_value() && arg.has_value())
 			value = yforward(arg);
-		else if(arg.engaged)
+		else if(arg.has_value())
 			construct(yforward(arg));
 		else
 			reset();
@@ -185,52 +186,34 @@ public:
 	void
 	construct(_tParams&&... args)
 	{
-		construct_raw(yforward(args)...);
-		engaged = true;
+		base::construct(yforward(args)...);
+		base::token = true;
 	}
 
-private:
-	template<typename... _tParams>
-	void
-	construct_raw(_tParams&&... args)
-	{
-		ystdex::construct_in(value, yforward(args)...);
-	}
-
-public:
 	void
 	destroy() ynothrow
 	{
-		engaged = {};
-		destroy_raw();
+		base::token = {};
+		base::destroy_nothrow();
 	}
 
-protected:
-	void
-	destroy_raw() ynothrow
-	{
-		ynoexcept_assert("Invalid type found.", value.~type());
-
-		ystdex::destruct_in(value);
-	}
-
-public:
 	_type&
 	get() ynothrow
 	{
 		return value;
 	}
 
+	//! \since build 718
 	bool
-	is_engaged() const ynothrow
+	has_value() const ynothrow
 	{
-		return engaged;
+		return base::token;
 	}
 
 	void
 	reset() ynothrow
 	{
-		if(engaged)
+		if(has_value())
 			destroy();
 	}
 };
@@ -301,7 +284,7 @@ public:
 	optional&
 	operator=(nullopt_t) ynothrow
 	{
-		this->reset();
+		reset();
 		return *this;
 	}
 	optional&
@@ -321,7 +304,7 @@ public:
 	yimpl(enable_if_t)<is_same<decay_t<_tOther>, _type>::value, optional&>
 	operator=(_tOther&& v)
 	{
-		if(this->is_engaged())
+		if(has_value())
 			this->get() = yforward(v);
 		else
 			this->construct(yforward(v));
@@ -332,14 +315,14 @@ public:
 	void
 	emplace(_tParams&&... args)
 	{
-		this->reset();
+		reset();
 		this->construct(yforward(args)...);
 	}
 	template<typename _tOther, typename... _tParams>
 	void
 	emplace(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
-		this->reset();
+		reset();
 		this->construct(il, yforward(args)...);
 	}
 
@@ -362,14 +345,14 @@ public:
 	{
 		using std::swap;
 
-		if(this->is_engaged() && o.is_engaged())
+		if(has_value() && o.has_value())
 			swap(this->get(), o.get());
-		else if(this->is_engaged())
+		else if(has_value())
 		{
 			o.construct(std::move(this->get()));
 			this->destroy();
 		}
-		else if(o.is_engaged())
+		else if(o.has_value())
 		{
 			this->construct(std::move(this->get()));
 			o.destroy();
@@ -413,40 +396,36 @@ public:
 	explicit yconstfn
 	operator bool() const ynothrow
 	{
-		return this->is_engaged();
+		return has_value();
 	}
 
-	//! \since build 717
-	bool
-	has_value() const ynothrow
-	{
-		return this->is_engaged();
-	}
+	//! \since build 718
+	using base::has_value;
 
 	yconstfn_relaxed _type&
 	value() &
 	{
-		return this->is_engaged() ? this->get() : (throw bad_optional_access(),
-			this->get());
+		return has_value() ? this->get()
+			: (throw bad_optional_access(), this->get());
 	}
 	yconstfn const _type&
 	value() const&
 	{
-		return this->is_engaged() ? this->get() : (throw bad_optional_access(),
-			this->get());
+		return has_value() ? this->get()
+			: (throw bad_optional_access(), this->get());
 	}
 	//! \since build 675
 	yconstfn_relaxed _type&&
 	value() &&
 	{
-		return this->is_engaged() ? std::move(this->get())
+		return has_value() ? std::move(this->get())
 			: (throw bad_optional_access(), std::move(this->get()));
 	}
 	//! \since build 675
 	yconstfn _type&&
 	value() const&&
 	{
-		return this->is_engaged() ? std::move(this->get())
+		return has_value() ? std::move(this->get())
 			: (throw bad_optional_access(), std::move(this->get()));
 	}
 
@@ -456,8 +435,7 @@ public:
 	{
 		static_assert(is_copyable<_type>(), "Invalid type found.");
 
-		return this->is_engaged() ? this->get()
-			: static_cast<_type>(yforward(other));
+		return has_value() ? this->get() : static_cast<_type>(yforward(other));
 	}
 	template<typename _tOther>
 	yconstfn_relaxed _type
@@ -465,9 +443,12 @@ public:
 	{
 		static_assert(is_copyable<_type>(), "Invalid type found.");
 
-		return this->is_engaged() ? std::move(this->get())
+		return has_value() ? std::move(this->get())
 			: static_cast<_type>(yforward(other));
 	}
+
+	//! \since build 718
+	using base::reset;
 };
 
 //! \relates optional

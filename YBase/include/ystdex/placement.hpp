@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r516
+\version r574
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2016-08-06 15:41 +0800
+	2016-08-08 01:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -513,6 +513,72 @@ template<typename _type, typename _tPointer = _type*>
 using placement_ptr
 	= std::unique_ptr<_type, placement_delete<_type, _tPointer>>;
 //@}
+
+
+/*!
+\brief 带记号标记的可选值。
+\warning 非虚析构。
+\since build 718
+*/
+template<typename _tToken, typename _type>
+struct tagged_value
+{
+	using token_type = _tToken;
+	using value_type = _type;
+
+	token_type token{};
+	union
+	{
+		empty_base<> empty;
+		mutable _type value;
+	};
+
+	yconstfn
+	tagged_value()
+		ynoexcept_spec(is_nothrow_default_constructible<token_type>())
+		: empty()
+	{}
+	tagged_value(default_init_t)
+	{}
+	tagged_value(token_type t)
+		: token(t), empty()
+	{}
+	template<typename... _tParams>
+	explicit yconstfn
+	tagged_value(token_type t, in_place_t, _tParams&&... args)
+		: token(t), value(yforward(args)...)
+	{}
+	tagged_value(const tagged_value& v)
+		: token(v.token)
+	{}
+	/*!
+	\brief 析构：空实现。
+	\note 不使用默认函数以避免派生此类的非平凡析构函数非合式而被删除。
+	*/
+	~tagged_value()
+	{}
+
+	template<typename... _tParams>
+	void
+	construct(_tParams&&... args)
+	{
+		ystdex::construct_in(value, yforward(args)...);
+	}
+
+	void
+	destroy() ynoexcept(is_nothrow_destructible<value_type>())
+	{
+		ystdex::destruct_in(value);
+	}
+
+	void
+	destroy_nothrow() ynothrow
+	{
+		ynoexcept_assert("Invalid type found.", value.~value_type());
+
+		destroy();
+	}
+};
 
 } // namespace ystdex;
 

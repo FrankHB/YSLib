@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3556
+\version r3557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-07-31 16:01 +0800
+	2016-08-08 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -610,7 +610,7 @@ public:
 
 	/*!
 	\brief 迭代：向后遍历。
-	\throw FileOperationFailure 读取目录失败。
+	\throw FileOperationFailure 嵌套异常：读取目录失败。
 	\
 	*/
 	HDirectory&

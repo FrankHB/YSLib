@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1921
+\version r1933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-07-31 16:06 +0800
+	2016-08-10 09:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -851,6 +851,19 @@ QueryFileNodeID(UniqueHandle::pointer);
 YF_API YB_NONNULL(1) pair<VolumeID, FileID>
 QueryFileNodeID(const wchar_t*, bool = {});
 //@}
+//@}
+
+/*!
+\brief 查询文件大小。
+\throw std::invalid_argument 查询文件得到的大小小于 0 。
+\since build 718
+*/
+//@{
+YF_API std::uint64_t
+QueryFileSize(UniqueHandle::pointer);
+//! \pre 间接断言：路径参数非空。
+YF_API YB_NONNULL(1) std::uint64_t
+QueryFileSize(const wchar_t*);
 //@}
 
 /*
