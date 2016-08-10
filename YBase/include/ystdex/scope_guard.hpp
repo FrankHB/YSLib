@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r456
+\version r482
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-08-03 19:24 +0800
+	2016-08-08 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include "utility.hpp" // for is_constructible, is_reference,
 //	is_nothrow_swappable, ystdex::vswap, std::declval, is_nothrow_copyable;
 #include "base.h" // for noncopyable;
-#include "placement.hpp" // for ystdex::construct_in, ystdex::destruct_in;
+#include "placement.hpp" // for tagged_value;
 
 namespace ystdex
 {
@@ -183,22 +183,21 @@ struct state_guard_traits<_type, _tToken, true>
 
 
 template<typename _type, typename _tToken>
-struct state_guard_impl
-	: private state_guard_traits<_type, _tToken>, private noncopyable
+struct state_guard_impl : public tagged_value<_tToken, _type>,
+	private state_guard_traits<_type, _tToken>, private noncopyable
 {
-	using value_type = _type;
-	using token_type = _tToken;
+	//! \since build 718
+	//@{
+	using base = tagged_value<_tToken, _type>;
+	using typename base::token_type;
+	using typename base::value_type;
 
-	token_type token;
-	union
-	{
-		value_type value;
-	};
+	using base::token;
+	using base::value;
+	//@}
 
 	state_guard_impl(token_type t)
-		: token(t)
-	{}
-	~state_guard_impl()
+		: base(t)
 	{}
 
 	//! \since build 586
@@ -208,16 +207,12 @@ struct state_guard_impl
 		ynoexcept(noexcept(value_type(yforward(args)...))
 		&& noexcept(std::declval<state_guard_impl&>().save()))
 	{
-		ystdex::construct_in(value, yforward(args)...);
+		base::construct(yforward(args)...);
 		save();
 	}
 
-	//! \since build 586
-	void
-	destroy() ynoexcept(is_nothrow_destructible<value_type>())
-	{
-		ystdex::destruct_in(value);
-	}
+	//! \since build 718
+	using base::destroy;
 
 	void
 	save() ynoexcept(noexcept(state_guard_traits<value_type, token_type>
@@ -309,11 +304,11 @@ public:
 		enabled = condition_type();
 	}
 
-	//! \since build 692
+	//! \since build 718
 	condition_type
-	engaged() const ynothrow
+	has_value() const ynothrow
 	{
-		return engaged;
+		return base::engaged;
 	}
 };
 

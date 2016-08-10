@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2257
+\version r2289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-07-30 19:50 +0800
+	2016-08-10 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,7 +176,7 @@ public:
 	\brief 构造：使用标准流。
 	\note 对空参数不设置 errno 。
 
-	当参数为空时得到无效文件空描述符，否则调用 POSIX \c fileno 函数。
+	当参数为空时得到表示无效文件的空描述符，否则调用 POSIX \c fileno 函数。
 	*/
 	FileDescriptor(std::FILE*) ynothrow;
 
@@ -255,8 +255,8 @@ public:
 	/*!
 	\brief 取大小。
 	\return 以字节计算的文件大小。
-	\note 非常规文件可能出错。
-	\throw FileOperationFailure 参数无效或文件大小查询失败。
+	\throw FileOperationFailure 嵌套异常：描述符无效或文件大小查询失败。
+	\note 非常规文件或文件系统实现可能出错。
 	*/
 	std::uint64_t
 	GetSize() const;
@@ -264,8 +264,7 @@ public:
 
 	/*!
 	\brief 设置访问时间。
-	\throw FileOperationFailure 设置失败。
-	\throw std::system_error 本机 API 调用失败。
+	\throw FileOperationFailure 嵌套异常：设置失败。
 	\note DS 平台：不支持操作。
 	\since build 651
 	*/
@@ -291,8 +290,7 @@ public:
 	SetMode(mode_t) const ynothrow;
 	//@}
 	/*!
-	\throw FileOperationFailure 设置失败。
-	\throw std::system_error 本机 API 调用失败。
+	\throw FileOperationFailure 嵌套异常：设置失败。
 	\note DS 平台：不支持操作。
 	\note Win32 平台：要求打开的文件具有写权限。
 	\since build 651
@@ -1196,6 +1194,30 @@ public:
 	\since build 586
 	*/
 	~FileOperationFailure() override;
+
+	/*!
+	\throw FileOperationFailure 指定参数构造的嵌套异常。
+	\since build 718
+	*/
+	//@{
+	//! \build 抛出由 errno 和参数指定的 FileOperationFailure 嵌套异常。
+	template<typename _tParam, typename _tError = int>
+	YB_NORETURN static YB_NONNULL(1) void
+	ThrowNested(const char* sig, _tParam&& arg, _tError err = errno)
+	{
+		TryExpr(ystdex::throw_error(err, Nonnull(sig)))
+		CatchExpr(std::system_error& e,
+			ThrowWithNested(e.code(), yforward(arg)))
+	}
+
+	//! \brief 抛出嵌套 FaileOperationFailure 异常。
+	template<typename... _tParams>
+	YB_NORETURN static void
+	ThrowWithNested(_tParams&&... args)
+	{
+		std::throw_with_nested(FileOperationFailure(yforward(args)...));
+	}
+	//@}
 };
 
 /*!
@@ -1301,7 +1323,7 @@ ThrowFileOperationFailure(_tParam&& arg, int err = errno)
 //@}
 
 
-//! \exception FileOperationFailure 参数无效或文件时间查询失败。
+//! \exception FileOperationFailure 嵌套异常：参数无效或文件时间查询失败。
 //@{
 /*!
 \sa FileDescriptor::GetAccessTime
@@ -1322,7 +1344,6 @@ GetFileAccessTimeOf(const char16_t*, bool = {});
 //@}
 //@}
 
-//@{
 /*!
 \sa FileDescriptor::GetModificationTime
 \since build 628
@@ -1343,7 +1364,6 @@ GetFileModificationTimeOf(const char16_t*, bool = {});
 //@}
 //@}
 
-//@{
 /*!
 \sa FileDescriptor::GetModificationAndAccessTime
 \since build 631

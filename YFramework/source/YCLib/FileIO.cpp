@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2574
+\version r2620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-07-31 12:50 +0800
+	2016-08-10 10:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,6 +147,11 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 	return ptr;
 }
 
+//! \since build 715
+#define YCL_Impl_CatchSysE_ForNested(_msg) \
+	CatchExpr(std::system_error& e, \
+		FileOperationFailure::ThrowWithNested(e.code(), Nonnull(_msg)))
+
 #if YCL_Win32
 //! \since build 704
 using platform_ex::ToHandle;
@@ -234,11 +239,6 @@ inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
 	ImplRet({std::time_t(ft.count() / 1000000000LL),
 		long(ft.count() % 1000000000LL)})
 
-//! \since build 715
-#define YCL_Impl_CatchSysE_ForNested(_msg) \
-	CatchExpr(std::system_error& e, \
-		std::throw_with_nested(FileOperationFailure(e.code(), Nonnull(_msg))))
-
 //! \since build 713
 YB_NONNULL(2) void
 SetFileTime(int fd, const ::timespec* times)
@@ -249,14 +249,13 @@ SetFileTime(int fd, const ::timespec* times)
 #	define UTIME_OMIT (-1L)
 #endif
 	yunused(fd), yunused(times);
-	ystdex::throw_error(std::errc::function_not_supported, yfsig);
+	FileOperationFailure::ThrowNested(yfsig, "Failed setting file time",
+		std::errc::function_not_supported);
 #else
 	TryExpr(YCL_CallF_CAPI(, ::futimens, fd, times))
 	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
 #endif
 }
-
-#undef YCL_Impl_CatchSysE_ForNested
 
 //! \since build 631
 //@{
@@ -303,15 +302,14 @@ FetchFileTime(_func f, _tParams... args)
 	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
 	// XXX: Error handling for indirect calls.
 	TryRet(f(args...))
-	CatchThrow(std::system_error& e, FileOperationFailure(e.code(),
-		std::string("Failed querying file time: ") + e.what()))
+	YCL_Impl_CatchSysE_ForNested("Failed querying file time")
 #else
 	// TODO: Get more precise time count.
 	struct ::stat st;
 
 	if(estat(st, args...) == 0)
 		return f(st);
-	ThrowFileOperationFailure("Failed querying file time.");
+	FileOperationFailure::ThrowNested(yfsig, "Failed querying file time");
 #endif
 }
 
@@ -511,31 +509,39 @@ std::uint64_t
 FileDescriptor::GetSize() const
 {
 #if YCL_Win32
-	::LARGE_INTEGER sz;
-
-	// XXX: Error handling for indirect calls.
-	if(::GetFileSizeEx(ToHandle(desc), &sz) != 0 && YB_LIKELY(sz.QuadPart >= 0))
-		return std::uint64_t(sz.QuadPart);
-	ThrowFileOperationFailure("Failed getting file size.", GetErrnoFromWin32());
+	TryRet(platform_ex::QueryFileSize(ToHandle(desc)))
 #else
 	struct ::stat st;
 
-	if(estat(st, desc) == 0)
-		// TODO: Use YSLib::CheckNonnegative<std::uint64_t>?
+	try
+	{
+		YCL_CallF_CAPI(, ::fstat, desc, &st);
+
 		// XXX: No negative file size should be found. See also:
 		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed.
-		return std::uint64_t(st.st_size);
-	ThrowFileOperationFailure("Failed getting file size.");
+		if(st.st_size >= 0)
+			return std::uint64_t(st.st_size);
+		throw std::invalid_argument("Negative file size found.");
+	}
 #endif
+	YCL_Impl_CatchSysE_ForNested("Failed getting file size")
+	CatchExpr(std::invalid_argument& e, FileOperationFailure::ThrowWithNested(
+		std::make_error_code(std::errc::invalid_argument),
+		"Failed getting file size"))
+	YB_ASSUME(false);
 }
 
 void
 FileDescriptor::SetAccessTime(FileTime ft) const
 {
 #if YCL_Win32
-	auto atime(ConvertTime(ft));
+	try
+	{
+		auto atime(ConvertTime(ft));
 
-	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, {});
+		platform_ex::SetFileTime(ToHandle(desc), {}, &atime, {});
+	}
+	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
 #else
 	const ::timespec times[]{ToTimeSpec(ft), {yimpl(0), UTIME_OMIT}};
 
@@ -584,9 +590,13 @@ void
 FileDescriptor::SetModificationTime(FileTime ft) const
 {
 #if YCL_Win32
-	auto mtime(ConvertTime(ft));
+	try
+	{
+		auto mtime(ConvertTime(ft));
 
-	platform_ex::SetFileTime(ToHandle(desc), {}, {}, &mtime);
+		platform_ex::SetFileTime(ToHandle(desc), {}, {}, &mtime);
+	}
+	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
 #else
 	const ::timespec times[]{{yimpl(0), UTIME_OMIT}, ToTimeSpec(ft)};
 
@@ -597,15 +607,20 @@ void
 FileDescriptor::SetModificationAndAccessTime(array<FileTime, 2> fts) const
 {
 #if YCL_Win32
-	auto atime(ConvertTime(fts[0])), mtime(ConvertTime(fts[1]));
+	try
+	{
+		auto atime(ConvertTime(fts[0])), mtime(ConvertTime(fts[1]));
 
-	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, &mtime);
+		platform_ex::SetFileTime(ToHandle(desc), {}, &atime, &mtime);
+	}
+	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
 #else
 	const ::timespec times[]{ToTimeSpec(fts[0]), ToTimeSpec(fts[1])};
 
 	SetFileTime(desc, times);
 #endif
 }
+#undef YCL_Impl_CatchSysE_ForNested
 bool
 FileDescriptor::SetNonblocking() const ynothrow
 {

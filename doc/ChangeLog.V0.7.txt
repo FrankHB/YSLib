@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2148
+\version r2249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-07 16:29 +0800
+	2016-08-10 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,89 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Optional $=
+		(
+			* "missing changed interface disagreed with base specification"
+				$since b717 $=
+			(
+				/ "made %nullopt default constructor not declared"
+					$= (+ $impl "constructor with 1 parameter"),
+				* "missing function %reset" @ "class template %optional"
+			),
+			/ @ "class template %optional" $=
+			(
+				/ $impl "simplified function %has_value"
+					$= (/ "function" -> "using-declaration to base class \
+						member"),
+				* "copied instead of moved value" @ "movable base object \
+					without 'const' qualified copy-initialization" $since b591
+			),
+			/ DLDI "simplified" ^ ("%tagged_value" @ %Placement)
+		),
+		/ @ "class template %state_guard" @ %ScopeGuard $=
+		(
+			/ @ "primary template" $=
+			(
+				/ "function %engaged" -> "%has_value";
+				* $comp "returned function name as state" @ "function %engaged"
+					$since b692
+			),
+			/ DLDI "simplified"
+				^ ("instance of %tagged_value as base class" @ %Placement)
+		),
+		+ "class template %tagged_value" @ %Placement
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				+ "static member function templates \
+					%FileOperationFailure::(ThrowWithNested, ThrowNested)",
+				/ $re_ex(b715) "threw nested exception %FileOperationFailure \
+					with %std::system_error on failure" @ "member functions \
+					%FileDescriptor::(SetAccessTime, SetModificationTime, \
+					SetModificationAndAccessTime)"
+					@ ("platform %Win32", "platform %DS" ^ $dep_from
+					"%FileOperationFailure::ThrowNested"),
+				/ $re_add(b715) "threw nested exception %FileOperationFailure \
+					with %std::system_error on failure" @ "all 2 functions \
+					%(GetFileAccessTimeOf, GetFileModificationTimeOf, \
+					GetFileModificationAndAccessTimeOf)"
+					@ ("platform %Win32", "platform %DS" ^ $dep_from
+					"%FileOperationFailure::ThrowNested"
+					~ "%ThrowFileOperationFailure"),
+				/ @ "member function %FileDescriptor::GetSize" $=
+				(
+					+ "check to ensure nonnegative size" $=
+					/ $re_add(b715) "threw nested exception \
+						%FileOperationFailure with %std::system_error"
+				)
+			),
+			/ %FileSystem $=
+			(
+				/ $re_ex(b715) "threw nested exception %FileOperationFailure \
+					with %std::system_error on failure" @ !"platform %Win32"
+					@ ("constructors %DirectorySession",
+					"member function %HDirectory::operator++")
+					$= (/ DLDI ^ ("%FileOperationFailure::ThrowNested"
+						@ %FileIO) ~ "%ThrowFileOperationFailure");
+				* $comp $doc "nested exception not thrown" @ "platform %Win32"
+					@ "Doxygen comment" @ "constructors %DirectorySession"
+					$since b715
+			)
+		),
+		/ DLDI "reduced redundant %errno access"
+			@ "function templates %(Remove, Unlink)" @ %YSLib.Service.File,
+		+ "2 functions %QueryFileSize" @ %'YCLib_(Win32)'.MinGW32
+	)
+),
+
+b717
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -99,6 +182,12 @@ $now
 				/ "constructor template with in place tag" ^ $dep_from
 					("%in_place_type_t" @ %Placement) ~ "%any_ops::in_place_t"
 					$dep_to "simplified any type tag"
+				// GCC 4.9 is buggy in initialization with excessive warnings: \
+					[-Wmissing-field-initializers]. See \
+					https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61489. This \
+					will trouble building for platform %Android, though new \
+					toolchain from current version of official or CrystaX NDK \
+					should not be affected. So these warnings are ignored.
 			),
 			+ "2 function templates %make_any" ^ $dep_from
 				("%in_place_t" @ %Placement);
@@ -340,33 +429,26 @@ b715
 						$dep_from ("constructors %DirectoryFindData"
 						@ %'YCLib_(Win32)'.MinGW32);
 					/ "threw nested exception %FileOperationFailure with \
-						%std::system_error on failure"
+						%std::system_error on failure" @ "platform %Win32"
 				),
 				/ DLDI "simplified calling %::lstat" @ !"platforms %(Win32, DS)"
 					@ "function %ReadLink#1" ^ "%YCL_CallF_CAPI"
 					~ "%YCL_Raise_SysE",
 				/ @ "class %HDirectory" $=
 				(
-					/ @ "function %operator++" $=
-					(
-						/ DLDI "simplified" @ "platform %Win32"
-						/ "threw nested exception %FileOperationFailure with \
-							%std::system_error on failure" @ !"platform %Win32"
-					),
+					/ "threw nested exception %FileOperationFailure with \
+						%std::system_error on failure" @ "platform %Win32"
+						@ "function %operator++",
 					+ "trace for exception with level 'Warning'"
 						@ !"platform %Win32" @ "function %GetNodeCategory"
 						^ "%(YCL_TraceCallF_CAPI, CatchExpr)" ~ "%CatchIgnore"
 				)
 			),
-			/ %FileIO $=
-			(
-				+ "trace for %::(stat, lstat) calls",
-				/ DLDI "threw nested exception %FileOperationFailure with \
-					%std::system_error on failure" @ !"platforms %(DS, Win32)"
-					@ "member functions %FileDescriptor::(SetAccessTime, \
-					SetModificationTime, SetModificationAndAccessTime)"
-					^ "%YCL_CallF_CAPI" $dep_from %YBase.LibDefect.Exception
-			)
+			/ "threw nested exception %FileOperationFailure with \
+				%std::system_error on failure" @ !"platforms %(DS, Win32)"
+				@ "member functions %FileDescriptor::(SetAccessTime, \
+				SetModificationTime, SetModificationAndAccessTime)" @ %FileIO
+				^ "%YCL_CallF_CAPI" $dep_from %YBase.LibDefect.Exception
 		),
 		/ %YSLib $=
 		(
