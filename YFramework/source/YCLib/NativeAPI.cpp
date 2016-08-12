@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1018
+\version r1045
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2016-06-21 11:22 +0800
+	2016-08-11 05:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_NativeAPI // for ::stat, ::lstat;
 #if YCL_Win32 || YCL_API_POSIXFileSystem
-#	include YFM_YCLib_Debug // for platform::Nonnull;
+#	include YFM_YCLib_FileIO // for platform::Nonnull, YCL_Raise_SysE;
 #endif
 #if YCL_DS
 #	include YFM_DS_YCLib_DSIO // for ::DISC_INTERFACE, Disc,
@@ -53,6 +53,33 @@ namespace
 #if YCL_Win32 || YCL_API_POSIXFileSystem
 namespace platform_ex
 {
+
+YF_API YB_NONNULL(2) void
+cstat(struct ::stat& st, const char* path, bool follow_link, const char* sig)
+{
+	const int res(estat(st, path, follow_link));
+
+	if(res < 0)
+#if !(YCL_DS || YCL_Win32)
+		YCL_Raise_SysE(, "::stat", sig);
+#else
+	{
+		if(follow_link)
+			YCL_Raise_SysE(, "::stat", sig);
+		else
+			YCL_Raise_SysE(, "::lstat", sig);
+	}
+#endif
+}
+void
+cstat(struct ::stat& st, int fd, const char* sig)
+{
+	const int res(::fstat(fd, &st));
+
+	if(res < 0)
+		YCL_Raise_SysE(, "::stat", sig);
+}
+
 
 YB_NONNULL(2) int
 estat(struct ::stat& st, const char* path, bool follow_link) ynothrowv
@@ -112,6 +139,9 @@ FileSystem::FileSystem(size_t pages)
 	}())
 {
 	// NOTE: No %ARGV_MAGIC here as libnds does.
+	// NOTE: Call of %::chdir also sets default device in I/O support code. This
+	//	enables relative paths available for %::GetDeviceOpTab and
+	//	%platform_ex::FAT::FetchPartitionFromPath for platform %DS.
 	::chdir(root == RootKind::FAT ? "fat:/" : "sd:/");
 }
 

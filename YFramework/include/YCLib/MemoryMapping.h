@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r318
+\version r322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2016-07-28 21:06 +0800
+	2016-08-12 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,9 +126,11 @@ public:
 	DefDeCtor(MappedFile)
 	/*!
 	\brief 构造：创建映射文件。
+	\exception std::system_error 取文件大小失败。
+	\exception std::invalid_argument 取文件大小结果小于 0 。
 	\exception ystdex::narrowing_error 映射的文件大小不被支持。
-	\throw FileOperationFailure 文件打开失败。
 	\throw std::runtime_error 嵌套异常：映射失败。
+	\throw std::system_error 文件打开失败。
 	\note 非宿主平台：忽略第三参数。
 	\note DS 平台：使用文件 IO 模拟。
 	\since build 711

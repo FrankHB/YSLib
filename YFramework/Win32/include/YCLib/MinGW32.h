@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1933
+\version r1941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-08-10 09:01 +0800
+	2016-08-11 05:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ public:
 		YSLib::RecordLevel = YSLib::Emergent);
 	/*!
 	\pre 第三参数非空。
-	\note 第三参数表示函数名，可以使用 \c __func__ 。
+	\note 第三参数是表示调用位置函数签名，可以使用 \c __func__ 。
 	*/
 	YB_NONNULL(4)
 	Win32Exception(ErrorCode, string_view, const char*,
@@ -135,20 +135,22 @@ public:
 \note 先调用 \c ::GetLastError 以避免参数中的副作用影响结果。
 */
 #	define YCL_Raise_Win32E(...) \
+	do \
 	{ \
 		const auto err_(::GetLastError()); \
 	\
 		throw platform_ex::Windows::Win32Exception(err_, __VA_ARGS__); \
-	}
+	}while(false)
 
 //! \brief 按表达式求值和指定参数抛出 Windows::Win32Exception 对象。
 #	define YCL_RaiseZ_Win32E(_expr, ...) \
+	do \
 	{ \
 		const auto err_(Windows::ErrorCode(_expr)); \
 	\
 		if(err_ != ERROR_SUCCESS) \
 			throw platform_ex::Windows::Win32Exception(err_, __VA_ARGS__); \
-	}
+	}while(false)
 
 //! \brief 跟踪 ::GetLastError 取得的调用状态结果。
 #	define YCL_Trace_Win32E(_lv, _fn, _sig) \
@@ -732,6 +734,7 @@ public:
 
 	/*!
 	\brief 读取：迭代当前查找状态。
+	\throw Win32Exception 读取失败。
 	\return 若迭代结束后节点且文件名非空。
 	\since build 705
 
@@ -874,8 +877,7 @@ QueryFileSize(const wchar_t*);
 //! \brief 查询文件的创建、访问和/或修改时间。
 //@{
 /*!
-\pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
-	且具有 AccessRights::GenericRead权限。
+\pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，且具有 AccessRights::GenericRead权限。
 \since build 629
 */
 YF_API void

@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r461
+\version r472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-07-30 19:46 +0800
+	2016-08-12 09:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,12 +27,12 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_MemoryMapping // for wcast;
-#include YFM_YCLib_FileIO // for uopen, ThrowFileOperationFailure;
+#include YFM_YCLib_FileIO // for uopen, YCL_Raise_SysE, YCL_CallF_CAPI,
+//	std::throw_with_nested, std::runtime_error, ystdex::throw_error,
+//	std::errc::bad_file_descriptor;
 #include YFM_YCLib_NativeAPI // for ::UnmapViewOfFile, CreateFileMapping,
 //	PAGE_READONLY, PAGE_READWRITE, MapViewOfFile, FILE_MAP_READ,
 //	FILE_MAP_ALL_ACCESS, FILE_MAP_COPY, ::lseek;
-#include <ystdex/exception.h> // for YCL_Raise_SysE, YCL_CallF_CAPI,
-//	std::throw_with_nested, std::runtime_error;
 #include <cerrno> // for errno;
 #include <ystdex/cast.hpp> // for ystdex::narrow;
 #if YCL_Win32
@@ -140,13 +140,13 @@ MappedFile::MappedFile(size_t len, UniqueFile f,
 {}
 MappedFile::MappedFile(UniqueFile f, FileMappingOption opt, FileMappingKey key)
 	: MappedFile([&]{
-		if(!f)
-			ThrowFileOperationFailure(
-				"Failed mapping due to invalid file opened.");
+		if(f)
+		{
+			const auto s(ystdex::narrow<size_t>(f->GetSize()));
 
-		const auto s(ystdex::narrow<size_t>(f->GetSize()));
-
-		return pair<size_t, UniqueFile>(s, std::move(f));
+			return pair<size_t, UniqueFile>(s, std::move(f));
+		}
+		ystdex::throw_error(std::errc::bad_file_descriptor, yfsig);
 	}(), opt, key)
 {}
 MappedFile::MappedFile(const char* path, FileMappingOption opt,

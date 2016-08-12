@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2229
+\version r2230
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2016-07-31 15:56 +0800
+	2016-08-11 05:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ VerifyDirectoryImpl(const _tChar* path)
 
 		return true;
 	}
-	CatchExpr(FileOperationFailure& e, YTraceDe(Debug,
+	CatchExpr(std::system_error& e, YTraceDe(Debug,
 		"Directory verfication failed."), ExtractAndTrace(e, Debug))
 	return {};
 }

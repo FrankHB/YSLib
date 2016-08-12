@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r704
+\version r709
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2016-07-30 16:11 +0800
+	2016-08-10 13:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -307,7 +307,7 @@ namespace platform_ex
 /*!
 \brief 日志断言函数。
 \note 默认断言 ystdex::yassert 的替代。
-\warning 若忽略且继续，则行为未定义。应只用于调试用途。
+\warning Win32 平台：允许忽略且继续，但行为未定义。应只用于调试用途。
 \sa ystdex::yassert
 \since build 641
 \todo 允许在 Win32 上禁用消息框。
@@ -319,6 +319,9 @@ namespace platform_ex
 		忽略此过程的所有错误，包括所有被抛出的异常。若捕获异常则继续以下行为。
 	锁定公共日志记录器后调用 ystdex::yassert ，最终调用 std::terminate 终止程序。
 */
+#if !YCL_Win32
+YB_NORETURN
+#endif
 YF_API void
 LogAssert(const char*, const char*, int, const char*) ynothrow;
 
@@ -438,6 +441,7 @@ Deref(_type&& p) -> decltype(*p)
 /*!
 \ingroup diagnostic
 \brief 组合消息和函数签名字符串。
+\pre 间接断言：指针参数非空。
 \note 使用 ADL to_string 。
 \since build 714
 */

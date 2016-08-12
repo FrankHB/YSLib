@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r414
+\version r429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-07-31 14:30 +0800
+	2016-08-12 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
-#include YFM_YCLib_FileIO // for platform::FileOperationFailure,
-//	platform::ThrowFileOperationFailure;
+#include YFM_YCLib_FileIO // for YCL_Raise_SysE, YCL_CallF_CAPI;
 #include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_NLS // for MBCSToMBCS;
@@ -43,10 +42,6 @@
 #endif
 
 using namespace YSLib;
-//! \since build 553
-using platform::FileOperationFailure;
-//! \since build 654
-using platform::ThrowFileOperationFailure;
 //! \since build 659
 using YSLib::string;
 //! \since build 659
@@ -106,7 +101,7 @@ FetchCommandOutput(const char* cmd, size_t buf_size)
 			res.append(&p_buf[0], n);
 		return res;
 	}
-	ThrowFileOperationFailure("Failed opening pipe.");
+	YCL_Raise_SysE(, "::popen", yfsig);
 }
 
 
@@ -137,7 +132,7 @@ FetchCachedCommandResult(const string& cmd, size_t buf_size)
 			YB_UNLIKELY(cmd.empty()) ? string()
 			: FetchCommandOutput(cmd.c_str(), buf_size))).first)->second;
 	}
-	CatchExpr(FileOperationFailure& e,
+	CatchExpr(std::system_error& e,
 		YTraceDe(Err, "Failed execution of command."), ExtractAndTrace(e, Err))
 	return cache[string()];
 }
@@ -160,15 +155,16 @@ MakePipe()
 	int fds[2];
 
 	// TODO: Check whether '::socketpair' is available.
-	if(::pipe(fds) != 0)
-		ThrowFileOperationFailure("Failed getting file size.");
+	YCL_CallF_CAPI(, ::pipe, fds);
 
 	auto pr(make_pair(UniqueHandle(fds[0]), UniqueHandle(fds[1])));
-	auto check([](UniqueHandle& h, const char* msg){
+	auto check([](UniqueHandle& h, const char* msg) YB_NONNULL(3){
 		// NOTE: %O_NONBLOCK is initially cleared on ::pipe results.
 		//	See http://pubs.opengroup.org/onlinepubs/9699919799/.
-		if(!(h && h->SetNonblocking()))
-			ThrowFileOperationFailure(msg);
+		if(h)
+			h->SetNonblocking();
+		else
+			ystdex::throw_error(std::errc::bad_file_descriptor, msg);
 	});
 
 	check(pr.first, "Failed making pipe for reading."),

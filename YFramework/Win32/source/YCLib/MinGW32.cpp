@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2094
+\version r2100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-08-10 09:01 +0800
+	2016-08-12 10:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,9 +246,9 @@ Win32Exception::Win32Exception(ErrorCode ec, string_view msg, RecordLevel lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");
 }
-Win32Exception::Win32Exception(ErrorCode ec, string_view msg, const char* fn,
+Win32Exception::Win32Exception(ErrorCode ec, string_view msg, const char* sig,
 	RecordLevel lv)
-	: Win32Exception(ec, platform::ComposeMessageWithSignature(msg, fn), lv)
+	: Win32Exception(ec, platform::ComposeMessageWithSignature(msg, sig), lv)
 {}
 ImplDeDtor(Win32Exception)
 
@@ -315,8 +315,7 @@ GlobalDelete::operator()(pointer h) const ynothrow
 {
 	// NOTE: %::GlobalFree does not ignore null handle value.
 	if(h && YB_UNLIKELY(::GlobalFree(h)))
-		YTraceDe(Warning, "Error %lu: failed calling GlobalFree @ %s.",
-			::GetLastError(), yfsig);
+		YCL_Trace_Win32E(Warning, GlobalFree, yfsig);
 }
 
 
@@ -335,8 +334,7 @@ LocalDelete::operator()(pointer h) const ynothrow
 	// FIXME: For some platforms, no %::LocalFree available. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms679351(v=vs.85).aspx.
 	// NOTE: %::LocalFree ignores null handle value.
 	if(YB_UNLIKELY(::LocalFree(h)))
-		YTraceDe(Warning, "Error %lu: failed calling LocalFree @ %s.",
-			::GetLastError(), yfsig);
+		YCL_Trace_Win32E(Warning, LocalFree, yfsig);
 }
 
 

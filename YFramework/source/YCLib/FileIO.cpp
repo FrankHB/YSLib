@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2620
+\version r2723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-08-10 10:01 +0800
+	2016-08-12 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,14 @@
 #undef __STRICT_ANSI__ // for fileno, ::pclose, ::popen for POSIX platforms;
 //	_fileno, _wfopen for MinGW.org;
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileIO // for ystdex::throw_error, std::is_integral,
-//	YCL_CallF_CAPI, ystdex::temporary_buffer, Nonnull;
+#include YFM_YCLib_FileIO // for std::errc::function_not_supported,
+//	YCL_CallF_CAPI, std::is_integral, std::bind, FileOperationFailure,
+//	ystdex::temporary_buffer, Nonnull;
 #include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
-//	Mode, ::HANDLE, struct ::stat, platform_ex::estat, ::close, ::fcntl,
-//	F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize, ::ftruncate, ::fsync,
-//	::_wgetcwd, ::getcwd, !defined(__STRICT_ANSI__) API, ::futimens,
-//	::LARGE_INTEGER, ::GetFileSizeEx, ::GetCurrentDirectoryW;
+//	Mode, ::HANDLE, struct ::stat, platform_ex::cstat, platform_ex::estat,
+//	::close, ::fcntl, F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize,
+//	::ftruncate, ::fsync, ::_wgetcwd, ::getcwd, !defined(__STRICT_ANSI__) API,
+//	::futimens, ::LARGE_INTEGER, ::GetFileSizeEx, ::GetCurrentDirectoryW; 
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
@@ -53,7 +54,7 @@
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform_ex::ConvertTime, platform_ex::SetFileTime, YCL_Raise_Win32E;
+//	platform_ex::ConvertTime, platform_ex::SetFileTime;
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS,
 //	platform_ex::WCSToUTF8;
 
@@ -147,11 +148,10 @@ FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
 	return ptr;
 }
 
-//! \since build 715
-#define YCL_Impl_CatchSysE_ForNested(_msg) \
-	CatchExpr(std::system_error& e, \
-		FileOperationFailure::ThrowWithNested(e.code(), Nonnull(_msg)))
-
+//! \since build 703
+using platform_ex::estat;
+//! \since build 719
+using platform_ex::cstat;
 #if YCL_Win32
 //! \since build 704
 using platform_ex::ToHandle;
@@ -239,9 +239,9 @@ inline PDefH(::timespec, ToTimeSpec, FileTime ft) ynothrow
 	ImplRet({std::time_t(ft.count() / 1000000000LL),
 		long(ft.count() % 1000000000LL)})
 
-//! \since build 713
-YB_NONNULL(2) void
-SetFileTime(int fd, const ::timespec* times)
+//! \since build 719
+void
+SetFileTime(int fd, const ::timespec(&times)[2])
 {
 #if YCL_DS
 	// XXX: Hack.
@@ -249,11 +249,9 @@ SetFileTime(int fd, const ::timespec* times)
 #	define UTIME_OMIT (-1L)
 #endif
 	yunused(fd), yunused(times);
-	FileOperationFailure::ThrowNested(yfsig, "Failed setting file time",
-		std::errc::function_not_supported);
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #else
-	TryExpr(YCL_CallF_CAPI(, ::futimens, fd, times))
-	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
+	YCL_CallF_CAPI(, ::futimens, fd, times);
 #endif
 }
 
@@ -280,8 +278,10 @@ static_assert(std::is_unsigned<::ino_t>(),
 inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
 	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
 //@}
-//! \since build 703
-using platform_ex::estat;
+//! \since build 719
+inline YB_NONNULL(2, 4) PDefH(void, cstat, struct ::stat& st,
+	const char16_t* path, bool follow_link, const char* sig)
+	ImplRet(cstat(st, MakePathString(path).c_str(), follow_link, sig))
 //! \since build 632
 inline YB_NONNULL(2) PDefH(int, estat, struct ::stat& st, const char16_t* path,
 	bool follow_link)
@@ -301,15 +301,13 @@ FetchFileTime(_func f, _tParams... args)
 #if YCL_Win32
 	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
 	// XXX: Error handling for indirect calls.
-	TryRet(f(args...))
-	YCL_Impl_CatchSysE_ForNested("Failed querying file time")
+	return f(args...);
 #else
 	// TODO: Get more precise time count.
 	struct ::stat st;
 
-	if(estat(st, args...) == 0)
-		return f(st);
-	FileOperationFailure::ThrowNested(yfsig, "Failed querying file time");
+	cstat(st, args..., yfsig);
+	return f(st);
 #endif
 }
 
@@ -451,21 +449,21 @@ FileDescriptor::GetCategory() const ynothrow
 #endif
 }
 int
-FileDescriptor::GetFlags() const ynothrow
+FileDescriptor::GetFlags() const
 {
 #if YCL_API_POSIXFileSystem
-	return ::fcntl(desc, F_GETFL);
+	return YCL_CallF_CAPI(, ::fcntl, desc, F_GETFL);
 #else
-	errno = ENOSYS;
-	return -1;
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #endif
 }
 mode_t
-FileDescriptor::GetMode() const ynothrow
+FileDescriptor::GetMode() const
 {
 	struct ::stat st;
 
-	return platform_ex::estat(st, desc) == 0 ? st.st_mode : 0;
+	cstat(st, desc, yfsig);
+	return st.st_mode;
 }
 FileTime
 FileDescriptor::GetModificationTime() const
@@ -509,39 +507,27 @@ std::uint64_t
 FileDescriptor::GetSize() const
 {
 #if YCL_Win32
-	TryRet(platform_ex::QueryFileSize(ToHandle(desc)))
+	return platform_ex::QueryFileSize(ToHandle(desc));
 #else
 	struct ::stat st;
 
-	try
-	{
-		YCL_CallF_CAPI(, ::fstat, desc, &st);
+	YCL_CallF_CAPI(, ::fstat, desc, &st);
 
-		// XXX: No negative file size should be found. See also:
-		//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed.
-		if(st.st_size >= 0)
-			return std::uint64_t(st.st_size);
-		throw std::invalid_argument("Negative file size found.");
-	}
+	// XXX: No negative file size should be found. See also:
+	//	http://stackoverflow.com/questions/12275831/why-is-the-st-size-field-in-struct-stat-signed.
+	if(st.st_size >= 0)
+		return std::uint64_t(st.st_size);
+	throw std::invalid_argument("Negative file size found.");
 #endif
-	YCL_Impl_CatchSysE_ForNested("Failed getting file size")
-	CatchExpr(std::invalid_argument& e, FileOperationFailure::ThrowWithNested(
-		std::make_error_code(std::errc::invalid_argument),
-		"Failed getting file size"))
-	YB_ASSUME(false);
 }
 
 void
 FileDescriptor::SetAccessTime(FileTime ft) const
 {
 #if YCL_Win32
-	try
-	{
-		auto atime(ConvertTime(ft));
+	auto atime(ConvertTime(ft));
 
-		platform_ex::SetFileTime(ToHandle(desc), {}, &atime, {});
-	}
-	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
+	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, {});
 #else
 	const ::timespec times[]{ToTimeSpec(ft), {yimpl(0), UTIME_OMIT}};
 
@@ -549,54 +535,46 @@ FileDescriptor::SetAccessTime(FileTime ft) const
 #endif
 }
 bool
-FileDescriptor::SetBlocking() const ynothrow
+FileDescriptor::SetBlocking() const
 {
 #if YCL_API_POSIXFileSystem
-	// NOTE: Read-modify-write operation is need for compatibility.
+	// NOTE: Read-modify-write operation is needed for compatibility.
 	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html.
 	const int flags(GetFlags());
 
-	if(flags != -1 && flags & O_NONBLOCK)
-		return SetFlags(flags & ~O_NONBLOCK);
+	return flags & O_NONBLOCK ? (SetFlags(flags & ~O_NONBLOCK), true) : false;
 #else
-	errno = ENOSYS;
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #endif
-	return {};
 }
-bool
-FileDescriptor::SetFlags(int flags) const ynothrow
+void
+FileDescriptor::SetFlags(int flags) const
 {
 #if YCL_API_POSIXFileSystem
-	return ::fcntl(desc, F_SETFL, flags) != -1;
+	YCL_CallF_CAPI(, ::fcntl, desc, F_SETFL, flags);
 #else
 	// TODO: Try using NT6 %::SetFileInformationByHandle for Win32.
 	yunused(flags);
-	errno = ENOSYS;
-	return {};
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #endif
 }
-bool
-FileDescriptor::SetMode(mode_t mode) const ynothrow
+void
+FileDescriptor::SetMode(mode_t mode) const
 {
 #if YCL_API_POSIXFileSystem
-	return ::fchmod(desc, mode) != -1;
+	YCL_CallF_CAPI(, ::fchmod, desc, mode);
 #else
 	yunused(mode);
-	errno = ENOSYS;
-	return {};
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #endif
 }
 void
 FileDescriptor::SetModificationTime(FileTime ft) const
 {
 #if YCL_Win32
-	try
-	{
-		auto mtime(ConvertTime(ft));
+	auto mtime(ConvertTime(ft));
 
-		platform_ex::SetFileTime(ToHandle(desc), {}, {}, &mtime);
-	}
-	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
+	platform_ex::SetFileTime(ToHandle(desc), {}, {}, &mtime);
 #else
 	const ::timespec times[]{{yimpl(0), UTIME_OMIT}, ToTimeSpec(ft)};
 
@@ -607,34 +585,27 @@ void
 FileDescriptor::SetModificationAndAccessTime(array<FileTime, 2> fts) const
 {
 #if YCL_Win32
-	try
-	{
-		auto atime(ConvertTime(fts[0])), mtime(ConvertTime(fts[1]));
+	auto atime(ConvertTime(fts[0])), mtime(ConvertTime(fts[1]));
 
-		platform_ex::SetFileTime(ToHandle(desc), {}, &atime, &mtime);
-	}
-	YCL_Impl_CatchSysE_ForNested("Failed setting file time")
+	platform_ex::SetFileTime(ToHandle(desc), {}, &atime, &mtime);
 #else
 	const ::timespec times[]{ToTimeSpec(fts[0]), ToTimeSpec(fts[1])};
 
 	SetFileTime(desc, times);
 #endif
 }
-#undef YCL_Impl_CatchSysE_ForNested
 bool
-FileDescriptor::SetNonblocking() const ynothrow
+FileDescriptor::SetNonblocking() const
 {
 #if YCL_API_POSIXFileSystem
 	// NOTE: Read-modify-write operation is need for compatibility.
 	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html.
 	const int flags(GetFlags());
 
-	if(flags != -1 && !(flags & O_NONBLOCK))
-		return SetFlags(flags | O_NONBLOCK);
+	return !(flags & O_NONBLOCK) ? (SetFlags(flags | O_NONBLOCK), true) : false;
 #else
-	errno = ENOSYS;
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #endif
-	return {};
 }
 bool
 FileDescriptor::SetSize(size_t size) ynothrow
@@ -717,11 +688,11 @@ FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
 
 	ystdex::retry_on_cond([&](size_t len){
 		if(len == size_t(-1))
-			ThrowFileOperationFailure(
-				"Failed reading source file '" + to_string(*ifd) + "'.");
+			YCL_Raise_SysE(, "Failed reading source file '" + to_string(*ifd),
+				yfsig);
 		if(ofd.FullWrite(buf, len) == size_t(-1))
-			ThrowFileOperationFailure(
-				"Failed writing destination file '" + to_string(*ofd) + "'.");
+			YCL_Raise_SysE(,
+				"Failed writing destination file '" + to_string(*ofd), yfsig);
 		return len != 0;
 #if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)
 	// TODO: Use newer G++ to get away with the workaround.
@@ -1178,19 +1149,21 @@ GetFileModificationAndAccessTimeOf(const char16_t* filename, bool follow_link)
 }
 
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char* path, bool follow_link) ynothrowv
+FetchNumberOfLinks(const char* path, bool follow_link)
 {
 #if YCL_Win32
 	return QueryFileLinks(MakePathStringW(path).c_str(), follow_link);
 #else
 	struct ::stat st;
+	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
+		"Unsupported 'st_nlink' type found.");
 
-	estat(st, path, follow_link);
-	return size_t(st.st_nlink > 0 ? st.st_nlink : 0);
+	cstat(st, path, follow_link, yfsig);
+	return st.st_nlink;
 #endif
 }
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t* path, bool follow_link) ynothrowv
+FetchNumberOfLinks(const char16_t* path, bool follow_link)
 {
 #if YCL_Win32
 	return QueryFileLinks(wcast(path), follow_link);
@@ -1225,7 +1198,7 @@ EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 			if(UniqueFile p_file{uopen(dst, de_oflag, mode)})
 				return p_file;
 	}
-	ThrowFileOperationFailure("Failed creating file '" + string(dst) + "'.");
+	YCL_Raise_SysE(, "::open", yfsig);
 }
 
 bool

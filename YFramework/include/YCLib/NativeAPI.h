@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1298
+\version r1314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-07-10 15:39 +0800
+	2016-08-11 00:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,12 +193,29 @@ namespace platform_ex
 
 /*!
 \note 第三参数表示是否跟随链接。
+\pre 间接断言：指针参数非空。
 \note DS 和 Win32 平台：忽略第三参数，始终不跟随链接。
 */
+//@{
+/*!
+\brief 带检查的可跟随链接的 \c stat 调用。
+\throw std::system_error 检查失败。
+\note 最后一个参数表示调用签名。
+\since build 719
+*/
+//@{
+YF_API YB_NONNULL(2, 4) void
+cstat(struct ::stat&, const char*, bool, const char*);
+YF_API YB_NONNULL(3) void
+cstat(struct ::stat&, int, const char*);
+//@}
+
+//! \brief 可跟随链接的 \c stat 调用。
 YF_API YB_NONNULL(2) int
 estat(struct ::stat&, const char*, bool) ynothrowv;
 inline PDefH(int, estat, struct ::stat& st, int fd) ynothrow
 	ImplRet(::fstat(fd, &st))
+//@}
 
 } // namespace platform_ex;
 #endif
