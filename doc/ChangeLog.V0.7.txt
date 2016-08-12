@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2249
+\version r2405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-10 11:41 +0800
+	2016-08-12 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,158 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ $lib 'YB_NORETURN' @ "function %platform_ex::LogAssert"
+				@ !"platform %Win32",
+			/ %FileIO $=
+			(
+				- DLDI "redundant 'YB_ASSUME(false)'"
+					@ "member function %FileDescriptor::GetSize",
+
+				/ "replacement list"
+					@ "macros %(YCL_Raise_Win32E, YCL_RaiseZ_Win32E)" $=
+				(
+					/ "wrapped with 'do while(false)'",
+					/ "supported message" ~ "function name with '#'"
+				),
+				/ $forced DLDI @ "macro %YCL_WrapCall_CAPI" $dep_from
+					"%YCL_Raise_SysE",
+				/ @ "class %FileDescriptor" $=
+				(
+					/ @ "functions \
+						%(SetAccessTime, SetModificationTime, \
+						SetModificationAndAccessTime)" $=
+					(
+						/ "simplified throwing" $=
+						(
+							/ $revert(b718) @ "platform %Win32",
+							/ $revert_ex(b715) @ !"platform %Win32"
+						),
+						+ "simplified intermediate signature"
+							@ !"platform %Win32" !^ "%YB_NONNULL"
+					),
+					/ $revert_ex(b718) "simplified throwing"
+						@ "function %GetSize"
+						$= (/ "threw %std::system_error or \
+							%std::invalid_argument without nested exception"),
+					/ @ "functions %(GetMode, GetFlags, SetMode, SetFlags, \
+						SetBlocking, SetNonblocking)" 
+					(
+						- 'ynothrow';
+						/ DLDI @ "%GetMode" ^ ($dep_from "%platform::cstat"
+							@ %NativeAPI) ~ "%platform::estat",
+						/ DLDI @ "%(GetFlags, SetMode, SetFlags, SetBlocking, \
+							SetNonblocking)" ^ "%YCL_CallF_CAPI",
+						/ "threw %std::system_error on failure"
+					),
+					/ "threw %std::system_error on failure" @ "function \
+						%WriteContent" ^ $dep_from "%YCL_Raise_SysE" ~ ("threw \
+						%FileOperationFailure" ^ "%ThrowFileOperationFailure"),
+				),
+				(
+				/ $revert_ex(b718) "simplified throwing" @ "platform %Win32"
+					@ "member functions %FileDescriptor::(GetAccessTime, \
+					GetModificationTime, GetModificationAndAccessTime), all 2 \
+					functions %(GetFileAccessTimeOf, \
+					GetFileModificationTimeOf, \
+					GetFileModificationAndAccessTimeOf)"
+					!^ "enclosing %FileOperationFailure nested exception" $=
+				(
+					/ "threw %std::system_error without nested exception",
+					/ DLDI "simplified" @ "platform %Win32",
+					/ $impl @ !"platform %Win32" ^ $dep_from
+						("%platform_ex::cstat" @ %NativeAPI)
+				);
+				- $revert(b718) "function templates %(ThrowWithNested, \
+					ThrowNested)" @ "class %FileOperationFailure" $dep_from
+					(%FileSystem, "%FileDescriptor::(SetAccessTime, \
+					SetModificationTime, SetModificationAndAccessTime, \
+					GetSize)")
+				),
+				* "wrong nothrow exception-specification"
+					@ "all 2 functions %FetchNumberOfLinks" $since b639 $=
+				(
+					- 'ynothrowv';
+					/ $impl @ !"platform %Win32" ^ ($dep_from
+						"%platform::cstat" @ %NativeAPI) ~ "%platform::estat"
+				),
+				/ "threw %std::system_error on failure" @ "function \
+					%EnsureUniqueFile" ^ "%YCL_Raise_SysE" ~ ("threw \
+					%FileOperationFailure" ^ "%ThrowFileOperationFailure")
+			),
+			+ "2 functions %platform_ex::cstat" @ %NativeAPI,
+			/ $revert_ex(b718) "simplified throwing" @ "platform %Win32"
+				@ "constructors %DirectorySession, member function \
+				%HDirectory::operator++"
+				!^ "enclosing %FileOperationFailure nested exception" $=
+			(
+				/ "threw %std::system_error without nested exception",
+				/ DLDI "simplified" @ "platform %Win32",
+				/ $impl @ !"platform %Win32" ^ $dep_from
+					("%platform_ex::cstat" @ %NativeAPI)
+			),
+			/ %Host $=
+			(
+				/ @ !"platform %Win32" @ "function %MakePipe" $=
+				(
+					(
+					/ $revert_ex(b718) "threw %std::system_error on pipe \
+						creation failure" ^ "%YCL_CallF_CAPI"
+						~ ("threw %FileOperationFailure"
+						^ "%ThrowFileOperationFailure");
+					* $comp "wrong exception message" @ "thrown exception"
+						$since b553
+					),
+					/ "threw %std::system_error on failed setting pipe file \
+						attributes" ~ ("threw %FileOperationFailure"
+						^ "%ThrowFileOperationFailure")
+				),
+				(
+				/ @ "function %FetchCommandOutput" $=
+				(
+					/ "threw %std::system_error on pipe opening failure"
+						^ "%YCL_Raise_SysE" ~ ("threw %FileOperationFailure"
+						^ "%ThrowFileOperationFailure");
+					/ $doc "clearified exceptions"
+				);
+				/ DLDI "catch clause" @ "function %FetchCachedCommandResult"
+					^ "%std::system_error"
+					~ "%platform_ex::FileOperationFailure"
+				)
+			),
+			/ $comp $doc "constructors %MappedFile could throw more exceptions"
+				@ %MemoryMapping $dep_from
+				("%FileDescriptor::GetSize" @ %FileIO),
+			/ "threw %std::system_error for bad file descriptor"
+				@ "constructors %MappedFile" @ %MemoryMapping
+				^ "%ystdex::throw_error" ~ ("threw %FileOperationFailure"
+				^ "%ThrowFileOperationFailure")
+		),
+		/ %'YCL_(Win32)'.MinGW32 $=
+		(
+			/ "wrapped replacement list with 'do while(false)'"
+				@ "macros %(YCL_Raise_Win32E, YCL_RaiseZ_Win32E)",
+			/ DLDI "simplified destructor" @ "classes %(GlobalDelete, \
+				LocalDelete)" ^ "%YCL_Trace_Win32E" ~ "%YTraceDe"
+		),
+		/ $forced DLDI "caught 'std::system_error&'" ~ 'FileOperationFailure&'
+			@ "functions %VerifyDirectory" @ %YSLib.Service.FileSystem $dep_from
+			("constructors %platform::DirectorySession" @ %YCLib.FileSystem)
+	),
+	* "'$lib' did not covered possible public API break caused overload \
+		ambiguity" @ %Documentation @ $since b320
+		$= (+ "rules to explicitly state user code should not rely on free of \
+			ambiguity of overloaded functions except for calls" @ %YBase),
+	/ $forced DLDI "caught %std::system_error for nonexsited file modification \
+		time comparing" ~ "caught %FileOperationFailure" @ %Tools.SHBuild.Main
+		$dep_from ("%GetFileModificationTimeOf" @ %YFramework.YCLib.FileIO)
+),
+
+b718
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -81,7 +233,9 @@ $now
 					@ ("platform %Win32", "platform %DS" ^ $dep_from
 					"%FileOperationFailure::ThrowNested"),
 				/ $re_add(b715) "threw nested exception %FileOperationFailure \
-					with %std::system_error on failure" @ "all 2 functions \
+					with %std::system_error on failure" @ "member functions \
+					%FileDescriptor::(GetAccessTime, GetModificationTime, \
+					GetModificationAndAccessTime), all 2 functions \
 					%(GetFileAccessTimeOf, GetFileModificationTimeOf, \
 					GetFileModificationAndAccessTimeOf)"
 					@ ("platform %Win32", "platform %DS" ^ $dep_from
@@ -886,7 +1040,7 @@ b711
 							/ "threw system errors for underlying system API \
 								call failure"
 						),
-						+ 'YB_NONNULL(2)'
+						+ $lib 'YB_NONNULL(2)'
 							@ "constructor with pointer parameter",
 						/ $re_add(b709) DLI ^ 'YCL_ReservedGlobal',
 						- DLDI
@@ -1193,7 +1347,7 @@ b708
 				(
 					/ DLDI
 						^ "%platform_ex::Invalid" ~ "%INVALID_FILE_ATTRIBUTES",
-					+ 'YB_NONNULL(1)' @ "all 2 functions %IsDirectory"
+					+ $lib 'YB_NONNULL(1)' @ "all 2 functions %IsDirectory"
 				),
 				/ "return type" @ "all 2 functions %IterateLink" -> 'bool'
 					~ 'void'
@@ -1661,7 +1815,7 @@ b704
 					'{}' ~ 'true'
 					// To be consistent with other functions.
 				),
-				+ 'YB_NONNULL(1)'
+				+ $lib 'YB_NONNULL(1)'
 					@ "2 functions %MakePathString with pointer parameter"
 			),
 			+ "enum class %SystemOption; function %FetchLimit" @ %YCommon,

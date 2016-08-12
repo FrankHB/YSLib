@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2289
+\version r2365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-08-10 10:02 +0800
+	2016-08-12 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,15 +203,14 @@ public:
 		<, const FileDescriptor& x, const FileDescriptor& y) ynothrow
 		ImplRet(x.desc < y.desc)
 
-	//! \since build 628
+	//! \exception std::system_error 参数无效或调用失败。
 	//@{
 	/*!
+	\brief 取访问时间。
 	\return 以 POSIX 时间相同历元的时间间隔。
-	\throw FileOperationFailure 参数无效或文件修改时间查询失败。
 	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
+	\since build 628
 	*/
-	//@{
-	//! \brief 取访问时间。
 	FileTime
 	GetAccessTime() const;
 	/*!
@@ -221,24 +220,31 @@ public:
 	*/
 	NodeCategory
 	GetCategory() const ynothrow;
-	//! \since build 637
+	//! \since build 719
 	//@{
 	/*!
 	\brief 取旗标。
 	\note 非 POSIX 平台：不支持操作。
 	*/
 	int
-	GetFlags() const ynothrow;
+	GetFlags() const;
 	//! \brief 取模式。
 	mode_t
-	GetMode() const ynothrow;
+	GetMode() const;
 	//@}
+	/*!
+	\return 以 POSIX 时间相同历元的时间间隔。
+	\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
+	\since build 628
+	*/
+	//@{
 	//! \brief 取修改时间。
 	FileTime
 	GetModificationTime() const;
 	//! \brief 取修改和访问时间。
 	array<FileTime, 2>
 	GetModificationAndAccessTime() const;
+	//@}
 	//@}
 	/*!
 	\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
@@ -255,42 +261,44 @@ public:
 	/*!
 	\brief 取大小。
 	\return 以字节计算的文件大小。
-	\throw FileOperationFailure 嵌套异常：描述符无效或文件大小查询失败。
+	\throw std::system_error 描述符无效或文件大小查询失败。
+	\throw std::invalid_argument 文件大小查询结果小于 0 。
 	\note 非常规文件或文件系统实现可能出错。
+	\since build 628
 	*/
 	std::uint64_t
 	GetSize() const;
-	//@}
 
 	/*!
 	\brief 设置访问时间。
-	\throw FileOperationFailure 嵌套异常：设置失败。
+	\throw std::system_error 设置失败。
 	\note DS 平台：不支持操作。
 	\since build 651
 	*/
 	void
 	SetAccessTime(FileTime) const;
 	/*!
+	\throw std::system_error 调用失败或不支持操作。
 	\note 非 POSIX 平台：不支持操作。
-	\since build 637
+	\since build 719
 	*/
 	//@{
 	/*!
 	\brief 设置阻塞模式。
+	\return 是否需要并改变设置。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
-	\since build 625
 	*/
 	bool
-	SetBlocking() const ynothrow;
+	SetBlocking() const;
 	//! \brief 设置旗标。
-	bool
-	SetFlags(int) const ynothrow;
+	void
+	SetFlags(int) const;
 	//! \brief 设置访问模式。
-	bool
-	SetMode(mode_t) const ynothrow;
+	void
+	SetMode(mode_t) const;
 	//@}
 	/*!
-	\throw FileOperationFailure 嵌套异常：设置失败。
+	\throw std::system_error 设置失败。
 	\note DS 平台：不支持操作。
 	\note Win32 平台：要求打开的文件具有写权限。
 	\since build 651
@@ -304,19 +312,16 @@ public:
 	SetModificationAndAccessTime(array<FileTime, 2>) const;
 	//@}
 	/*!
-	\note 非 POSIX 平台：不支持操作。
-	\since build 637
-	*/
-	//@{
-	/*!
 	\brief 设置非阻塞模式。
+	\return 是否需要并改变设置。
+	\throw std::system_error 调用失败或不支持操作。
+	\note 非 POSIX 平台：不支持操作。
 	\note 对不支持非阻塞的文件描述符， POSIX 未指定是否忽略 \c O_NONBLOCK 。
 	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html 。
-	\since build 624
+	\since build 719
 	*/
 	bool
-	SetNonblocking() const ynothrow;
-	//@}
+	SetNonblocking() const;
 	//! \since build 625
 	//@{
 	/*!
@@ -385,7 +390,7 @@ public:
 	/*!
 	\brief 第二参数内容写入第一参数指定的文件。
 	\pre 最后参数指定的缓冲区大小不等于 0 。
-	\throw FileOperationFailure 文件读写失败。
+	\throw std::system_error 文件读写失败。
 	\since build 634
 	*/
 	//@{
@@ -1194,36 +1199,12 @@ public:
 	\since build 586
 	*/
 	~FileOperationFailure() override;
-
-	/*!
-	\throw FileOperationFailure 指定参数构造的嵌套异常。
-	\since build 718
-	*/
-	//@{
-	//! \build 抛出由 errno 和参数指定的 FileOperationFailure 嵌套异常。
-	template<typename _tParam, typename _tError = int>
-	YB_NORETURN static YB_NONNULL(1) void
-	ThrowNested(const char* sig, _tParam&& arg, _tError err = errno)
-	{
-		TryExpr(ystdex::throw_error(err, Nonnull(sig)))
-		CatchExpr(std::system_error& e,
-			ThrowWithNested(e.code(), yforward(arg)))
-	}
-
-	//! \brief 抛出嵌套 FaileOperationFailure 异常。
-	template<typename... _tParams>
-	YB_NORETURN static void
-	ThrowWithNested(_tParams&&... args)
-	{
-		std::throw_with_nested(FileOperationFailure(yforward(args)...));
-	}
-	//@}
 };
 
 /*!
 \build 抛出由 errno 和参数指定的 FileOperationFailure 对象。
 \throw FileOperationFailure errno 和指定参数构造的异常。
-\relates FileOperationFaiure
+\relates FileOperationFailure
 \since build 701
 */
 template<typename _tParam>
@@ -1244,23 +1225,25 @@ ThrowFileOperationFailure(_tParam&& arg, int err = errno)
 \brief 按错误值和指定参数抛出第一参数指定类型的对象。
 \note 先保存可能是左值的 errno 以避免参数中的副作用影响结果。
 */
-#define YCL_Raise_SysE(_t, _fn, _sig) \
+#define YCL_Raise_SysE(_t, _msg, _sig) \
+	do \
 	{ \
 		const auto err_(errno); \
 	\
 		ystdex::throw_error<_t>(err_, \
-			platform::ComposeMessageWithSignature(#_fn YPP_Comma _sig)); \
-	}
+			platform::ComposeMessageWithSignature(_msg YPP_Comma _sig)); \
+	}while(false)
 
 //! \note 按表达式求值，检查是否为零初始化的值。
-#define YCL_RaiseZ_SysE(_t, _expr, _fn, _sig) \
+#define YCL_RaiseZ_SysE(_t, _expr, _msg, _sig) \
+	do \
 	{ \
 		const auto err_(_expr); \
 	\
 		if(err_ != decltype(err_)()) \
 			ystdex::throw_error<_t>(err_, \
-				platform::ComposeMessageWithSignature(#_fn YPP_Comma _sig)); \
-	}
+				platform::ComposeMessageWithSignature(_msg YPP_Comma _sig)); \
+	}while(false)
 //@}
 
 /*!
@@ -1288,7 +1271,7 @@ ThrowFileOperationFailure(_tParam&& arg, int err = errno)
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \
-			YCL_Raise_SysE(_t, _fn, sig); \
+			YCL_Raise_SysE(_t, #_fn, sig); \
 		return res_; \
 	}
 
@@ -1323,7 +1306,7 @@ ThrowFileOperationFailure(_tParam&& arg, int err = errno)
 //@}
 
 
-//! \exception FileOperationFailure 嵌套异常：参数无效或文件时间查询失败。
+//! \exception std::system_error 参数无效或文件时间查询失败。
 //@{
 /*!
 \sa FileDescriptor::GetAccessTime
@@ -1387,15 +1370,15 @@ GetFileModificationAndAccessTimeOf(const char16_t*, bool = {});
 
 /*!
 \brief 取路径指定的文件链接数。
-\return 若成功为连接数，否则为 0 。
+\return 若成功为连接数，否则若文件不存在时为 0 。
 \note 最后参数表示跟随连接：若文件系统支持，访问链接的文件而不是链接自身。
-\since build 704
+\since build 719
 */
 //@{
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char*, bool = {}) ynothrowv;
+FetchNumberOfLinks(const char*, bool = {});
 YB_NONNULL(1) size_t
-FetchNumberOfLinks(const char16_t*, bool = {}) ynothrowv;
+FetchNumberOfLinks(const char16_t*, bool = {});
 //@}
 
 
@@ -1407,7 +1390,7 @@ FetchNumberOfLinks(const char16_t*, bool = {}) ynothrowv;
 \note 若目标已存在，创建或覆盖文件保证目标文件链接数不超过第三参数指定的值。
 \note 若目标已存在、链接数大于 1 且不允许写入共享则先删除目标。
 \note 忽略目标不存在导致的删除失败。
-\throw FileOperationFailure 创建目标失败。
+\throw std::system_error 创建目标失败。
 \since build 639
 */
 YF_API YB_NONNULL(1) UniqueFile

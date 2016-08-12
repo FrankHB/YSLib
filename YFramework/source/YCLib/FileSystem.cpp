@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4273
+\version r4297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-08-10 09:48 +0800
+	2016-08-11 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,10 @@
 //	std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
 //	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::throw_error,
-//	std::errc::function_not_supported, YCL_CallF_CAPI, std::throw_with_nested,
-//	FileOperationFailure, std::system_error,
+//	std::invalid_argument, std::errc::function_not_supported, YCL_CallF_CAPI,
 //	CategorizeNode, ystdex::ntctslen, std::wctob, std::towupper,
 //	ystdex::restrict_length, std::min, ystdex::ntctsicmp,
-//	std::errc::invalid_argument, std::strchr;
+//	std::errc::invalid_argument, std::strchr; , std::errc::invalid_argument
 #include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeUCS2LE;
@@ -125,19 +124,13 @@ IterateLinkImpl(basic_string<_tChar>& path, size_t& n)
 }
 #endif
 
-#define YCL_Impl_CatchSysE_ForNested(_msg) \
-	CatchExpr(std::system_error& e, \
-		std::throw_with_nested(FileOperationFailure(e.code(), Nonnull(_msg))))
-
 #if YCL_Win32
 //! \since build 715
 template<class _type, typename _tParam>
 _type*
 CreateDirectoryDataPtr(_tParam&& arg)
 {
-	TryRet(new _type(yforward(arg)))
-	// NOTE: This also catches %platform_ex::Win32Exception.
-	YCL_Impl_CatchSysE_ForNested("Failed opening directory")
+	return new _type(yforward(arg));
 }
 #endif
 
@@ -372,7 +365,7 @@ DirectorySession::DirectorySession(const char* path)
 {
 #if !YCL_Win32
 	if(!dir)
-		FileOperationFailure::ThrowNested(yfsig, "Failed opening directory");
+		ystdex::throw_error(errno, yfsig);
 #endif
 }
 DirectorySession::DirectorySession(const char16_t* path)
@@ -401,19 +394,15 @@ HDirectory::operator++()
 #if YCL_Win32
 	auto& find_data(*static_cast<DirectoryFindData*>(GetNativeHandle()));
 
-	try
+	if(find_data.Read())
 	{
-		if(find_data.Read())
-		{
-			const wstring_view sv(find_data.GetEntryName());
+		const wstring_view sv(find_data.GetEntryName());
 
-			dirent_str = u16string(sv.cbegin(), sv.cend());
-			YAssert(!dirent_str.empty(), "Invariant violation found.");
-		}
-		else
-			dirent_str.clear();
+		dirent_str = u16string(sv.cbegin(), sv.cend());
+		YAssert(!dirent_str.empty(), "Invariant violation found.");
 	}
-	YCL_Impl_CatchSysE_ForNested("Failed iterating directory")
+	else
+		dirent_str.clear();
 #else
 	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
 
@@ -428,11 +417,9 @@ HDirectory::operator++()
 		if(err == 0)
 			p_dirent = {};
 		else
-			FileOperationFailure::ThrowNested(yfsig,
-				"Failed iterating directory", err);
+			ystdex::throw_error(errno, yfsig);
 	}
 #endif
-#undef YCL_Impl_CatchSysE_ForNested
 	return *this;
 }
 

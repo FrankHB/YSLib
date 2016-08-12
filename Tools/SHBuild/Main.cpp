@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3403
+\version r3404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2016-06-28 00:51 +0800
+	2016-08-12 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -311,7 +311,7 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 				return {};
 			}
 		}
-		CatchExpr(FileOperationFailure& e, print(e.what(), Debug))
+		CatchExpr(std::system_error& e, print(e.what(), Debug))
 		return true;
 	}
 	return {};
