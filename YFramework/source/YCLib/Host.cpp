@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r429
+\version r541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-08-12 08:51 +0800
+	2016-08-14 00:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,17 +28,22 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host
-#include YFM_YCLib_NativeAPI
-#include YFM_YCLib_FileIO // for YCL_Raise_SysE, YCL_CallF_CAPI;
+#include YFM_YCLib_Host // for make_observer;
+#include YFM_YCLib_NativeAPI // for YCL_TraceCallF_CAPI, ::sem_open,
+//	::sem_close, ::sem_unlink, ::pipe, ToHandle, YCL_CallGlobal, isatty;
+#include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
+//	MakePathString, YCL_CallF_CAPI;
 #include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_NLS // for MBCSToMBCS;
+#	include <limits> // for std::numeric_limits;
+#	include YFM_Win32_YCLib_NLS // for CloseHandle, MBCSToMBCS;
 #	include YFM_Win32_YCLib_Consoles // for WConsole;
-#	include <io.h> // for ::_isatty;
 #endif
 #if YF_Hosted
 #	include YFM_YSLib_Core_YConsole
+#	if !(YCL_Win32 || YCL_API_Has_semaphore_h)
+#		error "Unsupported platform found."
+#	endif
 #endif
 
 using namespace YSLib;
@@ -80,6 +85,111 @@ HandleDelete::operator()(pointer h) const ynothrowv
 	YCL_TraceCallF_Win32(CloseHandle, h);
 }
 #endif
+
+
+#if !YCL_Win32
+void
+Semaphore::Deleter::operator()(pointer p) const ynothrowv
+{
+	YCL_TraceCallF_CAPI(::sem_close, static_cast<::sem_t*>(p));
+	if(Referent)
+		YCL_TraceCallF_CAPI(::sem_unlink, Referent->name.c_str());
+}
+#endif
+
+
+Semaphore::Semaphore(const char* n, CountType init)
+#if YCL_Win32
+	: Semaphore(platform::ucast(MakePathStringW(n).c_str()), init)
+#else
+	: h_sem([=]{
+		const auto create([=](int omode) ynothrow{
+			// TODO: Allow setting of permission mode.
+			return ystdex::retry_on_cond([](::sem_t* res) ynothrow{
+				return res == SEM_FAILED && errno == EINTR;
+			}, [=]() ynothrow{
+				// NOTE: Some implementations may force shared lock when
+				//	%O_CREAT is specified, e.g. https://www.gnu.org/software/libc/manual/html_node/Open_002dtime-Flags.html.
+				// FIXME: Blocked. Possible race condition otherwise.
+				return ::sem_open(Nonnull(n),
+					omode, platform::DefaultPMode(), init);
+			});
+		});
+
+		auto p(create(O_CREAT | O_EXCL));
+
+		if(p != SEM_FAILED)
+			name = n;
+		else
+		{
+			// FIXME: Blocked. TOCTTOU access. The semaphore might be recreated
+			//	before the call.
+			if(errno == EEXIST)
+				p = create(O_CREAT);
+			// FIXME: Blocked. TOCTTOU access. The semaphore might be recreated
+			//	and the creation state is not recorded properly, missing
+			//	%::sem_unlink would cause leak.
+			if(YB_UNLIKELY(p == SEM_FAILED))
+				YCL_Raise_SysE(, "::sem_open", yfsig);
+		}
+		return p;
+	}())
+#endif
+{
+#if !YCL_Win32
+	h_sem.get_deleter().Referent = make_observer(this);
+#endif
+}
+Semaphore::Semaphore(const char16_t* n, CountType init)
+#if YCL_Win32
+	// TODO: Allow setting of security attributes.
+	: h_sem(YCL_CallF_Win32(CreateSemaphore, {}, init,
+		std::numeric_limits<CountType>::max(), platform::wcast(n)))
+#else
+	: Semaphore(platform::MakePathString(n).c_str(), init)
+#endif
+{}
+
+void
+Semaphore::lock()
+{
+#if YCL_Win32
+	WaitUnique(native_handle());
+#else
+	YCL_CallF_CAPI(, ::sem_wait, static_cast<::sem_t*>(native_handle()));
+#endif
+}
+
+bool
+Semaphore::try_lock()
+{
+#if YCL_Win32
+	return TryWaitUnique(native_handle());
+#else
+	if(::sem_trywait(static_cast<::sem_t*>(native_handle())) == 0)
+		return true;
+	if(errno == EAGAIN)
+		return {};
+	YCL_Raise_SysE(, "::sem_trywait", yfsig);
+#endif
+}
+
+void
+Semaphore::unlock() ynothrow
+{
+#if YCL_Win32
+	const auto
+		res(YCL_TraceCallF_Win32(ReleaseSemaphore, native_handle(), 1, {}));
+
+	YAssert(res, "Invalid semaphore found.");
+#else
+	const auto res(YCL_TraceCallF_CAPI(::sem_post,
+		static_cast<::sem_t*>(native_handle())));
+
+	YAssert(res == 0, "Invalid semaphore found.");
+#endif
+	yunused(res);
+}
 
 
 string
@@ -198,7 +308,7 @@ class TerminalData : private WConsole
 public:
 	//! \since build 567
 	TerminalData(int fd)
-		: WConsole(::HANDLE(::_get_osfhandle(fd)))
+		: WConsole(ToHandle(fd))
 	{}
 
 	PDefH(bool, RestoreAttributes, )
@@ -267,23 +377,19 @@ Terminal::Guard::~Guard()
 
 Terminal::Terminal(std::FILE* fp)
 	: p_term([fp]()->TerminalData*{
-#	if YCL_Win32
-		const int fd(::_fileno(Nonnull(fp)));
+		const int fd(YCL_CallGlobal(fileno, Nonnull(fp)));
 
 		// NOTE: This is not necessary for Windows since it only determine
 		//	whether the file descriptor is associated with a character device.
 		//	However as a optimization, it is somewhat more efficient for some
 		//	cases. See $2015-01 @ %Documentation::Workflow::Annual2015.
-		if(::_isatty(fd))
+		if(YCL_CallGlobal(isatty, fd))
+#	if YCL_Win32
 			TryRet(new TerminalData(fd))
 #	else
+			TryRet(new TerminalData(fp))
 		// XXX: Performance?
 		ystdex::setnbuf(fp);
-
-		const int fd(fileno(Nonnull(fp)));
-
-		if(::isatty(fd))
-			TryRet(new TerminalData(fp))
 #	endif
 			CatchExpr(Exception& e,
 				YTraceDe(Informative, "Creating console failed: %s.", e.what()))

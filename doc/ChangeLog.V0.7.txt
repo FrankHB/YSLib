@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2405
+\version r2540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-12 12:34 +0800
+	2016-08-16 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,142 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				/ $re_add(b418) "threw %std::system_error on file opening \
+					failure" @ "function %HaveSameContents",
+				- "function template %ThrowFileOperationFailure; class \
+					FileOperationFailure" $dep_from %YSLib.YAdaptor.Adaptor,
+				/ DLDI "simplified" ("(constructor, function \
+					%SetTranslationMode)" @ "class %FileDescriptor",
+					!"platform %DS" @ "function %upclose") ^ "%YCL_CallGlobal"
+					$dep_from %NativeAPI,
+				(
+				/ "default argument '0'" @ "all 2 functions %uopen"
+					-> 'DefaultPMode()';
+				/ DLDI "simplified function template %open with path"
+					@ '__GLIBCXX__' @ "class template %basic_filebuf"
+					$= (- "explicit %DefaultPMode call")
+				),
+				/ DLDI "simplified" ^ $dep_from ("%CallNothrow" @ %YCommon)
+			),
+			/ DLDI %MemoryMapping $=
+			(
+				/  "simplified" @ "platform %Win32" @ "constructor %MappedFile"
+					$=
+				(
+					^ "%platform_ex::ToHandle",
+					- "unnecessary %narrowing_error handling"
+				),
+				/ "simplified" $dep_from %NativeAPI
+			),
+			/ %Host $=
+			(
+				/ DLDI "simplified constructor %TerminalData"
+					^ "%(platform_ex::ToHandle, YCL_CallGlobal)" $dep_from
+					%NativeAPI,
+				+ "class %Semaphore" $dep_from
+					%(NativeAPI, 'YCLib_(Win32)'.MinGW32)
+			),
+			/ %NativeAPI $=
+			(
+				+ "including <semphore.h>" @ $dep_from
+					("%YCL_API_Has_semaphore_h" @ %Platform),
+				+ "including <sys/mman.h>" @ "platforms %(Linux, 'OS X')";
+				+ $dev "161 '#undef' directives for identifier of POSIX \
+					functions declared in <stdio.h>, <dirent.h>, <fcntl.h>, \
+					<semaphore.h>, <unistd.h>, <sys/mman.h> and <sys/stat.h>",
+			),
+			/ %YCommon $=
+			(
+				+ "enumerators %(MaxSemaphoreNumber, MaxSemaphoreValue)"
+					@ "enum %SystemOption",
+				/ @ "function %FetchLimit" $=
+				(
+					* "missing check for %_POSIX_SYMLOOP_MAX representable in \
+						%size_t" $since b704
+						$= (+ $dev "static assertion"),
+					+ "configuration for %SystemOption::(MaxSemaphoreNumber, \
+						MaxSemaphoreValue)" $dep_from "%SystemOption"
+				),
+				+ "function template %CallNothrow"
+			),
+			/ @ %Platform $=
+			(
+				+ "macro %YCL_API_Has_semaphore_h for supported platforms",
+				- $dev $impl "redundant macro definitions" @ "platform %Android"
+					// Some are introduced by platform %Linux.
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ @ "threw %std::system_error on file operation failure"
+					@ "function templates %(Remove, Unlink), function %OpenFile"
+					@ %File ^ "%ystdex::throw_error" ~ ("threw \
+					%FileOperationFailure" ^ "%ThrowFileOperationFailure")
+				/ %FileSystem $=
+				(
+					/ $forced $doc "threw %std::system_error on failure"
+						~ "threw %FileOperationFailure" @ ("functions \
+						%(ClearTree, DeleteTree)" $dep_from ("%Remove" @ %File),
+						"functions %CopyFile" $dep_from ("%OpenFile" @ %File))
+					+ $doc "'\exception' command" @ "Doxygen comment"
+						@ "function tmeplates %Traverse",
+					* $doc "'\exception' command" @ "Doxygen comment"
+						@ "function %ListFiles" $since b719
+						// This change was caused by %platform::HDirectory \
+							constructors.
+				)
+			),
+			/ @ "class %FileBox" %UI.ComboList $=
+			(
+				* $doc "'\exception' command" @ "Doxygen comment"
+					@ "function %ListItems" $since b719,
+					// See %IO::ListFiles.
+				* "unhandled %std::system_error thrown on listing files failure"
+					@ "function %SetPath" $since b719
+					$= (/ "caught %std::syatem_error"
+						~ "caught %IO::%FileOperationFailure")
+			),
+			/ @ "namespace %YSLib::IO" @ %Adaptor.YAdaptor $=
+			(
+				- $revert(b654) 'using platform::ThrowFileOperationFailure;'
+					$dep_from %Service.(File, FileSystem),
+				- $revert(b411) 'using platform::FileOperationFailure;'
+					$dep_from %(UI.ComboList, NPL.Dependency,
+					Helper.Initialization, Tools.SHBuild.Main)
+			)
+		),
+		/ $forced "caught %std::system_error" @ "function %InstallFile"
+			@ %NPL.Dependency  ~ "caught %FileOperationFailure" $dep_from
+			("%HaveSameContents" @ %YCLib.FileIO,
+			"%CopyFile" @ %YSLib.Service.FileSystem),
+		* "%std::system_error caused wrong behavior on font file access failure"
+			@ "function %InitializeSystemFontCache" @ %Helper.Initialization
+			$since b719
+			$= (/ "caught %std::syatem_error" ~ "caught %FileOperationFailure"),
+		/ %'YCLib_(Win32)'.MinGW32 $=
+		(
+			+ "functions %(WaitUnique, TryWaitUnique)";
+			/ DLDI @ "class %Mutex" $=
+			(
+				/ "simplified function %lock" ^ "%WaitUnique",
+				/ "simplified function %try_lock" ^ "%TryWaitUnique"
+			)
+		)
+	),
+	/ "caught %std::syatem_error" @ "main function" @ %Tools.SHBuild.Main
+		~ "caught %IO::%FileOperationFailure"
+),
+
+b719
 (
 	/ %YFramework $=
 	(

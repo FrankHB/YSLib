@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2818
+\version r2854
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2016-07-25 20:13 +0800
+	2016-08-14 13:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,12 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Debug
 #include <cstdlib> // for std::abort, std::system;
-#include YFM_YCLib_NativeAPI // for ::swiWaitForVBlank, _SC_SYMLOOP_MAX,
+#include YFM_YCLib_NativeAPI // for ::swiWaitForVBlank, ::sysconf,
+//	_SC_PAGESIZE, _SC_SEM_NSEMS_MAX, _SC_SEM_VALUE_MAX, _SC_SYMLOOP_MAX,
 //	::fifoSendValue32, ::SYSTEM_INFO, ::GetSystemInfo;
 #include <limits> // for std::numeric_limits;
-#include <limits.h> // for _SC_PAGESIZE, _POSIX_SYMLOOP_MAX;
+#include <limits.h> // for _POSIX_SEM_NSEMS_MAX, _POSIX_SYMLOOP_MAX,
+//	_POSIX_SEM_VALUE_MAX;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_MinGW32
 #	include <stdlib.h> // for ::_wsystem;
@@ -66,6 +68,8 @@ usystem(const char* cmd)
 size_t
 FetchLimit(SystemOption opt) ynothrow
 {
+	// NOTE: For constant expression value that is always less than max value
+	//	of %size_t, there is no check needed.
 	// XXX: Values greater than maximum value of %size_t would be truncated.
 	const auto conf_conv([](long n){
 		using res_t = ystdex::common_type_t<long, size_t>;
@@ -97,12 +101,46 @@ FetchLimit(SystemOption opt) ynothrow
 		//	value.
 		return 1;
 #endif
+	case SystemOption::MaxSemaphoreNumber:
+#if YCL_DS
+		return 0;
+#elif YCL_Win32
+		return size_t(-1);
+#elif defined(_SC_SEM_NSEMS_MAX)
+		return conf_conv(::sysconf(_SC_SEM_NSEMS_MAX));
+#elif defined(_POSIX_SEM_NSEMS_MAX)
+		static_assert(size_t(_POSIX_SEM_NSEMS_MAX) == _POSIX_SEM_NSEMS_MAX,
+			"Invalid value found.");
+
+		return _POSIX_SEM_NSEMS_MAX;
+#else
+		return 256;
+#endif
+	case SystemOption::MaxSemaphoreValue:
+#if YCL_Win32
+		static_assert(size_t(std::numeric_limits<long>::max())
+			== std::numeric_limits<long>::max(), "Invalid value found.");
+
+		return size_t(std::numeric_limits<long>::max());
+#elif defined(_SC_SEM_VALUE_MAX)
+		return conf_conv(::sysconf(_SC_SEM_VALUE_MAX));
+#elif defined(_POSIX_SEM_VALUE_MAX)
+		static_assert(size_t(_POSIX_SEM_VALUE_MAX) == _POSIX_SEM_VALUE_MAX,
+			"Invalid value found.");
+
+		return _POSIX_SEM_VALUE_MAX;
+#else
+		return 256;
+#endif
 	case SystemOption::MaxSymlinkLoop:
 #if YCL_DS
 		return 0;
 #elif defined(_SC_SYMLOOP_MAX)
 		return conf_conv(::sysconf(_SC_SYMLOOP_MAX));
 #elif defined(_POSIX_SYMLOOP_MAX)
+		static_assert(size_t(_POSIX_SYMLOOP_MAX) == _POSIX_SYMLOOP_MAX,
+			"Invalid value found.");
+
 		return _POSIX_SYMLOOP_MAX;
 #else
 		// NOTE: Windows has nothing about this concept. Win32 error

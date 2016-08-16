@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3762
+\version r3806
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2016-07-25 10:25 +0800
+	2016-08-16 11:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,9 @@
 #include <ystdex/cassert.h> // yconstraint, yassume for other headers;
 #include <ystdex/cwctype.h> // for ystdex::isprint, ystdex::iswprint;
 #include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
-#include YFM_YBaseMacro
+#include YFM_YBaseMacro // for TryRet, CatchIgnore;
+#include <exception> // for std::bad_alloc;
+#include <cerrno> // for errno, ENOMEM;
 
 //! \brief 默认平台命名空间。
 namespace platform
@@ -214,6 +216,21 @@ wcast(_tChar* p) ynothrow
 
 
 /*!
+\brief 调用并捕获异常。
+\since build 720
+*/
+template<typename _func, typename... _tParams>
+ystdex::result_of_t<_func(_tParams&&...)>
+CallNothrow(const ystdex::result_of_t<_func(_tParams&&...)>& v, _func f,
+	_tParams&&... args) ynothrowv
+{
+	TryRet(f(yforward(args)...))
+	CatchExpr(std::bad_alloc&, errno = ENOMEM)
+	CatchIgnore(...)
+	return v;
+}
+
+/*!
 \brief 循环重复操作。
 \since build 625
 */
@@ -240,7 +257,10 @@ usystem(const char*);
 
 //! \since build 704
 //@{
-//! \brief 系统配置选项。
+/*!
+\brief 系统配置选项。
+\note 以 Max 起始的名称表示可具有的最大值。
+*/
 enum class SystemOption
 {
 	/*!
@@ -249,18 +269,38 @@ enum class SystemOption
 	\since build 712
 	*/
 	PageSize,
-	//! \brief 符号链接在路径解析中允许的最大次数。
+	//! \since build 720
+	//@{
+	//! \brief 一个进程中可具有的信号量的最大数量。
+	MaxSemaphoreNumber,
+	//! \brief 可具有的信号量的最大值。
+	MaxSemaphoreValue,
+	//@}
+	//! \brief 在路径解析中符号链接可被可靠遍历的最大次数。
 	MaxSymlinkLoop
 };
 
 
 /*!
 \brief 取限制配置。
-\return 选项存在且值能被返回类型表示时为转换后的对应选项值，否则为 \c size_t(-1) 。
-\note 某些平台调用结果总是翻译时确定的常数，调用此函数无副作用，使用 YB_STATELESS 修饰。
+\return 选项存在且值能被返回类型表示时为转换后的对应选项值，否则为默认常数值。
 \note 若无 YB_STATELESS 修饰，当找不到项时，可能使用跟踪输出警告。
 \note 若无 YB_STATELESS 修饰，当找不到项时，可能设置 errno 为 EINVAL 。
+\sa SystemOption
 \sa YTraceDe
+
+以配置选项值作为参数，指定查询特定的限制值。
+某些平台调用结果总是翻译时确定的常数，调用此函数无副作用，使用 YB_STATELESS 修饰；
+其它平台可能由运行时确定，通过查询宿主环境或语言运行时提供的接口，
+	确定选项是否存在，以及具体的配置的值。
+若选项存在，且对应的值可以 size_t 表示，则返回选项对应的值；
+否则，返回一个默认的常数值作为回退，表示在特定环境下能可靠依赖的默认限制。
+注意回退值可能平台相关；
+但对 POSIX 提供最小值且符合选项含义的情形，使用 POSIX 最小值以提升可移植性。
+回退值可能不等于实现实际支持的值。
+对表示可具有的最大值的限制，回退值为 \c size_t(-1) ，此时实现实际支持的值可能超过
+	size_t 的表示范围，或没有指定显式限制（仅受存储或地址空间限制）；
+其它回退值取决于选项的具体含义。
 */
 YF_API
 #if YCL_DS

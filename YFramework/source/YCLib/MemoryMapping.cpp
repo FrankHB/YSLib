@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r472
+\version r484
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-08-12 09:55 +0800
+	2016-08-13 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,18 +30,14 @@
 #include YFM_YCLib_FileIO // for uopen, YCL_Raise_SysE, YCL_CallF_CAPI,
 //	std::throw_with_nested, std::runtime_error, ystdex::throw_error,
 //	std::errc::bad_file_descriptor;
-#include YFM_YCLib_NativeAPI // for ::UnmapViewOfFile, CreateFileMapping,
-//	PAGE_READONLY, PAGE_READWRITE, MapViewOfFile, FILE_MAP_READ,
-//	FILE_MAP_ALL_ACCESS, FILE_MAP_COPY, ::lseek;
-#include <cerrno> // for errno;
+#include YFM_YCLib_NativeAPI // for ::UnmapViewOfFile, ::munmap,
+//	platform_ex::ToHandle, CreateFileMapping, PAGE_READONLY, PAGE_READWRITE,
+//	MapViewOfFile, FILE_MAP_READ, FILE_MAP_ALL_ACCESS, FILE_MAP_COPY, ::mmap,
+//	PROT_READ, PROT_WRITE, ::lseek, MAP_PRIVATE, MAP_SHARED, MAP_FAILED;
 #include <ystdex/cast.hpp> // for ystdex::narrow;
 #if YCL_Win32
 #	include YFM_YCLib_Host // for platform_ex::UniqueHandle;
 #	include YFM_Win32_YCLib_MinGW32 // for YCL_CallF_Win32;
-#elif YCL_Linux || YCL_OS_X
-#	include <sys/mman.h> // for ::munmap, ::mmap, PROT_READ, PROT_WRITE,
-//	MAP_PRIVATE, MAP_SHARED, MAP_FAILED;
-#	include <sys/stat.h>
 #endif
 
 namespace platform
@@ -73,7 +69,7 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 			if(len != 0)
 			{
 #	if YCL_Win32
-				const auto h(::HANDLE(::_get_osfhandle(*file.get())));
+				const auto h(platform_ex::ToHandle(*file.get()));
 
 				if(h != INVALID_HANDLE_VALUE)
 				{
@@ -107,9 +103,6 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 			}
 			throw std::invalid_argument("Empty file found.");
 		}
-#if YCL_Win32
-		CatchExpr(ystdex::narrowing_error&, throw)
-#endif
 		// TODO: Create specific exception type?
 		CatchExpr(...,
 			std::throw_with_nested(std::runtime_error("Mapping failed.")))

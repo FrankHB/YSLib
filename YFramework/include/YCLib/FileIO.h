@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2365
+\version r2404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-08-12 10:20 +0800
+	2016-08-16 11:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include YFM_YBaseMacro
 #include YFM_YCLib_Debug // for YB_NONNULL, string, Nonnull, u16string_view,
 //	std::uint32_t, std::uint64_t, ynothrow, ystdex::totally_ordered, std::FILE,
-//	ystdex::enable_for_string_class_t, ystdex::retry_for_vector,
+//	ystdex::enable_for_string_class_t, ystdex::retry_for_vector, errno,
 //	ystdex::throw_error, u16string, std::system_error, YTraceDe, array, wstring,
 //	string_view;
 #include <chrono> // for std::chrono::nanoseconds;
@@ -48,7 +48,6 @@
 #	include <ystdex/cstdio.h> // for ystdex::openmode_conv;
 #	include <locale> // for std::use_facet, std::codecvt;
 #endif
-#include <cerrno> // for errno;
 
 namespace platform
 {
@@ -482,14 +481,17 @@ uaccess(const char16_t* path, int amode) ynothrowv;
 \param filename 文件名，意义同 POSIX \c ::open 。
 \param oflag 打开旗标，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
+\since build 720
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
 YF_API YB_NONNULL(1) int
-uopen(const char* filename, int oflag, mode_t pmode = 0) ynothrowv;
+uopen(const char* filename, int oflag, mode_t pmode = DefaultPMode())
+	ynothrowv;
 //! \brief 以 UCS-2 文件名无缓冲打开文件。
 YF_API YB_NONNULL(1) int
-uopen(const char16_t* filename, int oflag, mode_t pmode = 0) ynothrowv;
+uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
+	ynothrowv;
 //@}
 
 //! \param filename 文件名，意义同 std::fopen 。
@@ -737,8 +739,7 @@ public:
 		if(!this->is_open())
 		{
 #	if __GLIBCXX__
-			this->_M_file.sys_open(uopen(s, omode_convb(mode), DefaultPMode()),
-				mode);
+			this->_M_file.sys_open(uopen(s, omode_convb(mode)), mode);
 			if(open_check(mode))
 				return this;
 #	else
@@ -1182,39 +1183,6 @@ FetchCurrentWorkingDirectory(size_t);
 //@}
 
 
-/*!
-\brief 表示文件操作失败的异常。
-\since build 411
-*/
-class YF_API FileOperationFailure : public std::system_error
-{
-public:
-	//! \since build 538
-	using system_error::system_error;
-
-	//! \since build 586
-	DefDeCopyCtor(FileOperationFailure)
-	/*!
-	\brief 虚析构：类定义外默认实现。
-	\since build 586
-	*/
-	~FileOperationFailure() override;
-};
-
-/*!
-\build 抛出由 errno 和参数指定的 FileOperationFailure 对象。
-\throw FileOperationFailure errno 和指定参数构造的异常。
-\relates FileOperationFailure
-\since build 701
-*/
-template<typename _tParam>
-YB_NORETURN void
-ThrowFileOperationFailure(_tParam&& arg, int err = errno)
-{
-	ystdex::throw_error<FileOperationFailure>(err, yforward(arg));
-}
-
-
 //! \since build 714
 //@{
 /*!
@@ -1399,7 +1367,7 @@ EnsureUniqueFile(const char*, mode_t = DefaultPMode(), size_t = 1, bool = {});
 
 /*!
 \brief 比较文件内容相等。
-\throw FileOperationFailure 文件按流打开失败。
+\throw std::system_error 文件按流打开失败。
 \warning 读取失败时即截断返回，因此需要另行比较文件大小。
 \sa IsNodeShared
 \since build 658

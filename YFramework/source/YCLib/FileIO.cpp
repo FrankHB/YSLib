@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2723
+\version r2823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-08-12 10:20 +0800
+	2016-08-16 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,17 +25,16 @@
 */
 
 
-#undef __STRICT_ANSI__ // for fileno, ::pclose, ::popen for POSIX platforms;
-//	_fileno, _wfopen for MinGW.org;
+#undef __STRICT_ANSI__ // for ::fileno, ::pclose, ::popen, ::_wfopen;
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileIO // for std::errc::function_not_supported,
-//	YCL_CallF_CAPI, std::is_integral, std::bind, FileOperationFailure,
-//	ystdex::temporary_buffer, Nonnull;
-#include YFM_YCLib_NativeAPI // for std::is_same, ystdex::underlying_type_t,
-//	Mode, ::HANDLE, struct ::stat, platform_ex::cstat, platform_ex::estat,
-//	::close, ::fcntl, F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize,
-//	::ftruncate, ::fsync, ::_wgetcwd, ::getcwd, !defined(__STRICT_ANSI__) API,
-//	::futimens, ::LARGE_INTEGER, ::GetFileSizeEx, ::GetCurrentDirectoryW; 
+#include YFM_YCLib_FileIO // for std::is_same, ystdex::underlying_type_t,
+//	std::errc::function_not_supported, YCL_CallF_CAPI, std::is_integral,
+//	std::bind, ystdex::temporary_buffer, Nonnull;
+#include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, struct ::stat,
+//	platform_ex::cstat, platform_ex::estat, ::futimens, YCL_CallGlobal, ::close,
+//	::fcntl, F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize, ::ftruncate,
+//	::fsync, ::_wgetcwd, ::getcwd, ::chdir, ::rmdir, ::unlink,
+//	!defined(__STRICT_ANSI__) API, ::GetCurrentDirectoryW; 
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
@@ -91,12 +90,6 @@ namespace platform
 //! \since build 627
 static_assert(std::is_same<mode_t, ystdex::underlying_type_t<Mode>>::value,
 	"Mismatched mode types found.");
-
-// XXX: Catch %std::bad_alloc?
-#define YCL_Impl_RetTryCatchAll(...) \
-	TryRet(__VA_ARGS__) \
-	CatchExpr(std::bad_alloc&, errno = ENOMEM) \
-	CatchIgnore(...)
 
 namespace
 {
@@ -316,10 +309,10 @@ bool
 IsNodeShared_Impl(const char* a, const char* b, bool follow_link) ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(
-		QueryFileNodeID(MakePathStringW(a).c_str(), follow_link)
-		== QueryFileNodeID(MakePathStringW(b).c_str(), follow_link))
-	return {};
+	return CallNothrow({}, [=]{
+		return QueryFileNodeID(MakePathStringW(a).c_str(), follow_link)
+			== QueryFileNodeID(MakePathStringW(b).c_str(), follow_link);
+	});
 #else
 	struct ::stat st;
 
@@ -340,9 +333,10 @@ IsNodeShared_Impl(const char16_t* a, const char16_t* b, bool follow_link)
 	ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileNodeID(wcast(a), follow_link)
-		== QueryFileNodeID(wcast(b), follow_link))
-	return {};
+	return CallNothrow({}, [=]{
+		return QueryFileNodeID(wcast(a), follow_link)
+			== QueryFileNodeID(wcast(b), follow_link);
+	});
 #else
 	return IsNodeShared_Impl(MakePathString(a).c_str(),
 		MakePathString(b).c_str(), follow_link);
@@ -424,11 +418,7 @@ FileDescriptor::Deleter::operator()(pointer p) const ynothrow
 
 
 FileDescriptor::FileDescriptor(std::FILE* fp) ynothrow
-#if YCL_Win32
-	: desc(fp ? ::_fileno(fp) : -1)
-#else
-	: desc(fp ? fileno(fp) : -1)
-#endif
+	: desc(fp ? YCL_CallGlobal(fileno, fp) : -1)
 {}
 
 FileTime
@@ -479,29 +469,29 @@ FileNodeID
 FileDescriptor::GetNodeID() const ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileNodeID(ToHandle(desc)))
+	return CallNothrow({}, [=]{
+		return QueryFileNodeID(ToHandle(desc));
+	});
 #else
 	struct ::stat st;
 
-	if(estat(st, desc) == 0)
-		return get_file_node_id(st);
+	return estat(st, desc) == 0 ? get_file_node_id(st) : FileNodeID();
 #endif
-	return FileNodeID();
 }
 size_t
 FileDescriptor::GetNumberOfLinks() const ynothrow
 {
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(QueryFileLinks(ToHandle(desc)))
+	return CallNothrow({}, [=]{
+		return QueryFileLinks(ToHandle(desc));
+	});
 #else
 	struct ::stat st;
 	static_assert(std::is_unsigned<decltype(st.st_nlink)>(),
 		"Unsupported 'st_nlink' type found.");
 
-	if(estat(st, desc) == 0)
-		return size_t(st.st_nlink);
+	return estat(st, desc) == 0 ? size_t(st.st_nlink) : size_t();
 #endif
-	return size_t();
 }
 std::uint64_t
 FileDescriptor::GetSize() const
@@ -622,11 +612,9 @@ FileDescriptor::SetSize(size_t size) ynothrow
 int
 FileDescriptor::SetTranslationMode(int mode) const ynothrow
 {
-#if YCL_Win32
-	return ::_setmode(desc, mode);
-#elif defined(_NEWLIB_VERSION) && defined(__SCLE)
 	// TODO: Other platforms.
-	return ::setmode(desc, mode);
+#if YCL_Win32 || (defined(_NEWLIB_VERSION) && defined(__SCLE))
+	return YCL_CallGlobal(setmode, desc, mode);
 #else
 	// NOTE: No effect.
 	yunused(mode);
@@ -783,8 +771,9 @@ uaccess(const char* path, int amode) ynothrowv
 {
 	YAssertNonnull(path);
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_waccess(MakePathStringW(path).c_str(), amode))
-	return -1;
+	return CallNothrow(-1, [=]{
+		return ::_waccess(MakePathStringW(path).c_str(), amode);
+	});
 #else
 	return ::access(path, amode);
 #endif
@@ -796,8 +785,9 @@ uaccess(const char16_t* path, int amode) ynothrowv
 #if YCL_Win32
 	return ::_waccess(wcast(path), amode);
 #else
-	YCL_Impl_RetTryCatchAll(::access(MakePathString(path).c_str(), amode))
-	return -1;
+	return CallNothrow(-1, [=]{
+		return ::access(MakePathString(path).c_str(), amode);
+	});
 #endif
 }
 
@@ -806,9 +796,9 @@ uopen(const char* filename, int oflag, mode_t pmode) ynothrowv
 {
 	YAssertNonnull(filename);
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wopen(MakePathStringW(filename).c_str(), oflag,
-		int(pmode)))
-	return -1;
+	return CallNothrow(-1, [=]{
+		return ::_wopen(MakePathStringW(filename).c_str(), oflag, int(pmode));
+	});
 #else
 	return ::open(filename, oflag, pmode);
 #endif
@@ -820,9 +810,9 @@ uopen(const char16_t* filename, int oflag, mode_t pmode) ynothrowv
 #if YCL_Win32
 	return ::_wopen(wcast(filename), oflag, int(pmode));
 #else
-	YCL_Impl_RetTryCatchAll(::open(MakePathString(filename).c_str(), oflag,
-		pmode))
-	return -1;
+	return CallNothrow(-1, [=]{
+		return ::open(MakePathString(filename).c_str(), oflag, pmode);
+	});
 #endif
 }
 
@@ -832,9 +822,10 @@ ufopen(const char* filename, const char* mode) ynothrowv
 	YAssertNonnull(filename);
 	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wfopen(MakePathStringW(filename).c_str(),
-		MakePathStringW(mode).c_str()))
-	return {};
+	return CallNothrow({}, [=]{
+		return ::_wfopen(MakePathStringW(filename).c_str(),
+			MakePathStringW(mode).c_str());
+	});
 #else
 	return std::fopen(filename, mode);
 #endif
@@ -847,9 +838,10 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #if YCL_Win32
 	return ::_wfopen(wcast(filename), wcast(mode));
 #else
-	YCL_Impl_RetTryCatchAll(std::fopen(MakePathString(filename).c_str(),
-		MakePathString(mode).c_str()))
-	return {};
+	return CallNothrow({}, [=]{
+		return std::fopen(MakePathString(filename).c_str(),
+			MakePathString(mode).c_str());
+	});
 #endif
 }
 std::FILE*
@@ -864,13 +856,13 @@ ufopen(const char16_t* filename, std::ios_base::openmode mode) ynothrowv
 {
 	YAssertNonnull(filename);
 	if(const auto c_mode = ystdex::openmode_conv(mode))
+		return CallNothrow({}, [=]{
 #if YCL_Win32
-		YCL_Impl_RetTryCatchAll(
-			::_wfopen(wcast(filename), MakePathStringW(c_mode).c_str()))
+			return ::_wfopen(wcast(filename), MakePathStringW(c_mode).c_str());
 #else
-		YCL_Impl_RetTryCatchAll(std::fopen(MakePathString(filename).c_str(),
-			c_mode))
+			return std::fopen(MakePathString(filename).c_str(), c_mode);
 #endif
+		});
 	return {};
 }
 
@@ -898,10 +890,8 @@ upclose(std::FILE* fp) ynothrowv
 #if YCL_DS
 	errno = ENOSYS;
 	return -1;
-#elif YCL_Win32
-	return ::_pclose(fp);
 #else
-	return ::pclose(fp);
+	return YCL_CallGlobal(pclose, fp);
 #endif
 }
 
@@ -914,9 +904,10 @@ upopen(const char* filename, const char* mode) ynothrowv
 	errno = ENOSYS;
 	return {};
 #elif YCL_Win32
-	YCL_Impl_RetTryCatchAll(::_wpopen(MakePathStringW(filename).c_str(),
-		MakePathStringW(mode).c_str()))
-	return {};
+	return CallNothrow({}, [=]{
+		return ::_wpopen(MakePathStringW(filename).c_str(),
+			MakePathStringW(mode).c_str());
+	});
 #else
 	return ::popen(filename, mode);
 #endif
@@ -932,9 +923,10 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #elif YCL_Win32
 	return ::_wpopen(wcast(filename), wcast(mode));
 #else
-	YCL_Impl_RetTryCatchAll(::popen(MakePathString(filename).c_str(),
-		MakePathString(mode).c_str()))
-	return {};
+	return CallNothrow({}, [=]{
+		return ::popen(MakePathString(filename).c_str(),
+			MakePathString(mode).c_str());
+	});
 #endif
 }
 
@@ -1021,8 +1013,9 @@ _n(const char* path) ynothrowv \
 
 #if YCL_Win32
 #	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
-	YCL_Impl_RetTryCatchAll(_wfn(MakePathStringW(path).c_str()) == 0) \
-	return {}; \
+	return CallNothrow({}, [&]{ \
+		return _wfn(MakePathStringW(path).c_str()) == 0; \
+	}); \
 }
 #else
 #	define YCL_Impl_FileSystem_ufunc_2(_fn, _wfn) \
@@ -1048,8 +1041,9 @@ YCL_Impl_FileSystem_ufunc(urmdir, ::rmdir, ::_wrmdir)
 
 YCL_Impl_FileSystem_ufunc_1(uunlink)
 #if YCL_Win32
-	YCL_Impl_RetTryCatchAll(CallFuncWithAttr(UnlinkWithAttr, path))
-	return {};
+	return CallNothrow({}, [=]{
+		return CallFuncWithAttr(UnlinkWithAttr, path);
+	});
 }
 #else
 YCL_Impl_FileSystem_ufunc_2(::unlink, )
@@ -1059,12 +1053,13 @@ YCL_Impl_FileSystem_ufunc_1(uremove)
 #if YCL_Win32
 	// NOTE: %::_wremove is same to %::_wunlink on Win32 which cannot delete
 	//	empty directories.
-	YCL_Impl_RetTryCatchAll(CallFuncWithAttr(
-		[](const wchar_t* wstr, FileAttributes attr) YB_NONNULL(1) ynothrow{
+	return CallNothrow({}, [=]{
+		return CallFuncWithAttr([](const wchar_t* wstr, FileAttributes attr)
+			YB_NONNULL(1) ynothrow{
 			return attr & FileAttributes::Directory ? ::_wrmdir(wstr) == 0
 				: UnlinkWithAttr(wstr, attr);
-	}, path))
-	return {};
+		}, path);
+	});
 }
 #else
 YCL_Impl_FileSystem_ufunc_2(std::remove, )
@@ -1110,9 +1105,6 @@ FetchCurrentWorkingDirectory(size_t)
 	return res;
 }
 #endif
-
-
-ImplDeDtor(FileOperationFailure)
 
 
 FileTime
@@ -1235,15 +1227,15 @@ HaveSameContents(UniqueFile p_a, UniqueFile p_b, const char* name_a,
 		// TODO: Throw a nested exception with %errno if 'errno != 0'.
 		if(!fb_a.open(std::move(p_a),
 			std::ios_base::in | std::ios_base::binary))
-			ThrowFileOperationFailure(name_a ? ("Failed opening first file '"
-				+ string(name_a) + "'.").c_str()
-				: "Failed opening first file.");
+			ystdex::throw_error(std::errc::bad_file_descriptor,
+				name_a ? ("Failed opening first file '" + string(name_a) + "'.")
+				.c_str() : "Failed opening first file.");
 		// TODO: Throw a nested exception with %errno if 'errno != 0'.
 		if(!fb_b.open(std::move(p_b),
 			std::ios_base::in | std::ios_base::binary))
-			ThrowFileOperationFailure(name_b ? ("Failed opening second file '"
-				+ string(name_b) + "'.").c_str()
-				: "Failed opening second file.");
+			ystdex::throw_error(std::errc::bad_file_descriptor,
+				name_b ? ("Failed opening second file '" + string(name_b)
+				+ "'.").c_str() : "Failed opening second file.");
 		return ystdex::streambuf_equal(fb_a, fb_b);
 	}
 	return {};

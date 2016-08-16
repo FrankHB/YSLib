@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r822
+\version r833
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2015-11-23 15:28 +0800
+	2016-08-13 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,6 +249,12 @@
 
 /*!
 \ingroup PlatformAPI
+\def YCL_API_Has_semaphore_h
+\brief API 可用 \c \<semaphore.h\> 。
+*/
+
+/*!
+\ingroup PlatformAPI
 \def YCL_API_Have_unistd_h
 \brief API 可用 \c \<unistd.h\> 。
 */
@@ -317,6 +323,7 @@
 #	endif
 #	define YCL_API_POSIXFileSystem 1
 #	define YCL_API_Has_dirent_h 1
+#	define YCL_API_Has_semaphore_h 1
 #	define YCL_API_Has_unistd_h 1
 #elif defined(__MACH__)
 #	define YF_Hosted 1
@@ -352,10 +359,6 @@
 #	endif
 #elif YF_Platform == YF_Platform_Android_ARM
 #	define YCL_Android 1
-#	define YF_Hosted 1
-#	define YCL_API_POSIXFileSystem 1
-#	define YCL_API_Has_dirent_h 1
-#	define YCL_API_Has_unistd_h 1
 #	ifndef YF_Use_POSIXThread
 #		define YF_Use_POSIXThread 1
 #	endif

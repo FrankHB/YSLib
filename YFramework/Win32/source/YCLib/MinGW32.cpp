@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2100
+\version r2117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-08-12 10:01 +0800
+	2016-08-16 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -746,24 +746,25 @@ ConvertTime(std::chrono::nanoseconds file_time)
 }
 
 
+void
+WaitUnique(UniqueHandle::pointer h, unsigned long ms)
+{
+	if(YB_UNLIKELY(::WaitForSingleObject(h, ms) == WAIT_FAILED))
+		YCL_Raise_Win32E("WaitForSingleObject", yfsig);
+}
+
+bool
+TryWaitUnique(UniqueHandle::pointer h, unsigned long ms) ynothrow
+{
+	return ::WaitForSingleObject(h, ms) == WAIT_OBJECT_0;
+}
+
+
 Mutex::Mutex(const wchar_t* name)
 	// TODO: Save last error and detect %ERROR_ALREADY_EXISTS?
 	// TODO: Use desired attributes with %::CreateMutexW?
 	: h_mutex(YCL_CallF_Win32(CreateMutexW, {}, {}, name))
 {}
-
-void
-Mutex::lock()
-{
-	if(::WaitForSingleObject(native_handle(), INFINITE) == WAIT_FAILED)
-		YCL_Raise_Win32E("WaitForSingleObject", yfsig);
-}
-
-bool
-Mutex::try_lock()
-{
-	return ::WaitForSingleObject(native_handle(), 0) == WAIT_OBJECT_0;
-}
 
 void
 Mutex::unlock() ynothrowv

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r3404
+\version r3406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2016-08-12 12:31 +0800
+	2016-08-12 20:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -898,8 +898,8 @@ main(int argc, char* argv[])
 			TryExpr(throw)
 			CatchExpr(IntException& ex, print("IntException: "
 				+ to_string(unsigned(ex)) + '.'))
-			CatchExpr(FileOperationFailure&, print(
-				"ERROR: File operation failure."))
+			CatchExpr(std::system_error&, print(
+				"ERROR: System error (possible file operation failure)."))
 			CatchIgnore(std::exception&)
 			CatchExpr(..., YAssert(false, "Invalid exception found."))
 			print(string("ERROR: ") + str);
