@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3260
+\version r3267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-07-28 08:55 +0800
+	2016-08-13 20:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_File // for Remove, Unlink;
+#include YFM_YSLib_Service_File // for Remove;
 #include YFM_YSLib_Core_YString
 #include <ystdex/path.hpp> // for ystdex::path;
 
@@ -592,6 +592,8 @@ Traverse(HDirectory& dir, _func f)
 			f(dir.GetNodeCategory(), npv);
 	}
 }
+//! \exception std::system_error 目录打开失败。
+//@{
 //! \note 允许目录路径以分隔符结束。
 //@{
 //! \pre 间接断言：指针参数非空。
@@ -618,6 +620,7 @@ Traverse(const Path& pth, _func f)
 {
 	IO::Traverse(string(pth), f);
 }
+//@}
 
 //! \note 允许目录路径以分隔符结束。
 //@{
@@ -717,7 +720,7 @@ const auto PreserveModificationAndAccessTime(ystdex::bind_forward(
 */
 YF_API void
 CopyFile(UniqueFile, FileDescriptor);
-//! \exception FileOperationFailure 打开文件失败。
+//! \exception std::system_error 打开文件失败。
 //@{
 //! \note 不清空目标。
 YF_API YB_NONNULL(2) void
@@ -772,7 +775,7 @@ CopyTree(const Path& dst, const Path& src, _tParams&&... args)
 	}, dst, src, std::forward<_tParams>(args)...);
 }
 
-//! \exception FileOperationFailure 路径指向的不是一个目录或删除失败。
+//! \exception std::system_error 路径指向的不是一个目录或删除失败。
 //@{
 /*!
 \brief 清空参数指定路径的目录树内容。
@@ -797,7 +800,7 @@ inline PDefH(void, DeleteTree, const string& pth)
 
 /*!
 \brief 遍历目录中的项目，更新至列表。
-\exception FileOperationFailure 操作失败。
+\exception std::system_error 操作失败。
 \since build 538
 */
 YF_API void

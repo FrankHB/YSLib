@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1540
+\version r1546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2016-08-09 16:18 +0800
+	2016-08-12 20:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ namespace IO
 /*!
 \brief 打开文件。
 \pre 路径参数非空。
-\throw FileOperationFailure 打开失败。
+\throw std::system_error 打开失败。
 \return 非空的文件指针。
 \sa uopen
 \since build 639
@@ -52,7 +52,7 @@ OpenFile(const char*, int, mode_t = 0);
 /*!
 \brief 移除文件链接。
 \pre 间接断言：参数非空。
-\throw FileOperationFailure 文件存在且操作失败。
+\throw std::system_error 文件存在且操作失败。
 \since build 713
 */
 //@{
@@ -65,8 +65,8 @@ Remove(const _tChar* path)
 		const int err(errno);
 
 		if(err != ENOENT)
-			ThrowFileOperationFailure("Failed removing destination file '"
-				+ IO::MakePathString(path) + "'.", err);
+			ystdex::throw_error(err, "Failed removing destination file '"
+				+ IO::MakePathString(path) + "'.");
 	}
 }
 
@@ -79,8 +79,8 @@ Unlink(const _tChar* path)
 		const int err(errno);
 
 		if(err != ENOENT)
-			ThrowFileOperationFailure("Failed unlinking destination file '"
-				+ IO::MakePathString(path) + "'.", err);
+			ystdex::throw_error(err, "Failed unlinking destination file '"
+				+ IO::MakePathString(path) + "'.");
 	}
 }
 //@}

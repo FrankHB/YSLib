@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r504
+\version r513
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2016-07-23 23:11 +0800
+	2016-08-13 16:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,6 +171,8 @@ YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.8.15]) 
 不使用 MAXPATHLEN 宏。
 另见 @4.1.6 和 @4.2.1 。
 
+@2 实现要求：
+
 @2.1 环境资源占用：
 
 @2.1.1 DS 计时器：
@@ -212,6 +214,7 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 
 @4.1 Windows API ：
 当前只支持以 Windows NT 或兼容接口为底层实现的 Win32 平台，但在接口和实现上不应依赖这个假设。
+只支持启用了 STRICT 检查（不定义宏 NO_STRICT ）的 Windows SDK API 。相关内容参见 https://msdn.microsoft.com/en-us/library/windows/desktop/aa383731(v=vs.85).aspx 。
 
 @4.1.1 API 版本：
 注意依赖的最低操作系统版本。
@@ -275,10 +278,18 @@ GetFileAttributesW
 感知终端服务，不使用和依赖被虚拟的远程桌面资源。
 例如使用 ::GetSystemWindowsDirectoryW 而不是 ::GetWindowsDirectoryW （区别参见 http://stackoverflow.com/questions/13489746/difference-between-getwindowsdirectory-and-getsystemwindowsdirectory ）。
 
-@4.2 POSIX
+@4.2 POSIX ：
+
+@4.2.1 平台约定：
 DS 平台可沿用部分 POSIX 限制。
 注意 POSIX 系统限制可能不在编译时确定；非特定平台不应假定。
 仅在 platform::FetchLimit 的实现中使用存在对应运行时配置的宏。
+
+@4.2.1 标识符：
+POSIX 函数视为全局命名空间成员。
+在 YCLib::NativeAPI(@5.2) 中 #undef 对应的宏以使函数可被直接（不需要在标识符外以括号保护）使用。
+另见 http://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_01 。
+关于其它 API 的类似情形，另见 @4.1.5 。
 
 @5 平台中立接口模块：
 提供平台中立接口，可引入 platform 命名空间实体的模块，用于以公共接口引入平台相关特性。

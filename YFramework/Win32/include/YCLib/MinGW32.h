@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1941
+\version r1960
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-08-11 05:22 +0800
+	2016-08-14 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -937,6 +937,22 @@ ConvertTime(std::chrono::nanoseconds);
 
 
 /*!
+\brief 以指定的时间间隔上限等待句柄指定的同步对象。
+\note 时间间隔单位为毫秒。
+\since build 720
+*/
+//@{
+//! \throw 等待失败。
+YF_API void
+WaitUnique(UniqueHandle::pointer, unsigned long = INFINITE);
+
+//! \return 是否等待成功。
+YF_API bool
+TryWaitUnique(UniqueHandle::pointer, unsigned long = 0) ynothrow;
+//@}
+
+
+/*!
 \brief 互斥量：可用于进程间同步。
 \note 满足 Lockable 要求。
 \since build 713
@@ -944,7 +960,7 @@ ConvertTime(std::chrono::nanoseconds);
 class YF_API Mutex : private ystdex::noncopyable
 {
 public:
-	using native_handle_type = ::HANDLE;
+	using native_handle_type = UniqueHandle::pointer;
 
 private:
 	UniqueHandle h_mutex;
@@ -953,11 +969,12 @@ public:
 	//! \brief 使用内核对象名。
 	Mutex(const wchar_t*);
 
-	void
-	lock();
+	//! \note 允许递归锁。
+	PDefH(void, lock, )
+		ImplExpr(WaitUnique(native_handle()))
 
-	bool
-	try_lock();
+	PDefH(bool, try_lock, ) ynothrow
+		ImplRet(TryWaitUnique(native_handle()))
 
 	/*!
 	\pre 线程对互斥量具有所有权。

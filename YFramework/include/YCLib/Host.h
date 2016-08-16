@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r375
+\version r449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-08-12 08:40 +0800
+	2016-08-14 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include "YSLib/Core/YModules.h"
 #include YFM_YCLib_Container // for unordered_map, pair, string_view, string;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
-#include YFM_YCLib_Reference // for unique_ptr_from, unique_ptr;
+#include YFM_YCLib_Reference // for unique_ptr_from, unique_ptr, observer_ptr;
 #include <system_error> // for std::system_error;
 #if !YCL_Win32
 #	include YFM_YCLib_FileIO // for platform::FileDescriptor::Deleter;
@@ -92,6 +92,7 @@ public:
 #	if YCL_Win32
 /*!
 \brief 句柄删除器。
+\warning 非虚析构。
 \since build 592
 */
 struct YF_API HandleDelete
@@ -115,6 +116,91 @@ using HandleDelete = platform::FileDescriptor::Deleter;
 
 //! \since build 520
 using UniqueHandle = unique_ptr_from<HandleDelete>;
+
+
+/*!
+\brief 信号量。
+\note 满足 Lockable 要求。
+\note 只支持命名信号量。
+\see http://stackoverflow.com/questions/27736618/why-are-sem-init-sem-getvalue-sem-destroy-deprecated-on-mac-os-x-and-w 。
+\since build 720
+*/
+class YF_API Semaphore : private ystdex::noncopyable
+{
+public:
+#if YCL_Win32
+	using CountType = long;
+#else
+	using CountType = unsigned;
+#endif
+
+private:
+#if YCL_Win32
+	using Deleter = HandleDelete;
+#else
+	class YF_API Deleter
+	{
+	public:
+		using pointer = void*;
+
+		observer_ptr<Semaphore> Referent{};
+
+		void
+		operator()(pointer) const ynothrowv;
+	};
+#endif
+
+public:
+	using native_handle_type = typename Deleter::pointer;
+
+private:
+#if !YCL_Win32
+	string name{};
+#endif
+	unique_ptr_from<Deleter> h_sem;
+
+public:
+	/*!
+	\brief 以指定名称和初始值创建命名信号量。
+	\pre 间接断言：参数非空。
+	\see https://msdn.microsoft.com/en-us/library/windows/desktop/ms682438(v=vs.85).aspx 。
+	\see http://pubs.opengroup.org/onlinepubs/9699919799/functions/sem_open.html 。
+
+	若指定名称的信号量已存在，则打开此信号量，忽略名称以外的参数。
+	名称长度和受到平台限制。
+	Win32 平台：使用 \c ::CreateSemaphore 创建。
+	非 Win32 平台：使用 POSIX \c ::sem_open 创建。
+	若需可移植性，名称不应包含文件分隔符。
+	*/
+	//@{
+	YB_NONNULL(2)
+	Semaphore(const char*, CountType = 1);
+	YB_NONNULL(2)
+	Semaphore(const char16_t*, CountType = 1);
+	//@}
+
+	//! \note 允许递归锁。
+	void
+	lock();
+
+	bool
+	try_lock();
+
+	/*!
+	\note 和互斥量不同，在满足 Lockable 要求之外，
+		可从不具有所有权的线程或进程安全调用。
+	*/
+	void
+	unlock() ynothrow;
+
+	/*!
+	\note Win32 平台：实际为 \c ::HANDLE 类型。
+	\note POSIX 平台：实际为 \c ::sem_t* 类型。
+	\see WG21 N4606 30.2.3[thread.req.native] 。
+	*/
+	PDefH(native_handle_type, native_handle, )
+		ImplRet(h_sem.get())
+};
 
 
 //! \since build 567
