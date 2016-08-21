@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r541
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-08-14 00:35 +0800
+	2016-08-21 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Host // for make_observer;
+#include YFM_YCLib_Host // for make_observer, platform::CallNothrow;
 #include YFM_YCLib_NativeAPI // for YCL_TraceCallF_CAPI, ::sem_open,
 //	::sem_close, ::sem_unlink, ::pipe, ToHandle, YCL_CallGlobal, isatty;
 #include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
@@ -85,6 +85,50 @@ HandleDelete::operator()(pointer h) const ynothrowv
 	YCL_TraceCallF_Win32(CloseHandle, h);
 }
 #endif
+
+
+int
+upclose(std::FILE* fp) ynothrowv
+{
+	YAssertNonnull(fp);
+#if YCL_DS
+	errno = ENOSYS;
+	return -1;
+#else
+	return YCL_CallGlobal(pclose, fp);
+#endif
+}
+
+std::FILE*
+upopen(const char* filename, const char* mode) ynothrowv
+{
+	YAssertNonnull(filename);
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
+#if YCL_Win32
+	return platform::CallNothrow({}, [=]{
+		return ::_wpopen(MakePathStringW(filename).c_str(),
+			MakePathStringW(mode).c_str());
+	});
+#else
+	return ::popen(filename, mode);
+#endif
+}
+std::FILE*
+upopen(const char16_t* filename, const char16_t* mode) ynothrowv
+{
+	using namespace platform;
+
+	YAssertNonnull(filename);
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
+#if YCL_Win32
+	return ::_wpopen(wcast(filename), wcast(mode));
+#else
+	return CallNothrow({}, [=]{
+		return ::popen(MakePathString(filename).c_str(),
+			MakePathString(mode).c_str());
+	});
+#endif
+}
 
 
 #if !YCL_Win32
@@ -156,21 +200,20 @@ Semaphore::lock()
 #if YCL_Win32
 	WaitUnique(native_handle());
 #else
-	YCL_CallF_CAPI(, ::sem_wait, static_cast<::sem_t*>(native_handle()));
+	platform::RetryOnInterrupted(std::bind(YCL_WrapCall_CAPI(, ::sem_wait,
+		static_cast<::sem_t*>(native_handle())), yfsig));
 #endif
 }
 
 bool
-Semaphore::try_lock()
+Semaphore::try_lock() ynothrow
 {
 #if YCL_Win32
 	return TryWaitUnique(native_handle());
 #else
-	if(::sem_trywait(static_cast<::sem_t*>(native_handle())) == 0)
-		return true;
-	if(errno == EAGAIN)
-		return {};
-	YCL_Raise_SysE(, "::sem_trywait", yfsig);
+	return platform::RetryOnInterrupted([this]{
+		return ::sem_trywait(static_cast<::sem_t*>(native_handle()));
+	}) == 0;
 #endif
 }
 
@@ -198,8 +241,7 @@ FetchCommandOutput(const char* cmd, size_t buf_size)
 	if(YB_UNLIKELY(buf_size == 0))
 		throw std::invalid_argument("Zero buffer size found.");
 	// TODO: Improve Win32 implementation?
-	if(const auto fp = ystdex::unique_raw(platform::upopen(cmd, "r"),
-		platform::upclose))
+	if(const auto fp = ystdex::unique_raw(upopen(cmd, "r"), upclose))
 	{
 		ystdex::setnbuf(fp.get());
 

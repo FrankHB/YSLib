@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3126
+\version r3155
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-08-12 20:29 +0800
+	2016-08-21 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -236,12 +236,18 @@ LoadCP936_NLS()
 //@}
 #endif
 
+//! \since build 721
+void
+WriteNPLA1Stream(std::ostream& os, NPL::Configuration&& conf)
+{
+	ystdex::write_literal(os, Text::BOM_UTF_8) << std::move(conf);
+}
+
 //! \since build 693
 void
 CreateDefaultNPLA1ForStream(std::ostream& os, ValueNode(*creator)())
 {
-	ystdex::write_literal(os, Text::BOM_UTF_8)
-		<< NPL::Configuration(creator());
+	WriteNPLA1Stream(os, creator());
 }
 
 ValueNode
@@ -289,10 +295,18 @@ CreateDefaultNPLA1File(const char* disp, const char* path,
 
 		ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
 
-		if(ofstream ofs{path, std::ios_base::out | std::ios_base::trunc})
+		// XXX: Failed on race condition detected.
+		UniqueFile ufile(uopen(path, omode_conv(std::ios_base::out
+			| std::ios_base::trunc | platform::ios_noreplace)));
+		// TODO: Use shared locking.
+		auto fd(ufile.get());
+		unique_lock<FileDescriptor> lck(fd);
+
+		if(ofstream ofs{std::move(ufile)})
 		{
 			CreateDefaultNPLA1ForStream(ofs, creator);
 			YTraceDe(Debug, "Created configuration.");
+			lck.release();
 			return {};
 		}
 		YTraceDe(Warning, "Cannot create file, possible error (from errno)"
@@ -352,8 +366,14 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	if(show_info)
 		YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
 
+	// XXX: Race condition may cause failure, though file would not be
+	//	corrupted now.
 	auto res(TryInvoke([&]() -> ValueNode{
 		MappedFile mfile(path);
+		// TODO: Use shared locking.
+		auto fd(mfile.GetFile());
+		lock_guard<FileDescriptor> lck(fd);
+
 		ystdex::membuf mbuf(ystdex::replace_cast<const char*>(mfile.GetPtr()),
 			mfile.GetSize());
 		std::istream is(&mbuf);
@@ -452,11 +472,17 @@ LoadConfiguration(bool show_info)
 void
 SaveConfiguration(const ValueNode& node)
 {
-	if(ofstream ofs{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
+	UniqueFile ufile(uopen(CONF_PATH,
+		omode_conv(std::ios_base::out | std::ios_base::trunc)));
+	auto fd(ufile.get());
+	// TODO: Use shared locking.
+	unique_lock<FileDescriptor> lck(fd);
+
+	if(ofstream ofs{std::move(ufile)})
 	{
 		YTraceDe(Debug, "Writing configuration...");
-		ystdex::write_literal(ofs, Text::BOM_UTF_8)
-			<< NPL::Configuration(ValueNode(node.GetContainer()));
+		WriteNPLA1Stream(ofs, ValueNode(node.GetContainer()));
+		lck.release();
 	}
 	else
 		throw GeneralEvent("Invalid file found when writing configuration.");

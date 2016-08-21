@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1960
+\version r1997
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-08-14 19:10 +0800
+	2016-08-21 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for string, wstring, unique_ptr_from,
 //	ystdex::ends_with, ystdex::aligned_storage_t, ystdex::pun_ref, pair;
-#include YFM_YCLib_NativeAPI // for MAX_PATH, MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
+#include YFM_YCLib_NativeAPI // for ERROR_SUCCESS,
+//	MAXIMUM_REPARSE_DATA_BUFFER_SIZE, MAX_PATH;
 #if !YCL_Win32
 #	error "This file is only for Win32."
 #endif
@@ -168,11 +169,11 @@ public:
 */
 //@{
 #	define YCL_WrapCall_Win32(_fn, ...) \
-	[&](const char* sig) YB_NONNULL(1){ \
+	[&](const char* sig_) YB_NONNULL(1){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \
-			YCL_Raise_Win32E(#_fn, sig); \
+			YCL_Raise_Win32E(#_fn, sig_); \
 		return res_; \
 	}
 
@@ -190,11 +191,11 @@ public:
 */
 //@{
 #	define YCL_TraceWrapCall_Win32(_fn, ...) \
-	[&](const char* sig) YB_NONNULL(1){ \
+	[&](const char* sig_) YB_NONNULL(1){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(!res_)) \
-			YCL_Trace_Win32E(platform::Descriptions::Warning, _fn, sig); \
+			YCL_Trace_Win32E(platform::Descriptions::Warning, _fn, sig_); \
 		return res_; \
 	}
 
@@ -877,7 +878,8 @@ QueryFileSize(const wchar_t*);
 //! \brief 查询文件的创建、访问和/或修改时间。
 //@{
 /*!
-\pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，且具有 AccessRights::GenericRead权限。
+\pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
+	且具有 AccessRights::GenericRead 权限。
 \since build 629
 */
 YF_API void
@@ -933,6 +935,39 @@ ConvertTime(const ::FILETIME&);
 */
 YF_API ::FILETIME
 ConvertTime(std::chrono::nanoseconds);
+//@}
+
+
+/*!
+\pre 文件句柄不为 \c INVALID_HANDLE_VALUE ，
+	且具有 AccessRights::GenericRead 或 AccessRights::GenericWrite 权限。
+\since build 721
+*/
+//@{
+/*!
+\brief 锁定文件。
+\note 对内存映射文件为协同锁，其它文件为强制锁。
+\note 第二和第三参数指定文件锁定范围的起始偏移量和大小。
+\note 最后两个参数分别表示是否为独占锁和是否立刻返回。
+*/
+//@{
+//! \throw Win32Exception 锁定失败。
+void
+LockFile(UniqueHandle::pointer, std::uint64_t = 0,
+	std::uint64_t = std::uint64_t(-1), bool = true, bool = {});
+
+bool
+TryLockFile(UniqueHandle::pointer, std::uint64_t = 0,
+	std::uint64_t = std::uint64_t(-1), bool = true, bool = true) ynothrow;
+//@}
+
+/*!
+\brief 解锁文件。
+\pre 文件已被锁定。
+*/
+bool
+UnlockFile(UniqueHandle::pointer, std::uint64_t = 0,
+	std::uint64_t = std::uint64_t(-1)) ynothrow;
 //@}
 
 

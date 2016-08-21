@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r449
+\version r479
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-08-14 00:24 +0800
+	2016-08-21 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include YFM_YCLib_Reference // for unique_ptr_from, unique_ptr, observer_ptr;
 #include <system_error> // for std::system_error;
+#include <cstdio> // for std::FILE;
 #if !YCL_Win32
 #	include YFM_YCLib_FileIO // for platform::FileDescriptor::Deleter;
 #else
@@ -87,6 +88,36 @@ public:
 	//! \since build 624
 	DefGetter(const ynothrow, YSLib::RecordLevel, Level, level)
 };
+
+
+//! \since build 566
+//@{
+/*!
+\brief 关闭管道流。
+\pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
+\note 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
+*/
+YF_API YB_NONNULL(1) int
+upclose(std::FILE*) ynothrowv;
+
+//! \note 若存储分配失败，设置 errno 为 \c ENOMEM 。
+//@{
+/*!
+\param filename 文件名，意义同 POSIX \c ::popen 。
+\param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
+\pre 断言：\c filename 。
+\pre 间接断言： \c mode 。
+\warning 应使用 upclose 而不是 ::close 关闭管道流，否则可能引起未定义行为。
+*/
+//@{
+//! \brief 以 UTF-8 文件名无缓冲打开管道流。
+YF_API YB_NONNULL(1, 2) std::FILE*
+upopen(const char* filename, const char* mode) ynothrowv;
+//! \brief 以 UCS-2 文件名无缓冲打开管道流。
+YF_API YB_NONNULL(1, 2) std::FILE*
+upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
+//@}
+//@}
 
 
 #	if YCL_Win32
@@ -183,8 +214,9 @@ public:
 	void
 	lock();
 
+	//! \since build 721
 	bool
-	try_lock();
+	try_lock() ynothrow;
 
 	/*!
 	\note 和互斥量不同，在满足 Lockable 要求之外，

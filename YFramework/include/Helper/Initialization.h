@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r825
+\version r826
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-05-16 14:09 +0800
+	2016-08-21 15:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ LoadConfiguration(bool = {});
 
 /*!
 \brief 保存默认配置。
-\return 是否保存成功。
+\throw GeneralEvent 配置文件路径指定的文件不存在或保存失败。\
 \since build 344
 */
 YF_API void
