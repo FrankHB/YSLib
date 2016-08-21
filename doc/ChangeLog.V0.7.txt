@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2540
+\version r2649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-16 12:06 +0800
+	2016-08-21 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,107 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+		/ %YCLib $=
+		(
+			+ "function template %RetryOnInterrupted" @ %YCommon,
+			/ %FileIO $=
+			(
+				/ DLDI "simplified" ^ $dep_from
+					("%RetryOnInterrupted" @ %YCommon),
+				/ "all functions %(upclose, 2 upopen)" @ "namespace %platform"
+					-> ("functions" @ 'YF_Hosted' @ "namspace %platform_ex"
+					@ %Host) $dep_from %YSLib.Adaptor.YAdaptor $=
+				(
+					- "platform %DS support" @ 'YCL_DS',
+					/ DLDI ^ $dep_from ("%platform::CallNothrow" @ %YCommon)
+				),
+				/ @ "class %FileDescriptor" $=
+				(
+					/ @ "functions %(FullRead, FullWrite, Read, Write)" $=
+					(
+						+ "assertion to ensure file descriptor is not '-1'",
+						+ "assertion to ensure nonnull pointers"
+					),
+					+ "functions %(lock, lock_shared, try_lock, \
+						try_lock_shared, unlock, unlocked_shared)"
+				),
+				/ $re_add(b711) DLDI "function %omode_conv"
+					^ "%YCL_ReservedGlobal",
+				(
+				+ "extended flags %(ios_nocreate, ios_noreplace)";
+				/ "function %omode_conv supported extended flags";
+				/ ("member function %open" @ "class template %basic_filebuf";
+					$comp "file stream class templates")
+					"supported extende flags",
+				/ DLDI "simplified function %EnsureUniqueFile"
+				),
+				/ $re_add(b714) $dev ("function parameter name %sig" -> '%sig_')
+					@ "macros %(YCL_WrapCall_CAPI, YCL_TraceWrapCall_CAPI)"
+					// To eliminate G++ warning: [-Wshadow] when enclosing \
+						scope is using 'sig'.
+			),
+			/ @ "class %Semaphore" @ %Host $=
+			(
+				/ "retried on %EINTR" @ !"platform %Win32"
+					@ "functions %(lock, try_lock)",
+				/ @ "function %try_lock" $=
+				(
+					* "throwing violates %Lockable requirement"
+						@ !"platform %Win32" $since b720;
+					+ 'ynothrow'
+				)
+			),
+			/ @ "class %MappedFile" @ %MemoryMapping $=
+			(
+				* "missing specifying binary mode explicitly on opening"
+					@ "platform %Win32" @ "constructors with path \
+					parameter" $since b324,
+				+ "function %GetFile"
+			)
+		),
+		/ DLDI "simplified" @ %'YCLib_(Android)'.AndroidHost ^ $dep_from
+			("%platform::RetryOnInterrupted" @ %YCommon),
+		- $revert(b566) ('using platform::upclose;', 'using platform::upopen')
+			@ %YSLib.Adaptor.YAdaptor,
+		/ %Helper.Initialization $=
+		(
+			/ @ "function %SaveConfiguration" $=
+			(
+				/ DLDI "simplified stream writing",
+				/ DD "Doxygen comments" $=
+				(
+					+ "'\throw' command",
+					* "redundant '\return' command for function returning %void"
+						$since b344
+				)
+			),
+			* "race condition on creation of NPLA1 file" @ "function \
+				%LoadNPLA1File" $orig (@ "function %CheckInstall" $since b300)
+				// Not all reace conditions are eliminated. However, the states
+				//	would be deterministic now.
+				$= (/ DLDI ^ $dep_from ("%platform::ios_noreplace"
+					@ %YCLib.FileIO)),
+			* "race on multiple programs accessing files"
+				@ "functions %(LoadNPLA1File, SaveConfiguration)" $orig
+				(@ "function %CheckInstall" $since b300) $=
+				(/ DLDI ^ ("%(lock_guard, unique_lock)" $dep_from
+					("%FileDescriptor::lock" @ %YCLib.FileIO),
+					$dep_from ("%MappedFile::GetFile" @ %YCLib.MemoryMapping)))
+		),
+		/ %YCLib_(Win32).MinGW32 $=
+		(
+			+ "functions %(LockFile, TryLockFile, UnlockFile)"
+			/ $re_add(b714) $dev ("function parameter name %sig" -> '%sig_')
+				@ "macros %(YCL_WrapCall_Win32, YCL_TraceWrapCall_Win32)"
+				// To eliminate G++ warning: [-Wshadow] when enclosing scope \
+					is using 'sig'.
+		)
+	),
+	+ $doc "API behavior description about %EINTR" @ %Documentation.YCLib
+),
+
+b720
 (
 	/ %YFramework $=
 	(
@@ -117,9 +218,9 @@ $now
 						~ "threw %FileOperationFailure" @ ("functions \
 						%(ClearTree, DeleteTree)" $dep_from ("%Remove" @ %File),
 						"functions %CopyFile" $dep_from ("%OpenFile" @ %File))
-					+ $doc "'\exception' command" @ "Doxygen comment"
+					+ $doc "'\exception' command" @ "Doxygen comments"
 						@ "function tmeplates %Traverse",
-					* $doc "'\exception' command" @ "Doxygen comment"
+					* $doc "'\exception' command" @ "Doxygen comments"
 						@ "function %ListFiles" $since b719
 						// This change was caused by %platform::HDirectory \
 							constructors.
@@ -127,7 +228,7 @@ $now
 			),
 			/ @ "class %FileBox" %UI.ComboList $=
 			(
-				* $doc "'\exception' command" @ "Doxygen comment"
+				* $doc "'\exception' command" @ "Doxygen comments"
 					@ "function %ListItems" $since b719,
 					// See %IO::ListFiles.
 				* "unhandled %std::system_error thrown on listing files failure"
@@ -393,7 +494,7 @@ b718
 					$= (/ DLDI ^ ("%FileOperationFailure::ThrowNested"
 						@ %FileIO) ~ "%ThrowFileOperationFailure");
 				* $comp $doc "nested exception not thrown" @ "platform %Win32"
-					@ "Doxygen comment" @ "constructors %DirectorySession"
+					@ "Doxygen comments" @ "constructors %DirectorySession"
 					$since b715
 			)
 		),
@@ -857,7 +958,7 @@ b714
 			(
 				+ 'ynothrowv',
 				(
-				+ $doc "'\pre' command" @ "Doxygen comment"; 
+				+ $doc "'\pre' command" @ "Doxygen comments"; 
 				+ "assertion for narrow contract vaiolation"
 				)
 			),
@@ -1019,7 +1120,7 @@ b712
 	+ $doc "limitation on moved-from state of user-defined class objects"
 		@ %Documentation.LanguageConvention;
 	/ $forced $doc "clearified moved-to state as '\note' command"
-		@ "Doxygen comment" $effective @ "class %DirectorySession"
+		@ "Doxygen comments" $effective @ "class %DirectorySession"
 		@ %YFramework.YCLib.FileSystem
 	),
 	/ %YFramework $=
@@ -1028,7 +1129,7 @@ b712
 		(
 			/ %FileSystem $=
 			(
-				+ $doc "'\invariant' command" @ "Doxygen comment"
+				+ $doc "'\invariant' command" @ "Doxygen comments"
 					@ "class %HDirectory",
 				/ DLDI @ "platform %Win32" @ "class %DirectorySession" $=
 				(
@@ -1390,7 +1491,7 @@ b709
 				/ DLDI "simplified functions %(HaveSameContents, \
 					EnsureUniqueFile)" ^ $dep_from
 					("%YCL_ReservedGlobal" @ %NativeAPI)
-				* $doc "wrong name 'std::close'" @ "Doxygen comment"
+				* $doc "wrong name 'std::close'" @ "Doxygen comments"
 					@ "functions %upopen" $orig (@ %FileSystem $since b566)
 					$= (/ 'std::close' -> '::close'),
 				/ DLI "member function %FileDescriptor::Deleter::operator()"
@@ -1444,7 +1545,7 @@ b709
 		),
 		/ %YSLib $=
 		(
-			* $doc "'\pre' command" @ "Doxygen comment" @ "function template \
+			* $doc "'\pre' command" @ "Doxygen comments" @ "function template \
 				%ClearSequence" @ %Core.YCoreUtility $since b624,
 			/ @ "class %FileBox" @ %UI.ComboList $=
 			(

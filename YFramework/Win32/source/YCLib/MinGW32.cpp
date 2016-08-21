@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2117
+\version r2171
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-08-16 00:42 +0800
+	2016-08-21 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,15 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Platform
 #if YCL_Win32
-#	include YFM_Win32_YCLib_Registry // for RegistryKey, ystdex::throw_error,
-//	std::errc::not_supported, std::invalid_argument;
+#	include YFM_Win32_YCLib_Registry // for platform::NodeCategory, ERROR_*,
+//	std::string, UniqueHandle, ::BY_HANDLE_FILE_INFORMATION, YCL_CallF_Win32,
+//	YCL_Raise_Win32E, NO_ERROR, ::OVERLAPPED, ::GetSystemDirectoryW,
+//	::GetSystemWindowsDirectoryW, ystdex::rtrim, ::FormatMessageW, ::HMODULE,
+//	::GetProcAddress, ::GetModuleFileNameW, ::CreateFileW, INVALID_HANDLE_VALUE,
+//	RegistryKey, HKEY_*, FindClose, ystdex::throw_error, ::FindFirstFileW,
+//	::FindNextFileW, std::errc::not_supported, std::invalid_argument,
+//	::LARGE_INTEGER, ::GetFileTime, ::SetFileTime, ::LockFileEx, ::UnlockFileEx,
+//	::WaitForSingleObject;
 #	include <cerrno> // for EINVAL, ENOENT, EMFILE, EACCESS, EBADF, ENOMEM,
 //	ENOEXEC, EXDEV, EEXIST, EAGAIN, EPIPE, ENOSPC, ECHILD, ENOTEMPTY;
 #	include YFM_YSLib_Core_YCoreUtilities // for YSLib::IsInClosedInterval,
@@ -198,7 +205,6 @@ MakeFileToDo(_func f, _tParams&&... args)
 	YCL_Raise_Win32E("CreateFileW", yfsig);
 }
 
-//! \since build 651
 yconstfn
 PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 	ImplRet(follow_reparse_point ? FileAttributesAndFlags::NormalWithDirectory
@@ -208,6 +214,27 @@ PDefH(FileAttributesAndFlags, FollowToAttr, bool follow_reparse_point) ynothrow
 
 //! \since build 660
 yconstexpr const auto FSCTL_GET_REPARSE_POINT(0x000900A8UL);
+
+
+//! \since build 721
+//@{
+// TODO: Extract to %YCLib.NativeAPI?
+yconstfn PDefH(unsigned long, High32, std::uint64_t val) ynothrow
+	ImplRet(static_cast<unsigned long>(val >> 32UL))
+
+yconstfn PDefH(unsigned long, Low32, std::uint64_t val) ynothrow
+	ImplRet(static_cast<unsigned long>(val))
+
+template<typename _func>
+auto
+DoWithDefaultOverlapped(_func f, std::uint64_t off)
+	-> decltype(f(std::declval<::OVERLAPPED&>()))
+{
+	::OVERLAPPED overlapped{0, 0, {Low32(off), High32(off)}, {}};
+
+	return f(overlapped);
+}
+//@}
 
 
 //! \since build 693
@@ -743,6 +770,38 @@ ConvertTime(std::chrono::nanoseconds file_time)
 	if(res.dwLowDateTime != 0 || res.dwHighDateTime != 0)
 		return res;
 	ystdex::throw_error(std::errc::not_supported, yfsig);
+}
+
+
+void
+LockFile(UniqueHandle::pointer h, std::uint64_t off, std::uint64_t len,
+	bool exclusive, bool immediate)
+{
+	if(YB_UNLIKELY(!TryLockFile(h, off, len, exclusive, immediate)))
+		YCL_Raise_Win32E("LockFileEx", yfsig);
+}
+
+bool
+TryLockFile(UniqueHandle::pointer h, std::uint64_t off, std::uint64_t len,
+	bool exclusive, bool immediate) ynothrow
+{
+	return DoWithDefaultOverlapped([=](::OVERLAPPED& overlapped) ynothrow{
+		// NOTE: Since it can always be checked as result and this is called by
+		//	%LockFile, no logging with %YCL_TraceCallF_Win32 is here.
+		return ::LockFileEx(h, (exclusive ? LOCKFILE_EXCLUSIVE_LOCK : 0UL)
+			| (immediate ? LOCKFILE_FAIL_IMMEDIATELY : 0UL), yimpl(0),
+			Low32(len), High32(len), &overlapped);
+	}, off);
+}
+
+bool
+UnlockFile(UniqueHandle::pointer h, std::uint64_t off, std::uint64_t len)
+	ynothrow
+{
+	return DoWithDefaultOverlapped([=](::OVERLAPPED& overlapped) ynothrow{
+		return
+			::UnlockFileEx(h, yimpl(0), Low32(len), High32(len), &overlapped);
+	}, off);
 }
 
 

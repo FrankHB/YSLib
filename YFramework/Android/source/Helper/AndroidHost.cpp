@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r442
+\version r445
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2016-05-05 12:04 +0800
+	2016-08-17 08:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Android_Helper_AndroidHost
+#include YFM_Android_Helper_AndroidHost // for platform::RetryOnInterrupted;
 #if YCL_Android
 #	include <android/configuration.h>
 #	include "AndroidScreen.h"
@@ -261,11 +261,11 @@ NativeHost::RunOnUIThread(std::function<void()> f)
 
 	msg_task = f;
 
-	int res(platform::RetryOnError([this]{
+	int res(platform::RetryOnInterrupted([this]{
 		const int ret(1);
 
 		return ::write(*msg_pipe.second.get(), &ret, sizeof(int));
-	}, errno, EINTR));
+	}));
 
 	if(res < 0)
 		YTraceDe(Warning, "Failed writing file descriptor, error = %d.",

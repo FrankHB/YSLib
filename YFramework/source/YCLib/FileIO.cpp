@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2823
+\version r3025
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-08-16 11:57 +0800
+	2016-08-21 22:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #undef __STRICT_ANSI__ // for ::fileno, ::pclose, ::popen, ::_wfopen;
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO // for std::is_same, ystdex::underlying_type_t,
-//	std::errc::function_not_supported, YCL_CallF_CAPI, std::is_integral,
-//	std::bind, ystdex::temporary_buffer, Nonnull;
+//	RetryOnInterrupted, std::errc::function_not_supported, YCL_CallF_CAPI,
+//	std::is_integral, std::bind, ystdex::temporary_buffer, Nonnull;
 #include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, struct ::stat,
 //	platform_ex::cstat, platform_ex::estat, ::futimens, YCL_CallGlobal, ::close,
 //	::fcntl, F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize, ::ftruncate,
@@ -53,7 +53,8 @@
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::FileAttributes,
 //	platform_ex::GetErrnoFromWin32, platform_ex::QueryFileLinks,
 //	platform_ex::QueryFileNodeID, platform_ex::QueryFileTime,
-//	platform_ex::ConvertTime, platform_ex::SetFileTime;
+//	platform_ex::ConvertTime, platform_ex::SetFileTime, platform_ex::UnlockFile,
+//	platform_ex::LockFile, platform_ex::TryLockFile;
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS,
 //	platform_ex::WCSToUTF8;
 
@@ -76,7 +77,7 @@ using platform_ex::MakePathStringW;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeMBCS,
 //	CHRLib::MakeUCS2LE;
-#	include <dirent.h>
+#	include <sys/file.h> // for ::flock, LOCK_*;
 
 //! \since build 475
 using namespace CHRLib;
@@ -93,53 +94,6 @@ static_assert(std::is_same<mode_t, ystdex::underlying_type_t<Mode>>::value,
 
 namespace
 {
-
-//! \since build 625
-template<typename _func>
-auto
-RetryOnInterrupted(_func f) -> decltype(RetryOnError(f, errno, EINTR))
-{
-	return RetryOnError(f, errno, EINTR);
-}
-
-//! \since build 709
-//@{
-#if YCL_Win64
-using rwsize_t = unsigned;
-#else
-using rwsize_t = size_t;
-#endif
-
-template<typename _func, typename _tBuf>
-size_t
-SafeReadWrite(_func f, int fd, _tBuf buf, rwsize_t nbyte) ynothrowv
-{
-	return size_t(RetryOnInterrupted([&]{
-		return f(fd, buf, nbyte);
-	}));
-}
-//@}
-
-//! \since build 625
-template<int _vErr, typename _func, typename _tByteBuf>
-_tByteBuf
-FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
-{
-	while(nbyte > 0)
-	{
-		const auto n(f(ptr, nbyte));
-
-		if(n == size_t(-1))
-			break;
-		if(n == 0)
-		{
-			errno = _vErr;
-			break;
-		}
-		yunseq(ptr += n, nbyte -= n);
-	}
-	return ptr;
-}
 
 //! \since build 703
 using platform_ex::estat;
@@ -303,6 +257,70 @@ FetchFileTime(_func f, _tParams... args)
 	return f(st);
 #endif
 }
+
+//! \since build 625
+template<int _vErr, typename _func, typename _tByteBuf>
+_tByteBuf
+FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
+{
+	while(nbyte > 0)
+	{
+		const auto n(f(ptr, nbyte));
+
+		if(n == size_t(-1))
+			break;
+		if(n == 0)
+		{
+			errno = _vErr;
+			break;
+		}
+		yunseq(ptr += n, nbyte -= n);
+	}
+	return ptr;
+}
+
+//! \since build 709
+//@{
+#if YCL_Win64
+using rwsize_t = unsigned;
+#else
+using rwsize_t = size_t;
+#endif
+
+template<typename _func, typename _tBuf>
+size_t
+SafeReadWrite(_func f, int fd, _tBuf buf, rwsize_t nbyte) ynothrowv
+{
+	YAssert(fd != -1, "Invalid file descriptor found.");
+	return size_t(RetryOnInterrupted([&]{
+		return f(fd, Nonnull(buf), nbyte);
+	}));
+}
+//@}
+
+#if !YCL_DS
+//! \since build 721
+YB_NONNULL(2) void
+UnlockFileDescriptor(int fd, const char* sig) ynothrowv
+{
+#	if YCL_Win32
+	const auto res(platform_ex::UnlockFile(ToHandle(fd)));
+
+	if(YB_UNLIKELY(!res))
+		YCL_Trace_Win32E(Descriptions::Warning, UnlockFileEx, sig);
+	YAssert(res, "Narrow contract violated.");
+#	else
+	const auto res(YCL_TraceCall_CAPI(::flock, sig, fd, LOCK_UN));
+
+	YAssert(res == 0, "Narrow contract violated.");
+	yunused(res);
+#	endif
+}
+#endif
+
+//! \since build 721
+yconstexpr const int out_trunc_oflag(YCL_ReservedGlobal(O_CREAT)
+	| YCL_ReservedGlobal(O_WRONLY) | YCL_ReservedGlobal(O_TRUNC));
 
 //! \since build 660
 bool
@@ -700,6 +718,70 @@ FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
 	WriteContent(ofd, ifd, buf.get().get(), buf.size());
 }
 
+void
+FileDescriptor::lock()
+{
+#if YCL_DS
+#elif YCL_Win32
+	platform_ex::LockFile(ToHandle(desc));
+#else
+	YCL_CallF_CAPI(, ::flock, desc, LOCK_EX);
+#endif
+}
+
+void
+FileDescriptor::lock_shared()
+{
+#if YCL_DS
+#elif YCL_Win32
+	platform_ex::LockFile(ToHandle(desc), 0, std::size_t(-1), {});
+#else
+	YCL_CallF_CAPI(, ::flock, desc, LOCK_SH);
+#endif
+}
+
+bool
+FileDescriptor::try_lock() ynothrowv
+{
+#if YCL_DS
+	return {};
+#elif YCL_Win32
+	return platform_ex::TryLockFile(ToHandle(desc), 0, std::size_t(-1));
+#else
+	return YCL_TraceCallF_CAPI(, ::flock, desc, LOCK_EX | LOCK_NB) != -1;
+#endif
+}
+
+bool
+FileDescriptor::try_lock_shared() ynothrowv
+{
+#if YCL_DS
+	return {};
+#elif YCL_Win32
+	return platform_ex::TryLockFile(ToHandle(desc), 0, std::size_t(-1), {});
+#else
+	return YCL_TraceCallF_CAPI(, ::flock, desc, LOCK_SH | LOCK_NB) != -1;
+#endif
+}
+
+void
+FileDescriptor::unlock() ynothrowv
+{
+#if YCL_DS
+#else
+	UnlockFileDescriptor(desc, yfsig);
+#endif
+}
+
+void
+FileDescriptor::unlock_shared() ynothrowv
+{
+#if YCL_DS
+#else
+	UnlockFileDescriptor(desc, yfsig);
+#endif
+}
+
 
 mode_t
 DefaultPMode() ynothrow
@@ -729,28 +811,47 @@ int
 omode_conv(std::ios_base::openmode mode) ynothrow
 {
 	using namespace std;
+	int res(0);
 
-	switch(unsigned((mode &= ~ios_base::ate) & ~ios_base::binary))
+	switch(unsigned((mode &= ~ios_base::ate)
+		& ~(ios_base::binary | ios_nocreate | ios_noreplace)))
 	{
 	case ios_base::out:
-		return O_CREAT | O_WRONLY;
+		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_WRONLY);
+		break;
 	case ios_base::out | ios_base::trunc:
-		return O_CREAT | O_WRONLY | O_TRUNC;
+		res = out_trunc_oflag;
+		break;
 	case ios_base::out | ios_base::app:
 	case ios_base::app:
-		return O_CREAT | O_WRONLY | O_APPEND;
+		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_WRONLY)
+			| YCL_ReservedGlobal(O_APPEND);
+		break;
 	case ios_base::in:
-		return O_RDONLY;
+		res = YCL_ReservedGlobal(O_RDONLY);
+		break;
 	case ios_base::in | ios_base::out:
-		return O_RDWR;
+		res = YCL_ReservedGlobal(O_RDWR);
+		break;
 	case ios_base::in | ios_base::out | ios_base::trunc:
-		return O_CREAT | O_RDWR | O_TRUNC;
+		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_RDWR)
+			| YCL_ReservedGlobal(O_TRUNC);
+		break;
 	case ios_base::in | ios_base::out | ios_base::app:
 	case ios_base::in | ios_base::app:
-		return O_CREAT | O_RDWR | O_APPEND;
+		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_RDWR)
+			| YCL_ReservedGlobal(O_APPEND);
+		break;
 	default:
-		return 0;
+		return res;
 	}
+	// XXX: Order is significant.
+	if(mode & ios_noreplace)
+		res |= YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_EXCL);
+	// NOTE: %O_EXCL without %O_CREAT leads to undefined behavior in POSIX.
+	if(mode & ios_nocreate)
+		res &= ~(YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_EXCL));
+	return res;
 }
 
 int
@@ -881,53 +982,6 @@ ufexists(const char16_t* filename) ynothrowv
 {
 	return ystdex::call_value_or(ystdex::compose(std::fclose,
 		ystdex::addrof<>()), ufopen(filename, u"rb"), yimpl(1)) == 0;
-}
-
-int
-upclose(std::FILE* fp) ynothrowv
-{
-	YAssertNonnull(fp);
-#if YCL_DS
-	errno = ENOSYS;
-	return -1;
-#else
-	return YCL_CallGlobal(pclose, fp);
-#endif
-}
-
-std::FILE*
-upopen(const char* filename, const char* mode) ynothrowv
-{
-	YAssertNonnull(filename);
-	YAssert(Deref(mode) != char(), "Invalid argument found.");
-#if YCL_DS
-	errno = ENOSYS;
-	return {};
-#elif YCL_Win32
-	return CallNothrow({}, [=]{
-		return ::_wpopen(MakePathStringW(filename).c_str(),
-			MakePathStringW(mode).c_str());
-	});
-#else
-	return ::popen(filename, mode);
-#endif
-}
-std::FILE*
-upopen(const char16_t* filename, const char16_t* mode) ynothrowv
-{
-	YAssertNonnull(filename);
-	YAssert(Deref(mode) != char(), "Invalid argument found.");
-#if YCL_DS
-	errno = ENOSYS;
-	return {};
-#elif YCL_Win32
-	return ::_wpopen(wcast(filename), wcast(mode));
-#else
-	return CallNothrow({}, [=]{
-		return ::popen(MakePathString(filename).c_str(),
-			MakePathString(mode).c_str());
-	});
-#endif
 }
 
 char*
@@ -1169,8 +1223,7 @@ UniqueFile
 EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 	bool share)
 {
-	static yconstexpr const int de_oflag(YCL_ReservedGlobal(O_WRONLY)
-		| YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_TRUNC)
+	static yconstexpr const int de_oflag(out_trunc_oflag
 #if YCL_Win32
 		| _O_BINARY
 #endif

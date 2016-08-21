@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15128
+\version r15183
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2016-06-11 02:40 +0800
+	2016-08-20 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -860,7 +860,7 @@ b595
 						- "alias %local_storage"
 						),
 						+ "static function %get_holder_pointer",
-						+ "assertion for nonnull pointer"
+						+ "assertion to ensure nonnull pointer"
 							@ "static function %get_pointer"
 					),
 					/ @ "class template %value_handler" $=
@@ -870,7 +870,7 @@ b595
 						/ "merged 2 static functions %uninit"
 							-> "static function %dispose with 'ynothrowv'"
 							$dep_from "%holder_handler";
-						- $comp "public functions with storage overloadings"
+						- $comp "public functions with storage overloads"
 						),
 						+ "support of variadic parameters for initialization"
 							@ "static function %init",
@@ -1270,12 +1270,12 @@ b593
 				$= (/ DLD $revert(b592) ^ "implemented"
 					^ 'static_cast<_tString&&>' ~ 'yforward')
 				// Because the 'erase_*' methods are currently whithout '&&' \
-					qualifier overloadings.
+					qualifier overloads.
 			* "forwarding failure" @ "function templates %trim" $since b592
 				$= (/ DLD $re_ex(b592) "implemented intermediate calls"
 					^ 'yforward'),
 				// This is slightly different. The called functions are in \
-					'namespace ystdex' with forwarding refernce overloadings.
+					'namespace ystdex' with forwarding refernce overloads.
 			* "ill-formed 'npos' for reference type"
 				@ "function templates %(erase_left, erase_right)" $since b592
 				$= (/ DLD "implemented" ^ 'decay_t<_tString>::npos'
@@ -1484,7 +1484,7 @@ b592
 			),
 			/ @ "class %HostRenderer" @ %HostRenderer $=
 			(
-				+ "assertion for nonnull parameter" @ "function %Update",
+				+ "assertion to ensure nonnull parameter" @ "function %Update",
 				(
 				/ "only refreshed when the window is existed and not minimized \
 					(currently for platform %Win32 only)"
@@ -1501,7 +1501,7 @@ b592
 			/ %MinGW32 $=
 			(
 				+ "2 functions %ExpandEnvironmentStrings",
-				+ "assertion for nonnull string parameter"
+				+ "assertion to ensure nonnull string parameter"
 					@ "constructor %RegistryKey",
 				/ "macro %YF_Raise_Win32Exception"
 					=> "%YCL_Raise_Win32Exception",
@@ -1548,9 +1548,9 @@ b592
 			(
 				/ @ "class %ScreenBuffer" $=
 				(
-					+ "assertion for nonnull parameter"
+					+ "assertion to ensure nonnull parameter"
 						@ "function %Premultiply",
-					* "missing assertion for nonnull"
+					* "missing assertion to ensure nonnull"
 						@ "function %UpdateFromBounds" $mismatch $since b591
 				),
 				(
@@ -1722,9 +1722,13 @@ b591
 					"%WindowMemorySurface::UpdateBounds",
 				+ "function %GetInvalidatedArea"
 					@ "class %WindowRegionDeviceContext",
+				(
 				/ "exception neutrality from %CheckScalar" ~ "assertion"
 					$effective @ "member functions \
-					%WindowReference::(GetBounds, GetSize)"
+					%WindowReference::(GetBounds, GetSize)";
+				* $comp "missing upper boundary check when getting window \
+					boundary component values" $orig (@ %Win32GUI $since b427)
+				)
 			),
 			/ %Debug $=
 			(
@@ -3864,7 +3868,7 @@ b581
 		(
 		+ 'explicit' @ "2 constructors with 1st floating pointer parameter"
 			$dep_from %YFramework.YSLib.Service.ImageProcessing;
-		* $comp "ambiguous overloadings for %operator(-, /) when first \
+		* $comp "ambiguous overloads for %operator(-, /) when first \
 			parameter is of floating point and second is of %fixed_point \
 			instance" $since b260
 		),
@@ -4176,8 +4180,8 @@ b578
 		),
 		/ @ "function templates %unique_raw" %Memory $=
 		(
-			/ "merged pointer overloadings",
-			+ 'ynothrow' @ "all overloadings"
+			/ "merged pointer overloads",
+			+ 'ynothrow' @ "all overloads"
 		),
 		/ %TypeOperation $=
 		(
@@ -5456,7 +5460,7 @@ b565
 			/ @ "platform %Win32" @ %HostedGUI $=
 			(
 				* "strict ISO C++ compatibility" @ "constructor, destructor"
-					@ "class %WindowRegionDeviceContext" $since b546,
+					@ "class %WindowRegionDeviceContext" $since b564,
 					// To eliminate warning: [-Wstrict-aliasing] when \
 						[-fstrict-aliasing] is used. This option is enabled \
 						for release modes by default. Though not oberserved \
@@ -5472,7 +5476,7 @@ b565
 						(@ %'YCLib_(MinGW32)'.Win32GUI $since b432),
 					/ @ "1st constructor" $=
 					(
-						+ "assertion for nonnull name parameter",
+						+ "assertion to ensure nonnull name parameter",
 						+ "optional %::HINSTANCE parameter at end of parameter \
 							list"
 					),
@@ -5677,7 +5681,7 @@ b564
 				(
 				/ $design "implemented" ^ $dep_from
 					("ystdex::vfmtlen" @ %CStandardIO);
-				+ $comp "indirection assertion for nonnull format argument",
+				+ $comp "indirection assertion to ensure nonnull format argument",
 				* "missing check failure" $since b488
 					// If failed the length would be cast as a big integer, \
 						which likely would eventually cause a %std::bad_alloc \
@@ -6526,7 +6530,7 @@ b560
 		(
 			/ DLD "simplified class %ReadingList" ^ "base class %nonmovable"
 				~ "explicitly deleted move constructor",
-			/ "Doxygen comments" @ "using-declaration %ReadingList::Switch"
+			/ DD "Doxygen comments" @ "using-declaration %ReadingList::Switch"
 			(
 				- "redundant comment"
 				* "wrong comment on parameter" $since b404
@@ -6583,13 +6587,13 @@ b559
 			(
 				/ "all 'YCL_Android'" -> 'YCL_Linux' $dep_from
 					("platform %Linux" @ %Platform),
-				+ "explicitly assertion for nonnull parameter"
+				+ "explicitly assertion to ensure nonnull parameter"
 					@ "functions %GetRootNameLength" ^ "%Nonnull",
 				/ @ "function %IsAbsolute for 'const char*'" $=
 				(
 					/ @ !"platform %Win32" $=
 					(
-						+ "assertion for nonnull parameter" ^ "%Deref",
+						+ "assertion to ensure nonnull parameter" ^ "%Deref",
 						- "null check",
 							// Since behavior for null parameter has been \
 								undefined.
@@ -6862,7 +6866,7 @@ b558
 			/ @ "binary operations on %ystdex::fixed_point" $=
 			(
 				(
-				+ "overloadings for one of parameter as floating point types";
+				+ "overloads for one of parameter as floating point types";
 				* $comp "wrong result of instances and floating types" $since
 					b260 $dep_from "%common_type specializations"
 				),
@@ -7254,7 +7258,7 @@ b556
 						/ @ "function %operator[]" $=
 						(
 							/ 'ynothrow' -> 'ynothrowv',
-							* "missing assertion for nonnull bitmap pointer as \
+							* "missing assertion to ensure nonnull bitmap pointer as \
 								documentation" $since b
 						),
 						+ "function %Release"
@@ -7497,7 +7501,7 @@ b555
 			/ $dev %Video $=
 			(
 				/ $lib "implemented %FetchPixel" ^ "cast",
-					// To eliminate Clang++ warning [-Wsign-conversion].
+					// To eliminate Clang++ warning: [-Wsign-conversion].
 				* "signed shifted value"
 					@ "class templates %(XYZAMaskTrait, AXYZMaskTrait)" $since
 					b507 $orig (@ "class template %XYZATrait" $since b441),
@@ -7511,7 +7515,7 @@ b555
 						^ "%(ArrayType, IntegerType)",
 					/ "implemented constructor for components"
 						^ "cast to %Integer"
-						// To eliminate Clang++ warning [-Wsign-conversion].
+						// To eliminate Clang++ warning: [-Wsign-conversion].
 				)
 			),
 			/ "no longer performed 'defined(_MT)' check for %YF_Multithread"
@@ -7536,7 +7540,7 @@ b555
 				undefined behavior.
 		/ $dev $lib "implemented functions %(iscntrl_C1, iscntrl_ISO8859_1, \
 			iscntrl_ISO8859_11)" @ %CCType ^ "cast to %unsigned",
-			// To eliminate Clang++ warning [-Wsign-conversion].
+			// To eliminate Clang++ warning: [-Wsign-conversion].
 		/ %Rational $=
 		(
 			* $impl "member function %epsilon" @ "class template \
@@ -7653,7 +7657,7 @@ b554
 								[-Wsign-conversion].
 						+ "explicitly defaulted copy %operator= to avoid ISO \
 							C++11 deprecation"
-							// To eliminate Clang++ warning [-Wdeprecated].
+							// To eliminate Clang++ warning: [-Wdeprecated].
 					),
 					/ @ "class %Size" $=
 					(
@@ -7662,7 +7666,7 @@ b554
 							copy constructor",
 						+ "explicitly defaulted copy %operator= to avoid ISO \
 							C++11 deprecation"
-							// To eliminate Clang++ warning [-Wdeprecated].
+							// To eliminate Clang++ warning: [-Wdeprecated].
 					),
 					+ "2 function templates %get for (class template \
 						%GBinaryGroup, classes %(Size, Rect))"
@@ -7713,7 +7717,7 @@ b554
 				variable [-Wshadow].
 		* DD "wrong name for '\tparam'" @ "comment"
 			@ "function template %transform_n" $since b517
-			// To eliminate Clang++ warning [-Wdocumentation].
+			// To eliminate Clang++ warning: [-Wdocumentation].
 	),
 	(
 	// See $2014-11 @ %Documentation::Workflow::Annual2014.
@@ -7917,13 +7921,16 @@ b552
 			/ @ "destructor" $=
 			(
 				+ "assertion for no %std::system_error thrown for lock mutex",
-				/ "ignored %std::system_error thrown for joining each thread",
+				(
+				/ "ignored %std::system_error thrown for joining each thread";
+				- $impl "%joinable check before join"
+				)
 				+ "assertion for no excepton thrown";
 				+ 'ynothrow'
 			)
 			+ 'ynothrow' @ "function %size_unlocked"
 		),
-		+ "overloadings for character type and string type"
+		+ "overloads for character type and string type"
 			@ "function templates %(ltrim, rtrim; trim)" @ %String
 			// To allow null characters to be trimmed.
 	),
@@ -8044,7 +8051,7 @@ b552
 			/ "class %HDirectory" @ %FileSyatem $=
 			(
 				* "missing initialization of member %p_dirent"
-					@ "constructor with path parameter" $since b411,
+					@ "constructor with pathname parameter" $since b411,
 				/ DLD "initialized member %utf8_name" ^ "empty braced-init-list"
 			),
 			/ "call %YConsoleInit for message with level less than \
@@ -9206,10 +9213,11 @@ b543
 				(
 				(
 				$dep_from %YBase.YStandardEx.Path;
-				/ "enum class %NodeCategory" $=
+				/ @ "enum class %NodeCategory" $=
 				(
 					!^ "%ystdex::path_category for enumerators",
-					^ "std::uint_least32_t as underlying type" ~ "%PathCategory",
+					^ "std::uint_least32_t as underlying type"
+						~ "%PathCategory",
 					(
 					/ "made %Special synonymous of 'Directory | Missing'",
 					- "%(HardLink, Reparse)",
@@ -11287,7 +11295,7 @@ b524
 		),
 		/ %YCLib $=
 		(
-			+ 'YB_NONNULL(1, 3)' @ "function %LogWithSource" @ %Debug
+			+ $lib 'YB_NONNULL(1, 3)' @ "function %LogWithSource" @ %Debug
 				$dep_from %YBase.YDefinition,
 			* $revert_ex(b501) DD "missing '\def' command" @ "Doxygen \
 				comments" @ "macro %YCL_KEYSTATE_DIRECT" @ %Input $since b501
@@ -11298,7 +11306,7 @@ b524
 		+ "macro %YB_NONNULL" @ %YDefinition,
 		/ %YStandardEx $=
 		(
-			+ 'YB_NONNULL(1)' @ "function template specialization %sfmt<char>"
+			+ $lib 'YB_NONNULL(1)' @ "function template specialization %sfmt<char>"
 				@ %String $dep_from %YDefinition,
 			* DD "wrong directive '\breif' used" ~ '\brief'
 				@ "Doxygen comments" @ "function %iswgraph"
@@ -11375,13 +11383,13 @@ b523
 					)
 				)
 			),
-			+ "assertion for nonnull container pointer" @ "function %GetTotal"
+			+ "assertion to ensure nonnull container pointer" @ "function %GetTotal"
 				@ "class template %GSequenceViewer" @ %Viewer
 		),
 		* "application not exited after global application instance destruction"
 			@ "platform %Android" $since b502 $=
 			// And when the application reentered, it would failed on \
-				assertion for nonnull pointer check for instance on debug \
+				assertion to ensure nonnull pointer check for instance on debug \
 				configuration or just crash on release configuration.
 			$= (+ "%::ANativeActivity_finish call after %::y_android_main call"
 				@ "host thread" @ %'Helper_(Android)'.AndroidHost)
@@ -11512,8 +11520,7 @@ b521
 		)
 	),
 	(
-	/ %YFramework.YSLib.Core.Cache
-		-> %YBase.YStandardEx.Cache $=
+	/ %YFramework.YSLib.Core.Cache -> %YBase.YStandardEx.Cache $=
 	(
 		/ "name of header %Cache.hpp" => "cache.hpp",
 		/ "class template %YSLib::GMRUCache" -> "%ystdex::used_list_cache" $=
@@ -11694,7 +11701,7 @@ b520
 		/ DLD %YTest $=
 		(
 			* "missing UTF-8 BOM" @ "header %test.h" $since b519,
-				// Since there is "©" which is non representable by ANSI \
+				// Since there is "©" which is not representable by ANSI \
 					codepage, Visual Studio would issue a warning.
 			* "missing UTF-8 BOM" @ "header %timing.h" $since b319,
 			/ DD "Doxygen group definition" @ %Timing >> %Test
@@ -11983,7 +11990,7 @@ b518
 				- $revert(b427) "data member %BoundsLimited" $dep_from
 					"removal of bounds limit"
 			),
-			* "missing 'YF_API'" @ "function %BindDefaultWindowProc" $since b518
+			* "missing 'YF_API'" @ "function %BindDefaultWindowProc" $since b514
 		),
 		/ %Helper $=
 		(
@@ -11995,11 +12002,16 @@ b518
 				@ %'YCLib_(MinGW32)'.Win32GUI $dep_to "removal of bounds limit",
 			/ "class %Host::Window" @ %HostWindow $=
 			(
-				/ @ "member function %GetInputBounds" $=
+				/ @ "function %GetInputBounds" $=
 				(
 					/ "return type" -> "%YSLib::Drawing::Rect"
 						~ "%pair<YSLib::Drawing::Point, YSLib::Drawing::Point>",
-					- 'ynothrow'
+					- 'ynothrow',
+					/ @ "platform %Win32"
+					(
+						/ $impl ^ "%Window::GetClientBounds";
+						- $comp DLDI "assertion to check component values"
+					)
 				),
 				/ @ "platform %Win32" $=
 				(
@@ -13237,7 +13249,7 @@ b501
 		/ "implemented key tapping up and down for motion events"
 			@ "platform %Android" @ %YCLib.Input
 	),
-	+ $dev $repo "tags ('PreAlpha', 'V0.5') to revision 372",
+	+ $re_ex(b463) $dev $repo "tags ('PreAlpha', 'V0.5') to revision 372",
 	/ "all 'return nullptr'" -> 'return {}'
 ),
 

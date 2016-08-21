@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2404
+\version r2504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-08-16 11:43 +0800
+	2016-08-21 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,7 +138,9 @@ CategorizeNode(mode_t) ynothrow;
 \note 除非另行约定，无异常抛出的操作使用值初始化的返回类型表示失败结果。
 \note 以 \c int 为返回值的操作返回 \c -1 表示失败。
 \note 满足 NullablePointer 要求。
-\see WG21 N4140 17.6.3.3[nullablepointer.requirements] 。
+\note 满足共享锁要求。
+\see WG21 N4606 17.6.3.3[nullablepointer.requirements] 。
+\see WG21 N4606 30.4.1.4[thread.sharedmutex.requirements] 。
 \since build 565
 */
 class YF_API FileDescriptor : private ystdex::totally_ordered<FileDescriptor>
@@ -349,7 +351,11 @@ public:
 	void
 	Flush();
 
-	//! \note 每次读写首先清除 errno ；读写时遇 EINTR 时继续。
+	/*!
+	\pre 间接断言：文件有效。
+	\pre 间接断言：指针参数非空。
+	\note 每次读写首先清除 errno ；读写时遇 EINTR 时继续。
+	*/
 	//@{
 	/*!
 	\brief 循环读写文件。
@@ -388,6 +394,7 @@ public:
 
 	/*!
 	\brief 第二参数内容写入第一参数指定的文件。
+	\pre 断言：文件有效。
 	\pre 最后参数指定的缓冲区大小不等于 0 。
 	\throw std::system_error 文件读写失败。
 	\since build 634
@@ -403,6 +410,49 @@ public:
 	static void
 	WriteContent(FileDescriptor, FileDescriptor,
 		size_t = yimpl(size_t(BUFSIZ << 4)));
+	//@}
+
+	/*!
+	\pre 间接断言：文件有效。
+	\note DS 平台：无作用。
+	\note POSIX 平台：不使用 POSIX 文件锁而使用 BSD 代替，
+		以避免无法控制的释放导致安全漏洞。
+	\since build 721
+	*/
+	//@{
+	/*!
+	\note Win32 平台：对内存映射文件为协同锁，其它文件为强制锁。
+	\note 其它平台：协同锁。
+	\warning 网络或分布式文件系统可能不能正确支持独占锁（如 Andrew File System ）。
+	*/
+	//@{
+	//! \throw std::system_error 文件锁定失败。
+	//@{
+	void
+	lock();
+
+	void
+	lock_shared();
+	//@}
+
+	//! \return 是否锁定成功。
+	//@{
+	bool
+	try_lock() ynothrowv;
+
+	bool
+	try_lock_shared() ynothrowv;
+	//@}
+	//@}
+
+	//! \pre 进程对文件访问具有所有权。
+	//@{
+	void
+	unlock() ynothrowv;
+
+	void
+	unlock_shared() ynothrowv;
+	//@}
 	//@}
 };
 
@@ -530,34 +580,6 @@ ufexists(const char16_t*) ynothrowv;
 //@}
 
 /*!
-\brief 关闭管道流。
-\pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
-\note 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
-\note DS 平台：不支持操作，总是失败并设置 errno 为 ENOSYS 。
-*/
-YF_API YB_NONNULL(1) int
-upclose(std::FILE*) ynothrowv;
-
-//! \note 若存储分配失败，设置 errno 为 \c ENOMEM 。
-//@{
-/*!
-\param filename 文件名，意义同 POSIX \c ::popen 。
-\param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
-\pre 断言：\c filename 。
-\pre 间接断言： \c mode 。
-\warning 应使用 upclose 而不是 ::close 关闭管道流，否则可能引起未定义行为。
-\note DS 平台：不支持操作，总是失败并设置 errno 为 ENOSYS 。
-*/
-//@{
-//! \brief 以 UTF-8 文件名无缓冲打开管道流。
-YF_API YB_NONNULL(1, 2) std::FILE*
-upopen(const char* filename, const char* mode) ynothrowv;
-//! \brief 以 UCS-2 文件名无缓冲打开管道流。
-YF_API YB_NONNULL(1, 2) std::FILE*
-upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
-//@}
-
-/*!
 \brief 取当前工作目录复制至指定缓冲区中。
 \param size 缓冲区长。
 \return 若成功为第一参数，否则为空指针。
@@ -632,6 +654,28 @@ uremove(const char*) ynothrowv;
 */
 //@{
 #if __GLIBCXX__ || YB_IMPL_MSCPP
+/*!
+\note 扩展打开模式。
+\since build 721
+*/
+//@{
+#	if __GLIBCXX__
+//! \brief 表示仅打开已存在文件而不创建文件的模式。
+yconstexpr const auto ios_nocreate(
+	std::ios_base::openmode(std::_Ios_Openmode::yimpl(_S_trunc << 1)));
+/*!
+\brief 表示仅创建不存在文件的模式。
+\note 可被 ios_nocreate 覆盖而不生效。
+*/
+yconstexpr const auto ios_noreplace(
+	std::ios_base::openmode(std::_Ios_Openmode::yimpl(_S_trunc << 2)));
+#	else
+yconstexpr const auto ios_nocreate(std::ios::_Nocreate);
+yconstexpr const auto ios_noreplace(std::ios::_Noreplace);
+#	endif
+//@}
+
+
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
 class basic_filebuf
 #	if __GLIBCXX__
@@ -711,12 +755,16 @@ private:
 #	endif
 
 public:
-	//! \since build 627
+	/*!
+	\since build 627
+	\note 忽略扩展模式。
+	*/
 	basic_filebuf<_tChar, _tTraits>*
 	open(UniqueFile p, std::ios_base::openmode mode)
 	{
 		if(p)
 		{
+			mode &= ~(ios_nocreate | ios_noreplace);
 #	if __GLIBCXX__
 			this->_M_file.sys_open(*p.get(), mode);
 			if(open_check(mode))
@@ -743,9 +791,8 @@ public:
 			if(open_check(mode))
 				return this;
 #	else
-			if(const auto mode_str = ystdex::openmode_conv(mode))
-				return open_file_ptr(
-					std::_Fiopen(s, mode, int(std::ios_base::_Openprot)));
+			return open_file_ptr(std::_Fiopen(s, mode,
+				int(std::ios_base::_Openprot)));
 #	endif
 		}
 		return {};
@@ -1235,11 +1282,11 @@ FetchCurrentWorkingDirectory(size_t);
 */
 //@{
 #define YCL_WrapCall_CAPI(_t, _fn, ...) \
-	[&](const char* sig) YB_NONNULL(1){ \
+	[&](const char* sig_) YB_NONNULL(1){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \
-			YCL_Raise_SysE(_t, #_fn, sig); \
+			YCL_Raise_SysE(_t, #_fn, sig_); \
 		return res_; \
 	}
 
@@ -1256,11 +1303,11 @@ FetchCurrentWorkingDirectory(size_t);
 */
 //@{
 #define YCL_TraceWrapCall_CAPI(_fn, ...) \
-	[&](const char* sig) YB_NONNULL(1){ \
+	[&](const char* sig_) YB_NONNULL(1){ \
 		const auto res_(_fn(__VA_ARGS__)); \
 	\
 		if(YB_UNLIKELY(res_ < decltype(res_)())) \
-			YCL_Trace_SysE(platform::Descriptions::Warning, _fn, sig); \
+			YCL_Trace_SysE(platform::Descriptions::Warning, _fn, sig_); \
 		return res_; \
 	}
 

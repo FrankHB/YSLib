@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3806
+\version r3816
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2016-08-16 11:39 +0800
+	2016-08-17 08:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -243,6 +243,17 @@ RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
 	return ystdex::retry_on_cond([&](_type res){
 		return res < _type() && _tError(err) == e;
 	}, f);
+}
+
+/*!
+\brief 循环可能被中断的操作。
+\since build 721
+*/
+template<typename _func, typename _type = ystdex::result_of_t<_func&()>>
+inline _type
+RetryOnInterrupted(_func f)
+{
+	return RetryOnError(f, errno, EINTR);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r329
+\version r331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2016-08-16 10:03 +0800
+	2016-08-21 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,6 +199,8 @@ public:
 
 	DefBoolNeg(explicit, bool(file))
 
+	//! \since build 721
+	DefGetter(const ynothrow, FileDescriptor, File, file.get())
 	DefGetter(const ynothrow, FileMappingOption, MappingOption, option)
 	//@}
 	//! \since build 413
