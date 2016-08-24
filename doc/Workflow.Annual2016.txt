@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r176
+\version r181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-08-01 01:01 +0800
+	2016-08-21 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,6 +180,11 @@ The standard library class "std::nested_exception" only takes currently handled 
 	So there is lack of efficient way to create a nested exception object to be thrown.
 	Stick on try-block, throw, catch and then call "std::throw_with_nested" instead.
 		Use proper macros to ease the work in YFramework.
+Now external file accessed by YFramework (including the configuration 'yconf.txt') uses file locking in hosted environments.
+	Combined with file opening atomicity improvement, this reduced some race conditions.
+	However, TOCTTOU access can still not be totally fixed.
+		See https://en.wikipedia.org/wiki/Time_of_check_to_time_of_use#Preventing_TOCTTOU.
+	See also $2015-09 report.impl.
 
 ////
 

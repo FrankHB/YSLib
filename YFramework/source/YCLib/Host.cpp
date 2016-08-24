@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r592
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-08-21 22:13 +0800
+	2016-08-23 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,7 +147,8 @@ Semaphore::Semaphore(const char* n, CountType init)
 	: Semaphore(platform::ucast(MakePathStringW(n).c_str()), init)
 #else
 	: h_sem([=]{
-		const auto create([=](int omode) ynothrow{
+		using platform::OpenMode;
+		const auto create([=](OpenMode omode) ynothrow{
 			// TODO: Allow setting of permission mode.
 			return ystdex::retry_on_cond([](::sem_t* res) ynothrow{
 				return res == SEM_FAILED && errno == EINTR;
@@ -156,11 +157,11 @@ Semaphore::Semaphore(const char* n, CountType init)
 				//	%O_CREAT is specified, e.g. https://www.gnu.org/software/libc/manual/html_node/Open_002dtime-Flags.html.
 				// FIXME: Blocked. Possible race condition otherwise.
 				return ::sem_open(Nonnull(n),
-					omode, platform::DefaultPMode(), init);
+					int(omode), platform::DefaultPMode(), init);
 			});
 		});
 
-		auto p(create(O_CREAT | O_EXCL));
+		auto p(create(OpenMode::CreateExclusive));
 
 		if(p != SEM_FAILED)
 			name = n;
@@ -169,7 +170,7 @@ Semaphore::Semaphore(const char* n, CountType init)
 			// FIXME: Blocked. TOCTTOU access. The semaphore might be recreated
 			//	before the call.
 			if(errno == EEXIST)
-				p = create(O_CREAT);
+				p = create(OpenMode::Create);
 			// FIXME: Blocked. TOCTTOU access. The semaphore might be recreated
 			//	and the creation state is not recorded properly, missing
 			//	%::sem_unlink would cause leak.

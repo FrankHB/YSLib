@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3155
+\version r3159
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-08-21 22:41 +0800
+	2016-08-25 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -298,7 +298,6 @@ CreateDefaultNPLA1File(const char* disp, const char* path,
 		// XXX: Failed on race condition detected.
 		UniqueFile ufile(uopen(path, omode_conv(std::ios_base::out
 			| std::ios_base::trunc | platform::ios_noreplace)));
-		// TODO: Use shared locking.
 		auto fd(ufile.get());
 		unique_lock<FileDescriptor> lck(fd);
 
@@ -370,9 +369,8 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	//	corrupted now.
 	auto res(TryInvoke([&]() -> ValueNode{
 		MappedFile mfile(path);
-		// TODO: Use shared locking.
 		auto fd(mfile.GetFile());
-		lock_guard<FileDescriptor> lck(fd);
+		shared_lock_guard<FileDescriptor> lck(fd);
 
 		ystdex::membuf mbuf(ystdex::replace_cast<const char*>(mfile.GetPtr()),
 			mfile.GetSize());
@@ -475,7 +473,6 @@ SaveConfiguration(const ValueNode& node)
 	UniqueFile ufile(uopen(CONF_PATH,
 		omode_conv(std::ios_base::out | std::ios_base::trunc)));
 	auto fd(ufile.get());
-	// TODO: Use shared locking.
 	unique_lock<FileDescriptor> lck(fd);
 
 	if(ofstream ofs{std::move(ufile)})
