@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3025
+\version r3083
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-08-21 22:08 +0800
+	2016-08-25 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 //	RetryOnInterrupted, std::errc::function_not_supported, YCL_CallF_CAPI,
 //	std::is_integral, std::bind, ystdex::temporary_buffer, Nonnull;
 #include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, struct ::stat,
-//	platform_ex::cstat, platform_ex::estat, ::futimens, YCL_CallGlobal, ::close,
-//	::fcntl, F_GETFL, _O_*, O_*, ::setmode, ::fchmod, ::_chsize, ::ftruncate,
-//	::fsync, ::_wgetcwd, ::getcwd, ::chdir, ::rmdir, ::unlink,
+//	platform_ex::cstat, platform_ex::estat, ::futimens, OpenMode,
+//	YCL_CallGlobal, ::close, ::fcntl, F_GETFL, ::setmode, ::fchmod, ::_chsize,
+//	::ftruncate, ::fsync, ::_wgetcwd, ::getcwd, ::chdir, ::rmdir, ::unlink,
 //	!defined(__STRICT_ANSI__) API, ::GetCurrentDirectoryW; 
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
@@ -318,10 +318,6 @@ UnlockFileDescriptor(int fd, const char* sig) ynothrowv
 }
 #endif
 
-//! \since build 721
-yconstexpr const int out_trunc_oflag(YCL_ReservedGlobal(O_CREAT)
-	| YCL_ReservedGlobal(O_WRONLY) | YCL_ReservedGlobal(O_TRUNC));
-
 //! \since build 660
 bool
 IsNodeShared_Impl(const char* a, const char* b, bool follow_link) ynothrow
@@ -366,16 +362,8 @@ template<typename _tChar>
 YB_NONNULL(1, 2) pair<UniqueFile, UniqueFile>
 HaveSameContents_Impl(const _tChar* path_a, const _tChar* path_b, mode_t mode)
 {
-	if(UniqueFile p_a{uopen(path_a, YCL_ReservedGlobal(O_RDONLY)
-#if YCL_Win32
-		| _O_BINARY
-#endif
-		, mode)})
-		if(UniqueFile p_b{uopen(path_b, YCL_ReservedGlobal(O_RDONLY)
-#if YCL_Win32
-			| _O_BINARY
-#endif
-		, mode)})
+	if(UniqueFile p_a{uopen(path_a, int(OpenMode::ReadRaw), mode)})
+		if(UniqueFile p_b{uopen(path_b, int(OpenMode::ReadRaw), mode)})
 			return {std::move(p_a), std::move(p_b)};
 	return {};
 }
@@ -548,9 +536,10 @@ FileDescriptor::SetBlocking() const
 #if YCL_API_POSIXFileSystem
 	// NOTE: Read-modify-write operation is needed for compatibility.
 	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html.
-	const int flags(GetFlags());
+	const auto oflags((OpenMode(GetFlags())));
 
-	return flags & O_NONBLOCK ? (SetFlags(flags & ~O_NONBLOCK), true) : false;
+	return bool(oflags & OpenMode::Nonblocking)
+		? (SetFlags(int(oflags & ~OpenMode::Nonblocking)), true) : false;
 #else
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #endif
@@ -608,9 +597,10 @@ FileDescriptor::SetNonblocking() const
 #if YCL_API_POSIXFileSystem
 	// NOTE: Read-modify-write operation is need for compatibility.
 	//	See http://pubs.opengroup.org/onlinepubs/9699919799/functions/fcntl.html.
-	const int flags(GetFlags());
+	const auto oflags((OpenMode(GetFlags())));
 
-	return !(flags & O_NONBLOCK) ? (SetFlags(flags | O_NONBLOCK), true) : false;
+	return !bool(oflags & OpenMode::Nonblocking)
+		? (SetFlags(int(oflags | OpenMode::Nonblocking)), true) : false;
 #else
 	ystdex::throw_error(std::errc::function_not_supported, yfsig);
 #endif
@@ -734,7 +724,7 @@ FileDescriptor::lock_shared()
 {
 #if YCL_DS
 #elif YCL_Win32
-	platform_ex::LockFile(ToHandle(desc), 0, std::size_t(-1), {});
+	platform_ex::LockFile(ToHandle(desc), 0, std::uint64_t(-1), {});
 #else
 	YCL_CallF_CAPI(, ::flock, desc, LOCK_SH);
 #endif
@@ -744,11 +734,11 @@ bool
 FileDescriptor::try_lock() ynothrowv
 {
 #if YCL_DS
-	return {};
+	return true;
 #elif YCL_Win32
-	return platform_ex::TryLockFile(ToHandle(desc), 0, std::size_t(-1));
+	return platform_ex::TryLockFile(ToHandle(desc), 0, std::uint64_t(-1));
 #else
-	return YCL_TraceCallF_CAPI(, ::flock, desc, LOCK_EX | LOCK_NB) != -1;
+	return YCL_TraceCallF_CAPI(::flock, desc, LOCK_EX | LOCK_NB) != -1;
 #endif
 }
 
@@ -756,11 +746,11 @@ bool
 FileDescriptor::try_lock_shared() ynothrowv
 {
 #if YCL_DS
-	return {};
+	return true;
 #elif YCL_Win32
-	return platform_ex::TryLockFile(ToHandle(desc), 0, std::size_t(-1), {});
+	return platform_ex::TryLockFile(ToHandle(desc), 0, std::uint64_t(-1), {});
 #else
-	return YCL_TraceCallF_CAPI(, ::flock, desc, LOCK_SH | LOCK_NB) != -1;
+	return YCL_TraceCallF_CAPI(::flock, desc, LOCK_SH | LOCK_NB) != -1;
 #endif
 }
 
@@ -799,7 +789,7 @@ void
 SetBinaryIO(std::FILE* stream) ynothrowv
 {
 #if YCL_Win32
-	FileDescriptor(Nonnull(stream)).SetTranslationMode(_O_BINARY);
+	FileDescriptor(Nonnull(stream)).SetTranslationMode(int(OpenMode::Binary));
 #else
 	// NOTE: No effect.
 	Nonnull(stream);
@@ -811,59 +801,51 @@ int
 omode_conv(std::ios_base::openmode mode) ynothrow
 {
 	using namespace std;
-	int res(0);
+	auto res(OpenMode::None);
 
 	switch(unsigned((mode &= ~ios_base::ate)
 		& ~(ios_base::binary | ios_nocreate | ios_noreplace)))
 	{
 	case ios_base::out:
-		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_WRONLY);
+		res = OpenMode::Create | OpenMode::Write;
 		break;
 	case ios_base::out | ios_base::trunc:
-		res = out_trunc_oflag;
+		res = OpenMode::Create | OpenMode::WriteTruncate;
 		break;
 	case ios_base::out | ios_base::app:
 	case ios_base::app:
-		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_WRONLY)
-			| YCL_ReservedGlobal(O_APPEND);
+		res = OpenMode::Create | OpenMode::WriteAppend;
 		break;
 	case ios_base::in:
-		res = YCL_ReservedGlobal(O_RDONLY);
+		res = OpenMode::Read;
 		break;
 	case ios_base::in | ios_base::out:
-		res = YCL_ReservedGlobal(O_RDWR);
+		res = OpenMode::ReadWrite;
 		break;
 	case ios_base::in | ios_base::out | ios_base::trunc:
-		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_RDWR)
-			| YCL_ReservedGlobal(O_TRUNC);
+		res = OpenMode::Create | OpenMode::ReadWriteTruncate;
 		break;
 	case ios_base::in | ios_base::out | ios_base::app:
 	case ios_base::in | ios_base::app:
-		res = YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_RDWR)
-			| YCL_ReservedGlobal(O_APPEND);
+		res = OpenMode::Create | OpenMode::ReadWriteAppend;
 		break;
 	default:
-		return res;
+		return int(res);
 	}
 	// XXX: Order is significant.
 	if(mode & ios_noreplace)
-		res |= YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_EXCL);
+		res |= OpenMode::Create | OpenMode::Exclusive;
 	// NOTE: %O_EXCL without %O_CREAT leads to undefined behavior in POSIX.
 	if(mode & ios_nocreate)
-		res &= ~(YCL_ReservedGlobal(O_CREAT) | YCL_ReservedGlobal(O_EXCL));
-	return res;
+		res &= ~OpenMode::Create | OpenMode::Exclusive;
+	return int(res);
 }
 
 int
 omode_convb(std::ios_base::openmode mode) ynothrow
 {
-#if YCL_Win32
-	const int res(omode_conv(mode));
-
-	return res | (mode & std::ios_base::binary ? _O_BINARY : _O_TEXT);
-#else
-	return omode_conv(mode);
-#endif
+	return omode_conv(mode)
+		| int(mode & std::ios_base::binary ? OpenMode::Binary : OpenMode::Text);
 }
 
 
@@ -1223,15 +1205,12 @@ UniqueFile
 EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 	bool share)
 {
-	static yconstexpr const int de_oflag(out_trunc_oflag
-#if YCL_Win32
-		| _O_BINARY
-#endif
-	);
+	static yconstexpr const auto oflag(OpenMode::Create
+		| OpenMode::WriteTruncate | OpenMode::Binary);
 
 	mode &= mode_t(Mode::User);
 	if(UniqueFile
-		p_file{uopen(dst, de_oflag | YCL_ReservedGlobal(O_EXCL), mode)})
+		p_file{uopen(dst, int(oflag | OpenMode::Exclusive), mode)})
 		return p_file;
 	if(allowed_links != 0 && errno == EEXIST)
 	{
@@ -1240,7 +1219,7 @@ EnsureUniqueFile(const char* dst, mode_t mode, size_t allowed_links,
 		// FIXME: Blocked. TOCTTOU access.
 		if(!(allowed_links < n_links)
 			&& (n_links == 1 || share || uunlink(dst) || errno == ENOENT))
-			if(UniqueFile p_file{uopen(dst, de_oflag, mode)})
+			if(UniqueFile p_file{uopen(dst, int(oflag), mode)})
 				return p_file;
 	}
 	YCL_Raise_SysE(, "::open", yfsig);

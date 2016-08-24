@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r964
+\version r968
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-08-10 17:46 +0800
+	2016-08-23 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -426,7 +426,7 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出假设。
 
 @3.1.2 别名：
-除了 LibDefect 可能实现兼容 ISO C++11 以前实现的代码外，不使用 typedef ，而用 using 别名声明代替。
+除 LibDefect 可能实现兼容 ISO C++11 以前实现的代码外，不使用 typedef ，而用 using 别名声明代替。
 
 @3.1.3 重载决议： 
 在保证 API 兼容时，公开接口仍可能添加不破坏现有调用语义的重载函数。
@@ -435,6 +435,9 @@ YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出�
 @3.2 别名策略：
 使用条件包含中的 using 声明引入新的声明替代部分其它声明时，公开的接口为所有分支的公共子集。
 除非文档说明，在 namespace ystdex 及其 inline 的 ystdex::cpp*(@2.5.2.2) 内声明的名称，和 namespace std 同名的，提供的接口和被支持的最新分支接口在实体上兼容，对不依赖实现细节的实体的用户代码使用透明（即可替换实现），但不保证存在包含相同名称的所有实体（如不同的重载）。
+除非文档说明，在 namespace ystdex 中的其它类作用域名称的声明的以下修改在保持名称及指称实体种类不变的情况下可视为接口未被修改：
+可能修改为同一个类中使用或不使用 using 引入声明或修改为使用 using 声明引用 public 基类的成员。
+若需保持兼容性，用户代码不应依赖引入以上类作用域名称的声明所在的类。
 
 @3.3 异常设计和使用规则：
 基本内容参见 [Documentation::LanguageConvention @@5.10.5] 。

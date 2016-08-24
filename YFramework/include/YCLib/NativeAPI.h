@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1527
+\version r1633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-08-16 09:35 +0800
+	2016-08-23 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,6 +192,115 @@ DefBitmaskEnum(Mode)
 //! \since build 627
 yconstfn PDefH(bool, HasExtraMode, Mode m)
 	ImplRet(bool(m & ~(Mode::Access | Mode::FileType)))
+//@}
+
+
+//! \since build 722
+//@{
+//! \brief 打开模式。
+enum class OpenMode : int
+{
+#define YCL_Impl_OMode(_n, _nm) _n = YCL_ReservedGlobal(O_##_nm)
+#if YCL_Win32
+#	define YCL_Impl_OMode_POSIX(_n, _nm) _n = 0
+#	define YCL_Impl_OMode_Win32(_n, _nm) YCL_Impl_OMode(_n, _nm)
+#else
+#	define YCL_Impl_OMode_POSIX(_n, _nm) YCL_Impl_OMode(_n, _nm)
+#	define YCL_Impl_OMode_Win32(_n, _nm) _n = 0
+#endif
+#if O_CLOEXEC
+	YCL_Impl_OMode_POSIX(CloseOnExec, CLOEXEC),
+#endif
+	YCL_Impl_OMode(Create, CREAT),
+#if O_DIRECTORY
+	YCL_Impl_OMode_POSIX(Directory, DIRECTORY),
+#else
+	// FIXME: Platform %DS does not support this.
+	Directory = 0,
+#endif
+	YCL_Impl_OMode(Exclusive, EXCL),
+	CreateExclusive = Create | Exclusive,
+	YCL_Impl_OMode_POSIX(NoControllingTerminal, NOCTTY),
+#if O_NOFOLLOW
+	YCL_Impl_OMode_POSIX(NoFollow, NOFOLLOW),
+#else
+	// NOTE: Platform %DS does not support links.
+	// NOTE: Platform %Win32 does not support links for these APIs.
+	NoFollow = 0,
+#endif
+	YCL_Impl_OMode(Truncate, TRUNC),
+#if O_TTY_INIT
+	YCL_Impl_OMode_POSIX(TerminalInitialize, TTY_INIT),
+#endif
+	YCL_Impl_OMode(Append, APPEND),
+#if O_DSYNC
+	YCL_Impl_OMode_POSIX(DataSynchronized, DSYNC),
+#endif
+	YCL_Impl_OMode_POSIX(Nonblocking, NONBLOCK),
+#if O_RSYNC
+	YCL_Impl_OMode_POSIX(ReadSynchronized, RSYNC),
+#endif
+	YCL_Impl_OMode_POSIX(Synchronized, SYNC),
+	// NOTE: On GNU/Hurd %O_ACCMODE can be zero.
+#if O_ACCMODE
+	YCL_Impl_OMode_POSIX(AccessMode, ACCMODE),
+#else
+	AccessMode = Read | Write | ReadWrite,
+#endif
+#if O_EXEC
+	YCL_Impl_OMode_POSIX(Execute, EXEC),
+#endif
+	YCL_Impl_OMode(Read, RDONLY),
+	YCL_Impl_OMode(ReadWrite, RDWR),
+#if O_SEARCH
+	YCL_Impl_OMode_POSIX(Search, SEARCH),
+#endif
+	YCL_Impl_OMode(Write, WRONLY),
+	ReadWriteAppend = ReadWrite | Append,
+	ReadWriteTruncate = ReadWrite | Truncate,
+	WriteAppend = Write | Append,
+	WriteTruncate = Write | Truncate,
+	YCL_Impl_OMode_Win32(Text, TEXT),
+	YCL_Impl_OMode_Win32(Binary, BINARY),
+	Raw = Binary,
+	ReadRaw = Read | Raw,
+	ReadWriteRaw = ReadWrite | Raw,
+	YCL_Impl_OMode_Win32(WText, WTEXT),
+	YCL_Impl_OMode_Win32(U16Text, U16TEXT),
+	YCL_Impl_OMode_Win32(U8Text, U8TEXT),
+	YCL_Impl_OMode_Win32(NoInherit, NOINHERIT),
+	YCL_Impl_OMode_Win32(Temporary, TEMPORARY),
+	YCL_Impl_OMode_Win32(ShortLived, SHORT_LIVED),
+	CreateTemporary = Create | Temporary,
+	CreateShortLived = Create | ShortLived,
+	YCL_Impl_OMode_Win32(Sequential, SEQUENTIAL),
+	YCL_Impl_OMode_Win32(Random, RANDOM),
+#if O_NDELAY
+	YCL_Impl_OMode(NoDelay, NDELAY),
+#endif
+	//! \warning 库实现内部使用，需要特定的二进制支持。
+	//@{
+#if O_LARGEFILE
+	//! \note 指定 64 位文件大小。
+	YCL_Impl_OMode(LargeFile, LARGEFILE),
+#else
+	LargeFile = 0,
+#endif
+#if _O_OBTAIN_DIR
+	YCL_Impl_OMode(ObtainDirectory, OBTAIN_DIR),
+#else
+	//! \note 设置 FILE_FLAG_BACKUP_SEMANTICS 。
+	ObtainDirectory = Directory,
+#endif
+	//@}
+	None = 0
+#undef YCL_Impl_OMode_POSIX
+#undef YCL_Impl_OMode_Win32
+#undef YCL_Impl_OMode
+};
+
+//! \relates OpenMode
+DefBitmaskEnum(OpenMode)
 //@}
 
 } // namespace platform;

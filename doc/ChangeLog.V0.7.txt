@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2649
+\version r2741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-21 23:01 +0800
+	2016-08-25 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,99 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ ("enum class %OpenMode"; 'DefBitmaskEnum(OpenMode)')
+				@ "namespace %platform" @ %NativeAPI,
+			/ @ "class %FileDescriptor" $=
+			(
+				/ @ "member functions %(try_lock, try_lock_shared)" $=
+				(
+					* "always failed to lock" @ "platform %DS" $since b721
+						$= (/ "returned always true" ~ "alywas false"),
+					* "missing locking call" @ !"platforms %(DS, Win32)"
+						$= (/ ^ 'YCL_TraceCallF_CAPI(::flock'
+						~ 'YCL_TraceCallF_CAPI(, ::flock')
+				),
+				* "wrong length specified for locking which would cause \
+					unlocking out of range" @ "platform %Win32"
+					@ "functions %(lock_shared, try_lock, try_lock_shared)"
+					$since b721
+					// This would cause error 158 on calling %::UnlockFileEx: \
+						"The segment is already unlocked." Then assertion \
+						in %unlock or %unlock_shared fails.
+					$= (/ DLDI ^ 'std::uint64_t(-1)' ~ 'size_t(-1)')
+			),
+			/ @ %Mutex $=
+			(
+				+ "yconstexpr object %UseLockDebug";
+				+ "alias templates %(shared_lock, shared_lock_guard)"
+					@ "namespace %Concurrency" ^ $dep_from
+					("%ystdex::threading::(shared_lock, \
+					shared_lockable_adaptor, lock_guard)"
+					@ %YBase.YStandardEx.PseudoMutex)
+			)
+		),
+		/ DLDI "simplified" ^ "%OpenMode" @ %(YCLib.(FileIO, Host,
+			MemoryMapping), 'YCLib_(DS)'.DSIO) ^ $dep_from
+			("%OpenMode" @ %YCLib.NativeAPI) ~ 'O_*',
+		/ re_ex(b721) DLI "function %LoadNPLA1File" @ %Helper.Initialization
+			^ $dep_from ("%shared_lock_guard" @ %YCLib.Mutex)
+			~ "%lock_guard"
+	),
+	/ %YBase.YStandardEx.PseudoMutex $=
+	(
+		/ @ "namespace %single_thread" $=
+		(
+			/ "tag types %(defer_lock_t, try_to_lock_t, adopt_lock_t) and \
+				objects %(defer_lock, try_to_lock, adopt_lock)" $=
+			(
+				>> "namespace %threading";
+				+ $forced "aliases"
+			),
+			+ "class shared_timed_mutex",
+			(
+			/ "class templates %(lock_guard, unique_lock)"
+				-> "alias templates based on class templates with same"
+				^ $dep_from "%threading::(lock_guard, unique_lock)";
+			+ $comp DLDI 'ynothrow' @ "constructor" @ 'defined(NDEBUG)'
+				@ "%unique_lock",
+			* $comp "wrongly called %lock rather than %try_lock"
+				@ "function %try_lock" @ "%unique_lock" $since b550,
+			/ $comp @ "constructors" @ "class %lock_guard" $=
+			(
+				* $doc "wrong '\pre' commands" $since b450,
+				* "ill-formed overload with %adopt_lock_t parameter" $since b450
+			),
+			/ $comp "corrected behavior for %mutex_type with overloaded \
+				%operator&" @ "class templates %(lock_guard, unique_lock)"
+				// See http://wg21.cmeerw.net/lwg/issue2577.
+				$= (/ DLDI ^ "%std::addressof" ~ '&')
+			),
+			+ "alias template %shared_lock" ^ $dep_from
+				"%threading::shared_lock"
+		),
+		/ @ "namespace %threading" $=
+		(
+			+ "class template %shared_lockable_adaptor";
+			+ "class templates %lock_guard; (lock_base, unique_lock, \
+				shared_lock)" $dep_from
+				"%(defer_lock_t, try_to_lock_t, adopt_lock_t)";
+			/ $doc "update referenced base specification to ISO C++14 with \
+				resolution of LWG 2577" ~ "ISO C++11";
+				// It is confirmed that no change except LWG 2577 is needed to \
+					be conforming. Only LWG 2104 is concerned here.
+		)
+	),
+	/ "explicitly stated transformation between class scope using-declaration \
+		from/to other member declarations without name and entity kind \
+		differences as implementation details in general"
+),
+
+b721
 (
 		/ %YCLib $=
 		(

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4066
+\version r4082
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2016-07-26 16:56 +0800
+	2016-08-22 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,7 @@
 //	ystdex::write_uint_le, CHRLib::MakeUCS2LE, ystdex::ntctsicmp,
 //	ystdex::ntctsncpy;
 #	include <cerrno> // for ENOMEM, ENOTSUP, EFBIG, EINVAL;
-#	include YFM_YCLib_NativeAPI // for O_RDWR, O_RDONLY, O_WRONLY, O_TRUNC,
-//	O_APPEND, O_CREAT, O_EXCL;
+#	include YFM_YCLib_NativeAPI // for OpenMode;
 #	include <ystdex/scope_guard.hpp> // for ystdex::make_guard;
 #	include <sys/iosupport.h> // for ::_reent, ::size_t, ::ssize_t, ::off_t,
 //	sturct ::stat, struct ::statvfs, ::DIR_ITER, ::devoptab_t;
@@ -1509,21 +1508,23 @@ DirState::Reset() ythrow(system_error)
 
 FileInfo::FileInfo(Partition& part, string_view path, int flags)
 {
-	switch(flags & O_ACCMODE)
+	const auto oflags((OpenMode(flags)));
+
+	switch(oflags & OpenMode::AccessMode)
 	{
-	case O_RDWR:
+	case OpenMode::ReadWrite:
 		attr.set(WriteBit);
-	case O_RDONLY:
+	case OpenMode::Read:
 		attr.set(ReadBit);
 		break;
-	case O_WRONLY:
+	case OpenMode::Write:
 		attr.set(WriteBit);
 		break;
 	default:
 		throw_error(errc::permission_denied);
 	}
 	// NOTE: %O_CREAT when file not exist would be check later.
-	if((CanWrite() || (flags & O_TRUNC)) && part.IsReadOnly())
+	if((CanWrite() || bool(oflags & OpenMode::Truncate)) && part.IsReadOnly())
 		throw_error(errc::read_only_file_system);
 
 	lock_guard<mutex> lck(part.GetMutexRef());
@@ -1532,7 +1533,7 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 #	if 0
 		// NOTE: Allow LARGEFILEs with undefined results. Make sure that the
 		//	file size can fit in the available space.
-		if((flags & O_LARGEFILE) == 0 && file_size >= (1 << 31))
+		if(!(flags & OpenMode::LargeFile) && file_size >= (1 << 31))
 			throw_error(errc::file_too_large);
 #	endif
 		// XXX: Extension on file level.
@@ -1540,7 +1541,8 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 			throw_error(errc::read_only_file_system);
 		yunseq(part_ptr = &part,
 			start_cluster = part.ReadClusterFromEntry(de.Data));
-		if((flags & O_TRUNC) != 0 && CanWrite() && start_cluster != 0)
+		if(bool(oflags & OpenMode::Truncate) && CanWrite()
+			&& start_cluster != 0)
 		{
 			part.Table.ClearLinks(start_cluster);
 			yunseq(start_cluster = Clusters::Free, file_size = 0,
@@ -1548,7 +1550,7 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 		}
 		yunseq(name_position = de.NamePos, current_position = 0,
 			rw_position = {start_cluster});
-		if(flags & O_APPEND)
+		if(bool(oflags & OpenMode::Append))
 		{
 			attr.set(AppendBit);
 			// Set append pointer to the end of the file
@@ -1568,9 +1570,10 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 		Deref(part.LockOpenFiles()).insert(*this);
 	});
 
-	DEntry dentry(part, path, (flags & O_CREAT) != 0 && (flags & O_EXCL) != 0
-		? LeafAction::ThrowExisted : LeafAction::Return, (flags & O_CREAT) != 0
-		? std::function<void(DEntry&)>([this](DEntry& de) ynothrow{
+	DEntry dentry(part, path, bool(oflags & OpenMode::CreateExclusive)
+		? LeafAction::ThrowExisted : LeafAction::Return,
+		bool(oflags & OpenMode::Create) ? std::function<void(DEntry&)>(
+		[this](DEntry& de) ynothrow{
 		attr.set(ModifiedBit);
 		de.Data.Clear();
 		de.Data.WriteCDateTime();
