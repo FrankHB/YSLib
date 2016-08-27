@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1886
+\version r1891
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-08-03 19:37 +0800
+	2016-08-27 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,10 +32,10 @@
 
 #include "placement.hpp" // for "placement.hpp", <memory>, and_,
 //	is_copy_constructible, is_class_type, cond_t, vdefer, detected_t,
-//	conditional, indirect_element_t, remove_reference_t, detected_or_t, is_void,
-//	remove_pointer_t, is_pointer, enable_if_t, is_array, extent,
+//	conditional, indirect_element_t, remove_reference_t, detected_or_t, not_,
+//	is_void, remove_pointer_t, is_pointer, enable_if_t, is_array, extent,
 //	remove_extent_t;
-#include "type_op.hpp" // for has_mem_value_type;
+#include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "cassert.h" // for yconstraint;
 #include "operators.hpp" // for totally_ordered, equality_comparable;
 
@@ -368,8 +368,8 @@ using unique_ptr_pointer
 当指针为空指针时为 \c void ，否则间接操作的元素类型。
 */
 template<typename _tPointer, typename _tDefault = void>
-using defer_element = cond_t<is_void<remove_pointer_t<_tPointer>>, _tDefault,
-	vdefer<indirect_element_t, _tPointer>>;
+using defer_element = cond_or<not_<is_void<remove_pointer_t<_tPointer>>>,
+	_tDefault, indirect_element_t, _tPointer>;
 //@}
 
 

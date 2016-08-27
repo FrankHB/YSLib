@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3159
+\version r3172
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-08-25 00:10 +0800
+	2016-08-27 01:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -275,10 +275,10 @@ TryReadNPLStream(std::istream& is)
 ValueNode
 LoadNPLA1InMemory(ValueNode(*creator)())
 {
-	std::stringstream oss;
+	std::stringstream ss;
 
-	CreateDefaultNPLA1ForStream(oss, creator);
-	return TryReadNPLStream(oss);
+	CreateDefaultNPLA1ForStream(ss, creator);
+	return TryReadNPLStream(ss);
 }
 
 YB_NONNULL(1, 2) bool
@@ -298,14 +298,12 @@ CreateDefaultNPLA1File(const char* disp, const char* path,
 		// XXX: Failed on race condition detected.
 		UniqueFile ufile(uopen(path, omode_conv(std::ios_base::out
 			| std::ios_base::trunc | platform::ios_noreplace)));
-		auto fd(ufile.get());
-		unique_lock<FileDescriptor> lck(fd);
+		IndirectLockGuard<const UniqueFile> lck(ufile);
 
 		if(ofstream ofs{std::move(ufile)})
 		{
 			CreateDefaultNPLA1ForStream(ofs, creator);
 			YTraceDe(Debug, "Created configuration.");
-			lck.release();
 			return {};
 		}
 		YTraceDe(Warning, "Cannot create file, possible error (from errno)"
@@ -369,14 +367,11 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	//	corrupted now.
 	auto res(TryInvoke([&]() -> ValueNode{
 		MappedFile mfile(path);
-		auto fd(mfile.GetFile());
-		shared_lock_guard<FileDescriptor> lck(fd);
-
+		SharedIndirectLockGuard<const UniqueFile> lck(mfile.GetUniqueFile());
 		ystdex::membuf mbuf(ystdex::replace_cast<const char*>(mfile.GetPtr()),
 			mfile.GetSize());
-		std::istream is(&mbuf);
 
-		if(is)
+		if(std::istream is{&mbuf})
 		{
 			YTraceDe(Debug, "Found accessible configuration file.");
 			return TryReadNPLStream(is);
@@ -472,14 +467,12 @@ SaveConfiguration(const ValueNode& node)
 {
 	UniqueFile ufile(uopen(CONF_PATH,
 		omode_conv(std::ios_base::out | std::ios_base::trunc)));
-	auto fd(ufile.get());
-	unique_lock<FileDescriptor> lck(fd);
+	IndirectLockGuard<const UniqueFile> lck(ufile);
 
 	if(ofstream ofs{std::move(ufile)})
 	{
 		YTraceDe(Debug, "Writing configuration...");
 		WriteNPLA1Stream(ofs, ValueNode(node.GetContainer()));
-		lck.release();
 	}
 	else
 		throw GeneralEvent("Invalid file found when writing configuration.");

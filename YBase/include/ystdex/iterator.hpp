@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5971
+\version r5993
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-08-07 14:11 +0800
+	2016-08-26 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -507,8 +507,10 @@ namespace iterator_transformation
 template<typename _tIter = void>
 struct first
 {
+	//! \since build 723
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((i->first))
+	operator()(const _tIter& i) const ynoexcept_spec(i->first)
+		-> decltype((i->first))
 	{
 		return i->first;
 	}
@@ -517,9 +519,11 @@ struct first
 template<>
 struct first<void>
 {
+	//! \since build 723
 	template<typename _tIter>
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((i->first))
+	operator()(const _tIter& i) const ynoexcept_spec(i->first)
+		-> decltype((i->first))
 	{
 		return i->first;
 	}
@@ -529,8 +533,10 @@ struct first<void>
 template<typename _tIter = void>
 struct get
 {
+	//! \since build 723
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((*i).get())
+	operator()(const _tIter& i) const ynoexcept_spec((*i).get())
+		-> decltype((*i).get())
 	{
 		return (*i).get();
 	}
@@ -539,9 +545,11 @@ struct get
 template<>
 struct get<void>
 {
+	//! \since build 723
 	template<typename _tIter>
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((*i).get())
+	operator()(const _tIter& i) const ynoexcept_spec((*i).get())
+		-> decltype((*i).get())
 	{
 		return (*i).get();
 	}
@@ -551,8 +559,9 @@ struct get<void>
 template<typename _tIter = void>
 struct indirect
 {
+	//! \since build 723
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype(**i)
+	operator()(const _tIter& i) const ynoexcept_spec(**i) -> decltype(**i)
 	{
 		return **i;
 	}
@@ -561,9 +570,10 @@ struct indirect
 template<>
 struct indirect<void>
 {
+	//! \since build 723
 	template<typename _tIter>
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype(**i)
+	operator()(const _tIter& i) const ynoexcept_spec(**i) -> decltype(**i)
 	{
 		return **i;
 	}
@@ -573,8 +583,10 @@ struct indirect<void>
 template<typename _tIter = void>
 struct second
 {
+	//! \since build 723
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((i->second))
+	operator()(const _tIter& i) const ynoexcept_spec(i->second)
+		-> decltype((i->second))
 	{
 		return i->second;
 	}
@@ -583,9 +595,11 @@ struct second
 template<>
 struct second<void>
 {
+	//! \since build 723
 	template<typename _tIter>
 	yconstfn auto
-	operator()(const _tIter& i) const -> decltype((i->second))
+	operator()(const _tIter& i) const ynoexcept_spec(i->second)
+		-> decltype((i->second))
 	{
 		return i->second;
 	}

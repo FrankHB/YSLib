@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2741
+\version r2849
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-25 00:10 +0800
+	2016-08-27 16:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,114 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib_('Win32').MinGW32 $=
+		(
+			/ @ "class %Win32Exception" $=
+			(
+				/ "printed with error number text" @ "error category".
+				/ "trimmed right" @ "result" @ "static function %FormatMessage"
+					^ "%ystdex::rtrim"
+			),
+			/ "printed with error message text" @ "macro %YCL_Trace_Win32E"
+				^ "%platform_ex::Win32Exception::FormatMessage"
+		),
+		/ %YCLib $=
+		(
+			/ %FileIO $=
+			(
+				/ "printed with error message text" @ "macro %YCL_Trace_SysE"
+					^ "%std::strerror",
+				/ "function %operator* returning %int"
+					-> "2 functions returning self reference"
+			),
+			/ @ "namespace %Concurrency" @ %Mutex $=
+			(
+				(
+				+ 'using ystdex::threading::lockable_adaptor;' $dep_from
+					("%ystdex::threading::lockable_adaptor"
+					@ %YBase.YStandardEx.PseudoMutex);
+				+ "alias templates %(AdaptedLock, AdaptedLockGuard)";
+				+ "alias templates %(IndirectLock, IndirectLockGuard)"
+					^ $dep_from ("%AdaptedLock", "%AdaptedLockGuard",
+					("%ystdex::indirect_ref_adaptor" @ %YBase.YStandardEx.Ref))
+				),
+				(
+				+ 'using ystdex::threading::shared_lockable_adaptor;';
+				(
+				+ "alias templates %(SharedAdaptedLock, \
+					SharedAdaptedLockGuard)";
+				+ "alias templates %(SharedIndirectLock, \
+					SharedAdaptedLockGuard)" ^ $dep_from ("%SharedAdaptedLock",
+					"%SharedAdaptedLockGuard)", ("%ystdex::indirect_ref_adaptor"
+					@ %YBase.YStandardEx.Ref))
+				),
+				/ DLDI "simplified %shared_lock_guard"
+				)
+			),
+			+ "function %GetUniqueFile" @ "class %MappedFile" @ %MemoryMapping
+		),
+		/ DLDI %Helper.Initialization $=
+		(
+			/ "simplified functions %(LoadNPLA1File, SaveConfiguration)"
+				^ $dep_from ("%IndirectLockGuard" @ %YCLib.Mutex)
+				~ "%unique_lock",
+			/ "simplified functions %LoadNPLA1File"
+				^ $dep_from (("%SharedIndirectLockGuard" @ %YCLib.Mutex)
+				~ "%shared_lock_guard", ("%MappedFile::GetUniqueFile"
+				~ "%MappedFile::GetFile" @ %YCLib.FileMapping))
+				$dep_from "shared locking cause %std::terminate called"
+		),
+		* "missing %what() message" @ "funcction template %TryInvoke"
+			@ %YSLib.Core.YException $since b701
+			$= (^ "%ExtractAndTrace" ~ "%TraceExceptionType")
+			// This was caused by %TraceExceptionType implementation fix.
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "noexcept-specification" @ "%operator()" @ "all functors with all \
+			specializations %(first, get, indirect, second)" @ "namespace \
+			%iterator_transformation" @ %Iterator,
+			// To eliminate G++ warning: [-Wnoexcept].
+		/ @ "namespace %threading" @ %PseudoMutex $=
+		(
+			+ "class template %shared_lockable_adaptor",
+			/ "supported custom references"
+				@ "class template %shared_lockable_adaptor" $=
+			(
+				+ "2nd parameter with default argument as stored reference",
+				/ "%lockable_type" => "%holder_type"
+					// Now the 1st template parameter does not need to be \
+						lockable.
+			),
+			* "throwing conflict with wrong noexcept-specification even when \
+				check is enabled" @ "members" @ "%(lock_base, lock_guard, \
+				shared_lock)" $orig (@ "namespace %single_thread" $since b605)
+				$dep_to "shared locking cause %std::terminate called"
+				$= (- $revert_ex(b605) "'yimpl(ynothrow)' when check is \
+					enabled")
+		),
+		+ "class template %indirect_ref_adaptor" @ %Ref,
+		+ "alias templates %(conjunction, disjunction, negation)" @ %TypeTraits,
+			// Which implements WG21 P0013R1.
+		/ %TypeOperation $=
+		(
+			+ "metafunctions %(cond_or; cond_or_t)";
+			/ DLDI "simplified %common_nonvoid_t" ^ "%cond_or_t"
+		),
+		/ DLDI "simplified %defer_element" @ %Memory ^ $dep_from
+			("%cond_or" @ %TypeOperation),
+		/ @ "class %task_pool" @ %Concurrency $=
+		(
+			+ "function %reset with task number";
+			/ DLDI "simplified function %reset without parameter"
+		)
+	)
+),
+
+b722
 (
 	/ %YFramework $=
 	(
@@ -100,7 +208,7 @@ $now
 			),
 			/ $comp "corrected behavior for %mutex_type with overloaded \
 				%operator&" @ "class templates %(lock_guard, unique_lock)"
-				// See http://wg21.cmeerw.net/lwg/issue2577.
+				// See LWG 2577.
 				$= (/ DLDI ^ "%std::addressof" ~ '&')
 			),
 			+ "alias template %shared_lock" ^ $dep_from

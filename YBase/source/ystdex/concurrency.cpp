@@ -11,13 +11,13 @@
 /*!	\file concurrency.cpp
 \ingroup YStandardEx
 \brief 并发操作。
-\version r163
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 19:09:18 +0800
 \par 修改时间:
-	2016-07-06 15:46 +0800
+	2016-08-27 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,12 +126,12 @@ thread_pool::size() const
 }
 
 void
-task_pool::reset()
+task_pool::reset(size_t tasks_num)
 {
 	auto& threads(static_cast<thread_pool&>(*this));
 
 	threads.~thread_pool();
-	::new(&threads) thread_pool(max_tasks);
+	::new(&threads) thread_pool(tasks_num);
 }
 #	endif
 

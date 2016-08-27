@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1061
+\version r1083
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-05-22 14:01 +0800
+	2016-08-27 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,43 +390,43 @@ using bool_constant = integral_constant<bool, _b>;
 \since build 578
 */
 //@{
-template<typename...>
+template<class...>
 struct and_;
 
 template<>
 struct and_<> : true_type
 {};
 
-template<typename _b1>
+template<class _b1>
 struct and_<_b1> : _b1
 {};
 
 //! \since build 671
-template<typename _b1, typename _b2, typename... _bn>
+template<class _b1, class _b2, class... _bn>
 struct and_<_b1, _b2, _bn...>
 	: conditional_t<_b1::value, and_<_b2, _bn...>, _b1>
 {};
 
 
-template<typename...>
+template<class...>
 struct or_;
 
 template<>
 struct or_<> : false_type
 {};
 
-template<typename _b1>
+template<class _b1>
 struct or_<_b1> : _b1
 {};
 
 //! \since build 671
-template<typename _b1, typename _b2, typename... _bn>
+template<class _b1, class _b2, class... _bn>
 struct or_<_b1, _b2, _bn...>
 	: conditional_t<_b1::value, _b1, or_<_b2, _bn...>>
 {};
 
 
-template<typename _b>
+template<class _b>
 struct not_ : bool_constant<!_b::value>
 {};
 //@}
@@ -557,7 +557,7 @@ public:
 /*!
 \brief void_t 的一般化，允许指定别名类型。
 \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59204 。
-\see http://wg21.cmeerw.net/cwg/issue1558 。
+\see CWG 1558 。
 \since build 688
 */
 #if YB_IMPL_GNUCPP >= 50000
@@ -607,6 +607,22 @@ using when_valid = well_formed_t<when<true>, _types...>;
 template<bool _bCond>
 using enable_when = enable_if_t<_bCond, when<true>>;
 //@}
+//@}
+
+/*!
+\see WG21 P0013R1 。
+\see WG21 N4606 20.15.8[meta.logical] 。
+\since build 723
+*/
+//@{
+template<class... _b>
+using conjunction = and_<_b...>;
+
+template<class... _b>
+using disjunction = or_<_b...>;
+
+template<class _b>
+using negation = not_<_b>;
 //@}
 
 
@@ -950,7 +966,7 @@ struct is_in_types : or_<is_same<_type, _types...>>
 \note 这里的实现不依赖 std::common_type 。
 \note 同 boost::mpl::identity 。
 \note Microsoft VC++ 2013 使用 LWG 2141 建议的实现。
-\see http://wg21.cmeerw.net/lwg/issue2141 。
+\see LWG 2141 。
 \see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html 。
 \see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx 。
 \see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html 。

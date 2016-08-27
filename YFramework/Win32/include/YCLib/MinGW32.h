@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r1997
+\version r2005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-08-21 22:11 +0800
+	2016-08-25 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,8 +155,14 @@ public:
 
 //! \brief 跟踪 ::GetLastError 取得的调用状态结果。
 #	define YCL_Trace_Win32E(_lv, _fn, _sig) \
-	YTraceDe(_lv, "Error %lu: failed calling " #_fn " @ %s.", \
-		::GetLastError(), _sig)
+	do \
+	{ \
+		const auto err_(::GetLastError()); \
+	\
+		YTraceDe(_lv, "Failed calling " #_fn " @ %s with error %lu: %s", \
+			_sig, err_, \
+			platform_ex::Win32Exception::FormatMessage(err_).c_str()); \
+	}while(false)
 
 /*!
 \brief 调用 Win32 API 或其它可用 ::GetLastError 取得调用状态的例程。

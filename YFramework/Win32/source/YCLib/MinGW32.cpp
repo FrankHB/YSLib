@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2171
+\version r2174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-08-21 21:34 +0800
+	2016-08-25 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,7 +178,8 @@ public:
 	//! \since build 564
 	PDefH(std::string, message, int ev) const override
 		// NOTE: For Win32 a %::DWORD can be mapped one-to-one for 32-bit %int.
-		ImplRet(Win32Exception::FormatMessage(ErrorCode(ev)))
+		ImplRet("Error " + std::to_string(ev) + ": "
+			+ Win32Exception::FormatMessage(ErrorCode(ev)))
 };
 
 
@@ -302,7 +303,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 
 			const auto p(unique_raw(buf, LocalDelete()));
 
-			return WCSToUTF8(buf);
+			return ystdex::rtrim(WCSToUTF8(buf));
 		}
 		CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."), throw)
 	});

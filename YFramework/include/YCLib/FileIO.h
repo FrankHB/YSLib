@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2504
+\version r2515
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-08-21 22:12 +0800
+	2016-08-27 04:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,7 +181,10 @@ public:
 	*/
 	FileDescriptor(std::FILE*) ynothrow;
 
-	//! \since build 628
+	/*!
+	\note 和 operator-> 不一致，不返回引用，以避免生存期问题。
+	\since build 628
+	*/
 	PDefHOp(int, *, ) const ynothrow
 		ImplRet(desc)
 
@@ -1266,7 +1269,13 @@ FetchCurrentWorkingDirectory(size_t);
 \since build 691
 */
 #define YCL_Trace_SysE(_lv, _fn, _sig) \
-	YTraceDe(_lv, "Error %d: failed calling " #_fn " @ %s.", errno, _sig)
+	do \
+	{ \
+		const int err_(errno); \
+	\
+		YTraceDe(_lv, "Failed calling " #_fn " @ %s with error %d: %s.", \
+			_sig, err_, std::strerror(err_)); \
+	}while(false)
 
 /*!
 \brief 调用系统 C API 或其它可用 errno 取得调用状态的例程。
