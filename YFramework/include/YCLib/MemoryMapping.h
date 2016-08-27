@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r331
+\version r333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2016-08-21 22:21 +0800
+	2016-08-27 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,6 +207,8 @@ public:
 	DefGetter(const ynothrow, byte*, Ptr, mapped.get())
 	//! \since build 711
 	DefGetterMem(const ynothrow, size_t, Size, mapped.get_deleter())
+	//! \since build 723
+	DefGetter(const ynothrow, const UniqueFile&, UniqueFile, file)
 
 	//! \since build 712
 	//@{

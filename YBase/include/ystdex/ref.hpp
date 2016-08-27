@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r339
+\version r361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-04-30 07:20 +0800
+	2016-08-27 04:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,6 +188,33 @@ struct unwrap_reference<lref<_type>>
 };
 //@}
 //@}
+
+
+/*!
+\brief 包装间接操作的引用适配器。
+\since build 723
+*/
+template<typename _type, typename _tReference = lref<_type>>
+class indirect_ref_adaptor
+{
+public:
+	using value_type = _type;
+	using reference = _tReference;
+
+private:
+	reference ref;
+
+public:
+	indirect_ref_adaptor(value_type& r)
+		: ref(r)
+	{}
+
+	auto
+	get() ynothrow -> decltype(ref.get().get())
+	{
+		return ref.get().get();
+	}
+};
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2711
+\version r2727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2016-04-04 23:41 +0800
+	2016-04-04 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -282,12 +282,28 @@ using underlying_cond_type_t
 	= cond_t<is_enum<_type>, vdefer<underlying_type_t, _type>, _type>;
 
 /*!
+\brief 条件判断，若失败使用默认类型。
+\since build 723
+\sa detected_or
+\sa detected_or_t
+*/
+//@{
+template<class _tCond, typename _tDefault, template<typename...> class _gOp,
+	typename... _tParams>
+using cond_or = cond_t<_tCond, vdefer<_gOp, _tParams...>, _tDefault>;
+
+template<class _tCond, typename _tDefault, template<typename...> class _gOp,
+	typename... _tParams>
+using cond_or_t = _t<cond_or<_tCond, identity<_tDefault>, _gOp, _tParams...>>;
+//@}
+
+/*!
 \brief 取公共非空类型：若第一参数为非空类型则为第一参数，否则从其余参数推断。
 \since build 562
 */
 template<typename _type, typename... _types>
-using common_nonvoid_t = _t<cond_t<is_void<_type>,
-	vdefer<common_type_t, _types...>, identity<_type>>>;
+using common_nonvoid_t
+	= cond_or_t<is_void<_type>, _type, common_type_t, _types...>;
 
 /*!
 \brief 取公共底层类型。

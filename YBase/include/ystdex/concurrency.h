@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r515
+\version r537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2016-06-25 14:34 +0800
+	2016-08-27 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,15 +225,6 @@ public:
 		return max_tasks;
 	}
 
-	/*!
-	\brief 重置线程池。
-	\note 阻塞等待当前所有任务完成后重新创建。
-	*/
-	void
-	reset();
-
-	using thread_pool::size;
-
 	//! \since build 623
 	//@{
 	template<typename _func, typename _fCallable, typename... _tParams>
@@ -273,7 +264,29 @@ public:
 			});
 		}, yforward(f), yforward(args)...);
 	}
+	//@}
 
+	//! \note 阻塞等待当前所有任务完成后重新创建。
+	//@{
+	//! \brief 重置线程池。
+	void
+	reset()
+	{
+		reset(max_tasks);
+	}
+
+	/*!
+	\build 以指定任务数设置内存池。
+	\since build 723
+	*/
+	void
+	reset(size_t);
+	//@}
+
+	using thread_pool::size;
+
+	//! \since build 623
+	//@{
 	template<typename _fCallable, typename... _tParams>
 	inline future_result_t<_fCallable, _tParams...>
 	wait(_fCallable&& f, _tParams&&... args)

@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r1528
+\version r1635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2016-08-24 13:04 +0800
+	2016-08-27 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,33 +58,38 @@ yconstexpr const struct adopt_lock_t
 {} adopt_lock{};
 //@}
 
-//! \since build 722
-//@{
 /*!
-\pre _tLockable 满足共享 BasicLockable 要求。
+\note 第一模板参数不需要保证满足 BasicLockable 要求。
 \warning 非虚析构。
+\since build 723
 */
-template<class _tLockable>
-class shared_lockable_adaptor
+//@{
+//! \pre _tReference 值的 get() 返回的类型满足 BasicLockable 要求。
+template<class _type, typename _tReference = lref<_type>>
+class lockable_adaptor
 {
 public:
-	using lockable_type = _tLockable;
+	//! \since build 722
+	using holder_type = _type;
+	using reference = _tReference;
 
 private:
-	lref<lockable_type> ref;
+	reference ref;
 
 public:
-	shared_lockable_adaptor(lockable_type& m) ynothrow
+	//! \since build 722
+	//@{
+	lockable_adaptor(holder_type& m) ynothrow
 		: ref(m)
 	{}
 
 	explicit
-	operator lockable_type&() ynothrow
+	operator holder_type&() ynothrow
 	{
 		return ref;
 	}
 	explicit
-	operator const lockable_type&() const ynothrow
+	operator const holder_type&() const ynothrow
 	{
 		return ref;
 	}
@@ -92,17 +97,86 @@ public:
 	void
 	lock()
 	{
+		ref.get().lock();
+	}
+
+	//! \pre holder_type 满足 Lockable 要求。
+	bool
+	try_lock()
+	{
+		return ref.get().try_lock();
+	}
+
+	//! \pre holder_type 满足 TimedLockable 要求。
+	//@{
+	template<typename _tRep, typename _tPeriod>
+	bool
+	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>& rel_time)
+	{
+		return ref.get().try_lock_for(rel_time);
+	}
+
+	template<typename _tClock, typename _tDuration>
+	bool
+	try_lock_until(const std::chrono::time_point<_tClock, _tDuration>& abs_time)
+	{
+		return ref.get().try_lock_until(abs_time);
+	}
+	//@}
+
+	void
+	unlock() ynothrowv
+	{
+		ref.get().unlock();
+	}
+	//@}
+};
+
+
+//! \pre _tReference 值的 get() 返回的类型满足共享 BasicLockable 要求。
+template<class _type, typename _tReference = lref<_type>>
+class shared_lockable_adaptor
+{
+public:
+	//! \since build 722
+	using holder_type = _type;
+	using reference = _tReference;
+
+private:
+	reference ref;
+
+public:
+	shared_lockable_adaptor(holder_type& m) ynothrow
+		: ref(m)
+	{}
+
+	explicit
+	operator holder_type&() ynothrow
+	{
+		return ref;
+	}
+	explicit
+	operator const holder_type&() const ynothrow
+	{
+		return ref;
+	}
+
+	//! \since build 723
+	//@{
+	void
+	lock()
+	{
 		ref.get().lock_shared();
 	}
 
-	//! \pre lockable_type 满足 Lockable 要求。
+	//! \pre holder_type 满足 Lockable 要求。
 	bool
 	try_lock()
 	{
 		return ref.get().try_lock_shared();
 	}
 
-	//! \pre lockable_type 满足 TimedLockable 要求。
+	//! \pre holder_type 满足 TimedLockable 要求。
 	//@{
 	template<typename _tRep, typename _tPeriod>
 	bool
@@ -120,13 +194,17 @@ public:
 	//@}
 
 	void
-	unlock()
+	unlock() ynothrow
 	{
 		ref.get().unlock_shared();
 	}
+	//@}
 };
+//@}
 
 
+//! \since build 722
+//@{
 /*!
 \note 第一参数为存储的互斥量类型。
 \note 第二参数决定是否进行检查，不检查时优化实现为空操作。
@@ -159,7 +237,7 @@ public:
 	\post <tt>std::addressof(owned) == std::addressof(m)</tt> 。
 	*/
 	explicit
-	lock_guard(mutex_type& m) yimpl(ynothrow)
+	lock_guard(mutex_type& m)
 		: owned(m)
 	{
 		reference(owned).lock();
@@ -171,7 +249,7 @@ public:
 	lock_guard(mutex_type& m, adopt_lock_t) yimpl(ynothrow)
 		: owned(m)
 	{}
-	~lock_guard() yimpl(ynothrow)
+	~lock_guard()
 	{
 		reference(owned).unlock();
 	}
@@ -216,7 +294,7 @@ public:
 	//! \post <tt>pm == std::addressof(m)</tt> 。
 	//@{
 	explicit
-	lock_base(mutex_type& m) yimpl(ynothrow)
+	lock_base(mutex_type& m)
 		: lock_base(m, defer_lock)
 	{
 		lock();
@@ -229,7 +307,7 @@ public:
 	\pre mutex_type 满足 Lockable 要求。
 	\pre 若 mutex_type 非递归锁，调用线程不持有锁。
 	*/
-	lock_base(mutex_type& m, try_to_lock_t) yimpl(ynothrow)
+	lock_base(mutex_type& m, try_to_lock_t)
 		: pm(std::addressof(m)), owns(get_ref().try_lock())
 	{}
 	//! \pre 调用线程持有锁。
@@ -243,12 +321,12 @@ public:
 	//@{
 	template<typename _tClock, typename _tDuration>
 	lock_base(mutex_type& m, const std::chrono::time_point<_tClock,
-		_tDuration>& abs_time) yimpl(ynothrow)
+		_tDuration>& abs_time)
 		: pm(std::addressof(m)), owns(get_ref().try_lock_until(abs_time))
 	{}
 	template<typename _tRep, typename _tPeriod>
 	lock_base(mutex_type& m,
-		const std::chrono::duration<_tRep, _tPeriod>& rel_time) yimpl(ynothrow)
+		const std::chrono::duration<_tRep, _tPeriod>& rel_time)
 		: pm(std::addressof(m)), owns(get_ref().try_lock_for(rel_time))
 	{}
 	//@}
@@ -271,7 +349,7 @@ public:
 	/*!
 	\post <tt>pm == u_p.pm && owns == u_p.owns</tt> 当 \c u_p 是 u 之前的状态。
 	\post <tt>!u.pm && !u.owns</tt> 。
-	\see http://wg21.cmeerw.net/lwg/issue2104 。
+	\see LWG 2104 。
 	*/
 	lock_base&
 	operator=(lock_base&& u) yimpl(ynothrow)
@@ -291,7 +369,7 @@ public:
 
 private:
 	void
-	check_lock() yimpl(ynothrow)
+	check_lock()
 	{
 		using namespace std;
 
@@ -316,7 +394,7 @@ private:
 
 public:
 	void
-	lock() yimpl(ynothrow)
+	lock()
 	{
 		check_lock();
 		get_ref().lock();
@@ -325,7 +403,7 @@ public:
 
 	//! \pre reference 满足 Lockable 要求。
 	bool
-	try_lock() yimpl(ynothrow)
+	try_lock()
 	{
 		check_lock();
 		return owns = get_ref().try_lock();
@@ -336,7 +414,6 @@ public:
 	template<typename _tRep, typename _tPeriod>
 	bool
 	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>& rel_time)
-		yimpl(ynothrow)
 	{
 		check_lock();
 		return owns = get_ref().try_lock_for(rel_time);
@@ -345,7 +422,6 @@ public:
 	template<typename _tClock, typename _tDuration>
 	bool
 	try_lock_until(const std::chrono::time_point<_tClock, _tDuration>& abs_time)
-		yimpl(ynothrow)
 	{
 		check_lock();
 		return owns = get_ref().try_lock_until(abs_time);
@@ -353,7 +429,7 @@ public:
 	//@}
 
 	void
-	unlock() yimpl(ynothrow)
+	unlock()
 	{
 		if(!owns)
 			throw_error(std::errc::operation_not_permitted);
@@ -498,7 +574,7 @@ public:
 	/*!
 	\post <tt>pm == u_p.pm && owns == u_p.owns</tt> 当 \c u_p 是 u 之前的状态。
 	\post <tt>!u.pm && !u.owns</tt> 。
-	\see http://wg21.cmeerw.net/lwg/issue2104 。
+	\see LWG 2104 。
 	\since build 722
 	*/
 	unique_lock&
@@ -563,22 +639,24 @@ public:
 	/*!
 	\post <tt>pm == u_p.pm && owns == u_p.owns</tt> 当 \c u_p 是 u 之前的状态。
 	\post <tt>!u.pm && !u.owns</tt> 。
-	\see http://wg21.cmeerw.net/lwg/issue2104 。
+	\see LWG 2104 。
 	*/
 	shared_lock&
 	operator=(shared_lock&&) yimpl(= default);
 
 	using yimpl(base)::operator bool;
 
+	//! \since build 723
+	//@{
 	void
-	lock() yimpl(ynothrow)
+	lock()
 	{
 		base::lock_shared();
 	}
 
 	//! \pre mutex_type 满足 Lockable 要求。
 	bool
-	try_lock() yimpl(ynothrow)
+	try_lock()
 	{
 		return base::try_lock_shared();
 	}
@@ -588,7 +666,6 @@ public:
 	template<typename _tRep, typename _tPeriod>
 	bool
 	try_lock_shared_for(const std::chrono::duration<_tRep, _tPeriod>& rel_time)
-		yimpl(ynothrow)
 	{
 		return base::template try_lock_shared_for(rel_time);
 	}
@@ -596,10 +673,11 @@ public:
 	template<typename _tClock, typename _tDuration>
 	bool
 	try_lock_shared_until(const
-		std::chrono::time_point<_tClock, _tDuration>& abs_time) yimpl(ynothrow)
+		std::chrono::time_point<_tClock, _tDuration>& abs_time)
 	{
 		return base::template try_lock_shared_until(abs_time);
 	}
+	//@}
 	//@}
 
 	using yimpl(base)::unlock;
@@ -658,7 +736,7 @@ using threading::adopt_lock_t;
 /*!
 \warning 非虚析构。
 \see ISO C++14 30.4.1.2[thread.mutex.requirements.mutex] 。
-\see http://wg21.cmeerw.net/lwg/issue2577.
+\see LWG 2577.
 */
 //@{
 class YB_API mutex : private yimpl(noncopyable), private yimpl(nonmovable)
@@ -929,8 +1007,8 @@ struct YB_API once_flag : private yimpl(noncopyable), private yimpl(nonmovable)
 \note ISO C++11（至 N3691 ） 30.4 synopsis 处的声明存在错误。
 \bug 未实现支持成员指针。
 \see https://github.com/cplusplus/draft/issues/151 。
-\see http://wg21.cmeerw.net/cwg/issue1591 。
-\see http://wg21.cmeerw.net/cwg/issue2442 。
+\see CWG 1591 。
+\see CWG 2442 。
 
 当标识为非初值时候无作用，否则调用函数。
 */
