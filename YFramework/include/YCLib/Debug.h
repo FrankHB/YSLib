@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r709
+\version r724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2016-08-10 13:18 +0800
+	2016-08-29 15:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,13 +57,13 @@
 
 /*!
 \ingroup tracing
-\def YCL_Use_TraceSrc
+\def YF_Use_TraceSrc
 \brief 在跟踪日志中使用跟踪源码位置。
-\since build 498
+\since build 724
 */
 #ifndef NDEBUG
-#	ifndef YCL_Use_TraceSrc
-#		define YCL_Use_TraceSrc 1
+#	ifndef YF_Use_TraceSrc
+#		define YF_Use_TraceSrc 1
 #	endif
 #endif
 
@@ -257,11 +257,11 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 		platform::Descriptions::RecordLevel(_lv), __VA_ARGS__)
 
 /*!
-\brief YCLib 直接调试跟踪。
-\note 不带源代码信息。
-\since build 591
+\brief YFramework 跟踪。
+\note 直接按格式字符串的输出跟踪，不带源代码信息。
+\since build 724
 */
-#define YCL_TraceRaw(_lv, ...) \
+#define YF_TraceRaw(_lv, ...) \
 	YCL_Log(_lv, [&]() -> platform::string { \
 		using platform::sfmt; \
 	\
@@ -270,18 +270,18 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 	})
 
 /*!
-\def YCL_Trace
+\def YF_Trace
 \brief YCLib 默认调试跟踪。
 \note 无异常抛出。
-\since build 566
+\since build 724
 */
-#if YCL_Use_TraceSrc
-#	define YCL_Trace(_lv, ...) \
+#if YF_Use_TraceSrc
+#	define YF_Trace(_lv, ...) \
 	YCL_Log(_lv, [&]{ \
 		return platform::LogWithSource(__FILE__, __LINE__, __VA_ARGS__); \
 	})
 #else
-#	define YCL_Trace(_lv, ...) YCL_TraceRaw(_lv, __VA_ARGS__)
+#	define YF_Trace(_lv, ...) YF_TraceRaw(_lv, __VA_ARGS__)
 #endif
 
 
@@ -289,11 +289,11 @@ LogWithSource(const char*, int, const char*, ...) ynothrow;
 \def YTraceDe
 \brief YCLib 默认调试跟踪。
 \note 使用默认的调试跟踪级别。
-\sa YCL_Trace
+\sa YF_Trace
 \since build 432
 */
 #if YB_Use_YTrace
-#	define YTraceDe(_lv, ...) YCL_Trace(_lv, __VA_ARGS__)
+#	define YTraceDe(_lv, ...) YF_Trace(_lv, __VA_ARGS__)
 #else
 #	define YTraceDe(...)
 #endif

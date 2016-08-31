@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r1635
+\version r1638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2016-08-27 01:45 +0800
+	2016-08-31 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -494,6 +494,10 @@ public:
 		yimpl(ynothrow)
 	{}
 	lock_base(lock_base&&) yimpl(= default);
+
+	//! \since build 724
+	lock_base&
+	operator=(lock_base&&) = yimpl(default);
 
 	explicit
 	operator bool() const ynothrow

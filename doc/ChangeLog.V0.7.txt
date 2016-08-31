@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2849
+\version r2950
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-27 16:14 +0800
+	2016-08-31 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,106 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Debug $=
+			(
+				/ "macro %YCL_TraceRaw" => "%YF_TraceRaw",
+					// It should be useful in %YSLib.
+				/ "macro %YCL_Trace" => "%YF_Trace",
+					// Though it is not used in %YSLib, but may be useful in \
+						future.
+				/ "macro %YCL_Use_TraceSrc" => "%YF_Use_TraceSrc",
+					// Ditto.
+			),
+			* "wrong branch hint" @ "destructor %platform_ex::FileSystem"
+				@ "platform %DS" @ %NativeAPI $since b690
+		),
+		(
+		/ $forced $dev $dep_from ("%YCL_TraceRaw" @ %YCLib.Debug)
+			$effective @ (%YSLib.Core.YException, YCLib.(NativeAPI, Debug));
+		* $comp $dev "'YCL_*' reserved macros used" @ %YSLib $effective
+			@ %YSLib.Core.YException $mismatch(%Documentation.YSLib $since b481)
+			$since b591
+		),
+		/ $forced $dev $dep_from ("%YCL_Trace" @ %YCLib.Debug)
+			$effective @ (%Helper.(GUIApplication, Environment), YCLib.Debug),
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ @ "(function, function template) %CheckBOM" @ %TextFile $=
+				(
+					+ "assertion to ensure nonnull pointer" ^ "%Nonnull",
+					+ "2 overloads for %std::istream&"
+				),
+				/ %File $=
+				(
+					+ "class %UniqueLockedOutputFileStream",
+					+ "class %SharedInputMappedFileStream" ^ $dep_from
+						("%MappedFile" @ %Adaptor.YAdaptor,
+						%YBase.YStandardEx.PseudoMutex)
+				)
+			),
+			+ 'using platform::MappedFile' @ %Adaptor.YAdaptor
+		),
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				/ @ "function %LoadNPLA1File" $=
+				(
+					/ "simplified BOM detection" ^ $dep_from
+						("%CheckBOM#4" @ %YSLib.Service.TextFile);
+					* $comp "possible unitialized memory access when length of \
+						text in external file is less than BOM length" $since
+						b619,
+					* "missing indirect assertion to ensure nonnull pointer \
+						parameter" $mismatch $since b516
+						$= (+ "assertion" ^ "%Nonnull"),
+					+ "separated message for memory stream fallback with level \
+						'Notice'",
+					/ "merged corrupted configuration message with level 'Err'",
+					/ DLDI "optimized without BOM for memory stream fallback".
+					/ DLDI "reading file content" ^ $dep_from
+						("%SharedInputMappedFileStream" @ %YSLib.Service.File)
+						~ "%(MappedFile, SharedIndirectLockGuard<const \
+						UniqueFile>, ystdex::membuf, std::istream)",
+					/ "protected file creation before reading to allow \
+						trapping into fallback on failure" ^ "%TryInvoke",
+					/ "handling missing expected BOM" ^ "tracing with level \
+						'Warning'" ~ "threw %GeneralEvent"
+				),
+				* "mapping and assertion failed when writing configuration file"
+					$since b723
+					@ "functions %(LoadNPLA1File, SaveConfiguration)"
+					$= (/ $revert_ex(b723) $impl ^ $dep_from
+						("%UniqueLockedOutputFileStream" @ %YSLib.Service.File)
+						~ "%(UniqueFile, IndirectLockGuard<const UniqueFile>)")
+					// Crash on release configuration. This was caused by \
+						unlocking out of life %UniqueFile.
+			),
+			* "ill-formed code" @ "class %Environment" @ "platform %DS"
+				@ %Environment $since b717
+				$= (/ $re_add(b717) DLDI ^ "%ystdex::in_place"
+					~ "%ystdex::any_ops::in_place_t")
+		),
+		* DLDI "wrong branch hint" @ "platform %DS" @ %'YCLib(DS)'.DSIO $since
+			b611
+	),
+	/ %YBase.YStandardEx.PseudoMutex $=
+	(
+		* "missing defaulted move %operator="
+			@ "class template %lock_base without check enabled" $since b723,
+		* $comp "defaulted deleted move %operator=" @ "class templates \
+			%(unique_lock, shared_lock) without check enabled" $since b723
+	)
+),
+
+b723
 (
 	/ %YFramework $=
 	(
@@ -252,7 +352,7 @@ b721
 					/ @ "functions %(FullRead, FullWrite, Read, Write)" $=
 					(
 						+ "assertion to ensure file descriptor is not '-1'",
-						+ "assertion to ensure nonnull pointers"
+						+ "assertion to ensure nonnull pointer"
 					),
 					+ "functions %(lock, lock_shared, try_lock, \
 						try_lock_shared, unlock, unlocked_shared)"
@@ -2594,7 +2694,7 @@ b701
 				),
 				/ @ "functions %HaveSameContents" $=
 				(
-					+ "overloading for 'const char16_t*' pathname parameters",
+					+ "overload for 'const char16_t*' pathname parameters",
 					* $re_add(b560) "directory with other file system category \
 						not recognized as directory" $since b658
 					(

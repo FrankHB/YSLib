@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r576
+\version r578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2016-07-30 19:43 +0800
+	2016-08-27 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,11 +93,11 @@ GUIHost::GUIHost()
 		make_unique<Windows::UI::ControlView>(::GetDesktopWindow()));
 	Desktop.SetRenderer(make_unique<UI::PseudoRenderer>());
 #endif
-	YCL_Trace(Debug, "GUI host lifetime began.");
+	YF_Trace(Debug, "GUI host lifetime began.");
 }
 GUIHost::~GUIHost()
 {
-	YCL_Trace(Debug, "GUI host lifetime ended.");
+	YF_Trace(Debug, "GUI host lifetime ended.");
 
 #	if YF_Hosted && !YCL_Android
 	using ystdex::get_value;

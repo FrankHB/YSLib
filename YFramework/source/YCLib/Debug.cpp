@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r737
+\version r739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-12-19 20:36 +0800
+	2016-08-28 15:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -294,7 +294,7 @@ LogAssert(const char* expr_str, const char* file, int line,
 	}
 	catch(...)
 	{
-		YCL_TraceRaw(Descriptions::Emergent, "Unknown exception found.");
+		YF_TraceRaw(Descriptions::Emergent, "Unknown exception found.");
 		ystdex::yassert(expr_str, file, line, msg);
 	}
 #		endif

@@ -11,13 +11,13 @@
 /*!	\file YException.cpp
 \ingroup Core
 \brief 异常处理模块。
-\version r376
+\version r381
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2016-06-13 15:22 +0800
+	2016-08-28 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,14 +58,14 @@ void
 TraceException(const char* str, RecordLevel lv, size_t level) ynothrow
 {
 	TryExpr(
-		YCL_TraceRaw(lv, "%s%s", std::string(level, ' ').c_str(), Nonnull(str)))
-	CatchExpr(..., YCL_TraceRaw(Critical, "Failure @ TraceException."))
+		YF_TraceRaw(lv, "%s%s", std::string(level, ' ').c_str(), Nonnull(str)))
+	CatchExpr(..., YF_TraceRaw(Critical, "Failure @ TraceException."))
 }
 
 void
 TraceExceptionType(const std::exception& e, RecordLevel lv) ynothrow
 {
-	YCL_TraceRaw(lv, "Caught std::exception[%s].", typeid(e).name());
+	YF_TraceRaw(lv, "Caught std::exception[%s].", typeid(e).name());
 }
 
 void
@@ -82,7 +82,6 @@ ExtractException(const ExtractedLevelPrinter& print, const std::exception& e,
 	TryExpr(print(e.what(), lv, level))
 	CatchExpr(..., print("Exception occurred when printing @ ExtractException.",
 		Critical, level))
-	// FIXME: Following code only tested OK for %YCL_Win32.
 	TryExpr(ystdex::handle_nested(e,
 		[&, lv, level](std::exception& ex) ynothrow{
 		ExtractException(print, ex, lv, level + 1);
@@ -101,7 +100,7 @@ TryExecute(std::function<void()> f, const char* desc, RecordLevel lv,
 		catch(...)
 		{
 			if(desc)
-				YCL_TraceRaw(Notice, "Exception filtered: %s.", desc);
+				YF_TraceRaw(Notice, "Exception filtered: %s.", desc);
 			throw;
 		}
 		return {};

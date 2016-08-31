@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4082
+\version r4084
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2016-08-22 10:50 +0800
+	2016-08-29 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,7 +258,7 @@ WriteLEVal(SectorCache& cache, std::uint32_t value, ::sec_t sec, size_t offset)
 void
 CheckThrowEIO(bool b) ythrow(system_error)
 {
-	if(!YB_UNLIKELY(b))
+	if(YB_UNLIKELY(!b))
 		throw_error(errc::io_error);
 }
 
@@ -266,7 +266,7 @@ CheckThrowEIO(bool b) ythrow(system_error)
 void
 CheckThrowENOSPC(bool b) ythrow(system_error)
 {
-	if(!YB_UNLIKELY(b))
+	if(YB_UNLIKELY(!b))
 		throw_error(errc::no_space_on_device);
 }
 

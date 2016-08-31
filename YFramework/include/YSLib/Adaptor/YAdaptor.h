@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1962
+\version r1976
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-08-17 23:00 +0800
+	2016-08-30 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,18 +39,19 @@
 //	ystdex::seq_apply, ystdex::unseq_apply;
 #include YFM_YCLib_Keys // for platform::basic_types, mandated <bitset>,
 //	YCLib key space;
-#include YFM_YCLib_Debug // for <array>, <deque>, <forward_list>, <istream>,
-//	<ostream>, <queue>, <set>, <stack>, <unordered_map>, <unordered_set>,
-//	YFM_YCLib_Container, <vector>, '*string_view', forward_as_tuple, get,
-//	ignore, make_pair, make_tuple, pair, tie, tuple, tuple_cat, size;
 #include YFM_YCLib_Timer
-#include YFM_YCLib_FileIO // for uopen, 'uf*', 'up*', etc;
-#include YFM_YCLib_FileSystem
-#include YFM_YCLib_Video // for MonoType, AlphaType, Color;
 #include YFM_YCLib_Mutex // for ystdex::noncopyable, ystdex::nonmovable,
 //	Threading, Concurrency;
+#include YFM_YCLib_FileIO // for <array>, <deque>, <forward_list>, <istream>,
+//	<ostream>, <queue>, <set>, <stack>, <unordered_map>, <unordered_set>,
+//	YFM_YCLib_Container, <vector>, forward_as_tuple, '*string_view', get,
+//	ignore, make_pair, make_tuple, pair, tie, tuple, tuple_cat, size, uopen,
+//	'uf*', 'up*', etc;
 #include YFM_YCLib_Reference // for <memory>, '*_ptr', 'make*_ptr',
 //	lref;
+#include YFM_YCLib_FileSystem
+#include YFM_YCLib_MemoryMapping // for MappedFile;
+#include YFM_YCLib_Video // for MonoType, AlphaType, Color;
 
 /*!
 \brief YSLib 命名空间。
@@ -303,6 +304,8 @@ using platform::wfstream;
 //@}
 //! \since build 713
 using platform::FetchCurrentWorkingDirectory;
+//! \since build 724
+using platform::MappedFile;
 //@}
 
 //系统处理函数。

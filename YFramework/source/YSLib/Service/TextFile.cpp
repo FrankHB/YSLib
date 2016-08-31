@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1346
+\version r1358
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2016-06-19 19:28 +0800
+	2016-08-29 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,6 +68,19 @@ VerifyEncoding(std::istream& stream, char* s, size_t buflen, size_t txt_len,
 	return CharSet::Null;
 }
 
+bool
+CheckBOM(std::istream& is, string_view str)
+{
+	const auto len(str.length());
+	// NOTE: Max allowed size in all BOMs is needed.
+	array<char, 4> buf;
+
+	YAssert(len <= 4, "BOM length is too long.");
+	is.read(buf.data(), std::streamsize(len));
+	return is.gcount() == std::streamsize(len)
+		? CheckBOM(buf.data(), str.data(), len) : false;
+}
+
 pair<Encoding, size_t>
 DetectBOM(const char* buf)
 {
@@ -88,7 +101,7 @@ DetectBOM(string_view sv)
 {
 	YAssertNonnull(sv.data());
 #define YSL_Impl_DetectBOM(_n) \
-	if(sv.size() >= size(BOM_##_n) - 1 && CheckBOM(sv.data(), BOM_##_n)) \
+	if(sv.length() >= size(BOM_##_n) - 1 && CheckBOM(sv.data(), BOM_##_n)) \
 		return {CharSet::_n, size(BOM_##_n) - 1};
 	YSL_Impl_DetectBOM(UTF_32LE)
 	YSL_Impl_DetectBOM(UTF_32BE)

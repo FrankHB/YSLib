@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1045
+\version r1049
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2016-08-11 05:27 +0800
+	2016-08-29 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,9 +113,9 @@ FileSystem::FileSystem(size_t pages)
 			//	This is also the minimal value used by the cache. So the shift
 			//	is 3.
 			TryRet(platform_ex::FAT::Mount(name, disc_io, 0, pages, 3))
-			CatchExpr(std::exception& e, YCL_TraceRaw(Warning,
+			CatchExpr(std::exception& e, YF_TraceRaw(Warning,
 				"FATMount failure[%s]: %s", typeid(e).name(), e.what()))
-			CatchExpr(..., YCL_TraceRaw(Emergent,
+			CatchExpr(..., YF_TraceRaw(Emergent,
 				"Unknown exception found @ InitializeFileSystem."))
 			return {};
 		});
@@ -147,8 +147,8 @@ FileSystem::FileSystem(size_t pages)
 
 FileSystem::~FileSystem()
 {
-	if(!YB_UNLIKELY(FAT::Unmount(init_dev)))
-		YCL_TraceRaw(Err, "Failed uninitializing file system.");
+	if(YB_UNLIKELY(!FAT::Unmount(init_dev)))
+		YF_TraceRaw(Err, "Failed uninitializing file system.");
 }
 
 } // namespace platform_ex;
