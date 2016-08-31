@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3172
+\version r3272
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-08-27 01:36 +0800
+	2016-08-31 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,6 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_Initialization // for ystdex::replace_cast;
-#include YFM_YCLib_MemoryMapping // for MappedFile;
 #include YFM_YSLib_Core_YException // for ExtractException, ExtractAndTrace;
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
 #include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
@@ -43,7 +42,6 @@
 #	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset,
 //	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS;
 #endif
-#include <ystdex/streambuf.hpp> // for ystdex::membuf;
 
 using namespace ystdex;
 using namespace platform;
@@ -243,73 +241,18 @@ WriteNPLA1Stream(std::ostream& os, NPL::Configuration&& conf)
 	ystdex::write_literal(os, Text::BOM_UTF_8) << std::move(conf);
 }
 
-//! \since build 693
-void
-CreateDefaultNPLA1ForStream(std::ostream& os, ValueNode(*creator)())
-{
-	WriteNPLA1Stream(os, creator());
-}
-
+//! \since build 724
 ValueNode
-TryReadNPLStream(std::istream& is)
+TryReadRawNPLStream(std::istream& is)
 {
-	array<char, 3> buf;
+	NPL::Configuration conf;
 
-	is.read(buf.data(), 3);
-	if(Text::CheckBOM(buf.data(), Text::BOM_UTF_8))
-	{
-		NPL::Configuration conf;
-
-		is >> conf;
-		YTraceDe(Debug, "Plain configuration loaded.");
-		if(!conf.GetNodeRRef().empty())
-			return conf.GetNodeRRef();
-		YTraceDe(Warning, "Empty configuration found.");
-		throw GeneralEvent("Invalid file found when reading configuration.");
-	}
-	else
-		throw GeneralEvent("Wrong encoding of configuration file.");
-}
-
-//! \since build 711
-ValueNode
-LoadNPLA1InMemory(ValueNode(*creator)())
-{
-	std::stringstream ss;
-
-	CreateDefaultNPLA1ForStream(ss, creator);
-	return TryReadNPLStream(ss);
-}
-
-YB_NONNULL(1, 2) bool
-CreateDefaultNPLA1File(const char* disp, const char* path,
-	ValueNode(*creator)(), bool show_info)
-{
-	YAssertNonnull(disp),
-	YAssertNonnull(path);
-	if(show_info)
-		YTraceDe(Notice, "Creating %s '%s'...", disp, path);
-	if(creator)
-	{
-		YTraceDe(Debug, "Creator found.");
-
-		ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
-
-		// XXX: Failed on race condition detected.
-		UniqueFile ufile(uopen(path, omode_conv(std::ios_base::out
-			| std::ios_base::trunc | platform::ios_noreplace)));
-		IndirectLockGuard<const UniqueFile> lck(ufile);
-
-		if(ofstream ofs{std::move(ufile)})
-		{
-			CreateDefaultNPLA1ForStream(ofs, creator);
-			YTraceDe(Debug, "Created configuration.");
-			return {};
-		}
-		YTraceDe(Warning, "Cannot create file, possible error (from errno)"
-			" = %d: %s.", errno, std::strerror(errno));
-	}
-	return true;
+	is >> conf;
+	YTraceDe(Debug, "Plain configuration loaded.");
+	if(!conf.GetNodeRRef().empty())
+		return conf.GetNodeRRef();
+	YTraceDe(Warning, "Empty configuration found.");
+	throw GeneralEvent("Invalid stream found when reading configuration.");
 }
 
 } // unnamed namespace;
@@ -350,40 +293,51 @@ ValueNode
 LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	bool show_info)
 {
-	if(!ufexists(path))
-	{
-		YTraceDe(Debug, "Path '%s' access failed.", path);
-		if(CreateDefaultNPLA1File(disp, path, creator, show_info))
+	auto res(TryInvoke([=]() -> ValueNode{
+		if(!ufexists(path))
 		{
-			YTraceDe(Warning, "Creating default file failed,"
-				" trying fallback in memory...");
-			return LoadNPLA1InMemory(creator);
+			YTraceDe(Debug, "Path '%s' access failed.", path);
+			if(show_info)
+				YTraceDe(Notice, "Creating %s '%s'...", disp, path);
+
+			ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
+
+			// XXX: Failed on race condition detected.
+			if(UniqueLockedOutputFileStream uofs{path, std::ios_base::out
+				| std::ios_base::trunc | platform::ios_noreplace})
+				WriteNPLA1Stream(uofs, Nonnull(creator)());
+			else
+			{
+				YTraceDe(Warning, "Cannot create file, possible error"
+					" (from errno) = %d: %s.", errno, std::strerror(errno));
+				YTraceDe(Warning,"Creating default file failed.");
+				return {};
+			}
+			YTraceDe(Debug, "Created configuration.");
 		}
-	}
-	if(show_info)
-		YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
-
-	// XXX: Race condition may cause failure, though file would not be
-	//	corrupted now.
-	auto res(TryInvoke([&]() -> ValueNode{
-		MappedFile mfile(path);
-		SharedIndirectLockGuard<const UniqueFile> lck(mfile.GetUniqueFile());
-		ystdex::membuf mbuf(ystdex::replace_cast<const char*>(mfile.GetPtr()),
-			mfile.GetSize());
-
-		if(std::istream is{&mbuf})
+		if(show_info)
+			YTraceDe(Notice, "Found %s '%s'.", Nonnull(disp), path);
+		// XXX: Race condition may cause failure, though file would not be
+		//	corrupted now.
+		if(SharedInputMappedFileStream sifs{path})
 		{
 			YTraceDe(Debug, "Found accessible configuration file.");
-			return TryReadNPLStream(is);
+			if(Text::CheckBOM(sifs, Text::BOM_UTF_8))
+				return TryReadRawNPLStream(sifs);
+			YTraceDe(Warning, "Wrong encoding of configuration file.");
 		}
+		YTraceDe(Err, "Configuration corrupted.");
 		return {};
 	}));
 
 	if(res)
 		return res;
-	YTraceDe(Warning, "Newly created configuration corrupted,"
-		" trying fallback in memory...");
-	return LoadNPLA1InMemory(creator);
+	YTraceDe(Notice, "Trying fallback in memory...");
+
+	std::stringstream ss;
+
+	ss << Nonnull(creator)();
+	return TryReadRawNPLStream(ss);
 }
 
 void
@@ -465,14 +419,11 @@ LoadConfiguration(bool show_info)
 void
 SaveConfiguration(const ValueNode& node)
 {
-	UniqueFile ufile(uopen(CONF_PATH,
-		omode_conv(std::ios_base::out | std::ios_base::trunc)));
-	IndirectLockGuard<const UniqueFile> lck(ufile);
-
-	if(ofstream ofs{std::move(ufile)})
+	if(UniqueLockedOutputFileStream
+		uofs{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
 	{
 		YTraceDe(Debug, "Writing configuration...");
-		WriteNPLA1Stream(ofs, ValueNode(node.GetContainer()));
+		WriteNPLA1Stream(uofs, ValueNode(node.GetContainer()));
 	}
 	else
 		throw GeneralEvent("Invalid file found when writing configuration.");

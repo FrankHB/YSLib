@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r615
+\version r618
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2016-08-27 15:04 +0800
+	2016-08-28 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,14 +135,14 @@ using ExceptionTracer = GLevelTracer<const std::exception&>;
 
 
 /*!
-\brief 通过 YCL_TraceRaw 跟踪带空格缩进层次的异常信息的函数类型。
+\brief 通过 YF_TraceRaw 跟踪带空格缩进层次的异常信息的函数类型。
 \pre 断言：第一参数非空。
 */
 YF_API YB_NONNULL(1) void
 TraceException(const char*, RecordLevel = Err, size_t level = 0) ynothrow;
 
 /*!
-\brief 通过 YCL_TraceRaw 跟踪记录异常类型。
+\brief 通过 YF_TraceRaw 跟踪记录异常类型。
 \since build 658
 \todo 处理类型名称。
 */
@@ -187,7 +187,7 @@ TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 {
 	TryRet(ystdex::invoke_nonvoid(yforward(f), yforward(args)...))
 	CatchExpr(std::exception& e, ExtractAndTrace(e, Emergent))
-	CatchExpr(..., YCL_TraceRaw(Emergent, "Unknown exception found."))
+	CatchExpr(..., YF_TraceRaw(Emergent, "Unknown exception found."))
 	return {};
 }
 

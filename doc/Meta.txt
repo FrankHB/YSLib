@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1514
+\version r1529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2016-06-08 06:59 +0800
+	2016-08-29 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,18 +50,11 @@ __unfold __iterators.for_labeled_paragraph
 // See "ex.cpp" for escaped abbreviation schema.
 
 $parser.state.style $= $natral_NPL;
+$list_param.default_separator $= ',';
 
 // External expressions.
 $lambda(_params)(...); // the lambda abstraction form;
 $map(_f); // the 'map' higher order function;
-
-// Parameters:
-$inum; // issue number token, i.e. '#*';
-$inum_list; // issue number list: one or more issue number tokens;
-$rev; // revision token, e.g. 'b*';
-$rev_list; // revision list: one or more revision tokens;
-$spec; // spec token, including revision token or other documentation materials;
-$spec_list; // specs list: one or more spec tokens;
 
 // Abstract operations for dependencies:
 $dep_from; // take evaluation dependence from;
@@ -74,7 +67,16 @@ $forced; // modification mandated otherwise cause bugs (esp. ill-formed \
 $label; // label for locating in code portions;
 $orig; // original source;
 $redundant; // redundant dependencies;
-$since; // first revision involved;
+$since; // first revision involved, composing a revision signature;
+
+// Parameters:
+$inum; // issue number token, i.e. '#*';
+$inum_list; // issue number list: one or more issue number tokens;
+$rev; // revision token, e.g. 'b*';
+$rev_list; // revision list: one or more revision tokens;
+$spec; // spec token, including documentation module name or other \
+	documentation materials, with optional revision token or revision signature;
+$spec_list; // specs list: one or more spec tokens;
 
 // Project stakeholders:
 $dev; // issues concerned by developers, which end-users of the product can \
@@ -94,7 +96,7 @@ $src; // issues known to break public ABI but remain source compatibility;
 // Project usage:
 $build; // issues on build, such as build scripts and diagnostic messages;
 $install; // issues on installing;
-$deploy; // issues on deployment(including build environment requirement);
+$deploy; // issues on deployment (including build environment requirements);
 $debug; // issues on debugging;
 
 // Project contents:
@@ -102,7 +104,9 @@ $comp; // features consist of dependencies with no additional work;
 $doc; // for documentation target;
 $fmt; // for coding format;
 $mismatch($spec_list...); // for inconsistency between design and specs;
-$impl; // for being used as placeholder of implementation parts;
+$impl; // for being used as placeholder of implementation parts, \
+	which may not be observer behavior or features exposed by interface by \
+	design;
 $repo; // for repositories of version control system;
 $term; // for terminology;
 

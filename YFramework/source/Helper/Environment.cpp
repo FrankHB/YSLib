@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1873
+\version r1876
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2016-07-25 10:19 +0800
+	2016-08-31 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ Environment::Environment(Application& app)
 			std::fflush(stderr);
 		}
 	});
-	TryExpr(app.AddExit(ystdex::any(ystdex::any_ops::in_place_t<FileSystem>())))
+	TryExpr(app.AddExit(ystdex::any(ystdex::in_place<FileSystem>)))
 	// TODO: Use 'std::throw_with_nested'?
 	CatchThrow(..., FatalError(
 		"         LibFAT Failure         ",
@@ -133,7 +133,7 @@ Environment::Environment(Application& app)
 			Root = PackNodes(string(), std::move(Root));
 		LoadComponents(app, AccessNode(Root, "YFramework"));
 		YTraceDe(Notice, "Check of installation succeeded.");
-		YCL_Trace(Debug, "Environment lifetime began.");
+		YF_Trace(Debug, "Environment lifetime began.");
 		return;
 	}
 	CatchExpr(std::exception& e, ExtractInitException(e, res))
@@ -144,7 +144,7 @@ Environment::Environment(Application& app)
 }
 Environment::~Environment()
 {
-	YCL_Trace(Debug, "Environment lifetime ended.");
+	YF_Trace(Debug, "Environment lifetime ended.");
 }
 
 } // namespace YSLib;

@@ -11,13 +11,13 @@
 /*!	\file File.cpp
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r685
+\version r703
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2016-08-12 18:40 +0800
+	2016-08-31 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,30 @@ OpenFile(const char* filename, int omode, mode_t pmode)
 		ystdex::throw_error(errno, "Failed opening file '" + string(filename)
 			+ "'.");
 }
+
+
+SharedInputMappedFileStream::SharedInputMappedFileStream(const char* path)
+	: MappedFile(path), SharedIndirectLockGuard<const UniqueFile>(
+	GetUniqueFile()), ystdex::membuf(ystdex::replace_cast<const char*>(
+	GetPtr()), GetSize()), std::istream(this)
+{}
+
+ImplDeDtor(SharedInputMappedFileStream)
+
+
+UniqueLockedOutputFileStream::UniqueLockedOutputFileStream(int fd)
+	: ofstream(UniqueFile(fd)), desc(fd), lock()
+{
+	if(*this)
+		lock = unique_lock<FileDescriptor>(desc);
+}
+UniqueLockedOutputFileStream::UniqueLockedOutputFileStream(UniqueFile ufile)
+	: UniqueLockedOutputFileStream(*ufile.get())
+{
+	ufile.release();
+}
+
+ImplDeDtor(UniqueLockedOutputFileStream)
 
 } // namespace IO;
 

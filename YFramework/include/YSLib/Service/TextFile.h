@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r993
+\version r1024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2016-05-19 19:50 +0800
+	2016-08-29 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,21 +68,48 @@ yconstexpr const char BOM_UTF_32LE[]{"\xFF\xFE\x00\x00"};
 yconstexpr const char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 //@}
 
+//! \brief 检查第一参数是否具有指定的 BOM 。
+//@{
 /*!
-\brief 检查缓冲区是否具有指定的 BOM 。
-\pre 指针参数非空。
+\pre 间接断言：指针参数非空。
 \since build 619
 */
 //@{
 inline YB_NONNULL(1, 2) PDefH(bool, CheckBOM, const char* buf, const char* str,
 	size_t n)
-	ImplRet(std::char_traits<char>::compare(buf, str, n) == 0)
+	ImplRet(std::char_traits<char>::compare(Nonnull(buf), str, n) == 0)
 template<size_t _vN>
 inline YB_NONNULL(1) bool
 CheckBOM(const char* buf, const char(&str)[_vN])
 {
 	return CheckBOM(buf, str, _vN - 1);
 }
+//@}
+//! \since build 724
+//@{
+//! \pre 间接断言：参数的数据指针非空。
+template<size_t _vN>
+inline bool
+CheckBOM(string_view sv, const char(&str)[_vN])
+{
+	return !(sv.length() < _vN - 1) && CheckBOM(sv.data(), str, _vN - 1);
+}
+/*!
+\pre 断言：第二参数表示的字符数不超过最长的 BOM 长度。
+\note 不检查读写位置，直接读取流然后检查读取的内容。
+*/
+//@{
+//! \pre 断言：参数的数据指针非空。
+YF_API bool
+CheckBOM(std::istream&, string_view);
+template<size_t _vN>
+inline bool
+CheckBOM(std::istream& is, const char(&str)[_vN])
+{
+	return CheckBOM(is, {str, _vN - 1});
+}
+//@}
+//@}
 //@}
 
 //! \brief 探测 BOM 和编码。

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13967
+\version r13974
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2016-08-01 13:33 +0800
+	2016-08-28 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,10 +207,11 @@ YCL_DeclCheck_t(_fn, _call)
 }
 $header Debug
 {
-YCL_Log
-YCL_Trace
-YCL_Use_TraceSrc
-YTraceDe
+YCL_Log(_lv, ...)
+YF_TraceRaw(_lv, ...)
+YF_Trace(_lv, ...)
+#YCL_Use_TraceSrc
+YTraceDe(_lv, ...)
 }
 $header NativeAPI
 {
@@ -888,6 +889,8 @@ $options $intended $warning $impl(!"g++", "clang++") $=
 	Wpotentially-evaluated-expression
 	Wshorten-64-to-32
 	Wweak-vtables
+		// Inline destructors can also cause linking failure in GCC. It is \
+			likely a bug.
 ]],
 $options $TBD $=
 [[
