@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1633
+\version r1639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-08-23 10:55 +0800
+	2016-09-03 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,12 +241,6 @@ enum class OpenMode : int
 	YCL_Impl_OMode_POSIX(ReadSynchronized, RSYNC),
 #endif
 	YCL_Impl_OMode_POSIX(Synchronized, SYNC),
-	// NOTE: On GNU/Hurd %O_ACCMODE can be zero.
-#if O_ACCMODE
-	YCL_Impl_OMode_POSIX(AccessMode, ACCMODE),
-#else
-	AccessMode = Read | Write | ReadWrite,
-#endif
 #if O_EXEC
 	YCL_Impl_OMode_POSIX(Execute, EXEC),
 #endif
@@ -265,6 +259,12 @@ enum class OpenMode : int
 	Raw = Binary,
 	ReadRaw = Read | Raw,
 	ReadWriteRaw = ReadWrite | Raw,
+	// NOTE: On GNU/Hurd %O_ACCMODE can be zero.
+#if O_ACCMODE
+	YCL_Impl_OMode_POSIX(AccessMode, ACCMODE),
+#else
+	AccessMode = Read | Write | ReadWrite,
+#endif
 	YCL_Impl_OMode_Win32(WText, WTEXT),
 	YCL_Impl_OMode_Win32(U16Text, U16TEXT),
 	YCL_Impl_OMode_Win32(U8Text, U8TEXT),

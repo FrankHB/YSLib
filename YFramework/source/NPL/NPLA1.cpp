@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1179
+\version r1194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-06-01 09:48 +0800
+	2016-09-04 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,6 +246,23 @@ SetupTraceDepth(ContextNode& root, const string& name)
 		});
 	}
 	);
+}
+
+
+bool
+RewriteLiteral(TermNode& term, ContextNode& ctx, const string& id)
+{
+	if(auto v = FetchValue(ctx, id))
+	{
+		term.Value = std::move(v);
+		if(const auto p_handler
+			= AccessPtr<LiteralHandler>(term))
+			return (*p_handler)(ctx);
+	}
+	else
+		throw UndeclaredIdentifier(ystdex::sfmt(
+			"Undeclared identifier '%s' found", id.c_str()));
+	return {};
 }
 
 

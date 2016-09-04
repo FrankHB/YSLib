@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r597
+\version r602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-08-23 10:51 +0800
+	2016-09-03 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -261,12 +261,10 @@ FetchCommandOutput(const char* cmd, size_t buf_size)
 YSLib::locked_ptr<CommandCache>
 LockCommandCache()
 {
-	struct cmd_cache_tag
-	{};
+	static CommandCache cache;
 	static YSLib::mutex mtx;
 
-	return {&ystdex::parameterize_static_object<CommandCache, cmd_cache_tag>(),
-		mtx};
+	return {&cache, mtx};
 }
 
 const string&
@@ -412,7 +410,7 @@ Terminal::Guard::~Guard()
 {
 	if(terminal)
 		FilterExceptions([this]{
-			if(!YB_LIKELY(terminal.p_term->RestoreAttributes()))
+			if(YB_UNLIKELY(!terminal.p_term->RestoreAttributes()))
 				throw LoggedEvent("Restoring terminal attributes failed.");
 		});
 }

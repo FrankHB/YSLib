@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r495
+\version r502
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-08-23 08:17 +0800
+	2016-09-03 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,9 +144,13 @@ MappedFile::MappedFile(UniqueFile f, FileMappingOption opt, FileMappingKey key)
 {}
 MappedFile::MappedFile(const char* path, FileMappingOption opt,
 	FileMappingKey key)
-	: MappedFile(UniqueFile(uopen(path, int((opt == FileMappingOption::ReadOnly
-		? OpenMode::Read : OpenMode::ReadWrite) | OpenMode::Binary)
-	)), opt, key)
+	: MappedFile([&]{
+		if(UniqueFile ufile{uopen(path, int((opt == FileMappingOption::ReadOnly
+			? OpenMode::Read : OpenMode::ReadWrite) | OpenMode::Binary)
+		)})
+			return ufile;
+		YCL_Raise_SysE(, "Failed opening file", yfsig);
+	}(), opt, key)
 {}
 MappedFile::~MappedFile()
 {

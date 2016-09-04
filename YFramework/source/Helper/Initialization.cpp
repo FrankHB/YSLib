@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3272
+\version r3447
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-08-31 13:08 +0800
+	2016-09-05 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,18 +26,18 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Initialization // for ystdex::replace_cast;
+#include YFM_Helper_Initialization // for ystdex::nptr;
 #include YFM_YSLib_Core_YException // for ExtractException, ExtractAndTrace;
 #include YFM_CHRLib_MappingEx // for CHRLib::cp113_lkp;
 #include YFM_YSLib_Service_TextFile // for Text::BOM_UTF_8, Text::CheckBOM;
 #include YFM_NPL_Configuration // for NPL::Configuration;
-#include YFM_Helper_Environment // for Environment::AddExitGuard;
 #include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
 #include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 #include <cerrno> // for errno;
 #include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
-#include YFM_Helper_GUIApplication // for FetchEnvironment;
-//#include <clocale>
+#include YFM_Helper_GUIApplication // for FetchEnvironment, FetchAppInstance,
+//	Application::AddExit, Application::AddExitGuard;
+#include YFM_Helper_Environment // for Environment;
 #if YCL_Win32
 #	include YFM_Win32_YCLib_NLS // for platform_ex::FetchDBCSOffset,
 //	platform_ex::WCSToUTF8, platform_ex::UTF8ToWCS;
@@ -201,6 +201,7 @@ inline PDefH(string, FetchSystemFontDirectory_Win32, )
 #	define DEF_FONT_DIRECTORY DATA_DIRECTORY
 #endif
 
+#if !CHRLib_NoDynamic_Mapping
 //! \since build 712
 MappedFile
 LoadMappedModule(const string& path)
@@ -211,27 +212,79 @@ LoadMappedModule(const string& path)
 	YAssert(false, "Unreachable control found.");
 }
 
-#if YCL_Win32
-//! \since build 641
-char16_t(*cp113_lkp_backup)(byte, byte);
+#	if YCL_Win32
 //! \since build 552
-//@{
 const unsigned short* p_dbcs_off_936;
+#	endif
 
-void
-LoadCP936_NLS()
+//! \since build 725
+class CMap final
 {
-	using namespace platform_ex;
+private:
+	MappedFile mapped{};
+#	if YCL_Win32
+	ystdex::nptr<char16_t(*)(byte, byte)> cp113_lkp_backup = {};
+#	endif
 
-	if((p_dbcs_off_936 = FetchDBCSOffset(936)))
+public:
+	CMap(const string& data_dir)
 	{
-		cp113_lkp_backup = CHRLib::cp113_lkp;
-		CHRLib::cp113_lkp = [](byte seq0, byte seq1) ynothrowv -> char16_t{
-			return p_dbcs_off_936[p_dbcs_off_936[seq0] + seq1];
-		};
+		const string mapping_name(data_dir + "cp113.bin");
+
+		YTraceDe(Notice, "Loading character mapping file '%s' ...",
+			mapping_name.c_str());
+		try
+		{
+			mapped = LoadMappedModule(data_dir + "cp113.bin");
+			if(mapped.GetSize() != 0)
+				CHRLib::cp113 = mapped.GetPtr();
+			else
+				throw GeneralEvent("Failed loading CHRMapEx.");
+			YTraceDe(Notice, "CHRMapEx loaded successfully.");
+		}
+		catch(std::exception& e)
+		{
+			YTraceDe(Notice, "Module cp113.bin loading failed, error: %s",
+				e.what());
+#	if YCL_Win32
+			if((p_dbcs_off_936 = platform_ex::FetchDBCSOffset(936)))
+			{
+				cp113_lkp_backup = CHRLib::cp113_lkp;
+				CHRLib::cp113_lkp = [](byte seq0, byte seq1) ynothrowv
+					-> char16_t{
+					return p_dbcs_off_936[p_dbcs_off_936[seq0] + seq1];
+				};
+			}
+			if(p_dbcs_off_936)
+				YTraceDe(Notice, "NLS CP936 used as fallback.");
+			else
+#	endif
+			{
+				CHRLib::cp113_lkp = [](byte, byte) YB_ATTR(noreturn)
+					-> char16_t{
+					throw
+						LoggedEvent("Failed calling conversion for CHRMapEx.");
+				};
+				YTraceDe(Warning, "CHRMapEx conversion calls would lead to"
+					" exception thrown.");
+			}
+		}
 	}
-}
-//@}
+	~CMap()
+	{
+#	if YCL_Win32
+		if(cp113_lkp_backup)
+			CHRLib::cp113_lkp = cp113_lkp_backup.get();
+#	endif
+		if(mapped)
+		{
+			mapped = MappedFile();
+			YTraceDe(Notice, "Character mapping deleted.");
+		}
+	}
+
+	DefDeMoveCtor(CMap)
+};
 #endif
 
 //! \since build 721
@@ -255,15 +308,49 @@ TryReadRawNPLStream(std::istream& is)
 	throw GeneralEvent("Invalid stream found when reading configuration.");
 }
 
+//! \since build 725
+template<typename _type, typename _fLoader, typename _func>
+_type&
+FetchDefaultResource(_fLoader load, _func f)
+{
+	static mutex mtx;
+	static observer_ptr<_type> p_res;
+	lock_guard<mutex> lck(mtx);
+
+	if(YB_UNLIKELY(!p_res))
+	{
+		// TODO: Simplify?
+		const auto p_locked(FetchAppInstance().LockAddExit(load()));
+
+		p_res = make_observer(&f(FetchEnvironment().Root["YFramework"],
+			*p_locked));
+	}
+#if YCL_DS
+	// XXX: Actually this should be set after %InitVideo call.
+	ShowInitializedLog = {};
+#endif
+	return *p_res;
+}
+
 } // unnamed namespace;
 
 void
-ExtractInitException(const std::exception& e, string& res) ynothrow
+InitializeKeyModule(std::function<void()> f, const char* sig,
+	const char* t, string_view sv)
 {
-	ExtractException(
+	string res;
+
+	try
+	{
+		f();
+		return;
+	}
+	CatchExpr(std::exception& e, ExtractException(
 		[&](const string& str, RecordLevel, size_t level){
 		res += string(level, ' ') + "ERROR: " + str + '\n';
-	}, e);
+	}, e))
+	CatchExpr(..., res += string("Unknown exception @ ") + sig + ".\n")
+	throw FatalError(t, sv.to_string() + res);
 }
 
 void
@@ -321,10 +408,10 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 		//	corrupted now.
 		if(SharedInputMappedFileStream sifs{path})
 		{
-			YTraceDe(Debug, "Found accessible configuration file.");
+			YTraceDe(Debug, "Accessible configuration file found.");
 			if(Text::CheckBOM(sifs, Text::BOM_UTF_8))
 				return TryReadRawNPLStream(sifs);
-			YTraceDe(Warning, "Wrong encoding of configuration file.");
+			YTraceDe(Warning, "Wrong encoding of configuration file found.");
 		}
 		YTraceDe(Err, "Configuration corrupted.");
 		return {};
@@ -354,50 +441,7 @@ LoadComponents(Application& app, const ValueNode& node)
 	else
 		throw GeneralEvent("Empty path loaded.");
 #if !CHRLib_NoDynamicMapping
-
-	static MappedFile mapped;
-	const string mapping_name(data_dir + "cp113.bin");
-
-	YTraceDe(Notice, "Loading character mapping file '%s' ...",
-		mapping_name.c_str());
-	try
-	{
-		mapped = LoadMappedModule(data_dir + "cp113.bin");
-		if(mapped.GetSize() != 0)
-			CHRLib::cp113 = mapped.GetPtr();
-		else
-			throw GeneralEvent("Failed loading CHRMapEx.");
-		YTraceDe(Notice, "CHRMapEx loaded successfully.");
-	}
-	catch(std::exception& e)
-	{
-		YTraceDe(Notice, "Module cp113.bin loading failed, error: %s",
-			e.what());
-#	if YCL_Win32
-		LoadCP936_NLS();
-		if(p_dbcs_off_936)
-			YTraceDe(Notice, "NLS CP936 used as fallback.");
-		else
-#	endif
-		{
-			CHRLib::cp113_lkp = [](byte, byte) YB_ATTR(noreturn) -> char16_t{
-				throw LoggedEvent("Failed calling conversion for CHRMapEx.");
-			};
-			YTraceDe(Warning, "CHRMapEx conversion calls would lead to"
-				" exception thrown.");
-		}
-	}
-	app.AddExitGuard([]() ynothrow{
-#	if YCL_Win32
-		if(cp113_lkp_backup)
-		{
-			CHRLib::cp113_lkp = cp113_lkp_backup;
-			cp113_lkp_backup = {};
-		}
-#	endif
-		mapped = MappedFile();
-		YTraceDe(Notice, "Character mapping deleted.");
-	});
+	app.AddExit(CMap(data_dir));
 #endif
 	YTraceDe(Notice, "Trying entering directory '%s' ...", data_dir.c_str());
 	if(!IO::VerifyDirectory(data_dir))
@@ -438,8 +482,7 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 	string res;
 
 	YTraceDe(Notice, "Loading font files...");
-	try
-	{
+	InitializeKeyModule([&]{
 		size_t loaded(fc.LoadTypefaces(font_file) != 0 ? 1 : 0);
 
 		if(!font_dir.empty())
@@ -473,13 +516,8 @@ InitializeSystemFontCache(FontCache& fc, const string& font_file,
 				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 		else
 			throw GeneralEvent("Setting default font face failed.");
-		return;
-	}
-	CatchExpr(std::exception& e, ExtractInitException(e, res))
-	CatchExpr(..., res += "Unknown exception @ InitializeSystemFontCache.\n")
-	throw FatalError("      Font Caching Failure      ",
-		" Please make sure the fonts are\n"
-		" stored in correct path.\n" + res);
+	}, yfsig, "      Font Caching Failure      ",
+		" Please make sure the fonts are\n stored in correct path.\n");
 }
 
 
@@ -492,48 +530,29 @@ FetchRoot() ynothrow
 Drawing::FontCache&
 FetchDefaultFontCache()
 {
-	static unique_ptr<Drawing::FontCache> p_font_cache;
-
-	if(YB_UNLIKELY(!p_font_cache))
-	{
-		p_font_cache.reset(new Drawing::FontCache());
-		FetchAppInstance().AddExitGuard([&]() ynothrow{
-			p_font_cache.reset();
-		});
-
-		const auto& node(FetchEnvironment().Root["YFramework"]);
-
-		InitializeSystemFontCache(*p_font_cache,
+	return FetchDefaultResource<Drawing::FontCache>([]{
+		return make_unique<Drawing::FontCache>();
+	}, [](ValueNode& node, unique_ptr<Drawing::FontCache>& locked)
+		-> Drawing::FontCache&{
+		InitializeSystemFontCache(*locked,
 			AccessChild<string>(node, "FontFile"),
 			AccessChild<string>(node, "FontDirectory"));
-	}
-#if YCL_DS
-	// XXX: Actually this should be set after %InitVideo call.
-	ShowInitializedLog = {};
-#endif
-	return *p_font_cache;
+		return *locked.get();
+	});
 }
 
 MIMEBiMapping&
 FetchMIMEBiMapping()
 {
-	static unique_ptr<MIMEBiMapping> p_mapping;
-
-	if(YB_UNLIKELY(!p_mapping))
-	{
-		using namespace NPL;
-
-		p_mapping.reset(new MIMEBiMapping());
-		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
-			(AccessChild<string>(FetchEnvironment().Root["YFramework"],
-			"DataDirectory") + "MIMEExtMap.txt").c_str(), []{
+	return FetchDefaultResource<MIMEBiMapping>([]{
+		return MIMEBiMapping();
+	}, [](ValueNode& node, MIMEBiMapping& locked) -> MIMEBiMapping&{
+		AddMIMEItems(locked, LoadNPLA1File("MIME database", (AccessChild<string>
+			(node, "DataDirectory") + "MIMEExtMap.txt").c_str(), []{
 				return A1::LoadNode(SContext::Analyze(NPL::Session(TU_MIME)));
 			}, true));
-		FetchAppInstance().AddExitGuard([&]() ynothrow{
-			p_mapping.reset();
-		});
-	}
-	return *p_mapping;
+		return locked;
+	});
 }
 
 } // namespace YSLib;

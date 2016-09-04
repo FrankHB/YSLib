@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r2950
+\version r3045
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-08-31 19:37 +0800
+	2016-09-05 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,101 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	+ $re_add(b711) $repo "bookmark 'engineering-fault-b710'" @ b717
+		@ "engineering fault bookmarks",
+		// Failed to build for platform %DS.
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ "class template %atomic" @ %Mutex,
+			* "%errno always treated as %std::errc::bad_file_descriptor when \
+				opening file failed" @ "constructor %MappedFile with path \
+				paramater" @ %MemoryMapping $since b719
+				$= (/ DLDI ^ "%YCL_Raise_SysE"),
+			/ DLDI "simplified function %LockCommandCache" @ %Host
+				!^ "%ystdex::parameterize_static_object"
+				// Use of %ystdex::parameterize_static_object is not necessary \
+					here. It is fit where block scope is inconvenient, \
+					otherwise the template parameters usually are to be reused \
+					or publicly known.
+			* "referenced undeclared identifiers" @ "constant-expression"
+				@ "enumerator %AccessMode" @ '!O_ACCMODE'
+				@ "enum class %OpenMode" @ %NativeAPI $since b722
+				$= (/ DLDI "changed enumerator declaration order")
+		),
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				/ "trace strings" @ "function %LoadNPLA1File",
+				/ DLDI "function %LoadComponents" ^ "%Application::AddExit"
+					~ "%Application::AddExitGuard",
+				* $comp "possible race existed in initializing exit guard"
+					$since b425 $dep_from %YSLib.Core.YApplication,
+					// It was also unsafe for CHRLib uninitialization since \
+						earlier versions, but that would not occurred on wrong \
+						use of gloable uninitialization (causing multiple \
+						deletion), so the interface was OK.
+				* "initialization of object after allocation might have race"
+					@ ("function %FetchDefaultFontCache" $since b425,
+					"function %FetchMIMEBiMapping" $since b450) $=
+					(/ DLDI ^ $dep_from ("%LockAddExit" ~ "%AddExitGuard"
+						@ "%Application" @ %YSLib.Core.YApplication)),
+				(
+				/ DLDI "simplified functions \
+					%(FetchDefaultFontCache, FetchMIMEBiMapping)";
+				/ $comp "set log disabled when calling %FetchMIMEBiMapping"
+					@ "platform %DS"
+					// Though this is actually not happened before \
+						%FetchDefaultFontCache is called.
+				),
+				(
+				+ "function %InitializeKeyModule";
+				/ DLDI "simplified function %InitializeKeyModule"
+					^ "%InitializeKeyModule" ~ "%ExtractInitException";
+				- $revert(b690) "function %ExtractInitException" $dep_from
+					("constructor %Environment" @ %Environment)
+				)
+			),
+			/ %GUIApplication $=
+			(
+				/ "supported atomic data members"
+					@ 'YF_Multithread != 1 && YF_Host' @ "class %GUIHost"
+					^ $dep_from ("%atomic" @ %YCLib.Mutex) ~ "%std::atomic",
+				* $doc "Doxygen comment" @ "constructor %GUIApplication" $since
+					b398
+			),
+			/ "supported atomic data members"
+				@ ("class %WindowThread" @ %HostRenderer) ^ $dep_from
+				("%atomic" @ %YCLib.Mutex) ~ "%std::atomic",
+			/ @ "constructor %Environment" @ %Environment $=
+			(
+				/ DLI ^ "%InitializeKeyModule" ~ "%ExtractInitException";
+				+ $comp "recorded detailed message on exception"
+					@ "file system initialization" @ "platform %DS",
+				* $comp "outdated function name" @ "exception message"
+					 $since b690
+			)
+		),
+		/ @ "class %Application" @ %YSLib.Core.YApplication $=
+		(
+			+ "locked guarantee" @ "function templates %(AddExit, AddGuard)",
+			+ "function template %LockAddExit"
+		),
+		+ "function %RewriteLiteral" @ %NPL.NPLA1
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* "ill-formed 'yconstfn'" @ "function template %dismiss with %one_shot \
+			parameter" @ %ScopeGuard $since b702,
+		* "ill-formed move %operator=" @ "class tmeplate %lock_base"
+			@ %PseudoMutex $since b722
+	)
+),
+
+b724
 (
 	/ %YFramework $=
 	(
@@ -2472,7 +2567,7 @@ b703
 					warning: [-Wsign-conversion] on some platforms.
 			/ %FileSystem $=
 			(
-				* "end-of-directory state treated as corruptied state due to \
+				* "end-of-directory state treated as corrupted state due to \
 					wrong %errno handling" @ !"platform %Win32"
 					@ "member function %HDirectory::operator++" $since b701
 					$= (/ "saved and restored %error"

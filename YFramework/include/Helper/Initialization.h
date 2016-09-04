@@ -10,14 +10,14 @@
 
 /*!	\file Initialization.h
 \ingroup Helper
-\brief 程序启动时的通用初始化。
-\version r826
+\brief 框架初始化。
+\version r836
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-08-21 15:24 +0800
+	2016-09-04 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,11 +46,14 @@ extern bool ShowInitializedLog;
 #endif
 
 /*!
-\brief 展开初始化异常。
-\since build 690
+\brief 初始化关键模块。
+\throw FatalError 初始化失败。
+\note 第二参数表示调用签名；后两个参数用于抛出异常。
+\since build 725
 */
 YF_API void
-ExtractInitException(const std::exception&, string&) ynothrow;
+InitializeKeyModule(std::function<void()>, const char*, const char*,
+	string_view);
 
 /*!
 \brief 处理最外层边界的异常，若捕获致命错误则在之后终止程序。
@@ -71,11 +74,12 @@ TraceForOutermost(const std::exception&, RecordLevel) ynothrow;
 \since build 450
 */
 YF_API YB_NONNULL(1, 2) ValueNode
-LoadNPLA1File(const char* disp, const char* path,
-	ValueNode(*creator)(), bool show_info = {});
+LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
+	bool show_info = {});
 
 /*!
 \brief 初始化应用程序组件。
+\throw GeneralEvent 嵌套异常：加载失败。
 \since build 693
 */
 YF_API void

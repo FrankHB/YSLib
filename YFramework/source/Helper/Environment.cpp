@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1876
+\version r1893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2016-08-31 19:23 +0800
+	2016-09-04 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_Environment
 #include YFM_Helper_Initialization // for InitializeEnvironment,
-//	ShowInitializedLog, LoadComponents, ExtractInitException;
+//	ShowInitializedLog, InitializeKeyModule, LoadComponents;
 #if YCL_DS
 #	include YFM_YCLib_NativeAPI // for ::powerOn, ::defaultExceptionHandler,
 //	platform_ex::InitializeFileSystem;
@@ -77,10 +77,9 @@ Environment::Environment(Application& app)
 			std::fflush(stderr);
 		}
 	});
-	TryExpr(app.AddExit(ystdex::any(ystdex::in_place<FileSystem>)))
-	// TODO: Use 'std::throw_with_nested'?
-	CatchThrow(..., FatalError(
-		"         LibFAT Failure         ",
+	InitializeKeyModule([&]{
+		app.AddExit(ystdex::any(ystdex::in_place<FileSystem>));
+	}, yfsig, "         LibFAT Failure         ",
 		" An error is preventing the\n"
 		" program from accessing\n"
 		" external files.\n"
@@ -98,7 +97,7 @@ Environment::Environment(Application& app)
 		"\n"
 		" Note: Some cards only\n"
 		" autopatch .nds files stored in\n"
-		" the root folder of the card.\n"))
+		" the root folder of the card.\n");
 #elif YCL_Win32
 	TryExpr(FixConsoleHandler())
 	CatchExpr(Win32Exception&,
@@ -113,7 +112,7 @@ Environment::Environment(Application& app)
 				FetchCommonLogger().SetSender(SendDebugString);
 		});
 #endif
-#if 0
+#if false
 	// TODO: Review locale APIs compatibility.
 	static yconstexpr const char locale_str[]{"zh_CN.GBK"};
 
@@ -126,21 +125,15 @@ Environment::Environment(Application& app)
 	string res;
 
 	YTraceDe(Notice, "Checking installation...");
-	try
-	{
+	InitializeKeyModule([&]{
 		Root = LoadConfiguration(true);
 		if(Root.GetName() == "YFramework")
 			Root = PackNodes(string(), std::move(Root));
 		LoadComponents(app, AccessNode(Root, "YFramework"));
 		YTraceDe(Notice, "Check of installation succeeded.");
-		YF_Trace(Debug, "Environment lifetime began.");
-		return;
-	}
-	CatchExpr(std::exception& e, ExtractInitException(e, res))
-	CatchExpr(..., res += "Unknown exception @ InitializeInstalled.\n")
-	throw FatalError("      Invalid Installation      ",
-		" Please make sure the data is\n"
-		" stored in correct directory.\n" + res);
+	}, yfsig, "      Invalid Installation      ",
+		" Please make sure the data is\n stored in correct directory.\n");
+	YF_Trace(Debug, "Environment lifetime began.");
 }
 Environment::~Environment()
 {

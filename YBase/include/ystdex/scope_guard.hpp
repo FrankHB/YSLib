@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r482
+\version r483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-08-08 11:58 +0800
+	2016-09-03 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ dismiss(_type& gd) -> decltype(gd.dismiss())
 	return gd.dismiss();
 }
 template<typename _func, typename _tRes, typename _tState>
-yconstfn void
+inline void
 dismiss(const one_shot<_func, _tRes, _tState>& gd)
 {
 	gd.fresh = {};

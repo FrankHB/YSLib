@@ -11,13 +11,13 @@
 /*!	\file Mutex.h
 \ingroup YCLib
 \brief 互斥量。
-\version r148
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 551
 \par 创建时间:
 	2014-11-04 05:17:14 +0800
 \par 修改时间:
-	2016-08-27 00:29 +0800
+	2016-09-01 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,12 +30,18 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
+#include <ystdex/type_op.hpp> // for ystdex::cond_or_t, ystdex::or_,
+//	std::is_integral, std::is_pointer;
 #if YF_Multithread == 1
+#	include <atomic> // for std::atomic;
 #	include <ystdex/concurrency.h>
+#	define YCL_Impl_Atomic_Tmpl std::atomic
 #	define YCL_Impl_Ns_Mutex std
 #	define YCL_Impl_Ns_Threading ystdex
 #else
-#	include <ystdex/pseudo_mutex.h>
+#	include <ystdex/pseudo_mutex.h> // for ystdex::identity_t,
+//	ystdex::single_thread, ystdex::threading;
+#	define YCL_Impl_Atomic_Tmpl ystdex::identity_t
 #	define YCL_Impl_Ns_Mutex ystdex::single_thread
 #	define YCL_Impl_Ns_Threading ystdex::threading
 #endif
@@ -46,6 +52,16 @@ namespace platform
 //! \since build 551
 namespace Concurrency
 {
+
+/*!
+\brief 支持的原子性的整数或指针类型。
+\note 为保证可移植性，应仅使用和 std::atomic 以及基本类型兼容的操作。
+\since build 725
+\todo 包装基本类型。
+*/
+template<typename _type>
+using atomic = ystdex::cond_or_t<ystdex::or_<std::is_integral<_type>,
+	std::is_pointer<_type>>, void, YCL_Impl_Atomic_Tmpl, _type>;
 
 using YCL_Impl_Ns_Mutex::mutex;
 using YCL_Impl_Ns_Mutex::recursive_mutex;

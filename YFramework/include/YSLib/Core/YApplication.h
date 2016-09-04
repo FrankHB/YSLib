@@ -11,13 +11,13 @@
 /*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1735
+\version r1773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2016-05-25 09:09 +0800
+	2016-09-03 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShell // for Shell, stack,
-//	std::is_nothrow_copy_constructible;
-#include <ystdex/any.h> // for ystdex::any;
+//	std::is_nothrow_copy_constructible, locked_ptr, ystdex::decay_t;
+#include <ystdex/any.h> // for ystdex::any, ystdex::unchecked_any_cast;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 
 namespace YSLib
@@ -51,6 +51,11 @@ private:
 	\since build 693
 	*/
 	stack<ystdex::any> on_exit{};
+	/*
+	\brief 初始化守护互斥锁。
+	\since build 725
+	*/
+	recursive_mutex on_exit_mutex{};
 	/*
 	\brief 主消息队列互斥锁。
 	\since build 551
@@ -95,14 +100,17 @@ public:
 
 	/*!
 	\pre 参数调用无异常抛出。
+	\note 线程安全：全局互斥访问。
 	\since build 693
 	*/
 	//@{
 	template<typename _tParam>
-	inline void
+	void
 	AddExit(_tParam&& arg)
 	{
-		on_exit.push(yforward(arg));
+		lock_guard<recursive_mutex> lck(on_exit_mutex);
+
+		PushExit(yforward(arg));
 	}
 
 	template<typename _func>
@@ -111,13 +119,30 @@ public:
 	{
 		static_assert(std::is_nothrow_copy_constructible<_func>(),
 			"Invalid guard function found.");
+		lock_guard<recursive_mutex> lck(on_exit_mutex);
 
-		TryExpr(AddExit(ystdex::unique_guard(f)))
+		TryExpr(PushExit(ystdex::unique_guard(f)))
 		catch(...)
 		{
 			f();
 			throw;
 		}
+	}
+
+	/*!
+	\brief 锁定添加的初始化守护。
+	\note 线程安全：全局初始化守护互斥访问。
+	\since build 481
+	*/
+	template<typename _tParam>
+	locked_ptr<ystdex::decay_t<_tParam>, recursive_mutex>
+	LockAddExit(_tParam&& arg)
+	{
+		unique_lock<recursive_mutex> lck(on_exit_mutex);
+
+		PushExit(yforward(arg));
+		return {ystdex::unchecked_any_cast<ystdex::decay_t<_tParam>>(
+			&on_exit.top()), std::move(lck)};
 	}
 	//@}
 
@@ -130,15 +155,25 @@ public:
 	void
 	OnGotMessage(const Message&) override;
 
+private:
+	//! \since build 725
+	template<typename _tParam>
+	inline void
+	PushExit(_tParam&& arg)
+	{
+		on_exit.push(yforward(arg));
+	}
+
+public:
 	/*!
-	\brief 线程切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
+	\brief 切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
 	\return 参数是否有效。
 	\since build 295
 	*/
 	bool
 	Switch(shared_ptr<Shell>&) ynothrow;
 	/*!
-	\brief 线程切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
+	\brief 切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
 	\return 参数是否有效。
 	\warning 空句柄在此处是可接受的，但继续运行可能会导致断言失败。
 	\since build 295
