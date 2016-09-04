@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r544
+\version r557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2016-05-16 14:10 +0800
+	2016-09-01 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,10 +36,7 @@
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include YFM_Helper_GUIShell
 #include YFM_YCLib_HostedGUI
-#if YF_Multithread == 1
-#	include <atomic>
-#	include <mutex> // for std::once_flag;
-#endif
+#include YFM_YCLib_Mutex // for once_flag;
 #include <ystdex/utility.hpp> // for ystdex::call_once_init;
 #if YCL_Win32
 #	include YFM_YSLib_UI_YPanel
@@ -68,22 +65,21 @@ private:
 	map<Host::NativeWindowHandle, observer_ptr<Host::Window>> wnd_map;
 	//! \brief 窗口对象映射锁。
 	mutable mutex wmap_mtx;
-#	if YF_Multithread == 1
 	/*!
 	\brief 窗口线程计数。
 	\sa EnterWindowThrad, LeaveWindowThread
+	\since build 725
 	*/
-	std::atomic<size_t> wnd_thrd_count{0};
+	atomic<size_t> wnd_thrd_count{0};
 
 public:
 	/*!
 	\brief 退出标记。
 	\sa LeaveWindowThread
+	\since build 725
 	*/
-	std::atomic<bool> ExitOnAllWindowThreadCompleted{true};
-#	endif
+	atomic<bool> ExitOnAllWindowThreadCompleted{true};
 
-public:
 #	if YCL_Win32
 	/*!
 	\brief 点映射例程。
@@ -227,8 +223,8 @@ public:
 	Messaging::Priority UIResponseLimit = 0x40;
 
 	/*!
-	\brief \c private 构造函数：非内联。
-	\pre 断言：进程唯一性。
+	\brief 无参数构造。
+	\pre 断言：唯一性。
 	*/
 	GUIApplication();
 	/*!

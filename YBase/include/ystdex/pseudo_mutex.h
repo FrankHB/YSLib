@@ -11,13 +11,13 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r1638
+\version r1639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2016-08-31 19:20 +0800
+	2016-09-05 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -356,7 +356,7 @@ public:
 	{
 		if(owns)
 			unlock();
-		lock_base(std::move(u)).swap(*this);
+		swap(u, *this);
 		u.clear_members();
 		return *this;
 	}

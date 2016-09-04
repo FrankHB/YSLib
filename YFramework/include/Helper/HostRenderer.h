@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r527
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-02-09 19:05 +0800
+	2016-09-01 08:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "YModules.h"
 #include YFM_Helper_HostWindow // for Host::Window, ystdex::unimplemented;
 #if YF_Multithread == 1
-#	include <atomic>
 #	include <thread>
 #endif
 #include YFM_YSLib_UI_YRenderer // for UI::BufferedRenderer;
@@ -93,9 +92,9 @@ private:
 	/*!
 	\brief 窗口指针。
 	\note 不使用 \c unique_ptr 以便于实现线程安全的状态检查。
-	\since build 600
+	\since build 725
 	*/
-	std::atomic<Window*> p_window{{}};
+	atomic<Window*> p_window{{}};
 	std::thread thrd;
 
 public:

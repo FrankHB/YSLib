@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1348
+\version r1357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-06-01 12:26 +0800
+	2016-09-04 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,7 +189,7 @@ EvaluateListPasses(TermNode& term, ContextNode&);
 调用 EvaluateGuard 进行必要的上下文重置。
 对非空列表节点调用 EvaluateListPasses 求值。
 对空表节点替换为 ValueToken::Null 。
-对已替换为 ValueToken 的叶节点保留处理。 
+对已替换为 ValueToken 的叶节点保留处理。
 对其它叶节点调用 EvaluateLeafPasses 求值。
 单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否重规约。
 */
@@ -246,6 +246,16 @@ inline PDefH(bool, ReduceFirst, TermNode& term, ContextNode& ctx)
 */
 YF_API void
 SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
+
+
+/*!
+\brief 重写标识符指定的字面量。
+\throw UndeclaredIdentifier 标识符未声明。
+\note 不验证是否为字面量。
+\since build 725
+*/
+YF_API bool
+RewriteLiteral(TermNode&, ContextNode&, const string&);
 
 
 /*!
