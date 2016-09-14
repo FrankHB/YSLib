@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1357
+\version r1434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-09-04 22:14 +0800
+	2016-09-13 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,39 +159,56 @@ AccessLeafPassesRef(ContextNode&);
 YF_API EvaluationPasses&
 AccessListPassesRef(ContextNode&);
 
-//! \brief 求值守护。
+/*!
+\sa InvokePasses
+\since build 726
+*/
+//@{
+/*!
+\brief 调用守护遍。
+\sa GuardPasses
+*/
 YF_API Guard
-EvaluateGuard(TermNode& term, ContextNode&);
+InvokeGuard(TermNode& term, ContextNode&);
 
-//! \brief 求值叶节点遍。
+//! \sa EvaluationPasses
+//@{
+//! \brief 调用叶节点遍。
 YF_API bool
-EvaluateLeafPasses(TermNode& term, ContextNode&);
+InvokeLeaf(TermNode& term, ContextNode&);
 
-//! \brief 求值列表节点遍。
+//! \brief 调用列表节点遍。
 YF_API bool
-EvaluateListPasses(TermNode& term, ContextNode&);
+InvokeList(TermNode& term, ContextNode&);
+//@}
+//@}
 
 
 /*!
-\brief NPLA1 节点规约。
+\brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
 \return 需要重规约。
 \note 可能使参数中容器的迭代器失效。
-\note 递归规约子项，子项需要重规约时在调用内循环。
 \note 默认不需要重规约。这可被求值遍改变。
+\note 可被求值遍调用以实现递归求值。
 \sa DetectReducible
-\sa EvaluateGuard
-\sa EvaluateLeafPasses
-\sa EvaluateListPasses
+\sa InvokeGuard
+\sa InvokeLeaf
+\sa InvokeList
 \sa ValueToken
 \todo 实现 ValueToken 保留处理。
 
-规约表达式节点：调用至少一次求值例程递归规约子表达式。
-调用 EvaluateGuard 进行必要的上下文重置。
-对非空列表节点调用 EvaluateListPasses 求值。
-对空表节点替换为 ValueToken::Null 。
-对已替换为 ValueToken 的叶节点保留处理。
-对其它叶节点调用 EvaluateLeafPasses 求值。
-单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否重规约。
+规约顺序如下：
+调用 InvokeGuard 进行必要的上下文重置；
+迭代规约，直至不需要进行重规约。
+对应不同的节点次级结构分类，一次迭代按以下顺序判断选择以下分支之一，按需规约子项：
+对非空列表节点调用 InvokeList 求值；
+对空列表节点替换为 ValueToken::Null ；
+对已替换为 ValueToken 的叶节点保留处理；
+对其它叶节点调用 InvokeLeaf 求值。
+单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否进行重规约。
+此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
+例外情况应单独指定明确的顺序。
+例外情况包括输入节点不是表达式语义结构（而是抽象语法树）的 API ，如 TransformNode 。
 */
 YF_API bool
 Reduce(TermNode&, ContextNode&);
@@ -219,7 +236,8 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 
 /*!
 \brief 对容器中的第二项开始逐项规约。
-\throw LoggedEvent 错误：容器内的子项数不大于 1 。
+\throw InvalidSyntax 容器内的子项数不大于 1 。
+\sa ReduceChildren
 \since build 685
 */
 YF_API void
@@ -229,7 +247,7 @@ ReduceArguments(TermNode::Container&, ContextNode&);
 /*!
 \brief 规约首项。
 \return 需要重规约。
-\note 快速严格性分析：无条件求值第一项以避免非确定性推断子表达式是否需要求值的复杂度。
+\note 快速严格性分析：无条件求值第一项以避免非确定性推断子表达式求值的附加复杂度。
 \sa Reduce
 \see https://en.wikipedia.org/wiki/Fexpr 。
 \since build 686
@@ -241,21 +259,11 @@ inline PDefH(bool, ReduceFirst, TermNode& term, ContextNode& ctx)
 /*!
 \brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
 \note 主要用于调试。
-\sa EvaluateGuard
+\sa InvokeGuard
 \since build 685
 */
 YF_API void
 SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
-
-
-/*!
-\brief 重写标识符指定的字面量。
-\throw UndeclaredIdentifier 标识符未声明。
-\note 不验证是否为字面量。
-\since build 725
-*/
-YF_API bool
-RewriteLiteral(TermNode&, ContextNode&, const string&);
 
 
 /*!
@@ -351,11 +359,19 @@ public:
 };
 
 
+//! \since build 726
+template<typename _func>
+inline void
+RegisterFormContextHandler(ContextNode& node, const string& name, _func&& f)
+{
+	NPL::RegisterContextHandler(node, name, FormContextHandler(yforward(f)));
+}
+
 //! \since build 697
 //@{
 //! \brief 转换上下文处理器。
 template<typename _func>
-ContextHandler
+inline ContextHandler
 ToContextHandler(_func&& f)
 {
 	return FunctionContextHandler(yforward(f));
@@ -366,17 +382,28 @@ ToContextHandler(_func&& f)
 \note 使用 ADL ToContextHandler 。
 */
 template<typename _func>
-void
+inline void
 RegisterFunction(ContextNode& node, const string& name, _func&& f)
 {
 	NPL::RegisterContextHandler(node, name, ToContextHandler(yforward(f)));
 }
 //@}
 
+/*!
+\brief 注册分隔符转换变换和处理例程。
+\sa NPL::RegisterContextHandler
+\sa ReplaceSeparatedChildren
+\since build 726
+*/
+YF_API void
+RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
+	const string&, const ValueObject&);
 
+
+//! \return \c false 表示总是不需要重规约。
+//@{
 /*!
 \brief 检查非空项的首项并尝试按上下文列表求值。
-\return \c false 表示总是不需要重规约。
 \throw ListReductionFailure 规约失败：找不到可规约项。
 \sa ContextHandler
 \sa Reduce
@@ -384,6 +411,18 @@ RegisterFunction(ContextNode& node, const string& name, _func&& f)
 */
 YF_API bool
 EvaluateContextFirst(TermNode&, ContextNode&);
+
+/*!
+\brief 规约标识符：项作为标识符取对应的值并替换，并根据替换的值尝试以字面量处理。
+\throw BadIdentifier 标识符未声明。
+\note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
+\sa FetchValue
+\sa LiteralHandler
+\since build 726
+*/
+YF_API bool
+EvaluateIdentifier(TermNode&, ContextNode&, const string&);
+//@}
 
 } // namesapce A1;
 

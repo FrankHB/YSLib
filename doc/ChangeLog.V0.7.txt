@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3045
+\version r3098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-09-05 01:06 +0800
+	2016-09-14 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ "functions %(EvaluateGuard, EvaluateLeafPasses, \
+					EvaluateListPasses)"
+					=> "%(InvokeGuard, InvokeLeaf, InvokeList)",
+				/ "function %RewriteLiteral" => "%EvaluateIdentifier",
+				/ $forced "function %EvaluateIdentifier" $dep_from
+					("%UndeclaredIdentifier" @ %NPLA)
+					// This exception should not necessarily relate to \
+						declarations. Unknown identifier is not always \
+						undeclared. Duplicate identifier may be not allowed in \
+						some contexts while duplicate declarations are allowed.
+				/ DLDI "simplified function %ReplaceSeparatedChildren"
+					^ "%ystdex::bind1" ~ "%std::(bind, placeholders::_1)",
+				+ "function %RegisterSequenceContextTransformer",
+				/ "threw %InvlidSyntax for term container without sufficient \
+					children" @ "function %ReduceArguments"
+					~ "threw %LoggedEvent",
+				+ "function template %RegisterFormContextHandler",
+				/ $forced DLDI "simlified function %Reduce" $dep_from
+					("%DetectReducible" @ %NPLA,
+					"%ystdex::bind1" ~ "%std::(bind, placeholders::_1)")
+			),
+			/ %NPLA $=
+			(
+				- $revert(b691) "function %ThrowArityMismatch",
+					// Similar functions would be too many here, without \
+						obvious benifits.
+				+ "default argument 'YSLib::RecordLevel lv = YSLib::Err'"
+					@ "constructor %ArityMismatch",
+					// To be consistent to its base.
+				/ "class %UndeclaredIdentifier" -> "class %BadIdentifier",
+				/ @ "function %DetectReducible" $=
+				(
+					/ "swapped parameter order",
+					+ 'ynothrow'
+				)
+			)
+		),
+		/ "default level of handling %std::exception" @ "function template \
+			%Invoke" @ %YSLib.Core.YException -> "implicit %Err" ~ "%Emergent",
+			// Not all exception is emergent by default. Also it is OK to have \
+				more low level value for %TryExecute as default since an \
+				exception object caught by %std::exception should always be \
+				handled at first, and other exception is still %Emergent.
+	)
+),
+
+b725
 (
 	+ $re_add(b711) $repo "bookmark 'engineering-fault-b710'" @ b717
 		@ "engineering fault bookmarks",

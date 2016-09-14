@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r181
+\version r185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-08-21 23:25 +0800
+	2016-09-10 10:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,6 +185,12 @@ Now external file accessed by YFramework (including the configuration 'yconf.txt
 	However, TOCTTOU access can still not be totally fixed.
 		See https://en.wikipedia.org/wiki/Time_of_check_to_time_of_use#Preventing_TOCTTOU.
 	See also $2015-09 report.impl.
+
+$2016-09:
+
+report.impl:
+	In YSLib, bare passive clause is preferred for exception message or other error handling messages, besides those in assertion strings, etc.
+	See also $2014-08 report.impl.
 
 ////
 

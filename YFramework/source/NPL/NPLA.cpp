@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r767
+\version r801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-06-01 12:23 +0800
+	2016-09-14 09:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,18 +185,18 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 			if(opt == ParseOption::String)
 				throw LoggedEvent("Invalid non-string term found.");
 
-			const auto& cont(term.GetContainer());
+			const auto& con(term.GetContainer());
 
-			if(!cont.empty())
+			if(!con.empty())
 				try
 				{
-					auto i(cont.cbegin());
+					auto i(con.cbegin());
 					const auto& str(Access<string>(Deref(i)));
 
 					++i;
 					if(str == "@")
 					{
-						for(; i != cont.cend(); ++i)
+						for(; i != con.cend(); ++i)
 							res += ' ' + ConvertAttributeNodeString(Deref(i));
 						return res;
 					}
@@ -205,7 +205,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 					if(str == "*PI*")
 					{
 						res = "<?";
-						for(; i != cont.cend(); ++i)
+						for(; i != con.cend(); ++i)
 							res += string(Deliteralize(ConvertDocumentNode(
 								Deref(i), igen, depth, ParseOption::String)))
 								+ ' ';
@@ -228,7 +228,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 
 						if(YB_UNLIKELY(!is_content && depth > 0))
 							YTraceDe(Warning, "Invalid *TOP* found.");
-						if(i != cont.end())
+						if(i != con.end())
 						{
 							if(!Deref(i).empty()
 								&& (i->begin())->Value == string("@"))
@@ -236,14 +236,14 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 								head += string(
 									Deliteralize(ConvertDocumentNode(*i, igen,
 									depth, ParseOption::Attribute)));
-								if(++i == cont.cend())
+								if(++i == con.cend())
 									return head + " />";
 							}
 							head += '>';
 						}
 						else
 							return head + " />";
-						for(; i != cont.cend(); ++i)
+						for(; i != con.cend(); ++i)
 						{
 							nl = Deref(i).Value.GetType()
 								!= ystdex::type_id<string>();
@@ -320,6 +320,21 @@ MakeXMLDoc(const string& name, const string& ver, const string& enc,
 } // namespace SXML;
 
 
+//! \since build 726
+namespace
+{
+
+string
+InitBadIdentifierExceptionString(const char* id, size_t n)
+{
+	return ystdex::sfmt(n != 0 ?
+		(n == 1 ? "Bad identifier: '%s'." : "Duplicate identifier: '%s'.")
+		: "Unknown identifier: '%s'.", Nonnull(id));
+}
+
+} // unnamed namespace;
+
+
 ImplDeDtor(NPLException)
 
 
@@ -329,21 +344,23 @@ ImplDeDtor(ListReductionFailure)
 ImplDeDtor(InvalidSyntax)
 
 
-ImplDeDtor(UndeclaredIdentifier)
+BadIdentifier::BadIdentifier(const char* id, size_t n, RecordLevel lv)
+	: NPLException(InitBadIdentifierExceptionString(id, n), lv),
+	p_identifier(make_shared<string>(id))
+{}
+BadIdentifier::BadIdentifier(string_view id, size_t n, RecordLevel lv)
+	: NPLException(InitBadIdentifierExceptionString(id.data(), n), lv),
+	p_identifier(make_shared<string>(id))
+{}
+ImplDeDtor(BadIdentifier)
 
 
-ArityMismatch::ArityMismatch(size_t e, size_t r)
+ArityMismatch::ArityMismatch(size_t e, size_t r, RecordLevel lv)
 	: NPLException(ystdex::sfmt("Arity mismatch: expected %zu, received %zu.",
-	e, r)),
+	e, r), lv),
 	expected(e), received(r)
 {}
 ImplDeDtor(ArityMismatch)
-
-void
-ThrowArityMismatch(size_t expected, size_t received)
-{
-	throw ArityMismatch(expected, received);
-}
 
 
 ValueObject
@@ -361,7 +378,7 @@ LookupName(const ContextNode& ctx, const string& id) ynothrow
 
 
 bool
-DetectReducible(TermNode& term, bool reducible)
+DetectReducible(bool reducible, TermNode& term) ynothrow
 {
 	// TODO: Use explicit continuation parameters?
 //	if(reducible)

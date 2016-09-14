@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12014
+\version r12065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-07-26 12:37 +0800
+	2016-09-14 10:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,6 @@
 $import $HISTORY;
 
 // Scope: [b600, b700);
-
-$now
-(
-),
 
 b699
 (
@@ -52,13 +48,13 @@ b699
 				/ @ "platform %DS" @ "all functions %(ReadLink, \
 					CreateHardLink, CreateSymbolicLink)" $=
 				(
-					+ 'YB_NORETURN',
+					+ $lib 'YB_NORETURN',
 					(
 					* "wrongly threw %std::system_error with \
-						%std::errc::not_supported for 'char' overloadings"
+						%std::errc::not_supported for 'char' overloads"
 						~ "with %std::errc::function_not_supported" $since b652;
 					* $doc "wrong exception condition" @ "'\exception' command"
-						@ "Doxygen comments" @ "'char' overloadings" $since b660
+						@ "Doxygen comments" @ "'char' overloads" $since b660
 					),
 					/ $design "assertion" ^ "%YAssertNonnull" ~ "%Nonnull"
 				),
@@ -110,7 +106,7 @@ b699
 				(
 					// To utilize optimal %DirectorySession constructors, esp. \
 						on platform %Win32.
-					+ "overloadings of %VerifyDirectory for \
+					+ "overloads of %VerifyDirectory for \
 						('const char16_t*'; 'const u16string&')";
 					/ DLP "optimized overloading for 'const String&'" ^ "%c_str"
 						~ "%GetMBCS";
@@ -122,9 +118,9 @@ b699
 			^ $dep_from ("%retry_for_vector" @ %YBase.YStandardEx.Container)
 	),
 	+ "function template %retry_for_vector" @ %YBase.YStandardEx.Container
-		// This is concerned with http://wg21.cmeerw.net/lwg/issue2466 but not \
-			a big issue in general. It throws when allocation failed. It is \
-			user's responsibility to keep it usable.
+		// This is concerned with LWG 2466 but not a big issue in general. It \
+			throws when allocation failed. It is user's responsibility to keep \
+			it usable.
 ),
 
 b698
@@ -156,7 +152,7 @@ b697
 (
 	/ %YFramework $=
 	(
-		- "explicit exception specification" @ "destructor %JNIBase" %YCLib.JNI,
+		- "exception-specification" @ "destructor %JNIBase" %YCLib.JNI,
 		/ %NPL.NPLA1 $=
 		(
 			/ DLI "improved performance"
@@ -474,7 +470,7 @@ b694
 				/ @ "function %Bind" $=
 				(
 					* "missing strong exception safety" $since b532;
-					* $comp "corruptied contents by duplicate calls due to \
+					* $comp "corrupted contents by duplicate calls due to \
 						missing clearing list, indent map and expanded set"
 						$since b532
 				),
@@ -573,7 +569,7 @@ b693
 				@ "function %LoadNPLA1File" $=
 			(
 				/ "avoided throwing" ^ "%TryInvoke",
-				+ "tracing with level 'Warning' and fallback"
+				+ "trace with level 'Warning' and fallback"
 			)
 		),
 		/ @ "class %Application" @ %YSLib.Core.YApplication $=
@@ -813,7 +809,7 @@ b691
 	/ $doc "merged Doxygen group %exception_types" -> "%exceptions"
 		$effective @ %YFramework.(YCLib.Host, YSLib.(Core.(YException,
 		YMessage), UI.(Loader, YWidgetEvent)), 'YCLib_(Win32)'.MinGW32);
-	- $revert(b444) $doc "Doxygen group %exception_types" @ %YBase.YDefinition
+	- $revert(b444) DD "Doxygen group %exception_types" @ %YBase.YDefinition
 	)
 ),
 
@@ -931,8 +927,8 @@ b689
 			* "extraneous template parameter list 'template<bool _bCond>' "
 				@ "alias template %well_formed_t" @ %TypeTraits $since b688;
 				// G++ 4.9.0 accepts it while Clang++ 3.8 rejects it. See \
-					https://llvm.org/bugs/show_bug.cgi?id=5559. See also \
-					http://wg21.cmeerw.net/cwg/issue293.
+					https://llvm.org/bugs/show_bug.cgi?id=5559. See also CWG \
+					293.
 			/ @ "specializations" @ "metafunction %return_of" @ %Functional $=
 			(
 				* "missing some function pointer specialization at macro \
@@ -1569,7 +1565,7 @@ b683
 			>> %Tuple;
 			* "ill-formed to accept alias templates as parameter" ^ "%vdefer"
 				~ "%identity" $since b671
-				// See http://wg21.cmeerw.net/lwg/issue1430.
+				// See LWG 1430.
 		),
 		* "unary type trait %has_mem_is_transparent implemented as alias \
 			template rather than class template" @ %Functor
@@ -1646,7 +1642,7 @@ b682
 			/ "namespace %dependent_swap" @ "namespace %ystdex" => "%dep_swap",
 				// To be consistent with %Operators even this namespace does \
 					not bloat binary size in release configurations.
-			* $doc "bad URL" @ "Doxygen comment" @ "function template %exchange"
+			* DD "bad URL" @ "Doxygen comments" @ "function template %exchange"
 				$sicne b677
 		)
 	),
@@ -2193,8 +2189,7 @@ b677
 					$= (- 'yconstfn')
 					// Since it is first declared as defaulted, 'constexpr' \
 						will be implictly implied. This will also meet the \
-						requirements of the standard, see \
-						http://wg21.cmeerw.net/lwg/issue2013.
+						requirements of the standard, see LWG 2013.
 				),
 				+ "constructor template with holder rvalue reference parameter"
 					$dep_to "non-pointer holder construction",
@@ -2224,7 +2219,7 @@ b677
 			/ @ "class template %boxed_value" $=
 			(
 				+ 'mutable' @ "data member %value",
-				+ "exception specification" @ "all non-defaulted constructors",
+				+ "exception-specification" @ "all non-defaulted constructors",
 				+ "constructor with %default_init_t parameter for uninialized \
 					member initialization" $dep_from "%default_init_t",
 				/ "default constructor" ^ "value-initialized member"
@@ -2402,7 +2397,7 @@ b675
 (
 	/ %YBase.YStandardEx $=
 	(
-		/ $revert_ex(b527) "forbid ADL comparison overloadings unconditionally"
+		/ $revert_ex(b527) "forbid ADL comparison overloads unconditionally"
 			@ %Operators,
 			// It seems that Clang++ 3.7 does not support it as well. There \
 				was one additional usage note, see $2016-02 \
@@ -2410,7 +2405,7 @@ b675
 		/ @ "class template %observer_ptr" @ %Memory $=
 		(
 			^ "passed by value" @ "comparison" ~ "passed by reference",
-			* "missing exception specification" $since b669,
+			* "missing exception-specification" $since b669,
 			* $doc "%std::hash specialization for %ystdex::observer_ptr" $since
 				b669
 		),
@@ -3060,8 +3055,8 @@ b671
 		(
 			/ %FileSystem $=
 			(
-				+ 'YB_NONNULL(1)' @ "function %FAT::LFN::GenerateAliasChecksum"
-					@ "namespace %platform",
+				+ $lib 'YB_NONNULL(1)' @ "function \
+					%FAT::LFN::GenerateAliasChecksum" @ "namespace %platform",
 				/ $forced DLDI "simplified member function \
 					%HDirectory::operator++" @ %FileSystem $dep_from
 					("%DirectoryFindData::Read" @ %'YCLib_(Win32)'.MinGW32)
@@ -3585,10 +3580,10 @@ b668
 		/ @ "%std::numeric_limits specialization for %ystdex::fixed_point \
 			instances" @ %Rational $=
 		(
-			* $doc "wrong name" @ "'\brief' command" @ "Doxygen comments" $since
+			* DD "wrong name" @ "'\brief' command" @ "Doxygen comments" $since
 				b266,
 			* "strict ISO C++ conformance" $since b261
-				// See ISO C++11 18.3.2.3/2, also http://wg21.cmeerw.net/lwg/issue559.
+				// See ISO C++11 18.3.2.3/2, also LWG 559.
 				$= (* "missing specialization for cv-qualified types")
 		)
 	),
@@ -4875,7 +4870,7 @@ b659
 					parameter 'string_view' as well as 2nd parameter \
 					'const char*' and 'string_view' respectively"
 			),
-			+ 'YB_NONNULL(1)' @ "function %VerifyDirectory with \
+			+ $lib 'YB_NONNULL(1)' @ "function %VerifyDirectory with \
 				'const char*' parameter" @ %Service.FileSystem,
 			+ "aliases %(HaveSameContents, IsNodeShared, CreateHardLink, \
 				CreateSymbolicLink) from namespace %platform"
@@ -5025,7 +5020,7 @@ b658
 				/ @ "function %FetchCommandOutput" @ %Host $=
 				(
 					/ "1st pamameter type 'const string&'"  -> 'const char*';
-					+ 'YB_NONNULL(1)'
+					+ $lib 'YB_NONNULL(1)'
 				),
 				/ @ "function %FetchCachedCommandResult" $=
 				(
@@ -5129,7 +5124,7 @@ b657
 					@ "%AllocationTable";
 				+ "function %TryLinkFreeCleared"
 				),
-				+ $doc "Doxygen comments to explicitly warn about missing of \
+				+ DD "Doxygen comments to explicitly warn about missing of \
 					transaction semantics",
 				(
 				/ "function %IsValidCluster" => "%IsValid";
@@ -5421,7 +5416,7 @@ b655
 		(
 			/ $dev $impl "stopped early for %void parameters for ADL binary \
 				operands",
-			/ "worked around to disable ADL binary operands overloadings"
+			/ "worked around to disable ADL binary operands overloads"
 				@ 'YCL_IMPL_GNUCPP < 50000'
 				// Not tested for G++ 5.
 		),
@@ -5541,7 +5536,7 @@ b654
 				(
 					/ 'YB_NONNULL(1)' @ "constructor with %BitmapPtr parameter"
 						@ %Image -> 'YB_NONNULL(2)'
-					+ 'YB_NONNULL(2)' @ "all 4 constructors with character \
+					+ $lib 'YB_NONNULL(2)' @ "all 4 constructors with character \
 						pointer parameter"
 				)
 			),
@@ -5578,7 +5573,7 @@ b654
 					/ @ "function template %Traverse with pointer parameter" $=
 					(
 						/ $doc "explicitly forbade null pointer as argument",
-						+ 'YB_NONNULL(1)'
+						+ $lib 'YB_NONNULL(1)'
 					)
 				),
 				/ DLDI "simplified" @ (!"platform %Win32" @ "function \
@@ -6589,7 +6584,7 @@ b646
 	(
 		/ %YDefinition $=
 		(
-			* $doc "Doxygen comment block for %YB_ATTR_gnu_printf wrongly \
+			* DD "Doxygen comment block for %YB_ATTR_gnu_printf wrongly \
 				named as %YB_ATTR" $since b615,
 			+ "macro %YB_FLATTEN"
 		),
@@ -6948,7 +6943,7 @@ b642
 				/ "unconditionally failed for assertion" $=
 				(
 					- "1st parameter",
-					+ 'YB_NORETURN'
+					+ $lib 'YB_NORETURN'
 				)
 			);
 			/ "macro %yconstraint" @ '!defined(NDEBUG)' ^ "%yassert"
@@ -7664,7 +7659,7 @@ b638
 				+ "2 function %IsNodeShared for pathname parameters",
 				/ @ "functions %HaveSameContents" $=
 				(
-					+ "overloading for 'const string&' parameters",
+					+ "overload for 'const string&' parameters",
 					* "missing check file node identity" $since 636
 						// It is not guaranteed the same file can be opened \
 							more than once.
@@ -7980,7 +7975,7 @@ b634
 			/ @ "class template specializations %call_projection" $=
 			(
 				+ "member function template %invoke" ^ "%ystdex::invoke",
-				+ "variadic template overloadings",
+				+ "variadic template overloads",
 				/ DLDI "simplified trailing-return-type for tuple reference \
 					parameter" ^ 'std::move' ~ 'yforward'
 			),
@@ -7989,7 +7984,7 @@ b634
 			(
 				- "overloading without 'const'",
 				/ DLDI "simplified trailing-return-type" $dep_from
-					("%expand_proxy", "variadic template overloadings"
+					("%expand_proxy", "variadic template overloads"
 					@ "%call_projection");
 				* $comp "accepted invalid forwarding" $since b447
 					// For example, prvalue arguments for lvalue reference \
@@ -8192,14 +8187,14 @@ b632
 			/ "last parameter 'unsigned long = FILE_ATTRIBUTE_NORMAL \
 				| FILE_FLAG_BACKUP_SEMANTICS'" -> 'FileAttributesAndFlags \
 				= FileAttributesAndFlags::NormalAll',
-				// Not tracing reparse point by default.
-			+ "3 inline overloadings"
+				// Not trace reparse point by default.
+			+ "3 inline overloads"
 		)
 		),
 		/ @ "functions %QueryFileTime with pathname parameter" $=
 		(
 			+ "parameter 'bool = {}' at last",
-			/ "forbade tracing reparse point by default"
+			/ "forbade trace reparse point by default"
 		)
 	),
 	/ %YReader $=
@@ -8445,7 +8440,7 @@ b630
 		(
 			(
 			+ "alias %uchar_t";
-			+ "overloadings with pointer types of %uchar_t"
+			+ "overloads with pointer types of %uchar_t"
 				@ "%(ntctsnlen, ntctscpy, ntctsncpy)" ^ "%replace_cast"
 			),
 			+ $lib "%YB_NONNULL attributes for pointer arguments"
@@ -8656,8 +8651,7 @@ b628
 		/ %YStandardEx $=
 		(
 			+ '&&' @ "1st function parameter" @ "%ystdex::bind1" @ %Functional,
-				// To be consistent with %std::bind. See also \
-					http://wg21.cmeerw.net/lwg/issue817.
+				// To be consistent with %std::bind. See also LWG 817.
 			/ @ "class template %nptr" @ %Pointer $=
 			(
 				* "missing forcing no throw exception guarantee for \
@@ -10384,7 +10378,7 @@ b610
 				* "wrong assignment of terminate null character",
 					// It is ill-formed to modify element pointed by 'const'
 						pointer.
-				+ "overloading condition"
+				/ "overloaded conditionally for different character types"
 			)
 			+ "function templates for character types compatible to %(char, \
 				wchar_t)"
@@ -10486,7 +10480,7 @@ b608
 			/ DLDI "simplified I/O routines" ^ "private member templates"
 		)
 	),
-	* $comp "printed pixel noise due to tracing" $since b434
+	* $comp "printed pixel noise due to trace" $since b434
 		$dep_from %YFramework.YCLib.Debug;
 		// For %debug configuration, this was changed since b432, but only \
 			occurred by %YTraceDe calls in %YLoader since b434. For %release \
@@ -10646,7 +10640,7 @@ b605
 			(
 				+ "function templates %(tolower, toupper)"
 					^ "%std::(towlower, towupper)",
-				+ "inline function overloadings %(tolower, toupper) for %char"
+				+ "inline function overloads %(tolower, toupper) for %char"
 					^ "%std::(tolower, toupper)"
 			),
 			* "wrong standard library routines called for !%char type"
@@ -10661,8 +10655,8 @@ b605
 					@ "constructor with %defer_lock_t parameter"
 					@ "class template %unique_lock" $since b551,
 					// ISO C++11 requires 'noexcept' on this constructor.
-				+ $impl 'yimpl(ynothrow)' @ "stubs without exception \
-					specifications" $effective @ "classes %(mutex, \
+				+ $impl 'yimpl(ynothrow)' @ "stubs without \
+					exception-specifications" $effective @ "classes %(mutex, \
 					recursive_mutex, timed_mutex, recursived_timed_mutex),
 					class templates %(lock_guard, unique_lock), function \
 					templates %(lock, try_lock)"
@@ -10869,7 +10863,7 @@ b602
 				// Slightly made the .nds file smaller.
 				/ DLDI ^ "custom device operation tables and libfat internal \
 					routines",
-				+ "exception message tracing on failure"
+				+ "exception message trace on failure"
 			),
 			+ 'using yimpl(ystdex)::make_unique_default_init;' @ %Reference
 		),
@@ -10909,7 +10903,7 @@ b601
 				(
 					/ @ "function %MakeNormalizedAbsolute" $=
 					(
-						+ "tracing converted path with level 'Debug'",
+						+ "trace converted path with level 'Debug'",
 						* "assertion failed" @ !"platform %Win32" $since b599
 							$dep_from "%Path::Parse" $dep_to
 							"absolute path checking failure"
