@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1194
+\version r1244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-09-04 22:14 +0800
+	2016-09-14 09:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,19 +155,19 @@ AccessListPassesRef(ContextNode& ctx)
 }
 
 Guard
-EvaluateGuard(TermNode& term, ContextNode& ctx)
+InvokeGuard(TermNode& term, ContextNode& ctx)
 {
 	return InvokePasses<GuardPasses>(term, ctx, GuardName);
 }
 
 bool
-EvaluateLeafPasses(TermNode& term, ContextNode& ctx)
+InvokeLeaf(TermNode& term, ContextNode& ctx)
 {
 	return InvokePasses<EvaluationPasses>(term, ctx, LeafTermName);
 }
 
 bool
-EvaluateListPasses(TermNode& term, ContextNode& ctx)
+InvokeList(TermNode& term, ContextNode& ctx)
 {
 	return InvokePasses<EvaluationPasses>(term, ctx, ListTermName);
 }
@@ -176,17 +176,17 @@ EvaluateListPasses(TermNode& term, ContextNode& ctx)
 bool
 Reduce(TermNode& term, ContextNode& ctx)
 {
-	const auto gd(EvaluateGuard(term, ctx));
+	const auto gd(InvokeGuard(term, ctx));
 
 	// NOTE: Rewriting loop until the normal form is got.
-	return ystdex::retry_on_cond(std::bind(DetectReducible, std::ref(term),
-		std::placeholders::_1), [&]() -> bool{
+	return ystdex::retry_on_cond(ystdex::bind1(DetectReducible, std::ref(term)),
+		[&]() -> bool{
 		if(!term.empty())
 		{
 			YAssert(term.size() != 0, "Invalid node found.");
 			if(term.size() != 1)
 				// NOTE: List evaluation.
-				return EvaluateListPasses(term, ctx);
+				return InvokeList(term, ctx);
 			else
 			{
 				// NOTE: List with single element shall be reduced to its value.
@@ -201,7 +201,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 			// TODO: Handle special value token.
 			;
 		else
-			return EvaluateLeafPasses(term, ctx);
+			return InvokeLeaf(term, ctx);
 		// NOTE: Exited loop has produced normal form by default.
 		return {};
 	});
@@ -211,10 +211,11 @@ void
 ReduceChildren(TermNode::iterator first, TermNode::iterator last,
 	ContextNode& ctx)
 {
-	// NOTE: Here it can only be either left-to-right or right-to-left unless
-	//	the separators has been predicted.
-	std::for_each(first, last,
-		std::bind(Reduce, std::placeholders::_1, std::ref(ctx)));
+	// NOTE: Separators or other sequence constructs are not handled here. The
+	//	evaluation can be potentionally parallel, though the simplest one is
+	//	left-to-right.
+	// TODO: Use %ExecutionPolicy?
+	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
 }
 
 void
@@ -225,7 +226,7 @@ ReduceArguments(TermNode::Container& con, ContextNode& ctx)
 		//	specification. It should not be depended on.
 		ReduceChildren(std::next(con.begin()), con.end(), ctx);
 	else
-		throw LoggedEvent("Invalid term to handle found.", Err);
+		throw InvalidSyntax("Argument not found.");
 }
 
 
@@ -246,23 +247,6 @@ SetupTraceDepth(ContextNode& root, const string& name)
 		});
 	}
 	);
-}
-
-
-bool
-RewriteLiteral(TermNode& term, ContextNode& ctx, const string& id)
-{
-	if(auto v = FetchValue(ctx, id))
-	{
-		term.Value = std::move(v);
-		if(const auto p_handler
-			= AccessPtr<LiteralHandler>(term))
-			return (*p_handler)(ctx);
-	}
-	else
-		throw UndeclaredIdentifier(ystdex::sfmt(
-			"Undeclared identifier '%s' found", id.c_str()));
-	return {};
 }
 
 
@@ -310,12 +294,12 @@ TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
 }
 
 bool
-ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
+ReplaceSeparatedChildren(TermNode& term, const ValueObject& name,
 	const ValueObject& delim)
 {
-	if(std::find_if(term.begin(), term.end(), std::bind(HasValue,
-		std::placeholders::_1, std::ref(delim))) != term.end())
-		term = TransformForSeparator(term, pfx, delim, term.GetName());
+	if(std::find_if(term.begin(), term.end(),
+		ystdex::bind1(HasValue, std::ref(delim))) != term.end())
+		term = TransformForSeparator(term, name, delim, term.GetName());
 	return {};
 }
 
@@ -333,10 +317,11 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 			throw std::invalid_argument("Empty term found.");
 	}
 	CatchExpr(NPLException&, throw)
+	// TODO: Use semantic exceptions.
 	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(
 		ystdex::sfmt("Mismatched types ('%s', '%s') found.",
 		e.from(), e.to()), Warning))
-	// TODO: Use nest exceptions?
+	// TODO: Use nested exceptions?
 	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
 }
 
@@ -379,6 +364,19 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 }
 
 
+void
+RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
+	const string& name, const ValueObject& delim)
+{
+	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
+	NPL::RegisterContextHandler(node, name,
+		FormContextHandler([](TermNode& term, ContextNode& ctx){
+		RemoveHead(term);
+		ReduceChildren(term, ctx);
+	}));
+}
+
+
 bool
 EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 {
@@ -398,7 +396,21 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 				: "#<unknown>", term.size()));
 		}
 	}
-	return false;
+	return {};
+}
+
+bool
+EvaluateIdentifier(TermNode& term, ContextNode& ctx, const string& id)
+{
+	if(auto v = FetchValue(ctx, id))
+	{
+		term.Value = std::move(v);
+		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
+			return (*p_handler)(ctx);
+	}
+	else
+		throw BadIdentifier(id);
+	return {};
 }
 
 } // namesapce A1;

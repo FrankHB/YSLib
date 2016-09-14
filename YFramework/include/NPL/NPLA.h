@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r884
+\version r933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-06-01 12:28 +0800
+	2016-09-14 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -429,19 +429,43 @@ public:
 };
 
 
-//! \brief 未声明标识符错误。
-class YF_API UndeclaredIdentifier : public NPLException
+/*!
+\brief 标识符错误。
+\since build 726
+*/
+class YF_API BadIdentifier : public NPLException
 {
+private:
+	YSLib::shared_ptr<string> p_identifier;
+
 public:
-	using NPLException::NPLException;
-	DefDeCtor(UndeclaredIdentifier)
+	/*!
+	\brief 构造：使用作为标识符的字符串、已知实例数和和记录等级。
+	\pre 间接断言：第一参数的数据指针非空。
+
+	不检查第一参数内容作为标识符的合法性，直接视为待处理的标识符，
+	初始化表示标识符错误的异常对象。
+	实例数等于 0 时表示未知标识符；
+	实例数等于 1 时表示非法标识符；
+	实例数大于 1 时表示重复标识符。
+	*/
+	YB_NONNULL(2)
+	BadIdentifier(const char*, size_t = 0, YSLib::RecordLevel = YSLib::Err);
+	BadIdentifier(string_view, size_t = 0, YSLib::RecordLevel = YSLib::Err);
+	DefDeCtor(BadIdentifier)
 
 	//! \brief 虚析构：类定义外默认实现。
-	~UndeclaredIdentifier() override;
+	~BadIdentifier() override;
+
+	DefGetter(const ynothrow, const string&, Identifier,
+		YSLib::Deref(p_identifier))
 };
 
 
-//! \brief 元数不匹配错误。
+/*!
+\brief 元数不匹配错误。
+\todo 支持范围匹配。
+*/
 class YF_API ArityMismatch : public NPLException
 {
 private:
@@ -449,9 +473,12 @@ private:
 	size_t received;
 
 public:
-	//! \note 参数表示期望和实际的元数。
-	ArityMismatch(size_t, size_t);
 	DefDeCtor(ArityMismatch)
+	/*!
+	\note 前两个参数表示期望和实际的元数。
+	\since build 726
+	*/
+	ArityMismatch(size_t, size_t, YSLib::RecordLevel = YSLib::Err);
 
 	//! \brief 虚析构：类定义外默认实现。
 	~ArityMismatch() override;
@@ -460,13 +487,6 @@ public:
 	DefGetter(const ynothrow, size_t, Received, received)
 };
 //@}
-
-/*!
-\relates ArityMismatch
-\note 参数表示期望和实际的元数。
-*/
-YB_NORETURN YF_API void
-ThrowArityMismatch(size_t, size_t);
 //@}
 
 
@@ -507,16 +527,17 @@ LookupName(const ContextNode&, const string&) ynothrow;
 //@}
 
 
-//! \since build 676
-//@{
 /*!
 \brief 移除节点的空子节点，然后判断是否可继续规约。
-\return 可继续规约：第二参数为 true 且移除空子节点后的节点非空。
+\return 可继续规约：第一参数为 true 且移除空子节点后的节点非空。
+\since build 726
 */
 YF_API bool
-DetectReducible(TermNode&, bool);
+DetectReducible(bool, TermNode&) ynothrow;
 
 
+//! \since build 676
+//@{
 /*!
 \brief 遍合并器：逐次调用直至返回 true 。
 \note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
@@ -532,6 +553,11 @@ struct PassesCombiner
 };
 
 
+/*!
+\note 结果表示判断是否应继续规约。
+\sa PassesCombiner
+*/
+//@{
 //! \brief 一般合并遍。
 template<typename... _tParams>
 using GPasses = YSLib::GEvent<bool(_tParams...),
@@ -540,6 +566,7 @@ using GPasses = YSLib::GEvent<bool(_tParams...),
 using TermPasses = GPasses<TermNode&>;
 //! \brief 求值合并遍。
 using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
+//@}
 
 
 //! \brief 作用域守护类型。

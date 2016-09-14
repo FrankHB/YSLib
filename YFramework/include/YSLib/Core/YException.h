@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r618
+\version r619
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2016-08-28 15:29 +0800
+	2016-08-28 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,7 +186,7 @@ ystdex::nonvoid_result_t<ystdex::result_of_t<_fCallable&&(_tParams&&...)>>
 TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 {
 	TryRet(ystdex::invoke_nonvoid(yforward(f), yforward(args)...))
-	CatchExpr(std::exception& e, ExtractAndTrace(e, Emergent))
+	CatchExpr(std::exception& e, ExtractAndTrace(e))
 	CatchExpr(..., YF_TraceRaw(Emergent, "Unknown exception found."))
 	return {};
 }
