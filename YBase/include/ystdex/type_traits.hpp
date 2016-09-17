@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1083
+\version r1094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-08-27 12:50 +0800
+	2016-09-17 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,7 +158,6 @@ using std::is_move_assignable;
 using std::is_destructible;
 //@}
 
-#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
 //! \since build 595
 //@{
 using std::is_trivially_constructible;
@@ -170,7 +169,6 @@ using std::is_trivially_assignable;
 using std::is_trivially_copy_assignable;
 using std::is_trivially_move_assignable;
 //@}
-#	endif
 //! \since build 591
 using std::is_trivially_destructible;
 
@@ -219,10 +217,8 @@ using std::remove_pointer;
 using std::add_pointer;
 
 using std::aligned_storage;
-#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
 //! \since build 595
 using std::aligned_union;
-#	endif
 using std::decay;
 using std::enable_if;
 using std::conditional;
@@ -269,9 +265,7 @@ using std::remove_pointer_t;
 using std::add_pointer_t;
 
 using std::aligned_storage_t;
-#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
 using std::aligned_union_t;
-#	endif
 using std::decay_t;
 using std::enable_if_t;
 using std::conditional_t;
@@ -338,10 +332,8 @@ using aligned_storage_t = typename aligned_storage<_vLen, _vAlign>::type;
 
 //! \since build 339
 //@{
-#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
 template<size_t _vLen, typename... _types>
 using aligned_union_t = typename aligned_union<_vLen, _types...>::type;
-#	endif
 
 template<typename _type>
 using decay_t = typename decay<_type>::type;
@@ -560,7 +552,7 @@ public:
 \see CWG 1558 。
 \since build 688
 */
-#if YB_IMPL_GNUCPP >= 50000
+#if YB_IMPL_GNUCPP
 template<typename _type, typename...>
 using well_formed_t = _type;
 #else
@@ -913,7 +905,6 @@ struct is_nothrow_moveable : and_<is_nothrow_move_constructible<_type>,
 {};
 
 
-#	if !YB_IMPL_GNUC || YB_IMPL_GNUCPP >= 50000
 template<typename _type>
 struct is_trivially_copyable : and_<is_trivially_copy_constructible<_type>,
 	is_trivially_copy_assignable<_type>>
@@ -924,7 +915,6 @@ template<typename _type>
 struct is_trivially_moveable : and_<is_trivially_move_constructible<_type>,
 	is_trivially_move_assignable<_type>>
 {};
-#	endif
 //@}
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4883
+\version r4891
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2016-02-12 01:19 +0800
+	2016-09-17 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,14 +139,8 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 {
 	DialogBox::Refresh(std::move(e));
 
-#if 0
-	// NOTE: G++ 4.9 would complain.
-	unseq_apply(ystdex::bind1<void(IWidget&, const PaintContext&)>(PaintChild,
-		std::ref(e)), lblEncoding, lblSize, lblTop, lblBottom);
-#endif
-	unseq_apply([&](IWidget& wgt){
-		PaintChild(wgt, e);
-	}, lblEncoding, lblSize, lblTop, lblBottom);
+	unseq_apply(ystdex::bind1<Rect(*)(IWidget&, const PaintContext&)>(
+		PaintChild, std::ref(e)), lblEncoding, lblSize, lblTop, lblBottom);
 	UpdateClipSize(e, GetSizeOf(*this));
 }
 

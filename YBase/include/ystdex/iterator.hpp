@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r5993
+\version r6017
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-08-26 01:00 +0800
+	2016-09-17 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -288,15 +288,10 @@ public:
 	{}
 	//! \since build 665
 	template<typename _tIter2, typename _fTrans2, typename _tRef2,
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000
-		yimpl(typename = enable_if_t<and_<is_constructible<_tIter,
-		const _tIter2&>, is_constructible<_fTrans, const _fTrans2&>>::value>)>
-#else
 		yimpl(typename = enable_if_t<and_<not_<is_convertible<const
 		transformed_iterator<_tIter2, _fTrans2, _tRef2>&, iterator_type>>,
 		is_constructible<_tIter, const _tIter2&>,
 		is_constructible<_fTrans, const _fTrans2&>>::value>)>
-#endif
 	yconstfn
 	transformed_iterator(
 		const transformed_iterator<_tIter2, _fTrans2, _tRef2>& i)
@@ -304,15 +299,10 @@ public:
 	{}
 	//! \since build 665
 	template<typename _tIter2, typename _fTrans2, typename _tRef2,
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000
-		yimpl(typename = enable_if_t<and_<is_constructible<_tIter, _tIter2&&>,
-		is_constructible<_fTrans, _fTrans2&&>>::value>)>
-#else
 		yimpl(typename = enable_if_t<and_<not_<is_convertible<
 		transformed_iterator<_tIter2, _fTrans2, _tRef2>&&, iterator_type>>,
 		is_constructible<_tIter, _tIter2&&>,
 		is_constructible<_fTrans, _fTrans2&&>>::value>)>
-#endif
 	yconstfn
 	transformed_iterator(transformed_iterator<_tIter2, _fTrans2, _tRef2>&& i)
 		: transformer(std::move(i.transformer)), transformed(i.get())
@@ -382,18 +372,14 @@ public:
 
 	//! \since build 685
 	//@{
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
 	template<yimpl(typename = void)>
-#endif
 	friend yconstfn bool
 	operator==(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(bool(x.get() == y.get()))
 	{
 		return x.get() == y.get();
 	}
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
 	template<yimpl(typename = void)>
-#endif
 	friend yconstfn bool
 	operator==(const transformed_iterator& x, const iterator_type& y)
 		ynoexcept_spec(bool(x.get() == y))
@@ -401,18 +387,14 @@ public:
 		return x.get() == y;
 	}
 
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
 	template<yimpl(typename = void)>
-#endif
 	friend yconstfn bool
 	operator<(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(bool(x.get() < y.get()))
 	{
 		return bool(x.get() < y.get());
 	}
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
 	template<yimpl(typename = void)>
-#endif
 	friend yconstfn bool
 	operator<(const transformed_iterator& x, const iterator_type& y)
 		ynoexcept_spec(bool(x.get() < y))
@@ -420,27 +402,21 @@ public:
 		return bool(x.get() < y);
 	}
 
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
 	template<yimpl(typename = void)>
-#endif
 	friend yconstfn difference_type
 	operator-(const transformed_iterator& x, const transformed_iterator& y)
 		ynoexcept_spec(difference_type(x.get() - y.get()))
 	{
 		return difference_type(x.get() - y.get());
 	}
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
 	template<yimpl(typename = void)>
-#endif
 	friend yconstfn difference_type
 	operator-(const transformed_iterator& x, const iterator_type& y)
 		ynoexcept_spec(difference_type(x.get() - y))
 	{
 		return difference_type(x.get() - y);
 	}
-#if !(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)
 	template<yimpl(typename = void)>
-#endif
 	friend yconstfn difference_type
 	operator-(const iterator_type& x, const transformed_iterator& y)
 		ynoexcept_spec(difference_type(x - y.get()))

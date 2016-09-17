@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r574
+\version r576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2016-08-08 01:38 +0800
+	2016-09-17 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -526,7 +526,7 @@ struct tagged_value
 	using token_type = _tToken;
 	using value_type = _type;
 
-	token_type token{};
+	token_type token;
 	union
 	{
 		empty_base<> empty;
@@ -536,7 +536,7 @@ struct tagged_value
 	yconstfn
 	tagged_value()
 		ynoexcept_spec(is_nothrow_default_constructible<token_type>())
-		: empty()
+		: token(), empty()
 	{}
 	tagged_value(default_init_t)
 	{}

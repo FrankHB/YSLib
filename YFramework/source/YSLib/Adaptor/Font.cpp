@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3638
+\version r3648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2016-06-09 00:45 +0800
+	2016-09-17 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,13 +223,14 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 		const ::FT_Pos xadv((slot->advance.x + 32) >> 6),
 			yadv((slot->advance.y + 32) >> 6);
 
-#define SBIT_CHECK_CHAR(d) (::FT_Int(::FT_Char(d)) == d)
-#define SBIT_CHECK_BYTE(d) (::FT_Int(::FT_Byte(d)) == d)
-		if(SBIT_CHECK_BYTE(bitmap.rows) && SBIT_CHECK_BYTE(bitmap.width)
-			&& SBIT_CHECK_CHAR(bitmap.pitch)
-			&& SBIT_CHECK_CHAR(slot->bitmap_left)
-			&& SBIT_CHECK_CHAR(slot->bitmap_top) && SBIT_CHECK_CHAR(xadv)
-			&& SBIT_CHECK_CHAR(yadv))
+#define YSL_Impl_SB_CheckChar(d) (::FT_Int(::FT_Char(d)) == ::FT_Int(d))
+#define YSL_Impl_SB_CheckByte(d) (::FT_Int(::FT_Byte(d)) == ::FT_Int(d))
+		if(YSL_Impl_SB_CheckByte(bitmap.rows)
+			&& YSL_Impl_SB_CheckByte(bitmap.width)
+			&& YSL_Impl_SB_CheckChar(bitmap.pitch)
+			&& YSL_Impl_SB_CheckChar(slot->bitmap_left)
+			&& YSL_Impl_SB_CheckChar(slot->bitmap_top)
+			&& YSL_Impl_SB_CheckChar(xadv) && YSL_Impl_SB_CheckChar(yadv))
 		{
 			yunseq(
 			width = byte(bitmap.width),
@@ -250,8 +251,8 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 			//	http://www.freetype.org/freetype2/docs/design/design-4.html.
 			return;
 		}
-#undef SBIT_CHECK_CHAR
-#undef SBIT_CHECK_BYTE
+#undef YSL_Impl_SB_CheckChar
+#undef YSL_Impl_SB_CheckByte
 	}
 }
 Typeface::SmallBitmapData::SmallBitmapData(SmallBitmapData&& sbit_dat)

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3447
+\version r3448
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-09-05 00:58 +0800
+	2016-09-16 20:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -464,7 +464,7 @@ void
 SaveConfiguration(const ValueNode& node)
 {
 	if(UniqueLockedOutputFileStream
-		uofs{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
+		uofs{std::ios_base::out | std::ios_base::trunc, CONF_PATH})
 	{
 		YTraceDe(Debug, "Writing configuration...");
 		WriteNPLA1Stream(uofs, ValueNode(node.GetContainer()));

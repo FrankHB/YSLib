@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3083
+\version r3090
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-08-25 00:05 +0800
+	2016-09-17 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -690,14 +690,7 @@ FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,
 			YCL_Raise_SysE(,
 				"Failed writing destination file '" + to_string(*ofd), yfsig);
 		return len != 0;
-#if YB_IMPL_GNUCPP < 50000 && !defined(NDEBUG)
-	// TODO: Use newer G++ to get away with the workaround.
-	}, [&]{
-		return ifd.Read(buf, size);
-	});
-#else
 	}, &FileDescriptor::Read, &ifd, buf, size);
-#endif
 }
 void
 FileDescriptor::WriteContent(FileDescriptor ofd, FileDescriptor ifd,

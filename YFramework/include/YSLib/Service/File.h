@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1596
+\version r1607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2016-08-30 19:03 +0800
+	2016-09-17 11:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,12 +99,7 @@ public:
 	YB_NONNULL(1)
 	SharedInputMappedFileStream(const char*);
 
-#	if (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922) \
-		|| !YB_IMPL_GNUCPP
-	using std::istream::operator bool;
-#else
 	explicit DefCvt(const ynothrow, bool, !fail())
-#endif
 
 	//! \brief 虚析构：类定义外默认实现。
 	~SharedInputMappedFileStream() override;
@@ -130,10 +125,14 @@ public:
 		mode_t pmode = DefaultPMode())
 		: UniqueLockedOutputFileStream(uopen(filename, omode, pmode))
 	{}
+	/*!
+	\note std::ios_base::openmode 可能是 int 。
+	\since build 727
+	*/
 	template<typename _tChar>
 	YB_NONNULL(1)
-	UniqueLockedOutputFileStream(const _tChar* filename,
-		std::ios_base::openmode mode, mode_t pmode = DefaultPMode())
+	UniqueLockedOutputFileStream(std::ios_base::openmode mode,
+		const _tChar* filename, mode_t pmode = DefaultPMode())
 		: UniqueLockedOutputFileStream(filename, omode_conv(mode), pmode)
 	{}
 	//@}

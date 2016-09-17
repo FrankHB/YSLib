@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2515
+\version r2581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-08-27 04:05 +0800
+	2016-09-17 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -702,60 +702,7 @@ public:
 	//! \since build 709
 	using yimpl(std::basic_filebuf<_tChar, _tTraits>::basic_filebuf);
 #	endif
-#	if YB_IMPL_GNUCPP && !(YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922)
-	//! \since build 620
-	//@{
-	DefDelCopyCtor(basic_filebuf)
-	basic_filebuf(basic_filebuf&& rhs)
-		: __gnu_cxx::stdio_filebuf<_tChar, _tTraits>()
-	{
-		assign(std::move(rhs)),
-		yunseq(this->_M_pback = rhs._M_pback,
-			this->_M_codecvt = rhs._M_codecvt);
-	}
-
-	DefDelCopyAssignment(basic_filebuf)
-	basic_filebuf&
-	operator=(basic_filebuf&& rhs)
-	{
-		this->close();
-		ystdex::swap_underlying(this->_M_file, rhs._M_file),
-		assign(std::move(rhs));
-		return *this;
-	}
-
-private:
-	void
-	assign(basic_filebuf&& rhs)
-	{
-	//	static_cast<std::basic_streambuf<_tChar, _tTraits>&>(*this) = rhs;
-		yunseq(
-		this->_M_mode
-			= ystdex::exchange(rhs._M_mode, std::ios_base::openmode(0)),
-		this->_M_state_beg = std::move(rhs._M_state_beg),
-		this->_M_state_cur = std::move(rhs._M_state_cur),
-		this->_M_state_last = std::move(rhs._M_state_last),
-		this->_M_buf = ystdex::exchange(rhs._M_buf, {}),
-		this->_M_buf_size = ystdex::exchange(rhs._M_buf_size, 1U),
-		this->_M_buf_allocated = ystdex::exchange(rhs._M_buf_allocated, {}),
-		this->_M_ext_buf = ystdex::exchange(rhs._M_ext_buf, {}),
-		this->_M_ext_buf_size = ystdex::exchange(rhs._M_ext_buf_size, 0),
-		this->_M_ext_next = ystdex::exchange(rhs._M_ext_next, {}),
-		this->_M_ext_end = ystdex::exchange(rhs._M_ext_end, {}),
-		this->_M_reading = ystdex::exchange(rhs._M_reading, {}),
-		this->_M_writing = ystdex::exchange(rhs._M_writing, {}),
-		this->_M_pback_cur_save = ystdex::exchange(rhs._M_pback_cur_save, {}),
-		this->_M_pback_end_save = ystdex::exchange(rhs._M_pback_end_save, {}),
-		this->_M_pback_init = ystdex::exchange(rhs._M_pback_init, {})
-		);
-		rhs._M_set_buffer(-1);
-		yunseq(rhs._M_state_last = rhs._M_state_beg,
-			rhs._M_state_cur = rhs._M_state_beg);
-	}
-	//@}
-#	else
 	DefDeCopyMoveCtorAssignment(basic_filebuf)
-#	endif
 
 public:
 	/*!
@@ -910,15 +857,12 @@ public:
 		return *this;
 	}
 
-#	if (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922) \
-		|| YB_IMPL_MSCPP
 	void
 	swap(basic_ifstream& rhs)
 	{
 		base_type::swap(rhs),
 		fbuf.swap(rhs.fbuf);
 	}
-#	endif
 
 	void
 	close()
@@ -952,10 +896,8 @@ public:
 	}
 };
 
-#	if __GLIBCXX__ > 20140922 || YB_IMPL_MSCPP
 template<typename _tChar, class _tTraits>
 inline DefSwap(, basic_ifstream<_tChar YPP_Comma _tTraits>)
-#	endif
 
 
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
@@ -1009,15 +951,12 @@ public:
 		return *this;
 	}
 
-#	if (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922) \
-	|| YB_IMPL_MSCPP
 	void
 	swap(basic_ofstream& rhs)
 	{
 		base_type::swap(rhs),
 		fbuf.swap(rhs.fbuf);
 	}
-#	endif
 
 	void
 	close()
@@ -1050,10 +989,8 @@ public:
 	}
 };
 
-#	if __GLIBCXX__ > 20140922
 template<typename _tChar, class _tTraits>
 inline DefSwap(, basic_ofstream<_tChar YPP_Comma _tTraits>)
-#	endif
 //@}
 
 
@@ -1107,15 +1044,12 @@ public:
 		return *this;
 	}
 
-#	if (YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922) \
-	|| YB_IMPL_MSCPP
 	void
 	swap(basic_fstream& rhs)
 	{
 		base_type::swap(rhs),
 		fbuf.swap(rhs.fbuf);
 	}
-#	endif
 
 	void
 	close()
@@ -1149,10 +1083,8 @@ public:
 	}
 };
 
-#	if __GLIBCXX__ > 20140922 || YB_IMPL_MSCPP
 template<typename _tChar, class _tTraits>
 inline DefSwap(, basic_fstream<_tChar YPP_Comma _tTraits>)
-#	endif
 
 
 //extern template class YF_API basic_fstream<char>;

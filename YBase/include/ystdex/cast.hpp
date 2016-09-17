@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1356
+\version r1360
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2016-07-10 20:06 +0800
+	2016-09-17 11:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,6 @@ using is_narrowing_from_floating
 namespace details
 {
 
-#if YB_IMPL_GNUCPP >= 50000
 template<typename _tDst>
 struct narrow_test
 {
@@ -109,7 +108,6 @@ test_narrow(...) ynothrow
 {
 	return {};
 }
-#endif
 
 } // namespace details;
 //@}
@@ -123,12 +121,10 @@ narrow_cast(_tSrc v) ynothrow
 {
 	static_assert(is_arithmetic<_tDst>(), "Invalid destination type found.");
 	static_assert(is_arithmetic<_tSrc>(), "Invalid source type found.");
-#if YB_IMPL_GNUCPP >= 50000
 	static_assert(is_narrowing_from_floating<_tDst, _tSrc>()
 		|| details::test_narrow<_tDst>(std::numeric_limits<_tSrc>::max())
 		|| details::test_narrow<_tDst>(std::numeric_limits<_tSrc>::min()),
 		"Invalid types found.");
-#endif
 
 	return static_cast<_tDst>(v);
 }

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r933
+\version r935
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-09-14 09:48 +0800
+	2016-09-14 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -544,9 +544,10 @@ DetectReducible(bool, TermNode&) ynothrow;
 */
 struct PassesCombiner
 {
+	//! \since build 727
 	template<typename _tIn>
 	bool
-	operator()(_tIn first, _tIn last) const
+	operator()(_tIn first, _tIn last) const ynothrowv
 	{
 		return ystdex::fast_any_of(first, last, ystdex::id<>());
 	}

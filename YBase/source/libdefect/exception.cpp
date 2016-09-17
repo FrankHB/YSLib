@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r605
+\version r624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 11:00:14 +0800
 \par 修改时间:
-	2016-08-03 10:12 +0800
+	2016-09-16 04:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,13 +29,20 @@
 #include <atomic> // for <bits/atomic_lockfree_defines.h> if using libstdc++.
 
 #if defined(__GLIBCXX__) \
-	&&(defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
+	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& ATOMIC_INT_LOCK_FREE < 2
 
 #	include "libdefect/exception.h"
 #	include <cxxabi.h> // for __cxxabiv1 and std::type_info;
 #	include <bits/atomic_word.h> // for ::_Atomic_word;
-#	include <unwind.h> // from libgcc, for __ARM_EABI_UNWINDER__, _Unwind_Ptr, etc;
+#	include <unwind.h> // from libgcc, for __ARM_EABI_UNWINDER__, _Unwind_Ptr,
+//	etc;
+#	if defined(__CLANG_UNWIND_H) && !defined(__ARM_EABI_UNWINDER__) \
+	&& defined(__arm__) && !defined(__USING_SJLJ_EXCEPTIONS__) \
+	&& !defined(__ARM_DWARF_EH__)
+// NOTE: See https://reviews.llvm.org/D15883.
+#		define __ARM_EABI_UNWINDER__ 1
+#	endif
 
 #	pragma GCC visibility push(default)
 
@@ -102,7 +109,7 @@ struct __cxa_eh_globals
 };
 
 extern void
-__terminate(std::terminate_handler) throw() __attribute__((__noreturn__));
+__terminate(std::terminate_handler) noexcept __attribute__((__noreturn__));
 
 
 namespace
@@ -133,7 +140,8 @@ __get_dependent_exception_from_ue(_Unwind_Exception* exc)
 	return reinterpret_cast<__cxa_dependent_exception*>(exc + 1) - 1;
 }
 
-#	ifdef __ARM_EABI_UNWINDER__
+// NOTE: This should be safe when %_Unwind_Exception_Class is %::uint8_t.
+#	if defined(__ARM_EABI_UNWINDER__) && !defined(__CLANG_UNWIND_H)
 inline bool
 __is_gxx_exception_class(_Unwind_Exception_Class c)
 {
@@ -218,14 +226,14 @@ __is_dependent_exception(_Unwind_Exception_Class c)
 #	endif
 
 inline void*
-__get_object_from_ue(_Unwind_Exception* eo) throw()
+__get_object_from_ue(_Unwind_Exception* eo) noexcept
 {
 	return __is_dependent_exception(eo->exception_class) ?
 		__get_dependent_exception_from_ue(eo)->primaryException : eo + 1;
 }
 
 inline void*
-__get_object_from_ambiguous_exception(__cxa_exception* p_or_d) throw()
+__get_object_from_ambiguous_exception(__cxa_exception* p_or_d) noexcept
 {
 	return __get_object_from_ue(&p_or_d->unwindHeader);
 }
@@ -266,10 +274,10 @@ static_assert(adjptr<__cxa_exception>()
 
 // FIXME: For platforms with threading but no atomic builtins, e.g. Android
 //	ARMv5.
-#	if !_GLIBCXX_HAS_GTHREADS
+#	if !_GLIBCXX_HAS_GTHREADS || __clang__
 template<typename _type>
 inline _type
-__atomic_add_fetch(_type* ptr, _type val, int)
+__atomic_add_fetch_(_type* ptr, _type val, int)
 {
 	*ptr += val;
 	return *ptr;
@@ -277,11 +285,13 @@ __atomic_add_fetch(_type* ptr, _type val, int)
 
 template<typename _type>
 inline _type
-__atomic_sub_fetch(_type* ptr, _type val, int)
+__atomic_sub_fetch_(_type* ptr, _type val, int)
 {
 	*ptr -= val;
 	return *ptr;
 }
+#		define __atomic_add_fetch __atomic_add_fetch_
+#		define __atomic_sub_fetch __atomic_sub_fetch_
 #	endif
 
 void

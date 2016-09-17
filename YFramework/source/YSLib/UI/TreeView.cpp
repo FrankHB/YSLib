@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r820
+\version r826
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2016-05-24 01:34 +0800
+	2016-09-17 12:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -392,14 +392,8 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		auto& lst(GetListRef());
 
 		// XXX: Reuse previous operation.
-		// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63500.
-#if defined(_GLIBCXX_DEBUG) && YB_IMPL_GNUCPP < 40902
-		lst.insert(lst.cbegin() + ptrdiff_t(idx) + 1, text_list.begin(),
-			text_list.end());
-#else
 		lst.insert(lst.cbegin() + ptrdiff_t(idx) + 1, std::make_move_iterator(
 			text_list.begin()), std::make_move_iterator(text_list.end()));
-#endif
 	}
 	else
 	{

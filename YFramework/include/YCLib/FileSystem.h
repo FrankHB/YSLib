@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3559
+\version r3565
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-08-11 05:36 +0800
+	2016-09-16 04:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,13 +73,13 @@ FindColon(const _tChar* p) ynothrowv
 //! \note 取平台首选的路径分隔字符。
 //@{
 template<typename _tChar>
-yconstfn YB_STATELESS _tChar
+YCL_Tag_constfn YB_STATELESS _tChar
 FetchSeparator_P(IDTag<YF_Platform_Win32>) ynothrow
 {
 	return '\\';
 }
 template<typename _tChar>
-yconstfn YB_STATELESS _tChar
+YCL_Tag_constfn YB_STATELESS _tChar
 FetchSeparator_P(IDTagBase) ynothrow
 {
 	return '/';
@@ -96,13 +96,13 @@ FetchSeparator() ynothrow
 //! \note 判断字符是否为平台支持的路径分隔符。
 //@{
 template<typename _tChar>
-yconstfn YB_STATELESS bool
+YCL_Tag_constfn YB_STATELESS bool
 IsSeparator_P(IDTag<YF_Platform_Win32> tag, _tChar c) ynothrow
 {
 	return c == FetchSeparator_P<_tChar>(tag) || c == _tChar('/');
 }
 template<typename _tChar>
-yconstfn YB_STATELESS bool
+YCL_Tag_constfn YB_STATELESS bool
 IsSeparator_P(IDTagBase tag, _tChar c) ynothrow
 {
 	return c == FetchSeparator_P<_tChar>(tag);
@@ -281,7 +281,7 @@ YCL_DefPlatformFwdTmpl(EndsWithNonSeperator, EndsWithNonSeperator_P)
 //! \since build 707
 //@{
 template<class _tString>
-yconstfn _tString&&
+YCL_Tag_constfn _tString&&
 TrimTrailingSeperator_P(IDTag<YF_Platform_Win32>, _tString&& path, typename
 	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
 	typename ystdex::string_traits<_tString>::value_type>("/\\")[0]) ynothrow
@@ -290,7 +290,7 @@ TrimTrailingSeperator_P(IDTag<YF_Platform_Win32>, _tString&& path, typename
 }
 
 template<class _tString>
-yconstfn _tString&&
+YCL_Tag_constfn _tString&&
 TrimTrailingSeperator_P(IDTagBase, _tString&& path, typename
 	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
 	typename ystdex::string_traits<_tString>::value_type>("/")[0]) ynothrow
