@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r305
+# Version = r316
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2016-04-01 10:20 +0800
+# Updated = 2016-09-17 20:33 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -74,6 +74,9 @@ LDFLAGS := $(LDFLAGS_OPT_DBG) $(ARCH) -Wl,--gc-sections \
 
 # any extra libraries we wish to link with the project
 LIBS :=-llog -landroid -lEGL -lGLESv1_CM
+LIBCRYSTAX_STATIC ?= -u __crystax_on_load -u __crystax_on_unload \
+	-Wl,-z,muldefs -Wl,--eh-frame-hdr -L$(BUILDDIR) -lstdc++ \
+	$(TARGET_LIB_PATH)/libcrystax.a -lc
 #LIBS := -landroid -llog -lEGL -lGLESv2
 # User defined libraries.
 LIBPATHEX := -L$(TOPDIR)/../../YFramework/Android/lib
@@ -82,8 +85,8 @@ LIBEX := -lfreetype #-lFreeImage
 YBASE_A := $(BUILDDIR)/../../YBase/$(RELEASE)/libYBase.a
 YFRAMEWORK_A := $(BUILDDIR)/../../YFramework/$(RELEASE)/libYFramework.a
 
-# list of directories containing libraries, this must be the top level containing
-# include and lib
+# list of directories containing libraries, this must be the top level
+# containing include and lib
 LIBDIRS	:=
 
 ifneq ($(RELEASE),$(notdir $(CURDIR)))
@@ -161,8 +164,13 @@ $(RESOURCES) : $(MANIFEST)
 
 $(OUTPUTSO) : $(OFILES) $(YFRAMEWORK_A) $(YBASE_A)
 	@rm -f "$(OUTPUTSO)"
+	@rm -f "$(BUILDDIR)/libcrystax.a"
+	@echo Creating stub library for static linking ...
+	$(AR) rc "$(BUILDDIR)/libcrystax.a"
 	@echo Linking $(notdir $@) ...
-	$(LD) -shared $(LDFLAGS) $(foreach file,$(OFILES),$(DEPSDIR)/$(file)) $(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
+	$(LD) -shared $(LDFLAGS) $(foreach file,$(OFILES),$(DEPSDIR)/$(file)) \
+		$(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) \
+		$(LIBCRYSTAX_STATIC) -o $@
 
 %.cpp.o : %.cpp
 	@echo $<

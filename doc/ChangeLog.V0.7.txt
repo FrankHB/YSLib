@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3098
+\version r3211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-09-14 09:54 +0800
+	2016-09-17 20:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,117 @@ $now
 (
 	/ %YFramework $=
 	(
+		+ 'ynothrowv' @ "member function %PassesCombiner::operator()"
+			@ %NPL.NPLA,
+		/ %YCLib $=
+		(
+			* "ill-formed 'yconstfn' due to tag with virtual bases as parameter"
+				@ $since b693 $=
+			(
+				+ "macro %YCL_Tag_constfn" @ %YCommon;
+				/ "all functions with tag type" ^ "%YCL_Tag_constfn"
+					~ 'yconstfn' $effective
+					@ "%(FetchSeparator_P, IsSeparator_P)" @ %FileSystem
+					// Also to avoid Clang++ errors like "function's 1st \
+						parameter is not a literal type".
+			),
+			- DLDI "inclusion conditions ('__GLIBCXX__ > 20140922', \
+				'YB_IMPL_GNUCPP >= 50000 && __GLIBCXX__ > 20140922')" @ %FileIO
+				$dep_from %Documentation.Dependencies
+		),
+		/ %YSLib $=
+		(
+			/ %Service.File $=
+			(
+				/ @ "class %SharedInputMappedFileStream" $=
+				(
+					- "workaround" $dep_from %Documentation.Dependencies;
+					* $comp "workaround did not support Clang++ with libstdc++ \
+						4.9" $since b724,
+				),
+				* "constructor templates %UniqueLockedOutputFileStream \
+					redefined if the implementation uses \
+					'std::ios_base::openmode' same to 'int'" $since b724
+					// For example, Microsoft VC++ 2015.
+					$= (/ "swapped first two parmeters" @ "constructor#2")
+			)
+			/ DLDI "type conversion for font metrics range check" %Adaptor.Font,
+				// To eliminate G++ warning: [-Wsign-compare].
+			- DLDI "inclusion condition \
+				'defined(_GLIBCXX_DEBUG) && YB_IMPL_GNUCPP < 40902'"
+				@ %UI.TreeView $dep_from %Documentation.Dependencies
+		),
+		/ $foced DLDI "function %SaveConfiguration" @ %Helper.Initialization
+			$dep_from ("%UniqueLockedOutputFileStream" @ %YSLib.Service.File)
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %TypeOperation $=
+			(
+				+ "metafunctions %(min_, max)",
+				- "inclusion condition 'YB_IMPL_GNUCPP >= 40600'"
+			),
+			(
+			/ "loosed requirement of %DefaultConstrucible of token type"
+				@ "class %tagged_value" @ %Placement;
+			* $comp $impl "ill-formed reference token type initialization"
+				@ "class tmplate %state_guard_impl" @ %ScopeGuard $since b718
+			),
+			- "inclusion condition 'YB_IMPL_GNUCPP >= 50000'"
+				@ %(Cast, TypeTraits) $dep_from %Documentation.Dependencies,
+			- DLDI "inclusion conditions \
+				'YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000', \
+				'!(YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000)'"
+				@ %Iterator $dep_from %Documentation.Dependencies
+		),
+		/ %LibDefect.Exception $=
+		(
+			/ DLDI "all 'throw()'" -> 'noexcept',
+				// To eliminate Clang++ warning: [-Wdeprecated].
+			+ "platform %Android Clang++ support" $=
+			(
+				+ "workaround for lacking of %__ARM_EABI_UNWINDER__",
+				/ "renamed fake atomic routines"
+					// Otherwise Clang++ 3.5 will crash.
+			)
+		),
+		/ %CMath @ "Clang++" ^ 'inline' ~ 'constexpr'
+			// To avoid Clang++ error: [-Winvalid-constexpr]. See \
+				https://llvm.org/bugs/show_bug.cgi?id=18327 for details.
+	),
+	/ %Tools $=
+	(
+		/ "updated toolchain version for NDK r10c" @ "command line options"
+			@ "%make-clang-android.sh" $=
+		(
+			/ '--toolchain=arm-linux-androideabi-4.9'
+				-> '--toolchain=arm-linux-androideabi-5',
+			/ '--llvm-version=3.5' -> '--llvm-version=3.7'
+		),
+		+ "exported %TARGET_LIB_PATH" @ "%Toolchain.Android.mk" @ %Script
+	),
+	(
+	/ "supported standalone toolchain from CrystaX NDK"
+		~ "Android NDK" @ "Makefile" @ "platform %Android" @ %YReader
+	(
+		+ "%LIBCRYSTAX_STATIC" $dep_from %Tools.Script;
+		+ "stub library 'libcrystax.a' generation for static linking";
+			// Like 'sources/crystax/libs/empty/libcrystax.a' in CrystaX NDK \
+				10.3.2.
+		+ "static libcrystax support" $dep_from %'3rdparty'
+	);
+	+ $doc "removed G++ 4 support" @ %Documentation.Dependencies;
+	/ DLDI "simplified member function %TextInfoBox::Refresh"
+		@ %YReader.ShlReader
+	)
+),
+
+b726
+(
+	/ %YFramework $=
+	(
 		/ %NPL $=
 		(
 			/ %NPLA1 $=
@@ -41,9 +152,8 @@ $now
 				/ "functions %(EvaluateGuard, EvaluateLeafPasses, \
 					EvaluateListPasses)"
 					=> "%(InvokeGuard, InvokeLeaf, InvokeList)",
-				/ "function %RewriteLiteral" => "%EvaluateIdentifier",
-				/ $forced "function %EvaluateIdentifier" $dep_from
-					("%UndeclaredIdentifier" @ %NPLA)
+				/ $forced "function %RewriteLiteral" -> "%EvaluateIdentifier"
+					$dep_from ("%UndeclaredIdentifier" @ %NPLA)
 					// This exception should not necessarily relate to \
 						declarations. Unknown identifier is not always \
 						undeclared. Duplicate identifier may be not allowed in \

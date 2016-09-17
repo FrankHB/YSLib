@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for Android toolchain
-# Version = r65
+# Version = r67
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2016-05-01 21:49 +0800
+# Updated = 2016-09-17 20:11 +0800
 # Encoding = ANSI
 
 
@@ -32,6 +32,9 @@ export AR := $(PREFIX)gcc-ar
 export OBJCOPY := $(PREFIX)objcopy
 export STRIP := $(PREFIX)strip
 export NM := $(PREFIX)nm
+
+export TARGET_LIB_PATH := \
+	$(dir $(shell which $(CC)))../arm-linux-androideabi/lib
 
 ifeq ($(PLATFORM),Android)
 	ifeq ($(strip $(ANDROID_SDK)),)

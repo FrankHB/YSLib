@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3816
+\version r3822
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2016-08-17 08:57 +0800
+	2016-09-17 17:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,6 +103,13 @@ template<ID... _vN>
 struct IDTagSet : virtual IDTag<_vN>...
 {};
 //@}
+
+/*!
+\brief 包含平台标签的常量表达式函数。
+\note 由于标签类型使用虚基类的限制，不能使用合式的 constexpr 。
+\since build 727
+*/
+#define YCL_Tag_constfn inline
 
 #if YB_IMPL_CLANGPP
 #	pragma GCC diagnostic pop

@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2727
+\version r2766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2016-04-04 13:04 +0800
+	2016-09-17 11:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,39 @@
 namespace ystdex
 {
 
+/*!
+\ingroup metafunctions
+\brief 算术操作元函数。
+\since build 727
+*/
+//@{
+template<class...>
+struct min_;
+
+template<class _v1>
+struct min_<_v1> : _v1
+{};
+
+template<class _v1, class _v2, class... _vn>
+struct min_<_v1, _v2, _vn...>
+	: min_<ystdex::conditional_t<(_v1::value < _v2::value), _v1, _v2>, _vn...>
+{};
+
+
+template<class...>
+struct max_;
+
+template<class _v1>
+struct max_<_v1> : _v1
+{};
+
+template<class _v1, class _v2, class... _vn>
+struct max_<_v1, _v2, _vn...>
+	: max_<ystdex::conditional_t<(_v1::value > _v2::value), _v1, _v2>, _vn...>
+{};
+//@}
+
+
 namespace details
 {
 
@@ -52,8 +85,6 @@ using equality_operator_t
 	= decltype(std::declval<_type>() == std::declval<_type2>());
 
 
-//! \ingroup binary_type_traits
-//@{
 //! \since build 629
 template<class _type>
 struct has_nonempty_virtual_base
@@ -91,26 +122,20 @@ private:
 	{};
 
 #ifdef YB_IMPL_GNUCPP
-#	if YB_IMPL_GNUCPP >= 40600
-#		pragma GCC diagnostic push
-#		pragma GCC diagnostic ignored "-Wextra"
-#	else
-#		pragma GCC system_header
-#	endif
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wextra"
 #endif
 
 	struct C : A, B
 	{};
 
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 40600
-//#	pragma GCC diagnostic warning "-Wextra"
+#if YB_IMPL_GNUCPP
 #	pragma GCC diagnostic pop
 #endif
 
 public:
 	static yconstexpr const bool value = sizeof(C) < sizeof(A) + sizeof(B);
 };
-//@}
 
 //! \since build 649
 template<typename _type>
@@ -160,10 +185,10 @@ struct has_mem_type : is_detected<_t, _type>
 
 
 /*!
-\brief 判断 _type 是否包含 value 成员。
+\brief 判断 _type 是否包含 value 数据成员。
 \since build 440
 */
-template<class _type>
+template<typename _type>
 struct has_mem_value : is_detected<details::mem_value_t, _type>
 {};
 
@@ -172,7 +197,7 @@ struct has_mem_value : is_detected<details::mem_value_t, _type>
 \brief 判断 _type 是否包含 value_type 类型成员。
 \since build 650
 */
-template<class _type>
+template<typename _type>
 struct has_mem_value_type : is_detected<details::mem_value_type_t, _type>
 {};
 //@}
@@ -215,7 +240,9 @@ struct has_nonempty_virtual_base
 /*!
 \ingroup unary_type_traits
 \brief 判断指定的两个类类型是否不同且有公共非空虚基类。
+\pre 类可被继承。
 \since build 660
+\todo 支持 final 类。
 */
 template<class _type1, class _type2>
 struct have_common_nonempty_virtual_base
