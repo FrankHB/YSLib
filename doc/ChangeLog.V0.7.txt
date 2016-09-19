@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3211
+\version r3277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-09-17 20:36 +0800
+	2016-09-19 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,73 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ DLDI "cast for parameter" @ "function %FetchModuleFileName"
+			@ %'YCLib_(Win32)'.MinGW32,
+			// To eliminate Clang++ warning: [-Wshorten-64-to-32].
+		/ %YCLib.Video $=
+		(
+			/ "aliases %(BType, GType, RType)" @ "trait %XYZATrait"
+				=> "%(XType, YType, ZType)",
+			(
+			+ "inline namespace %IndexSpace" $=
+			(
+				+ "namespace %AXYZComponents"
+					$= (+ "enum %AXYZ");
+				+ "namespace %AXYZMapping"
+					$= (+ "enum %ABGR"),
+				+ "namespace %AZYXMapping"
+					$= (+ "enum %ABGR")
+			);
+			/ "class templates %(XYZATrait, XYZAMaskTrait, AXYZMaskTrait)"
+				-> "%(class template AXYZValueTrait; aliase templates \
+				%(XYZATrait, %AXYZTrait))" ^ $dep_from
+				("%ystdex::mapped_bitseg_trait" @ %YBase.YStandardEx.BitSegment)
+				$dep_to "merged mask traits"
+			);
+			(
+			/ $forced @ "class templates %(BGRA, RGBA, ARGB)" $=
+			(
+				+ "enum %ComponentMapping";
+				+ "aliases %(AType, BType, GType, RType)",
+				- 'Trait::' @ "component type names",
+				/ "%(Trait, MaskTrait)" -> "%Trait"
+			);
+			/ DLDI "constructors %(BGRA, RGBA, ARGB)"
+			),
+			* "parameter types" @ "constructor with component parameters"
+				@ "class template %RGBA" $since b441,
+		),
+		/ $forced %YSLib $dep_from "merged mask traits" $=
+		(
+			/ %Adaptor.YAdaptor $=
+			(
+				/ 'using platform::XYZAMaskTrait;'
+					-> 'using platform::XYZATrait;
+				/ 'using platform::AXYZMaskTrait;'
+					-> 'using platform::AXYZTrait;
+			);
+			/ DLDI "workaround for GCC" @ "class template %GBlender"
+				@ %Service.YPixel
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "namespace %fseq" $=
+		(
+			+ "function templates %(front, pop_front, 2 fold, 2 vfold) for \
+				%(empty_base, integer_sequence) sequences"
+				@ %(Variadic, IntegerSequence),
+			+ "functors %(plus, minus)" @ %IntegerSequence
+		),
+		+ "traits %(bitseg_trait; mapped_bitseg_trait)" @ %BitSegment
+			^ $dep_from ("%fseq::(fold, plus, vfold)" @ %IntegerSequence)
+	)
+),
+
+b727
 (
 	/ %YFramework $=
 	(

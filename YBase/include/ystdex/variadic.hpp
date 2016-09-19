@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1318
+\version r1375
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-04-23 19:02 +0800
+	2016-09-19 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,17 @@
 namespace ystdex
 {
 
+/*!	\defgroup fseq_operations Functional Sequence Operations
+\ingroup meta_operations
+\brief 变长参数标记的序列相关的函数模板操作。
+\since build 728
+
+形式为函数模板声明的相关操作，被操作的序列是类类型。
+直接返回类型元素的结果被 identity 包装。使用递归实现的调用不应使用 ADL 。
+除此处的特化外，可有其它类类型的重载，不一定适用 identity 包装。
+用户类型可使用 ADL 。
+*/
+
 /*!	\defgroup vseq_operations Variadic Sequence Operations
 \ingroup meta_operations
 \brief 变长参数标记的序列相关的元操作。
@@ -48,6 +59,60 @@ namespace ystdex
 最后一个参数用于 SFINAE 。
 */
 
+
+//! \since build 728
+namespace fseq
+{
+
+/*!
+\ingroup fseq_operations
+\since build 728
+*/
+//@{
+template<typename _type, typename... _types>
+yconstfn identity<_type>
+front(empty_base<_type, _types...>) ynothrow
+{
+	return {};
+}
+
+template<typename _type, typename... _types>
+yconstfn empty_base<_types...>
+pop_front(empty_base<_type, _types...>) ynothrow
+{
+	return {};
+}
+
+template<typename _func, typename _tState>
+yconstfn _tState
+fold(_func, _tState s, empty_base<>) ynothrow
+{
+	return s;
+}
+template<typename _func, typename _tState, typename _type, typename... _types>
+yconstfn auto
+fold(_func f, _tState s, empty_base<_type, _types...> xs) ynothrow
+	-> decltype(fold(f, f(s, front(xs)), pop_front(xs)))
+{
+	return fold(f, f(s, front(xs)), pop_front(xs));
+}
+
+
+template<typename _func, typename _tState>
+yconstfn _tState
+vfold(_func, _tState s) ynothrow
+{
+	return s;
+}
+template<typename _func, typename _tState, typename _type, typename... _types>
+yconstfn _tState
+vfold(_func f, _tState s, _type x, _types... xs) ynothrow
+{
+	return vfold(f, f(s, x), xs...);
+}
+//@}
+
+} // namespace fseq;
 
 //! \since build 589
 namespace vseq
@@ -165,7 +230,7 @@ struct bind_front
 /*!
 \note vdefer 是必要的，否则别名模板作为元函数时无法推导参数。
 \sa vdefer
-\see http://wg21.cmeerw.net/lwg/issue1430 。
+\see LWG 1430 。
 */
 //@{
 /*!

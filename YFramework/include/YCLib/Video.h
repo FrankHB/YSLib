@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1255
+\version r1442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-09-01 09:57 +0800
+	2015-09-19 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define YCL_INC_Video_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_YCommon
-#include <ystdex/cstdint.hpp>
+#include YFM_YCLib_YCommon // for std::is_signed, std::is_unsigned;
+#include <ystdex/bitseg.hpp> // for ystdex::integer_width, ystdex::bitseg_trait;
 
 namespace platform
 {
@@ -54,72 +54,100 @@ static_assert(ystdex::integer_width<SDst>() >= ystdex::integer_width<SPos>(),
 	" position.");
 //@}
 
+
+//! \since build 728
+//@{
+//! \brief 索引空间。
+inline namespace IndexSpace
+{
+
+//! \brief AXYZ 分量索引。
+namespace AXYZIndex
+{
+
+//! \note 值表示值特征的 AXYZ 索引参数顺序。
+enum AXYZ : size_t
+{
+	A = 0,
+	X = 1,
+	Y = 2,
+	Z = 3
+};
+
+} // namespace AXYZIndex;
+
+//! \brief AXYZ 分量索引映射。
+namespace AXYZMapping
+{
+
+//! \note 值表示 ABGR 分量到 AXZY 分量的映射，和存储无关。
+enum ABGR : size_t
+{
+	A = AXYZIndex::A,
+	B = AXYZIndex::X,
+	G = AXYZIndex::Y,
+	R = AXYZIndex::Z
+};
+
+} // namespace AXYZMapping;
+
+//! \brief AZYX 分量索引映射。
+namespace AZYXMapping
+{
+
+//! \note 值表示 ABGR 分量到 AXZY 分量的映射，和存储无关。
+enum ABGR : size_t
+{
+	A = AXYZIndex::A,
+	B = AXYZIndex::Z,
+	G = AXYZIndex::Y,
+	R = AXYZIndex::X
+};
+
+} // namespace AZYXMapping;
+
+} // inline namespace IndexSpace;
+
+
 /*!
-\brief XYZA 特征。
+\ingroup type_traits_operations
 \note X 、 Y 和 Z 表示色彩分量， A 表示 Alpha 通道分量。
-\note 也适用于 AXYZ 。
-\since build 441
+\since build 728
 */
-template<size_t _vX, size_t _vY, size_t _vZ, size_t _vA>
-struct XYZATrait
+//@{
+//! \note 索引参数表示在 AXYZ 分量在位段特征中表示的索引。
+template<class _tBitSegTrait, size_t _vIdxA, size_t _vIdxX, size_t _vIdxY,
+	size_t _vIdxZ>
+struct AXYZValueTrait
+	: ystdex::mapped_bitseg_trait<_tBitSegTrait, _vIdxA, _vIdxX, _vIdxY, _vIdxZ>
 {
-	static yconstexpr const size_t ABitsN = _vA;
-	static yconstexpr const size_t XBitsN = _vX;
-	static yconstexpr const size_t YBitsN = _vY;
-	static yconstexpr const size_t ZBitsN = _vZ;
-	static yconstexpr const size_t XYBitsN = XBitsN + YBitsN;
-	static yconstexpr const size_t XYZBitsN = XBitsN + YBitsN + ZBitsN;
-	static yconstexpr const size_t BitsN = XBitsN + YBitsN + ZBitsN + ABitsN;
-	static yconstexpr const size_t BytesN = (BitsN + CHAR_BIT - 1) / CHAR_BIT;
+	using Base = ystdex::mapped_bitseg_trait<_tBitSegTrait, _vIdxA, _vIdxX,
+		_vIdxY, _vIdxZ>;
+	using IntegerType = typename Base::integer;
+	using ArrayType = typename Base::array;
 
-	using AType = typename ystdex::make_width_int<ABitsN>::unsigned_least_type;
-	using BType = typename ystdex::make_width_int<XBitsN>::unsigned_least_type;
-	using GType = typename ystdex::make_width_int<YBitsN>::unsigned_least_type;
-	using RType = typename ystdex::make_width_int<ZBitsN>::unsigned_least_type;
-	using IntegerType
-		= typename ystdex::make_width_int<BitsN>::unsigned_least_type;
-	using ArrayType = byte[BytesN];
+	static_assert(Base::bits_n <= 64, "Width larger than 64 unimplemented");
 
-	static_assert(BitsN <= 64, "Width larger than 64 unimplemented");
+	static yconstexpr const size_t ABitsN
+		= Base::template component_width<AXYZIndex::A>::value;
+	static yconstexpr const size_t XYZBitsN
+		= Base::template component_width<AXYZIndex::X>::value
+		+ Base::template component_width<AXYZIndex::Y>::value
+		+ Base::template component_width<AXYZIndex::Z>::value;
 };
 
 
-/*!
-\brief XYZA 掩码特征。
-\since build 507
-*/
-template<size_t _vX, size_t _vY, size_t _vZ, size_t _vA>
-struct XYZAMaskTrait
-{
-	using IntegerType = typename XYZATrait<_vX, _vY, _vZ, _vA>::IntegerType;
-
-	static yconstexpr const IntegerType XMaskN = _vX;
-	static yconstexpr const IntegerType XYMaskN = XMaskN + _vY;
-	static yconstexpr const IntegerType XYZMaskN = XYMaskN + _vZ;
-	static yconstexpr const IntegerType AMask = ((1U << _vA) - 1) << XYZMaskN;
-	static yconstexpr const IntegerType XMask = (1U << _vX) - 1;
-	static yconstexpr const IntegerType YMask = ((1U << _vY) - 1) << XMaskN;
-	static yconstexpr const IntegerType ZMask = ((1U << _vZ) - 1) << XYMaskN;
-};
-
-
-/*!
-\brief AXYZ 掩码特征。
-\since build 507
-*/
+//! \brief AXYZ 特征。
 template<size_t _vA, size_t _vX, size_t _vY, size_t _vZ>
-struct AXYZMaskTrait
-{
-	using IntegerType = typename XYZATrait<_vX, _vY, _vZ, _vA>::IntegerType;
+using AXYZTrait
+	= AXYZValueTrait<ystdex::bitseg_trait<_vA, _vX, _vY, _vZ>, 0, 1, 2, 3>;
 
-	static yconstexpr const IntegerType AMaskN = _vA;
-	static yconstexpr const IntegerType AXMaskN = AMaskN + _vX;
-	static yconstexpr const IntegerType AXYMaskN = AXMaskN + _vY;
-	static yconstexpr const IntegerType AMask = (1U << _vA) - 1;
-	static yconstexpr const IntegerType XMask = ((1U << _vX) - 1) << AMaskN;
-	static yconstexpr const IntegerType YMask = ((1U << _vY) - 1) << AXMaskN;
-	static yconstexpr const IntegerType ZMask = ((1U << _vZ) - 1) << AXYMaskN;
-};
+//! \brief XYZA 特征。
+template<size_t _vX, size_t _vY, size_t _vZ, size_t _vA>
+using XYZATrait
+	= AXYZValueTrait<ystdex::bitseg_trait<_vX, _vY, _vZ, _vA>, 3, 0, 1, 2>;
+//@}
+//@}
 
 
 /*!
@@ -135,12 +163,18 @@ union YB_ATTR(packed) YB_ATTR(
 	aligned(yalignof(typename XYZATrait<_vB, _vG, _vR, _vA>::IntegerType))) BGRA
 {
 	using Trait = XYZATrait<_vB, _vG, _vR, _vA>;
-	//! \since build 507
-	using MaskTrait = XYZAMaskTrait<_vB, _vG, _vR, _vA>;
 	//! \since build 555
 	using ArrayType = typename Trait::ArrayType;
 	//! \since build 555
 	using IntegerType = typename Trait::IntegerType;
+	//! \since build 728
+	//@{
+	using CMap = AXYZMapping::ABGR;
+	using AType = typename Trait::template component_t<CMap::A>;
+	using BType = typename Trait::template component_t<CMap::B>;
+	using GType = typename Trait::template component_t<CMap::G>;
+	using RType = typename Trait::template component_t<CMap::R>;
+	//@}
 
 	ArrayType Bytes;
 	IntegerType Integer;
@@ -150,32 +184,28 @@ union YB_ATTR(packed) YB_ATTR(
 //#endif
 
 	DefDeCtor(BGRA)
+	//! \since build 728
+	//@{
 	yconstfn
-	BGRA(typename Trait::IntegerType i)
+	BGRA(IntegerType i)
 		: Integer(i)
 	{}
 	yconstfn
-	BGRA(typename Trait::BType b, typename Trait::GType g,
-		typename Trait::RType r, typename Trait::AType a)
-		: Integer(IntegerType(b) | IntegerType(g) << MaskTrait::XMaskN
-		| IntegerType(r) << MaskTrait::XYMaskN
-		| IntegerType(a) << MaskTrait::XYZMaskN)
+	BGRA(BType b, GType g, RType r, AType a)
+		: Integer(Trait::pack(a, b, g, r))
 	{}
 
-	//! \since build 442
-	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)
+	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
 
-	//! \since build 448
-	yconstfn DefGetter(const ynothrow, typename Trait::AType, A,
-		(Integer & MaskTrait::AMask) >> MaskTrait::XYZMaskN)
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, B,
-		Integer & MaskTrait::XMask)
-	//! \since build 448
-	yconstfn DefGetter(const ynothrow, typename Trait::GType, G,
-		(Integer & MaskTrait::YMask) >> MaskTrait::XMaskN)
-	//! \since build 448
-	yconstfn DefGetter(const ynothrow, typename Trait::RType, R,
-		(Integer & MaskTrait::ZMask) >> MaskTrait::XYMaskN)
+	yconstfn DefGetter(const ynothrow, AType, A,
+		Trait::template extract<CMap::A>(Integer))
+	yconstfn DefGetter(const ynothrow, BType, B,
+		Trait::template extract<CMap::B>(Integer))
+	yconstfn DefGetter(const ynothrow, GType, G,
+		Trait::template extract<CMap::G>(Integer))
+	yconstfn DefGetter(const ynothrow, RType, R,
+		Trait::template extract<CMap::R>(Integer))
+	//@}
 };
 
 
@@ -189,15 +219,21 @@ union YB_ATTR(packed) YB_ATTR(
 */
 template<size_t _vR, size_t _vG, size_t _vB, size_t _vA>
 union YB_ATTR(packed) YB_ATTR(
-	aligned(yalignof(typename XYZATrait<_vB, _vG, _vR, _vA>::IntegerType))) RGBA
+	aligned(yalignof(typename XYZATrait<_vR, _vG, _vB, _vA>::IntegerType))) RGBA
 {
 	using Trait = XYZATrait<_vR, _vG, _vB, _vA>;
-	//! \since build 507
-	using MaskTrait = XYZAMaskTrait<_vB, _vG, _vR, _vA>;
 	//! \since build 555
 	using ArrayType = typename Trait::ArrayType;
 	//! \since build 555
 	using IntegerType = typename Trait::IntegerType;
+	//! \since build 728
+	//@{
+	using CMap = AZYXMapping::ABGR;
+	using AType = typename Trait::template component_t<CMap::A>;
+	using BType = typename Trait::template component_t<CMap::B>;
+	using GType = typename Trait::template component_t<CMap::G>;
+	using RType = typename Trait::template component_t<CMap::R>;
+	//@}
 
 	ArrayType Bytes;
 	IntegerType Integer;
@@ -207,32 +243,28 @@ union YB_ATTR(packed) YB_ATTR(
 //#endif
 
 	DefDeCtor(RGBA)
+	//! \since build 728
+	//@{
 	yconstfn
-	RGBA(typename Trait::IntegerType i)
+	RGBA(IntegerType i)
 		: Integer(i)
 	{}
 	yconstfn
-	RGBA(typename Trait::BType r, typename Trait::GType g,
-		typename Trait::RType b, typename Trait::AType a)
-		: Integer(IntegerType(r) | IntegerType(g) << MaskTrait::XMaskN
-		| IntegerType(b) << MaskTrait::XYMaskN
-		| IntegerType(a) << MaskTrait::XYZMaskN)
+	RGBA(RType r, GType g, BType b, AType a)
+		: Integer(Trait::pack(a, r, g, b))
 	{}
 
-	//! \since build 442
-	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)
+	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
 
-	//! \since build 448
-	yconstfn DefGetter(const ynothrow, typename Trait::AType, A,
-		(Integer & MaskTrait::AMask) >> MaskTrait::XYZMaskN)
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, B,
-		(Integer & MaskTrait::ZMask) >> MaskTrait::XYMaskN)
-	//! \since build 448
-	yconstfn DefGetter(const ynothrow, typename Trait::GType, G,
-		(Integer & MaskTrait::YMask) >> MaskTrait::XMaskN)
-	//! \since build 448
-	yconstfn DefGetter(const ynothrow, typename Trait::RType, R,
-		Integer & MaskTrait::XMask)
+	yconstfn DefGetter(const ynothrow, AType, A,
+		Trait::template extract<CMap::A>(Integer))
+	yconstfn DefGetter(const ynothrow, BType, B,
+		Trait::template extract<CMap::B>(Integer))
+	yconstfn DefGetter(const ynothrow, GType, G,
+		Trait::template extract<CMap::G>(Integer))
+	yconstfn DefGetter(const ynothrow, RType, R,
+		Trait::template extract<CMap::R>(Integer))
+	//@}
 };
 
 
@@ -246,40 +278,50 @@ union YB_ATTR(packed) YB_ATTR(
 */
 template<size_t _vA, size_t _vR, size_t _vG, size_t _vB>
 union YB_ATTR(packed) YB_ATTR(
-	aligned(yalignof(typename XYZATrait<_vB, _vG, _vR, _vA>::IntegerType))) ARGB
+	aligned(yalignof(typename AXYZTrait<_vA, _vR, _vG, _vB>::IntegerType))) ARGB
 {
-	using Trait = XYZATrait<_vB, _vG, _vR, _vA>;
-	using MaskTrait = AXYZMaskTrait<_vA, _vR, _vG, _vB>;
+	using Trait = AXYZTrait<_vA, _vR, _vG, _vB>;
+	//! \since build 728
+	//@{
+	using ArrayType = typename Trait::ArrayType;
+	using IntegerType = typename Trait::IntegerType;
+	using CMap = AZYXMapping::ABGR;
+	using AType = typename Trait::template component_t<CMap::A>;
+	using BType = typename Trait::template component_t<CMap::B>;
+	using GType = typename Trait::template component_t<CMap::G>;
+	using RType = typename Trait::template component_t<CMap::R>;
 
-	typename Trait::ArrayType Bytes;
-	typename Trait::IntegerType Integer;
+	ArrayType Bytes;
+	IntegerType Integer;
+	//@}
 
 //#if !LITTLE_ENDIAN
 //#	error Unsupported integer endianness found.
 //#endif
 
 	DefDeCtor(ARGB)
+	//! \since build 728
+	//@{
 	yconstfn
-	ARGB(typename Trait::IntegerType i)
+	ARGB(IntegerType i)
 		: Integer(i)
 	{}
 	yconstfn
-	ARGB(typename Trait::BType a, typename Trait::GType r,
-		typename Trait::RType g, typename Trait::AType b)
-		: Integer(a | r << MaskTrait::AMaskN | g << MaskTrait::AXMaskN
-		| b << MaskTrait::AXYMaskN)
+	ARGB(AType a, RType r, GType g, BType b)
+		: Integer(Trait::pack(a, r, g, b))
 	{}
 
-	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)
+	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
 
-	yconstfn DefGetter(const ynothrow, typename Trait::AType, A,
-		Integer & MaskTrait::AMask)
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, B,
-		(Integer & MaskTrait::ZMask) >> MaskTrait::AXYMaskN)
-	yconstfn DefGetter(const ynothrow, typename Trait::GType, G,
-		(Integer & MaskTrait::YMask) >> MaskTrait::AXMaskN)
-	yconstfn DefGetter(const ynothrow, typename Trait::RType, R,
-		(Integer & MaskTrait::XMask) >> MaskTrait::AMaskN)
+	yconstfn DefGetter(const ynothrow, AType, A,
+		Trait::template extract<CMap::A>(Integer))
+	yconstfn DefGetter(const ynothrow, BType, B,
+		Trait::template extract<CMap::B>(Integer))
+	yconstfn DefGetter(const ynothrow, GType, G,
+		Trait::template extract<CMap::G>(Integer))
+	yconstfn DefGetter(const ynothrow, RType, R,
+		Trait::template extract<CMap::R>(Integer))
+	//@}
 };
 
 
@@ -343,9 +385,10 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 /*!
 \brief Windows DIB 格式兼容像素。
 \note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
-	即小端序整数 ARGB8888 （存储序 BGRA8888 ）。
+	即小端序整数 ARGB8888 （存储序 BGRA8888 ），兼容 \c ::AlphaBlend 使用的格式。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
 \warning 仅用于屏幕绘制，不保证无条件兼容所有 DIB 。
+\see https://msdn.microsoft.com/en-us/library/windows/desktop/dd183352(v=vs.85).aspx 。
 \since build 441
 \todo 断言对齐，保证类型兼容。
 */
