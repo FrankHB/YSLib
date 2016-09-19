@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9200
+\version r9224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2016-06-11 02:39 +0800
+	2016-08-19 19:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ b499
 				@ "function templates %(MakeRenderWindow, \
 				MakeRenderWindowEx)" @ "class %HostRenderer" @ %HostRenderer
 		),
-		+ "nonnull argument assertions"
+		+ "assertions to ensure nonnull argument"
 			@ "member function %ScreenBuffer::UpdateFrom"
 			@ %('YCLib_(MinGW32)'.Win32GUI, 'YCLib_(Android)'.Android)
 	),
@@ -359,11 +359,11 @@ b496
 				%transformed_iterator instances"
 		),
 		/ @ "supported rvalue references" @ "function templates \
-			%(polymorphic_cast, polyphic_downcast)" @ %Cast $=
+			%(polymorphic_cast, polymophic_downcast)" @ %Cast $=
 		(
 			+ $dev "static assertions to be strict to differentiate lvalue \
 				references and rvalue references";
-			+ "overloading support for rvalue references",
+			+ "overloads for rvalue references",
 			- DLD "underscore" @ "identifiers"
 		)
 	),
@@ -677,7 +677,9 @@ b494
 
 b493
 (
-	/ DLD "all '< ::'" -> '<::',
+	/ DLD "all '< ::'" -> '<::' $effective @ (%YSLib.Adaptor.(Image, Font),
+		YCLib_(MinGW32).Win32GUI, YCLib_(Android).Android, ($revert(b461) %Host,
+		%InputManager) @ %Helper) @ %YFramework,
 		// Since now ISO C++11 is mandated, no need to add space to \
 			distinguish these preprocessing tokens.
 	^ DLP $re_ex(b453) "MinGW[gcc version 4.8.2 (Rev7, Built by MSYS2 \
@@ -1207,7 +1209,7 @@ b486
 							"function %OnUIEvent_Invalidate"
 					)
 				),
-				+ "manually invalidation handlers" @ "event %(GotFocus, \
+				+ "manually invalidation handlers" @ "events %(GotFocus, \
 					LostFocus)" @ "controls" $effective %TextBox
 					// See $2014-03 @ %Documentation::Workflow::Annual2014.
 			),
@@ -1248,14 +1250,14 @@ b485
 				- "struct %Widget::NoBackgroundTag" @ %YWidget $dep_from
 					%YControl
 			),
-			/ %'TextBox'$=
+			/ %TextBox $=
 			(
 				+ "function %TextSelection::Collapse,
 				+ "single line text selection block support" @ "class %TextBox" $=
 				(
 					+ "overriding function %DrawClippedText" $dep_from
 						"%MLabel::DrawClippedText",
-					+ "event handlers for %(TouchHeld, LostFocus)"
+					+ "%(TouchHeld, LostFocus) event handlers"
 				)
 			)
 		),
@@ -1348,8 +1350,8 @@ b484
 				+ "assertions for iterator not undereferenceable",
 				* "postfix %operator++ contradicted with loosed iterator \
 					requirement" $since b483,
-				+ "overloading for most n times iteration",
-				+ "overloading for most front n characters for string parameter"
+				+ "overloads for most n times iteration",
+				+ "overloads for most front n characters for string parameter"
 			);
 			+ "5 function templates %FetchStringOffsets"
 		)
@@ -2164,8 +2166,8 @@ b471
 				// Inherited constructors are not supported until G++ 4.8.
 			)
 		)
-		* DLB "Microsoft VC++ project and filter did not reflect the update of freetype \
-			directory structure" $since b459
+		* DLB "Microsoft VC++ project and filter did not reflect the update of \
+			freetype directory structure" $since b459
 	)
 ),
 
@@ -2269,7 +2271,7 @@ b468
 				+ "function %Styles::FetchDefault"
 			);
 			+ "'Styles::StyleMap Styles;'" @ "class %GUIState" @ %YGUI;
-			/ %'Button' $=
+			/ %Button $=
 			(
 				/ @ "class %Thumb" $=
 				(
@@ -2574,7 +2576,10 @@ b461
 		+ $dev %YModules
 			$= (+ "macros %'YFM_*'");
 		^ $dev "macros %'YFM_*'" @ %YSBuild
-		)
+		),
+		* $impl "wrong '<::' used" @ %Helper.Host $since b423
+			$= (/ '<::' -> '< ::')
+			// ISO C++11 allows '<::' but it is not adopted here yet.
 	)
 ),
 
@@ -5166,7 +5171,7 @@ b424
 		(
 			/ %YControl $=
 			(
-				// Now event %(Enter, Leave) can be automatically synthesized.
+				// Now events %(Enter, Leave) can be automatically synthesized.
 				/ "function %OnKey_Bound_TouchUpAndLeave"
 					-> "%OnKey_Bound_TouchUp",
 				/ "function %OnKey_Bound_EnterAndTouchDown"
@@ -5225,8 +5230,9 @@ b423
 		),
 		/ %Helper @ "platform %MinGW32" $=
 		(
-			+ "raw input support for mouse wheel";
-			+ "wheel input forwarding" @ "class %InputManager"
+			+ "raw input support for mouse wheel" @ %Host
+				$= (+ "%WM_INPUT handling" @ "window procedure");
+			+ "wheel input forwarding" @ "class %InputManager" @ %InputManager
 		)
 	)
 ),
@@ -5807,7 +5813,7 @@ b411
 				/ "empty struct %BadEvent"
 					-> "class %BadEvent : public LoggedEvent" @ %YWidgetEvent
 			),
-			+ $dev "using %platform::(FileOperationFailure, DirectorySession, \
+			+ "using %platform::(FileOperationFailure, DirectorySession, \
 				HDirectory, FileIterator)" @ "namespace %IO" @ %Adaptor.YAdaptor
 				$dep_from %YCLib.FileSystem;
 			/ @ "namespace %IO" @ %Core.YFileSystem $=
@@ -6157,7 +6163,7 @@ b405
 			)
 		);
 	),
-	- $dev $repo "pattern glob '*/build*'" @ "file %.hgignore",
+	- $dev $repo "glob pattern '*/build*'" @ "file %.hgignore",
 	+ $dev "files for build FreeType2"
 	/ $doc "reconstructed most of YSLib documentation"
 		@ %Documentation.Designation >> %Documentation.YSLib

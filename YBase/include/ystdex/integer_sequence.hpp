@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r530
+\version r588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-04-23 18:48 +0800
+	2016-09-19 12:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,73 @@ using index_sequence = integer_sequence<size_t, _vSeq...>;
 
 } // inline namespace cpp2014;
 
+
+//! \since build 728
+//@{
+namespace fseq
+{
+
+/*!
+\ingroup fseq_operations
+\since build 728
+*/
+//@{
+template<typename _tInt, _tInt _vInt, _tInt... _vSeq>
+yconstfn std::integral_constant<_tInt, _vInt>
+front(integer_sequence<_tInt, _vInt, _vSeq...>) ynothrow
+{
+	return {};
+}
+
+template<typename _tInt, _tInt _vInt, _tInt... _vSeq>
+yconstfn integer_sequence<_tInt, _vSeq...>
+pop_front(integer_sequence<_tInt, _vInt, _vSeq...>) ynothrow
+{
+	return {};
+}
+
+template<typename _func, typename _tState, typename _tInt>
+yconstfn _tState
+fold(_func, _tState s, integer_sequence<_tInt>) ynothrow
+{
+	return s;
+}
+template<typename _func, typename _tState, typename _tInt, _tInt _vInt,
+	_tInt... _vSeq>
+yconstfn auto
+fold(_func f, _tState s, integer_sequence<_tInt, _vInt, _vSeq...> xs) ynothrow
+	-> decltype(fold(f, f(s, front(xs)), pop_front(xs)))
+{
+	return fold(f, f(s, front(xs)), pop_front(xs));
+}
+
+
+struct plus
+{
+	template<typename _tInt, _tInt _v1, _tInt _v2>
+	yconstfn auto
+	operator()(std::integral_constant<_tInt, _v1>, std::integral_constant<_tInt,
+		_v2>) ynothrow -> std::integral_constant<_tInt, _v1 + _v2>
+	{
+		return {};
+	}
+};
+
+
+struct minus
+{
+	template<typename _tInt, _tInt _v1, _tInt _v2>
+	yconstfn auto
+	operator()(std::integral_constant<_tInt, _v1>, std::integral_constant<_tInt,
+		_v2>) ynothrow -> std::integral_constant<_tInt, _v1 - _v2>
+	{
+		return {};
+	}
+};
+//@}
+
+} // namespace fseq;
+//@}
 
 //! \since build 589
 //@{

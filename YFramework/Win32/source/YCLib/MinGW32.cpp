@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2174
+\version r2176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-08-25 21:51 +0800
+	2016-09-17 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -323,7 +323,8 @@ FetchModuleFileName(::HMODULE h_module, RecordLevel lv)
 	// TODO: Avoid retry for NT 6 %::GetModuleFileNameW?
 	return ystdex::retry_for_vector<wstring>(MAX_PATH,
 		[=](wstring& res, size_t s) -> bool{
-		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0], s)));
+		const auto r(size_t(::GetModuleFileNameW(h_module, &res[0],
+			static_cast<unsigned long>(s))));
 		const auto err(::GetLastError());
 
 		if(err != ERROR_SUCCESS && err != ERROR_INSUFFICIENT_BUFFER)
