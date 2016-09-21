@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2953
+\version r2972
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-07-30 15:29 +0800
+	2016-09-20 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,10 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "type_op.hpp" // for "tuple.hpp", true_type, std::tuple,
-//	is_convertible, vseq::at, bool_constant, index_sequence_for,
-//	member_target_type_t, _t, std::tuple_size, vseq::join_n_t, std::swap,
-//	common_nonvoid_t, false_type, integral_constant, is_nothrow_swappable,
-//	make_index_sequence, exclude_self_t;
+#include "type_op.hpp" // for "tuple.hpp", true_, std::tuple,
+//	is_convertible, vseq::at, bool_, index_sequence_for, member_target_type_t,
+//	false_, is_void, _t, size_t_, std::tuple_size, vseq::join_n_t, std::swap,
+//	common_nonvoid_t, is_nothrow_swappable, make_index_sequence, exclude_self_t;
 #include "functor.hpp" // for "ref.hpp", <functional>, std::function,
 //	__cpp_lib_invoke, less, addressof_op, mem_get;
 #include "cassert.h" // for yconstraint;
@@ -50,8 +49,7 @@ template<class, class, class>
 struct tuple_element_convertible;
 
 template<class _type1, class _type2>
-struct tuple_element_convertible<_type1, _type2, index_sequence<>>
-	: true_type
+struct tuple_element_convertible<_type1, _type2, index_sequence<>> : true_
 {};
 
 template<typename... _types1, typename... _types2, size_t... _vSeq,
@@ -93,7 +91,7 @@ struct is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
 
 template<typename... _tFroms, typename... _tTos>
 struct is_covariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: bool_constant<details::tuple_element_convertible<std::tuple<_tFroms...>,
+	: bool_<details::tuple_element_convertible<std::tuple<_tFroms...>,
 	std::tuple<_tTos...>, index_sequence_for<_tTos...>>::value>
 {};
 
@@ -121,7 +119,7 @@ struct is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
 
 template<typename... _tFroms, typename... _tTos>
 struct is_contravariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
-	: bool_constant<details::tuple_element_convertible<std::tuple<_tTos...>,
+	: bool_<details::tuple_element_convertible<std::tuple<_tTos...>,
 	std::tuple<_tFroms...>, index_sequence_for<_tTos...>>::value>
 {};
 
@@ -344,15 +342,17 @@ invoke(_fCallable&& f, _tParams&&... args)
 namespace details
 {
 
+//! \since build 729
 template<typename _fCallable, typename... _tParams>
 yconstfn pseudo_output
-invoke_nonvoid_impl(true_type, _fCallable&& f, _tParams&&... args)
+invoke_nonvoid_impl(true_, _fCallable&& f, _tParams&&... args)
 {
 	return ystdex::invoke(yforward(f), yforward(args)...), pseudo_output();
 }
+//! \since build 729
 template<typename _fCallable, typename... _tParams>
 inline result_of_t<_fCallable&&(_tParams&&...)>
-invoke_nonvoid_impl(false_type, _fCallable&& f, _tParams&&... args)
+invoke_nonvoid_impl(false_, _fCallable&& f, _tParams&&... args)
 {
 	return ystdex::invoke(yforward(f), yforward(args)...);
 }
@@ -523,7 +523,7 @@ using parameter_of_t = _t<parameter_of<_vIdx, _fCallable>>;
 \since build 333
 */
 template<typename _fCallable>
-struct paramlist_size : integral_constant<size_t, std::tuple_size<typename
+struct paramlist_size : size_t_<std::tuple_size<typename
 	make_parameter_tuple<_fCallable>::type>::value>
 {};
 
@@ -814,7 +814,7 @@ namespace details
 
 template<typename _type, typename _fCallable, typename... _tParams>
 _type
-call_for_value(std::true_type, _type&& val, _fCallable&& f, _tParams&&... args)
+call_for_value(true_, _type&& val, _fCallable&& f, _tParams&&... args)
 {
 	ystdex::invoke(yforward(f), yforward(args)...);
 	return yforward(val);
@@ -822,7 +822,7 @@ call_for_value(std::true_type, _type&& val, _fCallable&& f, _tParams&&... args)
 
 template<typename _type, typename _fCallable, typename... _tParams>
 auto
-call_for_value(std::false_type, _type&&, _fCallable&& f, _tParams&&... args)
+call_for_value(false_, _type&&, _fCallable&& f, _tParams&&... args)
 	-> result_of_t<_fCallable&&(_tParams&&...)>
 {
 	return ystdex::invoke(yforward(f), yforward(args)...);
@@ -839,9 +839,8 @@ auto
 call_for_value(_type&& val, _fCallable&& f, _tParams&&... args)
 	-> common_nonvoid_t<result_of_t<_fCallable&&(_tParams&&...)>, _type>
 {
-	return details::call_for_value(bool_constant<
-		is_void<result_of_t<_fCallable&&(_tParams&&...)>>::value>(),
-		yforward(val), yforward(f), yforward(args)...);
+	return details::call_for_value(is_void<result_of_t<_fCallable&&(
+		_tParams&&...)>>(), yforward(val), yforward(f), yforward(args)...);
 }
 
 

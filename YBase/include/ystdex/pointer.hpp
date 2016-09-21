@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r356
+\version r359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2016-04-11 17:20 +0800
+	2016-09-20 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #ifndef YB_INC_ystdex_pointer_hpp_
 #define YB_INC_ystdex_pointer_hpp_ 1
 
-#include "iterator_op.hpp" // for totally_ordered,
+#include "iterator_op.hpp" // for bool_, totally_ordered,
 //	iterator_operators_t, std::iterator_traits, yconstraint;
 #include <functional> // for std::equal_to, std::less;
 
@@ -42,9 +42,9 @@ namespace details
 {
 
 template<typename _type>
-using nptr_eq1 = bool_constant<_type() == _type()>;
+using nptr_eq1 = bool_<_type() == _type()>;
 template<typename _type>
-using nptr_eq2 = bool_constant<_type(nullptr) == nullptr>;
+using nptr_eq2 = bool_<_type(nullptr) == nullptr>;
 
 } // namespace details;
 

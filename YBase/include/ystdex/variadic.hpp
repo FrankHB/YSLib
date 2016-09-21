@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1375
+\version r1380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-09-19 13:20 +0800
+	2016-09-20 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_variadic_hpp_ 1
 
 #include "type_traits.hpp" // for "type_traits.hpp", _t, size_t, empty_base,
-//	false_type, is_same, true_type, are_same, integral_constant, conditional_t,
+//	false_, size_t_, is_same, true_type, are_same, integral_constant, conditional_t,
 //	cond_t;
 
 namespace ystdex
@@ -511,8 +511,7 @@ YB_Impl_Variadic_SeqOpU(seq_size)
 
 //! \since build 684
 template<typename... _types>
-struct seq_size<empty_base<_types...>>
-	: integral_constant<size_t, sizeof...(_types)>
+struct seq_size<empty_base<_types...>> : size_t_<sizeof...(_types)>
 {};
 
 //! \since build 684
@@ -660,8 +659,8 @@ struct find<0, _tSeq, _type>
 
 //! \since build 684
 template<class _tSeq, typename _type>
-struct find<_tSeq, _type, when<true>> : integral_constant<size_t,
-	details::find<seq_size<_tSeq>::value, _tSeq, _type>::value>
+struct find<_tSeq, _type, when<true>>
+	: size_t_<details::find<seq_size<_tSeq>::value, _tSeq, _type>::value>
 {};
 //@}
 

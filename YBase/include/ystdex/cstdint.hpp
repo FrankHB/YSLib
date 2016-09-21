@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r354
+\version r366
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2016-05-24 13:26 +0800
+	2016-09-20 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_cstdint_hpp_
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
-#include "iterator_op.hpp" // for CHAR_BIT, integral_constant, size_t,
-//	make_signed_t, make_unsigned_t, std::int64_t, std::uint64_t, yconstraint,
+#include "iterator_op.hpp" // for CHAR_BIT, size_t_, size_t, make_signed_t,
+//	make_unsigned_t, std::int64_t, std::uint64_t, bool_, yconstraint,
 //	is_undereferenceable, ystdex::make_reverse_iterator;
 #include <limits>
 #include <numeric> // for std::accumulate;
@@ -97,7 +97,7 @@ native_little_bit_order()
 \since build 260
 */
 template<typename _tInt>
-struct integer_width : integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
+struct integer_width : size_t_<sizeof(_tInt) * CHAR_BIT>
 {};
 
 
@@ -108,16 +108,12 @@ struct integer_width : integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
 */
 //@{
 template<typename _type, bool>
-struct make_signed_c
-{
-	using type = make_signed_t<_type>;
-};
+struct make_signed_c : make_signed<_type>
+{};
 
 template<typename _type>
-struct make_signed_c<_type, false>
-{
-	using type = make_unsigned_t<_type>;
-};
+struct make_signed_c<_type, false> : make_unsigned<_type>
+{};
 //@}
 
 
@@ -242,7 +238,7 @@ struct modular_arithmetic
 \since build 440
 */
 template<typename _type1, typename _type2>
-struct have_same_modulo : bool_constant<uintmax_t(modular_arithmetic<
+struct have_same_modulo : bool_<uintmax_t(modular_arithmetic<
 	_type1>::value) != 0 && uintmax_t(modular_arithmetic<_type1>::value)
 	== uintmax_t(modular_arithmetic<_type2>::value)>
 {};

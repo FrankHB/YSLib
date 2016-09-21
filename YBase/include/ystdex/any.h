@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2858
+\version r2895
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-08-06 16:18 +0800
+	2016-09-20 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #define YB_INC_ystdex_any_h_ 1
 
 #include "typeinfo.h" // for "typeinfo.h", cloneable, type_info, exclude_self_t,
-//	ystdex::type_id, enable_if_t, std::bad_cast, decay_t yconstraint;
+//	ystdex::type_id, is_nothrow_move_constructible, and_, bool_, enable_if_t,
+//	std::bad_cast, decay_t, yconstraint;
 #include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
 //	std::unique_ptr, standard_layout_storage, aligned_storage_t,
 //	is_aligned_storable, default_init_t;
@@ -309,7 +310,7 @@ public:
 	//! \since build 352
 	//@{
 	using value_type = _type;
-	using local_storage = bool_constant<_bStoredLocally>;
+	using local_storage = bool_<_bStoredLocally>;
 	//@}
 
 	//! \since build 595
@@ -329,12 +330,12 @@ public:
 
 private:
 	static void
-	dispose_impl(false_type, any_storage& d) ynothrowv
+	dispose_impl(false_, any_storage& d) ynothrowv
 	{
 		delete d.access<value_type*>();
 	}
 	static void
-	dispose_impl(true_type, any_storage& d) ynothrowv
+	dispose_impl(true_, any_storage& d) ynothrowv
 	{
 		d.destroy<value_type>();
 	}
@@ -355,26 +356,29 @@ public:
 	}
 
 private:
+	//! \since build 729
+	//@{
 	static value_type*
-	get_pointer_impl(false_type, any_storage& s)
+	get_pointer_impl(false_, any_storage& s)
 	{
 		return s.access<value_type*>();
 	}
 	static const value_type*
-	get_pointer_impl(false_type, const any_storage& s)
+	get_pointer_impl(false_, const any_storage& s)
 	{
 		return s.access<const value_type*>();
 	}
 	static value_type*
-	get_pointer_impl(true_type, any_storage& s)
+	get_pointer_impl(true_, any_storage& s)
 	{
-		return std::addressof(get_reference_impl(true_type(), s));
+		return std::addressof(get_reference_impl(true_(), s));
 	}
 	static const value_type*
-	get_pointer_impl(true_type, const any_storage& s)
+	get_pointer_impl(true_, const any_storage& s)
 	{
-		return std::addressof(get_reference_impl(true_type(), s));
+		return std::addressof(get_reference_impl(true_(), s));
 	}
+	//@}
 
 public:
 	static value_type&
@@ -389,37 +393,39 @@ public:
 	}
 
 private:
+	//! \since build 729
+	//@{
 	static value_type&
-	get_reference_impl(false_type, any_storage& s)
+	get_reference_impl(false_, any_storage& s)
 	{
-		const auto p(get_pointer_impl(false_type(), s));
+		const auto p(get_pointer_impl(false_(), s));
 
 		yassume(p);
 		return *p;
 	}
 	static const value_type&
-	get_reference_impl(false_type, const any_storage& s)
+	get_reference_impl(false_, const any_storage& s)
 	{
-		const auto p(get_pointer_impl(false_type(), s));
+		const auto p(get_pointer_impl(false_(), s));
 
 		yassume(p);
 		return *p;
 	}
 	static value_type&
-	get_reference_impl(true_type, any_storage& s)
+	get_reference_impl(true_, any_storage& s)
 	{
 		return s.access<value_type>();
 	}
 	static const value_type&
-	get_reference_impl(true_type, const any_storage& s)
+	get_reference_impl(true_, const any_storage& s)
 	{
 		return s.access<const value_type>();
 	}
 	//@}
+	//@}
 
 public:
 	//! \since build 595
-	//@{
 	template<typename... _tParams>
 	static void
 	init(any_storage& d, _tParams&&... args)
@@ -428,19 +434,20 @@ public:
 	}
 
 private:
+	//! \since build 729
 	template<typename... _tParams>
 	static YB_ATTR(always_inline) void
-	init_impl(false_type, any_storage& d, _tParams&&... args)
+	init_impl(false_, any_storage& d, _tParams&&... args)
 	{
 		d.construct<value_type*>(new value_type(yforward(args)...));
 	}
+	//! \since build 729
 	template<typename... _tParams>
 	static YB_ATTR(always_inline) void
-	init_impl(true_type, any_storage& d, _tParams&&... args)
+	init_impl(true_, any_storage& d, _tParams&&... args)
 	{
 		d.construct<value_type>(yforward(args)...);
 	}
-	//@}
 
 public:
 	//! \since build 692
@@ -470,21 +477,20 @@ public:
 	}
 
 private:
-	//! \since build 686
-	//@{
+	//! \since build 729
 	template<typename... _tParams>
 	YB_NORETURN static YB_ATTR(always_inline) void
-	try_init(false_type, _tParams&&...)
+	try_init(false_, _tParams&&...)
 	{
 		throw_invalid_construction();
 	}
+	//! \since build 729
 	template<class _bInPlace, typename... _tParams>
 	static YB_ATTR(always_inline) void
-	try_init(true_type, _bInPlace b, any_storage& d, _tParams&&... args)
+	try_init(true_, _bInPlace b, any_storage& d, _tParams&&... args)
 	{
 		init_impl(b, d, yforward(args)...);
 	}
-	//@}
 };
 
 
@@ -574,15 +580,15 @@ public:
 	}
 
 private:
-	//! \since build 595
+	//! \since build 729
 	static void
-	init(false_type, any_storage& d, std::unique_ptr<_tHolder> p)
+	init(false_, any_storage& d, std::unique_ptr<_tHolder> p)
 	{
 		d.construct<value_type*>(p.release());
 	}
-	//! \since build 595
+	//! \since build 729
 	static void
-	init(true_type, any_storage& d, std::unique_ptr<_tHolder> p)
+	init(true_, any_storage& d, std::unique_ptr<_tHolder> p)
 	{
 		d.construct<_tHolder>(std::move(*p));
 	}

@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r576
+\version r580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2016-09-17 17:43 +0800
+	2016-09-20 09:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #ifndef YB_INC_ystdex_placement_hpp_
 #define YB_INC_ystdex_placement_hpp_ 1
 
-#include "addressof.hpp" // for "addressof.hpp", empty_base, integral_constant,
+#include "addressof.hpp" // for "addressof.hpp", empty_base, size_t_,
 //	YB_ASSUME, ystdex::constfn_addressof, yforward, is_lvalue_reference,
 //	std::pair, std::unique_ptr;
 #include <new> // for placement ::operator new from standard library;
@@ -74,8 +74,7 @@ using in_place_type_t = in_place_tag(&)(yimpl(empty_base<_type>));
 
 //! \brief 原地索引标记模板。
 template<size_t _vIdx>
-using in_place_index_t
-	= in_place_tag(&)(yimpl(integral_constant<size_t, _vIdx>));
+using in_place_index_t = in_place_tag(&)(yimpl(size_t_<_vIdx>));
 
 /*!
 \ingroup helper_functions
@@ -95,7 +94,7 @@ in_place(yimpl(empty_base<_type>))
 }
 template<size_t _vIdx>
 yimpl(YB_NORETURN) in_place_tag
-in_place(yimpl(integral_constant<size_t, _vIdx>))
+in_place(yimpl(size_t_<_vIdx>))
 {
 	YB_ASSUME(false);
 }

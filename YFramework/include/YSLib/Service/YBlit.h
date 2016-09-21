@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBlit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3447
+\version r3451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2015-08-19 10:25 +0800
+	2016-09-20 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -408,7 +408,7 @@ BlitRectPixels(_fPixelShader shader, _tOut dst, _tIn src, _tParams&&... args)
 
 /*!
 \brief 分派用于着色器更新的可能转置的图像。
-\since build 579
+\since build 729
 
 第一个参数指定是否需要转置（原始图像旋转一个直角）。
 第二个参数指定更新器，接受可能转置的原迭代器、可能转置的源图像大小和转置偏移位置。
@@ -417,13 +417,13 @@ BlitRectPixels(_fPixelShader shader, _tOut dst, _tIn src, _tParams&&... args)
 //@{
 template<typename _func>
 inline void
-DispatchTranspose(std::false_type, _func updater, const ConstGraphics& src)
+DispatchTranspose(ystdex::false_, _func updater, const ConstGraphics& src)
 {
 	updater(src.GetBufferPtr(), src.GetSize(), Point());
 }
 template<typename _func>
 inline void
-DispatchTranspose(std::true_type, _func updater, const ConstGraphics& src)
+DispatchTranspose(ystdex::true_, _func updater, const ConstGraphics& src)
 {
 	updater(ystdex::make_transposed(src.GetBufferPtr(), src.GetWidth(),
 		src.GetHeight(), 0U), Transpose(src.GetSize()),

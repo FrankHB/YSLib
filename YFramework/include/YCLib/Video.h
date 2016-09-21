@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1442
+\version r1623
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-09-19 18:03 +0800
+	2015-09-21 11:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon // for std::is_signed, std::is_unsigned;
-#include <ystdex/bitseg.hpp> // for ystdex::integer_width, ystdex::bitseg_trait;
+#include <ystdex/bitseg.hpp> // for ystdex::integer_width,
+//	ystdex::ordered_bitseg_traits, ystdex::bitseg_traits;
 
 namespace platform
 {
@@ -109,24 +110,30 @@ enum ABGR : size_t
 } // inline namespace IndexSpace;
 
 
-/*!
-\ingroup type_traits_operations
-\note X 、 Y 和 Z 表示色彩分量， A 表示 Alpha 通道分量。
-\since build 728
-*/
+//! \since build 729
 //@{
-//! \note 索引参数表示在 AXYZ 分量在位段特征中表示的索引。
-template<class _tBitSegTrait, size_t _vIdxA, size_t _vIdxX, size_t _vIdxY,
-	size_t _vIdxZ>
-struct AXYZValueTrait
-	: ystdex::mapped_bitseg_trait<_tBitSegTrait, _vIdxA, _vIdxX, _vIdxY, _vIdxZ>
-{
-	using Base = ystdex::mapped_bitseg_trait<_tBitSegTrait, _vIdxA, _vIdxX,
-		_vIdxY, _vIdxZ>;
-	using IntegerType = typename Base::integer;
-	using ArrayType = typename Base::array;
+//! \ingroup type_traits_operations
+//@{
+/*!
+\breif 逻辑分量值特征。
+\note A 表示 Alpha 通道分量， X 、 Y 和 Z 表示颜色分量。
+\note 模板参数为位段特征及各个逻辑分量在位段特征中的存储索引。
+\sa ystdex::bitseg_traits
+\sa ystdex::ordered_bitseg_traits
 
-	static_assert(Base::bits_n <= 64, "Width larger than 64 unimplemented");
+四个逻辑分量以特定布局以特定的映射关系压缩按整数小端序存储为位段。
+逻辑分量值特征允许不同的逻辑分量顺序具有一致的逻辑表示。
+逻辑分量存储的顺序、偏移和位宽由位段特征指定。
+模板参数列表中，逻辑分量统一为 AXYZ 顺序，对应具有索引值 0~3 ，其值为存储索引。
+逻辑分量索引和存储索引之间的映射的接口由有序位段特征适配模板实例的成员提供。
+*/
+template<class _tBitSegTraits, size_t _vIdxA, size_t _vIdxX, size_t _vIdxY,
+	size_t _vIdxZ>
+struct AXYZValueTraits : ystdex::ordered_bitseg_traits<_tBitSegTraits, _vIdxA,
+	_vIdxX, _vIdxY, _vIdxZ>
+{
+	using Base = ystdex::ordered_bitseg_traits<_tBitSegTraits, _vIdxA, _vIdxX,
+		_vIdxY, _vIdxZ>;
 
 	static yconstexpr const size_t ABitsN
 		= Base::template component_width<AXYZIndex::A>::value;
@@ -137,192 +144,107 @@ struct AXYZValueTrait
 };
 
 
-//! \brief AXYZ 特征。
+//! \note 调整分量索引参数顺序为逻辑顺序排序的逻辑分量值特征别名。
+//@{
+//! \brief AXYZ 逻辑分量特征。
 template<size_t _vA, size_t _vX, size_t _vY, size_t _vZ>
-using AXYZTrait
-	= AXYZValueTrait<ystdex::bitseg_trait<_vA, _vX, _vY, _vZ>, 0, 1, 2, 3>;
+using AXYZTraits
+	= AXYZValueTraits<ystdex::bitseg_traits<_vA, _vX, _vY, _vZ>, 0, 1, 2, 3>;
 
-//! \brief XYZA 特征。
+//! \brief XYZA 逻辑分量特征。
 template<size_t _vX, size_t _vY, size_t _vZ, size_t _vA>
-using XYZATrait
-	= AXYZValueTrait<ystdex::bitseg_trait<_vX, _vY, _vZ, _vA>, 3, 0, 1, 2>;
+using XYZATraits
+	= AXYZValueTraits<ystdex::bitseg_traits<_vX, _vY, _vZ, _vA>, 3, 0, 1, 2>;
+//@}
 //@}
 //@}
 
 
 /*!
-\brief BGRA 四元组。
 \note 作为 POD 类型，可以用于储存像素。
 \warning 用户应检查存储表示的实际大小是否和本类型一致。
-\bug 当前仅支持小端整数字节序。
 \bug 当前忽略对齐和特定类型的一致性。
-\since build 441
 */
+//@{
+/*!
+\brief 像素四元组。
+
+作为像素的具有四个值分量 ABGR 的联合类型，可被整数或数组表示，以位段实现存储布局控制。
+模板参数依次为逻辑分量特征、值分量映射枚举和四个值分量的位宽。
+其中表示分量位宽的参数和对应分量在位段中存储的顺序相同。
+具体存储布局和存储映射的接口由逻辑分量特征提供。
+值分量被值分量映射枚举一一映射为 AXYZ 逻辑分量。
+值分量映射枚举应保证映射后的逻辑分量和逻辑分量特征使用的存储索引对应的逻辑分量一致。
+不直接依赖数组类型访问存储，因此对字节序中立。
+*/
+template<class _tTraits, typename _tComponentMap, size_t _v1, size_t _v2,
+	size_t _v3, size_t _v4>
+union YB_ATTR(packed) YB_ATTR(aligned(yalignof(typename _tTraits::integer)))
+	PixelQuadruple
+{
+	using Traits = _tTraits;
+	using StorageTraits = typename _tTraits::base;
+	using ArrayType = typename StorageTraits::array;
+	using IntegerType = typename Traits::integer;
+	//! \brief 存储分量类型：值分量按参数列表出现顺序的索引的类型。
+	template<size_t _vIdx>
+	using StoredComponentType
+		= typename StorageTraits::template component_t<_vIdx>;
+	//! \brief 分量映射枚举：值分量 ABGR 分别映射为逻辑分量 AXYZ 之一。
+	using CMap = _tComponentMap;
+	using AType = typename Traits::template component_t<CMap::A>;
+	using BType = typename Traits::template component_t<CMap::B>;
+	using GType = typename Traits::template component_t<CMap::G>;
+	using RType = typename Traits::template component_t<CMap::R>;
+
+	ArrayType Bytes;
+	IntegerType Integer;
+
+	DefDeCtor(PixelQuadruple)
+	yconstfn
+	PixelQuadruple(IntegerType i) ynothrow
+		: Integer(i)
+	{}
+	yconstfn
+	PixelQuadruple(StoredComponentType<0> v0, StoredComponentType<1> v1,
+		StoredComponentType<2> v2, StoredComponentType<3> v3) ynothrow
+		: Integer(Traits::base::pack(v0, v1, v2, v3))
+	{}
+
+	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
+
+	yconstfn DefGetter(const ynothrow, AType, A,
+		Traits::template extract<CMap::A>(Integer))
+	yconstfn DefGetter(const ynothrow, BType, B,
+		Traits::template extract<CMap::B>(Integer))
+	yconstfn DefGetter(const ynothrow, GType, G,
+		Traits::template extract<CMap::G>(Integer))
+	yconstfn DefGetter(const ynothrow, RType, R,
+		Traits::template extract<CMap::R>(Integer))
+	//@}
+};
+
+
 template<size_t _vB, size_t _vG, size_t _vR, size_t _vA>
-union YB_ATTR(packed) YB_ATTR(
-	aligned(yalignof(typename XYZATrait<_vB, _vG, _vR, _vA>::IntegerType))) BGRA
-{
-	using Trait = XYZATrait<_vB, _vG, _vR, _vA>;
-	//! \since build 555
-	using ArrayType = typename Trait::ArrayType;
-	//! \since build 555
-	using IntegerType = typename Trait::IntegerType;
-	//! \since build 728
-	//@{
-	using CMap = AXYZMapping::ABGR;
-	using AType = typename Trait::template component_t<CMap::A>;
-	using BType = typename Trait::template component_t<CMap::B>;
-	using GType = typename Trait::template component_t<CMap::G>;
-	using RType = typename Trait::template component_t<CMap::R>;
-	//@}
-
-	ArrayType Bytes;
-	IntegerType Integer;
-
-//#if !LITTLE_ENDIAN
-//#	error Unsupported integer endianness found.
-//#endif
-
-	DefDeCtor(BGRA)
-	//! \since build 728
-	//@{
-	yconstfn
-	BGRA(IntegerType i)
-		: Integer(i)
-	{}
-	yconstfn
-	BGRA(BType b, GType g, RType r, AType a)
-		: Integer(Trait::pack(a, b, g, r))
-	{}
-
-	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
-
-	yconstfn DefGetter(const ynothrow, AType, A,
-		Trait::template extract<CMap::A>(Integer))
-	yconstfn DefGetter(const ynothrow, BType, B,
-		Trait::template extract<CMap::B>(Integer))
-	yconstfn DefGetter(const ynothrow, GType, G,
-		Trait::template extract<CMap::G>(Integer))
-	yconstfn DefGetter(const ynothrow, RType, R,
-		Trait::template extract<CMap::R>(Integer))
-	//@}
-};
+using BGRA = PixelQuadruple<XYZATraits<_vB, _vG, _vR, _vA>, AXYZMapping::ABGR,
+	_vB, _vG, _vR, _vA>;
 
 
-/*!
-\brief RGBA 四元组。
-\note 作为 POD 类型，可以用于储存像素。
-\warning 用户应检查存储表示的实际大小是否和本类型一致。
-\bug 当前仅支持小端整数字节序。
-\bug 当前忽略对齐和特定类型的一致性。
-\since build 441
-*/
 template<size_t _vR, size_t _vG, size_t _vB, size_t _vA>
-union YB_ATTR(packed) YB_ATTR(
-	aligned(yalignof(typename XYZATrait<_vR, _vG, _vB, _vA>::IntegerType))) RGBA
-{
-	using Trait = XYZATrait<_vR, _vG, _vB, _vA>;
-	//! \since build 555
-	using ArrayType = typename Trait::ArrayType;
-	//! \since build 555
-	using IntegerType = typename Trait::IntegerType;
-	//! \since build 728
-	//@{
-	using CMap = AZYXMapping::ABGR;
-	using AType = typename Trait::template component_t<CMap::A>;
-	using BType = typename Trait::template component_t<CMap::B>;
-	using GType = typename Trait::template component_t<CMap::G>;
-	using RType = typename Trait::template component_t<CMap::R>;
-	//@}
-
-	ArrayType Bytes;
-	IntegerType Integer;
-
-//#if !LITTLE_ENDIAN
-//#	error Unsupported integer endianness found.
-//#endif
-
-	DefDeCtor(RGBA)
-	//! \since build 728
-	//@{
-	yconstfn
-	RGBA(IntegerType i)
-		: Integer(i)
-	{}
-	yconstfn
-	RGBA(RType r, GType g, BType b, AType a)
-		: Integer(Trait::pack(a, r, g, b))
-	{}
-
-	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
-
-	yconstfn DefGetter(const ynothrow, AType, A,
-		Trait::template extract<CMap::A>(Integer))
-	yconstfn DefGetter(const ynothrow, BType, B,
-		Trait::template extract<CMap::B>(Integer))
-	yconstfn DefGetter(const ynothrow, GType, G,
-		Trait::template extract<CMap::G>(Integer))
-	yconstfn DefGetter(const ynothrow, RType, R,
-		Trait::template extract<CMap::R>(Integer))
-	//@}
-};
+using RGBA = PixelQuadruple<XYZATraits<_vR, _vG, _vB, _vA>, AZYXMapping::ABGR,
+	_vR, _vG, _vB, _vA>;
 
 
-/*!
-\brief ARGB 四元组。
-\note 作为 POD 类型，可以用于储存像素。
-\warning 用户应检查存储表示的实际大小是否和本类型一致。
-\bug 当前仅支持小端整数字节序。
-\bug 当前忽略对齐和特定类型的一致性。
-\since build 507
-*/
 template<size_t _vA, size_t _vR, size_t _vG, size_t _vB>
-union YB_ATTR(packed) YB_ATTR(
-	aligned(yalignof(typename AXYZTrait<_vA, _vR, _vG, _vB>::IntegerType))) ARGB
-{
-	using Trait = AXYZTrait<_vA, _vR, _vG, _vB>;
-	//! \since build 728
-	//@{
-	using ArrayType = typename Trait::ArrayType;
-	using IntegerType = typename Trait::IntegerType;
-	using CMap = AZYXMapping::ABGR;
-	using AType = typename Trait::template component_t<CMap::A>;
-	using BType = typename Trait::template component_t<CMap::B>;
-	using GType = typename Trait::template component_t<CMap::G>;
-	using RType = typename Trait::template component_t<CMap::R>;
+using ARGB = PixelQuadruple<AXYZTraits<_vA, _vR, _vG, _vB>, AZYXMapping::ABGR,
+	_vA, _vR, _vG, _vB>;
 
-	ArrayType Bytes;
-	IntegerType Integer;
-	//@}
 
-//#if !LITTLE_ENDIAN
-//#	error Unsupported integer endianness found.
-//#endif
-
-	DefDeCtor(ARGB)
-	//! \since build 728
-	//@{
-	yconstfn
-	ARGB(IntegerType i)
-		: Integer(i)
-	{}
-	yconstfn
-	ARGB(AType a, RType r, GType g, BType b)
-		: Integer(Trait::pack(a, r, g, b))
-	{}
-
-	yconstfn DefCvt(const ynothrow, IntegerType, Integer)
-
-	yconstfn DefGetter(const ynothrow, AType, A,
-		Trait::template extract<CMap::A>(Integer))
-	yconstfn DefGetter(const ynothrow, BType, B,
-		Trait::template extract<CMap::B>(Integer))
-	yconstfn DefGetter(const ynothrow, GType, G,
-		Trait::template extract<CMap::G>(Integer))
-	yconstfn DefGetter(const ynothrow, RType, R,
-		Trait::template extract<CMap::R>(Integer))
-	//@}
-};
+template<size_t _vA, size_t _vB, size_t _vG, size_t _vR>
+using ABGR = PixelQuadruple<AXYZTraits<_vA, _vB, _vG, _vR>, AXYZMapping::ABGR,
+	_vA, _vB, _vG, _vR>;
+//@}
+//@}
 
 
 //! \since build 417
@@ -464,7 +386,7 @@ namespace ColorSpace
 \see http://www.w3schools.com/html/html_colornames.asp 。
 \since build 416
 */
-enum ColorSet : Pixel::Trait::IntegerType
+enum ColorSet : Pixel::Traits::integer
 {
 	DefColorH(00FFFF, Aqua),
 	DefColorH(000000, Black),

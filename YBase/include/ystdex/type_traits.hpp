@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1094
+\version r1128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-09-17 11:52 +0800
+	2016-09-20 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -359,8 +359,40 @@ using result_of_t = typename result_of<_type>::type;
 } // inline namespace cpp2014;
 
 
+//! \ingroup meta_types
+//@{
 /*!
-\ingroup meta_types
+\brief 整数常量类型别名。
+\since build 729
+*/
+//@{
+#define YB_Impl_DeclIntT(_n, _t) \
+	template<_t _vInt> \
+	using _n = std::integral_constant<_t, _vInt>;
+#define YB_Impl_DeclIntTDe(_t) YB_Impl_DeclIntT(_t##_, _t)
+
+YB_Impl_DeclIntTDe(bool)
+YB_Impl_DeclIntTDe(char)
+YB_Impl_DeclIntTDe(int)
+YB_Impl_DeclIntT(llong_, long long)
+YB_Impl_DeclIntTDe(long)
+YB_Impl_DeclIntTDe(short)
+YB_Impl_DeclIntT(ullong_, unsigned long long)
+YB_Impl_DeclIntT(ulong_, unsigned long)
+YB_Impl_DeclIntT(uint_, unsigned)
+YB_Impl_DeclIntT(ushort_, unsigned short)
+YB_Impl_DeclIntTDe(size_t)
+YB_Impl_DeclIntTDe(ptrdiff_t)
+
+#undef YB_Impl_DeclIntTDe
+#undef YB_Impl_DeclIntT
+
+using true_ = bool_<true>;
+using false_ = bool_<false>;
+//@}
+
+
+/*!
 \brief bool 常量。
 \see WG21 N4389 。
 \see WG21 N4527 20.10.3[meta.help] 。
@@ -371,8 +403,9 @@ using result_of_t = typename result_of<_type>::type;
 using std::bool_constant;
 #else
 template<bool _b>
-using bool_constant = integral_constant<bool, _b>;
+using bool_constant = bool_<_b>;
 #endif
+//@}
 
 
 /*!
@@ -419,7 +452,7 @@ struct or_<_b1, _b2, _bn...>
 
 
 template<class _b>
-struct not_ : bool_constant<!_b::value>
+struct not_ : bool_<!_b::value>
 {};
 //@}
 
@@ -497,8 +530,7 @@ struct yimpl(helper)
 //@{
 //! \ingroup binary_type_traits
 template<typename _type, typename _type2>
-struct is_swappable_with
-	: bool_constant<yimpl(dep_swap::helper<_type, _type2>::value)>
+struct is_swappable_with : bool_<yimpl(dep_swap::helper<_type, _type2>::value)>
 {};
 
 
@@ -730,7 +762,7 @@ using exclude_self_t
 */
 template<typename _type>
 struct is_array_of_unknown_bound
-	: bool_constant<is_array<_type>::value && extent<_type>::value == 0>
+	: bool_<is_array<_type>::value && extent<_type>::value == 0>
 {};
 
 

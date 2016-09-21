@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2177
+\version r2185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2016-08-07 02:23 +0805
+	2016-09-20 10:09 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_rational_hpp_
 #define YB_INC_ystdex_rational_hpp_ 1
 
-#include "cstdint.hpp" // for make_width_int, std::common_type, common_type_t,
-//	std::numeric_limits;
+#include "cstdint.hpp" // for true_, false_, make_width_int, std::common_type,
+//	common_type_t, std::numeric_limits;
 #include "operators.hpp" // for operators;
 #include <libdefect/cmath.h> // for std::llround;
 
@@ -333,8 +333,7 @@ public:
 	operator*=(const fixed_point& f) ynothrowv
 	{
 		value = mul<frac_bit_n + is_signed<base_type>::value>(value,
-			f.value, bool_constant<is_signed<typename
-			make_widen_int<base_type>::type>::value>());
+			f.value, is_signed<typename make_widen_int<base_type>::type>());
 		return *this;
 	}
 
@@ -438,18 +437,18 @@ public:
 	}
 
 private:
-	//! \since build 595
+	//! \since build 729
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul(base_type x, base_type y, true_type) ynothrowv
+	mul(base_type x, base_type y, true_) ynothrowv
 	{
 		return mul_signed<_vShiftBits>(
 			_t<make_widen_int<base_type>>(x * y));
 	}
-	//! \since build 595
+	//! \since build 729
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul(base_type x, base_type y, false_type) ynothrowv
+	mul(base_type x, base_type y, false_) ynothrowv
 	{
 		// NOTE: Only fit for unsigned type, due to there exists
 		//	implementation-defined behavior in conversion and right shifting on
