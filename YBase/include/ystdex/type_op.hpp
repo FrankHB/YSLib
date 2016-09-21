@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2766
+\version r2771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2016-09-17 11:50 +0800
+	2016-09-20 10:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #define YB_INC_ystdex_type_op_hpp_ 1
 
 #include "tuple.hpp" // for is_class, std::declval, is_detected, vseq::apply,
-//	_t, bool_constant, is_void, is_same, remove_reference_t, and_, cond_t,
+//	_t, bool_, is_void, is_same, remove_reference_t, and_, cond_t,
 //	is_enum, vdefer, underlying_type_t, common_type_t;
 
 namespace ystdex
@@ -211,7 +211,7 @@ struct has_mem_value_type : is_detected<details::mem_value_type_t, _type>
 */
 template<typename _type1, typename _type2>
 struct has_subscription
-	: bool_constant<is_detected<details::subscription_t, _type1, _type2>::value
+	: bool_<is_detected<details::subscription_t, _type1, _type2>::value
 	&& !is_void<detected_t<details::subscription_t, _type1, _type2>>::value>
 {};
 
@@ -232,7 +232,7 @@ struct has_equality_operator : is_detected_convertible<bool,
 */
 template<class _type>
 struct has_nonempty_virtual_base
-	: bool_constant<details::has_nonempty_virtual_base<_type>::value>
+	: bool_<details::has_nonempty_virtual_base<_type>::value>
 {};
 //@}
 
@@ -245,8 +245,7 @@ struct has_nonempty_virtual_base
 \todo 支持 final 类。
 */
 template<class _type1, class _type2>
-struct have_common_nonempty_virtual_base
-	: bool_constant<!is_same<_type1, _type2>::value
+struct have_common_nonempty_virtual_base : bool_<!is_same<_type1, _type2>::value
 	&& details::have_common_nonempty_virtual_base<_type1, _type2>::value>
 {};
 

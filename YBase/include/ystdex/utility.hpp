@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3229
+\version r3237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-08-04 23:44 +0800
+	2016-09-20 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 
 #include "type_pun.hpp" // for "type_pun.hpp", add_const_t,
 //	is_nothrow_constructible, is_nothrow_assignable, std::move, add_volatile_t,
-//	is_standard_layout, pun_storage_t, is_nothrow_swappable_with, std::swap,
-//	aligned_replace_cast, exclude_self_t, default_init, replace_storage_t;
+//	bool_, is_standard_layout, pun_storage_t, is_nothrow_swappable_with,
+//	std::swap, aligned_replace_cast, exclude_self_t, default_init,
+//	replace_storage_t;
 #include <functional> // for std::bind, std::ref
 #include "memory.hpp" // for std::addressof, yassume, ystdex::construct_in,
 //	ystdex::destruct_in;
@@ -98,14 +99,13 @@ namespace details
 {
 
 template<typename _type, typename _type2>
-using swap_volatile_avail = bool_constant<is_volatile<remove_reference_t<_type>>
-	::value != is_volatile<remove_reference_t<_type2>>::value>;
+using swap_volatile_avail = bool_<is_volatile<remove_reference_t<_type>>::value
+	!= is_volatile<remove_reference_t<_type2>>::value>;
 
 #if YB_HAS_NOEXCEPT
 template<typename _type, typename _type2>
-using swap_volatile_noexcept = and_<swap_volatile_avail<_type, _type2>,
-	bool_constant<noexcept(swap_volatile(
-	std::declval<_type>(), std::declval<_type2>()))>>;
+using swap_volatile_noexcept = and_<swap_volatile_avail<_type, _type2>, bool_<
+	noexcept(swap_volatile(std::declval<_type>(), std::declval<_type2>()))>>;
 #else
 template<typename _type, typename _type2>
 using swap_volatile_noexcept = swap_volatile_avail<_type, _type2>;

@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r703
+\version r706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2016-04-10 15:46 +0800
+	2016-09-20 09:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_tuple_hpp_ 1
 
 #include "integer_sequence.hpp" // for "integer_sequence.hpp", vseq::defer,
-//	index_sequence;
+//	index_sequence, size_t_;
 #include <tuple>
 
 namespace ystdex
@@ -115,8 +115,8 @@ namespace details
 {
 
 template<class _tSize, class _tIndex>
-using index_conv = integral_constant<size_t,
-	_tSize::value == _tIndex::value ? tuple_not_found : _tIndex::value>;
+using index_conv = size_t_<_tSize::value == _tIndex::value
+	? tuple_not_found : _tIndex::value>;
 
 } // namespace details;
 

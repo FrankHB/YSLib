@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3277
+\version r3374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-09-19 13:25 +0800
+	2016-09-21 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,104 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib.Video $=
+		(
+			/ $impl ^ "nested %(integer, array)" ~ "%(IntegerType, ArrayType)"
+				@ "class templates %(BGRA, RGBA, ARGB)" $dep_to
+				"simplified aliases",
+			/ "class %template %AXYZValueTrait" -> "%AXYZValueTraits $=
+			(
+				- "aliases %(IntegerType, ArrayType)" $dep_from
+					"simplified aliases",
+				- $dev "static assertion"
+					// This is covered by %ystdex::bitseg_trait implementation.
+			),
+			/ "alias templates %(AXYZTrait, XYZATrait)"
+				=> "%AXYZTraits, XYZATratis",
+			/ "member alias %Trait" @ "class templates %(BGRA, RGBA, ARGB)"
+				=> "%Traits";
+			(
+			+ "class template %PixelQuadruple";
+			/ "class templates %(BGRA, RGBA, ARGB)"
+				-> ("alias templates" ^ "%PixelQuadruple")
+			+ "alias template %ABGR" ^ "%PixelQuadruple"
+			)
+		),
+		/ %YSLib $=
+		(
+			/ $forced $re_ex(b728) %YAdaptor.Adaptor $dep_from %YCLib.Video $=
+			(
+				/ 'using platform::AXYZTrait;' -> 'using platform::AXYZTraits;',
+				/ 'using platform::XYZATrait;' -> 'using platform::XYZATraits;'
+			),
+			/ DLDI "simplified %HasOwnershipOf" @ %Core.YObject
+				!^ "%ystdex::bool_constant"
+			),
+			/ %Service $=
+			(
+				/ $lib %(YBrush, YBlit) ^ "%ystdex::(bool_, true_, false_)"
+					~ "%std::(bool_constant, true_type, false_type)"
+				/ $forced $re_ex(b728) "workaround" @ %YPixel $dep_from
+					%Adaptor.YAdaptor,
+				/ $forced $impl "class template %BlitAlphaPoint" $dep_from
+					%YCLib.Video,
+				(
+				/ %YPixel $=
+				(
+					* "missing update of %Drawing::MaskTrait" $since b728,
+					* "wrong %GBlender specialization instiated for pixel type \
+						with masked format XYZA5551" $since b728 $dep_from
+						%Adaptor.YAdaptor;
+					* $comp "ill-fored specialization %GBlender"
+						@ '!YB_IMPL_GNUCPP' $since b728
+				);
+				* "assertion failed"
+					@ "function template %BlendComponent instantiation"
+					@ %ImageProcessing @ "platform %DS" $since b728
+				)
+			)
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %BitSegment $=
+		(
+			/ "%(bitseg_trait, mapped_bitseg_trait)"
+				=> "%(bitseg_traits, ordered_bitseg_traits)",
+			/ @ "class template %ordered_bitseg_traits" $=
+			(
+				+ "member templates %(inversed_map; \
+					inversed_mapped_component_t)",
+				+ $dev "static assertion to ensure index count equal to \
+					component count"
+			)
+		),
+		/ %TypeTraits $=
+		(
+			(
+			+ "alias template %bool_";
+			+ "aliases %(true_, false_)";
+			/ DLDI "simplified alias template %bool_constant"
+			),
+			+ "alias templates %(char_, int_, llong_, long_, short_, uint_, \
+				ullong_, ulong_, ushort_, ptrdiff_t_, size_t_)"
+		),
+		* "missing BaseCharacteristic" @ "transformation trait \
+			%make_signed_c" @ %CStandardInteger $mismatch $since b590
+			$= (/ DLDI "member %type" -> "base class"),
+		/ DLDI "simplified integral constant types" @ %(CStandardInteger,
+			BitSegment, Functional, Placement, Tuple, Variadic, Any, Pointer,
+			Rational, TypeOperation, TypePun) ^ $dep_from
+			("%(size_t_, true_, false_, bool_)" @ %TypeTraits)
+			~ "%(integral_constant, true_type, false_type, bool_constant)",
+		/ DLDI "simplfied" @ %Cast !^ "%bool_constant"
+	)
+),
+
+b728
 (
 	/ %YFramework $=
 	(

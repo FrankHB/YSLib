@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r498
+\version r549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2016-09-19 17:47 +0800
+	2016-09-20 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,17 +40,24 @@ namespace ystdex
 
 /*!
 \ingroup type_traits_operations
-\since build 728
+\since build 729
 */
 //@{
-//! \brief 位段特征。
+/*!
+\brief 位段特征。
+
+描述以整数位序压缩存储的若干个位的特性。
+参数指定不同分量的位宽，其顺序隐含存储顺序。
+*/
 template<size_t... _vSize>
-struct bitseg_trait
+struct bitseg_traits
 {
+	//! \since build 728
+	//@{
 	using sequence = index_sequence<_vSize...>;
 
-	static yconstexpr size_t bits_n = fseq::fold(fseq::plus(),
-		std::integral_constant<size_t, 0>(), sequence());
+	static yconstexpr size_t bits_n = fseq::fold(fseq::plus(), size_t_<0>(),
+		sequence());
 	static yconstexpr size_t bytes_n = (bits_n + CHAR_BIT - 1) / CHAR_BIT;
 
 	using array = byte[bytes_n];
@@ -65,8 +72,8 @@ struct bitseg_trait
 		component_width<_vIdx>::value>::unsigned_least_type;
 
 	template<size_t _vIdx>
-	using shift = decltype(fseq::fold(fseq::plus(), std::integral_constant<
-		size_t, 0>(), vseq::split_n_t<_vIdx, sequence>()));
+	using shift = decltype(fseq::fold(fseq::plus(), size_t_<0>(),
+		vseq::split_n_t<_vIdx, sequence>()));
 
 	template<size_t _vIdx>
 	using mask = std::integral_constant<integer,
@@ -89,35 +96,50 @@ struct bitseg_trait
 
 	template<typename... _types>
 	static yconstfn integer
-	pack(_types... vals) ynothrow
+	pack(_types... xs) ynothrow
 	{
-		return project(make_index_sequence<sizeof...(vals)>(), vals...);
+		return project(make_index_sequence<sizeof...(xs)>(), xs...);
 	}
 
 	template<size_t... _vIdxSeq>
 	static yconstfn integer
-	project(index_sequence<_vIdxSeq...>, component_t<_vIdxSeq>... vals) ynothrow
+	project(index_sequence<_vIdxSeq...>, component_t<_vIdxSeq>... xs) ynothrow
 	{
-		return fseq::vfold(bit_or<>(), integer(), lift<_vIdxSeq>(vals)...);
+		return fseq::vfold(bit_or<>(), integer(), lift<_vIdxSeq>(xs)...);
 	}
+	//@}
 };
 
 
 /*!
-\pre 第一模板参数指定的类型具有和 bitset_trait 的实例兼容的成员。
-\brief 参数顺序重映射的位段特征。
+\brief 按索引有序映射的特征适配模板。
+\pre 第一模板参数指定的类型具有和 bitset_traits 的实例兼容的成员。
+\pre 静态断言：第一模板参数以外的参数数等于第一模板参数指定的分量数。
+\todo 静态断言检查索引序列的其它性质。
+
+允许位段中分量依次和特定 size_t 类型的存储索引关联。
+参数指定的索引构成索引序列，取值应为一个排列，即 0 到分量数减 1 的不重复整数值。
+在索引序列上使用表示元素位置的逻辑分量索引指定特定的存储索引。
+被适配的原始存储位置可通过恒等映射为存储索引等效表示，其索引序列以 0 起始严格递增。
 */
-template<class _tTrait, size_t... _vSeq>
-struct mapped_bitseg_trait : _tTrait
+template<class _tTraits, size_t... _vSeq>
+struct ordered_bitseg_traits : _tTraits
 {
-	using base = _tTrait;
+	//! \since build 729
+	static_assert(_tTraits::sequence::size() == sizeof...(_vSeq),
+		"Invalid coponent index sequence found.");
+
+	//! \since build 728
+	//@{
+	using base = _tTraits;
 	using typename base::integer;
+	//! \brief 指定映射关系的索引序列。
 	using mapping = index_sequence<_vSeq...>;
+	//! \brief 取指定的索引实现映射。
 	template<size_t _vIdx>
 	using map = vseq::at_t<mapping, _vIdx>;
 	template<size_t _vIdx>
-	using component_t
-		= typename base::template component_t<map<_vIdx>::value>;
+	using component_t = typename base::template component_t<map<_vIdx>::value>;
 	template<size_t _vIdx>
 	using component_width
 		= typename base::template component_width<map<_vIdx>::value>;
@@ -125,6 +147,14 @@ struct mapped_bitseg_trait : _tTrait
 	using shift = typename base::template shift<map<_vIdx>::value>;
 	template<size_t _vIdx>
 	using mask = typename base::template mask<map<_vIdx>::value>;
+	//! \since build 729
+	//@{
+	//! \brief 在索引序列查找指定的索引以实现逆映射。
+	template<size_t _vIdx>
+	using inversed_map = vseq::find_t<mapping, size_t_<_vIdx>>;
+	template<size_t _vIdx>
+	using inversed_mapped_component_t = component_t<inversed_map<_vIdx>::value>;
+	//@}
 
 	template<size_t _vIdx>
 	static yconstfn component_t<_vIdx>
@@ -142,19 +172,20 @@ struct mapped_bitseg_trait : _tTrait
 
 	template<typename... _types>
 	static yconstfn integer
-	pack(_types... vals) ynothrow
+	pack(_types... xs) ynothrow
 	{
-		return project(make_index_sequence<sizeof...(vals)>(), vals...);
+		return project(make_index_sequence<sizeof...(xs)>(), xs...);
 	}
 
 	template<size_t... _vIdxSeq>
 	static yconstfn integer
 	project(index_sequence<_vIdxSeq...>,
-		component_t<map<_vIdxSeq>::value>... vals) ynothrow
+		component_t<map<_vIdxSeq>::value>... xs) ynothrow
 	{
 		return base::template project(index_sequence<map<_vIdxSeq>::value...>(),
-			vals...);
+			xs...);
 	}
+	//@}
 };
 //@}
 

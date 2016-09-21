@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1980
+\version r1984
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-09-19 04:33 +0800
+	2016-09-20 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,10 +343,10 @@ using platform::MapKeyChar;
 namespace Drawing
 {
 
-//! \since build 728
-using platform::XYZATrait;
-//! \since build 728
-using platform::AXYZTrait;
+//! \since build 729
+using platform::AXYZTraits;
+//! \since build 729
+using platform::XYZATraits;
 //! \since build 441
 using platform::BGRA;
 //! \since build 441

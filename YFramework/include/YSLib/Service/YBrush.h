@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r551
+\version r553
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2015-11-06 11:13 +0800
+	2016-09-20 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,7 +229,7 @@ UpdatePixelsWithRotation(_fPixelShader shader, const PaintContext& pc,
 	const Drawing::Image& img, const Point& dst_offset, const Point& src_offset)
 {
 	using namespace ystdex;
-	using trans_t = ystdex::bool_constant<_vRot == RDeg90 || _vRot == RDeg270>;
+	using trans_t = ystdex::bool_<_vRot == RDeg90 || _vRot == RDeg270>;
 
 	Drawing::DispatchTranspose(trans_t(), [&](cond_t<trans_t,
 		transposed_iterator<ConstBitmapPtr>, ConstBitmapPtr> src_iter,

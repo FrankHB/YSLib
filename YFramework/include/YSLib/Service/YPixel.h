@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r1169
+\version r1172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2016-09-19 04:32 +0800
+	2016-09-20 09:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ namespace Drawing
 */
 //@{
 template<class _tPixel>
-using MaskTrait = typename _tPixel::MaskTrait;
+using MaskTrait = typename _tPixel::Traits;
 
 
 template<class _tPixel, class _tMask>
@@ -554,7 +554,7 @@ BlendCore(std::uint32_t d, std::uint32_t s, std::uint8_t a)
 #if YB_IMPL_GNUCPP
 template<typename _tPixel, typename = void>
 struct GBlender : GBlender<_tPixel, _t<std::is_same<
-	ystdex::detected_or_t<void, MaskTrait, _tPixel>, XYZATrait<5, 5, 5, 1>>>>
+	ystdex::detected_or_t<void, MaskTrait, _tPixel>, XYZATraits<5, 5, 5, 1>>>>
 {};
 #else
 template<typename _tPixel, typename = void>
@@ -639,7 +639,7 @@ template<typename _tPixel>
 struct GBlender<_tPixel, std::true_type>
 #else
 template<typename _tPixel>
-struct GBlender<_tPixel, EnableForMask<_tPixel, XYZAMaskTrait<5, 5, 5, 1>>>
+struct GBlender<_tPixel, EnableForMask<_tPixel, XYZATraits<5, 5, 5, 1>>>
 #endif
 {
 	template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
