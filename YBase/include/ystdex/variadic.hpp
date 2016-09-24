@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1380
+\version r1384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-09-20 10:59 +0800
+	2016-09-21 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 #define YB_INC_ystdex_variadic_hpp_ 1
 
 #include "type_traits.hpp" // for "type_traits.hpp", _t, size_t, empty_base,
-//	false_, size_t_, is_same, true_type, are_same, integral_constant, conditional_t,
-//	cond_t;
+//	false_, size_t_, is_same, false_, true_, are_same, integral_constant,
+//	conditional_t, cond_t;
 
 namespace ystdex
 {
@@ -317,12 +317,12 @@ using instance_apply_t = defer_apply_t<ctor_of_t<_tSeq>, _tParamsList>;
 */
 //@{
 template<class, typename = void>
-struct is_instance : false_type
+struct is_instance : false_
 {};
 
 template<class _tSeq>
 struct is_instance<_tSeq, enable_if_t<is_same<_tSeq, _t<
-	vdefer<instance_apply_t, _tSeq, params_of_t<_tSeq>>>>::value>> : true_type
+	vdefer<instance_apply_t, _tSeq, params_of_t<_tSeq>>>>::value>> : true_
 {};
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r359
+\version r362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2016-09-20 10:07 +0800
+	2016-09-21 15:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #ifndef YB_INC_ystdex_pointer_hpp_
 #define YB_INC_ystdex_pointer_hpp_ 1
 
-#include "iterator_op.hpp" // for bool_, totally_ordered,
+#include "iterator_op.hpp" // for bool_, true_, totally_ordered,
 //	iterator_operators_t, std::iterator_traits, yconstraint;
 #include <functional> // for std::equal_to, std::less;
 
@@ -61,9 +61,9 @@ class nptr : private totally_ordered<nptr<_type>>
 	//! \since build 630
 	static_assert(is_nothrow_copyable<_type>(), "Invalid type found.");
 	static_assert(is_destructible<_type>(), "Invalid type found.");
-	static_assert(detected_or_t<true_type, details::nptr_eq1, _type>(),
+	static_assert(detected_or_t<true_, details::nptr_eq1, _type>(),
 		"Invalid type found.");
-	static_assert(detected_or_t<true_type, details::nptr_eq2, _type>(),
+	static_assert(detected_or_t<true_, details::nptr_eq2, _type>(),
 		"Invalid type found.");
 
 public:

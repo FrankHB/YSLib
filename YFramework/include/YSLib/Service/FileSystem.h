@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3267
+\version r3280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-08-13 20:17 +0800
+	2016-09-23 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,7 +228,6 @@ public:
 	*/
 	DefDeCtor(Path)
 	//! \since build 635
-	//@{
 	explicit
 	Path(ypath pth) ynothrow
 		: ypath(std::move(pth))
@@ -238,13 +237,20 @@ public:
 	Path(const u16string& str) ynothrow
 		: Path(ParsePath<ypath>(str))
 	{}
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_t<Path, _type>)>
+	//! \since build 730
+	template<typename _type, yimpl(typename = ystdex::enable_if_t<
+		!std::is_constructible<const u16string&, _type&&>::value>,
+		typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
-	Path(_type&& arg, Text::Encoding enc = Text::CS_Default)
+	Path(_type&& arg)
+		: ypath(ParsePath<ypath>(String(yforward(arg))))
+	{}
+	//! \since build 730
+	template<typename _type>
+	explicit
+	Path(_type&& arg, Text::Encoding enc)
 		: ypath(ParsePath<ypath>(String(yforward(arg), enc)))
 	{}
-	//@}
 	//! \since build 599
 	template<typename _tIn>
 	Path(_tIn first, _tIn last)

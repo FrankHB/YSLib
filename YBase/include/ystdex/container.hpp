@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1824
+\version r1855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-06-09 11:38 +0800
+	2016-09-21 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -339,23 +339,24 @@ namespace details
 {
 
 //! \since build 663
-//@{
 template<class _type>
 using range_size_t = decltype(size(std::declval<_type>()));
 
+//! \since build 663
 template<class _type>
 using has_range_size = is_detected_convertible<size_t, range_size_t, _type>;
-//@}
 
+//! \since buld 730
 template<typename _tRange>
 yconstfn auto
-range_size(const _tRange& c, true_type) -> decltype(size(c))
+range_size(const _tRange& c, true_) -> decltype(size(c))
 {
 	return size(c);
 }
+//! \since buld 730
 template<typename _tRange>
 inline auto
-range_size(const _tRange& c, false_type)
+range_size(const _tRange& c, false_)
 	-> decltype(std::distance(begin(c), end(c)))
 {
 	return std::distance(begin(c), end(c));
@@ -571,29 +572,32 @@ erase_remove_if(_tSeqCon& con, decltype(begin(con)) first,
 {
 	con.erase(std::remove_if(first, last, pred), last);
 }
+//@}
 
+//! \since build 730
+//@{
 template<typename _tSeqCon, typename _type>
 inline void
-erase_all_in_seq(_tSeqCon& con, _type&& value, true_type)
+erase_all_in_seq(_tSeqCon& con, _type&& value, true_)
 {
 	con.remove(yforward(value));
 }
 template<typename _tSeqCon, typename _type>
 inline void
-erase_all_in_seq(_tSeqCon& con, const _type& value, false_type)
+erase_all_in_seq(_tSeqCon& con, const _type& value, false_)
 {
 	details::erase_remove(con, begin(con), end(con), value);
 }
 
 template<typename _tSeqCon, typename _fPred>
 inline void
-erase_all_if_in_seq(_tSeqCon& con, _fPred pred, true_type)
+erase_all_if_in_seq(_tSeqCon& con, _fPred pred, true_)
 {
 	con.remove_if(pred);
 }
 template<typename _tSeqCon, typename _fPred>
 inline void
-erase_all_if_in_seq(_tSeqCon& con, _fPred pred, false_type)
+erase_all_if_in_seq(_tSeqCon& con, _fPred pred, false_)
 {
 	details::erase_remove_if(con, begin(con), end(con), pred);
 }
@@ -601,7 +605,7 @@ erase_all_if_in_seq(_tSeqCon& con, _fPred pred, false_type)
 template<typename _tCon, typename _type>
 void
 erase_all(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
-	const _type& value, true_type)
+	const _type& value, true_)
 {
 	while(first != last)
 		if(*first == value)
@@ -611,20 +615,20 @@ erase_all(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
 }
 template<typename _tCon, typename _type>
 inline void
-erase_all(_tCon& con, const _type& value, true_type)
+erase_all(_tCon& con, const _type& value, true_)
 {
-	details::erase_all(con, cbegin(con), cend(con), value, true_type());
+	details::erase_all(con, cbegin(con), cend(con), value, true_());
 }
 template<typename _tCon, typename _type>
 inline void
 erase_all(_tCon& con, decltype(begin(con)) first, decltype(end(con)) last,
-	const _type& value, false_type)
+	const _type& value, false_)
 {
 	details::erase_remove(con, first, last, value);
 }
 template<typename _tCon, typename _type>
 inline void
-erase_all(_tCon& con, const _type& value, false_type)
+erase_all(_tCon& con, const _type& value, false_)
 {
 	details::erase_all_in_seq(con, value, has_mem_remove<_tCon>());
 }
@@ -632,7 +636,7 @@ erase_all(_tCon& con, const _type& value, false_type)
 template<typename _tCon, typename _fPred>
 void
 erase_all_if(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
-	_fPred pred, true_type)
+	_fPred pred, true_)
 {
 	while(first != last)
 		if(pred(*first))
@@ -642,20 +646,20 @@ erase_all_if(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
 }
 template<typename _tCon, typename _fPred>
 inline void
-erase_all_if(_tCon& con, _fPred pred, true_type)
+erase_all_if(_tCon& con, _fPred pred, true_)
 {
-	details::erase_all_if(con, cbegin(con), cend(con), pred, true_type());
+	details::erase_all_if(con, cbegin(con), cend(con), pred, true_());
 }
 template<typename _tCon, typename _fPred>
 inline void
 erase_all_if(_tCon& con, decltype(begin(con)) first, decltype(end(con)) last,
-	_fPred pred, false_type)
+	_fPred pred, false_)
 {
 	details::erase_remove_if(con, first, last, pred);
 }
 template<typename _tCon, typename _fPred>
 inline void
-erase_all_if(_tCon& con, _fPred pred, false_type)
+erase_all_if(_tCon& con, _fPred pred, false_)
 {
 	details::erase_all_if_in_seq(con, pred, has_mem_remove_if<_tCon>());
 }
@@ -984,20 +988,21 @@ namespace details
 {
 
 //! \since build 708
-//@{
 template<class _tAssocCon>
 struct assoc_con_traits
 {
+	//! \since build 730
+	//@{
 	template<typename _tKey, typename... _tParams>
 	static inline typename _tAssocCon::iterator
-	emplace_hint_in_place(false_type, _tAssocCon& con,
+	emplace_hint_in_place(false_, _tAssocCon& con,
 		typename _tAssocCon::const_iterator hint, _tKey&&, _tParams&&... args)
 	{
 		return con.emplace_hint(hint, yforward(args)...);
 	}
 	template<typename _tKey, typename... _tParams>
 	static inline typename _tAssocCon::iterator
-	emplace_hint_in_place(true_type, _tAssocCon& con,
+	emplace_hint_in_place(true_, _tAssocCon& con,
 		typename _tAssocCon::const_iterator hint, _tKey&& k, _tParams&&... args)
 	{
 		return con.emplace_hint(hint, std::piecewise_construct,
@@ -1006,17 +1011,17 @@ struct assoc_con_traits
 	}
 
 	static inline const typename _tAssocCon::key_type&
-	extract_key(false_type, const typename _tAssocCon::value_type& val)
+	extract_key(false_, const typename _tAssocCon::value_type& val)
 	{
 		return val;
 	}
 	static inline const typename _tAssocCon::key_type&
-	extract_key(true_type, const typename _tAssocCon::value_type& val)
+	extract_key(true_, const typename _tAssocCon::value_type& val)
 	{
 		return val.first;
 	}
+	//@}
 };
-//@}
 
 template<class _type>
 using mapped_type_t = typename _type::mapped_type;

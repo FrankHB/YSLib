@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1906
+\version r1910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2016-06-03 09:11 +0800
+	2016-09-21 15:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "memory.hpp" // for decay_t, remove_rcv_t, std::declval,
-//	nested_allocator, is_enum, is_class;
+#include "memory.hpp" // for remove_rcv_t, false_, is_object, decay_t,
+//	std::declval, true_, nested_allocator, is_enum, is_class;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
 #include "container.hpp" // for "container.hpp", make_index_sequence,
@@ -79,12 +79,12 @@ namespace details
 //! \since build 640
 //@{
 template<typename _type, typename = void>
-struct is_string_like : false_type
+struct is_string_like : false_
 {};
 
 template<typename _type>
 struct is_string_like<_type, enable_if_t<
-	is_object<decay_t<decltype(std::declval<_type>()[0])>>::value>> : true_type
+	is_object<decay_t<decltype(std::declval<_type>()[0])>>::value>> : true_
 {};
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2823
+\version r2827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2016-04-21 09:43 +0800
+	2016-09-21 15:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,8 @@
 #ifndef YB_INC_ystdex_operators_hpp_
 #define YB_INC_ystdex_operators_hpp_ 1
 
-#include "addressof.hpp" // for "type_traits.hpp", _t, true_type, empty_base,
-//	ystdex::constfn_addressof;
+#include "addressof.hpp" // for "type_traits.hpp", false_, true_, _t,
+//	empty_base, ystdex::constfn_addressof;
 #include "integer_sequence.hpp" // for index_sequence, vseq::defer_apply_t,
 //	vseq::_a, vseq::fold_t;
 
@@ -49,9 +49,9 @@ namespace dep_ops
 {
 
 //! \since build 684
-using no_constfn = yimpl(false_type);
+using no_constfn = yimpl(false_);
 //! \since build 682
-using use_constfn = yimpl(true_type);
+using use_constfn = yimpl(true_);
 
 } // namespace dep_ops;
 

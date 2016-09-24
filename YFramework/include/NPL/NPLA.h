@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r935
+\version r963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-09-14 10:25 +0800
+	2016-09-24 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -490,6 +490,17 @@ public:
 //@}
 
 
+/*!
+\brief 规约状态：一遍规约可能的中间结果。
+\since build 730
+*/
+enum class ReductionStatus : yimpl(size_t)
+{
+	Success = 0,
+	NeedRetry
+};
+
+
 //! \since build 674
 //@{
 //! \brief 上下文节点类型。
@@ -515,31 +526,40 @@ inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
 //@}
 
 
-//! \since build 675
+//! \since build 730
 //@{
-//! \brief 从指定上下文取指定名称指称的值。
-YF_API ValueObject
-FetchValue(const ContextNode&, const string&);
-
 //! \brief 从指定上下文查找名称对应的节点。
-YF_API observer_ptr<const ValueNode>
-LookupName(const ContextNode&, const string&) ynothrow;
+template<typename _tKey>
+inline observer_ptr<const ValueNode>
+LookupName(const ContextNode& ctx, const _tKey& id) ynothrow
+{
+	return YSLib::AccessNodePtr(ctx, id);
+}
+
+//! \brief 从指定上下文取指定名称指称的值。
+template<typename _tKey>
+ValueObject
+FetchValue(const ContextNode& ctx, const _tKey& name)
+{
+	return ystdex::call_value_or<ValueObject>(
+		std::mem_fn(&ValueNode::Value), NPL::LookupName(ctx, name));
+}
 //@}
 
 
 /*!
 \brief 移除节点的空子节点，然后判断是否可继续规约。
-\return 可继续规约：第一参数为 true 且移除空子节点后的节点非空。
-\since build 726
+\return 可继续规约：第二参数指定非成功状态，且移除空子节点后的节点非空。
+\since build 730
 */
 YF_API bool
-DetectReducible(bool, TermNode&) ynothrow;
+DetectReducible(TermNode&, ReductionStatus);
 
 
 //! \since build 676
 //@{
 /*!
-\brief 遍合并器：逐次调用直至返回 true 。
+\brief 遍合并器：逐次调用直至成功。
 \note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
 */
 struct PassesCombiner

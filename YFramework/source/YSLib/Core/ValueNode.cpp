@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r668
+\version r682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-07-14 23:21 +0800
+	2016-09-24 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,18 @@ ValueNode::SwapContent(ValueNode& node) ynothrow
 }
 
 void
+ValueNode::ThrowIndexOutOfRange()
+{
+	throw std::out_of_range("Index is out of range.");
+}
+
+void
+ValueNode::ThrowWrongNameFound()
+{
+	throw std::out_of_range("Wrong name found.");
+}
+
+void
 swap(ValueNode& x, ValueNode& y) ynothrow
 {
 	std::swap(x.name, y.name),
@@ -68,14 +80,14 @@ AccessNode(ValueNode::Container* p_con, const string& name)
 {
 	if(const auto p = AccessNodePtr(p_con, name))
 		return *p;
-	throw std::out_of_range("Wrong name found.");
+	ValueNode::ThrowWrongNameFound();
 }
 const ValueNode&
 AccessNode(const ValueNode::Container* p_con, const string& name)
 {
 	if(const auto p = AccessNodePtr(p_con, name))
 		return *p;
-	throw std::out_of_range("Wrong name found.");
+	ValueNode::ThrowWrongNameFound();
 }
 ValueNode&
 AccessNode(ValueNode& node, size_t n)
@@ -84,7 +96,7 @@ AccessNode(ValueNode& node, size_t n)
 
 	if(p)
 		return *p;
-	throw std::out_of_range("Index is out of range.");
+	ValueNode::ThrowIndexOutOfRange();
 }
 const ValueNode&
 AccessNode(const ValueNode& node, size_t n)
@@ -93,7 +105,7 @@ AccessNode(const ValueNode& node, size_t n)
 
 	if(p)
 		return *p;
-	throw std::out_of_range("Index is out of range.");
+	ValueNode::ThrowIndexOutOfRange();
 }
 
 observer_ptr<ValueNode>

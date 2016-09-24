@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r588
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-09-19 12:21 +0800
+	2016-09-21 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,10 +109,11 @@ fold(_func f, _tState s, integer_sequence<_tInt, _vInt, _vSeq...> xs) ynothrow
 
 struct plus
 {
+	//! \since build 730
 	template<typename _tInt, _tInt _v1, _tInt _v2>
 	yconstfn auto
 	operator()(std::integral_constant<_tInt, _v1>, std::integral_constant<_tInt,
-		_v2>) ynothrow -> std::integral_constant<_tInt, _v1 + _v2>
+		_v2>) const ynothrow -> std::integral_constant<_tInt, _v1 + _v2>
 	{
 		return {};
 	}
@@ -121,10 +122,11 @@ struct plus
 
 struct minus
 {
+	//! \since build 730
 	template<typename _tInt, _tInt _v1, _tInt _v2>
 	yconstfn auto
 	operator()(std::integral_constant<_tInt, _v1>, std::integral_constant<_tInt,
-		_v2>) ynothrow -> std::integral_constant<_tInt, _v1 - _v2>
+		_v2>) const ynothrow -> std::integral_constant<_tInt, _v1 - _v2>
 	{
 		return {};
 	}

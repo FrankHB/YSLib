@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3374
+\version r3490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-09-21 13:10 +0800
+	2016-09-25 00:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,122 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	+ $re_add(b725) $repo "bookmark 'engineering-fault-b729'" @ b728
+		@ "engineering fault bookmarks",
+		// Failed to build for platform %DS.
+	/ %YFramework $=
+	(
+		/ $re_add(b729) $lib ("2nd parameter " @ "non owning constructor \
+			%ImageTag" @ %Adaptror.Image, DLI "workaround for G++"
+			@ %Service.Pixel) ^ "%ystdex::false_" ~ "%std::false_type",
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				(
+				+ "enum class %ReductionStatus";
+				/ "function %DetectReducible" ^ "%ReductionStatus" ~ 'bool'
+				// Return type of %GEvent based passes are not changed to \
+					%ReductionStatus to avoid internal compiler error: \
+					"error reporting routines re-entered" in current versions \
+					of G++ on instantiating passes.
+				),
+				/ "functions %(LookupName, FetchValue)"
+					-> "function templates with template parameter as name"
+			),
+			/ %NPLA1 $=
+			(
+				/ "functions %(InvokeLeaf, InvokeList, Reduce, ReduceFirst, \
+					ReplaceSeparatedChildren, EvaluateContextFirst, \
+					EvaluateIdentifier)" ^ $dep_from
+					("%ReductionStatus" @ %NPLA) ~ 'bool',
+				/ @ "function %EvaluateIdentifier" $=
+				(
+					/ "3rd parameter type"
+						-> "%string_view" ~ 'const string&' $dep_from
+						("%FetchValue" @ %NPLA1),
+					+ "assertion to ensure nonnull data pointer fo 3rd \
+						parameter"
+				)
+			),
+			/ %Lexical $=
+			(
+				/ DLDI "%CheckLiteral" ^ "%string_view::length"
+					~ "%string_view::size",
+					// To be consistent with other places.
+				(
+				+ "overloaded function %Deliteralize with %bool parameter";
+				/ DLDI "simplified function %Deliteralize with 1 parameter"
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ ("constructor template with \
+					'const std::basic_string<_tChar>&' parameter"
+					-> "constructor template with \
+					'basic_string<_tChar, _tTraits, _tAlloc>'")
+					@ "class %String" @ %YString $=
+				(
+					/ @ "parameter type" $=
+					(
+						- 'std::',
+						+ "traits and allocator template parameter support"
+					),
+					/ $re(b641) "supporting character string range" ~ "NTCTS"
+						$= (/ "intialization" ^ "%basic_string_view instance \
+							with known length from string" ~ "%c_str()")
+					// This would crash previously (since b641). It was \
+						suspicious as a G++ bug, like https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795. \
+						However, this can work just now, but that bug is still \
+						not fixed.
+				),
+				/ %ValueNode $=
+				(
+					/ @ "class %ValueNode" $=
+					(
+						+ "static functions %(ThrowWrongNameFound, \
+							ThrowIndexOutOfRange)",
+						+ "friend function templates %operator(==, 2 <, 2 >) \
+							with template parameter as key"
+							// To simplify, not all operators are supported. \
+								This cannot be suppoted by %ystdex::operators. \
+								It cannot be set for all types need to \
+								compare, and even it can, there would be \
+								ambiguity between array and %string_view \
+								arguments.
+					),
+					+ "support for generic associative lookup"
+						@ "%(AccessNode, AccessNodePtr)" $=
+					(
+						+ "function templates with template parameter as key \
+							paired with non-inline functions",
+						/ "inline functions" -> "function templates"
+					),
+					/ DLDI "simplified functions %AccessNode"
+						^ $dep_from "%ValueNode::(ThrowWrongNameFound, \
+						ThrowIndexOutOfRange)"
+				)
+			)
+			/ "constructor template with default encoding argument"
+				@ "class %Path" @ %Service.FileSystem
+				-> "2 constructor templates without default argument"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ $re_add(b729) DLDI "simplified" @ %(Cast, Container, Enum, Future,
+			Operators, Pointer, Rational, Ref, TypeTraits, String, Variadic,
+			Utilities) ^ "%(false_, true_)" ~ "%std::(false_type, true_type)",
+		* "missing 'const'" @ "%operator()" @ "class templates %fseq::(plus, \
+			minus)" @ %IntegerSequence $since b728
+	)
+),
+
+b729
 (
 	/ %YFramework $=
 	(
@@ -361,7 +477,7 @@ b726
 
 b725
 (
-	+ $re_add(b711) $repo "bookmark 'engineering-fault-b710'" @ b717
+	+ $re_add(b711) $repo "bookmark 'engineering-fault-b723'" @ b717
 		@ "engineering fault bookmarks",
 		// Failed to build for platform %DS.
 	/ %YFramework $=
