@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1244
+\version r1275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-09-14 09:49 +0800
+	2016-09-25 00:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,6 +134,13 @@ yconstexpr const auto GuardName("__$!");
 yconstexpr const auto LeafTermName("__$$@");
 yconstexpr const auto ListTermName("__$$");
 
+// TODO: Use %ReductionStatus as pass invocation result directly instead of this
+//	wrapper. This is not transformed yet to avoid G++ internal compiler error:
+//	"error reporting routines re-entered".
+//! \since build 730
+yconstfn PDefH(ReductionStatus, ToStatus, bool res) ynothrow
+	ImplRet(res ? ReductionStatus::NeedRetry : ReductionStatus::Success)
+
 } // unnamed namespace;
 
 GuardPasses&
@@ -160,27 +167,27 @@ InvokeGuard(TermNode& term, ContextNode& ctx)
 	return InvokePasses<GuardPasses>(term, ctx, GuardName);
 }
 
-bool
+ReductionStatus
 InvokeLeaf(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<EvaluationPasses>(term, ctx, LeafTermName);
+	return ToStatus(InvokePasses<EvaluationPasses>(term, ctx, LeafTermName));
 }
 
-bool
+ReductionStatus
 InvokeList(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<EvaluationPasses>(term, ctx, ListTermName);
+	return ToStatus(InvokePasses<EvaluationPasses>(term, ctx, ListTermName));
 }
 
 
-bool
+ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
 	const auto gd(InvokeGuard(term, ctx));
 
 	// NOTE: Rewriting loop until the normal form is got.
-	return ystdex::retry_on_cond(ystdex::bind1(DetectReducible, std::ref(term)),
-		[&]() -> bool{
+	return ystdex::retry_on_cond(std::bind(DetectReducible, std::ref(term),
+		std::placeholders::_1), [&]() -> ReductionStatus{
 		if(!term.empty())
 		{
 			YAssert(term.size() != 0, "Invalid node found.");
@@ -203,8 +210,9 @@ Reduce(TermNode& term, ContextNode& ctx)
 		else
 			return InvokeLeaf(term, ctx);
 		// NOTE: Exited loop has produced normal form by default.
-		return {};
-	});
+		return ReductionStatus::Success;
+	}) == ReductionStatus::Success ? ReductionStatus::Success
+		: ReductionStatus::NeedRetry;
 }
 
 void
@@ -293,14 +301,14 @@ TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
 	return res;
 }
 
-bool
+ReductionStatus
 ReplaceSeparatedChildren(TermNode& term, const ValueObject& name,
 	const ValueObject& delim)
 {
 	if(std::find_if(term.begin(), term.end(),
 		ystdex::bind1(HasValue, std::ref(delim))) != term.end())
 		term = TransformForSeparator(term, name, delim, term.GetName());
-	return {};
+	return ReductionStatus::Success;
 }
 
 
@@ -368,7 +376,12 @@ void
 RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 	const string& name, const ValueObject& delim)
 {
-	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
+	// TODO: Simplify by using %ReductionStatus as invocation result directly.
+//	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
+	passes += [name, delim](TermNode& term){
+		return ReplaceSeparatedChildren(term, name, delim)
+			!= ReductionStatus::Success;
+	};
 	NPL::RegisterContextHandler(node, name,
 		FormContextHandler([](TermNode& term, ContextNode& ctx){
 		RemoveHead(term);
@@ -377,7 +390,7 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 }
 
 
-bool
+ReductionStatus
 EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 {
 	if(!term.empty())
@@ -396,21 +409,22 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 				: "#<unknown>", term.size()));
 		}
 	}
-	return {};
+	return ReductionStatus::Success;
 }
 
-bool
-EvaluateIdentifier(TermNode& term, ContextNode& ctx, const string& id)
+ReductionStatus
+EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 {
+	YAssertNonnull(id.data());
 	if(auto v = FetchValue(ctx, id))
 	{
 		term.Value = std::move(v);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
-			return (*p_handler)(ctx);
+			return ToStatus((*p_handler)(ctx));
 	}
 	else
 		throw BadIdentifier(id);
-	return {};
+	return ReductionStatus::Success;
 }
 
 } // namesapce A1;

@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1128
+\version r1140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-09-20 10:11 +0800
+	2016-09-21 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -419,7 +419,7 @@ template<class...>
 struct and_;
 
 template<>
-struct and_<> : true_type
+struct and_<> : true_
 {};
 
 template<class _b1>
@@ -437,7 +437,7 @@ template<class...>
 struct or_;
 
 template<>
-struct or_<> : false_type
+struct or_<> : false_
 {};
 
 template<class _b1>
@@ -461,15 +461,15 @@ namespace details
 {
 
 template<typename _type>
-struct is_referenceable_function : false_type
+struct is_referenceable_function : false_
 {};
 
 template<typename _tRes, typename... _tParams>
-struct is_referenceable_function<_tRes(_tParams...)> : true_type
+struct is_referenceable_function<_tRes(_tParams...)> : true_
 {};
 
 template<typename _tRes, typename... _tParams>
-struct is_referenceable_function<_tRes(_tParams..., ...)> : true_type
+struct is_referenceable_function<_tRes(_tParams..., ...)> : true_
 {};
 
 } // namespace details;
@@ -688,7 +688,7 @@ namespace details
 template<typename _tDefault, typename, template<typename...> class, typename...>
 struct detector
 {
-	using value_t = false_type;
+	using value_t = false_;
 	using type = _tDefault;
 };
 
@@ -696,7 +696,7 @@ template<typename _tDefault, template<typename...> class _gOp,
 	typename... _tParams>
 struct detector<_tDefault, void_t<_gOp<_tParams...>>, _gOp, _tParams...>
 {
-	using value_t = true_type;
+	using value_t = true_;
 	using type = _gOp<_tParams...>;
 };
 
@@ -731,10 +731,9 @@ using is_detected_convertible
 /*!
 \brief 条件判断。
 \sa conditional_t
-\since build 650
+\since build 730
 */
-template<typename _tCond, typename _tThen = true_type,
-	typename _tElse = false_type>
+template<typename _tCond, typename _tThen = true_, typename _tElse = false_>
 using cond_t = conditional_t<_tCond::value, _tThen, _tElse>;
 
 /*!
@@ -889,11 +888,11 @@ struct is_cv : or_<is_const<_type>, is_volatile<_type>>
 */
 //@{
 template<typename>
-struct is_decomposable : false_type
+struct is_decomposable : false_
 {};
 
 template<template<typename...> class _gOp, typename... _types>
-struct is_decomposable<_gOp<_types...>> : true_type
+struct is_decomposable<_gOp<_types...>> : true_
 {};
 //@}
 

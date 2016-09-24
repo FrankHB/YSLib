@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3237
+\version r3238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-09-20 10:11 +0800
+	2016-09-21 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ vswap(_type&& x, _type2&& y)
 //@{
 template<typename _type, typename _type2>
 inline auto	
-vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_type,
+vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 	details::swap_volatile_noexcept, _type, _type2>())
 	-> yimpl(enable_if_t)<details::swap_volatile_avail<_type, _type2>::value>
 {

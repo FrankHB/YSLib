@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2185
+\version r2186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2016-09-20 10:09 +0805
+	2016-09-21 15:43 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -594,7 +594,7 @@ struct modular_arithmetic<YB_Impl_Rational_fp_T>
 \since build 442
 */
 template<YB_Impl_Rational_fp_PList>
-struct is_normalizable<YB_Impl_Rational_fp_T> : true_type
+struct is_normalizable<YB_Impl_Rational_fp_T> : true_
 {};
 
 

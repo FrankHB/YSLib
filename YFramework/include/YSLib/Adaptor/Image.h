@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1438
+\version r1440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2016-07-27 19:00 +0800
+	2016-09-21 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -756,9 +756,9 @@ public:
 	ImageTag(const ImageTag&) ythrow(BadImageAlloc);
 	/*!
 	\post \c !owns 。
-	\since build 557
+	\since build 730
 	*/
-	ImageTag(const ImageTag& tag, std::false_type) ynothrow
+	ImageTag(const ImageTag& tag, ystdex::false_) ynothrow
 		: ImageTag(tag.p_tag, {})
 	{}
 	~ImageTag();

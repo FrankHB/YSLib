@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1362
+\version r1368
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2016-09-20 10:06 +0800
+	2016-09-21 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_cast_hpp_
 #define YB_INC_ystdex_cast_hpp_ 1
 
-#include "type_op.hpp" // for is_object, is_void, is_function, decay_t,
-//	is_same, have_common_nonempty_virtual_base, _t;
+#include "type_op.hpp" // for decay_t, is_same,
+//	have_common_nonempty_virtual_base, false_, true_, _t;
 #include <limits> // for std::numeric_limits;
 #include "exception.h" // for narrowing_error, std::addressof;
 #include <typeinfo> // for std::bad_cast;
@@ -89,7 +89,8 @@ struct narrow_test
 {
 	_tDst i, j;
 
-	yconstfn false_type
+	//! \since build 730
+	yconstfn false_
 	get() const ynothrow
 	{
 		return {};
@@ -102,8 +103,9 @@ test_narrow(_tSrc v) ynothrow -> decltype(narrow_test<_tDst>{v}.get())
 {
 	return narrow_test<_tDst>{v};
 }
+//! \since build 730
 template<typename>
-yconstfn true_type
+yconstfn true_
 test_narrow(...) ynothrow
 {
 	return {};

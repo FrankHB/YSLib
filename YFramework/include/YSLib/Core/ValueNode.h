@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2625
+\version r2818
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-08-07 16:04 +0800
+	2016-09-25 00:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,7 +185,7 @@ public:
 	//! \since build 336
 	DefBoolNeg(explicit, bool(Value) || !container.empty())
 
-	//! \since build 667
+	//! \since build 730
 	//@{
 	PDefHOp(const ValueNode&, +=, const ValueNode& node)
 		ImplRet(Add(node), *this)
@@ -224,6 +224,13 @@ public:
 	//! \since build 679
 	friend PDefHOp(bool, ==, const ValueNode& x, const string& str) ynothrow
 		ImplRet(x.name == str)
+	//! \since build 730
+	template<typename _tKey>
+	friend bool
+	operator==(const ValueNode& x, const _tKey& str) ynothrow
+	{
+		return x.name == str;
+	}
 
 	//! \since build 673
 	friend PDefHOp(bool, <, const ValueNode& x, const ValueNode& y) ynothrow
@@ -231,9 +238,37 @@ public:
 	//! \since build 678
 	friend PDefHOp(bool, <, const ValueNode& x, const string& str) ynothrow
 		ImplRet(x.name < str)
+	//! \since build 730
+	template<typename _tKey>
+	friend bool
+	operator<(const ValueNode& x, const _tKey& str) ynothrow
+	{
+		return x.name < str;
+	}
+	//! \since build 730
+	template<typename _tKey>
+	friend bool
+	operator<(const _tKey& str, const ValueNode& y) ynothrow
+	{
+		return str < y.name;
+	}
 	//! \since build 679
 	friend PDefHOp(bool, >, const ValueNode& x, const string& str) ynothrow
 		ImplRet(x.name > str)
+	//! \since build 730
+	template<typename _tKey>
+	friend bool
+	operator>(const ValueNode& x, const _tKey& str) ynothrow
+	{
+		return x.name > str;
+	}
+	//! \since build 730
+	template<typename _tKey>
+	friend bool
+	operator>(const _tKey& str, const ValueNode& y) ynothrow
+	{
+		return str > y.name;
+	}
 
 	//! \since build 680
 	template<typename _tString>
@@ -333,14 +368,12 @@ public:
 	PDefH(bool, Remove, const ValueNode& node)
 		ImplRet(container.erase(node) != 0)
 	//! \since build 680
-	//@{
 	template<typename _tKey>
 	inline bool
 	Remove(const _tKey& k)
 	{
 		return ystdex::erase_first(container, k);
 	}
-	//@}
 
 	/*!
 	\brief 复制满足条件的子节点。
@@ -390,6 +423,22 @@ public:
 	SwapContent(ValueNode&) ynothrow;
 	//@}
 	//@}
+
+	/*!
+	\brief 抛出索引越界异常。
+	\throw std::out_of_range 索引越界。
+	\since build 730
+	*/
+	YB_NORETURN static void
+	ThrowIndexOutOfRange();
+
+	/*!
+	\brief 抛出名称错误异常。
+	\throw std::out_of_range 名称错误。
+	\since build 730
+	*/
+	YB_NORETURN static void
+	ThrowWrongNameFound();
 
 	//! \since build 460
 	//@{
@@ -550,46 +599,94 @@ AccessPtr(observer_ptr<const ValueNode> p_node) ynothrow
 //@}
 
 
-//! \since build 670
+//! \since build 730
 //@{
+template<typename _tKey>
+observer_ptr<ValueNode>
+AccessNodePtr(ValueNode::Container*, const _tKey&) ynothrow;
+template<typename _tKey>
+observer_ptr<const ValueNode>
+AccessNodePtr(const ValueNode::Container*, const _tKey&) ynothrow;
+
 /*!
 \brief 访问节点。
 \throw std::out_of_range 未找到对应节点。
 */
 //@{
-//! \since build 666
+//! \since build 670
 YF_API ValueNode&
 AccessNode(ValueNode::Container*, const string&);
-//! \since build 433
+//! \since build 670
 YF_API const ValueNode&
 AccessNode(const ValueNode::Container*, const string&);
-inline PDefH(ValueNode&, AccessNode, observer_ptr<ValueNode::Container> p_con,
-	const string& name)
-	ImplRet(AccessNode(p_con.get(), name))
-inline PDefH(const ValueNode&, AccessNode,
-	observer_ptr<const ValueNode::Container> p_con, const string& name)
-	ImplRet(AccessNode(p_con.get(), name))
-//! \since build 666
-inline PDefH(ValueNode&, AccessNode, ValueNode::Container& con,
-	const string& name)
-	ImplRet(AccessNode(&con, name))
-//! \since build 399
-inline PDefH(const ValueNode&, AccessNode, const ValueNode::Container& con,
-	const string& name)
-	ImplRet(AccessNode(&con, name))
-//! \note 时间复杂度 O(n) 。
+template<typename _tKey>
+ValueNode&
+AccessNode(ValueNode::Container* p_con, const _tKey& name)
+{
+	if(const auto p = YSLib::AccessNodePtr(p_con, name))
+		return *p;
+	ValueNode::ThrowWrongNameFound();
+}
+template<typename _tKey>
+const ValueNode&
+AccessNode(const ValueNode::Container* p_con, const _tKey& name)
+{
+	if(const auto p = YSLib::AccessNodePtr(p_con, name))
+		return *p;
+	ValueNode::ThrowWrongNameFound();
+}
+template<typename _tKey>
+inline ValueNode&
+AccessNode(observer_ptr<ValueNode::Container> p_con, const _tKey& name)
+{
+	return YSLib::AccessNode(p_con.get(), name);
+}
+template<typename _tKey>
+inline const ValueNode&
+AccessNode(observer_ptr<const ValueNode::Container> p_con, const _tKey& name)
+{
+	return YSLib::AccessNode(p_con.get(), name);
+}
+template<typename _tKey>
+inline ValueNode&
+AccessNode(ValueNode::Container& con, const _tKey& name)
+{
+	return YSLib::AccessNode(&con, name);
+}
+template<typename _tKey>
+inline const ValueNode&
+AccessNode(const ValueNode::Container& con, const _tKey& name)
+{
+	return YSLib::AccessNode(&con, name);
+}
+/*!
+\note 时间复杂度 O(n) 。
+\since build 670
+*/
 //@{
 YF_API ValueNode&
 AccessNode(ValueNode&, size_t);
 YF_API const ValueNode&
 AccessNode(const ValueNode&, size_t);
 //@}
-inline PDefH(ValueNode&, AccessNode, ValueNode& node,
-	const string& name)
-	ImplRet(AccessNode(node.GetContainerRef(), name))
-inline PDefH(const ValueNode&, AccessNode, const ValueNode& node,
-	const string& name)
-	ImplRet(AccessNode(node.GetContainer(), name))
+template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
+	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
+	std::is_constructible<const string&, const _tKey&>>::value>)>
+inline ValueNode&
+AccessNode(ValueNode& node, const _tKey& name)
+{
+	return YSLib::AccessNode(node.GetContainerRef(), name);
+}
+template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
+	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
+	std::is_constructible<const string&, const _tKey&>>::value>)>
+inline const ValueNode&
+AccessNode(const ValueNode& node, const _tKey& name)
+{
+	return YSLib::AccessNode(node.GetContainer(), name);
+}
+//! \since build 670
+//@{
 //! \note 使用 ADL \c AccessNode 。
 template<class _tNode, typename _tIn>
 _tNode&&
@@ -611,38 +708,84 @@ AccessNode(_tNode&& node, const _tRange& c)
 	return YSLib::AccessNode(yforward(node), begin(c), end(c));
 }
 //@}
+//@}
 
 //! \brief 访问节点指针。
 //@{
+//! \since build 670
 YF_API observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container&, const string&) ynothrow;
+//! \since build 670
 YF_API observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container&, const string&) ynothrow;
-inline PDefH(observer_ptr<ValueNode>, AccessNodePtr,
-	ValueNode::Container* p_con, const string& name) ynothrow
-	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
-inline PDefH(observer_ptr<const ValueNode>, AccessNodePtr,
-	const ValueNode::Container* p_con, const string& name) ynothrow
-	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
-inline PDefH(observer_ptr<ValueNode>, AccessNodePtr,
-	observer_ptr<ValueNode::Container> p_con, const string& name) ynothrow
-	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
-inline PDefH(observer_ptr<const ValueNode>, AccessNodePtr,
-	observer_ptr<const ValueNode::Container> p_con, const string& name) ynothrow
-	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
-//! \note 时间复杂度 O(n) 。
+template<typename _tKey>
+observer_ptr<ValueNode>
+AccessNodePtr(ValueNode::Container& con, const _tKey& name) ynothrow
+{
+	return make_observer(ystdex::call_value_or<ValueNode*>(ystdex::addrof<>(),
+		con.find(name), {}, end(con)));
+}
+template<typename _tKey>
+observer_ptr<const ValueNode>
+AccessNodePtr(const ValueNode::Container& con, const _tKey& name) ynothrow
+{
+	return make_observer(ystdex::call_value_or<const ValueNode*>(
+		ystdex::addrof<>(), con.find(name), {}, end(con)));
+}
+template<typename _tKey>
+inline observer_ptr<ValueNode>
+AccessNodePtr(ValueNode::Container* p_con, const _tKey& name) ynothrow
+{
+	return p_con ? YSLib::AccessNodePtr(*p_con, name) : nullptr;
+}
+template<typename _tKey>
+inline observer_ptr<const ValueNode>
+AccessNodePtr(const ValueNode::Container* p_con, const _tKey& name) ynothrow
+{
+	return p_con ? YSLib::AccessNodePtr(*p_con, name) : nullptr;
+}
+template<typename _tKey>
+inline observer_ptr<ValueNode>
+AccessNodePtr(observer_ptr<ValueNode::Container> p_con, const _tKey& name)
+	ynothrow
+{
+	return p_con ? YSLib::AccessNodePtr(*p_con, name) : nullptr;
+}
+template<typename _tKey>
+inline observer_ptr<const ValueNode>
+AccessNodePtr(observer_ptr<const ValueNode::Container> p_con, const _tKey& name)
+	ynothrow
+{
+	return p_con ? YSLib::AccessNodePtr(*p_con, name) : nullptr;
+}
+/*!
+\note 时间复杂度 O(n) 。
+\since build 670
+*/
 //@{
 YF_API observer_ptr<ValueNode>
 AccessNodePtr(ValueNode&, size_t);
 YF_API observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode&, size_t);
 //@}
-inline PDefH(observer_ptr<ValueNode>, AccessNodePtr, ValueNode& node,
-	const string& name)
-	ImplRet(AccessNodePtr(node.GetContainerRef(), name))
-inline PDefH(observer_ptr<const ValueNode>, AccessNodePtr, const ValueNode& node,
-	const string& name)
-	ImplRet(AccessNodePtr(node.GetContainer(), name))
+template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
+	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
+	std::is_constructible<const string&, const _tKey&>>::value>)>
+inline observer_ptr<ValueNode>
+AccessNodePtr(ValueNode& node, const _tKey& name)
+{
+	return YSLib::AccessNodePtr(node.GetContainerRef(), name);
+}
+template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
+	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
+	std::is_constructible<const string&, const _tKey&>>::value>)>
+inline observer_ptr<const ValueNode>
+AccessNodePtr(const ValueNode& node, const _tKey& name)
+{
+	return YSLib::AccessNodePtr(node.GetContainer(), name);
+}
+//! \since build 670
+//@{
 //! \note 使用 ADL \c AccessNodePtr 。
 template<class _tNode, typename _tIn>
 auto
@@ -665,9 +808,12 @@ AccessNodePtr(_tNode&& node, const _tRange& c)
 {
 	return YSLib::AccessNodePtr(yforward(node), begin(c), end(c));
 }
-
+//@}
+//@}
 //@}
 
+//! \since build 670
+//@{
 /*!
 \exception std::bad_cast 空实例或类型检查失败 。
 \relates ValueNode

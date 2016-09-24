@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1434
+\version r1460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-09-13 12:42 +0800
+	2016-09-22 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,14 +171,17 @@ AccessListPassesRef(ContextNode&);
 YF_API Guard
 InvokeGuard(TermNode& term, ContextNode&);
 
-//! \sa EvaluationPasses
+/*!
+\sa EvaluationPasses
+\since build 730
+*/
 //@{
 //! \brief 调用叶节点遍。
-YF_API bool
+YF_API ReductionStatus
 InvokeLeaf(TermNode& term, ContextNode&);
 
 //! \brief 调用列表节点遍。
-YF_API bool
+YF_API ReductionStatus
 InvokeList(TermNode& term, ContextNode&);
 //@}
 //@}
@@ -186,7 +189,7 @@ InvokeList(TermNode& term, ContextNode&);
 
 /*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
-\return 需要重规约。
+\return 规约状态。
 \note 可能使参数中容器的迭代器失效。
 \note 默认不需要重规约。这可被求值遍改变。
 \note 可被求值遍调用以实现递归求值。
@@ -195,6 +198,7 @@ InvokeList(TermNode& term, ContextNode&);
 \sa InvokeLeaf
 \sa InvokeList
 \sa ValueToken
+\since build 730
 \todo 实现 ValueToken 保留处理。
 
 规约顺序如下：
@@ -210,7 +214,7 @@ InvokeList(TermNode& term, ContextNode&);
 例外情况应单独指定明确的顺序。
 例外情况包括输入节点不是表达式语义结构（而是抽象语法树）的 API ，如 TransformNode 。
 */
-YF_API bool
+YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
 //@}
 
@@ -246,14 +250,15 @@ ReduceArguments(TermNode::Container&, ContextNode&);
 
 /*!
 \brief 规约首项。
-\return 需要重规约。
+\return 规约状态。
 \note 快速严格性分析：无条件求值第一项以避免非确定性推断子表达式求值的附加复杂度。
 \sa Reduce
 \see https://en.wikipedia.org/wiki/Fexpr 。
-\since build 686
+\since build 730
 */
-inline PDefH(bool, ReduceFirst, TermNode& term, ContextNode& ctx)
-	ImplRet(!term.empty() ? Reduce(Deref(term.begin()), ctx) : false)
+inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
+	ImplRet(!term.empty() ? Reduce(Deref(term.begin()), ctx)
+		: ReductionStatus::Success)
 
 
 /*!
@@ -293,8 +298,9 @@ TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
 \return 是否找到并替换了项。
 \sa EvaluationPasses
 \sa TransformForSeparator
+\since build 730
 */
-YF_API bool
+YF_API ReductionStatus
 ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 //@}
 
@@ -400,28 +406,30 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 	const string&, const ValueObject&);
 
 
-//! \return \c false 表示总是不需要重规约。
+/*!
+\return 规约状态。
+\since build 730
+*/
 //@{
 /*!
 \brief 检查非空项的首项并尝试按上下文列表求值。
 \throw ListReductionFailure 规约失败：找不到可规约项。
 \sa ContextHandler
 \sa Reduce
-\since build 697
 */
-YF_API bool
+YF_API ReductionStatus
 EvaluateContextFirst(TermNode&, ContextNode&);
 
 /*!
 \brief 规约标识符：项作为标识符取对应的值并替换，并根据替换的值尝试以字面量处理。
+\pre 断言：第三参数的数据指针非空。
 \throw BadIdentifier 标识符未声明。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa FetchValue
 \sa LiteralHandler
-\since build 726
 */
-YF_API bool
-EvaluateIdentifier(TermNode&, ContextNode&, const string&);
+YF_API ReductionStatus
+EvaluateIdentifier(TermNode&, ContextNode&, string_view);
 //@}
 
 } // namesapce A1;

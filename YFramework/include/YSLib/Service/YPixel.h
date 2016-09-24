@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r1172
+\version r1174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2016-09-20 09:05 +0800
+	2016-09-21 15:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -564,7 +564,7 @@ struct GBlender : GBlender<_tPixel, ystdex::when<true>>
 
 #if YB_IMPL_GNUCPP
 template<typename _tPixel>
-struct GBlender<_tPixel, std::false_type>
+struct GBlender<_tPixel, ystdex::false_>
 #else
 template<typename _tPixel, bool _bCond>
 struct GBlender<_tPixel, ystdex::when<_bCond>>
@@ -636,7 +636,7 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 */
 #if YB_IMPL_GNUCPP
 template<typename _tPixel>
-struct GBlender<_tPixel, std::true_type>
+struct GBlender<_tPixel, ystdex::true_>
 #else
 template<typename _tPixel>
 struct GBlender<_tPixel, EnableForMask<_tPixel, XYZATraits<5, 5, 5, 1>>>

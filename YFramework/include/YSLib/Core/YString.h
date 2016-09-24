@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2264
+\version r2273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2015-10-11 22:40 +0800
+	2016-09-23 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,13 +92,15 @@ public:
 	String(basic_string_view<_tChar> sv, Encoding enc = CS_Default)
 		: u16string(MakeUCS2LE<u16string>(sv, enc))
 	{}
-	/*!
-	\brief 构造：使用指定字符类型的 std::basic_string 和指定编码。
-	\since build 281
+	/*
+	\brief 构造：使用指定字符类型的 basic_string 和指定编码。
+	\since build 730
 	*/
-	template<typename _tChar>
-	String(const std::basic_string<_tChar>& s, Encoding enc = CS_Default)
-		: String(s.c_str(), enc)
+	template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
+		class _tAlloc = std::allocator<_tChar>>
+	String(const basic_string<_tChar, _tTraits, _tAlloc>& s,
+		Encoding enc = CS_Default)
+		: String(basic_string_view<_tChar>(s), enc)
 	{}
 	/*!
 	\brief 构造：使用字符的初值符列表。

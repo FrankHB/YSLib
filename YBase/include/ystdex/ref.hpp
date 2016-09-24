@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r361
+\version r365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-08-27 04:00 +0800
+	2016-09-21 15:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #define YB_INC_ystdex_ref_hpp_ 1
 
 #include "addressof.hpp" // for "addressof.hpp", ystdex::constfn_addressof,
-//	exclude_self_t, cond_t, not_, is_object;
+//	false_, true_, exclude_self_t, cond_t, not_, is_object;
 #include <functional> // for std::reference_wrapper;
 
 /*!
@@ -147,15 +147,15 @@ cref(const _type&&) = delete;
 */
 //@{
 template<typename _type>
-struct is_reference_wrapper : false_type
+struct is_reference_wrapper : false_
 {};
 
 template<typename _type>
-struct is_reference_wrapper<std::reference_wrapper<_type>> : true_type
+struct is_reference_wrapper<std::reference_wrapper<_type>> : true_
 {};
 
 template<typename _type>
-struct is_reference_wrapper<lref<_type>> : true_type
+struct is_reference_wrapper<lref<_type>> : true_
 {};
 //@}
 
