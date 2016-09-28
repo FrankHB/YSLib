@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1275
+\version r1278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-09-25 00:02 +0800
+	2016-09-28 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,11 +382,10 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 		return ReplaceSeparatedChildren(term, name, delim)
 			!= ReductionStatus::Success;
 	};
-	NPL::RegisterContextHandler(node, name,
-		FormContextHandler([](TermNode& term, ContextNode& ctx){
+	RegisterFormContextHandler(node, name, [](TermNode& term, ContextNode& ctx){
 		RemoveHead(term);
 		ReduceChildren(term, ctx);
-	}));
+	});
 }
 
 

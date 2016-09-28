@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2972
+\version r2977
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-09-20 10:59 +0800
+	2016-09-28 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -642,12 +642,13 @@ compose(_func1 f, _func2 g)
 {
 	return composed<_func1, _func2>{f, g};
 }
-template<typename _func1, typename _func2, typename... _funcs>
+//! \since build 731
+template<typename _func1, typename _func2, typename _func3, typename... _funcs>
 yconstfn auto
-compose(_func1 f, _func2 g, _funcs... args)
-	-> decltype(ystdex::compose(ystdex::compose(f, g), args...))
+compose(_func1 f, _func2 g, _func3 h, _funcs... args)
+	-> decltype(ystdex::compose(ystdex::compose(f, g), h, args...))
 {
-	return ystdex::compose(ystdex::compose(f, g), args...);
+	return ystdex::compose(ystdex::compose(f, g), h, args...);
 }
 //@}
 

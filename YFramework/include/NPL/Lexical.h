@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1504
+\version r1509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2016-09-24 11:25 +0800
+	2016-09-26 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,16 +254,17 @@ CheckLiteral(string_view) ynothrowv;
 
 /*!
 \brief 去除字面量边界分隔符。
+\pre 断言：参数的数据指针非空。
 \return 若标识符是字面量，则为去除首尾字符之后的副本；否则为原串。
 */
 //@{
 //! \note 使用 CheckLiteral 判断。
 YF_API string_view
 Deliteralize(string_view) ynothrowv;
-//! \since build 730
-inline PDefH (string_view, Deliteralize, string_view sv, bool is_literal)
-	ynothrowv
-	ImplRet(is_literal ? ystdex::get_mid(sv) : sv)
+
+//! \since build 731
+inline PDefH(string_view, DeliteralizeUnchecked, string_view sv) ynothrowv
+	ImplRet(YAssertNonnull(sv.data()), ystdex::get_mid(sv))
 //@}
 
 /*!
