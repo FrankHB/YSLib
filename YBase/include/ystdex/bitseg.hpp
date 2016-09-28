@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r549
+\version r553
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2016-09-20 12:42 +0800
+	2016-09-27 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,10 +242,9 @@ public:
 	\since build 549
 	*/
 	bitseg_iterator(byte* p = {}, size_t n = 0) ynothrow
-		: base(p), shift(n)
-	{
-		yassume(shift < seg_n);
-	}
+		: base(p),
+		shift((yconstraint(n < seg_n), static_cast<unsigned char>(n)))
+	{}
 
 	bitseg_iterator&
 	operator+=(difference_type n) ynothrowv

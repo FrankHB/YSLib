@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r365
+\version r377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-09-21 15:44 +0800
+	2016-09-28 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,15 +98,27 @@ public:
 	lref&
 	operator=(const lref&) = default;
 
+	yconstfn
 	operator _type&() const ynothrow
 	{
 		return *ptr;
 	}
 
-	_type&
+	yconstfn _type&
 	get() const ynothrow
 	{
 		return *ptr;
+	}
+
+	/*!
+	\pre 要求对象是完整类型。
+	\since build 731
+	*/
+	template<typename... _tParams>
+	yconstfn result_of_t<_type&(_tParams&&...)>
+	operator()(_tParams&&... args) const
+	{
+		return (*ptr)(yforward(args)...);
 	}
 };
 

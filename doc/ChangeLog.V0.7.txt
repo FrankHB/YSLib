@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3490
+\version r3555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-09-25 00:35 +0800
+	2016-09-28 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,72 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib.FileIO $=
+		(
+			* "stray trailing NUL remained" @ "template function \
+				specialization %FetchCurrentWorkingDirectory for %u16string"
+				@ "platform %Win32" $orig
+				(@ "%TryGetCurrentWorkingDirectory" $since b707)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				* "expcetion propageted disabled leading to %terminate called"
+					@ 'YB_Use_StrictNoThrow' @ "function template %operator()"
+					@ "class %PassesCombiner" $since b727
+					$= (- $revert(b727) 'ynothrowv')
+				* "wrong length identifier printed for %string_view not ends \
+					as NTCTS" @ "constructor %BadIdentifier" $since b726,
+				+ "functions %(DefineValue, RemoveIdentifier)"
+			),
+			/ "inline function %Deliteralize" -> "%DeliteralizeUnchecked"
+			@ %Lexical,
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified function %RegisterSequenceContextTransformer"
+					^ "%RegisterFormContextHandler"
+					~ "%NPL::RegisterContextHandler"
+			)
+		),
+		* $dev "stray source file 'Source/UI/YBrush.cpp'"
+			@ "Microsoft VC++ project" $since b555
+	),
+	/ $comp @ %YReader.ShlExplorer @ "platform %Win32" $=
+	(
+		* "stray trailing NUL remained" @ "function %FetchDefaultShellDirectory"
+			$since b707 $dep_from %YCLib.FileIO;
+		* $comp "file list entry cannot be located" @ "class %ShlExplorer"
+			$since b730
+			// Since there is trailing NUL and %String constructor now does \
+				not use NTCTS any longer, the NUL character would be in the \
+				middle of the path and path concatnation would fail, as a \
+				result any path would be treated as a directory path.
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* "function template %compose#2 would instantiate to itself recursively"
+			@ %Functional $since b536,
+		/ DLDI "constructor %bitseg_iterator" %BitSegment $=
+		(
+			^ 'yconstraint' ~ 'yassume',
+			/ "cast to 'unsigned char'" @ "2nd initalizer"
+				// To eliminate Microsoft VC++ 2015 warning: C4267.
+		),
+		/ @ "class template %lref" @ %Ref $=
+		(
+			+ 'yconstfn' @ "all defined functions",
+			+ "function template %operator()"
+		)
+	),
+	/ $re_ex(b708) $repo "glob pattern 'packages/VisualCppTools.*'"
+		@ ".hgignore" -> 'packages/*'
+),
+
+b730
 (
 	+ $re_add(b725) $repo "bookmark 'engineering-fault-b729'" @ b728
 		@ "engineering fault bookmarks",

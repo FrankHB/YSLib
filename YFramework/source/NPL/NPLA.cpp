@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r815
+\version r845
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-09-24 23:55 +0800
+	2016-09-28 18:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -324,12 +324,13 @@ MakeXMLDoc(const string& name, const string& ver, const string& enc,
 namespace
 {
 
+//! \since build 731
 string
-InitBadIdentifierExceptionString(const char* id, size_t n)
+InitBadIdentifierExceptionString(string&& id, size_t n)
 {
-	return ystdex::sfmt(n != 0 ?
-		(n == 1 ? "Bad identifier: '%s'." : "Duplicate identifier: '%s'.")
-		: "Unknown identifier: '%s'.", Nonnull(id));
+	//	see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795.
+	return (n != 0 ? (n == 1 ? "Bad identifier: '" : "Duplicate identifier: '")
+		: "Unknown identifier: '") + std::move(id) + "'.";
 }
 
 } // unnamed namespace;
@@ -349,7 +350,7 @@ BadIdentifier::BadIdentifier(const char* id, size_t n, RecordLevel lv)
 	p_identifier(make_shared<string>(id))
 {}
 BadIdentifier::BadIdentifier(string_view id, size_t n, RecordLevel lv)
-	: NPLException(InitBadIdentifierExceptionString(id.data(), n), lv),
+	: NPLException(InitBadIdentifierExceptionString(string(id), n), lv),
 	p_identifier(make_shared<string>(id))
 {}
 ImplDeDtor(BadIdentifier)
@@ -361,6 +362,33 @@ ArityMismatch::ArityMismatch(size_t e, size_t r, RecordLevel lv)
 	expected(e), received(r)
 {}
 ImplDeDtor(ArityMismatch)
+
+
+void
+DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
+{
+	YAssertNonnull(id.data());
+	// TODO: Error handling?
+	if(forced)
+		// XXX: Self overwriting is possible.
+		ctx[id].Value = std::move(vo);
+	else if(!ctx.Add(id, std::move(vo)))
+		throw BadIdentifier(id, 2);
+}
+
+void
+RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
+{
+	YAssertNonnull(id.data());
+	// TODO: Simplify?
+	TryExpr(AccessNode(ctx, id))
+	catch(std::out_of_range& e)
+	{
+		if(!forced)
+			throw BadIdentifier(id, 0);
+	}
+	ctx.Remove(id);
+}
 
 
 bool

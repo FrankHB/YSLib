@@ -372,7 +372,6 @@
     <ClCompile Include="source\YSLib\UI\TreeView.cpp" />
     <ClCompile Include="source\YSLib\UI\UIContainerEx.cpp" />
     <ClCompile Include="source\YSLib\UI\Viewer.cpp" />
-    <ClCompile Include="source\YSLib\UI\YBrush.cpp" />
     <ClCompile Include="source\YSLib\UI\Console.cpp" />
     <ClCompile Include="source\YSLib\UI\YComponent.cpp" />
     <ClCompile Include="source\YSLib\UI\YControl.cpp" />
