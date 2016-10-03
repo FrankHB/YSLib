@@ -2,7 +2,7 @@
 # (C) 2014-2016 FrankHB.
 # Common source script: bootstrap configuration.
 
-echo Bootstrap beginned.
+SHBuild_Puts Bootstrap beginned.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 . $SHBuild_ToolDir/SHBuild-common.sh
@@ -12,7 +12,7 @@ SHBuild_CheckUName
 SHBuild_EchoVar_N 'SHBuild.BaseDir'
 SHBuild_EchoVar_N 'SHBuild.ToolDir'
 
-echo Configuring ...
+SHBuild_Puts Configuring ...
 
 SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
@@ -78,5 +78,5 @@ SHBuild_EchoVar_N 'LDFLAGS'
 SHBuild_EchoVar_N 'INCLUDES'
 SHBuild_EchoVar_N 'LIBS'
 
-echo Configuring done.
+SHBuild_Puts Configuring done.
 

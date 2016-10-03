@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3555
+\version r3649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-09-28 19:55 +0800
+	2016-10-03 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,101 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ DLI "simplified function %RemoveIdentifier" !^ 'catch',
+				+ "functions %(RedefineValue, TermToName)"
+			),
+			/ %NPLA1 $=
+			(
+				+ "enumerators %(Undefined, Unspecified)" @ "enum %ValueToken",
+				+ "namespace %Forms" $=
+				(
+					+ "functions %(Quote; QuoteCheckedN)"
+					+ "function %ExtractModifier" ^ $dep_from
+						("%TermToName" @ %NPLA)
+				)
+			)
+		),
+		/ %YSLib.Core $=
+		(
+			* "data member unexpectedly exposed" @ "class %ValueObject"
+				@ %YObject $since b332 $=
+			(
+				/ "public data member %content" -> "private data member";
+				* $comp "exposed data member name violated naming convention"
+					$mismatch(Documentation.CommonRules) $since b332
+			),
+			+ "function %ClearTo" @ "class %ValueNode" @ %ValueNode
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "function %filter_self" @ "class template %path" @ %Path $=
+		(
+			/ DLDI "simplified" !^ "lambda capture '&'",
+			+ 'ynothrow'
+		),
+		/ %Ref $=
+		(
+			+ '&' @ "resulted %type" @ "reference wrapper specializations"
+				@ "type trait %unwrap_reference",
+				// To be consistent with WG21 P0318R0.
+			+ "type traits %(decay_unwrap; decay_unwrap_t)"
+				// See also WG21 P0318R0.
+		),
+		/ DLDI %AnyIterator $dep_from ("%unwrap_reference" @ %Ref) $=
+		(
+			/ $forced "alias %value_type"
+				@ "type trait %any_ops::wrap_handler" ^ "%remove_reference_t",
+			/ "simplified static assertion" @ "protected constructor \
+				templates %(any_input_iterator, any_forward_iterator)"
+				^ "%decay_unwrap_t" ~ "%(unwrap_reference_t, decay_t)"
+		),
+		/ $forced %Thunk $dep_from ("%unwrap_reference" @ %Ref) $=
+		(
+			/ DLDI "constructor template" @ "class template %thunk_caller",
+			/ "template default argument" @ "class template %thunk"
+		),
+		/ DLDI "simplified constructor %any#3"  %Any ^ $dep_from
+			("%decay_unwrap_t" @ %Ref) ~ "%(unwrap_reference_t, decay_t)"
+	),
+	/ %Tools $=
+	(
+		/ @ "%SHBuild-common.sh" %Scripts $=
+		(
+			+ "function %SHBuild_Put" ^ 'printf',
+			+ "function %SHBuild_Puts allowing configurable line end by \
+				external %SHBuild_EOL with default detection with %COMSPEC"
+				^ 'printf'
+		),
+		(
+		/ "all text with newline at end ensured with CR+LF for Windows \
+			file output" ^ $dep_from ("%SHBuild_Puts" @ "%SHBuild-common.sh"
+			~ 'echo -n' $effective @ %("install-sysroot.sh",
+			("SHBuild-common.sh", "SHBuild-BuildApp.sh", "GenerateProject.sh",
+			"PatchRevision.sh", "SHBuild-bootstrap.sh", "SHBuild-build.sh",
+			"SHBuild-common-option.sh", "SHBuild-self-host-DLL.sh",
+			"SHBuild-self-host.sh", "SHBuild-YSLib-common.sh",
+			"SHBuild-YSLib.sh", "SHBuild-YSLib-debug.sh") @ %Scripts);
+		* $comp $re_add(b547) "strict POSIX shell compatibility" 
+			// Since 'echo -n' has unspecified behavior, it should not be used \
+				by default for unknown platforms. However, 'echo -ne' is still \
+				not replaced yet.
+		),
+		/ "command echo" ^ $dep_from ("%SHBuild_Put" @ "%SHBuild-common.sh"
+			@ %Srcipts) ~ 'echo' $effective @ "%(SHBuild-common.sh, \
+			SHBuild-common-options.sh, PatchRevision)" @ %Scripts
+			// Now command output is no longer newline-terminated.
+	)
+),
+
+b731
 (
 	/ %YFramework $=
 	(

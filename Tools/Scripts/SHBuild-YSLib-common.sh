@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Script for build YSLib using SHBuild.
 
 set -e
@@ -48,7 +48,7 @@ SHBuild_CheckPCH_()
 		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
 		SHBuild_IncPCH="-include $2"
 	else
-		echo Skipped building precompiled file.
+		SHBuild_Puts Skipped building precompiled file.
 		SHBuild_IncPCH=""
 	fi
 }

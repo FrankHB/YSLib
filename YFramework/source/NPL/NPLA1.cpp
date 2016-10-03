@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1278
+\version r1307
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-09-28 14:18 +0800
+	2016-10-02 17:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -425,6 +425,44 @@ EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 		throw BadIdentifier(id);
 	return ReductionStatus::Success;
 }
+
+
+namespace Forms
+{
+
+void
+QuoteN(TermNode& term, size_t m)
+{
+	Quote(term);
+
+	const auto n(term.size() - 1);
+
+	if(n != m)
+		throw ArityMismatch(m, n);
+}
+
+
+bool
+ExtractModifier(TermNode::Container& con, const ValueObject& mod)
+{
+	if(!con.empty())
+	{
+		const auto i(con.cbegin());
+
+		// XXX: Modifier is treated as special name.
+		if(const auto p = TermToName(Deref(i)))
+		{
+			if(*p == mod)
+			{
+				con.erase(i);
+				return true;
+			}
+		}
+	}
+	return {};
+}
+
+} // namespace Forms;
 
 } // namesapce A1;
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2015 FrankHB.
+# (C) 2015-2016 FrankHB.
 # Project generation script: generating Code::Blocks .cbp files using
 #	ProjectGenerator.
 
@@ -11,10 +11,11 @@ TopLevel="$(SHBuild_2u $TopLevel)"
 : ${ProjectGenerator:="`which ProjectGenerator`"}
 
 if [[ "$TopLevel" == '' ]]; then
-	echo ERROR: Cannot find top level directory. Make sure hg or git in PATH.
+	SHBuild_Puts \
+		ERROR: Cannot find top level directory. Make sure hg or git in PATH.
 	exit 1;
 else
-	echo Found top level directory \"$TopLevel\".
+	SHBuild_Puts Found top level directory \"$TopLevel\".
 fi
 
 SHBuild_Pushd $TopLevel
@@ -24,7 +25,7 @@ SHBuild_GenerateCBP_()
 {
 	local target="$1"
 	shift
-	echo Writing \"$target\" ...
+	SHBuild_Puts Writing \"$target\" ...
 	$ProjectGenerator "$@" > $target
 }
 
@@ -54,5 +55,5 @@ SHBuild_GenerateCBP_Wrap_ c YSTest DS
 SHBuild_GenerateCBP_Wrap_ c YSTest Android
 
 SHBuild_Popd
-echo Done.
+SHBuild_Puts Done.
 

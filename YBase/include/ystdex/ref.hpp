@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r377
+\version r394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-09-28 18:54 +0800
+	2016-10-01 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,12 +150,11 @@ cref(const _type&&) = delete;
 //@}
 
 
-//! \since build 675
-//@{
 /*!
 \ingroup unary_type_traits
 \brief 判断模板参数指定的类型是否。
 \note 接口含义类似 boost::is_reference_wrapper 。
+\since build 675
 */
 //@{
 template<typename _type>
@@ -172,7 +171,11 @@ struct is_reference_wrapper<lref<_type>> : true_
 //@}
 
 /*!
-\ingroup metafunctions
+\ingroup transformation_traits
+\see WG21 P0318R0 。
+*/
+//@{
+/*!
 \brief 取引用包装的类型或未被包装的模板参数类型。
 \note 接口含义类似 boost::unwrap_reference 。
 \since build 675
@@ -190,14 +193,25 @@ using unwrap_reference_t = _t<unwrap_reference<_type>>;
 template<typename _type>
 struct unwrap_reference<std::reference_wrapper<_type>>
 {
-	using type = _type;
+	using type = _type&;
 };
 
 template<typename _type>
 struct unwrap_reference<lref<_type>>
 {
-	using type = _type;
+	using type = _type&;
 };
+//@}
+
+
+//! \since build 732
+//@{
+template<typename _type>
+struct decay_unwrap : unwrap_reference<decay_t<_type>>
+{};
+
+template<typename _type>
+using decay_unwrap_t = _t<decay_unwrap<_type>>;
 //@}
 //@}
 

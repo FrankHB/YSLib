@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Script for build YSLib debug configurations using SHBuild.
 
 set -e
@@ -12,7 +12,7 @@ cd "$YSLib_BuildDir"
 CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
 
 if [[ "$SHBuild_NoStatic" == '' ]]; then
-	echo Building debug static libraries ...
+	SHBuild_Puts Building debug static libraries ...
 
 	SHBOUT=.shbuild-debug
 	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN"
@@ -31,13 +31,13 @@ if [[ "$SHBuild_NoStatic" == '' ]]; then
 		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase \
 		$SHBuild_IncPCH
 
-	echo Finished building debug static libraries.
+	SHBuild_Puts Finished building debug static libraries.
 else
-	echo Skipped building debug static libraries.
+	SHBuild_Puts Skipped building debug static libraries.
 fi
 
 if [[ "$SHBuild_NoDynamic" == '' ]]; then
-	echo Building debug dynamic libraries ...
+	SHBuild_Puts Building debug dynamic libraries ...
 
 	SHBOUT=.shbuild-dll-debug
 	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN -xmode,2"
@@ -60,11 +60,11 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 		$CXXFLAGS -DYB_DLL -DYF_BUILD_DLL \
 		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
 
-	echo Finished building debug dynamic libraries.
+	SHBuild_Puts Finished building debug dynamic libraries.
 else
-	echo Skipped building debug dynamic libraries.
+	SHBuild_Puts Skipped building debug dynamic libraries.
 fi
 
 SHBuild_Popd
-echo Done.
+SHBuild_Puts Done.
 

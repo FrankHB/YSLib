@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4063
+\version r4066
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-08-20 10:16 +0800
+	2016-10-01 22:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -262,10 +262,11 @@ public:
 */
 class YF_API ValueObject : private ystdex::equality_comparable<ValueObject>
 {
-public:
-	//! \since build 332
+private:
+	//! \since build 732
 	ystdex::any content;
 
+public:
 	/*!
 	\brief 无参数构造。
 	\note 得到空实例。
