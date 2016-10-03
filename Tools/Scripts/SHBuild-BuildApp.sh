@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Script for build YSLib applications using SHBuild.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 : ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
+. $SHBuild_Bin/SHBuild-common.sh
 
 SHBuild_PrintUsage()
 {
-	echo Usage: "$0" [-cCONF] [SHBOPT_BASE ...]
-	printf 'Build application using SHBuild.\n\n'
-	printf 'CONF\n'
+	SHBuild_Puts Usage: "$0" [-cCONF] [SHBOPT_BASE ...]
+	SHBuild_Puts 'Build application using SHBuild.'
+	SHBuild_Puts ''
+	SHBuild_Puts 'CONF'
 	printf '\tThe configuration name. If begins with "debug",'
 	printf ' or environment variable SHBuild_Debug is set as non null value,'
 	printf ' using debug configuration;'
@@ -17,17 +19,22 @@ SHBuild_PrintUsage()
 	printf ' If ends with "static",'
 	printf ' or environment variable SHBuild_Static is set as non null value,'
 	printf ' using debug configuration;'
-	printf ' otherwise using release configuration.\n'
-	printf '\tThe output directory is determined as ".CONF".\n\n'
-	printf 'SHBOPT_BASE ...\n'
-	printf '\tThe base options remained to pass to SHBuild.\n\n'
-	printf 'There are several other environment variables to control the build.'
-	printf '\n\n'
-	printf 'SHBuild_NoAdjustSubsystem\n'
+	SHBuild_Puts ' otherwise using release configuration.'
+	printf '\t'
+	SHBuild_Puts 'The output directory is determined as ".CONF".'
+	SHBuild_Puts ''
+	SHBuild_Puts 'SHBOPT_BASE ...'
+	printf '\t'
+	SHBuild_Puts 'The base options remained to pass to SHBuild.'
+	SHBuild_Puts ''
+	SHBuild_Puts \
+		'There are several other environment variables to control the build.'
+	SHBuild_Puts ''
+	SHBuild_Puts 'SHBuild_NoAdjustSubsystem'
 	printf '\tIf set to non null, no adjustment for linker arguments would be'
 	printf ' performed for MinGW. Otherwise, "-mwindows" would be added in '
-	printf ' linker command line in release modes.\n'
-	printf '\n'
+	SHBuild_Puts ' linker command line in release modes.'
+	SHBuild_Puts ''
 	exit
 }
 
@@ -37,18 +44,18 @@ if [[ "$1" != '' ]]; then
 	elif [[ "${1:0:2}" == -c ]]; then
 		SHBuild_Conf=${1#-c}
 		shift 1
-		echo Found configuration \'$SHBuild_Conf\'.
+		SHBuild_Puts Found configuration \'$SHBuild_Conf\'.
 	fi
 fi
 if [[ "$SHBuild_Conf" == '' ]]; then
 	SHBuild_Conf=shbuild
 fi
 if [[ "$SHBuild_Conf" =~ debug.* ]]; then
-	echo Debug mode turned on by configuration.
+	SHBuild_Puts Debug mode turned on by configuration.
 	SHBuild_Debug=$SHBuild_Conf
 fi
 if [[ "$SHBuild_Conf" =~ .*static ]]; then
-	echo Static mode turned on by configuration.
+	SHBuild_Puts Static mode turned on by configuration.
 	SHBuild_Static=$SHBuild_Conf
 fi
 export SHBuild_Debug
@@ -64,7 +71,7 @@ fi
 export AR
 . $SHBuild_Bin/SHBuild-common-toolchain.sh
 if [[ "$SHBuild_Debug" != '' ]]; then
-	echo Use debug configuration $SHBuild_Conf.
+	SHBuild_Puts Use debug configuration $SHBuild_Conf.
 	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
@@ -72,7 +79,7 @@ if [[ "$SHBuild_Debug" != '' ]]; then
 	. $SHBuild_Bin/SHBuild-common-options.sh
 	export SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
 else
-	echo Use release configuration $SHBuild_Conf.
+	SHBuild_Puts Use release configuration $SHBuild_Conf.
 	unset CXXFLAGS_OPT_DBG
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
@@ -81,7 +88,7 @@ else
 	if [[ "$SHBuild_Env_OS" == 'Win32' \
 		&& "$SHBuild_NoAdjustSubsystem" == '' ]]; then
 		LDFLAGS="$LDFLAGS -mwindows"
-		echo Added \"-mwindows\" to LDFLAGS.
+		SHBuild_Puts Added \"-mwindows\" to LDFLAGS.
 	fi
 	export SHBuild_YSLib_LibNames='-lYFramework -lYBase'
 fi

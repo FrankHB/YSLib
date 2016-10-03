@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Build script for SHBuild.
 
 set -e
@@ -11,7 +11,7 @@ CXXFLAGS_OPT_UseAssert=true
 SHBuild_Pushd
 cd $SHBuild_BaseDir
 
-echo Building ...
+SHBuild_Puts Building ...
 
 # TODO: Merge with SHBuild-YSLib-common.sh?
 SHBuild_CheckPCH_()
@@ -20,7 +20,7 @@ SHBuild_CheckPCH_()
 		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
 		SHBuild_IncPCH="-include $2"
 	else
-		echo Skipped building precompiled file.
+		SHBuild_Puts Skipped building precompiled file.
 		SHBuild_IncPCH=""
 	fi
 }
@@ -30,5 +30,5 @@ SHBuild_CheckPCH_ "$INCLUDE_PCH" "stdinc.h"
 "$CXX" Main.cpp -oSHBuild $CXXFLAGS $LDFLAGS $SHBuild_IncPCH $INCLUDES $LIBS
 
 SHBuild_Popd
-echo Done.
+SHBuild_Puts Done.
 

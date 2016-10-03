@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Test script for self-hosting SHBuild.
 
 set -e
@@ -16,5 +16,5 @@ $SHBuild_BaseDir/shbuild . "-xd,$SHBuild_BuildDir" $@ $CXXFLAGS $INCLUDES
 	$CXXFLAGS $LDFLAGS $INCLUDES $LIBS
 
 SHBuild_Popd
-echo Done.
+SHBuild_Puts Done.
 

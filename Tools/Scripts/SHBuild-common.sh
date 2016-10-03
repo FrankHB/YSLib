@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Common source script.
 
 [[ "$INC_SHBuild_common" == '' ]] && INC_SHBuild_common=1 || return 0
@@ -9,12 +9,30 @@
 
 trap exit 1 INT
 
+SHBuild_Put()
+{
+	printf '%s' "$*"
+}
+
+SHBuild_Puts()
+{
+	if [[ "$SHBuild_EOL" == '' ]]; then
+		# TODO: More precise detection of Windows shell.
+		if [[ "$COMSPEC" == '' ]]; then
+			eval readonly SHBuild_EOL='\\n'
+		else
+			eval readonly SHBuild_EOL='\\r\\n'
+		fi
+	fi
+	printf "%s$SHBuild_EOL" "$*"
+}
+
 SHBuild_AssertNonempty()
 {
 	local vval
 	eval "vval=\"\${$1}\""
 	[[ "$vval" != '' ]] || \
-		(echo ERROR: Variable \""$1"\" should not be empty. && exit 1)
+		(SHBuild_Puts ERROR: Variable \""$1"\" should not be empty. && exit 1)
 }
 
 SHBuild_CheckedCall()
@@ -22,7 +40,7 @@ SHBuild_CheckedCall()
 	if hash "$1" > /dev/null 2>& 1; then
 		$* || exit $?
 	else
-		echo ERROR: \""$1"\" should be exist. Failed calling \""$*"\".
+		SHBuild_Puts ERROR: \""$1"\" should exist. Failed calling \""$*"\".
 		exit 1
 	fi
 }
@@ -32,7 +50,7 @@ SHBuild_CheckedCallSilent()
 	if hash "$1" > /dev/null 2>& 1; then
 		$* > /dev/null || exit $?
 	else
-		echo ERROR: \""$1"\" should be exist. Failed calling \""$*"\".
+		SHBuild_Puts ERROR: \""$1"\" should exist. Failed calling \""$*"\".
 		exit 1
 	fi
 }
@@ -47,7 +65,7 @@ SHBuild_InitReadonly()
 			shift
 			eval readonly \"$varname\"=\"\$\(SHBuild_CheckedCall $*\)\"
 			eval "vval=\"\${$varname}\""
-			echo Cached readonly variable \"$varname\" = \"$vval\".
+			SHBuild_Puts Cached readonly variable \"$varname\" = \"$vval\".
 		fi
 	fi
 }
@@ -57,16 +75,16 @@ SHBuild_CheckUName_Case_()
 {
 	case "$1" in
 	*Darwin*)
-		echo OS_X
+		SHBuild_Put OS_X
 		;;
 	*MSYS* | *MINGW*)
-		echo Win32
+		SHBuild_Put Win32
 		;;
 	*Linux*)
-		echo Linux
+		SHBuild_Put Linux
 		;;
 	*)
-		echo unknown
+		SHBuild_Put unknown
 	esac
 }
 
@@ -74,17 +92,17 @@ SHBuild_CheckUNameM_Case_()
 {
 	case "$1" in
 	x86_64 | i*86-64)
-		echo $1
+		SHBuild_Put $1
 		;;
 	i*86)
-		echo $1
+		SHBuild_Put $1
 		;;
 	*)
-		echo unknown
+		SHBuild_Put unknown
 	esac
 }
 
-# Usage: SHBuild_CheckUName && echo $SHBuild_Env_OS $SHBuild_Env_Arch
+# Usage: SHBuild_CheckUName && printf $SHBuild_Env_OS $SHBuild_Env_Arch
 SHBuild_CheckUName()
 {
 	[[ "$SHBuild_OS" == '' ]] || return 0
@@ -102,12 +120,12 @@ SHBuild_CheckUName()
 
 SHBuild_2u()
 {
-	cygpath -au "$1" 2> /dev/null || echo "$1"
+	cygpath -au "$1" 2> /dev/null || SHBuild_Put "$1"
 }
 
 SHBuild_2w()
 {
-	cygpath -w "$1" 2> /dev/null || echo "$1"
+	cygpath -w "$1" 2> /dev/null || SHBuild_Put "$1"
 }
 
 SHBuild_Install()
@@ -165,13 +183,13 @@ SHBuild_EchoEscape()
 SHBuild_EchoVar()
 {
 	SHBuild_EchoEscape '\033[36m'
-	echo -n "$1"
+	SHBuild_Put "$1"
 	SHBuild_EchoEscape '\033[0m'
-	echo -n ' = "'
+	SHBuild_Put ' = "'
 	SHBuild_EchoEscape '\033[31m'
-	echo -n "$2"
+	SHBuild_Put "$2"
 	SHBuild_EchoEscape '\033[0m'
-	echo '"'
+	SHBuild_Puts '"'
 }
 
 SHBuild_EchoVar_N()
@@ -189,13 +207,13 @@ SHBuild_BuildGCH()
 	local SHBOUT_PCH="$2.gch"
 	if [[ -s "$SHBOUT_PCH" && -r "$SHBOUT_PCH" ]]; then
 		# FIXME: Update necessarily.
-		echo PCH file exists, skipped building.
+		printf PCH file exists, skipped building.
 	else
 		mkdir -p "`dirname "$SHBOUT_PCH"`"
-		echo Building precompiled file "$SHBOUT_PCH" ...
+		printf Building precompiled file "$SHBOUT_PCH" ...
 		SHBuild_Install_HardLink "$1" "$2"
 		$3 "$1" -o$SHBOUT_PCH
-		echo Building precompiled file "$SHBOUT_PCH" done.
+		printf Building precompiled file "$SHBOUT_PCH" done.
 	fi
 }
 

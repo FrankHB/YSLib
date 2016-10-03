@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Script for build YSLib release configurations using SHBuild.
 
 set -e
@@ -12,7 +12,7 @@ cd "$YSLib_BuildDir"
 unset CXXFLAGS_OPT_DBG
 
 if [[ "$SHBuild_NoStatic" == '' ]]; then
-	echo Building static libraries ...
+	SHBuild_Puts Building static libraries ...
 
 	SHBOUT=.shbuild
 	SHBOPT="$SHBOPT_IGN"
@@ -32,13 +32,13 @@ if [[ "$SHBuild_NoStatic" == '' ]]; then
 		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase \
 		$SHBuild_IncPCH
 
-	echo Finished building static libraries.
+	SHBuild_Puts Finished building static libraries.
 else
-	echo Skipped building static libraries.
+	SHBuild_Puts Skipped building static libraries.
 fi
 
 if [[ "$SHBuild_NoDynamic" == '' ]]; then
-	echo Building dynamic libraries ...
+	SHBuild_Puts Building dynamic libraries ...
 
 	SHBOUT=.shbuild-dll
 	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN -xmode,2"
@@ -61,11 +61,11 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 		$CXXFLAGS -DYB_BUILD_DLL -DYF_BUILD_DLL \
 		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
 
-	echo Finished building dynamic libraries.
+	SHBuild_Puts Finished building dynamic libraries.
 else
-	echo Skipped building dynamic libraries.
+	SHBuild_Puts Skipped building dynamic libraries.
 fi
 
 SHBuild_Popd
-echo Done.
+SHBuild_Puts Done.
 

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2895
+\version r2897
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-09-20 10:20 +0800
+	2016-10-01 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 #include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
 //	std::unique_ptr, standard_layout_storage, aligned_storage_t,
 //	is_aligned_storable, default_init_t;
-#include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
+#include "ref.hpp" // for is_reference_wrapper, decay_unwrap_t;
 #include <initializer_list> // for std::initializer_list;
 
 namespace ystdex
@@ -888,7 +888,7 @@ public:
 	inline
 	any(_type&& x)
 		: any(any_ops::with_handler_t<
-		any_ops::ref_handler<unwrap_reference_t<decay_t<_type>>>>(), x)
+		any_ops::ref_handler<decay_unwrap_t<_type>>>(), x)
 	{}
 	//! \since build 717
 	template<typename _type, typename... _tParams>

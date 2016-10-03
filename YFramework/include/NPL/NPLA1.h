@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1460
+\version r1505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-09-22 09:40 +0800
+	2016-10-02 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,16 @@ struct YF_API NPLA1Tag : NPLATag
 enum class ValueToken
 {
 	Null,
+	/*!
+	\brief 未定义值。
+	\since build 732
+	*/
+	Undefined,
+	/*!
+	\brief 未指定值。
+	\since build 732
+	*/
+	Unspecified,
 	GroupingAnchor,
 	OrderedAnchor
 };
@@ -421,7 +431,7 @@ YF_API ReductionStatus
 EvaluateContextFirst(TermNode&, ContextNode&);
 
 /*!
-\brief 规约标识符：项作为标识符取对应的值并替换，并根据替换的值尝试以字面量处理。
+\brief 求值标识符：项作为标识符取对应的值并替换，并根据替换的值尝试以字面量处理。
 \pre 断言：第三参数的数据指针非空。
 \throw BadIdentifier 标识符未声明。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
@@ -431,6 +441,48 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, ContextNode&, string_view);
 //@}
+
+
+/*!
+\brief NPLA1 语法形式对应的功能实现。
+\since build 732
+*/
+namespace Forms
+{
+
+//! \pre 项非空。
+//@{
+/*!
+\brief 引用项：延迟求值。
+\pre 项非空。
+*/
+inline PDefH(void, Quote, TermNode& term) ynothrowv
+	ImplExpr(YAssert(!term.empty(), "Invalid term found."))
+
+/*!
+\brief 引用经检查确保具有指定个数参数的项：延迟求值。
+\throw ArityMismatch 项的参数个数减 1 不等于第二参数。
+*/
+YF_API void
+QuoteN(TermNode&, size_t = 1);
+//@}
+
+
+/*!
+\brief 检查项中是否存在为修饰符的第二个子项，若存在则移除。
+\return 是否存在并移除了修饰符。
+
+检查第一参数指定的容器或项是否存在第二参数指定的修饰符为项的第一参数，若存在则移除。
+*/
+//@{
+YF_API bool
+ExtractModifier(TermNode::Container&, const ValueObject& = string("!"));
+inline PDefH(bool, ExtractModifier, TermNode& term,
+	const ValueObject& mod = string("!"))
+	ImplRet(ExtractModifier(term.GetContainerRef(), mod))
+//@}
+
+} // namespace Forms;
 
 } // namesapce A1;
 

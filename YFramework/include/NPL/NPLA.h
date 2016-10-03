@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r982
+\version r995
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-09-28 18:17 +0800
+	2016-10-03 11:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -547,6 +547,14 @@ FetchValue(const ContextNode& ctx, const _tKey& name)
 //@}
 
 /*!
+\brief 访问项的值作为名称。
+\return 通过访问项的值取得的名称，或空指针表示无法取得名称。
+\since build 732
+*/
+YF_API observer_ptr<const string>
+TermToName(const TermNode&);
+
+/*!
 \pre 字符串参数的数据指针非空。
 \note 最后一个参数表示强制调用。
 \throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
@@ -556,6 +564,13 @@ FetchValue(const ContextNode& ctx, const _tKey& name)
 //! \brief 以字符串为标识符在指定上下文中定义值。
 YF_API void
 DefineValue(ContextNode&, string_view, ValueObject&&, bool);
+
+/*!
+\brief 以字符串为标识符在指定上下文中覆盖定义值。
+\since build 732
+*/
+YF_API void
+RedefineValue(ContextNode&, string_view, ValueObject&&, bool);
 
 //! \brief 以字符串为标识符在指定上下文移除对象。
 YF_API void

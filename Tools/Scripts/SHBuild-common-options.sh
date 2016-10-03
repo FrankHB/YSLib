@@ -18,8 +18,9 @@ fi
 
 # See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25 .
 if [[ "$SHBuild_Env_OS" != 'Win32' ]]; then
-	if [[ "$CXX" != '' ]] && !(echo 'int main(){}' | "$CXX" -xc++ -o/tmp/null \
-		$C_CXXFLAGS_GC $LDFLAGS_GC -; 2>& 1 > /dev/null); then
+	if [[ "$CXX" != '' ]] && !(SHBuild_Put 'int main(){}' \
+		| "$CXX" -xc++ -o/tmp/null $C_CXXFLAGS_GC $LDFLAGS_GC -; \
+		2>& 1 > /dev/null); then
 		C_CXXFLAGS_GC=''
 		LDFLAGS_GC=''
 	fi
@@ -56,7 +57,7 @@ fi
 
 # NOTE: The compiler should be specified earlier than this line to
 #	automatically determine if these values should be used.
-if echo "$CXX" | grep clang++ > /dev/null; then
+if SHBuild_Put "$CXX" | grep clang++ > /dev/null; then
 	: ${C_CXXFLAGS_COMMON_IMPL_:='-fno-merge-all-constants'}
 	: ${CXXFLAGS_IMPL_WARNING:=" \
 		-Wno-deprecated-register \
@@ -67,7 +68,7 @@ if echo "$CXX" | grep clang++ > /dev/null; then
 		"}
 #	: ${CXXFLAGS_IMPL_OPT:='-flto'}
 	: ${LDFLAGS_IMPL_OPT:="$CXXFLAGS_IMPL_OPT"}
-elif echo "$CXX" | grep g++ > /dev/null; then
+elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
 	: ${C_CXXFLAGS_IMPL_WARNING:=" \
 		-Wdouble-promotion \
 		-Wlogical-op \

@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r214
+\version r221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2016-04-23 03:43 +0800
+	2016-10-01 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YB_INC_ystdex_thunk_hpp_ 1
 
 #include "type_traits.hpp" // for decay_t, std::forward, exclude_self_t,
-//	enable_if_t, is_same, enable_if_convertible_t, std::move, result_of_t;
+//	enable_if_t, is_same, remove_reference_t, enable_if_convertible_t,
+//	std::move, result_of_t;
 #include "functional.hpp" // for is_reference_wrapper, unwrap_reference_t,
 //	ystdex::invoke;
 
@@ -79,7 +80,8 @@ struct thunk_caller
 	//! \since build 675
 	template<typename _type, yimpl(typename = exclude_self_t<thunk_caller,
 		_type>, typename = enable_if_t<is_reference_wrapper<_type>::value
-		&& is_same<unwrap_reference_t<_type>, value_type>::value>)>
+		&& is_same<remove_reference_t<unwrap_reference_t<_type>>,
+		value_type>::value>)>
 	thunk_caller(_type arg)
 		: caller([arg]() ynoexcept(std::is_nothrow_constructible<return_type,
 			_type>::value) -> return_type{
@@ -101,10 +103,10 @@ struct thunk_caller
 /*!
 \brief 包装惰性求值的过程。
 \see http://c2.com/cgi/wiki?ProcedureWithNoArguments 。
-\since build 526
+\since build 732
 */
-template<typename _tRet,
-	typename _fCallable = std::function<unwrap_reference_t<_tRet>()>>
+template<typename _tRet, typename _fCallable
+	= std::function<remove_reference_t<unwrap_reference_t<_tRet>>()>>
 class thunk : private details::thunk_caller<_tRet, decay_t<_fCallable>>
 {
 private:

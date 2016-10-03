@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r845
+\version r868
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-09-28 18:17 +0800
+	2016-10-03 11:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -364,11 +364,16 @@ ArityMismatch::ArityMismatch(size_t e, size_t r, RecordLevel lv)
 ImplDeDtor(ArityMismatch)
 
 
+observer_ptr<const string>
+TermToName(const TermNode& term)
+{
+	return AccessPtr<string>(term);
+}
+
 void
 DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
 {
 	YAssertNonnull(id.data());
-	// TODO: Error handling?
 	if(forced)
 		// XXX: Self overwriting is possible.
 		ctx[id].Value = std::move(vo);
@@ -377,17 +382,21 @@ DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
 }
 
 void
+RedefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
+{
+	YAssertNonnull(id.data());
+	if(const auto p = AccessNodePtr(ctx, id))
+		p->Value = std::move(vo);
+	else if(!forced)
+		throw BadIdentifier(id, 0);
+}
+
+void
 RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
 {
 	YAssertNonnull(id.data());
-	// TODO: Simplify?
-	TryExpr(AccessNode(ctx, id))
-	catch(std::out_of_range& e)
-	{
-		if(!forced)
-			throw BadIdentifier(id, 0);
-	}
-	ctx.Remove(id);
+	if(!ctx.Remove(id) && !forced)
+		throw BadIdentifier(id, 0);
 }
 
 

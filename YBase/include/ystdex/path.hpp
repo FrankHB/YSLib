@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1063
+\version r1070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2016-03-17 14:48 +0800
+	2016-09-30 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,10 +257,12 @@ public:
 	//! \since build 559
 	using base::get_container;
 
+	//! \since build 732
 	void
-	filter_self()
+	filter_self() ynothrow
 	{
-		ystdex::erase_all_if(*this, [&](const value_type& s) ynothrow{
+		// NOTE: Lambda is needed to support possibly overloaded function.
+		ystdex::erase_all_if(*this, [](const value_type& s) ynothrow{
 			return traits_type::is_self(s);
 		});
 	}
@@ -290,8 +292,8 @@ public:
 		{
 			auto j(std::adjacent_find(i, this->end(),
 				[&](const value_type& x, const value_type& y){
-					return !traits_type::is_self(x) && !traits_type::is_parent(x)
-						&& traits_type::is_parent(y);
+					return !traits_type::is_self(x) && !traits_type::is_parent(
+						x) && traits_type::is_parent(y);
 			}));
 
 			if(j == this->end())
@@ -356,7 +358,7 @@ to_string(const path<_tSeqCon, _tTraits>& pth,
 	return res;
 }
 
-//! \brief 取分隔符结尾的字符串表示。
+//! \brief 取以分隔符结束的字符串表示。
 template<class _tSeqCon, class _tTraits>
 typename _tSeqCon::value_type
 to_string_d(const path<_tSeqCon, _tTraits>& pth, typename string_traits<typename
