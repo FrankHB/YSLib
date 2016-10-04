@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1505
+\version r1599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-10-02 19:18 +0800
+	2016-10-04 19:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,8 +215,8 @@ InvokeList(TermNode& term, ContextNode&);
 调用 InvokeGuard 进行必要的上下文重置；
 迭代规约，直至不需要进行重规约。
 对应不同的节点次级结构分类，一次迭代按以下顺序判断选择以下分支之一，按需规约子项：
-对非空列表节点调用 InvokeList 求值；
-对空列表节点替换为 ValueToken::Null ；
+对枝节点调用 InvokeList 求值；
+对空节点替换为 ValueToken::Null ；
 对已替换为 ValueToken 的叶节点保留处理；
 对其它叶节点调用 InvokeLeaf 求值。
 单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否进行重规约。
@@ -231,23 +231,11 @@ Reduce(TermNode&, ContextNode&);
 /*!
 \note 按语言规范，子项规约顺序未指定。
 \note 可能使参数中容器的迭代器失效。
-\note 忽略子项重规约要求。
 \sa Reduce
 */
 //@{
-/*!
-\brief 规约子项。
-\since build 697
-*/
+//! \note 忽略子项重规约要求。
 //@{
-YF_API void
-ReduceChildren(TermNode::iterator, TermNode::iterator, ContextNode&);
-inline PDefH(void, ReduceChildren, TermNode::Container& con, ContextNode& ctx)
-	ImplExpr(ReduceChildren(con.begin(), con.end(), ctx))
-inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
-	ImplExpr(ReduceChildren(term.GetContainerRef(), ctx))
-//@}
-
 /*!
 \brief 对容器中的第二项开始逐项规约。
 \throw InvalidSyntax 容器内的子项数不大于 1 。
@@ -256,18 +244,40 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 */
 YF_API void
 ReduceArguments(TermNode::Container&, ContextNode&);
+
+/*!
+\brief 规约子项。
+\since build 697
+*/
+//@{
+YF_API void
+ReduceChildren(TNIter, TNIter, ContextNode&);
+inline PDefH(void, ReduceChildren, TermNode::Container& con, ContextNode& ctx)
+	ImplExpr(ReduceChildren(con.begin(), con.end(), ctx))
+inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
+	ImplExpr(ReduceChildren(term.GetContainerRef(), ctx))
+//@}
+//@}
+
+/*!
+\brief 移除容器首项到指定迭代器的项后规约。
+\since build 733
+*/
+YF_API ReductionStatus
+ReduceTail(TermNode&, ContextNode&, TNIter);
 //@}
 
 /*!
 \brief 规约首项。
 \return 规约状态。
-\note 快速严格性分析：无条件求值第一项以避免非确定性推断子表达式求值的附加复杂度。
 \sa Reduce
 \see https://en.wikipedia.org/wiki/Fexpr 。
 \since build 730
+
+快速严格性分析：无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
 */
 inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
-	ImplRet(!term.empty() ? Reduce(Deref(term.begin()), ctx)
+	ImplRet(IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
 		: ReductionStatus::Success)
 
 
@@ -323,12 +333,22 @@ class YF_API FormContextHandler
 {
 public:
 	ContextHandler Handler;
+	/*!
+	\brief 项检查例程：验证被包装的处理器的调用符合前置条件。
+	\since build 733
+	*/
+	std::function<bool(const TermNode&)> Check{};
 
 	//! \since build 697
 	template<typename _func,
 		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
 	FormContextHandler(_func&& f)
 		: Handler(yforward(f))
+	{}
+	//! \since build 733
+	template<typename _func, typename _fCheck>
+	FormContextHandler(_func&& f, _fCheck c)
+		: Handler(yforward(f)), Check(c)
 	{}
 
 	/*!
@@ -338,9 +358,9 @@ public:
 		由 Handler 抛出的 ystdex::bad_any_cast 转换。
 	\throw LoggedEvent 错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
 		std::exception 转换。
-	\throw std::invalid_argument 项为空。
+	\throw std::invalid_argument 项检查未通过。
 
-	对非空项调用 Hanlder ，否则抛出异常。
+	项检查不存在或在检查通过后，对节点调用 Hanlder ，否则抛出异常。
 	*/
 	void
 	operator()(TermNode&, ContextNode&) const;
@@ -351,7 +371,7 @@ public:
 \brief 函数上下文处理器。
 \since build 696
 */
-struct YF_API FunctionContextHandler
+class YF_API FunctionContextHandler
 {
 public:
 	FormContextHandler Handler;
@@ -361,6 +381,11 @@ public:
 		yimpl(typename = ystdex::exclude_self_t<FunctionContextHandler, _func>)>
 	FunctionContextHandler(_func&& f)
 		: Handler(yforward(f))
+	{}
+	//! \since build 733
+	template<typename _func, typename _fCheck>
+	FunctionContextHandler(_func&& f, _fCheck c)
+		: Handler(yforward(f), c)
 	{}
 
 	/*!
@@ -375,33 +400,35 @@ public:
 };
 
 
-//! \since build 726
-template<typename _func>
+//! \since build 733
+//@{
+template<typename... _tParams>
 inline void
-RegisterFormContextHandler(ContextNode& node, const string& name, _func&& f)
+RegisterFormContextHandler(ContextNode& node, const string& name,
+	_tParams&&... args)
 {
-	NPL::RegisterContextHandler(node, name, FormContextHandler(yforward(f)));
+	NPL::RegisterContextHandler(node, name,
+		FormContextHandler(yforward(args)...));
 }
 
-//! \since build 697
-//@{
 //! \brief 转换上下文处理器。
-template<typename _func>
+template<typename... _tParams>
 inline ContextHandler
-ToContextHandler(_func&& f)
+ToContextHandler(_tParams&&... args)
 {
-	return FunctionContextHandler(yforward(f));
+	return FunctionContextHandler(yforward(args)...);
 }
 
 /*!
 \brief 注册函数上下文处理器。
 \note 使用 ADL ToContextHandler 。
 */
-template<typename _func>
+template<typename... _tParams>
 inline void
-RegisterFunction(ContextNode& node, const string& name, _func&& f)
+RegisterFunction(ContextNode& node, const string& name, _tParams&&... args)
 {
-	NPL::RegisterContextHandler(node, name, ToContextHandler(yforward(f)));
+	NPL::RegisterContextHandler(node, name,
+		ToContextHandler(yforward(args)...));
 }
 //@}
 
@@ -422,8 +449,9 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 */
 //@{
 /*!
-\brief 检查非空项的首项并尝试按上下文列表求值。
+\brief 检查项的首项并尝试按上下文列表求值。
 \throw ListReductionFailure 规约失败：找不到可规约项。
+\note 若项不是枝节点则视为规约成功，没有其它作用。
 \sa ContextHandler
 \sa Reduce
 */
@@ -434,12 +462,13 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 \brief 求值标识符：项作为标识符取对应的值并替换，并根据替换的值尝试以字面量处理。
 \pre 断言：第三参数的数据指针非空。
 \throw BadIdentifier 标识符未声明。
+\note 第一参数指定输出的值。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa FetchValue
 \sa LiteralHandler
 */
 YF_API ReductionStatus
-EvaluateIdentifier(TermNode&, ContextNode&, string_view);
+EvaluateIdentifier(ValueObject&, ContextNode&, string_view);
 //@}
 
 
@@ -450,27 +479,34 @@ EvaluateIdentifier(TermNode&, ContextNode&, string_view);
 namespace Forms
 {
 
-//! \pre 项非空。
-//@{
 /*!
-\brief 引用项：延迟求值。
-\pre 项非空。
+\pre 间接断言：项或容器对应枝节点。
+\since build 733
 */
-inline PDefH(void, Quote, TermNode& term) ynothrowv
-	ImplExpr(YAssert(!term.empty(), "Invalid term found."))
+//@{
+//! \brief 引用项：延迟求值。
+inline PDefH(void, Quote, const TermNode& term) ynothrowv
+	ImplExpr(YAssert(IsBranch(term), "Invalid term found."))
+
+//! \return 项的参数个数。
+//@{
+//! \brief 取项的参数个数：子项数减 1 。
+inline PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
+	ImplRet(Quote(term), term.size() - 1)
 
 /*!
 \brief 引用经检查确保具有指定个数参数的项：延迟求值。
-\throw ArityMismatch 项的参数个数减 1 不等于第二参数。
+\throw ArityMismatch 项的参数个数不等于第二参数。
 */
-YF_API void
-QuoteN(TermNode&, size_t = 1);
+YF_API size_t
+QuoteN(const TermNode&, size_t = 1);
 //@}
 
 
 /*!
-\brief 检查项中是否存在为修饰符的第二个子项，若存在则移除。
+\brief 移除第一个项，检查项中是否存在为修饰符的第二个子项，若存在则移除。
 \return 是否存在并移除了修饰符。
+\since build 732
 
 检查第一参数指定的容器或项是否存在第二参数指定的修饰符为项的第一参数，若存在则移除。
 */
@@ -480,6 +516,20 @@ ExtractModifier(TermNode::Container&, const ValueObject& = string("!"));
 inline PDefH(bool, ExtractModifier, TermNode& term,
 	const ValueObject& mod = string("!"))
 	ImplRet(ExtractModifier(term.GetContainerRef(), mod))
+//@}
+
+//! \brief 规约可能带有修饰符的项。
+template<typename _func>
+void
+ReduceWithModifier(TermNode& term, ContextNode& ctx, _func f)
+{
+	const bool mod(ExtractModifier(term));
+
+	if(IsBranch(term))
+		f(term, ctx, mod);
+	else
+		throw InvalidSyntax("Argument not found.");
+}
 //@}
 
 } // namespace Forms;

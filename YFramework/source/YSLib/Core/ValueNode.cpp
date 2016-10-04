@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r682
+\version r685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-09-24 23:34 +0800
+	2016-10-04 11:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,9 +143,7 @@ AccessNodePtr(const ValueNode& node, size_t n)
 void
 RemoveEmptyChildren(ValueNode::Container& con) ynothrow
 {
-	ystdex::erase_all_if(con, [](const ValueNode& term) ynothrow{
-		return !term;
-	});
+	ystdex::erase_all_if(con, std::mem_fn(&ValueNode::operator!));
 }
 
 void
