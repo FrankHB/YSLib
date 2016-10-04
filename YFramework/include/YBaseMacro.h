@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2747
+\version r2764
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2015-12-27 23:01 +0800
+	2016-10-04 01:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,10 +148,11 @@ _t type
 //@{
 /*!
 \brief 定义默认析构函数。
-\note CWG906 的解决禁止显式默认虚函数，但 CWG1135 的解决撤销了这一限制。
+\note CWG 906 的解决禁止显式默认虚函数，但 CWG 1135 的解决撤销了这一限制。
 	ISO C++11 最终没有此限制。
-\note ISO C++11 不需要显式使用异常规范，可自动推导（参见 ISO C++11 12.4/3 ）。
+\note ISO C++11 不需要显式使用异常规范，可自动推导。
 	显式异常规范导致使用隐式继承需要保证成员函数的异常规范限制。
+\see ISO C++11 12.4/3 。
 */
 #define DefDeCtor(_t) \
 	_t() = default;
@@ -370,7 +371,8 @@ public:
 #define DeclI(_attr, _n) \
 	YInterface(_attr, _n) \
 	YInterfaceHead(_n) \
-	virtual ~_n();
+	virtual \
+	~_n();
 
 /*
 \brief 定义派生接口类型。
@@ -424,39 +426,43 @@ public:
 
 /*!
 \brief 位掩码类型操作。
+\pre _tBitmask 是掩码类型， _tInt 是整数类型。
 \note 参见 ISO C++11 17.5.2.1.3[bitmask.types] 。
 \since build 270
 */
 //@{
 #define DefBitmaskAnd(_tBitmask, _tInt) \
-	yconstfn _tBitmask operator&(_tBitmask _x, _tBitmask _y) \
+	yconstfn PDefHOp(_tBitmask, &, _tBitmask _x, _tBitmask _y) ynothrow \
 		ImplRet(static_cast<_tBitmask>( \
 			static_cast<_tInt>(_x) & static_cast<_tInt>(_y)))
 
 #define DefBitmaskOr(_tBitmask, _tInt) \
-	yconstfn _tBitmask operator|(_tBitmask _x, _tBitmask _y) \
+	yconstfn PDefHOp(_tBitmask, |, _tBitmask _x, _tBitmask _y) ynothrow \
 		ImplRet(static_cast<_tBitmask>( \
 			static_cast<_tInt>(_x) | static_cast<_tInt>(_y)))
 
 #define DefBitmaskXor(_tBitmask, _tInt) \
-	yconstfn _tBitmask operator^(_tBitmask _x, _tBitmask _y) \
+	yconstfn PDefHOp(_tBitmask, ^, _tBitmask _x, _tBitmask _y) ynothrow \
 		ImplRet(static_cast<_tBitmask>( \
 			static_cast<_tInt>(_x) ^ static_cast<_tInt>(_y)))
 
 #define DefBitmaskNot(_tBitmask, _tInt) \
-	yconstfn _tBitmask operator~(_tBitmask _x) \
+	yconstfn PDefHOp(_tBitmask, ~, _tBitmask _x) ynothrow \
 		ImplRet(static_cast<_tBitmask>(~static_cast<_tInt>(_x)))
 
 #define DefBitmaskAndAssignment(_tBitmask, _tInt) \
-	inline _tBitmask& operator&=(_tBitmask& _x, _tBitmask _y) \
+	yconstfn_relaxed PDefHOp(_tBitmask&, &=, _tBitmask& _x, _tBitmask _y) \
+		ynothrow \
 		ImplRet(_x = _x & _y)
 
 #define DefBitmaskOrAssignment(_tBitmask, _tInt) \
-	inline _tBitmask& operator|=(_tBitmask& _x, _tBitmask _y) \
+	yconstfn_relaxed PDefHOp(_tBitmask&, |=, _tBitmask& _x, _tBitmask _y) \
+		ynothrow \
 		ImplRet(_x = _x | _y)
 
 #define DefBitmaskXorAssignment(_tBitmask, _tInt) \
-	inline _tBitmask& operator^=(_tBitmask& _x, _tBitmask _y) \
+	yconstfn_relaxed PDefHOp(_tBitmask&, ^=, _tBitmask& _x, _tBitmask _y) \
+		ynothrow \
 		ImplRet(_x = _x ^ _y)
 
 #define DefBitmaskOperations(_tBitmask, _tInt) \

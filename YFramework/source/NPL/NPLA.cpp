@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r868
+\version r871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-10-03 11:05 +0800
+	2016-10-04 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -286,7 +286,7 @@ void
 PrintSyntaxNode(std::ostream& os, const TermNode& term, IndentGenerator igen,
 	size_t depth)
 {
-	if(!term.empty())
+	if(IsBranch(term))
 		ystdex::write(os,
 			ConvertDocumentNode(Deref(term.begin()), igen, depth), 1);
 	os << std::flush;
@@ -401,14 +401,14 @@ RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
 
 
 bool
-DetectReducible(TermNode& term, ReductionStatus status)
+DetectReducible(ReductionStatus status, TermNode& term)
 {
 	// TODO: Use explicit continuation parameters?
 //	if(bool(status))
 	//	k(term);
 	YSLib::RemoveEmptyChildren(term.GetContainerRef());
 	// NOTE: Only stopping on getting a normal form.
-	return status != ReductionStatus::Success && !term.empty();
+	return status != ReductionStatus::Success && IsBranch(term);
 }
 
 } // namespace NPL;

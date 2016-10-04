@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r995
+\version r1001
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-10-03 11:09 +0800
+	2016-10-03 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -580,11 +580,11 @@ RemoveIdentifier(ContextNode&, string_view, bool);
 
 /*!
 \brief 移除节点的空子节点，然后判断是否可继续规约。
-\return 可继续规约：第二参数指定非成功状态，且移除空子节点后的节点非空。
-\since build 730
+\return 可继续规约：第一参数指定非成功状态，且移除空子节点后的节点是枝节点。
+\since build 733
 */
 YF_API bool
-DetectReducible(TermNode&, ReductionStatus);
+DetectReducible(ReductionStatus, TermNode&);
 
 
 //! \since build 676
@@ -639,21 +639,21 @@ inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
 	ImplExpr(TermNode(std::move(tm)).SwapContent(term))
 //@}
 
-//! \pre 间接断言：参数指定的项非空。
+//! \pre 断言：参数指定的项是枝节点。
 //@{
 /*!
 \brief 使用首个子项替换项的内容。
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
-	ImplExpr(LiftTerm(term, Deref(term.begin())))
+	ImplExpr(IsBranch(term), LiftTerm(term, Deref(term.begin())))
 
 /*!
 \brief 使用最后一个子项替换项的内容。
 \since build 696
 */
 inline PDefH(void, LiftLast, TermNode& term)
-	ImplExpr(LiftTerm(term, Deref(term.rbegin())))
+	ImplExpr(IsBranch(term), LiftTerm(term, Deref(term.rbegin())))
 //@}
 
 

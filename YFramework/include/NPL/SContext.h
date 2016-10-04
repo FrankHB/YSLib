@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1509
+\version r1522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2016-05-08 17:28 +0800
+	2016-10-04 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_Lexical
-#include YFM_YSLib_Core_ValueNode
+#include YFM_YSLib_Core_ValueNode // for YSLib::ValueObject, YSLib::ValueNode;
 
 namespace NPL
 {
@@ -52,6 +52,21 @@ using TermNode = ValueNode;
 
 using TNIter = TermNode::iterator;
 using TNCIter = TermNode::const_iterator;
+
+/*!
+\brief 项节点分类判断操作。
+\since build 733
+*/
+//@{
+inline PDefH(bool, IsBranch, const TermNode& term) ynothrow
+	ImplRet(!term.empty())
+
+inline PDefH(bool, IsEmpty, const TermNode& term) ynothrow
+	ImplRet(!term)
+
+inline PDefH(bool, IsLeaf, const TermNode& term) ynothrow
+	ImplRet(term.empty())
+//@}
 
 inline PDefH(TermNode&, MapToTermNode, TermNode& term)
 	ImplRet(term)

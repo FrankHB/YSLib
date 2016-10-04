@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15183
+\version r15202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2016-08-20 20:49 +0800
+	2016-10-04 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ b599
 							~ 'pair<iterator YPP_Comma bool>'),
 					/ @ "functions %MakeIndex" $=
 					(
-						+ "overloading for %size_t parameter";
+						+ "overload for %size_t parameter";
 						* "lexicographical order not reserved in result" $since
 							b598
 					)
@@ -1207,7 +1207,7 @@ b594
 			+ 'ynothrow' @ "function template %classify_path" @ %Path,
 			/ %Functional $=
 			(
-				+ "noexcept-specifications"
+				+ "noexcept-specification"
 					@ "function templates %(sizeof_params, varg, chain_apply, \
 					seq_apply, unseq_apply)",
 				* "wrong use of 'yconstexpr'" @ "function template %varg" $since
@@ -2140,12 +2140,12 @@ b589
 				$dep_from %YCLib.HostedGUI
 ,		)
 	),
-	/ %YReader.ShlReader $=
+	/ DLDI %YReader.ShlReader $=
 	(
-		/ DLD "cast to ('size_t', 'SDst')" @ "constructor %ShlTextReader"
+		/ "cast to ('size_t', 'SDst')" @ "constructor %ShlTextReader"
 			// To eliminate warning: [-Wsign-conversion] for intermediate \
 				results.
-		/ DLD "cast to 'std::time_t'" @ "constructor %ShlHexBrowser"
+		/ "cast to 'std::time_t'" @ "constructor %ShlHexBrowser"
 			// To eliminate warning: [-Wsign-conversion] in platform %Android. \
 				It seems that the %::stat struct member is wrongly mismatched \
 				with %::time_t.
@@ -7529,7 +7529,7 @@ b555
 		),
 		/ DLDI 'HWND_DESKTOP' -> '{}' @ "function %CreateNativeWindow"
 			@ %'YCLib_(MinGW32)'.Win32GUI
-			// To eliminate [-Wzero-as-null-pointer-constant].
+			// To eliminate warning: [-Wzero-as-null-pointer-constant].
 	),
 	/ %YBase.YStandardEx $=
 	(
@@ -7736,8 +7736,8 @@ b554
 		%std::reference_wrapper concerned" ^ "%ystdex::(ref, cref)"
 		~ "%std::(ref, cref)" $effective "%std::ref" @ %YFramework.YSLib.(
 		Core.ValueNode, Adaptor.Font, UI.(Menu, YGUI, YPanel, YUIContainer)),
-	/ "updated toolchain version for NDK r10c %make-clang-android.sh" @ %Tools
-		$=
+	/ "updated toolchain version for NDK r10c" @ "command line options"
+		@ "%make-clang-android.sh" @ %Tools $=
 	(
 		/ '--toolchain=arm-linux-androideabi-4.8'
 			-> '--toolchain=arm-linux-androideabi-4.9',
@@ -8351,7 +8351,7 @@ b550
 			/ %Initialization $=
 			(
 				+ DLD "assertion for unreachable control" $since b549,
-					// To eliminate [-Wreturn-type] for G++ 4.8.
+					// To eliminate warning: [-Wreturn-type] for G++ 4.8.
 				+ DLD "simplified exception handling across platforms" $=
 				(
 					^ %YBase.StandardEx.Exception @ "all platforms";
@@ -8878,8 +8878,8 @@ b546
 		),
 		/ DLB "removed definition %(cp17, cp2026)" @ %CHRLib.MapEx
 			^ "conditional inclusion",
-			// To eliminate [-Wunused-variables] when [-fwhole-program] is \
-				turned on.
+			// To eliminate warning: [-Wunused-variables] when \
+				[-fwhole-program] is turned on.
 		- "redundant locking" @ "function %FetchCommonLogger" @ %YCib.Debug
 			// Static object is guaranteed to be thread-safety on \
 				initialization by ISO C++11.
@@ -8912,11 +8912,11 @@ b546
 			/ "added 8 to message output level" @ "timestamp check",
 				// The output level of command line is still %Debug.
 			* DLB "redundant ';' after declaration with %ImplRet" $since b522,
-				// To eliminate [-Wpedantic].
+				// To eliminate warning: [-Wpedantic].
 			/ DLD @ "function %PrintUsage" $=
 			(
 				+ $build "declaration",
-					// To eliminate [-Wmissing-declarations].
+					// To eliminate warning: [-Wmissing-declarations].
 				/ "simplified parameter type"
 			)
 		),
@@ -11839,7 +11839,7 @@ b519
 					// All arguments of %RestrictInInterval should be the same \
 						type.
 				/ $revert(b517) !^ "cast to 'SDst' for comparison"
-					// To eliminate [-Wsign-compare].
+					// To eliminate warning: [-Wsign-compare].
 			),
 			/ %UI $=
 			(
@@ -11861,7 +11861,7 @@ b519
 				* $comp "possible undesired implementation-defined truncation \
 					of value when '_type' being instantiated as unsigned type"
 					$since b263
-					// To eliminate [-Wsign-compare].
+					// To eliminate warning: [-Wsign-compare].
 			)
 		),
 		/ "implemented debug screen directly only for platform %DS"
@@ -11919,7 +11919,7 @@ b519
 				(
 					/ DLD "dispatched with class templates to be able to \
 						distinguish array lvalues from pointer type arguments";
-					+ "overloading for array types"
+					+ "dispatched overload for array types"
 						// Now it is based on the length of array but not \
 							compared like NTCTSs.
 				);
@@ -11936,7 +11936,7 @@ b519
 				// See %Documentation::CommonRules @5.5.10.
 			* "comparing for signed 'wchar_t'" @ "function %iswprint"
 				@ %CWideCharacterType $since b513
-				// To eliminate [-Wsign-compare].
+				// To eliminate warning: [-Wsign-compare].
 		)
 		+ %Test @ %YTest $=
 		(
@@ -12101,7 +12101,7 @@ b517
 			* $lib "platform neutrality" @ "types %(SPos, SDst)" @ %YSLib $since
 				$before b132 $dep_to "screen measurement platform neutrality" $=
 			(
-				// To eliminate [-Wsign-compare].
+				// To eliminate warning: [-Wsign-compare].
 				* $design "signed and unsigned integer comparison"
 					@ (("function %PutCharBase" @ %CharRenderer $since b372,
 					"function %BlitBounds" @ %YBlit $since b438, "class \

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1307
+\version r1348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-10-02 17:59 +0800
+	2016-10-04 19:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,9 +186,9 @@ Reduce(TermNode& term, ContextNode& ctx)
 	const auto gd(InvokeGuard(term, ctx));
 
 	// NOTE: Rewriting loop until the normal form is got.
-	return ystdex::retry_on_cond(std::bind(DetectReducible, std::ref(term),
-		std::placeholders::_1), [&]() -> ReductionStatus{
-		if(!term.empty())
+	return ystdex::retry_on_cond(ystdex::bind1(DetectReducible, std::ref(term)),
+		[&]() -> ReductionStatus{
+		if(IsBranch(term))
 		{
 			YAssert(term.size() != 0, "Invalid node found.");
 			if(term.size() != 1)
@@ -196,7 +196,8 @@ Reduce(TermNode& term, ContextNode& ctx)
 				return InvokeList(term, ctx);
 			else
 			{
-				// NOTE: List with single element shall be reduced to its value.
+				// NOTE: List with single element shall be reduced as the
+				//	element.
 				LiftFirst(term);
 				return Reduce(term, ctx);
 			}
@@ -216,17 +217,6 @@ Reduce(TermNode& term, ContextNode& ctx)
 }
 
 void
-ReduceChildren(TermNode::iterator first, TermNode::iterator last,
-	ContextNode& ctx)
-{
-	// NOTE: Separators or other sequence constructs are not handled here. The
-	//	evaluation can be potentionally parallel, though the simplest one is
-	//	left-to-right.
-	// TODO: Use %ExecutionPolicy?
-	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
-}
-
-void
 ReduceArguments(TermNode::Container& con, ContextNode& ctx)
 {
 	if(con.size() > 1)
@@ -235,6 +225,25 @@ ReduceArguments(TermNode::Container& con, ContextNode& ctx)
 		ReduceChildren(std::next(con.begin()), con.end(), ctx);
 	else
 		throw InvalidSyntax("Argument not found.");
+}
+
+void
+ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
+{
+	// NOTE: Separators or other sequence constructs are not handled here. The
+	//	evaluation can be potentionally parallel, though the simplest one is
+	//	left-to-right.
+	// TODO: Use %ExecutionPolicy?
+	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
+}
+
+ReductionStatus
+ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
+{
+	auto& con(term.GetContainerRef());
+
+	con.erase(con.begin(), i);
+	return Reduce(term, ctx);
 }
 
 
@@ -264,11 +273,11 @@ TransformForSeparator(const TermNode& term, const ValueObject& pfx,
 {
 	auto res(AsNode(name, term.Value));
 
-	if(!term.empty())
+	if(IsBranch(term))
 	{
 		res += AsIndexNode(res, pfx);
-		ystdex::split(term.begin(), term.end(), std::bind(HasValue,
-			std::placeholders::_1, std::ref(delim)), [&](TNCIter b, TNCIter e){
+		ystdex::split(term.begin(), term.end(),
+			ystdex::bind1(HasValue, std::ref(delim)), [&](TNCIter b, TNCIter e){
 			auto child(AsIndexNode(res));
 
 			while(b != e)
@@ -288,11 +297,11 @@ TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
 {
 	auto res(AsNode(name, term.Value));
 
-	if(!term.empty())
+	if(IsBranch(term))
 	{
 		res += AsIndexNode(res, pfx);
-		ystdex::split(term.begin(), term.end(), std::bind(HasValue,
-			std::placeholders::_1, std::ref(delim)), [&](TNCIter b, TNCIter e){
+		ystdex::split(term.begin(), term.end(),
+			ystdex::bind1(HasValue, std::ref(delim)), [&](TNCIter b, TNCIter e){
 			while(b != e)
 				res += TransformForSeparatorRecursive(*b++, pfx, delim,
 					MakeIndex(res));
@@ -318,11 +327,11 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	// TODO: Is it worth matching specific builtin special forms here?
 	try
 	{
-		if(!term.empty())
+		if(!Check || Check(term))
 			Handler(term, ctx);
 		else
-			// TODO: Use more specific exceptions.
-			throw std::invalid_argument("Empty term found.");
+			// TODO: Use more specific exception type?
+			throw std::invalid_argument("Term check failed.");
 	}
 	CatchExpr(NPLException&, throw)
 	// TODO: Use semantic exceptions.
@@ -385,14 +394,14 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 	RegisterFormContextHandler(node, name, [](TermNode& term, ContextNode& ctx){
 		RemoveHead(term);
 		ReduceChildren(term, ctx);
-	});
+	}, IsBranch);
 }
 
 
 ReductionStatus
 EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 {
-	if(!term.empty())
+	if(IsBranch(term))
 	{
 		const auto& fm(Deref(ystdex::as_const(term).begin()));
 
@@ -412,13 +421,13 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
+EvaluateIdentifier(ValueObject& vo, ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
 	if(auto v = FetchValue(ctx, id))
 	{
-		term.Value = std::move(v);
-		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
+		vo = std::move(v);
+		if(const auto p_handler = vo.AccessPtr<LiteralHandler>())
 			return ToStatus((*p_handler)(ctx));
 	}
 	else
@@ -430,21 +439,21 @@ EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 namespace Forms
 {
 
-void
-QuoteN(TermNode& term, size_t m)
+size_t
+QuoteN(const TermNode& term, size_t m)
 {
-	Quote(term);
-
-	const auto n(term.size() - 1);
+	const auto n(FetchArgumentN(term));
 
 	if(n != m)
 		throw ArityMismatch(m, n);
+	return n;
 }
 
 
 bool
 ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 {
+	RemoveHead(con);
 	if(!con.empty())
 	{
 		const auto i(con.cbegin());

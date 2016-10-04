@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r1049
+\version r1106
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2016-10-03 11:21 +0800
+	2016-10-04 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -544,11 +544,11 @@ NPLA1 解释实现参见 @6 。
 不要求提供命名空间(@4.3.4) 实现的可变实体。
 过程实现为子例程(@4.6.2.1) 。
 一字节占用的位和宿主环境一致（至少占用 8 个二进制位）。
-参数不先求值形式是特殊形式(special form) 。
+参数不先求值的形式是特殊形式(special form) 。
 
 @5.3 NPLA 公共实现：
-词法分析参见 @3.3.4 和参考实现 NPL::Lexical 。
-语法分析参考实现 NPL::SContext 。
+词法分析参见 @3.3.4 和参考实现模块 NPL::Lexical 。
+语法分析参考实现模块 NPL::SContext 。
 派生实现可能检查更多语法规则。
 抽象语法树以 ValueNode 类型表示。
 之后的若干阶段(@2.4.1) 中得到规范形式的中间表示和规范形式始终作为单一的树，其节点以 ValueNode 类型表示。
@@ -562,13 +562,23 @@ NPLA1 解释实现参见 @6 。
 NPLA1 基于 YSLib::ValueNode 提供了 TermNode 和 ContextNode 的操作的公共实现。
 ContextNode 作为上下文的实现，保存了名称和对应实体的映射。
 
-@5.3.1.1 处理器(handler) ：
+@5.3.1.1 项节点结构分类：
+按内容的结构，项节点具有如下互斥的基本分类（使用 TermNode 的 empty() 判断）：
+枝节点(branch node) 或非叶节点，即具有子节点的非空列表节点；
+叶节点(leaf node) ，即不具有子节点的空列表节点或非列表节点。
+若叶节点的 Value 成员为空（即 TermNode 显式转换为 bool 为 false 及 operator! 结果为 true ），则此节点是空节点。
+可按照子节点数（使用 TermNode 的 size() 结果判断）进行扩展的扩展分类。
+考虑 TermNode 的 Value 数据成员是否为空及其实际持有对象的动态类型等，具体实现 API 可约定使用不同的具体结构分类。
+因为次级分类不一定是互斥的，所以可能需要约定对节点的操作顺序以确保结果一致。
+判断项节点顶级分类的 API 在模块 NPL::SContext 提供。
+
+@5.3.1.2 处理器(handler) ：
 基于使用 ContextNode 作为输入的事件处理器（ YSLib::GHEvent 的实例），可以组合不同的操作，用于实现规约(@5.3.2) 。
 NPL::ContextHandler 以 TermNode 和 ContextNode 作为输入，实现一般的上下文处理。
 NPL::LiteralHandler 以不可修改的 ContextNode 作为输入，用于和当前被规约的特定项无关的事件，典型地用于处理字面量引发特定的事件。
 NPL::RegisterContextHandler 和 NPL::RegisterLiteralHandler 用于设置 ContextNode 子节点为对应的处理器。
 
-@5.3.1.2 一般上下文操作：
+@5.3.1.3 一般上下文操作：
 NPL::LookupName 用于在上下文中查找标识符指定的名称，实现名称查找(@4.3.3) 。输入字符串指定（假定名称验证已通过的）名称。
 NPL::FetchValue 分别用于在上下文中查找标识符指定的名称及取上下文中名称指称的值，实现对名称表达式(@4.6.1) 的求值。
 
@@ -589,7 +599,7 @@ ReductionStatus::NeedRetry 指定所在的列表表达式需要以相同的参�
 @5.3.3 遍(pass) 迭代：
 NPLA 实现提供可调用的遍作为一次规约迭代的基础。
 遍基于 YSLib 事件（ YSLib::GEvent 的实例），遍以事件处理器的形式提供 API ，允许运行时修改求值执行的不同逻辑以取得较大的灵活性和可扩展性。
-ContextHandler(@5.3.1) 可作为 EvaluationPasses 的事件处理器。
+NPL::ContextHandler(@5.3.1) 可作为 NPL::EvaluationPasses(@5.3.3.2) 的事件处理器。
 
 @5.3.3.1 遍合并器：
 多次调用的遍的结果被 NPL::PassesCombiner 定义的逻辑合并。
@@ -597,8 +607,8 @@ NPL::GPasses 是用于作为可合并结果的遍的泛型类型。从事件处�
 
 @5.3.3.2 合并遍：
 基于 NPL::GPasses ， NPLA 提供处理不同的种类的合并结果的遍：
-TermPasses ：项合并遍，处理一般项的合并。项合并遍只使用项作为输入。
-EvaluationPasses ：求值合并遍，处理一般求值的合并。求值使用项和上下文作为输入。
+NPL::TermPasses ：项合并遍，处理一般项的合并。项合并遍只使用项作为输入。
+NPL::EvaluationPasses ：求值合并遍，处理一般求值的合并。求值使用项和上下文作为输入。
 
 @5.3.3.3 非合并遍：
 直接基于 YSLib::GEvent ， NPLA 还提供以下不合并结果的遍：
@@ -637,90 +647,89 @@ NPL::TransformNPLA1 通过 ValueNode 变换实现解释，参数指定映射例�
 复合表达式中的经过节点到字符串的映射例程被解释为序列语义结构的名称，余下的项一一映射为子节点。
 变体 NPL::TransformNPLA1Sequence 使用 NodeSequence 代替 ValueNode::Container 作为结果中子节点的容器，其它行为和 NPL::TransformNPLA1 相同。
 命名空间 NPL::A1 提供了特定于 NPLA1 的 API 。以下命名空间 A1 指 NPL::A1 。
-命名空间 A1::Forms 提供了 NPLA1 的语法形式(@3.4.4) 对应的功能的实现(@6.6) 。
+命名空间 A1::Forms 提供了 NPLA1 的语法形式(@3.4.4) 对应的功能的实现(@6.5) 。
 
-@6.1 节点结构分类：
-按内容的结构具有如下互斥的基本分类（使用 TermNode 的 empty() 判断）：
-非叶节点，即具有子节点的非空列表节点；
-叶节点，即不具有子节点的空列表节点或非列表节点。
-可按照子节点数（使用 TermNode 的 size() 结果判断）进行扩展的扩展分类。
-考虑 TermNode 的 Value 数据成员是否为空及其实际持有对象的动态类型等，具体实现 API 可约定使用不同的具体结构分类。
-因为次级分类不一定是互斥的，所以可能需要约定对节点的操作顺序以确保结果一致。
-
-@6.2 规约实现：
+@6.1 规约实现：
 NPLA1 实现了一般的规约(@4.1) ，包括对列表表达式子项的递归规约。
 NPLA1 规约以 A1::Reduce 作为参考实现，返回类型为描述一次规约调用操作结束后的状态的 ReductionStatus 。
 ReductionStatus::Success 指定规约成功终止(@4.4.3) 。
 ReductionStatus::NeedRetry 指定所在的列表表达式需要以相同的参数重新调用 A1::Reduce 进行进一步规约，即重规约。
-A1::Reduce 的实现中不直接指定需要重规约；所有 A1::ReductionStatus::NeedRetry 都来自遍(@6.2.2) 的调用。
+A1::Reduce 的实现中不直接指定需要重规约；所有 A1::ReductionStatus::NeedRetry 都来自遍(@6.1.2) 的调用。
 名称表达式的求值不进行进一步规约(@4.6.1) ，但列表表达式不是名称表达式，因此不涉及重规约。
 根据调用结果进行必要的重规约，即迭代规约。
-A1::Reduce 对参数的使用符合 NPLA 实现的规约迭代默认约定(@5.3.2) 。
-使用设置遍的 API(@6.2.2) 修改 ContextNode 中的具体遍以使用不同的求值规则。
+A1::Reduce 对参数的使用符合 NPLA 实现的规约迭代默认约定(@5.3.2) ；其中 TermNode 表示的表达式语法意义(@3.4.2) 上非空，但没有实现限制（即不附加检查）。
+使用设置遍的 API(@6.1.2) 修改 ContextNode 中的具体遍以使用不同的求值规则。
 A1::ReduceFirst 对可能存在的第一个子项进行规约。
 若子项规约结果可被作为列表求值遍的事件处理器，整个项可继续规约。能进行此规约的形式称为 fexpr ，其中 f 表示 first 。
 在某些其它语言中，符合类似求值规则的构造也称为 fexpr ，但语源不尽相同。
 
-@6.2.1 迭代顺序：
-A1::Reduce 定义节点次级结构分类(@6.1) 指定的规约迭代顺序被作为默认规约迭代顺序。
+@6.1.1 迭代顺序：
+A1::Reduce 定义节点次级结构分类(@5.3.1.1) 指定的规约迭代顺序被作为默认规约迭代顺序。
 具体的分类和适用范围详见注释。
 
-@6.2.2 遍：
+@6.1.2 遍：
 基于 NPLA 公共实现， NPLA1 使用以下的遍：
 守护遍(guard pass) ，类型是一个 GuardPasses(@5.3.3.3) ，用于提供调试回调等。
-叶节点遍(leaf pass) ，类型是一个 EvaluationPass(@5.3.3.2) ，用于实现叶节点(@6.1) 对应表达式的求值。
+叶节点遍(leaf pass) ，类型是一个 EvaluationPass(@5.3.3.2) ，用于实现叶节点(@5.3.1.1) 对应表达式的求值。
 列表节点遍(list pass) ，类型是一个 EvaluationPass ，用于实现列表节点对应表达式的求值。
 NPLA1 可配置的遍保存在 ContextNode 中。
 通过 A1::AccessGuardPassesRef 、 A1::AccessLeafPassesRef 和 A1::AccessListPassesRef 从 ContextNode 的指定子节点中取遍的引用。
 通过基于 NPL::InvokePass 的 A1::InvokeGuard 、 A1::InvokeLeaf 和 A1::InvokeList 以 ContextNode 的指定子节点内容作为遍并调用。
-A1::Reduce 使用的表达式非空，且满足迭代顺序(@6.2.1) 提供的保证优先检查子节点数，所以列表节点遍实际对子节点数大于 1 的非叶节点(@6.1) 求值。但一般列表节点遍不依赖这个假设。
+A1::Reduce 满足迭代顺序(@6.1.1) 提供的保证优先检查子节点数，列表节点遍仅用于子节点数大于 1 的非叶节点(@5.3.1.1) 求值。
+一般列表节点遍不依赖以上假设，可能对叶节点或具有一个节点的平凡列表节点对应的表达式求值。因此列表节点遍不是枝节点(@5.3.1.1) 遍。
 
-@6.3 节点记号：
+@6.2 节点记号：
 NPLA1 实现使用 A1::ValueToken 类型表示特殊的中间值。
-A1::ValueToken::Null 用于表示规约(@6.2) 过程中的空节点。 A1::Reduce 规约时把空节点列表替换为空节点。
-A1::FunctionContextHandler(@6.5) 处理时移除中间过程空节点。其它上下文(@4.7.1) 处理需要用户代码另行替换。
+A1::ValueToken::Null 用于表示规约(@6.1) 过程中的空节点。 A1::Reduce 规约时把空节点列表替换为空节点。
+A1::FunctionContextHandler(@6.4) 处理时移除中间过程空节点。其它上下文(@4.7.1) 处理需要用户代码另行替换。
 除了 ValueToken::Null 之外的值不被设计为表示不影响语义的空节点，位置也可能影响语义，因此一般不被直接忽略。
 A1::ValueToken::Unspecified 用于表示未指定的值。
 
-@6.4 中缀变换：
+@6.3 中缀变换：
 NPLA1 提供把特定的中缀分隔符替换为特定名称表达式(@4.6.1) 指定的前缀操作形式的列表。
 变换结果可被进一步规约。
 
-@6.5 遍处理：
-NPLA1 提供若干 API 作为遍(@6.2.2) 的事件处理器。
+@6.4 遍处理：
+NPLA1 提供若干 API 作为遍(@6.1.2) 的事件处理器。
 
-@6.5.1 上下文处理器：
-基于 NPL::ContextHandler(@5.3.1.1) ， NPLA1 提供了包含特定公共（检查或其它功能）逻辑的节点处理器包装其它事件处理器。
+@6.4.1 上下文处理器：
+基于 NPL::ContextHandler(@5.3.1.2) ， NPLA1 提供了包含特定公共（检查或其它功能）逻辑的节点处理器包装其它事件处理器。
 迭代时，求值遍(@5.3.2.1) 可选使用基于 NPL::ContextHandler 的处理器作为 EvaluationPasses 事件处理器：
 A1::FormContextHandler ：形式上下文处理器，用于处理一般的语法形式(@3.4.2) ，即一般的 NPLA1 表达式。
 A1::FunctionContextHandler ：函数上下文处理器，用于处理函数调用(@4.6.3.1) 。
-A1::FormContextHandler 的公共处理逻辑检查项确保非空，调用被包装的处理器，并处理部分异常。
-A1::FunctionContextHandler 通过调用 A1::ReduceArguments 求值每一个子项（函数参数）；然后检查项数并调用被包装的处理器。
+两者的数据成员 Handler 为被包装的处理器，类型分别为 NPL::ContextHandler 和 A1::FormContextHandler 。
+A1::FormContextHandler 的数据成员 Check 指定调用包装处理器之前的项检查。检查不存在或通过检查后， A1::FormContextHandler::operator() 调用被包装的处理器 Handler 数据成员，并处理部分异常。
+A1::FunctionContextHandler::operator() 通过调用 A1::ReduceArguments 求值每一个子项（函数参数）；然后检查项数并调用被包装的处理器 Handler 数据成员。
+注意上下文处理器不只适用于特定的规约实现。
+为使处理器逻辑容易复用，利用合适的检查例程保证调用被包装的处理器的前置条件，而不依赖特定规约实现调用时使用对项的结构（如项的分类(@5.3.1.1) 或子项数）等形式的假设。
+被包装的处理器中内部也可以有检查，这和上下文处理器中的项检查互补。
+若被包装的处理器自行检查前置条件，则项检查可以为空；反之，项检查可不必在被包装的处理器中重复进行（可使用断言代替）。
 
-@6.5.2 助手函数模板：
+@6.4.2 助手函数模板：
 类似 NPLA1 ，此处也提供了注册处理器事件的助手函数模板 A1::RegisterFormContextHandler 和 A1::RegisterFunction 。
 此外，还有允许重载的 A1::ToContextHandler 函数模板以简化实现。
+助手函数的模板传入被包装的处理器和检查例程。
 
-@6.5.3 其它事件 API ：
-对中缀变换(@6.4) ，提供 A1::RegisterSequenceContextTransformer 简化向 EvaluationPasses 添加事件处理器。
+@6.4.3 其它事件 API ：
+对中缀变换(@6.3) ，提供 A1::RegisterSequenceContextTransformer 简化向 EvaluationPasses 添加事件处理器。
 
-@6.5.4 其它事件处理器：
+@6.4.4 其它事件处理器：
 包括以下 A1::EvaluateContextFirst 和 A1::EvaluateIdentifier ，功能参见注释。
 
-@6.6 语法形式对应功能的实现：
+@6.5 语法形式对应功能的实现：
 命名空间 A1::Forms 的 API 专用于实现语法形式对应的功能而不是 NPLA1 的一般机制。
 这些功能对 NPLA1 实现并非严格地必要，但适合使用宿主语言实现，被 NPLA1 代码间接地调用。
 因此，这些 API 不被 A1::Forms 以外的 API 及实现依赖。
 这些 API 符合本节以下内容的约定。
 
-@6.6.1 词法引用(quote) 操作：
+@6.5.1 词法引用(quote) 操作：
 引用形式是特殊形式(@5.2) ，对项进行空求值(@4.4.2)。
 
-@6.6.2 修饰符(modifier) ：
+@6.5.2 修饰符(modifier) ：
 语法形式可能具有可选的修饰符表示不同的功能。若存在修饰符，它在项的第二个子项。
 
-@6.2.3 lambda 抽象和过程调用：
-过程调用可使用 A1::FormContextHandler(@6.5) 实现。
+@6.5.3 lambda 抽象和过程调用：
+过程调用可使用 A1::FormContextHandler(@6.4) 实现。
 当前未在 A1::Forms 中提供完整支持。
 
 @7 一般实现导引：

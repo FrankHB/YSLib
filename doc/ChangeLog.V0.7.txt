@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3649
+\version r3762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-10-03 11:11 +0800
+	2016-10-04 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,120 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ $lib "simplified 'TermNode::iterator'" -> 'TNITer' $effective
+				@ ("function %ReduceChildren#1" @ %NPLA1),
+			/ @ "namespace %NPL::A1" @ %NPLA1 $=
+			(
+				+ "function %ReduceTail",
+				/ @ "namespace %Forms" $=
+				(
+					+ "function template %ReduceWithModifier" ^ $dep_from
+						("%IsBranch" @ %SContext),
+					(
+					/ "parameter type 'TermNode&'"
+						@ "functions %(Quote, QuoteN)" -> 'TermNode&',
+					+ "function %FetchArgumentN";
+					/ @ "function %QuoteN" $=
+					(
+						/ DLDI "simplified %QuoteN" ^ $dep_from
+							"%FetchArgumentN",
+						/ "returned number of term arguments",
+					)
+					),
+					(
+					/ @ "all 2 functions %ExtractModifier" $=
+					(
+						/ "removed first node at first";
+						+ $doc "required nonempty term node",
+						* $comp "ordinal of subterm" $mismatch $since b732
+					);
+					/ $forced DLDI "function template %ReduceWithModifier"
+					),
+					/ DLDI "assertion" @ "function %Quote" ^ $dep_from
+						("%IsBranch" @ %SContext)
+				),
+				/ DLDI "functions %(Reduce, ReduceFirst, \
+					TransformForSeparator, TransformForSeparatorRecursive, \
+					EvaluateContextFirst), member function \
+					%FormContextHandler::operator()"
+					^ $dep_from ("%IsBranch" @ %SContext),
+				/ DLDI "simplified functions" ^ "%ystdex::bind1"
+					~ "%std::(bind, placeholders::_1)" $=
+				(
+					/ "%(TransformForSeparator, \
+						TransformForSeparatorRecursive)"
+					/ $forced "%Reduce" $dep_from ("%DetectReducible" @ %NPLA)
+				),
+				(
+				/ @ "class %FormContextHandler" $=
+				(
+					+ "data member \
+						'std::function<bool(const TermNode&)> Check{};'";
+					+ "constructor template with 2 parameters",
+					/ "function %operator()" $=
+					(
+						/ "check" ^ "%Check";
+						/ $comp "removed check of branch term by default"
+					)
+				);
+				/ @ "struct %FunctionContextHandler" $=
+				(
+					/ DLD "class-key" -> 'class' ~ 'struct',
+					/ $comp "removed check of branch term by default" $dep_from
+						"%FormContextHandler::operator()",
+					+ "constructor template with 2 parameters"
+						@ "class %FunctionContextHandler" $dep_from
+						("constructor template with 2 parameters
+						@ "%FormContextHandler")
+				);
+				/ "function templates %(RegisterFormContextHandler, \
+					ToContextHandler; RegisterFunction)" $=
+				(
+					/ "supported variadic parameters",
+					/ $comp "removed check of branch term by default" $dep_from
+						"%(FormContextHandler, \
+						FunctionContextHandler)::operator()"
+				);
+				/ $forced DLDI "function %RegisterSequenceContextTransformer"
+					$dep_from "%RegisterFormContextHandler"
+					^ $dep_from ("%IsBranch" @ %SContext)
+				),
+				/ "1st parameter type 'TermNode&'"
+					@ "function %EvaluateIdentifier" -> 'ValueObject&'
+			),
+			+ "functions %(IsBranch, IsLeaf, IsEmpty)" @ %SContext,
+			/ %NPLA $=
+			(
+				/ @ "functions %(LiftFirst, LiftLast)" $=
+				(
+					+ "assertion" ^ $dep_from ("%IsBranch" @ %SContext);
+					* $comp "nonexisted precondition" $mismatch $since b685
+				),
+				/ DLDI "functions %(PrintSyntaxNode, DetectReducible)"
+					 ^ $dep_from ("%IsBranch" @ %SContext),
+				/ "swapped 1st and 2nd parameters" @ "function %DetectReducible"
+			)
+		),
+		/ @ "macros %(DefBitmaskAnd, DefBitmaskOr, DefBitmaskXor, \
+			DefBitmaskNot, DefBitmaskAndAssignment, DefBitmaskOrAssignment, \
+			DefBitmaskXorAssignment)" @ %DefBitmaskAnd $=
+		(
+			/ DLDI "simplified" ^ "%PDefHOp",
+			+ 'ynothrow',
+			/ "all 'inline'" -> 'yconstfn_relaxed'
+		),
+		/ DLDI "simplified function %RemoveEmptyChildren"
+			@ %YSLib.Core.ValueNode ^ "%(std::mem_fn, ValueNode::operator!)"
+			~ "lambda-expression" 
+	)
+),
+
+b732
 (
 	/ %YFramework $=
 	(
