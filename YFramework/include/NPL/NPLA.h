@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1001
+\version r1033
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-10-03 11:41 +0800
+	2016-10-09 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -526,6 +526,32 @@ inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
 //@}
 
 
+//! \since build 734
+//@{
+//! \brief 字面量类别。
+enum class LiteralCategory
+{
+	//! \brief 无：非字面量。
+	None,
+	//! \brief 代码字面量。
+	Code,
+	//! \brief 数据字面量。
+	Data,
+	//! \brief 数字字面量。
+	Numeric
+};
+
+
+/*!
+\brief 对字面量分类。
+\pre 断言：字符串参数的数据指针非空。
+\sa CategorizeLiteral
+*/
+YF_API LiteralCategory
+CategorizeLiteral(string_view);
+//@}
+
+
 //! \since build 730
 //@{
 //! \brief 从指定上下文查找名称对应的节点。
@@ -579,8 +605,20 @@ RemoveIdentifier(ContextNode&, string_view, bool);
 
 
 /*!
+\brief 根据规约状态检查是否可继续规约。
+\see YTraceDe
+\since build 734
+
+只根据输入状态确定结果。当且仅当规约成功时不视为继续规约。
+若发现不支持的状态视为不成功，输出警告。
+*/
+YB_PURE YF_API bool
+CheckReducible(ReductionStatus);
+
+/*!
 \brief 移除节点的空子节点，然后判断是否可继续规约。
 \return 可继续规约：第一参数指定非成功状态，且移除空子节点后的节点是枝节点。
+\see CheckReducible
 \since build 733
 */
 YF_API bool

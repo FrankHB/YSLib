@@ -149,6 +149,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <BuildLog>
@@ -162,6 +163,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <BuildLog>

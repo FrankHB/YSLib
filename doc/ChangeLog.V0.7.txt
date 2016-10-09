@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3762
+\version r3832
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-10-04 19:46 +0800
+	2016-10-09 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,77 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ %NPL $=
+		(
+			/ @ "namespace %Forms" %NPLA1 $=
+			(
+				+ "function templates %(CallUnary; CallUnaryAs)",
+				/ "preserved first child term" @ "function %ExtractModifier"
+			),
+			/ %NPLA $=
+			(
+				+ "enum class %LiteralCategory; function %CategorizeLiteral",
+				(
+				+ "function %CheckReducible",
+				/ DLDI "function %DetectReducible" ^ "%CheckReducible"
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ $forced DLDI @ "function %GetEvent" @ %UI.YWidgetEvent $dep_from
+				("%search_map" @ %YBase.YStandardEx.Container),
+			+ "3 functions %SetContent" @ "class %ValueNode" @ %Core.ValueNode
+		),
+		/ @ "Microsoft VC++ project" $=
+		(
+			/ $revert(b459) $dev $build "disabled warning C4800";
+				// It seems that now it would not occur.
+			* $dev $build "missing disabling warnings"
+				@ "configuration %release" $since b459
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Set $=
+		(
+			* "ill-formed implementation for non-pair key"
+				@ "all 2 function templates %equal_range"
+				@ "using generic lookup" @ "class template %mapped_set"
+				$since b678,
+			* DLDI "defined wrong macro" @ !"using generic lookup" $since b680
+		),
+		/ %Container $=
+		(
+			* "unexpected overload for %search_map" $since b680
+				$= (/ "%search_map with functor parameter" => "%search_map_by");
+				// Also to avoid this function template recursively calling \
+					itself in Microsoft VC++ with VisualCppTools \
+					14.0.24604-Pre (compiler version 19.10.24604.0).
+			/ $forced DLDI "function templates %(try_emplace, try_emplace_hint)"
+		)
+	),
+	/ $dev $build "improved standard compliance"
+		@ "all Microsoft VC++ projects with VC++ compiler options available" $=
+	(
+		+ "specified '/Zc:rvalueCast'",
+		+ $re_ex(b458) "specified '/Za'";
+		/ $forced "removed '/Za' for separated file relying on WinSDK headers"
+			$effective @ %YFramework.('Helper_(DS)'.(DSMain.cpp, DSScreen,
+			DSWindow, Shell_DS), 'YCLib_(DS)'.DSVideo,
+			'Helper_(Win32)'.Win32Control, 'YCLib_(Win32)'.(Consoles, MinGW32,
+			NLS, Registry), Helper.(GUIApplication, GUIShell, Environment,
+			HostedUI, HostRenderer, HostWindow, Initialization, InputManager,
+			ScreenBuffer, ShellHelper, YGlobal), YCLib.(Debug, FileIO,
+			FileSystem, Host, HostedGUI, Input, Keys, MemoryMapping, NativeAPI,
+			Timer, Video, YCommon), YSLib.Adaptor.(Font, Image))
+	)
+),
+
+b733
 (
 	/ %YFramework $=
 	(

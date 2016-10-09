@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2827
+\version r2839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-10-01 22:27 +0800
+	2016-10-07 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -307,6 +307,18 @@ public:
 	//! \brief 设置子节点容器内容。
 	PDefH(void, SetChildren, Container con)
 		ImplExpr(container = std::move(con))
+	/*!
+	\note 设置子节点容器和值的内容。
+	\since build 734
+	*/
+	//@{
+	void
+	SetContent(Container, ValueObject) ynothrow;
+	PDefH(void, SetContent, const ValueNode& node)
+		ImplExpr(SetContent(node.GetContainer(), node.Value))
+	PDefH(void, SetContent, ValueNode&& node)
+		ImplExpr(SwapContent(node))
+	//@}
 
 	PDefH(bool, Add, const ValueNode& node)
 		ImplRet(insert(node).second)

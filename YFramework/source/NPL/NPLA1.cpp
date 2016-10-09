@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1348
+\version r1351
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-10-04 19:43 +0800
+	2016-10-09 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -435,7 +435,6 @@ EvaluateIdentifier(ValueObject& vo, ContextNode& ctx, string_view id)
 	return ReductionStatus::Success;
 }
 
-
 namespace Forms
 {
 
@@ -453,10 +452,10 @@ QuoteN(const TermNode& term, size_t m)
 bool
 ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 {
-	RemoveHead(con);
-	if(!con.empty())
+	YAssert(!con.empty(), "Empty node container found.");
+	if(con.size() > 1)
 	{
-		const auto i(con.cbegin());
+		const auto i(std::next(con.cbegin()));
 
 		// XXX: Modifier is treated as special name.
 		if(const auto p = TermToName(Deref(i)))
