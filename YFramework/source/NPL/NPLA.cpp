@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r871
+\version r897
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-10-04 13:57 +0800
+	2016-10-09 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -364,6 +364,24 @@ ArityMismatch::ArityMismatch(size_t e, size_t r, RecordLevel lv)
 ImplDeDtor(ArityMismatch)
 
 
+LiteralCategory
+CategorizeLiteral(string_view sv)
+{
+	YAssertNonnull(sv.data());
+	if(!sv.empty())
+	{
+		const auto c(CheckLiteral(sv));
+
+		if(c == '\'')
+			return LiteralCategory::Code;
+		if(c != char())
+			return LiteralCategory::Data;
+		if(std::isdigit(sv.front()))
+			return LiteralCategory::Numeric;
+	}
+	return LiteralCategory::None;
+}
+
 observer_ptr<const string>
 TermToName(const TermNode& term)
 {
@@ -401,6 +419,16 @@ RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
 
 
 bool
+CheckReducible(ReductionStatus status)
+{
+	if(status == ReductionStatus::Success)
+		return {};
+	if(YB_UNLIKELY(status != ReductionStatus::NeedRetry))
+		YTraceDe(Warning, "Unexpected status found");
+	return true;
+}
+
+bool
 DetectReducible(ReductionStatus status, TermNode& term)
 {
 	// TODO: Use explicit continuation parameters?
@@ -408,7 +436,7 @@ DetectReducible(ReductionStatus status, TermNode& term)
 	//	k(term);
 	YSLib::RemoveEmptyChildren(term.GetContainerRef());
 	// NOTE: Only stopping on getting a normal form.
-	return status != ReductionStatus::Success && IsBranch(term);
+	return CheckReducible(status) && IsBranch(term);
 }
 
 } // namespace NPL;

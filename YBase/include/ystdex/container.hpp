@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1855
+\version r1863
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-09-21 15:38 +0800
+	2016-10-06 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,7 +390,7 @@ range_size(const _tRange& c)
 }
 #if __cplusplus <= 201402L
 /*!
-\see http://wg21.cmeerw.net/cwg/issue1591 。
+\see CWG 1591 。
 \since build 664
 */
 template<typename _tElem>
@@ -937,7 +937,7 @@ vector_concat(_tVector& vec, _tRange&& c)
 \brief 从第一参数指定的起始缓冲区大小循环取向量结果，按需扩大缓冲区。
 \pre 断言：第一参数不等于 0 。
 \note 可用于支持 \c max_size 和 \c resize 的字符串类型。
-\see http://wg21.cmeerw.net/lwg/issue2466 。
+\see LWG 2466 。
 \since build 699
 */
 template<class _tVector, typename _func>
@@ -1146,16 +1146,18 @@ search_map(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 		ystdex::search_map(ystdex::as_const(con), hint, k));
 }
 //@}
+
 /*!
 \brief 按指定键值搜索指定映射并执行操作。
 \pre 最后的参数构造新的值。
 \return 插入成员的迭代器。
 \note 行为类似 std::map::operator[] 。
+\since build 734
 */
 //@{
 template<typename _func, class _tAssocCon, typename... _tParams>
 std::pair<typename _tAssocCon::const_iterator, bool>
-search_map(_func f, const _tAssocCon& con, _tParams&&... args)
+search_map_by(_func f, const _tAssocCon& con, _tParams&&... args)
 {
 	auto pr(ystdex::search_map(con, yforward(args)...));
 
@@ -1165,10 +1167,10 @@ search_map(_func f, const _tAssocCon& con, _tParams&&... args)
 }
 template<typename _func, class _tAssocCon, typename... _tParams>
 inline std::pair<typename _tAssocCon::iterator, bool>
-search_map(_func f, _tAssocCon& con, _tParams&&... args)
+search_map_by(_func f, _tAssocCon& con, _tParams&&... args)
 {
 	return ystdex::cast_mutable(con,
-		ystdex::search_map(f, ystdex::as_const(con), yforward(args)...));
+		ystdex::search_map_by(f, ystdex::as_const(con), yforward(args)...));
 }
 //@}
 //@}
@@ -1187,7 +1189,7 @@ std::pair<typename _tAssocCon::iterator, bool>
 try_emplace(_tAssocCon& con, _tKey&& k, _tParams&&... args)
 {
 	// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
-	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
+	return ystdex::search_map_by([&](typename _tAssocCon::const_iterator i){
 		return emplace_hint_in_place(con, i, yforward(k),
 			std::forward<_tParams>(args)...);
 	}, con, k);
@@ -1199,7 +1201,7 @@ try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	_tKey&& k, _tParams&&... args)
 {
 	// XXX: Blocked. 'yforward' may cause G++ 5.2 silent crash.
-	return ystdex::search_map([&](typename _tAssocCon::const_iterator i){
+	return ystdex::search_map_by([&](typename _tAssocCon::const_iterator i){
 		return emplace_hint_in_place(con, i, yforward(k),
 			std::forward<_tParams>(args)...);
 	}, con, hint, k);

@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1057
+\version r1060
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-04-26 10:15 +0800
+	2016-10-06 15:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ set_value_move(const _type& x) ynothrow
 	&& !(defined(__GLIBCXX__) && defined(_GLIBCXX_DEBUG))
 #	define YB_Impl_Set_UseGenericLookup 1
 #else
-#	define YB_Impl_Set_GenericLookup 0
+#	define YB_Impl_Set_UseGenericLookup 0
 #endif
 
 //! \since build 679
@@ -511,7 +511,7 @@ public:
 		yimpl(typename = enable_if_transparent_t<_fComp, _tKey>)> \
 	_r \
 	_n(const _tKey& x)
-	
+
 	iterator
 	find(const key_type& x)
 	{
@@ -640,7 +640,7 @@ public:
 #if YB_Impl_Set_UseGenericLookup
 		const auto pr(m_map.equal_range(x));
 
-		return {iterator(x.first), iterator(x.second)};
+		return {iterator(pr.first), iterator(pr.second)};
 #else
 		return std::equal_range(begin(), end(), x, gcomp());
 #endif
@@ -652,7 +652,7 @@ public:
 #if YB_Impl_Set_UseGenericLookup
 		const auto pr(m_map.equal_range(x));
 
-		return {const_iterator(x.first), const_iterator(x.second)};
+		return {const_iterator(pr.first), const_iterator(pr.second)};
 #else
 		return std::equal_range(cbegin(), cend(), x, gcomp());
 #endif

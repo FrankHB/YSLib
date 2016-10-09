@@ -276,53 +276,155 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\doc\ex.cpp" />
-    <ClCompile Include="DS\source\Helper\DSMain.cpp" />
-    <ClCompile Include="DS\source\Helper\DSScreen.cpp" />
-    <ClCompile Include="DS\source\Helper\DSWindow.cpp" />
-    <ClCompile Include="DS\source\Helper\Shell_DS.cpp" />
+    <ClCompile Include="DS\source\Helper\DSMain.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="DS\source\Helper\DSScreen.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="DS\source\Helper\DSWindow.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="DS\source\Helper\Shell_DS.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="DS\source\YCLib\DSIO.cpp" />
-    <ClCompile Include="DS\source\YCLib\DSVideo.cpp" />
+    <ClCompile Include="DS\source\YCLib\DSVideo.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="source\NPL\NPLA.cpp" />
-    <ClCompile Include="Win32\source\Helper\Win32Control.cpp" />
-    <ClCompile Include="Win32\source\YCLib\Consoles.cpp" />
-    <ClCompile Include="Win32\source\YCLib\MinGW32.cpp" />
-    <ClCompile Include="Win32\source\YCLib\NLS.cpp" />
+    <ClCompile Include="Win32\source\Helper\Win32Control.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Win32\source\YCLib\Consoles.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Win32\source\YCLib\MinGW32.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="Win32\source\YCLib\NLS.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="source\CHRLib\chrmap.cpp" />
     <ClCompile Include="source\CHRLib\CharacterProcessing.cpp" />
     <ClCompile Include="source\CHRLib\MappingEx.cpp" />
-    <ClCompile Include="source\Helper\GUIApplication.cpp" />
-    <ClCompile Include="source\Helper\GUIShell.cpp" />
-    <ClCompile Include="source\Helper\Environment.cpp" />
-    <ClCompile Include="source\Helper\HostedUI.cpp" />
-    <ClCompile Include="source\Helper\HostRenderer.cpp" />
-    <ClCompile Include="source\Helper\HostWindow.cpp" />
-    <ClCompile Include="source\Helper\Initialization.cpp" />
-    <ClCompile Include="source\Helper\InputManager.cpp" />
-    <ClCompile Include="source\Helper\ScreenBuffer.cpp" />
-    <ClCompile Include="source\Helper\ShellHelper.cpp" />
-    <ClCompile Include="source\Helper\yglobal.cpp" />
+    <ClCompile Include="source\Helper\GUIApplication.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\GUIShell.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\Environment.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\HostedUI.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\HostRenderer.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\HostWindow.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\Initialization.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\InputManager.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\ScreenBuffer.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\ShellHelper.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\Helper\yglobal.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="source\NPL\Configuration.cpp" />
     <ClCompile Include="source\NPL\Dependency.cpp" />
     <ClCompile Include="source\NPL\Lexical.cpp" />
     <ClCompile Include="source\NPL\NPLA1.cpp" />
     <ClCompile Include="source\NPL\SContext.cpp" />
-    <ClCompile Include="source\YCLib\Debug.cpp" />
-    <ClCompile Include="source\YCLib\FileIO.cpp" />
-    <ClCompile Include="source\YCLib\FileSystem.cpp" />
-    <ClCompile Include="source\YCLib\Host.cpp" />
-    <ClCompile Include="source\YCLib\HostedGUI.cpp" />
-    <ClCompile Include="source\YCLib\Input.cpp" />
+    <ClCompile Include="source\YCLib\Debug.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\FileIO.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\FileSystem.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\Host.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\HostedGUI.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\Input.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="source\YCLib\JNI.cpp" />
-    <ClCompile Include="source\YCLib\Keys.cpp" />
-    <ClCompile Include="source\YCLib\MemoryMapping.cpp" />
-    <ClCompile Include="source\YCLib\NativeAPI.cpp" />
+    <ClCompile Include="source\YCLib\Keys.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\MemoryMapping.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\NativeAPI.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="source\YCLib\POSIXThread.cpp" />
-    <ClCompile Include="source\YCLib\Timer.cpp" />
-    <ClCompile Include="source\YCLib\Video.cpp" />
+    <ClCompile Include="source\YCLib\Timer.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\Video.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="source\YCLib\XCB.cpp" />
-    <ClCompile Include="source\YCLib\YCommon.cpp" />
-    <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />
-    <ClCompile Include="source\YSLib\Adaptor\Image.cpp" />
+    <ClCompile Include="source\YCLib\YCommon.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Adaptor\Font.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Adaptor\Image.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="source\YSLib\Adaptor\YNew.cpp" />
     <ClCompile Include="source\YSLib\Core\ValueNode.cpp" />
     <ClCompile Include="source\YSLib\Core\YApplication.cpp" />
@@ -386,7 +488,10 @@
     <ClCompile Include="source\YSLib\UI\YWidget.cpp" />
     <ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
     <ClCompile Include="source\YSLib\UI\ywindow.cpp" />
-    <ClCompile Include="Win32\source\YCLib\Registry.cpp" />
+    <ClCompile Include="Win32\source\YCLib\Registry.cpp">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{305D480F-C3DC-4A3D-915A-88E9D2224742}</ProjectGuid>
@@ -444,7 +549,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <DisableSpecificWarnings>4800</DisableSpecificWarnings>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <BuildLog>
@@ -454,6 +560,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <BuildLog>

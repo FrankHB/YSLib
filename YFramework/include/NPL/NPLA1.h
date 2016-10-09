@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1599
+\version r1630
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-10-04 19:43 +0800
+	2016-10-09 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define NPL_INC_NPLA1_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent;
+#include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
+//	YSLib::Access;
 
 namespace NPL
 {
@@ -480,7 +481,7 @@ namespace Forms
 {
 
 /*!
-\pre 间接断言：项或容器对应枝节点。
+\pre 断言：项或容器对应枝节点。
 \since build 733
 */
 //@{
@@ -488,7 +489,12 @@ namespace Forms
 inline PDefH(void, Quote, const TermNode& term) ynothrowv
 	ImplExpr(YAssert(IsBranch(term), "Invalid term found."))
 
-//! \return 项的参数个数。
+/*!
+\return 项的参数个数。
+
+可使用 RegisterFormContextHandler 注册上下文处理器，参考文法：
+$quote|$quoteN <expression>
+*/
 //@{
 //! \brief 取项的参数个数：子项数减 1 。
 inline PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
@@ -504,7 +510,7 @@ QuoteN(const TermNode&, size_t = 1);
 
 
 /*!
-\brief 移除第一个项，检查项中是否存在为修饰符的第二个子项，若存在则移除。
+\brief 检查项中是否存在为修饰符的第二个子项，若存在则移除。
 \return 是否存在并移除了修饰符。
 \since build 732
 
@@ -529,6 +535,32 @@ ReduceWithModifier(TermNode& term, ContextNode& ctx, _func f)
 		f(term, ctx, mod);
 	else
 		throw InvalidSyntax("Argument not found.");
+}
+//@}
+
+
+/*!
+\brief 访问节点并调用一元函数。
+\since build 734
+*/
+//@{
+template<typename _func>
+void
+CallUnary(_func f, TermNode& term)
+{
+	QuoteN(term);
+
+	f(Deref(std::next(term.begin())));
+	term.ClearContainer();
+}
+
+template<typename _type, typename _func>
+void
+CallUnaryAs(_func f, TermNode& term)
+{
+	return Forms::CallUnary([f](TermNode& node){
+		f(YSLib::Access<_type>(node));
+	}, term);
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r1106
+\version r1108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2016-10-04 19:26 +0800
+	2016-10-09 09:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -334,7 +334,6 @@ list-expression ::= <left-list-bound> expression <right-list-bound>
 @3.4.6 简单文法约定：
 一个派生实现使用简单文法 NPL-GA ，若满足：
 翻译单元同基本翻译单元(@3.1) ；
-字面量同字符串字面量(@3.3.3) ；
 只支持左原子表达式构成复合表达式(@3.4.2.2) ；
 只支持基本列表表达式(@3.4.2.3) ；
 标点为单个字符(@3.1) ；
@@ -545,6 +544,7 @@ NPLA1 解释实现参见 @6 。
 过程实现为子例程(@4.6.2.1) 。
 一字节占用的位和宿主环境一致（至少占用 8 个二进制位）。
 参数不先求值的形式是特殊形式(special form) 。
+扩展字面量(@3.3.3) 包括以数字字符起始的数字(numeric) 字面量。
 
 @5.3 NPLA 公共实现：
 词法分析参见 @3.3.4 和参考实现模块 NPL::Lexical 。
