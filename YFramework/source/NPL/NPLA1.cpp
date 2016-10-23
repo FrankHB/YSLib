@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1351
+\version r1511
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-10-09 21:11 +0800
+	2016-10-24 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,6 +228,28 @@ ReduceArguments(TermNode::Container& con, ContextNode& ctx)
 }
 
 void
+ReduceChecked(TermNode& term, ContextNode& ctx)
+{
+	CheckedReduceWith(Reduce, term, ctx);
+}
+
+void
+ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
+	TermNode& closure)
+{
+	TermNode app_term(NoContainer, term.GetName());
+
+	if(move)
+		app_term.SetContent(std::move(closure));
+	else
+		app_term.SetContent(closure);
+	// TODO: Test for normal form?
+	// XXX: Term reused.
+	ReduceChecked(app_term, ctx);
+	term.SetContent(std::move(app_term));
+}
+
+void
 ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 {
 	// NOTE: Separators or other sequence constructs are not handled here. The
@@ -421,17 +443,24 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-EvaluateIdentifier(ValueObject& vo, ContextNode& ctx, string_view id)
+EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
 	if(auto v = FetchValue(ctx, id))
 	{
-		vo = std::move(v);
-		if(const auto p_handler = vo.AccessPtr<LiteralHandler>())
+		term.Value = std::move(v);
+		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return ToStatus((*p_handler)(ctx));
 	}
 	else
 		throw BadIdentifier(id);
+	if(const auto p = AccessPtr<TermNode>(term))
+	{
+		term.SetContent(std::move(*p));
+		// NOTE: To be success for %DetectReducible.
+		if(IsBranch(term))
+			return ReductionStatus::NeedRetry;
+	}
 	return ReductionStatus::Success;
 }
 
@@ -468,6 +497,158 @@ ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 		}
 	}
 	return {};
+}
+
+
+void
+DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
+{
+	ReduceWithModifier(aterm, actx,
+		[=](TermNode& term, ContextNode& ctx, bool mod){
+		auto& con(term.GetContainerRef());
+
+		auto i(con.begin());
+
+		++i;
+		if(!i->empty())
+		{
+			const auto i_beg(i->begin());
+
+			if(const auto p_id = TermToName(Deref(i_beg)))
+			{
+				const auto id(*p_id);
+
+				i->GetContainerRef().erase(i_beg);
+				Lambda(term, ctx);
+				DefineOrSetFor(id, term, ctx, define, mod);
+			}
+			else
+				throw NPLException("Invalid node category found.");
+		}
+		else if(const auto p_id = TermToName(Deref(i)))
+		{
+			const auto id(*p_id);
+
+			YTraceDe(Debug, "Found identifier '%s'.", id.c_str());
+			if(++i != con.end())
+			{
+				CheckedReduceWith(ReduceTail, term, ctx, i);
+				DefineOrSetFor(id, term, ctx, define, mod);
+			}
+			else if(define)
+				RemoveIdentifier(ctx, id, mod);
+			else
+				throw InvalidSyntax("Source operand not found.");
+			term.ClearTo(ValueToken::Unspecified);
+		}
+		else
+			throw NPLException("Invalid node category found.");
+	});
+}
+
+void
+DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
+	bool mod)
+{
+	if(CategorizeLiteral(id) == LiteralCategory::None)
+		(define ? DefineValue : RedefineValue)
+			(ctx, id, std::move(term.Value), mod);
+	else
+		throw InvalidSyntax(define ? "Literal cannot be defined."
+			: "Literal cannot be set.");
+}
+
+shared_ptr<vector<string>>
+ExtractLambdaParameters(const TermNode::Container& con)
+{
+	YTraceDe(Debug, "Found lambda abstraction form with %zu"
+		" parameter(s) to be bound.", con.size());
+
+	// TODO: Blocked. Use C++14 lambda initializers to reduce
+	//	initialization cost by directly moving.
+	auto p_params(make_shared<vector<string>>());
+	set<string_view> svs;
+
+	// TODO: Simplify?
+	std::for_each(con.begin(), con.end(), [&](decltype(*con.begin()) pv){
+		const auto& name(Access<string>(pv));
+
+		// FIXME: Missing identifier syntax check.
+		// TODO: Throw %InvalidSyntax for invalid syntax.
+		if(svs.insert(name).second)
+			p_params->push_back(name);
+		else
+			throw InvalidSyntax(
+				sfmt("Duplicate parameter name '%s' found.", name.c_str()));
+	});
+	return p_params;
+}
+
+void
+Lambda(TermNode& term, ContextNode& ctx)
+{
+	auto& con(term.GetContainerRef());
+	auto size(con.size());
+
+	YAssert(size != 0, "Invalid term found.");
+	if(size > 1)
+	{
+		auto i(con.begin());
+		const auto p_params(ExtractLambdaParameters((++i)->GetContainer()));
+
+		con.erase(con.cbegin(), ++i);
+
+		// TODO: Optimize. This does not need to be shared, since it would
+		//	always be copied, if used.
+		const auto p_ctx(make_shared<ContextNode>(ctx));
+		const auto p_closure(make_shared<TermNode>(std::move(con),
+			term.GetName(), std::move(term.Value)));
+
+		// FIXME: Cyclic reference to '$lambda' context handler when the
+		//	term value (i.e. the closure) is copied upward?
+		term.Value = ToContextHandler([=](TermNode& app_term){
+			auto& params(Deref(p_params));
+			const auto n_params(params.size());
+			const auto n_terms(app_term.size());
+
+			YTraceDe(Debug, "Lambda called, with %ld shared term(s), %ld shared"
+				" context(s), %zu parameter(s).", p_closure.use_count(),
+				p_ctx.use_count(), n_params);
+			if(n_terms == 0)
+				throw LoggedEvent("Invalid application found.", Alert);
+
+			const auto n_args(n_terms - 1);
+
+			if(n_args == n_params)
+			{
+				auto j(app_term.begin());
+				// TODO: Optimize for performance.
+				// NOTE: This is probably better to be copy-on-write. Since
+				//	no immutable reference would be accessed before
+				//	mutation, no care is needed for reference invalidation.
+				auto app_ctx(Deref(p_ctx));
+
+				++j;
+				// NOTE: Introduce parameters as per lexical scoping rules.
+				for(const auto& param : params)
+				{
+					// XXX: Moved.
+					app_ctx[param].Value = std::move(*j);
+					++j;
+				}
+				YAssert(j == app_term.end(),
+					"Invalid state found on passing arguments.");
+				// NOTE: Beta reduction.
+				ReduceCheckedClosure(app_term, app_ctx, p_closure.unique(),
+					*p_closure);
+			}
+			else
+				throw ArityMismatch(n_params, n_args);
+		});
+		con.clear();
+	}
+	else
+		throw InvalidSyntax("Syntax error in lambda abstraction.");
 }
 
 } // namespace Forms;

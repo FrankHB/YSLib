@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r2977
+\version r3093
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-09-28 10:59 +0800
+	2016-10-22 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -326,8 +326,8 @@ invoke_impl(_func&& f, _tParams&&... args)
 \brief 调用可调用对象。
 \sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4169.html
 \see WG21 N4527 20.9.2[func.require] ， WG21 N4527 20.9.3[func.invoke] 。
-\see http://wg21.cmeerw.net/lwg/issue2013 。
-\see http://wg21.cmeerw.net/cwg/issue1581 。
+\see LWG 2013 。
+\see CWG 1581 。
 \see https://llvm.org/bugs/show_bug.cgi?id=23141 。
 \since build 612
 */
@@ -616,39 +616,130 @@ bind_forward(_func&& f, _func2&& f2, _tParams&&... args)
 //! \since build 537
 //@{
 //! \brief 复合函数。
-template<typename _func1, typename _func2>
+template<typename _func, typename _func2>
 struct composed
 {
-	_func1 f;
+	_func f;
 	_func2 g;
 
+	/*!
+	\note 每个函数只在函数调用表达式中出现一次。
+	\since build 735
+	*/
 	template<typename... _tParams>
 	yconstfn auto
-	operator()(_tParams&&... args) const -> decltype(f(g(yforward(args))...))
+	operator()(_tParams&&... args) const ynoexcept_spec(f(g(yforward(args)...)))
+		-> decltype(f(g(yforward(args)...)))
+	{
+		return f(g(yforward(args)...));
+	}
+};
+
+/*!
+\brief 函数复合。
+\note 最后一个参数最先被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
+\relates composed
+\return 复合的可调用对象。
+*/
+//@{
+template<typename _func, typename _func2>
+yconstfn composed<_func, _func2>
+compose(_func f, _func2 g)
+{
+	return composed<_func, _func2>{f, g};
+}
+//! \since build 731
+template<typename _func, typename _func2, typename _func3, typename... _funcs>
+yconstfn auto
+compose(_func f, _func2 g, _func3 h, _funcs... args)
+	-> decltype(ystdex::compose(ystdex::compose(f, g), h, args...))
+{
+	return ystdex::compose(ystdex::compose(f, g), h, args...);
+}
+//@}
+//@}
+
+
+//! \since build 735
+//@{
+//! \brief 多元分发的复合函数。
+template<typename _func, typename _func2>
+struct composed_n
+{
+	_func f;
+	_func2 g;
+
+	//! \note 第二函数会被分发：多次出现在函数调用表达式中。
+	template<typename... _tParams>
+	yconstfn auto
+	operator()(_tParams&&... args) const ynoexcept_spec(f(g(yforward(args))...))
+		-> decltype(f(g(yforward(args))...))
 	{
 		return f(g(yforward(args))...);
 	}
 };
 
 /*!
-\brief 函数复合。
+\brief 单一分派的多元函数复合。
 \note 第一个参数最后被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
-\relates composed
-\return 复合的可调用对象。
+\relates composed_n
+\return 单一分派的多元复合的可调用对象。
 */
-template<typename _func1, typename _func2>
-composed<_func1, _func2>
-compose(_func1 f, _func2 g)
+//@{
+template<typename _func, typename _func2>
+yconstfn composed<_func, _func2>
+compose_n(_func f, _func2 g)
 {
-	return composed<_func1, _func2>{f, g};
+	return composed_n<_func, _func2>{f, g};
 }
-//! \since build 731
-template<typename _func1, typename _func2, typename _func3, typename... _funcs>
+template<typename _func, typename _func2, typename _func3, typename... _funcs>
 yconstfn auto
-compose(_func1 f, _func2 g, _func3 h, _funcs... args)
-	-> decltype(ystdex::compose(ystdex::compose(f, g), h, args...))
+compose_n(_func f, _func2 g, _func3 h, _funcs... args)
+	-> decltype(ystdex::compose_n(ystdex::compose_n(f, g), h, args...))
 {
-	return ystdex::compose(ystdex::compose(f, g), h, args...);
+	return ystdex::compose_n(ystdex::compose_n(f, g), h, args...);
+}
+//@}
+
+
+//! \brief 多元复合函数。
+template<typename _func, typename... _funcs>
+struct generalized_composed
+{
+	_func f;
+	std::tuple<_funcs...> g;
+
+	template<typename... _tParams>
+	yconstfn auto
+	operator()(_tParams&&... args) const ynoexcept_spec(yimpl(call(
+		index_sequence_for<_tParams...>(), yforward(args)...))) -> decltype(
+		yimpl(call(index_sequence_for<_tParams...>(), yforward(args)...)))
+	{
+		return call(index_sequence_for<_tParams...>(), yforward(args)...);
+	}
+
+private:
+	template<size_t... _vSeq, typename... _tParams>
+	yconstfn auto
+	call(index_sequence<_vSeq...>, _tParams&&... args) const
+		ynoexcept_spec(f(std::get<_vSeq>(g)(yforward(args))...))
+		-> decltype(f(std::get<_vSeq>(g)(yforward(args))...))
+	{
+		return f(std::get<_vSeq>(g)(yforward(args))...);
+	}
+};
+
+/*!
+\brief 多元函数复合。
+\relates generalized_composed
+\return 以多元函数复合的可调用对象。
+*/
+template<typename _func, typename... _funcs>
+yconstfn generalized_composed<_func, std::tuple<_funcs...>>
+generalized_compose(_func f, _funcs... args)
+{
+	return generalized_composed<_func,
+		std::tuple<_funcs...>>{f, make_tuple(args...)};
 }
 //@}
 
@@ -806,7 +897,7 @@ struct one_shot<_func, void, void>
 */
 template<typename _type>
 using get_less
-	= composed<less<_type*>, composed<addressof_op<_type>, mem_get<>>>;
+	= composed_n<less<_type*>, composed<addressof_op<_type>, mem_get<>>>;
 
 
 //! \since build 606
@@ -858,7 +949,7 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
 	//! \since build 547
 	template<typename _func>
-	static _tRet
+	static yconstfn _tRet
 	call(_func&& f, std::tuple<_tParams...>&& args, yimpl(decay_t<
 		decltype(yforward(f)(std::get<_vSeq>(std::move(args))...))>* = {}))
 	{
@@ -867,7 +958,7 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 	//! \since build 634
 	//@{
 	template<typename _func>
-	static auto
+	static yconstfn auto
 	call(_func&& f, _tParams&&... args)
 		-> decltype(call_projection::call(yforward(f),
 		std::forward_as_tuple(yforward(args)...)))
@@ -877,7 +968,7 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 	}
 
 	template<typename _fCallable>
-	static _tRet
+	static yconstfn _tRet
 	invoke(_fCallable&& f, std::tuple<_tParams...>&& args,
 		yimpl(decay_t<decltype(ystdex::invoke(yforward(f),
 		std::get<_vSeq>(std::move(args))...))>* = {}))
@@ -885,7 +976,7 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 		return ystdex::invoke(yforward(f), std::get<_vSeq>(std::move(args))...);
 	}
 	template<typename _func>
-	static auto
+	static yconstfn auto
 	invoke(_func&& f, _tParams&&... args)
 		-> decltype(call_projection::invoke(yforward(f),
 		std::forward_as_tuple(yforward(args)...)))
@@ -917,7 +1008,7 @@ template<typename... _tParams, size_t... _vSeq>
 struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 {
 	template<typename _func>
-	static auto
+	static yconstfn auto
 	call(_func&& f, std::tuple<_tParams...>&& args)
 		-> decltype(yforward(f)(std::get<_vSeq>(std::move(args))...))
 	{
@@ -927,7 +1018,7 @@ struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 	//! \since build 634
 	//@{
 	template<typename _func>
-	static auto
+	static yconstfn auto
 	call(_func&& f, _tParams&&... args)
 		-> decltype(call_projection::call(yforward(f),
 		std::forward_as_tuple(yforward(std::move(args))...)))
@@ -937,14 +1028,14 @@ struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 	}
 
 	template<typename _fCallable>
-	static auto
+	static yconstfn auto
 	invoke(_fCallable&& f, std::tuple<_tParams...>&& args)
 		-> decltype(ystdex::invoke(yforward(f), std::get<_vSeq>(args)...))
 	{
 		return ystdex::invoke(yforward(f), std::get<_vSeq>(args)...);
 	}
 	template<typename _func>
-	static auto
+	static yconstfn auto
 	invoke(_func&& f, _tParams&&... args)
 		-> decltype(call_projection::invoke(yforward(f),
 		std::forward_as_tuple(yforward(args)...)))
@@ -961,12 +1052,12 @@ struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 \brief 应用函数对象和参数元组。
 \tparam _func 函数对象及其引用类型。
 \tparam _tTuple 元组及其引用类型。
-\see WG21 N3936 20.5.1[intseq.general] 。
+\see WG21 N4606 20.5.2.5[tuple.apply]/1 。
 \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4023.html#tuple.apply 。
 \since build 547
 */
 template<typename _func, class _tTuple>
-inline auto
+yconstfn auto
 apply(_func&& f, _tTuple&& args)
 	-> yimpl(decltype(call_projection<_tTuple, make_index_sequence<
 	std::tuple_size<decay_t<_tTuple>>::value>>::call(yforward(f),
@@ -983,6 +1074,10 @@ template<typename _fCallable, size_t _vLen = paramlist_size<_fCallable>::value>
 struct expand_proxy : private call_projection<_fCallable,
 	make_index_sequence<_vLen>>, private expand_proxy<_fCallable, _vLen - 1>
 {
+	/*!
+	\see CWG 1393 。
+	\see EWG 102 。
+	*/
 	using call_projection<_fCallable, make_index_sequence<_vLen>>::call;
 	/*!
 	\note 为避免歧义，不直接使用 using 声明。
@@ -990,8 +1085,8 @@ struct expand_proxy : private call_projection<_fCallable,
 	*/
 	template<typename... _tParams>
 	static auto
-	call(_tParams&&... args)
-		-> decltype(expand_proxy<_fCallable, _vLen - 1>::call(yforward(args)...))
+	call(_tParams&&... args) -> decltype(
+		expand_proxy<_fCallable, _vLen - 1>::call(yforward(args)...))
 	{
 		return expand_proxy<_fCallable, _vLen - 1>::call(yforward(args)...);
 	}
