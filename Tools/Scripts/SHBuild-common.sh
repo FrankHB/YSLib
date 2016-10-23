@@ -207,13 +207,13 @@ SHBuild_BuildGCH()
 	local SHBOUT_PCH="$2.gch"
 	if [[ -s "$SHBOUT_PCH" && -r "$SHBOUT_PCH" ]]; then
 		# FIXME: Update necessarily.
-		printf PCH file exists, skipped building.
+		SHBuild_Puts "PCH file exists, skipped building."
 	else
 		mkdir -p "`dirname "$SHBOUT_PCH"`"
-		printf Building precompiled file "$SHBOUT_PCH" ...
+		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" ..."
 		SHBuild_Install_HardLink "$1" "$2"
 		$3 "$1" -o$SHBOUT_PCH
-		printf Building precompiled file "$SHBOUT_PCH" done.
+		SHBuild_Puts "Building precompiled file \"$SHBOUT_PCH\" done."
 	fi
 }
 

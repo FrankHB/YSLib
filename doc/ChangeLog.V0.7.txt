@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3832
+\version r3915
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-10-09 22:23 +0800
+	2016-10-24 02:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,92 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Functional $=
+		(
+			+ 'yconstfn' @ "all static member functions"
+				@ "class template %call_projection specializations";
+			/ $lib 'inline' @ "function template %apply" -> 'yconstfn',
+			(
+				// Multivariate compositions should be used with new specific \
+					templates.
+				+ "class template %composed_n";
+				+ "2 function templates %compose_n",
+				(
+				/ "first level composition" @ "alias template %get_less"
+					^ "%composed_n" ~ "%composed";
+					// The change is intended: if the front levels of the \
+						compositions have meaning of "broadcast" to all \
+						parameters, it should be with explicit '_n'.
+				/ "changed last level parameter pack expansion to 1st level"
+					@ "class template %composed"
+					// This is changed because of preprosition "on" for 1st \
+						parameter is better for the new behavior for \
+						multivariate cases, i.e. with a unary function as 1st \
+						argument, it should be 'compose' rather than \
+						'compose_n'.
+				)
+			),
+			+ 'yconstfn' @ "function template %compose#1",
+			+ "noexcept specification" @ "function template %operator()"
+				@ "class template %composed",
+			+ "class template %generalized_composed; function template \
+				%generalized_compose"
+		),
+		+ "function %make_from_tuple" @ %Tuple
+	),
+	/ %YFramework $=
+	(
+		/ DLDI "simplified 3 constructor templates %ValueNode with tuple \
+			parameters" @ %YSLib.Core.ValueNode ^ $dep_from
+			"%ystdex::make_from_tuple" @ %YBase.YStandardEx.Tuple,
+		/ @ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ @ "function %EvaluateIdentifier" $=
+					(
+						/ $revert(b733) "1st parameter type 'ValueObject&'"
+							-> 'TermNode&';
+						/ "handled %TermNode as value to be reduced again"
+					)
+
+
+					+ "functions %(ExtractLambdaParameters; Lambda)",
+					+ "function %DefineOrSetFor";
+					+ "function %DefineOrSet"
+				),
+				+ "functions %(ReduceChecked; %ReduceCheckedClosure)"
+					^ $dep_from ("%CheckedReduceWith" @ %NPLA),
+				/ @ "namespace %Forms" $=
+				(
+					+ "function %DefineOrSetFor",
+					(
+					+ "function %ExtractLambdaParameters";
+					+ "function %Lambda" ^ $dep_from
+						("%CheckedReduceWith" @ %NPLA)
+					);
+					+ "function %DefineOrSet"
+				)
+			),
+			+ "function template %CheckedReduceWith" @ %NPLA
+		),
+	),
+	/ %Tools.Scripts $=
+	(
+		* $re_add(b610) $build
+			"missing updating %LIBS for %YFramework.YCLib.NativeAPI"
+			@ "%SHBuild-bootstrap.sh" @ %Tools.Scripts $since b713,
+		* "incomplete message output" @ "function %SHBuild_BuildGCH"
+			@ "%SHBuild-common.sh" $since b732 ^ "%SHBuild_Puts" ~ 'printf'
+	)
+),
+
+b734
 (
 	/ %YFramework $=
 	(

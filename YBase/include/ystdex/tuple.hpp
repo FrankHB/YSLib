@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r706
+\version r735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2016-09-20 09:58 +0800
+	2016-10-23 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,8 +103,42 @@ struct vec_subtract<std::tuple<integral_constant<_tInt, _vSeq1>...>,
 
 
 /*!
-\since build 651
+\note 使用 ADL get 。
+\see WG21 N4606 20.5.2.5[tuple.apply]/2 。
+\see WG21 P0209R2 。
+\since build 735
+*/
+//@{
+namespace details
+{
+
+template<typename _type, class _tTuple, size_t... _vIdx>
+yconstfn _type
+make_from_tuple_impl(_tTuple&& t, index_sequence<_vIdx...>)
+{
+	using std::get;
+
+	return _type(get<_vIdx>(yforward(t))...);
+}
+
+} // namespace details;
+
+//! \brief 从元组构造指定类型的值。
+template<typename _type, class _tTuple>
+yconstfn _type
+make_from_tuple(_tTuple&& t)
+{
+	return details::make_from_tuple_impl<_type>(yforward(t),
+		make_index_sequence<std::tuple_size<decay_t<_tTuple>>::value>());
+}
+//@}
+
+
+/*!
 \see WG21 P0088R0 。
+\see WG21 P0088R1 。
+\since build 651
+\todo 重命名为 \c variant_npos ，转移到合适的头文件。
 */
 //@{
 //! \brief 表示没有找到的索引。

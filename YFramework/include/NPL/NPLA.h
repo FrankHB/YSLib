@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1033
+\version r1043
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-10-09 21:05 +0800
+	2016-10-24 02:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -614,6 +614,17 @@ RemoveIdentifier(ContextNode&, string_view, bool);
 */
 YB_PURE YF_API bool
 CheckReducible(ReductionStatus);
+
+/*!
+\sa CheckReducible
+\since build 735
+*/
+template<typename _func, typename... _tParams>
+void
+CheckedReduceWith(_func f, _tParams&&... args)
+{
+	ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
+}
 
 /*!
 \brief 移除节点的空子节点，然后判断是否可继续规约。

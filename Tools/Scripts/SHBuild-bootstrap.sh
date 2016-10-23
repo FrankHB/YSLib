@@ -29,7 +29,7 @@ INCLUDES=" \
 	-I../../YBase/include \
 	"
 
-# Coordinated with build 710.
+# Coordinated with build 735.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -45,6 +45,7 @@ LIBS=" \
 	../../YFramework/source/YCLib/FileSystem.cpp \
 	../../YFramework/source/YCLib/Host.cpp \
 	../../YFramework/source/YCLib/YCommon.cpp \
+	../../YFramework/source/YCLib/MemoryMapping.cpp \
 	../../YFramework/source/YSLib/Core/YCoreUtilities.cpp \
 	../../YFramework/source/YSLib/Core/YException.cpp \
 	../../YFramework/source/YSLib/Core/ValueNode.cpp \
@@ -59,6 +60,7 @@ if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	LIBS="$LIBS \
 		../../YFramework/Win32/source/YCLib/MinGW32.cpp \
 		../../YFramework/Win32/source/YCLib/Consoles.cpp \
+		../../YFramework/Win32/source/YCLib/NLP.cpp \
 		"
 fi
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1630
+\version r1715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-10-09 21:11 +0800
+	2016-10-24 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,15 +169,14 @@ AccessLeafPassesRef(ContextNode&);
 //! \brief 访问列表节点遍。
 YF_API EvaluationPasses&
 AccessListPassesRef(ContextNode&);
+//@}
 
-/*!
-\sa InvokePasses
-\since build 726
-*/
+//! \sa InvokePasses
 //@{
 /*!
 \brief 调用守护遍。
 \sa GuardPasses
+\since build 726
 */
 YF_API Guard
 InvokeGuard(TermNode& term, ContextNode&);
@@ -227,7 +226,6 @@ InvokeList(TermNode& term, ContextNode&);
 */
 YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
-//@}
 
 /*!
 \note 按语言规范，子项规约顺序未指定。
@@ -245,6 +243,30 @@ Reduce(TermNode&, ContextNode&);
 */
 YF_API void
 ReduceArguments(TermNode::Container&, ContextNode&);
+
+/*!
+\since build 735
+\todo 使用更确切的异常类型。
+*/
+//@{
+/*!
+\brief 规约并检查成功：调用 Reduce 并检查结果，失败时抛出异常。
+\throw NPLException Reduce 结果不是 ReductionStatus::Success。
+\sa CheckedReduceWith
+\sa Reduce
+*/
+YF_API void
+ReduceChecked(TermNode&, ContextNode&);
+
+/*!
+\brief 规约闭包：使用第四参数指定的闭包项规约后替换到指定项上。
+\exception NPLException 异常中立：由 ReduceChecked 抛出。
+\note 第三参数指定是否转移而不保留原项。
+\sa ReduceChecked
+*/
+YF_API void
+ReduceCheckedClosure(TermNode&, ContextNode&, bool, TermNode&);
+//@}
 
 /*!
 \brief 规约子项。
@@ -460,16 +482,23 @@ YF_API ReductionStatus
 EvaluateContextFirst(TermNode&, ContextNode&);
 
 /*!
-\brief 求值标识符：项作为标识符取对应的值并替换，并根据替换的值尝试以字面量处理。
+\brief 求值标识符。
 \pre 断言：第三参数的数据指针非空。
 \throw BadIdentifier 标识符未声明。
 \note 第一参数指定输出的值。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa FetchValue
 \sa LiteralHandler
+\since build 735
+
+依次进行以下求值操作：
+调用 FetchValue 查找值，若失败抛出未声明异常；
+以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果；
+否则，以 TermNode 访问值，若发现是枝节点，返回要求重规约；
+否则，视为规约成功。
 */
 YF_API ReductionStatus
-EvaluateIdentifier(ValueObject&, ContextNode&, string_view);
+EvaluateIdentifier(TermNode&, ContextNode&, string_view);
 //@}
 
 
@@ -562,6 +591,66 @@ CallUnaryAs(_func f, TermNode& term)
 		f(YSLib::Access<_type>(node));
 	}, term);
 }
+//@}
+
+
+//! \since build 735
+//@{
+/*!
+\note 支持修饰符。
+\sa ReduceWithModifier
+*/
+//@{
+/*!
+\brief 定义或设置项。
+\throw InvalidSyntax 节点分类非法，或由 DefineOrSetFor 抛出的异常。
+\note 第三参数指定使用定义而不是设置（重定义）。
+\sa DefineOrSetFor
+\sa Lambda
+
+限定第三参数后可使用 RegisterFormContextHandler 注册上下文处理器，参考文法：
+$define|$set [!] <variable> <expression>
+$define|$set [!] (<variable> <formals>) <body>
+*/
+YF_API void
+DefineOrSet(TermNode&, ContextNode&, bool);
+
+/*!
+\brief 定义或设置标识符的值。
+\note 参数分别为标识符、被规约的项、上下文、使用定义以及是否存在修饰符。
+\throw InvalidSyntax 标识符是字面量。
+\sa CategorizeLiteral
+\sa DefineValue
+\sa RedefineValue
+
+定义或设置参数指定的值：首先检查标识符不是字面量。
+排除可选项外，若第二子项是列表，
+则定义或设置以此列表第一子项为名称、剩余项为参数的 λ 抽象。
+*/
+YF_API void
+DefineOrSetFor(const string&, TermNode&, ContextNode&, bool, bool);
+//@}
+
+/*!
+\brief 以容器作为参数列表提取 λ 抽象的参数。
+\throw InvalidSyntax 存在重复的参数。
+*/
+YF_API YSLib::shared_ptr<vector<string>>
+ExtractLambdaParameters(const TermNode::Container&);
+
+/*!
+\brief λ 抽象：产生一个捕获当前上下文的过程。
+\exception InvalidSyntax 异常中立：由 ExtractLambdaParameters 抛出。
+\sa ExtractLambdaParameters
+\todo 优化捕获开销。
+
+使用 ExtractLambdaParameters 检查参数列表并捕获和绑定变量，
+然后设置节点的值为表示 λ 抽象的上下文处理器。
+可使用 RegisterFormContextHandler 注册上下文处理器，参考文法：
+$lambda <formals> <body>
+*/
+YF_API void
+Lambda(TermNode&, ContextNode&);
 //@}
 
 } // namespace Forms;
