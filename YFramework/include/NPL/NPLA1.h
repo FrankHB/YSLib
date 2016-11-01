@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1715
+\version r1769
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-10-24 02:13 +0800
+	2016-10-31 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,6 +203,7 @@ InvokeList(TermNode& term, ContextNode&);
 \note 可能使参数中容器的迭代器失效。
 \note 默认不需要重规约。这可被求值遍改变。
 \note 可被求值遍调用以实现递归求值。
+\note 异常安全取决于调用遍的最低异常安全保证。
 \sa DetectReducible
 \sa InvokeGuard
 \sa InvokeLeaf
@@ -468,7 +469,7 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 
 /*!
 \return 规约状态。
-\since build 730
+\since build 736
 */
 //@{
 /*!
@@ -477,14 +478,18 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 \note 若项不是枝节点则视为规约成功，没有其它作用。
 \sa ContextHandler
 \sa Reduce
+\since build 730
 */
 YF_API ReductionStatus
 EvaluateContextFirst(TermNode&, ContextNode&);
 
 /*!
-\brief 求值标识符。
 \pre 断言：第三参数的数据指针非空。
-\throw BadIdentifier 标识符未声明。
+\exception BadIdentifier 标识符未声明。
+*/
+//@{
+/*!
+\brief 求值标识符。
 \note 第一参数指定输出的值。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa FetchValue
@@ -499,6 +504,34 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, ContextNode&, string_view);
+
+/*!
+\brief 求值叶节点记号。
+\sa CategorizeLiteral
+\sa DeliteralizeUnchecked
+\sa EvaluateIdentifier
+*/
+YF_API ReductionStatus
+EvaluateLeafToken(TermNode&, ContextNode&, string_view);
+
+/*!
+\brief 规约提取名称的叶节点记号。
+\sa EvaluateLeafToken
+\sa TermToNode
+*/
+YF_API ReductionStatus
+ReduceLeafToken(TermNode&, ContextNode&);
+//@}
+
+/*!
+\brief 设置默认解释：解释使用的公共处理遍。
+\note 非强异常安全：加入遍可能提前设置状态而不在失败时回滚。
+\sa EvaluateContextFirst
+\sa ReduceFirst
+\sa ReduceLeafToken
+*/
+YF_API void
+SetupDefaultInterpretation(ContextNode&, EvaluationPasses);
 //@}
 
 
@@ -594,9 +627,24 @@ CallUnaryAs(_func f, TermNode& term)
 //@}
 
 
+/*!
+\brief 注册一元函数。
+\since build 736
+*/
+template<typename _type, typename _func>
+void
+RegisterUnaryFunction(TermNode& term, const string& name, _func f)
+{
+	A1::RegisterFunction(term, name, [f](TermNode& node){
+		Forms::CallUnaryAs<_type>(f, node);
+	}, IsBranch);
+}
+
+
 //! \since build 735
 //@{
 /*!
+\note 在节点后的 bool 参数指定使用定义而不是设置（重定义）。
 \note 支持修饰符。
 \sa ReduceWithModifier
 */
@@ -604,7 +652,6 @@ CallUnaryAs(_func f, TermNode& term)
 /*!
 \brief 定义或设置项。
 \throw InvalidSyntax 节点分类非法，或由 DefineOrSetFor 抛出的异常。
-\note 第三参数指定使用定义而不是设置（重定义）。
 \sa DefineOrSetFor
 \sa Lambda
 
@@ -616,16 +663,19 @@ YF_API void
 DefineOrSet(TermNode&, ContextNode&, bool);
 
 /*!
-\brief 定义或设置标识符的值。
+\brief 定义或设置标识符的值为指定的项。
 \note 参数分别为标识符、被规约的项、上下文、使用定义以及是否存在修饰符。
 \throw InvalidSyntax 标识符是字面量。
 \sa CategorizeLiteral
 \sa DefineValue
+\sa EvaluateIdentifier
 \sa RedefineValue
 
 定义或设置参数指定的值：首先检查标识符不是字面量。
 排除可选项外，若第二子项是列表，
 则定义或设置以此列表第一子项为名称、剩余项为参数的 λ 抽象。
+否则，直接定义值。
+值以项的形式被转移，求值会在替换标识符时进行。
 */
 YF_API void
 DefineOrSetFor(const string&, TermNode&, ContextNode&, bool, bool);
@@ -641,11 +691,13 @@ ExtractLambdaParameters(const TermNode::Container&);
 /*!
 \brief λ 抽象：产生一个捕获当前上下文的过程。
 \exception InvalidSyntax 异常中立：由 ExtractLambdaParameters 抛出。
+\sa EvaluateIdentifier
 \sa ExtractLambdaParameters
 \todo 优化捕获开销。
 
 使用 ExtractLambdaParameters 检查参数列表并捕获和绑定变量，
 然后设置节点的值为表示 λ 抽象的上下文处理器。
+参数以项的形式被转移，求值会在应用替换时进行。
 可使用 RegisterFormContextHandler 注册上下文处理器，参考文法：
 $lambda <formals> <body>
 */

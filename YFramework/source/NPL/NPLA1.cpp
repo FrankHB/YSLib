@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1511
+\version r1605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-10-24 02:13 +0800
+	2016-11-01 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,6 +140,28 @@ yconstexpr const auto ListTermName("__$$");
 //! \since build 730
 yconstfn PDefH(ReductionStatus, ToStatus, bool res) ynothrow
 	ImplRet(res ? ReductionStatus::NeedRetry : ReductionStatus::Success)
+
+//! \since build 736
+yconstfn PDefH(bool, NeedsRetry, ReductionStatus res) ynothrow
+	ImplRet(res != ReductionStatus::Success)
+
+//! \since build 736
+template<typename _func>
+TermNode
+TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
+	const ValueObject& delim, const string& name)
+{
+	using namespace std::placeholders;
+	auto res(AsNode(name, term.Value));
+
+	if(IsBranch(term))
+	{
+		res += AsIndexNode(res, pfx);
+		ystdex::split(term.begin(), term.end(), ystdex::bind1(HasValue,
+			std::ref(delim)), std::bind(f, std::ref(res), _1, _2));
+	}
+	return res;
+}
 
 } // unnamed namespace;
 
@@ -293,43 +315,27 @@ TermNode
 TransformForSeparator(const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const string& name)
 {
-	auto res(AsNode(name, term.Value));
+	return TransformForSeparatorTmpl([&](TermNode& res, TNCIter b, TNCIter e){
+		auto child(AsIndexNode(res));
 
-	if(IsBranch(term))
-	{
-		res += AsIndexNode(res, pfx);
-		ystdex::split(term.begin(), term.end(),
-			ystdex::bind1(HasValue, std::ref(delim)), [&](TNCIter b, TNCIter e){
-			auto child(AsIndexNode(res));
-
-			while(b != e)
-			{
-				child += {b->GetContainer(), MakeIndex(child), b->Value};
-				++b;
-			}
-			res += std::move(child);
-		});
-	}
-	return res;
+		while(b != e)
+		{
+			child += {b->GetContainer(), MakeIndex(child), b->Value};
+			++b;
+		}
+		res += std::move(child);
+	}, term, pfx, delim, name);
 }
 
 TermNode
 TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const string& name)
 {
-	auto res(AsNode(name, term.Value));
-
-	if(IsBranch(term))
-	{
-		res += AsIndexNode(res, pfx);
-		ystdex::split(term.begin(), term.end(),
-			ystdex::bind1(HasValue, std::ref(delim)), [&](TNCIter b, TNCIter e){
-			while(b != e)
-				res += TransformForSeparatorRecursive(*b++, pfx, delim,
-					MakeIndex(res));
-		});
-	}
-	return res;
+	return TransformForSeparatorTmpl([&](TermNode& res, TNCIter b, TNCIter e){
+		while(b != e)
+			res += TransformForSeparatorRecursive(*b++, pfx, delim,
+				MakeIndex(res));
+	}, term, pfx, delim, name);
 }
 
 ReductionStatus
@@ -410,8 +416,7 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 	// TODO: Simplify by using %ReductionStatus as invocation result directly.
 //	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
 	passes += [name, delim](TermNode& term){
-		return ReplaceSeparatedChildren(term, name, delim)
-			!= ReductionStatus::Success;
+		return NeedsRetry(ReplaceSeparatedChildren(term, name, delim));
 	};
 	RegisterFormContextHandler(node, name, [](TermNode& term, ContextNode& ctx){
 		RemoveHead(term);
@@ -462,6 +467,57 @@ EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 			return ReductionStatus::NeedRetry;
 	}
 	return ReductionStatus::Success;
+}
+
+ReductionStatus
+EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
+{
+	// NOTE: Only string node of identifier is tested.
+	if(!id.empty())
+	{
+		// NOTE: If necessary, there can be inserted some cleanup to
+		//	remove empty tokens, returning %ReductionStatus::NeedRetr.
+		//	Separators should have been handled in appropriate
+		//	preprocess passes.
+		const auto lcat(CategorizeLiteral(id));
+
+		if(lcat == LiteralCategory::Code)
+			// TODO: When do code literals need to be evaluated?
+			id = DeliteralizeUnchecked(id);
+		else if(lcat != LiteralCategory::None)
+			// TODO: Handle other categories of literal.
+			return ReductionStatus::Success;
+		return EvaluateIdentifier(term, ctx, id);
+		// XXX: Empty token is ignored.
+		// XXX: Remained reducible?
+	}
+	return ReductionStatus::Success;
+}
+
+ReductionStatus
+ReduceLeafToken(TermNode& term, ContextNode& ctx)
+{
+	return ystdex::call_value_or([&](string_view id) -> ReductionStatus{
+		YAssertNonnull(id.data());
+		return EvaluateLeafToken(term, ctx, id);
+	// FIXME: Success on node conversion failure?
+	}, TermToName(term), ReductionStatus::Success);
+}
+
+void
+SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
+{
+	// TODO: Simplify by using %ReductionStatus as invocation result directly
+	//	in YSLib. Otherwise current versions of G++ would crash here as internal
+	//	compiler error: "error reporting routines re-entered".
+//	passes += ReduceFirst;
+	passes += ystdex::compose(NeedsRetry, ReduceFirst);
+	// TODO: Insert more form evaluation passes: macro expansion, etc.
+//	passes += EvaluateContextFirst;
+	passes += ystdex::compose(NeedsRetry, EvaluateContextFirst);
+	AccessListPassesRef(root) = std::move(passes);
+//	AccessLeafPassesRef(root) = ReduceLeafToken;
+	AccessLeafPassesRef(root) = ystdex::compose(NeedsRetry, ReduceLeafToken);
 }
 
 namespace Forms
@@ -551,8 +607,10 @@ DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
 	bool mod)
 {
 	if(CategorizeLiteral(id) == LiteralCategory::None)
+		// XXX: Moved.
+		// NOTE: Unevaluated term is directly saved.
 		(define ? DefineValue : RedefineValue)
-			(ctx, id, std::move(term.Value), mod);
+			(ctx, id, std::move(term), mod);
 	else
 		throw InvalidSyntax(define ? "Literal cannot be defined."
 			: "Literal cannot be set.");
@@ -633,6 +691,7 @@ Lambda(TermNode& term, ContextNode& ctx)
 				for(const auto& param : params)
 				{
 					// XXX: Moved.
+					// NOTE: Unevaluated operands are directly saved.
 					app_ctx[param].Value = std::move(*j);
 					++j;
 				}

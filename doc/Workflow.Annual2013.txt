@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r272
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2015-01-02 09:28 +0800
+	2016-11-01 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ uLibrary @ DS: rejected. Quality questionable, not suitible for scope.
 	From http://devkitpro.org/viewtopic.php?f=2&t=3192, WinterMute: "Please don't use uLibrary either, it's awful and you won't get support for it here either."
 
 note.req-env:
-WG21/N3476 is confirmend to be not needed currently.
+WG21 N3476 is confirmend to be not needed currently.
 
 $2013-06:
 
@@ -120,7 +120,7 @@ Some interfaces of 'Helper' are moved to 'YSLib'. Some(like 'FPSCounter') are st
 Win32 hosted Window enumeration:
 	::EnumWindows and ::EnumChildWindows can not keep iteration state, so use ::GetWindow instead.
 	Results of enueration the desktop are often too large for usual application.
-G++ 4.8.1 wrongly accepted reopened namespace from non-line to inline. See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53402 .
+G++ 4.8.1 wrongly accepted reopened namespace from non-line to inline. See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53402.
 For loading image from file system using FreeImage:
 	Non-ANSI file name for extension detection(i.e. for ::FreeImage_GetFIFFromFilename) is OK, because the extensions recognized are all ASCII representable.
 	Unicode version of functions are invalid for non-Win32 platforms, so just do not use them.
@@ -133,7 +133,7 @@ Mutal exclusion locking overhead is significant(about 5x lag) in current impleme
 		2. In July, 2012 it could be at a peak of greater than 730 kHz. It is believed that the improvement of functionality has effect on this, though still not clear which part cause the overhead.
 		3. Intel VTune Amplifier XE 2013 detects seconds of spin time before the removal of locking (for an about 10 second run) and almost none (0.010s) after the removal. The use of hardware concurrency is "idle" before and "poor" after.
 	No simple way to improve:
-		1. No lock-free swap primative supported by std::atomic directly because almost no hardware support: http://stackoverflow.com/questions/15460829/lock-free-swap-of-two-unique-ptrt .
+		1. No lock-free swap primative supported by std::atomic directly because almost no hardware support: http://stackoverflow.com/questions/15460829/lock-free-swap-of-two-unique-ptrt.
 		2. Not only pointers themselves, content pointed should be thread-safe.
 		3. Fine-grained thread-safe access should be remained anyway.
 		4. If code in contexts like 'InputManager' uses coarse-grained concurrency, user should be cautious for synchronization. It is error-prone (even if easy).
@@ -146,7 +146,7 @@ Native exceptions should be caught at proper boundary.
 note.merge:
 (FTGL, GLFW, FMOD) @ !DS: considerable, shelved.
 Cairo: rejected.
-	Reason from http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf .
+	Reason from http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf.
 
 $2013-08:
 
@@ -157,7 +157,7 @@ The YSLib project now prefers using alias-declarations over typedef declarations
 	3. Typedef declaration of an anonymous class has no equivalent alias-declaration form, but it is also less commonly used in modern C++ (but not in C), and the YSLib project now deprecates this usage.
 	4. There should be nothing different in general in other aspects. Though the current standard text is still using 'typedef', and for an implementation of both pre-C++11/C++11, keeping 'typedef' would save some '#ifdef' text, the YSLib project has no similar requirements.
 	5. See https://groups.google.com/a/isocpp.org/forum/#!searchin/std-discussion/typedef/std-discussion/cwZ8HYQxxlM/Zzj4CTxSaskJ for the discussion of flavor in the ISO C++ standard text. No problems found for others even for using in standard proposals.
-There is nothing cannot be implemented by ISO C++1y lambda expressions which is able via std::bind, see http://stackoverflow.com/questions/17363003/why-use-stdbind-over-lambdas-in-c14 .
+There is nothing cannot be implemented by ISO C++1y lambda-expressions which is able via std::bind, see http://stackoverflow.com/questions/17363003/why-use-stdbind-over-lambdas-in-c14.
 For std::bind, pointers and reference wrappers arguments are almost always significant except for member function of a class type lvalue, 'std::ref(*this)' and 'this' is the same, while the YSLib code always preferred the latter(simpler). Note the difference is always significant for 'ystdex::any_iterator'.
 For 32bpp '::HBITMAP', it seems that no pitch should be considered, i.e. the storage of pixels is contiguous.
 Note that '::HBITMAP' data is raw bitmap compatible but not strict '::RGBQUAD', so the reserved 'rgbReserved' member can be used as alpha value.
@@ -175,10 +175,10 @@ The member function like 'std::string::c_str' cannot be wrapped in a function/fu
 Algorithm of circle rasterization in "http://cg.sjtu.edu.cn/lecture_site/chap2/mainframe224.htm" is wrong unless the circle is very small.
 The type 'platform::Color' in module YCLib::Video of platform DS and MinGW32 is now comparable since it is implemented as an alias of class type which has an conversion function to integer type.
 MSVC provides '__declspec(novtable)' for classes to ignore vfptr initialization in constructor and destructor as optimization. There are several conclusions:
-	1. This is an optimization primarily for size, firstly appeared at VC++ 5.0, see http://msdn.microsoft.com/en-us/magazine/cc301398.aspx .
+	1. This is an optimization primarily for size, firstly appeared at Microsoft VC++ 5.0, see http://msdn.microsoft.com/en-us/magazine/cc301398.aspx.
 	2. Some major implementations like G++ seem to have no equivalence currently.
-	3. This should be only used with most derived class object, otherwise the behavior is undefined. See http://msdn.microsoft.com/en-us/library/k13k85ky.aspx . It is fit for interface types.
-	4. This would made behavior of code in constructor of derived classes non-confoming to ISO C++ if any 'novtable' base class virtural function is called or RTTI is used. See http://stackoverflow.com/questions/1801258/does-using-declspecnovtable-on-abstract-base-classes-affect-rtti-in-any-way .
+	3. This should be only used with most derived class object, otherwise the behavior is undefined. See http://msdn.microsoft.com/en-us/library/k13k85ky.aspx. It is fit for interface types.
+	4. This would made behavior of code in constructor of derived classes non-confoming to ISO C++ if any 'novtable' base class virtural function is called or RTTI is used. See http://stackoverflow.com/questions/1801258/does-using-declspecnovtable-on-abstract-base-classes-affect-rtti-in-any-way.
 	5. '__declspec(novtable)' should be wrapped by YBase.
 	6. It is not fit for every interface type in YFramework as default option. It is reasonable for some specific interface types which have furthur constraints.
 
@@ -228,10 +228,10 @@ Marco '_GLIBCXX_DEBUG' should be removed as default, even in debug configuration
 		This would cause some functions of YSLib::Adaptor::Image go wrong.
 	Alternatively, if the debug interface of libstdc++ is needed, namespace 'std::__debug' can be explicitly used.
 	Removed such debug interface can also lead to smaller binaries and a little more runtime performance for debug configurations.
-The bug of 'bool = {}' is same to Visual C++ 2013 as Clang++ 3.4(see $2013-10 report.impl).
+The bug of 'bool = {}' is same to Microsoft VC++ 2013 as Clang++ 3.4(see $2013-10 report.impl).
 ISO required 'std::FILE*' as an object type. Different to C++, (possible cv-qualified) void is object type.
 	There exists actual C implementation with cv-void as 'std::FILE*'. For example, in the standard header from the CeGCC project it is 'void'.
-Notes for disabling some VC++ warning:
+Notes for disabling some Microsoft VC++ warning:
 	Used project configuration (for YFramework) but not '#pragma' for clean code and making users have choice to decide further.
 	C4520 warns about multiple constructors found for the same class.
 		It would wrongly detect the situation of exactly one non-template default constructor and one default constructor template, which should be well-formed and safe.
@@ -240,7 +240,7 @@ Notes for disabling some VC++ warning:
 		MSDN also says it is by design to treat cast as same as coercion here. Keeping the solution recommended by adding '!= 0' effectively make code lengthy with actually no benifit, thus it simply not fit for modern C++ in most cases.
 		In C++ (but not in C), coercion or cast to 'bool' is quite safe. Comparaing to null pointer value explicitly is OK, but not required. On the contrast, it might be standard way to test null pointer (but not compare to zero), particular in the ISO C++11 wording "contextually convertible to bool" as some requirements for types including pointers.
 		Too bad copying '!= 0' or similar mouthy stuff ('!= nullptr') everywhere in C++ code.
-The workaround of move constructor and %operator= for Visual C++ 2013 is currently some slower than it should be with fully supported ISO C++11 implementation, because the 'noexcept' operator is missing, and no throwing specification is not guaranteed to work everywhere.
+The workaround of move constructor and %operator= for Microsoft VC++ 2013 is currently some slower than it should be with fully supported ISO C++11 implementation, because the 'noexcept' operator is missing, and nothrow specification is not guaranteed to work everywhere.
 
 $2013-12:
 
@@ -248,13 +248,13 @@ report.impl:
 The reference-counted 'std::basic_string' implementation in libstdc++ is still not conforming to ISO C++11.
 	See $2013-10 report.impl.
 	See $ref b449 "libstdc++ std::basic_string conformance" for references.
-	Though ABI has changed before, the string implementation is not included, and even other breaking changes like 'std::list::size' implementation are reverted: http://gcc.gnu.org/wiki/Cxx11AbiCompatibility .
-	It seems that the ABI would not switched in near future, or at early as of GCC 4.9: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166 .
+	Though ABI has changed before, the string implementation is not included, and even other breaking changes like 'std::list::size' implementation are reverted: http://gcc.gnu.org/wiki/Cxx11AbiCompatibility.
+	It seems that the ABI would not switched in near future, or at early as of GCC 4.9: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166.
 	Use libstdc++ '__gnu_cxx::__versa_string' from <ext/vstring.h> instead, if necessary.
 		See $2013-10 report.impl.
 		See $ref b449 "libstdc++ vstring" for references.
-		Note no 'std::stringstream' counterpart, see: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166#c4 .
-		Be cautious to performace decrese: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54393 .
+		Note no 'std::stringstream' counterpart, see: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166#c4.
+		Be cautious to performace decrese: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54393.
 
 ////
 
