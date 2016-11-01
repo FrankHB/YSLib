@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3749
+\version r3774
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2016-06-08 23:59 +0800
+	2016-11-01 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,15 +248,17 @@ b296
 					* $doc "comments for destructor wrongly designed to copy \
 						constructor" $since b240,
 					* $impl @ "move constructor" $since b241;
-					+ "function %Swap with exception specification %ynothrow";
+					+ "function %Swap with 'ynothrow'";
 						// The using of %std::swap for %BitmapBuffer forbids \
-							the move assignment operator throwing exceptions \
-							or the no throwing specification will be broken.
+							the move %operator= throwing exceptions or the \
+							nothrow specification will be broken.
 					* "missing assignment operators" $since $before b132
-						$= (+ "copy and move assignment operators"),
-						// The unifying assignment cannot be used here \
-							because the copy assignment may throw but move \
-							assignment may not.
+						$= (+ "copy and move %operator=")
+						// It was suspected that the unifying assignment could
+							not be used here because the copy assignment may
+							throw but move assignment may not, which is not true
+							since the exception specification is checked out of
+							the function body.
 				),
 				/ DLD "accessors interface" @ "class %BitmapBuffer" $dep_to
 					"simplified class %BitmapBuffer",
@@ -266,15 +268,14 @@ b296
 			),
 			/ %Core $=
 			(
-				+ $dev "exception specification %ynothrow"
-					@ "class %ValueObject" @ %YObject;
+				+ 'ynothrow' @ "class %ValueObject" @ %YObject;
 				/ DLD @ "class %Message" @ %message $=
 				(
-					/ "unifying %operator=" -> "copy %operator= \
-						without exception specification and move %operator= \
-						with exception specification %ynothrow";
-					+ "exception specification %ynothrow" @ "member move \
-						%operator= with parameter type ValueObject&&"
+					/ "unifying %operator="
+						-> "copy %operator= without exception-specification, \
+						move %operator= with 'ynothrow'";
+					+ 'ynothrow'
+						@ "move %operator= with parameter type ValueObject&&"
 				),
 				(
 				/ DLD "accessors interface" @ "class %GraphicDevice",
@@ -335,7 +336,7 @@ b296
 	(
 		* "empty implementation" @ "macro %(YCL_LIKELY, YCL_UNLIKELY)"
 			@ "header %ydef.h when '!(YCL_IMPL_GNUCPP >= 29600)'" @ $since b294,
-		- $impl "exception specification %ynothrow" @ "macro %yunseq",
+		- $impl 'ynothrow' @ "macro %yunseq",
 			// Allowing throwing exceptions is convenient but not safe, and \
 				users now have resposibility for checking by self.
 		+ "macro %YCL_ATTRIBUTE for implementation supported attributes"
@@ -625,7 +626,7 @@ b289
 		@ %YBase.Algorithm $=
 	(
 		/ "return value" @ "overloading for sequence containers",
-		+ "overloading template for associative containers" $dep_to
+		+ "overloaded for associative containers" $dep_to
 			%YFramework.YSLib.Core.YMessage
 	)
 	/ %YFramework.YSLib $=
@@ -1431,7 +1432,7 @@ b268
 	(
 		/ %UI.GUI $=
 		(
-			+ "invalidation on event %(Move, Resize) as default"
+			+ "invalidation on events %(Move, Resize) as default"
 				@ "class %Control";
 			/ "unnecessary invalidation reduced"
 				@ "function %OnTouchMove_Dragging" @ "unit %Control",
@@ -1774,10 +1775,10 @@ b249
 	),
 	/ DLD "exception macros" $=
 	(
-		/ DLD "exception specification macro" @ ("header %config.h"
+		/ DLD "exception-specification macros" @ ("header %config.h"
 			@ "library %YSLib::Adaptor") >> ("header %ydef.h"
 			@ "library %YCLib::YStandardExtend");
-		* DLD "macro (ythrow, ynothrow) used without definition"
+		* DLD "macros %(ythrow, ynothrow) used without definition"
 			@ "library %YStandardExtend" $since b209;
 	)
 ),
@@ -1878,7 +1879,7 @@ b243
 			only event permitted to call";
 		/ "rendering of function %Render" ^ "mutable rvalue reference \
 			parameter to store the result" ~ "returning";
-		+ "event handler %Render" @ "constructor" @ "%WidgetController";
+		+ "%Render" @ "event %Paint" @ "constructor" @ "%WidgetController";
 		/ "rendering logic" @ "function %Frame::DrawContents" ^ "event %Paint"
 			~ "directly call function %Render";
 		/ DLD "simplified updating" @ "renderer classes",
@@ -2573,7 +2574,7 @@ b214
 		/ "margin of menus",
 		+ "submenus"
 	),
-	* DLD "exception specification" @ "unit %YApplication",
+	* DLD "exception-specification" @ "unit %YApplication",
 	/ $doc $=
 	(
 		* "template parameter description" $since b189
@@ -2719,7 +2720,7 @@ b205
 b204
 (
 	/ "weak handle improvement",
-	/ DLD "exception specification macro",
+	/ DLD "exception-specification macros",
 	- "window handles" $=
 	(
 		- "type %HWND",
@@ -2768,7 +2769,7 @@ b201
 		+ "minor macros" @ "library %YCLib",
 	),
 	+ "type conversion helper template",
-	+ DLD "implicit member overloading by interface parameter with type \
+	+ DLD "implicit overloaded member by interface parameter with type \
 		%IControl and %IWidget" @ "container classes"
 ),
 

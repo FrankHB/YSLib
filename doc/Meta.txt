@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1529
+\version r1560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2016-08-29 14:36 +0800
+	2016-11-01 23:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,16 +79,39 @@ $spec; // spec token, including documentation module name or other \
 $spec_list; // specs list: one or more spec tokens;
 
 // Project stakeholders:
+/*
+NOTES:
+
+The requirements of contracts imply no undefined behavior.
+
+End-users of the project may observe behavior changes. For developers, the
+contracts further includes ahead-of-time build characteristics such as static
+assertions but not runtime observable behavior like runtime assertions.
+
+Being conforming to the interface specification implies contracts on that
+interface are not violated.
+
+Expected "correct" behavior would only be achived when the corresponding
+interface specifications are not violated and the behavior of external
+environment remains also predicatable.
+
+Certain kinds of modifications of the library provide explicit backward
+compatibility on API and/or ABI level. If not mentioned, ABI stability is not
+preserved.
+If ABI remains compatibile, there would be no need to deploy new
+binary code.
+If API remains compatible, there would be no need for library users to modify
+code using to adapt to the modification unless they depend on the new interface.
+Since additions of interface might intefere with valid working code (e.g. with
+SFINAE checks), so unless specified otherwise, they do not fall into the
+category of not requiring the user code to be modified.
+*/
 $dev; // issues concerned by developers, which end-users of the product can \
-	observe no behavior change as long as the code has no undefined behavior \
-	(including ahead-of-time build characteristics such as static assertions \
-	but not runtime observable behavior like runtime assertions);
-$lib; // issues only concerned with library, with no interface changed, or \
-	with no deletion of interface unless some backward compatible replacements \
-	are provided, as long as being confoming to the interface specification \
-	(no undefined behavior, etc) and the correct behavior of external \
-	environment remained, no need for library users to modify code using the \
-	to adapt to the modification unless they depend on the new interface;
+	observe no behavior change as long as the contracts of the code are not \
+	violated;
+$lib; // issues only concerned with library, without interface changes or \
+	deletion unless providing some backward compatible replacements as long as \
+	the correct behavior can be expected;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
 $src; // issues known to break public ABI but remain source compatibility;

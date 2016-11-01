@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3915
+\version r3933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-10-24 02:14 +0800
+	2016-11-01 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,25 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework.NPL.NPLA1 $=
+	(
+		/ @ "namespace %Forms" $=
+		(
+			+ "function template %RegisterUnaryFunction",
+			/ "function %DefineOrSetFor moved term instead of value"
+				// To allow unevaluated expressions like quoted \
+					expressions, also to be same to lambda parameters \
+					passing.
+		),
+		+ "functions %(EvaluateLeafToken; ReduceLeafToken; \
+			SetupDefaultInterpretation)",
+		/ DLDI "simplified functions %(TransformForSeparator, \
+			TransformForSeparatorRecursive)"
+	)
+),
+
+b735
 (
 	/ %YBase.YStandardEx $=
 	(
