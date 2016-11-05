@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3933
+\version r3974
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-01 23:31 +0800
+	2016-11-05 23:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,48 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "class %invalid_construction, function %throw_invalid_construction"
+			@ "namespace %any_ops" @ %Any >> ("namespace %ystdex" @ %Exception),
+		+ "function template %try_new" @ %Memory,
+		* "ill-formed member function template %(emplace_with_handler; all 3 \
+			emplace)" @ "class %any" @ %Any $since b687
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.YObject $=
+		(
+			/ "function %clone supported noncopyable types"
+				@ "class template %ValueHolder" ^ $dep_from
+				("%ystdex::try_new" @ %YBase.YStandardEx.Memory),
+			+ "3 function templates %(EmplaceFromCall, EmplaceFromInvoke)"
+				@ "class %ValueObject"
+		),
+		/ %NPL $=
+		(
+			- "function %Analyze with %string_view parameter" @ %SContext,
+				// To avoid ambiguity.
+			/ @ "namespace %Forms" @ %NPLA1 $=
+			(
+				/ "function templates %(CallUnary, CallUnaryAs) supported \
+					setting value to term" ^ $dep_from
+					("%ValueObject::EmplaceFromCall" @ %YSLib.YObject)
+			)
+		),
+		* "missing consle encoding conversion from UTF-8" @ "default sender"
+			@ "static member function %Logger::FetchDefaultSender"
+			@ %YCLib.Debug $since b498
+	),
+	/ $revert_ex(b661) ^ "%yfsig" ~ '"::main"' @ "error description"
+		@ "exception filtering call" @ "main function" @ %YReader.Main
+		// To be consistent with other programs except %Tools.SHBuild.Main \
+			which has own customized handling of error filter. Note only GUI \
+			program needs to call %TraceForOutermost.
+),
+
+b736
 (
 	/ %YFramework.NPL.NPLA1 $=
 	(

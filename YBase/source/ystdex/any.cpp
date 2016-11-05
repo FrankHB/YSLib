@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r306
+\version r315
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2016-08-07 14:36 +0800
+	2016-11-03 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,19 +32,6 @@ namespace ystdex
 
 namespace any_ops
 {
-
-invalid_construction::invalid_construction()
-	: invalid_argument("Violation on construction found.")
-{}
-
-invalid_construction::~invalid_construction() = default;
-
-void
-throw_invalid_construction()
-{
-	throw invalid_construction();
-}
-
 
 holder::~holder() = default;
 

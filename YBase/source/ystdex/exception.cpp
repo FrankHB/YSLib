@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r40
+\version r49
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 12:15:16 +0800
 \par 修改时间:
-	2016-06-19 20:00 +0800
+	2016-11-03 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,19 @@ unimplemented::~unimplemented() = default;
 
 
 narrowing_error::~narrowing_error() = default;
+
+
+invalid_construction::invalid_construction()
+	: invalid_argument("Violation on construction found.")
+{}
+
+invalid_construction::~invalid_construction() = default;
+
+void
+throw_invalid_construction()
+{
+	throw invalid_construction();
+}
 
 } // namespace ystdex;
 

@@ -11,19 +11,19 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2897
+\version r2932
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-10-01 23:49 +0800
+	2016-11-05 15:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see WG21 N4606 20.8[any] 。
+\see WG21 N4606 20.8[any] 。throw_invalid_construction
 \see http://www.boost.org/doc/libs/1_60_0/doc/html/any/reference.html 。
 */
 
@@ -37,6 +37,7 @@
 #include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
 //	std::unique_ptr, standard_layout_storage, aligned_storage_t,
 //	is_aligned_storable, default_init_t;
+#include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, decay_unwrap_t;
 #include <initializer_list> // for std::initializer_list;
 
@@ -51,33 +52,6 @@ namespace ystdex
 */
 namespace any_ops
 {
-
-//! \since build 686
-//@{
-//! \brief 使用不满足构造限制检查导致的异常。
-class YB_API invalid_construction : public std::invalid_argument
-{
-public:
-	invalid_construction();
-	//! \since build 689
-	invalid_construction(const invalid_construction&) = default;
-
-	/*!
-	\brief 虚析构：类定义外默认实现。
-	\since build 689
-	*/
-	~invalid_construction() override;
-};
-
-/*!
-\brief 抛出 invalid_construction 异常。
-\throw invalid_construction
-\relates invalid_construction
-*/
-YB_NORETURN YB_API void
-throw_invalid_construction();
-//@}
-
 
 //! \since build 687
 template<typename>
@@ -850,7 +824,8 @@ struct any_emplace
 		auto& a(static_cast<_tAny&>(*this));
 
 		a.reset();
-		a.manager = any_ops::construct<decay_t<_tHandler>>(yforward(args)...);
+		a.manager = any_ops::construct<decay_t<_tHandler>>(a.storage,
+			yforward(args)...);
 	}
 };
 
@@ -868,6 +843,9 @@ struct any_emplace
 */
 class YB_API any : private details::any_base, private details::any_emplace<any>
 {
+	//! \since build 737
+	friend details::any_emplace<any>;
+
 public:
 	//! \post \c has_value() 。
 	yconstfn
@@ -877,8 +855,8 @@ public:
 		typename = enable_if_t<!is_reference_wrapper<decay_t<_type>>::value>)>
 	inline
 	any(_type&& x)
-		: any(any_ops::with_handler_t<
-		any_ops::value_handler<decay_t<_type>>>(), yforward(x))
+		: any(any_ops::with_handler_t<any_ops::value_handler<decay_t<_type>>>(),
+		yforward(x))
 	{}
 	//! \note YStandardEx 扩展。
 	//@{
@@ -894,8 +872,8 @@ public:
 	template<typename _type, typename... _tParams>
 	inline
 	any(in_place_type_t<_type>, _tParams&&... args)
-		: any(any_ops::with_handler_t<
-		any_ops::value_handler<_type>>(), yforward(args)...)
+		: any(any_ops::with_handler_t<any_ops::value_handler<_type>>(),
+		yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用指定持有者。
@@ -905,8 +883,8 @@ public:
 	template<typename _tHolder>
 	inline
 	any(any_ops::use_holder_t, std::unique_ptr<_tHolder> p)
-		: any(any_ops::with_handler_t<
-		any_ops::holder_handler<_tHolder>>(), std::move(p))
+		: any(any_ops::with_handler_t<any_ops::holder_handler<_tHolder>>(),
+		std::move(p))
 	{}
 	template<typename _tHolder>
 	inline
