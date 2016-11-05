@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r269
+\version r294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2016-06-19 20:00 +0800
+	2016-11-03 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,8 @@
 #include <memory> // for std::addressof;
 #include "type_traits.hpp" // for remove_cv_t;
 #include <stdexcept> // for std::logic_error;
-#include <system_error> // for std::error_category, std::generic_category,
-//	std::system_error, std::errc;
+#include <system_error> // for std::system_error, std::generic_category,
+//	std::error_category;
 
 namespace ystdex
 {
@@ -165,6 +165,33 @@ public:
 	//! \brief 虚析构：类定义外默认实现。
 	~narrowing_error() override;
 };
+//@}
+
+
+//! \since build 686
+//@{
+//! \brief 使用不满足构造限制检查导致的异常。
+class YB_API invalid_construction : public std::invalid_argument
+{
+public:
+	invalid_construction();
+	//! \since build 689
+	invalid_construction(const invalid_construction&) = default;
+
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 689
+	*/
+	~invalid_construction() override;
+};
+
+/*!
+\brief 抛出 invalid_construction 异常。
+\throw invalid_construction
+\relates invalid_construction
+*/
+YB_NORETURN YB_API void
+throw_invalid_construction();
 //@}
 
 

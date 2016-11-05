@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1769
+\version r1779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-10-31 09:56 +0800
+	2016-11-05 14:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -612,7 +612,7 @@ CallUnary(_func f, TermNode& term)
 {
 	QuoteN(term);
 
-	f(Deref(std::next(term.begin())));
+	term.Value.EmplaceFromCall(f, Deref(std::next(term.begin())));
 	term.ClearContainer();
 }
 
@@ -620,8 +620,8 @@ template<typename _type, typename _func>
 void
 CallUnaryAs(_func f, TermNode& term)
 {
-	return Forms::CallUnary([f](TermNode& node){
-		f(YSLib::Access<_type>(node));
+	Forms::CallUnary([f](TermNode& node){
+		return f(YSLib::Access<_type>(node));
 	}, term);
 }
 //@}
@@ -646,6 +646,7 @@ RegisterUnaryFunction(TermNode& term, const string& name, _func f)
 /*!
 \note 在节点后的 bool 参数指定使用定义而不是设置（重定义）。
 \note 支持修饰符。
+\note 实现特殊形式。值以项的形式被转移，在标识符替换时可能进一步求值。
 \sa ReduceWithModifier
 */
 //@{
@@ -655,7 +656,8 @@ RegisterUnaryFunction(TermNode& term, const string& name, _func f)
 \sa DefineOrSetFor
 \sa Lambda
 
-限定第三参数后可使用 RegisterFormContextHandler 注册上下文处理器，参考文法：
+限定第三参数后可使用 RegisterFormContextHandler 注册上下文处理器。
+特殊形式参考文法：
 $define|$set [!] <variable> <expression>
 $define|$set [!] (<variable> <formals>) <body>
 */
@@ -675,7 +677,6 @@ DefineOrSet(TermNode&, ContextNode&, bool);
 排除可选项外，若第二子项是列表，
 则定义或设置以此列表第一子项为名称、剩余项为参数的 λ 抽象。
 否则，直接定义值。
-值以项的形式被转移，求值会在替换标识符时进行。
 */
 YF_API void
 DefineOrSetFor(const string&, TermNode&, ContextNode&, bool, bool);
@@ -690,6 +691,7 @@ ExtractLambdaParameters(const TermNode::Container&);
 
 /*!
 \brief λ 抽象：产生一个捕获当前上下文的过程。
+\note 实现特殊形式。参数以项的形式被转移，在函数应用时可能进一步求值。
 \exception InvalidSyntax 异常中立：由 ExtractLambdaParameters 抛出。
 \sa EvaluateIdentifier
 \sa ExtractLambdaParameters
@@ -697,8 +699,8 @@ ExtractLambdaParameters(const TermNode::Container&);
 
 使用 ExtractLambdaParameters 检查参数列表并捕获和绑定变量，
 然后设置节点的值为表示 λ 抽象的上下文处理器。
-参数以项的形式被转移，求值会在应用替换时进行。
-可使用 RegisterFormContextHandler 注册上下文处理器，参考文法：
+可使用 RegisterFormContextHandler 注册上下文处理器。
+特殊形式参考文法：
 $lambda <formals> <body>
 */
 YF_API void

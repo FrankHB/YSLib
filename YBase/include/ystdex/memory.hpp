@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1891
+\version r1919
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-08-27 13:05 +0800
+	2016-11-04 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,8 +36,9 @@
 //	is_void, remove_pointer_t, is_pointer, enable_if_t, is_array, extent,
 //	remove_extent_t;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
-#include "cassert.h" // for yconstraint;
+#include "exception.h" // for throw_invalid_construction;
 #include "operators.hpp" // for totally_ordered, equality_comparable;
+#include "cassert.h" // for yconstraint;
 
 #if YB_IMPL_MSCPP >= 1800
 /*!
@@ -115,7 +116,36 @@ struct pack_obj_impl<std::shared_ptr<_type>>
 };
 //@}
 
+//! \since build 736
+template<typename _type, typename... _tParams>
+YB_NORETURN _type*
+try_new_impl(void*, _tParams&&...)
+{
+	throw_invalid_construction();
+}
+//! \since build 736
+template<typename _type, typename... _tParams>
+auto
+try_new_impl(nullptr_t,  _tParams&&... args)
+	-> decltype(new _type(yforward(args)...))
+{
+	return new _type(yforward(args)...);
+}
+
 } // namespace details;
+
+
+/*!
+\brief 尝试调用 new 表达式。
+\throw invalid_construction 调用非合式。
+\since build 737
+*/
+template<typename _type, typename... _tParams>
+_type*
+try_new(_tParams&&... args)
+{
+	return details::try_new_impl<_type>(nullptr, yforward(args)...);
+}
 
 
 /*!

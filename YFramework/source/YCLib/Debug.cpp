@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r739
+\version r750
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2016-08-28 15:31 +0800
+	2016-11-05 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,9 @@
 #elif YCL_Win32
 #	include <csignal>
 #	include YFM_YCLib_NativeAPI // for ::OutputDebugStringA, ::MessageBoxA;
+#	include YFM_Win32_YCLib_Consoles // for platform_ex::MakeWConsole,
+//	STD_ERROR_HANDLE, platform_ex::Win32Exception;
+#	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS;
 #elif YCL_Android
 #	include <android/log.h>
 #endif
@@ -174,7 +177,15 @@ Logger::Sender
 Logger::FetchDefaultSender(string_view tag)
 {
 	YAssertNonnull(tag.data());
-#if YCL_Android
+#if YCL_Win32
+	return [](Level lv, Logger& logger, const char* str){
+		using namespace platform_ex;
+
+		// TODO: Avoid throwing of %WriteString here for better performance?
+		TryExpr(WConsole(STD_ERROR_HANDLE).WriteString(UTF8ToWCS(str) + L'\n'))
+		CatchExpr(Win32Exception&, DefaultSendLog(lv, logger, str))
+	};
+#elif YCL_Android
 	return platform_ex::AndroidLogSender(tag);
 #else
 	return DefaultSendLog;
