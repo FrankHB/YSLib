@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1043
+\version r1064
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-10-24 02:07 +0800
+	2016-11-09 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -537,15 +537,20 @@ enum class LiteralCategory
 	Code,
 	//! \brief 数据字面量。
 	Data,
-	//! \brief 数字字面量。
-	Numeric
+	/*!
+	\brief 扩展字面量：由派生实现定义的其它字面量。
+	\since build 737
+	*/
+	Extended
 };
 
 
 /*!
 \brief 对字面量分类。
 \pre 断言：字符串参数的数据指针非空。
-\sa CategorizeLiteral
+\return 判断的非扩展字面量分类。
+\note 扩展字面量视为非字面量。
+\sa LiteralCategory
 */
 YF_API LiteralCategory
 CategorizeLiteral(string_view);
@@ -670,6 +675,12 @@ using GPasses = YSLib::GEvent<bool(_tParams...),
 using TermPasses = GPasses<TermNode&>;
 //! \brief 求值合并遍。
 using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
+/*!
+\brief 字面量合并遍。
+\pre 字符串参数的数据指针非空。
+\since build 738
+*/
+using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
 //@}
 
 
@@ -708,15 +719,18 @@ inline PDefH(void, LiftLast, TermNode& term)
 
 /*!
 \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
-\since build 685
+\since build 738
 */
-template<class _tPasses>
+template<class _tPasses, typename... _tParams>
 typename _tPasses::result_type
-InvokePasses(TermNode& term, ContextNode& ctx, const string& name)
+InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
+	_tParams&&... args)
 {
 	return ystdex::call_value_or<typename _tPasses::result_type>(
 		[&](_tPasses& passes){
-		return passes(term, ctx);
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
+		return passes(term, ctx, std::forward<_tParams>(args)...);
 	}, AccessChildPtr<_tPasses>(ctx, name));
 }
 

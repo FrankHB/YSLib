@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1779
+\version r1812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-11-05 14:44 +0800
+	2016-11-09 04:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,6 +171,13 @@ YF_API EvaluationPasses&
 AccessListPassesRef(ContextNode&);
 //@}
 
+/*!
+\brief 访问字面量遍。
+\since build 738
+*/
+YF_API LiteralPasses&
+AccessLiteralPassesRef(ContextNode&);
+
 //! \sa InvokePasses
 //@{
 /*!
@@ -194,6 +201,15 @@ InvokeLeaf(TermNode& term, ContextNode&);
 YF_API ReductionStatus
 InvokeList(TermNode& term, ContextNode&);
 //@}
+
+/*!
+\brief 调用字面量遍。
+\pre 断言：字符串参数的数据指针非空。
+\sa LiteralPasses
+\since build 738
+*/
+YF_API ReductionStatus
+InvokeLiteral(TermNode& term, ContextNode&, string_view);
 //@}
 
 
@@ -468,12 +484,8 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 
 
 /*!
-\return 规约状态。
-\since build 736
-*/
-//@{
-/*!
 \brief 检查项的首项并尝试按上下文列表求值。
+\return 规约状态。
 \throw ListReductionFailure 规约失败：找不到可规约项。
 \note 若项不是枝节点则视为规约成功，没有其它作用。
 \sa ContextHandler
@@ -484,13 +496,16 @@ YF_API ReductionStatus
 EvaluateContextFirst(TermNode&, ContextNode&);
 
 /*!
-\pre 断言：第三参数的数据指针非空。
 \exception BadIdentifier 标识符未声明。
+\note 第一参数指定输入的项，其 Value 指定输出的值。
+\note 默认视为规约成功以保证强规范化性质。
+\since build 736
 */
+//@{
+//! \pre 断言：第三参数的数据指针非空。
 //@{
 /*!
 \brief 求值标识符。
-\note 第一参数指定输出的值。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa FetchValue
 \sa LiteralHandler
@@ -499,8 +514,7 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 依次进行以下求值操作：
 调用 FetchValue 查找值，若失败抛出未声明异常；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果；
-否则，以 TermNode 访问值，若发现是枝节点，返回要求重规约；
-否则，视为规约成功。
+否则，以 TermNode 访问值，若发现是枝节点，返回要求重规约。
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, ContextNode&, string_view);
@@ -510,9 +524,18 @@ EvaluateIdentifier(TermNode&, ContextNode&, string_view);
 \sa CategorizeLiteral
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
+\sa InvokeLiteral
+
+处理非空字符串表示的节点记号。
+依次进行以下求值操作。
+对代码字面量，去除字面量边界分隔符后进一步求值。
+对数据字面量，去除字面量边界分隔符作为字符串值。
+对其它字面量，通过调用字面量遍处理。
+最后求值非字面量的标识符。
 */
 YF_API ReductionStatus
 EvaluateLeafToken(TermNode&, ContextNode&, string_view);
+//@}
 
 /*!
 \brief 规约提取名称的叶节点记号。
@@ -529,10 +552,10 @@ ReduceLeafToken(TermNode&, ContextNode&);
 \sa EvaluateContextFirst
 \sa ReduceFirst
 \sa ReduceLeafToken
+\since build 736
 */
 YF_API void
 SetupDefaultInterpretation(ContextNode&, EvaluationPasses);
-//@}
 
 
 /*!

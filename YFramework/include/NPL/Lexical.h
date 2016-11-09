@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1509
+\version r1510
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2016-09-26 13:52 +0800
+	2016-11-06 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,7 +314,7 @@ IsGraphicalDelimeter(char c)
 {
 //	return std::ispunct(c);
 	return c == '(' || c == ')' || c == ':' || c == ',' || c == ';'
-		|| c == '#' || c == '%' || c == '!';
+		|| c == '%' || c == '!';
 }
 
 /*!

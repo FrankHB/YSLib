@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r917
+\version r936
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2016-06-07 20:29 +0800
+	2016-11-09 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,14 +173,14 @@ Both slashes and backslashes can be supported as file system delimiter by Window
 	See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx.
 There are some issues against aggresive optimization of moving an object in several contexts.
 	For initialization of exception objects, the copy elision would not be performed.
-		See N3690 comment CA 23 and CWG 1493.
+		See WG21 N3690 comment CA 23 and CWG 1493.
 		See also http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3771.pdf.
 	Currently moving from returned object is tied closely to the criteria for copy elision.
-		See N3690 comment US 13 and CWG 1579.
+		See WG21 N3690 comment US 13 and CWG 1579.
 		Explicit use of 'std::move' can be a workaround.
 		This issue was accepted.
-	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3852.html for N3690 comments list.
-	There was no consensus for the suggested change for other contexts. See N3690 comment US 12.
+	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3852.html for WG21 N3690 comments list.
+	There was no consensus for the suggested change for other contexts. See WG21 N3690 comment US 12.
 	Therefore, explicitly use of 'std::move' and 'std::move_if_noexcept' only should occured when necessary.
 	See also $2014-01 in this document.
 'YSTest402r16.nds' cases DeSmuME 0.9.9 x64 crash for unknown reasons.
@@ -226,18 +226,18 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 		A call wrapper "holds" a callable object, not necessarily "owns" a callable object. Be cautious for the lifetime of the underlying callable object.
 	Note a call wrapper is MoveConstructible; a call wrapper can be not CopyConstructible; A simple call wrapper is CopyConstructible. See ISO C++11 20.8.2/4.
 		Exceptions are strictly restricted to be thrown. No exception are allowed to be thrown in copying a simple call wrapper.
-		For moved-only types(which is not CopyConstructible), it should be treated as forwarding call wrapper, i.e. passed as '_fCallable&&'.
+		For moved-only types (which is not CopyConstructible), it should be treated as forwarding call wrapper, i.e. passed as '_fCallable&&'.
 		Otherwise, for simplicity, a callable object should be passed by '_fCallable', except when necessarily treated as forwarding call wrapper by design.
 			Most uses of callable objects or call wrappers are plainly passed by value.
-				Such as the function parameter of the constructor of 'std::function' with exactly 1 parameter.
+				Such as the function parameter of the constructor of 'std::function' with exact 1 parameter.
 				The function templates in algorithm library accept callable objects or simple call wrappers passed by value.
 			The are two important exceptions:
-				The 1st parameter for the constructor of 'std::bind'.
+				The 1st parameter for 'std::bind'.
 					The forwarding call wrapper should have been accepted by design.
-					See http://wg21.cmeerw.net/lwg/issue817 for details.
+					See LWG 817 for details.
 				The 1st parameter for the constructor of 'std::thread'.
-					The use cases and reasons are similiar.
-					See http://wg21.cmeerw.net/lwg/issue929 for details.
+					The use cases and reasons are similar.
+					See LWG 929 for details.
 	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved even if the copy elision criteria in ISO C++ 12.8/31 are not met.
 		If used as forwarding of a passed by value callable object, no redundant 'std::move' should be used.
 		See also $2014-01 and $2014-02 in this document.
@@ -298,7 +298,7 @@ Rules for exception handling should be uniformed.
 $2014-05:
 
 report.impl:
-	Select carefully between 'const_iterator' and 'iterator' for ODR issue. See http://wg21.cmeerw.net/lwg/issue1214.
+	Select carefully between 'const_iterator' and 'iterator' for ODR issue. See LWG 1214.
 There are some similar measurement values for a given image with proper underlying image buffer, both are rectangular in sense of rasterization as pixels.
 	Width is the magnitude of the logical image or buffer area in horizontal, or X-axis for 2D coordinates.
 	Height is the magnitude of the logical image or buffer area in vertical, or Y-axis for 2D coordinates.
@@ -529,7 +529,7 @@ report.impl:
 Initialization should be cared.
 	There are several changes in ISO C++1y for initialization.
 		For value-initialization, as per WG21 N3936, from the resolution of CWG 1301, the explicitly defaulted default constructors (declaring with '= default') are considered to ensure zero-initialization for classes without default constructor.
-			See http://wg21.cmeerw.net/cwg/issue1301.
+			See CWG 1301.
 			It differentiates with explicitly deleted constructor (declaring with '= delete') or user-provided ones.
 			Note for ISO C++11, The '= default' is not enough to ensure a value-initialized with no unitialized non-static data members. This is not intended.
 			It seems G++ 4.8 and Clang++ 3.3 have implemented it, see http://stackoverflow.com/questions/24043897/c11-value-initialization-with-defaulted-default-constructor.
@@ -602,8 +602,8 @@ Function 'cbegin' and 'cend' are preferred to 'begin' and 'end' in some cases.
 		For example, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278.
 		Use 'begin' and 'end' instead of 'cbegin' and 'cend' as workaround when necessary.
 English allows bare passive clause, which omits the auxiliary verb (typically 'is').
-	See http://en.wikipedia.org/wiki/English_passive_voice.
-	In YSLib, for English passive voice in assertion strings or titles, this form is preferred to canonical form (e.g. "file not found"), even in a separate sentence.
+	See http://en.wikipedia.org/wiki/English_passive_voice#Additional_passive_constructions.
+	In YSLib, for English passive voice in assertion strings or titles, this form is preferred to canonical form (e.g. "file not found"), even in a separated sentence.
 	For formal descriptions otherwise, auxiliary verbs should not be omitted.
 
 $2014-09:
@@ -617,7 +617,7 @@ There is some confilicts in 'ForwardIterator' requirements onwards ISO C++11 wit
 		This is generally hard to implement for underlying iterator does not store a long-lived object as result.
 		For example, 'boost::transform_iterator' is not strictly conforming to this.
 			See $2014-08 for other issues related to iterator requirements and 'boost::transform_iterator'.
-		This is a currently known problem, but not treated as a defect. See http://wg21.cmeerw.net/lwg/issue2107.
+		This is a currently known problem, but not treated as a defect. See LWG 2107.
 	To reasonably resolve these problems, 'ystdex::transformed_iterator' in YBase::StandardEx::Functional now provide a third template parameter to allow the user to specify the 'reference' type.
 		If not explicitly specified, default argument 'void' is used, like 'use_default' in Boost iterator library.
 			Note now it is not conforming to ISO C++ if 'ForwardIterator' requirements are required and the default argument is used.
@@ -629,7 +629,7 @@ Keys of associative containers are const-qualified.
 	The key is not free to modify. It leads to several problems.
 		See http://stackoverflow.com/questions/3884572/how-to-modify-key-values-in-stdmap-container.
 			This is also the same problem met in implementation of tree list in YFramework::YSLib::UI.
-		See http://wg21.cmeerw.net/lwg/issue839 and http://wg21.cmeerw.net/lwg/issue1041.
+		See LWG 839 and LWG 1041.
 		See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3645.pdf for proposal to resolve this issue (but not in the current standard).
 		See http://stackoverflow.com/questions/5743545/what-is-the-fastest-way-to-change-a-key-of-an-element-inside-stdmap for the problem and the status of the paper above.
 		The available resolustion are:
@@ -701,7 +701,7 @@ tx-trie(https://code.google.com/p/tx-trie/): rejected.
 marisa-trie(https://code.google.com/p/marisa-trie/): considerable, tentatively shelved.
 	It has some similar problems of interface like tx-trie. However, it seems to be fit for other use.
 
-$2014-09:
+$2014-10:
 
 report.impl:
 Now ar from MSYS2 supports linker plugin.
@@ -717,10 +717,6 @@ Multiple tap operations are studied.
 	There is an area setting for allowed error with initial tap with subsequent ones.
 		However, sometimes this is ignored and only precise subsequent (without any move) taps are allowed to avoid collision with dragging operations, e.g. for text selection.
 	Triple click is to select text in a line in general, and mostly used by browsers and text editors, see http://en.wikipedia.org/wiki/Triple-click.
-
-$2014-10:
-
-report.impl:
 There is a bug on DST(daylight savings time) calculation on Windows CRT call of 'stat' family across file systems.
 	This can cause strange bugs on file system caching.
 		See comments in "src/fcstat.c"(previously in "src/fccache.c") from the FontConfig project(http://www.freedesktop.org/wiki/Software/fontconfig/).
