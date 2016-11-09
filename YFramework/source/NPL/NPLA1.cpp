@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1605
+\version r1647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-11-01 23:27 +0800
+	2016-11-08 05:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,6 +133,8 @@ namespace
 yconstexpr const auto GuardName("__$!");
 yconstexpr const auto LeafTermName("__$$@");
 yconstexpr const auto ListTermName("__$$");
+//! \since build 737
+yconstexpr const auto LiteralTermName("__$$@_");
 
 // TODO: Use %ReductionStatus as pass invocation result directly instead of this
 //	wrapper. This is not transformed yet to avoid G++ internal compiler error:
@@ -183,22 +185,36 @@ AccessListPassesRef(ContextNode& ctx)
 	return ctx.Place<EvaluationPasses>(ListTermName);
 }
 
+LiteralPasses&
+AccessLiteralPassesRef(ContextNode& ctx)
+{
+	return ctx.Place<LiteralPasses>(LiteralTermName);
+}
+
 Guard
 InvokeGuard(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<GuardPasses>(term, ctx, GuardName);
+	return InvokePasses<GuardPasses>(GuardName, term, ctx);
 }
 
 ReductionStatus
 InvokeLeaf(TermNode& term, ContextNode& ctx)
 {
-	return ToStatus(InvokePasses<EvaluationPasses>(term, ctx, LeafTermName));
+	return ToStatus(InvokePasses<EvaluationPasses>(LeafTermName, term, ctx));
 }
 
 ReductionStatus
 InvokeList(TermNode& term, ContextNode& ctx)
 {
-	return ToStatus(InvokePasses<EvaluationPasses>(term, ctx, ListTermName));
+	return ToStatus(InvokePasses<EvaluationPasses>(ListTermName, term, ctx));
+}
+
+ReductionStatus
+InvokeLiteral(TermNode& term, ContextNode& ctx, string_view id)
+{
+	YAssertNonnull(id.data());
+	return
+		ToStatus(InvokePasses<LiteralPasses>(LiteralTermName, term, ctx, id));
 }
 
 
@@ -451,6 +467,7 @@ ReductionStatus
 EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
+
 	if(auto v = FetchValue(ctx, id))
 	{
 		term.Value = std::move(v);
@@ -462,7 +479,7 @@ EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 	if(const auto p = AccessPtr<TermNode>(term))
 	{
 		term.SetContent(std::move(*p));
-		// NOTE: To be success for %DetectReducible.
+		// NOTE: To make it work with %DetectReducible.
 		if(IsBranch(term))
 			return ReductionStatus::NeedRetry;
 	}
@@ -472,24 +489,33 @@ EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 ReductionStatus
 EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 {
+	YAssertNonnull(id.data());
 	// NOTE: Only string node of identifier is tested.
 	if(!id.empty())
 	{
-		// NOTE: If necessary, there can be inserted some cleanup to
-		//	remove empty tokens, returning %ReductionStatus::NeedRetr.
-		//	Separators should have been handled in appropriate
-		//	preprocess passes.
+		// NOTE: If necessary, there can be inserted some cleanup to remove
+		//	empty tokens, returning %ReductionStatus::NeedRetr. Separators
+		//	should have been handled in appropriate preprocess passes.
 		const auto lcat(CategorizeLiteral(id));
 
-		if(lcat == LiteralCategory::Code)
+		switch(lcat)
+		{
+		case LiteralCategory::Code:
 			// TODO: When do code literals need to be evaluated?
 			id = DeliteralizeUnchecked(id);
-		else if(lcat != LiteralCategory::None)
+			if(YB_UNLIKELY(id.empty()))
+				break;
+		case LiteralCategory::None:
+			return InvokeLiteral(term, ctx, id) == ReductionStatus::Success
+				? ReductionStatus::Success : EvaluateIdentifier(term, ctx, id);
+			// XXX: Empty token is ignored.
+			// XXX: Remained reducible?
+		case LiteralCategory::Data:
+			term.Value = Deliteralize(id).to_string();
+		default:
+			break;
 			// TODO: Handle other categories of literal.
-			return ReductionStatus::Success;
-		return EvaluateIdentifier(term, ctx, id);
-		// XXX: Empty token is ignored.
-		// XXX: Remained reducible?
+		}
 	}
 	return ReductionStatus::Success;
 }
@@ -498,7 +524,6 @@ ReductionStatus
 ReduceLeafToken(TermNode& term, ContextNode& ctx)
 {
 	return ystdex::call_value_or([&](string_view id) -> ReductionStatus{
-		YAssertNonnull(id.data());
 		return EvaluateLeafToken(term, ctx, id);
 	// FIXME: Success on node conversion failure?
 	}, TermToName(term), ReductionStatus::Success);

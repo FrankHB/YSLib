@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r897
+\version r900
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-10-09 21:05 +0800
+	2016-11-07 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -328,7 +328,6 @@ namespace
 string
 InitBadIdentifierExceptionString(string&& id, size_t n)
 {
-	//	see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67795.
 	return (n != 0 ? (n == 1 ? "Bad identifier: '" : "Duplicate identifier: '")
 		: "Unknown identifier: '") + std::move(id) + "'.";
 }
@@ -376,8 +375,6 @@ CategorizeLiteral(string_view sv)
 			return LiteralCategory::Code;
 		if(c != char())
 			return LiteralCategory::Data;
-		if(std::isdigit(sv.front()))
-			return LiteralCategory::Numeric;
 	}
 	return LiteralCategory::None;
 }

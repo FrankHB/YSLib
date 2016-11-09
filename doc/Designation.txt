@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9867
+\version r9876
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-08-05 22:15 +0800
+	2016-11-09 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,6 +189,8 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 @3.3.1 异常消息：
 使用仅使用基本字符集的字符串表示用户可读的消息。
 除非必要，消息中不出现表示代码位置（例如所在函数）的信息，以免冗余。
+库的接口实现若需使用外部 API 且在实现中包装时，异常消息由库的实现指定，为区分来源，调用位置信息视为必要；除非同一个函数内有多个位置而需要另行指定，一般直接使用所在函数的签名以保持一致性。
+除非文档说明，不使用本地化消息。另见 [Documentation::LanguageConvention @@5.1.4] 。
 
 @3.3.2 SFINAE(substition failure is not an error) 技巧：
 使用 SFINAE 进行类型检查，实现复杂的重载匹配。避免暴露过于复杂的接口。
@@ -378,9 +380,7 @@ FreeImage 参见 [Documentation::Dependencies @@2.4] 。
 __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::Adaptor 使用。
 
 @5.6.2 YBase 引入的命名空间：
-YBase 引入的主要命名空间唯一且和次级子项目的模块名称一致（但 YDefinition 此处同 YStandardEx ）。
-ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本体直接依赖此命名空间。
-ytest ：测试框架设施 YTest 。
+参见 [Documentation::YBase @@2.3.2] 。
 
 @5.6.3 YFramework 引入的命名空间：
 参见 [Documentation::YFramework @@2.3.4] 。
@@ -423,6 +423,11 @@ ytest ：测试框架设施 YTest 。
 使用单行的分组边界，但不在注释块内使用等价的标记。
 不使用 DISTRIBUTE_GROUP_DOC 。
 当前 Doxygen 不支持嵌套成员分组。这是已知的待解决问题。
+
+@6.1.6 引用：
+引用来源应保证实质内容无歧义和逻辑一致。
+优先使用内部引用而不是外部引用(@6.1.2) 。
+外部引用来源可以是 URL 、 [Documentation::LanguageConvention @@1.1.1] 约定的引用缩写、可查证的文献编号等。
 
 @6.2 实现语用规则：
 

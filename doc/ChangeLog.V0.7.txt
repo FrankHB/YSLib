@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r3974
+\version r4027
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-05 23:08 +0800
+	2016-11-09 23:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ "removed '#' as graphical delimeter"
+				@ "function %IsGraphicalDelimeter" @ %Lexical,
+			/ %NPLA $=
+			(
+				- "numeric literal detection" @ "function %CategorizeLiteral";
+				/ ("enumerator %Numeric" -> "%Extended")
+					@ "enum class %LiteralCategory",
+					// Now extended literals are not distinguished with \
+						non-literals here.
+				+ "alias %LiteralPasses",
+				+ "trailing parameter pack support"
+					@ "function template %InvokePasses"
+			),
+			/ %NPLA1 $=
+			(
+				/ $dep_from ("%InvokePasses" @ %NPLA) $=
+				(
+					/ $forced DLDI
+						"functions %(InvokeGuard, InvokeLeaf, InvokeList)",
+					+ "function %InvokeLiteral"
+				),
+				+ "function %AccessListPassesRef",
+				/ @ "function %EvaluateLeafToken" $=
+				(
+					/ "evaluated string literal to string value",
+					* "missing assertion" $mismatch $since b736,
+					+ "handling for literal passes" ^ $dep_from "%InvokeLiteral"
+				//	/ "evaluated numeric literals" ^ $dep_from
+					//	"%EvaluateExtended",
+				//	/ "handling for tokens beginning with '+', '-' or \
+					//	'#' for possible extended literals" $dep_from
+					//	("%LiteralCategoryCategory" @ %NPLA)
+				)
+			)
+		)
+	),
+	/ %YBase.YStandardEx.CCharacterType $=
+	(
+		+ DD "MSVCRT bug workaround" @ "function %isdigit",
+		+ 'ynothrow' @ "functions %(iscntrl_C0, iscntrl_C1, iscntrl_ASCII, \
+			iscntrl_ISO8859_11, iscntrl_ISO8859_1, isprint_ASCII, \
+			isprint_ISO8859_1, isprint, isdigit, tolower, toupper), function \
+			templates %(tolower, toupper)",
+		/ "all 'inline'" @ "function, function templates %(tolower, toupper)"
+			-> 'yconstfn'
+	)
+),
+
+b737
 (
 	/ %YBase.YStandardEx $=
 	(
