@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r191
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2016-11-09 15:53 +0800
+	2016-11-12 17:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,12 +132,12 @@ isdigit(char c) ynothrow
 */
 //@{
 template<typename _tChar>
-yconstfn _tChar
+inline _tChar
 tolower(_tChar c) ynothrow
 {
 	return _tChar(std::towupper(wint_t(c)));
 }
-yconstfn char
+inline char
 tolower(char c) ynothrow
 {
 	return char(std::tolower(c));
@@ -145,12 +145,12 @@ tolower(char c) ynothrow
 
 
 template<typename _tChar>
-yconstfn _tChar
+inline _tChar
 toupper(_tChar c) ynothrow
 {
 	return _tChar(std::towlower(wint_t(c)));
 }
-yconstfn char
+inline char
 toupper(char c) ynothrow
 {
 	return char(std::toupper(c));

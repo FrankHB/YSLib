@@ -17,8 +17,14 @@ export SHBuild_LogOpt
 export SHBuild_Opt
 : ${SHBuild_SysRoot="$YSLib_BaseDir/sysroot"}
 
-YSLib_BuildDir="$YSLib_BaseDir/build"
+SHBuild_CheckHostPlatform
+
+export YSLib_BaseDir
+# This directory will be created if not existed by %SHBuild-YSLib-common.sh.
+export YSLib_BuildDir="$YSLib_BaseDir/build/$SHBuild_Host_Platform"
 YSLib_DataDir="$YSLib_BaseDir/Data"
+
+SHBuild_Puts Build directory is \"$YSLib_BuildDir\".
 
 # SR = SHBuild SysRoot.
 SR_Prefix="$SHBuild_SysRoot/usr"
@@ -68,8 +74,9 @@ SHBuild_Puts Bootstraping ...
 # S1 = Stage 1.
 SHBuild_S1_SHBuild="$SHBuild_BaseDir/SHBuild"
 
-if command -v "$SHBuild_S1_SHBuild"; then
-	SHBuild_Puts Found stage 1 SHBuild "$SHBuild_S1_SHBuild", building skipped.
+if command -v "$SHBuild_S1_SHBuild" > /dev/nul ; then
+	SHBuild_Puts Found stage 1 SHBuild \"$SHBuild_S1_SHBuild\", \
+		building skipped.
 else
 	SHBuild_Puts Stage 1 SHBuild not found. Building ...
 	$SHBuild_ToolDir/SHBuild-build.sh
@@ -121,7 +128,8 @@ SHB_InstInc()
 SHB_InstTool()
 {
 	# TODO: Error handling.
-	$SHBuild_S1_SHBuild -xcmd,InstallExecutable "$SR_Bin/$1" "$SHBuild_ToolDir/$1"
+	$SHBuild_S1_SHBuild -xcmd,InstallExecutable "$SR_Bin/$1" \
+		"$SHBuild_ToolDir/$1"
 }
 
 SHB_EnsureDirectory()

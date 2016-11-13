@@ -6,37 +6,42 @@ set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 : ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
-YSLib_BuildDir="$YSLib_BaseDir/build"
+
 . $SHBuild_ToolDir/SHBuild-common.sh
+SHBuild_AssertNonempty YSLib_BuildDir
+
 : ${AR:='gcc-ar'}
 export AR
 . $SHBuild_ToolDir/SHBuild-common-toolchain.sh
 
 mkdir -p "$YSLib_BuildDir"
 : ${SHBuild:="$SHBuild_BaseDir/SHBuild"}
-SHBuild_CheckUName
+SHBuild_CheckHostPlatform
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
-	: ${SHBuild_YSLib_Platform:='MinGW32'}
 	SHBuild_YF_SystemLibs='-lgdi32 -limm32'
 else
-	: ${SHBuild_YSLib_Platform:=$SHBuild_Env_OS}
 	SHBuild_YF_SystemLibs='-lxcb -lpthread'
 fi
 
-INCLUDE_PCH='../YBase/include/stdinc.h'
-INCLUDES_YBase='-I../YBase/include'
+DIR_YFramework="$YSLib_BaseDir/YFramework"
+
+INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
+INCLUDES_YBase="-I\"$YSLib_BaseDir/YBase/include\""
 INCLUDES_YFramework=" \
-	-I../YFramework/include -I../YFramework/Android/include \
-	-I../YFramework/DS/include -I../YFramework/Win32/include \
-	-I../3rdparty/include $INCLUDES_freetype -I../YBase/include"
+	-I\"$DIR_YFramework/include\" \
+	-I\"$DIR_YFramework/Android/include\" \
+	-I\"$DIR_YFramework/DS/include\" \
+	-I\"$DIR_YFramework/Win32/include\" \
+	-I\"$YSLib_BaseDir/3rdparty/include\" \"$INCLUDES_freetype\" \
+	-I\"$YSLib_BaseDir/YBase/include\""
 SHBOPT_IGN="-xid,alternative -xid,data -xid,include -xid,Android"
 
-LIBS_YFramework=" \
-	-L../YFramework/$SHBuild_YSLib_Platform/lib-$SHBuild_Env_Arch \
+LIBS_YFramework=" -L\"`SHBuild_2w \
+	\"$DIR_YFramework/$SHBuild_Host_Platform/lib-$SHBuild_Env_Arch\"`\" \
 	-lFreeImage -lfreetype $SHBuild_YF_SystemLibs"
 
 SHBuild_EchoVar SHBuild "$SHBuild"
-SHBuild_EchoVar SHBuild_YSLib_Platform "$SHBuild_YSLib_Platform"
+SHBuild_EchoVar SHBuild_Host_Platform "$SHBuild_Host_Platform"
 SHBuild_EchoVar INCLUDES_YBase "$INCLUDES_YBase"
 SHBuild_EchoVar INCLUDES_YFramework "$INCLUDES_YFramework"
 SHBuild_EchoVar LIBS_YFramework "$LIBS_YFramework"

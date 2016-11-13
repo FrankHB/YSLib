@@ -2,12 +2,14 @@
 # (C) 2014-2016 FrankHB.
 # Common source script: bootstrap configuration.
 
-SHBuild_Puts Bootstrap beginned.
-
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 . $SHBuild_ToolDir/SHBuild-common.sh
+SHBuild_Puts Bootstrap beginned.
 SHBuild_CheckUName
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
+: ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
+SHBuild_BaseDir=$(cd "$SHBuild_BaseDir" && pwd)
+YSLib_BaseDir=$(cd "$YSLib_BaseDir" && pwd)
 
 SHBuild_EchoVar_N 'SHBuild.BaseDir'
 SHBuild_EchoVar_N 'SHBuild.ToolDir'
@@ -21,46 +23,49 @@ SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
 . $SHBuild_ToolDir/SHBuild-common-options.sh
 
-INCLUDE_PCH='../../YBase/include/stdinc.h'
+INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
 INCLUDES=" \
-	-I../../YFramework/include -I../../YFramework/Android/include \
-	-I../../YFramework/DS/include -I../../YFramework/Win32/include \
-	-I../../3rdparty/include -I../../3rdparty/freetype/include \
-	-I../../YBase/include \
+	-I$YSLib_BaseDir/YFramework/include \
+	-I$YSLib_BaseDir/YFramework/Android/include \
+	-I$YSLib_BaseDir/YFramework/DS/include \
+	-I$YSLib_BaseDir/YFramework/Win32/include \
+	-I$YSLib_BaseDir/3rdparty/include \
+	-I$YSLib_BaseDir/3rdparty/freetype/include \
+	-I$YSLib_BaseDir/YBase/include \
 	"
 
-# Coordinated with build 735.
+# Coordinated with build 739.
 LIBS=" \
-	../../YBase/source/ystdex/cassert.cpp \
-	../../YBase/source/ystdex/cstdio.cpp \
-	../../YBase/source/ystdex/base.cpp \
-	../../YBase/source/ystdex/any.cpp \
-	../../YBase/source/ystdex/concurrency.cpp \
-	../../YFramework/source/CHRLib/chrmap.cpp \
-	../../YFramework/source/CHRLib/CharacterProcessing.cpp \
-	../../YFramework/source/CHRLib/MappingEx.cpp \
-	../../YFramework/source/YCLib/NativeAPI.cpp \
-	../../YFramework/source/YCLib/Debug.cpp \
-	../../YFramework/source/YCLib/FileIO.cpp \
-	../../YFramework/source/YCLib/FileSystem.cpp \
-	../../YFramework/source/YCLib/Host.cpp \
-	../../YFramework/source/YCLib/YCommon.cpp \
-	../../YFramework/source/YCLib/MemoryMapping.cpp \
-	../../YFramework/source/YSLib/Core/YCoreUtilities.cpp \
-	../../YFramework/source/YSLib/Core/YException.cpp \
-	../../YFramework/source/YSLib/Core/ValueNode.cpp \
-	../../YFramework/source/YSLib/Service/FileSystem.cpp \
-	../../YFramework/source/YSLib/Service/File.cpp \
-	../../YFramework/source/YSLib/Service/TextFile.cpp \
-	../../YFramework/source/NPL/Lexical.cpp \
-	../../YFramework/source/NPL/SContext.cpp \
-	../../YFramework/source/NPL/Dependency.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/any.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/concurrency.cpp \
+	$YSLib_BaseDir/YFramework/source/CHRLib/chrmap.cpp \
+	$YSLib_BaseDir/YFramework/source/CHRLib/CharacterProcessing.cpp \
+	$YSLib_BaseDir/YFramework/source/CHRLib/MappingEx.cpp \
+	$YSLib_BaseDir/YFramework/source/YCLib/NativeAPI.cpp \
+	$YSLib_BaseDir/YFramework/source/YCLib/Debug.cpp \
+	$YSLib_BaseDir/YFramework/source/YCLib/FileIO.cpp \
+	$YSLib_BaseDir/YFramework/source/YCLib/FileSystem.cpp \
+	$YSLib_BaseDir/YFramework/source/YCLib/Host.cpp \
+	$YSLib_BaseDir/YFramework/source/YCLib/YCommon.cpp \
+	$YSLib_BaseDir/YFramework/source/YCLib/MemoryMapping.cpp \
+	$YSLib_BaseDir/YFramework/source/YSLib/Core/YCoreUtilities.cpp \
+	$YSLib_BaseDir/YFramework/source/YSLib/Core/YException.cpp \
+	$YSLib_BaseDir/YFramework/source/YSLib/Core/ValueNode.cpp \
+	$YSLib_BaseDir/YFramework/source/YSLib/Service/FileSystem.cpp \
+	$YSLib_BaseDir/YFramework/source/YSLib/Service/File.cpp \
+	$YSLib_BaseDir/YFramework/source/YSLib/Service/TextFile.cpp \
+	$YSLib_BaseDir/YFramework/source/NPL/Lexical.cpp \
+	$YSLib_BaseDir/YFramework/source/NPL/SContext.cpp \
+	$YSLib_BaseDir/YFramework/source/NPL/Dependency.cpp \
 	"
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	LIBS="$LIBS \
-		../../YFramework/Win32/source/YCLib/MinGW32.cpp \
-		../../YFramework/Win32/source/YCLib/Consoles.cpp \
-		../../YFramework/Win32/source/YCLib/NLP.cpp \
+		$YSLib_BaseDir/YFramework/Win32/source/YCLib/MinGW32.cpp \
+		$YSLib_BaseDir/YFramework/Win32/source/YCLib/Consoles.cpp \
+		$YSLib_BaseDir/YFramework/Win32/source/YCLib/NLS.cpp \
 		"
 fi
 

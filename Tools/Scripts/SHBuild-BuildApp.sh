@@ -128,6 +128,8 @@ export SHBuild_CXXFLAGS="$CXXFLAGS"
 
 SHBuild_BuildApp()
 {
+	SHBuild_AssertNonempty SHBuild_AppBaseDir
+	SHBuild_Puts Found application base directory \"$SHBuild_AppBaseDir\".
 	(cd $SHBuild_AppBaseDir; "$SHBuild_Bin/SHBuild" $SHBOPT $@ \
 		$SHBuild_YSLib_Flags)
 }

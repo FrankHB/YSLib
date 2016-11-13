@@ -217,3 +217,14 @@ SHBuild_BuildGCH()
 	fi
 }
 
+SHBuild_CheckHostPlatform()
+{
+	SHBuild_CheckUName
+	if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
+		: ${SHBuild_Host_Platform:='MinGW32'}
+	else
+		: ${SHBuild_Host_Platform:=$SHBuild_Env_OS}
+	fi
+	SHBuild_AssertNonempty SHBuild_Host_Platform
+}
+

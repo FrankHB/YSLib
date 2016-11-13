@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r750
+\version r752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2016-11-05 23:03 +0800
+	2016-11-12 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -316,8 +316,8 @@ LogAssert(const char* expr_str, const char* file, int line,
 	{
 		std::fprintf(stderr, "Fetch logger failed.");
 		std::fflush(stderr);
-		ystdex::yassert(expr_str, file, line, msg);
 	}
+	ystdex::yassert(expr_str, file, line, msg);
 #	endif
 }
 #endif
