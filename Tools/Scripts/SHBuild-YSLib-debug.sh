@@ -25,9 +25,9 @@ if [[ "$SHBuild_NoStatic" == '' ]]; then
 
 	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
 
-	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ ../YBase \
+	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ "$YSLib_BaseDir/YBase" \
 		$CXXFLAGS $INCLUDES_YBase $SHBuild_IncPCH
-	$SHBuild $SHBOPT -xn,${LIBPFX}YFrameworkd $@ ../YFramework \
+	$SHBuild $SHBOPT -xn,${LIBPFX}YFrameworkd $@ "$YSLib_BaseDir/YFramework" \
 		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase \
 		$SHBuild_IncPCH
 
@@ -50,13 +50,13 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 
 	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
 
-	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ ../YBase \
+	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ "$YSLib_BaseDir/YBase" \
 		$CXXFLAGS -DYB_BUILD_DLL $INCLUDES_YBase \
 		$SHBuild_IncPCH
 
 	export LIBS="-L.shbuild-dll-debug -lYBased $LIBS_YFramework"
 
-	$SHBuild $SHBOPT -xn,${LIBPFX}YFrameworkd $@ ../YFramework \
+	$SHBuild $SHBOPT -xn,${LIBPFX}YFrameworkd $@ "$YSLib_BaseDir/YFramework" \
 		$CXXFLAGS -DYB_DLL -DYF_BUILD_DLL \
 		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
 

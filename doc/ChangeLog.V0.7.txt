@@ -11,17 +11,17 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4027
+\version r4117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-09 23:22 +0800
+	2016-11-13 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Documentation::ChangeLog::'V0.6'
+	Documentation::ChangeLog::'V0.7'
 */
 
 // See %Documentation::Meta for meta descriptions.
@@ -31,6 +31,96 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			+ "function %SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh",
+			/ @ "%SHBuild-bootstrap.sh" $=
+			(
+				* "unknown %SHBuild_Puts evaluated before including the source"
+					$since b735,
+				* "wrong Win32 source file" $since b735
+			),
+			/ "asserted %YSLib_BuildDir as nonempty variable"
+				@ "%SHBuild-YSLib-common.sh",
+				// This should be provided externally, e.g. from \
+					%install-sysroot.sh.
+			/ "path for headers and libraries" @ "%(SHBuild-YSLib-common.sh, \
+				SHBuild-bootstrap.sh, SHBuild-YSLib-debug.sh, SHBuild-YSLib.sh)"
+				^ "absoluted paths based on %YSLib_BaseDir" ~ '../..',
+			/ @ "function %SHBuild_BuildApp" @ "%SHBuild-BuildApp.sh" $=
+			(
+				+ "assertion to ensure non empty path %SHBuild_AppBaseDir",
+				+ "printed value of %SHBuild_AppBaseDir before build"
+			)
+		),
+		/ @ "%install-sysroot.sh" $=
+		(
+			/ "specified build subdirectory with host name and exported as \
+				%YSLib_BuildDir" $dep_from
+				("%SHBuild-YSLib-common.sh" @ %Scripts)
+				^ ("%SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh");
+				// This allows multiple hosts coexisted in same repository. \
+					Note stage 1 SHBuild is not covered here. Since the build \
+					directory is changed to one of the subdirectories, \
+					relative paths in other scripts may be invalidated, so \
+					absolute paths should be used instead in those scripts.
+			/ "ensured %YSLib_BuildDir existd by 'mkdir -p'"
+			/ "hid stage 1 SHBuild test command",
+			/ "quoted found stage1 SHBuild path in output message",
+			/ "exported %YSLib_BaseDir"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			* "ill-formed constructor %Terminal" @ !"platform %Win32" @ %Host
+				$since b720,
+			/ DLD "function %platform_ex::LogAssert" @ %Debug
+				// To avoid warning for %YB_NONNULL from compiler confused by \
+					try-catch statement.
+			/ DLD "cast to %size_t" @ !"platform %(DS, Win32)"
+				@ "function %ReadLink" @ %FileSystem,
+				// To eliminate warning: [-Wsign-conversion] when compiler is \
+					not able to analysis the value is always positive.
+			* "ill-formed constructor %MappedFile when %UniqueFile size is not \
+				wider than %size_t" @ %MemoryMapping $since b709 $=
+				(/ DLDI ^ ("%ystdex::not_widen" @ %YBase.YStandardEx.Cast)
+					~ "%ystdex::narrow")
+		),
+		/ "supported lossless encoding" @ "static function template \
+			%EncodeChar" @ "struct %UCSMapperBase" @ %CHRLib.StaticMapping
+			^ $dep_from ("%ystdex::not_widen_cast" @ %YBase.YStandardEx.Cast)
+			~ "%narrow_cast",
+		/ "output directory" @ "%SHBuild-YSTest.sh"
+			^ ("%SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh" @ %Tools)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Cast $=
+		(
+			/ @ "function template %narrow_cast" $=
+			(
+				// These are complained by G++ 6.3. However, G++ 5.2 (and \
+					older versions) does not complain them at all.
+				/ DLD "removed unused field for cast test" ;
+					// To eliminate warning: [-Wmissing-field-initializers].
+				* "wrong test result retuned caused ill-formed instantiation"
+					$since b709
+			),
+			+ "function templates %(not_widen_cast; not_widen)"
+		),
+		/ $dev "disabled warning '-Wnonnull-compare' by pragma for G++ 6 above"
+			@ %CAssert,
+		* $revert(b738) "invalid 'yconstfn'" @ "(function, function templates) \
+			%(toupper, tolower)" @ %CCType $since b738
+	)
+),
+
+b738
 (
 	/ %YFramework $=
 	(

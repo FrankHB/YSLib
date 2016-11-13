@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r502
+\version r503
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-09-03 08:41 +0800
+	2016-11-12 13:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ MappedFile::MappedFile(UniqueFile f, FileMappingOption opt, FileMappingKey key)
 	: MappedFile([&]{
 		if(f)
 		{
-			const auto s(ystdex::narrow<size_t>(f->GetSize()));
+			const auto s(ystdex::not_widen<size_t>(f->GetSize()));
 
 			return pair<size_t, UniqueFile>(s, std::move(f));
 		}

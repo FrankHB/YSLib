@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r203
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2015-11-05 16:33 +0800
+	2016-11-12 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,6 +64,12 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 
 #undef yconstraint
 #undef yassume
+
+// NOTE: Workaround for default warnings enabled by '-Wall'. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=17308.
+// TODO: Reevaluate for future versions of GCC.
+#if YB_IMPL_GNUC >= 60000
+#	pragma GCC diagnostic ignored "-Wnonnull-compare"
+#endif
 
 /*!
 \ingroup YBase_pseudo_keyword

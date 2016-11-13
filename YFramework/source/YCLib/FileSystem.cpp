@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4297
+\version r4300
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-08-11 10:02 +0800
+	2016-11-12 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,8 @@
 //	CategorizeNode, ystdex::ntctslen, std::wctob, std::towupper,
 //	ystdex::restrict_length, std::min, ystdex::ntctsicmp,
 //	std::errc::invalid_argument, std::strchr; , std::errc::invalid_argument
-#include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::lstat;
+#include YFM_YCLib_NativeAPI // for Mode, struct ::stat, ::stat,
+//	::GetFileAttributesW, ::linkat, ::symlink, ::lstat, ::readlink;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing // for CHRLib::MakeUCS2LE;
 #include <ystdex/ctime.h> // for ystdex::is_date_range_valid,
@@ -252,7 +253,7 @@ ReadLink(const char* path)
 				// TODO: Use %::pathconf to determine initial length instead
 				//	of magic number.
 				n = yimpl(1024);
-			return ystdex::retry_for_vector<string>(n,
+			return ystdex::retry_for_vector<string>(size_t(n),
 				[&](string& res, size_t s) -> bool{
 				errno_guard gd(errno, 0);
 				const auto r(::readlink(path, &res[0], size_t(n)));

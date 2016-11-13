@@ -11,7 +11,7 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1192
+\version r1195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
@@ -50,7 +50,8 @@ YBase.YDefinition 检查特性对应的实现版本。
 
 @1.1.1 支持实现的已知问题：
 以下问题提供有限变通：
-G++ 5 之前未完整实现 C++11 特性标准库； 5 之前的变通已移除。
+G++ 5 及之前未完整实现 C++11 标准库特性； 5 之前的变通已移除。
+G++ 6 及之后选项 -Wnonnull-compare 警告和断言存在冲突。直接通过代码中忽略警告变通，对用户代码存在影响。
 
 @1.1.2 非支持实现的历史问题：
 以下问题不提供变通：
@@ -67,7 +68,7 @@ build 132 前：
 正式移除 G++ 4.4 支持。
 2011-06-24(build 221) 起：
 正式移除 G++ 4.5 支持。
-2014-04-06(build 492) 起：
+2012-04-12(build 300) 起：
 正式移除 G++ 4.6 支持。
 2014-04-06(build 492) 起：
 正式移除 G++ 4.7 支持。
@@ -76,7 +77,7 @@ build 132 前：
 2016-09-17(build 727) 起：
 正式移除 G++ 4 支持。
 
-@1.2 YBase ：
+@1.2 非正式构建支持：
 YBase 版本 b452-b589 （包括若干变通） 非正式支持 Microsoft Visual C++ 2013 ：
 仅保证编译成功；
 已知 ystdex::pod_storage::operator= 等使用递归重载会被错误地递归调用因此导致相关接口如 ystdex::any 不可用；

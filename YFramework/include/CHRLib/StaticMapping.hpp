@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2542
+\version r2546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2016-07-11 00:20 +0800
+	2016-11-12 13:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_CHRLib_CharacterMapping // for std::is_constructible,
 //	ystdex::is_undereferenceable, ystdex::remove_reference_t,
 //	ystdex::pseudo_output, yconstraint;
-#include <ystdex/cast.hpp> // for ystdex::narrow_cast;
+#include <ystdex/cast.hpp> // for ystdex::not_widen_cast;
 
 namespace CHRLib
 {
@@ -150,11 +150,11 @@ struct UCSMapperBase
 	EncodeChar(_tOut d, char32_t c) ynothrowv
 	{
 		using ystdex::is_undereferenceable;
-		using ystdex::narrow_cast;
 		ynoexcept_assert("Invalid type found.", !is_undereferenceable(d));
 
 		yconstraint(!is_undereferenceable(d));
-		*d = narrow_cast<ystdex::remove_reference_t<decltype(*d)>>(c);
+		*d = ystdex::not_widen_cast<ystdex::remove_reference_t<decltype(*d)>>(
+			c);
 	}
 };
 

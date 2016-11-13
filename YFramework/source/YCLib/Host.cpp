@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r602
+\version r606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-09-03 10:30 +0800
+	2016-11-11 18:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -418,6 +418,10 @@ Terminal::Guard::~Guard()
 
 Terminal::Terminal(std::FILE* fp)
 	: p_term([fp]()->TerminalData*{
+#	if !YCL_Win32
+		// XXX: Performance?
+		ystdex::setnbuf(fp);
+#	endif
 		const int fd(YCL_CallGlobal(fileno, Nonnull(fp)));
 
 		// NOTE: This is not necessary for Windows since it only determine
@@ -429,8 +433,6 @@ Terminal::Terminal(std::FILE* fp)
 			TryRet(new TerminalData(fd))
 #	else
 			TryRet(new TerminalData(fp))
-		// XXX: Performance?
-		ystdex::setnbuf(fp);
 #	endif
 			CatchExpr(Exception& e,
 				YTraceDe(Informative, "Creating console failed: %s.", e.what()))
