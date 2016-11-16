@@ -23,7 +23,7 @@ if [[ "$SHBuild_NoStatic" == '' ]]; then
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
 	SHBuild_EchoVar LDFLAGS "$LDFLAGS"
 
-	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
+	SHBuild_CheckPCH "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
 
 	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ "$YSLib_BaseDir/YBase" \
 		$CXXFLAGS $INCLUDES_YBase $SHBuild_IncPCH
@@ -48,7 +48,7 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
 	SHBuild_EchoVar LDFLAGS "$LDFLAGS"
 
-	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
+	SHBuild_CheckPCH "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
 
 	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ "$YSLib_BaseDir/YBase" \
 		$CXXFLAGS -DYB_BUILD_DLL $INCLUDES_YBase \

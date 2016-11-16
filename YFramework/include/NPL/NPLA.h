@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1064
+\version r1078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-11-09 23:01 +0800
+	2016-11-13 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -557,17 +557,28 @@ CategorizeLiteral(string_view);
 //@}
 
 
-//! \since build 730
-//@{
 //! \brief 从指定上下文查找名称对应的节点。
+//@{
+//! \since build 740
+template<typename _tKey>
+inline observer_ptr<ValueNode>
+LookupName(ContextNode& ctx, const _tKey& id) ynothrow
+{
+	return YSLib::AccessNodePtr(ctx, id);
+}
+//! \since build 730
 template<typename _tKey>
 inline observer_ptr<const ValueNode>
 LookupName(const ContextNode& ctx, const _tKey& id) ynothrow
 {
 	return YSLib::AccessNodePtr(ctx, id);
 }
+//@}
 
-//! \brief 从指定上下文取指定名称指称的值。
+/*!
+\brief 从指定上下文取指定名称指称的值。
+\since build 730
+*/
 template<typename _tKey>
 ValueObject
 FetchValue(const ContextNode& ctx, const _tKey& name)
@@ -575,7 +586,6 @@ FetchValue(const ContextNode& ctx, const _tKey& name)
 	return ystdex::call_value_or<ValueObject>(
 		std::mem_fn(&ValueNode::Value), NPL::LookupName(ctx, name));
 }
-//@}
 
 /*!
 \brief 访问项的值作为名称。

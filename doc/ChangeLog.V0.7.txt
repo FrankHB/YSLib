@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4117
+\version r4225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-13 16:01 +0800
+	2016-11-16 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,105 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			+ "class %REPLContext" @ %NPLA1,
+			+ "function template %LookupName with 'ContextNode&' paraemter"
+				@ %NPLA
+		),
+		* "ill-formed function %UpdatePixmapBuffer" @ %YCLib.XCB $since b728,
+		/ DLDI "simplified functions %(FetchDefaultFontCache, \
+			FetchMIMEBiMapping)" @ %Helper.Initialization ^ "%FetchRoot"
+			~ "%FetchEnvironment"
+	),
+	/ DLDI 'source' -> '.' @ "%SHBuild-YSLib.sh" @ %YReader,
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ $re_add(b739) "specified build subdirectory with host platform \
+				name" @ "%(SHBuild-self-host.sh, SHBuild-self-host-DLL.sh)"
+				^ ("%SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh")
+				%Scripts,
+				// The DLL host script is still relying on hard-coded library \
+					location.
+			* "wrong quoted paths for headers in command line"
+				@ "%SHBuild-YSLib.common.sh" $since b739,
+			/ @ "%SHBuild-build.sh" $=
+			(
+				+ "vairable %SHBuild_Output with default value 'SHBuild' as \
+					output path argument",
+				(
+				/ DLDI "simplified" ^ $dep_from ("%SHBuild_CheckPCH"
+					@ "%SHBuild-common.sh") ~ "%SHBuild_CheckPCH_";
+				- "function %SHBuild_CheckPCH_"
+				),
+				+ "vairable %SHBuild_PCH_stdinc_h with default value \
+					'stdinc.h' as output path argument for following \
+					compiliation"
+					// This is actually unnecessary for headers to be \
+						included, but necessary for generated '.gch' files, to \
+						avoid files from different host clash. Note different \
+						configuration in same host is still not supported.
+			),
+			/ @ "%SHBuild-YSLib-common.sh" $=
+			(
+				/ $forced "updated default path of stage 1 SHBuild"
+					$dep_from "%install-sysroot.sh",
+				- "function %SHBuild_CheckPCH_" $dep_from
+					"%(SHBuild-YSLib.sh, SHBuild-YSLib-debug.sh)"
+			),
+			(
+			+ "function %SHBuild_CheckPCH" @ "%SHBuild-common.sh";
+			/ DLDI "simplified %(SHBuild-YSLib.sh, SHBuild-YSLib-debug.sh, \
+				SHBuild-build.sh)" ^ "%SHBuild_CheckPCH" ~ "%SHBuild_CheckPCH_"
+			)
+		),
+		* "wrong command test" @ "%install-sysroot.sh" $since b739
+			$= ('/dev/nul' -> '/dev/null'),
+		/ @ "%install-sysroot.sh" $=
+		(
+			/ "normalized YSLib base path %YSLib_BaseDir",
+				// To avoid redundant "Tools/Scripts/../.." causing %__FILE__ \
+					too long, e.g. in assertions strings.
+			/ "switched stage 1 SHBuild path by redirecting tool path as \
+				'$YSLib_BuildDir/.stage1/SHBuild' in following commands and \
+				setting %SHBuild_Output with this path for %SHBuild-build.sh \
+				invocation",
+				// This allows multiple hosts of stage 1 SHBuild coexisted in \
+					same repository.  
+			/ "exported %SHBuild_PCH_stdinc_h as path \
+				'$SHBuild_S1_BuildDir/stdinc.h'"
+		)
+	),
+	/ %Test $=
+	(
+		/ "set test build directory as \
+			'$YSLib_BaseDir/build/$SHBuild_Host_Platform/.test'",
+			// Also to avoid files for different hosts clash.
+		(
+		* "ill-formed 1 case for %ystdex::compose"
+			@ "group %YStandard.Functional" @ %YBase $since b735
+			$= (/ 'compose' -> 'compose_n');
+		* $comp "failed to build" @ %Test.YBase $since b735 $dep_from
+			%YBase.YStandardEx.Functional $dep_to "compose test"
+		),
+		* "undefined behaviro due to out-of-lifetime temporary access"
+			@ "2 cases" @ "group %YStandard.String" $since b640
+			// Occasionally it did not crashed on MinGW32. It would crash on
+			//	Arch Linux x86_64.
+	),
+	* "wrong return type" @ "function template %compose_n#1"
+		@ %YBase.YStandardEx.Functional $since b735,
+	+ $re_add(b730) $repo "bookmark 'engineering-fault-b739'" @ b735
+		@ "engineering fault bookmarks" $dep_from "compose test"
+		// Failed to build test.
+),
+
+b739
 (
 	/ %Tools $=
 	(
@@ -58,8 +157,8 @@ $now
 		),
 		/ @ "%install-sysroot.sh" $=
 		(
-			/ "specified build subdirectory with host name and exported as \
-				%YSLib_BuildDir" $dep_from
+			/ "specified build subdirectory with host platform name and \
+				exported as %YSLib_BuildDir" $dep_from
 				("%SHBuild-YSLib-common.sh" @ %Scripts)
 				^ ("%SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh");
 				// This allows multiple hosts coexisted in same repository. \
@@ -94,10 +193,11 @@ $now
 		/ "supported lossless encoding" @ "static function template \
 			%EncodeChar" @ "struct %UCSMapperBase" @ %CHRLib.StaticMapping
 			^ $dep_from ("%ystdex::not_widen_cast" @ %YBase.YStandardEx.Cast)
-			~ "%narrow_cast",
-		/ "output directory" @ "%SHBuild-YSTest.sh"
-			^ ("%SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh" @ %Tools)
+			~ "%narrow_cast"
 	),
+	/ "specified build subdirectory with host platform name"
+		@ "%SHBuild-YSTest.sh" @ %YReader
+		^ ("%SHBuild_CheckHostPlatform" @ "%SHBuild-common.sh" @ %Tools),
 	/ %YBase.YStandardEx $=
 	(
 		/ %Cast $=
@@ -792,7 +892,7 @@ b729
 			/ $impl ^ "nested %(integer, array)" ~ "%(IntegerType, ArrayType)"
 				@ "class templates %(BGRA, RGBA, ARGB)" $dep_to
 				"simplified aliases",
-			/ "class %template %AXYZValueTrait" -> "%AXYZValueTraits $=
+			/ "class %template %AXYZValueTrait" -> "%AXYZValueTraits" $=
 			(
 				- "aliases %(IntegerType, ArrayType)" $dep_from
 					"simplified aliases",
@@ -914,7 +1014,7 @@ b728
 				+ "enum %ComponentMapping";
 				+ "aliases %(AType, BType, GType, RType)",
 				- 'Trait::' @ "component type names",
-				/ "%(Trait, MaskTrait)" -> "%Trait"
+				/ "%(Trait, MaskTrait)" -> "%Traits"
 			);
 			/ DLDI "constructors %(BGRA, RGBA, ARGB)"
 			),

@@ -15,7 +15,7 @@ export AR
 . $SHBuild_ToolDir/SHBuild-common-toolchain.sh
 
 mkdir -p "$YSLib_BuildDir"
-: ${SHBuild:="$SHBuild_BaseDir/SHBuild"}
+: ${SHBuild:="$YSLib_BuildDir/.stage1/SHBuild"}
 SHBuild_CheckHostPlatform
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	SHBuild_YF_SystemLibs='-lgdi32 -limm32'
@@ -28,12 +28,12 @@ DIR_YFramework="$YSLib_BaseDir/YFramework"
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
 INCLUDES_YBase="-I\"$YSLib_BaseDir/YBase/include\""
 INCLUDES_YFramework=" \
-	-I\"$DIR_YFramework/include\" \
-	-I\"$DIR_YFramework/Android/include\" \
-	-I\"$DIR_YFramework/DS/include\" \
-	-I\"$DIR_YFramework/Win32/include\" \
-	-I\"$YSLib_BaseDir/3rdparty/include\" \"$INCLUDES_freetype\" \
-	-I\"$YSLib_BaseDir/YBase/include\""
+	-I$DIR_YFramework/include \
+	-I$DIR_YFramework/Android/include \
+	-I$DIR_YFramework/DS/include \
+	-I$DIR_YFramework/Win32/include \
+	-I$YSLib_BaseDir/3rdparty/include $INCLUDES_freetype \
+	-I$YSLib_BaseDir/YBase/include"
 SHBOPT_IGN="-xid,alternative -xid,data -xid,include -xid,Android"
 
 LIBS_YFramework=" -L\"`SHBuild_2w \
@@ -45,18 +45,6 @@ SHBuild_EchoVar SHBuild_Host_Platform "$SHBuild_Host_Platform"
 SHBuild_EchoVar INCLUDES_YBase "$INCLUDES_YBase"
 SHBuild_EchoVar INCLUDES_YFramework "$INCLUDES_YFramework"
 SHBuild_EchoVar LIBS_YFramework "$LIBS_YFramework"
-
-# TODO: Merge with SHBuild-build.sh?
-SHBuild_CheckPCH_()
-{
-	if [[ $SHBuild_NoPCH == '' ]]; then
-		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
-		SHBuild_IncPCH="-include $2"
-	else
-		SHBuild_Puts Skipped building precompiled file.
-		SHBuild_IncPCH=""
-	fi
-}
 
 export LANG=C
 unset CXXFLAGS_COMMON

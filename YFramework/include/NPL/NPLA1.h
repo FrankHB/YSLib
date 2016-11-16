@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1812
+\version r1849
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-11-09 04:41 +0800
+	2016-11-13 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -556,6 +556,49 @@ ReduceLeafToken(TermNode&, ContextNode&);
 */
 YF_API void
 SetupDefaultInterpretation(ContextNode&, EvaluationPasses);
+
+
+/*
+\brief REPL 上下文。
+\warning 非虚析构。
+\since build 740
+
+REPL 表示读取-求值-输出循环。
+每个循环包括一次翻译。
+这只是一个基本的可扩展实现。功能通过操作数据成员控制。
+*/
+class YF_API REPLContext
+{
+public:
+	//! \brief 上下文根节点。
+	ContextNode Root{};
+	//! \brief 预处理节点：每次翻译时预先处理调用的公共例程。
+	TermPasses Preprocess{};
+	//! \brief 表项处理例程：每次翻译中规约回调处理调用的公共例程。
+	EvaluationPasses ListTermPreprocess{};
+
+	/*!
+	\brief 构造：使用默认的解释。
+	\note 参数指定是否启用对规约深度进行跟踪。
+	\sa ListTermPreprocess
+	\sa SetupDefaultInterpretation
+	\sa SetupTraceDepth
+	*/
+	REPLContext(bool = {});
+
+	/*!
+	\brief 执行循环：对非空输入进行翻译。
+	\pre 断言：字符串的数据指针非空。
+	\throw LoggedEvent 输入为空串。
+	\sa SContext::Analyze
+	\sa Preprocess
+	\sa Reduce
+	
+	预处理后进行规约。
+	*/
+	TermNode
+	Perform(const string_view);
+};
 
 
 /*!

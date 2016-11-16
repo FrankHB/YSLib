@@ -6,12 +6,16 @@ set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 . $SHBuild_ToolDir/SHBuild-bootstrap.sh
+SHBuild_CheckHostPlatform
+SHBuild_AssertNonempty SHBuild_Host_Platform
 
 # XXX: Depends on DLLs in '/usr/lib'.
 export LIBS='-L/usr/lib -lYFramework -lYBase'
 CXXFLAGS="$CXXFLAGS -fwhole-program -DYF_DLL -DYB_DLL"
 export LDFLAGS="${LDFLAGS/-Wl,--dn/}"
-SHBuild_BuildDir="$SHBuild_ToolDir/../../build/.shbuild-dll"
+
+SHBuild_BuildDir="$SHBuild_ToolDir/\
+../../build/$SHBuild_Host_Platform/.shbuild-dll"
 
 SHBuild_Pushd
 cd $SHBuild_BaseDir

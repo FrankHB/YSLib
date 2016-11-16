@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1647
+\version r1668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-11-08 05:04 +0800
+	2016-11-13 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -544,6 +544,33 @@ SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
 //	AccessLeafPassesRef(root) = ReduceLeafToken;
 	AccessLeafPassesRef(root) = ystdex::compose(NeedsRetry, ReduceLeafToken);
 }
+
+
+REPLContext::REPLContext(bool trace)
+{
+	using namespace std::placeholders;
+
+	SetupDefaultInterpretation(Root,
+		std::bind(std::ref(ListTermPreprocess), _1, _2));
+	if(trace)
+		SetupTraceDepth(Root);
+}
+
+TermNode
+REPLContext::Perform(string_view unit)
+{
+	YAssertNonnull(unit.data());
+	if(!unit.empty())
+	{
+		auto term(SContext::Analyze(Session(unit)));
+
+		Preprocess(term);
+		Reduce(term, Root);
+		return term;
+	}
+	throw LoggedEvent("Empty token list found.", Alert);
+}
+
 
 namespace Forms
 {

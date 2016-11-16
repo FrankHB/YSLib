@@ -198,7 +198,6 @@ SHBuild_EchoVar_N()
 }
 
 
-# TODO: Merge with SHBuild-build.sh?
 # Link and build GNU precompiled header.
 # Params: $1 = path of header to be copied, $2 = path of header to be included,
 #	$3 = tool to build header.
@@ -217,6 +216,8 @@ SHBuild_BuildGCH()
 	fi
 }
 
+# Check host platform and set value of %SHBuild_Host_Platform if not set.
+#	For Win32 platforms, only 'MinGW32' is supported currently.
 SHBuild_CheckHostPlatform()
 {
 	SHBuild_CheckUName
@@ -226,5 +227,21 @@ SHBuild_CheckHostPlatform()
 		: ${SHBuild_Host_Platform:=$SHBuild_Env_OS}
 	fi
 	SHBuild_AssertNonempty SHBuild_Host_Platform
+}
+
+# Link and build precompiled header if %SHBuild_NoPCH is not set to nonnull
+#	value, and set internal value %SHBuild_IncPCH to proper command option
+#	in GNU toolchain flavor. %CXX is used as the compiler with %CXXFLAGS as
+#	flags. Only GNU-compatible command is supported currently.
+# Params: $1 = path of header to be copied, $2 = path of header to be included.
+SHBuild_CheckPCH()
+{
+	if [[ $SHBuild_NoPCH == '' ]]; then
+		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
+		SHBuild_IncPCH="-include $2"
+	else
+		SHBuild_Puts Skipped building precompiled file.
+		SHBuild_IncPCH=""
+	fi
 }
 

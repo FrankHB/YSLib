@@ -6,6 +6,7 @@ set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`/Scripts; pwd)
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 : ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
+YSLib_BaseDir=$(cd $YSLib_BaseDir; pwd)
 . $SHBuild_ToolDir/SHBuild-common-options.sh # For $LIBPFX and $DSOSFX, etc.
 
 SHBuild_Puts Configuring ...
@@ -20,7 +21,8 @@ export SHBuild_Opt
 SHBuild_CheckHostPlatform
 
 export YSLib_BaseDir
-# This directory will be created if not existed by %SHBuild-YSLib-common.sh.
+# This directory will be created if not existed by following stage 1 process
+#	or by %SHBuild-YSLib-common.sh.
 export YSLib_BuildDir="$YSLib_BaseDir/build/$SHBuild_Host_Platform"
 YSLib_DataDir="$YSLib_BaseDir/Data"
 
@@ -72,14 +74,17 @@ SHBuild_Puts Done.
 SHBuild_Puts Bootstraping ...
 
 # S1 = Stage 1.
-SHBuild_S1_SHBuild="$SHBuild_BaseDir/SHBuild"
+SHBuild_S1_BuildDir="$YSLib_BuildDir/.stage1"
+mkdir -p $SHBuild_S1_BuildDir
+SHBuild_S1_SHBuild="$SHBuild_S1_BuildDir/SHBuild"
+export SHBuild_PCH_stdinc_h="$SHBuild_S1_BuildDir/stdinc.h"
 
-if command -v "$SHBuild_S1_SHBuild" > /dev/nul ; then
+if command -v "$SHBuild_S1_SHBuild" > /dev/null ; then
 	SHBuild_Puts Found stage 1 SHBuild \"$SHBuild_S1_SHBuild\", \
 		building skipped.
 else
 	SHBuild_Puts Stage 1 SHBuild not found. Building ...
-	$SHBuild_ToolDir/SHBuild-build.sh
+	SHBuild_Output=$SHBuild_S1_SHBuild $SHBuild_ToolDir/SHBuild-build.sh
 	SHBuild_Puts Finished building stage 1 SHBuild.
 fi
 
