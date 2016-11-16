@@ -8,26 +8,18 @@ set -e
 CXXFLAGS_OPT_UseAssert=true
 . $SHBuild_ToolDir/SHBuild-bootstrap.sh
 
+: ${SHBuild_Output:=SHBuild}
+: ${SHBuild_PCH_stdinc_h:=stdinc.h}
+
 SHBuild_Pushd
 cd $SHBuild_BaseDir
 
 SHBuild_Puts Building ...
 
-# TODO: Merge with SHBuild-YSLib-common.sh?
-SHBuild_CheckPCH_()
-{
-	if [[ $SHBuild_NoPCH == '' ]]; then
-		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
-		SHBuild_IncPCH="-include $2"
-	else
-		SHBuild_Puts Skipped building precompiled file.
-		SHBuild_IncPCH=""
-	fi
-}
+SHBuild_CheckPCH "$INCLUDE_PCH" "$SHBuild_PCH_stdinc_h"
 
-SHBuild_CheckPCH_ "$INCLUDE_PCH" "stdinc.h"
-
-"$CXX" Main.cpp -oSHBuild $CXXFLAGS $LDFLAGS $SHBuild_IncPCH $INCLUDES $LIBS
+"$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \
+	$INCLUDES $LIBS
 
 SHBuild_Popd
 SHBuild_Puts Done.

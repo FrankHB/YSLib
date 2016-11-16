@@ -6,7 +6,10 @@ set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 . $SHBuild_ToolDir/SHBuild-bootstrap.sh
-SHBuild_BuildDir="$SHBuild_ToolDir/../../build/.shbuild"
+SHBuild_CheckHostPlatform
+SHBuild_AssertNonempty SHBuild_Host_Platform
+
+SHBuild_BuildDir="$SHBuild_ToolDir/../../build/$SHBuild_Host_Platform/.shbuild"
 
 SHBuild_Pushd
 cd $SHBuild_BaseDir

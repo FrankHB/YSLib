@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r625
+\version r628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2016-01-26 15:04 +0800
+	2016-11-16 17:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -352,7 +352,7 @@ main()
 			static_cast<double(&)(double)>(asin))(0.5))
 			< numeric_limits<double>::epsilon(),
 		expect(145, []{
-			return compose([](int x, int y){
+			return compose_n([](int x, int y){
 				return x + y + 1;
 			}, [](int x){
 				return x * 2;
@@ -442,9 +442,9 @@ main()
 		"cde" == erase_left(string("abcde"), "c"),
 		"abcd" == erase_right(3, string("abcde")),
 		"ab" == erase_right(string("abcde"), 'b'),
-		string("de") == string(erase_left(3, string_view("abcde"))),
+		string("de") == erase_left(3, string("abcde")),
 		string("cde") == erase_left(string_view("abcde"), "c").to_string(),
-		string("abcd") == string(erase_right(3, string_view("abcde"))),
+		string("abcd") == erase_right(3, string("abcde")),
 		string("ab") == erase_right(string_view("abcde"), 'b').to_string(),
 		ltrim(string("aabcbaa"), 'a') == "bcbaa",
 		ltrim(string_view("aabcbaa"), 'a').to_string() == "bcbaa",

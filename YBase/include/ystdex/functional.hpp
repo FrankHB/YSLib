@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3093
+\version r3095
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-10-22 19:00 +0800
+	2016-11-16 17:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -686,8 +686,9 @@ struct composed_n
 \return 单一分派的多元复合的可调用对象。
 */
 //@{
+//! \since build 740
 template<typename _func, typename _func2>
-yconstfn composed<_func, _func2>
+yconstfn composed_n<_func, _func2>
 compose_n(_func f, _func2 g)
 {
 	return composed_n<_func, _func2>{f, g};

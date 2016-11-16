@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r541
+\version r542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2016-06-20 17:30 +0800
+	2016-11-14 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -475,7 +475,7 @@ UpdatePixmapBuffer(WindowData& wnd, const YSLib::Drawing::Rect& r,
 
 	CheckRequest(c_ref, ::xcb_put_image_checked(&c_ref,
 		XCB_IMAGE_FORMAT_Z_PIXMAP, wnd.GetID(), gc.GetID(), r.Width, r.Height,
-		r.X, r.Y, 0, Pixel::Trait::XYZBitsN, g.GetSizeOfBuffer(),
+		r.X, r.Y, 0, Pixel::Traits::XYZBitsN, g.GetSizeOfBuffer(),
 		reinterpret_cast<const byte*>(g.GetBufferPtr())));
 }
 
