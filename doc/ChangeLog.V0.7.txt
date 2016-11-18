@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4225
+\version r4262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-16 18:21 +0800
+	2016-11-18 10:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,44 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ "supported destination prefix after '-xd,' as prefix of %SHBOPT default \
+		value" @ "SHBuild-BuildApp.sh" @ %Tools.Scripts,
+	+ "%SHBuild_BuildPrefix with default value '.$SHBuild_Host_Platform/'"
+		@ "%build-all.sh" @ %YDE,
+		// To support build files for different hosts in same repository by \
+			default.
+	/ %YFramework $=
+	(
+		/ @ "namespace %Forms" @ %NPL.NPLA1 $=
+		(
+			(
+			/ "supported parameter pack" @ "function templates %(CallUnary, \
+				CallUnaryAs)",
+			/ "supported redundant parameters" ^ "%ystdex::make_expanded"
+				$dep_from %YBase.YStandardEx.Functional;
+			+ "class templates %(UnaryExpansion, UnaryAsExpansion)";
+			/ "function template %RegisterUnaryFunction" -> "2 function \
+				templates with optional type parameter and additional \
+				parameter pack"
+			),
+			* $lib "wrong 1st parameter type"
+				@ "function %RegisterUnaryFunction" $since b736 $=
+				// This is currently compatible because %TermNode and \
+					%ContextNode are same type, which should not be relied on.
+				(/ 'TermNode&' -> 'ContextNode'),
+			+ "functions %(CallSystem, Eval)"
+		)
+	),
+	/ "removed return type check" @ "function templates" @ "class template \
+		specializations %call_projection" @ %YBase.YStandardEx.Functional
+		// This is consistent with %ystdex::expanded_proxy. And now return \
+			type parameter is not used at all.
+		$= (/ "return type in function template signatures"
+			-> "'auto', trailing-return-type")
+),
+
+b740
 (
 	/ %YFramework $=
 	(

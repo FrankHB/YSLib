@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5633
+\version r5637
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2016-06-08 23:58 +0800
+	2016-11-18 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ b398
 		/ %Helper $=
 		(
 			+ $dev "split non-public unit %DSWindow",
-			+ "unit %GUIApplication",
+			+ %GUIApplication
 				$= (+ "class %GUIApplication")
 			+ "several forward declaration and helper functions for global \
 				instance" @ %DSMain >> %GUIApplication,
@@ -328,7 +328,7 @@ b392
 	),
 	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ DLP $re_ex(b346) $resolved(#8) "MinGW[gcc version 4.8.0 (Built by \
+		^ DLP $re_ex(b346) $resolve(#8) "MinGW[gcc version 4.8.0 (Built by \
 			MinGW-builds project)] x32-4.8.0-release-posix-sjlj-rev0"
 			~ "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
 			x32-4.7.2-release-posix-sjlj-rev0 [release-sjlj]"
@@ -2172,9 +2172,9 @@ b337
 					@ "class %ValueObject"
 			) $dep_to DLD "removal use of static default graphical objects",
 			- "static const member objects %(GBinaryObject::Zero, Size::Zero, \
-				RectEmpty)" @ %YGDIBase $dep_all_from
+				RectEmpty)" @ %YGDIBase ($dep_all_from
 				"brace init default arguments", $dep_from
-				"removal use of static default graphical objects"
+				"removal use of static default graphical objects")
 		),
 		- $dev $lib "redundant including header '<initializer_list>'" @ "header"
 			@ %YCLib.Video

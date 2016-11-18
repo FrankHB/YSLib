@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r525
+\version r529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2015-01-02 09:40:31 +0800
 \par 修改时间:
-	2016-06-08 11:58 +0800
+	2016-11-18 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ The duration (and potentially other instances of 'std::chrono' time types e.g. t
 	In general, The default argument binding to reference type of parameter causes odr-used of the argument.
 		If the argument is a static data member of class, either declared with const, constexpr or not, an extra definition out of class definition is required to obey ODR, otherwise the program is ill-formed.
 		This is necessary by intention. Only value is actually used so lvalue-to-rvalue is expected, and odr-use is not required.
-	To elimination the requirement of extra definition, parameter of object type can be used directly instead of parameter reference type.
+	To eliminate the requirement of extra definition, parameter of object type can be used directly instead of parameter reference type.
 	However, the static data member of literal types designated with constexpr are used (rather than integral or enumeration types) it might not work.
 		To be a constant-expression it should be a non-volatile glvalue performed lvalue-to-rvalue conversion.
 			This is required "immediately" by ISO C++11.
@@ -211,7 +211,7 @@ ISO C++14 does not allowed arbitiary expressions for template non-type arguments
 Copy constructor of exception classes is reviewed.
 	See $2014-02 report.impl of basic rules.
 	The standard don't restrict the stored subobjets of standard exception classes to allow optimization.
-		See http://wg21.cmeerw.net/lwg/issue254.
+		See LWG 254.
 		However, actual implementations may directly use reference-counted strings.
 			See http://stackoverflow.com/questions/29052647/c11-introduced-exception-constructors-taking-const-char-but-why.
 			See http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20140428/104370.html.
@@ -259,7 +259,7 @@ Be cautious to the fact that some POD structs without constructors might not be 
 	To value-initilize these types, '{}' is recommended.
 		Note the list-initialization rules is not the same in ISO C++11 and ISO C++14, but here the effect is same, except for the defect concerned below.
 		Still be cautious that value-initialization might not be enough, until the resolution of CWG 1368 is adopted by the coding convention.
-			For the hole of value-initialization (not initializing some data members), see http://wg21.cmeerw.net/cwg/issue1368.
+			For the hole of value-initialization (not initializing some data members), see CWG 1368.
 				It has been fixed in the standard (draft before ISO C++14 published), see https://github.com/cplusplus/draft/commit/7eed4036396d73f7c75719808119d993e840ce8c.
 			One of prominent example is using of 'std::atomic' instances.
 				This actually caused observable bug with G++ since b399 in YSLib::Helper and was fixed at b499.
@@ -329,7 +329,7 @@ There are many conditions concerned to copy file.
 				Note the call would change the link number of the destination path only when destination is not existed yet, that is, from 0 to 1. The parameter is not used here.
 		Link behavior should be considered.
 			Users should be able to specify whether the modification of destination is visible through other paths.
-				Note the problems only occur on overloadings with the destination specified by a path.
+				Note the problems only occur on overloads with the destination specified by a path.
 				Thus, providing such functionality through other names is a surprise and bad.
 			For hard links, if shared writing is allowed, there need to be no extra operations, otherwise the destination should be removed before the copy.
 			For symbolic links, if shared writing is allowed, the link should be followed, otherwise the destination should be removed before the copy.

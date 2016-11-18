@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1849
+\version r1918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-11-13 17:44 +0800
+	2016-11-18 10:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
-//	YSLib::Access;
+//	YSLib::Access, ystdex::make_expanded;
 
 namespace NPL
 {
@@ -669,42 +669,89 @@ ReduceWithModifier(TermNode& term, ContextNode& ctx, _func f)
 
 /*!
 \brief 访问节点并调用一元函数。
-\since build 734
+\since build 741
 */
 //@{
-template<typename _func>
+template<typename _func, typename... _tParams>
 void
-CallUnary(_func f, TermNode& term)
+CallUnary(_func f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term);
 
-	term.Value.EmplaceFromCall(f, Deref(std::next(term.begin())));
+	term.Value.EmplaceFromCall(f, Deref(std::next(term.begin())),
+		yforward(args)...);
 	term.ClearContainer();
 }
 
-template<typename _type, typename _func>
+template<typename _type, typename _func, typename... _tParams>
 void
-CallUnaryAs(_func f, TermNode& term)
+CallUnaryAs(_func f, TermNode& term, _tParams&&... args)
 {
-	Forms::CallUnary([f](TermNode& node){
-		return f(YSLib::Access<_type>(node));
+	Forms::CallUnary([&](TermNode& node){
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
+		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::move(f))(
+			YSLib::Access<_type>(node), std::forward<_tParams&&>(args)...);
 	}, term);
 }
 //@}
 
 
 /*!
-\brief 注册一元函数。
-\since build 736
+\brief 保存一元函数展开调用的函数对象。
+\since build 741
+\todo 使用 C++1y lambda 表达式代替。
 */
+//@{
+//! \sa Forms::CallUnary
+template<typename _func>
+struct UnaryExpansion
+{
+	_func Function;
+
+	template<typename... _tParams>
+	void
+	operator()(TermNode& term, _tParams&&... args)
+	{
+		Forms::CallUnary(Function, term, yforward(args)...);
+	}
+};
+
+
+//! \sa Forms::CallUnaryAs
+template<typename _type, typename _func>
+struct UnaryAsExpansion
+{
+	_func Function;
+
+	template<typename... _tParams>
+	void
+	operator()(TermNode& term, _tParams&&... args)
+	{
+		Forms::CallUnaryAs<_type>(Function, term, yforward(args)...);
+	}
+};
+//@}
+
+
+/*!
+\brief 注册一元函数。
+\since build 741
+*/
+//@{
+template<typename _func>
+void
+RegisterUnaryFunction(ContextNode& node, const string& name, _func f)
+{
+	RegisterFunction(node, name, UnaryExpansion<_func>{f}, IsBranch);
+}
 template<typename _type, typename _func>
 void
-RegisterUnaryFunction(TermNode& term, const string& name, _func f)
+RegisterUnaryFunction(ContextNode& node, const string& name, _func f)
 {
-	A1::RegisterFunction(term, name, [f](TermNode& node){
-		Forms::CallUnaryAs<_type>(f, node);
-	}, IsBranch);
+	RegisterFunction(node, name, UnaryAsExpansion<_type, _func>{f}, IsBranch);
 }
+//@}
 
 
 //! \since build 735
@@ -771,6 +818,21 @@ $lambda <formals> <body>
 */
 YF_API void
 Lambda(TermNode&, ContextNode&);
+//@}
+
+
+//! \sincce build 741
+//@{
+/*!
+\brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
+\sa usystem
+*/
+YF_API void
+CallSystem(TermNode&);
+
+//! \brief 创建 REPL 并对翻译单元规约以求值。
+void
+Eval(const string&t, const REPLContext&);
 //@}
 
 } // namespace Forms;

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1668
+\version r1680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-11-13 17:44 +0800
+	2016-11-18 10:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -760,6 +760,21 @@ Lambda(TermNode& term, ContextNode& ctx)
 	}
 	else
 		throw InvalidSyntax("Syntax error in lambda abstraction.");
+}
+
+
+void
+CallSystem(TermNode& term)
+{
+	Forms::CallUnaryAs<const string>([&](const string& cmd){
+		term.Value = usystem(cmd.c_str());
+	}, term);
+}
+
+void
+Eval(const string& unit, const REPLContext& ctx)
+{
+	REPLContext(ctx).Perform(unit);
 }
 
 } // namespace Forms;
