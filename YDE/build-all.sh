@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# (C) 2014-2015 FrankHB.
+# (C) 2014-2016 FrankHB.
 # Script for build all YDE packages using SHBuild-BuildApp.
 
 set -e
 # NOTE: SHBuild-BuildApp.sh should be in $PATH.
 . SHBuild-BuildApp.sh
+
+SHBuild_CheckHostPlatform
+: ${SHBuild_BuildPrefix=".$SHBuild_Host_Platform/"}
+export SHBuild_BuildPrefix
 
 : ${SHBuild_ThisDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 

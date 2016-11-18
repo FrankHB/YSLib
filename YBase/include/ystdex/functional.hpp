@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3095
+\version r3102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-11-16 17:41 +0800
+	2016-11-17 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -948,11 +948,12 @@ struct call_projection;
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
-	//! \since build 547
+	//! \since build 741
 	template<typename _func>
-	static yconstfn _tRet
+	static yconstfn auto
 	call(_func&& f, std::tuple<_tParams...>&& args, yimpl(decay_t<
 		decltype(yforward(f)(std::get<_vSeq>(std::move(args))...))>* = {}))
+		-> decltype(yforward(f)(std::get<_vSeq>(std::move(args))...))
 	{
 		return yforward(f)(std::get<_vSeq>(std::move(args))...);
 	}
@@ -968,11 +969,13 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 			std::forward_as_tuple(yforward(args)...));
 	}
 
+	//! \since build 741
 	template<typename _fCallable>
-	static yconstfn _tRet
+	static yconstfn auto
 	invoke(_fCallable&& f, std::tuple<_tParams...>&& args,
 		yimpl(decay_t<decltype(ystdex::invoke(yforward(f),
-		std::get<_vSeq>(std::move(args))...))>* = {}))
+		std::get<_vSeq>(std::move(args))...))>* = {})) -> decltype(
+		ystdex::invoke(yforward(f), std::get<_vSeq>(std::move(args))...))
 	{
 		return ystdex::invoke(yforward(f), std::get<_vSeq>(std::move(args))...);
 	}

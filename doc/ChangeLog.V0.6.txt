@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12065
+\version r12070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-09-14 10:13 +0800
+	2016-11-18 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -6752,8 +6752,8 @@ b645
 				)
 			),
 			+ 'using ystdex::basic_string_view;' @ %CharacterDefinition,
-			* DLB "missing renaming 'chrdef.h'" @ "Microsoft VC++ project filter" $since
-				b641,
+			* DLB "missing renaming 'chrdef.h'"
+				@ "Microsoft VC++ project filter" $since b641,
 			/ %MappingEx $=
 			(
 				+ DLD 'YB_STATELESS'
@@ -7183,7 +7183,7 @@ b641
 				"removal of YSLib %ucs2_t",
 			/ @ "class %String" @ %Core.YString $=
 			(
-				+ $lib 'YB_NONNULL(2)' @ "constructor template %String",
+				+ $lib 'YB_NONNULL(2)' @ "constructor template",
 				+ "explicit constructor with %u16string_view parameter",
 				+ "constructor supporting character pointer range with UCS-2 \
 					conversion" $dep_from "null embedded string conversion"
@@ -7703,7 +7703,8 @@ b638
 		+ 'YB_ATTR(returns_nonnull)' @ ("functions %(InitScrUp, InitScrDown)"
 			@ %'YCLib_(DS)'.DSVideo, "all 2 functions %TranslateTime"
 			@ %Helper.ShellHelper),
-		/ $revert(b459) $dev $build "disabled warning C4520" @ "Microsoft VC++ project",
+		/ $revert(b459) $dev $build "disabled warning C4520"
+			@ "Microsoft VC++ project",
 			// It seems that the bug is no longer in Microsoft VC++ 2015.
 	),
 	/ %YBase $=

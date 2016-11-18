@@ -61,7 +61,8 @@ fi
 export SHBuild_Debug
 export SHBuild_Static
 
-SHBOPT="-xd,.$SHBuild_Conf -xid,include -xmode,2 $@"
+SHBuild_Dest="$SHBuild_BuildPrefix.$SHBuild_Conf"
+SHBOPT="-xd,$SHBuild_Dest -xid,include -xmode,2 $@"
 . $SHBuild_Bin/SHBuild-common.sh
 if hash gcc-ar > /dev/null; then
 	: ${AR:='gcc-ar'}
