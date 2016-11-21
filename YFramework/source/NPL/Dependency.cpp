@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r167
+\version r178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2016-08-12 18:47 +0800
+	2016-11-21 08:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_NPL_Dependency
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
+#include <iterator> // for std::istreambuf_iterator;
 
 using namespace YSLib;
 
@@ -36,14 +37,12 @@ namespace NPL
 {
 
 vector<string>
-DecomposeMakefileDepList(std::istream& is)
+DecomposeMakefileDepList(std::streambuf& sb)
 {
-	is.unsetf(std::ios_base::skipws);
-
-	using s_it_t = std::istream_iterator<char>;
+	using s_it_t = std::istreambuf_iterator<char>;
 	// NOTE: Escaped spaces would be saved to prevent being used as delimiter.
 	set<size_t> spaces;
-	const auto sbuf(Session(s_it_t(is), s_it_t(),
+	const auto sbuf(Session(s_it_t(&sb), s_it_t(),
 		[&](LexicalAnalyzer& lexer, char c){
 		lexer.ParseQuoted(c,
 			[&](string& buf, const UnescapeContext& uctx, char) -> bool{
@@ -91,6 +90,12 @@ DecomposeMakefileDepList(std::istream& is)
 		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
 	});
 	return lst;
+}
+vector<string>
+DecomposeMakefileDepList(std::istream& is)
+{
+	return ystdex::call_value_or<vector<string>>(static_cast<vector<string>(&)(
+		std::streambuf&)>(DecomposeMakefileDepList), is.rdbuf());
 }
 
 bool

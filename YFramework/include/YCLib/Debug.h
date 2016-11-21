@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r724
+\version r736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2016-08-29 15:42 +0800
+	2016-11-19 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,6 +70,21 @@
 
 namespace platform
 {
+
+/*!
+\brief 使用标准输出流打印字符串并刷新。
+\pre 间接断言：参数的数据指针非空。
+\return 打印和刷新是否成功。
+\since build 742
+
+使用标准输出流以平台相关的方式打印字符串，然后刷新流。编码视为 UTF-8 。
+DS 平台：使用 std::puts 。
+Win32 平台：使用控制台接口，失败时使用 std::cout 。
+其它平台：使用 std::cout 。
+*/
+YF_API bool
+Echo(string_view) ynoexcept(YF_Platform == YF_Platform_DS);
+
 
 /*!
 \ingroup tracing

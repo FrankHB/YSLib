@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r479
+\version r490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-08-21 20:26 +0800
+	2016-11-19 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -292,12 +292,15 @@ MakePipe();
 
 /*!
 \brief 从外部环境编码字符串参数或解码为外部环境字符串参数。
-\pre Win32 平台可能间接断言参数非空。
+\pre Win32 平台可能间接断言：参数的数据指针非空。
 \since build 593
 
-对 Win32 平台调用当前代码页的 platform::MBCSToMBCS 编解码字符串，其它直接传递参数。
-此时和 platform::MBCSToMBCS 不同，参数可转换为 \c string_view 时长度通过 NTCTS 计算。
-若需要使用 <tt>const char*</tt> 指针，可直接使用 <tt>&arg[0]</tt> 的形式。
+Win32 平台：调用当前代码页的 platform::MBCSToMBCS 编解码字符串。
+其它平台：直接传递参数。
+和 platform::MBCSToMBCS 不同，参数可转换为 \c string_view 时，
+作为 NTCTS 计算字符串长度。
+用于传递可能不统一编码的文本参数时统一调用形式，避免过多的根据平台的条件编译判断。
+若参数可能是 string 或 <tt>const char*</tt> 类型时，可直接使用 \c &arg[0] 的形式。
 */
 //@{
 #	if YCL_Win32
@@ -321,12 +324,13 @@ DecodeArg(_type&& arg) -> decltype(yforward(arg))
 #	if YCL_Win32
 YF_API YB_NONNULL(1) string
 EncodeArg(const char*);
-inline PDefH(string, EncodeArg, const string& arg)
-	ImplRet(EncodeArg(&arg[0]))
+//! \since build 742
+inline PDefH(string, EncodeArg, string_view arg)
+	ImplRet(EncodeArg(arg.data()))
 #	endif
 template<typename _type
 #if YCL_Win32
-	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<string,
+	, yimpl(typename = ystdex::enable_if_t<!std::is_constructible<string_view,
 		_type&&>::value>)
 #endif
 	>

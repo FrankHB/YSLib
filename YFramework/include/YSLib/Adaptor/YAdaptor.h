@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1984
+\version r1987
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-09-20 09:04 +0800
+	2016-11-19 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -239,10 +239,12 @@ using platform::FetchLimit;
 //@}
 
 /*!
-\brief 日志。
+\brief 调试接口和日志。
 \since build 510
 */
 //@{
+//! \since build 742
+using platform::Echo;
 using platform::Logger;
 using platform::FetchCommonLogger;
 //@}

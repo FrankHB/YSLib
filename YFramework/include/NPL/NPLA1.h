@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1918
+\version r1944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-11-18 10:22 +0800
+	2016-11-20 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -587,17 +587,29 @@ public:
 	REPLContext(bool = {});
 
 	/*!
-	\brief 执行循环：对非空输入进行翻译。
-	\pre 断言：字符串的数据指针非空。
-	\throw LoggedEvent 输入为空串。
+	\brief 处理：分析输入并预处理后进行规约。
 	\sa SContext::Analyze
 	\sa Preprocess
 	\sa Reduce
-	
-	预处理后进行规约。
+	\since build 742
+	*/
+	//@{
+	void
+	Process(TermNode&);
+	TermNode
+	Process(const TokenList&);
+	TermNode
+	Process(const Session&);
+	//@}
+
+	/*!
+	\brief 执行循环：对非空输入进行翻译。
+	\pre 断言：字符串的数据指针非空。
+	\throw LoggedEvent 输入为空串。
+	\sa Process
 	*/
 	TermNode
-	Perform(const string_view);
+	Perform(string_view);
 };
 
 
@@ -821,19 +833,20 @@ Lambda(TermNode&, ContextNode&);
 //@}
 
 
-//! \sincce build 741
-//@{
 /*!
 \brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
 \sa usystem
+\since build 741
 */
 YF_API void
 CallSystem(TermNode&);
 
-//! \brief 创建 REPL 并对翻译单元规约以求值。
-void
+/*!
+\brief 创建 REPL 并对翻译单元规约以求值。
+\since build 742
+*/
+YF_API void
 Eval(const string&t, const REPLContext&);
-//@}
 
 } // namespace Forms;
 

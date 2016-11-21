@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r752
+\version r802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2016-11-12 12:55 +0800
+	2016-11-19 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,27 +26,24 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_Debug
-#include YFM_YCLib_Input
-#include YFM_YCLib_Video // for platform::ColorSpace, platform::YConsoleInit;
-#if YCL_DS
-#	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
-#elif YCL_Win32
-#	include <csignal>
-#	include YFM_YCLib_NativeAPI // for ::OutputDebugStringA, ::MessageBoxA;
-#	include YFM_Win32_YCLib_Consoles // for platform_ex::MakeWConsole,
-//	STD_ERROR_HANDLE, platform_ex::Win32Exception;
+#include YFM_YCLib_Debug // for wstring, string_view, std::puts, std::fflush;
+#if YCL_Win32
+#	include YFM_Win32_YCLib_Consoles // for platform_ex::WConsole,
+//	STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, platform_ex::Win32Exception;
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS;
+#	include YFM_YCLib_NativeAPI // for ::OutputDebugStringA, ::MessageBoxA;
+#	include <csignal> // for std::raise, SIGABRT;
 #elif YCL_Android
 #	include <android/log.h>
 #endif
+#include YFM_YCLib_Host // for platfrom_ex::EncodeArg;
 #if YF_Multithread == 1
 #	include <ystdex/concurrency.h>
 #endif
 #if !YCL_DS
 #	include <iostream> // for std::cerr;
 #endif
-#include <cstdarg>
+#include <cstdarg> // for std::va_list, va_start, va_end;
 
 namespace platform
 {
@@ -55,11 +52,8 @@ namespace
 {
 
 //! \since build 564
-inline const char*
-chk_null(const char* s)
-{
-	return s && *s != char()? s : "<unknown>";
-}
+inline PDefH(const char*, chk_null, const char* s)
+	ImplRet(s && *s != char()? s : "<unknown>")
 
 #if YF_Multithread == 1
 //! \since build 626
@@ -73,7 +67,17 @@ FetchCurrentThreadID() ynothrow
 }
 #endif
 
-#if YCL_Android
+#if YCL_Win32
+//! \since build 742
+YB_NONNULL(3) size_t
+WConsoleOutput(wstring& wstr, unsigned long h, const char* str)
+{
+	using namespace platform_ex;
+
+	wstr = UTF8ToWCS(str) + L'\n';
+	return WConsole(h).WriteString(wstr);
+}
+#elif YCL_Android
 //! \since build 498
 template<typename... _tParams>
 inline int
@@ -89,6 +93,27 @@ PrintAndroidLog(Descriptions::RecordLevel lv, const char* tag, const char *fmt,
 using namespace Concurrency;
 
 } // unnamed namespace;
+
+bool
+Echo(string_view sv) ynoexcept(YF_Platform == YF_Platform_DS)
+{
+#if YCL_DS
+	return std::puts(Nonnull(sv.data())) >= 0 && std::fflush(stdout) == 0;
+#elif YCL_Win32
+	wstring wstr;
+	size_t n(0);
+
+	TryExpr(n = WConsoleOutput(wstr, STD_OUTPUT_HANDLE, sv.data()))
+	CatchIgnore(platform_ex::Win32Exception&)
+	if(n < wstr.length())
+		std::cout << &wstr[n];
+	return bool(std::cout.flush());
+#elif YF_Hosted
+	return bool(std::cout << platform_ex::EncodeArg(sv) << std::endl);
+#else
+	return bool(std::cout << sv << std::endl);
+#endif
+}
 
 
 void
@@ -179,11 +204,15 @@ Logger::FetchDefaultSender(string_view tag)
 	YAssertNonnull(tag.data());
 #if YCL_Win32
 	return [](Level lv, Logger& logger, const char* str){
-		using namespace platform_ex;
-
 		// TODO: Avoid throwing of %WriteString here for better performance?
-		TryExpr(WConsole(STD_ERROR_HANDLE).WriteString(UTF8ToWCS(str) + L'\n'))
-		CatchExpr(Win32Exception&, DefaultSendLog(lv, logger, str))
+		// FIXME: Output may be partially updated?
+		try
+		{
+			wstring wstr;
+
+			WConsoleOutput(wstr, STD_ERROR_HANDLE, str);
+		}
+		CatchExpr(platform_ex::Win32Exception&, DefaultSendLog(lv, logger, str))
 	};
 #elif YCL_Android
 	return platform_ex::AndroidLogSender(tag);
