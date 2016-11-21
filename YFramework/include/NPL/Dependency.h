@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r128
+\version r136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2015-12-13 14:37 +0800
+	2016-11-21 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_Lexical // for string, vector;
-#include <istream>
+#include <istream> // for std::istream;
 
 namespace NPL
 {
@@ -49,12 +49,14 @@ enum class DepsEventType : yimpl(size_t)
 
 //! \since build 623
 //@{
-/*!
-\brief 从内容为 GCC 兼容编译器 -MMD 选项生成的 Makefile 的流中分解路径。
-\note 首先取消 std::ios_base::skipws 。
-*/
+//! \brief 从内容为 GCC 兼容编译器 -MMD 选项生成的 Makefile 的流中分解路径。
+//@{
+//! \since build 742
+YF_API vector<string>
+DecomposeMakefileDepList(std::streambuf&);
 YF_API vector<string>
 DecomposeMakefileDepList(std::istream&);
+//@}
 
 /*!
 \brief 过滤 GCC 兼容编译器 -MMD 选项生成的 Makefile 项列表并选取依赖项。

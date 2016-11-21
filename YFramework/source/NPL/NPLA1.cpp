@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1680
+\version r1705
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-11-18 10:03 +0800
+	2016-11-21 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -561,14 +561,31 @@ REPLContext::Perform(string_view unit)
 {
 	YAssertNonnull(unit.data());
 	if(!unit.empty())
-	{
-		auto term(SContext::Analyze(Session(unit)));
-
-		Preprocess(term);
-		Reduce(term, Root);
-		return term;
-	}
+		return Process(Session(unit));
 	throw LoggedEvent("Empty token list found.", Alert);
+}
+
+void
+REPLContext::Process(TermNode& term)
+{
+	Preprocess(term);
+	Reduce(term, Root);
+}
+TermNode
+REPLContext::Process(const TokenList& token_list)
+{
+	auto term(SContext::Analyze(token_list));
+
+	Process(term);
+	return term;
+}
+TermNode
+REPLContext::Process(const Session& session)
+{
+	auto term(SContext::Analyze(session));
+
+	Process(term);
+	return term;
 }
 
 
@@ -595,14 +612,12 @@ ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 		const auto i(std::next(con.cbegin()));
 
 		// XXX: Modifier is treated as special name.
-		if(const auto p = TermToName(Deref(i)))
-		{
+		if(const auto p = TermToName(Deref(i)))\
 			if(*p == mod)
 			{
 				con.erase(i);
 				return true;
 			}
-		}
 	}
 	return {};
 }

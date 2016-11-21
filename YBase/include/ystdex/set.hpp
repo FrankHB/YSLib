@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1060
+\version r1065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-10-06 15:17 +0800
+	2016-11-18 11:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,6 +219,9 @@ public:
 		amend_all();
 	}
 	mapped_set(mapped_set&& s)
+		// NOTE: ISO C++ allows the underlying associative container to throw on
+		//	move.
+		yimpl(ynoexcept(is_nothrow_move_constructible<umap_type>()))
 		: m_map(std::move(s.m_map))
 	{
 		amend_all();
@@ -660,8 +663,9 @@ public:
 #undef YB_Impl_Set_GenericLookupHead
 
 private:
+	//! \since build 742
 	void
-	amend_all() const
+	amend_all() const ynothrow
 	{
 		for(const auto& pr : m_map)
 			amend_pair(pr);

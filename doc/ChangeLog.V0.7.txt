@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4262
+\version r4301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-18 10:56 +0800
+	2016-11-21 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,47 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ $lib "move contructor nothrow exception-specification conditionally"
+		@ "class template %mapped set" @ %YBase.YStandardEx.Set,
+		// This is depends on the underlying container implementation, which \
+			can be either throwing or nonthrowing according to ISO C++.
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				* "missing 'YF_API'" @ "function %Eval" @ "namespace %A1" $since
+					b741,
+				/ @ "class %REPLContext" $=
+				(
+					+ "3 function %Process";
+					/ DLDI "simlified %Perform" ^ "%Process"
+				)
+			),
+			/ "avoided locale and state operations"
+				@ "function %DecomposeMakefileDepList" @ %Dependency $=
+			(
+				+ "overload for %std::streambuf",
+				/ DLDI "simplified" ^ "%std::istreambuf_iterator"
+					~ "%std::istream_iterator";
+				- "set of %std::ios_base::skipws"
+			)
+		),
+		/ %YCLib $=
+		(
+			/ "2nd parameter type" @ "function EncodeArg#2" -> 'string_view'
+				~ 'const string&',
+			+ "function %Echo" @ %YCLib.Debug
+		),
+		+ 'using platform::Echo;' @ %YSLib.Adaptor.YAdaptor $dep_from
+			%YCLib.Debug,
+
+	)
+),
+
+b741
 (
 	/ "supported destination prefix after '-xd,' as prefix of %SHBOPT default \
 		value" @ "SHBuild-BuildApp.sh" @ %Tools.Scripts,
