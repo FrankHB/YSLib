@@ -5,7 +5,7 @@ The output file(if any) is a text file with file name and creation time stored.
 = Precondition
 Currently only windows host is supported.
 The source requires (limited) ISO C++11 support.
-G++ 4.8.1 and VC++ 2012 have been originally tested and any later versions of these implementations should be able to compile the source.
+G++ 4.8.1 and Microsoft VC++ 2012 have been originally tested and any later versions of these implementations should be able to compile the source.
 G++ command example:
 
 	g++ -std=c++11 -O3 -s -Wall -Wextra Main.cpp

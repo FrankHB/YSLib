@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2932
+\version r2976
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-11-05 15:51 +0800
+	2016-11-23 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -866,7 +866,7 @@ public:
 	inline
 	any(_type&& x)
 		: any(any_ops::with_handler_t<
-		any_ops::ref_handler<decay_unwrap_t<_type>>>(), x)
+		any_ops::ref_handler<remove_reference_t<decay_unwrap_t<_type>>>>(), x)
 	{}
 	//! \since build 717
 	template<typename _type, typename... _tParams>
@@ -1232,6 +1232,56 @@ unsafe_any_cast(const any* p) ynothrowv
 //@}
 //@}
 //@}
+
+
+/*!
+\note YStandardEx 扩展。
+\sa void_ref
+\since build 743
+*/
+class YB_API void_ref_any
+{
+private:
+	mutable any data;
+
+public:
+	void_ref_any() = default;
+	template<typename _type,
+		yimpl(typename = exclude_self_t<void_ref_any, _type>)>
+	void_ref_any(_type&& x)
+		: void_ref_any(yforward(x), is_convertible<_type&&, void_ref>())
+	{}
+
+private:
+	template<typename _type>
+	void_ref_any(_type&& x, true_)
+		: data(void_ref(yforward(x)))
+	{}
+	template<typename _type>
+	void_ref_any(_type&& x, false_)
+		: data(yforward(x))
+	{}
+
+public:
+	void_ref_any(const void_ref_any&) = default;
+	void_ref_any(void_ref_any&&) = default;
+
+	void_ref_any&
+	operator=(const void_ref_any&) = default;
+	void_ref_any&
+	operator=(void_ref_any&&) = default;
+
+	//! \pre 间接断言：参数指定初始化对应的类型。
+	template<typename _type,
+		yimpl(typename = exclude_self_t<void_ref_any, _type>)>
+	YB_PURE
+	operator _type() const
+	{
+		if(data.type() == ystdex::type_id<void_ref>())
+			return *ystdex::unchecked_any_cast<void_ref>(&data);
+		return std::move(*ystdex::unchecked_any_cast<_type>(&data));
+	}
+};
 
 } // namespace ystdex;
 

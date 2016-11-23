@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4301
+\version r4348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-21 10:02 +0800
+	2016-11-23 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,54 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Any $=
+		(
+			+ "class %void_any_ref",
+			* "formed reference as parameter type for %ref_handler due to \
+				%unwrap_reference_t" @ "constructor template with reference \
+				wrapper parameter" @ "class %any" $since b732
+		),
+		/ %AnyIterator $=
+		(
+			/ "reference type argument %void_ref"
+				@ "alias template %input_monomorphic_iterator" -> $dep_from
+				("%void_ref_any" @ %Any),
+			(
+			/ @ "all iterator handler class templates %(iterator_handler, \
+				input_iterator_handler, forward_iterator_handler, \
+				bidirectional_iterator_handler) $=
+			(
+				+ "reference as 2nd template parameter";
+				/ "embedded reference type into dereference operation" $dep_from
+					"class %any" @ %Any
+			);
+			/ $forced DLDI "embedded reference type into handler type"
+				@ "constructor template"
+				@ "class templates %(any_input_iterator, any_forward_iterator)";
+			/ $comp "supported non reference types used as %reference"
+				@ "class template %any_input_iterator"
+			);
+			* $comp "missing supported for non reference types as %reference"
+				@ "alias template %input_monomorphic_iterator" $orig (@ "class \
+				template %input_monomorphic_iterator" @ %Iterator $since b247)
+		)
+	),
+	/ %YFramework.YSLib $=
+	(
+		+ "functions %(VerifyEncoding; DetectBOM) overload for \
+			'std::streambuf&'" @ %Service.TextFile,
+		/ "emergent expected exception logging" @ "!defined %NDEBUG"
+			@ "member function %Application::OnGotMessage" @ %Core.YApplication
+			^ "%ExtractAndTrace"
+	),
+	/ DLD "minor patches" @ "%Readme.en-US.txt"
+		@ %Tools.(CreationTimeManager, PredefinedMacroDetector)
+),
+
+b742
 (
 	/ $lib "move contructor nothrow exception-specification conditionally"
 		@ "class template %mapped set" @ %YBase.YStandardEx.Set,

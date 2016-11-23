@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3774
+\version r3777
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2016-11-01 23:33 +0800
+	2016-11-23 17:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1812,9 +1812,9 @@ b247
 			^ "function %CheckWidget"
 	),
 	+ "statically-typed object proxy class %void_ref";
-	+ "input iterator adaptor class %monomorphic_input_iterator";
-	^ DLD "simplified isomorphic character converter prototypes"
-		^ "class %monomorphic_input_iterator"
+	+ "input iterator adaptor class %input_monomorphic_iterator";
+	/ DLD "simplified isomorphic character converter prototypes"
+		^ "class %input_monomorphic_iterator"
 ),
 
 b246
