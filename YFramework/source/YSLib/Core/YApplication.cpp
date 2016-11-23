@@ -11,13 +11,13 @@
 /*!	\file YApplication.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1738
+\version r1740
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:36 +0800
 \par 修改时间:
-	2016-05-16 14:14 +0800
+	2016-11-23 13:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_YApplication
+#include YFM_YSLib_Core_YException // for ExtractAndTrace;
 
 namespace YSLib
 {
@@ -56,7 +57,7 @@ Application::OnGotMessage(const Message& msg)
 	CatchIgnore(Messaging::MessageSignal&)
 #ifndef NDEBUG
 	CatchExpr(std::exception& e, YTraceDe(Emergent, "Unexpected exception."),
-		FetchCommonLogger().DoLogException(Emergent, e), throw)
+		ExtractAndTrace(e, Emergent), throw)
 	CatchExpr(..., YTraceDe(Emergent, "Unknown unexpected exception."), throw)
 #endif
 }

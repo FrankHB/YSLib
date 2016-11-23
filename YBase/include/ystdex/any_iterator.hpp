@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1350
+\version r1397
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-10-11 23:51 +0800
+	2016-11-23 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	ptrdiff_t, any, exclude_self_t, any_ops::with_handler_t, decay_t,
 //	is_convertible, indirect_t, default_init;
 #include "iterator.hpp" // for is_undereferenceable, input_iteratable,
-//	forward_iteratable, bidirectional_iteratable;
+//	std::unique_ptr, forward_iteratable, bidirectional_iteratable;
 
 namespace ystdex
 {
@@ -94,18 +94,24 @@ struct wrap_handler
 	using type = cond_t<is_reference_wrapper<_type>, ref_handler<value_type>,
 		value_handler<value_type>>;
 };
+//@}
 
 
-template<typename _type>
+//! \since build 743
+//@{
+template<typename _type, typename _tReference>
 class iterator_handler : public wrap_handler<_type>::type
 {
 public:
+	//! \since build 355
+	//@{
 	using base = _t<wrap_handler<_type>>;
 	using value_type = typename base::value_type;
 
 	using base::get_reference;
 
 	using base::init;
+	//@}
 
 	//! \since build 692
 	static void
@@ -117,7 +123,14 @@ public:
 			d.access<bool>() = is_undereferenceable(get_reference(s));
 			break;
 		case dereference:
-			d = void_ref(*get_reference(s));
+			{
+				using obj_t = cond_t<is_reference<_tReference>,
+					lref<decay_t<_tReference>>, _tReference>;
+				auto& p(d.access<any*>());
+
+				yassume(p);
+				*p = obj_t(*get_reference(s));
+			}
 			break;
 		case increase:
 			++get_reference(d);
@@ -129,16 +142,19 @@ public:
 };
 
 
-template<typename _type>
-class input_iterator_handler : public iterator_handler<_type>
+template<typename _type, typename _tReference>
+class input_iterator_handler : public iterator_handler<_type, _tReference>
 {
 public:
-	using base = iterator_handler<_type>;
+	//! \since build 355
+	//@{
+	using base = iterator_handler<_type, _tReference>;
 	using value_type = typename base::value_type;
 
 	using base::get_reference;
 
 	using base::init;
+	//@}
 
 	//! \since build 692
 	static void
@@ -155,15 +171,16 @@ public:
 		}
 	}
 };
-//@}
 
 
-//! \since build 400
-template<typename _type>
-class forward_iterator_handler : public input_iterator_handler<_type>
+template<typename _type, typename _tReference>
+class forward_iterator_handler
+	: public input_iterator_handler<_type, _tReference>
 {
 public:
-	using base = input_iterator_handler<_type>;
+	//! \since build 400
+	//@{
+	using base = input_iterator_handler<_type, _tReference>;
 	using value_type = typename base::value_type;
 
 	using base::get_reference;
@@ -171,20 +188,24 @@ public:
 	using base::init;
 
 	using base::manage;
+	//@}
 };
 
 
-//! \since build 400
-template<typename _type>
-class bidirectional_iterator_handler : public forward_iterator_handler<_type>
+template<typename _type, typename _tReference>
+class bidirectional_iterator_handler
+	: public forward_iterator_handler<_type, _tReference>
 {
 public:
-	using base = forward_iterator_handler<_type>;
+	//! \since build 400
+	//@{
+	using base = forward_iterator_handler<_type, _tReference>;
 	using value_type = typename base::value_type;
 
 	using base::get_reference;
 
 	using base::init;
+	//@}
 
 	//! \since build 692
 	static void
@@ -200,6 +221,7 @@ public:
 		}
 	}
 };
+//@}
 
 } // namespace any_ops;
 
@@ -241,7 +263,8 @@ public:
 		yimpl(typename = exclude_self_t<any_input_iterator, _tIter>)>
 	any_input_iterator(_tIter&& i)
 		: any_input_iterator(any_ops::with_handler_t<
-		any_ops::input_iterator_handler<decay_t<_tIter>>>(), yforward(i))
+		any_ops::input_iterator_handler<decay_t<_tIter>, reference>>(),
+		yforward(i))
 	{}
 
 protected:
@@ -272,8 +295,13 @@ public:
 	operator*() const
 	{
 		// TODO: More graceful implementation for unused value?
-		return reference(unchecked_access<void_ref>(any_ops::dereference,
-			yimpl(*this)));
+		any res;
+		any_ops::any_storage t;
+		const auto gd(t.pun<any*>(&res));
+
+		call(t, any_ops::dereference);
+		return reference(
+			*ystdex::unchecked_any_cast<remove_reference_t<reference>>(&res));
 	}
 
 	pointer
@@ -341,7 +369,7 @@ public:
 
 
 using input_monomorphic_iterator
-	= any_input_iterator<void_ref, ptrdiff_t, void*, void_ref>;
+	= any_input_iterator<void_ref, ptrdiff_t, void*, void_ref_any>;
 //@}
 
 
@@ -374,7 +402,8 @@ public:
 		yimpl(typename = exclude_self_t<any_forward_iterator, _tIter>)>
 	any_forward_iterator(_tIter&& i)
 		: any_forward_iterator(any_ops::with_handler_t<
-		any_ops::forward_iterator_handler<decay_t<_tIter>>>(), yforward(i))
+		any_ops::forward_iterator_handler<decay_t<_tIter>, reference>>(),
+		yforward(i))
 	{
 		static_assert(is_convertible<indirect_t<decay_unwrap_t<_tIter>>,
 			reference>(), "Wrong target iterator type found.");

@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1024
+\version r1035
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2016-08-29 00:54 +0800
+	2016-11-21 16:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,8 @@ namespace Text
 {
 
 /*!
-\brief 验证流的编码。
-\note 第二参数和第三参数指定缓冲区，第四参数指定最大文本长度，
+\brief 验证编码。
+\note 第二参数和第三参数指定验证用的缓冲区，第四参数指定最大文本长度，
 	第五参数参数指定验证的编码。
 \note 假定调用前流状态正常。
 \since build 621
@@ -47,6 +47,9 @@ namespace Text
 //@{
 YB_NONNULL(1, 2) Text::Encoding
 VerifyEncoding(std::FILE*, char*, size_t, size_t, Encoding = CS_Default);
+//! \since build 743
+YB_NONNULL(2) Text::Encoding
+VerifyEncoding(std::streambuf&, char*, size_t, size_t, Encoding = CS_Default);
 YB_NONNULL(2) Text::Encoding
 VerifyEncoding(std::istream&, char*, size_t, size_t, Encoding = CS_Default);
 //@}
@@ -134,12 +137,17 @@ DetectBOM(string_view);
 \sa VerifyEncoding
 \since build 621
 
-设置流读位置为起始位置。当流大小大于 1 时试验读取前 4 字节并检查 BOM 。
+设置读位置为起始位置。当流大小大于 1 时试验读取前 4 字节并检查 BOM 。
 若没有发现 BOM ，调用 VerifyEncoding 按前 64 字节探测编码。
 读取 BOM 时若遇到流无效，直接返回 <tt>{CharSet::Null, 0}</tt> 。
 */
+//@{
+//! \since build 743
+YF_API pair<Encoding, size_t>
+DetectBOM(std::streambuf&, size_t, Encoding = CS_Default);
 YF_API pair<Encoding, size_t>
 DetectBOM(std::istream&, size_t, Encoding = CS_Default);
+//@}
 //@}
 
 /*!
