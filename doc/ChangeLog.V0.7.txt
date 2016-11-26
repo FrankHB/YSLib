@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4348
+\version r4404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-23 17:39 +0800
+	2016-11-26 16:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework.YSLib $=
+	(
+		/ %Service $=
+		(
+			/ @ "class %TextFileBuffer" @ %TextManager $=
+			(
+				/  -> 'std::streambuf&'~ 'std::istream&',
+				/ "type" @ ("1st parameter" @ "constructor", "protected data \
+					member %File") -> 'std::streambuf&' ~ 'std::istream&';
+				+ "function %Seek",
+				/ $forced "functions %TextFileBuffer::(operator[], \
+					GetIterator, GetPosition)"
+				(
+					- "assertion to ensure nonnull file";
+					/ $impl "sentry" ^ "%std::istreambuf_iterator"
+						~ "%std::istream_iterator",
+					/ $impl "simplified" ^ $dep_from "%Seek";
+					* $comp "missing error handling for seeking failure" $since
+						b273
+				)
+			)
+		),
+		/ DLDI "simplified function templates %(CheckLowerBound, \
+			CheckUpperBound)" @ %Core.YCoreUtilities ^ $dep_from
+			"%ystdex::common_int_type" @ %YBase.YStandardEx.CStandardInt
+	),
+	/ @ "class %DualScreenReader" @ %YReader.DSReader $=
+	(
+		+ "function %ShowError",
+		/ DLDI "function %LoadText" $=
+		(
+			(
+			/ $forced "buffer initialization argument";
+			- "set of %std::ios_base::skipws" 
+			),
+			/ "showed different error message when buffer loading failed"
+				^ $dep_from "%ShowError"
+		),
+		* $doc "missing parameter name" @ "'\param' command"
+			@ "function %ScrollByPixel" $since b292
+	),
+	/ %YBase.YStandardEx $=
+	(
+		(
+		/ "transformation trait %wrap_handler" @ %AnyIterator >> %Any;
+		/ $lib "merged 2 constructor templates with single parameter %any"
+			^ "%wrap_handler" @ %Any
+		),
+		+ "transformation trait %common_int_type" @ %CStandardInt
+	)
+),
+
+b743
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -145,7 +199,7 @@ b741
 				@ "function %RegisterUnaryFunction" $since b736 $=
 				// This is currently compatible because %TermNode and \
 					%ContextNode are same type, which should not be relied on.
-				(/ 'TermNode&' -> 'ContextNode'),
+				(/ 'TermNode&' -> 'ContextNode&'),
 			+ "functions %(CallSystem, Eval)"
 		)
 	),
@@ -244,9 +298,9 @@ b740
 		* $comp "failed to build" @ %Test.YBase $since b735 $dep_from
 			%YBase.YStandardEx.Functional $dep_to "compose test"
 		),
-		* "undefined behaviro due to out-of-lifetime temporary access"
+		* "undefined behavior due to out-of-lifetime temporary access"
 			@ "2 cases" @ "group %YStandard.String" $since b640
-			// Occasionally it did not crashed on MinGW32. It would crash on
+			// Occasionally it did not crash on MinGW32. It would crash on
 			//	Arch Linux x86_64.
 	),
 	* "wrong return type" @ "function template %compose_n#1"

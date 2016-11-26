@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r2976
+\version r3005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-11-23 11:49 +0800
+	2016-11-26 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,12 +33,12 @@
 
 #include "typeinfo.h" // for "typeinfo.h", cloneable, type_info, exclude_self_t,
 //	ystdex::type_id, is_nothrow_move_constructible, and_, bool_, enable_if_t,
-//	std::bad_cast, decay_t, yconstraint;
+//	remove_reference_t, cond_t, std::bad_cast, decay_t, _t, yconstraint;
 #include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
 //	std::unique_ptr, standard_layout_storage, aligned_storage_t,
 //	is_aligned_storable, default_init_t;
 #include "exception.h" // for throw_invalid_construction;
-#include "ref.hpp" // for is_reference_wrapper, decay_unwrap_t;
+#include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 #include <initializer_list> // for std::initializer_list;
 
 namespace ystdex
@@ -601,6 +601,20 @@ public:
 	}
 };
 
+
+/*!
+\ingroup trasformation_traits
+\brief 根据类型选择引用或值处理器。
+\since build 355
+*/
+template<typename _type>
+struct wrap_handler
+{
+	using value_type = remove_reference_t<unwrap_reference_t<_type>>;
+	using type = cond_t<is_reference_wrapper<_type>, ref_handler<value_type>,
+		value_handler<value_type>>;
+};
+
 } // namespace any_ops;
 
 
@@ -850,24 +864,18 @@ public:
 	//! \post \c has_value() 。
 	yconstfn
 	any() ynothrow = default;
-	//! \since build 448
-	template<typename _type, yimpl(typename = exclude_self_t<any, _type>,
-		typename = enable_if_t<!is_reference_wrapper<decay_t<_type>>::value>)>
-	inline
-	any(_type&& x)
-		: any(any_ops::with_handler_t<any_ops::value_handler<decay_t<_type>>>(),
-		yforward(x))
-	{}
-	//! \note YStandardEx 扩展。
-	//@{
-	//! \since build 675
-	template<typename _type, yimpl(typename
-		= enable_if_t<is_reference_wrapper<decay_t<_type>>::value>)>
+	/*!
+	\since build 448
+	\note 引用包装类型的处理为 YStandardEx 扩展。
+	*/
+	template<typename _type, yimpl(typename = exclude_self_t<any, _type>)>
 	inline
 	any(_type&& x)
 		: any(any_ops::with_handler_t<
-		any_ops::ref_handler<remove_reference_t<decay_unwrap_t<_type>>>>(), x)
+		_t<any_ops::wrap_handler<decay_t<_type>>>>(), yforward(x))
 	{}
+	//! \note YStandardEx 扩展。
+	//@{
 	//! \since build 717
 	template<typename _type, typename... _tParams>
 	inline
