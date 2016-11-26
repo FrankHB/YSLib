@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r1397
+\version r1409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2016-11-23 11:22 +0800
+	2016-11-26 12:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,9 @@
 #ifndef YB_INC_ystdex_any_iterator_hpp_
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
-#include "any.h" // for "any.h", any_ops, remove_reference_t,
-//	unwrap_reference_t, cond_t, is_reference_wrapper, ref_handler, _t,
-//	ptrdiff_t, any, exclude_self_t, any_ops::with_handler_t, decay_t,
-//	is_convertible, indirect_t, default_init;
+#include "any.h" // for "any.h", any_ops, cond_t, wrap_handler, _t, decay_t,
+//	ptrdiff_t, any, exclude_self_t, any_ops::with_handler_t, is_convertible,
+//	indirect_t, decay_unwrap_t, remove_reference_t;
 #include "iterator.hpp" // for is_undereferenceable, input_iteratable,
 //	std::unique_ptr, forward_iteratable, bidirectional_iteratable;
 
@@ -83,16 +82,6 @@ enum random_access_iteartor_op : op_code
 	distance,
 	less_compare,
 	end_random_access_iteartor_op
-};
-
-
-//! \ingroup trasformation_traits
-template<typename _type>
-struct wrap_handler
-{
-	using value_type = remove_reference_t<unwrap_reference_t<_type>>;
-	using type = cond_t<is_reference_wrapper<_type>, ref_handler<value_type>,
-		value_handler<value_type>>;
 };
 //@}
 

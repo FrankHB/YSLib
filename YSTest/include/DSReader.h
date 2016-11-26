@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1880
+\version r1890
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2015-12-27 23:23 +0800
+	2016-11-26 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -317,15 +317,22 @@ public:
 
 	/*!
 	\brief 向下滚屏指定像素行。
-	\param 像素数。
 	\pre 断言：行偏移量小于行高。
 	\pre 间接断言：文本缓冲区指针非空。
 	\return 实际滚动的像素行数。
-	\note 参数超过行高时无效。
+	\note 参数表示像素数，超过行高时无效。
 	\since build 292
 	*/
 	Drawing::FontSize
 	ScrollByPixel(Drawing::FontSize);
+
+	/*!
+	\brief 卸载内容、显示错误并无效化背景。
+	\pre 间接断言：参数非空。
+	\since build 744
+	*/
+	YB_NONNULL(1) void
+	ShowError(const char16_t*);
 
 	/*!
 	\brief 伸缩：从最大值起向上调整（减少）下文字区域的高后更新视图。

@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2475
+\version r2483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-07-11 17:53 +0800
+	2016-11-26 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,10 +287,8 @@ CheckLowerBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
 {
 	using namespace ystdex;
 	// XXX: See WG21 N3387.
-	// TODO: Add and use safe %common_arithmetic_type interface instead.
-	using common1_t = common_type_t<_tDst, _type>;
-	using common_t = cond_t<and_<is_unsigned<common1_t>, is_signed<_tDst>>,
-		typename make_widen_int<common1_t, true>::type, common1_t>;
+	// TODO: Add and use safe %common_arithmetic_type interface instead?
+	using common_t = typename ystdex::common_int_type<_tDst, _type>::type;
 
 	if(!(common_t(val) < common_t(std::numeric_limits<_tDst>::min())))
 		return _tDst(val);
@@ -305,10 +303,8 @@ CheckUpperBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
 {
 	using namespace ystdex;
 	// XXX: See WG21 N3387.
-	// TODO: Add and use safe %common_arithmetic_type interface instead.
-	using common1_t = common_type_t<_tDst, _type>;
-	using common_t = cond_t<and_<is_unsigned<common1_t>, is_signed<_tDst>>,
-		typename make_widen_int<common1_t, true>::type, common1_t>;
+	// TODO: Add and use safe %common_arithmetic_type interface instead?
+	using common_t = typename ystdex::common_int_type<_tDst, _type>::type;
 
 	if(!(common_t(std::numeric_limits<_tDst>::max() < common_t(val))))
 		return _tDst(val);

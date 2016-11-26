@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3223
+\version r3259
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2016-02-12 01:14 +0800
+	2016-11-26 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,7 +180,9 @@ MoveScrollArea(YSLib::UI::BufferedTextArea& area_up,
 	auto* p_dst(&area_up);
 	SDst clr_off;
 
-	if(offset > 0) //复制区域向下移动，即浏览区域向上滚动。
+	// NOTE: Copy area is moved towards bottom, i.e. the browsering area is
+	//	scrolled to top.
+	if(offset > 0)
 	{
 		std::swap(p_src, p_dst),
 		std::swap(src_off, dst_off),
@@ -237,11 +239,9 @@ DualScreenReader::SetLineGap(std::uint8_t g)
 void
 DualScreenReader::SetVisible(bool b)
 {
-	SetVisibleOf(area_up, b), SetVisibleOf(area_dn, b);
-
 	using YSLib::UI::Invalidate;
 
-	//强制刷新背景。
+	SetVisibleOf(area_up, b), SetVisibleOf(area_dn, b);
 	Invalidate(area_up);
 	Invalidate(area_dn);
 }
@@ -354,7 +354,7 @@ DualScreenReader::Execute(Command cmd)
 		else
 		{
 			MoveUpForLastLine(-hx, h);
-			//注意缓冲区不保证以空字符结尾。
+			// NOTE: The buffer is not ensured with null character at end.
 			CarriageReturn(area_dn);
 			i_btm = PutLastLine();
 			AdjustForFirstNewline();
@@ -384,7 +384,6 @@ DualScreenReader::Invalidate()
 {
 	using YSLib::UI::Invalidate;
 
-	//强制刷新背景。
 	Invalidate(area_up);
 	Invalidate(area_dn);
 	if(ViewChanged)
@@ -420,18 +419,18 @@ DualScreenReader::LoadText(ifstream& file, Encoding enc)
 {
 	if(file.is_open())
 	{
-		file.unsetf(std::ios_base::skipws);
-		p_text.reset(new Text::TextFileBuffer(file, enc));
-		yunseq(i_top = p_text->begin(), i_btm = p_text->end());
-		UpdateView();
+		if(const auto p_buf = file.rdbuf())
+		{
+			p_text.reset(new Text::TextFileBuffer(*p_buf, enc));
+			yunseq(i_top = p_text->begin(), i_btm = p_text->end());
+			UpdateView();
+			return;
+		}
+		else
+			ShowError(u"文件缓冲区打开失败！");
 	}
 	else
-	{
-		UnloadText();
-		Reset();
-		PutString(area_up, u"文件打开失败！");
-		Invalidate();
-	}
+		ShowError(u"文件打开失败！");
 }
 
 void
@@ -454,13 +453,10 @@ DualScreenReader::PutLastLine()
 void
 DualScreenReader::Reset()
 {
-	//清除字符区域缓冲区。
-	area_up.ClearImage();
+	area_up.ClearImage(),
 	area_dn.ClearImage();
-	//根据行距调整并均衡边距。
 	AdjustMargins();
-	//复位缓存区域写入位置。
-	area_up.ResetPen();
+	area_up.ResetPen(),
 	area_dn.ResetPen();
 }
 
@@ -474,7 +470,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 		|| scroll_offset + h > ln_h_ex))
 		return 0;
 	MoveUpForLastLine(-h, h);
-	//注意缓冲区不保证以空字符结尾。
+	// NOTE: The buffer is not ensured with null character at end.
 	CarriageReturn(area_dn);
 	if(YB_LIKELY((scroll_offset += h) < ln_h_ex))
 	{
@@ -489,6 +485,15 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 	}
 	Invalidate();
 	return h;
+}
+
+void
+DualScreenReader::ShowError(const char16_t* str)
+{
+	UnloadText();
+	Reset();
+	PutString(area_up, Nonnull(str));
+	Invalidate();
 }
 
 void

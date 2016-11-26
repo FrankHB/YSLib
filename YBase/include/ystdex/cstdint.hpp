@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r366
+\version r393
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2016-09-20 10:59 +0800
+	2016-11-26 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
 #include "iterator_op.hpp" // for CHAR_BIT, size_t_, size_t, make_signed_t,
-//	make_unsigned_t, std::int64_t, std::uint64_t, bool_, yconstraint,
-//	is_undereferenceable, ystdex::make_reverse_iterator;
+//	make_unsigned_t, std::int64_t, std::uint64_t, is_signed, common_type,
+//	cond_t, and_, is_unsigned, bool_, yconstraint, is_undereferenceable,
+//	ystdex::make_reverse_iterator;
 #include <limits>
 #include <numeric> // for std::accumulate;
 
@@ -187,8 +188,9 @@ struct make_width_int<64U>
 //@}
 
 
+//! \ingroup transformation_traits
+//@{
 /*!
-\ingroup metafunctions
 \brief 位加倍扩展。
 \since build 587
 \note 可用于定点数乘除法中间类型。
@@ -213,6 +215,31 @@ struct make_widen_int<std::uint64_t, _bSigned>
 {
 	using type = std::uint64_t;
 };
+//@}
+
+
+/*!
+\brief 公共整数类型。
+\note 同 common_type 但如果可能，按需自动扩展整数位宽避免缩小数值范围。
+\since build 744
+*/
+//@{
+template<typename... _types>
+struct common_int_type : common_type<_types...>
+{};
+
+template<typename _type1, typename _type2, typename... _types>
+struct common_int_type<_type1, _type2, _types...>
+{
+private:
+	using common_t = common_type_t<_type1, _type2>;
+
+public:
+	using type = typename common_int_type<cond_t<
+		and_<is_unsigned<common_t>, or_<is_signed<_type1>, is_signed<_type2>>>,
+		_t<make_widen_int<common_t, true>>, common_t>, _types...>::type;
+};
+//@}
 //@}
 
 

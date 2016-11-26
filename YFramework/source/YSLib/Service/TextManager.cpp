@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4042
+\version r4104
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-05-18 21:00 +0800
+	2016-11-26 11:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_TextManager
 #include YFM_CHRLib_MappingEx
-#include <ystdex/any_iterator.hpp>
+#include <ystdex/any_iterator.hpp> // for ystdex::input_monomorphic_iterator,
+//	ystdex::make_transform, std::istreambuf_iterator;
 #include YFM_CHRLib_Convert
 
 namespace YSLib
@@ -44,8 +45,8 @@ namespace
 //@{
 using MonoIter = ystdex::input_monomorphic_iterator;
 //! \since build 641
-yconstexpr const auto& FetchMapperFunc(FetchMapperPtr<ConversionResult, char16_t&,
-	GuardPair<MonoIter>&&, ConversionState&&>);
+yconstexpr const auto& FetchMapperFunc(FetchMapperPtr<ConversionResult,
+	char16_t&, GuardPair<MonoIter>&&, ConversionState&&>);
 yconstexpr const auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult,
 	ystdex::pseudo_output&&, GuardPair<MonoIter>&&, ConversionState&&>);
 
@@ -55,10 +56,16 @@ size_t
 ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 {
 	using InIter = ystdex::decay_t<_tIn>;
-	using RetainedIter = ystdex::pair_iterator<InIter, size_t>;
+	const auto trans([](InIter iter){
+		return ystdex::make_transform(iter, [](InIter x){
+			return byte(*x);
+		});
+	});
+	using RetainedIter
+		= ystdex::pair_iterator<ystdex::decay_t<decltype(trans(i))>, size_t>;
 	ConversionState st;
-	RetainedIter it(i);
-	GuardPair<RetainedIter> gpr(it, RetainedIter(InIter(), 0));
+	RetainedIter it(trans(i));
+	GuardPair<RetainedIter> gpr(it, RetainedIter(trans(InIter()), 0));
 	const auto
 		res(ConvertCharacter(pfun, yforward(args)..., gpr, std::move(st)));
 
@@ -73,7 +80,7 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 		YTraceDe(Warning, "Encoding conversion failed with state = %zu.",
 			size_t(res));
 	}
-	i = get<0>(it.base());
+	i = get<0>(it.base()).get();
 	return get<1>(it.base());
 }
 //@}
@@ -82,22 +89,23 @@ ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
 class Sentry
 {
 private:
-	//! \since build 670
-	tidy_ptr<std::istream> fp{};
+	//! \since build 744
+	tidy_ptr<std::streambuf> fp{};
 
 public:
-	//! \since build 622
-	std::istream_iterator<char> Iterator{};
+	//! \since build 744
+	std::istreambuf_iterator<char> Iterator{};
 
 	DefDeCtor(Sentry)
-	Sentry(std::istream& is)
-		: fp(make_observer(&is)), Iterator(is)
+	//! \since build 744
+	Sentry(std::streambuf& sb)
+		: fp(make_observer(&sb)), Iterator(&sb)
 	{}
 	DefDeMoveCtor(Sentry)
 	~Sentry()
 	{
 		if(fp)
-			TryExpr(fp->clear(), fp->unget(), fp->clear())
+			TryExpr(fp->sungetc())
 			CatchIgnore(std::ios_base::failure&)
 			CatchExpr(..., yassume(false))
 	}
@@ -169,12 +177,20 @@ operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 }
 
 
-TextFileBuffer::TextFileBuffer(std::istream& file, Encoding enc)
+TextFileBuffer::TextFileBuffer(std::streambuf& file, Encoding enc)
 	: File(file), fsize([&, this]() -> size_t{
-		File.seekg(0, std::ios_base::end);
-		if(!File)
-			throw LoggedEvent("Failed getting size of file.");
-		return size_t(File.tellg());
+		const auto
+			pos(File.pubseekoff(0, std::ios_base::end, std::ios_base::in));
+
+		if(pos != std::streampos(std::streamoff(-1)))
+		{
+			const auto
+				xpos(File.pubseekoff(0, std::ios_base::cur, std::ios_base::in));
+
+			if(xpos != std::streampos(std::streamoff(-1)))
+				return size_t(xpos);
+		}
+		throw LoggedEvent("Failed getting size of file.");
 	}()), encoding(enc), bl([this]() -> size_t{
 		if(encoding == CharSet::Null)
 		{
@@ -209,12 +225,11 @@ TextFileBuffer::operator[](size_t idx)
 
 	if(YB_UNLIKELY(vec.empty()))
 	{
-		YAssert(bool(File), "Invalid file found.");
 		if(const auto pfun = FetchMapperFunc(encoding))
 		{
-			// XXX: Conversion to 'fstream::off_type' might be
+			// XXX: Conversion to 'std::streamoff' might be
 			//	implementation-defined.
-			File.seekg(fstream::off_type(bl + idx * BlockSize));
+			Seek(std::streamoff(idx * BlockSize));
 
 			size_t len(idx == n_block - 1 && n_text_size % BlockSize != 0
 				? n_text_size % BlockSize : BlockSize);
@@ -236,16 +251,6 @@ TextFileBuffer::operator[](size_t idx)
 }
 
 TextFileBuffer::iterator
-TextFileBuffer::begin() ynothrow
-{
-	return TextFileBuffer::iterator(this);
-}
-TextFileBuffer::iterator
-TextFileBuffer::end() ynothrow
-{
-	return TextFileBuffer::iterator(this, n_block);
-}
-TextFileBuffer::iterator
 TextFileBuffer::GetIterator(size_t pos)
 {
 	if(pos < n_text_size)
@@ -256,13 +261,11 @@ TextFileBuffer::GetIterator(size_t pos)
 		if(fixed_width == max_width)
 			return TextFileBuffer::iterator(this, idx, pos / max_width);
 
-		YAssert(bool(File), "Invalid file found.");
-
 		if(const auto pfun = FetchSkipMapperFunc(encoding))
 		{
-			// XXX: Conversion to 'fstream::off_type' might be
+			// XXX: Conversion to 'std::streamoff' might be
 			//	implementation-defined.
-			File.seekg(fstream::off_type(bl + idx * BlockSize));
+			Seek(std::streamoff(idx * BlockSize));
 
 			size_t n_byte(0), n_char(0);
 			Sentry sentry(File);
@@ -293,10 +296,10 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 	{
 		const auto& vec((*this)[idx].first);
 
-		YAssert(!vec.empty() && bool(File), "Block loading failed.");
-		// XXX: Conversion to 'fstream::off_type' might be
+		YAssert(!vec.empty(), "Block loading failed.");
+		// XXX: Conversion to 'std::streamoff' might be
 		//	implementation-defined.
-		File.seekg(fstream::off_type(bl + (idx *= BlockSize)));
+		Seek(std::streamoff(idx *= BlockSize));
 
 		// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 		const auto mid(vec.cbegin() + ptrdiff_t(pos));
@@ -317,6 +320,26 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 		return idx + n_byte;
 	}
 	return idx;
+}
+
+void
+TextFileBuffer::Seek(std::streamoff off)
+{
+	if(YB_UNLIKELY(File.pubseekpos(bl + off, std::ios_base::in)
+		== std::streampos(std::streamoff(-1))))
+		throw LoggedEvent("Failed setting reading position.");
+}
+
+TextFileBuffer::iterator
+TextFileBuffer::begin() ynothrow
+{
+	return TextFileBuffer::iterator(this);
+}
+
+TextFileBuffer::iterator
+TextFileBuffer::end() ynothrow
+{
+	return TextFileBuffer::iterator(this, n_block);
 }
 
 

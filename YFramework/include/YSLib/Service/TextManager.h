@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3934
+\version r3949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-05-18 21:00 +0800
+	2016-11-26 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Core_YString
 #include YFM_YSLib_Service_TextFile
 #include <ystdex/iterator_op.hpp> // for ystdex::bidirectional_iteratable;
+#include <streambuf> // for std::streambuf;
 
 namespace YSLib
 {
@@ -124,10 +125,10 @@ public:
 
 protected:
 	/*!
-	\brief 流引用。
-	\since build 621
+	\brief 流缓冲引用。
+	\since build 744
 	*/
-	std::istream& File;
+	std::streambuf& File;
 
 private:
 	//! \since build 622
@@ -162,14 +163,13 @@ private:
 public:
 	/*!
 	\brief 构造：使用流和指定编码。
-	\pre 流以二进制模式打开，未设置 std::ios_base::skipws ，
-		支持定位到结尾访问以保证大小等于字符数。
+	\pre 流支持定位到结尾访问以保证大小等于字符数。
 	\throw LoggedEvent 取文件大小失败。
 	\note 编码为 \c CharSet::Null 时自动推断，若无法推断，默认为 CharSet::GBK 。
-	\since build 622
+	\since build 744
 	*/
 	explicit
-	TextFileBuffer(std::istream&, Encoding = CharSet::Null);
+	TextFileBuffer(std::streambuf&, Encoding = CharSet::Null);
 
 	/*!
 	\brief 块随机访问。
@@ -201,6 +201,14 @@ public:
 	*/
 	size_t
 	GetPosition(iterator);
+
+	/*!
+	\brief 使用相对于文本位置的（跳过 BOM ）偏移指定的参数设置流缓冲读取位置。
+	\throw LoggedEvent 操作失败。
+	\since build 744
+	*/
+	void
+	Seek(std::streamoff);
 
 	//! \since build 460
 	//@{
