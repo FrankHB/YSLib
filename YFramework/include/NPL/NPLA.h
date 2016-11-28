@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1078
+\version r1088
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-11-13 22:15 +0800
+	2016-11-28 13:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -705,8 +705,17 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 
 
 //! \brief 使用第二个参数指定的项的内容替换第一个项的内容。
+//@{
 inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
-	ImplExpr(TermNode(std::move(tm)).SwapContent(term))
+	ImplExpr(term.SetContent(std::move(tm)))
+//! \since build 745
+//@{
+inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& tm)
+	ImplExpr(term_v = std::move(tm))
+inline PDefH(void, LiftTerm, TermNode& term, ValueObject& tm)
+	ImplExpr(LiftTerm(term.Value, tm))
+//@}
+//@}
 //@}
 
 //! \pre 断言：参数指定的项是枝节点。

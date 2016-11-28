@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2863
+\version r2864
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-10-10 15:48 +0800
+	2016-11-28 22:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ public:
 		std::tuple<_tParams3...> args3)
 		: name(ystdex::make_from_tuple<string>(args2)),
 		container(ystdex::make_from_tuple<Container>(args1)),
-		Value(ystdex::make_from_tuple<Container>(args3))
+		Value(ystdex::make_from_tuple<ValueObject>(args3))
 	{}
 	//@}
 

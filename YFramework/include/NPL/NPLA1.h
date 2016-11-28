@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1944
+\version r1966
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-11-20 21:09 +0800
+	2016-11-28 09:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -499,7 +499,7 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 \exception BadIdentifier 标识符未声明。
 \note 第一参数指定输入的项，其 Value 指定输出的值。
 \note 默认视为规约成功以保证强规范化性质。
-\since build 736
+\since build 745
 */
 //@{
 //! \pre 断言：第三参数的数据指针非空。
@@ -507,17 +507,17 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 /*!
 \brief 求值标识符。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
+\sa EvaluateTermNode
 \sa FetchValue
 \sa LiteralHandler
-\since build 735
 
 依次进行以下求值操作：
 调用 FetchValue 查找值，若失败抛出未声明异常；
-以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果；
-否则，以 TermNode 访问值，若发现是枝节点，返回要求重规约。
+以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
+若未返回，调用 EvaluateTermNode 求值。
 */
 YF_API ReductionStatus
-EvaluateIdentifier(TermNode&, ContextNode&, string_view);
+EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 
 /*!
 \brief 求值叶节点记号。
@@ -525,6 +525,7 @@ EvaluateIdentifier(TermNode&, ContextNode&, string_view);
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
 \sa InvokeLiteral
+\since build 736
 
 处理非空字符串表示的节点记号。
 依次进行以下求值操作。
@@ -535,6 +536,16 @@ EvaluateIdentifier(TermNode&, ContextNode&, string_view);
 */
 YF_API ReductionStatus
 EvaluateLeafToken(TermNode&, ContextNode&, string_view);
+
+/*!
+\brief 求值以节点数据结构间接表示的项。
+\sa IsBranch
+
+以 TermNode 按项访问值，若发现项是枝节点，返回要求重规约。
+以项访问对规约以项转移的可能未求值的操作数是必要的。
+*/
+YF_API ReductionStatus
+EvaluateTermNode(TermNode&);
 //@}
 
 /*!
@@ -690,8 +701,9 @@ CallUnary(_func f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term);
 
-	term.Value.EmplaceFromCall(f, Deref(std::next(term.begin())),
-		yforward(args)...);
+	term.Value.EmplaceFromCall(
+		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::move(f)),
+		Deref(std::next(term.begin())), yforward(args)...);
 	term.ClearContainer();
 }
 
@@ -816,7 +828,7 @@ ExtractLambdaParameters(const TermNode::Container&);
 
 /*!
 \brief λ 抽象：产生一个捕获当前上下文的过程。
-\note 实现特殊形式。参数以项的形式被转移，在函数应用时可能进一步求值。
+\note 实现特殊形式。
 \exception InvalidSyntax 异常中立：由 ExtractLambdaParameters 抛出。
 \sa EvaluateIdentifier
 \sa ExtractLambdaParameters
@@ -825,6 +837,7 @@ ExtractLambdaParameters(const TermNode::Container&);
 使用 ExtractLambdaParameters 检查参数列表并捕获和绑定变量，
 然后设置节点的值为表示 λ 抽象的上下文处理器。
 可使用 RegisterFormContextHandler 注册上下文处理器。
+和 Scheme 等不同参数以项而不是位置的形式被转移，在函数应用时可能进一步求值。
 特殊形式参考文法：
 $lambda <formals> <body>
 */
@@ -843,10 +856,10 @@ CallSystem(TermNode&);
 
 /*!
 \brief 创建 REPL 并对翻译单元规约以求值。
-\since build 742
+\since build 745
 */
 YF_API void
-Eval(const string&t, const REPLContext&);
+Eval(TermNode&, const REPLContext&);
 
 } // namespace Forms;
 

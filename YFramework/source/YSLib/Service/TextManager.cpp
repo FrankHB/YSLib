@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4104
+\version r4105
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-11-26 11:36 +0800
+	2016-11-26 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,7 +325,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 void
 TextFileBuffer::Seek(std::streamoff off)
 {
-	if(YB_UNLIKELY(File.pubseekpos(bl + off, std::ios_base::in)
+	if(YB_UNLIKELY(File.pubseekpos(std::streamoff(bl) + off, std::ios_base::in)
 		== std::streampos(std::streamoff(-1))))
 		throw LoggedEvent("Failed setting reading position.");
 }
