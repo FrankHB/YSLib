@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1400
+\version r1402
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2016-11-21 16:24 +0800
+	2016-11-26 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,12 +141,12 @@ DetectBOM(std::streambuf& sb, std::size_t fsize, Encoding enc)
 			array<char, 4> buf;
 			const auto n(sb.sgetn(buf.data(), 4));
 
-			if(n < 4)
+			if(n != 0)
 			{
 				const auto res(DetectBOM(string_view(buf.data(),
 					CheckNonnegative<size_t>(n))));
 
-				if(sb.pubseekpos(res.second, std::ios_base::in)
+				if(sb.pubseekpos(std::streamoff(res.second), std::ios_base::in)
 					!= std::streampos(std::streamoff(-1)) && res.second != 0)
 					return res;
 			}

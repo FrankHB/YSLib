@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1705
+\version r1724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-11-21 00:41 +0800
+	2016-11-28 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -278,7 +278,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	TermNode app_term(NoContainer, term.GetName());
 
 	if(move)
-		app_term.SetContent(std::move(closure));
+		LiftTerm(app_term, closure);
 	else
 		app_term.SetContent(closure);
 	// TODO: Test for normal form?
@@ -464,7 +464,7 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
+EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
 
@@ -476,14 +476,7 @@ EvaluateIdentifier(TermNode& term, ContextNode& ctx, string_view id)
 	}
 	else
 		throw BadIdentifier(id);
-	if(const auto p = AccessPtr<TermNode>(term))
-	{
-		term.SetContent(std::move(*p));
-		// NOTE: To make it work with %DetectReducible.
-		if(IsBranch(term))
-			return ReductionStatus::NeedRetry;
-	}
-	return ReductionStatus::Success;
+	return EvaluateTermNode(term);
 }
 
 ReductionStatus
@@ -516,6 +509,19 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			break;
 			// TODO: Handle other categories of literal.
 		}
+	}
+	return ReductionStatus::Success;
+}
+
+ReductionStatus
+EvaluateTermNode(TermNode& term)
+{
+	if(const auto p = AccessPtr<TermNode>(term))
+	{
+		LiftTerm(term, *p);
+		// NOTE: To make it work with %DetectReducible.
+		if(IsBranch(term))
+			return ReductionStatus::NeedRetry;
 	}
 	return ReductionStatus::Success;
 }
@@ -787,9 +793,11 @@ CallSystem(TermNode& term)
 }
 
 void
-Eval(const string& unit, const REPLContext& ctx)
+Eval(TermNode& term, const REPLContext& ctx)
 {
-	REPLContext(ctx).Perform(unit);
+	Forms::CallUnaryAs<const string>([ctx](const string& unit){
+		REPLContext(ctx).Perform(unit);
+	}, term);
 }
 
 } // namespace Forms;

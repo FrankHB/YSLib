@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r1200
+\version r1205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2016-11-07 23:11 +0800
+	2016-11-28 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -361,7 +361,8 @@ NPL 的语义规则(@2.2) 构成演绎系统(deductive system) ，通过对翻�
 表示(representation) ：表现演绎实例、具体实现及其中一部分实体（如某个值）的状态。
 值(value) ：表达式关联的不可变状态。
 副作用(side effect) ：对表达式的值以外的表示的改变。
-规约(reduction) ：根据规约规则的演绎，包括表达式之间的等价变换(transformation) 即以作用相等的表达式替代另一个表达式，以及此过程中实现环境的交互。
+项(term) ：演绎系统(deductive system) 特别是项重写系统(term rewriting system) 中处理的对象，是带有基本递归构造的元素，可对应于语法中的表达式。
+规约(reduction) ：根据规约规则的演绎，包括项之间的等价变换(transformation) 即以作用相等的项替代另一个项，以及此过程中实现环境的交互。
 作用(effect) ：具体实现规约表达式的结果，包括值的计算和副作用的产生。
 抽象求值(abstract evaluation) ：对表达式的不取得作用的规约。
 具体求值(concrete evaluation) ：对表达式的取得作用的规约。
@@ -601,10 +602,11 @@ NPLA1 解释实现参见 @6 。
 词法分析参见 @3.3.4 和参考实现模块 NPL::Lexical 。
 语法分析参考实现模块 NPL::SContext 。
 派生实现可能检查更多语法规则。
+使用节点(node) 数据结构表示递归的构造，如项。
 抽象语法树以 ValueNode 类型表示。
 之后的若干阶段(@2.4.1) 中得到规范形式的中间表示和规范形式始终作为单一的树，其节点以 ValueNode 类型表示。
-语义分析和实现的节点使用 TermNode 类型表示，当前它是 ValueNode 的别名。
-上下文(@4.6.1) 使用 ContextNode 类型表示，当前它是 ValueNode 的别名。
+语义分析和实现的节点使用 TermNode 类型表示。当前它是 ValueNode 的别名。
+上下文(@4.6.1) 使用 ContextNode 类型表示。尽管暂时未依赖节点性质，当前它是 ValueNode 的别名。
 名称以 string 类型表示。
 以上类型都在 namespace NPL 中声明，从 namespace YSLib 引入。
 关于 YSLib::ValueNode， 参见 [Documentation::YSLib @@3.16] 。

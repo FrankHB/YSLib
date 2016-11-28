@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4404
+\version r4509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-26 16:45 +0800
+	2016-11-28 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,110 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				/ @ "function %DetectBOM with stream buffer parameter"
+					@ %TextFile $=
+				(
+					* "not null result returned as encoding for any stream \
+						with size greater than 4" $since b743 $dep_to
+						"wrong stream size test for BOM",
+					/ DLDI "cast to %std::streamoff on BOM size to be tested"
+						// To eliminate warning: [-Wsign-conversion] when \
+							the compiler is not able to analyze the value is \
+							always positive.
+				),
+				/ @ "class %TextManager" @ %TextManager $=
+				(
+					* $comp "wrong encoding detected for file with size greater \
+						than 4" $since b744 $dep_from
+						"wrong stream size test for BOM",
+					/ DLDI "cast to %std::streamoff on position"
+						@ "function %Seek"
+						*// To eliminate warning: [-Wsign-conversion] when \
+							compiler is not able to analyze the value is \
+							always positive.
+				)
+			),
+			/ %Core $=
+			(
+				/ %YCoreUtilities $=
+				(
+					* $lib "wrong cast location"
+						@ "function template %CheckUpperBound" $since b703,
+					* $comp "wrong common types for types equivalent to \
+						%std::uint64_t mixed with signed integers" @ "function \
+						templates %(CheckUpperBound, CheckLowerBound)" $since
+						b744 $dep_from "hard-coded widen integer limitation"
+						// Also to eliminate warning: [-Wsign-conversion].
+				),
+				* "wrong constructed value always with %Container or being \
+					ill-formed for data member %Value by constructor with 3 \
+					tuple parameters" @ "class %ValueNode" $since b735
+			)
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ "1st parameter type" @ "function %Eval" -> 'TermNode&'
+						~ 'const string&',
+					/ "function template %CallUnary supported functor with \
+						parameter omission" ^ "%ystdex::make_expanded"
+				),
+				/ @ "function %EvaluateIdentifier" $=
+				(
+					+ 'const' @ "2nd parameter type",
+						// Context would not be modified here, though it can \
+							be modified elsewhere (e.g. for literal passes).
+					/ DLDI "simplified" ^ $dep_from "%EvaluateTermNode"
+				),
+				+ "function %EvaluateTermNode",
+				/ DLDI "simplified %ReduceCheckedClosure" ^ $dep_from
+					("%LiftTerm" @ %NPLA)
+			),
+			/ %NPLA $=
+			(
+				/ DLDI "simplified function %LiftTerm#1"
+					^ "%TermNode::SetContent",
+				+ "2 function %LiftTerm overloads with %ValueObject parameters"
+					$dep_to "new term lifting overloads"
+			)
+		)
+	),
+	* $comp "BOM ignored and encoding detected wrongly for file with size \
+		greater than 4" @ %YReader.ShlTextReader $since b744 $dep_from
+		%YFramework.YSLib.Service.TextManager,
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "transformation trait %make_widen_int" @ %CStandardInteger $=
+		(
+			/ DLDI "simplified %make_widen_int" ^ "%_t",
+			* "hard-coded type limitation" $orig (@ "%fixed_multiplicative"
+				@ %Rational $since b260) $dep_to
+				"hard-coded widen integer limitation"
+			(
+				/ "supported detection for arbitrary 64-bit type boundary";
+				- "specialization for hard-coded 64-bit types";
+				* $comp "signedness argument ignored when the type argument is \
+					in %std::(int64_t, uint64_t)" $since b587
+			)
+		),
+		* $comp "signedness lost and only %std::(int64_t, uint64_t) supported \
+			as 64-bit integers for intermediate result"
+			@ "class template %fixed_point" @ %Rational $since b260 $dep_from
+			"hard-coded widen integer limitation"
+	)
+),
+
+b744
 (
 	/ %YFramework.YSLib $=
 	(
@@ -364,8 +468,8 @@ b739
 					try-catch statement.
 			/ DLD "cast to %size_t" @ !"platform %(DS, Win32)"
 				@ "function %ReadLink" @ %FileSystem,
-				// To eliminate warning: [-Wsign-conversion] when compiler is \
-					not able to analysis the value is always positive.
+				// To eliminate warning: [-Wsign-conversion] when the compiler \
+					is not able to analyze the value is always positive.
 			* "ill-formed constructor %MappedFile when %UniqueFile size is not \
 				wider than %size_t" @ %MemoryMapping $since b709 $=
 				(/ DLDI ^ ("%ystdex::not_widen" @ %YBase.YStandardEx.Cast)

@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r393
+\version r408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2016-11-26 17:35 +0800
+	2016-11-27 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
 #include "iterator_op.hpp" // for CHAR_BIT, size_t_, size_t, make_signed_t,
-//	make_unsigned_t, std::int64_t, std::uint64_t, is_signed, common_type,
+//	make_unsigned_t, std::int64_t, std::uint64_t, is_signed, _t, common_type,
 //	cond_t, and_, is_unsigned, bool_, yconstraint, is_undereferenceable,
 //	ystdex::make_reverse_iterator;
 #include <limits>
@@ -196,26 +196,16 @@ struct make_width_int<64U>
 \note 可用于定点数乘除法中间类型。
 \todo 使用扩展整数类型保持 64 位类型精度。
 */
-//@{
 template<typename _type, bool _bSigned = is_signed<_type>::value>
 struct make_widen_int
 {
-	using type = typename make_signed_c<typename
-		make_width_int<integer_width<_type>::value << 1>::type, _bSigned>::type;
-};
+private:
+	using width = integer_width<_type>;
 
-template<bool _bSigned>
-struct make_widen_int<std::int64_t, _bSigned>
-{
-	using type = std::int64_t;
+public:
+	using type = _t<make_signed_c<_t<make_width_int<(width::value << 1) <= 64
+		? width::value << 1 : width::value>>, _bSigned>>;
 };
-
-template<bool _bSigned>
-struct make_widen_int<std::uint64_t, _bSigned>
-{
-	using type = std::uint64_t;
-};
-//@}
 
 
 /*!

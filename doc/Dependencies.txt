@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1225
+\version r1233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2016-11-26 15:14 +0800
+	2016-11-28 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -754,6 +754,8 @@ MinGW32 下文本阅读界面增加右键显示上下文菜单；
 Stage1 SHBuild 支持 Linux 。
 [Tools.Scripts]
 添加部署环境 Sysroot 。
+[Tools/Linux]
+添加工具和 YBase 支持。
 [YBase]
 [YBase.YStandardEx]
 添加部分 ctype 替代实现以避免某些标准库实现的 bug 。
@@ -817,10 +819,8 @@ GotFocus 和 LostFocus 可被所在的直接或间接容器部件焦点的改变
 扩大屏幕相关整数类型的取值范围。
 允许读取 cp113.bin 失败时使用系统 NLS 代码页数据用于 GBK 编码转换。
 优化窗口绘制实现，允许使用无效区域。
-[Android]
+[YFramework/Android]
 添加宿主支持。
-[Linux]
-添加工具和 YBase 支持。
 [YReader]
 修复保存设置崩溃及破坏配置文件。
 
@@ -883,13 +883,11 @@ ValueObject 使用 type_info 代替 std::type_info 。
 简化路径实现，默认只使用 UTF-8 作为外部编码。
 [YFramework.YSLib.UI]
 修复 TreeList 和 TreeView 关于绑定节点和展开节点相关行为。
-[DS]
+[YFramework/DS]
 使用自定义 FAT 和缓存实现替换 libfat ，以修复 POSIX 兼容性。
 在 DS 平台上默认构建配置启用 YB_Use_LightweightTypeID 以减小二进制映像大小。
-[Win32]
+[YFramework/Win32]
 使用基于程序映像路径的目录定位配置。
-[Android]
-[Linux]
 [YReader]
 调整关于界面：使用对话框和粗体标题，关闭按钮改为系统信息界面按钮。
 移除 TreeView 测试（使用关于面板中的系统信息界面代替）。
