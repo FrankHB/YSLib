@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3005
+\version r3010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-11-26 12:30 +0800
+	2016-12-02 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,9 @@
 //	ystdex::type_id, is_nothrow_move_constructible, and_, bool_, enable_if_t,
 //	remove_reference_t, cond_t, std::bad_cast, decay_t, _t, yconstraint;
 #include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
-//	std::unique_ptr, standard_layout_storage, aligned_storage_t,
-//	is_aligned_storable, default_init_t;
+//	std::unique_ptr, ystdex::clone_monomorphic_ptr, ystdex::clone_monomorphic,
+//	standard_layout_storage, aligned_storage_t, is_aligned_storable,
+//	default_init_t;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 #include <initializer_list> // for std::initializer_list;
@@ -177,7 +178,7 @@ public:
 	//! \since build 352
 	//@{
 	pointer_holder(const pointer_holder& h)
-		: pointer_holder(h.p_held ? new value_type(*h.p_held) : nullptr)
+		: pointer_holder(ystdex::clone_monomorphic_ptr(h.p_held))
 	{}
 	pointer_holder(pointer_holder&&) = default;
 	//@}
@@ -190,7 +191,7 @@ public:
 	pointer_holder*
 	clone() const override
 	{
-		return new pointer_holder(*this);
+		return ystdex::clone_monomorphic(*this);
 	}
 
 	//! \since build 348

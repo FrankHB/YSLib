@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1907
+\version r1908
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2016-11-01 23:35 +0800
+	2016-12-02 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1412,6 +1412,7 @@ ISO C++11 规定调用这些函数不引起数据竞争。
 @6.9.2.2 删除器(deleter) ：
 自定义删除器可声明 pointer 嵌套类型成员指定删除的指针类型。
 可使用和分配器(@6.1.X) 配对的删除器，配合智能指针使用。
+注意默认删除器直接 delete ，不应混合 std::allocator 使用。
 
 @6.9.2.3 助手函数模板：
 特定情形使用 make_* 或用户自定义的类似助手模板创建智能指针：

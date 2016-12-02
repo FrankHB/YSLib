@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4116
+\version r4127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-11-05 15:08 +0800
+	2016-12-02 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,7 +226,7 @@ public:
 	//! \since build 352
 	//@{
 	PointerHolder(const PointerHolder& h)
-		: PointerHolder(h.p_held ? new _type(*h.p_held) : nullptr)
+		: PointerHolder(ystdex::clone_monomorphic_ptr(h.p_held))
 	{}
 	DefDeMoveCtor(PointerHolder)
 	//@}
@@ -299,9 +299,12 @@ public:
 		ystdex::in_place<ValueHolder<_type>>, yforward(args)...)
 	{}
 	/*!
-	\brief 构造：使用对象指针。
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
 	\note 使用 PointerHolder 管理资源（默认使用 delete 释放资源）。
+	*/
+	//@{
+	/*!
+	\brief 构造：使用对象指针。
 	\since build 340
 	*/
 	template<typename _type>
@@ -311,8 +314,6 @@ public:
 	{}
 	/*!
 	\brief 构造：使用对象 unique_ptr 指针。
-	\note 得到包含指针指向的指定对象的实例，并获得所有权。
-	\note 使用 PointerHolder 管理资源（默认使用 delete 释放资源）。
 	\since build 450
 	*/
 	template<typename _type>
@@ -321,6 +322,7 @@ public:
 	{
 		p.release();
 	}
+	//@}
 	/*!
 	\brief 复制构造：默认实现。
 	\since build 332
@@ -440,8 +442,7 @@ public:
 	//@{
 	template<typename _func, typename... _tParams>
 	void
-	EmplaceFromCall(ystdex::identity<void>, _func&& f,
-		_tParams&&... args)
+	EmplaceFromCall(ystdex::identity<void>, _func&& f, _tParams&&... args)
 	{
 		yforward(f)(yforward(args)...);
 	}
@@ -565,7 +566,7 @@ public:
 		if(!ptr)
 			ptr = PointerType(new DependentType());
 		else if(!ptr.unique())
-			ptr = PointerType(ystdex::clone_monomorphic(ptr));
+			ptr = PointerType(ystdex::clone_monomorphic(Deref(ptr)));
 		return Nonnull(ptr);
 	}
 

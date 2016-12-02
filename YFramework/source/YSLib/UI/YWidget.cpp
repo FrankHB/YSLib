@@ -11,13 +11,13 @@
 /*!	\file YWidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4487
+\version r4490
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-07-14 23:25 +0800
+	2016-12-01 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,9 +222,9 @@ Widget::Widget(const Rect& r, HBrush b)
 }
 Widget::Widget(const Widget& wgt)
 	// XXX: $2015-03 @ %Documentation::Workflow::Annual2015.
-	: IWidget(), view_ptr(ystdex::clone_polymorphic(wgt.view_ptr)),
-	renderer_ptr(ystdex::clone_polymorphic(wgt.renderer_ptr)),
-	controller_ptr(ystdex::clone_polymorphic(wgt.controller_ptr)),
+	: IWidget(), view_ptr(ystdex::clone_polymorphic(Deref(wgt.view_ptr))),
+	renderer_ptr(ystdex::clone_polymorphic(Deref(wgt.renderer_ptr))),
+	controller_ptr(ystdex::clone_polymorphic(Deref(wgt.controller_ptr))),
 	Background(wgt.Background)
 {}
 Widget::~Widget()

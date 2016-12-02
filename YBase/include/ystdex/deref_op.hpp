@@ -11,13 +11,13 @@
 /*!	\file deref_op.hpp
 \ingroup YStandardEx
 \brief 解引用操作。
-\version r148
+\version r175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-10 13:12:26 +0800
 \par 修改时间:
-	2016-04-25 09:37 +0800
+	2016-11-29 11:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,6 +74,28 @@ nonnull_or(_type p, _tOther&& other, _tNull null)
 }
 //@}
 
+/*!
+\brief 调用非引用或默认值。
+\since build 746
+*/
+//@{
+template<typename _tOther, typename _type, typename _func>
+yconstfn auto
+call_nonnull_or(_func f, _type p, _tOther&& other = {})
+	-> decltype(p ? f(p) : other)
+{
+	return p ? f(p) : other;
+}
+template<typename _tOther, typename _type, typename _func,
+	typename _tSentinal = nullptr_t>
+yconstfn auto
+call_nonnull_or(_func f, _type p, _tOther&& other, _tSentinal last)
+	-> decltype(!bool(p == last) ? f(p) : other)
+{
+	return !bool(p == last) ? f(p) : other;
+}
+//@}
+
 
 //! \brief 取非空值或默认值。
 //@{
@@ -92,17 +114,19 @@ value_or(_type p, _tOther&& other, _tSentinal last)
 }
 //@}
 
-
-//! \brief 调用非空值或取默认值。
+/*!
+\brief 调用非空值或取默认值。
+\since build 746
+*/
 //@{
-template<typename _tOther, typename _func, typename _type>
+template<typename _tOther, typename _type, typename _func>
 yconstfn auto
 call_value_or(_func f, _type p, _tOther&& other = {})
 	-> decltype(p ? f(*p) : other)
 {
 	return p ? f(*p) : other;
 }
-template<typename _tOther, typename _func, typename _type,
+template<typename _tOther, typename _type, typename _func,
 	typename _tSentinal = nullptr_t>
 yconstfn auto
 call_value_or(_func f, _type p, _tOther&& other, _tSentinal last)

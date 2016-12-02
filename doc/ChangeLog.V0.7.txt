@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4509
+\version r4574
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-11-28 22:48 +0800
+	2016-12-03 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,72 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %DereferenceOperation $=
+		(
+			+ "2 function templates %call_nonnull_or",
+			/ "swapped 2nd and 3rd template parameters"
+				@ "all 2 function template %call_value_or"
+				// The function type is less likely to be specified explicitly \
+					and it will effectively prevent the types follows it being \
+					explicitly specified when it is an anonymous type (e.g. a \
+					closure type), so the result type parameter is better in \
+					the front. Also to be consistent with %value_or.
+		),
+		/ %Memory $=
+		(
+			+ "type traits %(has_mem_new, has_mem_delete)",
+			(
+			+ $doc "Doxygen group %allocators";
+			+ "class template %class_allocator; alias template %local_allocator"
+			),
+			/ @ "function template %clone_monomorphic" $=
+			(
+				* "allocated memory leaked on constructor throwing" $since b625
+					$= (/ DLDI ^ "%ystdex::(make_allocator_guard, \
+						construct_within)"),
+				/ "default argument" ^ $dep_from "%local_allocator"
+					~ "%std::allocator"
+			),
+			(
+			+ "function template %create_with_allocator";
+			(
+			/ "function templates %(clone_monomorphic, clone_polymorphic) \
+				with pointer pointing object to be cloned"
+				-> "with object reference to be cloned";
+			+ "function templates %(clone_monomorphic_ptr, \
+				clone_polymorphic_ptr)"
+			),
+			+ "function template %try_create_with_allocator"
+			),
+			/ "split function template %clone_monomorphic with no allocator \
+				overload"
+				// Note %std::allocator is not safe to interact with raw 'new'.
+		),
+		/ DLDI "class template %pointer_holder" @ %Any $=
+		(
+			/ "simplified copy constructor" ^ $dep_from
+				"%ystdex::clone_monomorphic_ptr",
+			/ "function %clone" ^ $dep_from "%ystdex::clone_monomorphic"
+		)
+	),
+	/ %YFramework.YSLib $=
+	(
+		/ $forced DLDI "copy constructor" @ (("class template \
+			%GEventPointerWrapper" @ %YEvent, "function %GetCopyOnWritePtr"
+			@ "class template %GDependency" @ %YObject) @ %Core,
+			("class %YWidget" @ %YWidget, "class %BufferedRenderer"
+			@ %YRenderer) @ %UI) $dep_from ("%ystdex::clone_polymorphic"
+			@ %YBase.YStandardEx.Memory) ^ "%Deref",
+		/ DLDI "simplified copy constructor"
+			@ "class template %PointerHolder" @ %Core.YObject ^ $dep_from
+			"%ystdex::clone_monomorphic_ptr"
+	)
+),
+
+b745
 (
 	/ %YFramework $=
 	(
