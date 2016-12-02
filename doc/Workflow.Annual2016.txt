@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r185
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-09-10 10:35 +0800
+	2016-12-02 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,8 +189,17 @@ Now external file accessed by YFramework (including the configuration 'yconf.txt
 $2016-09:
 
 report.impl:
-	In YSLib, bare passive clause is preferred for exception message or other error handling messages, besides those in assertion strings, etc.
+In YSLib, bare passive clause is preferred for exception message or other error handling messages, besides those in assertion strings, etc.
 	See also $2014-08 report.impl.
+
+$2016-09:
+
+report.impl:
+Note the standard does specify that 'std::allocator' may differ with new/delete.
+	Avoid mix new/delete with allocator.
+		Especially be cautious to default deleters in smart pointers.
+	Current libc++ does it theoretically wrongly in the large handler in <experimental/any>.
+		Although the behavior can still be expected when 'std::allocator' is provided by libc++, which should be normal.
 
 ////
 

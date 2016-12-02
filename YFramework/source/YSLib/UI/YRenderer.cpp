@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2016 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YRenderer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r678
+\version r680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2015-08-20 21:41 +0800
+	2016-12-01 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ BufferedRenderer::BufferedRenderer(bool b, unique_ptr<Drawing::IImage> p)
 BufferedRenderer::BufferedRenderer(const BufferedRenderer& rd)
 	: Renderer(rd),
 	rInvalidated(rd.rInvalidated), pImageBuffer(ystdex::clone_polymorphic(
-	rd.pImageBuffer)), IgnoreBackground(rd.IgnoreBackground)
+	Deref(rd.pImageBuffer))), IgnoreBackground(rd.IgnoreBackground)
 {}
 
 bool

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1919
+\version r2207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-11-04 00:03 +0800
+	2016-12-02 17:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,14 +31,15 @@
 #define YB_INC_ystdex_memory_hpp_ 1
 
 #include "placement.hpp" // for "placement.hpp", <memory>, and_,
-//	is_copy_constructible, is_class_type, cond_t, vdefer, detected_t,
-//	conditional, indirect_element_t, remove_reference_t, detected_or_t, not_,
-//	is_void, remove_pointer_t, is_pointer, enable_if_t, is_array, extent,
-//	remove_extent_t;
+//	is_copy_constructible, is_class_type, cond_t, is_detected, vdefer,
+//	std::declval, detected_t, conditional, indirect_element_t,
+//	remove_reference_t, detected_or_t, not_, is_void, remove_pointer_t,
+//	is_pointer, enable_if_t, is_array, extent, remove_extent_t,
+//	ystdex::construct_within, is_polymorphic;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "exception.h" // for throw_invalid_construction;
-#include "operators.hpp" // for totally_ordered, equality_comparable;
 #include "cassert.h" // for yconstraint;
+#include "operators.hpp" // for totally_ordered, equality_comparable;
 
 #if YB_IMPL_MSCPP >= 1800
 /*!
@@ -50,6 +51,12 @@
 #		define __cpp_lib_make_unique 201304
 #	endif
 #endif
+
+/*!	\defgroup allocators Allcators
+\brief 分配器。
+\see WG21 N4606 17.6.3.5 [allocator.requirements] 。
+\since build 746
+*/
 
 namespace ystdex
 {
@@ -79,6 +86,206 @@ using check_allocator = and_<cond_t<has_mem_value_type<_type>,
 template<typename _type>
 using nested_allocator_t = typename _type::allocator_type;
 
+
+//! \since build 746
+//@{
+template<typename _type, typename... _tParams>
+using mem_new_t
+	= decltype(_type::operator new(std::declval<_tParams>()...));
+
+template<typename _type, typename... _tParams>
+using mem_delete_t
+	= decltype(_type::operator delete(std::declval<_tParams>()...));
+//@}
+
+} // namespace details;
+
+
+/*!
+\ingroup type_traits_operations
+\since build 746
+*/
+//@{
+template<typename _type, typename... _tParams>
+struct has_mem_new : is_detected<details::mem_new_t, _type, _tParams...>
+{};
+
+template<typename _type, typename... _tParams>
+struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
+{};
+//@}
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型是否符合分配器要求的目标类型。
+\since build 650
+*/
+template<typename _type>
+struct is_allocatable : is_nonconst_object<_type>
+{};
+
+
+/*!
+\ingroup unary_type_traits
+\brief 判断类型具有嵌套的成员 allocator_type 指称一个可复制构造的类类型。
+*/
+template<typename _type>
+struct has_nested_allocator
+	: details::check_allocator<detected_t<details::nested_allocator_t, _type>>
+{};
+
+
+/*!
+\ingroup metafunctions
+\brief 取嵌套成员分配器类型，若不存在则使用第二模板参数指定的默认类型。
+*/
+template<typename _type, class _tDefault = std::allocator<_type>>
+struct nested_allocator : conditional<has_nested_allocator<_type>::value,
+	detected_t<details::nested_allocator_t, _type>, _tDefault>
+{};
+//@}
+
+
+/*!
+\brief 释放分配器的删除器。
+\since build 595
+*/
+template<class _tAlloc>
+class allocator_delete
+{
+private:
+	using traits = std::allocator_traits<_tAlloc>;
+
+public:
+	using pointer = typename traits::pointer;
+	using size_type = typename traits::size_type;
+
+private:
+	_tAlloc& alloc_ref;
+	size_type size;
+
+public:
+	allocator_delete(_tAlloc& alloc, size_type s)
+		: alloc_ref(alloc), size(s)
+	{}
+
+	void
+	operator()(pointer p) const ynothrowv
+	{
+		traits::deallocate(alloc_ref, p, size);
+	}
+};
+
+
+/*!
+\brief 构造分配器守护。
+\since build 595
+*/
+template<typename _tAlloc>
+std::unique_ptr<_tAlloc, allocator_delete<_tAlloc>>
+make_allocator_guard(_tAlloc& a,
+	typename std::allocator_traits<_tAlloc>::size_type n = 1)
+{
+	using del_t = allocator_delete<_tAlloc>;
+
+	return std::unique_ptr<_tAlloc, del_t>(
+		std::allocator_traits<_tAlloc>::allocate(a, n), del_t(a, n));
+}
+
+
+//! \since build 746
+//@{
+//! \brief 使用分配器创建对象。
+template<typename _type, class _tAlloc, typename... _tParams>
+auto
+create_with_allocator(_tAlloc&& a, _tParams&&... args)
+	-> decltype(ystdex::make_allocator_guard(a).release())
+{
+	auto gd(ystdex::make_allocator_guard(a));
+
+	ystdex::construct_within<typename std::allocator_traits<decay_t<_tAlloc>>
+		::value_type>(*gd.get(), yforward(args)...);
+	return gd.release();
+}
+
+
+//! \ingroup allocators
+//@{
+/*!
+\brief 类分配器。
+\warning 非虚析构。
+
+和 std::allocator 类似但自动检查类的成员代替 ::operator new/::operator delete 。
+*/
+template<class _type>
+struct class_allocator : std::allocator<_type>
+{
+	class_allocator() = default;
+	using std::allocator<_type>::allocator;
+	class_allocator(const class_allocator&) = default;
+
+	_type*
+	allocate(size_t n)
+	{
+		return _type::operator new(n * sizeof(_type));
+	}
+
+	void
+	deallocate(_type* p, size_t)
+	{
+		// TODO: What if the size hint is supported by %_type?
+		return _type::operator delete(p);
+	}
+};
+
+
+/*!
+\brief 局部分配器。
+
+对支持类作用域分配的类类型为 class_allocator ，否则为 std::allocator 。
+*/
+template<typename _type>
+using local_allocator = cond_t<and_<has_mem_new<_type, size_t>,
+	has_mem_delete<_type*>>, class_allocator<_type>, std::allocator<_type>>;
+//@}
+//@}
+
+
+namespace details
+{
+
+//! \since build 736
+template<typename _type, typename... _tParams>
+YB_NORETURN _type*
+try_new_impl(void*, _tParams&&...)
+{
+	throw_invalid_construction();
+}
+//! \since build 736
+template<typename _type, typename... _tParams>
+auto
+try_new_impl(nullptr_t,  _tParams&&... args)
+	-> decltype(new _type(yforward(args)...))
+{
+	return new _type(yforward(args)...);
+}
+
+//! \since build 746
+template<typename _type, class _tAlloc, typename... _tParams>
+YB_NORETURN _type*
+try_create_with_allocator_impl(void*, _tAlloc&, _tParams&&...)
+{
+	throw_invalid_construction();
+}
+//! \since build 746
+template<typename _type, class _tAlloc, typename... _tParams>
+auto
+try_create_with_allocator_impl(nullptr_t, _tAlloc& a, _tParams&&... args)
+	-> decltype(ystdex::create_with_allocator<_type>(a, yforward(args)...))
+{
+	return ystdex::create_with_allocator<_type>(a, yforward(args)...);
+}
 
 //! \since build 617
 //@{
@@ -116,28 +323,13 @@ struct pack_obj_impl<std::shared_ptr<_type>>
 };
 //@}
 
-//! \since build 736
-template<typename _type, typename... _tParams>
-YB_NORETURN _type*
-try_new_impl(void*, _tParams&&...)
-{
-	throw_invalid_construction();
-}
-//! \since build 736
-template<typename _type, typename... _tParams>
-auto
-try_new_impl(nullptr_t,  _tParams&&... args)
-	-> decltype(new _type(yforward(args)...))
-{
-	return new _type(yforward(args)...);
-}
-
 } // namespace details;
 
 
+//! \throw invalid_construction 调用非合式。
+//@{
 /*!
-\brief 尝试调用 new 表达式。
-\throw invalid_construction 调用非合式。
+\brief 尝试调用 new 表达式创建对象。
 \since build 737
 */
 template<typename _type, typename... _tParams>
@@ -147,36 +339,17 @@ try_new(_tParams&&... args)
 	return details::try_new_impl<_type>(nullptr, yforward(args)...);
 }
 
-
 /*!
-\ingroup unary_type_traits
-\brief 判断类型是否符合分配器要求的目标类型。
-\since build 650
+\brief 尝试调用 ystdex::create_with_allocator 表达式创建对象。
+\since build 746
 */
-template<typename _type>
-struct is_allocatable : is_nonconst_object<_type>
-{};
-
-
-/*!
-\ingroup unary_type_traits
-\brief 判断类型具有嵌套的成员 allocator_type 指称一个可复制构造的类类型。
-*/
-template<typename _type>
-struct has_nested_allocator
-	: details::check_allocator<detected_t<details::nested_allocator_t, _type>>
-{};
-
-
-/*!
-\ingroup metafunctions
-\brief 取嵌套成员分配器类型，若不存在则使用第二模板参数指定的默认类型。
-*/
-template<typename _type, class _tDefault = std::allocator<_type>>
-struct nested_allocator
-	: conditional<has_nested_allocator<_type>::value,
-	detected_t<details::nested_allocator_t, _type>, _tDefault>
-{};
+template<typename _type, class _tAlloc, typename... _tParams>
+_type*
+try_create_with_allocator(_tAlloc&& a, _tParams&&... args)
+{
+	return details::try_create_with_allocator_impl<_type>(nullptr, a,
+		yforward(args)...);
+}
 //@}
 
 
@@ -186,9 +359,10 @@ struct nested_allocator
 \since build 561
 
 除使用 std::free 代替 \c ::operator delete，和 std::default_deleter
-的非数组类型元相同。注意和直接使用 std::free 不同，会调用析构函数且不适用于数组。
+的非数组类型相同。注意和直接使用 std::free 不同，会调用析构函数且不适用于数组。
 */
 //@{
+//! \warning 非虚析构。
 template<typename _type>
 struct free_delete
 {
@@ -276,7 +450,7 @@ public:
 	//! \throw std::bad_cast 取临时存储失败。
 	temporary_buffer(size_t n)
 		: buf([n]{
-			// NOTE: See http://wg21.cmeerw.net/lwg/issue2072.
+			// NOTE: See LWG 2072.
 			const auto pr(std::get_temporary_buffer<_type>(ptrdiff_t(n)));
 
 			if(pr.first)
@@ -308,72 +482,6 @@ public:
 		return buf.second;
 	}
 };
-//@}
-
-
-/*!
-\brief 释放分配器的删除器。
-\since build 595
-*/
-template<class _tAlloc>
-class allocator_delete
-{
-private:
-	using traits = std::allocator_traits<_tAlloc>;
-
-public:
-	using pointer = typename traits::pointer;
-	using size_type = typename traits::size_type;
-
-private:
-	_tAlloc& alloc_ref;
-	size_type size;
-
-public:
-	allocator_delete(_tAlloc& alloc, size_type s)
-		: alloc_ref(alloc), size(s)
-	{}
-
-	void
-	operator()(pointer p) const ynothrowv
-	{
-		traits::deallocate(alloc_ref, p, size);
-	}
-};
-
-
-//! \since build 625
-//@{
-//! \brief 使用分配器复制指定指针指向的对象。
-template<typename _type, class _tAlloc
-	= std::allocator<indirect_element_t<_type>>>
-auto
-clone_monomorphic(const _type& p, _tAlloc&& a = _tAlloc())
-	-> decltype(std::addressof(*p))
-{
-	using traits = std::allocator_traits<_tAlloc>;
-	using value_type = typename traits::value_type;
-
-	auto p_allocated(traits::allocate(a, sizeof(value_type)));
-	const auto p_storage(std::addressof(*p_allocated));
-
-	traits::construct(a, p_storage, *p);
-	return p_storage;
-}
-
-/*!
-\brief 使用 \c clone 成员函数复制指定指针指向的多态类类型对象。
-\pre 断言： <tt>is_polymorphic<indirect_element_t<decltype(p)>>()</tt> 。
-*/
-template<class _type>
-auto
-clone_polymorphic(const _type& p) -> decltype(std::addressof(*p))
-{
-	static_assert(is_polymorphic<indirect_element_t<decltype(p)>>(),
-		"Non-polymorphic class type found.");
-
-	return p->clone();
-}
 //@}
 
 
@@ -686,21 +794,6 @@ make_shared(std::initializer_list<_tValue> il)
 
 
 /*!
-\brief 构造分配器守护。
-\since build 595
-*/
-template<typename _tAlloc>
-std::unique_ptr<_tAlloc, allocator_delete<_tAlloc>>
-make_allocator_guard(_tAlloc& alloc,
-	typename std::allocator_traits<_tAlloc>::size_type n = 1)
-{
-	using del_t = allocator_delete<_tAlloc>;
-
-	return std::unique_ptr<_tAlloc, del_t>(alloc.allocate(n), del_t(alloc, n));
-}
-
-
-/*!
 \brief 智能指针转换。
 \since build 595
 */
@@ -766,6 +859,69 @@ const_pointer_cast(std::unique_ptr<_type, _tDeleter> p) ynothrow
 {
 	return std::unique_ptr<_tDst, _tDeleter>(const_cast<_tDst*>(p.release()),
 		std::move(p.get_deleter()));
+}
+//@}
+
+
+//! \since build 746
+//@{
+//! \brief 使用 new 复制对象。
+template<typename _type>
+inline _type*
+clone_monomorphic(const _type& v)
+{
+	return new _type(v);
+}
+//! \brief 使用分配器复制对象。
+template<typename _type, class _tAlloc>
+inline auto
+clone_monomorphic(const _type& v, _tAlloc&& a)
+	-> decltype(ystdex::create_with_allocator<_type>(yforward(a), v))
+{
+	return ystdex::create_with_allocator<_type>(yforward(a), v);
+}
+
+//! \brief 若指针非空，使用 new 复制指针指向的对象。
+template<typename _tPointer>
+inline auto
+clone_monomorphic_ptr(const _tPointer& p)
+	-> decltype(ystdex::clone_monomorphic(*p))
+{
+	using ptr_t = decltype(ystdex::clone_monomorphic(*p));
+
+	return p ? ystdex::clone_monomorphic(*p) : ptr_t();
+}
+//! \brief 若指针非空，使用分配器复制指针指向的对象。
+template<typename _tPointer, class _tAlloc>
+inline auto
+clone_monomorphic_ptr(const _tPointer& p, _tAlloc&& a)
+	-> decltype(ystdex::clone_monomorphic(*p, yforward(a)))
+{
+	using ptr_t = decltype(ystdex::clone_monomorphic(*p, yforward(a)));
+
+	return p ? ystdex::clone_monomorphic(*p, yforward(a)) : ptr_t();
+}
+
+/*!
+\brief 使用 \c clone 成员函数复制多态类类型对象。
+\pre 静态断言： <tt>is_polymorphic<decltype(v)>()</tt> 。
+*/
+template<class _type>
+inline auto
+clone_polymorphic(const _type& v) -> decltype(v.clone())
+{
+	static_assert(is_polymorphic<_type>(), "Non-polymorphic class type found.");
+
+	return v.clone();
+}
+
+//! \brief 若指针非空，使用 \c clone 成员函数复制指针指向的多态类类型对象。
+template<class _tPointer>
+inline auto
+clone_polymorphic_ptr(const _tPointer& p) -> decltype(clone_polymorphic(*p))
+{
+	return
+		p ? ystdex::clone_polymorphic(*p) : decltype(clone_polymorphic(*p))();
 }
 //@}
 
