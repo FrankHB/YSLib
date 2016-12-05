@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1088
+\version r1117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-11-28 13:19 +0800
+	2016-12-05 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -588,6 +588,20 @@ FetchValue(const ContextNode& ctx, const _tKey& name)
 }
 
 /*!
+\brief 从指定上下文取指定名称指称的值的指针。
+\since build 747
+*/
+template<typename _tKey>
+static observer_ptr<const ValueObject>
+FetchValuePtr(const ContextNode& ctx, const _tKey& name)
+{
+	return ystdex::call_value_or<observer_ptr<const ValueObject>>(
+		[](const ValueNode& node){
+		return make_observer(&node.Value);
+	}, NPL::LookupName(ctx, name));
+}
+
+/*!
 \brief 访问项的值作为名称。
 \return 通过访问项的值取得的名称，或空指针表示无法取得名称。
 \since build 732
@@ -710,11 +724,24 @@ inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
 	ImplExpr(term.SetContent(std::move(tm)))
 //! \since build 745
 //@{
-inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& tm)
-	ImplExpr(term_v = std::move(tm))
-inline PDefH(void, LiftTerm, TermNode& term, ValueObject& tm)
-	ImplExpr(LiftTerm(term.Value, tm))
+inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo)
+	ImplExpr(term_v = std::move(vo))
+inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
+	ImplExpr(LiftTerm(term.Value, vo))
 //@}
+//@}
+
+/*!
+\brief 使用第二个参数指定的项的内容引用替换第一个项的内容。
+\since build 747
+*/
+//@{
+inline PDefH(void, LiftTermRef, TermNode& term, TermNode& tm)
+	ImplExpr(term.SetContentIndirect(tm))
+inline PDefH(void, LiftTermRef, ValueObject& term_v, const ValueObject& vo)
+	ImplExpr(term_v = vo.MakeIndirect())
+inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
+	ImplExpr(LiftTermRef(term.Value, vo))
 //@}
 //@}
 

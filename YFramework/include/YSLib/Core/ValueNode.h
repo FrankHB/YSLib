@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2864
+\version r2875
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-11-28 22:44 +0800
+	2016-12-05 14:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -300,6 +300,19 @@ public:
 	PDefH(void, SetContent, ValueNode&& node)
 		ImplExpr(SwapContent(node))
 	//@}
+
+	/*!
+	\brief 设置子节点容器，并设置值的内容为指定对象的内容引用。
+	\sa ValueObject::MakeIndirect
+	\since build 747
+	*/
+	//@{
+	void
+	SetContentIndirect(Container, const ValueObject&) ynothrow;
+	PDefH(void, SetContentIndirect, const ValueNode& node)
+		ImplExpr(SetContentIndirect(node.GetContainer(), node.Value))
+	//@}
+
 
 	PDefH(bool, Add, const ValueNode& node)
 		ImplRet(insert(node).second)

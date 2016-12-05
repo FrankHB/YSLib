@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3010
+\version r3018
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-12-02 21:51 +0800
+	2016-12-04 19:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 #include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
 //	std::unique_ptr, ystdex::clone_monomorphic_ptr, ystdex::clone_monomorphic,
 //	standard_layout_storage, aligned_storage_t, is_aligned_storable,
-//	default_init_t;
+//	ystdex::pvoid, default_init_t;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 #include <initializer_list> // for std::initializer_list;
@@ -128,7 +128,7 @@ public:
 	value_holder*
 	clone() const override
 	{
-		return new value_holder(this->value);
+		return ystdex::clone_monomorphic(*this);
 	}
 
 	//! \since build 348
@@ -435,7 +435,7 @@ public:
 			d = &ystdex::type_id<value_type>();
 			break;
 		case get_ptr:
-			d = static_cast<void*>(get_pointer(s));
+			d = ystdex::pvoid(get_pointer(s));
 			break;
 		case clone:
 			copy(d, s);
@@ -515,7 +515,7 @@ public:
 			d = &ystdex::type_id<value_type>();
 			break;
 		case get_ptr:
-			d = static_cast<void*>(get_pointer(s));
+			d = ystdex::pvoid(get_pointer(s));
 			break;
 		default:
 			base::manage(d, s, op);
@@ -588,7 +588,7 @@ public:
 			d = &ystdex::type_id<value_type>();
 			break;
 		case get_ptr:
-			d = static_cast<void*>(get_pointer(s));
+			d = ystdex::pvoid(get_pointer(s));
 			break;
 		case get_holder_type:
 			d = &ystdex::type_id<_tHolder>();
@@ -866,8 +866,9 @@ public:
 	yconstfn
 	any() ynothrow = default;
 	/*!
+	\note 引用包装类型的处理为 YStandardEx 扩展，此时不具有所有权。
+	\warning 引用包装存储无视 cv 修饰符。访问不检查动态类型，应注意避免未定义行为。
 	\since build 448
-	\note 引用包装类型的处理为 YStandardEx 扩展。
 	*/
 	template<typename _type, yimpl(typename = exclude_self_t<any, _type>)>
 	inline

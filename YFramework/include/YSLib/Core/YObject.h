@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4127
+\version r4249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-02 22:47 +0800
+	2016-12-05 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,9 +45,10 @@ using ystdex::type_info;
 
 /*!
 \brief 指定对参数指定类型的成员具有所有权的标签。
-\since build 218
+\note 约定参数 void 表示无所有权。
+\since build 747
 */
-template<typename>
+template<typename = void>
 struct OwnershipTag
 {};
 
@@ -83,7 +84,21 @@ struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 \since build 332
 */
 DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
+	/*!
+	\brief 相等。
+
+	返回一个表示和其它 IValueHolder 的派生实现的值是否相等的 bool 值。
+	派生实现应保证返回的值使 IValueHolder 满足 EqualityComparable 要求。
+	*/
 	DeclIEntry(bool operator==(const IValueHolder&) const)
+	/*!
+	\brief 创建引用。
+	\since build 747
+
+	创建引用持有对象。
+	派生实现应保证返回的值持有对应的 lref<T> 类型的值引用当前持有的 T 类型的值。
+	*/
+	DeclIEntry(ystdex::any Refer() const)
 EndDecl
 
 
@@ -138,11 +153,14 @@ AreEqualHeld(const _type1& x, const _type2& y)
 
 
 /*!
-\brief 带等于接口的值类型动态泛型持有者。
-\note 成员命名参照 ystdex::value_holder 。
-\note 比较使用 AreEqualHeld ，可有 ADL 重载。
-\sa ystdex::value_holder
+\note 比较使用 ADL AreEqualHeld 。
 \sa AreEqualHeld
+*/
+//@{
+/*!
+\brief 带等于接口的值类型动态泛型持有者。
+\tparam _type 持有的值类型。
+\sa ystdex::value_holder
 \since build 332
 */
 template<typename _type>
@@ -167,17 +185,16 @@ public:
 	{}
 	using ystdex::boxed_value<_type>::boxed_value;
 	//@}
-	DefDeCopyCtor(ValueHolder)
-	DefDeMoveCtor(ValueHolder)
-
-	//! \since build 353
-	DefDeCopyAssignment(ValueHolder)
 	//! \since build 555
-	DefDeMoveAssignment(ValueHolder)
+	DefDeCopyMoveCtorAssignment(ValueHolder)
 
 	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
 		ImplRet(type() == obj.type() && AreEqualHeld(this->value,
-			static_cast<const ValueHolder&>(obj).value))
+			Deref(static_cast<value_type*>(obj.get()))))
+
+	//! \since build 747
+	ystdex::any
+	Refer() const ImplI(IValueHolder);
 
 	//! \since build 409
 	PDefH(ValueHolder*, clone, ) const ImplI(IValueHolder)
@@ -197,10 +214,7 @@ public:
 \brief 带等于接口的指针类型动态泛型持有者。
 \tparam _tPointer 智能指针类型。
 \pre _tPointer 具有 _type 对象所有权。
-\note 成员命名参照 ystdex::pointer_holder 。
-\note 比较使用 AreEqualHeld ，可有 ADL 重载。
 \sa ystdex::pointer_holder
-\sa AreEqualHeld
 \since build 555
 */
 template<typename _type, class _tPointer = std::unique_ptr<_type>>
@@ -238,7 +252,11 @@ public:
 	//! \since build 332
 	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
 		ImplRet(type() == obj.type() && AreEqualHeld(*p_held,
-			Deref(static_cast<const PointerHolder&>(obj).p_held)))
+			Deref(static_cast<value_type*>(obj.get()))))
+
+	//! \since build 747
+	ystdex::any
+	Refer() const ImplI(IValueHolder);
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), PointerHolder)
@@ -251,6 +269,70 @@ public:
 	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
 		ImplRet(p_held ? ystdex::type_id<_type>() : ystdex::type_id<void>())
 };
+
+
+/*!
+\brief 带等于接口的引用动态泛型持有者。
+\tparam _type 持有的被引用的值类型。
+\note 不对持有值具有所有权。
+\sa ValueHolder
+\since build 747
+*/
+template<typename _type>
+class RefHolder : implements IValueHolder
+{
+	static_assert(std::is_object<_type>(), "Invalid type found.");
+
+public:
+	using value_type
+		= ystdex::remove_reference_t<ystdex::unwrap_reference_t<_type>>;
+
+private:
+	ValueHolder<lref<value_type>> base; 
+
+public:
+	//! \brief 不取得所有权。
+	RefHolder(_type& r)
+		: base(r)
+	{}
+	DefDeCopyMoveCtorAssignment(RefHolder)
+
+	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
+		ImplRet(type() == obj.type() && AreEqualHeld(Deref(static_cast<
+			value_type*>(get())), Deref(static_cast<value_type*>(obj.get()))))
+
+	PDefH(ystdex::any, Refer, ) const ImplI(IValueHolder)
+		ImplRet(ystdex::any(ystdex::any_ops::use_holder,
+			ystdex::in_place<RefHolder>, *this))
+
+	DefClone(const ImplI(IValueHolder), RefHolder)
+
+	PDefH(void*, get, ) const ImplI(IValueHolder)
+		ImplRet(ystdex::pvoid(std::addressof(
+		Deref(static_cast<lref<value_type>*>(base.get())).get())))
+
+	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(ystdex::type_id<value_type>())
+};
+//@}
+
+template<typename _type>
+ystdex::any
+ValueHolder<_type>::Refer() const
+{
+	return ystdex::any(ystdex::any_ops::use_holder, ystdex::in_place<RefHolder<
+		_type>>, ystdex::ref(this->value));
+}
+
+template<typename _type, class _tPointer>
+ystdex::any
+PointerHolder<_type, _tPointer>::Refer() const
+{
+	if(const auto& p = p_held.get())
+		return ystdex::any(ystdex::any_ops::use_holder,
+			ystdex::in_place<RefHolder<_type>>, ystdex::ref(*p));
+	ystdex::throw_invalid_construction();
+}
 
 
 /*!
@@ -267,6 +349,9 @@ class YF_API ValueObject : private ystdex::equality_comparable<ValueObject>
 private:
 	//! \since build 732
 	ystdex::any content;
+	//! \since build 747
+	struct holder_refer_tag
+	{};
 
 public:
 	/*!
@@ -297,6 +382,25 @@ public:
 	ValueObject(ystdex::in_place_type_t<_type>, _tParams&&... args)
 		: content(ystdex::any_ops::use_holder,
 		ystdex::in_place<ValueHolder<_type>>, yforward(args)...)
+	{}
+private:
+	/*!
+	\brief 构造：使用持有者。
+	\since build 747
+	*/
+	ValueObject(const IValueHolder& holder, holder_refer_tag)
+		: content(holder.Refer())
+	{}
+
+public:
+	/*!
+	\brief 构造：使用无所有权的引用。
+	\since build 747
+	*/
+	template<typename _type>
+	ValueObject(_type& obj, OwnershipTag<>)
+		: content(ystdex::any_ops::use_holder,
+		ystdex::in_place<RefHolder<_type>>, ystdex::ref(obj))
 	{}
 	/*!
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
@@ -418,6 +522,14 @@ public:
 	}
 	//@}
 
+	/*!
+	\brief 清除。
+	\post <tt>*this == ValueObject()</tt> 。
+	\since build 296
+	*/
+	PDefH(void, Clear, ) ynothrow
+		ImplExpr(content.reset())
+
 	//! \since build 677
 	//@{
 	template<typename _type, typename... _tParams>
@@ -498,12 +610,11 @@ public:
 	//@}
 
 	/*!
-	\brief 清除。
-	\post <tt>*this == ValueObject()</tt> 。
-	\since build 296
+	\brief 取间接引用的值对象。
+	\since build 747
 	*/
-	PDefH(void, Clear, ) ynothrow
-		ImplExpr(content.reset())
+	ValueObject
+	MakeIndirect() const;
 
 	/*!
 	\brief 交换。

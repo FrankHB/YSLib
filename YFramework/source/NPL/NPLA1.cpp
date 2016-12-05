@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1724
+\version r1727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-11-28 22:39 +0800
+	2016-12-05 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -468,9 +468,9 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
 
-	if(auto v = FetchValue(ctx, id))
+	if(const auto p = FetchValuePtr(ctx, id))
 	{
-		term.Value = std::move(v);
+		LiftTermRef(term, *p);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return ToStatus((*p_handler)(ctx));
 	}
@@ -518,7 +518,7 @@ EvaluateTermNode(TermNode& term)
 {
 	if(const auto p = AccessPtr<TermNode>(term))
 	{
-		LiftTerm(term, *p);
+		LiftTermRef(term, *p);
 		// NOTE: To make it work with %DetectReducible.
 		if(IsBranch(term))
 			return ReductionStatus::NeedRetry;
