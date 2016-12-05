@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4574
+\version r4650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-03 00:49 +0800
+	2016-12-05 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,78 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx.Any $=
+	(
+		/ DLDI "function %clone" @ "class template %value_holder"
+			^ "%ystdex::clone_monomorphic",
+		/ "handling of %get_ptr" @ "static function %manage"
+			@ "class templates %(value_handler, ref_handler, holder_handler)"
+			@ "namespace %any_ops" $=
+		(
+			/ $impl "simplified" ^ "%pvoid" ~ 'static_cast';
+			* $comp "ill-formed for cv-qualified %value_type" $since b717
+		)
+	),
+	/ DLDI "simplified classes" ^ "%DefDeCopyMoveCtorAssignment"
+		~ "%(DefDeCopyCtor, DefDeMoveCtor, DefDeCopyAssignment, \
+		DefDeMoveAssignment)" $effective @ ("class template %ValueHolder"
+		@ %Core.YObject, "class %View" @ %UI.YWidgetView) @ %YFramework.YSLib,
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ %YObject $=
+			(
+				* "unsupported comparison across different holder tepmlates"
+					@ "%operator==" @ "class templates %(value_holder, \
+					pointer_holder)" $since b332,
+				(
+				+ "default template argument 'void'"
+					@ "class template %OwnershipTag";
+				+ "constructor with reference and %OwnershipTag<> parameters \
+					to support non-owning initalization"
+					@ "class %ValueObject"
+				),
+				/ @ "interface %IValueHolder" $=
+				(
+					+ $doc "explicit requirement of %EqualityComparable"
+						@ "abstract method %operator==",
+					+ "abstract method %Refer"
+				),
+				+ "class template %RefHolder",
+				+ $forced DLDI "overrider %Refer"
+					@ "class templates %(ValueHolder, PointerHolder)" $dep_from
+					"%IValueHolder::Refer"
+					$= (/ $impl ^ $dep_from "%RefHolder"),
+				+ "function %MakeIndirect" @ "class %ValueObject" ^ $dep_from
+					"%IValueHolder::Refer"
+			),
+			+ "2 functions %SetContentIndirect" ^ $dep_from
+				("%ValueObject::MakeIndirect" @ %YObject)
+		), 
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "3 functions %LiftTermRef" ^ $dep_from
+					("%ValueNode::SetContentIndirect" @ %ValueNode,
+					"%ValueObject::MakeIndirect" @ %YObject) @ %YSLib.Core,
+				+ "function template %FetchValuePtr"
+			);
+			/ @ "function %(EvaluateTermNode, EvaluateIdentifier)" @ %NPLA1 $=
+			(
+				/ "fetching value by reference" ~ "fetching value by copy"
+					^ ("%(LiftTermRef, FetchValuePtr)" @ %NPLA)
+					~ "%(LiftTerm, FetchValuePtr)";
+				* "%ystdex::invalid_construction thrown when reference to \
+					variable denoting an object cannot be copied" $since b726
+			)
+		)
+	)
+),
+
+b746
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -304,10 +376,10 @@ b743
 
 b742
 (
-	/ $lib "move contructor nothrow exception-specification conditionally"
+	/ $lib "move contructor non-throwing exception specification conditionally"
 		@ "class template %mapped set" @ %YBase.YStandardEx.Set,
 		// This is depends on the underlying container implementation, which \
-			can be either throwing or nonthrowing according to ISO C++.
+			can be either throwing or non-throwing according to ISO C++.
 	/ %YFramework $=
 	(
 		/ %NPL $=
@@ -716,7 +788,7 @@ b735
 				)
 			),
 			+ 'yconstfn' @ "function template %compose#1",
-			+ "noexcept specification" @ "function template %operator()"
+			+ "noexcept-specification" @ "function template %operator()"
 				@ "class template %composed",
 			+ "class template %generalized_composed; function template \
 				%generalized_compose"
@@ -2269,7 +2341,7 @@ b719
 					SetModificationTime, SetModificationAndAccessTime, \
 					GetSize)")
 				),
-				* "wrong nothrow exception-specification"
+				* "wrong non-throwing exception specification"
 					@ "all 2 functions %FetchNumberOfLinks" $since b639 $=
 				(
 					- 'ynothrowv';
@@ -2639,7 +2711,7 @@ b716
 			(
 				/ 'yconstexpr const struct default_init_t{} default_init{};'
 					>> $dep_from %Placement,
-				* "wrong nothrow specification"
+				* "wrong non-throwing exception specification"
 					@ "constructor with %default_init_t parameter"
 					@ "class template %boxed_value" $since b677
 			),

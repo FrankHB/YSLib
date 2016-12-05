@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1966
+\version r1973
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-11-28 09:29 +0800
+	2016-12-05 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -508,11 +508,13 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 \brief 求值标识符。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa EvaluateTermNode
-\sa FetchValue
+\sa FetchValuePtr
+\sa LiftTermRef
 \sa LiteralHandler
 
 依次进行以下求值操作：
-调用 FetchValue 查找值，若失败抛出未声明异常；
+调用 FetchValuePtr 查找值，若失败抛出未声明异常；
+调用 LiftTermRef 替换节点的值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
 若未返回，调用 EvaluateTermNode 求值。
 */
@@ -540,8 +542,10 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 /*!
 \brief 求值以节点数据结构间接表示的项。
 \sa IsBranch
+\sa LiftTermRef
 
-以 TermNode 按项访问值，若发现项是枝节点，返回要求重规约。
+以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值；
+若发现项是枝节点，返回要求重规约。
 以项访问对规约以项转移的可能未求值的操作数是必要的。
 */
 YF_API ReductionStatus

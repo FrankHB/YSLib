@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r834
+\version r836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-07-14 23:07 +0800
+	2016-12-04 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -218,9 +218,7 @@ public:
 		: AView(),
 		visual(r)
 	{}
-	DefDeCopyMoveCtor(View)
-
-	DefDeCopyMoveAssignment(View)
+	DefDeCopyMoveCtorAssignment(View)
 
 	bool
 	IsVisible() const ynothrow ImplI(AView);
