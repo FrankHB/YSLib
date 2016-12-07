@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4249
+\version r4379
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-05 13:23 +0800
+	2016-12-07 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -346,12 +346,20 @@ PointerHolder<_type, _tPointer>::Refer() const
 */
 class YF_API ValueObject : private ystdex::equality_comparable<ValueObject>
 {
+public:
+	/*!
+	\brief 储存的内容。
+	\since build 748
+	*/
+	using Content = ystdex::any;
+
 private:
-	//! \since build 732
-	ystdex::any content;
 	//! \since build 747
 	struct holder_refer_tag
 	{};
+
+	//! \since build 748
+	Content content;
 
 public:
 	/*!
@@ -462,6 +470,11 @@ public:
 	operator==(const ValueObject&, const ValueObject&);
 
 	/*!
+	\brief 取储存的内容。
+	\since build 748
+	*/
+	DefGetter(const ynothrow, const Content&, Content, content)
+	/*!
 	\brief 取指定类型的对象。
 	\pre 间接断言：存储对象类型和访问的类型一致。
 	*/
@@ -549,64 +562,6 @@ public:
 
 		content.emplace<Holder>(ystdex::any_ops::use_holder, Holder(p));
 	}
-
-	//! \since build 737
-	//@{
-	template<typename _func, typename... _tParams>
-	void
-	EmplaceFromCall(ystdex::identity<void>, _func&& f, _tParams&&... args)
-	{
-		yforward(f)(yforward(args)...);
-	}
-	template<typename _type, typename _func, typename... _tParams>
-	void
-	EmplaceFromCall(ystdex::identity<_type>, _func&& f,
-		_tParams&&... args)
-	{
-		Emplace<_type>(yforward(f)(yforward(args)...));
-	}
-	template<typename _func, typename... _tParams>
-	void
-	EmplaceFromCall(_func&& f, _tParams&&... args)
-	{
-		EmplaceFromCall(ystdex::identity<ystdex::result_of_t<
-			_func&&(_tParams&&...)>>(), yforward(f), yforward(args)...);
-	}
-
-	template<typename _fCallable, typename... _tParams>
-	void
-	EmplaceFromInvoke(ystdex::identity<void>, _fCallable&& f,
-		_tParams&&... args)
-	{
-		ystdex::invoke(yforward(f), yforward(args)...);
-	}
-	template<typename _type, typename _fCallable, typename... _tParams>
-	void
-	EmplaceFromInvoke(ystdex::identity<_type>, _fCallable&& f,
-		_tParams&&... args)
-	{
-		Emplace<_type>(ystdex::invoke(yforward(f), yforward(args)...));
-	}
-	template<typename _fCallable, typename... _tParams>
-	void
-	EmplaceFromInvoke(_fCallable&& f, _tParams&&... args)
-	{
-		EmplaceFromInvoke(ystdex::identity<decltype(ystdex::invoke(yforward(f),
-			yforward(args)...))>(), yforward(f), yforward(args)...);
-	}
-	//@}
-
-	template<typename _type, typename... _tParams>
-	_type&
-	EmplaceIfEmpty(_tParams&&... args)
-	{
-		if(!*this)
-		{
-			Emplace<_type>(yforward(args)...);
-			return GetObject<_type>();
-		}
-		return Access<_type>();
-	}
 	//@}
 
 	/*!
@@ -623,6 +578,72 @@ public:
 	friend PDefH(void, swap, ValueObject& x, ValueObject& y) ynothrow
 		ImplExpr(x.content.swap(y.content))
 };
+
+/*!
+\relates ValueObject
+\since build 748
+*/
+//@{
+template<typename _func, typename... _tParams>
+void
+EmplaceFromCall(ValueObject&, ystdex::identity<void>, _func&& f,
+	_tParams&&... args)
+{
+	yforward(f)(yforward(args)...);
+}
+template<typename _type, typename _func, typename... _tParams>
+void
+EmplaceFromCall(ValueObject& vo, ystdex::identity<_type>, _func&& f,
+	_tParams&&... args)
+{
+	vo.Emplace<_type>(yforward(f)(yforward(args)...));
+}
+template<typename _func, typename... _tParams>
+void
+EmplaceFromCall(ValueObject& vo, _func&& f, _tParams&&... args)
+{
+	YSLib::EmplaceFromCall(vo, ystdex::identity<ystdex::result_of_t<
+		_func&&(_tParams&&...)>>(), yforward(f), yforward(args)...);
+}
+
+template<typename _fCallable, typename... _tParams>
+void
+EmplaceFromInvoke(ValueObject&, ystdex::identity<void>, _fCallable&& f,
+	_tParams&&... args)
+{
+	ystdex::invoke(yforward(f), yforward(args)...);
+}
+template<typename _type, typename _fCallable, typename... _tParams>
+void
+EmplaceFromInvoke(ValueObject& vo, ystdex::identity<_type>, _fCallable&& f,
+	_tParams&&... args)
+{
+	vo.Emplace<_type>(ystdex::invoke(yforward(f), yforward(args)...));
+}
+template<typename _fCallable, typename... _tParams>
+void
+EmplaceFromInvoke(ValueObject& vo, _fCallable&& f, _tParams&&... args)
+{
+	YSLib::EmplaceFromInvoke(ystdex::identity<decltype(ystdex::invoke(
+		yforward(f), yforward(args)...))>(), yforward(f), yforward(args)...);
+}
+
+template<typename _type, typename... _tParams>
+_type&
+EmplaceIfEmpty(ValueObject& vo, _tParams&&... args)
+{
+	if(!vo)
+	{
+		vo.Emplace<_type>(yforward(args)...);
+		return vo.GetObject<_type>();
+	}
+	return vo.Access<_type>();
+}
+
+//! \brief 判断是否持有相同对象。
+inline PDefH(bool, HoldSame, const ValueObject& x, const ValueObject& y)
+	ImplRet(ystdex::hold_same(x.GetContent(), y.GetContent()))
+//@}
 
 
 /*!

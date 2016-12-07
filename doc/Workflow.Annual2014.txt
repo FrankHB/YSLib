@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r936
+\version r939
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2016-11-09 22:39 +0800
+	2016-12-07 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -261,7 +261,7 @@ Rules for exception handling should be uniformed.
 		The following rules are forced:
 			Make sure no resource could leak.
 			Make sure the destructor is virtual.
-			Make sure the move constructor, if any, have nothrow guarantee.
+			Make sure the move constructor, if any, have no-throw guarantee.
 		For YSLib, the exception objects should be MoveConstructible or at least CopyConstructible with trivially copy can be performed. See below for reasons.
 	Boost exception handling guidelines are reviewed. See http://www.boost.org/community/error_handling.html.
 		Note it is pre-ISO C++11.
@@ -279,7 +279,7 @@ Rules for exception handling should be uniformed.
 	There should be no exception thrown during copy-initialization of an exception object.
 		Otherwise, 'std::terminate' would be called on copy-initialization failure in throw-expression.
 		The stricter "not embedding" rule (Boost exception handling guideline 3) is only necessary when the move constructor is not usable.
-			It is reasonable to not embed a subobject without nothrow-copy guarantee into an exception object for pre-C++11 code.
+			It is reasonable to avoid embedding a subobject without no-throw guarantee on copying into an exception object for pre-C++11 code.
 		Make the exception object movable, ideally only the initially creation of the excetpion object is concerned with the copy failure.
 		Note the replacing of copy by move operation based on copy elision criteria is not applicable for caught-by-value exception objects.
 			See $2014-02 report.impl about non-mandantory of move exception objects.
@@ -336,7 +336,7 @@ Call-by-value for parameter with object type for classes types should be refined
 	A notable exception is unifying assignment, when copy-and-swap idiom is needed and the move constructor is implemented with little overhead.
 		See http://stackoverflow.com/questions/8968452/who-coined-the-term-unified-or-unifying-assignment-operator.
 		Because at least one copy operation is performed, the parameter is needed.
-		Since the swapping operation is inteneded to provide nothrow guarantee, there should be a nothrow exception-specification.
+		Since the swapping operation is inteneded to provide no-throw guarantee, there should be a non-throwing exception specification.
 			Note that even if exception is thrown by initialization of the parameter, the exception-specification is not affected.
 		The standard library is not using this style.
 			See https://github.com/cplusplus/draft/wiki/Specification-Style-Guidelines#specifying-implicitly-generated-special-member-functions.

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15202
+\version r15222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2016-10-04 19:47 +0800
+	2016-12-07 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -752,7 +752,7 @@ b595
 		),
 		/ %YStandardEx $=
 		(
-			* "recursive call failure due to recursive noexcept specification"
+			* "recursive call failure due to recursive noexcept-specification"
 				@ "function template %seq_apply" @ %Functional $since b594,
 			/ %Iterator $=
 			(
@@ -1078,7 +1078,7 @@ b594
 					UCSMapper)" -> "%(UCS2Mapper_Decode, UCS2Mapper_Encode, \
 					UCS2Mapper)"
 				(
-					+ "noexcept specification",
+					+ "noexcept-specification",
 					* $dev "missing prevent ADL" @ "intermediate calls" $since
 						b273
 				),
@@ -1160,7 +1160,7 @@ b594
 				/ @ "static function template %Map" -> "%Decode" $=
 				(
 					/ "assignment" ^ $dep_from "%Assign" ~ '=',
-					+ "noexcept specification" $dep_from %CharacterMapping
+					+ "noexcept-specification" $dep_from %CharacterMapping
 				)
 			)
 		),
@@ -1222,7 +1222,7 @@ b594
 			(
 				+ 'const' @ "function template \
 					%operator pair<_tFirst, _tSecond>",
-				+ "noexcept specification" @ "move constructor",
+				+ "noexcept-specification" @ "move constructor",
 				* "wrong exception-specification and implementation"
 					@ "friend function %operator==" $since b585
 			),
@@ -1821,9 +1821,9 @@ b591
 			@ "constructor %NativeHost" @ %'Helper_(Android)'.AndroidHost
 			^ $dep_from ("%FilterExceptions" @ %YGlobal)
 	),
-	* $doc "missing explicitly requiring of an implementation with nothrow \
+	* $doc "missing explicitly requiring of an implementation with no-throw \
 		guarantee on %std::string" @ %Documentation.ProjectRules,
-		// Otherwise, the nothrow guarantee of several APIs in %YCLib.Debug \
+		// Otherwise, the no-throw guarantee of several APIs in %YCLib.Debug \
 			can not be hold.
 	/ $forced DLDI "simplified for top level widgets" $dep_from
 		%YFramework.Helper.HostedUI,
@@ -2904,12 +2904,12 @@ b586
 				/ @ "non-special constructors"
 					@ "class template %transposed_iterator" $=
 				(
-					+ "noexcept specification",
+					+ "noexcept-specification",
 					/ "initialized member iterator" ^ "copy" ~ "forwarding"
 				),
-				+ "noexcept specification"
+				+ "noexcept-specification"
 					@ "constructor template %transformed_iterator",
-				+ "noexcept specification"
+				+ "noexcept-specification"
 					@ "templates %(make_transform, make_transposed)"
 					^ $dep_from ("%ynoexcept_spec" @ %YDefinition)
 			),
@@ -4467,7 +4467,7 @@ b576
 			@ "member function %ImagePages::GetScale"
 			@ %YSLib.Service.ImageProcessing,
 	),
-	/ DLD "simplified noexcept specifications" $effective
+	/ DLD "simplified noexcept-specifications" $effective
 		(@ %YBase.YStandardEx.Utilities)
 		$= (- "check of %YB_HAS_NOEXCEPT");
 		// Since guarded by 'ynoexcept', no further check is needed.
@@ -4491,8 +4491,8 @@ b575
 						is simply wrong by design. Since it was stripped away \
 						since b537, now no need to add destructor in %Menu.
 					- "destructor";
-					* $design $comp "nothrow requirements not guaranteed to be \
-						safe in destruction" $since b214
+					* $design $comp "non-throwing requirements did not \
+						guaranteed safe in destruction" $since b214
 				),
 				+ "function %BindTopLevelPopupMenu",
 			),
@@ -5313,7 +5313,7 @@ b566
 				(
 				+ "'ynothrow' guarantee" @ "function %LogWithSource";
 					// Use calling of %ystdex::ytrace as fallback.
-				/ "guaranteed nothrow from call of macro expansion %YCL_Trace"
+				/ "guaranteed no-throw from call of macro expansion %YCL_Trace"
 				),
 				(
 				+ "function template %CheckIter";
@@ -5333,8 +5333,8 @@ b566
 		/ @ "destructor %WindowThread" @ %Helper.HostRenderer $=
 		(
 			* $comp "probable terminated by throwing out of destructor with \
-				nothrow exception-specification due to trace calls" $since b498
-				$dep_from %YCLib.Debug,
+				non-throwing exception specification due to trace calls" $since
+				b498 $dep_from %YCLib.Debug,
 			/ "stated destructor name"
 				@ "trace string for catching all exceptions"
 		),
@@ -5360,8 +5360,8 @@ b566
 					/ "explicitly allowed pointer with ownership"
 						@ "class template %GGraphics" $=
 					(
-						/ $dev "static assertion of nothrow copyable check on \
-							pointer" -> "nothrow movable check",
+						/ $dev "static assertion of non-throwing copyable \
+							check on pointer" -> "non-throwing movable check",
 						/ $dev "pixel type deduction" ^ '[0]' ~ "indirection",
 						/ DLD "operation for pointer type parameter"
 							@ "constructors" ^ "moving" ~ "copying"
@@ -5601,7 +5601,7 @@ b564
 				),
 				/ @ "underlying error category for XCB" $=
 				(
-					* "wrong nothrow exception-specification for message \
+					* "wrong non-throwing exception specification for message \
 						generation"
 						 $since b563,
 						// Same reason as underlying error category as \
@@ -5650,7 +5650,7 @@ b564
 				)
 			)
 		),
-		* "wrong nothrow exception-specification for message generation"
+		* "wrong non-throwing exception specification for message generation"
 			@ "underlying error category" @ "class %Win32Exception"
 			@ %'YCLib_(MinGW32)'.MinGW32 $since b545,
 			// At least %std::bad_alloc should be allowed when failed \
@@ -5958,7 +5958,7 @@ b563
 	(
 		+ 'ynothrow' @ "function templates %pvoid for builtin pointers"
 			@ %Cast,
-		* "missing nothrow exception-specification"
+		* "missing non-throwing exception specification"
 			@ "function %swap for instances of %nptr" @ %Utilities $since b560
 			$= (+ 'ynothrow')
 			// This would case ill-formed defaulted move constructor for

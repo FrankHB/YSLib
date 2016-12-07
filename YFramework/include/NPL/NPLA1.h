@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1973
+\version r2004
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-05 15:09 +0800
+	2016-12-07 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -404,6 +404,15 @@ public:
 	*/
 	void
 	operator()(TermNode&, ContextNode&) const;
+
+	/*!
+	\brief 比较上下文处理器相等。
+	\note 忽略检查例程的等价性。
+	\since build 748
+	*/
+	friend PDefHOp(bool, ==, const FormContextHandler& x,
+		const FormContextHandler& y)
+		ImplRet(x.Handler == y.Handler)
 };
 
 
@@ -437,6 +446,14 @@ public:
 	*/
 	void
 	operator()(TermNode&, ContextNode&) const;
+
+	/*!
+	\brief 比较上下文处理器相等。
+	\since build 748
+	*/
+	friend PDefHOp(bool, ==, const FunctionContextHandler& x,
+		const FunctionContextHandler& y)
+		ImplRet(x.Handler == y.Handler)
 };
 
 
@@ -705,7 +722,7 @@ CallUnary(_func f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term);
 
-	term.Value.EmplaceFromCall(
+	YSLib::EmplaceFromCall(term.Value,
 		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::move(f)),
 		Deref(std::next(term.begin())), yforward(args)...);
 	term.ClearContainer();
@@ -857,6 +874,23 @@ Lambda(TermNode&, ContextNode&);
 */
 YF_API void
 CallSystem(TermNode&);
+
+//! \since build 748
+//@{
+/*!
+\brief 比较两个子项的值相等。
+\sa YSLib::HoldSame
+*/
+YF_API void
+EqualReference(TermNode&);
+
+/*!
+\brief 比较两个子项的值相等。
+\sa YSLib::ValueObject
+*/
+YF_API void
+EqualValue(TermNode&);
+//@}
 
 /*!
 \brief 创建 REPL 并对翻译单元规约以求值。
