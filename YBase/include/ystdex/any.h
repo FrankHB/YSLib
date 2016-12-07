@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3018
+\version r3038
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-12-04 19:42 +0800
+	2016-12-07 13:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,6 +86,17 @@ public:
 	virtual const type_info&
 	type() const ynothrow = 0;
 };
+
+/*!
+\brief 判断是否持有相同对象。
+\relates holder
+\since build 748
+*/
+inline bool
+hold_same(const holder& x, const holder& y)
+{
+	return x.get() == y.get();
+}
 
 
 /*!
@@ -1119,7 +1130,6 @@ make_any(std::initializer_list<_tOther> il, _tParams&&... args)
 	&& p->type() == ystdex::type_id<remove_pointer_t<_tPointer>>()</tt> 时
 	为指向对象的指针，否则为空指针。
 \note 语义同 \c boost::any_cast 。
-\relates any
 \since build 671
 \todo 检验特定环境（如使用动态库时）比较 std::type_info::name() 的必要性。
 */
@@ -1183,6 +1193,15 @@ any_cast(any&& x)
 
 //! \note YSandardEx 扩展。
 //@{
+/*!
+\brief 判断是否持有相同对象。
+\since build 748
+*/
+inline bool
+hold_same(const any& x, const any& y)
+{
+	return x.get() == y.get();
+}
 /*!
 \brief 未检查的动态泛型转换。
 \note 对非空对象语义同非公开接口 \c boost::unsafe_any_cast 。

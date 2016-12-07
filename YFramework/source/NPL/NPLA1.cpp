@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1727
+\version r1747
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-05 15:07 +0800
+	2016-12-07 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,6 +163,19 @@ TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
 			std::ref(delim)), std::bind(f, std::ref(res), _1, _2));
 	}
 	return res;
+}
+
+//! \since build 748
+template<typename _func>
+void
+EqualTerm(TermNode& term, _func f)
+{
+	Forms::QuoteN(term, 2);
+
+	auto i(term.begin());
+	const auto& x(Deref(++i));
+
+	term.Value = f(x.Value, Deref(++i).Value);
 }
 
 } // unnamed namespace;
@@ -790,6 +803,18 @@ CallSystem(TermNode& term)
 	Forms::CallUnaryAs<const string>([&](const string& cmd){
 		term.Value = usystem(cmd.c_str());
 	}, term);
+}
+
+void
+EqualReference(TermNode& term)
+{
+	EqualTerm(term, YSLib::HoldSame);
+}
+
+void
+EqualValue(TermNode& term)
+{
+	EqualTerm(term, ystdex::equal_to<>());
 }
 
 void

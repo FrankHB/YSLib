@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12070
+\version r12074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-11-18 10:58 +0800
+	2016-12-07 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3207,8 +3207,8 @@ b671
 			* $comp "conformance of %any storage for WG21 N4081 \
 				[any.class]/3" $mismatch $since b590
 				// It requires that the small object optimization can only \
-					apply to "nothrow copyable types". This was added since \
-					WG21 N3804.
+					apply to "non-throwing copyable types". This was added \
+					since WG21 N3804.
 			)
 		),
 		/ %TypeTraits $=
@@ -9481,7 +9481,7 @@ b620
 					"first place bookmarks saving",
 				/ @ "destructor" $=
 				(
-					* "missing nothrow guarantee" $since b296 $orig
+					* "missing no-throw guarantee" $since b296 $orig
 						(@ "class %TextReaderSession" $since b286) $=
 						(/ DLDI "wrapped" ^ "%FilterExceptions"),
 					* "order of saving bookmark" $since b411 $dep_to
@@ -10652,7 +10652,7 @@ b605
 					~ "%std::tolower"),
 			/ @ "namespace %single_thread" @ %PseudoMutex $=
 			(
-				* "missing nothrow exception-specification" @ "debug interface"
+				* "missing non-throwing exception specification" @ "debug interface"
 					@ "constructor with %defer_lock_t parameter"
 					@ "class template %unique_lock" $since b551,
 					// ISO C++11 requires 'noexcept' on this constructor.

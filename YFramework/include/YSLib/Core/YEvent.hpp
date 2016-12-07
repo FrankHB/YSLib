@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5228
+\version r5254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-12-01 21:53 +0800
+	2016-12-07 10:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,28 +85,27 @@ private:
 	template<class _tFunctor>
 	struct GEquality
 	{
-		//! \since build 319
-		//@{
-		using decayed_type = ystdex::decay_t<_tFunctor>;
+		//! \since build 748
+		using Decayed = ystdex::decay_t<_tFunctor>;
 
-		//! \since build 586
+		/*!
+		\pre 参数储存的对象为 Decayed 类型。
+		\since build 586
+		*/
 		static bool
-		AreEqual(const GHEvent& x, const GHEvent& y)
-			ynoexcept_spec(std::declval<const decayed_type>()
-			== std::declval<const decayed_type>())
+		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
+			std::declval<const Decayed>() == std::declval<const Decayed>())
 		{
-			const auto p(x.template target<decayed_type>());
-
-			if(const auto q = y.template target<decayed_type>())
-				return p == q || (p && *p == *q);
-			else
-				return !p;
-			return {};
+			return Deref(x.template target<Decayed>())
+				== Deref(y.template target<Decayed>());
 		}
-		//@}
 	};
 
-	Comparer comp_eq; //!< 比较函数：相等关系。
+	/*!
+	\brief 比较函数：相等关系。
+	\invariant comp_eq
+	*/
+	Comparer comp_eq;
 
 public:
 	/*!
@@ -161,7 +160,7 @@ public:
 	{
 		return
 #if defined(YF_DLL) || defined(YF_BUILD_DLL)
-			x.BaseType::target_type() == y.BaseType::target_type()
+			x.target_type() == y.target_type()
 #else
 			x.comp_eq == y.comp_eq
 #endif
@@ -196,6 +195,10 @@ private:
 		return true;
 	}
 	//@}
+
+public:
+	//! \since build 748
+	using BaseType::target_type;
 };
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9224
+\version r9230
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2016-08-19 19:07 +0800
+	2016-12-07 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1534,7 +1534,7 @@ b481
 				* "caught wrong exceptions" $since b399
 					$= (/ "caught %std::system_error"
 					 ~ "%joinable check, catching %std::invalid_argument"),
-				* "missing nothrow guarantee" $since b384
+				* "missing no-throw guarantee" $since b384
 				+ "logging" @ "caught exceptions"
 			),
 			* "thread safety" @ "function %RemoveGlobalTasks" @ %ShellHelper
@@ -1622,9 +1622,8 @@ b480
 				// For feature detection in <ydef.h>, '>=' is still used.
 			- "all unnecessary 'YB_IMPL_GNUCPP && '" @ %YBase.YStandardEx
 		),
-		^ "macro %YB_IMPL_GNUCPP"
-			~ "predefined macros %(__GNUC__, __GNU_MINOR__, __GNUC_PATCHLEVEL__)"
-			@ %YFramework;
+		^ "macro %YB_IMPL_GNUCPP" ~ "predefined macros %(__GNUC__, \
+			__GNU_MINOR__, __GNUC_PATCHLEVEL__)" @ %YFramework
 	),
 	* "wrong handler entry used" @ "non-inline function %StyleMap::PaintAsStyle"
 		@ %YStyle $since b468
@@ -2528,7 +2527,7 @@ b461
 		+ "macro %ynothrowv" @ %YDefinition;
 		+ 'const' @ "%subscriptive_iterator::operator(*, ->)"
 			@ %YStandardEx.Iterator,
-		/ "nothrow exception specifications according to WG21 N3242"
+		/ "non-throwing exception specifications according to WG21 N3242"
 			^ "macros %(ynothrow, ynothorwv)"
 			// Macro %ynothrow used for explicit specification, \
 				and %ynothrowv used for narrow constraints.
@@ -3215,7 +3214,7 @@ b453
 			+ "functions %(UpdateClipArea; UpdateClipArea)",
 			/ @ "class %Rect" @ %YGDIBase $=
 			(
-				/ "nothrow default constructor"
+				/ "non-throwing default constructor"
 					-> "explicitly defaulted default constructor",
 				/ "excluded unstrictly empty rectangle argument as not \
 					contained" @ "functions %(Contains, ContainsStrict)",
