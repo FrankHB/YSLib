@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r294
+\version r296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2016-11-03 21:19 +0800
+	2016-12-10 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,8 +68,8 @@ template<class _tEx>
 inline std::exception_ptr
 get_nested_exception_ptr(const _tEx& e)
 {
-	return ystdex::call_value_or<std::exception_ptr>(
-		std::mem_fn(&std::nested_exception::nested_ptr),
+	return
+		ystdex::call_value_or(std::mem_fn(&std::nested_exception::nested_ptr),
 		dynamic_cast<const std::nested_exception*>(std::addressof(e)));
 }
 

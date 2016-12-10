@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r472
+\version r479
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2016-05-02 13:48 +0800
+	2016-12-10 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,13 +55,9 @@ inline PDefH(observer_ptr<HostRenderer>, GetHostRendererPtrOf, UI::IWidget& wgt)
 \return 若渲染器类型能转换为 HostRenderer 且有对应窗口则返回窗口指针；否则为空。
 \since build 430
 */
-inline observer_ptr<Window>
-GetWindowPtrOf(UI::IWidget& wgt)
-{
-	return ystdex::call_value_or<observer_ptr<Window>>(
-		std::mem_fn(&HostRenderer::GetWindowPtr),
-		dynamic_cast<HostRenderer*>(&wgt.GetRenderer()));
-}
+inline PDefH(observer_ptr<Window>, GetWindowPtrOf, UI::IWidget& wgt)
+	ImplRet(ystdex::call_value_or(std::mem_fn(&HostRenderer::GetWindowPtr),
+		dynamic_cast<HostRenderer*>(&wgt.GetRenderer())))
 //@}
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4379
+\version r4394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-07 13:38 +0800
+	2016-12-09 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -584,6 +584,22 @@ public:
 \since build 748
 */
 //@{
+//! \since build 749
+//@{
+template<typename _type>
+inline observer_ptr<_type>
+AccessPtr(ValueObject& vo) ynothrow
+{
+	return vo.AccessPtr<_type>();
+}
+template<typename _type>
+inline observer_ptr<const _type>
+AccessPtr(const ValueObject& vo) ynothrow
+{
+	return vo.AccessPtr<_type>();
+}
+//@}
+
 template<typename _func, typename... _tParams>
 void
 EmplaceFromCall(ValueObject&, ystdex::identity<void>, _func&& f,

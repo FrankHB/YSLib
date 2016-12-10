@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r900
+\version r903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-11-07 22:48 +0800
+	2016-12-11 00:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA
+#include YFM_NPL_NPLA // for YSLib::RemoveEmptyChildren;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -79,7 +79,7 @@ LiteralizeEscapeNodeLiteral(const ValueNode& node)
 string
 ParseNPLANodeString(const ValueNode& node)
 {
-	return ystdex::value_or<string>(AccessPtr<string>(node));
+	return ystdex::value_or(AccessPtr<string>(node));
 }
 
 
@@ -279,7 +279,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 string
 ConvertStringNode(const TermNode& term)
 {
-	return ystdex::call_value_or<string>(EscapeXML, AccessPtr<string>(term));
+	return ystdex::call_value_or(EscapeXML, AccessPtr<string>(term));
 }
 
 void
@@ -379,11 +379,13 @@ CategorizeLiteral(string_view sv)
 	return LiteralCategory::None;
 }
 
+
 observer_ptr<const string>
 TermToName(const TermNode& term)
 {
 	return AccessPtr<string>(term);
 }
+
 
 void
 DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)

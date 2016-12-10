@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2875
+\version r2905
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-12-05 14:31 +0800
+	2016-12-10 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,7 @@ yconstexpr const struct NoContainerTag{} NoContainer{};
 /*!
 \brief 值类型节点。
 \warning 非虚析构。
+\warning 作为子节点时应保证修改操作不影响键（名称）的等价性，否则访问容器行为未定义。
 \since build 330
 
 包含名称字符串和值类型对象的对象节点。
@@ -555,10 +556,9 @@ public:
 	//@}
 };
 
-/*!
-\relates ValueNode
-\since build 666
-*/
+//! \relates ValueNode
+//@{
+//! \since build 666
 //@{
 /*!
 \brief 访问节点的指定类型对象。
@@ -596,21 +596,31 @@ AccessPtr(const ValueNode& node) ynothrow
 	return node.Value.AccessPtr<_type>();
 }
 //@}
-//! \brief 访问节点的指定类型对象指针。
+/*!
+\brief 访问节点的指定类型对象指针。
+\since build 749
+*/
 //@{
-template<typename _type>
-inline observer_ptr<_type>
-AccessPtr(observer_ptr<ValueNode> p_node) ynothrow
+template<typename _type, typename _tNodeOrPointer>
+inline auto
+AccessPtr(observer_ptr<_tNodeOrPointer> p) ynothrow
+	-> decltype(YSLib::AccessPtr<_type>(*p))
 {
-	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
-}
-template<typename _type>
-inline observer_ptr<const _type>
-AccessPtr(observer_ptr<const ValueNode> p_node) ynothrow
-{
-	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
+	return p ? YSLib::AccessPtr<_type>(*p) : nullptr;
 }
 //@}
+//@}
+//@}
+
+//! \since build 749
+//@{
+//! \brief 取指定名称指称的值。
+YF_API ValueObject
+GetValueOf(observer_ptr<const ValueNode>);
+
+//! \brief 取指定名称指称的值的指针。
+YF_API observer_ptr<const ValueObject>
+GetValuePtrOf(observer_ptr<const ValueNode>);
 //@}
 //@}
 
@@ -989,7 +999,7 @@ RemoveEmptyChildren(ValueNode::Container&) ynothrow;
 
 /*!
 \brief 移除首个子节点。
-\pre 断言：节点非空。
+\pre 断言：节点容器非空。
 */
 //@{
 YF_API void
