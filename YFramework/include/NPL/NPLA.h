@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1117
+\version r1142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-12-05 15:01 +0800
+	2016-12-10 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -583,22 +583,18 @@ template<typename _tKey>
 ValueObject
 FetchValue(const ContextNode& ctx, const _tKey& name)
 {
-	return ystdex::call_value_or<ValueObject>(
-		std::mem_fn(&ValueNode::Value), NPL::LookupName(ctx, name));
+	return GetValueOf(NPL::LookupName(ctx, name));
 }
 
 /*!
 \brief 从指定上下文取指定名称指称的值的指针。
-\since build 747
+\since build 749
 */
 template<typename _tKey>
-static observer_ptr<const ValueObject>
+observer_ptr<const ValueObject>
 FetchValuePtr(const ContextNode& ctx, const _tKey& name)
 {
-	return ystdex::call_value_or<observer_ptr<const ValueObject>>(
-		[](const ValueNode& node){
-		return make_observer(&node.Value);
-	}, NPL::LookupName(ctx, name));
+	return GetValuePtrOf(NPL::LookupName(ctx, name));
 }
 
 /*!
@@ -608,6 +604,7 @@ FetchValuePtr(const ContextNode& ctx, const _tKey& name)
 */
 YF_API observer_ptr<const string>
 TermToName(const TermNode&);
+
 
 /*!
 \pre 字符串参数的数据指针非空。
@@ -718,6 +715,23 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 	YSLib::GDefaultLastValueInvoker<Guard>>;
 
 
+/*!
+\brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
+\since build 738
+*/
+template<class _tPasses, typename... _tParams>
+typename _tPasses::result_type
+InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
+	_tParams&&... args)
+{
+	return ystdex::call_value_or([&](_tPasses& passes){
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
+		return passes(term, ctx, std::forward<_tParams>(args)...);
+	}, AccessChildPtr<_tPasses>(ctx, name));
+}
+
+
 //! \brief 使用第二个参数指定的项的内容替换第一个项的内容。
 //@{
 inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
@@ -761,24 +775,6 @@ inline PDefH(void, LiftFirst, TermNode& term)
 inline PDefH(void, LiftLast, TermNode& term)
 	ImplExpr(IsBranch(term), LiftTerm(term, Deref(term.rbegin())))
 //@}
-
-
-/*!
-\brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
-\since build 738
-*/
-template<class _tPasses, typename... _tParams>
-typename _tPasses::result_type
-InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
-	_tParams&&... args)
-{
-	return ystdex::call_value_or<typename _tPasses::result_type>(
-		[&](_tPasses& passes){
-		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
-		//	error: Segmentation fault.
-		return passes(term, ctx, std::forward<_tParams>(args)...);
-	}, AccessChildPtr<_tPasses>(ctx, name));
-}
 
 } // namespace NPL;
 

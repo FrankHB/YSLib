@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4711
+\version r4767
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-07 14:03 +0800
+	2016-12-11 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,61 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ @ "function templates %(nonnull_or, call_nonnull_or, value_or, \
+		call_value_or)" @ %YBase.YStandardEx.DereferenceOperation $=
+	(
+		(
+		- "function default argument"
+			@ "overload with other optional parameter";
+		+ "overload without other optional parameter"
+		),
+		+ '&&' @ "parameter types except for function parameters",
+		+ 'yforward'
+			@ "use of parameters except for function and pointer null check"
+	),
+	/ %YFramework $=
+	(
+		/ %NPL.NPLA $=
+		(
+			/ @ "function template %FetchValuePtr" $=
+			(
+				* "wrong internal linkage caused by redundant 'static'" $since
+					b747
+				/ DLDI "simplified" ^ ("%GetValuePtrOf" @ %YSLib.Core.ValueNode)
+			),
+			/ DLDI "simplified function template %FetchValue"
+				^ ("%GetValueOf" @ %YSLib.Core.ValueNode)
+		),
+		/ %YSLib.Core $=
+		(
+			/ %ValueNode $=
+			(
+				/ "merged 2 function template %AccessPtr for node \
+					%observer_ptr instance parameters" -> "function template \
+					for arbitrary level of %observer_ptr to node type",
+					// Also to eliminate possible ambiguity.
+				+ "functions %(GetValueOf, GetValuePtrOf)"
+			),
+			+ "2 function templates %AccessPtr for %ValueObject" @ %YObject
+				// To make %AccessPtr available in same manner as %ValueNode.
+		),
+		/ DLDI "simplified function %GetWindowPtrOf" %Helper.HostedUI
+			^ "%(PDefH, ImplRet)"
+	),
+	/ $forced DLDI "simplified" $dep_from ("%ystdex::call_value_or"
+		@ %DereferenceOperation) $effective @ ("function template \
+		%get_nested_exception_ptr" @ %YBase.YStandardEx.Exception, ("function \
+		%GetWindowPtrOf" %Helper.HostedUI, ("function template \
+		%(FetchValuePtr, InvokePasses), function %SXML::ConvertStringNode"
+		@ %NPLA1, "function %DecomposeMakefileDepList" @ %Dependency) @ %NPL,
+		"member function %FontCache::GetTypefacePtr" @ %YSLib.Adaptor.Font)
+		@ %YFramework,
+	/ $forced DLDI "simplified" $dep_from "%ystdex::value_or" $effective
+		@ ("function %ParseNPLANodeString" @ %YFramework.NPL.NPLA)
+),
+
+b748
 (
 	/ %YFramework $=
 	(
@@ -92,7 +147,7 @@ $now
 	)
 ),
 
-b748
+b747
 (
 	/ %YBase.YStandardEx.Any $=
 	(
@@ -2015,7 +2070,7 @@ b722
 					* "always failed to lock" @ "platform %DS" $since b721
 						$= (/ "returned always true" ~ "alywas false"),
 					* "missing locking call" @ !"platforms %(DS, Win32)"
-						$= (/ ^ 'YCL_TraceCallF_CAPI(::flock'
+						$= (^ 'YCL_TraceCallF_CAPI(::flock'
 						~ 'YCL_TraceCallF_CAPI(, ::flock')
 				),
 				* "wrong length specified for locking which would cause \

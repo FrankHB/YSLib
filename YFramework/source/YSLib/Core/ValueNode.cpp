@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r697
+\version r710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-12-05 14:39 +0800
+	2016-12-11 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,8 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_ValueNode
+#include YFM_YSLib_Core_ValueNode // for ystdex::call_value_or, ystdex::addrof,
+//	ystdex::compose, std::mem_fn;
 #include <cstdio> // for std::snprintf;
 
 namespace YSLib
@@ -151,6 +152,19 @@ AccessNodePtr(const ValueNode& node, size_t n)
 	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
 	return n < con.size() ? make_observer(&*std::next(con.cbegin(), ptrdiff_t(n)))
 		: nullptr;
+}
+
+ValueObject
+GetValueOf(observer_ptr<const ValueNode> p_node)
+{
+	return ystdex::call_value_or(std::mem_fn(&ValueNode::Value), p_node);
+}
+
+observer_ptr<const ValueObject>
+GetValuePtrOf(observer_ptr<const ValueNode> p_node)
+{
+	return ystdex::call_value_or(ystdex::compose(make_observer<const ValueObject
+		>, ystdex::addrof<>(), std::mem_fn(&ValueNode::Value)), p_node);
 }
 
 

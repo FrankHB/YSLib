@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r178
+\version r179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2016-11-21 08:06 +0800
+	2016-12-10 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 vector<string>
 DecomposeMakefileDepList(std::istream& is)
 {
-	return ystdex::call_value_or<vector<string>>(static_cast<vector<string>(&)(
+	return ystdex::call_value_or(static_cast<vector<string>(&)(
 		std::streambuf&)>(DecomposeMakefileDepList), is.rdbuf());
 }
 
