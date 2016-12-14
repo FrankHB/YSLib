@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2004
+\version r2024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-07 13:53 +0800
+	2016-12-13 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -647,6 +647,7 @@ public:
 
 /*!
 \brief NPLA1 语法形式对应的功能实现。
+\note 假定求值不改变参数外部的项的有效性。
 \since build 732
 */
 namespace Forms
@@ -847,9 +848,28 @@ DefineOrSetFor(const string&, TermNode&, ContextNode&, bool, bool);
 YF_API YSLib::shared_ptr<vector<string>>
 ExtractLambdaParameters(const TermNode::Container&);
 
+/*
+\pre 间接断言：第一参数指定的项是枝节点。
+\note 实现特殊形式。
+\throw InvalidSyntax 语法错误。
+*/
+//@{
+/*!
+\brief 条件判断：根据求值的条件取表达式。
+\return ReductionStatus::NeedRetry 。
+\sa ReduceChecked
+\since build 750
+
+求值第一子项作为测试条件，成立时取第二子项，否则当第三子项时取第三子项。
+特殊形式参考文法：
+$if <test> <consequent> <alternate>
+$if <test> <consequent>
+*/
+YF_API ReductionStatus
+If(TermNode&, ContextNode&);
+
 /*!
 \brief λ 抽象：产生一个捕获当前上下文的过程。
-\note 实现特殊形式。
 \exception InvalidSyntax 异常中立：由 ExtractLambdaParameters 抛出。
 \sa EvaluateIdentifier
 \sa ExtractLambdaParameters
@@ -864,6 +884,7 @@ $lambda <formals> <body>
 */
 YF_API void
 Lambda(TermNode&, ContextNode&);
+//@}
 //@}
 
 

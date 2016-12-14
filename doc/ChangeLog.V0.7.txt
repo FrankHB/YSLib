@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4767
+\version r4821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-11 00:17 +0800
+	2016-12-14 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,61 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ @ '__cpp_lib_transparent_operators >= 201210 \
+			|| __cplusplus >= 201402L' $=
+		(
+			* "missing 'using std::bit_or;'" @ "transparent operators available"
+				@ %Functor $since b679;
+			* $comp "ill-formed %bitseg_traits::project" @ %BitSegment $since
+				b728
+		),
+		/ %DefererenceOperation $=
+		(
+			/ $dev $lib "specified 'yimpl'" @ "trailing-return-type"
+				@ "function templates %(nonnull_or, call_nonnull_or, value_or, \
+				call_value_or)#(2, 3)",
+			* "missing 'yforward' call on pointer value"
+				@ "trailing-return-type" @ "function templates %(nonnull_or, \
+				value_or)#2" $since b749
+		),
+		* "missing check for first element in non empty sequence"
+			@ "function templates %(for_each_equal, for_each_if)" @ %Algorithm
+			$since b531
+	),
+	/ %YFramework $=
+	(
+		/ %	NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ DLDI "function %EvaluateContextFirst"
+					^ "%ystdex::call_value_or",
+				/ @ "namespace %Forms" $=
+				(
+					/ @ "function %Lambda" $=
+					(
+						/ DLDI "function %Lambda" ^ "%Quote" ~ "assertion",
+						* "closure wrongly moved even bound to defined variable"
+							$since b747
+							// This was not shown until the unconditionally \
+								value copy in %EvaluateIdentifier is avoided.
+					),
+					+ "function %If"
+				),
+			),
+			+ "(2 functions, function template) %AdjustTermValuePtr" @ %NPLA
+		),
+		* "missing check for first child node" @ "function templates \
+			%(SelectChildren, SplitChildren)" @ "class %ValueNode"
+			@ %Core.ValueNode $since b664 $dep_from
+			("%ystdex::for_each_if" @ %YBase.YStandardEx.Algorithm)
+	)
+),
+
+b749
 (
 	/ @ "function templates %(nonnull_or, call_nonnull_or, value_or, \
 		call_value_or)" @ %YBase.YStandardEx.DereferenceOperation $=
