@@ -11,13 +11,13 @@
 /*!	\file deref_op.hpp
 \ingroup YStandardEx
 \brief 解引用操作。
-\version r232
+\version r247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-10 13:12:26 +0800
 \par 修改时间:
-	2016-12-10 01:09 +0800
+	2016-12-10 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,16 +65,18 @@ nonnull_or(_type&& p) -> decay_t<decltype(yforward(p))>
 {
 	return p ? yforward(p) : decay_t<decltype(yforward(p))>();
 }
+//! \since build 750
 template<typename _tOther, typename _type>
 yconstfn auto
-nonnull_or(_type&& p, _tOther&& other) -> decltype(p ? p : yforward(other))
+nonnull_or(_type&& p, _tOther&& other)
+	-> yimpl(decltype(p ? yforward(p) : yforward(other)))
 {
 	return p ? yforward(p) : yforward(other);
 }
 template<typename _tOther, typename _type, typename _tSentinal = nullptr_t>
 yconstfn auto
-nonnull_or(_type&& p, _tOther&& other, _tSentinal&& last)
-	-> decltype(!bool(p == yforward(last)) ? yforward(p) : yforward(other))
+nonnull_or(_type&& p, _tOther&& other, _tSentinal&& last) -> yimpl(
+	decltype(!bool(p == yforward(last)) ? yforward(p) : yforward(other)))
 {
 	return !bool(p == yforward(last)) ? yforward(p) : yforward(other);
 }
@@ -91,7 +93,7 @@ call_nonnull_or(_func f, _type&& p) -> decay_t<decltype(f(yforward(p)))>
 template<typename _tOther, typename _type, typename _func>
 yconstfn auto
 call_nonnull_or(_func f, _type&& p, _tOther&& other)
-	-> decltype(p ? f(yforward(p)) : yforward(other))
+	-> yimpl(decltype(p ? f(yforward(p)) : yforward(other)))
 {
 	return p ? f(yforward(p)) : yforward(other);
 }
@@ -99,7 +101,8 @@ template<typename _tOther, typename _type, typename _func,
 	typename _tSentinal = nullptr_t>
 yconstfn auto
 call_nonnull_or(_func f, _type&& p, _tOther&& other, _tSentinal&& last)
-	-> decltype(!bool(p == yforward(last)) ? f(yforward(p)) : yforward(other))
+	-> yimpl(
+	decltype(!bool(p == yforward(last)) ? f(yforward(p)) : yforward(other)))
 {
 	return !bool(p == yforward(last)) ? f(yforward(p)) : yforward(other);
 }
@@ -116,14 +119,15 @@ value_or(_type&& p) -> decay_t<decltype(*yforward(p))>
 }
 template<typename _tOther, typename _type>
 yconstfn auto
-value_or(_type&& p, _tOther&& other) -> decltype(p ? *p : yforward(other))
+value_or(_type&& p, _tOther&& other)
+	-> yimpl(decltype(p ? *yforward(p) : yforward(other)))
 {
 	return p ? *yforward(p) : yforward(other);
 }
 template<typename _tOther, typename _type, typename _tSentinal = nullptr_t>
 yconstfn auto
-value_or(_type&& p, _tOther&& other, _tSentinal&& last)
-	-> decltype(!bool(p == yforward(last)) ? *yforward(p) : yforward(other))
+value_or(_type&& p, _tOther&& other, _tSentinal&& last) -> yimpl(
+	decltype(!bool(p == yforward(last)) ? *yforward(p) : yforward(other)))
 {
 	return !bool(p == yforward(last)) ? *yforward(p) : yforward(other);
 }
@@ -140,15 +144,15 @@ call_value_or(_func f, _type&& p) -> decay_t<decltype(f(*yforward(p)))>
 template<typename _tOther, typename _type, typename _func>
 yconstfn auto
 call_value_or(_func f, _type&& p, _tOther&& other)
-	-> decltype(p ? f(*yforward(p)) : yforward(other))
+	-> yimpl(decltype(p ? f(*yforward(p)) : yforward(other)))
 {
 	return p ? f(*yforward(p)) : yforward(other);
 }
 template<typename _tOther, typename _type, typename _func,
 	typename _tSentinal = nullptr_t>
 yconstfn auto
-call_value_or(_func f, _type&& p, _tOther&& other, _tSentinal&& last)
-	-> decltype(!bool(p == yforward(last)) ? f(*yforward(p)) : yforward(other))
+call_value_or(_func f, _type&& p, _tOther&& other, _tSentinal&& last) -> yimpl(
+	decltype(!bool(p == yforward(last)) ? f(*yforward(p)) : yforward(other)))
 {
 	return !bool(p == yforward(last)) ? f(*yforward(p)) : yforward(other);
 }

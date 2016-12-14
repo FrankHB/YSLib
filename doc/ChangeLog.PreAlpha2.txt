@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3777
+\version r3779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2016-11-23 17:37 +0800
+	2016-12-14 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,7 +251,7 @@ b296
 					+ "function %Swap with 'ynothrow'";
 						// The using of %std::swap for %BitmapBuffer forbids \
 							the move %operator= throwing exceptions or the \
-							nothrow specification will be broken.
+							non-throwing exception specification will be broken.
 					* "missing assignment operators" $since $before b132
 						$= (+ "copy and move %operator=")
 						// It was suspected that the unifying assignment could
@@ -2705,7 +2705,7 @@ b206
 		^ "std::shared_ptr" ~ "std::tr1::shared_ptr"
 	),
 	- "Loki type operations",
-	/ ^ "namespace %ystdex" @ "namespace %YSLib"
+	^ "namespace %ystdex" @ "namespace %YSLib"
 ),
 
 b205

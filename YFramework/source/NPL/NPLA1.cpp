@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1747
+\version r1816
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-07 14:00 +0800
+	2016-12-14 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,8 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for ystdex::bind1, YSLib::RemoveEmptyChildren,
-//	ystdex::pvoid;
+#include YFM_NPL_NPLA1 // for ystdex::bind1, ystdex::pvoid,
+//	ystdex::call_value_or, std::mem_fn;
 #include YFM_NPL_SContext
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 
@@ -306,7 +306,7 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	// NOTE: Separators or other sequence constructs are not handled here. The
 	//	evaluation can be potentionally parallel, though the simplest one is
 	//	left-to-right.
-	// TODO: Use %ExecutionPolicy?
+	// TODO: Use excetion policies to be evaluated concurrently?
 	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
 }
 
@@ -464,14 +464,11 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
 			(*p_handler)(term, ctx);
 		else
-		{
-			const auto p(AccessPtr<string>(fm));
-
 			// TODO: Capture contextual information in error.
 			throw ListReductionFailure(ystdex::sfmt("No matching form '%s'"
-				" with %zu argument(s) found.", p ? p->c_str()
-				: "#<unknown>", term.size()));
-		}
+				" with %zu argument(s) found.",
+				ystdex::call_value_or(std::mem_fn(&string::c_str),
+				AccessPtr<string>(fm), "#<unknown>"), term.size()));
 	}
 	return ReductionStatus::Success;
 }
@@ -483,6 +480,8 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 
 	if(const auto p = FetchValuePtr(ctx, id))
 	{
+		// NOTE: The referenced term is lived through the envaluation, which is
+		//	guaranteed by the context.
 		LiftTermRef(term, *p);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return ToStatus((*p_handler)(ctx));
@@ -531,6 +530,8 @@ EvaluateTermNode(TermNode& term)
 {
 	if(const auto p = AccessPtr<TermNode>(term))
 	{
+		// NOTE: The referenced term is lived through the envaluation, which is
+		//	guaranteed by the evaluated parent term.
 		LiftTermRef(term, *p);
 		// NOTE: To make it work with %DetectReducible.
 		if(IsBranch(term))
@@ -728,13 +729,33 @@ ExtractLambdaParameters(const TermNode::Container& con)
 	return p_params;
 }
 
+ReductionStatus
+If(TermNode& term, ContextNode& ctx)
+{
+	const auto size(term.size());
+
+	if(size == 3 || size == 4)
+	{
+		auto i(term.begin());
+
+		ReduceChecked(Deref(++i), ctx);
+		if(!ystdex::value_or(i->Value.AccessPtr<bool>()))
+			++i;
+		if(++i != term.end())
+			LiftTerm(term, *i);
+		return ReductionStatus::NeedRetry;
+	}
+	else
+		throw InvalidSyntax("Syntax error conditional form.");
+}
+
 void
 Lambda(TermNode& term, ContextNode& ctx)
 {
 	auto& con(term.GetContainerRef());
 	auto size(con.size());
 
-	YAssert(size != 0, "Invalid term found.");
+	Quote(term);
 	if(size > 1)
 	{
 		auto i(con.begin());
@@ -758,37 +779,40 @@ Lambda(TermNode& term, ContextNode& ctx)
 			YTraceDe(Debug, "Lambda called, with %ld shared term(s), %ld shared"
 				" context(s), %zu parameter(s).", p_closure.use_count(),
 				p_ctx.use_count(), n_params);
-			if(n_terms == 0)
-				throw LoggedEvent("Invalid application found.", Alert);
-
-			const auto n_args(n_terms - 1);
-
-			if(n_args == n_params)
+			if(n_terms != 0)
 			{
-				auto j(app_term.begin());
-				// TODO: Optimize for performance.
-				// NOTE: This is probably better to be copy-on-write. Since
-				//	no immutable reference would be accessed before
-				//	mutation, no care is needed for reference invalidation.
-				auto app_ctx(Deref(p_ctx));
+				const auto n_args(n_terms - 1);
 
-				++j;
-				// NOTE: Introduce parameters as per lexical scoping rules.
-				for(const auto& param : params)
+				if(n_args == n_params)
 				{
-					// XXX: Moved.
-					// NOTE: Unevaluated operands are directly saved.
-					app_ctx[param].Value = std::move(*j);
+					auto j(app_term.begin());
+					// TODO: Optimize for performance.
+					// NOTE: This is probably better to be copy-on-write. Since
+					//	no immutable reference would be accessed before
+					//	mutation, no care is needed for reference invalidation.
+					auto app_ctx(Deref(p_ctx));
+
 					++j;
+					// NOTE: Introduce parameters as per lexical scoping rules.
+					for(const auto& param : params)
+					{
+						// XXX: Moved.
+						// NOTE: Unevaluated operands are directly saved.
+						app_ctx[param].Value = std::move(*j);
+						++j;
+					}
+					YAssert(j == app_term.end(),
+						"Invalid state found on passing arguments.");
+					// NOTE: Beta reduction.
+					// TODO: Implement accurate lifetime analysis rather than
+					//	'p_closure.unique()'.
+					ReduceCheckedClosure(app_term, app_ctx, {}, *p_closure);
 				}
-				YAssert(j == app_term.end(),
-					"Invalid state found on passing arguments.");
-				// NOTE: Beta reduction.
-				ReduceCheckedClosure(app_term, app_ctx, p_closure.unique(),
-					*p_closure);
+				else
+					throw ArityMismatch(n_params, n_args);
 			}
 			else
-				throw ArityMismatch(n_params, n_args);
+				throw LoggedEvent("Invalid application found.", Alert);
 		});
 		con.clear();
 	}

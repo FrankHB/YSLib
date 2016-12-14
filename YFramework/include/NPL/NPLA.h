@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1142
+\version r1176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-12-10 23:54 +0800
+	2016-12-11 20:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,8 +108,8 @@ using NodeSequenceInserter = GNodeInserter<NodeSequence>;
 //@{
 /*!
 \brief 映射 NPLA 叶节点。
-\since build 674
 \sa ParseNPLANodeString
+\since build 674
 
 创建新节点。若参数为空则返回值为空串的新节点；否则值以 ParseNPLANodeString 取得。
 */
@@ -185,6 +185,8 @@ InsertChildSyntaxNode(_tNodeOrCon&& node_or_con, const NodeLiteral& nl)
 //@}
 
 
+//! \since build 597
+//@{
 //! \brief 生成前缀缩进的函数类型。
 using IndentGenerator = std::function<string(size_t)>;
 
@@ -377,9 +379,10 @@ InsertAttributeNode(_tNodeOrCon&& node_or_con, const string& name,
 //@}
 
 
-//! \since build 691
-//@{
-//! \ingroup exceptions
+/*!
+\ingroup exceptions
+\since build 691
+*/
 //@{
 //! \brief NPL 异常基类。
 class YF_API NPLException : public LoggedEvent
@@ -486,7 +489,6 @@ public:
 	DefGetter(const ynothrow, size_t, Expected, expected)
 	DefGetter(const ynothrow, size_t, Received, received)
 };
-//@}
 //@}
 
 
@@ -732,21 +734,41 @@ InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
 }
 
 
-//! \brief 使用第二个参数指定的项的内容替换第一个项的内容。
+/*!
+\brief 调整指定值对象的指针为 TermNode 类型的值。
+\return 若成功则为调整后的指针，否则为指向原值对象的指针。
+\since build 750
+*/
+//@{
+inline PDefH(observer_ptr<const ValueObject>, AdjustTermValuePtr,
+	observer_ptr<const TermNode> p_term)
+	ImplRet(ystdex::nonnull_or(GetValuePtrOf(p_term)))
+inline PDefH(observer_ptr<const ValueObject>, AdjustTermValuePtr,
+	observer_ptr<const ValueObject> p_vo)
+	ImplRet(ystdex::nonnull_or(
+		AdjustTermValuePtr(YSLib::AccessPtr<const TermNode>(p_vo)), p_vo))
+template<typename _tKey>
+observer_ptr<const ValueObject>
+AdjustTermValuePtr(const ContextNode& ctx, const _tKey& name)
+{
+	return AdjustTermValuePtr(NPL::FetchValuePtr(ctx, name));
+}
+//@}
+
+//! \brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
 //@{
 inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
 	ImplExpr(term.SetContent(std::move(tm)))
 //! \since build 745
-//@{
 inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo)
 	ImplExpr(term_v = std::move(vo))
+//! \since build 745
 inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
 	ImplExpr(LiftTerm(term.Value, vo))
 //@}
-//@}
 
 /*!
-\brief 使用第二个参数指定的项的内容引用替换第一个项的内容。
+\brief 提升项：使用第二个参数指定的项的内容引用替换第一个项的内容。
 \since build 747
 */
 //@{
@@ -762,14 +784,14 @@ inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 //! \pre 断言：参数指定的项是枝节点。
 //@{
 /*!
-\brief 使用首个子项替换项的内容。
+\brief 提升首项：使用首个子项替换项的内容。
 \since build 685
 */
 inline PDefH(void, LiftFirst, TermNode& term)
 	ImplExpr(IsBranch(term), LiftTerm(term, Deref(term.begin())))
 
 /*!
-\brief 使用最后一个子项替换项的内容。
+\brief 提升末项：使用最后一个子项替换项的内容。
 \since build 696
 */
 inline PDefH(void, LiftLast, TermNode& term)

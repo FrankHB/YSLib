@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r830
+\version r832
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-04-26 08:51 +0800
+	2016-12-11 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -320,6 +320,8 @@ using std::logical_or;
 using std::logical_not;
 
 using std::bit_and;
+//! \since build 750
+using std::bit_or;
 using std::bit_xor;
 using std::bit_not;
 #else
