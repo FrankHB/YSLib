@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3102
+\version r3126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-11-17 21:53 +0800
+	2016-12-16 21:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -948,17 +948,16 @@ struct call_projection;
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
-	//! \since build 741
+	//! \since build 751
 	template<typename _func>
 	static yconstfn auto
 	call(_func&& f, std::tuple<_tParams...>&& args, yimpl(decay_t<
-		decltype(yforward(f)(std::get<_vSeq>(std::move(args))...))>* = {}))
-		-> decltype(yforward(f)(std::get<_vSeq>(std::move(args))...))
+		decltype(yforward(f)(std::get<_vSeq>(yforward(args))...))>* = {}))
+		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
 	{
-		return yforward(f)(std::get<_vSeq>(std::move(args))...);
+		return yforward(f)(std::get<_vSeq>(yforward(args))...);
 	}
 	//! \since build 634
-	//@{
 	template<typename _func>
 	static yconstfn auto
 	call(_func&& f, _tParams&&... args)
@@ -969,16 +968,17 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 			std::forward_as_tuple(yforward(args)...));
 	}
 
-	//! \since build 741
+	//! \since build 751
 	template<typename _fCallable>
 	static yconstfn auto
 	invoke(_fCallable&& f, std::tuple<_tParams...>&& args,
 		yimpl(decay_t<decltype(ystdex::invoke(yforward(f),
-		std::get<_vSeq>(std::move(args))...))>* = {})) -> decltype(
-		ystdex::invoke(yforward(f), std::get<_vSeq>(std::move(args))...))
+		std::get<_vSeq>(yforward(args))...))>* = {})) -> yimpl(decltype(
+		ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...)))
 	{
-		return ystdex::invoke(yforward(f), std::get<_vSeq>(std::move(args))...);
+		return ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...);
 	}
+	//! \since build 634
 	template<typename _func>
 	static yconstfn auto
 	invoke(_func&& f, _tParams&&... args)
@@ -988,7 +988,6 @@ struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 		return call_projection::invoke(yforward(f),
 			std::forward_as_tuple(yforward(args)...));
 	}
-	//@}
 };
 
 //! \since build 448
@@ -1011,43 +1010,42 @@ struct call_projection<std::function<_tRet(_tParams...)>,
 template<typename... _tParams, size_t... _vSeq>
 struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 {
+	//! \since build 751
 	template<typename _func>
 	static yconstfn auto
 	call(_func&& f, std::tuple<_tParams...>&& args)
-		-> decltype(yforward(f)(std::get<_vSeq>(std::move(args))...))
+		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
 	{
-		return yforward(f)(std::get<_vSeq>(std::move(args))...);
+		return yforward(f)(std::get<_vSeq>(yforward(args))...);
 	}
 
-	//! \since build 634
-	//@{
+	//! \since build 751
 	template<typename _func>
 	static yconstfn auto
 	call(_func&& f, _tParams&&... args)
 		-> decltype(call_projection::call(yforward(f),
-		std::forward_as_tuple(yforward(std::move(args))...)))
+		std::forward_as_tuple(yforward(yforward(args))...)))
 	{
 		return call_projection::call(yforward(f),
-			std::forward_as_tuple(yforward(std::move(args))...));
+			std::forward_as_tuple(yforward(yforward(args))...));
 	}
 
+	//! \since build 634
 	template<typename _fCallable>
 	static yconstfn auto
-	invoke(_fCallable&& f, std::tuple<_tParams...>&& args)
-		-> decltype(ystdex::invoke(yforward(f), std::get<_vSeq>(args)...))
+	invoke(_fCallable&& f, std::tuple<_tParams...>&& args) -> yimpl(
+		decltype(ystdex::invoke(yforward(f), std::get<_vSeq>(args)...)))
 	{
 		return ystdex::invoke(yforward(f), std::get<_vSeq>(args)...);
 	}
 	template<typename _func>
 	static yconstfn auto
-	invoke(_func&& f, _tParams&&... args)
-		-> decltype(call_projection::invoke(yforward(f),
-		std::forward_as_tuple(yforward(args)...)))
+	invoke(_func&& f, _tParams&&... args) -> decltype(call_projection::invoke(
+		yforward(f), std::forward_as_tuple(yforward(args)...)))
 	{
 		return call_projection::invoke(yforward(f),
 			std::forward_as_tuple(yforward(args)...));
 	}
-	//@}
 };
 //@}
 

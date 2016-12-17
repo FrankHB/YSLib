@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4821
+\version r4887
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-14 22:48 +0800
+	2016-12-17 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,72 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		* "invalid indirection for values without holder (i.e. empty \
+			%ValueObject)" @ "member function %ValueObject::MakeIndirect"
+			@ %YSLib.Core.YObject $since b747,
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				* $comp "crashed lifting %TermNode with empty %Value data \
+					member" @ "functions %LiftTermRef" @ %NPLA $since b747
+					$dep_from %YSLib.Core.YObject,
+				/ "function %DetectReducible recognized leaf non empty nodes \
+					as reducible term",
+					// To allow identifier to be further reduced.
+				/ "return type" @ "alias %ContextHandler" -> 'ReductionStatus'
+					~ 'void'
+					// To allow reduction status propagated out from context \
+						handlers.
+			),
+			/ %NPLA1 $=
+			(
+				* $comp "crashed evaluating child node with empty %Value data \
+					member" @ "functions %(EvaluateIdentifier, \
+					EvaluateTermNode)" $since b747 $dep_from
+					("%LiftTermRef" @ %NPLA),
+					// Since empty node has explicitly been allowed in IR in \
+						general as per the documentation, it was a bug.
+				/ "called %DetectReducible for leaf non empty nodes"
+					@ "function %EvaluateTermNode",
+				(
+				+ "class template %WrappedContextHandler";
+				+ "3 function templates %WrapContextHandler"
+				),
+				(
+				/ $forced "support for void and non-void handler result"
+					@ "class template %FormContextHandler" $dep_from
+					("%ContextHandler" @ %NPLA)
+					$= (/ "constructor templates" ^ $dep_from
+						"WrapContextHandler");									
+				/ "supported reduction status propagation"
+					@ "function %operator()" @ "class templates \
+					%(FormContextHandler, FunctionContextHandler)" $=
+				(
+					/ "return type" -> 'ReductionStatus' ~ 'void',
+					/ $forced "returned with handler returning value"
+				);
+				/ "supported reduction status propagation"
+					@ "function %EvaluateContextFirst";
+				* $comp "%Forms::If result missing proplerly reevaluation"
+					$since b750
+				)
+			)
+		)
+	),
+	/ @ "static function templates %(call, invoke)"
+		@ "class template %call_projection" @ %YBase.YStandardEx.Functional $=
+	(
+		* "wrong 'std::move'" @ "some overloads" $since b634,
+		/ $dev $lib "specified 'yimpl'" @ "trailing-return-type except for \
+			call to overloads of same name"
+	)
+),
+
+b750
 (
 	/ %YBase.YStandardEx $=
 	(

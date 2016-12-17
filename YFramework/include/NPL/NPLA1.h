@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2024
+\version r2077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-13 00:54 +0800
+	2016-12-17 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -365,6 +365,54 @@ ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 //@}
 
 
+//! \since build 751
+//@{
+template<typename _func>
+struct WrappedContextHandler
+{
+	_func Handler;
+
+	template<typename... _tParams>
+	ReductionStatus
+	operator()(_tParams&&... args) const
+	{
+		Handler(yforward(args)...);
+		return ReductionStatus::Success;
+	}
+};
+
+template<class _tRet, typename _func>
+inline _tRet
+WrapContextHandler(_func&& h, ystdex::false_)
+{
+	return WrappedContextHandler<
+		YSLib::GHEvent<void(TermNode&, ContextNode&)>>{yforward(h)};
+}
+template<class _tRet, typename _func>
+inline _func
+WrapContextHandler(_func&& h, ystdex::true_)
+{
+	return yforward(h);
+}
+template<class _tRet, typename _func>
+inline _tRet
+WrapContextHandler(_func&& h)
+{
+	using BaseType = typename ContextHandler::BaseType;
+
+	// XXX: It is a hack to adjust the convertible result for the expanded
+	//	caller here. It should have been implemented in %GHEvent, however types
+	//	those cannot convert to expanded caller cannot be SFINAE'd out,
+	//	otherwise it would cause G++ 5.4 crash with internal compiler error:
+	//	"error reporting routines re-entered".
+	return A1::WrapContextHandler<_tRet>(yforward(h), ystdex::or_<
+		std::is_constructible<BaseType, _func&&>,
+		std::is_constructible<BaseType, ystdex::expanded_caller<
+		typename ContextHandler::FuncType, ystdex::decay_t<_func>>>>());
+}
+//@}
+
+
 /*!
 \brief 形式上下文处理器。
 \since build 674
@@ -383,26 +431,28 @@ public:
 	template<typename _func,
 		yimpl(typename = ystdex::exclude_self_t<FormContextHandler, _func>)>
 	FormContextHandler(_func&& f)
-		: Handler(yforward(f))
+		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f)))
 	{}
 	//! \since build 733
 	template<typename _func, typename _fCheck>
 	FormContextHandler(_func&& f, _fCheck c)
-		: Handler(yforward(f)), Check(c)
+		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))), Check(c)
 	{}
 
 	/*!
 	\brief 处理一般形式。
+	\return Handler 调用的返回值，或 ReductionStatus::Success 。
 	\exception NPLException 异常中立。
 	\throw LoggedEvent 警告：类型不匹配，
 		由 Handler 抛出的 ystdex::bad_any_cast 转换。
 	\throw LoggedEvent 错误：由 Handler 抛出的 ystdex::bad_any_cast 外的
 		std::exception 转换。
 	\throw std::invalid_argument 项检查未通过。
+	\since build 751
 
 	项检查不存在或在检查通过后，对节点调用 Hanlder ，否则抛出异常。
 	*/
-	void
+	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
 
 	/*!
@@ -439,12 +489,14 @@ public:
 
 	/*!
 	\brief 处理函数。
+	\return Handler 调用的返回值。
 	\throw ListReductionFailure 列表子项不大于一项。
 	\sa ReduceArguments
+	\since build 751
 
 	对每一个子项求值；然后检查项数，对可调用的项调用 Hanlder ，否则抛出异常。
 	*/
-	void
+	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
 
 	/*!
@@ -561,8 +613,7 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 \sa IsBranch
 \sa LiftTermRef
 
-以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值；
-若发现项是枝节点，返回要求重规约。
+以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值并返回要求重规约。
 以项访问对规约以项转移的可能未求值的操作数是必要的。
 */
 YF_API ReductionStatus
@@ -577,6 +628,7 @@ EvaluateTermNode(TermNode&);
 YF_API ReductionStatus
 ReduceLeafToken(TermNode&, ContextNode&);
 //@}
+
 
 /*!
 \brief 设置默认解释：解释使用的公共处理遍。

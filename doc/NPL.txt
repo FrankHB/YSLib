@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r1326
+\version r1333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2016-12-14 09:58 +0800
+	2016-12-16 02:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -671,8 +671,10 @@ ReductionStatus::Success 指定规约成功终止(@4.4.3) 。
 ReductionStatus::NeedRetry 指定所在的列表表达式需要以相同的参数重新调用进行进一步规约，即重规约。
 
 @5.4.2.2 规约迭代：
-重规约可视为一轮迭代。
-当迭代终止时，在 TermNode 参数中得到强规范化形式。
+重规约(@5.4.2.1) 可视为一轮迭代。
+当迭代终止时，在 TermNode 参数中得到强规范化形式(strong normalized form)，或简称范式(normal form) 。
+NPL::CheckReducible 检查参数指定的规约结果是否可继续规约。
+NPL::DetectReducible 移除空子节点并根据参数指定的（一般是上一次的）规约结果(@5.4.2.1) 判断是否没有取得范式而需要继续规约。
 
 @5.4.3 遍迭代：
 NPLA 实现提供可调用的遍(@5) 作为一次规约迭代的基础。
@@ -788,7 +790,7 @@ NPLA1 提供若干 API 作为遍(@6.1.2) 的事件处理器。
 
 @6.4.1 上下文处理器：
 基于 NPL::ContextHandler(@5.4.1.2) ， NPLA1 提供了包含特定公共（检查或其它功能）逻辑的节点处理器包装其它事件处理器。
-迭代时，求值遍(@5.4.2.1) 可选使用基于 NPL::ContextHandler 的处理器作为 EvaluationPasses 事件处理器：
+迭代时，求值遍(@5.4.2.1) 可选使用基于 NPL::ContextHandler 的处理器作为 NPL::EvaluationPasses 事件处理器：
 A1::FormContextHandler ：形式上下文处理器，用于处理一般的语法形式(@3.4.2) ，即一般的 NPLA1 表达式。
 A1::FunctionContextHandler ：函数上下文处理器，用于处理函数调用(@4.5.3.1) 。
 两者的数据成员 Handler 为被包装的处理器，类型分别为 NPL::ContextHandler 和 A1::FormContextHandler 。
@@ -812,9 +814,9 @@ A1::FunctionContextHandler::operator() 通过调用 A1::ReduceArguments 求值�
 NPLA1 提供规约处理器若干 API 实现基于节点的表达式求值。
 A1::EvaluateContextFirst 以已规约的第一个表达式子项为上下文处理器并调用，以节约严格性分析(@4.4.4.2) 开销。
 A1::EvaluateIdentifier 对标识符项求值，通过调用 NPL::FetchValuePtr 实现名称解析(@4.3.3) ，然后检查字面量处理器，若存在则调用；最后调用 EvaluateTermNode 。
-A1::EvaluateLeafToken 对作为叶节点记号的项求值，其中会判断字面量并按需调用字面量合并遍(@5.4.3.2) 或 EvaluateIdentifier 。
+A1::EvaluateLeafToken 对作为叶节点记号的项求值，其中会判断字面量并按需调用字面量合并遍(@5.4.3.2) 或 A1::EvaluateIdentifier 。
 A1::EvaluateTermNode 对项中的类型为 TermNode 的值继续规约，以配合先前求值表达式时不直接规约(@6.1) 而实现非严格求值(@4.4.4.5)。
-A1::ReduceLeafToken 规约叶节点记号，提取名称并调用 EvaluateLeafToken 求值对应项。
+A1::ReduceLeafToken 规约叶节点记号，提取名称并调用 A1::EvaluateLeafToken 求值对应项。
 
 @6.5 REPL API ：
 NPLA1 提供 REPL API 以便于组装 REPL 和解释器。

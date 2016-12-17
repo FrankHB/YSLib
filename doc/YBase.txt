@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r971
+\version r985
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-09-28 09:51 +0800
+	2016-12-17 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,30 +240,30 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 @2.5.4.2 范围操作 Range ：
 扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
 
-@2.5.4.3 解引用操作 DereferenceOperation ：
-提供解引用操作检查的模板，作为迭代器操作的基础。
-
-@2.5.4.4 基类实用设施 Base ：
+@2.5.4.3 基类实用设施 Base ：
 提供适合被作为基类的通用接口。
 
 @2.5.5 基本头文件扩展：
 用于构建其它库但不提供标准库头的整体替代或扩展。
 除标准库头外只直接依赖上述 YDefinition 的头文件或本节内前述的头文件，可被以下其它 YStandardEx 头文件依赖。
 
-@2.5.5.1 C++ 变长参数相关操作 Variadic ：
+@2.5.5.1 解引用操作 DereferenceOperation ：
+提供解引用操作检查的模板，作为迭代器操作的基础。
+
+@2.5.5.2 C++ 变长参数相关操作 Variadic ：
 使用 ISO C++11 起提供的变长参数包(pack) 的特性提供序列等基本接口的模板库。
 
-@2.5.5.2 一元操作符 & 和取指针的相关接口 AddressOf
+@2.5.5.3 一元操作符 & 和取指针的相关接口 AddressOf
 
-@2.5.5.3 放置对象管理操作 Placement
+@2.5.5.4 放置对象管理操作 Placement
 
-@2.5.5.4 共享存储和直接转换 TypePun ：
+@2.5.5.5 共享存储和直接转换 TypePun ：
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
-@2.5.5.5 整数序列元编程接口 IntegerSequence ：
+@2.5.5.6 整数序列元编程接口 IntegerSequence ：
 扩展了 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
 
-@2.5.5.6 重载操作符 Operators
+@2.5.5.7 重载操作符 Operators
 
 @2.5.6 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
@@ -294,6 +294,8 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 在库使用约定([Documentation::CommonRules @@3.13.2]) 和语言使用规约([Documentation::LanguageConvention @@6.3.3]) 的基础上使用方式同 <cassert> 和 <assert.h> （允许定义宏控制重复包含的内容）。
 
 @2.5.7.5 存储和智能指针特性 Memory
+扩展了标准库头 <memory> 并提供一些附加的接口。
+其中，分配器 local_allocator 类似 std::allocator 可解除直接 new 调用的限制，和 std::allocator 不同的是同时也支持类作用域 operator new 覆盖默认行为。
 
 @2.5.7.6 实用设施 Utilities ：
 扩展了标准库头 <utility> ，提供一些常用杂项功能。
@@ -461,6 +463,9 @@ YBase 不重载 operator, ，也不对其它代码是否重载 operator, 做出�
 
 @3.3.3 捕获异常明确性：
 除非文档说明，不捕获调用用户代码时抛出的异常。
+
+@3.4 存储管理：
+一般地，使用智能指针([LanguageConvention @@6.9.2]) 或更高层次的封装 API （如自定义池）代替直接分配创建动态生存期的对象。
 
 */
 ////

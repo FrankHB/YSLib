@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15222
+\version r15227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2016-12-07 14:02 +0800
+	2016-12-17 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1965,11 +1965,12 @@ b590
 				),
 				/ DLDI "simplified static member function \
 					%WindowThread::DefaultGenerateGuard" ^ $dep_from
-					("%ystdex::make_shared_guard" @ %YBase.YStandardEx.Utilities)
+					("%ystdex::make_shared_guard"
+					@ %YBase.YStandardEx.Utilities)
 			),
 			/ %HostedUI $=
 			(
-				* $dep_to "tip depending on top level window" $since b583,
+				* $since b583 $dep_to "tip depending on top level window",
 				/ DLDI "simplified function %ShowTopLevel"
 					!^ "%WaitForHostWindow"
 			)
@@ -2015,7 +2016,6 @@ b590
 	* $comp "tip on close button never shown" @ "class %ImageControl"
 		@ %YDE.ImageBrowser.ImageControl $since b583 $dep_from
 		"tip depending on top level window",
-
 	/ DLD "simplified static assertion for cv-qualified types" ^ $dep_from
 		("%is_cv" @ %TypeTraits) $effecitve @ %(YBase.YStandardEx.Any,
 		YFramework.YSLib.YObject),
@@ -3864,7 +3864,8 @@ b581
 	),
 	/ @ "class template %fixed_point" @ %YBase.YStandardEx.Rational $=
 	(
-		+ DLD "'yimpl' for %enable_if_t parameters" @ "constructors",
+		/ $dev $lib "speciied 'yimpl' for %enable_if_t parameters"
+			@ "constructors",
 		(
 		+ 'explicit' @ "2 constructors with 1st floating pointer parameter"
 			$dep_from %YFramework.YSLib.Service.ImageProcessing;

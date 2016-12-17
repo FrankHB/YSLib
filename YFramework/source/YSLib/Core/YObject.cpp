@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r820
+\version r824
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-05 11:09 +0800
+	2016-12-15 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,8 +52,10 @@ operator==(const ValueObject& x, const ValueObject& y)
 ValueObject
 ValueObject::MakeIndirect() const
 {
-	return ValueObject(ystdex::polymorphic_downcast<const IValueHolder&>(
-		Deref(content.get_holder())), holder_refer_tag());
+	return ystdex::call_value_or([](const ystdex::any_ops::holder& h){
+		return ValueObject(ystdex::polymorphic_downcast<const IValueHolder&>(h),
+			holder_refer_tag());
+	}, content.get_holder());
 }
 
 } // namespace YSLib;
