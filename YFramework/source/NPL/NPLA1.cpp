@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1816
+\version r1852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-14 22:29 +0800
+	2016-12-17 12:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,17 +378,16 @@ ReplaceSeparatedChildren(TermNode& term, const ValueObject& name,
 }
 
 
-void
+ReductionStatus
 FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	// TODO: Is it worth matching specific builtin special forms here?
 	try
 	{
 		if(!Check || Check(term))
-			Handler(term, ctx);
-		else
-			// TODO: Use more specific exception type?
-			throw std::invalid_argument("Term check failed.");
+			return Handler(term, ctx);
+		// TODO: Use more specific exception type?
+		throw std::invalid_argument("Term check failed.");
 	}
 	CatchExpr(NPLException&, throw)
 	// TODO: Use semantic exceptions.
@@ -397,10 +396,12 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 		e.from(), e.to()), Warning))
 	// TODO: Use nested exceptions?
 	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
+	// XXX: Use distinct status for failure?
+	return ReductionStatus::Success;
 }
 
 
-void
+ReductionStatus
 FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	auto& con(term.GetContainerRef());
@@ -420,21 +421,20 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 		// TODO: Improve performance of comparison?
 		if(n == 2 && Deref(++i).Value == ValueToken::Null)
 			con.erase(i);
-		Handler(term, ctx);
-	}
-	else
-		// TODO: Use other exception type for this type of error?
-		// TODO: Capture contextual information in error.
-		throw ListReductionFailure(ystdex::sfmt("Invalid list form with"
-			" %zu term(s) not reduced found.", n), YSLib::Warning);
-	// TODO: Add unreduced form check? Is this better to be inserted in other
-	//	passes?
+		// TODO: Add unreduced form check? Is this better to be inserted in
+		//	other passes?
 #if false
-	if(con.empty())
-		YTraceDe(Warning, "Empty reduced form found.");
-	else
-		YTraceDe(Warning, "%zu term(s) not reduced found.", n);
+		if(con.empty())
+			YTraceDe(Warning, "Empty reduced form found.");
+		else
+			YTraceDe(Warning, "%zu term(s) not reduced found.", n);
 #endif
+		return Handler(term, ctx);
+	}
+	// TODO: Use other exception type for this type of error?
+	// TODO: Capture contextual information in error.
+	throw ListReductionFailure(ystdex::sfmt("Invalid list form with"
+		" %zu term(s) not reduced found.", n), YSLib::Warning);
 }
 
 
@@ -462,13 +462,12 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 		const auto& fm(Deref(ystdex::as_const(term).begin()));
 
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
-			(*p_handler)(term, ctx);
-		else
-			// TODO: Capture contextual information in error.
-			throw ListReductionFailure(ystdex::sfmt("No matching form '%s'"
-				" with %zu argument(s) found.",
-				ystdex::call_value_or(std::mem_fn(&string::c_str),
-				AccessPtr<string>(fm), "#<unknown>"), term.size()));
+			return (*p_handler)(term, ctx);
+		// TODO: Capture contextual information in error.
+		throw ListReductionFailure(
+			ystdex::sfmt("No matching form '%s' with %zu argument(s) found.",
+			ystdex::call_value_or(std::mem_fn(&string::c_str),
+			AccessPtr<string>(fm), "#<unknown>"), term.size()));
 	}
 	return ReductionStatus::Success;
 }
@@ -534,8 +533,7 @@ EvaluateTermNode(TermNode& term)
 		//	guaranteed by the evaluated parent term.
 		LiftTermRef(term, *p);
 		// NOTE: To make it work with %DetectReducible.
-		if(IsBranch(term))
-			return ReductionStatus::NeedRetry;
+		return ReductionStatus::NeedRetry;
 	}
 	return ReductionStatus::Success;
 }

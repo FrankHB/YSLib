@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1176
+\version r1180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-12-11 20:37 +0800
+	2016-12-17 17:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -512,7 +512,7 @@ using ContextNode = ValueNode;
 using YSLib::AccessChildPtr;
 
 //! \brief 上下文处理器类型。
-using ContextHandler = YSLib::GHEvent<void(TermNode&, ContextNode&)>;
+using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
 //! \brief 字面量处理器类型。
 using LiteralHandler = YSLib::GHEvent<bool(const ContextNode&)>;
 
@@ -655,8 +655,9 @@ CheckedReduceWith(_func f, _tParams&&... args)
 }
 
 /*!
-\brief 移除节点的空子节点，然后判断是否可继续规约。
-\return 可继续规约：第一参数指定非成功状态，且移除空子节点后的节点是枝节点。
+\brief 移除指定项的子项中的所有空子节点，然后结合上一次规约结果判断项是否可继续规约。
+\return 可继续规约：指定的上一次规约结果通过 CheckReducible 检查且项不是空节点。
+\note 不可继续规约的条件实质指定了范式。
 \see CheckReducible
 \since build 733
 */
