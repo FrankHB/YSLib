@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1180
+\version r1214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-12-17 17:25 +0800
+	2016-12-21 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -503,10 +503,18 @@ enum class ReductionStatus : yimpl(size_t)
 };
 
 
+/*!
+\brief 延迟求值项。
+\since build 752
+
+直接作为项的值对象包装被延迟求值的项。
+*/
+using DelayedTerm = yimpl(TermNode);
+
 //! \since build 674
 //@{
 //! \brief 上下文节点类型。
-using ContextNode = ValueNode;
+using ContextNode = yimpl(ValueNode);
 
 //! \since build 685
 using YSLib::AccessChildPtr;
@@ -655,14 +663,34 @@ CheckedReduceWith(_func f, _tParams&&... args)
 }
 
 /*!
-\brief 移除指定项的子项中的所有空子节点，然后结合上一次规约结果判断项是否可继续规约。
-\return 可继续规约：指定的上一次规约结果通过 CheckReducible 检查且项不是空节点。
-\note 不可继续规约的条件实质指定了范式。
-\see CheckReducible
+\brief 正规化项并检查是否可继续规约。
+\return 可继续规约。
+\sa CheckReducible
+\sa IsNormalForm
+\sa NormalizeBranch
 \since build 733
+
+正规化项，然后结合上一次规约结果判断项是否可继续规约。
+指定的上一次规约结果通过 CheckReducible 检查和。
+若检查结果为 true ，且项不是范式，则可继续规约。
 */
 YF_API bool
 DetectReducible(ReductionStatus, TermNode&);
+
+//! \since build 752
+//@{
+/*!
+\brief 判断项是否是范式。
+\return 指定的项是范式：项非空。
+\sa DelayedTerm
+*/
+YF_API bool
+IsNormalForm(TermNode&) ynothrow;
+
+//! \brief 正规化枝节点：移除项的子项中的所有空子节点。
+YF_API void
+NormalizeBranch(TermNode&);
+//@}
 
 
 //! \since build 676
@@ -781,6 +809,14 @@ inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 	ImplExpr(LiftTermRef(term.Value, vo))
 //@}
 //@}
+
+/*!
+\brief 提升延迟项。
+\since build 752
+*/
+inline PDefH(void, LiftDelayed, TermNode& term, DelayedTerm& tm)
+	ImplExpr(LiftTermRef(term, tm))
+
 
 //! \pre 断言：参数指定的项是枝节点。
 //@{

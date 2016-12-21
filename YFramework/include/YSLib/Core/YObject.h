@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4394
+\version r4456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-09 09:43 +0800
+	2016-12-21 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,12 +85,15 @@ struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 */
 DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	/*!
-	\brief 相等。
+	\brief 判断相等。
+	\pre 参数为空指针值或持有对象去除 const 后具有和参数相同动态类型的对象。
+	\return 持有的对象相等，或持有空对象且参数为空指针值。
+	\since bulid 752
 
-	返回一个表示和其它 IValueHolder 的派生实现的值是否相等的 bool 值。
-	派生实现应保证返回的值使 IValueHolder 满足 EqualityComparable 要求。
+	比较参数和持有的对象。
+	派生实现应保证返回的值满足 EqualityComparable 中对 == 操作的要求。
 	*/
-	DeclIEntry(bool operator==(const IValueHolder&) const)
+	DeclIEntry(bool Equals(const void*) const)
 	/*!
 	\brief 创建引用。
 	\since build 747
@@ -188,9 +191,10 @@ public:
 	//! \since build 555
 	DefDeCopyMoveCtorAssignment(ValueHolder)
 
-	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
-		ImplRet(type() == obj.type() && AreEqualHeld(this->value,
-			Deref(static_cast<value_type*>(obj.get()))))
+	//! \since build 752
+	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
+		ImplRet(bool(p) && AreEqualHeld(this->value,
+			Deref(static_cast<const value_type*>(p))))
 
 	//! \since build 747
 	ystdex::any
@@ -249,10 +253,10 @@ public:
 	DefDeCopyAssignment(PointerHolder)
 	DefDeMoveAssignment(PointerHolder)
 
-	//! \since build 332
-	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
-		ImplRet(type() == obj.type() && AreEqualHeld(*p_held,
-			Deref(static_cast<value_type*>(obj.get()))))
+	//! \since build 752
+	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
+		ImplRet(p ? AreEqualHeld(*p_held,
+			Deref(static_cast<const value_type*>(p))) : !get())
 
 	//! \since build 747
 	ystdex::any
@@ -297,9 +301,10 @@ public:
 	{}
 	DefDeCopyMoveCtorAssignment(RefHolder)
 
-	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
-		ImplRet(type() == obj.type() && AreEqualHeld(Deref(static_cast<
-			value_type*>(get())), Deref(static_cast<value_type*>(obj.get()))))
+	//! \since build 752
+	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
+		ImplRet(bool(p) && AreEqualHeld(Deref(static_cast<const value_type*>(
+			get())), Deref(static_cast<const value_type*>(p))))
 
 	PDefH(ystdex::any, Refer, ) const ImplI(IValueHolder)
 		ImplRet(ystdex::any(ystdex::any_ops::use_holder,
@@ -309,7 +314,7 @@ public:
 
 	PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(ystdex::pvoid(std::addressof(
-		Deref(static_cast<lref<value_type>*>(base.get())).get())))
+			Deref(static_cast<lref<value_type>*>(base.get())).get())))
 
 	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
 		ImplRet(ystdex::type_id<value_type>())
@@ -466,14 +471,26 @@ public:
 	//! \since build 673
 	//@{
 	//! \brief 比较相等：参数都为空或都非空且存储的对象相等。
-	YF_API friend bool
-	operator==(const ValueObject&, const ValueObject&);
+	friend PDefHOp(bool, ==, const ValueObject& x, const ValueObject& y)
+		ImplRet(x.Equals(y))
 
 	/*!
 	\brief 取储存的内容。
 	\since build 748
 	*/
 	DefGetter(const ynothrow, const Content&, Content, content)
+	//! \since build 752
+	//@{
+	//! \build 取持有者指针。
+	IValueHolder*
+	GetHolderPtr() const;
+	/*!
+	\build 取持有者引用。
+	\pre 持有者指针非空。
+	*/
+	IValueHolder&
+	GetHolderRef() const;
+	//@}
 	/*!
 	\brief 取指定类型的对象。
 	\pre 间接断言：存储对象类型和访问的类型一致。
@@ -562,6 +579,38 @@ public:
 
 		content.emplace<Holder>(ystdex::any_ops::use_holder, Holder(p));
 	}
+	//@}
+
+	/*!
+	\brief 判断相等。
+	\sa IValueHolder::Equals
+	\since bulid 752
+
+	比较参数和持有的对象。
+	*/
+	//@{
+	bool
+	Equals(const ValueObject&) const;
+	template<typename _type>
+	bool
+	Equals(const _type& x) const
+	{
+		if(const auto p_holder = content.get_holder())
+			return p_holder->type() == ystdex::type_id<_type>()
+				&& EqualsRaw(std::addressof(x));
+		return {};
+	}
+
+	//! \pre 参数为空指针值或持有对象去除 const 后具有和参数相同动态类型的对象。
+	bool
+	EqualsRaw(const void*) const;
+
+	/*!
+	\pre 间接断言：持有对象非空。
+	\pre 持有对象去除 const 后具有和参数相同动态类型的对象。
+	*/
+	bool
+	EqualsUnchecked(const void*) const;
 	//@}
 
 	/*!

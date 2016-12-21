@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4887
+\version r4945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-17 22:23 +0800
+	2016-12-21 13:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,63 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			+ $dev $lib 'yimpl' @ "alias %TermNode" @ %SContext,
+			/ %NPLA $=
+			(
+				(
+				+ "alias %DelayedTerm";
+				(
+				+ "functions %(IsNormalForm, NormalizeBranch)";
+				/ DLDI "simplified function %DetectReducible"
+					^ "%(NormalizeBranch, IsNormalForm)"
+				),
+				+ "function %LiftDelayed"
+				),
+				+ $dev $lib 'yimpl' @ "alias %ContextNode"
+			),
+			/ %NPLA1 $=
+			(
+				/ "function %EvaluateTermNode" => "%EvaluateDelayed",
+				/ DLDI "simplified %FunctionContextHandler::operator()"
+					^ "%HasValue",
+				/ "%InvalidSyntax exception message string" @ "function %If"
+					@ "namespace %Forms"
+			)
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			(
+			+ "abstract method %Equals" @ "%interface %IValueHodler";
+			+ $forced "overrider %Equals"
+				@ "class templates %(ValueHolder, PointerHolder, RefHolder)";
+			/ DLDI "member function %ValueObject" ^ "%IValueHolder::Equals"
+				~ "%IValueHolder::operator==";
+			- $foced "overrider %operator=="
+				@ "class templates %(ValueHolder, PointerHolder, RefHolder)"
+			),
+			/ @ "class %ValueObject" $=
+			(
+				+ "function %GetHolderPtr",
+				+ "function %GetHolderRef",
+				+ "function %EqualsUnchecked" ^ $dep_from
+					("%GetHolderRef", "%IValueHolder::Equals"),
+				(
+				+ "function %EqualsRaw" ^ $dep_from "%IValueHolder::Equals";
+				+ "(function template, function) %Equals";
+				/ $impl $src $since b673 "simplified friend function \
+					%operator==" -> "inline function" ^ "%Equals"
+				)
+			)
+		)
+	)
+),
+
+b752
 (
 	/ %YFramework $=
 	(
@@ -91,8 +148,8 @@ $now
 		@ "class template %call_projection" @ %YBase.YStandardEx.Functional $=
 	(
 		* "wrong 'std::move'" @ "some overloads" $since b634,
-		/ $dev $lib "specified 'yimpl'" @ "trailing-return-type except for \
-			call to overloads of same name"
+		+ 'yimpl'
+			@ "trailing-return-type except for call to overloads of same name"
 	)
 ),
 

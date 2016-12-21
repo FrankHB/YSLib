@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1852
+\version r1862
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-17 12:28 +0800
+	2016-12-20 10:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -418,8 +418,7 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 
 		// NOTE: Adjust null list argument application
 		//	to function call without arguments.
-		// TODO: Improve performance of comparison?
-		if(n == 2 && Deref(++i).Value == ValueToken::Null)
+		if(n == 2 && HasValue(Deref(++i), ValueToken::Null))
 			con.erase(i);
 		// TODO: Add unreduced form check? Is this better to be inserted in
 		//	other passes?
@@ -487,7 +486,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	}
 	else
 		throw BadIdentifier(id);
-	return EvaluateTermNode(term);
+	return EvaluateDelayed(term);
 }
 
 ReductionStatus
@@ -515,6 +514,9 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			// XXX: Empty token is ignored.
 			// XXX: Remained reducible?
 		case LiteralCategory::Data:
+			// XXX: This should be prevented being passed to second pass in
+			//	%TermToName normally. This is guarded by %IsNormalForm called
+			//	by %DetectReducible in the loop in %Reduce.
 			term.Value = Deliteralize(id).to_string();
 		default:
 			break;
@@ -525,13 +527,13 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 }
 
 ReductionStatus
-EvaluateTermNode(TermNode& term)
+EvaluateDelayed(TermNode& term)
 {
-	if(const auto p = AccessPtr<TermNode>(term))
+	if(const auto p = AccessPtr<DelayedTerm>(term))
 	{
 		// NOTE: The referenced term is lived through the envaluation, which is
 		//	guaranteed by the evaluated parent term.
-		LiftTermRef(term, *p);
+		LiftDelayed(term, *p);
 		// NOTE: To make it work with %DetectReducible.
 		return ReductionStatus::NeedRetry;
 	}
@@ -744,7 +746,7 @@ If(TermNode& term, ContextNode& ctx)
 		return ReductionStatus::NeedRetry;
 	}
 	else
-		throw InvalidSyntax("Syntax error conditional form.");
+		throw InvalidSyntax("Syntax error in conditional form.");
 }
 
 void
