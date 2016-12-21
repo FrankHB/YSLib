@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r904
+\version r919
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-12-15 21:22 +0800
+	2016-12-19 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -430,12 +430,26 @@ CheckReducible(ReductionStatus status)
 bool
 DetectReducible(ReductionStatus status, TermNode& term)
 {
+	NormalizeBranch(term);
+	// NOTE: Only stopping on getting a normal form.
+	return CheckReducible(status) && !IsNormalForm(term);
+}
+
+bool
+IsNormalForm(TermNode& term) ynothrow
+{
+	return !term;
+//	return !IsBranch(term)
+	//	&& term.Value.GetType() != ystdex::type_id<DelayedTerm>();
+}
+
+void
+NormalizeBranch(TermNode& term)
+{
 	// TODO: Use explicit continuation parameters?
 //	if(bool(status))
 	//	k(term);
 	YSLib::RemoveEmptyChildren(term.GetContainerRef());
-	// NOTE: Only stopping on getting a normal form.
-	return CheckReducible(status) && bool(term);
 }
 
 } // namespace NPL;

@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r824
+\version r862
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-15 09:27 +0800
+	2016-12-21 11:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,18 +35,52 @@ namespace YSLib
 ImplDeDtor(IValueHolder)
 
 
-bool
-operator==(const ValueObject& x, const ValueObject& y)
+//! \since build 752
+namespace
 {
-	const auto p(x.content.get_holder());
 
-	if(const auto q = y.content.get_holder())
-		return p == q
-			|| (p && ystdex::polymorphic_downcast<const IValueHolder&>(*p)
-			== ystdex::polymorphic_downcast<const IValueHolder&>(*q));
-	else
-		return !p;
-	return {};
+inline PDefH(IValueHolder&, HolderDownCast, ystdex::any_ops::holder& h)
+	ImplRet(ystdex::polymorphic_downcast<IValueHolder&>(h))
+
+inline PDefH(bool, HolderEquals, ystdex::any_ops::holder& h, const void* p)
+	ImplRet(HolderDownCast(h).Equals(p))
+
+} // unnamed namespace;
+
+IValueHolder*
+ValueObject::GetHolderPtr() const
+{
+	return ystdex::polymorphic_downcast<IValueHolder*>(content.get_holder());
+}
+IValueHolder&
+ValueObject::GetHolderRef() const
+{
+	return HolderDownCast(Deref(content.get_holder()));
+}
+
+bool
+ValueObject::Equals(const ValueObject& x) const
+{
+	const auto p_holder(content.get_holder());
+ 
+	if(const auto q = x.content.get_holder())
+		return p_holder == q || (p_holder && p_holder->type() == q->type()
+			&& HolderEquals(*p_holder, q->get()));
+	return !p_holder;
+}
+
+bool
+ValueObject::EqualsRaw(const void* p) const
+{
+	if(const auto p_holder = content.get_holder())
+		return HolderEquals(*p_holder, p);
+	return !p;
+}
+
+bool
+ValueObject::EqualsUnchecked(const void* p) const
+{
+	return HolderEquals(GetHolderRef(), p);
 }
 
 ValueObject

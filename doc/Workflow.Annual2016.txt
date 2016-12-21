@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2016.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2016 年度。
-\version r193
+\version r204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-11 09:35:01 +0800
 \par 修改时间:
-	2016-12-02 22:55 +0800
+	2016-12-18 19:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ It is intended that YBase.YStandardEx.Operators classes used in base are publicl
 		Since YBase.YStandardEx.Operators provides such operators, they should be derived with 'public'.
 	For simplicity, all classes are derived with 'public', rather than optional 'private' to force users remembering which overloaded operators are used, even it will expose public non-polymorphic bases which should not be used to cast-from.
 The allocator '__gnu_cxx::debug_allocator' should not be used.
-	Because it is not meet the allocation requirements on nothrow 'deallocate' member.
+	Because it is not meet the allocation requirements on non-throwing 'deallocate' member.
 	There are generally more powerful and flexible debug methods (e.g. valgrind and DrMemory).
 		Even for freestanding implementations without them, memory debugging is still hard with the aid of such allocator rather than cutome ones with desired error handling.
 
@@ -192,7 +192,7 @@ report.impl:
 In YSLib, bare passive clause is preferred for exception message or other error handling messages, besides those in assertion strings, etc.
 	See also $2014-08 report.impl.
 
-$2016-09:
+$2016-12:
 
 report.impl:
 Note the standard does specify that 'std::allocator' may differ with new/delete.
@@ -200,6 +200,15 @@ Note the standard does specify that 'std::allocator' may differ with new/delete.
 		Especially be cautious to default deleters in smart pointers.
 	Current libc++ does it theoretically wrongly in the large handler in <experimental/any>.
 		Although the behavior can still be expected when 'std::allocator' is provided by libc++, which should be normal.
+There are some troubles with Windows 10 rs2_prerelease console output.
+	Buffered MBCS-oriented stream cannot interact well within the console.
+		However, wide-oriented console output works.
+		It seems that the underlying implementation would assume wrong width (number of bytes) of a multibyte character.
+	It can be worked around by disabling the CRT buffering on the stream.
+		The 'stdout' is buffered by default.
+		The standard 'std::setvbuf' with '_IONBF' works.
+		The call of 'std::ios_base::sync_with_stdio({})' also works, but it has side effects on console color setting.
+			Notably, the '::SetConsoleTextAttribute' call of setting foreground color would have effect on the whole line instead of the output text after the call.
 
 ////
 

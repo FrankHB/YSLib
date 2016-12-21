@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2077
+\version r2083
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-17 21:43 +0800
+	2016-12-19 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -568,7 +568,6 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 \exception BadIdentifier 标识符未声明。
 \note 第一参数指定输入的项，其 Value 指定输出的值。
 \note 默认视为规约成功以保证强规范化性质。
-\since build 745
 */
 //@{
 //! \pre 断言：第三参数的数据指针非空。
@@ -576,16 +575,17 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 /*!
 \brief 求值标识符。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
-\sa EvaluateTermNode
+\sa EvaluateDelayed
 \sa FetchValuePtr
 \sa LiftTermRef
 \sa LiteralHandler
+\since build 745
 
 依次进行以下求值操作：
 调用 FetchValuePtr 查找值，若失败抛出未声明异常；
 调用 LiftTermRef 替换节点的值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
-若未返回，调用 EvaluateTermNode 求值。
+若未返回，调用 EvaluateDelayed 求值。
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
@@ -611,13 +611,14 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 /*!
 \brief 求值以节点数据结构间接表示的项。
 \sa IsBranch
-\sa LiftTermRef
+\sa LiftDelayed
+\since build 752
 
 以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值并返回要求重规约。
 以项访问对规约以项转移的可能未求值的操作数是必要的。
 */
 YF_API ReductionStatus
-EvaluateTermNode(TermNode&);
+EvaluateDelayed(TermNode&);
 //@}
 
 /*!
