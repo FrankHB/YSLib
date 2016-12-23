@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1214
+\version r1272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-12-21 12:07 +0800
+	2016-12-23 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,13 @@
 
 namespace NPL
 {
+
+/*!	\defgroup ThunkType Thunk Types
+\brief 中间值类型。
+\since build 753
+
+标记特定求值策略，储存于 TermNode 的 Value 数据成员中不直接表示宿主语言对象的类型。
+*/
 
 //! \since build 598
 using YSLib::pair;
@@ -504,6 +511,7 @@ enum class ReductionStatus : yimpl(size_t)
 
 
 /*!
+\ingroup ThunkType
 \brief 延迟求值项。
 \since build 752
 
@@ -519,10 +527,13 @@ using ContextNode = yimpl(ValueNode);
 //! \since build 685
 using YSLib::AccessChildPtr;
 
+//! \ingroup ThunkType
+//@{
 //! \brief 上下文处理器类型。
 using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
 //! \brief 字面量处理器类型。
 using LiteralHandler = YSLib::GHEvent<bool(const ContextNode&)>;
+//@}
 
 //! \brief 注册上下文处理器。
 inline PDefH(void, RegisterContextHandler, ContextNode& node,
@@ -607,13 +618,47 @@ FetchValuePtr(const ContextNode& ctx, const _tKey& name)
 	return GetValuePtrOf(NPL::LookupName(ctx, name));
 }
 
+
 /*!
 \brief 访问项的值作为名称。
 \return 通过访问项的值取得的名称，或空指针表示无法取得名称。
+\sa TokenValue
 \since build 732
 */
 YF_API observer_ptr<const string>
 TermToName(const TermNode&);
+
+
+//! \since build 753
+//@{
+/*!
+\ingroup ThunkType
+\brief 记号值。
+\note 和被求值的字符串不同的包装类型。
+\warning 非空析构。
+*/
+class YF_API TokenValue : public string
+{
+public:
+	using string::string;
+	TokenValue(const string& s)
+		: string(s)
+	{}
+	TokenValue(string&& s)
+		: string(std::move(s))
+	{}
+
+	DefDeCopyMoveCtorAssignment(TokenValue)
+};
+
+
+/*!
+\brief 标记记号节点：递归变换节点，转换其中 string 类型的值为 TokenValue 。
+\note 先变换子节点。
+*/
+YF_API void
+TokenizeTerm(TermNode& term);
+//@}
 
 
 /*!
@@ -661,36 +706,6 @@ CheckedReduceWith(_func f, _tParams&&... args)
 {
 	ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
 }
-
-/*!
-\brief 正规化项并检查是否可继续规约。
-\return 可继续规约。
-\sa CheckReducible
-\sa IsNormalForm
-\sa NormalizeBranch
-\since build 733
-
-正规化项，然后结合上一次规约结果判断项是否可继续规约。
-指定的上一次规约结果通过 CheckReducible 检查和。
-若检查结果为 true ，且项不是范式，则可继续规约。
-*/
-YF_API bool
-DetectReducible(ReductionStatus, TermNode&);
-
-//! \since build 752
-//@{
-/*!
-\brief 判断项是否是范式。
-\return 指定的项是范式：项非空。
-\sa DelayedTerm
-*/
-YF_API bool
-IsNormalForm(TermNode&) ynothrow;
-
-//! \brief 正规化枝节点：移除项的子项中的所有空子节点。
-YF_API void
-NormalizeBranch(TermNode&);
-//@}
 
 
 //! \since build 676

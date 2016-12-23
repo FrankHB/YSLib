@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r919
+\version r948
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-12-19 10:55 +0800
+	2016-12-23 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA // for YSLib::RemoveEmptyChildren;
+#include YFM_NPL_NPLA
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -383,7 +383,17 @@ CategorizeLiteral(string_view sv)
 observer_ptr<const string>
 TermToName(const TermNode& term)
 {
-	return AccessPtr<string>(term);
+	return AccessPtr<TokenValue>(term);
+}
+
+
+void
+TokenizeTerm(TermNode& term)
+{
+	for(auto& child : term)
+		TokenizeTerm(child);
+	if(const auto p = AccessPtr<string>(term))
+		term.Value = TokenValue(std::move(*p));
 }
 
 
@@ -425,31 +435,6 @@ CheckReducible(ReductionStatus status)
 	if(YB_UNLIKELY(status != ReductionStatus::NeedRetry))
 		YTraceDe(Warning, "Unexpected status found");
 	return true;
-}
-
-bool
-DetectReducible(ReductionStatus status, TermNode& term)
-{
-	NormalizeBranch(term);
-	// NOTE: Only stopping on getting a normal form.
-	return CheckReducible(status) && !IsNormalForm(term);
-}
-
-bool
-IsNormalForm(TermNode& term) ynothrow
-{
-	return !term;
-//	return !IsBranch(term)
-	//	&& term.Value.GetType() != ystdex::type_id<DelayedTerm>();
-}
-
-void
-NormalizeBranch(TermNode& term)
-{
-	// TODO: Use explicit continuation parameters?
-//	if(bool(status))
-	//	k(term);
-	YSLib::RemoveEmptyChildren(term.GetContainerRef());
 }
 
 } // namespace NPL;

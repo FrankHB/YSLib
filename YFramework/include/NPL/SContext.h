@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1526
+\version r1533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2016-12-19 10:50 +0800
+	2016-12-19 13:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,10 +82,14 @@ inline PDefH(const ValueNode&, MapToValueNode, const ValueNode& node)
 
 /*!
 \brief 检查项节点是否具有指定的值。
-\since build 691
+\since build 753
 */
-inline PDefH(bool, HasValue, const TermNode& term, const ValueObject& vo)
-	ImplRet(term.Value == vo)
+template<typename _type>
+inline bool
+HasValue(const TermNode& term, const _type& x)
+{
+	return term.Value == x;
+}
 
 
 /*!
