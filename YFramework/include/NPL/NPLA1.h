@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2083
+\version r2106
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-19 11:11 +0800
+	2016-12-23 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,10 @@ struct YF_API NPLA1Tag : NPLATag
 {};
 
 
-//! \brief 值记号：节点中的值的占位符。
+/*!
+\ingroup ThunkType
+\brief 值记号：节点中的值的占位符。
+*/
 enum class ValueToken
 {
 	Null,
@@ -220,7 +223,7 @@ InvokeLiteral(TermNode& term, ContextNode&, string_view);
 \note 默认不需要重规约。这可被求值遍改变。
 \note 可被求值遍调用以实现递归求值。
 \note 异常安全取决于调用遍的最低异常安全保证。
-\sa DetectReducible
+\sa CheckReducible
 \sa InvokeGuard
 \sa InvokeLeaf
 \sa InvokeList
@@ -233,13 +236,14 @@ InvokeLiteral(TermNode& term, ContextNode&, string_view);
 迭代规约，直至不需要进行重规约。
 对应不同的节点次级结构分类，一次迭代按以下顺序判断选择以下分支之一，按需规约子项：
 对枝节点调用 InvokeList 求值；
-对空节点替换为 ValueToken::Null ；
-对已替换为 ValueToken 的叶节点保留处理；
+对空节点或值为 ValueToken 的叶节点不进行操作；
 对其它叶节点调用 InvokeLeaf 求值。
-单一求值的结果作为 DetectReducible 的第二参数，根据结果判断是否进行重规约。
+迭代结束调用 CheckReducible ，根据结果判断是否进行重规约。
 此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
 例外情况应单独指定明确的顺序。
 例外情况包括输入节点不是表达式语义结构（而是抽象语法树）的 API ，如 TransformNode 。
+当前实现返回的规约状态总是 ReductionStatus::Success ，否则会循环迭代。
+若需要保证无异常时仅在规约成功后终止，使用 ReduceChecked 代替。
 */
 YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
@@ -263,12 +267,11 @@ ReduceArguments(TermNode::Container&, ContextNode&);
 
 /*!
 \since build 735
-\todo 使用更确切的异常类型。
+\note 失败视为重规约。
 */
 //@{
 /*!
-\brief 规约并检查成功：调用 Reduce 并检查结果，失败时抛出异常。
-\throw NPLException Reduce 结果不是 ReductionStatus::Success。
+\brief 规约并检查成功：调用 Reduce 并检查结果。
 \sa CheckedReduceWith
 \sa Reduce
 */
@@ -277,7 +280,6 @@ ReduceChecked(TermNode&, ContextNode&);
 
 /*!
 \brief 规约闭包：使用第四参数指定的闭包项规约后替换到指定项上。
-\exception NPLException 异常中立：由 ReduceChecked 抛出。
 \note 第三参数指定是否转移而不保留原项。
 \sa ReduceChecked
 */
@@ -331,26 +333,24 @@ YF_API void
 SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
 
 
-/*!
-\note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
-\since build 697
-*/
+//! \note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
 //@{
 /*!
 \note 移除子项中值和指定分隔符指定的项，并以 AsIndexNode 添加指定前缀值作为子项。
 \note 最后一个参数指定返回值的名称。
 \sa AsIndexNode
+\since build 753
 */
 //@{
 //! \brief 变换分隔符中缀表达式为前缀表达式。
 YF_API TermNode
 TransformForSeparator(const TermNode&, const ValueObject&, const ValueObject&,
-	const string& = {});
+	const TokenValue& = {});
 
 //! \brief 递归变换分隔符中缀表达式为前缀表达式。
 YF_API TermNode
 TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
-	const ValueObject&, const string& = {});
+	const ValueObject&, const TokenValue& = {});
 //@}
 
 /*!
@@ -545,11 +545,11 @@ RegisterFunction(ContextNode& node, const string& name, _tParams&&... args)
 \brief 注册分隔符转换变换和处理例程。
 \sa NPL::RegisterContextHandler
 \sa ReplaceSeparatedChildren
-\since build 726
+\since build 753
 */
 YF_API void
 RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
-	const string&, const ValueObject&);
+	const TokenValue&, const ValueObject&);
 
 
 /*!
@@ -672,10 +672,11 @@ public:
 	REPLContext(bool = {});
 
 	/*!
-	\brief 处理：分析输入并预处理后进行规约。
+	\brief 处理：分析输入并标记记号节点，预处理后进行规约。
 	\sa SContext::Analyze
 	\sa Preprocess
 	\sa Reduce
+	\sa TokenizeTerm
 	\since build 742
 	*/
 	//@{

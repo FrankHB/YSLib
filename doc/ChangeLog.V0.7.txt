@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r4945
+\version r5030
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-21 13:30 +0800
+	2016-12-23 23:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,92 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "class %ValueObject" @ %YSLib.Core.YObject $=
+		(
+			+ "2 function templates %(operator==; operator!=)",
+			/ DLI "improved %operator(!, bool)" ^ "%any::has_value"
+				~ "%any::get_holder"
+				// Since the content is private, it is safe to assume every \
+					value is held with holder, specifically, dereived class \
+					object of %IValueHolder.
+		),		
+		/ %NPL $=
+		(
+			/ "function %HasValue" -> "function template" @ %SContext,
+				// To replace the original function rather than just adding a \
+					new function template would lead less forced \
+					modification elsewhere, e.g. for bind expressions.
+			/ %NPLA1 $=
+			(
+				/ DLI $dep_from %SContext $=
+				(
+					/ $forced $design "functions %(TransformForSeparator, \
+						TransformForSeparatorRecursive, \
+						ReplaceSeparatedChildren)",
+					/ $comp "improved term node comparison"
+				),
+				(
+				/ @ "function %Reduce" $=
+				(
+					/ "simplified normal form detection" ^ "%CheckReducible"
+						~ "%DetectReducible",
+					- "%ValueToken::Null transformation for empty list",
+					/ DLDI "simplified return-statement to allow more \
+						%ReductionStatus enumerators in future"
+						// This would also need changes in implementation of \
+							%CheckReducible.
+				);
+				/ $forced DLDI "function FunctionContextHandler::operator()"
+					$= (/ "%ValueToken::Null handling" -> "empty node handling")
+				),
+				* $doc "wrong '\exception' command" @ "functions \
+					%(ReduceChecked, ReduceCheckedClosure)" $since b735,
+				/ $forced $dep_from "%TermToNode" @ %NPLA $=
+				(
+					/ "function %REPL::Perform transformed token node"
+						$= (/ $impl ^ ("%TokenizeTerm" @ %NPLA)),
+					/ "functions %(ExtractLambdaParameters, \
+						ReplaceSeparatedChildren)"
+						^ $dep_from ("%TokenValue" @ %NPLA) ~ "%string",
+					/ "type" @ "token value parameter"
+						@ "functions %(TransformForSeparator, \
+						TransformForSeparatorRecursive, \
+						RegisterSequenceContextTransformer)"
+						-> $dep_from ("%TokenValue" @ %NPLA) ~ "%string";
+					* "missing nomalization property on %string value \
+						reduction when %ReductionStatus::NeedRetry is met"
+						$mismatch(Documentation.NPL) $since b732
+						// Before the change, it would loop forever if a \
+							string is evaluated from an identifier with same \
+							name easily, which is not intended in general.
+				)
+			),
+			/ %NPLA $=
+			(
+				/ $dep_from ("%Reduce" @ %NPLA1) $=
+				(
+					- $revert(b697) "function %DetectReducible";
+					- $revert(b752)
+						"functions %(IsNormalForm, %NormalizeBranch)"
+				),
+				(
+				+ DD "Doxygen group %ThunkType";
+				+ DD "%(DelayedTerm, ContextHandler, LiteralHandler)"
+					@ "Doxygen group %ThunkType",
+				(
+				+ "class %TokenValue; function %TokenizeTerm";
+				/ "%TermToName accessed %TermValue" ~ "%string"
+				)
+				)
+			)
+		)
+	)
+),
+
+b752
 (
 	/ %YFramework $=
 	(

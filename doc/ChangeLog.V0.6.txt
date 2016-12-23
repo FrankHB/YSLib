@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12074
+\version r12084
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-12-07 14:27 +0800
+	2016-12-23 23:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,7 +285,7 @@ b696
 					@ %YFramework.YSLib.Core.YApplication),
 				* "touched panel contents caused dialog buttons hidden in the \
 					back side of the dynamic widget root" $since b695
-					$= (/ ^ "Z order 32 for dynamic widget root"),
+					$= (^ "Z order 32 for dynamic widget root"),
 				/ "set font of title of application with bold style",
 				(
 				+ "button %btnSysInfo";
@@ -5891,10 +5891,11 @@ b651
 				-> ("%(apply, apply_t)" @ "namespace %ystdex::vseq" @ %Variaic),
 			+ "unary type trait %is_array_of_unknown_bound"
 		),
-		/ %Variadic $=
+		/ DD %Variadic $=
 		(
-			+ DD "Doxygen group %composition";
-			+ "metafunctions %(bind_back, bind_front)" @ "group %composition"
+			+ "Doxygen group %composition";
+			+ "metafunctions %(bind_back, bind_front)"
+				@ "Doxygen group %composition"
 				// Name 'quote' has already in use at %String.
 		),
 		/ %Tuple $=
@@ -8422,7 +8423,7 @@ b630
 			/ "swapped type parameters",
 				@ "%(is_aligned_placeable, is_aligned_storable)";
 				// To be consistent with other traits here.
-			/ DD "moved all traits" @ "group %binary_type_traits"
+			/ DD "moved all traits" @ "Doxygen group %binary_type_traits"
 				>> "group %aligned_type_traits"
 			),
 			* $forced DLDI "member function template %pod_storage::access"
@@ -10652,9 +10653,9 @@ b605
 					~ "%std::tolower"),
 			/ @ "namespace %single_thread" @ %PseudoMutex $=
 			(
-				* "missing non-throwing exception specification" @ "debug interface"
-					@ "constructor with %defer_lock_t parameter"
-					@ "class template %unique_lock" $since b551,
+				* "missing non-throwing exception specification"
+					@ "debug interface" @ "constructor with %defer_lock_t \
+					parameter" @ "class template %unique_lock" $since b551,
 					// ISO C++11 requires 'noexcept' on this constructor.
 				+ $impl 'yimpl(ynothrow)' @ "stubs without \
 					exception-specifications" $effective @ "classes %(mutex, \

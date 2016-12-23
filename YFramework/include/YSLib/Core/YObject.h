@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4456
+\version r4497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-21 10:26 +0800
+	2016-12-23 01:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -466,13 +466,51 @@ public:
 	\brief 判断是否为空或非空。
 	\since build 320
 	*/
-	DefBoolNeg(explicit, content.get_holder())
+	DefBoolNeg(explicit, content.has_value())
 
-	//! \since build 673
+	//! \sa Equals
 	//@{
-	//! \brief 比较相等：参数都为空或都非空且存储的对象相等。
+	/*!
+	\brief 比较相等：参数都为空或都非空且存储的对象相等。
+	\since build 673
+	*/
 	friend PDefHOp(bool, ==, const ValueObject& x, const ValueObject& y)
 		ImplRet(x.Equals(y))
+	//! \since build 753
+	//@{
+	//! \brief 比较相等：存储的对象值相等。
+	//@{
+	template<typename _type>
+	friend inline bool
+	operator==(const ValueObject& x, const _type& y)
+	{
+		return x.Equals(y);
+	}
+	template<typename _type>
+	friend inline bool
+	operator==(const _type& x, const ValueObject& y)
+	{
+		return y.Equals(x);
+	}
+	//@}
+
+	//! \brief 比较不等：存储的对象值不等。
+	//@{
+	template<typename _type>
+	friend inline bool
+	operator!=(const ValueObject& x, const _type& y)
+	{
+		return !(x == y);
+	}
+	template<typename _type>
+	friend inline bool
+	operator!=(const _type& x, const ValueObject& y)
+	{
+		return !(x == y);
+	}
+	//@}
+	//@}
+	//@}
 
 	/*!
 	\brief 取储存的内容。
@@ -494,6 +532,7 @@ public:
 	/*!
 	\brief 取指定类型的对象。
 	\pre 间接断言：存储对象类型和访问的类型一致。
+	\since build 673
 	*/
 	//@{
 	template<typename _type>
@@ -508,7 +547,6 @@ public:
 	{
 		return Deref(ystdex::unchecked_any_cast<const _type>(&content));
 	}
-	//@}
 	//@}
 	//! \since build 683
 	DefGetter(const ynothrow, const type_info&, Type, content.type())

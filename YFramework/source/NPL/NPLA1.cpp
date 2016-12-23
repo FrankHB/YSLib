@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1862
+\version r1893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-20 10:12 +0800
+	2016-12-23 22:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,8 +159,9 @@ TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
 	if(IsBranch(term))
 	{
 		res += AsIndexNode(res, pfx);
-		ystdex::split(term.begin(), term.end(), ystdex::bind1(HasValue,
-			std::ref(delim)), std::bind(f, std::ref(res), _1, _2));
+		ystdex::split(term.begin(), term.end(),
+			ystdex::bind1(HasValue<ValueObject>, std::ref(delim)),
+			std::bind(f, std::ref(res), _1, _2));
 	}
 	return res;
 }
@@ -237,8 +238,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 	const auto gd(InvokeGuard(term, ctx));
 
 	// NOTE: Rewriting loop until the normal form is got.
-	return ystdex::retry_on_cond(ystdex::bind1(DetectReducible, std::ref(term)),
-		[&]() -> ReductionStatus{
+	return ystdex::retry_on_cond(CheckReducible, [&]() -> ReductionStatus{
 		if(IsBranch(term))
 		{
 			YAssert(term.size() != 0, "Invalid node found.");
@@ -253,18 +253,14 @@ Reduce(TermNode& term, ContextNode& ctx)
 				return Reduce(term, ctx);
 			}
 		}
-		else if(!term.Value)
-			// NOTE: Empty list.
-			term.Value = ValueToken::Null;
-		else if(AccessPtr<ValueToken>(term))
-			// TODO: Handle special value token.
-			;
-		else
-			return InvokeLeaf(term, ctx);
-		// NOTE: Exited loop has produced normal form by default.
-		return ReductionStatus::Success;
-	}) == ReductionStatus::Success ? ReductionStatus::Success
-		: ReductionStatus::NeedRetry;
+
+		const auto& tp(term.Value.GetType());
+
+		// NOTE: Empty list or special value token has no-op to do with.
+		// TODO: Handle special value token?
+		return tp != ystdex::type_id<void>() && tp != ystdex::type_id<
+			ValueToken>() ? InvokeLeaf(term, ctx) : ReductionStatus::Success;
+	});
 }
 
 void
@@ -342,7 +338,7 @@ SetupTraceDepth(ContextNode& root, const string& name)
 
 TermNode
 TransformForSeparator(const TermNode& term, const ValueObject& pfx,
-	const ValueObject& delim, const string& name)
+	const ValueObject& delim, const TokenValue& name)
 {
 	return TransformForSeparatorTmpl([&](TermNode& res, TNCIter b, TNCIter e){
 		auto child(AsIndexNode(res));
@@ -358,7 +354,7 @@ TransformForSeparator(const TermNode& term, const ValueObject& pfx,
 
 TermNode
 TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
-	const ValueObject& delim, const string& name)
+	const ValueObject& delim, const TokenValue& name)
 {
 	return TransformForSeparatorTmpl([&](TermNode& res, TNCIter b, TNCIter e){
 		while(b != e)
@@ -372,8 +368,9 @@ ReplaceSeparatedChildren(TermNode& term, const ValueObject& name,
 	const ValueObject& delim)
 {
 	if(std::find_if(term.begin(), term.end(),
-		ystdex::bind1(HasValue, std::ref(delim))) != term.end())
-		term = TransformForSeparator(term, name, delim, term.GetName());
+		ystdex::bind1(HasValue<ValueObject>, std::ref(delim))) != term.end())
+		term = TransformForSeparator(term, name, delim,
+			TokenValue(term.GetName()));
 	return ReductionStatus::Success;
 }
 
@@ -416,9 +413,9 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 		// NOTE: Matching function calls.
 		auto i(con.begin());
 
-		// NOTE: Adjust null list argument application
-		//	to function call without arguments.
-		if(n == 2 && HasValue(Deref(++i), ValueToken::Null))
+		// NOTE: Adjust null list argument application to function call without
+		//	arguments.
+		if(n == 2 && !Deref(++i))
 			con.erase(i);
 		// TODO: Add unreduced form check? Is this better to be inserted in
 		//	other passes?
@@ -439,7 +436,7 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 
 void
 RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
-	const string& name, const ValueObject& delim)
+	const TokenValue& name, const ValueObject& delim)
 {
 	// TODO: Simplify by using %ReductionStatus as invocation result directly.
 //	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
@@ -515,8 +512,8 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			// XXX: Remained reducible?
 		case LiteralCategory::Data:
 			// XXX: This should be prevented being passed to second pass in
-			//	%TermToName normally. This is guarded by %IsNormalForm called
-			//	by %DetectReducible in the loop in %Reduce.
+			//	%TermToName normally. This is guarded by normal form handling
+			//	in the loop in %Reduce.
 			term.Value = Deliteralize(id).to_string();
 		default:
 			break;
@@ -588,6 +585,7 @@ REPLContext::Perform(string_view unit)
 void
 REPLContext::Process(TermNode& term)
 {
+	TokenizeTerm(term);
 	Preprocess(term);
 	Reduce(term, Root);
 }
@@ -632,7 +630,7 @@ ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 		const auto i(std::next(con.cbegin()));
 
 		// XXX: Modifier is treated as special name.
-		if(const auto p = TermToName(Deref(i)))\
+		if(const auto p = TermToName(Deref(i)))
 			if(*p == mod)
 			{
 				con.erase(i);
@@ -716,7 +714,7 @@ ExtractLambdaParameters(const TermNode::Container& con)
 
 	// TODO: Simplify?
 	std::for_each(con.begin(), con.end(), [&](decltype(*con.begin()) pv){
-		const auto& name(Access<string>(pv));
+		const auto& name(Access<TokenValue>(pv));
 
 		// FIXME: Missing identifier syntax check.
 		// TODO: Throw %InvalidSyntax for invalid syntax.

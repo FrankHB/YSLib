@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r1345
+\version r1372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2016-12-21 12:07 +0800
+	2016-12-23 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -445,13 +445,18 @@ NPL 约定一个在实现中的有效名称总是指称一个命名空间。有�
 作用是空集的表达式求值是空作用求值(null effect evaluation) 。推论：空作用求值是空求值。
 语法形式(@3.4.4) 固定且求值总是空求值的表达式是空表达式(empty expression) ，这仅由派生实现可选提供。
 
-@4.4.3 规范形式(normal form) ：
-规范形式是由派生实现定义的表示(@4.1) ，被一组规约规则确定，满足：
+@4.4.3 范式(normal form) ：
+规范化形式(normalized form)，或简称范式(normal form) ，是由派生实现定义的表示(@4.1) ，被一组规约规则确定，满足：
 通过有限的规约步骤后得到；
 按规约规则，规范形式上不存在不和空求值等价(@4.4.2) 的进一步规约。
 表达式在得到规范形式后求值终止。
 若表达式规约总是能得到规范形式（求值总是能在有限规约步骤后终止），则具有强规范化(strong normalization) 性质。
 除非派生实现另行约定，不保证强规范化性质。
+
+@4.4.3.1 其它规范化中间表示：
+第一个子表达式（头表达式）是范式的表达式是 HNF（Head Normal Form ，头范式）。
+头表达式是可直接求值为范式的表达式是 WHNF（Weak HNF，弱头范式）。
+约定求值到 WHNF 提供保证强规范性的一般手段，可用于非严格求值(@4.4.4.5) 。
 
 @4.4.4 组合求值：
 表达式和子表达式之间的求值需满足一定约束。
@@ -620,16 +625,22 @@ NPLA 实现为对数据结构的管道-过滤器(pipe-filter) 架构模式的处
 
 @5.3.3.1 类型映射(@5.2.1) 实现：
 类型映射使用的 C++ 类型在 namespace NPL 中声明，从 namespace YSLib 引入。
-一些类型如 YSLib::ValueNode 和 YSLib::ValueObject 被以下章节的实现使用，成为实际的映射目标。关于这些类型，参见 [Documentation::YSLib @@3.16] 和 [Documentation::YSLib @@3.2] 。
+一些类型如 YSLib::ValueNode 和 YSLib::ValueObject 被以下章节的实现使用，成为实际的映射目标。
+以下章节 @5.3.3.2 和 @5.3.3.3 提供的节点或中间值类型(thunk type) 是类型映射的目标(@5.3.3.1) 。
+关于这些类型，另见 [Documentation::YSLib @@3.16] 和 [Documentation::YSLib @@3.2] 。
 
 @5.3.3.2 节点数据结构：
 NPLA 实现使用节点(node) 数据结构表示实现使用的 IR 中间表示递归的构造，如 SContext 产生的 AST 的节点和语义分析使用的项。
 这样的节点类型为 TermNode ，也用于表示单一的树（如整个 AST(@5.B.1) ）。
 NPLA 实现语义规则时对 TermNode 进行处理。除最后的代码生成（若需要），树的结构总是在根节点保持不变（总是一颗树），且来自于语法分析的节点名称不会被修改。
-当前 TermNode 是 ValueNode 的别名。其中包含值对象 Value ，是 ValueObject 类型的对象，用于表示对象语言（ NPLA 实现）中表达式或对象储存的值。
+当前 TermNode 是 ValueNode 的别名。其中包含值对象 Value ，是 ValueObject 类型的对象，用于表示对象语言（ NPLA 实现）中表达式或对象储存的值，或者包装的中间对象(thunk) 。
 上下文(@4.6.1) 使用 ContextNode 类型表示。
+
+@5.3.3.3 中间值类型：
+中间值类型可在 TermNode 的 Value 数据成员中存储。和其它情形存储的对象类型不同，中间值可能参与特定的规约过程。
+TokenValue 类型标记记号(@3.3.1) 值。记号和 string 类似，但求值的结果不会是 TokenValue 自身，以避免不经意的递归求值或无法和宿主语言字符串值区分的情形出现。
 延迟求值项使用 DelayedTerm 表示，当前是 TermNode 的别名。延迟求值项可作为值对象和其它项区分，影响一个项是否为范式(@5.4.2.2) 。
-上述类型是类型映射的目标(@5.3.3.1) 。
+直接储存于 Value 的处理器(@5.4.1.2) 是中间值。
 
 @5.4 NPLA 公共接口：
 部分实现的功能由公共 API 的形式提供，以便派生实现复用。
@@ -674,10 +685,8 @@ ReductionStatus::NeedRetry 指定所在的列表表达式需要以相同的参�
 @5.4.2.2 规约迭代：
 重规约(@5.4.2.1) 可视为一轮迭代。
 NPL::CheckReducible 检查参数指定的规约结果是否可继续规约。
-当迭代终止时，在 TermNode 参数中得到强规范化形式(strong normalized form)，或简称范式(normal form) 。
-NPL::IsNormalForm 判断指定的项是否是范式。
-NPL::NormalizeBranch 移除空子节点。
-NPL::DetectReducible 调用 NPL::NormalizeBranch 后根据参数指定的（一般是上一次的）规约结果(@5.4.2.1) 判断是否没有取得范式而需要继续规约。
+当迭代终止时，在 TermNode 参数中得到规范化形式(normalized form)，或简称范式(normal form) 。
+范式由派生实现指定。最简单的情形直接使用 NPL::CheckReducible 以规约结果决定是否为可继续规约的非范式。
 
 @5.4.3 遍迭代：
 NPLA 实现提供可调用的遍(@5) 作为一次规约迭代的基础。
@@ -746,14 +755,13 @@ NPL::TransformNPLA1 通过 ValueNode 变换实现解释，参数指定映射例�
 @6.1 规约实现：
 NPLA1 实现了一般的规约(@4.1) ，包括对列表表达式子项的递归规约。
 NPLA1 规约以 A1::Reduce 作为参考实现，返回类型为描述一次规约调用操作结束后的状态的 ReductionStatus(@5.4.2.1) 。
-A1::Reduce 通过 NPL::DetectReducible(@5.4.2.2) 判断是否需要重规约。
-A1::Reduce 的实现中不直接指定需要重规约；所有 A1::ReductionStatus::NeedRetry 都来自遍(@6.1.2) 的调用。
-名称表达式的求值不进行进一步规约(@4.5.1) ，但列表表达式不是名称表达式，因此不涉及重规约。
-根据调用结果进行必要的重规约，即迭代规约。
 A1::Reduce 对参数的使用符合 NPLA 实现的规约迭代默认约定(@5.4.2) ；其中 TermNode 表示的表达式语法意义(@3.4.2) 上非空，但没有实现限制（即不附加检查）。
+A1::Reduce 循环调用遍(@6.1.2) 进行必要的重规约，即迭代规约；通过 NPL::CheckReducible(@5.4.2.2) 判断是否需要重规约。
+A1::Reduce 的实现中不直接指定需要重规约；所有 A1::ReductionStatus::NeedRetry 都来自遍(@6.1.2) 的调用。
+名称表达式的求值不进行进一步规约(@4.5.1) ，这由具体遍(@6.1.2) 的实现保证。
 使用设置遍的 API(@6.1.2) 修改 ContextNode 中的具体遍以使用不同的求值规则。
 A1::ReduceArguments 从第二个子项起逐项规约。
-A1::ReduceChecked 循环规约直至 NPL::CheckReducible 判断不可继续规约。
+A1::ReduceChecked 循环规约直至 NPL::CheckReducible 判断不可继续规约；注意这可能引起迭代无法退出。
 A1::ReduceFirst 对可能存在的第一个子项进行规约。
 若第一个子项规约结果可被作为列表求值遍的事件处理器，整个项可继续规约。能进行此规约的形式称为 fexpr ，其中 f 表示 first 。
 在某些其它语言中，符合类似求值规则的构造也称为 fexpr ，但语源不尽相同。
@@ -778,8 +786,7 @@ A1::Reduce 满足迭代顺序(@6.1.1) 提供的保证优先检查子节点数，
 
 @6.2 节点记号：
 NPLA1 实现使用 A1::ValueToken 类型表示特殊的中间值。
-A1::ValueToken::Null 用于表示规约(@6.1) 过程中的空节点。 A1::Reduce 规约时把空节点列表替换为空节点。
-A1::FunctionContextHandler(@6.4) 处理时移除中间过程空节点。其它上下文(@4.6.1) 处理需要用户代码另行替换。
+A1::ValueToken::Null 用于表示规约(@6.1) 过程中的空节点，但当前不再使用。注意当前 A1::Reduce 规约时不对空节点列表进行操作。
 除了 ValueToken::Null 之外的值不被设计为表示不影响语义的空节点，位置也可能影响语义，因此一般不被直接忽略。
 A1::ValueToken::Unspecified 用于表示未指定的值。
 
@@ -820,6 +827,9 @@ A1::EvaluateIdentifier 对标识符项求值，通过调用 NPL::FetchValuePtr �
 A1::EvaluateLeafToken 对作为叶节点记号的项求值，其中会判断字面量并按需调用字面量合并遍(@5.4.3.2) 或 A1::EvaluateIdentifier 。
 A1::EvaluateDelayed 对值对象为延迟求值项(@5.3.3.2) 的项继续规约，以配合先前求值表达式时不直接规约(@6.1) 而实现非严格求值(@4.4.4.5)。
 A1::ReduceLeafToken 规约叶节点记号，提取名称并调用 A1::EvaluateLeafToken 求值对应项。
+
+@6.4.4.1 WHNF 求值：
+A1::EvaluateContextFirst(@6.4.4) 作为 WHNF(@4.4.3.1) 求值，可配合 A1::FormContextHandler 在第一个子项上提供中间值(@5.3.3.3) 。
 
 @6.5 REPL API ：
 NPLA1 提供 REPL API 以便于组装 REPL 和解释器。
