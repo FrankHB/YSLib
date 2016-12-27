@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5637
+\version r5639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2016-11-18 10:58 +0800
+	2016-12-27 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1806,8 +1806,8 @@ b348
 				%(equal, always_equal; equal_examiner)")),
 		/ %Any $=
 		(
-			/ $dev "loosed nothrow exception-specification" @ "copy constructor"
-				@ "class template %value_holder",
+			/ $dev "loosed non-throwing exception specification"
+				@ "copy constructor" @ "class template %value_holder",
 			/ "member 'public _type held'" @ "class template %value_holder"
 				-> "'protected mutable _type held'";
 			/ "member 'public _type* p_held'" @ "class template %pointer_holder"

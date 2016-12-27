@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5030
+\version r5080
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-23 23:28 +0800
+	2016-12-27 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,57 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL.NPLA1 $=
+		(
+			/ "recognized token value" @ "exception message"
+				@ "function %EvaluateContextFirst",
+				// This would normally not occur since undeclared identifier \
+					would cause error even before, however, direct call is \
+					still possible.
+			+ "functions %(And, Or)" @ "namespace %Forms",
+			+ "function %ReduceOrdered",
+			/ "function %RegisterSequenceContextTransformer" $=
+			(
+				/ DLDI ^ "%ystdex::compose",
+				(
+				+ "%bool parameter to allow specifying ordered or not",
+				/ DLDI "simplified"
+					^ ($dep_from "%ReduceOrdered", "%ReduceChildren");
+				/ $comp "guaranteed value to be the last subterm  (if any) \
+					after evaluation when the evaluation is specified to be \
+					ordered"
+					// To make it convenient to be subexpressions.
+				)
+			),
+			* "confusion of evaluation strategy and form in API name"
+				$mismatch(Documentation.NPL) $since b696
+				$=
+			(
+				/ "class %FunctionContextHandler" => "%StrictContextHandler",
+				/ "all 2 function templates %RegisterFunction"
+					=> "%RegisterStrict"
+			)
+		),
+		/ @ %YSLib.Core.ValueNode $=
+		(
+			+ "function %Remove with %const_iterator parameter"
+				@ "class %ValueNode",
+			/ DLDI "simplified 2 function templates %(AccessNode, \
+				AccessNodePtr)" ^ "%ystdex::is_interoperable"
+				~ "%(ystdex::or_, std::is_constructible)"
+				// NOTE: These function templates had implied the key type \
+					should be implicitly convertible to string or vice versa, \
+					not necessarily explicitly castable, since equivalent keys \
+					compared in transparent associative container are used \
+					without explicit cast.
+		)
+	)
+),
+
+b753
 (
 	/ %YFramework $=
 	(

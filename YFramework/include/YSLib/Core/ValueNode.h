@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2905
+\version r2918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-12-10 23:52 +0800
+	2016-12-24 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -384,8 +384,12 @@ public:
 
 	PDefH(bool, Remove, const ValueNode& node)
 		ImplRet(container.erase(node) != 0)
+	//! \since build 754
+	PDefH(iterator, Remove, const_iterator i)
+		ImplRet(container.erase(i))
 	//! \since build 680
-	template<typename _tKey>
+	template<typename _tKey, yimpl(typename = ystdex::enable_if_t<
+		ystdex::is_interoperable<const _tKey&, const string&>::value>)>
 	inline bool
 	Remove(const _tKey& k)
 	{
@@ -696,16 +700,14 @@ YF_API const ValueNode&
 AccessNode(const ValueNode&, size_t);
 //@}
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
-	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
-	std::is_constructible<const string&, const _tKey&>>::value>)>
+	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
 inline ValueNode&
 AccessNode(ValueNode& node, const _tKey& name)
 {
 	return YSLib::AccessNode(node.GetContainerRef(), name);
 }
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
-	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
-	std::is_constructible<const string&, const _tKey&>>::value>)>
+	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
 inline const ValueNode&
 AccessNode(const ValueNode& node, const _tKey& name)
 {
@@ -795,16 +797,14 @@ YF_API observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode&, size_t);
 //@}
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
-	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
-	std::is_constructible<const string&, const _tKey&>>::value>)>
+	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
 inline observer_ptr<ValueNode>
 AccessNodePtr(ValueNode& node, const _tKey& name)
 {
 	return YSLib::AccessNodePtr(node.GetContainerRef(), name);
 }
 template<typename _tKey, yimpl(typename = typename ystdex::enable_if_t<
-	ystdex::or_<std::is_constructible<const _tKey&, const string&>,
-	std::is_constructible<const string&, const _tKey&>>::value>)>
+	ystdex::is_interoperable<const _tKey&, const string&>::value>)>
 inline observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode& node, const _tKey& name)
 {
