@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1893
+\version r1954
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-23 22:06 +0800
+	2016-12-27 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,6 +166,39 @@ TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
 	return res;
 }
 
+//! \since build 753
+ReductionStatus
+AndOr(TermNode& term, ContextNode& ctx, bool is_and)
+{
+	Forms::Quote(term);
+
+	auto i(term.begin());
+
+	if(++i != term.end())
+	{
+		if(std::next(i) == term.end())
+			LiftTerm(term, *i);
+		else
+		{
+			ReduceChecked(*i, ctx);
+			if(ystdex::value_or(i->Value.AccessPtr<bool>(), is_and) == is_and)
+				term.Remove(i);
+			else
+			{
+				if(is_and)
+					term.Value = false;
+				else
+					LiftTerm(term, i->Value);
+				term.Remove(i);
+				return ReductionStatus::Success;
+			}
+		}
+		return ReductionStatus::NeedRetry;
+	}
+	term.Value = is_and;
+	return ReductionStatus::Success;
+}
+
 //! \since build 748
 template<typename _func>
 void
@@ -306,6 +339,16 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
 }
 
+void
+ReduceOrdered(TermNode& term, ContextNode& ctx)
+{
+	RemoveHead(term);
+	// XXX: This relies on current implementation;
+	yimpl(ReduceChildren)(term, ctx);
+	if(!term.empty())
+		LiftTerm(term, term.rbegin()->Value);
+}
+
 ReductionStatus
 ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 {
@@ -399,7 +442,7 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 
 
 ReductionStatus
-FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
+StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	auto& con(term.GetContainerRef());
 
@@ -436,17 +479,15 @@ FunctionContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 
 void
 RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
-	const TokenValue& name, const ValueObject& delim)
+	const TokenValue& name, const ValueObject& delim, bool ordered)
 {
 	// TODO: Simplify by using %ReductionStatus as invocation result directly.
 //	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
-	passes += [name, delim](TermNode& term){
-		return NeedsRetry(ReplaceSeparatedChildren(term, name, delim));
-	};
-	RegisterFormContextHandler(node, name, [](TermNode& term, ContextNode& ctx){
-		RemoveHead(term);
-		ReduceChildren(term, ctx);
-	}, IsBranch);
+	passes += ystdex::compose(NeedsRetry,
+		ystdex::bind1(ReplaceSeparatedChildren, name, delim));
+	RegisterFormContextHandler(node, name, ordered ? ReduceOrdered
+		: static_cast<void(&)(TermNode&, ContextNode&)>(ReduceChildren),
+		IsBranch);
 }
 
 
@@ -460,10 +501,12 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
 			return (*p_handler)(term, ctx);
 		// TODO: Capture contextual information in error.
+		// TODO: Extract general form information extractor function.
 		throw ListReductionFailure(
 			ystdex::sfmt("No matching form '%s' with %zu argument(s) found.",
 			ystdex::call_value_or(std::mem_fn(&string::c_str),
-			AccessPtr<string>(fm), "#<unknown>"), term.size()));
+			ystdex::nonnull_or(TermToName(fm), AccessPtr<string>(fm)),
+			"#<unknown>"), term.size()));
 	}
 	return ReductionStatus::Success;
 }
@@ -816,6 +859,19 @@ Lambda(TermNode& term, ContextNode& ctx)
 	}
 	else
 		throw InvalidSyntax("Syntax error in lambda abstraction.");
+}
+
+
+ReductionStatus
+And(TermNode& term, ContextNode& ctx)
+{
+	return AndOr(term, ctx, true);
+}
+
+ReductionStatus
+Or(TermNode& term, ContextNode& ctx)
+{
+	return AndOr(term, ctx, {});
 }
 
 

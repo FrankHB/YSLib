@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r514
+\version r517
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2016-08-17 23:09 +0800
+	2016-12-27 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -317,6 +317,9 @@ YSLib 早期包装 Loki 指针实现句柄；
 build 208 起包装 ISO C++11 标准库智能指针实现；
 build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
 build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引入外部名称。
+部分名称从标准库的命名空间 std 中引入。
+部分名称从 YBase([Documentation::YBase]) 的命名空间 ystdex 中引入。
+引入的命名空间来源通常属于实现细节，不应被依赖。
 
 @5.3.2 容器、拟容器和适配器 Container ：
 包含标准库容器相关的头，并在顶级平台命名空间([Documentation::YFramework @@2.3.4]) 引入相关名称。

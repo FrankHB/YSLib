@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2106
+\version r2177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-23 22:05 +0800
+	2016-12-27 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,12 +249,14 @@ YF_API ReductionStatus
 Reduce(TermNode&, ContextNode&);
 
 /*!
-\note 按语言规范，子项规约顺序未指定。
 \note 可能使参数中容器的迭代器失效。
 \sa Reduce
 */
 //@{
-//! \note 忽略子项重规约要求。
+/*!
+\note 按语言规范，子项规约顺序未指定。
+\note 忽略子项重规约要求。
+*/
 //@{
 /*!
 \brief 对容器中的第二项开始逐项规约。
@@ -302,7 +304,19 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 //@}
 
 /*!
+\brief 规约有序序列：移除第一子项，规约剩余子项，并替换值。
+\sa RemoveHead
+\since build 754
+
+移除第一个子项并对剩余子项顺序求值。
+当被求值后存在剩余子项时，表达式的值为最后一个子项的值。
+*/
+YF_API void
+ReduceOrdered(TermNode&, ContextNode&);
+
+/*!
 \brief 移除容器首项到指定迭代器的项后规约。
+\note 按语言规范，子项规约顺序未指定。
 \since build 733
 */
 YF_API ReductionStatus
@@ -467,23 +481,26 @@ public:
 
 
 /*!
-\brief 函数上下文处理器。
-\since build 696
+\brief 严格上下文处理器。
+\since build 754
+
+对参数先进行求值的上下文处理器。
 */
-class YF_API FunctionContextHandler
+class YF_API StrictContextHandler
 {
 public:
+	//! \since build 696
 	FormContextHandler Handler;
 
 	//! \since build 697
 	template<typename _func,
-		yimpl(typename = ystdex::exclude_self_t<FunctionContextHandler, _func>)>
-	FunctionContextHandler(_func&& f)
+		yimpl(typename = ystdex::exclude_self_t<StrictContextHandler, _func>)>
+	StrictContextHandler(_func&& f)
 		: Handler(yforward(f))
 	{}
 	//! \since build 733
 	template<typename _func, typename _fCheck>
-	FunctionContextHandler(_func&& f, _fCheck c)
+	StrictContextHandler(_func&& f, _fCheck c)
 		: Handler(yforward(f), c)
 	{}
 
@@ -499,12 +516,9 @@ public:
 	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
 
-	/*!
-	\brief 比较上下文处理器相等。
-	\since build 748
-	*/
-	friend PDefHOp(bool, ==, const FunctionContextHandler& x,
-		const FunctionContextHandler& y)
+	//! \brief 比较上下文处理器相等。
+	friend PDefHOp(bool, ==, const StrictContextHandler& x,
+		const StrictContextHandler& y)
 		ImplRet(x.Handler == y.Handler)
 };
 
@@ -525,16 +539,17 @@ template<typename... _tParams>
 inline ContextHandler
 ToContextHandler(_tParams&&... args)
 {
-	return FunctionContextHandler(yforward(args)...);
+	return StrictContextHandler(yforward(args)...);
 }
 
 /*!
-\brief 注册函数上下文处理器。
+\brief 注册严格上下文处理器。
 \note 使用 ADL ToContextHandler 。
+\since build 754
 */
 template<typename... _tParams>
 inline void
-RegisterFunction(ContextNode& node, const string& name, _tParams&&... args)
+RegisterStrict(ContextNode& node, const string& name, _tParams&&... args)
 {
 	NPL::RegisterContextHandler(node, name,
 		ToContextHandler(yforward(args)...));
@@ -544,12 +559,19 @@ RegisterFunction(ContextNode& node, const string& name, _tParams&&... args)
 /*!
 \brief 注册分隔符转换变换和处理例程。
 \sa NPL::RegisterContextHandler
+\sa ReduceChildren
+\sa ReduceOrdered
 \sa ReplaceSeparatedChildren
 \since build 753
+
+变换带有中缀形式的分隔符记号的表达式为指定名称的前缀表达式并去除分隔符，
+然后注册前缀语法形式。
+最后一个参数指定是否有序，选择语法形式为 ReduceOrdered 或 ReduceChildren 之一。
+前缀名称不需要是记号支持的标识符。
 */
 YF_API void
 RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
-	const TokenValue&, const ValueObject&);
+	const TokenValue&, const ValueObject&, bool = {});
 
 
 /*!
@@ -835,21 +857,21 @@ struct UnaryAsExpansion
 
 
 /*!
-\brief 注册一元函数。
-\since build 741
+\brief 注册一元严格求值上下文处理器。
+\since build 754
 */
 //@{
 template<typename _func>
 void
-RegisterUnaryFunction(ContextNode& node, const string& name, _func f)
+RegisterStrictUnary(ContextNode& node, const string& name, _func f)
 {
-	RegisterFunction(node, name, UnaryExpansion<_func>{f}, IsBranch);
+	RegisterStrict(node, name, UnaryExpansion<_func>{f}, IsBranch);
 }
 template<typename _type, typename _func>
 void
-RegisterUnaryFunction(ContextNode& node, const string& name, _func f)
+RegisterStrictUnary(ContextNode& node, const string& name, _func f)
 {
-	RegisterFunction(node, name, UnaryAsExpansion<_type, _func>{f}, IsBranch);
+	RegisterStrict(node, name, UnaryAsExpansion<_type, _func>{f}, IsBranch);
 }
 //@}
 
@@ -939,6 +961,37 @@ $lambda <formals> <body>
 YF_API void
 Lambda(TermNode&, ContextNode&);
 //@}
+//@}
+
+
+/*!
+\sa ReduceChecked
+\since build 754
+*/
+//@{
+/*!
+\brief 逻辑与。
+
+非严格求值若干个子项，返回求值结果的逻辑与：
+除首个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
+当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
+特殊形式参考文法：
+$and <test1>...
+*/
+YF_API ReductionStatus
+And(TermNode&, ContextNode&);
+
+/*!
+\brief 逻辑或。
+
+非严格求值若干个子项，返回求值结果的逻辑或：
+除首个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
+当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
+特殊形式参考文法：
+$or <test1>...
+*/
+YF_API ReductionStatus
+Or(TermNode&, ContextNode&);
 //@}
 
 

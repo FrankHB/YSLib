@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3123
+\version r3132
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-09-28 10:20 +0800
+	2016-12-27 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,6 +225,13 @@ LoggedEvent ：记录异常事件类。
 @3.6 基础字符串管理 YString
 通用字符串抽象以及相关 API 。
 包括 String 类。当前使用 UCS-2 作为内部编码（字节序同实现的 char16_t 存储字节序）。
+因为 UCS-4 的空间效率低下， UTF-8 和 UTF-16 的变长编码特性不利于高效处理编码单元，所以内部使用 UCS-2 存储 Unicode 字符集的 BMP（Basic Multilingual Plain ，基本多文种平面）子集。
+BMP 作为表示通常人类可读文本的编码，是用户界面(@5) 默认直接使用的字符串编码。
+此外，字体处理时因为类似的原因，字符映射表的外部编码也常用 UCS-2 （但这对应此处的内部编码）。
+虽然内部编码是 UCS-2 ， String 不假设内部使用 BMP 字符，因此可以保存 UTF-16 字符串，但除非另行约定，这不被 YSLib 直接使用。
+表示 BMP 外完整的 Unicode 字符集中的代码点对 String 是透明的，可在用户界面中另行处理。
+Unicode 字符处理要求识别不同语言的脚本(script) ，也不保证和代码点之间的对应关系，因此不被 String 直接支持。
+这些编码可能带有非文本信息（如带颜色的 emoji ），不一定被表示文本的用户界面元素支持。
 
 @3.7 平台无关的基础图形学对象 YGDIBase ：
 
@@ -360,7 +367,8 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 
 @4.3 基础文本显示：
 通用的字符/字符串光栅化/布局处理。
-字符串处理位于 Core::YString ，不在此处。
+可配合 Core::YString(@3.6) 的字符串类型使用。
+假定文本的代码点和字符一一对应，详见 @3.6 。
 
 @4.3.1 文本基础抽象 TextBase ：
 包含笔样式 PenStyle 、文本状态 TextState 等。

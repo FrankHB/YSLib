@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r288
+\version r289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2016-11-01 23:34 +0800
+	2016-12-27 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,7 +240,7 @@ Notes for disabling some Microsoft VC++ warning:
 		MSDN also says it is by design to treat cast as same as coercion here. Keeping the solution recommended by adding '!= 0' effectively make code lengthy with actually no benifit, thus it simply not fit for modern C++ in most cases.
 		In C++ (but not in C), coercion or cast to 'bool' is quite safe. Comparaing to null pointer value explicitly is OK, but not required. On the contrast, it might be standard way to test null pointer (but not compare to zero), particular in the ISO C++11 wording "contextually convertible to bool" as some requirements for types including pointers.
 		Too bad copying '!= 0' or similar mouthy stuff ('!= nullptr') everywhere in C++ code.
-The workaround of move constructor and %operator= for Microsoft VC++ 2013 is currently some slower than it should be with fully supported ISO C++11 implementation, because the 'noexcept' operator is missing, and nothrow specification is not guaranteed to work everywhere.
+The workaround of move constructor and %operator= for Microsoft VC++ 2013 is currently some slower than it should be with fully supported ISO C++11 implementation, because the 'noexcept' operator is missing, and non-throwing exception specification is not guaranteed to work everywhere.
 
 $2013-12:
 
