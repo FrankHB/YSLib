@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2207
+\version r2330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-12-02 17:57 +0800
+	2016-12-28 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 //	remove_reference_t, detected_or_t, not_, is_void, remove_pointer_t,
 //	is_pointer, enable_if_t, is_array, extent, remove_extent_t,
 //	ystdex::construct_within, is_polymorphic;
+#include "pointer.hpp" // for "pointer.hpp";
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "exception.h" // for throw_invalid_construction;
 #include "cassert.h" // for yconstraint;
@@ -923,146 +924,6 @@ clone_polymorphic_ptr(const _tPointer& p) -> decltype(clone_polymorphic(*p))
 	return
 		p ? ystdex::clone_polymorphic(*p) : decltype(clone_polymorphic(*p))();
 }
-//@}
-
-
-//! \since build 669
-//@{
-/*!
-\brief 观察者指针：无所有权的智能指针。
-\see WG21 N4529 8.12[memory.observer.ptr] 。
-*/
-template<typename _type>
-class observer_ptr : private totally_ordered<observer_ptr<_type>>,
-	private equality_comparable<observer_ptr<_type>, nullptr_t>
-{
-public:
-	using element_type = _type;
-	using pointer = yimpl(add_pointer_t<_type>);
-	using reference = yimpl(add_lvalue_reference_t<_type>);
-
-private:
-	_type* ptr{};
-
-public:
-	//! \post <tt>get() == nullptr</tt> 。
-	//@{
-	yconstfn
-	observer_ptr() ynothrow yimpl(= default);
-	yconstfn
-	observer_ptr(nullptr_t) ynothrow
-		: ptr()
-	{}
-	//@}
-	explicit yconstfn
-	observer_ptr(pointer p) ynothrow
-		: ptr(p)
-	{}
-	template<typename _tOther>
-	yconstfn
-	observer_ptr(observer_ptr<_tOther> other) ynothrow
-		: ptr(other.get())
-	{}
-
-	//! \pre 断言： <tt>get() != nullptr</tt> 。
-	yconstfn reference
-	operator*() const ynothrowv
-	{
-		return yconstraint(get() != nullptr), *ptr;
-	}
-
-	yconstfn pointer
-	operator->() const ynothrow
-	{
-		return ptr;
-	}
-
-	//! \since build 675
-	friend yconstfn bool
-	operator==(observer_ptr p, nullptr_t) ynothrow
-	{
-		return !p.ptr;
-	}
-
-	explicit yconstfn
-	operator bool() const ynothrow
-	{
-		return ptr;
-	}
-
-	explicit yconstfn
-	operator pointer() const ynothrow
-	{
-		return ptr;
-	}
-
-	yconstfn pointer
-	get() const ynothrow
-	{
-		return ptr;
-	}
-
-	yconstfn_relaxed pointer
-	release() ynothrow
-	{
-		const auto res(ptr);
-
-		reset();
-		return res;
-	}
-
-	yconstfn_relaxed void
-	reset(pointer p = {}) ynothrow
-	{
-		ptr = p;
-	}
-
-	yconstfn_relaxed void
-	swap(observer_ptr& other) ynothrow
-	{
-		std::swap(ptr, other.ptr);
-	}
-};
-
-//! \relates observer_ptr
-//@{
-//! \since build 675
-//@{
-template<typename _type1, typename _type2>
-yconstfn bool
-operator==(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
-{
-	return p1.get() == p2.get();
-}
-
-template<typename _type1, typename _type2>
-yconstfn bool
-operator!=(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
-{
-	return !(p1 == p2);
-}
-
-template<typename _type1, typename _type2>
-yconstfn bool
-operator<(observer_ptr<_type1> p1, observer_ptr<_type2> p2) ynothrowv
-{
-	return std::less<common_type_t<_type1, _type2>>(p1.get(), p2.get());
-}
-//@}
-
-template<typename _type>
-inline void
-swap(observer_ptr<_type>& p1, observer_ptr<_type>& p2) ynothrow
-{
-	p1.swap(p2);
-}
-template<typename _type>
-inline observer_ptr<_type>
-make_observer(_type* p) ynothrow
-{
-	return observer_ptr<_type>(p);
-}
-//@}
 //@}
 
 

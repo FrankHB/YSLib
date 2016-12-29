@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2803
+\version r2807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2016-02-11 01:11 +0800
+	2016-12-28 17:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,10 +89,10 @@ using ystdex::lref;
 //! \since build 669
 //@{
 using ystdex::nptr;
-template<typename _type>
-using tidy_ptr = nptr<observer_ptr<_type>>;
 using ystdex::pointer_iterator;
 //@}
+//! \since build 755
+using ystdex::tidy_ptr;
 
 } // inline namespace references;
 

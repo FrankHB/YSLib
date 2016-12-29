@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r985
+\version r1016
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-12-17 22:13 +0800
+	2016-12-28 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,6 +185,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "type_op.hpp" 依赖 "tuple.hpp" ；
 "ref.hpp" 和 "placement.hpp" 依赖 "addressof.hpp" ；
 "memory.hpp" 和 "type_pun.hpp" 依赖 "placement.hpp" ；
+"memory.hpp" 依赖 "pointer.hpp" ；
 "utility.hpp" 依赖 "type_pun.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
@@ -249,6 +250,7 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 
 @2.5.5.1 解引用操作 DereferenceOperation ：
 提供解引用操作检查的模板，作为迭代器操作的基础。
+同时也提供空（引用值）联合(null coalescing) 相关操作的模板。
 
 @2.5.5.2 C++ 变长参数相关操作 Variadic ：
 使用 ISO C++11 起提供的变长参数包(pack) 的特性提供序列等基本接口的模板库。
@@ -264,6 +266,12 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 扩展了 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
 
 @2.5.5.7 重载操作符 Operators
+
+@2.5.5.8 迭代器操作 IteratorOperation ：
+扩展了标准库头 <iterator> 中的部分接口。
+
+@2.5.5.9 通用指针 Pointer ：
+间接扩展标准库头 <iterator> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
 
 @2.5.6 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
@@ -283,75 +291,70 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 
 @2.5.7.1 C++ 类型操作 TypeOperation
 
-@2.5.7.2 迭代器操作 IteratorOperation ：
-间接扩展了标准库头 <iterator> 。
-
-@2.5.7.3 ISO C 标准信号扩展操作 CSignal ：
+@2.5.7.2 ISO C 标准信号扩展操作 CSignal ：
 头文件扩展了标准库头 <csignal> ，提供一些便利接口。
 
-@2.5.7.4 ISO C 断言/调试跟踪扩展 CAssert ：
+@2.5.7.3 ISO C 断言/调试跟踪扩展 CAssert ：
 头文件扩展了标准库头 <cassert> ，提供若干断言函数。这些函数提供无异常抛出保证的异常规范以便在隐式指定异常规范的无异常抛出的析构函数([Documentation::LanguageConvention @@5.10.5.6]) 中使用。
 在库使用约定([Documentation::CommonRules @@3.13.2]) 和语言使用规约([Documentation::LanguageConvention @@6.3.3]) 的基础上使用方式同 <cassert> 和 <assert.h> （允许定义宏控制重复包含的内容）。
 
-@2.5.7.5 存储和智能指针特性 Memory
+@2.5.7.4 存储和智能指针特性 Memory
 扩展了标准库头 <memory> 并提供一些附加的接口。
 其中，分配器 local_allocator 类似 std::allocator 可解除直接 new 调用的限制，和 std::allocator 不同的是同时也支持类作用域 operator new 覆盖默认行为。
 
-@2.5.7.6 实用设施 Utilities ：
+@2.5.7.5 实用设施 Utilities ：
 扩展了标准库头 <utility> ，提供一些常用杂项功能。
 
-@2.5.7.7 ISO C 字符分类操作扩展 CCharacterCtype ：
+@2.5.7.6 ISO C 字符分类操作扩展 CCharacterCtype ：
 头文件扩展了标准库头 <cctype> ，提供一些扩展和替代实现。
 
-@2.5.7.8 ISO C 标准字符串扩展 CString
+@2.5.7.7 ISO C 标准字符串扩展 CString
 
-@2.5.7.9 引用包装 Ref
+@2.5.7.8 引用包装 Ref
 
-@2.5.7.10 通用仿函数 Functor
+@2.5.7.9 通用仿函数 Functor
 
-@2.5.7.11 元组类型和操作 Tuple ：
+@2.5.7.10 元组类型和操作 Tuple ：
 扩展了标准库头 <tuple> ，提供类型特征和序列相关的特化操作等。
 
-@2.5.7.12 函数和可调用对象 Functional ：
+@2.5.7.11 函数和可调用对象 Functional ：
 扩展了标准库头 <functional> ，提供函数类型操作和各种一般调用的实现。
 
-@2.5.7.13 通用指针 Pointer
-
-@2.5.7.14 通用迭代器 Iterator ：
+@2.5.7.12 通用迭代器 Iterator ：
 间接扩展了标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
 
-@2.5.7.15 迭代器特征 IteratorTrait ：
+@2.5.7.13 迭代器特征 IteratorTrait ：
 扩展标准库头 <iterator> ，提供迭代器相关的类型特征。
 
-@2.5.7.16 泛型算法 Algorithm ：
+@2.5.7.14 泛型算法 Algorithm ：
 扩展了标准库头 <algorithm> ，提供一些泛型算法。
 除非另行约定，使用 first 和 last 为名称的参数指定同一个范围，否则不保证结果正确，可能引起未定义行为。
 
-@2.5.7.17 ISO C++ 标准字符串扩展 String ：
+@2.5.7.15 ISO C++ 标准字符串扩展 String ：
 间接扩展了标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
-@2.5.7.18 ISO C 宽字符分类操作扩展 CWideCharacterType ：
+@2.5.7.16 ISO C 宽字符分类操作扩展 CWideCharacterType ：
 头文件扩展了标准库头 <cwctype> ，提供一些替代实现。
 
-@2.5.7.19 数组操作 Array ：
+@2.5.7.17 数组操作 Array ：
 扩展了标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.5.7.20 集合容器 Set ：
+@2.5.7.18 集合容器 Set ：
 扩展标准库头 <map> ，但提供和 std::set 类似的容器。
 
-@2.5.7.21 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+@2.5.7.19 ISO C++ 标准流缓冲扩展 StreamBuffer ：
 扩展了标准库头 <streambuf> 。
 
-@2.5.7.22 ISO C++ 标准输入流扩展 InputStream ：
+@2.5.7.20 ISO C++ 标准输入流扩展 InputStream ：
 扩展了标准库头 <istream> 。
 
-@2.5.7.23 ISO C 标准输入/输出扩展 CStandardIO ：
+@2.5.7.21 ISO C 标准输入/输出扩展 CStandardIO ：
 头文件扩展了标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.7.24 ISO C++ <future> 扩展 Future ：
+@2.5.7.22 ISO C++ <future> 扩展 Future ：
 扩展了标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.7.25 伪互斥量 PseudoMutex ：
+@2.5.7.23 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.8 其它扩展接口：
