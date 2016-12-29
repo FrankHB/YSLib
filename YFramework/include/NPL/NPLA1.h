@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2177
+\version r2189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-27 21:17 +0800
+	2016-12-28 13:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -304,7 +304,7 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 //@}
 
 /*!
-\brief 规约有序序列：移除第一子项，规约剩余子项，并替换值。
+\brief 规约有序序列：移除第一个子项，规约剩余子项，并替换值。
 \sa RemoveHead
 \since build 754
 
@@ -315,7 +315,7 @@ YF_API void
 ReduceOrdered(TermNode&, ContextNode&);
 
 /*!
-\brief 移除容器首项到指定迭代器的项后规约。
+\brief 移除容器第一个子项到指定迭代器的项后规约。
 \note 按语言规范，子项规约顺序未指定。
 \since build 733
 */
@@ -324,7 +324,7 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 //@}
 
 /*!
-\brief 规约首项。
+\brief 规约第一个子项。
 \return 规约状态。
 \sa Reduce
 \see https://en.wikipedia.org/wiki/Fexpr 。
@@ -575,13 +575,15 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 
 
 /*!
-\brief 检查项的首项并尝试按上下文列表求值。
+\brief 检查项的第一个子项并尝试按上下文列表求值。
 \return 规约状态。
-\throw ListReductionFailure 规约失败：找不到可规约项。
-\note 若项不是枝节点则视为规约成功，没有其它作用。
+\throw ListReductionFailure 规约失败：枝节点的第一个子项不是上下文处理器。
 \sa ContextHandler
 \sa Reduce
 \since build 730
+
+对枝节点以已规约的第一个子项为上下文处理器并调用，且当规约成功时返回前清理子项；
+否则视为规约成功，没有其它作用。
 */
 YF_API ReductionStatus
 EvaluateContextFirst(TermNode&, ContextNode&);
@@ -723,7 +725,6 @@ public:
 
 /*!
 \brief NPLA1 语法形式对应的功能实现。
-\note 假定求值不改变参数外部的项的有效性。
 \since build 732
 */
 namespace Forms
@@ -802,7 +803,6 @@ CallUnary(_func f, TermNode& term, _tParams&&... args)
 	YSLib::EmplaceFromCall(term.Value,
 		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::move(f)),
 		Deref(std::next(term.begin())), yforward(args)...);
-	term.ClearContainer();
 }
 
 template<typename _type, typename _func, typename... _tParams>
@@ -973,7 +973,7 @@ Lambda(TermNode&, ContextNode&);
 \brief 逻辑与。
 
 非严格求值若干个子项，返回求值结果的逻辑与：
-除首个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
+除第一个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
 当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
 特殊形式参考文法：
 $and <test1>...
@@ -985,7 +985,7 @@ And(TermNode&, ContextNode&);
 \brief 逻辑或。
 
 非严格求值若干个子项，返回求值结果的逻辑或：
-除首个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
+除第一个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
 当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
 特殊形式参考文法：
 $or <test1>...

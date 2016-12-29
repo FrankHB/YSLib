@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r606
+\version r637
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-11-11 18:53 +0800
+	2016-12-28 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,6 +343,19 @@ EncodeArg(const char* str)
 
 
 #if !YCL_Android
+//! \since build 755
+namespace
+{
+
+template<typename _func, typename _tPointer, typename... _tParams>
+bool
+CallTe(_func pmf, _tPointer& p, _tParams&... args)
+{
+	return ystdex::call_value_or(ystdex::bind1(pmf, std::ref(args)...), p);
+}
+
+} // unnamed namespace;
+
 #	if YCL_Win32
 class TerminalData : private WConsole
 {
@@ -351,6 +364,10 @@ public:
 	TerminalData(int fd)
 		: WConsole(ToHandle(fd))
 	{}
+
+	//! \since build 755
+	PDefH(bool, Clear, )
+		ImplRet(WConsole::Clear(), true)
 
 	PDefH(bool, RestoreAttributes, )
 		ImplRet(WConsole::RestoreAttributes(), true)
@@ -384,6 +401,10 @@ private:
 	ExecuteCommand(const string&) const;
 
 public:
+	//! \since build 755
+	PDefH(bool, Clear, ) ynothrow
+		ImplRet(ExecuteCommand("tput clear"))
+
 	PDefH(bool, RestoreAttributes, ) ynothrow
 		ImplRet(ExecuteCommand("tput sgr0"))
 
@@ -408,16 +429,16 @@ TerminalData::ExecuteCommand(const string& cmd) const
 
 Terminal::Guard::~Guard()
 {
-	if(terminal)
+	if(p_terminal && *p_terminal)
 		FilterExceptions([this]{
-			if(YB_UNLIKELY(!terminal.p_term->RestoreAttributes()))
+			if(YB_UNLIKELY(!p_terminal->p_data->RestoreAttributes()))
 				throw LoggedEvent("Restoring terminal attributes failed.");
 		});
 }
 
 
 Terminal::Terminal(std::FILE* fp)
-	: p_term([fp]()->TerminalData*{
+	: p_data([fp]()->TerminalData*{
 #	if !YCL_Win32
 		// XXX: Performance?
 		ystdex::setnbuf(fp);
@@ -443,15 +464,27 @@ Terminal::Terminal(std::FILE* fp)
 ImplDeDtor(Terminal)
 
 bool
+Terminal::Clear()
+{
+	return CallTe(&TerminalData::Clear, p_data);
+}
+
+Terminal::Guard
+Terminal::LockForeColor(std::uint8_t c)
+{
+	return Guard(*this, ystdex::bind1(&Terminal::UpdateForeColor, c));
+}
+
+bool
 Terminal::RestoreAttributes()
 {
-	return p_term ? p_term->RestoreAttributes() : false;
+	return CallTe(&TerminalData::RestoreAttributes, p_data);
 }
 
 bool
 Terminal::UpdateForeColor(std::uint8_t c)
 {
-	return p_term ? p_term->UpdateForeColor(c) : false;
+	return CallTe(&TerminalData::UpdateForeColor, p_data, c);
 }
 
 bool

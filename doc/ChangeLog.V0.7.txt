@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5080
+\version r5124
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-27 21:40 +0800
+	2016-12-29 11:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,50 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL.NPLA1 $=
+		(
+			/ "cleanup subterms if result is %ReductionStatus::Success before \
+				branch reduction returning" @ "function %EvaluateContextFirst";
+			* $comp "missing subterm cleanup" @ "functions %(EqualReference, \
+				EqualVaue)" @ "namespace %Forms" $since b748,
+			/ "simplified by removal of subterm cleanup" @
+				"function %(DefineOrSet, Lambda, function templates %CallUnary)"
+				// This is safe now since all forms are delegated in \
+					%EvaluateContextFirst so far.
+		),
+		/ %YCLib $=
+		(
+			/ "class %Terminal" @ %Host $=
+			(
+				+ "function %Clear",
+				/ DLDI ^ "%ystdex::(call_value_orystdex, bind1)",
+				/ @ "class %Guard" $=
+				(
+					/ DLI "avoided duplication of attribute restore"
+						^ "%tidy_ptr";
+						// Though multiple attribute restore is supported \
+							correctly, it is redundant.
+					+ $forced "move %(constructor, operator=)"
+				),
+				+ "function %LockForeColor"
+			),
+			/ "alias template %tidy_ptr" @ %Reference
+				-> 'using ystdex::tidy_ptr;' $dep_from %YBase.YStandardEx.Memory
+		)
+	),
+	/ %YBase.YStandardEx.Memory $=
+	(
+		+ "explicit dependency to %Pointer";
+		/ "class template %observer_ptr, all function templates for \
+			%observer_ptr" >> %Pointer;
+		+ "alias template %tidy_ptr" @ %Pointer
+	)
+),
+
+b754
 (
 	/ %YFramework $=
 	(
@@ -3534,7 +3578,7 @@ b713
 	),
 	/ $doc %Documentation $=
 	(
-		/ "meaning of 'Try*' routines" @ %CommonRules $since b705,
+		* "meaning of 'Try*' routines" @ %CommonRules $mismatch $since b705,
 			// For example, the convention contradicted to %YSLib::TryInvoke, \
 				and the similar conterpart %try_lock in several mutual \
 				exclusive types in the ISO C++.

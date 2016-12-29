@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r490
+\version r516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-11-19 14:32 +0800
+	2016-12-28 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include "YSLib/Core/YModules.h"
 #include YFM_YCLib_Container // for unordered_map, pair, string_view, string;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
-#include YFM_YCLib_Reference // for unique_ptr_from, unique_ptr, observer_ptr;
+#include YFM_YCLib_Reference // for unique_ptr_from, unique_ptr, observer_ptr,
+//	tidy_ptr, make_observer;
 #include <system_error> // for std::system_error;
 #include <cstdio> // for std::FILE;
 #if !YCL_Win32
@@ -355,6 +356,8 @@ class TerminalData;
 \brief 终端。
 \note 非 Win32 平台使用 \c tput 实现，多终端改变当前屏幕时可能引起未预期的行为。
 \warning 非虚析构。
+
+对底层控制台接口封装的设备接口。当不存在可用的底层接口时，操作无效果。
 */
 class YF_API Terminal
 {
@@ -366,23 +369,28 @@ public:
 	class YF_API Guard final
 	{
 	private:
-		Terminal& terminal;
+		tidy_ptr<Terminal> p_terminal;
 
 	public:
 		template<typename _func>
-		Guard(Terminal& term, _func f)
-			: terminal(term)
+		Guard(Terminal& te, _func f)
+			: p_terminal(make_observer(&te))
 		{
-			if(term)
-				f(term);
+			if(te)
+				f(te);
 		}
+		//! \since build 755
+		DefDeMoveCtor(Guard)
 		//! \brief 析构：重置终端属性，截获并记录错误。
 		~Guard();
+
+		//! \since build 755
+		DefDeMoveAssignment(Guard)
 	};
 
 private:
 	//! \since build 593
-	unique_ptr<TerminalData> p_term;
+	unique_ptr<TerminalData> p_data;
 
 public:
 	/*!
@@ -394,7 +402,21 @@ public:
 	~Terminal();
 
 	//! \brief 判断终端有效或无效。
-	DefBoolNeg(explicit, bool(p_term))
+	DefBoolNeg(explicit, bool(p_data))
+
+	//! \since build 755
+	//@{
+	//! \brief 清除显示的内容。
+	bool
+	Clear();
+
+	/*!
+	\brief 临时固定前景色。
+	\sa UpdateForeColor
+	*/
+	Guard
+	LockForeColor(std::uint8_t);
+	//@}
 
 	bool
 	RestoreAttributes();

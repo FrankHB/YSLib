@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1954
+\version r1962
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-27 21:03 +0800
+	2016-12-28 13:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -499,7 +499,13 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 		const auto& fm(Deref(ystdex::as_const(term).begin()));
 
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
-			return (*p_handler)(term, ctx);
+		{
+			const auto res((*p_handler)(term, ctx));
+
+			if(res == ReductionStatus::Success)
+				term.ClearContainer();
+			return res;
+		}
 		// TODO: Capture contextual information in error.
 		// TODO: Extract general form information extractor function.
 		throw ListReductionFailure(
@@ -723,7 +729,7 @@ DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
 				RemoveIdentifier(ctx, id, mod);
 			else
 				throw InvalidSyntax("Source operand not found.");
-			term.ClearTo(ValueToken::Unspecified);
+			term.Value = ValueToken::Unspecified;
 		}
 		else
 			throw NPLException("Invalid node category found.");
@@ -855,7 +861,6 @@ Lambda(TermNode& term, ContextNode& ctx)
 			else
 				throw LoggedEvent("Invalid application found.", Alert);
 		});
-		con.clear();
 	}
 	else
 		throw InvalidSyntax("Syntax error in lambda abstraction.");
