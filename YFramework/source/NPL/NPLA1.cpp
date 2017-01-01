@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1962
+\version r1979
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-28 13:35 +0800
+	2016-12-31 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -518,6 +518,20 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
+EvaluateDelayed(TermNode& term)
+{
+	if(const auto p = AccessPtr<DelayedTerm>(term))
+	{
+		// NOTE: The referenced term is lived through the envaluation, which is
+		//	guaranteed by the evaluated parent term.
+		LiftDelayed(term, *p);
+		// NOTE: To make it work with %DetectReducible.
+		return ReductionStatus::NeedRetry;
+	}
+	return ReductionStatus::Success;
+}
+
+ReductionStatus
 EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
@@ -568,20 +582,6 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			break;
 			// TODO: Handle other categories of literal.
 		}
-	}
-	return ReductionStatus::Success;
-}
-
-ReductionStatus
-EvaluateDelayed(TermNode& term)
-{
-	if(const auto p = AccessPtr<DelayedTerm>(term))
-	{
-		// NOTE: The referenced term is lived through the envaluation, which is
-		//	guaranteed by the evaluated parent term.
-		LiftDelayed(term, *p);
-		// NOTE: To make it work with %DetectReducible.
-		return ReductionStatus::NeedRetry;
 	}
 	return ReductionStatus::Success;
 }
@@ -789,11 +789,14 @@ If(TermNode& term, ContextNode& ctx)
 		if(!ystdex::value_or(i->Value.AccessPtr<bool>()))
 			++i;
 		if(++i != term.end())
+		{
 			LiftTerm(term, *i);
-		return ReductionStatus::NeedRetry;
+			return ReductionStatus::NeedRetry;
+		}
 	}
 	else
 		throw InvalidSyntax("Syntax error in conditional form.");
+	return ReductionStatus::Success;
 }
 
 void

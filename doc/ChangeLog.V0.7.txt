@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016 FrankHB.
+	© 2016-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5124
+\version r5174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2016-12-29 11:37 +0800
+	2017-01-01 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,53 @@ $import $HISTORY;
 
 $now
 (
+	/ %YBase.YStandardEx $=
+	(
+		+ "transformation traits %(id_t, add_ptr_t, add_ref_t, add_rref_t)"
+			@ %TypeTraits,
+		+ "conversion operator to pointer" @ "metafunction %id" @ %Functor
+			^ $dep_from ("%add_ptr_t" @ %TypeTraits),
+		+ "class template %derived_entity" @ %Base
+	),
+	/ %YFramework $=
+	(
+		+ "converstion to %std::ios_base manipulator" @ "class %Terminal::Guard"
+			@ %YCLib.Host ^ ($dep_from ("%add_ptr_t" @ %TypeTraits,
+			"%ystdex::id" @ %Functor) @ %YBase.YStandardEx),
+		/ $dev $lib "simplified" %CHRLib.MappingEx
+			^ ($dep_from "%ystdex::(add_ptr_t, add_ref_t)"
+			~ "%ystdex::(add_pointer_t, add_lvalue_reference_t)")
+			@ %YBase.YStandardEx.TypeTraits,
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				* "looped forever for 'if' statement without 3rd clause"
+					@ "function %If" @ "namespace %Forms" $sincce b750,
+				/ "1st parameter type" @ "function templates %(CallUnary, \
+					CallUnaryAs)" -> '_func&&' ~ '_func',
+					// Because it is based on expanded caller. See also \
+						$2014-04 @ %Documentation::Workflow::Annual2014.
+				* "missing correct equality comparison"
+					@ "class template %WrappedContextHandler" $since b751 $=
+				(
+					+ "friend %operator==" ^ "%YSLib::AreEqualHeld";
+					* $comp "infinite recursive equality comparison caused by \
+						wrong %operator== for %GHEvent instances used" $since
+						b751
+				)
+			),
+			/ $lib "simplified class %TokenValue" -> "alias"
+				^ ("%ystdex::derived_entity" @ %YBase.YStandardEx.Base)
+		),
+		* "empty value comparison caused indirecting to null pointer target"
+			@ "equality comparer" @ "class %GHEvent" @ %YSLib.Core.YEvent $since
+			b748
+	)
+),
+
+b755
+(
 	/ %YFramework $=
 	(
 		/ %NPL.NPLA1 $=
@@ -40,8 +87,8 @@ $now
 				branch reduction returning" @ "function %EvaluateContextFirst";
 			* $comp "missing subterm cleanup" @ "functions %(EqualReference, \
 				EqualVaue)" @ "namespace %Forms" $since b748,
-			/ "simplified by removal of subterm cleanup" @
-				"function %(DefineOrSet, Lambda, function templates %CallUnary)"
+			/ "simplified by removal of subterm cleanup" @ "function \
+				%(DefineOrSet, Lambda, function templates %CallUnary)"
 				// This is safe now since all forms are delegated in \
 					%EvaluateContextFirst so far.
 		),
@@ -4023,7 +4070,7 @@ b709
 		/ %YSLib $=
 		(
 			* $doc "'\pre' command" @ "Doxygen comments" @ "function template \
-				%ClearSequence" @ %Core.YCoreUtility $since b624,
+				%ClearSequence" @ %Core.YCoreUtilities $since b624,
 			/ @ "class %FileBox" @ %UI.ComboList $=
 			(
 				/ "made %ListItems neutural to exceptions",

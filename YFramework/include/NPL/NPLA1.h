@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2189
+\version r2251
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2016-12-28 13:35 +0800
+	2017-01-02 15:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
-//	YSLib::Access, ystdex::make_expanded;
+//	YSLib::Access, YSLib::AreEqualHeld, ystdex::make_expanded;
 
 namespace NPL
 {
@@ -106,7 +106,7 @@ InsertSequenceChild(TermNode&&, NodeSequence&);
 	若名称非空则忽略第一个子节点，只变换剩余子节点。
 		当剩余一个子节点（即源节点有两个子节点）时，直接递归变换这个节点并返回。
 		若变换后的结果名称非空，则作为结果的值；否则，结果作为容器内单一的值。
-	否则，新建节点容器，遍历并变换剩余的节点插入这个容器，返回以这个容器构造的节点。
+	否则，新建节点容器，遍历并变换剩余的节点插入其中，返回以之构造的节点。
 		第二参数指定此时的映射操作，若为空则默认使用递归 TransformNode 调用。
 		调用第五参数插入映射的结果到容器。
 */
@@ -165,11 +165,11 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 YF_API GuardPasses&
 AccessGuardPassesRef(ContextNode&);
 
-//! \brief 访问叶节点遍。
+//! \brief 访问叶遍。
 YF_API EvaluationPasses&
 AccessLeafPassesRef(ContextNode&);
 
-//! \brief 访问列表节点遍。
+//! \brief 访问列表遍。
 YF_API EvaluationPasses&
 AccessListPassesRef(ContextNode&);
 //@}
@@ -196,11 +196,11 @@ InvokeGuard(TermNode& term, ContextNode&);
 \since build 730
 */
 //@{
-//! \brief 调用叶节点遍。
+//! \brief 调用叶遍。
 YF_API ReductionStatus
 InvokeLeaf(TermNode& term, ContextNode&);
 
-//! \brief 调用列表节点遍。
+//! \brief 调用列表遍。
 YF_API ReductionStatus
 InvokeList(TermNode& term, ContextNode&);
 //@}
@@ -234,14 +234,14 @@ InvokeLiteral(TermNode& term, ContextNode&, string_view);
 规约顺序如下：
 调用 InvokeGuard 进行必要的上下文重置；
 迭代规约，直至不需要进行重规约。
-对应不同的节点次级结构分类，一次迭代按以下顺序判断选择以下分支之一，按需规约子项：
+对应不同的节点次级结构分类，一次迭代按以下顺序选择以下分支之一，按需规约子项：
 对枝节点调用 InvokeList 求值；
 对空节点或值为 ValueToken 的叶节点不进行操作；
 对其它叶节点调用 InvokeLeaf 求值。
 迭代结束调用 CheckReducible ，根据结果判断是否进行重规约。
 此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
 例外情况应单独指定明确的顺序。
-例外情况包括输入节点不是表达式语义结构（而是抽象语法树）的 API ，如 TransformNode 。
+例外情况包括输入节点不是表达式语义结构（而是 AST ）的 API ，如 TransformNode 。
 当前实现返回的规约状态总是 ReductionStatus::Success ，否则会循环迭代。
 若需要保证无异常时仅在规约成功后终止，使用 ReduceChecked 代替。
 */
@@ -330,7 +330,8 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 \see https://en.wikipedia.org/wiki/Fexpr 。
 \since build 730
 
-快速严格性分析：无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
+快速严格性分析：
+无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
 */
 inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
 	ImplRet(IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
@@ -350,18 +351,20 @@ SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
 //! \note ValueObject 参数分别指定替换添加的前缀和被替换的分隔符的值。
 //@{
 /*!
-\note 移除子项中值和指定分隔符指定的项，并以 AsIndexNode 添加指定前缀值作为子项。
-\note 最后一个参数指定返回值的名称。
+\brief 变换分隔符中缀表达式为前缀表达式。
 \sa AsIndexNode
 \since build 753
+
+移除子项中值和指定分隔符指定的项，并以 AsIndexNode 添加指定前缀值作为子项。
+最后一个参数指定返回值的名称。
 */
 //@{
-//! \brief 变换分隔符中缀表达式为前缀表达式。
+//! \note 非递归变换。
 YF_API TermNode
 TransformForSeparator(const TermNode&, const ValueObject&, const ValueObject&,
 	const TokenValue& = {});
 
-//! \brief 递归变换分隔符中缀表达式为前缀表达式。
+//! \note 递归变换。
 YF_API TermNode
 TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
 	const ValueObject&, const TokenValue& = {});
@@ -381,6 +384,10 @@ ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 
 //! \since build 751
 //@{
+/*!
+\brief 包装上下文处理器。
+\note 忽略被包装的上下文处理器可能存在的返回值，自适应默认返回规约结果。
+*/
 template<typename _func>
 struct WrappedContextHandler
 {
@@ -393,6 +400,15 @@ struct WrappedContextHandler
 		Handler(yforward(args)...);
 		return ReductionStatus::Success;
 	}
+
+	/*!
+	\brief 比较上下文处理器相等。
+	\note 使用 YSLib::AreEqualHeld 。
+	\since build 756
+	*/
+	friend PDefHOp(bool, ==, const WrappedContextHandler& x,
+		const WrappedContextHandler& y)
+		ImplRet(YSLib::AreEqualHeld(x.Handler, y.Handler))
 };
 
 template<class _tRet, typename _func>
@@ -588,9 +604,22 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 YF_API ReductionStatus
 EvaluateContextFirst(TermNode&, ContextNode&);
 
+//! \note 第一参数指定输入的项，其 Value 指定输出的值。
+//@{
+/*!
+\brief 求值以节点数据结构间接表示的项。
+\sa IsBranch
+\sa LiftDelayed
+\since build 752
+
+以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值并返回要求重规约。
+以项访问对规约以项转移的可能未求值的操作数是必要的。
+*/
+YF_API ReductionStatus
+EvaluateDelayed(TermNode&);
+
 /*!
 \exception BadIdentifier 标识符未声明。
-\note 第一参数指定输入的项，其 Value 指定输出的值。
 \note 默认视为规约成功以保证强规范化性质。
 */
 //@{
@@ -631,18 +660,6 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 */
 YF_API ReductionStatus
 EvaluateLeafToken(TermNode&, ContextNode&, string_view);
-
-/*!
-\brief 求值以节点数据结构间接表示的项。
-\sa IsBranch
-\sa LiftDelayed
-\since build 752
-
-以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值并返回要求重规约。
-以项访问对规约以项转移的可能未求值的操作数是必要的。
-*/
-YF_API ReductionStatus
-EvaluateDelayed(TermNode&);
 //@}
 
 /*!
@@ -652,6 +669,7 @@ EvaluateDelayed(TermNode&);
 */
 YF_API ReductionStatus
 ReduceLeafToken(TermNode&, ContextNode&);
+//@}
 //@}
 
 
@@ -696,6 +714,15 @@ public:
 	REPLContext(bool = {});
 
 	/*!
+	\brief 执行循环：对非空输入进行翻译。
+	\pre 断言：字符串的数据指针非空。
+	\throw LoggedEvent 输入为空串。
+	\sa Process
+	*/
+	TermNode
+	Perform(string_view);
+
+	/*!
 	\brief 处理：分析输入并标记记号节点，预处理后进行规约。
 	\sa SContext::Analyze
 	\sa Preprocess
@@ -711,15 +738,6 @@ public:
 	TermNode
 	Process(const Session&);
 	//@}
-
-	/*!
-	\brief 执行循环：对非空输入进行翻译。
-	\pre 断言：字符串的数据指针非空。
-	\throw LoggedEvent 输入为空串。
-	\sa Process
-	*/
-	TermNode
-	Perform(string_view);
 };
 
 
@@ -764,7 +782,8 @@ QuoteN(const TermNode&, size_t = 1);
 \return 是否存在并移除了修饰符。
 \since build 732
 
-检查第一参数指定的容器或项是否存在第二参数指定的修饰符为项的第一参数，若存在则移除。
+检查第一参数指定的容器或项是否存在第二参数指定的修饰符为项的第一参数。
+若检查发现存在修饰符则移除。
 */
 //@{
 YF_API bool
@@ -791,28 +810,33 @@ ReduceWithModifier(TermNode& term, ContextNode& ctx, _func f)
 
 /*!
 \brief 访问节点并调用一元函数。
-\since build 741
+\since build 756
+
+确定项具有一个实际参数后展开调用参数指定的函数。
+若被调用的函数返回类型非 void ，返回值作为项的值被构造。
+ValueObject 类型的值不会被特别处理，而会被以和其它类型的值类似的方式被包装。
+若需值的复制或转移，可直接对项的值进行赋值等操作，而非通过函数返回。
 */
 //@{
 template<typename _func, typename... _tParams>
 void
-CallUnary(_func f, TermNode& term, _tParams&&... args)
+CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term);
 
 	YSLib::EmplaceFromCall(term.Value,
-		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(std::move(f)),
+		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(yforward(f)),
 		Deref(std::next(term.begin())), yforward(args)...);
 }
 
 template<typename _type, typename _func, typename... _tParams>
 void
-CallUnaryAs(_func f, TermNode& term, _tParams&&... args)
+CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 {
 	Forms::CallUnary([&](TermNode& node){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
-		return ystdex::make_expanded<void(_type&, _tParams&&...)>(std::move(f))(
+		return ystdex::make_expanded<void(_type&, _tParams&&...)>(yforward(f))(
 			YSLib::Access<_type>(node), std::forward<_tParams&&>(args)...);
 	}, term);
 }

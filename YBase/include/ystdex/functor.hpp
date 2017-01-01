@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r832
+\version r849
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-12-11 00:43 +0800
+	2016-12-29 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,6 +106,15 @@ struct id
 	{
 		return x;
 	}
+
+	//! \since build 756
+	yconstfn
+	operator add_ptr_t<_type(_type)>() const ynothrow
+	{
+		return [](_type x) ynothrow -> _type{
+			return x;
+		};
+	}
 };
 
 template<>
@@ -116,6 +125,16 @@ struct id<void>
 	operator()(_type&& x) const ynothrow
 	{
 		return yforward(x);
+	}
+
+	//! \since build 756
+	template<typename _type>
+	yconstfn
+	operator add_ptr_t<_type(_type)>() const ynothrow
+	{
+		return [](_type x) ynothrow -> _type{
+			return x;
+		};
 	}
 };
 //@}
