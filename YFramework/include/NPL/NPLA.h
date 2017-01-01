@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1272
+\version r1289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2016-12-23 22:36 +0800
+	2017-01-01 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 //	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
 #include <ystdex/any.h> // for ystdex::any, ystdex::exclude_self_t;
+#include <ystdex/base.h> // for ystdex::derived_entity;
 
 namespace NPL
 {
@@ -636,29 +637,18 @@ TermToName(const TermNode&);
 \brief 记号值。
 \note 和被求值的字符串不同的包装类型。
 \warning 非空析构。
+\since build 756
 */
-class YF_API TokenValue : public string
-{
-public:
-	using string::string;
-	TokenValue(const string& s)
-		: string(s)
-	{}
-	TokenValue(string&& s)
-		: string(std::move(s))
-	{}
-
-	DefDeCopyMoveCtorAssignment(TokenValue)
-};
+using TokenValue = ystdex::derived_entity<string, NPLATag>;
 
 
 /*!
 \brief 标记记号节点：递归变换节点，转换其中 string 类型的值为 TokenValue 。
 \note 先变换子节点。
+\since build 753
 */
 YF_API void
 TokenizeTerm(TermNode& term);
-//@}
 
 
 /*!

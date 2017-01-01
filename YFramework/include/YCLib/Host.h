@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r516
+\version r522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-12-28 18:21 +0800
+	2016-12-29 12:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -386,6 +386,13 @@ public:
 
 		//! \since build 755
 		DefDeMoveAssignment(Guard)
+
+		/*!
+		\brief 转换为流操纵子。
+		\since build 756
+		*/
+		DefCvt(const ynothrow, ystdex::add_ptr_t<
+			std::ios_base&(std::ios_base&)>, ystdex::id<std::ios_base&>())
 	};
 
 private:

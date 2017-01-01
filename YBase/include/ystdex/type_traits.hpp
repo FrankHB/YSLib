@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1140
+\version r1158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-09-21 15:46 +0800
+	2016-12-29 12:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace ystdex
 
 /*!	\defgroup template_meta_programing Template Meta Programing
 \brief 模板元编程。
-\note 以下类别中的接口包括类模板和对应的别名模板。
+\note 作为 ISO C++ 定义的扩展，以下类别中的接口包括也类模板对应的别名模板。
 \since build 288
 */
 
@@ -55,6 +55,7 @@ namespace ystdex
 /*!	\defgroup metafunctions Metafunctions
 \ingroup meta_operations
 \brief 元函数。
+\warning 以类模板实现的作为元函数的公开接口一般可被继承但非虚析构。
 \see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/metafunction.html 。
 \since build 333
 */
@@ -1003,6 +1004,27 @@ struct identity
 //! \since build 595
 template<typename _type>
 using identity_t = _t<identity<_type>>;
+//@}
+
+
+/*!
+\ingroup transformation_traits
+\note 保证不依赖非推导上下文实现简单类型操作，可用于可推导的转换函数的名称。
+\sa CWG 395
+\since build 756
+*/
+//@{
+template<typename _type>
+using id_t = _type;
+
+template<typename _type>
+using add_ptr_t = _type*;
+
+template<typename _type>
+using add_ref_t = _type&;
+
+template<typename _type>
+using add_rref_t = _type&&;
 //@}
 
 

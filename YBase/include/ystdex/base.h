@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file base.h
 \ingroup YStandardEx
 \brief 基类实用设施。
-\version r180
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 11:59:15 +0800
 \par 修改时间:
-	2015-03-21 12:54 +0800
+	2017-01-01 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,6 +164,36 @@ struct deref_self
 	{
 		return *static_cast<const volatile _type*>(this);
 	}
+};
+
+
+/*!
+\brief 派生类实体。
+\note 附加的模板参数保证不同的类型。
+\warning 可能非虚析构：当且仅当基类非虚析构。
+\since build 756
+*/
+template<class _tBase, typename...>
+class derived_entity : public _tBase
+{
+public:
+	using base = _tBase;
+
+	derived_entity() = default;
+	using base::base;
+	derived_entity(const base& b) ynoexcept_spec(base(b))
+		: base(b)
+	{}
+	derived_entity(base&& b) ynoexcept_spec(base(std::move(b)))
+		: base(std::move(b))
+	{}
+	derived_entity(const derived_entity&) = default;
+	derived_entity(derived_entity&&) = default;
+
+	derived_entity&
+	operator=(const derived_entity&) = default;
+	derived_entity&
+	operator=(derived_entity&&) = default;
 };
 
 } // namespace ystdex;

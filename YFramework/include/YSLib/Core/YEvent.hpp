@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5254
+\version r5257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2016-12-07 10:13 +0800
+	2017-01-01 04:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,8 +96,8 @@ private:
 		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
 			std::declval<const Decayed>() == std::declval<const Decayed>())
 		{
-			return Deref(x.template target<Decayed>())
-				== Deref(y.template target<Decayed>());
+			return !bool(x) || (Deref(x.template target<Decayed>())
+				== Deref(y.template target<Decayed>()));
 		}
 	};
 

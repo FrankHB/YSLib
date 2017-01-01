@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r411
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2016-04-27 09:27 +0800
+	2016-12-29 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,17 +240,17 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 #	pragma GCC diagnostic ignored "-Wignored-attributes"
 #endif
 
-//! \since build 595
+//! \since build 756
 //@{
 template<Encoding, typename _tRet, typename... _tParams>
-yconstfn YB_STATELESS ystdex::add_pointer_t<_tRet(_tParams...)>
+yconstfn YB_STATELESS ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(...) ynothrow
 {
 	return {};
 }
 template<Encoding _vEnc, typename _tRet, typename... _tParams>
 yconstfn YB_ATTR_returns_nonnull YB_STATELESS
-	ystdex::add_pointer_t<_tRet(_tParams...)>
+	ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	decltype(GUCSMapper<_vEnc>::Decode(std::declval<_tParams>()...)), _tRet>*
 	= {})) ynothrow
@@ -259,7 +259,7 @@ FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 }
 template<Encoding _vEnc, typename _tRet, typename... _tParams>
 yconstfn YB_ATTR_returns_nonnull YB_STATELESS
-	ystdex::add_pointer_t<_tRet(_tParams...)>
+	ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	decltype(GUCSMapper<_vEnc>::Encode(std::declval<_tParams>()...)), _tRet,
 	int>* = {})) ynothrow
@@ -271,9 +271,8 @@ FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 #	pragma GCC diagnostic pop
 #endif
 
-//! \since build 645
 template<typename _tRet, typename... _tParams>
-yconstfn YB_STATELESS ystdex::add_lvalue_reference_t<_tRet(_tParams...)>
+yconstfn YB_STATELESS ystdex::add_ref_t<_tRet(_tParams...)>
 FetchMapper_Default() ynothrow
 {
 	return *FetchMapperPtr_TryUCSMapper<CS_Default, _tRet, _tParams...>(nullptr);
@@ -281,7 +280,7 @@ FetchMapper_Default() ynothrow
 
 //! \brief 取指定编码映射的转换函数指针。
 template<typename _tRet, typename... _tParams>
-yconstfn_relaxed ystdex::add_pointer_t<_tRet(_tParams...)>
+yconstfn_relaxed ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr(Encoding enc)
 {
 	using namespace CharSet;
