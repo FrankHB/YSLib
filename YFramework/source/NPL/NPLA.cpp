@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r948
+\version r953
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2016-12-23 21:15 +0800
+	2017-01-02 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -404,7 +404,7 @@ DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
 	if(forced)
 		// XXX: Self overwriting is possible.
 		ctx[id].Value = std::move(vo);
-	else if(!ctx.Add(id, std::move(vo)))
+	else if(!ctx.AddValue(id, std::move(vo)))
 		throw BadIdentifier(id, 2);
 }
 
@@ -430,9 +430,10 @@ RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
 bool
 CheckReducible(ReductionStatus status)
 {
-	if(status == ReductionStatus::Success)
+	if(status == ReductionStatus::Clean
+		|| status == ReductionStatus::Retained)
 		return {};
-	if(YB_UNLIKELY(status != ReductionStatus::NeedRetry))
+	if(YB_UNLIKELY(status != ReductionStatus::Retrying))
 		YTraceDe(Warning, "Unexpected status found");
 	return true;
 }

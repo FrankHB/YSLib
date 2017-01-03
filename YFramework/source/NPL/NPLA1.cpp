@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r1979
+\version r2023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2016-12-31 01:49 +0800
+	2017-01-02 13:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,11 +141,11 @@ yconstexpr const auto LiteralTermName("__$$@_");
 //	"error reporting routines re-entered".
 //! \since build 730
 yconstfn PDefH(ReductionStatus, ToStatus, bool res) ynothrow
-	ImplRet(res ? ReductionStatus::NeedRetry : ReductionStatus::Success)
+	ImplRet(res ? ReductionStatus::Retrying : ReductionStatus::Clean)
 
 //! \since build 736
 yconstfn PDefH(bool, NeedsRetry, ReductionStatus res) ynothrow
-	ImplRet(res != ReductionStatus::Success)
+	ImplRet(res == ReductionStatus::Retrying)
 
 //! \since build 736
 template<typename _func>
@@ -190,13 +190,13 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 				else
 					LiftTerm(term, i->Value);
 				term.Remove(i);
-				return ReductionStatus::Success;
+				return ReductionStatus::Clean;
 			}
 		}
-		return ReductionStatus::NeedRetry;
+		return ReductionStatus::Retrying;
 	}
 	term.Value = is_and;
-	return ReductionStatus::Success;
+	return ReductionStatus::Clean;
 }
 
 //! \since build 748
@@ -292,7 +292,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 		// NOTE: Empty list or special value token has no-op to do with.
 		// TODO: Handle special value token?
 		return tp != ystdex::type_id<void>() && tp != ystdex::type_id<
-			ValueToken>() ? InvokeLeaf(term, ctx) : ReductionStatus::Success;
+			ValueToken>() ? InvokeLeaf(term, ctx) : ReductionStatus::Clean;
 	});
 }
 
@@ -414,7 +414,7 @@ ReplaceSeparatedChildren(TermNode& term, const ValueObject& name,
 		ystdex::bind1(HasValue<ValueObject>, std::ref(delim))) != term.end())
 		term = TransformForSeparator(term, name, delim,
 			TokenValue(term.GetName()));
-	return ReductionStatus::Success;
+	return ReductionStatus::Clean;
 }
 
 
@@ -437,7 +437,7 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	// TODO: Use nested exceptions?
 	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
 	// XXX: Use distinct status for failure?
-	return ReductionStatus::Success;
+	return ReductionStatus::Clean;
 }
 
 
@@ -485,9 +485,14 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 //	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
 	passes += ystdex::compose(NeedsRetry,
 		ystdex::bind1(ReplaceSeparatedChildren, name, delim));
-	RegisterFormContextHandler(node, name, ordered ? ReduceOrdered
-		: static_cast<void(&)(TermNode&, ContextNode&)>(ReduceChildren),
-		IsBranch);
+	RegisterFormContextHandler(node, name, ordered
+		? [](TermNode& term, ContextNode& ctx){
+			ReduceOrdered(term, ctx);
+			return ReductionStatus::Clean;
+		} : [](TermNode& term, ContextNode& ctx){
+			ReduceChildren(term, ctx);
+			return ReductionStatus::Retained;
+		}, IsBranch);
 }
 
 
@@ -502,7 +507,7 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 		{
 			const auto res((*p_handler)(term, ctx));
 
-			if(res == ReductionStatus::Success)
+			if(res == ReductionStatus::Clean)
 				term.ClearContainer();
 			return res;
 		}
@@ -514,7 +519,7 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 			ystdex::nonnull_or(TermToName(fm), AccessPtr<string>(fm)),
 			"#<unknown>"), term.size()));
 	}
-	return ReductionStatus::Success;
+	return ReductionStatus::Clean;
 }
 
 ReductionStatus
@@ -526,9 +531,9 @@ EvaluateDelayed(TermNode& term)
 		//	guaranteed by the evaluated parent term.
 		LiftDelayed(term, *p);
 		// NOTE: To make it work with %DetectReducible.
-		return ReductionStatus::NeedRetry;
+		return ReductionStatus::Retrying;
 	}
-	return ReductionStatus::Success;
+	return ReductionStatus::Clean;
 }
 
 ReductionStatus
@@ -569,8 +574,8 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			if(YB_UNLIKELY(id.empty()))
 				break;
 		case LiteralCategory::None:
-			return InvokeLiteral(term, ctx, id) == ReductionStatus::Success
-				? ReductionStatus::Success : EvaluateIdentifier(term, ctx, id);
+			return CheckReducible(InvokeLiteral(term, ctx, id))
+				? EvaluateIdentifier(term, ctx, id) : ReductionStatus::Clean;
 			// XXX: Empty token is ignored.
 			// XXX: Remained reducible?
 		case LiteralCategory::Data:
@@ -583,16 +588,16 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			// TODO: Handle other categories of literal.
 		}
 	}
-	return ReductionStatus::Success;
+	return ReductionStatus::Clean;
 }
 
 ReductionStatus
 ReduceLeafToken(TermNode& term, ContextNode& ctx)
 {
-	return ystdex::call_value_or([&](string_view id) -> ReductionStatus{
+	return ystdex::call_value_or([&](string_view id){
 		return EvaluateLeafToken(term, ctx, id);
 	// FIXME: Success on node conversion failure?
-	}, TermToName(term), ReductionStatus::Success);
+	}, TermToName(term), ReductionStatus::Clean);
 }
 
 void
@@ -744,7 +749,7 @@ DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
 		// XXX: Moved.
 		// NOTE: Unevaluated term is directly saved.
 		(define ? DefineValue : RedefineValue)
-			(ctx, id, std::move(term), mod);
+			(ctx, id, DelayedTerm(std::move(term)), mod);
 	else
 		throw InvalidSyntax(define ? "Literal cannot be defined."
 			: "Literal cannot be set.");
@@ -791,12 +796,12 @@ If(TermNode& term, ContextNode& ctx)
 		if(++i != term.end())
 		{
 			LiftTerm(term, *i);
-			return ReductionStatus::NeedRetry;
+			return ReductionStatus::Retrying;
 		}
 	}
 	else
 		throw InvalidSyntax("Syntax error in conditional form.");
-	return ReductionStatus::Success;
+	return ReductionStatus::Clean;
 }
 
 void
@@ -840,15 +845,17 @@ Lambda(TermNode& term, ContextNode& ctx)
 					// NOTE: This is probably better to be copy-on-write. Since
 					//	no immutable reference would be accessed before
 					//	mutation, no care is needed for reference invalidation.
-					auto app_ctx(Deref(p_ctx));
+					ContextNode app_ctx;
 
+					for(const auto& b : Deref(p_ctx))
+						app_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
 					++j;
 					// NOTE: Introduce parameters as per lexical scoping rules.
 					for(const auto& param : params)
 					{
 						// XXX: Moved.
 						// NOTE: Unevaluated operands are directly saved.
-						app_ctx[param].Value = std::move(*j);
+						app_ctx[param].Value = DelayedTerm(std::move(*j));
 						++j;
 					}
 					YAssert(j == app_term.end(),
@@ -909,6 +916,18 @@ Eval(TermNode& term, const REPLContext& ctx)
 	Forms::CallUnaryAs<const string>([ctx](const string& unit){
 		REPLContext(ctx).Perform(unit);
 	}, term);
+}
+
+ReductionStatus
+ValueOf(TermNode& term, const ContextNode& ctx)
+{
+	QuoteN(term);
+	LiftTerm(term, Deref(std::next(term.begin())));
+	if(const auto p_id = AccessPtr<string>(term))
+		TryRet(EvaluateIdentifier(term, ctx, *p_id))
+		CatchIgnore(BadIdentifier&)
+	term.Value = ValueToken::Null;
+	return ReductionStatus::Clean;
 }
 
 } // namespace Forms;

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5174
+\version r5271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-01 23:48 +0800
+	2017-01-03 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,103 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ DLDI "simplified aliases" @ %Pointer ^ (("%(add_ptr_t, add_ref_t)"
+		~ "%ystdex::(add_pointer_t, add_lvalue_reference_t)")
+		@ %TypeTraits) @ %YBase.YStandardEx,
+	/ %YFramework $=
+	(
+		/ "function tempalte %Add" @ "class %ValueNode" @ %YSLib.Core.ValueNode
+			=> "%AddValue",
+			// To avoid confusion.
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ "alias %DelayedTerm diverged to %TermNode"
+						^ "%ystdex::derived_entity" $dep_from
+						("%(Lambda, DefineOrSetFor)" @ %NPLA1),
+					/ "closure" @ "function %Lambda captured context by \
+							reference",
+						// Capture of context by value would effectively copy \
+							all bindings, which would be unexpected most time.
+					+ "function %ValueOf"
+				),
+				/ $forced DLDI "%DefineValue" $dep_from %YSLib.Core.ValueNode,
+				(
+				/ @ "enum %ReductionStatus" $=
+				(
+					+ "enumerator %Retained" $dep_from
+						("%EvaluateLeafToken" @ %NPLA1),
+					/ "enumerator %Success" => "%Clean",
+					/ "enumerator %NeedRetry" => "%Retrying"
+				);
+				/ $forced DLDI "function %CheckReducible"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* $comp "type same to %TermNode cannot be treated as value type"
+					@ "function %EvaluateDelayed" $orig
+					(@ "function %EvaluateIdentifier" $since b607) $dep_from
+					("%DelayedTerm" @ %NPLA),
+				/ "namespace %Forms" $=
+				(
+					/ DLDI "function %Lambda, DefineOrSetFor" ^ "%DelayedTerm",
+					/ "function %Quote returned" $dep_from
+						("%ReductionStatus::Retained" @ %NPLA)
+				),
+				/ DLDI "simplified function %ReduceLeafToken",
+				/ DLDI "simplified function %EvaluateLeafToken"
+					^ "%CheckReducible",
+				(
+				/ $impl "function %RegisterSequenceContextTransformer"
+					^ $dep_from ("%ReductionStatus::Retained" @ %NPLA);
+				* $comp "wrongly cleared quoted term contents"
+					@ "function %EvaluateContextFirst" $since b755 $dep_from
+					"%Forms::Quote",
+				),
+				(
+				+ "2 constructor templates" @ "class template \
+					%WrappedContextHandler";
+				/ DLDI "function template %WrapContextHandler",
+				(
+				/ @ "class template %WrappedContextHandler, \
+					classes %(FormContextHandler, StrictContextHandler)" $=
+				(
+					+ "(copy, move) (constructor, %operator=)"
+						^ "%DefDeCopyMoveCtorAssignment";
+					/ "supported '!='"
+						$= (+ "private base" ^ "%ystdex::equality_comparable")
+				);
+				* $comp "infinite recursive equality comparison caused by \
+					wrong %operator!= for %GHEvent instances used"
+					@ "%WrappedContextHandler" $since b751,
+				* $comp "inconsistent '!=' comparison to '=='" @ ("class \
+					template %FormContextHandler", "class %StrictContextHandler"
+					$orig (@ "class %FunctionContextHandler")) $since b748
+				)
+				)
+			)
+		)
+	),
+	/ %Test $=
+	(
+		/ $impl "cast to 'double' explictly" @ "case for %ystdex::apply"
+			@ %YBase;
+			// To eliminate G++ warning: [-Wdouble-promotion].
+		- $revert(b595) "test to adding '-Wno-double-promotion'"
+			@ "%CXXFLAGS" @ "%test.sh"
+			// Though still unsupported formally in YSLib, it also works \
+				around the problem of null device in WSL (showing \
+				"operation not permitted" error for 'grep'). See also \
+				https://github.com/Microsoft/BashOnWindows/issues/1259.
+	)
+),
+
+b756
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -353,7 +450,7 @@ b752
 				),
 				(
 				/ $forced "support for void and non-void handler result"
-					@ "class template %FormContextHandler" $dep_from
+					@ "class %FormContextHandler" $dep_from
 					("%ContextHandler" @ %NPLA)
 					$= (/ "constructor templates" ^ $dep_from
 						"WrapContextHandler");									

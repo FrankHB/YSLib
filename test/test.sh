@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2016 FrankHB.
+# (C) 2014-2017 FrankHB.
 # Script for testing.
 # Requires: G++/Clang++, Tools/Scripts, YBase source.
 
@@ -15,11 +15,6 @@ SHBuild_NoAdjustSubsystem=true
 
 : ${AR:='gcc-ar'}
 . "$SHBuild_ToolDir/SHBuild-BuildApp.sh"
-
-if !(echo "$CXX" | grep clang++ > /dev/null) \
-	&& echo "$CXX" | grep g++ > /dev/null; then
-	CXXFLAGS="$CXXFLAGS -Wno-double-promotion"
-fi
 
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
 INCLUDES=" \

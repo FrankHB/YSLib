@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2918
+\version r2933
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2016-12-24 23:52 +0800
+	2017-01-02 02:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -319,15 +319,24 @@ public:
 		ImplRet(insert(node).second)
 	PDefH(bool, Add, ValueNode&& node)
 		ImplRet(insert(std::move(node)).second)
-	//! \since build 674
+
+	/*!
+	\brief 添加参数指定值的子节点。
+	\sa AddValueTo
+	\since build 757
+	*/
 	template<typename _tString, typename... _tParams>
 	inline bool
-	Add(_tString&& str, _tParams&&... args)
+	AddValue(_tString&& str, _tParams&&... args)
 	{
 		return AddValueTo(container, yforward(str), yforward(args)...);
 	}
 
-	//! \since build 674
+	/*!
+	\brief 向容器添加参数指定值的子节点。
+	\sa emplace_hint
+	\since build 674
+	*/
 	template<typename _tString, typename... _tParams>
 	static bool
 	AddValueTo(Container& con, _tString&& str, _tParams&&... args)
@@ -542,7 +551,6 @@ public:
 	swap(ValueNode&, ValueNode&) ynothrow;
 
 	//! \since build 681
-	//@{
 	template<typename _tKey, typename... _tParams>
 	yimpl(ystdex::enable_if_inconvertible_t)<_tKey&&, const_iterator,
 		std::pair<iterator, bool>>
@@ -550,6 +558,7 @@ public:
 	{
 		return ystdex::try_emplace(container, yforward(k), yforward(args)...);
 	}
+	//! \since build 681
 	template<typename _tKey, typename... _tParams>
 	iterator
 	try_emplace(const_iterator hint, _tKey&& k, _tParams&&... args)
@@ -557,7 +566,6 @@ public:
 		return ystdex::try_emplace_hint(container, hint, yforward(k),
 			yforward(args)...);
 	}
-	//@}
 };
 
 //! \relates ValueNode
