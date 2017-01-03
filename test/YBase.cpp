@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r628
+\version r630
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2016-11-16 17:40 +0800
+	2017-01-03 10:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -345,7 +345,7 @@ main()
 	seq_apply(make_guard("YStandard.Functional").get(pass, fail),
 		// 1 case covering: ystdex::apply.
 		abs(7.0 - apply([](int i, float f, double d){
-			return i + f + d;
+			return i + double(f) + d;
 		}, make_tuple(1, 2.0F, 4.0))) < numeric_limits<double>::epsilon(),
 		// 2 cases covering: ystdex::compose.
 		abs(0.5 - compose(static_cast<double(&)(double)>(sin),

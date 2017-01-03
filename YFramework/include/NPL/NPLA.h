@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1289
+\version r1303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-01-01 23:47 +0800
+	2017-01-02 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,11 @@
 #include "YModules.h"
 #include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode,
 //	LoggedEvent;
+#include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
-#include <ystdex/any.h> // for ystdex::any, ystdex::exclude_self_t;
-#include <ystdex/base.h> // for ystdex::derived_entity;
+#include <ystdex/any.h> // for ystdex::any;
 
 namespace NPL
 {
@@ -506,19 +506,28 @@ public:
 */
 enum class ReductionStatus : yimpl(size_t)
 {
-	Success = 0,
-	NeedRetry
+	//! \since build 757
+	//@{
+	//! \brief 规约成功终止且不需要保留子项。
+	Clean = 0,
+	//! \brief 规约成功但需要保留子项。
+	Retained,
+	//! \brief 需要重规约。
+	Retrying
+	//@}
 };
 
 
 /*!
 \ingroup ThunkType
 \brief 延迟求值项。
+\note 和被延迟求值的项及其它节点是不同的包装类型。
+\warning 非空析构。
 \since build 752
 
 直接作为项的值对象包装被延迟求值的项。
 */
-using DelayedTerm = yimpl(TermNode);
+using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
 
 //! \since build 674
 //@{

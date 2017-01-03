@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r490
+\version r495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2016-12-27 17:32 +0800
+	2017-01-02 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,8 @@
 #define YB_INC_ystdex_pointer_hpp_ 1
 
 #include "iterator_op.hpp" // for bool_, true_, totally_ordered,
-//	nullptr_t, equality_comparable, add_pointer_t, add_lvalue_reference_t,
-//	yconstraint, iterator_operators_t, std::iterator_traits;
+//	nullptr_t, equality_comparable, add_ptr_t, add_ref_t, yconstraint,
+//	iterator_operators_t, std::iterator_traits;
 #include <functional> // for std::equal_to, std::less;
 
 namespace ystdex
@@ -203,8 +203,8 @@ class observer_ptr : private totally_ordered<observer_ptr<_type>>,
 {
 public:
 	using element_type = _type;
-	using pointer = yimpl(add_pointer_t<_type>);
-	using reference = yimpl(add_lvalue_reference_t<_type>);
+	using pointer = yimpl(add_ptr_t<_type>);
+	using reference = yimpl(add_ref_t<_type>);
 
 private:
 	_type* ptr{};

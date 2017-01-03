@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2251
+\version r2298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-01-02 15:27 +0800
+	2017-01-03 13:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
-//	YSLib::Access, YSLib::AreEqualHeld, ystdex::make_expanded;
+//	YSLib::Access, ystdex::equality_comparable, YSLib::AreEqualHeld,
+//	ystdex::make_expanded;
 
 namespace NPL
 {
@@ -242,7 +243,7 @@ InvokeLiteral(TermNode& term, ContextNode&, string_view);
 此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
 例外情况应单独指定明确的顺序。
 例外情况包括输入节点不是表达式语义结构（而是 AST ）的 API ，如 TransformNode 。
-当前实现返回的规约状态总是 ReductionStatus::Success ，否则会循环迭代。
+当前实现返回的规约状态总是 ReductionStatus::Clean ，否则会循环迭代。
 若需要保证无异常时仅在规约成功后终止，使用 ReduceChecked 代替。
 */
 YF_API ReductionStatus
@@ -335,7 +336,7 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 */
 inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
 	ImplRet(IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
-		: ReductionStatus::Success)
+		: ReductionStatus::Clean)
 
 
 /*!
@@ -390,15 +391,31 @@ ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 */
 template<typename _func>
 struct WrappedContextHandler
+	: private ystdex::equality_comparable<WrappedContextHandler<_func>>
 {
 	_func Handler;
+
+	//! \since build 757
+	//@{
+	template<typename _tParam, yimpl(typename
+		= ystdex::exclude_self_t<WrappedContextHandler, _tParam>)>
+	WrappedContextHandler(_tParam&& arg)
+		: Handler(yforward(arg))
+	{}
+	template<typename _tParam1, typename _tParam2, typename... _tParams>
+	WrappedContextHandler(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
+		: Handler(yforward(arg1), yforward(arg2), yforward(args)...)
+	{}
+
+	DefDeCopyMoveCtorAssignment(WrappedContextHandler)
+	//@}
 
 	template<typename... _tParams>
 	ReductionStatus
 	operator()(_tParams&&... args) const
 	{
 		Handler(yforward(args)...);
-		return ReductionStatus::Success;
+		return ReductionStatus::Clean;
 	}
 
 	/*!
@@ -416,7 +433,7 @@ inline _tRet
 WrapContextHandler(_func&& h, ystdex::false_)
 {
 	return WrappedContextHandler<
-		YSLib::GHEvent<void(TermNode&, ContextNode&)>>{yforward(h)};
+		YSLib::GHEvent<void(TermNode&, ContextNode&)>>(yforward(h));
 }
 template<class _tRet, typename _func>
 inline _func
@@ -448,6 +465,7 @@ WrapContextHandler(_func&& h)
 \since build 674
 */
 class YF_API FormContextHandler
+	: private ystdex::equality_comparable<FormContextHandler>
 {
 public:
 	ContextHandler Handler;
@@ -468,10 +486,12 @@ public:
 	FormContextHandler(_func&& f, _fCheck c)
 		: Handler(A1::WrapContextHandler<ContextHandler>(yforward(f))), Check(c)
 	{}
+	//! \since build 757
+	DefDeCopyMoveCtorAssignment(FormContextHandler)
 
 	/*!
 	\brief 处理一般形式。
-	\return Handler 调用的返回值，或 ReductionStatus::Success 。
+	\return Handler 调用的返回值，或 ReductionStatus::Clean 。
 	\exception NPLException 异常中立。
 	\throw LoggedEvent 警告：类型不匹配，
 		由 Handler 抛出的 ystdex::bad_any_cast 转换。
@@ -503,6 +523,7 @@ public:
 对参数先进行求值的上下文处理器。
 */
 class YF_API StrictContextHandler
+	: private ystdex::equality_comparable<StrictContextHandler>
 {
 public:
 	//! \since build 696
@@ -519,6 +540,8 @@ public:
 	StrictContextHandler(_func&& f, _fCheck c)
 		: Handler(yforward(f), c)
 	{}
+	//! \since build 757
+	DefDeCopyMoveCtorAssignment(StrictContextHandler)
 
 	/*!
 	\brief 处理函数。
@@ -753,9 +776,13 @@ namespace Forms
 \since build 733
 */
 //@{
-//! \brief 引用项：延迟求值。
-inline PDefH(void, Quote, const TermNode& term) ynothrowv
-	ImplExpr(YAssert(IsBranch(term), "Invalid term found."))
+/*!
+\brief 引用项：延迟求值。
+\since build 757
+*/
+inline PDefH(ReductionStatus, Quote, const TermNode& term) ynothrowv
+	ImplRet(YAssert(IsBranch(term), "Invalid term found."),
+		ReductionStatus::Retained)
 
 /*!
 \return 项的参数个数。
@@ -823,7 +850,6 @@ void
 CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term);
-
 	YSLib::EmplaceFromCall(term.Value,
 		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(yforward(f)),
 		Deref(std::next(term.begin())), yforward(args)...);
@@ -956,7 +982,6 @@ ExtractLambdaParameters(const TermNode::Container&);
 //@{
 /*!
 \brief 条件判断：根据求值的条件取表达式。
-\return ReductionStatus::NeedRetry 。
 \sa ReduceChecked
 \since build 750
 
@@ -973,12 +998,14 @@ If(TermNode&, ContextNode&);
 \exception InvalidSyntax 异常中立：由 ExtractLambdaParameters 抛出。
 \sa EvaluateIdentifier
 \sa ExtractLambdaParameters
+\warning 返回闭包调用引用变量超出绑定目标的生存期引起未定义行为。
 \todo 优化捕获开销。
 
 使用 ExtractLambdaParameters 检查参数列表并捕获和绑定变量，
 然后设置节点的值为表示 λ 抽象的上下文处理器。
 可使用 RegisterFormContextHandler 注册上下文处理器。
 和 Scheme 等不同参数以项而不是位置的形式被转移，在函数应用时可能进一步求值。
+按引用捕获上下文中的绑定。被捕获的上下文中的绑定依赖宿主语言的生存期规则。
 特殊形式参考文法：
 $lambda <formals> <body>
 */
@@ -1045,11 +1072,22 @@ EqualValue(TermNode&);
 //@}
 
 /*!
-\brief 创建 REPL 并对翻译单元规约以求值。
+\brief 创建参数指定的 REPL 的副本并在其中对翻译单元规约以求值。
 \since build 745
 */
 YF_API void
 Eval(TermNode&, const REPLContext&);
+
+/*!
+\brief 求值标识符得到指称的实体。
+\sa EvaluateIdentifier
+\since build 757
+
+在对象语言中实现函数接受一个 string 类型的参数项，返回值为指定的实体。
+当名称查找失败时，返回的值为 ValueToken::Null 。
+*/
+YF_API ReductionStatus
+ValueOf(TermNode&, const ContextNode&);
 
 } // namespace Forms;
 
