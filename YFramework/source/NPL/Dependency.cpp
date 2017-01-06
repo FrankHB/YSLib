@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r179
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2016-12-10 01:04 +0800
+	2017-01-06 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,10 @@
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <iterator> // for std::istreambuf_iterator;
+#include <limits> // for std::numeric_limits;
+#include <cctype> // for std::isdigit;
+#include <cerrno> // for errno, ERANGE;
+#include <cstdio> // for std::puts;
 
 using namespace YSLib;
 
@@ -122,8 +126,8 @@ InstallFile(const char* dst, const char* src)
 		if(HaveSameContents(dst, src))
 			return;
 	}
-	CatchExpr(std::system_error& e,
-		YTraceDe(Err, "Failed installing file."), ExtractAndTrace(e, Err))
+	CatchExpr(std::system_error& e, YTraceDe(Err, "Failed accessing file for"
+		" comparison before installing file."), ExtractAndTrace(e, Err))
 	CopyFile(dst, src, PreserveModificationTime);
 }
 
@@ -165,6 +169,162 @@ InstallExecutable(const char* dst, const char* src)
 {
 	InstallFile(dst, src);
 }
+
+namespace A1
+{
+
+namespace Forms
+{
+
+//! \since build 758
+namespace
+{
+
+void
+LoadSequenceSeparators(ContextNode& ctx, EvaluationPasses& passes)
+{
+	RegisterSequenceContextTransformer(passes, ctx, "$;", TokenValue(";"),
+		true),
+	RegisterSequenceContextTransformer(passes, ctx, "$,", TokenValue(","));
+}
+
+} // unnamed namespace;
+
+void
+LoadNPLContextForSHBuild(REPLContext& context)
+{
+	using namespace std::placeholders;
+	auto& root(context.Root);
+
+	LoadSequenceSeparators(root, context.ListTermPreprocess),
+	AccessLiteralPassesRef(root)
+		= [](TermNode& term, ContextNode&, string_view id) -> bool{
+		YAssertNonnull(id.data());
+		if(!id.empty())
+		{
+			const char f(id.front());
+
+			// NOTE: Handling extended literals.
+			if((f == '#'|| f == '+' || f == '-') && id.size() > 1)
+			{
+				// TODO: Support numeric literal evaluation passes.
+				if(id == "#t" || id == "#true")
+					term.Value = true;
+				else if(id == "#f" || id == "#false")
+					term.Value = false;
+				else if(id == "#n" || id == "#null")
+					term.Value = nullptr;
+				else if(f != '#')
+					return true;
+			}
+			else if(std::isdigit(f))
+			{
+				errno = 0;
+
+				const auto ptr(id.data());
+				char* eptr;
+				const long ans(std::strtol(ptr, &eptr, 10));
+
+				if(size_t(eptr - ptr) == id.size() && errno != ERANGE)
+					term.Value = int(ans);
+			}
+			else
+				return true;
+		}
+		return {};
+	};
+	// NOTE: Binding and control forms.
+	RegisterFormContextHandler(root, "$define",
+		std::bind(DefineOrSet, _1, _2, true));
+	RegisterFormContextHandler(root, "$if", If);
+	// NOTE: I/O library.
+	RegisterStrictUnary<const string>(root, "puts", [&](const string& str){
+		// FIXME: Use %EncodeArg.
+		std::puts(str.c_str());
+	});
+	// NOTE: Interoperation library.
+	RegisterStrictUnary<const string>(root, "env-get", [&](const string& var){
+		string res;
+
+		FetchEnvironmentVariable(res, var.c_str());
+		return res;
+	});
+	RegisterStrict(root, "system", CallSystem);
+	// NOTE: String library.
+	RegisterStrict(root, "++", std::bind(CallBinaryFold<string, ystdex::plus<>>,
+		ystdex::plus<>(), string(), _1), IsBranch);
+	// NOTE: SHBuild builtins.
+	DefineValue(root, "SHBuild_BaseTerminalHook_",
+		ValueObject(std::function<void(const string&, const string&)>(
+		[](const string& n, const string& val) ynothrow{
+			// XXX: Error from 'std::printf' is ignored.
+			std::printf("%s = \"%s\"\n", n.c_str(), val.c_str());
+	})), {});
+	RegisterStrictUnary<const string>(root, "SHBuild_BuildGCH_existed_",
+		[](const string& str) -> bool{
+		if(IO::UniqueFile
+			file{uopen(str.c_str(), IO::omode_convb(std::ios_base::in))})
+			return file->GetSize() > 0;
+		return {};
+	});
+	RegisterStrictUnary<const string>(root, "SHBuild_BuildGCH_mkpdirp_",
+		[](const string& str){
+		IO::Path pth(str);
+
+		if(!pth.empty())
+		{
+			pth.pop_back();
+			EnsureDirectory(pth);
+		}
+	});
+	RegisterStrict(root, "SHBuild_EchoVar", [&](TermNode& term){
+		// XXX: To be overriden if %Terminal is usable (platform specific).
+		CallBinaryAs<const string>([&](const string& n, const string& val){
+			if(const auto p = FetchValuePtr(root, "SHBuild_BaseTerminalHook_"))
+				if(const auto p_hook = AccessPtr<
+					std::function<void(const string&, const string&)>>(*p))
+					(*p_hook)(n, val);
+		}, term);
+	});
+	RegisterStrict(root, "SHBuild_Install_HardLink", [&](TermNode& term){
+		CallBinaryAs<const string>([](const string& dst, const string& src){
+			InstallHardLink(dst.c_str(), src.c_str());
+		}, term);
+	});
+	RegisterStrictUnary<const string>(root, "SHBuild_SDot_",
+		[&](const string& str){
+		auto res(str);
+
+		for(auto& c : res)
+			if(c == '.')
+				c = '_';
+		return std::move(res);
+	});
+	// NOTE: Params of %SHBuild_BuildGCH: header = path of header to be copied,
+	//	inc = path of header to be included, cmd = tool to build header.
+	context.Perform(u8R"NPL(
+		$define (SHBuild_EchoVar_E_ name val)
+			SHBuild_EchoVar (env-get name) (env-get val);
+		$define (SHBuild_EchoVar_N var) SHBuild_EchoVar var
+			(env-get (SHBuild_SDot_ var));
+		$define (SHBuild_BuildGCH header inc cmd) (
+			$define pch (++ inc ".gch");
+			$if (SHBuild_BuildGCH_existed_ pch)
+				(puts (++ "PCH file \"" pch "\" exists, skipped building."))
+				(
+					SHBuild_BuildGCH_mkpdirp_ pch;
+					puts (++ "Building precompiled file \"" pch "\" ...");
+					SHBuild_Install_HardLink header inc;
+					system (++ cmd " \"" header "\" -o" pch);
+					puts (++ "Building precompiled file \"" pch "\" done.")
+				)
+		);
+	)NPL");
+}
+
+} // namespace Forms;
+
+} // namespace A1;
 
 } // namespace NPL;
 

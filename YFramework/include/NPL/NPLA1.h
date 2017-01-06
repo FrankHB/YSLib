@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2298
+\version r2354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-01-03 13:32 +0800
+	2017-01-04 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
 //	YSLib::Access, ystdex::equality_comparable, YSLib::AreEqualHeld,
-//	ystdex::make_expanded;
+//	ystdex::make_expanded, ystdex::indirect_t, ystdex::make_transform,
+//	std::accumulate, ystdex::bind1, std::placeholders::_2;
 
 namespace NPL
 {
@@ -737,6 +738,19 @@ public:
 	REPLContext(bool = {});
 
 	/*!
+	\brief 加载：从指定参数指定的来源读取并处理源代码。
+	\sa Process
+	\since build 758
+	*/
+	//@{
+	//! \throw std::invalid_argument 流状态错误或缓冲区不存在。
+	void
+	LoadFrom(std::istream&);
+	void
+	LoadFrom(std::streambuf&);
+	//@}
+
+	/*!
 	\brief 执行循环：对非空输入进行翻译。
 	\pre 断言：字符串的数据指针非空。
 	\throw LoggedEvent 输入为空串。
@@ -865,6 +879,56 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(yforward(f))(
 			YSLib::Access<_type>(node), std::forward<_tParams&&>(args)...);
 	}, term);
+}
+//@}
+
+/*!
+\note 和一元函数的情形不同，不支持省略参数；回调按值传递。
+\since build 758
+*/
+//@{
+//! \brief 访问节点并调用二元函数。
+//@{
+template<typename _func, typename... _tParams>
+void
+CallBinary(_func f, TermNode& term, _tParams&&... args)
+{
+	QuoteN(term, 2);
+
+	auto i(term.begin());
+	auto& x(Deref(++i));
+
+	YSLib::EmplaceFromCall(term.Value, f, x, Deref(++i), yforward(args)...);
+}
+
+template<typename _type, typename _func, typename... _tParams>
+void
+CallBinaryAs(_func f, TermNode& term, _tParams&&... args)
+{
+	QuoteN(term, 2);
+
+	auto i(term.begin());
+	auto& x(YSLib::Access<_type>(Deref(++i)));
+
+	YSLib::EmplaceFromCall(term.Value, f, x, YSLib::Access<_type>(Deref(++i)),
+		yforward(args)...);
+}
+//@}
+
+//! \brief 访问节点并以指定的初始值为基础逐项调用二元函数。
+template<typename _type, typename _func, typename... _tParams>
+void
+CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
+{
+	const auto n(FetchArgumentN(term));
+	auto i(term.begin());
+	const auto j(ystdex::make_transform(++i, [](TNIter it){
+		return YSLib::Access<_type>(Deref(it));
+	}));
+
+	term.Value = std::accumulate(j, std::next(j, typename
+		std::iterator_traits<decltype(j)>::difference_type(n)), val,
+		ystdex::bind1(f, std::placeholders::_2, yforward(args)...));
 }
 //@}
 

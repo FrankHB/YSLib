@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
-\brief 递归查找源文件并编译和静态链接。
-\version r3406
+\brief 宿主构建工具：递归查找源文件并编译和静态链接。
+\version r3466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2016-08-12 20:42 +0800
+	2017-01-06 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@ See readme file for details.
 #include YFM_NPL_Dependency // for NPL::DepsEventType,
 //	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
 //	NPL::Install*;
+#include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include YFM_YCLib_Host // for platform_ex::EncodeArg, platform_ex::DecodeArg,
 //	platform_ex::Terminal;
@@ -193,8 +194,15 @@ const struct Option
 		" the call process has no proper permissions.",
 		"  InstallExecutable DST SRC",
 		"    Call InstallFile and then make DST be with executable permission"
-		" like 'chown +x DST'. Note it is empty operation, not fully"
-		" implemented yet for OS other than Windows.", OPT_des_mul}},
+		" like 'chmod +x DST'. Note it is empty operation, not fully"
+		" implemented yet for OS other than Windows.",
+		"  RunNPL UNIT",
+		"    Read and execute NPLA1 translation unit specified by string"
+		" UNIT. This is experimental feature mainly for test purpose and no "
+		" detailed documentation is available currently.",
+		"  RunNPLFile SRC",
+		"    Read and execute NPLA1 translation unit specified by file path"
+		" SRC. Notes are like 'RunNPL' command.", OPT_des_mul}},
 	{"-xj,", "job max count", "MAX_JOB_COUNT", [](opt_uint uval){
 		PrintInfo("Set job max count = " + to_string(uval) + '.');
 		MaxJobs = size_t(uval);
@@ -317,6 +325,41 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 	return {};
 }
 //@}
+
+//! \since build 758
+void
+RunNPLFromStream(std::istream&& is)
+{
+	using namespace NPL;
+	using namespace A1;
+	using namespace Forms;
+	REPLContext context;
+	auto& root(context.Root);
+
+	LoadNPLContextForSHBuild(context);
+	// XXX: Overriding.
+	DefineValue(root, "SHBuild_BaseTerminalHook_",
+		ValueObject(std::function<void(const string&, const string&)>(
+		[](const string& n, const string& val){
+			// XXX: Errors from 'std::printf' and 'std::puts' are ignored.
+			using namespace Consoles;
+
+			Terminal te;
+			{
+				const auto gd(te.LockForeColor(DarkCyan));
+
+				std::printf("%s", n.c_str());
+			}
+			std::printf(" = \"");
+			{
+				const auto gd(te.LockForeColor(DarkRed));
+
+				std::printf("%s", val.c_str());
+			}
+			std::puts("\"");
+	})), true);
+	context.LoadFrom(is);
+}
 
 } // unnamed namespace;
 
@@ -645,14 +688,14 @@ BuildContext::Build()
 			// FIXME: Find extension properly.
 			else
 				// FIXME: Parse %LDFLAGS.
-	// FIXME: Support cross compiling.
+// FIXME: Support cross compiling.
 				target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
 					|| ystdex::exists_substr(LDFLAGS, "-shared")
-	#if YCL_Win32
+#if YCL_Win32
 					? ".dll"
-	#else
+#else
 					? ".so"
-	#endif
+#endif
 					: ".exe";
 			if(CheckBuild(ofiles, target))
 			{
@@ -745,7 +788,7 @@ BuildContext::RunTask(const string& cmd) const
 int
 main(int argc, char* argv[])
 {
-	Terminal term, term_err(stderr);
+	Terminal te, te_err(stderr);
 
 	return FilterExceptions([&]{
 		auto& logger(FetchStaticRef<Logger>());
@@ -760,7 +803,7 @@ main(int argc, char* argv[])
 		logger.SetSender([&](Logger::Level lv, Logger&, const char* str)
 			YB_NONNULL(4){
 			const auto stream(lv <= Warning ? stderr : stdout);
-			auto& term_ref(lv <= Warning ? term_err : term);
+			auto& term_ref(lv <= Warning ? te_err : te);
 			const auto dcnt(duration_cast<milliseconds>(
 				Timers::FetchElapsed<steady_clock>()).count());
 
@@ -833,6 +876,18 @@ main(int argc, char* argv[])
 					{
 						check_n(2);
 						InstallExecutable(args[0], args[1]);
+					}
+					else if(RequestedCommand == "RunNPL")
+					{
+						check_n(1);
+						RunNPLFromStream(
+							std::istringstream{DecodeArg(args[0])});
+					}
+					else if(RequestedCommand == "RunNPLFile")
+					{
+						check_n(1);
+						RunNPLFromStream(
+							ifstream{DecodeArg(args[0]), std::ios_base::in});
 					}
 					else
 						throw std::runtime_error(sfmt("Specified command name"
