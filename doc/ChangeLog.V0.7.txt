@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5271
+\version r5305
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-03 13:33 +0800
+	2017-01-06 21:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,41 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1 $=
+		(
+			+ "function templates %(CallBinary, CallBinaryAs, CallBinaryFold)"
+				@ "namespace %Forms",
+			+ "2 functions %LoadFrom" @ "class %REPLContext"
+		),
+		/ %Dependency $=
+		(
+			/ "clarified error message before copying"
+				@ "function %InstallFile#1",
+			+ "function %A1::Forms::LoadNPLContextForSHBuild"
+		)
+	),
+	/ %Tools $=
+	(
+		/ $dev "updated %LIBS for extra NPL dependencies"
+			@ "%SHBuild-bootstrap.sh" @ %Scripts,
+		/ %Tools.SHBuild.Main $=
+		(
+			+ "commands %(RunNPL, RunNPLFile)" ^ $dep_from
+				("%LoadNPLContextForSHBuild" @ %YFramework.NPL.Dependency)
+				$dep_from "%SHBuild-bootstrap.sh" @ %Scripts,
+			/ "help messages" $=
+			(
+				+ "message for commands %(RunNPL, RunNPLFile)",
+				* "wrong message for %InstallExecutable command" $since b659
+			)
+		)
+	)
+),
+
+b757
 (
 	/ DLDI "simplified aliases" @ %Pointer ^ (("%(add_ptr_t, add_ref_t)"
 		~ "%ystdex::(add_pointer_t, add_lvalue_reference_t)")

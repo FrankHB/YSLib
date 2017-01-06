@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2016 FrankHB.
+# (C) 2014-2017 FrankHB.
 # Common source script: bootstrap configuration.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
@@ -34,11 +34,12 @@ INCLUDES=" \
 	-I$YSLib_BaseDir/YBase/include \
 	"
 
-# Coordinated with build 739.
+# Coordinated with build 758.
 LIBS=" \
 	$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/base.cpp \
+	$YSLib_BaseDir/YBase/source/ystdex/exception.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/any.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/concurrency.cpp \
 	$YSLib_BaseDir/YFramework/source/CHRLib/chrmap.cpp \
@@ -53,12 +54,15 @@ LIBS=" \
 	$YSLib_BaseDir/YFramework/source/YCLib/MemoryMapping.cpp \
 	$YSLib_BaseDir/YFramework/source/YSLib/Core/YCoreUtilities.cpp \
 	$YSLib_BaseDir/YFramework/source/YSLib/Core/YException.cpp \
+	$YSLib_BaseDir/YFramework/source/YSLib/Core/YObject.cpp \
 	$YSLib_BaseDir/YFramework/source/YSLib/Core/ValueNode.cpp \
 	$YSLib_BaseDir/YFramework/source/YSLib/Service/FileSystem.cpp \
 	$YSLib_BaseDir/YFramework/source/YSLib/Service/File.cpp \
 	$YSLib_BaseDir/YFramework/source/YSLib/Service/TextFile.cpp \
 	$YSLib_BaseDir/YFramework/source/NPL/Lexical.cpp \
 	$YSLib_BaseDir/YFramework/source/NPL/SContext.cpp \
+	$YSLib_BaseDir/YFramework/source/NPL/NPLA.cpp \
+	$YSLib_BaseDir/YFramework/source/NPL/NPLA1.cpp \
 	$YSLib_BaseDir/YFramework/source/NPL/Dependency.cpp \
 	"
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then

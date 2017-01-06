@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2023
+\version r2042
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-01-02 13:32 +0800
+	2017-01-04 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -625,6 +625,27 @@ REPLContext::REPLContext(bool trace)
 		std::bind(std::ref(ListTermPreprocess), _1, _2));
 	if(trace)
 		SetupTraceDepth(Root);
+}
+
+void
+REPLContext::LoadFrom(std::istream& is)
+{
+	if(is)
+	{
+		if(const auto p = is.rdbuf())
+			LoadFrom(*p);
+		else
+			throw std::invalid_argument("Invalid stream buffer found.");
+	}
+	else
+		throw std::invalid_argument("Invalid stream found.");
+}
+void
+REPLContext::LoadFrom(std::streambuf& buf)
+{
+	using s_it_t = std::istreambuf_iterator<char>;
+
+	Process(Session(s_it_t(&buf), s_it_t()));
 }
 
 TermNode
