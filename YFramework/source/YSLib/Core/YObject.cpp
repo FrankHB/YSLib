@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013, 2015-2016 FrankHB.
+	© 2009-2013, 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r862
+\version r877
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-21 11:07 +0800
+	2017-01-11 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,14 @@ ImplDeDtor(IValueHolder)
 namespace
 {
 
+//! \since build 759
 inline PDefH(IValueHolder&, HolderDownCast, ystdex::any_ops::holder& h)
+	ynothrowv
 	ImplRet(ystdex::polymorphic_downcast<IValueHolder&>(h))
+//! \since build 759
+inline PDefH(const IValueHolder&, HolderDownCast,
+	const ystdex::any_ops::holder& h) ynothrowv
+	ImplRet(ystdex::polymorphic_downcast<const IValueHolder&>(h))
 
 inline PDefH(bool, HolderEquals, ystdex::any_ops::holder& h, const void* p)
 	ImplRet(HolderDownCast(h).Equals(p))
@@ -87,8 +93,15 @@ ValueObject
 ValueObject::MakeIndirect() const
 {
 	return ystdex::call_value_or([](const ystdex::any_ops::holder& h){
-		return ValueObject(ystdex::polymorphic_downcast<const IValueHolder&>(h),
-			holder_refer_tag());
+		return ValueObject(HolderDownCast(h), holder_refer_tag());
+	}, content.get_holder());
+}
+
+bool
+ValueObject::OwnsUnique() const ynothrow
+{
+	return ystdex::call_value_or([](const ystdex::any_ops::holder& h) ynothrow{
+		return HolderDownCast(h).OwnsUnique();
 	}, content.get_holder());
 }
 

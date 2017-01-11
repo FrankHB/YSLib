@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2042
+\version r2046
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-01-04 13:31 +0800
+	2017-01-11 11:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -582,7 +582,7 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			// XXX: This should be prevented being passed to second pass in
 			//	%TermToName normally. This is guarded by normal form handling
 			//	in the loop in %Reduce.
-			term.Value = Deliteralize(id).to_string();
+			term.Value.emplace<string>(Deliteralize(id));
 		default:
 			break;
 			// TODO: Handle other categories of literal.
@@ -914,9 +914,8 @@ Or(TermNode& term, ContextNode& ctx)
 void
 CallSystem(TermNode& term)
 {
-	Forms::CallUnaryAs<const string>([&](const string& cmd){
-		term.Value = usystem(cmd.c_str());
-	}, term);
+	Forms::CallUnaryAs<const string>(
+		ystdex::compose(usystem, std::mem_fn(&string::c_str)), term);
 }
 
 void

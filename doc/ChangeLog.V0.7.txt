@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5305
+\version r5391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-06 21:18 +0800
+	2017-01-11 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,93 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx.Memory $=
+	(
+		+ "3 function templates %(owns_unique, owns_unique_nonnull)"
+		+ "deleter template parameter"
+			@ "function template %reset for %std::unique_ptr instances"
+	),
+	/ %Tools.Scripts $=
+	(
+		* "compiler flag test for %(C_CXXFLAGS_GC, LDFLAGS_GC)"
+			@ !"platform %Win32" @ "%SHBuild-common-options.sh" $since b561,
+		* "message for finishing building YSLib libraries"
+			@ "%SHBuild-YSLib-common.sh" $since b758
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				- "unused form %SHBuild_EchoVar_E_",
+				+ "forms %('root-context', '$set', '$or', 'eqv?', not, \
+					'str-contains-ci?', value-of)",
+				/ DLDI "avoided redundant capture" @ "form %SHBuild_SDot_",
+				/ DLDI "formatted loaded text to avoid trailing '(' before EOL"
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "function templates %(CallUnary, CallBinary, CallBinaryAs)"
+					$=
+				(
+					/ "assignment took place when the result is of \
+						%ValueObject or its references" ^ $dep_from
+						("%YSLib::EmplaceCallResult" ~ "%YSLib::EmplaceFromCall"
+						@ %YSLib.Core.YObject);
+					/ "allowed callable objects" ^ "%ystdex::invoke_nonvoid"
+						~ "direct call"
+				),
+				/ DLDI "simplified function %CallSystem"
+					^ "%std::(mem_fn, ystdex::compose)" ~ "lambda expression",
+				/ "allowed %ystdex::pseudo_output result" @ "function template \
+					%CallBinaryFold"
+					$= (/ $impl ^ $dep_from ("%YSLib::EmplaceCallResult"
+						~ "%YSLib::EmplaceFromCall" @ %YSLib.Core.YObject),
+				/ DLDI "function %EvaluateLeafToken"
+					^ ($dep_from "%ValueObject::emplace" @ %YSLib.Core.YObject)
+					~ "assignment, %to_string call"
+			)
+		),
+		/ @ "inline namespace %references" @ %YCLib.Reference $dep_from
+			%YBase.YStandardEx.Memory $=
+		(
+			+ 'using ystdex::owns_unique;',
+			+ 'using ystdex::owns_unique_nonnull;'
+		),
+		/ %YSLib $=
+		(
+			+ $comp "aliases %(owns_unique, owns_unique_nonnull)"
+				@ "namespace %YSLib" @ %Adaptor.YAdaptor,
+			/ %Core.YObject $=
+			(
+				+ "abstract method %IValueHolder::OwnsUnique";
+				+ $forced "overrider %OwnsUnique"
+					@ "class templates %(ValueHolder, PointerHolder, RefHolder)"
+					$= (/ $impl ^ $dep_from ("%owns_unique" @ %Adaptor));
+				/ @ "class %ValueObject" $=
+				(
+					+ "function %OwnsUnique" $dep_from "%IValueHolder",
+					/ $revert_ex(b678) "all 2 function templates %Emplace"
+						=> "%emplace"
+				),
+				+ "5 function templates %EmplaceCallResult"
+					^ $dep_from "%ValueObject::emplace",
+					// The emplaced nested %ValueObject is usually unexpected. \
+						If the emplacement is really needed, it can be \
+						directly by construction of explicit value.
+				- $revert(b748) "all 3 function templates %EmplaceFromCall"
+					$dep_from ("%(CallUnary, CallBinary, CallBinaryAs)"
+					@ %NPL.NPLA1)
+				- $revert(b748) "all 3 function templates %EmplaceFromInvoke"
+			)
+		)
+	)
+),
+
+b758
 (
 	/ %YFramework.NPL $=
 	(

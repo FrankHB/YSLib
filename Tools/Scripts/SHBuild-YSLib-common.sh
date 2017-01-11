@@ -132,7 +132,7 @@ SHBuild_YSLib_Build_()
 		$SHBuild $SHBOPT -xn,${LIBPFX}YFramework$libd $@ \
 			"$YSLib_BaseDir/YFramework" $CXXFLAGS $DFLAG_X_YB $DFLAG_B_YF \
 			-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
-		SHBuild_Puts Finished $lname.
+		SHBuild_Puts Finished building $lname.
 	fi
 }
 

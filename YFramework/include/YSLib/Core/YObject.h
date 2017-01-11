@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4497
+\version r4586
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2016-12-23 01:14 +0800
+	2017-01-11 11:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YSLib_Core_YCoreUtilities // for ystdex::identity,
 //	ystdex::result_of_t;
 #include <ystdex/any.h> // for ystdex::any_ops::holder, ystdex::boxed_value,
-//	ystdex::any;
+//	ystdex::any, ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -94,6 +94,11 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	派生实现应保证返回的值满足 EqualityComparable 中对 == 操作的要求。
 	*/
 	DeclIEntry(bool Equals(const void*) const)
+	/*!
+	\brief 判断是否是持有对象的唯一所有者。
+	\since build 759
+	*/
+	DeclIEntry(bool OwnsUnique() const ynothrow)
 	/*!
 	\brief 创建引用。
 	\since build 747
@@ -196,6 +201,10 @@ public:
 		ImplRet(bool(p) && AreEqualHeld(this->value,
 			Deref(static_cast<const value_type*>(p))))
 
+	//! \since build 759
+	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(true)
+
 	//! \since build 747
 	ystdex::any
 	Refer() const ImplI(IValueHolder);
@@ -258,6 +267,13 @@ public:
 		ImplRet(p ? AreEqualHeld(*p_held,
 			Deref(static_cast<const value_type*>(p))) : !get())
 
+	/*!
+	\note 使用 ADL owns_unique 。
+	\since build 759
+	*/
+	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(owns_unique(p_held))
+
 	//! \since build 747
 	ystdex::any
 	Refer() const ImplI(IValueHolder);
@@ -305,6 +321,10 @@ public:
 	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
 		ImplRet(bool(p) && AreEqualHeld(Deref(static_cast<const value_type*>(
 			get())), Deref(static_cast<const value_type*>(p))))
+
+	//! \since build 759
+	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
+		ImplRet({})
 
 	PDefH(ystdex::any, Refer, ) const ImplI(IValueHolder)
 		ImplRet(ystdex::any(ystdex::any_ops::use_holder,
@@ -396,6 +416,7 @@ public:
 		: content(ystdex::any_ops::use_holder,
 		ystdex::in_place<ValueHolder<_type>>, yforward(args)...)
 	{}
+
 private:
 	/*!
 	\brief 构造：使用持有者。
@@ -598,27 +619,6 @@ public:
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(content.reset())
 
-	//! \since build 677
-	//@{
-	template<typename _type, typename... _tParams>
-	void
-	Emplace(_tParams&&... args)
-	{
-		using Holder = ValueHolder<ystdex::decay_t<_type>>;
-
-		content.emplace<Holder>(ystdex::any_ops::use_holder,
-			Holder(yforward(args)...));
-	}
-	template<typename _type>
-	void
-	Emplace(_type* p, PointerTag)
-	{
-		using Holder = PointerHolder<ystdex::decay_t<_type>>;
-
-		content.emplace<Holder>(ystdex::any_ops::use_holder, Holder(p));
-	}
-	//@}
-
 	/*!
 	\brief 判断相等。
 	\sa IValueHolder::Equals
@@ -659,6 +659,34 @@ public:
 	MakeIndirect() const;
 
 	/*!
+	\brief 判断是否是持有对象的唯一所有者。
+	\since build 759
+	*/
+	bool
+	OwnsUnique() const ynothrow;
+
+	//! \since build 759
+	//@{
+	template<typename _type, typename... _tParams>
+	void
+	emplace(_tParams&&... args)
+	{
+		using Holder = ValueHolder<ystdex::decay_t<_type>>;
+
+		content.emplace<Holder>(ystdex::any_ops::use_holder,
+			Holder(yforward(args)...));
+	}
+	template<typename _type>
+	void
+	emplace(_type* p, PointerTag)
+	{
+		using Holder = PointerHolder<ystdex::decay_t<_type>>;
+
+		content.emplace<Holder>(ystdex::any_ops::use_holder, Holder(p));
+	}
+	//@}
+
+	/*!
 	\brief 交换。
 	\since build 710
 	*/
@@ -687,49 +715,46 @@ AccessPtr(const ValueObject& vo) ynothrow
 }
 //@}
 
-template<typename _func, typename... _tParams>
-void
-EmplaceFromCall(ValueObject&, ystdex::identity<void>, _func&& f,
-	_tParams&&... args)
-{
-	yforward(f)(yforward(args)...);
-}
-template<typename _type, typename _func, typename... _tParams>
-void
-EmplaceFromCall(ValueObject& vo, ystdex::identity<_type>, _func&& f,
-	_tParams&&... args)
-{
-	vo.Emplace<_type>(yforward(f)(yforward(args)...));
-}
-template<typename _func, typename... _tParams>
-void
-EmplaceFromCall(ValueObject& vo, _func&& f, _tParams&&... args)
-{
-	YSLib::EmplaceFromCall(vo, ystdex::identity<ystdex::result_of_t<
-		_func&&(_tParams&&...)>>(), yforward(f), yforward(args)...);
-}
+/*!
+\brief 以指定参数按需构造替换值。
+\since build 759
 
-template<typename _fCallable, typename... _tParams>
+默认对 ValueObject 及引用值会被直接复制或转移赋值；
+其它情形调用 ValueObject::emplace 。
+*/
+//@{
+template<typename _type, typename... _tParams>
 void
-EmplaceFromInvoke(ValueObject&, ystdex::identity<void>, _fCallable&& f,
-	_tParams&&... args)
+EmplaceCallResult(ValueObject&, _type&&, ystdex::false_) ynothrow
+{}
+template<typename _type, typename... _tParams>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::true_)
+	ynoexcept_spec(vo = yforward(res))
 {
-	ystdex::invoke(yforward(f), yforward(args)...);
+	vo = yforward(res);
 }
-template<typename _type, typename _fCallable, typename... _tParams>
-void
-EmplaceFromInvoke(ValueObject& vo, ystdex::identity<_type>, _fCallable&& f,
-	_tParams&&... args)
+template<typename _type, typename... _tParams>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_, ystdex::false_)
 {
-	vo.Emplace<_type>(ystdex::invoke(yforward(f), yforward(args)...));
+	vo.emplace<ystdex::decay_t<_type>>(yforward(res));
 }
-template<typename _fCallable, typename... _tParams>
-void
-EmplaceFromInvoke(ValueObject& vo, _fCallable&& f, _tParams&&... args)
+template<typename _type, typename... _tParams>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_)
 {
-	YSLib::EmplaceFromInvoke(ystdex::identity<decltype(ystdex::invoke(
-		yforward(f), yforward(args)...))>(), yforward(f), yforward(args)...);
+	vo.emplace<ystdex::decay_t<_type>>(yforward(res), ystdex::true_(),
+		std::is_same<ystdex::decay_t<_type>, ValueObject>());
 }
+template<typename _type, typename... _tParams>
+inline void
+EmplaceCallResult(ValueObject& vo, _type&& res)
+{
+	YSLib::EmplaceCallResult(vo, yforward(res),
+		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>());
+}
+//@}
 
 template<typename _type, typename... _tParams>
 _type&
@@ -737,7 +762,7 @@ EmplaceIfEmpty(ValueObject& vo, _tParams&&... args)
 {
 	if(!vo)
 	{
-		vo.Emplace<_type>(yforward(args)...);
+		vo.emplace<_type>(yforward(args)...);
 		return vo.GetObject<_type>();
 	}
 	return vo.Access<_type>();

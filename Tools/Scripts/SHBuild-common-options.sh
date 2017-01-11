@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2016 FrankHB.
+# (C) 2014-2017 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
@@ -16,11 +16,10 @@ else
 	#: ${LDFLAGS_GC:="-Wl,--gc-sections -Wl,--print-gc-sections"}
 fi
 
-# See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25 .
+# NOTE: The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
 if [[ "$SHBuild_Env_OS" != 'Win32' ]]; then
-	if [[ "$CXX" != '' ]] && !(SHBuild_Put 'int main(){}' \
-		| "$CXX" -xc++ -o/tmp/null $C_CXXFLAGS_GC $LDFLAGS_GC -; \
-		2>& 1 > /dev/null); then
+	if [[ "$CXX" != '' ]] && !(echo 'int main(){}' | "$CXX" -xc++ -o/tmp/null \
+		$C_CXXFLAGS_GC $LDFLAGS_GC - 2> /dev/null); then
 		C_CXXFLAGS_GC=''
 		LDFLAGS_GC=''
 	fi
