@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2330
+\version r2384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2016-12-28 16:33 +0800
+	2017-01-10 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,13 +34,12 @@
 //	is_copy_constructible, is_class_type, cond_t, is_detected, vdefer,
 //	std::declval, detected_t, conditional, indirect_element_t,
 //	remove_reference_t, detected_or_t, not_, is_void, remove_pointer_t,
-//	is_pointer, enable_if_t, is_array, extent, remove_extent_t,
+//	yconstraint, is_pointer, enable_if_t, is_array, extent, remove_extent_t,
 //	ystdex::construct_within, is_polymorphic;
 #include "pointer.hpp" // for "pointer.hpp";
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "exception.h" // for throw_invalid_construction;
-#include "cassert.h" // for yconstraint;
-#include "operators.hpp" // for totally_ordered, equality_comparable;
+#include "ref.hpp" // for is_reference_wrapper;
 
 #if YB_IMPL_MSCPP >= 1800
 /*!
@@ -545,15 +544,65 @@ get_raw(const std::weak_ptr<_type>& p) ynothrow
 }
 //@}
 
+/*!	\defgroup owns_unique Owns Uniquely Check
+\brief 检查是否是唯一所有者。
+\since build 759
+*/
+//@{
+template<typename _type>
+yconstfn bool
+owns_unique(const _type&) ynothrow
+{
+	return !is_reference_wrapper<_type>();
+}
+template<typename _type, class _tDeleter>
+inline bool
+owns_unique(const std::unique_ptr<_type, _tDeleter>& p) ynothrow
+{
+	return bool(p);
+}
+template<typename _type>
+inline bool
+owns_unique(const std::shared_ptr<_type>& p) ynothrow
+{
+	return p.unique();
+}
+
+template<typename _type>
+yconstfn bool
+owns_unique_nonnull(const _type&) ynothrow
+{
+	return !is_reference_wrapper<_type>();
+}
+//! \pre 参数非空。
+//@{
+template<typename _type, class _tDeleter>
+inline bool
+owns_unique_nonnull(const std::unique_ptr<_type, _tDeleter>& p) ynothrow
+{
+	yconstraint(p);
+	return true;
+}
+template<typename _type>
+inline bool
+owns_unique_nonnull(const std::shared_ptr<_type>& p) ynothrow
+{
+	yconstraint(p);
+	return p.unique();
+}
+//@}
+//@}
+
 /*!	\defgroup reset Reset Pointers
 \brief 安全删除指定引用的指针指向的对象。
 \post 指定引用的指针为空。
 \since build 209
 */
 //@{
-template<typename _type>
+//! \since build 759
+template<typename _type, class _tDeleter>
 inline bool
-reset(std::unique_ptr<_type>& p) ynothrow
+reset(std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
 	if(p.get())
 	{
@@ -574,7 +623,6 @@ reset(std::shared_ptr<_type>& p) ynothrow
 	return {};
 }
 //@}
-
 
 /*!	\defgroup unique_raw Get Unique Pointer
 \ingroup helper_functions

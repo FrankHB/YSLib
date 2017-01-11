@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r327
+\version r353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-01-06 21:11 +0800
+	2017-01-11 11:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <iterator> // for std::istreambuf_iterator;
 #include <limits> // for std::numeric_limits;
-#include <cctype> // for std::isdigit;
+#include <cctype> // for std::isdigit, std::tolower;
 #include <cerrno> // for errno, ERANGE;
 #include <cstdio> // for std::puts;
 
@@ -226,6 +226,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				const long ans(std::strtol(ptr, &eptr, 10));
 
 				if(size_t(eptr - ptr) == id.size() && errno != ERANGE)
+					// XXX: Conversion to 'int' might be implementation-defined.
 					term.Value = int(ans);
 			}
 			else
@@ -237,6 +238,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterFormContextHandler(root, "$define",
 		std::bind(DefineOrSet, _1, _2, true));
 	RegisterFormContextHandler(root, "$if", If);
+	RegisterFormContextHandler(root, "$set",
+		std::bind(DefineOrSet, _1, _2, false));
+	// NOTE: Privmitive procedures.
+	RegisterFormContextHandler(root, "$or", Or);
+	RegisterStrict(root, "eqv?", EqualValue);
+	context.Perform("$define (not x) eqv? x #f");
 	// NOTE: I/O library.
 	RegisterStrictUnary<const string>(root, "puts", [&](const string& str){
 		// FIXME: Use %EncodeArg.
@@ -250,9 +257,23 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		return res;
 	});
 	RegisterStrict(root, "system", CallSystem);
+	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: String library.
 	RegisterStrict(root, "++", std::bind(CallBinaryFold<string, ystdex::plus<>>,
 		ystdex::plus<>(), string(), _1), IsBranch);
+	RegisterStrict(root, "str-contains-ci?", [](TermNode& term){
+		CallBinaryAs<string>([](string x, string y){
+			// TODO: Extract 'strlwr'.
+			const auto to_lwr([](string& s){
+				for(auto& c : s)
+					c = std::tolower(c);
+			});
+
+			to_lwr(x),
+			to_lwr(y);
+			return x == y;
+		}, term);
+	});
 	// NOTE: SHBuild builtins.
 	DefineValue(root, "SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
@@ -292,7 +313,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		}, term);
 	});
 	RegisterStrictUnary<const string>(root, "SHBuild_SDot_",
-		[&](const string& str){
+		[](const string& str){
 		auto res(str);
 
 		for(auto& c : res)
@@ -303,11 +324,10 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: Params of %SHBuild_BuildGCH: header = path of header to be copied,
 	//	inc = path of header to be included, cmd = tool to build header.
 	context.Perform(u8R"NPL(
-		$define (SHBuild_EchoVar_E_ name val)
-			SHBuild_EchoVar (env-get name) (env-get val);
 		$define (SHBuild_EchoVar_N var) SHBuild_EchoVar var
 			(env-get (SHBuild_SDot_ var));
-		$define (SHBuild_BuildGCH header inc cmd) (
+		$define (SHBuild_BuildGCH header inc cmd)
+		(
 			$define pch (++ inc ".gch");
 			$if (SHBuild_BuildGCH_existed_ pch)
 				(puts (++ "PCH file \"" pch "\" exists, skipped building."))

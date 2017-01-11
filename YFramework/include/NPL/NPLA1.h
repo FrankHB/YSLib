@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2354
+\version r2370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-01-04 18:39 +0800
+	2017-01-11 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,10 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
-//	YSLib::Access, ystdex::equality_comparable, YSLib::AreEqualHeld,
-//	ystdex::make_expanded, ystdex::indirect_t, ystdex::make_transform,
-//	std::accumulate, ystdex::bind1, std::placeholders::_2;
+//	YSLib::Access, ystdex::equality_comparable, ystdex::exclude_self_t,
+//	YSLib::AreEqualHeld, ystdex::make_expanded, ystdex::invoke_nonvoid,
+//	ystdex::make_transform, std::accumulate, ystdex::bind1,
+//	std::placeholders::_2;
 
 namespace NPL
 {
@@ -851,12 +852,13 @@ ReduceWithModifier(TermNode& term, ContextNode& ctx, _func f)
 
 /*!
 \brief 访问节点并调用一元函数。
+\sa YSLib::EmplaceCallResult
 \since build 756
 
 确定项具有一个实际参数后展开调用参数指定的函数。
 若被调用的函数返回类型非 void ，返回值作为项的值被构造。
-ValueObject 类型的值不会被特别处理，而会被以和其它类型的值类似的方式被包装。
-若需值的复制或转移，可直接对项的值进行赋值等操作，而非通过函数返回。
+调用 YSLib::EmplaceCallResult 对 ValueObject 及引用值处理不同。
+若需以和其它类型的值类似的方式被包装，在第一个参数中构造 ValueObject 对象。
 */
 //@{
 template<typename _func, typename... _tParams>
@@ -864,9 +866,9 @@ void
 CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term);
-	YSLib::EmplaceFromCall(term.Value,
+	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(yforward(f)),
-		Deref(std::next(term.begin())), yforward(args)...);
+		Deref(std::next(term.begin())), yforward(args)...));
 }
 
 template<typename _type, typename _func, typename... _tParams>
@@ -898,7 +900,8 @@ CallBinary(_func f, TermNode& term, _tParams&&... args)
 	auto i(term.begin());
 	auto& x(Deref(++i));
 
-	YSLib::EmplaceFromCall(term.Value, f, x, Deref(++i), yforward(args)...);
+	YSLib::EmplaceCallResult(term.Value,
+		ystdex::invoke_nonvoid(f, x, Deref(++i), yforward(args)...));
 }
 
 template<typename _type, typename _func, typename... _tParams>
@@ -910,8 +913,8 @@ CallBinaryAs(_func f, TermNode& term, _tParams&&... args)
 	auto i(term.begin());
 	auto& x(YSLib::Access<_type>(Deref(++i)));
 
-	YSLib::EmplaceFromCall(term.Value, f, x, YSLib::Access<_type>(Deref(++i)),
-		yforward(args)...);
+	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(f, x,
+		YSLib::Access<_type>(Deref(++i)), yforward(args)...));
 }
 //@}
 
@@ -926,9 +929,9 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 		return YSLib::Access<_type>(Deref(it));
 	}));
 
-	term.Value = std::accumulate(j, std::next(j, typename
-		std::iterator_traits<decltype(j)>::difference_type(n)), val,
-		ystdex::bind1(f, std::placeholders::_2, yforward(args)...));
+	YSLib::EmplaceCallResult(term.Value, std::accumulate(j, std::next(j,
+		typename std::iterator_traits<decltype(j)>::difference_type(n)), val,
+		ystdex::bind1(f, std::placeholders::_2, yforward(args)...)));
 }
 //@}
 

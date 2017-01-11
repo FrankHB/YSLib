@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2807
+\version r2812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2016-12-28 17:18 +0800
+	2017-01-10 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,6 +61,10 @@ using yimpl(ystdex)::make_unique_default_init;
 using ystdex::get_raw;
 //! \since build 454
 using yimpl(std)::owner_less;
+//! \since build 759
+using ystdex::owns_unique;
+//! \since build 759
+using ystdex::owns_unique_nonnull;
 //! \since build 669
 using yimpl(ystdex)::observer_ptr;
 using ystdex::reset;
