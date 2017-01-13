@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r877
+\version r884
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-01-11 11:49 +0800
+	2017-01-12 16:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_YObject
+#include YFM_YSLib_Core_YObject // for ystdex::bind1;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace YSLib
@@ -92,17 +92,16 @@ ValueObject::EqualsUnchecked(const void* p) const
 ValueObject
 ValueObject::MakeIndirect() const
 {
-	return ystdex::call_value_or([](const ystdex::any_ops::holder& h){
-		return ValueObject(HolderDownCast(h), holder_refer_tag());
-	}, content.get_holder());
+	return ystdex::call_value_or([](const IValueHolder& h){
+		return ValueObject(h, holder_refer_tag());
+	}, GetHolderPtr());
 }
 
 bool
 ValueObject::OwnsUnique() const ynothrow
 {
-	return ystdex::call_value_or([](const ystdex::any_ops::holder& h) ynothrow{
-		return HolderDownCast(h).OwnsUnique();
-	}, content.get_holder());
+	return ystdex::call_value_or(
+		ystdex::bind1(&IValueHolder::OwnsUnique), GetHolderPtr());
 }
 
 } // namespace YSLib;

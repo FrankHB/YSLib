@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1303
+\version r1329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-01-02 14:25 +0800
+	2017-01-11 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -588,6 +588,36 @@ CategorizeLiteral(string_view);
 //@}
 
 
+/*!
+\ingroup ThunkType
+\brief 记号值。
+\note 和被求值的字符串不同的包装类型。
+\warning 非空析构。
+\since build 756
+*/
+using TokenValue = ystdex::derived_entity<string, NPLATag>;
+
+
+/*!
+\brief 标记记号节点：递归变换节点，转换其中 string 类型的值为 TokenValue 。
+\note 先变换子节点。
+\since build 753
+*/
+YF_API void
+TokenizeTerm(TermNode& term);
+
+
+/*!
+\brief 对表示值的 ValueObject 进行基于所有权的生存期检查并取表示其引用的间接值。
+\throw NPLException 检查失败：参数具有对象的唯一所有权，不能被外部引用保存。
+\throw ystdex::invalid_construction 参数不持有值。
+\since build 760
+\todo 使用具体的语义错误异常类型。
+*/
+YF_API ValueObject
+ReferenceValue(const ValueObject&);
+
+
 //! \brief 从指定上下文查找名称对应的节点。
 //@{
 //! \since build 740
@@ -641,25 +671,6 @@ TermToName(const TermNode&);
 
 //! \since build 753
 //@{
-/*!
-\ingroup ThunkType
-\brief 记号值。
-\note 和被求值的字符串不同的包装类型。
-\warning 非空析构。
-\since build 756
-*/
-using TokenValue = ystdex::derived_entity<string, NPLATag>;
-
-
-/*!
-\brief 标记记号节点：递归变换节点，转换其中 string 类型的值为 TokenValue 。
-\note 先变换子节点。
-\since build 753
-*/
-YF_API void
-TokenizeTerm(TermNode& term);
-
-
 /*!
 \pre 字符串参数的数据指针非空。
 \note 最后一个参数表示强制调用。

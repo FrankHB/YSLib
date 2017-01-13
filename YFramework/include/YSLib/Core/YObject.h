@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4586
+\version r4595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-01-11 11:38 +0800
+	2017-01-11 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -721,6 +721,7 @@ AccessPtr(const ValueObject& vo) ynothrow
 
 默认对 ValueObject 及引用值会被直接复制或转移赋值；
 其它情形调用 ValueObject::emplace 。
+使用第三和第四个参数分别指定非默认情形下不忽略值及使用赋值。
 */
 //@{
 template<typename _type, typename... _tParams>
@@ -744,15 +745,15 @@ template<typename _type, typename... _tParams>
 inline void
 EmplaceCallResult(ValueObject& vo, _type&& res, ystdex::true_)
 {
-	vo.emplace<ystdex::decay_t<_type>>(yforward(res), ystdex::true_(),
+	YSLib::EmplaceCallResult(vo, yforward(res), ystdex::true_(),
 		std::is_same<ystdex::decay_t<_type>, ValueObject>());
 }
 template<typename _type, typename... _tParams>
 inline void
 EmplaceCallResult(ValueObject& vo, _type&& res)
 {
-	YSLib::EmplaceCallResult(vo, yforward(res),
-		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>());
+	YSLib::EmplaceCallResult(vo, yforward(res), ystdex::not_<
+		std::is_same<ystdex::decay_t<_type>, ystdex::pseudo_output>>());
 }
 //@}
 
@@ -830,11 +831,8 @@ public:
 		return Nonnull(ptr);
 	}
 
-	inline
-	void Reset()
-	{
-		reset(ptr);
-	}
+	PDefH(void, Reset, )
+		ImplExpr(reset(ptr))
 };
 
 
