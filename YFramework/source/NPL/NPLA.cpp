@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r953
+\version r967
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-01-02 14:25 +0800
+	2017-01-11 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -393,7 +393,22 @@ TokenizeTerm(TermNode& term)
 	for(auto& child : term)
 		TokenizeTerm(child);
 	if(const auto p = AccessPtr<string>(term))
-		term.Value = TokenValue(std::move(*p));
+		term.Value.emplace<TokenValue>(std::move(*p));
+}
+
+
+ValueObject
+ReferenceValue(const ValueObject& vo)
+{
+	if(vo)
+	{
+		if(!vo.OwnsUnique())
+			return vo.MakeIndirect();
+		else
+			throw NPLException("Value of a temporary shall not be referenced.");
+	}
+	else
+		ystdex::throw_invalid_construction();
 }
 
 

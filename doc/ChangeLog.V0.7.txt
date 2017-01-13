@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5391
+\version r5483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-11 12:04 +0800
+	2017-01-14 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,99 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ DLDI "function %TokenizeTerm" ^ "%ValueObject::emplace"
+					~ "assignment",
+				+ "function %ReferenceValue"
+			),
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				/ DLDI "simplified form %SHBuild_SDot_"
+					$= (/ $re_add(b623) "reduced redundant 'return std::move'"
+						@ "return-statement"),
+				+ "form %ref" ^ $dep_from ("%ReferenceValue" @ %NPLA),
+				/ DLDI "simplified forms %(define, set)" ^ "%ystdex::bind1"
+					~ "%std::bind",
+				/ "check" $dep_from ("class %FormContextHandler" @ %NPLA1) $=
+				(
+					* $comp "missing branch check" $mismatch(Documentation.NPL)
+						$since b758,
+						// The separated precondition check is mandated since \
+							b733 in the documentation.
+					/ DLDI "simplified" !^ "%IsBranch"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* $comp "wrong reduced terms produced by registered handlers"
+					@ $since b769 $dep_from
+					("%EmplaceCallResult" @ %YSLib.Core.YObject),
+				/ "function template %RegisterFormContextHandler"
+					=> "%RegisterForm",
+				(
+				/ "default initializer" @ "data member %Check"
+					@ "class %FormContextHandler" -> '{IsBranch}' ~ '{}';
+					// Branch node is the normal case. Check in namespace \
+						%Forms mostly relies on %Forms::Quote indirectly, \
+						which is not responsible to leaf nodes (it would only \
+						assert).
+				/ $comp "handler registation with %IsBranch as form check \
+					implicitly";
+				/ DLDI "simplified (all 2 function templates \
+					%Forms::RegisterStrictUnary, function \
+					%RegisterSequenceContextTransformer)" !^ "%IsBranch"
+				),
+				/ @ "namespace %Forms" $=
+				(
+					/ @ "function template %operator()" @ "class templates \
+						%(UnaryExpansion, UnaryAsExpansion)" $=
+					(
+						+ 'const',
+						- "1st parameter"
+							// This is now handled by the subsequent parameter \
+								pack.
+					),
+					/ @ "function templates %(CallBinary, CallBinaryAs)" $=
+					(
+						// To be more consistent with unary ones.
+						/ "supported forwarding additional parameters",
+						+ '&&' @ "1st parameter type"
+					),
+					(
+					+ "class templates %(BinaryExpansion, BinaryAsExpansion)";
+					+ "2 function templates %RegisterBinary"
+					)
+				),
+				* "hard-coded %ContextHandler"
+					@ "function templates %WrapContextHandler" $since b751
+			)
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			(
+			* "wrong function template called"
+				@ "function template %EmplaceCallResult#4" $since b769;
+			* "wrong result dispatched"
+				@ "function templates %EmplaceCallResult#5" $since b769
+			),
+			/ DLDI ("simplified functions %(MakeIndirect, OwnsUnique)"
+				^ "%GetHolderPtr") @ "class %ValueObject",
+			/ DLDI "simplified function %Reset"
+				@ "class template %GDependency" ^ "%(PDefH, ImplExpr)"
+		)
+	),
+	* "wrong Doxygen command '\post'" @ "default constructor %any"
+		@ %YBase.YStandardEx.Any $since b717
+),
+
+b759
 (
 	/ %YBase.YStandardEx.Memory $=
 	(

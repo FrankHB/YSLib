@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r353
+\version r365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-01-11 11:25 +0800
+	2017-01-13 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Dependency
+#include YFM_NPL_Dependency // for std::placeholders, ystdex::bind1;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <iterator> // for std::istreambuf_iterator;
@@ -235,18 +235,21 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		return {};
 	};
 	// NOTE: Binding and control forms.
-	RegisterFormContextHandler(root, "$define",
-		std::bind(DefineOrSet, _1, _2, true));
-	RegisterFormContextHandler(root, "$if", If);
-	RegisterFormContextHandler(root, "$set",
-		std::bind(DefineOrSet, _1, _2, false));
+	RegisterForm(root, "$define",
+		ystdex::bind1(DefineOrSet, _2, true));
+	RegisterForm(root, "$if", If);
+	RegisterForm(root, "$set",
+		ystdex::bind1(DefineOrSet, _2, false));
 	// NOTE: Privmitive procedures.
-	RegisterFormContextHandler(root, "$or", Or);
+	RegisterForm(root, "$or", Or);
 	RegisterStrict(root, "eqv?", EqualValue);
 	context.Perform("$define (not x) eqv? x #f");
+	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
+		ystdex::bind1(std::mem_fn(&TermNode::Value))));
 	// NOTE: I/O library.
 	RegisterStrictUnary<const string>(root, "puts", [&](const string& str){
 		// FIXME: Use %EncodeArg.
+		// XXX: Error is ignored.
 		std::puts(str.c_str());
 	});
 	// NOTE: Interoperation library.
@@ -260,7 +263,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: String library.
 	RegisterStrict(root, "++", std::bind(CallBinaryFold<string, ystdex::plus<>>,
-		ystdex::plus<>(), string(), _1), IsBranch);
+		ystdex::plus<>(), string(), _1));
 	RegisterStrict(root, "str-contains-ci?", [](TermNode& term){
 		CallBinaryAs<string>([](string x, string y){
 			// TODO: Extract 'strlwr'.
@@ -319,7 +322,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		for(auto& c : res)
 			if(c == '.')
 				c = '_';
-		return std::move(res);
+		return res;
 	});
 	// NOTE: Params of %SHBuild_BuildGCH: header = path of header to be copied,
 	//	inc = path of header to be included, cmd = tool to build header.

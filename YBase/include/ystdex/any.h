@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3038
+\version r3040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2016-12-07 13:17 +0800
+	2017-01-11 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -873,7 +873,7 @@ class YB_API any : private details::any_base, private details::any_emplace<any>
 	friend details::any_emplace<any>;
 
 public:
-	//! \post \c has_value() 。
+	//! \post \c !has_value() 。
 	yconstfn
 	any() ynothrow = default;
 	/*!

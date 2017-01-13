@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2046
+\version r2049
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-01-11 11:36 +0800
+	2017-01-13 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -485,14 +485,13 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 //	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
 	passes += ystdex::compose(NeedsRetry,
 		ystdex::bind1(ReplaceSeparatedChildren, name, delim));
-	RegisterFormContextHandler(node, name, ordered
-		? [](TermNode& term, ContextNode& ctx){
+	RegisterForm(node, name, ordered ? [](TermNode& term, ContextNode& ctx){
 			ReduceOrdered(term, ctx);
 			return ReductionStatus::Clean;
 		} : [](TermNode& term, ContextNode& ctx){
 			ReduceChildren(term, ctx);
 			return ReductionStatus::Retained;
-		}, IsBranch);
+		});
 }
 
 

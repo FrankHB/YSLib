@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2370
+\version r2470
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-01-11 11:20 +0800
+	2017-01-14 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,10 @@
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
 //	YSLib::Access, ystdex::equality_comparable, ystdex::exclude_self_t,
-//	YSLib::AreEqualHeld, ystdex::make_expanded, ystdex::invoke_nonvoid,
-//	ystdex::make_transform, std::accumulate, ystdex::bind1,
-//	std::placeholders::_2;
+//	YSLib::AreEqualHeld, YSLib::GHEvent, ystdex::make_function_type_t,
+//	ystdex::make_parameter_tuple_t, ystdex::make_expanded,
+//	ystdex::invoke_nonvoid, ystdex::make_transform, std::accumulate,
+//	ystdex::bind1, std::placeholders::_2;
 
 namespace NPL
 {
@@ -430,34 +431,35 @@ struct WrappedContextHandler
 		ImplRet(YSLib::AreEqualHeld(x.Handler, y.Handler))
 };
 
-template<class _tRet, typename _func>
-inline _tRet
+template<class _tDst, typename _func>
+inline _tDst
 WrapContextHandler(_func&& h, ystdex::false_)
 {
-	return WrappedContextHandler<
-		YSLib::GHEvent<void(TermNode&, ContextNode&)>>(yforward(h));
+	return WrappedContextHandler<YSLib::GHEvent<ystdex::make_function_type_t<
+		void, ystdex::make_parameter_tuple_t<typename _tDst::BaseType>>>>(
+		yforward(h));
 }
-template<class _tRet, typename _func>
+template<class, typename _func>
 inline _func
 WrapContextHandler(_func&& h, ystdex::true_)
 {
 	return yforward(h);
 }
-template<class _tRet, typename _func>
-inline _tRet
+template<class _tDst, typename _func>
+inline _tDst
 WrapContextHandler(_func&& h)
 {
-	using BaseType = typename ContextHandler::BaseType;
+	using BaseType = typename _tDst::BaseType;
 
 	// XXX: It is a hack to adjust the convertible result for the expanded
 	//	caller here. It should have been implemented in %GHEvent, however types
 	//	those cannot convert to expanded caller cannot be SFINAE'd out,
 	//	otherwise it would cause G++ 5.4 crash with internal compiler error:
 	//	"error reporting routines re-entered".
-	return A1::WrapContextHandler<_tRet>(yforward(h), ystdex::or_<
+	return A1::WrapContextHandler<_tDst>(yforward(h), ystdex::or_<
 		std::is_constructible<BaseType, _func&&>,
 		std::is_constructible<BaseType, ystdex::expanded_caller<
-		typename ContextHandler::FuncType, ystdex::decay_t<_func>>>>());
+		typename _tDst::FuncType, ystdex::decay_t<_func>>>>());
 }
 //@}
 
@@ -475,7 +477,7 @@ public:
 	\brief 项检查例程：验证被包装的处理器的调用符合前置条件。
 	\since build 733
 	*/
-	std::function<bool(const TermNode&)> Check{};
+	std::function<bool(const TermNode&)> Check{IsBranch};
 
 	//! \since build 697
 	template<typename _func,
@@ -568,7 +570,7 @@ public:
 //@{
 template<typename... _tParams>
 inline void
-RegisterFormContextHandler(ContextNode& node, const string& name,
+RegisterForm(ContextNode& node, const string& name,
 	_tParams&&... args)
 {
 	NPL::RegisterContextHandler(node, name,
@@ -802,7 +804,7 @@ inline PDefH(ReductionStatus, Quote, const TermNode& term) ynothrowv
 /*!
 \return 项的参数个数。
 
-可使用 RegisterFormContextHandler 注册上下文处理器，参考文法：
+可使用 RegisterForm 注册上下文处理器，参考文法：
 $quote|$quoteN <expression>
 */
 //@{
@@ -885,40 +887,44 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 //@}
 
 /*!
-\note 和一元函数的情形不同，不支持省略参数；回调按值传递。
-\since build 758
+\brief 访问节点并调用二元函数。
+\since build 760
 */
-//@{
-//! \brief 访问节点并调用二元函数。
 //@{
 template<typename _func, typename... _tParams>
 void
-CallBinary(_func f, TermNode& term, _tParams&&... args)
+CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term, 2);
 
 	auto i(term.begin());
 	auto& x(Deref(++i));
 
-	YSLib::EmplaceCallResult(term.Value,
-		ystdex::invoke_nonvoid(f, x, Deref(++i), yforward(args)...));
+	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
+		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
+		yforward(f)), x, Deref(++i), yforward(args)...));
 }
 
 template<typename _type, typename _func, typename... _tParams>
 void
-CallBinaryAs(_func f, TermNode& term, _tParams&&... args)
+CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 {
 	QuoteN(term, 2);
 
 	auto i(term.begin());
 	auto& x(YSLib::Access<_type>(Deref(++i)));
 
-	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(f, x,
-		YSLib::Access<_type>(Deref(++i)), yforward(args)...));
+	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
+		ystdex::make_expanded<void(_type&, _type&, _tParams&&...)>(yforward(f)),
+		x, YSLib::Access<_type>(Deref(++i)), yforward(args)...));
 }
 //@}
 
-//! \brief 访问节点并以指定的初始值为基础逐项调用二元函数。
+/*!
+\brief 访问节点并以指定的初始值为基础逐项调用二元函数。
+\note 为支持 std::bind 推断类型，和以上函数的情形不同，不支持省略参数。
+\since build 758
+*/
 template<typename _type, typename _func, typename... _tParams>
 void
 CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
@@ -933,14 +939,19 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 		typename std::iterator_traits<decltype(j)>::difference_type(n)), val,
 		ystdex::bind1(f, std::placeholders::_2, yforward(args)...)));
 }
-//@}
 
 
 /*!
-\brief 保存一元函数展开调用的函数对象。
-\since build 741
+\brief 保存函数展开调用的函数对象。
 \todo 使用 C++1y lambda 表达式代替。
+
+适配作为上下文处理器的除项以外可选参数的函数对象。
+为适合作为上下文处理器，支持的参数列表类型实际存在限制：
+参数列表以和元数相同数量的必须的 TermNode& 类型的参数起始；
+之后是可选的 ContextNode& 可转换到的类型的参数。
 */
+//@{
+//! \since build 741
 //@{
 //! \sa Forms::CallUnary
 template<typename _func>
@@ -948,11 +959,12 @@ struct UnaryExpansion
 {
 	_func Function;
 
+	//! \since build 760
 	template<typename... _tParams>
-	void
-	operator()(TermNode& term, _tParams&&... args)
+	inline void
+	operator()(_tParams&&... args) const
 	{
-		Forms::CallUnary(Function, term, yforward(args)...);
+		Forms::CallUnary(Function, yforward(args)...);
 	}
 };
 
@@ -963,13 +975,48 @@ struct UnaryAsExpansion
 {
 	_func Function;
 
+	//! \since build 760
 	template<typename... _tParams>
-	void
-	operator()(TermNode& term, _tParams&&... args)
+	inline void
+	operator()(_tParams&&... args) const
 	{
-		Forms::CallUnaryAs<_type>(Function, term, yforward(args)...);
+		Forms::CallUnaryAs<_type>(Function, yforward(args)...);
 	}
 };
+//@}
+
+
+//! \since build 760
+//@{
+//! \sa Forms::CallBinary
+template<typename _func>
+struct BinaryExpansion
+{
+	_func Function;
+
+	template<typename... _tParams>
+	inline void
+	operator()(_tParams&&... args) const
+	{
+		Forms::CallBinary(Function, yforward(args)...);
+	}
+};
+
+
+//! \sa Forms::CallBinaryAs
+template<typename _type, typename _func>
+struct BinaryAsExpansion
+{
+	_func Function;
+
+	template<typename... _tParams>
+	inline void
+	operator()(_tParams&&... args) const
+	{
+		Forms::CallBinaryAs<_type>(Function, yforward(args)...);
+	}
+};
+//@}
 //@}
 
 
@@ -982,13 +1029,32 @@ template<typename _func>
 void
 RegisterStrictUnary(ContextNode& node, const string& name, _func f)
 {
-	RegisterStrict(node, name, UnaryExpansion<_func>{f}, IsBranch);
+	RegisterStrict(node, name, UnaryExpansion<_func>{f});
 }
 template<typename _type, typename _func>
 void
 RegisterStrictUnary(ContextNode& node, const string& name, _func f)
 {
-	RegisterStrict(node, name, UnaryAsExpansion<_type, _func>{f}, IsBranch);
+	RegisterStrict(node, name, UnaryAsExpansion<_type, _func>{f});
+}
+//@}
+
+/*!
+\brief 注册二元严格求值上下文处理器。
+\since build 760
+*/
+//@{
+template<typename _func>
+void
+RegisterStrictBinary(ContextNode& node, const string& name, _func f)
+{
+	RegisterStrict(node, name, BinaryExpansion<_func>{f});
+}
+template<typename _type, typename _func>
+void
+RegisterStrictBinary(ContextNode& node, const string& name, _func f)
+{
+	RegisterStrict(node, name, BinaryAsExpansion<_type, _func>{f});
 }
 //@}
 
@@ -1008,7 +1074,7 @@ RegisterStrictUnary(ContextNode& node, const string& name, _func f)
 \sa DefineOrSetFor
 \sa Lambda
 
-限定第三参数后可使用 RegisterFormContextHandler 注册上下文处理器。
+限定第三参数后可使用 RegisterForm 注册上下文处理器。
 特殊形式参考文法：
 $define|$set [!] <variable> <expression>
 $define|$set [!] (<variable> <formals>) <body>
@@ -1070,7 +1136,7 @@ If(TermNode&, ContextNode&);
 
 使用 ExtractLambdaParameters 检查参数列表并捕获和绑定变量，
 然后设置节点的值为表示 λ 抽象的上下文处理器。
-可使用 RegisterFormContextHandler 注册上下文处理器。
+可使用 RegisterForm 注册上下文处理器。
 和 Scheme 等不同参数以项而不是位置的形式被转移，在函数应用时可能进一步求值。
 按引用捕获上下文中的绑定。被捕获的上下文中的绑定依赖宿主语言的生存期规则。
 特殊形式参考文法：
