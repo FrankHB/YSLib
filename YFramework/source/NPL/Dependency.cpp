@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r365
+\version r403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-01-13 22:01 +0800
+	2017-01-18 15:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -264,18 +264,21 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: String library.
 	RegisterStrict(root, "++", std::bind(CallBinaryFold<string, ystdex::plus<>>,
 		ystdex::plus<>(), string(), _1));
-	RegisterStrict(root, "str-contains-ci?", [](TermNode& term){
-		CallBinaryAs<string>([](string x, string y){
-			// TODO: Extract 'strlwr'.
-			const auto to_lwr([](string& s){
-				for(auto& c : s)
-					c = std::tolower(c);
-			});
+	RegisterStrictBinary(root, "string<-", [](TermNode& x, const TermNode& y){
+		Access<string>(x) = Access<string>(y);
+		return ValueToken::Unspecified;
+	});
+	RegisterStrictBinary<string>(root, "string-contains-ci?",
+		[](string x, string y){
+		// TODO: Extract 'strlwr'.
+		const auto to_lwr([](string& s){
+			for(auto& c : s)
+				c = std::tolower(c);
+		});
 
-			to_lwr(x),
-			to_lwr(y);
-			return x == y;
-		}, term);
+		to_lwr(x),
+		to_lwr(y);
+		return x == y;
 	});
 	// NOTE: SHBuild builtins.
 	DefineValue(root, "SHBuild_BaseTerminalHook_",
@@ -315,6 +318,16 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			InstallHardLink(dst.c_str(), src.c_str());
 		}, term);
 	});
+	RegisterStrictUnary<const string>(root, "SHBuild_QuoteS_",
+		[](const string& str){
+		if(str.find('\'') == string::npos)
+			return ystdex::quote(str, '\'');
+		throw NPLException("Error in quoted string.");
+	});
+	RegisterStrictUnary<const string>(root, "SHBuild_RaiseError_",
+		[](const string& str) YB_NORETURN{
+		throw LoggedEvent(str);
+	});
 	RegisterStrictUnary<const string>(root, "SHBuild_SDot_",
 		[](const string& str){
 		auto res(str);
@@ -322,6 +335,20 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		for(auto& c : res)
 			if(c == '.')
 				c = '_';
+		return res;
+	});
+	RegisterStrictUnary<const string>(root, "SHBuild_TrimOptions_",
+		[](const string& str){
+		string res;
+
+		ystdex::split(str.begin(), str.end(),
+			static_cast<int(&)(int)>(std::isspace),
+			[&](string::const_iterator b, string::const_iterator e){
+			res += string(b, e);
+			res += ' ';
+		});
+		if(!res.empty())
+			res.pop_back();
 		return res;
 	});
 	// NOTE: Params of %SHBuild_BuildGCH: header = path of header to be copied,

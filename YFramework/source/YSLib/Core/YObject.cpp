@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r884
+\version r894
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-01-12 16:17 +0800
+	2017-01-17 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,6 +64,14 @@ ValueObject::GetHolderRef() const
 	return HolderDownCast(Deref(content.get_holder()));
 }
 
+ValueObject
+ValueObject::Create(IValueHolder::Creation c) const
+{
+	return ystdex::call_value_or([c](const IValueHolder& h){
+		return ValueObject(h, c);
+	}, GetHolderPtr());
+}
+
 bool
 ValueObject::Equals(const ValueObject& x) const
 {
@@ -87,14 +95,6 @@ bool
 ValueObject::EqualsUnchecked(const void* p) const
 {
 	return HolderEquals(GetHolderRef(), p);
-}
-
-ValueObject
-ValueObject::MakeIndirect() const
-{
-	return ystdex::call_value_or([](const IValueHolder& h){
-		return ValueObject(h, holder_refer_tag());
-	}, GetHolderPtr());
 }
 
 bool

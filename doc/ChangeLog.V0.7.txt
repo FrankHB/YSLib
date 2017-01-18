@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5483
+\version r5594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-14 00:59 +0800
+	2017-01-19 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,114 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ @ "class %ValueNode" @ %ValueNode $=
+			(
+				+ "forwarding template %erase";
+				/ DLDI "simplified 2 function %Remove" ^ "%erase"
+			),
+			/ %YObject $=
+			(
+				/ @ "interface %IValueHolder" $=
+				(
+					+ "enum %Creation";
+					/ "abstract method %Refer" -> "%Create",
+					+ "static function %CreateHolder"
+				);
+				/ $forced DLDI "overrider %Refer" @ "class templates \
+					%(ValueHolder, PointerHolder, RefHolder)" -> "%Create",
+				/ @ "class %ValueObject" $=
+				(
+					+ "function %Create";
+					/ $forced DLDI "function %MakeIndirect",
+					+ "functions %(MakeCopy, MakeMove)"
+				)
+			)
+		),
+		/ %NPL $=
+		(
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				+ "forms %('string<-', SHBuild_SQuote_)",
+				/ "form %'str-contains-ci?'" -> "%'string-contains-ci?'"
+					^ "%RegisterStrictBinary" ~ "%RegisterStrict",
+				* $comp "undefined behavior for self-referenced term setting \
+					or defining" @ "%('$define', '$set')" $dep_from
+					"functions %(DefineOrSetFor, Lambda)" %NPLA1
+			),
+			/ %NPLA1 $=
+			(
+				(
+				+ "function %AssertBranch";
+				/ "function %FetchArgumentN" @ "namespace %Forms"
+					>> "%namespace %A1" ^ "%AssertBranch" ~ "%Quote",
+				),
+				/ "exception message" @ "function EvaluateContextFirst" $=
+				(
+					/ "shown mismatched source term type in failure",
+					* "wrong argument numbers" $since b697
+						$= (/ $impl $dep_from ^ "%FetchArgumentN")
+				),
+				/ @ "namespace %Forms" $=
+				(
+					/ "simplified function %Quote" ^ $dep_from
+						"%AssertBranch",
+					/ DLDI "simplified function %Lambda by changing the \
+						context initialization order to avoid redundant \
+						binding insertion to the context",
+					/ @ "functions %(DefineOrSetFor, Lambda)" $=
+					(
+						/ $revert_ex(b736)
+							"avoided delayed term wrapping for moved term"
+							$= (/ $revert(b757) $impl !^ "%DelayedTerm");
+							// Now delayed term have to be explicity constructed.
+						* $comp "self-referenced term referenced invalid \
+							binding" $since b736
+					),
+					(
+					/ "function %ReduceCheckedClosure returned indirectly \
+						moved term for reference" ^ $dep_from
+						("%ValueObject::MakeMove" @ %YSLib.Core.YObject);
+					* $comp "returned danling reference to variable in local \
+						context created by %Lambda" $since b735
+						// This would effectively cause undefined behavior in \
+							the host program.
+					)
+				),
+				(
+				+ "function overload %EvaluateDelayed with 2 parameters";
+				/ DLDI "simplified function %EvaluateDelayed#1"
+				)
+			)
+		),
+		* "explicit initialization of byte data" @ "static function \
+			%Decode for fast decoding" @ "class template specialization \
+			%GUCSMapper<CharSet::UTF_8>" @ %CHRLib.StaticMapping $since b595
+			// It should have been initialized normally by %FillByte, but this \
+				was not documented and required behavior. Since there is ADL \
+				call, uninitialized access is better to be prevented here by \
+				extra initialization. Also to eliminate G++ warning: \
+				[-Wmaybe-uninitialized] under '-Og'
+	),
+	/ @ "%Tools/Scripts/SHBuild-YSLib-common.sh" @ %Tools.Scripts $=
+	(
+		* "missing passing environment variables %(CXX, CXXFLAGS) to NPL \
+			command to build PCH" $since b758,
+			// Variable %CXX is usually exported previously, so the effect \
+				would be missing flags in building PCH, which would cause \
+				invalid PCH (warned by the subsequent build).
+		* $lib "redundant duplicate %YBase header directory included"
+			@ "build command for library %YFramework" $orig
+			(@ "%Tools/Scripts/SHBuild-YSLib.sh" $since b546)
+	)
+),
+
+b761
 (
 	/ %YFramework $=
 	(
@@ -265,7 +373,7 @@ b757
 						^ "%ystdex::derived_entity" $dep_from
 						("%(Lambda, DefineOrSetFor)" @ %NPLA1),
 					/ "closure" @ "function %Lambda captured context by \
-							reference",
+						reference",
 						// Capture of context by value would effectively copy \
 							all bindings, which would be unexpected most time.
 					+ "function %ValueOf"
@@ -602,7 +710,7 @@ b752
 		/ %YSLib.Core.YObject $=
 		(
 			(
-			+ "abstract method %Equals" @ "%interface %IValueHodler";
+			+ "abstract method %Equals" @ "%interface %IValueHolder";
 			+ $forced "overrider %Equals"
 				@ "class templates %(ValueHolder, PointerHolder, RefHolder)";
 			/ DLDI "member function %ValueObject" ^ "%IValueHolder::Equals"
@@ -1315,7 +1423,7 @@ b740
 				// The DLL host script is still relying on hard-coded library \
 					location.
 			* "wrong quoted paths for headers in command line"
-				@ "%SHBuild-YSLib.common.sh" $since b739,
+				@ "%SHBuild-YSLib-common.sh" $since b739,
 			/ @ "%SHBuild-build.sh" $=
 			(
 				+ "vairable %SHBuild_Output with default value 'SHBuild' as \
@@ -1646,9 +1754,7 @@ b735
 						/ $revert(b733) "1st parameter type 'ValueObject&'"
 							-> 'TermNode&';
 						/ "handled %TermNode as value to be reduced again"
-					)
-
-
+					),
 					+ "functions %(ExtractLambdaParameters; Lambda)",
 					+ "function %DefineOrSetFor";
 					+ "function %DefineOrSet"

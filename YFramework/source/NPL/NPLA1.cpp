@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2049
+\version r2094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-01-13 22:05 +0800
+	2017-01-17 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -326,7 +326,8 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// TODO: Test for normal form?
 	// XXX: Term reused.
 	ReduceChecked(app_term, ctx);
-	term.SetContent(std::move(app_term));
+	term.Value = app_term.Value.MakeMove(),
+	term.GetContainerRef() = std::move(app_term.GetContainerRef());
 }
 
 void
@@ -513,10 +514,11 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 		// TODO: Capture contextual information in error.
 		// TODO: Extract general form information extractor function.
 		throw ListReductionFailure(
-			ystdex::sfmt("No matching form '%s' with %zu argument(s) found.",
-			ystdex::call_value_or(std::mem_fn(&string::c_str),
-			ystdex::nonnull_or(TermToName(fm), AccessPtr<string>(fm)),
-			"#<unknown>"), term.size()));
+			sfmt("No matching form '%s' with %zu argument(s) found.",
+			[&](observer_ptr<const string> p){
+				return
+					p ? *p : sfmt("#<unknown:%s>", fm.Value.GetType().name());
+			}(TermToName(fm)).c_str(), FetchArgumentN(term)));
 	}
 	return ReductionStatus::Clean;
 }
@@ -524,15 +526,18 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 ReductionStatus
 EvaluateDelayed(TermNode& term)
 {
-	if(const auto p = AccessPtr<DelayedTerm>(term))
-	{
-		// NOTE: The referenced term is lived through the envaluation, which is
-		//	guaranteed by the evaluated parent term.
-		LiftDelayed(term, *p);
-		// NOTE: To make it work with %DetectReducible.
-		return ReductionStatus::Retrying;
-	}
-	return ReductionStatus::Clean;
+	return ystdex::call_value_or([&](DelayedTerm& delayed){
+		return EvaluateDelayed(term, delayed);
+	}, AccessPtr<DelayedTerm>(term), ReductionStatus::Clean);
+}
+ReductionStatus
+EvaluateDelayed(TermNode& term, DelayedTerm& delayed)
+{
+	// NOTE: The referenced term is lived through the envaluation, which is
+	//	guaranteed by the evaluated parent term.
+	LiftDelayed(term, delayed);
+	// NOTE: To make it work with %DetectReducible.
+	return ReductionStatus::Retrying;
 }
 
 ReductionStatus
@@ -769,7 +774,7 @@ DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
 		// XXX: Moved.
 		// NOTE: Unevaluated term is directly saved.
 		(define ? DefineValue : RedefineValue)
-			(ctx, id, DelayedTerm(std::move(term)), mod);
+			(ctx, id, std::move(term.Value), mod);
 	else
 		throw InvalidSyntax(define ? "Literal cannot be defined."
 			: "Literal cannot be set.");
@@ -846,8 +851,10 @@ Lambda(TermNode& term, ContextNode& ctx)
 
 		// FIXME: Cyclic reference to '$lambda' context handler when the
 		//	term value (i.e. the closure) is copied upward?
+		// NOTE: %ToContextHandler implies strict evaluation of arguments in
+		//	%StrictContextHandler::operand().
 		term.Value = ToContextHandler([=](TermNode& app_term){
-			auto& params(Deref(p_params));
+			const auto& params(Deref(p_params));
 			const auto n_params(params.size());
 			const auto n_terms(app_term.size());
 
@@ -861,25 +868,42 @@ Lambda(TermNode& term, ContextNode& ctx)
 				if(n_args == n_params)
 				{
 					auto j(app_term.begin());
+					// NOTE: Active record frame with outer scope bindings.
 					// TODO: Optimize for performance.
 					// NOTE: This is probably better to be copy-on-write. Since
 					//	no immutable reference would be accessed before
 					//	mutation, no care is needed for reference invalidation.
+					// TODO: Optimize using initialization from iterator pair?
+					// FIXME: Referencing escaped variables (now only
+					//	parameters need to be cared) form the context
+					//	would cause undefined behavior (like returning a
+					//	reference to automatic object in the host language).
 					ContextNode app_ctx;
 
-					for(const auto& b : Deref(p_ctx))
-						app_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
 					++j;
 					// NOTE: Introduce parameters as per lexical scoping rules.
 					for(const auto& param : params)
 					{
+						// NOTE: The operands has been evaluated. Any children
+						//	nodes in arguments are now uninterested.
 						// XXX: Moved.
-						// NOTE: Unevaluated operands are directly saved.
-						app_ctx[param].Value = DelayedTerm(std::move(*j));
+						app_ctx.AddValue(param, std::move(j->Value));
 						++j;
 					}
 					YAssert(j == app_term.end(),
 						"Invalid state found on passing arguments.");
+					// NOTE: To avoid object owned by hidden names being
+					//	destroyed, this has to come later.
+					// NOTE: Silently failed for hidden names.
+					for(const auto& b : Deref(p_ctx))
+						// TODO: Optimize by using name resolution supported by
+						//	new (to be done) %ContextNode API directly instead
+						//	of possibly redundant insertion and %MakeIndirect.
+						// NOTE: Since context is shared by all handlers, it is
+						//	safe to reference here. It would be actually unsafe
+						//	to reference the dangling value of active record in
+						//	returned value.
+						app_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
 					// NOTE: Beta reduction.
 					// TODO: Implement accurate lifetime analysis rather than
 					//	'p_closure.unique()'.
