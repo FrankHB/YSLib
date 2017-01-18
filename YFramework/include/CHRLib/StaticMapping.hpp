@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2546
+\version r2548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2016-11-12 13:35 +0800
+	2017-01-16 11:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,7 +303,7 @@ public:
 	Decode(_tObj&& uc, _tIn&& i, ConversionState& st)
 		ynoexcept_spec(!FillByte(i, st))
 	{
-		byte b;
+		byte b(0);
 
 		if(YB_UNLIKELY(!FillByte(i, b)))
 			return ConversionResult::BadSource;

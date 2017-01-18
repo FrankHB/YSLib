@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2933
+\version r2938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-01-02 02:02 +0800
+	2017-01-14 06:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -392,10 +392,10 @@ public:
 	}
 
 	PDefH(bool, Remove, const ValueNode& node)
-		ImplRet(container.erase(node) != 0)
+		ImplRet(erase(node) != 0)
 	//! \since build 754
 	PDefH(iterator, Remove, const_iterator i)
-		ImplRet(container.erase(i))
+		ImplRet(erase(i))
 	//! \since build 680
 	template<typename _tKey, yimpl(typename = ystdex::enable_if_t<
 		ystdex::is_interoperable<const _tKey&, const string&>::value>)>
@@ -494,6 +494,10 @@ public:
 	PDefH(const_iterator, end, ) const
 		ImplRet(GetContainer().end())
 	//@}
+
+	//! \since build 761
+	DefFwdTmpl(-> decltype(container.erase(yforward(args)...)), auto,
+		erase, container.erase(yforward(args)...))
 
 	//! \since build 667
 	DefFwdTmpl(-> decltype(container.insert(yforward(args)...)), auto,

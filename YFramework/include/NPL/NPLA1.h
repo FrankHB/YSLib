@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2470
+\version r2512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-01-14 00:56 +0800
+	2017-01-17 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,9 +285,13 @@ YF_API void
 ReduceChecked(TermNode&, ContextNode&);
 
 /*!
-\brief 规约闭包：使用第四参数指定的闭包项规约后替换到指定项上。
-\note 第三参数指定是否转移而不保留原项。
+\brief 规约闭包。
 \sa ReduceChecked
+
+构造规约项，规约后替换到第一参数指定项。
+规约项的内容由第四参数的闭包指定。第三参数指定是否通过转移构造而不保留原项。
+规约后转移闭包规约的结果：子项以及引用的值的目标被转移到第一参数指定的项。
+结果中子项和值之间被转移的相对顺序未指定。
 */
 YF_API void
 ReduceCheckedClosure(TermNode&, ContextNode&, bool, TermNode&);
@@ -618,6 +622,25 @@ RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
 
 
 /*!
+\brief 断言枝节点。
+\pre 断言：参数指定的项是枝节点。
+\since build 761
+*/
+inline PDefH(void, AssertBranch, const TermNode& term,
+	const char* msg = "Invalid term found.") ynothrowv
+	ImplExpr(yunused(msg), YAssert(IsBranch(term), msg))
+
+/*!
+\brief 取项的参数个数：子项数减 1 。
+\pre 间接断言：参数指定的项是枝节点。
+\return 项的参数个数。
+\since build 733
+*/
+inline PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
+	ImplRet(AssertBranch(term), term.size() - 1)
+
+
+/*!
 \brief 检查项的第一个子项并尝试按上下文列表求值。
 \return 规约状态。
 \throw ListReductionFailure 规约失败：枝节点的第一个子项不是上下文处理器。
@@ -633,10 +656,10 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 
 //! \note 第一参数指定输入的项，其 Value 指定输出的值。
 //@{
+//! \sa LiftDelayed
+//@{
 /*!
 \brief 求值以节点数据结构间接表示的项。
-\sa IsBranch
-\sa LiftDelayed
 \since build 752
 
 以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值并返回要求重规约。
@@ -644,6 +667,16 @@ EvaluateContextFirst(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 EvaluateDelayed(TermNode&);
+/*!
+\brief 求值指定的延迟求值项。
+\return ReductionStatus::Retrying 。
+\since build 761
+
+提升指定的延迟求值项并规约。
+*/
+YF_API ReductionStatus
+EvaluateDelayed(TermNode&, DelayedTerm&);
+//@}
 
 /*!
 \exception BadIdentifier 标识符未声明。
@@ -798,27 +831,19 @@ namespace Forms
 \since build 757
 */
 inline PDefH(ReductionStatus, Quote, const TermNode& term) ynothrowv
-	ImplRet(YAssert(IsBranch(term), "Invalid term found."),
-		ReductionStatus::Retained)
+	ImplRet(AssertBranch(term), ReductionStatus::Retained)
 
 /*!
+\brief 引用经检查确保具有指定个数参数的项：延迟求值。
 \return 项的参数个数。
+\throw ArityMismatch 项的参数个数不等于第二参数。
+\sa FetchArgumentN
 
 可使用 RegisterForm 注册上下文处理器，参考文法：
 $quote|$quoteN <expression>
 */
-//@{
-//! \brief 取项的参数个数：子项数减 1 。
-inline PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
-	ImplRet(Quote(term), term.size() - 1)
-
-/*!
-\brief 引用经检查确保具有指定个数参数的项：延迟求值。
-\throw ArityMismatch 项的参数个数不等于第二参数。
-*/
 YF_API size_t
 QuoteN(const TermNode&, size_t = 1);
-//@}
 
 
 /*!

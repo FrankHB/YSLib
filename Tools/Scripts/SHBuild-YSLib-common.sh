@@ -100,7 +100,7 @@ SHBuild_YSLib_Build_()
 			SHBuild_EchoVar_N "LDFLAGS"'
 		if [[ $SHBuild_NoPCH == '' ]]; then
 			SHBuild_Arg1="$INCLUDE_PCH" SHBuild_Arg2="$outdir/stdinc.h" \
-				$SHBuild -xcmd,RunNPL \
+				CXX=$CXX CXXFLAGS=$CXXFLAGS $SHBuild -xcmd,RunNPL \
 'SHBuild_BuildGCH (env-get "SHBuild_Arg1") (env-get "SHBuild_Arg2")
 (++ (env-get "CXX") " -xc++-header " (env-get "CXXFLAGS"))'
 			SHBuild_IncPCH="-include $outdir/stdinc.h"
@@ -131,7 +131,7 @@ SHBuild_YSLib_Build_()
 		fi
 		$SHBuild $SHBOPT -xn,${LIBPFX}YFramework$libd $@ \
 			"$YSLib_BaseDir/YFramework" $CXXFLAGS $DFLAG_X_YB $DFLAG_B_YF \
-			-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
+			-DFREEIMAGE_LIB $INCLUDES_YFramework $SHBuild_IncPCH
 		SHBuild_Puts Finished building $lname.
 	fi
 }

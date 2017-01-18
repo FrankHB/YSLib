@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4595
+\version r4713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-01-11 14:54 +0800
+	2017-01-17 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,6 +85,35 @@ struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 */
 DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	/*!
+	\brief 创建选项。
+	\sa Create
+	\since build 761
+	*/
+	enum Creation
+	{
+		/*!
+		\brief 创建引用的间接持有者。
+		
+		派生实现应保证持有对应的 lref<T> 类型的值引用当前持有的 T 类型的值。
+		*/
+		Indirect,
+		/*!
+		\brief 创建引用的值的副本。
+		
+		派生实现应保证持有对应的值从当前持有的值复制，
+		当且仅当当前持有者不是引用；否则，从引用的值复制。
+		*/
+		Copy,
+		/*!
+		\brief 创建引用的值转移的副本。
+		
+		派生实现应保证持有对应的值从当前持有的值转移，
+		当且仅当当前持有者不是引用；否则，从引用的值转移。
+		*/
+		Move
+	};
+
+	/*!
 	\brief 判断相等。
 	\pre 参数为空指针值或持有对象去除 const 后具有和参数相同动态类型的对象。
 	\return 持有的对象相等，或持有空对象且参数为空指针值。
@@ -100,13 +129,30 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	*/
 	DeclIEntry(bool OwnsUnique() const ynothrow)
 	/*!
-	\brief 创建引用。
-	\since build 747
-
-	创建引用持有对象。
-	派生实现应保证返回的值持有对应的 lref<T> 类型的值引用当前持有的 T 类型的值。
+	\sa Creation
+	\since build 761
 	*/
-	DeclIEntry(ystdex::any Refer() const)
+	//@{
+	/*!
+	\brief 创建新的持有对象。
+	\return 包含新创建的持有对象的动态泛型对象。
+	\sa Creation
+	\sa CreateHolder
+
+	按参数指定的选项创建按指定选项持有的对象。
+	派生实现应保证返回的值满足选项指定的条件，且变换不改变当前逻辑状态，
+	除 mutable 的数据成员可被转移；否则，应抛出异常。
+	*/
+	DeclIEntry(ystdex::any Create(Creation) const)
+
+	/*!
+	\brief 提供创建持有者的默认实现。
+	\sa Create
+	*/
+	template<typename _type>
+	static ystdex::any
+	CreateHolder(Creation, _type&);
+	//@}
 EndDecl
 
 
@@ -196,6 +242,10 @@ public:
 	//! \since build 555
 	DefDeCopyMoveCtorAssignment(ValueHolder)
 
+	//! \since build 761
+	PDefH(ystdex::any, Create, Creation c) const ImplI(IValueHolder)
+		ImplRet(CreateHolder(c, this->value))
+
 	//! \since build 752
 	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
 		ImplRet(bool(p) && AreEqualHeld(this->value,
@@ -204,10 +254,6 @@ public:
 	//! \since build 759
 	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
 		ImplRet(true)
-
-	//! \since build 747
-	ystdex::any
-	Refer() const ImplI(IValueHolder);
 
 	//! \since build 409
 	PDefH(ValueHolder*, clone, ) const ImplI(IValueHolder)
@@ -262,6 +308,15 @@ public:
 	DefDeCopyAssignment(PointerHolder)
 	DefDeMoveAssignment(PointerHolder)
 
+	//! \since build 761
+	ystdex::any
+	Create(Creation c) const ImplI(IValueHolder)
+	{
+		if(const auto& p = p_held.get())
+			return CreateHolder(c, *p);
+		ystdex::throw_invalid_construction();
+	}
+
 	//! \since build 752
 	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
 		ImplRet(p ? AreEqualHeld(*p_held,
@@ -273,10 +328,6 @@ public:
 	*/
 	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
 		ImplRet(owns_unique(p_held))
-
-	//! \since build 747
-	ystdex::any
-	Refer() const ImplI(IValueHolder);
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), PointerHolder)
@@ -317,6 +368,10 @@ public:
 	{}
 	DefDeCopyMoveCtorAssignment(RefHolder)
 
+	//! \since build 761
+	PDefH(ystdex::any, Create, Creation c) const ImplI(IValueHolder)
+		ImplRet(CreateHolder(c, Ref()))
+
 	//! \since build 752
 	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
 		ImplRet(bool(p) && AreEqualHeld(Deref(static_cast<const value_type*>(
@@ -326,15 +381,16 @@ public:
 	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
 		ImplRet({})
 
-	PDefH(ystdex::any, Refer, ) const ImplI(IValueHolder)
-		ImplRet(ystdex::any(ystdex::any_ops::use_holder,
-			ystdex::in_place<RefHolder>, *this))
+private:
+	//! \since build 761
+	PDefH(value_type&, Ref, ) const
+		ImplRet(Deref(static_cast<lref<value_type>*>(base.get())).get())
 
+public:
 	DefClone(const ImplI(IValueHolder), RefHolder)
 
 	PDefH(void*, get, ) const ImplI(IValueHolder)
-		ImplRet(ystdex::pvoid(std::addressof(
-			Deref(static_cast<lref<value_type>*>(base.get())).get())))
+		ImplRet(ystdex::pvoid(std::addressof(Ref())))
 
 	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
 		ImplRet(ystdex::type_id<value_type>())
@@ -343,20 +399,22 @@ public:
 
 template<typename _type>
 ystdex::any
-ValueHolder<_type>::Refer() const
+IValueHolder::CreateHolder(Creation c, _type& obj)
 {
-	return ystdex::any(ystdex::any_ops::use_holder, ystdex::in_place<RefHolder<
-		_type>>, ystdex::ref(this->value));
-}
-
-template<typename _type, class _tPointer>
-ystdex::any
-PointerHolder<_type, _tPointer>::Refer() const
-{
-	if(const auto& p = p_held.get())
+	switch(c)
+	{
+	case Indirect:
 		return ystdex::any(ystdex::any_ops::use_holder,
-			ystdex::in_place<RefHolder<_type>>, ystdex::ref(*p));
-	ystdex::throw_invalid_construction();
+			ystdex::in_place<RefHolder<_type>>, ystdex::ref(obj));
+	case Copy:
+		return ystdex::any(ystdex::any_ops::use_holder,
+			ystdex::in_place<ValueHolder<_type>>, obj);
+	case Move:
+		return ystdex::any(ystdex::any_ops::use_holder,
+			ystdex::in_place<ValueHolder<_type>>, std::move(obj));
+	default:
+		ystdex::throw_invalid_construction();
+	}
 }
 
 
@@ -379,10 +437,6 @@ public:
 	using Content = ystdex::any;
 
 private:
-	//! \since build 747
-	struct holder_refer_tag
-	{};
-
 	//! \since build 748
 	Content content;
 
@@ -420,10 +474,10 @@ public:
 private:
 	/*!
 	\brief 构造：使用持有者。
-	\since build 747
+	\since build 761
 	*/
-	ValueObject(const IValueHolder& holder, holder_refer_tag)
-		: content(holder.Refer())
+	ValueObject(const IValueHolder& holder, IValueHolder::Creation c)
+		: content(holder.Create(c))
 	{}
 
 public:
@@ -620,6 +674,13 @@ public:
 		ImplExpr(content.reset())
 
 	/*!
+	\brief 取以指定持有者选项创建的副本。
+	\since build 761
+	*/
+	ValueObject
+	Create(IValueHolder::Creation) const;
+
+	/*!
 	\brief 判断相等。
 	\sa IValueHolder::Equals
 	\since bulid 752
@@ -651,12 +712,26 @@ public:
 	EqualsUnchecked(const void*) const;
 	//@}
 
-	/*!
+ 	/*!
+	\brief 取引用的值对象的副本。
+	\since build 761
+	*/
+	PDefH(ValueObject, MakeCopy, ) const
+		ImplRet(Create(IValueHolder::Copy))
+
+ 	/*!
+	\brief 取引用的值对象的转移副本。
+	\since build 761
+	*/
+	PDefH(ValueObject, MakeMove, ) const
+		ImplRet(Create(IValueHolder::Move))
+
+ 	/*!
 	\brief 取间接引用的值对象。
 	\since build 747
 	*/
-	ValueObject
-	MakeIndirect() const;
+	PDefH(ValueObject, MakeIndirect, ) const
+		ImplRet(Create(IValueHolder::Indirect))
 
 	/*!
 	\brief 判断是否是持有对象的唯一所有者。
