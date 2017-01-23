@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3450
+\version r3453
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2016-11-16 14:36 +0800
+	2017-01-23 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,8 +389,8 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 			ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
 
 			// XXX: Failed on race condition detected.
-			if(UniqueLockedOutputFileStream uofs{path, std::ios_base::out
-				| std::ios_base::trunc | platform::ios_noreplace})
+			if(UniqueLockedOutputFileStream uofs{std::ios_base::out
+				| std::ios_base::trunc | platform::ios_noreplace, path})
 				WriteNPLA1Stream(uofs, Nonnull(creator)());
 			else
 			{

@@ -1,5 +1,5 @@
 #
-#	(C) 2014, 2016 FrankHB.
+#	(C) 2014, 2016-2017 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile for Android toolchain
-# Version = r67
+# Version = r69
 # Created = 2014-12-06 16:51:13 +0800
-# Updated = 2016-09-17 20:11 +0800
+# Updated = 2017-01-22 00:20 +0800
 # Encoding = ANSI
 
 
@@ -42,7 +42,7 @@ ifeq ($(PLATFORM),Android)
 			export ANDROID_SDK=<path to>ANDROID_SDK")
 	endif
 	ANDROID_PLATFORM := 9
-	ANDROID_SDKVER := 21.1.1
+	ANDROID_SDKVER := 25.0.2
 #	java_exe := $(shell $(ANDROID_SDK)/tools/lib/find_java)
 #	java_d := $(shell cygpath -d "$(java_exe)")
 #	export JAVA := $(shell cygpath "$(java_d)")

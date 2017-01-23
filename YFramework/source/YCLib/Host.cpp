@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r637
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-12-28 15:01 +0800
+	2017-01-20 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
 //	MakePathString, YCL_CallF_CAPI;
 #include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
+#include <stdlib.h> // for ::putenv, ::setenv;
 #if YCL_Win32
 #	include <limits> // for std::numeric_limits;
 #	include YFM_Win32_YCLib_NLS // for CloseHandle, MBCSToMBCS;
@@ -130,6 +131,21 @@ upopen(const char16_t* filename, const char16_t* mode) ynothrowv
 #endif
 }
 
+
+void
+SetEnvironmentVariable(const char* envname, const char* envval)
+{
+#if YCL_Win32
+	// TODO: Use %::_wputenv_s when available.
+	// NOTE: Only narrow enviornment is used.
+	// XXX: Though not documented, %::putenv actually copies the argument.
+	//	Confirmed in ucrt source. See also https://patchwork.ozlabs.org/patch/127453/.
+	YCL_CallF_CAPI(, ::_putenv,
+		(string(Nonnull(envname)) + '=' + Nonnull(envval)).c_str());
+#else
+	YCL_CallF_CAPI(, ::setenv, Nonnull(envname), Nonnull(envval), 1);
+#endif
+}
 
 #if !YCL_Win32
 void

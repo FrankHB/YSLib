@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5594
+\version r5647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-19 00:56 +0800
+	2017-01-23 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,51 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			* "spelling error" @ "message for waiting tasks"
+				@ "member function %BuildContext::Build" $since b624,
+			+ "form %env-set" @ "loading forms"
+				@ "NPL REPL context initialization"
+		),
+		/ %Scripts $=
+		(
+			* "default value initialization"
+				@ "%SHBuild-common-options.sh" $since b585 $=
+			(
+				* "%CXXFLAGS_WARNING wrongly include C_CXXFLAGS_IMPL_WARNING \
+					second time";
+					// Variable %CFLAGS_WARNING already has the default value.
+				* $comp "default value of %C_CXXFLAGS_IMPL_WARNING duplicated"
+					@ "%CXXFLAGS"
+			),
+			/ $re_ex(b554) $dev $build 'ANDROID_SDKVER := 21.1.1'
+				-> 'ANDROID_SDKVER := 25.0.2' @ "%Toolchain.Android.mk"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ '#undef SetEnvironmentVariable' @ "platform %Win32"
+				@ %NativeAPI;
+			+ "function %SetEnvironmentVariable" @ %Host
+		),
+		* "wrong behavior when target is not existed" @ "form \
+			%SHBuild_BuildGCH_existed_" @ "function %LoadNPLContextForSHBuild"
+			@ %NPL.Dependency $since b758,
+			// The parameter call for copying header is wrong, so the source \
+				header would be deleted rather than copied.
+		* "always failed to initialize configuration file caused by wrong \
+			prarameter passed to %UniqueLockedOutputFileStream"
+			@ "function %LoadNPLA1File" @ %Helper.Initialization $since b727
+	)
+),
+
+b751
 (
 	/ %YFramework $=
 	(
@@ -561,7 +606,7 @@ b754
 				+ "%bool parameter to allow specifying ordered or not",
 				/ DLDI "simplified"
 					^ ($dep_from "%ReduceOrdered", "%ReduceChildren");
-				/ $comp "guaranteed value to be the last subterm  (if any) \
+				/ $comp "guaranteed value to be the last subterm (if any) \
 					after evaluation when the evaluation is specified to be \
 					ordered"
 					// To make it convenient to be subexpressions.
@@ -1223,7 +1268,8 @@ b744
 		(
 			/ @ "class %TextFileBuffer" @ %TextManager $=
 			(
-				/  -> 'std::streambuf&'~ 'std::istream&',
+				/ "protected data member %File" -> 'std::streambuf&'
+					~ 'std::istream&',
 				/ "type" @ ("1st parameter" @ "constructor", "protected data \
 					member %File") -> 'std::streambuf&' ~ 'std::istream&';
 				+ "function %Seek",
@@ -1466,7 +1512,7 @@ b740
 				setting %SHBuild_Output with this path for %SHBuild-build.sh \
 				invocation",
 				// This allows multiple hosts of stage 1 SHBuild coexisted in \
-					same repository.  
+					same repository.
 			/ "exported %SHBuild_PCH_stdinc_h as path \
 				'$SHBuild_S1_BuildDir/stdinc.h'"
 		)
@@ -2032,7 +2078,7 @@ b732
 			/ DLDI "constructor template" @ "class template %thunk_caller",
 			/ "template default argument" @ "class template %thunk"
 		),
-		/ DLDI "simplified constructor %any#3"  %Any ^ $dep_from
+		/ DLDI "simplified constructor %any#3" %Any ^ $dep_from
 			("%decay_unwrap_t" @ %Ref) ~ "%(unwrap_reference_t, decay_t)"
 	),
 	/ %Tools $=
@@ -3100,7 +3146,7 @@ b720
 			),
 			/ DLDI %MemoryMapping $=
 			(
-				/  "simplified" @ "platform %Win32" @ "constructor %MappedFile"
+				/ "simplified" @ "platform %Win32" @ "constructor %MappedFile"
 					$=
 				(
 					^ "%platform_ex::ToHandle",
@@ -3188,7 +3234,7 @@ b720
 			)
 		),
 		/ $forced "caught %std::system_error" @ "function %InstallFile"
-			@ %NPL.Dependency  ~ "caught %FileOperationFailure" $dep_from
+			@ %NPL.Dependency ~ "caught %FileOperationFailure" $dep_from
 			("%HaveSameContents" @ %YCLib.FileIO,
 			"%CopyFile" @ %YSLib.Service.FileSystem),
 		* "%std::system_error caused wrong behavior on font file access failure"
@@ -3987,7 +4033,7 @@ b713
 		/ @ "platform %Win32" @ %Helper.Initialization $=
 		(
 			* $re_add(b695) "initialized system font directory wrongly used \
-				current code page" ~ "UTF-8"  $since b695
+				current code page" ~ "UTF-8" $since b695
 				$= (/ DLDI ^ "%platform_ex::WCSToUTF8"
 					~ "%platform_ex::WCSToMBCS")
 			* @ "function %TraceForOutermost wrongly used current code page"
@@ -5329,7 +5375,7 @@ b701
 					("function %CategorizeNode with native handle parameter"
 					@ %'YCLib_(Win32)'.MinGW32) $=
 				(
-					* $comp "missing attributes detection"  $since b658,
+					* $comp "missing attributes detection" $since b658,
 					/ DLDI "simplified"
 						$= (- "branch for null handle")
 				),

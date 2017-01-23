@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3466
+\version r3472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-01-06 21:11 +0800
+	2017-01-19 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ See readme file for details.
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include YFM_YCLib_Host // for platform_ex::EncodeArg, platform_ex::DecodeArg,
-//	platform_ex::Terminal;
+//	platform_ex::Terminal, platform_ex::SetEnvironmentVariable;
 
 using namespace YSLib;
 using namespace IO;
@@ -358,6 +358,10 @@ RunNPLFromStream(std::istream&& is)
 			}
 			std::puts("\"");
 	})), true);
+	RegisterStrictBinary<const string>(root, "env-set",
+		[&](const string& var, const string& val){
+		SetEnvironmentVariable(var.c_str(), val.c_str());
+	});
 	context.LoadFrom(is);
 }
 
@@ -729,7 +733,7 @@ BuildContext::Build()
 		FilterExceptions([print, this]{
 			size_t succ(0), fail(1);
 
-			print("Wating unfinshed tasks ...", Warning);
+			print("Wating unfinished tasks ...", Warning);
 			for(auto& fut : futures)
 				if(FilterExceptions([&]{
 					if(fut.get() == 0)

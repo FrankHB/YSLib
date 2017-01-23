@@ -97,7 +97,6 @@ fi
 	-Wnon-virtual-dtor \
 	-Woverloaded-virtual \
 	-Wsign-promo \
-	$C_CXXFLAGS_IMPL_WARNING \
 	$CXXFLAGS_IMPL_WARNING \
 	"}
 : ${CXXFLAGS_COMMON:=" $CXXFLAGS_STD \

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r522
+\version r532
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2016-12-29 12:11 +0800
+	2017-01-20 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,6 +119,17 @@ YF_API YB_NONNULL(1, 2) std::FILE*
 upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 //@}
 //@}
+
+
+/*!
+\brief 设置环境变量。
+\pre 断言：参数非空。
+\warning 不保证线程安全。
+\throw std::system_error 设置失败。
+\since build 762
+*/
+YF_API YB_NONNULL(1, 2) void
+SetEnvironmentVariable(const char*, const char*);
 
 
 #	if YCL_Win32

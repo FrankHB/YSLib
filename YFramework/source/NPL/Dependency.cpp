@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r403
+\version r404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-01-18 15:37 +0800
+	2017-01-21 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -364,7 +364,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				(
 					SHBuild_BuildGCH_mkpdirp_ pch;
 					puts (++ "Building precompiled file \"" pch "\" ...");
-					SHBuild_Install_HardLink header inc;
+					SHBuild_Install_HardLink inc header;
 					system (++ cmd " \"" header "\" -o" pch);
 					puts (++ "Building precompiled file \"" pch "\" done.")
 				)
