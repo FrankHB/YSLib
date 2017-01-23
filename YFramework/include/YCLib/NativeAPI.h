@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1639
+\version r1642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2016-09-03 12:05 +0800
+	2017-01-19 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -644,6 +644,8 @@ public:
 #	undef GetObject
 //! \since build 298
 #	undef PostMessage
+//! \since build 762
+#	undef SetEnvironmentVariable
 //@}
 
 extern "C"

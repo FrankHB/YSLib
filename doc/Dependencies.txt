@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1233
+\version r1244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2016-11-28 22:42 +0800
+	2017-01-22 00:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -294,19 +294,20 @@ build 492 前：
 2014-04-07(build 492) 起：
 构建平台 Windows x64 。
 依赖项：
-Oracle JDK 8u5 x64 / Android SDK / Android SDK Build-tools 19.0.3 / Android NDK r9d x86_64。
+Oracle JDK 8u5 x64 / Android SDK / Android SDK Build-tools 19.0.3 。
+使用 Android NDK r9d x86_64 构建独立工具链目标三元组 arm-linux-androideabi ，构建脚本参见 Tools/make-clang-android.sh 。
 使用 API level 9 和 G++ 4.8 。
-独立工具链目标三元组 arm-linux-androideabi ，构建脚本参见 Tools/make-clang-android.sh 。
 2014-07-14(build 518) 起：
-Android SDK Build-tools 20.0.0 。
+升级 Android SDK Build-tools 20.0.0 。
 注意 zipalign 工具自 19.1.0 起已被移入 Build-tools 。
 2014-11-15(build 554) 起：
-Oracle JDK 8u25 x64 / Android NDK r10c x86_64 / Android SDK Build-tools 21.1.1 。
-重新构建独立工具链。使用 G++ 4.9 （版本 4.9 20140827 (prerelease) ）；使用 gcc-ar 代替 ar 。
+升级 Oracle JDK 8u25 x64 / Android SDK Build-tools 21.1.1 。
+升级 Android NDK r10c x86_64 重新构建独立工具链。使用 G++ 4.9 （版本 4.9 20140827 (prerelease) ）；使用 gcc-ar 代替 ar 。
 2016-09-17(build 727) 起：
-使用 CrystaX NDK 10.3.2 x86_64 代替 Android NDK 。
-重新构建独立工具链。
+使用 CrystaX NDK 10.3.2 x86_64 代替 Android NDK 重新构建独立工具链。
 升级 G++ 5.3 （版本 5.3 20151204 (GCC) ） 。
+2017-01-22(build 762) 起：
+升级 Oracle JDK 8u121 x64 / Android SDK Build-tools 25.0.2 。
 
 @1.7 MinGW64 平台工具链和标准库实现：
 除非以下说明，配置同 MinGW32(@1.5) 。
