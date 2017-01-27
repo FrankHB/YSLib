@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3126
+\version r3140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2016-12-16 21:49 +0800
+	2017-01-27 16:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,38 +254,39 @@ using std::invoke;
 namespace details
 {
 
-template<typename _tClass, typename _type>
+template<typename _type, typename _tCallable>
 struct is_callable_target
-	: is_base_of<member_target_type_t<_type>, _tClass>
+	: is_base_of<member_target_type_t<_tCallable>, decay_t<_type>>
 {};
 
 template<typename _fCallable, typename _type>
 struct is_callable_case1 : and_<is_member_function_pointer<_fCallable>,
-	is_callable_target<_type&&, _fCallable>>
+	is_callable_target<_type, _fCallable>>
 {};
 
 template<typename _fCallable, typename _type>
 struct is_callable_case2 : and_<is_member_function_pointer<_fCallable>,
-	not_<is_callable_target<_type&&, _fCallable>>>
+	not_<is_callable_target<_type, _fCallable>>>
 {};
 
 template<typename _fCallable, typename _type>
 struct is_callable_case3 : and_<is_member_object_pointer<_fCallable>,
-	is_callable_target<_type&&, _fCallable>>
+	is_callable_target<_type, _fCallable>>
 {};
 
 template<typename _fCallable, typename _type>
 struct is_callable_case4 : and_<is_member_object_pointer<_fCallable>,
-	not_<is_callable_target<_type&&, _fCallable>>>
+	not_<is_callable_target<_type, _fCallable>>>
 {};
 
+//! \since build 763
 template<typename _fCallable, typename _type, typename... _tParams>
 yconstfn auto
 invoke_impl(_fCallable&& f, _type&& obj, _tParams&&... args)
 	-> enable_if_t<is_callable_case1<decay_t<_fCallable>, _type>::value,
-	decltype((obj.*f)(yforward(args)...))>
+	decltype((yforward(obj).*f)(yforward(args)...))>
 {
-	return yconstraint(f), (obj.*f)(yforward(args)...);
+	return yconstraint(f), (yforward(obj).*f)(yforward(args)...);
 }
 template<typename _fCallable, typename _type, typename... _tParams>
 yconstfn auto
@@ -295,13 +296,14 @@ invoke_impl(_fCallable&& f, _type&& obj, _tParams&&... args)
 {
 	return yconstraint(f), ((*yforward(obj)).*f)(yforward(args)...);
 }
+//! \since build 763
 template<typename _fCallable, typename _type>
 yconstfn auto
 invoke_impl(_fCallable&& f, _type&& obj)
 	-> enable_if_t<is_callable_case3<decay_t<_fCallable>, _type>::value,
-	decltype(obj.*f)>
+	decltype(yforward(obj).*f)>
 {
-	return yconstraint(f), obj.*f;
+	return yconstraint(f), yforward(obj).*f;
 }
 template<typename _fCallable, typename _type>
 yconstfn auto
@@ -330,6 +332,7 @@ invoke_impl(_func&& f, _tParams&&... args)
 \see CWG 1581 。
 \see https://llvm.org/bugs/show_bug.cgi?id=23141 。
 \since build 612
+\todo 支持引用包装。
 */
 template<typename _fCallable, typename... _tParams>
 yimpl(yconstfn) result_of_t<_fCallable&&(_tParams&&...)>
@@ -362,6 +365,7 @@ invoke_nonvoid_impl(false_, _fCallable&& f, _tParams&&... args)
 /*!
 \brief 调用可调用对象，保证返回值非空。
 \since build 635
+\todo 支持引用包装。
 */
 template<typename _fCallable, typename... _tParams>
 yimpl(yconstfn) nonvoid_result_t<result_of_t<_fCallable&&(_tParams&&...)>>

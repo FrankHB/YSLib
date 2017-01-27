@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5647
+\version r5694
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-23 10:20 +0800
+	2017-01-27 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,54 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ @ "SHBuild-common-options.sh" @ %Tools.Scripts $=
+	(
+		+ "detection to ensure non empty $CXX at beginning with default value \
+			'g++' by including source %SHBuild-common-toolchain.sh",
+		+ $re_ex(b561) $build "GC flag sanity check" @ "platform %Win32"
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				/ @ "class %LexicalAnalyzer" $=
+				(
+					/ DLDI "simplified member function %Literalize",
+					+ "member function %ParseRaw"
+				),
+				/ DLDI "simplified member function %UnescapeContext::PopIf#2"
+					^ ("%ystdex::pop_back_val" @ %YBase.YStandardEx.Container)
+			),
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				+ "form %'$lambda'",
+				* $comp "space character in quoted string not properly handled"
+					@ "form %SHBuild_TrimOptions_" $since b761 ^ ("%Session",
+					$dep_from "%LexicalAnalyzer::ParseRaw" @ %Lexical)
+			)
+		),
+		/ DLDI %'YCLib_(DS)'.DSIO ^ "%ystdex::invoke" ~ "%std::mem_fn"
+			$dep_from %YBase.YStandardEx.Functional
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ ("function template %invoke",
+			$comp "function template %invoke_nonvoid") %Functional $=
+		(
+			* "ill-formed call for pointer to members as callable object" $since
+				b612
+			/ "forwarded member object pm-expression as left operand of '.*'"
+				// See $2017-01 @ %Documentation::Workflow::Annual2017.
+		),
+		/ DLDI "simplified template arguments" @ %YBase.YStandardEx.Rational
+	)
+),
+
+b762
 (
 	/ %Tools $=
 	(

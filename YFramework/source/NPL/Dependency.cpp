@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r404
+\version r410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-01-21 21:24 +0800
+	2017-01-26 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,6 +238,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterForm(root, "$define",
 		ystdex::bind1(DefineOrSet, _2, true));
 	RegisterForm(root, "$if", If);
+	RegisterForm(root, "$lambda", Lambda);
 	RegisterForm(root, "$set",
 		ystdex::bind1(DefineOrSet, _2, false));
 	// NOTE: Privmitive procedures.
@@ -341,12 +342,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		[](const string& str){
 		string res;
 
-		ystdex::split(str.begin(), str.end(),
-			static_cast<int(&)(int)>(std::isspace),
-			[&](string::const_iterator b, string::const_iterator e){
-			res += string(b, e);
+		for(auto& s : Session(str,
+			&LexicalAnalyzer::ParseRaw).Lexer.Literalize())
+		{
+			res += std::move(s);
 			res += ' ';
-		});
+		}
 		if(!res.empty())
 			res.pop_back();
 		return res;

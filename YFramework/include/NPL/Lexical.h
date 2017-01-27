@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1510
+\version r1524
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2016-11-06 17:38 +0800
+	2017-01-26 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,11 @@ using YSLib::end;
 class YF_API UnescapeContext
 {
 public:
-	//! \brief 转义序列前缀。
+	/*!
+	\brief 转义序列前缀。
+	\note 上下文处理不直接修改，一般由转移序列前缀处理器设置。
+	\sa LexicalAnalyzer::PrefixHandler
+	*/
 	string Prefix;
 
 private:
@@ -89,8 +93,7 @@ public:
 	PDefH(bool, PopIf, byte uc)
 		ImplRet(PopIf(char(uc)))
 	PDefH(bool, PopIf, char c)
-		ImplRet(!sequence.empty() && sequence.back() == c
-			? (sequence.pop_back(), true) : false)
+		ImplRet(ystdex::pop_back_val(sequence, c))
 	PDefH(void, Push, byte uc)
 		ImplExpr(Push(char(uc)))
 	PDefH(void, Push, char c)
@@ -229,6 +232,13 @@ public:
 	void
 	ParseQuoted(char, Unescaper = NPLUnescape,
 		PrefixHandler = HandleBackslashPrefix);
+
+	/*!
+	\brief 直接添加字符。
+	\since build 763
+	*/
+	PDefH(void, ParseRaw, char c)
+		ImplExpr(cbuf += c);
 	//@}
 
 	/*!

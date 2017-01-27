@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4084
+\version r4113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2016-08-29 15:05 +0800
+	2017-01-27 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include YFM_DS_YCLib_DSIO // for platform::Descriptions, std::runtime_error,
 //	ystdex::throw_error, std::system_error, string_view, ystdex::retry_on_cond,
 //	YAssertNonnull, FetchSeparator, std::bind, std::placeholder::_1,
-//	ystdex::exchange, std::ref, YTraceDe, std::exception,
+//	ystdex::exchange, ystdex::invoke, std::ref, YTraceDe, std::exception,
 //	ystdex::trivially_copy_n, ptrdiff_t, DISC_INTERFACE, unique_raw,
 //	ystdex::aligned_store_cast;
 #if YCL_DS
@@ -2039,6 +2039,9 @@ FileInfo::Write(const char* buf, size_t nbyte) ythrow(system_error)
 namespace
 {
 
+//! \since build 763
+using ystdex::invoke;
+
 template<typename _func, typename... _tParams>
 using FilterRes = ystdex::common_nonvoid_t<ystdex::result_of_t<
 	_func(_tParams&&...)>, int>;
@@ -2068,10 +2071,10 @@ FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 
 //! \since build 702
 //@{
-template<typename _func>
+template<typename _fCallable>
 YB_NONNULL(1) auto
-op_path(::_reent* r, const char*& path, _func f) ynothrowv
-	-> FilterRes<_func, Partition&>
+op_path(::_reent* r, const char*& path, _fCallable f) ynothrowv
+	-> FilterRes<_fCallable, Partition&>
 {
 	return FilterDevOps(r, [=, &path]{
 		if(Deref(path) != char())
@@ -2080,7 +2083,7 @@ op_path(::_reent* r, const char*& path, _func f) ynothrowv
 			{
 				// XXX: %EINVAL is not POSIX error for path.
 				path = CheckColons(path);
-				return f(*p_part);
+				return invoke(f, *p_part);
 			}
 			// XXX: This is not POSIX error.
 			throw_error(errc::no_such_device);
@@ -2089,22 +2092,22 @@ op_path(::_reent* r, const char*& path, _func f) ynothrowv
 	});
 }
 
-template<typename _func>
+template<typename _fCallable>
 YB_NONNULL(1) auto
-op_path_locked(::_reent* r, const char*& path, _func f) ynothrowv
-	-> FilterRes<_func, Partition&>
+op_path_locked(::_reent* r, const char*& path, _fCallable f) ynothrowv
+	-> FilterRes<_fCallable, Partition&>
 {
 	return op_path(r, path, [f](Partition& part){
 		lock_guard<mutex> lck(part.GetMutexRef());
 
-		return f(part);
+		return invoke(f, part);
 	});
 }
 
-template<typename _func>
+template<typename _fCallable>
 YB_NONNULL(1) auto
-op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _func f) ynothrowv
-	-> FilterRes<_func, DirState&>
+op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _fCallable f) ynothrowv
+	-> FilterRes<_fCallable, DirState&>
 {
 	return FilterDevOps(r, [=]{
 		auto& state(
@@ -2112,7 +2115,7 @@ op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _func f) ynothrowv
 		// XXX: Extended partition mutex to lock directory states.
 		lock_guard<mutex> lck(state.GetPartitionRef().GetMutexRef());
 
-		return f(state);
+		return invoke(f, state);
 	});
 }
 
@@ -2123,20 +2126,20 @@ check_true(const FileInfo&) ynothrow
 	return true;
 }
 
-template<typename _func, typename _fCheck = bool(*)(const FileInfo&)>
+template<typename _fCallable, typename _fCheck = bool(*)(const FileInfo&)>
 YB_NONNULL(1) auto
-op_file_locked(::_reent* r, int fd, _func f, _fCheck check = check_true)
-	ynothrowv -> FilterRes<_func, FileInfo&>
+op_file_locked(::_reent* r, int fd, _fCallable f, _fCheck check = check_true)
+	ynothrowv -> FilterRes<_fCallable, FileInfo&>
 {
 	return FilterDevOps(r, [=]{
 		// NOTE: Check of %fd is similar to %::close_r.
 		auto& file(Deref(reinterpret_cast<FileInfo*>(fd)));
 
-		if(check(file))
+		if(invoke(check, file))
 		{
 			lock_guard<mutex> lck(file.GetMutexRef());
 
-			return f(file);
+			return invoke(f, file);
 		}
 		throw_error(errc::bad_file_descriptor);
 	});
@@ -2147,7 +2150,6 @@ op_file_locked(::_reent* r, int fd, _func f, _fCheck check = check_true)
 //	arm-*-*-eabi targets in devkitPro ports. See source
 //	'newlib/libgloss/configure'.
 
-using std::mem_fn;
 using std::ref;
 using ystdex::bind1;
 
@@ -2184,15 +2186,14 @@ const ::devoptab_t dotab_fat{
 	}, [](::_reent* r, int fd, const char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
 		return op_file_locked(r, fd, bind1(&FileInfo::Write, buf, nbyte),
-			mem_fn(&FileInfo::CanWrite));
+			&FileInfo::CanWrite);
 	}, [](::_reent* r, int fd, char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
 		return op_file_locked(r, fd, bind1(&FileInfo::Read, buf, nbyte),
-			mem_fn(&FileInfo::CanRead));
+			&FileInfo::CanRead);
 	}, [](::_reent* r, int fd, ::off_t offset, int whence) YB_NONNULL(1)
 		ynothrowv{
-		return
-			op_file_locked(r, fd, bind1(&FileInfo::Seek, offset, whence));
+		return op_file_locked(r, fd, bind1(&FileInfo::Seek, offset, whence));
 	}, [](::_reent* r, int fd, struct ::stat* buf) YB_NONNULL(2, 4)
 		ynothrowv{
 		return op_file_locked(r, fd, bind1(&FileInfo::Stat, ref(Deref(buf))));
@@ -2222,7 +2223,7 @@ const ::devoptab_t dotab_fat{
 			return static_cast<::DIR_ITER*>(p);
 		});
 	}, [](::_reent* r, ::DIR_ITER* dir_state) YB_NONNULL(1, 2) ynothrowv{
-		return op_dir_locked(r, dir_state, mem_fn(&DirState::Reset));
+		return op_dir_locked(r, dir_state, &DirState::Reset);
 	}, [](::_reent* r, ::DIR_ITER* dir_state, char* filename,
 		struct ::stat* filestat) YB_NONNULL(1, 2, 3) ynothrowv{
 		// NOTE: The filename is of %NAME_MAX characters in newlib DS port.
@@ -2239,10 +2240,10 @@ const ::devoptab_t dotab_fat{
 	}, [](::_reent* r, int fd, ::off_t length) YB_NONNULL(1) ynothrowv -> int{
 		return length >= 0 ? (sizeof(length) <= 4 || length <= ::off_t(
 			MaxFileSize) ? op_file_locked(r, fd, bind1(&FileInfo::Truncate,
-			std::uint32_t(length)), mem_fn(&FileInfo::CanWrite)) : EFBIG)
+			std::uint32_t(length)), &FileInfo::CanWrite) : EFBIG)
 			: EINVAL;
 	}, [](::_reent* r, int fd) YB_NONNULL(1) ynothrowv -> int{
-		return op_file_locked(r, fd, mem_fn(&FileInfo::SyncToDisc));
+		return op_file_locked(r, fd, &FileInfo::SyncToDisc);
 	}, nullptr, nullptr, nullptr, nullptr
 };
 

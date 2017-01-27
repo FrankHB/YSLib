@@ -1,0 +1,54 @@
+﻿/*
+	© 2017 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Workflow.Annual2017.txt
+\ingroup Documentation
+\brief 工作流汇总报告 - 2017 年度。
+\version r53
+\author FrankHB <frankhb1989@gmail.com>
+\since build 763
+\par 创建时间:
+	2017-01-27 16:01:59 +0800
+\par 修改时间:
+	2017-01-27 16:19 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::Workflow::Annual2017
+*/
+
+// See "Meta.cpp" for meta descriptions.
+
+$import $WORKFLOW;
+$LINE-WIDTH-RESTRICT 0;
+
+$WORKFLOW:
+// Following lines are only for logging informal project information.
+// See Meta.txt for formal project information.
+// See ChangeLog.*.txt for accepted contents.
+
+$2017-01:
+
+report.impl:
+Call expression of 'invoke' and its derivations like 'ystdex::invoke_nonvoid' is concerned.
+	The left operand (pm-expression) of '.*' operator requires lvalue for build-in forms.
+		The original form would accept non-lvalue left operand well-formed constructs, being distinct to the built-in operator rule.
+	It is now changed to be aligned with built-in rule in 'ystdex::invoke'.
+		It may being more friendly to catch bugs of wrong use.
+		Now it is also same to the original proposal WG21 N4169 and the working draft WG21 N4606, without additional specification modification.
+			Except for addtional of 'reference_wrapper' support is not included now.
+				This was in the resolution of LWG 2219.
+				See also N4170, though it seemed not to be accepted.
+				It is likely to be supported in future in 'ystdex::invoke'.
+		Note the original proposal N4169 seemed to miss this point.
+			It was fixed in the referential implementation as https://github.com/tomaszkam/proposals/commit/8e9150acd1635f6cd33cb7db3f52e0c217538cd2.
+
+////
+
