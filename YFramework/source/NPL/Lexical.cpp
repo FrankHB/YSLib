@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1597
+\version r1599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2016-09-26 13:53 +0800
+	2017-01-26 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -218,7 +218,7 @@ LexicalAnalyzer::Literalize() const
 	size_t i(0);
 	list<string> result;
 
-	std::for_each(qlist.cbegin(), qlist.cend(), [&](const size_t& s){
+	std::for_each(qlist.cbegin(), qlist.cend(), [&](size_t s){
 		if(s != i)
 		{
 			result.push_back(cbuf.substr(i, s - i));

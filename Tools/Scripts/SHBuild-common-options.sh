@@ -5,6 +5,7 @@
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 : ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
 . $SHBuild_ToolDir/SHBuild-common.sh
+. $SHBuild_ToolDir/SHBuild-common-toolchain.sh # for %CXX.
 SHBuild_CheckUName
 
 : ${C_CXXFLAGS_GC:='-fdata-sections -ffunction-sections'}
@@ -17,12 +18,12 @@ else
 fi
 
 # NOTE: The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
+if [[ "$CXX" != '' ]] && !(echo 'int main(){}' | "$CXX" -xc++ -o/tmp/null \
+	$C_CXXFLAGS_GC $LDFLAGS_GC - 2> /dev/null); then
+	C_CXXFLAGS_GC=''
+	LDFLAGS_GC=''
+fi
 if [[ "$SHBuild_Env_OS" != 'Win32' ]]; then
-	if [[ "$CXX" != '' ]] && !(echo 'int main(){}' | "$CXX" -xc++ -o/tmp/null \
-		$C_CXXFLAGS_GC $LDFLAGS_GC - 2> /dev/null); then
-		C_CXXFLAGS_GC=''
-		LDFLAGS_GC=''
-	fi
 	: ${C_CXXFLAGS_PIC:='-fPIC'}
 fi
 

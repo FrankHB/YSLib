@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2186
+\version r2190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2016-09-21 15:43 +0805
+	2017-01-27 15:45 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,14 +366,14 @@ public:
 	//! \since build 581
 	//@{
 	template<typename _type,
-		yimpl(typename = enable_if_t<is_integral<_type>::value, _type>)>
+		yimpl(typename = enable_if_t<is_integral<_type>::value>)>
 	explicit yconstfn
 	operator _type() const ynothrow
 	{
 		return _type(value >> base_type(frac_bit_n));
 	}
 	template<typename _type, yimpl(typename _type2 = _type,
-		typename = enable_if_t<is_floating_point<_type2>::value, _type>)>
+		typename = enable_if_t<is_floating_point<_type2>::value>)>
 	yconstfn
 	operator _type() const ynothrow
 	{
@@ -689,7 +689,7 @@ struct hash<ystdex::YB_Impl_Rational_fp_T>
 
 /*!
 \brief std::numeric_rational 的 ystdex::fixed_point 特化类型。
-\see http://wg21.cmeerw.net/lwg/issue201
+\see LWG 201
 \see http://stackoverflow.com/questions/16122912/is-it-ok-to-specialize-stdnumeric-limitst-for-user-defined-number-like-class
 \since build 260
 */
