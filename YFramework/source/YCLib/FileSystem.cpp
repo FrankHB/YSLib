@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4300
+\version r4302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2016-11-12 13:02 +0800
+	2017-01-27 17:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -509,7 +509,7 @@ tuple<string, string, bool>
 ConvertToAlias(const u16string& long_name)
 {
 	YAssert(ystdex::ntctslen(long_name.c_str()) == long_name.length(),
-		"Invalid long file name found.");
+		"Invalid long filename found.");
 
 	string alias;
 	// NOTE: Strip leading periods.

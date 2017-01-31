@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r410
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-01-26 22:27 +0800
+	2017-01-30 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,7 +198,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 
 	LoadSequenceSeparators(root, context.ListTermPreprocess),
 	AccessLiteralPassesRef(root)
-		= [](TermNode& term, ContextNode&, string_view id) -> bool{
+		= [](TermNode& term, ContextNode&, string_view id) -> ReductionStatus{
 		YAssertNonnull(id.data());
 		if(!id.empty())
 		{
@@ -215,7 +215,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				else if(id == "#n" || id == "#null")
 					term.Value = nullptr;
 				else if(f != '#')
-					return true;
+					return ReductionStatus::Retrying;
 			}
 			else if(std::isdigit(f))
 			{
@@ -230,9 +230,9 @@ LoadNPLContextForSHBuild(REPLContext& context)
 					term.Value = int(ans);
 			}
 			else
-				return true;
+				return ReductionStatus::Retrying;
 		}
-		return {};
+		return ReductionStatus::Clean;
 	};
 	// NOTE: Binding and control forms.
 	RegisterForm(root, "$define",

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4113
+\version r4194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2017-01-27 15:06 +0800
+	2017-01-31 13:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,8 @@
 #	include "YSLib/Core/YModules.h"
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
 //	YSLib::FilterExceptions;
-#	include <ystdex/functional.hpp> // for std::all_of
-//	ystdex::common_nonvoid_t, ystdex::call_for_value, ystdex::bind1;
+#	include <ystdex/functional.hpp> // for std::all_of,
+//	ystdex::common_nonvoid_t, ystdex::call_for_value;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
 //	ystdex::write_uint_le, CHRLib::MakeUCS2LE, ystdex::ntctsicmp,
@@ -2039,9 +2039,6 @@ FileInfo::Write(const char* buf, size_t nbyte) ythrow(system_error)
 namespace
 {
 
-//! \since build 763
-using ystdex::invoke;
-
 template<typename _func, typename... _tParams>
 using FilterRes = ystdex::common_nonvoid_t<ystdex::result_of_t<
 	_func(_tParams&&...)>, int>;
@@ -2070,7 +2067,6 @@ FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 }
 
 //! \since build 702
-//@{
 template<typename _fCallable>
 YB_NONNULL(1) auto
 op_path(::_reent* r, const char*& path, _fCallable f) ynothrowv
@@ -2081,67 +2077,88 @@ op_path(::_reent* r, const char*& path, _fCallable f) ynothrowv
 		{
 			if(const auto p_part = FetchPartitionFromPath(path))
 			{
-				// XXX: %EINVAL is not POSIX error for path.
+				// XXX: %EINVAL is not a POSIX error for path.
 				path = CheckColons(path);
-				return invoke(f, *p_part);
+				return ystdex::invoke(f, *p_part);
 			}
-			// XXX: This is not POSIX error.
+			// XXX: This is not a POSIX error.
 			throw_error(errc::no_such_device);
 		}
 		throw_error(errc::no_such_file_or_directory);
 	});
 }
 
-template<typename _fCallable>
-YB_NONNULL(1) auto
-op_path_locked(::_reent* r, const char*& path, _fCallable f) ynothrowv
-	-> FilterRes<_fCallable, Partition&>
+//! \since build 764
+//@{
+template<class _tHolder, typename _fCallable, class _type, typename... _tParams>
+inline auto
+locked_invoke(_tHolder& holder, _fCallable&& f, _type& x, _tParams&&... args)
+	-> decltype(ystdex::invoke(yforward(f), x, yforward(args)...))
 {
-	return op_path(r, path, [f](Partition& part){
-		lock_guard<mutex> lck(part.GetMutexRef());
+	lock_guard<mutex> lck(holder.GetMutexRef());
 
-		return invoke(f, part);
+	return ystdex::invoke(yforward(f), x, yforward(args)...);
+}
+
+template<typename _fCallable, typename... _tParams>
+YB_NONNULL(1) auto
+op_path_locked(::_reent* r, const char*& path, _fCallable f, _tParams&&... args)
+	ynothrowv -> FilterRes<_fCallable, Partition&, _tParams&&...>
+{
+	return op_path(r, path, [&, f](Partition& part){
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
+		return locked_invoke(part, f, part, std::forward<_tParams&&>(args)...);
 	});
 }
 
-template<typename _fCallable>
+template<typename _fCallable, typename... _tParams>
 YB_NONNULL(1) auto
-op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _fCallable f) ynothrowv
-	-> FilterRes<_fCallable, DirState&>
+op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _fCallable f,
+	_tParams&&... args) ynothrowv
+	-> FilterRes<_fCallable, DirState&, _tParams&&...>
 {
-	return FilterDevOps(r, [=]{
-		auto& state(
-			Deref(static_cast<DirState*>(Deref(dir_state).dirStruct)));
+	auto& state(Deref(static_cast<DirState*>(Deref(dir_state).dirStruct)));
+
+	return FilterDevOps(r, [&, f]{
 		// XXX: Extended partition mutex to lock directory states.
-		lock_guard<mutex> lck(state.GetPartitionRef().GetMutexRef());
-
-		return invoke(f, state);
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
+		return locked_invoke(state.GetPartitionRef(), f, state,
+			std::forward<_tParams&&>(args)...);
 	});
 }
 
-//! \since build 611
-bool
-check_true(const FileInfo&) ynothrow
+template<typename _fCheck, typename _fCallable, typename... _tParams>
+YB_NONNULL(1) auto
+op_file_checked(::_reent* r, int fd, _fCheck check, _fCallable f,
+	_tParams&&... args) ynothrowv
+	-> FilterRes<_fCallable, FileInfo&, _tParams&&...>
 {
-	return true;
+	auto& file(Deref(reinterpret_cast<FileInfo*>(fd)));
+
+	return FilterDevOps(r, [&, fd, check, f]{
+		// NOTE: Check of %fd is similar to %::close_r.
+		if(ystdex::invoke(check, file))
+			// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+			//	error: Segmentation fault.
+			return locked_invoke(file, f, file,
+				std::forward<_tParams&&>(args)...);
+		throw_error(errc::bad_file_descriptor);
+	});
 }
 
-template<typename _fCallable, typename _fCheck = bool(*)(const FileInfo&)>
+template<typename _fCallable, typename... _tParams>
 YB_NONNULL(1) auto
-op_file_locked(::_reent* r, int fd, _fCallable f, _fCheck check = check_true)
-	ynothrowv -> FilterRes<_fCallable, FileInfo&>
+op_file_locked(::_reent* r, int fd, _fCallable f, _tParams&&... args)
+	ynothrowv -> FilterRes<_fCallable, FileInfo&, _tParams&&...>
 {
-	return FilterDevOps(r, [=]{
-		// NOTE: Check of %fd is similar to %::close_r.
-		auto& file(Deref(reinterpret_cast<FileInfo*>(fd)));
+	auto& file(Deref(reinterpret_cast<FileInfo*>(fd)));
 
-		if(invoke(check, file))
-		{
-			lock_guard<mutex> lck(file.GetMutexRef());
-
-			return invoke(f, file);
-		}
-		throw_error(errc::bad_file_descriptor);
+	return FilterDevOps(r, [&, fd, f]{
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
+		return locked_invoke(file, f, file, std::forward<_tParams&&>(args)...);
 	});
 }
 //@}
@@ -2149,9 +2166,6 @@ op_file_locked(::_reent* r, int fd, _fCallable f, _fCheck check = check_true)
 // NOTE: %REENTRANT_SYSCALLS_PROVIDED is configured for libgloss for
 //	arm-*-*-eabi targets in devkitPro ports. See source
 //	'newlib/libgloss/configure'.
-
-using std::ref;
-using ystdex::bind1;
 
 const ::devoptab_t dotab_fat{
 	"fat", sizeof(FileInfo), [](::_reent* r, void* file_struct,
@@ -2185,34 +2199,32 @@ const ::devoptab_t dotab_fat{
 		});
 	}, [](::_reent* r, int fd, const char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_locked(r, fd, bind1(&FileInfo::Write, buf, nbyte),
-			&FileInfo::CanWrite);
+		return op_file_checked(r, fd, &FileInfo::CanWrite, &FileInfo::Write,
+			buf, nbyte);
 	}, [](::_reent* r, int fd, char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_locked(r, fd, bind1(&FileInfo::Read, buf, nbyte),
-			&FileInfo::CanRead);
+		return op_file_checked(r, fd, &FileInfo::CanRead, &FileInfo::Read, buf,
+			nbyte);
 	}, [](::_reent* r, int fd, ::off_t offset, int whence) YB_NONNULL(1)
 		ynothrowv{
-		return op_file_locked(r, fd, bind1(&FileInfo::Seek, offset, whence));
+		return op_file_locked(r, fd, &FileInfo::Seek, offset, whence);
 	}, [](::_reent* r, int fd, struct ::stat* buf) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_locked(r, fd, bind1(&FileInfo::Stat, ref(Deref(buf))));
+		return op_file_locked(r, fd, &FileInfo::Stat, Deref(buf));
 	}, [](::_reent* r, const char* path, struct ::stat* buf) YB_NONNULL(1, 2, 3)
 		ynothrowv{
-		return op_path_locked(r, path,
-			bind1(&Partition::Stat, ref(Deref(buf)), ref(path)));
+		return op_path_locked(r, path, &Partition::Stat, Deref(buf), path);
 	}, [](::_reent* r, const char*, const char*) YB_NONNULL(1, 2, 3) ynothrowv{
 		return seterr(r, ENOTSUP);
 	}, [](::_reent* r, const char* path) YB_NONNULL(1, 2) ynothrowv{
-		return op_path_locked(r, path, bind1(&Partition::Unlink, ref(path)));
+		return op_path_locked(r, path, &Partition::Unlink, path);
 	}, [](::_reent* r, const char* path) YB_NONNULL(1, 2) ynothrowv{
-		return op_path_locked(r, path, bind1(&Partition::ChangeDir, ref(path)));
+		return op_path_locked(r, path, &Partition::ChangeDir, path);
 	}, [](::_reent* r, const char* old, const char* new_name)
 		YB_NONNULL(1, 2, 3) ynothrowv{
-		return op_path_locked(r, old,
-			bind1(&Partition::Rename, ref(old), ref(new_name)));
+		return op_path_locked(r, old, &Partition::Rename, old, new_name);
 	}, [](::_reent* r, const char* path, int) YB_NONNULL(1, 2) ynothrowv{
-		return op_path_locked(r, path, bind1(&Partition::MakeDir, ref(path)));
+		return op_path_locked(r, path, &Partition::MakeDir, path);
 	}, sizeof(DirState), [](::_reent* r, ::DIR_ITER* dir_state,
 		const char* path) YB_NONNULL(1, 2, 3) ynothrowv{
 		return op_path_locked(r, path, [=, &path](Partition& part)
@@ -2227,20 +2239,19 @@ const ::devoptab_t dotab_fat{
 	}, [](::_reent* r, ::DIR_ITER* dir_state, char* filename,
 		struct ::stat* filestat) YB_NONNULL(1, 2, 3) ynothrowv{
 		// NOTE: The filename is of %NAME_MAX characters in newlib DS port.
-		return op_dir_locked(r, dir_state,
-			bind1(&DirState::Iterate, filename, filestat));
+		return
+			op_dir_locked(r, dir_state, &DirState::Iterate, filename, filestat);
 	}, [](::_reent* r, ::DIR_ITER* dir_state) YB_NONNULL(1, 2) ynothrowv{
 		return op_dir_locked(r, dir_state, [](DirState& state) ynothrow{
 			state.~DirState();
 		});
 	}, [](::_reent* r, const char* path, struct ::statvfs* buf)
 		YB_NONNULL(1, 2, 3) ynothrowv{
-		return
-			op_path_locked(r, path, bind1(&Partition::StatFS, ref(Deref(buf))));
+		return op_path_locked(r, path, &Partition::StatFS, Deref(buf));
 	}, [](::_reent* r, int fd, ::off_t length) YB_NONNULL(1) ynothrowv -> int{
 		return length >= 0 ? (sizeof(length) <= 4 || length <= ::off_t(
-			MaxFileSize) ? op_file_locked(r, fd, bind1(&FileInfo::Truncate,
-			std::uint32_t(length)), &FileInfo::CanWrite) : EFBIG)
+			MaxFileSize) ? op_file_checked(r, fd, &FileInfo::CanWrite,
+			&FileInfo::Truncate, std::uint32_t(length)) : EFBIG)
 			: EINVAL;
 	}, [](::_reent* r, int fd) YB_NONNULL(1) ynothrowv -> int{
 		return op_file_locked(r, fd, &FileInfo::SyncToDisc);

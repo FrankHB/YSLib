@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5694
+\version r5754
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-27 16:49 +0800
+	2017-01-31 14:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,67 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ "all 'file name'" @ "string literal for messages" -> 'filename'
+		$effective @ %(Tools.CreationTimeManager.Main,
+		YFramework.YCLib.FileSystem),
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.YObject $=
+		(
+			+ "2 function templates %CreateHolderInPlace",
+			/ @ "static member function template %IValueHolder::CreateHolder" $=
+			(
+				/ $impl "simplified" ^ $dep_from "%CreateHolderInPlace";
+				* $comp "ill-formed if %Creation::Copy or %Creation::Copy \
+					arguments cannot be satisfied" $since b761
+					// This would cause move-only objects fail to initialize \
+						%ValueObject, for example.
+			)
+		),
+		/ %NPL $=
+		(
+			/ "return type" @ "handler function signature"
+				@ "%(LiteralHandler, (PassCombinator::operator(); GPasses))"
+				@ %NPLA -> "%ReductionStatus" ~ "%bool",
+			/ %NPLA1 $=
+			(
+				* "function %ReduceCheckedClosure moved possibly shared value \
+					away" $since b761
+					^ (($dep_from "%ValueObject::MakeMoveCopy")
+					~ "%ValueObject::MakeMove" @ %YSLib.Core.YObject),
+				/ $forced DLDI "simplified status conversion" $dep_from %NPLA,
+					// The internal compiler error of G++ would be remained in \
+						the client code if callback returning type is wrongly \
+						being %bool instead of %ReductionStatus, but \
+						well-formed programs would be OK.
+				(
+				* "wrong result of last term other than %Value on \
+					%ReductionStauts::Clean" @ "function %ReduceOrdered" $since
+					b754 $=
+				(
+					/ "return type" -> "%ReductionStatus" ~ "%void",
+					/ $impl ^ "%ystdex::default_last_value" ~ "%ReduceChildre",
+					/ "set container of last term as well as %Value"
+				);
+				* "possible wrong reduction status"
+					@ "ordered sequence evaluation handler"
+					@ "function %RegisterSequenceContextTransformer" $since b754
+					$dep_from %NPLA
+					// This would effect evaluation result like '; quote x' \
+						where ';' is ordered sequence seperator and 'quote' is \
+						the form merely returning %ReductionStatus::Retained.
+				)
+			),
+			/ $forced DLDI "function %LoadNPLContextForSHBuild" $dep_from %NPLA
+		),
+		/ DLDI "simplified" @ %'YCLib_(DS)'.DSIO !^ "%(ystdex::bind1, std::ref)"
+	),
+	* "wrongly overridden %AR with default value 'ar'"
+		@ "%SHBuild-common-options.sh" %Tools.Scripts $since b763
+),
+
+b763
 (
 	/ @ "SHBuild-common-options.sh" @ %Tools.Scripts $=
 	(

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013, 2015 FrankHB.
+	© 2013, 2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,13 +15,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 检查、备份和恢复指定目录下文件的创建时间。
-\version r189
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 437
 \par 创建时间:
 	2013-08-14 01:36:07 +0800
 \par 修改时间:
-	2015-10-31 16:24 +0800
+	2017-01-27 17:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ ReadCreationTime(const char* name)
 
 	if(h_file == INVALID_HANDLE_VALUE)
 		throw
-			invalid_argument("Wrong file name \"" + string(name) + "\" found.");
+			invalid_argument("Wrong filename \"" + string(name) + "\" found.");
 
 	FileTime res;
 
@@ -100,7 +100,7 @@ WriteCreationTime(const char* name, const FileTime& time)
 
 	if(h_file == INVALID_HANDLE_VALUE)
 		throw
-			invalid_argument("Wrong file name \"" + string(name) + "\" found.");
+			invalid_argument("Wrong filename \"" + string(name) + "\" found.");
 
 	::SetFileTime(h_file, &time, &prevent_modify, &prevent_modify);
 	::CloseHandle(h_file);
@@ -160,7 +160,7 @@ PrintUsage(const char* prog)
 {
 	cout << "Usage: " << prog << " [-w]" << '\n' << "-w" << '\n'
 		<< "\tWrite time according to lines from standard input." << '\n'
-		<< "(none)" << '\n' << "\tRead file name lines from standard input."
+		<< "(none)" << '\n' << "\tRead filename lines from standard input."
 		<< endl;
 }
 

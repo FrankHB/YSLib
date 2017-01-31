@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2512
+\version r2514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-01-17 13:31 +0800
+	2017-01-29 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,12 +314,12 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 /*!
 \brief 规约有序序列：移除第一个子项，规约剩余子项，并替换值。
 \sa RemoveHead
-\since build 754
+\since build 764
 
 移除第一个子项并对剩余子项顺序求值。
 当被求值后存在剩余子项时，表达式的值为最后一个子项的值。
 */
-YF_API void
+YF_API ReductionStatus
 ReduceOrdered(TermNode&, ContextNode&);
 
 /*!
