@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1329
+\version r1340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-01-11 15:45 +0800
+	2017-01-30 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -542,7 +542,7 @@ using YSLib::AccessChildPtr;
 //! \brief 上下文处理器类型。
 using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
 //! \brief 字面量处理器类型。
-using LiteralHandler = YSLib::GHEvent<bool(const ContextNode&)>;
+using LiteralHandler = YSLib::GHEvent<ReductionStatus(const ContextNode&)>;
 //@}
 
 //! \brief 注册上下文处理器。
@@ -728,13 +728,19 @@ struct PassesCombiner
 {
 	/*!
 	\note 对遍调用异常中立。
-	\since build 731
+	\since build 764
 	*/
 	template<typename _tIn>
-	bool
+	ReductionStatus
 	operator()(_tIn first, _tIn last) const
 	{
-		return ystdex::fast_any_of(first, last, ystdex::id<>());
+		auto res(ReductionStatus::Clean);
+
+		return ystdex::fast_any_of(first, last, [&](ReductionStatus r) ynothrow{
+			if(r == ReductionStatus::Retained)
+				res = r;
+			return r == ReductionStatus::Retrying;
+		}) ? ReductionStatus::Retrying : res;
 	}
 };
 
@@ -746,8 +752,8 @@ struct PassesCombiner
 //@{
 //! \brief 一般合并遍。
 template<typename... _tParams>
-using GPasses = YSLib::GEvent<bool(_tParams...),
-	YSLib::GCombinerInvoker<bool, PassesCombiner>>;
+using GPasses = YSLib::GEvent<ReductionStatus(_tParams...),
+	YSLib::GCombinerInvoker<ReductionStatus, PassesCombiner>>;
 //! \brief 项合并遍。
 using TermPasses = GPasses<TermNode&>;
 //! \brief 求值合并遍。

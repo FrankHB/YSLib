@@ -5,6 +5,7 @@
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 : ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
 . $SHBuild_ToolDir/SHBuild-common.sh
+: ${AR:='gcc-ar'}
 . $SHBuild_ToolDir/SHBuild-common-toolchain.sh # for %CXX.
 SHBuild_CheckUName
 

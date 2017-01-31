@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2094
+\version r2135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-01-17 13:31 +0800
+	2017-01-30 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,17 +136,6 @@ yconstexpr const auto ListTermName("__$$");
 //! \since build 737
 yconstexpr const auto LiteralTermName("__$$@_");
 
-// TODO: Use %ReductionStatus as pass invocation result directly instead of this
-//	wrapper. This is not transformed yet to avoid G++ internal compiler error:
-//	"error reporting routines re-entered".
-//! \since build 730
-yconstfn PDefH(ReductionStatus, ToStatus, bool res) ynothrow
-	ImplRet(res ? ReductionStatus::Retrying : ReductionStatus::Clean)
-
-//! \since build 736
-yconstfn PDefH(bool, NeedsRetry, ReductionStatus res) ynothrow
-	ImplRet(res == ReductionStatus::Retrying)
-
 //! \since build 736
 template<typename _func>
 TermNode
@@ -247,21 +236,20 @@ InvokeGuard(TermNode& term, ContextNode& ctx)
 ReductionStatus
 InvokeLeaf(TermNode& term, ContextNode& ctx)
 {
-	return ToStatus(InvokePasses<EvaluationPasses>(LeafTermName, term, ctx));
+	return InvokePasses<EvaluationPasses>(LeafTermName, term, ctx);
 }
 
 ReductionStatus
 InvokeList(TermNode& term, ContextNode& ctx)
 {
-	return ToStatus(InvokePasses<EvaluationPasses>(ListTermName, term, ctx));
+	return InvokePasses<EvaluationPasses>(ListTermName, term, ctx);
 }
 
 ReductionStatus
 InvokeLiteral(TermNode& term, ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
-	return
-		ToStatus(InvokePasses<LiteralPasses>(LiteralTermName, term, ctx, id));
+	return InvokePasses<LiteralPasses>(LiteralTermName, term, ctx, id);
 }
 
 
@@ -326,7 +314,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// TODO: Test for normal form?
 	// XXX: Term reused.
 	ReduceChecked(app_term, ctx);
-	term.Value = app_term.Value.MakeMove(),
+	term.Value = app_term.Value.MakeMoveCopy();
 	term.GetContainerRef() = std::move(app_term.GetContainerRef());
 }
 
@@ -340,14 +328,22 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
 }
 
-void
+ReductionStatus
 ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
 	RemoveHead(term);
-	// XXX: This relies on current implementation;
-	yimpl(ReduceChildren)(term, ctx);
+
+	const auto tr([&](TNIter iter){
+		return ystdex::make_transform(iter, [&](TNIter i){
+			return Reduce(*i, ctx);
+		});
+	});
+	const auto res(ystdex::default_last_value<ReductionStatus>()(
+		tr(term.begin()), tr(term.end()), ReductionStatus::Clean));
+
 	if(!term.empty())
-		LiftTerm(term, term.rbegin()->Value);
+		LiftTerm(term, *term.rbegin());
+	return res;
 }
 
 ReductionStatus
@@ -482,17 +478,12 @@ void
 RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 	const TokenValue& name, const ValueObject& delim, bool ordered)
 {
-	// TODO: Simplify by using %ReductionStatus as invocation result directly.
-//	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
-	passes += ystdex::compose(NeedsRetry,
-		ystdex::bind1(ReplaceSeparatedChildren, name, delim));
-	RegisterForm(node, name, ordered ? [](TermNode& term, ContextNode& ctx){
-			ReduceOrdered(term, ctx);
-			return ReductionStatus::Clean;
-		} : [](TermNode& term, ContextNode& ctx){
-			ReduceChildren(term, ctx);
-			return ReductionStatus::Retained;
-		});
+	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
+	RegisterForm(node, name,
+		ordered ? ReduceOrdered : [](TermNode& term, ContextNode& ctx){
+		ReduceChildren(term, ctx);
+		return ReductionStatus::Retained;
+	});
 }
 
 
@@ -551,7 +542,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	guaranteed by the context.
 		LiftTermRef(term, *p);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
-			return ToStatus((*p_handler)(ctx));
+			return (*p_handler)(ctx);
 	}
 	else
 		throw BadIdentifier(id);
@@ -610,14 +601,11 @@ SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
 	// TODO: Simplify by using %ReductionStatus as invocation result directly
 	//	in YSLib. Otherwise current versions of G++ would crash here as internal
 	//	compiler error: "error reporting routines re-entered".
-//	passes += ReduceFirst;
-	passes += ystdex::compose(NeedsRetry, ReduceFirst);
+	passes += ReduceFirst;
 	// TODO: Insert more form evaluation passes: macro expansion, etc.
-//	passes += EvaluateContextFirst;
-	passes += ystdex::compose(NeedsRetry, EvaluateContextFirst);
+	passes += EvaluateContextFirst;
 	AccessListPassesRef(root) = std::move(passes);
-//	AccessLeafPassesRef(root) = ReduceLeafToken;
-	AccessLeafPassesRef(root) = ystdex::compose(NeedsRetry, ReduceLeafToken);
+	AccessLeafPassesRef(root) = ReduceLeafToken;
 }
 
 

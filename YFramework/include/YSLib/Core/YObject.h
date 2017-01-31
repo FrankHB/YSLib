@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4713
+\version r4754
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-01-17 12:42 +0800
+	2017-01-29 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,6 +79,28 @@ struct HasOwnershipOf : std::is_base_of<OwnershipTag<_type>, _tOwner>
 
 
 /*!
+\brief 第一个参数指定的选项创建擦除类型的持有者或抛出异常。
+\since build 764
+*/
+//@{
+template<class _tHolder, typename... _tParams>
+ystdex::any
+CreateHolderInPlace(ystdex::true_, _tParams&&... args)
+{
+	return ystdex::any(ystdex::any_ops::use_holder,
+		ystdex::in_place<_tHolder>, yforward(args)...);
+}
+//! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
+template<class _tHolder, typename... _tParams>
+YB_NORETURN ystdex::any
+CreateHolderInPlace(ystdex::false_, _tParams&&...)
+{
+	ystdex::throw_invalid_construction();
+}
+//@}
+
+
+/*!
 \brief 带等于接口的动态泛型持有者接口。
 \sa ystdex::any_holder
 \since build 332
@@ -115,7 +137,7 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 
 	/*!
 	\brief 判断相等。
-	\pre 参数为空指针值或持有对象去除 const 后具有和参数相同动态类型的对象。
+	\pre 参数为空指针值或持有的对象去除 const 后具有和参数相同动态类型的对象。
 	\return 持有的对象相等，或持有空对象且参数为空指针值。
 	\since bulid 752
 
@@ -124,7 +146,7 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	*/
 	DeclIEntry(bool Equals(const void*) const)
 	/*!
-	\brief 判断是否是持有对象的唯一所有者。
+	\brief 判断是否是持有的对象的唯一所有者。
 	\since build 759
 	*/
 	DeclIEntry(bool OwnsUnique() const ynothrow)
@@ -134,8 +156,9 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	*/
 	//@{
 	/*!
-	\brief 创建新的持有对象。
-	\return 包含新创建的持有对象的动态泛型对象。
+	\brief 创建新的持有者。
+	\return 包含新创建的持有者的动态泛型对象。
+	\exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
 	\sa Creation
 	\sa CreateHolder
 
@@ -404,14 +427,14 @@ IValueHolder::CreateHolder(Creation c, _type& obj)
 	switch(c)
 	{
 	case Indirect:
-		return ystdex::any(ystdex::any_ops::use_holder,
-			ystdex::in_place<RefHolder<_type>>, ystdex::ref(obj));
+		return CreateHolderInPlace<RefHolder<_type>>(ystdex::true_(),
+			ystdex::ref(obj));
 	case Copy:
-		return ystdex::any(ystdex::any_ops::use_holder,
-			ystdex::in_place<ValueHolder<_type>>, obj);
+		return CreateHolderInPlace<ValueHolder<_type>>(
+			std::is_copy_constructible<_type>(), obj);
 	case Move:
-		return ystdex::any(ystdex::any_ops::use_holder,
-			ystdex::in_place<ValueHolder<_type>>, std::move(obj));
+		return CreateHolderInPlace<ValueHolder<_type>>(
+			std::is_move_constructible<_type>(), std::move(obj));
 	default:
 		ystdex::throw_invalid_construction();
 	}
@@ -700,13 +723,13 @@ public:
 		return {};
 	}
 
-	//! \pre 参数为空指针值或持有对象去除 const 后具有和参数相同动态类型的对象。
+	//! \pre 参数为空指针值或持有的对象去除 const 后具有和参数相同动态类型的对象。
 	bool
 	EqualsRaw(const void*) const;
 
 	/*!
-	\pre 间接断言：持有对象非空。
-	\pre 持有对象去除 const 后具有和参数相同动态类型的对象。
+	\pre 间接断言：持有的对象非空。
+	\pre 持有的对象去除 const 后具有和参数相同动态类型的对象。
 	*/
 	bool
 	EqualsUnchecked(const void*) const;
@@ -727,6 +750,13 @@ public:
 		ImplRet(Create(IValueHolder::Move))
 
  	/*!
+	\brief 取引用的值对象的初始化副本：按是否具有所有权选择转移或复制对象副本。
+	\since build 764
+	*/
+	PDefH(ValueObject, MakeMoveCopy, ) const
+		ImplRet(Create(OwnsUnique() ? IValueHolder::Move : IValueHolder::Copy))
+
+ 	/*!
 	\brief 取间接引用的值对象。
 	\since build 747
 	*/
@@ -734,7 +764,7 @@ public:
 		ImplRet(Create(IValueHolder::Indirect))
 
 	/*!
-	\brief 判断是否是持有对象的唯一所有者。
+	\brief 判断是否是持有的对象的唯一所有者。
 	\since build 759
 	*/
 	bool
