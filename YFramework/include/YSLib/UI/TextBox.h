@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r416
+\version r419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2016-02-11 20:41 +0800
+	2017-02-02 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,14 +68,14 @@ public:
 		FetchEvent<GotFocus>(ctl) += [&, f, this]{
 			if(p_captured.get() == std::addressof(ctl) && Text.empty())
 			{
-				f(this, ctl);
+				ystdex::invoke(f, this, ctl);
 				p_captured = {};
 			}
 		},
 		FetchEvent<LostFocus>(ctl) += [&, f, this]{
 			if(!p_captured && ctl.Text.empty())
 			{
-				f(this, ctl);
+				ystdex::invoke(f, this, ctl);
 				p_captured = YSLib::make_observer(std::addressof(ctl));
 			}
 		}

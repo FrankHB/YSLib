@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r190
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2016-02-12 01:54 +0800
+	2017-02-02 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_Hover_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_YControl // for ystdex::invoke;
 #include YFM_YSLib_UI_YGUI
 
 namespace YSLib
@@ -69,7 +69,7 @@ void
 ActOnHover(IWidget& wgt, _func f, _tParams&&... args)
 {
 	if(FetchGUIState().GetIndependentFocusPtr().get() != &wgt)
-		f(yforward(args)...);
+		ystdex::invoke(f, yforward(args)...);
 }
 
 /*!
