@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5754
+\version r5781
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-01-31 14:21 +0800
+	2017-02-04 22:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,32 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ "supported callable types" @ ("function template %ActOnHover"
+			@ %Hover, "member function template \
+			%TextPlaceholder::BindByFocus" @ %TextBox) @ %YSLib.UI
+			^ "%ystdex::invoke",
+		/ DLDI "simplified member functions %FileDescriptor::(FullRead, \
+			FullWrite)" @ %YCLib.FileIO ^ "%ystdex::invoke" ~ "%std::bind",
+		/ ("functions %(Quote, QuoteN)" => "%(Retain, RetainN)")
+			@ "namespace %Forms" @ %NPL.NPLA1
+			// Quotation is now unsupported due to preference on explicit \
+				evaluation style, like the Kernel language.
+	),
+	/ DLDI "simplified constructor %ShlExplorer" @ %YReader.ShlExplorer
+		$dep_from %YFramework.YSLib.UI.TextBox,
+	/ "cleanup ending '.'" @ "exception messages" @ "throwing exception \
+		derived from %std::system_error" $effective
+		@ %YFramework.(YSLib.Service.FileSystem, YCLib.FileIO)
+		// To avoid followed by column-headed clause directly in \
+			%std::system_error::what. Note the string is embedded in the \
+			constructors of %std::system_error in libstdc++ as inititalizer of \
+			%std::runtime_error, whose %what would return the message literally.
+),
+
+b764
 (
 	/ "all 'file name'" @ "string literal for messages" -> 'filename'
 		$effective @ %(Tools.CreationTimeManager.Main,
@@ -130,7 +156,7 @@ b763
 		/ @ ("function template %invoke",
 			$comp "function template %invoke_nonvoid") %Functional $=
 		(
-			* "ill-formed call for pointer to members as callable object" $since
+			* "ill-formed call for pointer to members as callable type" $since
 				b612
 			/ "forwarded member object pm-expression as left operand of '.*'"
 				// See $2017-01 @ %Documentation::Workflow::Annual2017.
@@ -422,7 +448,7 @@ b759
 						%ValueObject or its references" ^ $dep_from
 						("%YSLib::EmplaceCallResult" ~ "%YSLib::EmplaceFromCall"
 						@ %YSLib.Core.YObject);
-					/ "allowed callable objects" ^ "%ystdex::invoke_nonvoid"
+					/ "allowed callable types" ^ "%ystdex::invoke_nonvoid"
 						~ "direct call"
 				),
 				/ DLDI "simplified function %CallSystem"

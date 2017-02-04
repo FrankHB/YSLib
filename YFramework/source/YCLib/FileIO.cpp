@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3091
+\version r3106
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2016-09-26 09:22 +0800
+	2017-02-02 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO // for std::is_same, ystdex::underlying_type_t,
 //	RetryOnInterrupted, std::errc::function_not_supported, YCL_CallF_CAPI,
-//	std::is_integral, std::bind, ystdex::temporary_buffer, Nonnull;
+//	std::is_integral, ystdex::invoke, Nonnull, ystdex::temporary_buffer;
 #include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, struct ::stat,
 //	platform_ex::cstat, platform_ex::estat, ::futimens, OpenMode,
 //	YCL_CallGlobal, ::close, ::fcntl, F_GETFL, ::setmode, ::fchmod, ::_chsize,
@@ -258,14 +258,16 @@ FetchFileTime(_func f, _tParams... args)
 #endif
 }
 
-//! \since build 625
-template<int _vErr, typename _func, typename _tByteBuf>
+//! \since build 765
+template<int _vErr, typename _fCallable, class _tObj, typename _tByteBuf,
+	typename... _tParams>
 _tByteBuf
-FullReadWrite(_func f, _tByteBuf ptr, size_t nbyte)
+FullReadWrite(_fCallable f, _tObj&& obj, _tByteBuf ptr, size_t nbyte,
+	_tParams&&... args)
 {
 	while(nbyte > 0)
 	{
-		const auto n(f(ptr, nbyte));
+		const auto n(ystdex::invoke(f, obj, ptr, nbyte, yforward(args)...));
 
 		if(n == size_t(-1))
 			break;
@@ -647,8 +649,8 @@ FileDescriptor::FullRead(void* buf, size_t nbyte) ynothrowv
 	using namespace std::placeholders;
 	const auto p_buf(static_cast<char*>(buf));
 
-	return size_t(FullReadWrite<0>(
-		std::bind(&FileDescriptor::Read, this, _1, _2), p_buf, nbyte) - p_buf);
+	return size_t(FullReadWrite<0>(&FileDescriptor::Read, this, p_buf, nbyte)
+		- p_buf);
 }
 
 size_t
@@ -657,8 +659,8 @@ FileDescriptor::FullWrite(const void* buf, size_t nbyte) ynothrowv
 	using namespace std::placeholders;
 	const auto p_buf(static_cast<const char*>(buf));
 
-	return size_t(FullReadWrite<ENOSPC>(std::bind(&FileDescriptor::Write, this,
-		_1, _2), p_buf, nbyte) - p_buf);
+	return size_t(FullReadWrite<ENOSPC>(&FileDescriptor::Write, this, p_buf,
+		nbyte) - p_buf);
 }
 
 size_t
@@ -1254,14 +1256,14 @@ HaveSameContents(UniqueFile p_a, UniqueFile p_b, const char* name_a,
 		if(!fb_a.open(std::move(p_a),
 			std::ios_base::in | std::ios_base::binary))
 			ystdex::throw_error(std::errc::bad_file_descriptor,
-				name_a ? ("Failed opening first file '" + string(name_a) + "'.")
-				.c_str() : "Failed opening first file.");
+				name_a ? ("Failed opening first file '" + string(name_a) + '\'')
+				.c_str() : "Failed opening first file");
 		// TODO: Throw a nested exception with %errno if 'errno != 0'.
 		if(!fb_b.open(std::move(p_b),
 			std::ios_base::in | std::ios_base::binary))
 			ystdex::throw_error(std::errc::bad_file_descriptor,
 				name_b ? ("Failed opening second file '" + string(name_b)
-				+ "'.").c_str() : "Failed opening second file.");
+				+ '\'').c_str() : "Failed opening second file");
 		return ystdex::streambuf_equal(fb_a, fb_b);
 	}
 	return {};

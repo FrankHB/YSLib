@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2135
+\version r2140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-01-30 09:20 +0800
+	2017-02-04 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,7 +159,7 @@ TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
 ReductionStatus
 AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 {
-	Forms::Quote(term);
+	Forms::Retain(term);
 
 	auto i(term.begin());
 
@@ -193,7 +193,7 @@ template<typename _func>
 void
 EqualTerm(TermNode& term, _func f)
 {
-	Forms::QuoteN(term, 2);
+	Forms::RetainN(term, 2);
 
 	auto i(term.begin());
 	const auto& x(Deref(++i));
@@ -678,7 +678,7 @@ namespace Forms
 {
 
 size_t
-QuoteN(const TermNode& term, size_t m)
+RetainN(const TermNode& term, size_t m)
 {
 	const auto n(FetchArgumentN(term));
 
@@ -823,7 +823,7 @@ Lambda(TermNode& term, ContextNode& ctx)
 	auto& con(term.GetContainerRef());
 	auto size(con.size());
 
-	Quote(term);
+	Retain(term);
 	if(size > 1)
 	{
 		auto i(con.begin());
@@ -952,7 +952,7 @@ Eval(TermNode& term, const REPLContext& ctx)
 ReductionStatus
 ValueOf(TermNode& term, const ContextNode& ctx)
 {
-	QuoteN(term);
+	RetainN(term);
 	LiftTerm(term, Deref(std::next(term.begin())));
 	if(const auto p_id = AccessPtr<string>(term))
 		TryRet(EvaluateIdentifier(term, ctx, *p_id))

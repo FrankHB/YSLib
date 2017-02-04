@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1543
+\version r1546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2016-07-26 22:18 +0800
+	2017-02-02 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -312,8 +312,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	p_border.reset(new BorderResizer(pnlTest1, 4)),
 	p_ChkFPS = &cbFPS,
 	tpDefault.Text = u"请输入文本",
-	tpDefault.BindByFocus(tbTest, bind(&TextPlaceholder::SwapTextBox<TextBox>,
-		_1, _2)),
+	tpDefault.BindByFocus(tbTest, &TextPlaceholder::SwapTextBox<TextBox>),
 	tpDefault.Font.SetStyle(FontStyle::Italic),
 	pnlAbout.OnCommand += [this]{
 		YTraceDe(Informative, "System information panel request received.");

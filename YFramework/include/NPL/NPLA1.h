@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2514
+\version r2529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-01-29 23:54 +0800
+	2017-02-04 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -823,27 +823,31 @@ namespace Forms
 
 /*!
 \pre 断言：项或容器对应枝节点。
+\sa AssertBranch
 \since build 733
 */
 //@{
 /*!
-\brief 引用项：延迟求值。
-\since build 757
+\note 保留求值留作保留用途，一般不需要被作为用户代码直接使用。
+\since build 765
+
+可使用 RegisterForm 注册上下文处理器，参考文法：
+$retain|$retainN <expression>
 */
-inline PDefH(ReductionStatus, Quote, const TermNode& term) ynothrowv
+//@{
+//! \brief 保留项：保留求值。
+inline PDefH(ReductionStatus, Retain, const TermNode& term) ynothrowv
 	ImplRet(AssertBranch(term), ReductionStatus::Retained)
 
 /*!
-\brief 引用经检查确保具有指定个数参数的项：延迟求值。
+\brief 保留经检查确保具有指定个数参数的项：保留求值。
 \return 项的参数个数。
 \throw ArityMismatch 项的参数个数不等于第二参数。
 \sa FetchArgumentN
-
-可使用 RegisterForm 注册上下文处理器，参考文法：
-$quote|$quoteN <expression>
 */
 YF_API size_t
-QuoteN(const TermNode&, size_t = 1);
+RetainN(const TermNode&, size_t = 1);
+//@}
 
 
 /*!
@@ -892,7 +896,7 @@ template<typename _func, typename... _tParams>
 void
 CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 {
-	QuoteN(term);
+	RetainN(term);
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(yforward(f)),
 		Deref(std::next(term.begin())), yforward(args)...));
@@ -920,7 +924,7 @@ template<typename _func, typename... _tParams>
 void
 CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 {
-	QuoteN(term, 2);
+	RetainN(term, 2);
 
 	auto i(term.begin());
 	auto& x(Deref(++i));
@@ -934,7 +938,7 @@ template<typename _type, typename _func, typename... _tParams>
 void
 CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 {
-	QuoteN(term, 2);
+	RetainN(term, 2);
 
 	auto i(term.begin());
 	auto& x(YSLib::Access<_type>(Deref(++i)));
