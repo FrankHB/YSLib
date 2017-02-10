@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r532
+\version r538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2017-01-20 02:36 +0800
+	2017-02-10 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 
 #include "YCLib/YModules.h"
 #include "YSLib/Core/YModules.h"
-#include YFM_YCLib_Container // for unordered_map, pair, string_view, string;
+#include YFM_YCLib_Container // for unordered_map, pair, string_view, string,
+//	ystdex::invoke;
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include YFM_YCLib_Reference // for unique_ptr_from, unique_ptr, observer_ptr,
 //	tidy_ptr, make_observer;
@@ -383,12 +384,13 @@ public:
 		tidy_ptr<Terminal> p_terminal;
 
 	public:
-		template<typename _func>
-		Guard(Terminal& te, _func f)
+		//! \since build 766
+		template<typename _fCallable, typename... _tParams>
+		Guard(Terminal& te, _fCallable f, _tParams&&... args)
 			: p_terminal(make_observer(&te))
 		{
 			if(te)
-				f(te);
+				ystdex::invoke(f, te, yforward(args)...);
 		}
 		//! \since build 755
 		DefDeMoveCtor(Guard)

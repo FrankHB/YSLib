@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r653
+\version r654
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2017-01-20 02:35 +0800
+	2017-02-10 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -488,7 +488,7 @@ Terminal::Clear()
 Terminal::Guard
 Terminal::LockForeColor(std::uint8_t c)
 {
-	return Guard(*this, ystdex::bind1(&Terminal::UpdateForeColor, c));
+	return Guard(*this, &Terminal::UpdateForeColor, c);
 }
 
 bool

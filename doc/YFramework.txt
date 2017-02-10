@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1392
+\version r1398
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-12-23 23:28 +0800
+	2017-02-02 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,7 +190,7 @@ Shell 被设计为一个 C++ 多态类。
 一个类类型对象的生存期始于构造调用结束后，构造函数中的操作是受限的（例若无法正确地调用虚函数）；
 构造函数允许抛出异常。
 因此：
-Shell 切换(@1.5.1.2) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::LanguageConvention @@6.12.5.4]) 的；
+Shell 切换(@1.5.1.2) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::LanguageConvention @@5.10.5.3.3]) 的；
 激活和停用有必要明确地与构造和析构区分。
 特定的 Shell 可作为 ISO C++11 30.2.5.1/1 定义的执行代理(execution agent) 。
 
@@ -398,7 +398,7 @@ YCLib::JNI ：限定支持 Java 本机接口。
 YSLib 库中，模块目录 YSLib::Adaptor([Documentation::YSLib @@2]) 以外其它部分总称为本体。
 除了标准库和 YBase 的公开接口外，本体的接口和实现以及 Adaptor 的公开接口没有 YSLib 以外的依赖项。
 而 Adaptor 非公开接口除此之外还可能有其它外部依赖项（第三方库），但这些依赖项的公开接口是平台中立的。
-Adaptor 被 YSLib 的几乎所有其它部分依赖。 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能、有必要被足够多模块依赖的的外部依赖项，新增的部分应尽量放在外部的 Helper 库(@2.7) 而不是 Adaptor 中。
+Adaptor 被 YSLib 的几乎所有其它部分依赖。 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能、有必要被足够多模块依赖的的外部依赖项，新增的部分应尽可能放在外部的 Helper 库(@2.7) 而不是 Adaptor 中。
 
 @2.1.6 预处理附加规则：
 对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.3])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
@@ -542,7 +542,7 @@ YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无
 @2.5.2 接口
 
 @2.5.3 断言：
-基于 YBase([Documentation::YBase @@2.5.7.4]) 的接口和实现在特定平台上提供替代断言。异常规范和 YBase 的接口相同。
+基于 YBase([Documentation::YBase @@2.5.7.3]) 的接口和实现在特定平台上提供替代断言。异常规范和 YBase 的接口相同。
 
 @2.5.4 成员函数简写（代码生成器）
 
@@ -663,7 +663,7 @@ YFramework 使用 UTF-8 作为外部文本编码。
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。
 
 @3.3.2 字符串：
-约定表示字符串的类型中，值不包括空字符，即和 NTCTS([Documentation::LanguageConvention @@6.10]) 兼容。
+约定表示字符串的类型中，值不包括空字符，即和 NTCTS([Documentation::LanguageConvention @@6.11]) 兼容。
 可能被用于表示字符串的类型包括但不限于：
 类模板 basic_string （注意不限于 std::basic_string ，也包括类似的部分兼容的模板）的实例；
 用于表示 C 风格字符串的字符数组、 std::array 或类似类型，以及字符指针类型。
@@ -698,7 +698,7 @@ Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 基本内容参见 [Documentation::Designation @@4] 和 [Documentation::Designation @@6] 。
 
 @4.1 YFramework 宏使用：
-YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacro(@2.4) 定义的宏，而不是其展开形式。
+YLSib 和 YFramework 中依赖 YSLib 的项目尽可能使用 YFramework::YBaseMacro(@2.4) 定义的宏，而不是其展开形式。
 使用宏声明接口类型([Documentation::CommonRules @@2.4.1]) 。
 
 @4.1.1 函数实现：

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5781
+\version r5842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-02-04 22:44 +0800
+	2017-02-10 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,57 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ $re_ex(b738) "removed ':', '!' and '%' as graphical delimeter"
+				@ "function %IsGraphicalDelimeter" @ %Lexical,
+				// Now modifier in %A1::Forms::ExtractModifier should be a \
+					single token. These removed delimeter cannot be treated as \
+					separator like ';' and then transformed by preprocessing \
+					pass simply, but as prefix of tokens, they can handled as \
+					literals.
+			/ %NPLA1 $=
+			(
+				/ "function %ExtractLambdaParameters" @ "namespace %Forms"
+					=> "%ExtractParameters",
+				/ "function %EvaluateContextFirst" -> "%ReduceContextFirst"
+					$= (/ "set %ValueToken::Null on empty %TermNode::Value \
+						when the result is %ReductionStatus::Retained"),
+						// To allow empty lists handled uniformly.
+				(
+				/ "functions %(ReduceArguments; \
+					StrictContextHandler::operator()) allowed single form with \
+					no argument silently";
+				/ DLDI "simplified member function \
+					%StrictContextHandler::operator()" $=
+				(
+					+ "assertion for postcondition of %ReduceArguments";
+					- "removing unreached throw-expression"
+				),
+				+ "function %Apply" $dep_from "%EvaluateContextFirst"
+					// The simplified implementation need both \
+						%ValueToken::Null identification (to differentiate \
+						from leaf node which is not a parameter list) and \
+						single term reduction in strict context handler. \
+						Otherwise, the term to apply needs one more empty \
+						subterm as the 2nd argument at end in the case of call \
+						without argument, to satisfy the logic in \
+						%StrictContextHandler::operator().
+				)
+			)
+		),
+		/ @ "class %Terminal" %YCLib.Host $=
+		(
+			+ "supported for callable types" @ "constructor %Guard";
+			/ DLDI "simplified" @ "function %LockForeColor" !^ "%ystdex::bind1"
+		)
+	)
+),
+
+b765
 (
 	/ %YFramework $=
 	(
@@ -77,16 +128,23 @@ b764
 		),
 		/ %NPL $=
 		(
-			/ "return type" @ "handler function signature"
-				@ "%(LiteralHandler, (PassCombinator::operator(); GPasses))"
-				@ %NPLA -> "%ReductionStatus" ~ "%bool",
+			/ %NPLA ^ "%ReductionStatus" ~ 'bool' $=
+			(
+				/ "return type" @ "handler function signature"
+					@ "%(LiteralHandler, (PassesCombinator::operator(); \
+					GPasses))";
+				/ $comp "alias templates %(TermPasses, EvaluationPasses)"
+			),
 			/ %NPLA1 $=
 			(
 				* "function %ReduceCheckedClosure moved possibly shared value \
 					away" $since b761
 					^ (($dep_from "%ValueObject::MakeMoveCopy")
 					~ "%ValueObject::MakeMove" @ %YSLib.Core.YObject),
-				/ $forced DLDI "simplified status conversion" $dep_from %NPLA,
+				/ $forced DLDI "simplified status conversion" @ "functions \
+					%(InvokeLeaf, InvokeList, Reduce, ReduceFirst, \
+					ReplaceSeparatedChildren, EvaluateContextFirst, \
+					EvaluateIdentifier)" $dep_from %NPLA,
 					// The internal compiler error of G++ would be remained in \
 						the client code if callback returning type is wrongly \
 						being %bool instead of %ReductionStatus, but \
