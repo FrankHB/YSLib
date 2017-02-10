@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3132
+\version r3135
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2016-12-27 21:07 +0800
+	2017-02-02 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ Core::YException 包含 <string> （由于复用标准库异常需要的参数�
 @1.2.3 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头及唯一在其中声明的接口和包含的宏（但可能会间接依赖）：
 <csetjmp> 、 <csignal> 、 <ciso646> 、 <iostream> 、 <locale> 和 <strstream> 。
-其它要点参见 [Documentation::LanguageConvention @@6.14] 。
+另见 [Documentation::LanguageConvention @@6.15] 。
 
 @1.2.4 本体的必要头文件中显式包含的 C++ 标准库依赖项：
 Core::YException 包含 <exception> 和 <stdexcept> ；
@@ -414,7 +414,7 @@ Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，�
 @5 用户界面：
 位于 "/UI" 。
 包含基本的部件/控件抽象、图形界面中较常用绘图例程以及样式管理。
-更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自于 Core::YGDIBase 、 Service::YGDI 和 Service::YResource 。
+更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自 Core::YGDIBase 、 Service::YGDI 和 Service::YResource 。
 设计时可预期一些 GUI 特性在不同的平台可表现不同的行为，但其中一部分可有公共行为。
 这里对此类特性提供统一的抽象和实现，由非平台中立的调用方决定是否使用。
 这可能会引起二进制文件体积增加，但能直接保持 YSLib 平台中立性。这些特性包括：

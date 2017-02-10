@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2140
+\version r2205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-02-04 22:12 +0800
+	2017-02-10 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,12 +287,12 @@ Reduce(TermNode& term, ContextNode& ctx)
 void
 ReduceArguments(TermNode::Container& con, ContextNode& ctx)
 {
-	if(con.size() > 1)
+	if(!con.empty())
 		// NOTE: The order of evaluation is unspecified by the language
 		//	specification. It should not be depended on.
 		ReduceChildren(std::next(con.begin()), con.end(), ctx);
 	else
-		throw InvalidSyntax("Argument not found.");
+		throw InvalidSyntax("Invalid function application found.");
 }
 
 void
@@ -445,32 +445,24 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 
 	// NOTE: This implementes arguments evaluation in applicative order.
 	ReduceArguments(con, ctx);
+	YAssert(!con.empty(), "Invalid state found.");
 
-	const auto n(con.size());
+	// NOTE: Matching function calls.
+	auto i(con.begin());
 
-	if(n > 1)
-	{
-		// NOTE: Matching function calls.
-		auto i(con.begin());
-
-		// NOTE: Adjust null list argument application to function call without
-		//	arguments.
-		if(n == 2 && !Deref(++i))
-			con.erase(i);
-		// TODO: Add unreduced form check? Is this better to be inserted in
-		//	other passes?
+	// NOTE: Adjust null list argument application to function call without
+	//	arguments.
+	if(con.size() == 2 && !Deref(++i))
+		con.erase(i);
+	// TODO: Add unreduced form check? Is this better to be inserted in
+	//	other passes?
+	return Handler(term, ctx);
 #if false
-		if(con.empty())
-			YTraceDe(Warning, "Empty reduced form found.");
-		else
-			YTraceDe(Warning, "%zu term(s) not reduced found.", n);
-#endif
-		return Handler(term, ctx);
-	}
-	// TODO: Use other exception type for this type of error?
-	// TODO: Capture contextual information in error.
+	// TODO: Use other exception type with more precise information for this
+	//	error? Also consider capture of contextual information in error.
 	throw ListReductionFailure(ystdex::sfmt("Invalid list form with"
 		" %zu term(s) not reduced found.", n), YSLib::Warning);
+#endif
 }
 
 
@@ -488,7 +480,7 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 
 
 ReductionStatus
-EvaluateContextFirst(TermNode& term, ContextNode& ctx)
+ReduceContextFirst(TermNode& term, ContextNode& ctx)
 {
 	if(IsBranch(term))
 	{
@@ -498,8 +490,17 @@ EvaluateContextFirst(TermNode& term, ContextNode& ctx)
 		{
 			const auto res((*p_handler)(term, ctx));
 
-			if(res == ReductionStatus::Clean)
+			switch(res)
+			{
+			case ReductionStatus::Clean:
 				term.ClearContainer();
+				break;
+			case ReductionStatus::Retained:
+				if(!term.Value)
+					term.Value = ValueToken::Null;
+			default:
+				break;				
+			}
 			return res;
 		}
 		// TODO: Capture contextual information in error.
@@ -602,8 +603,9 @@ SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
 	//	in YSLib. Otherwise current versions of G++ would crash here as internal
 	//	compiler error: "error reporting routines re-entered".
 	passes += ReduceFirst;
-	// TODO: Insert more form evaluation passes: macro expansion, etc.
-	passes += EvaluateContextFirst;
+	// TODO: Insert more optional optimized lifted form evaluation passes:
+	//	macro expansion, etc.
+	passes += ReduceContextFirst;
 	AccessListPassesRef(root) = std::move(passes);
 	AccessLeafPassesRef(root) = ReduceLeafToken;
 }
@@ -769,7 +771,7 @@ DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
 }
 
 shared_ptr<vector<string>>
-ExtractLambdaParameters(const TermNode::Container& con)
+ExtractParameters(const TermNode::Container& con)
 {
 	YTraceDe(Debug, "Found lambda abstraction form with %zu"
 		" parameter(s) to be bound.", con.size());
@@ -827,7 +829,7 @@ Lambda(TermNode& term, ContextNode& ctx)
 	if(size > 1)
 	{
 		auto i(con.begin());
-		const auto p_params(ExtractLambdaParameters((++i)->GetContainer()));
+		const auto p_params(ExtractParameters((++i)->GetContainer()));
 
 		con.erase(con.cbegin(), ++i);
 
@@ -922,10 +924,39 @@ Or(TermNode& term, ContextNode& ctx)
 }
 
 
+ReductionStatus
+Apply(TermNode& term, ContextNode& ctx)
+{
+	RetainN(term, 2);
+
+	TermNode app_term(NoContainer, term.GetName());
+	auto i(term.begin());
+	auto& func_term(Deref(++i));
+	auto& arglist_term(Deref(++i));
+	const bool branch(IsBranch(arglist_term));
+
+	if(branch || arglist_term.Value == ValueToken::Null)
+	{
+		app_term.AddValue(MakeIndex(app_term), std::move(func_term.Value));
+		if(branch)
+			for(auto& arg_term : arglist_term)
+				// TODO: Optimize?
+				// XXX: Children nodes are ignored.
+				app_term.AddValue(MakeIndex(app_term),
+					std::move(arg_term.Value));
+
+		const auto res(ReduceContextFirst(app_term, ctx));
+
+		LiftTerm(term, app_term);
+		return res;
+	}
+	throw InvalidSyntax("List is required as the parameter list on applying.");
+}
+
 void
 CallSystem(TermNode& term)
 {
-	Forms::CallUnaryAs<const string>(
+	CallUnaryAs<const string>(
 		ystdex::compose(usystem, std::mem_fn(&string::c_str)), term);
 }
 
@@ -944,7 +975,7 @@ EqualValue(TermNode& term)
 void
 Eval(TermNode& term, const REPLContext& ctx)
 {
-	Forms::CallUnaryAs<const string>([ctx](const string& unit){
+	CallUnaryAs<const string>([ctx](const string& unit){
 		REPLContext(ctx).Perform(unit);
 	}, term);
 }

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2529
+\version r2567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-02-04 22:12 +0800
+	2017-02-10 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -264,7 +264,7 @@ Reduce(TermNode&, ContextNode&);
 //@{
 /*!
 \brief 对容器中的第二项开始逐项规约。
-\throw InvalidSyntax 容器内的子项数不大于 1 。
+\throw InvalidSyntax 容器为空。
 \sa ReduceChildren
 \since build 685
 */
@@ -640,20 +640,6 @@ inline PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
 	ImplRet(AssertBranch(term), term.size() - 1)
 
 
-/*!
-\brief 检查项的第一个子项并尝试按上下文列表求值。
-\return 规约状态。
-\throw ListReductionFailure 规约失败：枝节点的第一个子项不是上下文处理器。
-\sa ContextHandler
-\sa Reduce
-\since build 730
-
-对枝节点以已规约的第一个子项为上下文处理器并调用，且当规约成功时返回前清理子项；
-否则视为规约成功，没有其它作用。
-*/
-YF_API ReductionStatus
-EvaluateContextFirst(TermNode&, ContextNode&);
-
 //! \note 第一参数指定输入的项，其 Value 指定输出的值。
 //@{
 //! \sa LiftDelayed
@@ -679,11 +665,10 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 //@}
 
 /*!
+\pre 断言：第三参数的数据指针非空。
 \exception BadIdentifier 标识符未声明。
-\note 默认视为规约成功以保证强规范化性质。
+\note 默认结果为 ReductionStatus::Clean 以保证强规范化性质。
 */
-//@{
-//! \pre 断言：第三参数的数据指针非空。
 //@{
 /*!
 \brief 求值标识符。
@@ -723,20 +708,35 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 //@}
 
 /*!
+\brief 规约上下文列表：检查项的第一个子项并尝试按上下文列表进行函数应用。
+\return 规约状态。
+\throw ListReductionFailure 规约失败：枝节点的第一个子项不是上下文处理器。
+\sa ContextHandler
+\sa Reduce
+\since build 766
+
+对枝节点以已规约的第一个子项为上下文处理器并调用，且当规约成功时返回前清理子项；
+否则视为规约成功，没有其它作用。
+*/
+YF_API ReductionStatus
+ReduceContextFirst(TermNode&, ContextNode&);
+
+/*!
 \brief 规约提取名称的叶节点记号。
+\exception BadIdentifier 标识符未声明。
+\note 忽略名称查找失败，默认结果为 ReductionStatus::Clean 以保证强规范化性质。
 \sa EvaluateLeafToken
 \sa TermToNode
 */
 YF_API ReductionStatus
 ReduceLeafToken(TermNode&, ContextNode&);
 //@}
-//@}
 
 
 /*!
 \brief 设置默认解释：解释使用的公共处理遍。
 \note 非强异常安全：加入遍可能提前设置状态而不在失败时回滚。
-\sa EvaluateContextFirst
+\sa ReduceContextFirst
 \sa ReduceFirst
 \sa ReduceLeafToken
 \since build 736
@@ -1130,11 +1130,12 @@ DefineOrSetFor(const string&, TermNode&, ContextNode&, bool, bool);
 //@}
 
 /*!
-\brief 以容器作为参数列表提取 λ 抽象的参数。
+\brief 以容器作为参数列表提取函数抽象的参数。
 \throw InvalidSyntax 存在重复的参数。
+\since build 766
 */
 YF_API YSLib::shared_ptr<vector<string>>
-ExtractLambdaParameters(const TermNode::Container&);
+ExtractParameters(const TermNode::Container&);
 
 /*
 \pre 间接断言：第一参数指定的项是枝节点。
@@ -1156,14 +1157,14 @@ YF_API ReductionStatus
 If(TermNode&, ContextNode&);
 
 /*!
-\brief λ 抽象：产生一个捕获当前上下文的过程。
-\exception InvalidSyntax 异常中立：由 ExtractLambdaParameters 抛出。
+\brief λ 抽象：求值为一个捕获当前上下文的严格求值的函数。
+\exception InvalidSyntax 异常中立：由 ExtractParameters 抛出。
 \sa EvaluateIdentifier
-\sa ExtractLambdaParameters
+\sa ExtractParameters
 \warning 返回闭包调用引用变量超出绑定目标的生存期引起未定义行为。
 \todo 优化捕获开销。
 
-使用 ExtractLambdaParameters 检查参数列表并捕获和绑定变量，
+使用 ExtractParameters 检查参数列表并捕获和绑定变量，
 然后设置节点的值为表示 λ 抽象的上下文处理器。
 可使用 RegisterForm 注册上下文处理器。
 和 Scheme 等不同参数以项而不是位置的形式被转移，在函数应用时可能进一步求值。
@@ -1207,6 +1208,14 @@ YF_API ReductionStatus
 Or(TermNode&, ContextNode&);
 //@}
 
+
+/*!
+\brief 以列表项为参数应用函数。
+\sa ReduceContextFirst
+\since build 766
+*/
+YF_API ReductionStatus
+Apply(TermNode&, ContextNode&);
 
 /*!
 \brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
