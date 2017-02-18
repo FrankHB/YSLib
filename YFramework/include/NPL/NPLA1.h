@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2567
+\version r2585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-02-10 12:55 +0800
+	2017-02-17 02:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -708,14 +708,14 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 //@}
 
 /*!
-\brief 规约上下文列表：检查项的第一个子项并尝试按上下文列表进行函数应用。
+\brief 规约上下文列表：检查项的第一个子项并尝试按上下文列表进行函数应用，并规范化。
 \return 规约状态。
 \throw ListReductionFailure 规约失败：枝节点的第一个子项不是上下文处理器。
 \sa ContextHandler
 \sa Reduce
 \since build 766
 
-对枝节点以已规约的第一个子项为上下文处理器并调用，且当规约成功时返回前清理子项；
+对枝节点以已规约的第一个子项为上下文处理器并调用，且当规约终止时规范化；
 否则视为规约成功，没有其它作用。
 */
 YF_API ReductionStatus
@@ -1088,13 +1088,12 @@ RegisterStrictBinary(ContextNode& node, const string& name, _func f)
 //@}
 
 
-//! \since build 735
-//@{
 /*!
 \note 在节点后的 bool 参数指定使用定义而不是设置（重定义）。
 \note 支持修饰符。
 \note 实现特殊形式。值以项的形式被转移，在标识符替换时可能进一步求值。
 \sa ReduceWithModifier
+\since build 735
 */
 //@{
 /*!
@@ -1157,7 +1156,6 @@ YF_API ReductionStatus
 If(TermNode&, ContextNode&);
 
 /*!
-\brief λ 抽象：求值为一个捕获当前上下文的严格求值的函数。
 \exception InvalidSyntax 异常中立：由 ExtractParameters 抛出。
 \sa EvaluateIdentifier
 \sa ExtractParameters
@@ -1169,11 +1167,28 @@ If(TermNode&, ContextNode&);
 可使用 RegisterForm 注册上下文处理器。
 和 Scheme 等不同参数以项而不是位置的形式被转移，在函数应用时可能进一步求值。
 按引用捕获上下文中的绑定。被捕获的上下文中的绑定依赖宿主语言的生存期规则。
+*/
+//@{
+/*!
+\brief λ 抽象：求值为一个捕获当前上下文的严格求值的函数。
+\since build 735
+
 特殊形式参考文法：
 $lambda <formals> <body>
 */
 YF_API void
 Lambda(TermNode&, ContextNode&);
+
+/*!
+\brief vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
+\todo 支持类似 Kernel 语言中 $vau 操作子的动态环境参数以避免求值时捕获静态环境的变量。
+\since build 767
+
+特殊形式参考文法：
+$vau <formals> <body>
+*/
+YF_API void
+Vau(TermNode&, ContextNode&);
 //@}
 //@}
 

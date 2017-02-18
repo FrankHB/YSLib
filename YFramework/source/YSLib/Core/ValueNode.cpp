@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r710
+\version r724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2016-12-11 00:01 +0800
+	2017-02-16 22:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,6 +62,17 @@ ValueNode::SetContentIndirect(Container con, const ValueObject& vo) ynothrow
 {
 	container.swap(con),
 	Value = vo.MakeIndirect();
+}
+
+ValueNode::Container
+ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
+{
+	Container res;
+
+	for(auto& tm : con)
+		res.emplace(CreateRecursively(tm.GetContainer(), c), tm.GetName(),
+			tm.Value.Create(c));
+	return res;
 }
 
 void
@@ -141,8 +152,8 @@ AccessNodePtr(ValueNode& node, size_t n)
 	auto& con(node.GetContainerRef());
 
 	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-	return n < con.size() ? make_observer(&*std::next(con.begin(), ptrdiff_t(n)))
-		: nullptr;
+	return n < con.size()
+		? make_observer(&*std::next(con.begin(), ptrdiff_t(n))) : nullptr;
 }
 observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode& node, size_t n)
@@ -150,8 +161,8 @@ AccessNodePtr(const ValueNode& node, size_t n)
 	auto& con(node.GetContainer());
 
 	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
-	return n < con.size() ? make_observer(&*std::next(con.cbegin(), ptrdiff_t(n)))
-		: nullptr;
+	return n < con.size()
+		? make_observer(&*std::next(con.cbegin(), ptrdiff_t(n))) : nullptr;
 }
 
 ValueObject

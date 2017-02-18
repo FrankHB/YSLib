@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3140
+\version r3173
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2017-01-27 16:20 +0800
+	2017-02-18 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -374,6 +374,41 @@ invoke_nonvoid(_fCallable&& f, _tParams&&... args)
 	return details::invoke_nonvoid_impl(is_void<result_of_t<
 		_fCallable&&(_tParams&&...)>>(), yforward(f), yforward(args)...);
 }
+
+
+/*!
+\brief 使用 invoke 调用非空值或取默认值。
+\sa ystdex::call_value_or
+\sa ystdex::invoke
+\since build 767
+*/
+//@{
+template<typename _type, typename _func>
+yconstfn auto
+invoke_value_or(_func f, _type&& p)
+	-> decay_t<decltype(ystdex::invoke(f, *yforward(p)))>
+{
+	return p ? ystdex::invoke(f, *yforward(p))
+		: decay_t<decltype(ystdex::invoke(f, *yforward(p)))>();
+}
+template<typename _tOther, typename _type, typename _func>
+yconstfn auto
+invoke_value_or(_func f, _type&& p, _tOther&& other)
+	-> yimpl(decltype(p ? ystdex::invoke(f, *yforward(p)) : yforward(other)))
+{
+	return p ? ystdex::invoke(f, *yforward(p)) : yforward(other);
+}
+template<typename _tOther, typename _type, typename _func,
+	typename _tSentinal = nullptr_t>
+yconstfn auto
+invoke_value_or(_func f, _type&& p, _tOther&& other, _tSentinal&& last)
+	-> yimpl(decltype(!bool(p == yforward(last))
+	? ystdex::invoke(f, *yforward(p)) : yforward(other)))
+{
+	return !bool(p == yforward(last)) ? ystdex::invoke(f, *yforward(p))
+		: yforward(other);
+}
+//@}
 
 
 /*!

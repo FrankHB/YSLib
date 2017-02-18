@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2938
+\version r2955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-01-14 06:08 +0800
+	2017-02-16 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,25 +130,25 @@ public:
 	{}
 	/*!
 	\brief 原地构造：使用容器、名称和值的参数元组。
-	\since build 708
+	\since build 767
 	*/
 	//@{
 	template<typename... _tParams1>
 	inline
-	ValueNode(std::tuple<_tParams1...> args1)
+	ValueNode(tuple<_tParams1...> args1)
 		: container(ystdex::make_from_tuple<Container>(args1))
 	{}
 	template<typename... _tParams1, typename... _tParams2>
 	inline
-	ValueNode(std::tuple<_tParams1...> args1, std::tuple<_tParams2...> args2)
+	ValueNode(tuple<_tParams1...> args1, tuple<_tParams2...> args2)
 		: name(ystdex::make_from_tuple<string>(args2)),
 		container(ystdex::make_from_tuple<Container>(args1))
 	{}
 	template<typename... _tParams1, typename... _tParams2,
 		typename... _tParams3>
 	inline
-	ValueNode(std::tuple<_tParams1...> args1, std::tuple<_tParams2...> args2,
-		std::tuple<_tParams3...> args3)
+	ValueNode(tuple<_tParams1...> args1, tuple<_tParams2...> args2,
+		tuple<_tParams3...> args3)
 		: name(ystdex::make_from_tuple<string>(args2)),
 		container(ystdex::make_from_tuple<Container>(args1)),
 		Value(ystdex::make_from_tuple<ValueObject>(args3))
@@ -378,6 +378,18 @@ public:
 	//@}
 
 	/*!
+	\brief 递归创建容器副本。
+	\since build 767
+	*/
+	//@{
+	static Container
+	CreateRecursively(const Container&, IValueHolder::Creation);
+
+	PDefH(Container, CreateWith, IValueHolder::Creation c) const
+		ImplRet(CreateRecursively(container, c))
+	//@}
+
+	/*!
 	\brief 若指定名称子节点不存在则按指定值初始化。
 	\return 按指定名称查找的指定类型的子节点的值的引用。
 	\since build 681
@@ -477,8 +489,8 @@ public:
 	PDefH(const_iterator, begin, ) const
 		ImplRet(GetContainer().begin())
 
-	//! \since build 598
-	DefFwdTmpl(const, pair<iterator YPP_Comma bool>, emplace,
+	//! \since build 767
+	DefFwdTmpl(, pair<iterator YPP_Comma bool>, emplace,
 		container.emplace(yforward(args)...))
 
 	//! \since build 667

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r53
+\version r77
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-01-27 16:19 +0800
+	2017-02-18 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,6 +49,32 @@ Call expression of 'invoke' and its derivations like 'ystdex::invoke_nonvoid' is
 				It is likely to be supported in future in 'ystdex::invoke'.
 		Note the original proposal N4169 seemed to miss this point.
 			It was fixed in the referential implementation as https://github.com/tomaszkam/proposals/commit/8e9150acd1635f6cd33cb7db3f52e0c217538cd2.
+
+$2017-02:
+
+report.impl:
+The 'TokenValue' type was introduced to eliminate non-terminated loop for reduction of delayed terms in 'EvaluateLeafToken' in build 753.
+	Since delayed term evaluation would request retrying, it would be trapped in 'EvaluateLeafToken' again and thus it would loop forever if the term being evaluated was not changed.
+	It was proved that allowing only 'TokenValue' rather than 'string' to be evaluated as tokens was an effective way for the purpose.
+		'TokenValue' was a form of explicit unevaluated operands.
+	However, the root cause was lack of proper normalization (i.e. 'Value' cleanup) after a successful reduction.
+		This was fixed in build 755.
+	The 'TokenValue' is still necessarily for ontology purpose, since token is not a simple lexeme in the design.
+		There can be opportunities to insert some more semantic actions in this intermediate layer.
+Some points about unevaluated expressions are concerned with the current implementation.
+	There are different mechanisms to implement unevaluated expressions.
+		As unevaluated expressions, 'DelayedTerm' is for general purposes after lexical analysis.
+		'TokenValue' is different.
+			It is used in lexical analysis passes.
+			It is only for symbols, i.e. tokens to be evaluated, rather than arbitrary expressions.
+			It is better on performance since no new terms have to be constructed during the evaluation.
+		Transformation like 'TokenizeTerm' would be still preserved within a preprocessing pass in REPL contet for saparation of lexical phase from further evaluation.
+	Unevaluated expressions can be explicitly evaluated in function 'A1::EvaluateIdentifier' in module 'NPL::NPLA1', with 'TokenValue' and 'DelayedTerm' processed differently.
+		For 'TokenValue', it is done here directly rather than by wrapping in a new delayed term and than calling 'A1::EvaluateLeafToken' for 2 reasons:
+			Const-correctness is needed on parameter with type of reference to 'ContextNode' and in other cases the 'A1::EvaluateIdentifier' function has no need to modify the context node.
+			Performance of direct handling is better because wrapping a term in 'DelayedTerm' is more expensive and there is no good reason to do that.
+		The evaluation of unevaluated 'TokenValue' does not check the possible infinite loop.
+			It is the responsibility of users of the API to configure the evaluation passes properly to provide strong normalization property on name expression evaluation required by the specification of NPLA.
 
 ////
 
