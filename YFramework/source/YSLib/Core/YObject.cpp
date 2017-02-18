@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r894
+\version r897
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-01-17 12:15 +0800
+	2017-02-18 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_YObject // for ystdex::bind1;
+#include YFM_YSLib_Core_YObject // for ystdex::invoke_value_or;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace YSLib
@@ -100,8 +100,7 @@ ValueObject::EqualsUnchecked(const void* p) const
 bool
 ValueObject::OwnsUnique() const ynothrow
 {
-	return ystdex::call_value_or(
-		ystdex::bind1(&IValueHolder::OwnsUnique), GetHolderPtr());
+	return ystdex::invoke_value_or(&IValueHolder::OwnsUnique, GetHolderPtr());
 }
 
 } // namespace YSLib;

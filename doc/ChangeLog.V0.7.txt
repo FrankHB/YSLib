@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5842
+\version r5894
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-02-10 23:11 +0800
+	2017-02-18 17:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,59 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ $dev "%DrMemory-YSLib-suppress.txt" @ %Tools $=
+	(
+		+ "1 case for MinGW-w64 command line arguments",
+			// This is a known issue.
+		+ "2 cases to suppress %ystdex::mapped_set leak"
+			// False positive cases verified by valgrind in Linux.
+	),
+	+ "3 function templates %invoke_value_or" @ %YBase.YStandardEx.Functional,
+	/ %YFramework $=
+	(
+		/ DLDI "simplified member function %ValueObject::OwnsUnique" @ %YObject
+			^ (($dep_from "%ystdex::invoke_value_or"
+			~ "%ystdex::(call_value_or, bind1)")
+			@ %YBase.YStandardEx.Functional),
+		/ %YSLib.Core $=
+		(
+			/ @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
+			(
+				* $re_add(b667) "invalid redundant 'const'"
+					@ "forwarding template %emplace" $since b667,
+					// The old interface would only work when the key is \
+						'mutable'.
+				- $lib "all 'std::' before parameter types" @ "constructors",
+				(
+				+ "static function %CreateRecursively";
+				+ "function %CreateWith"
+				)
+			),
+		),
+		/ %NPL.NPLA1 $=
+		(
+			* "missing proper handling of unevaluated %TokenValue terms"
+				@ "function %EvaluateIdentifier" $since b753;
+			/ @ "namespace %Forms" $=
+			(
+				+ $impl "vau handler" ^ $dep_from
+					("%ValueNode::CreateWith" @ %YSLib.Core.ValueNode);
+				/ "function %Lambda" $=
+				(
+					/ DLDI "simplified";
+					/ $comp "retained list parameters moved from argument list",
+					/ $comp "captured retained list copied from enclosing \
+						context",
+					/ $comp "lambda abstraction tracing message"
+				),
+				+ "function %Vau"
+			)
+		)
+	)
+),
+
+b766
 (
 	/ %YFramework $=
 	(

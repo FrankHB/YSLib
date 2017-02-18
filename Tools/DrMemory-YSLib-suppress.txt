@@ -1,3 +1,9 @@
+POSSIBLE LEAK
+name=MinGW-w64 arguments
+msvcrt.dll!realloc
+...
+*!pre_cpp_init
+
 INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
 name=libstc++ std::system_error#1
 *!__gnu_cxx::new_allocator<>::deallocate
@@ -74,4 +80,14 @@ name=libstdc++ cerr <<
 libgcc_s*!*
 ...
 *!platform::Logger::SendLog*
+
+LEAK
+name=mapped_set#1
+...
+*!ystdex::mapped_set<>::mapped_set
+
+LEAK
+name=mapped_set#2
+...
+*!ystdex::mapped_set<>::insert
 
