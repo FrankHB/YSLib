@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3238
+\version r3253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-09-21 15:49 +0800
+	2017-02-20 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,6 +159,22 @@ vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 //@}
 //@}
 
+
+/*!
+\brief 复制后交换。
+\note 使用 ADL swap 或 std::swap 。
+\since build 768
+*/
+template<typename _type, typename _type2 = _type>
+inline _type&
+copy_and_swap(_type& obj, const _type2& new_val)
+{
+	using std::swap;
+	auto t(new_val);
+
+	swap(t, obj);
+	return obj;
+}
 
 inline namespace cpp2014
 {

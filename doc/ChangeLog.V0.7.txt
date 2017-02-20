@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5894
+\version r5943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-02-18 17:24 +0800
+	2017-02-20 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,56 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			/ DLDI "static function template %AddValueTo"
+				@ "class %ValueNode" ^ "%ystdex::try_emplace"
+				~ "%equal_range",
+			/ DLDI "simplified equality comparison for function objects"
+				@ "class template %GHEvent" @ %YEvent $=
+			(
+				^ "%ystdex::examiners::equal_examiner::are_equal";
+				/ "simplified friend %operator=="
+			)
+		),
+		/ %NPL.NPLA1 $=
+		(
+			/ @ "vau handler" @ "namespace %Forms" $=
+			(
+				/ DLDI ^ "%ystdex::search_map_by" ~ "%equal_range",
+				* "missing %ReductionStatus::Retained support for retained \
+					values" $since b767,
+				/ "set %Value to %ValueToken::Unspecified uniformly"
+					@ "function %DefineOrSet"
+			),
+			/ @ "function %EvaluateIdentifier" $=
+			(
+				* "missing lifting list children" $since b767;
+				* $re_add(b767) "missing retrying evluation on unevaluated \
+					list terms" $since b753
+			)
+		),
+		/ "separated copy and move" ~ "unifying %operator=" $=
+		(
+			/ "avoided redundant copy" @ ("class %HBitmap" @ %Adaptor.Image,
+				($revert(b331) "class %Message" @ %Core.YMessage, $revert(b510)
+				"class %ValueNode" @ %ValueNode) @ %Core, ($revert(b476)
+				"class %CompactPixmap", $revert(b566) "class %CompactPixmap")
+				@ %Service.YGDI) @ %YSLib ^ ($dep_from ("%ystdex::copy_and_swap"
+				@ %YBase.YStandardEx.Utilities), "%DefDeMoveAssignment"),
+				// The change would break the exception expected by some cases.
+			/ $lib $revert_ex(b710) "changed misleading parameter type"
+				@ "class %ScreenBuffer" @ %YCLib.HostedGUI
+				// This is not copyable.
+		)
+	),
+	+ "function template %copy_and_swap" @ %YBase.YStandardEx.Utilities
+),
+
+b767
 (
 	/ $dev "%DrMemory-YSLib-suppress.txt" @ %Tools $=
 	(

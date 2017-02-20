@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2393
+\version r2442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-02-18 15:34 +0800
+	2017-02-19 13:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,25 @@ namespace NPL
 
 namespace A1
 {
+
+string
+to_string(ValueToken vt)
+{
+	switch(vt)
+	{
+	case ValueToken::Null:
+		return "null";
+	case ValueToken::Undefined:
+		return "undefined";
+	case ValueToken::Unspecified:
+		return "unspecified";
+	case ValueToken::GroupingAnchor:
+		return "grouping";
+	case ValueToken::OrderedAnchor:
+		return "ordered";
+	}
+	throw std::invalid_argument("Invalid value token found.");
+}
 
 void
 InsertChild(TermNode&& term, TermNode::Container& con)
@@ -238,7 +257,8 @@ public:
 			term.GetName(), std::move(term.Value)))
 	{}
 
-	void
+	//! \since build 768
+	ReductionStatus
 	operator()(TermNode& term) const
 	{
 		// FIXME: Cyclic reference to context handler when the term value
@@ -284,6 +304,9 @@ public:
 				}
 				YAssert(j == term.end(),
 					"Invalid state found on passing arguments.");
+
+				auto& con(app_ctx.GetContainerRef());
+
 				// NOTE: To avoid object owned by hidden names being
 				//	destroyed, this has to come later.
 				// NOTE: Silently failed for hidden names.
@@ -298,20 +321,23 @@ public:
 					//	returned value.
 					// TODO: Support first class retained list by extension on
 					//	context node or children tagged by value token?
-					const auto& name(b.GetName());
-					const auto pr(app_ctx.GetContainerRef().equal_range(name));
+					const auto& k(b.GetName());
 
-					if(pr.first == pr.second)
+					ystdex::search_map_by([&](typename
+						ContextNode::const_iterator i){
 						// TODO: How to reduce unnecessary copy of retained
 						//	list?
-						app_ctx.emplace_hint(pr.first, b.CreateWith(
-							IValueHolder::Move), name, b.Value.MakeIndirect());
+						return con.emplace_hint(i, b.CreateWith(
+							IValueHolder::Move), k, b.Value.MakeIndirect());
+					}, con, k);
 				}
 				//	app_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
 				// NOTE: Beta reduction.
 				// TODO: Implement accurate lifetime analysis rather than
 				//	'p_closure.unique()'.
 				ReduceCheckedClosure(term, app_ctx, {}, *p_closure);
+				return IsBranch(term) ? ReductionStatus::Retained
+					: ReductionStatus::Clean;
 			}
 			else
 				throw ArityMismatch(n_params, n_args);
@@ -658,20 +684,24 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
 
-	if(const auto p = FetchValuePtr(ctx, id))
+	if(const auto p = LookupName(ctx, id))
 	{
 		// NOTE: The referenced term is lived through the envaluation, which is
 		//	guaranteed by the context.
-		LiftTermRef(term, *p);
+		if(p->empty())
+			LiftTermRef(term, p->Value);
+		else
+			// XXX: Children are copied.
+			term.SetContentIndirect(p->GetContainer(), p->Value);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return (*p_handler)(ctx);
+		// NOTE: Unevaluated term shall be detected and evaluated. See also
+		//	$2017-02 @ %Documentation::Workflow::Annual2017.
+		return !IsBranch(term) && term.Value.GetType()
+			!= ystdex::type_id<TokenValue>() ? EvaluateDelayed(term)
+			: ReductionStatus::Retrying;
 	}
-	else
-		throw BadIdentifier(id);
-	// NOTE: Unevaluated term shall be detected and evaluated.
-	//	See also $2017-02 @ %Documentation::Workflow::Annual2017.
-	return term.Value.GetType() != ystdex::type_id<TokenValue>()
-		? EvaluateDelayed(term) : ReductionStatus::Retrying;
+	throw BadIdentifier(id);
 }
 
 ReductionStatus
@@ -874,10 +904,10 @@ DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
 				RemoveIdentifier(ctx, id, mod);
 			else
 				throw InvalidSyntax("Source operand not found.");
-			term.Value = ValueToken::Unspecified;
 		}
 		else
 			throw NPLException("Invalid node category found.");
+		term.Value = ValueToken::Unspecified;
 	});
 }
 

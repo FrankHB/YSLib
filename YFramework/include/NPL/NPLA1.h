@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2585
+\version r2595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-02-17 02:26 +0800
+	2017-02-20 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,16 @@ enum class ValueToken
 	GroupingAnchor,
 	OrderedAnchor
 };
+
+/*!
+\brief 取值记号的字符串表示。
+\return 表示对应记号值的字符串，保证不相等的输入对应不相等的结果。
+\throw std::invalid_argument 输入的值不是合法的值记号。
+\relates ValueToken
+\since build 768
+*/
+YF_API string
+to_string(ValueToken);
 
 
 //! \since build 674
@@ -1091,7 +1101,7 @@ RegisterStrictBinary(ContextNode& node, const string& name, _func f)
 /*!
 \note 在节点后的 bool 参数指定使用定义而不是设置（重定义）。
 \note 支持修饰符。
-\note 实现特殊形式。值以项的形式被转移，在标识符替换时可能进一步求值。
+\note 实现特殊形式。值以项的形式被转移，在标识符替换时可能进一步求值。返回未指定值。
 \sa ReduceWithModifier
 \since build 735
 */

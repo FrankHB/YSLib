@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1440
+\version r1457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2016-09-21 15:32 +0800
+	2017-02-20 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_Adaptor_Image_h_ 1
 
 #include "../Core/YModules.h"
-#include YFM_YSLib_Core_YGraphics // for ystdex::unsupported;
+#include YFM_YSLib_Core_YGraphics // for ystdex::unsupported,
+//	ystdex::copy_and_swap;
 #include YFM_YSLib_Core_YClock // for TimeSpan;
 //#include <FreeImage.h>
 
@@ -426,16 +427,16 @@ public:
 	DefDeDtor(HBitmap)
 	//@}
 
+	//! \since build 768
+	//@{
+	//! \brief 复制赋值：使用复制和交换。
+	PDefHOp(HBitmap&, =, const HBitmap& pixmap)
+		ImplRet(ystdex::copy_and_swap(*this, pixmap))
+	DefDeMoveAssignment(HBitmap)
+	//@}
+
 	//! \since build 430
 	//@{
-	//! \brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
-	HBitmap&
-	operator=(HBitmap pixmap) ynothrow
-	{
-		swap(pixmap, *this);
-		return *this;
-	}
-
 	DefBoolNeg(explicit, bool(p_bitmap))
 
 	/*!
