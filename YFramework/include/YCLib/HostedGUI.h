@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1521
+\version r1529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2016-07-23 20:27 +0800
+	2017-02-20 17:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,6 +97,8 @@ using NativeWindowHandle = ::ANativeWindow*;
 #	endif
 
 
+//! \warning 非虚析构。
+//@{
 //! \since build 669
 class YF_API HostWindowDelete
 {
@@ -121,6 +123,7 @@ struct YF_API GDIObjectDelete
 };
 //@}
 #	endif
+//@}
 
 
 //! \since build 563
@@ -465,10 +468,10 @@ public:
 	~ScreenBuffer();
 
 	/*!
-	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
-	\since build 710
+	\brief 转移赋值：使用交换。
+	\since build 768
 	*/
-	PDefHOp(ScreenBuffer&, =, ScreenBuffer sbuf) ynothrow
+	PDefHOp(ScreenBuffer&, =, ScreenBuffer&& sbuf) ynothrow
 		ImplRet(swap(sbuf, *this), *this)
 
 #	if YCL_HostedUI_XCB || YCL_Android
@@ -1057,7 +1060,7 @@ public:
 	IsAvailable(FormatType) ynothrow;
 
 	/*!
-	\brief 检查指定格式是否可用，若成功则无效果。
+	\brief 检查指定格式是否可用，若成功则无作用。
 	\throw Win32Exception 值不可用。
 	\sa IsAvailable
 	*/

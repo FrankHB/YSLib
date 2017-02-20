@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2033
+\version r2042
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2016-07-14 23:11 +0800
+	2017-02-20 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,12 +110,14 @@ public:
 	*/
 	PDefHOp(Message&, =, ValueObject&& c) ynothrow
 		ImplRet(content = std::move(c), *this)
-	/*!
-	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
-	\since build 331
-	*/
-	PDefHOp(Message&, =, Message msg) ynothrow
-		ImplRet(swap(msg, *this), *this)
+	//! \since build 768
+	//@{
+	//! \brief 复制赋值：使用复制和交换。
+	PDefHOp(Message&, =, const Message& msg)
+		ImplRet(ystdex::copy_and_swap(*this, msg))
+	//! \brief 转移赋值：使用交换。
+	DefDeMoveAssignment(Message)
+	//@}
 
 	/*!
 	\brief 判断无效或有效性。

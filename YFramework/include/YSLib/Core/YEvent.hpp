@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5257
+\version r5292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2017-01-01 04:02 +0800
+	2017-02-20 13:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Core_yevt_hpp_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject
+#include YFM_YSLib_Core_YObject // for ystdex::examiners::equal_examiner;
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
@@ -90,14 +90,16 @@ private:
 
 		/*!
 		\pre 参数储存的对象为 Decayed 类型。
-		\since build 586
+		\since build 768
 		*/
 		static bool
 		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
-			std::declval<const Decayed>() == std::declval<const Decayed>())
+			ystdex::examiners::equal_examiner::are_equal(Deref(
+			x.template target<Decayed>()), Deref(y.template target<Decayed>())))
 		{
-			return !bool(x) || (Deref(x.template target<Decayed>())
-				== Deref(y.template target<Decayed>()));
+			return ystdex::examiners::equal_examiner::are_equal(
+				Deref(x.template target<Decayed>()),
+				Deref(y.template target<Decayed>()));
 		}
 	};
 
@@ -124,7 +126,8 @@ public:
 	yconstfn
 	GHEvent(_fCallable f, ystdex::enable_if_t<
 		std::is_constructible<BaseType, _fCallable>::value, int> = 0)
-		: BaseType(f), comp_eq(GetComparer(f, f))
+		: BaseType(f),
+		comp_eq(GEquality<ystdex::decay_t<_fCallable>>::AreEqual)
 	{}
 	/*!
 	\brief 使用扩展函数对象。
@@ -136,7 +139,9 @@ public:
 	GHEvent(_fCallable&& f, ystdex::enable_if_t<
 		!std::is_constructible<BaseType, _fCallable>::value, int> = 0)
 		: BaseType(ystdex::make_expanded<_tRet(_tParams...)>(yforward(f))),
-		comp_eq(GHEvent::AreAlwaysEqual)
+		comp_eq([](const GHEvent&, const GHEvent&) ynothrow{
+			return true;
+		})
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
@@ -164,7 +169,7 @@ public:
 #else
 			x.comp_eq == y.comp_eq
 #endif
-			&& (x.comp_eq(x, y));
+			&& (!bool(x) || x.comp_eq(x, y));
 	}
 
 	//! \brief 调用。
@@ -173,30 +178,6 @@ public:
 	//! \since build 516
 	using BaseType::operator bool;
 
-private:
-	//! \since build 319
-	//@{
-	template<typename _type>
-	static yconstfn Comparer
-	GetComparer(_type& x, _type& y, decltype(x == y) = {}) ynothrow
-	{
-		return GEquality<_type>::AreEqual;
-	}
-	template<typename _type, typename _tUnused>
-	static yconstfn Comparer
-	GetComparer(_type&, _tUnused&) ynothrow
-	{
-		return GHEvent::AreAlwaysEqual;
-	}
-
-	static yconstfn bool
-	AreAlwaysEqual(const GHEvent&, const GHEvent&) ynothrow
-	{
-		return true;
-	}
-	//@}
-
-public:
 	//! \since build 748
 	using BaseType::target_type;
 };

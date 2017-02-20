@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2955
+\version r2970
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-02-16 22:05 +0800
+	2017-02-19 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,12 +157,13 @@ public:
 
 	DefDeCopyMoveCtor(ValueNode)
 
-	/*!
-	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
-	\since build 502
-	*/
-	PDefHOp(ValueNode&, =, ValueNode node) ynothrow
-		ImplRet(swap(node, *this), *this)
+	//! \since build 768
+	//@{
+	//! \brief 复制赋值：使用复制和交换。
+	PDefHOp(ValueNode&, =, const ValueNode& node)
+		ImplRet(ystdex::copy_and_swap(*this, node))
+	DefDeMoveAssignment(ValueNode)
+	//@}
 
 	//! \since build 336
 	DefBoolNeg(explicit, bool(Value) || !container.empty())
@@ -341,15 +342,8 @@ public:
 	static bool
 	AddValueTo(Container& con, _tString&& str, _tParams&&... args)
 	{
-		const auto pr(con.equal_range(str));
-
-		if(pr.first == pr.second)
-		{
-			con.emplace_hint(pr.first, NoContainer, yforward(str),
-				yforward(args)...);
-			return true;
-		}
-		return {};
+		return ystdex::try_emplace(con, str,
+			NoContainer, yforward(str), yforward(args)...).second;
 	}
 
 	//! \note 清理容器和修改值的操作之间的顺序未指定。
