@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2442
+\version r2617
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-02-19 13:41 +0800
+	2017-02-26 23:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,10 +221,102 @@ EqualTerm(TermNode& term, _func f)
 }
 
 
+//! \since build 768
+//@{
+void
+BindParameters(TermNode& term, ContextNode& app_ctx,
+	const vector<string>& params)
+{
+	auto i(std::next(term.begin()));
+
+	for(const auto& param : params)
+	{
+		// NOTE: The operands should have been evaluated if this is
+		//	in a lambda. Children nodes in arguments retained are
+		//	also transferred.
+		// XXX: Moved.
+		app_ctx.emplace(std::move(i->GetContainerRef()), param,
+			std::move(i->Value));
+		++i;
+	}
+	YAssert(i == term.end(), "Invalid state found on passing arguments.");
+}
+
+void
+BindStaticContext(ContextNode& app_ctx, const ContextNode& ctx)
+{
+	auto& con(app_ctx.GetContainerRef());
+
+	// NOTE: Silently failed for hidden names.
+	for(const auto& b : ctx)
+	{
+		// TODO: Optimize by using name resolution supported by
+		//	new (to be done) %ContextNode API directly instead
+		//	of possibly redundant insertion and %MakeIndirect.
+		// NOTE: Since context is shared by all handlers, it is
+		//	safe to reference here. It would be actually unsafe
+		//	to reference the dangling value of active record in
+		//	returned value.
+		// TODO: Support first class retained list by extension on
+		//	context node or children tagged by value token?
+		const auto& k(b.GetName());
+
+		ystdex::search_map_by([&](typename
+			ContextNode::const_iterator i){
+			// TODO: How to reduce unnecessary copy of retained
+			//	list?
+			return con.emplace_hint(i, b.CreateWith(
+				IValueHolder::Move), k, b.Value.MakeIndirect());
+		}, con, k);
+	}
+//	app_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
+}
+
+shared_ptr<vector<string>>
+ExtractParameters(const TermNode::Container& con, const string& eformal)
+{
+	YTraceDe(Debug, "Found lambda abstraction form with %zu"
+		" parameter(s) to be bound.", con.size());
+
+	// TODO: Blocked. Use C++14 lambda initializers to reduce
+	//	initialization cost by directly moving.
+	auto p_params(make_shared<vector<string>>());
+	set<string_view> svs{eformal};
+
+	// TODO: Simplify?
+	std::for_each(con.begin(), con.end(), [&](decltype(*con.begin()) pv){
+		const auto& name(Access<TokenValue>(pv));
+
+		// FIXME: Missing identifier syntax check.
+		// TODO: Throw %InvalidSyntax for invalid syntax.
+		if(svs.insert(name).second)
+			p_params->push_back(name);
+		else
+			throw InvalidSyntax(
+				sfmt("Duplicate parameter name '%s' found.", name.c_str()));
+	});
+	return p_params;
+}
+
+bool
+IsSymbol(TermNode& term, ContextNode& ctx, string_view id)
+{
+	// TODO: Try to use immutable context?
+	return CategorizeLiteral(id) == LiteralCategory::None
+		&& CheckReducible(InvokeLiteral(term, ctx, id));
+}
+//@}
+
+
 //! \since build 767
 class VauHandler final
 {
 private:
+	/*!
+	\brief 动态上下文名称。
+	\since build 768
+	*/
+	string eformal{};
 	//! \brief 参数列表。
 	shared_ptr<vector<string>> p_parameter_list;
 	//! \brief 捕获静态上下文，包含引入抽象时的静态环境。
@@ -233,28 +325,45 @@ private:
 	shared_ptr<TermNode> p_closure;
 
 public:
-	VauHandler(TermNode& term, const ContextNode& ctx)
+	//! \since build 768
+	VauHandler(TermNode& term, ContextNode& ctx, bool ignore)
 		: p_parameter_list([&]{
 			using namespace Forms;
 
 			Retain(term);
-			if(term.size() > 1)
+			if(term.size() > 2)
 			{
 				auto& con(term.GetContainerRef());
 				auto i(con.begin());
-				auto p_params(ExtractParameters((++i)->GetContainer()));
+				const auto& formals((++i)->GetContainer());
+
+				if(!ignore)
+				{
+					auto& eterm(Deref(++i));
+
+					eformal = Deref(TermToName(eterm));
+					YTraceDe(Debug, "Found context parameter name '%s'.",
+						eformal.c_str());
+					if(eformal == "#ignore")
+						eformal.clear();
+					else if(!IsSymbol(eterm, ctx, eformal))
+						throw InvalidSyntax("Symbol or '#ignore' expected for"
+							" context parameter.");
+				}
+
+				auto p_params(ExtractParameters(formals, eformal));
 
 				con.erase(con.cbegin(), ++i);
 				return p_params;
 			}
 			else
-				throw InvalidSyntax("Syntax error in function abstraction.");
+				throw InvalidSyntax(
+					"No sufficient terms in function abstraction.");
 		}()),
 		// TODO: Optimize. This does not need to be shared, since it would
 		//	always be copied, if used.
 		p_context(make_shared<ContextNode>(ctx)),
-		p_closure(make_shared<TermNode>(std::move(term.GetContainerRef()),
-			term.GetName(), std::move(term.Value)))
+		p_closure(make_shared<TermNode>(std::move(term)))
 	{}
 
 	//! \since build 768
@@ -277,67 +386,32 @@ public:
 
 			if(n_args == n_params)
 			{
-				auto j(term.begin());
 				// NOTE: Active record frame with outer scope bindings.
 				// TODO: Optimize for performance.
 				// NOTE: This is probably better to be copy-on-write. Since
 				//	no immutable reference would be accessed before
 				//	mutation, no care is needed for reference invalidation.
 				// TODO: Optimize using initialization from iterator pair?
-				// FIXME: Referencing escaped variables (now only
-				//	parameters need to be cared) form the context
-				//	would cause undefined behavior (like returning a
-				//	reference to automatic object in the host language).
+				// XXX: Referencing escaped variables (now only parameters need
+				//	to be cared) form the context would cause undefined behavior
+				//	(e.g. returning a reference to automatic object in the host
+				//	language).
+				// TODO: Reduce such undefined behavior resonably?
 				ContextNode app_ctx;
 
-				++j;
+				// NOTE: Bind dynamic context.
+				if(!eformal.empty())
+					app_ctx.AddValue(eformal, ystdex::ref(app_ctx));
 				// NOTE: Introduce parameters as per lexical scoping rules.
-				for(const auto& param : params)
-				{
-					// NOTE: The operands should have been evaluated if this is
-					//	in a lambda. Children nodes in arguments retained are
-					//	also transferred.
-					// XXX: Moved.
-					app_ctx.emplace(std::move(j->GetContainerRef()), param,
-						std::move(j->Value));
-					++j;
-				}
-				YAssert(j == term.end(),
-					"Invalid state found on passing arguments.");
-
-				auto& con(app_ctx.GetContainerRef());
-
+				BindParameters(term, app_ctx, params);
 				// NOTE: To avoid object owned by hidden names being
 				//	destroyed, this has to come later.
-				// NOTE: Silently failed for hidden names.
-				for(const auto& b : Deref(p_context))
-				{
-					// TODO: Optimize by using name resolution supported by
-					//	new (to be done) %ContextNode API directly instead
-					//	of possibly redundant insertion and %MakeIndirect.
-					// NOTE: Since context is shared by all handlers, it is
-					//	safe to reference here. It would be actually unsafe
-					//	to reference the dangling value of active record in
-					//	returned value.
-					// TODO: Support first class retained list by extension on
-					//	context node or children tagged by value token?
-					const auto& k(b.GetName());
-
-					ystdex::search_map_by([&](typename
-						ContextNode::const_iterator i){
-						// TODO: How to reduce unnecessary copy of retained
-						//	list?
-						return con.emplace_hint(i, b.CreateWith(
-							IValueHolder::Move), k, b.Value.MakeIndirect());
-					}, con, k);
-				}
-				//	app_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
+				BindStaticContext(app_ctx, Deref(p_context));
 				// NOTE: Beta reduction.
 				// TODO: Implement accurate lifetime analysis rather than
 				//	'p_closure.unique()'.
 				ReduceCheckedClosure(term, app_ctx, {}, *p_closure);
-				return IsBranch(term) ? ReductionStatus::Retained
-					: ReductionStatus::Clean;
+				return CheckNorm(term);
 			}
 			else
 				throw ArityMismatch(n_params, n_args);
@@ -568,7 +642,15 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	try
 	{
 		if(!Check || Check(term))
+		{
+			// NOTE: Adjust null list argument application to function call
+			//	without arguments.
+			auto i(term.begin());
+
+			if(term.size() == 2 && !Deref(++i))
+				term.erase(i);
 			return Handler(term, ctx);
+		}
 		// TODO: Use more specific exception type?
 		throw std::invalid_argument("Term check failed.");
 	}
@@ -594,14 +676,6 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	YAssert(!con.empty(), "Invalid state found.");
 
 	// NOTE: Matching function calls.
-	auto i(con.begin());
-
-	// NOTE: Adjust null list argument application to function call without
-	//	arguments.
-	if(con.size() == 2 && !Deref(++i))
-		con.erase(i);
-	// TODO: Add unreduced form check? Is this better to be inserted in
-	//	other passes?
 	return Handler(term, ctx);
 #if false
 	// TODO: Use other exception type with more precise information for this
@@ -637,17 +711,8 @@ ReduceContextFirst(TermNode& term, ContextNode& ctx)
 			const auto res((*p_handler)(term, ctx));
 
 			// NOTE: Normalization: Cleanup if necessary.
-			switch(res)
-			{
-			case ReductionStatus::Clean:
+			if(res == ReductionStatus::Clean)
 				term.ClearContainer();
-				break;
-			case ReductionStatus::Retained:
-				if(!term.Value)
-					term.Value = ValueToken::Null;
-			default:
-				break;				
-			}
 			return res;
 		}
 		// TODO: Capture contextual information in error.
@@ -925,32 +990,6 @@ DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
 			: "Literal cannot be set.");
 }
 
-shared_ptr<vector<string>>
-ExtractParameters(const TermNode::Container& con)
-{
-	YTraceDe(Debug, "Found lambda abstraction form with %zu"
-		" parameter(s) to be bound.", con.size());
-
-	// TODO: Blocked. Use C++14 lambda initializers to reduce
-	//	initialization cost by directly moving.
-	auto p_params(make_shared<vector<string>>());
-	set<string_view> svs;
-
-	// TODO: Simplify?
-	std::for_each(con.begin(), con.end(), [&](decltype(*con.begin()) pv){
-		const auto& name(Access<TokenValue>(pv));
-
-		// FIXME: Missing identifier syntax check.
-		// TODO: Throw %InvalidSyntax for invalid syntax.
-		if(svs.insert(name).second)
-			p_params->push_back(name);
-		else
-			throw InvalidSyntax(
-				sfmt("Duplicate parameter name '%s' found.", name.c_str()));
-	});
-	return p_params;
-}
-
 ReductionStatus
 If(TermNode& term, ContextNode& ctx)
 {
@@ -979,13 +1018,13 @@ Lambda(TermNode& term, ContextNode& ctx)
 {
 	// NOTE: %ToContextHandler implies strict evaluation of arguments in
 	//	%StrictContextHandler::operator().
-	term.Value = ToContextHandler(VauHandler(term, ctx));
+	term.Value = ToContextHandler(VauHandler(term, ctx, true));
 }
 
 void
 Vau(TermNode& term, ContextNode& ctx)
 {
-	term.Value = ContextHandler(FormContextHandler(VauHandler(term, ctx)));
+	term.Value = ContextHandler(FormContextHandler(VauHandler(term, ctx, {})));
 }
 
 
@@ -1013,7 +1052,7 @@ Apply(TermNode& term, ContextNode& ctx)
 	auto& arglist_term(Deref(++i));
 	const bool branch(IsBranch(arglist_term));
 
-	if(branch || arglist_term.Value == ValueToken::Null)
+	if(branch || !arglist_term.Value)
 	{
 		app_term.AddValue(MakeIndex(app_term), std::move(func_term.Value));
 		if(branch)

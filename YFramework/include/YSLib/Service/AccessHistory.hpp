@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file AccessHistory.hpp
 \ingroup Service
 \brief 访问历史记录。
-\version r132
+\version r140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-12 07:42:35 +0800
 \par 修改时间:
-	2015-04-24 03:15 +0800
+	2017-02-26 23:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,13 +79,12 @@ public:
 		itCurrent = lstRecord.end();
 	}
 
-	//! \brief 插入项。
-	template<typename... _tParams>
-	void
-	Emplace(_tParams&&... args)
-	{
-		lstRecord.emplace(itCurrent, yforward(args)...);
-	}
+	/*!
+	\brief 插入项。
+	\since build 767
+	*/
+	DefFwdTmpl(-> decltype(lstRecord.emplace(itCurrent, yforward(args)...)),
+		auto, emplace, lstRecord.emplace(itCurrent, yforward(args)...))
 
 	/*!
 	\brief 切换项。

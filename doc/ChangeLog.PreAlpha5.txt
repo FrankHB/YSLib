@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15227
+\version r15308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2016-12-17 22:15 +0800
+	2017-02-26 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -761,8 +761,8 @@ b595
 				/ $comp @ "%pair_iterator instances" $=
 				(
 					- "%pair_type",
-					- $revert(b453) "defaulted move %operator= workaround Microsoft VC++ \
-						2013",
+					- $revert(b453) "defaulted move %operator= workaround \
+						Microsoft VC++ 2013",
 					/ "%operator== only compare master iterators",
 					+ "function %get",
 					- "conversion operator template",
@@ -1001,7 +1001,7 @@ b595
 	+ $build '$C_CXXFLAGS_ARCH' @ "default value"
 		@ "variable %C_CXXFLAGS_COMMON" @ "%SHBuild-common-options.sh" @ %Tools,
 	/ $dev $repo $re_add(b594) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.(CHRLib.("%MapEx.h" => "%MappingEx.h")
 ),
 
@@ -1254,7 +1254,7 @@ b594
 	/ "simplified widgets invalidation" ^ $dep_from ("%InvalidateWidgets"
 		@ %YFramework.YSLib.UI.YWidget) @ %YReader.(ShlExplorer, ShlReader),
 	/ $dev $repo $re_add(b593) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.(CHRLib.("%encoding.h" => "%Encoding.h"),
 		YSLib.Core.("%ystring.h" => "%YString.h"))
 ),
@@ -1267,12 +1267,12 @@ b593
 		(
 			* "forwarding failure"
 				@ "function templates %(erase_left, erase_right)" $since b592
-				$= (/ DLD $revert(b592) ^ "implemented"
-					^ 'static_cast<_tString&&>' ~ 'yforward')
+				$= (/ $revert(b592) DLDI ^ 'static_cast<_tString&&>'
+					~ 'yforward')
 				// Because the 'erase_*' methods are currently whithout '&&' \
 					qualifier overloads.
 			* "forwarding failure" @ "function templates %trim" $since b592
-				$= (/ DLD $re_ex(b592) "implemented intermediate calls"
+				$= (/ $re_ex(b592) DLD "implemented intermediate calls"
 					^ 'yforward'),
 				// This is slightly different. The called functions are in \
 					'namespace ystdex' with forwarding refernce overloads.
@@ -1457,7 +1457,7 @@ b593
 		Host, HostedGUI), YSLib.Core.ValueNode, YCLib_(MinGW32)::Consoles),
 		// Also several types change.
 	/ $dev $repo $re_add(b590) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %(Adaptor.("%config.h" => "%Configure.h"),
 		Core.("%ysdef.h" => "%YShellDefinition.h")) @ %YFramework.YSLib
 ),
@@ -2043,7 +2043,7 @@ b590
 		@ %YBase.YStandardEx.(Any, Examiner),
 	+ DD "option strategies" @ %Documentation.Defintions,
 	/ $dev $repo $re_add(b587) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yref.hpp"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%yref.hpp"
 		=> "%YReference.hpp") @ %YFramework.YSLib.Adaptor,
 	* $dev $build "missing Microsoft VC++ project dependencies setting"
 		@ "platform %Android"
@@ -2844,7 +2844,7 @@ b587
 		@ "platform %Win32" @ "Code::Blocks projects"),
 	(
 	/ $dev $repo $re_add(b586) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ((("%progress.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ((("%progress.h"
 		=> "%Progress.h") @ %UI, "%yblit.cpp" => "%YBlit.cpp" @ %Service)
 		@ %YSLib, ("%MapEx.cpp" => "%MappingEx.cpp", "%smap.hpp"
 		=> "%StaticMapping.hpp", "%chrproc.cpp" => "%CharacterProcessing.cpp")
@@ -2964,8 +2964,14 @@ b586
 		(
 			/ %Core $=
 			(
-				/ DLD "simplified exception-specification" @ %YEvent
-					^ "%std::is_nothrow_constructible";
+				/ %YEvent $=
+				(
+					/ DLD "simplified exception-specification"
+						^ "%std::is_nothrow_constructible";
+					* $comp $re_add(b691) DD $impl "missing '!'" @ "end of '/*'"
+						@ "multiline Doxygen comments" @ "private member" $since
+						b468
+				),
 				+ "YGraphics.cpp" @ %YGraphics
 					$= (+ $dev "definition of destructor"
 						@ "interface %IImage"),
@@ -3239,7 +3245,7 @@ b586
 		// Also to eliminate Clang++ warning: [-Wweak-vtables].
 	(
 	/ $dev $repo $re_add(b584) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%main.cpp"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%main.cpp"
 		=> "%Main.cpp" @ %YReader.Main, ((("%ydevice.h" => "%YDevice.h",
 		"%yexcept.cpp" => "%YException.cpp", "%ymsg.h" => "%YMessage.h",
 		"%ydevice.cpp" => "%YDevice.cpp", "%yobject.cpp" => "%YObject.cpp")
@@ -3250,7 +3256,7 @@ b586
 		=> "%UIContainerEx.cpp", "%textarea.h" => "%TextArea.h",
 		"%textarea.cpp" => "%TextArea.cpp") @ %UI) @ %YSLib,
 		"%chrmap.h" => "%CharacterMapping.h" @ %CHRLib) @ %YFramework);
-	* $comp "mismatched header file name"
+	* $comp "mismatched header filename"
 		@ %YFramework.YSLib.(Core, Service).YModule $since b585
 	),
 	/ $build %Tool.Scripts $=
@@ -3562,7 +3568,7 @@ b584
 		+ "showed scale value on %CursorWheel and hiding after 1 second"
 	),
 	/ $dev $repo $re_add(b580) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%progress.cpp"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ (("%progress.cpp"
 		=> "%Progress.cpp") @ %UI, "%ydraw.cpp" => "%YDraw.cpp" @ %Service)
 		@ YFramework.YSLib
 ),
@@ -3864,8 +3870,7 @@ b581
 	),
 	/ @ "class template %fixed_point" @ %YBase.YStandardEx.Rational $=
 	(
-		/ $dev $lib "speciied 'yimpl' for %enable_if_t parameters"
-			@ "constructors",
+		+ $dev $lib 'yimpl' @ "%enable_if_t parameters" @ "constructors",
 		(
 		+ 'explicit' @ "2 constructors with 1st floating pointer parameter"
 			$dep_from %YFramework.YSLib.Service.ImageProcessing;
@@ -4018,7 +4023,7 @@ b580
 		)
 	),
 	/ $dev $repo $re_add(b578) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%ywgtevent.cpp"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%ywgtevent.cpp"
 		=> "%YWidgetEvent.cpp") @ YFramework.YSLib.UI
 ),
 
@@ -4253,7 +4258,7 @@ b578
 		)
 	),
 	/ $dev $repo $re_add(b577) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%ygdibase.cpp"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ (("%ygdibase.cpp"
 		=> "%YGDIBase.cpp", "%ymsg.cpp" => "%YMessage.cpp")
 		@ %Core, ("%ycontrol.cpp" => "%YControl.cpp") @ %UI,
 		("%yres.h" => "%YResource.h") @ %Service) @ YFramework.YSLib
@@ -4343,7 +4348,7 @@ b577
 		)
 	),
 	/ $dev $repo $re_add(b573) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%yblit.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ (("%yblit.h"
 		=> "%YBlit.h") @ %Service, ("%yapp.h" => "%YApplication.h", "%yapp.cpp"
 		=> "%Label.YApplication") @ %Core) @ YFramework.YSLib
 ),
@@ -4776,7 +4781,7 @@ b573
 		+ "tool tip for close button"
 	),
 	/ $dev $repo $re_add(b572) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yuicont.cpp"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%yuicont.cpp"
 		=> "%YUIContainer.cpp", "%label.h" => "%Label.h", "%label.cpp"
 		=> "%Label.cpp", "%menu.h" => "%Menu.h", "%menu.cpp" => "%Menu.cpp")
 		@ YFramework.YSLib.UI
@@ -4897,7 +4902,7 @@ b572
 		)
 	),
 	/ $dev $repo $re_add(b571) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ (("%ytimer.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ (("%ytimer.h"
 		=> "%YTimer.h", "%ytimer.cpp" => "%YTimer.cpp") @ %Service, ("%ygui.h"
 		=> "%YGUI.h", "%ygui.cpp" => "%YGUI.cpp", "%ycontrol.h"
 		=> "%YControl.h", "%ywgtevt.h" => "%YWidgetEvent.h") @ %UI)
@@ -5011,7 +5016,7 @@ b571
 			%YFramework.Helper.HostRenderer
 	),
 	/ $dev $repo $re_add(b570) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yfocus.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%yfocus.h"
 		=> "%yfocus.h", "%yfocus.cpp" => "%YFocus.cpp") @ YFramework.YSLib.UI
 ),
 
@@ -5064,7 +5069,7 @@ b570
 		)
 	),
 	/ $dev $repo $re_add(b569) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ ("%yrender.cpp" => "%YRenderer.cpp") @ YFramework.YSLib.UI;
 ),
 
@@ -5132,7 +5137,7 @@ b569
 		/ "class template %swap_guard" -> "alias template"
 	),
 	/ $dev $repo $re_add(b568) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%ywidget.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%ywidget.h"
 		=> "%YWidget.h", "%ywidget.cpp" => "%YWidget.cpp", "%scroll.cpp"
 		=> "%Scroll.cpp") @ %YSLib.UI, ("%yglobal.h" => "%YGlobal.h" @ %Helper)
 		@ YFramework
@@ -5197,7 +5202,7 @@ b568
 		)
 	),
 	/ $dev $repo $re_add(b567) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
 ),
 
@@ -5299,7 +5304,7 @@ b567
 		%YFramework.(Helper.(Environment $orig (@ %Host $since b381)),
 		'Helper_(DS)'.DSMain $orig (@ %Helper.DSMain) $since b383)),
 	/ $dev $repo $re_add(b566) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
 ),
 
@@ -5446,7 +5451,7 @@ b566
 			parameter" @ %Container
 	),
 	/ $dev $repo $re_add(b565) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yshell.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%yshell.h"
 		=> "%YShell.h" @ Core, ("%ygdi.h" => "%YGDI.h", "%ygdi.cpp"
 		=> "%YGDI.cpp") @ Service, "%yrender.h"=> "%yrenderer.h" @ %UI)
 		@ %YFramework.YSLib
@@ -5577,7 +5582,7 @@ b565
 	* $dev $design "location for %Documentation::Workflow::Annual2015"
 		@ "filter of Microsoft VC++ project" $since b564,
 	/ $dev $repo $re_add(b564) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%chrproc.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%chrproc.h"
 		=> "%Character.h" @ %YFramework.CHRLib)
 ),
 
@@ -5766,7 +5771,7 @@ b564
 		// Note that for %Android it is not actually effective.
 	+ $repo "pattern 'Tools/SHBuild/stdinc.h.gch'" @ "file '.hgignore'",
 	/ $dev $repo $re_add(b563) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective @ ("%yadaptor.h"
+		as base filename" @ !%YBase ^ 'hg mv' $effective @ ("%yadaptor.h"
 		=> "%YAdaptor.h" @ %YFramework.YSLib.Adaptor.YGDIBase)
 ),
 
@@ -5983,7 +5988,7 @@ b563
 		and non-definition declarations" @ "all functions %EnsureDirectory"
 		@ %YFramework.YSLib.Service.FileSystem $since b476,
 	/ $dev $repo $re_add(b561) "all edited file with module name not the same \
-		as base file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
+		as base filename" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
 		@ (((("%ygdibase.h" => "%YGDIBase.h" @ %Core.YGDIBase, ("%textmgr.h"
 		=> "%TextManager.h", "%textmgr.cpp" => "%TextManager.cpp")
 		@ %Service.TextManager, "%yuicont.h" => "%YUIContainer.h"
@@ -6068,7 +6073,7 @@ b562
 	(
 		/ %YSLib $=
 		(
-			* "non-lowercase header file name of %YObject"
+			* "non-lowercase header filename of %YObject"
 				@ %Core.YModules $since b561,
 			/ %Adaptor $=
 			(
@@ -6209,12 +6214,12 @@ b561
 	(
 		/ %YSLib $=
 		(
-			/ %YPixel $=
+			/ %Service $=
 			(
-				* "spelling error" @ %Service.FileSystem $since b540
+				* "spelling error" @ %FileSystem $since b540
 					$= (/ "%NormalizeDirecoryPathTail"
 						=> "%NormalizeDirectoryPathTail"),
-				/ %Service.YPixel $=
+				/ %YPixel $=
 				(
 					- "alpha bit set" @ "function template %BlendCore",
 					+ 'yconstfn' @ "function template %Blend for \
@@ -6233,7 +6238,7 @@ b561
 							~ "%Blend"
 					),
 					/ "simplified implementation" ^ "%ystdex::make_fixed_t"
-						@ %YPixel $dep_from
+						$dep_from
 						("%make_fixed_t" @ %YBase.YStandardEx.Rational),
 					/ $forced $dev "simplified implementation" @ %YPixel
 						!^ $dep_from ("%ystdex::normalized_max"
@@ -6246,8 +6251,8 @@ b561
 						RollColor)" -> "class %HSL",
 					+ "class %HSV"
 				),
-				/ DLD "implemented %ImageScale" ^ "%std::uint32_t"
-					~ "%std::size_t"
+				/ DLD "implemented %ImageScale" @ %ImageProcessing
+					^ "%std::uint32_t" ~ "%std::size_t"
 					// To avoid request to 128-bit fixed-point arithmetic \
 						operations which is not supported yet, when \
 						%std::size_t is 64-bit
@@ -6357,28 +6362,24 @@ b561
 	+ %YDE.Clock,
 	/ %Tools $=
 	(
-		/ %Scripts $=
+		/ @ "SHBuild-common-options.sh" @ %Scripts $=
 		(
 			+ '-pthread' @ "default value" @ "%CXXFLAGS_IMPL_COMMON"
-				@ "'Darwin' in 'uname' output" @ "SHBuild-common-options.sh",
-			/ @ "SHBuild-common-options.sh" $=
+				@ "'Darwin' in 'uname' output",
 			(
-				+ "detection to ensure non empty $CXX at beginning",
-				(
-				+ "variables %(CXXFLAGS_GC, LDFLAGS_GC) with default value \
-					'-fdata-sections -ffunction-sections' and \
-					'-Wl,--gc-sections' respectively";
-				+ "test to set to empty for %(CXXFLAGS_GC, LDFLAGS_GC) if not \
-					successfully compiled by $CXX to support toolchain without \
-					these options (e.g. on OS X)" @ !"platform %Win32"
-					// Windows has limitation, see \
-						http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
-				/ "applied $(CXXFLAGS_GC, LDFLAGS_GC) for default value of variables \
-					$(C_CXXFLAGS_COMMON, LDFLAGS_OPT_DBG)"
-				)
+			+ "variables %(CXXFLAGS_GC, LDFLAGS_GC) with default value \
+				'-fdata-sections -ffunction-sections' and \
+				'-Wl,--gc-sections' respectively";
+			+ "test to set to empty for %(CXXFLAGS_GC, LDFLAGS_GC) if not \
+				successfully compiled by $CXX to support toolchain without \
+				these options (e.g. on OS X)" @ !"platform %Win32";
+				// Windows has limitation, see \
+					http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
+			/ "applied $(CXXFLAGS_GC, LDFLAGS_GC) for default value of variables \
+				$(C_CXXFLAGS_COMMON, LDFLAGS_OPT_DBG)"
 			)
 		),
-		/ "all command call with variable as command name now are quoted",
+		/ "all command calls with variable as command name now are quoted",
 			// To allow blank characters in it, though not a good practice and \
 				not necessarily providing the guarantee to success.
 		- DLD "all unnecessary curly braces around variable names" $=
@@ -6389,7 +6390,7 @@ b561
 				including 106 matches with '$2' is '/'"),
 	),
 	/ $dev $repo $re_add(b560) "all edited file with module name not the same \
-		as base file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
+		as base filename" @ !(%YBase, %YFramework.YSBuild) ^ 'hg mv' $effective
 		@ (((("%yobject.h" => "%YObject.h" @ %Core.YObject, (("%ystyle.h"
 		=> "%YStyle.h", "%ystyle.cpp" => "%YStyle.cpp") @ %YStyle),
 		"%button.cpp" => "%Button.cpp" @ %Button) @ %UI, "%ynew.h" => "%YNew.h"
@@ -6550,7 +6551,7 @@ b560
 			%YFramework.Helper.HostedUI;
 	),
 	/ $dev $repo "all edited file with module name not the same as base \
-		file name" @ !%YBase ^ 'hg rename' $effectieve ("%main.cpp"
+		filename" @ !%YBase ^ 'hg rename' $effectieve ("%main.cpp"
 		=> "%Main.cpp" @ %(Tools.SHBuild, YDE.ImageBrowser).Main, ("%yevt.hpp"
 		=> "%YEvent.hpp" @ %YEvent, "%yfunc.hpp" => "%YFunc.hpp" @ %YFunc,
 		"%yexcept.h" => "%YException.h" @ %YException) @ %YFramework.YSLib.Core)
@@ -6640,7 +6641,7 @@ b559
 			/ "source parameter type %Graphics" @ "all functions"
 				-> "%ConstGraphics" $effective @ %Service.(YGDI, YBlit)
 				$dep_from %Core.YGDIBase,
-			* "non-lowercase header file name of %(YAdaptor, YNew)"
+			* "non-lowercase header filename of %(YAdaptor, YNew)"
 				@ %Adaptor.YModules $since b462
 		),
 		/ "namespace %Android" @ %'YCLib_(Android)'.Android $=
@@ -6686,7 +6687,7 @@ b559
 					// But not redir-op and prefix decimal number denoting \
 						file descriptor.
 			),
-			* "non-lowercase source file name of %YFramework.YCLib.YCommon"
+			* "non-lowercase source filename of %YFramework.YCLib.YCommon"
 				@ "%SHBuild-bootstrap.sh" $since b540,
 			- $dep_from "getting off Shlwapi" '-lShlwapi' @ "%LIBS" $effective
 				@ ("SHBuild-bootstrap.sh", "SHBuild-YSLib.sh",
@@ -7746,7 +7747,8 @@ b554
 	),
 	/ $build "makefile" @ "platform %Android" @ %YReader $=
 	(
-		/ 'ANDROID_SDKVER := 21.0.0' -> 'ANDROID_SDKVER := 21.1.1',
+		/ $re_ex(b518) 'ANDROID_SDKVER := 21.0.0'
+			-> 'ANDROID_SDKVER := 21.1.1',
 		- DLD "redundant '-shared'" @ "%LDFLAGS"
 	),
 	/ $build @ "all 3 makefiles" @ "platform %Android" $=
@@ -8763,7 +8765,7 @@ b547
 				%YFramework.YSLib.Service.File,
 			+ "group filtering options ('-xloggd', '-xlogge')"
 			),
-			/ DLD $revert(b545) "merged function %Wait" -> "%Build"
+			/ $revert(b545) DLD "merged function %Wait" -> "%Build"
 				@ "class %BuildContext",
 			/ DLD "simplified exception handling" @ %Tools.SHBuild.Main
 				^ $dep_from ("macros %(TryExpr, CatchExpr, CatchIgnore, \
@@ -8867,7 +8869,7 @@ b546
 			/ @ "class %Session" @ %SContext $=
 			(
 				+ "alias-declaration %CharParser",
-				+ "functions %(DefaultParseByte, DefaultParseQuoted)";
+				+ "static functions %(DefaultParseByte, DefaultParseQuoted)";
 				/ "constructor for %string" -> "2 constructor template with \
 					%CharParser parameter and %DefaultParseByte default \
 					argument",
@@ -9070,7 +9072,7 @@ b545
 		+ "timestamp check for static linking",
 		+ "environment variable settings" @ "usage"
 	),
-	/ DLD $re_ex(b470) "reduced redundant 'return std::move' usage"
+	/ $re_add(b470) DLDI "reduced redundant 'return std::move' usage"
 		@ "return-statement" $effective @ %(YBase.YStandardEx.Algorithm,
 		YFramework.YSLib.(Service.YFileSystem, UI.UIContainer))
 	/ %YBase.YStandardEx $=
@@ -9104,7 +9106,7 @@ b544
 			),
 			/ @ "function template %ufexists" $=
 			(
-				/ DLD $revert(b413) "implemented" !^ "macros %(PDefH, ImplRet)",
+				/ $revert(b413) DLD "implemented" !^ "macros %(PDefH, ImplRet)",
 				* "non overloaded non-class argument selected" $orig (@ %YCommon
 					$since b305)
 			),
@@ -9637,7 +9639,7 @@ b540
 			/ "%SHBuild calls" ^ '${SHBuild_ToolDir}/SHBuild' ~ './shbuild'
 				@ "%SHBuild-YSLib.sh",
 			),
-			/ DLD $revert_ex(b539) "simplified toolchain setting"
+			/ $revert_ex(b539) DLD "simplified toolchain setting"
 				@ "%SHBuild-YSLib.sh" $=
 			(
 				+ 'export AR=gcc-ar',
@@ -10491,7 +10493,7 @@ b532
 		+ %Array,
 		/ @ "class template %transformed_iterator" @ %Iterator $=
 		(
-			/ DLD $revert(b494) "simplified %transformer_type" !^ "%decay_t"
+			/ $revert(b494) DLD "simplified %transformer_type" !^ "%decay_t"
 				// Since b529 it had been already decayed.
 			(
 			+ "3rd template parameter 'typename _tReference = void'";
@@ -12046,9 +12048,9 @@ b518
 	)
 	- "name pollution list" @ %Documentation::Definitions,
 	/ $doc "updated build notice" @ "%Readme.zh-CN.txt",
-	/ $dev $build "updated makefile" @ "platform %Android" $=
+	/ $dev $build "makefile" @ "platform %Android" $=
 	(
-		/ "updated %ANDROID_SDKVER value" -> "20.0.0" ~ "19.0.3",
+		/ 'ANDROID_SDKVER := 20.0.0' -> 'ANDROID_SDKVER := 19.0.3',
 			// This is the Android SDK Build-tools version.
 		/ "updated zipalign path" @ "target $(OUTPUT_FINAL)"
 			// The new SDK moved zipalign to the Build-tools.
@@ -12310,7 +12312,7 @@ b514
 		// Because of broken Unicode support on Android NDK r9, some \
 			characters like “稍”(U+7A0D) and “选”(U+9009) still missed by \
 			wrongly returning '8' from 'iswspace' calls.
-	/ $doc "extended file name pattern of README DOCUMENTS" @ "%LICENSE.TXT",
+	/ $doc "extended filename pattern of README DOCUMENTS" @ "%LICENSE.TXT",
 	/ %YFramework $=
 	(
 		/ @ "namespace %Windows" @ %'YCLib_(MinGW32)'.Win32GUI $=

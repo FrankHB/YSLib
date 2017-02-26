@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5943
+\version r5996
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-02-20 19:00 +0800
+	2017-02-26 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			+ "form %'$vau'" @ "loading forms"
+				@ "function %LoadNPLContextForSHBuild" @ %Dependency,
+			+ "function %CheckNorm" @ %NPLA,
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					(
+					/ "simplified function %(Lambda, Vau)" $=
+					(
+						/ DLDI ^ $dep_from "%CheckNorm",
+						/ $impl "moved term with name into the closure",
+						/ DLDI "lifted context handling"
+					);
+					- "function %ExtractParameters",
+						// This is binding-construct-specific and it is better \
+							to be private not to ease the evolution.
+					/ "supported context parameter as 3rd subterm"
+						@ "function %Vau",
+						// Now it is similar to the Kernel language.
+					/ DLDI "function %Lambda",
+					/ "syntax error message for sufficient terms for context \
+						parameter"
+						// There can be other syntax error now, i.e. when the \
+							context parameter is not a symbol or '#ignore'.
+					),
+					- $revert_ex(b766) "setting %ValueToken::Null as the value \
+						for %ReductionStatus::Retained"
+						@ "function %ReduceContextFirst",
+						// This changes simplified overall handling strategy \
+							on representation of evaluated terms.
+					/ $revert_ex(b767) "empty list representation"
+						@ "function %Apply" ^ "empty node"
+						~ "%ValueToken::Null",
+						// Ditto.
+				),
+				/ "empty parameter handling"
+					@ "member function %StrictContextHandler"
+					>> "member function %FormContextHandler::operator()"
+			)
+		),
+		/ "function template %Emplace" @ "class template %GAccessList"
+			%YSLib.Service.AccessHistory -> "%emplace" ^ "%DefFwdTmpl"
+	),
+	/ $forced DLDI "member function %ReadingList::Insert" @ %YReader.ReadingList
+		$dep_from %YFramework.YSLib.Service.AccessHistory
+),
+
+b768
 (
 	/ %YFramework $=
 	(
