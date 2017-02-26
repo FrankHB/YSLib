@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2595
+\version r2620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-02-20 13:43 +0800
+	2017-02-26 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,6 +322,20 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 //@}
 
 /*!
+\brief 规约第一个子项。
+\return 规约状态。
+\sa Reduce
+\see https://en.wikipedia.org/wiki/Fexpr 。
+\since build 730
+
+快速严格性分析：
+无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
+*/
+inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
+	ImplRet(IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
+		: ReductionStatus::Clean)
+
+/*!
 \brief 规约有序序列：移除第一个子项，规约剩余子项，并替换值。
 \sa RemoveHead
 \since build 764
@@ -340,20 +354,6 @@ ReduceOrdered(TermNode&, ContextNode&);
 YF_API ReductionStatus
 ReduceTail(TermNode&, ContextNode&, TNIter);
 //@}
-
-/*!
-\brief 规约第一个子项。
-\return 规约状态。
-\sa Reduce
-\see https://en.wikipedia.org/wiki/Fexpr 。
-\since build 730
-
-快速严格性分析：
-无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
-*/
-inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
-	ImplRet(IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
-		: ReductionStatus::Clean)
 
 
 /*!
@@ -518,7 +518,8 @@ public:
 	\throw std::invalid_argument 项检查未通过。
 	\since build 751
 
-	项检查不存在或在检查通过后，对节点调用 Hanlder ，否则抛出异常。
+	项检查不存在或在检查通过后，变换无参数规约，然后对节点调用 Hanlder ，否则抛出异常。
+	无参数时第一参数具有两个子项且第二项为空节点。无参数变换删除空节点。
 	*/
 	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
@@ -1138,14 +1139,6 @@ YF_API void
 DefineOrSetFor(const string&, TermNode&, ContextNode&, bool, bool);
 //@}
 
-/*!
-\brief 以容器作为参数列表提取函数抽象的参数。
-\throw InvalidSyntax 存在重复的参数。
-\since build 766
-*/
-YF_API YSLib::shared_ptr<vector<string>>
-ExtractParameters(const TermNode::Container&);
-
 /*
 \pre 间接断言：第一参数指定的项是枝节点。
 \note 实现特殊形式。
@@ -1191,11 +1184,13 @@ Lambda(TermNode&, ContextNode&);
 
 /*!
 \brief vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
-\todo 支持类似 Kernel 语言中 $vau 操作子的动态环境参数以避免求值时捕获静态环境的变量。
+\note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
+\throw InvalidSynta <eformal> 不符合要求。
 \since build 767
 
+初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 特殊形式参考文法：
-$vau <formals> <body>
+$vau <formals> <eformal> <body>
 */
 YF_API void
 Vau(TermNode&, ContextNode&);

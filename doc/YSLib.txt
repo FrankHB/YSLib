@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3135
+\version r3137
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2017-02-02 11:03 +0800
+	2017-02-22 10:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -236,12 +236,12 @@ Unicode 字符处理要求识别不同语言的脚本(script) ，也不保证和
 @3.7 平台无关的基础图形学对象 YGDIBase ：
 
 @3.7.1 基本屏幕对象：
-用于实现屏幕坐标系([Documentation::Designation @@2.5.2.2]) 。
+用于实现屏幕坐标系([Documentation::YFramework @@1.5.2.2]) 。
 YSLib 默认使用整数分量坐标，类型为 SPos （平台相关的有符号整数类型），绝对值类型为 SDst （宽度与 SPos 相同的无符号整数类型）。
 以此为基础进一步定义了 Point 、 Vec 、 Size 和 Rect 等基本屏幕对象类。
 Point 和 Vec 为 SPos 二元组，具有不同的相关运算集。
 Size 为 SDst 二元组。
-Rect 为标准矩形([Documentation::Designation @@2.5.2.4]) ，即边和屏幕坐标系共线的矩形；使用 Point 表示左上角， Size 表示长和宽。
+Rect 为标准矩形([Documentation::YFramework @@1.5.2.4]) ，即边和屏幕坐标系共线的矩形；使用 Point 表示左上角， Size 表示长和宽。
 
 @3.7.2 二维图形接口上下文：
 表示图形缓冲区及其大小的类。

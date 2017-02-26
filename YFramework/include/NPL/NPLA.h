@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1340
+\version r1348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-01-30 09:20 +0800
+	2017-02-23 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -599,7 +599,7 @@ using TokenValue = ystdex::derived_entity<string, NPLATag>;
 
 
 /*!
-\brief 标记记号节点：递归变换节点，转换其中 string 类型的值为 TokenValue 。
+\brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
 \note 先变换子节点。
 \since build 753
 */
@@ -674,6 +674,7 @@ TermToName(const TermNode&);
 /*!
 \pre 字符串参数的数据指针非空。
 \note 最后一个参数表示强制调用。
+\warning 应避免对被替换或移除的值的悬空引用。
 \throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
 \since build 731
 */
@@ -705,6 +706,13 @@ RemoveIdentifier(ContextNode&, string_view, bool);
 */
 YB_PURE YF_API bool
 CheckReducible(ReductionStatus);
+
+/*!
+\brief 检查视为范式的节点并提取规约状态。
+\since build 769
+*/
+inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
+	ImplRet(IsBranch(term) ? ReductionStatus::Retained : ReductionStatus::Clean)
 
 /*!
 \sa CheckReducible
