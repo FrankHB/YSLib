@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r77
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-02-18 16:23 +0800
+	2017-03-01 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,6 +75,92 @@ Some points about unevaluated expressions are concerned with the current impleme
 			Performance of direct handling is better because wrapping a term in 'DelayedTerm' is more expensive and there is no good reason to do that.
 		The evaluation of unevaluated 'TokenValue' does not check the possible infinite loop.
 			It is the responsibility of users of the API to configure the evaluation passes properly to provide strong normalization property on name expression evaluation required by the specification of NPLA.
+
+$2017-03:
+
+Style of the Kernel language can be compared with current NPL, esp. NPLA1.
+	The current specification is Revised^-1 Report on the Kernel Programming Language, with some rationales in the text.
+	There are many similarity on design consideration. Despite developed without reference to Kenerl, many features are occasionally the same.
+		The Principle G1 and G5 of Kernel is informally or implicitly implied by NPL design.
+		Both can have homoiconic representations and many shared conceptual models of modern Lisp dialects.
+		The same key feature is first class support of modern forms of fexpr with lexical scopes.
+		The naming of identifier like '$lambda' are often the same, with slightly differences on meaning.
+			The original of '$' in NPLA1 is to express reserved identifier as well as traditional C-like '__'.
+			It later changes to be function with unevaluated operands, i.e. fexprs, which is same to Kernel.
+	Not all design are totally same, in the root of the design philosophies.
+		The Principle G2 of Kernel is not used by NPL design, because NPL is not designed to be a direct replacement of a Lisp dialect.
+			However, Kernel is largely derived from R5RS Scheme.
+			See below for differences about supported features.
+		The Principle G3 of Kernel is informally used NPL design, but there can be difference on judgement of exceptional cases.
+			That is, what is the precise extension of "dangerous computation behaviors", and what is "by accident".
+		The Principle G4 is not used directly since it is better to be specified by derived implementations.
+		Since NPL is designed as a family of languages rather than single general-purposed language in the very beginning, it requires no principle of single set of disciplines on interface design.
+			Particularily, there is no guarantee on ease of use or avoiding misuses in general, which is inconsist to Kernel.
+			Such properties are designed to be specified in derived implementations, which is an issue of QoI (quality of implementation) rather than designing.
+		NPL has more focus on composition of abstraction.
+			In general, NPL would prefer lower-level implementation-dependent features to abstract.
+				This is often to avoid to violate the phiilosophy of zero overhead principle.
+					If such lower-level features are not provided, users may have to fight against low usability with portability of the code. 
+			There are some examples.
+				NPL prefers 'eqv?' than 'equal?', which is opposite to Kernel.
+					The applicative 'equal?' is meant to be composited based on 'eqv?' or other API by design.
+					The reason is that the difference of list and non-list terms are intrinsically and generally non-avoidable in the languages.
+						To mandate 'equal?' while not 'eqv?' would be the nontrivial case of non-composable interface.
+				NPL prefers acyclic representations and data structures by default.
+					If cyclic representations or data structures are necessary, use specific library to solve the problems.
+					This choice implies acyclic ownership relationships in design.
+						So garbage collection is essentially not needed specifically to break the cycles.
+					This choice ease some specification of acyclic constructs.
+						So it is unnecessary to specify acyclic constructs like parameter tree for '$vau' in Kernel.
+					NPLA renders undefined behavior for unexpected cyclic references.
+					NPLA does not support circular substructure in syntax.
+						This simplifies the syntax. It is now more like reduced S-expression used in SXML, rather than in traditional Scheme dialects and Kernel.
+					It simplifies the implementation of many derived functions like 'equal?', since they have to guarantee the termination in traditional Scheme dialects even for circular-referenced data structures.
+	There are many differences on adopted basic features, which has obvious effect on functionality of primitives.
+		NPL mandates resource semantics which implies ownership and object models in derived implementations, while Kernel as well as traditional Lisp relies on unlimited extents of objects.
+			NPL allows undefined behavior on reference with different object models, while Kernel requires garbage collection.
+			For general use on resource management, garbage collection is not acceptable as the center ownership holder.
+				It also violates design of first class object endorsed by Kernel.
+		NPL mandates no external representation as traditonal Lisps and Kernel do.
+			If needed, they can be specified by derived implementations.
+		Lisp-like pairs (cons pairs) are not used as basic data structure of the internal program representation. So interface for pairs is deliberately omitted. Note pair mutation is also optional in Kernel.
+			There is also no null cell of this sense in NPL.
+				However, empty lists still exist.
+			Dot notation is not supported in the syntax.
+				This simplifies the syntax, having simliar effect as given by avoiding circular substructure.
+		NPL mandates no encapsulation.
+			This can be good extension for the language generally in future.
+			If needed, they can be specified by derived implementations.
+		NPL mandates no partitioning of types.
+			To allow variaties on interoperability, the type system in NPL is essentially not encapsulated.
+				If needed, they can be specified by derived implementations.
+					This is at least not the case in NPLA for C++ interoperations.
+			This transparency also provides more flexibility to extend the language.
+			Type predicates are essentially unspecified to be primitives or not.
+				A type predicate only exist when the type exists.
+					So no predicate is for a nonexisted type.
+					This can occur when a value is only designed to be a unevaluated tag, like '#ignore' in Kernel.
+						Since NPL mandates no external representation as traditonal Lisps and Kernel do, the data type is not required in most cases.
+						This leads to simpler design in specification both on semantics and API.
+				Predicates like 'bool?' would be specified in the type operation library as derived forms.
+		NPL deliberately keeps cyclic representation out of the program directly.
+			This is opposite to Kernel as well as traditional Lisp.
+			It is necessary to avoid bloating the minimal specification of a general language.
+				This largely simplified many lengthy implementation of derived forms.
+				If needed, features for cyclic data structures can be provided by library.
+		Kernel provides predicates for some special placeholder values, while NPL is not, for several reasons.
+			The placeholder value needs to have a type only when it is evaluated.
+		The value '#inert' is not supported in NPL because it is more correct to leave unspecified values as precise as the specification about the language semantics.
+			To avoid misuses as additonal features is an issue of QoI but not requirements on language expresiveness.
+			Even NPLA1 always uses %ValueToken::Unspecified for the unspecified values in API level, it is not required by the core semantics of the object language.
+			This also recovers traditional 3-term form 'if' which is wiped out in Kernel due to inconsistency caused by explicitly overspecified '#inert' requirement on the result.
+			There is no type or predicate for '#inter'.
+		Formal parameter tree of Kernel is not adopted in NPL.
+			The NPL formal parameter is always a list, like the case in traditional Lisp dialects.
+			Since cons pairs are not required in NPL, there is other considerations of variadic parameters.
+				The notation '...' is used to capture a list.
+					Since it can only occur once, there is no need to name it with specific symbol specified by users.
+					For simplicity, name parameter like context parameter in the '$vau' operative is not provided.
 
 ////
 

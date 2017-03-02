@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r415
+\version r422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-02-20 22:14 +0800
+	2017-02-27 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			const char f(id.front());
 
 			// NOTE: Handling extended literals.
-			if((f == '#'|| f == '+' || f == '-') && id.size() > 1)
+			if(IsNPLAExtendedLiteralPrefix(f) && id.size() > 1)
 			{
 				// TODO: Support numeric literal evaluation passes.
 				if(id == "#t" || id == "#true")
@@ -214,8 +214,9 @@ LoadNPLContextForSHBuild(REPLContext& context)
 					term.Value = false;
 				else if(id == "#n" || id == "#null")
 					term.Value = nullptr;
-				else if(f != '#')
-					return ReductionStatus::Retrying;
+				else
+					throw InvalidSyntax(f == '#' ? "Invalid literal found."
+						: "Unsupported literal prefix found.");
 			}
 			else if(std::isdigit(f))
 			{
@@ -228,6 +229,9 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				if(size_t(eptr - ptr) == id.size() && errno != ERANGE)
 					// XXX: Conversion to 'int' might be implementation-defined.
 					term.Value = int(ans);
+				// TODO: Supported literal postfix?
+				else
+					throw InvalidSyntax("Literal postfix is unsupported.");
 			}
 			else
 				return ReductionStatus::Retrying;

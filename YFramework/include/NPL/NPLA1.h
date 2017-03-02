@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2620
+\version r2624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-02-26 23:04 +0800
+	2017-02-27 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,7 +226,7 @@ InvokeList(TermNode& term, ContextNode&);
 \since build 738
 */
 YF_API ReductionStatus
-InvokeLiteral(TermNode& term, ContextNode&, string_view);
+InvokeLiteral(TermNode&, ContextNode&, string_view);
 //@}
 
 
@@ -701,7 +701,7 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 
 /*!
 \brief 求值叶节点记号。
-\sa CategorizeLiteral
+\sa CategorizeLexeme
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
 \sa InvokeLiteral
@@ -1125,9 +1125,9 @@ DefineOrSet(TermNode&, ContextNode&, bool);
 \brief 定义或设置标识符的值为指定的项。
 \note 参数分别为标识符、被规约的项、上下文、使用定义以及是否存在修饰符。
 \throw InvalidSyntax 标识符是字面量。
-\sa CategorizeLiteral
 \sa DefineValue
 \sa EvaluateIdentifier
+\sa IsNPLASymbol
 \sa RedefineValue
 
 定义或设置参数指定的值：首先检查标识符不是字面量。

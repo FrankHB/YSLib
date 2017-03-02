@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r5996
+\version r6051
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-02-26 23:36 +0800
+	2017-03-02 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,62 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			(
+			/ "enum %LiteralCategory" -> "%LexemeCategory"
+			/ "function %CategorizeLiteral" -> "%CategorizeBasicLexeme";
+			+ "function %IsNPLAExtendedLiteralPrefix",
+			+ "functions %(CategorizeLexeme; IsNPLASymbol)"
+			),
+			/ "function %TermToName" => "%TermToNamePtr"
+		),
+		/ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+		(
+			/ "simplified" ^ $dep_from ("%IsNPLAExtendedLiteralPrefix" @ %NPLA),
+			* "extended literal handling"  $mismatch(Documentation.NPL) $since
+				b758
+				$= (/ "threw %InvalidSyntax for unsupported literals"
+					@ "literal handler")
+		),
+		/ @ %NPLA1 $=
+		(
+			/ @ "namespace %Forms" $=
+			(
+				/ "vau hanlder" $=
+				(
+					/ $impl ^ $dep_from ("%IsNPLASymbol" @ %NPLA),
+					/ $comp "symbol detection would not involve literal \
+						handlers",
+					* "crashed when the context parameter is a list" $since
+						b769,
+					* "missing check of identifier" @ "parameter list" $orig
+						(@ "function %ExtractLambdaParameters" $since b735)
+				),
+				* "extended literal allowed to be redefined"
+					@ "function %DefineOrSetFor" $since b735
+					$= (/ $impl ^ $dep_from ("%IsNPLASymbol" @ %NPLA)),
+				/ "invalid term" @ "function %DefineOrSet" $=
+				(
+					* "thrown exception type %NPLException instead of \
+						%InvalidSyntax specified by documentation" $mismatch
+						$since b735,
+					/ "exception message"
+				)
+			),
+			/ $re_add(b674) DLDI "functions %(TransformForSeparator, \
+				TransformForSeparatorRecursive)" ^ "explicit %TermNode"
+				// Result of %AsIndexNode should be used with explicit \
+					initialization because %ValueNode is not guaranteed the \
+					same with %TermNode as the interface contract.
+		)
+	)
+),
+
+b769
 (
 	/ %YFramework $=
 	(

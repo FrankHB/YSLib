@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2617
+\version r2670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-02-26 23:28 +0800
+	2017-03-02 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,11 +162,13 @@ TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const string& name)
 {
 	using namespace std::placeholders;
-	auto res(AsNode(name, term.Value));
+	// NOTE: Explicit type 'TermNode' is intended.
+	TermNode res(AsNode(name, term.Value));
 
 	if(IsBranch(term))
 	{
-		res += AsIndexNode(res, pfx);
+		// NOTE: Explicit type 'TermNode' is intended.
+		res += TermNode(AsIndexNode(res, pfx));
 		ystdex::split(term.begin(), term.end(),
 			ystdex::bind1(HasValue<ValueObject>, std::ref(delim)),
 			std::bind(f, std::ref(res), _1, _2));
@@ -221,7 +223,7 @@ EqualTerm(TermNode& term, _func f)
 }
 
 
-//! \since build 768
+//! \since build 769
 //@{
 void
 BindParameters(TermNode& term, ContextNode& app_ctx,
@@ -287,25 +289,19 @@ ExtractParameters(const TermNode::Container& con, const string& eformal)
 	std::for_each(con.begin(), con.end(), [&](decltype(*con.begin()) pv){
 		const auto& name(Access<TokenValue>(pv));
 
-		// FIXME: Missing identifier syntax check.
-		// TODO: Throw %InvalidSyntax for invalid syntax.
-		if(svs.insert(name).second)
-			p_params->push_back(name);
+		if(IsNPLASymbol(name))
+		{
+			if(svs.insert(name).second)
+				p_params->push_back(name);
+			else
+				throw InvalidSyntax(
+					sfmt("Duplicate parameter name '%s' found.", name.c_str()));
+		}
 		else
-			throw InvalidSyntax(
-				sfmt("Duplicate parameter name '%s' found.", name.c_str()));
+			throw InvalidSyntax("Symbol expected for formal parameter.");
 	});
 	return p_params;
 }
-
-bool
-IsSymbol(TermNode& term, ContextNode& ctx, string_view id)
-{
-	// TODO: Try to use immutable context?
-	return CategorizeLiteral(id) == LiteralCategory::None
-		&& CheckReducible(InvokeLiteral(term, ctx, id));
-}
-//@}
 
 
 //! \since build 767
@@ -314,7 +310,7 @@ class VauHandler final
 private:
 	/*!
 	\brief 动态上下文名称。
-	\since build 768
+	\since build 769
 	*/
 	string eformal{};
 	//! \brief 参数列表。
@@ -325,7 +321,7 @@ private:
 	shared_ptr<TermNode> p_closure;
 
 public:
-	//! \since build 768
+	//! \since build 769
 	VauHandler(TermNode& term, ContextNode& ctx, bool ignore)
 		: p_parameter_list([&]{
 			using namespace Forms;
@@ -341,14 +337,19 @@ public:
 				{
 					auto& eterm(Deref(++i));
 
-					eformal = Deref(TermToName(eterm));
-					YTraceDe(Debug, "Found context parameter name '%s'.",
-						eformal.c_str());
-					if(eformal == "#ignore")
-						eformal.clear();
-					else if(!IsSymbol(eterm, ctx, eformal))
-						throw InvalidSyntax("Symbol or '#ignore' expected for"
-							" context parameter.");
+					if(const auto p = TermToNamePtr(eterm))
+					{
+						eformal = *p;
+						YTraceDe(Debug, "Found context parameter name '%s'.",
+							eformal.c_str());
+						if(eformal == "#ignore")
+							eformal.clear();
+						else if(!IsNPLASymbol(eformal))
+							throw InvalidSyntax("Symbol or '#ignore' expected"
+								" for context parameter.");
+					}
+					else
+						throw InvalidSyntax("Invalid context parameter found.");
 				}
 
 				auto p_params(ExtractParameters(formals, eformal));
@@ -601,7 +602,8 @@ TransformForSeparator(const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const TokenValue& name)
 {
 	return TransformForSeparatorTmpl([&](TermNode& res, TNCIter b, TNCIter e){
-		auto child(AsIndexNode(res));
+		// NOTE: Explicit type 'TermNode' is intended.
+		TermNode child(AsIndexNode(res));
 
 		while(b != e)
 		{
@@ -722,7 +724,7 @@ ReduceContextFirst(TermNode& term, ContextNode& ctx)
 			[&](observer_ptr<const string> p){
 				return
 					p ? *p : sfmt("#<unknown:%s>", fm.Value.GetType().name());
-			}(TermToName(fm)).c_str(), FetchArgumentN(term)));
+			}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
 	}
 	return ReductionStatus::Clean;
 }
@@ -780,23 +782,23 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 		//	If necessary, there can be inserted some additional cleanup to
 		//	remove empty tokens, returning %ReductionStatus::Retrying.
 		//	Separators should have been handled in appropriate preprocess passes.
-		const auto lcat(CategorizeLiteral(id));
+		const auto lcat(CategorizeBasicLexeme(id));
 
 		switch(lcat)
 		{
-		case LiteralCategory::Code:
+		case LexemeCategory::Code:
 			// TODO: When do code literals need to be evaluated?
 			id = DeliteralizeUnchecked(id);
 			if(YB_UNLIKELY(id.empty()))
 				break;
-		case LiteralCategory::None:
+		case LexemeCategory::Symbol:
 			return CheckReducible(InvokeLiteral(term, ctx, id))
 				? EvaluateIdentifier(term, ctx, id) : ReductionStatus::Clean;
 			// XXX: Empty token is ignored.
 			// XXX: Remained reducible?
-		case LiteralCategory::Data:
+		case LexemeCategory::Data:
 			// XXX: This should be prevented being passed to second pass in
-			//	%TermToName normally. This is guarded by normal form handling
+			//	%TermToNamePtr normally. This is guarded by normal form handling
 			//	in the loop in %Reduce.
 			term.Value.emplace<string>(Deliteralize(id));
 		default:
@@ -812,8 +814,8 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 {
 	return ystdex::call_value_or([&](string_view id){
 		return EvaluateLeafToken(term, ctx, id);
-	// FIXME: Success on node conversion failure?
-	}, TermToName(term), ReductionStatus::Clean);
+	// XXX: A term without token is ignored.
+	}, TermToNamePtr(term), ReductionStatus::Clean);
 }
 
 void
@@ -919,7 +921,7 @@ ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 		const auto i(std::next(con.cbegin()));
 
 		// XXX: Modifier is treated as special name.
-		if(const auto p = TermToName(Deref(i)))
+		if(const auto p = TermToNamePtr(Deref(i)))
 			if(*p == mod)
 			{
 				con.erase(i);
@@ -944,7 +946,7 @@ DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
 		{
 			const auto i_beg(i->begin());
 
-			if(const auto p_id = TermToName(Deref(i_beg)))
+			if(const auto p_id = TermToNamePtr(Deref(i_beg)))
 			{
 				const auto id(*p_id);
 
@@ -953,9 +955,9 @@ DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
 				DefineOrSetFor(id, term, ctx, define, mod);
 			}
 			else
-				throw NPLException("Invalid node category found.");
+				throw InvalidSyntax("Invalid term found.");
 		}
-		else if(const auto p_id = TermToName(Deref(i)))
+		else if(const auto p_id = TermToNamePtr(Deref(i)))
 		{
 			const auto id(*p_id);
 
@@ -980,7 +982,7 @@ void
 DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
 	bool mod)
 {
-	if(CategorizeLiteral(id) == LiteralCategory::None)
+	if(IsNPLASymbol(id))
 		// XXX: Moved.
 		// NOTE: Unevaluated term is directly saved.
 		(define ? DefineValue : RedefineValue)

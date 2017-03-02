@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1348
+\version r1390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-02-23 12:52 +0800
+	2017-02-28 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -557,34 +557,58 @@ inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
 //@}
 
 
-//! \since build 734
+//! \since build 770
 //@{
-//! \brief 字面量类别。
-enum class LiteralCategory
+/*!
+\brief 字面量类别。
+\since build 734
+*/
+enum class LexemeCategory
 {
-	//! \brief 无：非字面量。
-	None,
+	//! \brief 符号：非字面量。
+	Symbol,
 	//! \brief 代码字面量。
 	Code,
 	//! \brief 数据字面量。
 	Data,
-	/*!
-	\brief 扩展字面量：由派生实现定义的其它字面量。
-	\since build 737
-	*/
+	//! \brief 扩展字面量：由 NPLA 定义的其它字面量类别。
 	Extended
 };
 
 
+//! \sa LexemeCategory
+//@{
 /*!
-\brief 对字面量分类。
 \pre 断言：字符串参数的数据指针非空。
 \return 判断的非扩展字面量分类。
-\note 扩展字面量视为非字面量。
-\sa LiteralCategory
 */
-YF_API LiteralCategory
-CategorizeLiteral(string_view);
+//@{
+/*!
+\brief 对排除扩展字面量的词素分类。
+\note 扩展字面量视为非字面量。
+*/
+YF_API LexemeCategory
+CategorizeBasicLexeme(string_view) ynothrowv;
+
+/*!
+\brief 对词素分类。
+\sa CategorizeBasicLexeme
+*/
+YF_API LexemeCategory
+CategorizeLexeme(string_view) ynothrowv;
+//@}
+
+//! \brief 判断字符是否为 NPLA 扩展字面量前缀。
+yconstfn PDefH(bool, IsNPLAExtendedLiteralPrefix, char c) ynothrow
+	ImplRet(c == '#'|| c == '+' || c == '-')
+
+/*!
+\brief 判断词素是否为 NPLA 符号。
+\pre 断言：字符串参数的数据指针非空。
+*/
+inline PDefH(bool, IsNPLASymbol, string_view id) ynothrowv
+	ImplRet(CategorizeLexeme(id) == LexemeCategory::Symbol)
+//@}
 //@}
 
 
@@ -660,13 +684,13 @@ FetchValuePtr(const ContextNode& ctx, const _tKey& name)
 
 
 /*!
-\brief 访问项的值作为名称。
-\return 通过访问项的值取得的名称，或空指针表示无法取得名称。
+\brief 访问项的值作为记号。
+\return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
 \sa TokenValue
 \since build 732
 */
 YF_API observer_ptr<const string>
-TermToName(const TermNode&);
+TermToNamePtr(const TermNode&);
 
 
 //! \since build 753
