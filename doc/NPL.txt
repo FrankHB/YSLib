@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r1913
+\version r1939
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2017-02-24 22:52 +0800
+	2017-03-01 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -786,9 +786,11 @@ NPL::ContextHandler 以 TermNode 和 ContextNode 作为输入，实现一般的�
 NPL::LiteralHandler 以不可修改的 ContextNode 作为输入，用于和当前被规约的特定项无关的事件，典型地用于处理字面量引发特定的事件。
 NPL::RegisterContextHandler 和 NPL::RegisterLiteralHandler 用于设置 ContextNode 子节点为对应的处理器。
 
-@5.4.1.3 字面量支持：
-NPL::LiteralCategory 表示 NPLA 支持的字面量类别。
-NPL::CategorizeLiteral 对字面量分类。
+@5.4.1.3 记号类别支持：
+NPL::LexemeCategory 表示 NPLA 支持的词素(@5.3.3.5.1) 类别。
+NPL::CategorizeBasicLexeme 和 NPL::CategorizeLexeme 对词素分类。两者的区别在于是否把扩展字面量视为符号(@5.3.3.5.1) 。
+NPL::IsNPLAExtendedLiteralPrefix 判断字符是否为 @5.2 约定的扩展字面量前缀。
+NPL::IsNPLASymbol 判断字符串是否为 NPLA 支持的符号。
 
 @5.4.1.4 记号值：
 基本概念参见 @5.3.3.5.1 。
@@ -871,8 +873,8 @@ NPL::CheckNorm(@5.4.2.2) 通过范式节点结构提取规约结果，是这种�
 @5.4.2.3.3 正规表示分类：
 基于规约表示基本性质(@5.4.2.3.1) ，不需要单独判断正规表示。
 基于正规化操作规则(@5.4.2.3.2) ，通过以下逻辑对作为表示(@5.3.3.4) 的 TermNode 分类：
-空节点表示空列表；
 具有非空子项的 TermNode 表示非空列表；
+空节点表示空列表；
 其它 TermNode 当 Value 数据成员不是特定的值时，表示非列表表达式的值。
 注意 Value 数据成员为特定的值（如中间值(@5.3.3.5) ）的没有子项的 TermNode 不是任何表达式的表示。
 
@@ -988,11 +990,27 @@ A1::Reduce 定义节点次级结构分类(@5.4.1.1) 指定的规约迭代顺序�
 @6.1.4 遍：
 基于 NPLA 公共实现， NPLA1 使用以下的供迭代的遍(@5.4.3) ：
 守护遍(guard pass) ，类型是一个 GuardPasses(@5.4.3.3) ，用于提供调试回调等。
-叶遍(leaf pass) ，类型是一个 EvaluationPass(@5.4.3.2) ，用于实现叶节点(@5.4.1.1) 对应表达式的求值。
-列表遍(list pass) ，类型是一个 EvaluationPass ，用于实现列表节点对应表达式的求值。
-NPLA1 可配置的遍保存在 ContextNode 中。
-通过 A1::AccessGuardPassesRef 、 A1::AccessLeafPassesRef 和 A1::AccessListPassesRef 从 ContextNode 的指定子节点中取遍的引用。
-通过基于 NPL::InvokePass 的 A1::InvokeGuard 、 A1::InvokeLeaf 和 A1::InvokeList 以 ContextNode 的指定子节点内容作为遍并调用。
+叶遍(leaf pass) ，类型是一个 EvaluationPasses(@5.4.3.2) ，用于实现叶节点(@5.4.1.1) 对应表达式的求值。
+列表遍(list pass) ，类型是一个 EvaluationPasses ，用于实现列表节点对应表达式的求值。
+字面量遍(literal pass) ，类型是附加 string_view 参数的 EvaluationPasses ，用于在列表遍的处理器内部调用，处理不同类型的字面量。
+NPLA1 可配置的遍保存在 ContextNode 中，其名称为保留标识符(@5.5.1) 。
+字面量遍的处理器应翻译可接受的字面量，返回结果为 ReductionStatus::Clean ；否则，返回 ReductionStatus::Retrying 。后者包括标识符是符号(@5.3.3.5.1) 的情形。
+
+@6.1.4.1 遍访问器(accessor) ：
+通过以下 API 从 ContextNode 的指定子节点中取遍的可修改的引用：
+A1::AccessGuardPassesRef 访问守护遍。
+A1::AccessLeafPassesRef 访问叶遍。
+A1::AccessListPassesRef 访问列表遍。
+A1::AccessLiteralPassesRef 访问字面量遍。
+
+@6.1.4.2 调用：
+通过以下基于 NPL::InvokePass(@5.4.3.4) 的 API 以 ContextNode 的指定子节点内容作为遍并调用：
+A1::InvokeGuard 调用守护遍。
+A1::InvokeLeaf 调用叶遍。
+A1::InvokeList 调用列表遍。
+A1::InvokeLiteral 调用字面量遍。
+
+@6.1.4.3 遍规约约定：
 A1::Reduce(@6.1.2) 满足迭代顺序(@6.1.3) 提供的保证优先检查子节点数，列表遍仅用于子节点数大于 1 的非叶节点(@5.4.1.1) 求值。
 这个特性允许在确定被求值的子项添加匹配的括号而不改变语义，且在列表遍中可简化子项求值（如 @6.4.5 直接 ReduceContextFirst(@6.4.5.1) 而不需检查节点数量是否大于 1 ）。
 一般列表遍不依赖以上假设，可能对叶节点或具有一个节点的平凡列表节点对应的表达式求值。因此列表遍不是枝节点(@5.4.1.1) 遍。
@@ -1049,8 +1067,9 @@ A1::FormContextHandler 的数据成员 Check 指定调用包装处理器之前�
 检查不存在或通过检查后， A1::FormContextHandler::operator() 调用被包装的处理器 Handler 数据成员，并处理部分异常。
 Check 默认指定 IsBranch 作为调用的前置条件；也可以指定其它谓词。
 为易于复用处理器逻辑，利用合适的检查例程保证调用的处理器的前置条件，而不依赖特定规约实现调用时使用对项的结构（如项的分类(@5.4.1.1) 或子项数）等形式的假设。
-一般仍然需要 IsBranch 作为 Check ，即使它们在 A1::Reduce(@6.1.2) 仅被作为枝节点处理器。这样，对其它规约实现也可以安全地复用。
+一般仍然需要 IsBranch 或 Forms::RetainN(@6.6.1) 等实现 Check ，即使这些处理器在使用主规约函数(@6.1.2) 时仅被作为枝节点处理器。这样，对不基于主规约函数的其它规约实现也可以安全地复用。
 被调用的处理器中内部也可以有检查，这和上下文处理器中的项检查互补。
+因为空参数列表的处理在上下文处理器内部进行(@6.4.1) ，在 Check 中空参数列表也会视为一个实际参数。为了避免错误，参数检查一般在被调用的处理器内部而不是 Check 中检查。
 若被调用的处理器自行检查前置条件，则项检查可以为空。项检查可不必在被包装的处理器中重复进行（可使用断言代替）。
 NPLA1 实现中，作为被调用的处理器（如 @6.6 中的 API ）中可能存在对参数数量的检查。这类检查中已对枝节点类别进行检查，即不需要指定 NPL::IsBranch 作为前置条件。
 

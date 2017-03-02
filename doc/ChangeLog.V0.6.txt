@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12084
+\version r12122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2016-12-23 23:28 +0800
+	2017-03-02 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -351,7 +351,7 @@ b695
 						~ "%uaccess")
 			)
 		),
-		/  @ %YSLib.UI.TreeView $=
+		/ @ %YSLib.UI.TreeView $=
 		(
 			/ @ "class %TreeList" $=
 			(
@@ -1137,7 +1137,7 @@ b688
 			%YFramework.NPL.SContext.
 	(
 	/ $dev $repo $re_add(b654) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.("%ysbuild.h" => "%YSBuild.h");
 	/ $forced "header inclusion" @ %(YReader.Shells, Tools.(ProjectGenerator,
 		RevisionPatcher, SHBuild, SXML2XML).Main, YDE.(Clock.Main,
@@ -2677,7 +2677,7 @@ b674
 				+ 'using YSLib::LoggedEvnet',
 				(
 				+ 'using TermNode = ValueNode;';
-				+ "2 functions %(MapToValueNode,MapToTermNode)",
+				+ "2 functions %(MapToValueNode, MapToTermNode)",
 				+ "aliases %(TNIter, TNCIter)",
 				/ "all %(Reduce, Analyze)" ^ "%TermNode" ~ "%ValueNode"
 				)
@@ -3042,7 +3042,7 @@ b672
 		/ "functor %lref_less" -> "%get_less" @ %Functional
 	),
 	/ $dev $repo $re_add(b654) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YSLib.UI.("%ywindow.cpp" => "%YWindow.cpp",
 		"%ypanel.cpp" => "%YPanel.cpp")
 ),
@@ -3737,7 +3737,7 @@ b667
 					"all 2 functions %operator(/=; %=)"));
 				- 'mutable' @ "%Value, container data member"
 				),
-				* $re_add(b662) DD "missing '!'" @ "end of '/*'"
+				* $re_add(b661) DD "missing '!'" @ "end of '/*'"
 					@ "multiline Doxygen comments"
 					@ ("%operator=" $since b502, "%swap" $since b501)
 			),
@@ -4179,7 +4179,7 @@ b664
 				// To eliminate warning: [-Wunneeded-internal-declaration]. \
 					This seems to be a bug.
 		),
-		+ "'$EXESFX' at end of output file name" @ "%test.sh"
+		+ "'$EXESFX' at end of output filename" @ "%test.sh"
 			// This makes Clang++ also produce '.exe' file on MinGW like G++.
 	)
 ),
@@ -4406,7 +4406,7 @@ b661
 			(
 			- "functor %deref_comp" $dep_from
 				("%FontCache::FaceMap" @ %YFramework.YSLib.Adaptor.Font);
-			* $comp DD "missing '!'" @ "end of '/*'"
+			* $comp $re_add(b644)  DD "missing '!'" @ "end of '/*'"
 				@ "multiline Doxygen comments" @ "%deref_comp::operator()"
 				$orig (@ %Utilities $since b315)
 			)
@@ -5672,7 +5672,7 @@ b654
 		@ "all exception classes" $effective @ ("class %ystdex::bad_any_cast"
 		@ %YBase.YStandardEx.Any),
 	/ $dev $repo $re_add(b650) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YSLib.Core.("%yshell.cpp" => "%YShell.cpp")
 ),
 
@@ -6275,7 +6275,7 @@ b650
 			^ "%(ystdex::bind1, SetContainerPtrOf)" ~ "%ContainerSetter"
 	),
 	/ $dev $repo $re_add(b641) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YSLib.UI.("%ywindow.h" => "%YWindow.h")
 ),
 
@@ -6414,7 +6414,7 @@ b649
 	+ "2 test cases" @ %Test.YBase ^ $dep_from "%constfn_addressof"
 		@ %YBase.YStandardEx.Memory),
 	/ $dev $repo $re_add(b641) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %Tools.CreationTimeManager.("%main.cpp" => "%Main.cpp")
 ),
 
@@ -7280,7 +7280,7 @@ b641
 		"constructor %TextRenderer#2" $since b265) @ %TextRenderer)
 		@ %YSLib.Service) @ %YFramework,
 	/ $dev $repo $re_add(b640) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.CHRLib.("%chrdef.h" => "%CharacterDefinition.h")
 ),
 
@@ -7432,7 +7432,7 @@ b640
 			@ %'Helper_(DS)'.Shell_DS
 	),
 	/ $dev $repo $re_add(b633) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.'Helper_(DS)'.Shell_DS.("shlds.h" => "Shell_DS.h",
 		"%shlds.cpp" => "%Shell_DS.cpp")
 ),
@@ -7684,7 +7684,7 @@ b638
 			),
 			/ %FileSystem $=
 			(
-				/ @ "%function %platform::FAT::CheckColon" @  $=
+				/ @ "%function %platform::FAT::CheckColon" @ $=
 				(
 					* $re(b637) "wrong exception-specification" $since b610
 						$= (- 'ythrow(std::system_error)'),
@@ -7798,7 +7798,7 @@ b637
 		/ DLDI %'YCLib_(DS)'.DSIO $=
 		(
 			/ "simplified member function %SectorCache::Flush"
-				@  ^ "%std::(all_of, bind)",
+				@ ^ "%std::(all_of, bind)",
 			/ $forced $dep_from %YBase.YStandardEx.Exception
 		),
 		/ %'YCLib_(Win32)'.MinGW32 $=
@@ -8128,7 +8128,7 @@ b633
 	/ $re(b386) $dev $doc $term "all" ('标量' -> '纯量') $effective
 		@ %(YFramework.YSLib.Core.YCoreUtilities, Documentation.Designation);
 	/ $dev $repo $re_add(b611) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YCommon.("%ycommon.cpp" => "%YCommon.cpp")
 ),
 
@@ -8139,7 +8139,7 @@ b632
 		/ "fetching time" @ %FileIO $=
 		(
 			/ DLDI "merged fetching by file descriptor and paths",
-			- "file name" @ "exception message" @ "platform %Win32",
+			- "filename" @ "exception message" @ "platform %Win32",
 			/ DLDI "simplified standard library implementation \
 				feature-dependent declarations" $=
 			(
@@ -8170,7 +8170,7 @@ b632
 				// %FILE_ATTRIBUTE_DEVICE is reserved, thus should not be \
 					used. See https://msdn.microsoft.com/zh-cn/library/windows/desktop/gg258117(v=vs.85).aspx.
 		),
-		* $re_add(b630) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+		* $re_add(b631) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
 			comments" @ ("functions 'u*'" $orig (@ %FileSystem $since b476),
 			"functions 'omode_conv*'" $since b617, ("%(FullWrite, GetSize)"
 			$since b624, "'Get*Time'" $since b628) @ "member functions"
@@ -8179,7 +8179,7 @@ b632
 	/ %MinGW32 $=
 	(
 		* "missing 'const'" @ "parameter" @ "function %ConvertTime" $since b544,
-		* $re_add(b630) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
+		* $re_add(b631) DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
 			comments" @ "class %DirectoryFindData" $since b549,
 		(
 		+ "enum %FileAttributesAndFlags";
@@ -8228,7 +8228,7 @@ b631
 			(
 				/ DLDI "member function %Partition::GetLabelString"
 					^ "%ystdex::replace_cast" ~ 'reinterpret_cast',
-				* $doc "missing '!'" @ "end of '/*'"
+				* $re_add(b630) DD "missing '!'" @ "end of '/*'"
 					@ "multiline Doxygen comments" @ "class %Disc" $since b604,
 				/ DLDI "function %Mount" ^ "%ystdex::aligned_store_cast"
 					~ 'reinterpret_cast'
@@ -8238,8 +8238,8 @@ b631
 		),
 		/ @ "class template %COMPtr" @ %'YCLib_(MinGW32)'.COM $=
 		(
-			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				$since b412,
+			* $re_add(b630) DD "missing '!'" @ "end of '/*'"
+				@ "multiline Doxygen comments" $since b412,
 			/ DLDI "all 4 'REFIID'" -> 'const ::IID&',
 			/ DLDI "all 5 'reinterpret_cast'" -> 'ystdex::replace_cast'
 			 // This should work for casting to 'void**'.
@@ -8365,9 +8365,9 @@ b630
 		(
 			/ DLDI "simplified %enable_if_t argument" @ "2 constructor template"
 				@ "class template %fixed_point",
-			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				@ "function templates %(round_in_nocheck, round_in)" @ %Rational
-				$since b588
+			* $re_add(b586) DD "missing '!'" @ "end of '/*'"
+				@ "multiline Doxygen comments" @ "function templates \
+				%(round_in_nocheck, round_in)" @ %Rational $since b588
 		),
 		/ %TypeOperation $=
 		(
@@ -8401,8 +8401,8 @@ b630
 			@ %YBase.YStandardEx.TypeOperation),
 		/ %TypePun $=
 		(
-			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				@ "class template %pod_storage" $since b629
+			* $re_add(b586) DD "missing '!'" @ "end of '/*'" @ "multiline \
+				Doxygen comments" @ "class template %pod_storage" $since b629
 				$orig (@ "union %any_pod_t" @ %Utilities $since b247)
 			+ "transformation trait %pun_storage_t",
 			* "missing constraining destination type"
@@ -8431,8 +8431,8 @@ b630
 		),
 		/ %Utilities $=
 		(
-			* $doc "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				@ "function template %exchange" $since b517,
+			* $re_add(b586) DD "missing '!'" @ "end of '/*'" @ "multiline \
+				Doxygen comments" @ "function template %exchange" $since b517,
 			/ "%function template %swap_underlying"
 				^ "aligned underlying storage" ~ "byte array type"
 				$= (/ $impl ^ $dep_from
@@ -8474,8 +8474,8 @@ b630
 				@ %YBase.YStandardEx.TypeOperation),
 			/ %Service.YGDI $=
 			(
-				* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen \
-					comments" @ "multiple declarations" $since b296,
+				* $re_add(b586) DD "missing '!'" @ "end of '/*'" @ "multiline \
+					Doxygen comments" @ "multiple declarations" $since b296,
 				+ $dev "static assertions to ensure %(CompactPixmap, \
 					CompactPixmapEx) meeting to %ystdex::is_nothrow_moveable"
 					// Because the type trait requires complete types, they \
@@ -8486,8 +8486,8 @@ b630
 		(
 			+ 'using ystdex::uchar_t;'
 				$dep_from ("%uchar_t" @ %YBase.YStandardEx.CString),
-			* DD "missing '!'" @ "end of '/*'" @ "multiline Doxygen comments"
-				@ "MBCS conversion functions" $since b544
+			* $re_add(b586) DD "missing '!'" @ "end of '/*'" @ "multiline \
+				Doxygen comments" @ "MBCS conversion functions" $since b544
 		),
 		/ $forced DLDI "desturctor %WindowRegionDeviceContext"
 			@ "platform %Win32" @ %HostedGUI $dep_from
@@ -8811,7 +8811,7 @@ b627
 	),
 	/$doc "updated Doxygen file" $=
 	(
-		^  $re(b500) "Doxygen 1.8.10" ~ "Doxygen 1.8.7",
+		^ $re(b500) "Doxygen 1.8.10" ~ "Doxygen 1.8.7",
 		/ "set %DOT_FONTNAME" -> 'Helvetica' ~ 'FreeSans.ttf',
 			// Now this is the default value.
 		/ "set %(DOT_MULTI_TARGETS, TEMPLATE_RELATIONS, HTML_DYNAMIC_SECTIONS)"
@@ -9275,7 +9275,7 @@ b623
 			)
 			/ @ "function template %wait_to_enqueue" @ "class %thread_pool" $=
 			(
-				/ $re_ex(b545) "reduced redundant 'return std::move'"
+				/ $re_add(b545) DLDI "reduced redundant 'return std::move'"
 					@ "return-statement",
 				* "wrongly ignored waiting call result" @ "function \
 					%wait_to_enqueue" $since b538 $dep_from "%task_pool"
@@ -10193,10 +10193,10 @@ b611
 				$dep_to "validating adding entry",
 			/ "threw %ENAMETOOLONG as %std::system_error for too long required \
 				name" $dep_to "path too long"
-				// Actually hard-coded FAT long file name length limit \
+				// Actually hard-coded FAT long filename length limit \
 					constant is used instead of %NAME_MAX. For DS, %NAME_MAX \
 					is 768, as same as the UTF-8 sequence length limit of the \
-					FAT long file name. This error would not occur before \
+					FAT long filename. This error would not occur before \
 					because libfat uses fixed-length entries and the bad paths \
 					would be truncated silently.
 		),
@@ -10357,7 +10357,7 @@ b611
 		@ %(YFramework.(NPL.NPLA1, YSLib.(Adaptor.YNew, UI.(Scroll,
 		YUIContainer))), YReader.(ShlReader, ShlExplorer)),
 	/ $dev $repo $re_add(b595) "all edited file with module name not the same \
-		as base file name" @ !%YBase ^ 'hg mv' $effective
+		as base filename" @ !%YBase ^ 'hg mv' $effective
 		@ %YFramework.YSLib.Adaptor.("%ynew.cpp" => "%YNew.cpp")
 ),
 

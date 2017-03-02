@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r967
+\version r981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-01-11 15:45 +0800
+	2017-02-28 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -363,8 +363,8 @@ ArityMismatch::ArityMismatch(size_t e, size_t r, RecordLevel lv)
 ImplDeDtor(ArityMismatch)
 
 
-LiteralCategory
-CategorizeLiteral(string_view sv)
+LexemeCategory
+CategorizeBasicLexeme(string_view sv) ynothrowv
 {
 	YAssertNonnull(sv.data());
 	if(!sv.empty())
@@ -372,16 +372,26 @@ CategorizeLiteral(string_view sv)
 		const auto c(CheckLiteral(sv));
 
 		if(c == '\'')
-			return LiteralCategory::Code;
+			return LexemeCategory::Code;
 		if(c != char())
-			return LiteralCategory::Data;
+			return LexemeCategory::Data;
 	}
-	return LiteralCategory::None;
+	return LexemeCategory::Symbol;
+}
+
+LexemeCategory
+CategorizeLexeme(string_view sv) ynothrowv
+{
+	const auto res(CategorizeBasicLexeme(sv));
+
+	return res == LexemeCategory::Symbol && sv.size() > 1
+		&& IsNPLAExtendedLiteralPrefix(sv.front()) ? LexemeCategory::Extended
+		: res;
 }
 
 
 observer_ptr<const string>
-TermToName(const TermNode& term)
+TermToNamePtr(const TermNode& term)
 {
 	return AccessPtr<TokenValue>(term);
 }

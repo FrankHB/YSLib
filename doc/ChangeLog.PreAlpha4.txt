@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9230
+\version r9240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2016-12-07 14:27 +0800
+	2017-03-02 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1995,7 +1995,7 @@ b474
 		* $dev $build "warning MSB8027 caused by generated object from source \
 			files with same name in different directories" @ "all Microsoft VC++ \
 			projects with platform configuration 'Win32'" $since b473
-			$= (/ "object file name" @ "output files" @ "C/C++ options"
+			$= (/ "object filename" @ "output files" @ "C/C++ options"
 				-> '$(IntDir)/%(RelativeDir)/' ~ '$(IntDir)'),
 		/ "return type" @ "function templates %(ltrim, rtrim, trim)"
 			@ %YBase.YStandardEx.String -> '_tString' ~ '_tString&';
@@ -2172,7 +2172,7 @@ b471
 
 b470
 (
-	/ DLD "reduced redundant 'return std::move' usage" @ "return-statement"
+	/ DLDI "reduced redundant 'return std::move' usage" @ "return-statement"
 		$effective @ %(YBase.YStandardEx.(Iterator, Path, String, Container),
 		YFramework.(CHRLib.CharacterProcessing, NPL.(SContext, Configuration,
 		Lexical), 'YCLib_(MinGW32)'.(COM, MinGW32), YSLib.(Adaptor.Image,
@@ -2501,7 +2501,7 @@ b462
 		/ %YModules $=
 		(
 			* "wrong macro for text interface of %Service" $since b461,
-			* "wrong file name" @ "%YFM_YSLib_Core_YFunc" $since b461
+			* "wrong filename" @ "%YFM_YSLib_Core_YFunc" $since b461
 		);
 		+ %(CHRLib, YCLib.YSLib.Adaptor, YSLib.Core, YSLib.Service, YSLib.UI,
 			NPL, Helper).YModules;
@@ -3665,7 +3665,7 @@ b447
 			// Missed: $since b434.
 		/ %YSLib.Core.YEvent $dep_from "%ystdex::make_expanded" $=
 		(
-			+ "constructor support for expandable callable object as \
+			+ "constructor support for expandable callable types as \
 				initailizer" @ "%GHEvent";
 			+ $comp "support for expandable callable types" @ "%GEvent"
 		);
@@ -4030,7 +4030,7 @@ b441
 			(
 				/ %Image $=
 				(
-					* "buffer overflow" @ "loading UCS-2 file name"
+					* "buffer overflow" @ "loading UCS-2 filename"
 						@ "class %HBitmap" @ %Image $since b431
 						// Overflow would happen when conversion from UCS-2 \
 							string to ANSI for extension check.
@@ -4091,7 +4091,7 @@ b440
 		),
 		/ %TypeOperation $=
 		(
-			+ $dev "alias-declarations %(remove_const_t, remove_volatile_t, \
+			+ "alias-declarations %(remove_const_t, remove_volatile_t, \
 				remove_cv_t, add_const_t, add_volatile_t, add_cv_t, \
 				remove_reference_t, add_lvalue_reference_t, \
 				add_rvalue_reference_t, make_signed_t, make_unsigned_t, \
@@ -4650,9 +4650,9 @@ b431
 		(
 			/ @ "class %HBitmap" @ %Adaptor.Image $=
 			(
-				+ "constructor with file name and specified image format",
-				+ "constructor for different types of file names",
-				/ "char-based file names with UTF-8 support" @ "constructors"
+				+ "constructor with filename and specified image format",
+				+ "constructor for different types of filenames",
+				/ "char-based filenames with UTF-8 support" @ "constructors"
 			),
 			/ %UI.Console $=
 			(
