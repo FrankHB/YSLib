@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r422
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-02-27 18:21 +0800
+	2017-03-05 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			const char f(id.front());
 
 			// NOTE: Handling extended literals.
-			if(IsNPLAExtendedLiteralPrefix(f) && id.size() > 1)
+			if(IsNPLAExtendedLiteralNonDigitPrefix(f) && id.size() > 1)
 			{
 				// TODO: Support numeric literal evaluation passes.
 				if(id == "#t" || id == "#true")

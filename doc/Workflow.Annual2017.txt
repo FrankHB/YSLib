@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r161
+\version r187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-03-01 20:11 +0800
+	2017-03-03 11:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,6 +161,32 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 				The notation '...' is used to capture a list.
 					Since it can only occur once, there is no need to name it with specific symbol specified by users.
 					For simplicity, name parameter like context parameter in the '$vau' operative is not provided.
+Changes in libfat 1.1.0 (distributed by devkitPro r46) are reviewed.
+	In summary, no changes except one minor are to be ported.
+	Change https://github.com/devkitPro/libfat/commit/abde1cb73b585ac5fc76b8d4d5d598ad6841597d is not applicable.
+		There is no separated install script.
+	Change https://github.com/devkitPro/libfat/commit/73ccaec8154e2a12fd8995514e10 is not applicable.
+		Since 'NAME_MAX' was used instead of 'MAX_FILENAME_LENGTH' at beginning in the module YCLib::DSIO.
+	No changes in https://github.com/devkitPro/libfat/pull/9 has to be ported.
+		These changes were merged in https://github.com/devkitPro/libfat/commit/d4926573ac184656146f39749192372b3b7388b0.
+		No change has to be ported as https://github.com/devkitPro/libfat/commit/d59c7c8b35fedc2b247afee56d91c2a44101253d.
+			Since 'platform::LFN::ValidateName' had done it right since build 657, originated from 'DEntry::AddTo' since build 611.
+		No change has to be ported as https://github.com/devkitPro/libfat/commit/3fde6ce161db5293a302ef5b839483065526c3b5.
+			The change is questionable on POSIX conformance.
+				See https://github.com/devkitPro/libfat/issues/10.
+				The original is conforming.
+			Member function 'platform_ex::FAT::Partition::Unlink' followed the original implementation.
+		No change has to be ported as https://github.com/devkitPro/libfat/commit/b7c4d38b320b8da0c9e318dbbdc2cc0ad966a93b.
+			The change is still conforming to POSIX, but unnecessary for conformance.
+			The change reduced QoI since it made client code less probable to detect the error.
+	Change https://github.com/devkitPro/libfat/commit/9e2f91dee6c27e797bb510320bb359cce11c1015 is delayed to be evaluated.
+		The change on type of internal file descriptor may be required by new toolchain in devkitPro r46.
+			However, it is not planned to be updated immediately.
+	Change https://github.com/devkitPro/libfat/commit/78ca2bd297f59b617fb1d0241e9f32393aa9f1ca is not applicable.
+		The '-ffunction-sections -fdata-sections' has been used on whole YFramework compliation for years.
+	Change https://github.com/devkitPro/libfat/commit/b7450524b18118df693870f64242cabf5d62234b is to be ported.
+		It may be better delayed, waiting for '::isDSiMode' brought by libnds 1.6.2.
+		However, it is trivial, so the port is done directly using interal '::__dsimode' currently.
 
 ////
 
