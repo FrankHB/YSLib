@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6051
+\version r6108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-02 18:45 +0800
+	2017-03-05 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "exception class %ParameterMismatch",
+				/ "functions %(CategorizeBasicLexeme; CategorizeLexeme) assert \
+					for non-null string input",
+				(
+				* "function %IsNPLAExtendedLiteralPrefix missing digit prefix"
+					$since b770 $=
+				(
+					+ "%IsNPLAExtendedLiteralNonDigitPrefix";
+					/ $impl "function %IsNPLAExtendedLiteralPrefix"
+				);
+				+ "function %IsNPLAExtendedLiteral";
+				* "accepted numeric literals as symbols"
+					@ ("function %CategorizeLexeme";
+					$comp "function %IsNPLASymbol)" $since b770
+				)
+			),
+			/ @ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ "vau hanlder" $=
+					(
+						/ $term "error message" ^ 'composition' ~ 'application',
+						(
+						/ "delayed formal parameters check to composition";
+						/ "suppored parameter tree" ~ "parameter list"
+							$dep_from ("%IsNPLASymbol" @ %NPLA) $=
+						(
+							+ "recursive list support",
+							+ "empty list of support",
+							+ "'#ignore' support"
+						);
+						* $comp "accepted non-symbol parameter" $since b770
+						)
+					),
+					/ @ "function %DefineOrSetFor" $=
+					(
+						* "missing empty string check" $since b735,
+						/ "exception message perserved token"
+					)
+				)
+			)
+		),
+		/ "avoided to initialize DSi SD device 'sd' when detected DSi mode"
+			@ "constuctor %platform_ex::FileSystem" @ "platform %DS"
+			@ %YCLib.NativeAPI
+			// See $2017-03 @ %Documentation::Workflow::Annual2017.
+	)
+),
+
+b770
 (
 	/ %YFramework.NPL $=
 	(

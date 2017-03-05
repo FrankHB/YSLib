@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1390
+\version r1420
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-02-28 14:19 +0800
+	2017-03-05 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -441,6 +441,21 @@ public:
 
 
 /*!
+\brief 参数匹配失败。
+\since build 771
+*/
+class YF_API ParameterMismatch : public InvalidSyntax
+{
+public:
+	using InvalidSyntax::InvalidSyntax;
+	DefDeCtor(ParameterMismatch)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~ParameterMismatch() override;
+};
+
+
+/*!
 \brief 标识符错误。
 \since build 726
 */
@@ -579,7 +594,7 @@ enum class LexemeCategory
 //! \sa LexemeCategory
 //@{
 /*!
-\pre 断言：字符串参数的数据指针非空。
+\pre 断言：字符串参数的数据指针非空且字符串非空。
 \return 判断的非扩展字面量分类。
 */
 //@{
@@ -598,13 +613,29 @@ YF_API LexemeCategory
 CategorizeLexeme(string_view) ynothrowv;
 //@}
 
-//! \brief 判断字符是否为 NPLA 扩展字面量前缀。
-yconstfn PDefH(bool, IsNPLAExtendedLiteralPrefix, char c) ynothrow
+/*!
+\brief 判断不是非扩展字面量的词素是否为 NPLA 扩展字面量。
+\pre 断言：字符串参数的数据指针非空且字符串非空。
+\pre 词素不是代码字面量或数据字面量。
+\since build 771
+*/
+YF_API bool
+IsNPLAExtendedLiteral(string_view) ynothrowv;
+
+/*!
+\brief 判断字符是否为 NPLA 扩展字面量非数字前缀。
+\since build 771
+*/
+yconstfn PDefH(bool, IsNPLAExtendedLiteralNonDigitPrefix, char c) ynothrow
 	ImplRet(c == '#'|| c == '+' || c == '-')
+
+//! \brief 判断字符是否为 NPLA 扩展字面量前缀。
+inline PDefH(bool, IsNPLAExtendedLiteralPrefix, char c) ynothrow
+	ImplRet(std::isdigit(c) || IsNPLAExtendedLiteralNonDigitPrefix(c))
 
 /*!
 \brief 判断词素是否为 NPLA 符号。
-\pre 断言：字符串参数的数据指针非空。
+\pre 间接断言：字符串参数的数据指针非空且字符串非空。
 */
 inline PDefH(bool, IsNPLASymbol, string_view id) ynothrowv
 	ImplRet(CategorizeLexeme(id) == LexemeCategory::Symbol)

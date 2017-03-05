@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1049
+\version r1057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2016-08-29 15:26 +0800
+	2017-03-03 11:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,10 +32,14 @@
 #endif
 #if YCL_DS
 #	include YFM_DS_YCLib_DSIO // for ::DISC_INTERFACE, Disc,
-//	platform_ex::FAT::Mount;
-#	include <arm9/dldi.h> // for ::_io_dldi_stub;
+//	platform_ex::FAT::Mount, ::__io_dsisd;
+#	include <arm9/dldi.h> // for ::DLDI_INTERFACE;
+//#	include <nds/system.h> // for ::isDSiMode;
 
 
+// XXX: This may be better with %::isDSiMode in libfat 1.6.2.
+//! \since build 771
+extern "C" bool __dsimode;
 //! \since build 602
 extern "C" ::DLDI_INTERFACE _io_dldi_stub;
 #elif YCL_MinGW
@@ -120,7 +124,7 @@ FileSystem::FileSystem(size_t pages)
 			return {};
 		});
 
-		if(init("sd", ::__io_dsisd))
+		if(::__dsimode && init("sd", ::__io_dsisd))
 			return RootKind::SD;
 		// NOTE: As %::dldiGetInternal.
 		if((::_io_dldi_stub.ioInterface.features

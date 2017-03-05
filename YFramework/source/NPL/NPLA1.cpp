@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2670
+\version r2830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-02 18:37 +0800
+	2017-03-05 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -224,30 +224,10 @@ EqualTerm(TermNode& term, _func f)
 
 
 //! \since build 769
-//@{
 void
-BindParameters(TermNode& term, ContextNode& app_ctx,
-	const vector<string>& params)
+BindStaticContext(ContextNode& comp_ctx, const ContextNode& ctx)
 {
-	auto i(std::next(term.begin()));
-
-	for(const auto& param : params)
-	{
-		// NOTE: The operands should have been evaluated if this is
-		//	in a lambda. Children nodes in arguments retained are
-		//	also transferred.
-		// XXX: Moved.
-		app_ctx.emplace(std::move(i->GetContainerRef()), param,
-			std::move(i->Value));
-		++i;
-	}
-	YAssert(i == term.end(), "Invalid state found on passing arguments.");
-}
-
-void
-BindStaticContext(ContextNode& app_ctx, const ContextNode& ctx)
-{
-	auto& con(app_ctx.GetContainerRef());
+	auto& con(comp_ctx.GetContainerRef());
 
 	// NOTE: Silently failed for hidden names.
 	for(const auto& b : ctx)
@@ -271,36 +251,75 @@ BindStaticContext(ContextNode& app_ctx, const ContextNode& ctx)
 				IValueHolder::Move), k, b.Value.MakeIndirect());
 		}, con, k);
 	}
-//	app_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
+//	comp_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
 }
 
-shared_ptr<vector<string>>
-ExtractParameters(const TermNode::Container& con, const string& eformal)
+//! \since build 771
+void
+MatchParameterTerm(set<string_view>& s, const TermNode& t, TermNode& o,
+	ContextNode& e)
 {
-	YTraceDe(Debug, "Found lambda abstraction form with %zu"
-		" parameter(s) to be bound.", con.size());
-
-	// TODO: Blocked. Use C++14 lambda initializers to reduce
-	//	initialization cost by directly moving.
-	auto p_params(make_shared<vector<string>>());
-	set<string_view> svs{eformal};
-
-	// TODO: Simplify?
-	std::for_each(con.begin(), con.end(), [&](decltype(*con.begin()) pv){
-		const auto& name(Access<TokenValue>(pv));
-
-		if(IsNPLASymbol(name))
+	if(IsBranch(t))
+	{
+		if(IsBranch(o))
 		{
-			if(svs.insert(name).second)
-				p_params->push_back(name);
+			const auto n_p(t.size());
+			const auto n_o(o.size());
+
+			if(n_p == n_o)
+			{
+				auto i(o.begin());
+
+				for(auto& child : t)
+				{
+					if(i != o.end())
+						MatchParameterTerm(s, child, *i, e);
+					else
+						// FIXME: Redundant?
+						throw ParameterMismatch(
+							"Insufficient argument found for list parameter.");
+					++i;
+				}
+			}
 			else
-				throw InvalidSyntax(
-					sfmt("Duplicate parameter name '%s' found.", name.c_str()));
+				throw ArityMismatch(n_p, n_o);
 		}
 		else
-			throw InvalidSyntax("Symbol expected for formal parameter.");
-	});
-	return p_params;
+			throw ParameterMismatch(
+				"Invalid leaf argument found for non-empty list parameter.");
+	}
+	else if(!t.Value)
+	{
+		if(o)
+			throw ParameterMismatch(
+				"Invalid branch argument found for empty list parameter.");
+	}
+	else if(const auto p = AccessPtr<TokenValue>(t))
+	{
+		const auto& n(*p);
+
+		if(n != "#ignore")
+		{
+			if(!n.empty() && IsNPLASymbol(n))
+			{
+				if(s.insert(n).second)
+					// NOTE: The operands should have been evaluated if this is
+					//	in a lambda. Children nodes in arguments retained are
+					//	also transferred.
+					// XXX: Moved. This is like copy elision in object language.
+					e.emplace(std::move(o.GetContainerRef()), n,
+						std::move(o.Value));
+				else
+					throw InvalidSyntax(sfmt(
+						"Duplicate parameter name '%s' found.", n.c_str()));
+			}
+			else
+				throw ParameterMismatch(
+					"Invalid token found for symbol parameter.");
+		}
+	}
+	else
+		throw ParameterMismatch("Invalid parameter value found.");
 }
 
 
@@ -313,8 +332,11 @@ private:
 	\since build 769
 	*/
 	string eformal{};
-	//! \brief 参数列表。
-	shared_ptr<vector<string>> p_parameter_list;
+	/*!
+	\brief 形式参数对象。
+	\since build 771
+	*/
+	shared_ptr<TermNode> p_formals;
 	//! \brief 捕获静态上下文，包含引入抽象时的静态环境。
 	shared_ptr<ContextNode> p_context;
 	//! \brief 闭包对象。
@@ -323,7 +345,7 @@ private:
 public:
 	//! \since build 769
 	VauHandler(TermNode& term, ContextNode& ctx, bool ignore)
-		: p_parameter_list([&]{
+		: p_formals([&]{
 			using namespace Forms;
 
 			Retain(term);
@@ -331,11 +353,11 @@ public:
 			{
 				auto& con(term.GetContainerRef());
 				auto i(con.begin());
-				const auto& formals((++i)->GetContainer());
+				const auto& formals(Deref(++i));
 
 				if(!ignore)
 				{
-					auto& eterm(Deref(++i));
+					const auto& eterm(Deref(++i));
 
 					if(const auto p = TermToNamePtr(eterm))
 					{
@@ -351,11 +373,12 @@ public:
 					else
 						throw InvalidSyntax("Invalid context parameter found.");
 				}
-
-				auto p_params(ExtractParameters(formals, eformal));
+				YTraceDe(Debug, "Found lambda abstraction form with %zu"
+					" parameter(s) to be bound.", formals.size());
+				auto res(make_shared<TermNode>(std::move(formals)));
 
 				con.erase(con.cbegin(), ++i);
-				return p_params;
+				return res;
 			}
 			else
 				throw InvalidSyntax(
@@ -371,54 +394,48 @@ public:
 	ReductionStatus
 	operator()(TermNode& term) const
 	{
-		// FIXME: Cyclic reference to context handler when the term value
-		//	(i.e. the closure) is copied upward?
-		using namespace Forms;
-		const auto& params(Deref(p_parameter_list));
-		const auto n_params(params.size());
-		const auto n_terms(term.size());
-
-		YTraceDe(Debug, "Function called, with %ld shared term(s), %ld shared"
-			" context(s), %zu parameter(s).", p_closure.use_count(),
-			p_context.use_count(), n_params);
-		if(n_terms != 0)
+		if(!term.empty())
 		{
-			const auto n_args(n_terms - 1);
+			// FIXME: Cyclic reference to context handler when the term value
+			//	(i.e. the closure) is copied upward?
+			using namespace Forms;
+			const auto& formals(Deref(p_formals));
+			// NOTE: The 1st term may hold '*this' so it is wrong to simply
+			//	%RemoveHead, thus the operand has to be placed separatedly.
+			TermNode operand(NoContainer, term.GetName());
+			// NOTE: Active record frame with outer scope bindings.
+			// TODO: Optimize for performance.
+			// NOTE: This is probably better to be copy-on-write. Since
+			//	no immutable reference would be accessed before
+			//	mutation, no care is needed for reference invalidation.
+			// TODO: Optimize using initialization from iterator pair?
+			// XXX: Referencing escaped variables (now only parameters need
+			//	to be cared) form the context would cause undefined behavior
+			//	(e.g. returning a reference to automatic object in the host
+			//	language).
+			// TODO: Reduce such undefined behavior resonably?
+			ContextNode comp_ctx;
+			set<string_view> svs{eformal};
 
-			if(n_args == n_params)
-			{
-				// NOTE: Active record frame with outer scope bindings.
-				// TODO: Optimize for performance.
-				// NOTE: This is probably better to be copy-on-write. Since
-				//	no immutable reference would be accessed before
-				//	mutation, no care is needed for reference invalidation.
-				// TODO: Optimize using initialization from iterator pair?
-				// XXX: Referencing escaped variables (now only parameters need
-				//	to be cared) form the context would cause undefined behavior
-				//	(e.g. returning a reference to automatic object in the host
-				//	language).
-				// TODO: Reduce such undefined behavior resonably?
-				ContextNode app_ctx;
-
-				// NOTE: Bind dynamic context.
-				if(!eformal.empty())
-					app_ctx.AddValue(eformal, ystdex::ref(app_ctx));
-				// NOTE: Introduce parameters as per lexical scoping rules.
-				BindParameters(term, app_ctx, params);
-				// NOTE: To avoid object owned by hidden names being
-				//	destroyed, this has to come later.
-				BindStaticContext(app_ctx, Deref(p_context));
-				// NOTE: Beta reduction.
-				// TODO: Implement accurate lifetime analysis rather than
-				//	'p_closure.unique()'.
-				ReduceCheckedClosure(term, app_ctx, {}, *p_closure);
-				return CheckNorm(term);
-			}
-			else
-				throw ArityMismatch(n_params, n_args);
+			std::for_each(std::next(term.begin()), term.end(),
+				[&](TermNode& tm){
+				operand.insert(std::move(tm));
+			});
+			MatchParameterTerm(svs, formals, operand, comp_ctx);
+			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
+				" shared context(s), %zu parameter(s).", p_closure.use_count(),
+				p_context.use_count(), formals.size());
+			// NOTE: To avoid object owned by hidden names being
+			//	destroyed, this has to come later.
+			BindStaticContext(comp_ctx, Deref(p_context));
+			// NOTE: Beta reduction.
+			// TODO: Implement accurate lifetime analysis rather than
+			//	'p_closure.unique()'.
+			ReduceCheckedClosure(term, comp_ctx, {}, *p_closure);
+			return CheckNorm(term);
 		}
 		else
-			throw LoggedEvent("Invalid application found.", Alert);
+			throw LoggedEvent("Invalid composition found.", Alert);
 	}
 };
 
@@ -526,17 +543,17 @@ void
 ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	TermNode& closure)
 {
-	TermNode app_term(NoContainer, term.GetName());
+	TermNode comp_term(NoContainer, term.GetName());
 
 	if(move)
-		LiftTerm(app_term, closure);
+		LiftTerm(comp_term, closure);
 	else
-		app_term.SetContent(closure);
+		comp_term.SetContent(closure);
 	// TODO: Test for normal form?
 	// XXX: Term reused.
-	ReduceChecked(app_term, ctx);
-	term.Value = app_term.Value.MakeMoveCopy();
-	term.GetContainerRef() = std::move(app_term.GetContainerRef());
+	ReduceChecked(comp_term, ctx);
+	term.Value = comp_term.Value.MakeMoveCopy();
+	term.GetContainerRef() = std::move(comp_term.GetContainerRef());
 }
 
 void
@@ -982,14 +999,14 @@ void
 DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
 	bool mod)
 {
-	if(IsNPLASymbol(id))
+	if(!id.empty() && IsNPLASymbol(id))
 		// XXX: Moved.
 		// NOTE: Unevaluated term is directly saved.
 		(define ? DefineValue : RedefineValue)
 			(ctx, id, std::move(term.Value), mod);
 	else
-		throw InvalidSyntax(define ? "Literal cannot be defined."
-			: "Literal cannot be set.");
+		throw InvalidSyntax(sfmt("Invalid token '%s' cannot be %s.", id.c_str(),
+			define ? "defined" : "set"));
 }
 
 ReductionStatus

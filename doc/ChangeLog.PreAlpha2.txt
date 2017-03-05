@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3779
+\version r3785
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2016-12-14 23:41 +0800
+	2017-03-05 13:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,7 +136,7 @@ b298
 				/ "key events response" @ "controls"
 				* $impl "class %ListBox" $since b261
 					$= (- "wrong assertion"),
-				/ DLD $impl @ "class %FileBox" $dep_from "file list interface",
+				/ DLDI @ "class %FileBox" $dep_from "file list interface",
 				+ "function %Reset" @ "class template %GSequenceViewer",
 				/ "default holding intervals"
 					// Key: (240ms, 120ms) -> (240ms, 60ms); \
@@ -535,7 +535,7 @@ b292
 	(
 		+ $impl @ "custom encoding switching UI",
 		/ "contiguous repeated bookmarks would not be inserted to reading list \
-		  when random locating",
+			when random locating",
 		+ "smooth scrolling mode",
 		+ "automatic scrolling duration settings"
 	),
@@ -1160,8 +1160,8 @@ b275
 					+ "function %Close for hiding and releasing focus"
 				)
 				* "missing thumb refreshing when invalidated area not \
-				  intersecting with thumb" @ "function %ATrack::Refresh"
-				  $since b235,
+					intersecting with thumb" @ "function %ATrack::Refresh"
+					$since b235,
 				* $impl "wrong position argument" @ "function %Button::Refresh"
 					$since b266
 			),
@@ -1763,7 +1763,7 @@ b249
 (
 	/ @ "library %CHRLib" $=
 	(
-		/ "encoding item names with MIB enums from IANA" @  $=
+		/ "encoding item names with MIB enums from IANA" @ $=
 		(
 			+ "more enum items",
 			/ "aliases"
