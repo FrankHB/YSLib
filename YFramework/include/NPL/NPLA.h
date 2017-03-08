@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1420
+\version r1442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-03-05 13:05 +0800
+	2017-03-05 13:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -456,6 +456,32 @@ public:
 
 
 /*!
+\brief 元数不匹配错误。
+\todo 支持范围匹配。
+*/
+class YF_API ArityMismatch : public ParameterMismatch
+{
+private:
+	size_t expected;
+	size_t received;
+
+public:
+	DefDeCtor(ArityMismatch)
+	/*!
+	\note 前两个参数表示期望和实际的元数。
+	\since build 726
+	*/
+	ArityMismatch(size_t, size_t, YSLib::RecordLevel = YSLib::Err);
+
+	//! \brief 虚析构：类定义外默认实现。
+	~ArityMismatch() override;
+
+	DefGetter(const ynothrow, size_t, Expected, expected)
+	DefGetter(const ynothrow, size_t, Received, received)
+};
+
+
+/*!
 \brief 标识符错误。
 \since build 726
 */
@@ -485,32 +511,6 @@ public:
 
 	DefGetter(const ynothrow, const string&, Identifier,
 		YSLib::Deref(p_identifier))
-};
-
-
-/*!
-\brief 元数不匹配错误。
-\todo 支持范围匹配。
-*/
-class YF_API ArityMismatch : public NPLException
-{
-private:
-	size_t expected;
-	size_t received;
-
-public:
-	DefDeCtor(ArityMismatch)
-	/*!
-	\note 前两个参数表示期望和实际的元数。
-	\since build 726
-	*/
-	ArityMismatch(size_t, size_t, YSLib::RecordLevel = YSLib::Err);
-
-	//! \brief 虚析构：类定义外默认实现。
-	~ArityMismatch() override;
-
-	DefGetter(const ynothrow, size_t, Expected, expected)
-	DefGetter(const ynothrow, size_t, Received, received)
 };
 //@}
 

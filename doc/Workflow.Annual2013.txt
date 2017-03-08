@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r289
+\version r292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2016-12-27 21:38 +0800
+	2017-03-08 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,9 +122,9 @@ Win32 hosted Window enumeration:
 	Results of enueration the desktop are often too large for usual application.
 G++ 4.8.1 wrongly accepted reopened namespace from non-line to inline. See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53402.
 For loading image from file system using FreeImage:
-	Non-ANSI file name for extension detection(i.e. for ::FreeImage_GetFIFFromFilename) is OK, because the extensions recognized are all ASCII representable.
+	Non-ANSI filename for extension detection(i.e. for ::FreeImage_GetFIFFromFilename) is OK, because the extensions recognized are all ASCII representable.
 	Unicode version of functions are invalid for non-Win32 platforms, so just do not use them.
-	Do not use ::FreeImage_Load if the encoding of file name used by ::fopen is not specified.
+	Do not use ::FreeImage_Load if the encoding of filename used by ::fopen is not specified.
 For %::NTSTATUS error 'STATUS_CONTROL_C_EXIT'(0xC000013A) on Windows, it is expected when console window closed or Ctrl+C pressed.
 Now focus would not be automatically released on widget destruction, allowing unspecified order of widget destruction being safly with no-op.
 Mutal exclusion locking overhead is significant(about 5x lag) in current implementation on MinGW32 for both 'YCLib' input and 'Helper' rendering.

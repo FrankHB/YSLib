@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1016
+\version r1020
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-12-28 16:30 +0800
+	2017-03-08 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,12 +65,12 @@ YBase 包括 YDefinition(@2.4) 、YStandardEx(@2.5) 、LibDefect(@2.6) 和 Test(
 实现可能访问外部库提供的外部状态。除非指定实现使用外部库（包括标准库）中明确定义的行为或另行约定，假定这些状态不被并发访问（如使用线程局部存储实现）。
 除非另行约定，所有不提供无异常抛出保证的公开接口不直接设置外部库提供的外部可见状态。此处直接指操作的唯一目的是设置状态的副作用，如对 errno 的赋值和 Win32 下调用 ::SetLastError ；另见 @3.6.4.1 。注意实现明确地间接调用公开接口仍然可能设置这些状态。
 不依赖异步安全性，不在任何实现中直接调用终止程序或对应注册回调的函数([Documenation::LanguageConvention @@6.3.4]) 。
-不降低性能时尽量保证可重入性。
+不降低性能时尽可能保证可重入性。
 除非文档说明，库的实现不直接使用 thread_local 或其它实现相关的线程局部存储机制。（注意某些实现如 MinGW 存在静态释放可能失败等缺陷。）
 
 @2.1.2 语言规范：
 遵守的具体标准规范及替代和扩展接口约定参见 https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
-尽量严格遵守 ISO C++ ，涉及未指定行为和实现定义的行为时应由文档说明。
+尽可能严格遵守 ISO C++ ，涉及未指定行为和实现定义的行为时应由文档说明。
 默认使用 ISO C++11 的一个严格子集，基本内容参见 [Documentation::ProjectRules @@1.2.1] ，不符合此规则的例外由本节指定或文档另行约定。
 允许在预处理指令中使用特定实现的宏检查支持的特性，作为进行非正式的变通。
 允许使用去除后不影响语义正确性和可观察行为的扩展。
@@ -414,7 +414,7 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 @2.6 LibDefect ：
 用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。
 和 YStandardEx 支持相同的语言标准。
-除非另行说明，支持基本实现环境最低版本，参见 [Documentation::Dependencies @@1] 。
+除非另行约定，支持基本实现环境最低版本，参见 [Documentation::Dependencies @@1] 。
 可能会因为更新而缺少兼容性，当前仅对最新环境进行测试。
 可支持 libstdc++ 以外的 C++ 实现，但未测试。
 
