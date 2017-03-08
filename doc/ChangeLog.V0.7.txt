@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6108
+\version r6162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-05 13:13 +0800
+	2017-03-08 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,54 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ "base class" @ "%ArityMismatch" -> "%ParameterMismatch"
+				~ "%NPLException" @ %NPLA,
+			/ @ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ "vau hanlder" $=
+					(
+						* $term "exception message" $mismatch(Documentation.NPL)
+							$since b771
+							$= (/ $re_add(b771) !^ "argument"),
+						* "missing binding environment" $since b771,
+						/ DLDI "simplified duplication symbol check" !^ "%set"
+					),
+					/ @ "function %DefineOrSetFor" $=
+					(
+						/ "1st parameter type 'const string&'" -> 'string_view',
+						+ "assertion to ensure non empty data pointer of 1st \
+							parameter"
+					),
+					(
+					/ "function %Eval" => "%EvaluateUnit";
+					+ "function %Eval"
+					)
+				),
+				/ "retained and evaluated head term" @ "function %ReduceOrdered"
+					// This is simpler. And all auxiliary reduction functions \
+						have no precondition about non-empty term now.
+					$= (/ $impl !^ "%RemoveHead"),
+				(
+				/ "moved handler and saved as automatic object before \
+					invocation" @ "function %ReduceContextFirst";
+				* $comp "invalid subterm operations to make handler being \
+					called invalid" $effective @ ("function %Reduce" $since
+					b, "functions %((Forms::(And, Or, If, Apply, Eval), \
+					ReduceOrdered), %Reduce)vau handler") $since b685
+				)
+			)
+		)
+	)
+),
+
+b771
 (
 	/ %YFramework $=
 	(
@@ -71,7 +119,10 @@ $now
 							+ "'#ignore' support"
 						);
 						* $comp "accepted non-symbol parameter" $since b770
-						)
+						),
+						* "wrong bound environment" $since b769
+							// The bound environment was local environment. It \
+								should denote the dynamic environment.
 					),
 					/ @ "function %DefineOrSetFor" $=
 					(
@@ -105,7 +156,7 @@ b770
 		/ "function %LoadNPLContextForSHBuild" @ %Dependency $=
 		(
 			/ "simplified" ^ $dep_from ("%IsNPLAExtendedLiteralPrefix" @ %NPLA),
-			* "extended literal handling"  $mismatch(Documentation.NPL) $since
+			* "extended literal handling" $mismatch(Documentation.NPL) $since
 				b758
 				$= (/ "threw %InvalidSyntax for unsupported literals"
 					@ "literal handler")

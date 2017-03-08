@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2624
+\version r2666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-02-27 17:43 +0800
+	2017-03-08 13:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -336,11 +336,11 @@ inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
 		: ReductionStatus::Clean)
 
 /*!
-\brief 规约有序序列：移除第一个子项，规约剩余子项，并替换值。
+\brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
 \sa RemoveHead
 \since build 764
 
-移除第一个子项并对剩余子项顺序求值。
+对子项顺序求值。
 当被求值后存在剩余子项时，表达式的值为最后一个子项的值。
 */
 YF_API ReductionStatus
@@ -721,13 +721,14 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 /*!
 \brief 规约上下文列表：检查项的第一个子项并尝试按上下文列表进行函数应用，并规范化。
 \return 规约状态。
-\throw ListReductionFailure 规约失败：枝节点的第一个子项不是上下文处理器。
+\throw ListReductionFailure 规约失败：枝节点的第一个子项不表示上下文处理器。
 \sa ContextHandler
 \sa Reduce
 \since build 766
 
-对枝节点以已规约的第一个子项为上下文处理器并调用，且当规约终止时规范化；
+对枝节点尝试以第一个子项的 Value 数据成员为上下文处理器并调用，且当规约终止时规范化；
 否则视为规约成功，没有其它作用。
+若发生调用，前先转移处理器保证生存期，以允许处理器内部移除之前占用的第一个子项。
 */
 YF_API ReductionStatus
 ReduceContextFirst(TermNode&, ContextNode&);
@@ -860,6 +861,29 @@ YF_API size_t
 RetainN(const TermNode&, size_t = 1);
 //@}
 
+
+/*!
+\brief 使用操作数结构化匹配并绑定参数。
+\throw ArityMismatch 子项数匹配失败。
+\throw InvalidSyntax 存在重复的叶节点表示的参数。
+\throw ParameterMismatch 匹配失败。
+\since build 722
+
+第一参数指定形式参数，第二参数指定操作数。
+形式参数和操作数为项指定的表达式树。
+绑定前需要进行结构化匹配检查。
+进行匹配的算递归搜索形式参数及其子项，匹配要求如下：
+若项是非空列表，则操作数的对应的项应为子项数相同的非空列表；
+若项是空列表，则操作数的对应的项应为空列表；
+若项是 #ignore ，则忽略操作数对应的项；
+若项的值是符号，则操作数的对应的项应为非列表项。
+若匹配失败，则抛出异常；否则，在第三参数指定的环境内绑定未被忽略的匹配的项：
+非空列表项的绑定为对应子项的绑定；
+空列表项的绑定为空操作；
+非列表项操作数直接绑定到名称为符号值的参数对应项。
+*/
+void
+BindParameter(const TermNode&, TermNode&, ContextNode&);
 
 /*!
 \brief 检查项中是否存在为修饰符的第二个子项，若存在则移除。
@@ -1123,12 +1147,14 @@ DefineOrSet(TermNode&, ContextNode&, bool);
 
 /*!
 \brief 定义或设置标识符的值为指定的项。
-\note 参数分别为标识符、被规约的项、上下文、使用定义以及是否存在修饰符。
+\pre 断言：字符串参数的数据指针非空。
 \throw InvalidSyntax 标识符是字面量。
+\note 参数分别为标识符、被规约的项、上下文、使用定义以及是否存在修饰符。
 \sa DefineValue
 \sa EvaluateIdentifier
 \sa IsNPLASymbol
 \sa RedefineValue
+\since build 772
 
 定义或设置参数指定的值：首先检查标识符不是字面量。
 排除可选项外，若第二子项是列表，
@@ -1136,7 +1162,7 @@ DefineOrSet(TermNode&, ContextNode&, bool);
 否则，直接定义值。
 */
 YF_API void
-DefineOrSetFor(const string&, TermNode&, ContextNode&, bool, bool);
+DefineOrSetFor(string_view, TermNode&, ContextNode&, bool, bool);
 //@}
 
 /*
@@ -1262,12 +1288,23 @@ YF_API void
 EqualValue(TermNode&);
 //@}
 
+//! \since build 772
+//@{
 /*!
-\brief 创建参数指定的 REPL 的副本并在其中对翻译单元规约以求值。
-\since build 745
+\brief 对指定项按指定的环境求值。
+
+以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。
+环境以 ContextNode 的引用表示。
+参考文法：
+eval <expression> <environment>
 */
+YF_API ReductionStatus
+Eval(TermNode&);
+
+//! \brief 创建参数指定的 REPL 的副本并在其中对翻译单元规约以求值。
 YF_API void
-Eval(TermNode&, const REPLContext&);
+EvaluateUnit(TermNode&, const REPLContext&);
+//@}
 
 /*!
 \brief 求值标识符得到指称的实体。

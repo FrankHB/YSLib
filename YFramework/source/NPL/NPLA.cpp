@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1004
+\version r1012
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-03-05 13:05 +0800
+	2017-03-07 13:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -347,6 +347,14 @@ ImplDeDtor(InvalidSyntax)
 ImplDeDtor(ParameterMismatch)
 
 
+ArityMismatch::ArityMismatch(size_t e, size_t r, RecordLevel lv)
+	: ParameterMismatch(
+	ystdex::sfmt("Arity mismatch: expected %zu, received %zu.", e, r), lv),
+	expected(e), received(r)
+{}
+ImplDeDtor(ArityMismatch)
+
+
 BadIdentifier::BadIdentifier(const char* id, size_t n, RecordLevel lv)
 	: NPLException(InitBadIdentifierExceptionString(id, n), lv),
 	p_identifier(make_shared<string>(id))
@@ -356,14 +364,6 @@ BadIdentifier::BadIdentifier(string_view id, size_t n, RecordLevel lv)
 	p_identifier(make_shared<string>(id))
 {}
 ImplDeDtor(BadIdentifier)
-
-
-ArityMismatch::ArityMismatch(size_t e, size_t r, RecordLevel lv)
-	: NPLException(ystdex::sfmt("Arity mismatch: expected %zu, received %zu.",
-	e, r), lv),
-	expected(e), received(r)
-{}
-ImplDeDtor(ArityMismatch)
 
 
 LexemeCategory

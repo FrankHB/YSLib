@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2830
+\version r2934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-05 13:08 +0800
+	2017-03-08 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,74 +254,6 @@ BindStaticContext(ContextNode& comp_ctx, const ContextNode& ctx)
 //	comp_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
 }
 
-//! \since build 771
-void
-MatchParameterTerm(set<string_view>& s, const TermNode& t, TermNode& o,
-	ContextNode& e)
-{
-	if(IsBranch(t))
-	{
-		if(IsBranch(o))
-		{
-			const auto n_p(t.size());
-			const auto n_o(o.size());
-
-			if(n_p == n_o)
-			{
-				auto i(o.begin());
-
-				for(auto& child : t)
-				{
-					if(i != o.end())
-						MatchParameterTerm(s, child, *i, e);
-					else
-						// FIXME: Redundant?
-						throw ParameterMismatch(
-							"Insufficient argument found for list parameter.");
-					++i;
-				}
-			}
-			else
-				throw ArityMismatch(n_p, n_o);
-		}
-		else
-			throw ParameterMismatch(
-				"Invalid leaf argument found for non-empty list parameter.");
-	}
-	else if(!t.Value)
-	{
-		if(o)
-			throw ParameterMismatch(
-				"Invalid branch argument found for empty list parameter.");
-	}
-	else if(const auto p = AccessPtr<TokenValue>(t))
-	{
-		const auto& n(*p);
-
-		if(n != "#ignore")
-		{
-			if(!n.empty() && IsNPLASymbol(n))
-			{
-				if(s.insert(n).second)
-					// NOTE: The operands should have been evaluated if this is
-					//	in a lambda. Children nodes in arguments retained are
-					//	also transferred.
-					// XXX: Moved. This is like copy elision in object language.
-					e.emplace(std::move(o.GetContainerRef()), n,
-						std::move(o.Value));
-				else
-					throw InvalidSyntax(sfmt(
-						"Duplicate parameter name '%s' found.", n.c_str()));
-			}
-			else
-				throw ParameterMismatch(
-					"Invalid token found for symbol parameter.");
-		}
-	}
-	else
-		throw ParameterMismatch("Invalid parameter value found.");
-}
-
 
 //! \since build 767
 class VauHandler final
@@ -390,9 +322,9 @@ public:
 		p_closure(make_shared<TermNode>(std::move(term)))
 	{}
 
-	//! \since build 768
+	//! \since build 772
 	ReductionStatus
-	operator()(TermNode& term) const
+	operator()(TermNode& term, ContextNode& ctx) const
 	{
 		if(!term.empty())
 		{
@@ -415,13 +347,15 @@ public:
 			//	language).
 			// TODO: Reduce such undefined behavior resonably?
 			ContextNode comp_ctx;
-			set<string_view> svs{eformal};
 
 			std::for_each(std::next(term.begin()), term.end(),
 				[&](TermNode& tm){
 				operand.insert(std::move(tm));
 			});
-			MatchParameterTerm(svs, formals, operand, comp_ctx);
+			// NOTE: Bind dynamic context.
+			if(!eformal.empty())
+				comp_ctx.AddValue(eformal, ValueObject(ctx, OwnershipTag<>()));
+			BindParameter(formals, operand, comp_ctx);
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
 				" shared context(s), %zu parameter(s).", p_closure.use_count(),
 				p_context.use_count(), formals.size());
@@ -569,8 +503,6 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
-	RemoveHead(term);
-
 	const auto tr([&](TNIter iter){
 		return ystdex::make_transform(iter, [&](TNIter i){
 			return Reduce(*i, ctx);
@@ -727,7 +659,8 @@ ReduceContextFirst(TermNode& term, ContextNode& ctx)
 
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
 		{
-			const auto res((*p_handler)(term, ctx));
+			const auto handler(std::move(*p_handler));
+			const auto res(handler(term, ctx));
 
 			// NOTE: Normalization: Cleanup if necessary.
 			if(res == ReductionStatus::Clean)
@@ -929,6 +862,71 @@ RetainN(const TermNode& term, size_t m)
 }
 
 
+void
+BindParameter(const TermNode& t, TermNode& o, ContextNode& e)
+{
+	if(IsBranch(t))
+	{
+		if(IsBranch(o))
+		{
+			const auto n_p(t.size());
+			const auto n_o(o.size());
+
+			if(n_p == n_o)
+			{
+				auto i(o.begin());
+
+				for(auto& child : t)
+				{
+					if(i != o.end())
+						BindParameter(child, *i, e);
+					else
+						// FIXME: Redundant?
+						throw ParameterMismatch(
+							"Insufficient term found for list parameter.");
+					++i;
+				}
+			}
+			else
+				throw ArityMismatch(n_p, n_o);
+		}
+		else
+			throw ParameterMismatch(
+				"Invalid leaf term found for non-empty list parameter.");
+	}
+	else if(!t.Value)
+	{
+		if(o)
+			throw ParameterMismatch(
+				"Invalid branch term found for empty list parameter.");
+	}
+	else if(const auto p = AccessPtr<TokenValue>(t))
+	{
+		const auto& n(*p);
+
+		if(n != "#ignore")
+		{
+			if(!n.empty() && IsNPLASymbol(n))
+			{
+					// NOTE: The operands should have been evaluated if this is
+					//	in a lambda. Children nodes in arguments retained are
+					//	also transferred.
+					// XXX: Moved. This is like copy elision in object language.
+				if(!e.emplace(std::move(o.GetContainerRef()), n,
+					std::move(o.Value)).second)
+					throw InvalidSyntax(sfmt(
+						"Duplicate parameter name '%s' found.", n.c_str()));
+			}
+			else
+				throw ParameterMismatch(
+					"Invalid token found for symbol parameter.");
+		}
+	}
+	else
+		throw ParameterMismatch("Invalid parameter value found.");
+}
+
+
 bool
 ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 {
@@ -955,7 +953,6 @@ DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
 	ReduceWithModifier(aterm, actx,
 		[=](TermNode& term, ContextNode& ctx, bool mod){
 		auto& con(term.GetContainerRef());
-
 		auto i(con.begin());
 
 		++i;
@@ -996,16 +993,17 @@ DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
 }
 
 void
-DefineOrSetFor(const string& id, TermNode& term, ContextNode& ctx, bool define,
+DefineOrSetFor(string_view id, TermNode& term, ContextNode& ctx, bool define,
 	bool mod)
 {
+	YAssertNonnull(id.data());
 	if(!id.empty() && IsNPLASymbol(id))
 		// XXX: Moved.
 		// NOTE: Unevaluated term is directly saved.
 		(define ? DefineValue : RedefineValue)
 			(ctx, id, std::move(term.Value), mod);
 	else
-		throw InvalidSyntax(sfmt("Invalid token '%s' cannot be %s.", id.c_str(),
+		throw InvalidSyntax(sfmt("Invalid token '%s' cannot be %s.", id.data(),
 			define ? "defined" : "set"));
 }
 
@@ -1108,8 +1106,20 @@ EqualValue(TermNode& term)
 	EqualTerm(term, ystdex::equal_to<>());
 }
 
+ReductionStatus
+Eval(TermNode& term)
+{
+	RetainN(term, 2);
+
+	const auto i(std::next(term.begin()));
+	auto& ctx(Access<ContextNode>(Deref(std::next(i))));
+
+	LiftTerm(term, Deref(i));
+	return Reduce(term, ctx);
+}
+
 void
-Eval(TermNode& term, const REPLContext& ctx)
+EvaluateUnit(TermNode& term, const REPLContext& ctx)
 {
 	CallUnaryAs<const string>([ctx](const string& unit){
 		REPLContext(ctx).Perform(unit);
