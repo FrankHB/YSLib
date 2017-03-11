@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5292
+\version r5294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2017-02-20 13:11 +0800
+	2017-03-11 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,6 +177,9 @@ public:
 
 	//! \since build 516
 	using BaseType::operator bool;
+
+	//! \since build 773
+	using BaseType::target;
 
 	//! \since build 748
 	using BaseType::target_type;

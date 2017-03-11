@@ -50,3 +50,4 @@ Tools/SHBuild/stdinc.h*
 bak.patch
 test/stdinc.h*
 packages/*
+.vs/*
