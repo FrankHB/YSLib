@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2666
+\version r2754
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-03-08 13:37 +0800
+	2017-03-11 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	YSLib::AreEqualHeld, YSLib::GHEvent, ystdex::make_function_type_t,
 //	ystdex::make_parameter_tuple_t, ystdex::make_expanded,
 //	ystdex::invoke_nonvoid, ystdex::make_transform, std::accumulate,
-//	ystdex::bind1, std::placeholders::_2;
+//	ystdex::bind1, std::placeholders::_2, ystdex::examiners::equal_examiner;
 
 namespace NPL
 {
@@ -273,13 +273,20 @@ Reduce(TermNode&, ContextNode&);
 */
 //@{
 /*!
-\brief 对容器中的第二项开始逐项规约。
+\brief 对范围内的第二项开始逐项规约。
 \throw InvalidSyntax 容器为空。
 \sa ReduceChildren
-\since build 685
+\since build 773
 */
+//@{
 YF_API void
-ReduceArguments(TermNode::Container&, ContextNode&);
+ReduceArguments(TNIter, TNIter, ContextNode&);
+//! \since build 685
+inline PDefH(void, ReduceArguments, TermNode::Container& con, ContextNode& ctx)
+	ImplRet(ReduceArguments(con.begin(), con.end(), ctx))
+inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
+	ImplRet(ReduceArguments(term.GetContainerRef(), ctx))
+//@}
 
 /*!
 \since build 735
@@ -322,6 +329,22 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 //@}
 
 /*!
+\brief 有序规约子项。
+\return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
+\since build 773
+*/
+//@{
+YF_API ReductionStatus
+ReduceChildrenOrdered(TNIter, TNIter, ContextNode&);
+inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode::Container& con,
+	ContextNode& ctx)
+	ImplRet(ReduceChildrenOrdered(con.begin(), con.end(), ctx))
+inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
+	ContextNode& ctx)
+	ImplRet(ReduceChildrenOrdered(term.GetContainerRef(), ctx))
+//@}
+
+/*!
 \brief 规约第一个子项。
 \return 规约状态。
 \sa Reduce
@@ -337,11 +360,9 @@ inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
 
 /*!
 \brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
-\sa RemoveHead
+\return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
+\sa ReduceChildrenOrdered
 \since build 764
-
-对子项顺序求值。
-当被求值后存在剩余子项时，表达式的值为最后一个子项的值。
 */
 YF_API ReductionStatus
 ReduceOrdered(TermNode&, ContextNode&);
@@ -508,6 +529,15 @@ public:
 	DefDeCopyMoveCtorAssignment(FormContextHandler)
 
 	/*!
+	\brief 比较上下文处理器相等。
+	\note 忽略检查例程的等价性。
+	\since build 748
+	*/
+	friend PDefHOp(bool, ==, const FormContextHandler& x,
+		const FormContextHandler& y)
+		ImplRet(x.Handler == y.Handler)
+
+	/*!
 	\brief 处理一般形式。
 	\return Handler 调用的返回值，或 ReductionStatus::Clean 。
 	\exception NPLException 异常中立。
@@ -523,15 +553,6 @@ public:
 	*/
 	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
-
-	/*!
-	\brief 比较上下文处理器相等。
-	\note 忽略检查例程的等价性。
-	\since build 748
-	*/
-	friend PDefHOp(bool, ==, const FormContextHandler& x,
-		const FormContextHandler& y)
-		ImplRet(x.Handler == y.Handler)
 };
 
 
@@ -562,6 +583,11 @@ public:
 	//! \since build 757
 	DefDeCopyMoveCtorAssignment(StrictContextHandler)
 
+	//! \brief 比较上下文处理器相等。
+	friend PDefHOp(bool, ==, const StrictContextHandler& x,
+		const StrictContextHandler& y)
+		ImplRet(x.Handler == y.Handler)
+
 	/*!
 	\brief 处理函数。
 	\return Handler 调用的返回值。
@@ -573,11 +599,6 @@ public:
 	*/
 	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
-
-	//! \brief 比较上下文处理器相等。
-	friend PDefHOp(bool, ==, const StrictContextHandler& x,
-		const StrictContextHandler& y)
-		ImplRet(x.Handler == y.Handler)
 };
 
 
@@ -867,7 +888,8 @@ RetainN(const TermNode&, size_t = 1);
 \throw ArityMismatch 子项数匹配失败。
 \throw InvalidSyntax 存在重复的叶节点表示的参数。
 \throw ParameterMismatch 匹配失败。
-\since build 722
+\note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
+\since build 773
 
 第一参数指定形式参数，第二参数指定操作数。
 形式参数和操作数为项指定的表达式树。
@@ -882,7 +904,7 @@ RetainN(const TermNode&, size_t = 1);
 空列表项的绑定为空操作；
 非列表项操作数直接绑定到名称为符号值的参数对应项。
 */
-void
+YF_API void
 BindParameter(const TermNode&, TermNode&, ContextNode&);
 
 /*!
@@ -1023,6 +1045,14 @@ struct UnaryExpansion
 {
 	_func Function;
 
+	/*!
+	\brief 比较处理器相等。
+	\since build 773
+	*/
+	friend PDefHOp(bool, ==, const UnaryExpansion& x, const UnaryExpansion& y)
+		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
+			y.Function))
+
 	//! \since build 760
 	template<typename... _tParams>
 	inline void
@@ -1038,6 +1068,15 @@ template<typename _type, typename _func>
 struct UnaryAsExpansion
 {
 	_func Function;
+
+	/*!
+	\brief 比较处理器相等。
+	\since build 773
+	*/
+	friend PDefHOp(bool, ==, const UnaryAsExpansion& x,
+		const UnaryAsExpansion& y)
+		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
+			y.Function))
 
 	//! \since build 760
 	template<typename... _tParams>
@@ -1058,6 +1097,14 @@ struct BinaryExpansion
 {
 	_func Function;
 
+	/*!
+	\brief 比较处理器相等。
+	\since build 773
+	*/
+	friend PDefHOp(bool, ==, const BinaryExpansion& x, const BinaryExpansion& y)
+		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
+			y.Function))
+
 	template<typename... _tParams>
 	inline void
 	operator()(_tParams&&... args) const
@@ -1072,6 +1119,15 @@ template<typename _type, typename _func>
 struct BinaryAsExpansion
 {
 	_func Function;
+
+	/*!
+	\brief 比较处理器相等。
+	\since build 773
+	*/
+	friend PDefHOp(bool, ==, const BinaryAsExpansion& x,
+		const BinaryAsExpansion& y)
+		ImplRet(ystdex::examiners::equal_examiner::are_equal(x.Function,
+			y.Function))
 
 	template<typename... _tParams>
 	inline void
@@ -1126,7 +1182,6 @@ RegisterStrictBinary(ContextNode& node, const string& name, _func f)
 /*!
 \note 在节点后的 bool 参数指定使用定义而不是设置（重定义）。
 \note 支持修饰符。
-\note 实现特殊形式。值以项的形式被转移，在标识符替换时可能进一步求值。返回未指定值。
 \sa ReduceWithModifier
 \since build 735
 */
@@ -1137,6 +1192,8 @@ RegisterStrictBinary(ContextNode& node, const string& name, _func f)
 \sa DefineOrSetFor
 \sa Lambda
 
+实现修改环境的特殊形式。
+值以项的形式被转移，在替换前进一步求值。返回未指定值。
 限定第三参数后可使用 RegisterForm 注册上下文处理器。
 特殊形式参考文法：
 $define|$set [!] <variable> <expression>
@@ -1156,7 +1213,7 @@ DefineOrSet(TermNode&, ContextNode&, bool);
 \sa RedefineValue
 \since build 772
 
-定义或设置参数指定的值：首先检查标识符不是字面量。
+定义或设置参数指定的值：首先检查标识符不是字面量，然后替换。
 排除可选项外，若第二子项是列表，
 则定义或设置以此列表第一子项为名称、剩余项为参数的 λ 抽象。
 否则，直接定义值。
@@ -1259,6 +1316,9 @@ Or(TermNode&, ContextNode&);
 \brief 以列表项为参数应用函数。
 \sa ReduceContextFirst
 \since build 766
+
+参考文法：
+apply <function> <list>
 */
 YF_API ReductionStatus
 Apply(TermNode&, ContextNode&);
@@ -1267,6 +1327,9 @@ Apply(TermNode&, ContextNode&);
 \brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
 \sa usystem
 \since build 741
+
+参考文法：
+system <string>
 */
 YF_API void
 CallSystem(TermNode&);
@@ -1276,6 +1339,9 @@ CallSystem(TermNode&);
 /*!
 \brief 比较两个子项的值相等。
 \sa YSLib::HoldSame
+
+参考文法：
+eq? <object1> <object2>
 */
 YF_API void
 EqualReference(TermNode&);
@@ -1283,6 +1349,9 @@ EqualReference(TermNode&);
 /*!
 \brief 比较两个子项的值相等。
 \sa YSLib::ValueObject
+
+参考文法：
+eqv? <object1> <object2>
 */
 YF_API void
 EqualValue(TermNode&);

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2934
+\version r2963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-08 13:36 +0800
+	2017-03-10 11:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,7 +314,7 @@ public:
 			}
 			else
 				throw InvalidSyntax(
-					"No sufficient terms in function abstraction.");
+					"Insufficient terms in function abstraction.");
 		}()),
 		// TODO: Optimize. This does not need to be shared, since it would
 		//	always be copied, if used.
@@ -457,12 +457,12 @@ Reduce(TermNode& term, ContextNode& ctx)
 }
 
 void
-ReduceArguments(TermNode::Container& con, ContextNode& ctx)
+ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 {
-	if(!con.empty())
+	if(first != last)
 		// NOTE: The order of evaluation is unspecified by the language
 		//	specification. It should not be depended on.
-		ReduceChildren(std::next(con.begin()), con.end(), ctx);
+		ReduceChildren(++first, last, ctx);
 	else
 		throw InvalidSyntax("Invalid function application found.");
 }
@@ -501,15 +501,22 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 }
 
 ReductionStatus
-ReduceOrdered(TermNode& term, ContextNode& ctx)
+ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 {
 	const auto tr([&](TNIter iter){
 		return ystdex::make_transform(iter, [&](TNIter i){
 			return Reduce(*i, ctx);
 		});
 	});
-	const auto res(ystdex::default_last_value<ReductionStatus>()(
-		tr(term.begin()), tr(term.end()), ReductionStatus::Clean));
+
+	return ystdex::default_last_value<ReductionStatus>()(tr(first), tr(last),
+		ReductionStatus::Clean);
+}
+
+ReductionStatus
+ReduceOrdered(TermNode& term, ContextNode& ctx)
+{
+	const auto res(ReduceChildrenOrdered(term, ctx));
 
 	if(!term.empty())
 		LiftTerm(term, *term.rbegin());
@@ -593,15 +600,7 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	try
 	{
 		if(!Check || Check(term))
-		{
-			// NOTE: Adjust null list argument application to function call
-			//	without arguments.
-			auto i(term.begin());
-
-			if(term.size() == 2 && !Deref(++i))
-				term.erase(i);
 			return Handler(term, ctx);
-		}
 		// TODO: Use more specific exception type?
 		throw std::invalid_argument("Term check failed.");
 	}
@@ -620,13 +619,17 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 ReductionStatus
 StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
-	auto& con(term.GetContainerRef());
-
 	// NOTE: This implementes arguments evaluation in applicative order.
-	ReduceArguments(con, ctx);
-	YAssert(!con.empty(), "Invalid state found.");
+	ReduceArguments(term, ctx);
+	YAssert(!term.empty(), "Invalid state found.");
 
 	// NOTE: Matching function calls.
+	auto i(term.begin());
+
+	// NOTE: Adjust null list argument application to function call without
+	//	arguments.
+	if(term.size() == 2 && !Deref(++i))
+		term.erase(i);
 	return Handler(term, ctx);
 #if false
 	// TODO: Use other exception type with more precise information for this
@@ -914,8 +917,8 @@ BindParameter(const TermNode& t, TermNode& o, ContextNode& e)
 					// XXX: Moved. This is like copy elision in object language.
 				if(!e.emplace(std::move(o.GetContainerRef()), n,
 					std::move(o.Value)).second)
-					throw InvalidSyntax(sfmt(
-						"Duplicate parameter name '%s' found.", n.c_str()));
+					throw InvalidSyntax(sfmt("Duplicate or already bounded"
+						" parameter name '%s' found.", n.c_str()));
 			}
 			else
 				throw ParameterMismatch(

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6162
+\version r6237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-08 14:18 +0800
+	2017-03-11 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,61 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ %NPLA1 $=
+			(
+				(
+				/ "function %ReduceArguments" -> "3 overloads";
+				/ DLDI "simplified member function \
+					%StrictContextHandler::operator()"
+				),
+				(
+				+ "3 functions %ReduceChildrenOrdered";
+				/ DLDI "simplified function %ReduceOrdered"
+				),
+				/ @ "namespace %Forms" $=
+				(
+					+ $doc "referential grammar" @ "Doxygen comments"
+					/ "missing 'YF_API'" @ "function %BindParameter" $since
+						b772,
+					/ $design "exception message" @ "vau hanlder",
+					/ $design "exception message" @ "function %BindParameter",
+					(
+					* "missing %operator==" @ "class templates \
+						%(UnaryExpansion, UnaryAsExpansion, BinaryExpansion, \
+						BinaryAsExpansion)" $since b741
+						$= (+ "friend function %operator=="
+							^ "%ystdex::examiners::equal_examiner");
+					* $comp "ill-formed handlers registration when \
+						instantiated from implicit epansion register function \
+						templates for handler target types" $since b754
+						// For example, 'RegisterStrictUnary<ContextHandler>' \
+							could not work.
+					)
+				),
+				/ $revert(b773) "empty parameter handling"
+					@ "member function %FormContextHandler"
+					>> "member function %StrictContextHandler::operator()"
+					// This caused empty list operand wrongly handled as no \
+						arguments.
+			)
+		),
+		+ 'using BaseType::target;' @ "class template specialization %GHEvent"
+			@ %YSLib.Core.YEvent
+	),
+	+ $re_add(b708) $repo "glob pattern '.vs/*'" @ "file %.hgignore",
+	/ $build "updated to Microsoft VC++ 2017"
+		~ "Microsoft VC++ 2015" @ "Microsoft VC++ projects" $effective
+		@ %(YBase, YFramework, Tools.(CreationTimeManager,
+		PredefinedMacroDetector))
+		$= (/ $re_ex(b617) "updated platform toolset" -> "v141" ~ "v140")
+),
+
+b772
 (
 	/ %YFramework $=
 	(
@@ -3602,7 +3657,7 @@ b721
 			/ @ "function %SaveConfiguration" $=
 			(
 				/ DLDI "simplified stream writing",
-				/ DD "Doxygen comments" $=
+				/ DD "Doxygen comment" $=
 				(
 					+ "'\throw' command",
 					* "redundant '\return' command for function returning %void"
@@ -3721,9 +3776,9 @@ b720
 						~ "threw %FileOperationFailure" @ ("functions \
 						%(ClearTree, DeleteTree)" $dep_from ("%Remove" @ %File),
 						"functions %CopyFile" $dep_from ("%OpenFile" @ %File))
-					+ $doc "'\exception' command" @ "Doxygen comments"
+					+ $doc "Doxygen command '\exception'"
 						@ "function tmeplates %Traverse",
-					* $doc "'\exception' command" @ "Doxygen comments"
+					* $doc "Doxygen command '\exception'"
 						@ "function %ListFiles" $since b719
 						// This change was caused by %platform::HDirectory \
 							constructors.
@@ -3731,8 +3786,8 @@ b720
 			),
 			/ @ "class %FileBox" %UI.ComboList $=
 			(
-				* $doc "'\exception' command" @ "Doxygen comments"
-					@ "function %ListItems" $since b719,
+				* $doc "Doxygen command '\exception'" @ "function %ListItems"
+					$since b719,
 					// See %IO::ListFiles.
 				* "unhandled %std::system_error thrown on listing files failure"
 					@ "function %SetPath" $since b719
@@ -4186,9 +4241,9 @@ b716
 				+ "function template %construct_within"
 			);
 			(
-			* "wrong '\tparam' commands contents" @ "Doxygen comments"
+			* DD "wrong content" @ "Doxyen command '\tparam'"
 				@ "function template %destroy_in" @ %Memory
-				$orig @ "function template %destroy_in" $since b692;
+				$orig (@ "function template %destroy_in" $since b692);
 			/ %Memory $=
 			(
 				/ "simplified function template %construct_in" >> %Placement
@@ -4243,8 +4298,8 @@ b716
 				),
 				/ @ "class template %standard_layout_storage" $=
 				(
-					+ DD "Doxygen comments to warning about object lifetime and \
-						strict aliasing rules",
+					+ DD "Doxygen comment to warning about object lifetime \
+						and strict aliasing rules",
 					+ "function template %pun" ^ $dep_from "%make_pun",
 					+ "function templates %destroy",
 					(
@@ -4461,7 +4516,7 @@ b714
 			(
 				+ 'ynothrowv',
 				(
-				+ $doc "'\pre' command" @ "Doxygen comments"; 
+				+ $doc "Doxygen command '\pre'"; 
 				+ "assertion for narrow contract vaiolation"
 				)
 			),
@@ -4622,9 +4677,8 @@ b712
 	(
 	+ $doc "limitation on moved-from state of user-defined class objects"
 		@ %Documentation.LanguageConvention;
-	/ $forced $doc "clearified moved-to state as '\note' command"
-		@ "Doxygen comments" $effective @ "class %DirectorySession"
-		@ %YFramework.YCLib.FileSystem
+	/ $forced $doc "clearified moved-to state as Doxygen command '\note'"
+		$effective @ "class %DirectorySession" @ %YFramework.YCLib.FileSystem
 	),
 	/ %YFramework $=
 	(
@@ -4632,8 +4686,7 @@ b712
 		(
 			/ %FileSystem $=
 			(
-				+ $doc "'\invariant' command" @ "Doxygen comments"
-					@ "class %HDirectory",
+				+ $doc "Doxygen command '\invariant'" @ "class %HDirectory",
 				/ DLDI @ "platform %Win32" @ "class %DirectorySession" $=
 				(
 					+ 'final' @ "private class %DirectorySession::Data",
@@ -4994,7 +5047,7 @@ b709
 				/ DLDI "simplified functions %(HaveSameContents, \
 					EnsureUniqueFile)" ^ $dep_from
 					("%YCL_ReservedGlobal" @ %NativeAPI)
-				* $doc "wrong name 'std::close'" @ "Doxygen comments"
+				* DD "wrong name 'std::close'" @ "Doxygen command '\warning'"
 					@ "functions %upopen" $orig (@ %FileSystem $since b566)
 					$= (/ 'std::close' -> '::close'),
 				/ DLI "member function %FileDescriptor::Deleter::operator()"
@@ -5901,8 +5954,7 @@ b701
 						not recognized as directory" $since b658
 					(
 					- 'YB_NONNULL(3, 4)' @ "overloading with handle parameters";
-					* $doc "wrong '\pre' command" @ "Doxygen comments" $since
-						b658
+					* $doc "wrong Doxygen command '\pre'" $since b658
 					),
 					* $comp "directory attribute not used" @ "platform %Win32"
 						$since b658 $dep_from "%FileDescriptor::GetCategory"
@@ -5927,10 +5979,9 @@ b701
 							%FileOperationFailure on demand"
 							@ !"platform %Win32"
 					),
-					* $comp $doc "wrong '\throw' commands" @ "Doxygen comments"
-						$since b411
+					* $comp DD "wrong Doxygen command '\throw'" $since b411
 					),
-					/ $doc "merged '\throw' commands" @ "Doxygen comments"
+					/ DD "merged Doxygen commands '\throw'"
 				),
 				* $comp "missing attributes detection" @ "platform %Win32"
 					@ "member function %HDirectory::GetNodeCategory" $since b658
