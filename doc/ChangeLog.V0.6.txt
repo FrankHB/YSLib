@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12122
+\version r12175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2017-03-02 18:37 +0800
+	2017-03-13 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,8 +53,8 @@ b699
 					* "wrongly threw %std::system_error with \
 						%std::errc::not_supported for 'char' overloads"
 						~ "with %std::errc::function_not_supported" $since b652;
-					* $doc "wrong exception condition" @ "'\exception' command"
-						@ "Doxygen comments" @ "'char' overloads" $since b660
+					* DD "wrong exception condition" @ "Doxygen command \
+						'\exception'" @ "'char' overloads" $since b660
 					),
 					/ $design "assertion" ^ "%YAssertNonnull" ~ "%Nonnull"
 				),
@@ -89,7 +89,7 @@ b699
 				+ "function template %TryGetCurrentWorkingDirectory" ^ $dep_from
 					("%retry_for_vector" @ %YBase.YStandardEx.Container)
 				)
-				* $doc "wrong '\param' command" @ "Doxygen comments"
+				* $doc "wrong Doxygen command '\param'"
 					@ "function %upclose" $orig (@ %FileSystem $since b566)
 			)
 		),
@@ -760,7 +760,7 @@ b691
 		(
 			+ "function template %AsIndexNode" @ %ValueNode,
 			* $re_add(b687) DD "missing '!'" @ "end of '/*'"
-				@ "multiline Doxygen comments" @ %Core.YMessage $since b296
+				@ "multiline Doxygen comment" @ %Core.YMessage $since b296
 		),
 		/ %NPL $=
 		(
@@ -1642,8 +1642,8 @@ b682
 			/ "namespace %dependent_swap" @ "namespace %ystdex" => "%dep_swap",
 				// To be consistent with %Operators even this namespace does \
 					not bloat binary size in release configurations.
-			* DD "bad URL" @ "Doxygen comments" @ "function template %exchange"
-				$sicne b677
+			* DD "bad URL" @ "Doxygen command '\see'"
+				@ "function template %exchange" $since b677
 		)
 	),
 	+ $build '-fvisibility=hidden' @ "variable %C_CXXFLAGS_COMMON"
@@ -2277,8 +2277,7 @@ b676
 			/ %ScopeGuard $=
 			(
 				+ "function template %ystdex::make_shared_guard",
-				* "wrong '\sa' command" @ "Doxygen comments" @ "class %guard"
-					$since b627
+				* "wrong Doxygen command '\sa'" @ "class %guard" $since b627
 			),
 			/ %Any $=
 			(
@@ -2764,7 +2763,7 @@ b673
 						%operator!=) for %GHEvent specialization" $dep_from
 						"simplified event comparison",
 					* $re_add(b672) DD "missing '!'" @ "end of '/*'"
-						@ "multiline Doxygen comments" @ "function %swap"
+						@ "multiline Doxygen comment" @ "function %swap"
 						$orig (@ "function %Swap" $since b188)
 						@ "class template specialization %GEvent"
 				),
@@ -2842,7 +2841,7 @@ b672
 			/ %UI $=
 			(
 				* $re_add(b671) DD "missing '!'" @ "end of '/*'" @ "multiline \
-					Doxygen comments" @ (("function %UpdateState" @ "class \
+					Doxygen comment" @ (("function %UpdateState" @ "class \
 					template %GMSelector" $since b478, "private data member"
 					@ "class %MSharedSelection" $since b479) @ %Selector,
 					"data member %Visual::Visible" @ %YWidgetView $since b568,
@@ -3114,7 +3113,7 @@ b671
 					/ @ "class %HBitmap" $=
 					(
 						* $re_add(b670) DD "missing '!'" @ "end of '/*'"
-							@ "multiline Doxygen comments" @ ("constructor#2"
+							@ "multiline Doxygen comment" @ ("constructor#2"
 							$since b430, "constructor#6" $since b431,
 							"function %swap" $since b430),
 						(
@@ -3161,7 +3160,7 @@ b671
 							@ "function %GetBoundControlPtr"
 					),
 					* $re_add(b670) DD "missing '!'" @ "end of '/*'"
-						@ "multiline Doxygen comments"
+						@ "multiline Doxygen comment"
 						@ "function template %OnEvent_StopRouting" $since b285
 				),
 				/ $forced "member function %ScrollBar::GetBoundControlPtr"
@@ -3301,7 +3300,7 @@ b670
 							@ %Adaptor.YAdaptor)
 					),
 					* $re_add(b667) DD "missing '!'" @ "end of '/*'"
-						@ "multiline Doxygen comments"
+						@ "multiline Doxygen comment"
 						@ "function %Clear" $since b296
 				),
 				/ %ValueNode $=
@@ -3580,8 +3579,7 @@ b668
 		/ @ "%std::numeric_limits specialization for %ystdex::fixed_point \
 			instances" @ %Rational $=
 		(
-			* DD "wrong name" @ "'\brief' command" @ "Doxygen comments" $since
-				b266,
+			* DD "wrong name" @ "Doxygen command '\brief'" $since b266,
 			* "strict ISO C++ conformance" $since b261
 				// See ISO C++11 18.3.2.3/2, also LWG 559.
 				$= (* "missing specialization for cv-qualified types")
@@ -3738,7 +3736,7 @@ b667
 				- 'mutable' @ "%Value, container data member"
 				),
 				* $re_add(b661) DD "missing '!'" @ "end of '/*'"
-					@ "multiline Doxygen comments"
+					@ "multiline Doxygen comment"
 					@ ("%operator=" $since b502, "%swap" $since b501)
 			),
 			- 'const' @ ("1st parameter type" @ "all 2 function templates \
@@ -4190,9 +4188,9 @@ b663
 	(
 		+ %IOS $=
 			// Note that libstdc++ has %_M_setstate which sets state without \
-				throwing and Microsoft VC++ also has extention to do rethrowing \
-				directly, but since %YBase.YStandardEx is required to rely on \
-				no specific implementation, they are not available.
+				throwing and Microsoft VC++ also has extention to do \
+				rethrowing directly, but since %YBase.YStandardEx is required \
+				to rely on no specific implementation, they are not available.
 			(+ "function templates %(setstate; rethrow_badstate")),
 		* "exception thrown by %setstate instead of rethrown exception when \
 			exception mask is set for %std::ios_base::badbit"
@@ -4211,8 +4209,8 @@ b663
 					// To effect optimized operations for types like \
 						%std::list and %std::forward_list.
 				+ "member %key_type detection for non-sequence container types",
-				+ "adaptive overloaded function templates for container or iterator \
-					range"
+				+ "adaptive overloaded function templates for container or \
+					iterator range"
 			),
 			* "missing %yforward for range pareameter passing"
 				@ "function templates" ("%concat#2" $since b546,
@@ -4233,7 +4231,7 @@ b663
 					since it has many instance of usage.
 			- "%range_size for arrays and %std::initializer_list instances",
 				// Now this is covered by ADL %size provided by %ystdex::size.
-			* DD "wrong group separator '//{'" @ "Doxygen comments" $since b546
+			* DD "wrong group separator '//{'" @ "Doxygen comment" $since b546
 			)
 		),
 		/ "function template %as_const" @ %Cast >> %Utilities,
@@ -4353,7 +4351,7 @@ b662
 			(
 				/ DLDI "simplified metafunction %wrap_mixin_t",
 				* $re_add(b644) DD "missing '!'" @ "end of '/*'" @ "multiline \
-					Doxygen comments" @ "class template %mixin" $since b477
+					Doxygen comment" @ "class template %mixin" $since b477
 			),
 			/ $re_ex(b655) "switched to workaround" @ 'YB_IMPL_GNUCPP == 50300'
 				@ %Operators,
@@ -4378,7 +4376,7 @@ b662
 		(
 			- $design "redundant trailing '\t'"
 				@ "function %operator ValueNode::Container" @ "class %Bookmark",
-			* "invalid Doxygen comments" @ "%(IsAtBegin, IsAtEnd)"
+			* "invalid Doxygen comment" @ "%(IsAtBegin, IsAtEnd)"
 				@ "class %ReadingList" $since b404
 		),
 		- "redundant ';' after in-class member function definition \
@@ -4407,7 +4405,7 @@ b661
 			- "functor %deref_comp" $dep_from
 				("%FontCache::FaceMap" @ %YFramework.YSLib.Adaptor.Font);
 			* $comp $re_add(b644)  DD "missing '!'" @ "end of '/*'"
-				@ "multiline Doxygen comments" @ "%deref_comp::operator()"
+				@ "multiline Doxygen comment" @ "%deref_comp::operator()"
 				$orig (@ %Utilities $since b315)
 			)
 		)
@@ -4570,7 +4568,7 @@ b660
 			+ "2nd parameter 'bool = {}' to allow specifying following reparse \
 				point behavior" @ "functions \
 				%(QueryFileLinks, QueryFileNodeID) with pathname parameter",
-			* DD "wrong directive '\breif' used" ~ '\brief' @ "Doxygen comments"
+			* DD "wrong Doxygen command '\breif' used" ~ '\brief'
 				@ "function %GetErrnoFromWin32" $since b622,
 			/ @ "all 2 functions %ConvertTime" $=
 			(
@@ -5124,7 +5122,7 @@ b657
 					@ "%AllocationTable";
 				+ "function %TryLinkFreeCleared"
 				),
-				+ DD "Doxygen comments to explicitly warn about missing of \
+				+ DD "Doxygen comment to explicitly warn about missing of \
 					transaction semantics",
 				(
 				/ "function %IsValidCluster" => "%IsValid";
@@ -6814,7 +6812,7 @@ b644
 		(
 			/ DLDI 'using platform::byte;' -> 'using YSLib::byte;',
 			* $re_add(b642) DD "missing '!'" @ "end of '/*'"
-				@ "multiline Doxygen comments"
+				@ "multiline Doxygen comment"
 				@ "member functions %LexicalAnalyzer::'Parse*'" $orig
 				(@ "member function %LexicalAnalyzer::ParseByte" $since b207)
 		),
@@ -6825,7 +6823,7 @@ b644
 				+ 'usint ystdex::nullptr_t'
 					@ "inline namespace %platform::basic_types",
 				* $re_add(b642) DD "missing '!'" @ "end of '/*'"
-					@ "multiline Doxygen comments"
+					@ "multiline Doxygen comment"
 					@ "macro %YCL_Device_Cursor_FixedKey" $since b436
 			),
 			/ "parameter type 'std::nullptr_t'" -> 'nullptr_t'
@@ -6962,7 +6960,7 @@ b642
 					%(__func__, __PRETTY_FUNCTION__): 'body of constexpr \
 					function not a return-statement'.
 			* $re_add(b641) DD "missing '!'" @ "end of '/*'" @ "multiline \
-				Doxygen comments" @ "function templates %(for_each_equal, \
+				Doxygen comment" @ "function templates %(for_each_equal, \
 				for_each_if)" $since b532
 		),
 		* "missing functions (2 %operator==, %operator<) for %basic_string_view"
@@ -7561,7 +7559,7 @@ b639
 						@ "namespace %YSLib" >> "namespace %YSLib::IO"
 				),
 				* $re_add(b638) DD "missing '!'" @ "end of '/*'"
-					@ "multiline Doxygen comments" @ "namespace %YSLib" $since
+					@ "multiline Doxygen comment" @ "namespace %YSLib" $since
 					b265
 			),
 			/ %Service $=
@@ -7600,7 +7598,7 @@ b639
 							function %GetPath without parameters" ^ "%GetPath"
 					),
 					* $re_add(b638) DD "missing '!'" @ "end of '/*'"
-						@ "multiline Doxygen comments" @ "protected data member \
+						@ "multiline Doxygen comment" @ "protected data member \
 						%pTetList" $since b534 $orig (@ "%lstText" $since b282)
 						@ "class %ListBox"
 				)
@@ -7714,7 +7712,7 @@ b638
 		(
 			+ "macros %(yfname, yfsig)";
 			* $re_add(b637) DD "missing '!'" @ "end of '/*'" @ "multiline \
-				Doxygen comments" @ "macros %(YPP_Concat, YPP_Join)" $orig
+				Doxygen comment" @ "macros %(YPP_Concat, YPP_Join)" $orig
 				(@ "macros %(yjoin, yJOIN)" $since b409)
 		),
 		/ %YStandardEx $=
@@ -7723,7 +7721,7 @@ b638
 			(
 				+ $dev 'YB_PURE' @ "all 2 functions %openmode_conv",
 				* $re_add(b637) DD "missing '!'" @ "end of '/*'"
-					@ "multiline Doxygen comments"
+					@ "multiline Doxygen comment"
 					@ ("all 2 functions %openmode_conv" $since b326,
 					"member function %ifile_iterator::operator++" $since b301)
 			)
@@ -7755,7 +7753,7 @@ b637
 					- $revert(b538) "static assertions for %CHRLib types"
 				),
 				* $re_add(b633) DD "missing '!'" @ "end of '/*'" @ "multiline \
-					Doxygen comments" @ ("macros %(YCL_FS_StringIsCurrent, \
+					Doxygen comment" @ ("macros %(YCL_FS_StringIsCurrent, \
 					YCL_FS_StringIsParent, YCL_FS_CharIsDelimiter, \
 					YCL_FS_StringIsRoot)" $since b409, ("enum \
 					%EntryData::Offsets" $since b609, "alias %VolumeLabel"
@@ -8092,7 +8090,7 @@ b633
 				+ 'YB_STATELESS' @ "function %ConvertToErrno"
 			),
 			* $re_add(b632) DD "missing '!'" @ "end of '/*'"
-				@ "multiline Doxygen comments" @ ("class %WConsole" $since b304,
+				@ "multiline Doxygen comment" @ ("class %WConsole" $since b304,
 				"enum %WConsole::Style" $since b519) @ %Consoles
 			+ %Registry
 		),
@@ -8229,7 +8227,7 @@ b631
 				/ DLDI "member function %Partition::GetLabelString"
 					^ "%ystdex::replace_cast" ~ 'reinterpret_cast',
 				* $re_add(b630) DD "missing '!'" @ "end of '/*'"
-					@ "multiline Doxygen comments" @ "class %Disc" $since b604,
+					@ "multiline Doxygen comment" @ "class %Disc" $since b604,
 				/ DLDI "function %Mount" ^ "%ystdex::aligned_store_cast"
 					~ 'reinterpret_cast'
 			),
@@ -8239,7 +8237,7 @@ b631
 		/ @ "class template %COMPtr" @ %'YCLib_(MinGW32)'.COM $=
 		(
 			* $re_add(b630) DD "missing '!'" @ "end of '/*'"
-				@ "multiline Doxygen comments" $since b412,
+				@ "multiline Doxygen comment" $since b412,
 			/ DLDI "all 4 'REFIID'" -> 'const ::IID&',
 			/ DLDI "all 5 'reinterpret_cast'" -> 'ystdex::replace_cast'
 			 // This should work for casting to 'void**'.
@@ -8366,7 +8364,7 @@ b630
 			/ DLDI "simplified %enable_if_t argument" @ "2 constructor template"
 				@ "class template %fixed_point",
 			* $re_add(b586) DD "missing '!'" @ "end of '/*'"
-				@ "multiline Doxygen comments" @ "function templates \
+				@ "multiline Doxygen comment" @ "function templates \
 				%(round_in_nocheck, round_in)" @ %Rational $since b588
 		),
 		/ %TypeOperation $=
@@ -8402,7 +8400,7 @@ b630
 		/ %TypePun $=
 		(
 			* $re_add(b586) DD "missing '!'" @ "end of '/*'" @ "multiline \
-				Doxygen comments" @ "class template %pod_storage" $since b629
+				Doxygen comment" @ "class template %pod_storage" $since b629
 				$orig (@ "union %any_pod_t" @ %Utilities $since b247)
 			+ "transformation trait %pun_storage_t",
 			* "missing constraining destination type"
@@ -8432,7 +8430,7 @@ b630
 		/ %Utilities $=
 		(
 			* $re_add(b586) DD "missing '!'" @ "end of '/*'" @ "multiline \
-				Doxygen comments" @ "function template %exchange" $since b517,
+				Doxygen comment" @ "function template %exchange" $since b517,
 			/ "%function template %swap_underlying"
 				^ "aligned underlying storage" ~ "byte array type"
 				$= (/ $impl ^ $dep_from
@@ -9688,12 +9686,18 @@ b617
 				~ ('const_cast' @ "function %rdbuf");
 			* "undefined behavior" @ "function %rdbuf" @ $since b616
 				// It seems that all libstdc++, libc++ and implementation of \
-					Microsoft VC++ use cast. However this is not portable for client \
-					code.
+					Microsoft VC++ use cast. However this is not portable for \
+					client code.
 			)
 		)
 	),
-	+ $build "Microsoft VC++ 2015 support" @ "Microsoft VC++ projects",
+	/ $build "updated to Microsoft VC++ 2015" ~ "Microsoft VC++ 2013"
+		@ "Microsoft VC++ projects" $effective @ %(YBase, YFramework,
+		Tools.(CreationTimeManager, PredefinedMacroDetector)) $=
+	(
+		/ $re_ex(b454) "updated platform toolset" -> "v140" ~ "v120",
+		/ "targetted Windows platform 8.1"
+	),
 	/ %YBase $=
 	(
 		/ %YDefinition $=

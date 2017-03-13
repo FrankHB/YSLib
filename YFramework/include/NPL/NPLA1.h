@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2754
+\version r2768
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-03-11 14:11 +0800
+	2017-03-13 11:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,9 +354,8 @@ inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
 快速严格性分析：
 无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
 */
-inline PDefH(ReductionStatus, ReduceFirst, TermNode& term, ContextNode& ctx)
-	ImplRet(IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
-		: ReductionStatus::Clean)
+YF_API ReductionStatus
+ReduceFirst(TermNode&, ContextNode&);
 
 /*!
 \brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
@@ -502,6 +501,8 @@ WrapContextHandler(_func&& h)
 /*!
 \brief 形式上下文处理器。
 \since build 674
+
+处理列表项的操作符。
 */
 class YF_API FormContextHandler
 	: private ystdex::equality_comparable<FormContextHandler>
@@ -560,7 +561,7 @@ public:
 \brief 严格上下文处理器。
 \since build 754
 
-对参数先进行求值的上下文处理器。
+对参数先进行求值的处理列表项的操作符。
 */
 class YF_API StrictContextHandler
 	: private ystdex::equality_comparable<StrictContextHandler>
@@ -715,7 +716,10 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 调用 FetchValuePtr 查找值，若失败抛出未声明异常；
 调用 LiftTermRef 替换节点的值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
-若未返回，调用 EvaluateDelayed 求值。
+若未返回，根据节点表示的值进一步处理：
+	对表示非 TokenValue 值的叶节点，调用 EvaluateDelayed 求值；
+	对表示 TokenValue 值的叶节点，返回 ReductionStatus::Retrying 重规约；
+	对枝节点视为列表，返回 ReductionStatus::Retained 避免进一步求值。
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
@@ -740,7 +744,7 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 //@}
 
 /*!
-\brief 规约上下文列表：检查项的第一个子项并尝试按上下文列表进行函数应用，并规范化。
+\brief 规约合并项：检查项的第一个子项尝试作为操作符进行函数应用，并规范化。
 \return 规约状态。
 \throw ListReductionFailure 规约失败：枝节点的第一个子项不表示上下文处理器。
 \sa ContextHandler
@@ -752,7 +756,7 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 若发生调用，前先转移处理器保证生存期，以允许处理器内部移除之前占用的第一个子项。
 */
 YF_API ReductionStatus
-ReduceContextFirst(TermNode&, ContextNode&);
+ReduceCombined(TermNode&, ContextNode&);
 
 /*!
 \brief 规约提取名称的叶节点记号。
@@ -769,8 +773,9 @@ ReduceLeafToken(TermNode&, ContextNode&);
 /*!
 \brief 设置默认解释：解释使用的公共处理遍。
 \note 非强异常安全：加入遍可能提前设置状态而不在失败时回滚。
-\sa ReduceContextFirst
+\sa ReduceCombined
 \sa ReduceFirst
+\sa ReduceHeadEmptyList
 \sa ReduceLeafToken
 \since build 736
 */
@@ -1314,7 +1319,7 @@ Or(TermNode&, ContextNode&);
 
 /*!
 \brief 以列表项为参数应用函数。
-\sa ReduceContextFirst
+\sa ReduceCombined
 \since build 766
 
 参考文法：
