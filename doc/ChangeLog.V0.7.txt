@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6237
+\version r6291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-11 14:59 +0800
+	2017-03-13 11:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,56 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ %NPLA1 $=
+			(
+				/ "function %ReduceContextFirst" -> "function %ReduceCombined"
+					$= (/ $term "exception message"
+						@ "function %ReduceContextFirst"),
+				/ @ "function %EvaluateIdentifier" $=
+				(
+					/ DLDI "simplified" ^ "%IsLeaf",
+					* "missing keeping list term retained from wrongly forced \
+						reduced again" $since b757
+						$= (/ "specified result %ReductionStatus::Retained"
+							~ "%ReductionStatus::Retrying")
+				),
+				/ "vau hanlder" @ "namespace %Forms" $=
+				(
+					/ DLDI "simplified" ^ "%IsBranch",
+					/ $impl "simplified" ^ "%RemoveHead" ~ "separated operand"
+				),
+				/ DLDI "simplified (function %ReduceOrdered, member function \
+					%StrictContextHandler::operator())" ^ "%IsBranch",
+				/ DLDI "simplified function %BindParameter" ^ $dep_from
+					("%ValueNode::AddChild" @ %YSLib.Core.ValueNode),
+				/ DLI "function %ReduceFirst" -> "non-lnline function",
+				+ "empty list as head to indicate combined terms"
+					@ "function %SetupDefaultInterpretation" ^ $dep_from
+					("%ReduceHeadEmptyList" @ %NPLA);
+					// It is needed to allow vau handler call without operand.
+				- $revert_ex(b773) "empty list removal"
+					@ "member function %StrictContextHandler::operator()"
+					// See $2017-03 @ %Documentation::Workflow::Annual2017.
+			),
+			+ "functions %(ReduceToList, ReduceHeadEmptyList)" @ %NPLA,
+			+ "function %IsList" @ %SContext
+		),
+		/ @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
+		(
+			/ "function %SetChildren"  -> "2 overloads avoiding copy on move",
+				// This is simlilar to avoid unifying move assignment for \
+					containers since they can be swapped without copy.
+			+ "2 function templates %AddChild"
+		)
+	)
+),
+
+b773
 (
 	/ %YFramework $=
 	(
@@ -67,7 +117,7 @@ $now
 							could not work.
 					)
 				),
-				/ $revert(b773) "empty parameter handling"
+				/ $revert(b773) "empty argument handling"
 					@ "member function %FormContextHandler"
 					>> "member function %StrictContextHandler::operator()"
 					// This caused empty list operand wrongly handled as no \
@@ -123,10 +173,10 @@ b772
 				(
 				/ "moved handler and saved as automatic object before \
 					invocation" @ "function %ReduceContextFirst";
-				* $comp "invalid subterm operations to make handler being \
-					called invalid" $effective @ ("function %Reduce" $since
-					b, "functions %((Forms::(And, Or, If, Apply, Eval), \
-					ReduceOrdered), %Reduce)vau handler") $since b685
+				* $comp "invalid subterm operations making handler being \
+					called out of lifetime" $effective @ ("function %Reduce",
+					"functions %((Forms::(And, Or, If, Apply, Eval), \
+					ReduceOrdered), %Reduce), vau handler") $since b685
 				)
 			)
 		)

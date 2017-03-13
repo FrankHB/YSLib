@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r187
+\version r226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-03-03 11:09 +0800
+	2017-03-13 11:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,8 @@ Some points about unevaluated expressions are concerned with the current impleme
 			It is only for symbols, i.e. tokens to be evaluated, rather than arbitrary expressions.
 			It is better on performance since no new terms have to be constructed during the evaluation.
 		Transformation like 'TokenizeTerm' would be still preserved within a preprocessing pass in REPL contet for saparation of lexical phase from further evaluation.
-	Unevaluated expressions can be explicitly evaluated in function 'A1::EvaluateIdentifier' in module 'NPL::NPLA1', with 'TokenValue' and 'DelayedTerm' processed differently.
+	Unevaluated expressions can be explicitly evaluated in function 'A1::EvaluateIdentifier' in module 'NPL::NPLA1'.
+		Terms of 'TokenValue' and 'DelayedTerm' would be processed differently.
 		For 'TokenValue', it is done here directly rather than by wrapping in a new delayed term and than calling 'A1::EvaluateLeafToken' for 2 reasons:
 			Const-correctness is needed on parameter with type of reference to 'ContextNode' and in other cases the 'A1::EvaluateIdentifier' function has no need to modify the context node.
 			Performance of direct handling is better because wrapping a term in 'DelayedTerm' is more expensive and there is no good reason to do that.
@@ -143,6 +144,7 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 						Since NPL mandates no external representation as traditonal Lisps and Kernel do, the data type is not required in most cases.
 						This leads to simpler design in specification both on semantics and API.
 				Predicates like 'bool?' would be specified in the type operation library as derived forms.
+				Primitive type predicates always take one argument for simplicity.
 		NPL deliberately keeps cyclic representation out of the program directly.
 			This is opposite to Kernel as well as traditional Lisp.
 			It is necessary to avoid bloating the minimal specification of a general language.
@@ -161,6 +163,42 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 				The notation '...' is used to capture a list.
 					Since it can only occur once, there is no need to name it with specific symbol specified by users.
 					For simplicity, name parameter like context parameter in the '$vau' operative is not provided.
+		Many of combiners can be derived as Kernel does. However, not all are recommended implementation in NPLA.
+			NPLA and NPLA1 may provide builtins as hosted primitive combiners to implement them.
+			Derivations in Kernel can be time-ineffieient. Only in extreme conditions that the binary image size is important, the derivation can be used instead of builtins.
+			The derivations could also easily have more unnecessary dependencies of implmentation, lead to bad design of dependency constructs and QoI.
+				For example, the applicative 'list' as one of the fundamental core features:
+					It is derived from '$vau' and '$wrap' in Kernel.
+						In NPLA1 it works similarly, with slightly different syntax since '$vau' NPLA1 support multiple expressions at the end.
+					In NPL it can be implemented around 'NPL::ReduceToList'.
+					Even no extra specific NPLA1 implementation is needed.
+						This is different to '$vau' and most other combiners.
+						The combiner '$vau' is OK as a primitive for language specification, as some kinds of "inversion of dependency" on interface design.
+						But it cannot be primitive enough in most cases based on reduction systems in reality.
+							Nevertheless, it is still to be implemented as a builtin.
+		Syntax of combined terms is different to traditional Lisp dialects, esp. application for functions when there is no operand.
+			Since NPL uses different syntax of parenthese to indicate composite expressions, the parenthese never stand for "application" solely.
+				Note '(foo)' would reduced to 'foo' in the main reduction function which used as the default evaluator in NPLA1.
+			Application of combined terms are indicated implictly by boundary of expressions.
+				This is mostly to refine the tokens '(' and ')' play uniform roles of the expression boundary.
+				It also makes it easier to type in.
+					As an example of motivation, in an REPL or interactive command line shell, there is no need to type in '()' around to evaluate the application.
+				Some operatives are designed also in this way.
+					For example, the '$vau' operative supports variadic expression directly.
+						There is no derivation of '$vau' like Kernel to support multiple expressions.
+						Note the evaulations are not sequenced.
+							If needed, '$sequence' should be used explicitly.
+			To support evaluation on combined terms without operand, there has to be extra syntax to handle.
+				The old hack is to remove '()' when the term has to chilren and '()' is in the 2nd position.
+					This works only on applicatives, otherwise '()' which cannot handled by the default evaluator would be wrongly removed if the term has 2 children occasionally.
+					Even on applicatives it does not work reliably.
+						The handler has to implement special case (of no argument) if empty list is needed to be recognized as an argument, e.g. in 'list?'.
+							This makes the implementation complicated a lot.
+							It is also wrong in the exception message when the arity is mismatched.
+				The new syntax contains support of prefix '()' mark to indicate the application.
+					Now '() foo' (with explicit enclosing '()' or implicit boundary) is same to '(foo)' in Lisp-style syntax when 'foo' is the name of the function.
+					This is a breaking change.
+					Now empty list only can be part of the operand.
 Changes in libfat 1.1.0 (distributed by devkitPro r46) are reviewed.
 	In summary, no changes except one minor are to be ported.
 	Change https://github.com/devkitPro/libfat/commit/abde1cb73b585ac5fc76b8d4d5d598ad6841597d is not applicable.

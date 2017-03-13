@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r2970
+\version r3011
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-02-19 17:49 +0800
+	2017-03-13 00:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,11 +285,16 @@ public:
 	DefGetter(ynothrow, Container&, ContainerRef, container)
 	DefGetter(const ynothrow, const string&, Name, name)
 
-	//! \since build 666
+	/*!
+	\brief 设置子节点容器内容。
+	\since build 774
+	*/
 	//@{
-	//! \brief 设置子节点容器内容。
-	PDefH(void, SetChildren, Container con)
+	PDefH(void, SetChildren, const Container& con)
+		ImplExpr(container = con)
+	PDefH(void, SetChildren, Container&& con)
 		ImplExpr(container = std::move(con))
+	//@}
 	/*!
 	\note 设置子节点容器和值的内容。
 	\since build 734
@@ -316,10 +321,42 @@ public:
 	//@}
 
 
+	//! \since build 667
 	PDefH(bool, Add, const ValueNode& node)
 		ImplRet(insert(node).second)
+	//! \since build 667
 	PDefH(bool, Add, ValueNode&& node)
 		ImplRet(insert(std::move(node)).second)
+
+	//! \since build 774
+	//@{
+	template<typename _tKey>
+	bool
+	AddChild(_tKey&& k, const ValueNode& node)
+	{
+		return emplace(node.GetContainer(), yforward(k), node.Value).second;
+	}
+	template<typename _tKey>
+	bool
+	AddChild(_tKey&& k, ValueNode&& node)
+	{
+		return emplace(std::move(node.GetContainerRef()), yforward(k),
+			std::move(node.Value)).second;
+	}
+	template<typename _tKey>
+	void
+	AddChild(const_iterator hint, _tKey&& k, const ValueNode& node)
+	{
+		return emplace_hint(hint, node.GetContainer(), yforward(k), node.Value);
+	}
+	template<typename _tKey>
+	void
+	AddChild(const_iterator hint, _tKey&& k, ValueNode&& node)
+	{
+		return emplace_hint(hint, std::move(node.GetContainerRef()),
+			yforward(k), std::move(node.Value));
+	}
+	//@}
 
 	/*!
 	\brief 添加参数指定值的子节点。
@@ -351,6 +388,7 @@ public:
 	/*!
 	\brief 清除节点。
 	\post <tt>!Value && empty()</tt> 。
+	\since build 666
 	*/
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(Value.Clear(), ClearContainer())
@@ -366,10 +404,10 @@ public:
 	/*!
 	\brief 清除节点容器。
 	\post \c empty() 。
+	\since build 667
 	*/
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
-	//@}
 
 	/*!
 	\brief 递归创建容器副本。

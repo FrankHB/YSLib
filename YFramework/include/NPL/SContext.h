@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1533
+\version r1537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2016-12-19 13:41 +0800
+	2017-03-12 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,10 @@ inline PDefH(bool, IsEmpty, const TermNode& term) ynothrow
 
 inline PDefH(bool, IsLeaf, const TermNode& term) ynothrow
 	ImplRet(term.empty())
+
+//! \since build 774
+inline PDefH(bool, IsList, const TermNode& term) ynothrow
+	ImplRet(!term.empty() || !term.Value)
 //@}
 
 inline PDefH(TermNode&, MapToTermNode, TermNode& term)

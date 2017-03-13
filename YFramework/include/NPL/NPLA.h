@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1442
+\version r1463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-03-05 13:14 +0800
+	2017-03-12 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -927,6 +927,31 @@ inline PDefH(void, LiftFirst, TermNode& term)
 */
 inline PDefH(void, LiftLast, TermNode& term)
 	ImplExpr(IsBranch(term), LiftTerm(term, Deref(term.rbegin())))
+//@}
+
+
+/*!
+\since build 774
+\sa RemoveHead
+\note 使用 ADL RemoveHead 。
+*/
+//@{
+/*!
+\brief 规约第一个非结尾空列表子项。
+\return ReductionStatus::Clean 。
+
+若项具有不少于一个子项且第一个子项是空列表则移除。
+允许空列表作为第一个子项以标记没有操作数的函数应用。
+*/
+YF_API ReductionStatus
+ReduceHeadEmptyList(TermNode&) ynothrow;
+
+/*!
+\brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
+\return 若成功移除项 ReductionStatus::Retained ，否则为 ReductionStatus::Clean。
+*/
+YF_API ReductionStatus
+ReduceToList(TermNode&) ynothrow;
 //@}
 
 } // namespace NPL;

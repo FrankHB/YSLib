@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2963
+\version r3028
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-10 11:35 +0800
+	2017-03-13 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -326,15 +326,12 @@ public:
 	ReductionStatus
 	operator()(TermNode& term, ContextNode& ctx) const
 	{
-		if(!term.empty())
+		if(IsBranch(term))
 		{
 			// FIXME: Cyclic reference to context handler when the term value
 			//	(i.e. the closure) is copied upward?
 			using namespace Forms;
 			const auto& formals(Deref(p_formals));
-			// NOTE: The 1st term may hold '*this' so it is wrong to simply
-			//	%RemoveHead, thus the operand has to be placed separatedly.
-			TermNode operand(NoContainer, term.GetName());
 			// NOTE: Active record frame with outer scope bindings.
 			// TODO: Optimize for performance.
 			// NOTE: This is probably better to be copy-on-write. Since
@@ -348,14 +345,13 @@ public:
 			// TODO: Reduce such undefined behavior resonably?
 			ContextNode comp_ctx;
 
-			std::for_each(std::next(term.begin()), term.end(),
-				[&](TermNode& tm){
-				operand.insert(std::move(tm));
-			});
 			// NOTE: Bind dynamic context.
 			if(!eformal.empty())
 				comp_ctx.AddValue(eformal, ValueObject(ctx, OwnershipTag<>()));
-			BindParameter(formals, operand, comp_ctx);
+			// NOTE: Since first term is expected to be saved (e.g. by
+			//	%ReduceCombined), it is safe to reduce directly.
+			RemoveHead(term);
+			BindParameter(formals, term, comp_ctx);
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
 				" shared context(s), %zu parameter(s).", p_closure.use_count(),
 				p_context.use_count(), formals.size());
@@ -514,11 +510,18 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 }
 
 ReductionStatus
+ReduceFirst(TermNode& term, ContextNode& ctx)
+{
+	return IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
+		: ReductionStatus::Clean;
+}
+
+ReductionStatus
 ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
 	const auto res(ReduceChildrenOrdered(term, ctx));
 
-	if(!term.empty())
+	if(IsBranch(term))
 		LiftTerm(term, *term.rbegin());
 	return res;
 }
@@ -621,15 +624,8 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	// NOTE: This implementes arguments evaluation in applicative order.
 	ReduceArguments(term, ctx);
-	YAssert(!term.empty(), "Invalid state found.");
-
+	YAssert(IsBranch(term), "Invalid state found.");
 	// NOTE: Matching function calls.
-	auto i(term.begin());
-
-	// NOTE: Adjust null list argument application to function call without
-	//	arguments.
-	if(term.size() == 2 && !Deref(++i))
-		term.erase(i);
 	return Handler(term, ctx);
 #if false
 	// TODO: Use other exception type with more precise information for this
@@ -652,35 +648,6 @@ RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
 	});
 }
 
-
-ReductionStatus
-ReduceContextFirst(TermNode& term, ContextNode& ctx)
-{
-	if(IsBranch(term))
-	{
-		const auto& fm(Deref(ystdex::as_const(term).begin()));
-
-		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
-		{
-			const auto handler(std::move(*p_handler));
-			const auto res(handler(term, ctx));
-
-			// NOTE: Normalization: Cleanup if necessary.
-			if(res == ReductionStatus::Clean)
-				term.ClearContainer();
-			return res;
-		}
-		// TODO: Capture contextual information in error.
-		// TODO: Extract general form information extractor function.
-		throw ListReductionFailure(
-			sfmt("No matching form '%s' with %zu argument(s) found.",
-			[&](observer_ptr<const string> p){
-				return
-					p ? *p : sfmt("#<unknown:%s>", fm.Value.GetType().name());
-			}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
-	}
-	return ReductionStatus::Clean;
-}
 
 ReductionStatus
 EvaluateDelayed(TermNode& term)
@@ -717,9 +684,9 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 			return (*p_handler)(ctx);
 		// NOTE: Unevaluated term shall be detected and evaluated. See also
 		//	$2017-02 @ %Documentation::Workflow::Annual2017.
-		return !IsBranch(term) && term.Value.GetType()
+		return IsLeaf(term) ? (term.Value.GetType()
 			!= ystdex::type_id<TokenValue>() ? EvaluateDelayed(term)
-			: ReductionStatus::Retrying;
+			: ReductionStatus::Retrying) : ReductionStatus::Retained;
 	}
 	throw BadIdentifier(id);
 }
@@ -731,7 +698,7 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 	// NOTE: Only string node of identifier is tested.
 	if(!id.empty())
 	{
-		// NOTE: The term would be normalized by %ReduceContextFirst.
+		// NOTE: The term would be normalized by %ReduceCombined.
 		//	If necessary, there can be inserted some additional cleanup to
 		//	remove empty tokens, returning %ReductionStatus::Retrying.
 		//	Separators should have been handled in appropriate preprocess passes.
@@ -763,6 +730,35 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 }
 
 ReductionStatus
+ReduceCombined(TermNode& term, ContextNode& ctx)
+{
+	if(IsBranch(term))
+	{
+		const auto& fm(Deref(ystdex::as_const(term).begin()));
+
+		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
+		{
+			const auto handler(std::move(*p_handler));
+			const auto res(handler(term, ctx));
+
+			// NOTE: Normalization: Cleanup if necessary.
+			if(res == ReductionStatus::Clean)
+				term.ClearContainer();
+			return res;
+		}
+		// TODO: Capture contextual information in error.
+		// TODO: Extract general form information extractor function.
+		throw ListReductionFailure(
+			sfmt("No matching combiner '%s' for operand with %zu argument(s)"
+				" found.", [&](observer_ptr<const string> p){
+				return
+					p ? *p : sfmt("#<unknown:%s>", fm.Value.GetType().name());
+			}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
+	}
+	return ReductionStatus::Clean;
+}
+
+ReductionStatus
 ReduceLeafToken(TermNode& term, ContextNode& ctx)
 {
 	return ystdex::call_value_or([&](string_view id){
@@ -774,13 +770,11 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 void
 SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
 {
-	// TODO: Simplify by using %ReductionStatus as invocation result directly
-	//	in YSLib. Otherwise current versions of G++ would crash here as internal
-	//	compiler error: "error reporting routines re-entered".
+	passes += ReduceHeadEmptyList;
 	passes += ReduceFirst;
 	// TODO: Insert more optional optimized lifted form evaluation passes:
 	//	macro expansion, etc.
-	passes += ReduceContextFirst;
+	passes += ReduceCombined;
 	AccessListPassesRef(root) = std::move(passes);
 	AccessLeafPassesRef(root) = ReduceLeafToken;
 }
@@ -915,8 +909,7 @@ BindParameter(const TermNode& t, TermNode& o, ContextNode& e)
 					//	in a lambda. Children nodes in arguments retained are
 					//	also transferred.
 					// XXX: Moved. This is like copy elision in object language.
-				if(!e.emplace(std::move(o.GetContainerRef()), n,
-					std::move(o.Value)).second)
+				if(!e.AddChild(n, std::move(o)))
 					throw InvalidSyntax(sfmt("Duplicate or already bounded"
 						" parameter name '%s' found.", n.c_str()));
 			}
@@ -1082,7 +1075,7 @@ Apply(TermNode& term, ContextNode& ctx)
 				app_term.AddValue(MakeIndex(app_term),
 					std::move(arg_term.Value));
 
-		const auto res(ReduceContextFirst(app_term, ctx));
+		const auto res(ReduceCombined(app_term, ctx));
 
 		LiftTerm(term, app_term);
 		return res;
