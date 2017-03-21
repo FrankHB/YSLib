@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3028
+\version r3071
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-13 11:23 +0800
+	2017-03-21 20:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,8 +305,8 @@ public:
 					else
 						throw InvalidSyntax("Invalid context parameter found.");
 				}
-				YTraceDe(Debug, "Found lambda abstraction form with %zu"
-					" parameter(s) to be bound.", formals.size());
+				YTraceDe(Debug, "Found operator with %zu parameter(s) to be"
+					" bound.", formals.size());
 				auto res(make_shared<TermNode>(std::move(formals)));
 
 				con.erase(con.cbegin(), ++i);
@@ -316,8 +316,11 @@ public:
 				throw InvalidSyntax(
 					"Insufficient terms in function abstraction.");
 		}()),
+		// NOTE: Capturing by reference.
 		// TODO: Optimize. This does not need to be shared, since it would
 		//	always be copied, if used.
+		// TODO: Region inference?
+		// FIXME: This may be unsafe if the external owner is destroyed.
 		p_context(make_shared<ContextNode>(ctx)),
 		p_closure(make_shared<TermNode>(std::move(term)))
 	{}
@@ -355,6 +358,18 @@ public:
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
 				" shared context(s), %zu parameter(s).", p_closure.use_count(),
 				p_context.use_count(), formals.size());
+
+			auto& local_ctx(Deref(p_context));
+
+			YAssert(&comp_ctx != &local_ctx,
+				"Self reference of context found.");
+			// NOTE: This is necessary to prevent the context disposed too early
+			//	after the vau handler has been destroyed. The context has to
+			//	live longer if there exists the child to capture the context and
+			//	then return.
+			// TODO: Add check for reserved identifier clash?
+			// TODO: Can there be cyclic references?
+			comp_ctx.AddValue("__$@_parent", p_context);
 			// NOTE: To avoid object owned by hidden names being
 			//	destroyed, this has to come later.
 			BindStaticContext(comp_ctx, Deref(p_context));
@@ -905,10 +920,10 @@ BindParameter(const TermNode& t, TermNode& o, ContextNode& e)
 		{
 			if(!n.empty() && IsNPLASymbol(n))
 			{
-					// NOTE: The operands should have been evaluated if this is
-					//	in a lambda. Children nodes in arguments retained are
-					//	also transferred.
-					// XXX: Moved. This is like copy elision in object language.
+				// NOTE: The operands should have been evaluated if this is
+				//	in a lambda. Children nodes in arguments retained are
+				//	also transferred.
+				// XXX: Moved. This is like copy elision in object language.
 				if(!e.AddChild(n, std::move(o)))
 					throw InvalidSyntax(sfmt("Duplicate or already bounded"
 						" parameter name '%s' found.", n.c_str()));
@@ -1053,35 +1068,6 @@ Or(TermNode& term, ContextNode& ctx)
 	return AndOr(term, ctx, {});
 }
 
-
-ReductionStatus
-Apply(TermNode& term, ContextNode& ctx)
-{
-	RetainN(term, 2);
-
-	TermNode app_term(NoContainer, term.GetName());
-	auto i(term.begin());
-	auto& func_term(Deref(++i));
-	auto& arglist_term(Deref(++i));
-	const bool branch(IsBranch(arglist_term));
-
-	if(branch || !arglist_term.Value)
-	{
-		app_term.AddValue(MakeIndex(app_term), std::move(func_term.Value));
-		if(branch)
-			for(auto& arg_term : arglist_term)
-				// TODO: Optimize?
-				// XXX: Children nodes are ignored.
-				app_term.AddValue(MakeIndex(app_term),
-					std::move(arg_term.Value));
-
-		const auto res(ReduceCombined(app_term, ctx));
-
-		LiftTerm(term, app_term);
-		return res;
-	}
-	throw InvalidSyntax("List is required as the parameter list on applying.");
-}
 
 void
 CallSystem(TermNode& term)

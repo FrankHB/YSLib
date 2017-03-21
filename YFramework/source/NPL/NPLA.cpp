@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1025
+\version r1027
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-03-13 11:14 +0800
+	2017-03-14 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -396,7 +396,8 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 
 	const char f(id.front());
 
-	return (id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(f))
+	return (id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(f)
+		&& id.find_first_not_of("+-") != string_view::npos)
 		|| std::isdigit(f);
 }
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2768
+\version r2779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-03-13 11:05 +0800
+	2017-03-21 20:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -753,7 +753,8 @@ EvaluateLeafToken(TermNode&, ContextNode&, string_view);
 
 对枝节点尝试以第一个子项的 Value 数据成员为上下文处理器并调用，且当规约终止时规范化；
 否则视为规约成功，没有其它作用。
-若发生调用，前先转移处理器保证生存期，以允许处理器内部移除之前占用的第一个子项。
+若发生 ContextHandler 调用，调用前先转移处理器保证生存期，
+	以允许处理器内部移除或修改之前占用的第一个子项（包括其中的 Value 数据成员）。
 */
 YF_API ReductionStatus
 ReduceCombined(TermNode&, ContextNode&);
@@ -1316,17 +1317,6 @@ YF_API ReductionStatus
 Or(TermNode&, ContextNode&);
 //@}
 
-
-/*!
-\brief 以列表项为参数应用函数。
-\sa ReduceCombined
-\since build 766
-
-参考文法：
-apply <function> <list>
-*/
-YF_API ReductionStatus
-Apply(TermNode&, ContextNode&);
 
 /*!
 \brief 调用 UTF-8 字符串的系统命令，并保存 int 类型的结果到项的值中。
