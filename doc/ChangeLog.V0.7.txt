@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6291
+\version r6333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-13 11:48 +0800
+	2017-03-21 23:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,49 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ "vau hanlder" $=
+					(
+						/ $term "log message",
+						+ $lib $design "assertion to exclude self reference of \
+							static context",
+						* "shared context destroyed too early when it is \
+							captured by vau handlers in subterms" $orig
+							(@ "function %Lambda" $since b735)
+					),
+					- $revert(b766) "function %Apply"
+						// The applicative 'apply' can be derived in more \
+							flexible ways (e.g. with environment argument). \
+							The list passes should also better be followed \
+							like it in %Reduce call. Using derivation like \
+							Kernel also provides unwrapping check for \
+							applicatives directly.
+				)
+			),
+			(
+			/ "categoried token consisted with '+-' to symbols"
+				@ "function %IsNPLAExtendedLiteral" @ %NPLA;
+			/ %Dependency $=
+			(
+				/ "allowed symbols consisted with '+-'"
+					@ "function %LoadNPLContextForSHBuild"
+					^ $dep_from ("%IsNPLAExtendedLiteral" @ %NPLA);
+				* "treated '++' as literal" @ %NPLA1 $since b770
+			)
+			)
+		)
+	)
+),
+
+b775
 (
 	/ %YFramework $=
 	(

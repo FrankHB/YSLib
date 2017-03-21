@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r226
+\version r319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-03-13 11:47 +0800
+	2017-03-20 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,12 +79,13 @@ Some points about unevaluated expressions are concerned with the current impleme
 
 $2017-03:
 
+report.impl:
 Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 	The current specification is Revised^-1 Report on the Kernel Programming Language, with some rationales in the text.
 	There are many similarity on design consideration. Despite developed without reference to Kenerl, many features are occasionally the same.
 		The Principle G1 and G5 of Kernel is informally or implicitly implied by NPL design.
 		Both can have homoiconic representations and many shared conceptual models of modern Lisp dialects.
-		The same key feature is first class support of modern forms of fexpr with lexical scopes.
+		The same key feature is first-class support of modern forms of fexpr with lexical scopes.
 		The naming of identifier like '$lambda' are often the same, with slightly differences on meaning.
 			The original of '$' in NPLA1 is to express reserved identifier as well as traditional C-like '__'.
 			It later changes to be function with unevaluated operands, i.e. fexprs, which is same to Kernel.
@@ -100,7 +101,7 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 			Such properties are designed to be specified in derived implementations, which is an issue of QoI (quality of implementation) rather than designing.
 		NPL has more focus on composition of abstraction.
 			In general, NPL would prefer lower-level implementation-dependent features to abstract.
-				This is often to avoid to violate the phiilosophy of zero overhead principle.
+				This is often to avoid to violate the philosophy of zero overhead principle.
 					If such lower-level features are not provided, users may have to fight against low usability with portability of the code. 
 			There are some examples.
 				NPL prefers 'eqv?' than 'equal?', which is opposite to Kernel.
@@ -108,31 +109,68 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 					The reason is that the difference of list and non-list terms are intrinsically and generally non-avoidable in the languages.
 						To mandate 'equal?' while not 'eqv?' would be the nontrivial case of non-composable interface.
 				NPL prefers acyclic representations and data structures by default.
-					If cyclic representations or data structures are necessary, use specific library to solve the problems.
 					This choice implies acyclic ownership relationships in design.
 						So garbage collection is essentially not needed specifically to break the cycles.
-					This choice ease some specification of acyclic constructs.
-						So it is unnecessary to specify acyclic constructs like parameter tree for '$vau' in Kernel.
-					NPLA renders undefined behavior for unexpected cyclic references.
-					NPLA does not support circular substructure in syntax.
-						This simplifies the syntax. It is now more like reduced S-expression used in SXML, rather than in traditional Scheme dialects and Kernel.
-					It simplifies the implementation of many derived functions like 'equal?', since they have to guarantee the termination in traditional Scheme dialects even for circular-referenced data structures.
+						Note NPLA renders undefined behavior for unexpected cyclic references.
+					This choice simplifies overall design and its implementation a lot.
+						NPLA does not support circular substructure in syntax.
+							This simplifies the syntax. It is now more like reduced S-expression used in SXML, rather than in traditional Scheme dialects and Kernel.
+						It eases some specification of acyclic constructs.
+							So it is unnecessary to specify acyclic constructs like parameter tree for '$vau' in Kernel.
+						It simplifies the implementation of many derived functions which have to guarantee the termination in traditional Scheme dialects even for circular-referenced data structures.
+							For example, 'equal?'.
+						It merges different representations of the operand.
+							So it need no different treatment on operand as 'list' and 'list*' in Kernel.
+						It also wipes out the vulnerability in some simple Kernel derivations.
+							For example, 'list*' would be definitely terminated since the elements of a list is finite.
+					This choice gives users the leeway to determine where to break the cycles and the chance to adjust the trade-offs in higher levels of abstraction.
+						It plays better with zero overhead principle.
+						If cyclic representations or data structures are necessary, use specific library derivation to solve the specific problems.
+						Though facilities to operate on cyclic data structures are not provided directly now, they can be written by users.
+							Mostly the base data structure would be a list with custom value type.
+							The cost of operating and interacting on different value types depends on users.
+					This have impacts on implementation of a few features, notably, first-class recursion by resolving defined names.
+						This is different to traditional Scheme dialects and Kernel which hide recursive capability in the primitive "define". Note this may be underspecified in these languages.
+							Their specifications do not state the recusion visibility of freshly defined symbol in "define" clause explicitly.
+							Alghough it can be partially inferred by requirments on properly tail-recursive calls.
+							Nonetheless, the capability for "letrec" family is explicitly specified.
+						NPLA does not required it directly. All of the usability of it is up to the operatives for environment mutation being used.
+							Since first-class environment is supported, it would be built on environment mutation, at least internally.
+							The basic one may not support recusion at all.
+							The advanced one can support recursion by nesting one more static environment internally.
+							For "letrec" families, it can be composed by basic primitives, similar to Kernel.
+						This also has impacts on resouce management in closures, notably, when mutual closures are incurred.
+							The lexical mutual references are still allowed.
+							However, acyclic ownership relationship are effectively required, otherwise the behavior may be undefined indetermintely.
+							To reduce undefined behavior by accident, some mechanism for resource management is needed, optionally.
+								For example, garbage collection or region inference.
+								Not all of these are good to use.
+									See discussion of basic feature adoption below.
+								NPL/NPLA/NPLA1 all mandate yet nothing in this area.
 	There are many differences on adopted basic features, which has obvious effect on functionality of primitives.
 		NPL mandates resource semantics which implies ownership and object models in derived implementations, while Kernel as well as traditional Lisp relies on unlimited extents of objects.
 			NPL allows undefined behavior on reference with different object models, while Kernel requires garbage collection.
 			For general use on resource management, garbage collection is not acceptable as the center ownership holder.
-				It also violates design of first class object endorsed by Kernel.
+				It also violates design of first-class object endorsed by Kernel.
 		NPL mandates no external representation as traditonal Lisps and Kernel do.
 			If needed, they can be specified by derived implementations.
 		Lisp-like pairs (cons pairs) are not used as basic data structure of the internal program representation. So interface for pairs is deliberately omitted. Note pair mutation is also optional in Kernel.
 			There is also no null cell of this sense in NPL.
-				However, empty lists still exist.
+				However, empty lists still exist. They can still be tested by 'null?' predicate.
 			Dot notation is not supported in the syntax.
 				This simplifies the syntax, having simliar effect as given by avoiding circular substructure.
+				Althoug there needs additional treatment to variadic parameters.
+			The syntatic element is either a list or an atom (a non-list), though the latter can have a list value.
+				Others (non-list linked data structure including cyclic) are considered irregular.
+			Combiners do not support irregular data structure. 
+			The 'apply' applicative accepts only list as in Lisp, not as it in Kenerl.
+				This loses no exresiveness since underlying operative also does not support irregular data structure for simplicity.
 		NPL mandates no encapsulation.
 			This can be good extension for the language generally in future.
 			If needed, they can be specified by derived implementations.
 		NPL mandates no partitioning of types.
+			First of all, mandatory type system is avoid by design. See discussions below.
+				The minimized requirement on typing leads agains to partitioning as a whole base system of typing.
 			To allow variaties on interoperability, the type system in NPL is essentially not encapsulated.
 				If needed, they can be specified by derived implementations.
 					This is at least not the case in NPLA for C++ interoperations.
@@ -176,14 +214,18 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 						The combiner '$vau' is OK as a primitive for language specification, as some kinds of "inversion of dependency" on interface design.
 						But it cannot be primitive enough in most cases based on reduction systems in reality.
 							Nevertheless, it is still to be implemented as a builtin.
-		Syntax of combined terms is different to traditional Lisp dialects, esp. application for functions when there is no operand.
+		Syntax of composite (by juxtaposition) terms is different to traditional Lisp dialects, esp. application for functions when there is no operand.
 			Since NPL uses different syntax of parenthese to indicate composite expressions, the parenthese never stand for "application" solely.
 				Note '(foo)' would reduced to 'foo' in the main reduction function which used as the default evaluator in NPLA1.
-			Application of combined terms are indicated implictly by boundary of expressions.
+			Evaluation of combined terms are indicated implictly by boundary of expressions.
+				This is different with traditional Lisp or Kernel where '(' and ')' are used to indicates application or combining.
 				This is mostly to refine the tokens '(' and ')' play uniform roles of the expression boundary.
-				It also makes it easier to type in.
+				It decouples the combining rules with the problem of empty list evaluation.
+					Whether empty list evaluation should be well-formed or not has nothing to do with combining.
+					It is actually ill-formed in most contexts just because the empty list is not expected to occur.
+				It makes expressions easier to type in.
 					As an example of motivation, in an REPL or interactive command line shell, there is no need to type in '()' around to evaluate the application.
-				Some operatives are designed also in this way.
+				Some operatives are designed with this in mind.
 					For example, the '$vau' operative supports variadic expression directly.
 						There is no derivation of '$vau' like Kernel to support multiple expressions.
 						Note the evaulations are not sequenced.
@@ -199,8 +241,42 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 					Now '() foo' (with explicit enclosing '()' or implicit boundary) is same to '(foo)' in Lisp-style syntax when 'foo' is the name of the function.
 					This is a breaking change.
 					Now empty list only can be part of the operand.
-Changes in libfat 1.1.0 (distributed by devkitPro r46) are reviewed.
-	In summary, no changes except one minor are to be ported.
+Mandatory type system is avoid by design of NPL, for both philosiphical and engineering reasons.
+	Typing is not the silver bullet.
+		There are multiple different uses that are not equally intuitively recoginzed by users, which causes confusion.
+			Typing is first invented to rescue the mathematics foundation from Russell's paradox.
+			Type system to be modeling (like in traditional OOAD and OOP approach) tools are plausible, but not strictly required in general.
+		Naive design easily cause problems in design and applications.
+	Mandatory type system is simply out of scope of the design of an expressive language aiming to be general-purposed, since there is no one-size-fit-all option in type system design.
+		To be most general-purposed, the disciplines of typing have to be weaken engough.
+			The main reason is to avoid insonsistency and to keep feasibility serving as many as domains.
+			It utterly leads to no typing at all, except those necessitied for composing other non-typing first-class features.
+			For example, to describe some domains of required values, normatively discrete types are required.
+				One motivating concrete instance of this example is boolean value used if first-class conditional controlling constructs.
+					It requires the dinstinction of 'bool' vs. others.
+				This still minimizes the requirement on typing.
+			The weaken disciplines effectively reject static typing as a mandated builtin feature of the language.
+				Static typing is essentially built through refinements by phases (discrete "static" and "dynamic" phases like "compile-time" vs. "runtime") of underlying reduction disciplines.
+					These underlying disciplines are expressed in either formal languages (metalanguages) or natural languages directly in the specification of the language.
+					When mandated, it indicates there are some domain-specific rules are encoded in the specification of the language.
+						Since it is mandated, conforming implementations cannot skip them, which may easily harm generality if the domain requirements are not suited to the typing.
+				So the engineering weakness of high cost of wrong choice on typing can be (hopefully) minimalized.
+	Mandatory of type systems requires a lot of unavoiadable work in specification even it is known not fit for several domains, which is agianst to simplicity of design.
+	Similarly, it requires a lot of work on conformance in implementations.
+	Type systems, if any, should be pluggable.
+		The idea and similar consideration are available at http://www.bracha.org/pluggable-types.pdf.
+	A related notion with similar side effects is nominal typing, which is used by contempory languages widely.
+		It can be useful, but wrong design with static typing can have more power to make things in a mess, and little effort can be done to recover the errors.
+			For instance, see http://stackoverflow.com/questions/4488727/what-is-the-point-of-dbnull.
+		The necessity of mandatory on nominal typing is particalarly a widely adopted misconception.
+			It makes users being confused of the purpose of typing (logical limitation vs. modeling, see above).
+			It makes users being ignorant to other typing schemes.
+
+dep.merge:
+libfat 1.1.0: reviewed, partially merged, partially shelved.
+	Changes in libfat 1.1.0 (distributed by devkitPro r46) are reviewed.
+		In summary, no changes except one minor are to be ported, and there is one extra change to be evaluated.
+		All changes are not ported now.
 	Change https://github.com/devkitPro/libfat/commit/abde1cb73b585ac5fc76b8d4d5d598ad6841597d is not applicable.
 		There is no separated install script.
 	Change https://github.com/devkitPro/libfat/commit/73ccaec8154e2a12fd8995514e10 is not applicable.
