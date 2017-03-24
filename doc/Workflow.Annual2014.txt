@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r939
+\version r942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2016-12-07 14:28 +0800
+	2017-03-24 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,10 +47,10 @@ There may be some wrong impression of border thickness due to the colors.
 	Actually, no rendering code of checkbox has been changed.
 Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Microsoft VC++ library(MSVCRT). There are some issues:
 	Different verstions of MSVCRT define different symbols with some subtle problems. So they should be same in different toolchain configurations for best compatibility.
-		Both of them support at least version 6.0, which is probably the most wide-adopted by Microsoft Windows(they came by default install). The library file name is "msvcrt.lib" for Microsoft VC++, accordingly "msvcrt.dll" of the dynamic library and "libmsvcrt.a" as static library for both runtime.
+		Both of them support at least version 6.0, which is probably the most wide-adopted by Microsoft Windows(they came by default install). The library filename is "msvcrt.lib" for Microsoft VC++, accordingly "msvcrt.dll" of the dynamic library and "libmsvcrt.a" as static library for both runtime.
 			Though acceptable, but deployment depend on it is not good. The are not publicly guaranteed to be compatible within different versions of Windows.
 		For newer versions, the dyanmic libraries name schema is "msvcrXX.dll", in which "XX" is the corresponding concatenated Microsoft VC++ main and minor version numbers. For example "msvcrt90.dll" is of VS2008.
-			The architecture names (such as "x86" or "amd64") are not related of the file names.
+			The architecture names (such as "x86" or "amd64") are not related of the filenames.
 			They are required to be deployed along with the applications, or the end users might able to install corresponding version of Microsoft VC++ Redistributable Package.
 		MinGW.org uses 6.0 as default. Things about MinGW-W64 are some complicated, see below.
 		Currently MinGW.org's distribution has "libmsvcrt.a", "libmsvcp60.a"(the C++ runtime of Microsoft VC++ 6.0), and "libmsvcr70.a" to "libmsvcr100.a"(the whole "XX" are 70, 71, 80, 90, 100). It also has corresponding debug versions for latter, i.e. "libmsvcr70d.a" to "libmsvcr100d.a". No newer MSVCRT are supported.

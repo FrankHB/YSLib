@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2779
+\version r2817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-03-21 20:09 +0800
+	2017-03-22 09:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -890,28 +890,53 @@ RetainN(const TermNode&, size_t = 1);
 
 
 /*!
-\brief 使用操作数结构化匹配并绑定参数。
-\throw ArityMismatch 子项数匹配失败。
-\throw InvalidSyntax 存在重复的叶节点表示的参数。
 \throw ParameterMismatch 匹配失败。
 \note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
-\since build 773
+\since build 776
 
-第一参数指定形式参数，第二参数指定操作数。
-形式参数和操作数为项指定的表达式树。
 绑定前需要进行结构化匹配检查。
-进行匹配的算递归搜索形式参数及其子项，匹配要求如下：
-若项是非空列表，则操作数的对应的项应为子项数相同的非空列表；
-若项是空列表，则操作数的对应的项应为空列表；
-若项是 #ignore ，则忽略操作数对应的项；
-若项的值是符号，则操作数的对应的项应为非列表项。
-若匹配失败，则抛出异常；否则，在第三参数指定的环境内绑定未被忽略的匹配的项：
+若匹配失败，则抛出异常；否则，在第一参数指定的环境内绑定未被忽略的匹配的项：
 非空列表项的绑定为对应子项的绑定；
 空列表项的绑定为空操作；
 非列表项操作数直接绑定到名称为符号值的参数对应项。
+绑定按深度优先的词法顺序进行。若已存在绑定则重新绑定。
+*/
+//@{
+/*!
+\brief 使用操作数结构化匹配并绑定参数。
+\throw ArityMismatch 子项数匹配失败。
+\sa BindParameterLeaf
+
+形式参数和操作数为项指定的表达式树。
+第二参数指定形式参数，第三参数指定操作数。
+进行匹配的算法递归搜索形式参数及其子项，匹配要求如下：
+若项是非空列表，则操作数的对应的项应为子项数相同的非空列表；
+若项是空列表，则操作数的对应的项应为空列表；
+否则，调用 BindParameterLeaf 匹配非列表项。
 */
 YF_API void
-BindParameter(const TermNode&, TermNode&, ContextNode&);
+BindParameter(ContextNode&, const TermNode&, TermNode&);
+
+/*!
+\brief 使用操作数结构化匹配并绑定参数到非列表项。
+\sa BindParameter
+
+形式参数和操作数为项指定的表达式树。
+第二参数指定名称，之后的参数指定值。
+匹配要求如下：
+若项是 #ignore ，则忽略操作数对应的项；
+若项的值是符号，则操作数的对应的项应为非列表项。
+*/
+//@{
+YF_API void
+BindParameterLeaf(ContextNode&, const TokenValue&, TermNode::Container&&,
+	ValueObject&&);
+inline PDefH(void, BindParameterLeaf, ContextNode& e, const TokenValue& n,
+	TermNode&& o)
+	ImplExpr(BindParameterLeaf(e, n, std::move(o.GetContainerRef()),
+		std::move(o.Value)))
+//@}
+//@}
 
 /*!
 \brief 检查项中是否存在为修饰符的第二个子项，若存在则移除。

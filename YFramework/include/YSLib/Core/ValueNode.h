@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3011
+\version r3031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-03-13 00:35 +0800
+	2017-03-24 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -294,14 +294,26 @@ public:
 		ImplExpr(container = con)
 	PDefH(void, SetChildren, Container&& con)
 		ImplExpr(container = std::move(con))
+	//! \since build 776
+	PDefH(void, SetChildren, ValueNode&& node)
+		ImplExpr(container = std::move(node.container))
 	//@}
 	/*!
 	\note 设置子节点容器和值的内容。
 	\since build 734
 	*/
 	//@{
-	void
-	SetContent(Container, ValueObject) ynothrow;
+	//! \since build 776
+	template<class _tCon, class _tValue>
+	yimpl(ystdex::enable_if_t)<
+		ystdex::and_<std::is_assignable<Container, _tCon&&>,
+		std::is_assignable<ValueObject, _tValue&&>>::value>
+	SetContent(_tCon&& con, _tValue&& val) ynoexcept(ystdex::and_<
+		std::is_nothrow_assignable<Container, _tCon&&>,
+		std::is_nothrow_assignable<ValueObject, _tValue&&>>())
+	{
+		yunseq(container = yforward(con), Value = yforward(val));
+	}
 	PDefH(void, SetContent, const ValueNode& node)
 		ImplExpr(SetContent(node.GetContainer(), node.Value))
 	PDefH(void, SetContent, ValueNode&& node)
@@ -395,10 +407,14 @@ public:
 
 	/*!
 	\brief 清除容器并设置值。
-	\since build 732
+	\since build 776
 	*/
-	PDefH(void, ClearTo, ValueObject vo) ynothrow
+	//@{
+	PDefH(void, ClearTo, const ValueObject& vo) ynothrow
+		ImplExpr(ClearContainer(), Value = vo)
+	PDefH(void, ClearTo, ValueObject&& vo) ynothrow
 		ImplExpr(ClearContainer(), Value = std::move(vo))
+	//@}
 	//@}
 
 	/*!

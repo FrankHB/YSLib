@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r319
+\version r346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-03-20 12:30 +0800
+	2017-03-22 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,11 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 		The naming of identifier like '$lambda' are often the same, with slightly differences on meaning.
 			The original of '$' in NPLA1 is to express reserved identifier as well as traditional C-like '__'.
 			It later changes to be function with unevaluated operands, i.e. fexprs, which is same to Kernel.
-	Not all design are totally same, in the root of the design philosophies.
+	Not all design are same, in the root of the design philosophies.
+		Fundamental principles not only for ordinary users but also are significant for users who derive the language in NPL, are lack in Kernel.
+			They may have higher priority in general.
+			A dedicated example is the zero overhead principle.
+				For example, operand tree matching does not requires duplication check, see description below on parameter tree.
 		The Principle G2 of Kernel is not used by NPL design, because NPL is not designed to be a direct replacement of a Lisp dialect.
 			However, Kernel is largely derived from R5RS Scheme.
 			See below for differences about supported features.
@@ -103,7 +107,8 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 			In general, NPL would prefer lower-level implementation-dependent features to abstract.
 				This is often to avoid to violate the philosophy of zero overhead principle.
 					If such lower-level features are not provided, users may have to fight against low usability with portability of the code. 
-			There are some examples.
+				The feasibility to introduce required functionalities should be kept. The usability should not be effected significantly.
+			Some notable (global to the language design) examples as listed here.
 				NPL prefers 'eqv?' than 'equal?', which is opposite to Kernel.
 					The applicative 'equal?' is meant to be composited based on 'eqv?' or other API by design.
 					The reason is that the difference of list and non-list terms are intrinsically and generally non-avoidable in the languages.
@@ -153,7 +158,8 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 			For general use on resource management, garbage collection is not acceptable as the center ownership holder.
 				It also violates design of first-class object endorsed by Kernel.
 		NPL mandates no external representation as traditonal Lisps and Kernel do.
-			If needed, they can be specified by derived implementations.
+			If necessary, they can be specified by derived implementations.
+			If needed, they can be implemented by users.
 		Lisp-like pairs (cons pairs) are not used as basic data structure of the internal program representation. So interface for pairs is deliberately omitted. Note pair mutation is also optional in Kernel.
 			There is also no null cell of this sense in NPL.
 				However, empty lists still exist. They can still be tested by 'null?' predicate.
@@ -188,6 +194,16 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 			It is necessary to avoid bloating the minimal specification of a general language.
 				This largely simplified many lengthy implementation of derived forms.
 				If needed, features for cyclic data structures can be provided by library.
+		Proper tail recursion is not required in NPL as in tradition Scheme dialects and Kernel.
+			Most requirements on tail recursion is an issue of QoI rather than design, so it is not mandated.
+			Ideally the operation on raw activation record frames should be deterministically handled. This requires the failure of allocation of activation records frame is always predicatable.
+				Undefined behavior of recusion call failure in hosted language should be avoided.
+					In typical naive native language implementation (e.g. C or C++) without TCO (tail call optimization), call stack overflow are unavoidable and it could be essentially unpredicatable even in aspect of implementation.
+					So the implementation of object language should provide some guarantees to avoid such cases.
+						Proper tail recursion is one effective way to specify the needed property.
+			NPL does not specify the requirement of the general deterministic requirement on activation record frames yet.
+				NPLA might require it someday.
+				The form about requirments on tail calls would only be applied after there is a foundation of implementable rumtime continuation implementation.
 		Kernel provides predicates for some special placeholder values, while NPL is not, for several reasons.
 			The placeholder value needs to have a type only when it is evaluated.
 		The value '#inert' is not supported in NPL because it is more correct to leave unspecified values as precise as the specification about the language semantics.
@@ -195,12 +211,17 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 			Even NPLA1 always uses %ValueToken::Unspecified for the unspecified values in API level, it is not required by the core semantics of the object language.
 			This also recovers traditional 3-term form 'if' which is wiped out in Kernel due to inconsistency caused by explicitly overspecified '#inert' requirement on the result.
 			There is no type or predicate for '#inter'.
-		Formal parameter tree of Kernel is not adopted in NPL.
-			The NPL formal parameter is always a list, like the case in traditional Lisp dialects.
-			Since cons pairs are not required in NPL, there is other considerations of variadic parameters.
+		Formal parameter tree and operand tree of Kernel are not adopted in the same way in NPL, since there is no cons pairs in the internal representation.
+			The NPL formal parameter is always a tree of either of a non-list or a list.
+			Since cons pairs are not used to express parameter in NPL, there is other considerations of variadic parameters.
 				The notation '...' is used to capture a list.
 					Since it can only occur once, there is no need to name it with specific symbol specified by users.
 					For simplicity, name parameter like context parameter in the '$vau' operative is not provided.
+			Operand tree matching does not requires duplication check, even it is indeed bad when misused.
+				Kernel specifies the check mandated.
+					This has trouble since other unique symbols can be rebound, so there must be extra mechanism taking extra resources (i.e. memory) to handle it correctly.
+						This is a direct violation of the principle, so it is not adopted in the design.
+				If the check is needed, it can be implemented ahead of matching.
 		Many of combiners can be derived as Kernel does. However, not all are recommended implementation in NPLA.
 			NPLA and NPLA1 may provide builtins as hosted primitive combiners to implement them.
 			Derivations in Kernel can be time-ineffieient. Only in extreme conditions that the binary image size is important, the derivation can be used instead of builtins.

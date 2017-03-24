@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r427
+\version r428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-03-14 00:06 +0800
+	2017-03-21 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -250,7 +250,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		ystdex::bind1(DefineOrSet, _2, false));
 	RegisterForm(root, "$vau", Vau);
 	// NOTE: Privmitive procedures.
-	RegisterForm(root, "$or", Or);
+	RegisterForm(root, "$or?", Or);
 	RegisterStrict(root, "eqv?", EqualValue);
 	context.Perform("$define (not x) eqv? x #f");
 	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,

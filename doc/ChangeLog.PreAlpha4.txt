@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9240
+\version r9263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2017-03-02 18:39 +0800
+	2017-03-24 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -859,7 +859,7 @@ b492
 				stof, stod, stold).
 		+ "project %YFramework_Android"
 	),
-	+ $repo 'Tools/*.tar.*' @ "ignored items" @ '.hgignore',
+	+ $repo 'Tools/*.tar.*' @ "ignored items" @ "file %.hgignore",
 	* "wrong build target types for configurations %release"
 		@ "Code::Blocks projects" $since b217,
 	/ $dev $build "makefiles" $=
@@ -1672,7 +1672,7 @@ b478
 			/ "unified default value" @ "platform macro %PLATFORM as 'DS'"
 		)
 	),
-	/ $repo "ignored items" @ '.hgignore' $=
+	/ $repo "ignored items" @ "file %.hgignore" $=
 	(
 		+ 'build/',
 		- 'YSTest_MinGW32/config.txt',
@@ -2743,14 +2743,15 @@ b458
 	),
 	/ %YBase $=
 	(
-		/ $dev $build "specified option '/Za'" @ "Microsoft VC++ project configuration",
+		/ $dev $build "specified option '/Za'" @ "Microsoft VC++ project \
+			configuration",
 			// Disabled extensions.
 		/ %YStandardEx $=
 		(
 			* "wrong use of %yconstexpr for function templates" @ %CString
 				$since b329 $= (^ "%yconstfn" ~ "%yconstexpr"),
-				// This would cause warning C4180 on Microsoft VC++ 2013 with warning \
-					level /W1.
+				// This would cause warning C4180 on Microsoft VC++ 2013 with \
+					warning level /W1.
 			/ $dev %Iterator $=
 			(
 				/ @ "class template %pointer_iterator" $=
@@ -2762,13 +2763,13 @@ b458
 				/ @ "class template %pseudo_iterator" $=
 				(
 					- "all 'yconstfn inline'" -> yconstfn,
-						// This would cause warning C4141 on Microsoft VC++ 2013 with \
-							warning level /W1.
+						// This would cause warning C4141 on Microsoft VC++ \
+							2013 with warning level /W1.
 					* "missing workaround of move constructor and move \
 						%operator= for Microsoft VC++ 2013" $since b454
 				),
-				* "missing workaround of move %operator= for Microsoft VC++ 2013"
-					@ "class templates %(pair_iterator, \
+				* "missing workaround of move %operator= for Microsoft VC++ \
+					2013" @ "class templates %(pair_iterator, \
 					indirect_input_iterator)" $since b454
 				+ "workaround for Microsoft VC++ 2013 and Clang++ 3.4 of ''"
 					$dep_from "%YB_IMPL_CLANGPP"
@@ -2790,9 +2791,9 @@ b458
 			+ "macro %YB_IMPL_CLANGPP for LLVM/Clang++ implemntation",
 			+ '#	define ynothrow __attribute__ ((nothrow))'
 				@ "!YB_HAS_NOEXCEPT && YB_IMPL_GNUCPP >= 30300";
-				// For Microsoft VC++ when 'YB_IMPL_MSCPP >= 1200', there exists \
-					'__declspec(nothrow)' with almost same semantics with \
-					'throw()' but different syntax.
+				// For Microsoft VC++ when 'YB_IMPL_MSCPP >= 1200', there \
+					exists '__declspec(nothrow)' with almost same semantics \
+					with 'throw()' but different syntax.
 		)
 	)
 ),
@@ -3106,10 +3107,10 @@ b454
 		),
 		* "%platform::terminate wrongly called %std::terminate"
 			@ !"platform %DS" @ %YCLib.YCommon $since b296,
-		// This would cause infinite recusive call to %std::terminate, as \
-			currently did when initialized by %Helper::Initialization which \
-			set the C++ standard library terminate handler as \
-			%platform::terminate.
+			// This would cause infinite recusive call to %std::terminate, as \
+				currently did when initialized by %Helper::Initialization \
+				which set the C++ standard library terminate handler as \
+				%platform::terminate.
 	),
 	* $comp "incomplete update of test animation" $since b451 $dep_from
 		%YFramework.YSLib.UI.Animation,
@@ -3160,13 +3161,16 @@ b454
 			)
 		)
 	),
-	/ $dev $build "Microsoft VC++ projects" $=
+	/ $build "Microsoft VC++ projects" $=
 	(
 		/ "set DS projects as platform %ARM",
 		/ "set Win32 projects with uniformed settings on project targets, \
 			optimization options(to default), Microsoft VC++ directories, \
 			warning level('/W3'), character set(to default) and linker \
-			options(to default)"
+			options(to default)",
+		/ $build "updated to Microsoft VC++ 2013" ~ "Microsoft VC++ 2012"
+			@ "Microsoft VC++ projects" $effective @ %(YBase, YFramework)
+			$= (/ $re_ex(b399) "updated platform toolset" -> "v120" ~ "v110")
 	),
 	+ $dev $repo "pattern globs ('*.lastcodeanalysissucceeded', \
 		'*.nativecodeanalysis.all.xml', '*.nativecodeanalysis.xml')"
@@ -6288,7 +6292,7 @@ b402
 			)
 		)
 	),
-	/ DD "made expected non-sentance Doxygen especially for directive '\sa'",
+	/ DD "made expected non-sentance Doxygen especially for command '\sa'",
 	* "missing including <ystdex/functional.hpp>"
 		@ %YBase.YStandardEx.AnyIterator $since b355
 ),
