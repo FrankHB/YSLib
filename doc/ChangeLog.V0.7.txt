@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6333
+\version r6379
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-21 23:12 +0800
+	2017-03-24 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,52 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ "form %'$or'" => '$or?' @ "loading forms"
+				@ "function %LoadNPLContextForSHBuild" @ %Dependency,
+			/ @ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					(
+					+ "2 functions %BindParameterLeaf";
+					/ DLDI "simplified function %BindParameter"
+						^ "%BindParameterLeaf";
+					* $comp "losing name on bounded non list nodes" $since b774,
+					/ "allowed rebinding for duplicated symbols to be bound"
+						~ "throwing %InvalidSyntax"
+						// See $2017-03 @ %Documentation::Workflow::Annual2017.
+					),
+					(
+					/ "lifted context parameter as 1st parameter"
+						@ "function %BindParameter";
+						// To be consistent with %BindParameterLeaf.
+					/ $forced DLDI "vau handler"
+					),
+					/ DLDI "simplified function %ReduceCheckedClosure"
+						^ $dep_from ("%YSLib::ValueNode::SetChildren"
+						@ %YSLib.Core.ValueNode)
+				),
+			)
+		),
+		/ $re_add(b774) @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
+		(
+			/ $re_add(b774) "avoiding copy"
+			(
+				/ "function %SetContent with 2 parameters"
+					-> "function template";
+				/ "function %ClearTo" -> "2 overloads avoiding copy on move"
+			),
+			+ "function %SetChildren with node parameter"
+		)
+	)
+),
+
+b775
 (
 	/ %YFramework $=
 	(
@@ -73,7 +119,7 @@ $now
 	)
 ),
 
-b775
+b774
 (
 	/ %YFramework $=
 	(

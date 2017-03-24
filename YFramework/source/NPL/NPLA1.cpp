@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3071
+\version r3110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-21 20:09 +0800
+	2017-03-24 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,7 +354,7 @@ public:
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
-			BindParameter(formals, term, comp_ctx);
+			BindParameter(comp_ctx, formals, term);
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
 				" shared context(s), %zu parameter(s).", p_closure.use_count(),
 				p_context.use_count(), formals.size());
@@ -498,7 +498,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// XXX: Term reused.
 	ReduceChecked(comp_term, ctx);
 	term.Value = comp_term.Value.MakeMoveCopy();
-	term.GetContainerRef() = std::move(comp_term.GetContainerRef());
+	term.SetChildren(std::move(comp_term));
 }
 
 void
@@ -875,7 +875,7 @@ RetainN(const TermNode& term, size_t m)
 
 
 void
-BindParameter(const TermNode& t, TermNode& o, ContextNode& e)
+BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 {
 	if(IsBranch(t))
 	{
@@ -891,7 +891,7 @@ BindParameter(const TermNode& t, TermNode& o, ContextNode& e)
 				for(auto& child : t)
 				{
 					if(i != o.end())
-						BindParameter(child, *i, e);
+						BindParameter(e, child, *i);
 					else
 						// FIXME: Redundant?
 						throw ParameterMismatch(
@@ -913,28 +913,28 @@ BindParameter(const TermNode& t, TermNode& o, ContextNode& e)
 				"Invalid branch term found for empty list parameter.");
 	}
 	else if(const auto p = AccessPtr<TokenValue>(t))
-	{
-		const auto& n(*p);
-
-		if(n != "#ignore")
-		{
-			if(!n.empty() && IsNPLASymbol(n))
-			{
-				// NOTE: The operands should have been evaluated if this is
-				//	in a lambda. Children nodes in arguments retained are
-				//	also transferred.
-				// XXX: Moved. This is like copy elision in object language.
-				if(!e.AddChild(n, std::move(o)))
-					throw InvalidSyntax(sfmt("Duplicate or already bounded"
-						" parameter name '%s' found.", n.c_str()));
-			}
-			else
-				throw ParameterMismatch(
-					"Invalid token found for symbol parameter.");
-		}
-	}
+		BindParameterLeaf(e, *p, std::move(o));
 	else
 		throw ParameterMismatch("Invalid parameter value found.");
+}
+
+void
+BindParameterLeaf(ContextNode& e, const TokenValue& n,
+	TermNode::Container&& con, ValueObject&& vo)
+{
+	if(n != "#ignore")
+	{
+		if(!n.empty() && IsNPLASymbol(n))
+			// NOTE: The symbol can be rebound.
+			// NOTE: The operands should have been evaluated if this is
+			//	in a lambda. Children nodes in arguments retained are
+			//	also transferred.
+			// XXX: Moved. This is copy elision in object language.
+			e[n].SetContent(std::move(con), std::move(vo));
+		else
+			throw ParameterMismatch(
+				"Invalid token found for symbol parameter.");
+	}
 }
 
 

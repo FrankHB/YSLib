@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r724
+\version r730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2017-02-16 22:03 +0800
+	2017-03-24 09:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,13 +48,6 @@ ValueNode::operator%=(const ValueNode&& node)
 
 	n.Value = std::move(node.Value);
 	return n;
-}
-
-void
-ValueNode::SetContent(Container con, ValueObject vo) ynothrow
-{
-	container.swap(con),
-	swap(Value, vo);
 }
 
 void
