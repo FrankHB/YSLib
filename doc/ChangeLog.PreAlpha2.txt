@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3785
+\version r3789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2017-03-05 13:12 +0800
+	2017-03-30 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -934,7 +934,7 @@ b281
 		DLD
 		(
 		+ "deleting second member debug functor" @ "header %ycutil.h";
-		/ "several implementations" @ "unit %(YTimer, Menu, YUIContainer, \
+		/ "several implementations" @ "units %(YTimer, Menu, YUIContainer, \
 			YEvent, YMessage)" ^ "%std::for_each" ~ "for loop"
 		),
 		/ @ "unit %YString" $=
@@ -951,10 +951,10 @@ b281
 	),
 	/ %YBase $=
 	(
-		* DLD "wrong Doxygen comments 'defgroup functors'"
+		* DD "wrong content" @ "Doxygen group %functors"
 			@ "header %utility.hpp" $since b193,
-		* DLD "wrong Doxygen comments file brief"
-			@ "header %any.hpp" $since b243
+		* DD "wrong content" @ "Doxygen command '\brief'"
+			@ "header %any.h" $since b243
 	)
 ),
 

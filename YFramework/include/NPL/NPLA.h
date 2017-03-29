@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1463
+\version r1485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-03-12 11:22 +0800
+	2017-03-27 15:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode,
-//	LoggedEvent;
+//	LoggedEvent, ystdex::as_const;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -549,9 +549,6 @@ using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
 //! \brief 上下文节点类型。
 using ContextNode = yimpl(ValueNode);
 
-//! \since build 685
-using YSLib::AccessChildPtr;
-
 //! \ingroup ThunkType
 //@{
 //! \brief 上下文处理器类型。
@@ -840,21 +837,30 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 	YSLib::GDefaultLastValueInvoker<Guard>>;
 
 
-/*!
-\brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
-\since build 738
-*/
+//! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
+//@{
+//! \since build 777
 template<class _tPasses, typename... _tParams>
 typename _tPasses::result_type
-InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
+InvokePasses(observer_ptr<const ValueNode> p, TermNode& term, ContextNode& ctx,
 	_tParams&&... args)
 {
-	return ystdex::call_value_or([&](_tPasses& passes){
+	return ystdex::call_value_or([&](const _tPasses& passes){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return passes(term, ctx, std::forward<_tParams>(args)...);
-	}, AccessChildPtr<_tPasses>(ctx, name));
+	}, YSLib::AccessPtr<const _tPasses>(p));
 }
+//! \since build 738
+template<class _tPasses, typename... _tParams>
+inline typename _tPasses::result_type
+InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
+	_tParams&&... args)
+{
+	return NPL::InvokePasses<_tPasses>(YSLib::AccessNodePtr(
+		ystdex::as_const(ctx), name), term, ctx, yforward(args)...);
+}
+//@}
 
 
 /*!

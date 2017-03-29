@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016 FrankHB.
+	© 2016-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1065
+\version r1072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2016-11-18 11:07 +0800
+	2017-03-28 00:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,7 +194,7 @@ public:
 
 private:
 	// XXX: It is undefined behavior when %value_type is incomplete, however
-	//	some implementations actually supports this.
+	//	some implementations actually support this.
 	umap_type m_map;
 
 public:
@@ -236,7 +236,7 @@ public:
 		amend_all();
 	}
 	mapped_set(mapped_set&& s, const _tAlloc& a)
-		: m_map(std::move(s), a)
+		: m_map(std::move(s.m_map), a)
 	{
 		amend_all();
 	}
@@ -256,7 +256,10 @@ public:
 	mapped_set&
 	operator=(const mapped_set& s)
 	{
-		mapped_set(s).swap(*this);
+		// NOTE: The underlying implementation may reuse node, e.g. libstdc++.
+		//	So it is preferred to directly move and then to fix references.
+		m_map = s.m_map;
+		amend_all();
 		return *this;
 	}
 	mapped_set&

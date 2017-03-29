@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6379
+\version r6434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-24 10:08 +0800
+	2017-03-30 00:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,55 @@ $import $HISTORY;
 
 $now
 (
+	/ %YFramework.NPL $=
+	(
+		/ @ %NPLA1 $=
+		(
+			+ "support for '...' binding a list of variadic elements in the \
+				operand" @ ("function %BindParameter" ; $comp "vau hanlder")
+				@ "namespace %Forms",
+			(
+			+ "function %ResolveName with parent context lookup support";
+			/ @ "function %EvaluateIdentifier" $=
+			(
+				/ "resolved name" ^ "%ResolveName" ~ "%LookupName";
+				* $doc "wrong description" $mismatch $since b768
+			),
+			/ "functions %(InvokeGuard, InvokeLeaf, InvokeList, \
+				InvokeLiteral) supported parent context lookup";
+				// This actual make it slower (in a factor about 2) \
+					compared to only fixed special name being copied in \
+					static context binding. However this simplified the \
+					implementation, and the performance regression can be \
+					fixed later by separated memorization passes.
+			/ DLI "simplified static context binding" @ "vau handlers"
+				// Since the parent pointer was already set, it sipmly \
+					removes redundant copies. This boosts performance a \
+					lot (in a typical naive Fibonacci recursion call \
+					test, it can be a factor of 10).
+			),
+			/ "forced elision on return" @ "function %ReduceCheckedClosure"
+				^ "%ValueNode::SetContent" ~ "%ValueObject::MakeMoveCopy"
+		),
+		/ %NPLA $=
+		(
+			+ "function template %InvokePasses with node pointer parameter";
+			/ DLDI "simplified %InvokePasses with name parameter";
+			- 'using YSLib::AccessChildPtr;'
+		)
+	),
+	/ @ "class template %mapped_set" @ %YBase.YStandardEx.Set $=
+	(
+		* "constructor with rvalue reference and allocator parameters"
+			 $since b665,
+		/ DLI "copy %operator=" ^ "underlying %operator=" ~ "%swap"
+			// To reuse underyling nodes so less nodes need to be copied, if \
+				possible.
+	)
+),
+
+b776
+(
 	/ %YFramework $=
 	(
 		/ %NPL $=
@@ -42,13 +91,14 @@ $now
 			(
 				/ @ "namespace %Forms" $=
 				(
-					(
 					+ "2 functions %BindParameterLeaf";
-					/ DLDI "simplified function %BindParameter"
-						^ "%BindParameterLeaf";
-					* $comp "losing name on bounded non list nodes" $since b774,
-					/ "allowed rebinding for duplicated symbols to be bound"
-						~ "throwing %InvalidSyntax"
+					/ @ "function %BindParameter"
+					(
+					/ $impl "simplified" ^ "%BindParameterLeaf";
+					* $comp "wrong term name added on binding leaf nodes"
+						$since b774,
+					/ $comp "allowed rebinding for duplicated symbols to be \
+						bound" ~ "throwing %InvalidSyntax"
 						// See $2017-03 @ %Documentation::Workflow::Annual2017.
 					),
 					(
