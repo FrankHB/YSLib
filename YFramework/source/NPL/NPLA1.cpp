@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3110
+\version r3230
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-24 10:05 +0800
+	2017-03-27 15:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,11 +149,14 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 namespace
 {
 
+// TODO: Add check for reserved identifier clash?
 yconstexpr const auto GuardName("__$!");
 yconstexpr const auto LeafTermName("__$$@");
 yconstexpr const auto ListTermName("__$$");
 //! \since build 737
 yconstexpr const auto LiteralTermName("__$$@_");
+//! \since build 777
+yconstexpr const auto ParentContextName("__$@_parent");
 
 //! \since build 736
 template<typename _func>
@@ -220,38 +223,6 @@ EqualTerm(TermNode& term, _func f)
 	const auto& x(Deref(++i));
 
 	term.Value = f(x.Value, Deref(++i).Value);
-}
-
-
-//! \since build 769
-void
-BindStaticContext(ContextNode& comp_ctx, const ContextNode& ctx)
-{
-	auto& con(comp_ctx.GetContainerRef());
-
-	// NOTE: Silently failed for hidden names.
-	for(const auto& b : ctx)
-	{
-		// TODO: Optimize by using name resolution supported by
-		//	new (to be done) %ContextNode API directly instead
-		//	of possibly redundant insertion and %MakeIndirect.
-		// NOTE: Since context is shared by all handlers, it is
-		//	safe to reference here. It would be actually unsafe
-		//	to reference the dangling value of active record in
-		//	returned value.
-		// TODO: Support first class retained list by extension on
-		//	context node or children tagged by value token?
-		const auto& k(b.GetName());
-
-		ystdex::search_map_by([&](typename
-			ContextNode::const_iterator i){
-			// TODO: How to reduce unnecessary copy of retained
-			//	list?
-			return con.emplace_hint(i, b.CreateWith(
-				IValueHolder::Move), k, b.Value.MakeIndirect());
-		}, con, k);
-	}
-//	comp_ctx.AddValue(b.GetName(), b.Value.MakeIndirect());
 }
 
 
@@ -358,21 +329,15 @@ public:
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
 				" shared context(s), %zu parameter(s).", p_closure.use_count(),
 				p_context.use_count(), formals.size());
-
-			auto& local_ctx(Deref(p_context));
-
-			YAssert(&comp_ctx != &local_ctx,
+			YAssert(&comp_ctx != &Deref(p_context),
 				"Self reference of context found.");
-			// NOTE: This is necessary to prevent the context disposed too early
-			//	after the vau handler has been destroyed. The context has to
-			//	live longer if there exists the child to capture the context and
-			//	then return.
-			// TODO: Add check for reserved identifier clash?
-			// TODO: Can there be cyclic references?
-			comp_ctx.AddValue("__$@_parent", p_context);
-			// NOTE: To avoid object owned by hidden names being
-			//	destroyed, this has to come later.
-			BindStaticContext(comp_ctx, Deref(p_context));
+			// NOTE: Static context is bound by setting parent context pointer.
+			// NOTE: Shared ownership is necessary here to prevent the context
+			//	disposed too early after the vau handler has been destroyed. The
+			//	context has to live longer if there exists the child to capture
+			//	the context and then return. And there cannot be cyclic
+			//	reference.
+			comp_ctx.AddValue(ParentContextName, p_context);
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
@@ -413,26 +378,29 @@ AccessLiteralPassesRef(ContextNode& ctx)
 Guard
 InvokeGuard(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<GuardPasses>(GuardName, term, ctx);
+	return InvokePasses<GuardPasses>(ResolveName(ctx, GuardName), term, ctx);
 }
 
 ReductionStatus
 InvokeLeaf(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<EvaluationPasses>(LeafTermName, term, ctx);
+	return InvokePasses<EvaluationPasses>(ResolveName(ctx, LeafTermName), term,
+		ctx);
 }
 
 ReductionStatus
 InvokeList(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<EvaluationPasses>(ListTermName, term, ctx);
+	return InvokePasses<EvaluationPasses>(ResolveName(ctx, ListTermName), term,
+		ctx);
 }
 
 ReductionStatus
 InvokeLiteral(TermNode& term, ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
-	return InvokePasses<LiteralPasses>(LiteralTermName, term, ctx, id);
+	return InvokePasses<LiteralPasses>(ResolveName(ctx, LiteralTermName), term,
+		ctx, id);
 }
 
 
@@ -497,8 +465,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// TODO: Test for normal form?
 	// XXX: Term reused.
 	ReduceChecked(comp_term, ctx);
-	term.Value = comp_term.Value.MakeMoveCopy();
-	term.SetChildren(std::move(comp_term));
+	term.SetContent(std::move(comp_term));
 }
 
 void
@@ -685,8 +652,7 @@ ReductionStatus
 EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
-
-	if(const auto p = LookupName(ctx, id))
+	if(const auto p = ResolveName(ctx, id))
 	{
 		// NOTE: The referenced term is lived through the envaluation, which is
 		//	guaranteed by the context.
@@ -781,6 +747,41 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 	// XXX: A term without token is ignored.
 	}, TermToNamePtr(term), ReductionStatus::Clean);
 }
+
+
+observer_ptr<const ValueNode>
+ResolveName(const ContextNode& ctx, string_view id)
+{
+	YAssertNonnull(id.data());
+
+	observer_ptr<const ValueNode> p;
+	auto ctx_ref(ystdex::ref(ctx));
+
+	ystdex::retry_on_cond(
+		[&](observer_ptr<const ContextNode> p_ctx) ynothrow -> bool{
+		if(p_ctx)
+		{
+			ctx_ref = ystdex::ref(Deref(p_ctx));
+			return true;
+		}
+		return {};
+	}, [&, id]() -> observer_ptr<const ContextNode>{
+		if((p = LookupName(ctx_ref, id)))
+			return {};
+		if(const auto p_parent = FetchValuePtr(ctx_ref, ParentContextName))
+		{
+			if(const auto p_ctx
+				= p_parent->AccessPtr<observer_ptr<const ContextNode>>())
+				return *p_ctx;
+			if(const auto p_shared
+				= p_parent->AccessPtr<shared_ptr<ContextNode>>())
+				return make_observer(p_shared->get());
+		}
+		return {};
+	});
+	return p;
+}
+
 
 void
 SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
@@ -883,24 +884,51 @@ BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 		{
 			const auto n_p(t.size());
 			const auto n_o(o.size());
+			auto last(t.end());
 
-			if(n_p == n_o)
+			if(n_p > 0)
 			{
-				auto i(o.begin());
+				const auto& back(Deref(std::prev(last)));
 
-				for(auto& child : t)
+				if(IsLeaf(back))
 				{
-					if(i != o.end())
-						BindParameter(e, child, *i);
-					else
-						// FIXME: Redundant?
-						throw ParameterMismatch(
-							"Insufficient term found for list parameter.");
-					++i;
+					if(const auto p = AccessPtr<TokenValue>(back))
+						if(*p == "...")
+							--last;
 				}
 			}
-			else
+			if(n_p == n_o || (last != t.end() && n_o >= n_p - 1))
+			{
+				auto j(o.begin());
+
+				for(auto i(t.begin()); i != last; yunseq(++i, ++j))
+				{
+					YAssert(j != o.end(), "Invalid state of operand found.");
+					BindParameter(e, Deref(i), Deref(j));
+				}
+				if(last != t.end())
+				{
+					TermNode::Container con;
+
+					for(; j != o.end(); ++j)
+					{
+						auto& b(Deref(j));
+
+						// TODO: Merge with static binding implementation?
+						// TODO: How to reduce unnecessary copy of retained
+						//	list?
+						con.emplace(b.CreateWith(IValueHolder::Move),
+							MakeIndex(con), b.Value.MakeIndirect());
+					}
+					e.emplace(std::move(con), "...");
+					YAssert(++last == t.end(), "Invalid state found.");
+				}
+			}
+			else if(last == t.end())
 				throw ArityMismatch(n_p, n_o);
+			else
+				throw ParameterMismatch(
+					"Insufficient term found for list parameter.");
 		}
 		else
 			throw ParameterMismatch(

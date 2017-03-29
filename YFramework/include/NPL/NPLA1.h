@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2817
+\version r2831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-03-22 09:47 +0800
+	2017-03-27 11:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -707,14 +707,14 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 \brief 求值标识符。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa EvaluateDelayed
-\sa FetchValuePtr
 \sa LiftTermRef
 \sa LiteralHandler
+\sa ResolveName
 \since build 745
 
 依次进行以下求值操作：
-调用 FetchValuePtr 查找值，若失败抛出未声明异常；
-调用 LiftTermRef 替换节点的值；
+调用 ResolveName 根据指定名称查找值，若失败抛出未声明异常；
+调用 LiftTermRef 或 TermNode::SetContentIndirect 替换非列表或列表节点的值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
 若未返回，根据节点表示的值进一步处理：
 	对表示非 TokenValue 值的叶节点，调用 EvaluateDelayed 求值；
@@ -769,6 +769,15 @@ ReduceCombined(TermNode&, ContextNode&);
 YF_API ReductionStatus
 ReduceLeafToken(TermNode&, ContextNode&);
 //@}
+
+
+/*!
+\brief 解析名称：处理保留名称并查找名称。
+\pre 断言：第二参数的数据指针非空。
+\since build 777
+*/
+YF_API observer_ptr<const ValueNode>
+ResolveName(const ContextNode&, string_view);
 
 
 /*!
@@ -910,7 +919,9 @@ RetainN(const TermNode&, size_t = 1);
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
 进行匹配的算法递归搜索形式参数及其子项，匹配要求如下：
-若项是非空列表，则操作数的对应的项应为子项数相同的非空列表；
+若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
+	若最后的子项为符号 ... ，则匹配操作数中结尾的任意个数的项；
+	其它子项一一匹配操作数的子项；
 若项是空列表，则操作数的对应的项应为空列表；
 否则，调用 BindParameterLeaf 匹配非列表项。
 */

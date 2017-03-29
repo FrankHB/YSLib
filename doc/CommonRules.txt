@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4517
+\version r4519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2017-03-08 14:16 +0800
+	2017-03-30 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -296,7 +296,7 @@ ISO C++11 ： ISO/IEC 14882:2011 。
 
 @2.3.3.1 实体：
 实体是不加限定的语言的抽象。但一般地，需要能明确两个实体是否同一(identical) 。
-关于实体，另见 [Documentation::NPL @@ 2.1.1] 。
+关于实体，另见 [Documentation::NPL @@2.1.1] 。
 
 @2.3.3.2 生存期：
 生存期是逻辑上可用的连续区间的抽象，可以在此之上明确特定逻辑事件的顺序，可用抽象的时刻度量。
@@ -1554,6 +1554,7 @@ typedef 或代替 typedef 的 using 别名；
 算术操作符（以 + 、 - 、 * 、 / 、 % ）的顺序；
 二元位操作符（以 << 、 >> 、 & 、 | 、 ^ 的顺序）；
 逻辑操作符（以 && 、 || ）的顺序；
+重载 operator() ；
 分配/去配操作符（以 new 、new[] 、 delete 、 delete[] 的顺序）；
 转换操作符（以整数类型、枚举类型、其它基本类型、类类型顺序；整数类型之间以转换阶(conversion rank) 从小到大的顺序排列）；
 其它函数或函数模板。

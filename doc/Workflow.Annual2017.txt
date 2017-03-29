@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r346
+\version r349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-03-22 09:51 +0800
+	2017-03-26 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,10 +213,10 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 			There is no type or predicate for '#inter'.
 		Formal parameter tree and operand tree of Kernel are not adopted in the same way in NPL, since there is no cons pairs in the internal representation.
 			The NPL formal parameter is always a tree of either of a non-list or a list.
-			Since cons pairs are not used to express parameter in NPL, there is other considerations of variadic parameters.
-				The notation '...' is used to capture a list.
+			Because there are no cons pairs to splicing the parameter in NPL, other mechanism is used to express variadic elements of parameter.
+				The notation '...' is used to capture a list in the end.
 					Since it can only occur once, there is no need to name it with specific symbol specified by users.
-					For simplicity, name parameter like context parameter in the '$vau' operative is not provided.
+					For simplicity, named parameter like context parameter in the '$vau' operative is not provided.
 			Operand tree matching does not requires duplication check, even it is indeed bad when misused.
 				Kernel specifies the check mandated.
 					This has trouble since other unique symbols can be rebound, so there must be extra mechanism taking extra resources (i.e. memory) to handle it correctly.
