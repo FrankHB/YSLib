@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1485
+\version r1487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-03-27 15:14 +0800
+	2017-04-01 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -886,8 +886,8 @@ AdjustTermValuePtr(const ContextNode& ctx, const _tKey& name)
 
 //! \brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
 //@{
-inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm)
-	ImplExpr(term.SetContent(std::move(tm)))
+YF_API void
+LiftTerm(TermNode&, TermNode&);
 //! \since build 745
 inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo)
 	ImplExpr(term_v = std::move(vo))

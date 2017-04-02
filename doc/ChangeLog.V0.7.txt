@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6434
+\version r6487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-03-30 00:04 +0800
+	2017-04-02 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		- DLD "redundant 'YB_ATTR(returns_nonnnull)'"
+			@ "unused allocation declarations" @ %YSLib.Adaptor.YNew,
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				(
+				* "invalid referencing subnodes" @ "functions %LiftTerm" $since
+					b745
+				* $comp "memory leak caused by circular reference of subnodes"
+					@ "functions %(LiftTerm, LiftFirst)" $since b745
+				),
+				* "possible invalid referencing subnodes value"
+					@ "functions %(DefineValue, RedefineValue)" $since b731
+			),
+			/ @ %NPLA1 $=
+			(
+				* $comp "memory leak caused by circular reference of subnodes"
+					@ "function %Reduce" $since b745 $dep_from
+					("%LiftFirst" @ %NPLA),
+					// This can be very serious, esp. in recursion calls.
+				/ DLDI "function %TransformForSeparator" ^ "%ValueNode::emplace"
+					~ "%ValueNode::operator+=",
+				/ DLDI "function %ResolveName" ^ "%ValueObject::GetType"
+			),
+			- DLI "%Validate call" @ "functions %Analyze" @ %SContext
+				// This can improve performance a little.
+		),
+		/ @ "class %ValueNode" %YSLib.Core.ValueNode $=
+		(
+			+ DD "'\warning' commands" @ "Doxygen comments"
+				@ "member functions %(SetChildren, SetContent)",
+			/ DLI "avoided unnecessary element construction when there existed \
+				already a subnode with equivalent key" @ "all 4 functions \
+				%AddChild" ^ "%(try_emplace, try_emplace_hint)"
+				~ "%(emplace, emplace_hint)",
+			* $impl "wrong insertion target"
+				@ "function template %SplitChildren" $since b680,
+			/ "merged static function %AddValueTo" -> "function %AddValue",
+				// To be consistent with %AddChild.
+			+ "function %AddValue with hint" ^ "%try_emplace_hint"
+				// Ditto.
+		)
+	),
+	* "missing 'ynothrow'" @ "function %deallocate" @ "class template \
+		%class_allocator" @ %YBase.YStandardEx.Memory $since b746,
+	* "'!' for negation in test conditions clashed with bash history expansion"
+		@ "%SHBuild-common-options.sh" @ %Tools $since b561
+),
+
+b777
 (
 	/ %YFramework.NPL $=
 	(

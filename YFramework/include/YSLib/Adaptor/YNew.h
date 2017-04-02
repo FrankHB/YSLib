@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015 FrankHB.
+	© 2010-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YNew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1191
+\version r1197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2015-12-27 22:01 +0800
+	2017-03-30 14:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Adaptor_ynew_h_
-#define YSL_INC_Adaptor_ynew_h_ 1
+#ifndef YSL_INC_Adaptor_YNew_h_
+#define YSL_INC_Adaptor_YNew_h_ 1
 
 #include "YModules.h"
 
@@ -51,16 +51,15 @@
 #endif
 #include <ystdex/base.h> // for ystdex::noncopyable;
 
-
-#if 0
+#if false
 //@{
 /*	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
 \brief 调试用重载 ::operator new 和 ::operator delete 。
 \since build 173
 */
-YF_API YB_ALLOCATOR YB_ATTR(returns_nonnnull) void*
+YF_API YB_ALLOCATOR void*
 operator new(std::size_t, const char*, int) ythrow(std::bad_alloc);
-YF_API YB_ALLOCATOR YB_ATTR(returns_nonnnull) void*
+YF_API YB_ALLOCATOR void*
 operator new[](std::size_t, const char*, int) ythrow(std::bad_alloc);
 YF_API YB_ALLOCATOR void*
 operator new(std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
