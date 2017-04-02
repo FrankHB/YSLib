@@ -19,8 +19,8 @@ else
 fi
 
 # NOTE: The output path cannot be '/dev/null'. See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25.
-if [[ "$CXX" != '' ]] && !(echo 'int main(){}' | "$CXX" -xc++ -o/tmp/null \
-	$C_CXXFLAGS_GC $LDFLAGS_GC - 2> /dev/null); then
+if [[ "$CXX" != '' ]] && ! echo 'int main(){}' | "$CXX" -xc++ -o/tmp/null \
+	$C_CXXFLAGS_GC $LDFLAGS_GC - 2> /dev/null; then
 	C_CXXFLAGS_GC=''
 	LDFLAGS_GC=''
 fi
@@ -52,7 +52,7 @@ fi
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_='-mthreads'
 fi
-if !("$CXX" -dumpspecs 2>& 1 | grep no-pthread: > /dev/null); then
+if ! "$CXX" -dumpspecs 2>& 1 | grep no-pthread: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_='-pthread'
 fi
 

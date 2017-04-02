@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5639
+\version r5645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2016-12-27 21:37 +0800
+	2017-04-02 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,10 @@ b399
 		)
 	),
 	/ $dev "updated .vcxproj for VS2012",
+	/ $build "updated to Microsoft VC++ 2012" ~ "Microsoft VC++ 2010"
+		@ "Microsoft VC++ projects" $effective @ %('YBase*', 'YFramework*',
+		'YSTest*')
+		$= (+ "platform toolset 'v110'"),
 	/ %YReader.'text reader' $=
 	(
 		/ DLD "configuration node object" ^ "%ValueNode::Container"
@@ -686,7 +690,7 @@ b380
 			+ "hosted friend classes declaration" @ "class %DSApplication"
 		)
 	),
-	/ $repo "file '.hgignore'",
+	/ $repo "file %.hgignore",
 	+ $doc "script 'doc/doxygen-cjk.sh' for CJK characters compatible PDF \
 		generation"
 		// The LaTeX output is not enabled for compatibility issue on Doxygen \

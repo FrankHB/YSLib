@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2384
+\version r2386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2017-01-10 20:46 +0800
+	2017-03-30 14:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,8 +231,9 @@ struct class_allocator : std::allocator<_type>
 		return _type::operator new(n * sizeof(_type));
 	}
 
+	//! \since build 778
 	void
-	deallocate(_type* p, size_t)
+	deallocate(_type* p, size_t) ynothrow
 	{
 		// TODO: What if the size hint is supported by %_type?
 		return _type::operator delete(p);

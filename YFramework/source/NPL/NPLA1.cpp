@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3230
+\version r3237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-03-27 15:23 +0800
+	2017-04-02 14:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -548,7 +548,7 @@ TransformForSeparator(const TermNode& term, const ValueObject& pfx,
 
 		while(b != e)
 		{
-			child += {b->GetContainer(), MakeIndex(child), b->Value};
+			child.emplace(b->GetContainer(), MakeIndex(child), b->Value);
 			++b;
 		}
 		res += std::move(child);
@@ -770,12 +770,13 @@ ResolveName(const ContextNode& ctx, string_view id)
 			return {};
 		if(const auto p_parent = FetchValuePtr(ctx_ref, ParentContextName))
 		{
-			if(const auto p_ctx
-				= p_parent->AccessPtr<observer_ptr<const ContextNode>>())
-				return *p_ctx;
-			if(const auto p_shared
-				= p_parent->AccessPtr<shared_ptr<ContextNode>>())
-				return make_observer(p_shared->get());
+			const auto& tp(p_parent->GetType());
+
+			if(tp == ystdex::type_id<observer_ptr<const ContextNode>>())
+				return p_parent->GetObject<observer_ptr<const ContextNode>>();
+			if(tp == ystdex::type_id<shared_ptr<ContextNode>>())
+				return make_observer(
+					p_parent->GetObject<shared_ptr<ContextNode>>().get());
 		}
 		return {};
 	});

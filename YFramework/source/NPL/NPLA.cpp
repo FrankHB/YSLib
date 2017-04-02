@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1027
+\version r1037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-03-14 00:06 +0800
+	2017-04-01 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -440,7 +440,7 @@ DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
 	YAssertNonnull(id.data());
 	if(forced)
 		// XXX: Self overwriting is possible.
-		ctx[id].Value = std::move(vo);
+		swap(ctx[id].Value, vo);
 	else if(!ctx.AddValue(id, std::move(vo)))
 		throw BadIdentifier(id, 2);
 }
@@ -450,7 +450,7 @@ RedefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
 {
 	YAssertNonnull(id.data());
 	if(const auto p = AccessNodePtr(ctx, id))
-		p->Value = std::move(vo);
+		swap(p->Value, vo);
 	else if(!forced)
 		throw BadIdentifier(id, 0);
 }
@@ -473,6 +473,17 @@ CheckReducible(ReductionStatus status)
 	if(YB_UNLIKELY(status != ReductionStatus::Retrying))
 		YTraceDe(Warning, "Unexpected status found");
 	return true;
+}
+
+
+void
+LiftTerm(TermNode& term, TermNode& tm)
+{
+	// NOTE: This is required to avoid cyclic reference when the 2nd parameter
+	//	is owned by the 1st parameter.
+	auto t(std::move(tm));
+	
+	term = std::move(t);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3031
+\version r3068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-03-24 09:59 +0800
+	2017-04-02 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,6 +285,8 @@ public:
 	DefGetter(ynothrow, Container&, ContainerRef, container)
 	DefGetter(const ynothrow, const string&, Name, name)
 
+	//! \warning 设置子节点的容器可能导致未定义行为。
+	//@{
 	/*!
 	\brief 设置子节点容器内容。
 	\since build 774
@@ -300,6 +302,7 @@ public:
 	//@}
 	/*!
 	\note 设置子节点容器和值的内容。
+	\warning 除转移外非强异常安全。
 	\since build 734
 	*/
 	//@{
@@ -318,6 +321,7 @@ public:
 		ImplExpr(SetContent(node.GetContainer(), node.Value))
 	PDefH(void, SetContent, ValueNode&& node)
 		ImplExpr(SwapContent(node))
+	//@}
 	//@}
 
 	/*!
@@ -340,47 +344,69 @@ public:
 	PDefH(bool, Add, ValueNode&& node)
 		ImplRet(insert(std::move(node)).second)
 
-	//! \since build 774
+	/*!
+	\brief 添加参数节点指定容器和值的子节点。
+	\since build 775
+	*/
+	//@{
+	//! \sa try_emplace
 	//@{
 	template<typename _tKey>
 	bool
 	AddChild(_tKey&& k, const ValueNode& node)
 	{
-		return emplace(node.GetContainer(), yforward(k), node.Value).second;
+		return
+			try_emplace(k, node.GetContainer(), yforward(k), node.Value).second;
 	}
 	template<typename _tKey>
 	bool
 	AddChild(_tKey&& k, ValueNode&& node)
 	{
-		return emplace(std::move(node.GetContainerRef()), yforward(k),
+		return try_emplace(k, std::move(node.GetContainerRef()), yforward(k),
 			std::move(node.Value)).second;
 	}
+	//@}
+	//! \sa try_emplace_hint
+	//@{
 	template<typename _tKey>
 	void
 	AddChild(const_iterator hint, _tKey&& k, const ValueNode& node)
 	{
-		return emplace_hint(hint, node.GetContainer(), yforward(k), node.Value);
+		return try_emplace_hint(hint, k, node.GetContainer(), yforward(k),
+			node.Value);
 	}
 	template<typename _tKey>
 	void
 	AddChild(const_iterator hint, _tKey&& k, ValueNode&& node)
 	{
-		return emplace_hint(hint, std::move(node.GetContainerRef()),
+		return try_emplace_hint(hint, k, std::move(node.GetContainerRef()),
 			yforward(k), std::move(node.Value));
 	}
+	//@}
 	//@}
 
 	/*!
 	\brief 添加参数指定值的子节点。
-	\sa AddValueTo
 	\since build 757
 	*/
-	template<typename _tString, typename... _tParams>
+	//@{
+	//! \sa try_emplace
+	template<typename _tKey, typename... _tParams>
 	inline bool
-	AddValue(_tString&& str, _tParams&&... args)
+	AddValue(_tKey&& k, _tParams&&... args)
 	{
-		return AddValueTo(container, yforward(str), yforward(args)...);
+		return
+			try_emplace(k, NoContainer, yforward(k), yforward(args)...).second;
 	}
+	//! \sa try_emplace_hint
+	template<typename _tKey, typename... _tParams>
+	inline bool
+	AddValue(const_iterator hint, _tKey&& k, _tParams&&... args)
+	{
+		return try_emplace_hint(hint, k, NoContainer, yforward(k),
+			yforward(args)...).second;
+	}
+	//@}
 
 	/*!
 	\brief 向容器添加参数指定值的子节点。
@@ -491,7 +517,7 @@ public:
 		Container res;
 
 		std::for_each(begin(), end(), [&](const ValueNode& nd){
-			container.emplace(NoContainer, res, nd.GetName());
+			res.emplace(NoContainer, nd.GetName());
 		});
 		ystdex::for_each_if(begin(), end(), f, [&, this](const ValueNode& nd){
 			const auto& child_name(nd.GetName());
