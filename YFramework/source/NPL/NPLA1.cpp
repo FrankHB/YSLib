@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3237
+\version r3284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-04-02 14:04 +0800
+	2017-04-05 13:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,6 +157,14 @@ yconstexpr const auto ListTermName("__$$");
 yconstexpr const auto LiteralTermName("__$$@_");
 //! \since build 777
 yconstexpr const auto ParentContextName("__$@_parent");
+
+//! \since build 779
+yconstfn_relaxed bool
+IsReservedName(string_view id) ynothrowv
+{
+	YAssertNonnull(id.data());
+	return ystdex::begins_with(id, "__");
+}
 
 //! \since build 736
 template<typename _func>
@@ -337,7 +345,7 @@ public:
 			//	context has to live longer if there exists the child to capture
 			//	the context and then return. And there cannot be cyclic
 			//	reference.
-			comp_ctx.AddValue(ParentContextName, p_context);
+			comp_ctx.AddValue(ParentContextName, make_weak(p_context));
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
@@ -348,6 +356,19 @@ public:
 			throw LoggedEvent("Invalid composition found.", Alert);
 	}
 };
+
+//! \since build 779
+observer_ptr<ContextNode>
+ResolveShared(string_view id, const shared_ptr<ContextNode>& p_shared)
+{
+	if(p_shared)
+		return make_observer(get_raw(p_shared));
+	// TODO: Use concrete semantic failure exception.
+	throw NPLException(
+		sfmt("Invalid reference found for%s name '%s', probably due to invalid"
+			" context access by danling reference.", IsReservedName(id)
+			? " reserved" : "", id.data()));
+}
 
 } // unnamed namespace;
 
@@ -774,9 +795,12 @@ ResolveName(const ContextNode& ctx, string_view id)
 
 			if(tp == ystdex::type_id<observer_ptr<const ContextNode>>())
 				return p_parent->GetObject<observer_ptr<const ContextNode>>();
+			if(tp == ystdex::type_id<weak_ptr<ContextNode>>())
+				return ResolveShared(id,
+					p_parent->GetObject<weak_ptr<ContextNode>>().lock());
 			if(tp == ystdex::type_id<shared_ptr<ContextNode>>())
-				return make_observer(
-					p_parent->GetObject<shared_ptr<ContextNode>>().get());
+				return ResolveShared(id,
+					p_parent->GetObject<shared_ptr<ContextNode>>());
 		}
 		return {};
 	});
@@ -1105,6 +1129,27 @@ CallSystem(TermNode& term)
 		ystdex::compose(usystem, std::mem_fn(&string::c_str)), term);
 }
 
+ReductionStatus
+Cons(TermNode& term)
+{
+	RetainN(term, 2);
+
+	auto i(std::next(term.begin(), 2));
+
+	if(IsList(Deref(i)))
+	{
+		auto tail(std::move(Deref(i)));
+
+		term.erase(i);
+		for(auto& tm : tail)
+			AppendTerm(term, tm);
+		RemoveHead(term);
+	}
+	else
+		throw InvalidSyntax("The tail argument shall be a list.");
+	return ReductionStatus::Retained;
+}
+
 void
 EqualReference(TermNode& term)
 {
@@ -1135,6 +1180,12 @@ EvaluateUnit(TermNode& term, const REPLContext& ctx)
 	CallUnaryAs<const string>([ctx](const string& unit){
 		REPLContext(ctx).Perform(unit);
 	}, term);
+}
+
+bool
+IsSymbol(const string& id) ynothrow
+{
+	return IsNPLASymbol(id);
 }
 
 ReductionStatus

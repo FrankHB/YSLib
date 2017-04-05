@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2812
+\version r2821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2017-01-10 20:48 +0800
+	2017-04-04 12:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,26 +47,28 @@ using yimpl(std)::default_delete;
 using yimpl(std)::dynamic_pointer_cast;
 using yimpl(std)::enable_shared_from_this;
 using yimpl(std)::get_deleter;
+//! \since build 422
+using ystdex::get_raw;
+//! \since build 669
+using yimpl(ystdex)::make_observer;
 //! \since build 529
 using yimpl(std)::make_shared;
 //! \since build 298
 using ystdex::make_shared;
-//! \since build 669
-using yimpl(ystdex)::make_observer;
 //! \since build 292
 using yimpl(ystdex)::make_unique;
 //! \since build 602
 using yimpl(ystdex)::make_unique_default_init;
-//! \since build 422
-using ystdex::get_raw;
+//! \since build 779
+using ystdex::make_weak;
+//! \since build 669
+using yimpl(ystdex)::observer_ptr;
 //! \since build 454
 using yimpl(std)::owner_less;
 //! \since build 759
 using ystdex::owns_unique;
 //! \since build 759
 using ystdex::owns_unique_nonnull;
-//! \since build 669
-using yimpl(ystdex)::observer_ptr;
 using ystdex::reset;
 using ystdex::share_raw;
 using yimpl(std)::shared_ptr;

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6487
+\version r6540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-04-02 16:01 +0800
+	2017-04-05 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "function template %make_weak" @ %Memory,
+		/ "relaxed state type requirements" @ "class template %one_shot"
+			@ %Functional
+			$= (- $dev "static assertion for non-throwing default construction \
+				state type"),
+		/ ("function template %unique_guard" -> "function templates \
+			%(unique_guard, unique_state_guard)") @ %ScopeGuard $=
+		(
+			* "invalid argument 'true' passed for initialization of guard"
+				$since b686;
+			+ "trailing parameters support as constructor of %one_shot \
+				instances",
+			/ "template parameter order"
+		)
+	),
+	/ %YFramework $=
+	(
+		+ 'using ystdex::make_weak;' @ "inline namespace %references"
+			@ %YCLib.Reference $dep_from %YBase.YStandardEx.Memory,
+		+ 'using platform::make_weak;' @ %YSLib.Adaptor.YAdaptor $dep_from
+			%YCLib,
+		/ %NPL $=
+		(
+			/ @ %NPLA1 $=
+			(
+				+ "support of %weak_ptr contexts" @ "function %ResoveName",
+					// This allows detection of wrong use of environment \
+						capture rather than indirection through danling \
+						references.
+				/ @ "namespace %Forms" $=
+				(
+					/ "parent context reference" @ ("function %BindParameter";
+						$comp "vau hanlder") ^ "%weak_ptr" ~ "%shared_ptr",
+					+ "functions %(IsSymbol, Cons)"
+				)
+			),
+		),
+		/ %NPLA $=
+		(
+			* "changed name of terms" @ "functions %(LiftTerm; LiftFirst)"
+				$since b778
+				// This was once unspecified but it is really unexpected to \
+					have the change of the name of term nodes. Now it also \
+					avoid breaking the key in associative container and \
+					excessive object creation of %Value.
+			+ "function %AppendTerm"
+		)
+	)
+),
+
+b778
 (
 	/ %YFramework $=
 	(

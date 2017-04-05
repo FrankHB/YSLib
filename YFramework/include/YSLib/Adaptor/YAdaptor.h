@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1987
+\version r1991
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2016-11-19 14:03 +0800
+	2017-04-04 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,13 +178,15 @@ using platform::const_pointer_cast;
 using platform::dynamic_pointer_cast;
 using platform::enable_shared_from_this;
 using platform::get_deleter;
+using platform::get_raw;
 //! \since build 670
 using platform::make_observer;
 using platform::make_shared;
 using platform::make_unique;
 //! \since build 602
 using platform::make_unique_default_init;
-using platform::get_raw;
+//! \since build 779
+using platform::make_weak;
 //! \since build 670
 using platform::observer_ptr;
 using platform::owner_less;

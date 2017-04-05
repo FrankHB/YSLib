@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r483
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-09-03 11:30 +0800
+	2016-04-05 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,11 +38,10 @@
 namespace ystdex
 {
 
-//! \since build 605
-//@{
 /*!
 \brief 作用域守护：析构时调用保存的函数对象或引用。
 \note 不可复制，不提供其它状态。
+\since build 605
 */
 template<typename _func, bool _bNoThrow = true>
 struct guard
@@ -70,6 +69,7 @@ struct guard
 \relates guard
 \since build 606
 */
+//@{
 //! \since build 649
 template<typename _type, bool _bNoThrow = true, typename... _tParams>
 guard<_type>
@@ -85,15 +85,33 @@ make_guard(_type f)
 {
 	return guard<_type, _bNoThrow>(f);
 }
+//@}
 
-//! \since build 686
-template<bool _bNoThrow = true, typename _type>
-guard<one_shot<_type>>
-unique_guard(_type f) ynoexcept_spec(
-	guard<one_shot<_type>, _bNoThrow>(guard<one_shot<_type>, _bNoThrow>(f)))
+//! \since build 779
+//@{
+template<typename _tState = bool, bool _bNoThrow = true, typename _func>
+guard<one_shot<_func, void, _tState>>
+unique_guard(_func f, _tState s = {}) ynoexcept_spec(
+	guard<one_shot<_func, void, _tState>, _bNoThrow>(
+	guard<one_shot<_func, void, _tState>, _bNoThrow>(f)))
 {
-	return guard<one_shot<_type>, _bNoThrow>(f, true);
+	using guarded_type = one_shot<_func, void, _tState>;
+
+	return guard<guarded_type, _bNoThrow>(f, s);
 }
+
+template<typename _tRes, typename _tState = bool, bool _bNoThrow = true,
+	typename _func>
+guard<one_shot<_func, _tRes, _tState>>
+unique_state_guard(_func f, _tRes r = {}, _tState s = {}) ynoexcept_spec(
+	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(
+	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f)))
+{
+	using guarded_type = one_shot<_func, _tRes, _tState>;
+
+	return guard<guarded_type, _bNoThrow>(f, r, s);
+}
+
 //@}
 
 
