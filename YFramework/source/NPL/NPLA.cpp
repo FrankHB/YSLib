@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1037
+\version r1039
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-04-01 19:23 +0800
+	2017-04-05 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -481,9 +481,9 @@ LiftTerm(TermNode& term, TermNode& tm)
 {
 	// NOTE: This is required to avoid cyclic reference when the 2nd parameter
 	//	is owned by the 1st parameter.
-	auto t(std::move(tm));
+	auto t(std::move(tm.GetContainerRef()));
 	
-	term = std::move(t);
+	term.SetContent(std::move(t), std::move(tm.Value));
 }
 
 

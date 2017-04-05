@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2831
+\version r2863
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-03-27 11:05 +0800
+	2017-04-05 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -774,7 +774,21 @@ ReduceLeafToken(TermNode&, ContextNode&);
 /*!
 \brief 解析名称：处理保留名称并查找名称。
 \pre 断言：第二参数的数据指针非空。
+\exception NPLException 访问共享重定向上下文失败。
 \since build 777
+
+解析指定上下文中的名称。被解析的上下文可通过特定保留名称被重定向。
+名称解析对被处理的上下文查找名称，若成功则返回；
+否则，尝试重定向并在重定向后的上下文中重新查找名称；
+否则，名称解析失败。
+只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
+被处理的保留名称应指定重定向名称到有限个不同的上下文。解析时不对循环重定向进行检查。
+支持的重定向项包括：
+observer_ptr<const ContextNode> 指向无所有权的重定向上下文；
+weak_ptr<ContextNode> 指向可能具有共享所有权的重定向上下文；
+shared_ptr<ContextNode> 指向具有共享所有权的重定向上下文。
+若重定向可能具有共享所有权的上下文失败，则表示资源访问错误，如构成循环引用。
+抛出异常的类型为 NPLException 或派生类，其类型未指定。
 */
 YF_API observer_ptr<const ValueNode>
 ResolveName(const ContextNode&, string_view);
@@ -1365,6 +1379,19 @@ system <string>
 YF_API void
 CallSystem(TermNode&);
 
+/*!
+\brief 接受两个参数，返回以第一个参数作为首项插入第二个参数创建的新的列表。
+\return ReductionStatus::Retained 。
+\throw InvalidSyntax 第二个参数不是列表。
+\note NPLA 无 cons 对，所以要求创建的总是列表。
+\since build 779
+
+参考文法：
+cons <object> <list>
+*/
+YF_API ReductionStatus
+Cons(TermNode&);
+
 //! \since build 748
 //@{
 /*!
@@ -1405,6 +1432,16 @@ Eval(TermNode&);
 YF_API void
 EvaluateUnit(TermNode&, const REPLContext&);
 //@}
+
+/*!
+\brief 判断字符串是否是符号。
+\since build 779
+参考文法：
+
+symbol? <object>
+*/
+YF_API bool
+IsSymbol(const string&) ynothrow;
 
 /*!
 \brief 求值标识符得到指称的实体。

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2386
+\version r2401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2017-03-30 14:44 +0800
+	2017-04-04 11:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -830,8 +830,11 @@ make_unique_with(_tDeleter&&, _tParams&&...) = delete;
 
 /*!
 \ingroup helper_functions
-\brief 使用指定类型的初始化列表构造指定类型的 std::shared_ptr 对象。
 \tparam _type 被指向类型。
+*/
+//@{
+/*!
+\brief 使用指定类型的初始化列表构造指定类型的 std::shared_ptr 对象。
 \tparam _tValue 初始化列表的元素类型。
 \since build 529
 */
@@ -841,6 +844,18 @@ make_shared(std::initializer_list<_tValue> il)
 {
 	return std::make_shared<_type>(il);
 }
+
+/*!
+\brief 使用指定的 std::shared_ptr 实例的对象创建对应的 std::weak_ptr 实例的对象。
+\since build 779
+*/
+template<typename _type>
+inline std::weak_ptr<_type>
+make_weak(const std::shared_ptr<_type>& p) ynothrow
+{
+	return p;
+}
+//@}
 
 
 /*!
