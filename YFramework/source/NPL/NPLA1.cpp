@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3284
+\version r3473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-04-05 13:15 +0800
+	2017-04-06 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for ystdex::bind1, ystdex::pvoid,
+#include YFM_NPL_NPLA1 // for ystdex::bind1, unordered_map, ystdex::pvoid,
 //	ystdex::call_value_or, std::mem_fn;
 #include YFM_NPL_SContext
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
@@ -234,6 +234,114 @@ EqualTerm(TermNode& term, _func f)
 }
 
 
+//! \since build 779
+observer_ptr<ContextNode>
+ResolveShared(string_view id, const shared_ptr<ContextNode>& p_shared)
+{
+	if(p_shared)
+		return make_observer(get_raw(p_shared));
+	// TODO: Use concrete semantic failure exception.
+	throw NPLException(
+		sfmt("Invalid reference found for%s name '%s', probably due to invalid"
+			" context access by dangling reference.", IsReservedName(id)
+			? " reserved" : "", id.data()));
+}
+
+
+//! \since build 780
+class RecursiveThunkGuard final
+	: private yimpl(noncopyable), private yimpl(nonmovable)
+{
+private:
+	using thunk_t = std::function<ReductionStatus(TermNode&, ContextNode&)>;
+	unordered_map<string, shared_ptr<thunk_t>> store;
+
+public:
+	ContextNode& Environment;
+	const TermNode& Term;
+
+	RecursiveThunkGuard(ContextNode& e, const TermNode& t)
+		: Environment(e), Term(t)
+	{
+		Fix(Environment, Term);
+	}
+	~RecursiveThunkGuard()
+	{
+		Restore(Environment, Term);
+	}
+
+private:
+	void
+	Fix(ContextNode& e, const TermNode& t)
+	{
+		if(IsBranch(t))
+			for(const auto& tm : t)
+				Fix(e, tm);
+		else if(const auto p = AccessPtr<TokenValue>(t))
+		{
+			const auto& n(*p);
+			const auto& fp(store[n]
+				= make_shared<thunk_t>(ThrowInvalidCyclicReference));
+
+			Forms::BindParameterLeaf(e, n, {},
+				ContextHandler([fp](TermNode& term, ContextNode& ctx){
+				// XXX: This is served as addtional static environment.
+				return Deref(fp)(term, ctx);
+			}));
+		}
+		else
+			// TODO: Merge with %MatchParameter?
+			throw ParameterMismatch("Invalid parameter value found.");
+	}
+
+	void
+	Restore(ContextNode& e, const TermNode& t) ynothrow
+	{
+		if(IsBranch(t))
+			for(const auto& tm : t)
+				Restore(e, tm);
+		else if(const auto p = AccessPtr<TokenValue>(t))
+			// XXX: The element should exist.
+			FilterExceptions([&]{
+				const auto& n(*p);
+				const auto& v(Environment[n].Value);
+
+				if(v.GetType() == ystdex::type_id<ContextHandler>())
+					Deref(store.at(n))
+						= ystdex::ref(v.GetObject<ContextHandler>());
+			});
+		else
+			YAssert(false, "Invalid parameter value found.");
+	}
+
+	YB_NORETURN static ReductionStatus
+	ThrowInvalidCyclicReference(TermNode&, ContextNode&)
+	{
+		throw NPLException("Invalid cyclic reference found.");
+	}
+};
+
+
+//! \since build 780
+template<typename _func>
+void
+DoDefine(TermNode& term, _func f)
+{
+	if(term.size() > 2)
+	{
+		RemoveHead(term);
+
+		auto formals(std::move(Deref(term.begin())));
+
+		RemoveHead(term);
+		f(formals);
+	}
+	else
+		throw InvalidSyntax("Insufficient terms in definition.");
+	term.Value = ValueToken::Unspecified;
+}
+
+
 //! \since build 767
 class VauHandler final
 {
@@ -273,8 +381,6 @@ public:
 					if(const auto p = TermToNamePtr(eterm))
 					{
 						eformal = *p;
-						YTraceDe(Debug, "Found context parameter name '%s'.",
-							eformal.c_str());
 						if(eformal == "#ignore")
 							eformal.clear();
 						else if(!IsNPLASymbol(eformal))
@@ -284,8 +390,6 @@ public:
 					else
 						throw InvalidSyntax("Invalid context parameter found.");
 				}
-				YTraceDe(Debug, "Found operator with %zu parameter(s) to be"
-					" bound.", formals.size());
 				auto res(make_shared<TermNode>(std::move(formals)));
 
 				con.erase(con.cbegin(), ++i);
@@ -356,19 +460,6 @@ public:
 			throw LoggedEvent("Invalid composition found.", Alert);
 	}
 };
-
-//! \since build 779
-observer_ptr<ContextNode>
-ResolveShared(string_view id, const shared_ptr<ContextNode>& p_shared)
-{
-	if(p_shared)
-		return make_observer(get_raw(p_shared));
-	// TODO: Use concrete semantic failure exception.
-	throw NPLException(
-		sfmt("Invalid reference found for%s name '%s', probably due to invalid"
-			" context access by danling reference.", IsReservedName(id)
-			? " reserved" : "", id.data()));
-}
 
 } // unnamed namespace;
 
@@ -903,6 +994,54 @@ RetainN(const TermNode& term, size_t m)
 void
 BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 {
+	MatchParameter(t, o, [&](TNCIter first, TNCIter last, string_view id){
+		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
+		id.remove_prefix(1);
+		if(!id.empty())
+		{
+			TermNode::Container con;
+
+			for(; first != last; ++first)
+			{
+				auto& b(Deref(first));
+
+				// TODO: Merge with static binding implementation?
+				// TODO: How to reduce unnecessary copy of retained
+				//	list?
+				con.emplace(b.CreateWith(IValueHolder::Move),
+					MakeIndex(con), b.Value.MakeIndirect());
+			}
+			e.emplace(std::move(con), id);
+		}
+	}, [&](const TokenValue& n, TermNode&& v){
+		BindParameterLeaf(e, n, std::move(v));
+	});
+}
+
+void
+BindParameterLeaf(ContextNode& e, const TokenValue& n,
+	TermNode::Container&& con, ValueObject&& vo)
+{
+	if(n != "#ignore")
+	{
+		if(!n.empty() && IsNPLASymbol(n))
+			// NOTE: The symbol can be rebound.
+			// NOTE: The operands should have been evaluated if this is
+			//	in a lambda. Children nodes in arguments retained are
+			//	also transferred.
+			// XXX: Moved. This is copy elision in object language.
+			e[n].SetContent(std::move(con), std::move(vo));
+		else
+			throw ParameterMismatch(
+				"Invalid token found for symbol parameter.");
+	}
+}
+
+void
+MatchParameter(const TermNode& t, TermNode& o,
+	std::function<void(TNCIter, TNCIter, const TokenValue&)> bind_trailing_seq,
+	std::function<void(const TokenValue&, TermNode&&)> bind_value)
+{
 	if(IsBranch(t))
 	{
 		if(IsBranch(o))
@@ -918,8 +1057,15 @@ BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 				if(IsLeaf(back))
 				{
 					if(const auto p = AccessPtr<TokenValue>(back))
-						if(*p == "...")
+					{
+						YAssert(!p->empty(), "Invalid token value found.");
+						if(p->front() == '.')
 							--last;
+					}
+					else
+						// TODO: Merge with %BindParameterLeaf?
+						throw ParameterMismatch(
+							"Invalid token found for symbol parameter.");
 				}
 			}
 			if(n_p == n_o || (last != t.end() && n_o >= n_p - 1))
@@ -929,23 +1075,17 @@ BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 				for(auto i(t.begin()); i != last; yunseq(++i, ++j))
 				{
 					YAssert(j != o.end(), "Invalid state of operand found.");
-					BindParameter(e, Deref(i), Deref(j));
+					MatchParameter(Deref(i), Deref(j), bind_trailing_seq,
+						bind_value);
 				}
 				if(last != t.end())
 				{
-					TermNode::Container con;
+					const auto& lastv(Deref(last).Value);
 
-					for(; j != o.end(); ++j)
-					{
-						auto& b(Deref(j));
-
-						// TODO: Merge with static binding implementation?
-						// TODO: How to reduce unnecessary copy of retained
-						//	list?
-						con.emplace(b.CreateWith(IValueHolder::Move),
-							MakeIndex(con), b.Value.MakeIndirect());
-					}
-					e.emplace(std::move(con), "...");
+					YAssert(lastv.GetType() == ystdex::type_id<TokenValue>(),
+						"Invalid ellipsis sequence token found.");
+					bind_trailing_seq(j, o.end(),
+						lastv.GetObject<TokenValue>());
 					YAssert(++last == t.end(), "Invalid state found.");
 				}
 			}
@@ -966,28 +1106,9 @@ BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 				"Invalid branch term found for empty list parameter.");
 	}
 	else if(const auto p = AccessPtr<TokenValue>(t))
-		BindParameterLeaf(e, *p, std::move(o));
+		bind_value(*p, std::move(o));
 	else
 		throw ParameterMismatch("Invalid parameter value found.");
-}
-
-void
-BindParameterLeaf(ContextNode& e, const TokenValue& n,
-	TermNode::Container&& con, ValueObject&& vo)
-{
-	if(n != "#ignore")
-	{
-		if(!n.empty() && IsNPLASymbol(n))
-			// NOTE: The symbol can be rebound.
-			// NOTE: The operands should have been evaluated if this is
-			//	in a lambda. Children nodes in arguments retained are
-			//	also transferred.
-			// XXX: Moved. This is copy elision in object language.
-			e[n].SetContent(std::move(con), std::move(vo));
-		else
-			throw ParameterMismatch(
-				"Invalid token found for symbol parameter.");
-	}
 }
 
 
@@ -1010,6 +1131,34 @@ ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 	return {};
 }
 
+
+void
+DefineLazy(TermNode& term, ContextNode& ctx)
+{
+	DoDefine(term, [&](TermNode& formals){
+		BindParameter(ctx, formals, term);
+	});
+}
+
+void
+DefineWithNoRecursion(TermNode& term, ContextNode& ctx)
+{
+	DoDefine(term, [&](TermNode& formals){
+		ReduceChecked(term, ctx);
+		BindParameter(ctx, formals, term);
+	});
+}
+
+void
+DefineWithRecursion(TermNode& term, ContextNode& ctx)
+{
+	DoDefine(term, [&](TermNode& formals){
+		RecursiveThunkGuard gd(ctx, formals);
+
+		ReduceChecked(term, ctx);
+		BindParameter(ctx, formals, term);
+	});
+}
 
 void
 DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)

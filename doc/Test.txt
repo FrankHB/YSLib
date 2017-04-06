@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r277
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2016-11-23 17:37 +0800
+	2017-04-06 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@
 关于支持等级，参见 [Documentation::ProjectRules @@3.1.1.1] 。
 关于构建的支持和依赖项历史，参见 [Documentation::Dependencies] 。
 关于测试支持的环境，参见 @5 。
-除非另行说明，以下每个平台包括 debug 和 release 配置，都为第一类支持。
+除非另行约定，以下每个平台包括 debug 和 release 配置，都为第一类支持。
 
 @1.4.1 有限支持限制：
 特定的平台配置对默认支持的策略按需进行修改。当前具有以下限制：

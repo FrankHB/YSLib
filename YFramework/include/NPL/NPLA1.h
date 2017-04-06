@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2863
+\version r2939
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-04-05 11:28 +0800
+	2017-04-06 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -917,27 +917,26 @@ RetainN(const TermNode&, size_t = 1);
 \note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
 \since build 776
 
-绑定前需要进行结构化匹配检查。
-若匹配失败，则抛出异常；否则，在第一参数指定的环境内绑定未被忽略的匹配的项：
-非空列表项的绑定为对应子项的绑定；
-空列表项的绑定为空操作；
-非列表项操作数直接绑定到名称为符号值的参数对应项。
-绑定按深度优先的词法顺序进行。若已存在绑定则重新绑定。
+递归遍历参数和操作数树进行结构化匹配。
+若匹配失败，则抛出异常。
 */
+//@{
+//! \note 第一参数指定的上下文决定绑定的环境。
 //@{
 /*!
 \brief 使用操作数结构化匹配并绑定参数。
 \throw ArityMismatch 子项数匹配失败。
+\sa MatchParameter
 \sa BindParameterLeaf
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
-进行匹配的算法递归搜索形式参数及其子项，匹配要求如下：
-若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
-	若最后的子项为符号 ... ，则匹配操作数中结尾的任意个数的项；
-	其它子项一一匹配操作数的子项；
-若项是空列表，则操作数的对应的项应为空列表；
-否则，调用 BindParameterLeaf 匹配非列表项。
+进行匹配的算法递归搜索形式参数及其子项，要求参见 MatchParameter 。
+若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的项。
+对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
+子项为 . 时，对应操作数的结尾序列被忽略；
+否则，绑定项的目标为移除前缀 . 后的符号。
+非列表项的绑定调用 BindParameterLeaf 。
 */
 YF_API void
 BindParameter(ContextNode&, const TermNode&, TermNode&);
@@ -948,6 +947,7 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定名称，之后的参数指定值。
+若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
 匹配要求如下：
 若项是 #ignore ，则忽略操作数对应的项；
 若项的值是符号，则操作数的对应的项应为非列表项。
@@ -962,6 +962,29 @@ inline PDefH(void, BindParameterLeaf, ContextNode& e, const TokenValue& n,
 		std::move(o.Value)))
 //@}
 //@}
+
+/*!
+\brief 匹配参数。
+\exception std::bad_function 异常中立：参数指定的处理器为空。
+\since build 780
+
+进行匹配的算法递归搜索形式参数及其子项。
+若匹配成功，调用参数指定的匹配处理器。
+处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配 . 起始的项和非列表项。
+结尾序列处理器传入的字符串参数表示需绑定的表示结尾序列的列表标识符。
+匹配要求如下：
+若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
+	若最后的子项为 . 起始的符号，则匹配操作数中结尾的任意个数的项作为结尾序列：
+	其它子项一一匹配操作数的子项；
+若项是空列表，则操作数的对应的项应为空列表；
+否则，匹配非列表项。
+*/
+YF_API void
+MatchParameter(const TermNode&, TermNode&,
+	std::function<void(TNCIter, TNCIter, const TokenValue&)>,
+	std::function<void(const TokenValue&, TermNode&&)>);
+//@}
+
 
 /*!
 \brief 检查项中是否存在为修饰符的第二个子项，若存在则移除。
@@ -1236,6 +1259,51 @@ RegisterStrictBinary(ContextNode& node, const string& name, _func f)
 
 
 /*!
+\brief 定义。
+\exception ParameterMismatch 绑定匹配失败。
+\throw InvalidSyntax 绑定的源为空。
+\sa BindParameter
+\sa Vau
+\since build 780
+
+实现修改环境的特殊形式。
+使用 <definiend> 指定绑定目标，和 Vau 的 <formals> 格式相同。
+剩余表达式 <expression>...+ 指定绑定的源。
+返回未指定值。
+限定第三参数后可使用 RegisterForm 注册上下文处理器。
+*/
+//@{
+/*!
+\note 不对剩余表达式进一步求值。
+
+剩余表达式视为求值结果，直接绑定到 <definiend> 。
+特殊形式参考文法：
+$deflazy! <definiend> <expression>...+
+*/
+YF_API void
+DefineLazy(TermNode&, ContextNode&);
+
+/*!
+\note 不支持递归绑定。
+
+剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
+特殊形式参考文法：
+$def! <definiend> <expression>...+
+*/
+YF_API void
+DefineWithNoRecursion(TermNode&, ContextNode&);
+
+/*!
+\note 支持直接递归和互相递归绑定。
+
+解析可能递归绑定的名称，剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
+$defrec! <definiend> <expression>...+
+*/
+YF_API void
+DefineWithRecursion(TermNode&, ContextNode&);
+//@}
+
+/*!
 \note 在节点后的 bool 参数指定使用定义而不是设置（重定义）。
 \note 支持修饰符。
 \sa ReduceWithModifier
@@ -1299,6 +1367,7 @@ If(TermNode&, ContextNode&);
 
 /*!
 \exception InvalidSyntax 异常中立：由 ExtractParameters 抛出。
+\sa BindParameter
 \sa EvaluateIdentifier
 \sa ExtractParameters
 \warning 返回闭包调用引用变量超出绑定目标的生存期引起未定义行为。
@@ -1324,7 +1393,7 @@ Lambda(TermNode&, ContextNode&);
 /*!
 \brief vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 \note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
-\throw InvalidSynta <eformal> 不符合要求。
+\throw InvalidSyntax <eformal> 不符合要求。
 \since build 767
 
 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。

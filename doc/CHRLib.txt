@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r175
+\version r177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2016-11-01 23:36 +0800
+	2017-04-06 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,7 @@ CHRLib 的实现抽象 f 、 g 和 h ，表达它们的一些典型具体实例�
 
 @7 一般实现导引：
 暂略。
-接口使用方法参见注释和 YFramework 源代码。
+接口使用方法参见源代码文档。
 
 */
 ////

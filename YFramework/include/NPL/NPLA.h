@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1494
+\version r1498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-04-05 11:27 +0800
+	2017-04-06 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,6 +202,8 @@ using IndentGenerator = std::function<string(size_t)>;
 YF_API string
 DefaultGenerateIndent(size_t);
 
+//! \exception std::bad_function 异常中立：参数指定的处理器为空。
+//@{
 /*!
 \brief 打印缩进。
 \note 若最后一个参数等于零则无副作用。
@@ -251,6 +253,7 @@ PrintNodeChild(std::ostream&, const ValueNode&, NodeToString
 YF_API bool
 PrintNodeString(std::ostream&, const ValueNode&,
 	NodeToString = EscapeNodeLiteral);
+//@}
 
 
 namespace SXML
@@ -643,6 +646,7 @@ inline PDefH(bool, IsNPLASymbol, string_view id) ynothrowv
 /*!
 \ingroup ThunkType
 \brief 记号值。
+\invariant 值应保证非空。
 \note 和被求值的字符串不同的包装类型。
 \warning 非空析构。
 \since build 756
