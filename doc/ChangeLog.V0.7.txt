@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6540
+\version r6586
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-04-05 15:46 +0800
+	2017-04-06 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,50 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	- $dev $revert(b767) "all 2 cases to suppress %ystdex::mapped_set leak"
+		@ "%DrMemory-YSLib-suppress.txt" @ %Tools,
+		// The leaks were caused by cyclic reference in swapping subnode to \
+			its parent, fixed in b778.
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					(
+					+ "function %MatchParameter";
+					/ DLDI "function %BindParameter" ^ "%MatchParameter";
+					+ $comp "trailing sequence support by different forms \
+						'.name' in parameter",
+						// This supports binding multiple traling sequences \
+							at once.
+					* "missing check of %TokenValue type for the last \
+						subterm of binding target" $since b777
+					),
+					+ "functions %(DefineLazy, DefineWithNoRecursion, \
+						DefineWithRecursion)",
+					* "spelling error" @ "exception message"
+						@ "function %ResolveName" $since b779,
+					- "tracing messages for (context, formal) parameter"
+						@ ("function %BindParameter"; $comp "vau hanlder")
+						// Tracing can be derived in user code.
+				)
+			)
+		),
+		/ DD %NPLA $=
+		(
+			+ "'\exception' command" @ "Doxygen comment"
+				@ "functions with %std::function instance parameters",
+			+ "'\invariant' command" @ "Doxygen comment"
+				@ "alias declaration %TokenValue"
+		)
+	)
+),
+
+b779
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -144,9 +188,9 @@ b777
 	(
 		/ @ %NPLA1 $=
 		(
-			+ "support for '...' binding a list of variadic elements in the \
-				operand" @ ("function %BindParameter" ; $comp "vau hanlder")
-				@ "namespace %Forms",
+			+ "support for '...' binding a list of variadic trailing elements \
+				in the operand" @ ("function %BindParameter";
+				$comp "vau hanlder") @ "namespace %Forms",
 			(
 			+ "function %ResolveName with parent context lookup support";
 			/ @ "function %EvaluateIdentifier" $=

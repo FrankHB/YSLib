@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r529
+\version r531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2015-01-02 09:40:31 +0800
 \par 修改时间:
-	2016-11-18 10:59 +0800
+	2017-04-06 23:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ report.impl:
 Note that 'va_args' and 'va_end' cannot be encapulased using RAII/RRID.
 	ISO C explicitly specified they shall match in a function.
 	Since constructor and destructor are functions, they can not be used.
-UAC is annoying for program which aquireing no administrator privilege but containing some patterns in file name e.g. 'patch.exe' or 'install.exe'.
+UAC is annoying for program which aquireing no administrator privilege but containing some patterns in filename e.g. 'patch.exe' or 'install.exe'.
 	See https://github.com/bmatzelle/gow/issues/156.
 The function 'std::quick_exit' is mostly a workaround of cleanup when the thread cancellation is not supported in C++.
 	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2440.htm.

@@ -81,13 +81,3 @@ libgcc_s*!*
 ...
 *!platform::Logger::SendLog*
 
-LEAK
-name=mapped_set#1
-...
-*!ystdex::mapped_set<>::mapped_set
-
-LEAK
-name=mapped_set#2
-...
-*!ystdex::mapped_set<>::insert
-

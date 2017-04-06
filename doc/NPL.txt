@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r2101
+\version r2108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2017-03-27 11:04 +0800
+	2017-04-06 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1165,6 +1165,7 @@ A1::ReduceCombined 对枝节点以已规约的第一个子项为上下文处理�
 
 @6.4.6 上下文处理 API ：
 A1::ResolveName 解析名称：处理保留名称并查找名称(@4.3.3) 。
+解析名称重定向上下文时，可能找到循环引用；作为 @5.2 的补充，此时抛出异常。
 
 @6.5 REPL API ：
 NPLA1 提供 REPL API 以便于组装 REPL 和解释器。
@@ -1189,7 +1190,12 @@ Forms::RetainN 断言枝节点并检查子项作为函数时的实际参数数(@
 Forms::BindParameter 匹配并绑定操作数到参数上。
 作为 TermNode ，操作数的表示具有树的构造，称为操作数树(operand tree) 。
 数据结构和匹配算法类似 Kernel 语言中用于 $define! 和 $vau 等操作子(@4.5.3.2) 的机制，但是 NPL 不使用对(pair) 。
-此外，提供 Forms::DefineOrSet 以及 Forms::DefineOrSetFor 操作环境。
+此外，提供以下 API 修改环境：
+Forms::DefineLazy ；
+Forms::DefineOrSet ；
+Forms::DefineOrSetFor ；
+Forms::DefineWithNoRecursion ；
+Forms::DefineWithRecursion 。
 
 @6.6.3 分支和逻辑操作：
 Forms::If 提供基本的条件判断形式。
