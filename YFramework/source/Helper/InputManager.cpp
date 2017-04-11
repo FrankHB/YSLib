@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r577
+\version r580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2016-04-30 00:59 +0800
+	2017-04-08 14:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_InputManager
+#include YFM_Helper_InputManager // for ystdex::erase_left;
 #include YFM_YCLib_Input
 #include YFM_Helper_Environment
 #include YFM_Helper_HostRenderer // for Host::Window, Host::RenderWindow;
@@ -135,7 +135,7 @@ InputManager::DispatchInput(IWidget& wgt)
 					else
 						break;
 				}
-				ustr.erase(ustr.begin(), ustr.begin() + ptrdiff_t(n));
+				ystdex::erase_left(n, ustr);
 				// TODO: Resolve duplicate locking.
 				if(st.CaretLocation != caret_location_cache)
 				{

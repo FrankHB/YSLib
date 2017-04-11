@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3068
+\version r3097
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-04-02 15:57 +0800
+	2017-04-11 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -465,17 +465,45 @@ public:
 
 	/*!
 	\brief 若指定名称子节点不存在则按指定值初始化。
-	\return 按指定名称查找的指定类型的子节点的值的引用。
+	\since build 781
+	*/
+	//@{
+	//! \return 按指定名称查找的指定类型的子节点的值的引用。
+	//@{
+	/*!
+	\sa ValueObject::Access
 	\since build 681
 	*/
 	template<typename _type, typename _tString, typename... _tParams>
 	inline _type&
 	Place(_tString&& str, _tParams&&... args)
 	{
-		return try_emplace(str, NoContainer, yforward(str),
-			ystdex::in_place<_type>, yforward(args)...).first->Value.template
+		return PlaceValue<_type>(yforward(str), yforward(args)...).template
+			Access<_type>();
+	}
+
+	/*!
+	\pre 间接断言：存储对象已存在时类型和访问的类型一致。
+	\sa ValueObject::GetObject
+	*/
+	template<typename _type, typename _tString, typename... _tParams>
+	inline _type&
+	PlaceUnchecked(_tString&& str, _tParams&&... args)
+	{
+		return PlaceValue<_type>(yforward(str), yforward(args)...).template
 			GetObject<_type>();
 	}
+	//@}
+
+	//! \brief 初始化的值对象引用。
+	template<typename _type, typename _tString, typename... _tParams>
+	inline ValueObject&
+	PlaceValue(_tString&& str, _tParams&&... args)
+	{
+		return try_emplace(str, NoContainer, yforward(str),
+			ystdex::in_place<_type>, yforward(args)...).first->Value;
+	}
+	//@}
 
 	PDefH(bool, Remove, const ValueNode& node)
 		ImplRet(erase(node) != 0)

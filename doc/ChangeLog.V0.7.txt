@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6586
+\version r6669
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-04-06 23:49 +0800
+	2017-04-11 09:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,10 +32,6 @@ $import $HISTORY;
 
 $now
 (
-	- $dev $revert(b767) "all 2 cases to suppress %ystdex::mapped_set leak"
-		@ "%DrMemory-YSLib-suppress.txt" @ %Tools,
-		// The leaks were caused by cyclic reference in swapping subnode to \
-			its parent, fixed in b778.
 	/ %YFramework $=
 	(
 		/ %NPL $=
@@ -44,24 +40,88 @@ $now
 			(
 				/ @ "namespace %Forms" $=
 				(
+					/ @ ("function %BindParameter"; $comp "vau hanlder") $=
 					(
-					+ "function %MatchParameter";
-					/ DLDI "function %BindParameter" ^ "%MatchParameter";
-					+ $comp "trailing sequence support by different forms \
-						'.name' in parameter",
-						// This supports binding multiple traling sequences \
-							at once.
-					* "missing check of %TokenValue type for the last \
-						subterm of binding target" $since b777
+						/ "allowed body to be empty",
+							// Previously only vau handler accept empty body.
+						+ "3rd parameter 'bool' to allow moving captured \
+							static context" @ "function %Vau"
 					),
-					+ "functions %(DefineLazy, DefineWithNoRecursion, \
-						DefineWithRecursion)",
-					* "spelling error" @ "exception message"
-						@ "function %ResolveName" $since b779,
-					- "tracing messages for (context, formal) parameter"
-						@ ("function %BindParameter"; $comp "vau hanlder")
-						// Tracing can be derived in user code.
-				)
+					+ "function %VauWithEnvironment"
+				),
+				* $comp "assertion failed when previous object of unexpected \
+					target type existed" @ "functions %(SetupTraceDepth, \
+					AccessGuardPassesRef, AccessLeafPassesRef, \
+					AccessListPassesRef, AccessLiteralPassesRef)" $since b685
+					$dep_from ("%ValueNode::Place" @ %YSLib.Core.ValueNode)
+			),
+			/ $forced DLDI "function %LoadNPLContextForSHBuild" $dep_from
+				("%Vau" @ %NPLA1)
+		),
+		/ DLDI "simplified member function %InputManager::DispatchInput"
+			@ %Helper.InputManager ^ "%ystdex::erase_left",
+		/ "class %ValueNode" @ %YSLib.Core.ValueNode $=
+		(
+			(
+			+ "function template %PlaceValue";
+			/ "function template %PlaceUnchecked",
+			/ DLDI "simplified function template %Place"
+			),
+			/ ("checked access" ^ "%ValueObject::Access"
+				~ "%ValueObject::GetObject") @ "function template %Place"
+		)
+	),
+	/ %YBase.YStandardEx.String $=
+	(
+		* DD "wrong comment" @ "function templates %(erase_left, erase_right)"
+			$since b592,
+		/ @ "functions %(erase_left, erase_right)" $=
+		(
+			+ $impl "duplicated underlying algorithms dedicated for %ltrim";
+			/ DLDI "%ltrim" ^ "new algorithms";
+			/ DLDI "switched %erase_left underlying algorithms",
+			+ $impl "contraints to avoid trailing position"
+				@ "underlying algorithms for %erase_left";
+			/ DLI "removed redundant comparison for trailing position",
+			* $comp "wrong assert rejecting position of string size"
+				@ "%erase_left" $since b659
+		),
+		* "wrong greedy erasure" @ "function template %erase_left without \
+			positional parameter" $since b592
+			$= (/ $impl ^ "%find_first_of" ~ "%find_last_of")
+	),
+	* DI "missing 'std::' before 'stoul'" @ %Tools.RevisionPatcher.Main $since
+		b565
+),
+
+b780
+(
+	- $dev $revert(b767) "all 2 cases to suppress %ystdex::mapped_set leak"
+		@ "%DrMemory-YSLib-suppress.txt" @ %Tools,
+		// The leaks were caused by cyclic reference in swapping subnode to \
+			its parent, fixed in b778.
+	/ %YFramework.NPL $=
+	(
+		/ @ %NPLA1 $=
+		(
+			/ @ "namespace %Forms" $=
+			(
+				(
+				+ "function %MatchParameter";
+				/ DLDI "function %BindParameter" ^ "%MatchParameter";
+				+ $comp "trailing sequence support by different forms '.name' \
+					in parameter",
+					// This supports binding multiple traling sequences at once.
+				* "missing check of %TokenValue type for the last subterm of \
+					binding target" $since b777
+				),
+				+ "functions %(DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion)",
+				* "spelling error" @ "exception message"
+					@ "function %ResolveName" $since b779,
+				- "tracing messages for (context, formal) parameter"
+					@ ("function %BindParameter"; $comp "vau hanlder")
+					// Tracing can be derived in user code.
 			)
 		),
 		/ DD %NPLA $=

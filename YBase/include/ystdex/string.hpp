@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r1910
+\version r1987
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2016-09-21 15:47 +0800
+	2017-04-09 11:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	std::to_string;
 #include "container.hpp" // for "container.hpp", make_index_sequence,
-//	index_sequence, begin, end, sort_unique, size, underlying;
+//	index_sequence, begin, end, size, sort_unique, underlying;
 #include "cstdio.h" // for yconstraint, vfmtlen;
 #include "cstring.h" // for ntctslen;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
@@ -120,8 +120,7 @@ struct str_algos<0>
 	erase_left(_tString& s, _tSize n) ynothrowv
 		-> yimpl(decltype(s.remove_prefix(n), s))
 	{
-		return yconstraint(n < s.size() || n == _tSize(-1)),
-			s.remove_prefix(n != _tSize(-1) ? n : _tSize(s.size())), s;
+		return yconstraint(n <= s.size()), s.remove_prefix(n), s;
 	}
 
 	//! \since build 659
@@ -129,6 +128,27 @@ struct str_algos<0>
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
 	erase_right(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.remove_suffix(n), s))
+	{
+		return yconstraint(n < s.size()), trim_right_pos(s, n);
+	}
+
+	//! \since build 781
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static yconstfn auto
+	trim_left_pos(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.remove_prefix(n), s))
+	{
+		return yconstraint(n < s.size() || n == _tSize(-1)),
+			erase_left(s, n != _tSize(-1) ? n : _tSize(s.size())), s;
+	}
+
+	//! \since build 659
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static yconstfn auto
+	trim_right_pos(_tString& s, _tSize n) ynothrowv
 		-> yimpl(decltype(s.remove_suffix(n), s))
 	{
 		return yconstraint(n < s.size() || n == _tSize(-1)),
@@ -146,7 +166,7 @@ struct str_algos<1>
 	erase_left(_tString& s, _tSize n) ynothrowv
 		-> yimpl(decltype(s.erase(0, n)))
 	{
-		return yconstraint(n < s.size() || n == _tSize(-1)), s.erase(0, n);
+		return yconstraint(n <= s.size()), s.erase(0, n);
 	}
 
 	//! \since build 659
@@ -154,6 +174,26 @@ struct str_algos<1>
 		typename _tSize = typename string_traits<_tString>::size_type>
 	static yconstfn auto
 	erase_right(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.erase(n + 1)))
+	{
+		return yconstraint(n < s.size()), s.erase(n + 1);
+	}
+
+	//! \since build 781
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static yconstfn auto
+	trim_left_pos(_tString& s, _tSize n) ynothrowv
+		-> yimpl(decltype(s.erase(0, n)))
+	{
+		return yconstraint(n < s.size() || n == _tSize(-1)), s.erase(0, n);
+	}
+
+	//! \since build 781
+	template<class _tString,
+		typename _tSize = typename string_traits<_tString>::size_type>
+	static yconstfn auto
+	trim_right_pos(_tString& s, _tSize n) ynothrowv
 		-> yimpl(decltype(s.erase(n + 1)))
 	{
 		return yconstraint(n < s.size() || n == _tSize(-1)), s.erase(n + 1);
@@ -172,6 +212,14 @@ struct str_algo<index_sequence<>>
 
 	void
 	erase_right() = delete;
+
+	//! \since build 781
+	void
+	trim_left_pos() = delete;
+
+	//! \since build 781
+	void
+	trim_right_pos() = delete;
 };
 
 template<size_t _vIdx, size_t... _vSeq>
@@ -182,6 +230,13 @@ struct str_algo<index_sequence<_vIdx, _vSeq...>>
 	using str_algo<index_sequence<_vSeq...>>::erase_left;
 	using str_algos<_vIdx>::erase_right;
 	using str_algo<index_sequence<_vSeq...>>::erase_right;
+	//! \since build 781
+	//@{
+	using str_algos<_vIdx>::trim_left_pos;
+	using str_algo<index_sequence<_vSeq...>>::trim_left_pos;
+	using str_algos<_vIdx>::trim_right_pos;
+	using str_algo<index_sequence<_vSeq...>>::trim_right_pos;
+	//@}
 };
 //@}
 
@@ -249,7 +304,7 @@ string_begin(_tChar* str) ynothrow
 	return yconstraint(str), str;
 }
 #if __cplusplus <= 201402L
-//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+//! \see CWG 1591 。
 template<typename _tElem>
 yconstfn auto
 string_begin(std::initializer_list<_tElem> il) -> decltype(il.begin())
@@ -280,7 +335,7 @@ string_end(_tChar* str) ynothrow
 	return str + ystdex::ntctslen(str);
 }
 #if __cplusplus <= 201402L
-//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+//! \see CWG 1591 。
 template<typename _tElem>
 yconstfn auto
 string_end(std::initializer_list<_tElem> il) -> decltype(il.end())
@@ -317,7 +372,7 @@ string_length(const _type& str) -> decltype(size(str))
 	return size(str);
 }
 #if __cplusplus <= 201402L
-//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+//! \see CWG 1591 。
 template<typename _tElem>
 yconstfn size_t
 string_length(std::initializer_list<_tElem> il)
@@ -503,7 +558,7 @@ concat(_tString& str, size_t n)
 //@{
 //! \since build 592
 //@{
-//! \brief 删除字符串中指定的连续字符左侧的字符串。
+//! \brief 删除字符串中指定位置或指定字符最先出现的位置的左侧的字符串。
 //@{
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
@@ -516,13 +571,15 @@ template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(c), str));
+	return
+		static_cast<_tString&&>(ystdex::erase_left(str.find_first_of(c), str));
 }
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
 erase_left(_tString&& str, const remove_reference_t<_tString>& t)
 {
-	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
+	return
+		static_cast<_tString&&>(ystdex::erase_left(str.find_first_of(t), str));
 }
 /*!
 \pre 断言：指针参数非空。
@@ -534,11 +591,12 @@ erase_left(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	yconstraint(t);
-	return static_cast<_tString&&>(ystdex::erase_left(str.find_last_of(t), str));
+	return
+		static_cast<_tString&&>(ystdex::erase_left(str.find_first_of(t), str));
 }
 //@}
 
-//! \brief 删除字符串中指定的连续字符右侧的字符串。
+//! \brief 删除字符串中指定位置或指定字符最后出现的位置的右侧的字符串。
 //@{
 template<class _tString>
 inline yimpl(enable_if_t)<is_class<decay_t<_tString>>::value, _tString&&>
@@ -587,7 +645,7 @@ yconstfn _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
 	return static_cast<_tString&&>(
-		details::str_algo<>::erase_left(str, str.find_first_not_of(c)));
+		details::str_algo<>::trim_left_pos(str, str.find_first_not_of(c)));
 }
 //! \since build 659
 template<class _tString>
@@ -595,7 +653,7 @@ inline _tString&&
 ltrim(_tString&& str, const _tString& t)
 {
 	return static_cast<_tString&&>(
-		details::str_algo<>::erase_left(str, str.find_first_not_of(t)));
+		details::str_algo<>::trim_left_pos(str, str.find_first_not_of(t)));
 }
 /*!
 \pre 断言：指针参数非空。
@@ -607,7 +665,7 @@ ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	return yconstraint(t), static_cast<_tString&&>(
-		details::str_algo<>::erase_left(str, str.find_first_not_of(t)));
+		details::str_algo<>::trim_left_pos(str, str.find_first_not_of(t)));
 }
 //@}
 
@@ -618,7 +676,7 @@ yconstfn _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
 	return static_cast<_tString&&>(
-		details::str_algo<>::erase_right(str, str.find_last_not_of(c)));
+		details::str_algo<>::trim_right_pos(str, str.find_last_not_of(c)));
 }
 //! \since build 659
 template<class _tString>
@@ -626,7 +684,7 @@ yconstfn _tString&&
 rtrim(_tString&& str, const remove_reference_t<_tString>& t) ynothrowv
 {
 	return static_cast<_tString&&>(
-		details::str_algo<>::erase_right(str, str.find_last_not_of(t)));
+		details::str_algo<>::trim_right_pos(str, str.find_last_not_of(t)));
 }
 /*!
 \pre 断言：指针参数非空。
@@ -638,7 +696,7 @@ rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>(" \f\n\r\t\v")[0])
 {
 	return yconstraint(t), static_cast<_tString&&>(
-		details::str_algo<>::erase_right(str, str.find_last_not_of(t)));
+		details::str_algo<>::trim_right_pos(str, str.find_last_not_of(t)));
 }
 //@}
 
@@ -648,14 +706,16 @@ template<class _tString>
 yconstfn _tString&&
 trim(_tString&& str, typename string_traits<_tString>::value_type c)
 {
-	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), c)), c));
+	return
+		yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), c)), c));
 }
 //! \since build 659
 template<class _tString>
 yconstfn _tString&&
 trim(_tString&& str, const _tString& t) ynothrowv
 {
-	return yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
+	return
+		yforward(ystdex::ltrim(yforward(ystdex::rtrim(yforward(str), t)), t));
 }
 /*!
 \pre 断言：指针参数非空。
@@ -833,7 +893,7 @@ extract(std::basic_istream<_tChar, _tTraits>& is,
 		}
 		catch(...)
 		{
-			// NOTE: See http://wg21.cmeerw.net/lwg/issue91.
+			// NOTE: See LWG 91.
 			rethrow_badstate(is, std::ios_base::badbit);
 		}
 	}
@@ -1197,7 +1257,7 @@ _tString
 cond_prefix(const _tString& str, const _type& prefix, _tString&& val = {})
 {
 	ystdex::filter_prefix(str, prefix, [&](_tString&& s)
-		ynoexcept(is_nothrow_move_assignable<decay_t<_tString>>::value){
+		ynoexcept(is_nothrow_move_assignable<decay_t<_tString>>()){
 		val = std::move(s);
 	});
 	return std::move(val);
