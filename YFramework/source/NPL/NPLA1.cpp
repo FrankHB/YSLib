@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3473
+\version r3604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-04-06 23:49 +0800
+	2017-04-11 09:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -342,6 +342,26 @@ DoDefine(TermNode& term, _func f)
 }
 
 
+//! \since build 781
+string
+CheckEnvFormal(const TermNode& term)
+{
+	if(const auto p = TermToNamePtr(term))
+	{
+		if(*p != "#ignore")
+		{
+			if(!IsNPLASymbol(*p))
+				throw InvalidSyntax("Symbol or '#ignore' expected"
+					" for context parameter.");
+			return *p;
+		}
+	}
+	else
+		throw InvalidSyntax("Invalid context parameter found.");
+	return {};
+}
+
+
 //! \since build 767
 class VauHandler final
 {
@@ -356,56 +376,29 @@ private:
 	\since build 771
 	*/
 	shared_ptr<TermNode> p_formals;
-	//! \brief 捕获静态上下文，包含引入抽象时的静态环境。
+	/*!
+	\brief 捕获静态上下文，包含引入抽象时的静态环境。
+	\note 共享所有权用于检查循环引用。
+	\todo 优化。考虑使用区域推断代替。
+	*/
 	shared_ptr<ContextNode> p_context;
-	//! \brief 闭包对象。
+	//! \brief 闭包求值构造。
 	shared_ptr<TermNode> p_closure;
 
 public:
-	//! \since build 769
-	VauHandler(TermNode& term, ContextNode& ctx, bool ignore)
-		: p_formals([&]{
-			using namespace Forms;
-
-			Retain(term);
-			if(term.size() > 2)
-			{
-				auto& con(term.GetContainerRef());
-				auto i(con.begin());
-				const auto& formals(Deref(++i));
-
-				if(!ignore)
-				{
-					const auto& eterm(Deref(++i));
-
-					if(const auto p = TermToNamePtr(eterm))
-					{
-						eformal = *p;
-						if(eformal == "#ignore")
-							eformal.clear();
-						else if(!IsNPLASymbol(eformal))
-							throw InvalidSyntax("Symbol or '#ignore' expected"
-								" for context parameter.");
-					}
-					else
-						throw InvalidSyntax("Invalid context parameter found.");
-				}
-				auto res(make_shared<TermNode>(std::move(formals)));
-
-				con.erase(con.cbegin(), ++i);
-				return res;
-			}
-			else
-				throw InvalidSyntax(
-					"Insufficient terms in function abstraction.");
-		}()),
-		// NOTE: Capturing by reference.
-		// TODO: Optimize. This does not need to be shared, since it would
-		//	always be copied, if used.
-		// TODO: Region inference?
-		// FIXME: This may be unsafe if the external owner is destroyed.
-		p_context(make_shared<ContextNode>(ctx)),
+	//! \since build 781
+	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
+		shared_ptr<ContextNode>&& p_ctx, TermNode& term)
+		: eformal(std::move(ename)), p_formals(std::move(p_fm)),
+		p_context(std::move(p_ctx)),
 		p_closure(make_shared<TermNode>(std::move(term)))
+	{}
+	//! \since build 781
+	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
+		ContextNode& ctx, TermNode& term, bool move_env)
+		: VauHandler(std::move(ename), std::move(p_fm), move_env
+		? make_shared<ContextNode>(std::move(ctx))
+		: make_shared<ContextNode>(ctx), term)
 	{}
 
 	//! \since build 772
@@ -414,24 +407,19 @@ public:
 	{
 		if(IsBranch(term))
 		{
-			// FIXME: Cyclic reference to context handler when the term value
-			//	(i.e. the closure) is copied upward?
 			using namespace Forms;
 			const auto& formals(Deref(p_formals));
-			// NOTE: Active record frame with outer scope bindings.
-			// TODO: Optimize for performance.
-			// NOTE: This is probably better to be copy-on-write. Since
+			// NOTE: Local context: active record frame with outer scope
+			//	bindings. This is probably better to be copy-on-write. Since
 			//	no immutable reference would be accessed before
 			//	mutation, no care is needed for reference invalidation.
-			// TODO: Optimize using initialization from iterator pair?
 			// XXX: Referencing escaped variables (now only parameters need
 			//	to be cared) form the context would cause undefined behavior
 			//	(e.g. returning a reference to automatic object in the host
-			//	language).
-			// TODO: Reduce such undefined behavior resonably?
+			//	language). See %BindParameter.
 			ContextNode comp_ctx;
 
-			// NOTE: Bind dynamic context.
+			// NOTE: Bound dynamic context.
 			if(!eformal.empty())
 				comp_ctx.AddValue(eformal, ValueObject(ctx, OwnershipTag<>()));
 			// NOTE: Since first term is expected to be saved (e.g. by
@@ -443,12 +431,8 @@ public:
 				p_context.use_count(), formals.size());
 			YAssert(&comp_ctx != &Deref(p_context),
 				"Self reference of context found.");
-			// NOTE: Static context is bound by setting parent context pointer.
-			// NOTE: Shared ownership is necessary here to prevent the context
-			//	disposed too early after the vau handler has been destroyed. The
-			//	context has to live longer if there exists the child to capture
-			//	the context and then return. And there cannot be cyclic
-			//	reference.
+			// NOTE: Static context is bound as base of local context by
+			//	setting parent context pointer.
 			comp_ctx.AddValue(ParentContextName, make_weak(p_context));
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
@@ -460,6 +444,19 @@ public:
 			throw LoggedEvent("Invalid composition found.", Alert);
 	}
 };
+
+
+//! \since build 781
+template<typename _func>
+void
+CreateFunction(TermNode& term, _func f, size_t n)
+{
+	Forms::Retain(term);
+	if(term.size() > n)
+		term.Value = ContextHandler(f(term.GetContainerRef()));
+	else
+		throw InvalidSyntax("Insufficient terms in function abstraction.");
+}
 
 } // unnamed namespace;
 
@@ -1005,9 +1002,10 @@ BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 			{
 				auto& b(Deref(first));
 
-				// TODO: Merge with static binding implementation?
 				// TODO: How to reduce unnecessary copy of retained
 				//	list?
+				// TODO: Detect or reduce undefined behavior caused by unsafe
+				//	use resonably?
 				con.emplace(b.CreateWith(IValueHolder::Move),
 					MakeIndex(con), b.Value.MakeIndirect());
 			}
@@ -1246,15 +1244,48 @@ If(TermNode& term, ContextNode& ctx)
 void
 Lambda(TermNode& term, ContextNode& ctx)
 {
-	// NOTE: %ToContextHandler implies strict evaluation of arguments in
-	//	%StrictContextHandler::operator().
-	term.Value = ToContextHandler(VauHandler(term, ctx, true));
+	CreateFunction(term, [&](TermNode::Container& con){
+		auto i(con.begin());
+		auto es(make_shared<TermNode>(std::move(Deref(++i))));
+
+		con.erase(con.cbegin(), ++i);
+		// NOTE: %ToContextHandler implies strict evaluation of arguments in
+		//	%StrictContextHandler::operator().
+		return ToContextHandler(VauHandler({}, std::move(es),
+			ctx, term, {}));
+	}, 1);
 }
 
 void
-Vau(TermNode& term, ContextNode& ctx)
+Vau(TermNode& term, ContextNode& ctx, bool move_env)
 {
-	term.Value = ContextHandler(FormContextHandler(VauHandler(term, ctx, {})));
+	CreateFunction(term, [&](TermNode::Container& con){
+		auto i(con.begin());
+		auto es(make_shared<TermNode>(std::move(Deref(++i))));
+		string eformal(CheckEnvFormal(Deref(++i)));
+
+		con.erase(con.cbegin(), ++i);
+		return FormContextHandler(VauHandler(std::move(
+			eformal), std::move(es), ctx, term, move_env));
+	}, 2);
+}
+
+void
+VauWithEnvironment(TermNode& term, ContextNode& ctx, bool move_env)
+{
+	CreateFunction(term, [&](TermNode::Container& con){
+		auto i(con.begin());
+
+		ReduceChecked(Deref(++i), ctx);
+
+		auto e(std::move(Deref(i).Value.Access<ContextNode>()));
+		auto es(make_shared<TermNode>(std::move(Deref(++i))));
+		string eformal(CheckEnvFormal(Deref(++i)));
+
+		con.erase(con.cbegin(), ++i);
+		return FormContextHandler(VauHandler(std::move(
+			eformal), std::move(es), e, term, move_env));
+	}, 3);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1613
+\version r1615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2017-03-14 10:06 +0800
+	2017-04-11 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,9 +167,10 @@ $renamed_to =>;
 
 // Abbreviations.
 DD $dev $doc;
+DI $design $impl;
 DLD $dev $lib $design;
 DLI $dev $lib $impl;
-DLDI $dev $lib $design $impl;
+DLDI $dev $lib DI;
 DLP $dev $lib $deploy;
 DLB $dev $lib $build;
 

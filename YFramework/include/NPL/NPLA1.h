@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2939
+\version r2965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-04-06 23:29 +0800
+	2017-04-11 09:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1318,6 +1318,7 @@ DefineWithRecursion(TermNode&, ContextNode&);
 
 实现修改环境的特殊形式。
 值以项的形式被转移，在替换前进一步求值。返回未指定值。
+指定第三参数为 true 则为定义，否则为设置。
 限定第三参数后可使用 RegisterForm 注册上下文处理器。
 特殊形式参考文法：
 $define|$set [!] <variable> <expression>
@@ -1384,24 +1385,46 @@ If(TermNode&, ContextNode&);
 \brief λ 抽象：求值为一个捕获当前上下文的严格求值的函数。
 \since build 735
 
+捕获的静态环境由当前动态环境隐式确定。
 特殊形式参考文法：
-$lambda <formals> <body>
+$lambda <formals> <expression>?
 */
 YF_API void
 Lambda(TermNode&, ContextNode&);
 
 /*!
-\brief vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 \note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
+\note 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \throw InvalidSyntax <eformal> 不符合要求。
-\since build 767
+\since build 781
 
-初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
+最后一个参数指定是否通过转移当前环境捕获静态环境中的变量。
+若不转移，则复制当前动态环境，不对动态环境进行修改。
+*/
+//@{
+/*!
+\brief vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
+
+捕获的静态环境由当前动态环境隐式确定。
 特殊形式参考文法：
-$vau <formals> <eformal> <body>
+$vau <formals> <eformal> <expression>?
+$vau! <formals> <eformal> <expression>?
 */
 YF_API void
-Vau(TermNode&, ContextNode&);
+Vau(TermNode&, ContextNode&, bool);
+//@}
+
+/*!
+\brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
+
+捕获的静态环境由 <env> 指定。
+特殊形式参考文法：
+$vaue <env> <formals> <eformal> <expression>?
+$vaue! <env> <formals> <eformal> <expression>?
+*/
+//@}
+YF_API void
+VauWithEnvironment(TermNode&, ContextNode&, bool);
 //@}
 //@}
 

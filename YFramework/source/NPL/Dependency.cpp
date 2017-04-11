@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r428
+\version r431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-03-21 23:31 +0800
+	2017-04-08 18:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,9 +246,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		ystdex::bind1(DefineOrSet, _2, true));
 	RegisterForm(root, "$if", If);
 	RegisterForm(root, "$lambda", Lambda);
-	RegisterForm(root, "$set",
-		ystdex::bind1(DefineOrSet, _2, false));
-	RegisterForm(root, "$vau", Vau);
+	RegisterForm(root, "$set", ystdex::bind1(DefineOrSet, _2, false));
+	RegisterForm(root, "$vau", ystdex::bind1(Vau, _2, false));
 	// NOTE: Privmitive procedures.
 	RegisterForm(root, "$or?", Or);
 	RegisterStrict(root, "eqv?", EqualValue);

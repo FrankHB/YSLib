@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15334
+\version r15337
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2017-03-21 23:09 +0800
+	2017-04-11 09:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -12376,8 +12376,8 @@ b513
 				"platform %Android" $since b492) $=
 				// For example, “←”(U+2190) and “⑨”(U+2468) on Windows, and \
 					some more characters missing on Android 2.3.1.
-			/ $design $impl ^ "%ystdex::iswgraph" ~ "%std::iswgraph"
-				$dep_from %(YCommon, YBase.YStandardEx.CWideCharacterType)
+			/ DI ^ "%ystdex::iswgraph" ~ "%std::iswgraph" $dep_from
+				%(YCommon, YBase.YStandardEx.CWideCharacterType)
 		),
 		* $design "spelling error" @ "trace string" @ "constructor %NativeHost"
 			@ %'Helper_(Android)'.AndroidHost $since b504
@@ -12397,7 +12397,7 @@ b513
 				@ "member function %Environment::MapCursor" @ %Host $since b509
 		),
 		* "function %IsPrint" @ %YCommon $since b512
-			$= (/ $design $impl ^ "%ystdex::iswprint" $dep_from
+			$= (/ DI ^ "%ystdex::iswprint" $dep_from
 				%YBase.YStandardEx.CWideCharacterType)
 	),
 	/ "example command line" @ %Tools.CreationTimeManager.Readme,
