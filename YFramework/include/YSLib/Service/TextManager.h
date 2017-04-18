@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3949
+\version r3951
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-11-26 11:30 +0800
+	2017-04-18 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,7 +173,7 @@ public:
 
 	/*!
 	\brief 块随机访问。
-	\pre 断言：参数不大于 \t GetBlock() 。
+	\pre 断言：参数不大于 \c GetBlock() 。
 	\pre 断言：需要读取时文本文件已打开。
 	\since build 273
 	*/

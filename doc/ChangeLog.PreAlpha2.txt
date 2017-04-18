@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3789
+\version r3791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2017-03-30 00:01 +0800
+	2017-04-18 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2220,8 +2220,7 @@ b230
 		/ "updating FPS" $=
 		(
 			+ "when not getting input",
-			/ $design $impl ^ "shell method %UpdateToScreen"
-				~ "%OnActivated"
+			/ DI ^ "shell method %UpdateToScreen" ~ "%OnActivated"
 		)
 	)
 ),
