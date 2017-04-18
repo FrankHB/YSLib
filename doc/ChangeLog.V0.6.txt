@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12175
+\version r12176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2017-03-13 11:54 +0800
+	2017-04-18 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@ b696
 			(
 				/ "explicitly specified default argument as internal"
 					@ "function %GetGlyph" ^ "%yimpl",
-				/ $design $impl "simplified check" @ "function %SetSize"
+				/ DI "simplified check" @ "function %SetSize"
 					^ "%IsInClosedInterval"
 			)
 		),

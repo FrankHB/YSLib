@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3604
+\version r3670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-04-11 09:01 +0800
+	2017-04-17 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,11 +150,6 @@ namespace
 {
 
 // TODO: Add check for reserved identifier clash?
-yconstexpr const auto GuardName("__$!");
-yconstexpr const auto LeafTermName("__$$@");
-yconstexpr const auto ListTermName("__$$");
-//! \since build 737
-yconstexpr const auto LiteralTermName("__$$@_");
 //! \since build 777
 yconstexpr const auto ParentContextName("__$@_parent");
 
@@ -248,42 +243,42 @@ ResolveShared(string_view id, const shared_ptr<ContextNode>& p_shared)
 }
 
 
-//! \since build 780
-class RecursiveThunkGuard final
+//! \since build 782
+class RecursiveThunk final
 	: private yimpl(noncopyable), private yimpl(nonmovable)
 {
 private:
+	//! \since build 780
 	using thunk_t = std::function<ReductionStatus(TermNode&, ContextNode&)>;
+	//! \since build 780
 	unordered_map<string, shared_ptr<thunk_t>> store;
 
 public:
-	ContextNode& Environment;
+	ContextNode& Context;
+	//! \since build 780
 	const TermNode& Term;
 
-	RecursiveThunkGuard(ContextNode& e, const TermNode& t)
-		: Environment(e), Term(t)
+	RecursiveThunk(ContextNode& ctx, const TermNode& t)
+		: Context(ctx), Term(t)
 	{
-		Fix(Environment, Term);
-	}
-	~RecursiveThunkGuard()
-	{
-		Restore(Environment, Term);
+		Fix(Context, Term);
 	}
 
 private:
+	//! \since build 780
 	void
-	Fix(ContextNode& e, const TermNode& t)
+	Fix(ContextNode& c, const TermNode& t)
 	{
 		if(IsBranch(t))
 			for(const auto& tm : t)
-				Fix(e, tm);
+				Fix(c, tm);
 		else if(const auto p = AccessPtr<TokenValue>(t))
 		{
 			const auto& n(*p);
 			const auto& fp(store[n]
 				= make_shared<thunk_t>(ThrowInvalidCyclicReference));
 
-			Forms::BindParameterLeaf(e, n, {},
+			Forms::BindParameterLeaf(c, n, {},
 				ContextHandler([fp](TermNode& term, ContextNode& ctx){
 				// XXX: This is served as addtional static environment.
 				return Deref(fp)(term, ctx);
@@ -295,30 +290,47 @@ private:
 	}
 
 	void
-	Restore(ContextNode& e, const TermNode& t) ynothrow
+	Restore(ContextNode& c, const TermNode& t)
 	{
 		if(IsBranch(t))
 			for(const auto& tm : t)
-				Restore(e, tm);
+				Restore(c, tm);
 		else if(const auto p = AccessPtr<TokenValue>(t))
 			// XXX: The element should exist.
 			FilterExceptions([&]{
 				const auto& n(*p);
-				const auto& v(Environment[n].Value);
+				auto& v(Context.Environment[n].Value);
 
 				if(v.GetType() == ystdex::type_id<ContextHandler>())
+				{
+					const auto p_strong(make_shared<ContextHandler>(
+						std::move(v.GetObject<ContextHandler>())));
+					const auto p_weak(make_weak(p_strong));
+
 					Deref(store.at(n))
-						= ystdex::ref(v.GetObject<ContextHandler>());
+						= [p_weak](TermNode& term, ContextNode& ctx){
+						return (*shared_ptr<ContextHandler>(p_weak))(term, ctx);
+					};
+					v = ContextHandler(
+						[p_strong](TermNode& term, ContextNode& ctx){
+						return (*p_strong)(term, ctx);
+					});
+				}
 			});
 		else
 			YAssert(false, "Invalid parameter value found.");
 	}
 
+	//! \since build 780
 	YB_NORETURN static ReductionStatus
 	ThrowInvalidCyclicReference(TermNode&, ContextNode&)
 	{
 		throw NPLException("Invalid cyclic reference found.");
 	}
+
+public:
+	PDefH(void, Commit, )
+		ImplExpr(Restore(Context, Term))
 };
 
 
@@ -417,11 +429,12 @@ public:
 			//	to be cared) form the context would cause undefined behavior
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
-			ContextNode comp_ctx;
+			ContextNode comp_ctx(Deref(p_context), ValueNode());
+			auto& comp_e(comp_ctx.Environment);
 
 			// NOTE: Bound dynamic context.
 			if(!eformal.empty())
-				comp_ctx.AddValue(eformal, ValueObject(ctx, OwnershipTag<>()));
+				comp_e.AddValue(eformal, ValueObject(ctx, OwnershipTag<>()));
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
@@ -433,7 +446,7 @@ public:
 				"Self reference of context found.");
 			// NOTE: Static context is bound as base of local context by
 			//	setting parent context pointer.
-			comp_ctx.AddValue(ParentContextName, make_weak(p_context));
+			comp_e.AddValue(ParentContextName, make_weak(p_context));
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
@@ -463,53 +476,50 @@ CreateFunction(TermNode& term, _func f, size_t n)
 GuardPasses&
 AccessGuardPassesRef(ContextNode& ctx)
 {
-	return ctx.Place<GuardPasses>(GuardName);
+	return ctx.Guard;
 }
 
 EvaluationPasses&
 AccessLeafPassesRef(ContextNode& ctx)
 {
-	return ctx.Place<EvaluationPasses>(LeafTermName);
+	return ctx.EvaluateLeaf;
 }
 
 EvaluationPasses&
 AccessListPassesRef(ContextNode& ctx)
 {
-	return ctx.Place<EvaluationPasses>(ListTermName);
+	return ctx.EvaluateList;
 }
 
 LiteralPasses&
 AccessLiteralPassesRef(ContextNode& ctx)
 {
-	return ctx.Place<LiteralPasses>(LiteralTermName);
+	return ctx.EvaluateLiteral;
 }
 
 Guard
 InvokeGuard(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<GuardPasses>(ResolveName(ctx, GuardName), term, ctx);
+	return ctx.Guard(term, ctx);
 }
 
 ReductionStatus
 InvokeLeaf(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<EvaluationPasses>(ResolveName(ctx, LeafTermName), term,
-		ctx);
+	return ctx.EvaluateLeaf(term, ctx);
 }
 
 ReductionStatus
 InvokeList(TermNode& term, ContextNode& ctx)
 {
-	return InvokePasses<EvaluationPasses>(ResolveName(ctx, ListTermName), term,
-		ctx);
+	return ctx.EvaluateList(term, ctx);
 }
 
 ReductionStatus
 InvokeLiteral(TermNode& term, ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
-	return InvokePasses<LiteralPasses>(ResolveName(ctx, LiteralTermName), term,
-		ctx, id);
+	return ctx.EvaluateLiteral(term, ctx, id);
 }
 
 
@@ -631,10 +641,10 @@ void
 SetupTraceDepth(ContextNode& root, const string& name)
 {
 	yunseq(
-	root.Place<size_t>(name),
+	root.Environment.Place<size_t>(name),
 	AccessGuardPassesRef(root) = [name](TermNode& term, ContextNode& ctx){
 		using ystdex::pvoid;
-		auto& depth(AccessChild<size_t>(ctx, name));
+		auto& depth(AccessChild<size_t>(ctx.Environment, name));
 
 		YTraceDe(Informative, "Depth = %zu, context = %p, semantics = %p.",
 			depth, pvoid(&ctx), pvoid(&term));
@@ -989,8 +999,10 @@ RetainN(const TermNode& term, size_t m)
 
 
 void
-BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
+BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
+	auto& e(ctx.Environment);
+
 	MatchParameter(t, o, [&](TNCIter first, TNCIter last, string_view id){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
@@ -1012,12 +1024,12 @@ BindParameter(ContextNode& e, const TermNode& t, TermNode& o)
 			e.emplace(std::move(con), id);
 		}
 	}, [&](const TokenValue& n, TermNode&& v){
-		BindParameterLeaf(e, n, std::move(v));
+		BindParameterLeaf(ctx, n, std::move(v));
 	});
 }
 
 void
-BindParameterLeaf(ContextNode& e, const TokenValue& n,
+BindParameterLeaf(ContextNode& ctx, const TokenValue& n,
 	TermNode::Container&& con, ValueObject&& vo)
 {
 	if(n != "#ignore")
@@ -1028,7 +1040,7 @@ BindParameterLeaf(ContextNode& e, const TokenValue& n,
 			//	in a lambda. Children nodes in arguments retained are
 			//	also transferred.
 			// XXX: Moved. This is copy elision in object language.
-			e[n].SetContent(std::move(con), std::move(vo));
+			ctx.Environment[n].SetContent(std::move(con), std::move(vo));
 		else
 			throw ParameterMismatch(
 				"Invalid token found for symbol parameter.");
@@ -1119,7 +1131,7 @@ ExtractModifier(TermNode::Container& con, const ValueObject& mod)
 		const auto i(std::next(con.cbegin()));
 
 		// XXX: Modifier is treated as special name.
-		if(const auto p = TermToNamePtr(Deref(i)))
+		if(const observer_ptr<const string> p = TermToNamePtr(Deref(i)))
 			if(*p == mod)
 			{
 				con.erase(i);
@@ -1151,10 +1163,11 @@ void
 DefineWithRecursion(TermNode& term, ContextNode& ctx)
 {
 	DoDefine(term, [&](TermNode& formals){
-		RecursiveThunkGuard gd(ctx, formals);
+		RecursiveThunk gd(ctx, formals);
 
 		ReduceChecked(term, ctx);
 		BindParameter(ctx, formals, term);
+		gd.Commit();
 	});
 }
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2965
+\version r2981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-04-11 09:01 +0800
+	2017-04-11 11:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -607,10 +607,9 @@ public:
 //@{
 template<typename... _tParams>
 inline void
-RegisterForm(ContextNode& node, const string& name,
-	_tParams&&... args)
+RegisterForm(ContextNode& ctx, const string& name, _tParams&&... args)
 {
-	NPL::RegisterContextHandler(node, name,
+	NPL::RegisterContextHandler(ctx, name,
 		FormContextHandler(yforward(args)...));
 }
 
@@ -629,10 +628,9 @@ ToContextHandler(_tParams&&... args)
 */
 template<typename... _tParams>
 inline void
-RegisterStrict(ContextNode& node, const string& name, _tParams&&... args)
+RegisterStrict(ContextNode& ctx, const string& name, _tParams&&... args)
 {
-	NPL::RegisterContextHandler(node, name,
-		ToContextHandler(yforward(args)...));
+	NPL::RegisterContextHandler(ctx, name, ToContextHandler(yforward(args)...));
 }
 //@}
 
@@ -956,9 +954,9 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 YF_API void
 BindParameterLeaf(ContextNode&, const TokenValue&, TermNode::Container&&,
 	ValueObject&&);
-inline PDefH(void, BindParameterLeaf, ContextNode& e, const TokenValue& n,
+inline PDefH(void, BindParameterLeaf, ContextNode& ctx, const TokenValue& name,
 	TermNode&& o)
-	ImplExpr(BindParameterLeaf(e, n, std::move(o.GetContainerRef()),
+	ImplExpr(BindParameterLeaf(ctx, name, std::move(o.GetContainerRef()),
 		std::move(o.Value)))
 //@}
 //@}
@@ -1226,15 +1224,15 @@ struct BinaryAsExpansion
 //@{
 template<typename _func>
 void
-RegisterStrictUnary(ContextNode& node, const string& name, _func f)
+RegisterStrictUnary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(node, name, UnaryExpansion<_func>{f});
+	RegisterStrict(ctx, name, UnaryExpansion<_func>{f});
 }
 template<typename _type, typename _func>
 void
-RegisterStrictUnary(ContextNode& node, const string& name, _func f)
+RegisterStrictUnary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(node, name, UnaryAsExpansion<_type, _func>{f});
+	RegisterStrict(ctx, name, UnaryAsExpansion<_type, _func>{f});
 }
 //@}
 
@@ -1245,15 +1243,15 @@ RegisterStrictUnary(ContextNode& node, const string& name, _func f)
 //@{
 template<typename _func>
 void
-RegisterStrictBinary(ContextNode& node, const string& name, _func f)
+RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(node, name, BinaryExpansion<_func>{f});
+	RegisterStrict(ctx, name, BinaryExpansion<_func>{f});
 }
 template<typename _type, typename _func>
 void
-RegisterStrictBinary(ContextNode& node, const string& name, _func f)
+RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(node, name, BinaryAsExpansion<_type, _func>{f});
+	RegisterStrict(ctx, name, BinaryAsExpansion<_type, _func>{f});
 }
 //@}
 

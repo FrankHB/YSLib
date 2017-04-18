@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9263
+\version r9265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2017-03-24 10:05 +0800
+	2017-04-18 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1221,8 +1221,7 @@ b486
 		),
 		+ "function %FindFirstKey" @ %YCLib.Keys
 	),
-	/ $design $impl @ "function %ytrace" @ %YBase.StandardEx.CAssert ^ '#'
-		~ '0x';
+	/ DI @ "function %ytrace" @ %YBase.StandardEx.CAssert ^ '#' ~ '0x';
 		// Only different for zero value, and 'X' instead of 'x' after prefix \
 			'0'.
 	* $comp "assertion for %TextBox cascaded focus failed"

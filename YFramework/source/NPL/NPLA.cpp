@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1039
+\version r1080
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-04-05 09:33 +0800
+	2017-04-15 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -402,12 +402,11 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 }
 
 
-observer_ptr<const string>
+observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode& term)
 {
 	return AccessPtr<TokenValue>(term);
 }
-
 
 void
 TokenizeTerm(TermNode& term)
@@ -431,36 +430,6 @@ ReferenceValue(const ValueObject& vo)
 	}
 	else
 		ystdex::throw_invalid_construction();
-}
-
-
-void
-DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
-{
-	YAssertNonnull(id.data());
-	if(forced)
-		// XXX: Self overwriting is possible.
-		swap(ctx[id].Value, vo);
-	else if(!ctx.AddValue(id, std::move(vo)))
-		throw BadIdentifier(id, 2);
-}
-
-void
-RedefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
-{
-	YAssertNonnull(id.data());
-	if(const auto p = AccessNodePtr(ctx, id))
-		swap(p->Value, vo);
-	else if(!forced)
-		throw BadIdentifier(id, 0);
-}
-
-void
-RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
-{
-	YAssertNonnull(id.data());
-	if(!ctx.Remove(id) && !forced)
-		throw BadIdentifier(id, 0);
 }
 
 
@@ -500,6 +469,38 @@ ReduceToList(TermNode& term) ynothrow
 {
 	return IsBranch(term) ? (void(RemoveHead(term)), ReductionStatus::Retained)
 		: ReductionStatus::Clean;
+}
+
+
+void
+DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
+{
+	auto& env(ctx.Environment);
+
+	YAssertNonnull(id.data());
+	if(forced)
+		// XXX: Self overwriting is possible.
+		swap(env[id].Value, vo);
+	else if(!env.AddValue(id, std::move(vo)))
+		throw BadIdentifier(id, 2);
+}
+
+void
+RedefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
+{
+	YAssertNonnull(id.data());
+	if(const auto p = AccessNodePtr(ctx.Environment, id))
+		swap(p->Value, vo);
+	else if(!forced)
+		throw BadIdentifier(id, 0);
+}
+
+void
+RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
+{
+	YAssertNonnull(id.data());
+	if(!ctx.Environment.Remove(id) && !forced)
+		throw BadIdentifier(id, 0);
 }
 
 } // namespace NPL;

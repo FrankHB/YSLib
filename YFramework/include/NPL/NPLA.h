@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1498
+\version r1790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-04-06 23:41 +0800
+	2017-04-17 08:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode,
-//	LoggedEvent, ystdex::as_const;
+//	LoggedEvent, ystdex::exclude_self_t, ystdex::as_const;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -518,60 +518,6 @@ public:
 //@}
 
 
-/*!
-\brief 规约状态：一遍规约可能的中间结果。
-\since build 730
-*/
-enum class ReductionStatus : yimpl(size_t)
-{
-	//! \since build 757
-	//@{
-	//! \brief 规约成功终止且不需要保留子项。
-	Clean = 0,
-	//! \brief 规约成功但需要保留子项。
-	Retained,
-	//! \brief 需要重规约。
-	Retrying
-	//@}
-};
-
-
-/*!
-\ingroup ThunkType
-\brief 延迟求值项。
-\note 和被延迟求值的项及其它节点是不同的包装类型。
-\warning 非空析构。
-\since build 752
-
-直接作为项的值对象包装被延迟求值的项。
-*/
-using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
-
-//! \since build 674
-//@{
-//! \brief 上下文节点类型。
-using ContextNode = yimpl(ValueNode);
-
-//! \ingroup ThunkType
-//@{
-//! \brief 上下文处理器类型。
-using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
-//! \brief 字面量处理器类型。
-using LiteralHandler = YSLib::GHEvent<ReductionStatus(const ContextNode&)>;
-//@}
-
-//! \brief 注册上下文处理器。
-inline PDefH(void, RegisterContextHandler, ContextNode& node,
-	const string& name, ContextHandler f)
-	ImplExpr(node[name].Value = std::move(f))
-
-//! \brief 注册字面量处理器。
-inline PDefH(void, RegisterLiteralHandler, ContextNode& node,
-	const string& name, LiteralHandler f)
-	ImplExpr(node[name].Value = std::move(f))
-//@}
-
-
 //! \since build 770
 //@{
 /*!
@@ -655,6 +601,14 @@ using TokenValue = ystdex::derived_entity<string, NPLATag>;
 
 
 /*!
+\brief 访问项的值作为记号。
+\return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
+\since build 782
+*/
+YF_API observer_ptr<const TokenValue>
+TermToNamePtr(const TermNode&);
+
+/*!
 \brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
 \note 先变换子节点。
 \since build 753
@@ -674,83 +628,42 @@ YF_API ValueObject
 ReferenceValue(const ValueObject&);
 
 
-//! \brief 从指定上下文查找名称对应的节点。
-//@{
-//! \since build 740
-template<typename _tKey>
-inline observer_ptr<ValueNode>
-LookupName(ContextNode& ctx, const _tKey& id) ynothrow
-{
-	return YSLib::AccessNodePtr(ctx, id);
-}
-//! \since build 730
-template<typename _tKey>
-inline observer_ptr<const ValueNode>
-LookupName(const ContextNode& ctx, const _tKey& id) ynothrow
-{
-	return YSLib::AccessNodePtr(ctx, id);
-}
-//@}
-
 /*!
-\brief 从指定上下文取指定名称指称的值。
+\brief 规约状态：一遍规约可能的中间结果。
 \since build 730
 */
-template<typename _tKey>
-ValueObject
-FetchValue(const ContextNode& ctx, const _tKey& name)
+enum class ReductionStatus : yimpl(size_t)
 {
-	return GetValueOf(NPL::LookupName(ctx, name));
-}
-
-/*!
-\brief 从指定上下文取指定名称指称的值的指针。
-\since build 749
-*/
-template<typename _tKey>
-observer_ptr<const ValueObject>
-FetchValuePtr(const ContextNode& ctx, const _tKey& name)
-{
-	return GetValuePtrOf(NPL::LookupName(ctx, name));
-}
+	//! \since build 757
+	//@{
+	//! \brief 规约成功终止且不需要保留子项。
+	Clean = 0,
+	//! \brief 规约成功但需要保留子项。
+	Retained,
+	//! \brief 需要重规约。
+	Retrying
+	//@}
+};
 
 
 /*!
-\brief 访问项的值作为记号。
-\return 通过访问项的值取得的记号的指针，或空指针表示无法取得名称。
-\sa TokenValue
-\since build 732
-*/
-YF_API observer_ptr<const string>
-TermToNamePtr(const TermNode&);
+\ingroup ThunkType
+\brief 延迟求值项。
+\note 和被延迟求值的项及其它节点是不同的包装类型。
+\warning 非空析构。
+\since build 752
 
-
-//! \since build 753
-//@{
-/*!
-\pre 字符串参数的数据指针非空。
-\note 最后一个参数表示强制调用。
-\warning 应避免对被替换或移除的值的悬空引用。
-\throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
-\since build 731
+直接作为项的值对象包装被延迟求值的项。
 */
-//@{
-//! \brief 以字符串为标识符在指定上下文中定义值。
-YF_API void
-DefineValue(ContextNode&, string_view, ValueObject&&, bool);
+using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
+
 
 /*!
-\brief 以字符串为标识符在指定上下文中覆盖定义值。
-\since build 732
+\brief 检查视为范式的节点并提取规约状态。
+\since build 769
 */
-YF_API void
-RedefineValue(ContextNode&, string_view, ValueObject&&, bool);
-
-//! \brief 以字符串为标识符在指定上下文移除对象。
-YF_API void
-RemoveIdentifier(ContextNode&, string_view, bool);
-//@}
-
+inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
+	ImplRet(IsBranch(term) ? ReductionStatus::Retained : ReductionStatus::Clean)
 
 /*!
 \brief 根据规约状态检查是否可继续规约。
@@ -764,13 +677,6 @@ YB_PURE YF_API bool
 CheckReducible(ReductionStatus);
 
 /*!
-\brief 检查视为范式的节点并提取规约状态。
-\since build 769
-*/
-inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
-	ImplRet(IsBranch(term) ? ReductionStatus::Retained : ReductionStatus::Clean)
-
-/*!
 \sa CheckReducible
 \since build 735
 */
@@ -781,112 +687,6 @@ CheckedReduceWith(_func f, _tParams&&... args)
 	ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
 }
 
-
-//! \since build 676
-//@{
-/*!
-\brief 遍合并器：逐次调用直至成功。
-\note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
-*/
-struct PassesCombiner
-{
-	/*!
-	\note 对遍调用异常中立。
-	\since build 764
-	*/
-	template<typename _tIn>
-	ReductionStatus
-	operator()(_tIn first, _tIn last) const
-	{
-		auto res(ReductionStatus::Clean);
-
-		return ystdex::fast_any_of(first, last, [&](ReductionStatus r) ynothrow{
-			if(r == ReductionStatus::Retained)
-				res = r;
-			return r == ReductionStatus::Retrying;
-		}) ? ReductionStatus::Retrying : res;
-	}
-};
-
-
-/*!
-\note 结果表示判断是否应继续规约。
-\sa PassesCombiner
-*/
-//@{
-//! \brief 一般合并遍。
-template<typename... _tParams>
-using GPasses = YSLib::GEvent<ReductionStatus(_tParams...),
-	YSLib::GCombinerInvoker<ReductionStatus, PassesCombiner>>;
-//! \brief 项合并遍。
-using TermPasses = GPasses<TermNode&>;
-//! \brief 求值合并遍。
-using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
-/*!
-\brief 字面量合并遍。
-\pre 字符串参数的数据指针非空。
-\since build 738
-*/
-using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
-//@}
-
-
-//! \brief 作用域守护类型。
-using Guard = ystdex::any;
-/*!
-\brief 作用域守护遍：用于需在规约例程的入口和出口关联执行的操作。
-\todo 支持迭代使用旧值。
-*/
-using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
-	YSLib::GDefaultLastValueInvoker<Guard>>;
-
-
-//! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
-//@{
-//! \since build 777
-template<class _tPasses, typename... _tParams>
-typename _tPasses::result_type
-InvokePasses(observer_ptr<const ValueNode> p, TermNode& term, ContextNode& ctx,
-	_tParams&&... args)
-{
-	return ystdex::call_value_or([&](const _tPasses& passes){
-		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
-		//	error: Segmentation fault.
-		return passes(term, ctx, std::forward<_tParams>(args)...);
-	}, YSLib::AccessPtr<const _tPasses>(p));
-}
-//! \since build 738
-template<class _tPasses, typename... _tParams>
-inline typename _tPasses::result_type
-InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
-	_tParams&&... args)
-{
-	return NPL::InvokePasses<_tPasses>(YSLib::AccessNodePtr(
-		ystdex::as_const(ctx), name), term, ctx, yforward(args)...);
-}
-//@}
-
-
-/*!
-\brief 调整指定值对象的指针为 TermNode 类型的值。
-\return 若成功则为调整后的指针，否则为指向原值对象的指针。
-\since build 750
-*/
-//@{
-inline PDefH(observer_ptr<const ValueObject>, AdjustTermValuePtr,
-	observer_ptr<const TermNode> p_term)
-	ImplRet(ystdex::nonnull_or(GetValuePtrOf(p_term)))
-inline PDefH(observer_ptr<const ValueObject>, AdjustTermValuePtr,
-	observer_ptr<const ValueObject> p_vo)
-	ImplRet(ystdex::nonnull_or(
-		AdjustTermValuePtr(YSLib::AccessPtr<const TermNode>(p_vo)), p_vo))
-template<typename _tKey>
-observer_ptr<const ValueObject>
-AdjustTermValuePtr(const ContextNode& ctx, const _tKey& name)
-{
-	return AdjustTermValuePtr(NPL::FetchValuePtr(ctx, name));
-}
-//@}
 
 /*!
 \brief 附加子项：在第一个参数指定的项的索引后插入子项。
@@ -923,7 +723,7 @@ inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 //@}
 
 /*!
-\brief 提升延迟项。
+\brief 提升延迟求值项的引用。
 \since build 752
 */
 inline PDefH(void, LiftDelayed, TermNode& term, DelayedTerm& tm)
@@ -970,6 +770,209 @@ ReduceHeadEmptyList(TermNode&) ynothrow;
 */
 YF_API ReductionStatus
 ReduceToList(TermNode&) ynothrow;
+//@}
+
+
+//! \since build 676
+//@{
+/*!
+\brief 遍合并器：逐次调用直至成功。
+\note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
+*/
+struct PassesCombiner
+{
+	/*!
+	\note 对遍调用异常中立。
+	\since build 764
+	*/
+	template<typename _tIn>
+	ReductionStatus
+	operator()(_tIn first, _tIn last) const
+	{
+		auto res(ReductionStatus::Clean);
+
+		return ystdex::fast_any_of(first, last, [&](ReductionStatus r) ynothrow{
+			if(r == ReductionStatus::Retained)
+				res = r;
+			return r == ReductionStatus::Retrying;
+		}) ? ReductionStatus::Retrying : res;
+	}
+};
+
+
+//! \since build 782
+class ContextNode;
+
+/*!
+\note 结果表示判断是否应继续规约。
+\sa PassesCombiner
+*/
+//@{
+//! \brief 一般合并遍。
+template<typename... _tParams>
+using GPasses = YSLib::GEvent<ReductionStatus(_tParams...),
+	YSLib::GCombinerInvoker<ReductionStatus, PassesCombiner>>;
+//! \brief 项合并遍。
+using TermPasses = GPasses<TermNode&>;
+//! \brief 求值合并遍。
+using EvaluationPasses = GPasses<TermNode&, ContextNode&>;
+/*!
+\brief 字面量合并遍。
+\pre 字符串参数的数据指针非空。
+\since build 738
+*/
+using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
+//@}
+
+
+//! \brief 作用域守护类型。
+using Guard = ystdex::any;
+/*!
+\brief 作用域守护遍：用于需在规约例程的入口和出口关联执行的操作。
+\todo 支持迭代使用旧值。
+*/
+using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
+	YSLib::GDefaultLastValueInvoker<Guard>>;
+
+
+/*!
+\brief 上下文节点。
+\warning 非虚析构。
+\since build 782
+*/
+class YF_API ContextNode
+{
+public:
+	yimpl(ValueNode) Environment;
+	EvaluationPasses EvaluateLeaf{};
+	EvaluationPasses EvaluateList{};
+	LiteralPasses EvaluateLiteral{};
+	GuardPasses Guard{};
+
+	DefDeCtor(ContextNode)
+	template<typename _tParam, typename... _tParams>
+	ContextNode(const ContextNode& ctx, _tParam&& arg, _tParams&&... args)
+		: Environment(yforward(arg), yforward(args)...),
+		EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
+		EvaluateLiteral(ctx.EvaluateLiteral)
+	{}
+	DefDeCopyMoveCtorAssignment(ContextNode)
+};
+
+
+//! \since build 674
+//@{
+//! \ingroup ThunkType
+//@{
+//! \brief 上下文处理器类型。
+using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
+//! \brief 字面量处理器类型。
+using LiteralHandler = YSLib::GHEvent<ReductionStatus(const ContextNode&)>;
+//@}
+
+//! \brief 注册上下文处理器。
+inline PDefH(void, RegisterContextHandler, ContextNode& ctx, const string& name,
+	ContextHandler f)
+	ImplExpr(ctx.Environment[name].Value = std::move(f))
+
+//! \brief 注册字面量处理器。
+inline PDefH(void, RegisterLiteralHandler, ContextNode& ctx, const string& name,
+	LiteralHandler f)
+	ImplExpr(ctx.Environment[name].Value = std::move(f))
+//@}
+
+
+//! \brief 从指定上下文查找名称对应的节点。
+//@{
+//! \since build 740
+template<typename _tKey>
+inline observer_ptr<ValueNode>
+LookupName(ContextNode& ctx, const _tKey& id) ynothrow
+{
+	return YSLib::AccessNodePtr(ctx.Environment, id);
+}
+//! \since build 730
+template<typename _tKey>
+inline observer_ptr<const ValueNode>
+LookupName(const ContextNode& ctx, const _tKey& id) ynothrow
+{
+	return YSLib::AccessNodePtr(ctx.Environment, id);
+}
+//@}
+
+/*!
+\brief 从指定上下文取指定名称指称的值。
+\since build 730
+*/
+template<typename _tKey>
+ValueObject
+FetchValue(const ContextNode& ctx, const _tKey& name)
+{
+	return GetValueOf(NPL::LookupName(ctx, name));
+}
+
+/*!
+\brief 从指定上下文取指定名称指称的值的指针。
+\since build 749
+*/
+template<typename _tKey>
+observer_ptr<const ValueObject>
+FetchValuePtr(const ContextNode& ctx, const _tKey& name)
+{
+	return GetValuePtrOf(NPL::LookupName(ctx, name));
+}
+
+
+//! \since build 753
+//@{
+/*!
+\pre 字符串参数的数据指针非空。
+\note 最后一个参数表示强制调用。
+\warning 应避免对被替换或移除的值的悬空引用。
+\throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
+\since build 731
+*/
+//@{
+//! \brief 以字符串为标识符在指定上下文中定义值。
+YF_API void
+DefineValue(ContextNode&, string_view, ValueObject&&, bool);
+
+/*!
+\brief 以字符串为标识符在指定上下文中覆盖定义值。
+\since build 732
+*/
+YF_API void
+RedefineValue(ContextNode&, string_view, ValueObject&&, bool);
+
+//! \brief 以字符串为标识符在指定上下文移除对象。
+YF_API void
+RemoveIdentifier(ContextNode&, string_view, bool);
+//@}
+
+
+//! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
+//@{
+//! \since build 777
+template<class _tPasses, typename... _tParams>
+typename _tPasses::result_type
+InvokePasses(observer_ptr<const ValueNode> p, TermNode& term, ContextNode& ctx,
+	_tParams&&... args)
+{
+	return ystdex::call_value_or([&](const _tPasses& passes){
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
+		return passes(term, ctx, std::forward<_tParams>(args)...);
+	}, YSLib::AccessPtr<const _tPasses>(p));
+}
+//! \since build 738
+template<class _tPasses, typename... _tParams>
+inline typename _tPasses::result_type
+InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
+	_tParams&&... args)
+{
+	return NPL::InvokePasses<_tPasses>(YSLib::AccessNodePtr(
+		ystdex::as_const(ctx.Environment), name), term, ctx, yforward(args)...);
+}
 //@}
 
 } // namespace NPL;

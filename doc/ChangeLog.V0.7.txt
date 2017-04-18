@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6669
+\version r6734
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-04-11 09:46 +0800
+	2017-04-18 10:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,72 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ $dev $lib "order of some declarations";
+					// Reordered declarations are more easily categorized, and \
+						more importantly, allowing adding members with types \
+						previously declared afterward to new %ContextNode type.
+				/ "alias declaration %ContextNode" -> "class name declaration; \
+					class definition with passes data members";
+					// Now %ContextNode is not same to %TermNode in sense of \
+						type equivalence of C++. The environment is still of \
+						type %ValueNode, though.
+				/ $forced DLDI "functions %(RegisterContextHandler, \
+					RegisterLiteralHandler, DefineValue, RedefineValue, \
+					RemoveIdentifier), all 2 function templates \
+					%LookupName, function template %InvokePasses#2",
+				/ "return type" @ "function %TermToNamePtr"
+					-> 'observer_ptr<const TokenValue>'
+					~ 'observer_ptr<const string>',
+					// To be more consistent under the new order of \
+						declarations.
+				- $revert(b750)
+					"all (functions, function template) %AdjustTermValuePtr"
+			);
+			/ @ %NPLA1 $=
+			(
+				(
+				/ $forced DLDI "functions %(AccessGuardPassesRef, \
+					AccessLeafPassesRef, AccessListPassesRef, \
+					AccessLiteralPassesRef, SetupTraceDepth, \
+					Forms::(BindParameter, BindParameterLeaf, \
+					DefineWithRecursion, Lambda, Vau, VauWithEnvironment))"
+					$dep_from ("%ContextNode" @ %NPLA);
+				/ DLI "performance improved for reduction calls",
+					// About a factor of 5 in Fibonacci test gained by \
+						reducing named access of passes.
+				- $impl "reserved name for passes access"
+				),
+				/ @ "namespace %Forms" $=
+				(
+					/ $forced DLDI "function %ExtractModifier" $dep_from
+						("%TermToNode" @ %NPLA),
+					/ $dep_from ("%ContextNode" @ %NPLA) $=
+					(
+						/ $forced DLDI "local context initialization"
+							@ "vau handlers";
+						/ $comp "copied passes on context passing"
+					),
+					* "invalid indirection through dangling reference to \
+						function owned by static environment on call from \
+						recursive definition introduced by function \
+						%DefineWithRecursion" $since b780
+				)
+			)
+		),
+		* $doc "wrong '\t'" @ "'\pre' command" @ "Doxygen comment"
+			@ "member function %c::operator[]"
+			@ %YSLib.Service.TextManager $since b616
+	)
+),
+
+b781
 (
 	/ %YFramework $=
 	(
