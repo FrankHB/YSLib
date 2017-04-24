@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r447
+\version r449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2016-02-12 22:24 +0800
+	2017-04-24 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ template<typename _fUpdater>
 void
 Animate(_fUpdater f, Messaging::Priority prior = UI::AnimationPriority)
 {
-	AnimateConnection(make_shared<_fUpdater>(f), prior);
+	AnimateConnection(share_copy(f), prior);
 }
 
 

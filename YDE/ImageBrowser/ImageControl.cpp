@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r1187
+\version r1192
 \author FrankHB <frankhb1989@gmail.com>
-\since build 436
+\since build 437
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-08-27 09:49 +0800
+	2017-04-24 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,7 +167,10 @@ ImagePanel::CopyToClipboard() ynothrow
 
 			YTraceDe(Debug, "Size of image to be copied to clipboard: %s.",
 				to_string(g.GetSize()).c_str());
+			// TODO: Port to other hosted platforms.
+#if YCL_Win32
 			platform_ex::Clipboard(p->GetNativeHandle()).Send(g);
+#endif
 			return true;
 		}
 		return {};

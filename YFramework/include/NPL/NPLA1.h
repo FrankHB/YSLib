@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2981
+\version r2991
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-04-11 11:46 +0800
+	2017-04-24 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -425,6 +425,7 @@ ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 /*!
 \brief 包装上下文处理器。
 \note 忽略被包装的上下文处理器可能存在的返回值，自适应默认返回规约结果。
+\warning 非虚析构。
 */
 template<typename _func>
 struct WrappedContextHandler
@@ -498,6 +499,8 @@ WrapContextHandler(_func&& h)
 //@}
 
 
+//! \warning 非虚析构。
+//@{
 /*!
 \brief 形式上下文处理器。
 \since build 674
@@ -601,6 +604,7 @@ public:
 	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
 };
+//@}
 
 
 //! \since build 733
@@ -1033,7 +1037,7 @@ CallUnary(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term);
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, _tParams&&...)>(yforward(f)),
-		Deref(std::next(term.begin())), yforward(args)...));
+		YSLib::Deref(std::next(term.begin())), yforward(args)...));
 }
 
 template<typename _type, typename _func, typename... _tParams>
@@ -1061,11 +1065,11 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto& x(Deref(++i));
+	auto& x(YSLib::Deref(++i));
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(TermNode&, TermNode&, _tParams&&...)>(
-		yforward(f)), x, Deref(++i), yforward(args)...));
+		yforward(f)), x, YSLib::Deref(++i), yforward(args)...));
 }
 
 template<typename _type, typename _func, typename... _tParams>
@@ -1075,11 +1079,11 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto& x(YSLib::Access<_type>(Deref(++i)));
+	auto& x(YSLib::Access<_type>(YSLib::Deref(++i)));
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(_type&, _type&, _tParams&&...)>(yforward(f)),
-		x, YSLib::Access<_type>(Deref(++i)), yforward(args)...));
+		x, YSLib::Access<_type>(YSLib::Deref(++i)), yforward(args)...));
 }
 //@}
 
@@ -1095,7 +1099,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 	const auto n(FetchArgumentN(term));
 	auto i(term.begin());
 	const auto j(ystdex::make_transform(++i, [](TNIter it){
-		return YSLib::Access<_type>(Deref(it));
+		return YSLib::Access<_type>(YSLib::Deref(it));
 	}));
 
 	YSLib::EmplaceCallResult(term.Value, std::accumulate(j, std::next(j,

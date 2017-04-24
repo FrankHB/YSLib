@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6734
+\version r6809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-04-18 10:03 +0800
+	2017-04-24 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,81 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	+ "function templates %(share_copy, share_forward, share_move)"
+		@ %YBase.YStandardEx.Memory,
+	/ %YFramework $=
+	(
+		+ ('using ystdex::share_copy;', 'using ystdex::share_forward;',
+			'using ystdex::share_move;') @ "inline namespace %references"
+			@ %YCLib.Reference $dep_from %YBase.YStandardEx.Memory,
+		/ %YSLib $=
+		(
+			/ @ "namespace %YSLib" @ %Adaptor.YAdaptor $=
+			(
+				+ 'using platform::owns_unique;',
+				+ 'using platform::owns_unique_nonnull;',
+				+ ('using platform::share_copy;',
+					'using platform::share_forward;',
+					'using platform::share_move;') $dep_from %YCLib.Reference
+			),
+			/ %Core.YObject $=
+			(
+				+ "constructor for in-place initialization of holder",
+					@ "class %YObject",
+				/ $doc "allowed shared ownership"
+					@ "enum %IValueHolder::Creation::Copy",
+				/ @ "class template %PointerHolder" $=
+				(
+					* $comp "missing declarations for %owns_unique"
+						@ "function %OwnsUnique" $dep_from %Adaptor.YAdaptor
+						$since b759;
+					/ "supported %shared_ptr instances as holder pointer" $=
+					(
+						/ "type %pointer" ^ "detection from result type of \
+							member %get" ~ "%holder_pointer::pointer",
+						/ $dev "restricted holder pointer type"
+							^ "%ystdex::is_decayed" ~ "%std::is_object"
+						(
+						+ 'explicit' @ "constructor with parameter type \
+							'pointer'";
+						+ "constructor with parameter type \
+							'const holder_pointer&'",
+						+ "constructor with parameter type 'holder_pointer&&'",
+						),
+						/ ("copied directly if holder pointer can be copied"
+							~ "deep copying with \
+							%ystdex::clone_monomorphic_ptr")
+							@ "copy constructor",
+						(
+							+ "type %shared";
+							+ "shared creation" @ "function %Create" ^ $dep_from
+								"%IValueHolder::Creation::Copy"
+						)
+					)
+				)
+			),
+			/ DLDI "simplified function template %Animate"
+				@ %UI.Animation ^ "%share_copy" @ %Adaptor.YAdaptor
+		)
+		/ %NPL.NPLA1 $=
+		(
+			* $lib $impl "missing 'YSLib::' before 'Deref'"
+				@ "function templates %(CallBinary, CallBinaryAs, \
+				CallBinaryFold)" @ "namespace %Forms" $since b758,
+			/ DLDI "simplified functions (%DefineWithRecursion, Lambda, Vau, \
+				VauWithEnvironment)" @ "namespace %Forms" ^ $dep_from
+				("%(share_copy, share_move)" @ %YSLib.Adaptor.YAdaptor)
+		)
+	),
+	/ DLB "avoided %Win32 only features by conditional inclusion" @ %YDE
+		$effective @ %(Clock.Main, ImageBrowser.ImageControl)
+		// Unused features like clipboards are silently ignored. This allows \
+			YDE built in %Linux, although additional patches on %YFramework \
+			are still needed and the resulted GUI programs mostly do not work.
+),
+
+b782
 (
 	/ %YFramework $=
 	(
@@ -58,7 +133,7 @@ $now
 						declarations.
 				- $revert(b750)
 					"all (functions, function template) %AdjustTermValuePtr"
-			);
+			),
 			/ @ %NPLA1 $=
 			(
 				(

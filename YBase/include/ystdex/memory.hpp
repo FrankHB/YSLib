@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2401
+\version r2431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2017-04-04 11:57 +0800
+	2017-04-24 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -854,6 +854,43 @@ inline std::weak_ptr<_type>
 make_weak(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p;
+}
+//@}
+
+
+/*!
+\note 使用 ADL make_shared 。
+\since build 783
+*/
+//@{
+//! \brief 复制值创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+yconstfn std::shared_ptr<decay_t<_type>>
+share_copy(const _tValue& v)
+{
+	using std::make_shared;
+
+	return make_shared<decay_t<_type>>(yforward(v));
+}
+
+//! \brief 传递值创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+yconstfn std::shared_ptr<decay_t<_type>>
+share_forward(_tValue&& v)
+{
+	using std::make_shared;
+
+	return make_shared<decay_t<_type>>(yforward(v));
+}
+
+//! \brief 转移值创建对应的 std::shared_ptr 实例的对象。
+template<typename _tValue, typename _type = _tValue>
+yconstfn std::shared_ptr<decay_t<_type>>
+share_move(_tValue&& v)
+{
+	using std::make_shared;
+
+	return make_shared<decay_t<_type>>(std::move(v));
 }
 //@}
 

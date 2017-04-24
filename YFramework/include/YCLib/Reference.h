@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2821
+\version r2827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2017-04-04 12:03 +0800
+	2017-04-24 21:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,6 +70,12 @@ using ystdex::owns_unique;
 //! \since build 759
 using ystdex::owns_unique_nonnull;
 using ystdex::reset;
+//! \since build 783
+//@{
+using ystdex::share_copy;
+using ystdex::share_forward;
+using ystdex::share_move;
+//@}
 using ystdex::share_raw;
 using yimpl(std)::shared_ptr;
 using yimpl(std)::static_pointer_cast;
