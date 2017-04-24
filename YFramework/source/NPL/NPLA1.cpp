@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3670
+\version r3689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-04-17 09:56 +0800
+	2017-04-24 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,10 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1 // for ystdex::bind1, unordered_map, ystdex::pvoid,
-//	ystdex::call_value_or, std::mem_fn;
-#include YFM_NPL_SContext
+//	ystdex::call_value_or;
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
+#include YFM_NPL_SContext // for Session;
 
 using namespace YSLib;
 
@@ -277,10 +278,10 @@ private:
 			const auto& n(*p);
 			const auto& fp(store[n]
 				= make_shared<thunk_t>(ThrowInvalidCyclicReference));
-
-			Forms::BindParameterLeaf(c, n, {},
+ 
+ 			Forms::BindParameterLeaf(c, n, {},
 				ContextHandler([fp](TermNode& term, ContextNode& ctx){
-				// XXX: This is served as addtional static environment.
+ 				// XXX: This is served as addtional static environment.
 				return Deref(fp)(term, ctx);
 			}));
 		}
@@ -303,18 +304,16 @@ private:
 
 				if(v.GetType() == ystdex::type_id<ContextHandler>())
 				{
-					const auto p_strong(make_shared<ContextHandler>(
-						std::move(v.GetObject<ContextHandler>())));
+					auto p_strong(share_move(v.GetObject<ContextHandler>()));
 					const auto p_weak(make_weak(p_strong));
 
 					Deref(store.at(n))
 						= [p_weak](TermNode& term, ContextNode& ctx){
 						return (*shared_ptr<ContextHandler>(p_weak))(term, ctx);
 					};
-					v = ContextHandler(
-						[p_strong](TermNode& term, ContextNode& ctx){
-						return (*p_strong)(term, ctx);
-					});
+					v = ValueObject(ystdex::any_ops::use_holder,
+						ystdex::in_place<PointerHolder<ContextHandler,
+						shared_ptr<ContextHandler>>>, std::move(p_strong));
 				}
 			});
 		else
@@ -402,15 +401,13 @@ public:
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		shared_ptr<ContextNode>&& p_ctx, TermNode& term)
 		: eformal(std::move(ename)), p_formals(std::move(p_fm)),
-		p_context(std::move(p_ctx)),
-		p_closure(make_shared<TermNode>(std::move(term)))
+		p_context(std::move(p_ctx)), p_closure(share_move(term))
 	{}
 	//! \since build 781
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		ContextNode& ctx, TermNode& term, bool move_env)
-		: VauHandler(std::move(ename), std::move(p_fm), move_env
-		? make_shared<ContextNode>(std::move(ctx))
-		: make_shared<ContextNode>(ctx), term)
+		: VauHandler(std::move(ename), std::move(p_fm),
+		move_env ? share_move(ctx) : share_copy(ctx), term)
 	{}
 
 	//! \since build 772
@@ -1259,7 +1256,7 @@ Lambda(TermNode& term, ContextNode& ctx)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
 		auto i(con.begin());
-		auto es(make_shared<TermNode>(std::move(Deref(++i))));
+		auto es(share_move(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		// NOTE: %ToContextHandler implies strict evaluation of arguments in
@@ -1274,7 +1271,7 @@ Vau(TermNode& term, ContextNode& ctx, bool move_env)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
 		auto i(con.begin());
-		auto es(make_shared<TermNode>(std::move(Deref(++i))));
+		auto es(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
@@ -1292,7 +1289,7 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx, bool move_env)
 		ReduceChecked(Deref(++i), ctx);
 
 		auto e(std::move(Deref(i).Value.Access<ContextNode>()));
-		auto es(make_shared<TermNode>(std::move(Deref(++i))));
+		auto es(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);

@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4754
+\version r4800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-01-29 01:45 +0800
+	2017-04-24 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,7 +114,8 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	enum Creation
 	{
 		/*!
-		\brief 创建引用的间接持有者。
+		\brief 创建不具有所有权的间接持有者。
+		\warning 应适当维护所有权避免未定义行为。
 		
 		派生实现应保证持有对应的 lref<T> 类型的值引用当前持有的 T 类型的值。
 		*/
@@ -122,8 +123,9 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 		/*!
 		\brief 创建引用的值的副本。
 		
-		派生实现应保证持有对应的值从当前持有的值复制，
+		派生实现应保证持有对应的值是当前持有值的副本，
 		当且仅当当前持有者不是引用；否则，从引用的值复制。
+		创建的值可能和当前持有值共享所有权。
 		*/
 		Copy,
 		/*!
@@ -294,38 +296,64 @@ public:
 
 /*!
 \brief 带等于接口的指针类型动态泛型持有者。
-\tparam _tPointer 智能指针类型。
+\tparam _tPointer 持有者指针类型。
 \pre _tPointer 具有 _type 对象所有权。
 \sa ystdex::pointer_holder
 \since build 555
+
+对被持有的对象独占或共享所有权的间接持有者。
+第二参数指定持有者指针，支持内建指针及兼容标准库的 unique_ptr 和 shared_ptr 实例。
 */
 template<typename _type, class _tPointer = std::unique_ptr<_type>>
 class PointerHolder : implements IValueHolder
 {
 	//! \since build 332
-	static_assert(std::is_object<_type>(), "Invalid type found.");
+	static_assert(ystdex::is_decayed<_type>(), "Invalid type found.");
 
 public:
 	//! \since build 352
 	using value_type = _type;
 	using holder_pointer = _tPointer;
-	using pointer = typename holder_pointer::pointer;
+	using pointer = decltype(std::declval<holder_pointer&>().get());
+	//! \since build 783
+	using shared = ystdex::and_<ystdex::not_<std::is_pointer<holder_pointer>>,
+		std::is_copy_constructible<holder_pointer>>;
 
 protected:
 	holder_pointer p_held;
 
 public:
 	//! \brief 取得所有权。
+	explicit
 	PointerHolder(pointer value)
 		: p_held(value)
 	{}
-	//! \since build 352
+	//! \since build 783
 	//@{
+	PointerHolder(const holder_pointer& p)
+		: p_held(p)
+	{}
+	PointerHolder(holder_pointer&& p)
+		: p_held(std::move(p))
+	{}
+
+	//! \since build 352
 	PointerHolder(const PointerHolder& h)
+		: PointerHolder(h, shared())
+	{}
+
+private:
+	PointerHolder(const PointerHolder& h, ystdex::false_)
 		: PointerHolder(ystdex::clone_monomorphic_ptr(h.p_held))
 	{}
-	DefDeMoveCtor(PointerHolder)
+	PointerHolder(const PointerHolder& h, ystdex::true_)
+		: p_held(h.p_held)
+	{}
 	//@}
+
+public:
+	//! \since build 352
+	DefDeMoveCtor(PointerHolder)
 
 	//! \since build 353
 	DefDeCopyAssignment(PointerHolder)
@@ -335,6 +363,8 @@ public:
 	ystdex::any
 	Create(Creation c) const ImplI(IValueHolder)
 	{
+		if(shared() && c == IValueHolder::Copy)
+			return CreateHolderInPlace<PointerHolder>(shared(), p_held);
 		if(const auto& p = p_held.get())
 			return CreateHolder(c, *p);
 		ystdex::throw_invalid_construction();
@@ -368,9 +398,10 @@ public:
 /*!
 \brief 带等于接口的引用动态泛型持有者。
 \tparam _type 持有的被引用的值类型。
-\note 不对持有值具有所有权。
 \sa ValueHolder
 \since build 747
+
+不对持有值具有所有权的间接持有者。
 */
 template<typename _type>
 class RefHolder : implements IValueHolder
@@ -493,10 +524,20 @@ public:
 		: content(ystdex::any_ops::use_holder,
 		ystdex::in_place<ValueHolder<_type>>, yforward(args)...)
 	{}
+	/*!
+	\brief 构造：使用持有者。
+	\since builld 783
+	*/
+	template<typename _tHolder, typename... _tParams>
+	ValueObject(ystdex::any_ops::use_holder_t,
+		ystdex::in_place_type_t<_tHolder>, _tParams&&... args)
+		: content(ystdex::any_ops::use_holder,
+		ystdex::in_place<_tHolder>, yforward(args)...)
+	{}
 
 private:
 	/*!
-	\brief 构造：使用持有者。
+	\brief 构造：使用持有者和动态创建选项。
 	\since build 761
 	*/
 	ValueObject(const IValueHolder& holder, IValueHolder::Creation c)
