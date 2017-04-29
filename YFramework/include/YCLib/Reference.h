@@ -11,13 +11,13 @@
 /*!	\file Reference.h
 \ingroup YCLib
 \brief 指针和引用访问操作模块。
-\version r2827
+\version r2831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2017-04-24 21:52 +0800
+	2017-04-29 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,6 +65,10 @@ using ystdex::make_weak;
 using yimpl(ystdex)::observer_ptr;
 //! \since build 454
 using yimpl(std)::owner_less;
+//! \since build 784
+using ystdex::owns_any;
+//! \since build 784
+using ystdex::owns_nonnull;
 //! \since build 759
 using ystdex::owns_unique;
 //! \since build 759

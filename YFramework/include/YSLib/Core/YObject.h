@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4800
+\version r4851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-04-24 21:17 +0800
+	2017-04-29 10:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_YSLib_Core_YCoreUtilities // for ystdex::identity,
 //	ystdex::result_of_t;
 #include <ystdex/any.h> // for ystdex::any_ops::holder, ystdex::boxed_value,
-//	ystdex::any, ystdex::pseudo_output;
+//	ystdex::any, ystdex::is_sharing, ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 
@@ -295,16 +295,51 @@ public:
 
 
 /*!
+\ingroup type_traits_operations
+\brief 指针持有者特征。
+\since build 784
+*/
+template<typename _tPointer>
+struct PointerHolderTraits : std::pointer_traits<_tPointer>
+{
+	using holder_pointer = _tPointer;
+	using shared = ystdex::is_sharing<holder_pointer>;
+
+	//! \note 使用 ADL get_raw 。
+	static PDefH(auto, get, const holder_pointer& p_held)
+		ynoexcept_spec(get_raw(p_held)) -> decltype(get_raw(p_held))
+		ImplRet(get_raw(p_held))
+
+	//! \note 使用 ADL owns_unique 。
+	static PDefH(bool, is_unique_owner, const holder_pointer& p_held) ynothrow
+		ImplRet(owns_unique(p_held))
+
+	//! \note 对非内建指针使用 ADL owns_nonnull 。
+	static PDefH(bool, is_owner, const holder_pointer& p_held) ynothrow
+		ImplRet(is_owner(std::is_pointer<holder_pointer>(), p_held))
+
+private:
+	static PDefH(bool, is_owner, ystdex::false_, const holder_pointer& p_held)
+		ynothrow
+		ImplRet(owns_nonnull(p_held))
+	static PDefH(bool, is_owner, ystdex::true_, const holder_pointer& p_held)
+		ynothrow
+		ImplRet(bool(p_held))
+};
+
+
+/*!
 \brief 带等于接口的指针类型动态泛型持有者。
 \tparam _tPointer 持有者指针类型。
 \pre _tPointer 具有 _type 对象所有权。
 \sa ystdex::pointer_holder
-\since build 555
+\since build 784
 
 对被持有的对象独占或共享所有权的间接持有者。
-第二参数指定持有者指针，支持内建指针及兼容标准库的 unique_ptr 和 shared_ptr 实例。
+第二参数指定持有者指针，支持内建指针及兼容 unique_ptr 和 shared_ptr 实例。
 */
-template<typename _type, class _tPointer = std::unique_ptr<_type>>
+template<typename _type,
+	class _tTraits = PointerHolderTraits<unique_ptr<_type>>>
 class PointerHolder : implements IValueHolder
 {
 	//! \since build 332
@@ -313,11 +348,13 @@ class PointerHolder : implements IValueHolder
 public:
 	//! \since build 352
 	using value_type = _type;
-	using holder_pointer = _tPointer;
-	using pointer = decltype(std::declval<holder_pointer&>().get());
+	//! \since build 784
+	using traits = _tTraits;
+	using holder_pointer = typename traits::holder_pointer;
+	using pointer
+		= decltype(traits::get(std::declval<const holder_pointer&>()));
 	//! \since build 783
-	using shared = ystdex::and_<ystdex::not_<std::is_pointer<holder_pointer>>,
-		std::is_copy_constructible<holder_pointer>>;
+	using shared = typename traits::shared;
 
 protected:
 	holder_pointer p_held;
@@ -365,33 +402,32 @@ public:
 	{
 		if(shared() && c == IValueHolder::Copy)
 			return CreateHolderInPlace<PointerHolder>(shared(), p_held);
-		if(const auto& p = p_held.get())
+		if(const auto& p = traits::get(p_held))
 			return CreateHolder(c, *p);
 		ystdex::throw_invalid_construction();
 	}
 
 	//! \since build 752
 	PDefH(bool, Equals, const void* p) const ImplI(IValueHolder)
-		ImplRet(p ? AreEqualHeld(*p_held,
+		ImplRet(traits::is_owner(p_held) && p
+			? AreEqualHeld(Deref(traits::get(p_held)),
 			Deref(static_cast<const value_type*>(p))) : !get())
 
-	/*!
-	\note 使用 ADL owns_unique 。
-	\since build 759
-	*/
+	//! \since build 759
 	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(owns_unique(p_held))
+		ImplRet(traits::is_unique_owner(p_held))
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), PointerHolder)
 
 	//! \since build 348
 	PDefH(void*, get, ) const ImplI(IValueHolder)
-		ImplRet(p_held.get())
+		ImplRet(traits::get(p_held))
 
 	//! \since build 683
 	PDefH(const type_info&, type, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(p_held ? ystdex::type_id<_type>() : ystdex::type_id<void>())
+		ImplRet(traits::is_owner(p_held)
+			? ystdex::type_id<_type>() : ystdex::type_id<void>())
 };
 
 

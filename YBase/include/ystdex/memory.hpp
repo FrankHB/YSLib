@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2431
+\version r2527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2017-04-24 22:20 +0800
+	2017-04-29 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -355,6 +355,28 @@ try_create_with_allocator(_tAlloc&& a, _tParams&&... args)
 
 
 /*!
+\ingroup unary_type_traits
+\brief 判断指定类型是否为已知的持有共享所有权的对象类型。
+\tparam _type 需要判断特征的类型参数。
+\note 用户可继承此特征再特化派生的特征扩展新的类型。
+\sinne build 784
+*/
+//@{
+template<typename _type>
+struct is_sharing : false_
+{};
+
+template<typename _type>
+struct is_sharing<std::shared_ptr<_type>> : true_
+{};
+
+template<typename _type>
+struct is_sharing<std::weak_ptr<_type>> : true_
+{};
+//@}
+
+
+/*!
 \brief 使用显式析构函数调用和 std::free 的删除器。
 \note 数组类型的特化无定义。
 \since build 561
@@ -545,6 +567,70 @@ get_raw(const std::weak_ptr<_type>& p) ynothrow
 }
 //@}
 
+/*!	\defgroup owns_any Owns Any Check
+\brief 检查是否是所有者。
+\since build 784
+*/
+//@{
+template<typename _type>
+yconstfn bool
+owns_any(_type* const& p) ynothrow
+{
+	return {};
+}
+//! \since build 550
+template<typename _type, typename _fDeleter>
+yconstfn bool
+owns_any(const std::unique_ptr<_type, _fDeleter>& p) ynothrow
+{
+	return bool(p);
+}
+template<typename _type>
+yconstfn bool
+owns_any(const std::shared_ptr<_type>& p) ynothrow
+{
+	return p.use_count() > 0;
+}
+template<typename _type>
+yconstfn bool
+owns_any(const std::weak_ptr<_type>& p) ynothrow
+{
+	return !p.expired();
+}
+//@}
+
+/*!	\defgroup owns_nonnull Owns Nonnull Check
+\brief 检查是否是非空对象的所有者。
+\since build 784
+*/
+//@{
+template<typename _type>
+yconstfn bool
+owns_nonnull(_type* const& p) ynothrow
+{
+	return {};
+}
+//! \since build 550
+template<typename _type, typename _fDeleter>
+yconstfn bool
+owns_nonnull(const std::unique_ptr<_type, _fDeleter>& p) ynothrow
+{
+	return bool(p);
+}
+template<typename _type>
+yconstfn bool
+owns_nonnull(const std::shared_ptr<_type>& p) ynothrow
+{
+	return bool(p);
+}
+template<typename _type>
+yconstfn bool
+owns_nonnull(const std::weak_ptr<_type>& p) ynothrow
+{
+	return bool(p.lock());
+}
+//@}
+
 /*!	\defgroup owns_unique Owns Uniquely Check
 \brief 检查是否是唯一所有者。
 \since build 759
@@ -562,11 +648,19 @@ owns_unique(const std::unique_ptr<_type, _tDeleter>& p) ynothrow
 {
 	return bool(p);
 }
+//! \note 返回 true 不一定表示指针非空。
 template<typename _type>
 inline bool
 owns_unique(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p.unique();
+}
+//! \since build 784
+template<typename _type>
+inline bool
+owns_unique(const std::weak_ptr<_type>& p) ynothrow
+{
+	return p.use_count() == 1;
 }
 
 template<typename _type>
@@ -590,6 +684,14 @@ owns_unique_nonnull(const std::shared_ptr<_type>& p) ynothrow
 {
 	yconstraint(p);
 	return p.unique();
+}
+//! \since build 784
+template<typename _type>
+inline bool
+owns_unique_nonnull(const std::weak_ptr<_type>& p) ynothrow
+{
+	yconstraint(!p.expired());
+	return p.use_count() == 1;
 }
 //@}
 //@}

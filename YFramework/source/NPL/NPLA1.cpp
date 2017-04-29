@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3689
+\version r3725
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-04-24 22:56 +0800
+	2017-04-27 10:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,10 +249,13 @@ class RecursiveThunk final
 	: private yimpl(noncopyable), private yimpl(nonmovable)
 {
 private:
-	//! \since build 780
-	using thunk_t = std::function<ReductionStatus(TermNode&, ContextNode&)>;
-	//! \since build 780
-	unordered_map<string, shared_ptr<thunk_t>> store;
+	//! \since build 784
+	//@{
+	using shared_ptr_t = shared_ptr<ContextHandler>;
+	unordered_map<string, shared_ptr_t> store{};
+	shared_ptr_t
+		p_defualt{make_shared<ContextHandler>(ThrowInvalidCyclicReference)};
+	//@}
 
 public:
 	ContextNode& Context;
@@ -262,28 +265,26 @@ public:
 	RecursiveThunk(ContextNode& ctx, const TermNode& t)
 		: Context(ctx), Term(t)
 	{
-		Fix(Context, Term);
+		Fix(Context, Term, p_defualt);
 	}
 
 private:
-	//! \since build 780
+	//! \since build 784
 	void
-	Fix(ContextNode& c, const TermNode& t)
+	Fix(ContextNode& c, const TermNode& t, const shared_ptr_t& p_d)
 	{
 		if(IsBranch(t))
 			for(const auto& tm : t)
-				Fix(c, tm);
+				Fix(c, tm, p_d);
 		else if(const auto p = AccessPtr<TokenValue>(t))
 		{
 			const auto& n(*p);
-			const auto& fp(store[n]
-				= make_shared<thunk_t>(ThrowInvalidCyclicReference));
  
- 			Forms::BindParameterLeaf(c, n, {},
-				ContextHandler([fp](TermNode& term, ContextNode& ctx){
- 				// XXX: This is served as addtional static environment.
-				return Deref(fp)(term, ctx);
-			}));
+			// XXX: This is served as addtional static environment.
+ 			Forms::BindParameterLeaf(c, n, {}, ValueObject(
+				ystdex::any_ops::use_holder, ystdex::in_place<PointerHolder<
+				ContextHandler, PointerHolderTraits<weak_ptr<ContextHandler>>>>,
+				store[n] = p_d));
 		}
 		else
 			// TODO: Merge with %MatchParameter?
@@ -297,23 +298,20 @@ private:
 			for(const auto& tm : t)
 				Restore(c, tm);
 		else if(const auto p = AccessPtr<TokenValue>(t))
-			// XXX: The element should exist.
 			FilterExceptions([&]{
 				const auto& n(*p);
 				auto& v(Context.Environment[n].Value);
 
 				if(v.GetType() == ystdex::type_id<ContextHandler>())
 				{
-					auto p_strong(share_move(v.GetObject<ContextHandler>()));
-					const auto p_weak(make_weak(p_strong));
+					// XXX: The element should exist.
+					auto& p_strong(store.at(n));
 
-					Deref(store.at(n))
-						= [p_weak](TermNode& term, ContextNode& ctx){
-						return (*shared_ptr<ContextHandler>(p_weak))(term, ctx);
-					};
+					Deref(p_strong) = std::move(v.GetObject<ContextHandler>());
 					v = ValueObject(ystdex::any_ops::use_holder,
 						ystdex::in_place<PointerHolder<ContextHandler,
-						shared_ptr<ContextHandler>>>, std::move(p_strong));
+						PointerHolderTraits<shared_ptr_t>>>,
+						std::move(p_strong));
 				}
 			});
 		else
@@ -581,7 +579,16 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// TODO: Test for normal form?
 	// XXX: Term reused.
 	ReduceChecked(comp_term, ctx);
+	// TODO: Detect lifetime escape to perform copy elision.
+#if true
+	term.Value = comp_term.Value.MakeMoveCopy();
+	// TODO: Use %MoveCopy.
+	term.SetChildren(comp_term.CreateWith(IValueHolder::Copy));
+#else
+	// NOTE: The raw returning of term is the copy elision (unconditionally).
+	//	It is equivalent to returning by reference, which can be dangerous.
 	term.SetContent(std::move(comp_term));
+#endif
 }
 
 void

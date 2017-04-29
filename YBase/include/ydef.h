@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3015
+\version r3022
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2016-08-01 13:31 +0800
+	2017-04-29 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,12 +401,15 @@
 \brief 指示修饰的是分配器，或返回分配器调用的函数或函数模板。
 \note 指示行为类似 std::malloc 或 std::calloc 等的函数。
 \warning 要求满足指示的假定，否则行为未定义。
+\sa https://blogs.msdn.microsoft.com/vcblog/2015/10/21/memory-profiling-in-visual-c-2015/
 \since build 373
 
 指示函数若返回非空指针，返回的指针不是其它任何有效指针的别名，
 且指针指向的存储内容不由其它存储决定。
 */
-#if __has_attribute(__malloc__) || YB_IMPL_GNUCPP >= 20296
+#if YB_IMPL_MSCPP >= 1900 && !defined(__EDG__) && !defined _CORECRT_BUILD
+#	define YB_ALLOCATOR __declspec(allocator)
+#elif __has_attribute(__malloc__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_ALLOCATOR YB_ATTR(__malloc__)
 #else
 #	define YB_ALLOCATOR
@@ -464,7 +467,7 @@
 \since build 524
 */
 #if YB_IMPL_GNUCPP >= 30300
-#	define YB_NONNULL(...) __attribute__ ((__nonnull__ (__VA_ARGS__)))
+#	define YB_NONNULL(...) __attribute__((__nonnull__(__VA_ARGS__)))
 #else
 #	define YB_NONNULL(...)
 #endif
@@ -741,7 +744,7 @@
 #if YB_HAS_NOEXCEPT
 #	define ynothrow ynoexcept
 #elif YB_IMPL_GNUCPP >= 30300
-#	define ynothrow __attribute__ ((nothrow))
+#	define ynothrow __attribute__((nothrow))
 #else
 #	define ynothrow ythrow()
 #endif

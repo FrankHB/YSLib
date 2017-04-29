@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2001
+\version r2005
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2017-04-24 21:52 +0800
+	2017-04-29 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,6 +190,10 @@ using platform::make_weak;
 //! \since build 670
 using platform::observer_ptr;
 using platform::owner_less;
+//! \since build 784
+using platform::owns_any;
+//! \since build 784
+using platform::owns_nonnull;
 //! \since build 783
 using platform::owns_unique;
 //! \since build 783

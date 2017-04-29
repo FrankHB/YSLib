@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r349
+\version r382
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-03-26 21:14 +0800
+	2017-04-28 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,6 +322,41 @@ libfat 1.1.0: reviewed, partially merged, partially shelved.
 	Change https://github.com/devkitPro/libfat/commit/b7450524b18118df693870f64242cabf5d62234b is to be ported.
 		It may be better delayed, waiting for '::isDSiMode' brought by libnds 1.6.2.
 		However, it is trivial, so the port is done directly using interal '::__dsimode' currently.
+
+$2017-04:
+
+report.impl:
+Recursive captured vau abstraction names in variable binding constructs (e.g. definitios) in general need some special treatment including shared ownership.
+	The evaluation order of vau abstraction expression implies the side effect of binding sequenced after the evaluation of the binding target.
+		So without additional mechanism, resolution for recursive name used as definiends cannot be implemented in evaluation of binding target.
+	For binding constructs like '$define!' in Kernel, multiple symbols can be bound at same time.
+		The recursive binding constructs need to store data structure holding the mapping from bound symbol to reference during evaluation of the binding construct.
+	For encapsulation reason, the vau handlers need to store captured symbols in its static environment.
+		So they cannot be modified after the binding expression is evaluated.
+			Thus shared values are mandated to modify them after the side effect of binding.
+			This cannot be implemented using determinstic initialization only once.
+			This can be implemented in a 2-phase manner for simplicitly.
+				First, for each symbols to be bound, it need a thunk to hold the state (value of functions) temporarily, which is never intended to be called.
+				Second, after evauation of binding constructs, the bound references are ready to be referenced.
+					Thunks are assigned to the real bindings.
+					There may be some housekeeping on the names being bound for ownership reason (see below).
+	The lifetime of owning references should be longer than any external non-owning reference, otherwise it would not be first class or there would be traditional funarg problems.
+	It is obvious that if none of the references to created functions are owning, resource introduced by bindings will leak.
+		To prevent the leak, at least one reference should be owning.
+		For each bound name, only one reference is special, if any. That is, the reference on name being bound.
+	For the reasons above, and since GC is not allowed by the design, it needs shared ownership.
+	However, if all references are based on (reference-counted) shared pointers, there would be cyclic references.
+		Resources would leak eventually.
+		The cycles are explicitly disallowed by the design for the very reason.
+		So weak references are needed.
+		To be deterministic and simple, the reference to entity denoted directly by the defined name is to be owner.
+	There is one more problem to implement 'unwrap' like Kernel.
+		The type of object bound on the name is actually not the same to a directly bound object if no trick is performed.
+		Thus, the bound object has to be a proxy with same type referenced by a non owning reference and builtin shared ownership.
+	The solution used in NPL implementation is hidden behind the native form implemantation of vau abstractions.
+		It uses a thunk data type holdings the shared 2-phase initialization thunks to be initialized.
+		In the 1st phase, the thunks are initialized to default value of context handler which will always throw when called.
+		In the 2nd phase, after the evaluation of the binding target and side effects of bindings, the thunks are assigned to the newly initialized real bindings, and the bound references are replaced with the proxy.
 
 ////
 
