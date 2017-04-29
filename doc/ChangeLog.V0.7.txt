@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6809
+\version r6896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-04-24 23:17 +0800
+	2017-04-29 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,93 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx.Memory $=
+		(
+			+ "templates %(owns_unique, owns_unique_nonnull) for \
+				%std::weak_ptr instances",
+			+ "unary type trait %is_sharing with 2 specializations",
+			+ "4 overloded function templates %(owns_any, owns_nonnull)"
+		),
+		/ %YDefinition $=
+		(
+			+ '#define YB_ALLOCATOR __declspec(allocator)'
+				@ '#if YB_IMPL_MSCPP >= 1900 && !defined(__EDG__)'
+				// This is supported by Microsoft VC++ 2015 memory profiling \
+					functionality. While radically different to \
+					'__attribute__((__malloc__))' of GCC, it is the same in \
+					aspect of semantic conditions.
+			- DLDI ' ' @ "all '__attribute__ ('"
+		)
+	),
+	/ %YFramework $=
+	(
+		+ ('using ystdex::owns_any;', 'using ystdex::owns_nonnull;')
+			@ "inline namespace %references" @ %YCLib.Reference $dep_from
+			%YBase.YStandardEx.Memory,
+		/ %YSLib $=
+		(
+			/ @ "namespace %YSLib" @ %Adaptor.YAdaptor $dep_from
+				%YCLib.Reference $=
+			(
+				+ 'using platform::owns_any;',
+				+ 'using platform::owns_nonnull;'
+			),
+			/ %Core.YObject $=
+			(
+				+ "traits template %PointerHolderTraits" ^ $dep_from
+					("%ystdex::is_sharing" @ %YBase.YStandardEx.Memory,
+					"%owns_nonnull" @ %Adaptor.YAdaptor);
+				/ "class template %PointerHolder" $=
+				(
+					(
+					/ "2nd template parameter" -> "traits parameter with \
+						default argument for %unique_ptr instance"
+						^ "%PointerHolderTraits";
+					/ $comp ^ "%unique_ptr" ~ "%std::unique_ptr"
+					),
+					+ "alias %traits";
+					/ DLDI "aliases %(holder_pointer, pointer, shared), member \
+						functions %(get, owns_unique)" ^ "%PointerHolderTraits",
+					* "ill-formed functions %(Create, Equals, type) for \
+						%weak_ptr instances" $since b783
+				)
+			)
+		),
+		/ %NPL.NPLA1 $=
+		(
+			/ @ "function %ReduceCheckedClosure" $=
+			(
+				/ $revert_ex(b777) "avoided unconditioanlly copy elision" $=
+				(
+					/ $impl $revert(b777) "data member %Value of term node \
+						moved" ^ "%ValueNode::MakeMoveCopy",
+					/ $impl "children nodes moved"
+						^ 'CreateWith(IValueHolder::Copy)'
+				);
+				* $comp "invalid memory access for rewritten result \
+					referencing local context" $since b777
+					// Essentially the downward funarg problem, again.
+			),
+			/ "function %Forms::DefineWithRecursion supported recursive \
+				function names with proper types"
+				// Recursive function name is weakly referenced since it \
+					has to be shared and the object it points to cannot be \
+					determined when introduced Now derivation of 'list*' as \
+					Kenerl can work as expected, when also applied \
+					%ReduceCheckedClosure fix.
+		),
+		/ DLB "allowed non %YCL_Win32 platforms"
+			@ "constructor %DSApplication" @ %'Helper_(DS)'.DSMain
+			// Now YFramework in platform such as Linux can be built. However, \
+				related GUI functionality are not guaranteed work, since XCB \
+				support is not complete.
+	)
+),
+
+b783
 (
 	+ "function templates %(share_copy, share_forward, share_move)"
 		@ %YBase.YStandardEx.Memory,
@@ -3565,7 +3652,7 @@ b728
 				@ %(Variadic, IntegerSequence),
 			+ "functors %(plus, minus)" @ %IntegerSequence
 		),
-		+ "traits %(bitseg_trait; mapped_bitseg_trait)" @ %BitSegment
+		+ "traits templates %(bitseg_trait; mapped_bitseg_trait)" @ %BitSegment
 			^ $dep_from ("%fseq::(fold, plus, vfold)" @ %IntegerSequence)
 	)
 ),

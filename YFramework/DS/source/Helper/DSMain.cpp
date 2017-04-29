@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3233
+\version r3239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2016-04-27 15:48 +0800
+	2017-04-29 11:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,9 +120,12 @@ DSApplication::DSApplication()
 		return bounds.Contains(pt) ? pt - bounds.GetPoint() : Point::Invalid;
 	};
 #endif
-#if YF_Hosted
 
+// XXX: Only %YCL_Win32 and %YCL_Android are tested and supported.
+#if YCL_Win32 || YCL_Android
 	yunseq(scr0.WindowHandle = h_wnd, scr1.WindowHandle = h_wnd);
+#elif YF_Hosted
+	yunused(scr0), yunused(scr1);
 #endif
 }
 
