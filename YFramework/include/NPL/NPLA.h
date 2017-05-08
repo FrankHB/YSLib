@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1790
+\version r1791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-04-17 08:53 +0800
+	2017-05-04 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -621,6 +621,7 @@ TokenizeTerm(TermNode& term);
 \brief 对表示值的 ValueObject 进行基于所有权的生存期检查并取表示其引用的间接值。
 \throw NPLException 检查失败：参数具有对象的唯一所有权，不能被外部引用保存。
 \throw ystdex::invalid_construction 参数不持有值。
+\warning 创建的间接值无所有权，应注意在生存期内使用以保证内存安全。
 \since build 760
 \todo 使用具体的语义错误异常类型。
 */

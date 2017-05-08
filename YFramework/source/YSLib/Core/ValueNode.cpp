@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r730
+\version r736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2017-03-24 09:50 +0800
+	2017-05-07 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/Core/YModules.h"
 #include YFM_YSLib_Core_ValueNode // for ystdex::call_value_or, ystdex::addrof,
-//	ystdex::compose, std::mem_fn;
+//	ystdex::compose, std::mem_fn, ystdex::bind1;
 #include <cstdio> // for std::snprintf;
 
 namespace YSLib
@@ -60,12 +60,7 @@ ValueNode::SetContentIndirect(Container con, const ValueObject& vo) ynothrow
 ValueNode::Container
 ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
 {
-	Container res;
-
-	for(auto& tm : con)
-		res.emplace(CreateRecursively(tm.GetContainer(), c), tm.GetName(),
-			tm.Value.Create(c));
-	return res;
+	return CreateRecursively(con, ystdex::bind1(&ValueObject::Create, c));
 }
 
 void

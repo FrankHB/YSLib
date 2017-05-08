@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3725
+\version r3771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-04-27 10:36 +0800
+	2017-05-08 02:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,7 +405,8 @@ public:
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		ContextNode& ctx, TermNode& term, bool move_env)
 		: VauHandler(std::move(ename), std::move(p_fm),
-		move_env ? share_move(ctx) : share_copy(ctx), term)
+		move_env ? make_shared<ContextNode>(ctx, std::move(ctx.Environment))
+		: share_copy(ctx), term)
 	{}
 
 	//! \since build 772
@@ -582,8 +583,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// TODO: Detect lifetime escape to perform copy elision.
 #if true
 	term.Value = comp_term.Value.MakeMoveCopy();
-	// TODO: Use %MoveCopy.
-	term.SetChildren(comp_term.CreateWith(IValueHolder::Copy));
+	term.SetChildren(comp_term.CreateWith(&ValueObject::MakeMoveCopy));
 #else
 	// NOTE: The raw returning of term is the copy elision (unconditionally).
 	//	It is equivalent to returning by reference, which can be dangerous.
@@ -787,10 +787,10 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return (*p_handler)(ctx);
 		// NOTE: Unevaluated term shall be detected and evaluated. See also
-		//	$2017-02 @ %Documentation::Workflow::Annual2017.
+		//	$2017-05 @ %Documentation::Workflow::Annual2017.
 		return IsLeaf(term) ? (term.Value.GetType()
 			!= ystdex::type_id<TokenValue>() ? EvaluateDelayed(term)
-			: ReductionStatus::Retrying) : ReductionStatus::Retained;
+			: ReductionStatus::Clean) : ReductionStatus::Retained;
 	}
 	throw BadIdentifier(id);
 }
@@ -853,10 +853,10 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 		// TODO: Capture contextual information in error.
 		// TODO: Extract general form information extractor function.
 		throw ListReductionFailure(
-			sfmt("No matching combiner '%s' for operand with %zu argument(s)"
-				" found.", [&](observer_ptr<const string> p){
-				return
-					p ? *p : sfmt("#<unknown:%s>", fm.Value.GetType().name());
+			ystdex::sfmt("No matching combiner '%s' for operand with %zu"
+				" argument(s) found.", [&](observer_ptr<const string> p){
+				return p ? *p : ystdex::sfmt("#<unknown:%s>",
+					fm.Value.GetType().name());
 			}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
 	}
 	return ReductionStatus::Clean;
@@ -991,6 +991,12 @@ REPLContext::Process(const Session& session)
 namespace Forms
 {
 
+bool
+IsSymbol(const string& id) ynothrow
+{
+	return IsNPLASymbol(id);
+}
+
 size_t
 RetainN(const TermNode& term, size_t m)
 {
@@ -1022,8 +1028,8 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 				//	list?
 				// TODO: Detect or reduce undefined behavior caused by unsafe
 				//	use resonably?
-				con.emplace(b.CreateWith(IValueHolder::Move),
-					MakeIndex(con), b.Value.MakeIndirect());
+				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
+					MakeIndex(con), b.Value.MakeMoveCopy());
 			}
 			e.emplace(std::move(con), id);
 		}
@@ -1122,7 +1128,8 @@ MatchParameter(const TermNode& t, TermNode& o,
 	else if(const auto p = AccessPtr<TokenValue>(t))
 		bind_value(*p, std::move(o));
 	else
-		throw ParameterMismatch("Invalid parameter value found.");
+		throw ParameterMismatch(ystdex::sfmt("Invalid parameter value found"
+			" with value '#<unknown:%s>'.", t.Value.GetType().name()));
 }
 
 
@@ -1231,8 +1238,8 @@ DefineOrSetFor(string_view id, TermNode& term, ContextNode& ctx, bool define,
 		(define ? DefineValue : RedefineValue)
 			(ctx, id, std::move(term.Value), mod);
 	else
-		throw InvalidSyntax(sfmt("Invalid token '%s' cannot be %s.", id.data(),
-			define ? "defined" : "set"));
+		throw InvalidSyntax(ystdex::sfmt("Invalid token '%s' cannot be %s.",
+			id.data(), define ? "defined" : "set"));
 }
 
 ReductionStatus
@@ -1295,7 +1302,9 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx, bool move_env)
 
 		ReduceChecked(Deref(++i), ctx);
 
-		auto e(std::move(Deref(i).Value.Access<ContextNode>()));
+		// XXX: List components are ignored.
+		auto e_val(std::move(Deref(i).Value));
+		auto& e(e_val.Access<ContextNode>());
 		auto es(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
@@ -1379,10 +1388,10 @@ EvaluateUnit(TermNode& term, const REPLContext& ctx)
 	}, term);
 }
 
-bool
-IsSymbol(const string& id) ynothrow
+void
+GetCurrentEnvironment(TermNode& term, ContextNode& ctx)
 {
-	return IsNPLASymbol(id);
+	term.Value = ValueObject(ctx, OwnershipTag<>());
 }
 
 ReductionStatus
@@ -1395,6 +1404,29 @@ ValueOf(TermNode& term, const ContextNode& ctx)
 		CatchIgnore(BadIdentifier&)
 	term.Value = ValueToken::Null;
 	return ReductionStatus::Clean;
+}
+
+
+ContextHandler
+Wrap(const ContextHandler& h)
+{
+	return ToContextHandler(h);
+}
+
+ContextHandler
+WrapOnce(const ContextHandler& h)
+{
+	if(const auto p = h.target<FormContextHandler>())
+		return ToContextHandler(*p);
+	throw NPLException("Wrapping failed.");
+}
+
+ContextHandler
+Unwrap(const ContextHandler& h)
+{
+	if(const auto p = h.target<StrictContextHandler>())
+		return ContextHandler(p->Handler);
+	throw NPLException("Unwrapping failed.");
 }
 
 } // namespace Forms;
