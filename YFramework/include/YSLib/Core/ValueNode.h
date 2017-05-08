@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3097
+\version r3122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-04-11 09:20 +0800
+	2017-05-07 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Core_ValueNode_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YObject
+#include YFM_YSLib_Core_YObject // for ystdex::invoke;
 #include <ystdex/path.hpp>
 #include <ystdex/set.hpp> // for ystdex::mapped_set;
 #include <numeric> // for std::accumulate;
@@ -451,16 +451,34 @@ public:
 	PDefH(void, ClearContainer, ) ynothrow
 		ImplExpr(container.clear())
 
-	/*!
-	\brief 递归创建容器副本。
-	\since build 767
-	*/
+	//! \brief 递归创建容器副本。
 	//@{
+	//! \since build 767
 	static Container
 	CreateRecursively(const Container&, IValueHolder::Creation);
+	//! \since build 785
+	template<typename _fCallable>
+	static Container
+	CreateRecursively(const Container& con, _fCallable f)
+	{
+		Container res;
 
+		for(auto& tm : con)
+			res.emplace(CreateRecursively(tm.GetContainer(), f), tm.GetName(),
+				ystdex::invoke(f, tm.Value));
+		return res;
+	}
+
+	//! \since build 767
 	PDefH(Container, CreateWith, IValueHolder::Creation c) const
 		ImplRet(CreateRecursively(container, c))
+	//! \since build 785
+	template<typename _fCallable>
+	Container
+	CreateWith(_fCallable f) const
+	{
+		return CreateRecursively(container, f);
+	}
 	//@}
 
 	/*!

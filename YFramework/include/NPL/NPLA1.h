@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r2991
+\version r3051
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-04-24 09:33 +0800
+	2017-05-08 02:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -720,8 +720,8 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
 若未返回，根据节点表示的值进一步处理：
 	对表示非 TokenValue 值的叶节点，调用 EvaluateDelayed 求值；
-	对表示 TokenValue 值的叶节点，返回 ReductionStatus::Retrying 重规约；
-	对枝节点视为列表，返回 ReductionStatus::Retained 避免进一步求值。
+	对表示 TokenValue 值的叶节点，返回 ReductionStatus::Clean ；
+	对枝节点视为列表，返回 ReductionStatus::Retained 。
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
@@ -884,6 +884,16 @@ public:
 */
 namespace Forms
 {
+
+/*!
+\brief 判断字符串是否是符号。
+\since build 779
+参考文法：
+
+symbol? <object>
+*/
+YF_API bool
+IsSymbol(const string&) ynothrow;
 
 /*!
 \pre 断言：项或容器对应枝节点。
@@ -1279,7 +1289,7 @@ RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 \note 不对剩余表达式进一步求值。
 
 剩余表达式视为求值结果，直接绑定到 <definiend> 。
-特殊形式参考文法：
+参考调用文法：
 $deflazy! <definiend> <expression>...+
 */
 YF_API void
@@ -1289,7 +1299,7 @@ DefineLazy(TermNode&, ContextNode&);
 \note 不支持递归绑定。
 
 剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
-特殊形式参考文法：
+参考调用文法：
 $def! <definiend> <expression>...+
 */
 YF_API void
@@ -1322,7 +1332,7 @@ DefineWithRecursion(TermNode&, ContextNode&);
 值以项的形式被转移，在替换前进一步求值。返回未指定值。
 指定第三参数为 true 则为定义，否则为设置。
 限定第三参数后可使用 RegisterForm 注册上下文处理器。
-特殊形式参考文法：
+参考调用文法：
 $define|$set [!] <variable> <expression>
 $define|$set [!] (<variable> <formals>) <body>
 */
@@ -1361,7 +1371,7 @@ DefineOrSetFor(string_view, TermNode&, ContextNode&, bool, bool);
 \since build 750
 
 求值第一子项作为测试条件，成立时取第二子项，否则当第三子项时取第三子项。
-特殊形式参考文法：
+参考调用文法：
 $if <test> <consequent> <alternate>
 $if <test> <consequent>
 */
@@ -1388,7 +1398,7 @@ If(TermNode&, ContextNode&);
 \since build 735
 
 捕获的静态环境由当前动态环境隐式确定。
-特殊形式参考文法：
+参考调用文法：
 $lambda <formals> <expression>?
 */
 YF_API void
@@ -1402,13 +1412,15 @@ Lambda(TermNode&, ContextNode&);
 
 最后一个参数指定是否通过转移当前环境捕获静态环境中的变量。
 若不转移，则复制当前动态环境，不对动态环境进行修改。
+上下文中环境以外的数据成员总是被复制而不被转移，
+	以避免求值过程中继续访问这些成员引起未定义行为。
 */
 //@{
 /*!
 \brief vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 
 捕获的静态环境由当前动态环境隐式确定。
-特殊形式参考文法：
+参考调用文法：
 $vau <formals> <eformal> <expression>?
 $vau! <formals> <eformal> <expression>?
 */
@@ -1420,7 +1432,7 @@ Vau(TermNode&, ContextNode&, bool);
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 
 捕获的静态环境由 <env> 指定。
-特殊形式参考文法：
+参考调用文法：
 $vaue <env> <formals> <eformal> <expression>?
 $vaue! <env> <formals> <eformal> <expression>?
 */
@@ -1442,7 +1454,7 @@ VauWithEnvironment(TermNode&, ContextNode&, bool);
 非严格求值若干个子项，返回求值结果的逻辑与：
 除第一个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
 当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
-特殊形式参考文法：
+参考调用文法：
 $and <test1>...
 */
 YF_API ReductionStatus
@@ -1454,7 +1466,7 @@ And(TermNode&, ContextNode&);
 非严格求值若干个子项，返回求值结果的逻辑或：
 除第一个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
 当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
-特殊形式参考文法：
+参考调用文法：
 $or <test1>...
 */
 YF_API ReductionStatus
@@ -1467,7 +1479,7 @@ Or(TermNode&, ContextNode&);
 \sa usystem
 \since build 741
 
-参考文法：
+参考调用文法：
 system <string>
 */
 YF_API void
@@ -1480,7 +1492,7 @@ CallSystem(TermNode&);
 \note NPLA 无 cons 对，所以要求创建的总是列表。
 \since build 779
 
-参考文法：
+参考调用文法：
 cons <object> <list>
 */
 YF_API ReductionStatus
@@ -1492,7 +1504,7 @@ Cons(TermNode&);
 \brief 比较两个子项的值相等。
 \sa YSLib::HoldSame
 
-参考文法：
+参考调用文法：
 eq? <object1> <object2>
 */
 YF_API void
@@ -1502,7 +1514,7 @@ EqualReference(TermNode&);
 \brief 比较两个子项的值相等。
 \sa YSLib::ValueObject
 
-参考文法：
+参考调用文法：
 eqv? <object1> <object2>
 */
 YF_API void
@@ -1516,7 +1528,7 @@ EqualValue(TermNode&);
 
 以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。
 环境以 ContextNode 的引用表示。
-参考文法：
+参考调用文法：
 eval <expression> <environment>
 */
 YF_API ReductionStatus
@@ -1528,14 +1540,15 @@ EvaluateUnit(TermNode&, const REPLContext&);
 //@}
 
 /*!
-\brief 判断字符串是否是符号。
-\since build 779
-参考文法：
+\brief 取包含当前环境的上下文引用。
+\warning 返回的值无所有权，应注意在生存期内使用以保证内存安全。
+\since build 785
 
-symbol? <object>
+参考调用文法：
+() get-current-environment
 */
-YF_API bool
-IsSymbol(const string&) ynothrow;
+YF_API void
+GetCurrentEnvironment(TermNode&, ContextNode&);
 
 /*!
 \brief 求值标识符得到指称的实体。
@@ -1547,6 +1560,40 @@ IsSymbol(const string&) ynothrow;
 */
 YF_API ReductionStatus
 ValueOf(TermNode&, const ContextNode&);
+
+
+//! \since build 785
+//@{
+/*!
+\brief 包装合并子为应用子。
+
+参考调用文法：
+wrap <combiner>
+*/
+YF_API ContextHandler
+Wrap(const ContextHandler&);
+
+//! \exception NPLException 类型不符合要求。
+//@{
+/*!
+\brief 包装操作子为应用子。
+
+参考调用文法：
+wrap1 <operative>
+*/
+YF_API ContextHandler
+WrapOnce(const ContextHandler&);
+
+/*!
+\brief 从应用子中取操作子。
+
+参考调用文法：
+unwrap <applicative>
+*/
+YF_API ContextHandler
+Unwrap(const ContextHandler&);
+//@}
+//@}
 
 } // namespace Forms;
 

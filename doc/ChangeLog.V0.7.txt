@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6896
+\version r6952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-04-29 11:54 +0800
+	2017-05-08 03:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,62 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ @ "function %VauWithEnvironment" $=
+					(
+						* "target context object wrongly moved even for non \
+							destructive vau handlers" $since b781,
+						(
+						/ "copyied non environment components of context on \
+							moving" @ "initialization" @ "vau handler";
+						* $comp "crash caused by reduction relying on passes \
+							as dangling reference to context components after \
+							being moved away by the vau handler" $since b781
+						)
+					),
+					+ "type name output" @ "message on matching failure"
+						@ "function %MatchParameter",
+					/ "bound values" @ "function %ReduceCombined"
+						^ (('&ValueObject::MakeMoveCopy', "%MakeMoveCopy")
+						$dep_from %YSLib.Core.YObject)
+						~ "%(IValueHolder::Move, ValueObject::MakeIndirect)",
+						// Now function parameters and definition targets are \
+							bound with value by default. Unsafe memory \
+							reference needs some explicitly notation to make \
+							%ReferenceValue called.
+					+ "functions %(Wrap, WrapOnce, Unwrap)"
+				),
+				/ DLDI "missing 'ystdex::' before 'sfmt'" @ "argument of \
+					exception object constructor" @ "function %ReduceCombined"
+					$since b774,
+				* "symbol reduction result evaluated again"
+					@ "function %EvaluateIdentifier" $since b767,
+					// See $2017-02 @ %Documentation::Workflow::Annual2017.
+				/ "function %ReduceCheckedClosure transferred list children"
+					^ (('&ValueObject::MakeMoveCopy', "%MakeMoveCopy") $dep_from
+					%YSLib.Core.YObject) ~ "%IValueHolder::Copy"
+			),
+			+ DD "'\warning' command" @ "Doxygen comments"
+				@ "function %ReferenceValue" @ %NPLA
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			+ "static function template %CreateRecursively";
+			/ DLDI "simplified static function %CreateRecursively",
+			+ "function template %CreateWith"
+		)
+	)
+),
+
+b784
 (
 	/ %YBase $=
 	(
@@ -109,7 +165,7 @@ $now
 					Kenerl can work as expected, when also applied \
 					%ReduceCheckedClosure fix.
 		),
-		/ DLB "allowed non %YCL_Win32 platforms"
+		/ DLB "allowed non %YCL_Win32 or %YCL_Android hosted platforms"
 			@ "constructor %DSApplication" @ %'Helper_(DS)'.DSMain
 			// Now YFramework in platform such as Linux can be built. However, \
 				related GUI functionality are not guaranteed work, since XCB \
