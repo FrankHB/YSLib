@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4851
+\version r4885
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-04-29 10:21 +0800
+	2017-05-09 10:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,10 +148,10 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	*/
 	DeclIEntry(bool Equals(const void*) const)
 	/*!
-	\brief 判断是否是持有的对象的唯一所有者。
-	\since build 759
+	\brief 取被持有对象的共享所有者总数。
+	\since build 786
 	*/
-	DeclIEntry(bool OwnsUnique() const ynothrow)
+	DeclIEntry(size_t OwnsCount() const ynothrow)
 	/*!
 	\sa Creation
 	\since build 761
@@ -276,9 +276,9 @@ public:
 		ImplRet(bool(p) && AreEqualHeld(this->value,
 			Deref(static_cast<const value_type*>(p))))
 
-	//! \since build 759
-	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(true)
+	//! \since build 786
+	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(1)
 
 	//! \since build 409
 	PDefH(ValueHolder*, clone, ) const ImplI(IValueHolder)
@@ -305,6 +305,21 @@ struct PointerHolderTraits : std::pointer_traits<_tPointer>
 	using holder_pointer = _tPointer;
 	using shared = ystdex::is_sharing<holder_pointer>;
 
+	//! \since build 786
+	//@{
+	static PDefH(size_t, count_owner, const holder_pointer& p_held) ynothrow
+		ImplRet(count_owner(shared(), p_held))
+
+private:
+	static PDefH(size_t, count_owner, ystdex::false_,
+		const holder_pointer& p_held) ynothrow
+		ImplRet(is_owner(p_held) ? 1 : 0)
+	static PDefH(size_t, count_owner, ystdex::true_,
+		const holder_pointer& p_held) ynothrow
+		ImplRet(size_t(p_held.use_count()))
+	//@}
+
+public:
 	//! \note 使用 ADL get_raw 。
 	static PDefH(auto, get, const holder_pointer& p_held)
 		ynoexcept_spec(get_raw(p_held)) -> decltype(get_raw(p_held))
@@ -413,9 +428,9 @@ public:
 			? AreEqualHeld(Deref(traits::get(p_held)),
 			Deref(static_cast<const value_type*>(p))) : !get())
 
-	//! \since build 759
-	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
-		ImplRet(traits::is_unique_owner(p_held))
+	//! \since build 786
+	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(traits::count_owner(p_held))
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), PointerHolder)
@@ -467,9 +482,9 @@ public:
 		ImplRet(bool(p) && AreEqualHeld(Deref(static_cast<const value_type*>(
 			get())), Deref(static_cast<const value_type*>(p))))
 
-	//! \since build 759
-	PDefH(bool, OwnsUnique, ) const ynothrow ImplI(IValueHolder)
-		ImplRet({})
+	//! \since build 786
+	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(0)
 
 private:
 	//! \since build 761
@@ -827,7 +842,7 @@ public:
 		ImplRet(Create(IValueHolder::Move))
 
  	/*!
-	\brief 取引用的值对象的初始化副本：按是否具有所有权选择转移或复制对象副本。
+	\brief 取引用的值对象的初始化副本：按是否具有唯一所有权选择转移或复制对象副本。
 	\since build 764
 	*/
 	PDefH(ValueObject, MakeMoveCopy, ) const
@@ -841,11 +856,18 @@ public:
 		ImplRet(Create(IValueHolder::Indirect))
 
 	/*!
+	\brief 取所有者持有的对象的共享所有者的总数。
+	\since build 786
+	*/
+	size_t
+	OwnsCount() const ynothrow;
+
+	/*!
 	\brief 判断是否是持有的对象的唯一所有者。
 	\since build 759
 	*/
-	bool
-	OwnsUnique() const ynothrow;
+	PDefH(bool, OwnsUnique, ) const ynothrow
+		ImplRet(OwnsCount() == 1)
 
 	//! \since build 759
 	//@{

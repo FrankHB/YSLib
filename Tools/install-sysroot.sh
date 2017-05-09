@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2016 FrankHB.
+# (C) 2014-2017 FrankHB.
 # SHBuild installation script.
 
 set -e
@@ -114,9 +114,8 @@ SHB_InstLibS()
 
 SHB_InstLibD()
 {
-	local target="$LIBPFX$2$DSOSFX"
-	local dest="$SR_DSO_Dest/$target"
-
+	declare -r target="$LIBPFX$2$DSOSFX"
+	declare -r dest="$SR_DSO_Dest/$target"
 	# TODO: Error handling.
 	$SHBuild_S1_SHBuild -xcmd,InstallHardLink "$dest" "$1/$target"
 	if [[ "$SR_DSO_Imp" != "" ]]; then

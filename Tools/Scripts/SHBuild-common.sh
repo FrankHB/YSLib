@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2016 FrankHB.
+# (C) 2014-2017 FrankHB.
 # Common source script.
 
 [[ "$INC_SHBuild_common" == '' ]] && INC_SHBuild_common=1 || return 0
@@ -203,7 +203,7 @@ SHBuild_EchoVar_N()
 #	$3 = tool to build header.
 SHBuild_BuildGCH()
 {
-	local SHBOUT_PCH="$2.gch"
+	declare -r SHBOUT_PCH="$2.gch"
 	if [[ -s "$SHBOUT_PCH" && -r "$SHBOUT_PCH" ]]; then
 		# FIXME: Update necessarily.
 		SHBuild_Puts "PCH file exists, skipped building."

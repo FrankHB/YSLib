@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3771
+\version r3912
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-05-08 02:54 +0800
+	2017-05-09 13:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -281,10 +281,13 @@ private:
 			const auto& n(*p);
  
 			// XXX: This is served as addtional static environment.
- 			Forms::BindParameterLeaf(c, n, {}, ValueObject(
-				ystdex::any_ops::use_holder, ystdex::in_place<PointerHolder<
-				ContextHandler, PointerHolderTraits<weak_ptr<ContextHandler>>>>,
-				store[n] = p_d));
+			Forms::CheckParameterLeafToken(n, [&]{
+				// TODO: The symbol can be rebound?
+				c.Environment[n].SetContent(TermNode::Container(),
+					ValueObject(ystdex::any_ops::use_holder, ystdex::in_place<
+					PointerHolder<ContextHandler, PointerHolderTraits<
+					weak_ptr<ContextHandler>>>>, store[n] = p_d));
+			});
 		}
 		else
 			// TODO: Merge with %MatchParameter?
@@ -336,6 +339,7 @@ template<typename _func>
 void
 DoDefine(TermNode& term, _func f)
 {
+	Forms::Retain(term);
 	if(term.size() > 2)
 	{
 		RemoveHead(term);
@@ -368,6 +372,41 @@ CheckEnvFormal(const TermNode& term)
 	else
 		throw InvalidSyntax("Invalid context parameter found.");
 	return {};
+}
+
+
+//! \since build 786
+void
+BindParameterForVau(ContextNode& ctx, const TermNode& t, TermNode& o)
+{
+	using namespace Forms;
+	auto& e(ctx.Environment);
+
+	MatchParameter(t, o, [&](TNCIter first, TNCIter last, string_view id){
+		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
+		id.remove_prefix(1);
+		if(!id.empty())
+		{
+			TermNode::Container con;
+
+			for(; first != last; ++first)
+			{
+				auto& b(Deref(first));
+
+				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
+					MakeIndex(con), b.Value.MakeMoveCopy());
+			}
+			e.emplace(std::move(con), id);
+		}
+	}, [&](const TokenValue& n, TermNode&& v){
+		Forms::CheckParameterLeafToken(n, [&]{
+			auto& con(v.GetContainerRef());
+			// NOTE: The operands should have been evaluated. Children nodes in
+			//	arguments retained are also transferred.
+			ctx.Environment[n].SetContent(std::move(con),
+				std::move(v.Value));
+		});
+	});
 }
 
 
@@ -434,7 +473,7 @@ public:
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
-			BindParameter(comp_ctx, formals, term);
+			BindParameterForVau(comp_ctx, formals, term);
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
 				" shared context(s), %zu parameter(s).", p_closure.use_count(),
 				p_context.use_count(), formals.size());
@@ -997,6 +1036,19 @@ IsSymbol(const string& id) ynothrow
 	return IsNPLASymbol(id);
 }
 
+TokenValue
+StringToSymbol(const string& s)
+{
+	return s;
+}
+
+YF_API const string&
+SymbolToString(const TokenValue& s) ynothrow
+{
+	return s;
+}
+
+
 size_t
 RetainN(const TermNode& term, size_t m)
 {
@@ -1013,7 +1065,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
 	auto& e(ctx.Environment);
 
-	MatchParameter(t, o, [&](TNCIter first, TNCIter last, string_view id){
+	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
 		if(!id.empty())
@@ -1024,42 +1076,26 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 			{
 				auto& b(Deref(first));
 
-				// TODO: How to reduce unnecessary copy of retained
-				//	list?
-				// TODO: Detect or reduce undefined behavior caused by unsafe
-				//	use resonably?
-				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
-					MakeIndex(con), b.Value.MakeMoveCopy());
+				// XXX: Moved. This is copy elision in object language.
+				con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
+					std::move(b.Value));
 			}
 			e.emplace(std::move(con), id);
 		}
 	}, [&](const TokenValue& n, TermNode&& v){
-		BindParameterLeaf(ctx, n, std::move(v));
+		CheckParameterLeafToken(n, [&]{
+			// NOTE: The symbol can be rebound.
+			// FIXME: Correct key of node when not bound?
+			// XXX: Moved. This is copy elision in object language.
+			ctx.Environment[n].SetContent(std::move(v.GetContainerRef()),
+				std::move(v.Value));
+		});
 	});
 }
 
 void
-BindParameterLeaf(ContextNode& ctx, const TokenValue& n,
-	TermNode::Container&& con, ValueObject&& vo)
-{
-	if(n != "#ignore")
-	{
-		if(!n.empty() && IsNPLASymbol(n))
-			// NOTE: The symbol can be rebound.
-			// NOTE: The operands should have been evaluated if this is
-			//	in a lambda. Children nodes in arguments retained are
-			//	also transferred.
-			// XXX: Moved. This is copy elision in object language.
-			ctx.Environment[n].SetContent(std::move(con), std::move(vo));
-		else
-			throw ParameterMismatch(
-				"Invalid token found for symbol parameter.");
-	}
-}
-
-void
 MatchParameter(const TermNode& t, TermNode& o,
-	std::function<void(TNCIter, TNCIter, const TokenValue&)> bind_trailing_seq,
+	std::function<void(TNIter, TNIter, const TokenValue&)> bind_trailing_seq,
 	std::function<void(const TokenValue&, TermNode&&)> bind_value)
 {
 	if(IsBranch(t))
@@ -1083,7 +1119,7 @@ MatchParameter(const TermNode& t, TermNode& o,
 							--last;
 					}
 					else
-						// TODO: Merge with %BindParameterLeaf?
+						// TODO: Merge with %CheckParameterLeafToken?
 						throw ParameterMismatch(
 							"Invalid token found for symbol parameter.");
 				}
@@ -1133,26 +1169,6 @@ MatchParameter(const TermNode& t, TermNode& o,
 }
 
 
-bool
-ExtractModifier(TermNode::Container& con, const ValueObject& mod)
-{
-	YAssert(!con.empty(), "Empty node container found.");
-	if(con.size() > 1)
-	{
-		const auto i(std::next(con.cbegin()));
-
-		// XXX: Modifier is treated as special name.
-		if(const observer_ptr<const string> p = TermToNamePtr(Deref(i)))
-			if(*p == mod)
-			{
-				con.erase(i);
-				return true;
-			}
-	}
-	return {};
-}
-
-
 void
 DefineLazy(TermNode& term, ContextNode& ctx)
 {
@@ -1183,68 +1199,30 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 }
 
 void
-DefineOrSet(TermNode& aterm, ContextNode& actx, bool define)
+Undefine(TermNode& term, ContextNode& ctx, bool forced)
 {
-	ReduceWithModifier(aterm, actx,
-		[=](TermNode& term, ContextNode& ctx, bool mod){
-		auto& con(term.GetContainerRef());
-		auto i(con.begin());
+	Retain(term);
+	if(term.size() == 2)
+	{
+		const auto& n(Access<TokenValue>(Deref(std::next(term.begin()))));
 
-		++i;
-		if(!i->empty())
-		{
-			const auto i_beg(i->begin());
-
-			if(const auto p_id = TermToNamePtr(Deref(i_beg)))
-			{
-				const auto id(*p_id);
-
-				i->GetContainerRef().erase(i_beg);
-				Lambda(term, ctx);
-				DefineOrSetFor(id, term, ctx, define, mod);
-			}
-			else
-				throw InvalidSyntax("Invalid term found.");
-		}
-		else if(const auto p_id = TermToNamePtr(Deref(i)))
-		{
-			const auto id(*p_id);
-
-			YTraceDe(Debug, "Found identifier '%s'.", id.c_str());
-			if(++i != con.end())
-			{
-				CheckedReduceWith(ReduceTail, term, ctx, i);
-				DefineOrSetFor(id, term, ctx, define, mod);
-			}
-			else if(define)
-				RemoveIdentifier(ctx, id, mod);
-			else
-				throw InvalidSyntax("Source operand not found.");
-		}
+		if(IsNPLASymbol(n))
+			term.Value = RemoveIdentifier(ctx, n, forced);
 		else
-			throw NPLException("Invalid node category found.");
-		term.Value = ValueToken::Unspecified;
-	});
+			throw InvalidSyntax(ystdex::sfmt("Invalid token '%s' found as name"
+				" to be undefined.", n.c_str()));
+	}
+	else
+		throw
+			InvalidSyntax("Expected exact one term as name to be undefined.");
 }
 
-void
-DefineOrSetFor(string_view id, TermNode& term, ContextNode& ctx, bool define,
-	bool mod)
-{
-	YAssertNonnull(id.data());
-	if(!id.empty() && IsNPLASymbol(id))
-		// XXX: Moved.
-		// NOTE: Unevaluated term is directly saved.
-		(define ? DefineValue : RedefineValue)
-			(ctx, id, std::move(term.Value), mod);
-	else
-		throw InvalidSyntax(ystdex::sfmt("Invalid token '%s' cannot be %s.",
-			id.data(), define ? "defined" : "set"));
-}
 
 ReductionStatus
 If(TermNode& term, ContextNode& ctx)
 {
+	Retain(term);
+
 	const auto size(term.size());
 
 	if(size == 3 || size == 4)

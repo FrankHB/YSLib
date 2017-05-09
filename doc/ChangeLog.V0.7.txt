@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r6952
+\version r7048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-05-08 03:04 +0800
+	2017-05-09 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,102 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ "returned result of %bool type" @ "function %RemoveIdentifier"
+				@ %NPLA,
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					+ "function %Undefine" $dep_from %NPLA1,
+					(
+					- "functions %(DefineOrSet; DefineOrSetFor)";
+					- "function template %ReduceWithModifier";
+					- "all 2 functions %ExtractModifier"
+					),
+					+ "indirect assertion by calling %RetainN"
+						@ "functions %(If, DefineLazy, DefineWithNoRecursion, \
+						DefineWithRecursion)",
+						// To be consistent.
+					+ "functions %(StringToSymbol, SymbolToString)",
+					/ "formal parameter tree binding" $=
+					(
+						/ "allowed modification of bound terms"
+							@ "2nd parameter type" @ "function %MatchParameter",
+						+ "function template %CheckParameterLeafToken";
+						/ $lib $impl "vau handlers" ^ "separated internal \
+							handling of binding parameters"
+							^ "%CheckParameterLeafToken" ~ "%BindParameter",
+						/ DLI "function %DefineWithRecursion"
+							^ "%CheckParameterLeafToken" ~ "%BindParameterLeaf";
+							// The check is now performed a little earlier. If \
+								it fails, no binding has to be established. 
+						/ "merged %BindParameterLeaf" -> "%BindParameter"
+							^ "direct elision, %CheckParameterLeafToken"
+							~ ("%TermNode::CreateRecursively",
+							'&ValueObject::MakeMoveCopy', "%MakeMoveCopy");
+						/ $comp @ "function %BindParameter" $=
+						(
+							* $revert_ex(b785) "inconsistency between list and \
+								leaf for traling sequence elements" $since b785,
+							* "inconsistency between non trailing sequence \
+								elements and traling sequence elements" $since
+								b777
+							// This is in schedule to be done for the vau \
+								handler internal implementation.
+						)
+					),
+					* DD "wrong '\exception' command" @ "functions %(Lambda, \
+						Vau, VauWithEnvironment)" $mismatch $since b769
+				)
+			),
+			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				(
+				+ "operative '$def!'",
+				+ "applicatives %(eval, unwrap, list)";
+				+ "operatives ('$set!', '$defv!')",
+				(
+				+ "operative '$defl!'";
+				/ DLDI "definitions" ^ ('$def!', '$defl!') ~ '$define!';
+				- $revert(b760) "operatives ('$define', '$set')"
+				)
+				),
+				+ "applicative 'symbol->string'" ^ $dep_from
+					("function %SymbolToString" @ %NPLA1)
+			)
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			+ "static function %size_t" @ "trait %PointerHolderTraits",
+			(
+			/ "abstract method %OwnsUnique" @ "interface %IValueHolder"
+				-> "%OwnsCount";
+			/ $forced "overrider %OwnsUnique"
+				@ "class templates %(ValueHolder, RefHolder)" -> "%OwnsCount",
+			/ $forced "overrider %OwnsUnique"
+				@ "class template %PointerHolder, RefHolder"
+				-> "%OwnsCount" ^ $dep_from "%PointerHolderTraits";
+			/ @ "class %ValueObject" $=
+			(
+				+ "function %OwnsCount",
+				/ $forced $impl "member function %ValueObject::OwnsUnique"
+					^ $dep_from "%OwnsCount"
+			)
+			)
+		)
+	),
+	/ $dev "readonly local variable in functions" ^ 'declare -r'
+		~ 'local' $effective @ ("%(SHBuild-common.sh, \
+		GenerateProject.sh)" @ %Scripts, "%install-sysroot.sh") @ %Tools
+),
+
+b785
 (
 	/ %YFramework $=
 	(
@@ -54,7 +150,7 @@ $now
 					),
 					+ "type name output" @ "message on matching failure"
 						@ "function %MatchParameter",
-					/ "bound values" @ "function %ReduceCombined"
+					/ "bound values" @ "function %BindParameter"
 						^ (('&ValueObject::MakeMoveCopy', "%MakeMoveCopy")
 						$dep_from %YSLib.Core.YObject)
 						~ "%(IValueHolder::Move, ValueObject::MakeIndirect)",
