@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r2265
+\version r2279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2017-05-08 03:04 +0800
+	2017-05-08 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1212,12 +1212,15 @@ A1::REPLContext 类可直接作为 REPL 原型。
 除非另行约定，这些形式不是特殊形式(@5.2) ，一般作为按值传递(@4.4.4.5) 的函数(@4.5.2) ；其中的值对象(@5.3.3.1) 表示引用时，可传递引用。
 以下 API 因为传递无所有权引用，应避免超出生存期使用，以保证内存安全(@5.2.2) ：
 Forms::GetCurrentEnvironment(@6.6.10) 。
+从 @6.6.2 起本节余下的 API 中的规约函数(@5.4.4.4) 具有间接断言：第一参数指定的项是枝节点。
 
 @6.6.1 非上下文操作：
 非上下文操作不依赖上下文，无 ContextNode(@5.3.3.3) 参数。
 
-@6.6.1.1 上下文无关谓词：
-Forms::IsSymbol 判断字符串是否是符号。
+@6.6.1.1 记号操作：
+Forms::IsSymbol 判断字符串值是否可构成符号。
+Forms::StringToSymbol 创建等于指定字符串值的记号值。不检查值是否符合符号要求。若能构成符号，则名称为指定字符串。
+Forms::SymbolToString 取符号对应的名称字符串。
 
 @6.6.1.2 保留(retain) 操作：
 保留形式是特殊形式，对项进行空求值(@4.4.2) 。
@@ -1227,7 +1230,7 @@ Forms::RetainN 断言枝节点并检查子项作为函数时的实际参数数(@
 
 @6.6.2 绑定构造(binding construct) ：
 绑定构造通过引入新的绑定(@4.1) 修改求值环境(@4.6.1.1) 。
-Forms::BindParameter 匹配并绑定操作数到参数上。
+Forms::BindParameter 匹配并绑定操作数到参数上。绑定的对象节点的值和子节点元素被直接转移。
 作为 TermNode ，操作数的表示具有树的构造，称为操作数树(operand tree) 。
 数据结构和匹配算法类似 Kernel 语言中用于 $define! 和 $vau 等操作子(@4.5.3.2) 的机制，但是 NPL 不使用对(pair) 。
 此外，提供以下 API 修改环境：
@@ -1257,6 +1260,7 @@ Forms::RegisterStrictUnary 注册一元严格求值上下文处理器。
 过程可使用 A1::FormContextHandler(@6.4) 实现。
 提供 Forms::Lambda 支持 lambda 特殊形式创建以过程为基础的 λ 抽象(@4.5.2.2) 。
 提供 Forms::Vau 和 Forms::VauWithEnvironment 支持更一般的 vau 抽象(@4.5.2.3) 。前者和 Kernel 语言的 $vau 操作合并子类似，而后者进一步支持指定静态环境。
+绑定参数和 BindParameter(@6.6.2) 的机制类似，但对参数进行复制以实现参数的按值传递(@4.4.4.5) 。
 注意 λ 抽象可通过 vau 抽象实现，但由于简单和性能原因，直接提供 API 支持。
 通过此形式引入的过程在求值时，以 TermNode 的项而不是 ValueObject 的值对象替换上下文中的形式参数(@4.5.2) 列表。
 对形式参数项的求值可由 A1::EvaluateDelayed(@6.4.5) 进一步完成，其中对项的直接操作使用 NPL::LiftTermRef(@5.4.5.2) 。
@@ -1278,18 +1282,22 @@ Forms::EvaluateUnit 提供创建 REPL 新实例并求值的便利接口。
 Forms::GetCurrentEnvironment 取当前环境的引用。
 Forms::ValueOf 求值标识符得到指称的实体。
 
-@6.6.11 类型转换操作：
+@6.6.11 合并子类型转换操作：
+Forms 提供以下合并子(@4.5.3.2) 之间的非规约函数(@5.4.4.4) 转换例程：
 Forms::Wrap 包装合并子为应用子。
-Forms::Wrap 包装操作子为应用子。
-Forms::Wrap 从应用子中取操作子。
+Forms::Wrap1 包装操作子为应用子。
+Forms::Unwrap 从应用子中取操作子。
 其中后两者会对类型进行检查，若不满足条件则会抛出异常。
 
 @7 一般实现导引：
+以下命名空间使用同 @6 。
 
 @7.1 程序实现：
 程序是语言的派生。实现程序即在语言的基础上指定派生规则。
 使用 REPL API(@6.5) 创建 REPL 实例用于实现解释器。
 使用 A1::Forms 的成员(@6.6) 指定需要内建支持的语法形式。
+一般在初始化时自行绑定初始环境的名称。
+上述成员约定的参考调用文法中，合并子(@4.5.3.2) 等名称参见 Revised Report on the Kernel Programming Language 的约定，但使用未指定值惰性(inert) 值，因此以 ! 结尾的函数可能返回 A1::ValueToken::Unspecified(@6.1) 外的其它值。
 
 */
 ////

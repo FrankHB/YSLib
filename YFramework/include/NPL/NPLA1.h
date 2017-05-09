@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3051
+\version r3177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-05-08 02:55 +0800
+	2017-05-09 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -886,7 +886,7 @@ namespace Forms
 {
 
 /*!
-\brief 判断字符串是否是符号。
+\brief 判断字符串值是否可构成符号。
 \since build 779
 参考文法：
 
@@ -894,6 +894,21 @@ symbol? <object>
 */
 YF_API bool
 IsSymbol(const string&) ynothrow;
+
+//! \since build 786
+//@{
+/*!
+\brief 创建等于指定字符串值的记号值。
+\note 不检查值是否符合符号要求。
+*/
+YF_API TokenValue
+StringToSymbol(const string&);
+
+//! \brief 取符号对应的名称字符串。
+YF_API const string&
+SymbolToString(const TokenValue&) ynothrow;
+//@}
+
 
 /*!
 \pre 断言：项或容器对应枝节点。
@@ -933,13 +948,29 @@ RetainN(const TermNode&, size_t = 1);
 若匹配失败，则抛出异常。
 */
 //@{
-//! \note 第一参数指定的上下文决定绑定的环境。
-//@{
+/*!
+\brief 检查记号值是符合匹配条件的符号。
+\since build 786
+*/
+template<typename _func>
+void
+CheckParameterLeafToken(const TokenValue& n, _func f)
+{
+	if(n != "#ignore")
+	{
+		if(!n.empty() && IsNPLASymbol(n))
+			f();
+		else
+			throw ParameterMismatch(
+				"Invalid token found for symbol parameter.");
+	}
+}
+
 /*!
 \brief 使用操作数结构化匹配并绑定参数。
 \throw ArityMismatch 子项数匹配失败。
+\note 第一参数指定的上下文决定绑定的环境。
 \sa MatchParameter
-\sa BindParameterLeaf
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
@@ -948,37 +979,19 @@ RetainN(const TermNode&, size_t = 1);
 对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
 子项为 . 时，对应操作数的结尾序列被忽略；
 否则，绑定项的目标为移除前缀 . 后的符号。
-非列表项的绑定调用 BindParameterLeaf 。
-*/
-YF_API void
-BindParameter(ContextNode&, const TermNode&, TermNode&);
-
-/*!
-\brief 使用操作数结构化匹配并绑定参数到非列表项。
-\sa BindParameter
-
-形式参数和操作数为项指定的表达式树。
-第二参数指定名称，之后的参数指定值。
+非列表项的绑定使用以下规则：
 若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
 匹配要求如下：
 若项是 #ignore ，则忽略操作数对应的项；
 若项的值是符号，则操作数的对应的项应为非列表项。
 */
-//@{
 YF_API void
-BindParameterLeaf(ContextNode&, const TokenValue&, TermNode::Container&&,
-	ValueObject&&);
-inline PDefH(void, BindParameterLeaf, ContextNode& ctx, const TokenValue& name,
-	TermNode&& o)
-	ImplExpr(BindParameterLeaf(ctx, name, std::move(o.GetContainerRef()),
-		std::move(o.Value)))
-//@}
-//@}
+BindParameter(ContextNode&, const TermNode&, TermNode&);
 
 /*!
 \brief 匹配参数。
 \exception std::bad_function 异常中立：参数指定的处理器为空。
-\since build 780
+\since build 786
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
@@ -993,39 +1006,9 @@ inline PDefH(void, BindParameterLeaf, ContextNode& ctx, const TokenValue& name,
 */
 YF_API void
 MatchParameter(const TermNode&, TermNode&,
-	std::function<void(TNCIter, TNCIter, const TokenValue&)>,
+	std::function<void(TNIter, TNIter, const TokenValue&)>,
 	std::function<void(const TokenValue&, TermNode&&)>);
 //@}
-
-
-/*!
-\brief 检查项中是否存在为修饰符的第二个子项，若存在则移除。
-\return 是否存在并移除了修饰符。
-\since build 732
-
-检查第一参数指定的容器或项是否存在第二参数指定的修饰符为项的第一参数。
-若检查发现存在修饰符则移除。
-*/
-//@{
-YF_API bool
-ExtractModifier(TermNode::Container&, const ValueObject& = string("!"));
-inline PDefH(bool, ExtractModifier, TermNode& term,
-	const ValueObject& mod = string("!"))
-	ImplRet(ExtractModifier(term.GetContainerRef(), mod))
-//@}
-
-//! \brief 规约可能带有修饰符的项。
-template<typename _func>
-void
-ReduceWithModifier(TermNode& term, ContextNode& ctx, _func f)
-{
-	const bool mod(ExtractModifier(term));
-
-	if(IsBranch(term))
-		f(term, ctx, mod);
-	else
-		throw InvalidSyntax("Argument not found.");
-}
 //@}
 
 
@@ -1270,6 +1253,13 @@ RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 //@}
 
 
+//! \pre 间接断言：第一参数指定的项是枝节点。
+//@{
+/*
+\note 实现特殊形式。
+\throw InvalidSyntax 语法错误。
+*/
+//@{
 /*!
 \brief 定义。
 \exception ParameterMismatch 绑定匹配失败。
@@ -1316,55 +1306,23 @@ DefineWithRecursion(TermNode&, ContextNode&);
 //@}
 
 /*!
-\note 在节点后的 bool 参数指定使用定义而不是设置（重定义）。
-\note 支持修饰符。
-\sa ReduceWithModifier
-\since build 735
-*/
-//@{
-/*!
-\brief 定义或设置项。
-\throw InvalidSyntax 节点分类非法，或由 DefineOrSetFor 抛出的异常。
-\sa DefineOrSetFor
-\sa Lambda
-
-实现修改环境的特殊形式。
-值以项的形式被转移，在替换前进一步求值。返回未指定值。
-指定第三参数为 true 则为定义，否则为设置。
-限定第三参数后可使用 RegisterForm 注册上下文处理器。
-参考调用文法：
-$define|$set [!] <variable> <expression>
-$define|$set [!] (<variable> <formals>) <body>
-*/
-YF_API void
-DefineOrSet(TermNode&, ContextNode&, bool);
-
-/*!
-\brief 定义或设置标识符的值为指定的项。
-\pre 断言：字符串参数的数据指针非空。
-\throw InvalidSyntax 标识符是字面量。
-\note 参数分别为标识符、被规约的项、上下文、使用定义以及是否存在修饰符。
-\sa DefineValue
-\sa EvaluateIdentifier
+\brief 移除名称绑定。
+\exception BadIdentifier 非强制时移除不存在的名称。
+\throw InvalidSyntax 标识符不是符号。
 \sa IsNPLASymbol
-\sa RedefineValue
-\since build 772
+\sa RemoveIdentifier
+\since build 786
 
-定义或设置参数指定的值：首先检查标识符不是字面量，然后替换。
-排除可选项外，若第二子项是列表，
-则定义或设置以此列表第一子项为名称、剩余项为参数的 λ 抽象。
-否则，直接定义值。
+移除名称和关联的值，返回是否被移除。
+第三个参数表示是否强制。若非强制，移除不存在的名称抛出异常。
+参考调用文法：
+$undef! <symbol>
+$undef-checked! <symbol>
 */
 YF_API void
-DefineOrSetFor(string_view, TermNode&, ContextNode&, bool, bool);
-//@}
+Undefine(TermNode&, ContextNode&, bool);
 
-/*
-\pre 间接断言：第一参数指定的项是枝节点。
-\note 实现特殊形式。
-\throw InvalidSyntax 语法错误。
-*/
-//@{
+
 /*!
 \brief 条件判断：根据求值的条件取表达式。
 \sa ReduceChecked
@@ -1379,10 +1337,10 @@ YF_API ReductionStatus
 If(TermNode&, ContextNode&);
 
 /*!
-\exception InvalidSyntax 异常中立：由 ExtractParameters 抛出。
-\sa BindParameter
+\exception ParameterMismatch 异常中立：由 BindParameter 抛出。
 \sa EvaluateIdentifier
 \sa ExtractParameters
+\sa MatchParameter
 \warning 返回闭包调用引用变量超出绑定目标的生存期引起未定义行为。
 \todo 优化捕获开销。
 
@@ -1426,7 +1384,6 @@ $vau! <formals> <eformal> <expression>?
 */
 YF_API void
 Vau(TermNode&, ContextNode&, bool);
-//@}
 
 /*!
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
@@ -1436,7 +1393,6 @@ Vau(TermNode&, ContextNode&, bool);
 $vaue <env> <formals> <eformal> <expression>?
 $vaue! <env> <formals> <eformal> <expression>?
 */
-//@}
 YF_API void
 VauWithEnvironment(TermNode&, ContextNode&, bool);
 //@}
@@ -1471,6 +1427,7 @@ $or <test1>...
 */
 YF_API ReductionStatus
 Or(TermNode&, ContextNode&);
+//@}
 //@}
 
 
@@ -1560,6 +1517,7 @@ GetCurrentEnvironment(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ValueOf(TermNode&, const ContextNode&);
+//@}
 
 
 //! \since build 785

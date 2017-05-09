@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2015-2016 FrankHB.
+# (C) 2015-2017 FrankHB.
 # Project generation script: generating Code::Blocks .cbp files using
 #	ProjectGenerator.
 
@@ -23,7 +23,7 @@ SHBuild_Pushd $TopLevel
 
 SHBuild_GenerateCBP_()
 {
-	local target="$1"
+	declare -r target="$1"
 	shift
 	SHBuild_Puts Writing \"$target\" ...
 	$ProjectGenerator "$@" > $target

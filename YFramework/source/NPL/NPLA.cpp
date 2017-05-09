@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1080
+\version r1086
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-04-15 23:16 +0800
+	2017-05-09 10:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -495,12 +495,15 @@ RedefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
 		throw BadIdentifier(id, 0);
 }
 
-void
+bool
 RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
 {
 	YAssertNonnull(id.data());
-	if(!ctx.Environment.Remove(id) && !forced)
-		throw BadIdentifier(id, 0);
+	if(ctx.Environment.Remove(id))
+		return true;
+	if(forced)
+		return {};
+	throw BadIdentifier(id, 0);
 }
 
 } // namespace NPL;

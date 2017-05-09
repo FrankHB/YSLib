@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r431
+\version r466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-04-08 18:49 +0800
+	2017-05-08 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,17 +241,40 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		}
 		return ReductionStatus::Clean;
 	};
-	// NOTE: Binding and control forms.
-	RegisterForm(root, "$define",
-		ystdex::bind1(DefineOrSet, _2, true));
+	// NOTE: Primitive functions including binding constructs.
+	RegisterStrict(root, "eval", Eval);
+	RegisterForm(root, "$def!", DefineWithNoRecursion);
 	RegisterForm(root, "$if", If);
 	RegisterForm(root, "$lambda", Lambda);
-	RegisterForm(root, "$set", ystdex::bind1(DefineOrSet, _2, false));
 	RegisterForm(root, "$vau", ystdex::bind1(Vau, _2, false));
-	// NOTE: Privmitive procedures.
+	RegisterStrictUnary<ContextHandler>(root, "unwrap", Unwrap);
+	// NOTE: Derived functions.
+#if true
+	// NOTE: Some combiners are provided here as host primitives for
+	//	more efficiency and less dependencies.
+	RegisterStrict(root, "list", ReduceToList);
+#else
+	// NOTE: They can be derived as Kernel does.
+	context.Perform(u8R"NPL($def! list wrap ($vau x #ignore x))NPL");
+//	context.Perform(u8R"NPL($def! list $lambda x x)NPL");
+#endif
+	context.Perform(u8R"NPL(
+		$def! $set! $vau (exp1 formals .exp2) env eval
+		(
+			list $def! formals (unwrap eval) exp2 env
+		) (eval exp1 env);
+		$def! $defl! $vau (f formals .body) env eval
+		(
+			list $set! env f $lambda formals body
+		) env;
+		$def! $defv! $vau ($f formals senv .body) env eval
+		(
+			list $set! env $f $vau formals senv body
+		) env;
+	)NPL");
 	RegisterForm(root, "$or?", Or);
 	RegisterStrict(root, "eqv?", EqualValue);
-	context.Perform("$define (not x) eqv? x #f");
+	context.Perform("$defl! not (x) eqv? x #f");
 	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
 		ystdex::bind1(std::mem_fn(&TermNode::Value))));
 	// NOTE: I/O library.
@@ -288,6 +311,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		to_lwr(y);
 		return x == y;
 	});
+	RegisterStrictUnary<const TokenValue>(root, "symbol->string",
+		SymbolToString);
 	// NOTE: SHBuild builtins.
 	DefineValue(root, "SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
@@ -362,11 +387,11 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: Params of %SHBuild_BuildGCH: header = path of header to be copied,
 	//	inc = path of header to be included, cmd = tool to build header.
 	context.Perform(u8R"NPL(
-		$define (SHBuild_EchoVar_N var) SHBuild_EchoVar var
+		$defl! SHBuild_EchoVar_N (var) SHBuild_EchoVar var
 			(env-get (SHBuild_SDot_ var));
-		$define (SHBuild_BuildGCH header inc cmd)
+		$defl! SHBuild_BuildGCH (header inc cmd)
 		(
-			$define pch (++ inc ".gch");
+			$def! pch (++ inc ".gch");
 			$if (SHBuild_BuildGCH_existed_ pch)
 				(puts (++ "PCH file \"" pch "\" exists, skipped building."))
 				(

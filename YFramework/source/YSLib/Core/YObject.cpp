@@ -11,13 +11,13 @@
 /*!	\file YObject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r897
+\version r900
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-02-18 17:21 +0800
+	2017-05-09 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,10 +97,10 @@ ValueObject::EqualsUnchecked(const void* p) const
 	return HolderEquals(GetHolderRef(), p);
 }
 
-bool
-ValueObject::OwnsUnique() const ynothrow
+size_t
+ValueObject::OwnsCount() const ynothrow
 {
-	return ystdex::invoke_value_or(&IValueHolder::OwnsUnique, GetHolderPtr());
+	return ystdex::invoke_value_or(&IValueHolder::OwnsCount, GetHolderPtr());
 }
 
 } // namespace YSLib;
