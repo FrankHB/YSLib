@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3253
+\version r3265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2017-02-20 17:28 +0800
+	2017-05-10 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,6 +174,19 @@ copy_and_swap(_type& obj, const _type2& new_val)
 
 	swap(t, obj);
 	return obj;
+}
+
+/*!
+\brief 按参数复制或转移。
+\since build 787
+*/
+template<typename _type, typename _type2 = _type>
+inline _type
+copy_or_move(bool copy, _type& obj)
+{
+	if(copy)
+		return ystdex::as_const(obj);
+	return std::move(obj);
 }
 
 inline namespace cpp2014

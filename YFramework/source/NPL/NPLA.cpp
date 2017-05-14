@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1086
+\version r1105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-05-09 10:53 +0800
+	2017-05-13 17:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -472,34 +472,46 @@ ReduceToList(TermNode& term) ynothrow
 }
 
 
+Environment::Environment()
+	: ptr(make_shared<ValueNode>())
+{}
+Environment::Environment(shared_ptr<ValueNode> p)
+	: ptr([&]{
+		if(p)
+			return p;
+		throw std::invalid_argument(
+			"Empty binding pointer found for environment construction.");
+	}())
+{}
+
 void
-DefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
+Environment::Define(string_view id, ValueObject&& vo, bool forced)
 {
-	auto& env(ctx.Environment);
+	auto& m(GetMapRef());
 
 	YAssertNonnull(id.data());
 	if(forced)
 		// XXX: Self overwriting is possible.
-		swap(env[id].Value, vo);
-	else if(!env.AddValue(id, std::move(vo)))
+		swap(m[id].Value, vo);
+	else if(!m.AddValue(id, std::move(vo)))
 		throw BadIdentifier(id, 2);
 }
 
 void
-RedefineValue(ContextNode& ctx, string_view id, ValueObject&& vo, bool forced)
+Environment::Redefine(string_view id, ValueObject&& vo, bool forced)
 {
 	YAssertNonnull(id.data());
-	if(const auto p = AccessNodePtr(ctx.Environment, id))
+	if(const auto p = AccessNodePtr(GetMapRef(), id))
 		swap(p->Value, vo);
 	else if(!forced)
 		throw BadIdentifier(id, 0);
 }
 
 bool
-RemoveIdentifier(ContextNode& ctx, string_view id, bool forced)
+Environment::Remove(string_view id, bool forced)
 {
 	YAssertNonnull(id.data());
-	if(ctx.Environment.Remove(id))
+	if(GetMapRef().Remove(id))
 		return true;
 	if(forced)
 		return {};

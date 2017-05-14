@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3177
+\version r3211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-05-09 13:54 +0800
+	2017-05-14 03:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -786,9 +786,9 @@ ReduceLeafToken(TermNode&, ContextNode&);
 只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
 被处理的保留名称应指定重定向名称到有限个不同的上下文。解析时不对循环重定向进行检查。
 支持的重定向项包括：
-observer_ptr<const ContextNode> 指向无所有权的重定向上下文；
-weak_ptr<ContextNode> 指向可能具有共享所有权的重定向上下文；
-shared_ptr<ContextNode> 指向具有共享所有权的重定向上下文。
+YSLib::observer_ptr<const ContextNode> 指向无所有权的重定向上下文；
+YSLib::weak_ptr<ContextNode> 指向可能具有共享所有权的重定向上下文；
+YSLib::shared_ptr<ContextNode> 指向具有共享所有权的重定向上下文。
 若重定向可能具有共享所有权的上下文失败，则表示资源访问错误，如构成循环引用。
 抛出异常的类型为 NPLException 或派生类，其类型未指定。
 */
@@ -1116,8 +1116,14 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 //! \sa Forms::CallUnary
 template<typename _func>
 struct UnaryExpansion
+	: private ystdex::equality_comparable<UnaryExpansion<_func>>
 {
 	_func Function;
+
+	//! \since build 787
+	UnaryExpansion(_func f)
+		: Function(f)
+	{}
 
 	/*!
 	\brief 比较处理器相等。
@@ -1140,8 +1146,14 @@ struct UnaryExpansion
 //! \sa Forms::CallUnaryAs
 template<typename _type, typename _func>
 struct UnaryAsExpansion
+	: private ystdex::equality_comparable<UnaryAsExpansion<_type, _func>>
 {
 	_func Function;
+
+	//! \since build 787
+	UnaryAsExpansion(_func f)
+		: Function(f)
+	{}
 
 	/*!
 	\brief 比较处理器相等。
@@ -1168,8 +1180,14 @@ struct UnaryAsExpansion
 //! \sa Forms::CallBinary
 template<typename _func>
 struct BinaryExpansion
+	: private ystdex::equality_comparable<BinaryExpansion<_func>>
 {
 	_func Function;
+
+	//! \since build 787
+	BinaryExpansion(_func f)
+		: Function(f)
+	{}
 
 	/*!
 	\brief 比较处理器相等。
@@ -1191,8 +1209,14 @@ struct BinaryExpansion
 //! \sa Forms::CallBinaryAs
 template<typename _type, typename _func>
 struct BinaryAsExpansion
+	: private ystdex::equality_comparable<BinaryAsExpansion<_type, _func>>
 {
 	_func Function;
+
+	//! \since build 787
+	BinaryAsExpansion(_func f)
+		: Function(f)
+	{}
 
 	/*!
 	\brief 比较处理器相等。
@@ -1223,13 +1247,13 @@ template<typename _func>
 void
 RegisterStrictUnary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(ctx, name, UnaryExpansion<_func>{f});
+	RegisterStrict(ctx, name, UnaryExpansion<_func>(f));
 }
 template<typename _type, typename _func>
 void
 RegisterStrictUnary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(ctx, name, UnaryAsExpansion<_type, _func>{f});
+	RegisterStrict(ctx, name, UnaryAsExpansion<_type, _func>(f));
 }
 //@}
 
@@ -1242,13 +1266,13 @@ template<typename _func>
 void
 RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(ctx, name, BinaryExpansion<_func>{f});
+	RegisterStrict(ctx, name, BinaryExpansion<_func>(f));
 }
 template<typename _type, typename _func>
 void
 RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(ctx, name, BinaryAsExpansion<_type, _func>{f});
+	RegisterStrict(ctx, name, BinaryAsExpansion<_type, _func>(f));
 }
 //@}
 
@@ -1478,10 +1502,10 @@ YF_API void
 EqualValue(TermNode&);
 //@}
 
-//! \since build 772
 //@{
 /*!
 \brief 对指定项按指定的环境求值。
+\since build 787
 
 以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。
 环境以 ContextNode 的引用表示。
@@ -1489,9 +1513,12 @@ EqualValue(TermNode&);
 eval <expression> <environment>
 */
 YF_API ReductionStatus
-Eval(TermNode&);
+Eval(TermNode&, ContextNode&);
 
-//! \brief 创建参数指定的 REPL 的副本并在其中对翻译单元规约以求值。
+/*!
+\brief 创建参数指定的 REPL 的副本并在其中对翻译单元规约以求值。
+\since build 772
+*/
 YF_API void
 EvaluateUnit(TermNode&, const REPLContext&);
 //@}
