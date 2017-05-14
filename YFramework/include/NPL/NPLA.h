@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1798
+\version r1890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-05-08 11:24 +0800
+	2017-05-15 03:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode,
-//	LoggedEvent, ystdex::exclude_self_t, ystdex::as_const;
+//	LoggedEvent, ystdex::equality_comparable, shared_ptr, weak_ptr,
+//	ystdex::as_const;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -711,6 +712,7 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
 
 /*!
 \brief 提升项：使用第二个参数指定的项的内容引用替换第一个项的内容。
+\warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
 \since build 747
 */
 //@{
@@ -837,6 +839,68 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 
 
 /*!
+\brief 环境。
+\warning 非虚析构。
+\since build 787
+*/
+class YF_API Environment : private ystdex::equality_comparable<Environment>
+{
+private:
+	using map_t = ValueNode;
+	using ptr_t = YSLib::shared_ptr<map_t>;
+	using parent_ptr_t = YSLib::weak_ptr<Environment>;
+
+	//! \invariant \c ptr 。
+	ptr_t ptr;
+
+public:
+	//! \todo 扩展为列表。
+	parent_ptr_t ParentPtr;
+
+	//! \brief 无参数构造：初始化空环境。
+	Environment();
+	/*!
+	\brief 构造：使用包含绑定节点的指针。
+	\throw invalid_argument 参数为空指针。
+	\note 不检查绑定的名称。
+	*/
+	explicit
+	Environment(YSLib::shared_ptr<yimpl(map_t)>);
+
+	DefDeCopyAssignment(Environment)
+
+	friend PDefHOp(bool, ==, const Environment& x, const Environment& y)
+		ynothrow
+		ImplRet(x.ptr.get() == y.ptr.get())
+
+	//! \brief 取名称绑定映射。
+	DefGetter(const ynothrow, yimpl(map_t)&, MapRef, *ptr)
+
+	/*!
+	\pre 字符串参数的数据指针非空。
+	\throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
+	\note 最后一个参数表示强制调用。
+	\warning 应避免对被替换或移除的值的悬空引用。
+	*/
+	//@{
+	//! \brief 以字符串为标识符在指定上下文中定义值。
+	YF_API void
+	Define(string_view, ValueObject&&, bool);
+
+	//! \brief 以字符串为标识符在指定上下文中覆盖定义值。
+	YF_API void
+	Redefine(string_view, ValueObject&&, bool);
+
+	/*
+	\brief 以字符串为标识符在指定上下文移除对象。
+	\return 是否成功移除。
+	*/
+	YF_API bool
+	Remove(string_view, bool);
+};
+
+
+/*!
 \brief 上下文节点。
 \warning 非虚析构。
 \since build 782
@@ -844,7 +908,11 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 class YF_API ContextNode
 {
 public:
-	yimpl(ValueNode) Environment;
+	/*!
+	\brief 环境记录。
+	\since build 787
+	*/
+	Environment Record;
 	EvaluationPasses EvaluateLeaf{};
 	EvaluationPasses EvaluateList{};
 	LiteralPasses EvaluateLiteral{};
@@ -853,11 +921,15 @@ public:
 	DefDeCtor(ContextNode)
 	template<typename _tParam, typename... _tParams>
 	ContextNode(const ContextNode& ctx, _tParam&& arg, _tParams&&... args)
-		: Environment(yforward(arg), yforward(args)...),
+		: Record(yforward(arg), yforward(args)...),
 		EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
 		EvaluateLiteral(ctx.EvaluateLiteral)
 	{}
 	DefDeCopyMoveCtorAssignment(ContextNode)
+
+	//! \since build 787
+	DefGetter(const ynothrow, decltype(Record.GetMapRef()), BindingsRef,
+		Record.GetMapRef())
 };
 
 
@@ -874,12 +946,12 @@ using LiteralHandler = YSLib::GHEvent<ReductionStatus(const ContextNode&)>;
 //! \brief 注册上下文处理器。
 inline PDefH(void, RegisterContextHandler, ContextNode& ctx, const string& name,
 	ContextHandler f)
-	ImplExpr(ctx.Environment[name].Value = std::move(f))
+	ImplExpr(ctx.GetBindingsRef()[name].Value = std::move(f))
 
 //! \brief 注册字面量处理器。
 inline PDefH(void, RegisterLiteralHandler, ContextNode& ctx, const string& name,
 	LiteralHandler f)
-	ImplExpr(ctx.Environment[name].Value = std::move(f))
+	ImplExpr(ctx.GetBindingsRef()[name].Value = std::move(f))
 //@}
 
 
@@ -890,14 +962,14 @@ template<typename _tKey>
 inline observer_ptr<ValueNode>
 LookupName(ContextNode& ctx, const _tKey& id) ynothrow
 {
-	return YSLib::AccessNodePtr(ctx.Environment, id);
+	return YSLib::AccessNodePtr(ctx.GetBindingsRef(), id);
 }
 //! \since build 730
 template<typename _tKey>
 inline observer_ptr<const ValueNode>
 LookupName(const ContextNode& ctx, const _tKey& id) ynothrow
 {
-	return YSLib::AccessNodePtr(ctx.Environment, id);
+	return YSLib::AccessNodePtr(ctx.GetBindingsRef(), id);
 }
 //@}
 
@@ -926,35 +998,6 @@ FetchValuePtr(const ContextNode& ctx, const _tKey& name)
 
 //! \since build 753
 //@{
-/*!
-\pre 字符串参数的数据指针非空。
-\note 最后一个参数表示强制调用。
-\warning 应避免对被替换或移除的值的悬空引用。
-\throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
-\since build 731
-*/
-//@{
-//! \brief 以字符串为标识符在指定上下文中定义值。
-YF_API void
-DefineValue(ContextNode&, string_view, ValueObject&&, bool);
-
-/*!
-\brief 以字符串为标识符在指定上下文中覆盖定义值。
-\since build 732
-*/
-YF_API void
-RedefineValue(ContextNode&, string_view, ValueObject&&, bool);
-
-/*!
-\brief 以字符串为标识符在指定上下文移除对象。
-\return 是否成功移除。
-\since build 786
-*/
-YF_API bool
-RemoveIdentifier(ContextNode&, string_view, bool);
-//@}
-
-
 //! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
 //@{
 //! \since build 777
@@ -976,7 +1019,8 @@ InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
 	_tParams&&... args)
 {
 	return NPL::InvokePasses<_tPasses>(YSLib::AccessNodePtr(
-		ystdex::as_const(ctx.Environment), name), term, ctx, yforward(args)...);
+		ystdex::as_const(ctx.GetBindingsRef()), name), term, ctx,
+		yforward(args)...);
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3912
+\version r3986
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-05-09 13:59 +0800
+	2017-05-15 03:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,24 +258,26 @@ private:
 	//@}
 
 public:
-	ContextNode& Context;
+	//! \since build 787
+	Environment& Record;
 	//! \since build 780
 	const TermNode& Term;
 
-	RecursiveThunk(ContextNode& ctx, const TermNode& t)
-		: Context(ctx), Term(t)
+	//! \since build 787
+	//@{
+	RecursiveThunk(Environment& env, const TermNode& t)
+		: Record(env), Term(t)
 	{
-		Fix(Context, Term, p_defualt);
+		Fix(Record, Term, p_defualt);
 	}
 
 private:
-	//! \since build 784
 	void
-	Fix(ContextNode& c, const TermNode& t, const shared_ptr_t& p_d)
+	Fix(Environment& env, const TermNode& t, const shared_ptr_t& p_d)
 	{
 		if(IsBranch(t))
 			for(const auto& tm : t)
-				Fix(c, tm, p_d);
+				Fix(env, tm, p_d);
 		else if(const auto p = AccessPtr<TokenValue>(t))
 		{
 			const auto& n(*p);
@@ -283,7 +285,7 @@ private:
 			// XXX: This is served as addtional static environment.
 			Forms::CheckParameterLeafToken(n, [&]{
 				// TODO: The symbol can be rebound?
-				c.Environment[n].SetContent(TermNode::Container(),
+				env.GetMapRef()[n].SetContent(TermNode::Container(),
 					ValueObject(ystdex::any_ops::use_holder, ystdex::in_place<
 					PointerHolder<ContextHandler, PointerHolderTraits<
 					weak_ptr<ContextHandler>>>>, store[n] = p_d));
@@ -295,15 +297,15 @@ private:
 	}
 
 	void
-	Restore(ContextNode& c, const TermNode& t)
+	Restore(Environment& env, const TermNode& t)
 	{
 		if(IsBranch(t))
 			for(const auto& tm : t)
-				Restore(c, tm);
+				Restore(env, tm);
 		else if(const auto p = AccessPtr<TokenValue>(t))
 			FilterExceptions([&]{
 				const auto& n(*p);
-				auto& v(Context.Environment[n].Value);
+				auto& v(env.GetMapRef()[n].Value);
 
 				if(v.GetType() == ystdex::type_id<ContextHandler>())
 				{
@@ -320,6 +322,7 @@ private:
 		else
 			YAssert(false, "Invalid parameter value found.");
 	}
+	//@}
 
 	//! \since build 780
 	YB_NORETURN static ReductionStatus
@@ -330,7 +333,7 @@ private:
 
 public:
 	PDefH(void, Commit, )
-		ImplExpr(Restore(Context, Term))
+		ImplExpr(Restore(Record, Term))
 };
 
 
@@ -377,12 +380,12 @@ CheckEnvFormal(const TermNode& term)
 
 //! \since build 786
 void
-BindParameterForVau(ContextNode& ctx, const TermNode& t, TermNode& o)
+BindParameterForVau(ContextNode& e, const TermNode& t, TermNode& o)
 {
 	using namespace Forms;
-	auto& e(ctx.Environment);
+	auto& m(e.GetBindingsRef());
 
-	MatchParameter(t, o, [&](TNCIter first, TNCIter last, string_view id){
+	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
 		if(!id.empty())
@@ -393,18 +396,17 @@ BindParameterForVau(ContextNode& ctx, const TermNode& t, TermNode& o)
 			{
 				auto& b(Deref(first));
 
-				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
-					MakeIndex(con), b.Value.MakeMoveCopy());
+				con.emplace(b.CreateWith(&ValueObject::CopyMove),
+					MakeIndex(con), b.Value.CopyMove());
 			}
-			e.emplace(std::move(con), id);
+			m.emplace(std::move(con), id);
 		}
-	}, [&](const TokenValue& n, TermNode&& v){
+	}, [&](const TokenValue& n, TermNode&& b){
 		Forms::CheckParameterLeafToken(n, [&]{
-			auto& con(v.GetContainerRef());
 			// NOTE: The operands should have been evaluated. Children nodes in
 			//	arguments retained are also transferred.
-			ctx.Environment[n].SetContent(std::move(con),
-				std::move(v.Value));
+			m[n].SetContent(b.CreateWith(&ValueObject::CopyMove),
+				b.Value.CopyMove());
 		});
 	});
 }
@@ -440,13 +442,15 @@ public:
 		: eformal(std::move(ename)), p_formals(std::move(p_fm)),
 		p_context(std::move(p_ctx)), p_closure(share_move(term))
 	{}
-	//! \since build 781
+	//! \since build 787
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
-		ContextNode& ctx, TermNode& term, bool move_env)
+		Environment& env, ContextNode& ctx, TermNode& term, bool move_env)
 		: VauHandler(std::move(ename), std::move(p_fm),
-		move_env ? make_shared<ContextNode>(ctx, std::move(ctx.Environment))
-		: share_copy(ctx), term)
-	{}
+		make_shared<ContextNode>(ctx, env), term)
+	{
+		if(move_env)
+			p_context->GetBindingsRef() = std::move(env.GetMapRef());
+	}
 
 	//! \since build 772
 	ReductionStatus
@@ -464,28 +468,29 @@ public:
 			//	to be cared) form the context would cause undefined behavior
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
-			ContextNode comp_ctx(Deref(p_context), ValueNode());
-			auto& comp_e(comp_ctx.Environment);
+			ContextNode local(Deref(p_context), Environment());
+			auto& local_m(local.GetBindingsRef());
 
 			// NOTE: Bound dynamic context.
 			if(!eformal.empty())
-				comp_e.AddValue(eformal, ValueObject(ctx, OwnershipTag<>()));
+				local_m.AddValue(eformal,
+					ValueObject(ctx.Record, OwnershipTag<>()));
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
-			BindParameterForVau(comp_ctx, formals, term);
+			BindParameterForVau(local, formals, term);
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
 				" shared context(s), %zu parameter(s).", p_closure.use_count(),
 				p_context.use_count(), formals.size());
-			YAssert(&comp_ctx != &Deref(p_context),
+			YAssert(&local != &Deref(p_context),
 				"Self reference of context found.");
 			// NOTE: Static context is bound as base of local context by
 			//	setting parent context pointer.
-			comp_e.AddValue(ParentContextName, make_weak(p_context));
+			local_m.AddValue(ParentContextName, make_weak(p_context));
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
-			ReduceCheckedClosure(term, comp_ctx, {}, *p_closure);
+			ReduceCheckedClosure(term, local, {}, *p_closure);
 			return CheckNorm(term);
 		}
 		else
@@ -621,6 +626,14 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	ReduceChecked(comp_term, ctx);
 	// TODO: Detect lifetime escape to perform copy elision.
 #if true
+	// NOTE: To keep lifetime of objects referenced by references introduced in
+	//	%EvaluateIdentifier sane, %ValueObject::CopyMove is not enough because
+	//	it will not copy object referenced in holders of %YSLib::RefHolder
+	//	instances). On the other hand, the references captured by vau handlers
+	//	(which requries recursive copy of vau handler members if forced) are
+	//	not blessed here to avoid leak abstraction of detailed implementation
+	//	of vau handlers; it can be checked by the vau handler itself, if
+	//	necessary.
 	term.Value = comp_term.Value.MakeMoveCopy();
 	term.SetChildren(comp_term.CreateWith(&ValueObject::MakeMoveCopy));
 #else
@@ -684,10 +697,10 @@ void
 SetupTraceDepth(ContextNode& root, const string& name)
 {
 	yunseq(
-	root.Environment.Place<size_t>(name),
+	root.GetBindingsRef().Place<size_t>(name),
 	AccessGuardPassesRef(root) = [name](TermNode& term, ContextNode& ctx){
 		using ystdex::pvoid;
-		auto& depth(AccessChild<size_t>(ctx.Environment, name));
+		auto& depth(AccessChild<size_t>(ctx.GetBindingsRef(), name));
 
 		YTraceDe(Informative, "Depth = %zu, context = %p, semantics = %p.",
 			depth, pvoid(&ctx), pvoid(&term));
@@ -817,11 +830,14 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	if(const auto p = ResolveName(ctx, id))
 	{
 		// NOTE: The referenced term is lived through the envaluation, which is
-		//	guaranteed by the context.
+		//	guaranteed by the context. This is necessary since the ownership of
+		//	objects which are not temporaries in evaluated terms needs to be
+		//	always in the environment, not in AST. It would be safe if not
+		//	passed directly.
 		if(p->empty())
 			LiftTermRef(term, p->Value);
 		else
-			// XXX: Children are copied.
+			// XXX: Children are referenced.
 			term.SetContentIndirect(p->GetContainer(), p->Value);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return (*p_handler)(ctx);
@@ -1063,7 +1079,7 @@ RetainN(const TermNode& term, size_t m)
 void
 BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
-	auto& e(ctx.Environment);
+	auto& m(ctx.GetBindingsRef());
 
 	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
@@ -1080,15 +1096,14 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 				con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
 					std::move(b.Value));
 			}
-			e.emplace(std::move(con), id);
+			m.emplace(std::move(con), id);
 		}
 	}, [&](const TokenValue& n, TermNode&& v){
 		CheckParameterLeafToken(n, [&]{
 			// NOTE: The symbol can be rebound.
 			// FIXME: Correct key of node when not bound?
 			// XXX: Moved. This is copy elision in object language.
-			ctx.Environment[n].SetContent(std::move(v.GetContainerRef()),
-				std::move(v.Value));
+			m[n].SetContent(std::move(v.GetContainerRef()), std::move(v.Value));
 		});
 	});
 }
@@ -1190,7 +1205,7 @@ void
 DefineWithRecursion(TermNode& term, ContextNode& ctx)
 {
 	DoDefine(term, [&](TermNode& formals){
-		RecursiveThunk gd(ctx, formals);
+		RecursiveThunk gd(ctx.Record, formals);
 
 		ReduceChecked(term, ctx);
 		BindParameter(ctx, formals, term);
@@ -1207,7 +1222,7 @@ Undefine(TermNode& term, ContextNode& ctx, bool forced)
 		const auto& n(Access<TokenValue>(Deref(std::next(term.begin()))));
 
 		if(IsNPLASymbol(n))
-			term.Value = RemoveIdentifier(ctx, n, forced);
+			term.Value = ctx.Record.Remove(n, forced);
 		else
 			throw InvalidSyntax(ystdex::sfmt("Invalid token '%s' found as name"
 				" to be undefined.", n.c_str()));
@@ -1248,13 +1263,13 @@ Lambda(TermNode& term, ContextNode& ctx)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
 		auto i(con.begin());
-		auto es(share_move(Deref(++i)));
+		auto formals(share_move(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		// NOTE: %ToContextHandler implies strict evaluation of arguments in
 		//	%StrictContextHandler::operator().
-		return ToContextHandler(VauHandler({}, std::move(es),
-			ctx, term, {}));
+		return ToContextHandler(VauHandler({}, std::move(formals),
+			ctx.Record, ctx, term, {}));
 	}, 1);
 }
 
@@ -1263,12 +1278,12 @@ Vau(TermNode& term, ContextNode& ctx, bool move_env)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
 		auto i(con.begin());
-		auto es(share_move(Deref(++i)));
+		auto formals(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		return FormContextHandler(VauHandler(std::move(
-			eformal), std::move(es), ctx, term, move_env));
+			eformal), std::move(formals), ctx.Record, ctx, term, move_env));
 	}, 2);
 }
 
@@ -1282,13 +1297,13 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx, bool move_env)
 
 		// XXX: List components are ignored.
 		auto e_val(std::move(Deref(i).Value));
-		auto& e(e_val.Access<ContextNode>());
-		auto es(share_move(Deref(++i)));
+		auto& e(e_val.Access<Environment>());
+		auto formals(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		return FormContextHandler(VauHandler(std::move(
-			eformal), std::move(es), e, term, move_env));
+			eformal), std::move(formals), e, ctx, term, move_env));
 	}, 3);
 }
 
@@ -1347,15 +1362,15 @@ EqualValue(TermNode& term)
 }
 
 ReductionStatus
-Eval(TermNode& term)
+Eval(TermNode& term, ContextNode& ctx)
 {
 	RetainN(term, 2);
 
 	const auto i(std::next(term.begin()));
-	auto& ctx(Access<ContextNode>(Deref(std::next(i))));
+	ContextNode c(ctx, Access<Environment>(Deref(std::next(i))));
 
 	LiftTerm(term, Deref(i));
-	return Reduce(term, ctx);
+	return Reduce(term, c);
 }
 
 void
@@ -1369,7 +1384,7 @@ EvaluateUnit(TermNode& term, const REPLContext& ctx)
 void
 GetCurrentEnvironment(TermNode& term, ContextNode& ctx)
 {
-	term.Value = ValueObject(ctx, OwnershipTag<>());
+	term.Value = ValueObject(ctx.Record, OwnershipTag<>());
 }
 
 ReductionStatus

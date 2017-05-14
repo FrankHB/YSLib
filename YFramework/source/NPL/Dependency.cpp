@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r466
+\version r467
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-05-08 18:57 +0800
+	2017-05-13 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,7 +314,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<const TokenValue>(root, "symbol->string",
 		SymbolToString);
 	// NOTE: SHBuild builtins.
-	DefineValue(root, "SHBuild_BaseTerminalHook_",
+	root.Record.Define("SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
 		[](const string& n, const string& val) ynothrow{
 			// XXX: Error from 'std::printf' is ignored.

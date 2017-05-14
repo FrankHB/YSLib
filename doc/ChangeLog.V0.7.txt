@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7048
+\version r7146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-05-09 14:11 +0800
+	2017-05-15 03:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,95 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	+ "function template %copy_or_move" @ %YBase.YStandardEx.Utilities,
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			+ "function %CopyMove" @ "class %ValueObject" @ %YObject
+				^ $dep_from ("%copy_or_move" @ %YBase.YStandardEx.Utilities),
+			+ "(static function template %CreateRecursively, function \
+				%CreateWith) for non-const container" @ "class %ValueNode"
+				@ %ValueNode
+		),
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ "formal parameter tree binding" @ "vau handler, \
+						recursive thunk" ^ $dep_from ("%ValueObject::CopyMove"
+						@ %YSLib.Core.YObject);
+						// %ReduceCheckedClosure is also in the scope. It \
+							needs to copy or move the target, not the \
+							reference, to keep the lifetime sane, as required \
+							by %EvaluateIdentifier.
+					/ $comp $re_ex(b786)
+						@ "binding for vau handler prameter tree" $=
+					(
+						* $revert_ex(b785) "inconsistency between list and \
+							leaf for traling sequence elements" $since b785,
+						* "inconsistency between non trailing sequence \
+							elements and traling sequence elements" $since b777
+					),
+					/ @ "class templates %(UnaryExpansion, UnaryAsExpansion, \
+						BinaryExpansion, BinaryAsExpansion)" $=
+					(
+						+ "constructor";
+						* "missing %operator!=" $since b773
+							$= (+ "friend function %operator!="
+								^ "%ystdex::examiners::equal_examiner")
+					),
+					(
+					/ DLDI "all function templates %(RegisterStrictUnary, \
+						RegisterStrictBinary)" ^ $dep_from ("constructor"
+						@ "class templates %(UnaryExpansion, UnaryAsExpansion, \
+						BinaryExpansion, BinaryAsExpansion)")
+						~ "brace-initializer",
+					/ DLDI "functions %(DefineWithRecursion, Undefine, Vau, \
+						VauWithEnvironment, Lambda, SetupTraceDepth, \
+						BindParameter)" $dep_from
+						("%(RemoveIdentifier, ContextNode)" @ %NPLA);
+					/ "supported environment shared passing directly",
+					/ "first-class environment type" -> "%Environment"
+						~ "%ContextNode" $=
+					(
+						+ "2nd parameter of type 'ContextNode&'"
+							@ "function %Eval",
+						/ $impl "vau handler, functions %(VauWithEnvironment, \
+							Eval, GetCurrentEnvironment)"
+					)
+				)
+			),
+			/ %NPLA $=
+			(
+				+ $re_add(b785) DD "'\warning' directive" @ "Doxygen comments"
+					@ "all functions %LiftTermRef",
+				(
+				+ "class %Environment";
+				/ "type" @ "data member %Environment" @ "class %ContextNode"
+					-> "%Record",
+				/ $forced "functions %(DefineValue, RedefineValue, \
+					RemoveIdentifier)" -> "member functions %(Define, \
+					Redefine, Remove)" @ "class %Environment",
+				+ "member function %ContextNode::GetBindingsRef()",
+				/ $forced DLDI "function templates (%InvokePasses#2, all 2 \
+					%LookupName), functions %(RegisterContextHandler, \
+					RegisterLiteralHandler)"
+					^ $dep_from "%ContextNode::GetBindingsRef()"
+				)
+			),
+			/ $forced DLDI "function %LoadNPLContextForSHBuild" @ %Dependency
+				$dep_from "%DefineValue"
+		)
+	),
+	/ $forced DLDI %SHBuild.Main $dep_from
+		("%DefineValue" @ %YFramework.NPL.NPLA)
+),
+
+b786
 (
 	/ %YFramework $=
 	(
@@ -420,7 +509,7 @@ b781
 			(
 				/ @ "namespace %Forms" $=
 				(
-					/ @ ("function %BindParameter"; $comp "vau hanlder") $=
+					/ @ ("function %BindParameter"; $comp "vau handler") $=
 					(
 						/ "allowed body to be empty",
 							// Previously only vau handler accept empty body.
@@ -500,7 +589,7 @@ b780
 				* "spelling error" @ "exception message"
 					@ "function %ResolveName" $since b779,
 				- "tracing messages for (context, formal) parameter"
-					@ ("function %BindParameter"; $comp "vau hanlder")
+					@ ("function %BindParameter"; $comp "vau handler")
 					// Tracing can be derived in user code.
 			)
 		),
@@ -550,7 +639,7 @@ b779
 				/ @ "namespace %Forms" $=
 				(
 					/ "parent context reference" @ ("function %BindParameter";
-						$comp "vau hanlder") ^ "%weak_ptr" ~ "%shared_ptr",
+						$comp "vau handler") ^ "%weak_ptr" ~ "%shared_ptr",
 					+ "functions %(IsSymbol, Cons)"
 				)
 			),
@@ -630,7 +719,7 @@ b777
 		(
 			+ "support for '...' binding a list of variadic trailing elements \
 				in the operand" @ ("function %BindParameter";
-				$comp "vau hanlder") @ "namespace %Forms",
+				$comp "vau handler") @ "namespace %Forms",
 			(
 			+ "function %ResolveName with parent context lookup support";
 			/ @ "function %EvaluateIdentifier" $=
@@ -728,7 +817,7 @@ b775
 			(
 				/ @ "namespace %Forms" $=
 				(
-					/ "vau hanlder" $=
+					/ "vau handler" $=
 					(
 						/ $term "log message",
 						+ $lib $design "assertion to exclude self reference of \
@@ -780,7 +869,7 @@ b774
 						$= (/ "specified result %ReductionStatus::Retained"
 							~ "%ReductionStatus::Retrying")
 				),
-				/ "vau hanlder" @ "namespace %Forms" $=
+				/ "vau handler" @ "namespace %Forms" $=
 				(
 					/ DLDI "simplified" ^ "%IsBranch",
 					/ $impl "simplified" ^ "%RemoveHead" ~ "separated operand"
@@ -833,7 +922,7 @@ b773
 					+ $doc "referential grammar" @ "Doxygen comments"
 					/ "missing 'YF_API'" @ "function %BindParameter" $since
 						b772,
-					/ $design "exception message" @ "vau hanlder",
+					/ $design "exception message" @ "vau handler",
 					/ $design "exception message" @ "function %BindParameter",
 					(
 					* "missing %operator==" @ "class templates \
@@ -878,7 +967,7 @@ b772
 			(
 				/ @ "namespace %Forms" $=
 				(
-					/ "vau hanlder" $=
+					/ "vau handler" $=
 					(
 						* $term "exception message" $mismatch(Documentation.NPL)
 							$since b771
@@ -942,7 +1031,7 @@ b771
 			(
 				/ @ "namespace %Forms" $=
 				(
-					/ "vau hanlder" $=
+					/ "vau handler" $=
 					(
 						/ $term "error message" ^ 'composition' ~ 'application',
 						(
@@ -1001,7 +1090,7 @@ b770
 		(
 			/ @ "namespace %Forms" $=
 			(
-				/ "vau hanlder" $=
+				/ "vau handler" $=
 				(
 					/ $impl ^ $dep_from ("%IsNPLASymbol" @ %NPLA),
 					/ $comp "symbol detection would not involve literal \

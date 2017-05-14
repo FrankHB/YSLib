@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4885
+\version r4893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-05-09 10:45 +0800
+	2017-05-10 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,7 @@
 #define YSL_INC_Core_yobject_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YCoreUtilities // for ystdex::identity,
-//	ystdex::result_of_t;
+#include YFM_YSLib_Core_YCoreUtilities // for ystdex::copy_or_move;
 #include <ystdex/any.h> // for ystdex::any_ops::holder, ystdex::boxed_value,
 //	ystdex::any, ystdex::is_sharing, ystdex::pseudo_output;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
@@ -787,6 +786,13 @@ public:
 	*/
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(content.reset())
+
+ 	/*!
+	\brief 取自身的复制初始化转移结果：按是否具有唯一所有权选择转移或复制值对象。
+	\since build 787
+	*/
+	PDefH(ValueObject, CopyMove, )
+		ImplRet(ystdex::copy_or_move(!OwnsUnique(), *this))
 
 	/*!
 	\brief 取以指定持有者选项创建的副本。

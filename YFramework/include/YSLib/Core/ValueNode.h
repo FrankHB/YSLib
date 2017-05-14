@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3122
+\version r3140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-05-07 15:32 +0800
+	2017-05-10 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -456,6 +456,18 @@ public:
 	//! \since build 767
 	static Container
 	CreateRecursively(const Container&, IValueHolder::Creation);
+	//! \since build 787
+	template<typename _fCallable>
+	static Container
+	CreateRecursively(Container& con, _fCallable f)
+	{
+		Container res;
+
+		for(auto& tm : con)
+			res.emplace(CreateRecursively(tm.GetContainerRef(), f),
+				tm.GetName(), ystdex::invoke(f, tm.Value));
+		return res;
+	}
 	//! \since build 785
 	template<typename _fCallable>
 	static Container
@@ -472,6 +484,13 @@ public:
 	//! \since build 767
 	PDefH(Container, CreateWith, IValueHolder::Creation c) const
 		ImplRet(CreateRecursively(container, c))
+	//! \since build 787
+	template<typename _fCallable>
+	Container
+	CreateWith(_fCallable f)
+	{
+		return CreateRecursively(container, f);
+	}
 	//! \since build 785
 	template<typename _fCallable>
 	Container
