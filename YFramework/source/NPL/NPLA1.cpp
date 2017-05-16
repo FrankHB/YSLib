@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3986
+\version r4053
 \author FrankHB <frankhb1989@gmail.com>
-\since build 472
+\since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-05-15 03:22 +0800
+	2017-05-17 01:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1 // for ystdex::bind1, unordered_map, ystdex::pvoid,
-//	ystdex::call_value_or;
+//	ystdex::call_value_or, ystdex::as_const, ystdex::ref;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -230,18 +230,31 @@ EqualTerm(TermNode& term, _func f)
 }
 
 
-//! \since build 779
-observer_ptr<ContextNode>
-ResolveShared(string_view id, const shared_ptr<ContextNode>& p_shared)
+//! \since build 788
+//@{
+observer_ptr<Environment>
+ResolveShared(string_view id, const shared_ptr<Environment>& p_shared)
 {
 	if(p_shared)
 		return make_observer(get_raw(p_shared));
 	// TODO: Use concrete semantic failure exception.
-	throw NPLException(
-		sfmt("Invalid reference found for%s name '%s', probably due to invalid"
-			" context access by dangling reference.", IsReservedName(id)
-			? " reserved" : "", id.data()));
+	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
+		" probably due to invalid context access by dangling reference.",
+		IsReservedName(id) ? " reserved" : "", id.data()));
 }
+
+shared_ptr<Environment>
+LockEnvironment(ValueObject& vo)
+{
+	// TODO: Merge with %ResolveName?
+	if(const auto p = vo.AccessPtr<weak_ptr<Environment>>())
+		return p->lock();
+	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
+		return *p;
+	throw NPLException(sfmt("Invalid environment type '%s' found.",
+		vo.GetType().name()));
+}
+//@}
 
 
 //! \since build 782
@@ -396,8 +409,8 @@ BindParameterForVau(ContextNode& e, const TermNode& t, TermNode& o)
 			{
 				auto& b(Deref(first));
 
-				con.emplace(b.CreateWith(&ValueObject::CopyMove),
-					MakeIndex(con), b.Value.CopyMove());
+				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
+					MakeIndex(con), b.Value.MakeMoveCopy());
 			}
 			m.emplace(std::move(con), id);
 		}
@@ -405,8 +418,8 @@ BindParameterForVau(ContextNode& e, const TermNode& t, TermNode& o)
 		Forms::CheckParameterLeafToken(n, [&]{
 			// NOTE: The operands should have been evaluated. Children nodes in
 			//	arguments retained are also transferred.
-			m[n].SetContent(b.CreateWith(&ValueObject::CopyMove),
-				b.Value.CopyMove());
+			m[n].SetContent(b.CreateWith(&ValueObject::MakeMoveCopy),
+				b.Value.MakeMoveCopy());
 		});
 	});
 }
@@ -442,15 +455,12 @@ public:
 		: eformal(std::move(ename)), p_formals(std::move(p_fm)),
 		p_context(std::move(p_ctx)), p_closure(share_move(term))
 	{}
-	//! \since build 787
+	//! \since build 788
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
-		Environment& env, ContextNode& ctx, TermNode& term, bool move_env)
+		shared_ptr<Environment>&& p_env, const ContextNode& ctx, TermNode& term)
 		: VauHandler(std::move(ename), std::move(p_fm),
-		make_shared<ContextNode>(ctx, env), term)
-	{
-		if(move_env)
-			p_context->GetBindingsRef() = std::move(env.GetMapRef());
-	}
+		make_shared<ContextNode>(ctx, std::move(p_env)), term)
+	{}
 
 	//! \since build 772
 	ReductionStatus
@@ -468,13 +478,12 @@ public:
 			//	to be cared) form the context would cause undefined behavior
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
-			ContextNode local(Deref(p_context), Environment());
+			ContextNode local(Deref(p_context), make_shared<Environment>());
 			auto& local_m(local.GetBindingsRef());
 
 			// NOTE: Bound dynamic context.
 			if(!eformal.empty())
-				local_m.AddValue(eformal,
-					ValueObject(ctx.Record, OwnershipTag<>()));
+				local_m.AddValue(eformal, ValueObject(ctx.WeakenRecord()));
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
@@ -486,7 +495,8 @@ public:
 				"Self reference of context found.");
 			// NOTE: Static context is bound as base of local context by
 			//	setting parent context pointer.
-			local_m.AddValue(ParentContextName, make_weak(p_context));
+			local_m.AddValue(ParentContextName,
+				Deref(p_context).WeakenRecord());
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
@@ -627,7 +637,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// TODO: Detect lifetime escape to perform copy elision.
 #if true
 	// NOTE: To keep lifetime of objects referenced by references introduced in
-	//	%EvaluateIdentifier sane, %ValueObject::CopyMove is not enough because
+	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough because
 	//	it will not copy object referenced in holders of %YSLib::RefHolder
 	//	instances). On the other hand, the references captured by vau handlers
 	//	(which requries recursive copy of vau handler members if forced) are
@@ -933,31 +943,31 @@ ResolveName(const ContextNode& ctx, string_view id)
 	YAssertNonnull(id.data());
 
 	observer_ptr<const ValueNode> p;
-	auto ctx_ref(ystdex::ref(ctx));
+	auto env_ref(ystdex::ref(ystdex::as_const(ctx.GetRecordRef())));
 
 	ystdex::retry_on_cond(
-		[&](observer_ptr<const ContextNode> p_ctx) ynothrow -> bool{
-		if(p_ctx)
+		[&](observer_ptr<const Environment> p_env) ynothrow -> bool{
+		if(p_env)
 		{
-			ctx_ref = ystdex::ref(Deref(p_ctx));
+			env_ref = ystdex::ref(Deref(p_env));
 			return true;
 		}
 		return {};
-	}, [&, id]() -> observer_ptr<const ContextNode>{
-		if((p = LookupName(ctx_ref, id)))
+	}, [&, id]() -> observer_ptr<const Environment>{
+		if((p = LookupName(env_ref, id)))
 			return {};
-		if(const auto p_parent = FetchValuePtr(ctx_ref, ParentContextName))
+		if(const auto p_parent = FetchValuePtr(env_ref, ParentContextName))
 		{
 			const auto& tp(p_parent->GetType());
 
-			if(tp == ystdex::type_id<observer_ptr<const ContextNode>>())
-				return p_parent->GetObject<observer_ptr<const ContextNode>>();
-			if(tp == ystdex::type_id<weak_ptr<ContextNode>>())
+			if(tp == ystdex::type_id<observer_ptr<const Environment>>())
+				return p_parent->GetObject<observer_ptr<const Environment>>();
+			if(tp == ystdex::type_id<weak_ptr<Environment>>())
 				return ResolveShared(id,
-					p_parent->GetObject<weak_ptr<ContextNode>>().lock());
-			if(tp == ystdex::type_id<shared_ptr<ContextNode>>())
+					p_parent->GetObject<weak_ptr<Environment>>().lock());
+			if(tp == ystdex::type_id<shared_ptr<Environment>>())
 				return ResolveShared(id,
-					p_parent->GetObject<shared_ptr<ContextNode>>());
+					p_parent->GetObject<shared_ptr<Environment>>());
 		}
 		return {};
 	});
@@ -1205,7 +1215,7 @@ void
 DefineWithRecursion(TermNode& term, ContextNode& ctx)
 {
 	DoDefine(term, [&](TermNode& formals){
-		RecursiveThunk gd(ctx.Record, formals);
+		RecursiveThunk gd(ctx.GetRecordRef(), formals);
 
 		ReduceChecked(term, ctx);
 		BindParameter(ctx, formals, term);
@@ -1222,7 +1232,7 @@ Undefine(TermNode& term, ContextNode& ctx, bool forced)
 		const auto& n(Access<TokenValue>(Deref(std::next(term.begin()))));
 
 		if(IsNPLASymbol(n))
-			term.Value = ctx.Record.Remove(n, forced);
+			term.Value = ctx.GetRecordRef().Remove(n, forced);
 		else
 			throw InvalidSyntax(ystdex::sfmt("Invalid token '%s' found as name"
 				" to be undefined.", n.c_str()));
@@ -1262,6 +1272,7 @@ void
 Lambda(TermNode& term, ContextNode& ctx)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
+		auto p_env(ctx.ShareRecord());
 		auto i(con.begin());
 		auto formals(share_move(Deref(++i)));
 
@@ -1269,7 +1280,7 @@ Lambda(TermNode& term, ContextNode& ctx)
 		// NOTE: %ToContextHandler implies strict evaluation of arguments in
 		//	%StrictContextHandler::operator().
 		return ToContextHandler(VauHandler({}, std::move(formals),
-			ctx.Record, ctx, term, {}));
+			share_copy(*p_env), ctx, term));
 	}, 1);
 }
 
@@ -1277,13 +1288,15 @@ void
 Vau(TermNode& term, ContextNode& ctx, bool move_env)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
+		auto p_env(ctx.ShareRecord());
 		auto i(con.begin());
 		auto formals(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
-		return FormContextHandler(VauHandler(std::move(
-			eformal), std::move(formals), ctx.Record, ctx, term, move_env));
+		return FormContextHandler(VauHandler(std::move(eformal),
+			std::move(formals),
+			move_env ? std::move(p_env) : share_copy(*p_env), ctx, term));
 	}, 2);
 }
 
@@ -1296,14 +1309,14 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx, bool move_env)
 		ReduceChecked(Deref(++i), ctx);
 
 		// XXX: List components are ignored.
-		auto e_val(std::move(Deref(i).Value));
-		auto& e(e_val.Access<Environment>());
+		auto p_env(LockEnvironment(Deref(i).Value));
 		auto formals(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
-		return FormContextHandler(VauHandler(std::move(
-			eformal), std::move(formals), e, ctx, term, move_env));
+		return FormContextHandler(VauHandler(std::move(eformal),
+			std::move(formals), move_env ? std::move(p_env) : share_copy(*p_env)
+			, ctx, term));
 	}, 3);
 }
 
@@ -1367,7 +1380,7 @@ Eval(TermNode& term, ContextNode& ctx)
 	RetainN(term, 2);
 
 	const auto i(std::next(term.begin()));
-	ContextNode c(ctx, Access<Environment>(Deref(std::next(i))));
+	ContextNode c(ctx, LockEnvironment(Deref(std::next(i)).Value));
 
 	LiftTerm(term, Deref(i));
 	return Reduce(term, c);
@@ -1384,7 +1397,7 @@ EvaluateUnit(TermNode& term, const REPLContext& ctx)
 void
 GetCurrentEnvironment(TermNode& term, ContextNode& ctx)
 {
-	term.Value = ValueObject(ctx.Record, OwnershipTag<>());
+	term.Value = ValueObject(ctx.WeakenRecord());
 }
 
 ReductionStatus

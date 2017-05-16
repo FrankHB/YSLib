@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4893
+\version r4895
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-05-10 23:54 +0800
+	2017-05-16 12:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,6 +409,9 @@ public:
 	//! \since build 353
 	DefDeCopyAssignment(PointerHolder)
 	DefDeMoveAssignment(PointerHolder)
+
+	//! \since build 788
+	DefGetter(ynothrow, const holder_pointer&, HolderPtr, p_held)
 
 	//! \since build 761
 	ystdex::any

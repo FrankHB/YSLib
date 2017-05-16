@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3473
+\version r3474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-05-13 18:50 +0800
+	2017-05-16 09:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,7 +338,7 @@ RunNPLFromStream(std::istream&& is)
 
 	LoadNPLContextForSHBuild(context);
 	// XXX: Overriding.
-	root.Record.Define("SHBuild_BaseTerminalHook_",
+	root.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
 		[](const string& n, const string& val){
 			// XXX: Errors from 'std::printf' and 'std::puts' are ignored.

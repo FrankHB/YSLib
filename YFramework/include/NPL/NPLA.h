@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1890
+\version r1991
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-05-15 03:43 +0800
+	2017-05-17 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,16 +48,25 @@ namespace NPL
 标记特定求值策略，储存于 TermNode 的 Value 数据成员中不直接表示宿主语言对象的类型。
 */
 
-//! \since build 598
-using YSLib::pair;
-//! \since build 598
-using YSLib::to_string;
 //! \since build 599
 using YSLib::MakeIndex;
 //! \since build 600
 using YSLib::NodeSequence;
 //! \since build 600
 using YSLib::NodeLiteral;
+//! \since build 788
+//@{
+using YSLib::enable_shared_from_this;
+using YSLib::make_shared;
+using YSLib::make_weak;
+using YSLib::observer_ptr;
+//! \since build 598
+using YSLib::pair;
+//! \since build 598
+using YSLib::to_string;
+using YSLib::shared_ptr;
+using YSLib::weak_ptr;
+//@}
 
 
 /*!
@@ -404,8 +413,7 @@ public:
 	NPLException(const char* str = "", YSLib::RecordLevel lv = YSLib::Err)
 		: LoggedEvent(str, lv)
 	{}
-	NPLException(const YSLib::string_view sv,
-		YSLib::RecordLevel lv = YSLib::Err)
+	NPLException(const string_view sv, YSLib::RecordLevel lv = YSLib::Err)
 		: LoggedEvent(sv, lv)
 	{}
 	DefDeCtor(NPLException)
@@ -492,7 +500,7 @@ public:
 class YF_API BadIdentifier : public NPLException
 {
 private:
-	YSLib::shared_ptr<string> p_identifier;
+	shared_ptr<string> p_identifier;
 
 public:
 	/*!
@@ -843,38 +851,48 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 \warning 非虚析构。
 \since build 787
 */
-class YF_API Environment : private ystdex::equality_comparable<Environment>
+class YF_API Environment : private ystdex::equality_comparable<Environment>,
+	public enable_shared_from_this<Environment>
 {
-private:
-	using map_t = ValueNode;
-	using ptr_t = YSLib::shared_ptr<map_t>;
-	using parent_ptr_t = YSLib::weak_ptr<Environment>;
-
-	//! \invariant \c ptr 。
-	ptr_t ptr;
-
 public:
+	//! \since build 788
+	//@{
+	using BindingMap = ValueNode;
+
+	mutable BindingMap Bindings{};
+	//@}
+
 	//! \todo 扩展为列表。
-	parent_ptr_t ParentPtr;
+	weak_ptr<Environment> ParentPtr{};
 
 	//! \brief 无参数构造：初始化空环境。
-	Environment();
+	DefDeCtor(Environment)
+	DefDeCopyMoveCtorAssignment(Environment)
 	/*!
 	\brief 构造：使用包含绑定节点的指针。
-	\throw invalid_argument 参数为空指针。
 	\note 不检查绑定的名称。
 	*/
+	//@{
 	explicit
-	Environment(YSLib::shared_ptr<yimpl(map_t)>);
-
-	DefDeCopyAssignment(Environment)
+	Environment(const BindingMap&& m)
+		: Bindings(m)
+	{}
+	explicit
+	Environment(BindingMap&& m)
+		: Bindings(std::move(m))
+	{}
+	//@}
+	//@}
 
 	friend PDefHOp(bool, ==, const Environment& x, const Environment& y)
 		ynothrow
-		ImplRet(x.ptr.get() == y.ptr.get())
+		ImplRet(x.Bindings == y.Bindings)
 
-	//! \brief 取名称绑定映射。
-	DefGetter(const ynothrow, yimpl(map_t)&, MapRef, *ptr)
+	/*!
+	\brief 取名称绑定映射。
+	\since build 788
+	*/
+	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
 
 	/*!
 	\pre 字符串参数的数据指针非空。
@@ -907,29 +925,53 @@ public:
 */
 class YF_API ContextNode
 {
-public:
+private:
 	/*!
-	\brief 环境记录。
-	\since build 787
+	\brief 环境记录指针。
+	\since build 788
 	*/
-	Environment Record;
+	shared_ptr<Environment> p_record{make_shared<Environment>()};
+
+public:
 	EvaluationPasses EvaluateLeaf{};
 	EvaluationPasses EvaluateList{};
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
 
 	DefDeCtor(ContextNode)
-	template<typename _tParam, typename... _tParams>
-	ContextNode(const ContextNode& ctx, _tParam&& arg, _tParams&&... args)
-		: Record(yforward(arg), yforward(args)...),
-		EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
-		EvaluateLiteral(ctx.EvaluateLiteral)
-	{}
-	DefDeCopyMoveCtorAssignment(ContextNode)
+	/*!
+	\throw std::invalid_argument 参数指针为空。
+	\since build 788
+	*/
+	ContextNode(const ContextNode&, shared_ptr<Environment>&&);
+	DefDeCopyCtor(ContextNode)
+	/*!
+	\brief 转移构造。
+	\post <tt>p_record && p_record->Bindings.empty()</tt> 。
+	\since build 788
+	*/
+	ContextNode(ContextNode&&);
 
-	//! \since build 787
-	DefGetter(const ynothrow, decltype(Record.GetMapRef()), BindingsRef,
-		Record.GetMapRef())
+	DefDeCopyMoveAssignment(ContextNode)
+
+	//! \since build 788
+	//@{
+	DefGetter(const ynothrow, Environment::BindingMap&, BindingsRef,
+		GetRecordRef().GetMapRef())
+	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
+
+	PDefH(shared_ptr<Environment>, ShareRecord, ) const
+		ImplRet(GetRecordRef().shared_from_this())
+
+	PDefH(weak_ptr<Environment>, WeakenRecord, ) const
+		// TODO: Blocked. Use C++1z %weak_from_this and throw-expression.
+		ImplRet(make_weak(ShareRecord()))
+
+	friend PDefH(void, swap, ContextNode& x, ContextNode& y) ynothrow
+		ImplExpr(swap(x.p_record, y.p_record), swap(x.EvaluateLeaf,
+			y.EvaluateLeaf), swap(x.EvaluateList, y.EvaluateList),
+			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard))
+	//@}
 };
 
 
@@ -955,45 +997,41 @@ inline PDefH(void, RegisterLiteralHandler, ContextNode& ctx, const string& name,
 //@}
 
 
-//! \brief 从指定上下文查找名称对应的节点。
+//! \since build 788
 //@{
-//! \since build 740
+//! \brief 从指定环境查找名称对应的节点。
+//@{
 template<typename _tKey>
 inline observer_ptr<ValueNode>
-LookupName(ContextNode& ctx, const _tKey& id) ynothrow
+LookupName(Environment& ctx, const _tKey& id) ynothrow
 {
-	return YSLib::AccessNodePtr(ctx.GetBindingsRef(), id);
+	return YSLib::AccessNodePtr(ctx.GetMapRef(), id);
 }
-//! \since build 730
 template<typename _tKey>
 inline observer_ptr<const ValueNode>
-LookupName(const ContextNode& ctx, const _tKey& id) ynothrow
+LookupName(const Environment& ctx, const _tKey& id) ynothrow
 {
-	return YSLib::AccessNodePtr(ctx.GetBindingsRef(), id);
+	return YSLib::AccessNodePtr(ctx.GetMapRef(), id);
 }
 //@}
 
-/*!
-\brief 从指定上下文取指定名称指称的值。
-\since build 730
-*/
+//! \brief 从指定环境取指定名称指称的值。
 template<typename _tKey>
 ValueObject
-FetchValue(const ContextNode& ctx, const _tKey& name)
+FetchValue(const Environment& env, const _tKey& name)
 {
-	return GetValueOf(NPL::LookupName(ctx, name));
+	return GetValueOf(NPL::LookupName(env, name));
 }
+//@}
 
-/*!
-\brief 从指定上下文取指定名称指称的值的指针。
-\since build 749
-*/
+//! \brief 从指定上下文取指定名称指称的值的指针。
 template<typename _tKey>
 observer_ptr<const ValueObject>
-FetchValuePtr(const ContextNode& ctx, const _tKey& name)
+FetchValuePtr(const Environment& env, const _tKey& name)
 {
-	return GetValuePtrOf(NPL::LookupName(ctx, name));
+	return GetValuePtrOf(NPL::LookupName(env, name));
 }
+//@}
 
 
 //! \since build 753

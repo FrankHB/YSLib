@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3211
+\version r3214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-05-14 03:32 +0800
+	2017-05-17 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -786,9 +786,9 @@ ReduceLeafToken(TermNode&, ContextNode&);
 只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
 被处理的保留名称应指定重定向名称到有限个不同的上下文。解析时不对循环重定向进行检查。
 支持的重定向项包括：
-YSLib::observer_ptr<const ContextNode> 指向无所有权的重定向上下文；
-YSLib::weak_ptr<ContextNode> 指向可能具有共享所有权的重定向上下文；
-YSLib::shared_ptr<ContextNode> 指向具有共享所有权的重定向上下文。
+observer_ptr<const Environment> 指向无所有权的重定向上下文；
+weak_ptr<Environment> 指向可能具有共享所有权的重定向上下文；
+shared_ptr<Environment> 指向具有共享所有权的重定向上下文。
 若重定向可能具有共享所有权的上下文失败，则表示资源访问错误，如构成循环引用。
 抛出异常的类型为 NPLException 或派生类，其类型未指定。
 */

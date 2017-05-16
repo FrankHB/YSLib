@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1105
+\version r1135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-05-13 17:46 +0800
+	2017-05-16 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -472,28 +472,14 @@ ReduceToList(TermNode& term) ynothrow
 }
 
 
-Environment::Environment()
-	: ptr(make_shared<ValueNode>())
-{}
-Environment::Environment(shared_ptr<ValueNode> p)
-	: ptr([&]{
-		if(p)
-			return p;
-		throw std::invalid_argument(
-			"Empty binding pointer found for environment construction.");
-	}())
-{}
-
 void
 Environment::Define(string_view id, ValueObject&& vo, bool forced)
 {
-	auto& m(GetMapRef());
-
 	YAssertNonnull(id.data());
 	if(forced)
 		// XXX: Self overwriting is possible.
-		swap(m[id].Value, vo);
-	else if(!m.AddValue(id, std::move(vo)))
+		swap(Bindings[id].Value, vo);
+	else if(!Bindings.AddValue(id, std::move(vo)))
 		throw BadIdentifier(id, 2);
 }
 
@@ -501,7 +487,7 @@ void
 Environment::Redefine(string_view id, ValueObject&& vo, bool forced)
 {
 	YAssertNonnull(id.data());
-	if(const auto p = AccessNodePtr(GetMapRef(), id))
+	if(const auto p = AccessNodePtr(Bindings, id))
 		swap(p->Value, vo);
 	else if(!forced)
 		throw BadIdentifier(id, 0);
@@ -511,11 +497,29 @@ bool
 Environment::Remove(string_view id, bool forced)
 {
 	YAssertNonnull(id.data());
-	if(GetMapRef().Remove(id))
+	if(Bindings.Remove(id))
 		return true;
 	if(forced)
 		return {};
 	throw BadIdentifier(id, 0);
+}
+
+
+ContextNode::ContextNode(const ContextNode& ctx,
+	shared_ptr<Environment>&& p_rec)
+	: p_record([&]{
+		if(p_rec)
+			return std::move(p_rec);
+		throw std::invalid_argument(
+			"Invalid environment record pointer found.");
+	}()),
+	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
+	EvaluateLiteral(ctx.EvaluateLiteral)
+{}
+ContextNode::ContextNode(ContextNode&& ctx)
+	: ContextNode()
+{
+	swap(*this, ctx);
 }
 
 } // namespace NPL;
