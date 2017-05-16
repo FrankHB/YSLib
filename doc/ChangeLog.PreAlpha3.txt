@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5645
+\version r5646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2017-04-02 16:00 +0800
+	2017-05-17 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1657,7 +1657,7 @@ b352
 			/ "function template %get" -> "non-template function",
 			(
 			/ "constructors interface" ^ $dep_from "tag type %holder_tag";
-			/ $impl ^ "holders" $dep_from "%any_holder_hanlder"
+			/ $impl ^ "holders" $dep_from "%any_holder_handler"
 			)
 		)
 	),

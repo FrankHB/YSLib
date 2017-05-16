@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7146
+\version r7292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-05-15 03:43 +0800
+	2017-05-17 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,106 @@ $import $HISTORY;
 
 $now
 (
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ $revert_ex(b787) "formal parameter tree binding"
+						@ "vau handler, recursive thunk" $dep_from
+						("%Environment" @ %NPLA) ^ "%ValueObject::MakeMoveCopy"
+						~ "%ValueObject::CopyMove",
+						// For safety consideration. Now implicit captured \
+							reference would not cause dangling references.
+					(
+					/ $forced $revert_ex(b787) "exposed environment as \
+						%shared_ptr<Environment> or %weak_ptr<Environment> \
+						type (defaulted to weak pointer) instead of object \
+						reference on %Envrionment" @ "functions \
+						%(VauWithEnvironment, Eval, GetCurrentEnvironment), \
+						vau handler"
+						$dep_from ("%(Environment, ContextNode)" @ %NPLA);
+					* $comp "environment leaked by cyclic references" $since
+						b787
+					)
+				),
+				* $re_add(b785) DLDI "missing 'ystdex::' before 'sfmt'"
+					@ "argument of exception object constructor"
+					@ "function %ResolveName" $since b780,
+				(
+				/ $forced DLDI "function %ResolveName" $dep_from %NPLA;
+				/ "weak pointer binding of parent" @ "functions %(ResolveName, \
+					Lambda, Vau), vau handler" ^ $dep
+					(("%Environment" ~ "%ContextNode") @ %NPLA)
+					$= (/ $impl ^ $dep_from
+						"%ContextNode::(ShareRecord, WeakenRecord)" @ %NPLA)
+				)
+			),
+			/ %NPLA $=
+			(
+				+ 'using YSLib::enable_shared_from_this;',
+				+ 'using YSLib::make_shared;',
+				+ 'using YSLib::make_weak;',
+				+ 'using YSLib::observer_ptr;',
+				+ 'using YSLib::shared_ptr;',
+				+ 'using YSLib::weak_ptr;',
+				/ $lib "parameter type" @ "constructor#2 %NPLException"
+					-> 'string_view' ~ 'YSLib::string_view',
+				(
+				/ @ "class %Environment" $=
+				(
+					+ "base %enable_shared_from_this<Environment>"
+						$dep_from 'using YSLib::enable_shared_from_this;',
+					(
+					+ "alias %BindingMap";
+					/ "private shared binding map, function %GetMapRef"
+						-> "data member 'mutable BindingMap Bindings{};'";
+					(
+					/ $forced "defaulted default constructor";
+					/ 'DefDeCopyCtorAssignment(Environment)'
+						-> 'DefDeCopyMoveCtorAssignment(Environment)'
+					),
+					/ $forced DLDI "functions %(GetMapRef, operator==)",
+					/ DLDI "simplified functions %(Define, Redefine, \
+						Remove)"
+					)
+				);
+				/ @ "class %ContextNode" $=
+				(
+					(
+					/ "data member %Record" -> "private shared pointer data \
+						member for environment";
+					/ $forced "constructor template" -> "non-template \
+						constructor with shared pointer parameter",
+					(
+					+ "friend function %swap",
+					/ $forced "defaulted move constructor"
+						-> "non-defaulted move constructor" ^ "%swap"
+						// To keep nonnull invariant on private pointer.
+					)
+					);
+					/ $forced "function %GetBindingsRef",
+					+ "functions %(ShareRecord; WeakenRecord)"
+				),
+				/ "parameters" @ "function templates %(LookupName, \
+					%FetchValue, FetchValuePtr)" ^ "%Environment"
+					~ "%ContextNode"
+				),
+			),
+			/ $re_ex(b787) $forced DLDI "function %LoadNPLContextForSHBuild"
+				@ %Dependency $dep_from %NPLA
+		),
+		+ "function %GetHolderPtr" @ "class template %PointerHolder"
+			@ %YSLib.Core.YObject
+	),
+	/ $re_ex(b787) $forced DLDI %SHBuild.Main $dep_from %YFramework.NPL.NPLA
+),
+
+b787
+(
 	+ "function template %copy_or_move" @ %YBase.YStandardEx.Utilities,
 	/ %YFramework $=
 	(
@@ -45,52 +145,51 @@ $now
 		),
 		/ %NPL $=
 		(
-			/ %NPLA1 $=
+			/ @ "namespace %Forms" @ %NPLA1 $=
 			(
-				/ @ "namespace %Forms" $=
+				/ @ "class templates %(UnaryExpansion, UnaryAsExpansion, \
+					BinaryExpansion, BinaryAsExpansion)" $=
 				(
-					/ "formal parameter tree binding" @ "vau handler, \
-						recursive thunk" ^ $dep_from ("%ValueObject::CopyMove"
-						@ %YSLib.Core.YObject);
-						// %ReduceCheckedClosure is also in the scope. It \
-							needs to copy or move the target, not the \
-							reference, to keep the lifetime sane, as required \
-							by %EvaluateIdentifier.
-					/ $comp $re_ex(b786)
-						@ "binding for vau handler prameter tree" $=
-					(
-						* $revert_ex(b785) "inconsistency between list and \
-							leaf for traling sequence elements" $since b785,
-						* "inconsistency between non trailing sequence \
-							elements and traling sequence elements" $since b777
-					),
-					/ @ "class templates %(UnaryExpansion, UnaryAsExpansion, \
-						BinaryExpansion, BinaryAsExpansion)" $=
-					(
-						+ "constructor";
-						* "missing %operator!=" $since b773
-							$= (+ "friend function %operator!="
-								^ "%ystdex::examiners::equal_examiner")
-					),
-					(
-					/ DLDI "all function templates %(RegisterStrictUnary, \
-						RegisterStrictBinary)" ^ $dep_from ("constructor"
-						@ "class templates %(UnaryExpansion, UnaryAsExpansion, \
-						BinaryExpansion, BinaryAsExpansion)")
-						~ "brace-initializer",
-					/ DLDI "functions %(DefineWithRecursion, Undefine, Vau, \
-						VauWithEnvironment, Lambda, SetupTraceDepth, \
-						BindParameter)" $dep_from
-						("%(RemoveIdentifier, ContextNode)" @ %NPLA);
-					/ "supported environment shared passing directly",
-					/ "first-class environment type" -> "%Environment"
-						~ "%ContextNode" $=
-					(
-						+ "2nd parameter of type 'ContextNode&'"
-							@ "function %Eval",
-						/ $impl "vau handler, functions %(VauWithEnvironment, \
-							Eval, GetCurrentEnvironment)"
-					)
+					+ "constructor";
+					* "missing %operator!=" $since b773
+						$= (+ "friend function %operator!="
+							^ "%ystdex::examiners::equal_examiner")
+				),
+				(
+				/ DLDI "all function templates %(RegisterStrictUnary, \
+					RegisterStrictBinary)" ^ $dep_from ("constructor"
+					@ "class templates %(UnaryExpansion, UnaryAsExpansion, \
+					BinaryExpansion, BinaryAsExpansion)")
+					~ "brace-initializer",
+				/ DLDI "functions %(DefineWithRecursion, Undefine, Vau, \
+					VauWithEnvironment, Lambda, SetupTraceDepth, BindParameter)"
+					$dep_from ("%(RemoveIdentifier, ContextNode)" @ %NPLA);
+				/ "supported environment shared passing directly",
+				/ "first-class environment type" -> "%Environment"
+					~ "%ContextNode" $=
+				(
+					+ "2nd parameter of type 'ContextNode&'"
+						@ "function %Eval",
+					/ $impl "vau handler, functions %(VauWithEnvironment, \
+						Eval, GetCurrentEnvironment)"
+				),
+				(
+				/ "formal parameter tree binding" @ "vau handler, \
+					recursive thunk" $dep_from ("%Environment" @ %NPLA)
+					^ $dep_from ("%ValueObject::CopyMove"
+					@ %YSLib.Core.YObject);
+					// %ReduceCheckedClosure is also in the scope. It \
+						needs to copy or move the target, not the \
+						reference, to keep the lifetime sane, as required \
+						by %EvaluateIdentifier.
+				/ $comp $re_ex(b786)
+					@ "binding for vau handler prameter tree" $=
+				(
+					* $revert_ex(b785) "inconsistency between list and \
+						leaf for traling sequence elements" $since b785,
+					* "inconsistency between non trailing sequence \
+						elements and traling sequence elements" $since b777
+				)
 				)
 			),
 			/ %NPLA $=
@@ -112,7 +211,7 @@ $now
 				)
 			),
 			/ $forced DLDI "function %LoadNPLContextForSHBuild" @ %Dependency
-				$dep_from "%DefineValue"
+				$dep_from ("%DefineValue" @ %NPLA)
 		)
 	),
 	/ $forced DLDI %SHBuild.Main $dep_from
@@ -249,7 +348,7 @@ b785
 							%ReferenceValue called.
 					+ "functions %(Wrap, WrapOnce, Unwrap)"
 				),
-				/ DLDI "missing 'ystdex::' before 'sfmt'" @ "argument of \
+				* DLDI "missing 'ystdex::' before 'sfmt'" @ "argument of \
 					exception object constructor" @ "function %ReduceCombined"
 					$since b774,
 				* "symbol reduction result evaluated again"
