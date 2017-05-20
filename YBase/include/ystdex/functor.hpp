@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r849
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2016-12-29 12:09 +0800
+	2017-05-18 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ struct has_mem_is_transparent
 {};
 
 /*!
-\ingroup metafunction
+\ingroup metafunctions
 \brief 移除不满足包含 is_transparent 成员类型比较器的重载。
 \sa enable_if_t
 \sa has_mem_is_transparent

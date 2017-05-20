@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1991
+\version r1996
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-05-17 01:11 +0800
+	2017-05-19 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -862,8 +862,11 @@ public:
 	mutable BindingMap Bindings{};
 	//@}
 
-	//! \todo 扩展为列表。
-	weak_ptr<Environment> ParentPtr{};
+	/*!
+	\since build 789
+	\todo 扩展为列表。
+	*/
+	ValueObject ParentPtr{};
 
 	//! \brief 无参数构造：初始化空环境。
 	DefDeCtor(Environment)

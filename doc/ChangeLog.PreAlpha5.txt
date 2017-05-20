@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15339
+\version r15340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2017-04-29 10:43 +0800
+	2017-05-21 06:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -7850,7 +7850,7 @@ b553
 				@ %Adaptor.YAdaptor,
 				// Though it makes more difficult to locate wrong code by \
 					line, debugger is not effected because the control in \
-					terminate hanlder can be broke.
+					terminate handler can be broke.
 			/ %Core $=
 			(
 				/ @ "constructor template %GEventPointerWrapper" @ %YEvent $=

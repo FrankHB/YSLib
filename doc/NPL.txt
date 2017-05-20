@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r2355
+\version r2367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2017-05-16 16:09 +0800
+	2017-05-17 04:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -763,14 +763,17 @@ TermNode 中存储的值可引用其它节点共享部分数据形成 DAG（Dire
 
 @5.3.3.3 上下文数据结构：
 上下文(@4.6.1) 使用 ContextNode 类表示。
-ContextNode 保存环境中的对象，提供求值环境(@4.6.1.1) 的表示。
-环境为 Environment 类，其中共享绑定映射。
+ContextNode 保存环境中的对象，提供求值环境(@4.6.1.1) 的表示。后者以 NPL::Environment 类表示，其中包含绑定映射。
+上下文对环境具有共享所有权(@5.2.2) 。
+通过环境对象的引用可以取指向它的 shared_ptr 实例。
+一般表达式值中根据是否需要具有所有权分别使用 weak_ptr<Environment> 或 shared_ptr<Environment> 的宿主值(@5.3.3.4) 表示环境的引用。
 相关 API 参见 @5.4.8 。
 
 @5.3.3.4 表达式的表示和求值：
 TermNode 的子节点是子项的表示(@2.2) ，通常作为子表达式(@3.4.2) 的实现。
 TermNode 的 Value 数据成员是 ValueObject 类型的对象，用于表示对象语言（ NPLA 实现）中表达式或对象储存的值，或者包装的中间值(@4.4.4.2) 。
 NPLA 表达式或其求值得到的值以若干个 TermNode 、 TermNode 子项或 Value 数据成员表示；其中被求值的表达式应总能使用一个 TermNode 表示。
+表示值的 TermNode 是宿主语言对象具有的特定动态类型的值是宿主值(hosted value) ，可包括 Value 数据成员和子节点中的各个 Value 数据成员中所有被擦除类型存储的对象。典型情况下， Value 数据成员对应单一的宿主值。
 NPLA 表达式求值取得的范式(@4.4.3) 总是其表示（是一个 TermNode ）中的子项或 Value 数据成员之一，详见 @5.4.4.4.2 。
 TermNode 可能不直接表示表达式，如表示中间值(@5.3.3.5) 的情形。 NPLA 的范式不会使用这些形式表示。
 作为 @4 的扩展，作用于非表达式表示的项上的规约规则不是求值规则。
@@ -802,7 +805,7 @@ DelayedTerm 类型表示被延迟求值的项的值，可使用 TermNode 类型�
 扩展中间值是其它由派生实现定义的中间值。
 
 @5.3.3.6 值所有权：
-不同所有权的机制由 Value 数据结构（具有 ValueObject 类型）的 API 提供。
+不同所有权的机制由 Value 数据成员（具有 ValueObject 类型）相关的 API 提供。
 所有权机制和中间值(@5.3.3.5) 正交。
 默认使用的 ValueObject 使用值的持有者 YSLib::ValueHolder ，直接作为对象的表示。
 使用持有者 YSLib::RefHolder 的实例的间接值(indirect value) ，提供和非间接值不同的对象所有权和附加操作。
@@ -810,13 +813,14 @@ DelayedTerm 类型表示被延迟求值的项的值，可使用 TermNode 类型�
 间接值可用于代替非间接值，避免求值时修改 ContextNode(@5.3.3.3) 所有的非临时对象(@5.2.2) 的所有权。
 间接值可实现和 C++ 引用类型表达式类似的行为。
 NPLA 提供引入间接值的 API ，参见 @5.4.3.3 。
+实现通过 Value 数据成员以外的机制也可隐含固定（不通过用户代码修改定制）的所有权关系，如上下文和环境(@5.3.3.3) 。
 
 @5.4 NPLA 公共接口：
 部分实现的功能由公共 API 的形式提供，以便派生实现复用。
 
 @5.4.1 节点(node) 操作：
-NPLA1 基于 ValueNode 提供了 TermNode(@5.3.3.2) 和 ContextNode(@5.3.3.3) 的操作的公共实现。
-ContextNode 作为上下文的实现，其中包含的数据成员 Environment 是环境(@4.6.1.1) 的实现，保存了名称和对应实体的映射。
+NPLA1 基于 ValueNode 提供了 TermNode 类(@5.3.3.2) 和 ContextNode 类(@5.3.3.3) 的操作的公共实现。
+ContextNode 作为上下文的实现，其中包含的部分数据成员是环境(@4.6.1.1) 的实现。
 尽管暂时未依赖节点性质，当前环境对象的类型和 TermNode 相同，也是 ValueNode 的别名。这里的类型等价性是实现细节，不应被用户代码依赖。
 
 @5.4.1.1 项节点结构分类：
@@ -1001,7 +1005,9 @@ NPL::LiteralPasses ：字面量合并遍，处理已知为字面量的项的求�
 NPL::GuardPasses ：作用域守护遍，处理固定出口逻辑的遍，对应作用域守护类型 NPL::Guard 。最后一个作用域守护的值被作为调用的结果。
 
 @5.4.8 上下文处理：
-类 ContextNode 表示上下文(@5.3.3.3) ，包含环境等数据成员。
+类 ContextNode 表示上下文(@5.3.3.3) 。
+只使用其中包含的环境时，可使用 ContextNode 和 Environment 的 API 访问环境的数据。
+需要上下文时，可使用现有上下文，或通过现有上下文和环境创建新的上下文。
 
 @5.4.8.1 处理器(handler) ：
 基于使用 ContextNode 作为输入的事件处理器（ YSLib::GHEvent 的实例），可以组合不同的操作，用于实现规约(@5.4.4) 。

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3214
+\version r3216
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-05-17 00:03 +0800
+	2017-05-17 04:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -785,7 +785,7 @@ ReduceLeafToken(TermNode&, ContextNode&);
 否则，名称解析失败。
 只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
 被处理的保留名称应指定重定向名称到有限个不同的上下文。解析时不对循环重定向进行检查。
-支持的重定向项包括：
+支持的重定向项的宿主值的类型包括：
 observer_ptr<const Environment> 指向无所有权的重定向上下文；
 weak_ptr<Environment> 指向可能具有共享所有权的重定向上下文；
 shared_ptr<Environment> 指向具有共享所有权的重定向上下文。
@@ -1528,6 +1528,7 @@ EvaluateUnit(TermNode&, const REPLContext&);
 \warning 返回的值无所有权，应注意在生存期内使用以保证内存安全。
 \since build 785
 
+取指向当前环境的指针。取得的宿主值类型为 weak_ptr<Environment> 。
 参考调用文法：
 () get-current-environment
 */

@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r470
+\version r602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-05-16 23:53 +0800
+	2017-05-21 05:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,10 +241,62 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		}
 		return ReductionStatus::Clean;
 	};
-	// NOTE: Primitive functions including binding constructs.
-	RegisterStrict(root, "eval", Eval);
-	RegisterForm(root, "$def!", DefineWithNoRecursion);
+	// NOTE: This is named after '#inert' in Kernel, but essentially
+	//	unspecified in NPLA.
+	root.GetRecordRef().Define("inert", ValueToken::Unspecified, {});
+	// NOTE: Primitive features, listed as RnRK, except mentioned above.
+/*
+	The primitives are provided here to maintain acyclic dependencies on derived
+		forms, also for simplicity of semantics.
+	The primitives are listed in order as Chapter 4 of Revised^-1 Report on the
+		Kernel Programming Language. Derived forms are not ordered likewise.
+	There are some difference of listed primitives.
+	See $2017-02 @ %Documentation::Workflow::Annual2017.
+*/
+	RegisterStrict(root, "eqv?", EqualValue);
+	// NOTE: Like Scheme but not Kernel, %'$if' treats non-boolean value as
+	//	'#f', for zero overhead principle.
 	RegisterForm(root, "$if", If);
+	RegisterStrictUnary(root, "null?", IsEmpty);
+	// NOTE: Though NPLA does not use cons pairs, corresponding primitives are
+	//	still necessary.
+	// NOTE: Since NPL has no con pairs, it only added head to existed list.
+	RegisterStrict(root, "cons", Cons);
+	// NOTE: The applicative 'copy-es-immutable' is unsupported currently due to
+	//	different implementation of control primitives.
+	RegisterStrict(root, "eval", Eval);
+	// NOTE: This is now be primitive since in NPL environment capture is more
+	//	basic than vau.
+	// NOTE: 'eq? (() get-current-environment) (() (wrap ($vau () e e)))' shall
+	//	be '#t'.
+	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
+	RegisterStrict(root, "copy-environment",
+		[&](TermNode& term, ContextNode& ctx){
+		auto p_env(make_shared<NPL::Environment>());
+		auto& e(p_env->GetMapRef());
+
+		for(const auto& b : ctx.GetBindingsRef())
+			e.emplace(b.CreateWith(ystdex::id<>()), b.GetName(), b.Value);
+		if(const auto p = AccessPtr<weak_ptr<NPL::Environment>>(
+			ctx.GetRecordRef().ParentPtr))
+			if(const auto p_parent = p->lock())
+				p_env->ParentPtr = share_copy(*p_parent);
+		term.Value = ValueObject(std::move(p_env));
+	});
+	RegisterStrict(root, "make-environment",
+		[](TermNode& term, ContextNode& ctx){
+		// FIXME: Parent environments?
+		GetCurrentEnvironment(term, ctx);
+	});
+	// NOTE: Environment mutation is optional in Kernel and supported here.
+	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
+	//	parameter as unevaluated operands. For zero overhead principle, the form
+	//	without recursion (named '$def!') is preferred. The recursion variant
+	//	(named '$defrec!') is exact '$define!' in Kernel, and is used only when
+	//	necessary.
+	RegisterForm(root, "$deflazy!", DefineLazy);
+	RegisterForm(root, "$def!", DefineWithNoRecursion);
+	RegisterForm(root, "$defrec!", DefineWithRecursion);
 	RegisterForm(root, "$lambda", Lambda);
 	RegisterForm(root, "$vau", ystdex::bind1(Vau, _2, false));
 	RegisterStrictUnary<ContextHandler>(root, "unwrap", Unwrap);
@@ -252,17 +304,84 @@ LoadNPLContextForSHBuild(REPLContext& context)
 #if true
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
+	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
+	RegisterForm(root, "$sequence", ReduceOrdered);
 	RegisterStrict(root, "list", ReduceToList);
 #else
 	// NOTE: They can be derived as Kernel does.
+	// XXX: The current environment is better to be saved by
+	//	'$lambda () () get-current-environment'.
+	// TODO: Avoid redundant environment copy.
+	context.Perform(u8R"NPL(
+		$def! $sequence
+		(
+			wrap
+			(
+				$vau ($seq2) #ignore
+				(
+					$seq2
+					(
+						$defrec! $aux $vaue! (() copy-environment) (head .tail)
+							env
+						(
+							$if (null? tail)
+							(eval head env)
+							(
+								$seq2 (eval head env)
+									(eval (cons $aux tail) env)
+							)
+						)
+					)
+					(
+						$vaue! (() copy-environment) body env
+						(
+							$if (null? body)
+							inert
+							(eval (cons $aux body) env)
+						)
+					)
+				)
+			)
+		)
+		(
+			$vau (first second) env
+				(wrap ($vau #ignore #ignore (eval second env))) (eval first env)
+		)
+	)NPL");
 	context.Perform(u8R"NPL($def! list wrap ($vau x #ignore x))NPL");
 //	context.Perform(u8R"NPL($def! list $lambda x x)NPL");
 #endif
 	context.Perform(u8R"NPL(
-		$def! $set! $vau (exp1 formals .exp2) env eval
+		$def! apply
 		(
-			list $def! formals (unwrap eval) exp2 env
-		) (eval exp1 env);
+			$lambda (appv arg .opt)
+			(
+				eval (cons () (cons (unwrap appv) arg))
+					($if (null? opt) (() make-environment) (head opt))
+			)
+		);
+		$defrec! list* $lambda (head .tail)
+			$if (null? tail) head
+				(cons head (apply list* tail));
+		$defrec! $cond $vau clauses env
+		(
+			$sequence
+			(
+				$def! aux $lambda ((test .body) .clauses)
+					$if (eval test env)
+				(apply (wrap $sequence) body env)
+				(apply (wrap $cond) clauses env)
+			)
+			(
+				$if (null? clauses)
+				inert
+				(apply aux clauses)
+			)
+		);
+		$def! $set! $vau (expr1 formals .expr2) env eval
+		(
+			list $def! formals (unwrap eval) expr2 env
+		) (eval expr1 env);
 		$def! $defl! $vau (f formals .body) env eval
 		(
 			list $set! env f $lambda formals body
@@ -272,9 +391,15 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			list $set! env $f $vau formals senv body
 		) env;
 	)NPL");
+	// NOTE: Use of 'eqv?' is more efficient than '$if'.
+	context.Perform(u8R"NPL(
+		$defl! not? (x) eqv? x #f;
+		$defv! $when (test .vexpr) env $if (eval test env)
+			(eval (list* $sequence vexpr) env);
+		$defv! $unless (test .vexpr) env $if (not? (eval test env))
+			(eval (list* $sequence vexpr) env);
+	)NPL");
 	RegisterForm(root, "$or?", Or);
-	RegisterStrict(root, "eqv?", EqualValue);
-	context.Perform("$defl! not (x) eqv? x #f");
 	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
 		ystdex::bind1(std::mem_fn(&TermNode::Value))));
 	// NOTE: I/O library.
