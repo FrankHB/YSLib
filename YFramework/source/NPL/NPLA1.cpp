@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4053
+\version r4092
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-05-17 01:08 +0800
+	2017-05-19 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,10 +149,6 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 //! \since build 685
 namespace
 {
-
-// TODO: Add check for reserved identifier clash?
-//! \since build 777
-yconstexpr const auto ParentContextName("__$@_parent");
 
 //! \since build 779
 yconstfn_relaxed bool
@@ -300,8 +296,8 @@ private:
 				// TODO: The symbol can be rebound?
 				env.GetMapRef()[n].SetContent(TermNode::Container(),
 					ValueObject(ystdex::any_ops::use_holder, ystdex::in_place<
-					PointerHolder<ContextHandler, PointerHolderTraits<
-					weak_ptr<ContextHandler>>>>, store[n] = p_d));
+					HolerFromPointer<weak_ptr<ContextHandler>>>,
+					store[n] = p_d));
 			});
 		}
 		else
@@ -327,8 +323,7 @@ private:
 
 					Deref(p_strong) = std::move(v.GetObject<ContextHandler>());
 					v = ValueObject(ystdex::any_ops::use_holder,
-						ystdex::in_place<PointerHolder<ContextHandler,
-						PointerHolderTraits<shared_ptr_t>>>,
+						ystdex::in_place<HolerFromPointer<shared_ptr_t>>,
 						std::move(p_strong));
 				}
 			});
@@ -493,10 +488,9 @@ public:
 				p_context.use_count(), formals.size());
 			YAssert(&local != &Deref(p_context),
 				"Self reference of context found.");
-			// NOTE: Static context is bound as base of local context by
-			//	setting parent context pointer.
-			local_m.AddValue(ParentContextName,
-				Deref(p_context).WeakenRecord());
+			// NOTE: Static environment is bound as base of local context by
+			//	setting parent environment pointer.
+			local.GetRecordRef().ParentPtr = Deref(p_context).WeakenRecord();
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
@@ -956,19 +950,18 @@ ResolveName(const ContextNode& ctx, string_view id)
 	}, [&, id]() -> observer_ptr<const Environment>{
 		if((p = LookupName(env_ref, id)))
 			return {};
-		if(const auto p_parent = FetchValuePtr(env_ref, ParentContextName))
-		{
-			const auto& tp(p_parent->GetType());
 
-			if(tp == ystdex::type_id<observer_ptr<const Environment>>())
-				return p_parent->GetObject<observer_ptr<const Environment>>();
-			if(tp == ystdex::type_id<weak_ptr<Environment>>())
-				return ResolveShared(id,
-					p_parent->GetObject<weak_ptr<Environment>>().lock());
-			if(tp == ystdex::type_id<shared_ptr<Environment>>())
-				return ResolveShared(id,
-					p_parent->GetObject<shared_ptr<Environment>>());
-		}
+		auto& parent(env_ref.get().ParentPtr);
+		const auto& tp(parent.GetType());
+
+		if(tp == ystdex::type_id<observer_ptr<const Environment>>())
+			return parent.GetObject<observer_ptr<const Environment>>();
+		if(tp == ystdex::type_id<weak_ptr<Environment>>())
+			return ResolveShared(id,
+				parent.GetObject<weak_ptr<Environment>>().lock());
+		if(tp == ystdex::type_id<shared_ptr<Environment>>())
+			return ResolveShared(id,
+				parent.GetObject<shared_ptr<Environment>>());
 		return {};
 	});
 	return p;
@@ -1102,18 +1095,30 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 			{
 				auto& b(Deref(first));
 
-				// XXX: Moved. This is copy elision in object language.
+#if true
 				con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
 					std::move(b.Value));
+#else
+				// XXX: Moved. This is copy elision in object language.
+				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
+					MakeIndex(con), b.Value.MakeMoveCopy());
+#endif
 			}
 			m.emplace(std::move(con), id);
 		}
-	}, [&](const TokenValue& n, TermNode&& v){
+	}, [&](const TokenValue& n, TermNode&& b){
 		CheckParameterLeafToken(n, [&]{
+#if true
+			// NOTE: The operands should have been evaluated. Children nodes in
+			//	arguments retained are also transferred.
+			m[n].SetContent(b.CreateWith(&ValueObject::MakeMoveCopy),
+				b.Value.MakeMoveCopy());
+#else
 			// NOTE: The symbol can be rebound.
 			// FIXME: Correct key of node when not bound?
 			// XXX: Moved. This is copy elision in object language.
-			m[n].SetContent(std::move(v.GetContainerRef()), std::move(v.Value));
+			m[n].SetContent(std::move(b.GetContainerRef()), std::move(b.Value));
+#endif
 		});
 	});
 }

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7292
+\version r7349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-05-17 01:12 +0800
+	2017-05-21 06:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		+ "metafunction %HolerFromPointer" @ %YSLib.Core.YObject,
+		/ %NPL $=
+		(
+			/ @ "namespace %Forms" @ %NPLA1 $=
+			(
+				(
+				/ $revert_ex(b786) "vau handler merged to function \
+					%BindParameter";
+				/ $comp "functions %(DefineLazy, DefineWithNoRecursion, \
+					DefineWithRecursion)" ^ "binding with copy initialization"
+					~ "binding with elision",
+					// This is safer and better consistent with vau handlers \
+						for definitions. Otherwise, %EvaluateIdentifier would \
+						be too easy to introducing dangling references (though \
+						easy to work around by explicit copy).
+				),
+				/ DLDI "simplified function %DefineWithRecursion" ^ $dep_from
+					("%HolerFromPointer" @ %YSLib.Core.YObject),
+				(
+				/ "parent environment" @ "vau handler" ^ $dep_from
+					("%Environment::ParentPtr" @ NPLA) ~ "reserved identifier";
+				/ $forced "simplified parent environment access"
+					@ "function %ResolveName"
+				)
+			),
+			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				+ "applicatives %('null?', cons, 'make-environment'; apply)",
+				/ "applicative %not" => 'not?',
+				+ "object %inert",
+				(
+				+ "operative '$defrec!'";
+				(
+				+ "applicative 'list*'";
+				+ "operatives ('$when', '$unless'))"
+				)
+				),
+				(
+				+ "applicatives ('get-current-environment', \
+					'copy-environment')";
+				+ "operative '$sequence',
+				+ "operative '$cond'" $dep_from "%inert"
+				),
+				+ "operative '$deflazy!'"
+			),
+			/ "type" @ "%Environment::ParentPtr" @ %NPLA -> "%ValueObject"
+				~ "%weak_ptr<Environment>"
+		),
+	),
+	* DD "'\ingroup' command" @ "Doxygen comments" @ "metafunction \
+		%enable_if_transparent_t" @ %YBase.YStandardEx.Functor $since b679
+),
+
+b788
 (
 	/ %YFramework $=
 	(

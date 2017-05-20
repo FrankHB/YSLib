@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4895
+\version r4910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-05-16 12:16 +0800
+	2017-05-18 09:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,16 +122,18 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 		/*!
 		\brief 创建引用的值的副本。
 		
-		派生实现应保证持有对应的值是当前持有值的副本，
-		当且仅当当前持有者不是引用；否则，从引用的值复制。
-		创建的值可能和当前持有值共享所有权。
+		使用当前持有者引用的值创建副本。
+		派生实现应保证持有对应的值是当前持有值的不同副本，
+			或和当前持有值共享所有权的同一副本。
+		若当前持有者是引用，从引用的值复制。
 		*/
 		Copy,
 		/*!
 		\brief 创建引用的值转移的副本。
 		
-		派生实现应保证持有对应的值从当前持有的值转移，
-		当且仅当当前持有者不是引用；否则，从引用的值转移。
+		使用当前持有者引用的值创建转移的副本。
+		派生实现应保证持有对应的值从当前持有的值转移。
+		若当前持有者是引用，从引用的值转移。
 		*/
 		Move
 	};
@@ -446,6 +448,15 @@ public:
 		ImplRet(traits::is_owner(p_held)
 			? ystdex::type_id<_type>() : ystdex::type_id<void>())
 };
+
+/*!
+\ingroup metafunctions
+\relates PointerHolder
+\since build 789
+*/
+template<typename _tPointer>
+using HolerFromPointer = PointerHolder<typename PointerHolderTraits<
+	_tPointer>::element_type, PointerHolderTraits<_tPointer>>;
 
 
 /*!
