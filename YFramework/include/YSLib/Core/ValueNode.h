@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3140
+\version r3158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-05-10 23:46 +0800
+	2017-05-27 00:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,7 +285,10 @@ public:
 	DefGetter(ynothrow, Container&, ContainerRef, container)
 	DefGetter(const ynothrow, const string&, Name, name)
 
-	//! \warning 设置子节点的容器可能导致未定义行为。
+	/*!
+	\warning 设置子节点的容器可能导致未定义行为。
+	\warning 被转移的内容不应被覆盖，否则行为未定义。
+	*/
 	//@{
 	/*!
 	\brief 设置子节点容器内容。
@@ -1174,7 +1177,7 @@ inline PDefH(void, RemoveHead, ValueNode& term) ynothrowv
 
 
 /*!
-\brief 判断字符串是否是一个指定字符和非负整数的组合。
+\brief 判断字符串是否是前缀索引：一个指定字符和非负整数的组合。
 \pre 断言：字符串参数的数据指针非空。
 \note 仅测试能被 <tt>unsigned long</tt> 表示的整数。
 \since build 659
@@ -1196,6 +1199,20 @@ inline PDefH(string, MakeIndex, const ValueNode::Container& con)
 	ImplRet(MakeIndex(con.size()))
 inline PDefH(string, MakeIndex, const ValueNode& node)
 	ImplRet(MakeIndex(node.GetContainer()))
+//@}
+
+/*!
+\brief 取最后一个子节点名称的前缀索引。
+\return 若不存在子节点则为 \c size_t(-1) ，否则为最后一个子节点的名称对应的索引。
+\throw std::invalid_argument 存在子节点但名称不是前缀索引。
+\sa IsPrefixedIndex
+\since build 790
+*/
+//@{
+YF_API size_t
+GetLastIndexOf(const ValueNode::Container&);
+inline PDefH(size_t, GetLastIndexOf, const ValueNode& term)
+	ImplRet(GetLastIndexOf(term.GetContainer()))
 //@}
 
 /*!

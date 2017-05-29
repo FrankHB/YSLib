@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1135
+\version r1136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-05-16 14:16 +0800
+	2017-05-26 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -440,7 +440,7 @@ CheckReducible(ReductionStatus status)
 		|| status == ReductionStatus::Retained)
 		return {};
 	if(YB_UNLIKELY(status != ReductionStatus::Retrying))
-		YTraceDe(Warning, "Unexpected status found");
+		YTraceDe(Warning, "Unexpected status found.");
 	return true;
 }
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1996
+\version r2003
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-05-19 16:04 +0800
+	2017-05-27 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -697,14 +697,6 @@ CheckedReduceWith(_func f, _tParams&&... args)
 	ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
 }
 
-
-/*!
-\brief 附加子项：在第一个参数指定的项的索引后插入子项。
-\sa MakeIndex
-\since build 779
-*/
-inline PDefH(void, AppendTerm, TermNode& term, TermNode& tm)
-	ImplExpr(term.AddChild(MakeIndex(term), std::move(tm)))
 
 //! \brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
 //@{

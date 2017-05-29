@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4092
+\version r4227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-05-19 15:56 +0800
+	2017-05-30 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -239,14 +239,15 @@ ResolveShared(string_view id, const shared_ptr<Environment>& p_shared)
 		IsReservedName(id) ? " reserved" : "", id.data()));
 }
 
-shared_ptr<Environment>
+//! \since build 790
+pair<shared_ptr<Environment>, bool>
 LockEnvironment(ValueObject& vo)
 {
 	// TODO: Merge with %ResolveName?
 	if(const auto p = vo.AccessPtr<weak_ptr<Environment>>())
-		return p->lock();
+		return {p->lock(), {}};
 	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
-		return *p;
+		return {*p, true};
 	throw NPLException(sfmt("Invalid environment type '%s' found.",
 		vo.GetType().name()));
 }
@@ -386,40 +387,6 @@ CheckEnvFormal(const TermNode& term)
 }
 
 
-//! \since build 786
-void
-BindParameterForVau(ContextNode& e, const TermNode& t, TermNode& o)
-{
-	using namespace Forms;
-	auto& m(e.GetBindingsRef());
-
-	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
-		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
-		id.remove_prefix(1);
-		if(!id.empty())
-		{
-			TermNode::Container con;
-
-			for(; first != last; ++first)
-			{
-				auto& b(Deref(first));
-
-				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
-					MakeIndex(con), b.Value.MakeMoveCopy());
-			}
-			m.emplace(std::move(con), id);
-		}
-	}, [&](const TokenValue& n, TermNode&& b){
-		Forms::CheckParameterLeafToken(n, [&]{
-			// NOTE: The operands should have been evaluated. Children nodes in
-			//	arguments retained are also transferred.
-			m[n].SetContent(b.CreateWith(&ValueObject::MakeMoveCopy),
-				b.Value.MakeMoveCopy());
-		});
-	});
-}
-
-
 //! \since build 767
 class VauHandler final
 {
@@ -435,26 +402,34 @@ private:
 	*/
 	shared_ptr<TermNode> p_formals;
 	/*!
-	\brief 捕获静态上下文，包含引入抽象时的静态环境。
+	\brief 局部上下文原型。
+	\since build 790
+	\todo 移除不使用的环境。
+	*/
+	ContextNode local_prototype;
+	/*!
 	\note 共享所有权用于检查循环引用。
+	\since build 790
 	\todo 优化。考虑使用区域推断代替。
 	*/
-	shared_ptr<ContextNode> p_context;
+	//@{
+	//! \brief 捕获静态环境作为父环境的指针，包含引入抽象时的静态环境。
+	weak_ptr<Environment> p_parent;
+	//! \brief 可选保持所有权的静态环境指针。
+	shared_ptr<Environment> p_static;
+	//@}
 	//! \brief 闭包求值构造。
 	shared_ptr<TermNode> p_closure;
 
 public:
-	//! \since build 781
+	//! \since build 790
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
-		shared_ptr<ContextNode>&& p_ctx, TermNode& term)
+		shared_ptr<Environment>&& p_env, bool owning,
+		const ContextNode& ctx, TermNode& term)
 		: eformal(std::move(ename)), p_formals(std::move(p_fm)),
-		p_context(std::move(p_ctx)), p_closure(share_move(term))
-	{}
-	//! \since build 788
-	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
-		shared_ptr<Environment>&& p_env, const ContextNode& ctx, TermNode& term)
-		: VauHandler(std::move(ename), std::move(p_fm),
-		make_shared<ContextNode>(ctx, std::move(p_env)), term)
+		local_prototype(ctx, make_shared<Environment>()), p_parent(p_env),
+		p_static(owning ? std::move(p_env) : nullptr),
+		p_closure(share_move(term))
 	{}
 
 	//! \since build 772
@@ -466,14 +441,12 @@ public:
 			using namespace Forms;
 			const auto& formals(Deref(p_formals));
 			// NOTE: Local context: active record frame with outer scope
-			//	bindings. This is probably better to be copy-on-write. Since
-			//	no immutable reference would be accessed before
-			//	mutation, no care is needed for reference invalidation.
+			//	bindings.
 			// XXX: Referencing escaped variables (now only parameters need
 			//	to be cared) form the context would cause undefined behavior
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
-			ContextNode local(Deref(p_context), make_shared<Environment>());
+			ContextNode local(local_prototype, make_shared<Environment>());
 			auto& local_m(local.GetBindingsRef());
 
 			// NOTE: Bound dynamic context.
@@ -482,15 +455,15 @@ public:
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
-			BindParameterForVau(local, formals, term);
-			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld"
-				" shared context(s), %zu parameter(s).", p_closure.use_count(),
-				p_context.use_count(), formals.size());
-			YAssert(&local != &Deref(p_context),
-				"Self reference of context found.");
+			BindParameter(local, formals, term);
+			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld %s"
+				" shared static environment(s), %zu parameter(s).",
+				p_closure.use_count(), p_parent.use_count(),
+				p_static.use_count() != 0 ? "owning" : "nonowning",
+				formals.size());
 			// NOTE: Static environment is bound as base of local context by
 			//	setting parent environment pointer.
-			local.GetRecordRef().ParentPtr = Deref(p_context).WeakenRecord();
+			local.GetRecordRef().ParentPtr = p_parent;
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
@@ -1096,12 +1069,12 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 				auto& b(Deref(first));
 
 #if true
-				con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
-					std::move(b.Value));
-#else
-				// XXX: Moved. This is copy elision in object language.
 				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
 					MakeIndex(con), b.Value.MakeMoveCopy());
+#else
+				// XXX: Moved. This is copy elision in object language.
+				con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
+					std::move(b.Value));
 #endif
 			}
 			m.emplace(std::move(con), id);
@@ -1130,60 +1103,54 @@ MatchParameter(const TermNode& t, TermNode& o,
 {
 	if(IsBranch(t))
 	{
-		if(IsBranch(o))
+		const auto n_p(t.size());
+		const auto n_o(o.size());
+		auto last(t.end());
+
+		if(n_p > 0)
 		{
-			const auto n_p(t.size());
-			const auto n_o(o.size());
-			auto last(t.end());
+			const auto& back(Deref(std::prev(last)));
 
-			if(n_p > 0)
+			if(IsLeaf(back))
 			{
-				const auto& back(Deref(std::prev(last)));
-
-				if(IsLeaf(back))
+				if(const auto p = AccessPtr<TokenValue>(back))
 				{
-					if(const auto p = AccessPtr<TokenValue>(back))
-					{
-						YAssert(!p->empty(), "Invalid token value found.");
-						if(p->front() == '.')
-							--last;
-					}
-					else
-						// TODO: Merge with %CheckParameterLeafToken?
-						throw ParameterMismatch(
-							"Invalid token found for symbol parameter.");
+					YAssert(!p->empty(), "Invalid token value found.");
+					if(p->front() == '.')
+						--last;
 				}
+				else
+					// TODO: Merge with %CheckParameterLeafToken?
+					throw ParameterMismatch(
+						"Invalid token found for symbol parameter.");
 			}
-			if(n_p == n_o || (last != t.end() && n_o >= n_p - 1))
-			{
-				auto j(o.begin());
-
-				for(auto i(t.begin()); i != last; yunseq(++i, ++j))
-				{
-					YAssert(j != o.end(), "Invalid state of operand found.");
-					MatchParameter(Deref(i), Deref(j), bind_trailing_seq,
-						bind_value);
-				}
-				if(last != t.end())
-				{
-					const auto& lastv(Deref(last).Value);
-
-					YAssert(lastv.GetType() == ystdex::type_id<TokenValue>(),
-						"Invalid ellipsis sequence token found.");
-					bind_trailing_seq(j, o.end(),
-						lastv.GetObject<TokenValue>());
-					YAssert(++last == t.end(), "Invalid state found.");
-				}
-			}
-			else if(last == t.end())
-				throw ArityMismatch(n_p, n_o);
-			else
-				throw ParameterMismatch(
-					"Insufficient term found for list parameter.");
 		}
+		if(n_p == n_o || (last != t.end() && n_o >= n_p - 1))
+		{
+			auto j(o.begin());
+
+			for(auto i(t.begin()); i != last; yunseq(++i, ++j))
+			{
+				YAssert(j != o.end(), "Invalid state of operand found.");
+				MatchParameter(Deref(i), Deref(j), bind_trailing_seq,
+					bind_value);
+			}
+			if(last != t.end())
+			{
+				const auto& lastv(Deref(last).Value);
+
+				YAssert(lastv.GetType() == ystdex::type_id<TokenValue>(),
+					"Invalid ellipsis sequence token found.");
+				bind_trailing_seq(j, o.end(),
+					lastv.GetObject<TokenValue>());
+				YAssert(++last == t.end(), "Invalid state found.");
+			}
+		}
+		else if(last == t.end())
+			throw ArityMismatch(n_p, n_o);
 		else
 			throw ParameterMismatch(
-				"Invalid leaf term found for non-empty list parameter.");
+				"Insufficient term found for list parameter.");
 	}
 	else if(!t.Value)
 	{
@@ -1285,12 +1252,12 @@ Lambda(TermNode& term, ContextNode& ctx)
 		// NOTE: %ToContextHandler implies strict evaluation of arguments in
 		//	%StrictContextHandler::operator().
 		return ToContextHandler(VauHandler({}, std::move(formals),
-			share_copy(*p_env), ctx, term));
+			std::move(p_env), {}, ctx, term));
 	}, 1);
 }
 
 void
-Vau(TermNode& term, ContextNode& ctx, bool move_env)
+Vau(TermNode& term, ContextNode& ctx)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
 		auto p_env(ctx.ShareRecord());
@@ -1300,13 +1267,12 @@ Vau(TermNode& term, ContextNode& ctx, bool move_env)
 
 		con.erase(con.cbegin(), ++i);
 		return FormContextHandler(VauHandler(std::move(eformal),
-			std::move(formals),
-			move_env ? std::move(p_env) : share_copy(*p_env), ctx, term));
+			std::move(formals), std::move(p_env), {}, ctx, term));
 	}, 2);
 }
 
 void
-VauWithEnvironment(TermNode& term, ContextNode& ctx, bool move_env)
+VauWithEnvironment(TermNode& term, ContextNode& ctx)
 {
 	CreateFunction(term, [&](TermNode::Container& con){
 		auto i(con.begin());
@@ -1314,14 +1280,13 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx, bool move_env)
 		ReduceChecked(Deref(++i), ctx);
 
 		// XXX: List components are ignored.
-		auto p_env(LockEnvironment(Deref(i).Value));
+		auto p_env_pr(LockEnvironment(Deref(i).Value));
 		auto formals(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
-		return FormContextHandler(VauHandler(std::move(eformal),
-			std::move(formals), move_env ? std::move(p_env) : share_copy(*p_env)
-			, ctx, term));
+		return FormContextHandler(VauHandler(std::move(eformal), std::move(
+			formals), std::move(p_env_pr.first), p_env_pr.second, ctx, term));
 	}, 3);
 }
 
@@ -1358,8 +1323,11 @@ Cons(TermNode& term)
 		auto tail(std::move(Deref(i)));
 
 		term.erase(i);
+
+		auto idx(GetLastIndexOf(term));
+
 		for(auto& tm : tail)
-			AppendTerm(term, tm);
+			term.AddChild(MakeIndex(++idx), std::move(tm));
 		RemoveHead(term);
 	}
 	else
@@ -1385,7 +1353,7 @@ Eval(TermNode& term, ContextNode& ctx)
 	RetainN(term, 2);
 
 	const auto i(std::next(term.begin()));
-	ContextNode c(ctx, LockEnvironment(Deref(std::next(i)).Value));
+	ContextNode c(ctx, LockEnvironment(Deref(std::next(i)).Value).first);
 
 	LiftTerm(term, Deref(i));
 	return Reduce(term, c);
