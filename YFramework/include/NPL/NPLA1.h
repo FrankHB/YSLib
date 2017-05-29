@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3216
+\version r3239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-05-17 04:07 +0800
+	2017-05-30 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1294,7 +1294,7 @@ RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 
 实现修改环境的特殊形式。
 使用 <definiend> 指定绑定目标，和 Vau 的 <formals> 格式相同。
-剩余表达式 <expression>...+ 指定绑定的源。
+剩余表达式 <expressions> 指定绑定的源。
 返回未指定值。
 限定第三参数后可使用 RegisterForm 注册上下文处理器。
 */
@@ -1304,7 +1304,7 @@ RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 
 剩余表达式视为求值结果，直接绑定到 <definiend> 。
 参考调用文法：
-$deflazy! <definiend> <expression>...+
+$deflazy! <definiend> <expressions>
 */
 YF_API void
 DefineLazy(TermNode&, ContextNode&);
@@ -1314,7 +1314,7 @@ DefineLazy(TermNode&, ContextNode&);
 
 剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
 参考调用文法：
-$def! <definiend> <expression>...+
+$def! <definiend> <expressions>
 */
 YF_API void
 DefineWithNoRecursion(TermNode&, ContextNode&);
@@ -1323,7 +1323,7 @@ DefineWithNoRecursion(TermNode&, ContextNode&);
 \note 支持直接递归和互相递归绑定。
 
 解析可能递归绑定的名称，剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
-$defrec! <definiend> <expression>...+
+$defrec! <definiend> <expressions>
 */
 YF_API void
 DefineWithRecursion(TermNode&, ContextNode&);
@@ -1380,8 +1380,9 @@ If(TermNode&, ContextNode&);
 \since build 735
 
 捕获的静态环境由当前动态环境隐式确定。
+不保留环境的所有权。
 参考调用文法：
-$lambda <formals> <expression>?
+$lambda <formals> <expressions>?
 */
 YF_API void
 Lambda(TermNode&, ContextNode&);
@@ -1390,10 +1391,8 @@ Lambda(TermNode&, ContextNode&);
 \note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
 \note 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \throw InvalidSyntax <eformal> 不符合要求。
-\since build 781
+\since build 790
 
-最后一个参数指定是否通过转移当前环境捕获静态环境中的变量。
-若不转移，则复制当前动态环境，不对动态环境进行修改。
 上下文中环境以外的数据成员总是被复制而不被转移，
 	以避免求值过程中继续访问这些成员引起未定义行为。
 */
@@ -1402,23 +1401,24 @@ Lambda(TermNode&, ContextNode&);
 \brief vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 
 捕获的静态环境由当前动态环境隐式确定。
+不保留环境的所有权。
 参考调用文法：
-$vau <formals> <eformal> <expression>?
-$vau! <formals> <eformal> <expression>?
+$vau <formals> <eformal> <expressions>?
 */
 YF_API void
-Vau(TermNode&, ContextNode&, bool);
+Vau(TermNode&, ContextNode&);
 
 /*!
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 
-捕获的静态环境由 <env> 指定。
+捕获的静态环境由环境参数 <env> 求值后指定。
+根据环境参数的类型为 shared_ptr<Environment> 或 weak_ptr<Envrionment> 
+	决定是否保留所有权。
 参考调用文法：
-$vaue <env> <formals> <eformal> <expression>?
-$vaue! <env> <formals> <eformal> <expression>?
+$vaue <env> <formals> <eformal> <expressions>?
 */
 YF_API void
-VauWithEnvironment(TermNode&, ContextNode&, bool);
+VauWithEnvironment(TermNode&, ContextNode&);
 //@}
 //@}
 
@@ -1435,7 +1435,7 @@ VauWithEnvironment(TermNode&, ContextNode&, bool);
 除第一个子项，没有其它子项时，返回 true ；否则从左到右逐个求值子项。
 当子项全求值为 true 时返回最后一个子项的值，否则返回 false 。
 参考调用文法：
-$and <test1>...
+$and? <test>...
 */
 YF_API ReductionStatus
 And(TermNode&, ContextNode&);
@@ -1447,7 +1447,7 @@ And(TermNode&, ContextNode&);
 除第一个子项，没有其它子项时，返回 false ；否则从左到右逐个求值子项。
 当子项全求值为 false 时返回 false，否则返回第一个不是 false 的子项的值。
 参考调用文法：
-$or <test1>...
+$or? <test>...
 */
 YF_API ReductionStatus
 Or(TermNode&, ContextNode&);
@@ -1542,6 +1542,8 @@ GetCurrentEnvironment(TermNode&, ContextNode&);
 
 在对象语言中实现函数接受一个 string 类型的参数项，返回值为指定的实体。
 当名称查找失败时，返回的值为 ValueToken::Null 。
+参考调用文法：
+value-of <object>
 */
 YF_API ReductionStatus
 ValueOf(TermNode&, const ContextNode&);

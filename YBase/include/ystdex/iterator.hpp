@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6017
+\version r6023
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2016-09-17 12:48 +0800
+	2017-05-27 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "pointer.hpp" // for "iterator_op.hpp", iterator_operators_t,
 //	std::iterator_traits, _t, pointer_classify, cond_t, and_,
-//	exclude_self_t, true_type, enable_if_inconvertible_t, *_tag,
-//	yassume, is_undereferenceable, yconstraint, random_access_iteratable;
+//	exclude_self_t, enable_if_inconvertible_t, *_tag, yassume,
+//	is_undereferenceable, yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
 #include "ref.hpp" // for lref;
@@ -195,7 +195,7 @@ struct transit_traits
 	\since build 667
 	\todo 测试 operator-> 并支持代理指针。
 	*/
-	using pointer = decay_t<reference>*;
+	using pointer = remove_reference_t<reference>*;
 };
 
 } // namespace details;
@@ -230,8 +230,7 @@ class transformed_iterator : public iterator_operators_t<transformed_iterator<
 
 private:
 	//! \since build 576
-	using impl_traits
-		= details::transit_traits<_tIter, _fTrans, _tReference>;
+	using impl_traits = details::transit_traits<_tIter, _fTrans, _tReference>;
 
 public:
 	/*!

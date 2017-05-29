@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r390
+\version r424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-05-04 09:16 +0800
+	2017-05-23 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,6 +366,40 @@ Symbol evaluation is reviewed.
 	To make symbol term to be evaluated only once, the reduction now produces 'ReductionStatus::Clean' rather than 'Reduction::Retrying'.
 		This make '$set!' implementable as in Kernel.
 		This also makes it unnecessary to care about normalization besides infinite execution in leaf token passes.
+Names as replacement of 'car' and 'cdr' are considered.
+	For short, the anwser are 'first' and 'rest', currently.
+		The name 'first' is consistent with SFRI-1, Racket, Clojure, etc.
+		The name 'rest' is consistent with Racket, Clojure, etc.
+		They may be not best names, though.
+			Notably, 'first' should not imply the numeric value 1.
+				Nothing is relying on the Peano axioms here.
+				Exact numbers are also not required in gerenal.
+					Though Kernel relies on it for some cases like derivation of 'map', they should be better avoid in the spirit of the principle rules of Kernel itself.
+				It is still acceptable when noted.
+	The old names are bad for several reasons.
+		They are leak of implementation details historically.
+			See https://en.wikipedia.org/wiki/CAR_and_CDR.
+			This is not the case of 'cons', which is still accaptable here.
+		They have no clear lexical meaning.
+			This may be compromised because it seems that English has no specific words for the components of a pair.
+		The name 'car' is misleading to English-centric speakers because of its meaning other than in Lisp world.
+			It is even more misleading in sense of Chinese (with primary school education, probably), for obvious reasons in mind of native speakers of Chinese.
+		It is sill not fully resolved that nested name like 'caddr' are not natually support in alternative naming schemes.
+			Although things like 'ffirst' can be supported, they are not natural enough.
+			For 'caddr' ones, it can be complemented by adding support of SRFI-1 ordinal names like 'second', 'third', etc.
+			For others, it can be argued that those name should not be used to get the code more difficult to read, besides the probable ease of writing.
+			And even mandated (by RnRS, etc), the nesting level is limited, which can be fatal to treat them as necessity.
+				So things like 'list-ref' are still superior in general, besides it is relying on the exact integers so it may be limited by other way (e.g. by dependency management policies in base library).
+			Currently NPL does not support them at all.
+				They may be also better avoided in derivation of library functions.
+		See also http://arclanguage.org/item?id=10546.
+		Someone may think lack of such names would violate the principle of least astonishment "for people coming from Lisp".
+			For instance, http://software-ninja-ninja.blogspot.com/2011/08/clojure-patterns-cons-car-and-cdr.html.
+			But more importantly, those old names has already violated the principle for other people, which is still not a good reason to be kept.
+			Moreover, the 'cons' form is still supported in such case.
+				In fact, it requires 2nd argument as a list in all major derivation of Lisp.
+				It is actually the right design choice to signal an error for 'cons 1 2' because '2' is not a list.
+			And anyway, cons pairs are still virtually supported in NPLA1 as well as in Clojure.
 
 ////
 

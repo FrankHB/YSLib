@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r602
+\version r635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-05-21 05:49 +0800
+	2017-05-29 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,8 +267,6 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "eval", Eval);
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
-	// NOTE: 'eq? (() get-current-environment) (() (wrap ($vau () e e)))' shall
-	//	be '#t'.
 	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
 	RegisterStrict(root, "copy-environment",
 		[&](TermNode& term, ContextNode& ctx){
@@ -298,7 +296,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterForm(root, "$def!", DefineWithNoRecursion);
 	RegisterForm(root, "$defrec!", DefineWithRecursion);
 	RegisterForm(root, "$lambda", Lambda);
-	RegisterForm(root, "$vau", ystdex::bind1(Vau, _2, false));
+	RegisterForm(root, "$vau", Vau);
+	RegisterStrictUnary<ContextHandler>(root, "wrap", Wrap);
 	RegisterStrictUnary<ContextHandler>(root, "unwrap", Unwrap);
 	// NOTE: Derived functions.
 #if true
@@ -352,44 +351,30 @@ LoadNPLContextForSHBuild(REPLContext& context)
 //	context.Perform(u8R"NPL($def! list $lambda x x)NPL");
 #endif
 	context.Perform(u8R"NPL(
-		$def! apply
-		(
-			$lambda (appv arg .opt)
-			(
-				eval (cons () (cons (unwrap appv) arg))
-					($if (null? opt) (() make-environment) (head opt))
-			)
-		);
+		$def! first $lambda ((x .)) x;
+		$def! rest $lambda ((#ignore .x)) x;
+		$def! apply $lambda (appv arg .opt)
+			eval (cons () (cons (unwrap appv) arg))
+				($if (null? opt) (() make-environment) (first opt));
 		$defrec! list* $lambda (head .tail)
 			$if (null? tail) head
 				(cons head (apply list* tail));
-		$defrec! $cond $vau clauses env
-		(
-			$sequence
+		$defrec! $cond $vau clauses env $sequence
 			(
 				$def! aux $lambda ((test .body) .clauses)
 					$if (eval test env)
 				(apply (wrap $sequence) body env)
 				(apply (wrap $cond) clauses env)
 			)
-			(
-				$if (null? clauses)
-				inert
-				(apply aux clauses)
-			)
-		);
+			($if (null? clauses) inert (apply aux clauses));
 		$def! $set! $vau (expr1 formals .expr2) env eval
-		(
-			list $def! formals (unwrap eval) expr2 env
-		) (eval expr1 env);
+			(list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
 		$def! $defl! $vau (f formals .body) env eval
-		(
-			list $set! env f $lambda formals body
-		) env;
+			(list $set! env f $lambda formals body) env;
 		$def! $defv! $vau ($f formals senv .body) env eval
-		(
-			list $set! env $f $vau formals senv body
-		) env;
+			(list $set! env $f $vau formals senv body) env;
+		$def! $defw! $vau (f formals senv .body) env eval
+			(list $set! env f wrap (list* $vau formals senv body)) env;
 	)NPL");
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	context.Perform(u8R"NPL(
@@ -399,6 +384,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		$defv! $unless (test .vexpr) env $if (not? (eval test env))
 			(eval (list* $sequence vexpr) env);
 	)NPL");
+	RegisterForm(root, "$and?", And);
 	RegisterForm(root, "$or?", Or);
 	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
 		ystdex::bind1(std::mem_fn(&TermNode::Value))));
@@ -434,8 +420,9 @@ LoadNPLContextForSHBuild(REPLContext& context)
 
 		to_lwr(x),
 		to_lwr(y);
-		return x == y;
+		return x.find(y) != string::npos;
 	});
+	RegisterStrictUnary<const string>(root, "string->symbol", StringToSymbol);
 	RegisterStrictUnary<const TokenValue>(root, "symbol->string",
 		SymbolToString);
 	// NOTE: SHBuild builtins.

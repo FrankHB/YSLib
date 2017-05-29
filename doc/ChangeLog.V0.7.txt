@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7349
+\version r7454
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-05-21 06:04 +0800
+	2017-05-30 01:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,14 +34,117 @@ $now
 (
 	/ %YFramework $=
 	(
+		/ %NPL $=
+		(
+			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				* "missing applicative %wrap for '$cond' and alternative \
+					definition of '$sequence'" $since b789,
+				* "missing applicative %head for '$cond'" $since b789,
+				+ "operatives ('$and?', '$defw!')",
+					// For completeness.
+				+ "applicative 'symbol->string'",
+					// Ditto.
+				/ DLDI "compressed some NPL source text",
+				* "compared equality instead of testing containing relationship"
+					@ "applicative 'string-contains-ci?'" $orig
+					(@ "applicative 'str-contains-ci?'" $since b759),
+				/ "applicative %head" => "%first",
+					// Replacement of traditional %car; to be consistent with \
+						SRFI-1, Racket, Clojure, etc.
+				+ "applicative %rest",
+					// Replacement of traditional %cdr; to be consistent with \
+						Racket, Clojure, etc.
+				// Applicative 'list*' is not renamed as SRFI-1 name 'cons*', \
+					to stay consistent with Kernel, Racket and Common Lisp.
+				/ DLDI "removed redundant '(', ')'"
+					@ "combiners (%apply, '$cond')",
+				/ "allowed modification to the parent environment" $=
+				(
+					// This behaves same to Kernel and Scheme dialects, also \
+						more convenient.
+					/ $forced $impl @ "operative '$vau'" $dep_from
+						("function %Forms::Vau" @ %NPLA1),
+					/ $comp @ "operatove '$lambda'" $dep_from
+						("function %Forms::Lambda" @ %NPLA1)
+				)
+			),
+			/ %NPLA $=
+			(
+				* "missing '.'" @ "end" @ "warning message"
+					@ "function %CheckReducible" $since b734,
+				- $revert(b779) "function %AppendTerm" $dep_from
+					("%Forms::Cons" @ %NPLA1)
+					// Too dangerous to be misused.
+			),
+			/ @ "namespace %Forms" @ %NPLA1 $=
+			(
+				* "wrong result caused by silently failed appending children \
+					when prefixed index is greater than count of children"
+					@ "function %Cons" $since b779
+					// This can be occurred for %cons in %eval form.
+				$= (/ $impl ^ ($dep_from "%GetLastIndexOf"
+					@ %YSLib.Core.ValueNode) ~ ("%AppendTerm" @ %NPLA)),
+				(
+				/ "always avoided copy of environment" @ "functions %(Lambda, \
+					Vau, VauWithEnvironment)";
+				- "redundant last parameter"
+					@ "functions %(Vau, VauWithEnvironment)"
+				),
+				(
+				/ @ "function %MatchParameter" $=
+				(
+					- "check for empty argument list for non-empty parameter \
+						list";
+					/ $comp "threw %ArityMismatch for case of empty argument \
+						list for non-empty parameter list"
+						~ "%ParameterMismatch"
+						// There may be a little more overhead on exception, \
+							but the overall branch overhead would be lower.
+					* $comp "%ParameterMismatch threw for parameter list with \
+						single variable parameter and empty argument list"
+						$since b777
+				),
+				/ "functions %(Lambda, Vau, VauWithEnvironment)" $=
+				(
+					/ $revert_ex(b786) "binding merged to function \
+						%BindParameter",
+						// Now both passing parameter and definition use same \
+							binding implementation, which is simpler than \
+							before.
+					/ DLDI "simplified vau handler constructors",
+					- DLDI "self reference check assertion" @ "call",
+					/ "differentiated shared and weakly shared environment \
+						 count" @ "trace message";
+					/ $forced "differentiated owning environment" $dep_from
+						"%MatchParameter"
+						// Otherwise it would cause cyclic references.
+				);
+				/ "reduced shared context on calling"
+				)
+			)
+		),
+		+ "2 functions %GetLastIndexOf" @ %YSLib.Core.ValueNode
+			$dep_from %YBase.YStandardEx.Iterator
+	),
+	/ "missing cv-qualifier for cv-qualified base iterator"
+		@ "member type %pointer" @ "class template %transformed_iterator"
+		@ %YBase.YStandardEx.Iterator $since b667
+),
+
+b789
+(
+	/ %YFramework $=
+	(
 		+ "metafunction %HolerFromPointer" @ %YSLib.Core.YObject,
 		/ %NPL $=
 		(
 			/ @ "namespace %Forms" @ %NPLA1 $=
 			(
 				(
-				/ $revert_ex(b786) "vau handler merged to function \
-					%BindParameter";
+				/ %BindParameter" ^ "binding leaf with copy initialization"
+					~ "binding with elision";
 				/ $comp "functions %(DefineLazy, DefineWithNoRecursion, \
 					DefineWithRecursion)" ^ "binding with copy initialization"
 					~ "binding with elision",
@@ -82,7 +185,7 @@ $now
 			),
 			/ "type" @ "%Environment::ParentPtr" @ %NPLA -> "%ValueObject"
 				~ "%weak_ptr<Environment>"
-		),
+		)
 	),
 	* DD "'\ingroup' command" @ "Doxygen comments" @ "metafunction \
 		%enable_if_transparent_t" @ %YBase.YStandardEx.Functor $since b679
