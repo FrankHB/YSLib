@@ -17,126 +17,132 @@ export AR
 mkdir -p "$YSLib_BuildDir"
 : ${SHBuild:="$YSLib_BuildDir/.stage1/SHBuild"}
 SHBuild_CheckHostPlatform
-if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
-	SHBuild_YF_SystemLibs='-lgdi32 -limm32'
-else
-	SHBuild_YF_SystemLibs='-lxcb -lpthread'
-fi
 
-DIR_YFramework="$YSLib_BaseDir/YFramework"
-
-INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
-INCLUDES_YBase="-I\"$YSLib_BaseDir/YBase/include\""
-INCLUDES_YFramework=" \
-	-I$DIR_YFramework/include \
-	-I$DIR_YFramework/Android/include \
-	-I$DIR_YFramework/DS/include \
-	-I$DIR_YFramework/Win32/include \
-	-I$YSLib_BaseDir/3rdparty/include $INCLUDES_freetype \
-	-I$YSLib_BaseDir/YBase/include"
-SHBOPT_IGN="-xid,alternative -xid,data -xid,include -xid,Android"
-
-LIBS_YFramework=" -L\"`SHBuild_2w \
-	\"$DIR_YFramework/$SHBuild_Host_Platform/lib-$SHBuild_Env_Arch\"`\" \
-	-lFreeImage -lfreetype $SHBuild_YF_SystemLibs"
-
-SHBuild=$SHBuild SHBuild_Host_Platform=$SHBuild_Host_Platform \
-	INCLUDES_YBase=$INCLUDES_YBase INCLUDES_YFramework=$INCLUDES_YFramework \
-	LIBS_YFramework=$LIBS_YFramework $SHBuild -xcmd,RunNPL '
-	SHBuild_EchoVar_N "SHBuild";
-	SHBuild_EchoVar_N "SHBuild_Host_Platform";
-	SHBuild_EchoVar_N "INCLUDES_YBase";
-	SHBuild_EchoVar_N "INCLUDES_YFramework";
-	SHBuild_EchoVar_N "LIBS_YFramework"'
-
-# Params: $1 = skip, $2 = debug, $3 = dynamic, $4... = additional build options.
-SHBuild_YSLib_Build_()
-{
-	declare -r debug="$2"
-	declare -r dynamic="$3"
-	local lname='libraries'
-
-	if [[ "$dynamic" != '' ]]; then
-		lname="dynamic $lname"
-	else
-		lname="static $lname"
-	fi
-	if [[ "$debug" != '' ]]; then
-		lname="debug $lname"
-	fi
-	if [[ "$1" != '' ]]; then
-		SHBuild_Puts Skipped $lname.
-	else
-		local outdir=.shbuild
-
-		shift 3
-		if [[ "$debug" != '' ]]; then
-			CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
-		else
-			unset CXXFLAGS_OPT_DBG
-			unset LDFLAGS
-		fi
-		SHBuild_Puts Building $lname ...
-		. $SHBuild_ToolDir/SHBuild-common-options.sh
-		if [[ "$debug" != '' ]]; then
-			LDFLAGS="$C_CXXFLAGS_PIC $CXXFLAGS_IMPL_COMMON_THRD_"
-		fi
-		if [[ "$dynamic" != '' ]]; then
-			export LDFLAGS="$LDFLAGS $LDFLAGS_DYN"
-			outdir=$outdir-dll
-		else
-			export LDFLAGS="$LDFLAGS -Wl,--dn"
-		fi
-		if [[ "$debug" != '' ]]; then
-			outdir=$outdir-debug
-		fi
-		SHBOPT="-xd,$outdir $SHBOPT_IGN"
-		if [[ "$dynamic" != '' ]]; then
-			SHBOPT="$SHBOPT -xmode,2"
-		fi
-		SHBOPT=$SHBOPT CXXFLAGS=$CXXFLAGS $SHBuild -xcmd,RunNPL '
-			SHBuild_EchoVar_N "SHBOPT";
-			SHBuild_EchoVar_N "CXXFLAGS";
-			SHBuild_EchoVar_N "LDFLAGS"'
-		if [[ $SHBuild_NoPCH == '' ]]; then
-			SHBuild_Arg1="$INCLUDE_PCH" SHBuild_Arg2="$outdir/stdinc.h" \
-				CXX=$CXX CXXFLAGS=$CXXFLAGS $SHBuild -xcmd,RunNPL \
-'SHBuild_BuildGCH (env-get "SHBuild_Arg1") (env-get "SHBuild_Arg2")
-(++ (env-get "CXX") " -xc++-header " (env-get "CXXFLAGS"))'
-			SHBuild_IncPCH="-include $outdir/stdinc.h"
-		else
-			SHBuild_Puts Skipped building precompiled file.
-			SHBuild_IncPCH=""
-		fi
-		if [[ "$dynamic" != '' ]]; then
-			declare -r DFLAG_YB=-DYB_DLL
-			declare -r DFLAG_B_YB=-DYB_BUILD_DLL
-			declare -r DFLAG_B_YF=-DYF_BUILD_DLL
-		else
-			declare -r DFLAG_YB=
-			declare -r DFLAG_B_YB=
-			declare -r DFLAG_B_YF=
-		fi
-		if [[ "$debug" != '' ]]; then
-			declare -r DFLAG_X_YB=$DFLAG_YB
-			declare -r libd=d
-		else
-			declare -r DFLAG_X_YB=$DFLAG_B_YB
-			declare -r libd=
-		fi
-		$SHBuild $SHBOPT -xn,${LIBPFX}YBase$libd $@ "$YSLib_BaseDir/YBase" \
-			$CXXFLAGS $DFLAG_B_YB $INCLUDES_YBase $SHBuild_IncPCH
-		if [[ "$dynamic" != '' ]]; then
-			export LIBS="-L$outdir -lYBase$libd $LIBS_YFramework"
-		fi
-		$SHBuild $SHBOPT -xn,${LIBPFX}YFramework$libd $@ \
-			"$YSLib_BaseDir/YFramework" $CXXFLAGS $DFLAG_X_YB $DFLAG_B_YF \
-			-DFREEIMAGE_LIB $INCLUDES_YFramework $SHBuild_IncPCH
-		SHBuild_Puts Finished building $lname.
-	fi
-}
+declare -r SNSC_Impl_PrepareLibBuild_=''
+declare -r SNSC_PrepareLibBuild_="$SNSC_Common_ $SNSC_Impl_PrepareLibBuild_"
 
 export LANG=C
 unset CXXFLAGS_COMMON
 unset CXXFLAGS
+
+SHBuild_Pushd
+cd "$YSLib_BuildDir"
+declare -r debug_="$1"
+shift
+SHBuild_CheckUName
+export SHBuild_Env_OS
+export CXX
+export CFLAGS CXXFLAGS
+export C_CXXFLAGS_GC LDFLAGS_GC
+export C_CXXFLAGS_PIC C_CXXFLAGS_COMMON C_CXXFLAGS_ARCH C_CXXFLAGS_OPT_LV \
+	C_CXXFLAGS_WARNING CXXFLAGS_IMPL_WARNING C_CXXFLAGS_COMMON_IMPL_ \
+	C_CXXFLAGS_IMPL_WARNING
+export CXXFLAGS_IMPL_OPT LDFLAGS_IMPL_OPT
+export CFLAGS_STD CFLAGS_WARNING CFLAGS_COMMON
+export CXXFLAGS_IMPL_COMMON CXXFLAGS_STD CXXFLAGS_WARNING CXXFLAGS_COMMON \
+	CXXFLAGS_OPT_UseAssert=$CXXFLAGS_OPT_UseAssert
+export LDFLAGS_OPT_DBG LDFLAGS_DYN_BASE
+export LIBS_RPATH LIBPFX DSOSFX EXESFX
+export LDFLAGS_DYN_EXTRA LDFLAGS_DYN LDFLAGS
+export SHBuild_NoPCH SHBuild
+export YSLib_BaseDir
+# TODO: Use host freetype in non-Win32 hosted platforms at
+#	%SHBuild_YF_SystemLibs @ SHBuild-BuildApp.sh like here.
+
+debug=$debug_ args="$@" \
+	SHBuild_Host_Platform=$SHBuild_Host_Platform \
+	SHBuild_Env_Arch=$SHBuild_Env_Arch \
+	INCLUDES_freetype=$INCLUDES_freetype \
+	SHBuild_RunNPLs_ $SNSC_PrepareLibBuild_ \
+	'
+	$defl! SHBuild_EchoVar_E (env var) SHBuild_EchoVar var
+		(eval (string->symbol (SHBuild_SDot_ var)) env);
+	$defl! skip-or-build (nskip dynamic) $let
+	(
+		(debug not? (env-empty? "debug"))
+		(lname ++ ($if dynamic "dynamic " "static ") "libraries")
+		(env-os env-get "SHBuild_Env_OS")
+	)
+	(
+		$def! YSLib_BaseDir SHBuild_2m env-os (env-get "YSLib_BaseDir");
+		$def! YF_SystemLibs
+			$if (win32? env-os) "-lgdi32 -limm32" "-lxcb -lpthread";
+		$def! DIR_YFramework ++ YSLib_BaseDir "/YFramework";
+		$defl! incsub (dir) ++ "-I\"" (SHBuild_2m env-os dir) "\"";
+		$def! INCLUDES_YBase SHBuild_TrimOptions_
+			(incsub (++ YSLib_BaseDir "/YBase/include"));
+		$def! INCLUDES_YFramework SHBuild_TrimOptions_ (++
+			(foldr1 ++ "" (map1
+				($lambda (n) ++ (incsub (++ DIR_YFramework n "/include")) " ")
+				(list "" "/Android" "/DS" "/Win32")))
+			(incsub (++ YSLib_BaseDir "/3rdparty/include")) " "
+			(env-get "INCLUDES_freetype") " "
+			INCLUDES_YBase
+		);
+		$def! LIBS_YFramework SHBuild_TrimOptions_
+			(++ " -L\"" (SHBuild_2m env-os (++ DIR_YFramework "/"
+			(env-get "SHBuild_Host_Platform")
+			"/lib-" (env-get "SHBuild_Env_Arch")))
+			"\" -lFreeImage -lfreetype " YF_SystemLibs);
+		for-each-ltr SHBuild_EchoVar_N (list "SHBuild" "SHBuild_Host_Platform");
+		for-each-ltr ($lambda (var) SHBuild_EchoVar_E
+			(() get-current-environment) var)
+			(list "INCLUDES_YBase" "INCLUDES_YFramework" "LIBS_YFramework");
+		$if debug ($redef! lname ++ "debug " lname);
+		$if nskip
+		(
+			$let
+			(
+				(shbuild env-get "SHBuild")
+				(outdir ++ ".shbuild" ($if dynamic "-dll" "")
+					($if debug "-debug" ""))
+			)
+			(
+				putss "Building " lname " ...";
+				build-with-conf-opt outdir env-os debug dynamic
+					"-xid,alternative -xid,data -xid,include -xid,Android"
+					($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
+					(
+						$def! repo-base env-get "YSLib_BaseDir";
+						$if (env-empty? "SHBuild_NoPCH")
+						(
+							SHBuild_BuildGCH (++ repo-base
+								"/YBase/include/stdinc.h")
+								(++ outdir "/stdinc.h")
+								(++ CXX " -xc++-header " CXXFLAGS);
+							$def! SHBuild_IncPCH ++ "-include " outdir
+								"/stdinc.h"
+						)
+						(
+							puts "Skipped building precompiled file.";
+							$def! SHBuild_IncPCH ""
+						);
+						$defl! libdname (lib) ++ lib ($if debug "d" "");
+						$def! DFLAG_B_YB $if dynamic "-DYB_BUILD_DLL" "";
+						$def! args env-get "args";
+						$defl! build-lib (lib-name opt-str)
+							system-check (++ shbuild " " SHBOPT " -xn," LIBPFX
+							(libdname lib-name) " " args " " repo-base "/"
+							lib-name " " CXXFLAGS " " opt-str " "
+							SHBuild_IncPCH);
+						build-lib "YBase" (++ DFLAG_B_YB " " INCLUDES_YBase);
+						$if dynamic (env-set "LIBS" (++ "-L" outdir " -l"
+							(libdname "YBase") " " LIBS_YFramework));
+						build-lib "YFramework" (++ ($if debug
+							($if dynamic "-DYB_DLL" "") DFLAG_B_YB) " "
+							($if dynamic "-DYF_BUILD_DLL" "")
+							" -DFREEIMAGE_LIB " (SHBuild_TrimOptions_
+							INCLUDES_YFramework))
+					)
+				);
+				putss "Finished building " lname "."
+			)
+		)
+		(putss "Skipped " lname ".")
+	);
+	skip-or-build (env-empty? "SHBuild_NoStatic") #f;
+	skip-or-build (env-empty? "SHBuild_NoDynamic") #t;
+	'
+SHBuild_Popd
+SHBuild_Puts Done.
 

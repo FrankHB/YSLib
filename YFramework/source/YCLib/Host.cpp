@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r654
+\version r667
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2017-02-10 23:06 +0800
+	2017-05-31 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,25 +252,31 @@ Semaphore::unlock() ynothrow
 }
 
 
-string
+pair<string, int>
 FetchCommandOutput(const char* cmd, size_t buf_size)
 {
 	if(YB_UNLIKELY(buf_size == 0))
 		throw std::invalid_argument("Zero buffer size found.");
+
+	string str;
+	int exit_code(0);
+
 	// TODO: Improve Win32 implementation?
-	if(const auto fp = ystdex::unique_raw(upopen(cmd, "r"), upclose))
+	if(const auto fp = ystdex::unique_raw(upopen(cmd, "r"), [&](std::FILE* p){
+		exit_code = upclose(p);
+	}))
 	{
 		ystdex::setnbuf(fp.get());
 
 		// TODO: Improve performance?
 		const auto p_buf(make_unique_default_init<char[]>(buf_size));
-		string res;
 
 		for(size_t n; (n = std::fread(&p_buf[0], 1, buf_size, fp.get())) != 0; )
-			res.append(&p_buf[0], n);
-		return res;
+			str.append(&p_buf[0], n);
 	}
-	YCL_Raise_SysE(, "::popen", yfsig);
+	else
+		YCL_Raise_SysE(, "::popen", yfsig);
+	return {std::move(str), exit_code};
 }
 
 
@@ -297,7 +303,7 @@ FetchCachedCommandResult(const string& cmd, size_t buf_size)
 
 		return (i_entry != cache.cend() ? i_entry : (cache.emplace(cmd,
 			YB_UNLIKELY(cmd.empty()) ? string()
-			: FetchCommandOutput(cmd.c_str(), buf_size))).first)->second;
+			: FetchCommandOutput(cmd.c_str(), buf_size).first)).first)->second;
 	}
 	CatchExpr(std::system_error& e,
 		YTraceDe(Err, "Failed execution of command."), ExtractAndTrace(e, Err))

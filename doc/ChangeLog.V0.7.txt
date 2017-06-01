@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7454
+\version r7505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-05-30 01:22 +0800
+	2017-06-01 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,57 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			@ %NPL.Dependency $=
+		(
+			+ "applicatives ('list-rest', 'first-null?', %(accl, accr))";
+			(
+			+ "applicatives %(foldr1; map1)" $dep_from "'list-rest', %accr";
+			+ "operative '$let'"
+			),
+			(
+			+ "applicative 'unfoldable?'" $dep_from "'first-null?', %accl";
+			+ "applicatives ('map-reverse'; 'for-each-ltr')"
+			),
+			+ "applicatives ('string-empty?'; 'env-empty?')"
+		),
+		/ %YCLib.Host $=
+		(
+			/ "returned pipe closing code along with string result"
+				@ "function %FetchCommandOutput";
+			/ $forced DLDI "function %FetchCachedCommandResult"
+		)
+	),
+	/ %Tools $=
+	(
+		* "normal line begins with '++' or '-- 'in contents wrongly recognized \
+			as special line to indicate source path" @ %RevisionPatcher.Main
+			$since b565,
+		+ "applicative %system-get" @ "loading forms"
+			@ "NPL REPL context initialization" @ %SHBuild.Main ^ $dep_from
+			("%FetchCommandOutput" @ %YCLib.Host),
+		/ %Scripts $=
+		(
+			/ "stage 2 YSLib self-hosting" ^ "NPL" $=
+			(
+				+ $impl "common library" @ "%SHBuild-common-toolchain.sh"
+					$dep_from %(SHBuild, YFramework.NPL.Dependency);
+				/ "switched NPL" @ "SHBuild-YSLib-common.sh";
+				/ $comp "command shown on error by exception thrown from NPL \
+					scripts"
+					// It would be from 'system-check' routine called from \
+						%SHBuild.
+			);
+			/ $forced DLDI "simplified script invocation"
+				@ "%(SHBuild-YSLib-debug.sh, SHBuild-YSLib.sh)"
+		)
+	)
+),
+
+b790
 (
 	/ %YFramework $=
 	(
@@ -1870,7 +1921,7 @@ b751
 				extra initialization. Also to eliminate G++ warning: \
 				[-Wmaybe-uninitialized] under '-Og'
 	),
-	/ @ "%Tools/Scripts/SHBuild-YSLib-common.sh" @ %Tools.Scripts $=
+	/ @ "%SHBuild-YSLib-common.sh" @ %Tools.Scripts $=
 	(
 		* "missing passing environment variables %(CXX, CXXFLAGS) to NPL \
 			command to build PCH" $since b758,

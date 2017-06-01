@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r635
+\version r681
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-05-29 13:10 +0800
+	2017-06-01 14:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -375,6 +375,26 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			(list $set! env $f $vau formals senv body) env;
 		$def! $defw! $vau (f formals senv .body) env eval
 			(list $set! env f wrap (list* $vau formals senv body)) env;
+		$defl! first-null? (l) null? (first l);
+		$defl! list-rest (x) list (rest x);
+		$defl! accl (l pred? base head tail sum)
+		(
+			$defrec! aux $lambda (l base)
+				$if (pred? l) base (aux (tail l) (sum (head l) base));
+			aux l base
+		);
+		$defl! accr (l pred? base head tail sum)
+		(
+			$defrec! aux $lambda (l)
+				$if (pred? l) base (sum (head l) (aux (tail l)));
+			aux l
+		);
+		$defl! foldr1 (kons knil l) accr l null? knil first rest kons;
+		$defw! map1 (appv l) env foldr1
+			($lambda (x xs) cons (apply appv (list x) env) xs) () l;
+		$def! $let $vau (bindings .body) env
+			eval (list* () (list* $lambda (map1 first bindings) body)
+				(map1 list-rest bindings)) env;
 	)NPL");
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	context.Perform(u8R"NPL(
@@ -386,6 +406,19 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	)NPL");
 	RegisterForm(root, "$and?", And);
 	RegisterForm(root, "$or?", Or);
+	context.Perform(u8R"NPL(
+		$defl! unfoldable? (l) accr l null? (first-null? l) first-null? rest
+			$or?;
+		$def! map-reverse wrap
+		(
+			$defl! cxrs (ls cxr) accl ls null? () ($lambda (l) cxr (first l))
+				rest cons;
+			$vau (appv .ls) env accl ls unfoldable? ()
+				($lambda (ls) cxrs ls first) ($lambda (ls) cxrs ls rest)
+				($lambda (x xs) cons (apply appv x env) xs)
+		);
+		$defw! for-each-ltr ls env $sequence (apply map-reverse ls env) inert;
+	)NPL");
 	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
 		ystdex::bind1(std::mem_fn(&TermNode::Value))));
 	// NOTE: I/O library.
@@ -394,18 +427,11 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		// XXX: Error is ignored.
 		std::puts(str.c_str());
 	});
-	// NOTE: Interoperation library.
-	RegisterStrictUnary<const string>(root, "env-get", [&](const string& var){
-		string res;
-
-		FetchEnvironmentVariable(res, var.c_str());
-		return res;
-	});
-	RegisterStrict(root, "system", CallSystem);
-	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: String library.
 	RegisterStrict(root, "++", std::bind(CallBinaryFold<string, ystdex::plus<>>,
 		ystdex::plus<>(), string(), _1));
+	RegisterStrictUnary<const string>(root, "string-empty?",
+		std::mem_fn(&string::empty));
 	RegisterStrictBinary(root, "string<-", [](TermNode& x, const TermNode& y){
 		Access<string>(x) = Access<string>(y);
 		return ValueToken::Unspecified;
@@ -425,6 +451,18 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<const string>(root, "string->symbol", StringToSymbol);
 	RegisterStrictUnary<const TokenValue>(root, "symbol->string",
 		SymbolToString);
+	// NOTE: Interoperation library.
+	RegisterStrictUnary<const string>(root, "env-get", [&](const string& var){
+		string res;
+
+		FetchEnvironmentVariable(res, var.c_str());
+		return res;
+	});
+	context.Perform(u8R"NPL(
+		$defl! env-empty? (n) string-empty? (env-get n);
+	)NPL");
+	RegisterStrict(root, "system", CallSystem);
+	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: SHBuild builtins.
 	root.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(

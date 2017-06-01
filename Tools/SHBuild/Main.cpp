@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3474
+\version r3483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-05-16 09:02 +0800
+	2017-06-01 02:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -361,6 +361,16 @@ RunNPLFromStream(std::istream&& is)
 	RegisterStrictBinary<const string>(root, "env-set",
 		[&](const string& var, const string& val){
 		SetEnvironmentVariable(var.c_str(), val.c_str());
+	});
+	RegisterStrict(root, "system-get", [](TermNode& term){
+		CallUnaryAs<const string>([&](const string& cmd){
+			auto res(FetchCommandOutput(cmd.c_str()));
+
+			term.Clear();
+			term.AddValue(MakeIndex(0), ystdex::trim(std::move(res.first)));
+			term.AddValue(MakeIndex(1), res.second);
+		}, term);
+		return ReductionStatus::Retained;
 	});
 	context.LoadFrom(is);
 }
