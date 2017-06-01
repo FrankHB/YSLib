@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r538
+\version r542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2017-02-10 23:06 +0800
+	2017-05-31 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,14 +256,14 @@ yconstexpr const size_t DefaultCommandBufferSize(yimpl(4096));
 /*!
 \brief 取命令在标准输出上的执行结果。
 \pre 间接断言：第一参数非空。
-\return 读取的二进制存储。
+\return 读取的二进制存储和关闭管道的返回值（可来自于被调用命令）。
 \exception std::system_error 读取失败。
-\throw std::invalid_argument 第二参数的值等于 \c 0 。
 \exception std::system_error 管道打开失败。
+\throw std::invalid_argument 第二参数的值等于 \c 0 。
 \note 第一参数指定命令；第二参数指定每次读取的缓冲区大小，先于执行命令进行检查。
-\since build 658
+\since build 791
 */
-YF_API YB_NONNULL(1) string
+YF_API YB_NONNULL(1) pair<string, int>
 FetchCommandOutput(const char*, size_t = DefaultCommandBufferSize);
 
 

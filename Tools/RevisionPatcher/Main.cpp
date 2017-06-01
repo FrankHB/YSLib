@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r223
+\version r227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2017-04-11 09:43 +0800
+	2017-05-31 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,14 +53,15 @@ Analyze(std::istream& in)
 	PatchMap res;
 	string line, name_a, name_b;
 	auto at_blk(size_t(-1));
+	auto at_a(size_t(-1));
 
 	for(size_t n(0); extract_line_cr(in, line); ++n)
 	{
 		if(line.empty())
 			continue;
-		if(begins_with(line, "---"))
-			name_a = cond_prefix(rtrcrlf(line, 3), " a/");
-		else if(begins_with(line, "+++"))
+		if(begins_with(line, "--- a/"))
+			yunseq(at_a = n, name_a = cond_prefix(rtrcrlf(line, 3), " a/"));
+		else if(n == at_a + 1 && begins_with(line, "+++ b/"))
 		{
 			name_b = cond_prefix(rtrcrlf(line, 3), " b/");
 			yunseq(res[name_b].first = name_a.empty() ? size_t(-1) : 0,
