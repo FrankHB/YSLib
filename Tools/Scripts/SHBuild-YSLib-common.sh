@@ -61,36 +61,37 @@ debug=$debug_ args="$@" \
 	(
 		(debug not? (env-empty? "debug"))
 		(lname ++ ($if dynamic "dynamic " "static ") "libraries")
-		(env-os env-get "SHBuild_Env_OS")
 	)
 	(
-		$def! YSLib_BaseDir SHBuild_2m env-os (env-get "YSLib_BaseDir");
-		$def! YF_SystemLibs
-			$if (win32? env-os) "-lgdi32 -limm32" "-lxcb -lpthread";
-		$def! DIR_YFramework ++ YSLib_BaseDir "/YFramework";
-		$defl! incsub (dir) ++ "-I\"" (SHBuild_2m env-os dir) "\"";
-		$def! INCLUDES_YBase SHBuild_TrimOptions_
-			(incsub (++ YSLib_BaseDir "/YBase/include"));
-		$def! INCLUDES_YFramework SHBuild_TrimOptions_ (++
-			(foldr1 ++ "" (map1
-				($lambda (n) ++ (incsub (++ DIR_YFramework n "/include")) " ")
-				(list "" "/Android" "/DS" "/Win32")))
-			(incsub (++ YSLib_BaseDir "/3rdparty/include")) " "
-			(env-get "INCLUDES_freetype") " "
-			INCLUDES_YBase
-		);
-		$def! LIBS_YFramework SHBuild_TrimOptions_
-			(++ " -L\"" (SHBuild_2m env-os (++ DIR_YFramework "/"
-			(env-get "SHBuild_Host_Platform")
-			"/lib-" (env-get "SHBuild_Env_Arch")))
-			"\" -lFreeImage -lfreetype " YF_SystemLibs);
-		for-each-ltr SHBuild_EchoVar_N (list "SHBuild" "SHBuild_Host_Platform");
-		for-each-ltr ($lambda (var) SHBuild_EchoVar_E
-			(() get-current-environment) var)
-			(list "INCLUDES_YBase" "INCLUDES_YFramework" "LIBS_YFramework");
 		$if debug ($redef! lname ++ "debug " lname);
-		$if nskip
+		$if nskip ($let*
 		(
+			(env-os env-get "SHBuild_Env_OS")
+			(YSLib_BaseDir SHBuild_2m env-os (env-get "YSLib_BaseDir"))
+			(YF_SystemLibs
+				$if (win32? env-os) "-lgdi32 -limm32" "-lxcb -lpthread")
+			(DIR_YFramework ++ YSLib_BaseDir "/YFramework")
+			(LIBS_YFramework SHBuild_TrimOptions_
+				(++ " -L\"" (SHBuild_2m env-os
+				(++ DIR_YFramework "/" (env-get "SHBuild_Host_Platform")
+				"/lib-" (env-get "SHBuild_Env_Arch")))
+				"\" -lFreeImage -lfreetype " YF_SystemLibs))
+		)
+		(
+			$defl! incsub (dir) ++ "-I\"" (SHBuild_2m env-os dir) "\"";
+			$def! INCLUDES_YBase SHBuild_TrimOptions_
+				(incsub (++ YSLib_BaseDir "/YBase/include"));
+			$def! INCLUDES_YFramework SHBuild_TrimOptions_ (++
+				(foldr1 ++ "" (map1 ($lambda (n) ++ (incsub (++ DIR_YFramework n
+					"/include")) " ") (list "" "/Android" "/DS" "/Win32")))
+				(incsub (++ YSLib_BaseDir "/3rdparty/include")) " "
+				(env-get "INCLUDES_freetype") " "
+				INCLUDES_YBase);
+			for-each-ltr SHBuild_EchoVar_N
+				(list "SHBuild" "SHBuild_Host_Platform");
+			for-each-ltr ($lambda (var) SHBuild_EchoVar_E
+				(() get-current-environment) var)
+				(list "INCLUDES_YBase" "INCLUDES_YFramework" "LIBS_YFramework");
 			$let
 			(
 				(shbuild env-get "SHBuild")
@@ -137,7 +138,7 @@ debug=$debug_ args="$@" \
 				);
 				putss "Finished building " lname "."
 			)
-		)
+		))
 		(putss "Skipped " lname ".")
 	);
 	skip-or-build (env-empty? "SHBuild_NoStatic") #f;

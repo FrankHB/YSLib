@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5294
+\version r5301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2017-03-11 13:06 +0800
+	2017-06-04 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,9 +93,15 @@ private:
 		\since build 768
 		*/
 		static bool
-		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
+		AreEqual(const GHEvent& x, const GHEvent& y)
+			// TODO: Verify if it is a GCC bug. Since the resolution of CWG
+			//	1330 is in the working draft M4659, it likes to be. See also
+			//	https://stackoverflow.com/questions/35790350/noexcept-inheriting-constructors-and-the-invalid-use-of-an-incomplete-type-that.
+#if !(YB_IMPL_GNUC >= 70000)
+			ynoexcept_spec(
 			ystdex::examiners::equal_examiner::are_equal(Deref(
 			x.template target<Decayed>()), Deref(y.template target<Decayed>())))
+#endif
 		{
 			return ystdex::examiners::equal_examiner::are_equal(
 				Deref(x.template target<Decayed>()),
