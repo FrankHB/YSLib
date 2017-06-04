@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3239
+\version r3247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-05-30 01:21 +0800
+	2017-06-04 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -362,6 +362,11 @@ ReduceFirst(TermNode&, ContextNode&);
 \return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
 \sa ReduceChildrenOrdered
 \since build 764
+
+可直接实现顺序求值。
+对空参数返回未指定值。
+参考调用文法：
+$sequence <object>...
 */
 YF_API ReductionStatus
 ReduceOrdered(TermNode&, ContextNode&);
@@ -1382,7 +1387,7 @@ If(TermNode&, ContextNode&);
 捕获的静态环境由当前动态环境隐式确定。
 不保留环境的所有权。
 参考调用文法：
-$lambda <formals> <expressions>?
+$lambda <formals> <body>
 */
 YF_API void
 Lambda(TermNode&, ContextNode&);
@@ -1403,7 +1408,7 @@ Lambda(TermNode&, ContextNode&);
 捕获的静态环境由当前动态环境隐式确定。
 不保留环境的所有权。
 参考调用文法：
-$vau <formals> <eformal> <expressions>?
+$vau <formals> <eformal> <body>
 */
 YF_API void
 Vau(TermNode&, ContextNode&);
@@ -1412,10 +1417,10 @@ Vau(TermNode&, ContextNode&);
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
 
 捕获的静态环境由环境参数 <env> 求值后指定。
-根据环境参数的类型为 shared_ptr<Environment> 或 weak_ptr<Envrionment> 
+根据环境参数的类型为 \c shared_ptr<Environment> 或 \c weak_ptr<Envrionment> 
 	决定是否保留所有权。
 参考调用文法：
-$vaue <env> <formals> <eformal> <expressions>?
+$vaue <env> <formals> <eformal> <body>
 */
 YF_API void
 VauWithEnvironment(TermNode&, ContextNode&);

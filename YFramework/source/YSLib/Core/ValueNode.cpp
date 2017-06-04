@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r742
+\version r751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2017-05-27 00:22 +0800
+	2017-06-02 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,21 +33,15 @@
 namespace YSLib
 {
 
-const ValueNode&
+ValueNode&
 ValueNode::operator%=(const ValueNode& node)
 {
-	auto& n((*this)[node.name]);
-
-	n.Value = node.Value;
-	return n;
+	return Deref(insert_or_assign(node.name, node).first);
 }
-const ValueNode&
-ValueNode::operator%=(const ValueNode&& node)
+ValueNode&
+ValueNode::operator%=(ValueNode&& node)
 {
-	auto& n((*this)[node.name]);
-
-	n.Value = std::move(node.Value);
-	return n;
+	return Deref(insert_or_assign(node.name, std::move(node)).first);
 }
 
 void

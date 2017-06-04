@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1863
+\version r1931
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2016-10-06 16:46 +0800
+	2017-06-03 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1021,25 +1021,36 @@ struct assoc_con_traits
 		return val.first;
 	}
 	//@}
+
+	//! \since build 792
+	//@{
+	static inline typename _tAssocCon::value_type&
+	extract_mapped(false_, typename _tAssocCon::value_type& val)
+	{
+		return val;
+	}
+	static inline const typename _tAssocCon::value_type&
+	extract_mapped(false_, const typename _tAssocCon::value_type& val)
+	{
+		return val;
+	}
+	template<typename _tMap = _tAssocCon>
+	static inline typename _tMap::mapped_type&
+	extract_mapped(true_, typename _tAssocCon::value_type& val)
+	{
+		return val.second;
+	}
+	template<typename _tMap = _tAssocCon>
+	static inline const typename _tMap::mapped_type&
+	extract_mapped(true_, const typename _tAssocCon::value_type& val)
+	{
+		return val.second;
+	}
+	//@}
 };
 
 template<class _type>
 using mapped_type_t = typename _type::mapped_type;
-
-
-//! \since build 681
-template<class _tAssocCon, typename _tKey, typename _tParam>
-std::pair<typename _tAssocCon::iterator, bool>
-insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
-	_tAssocCon& con, _tKey&& k, _tParam&& arg)
-{
-	if(pr.first)
-		pr.first
-			= emplace_hint_in_place(con, pr.second, yforward(k), yforward(arg));
-	else
-		pr.second = yforward(arg);
-	return pr;
-}
 
 } // unnamed namespace details;
 
@@ -1061,7 +1072,6 @@ emplace_hint_in_place(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 \brief 从关联容器的值取键。
 \since build 679
 */
-//@{
 template<class _tAssocCon, typename _type,
 	yimpl(typename = enable_if_convertible_t<const _type&,
 	const typename _tAssocCon::value_type&>)>
@@ -1071,15 +1081,46 @@ extract_key(const _type& val)
 	return details::assoc_con_traits<_tAssocCon>::extract_key(
 		is_detected<details::mapped_type_t, _tAssocCon>(), val);
 }
-template<class _tAssocCon, typename _tKey,
-	yimpl(typename = enable_if_inconvertible_t<const _tKey&,
-	const typename _tAssocCon::value_type&>)>
-inline const _tKey&
-extract_key(const _tKey& k)
+
+/*!
+\brief 从关联容器的值取映射的值。
+\since build 792
+*/
+template<class _tAssocCon, typename _type,
+	yimpl(typename = enable_if_convertible_t<_type&,
+	typename _tAssocCon::value_type&>)>
+inline const auto
+extract_mapped(_type& val)
+	-> decltype(details::assoc_con_traits<_tAssocCon>::extract_mapped(
+		is_detected<details::mapped_type_t, _tAssocCon>(), val))
 {
-	return k;
+	return details::assoc_con_traits<_tAssocCon>::extract_mapped(
+		is_detected<details::mapped_type_t, _tAssocCon>(), val);
 }
-//@}
+
+
+//! \since build 792
+namespace details
+{
+
+/*!
+\since build 681
+\note 使用 ADL extract_mapped 。
+*/
+template<class _tAssocCon, typename _tKey, typename _tParam>
+std::pair<typename _tAssocCon::iterator, bool>
+insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
+	_tAssocCon& con, _tKey&& k, _tParam&& arg)
+{
+	if(pr.second)
+		pr.first
+			= emplace_hint_in_place(con, pr.first, yforward(k), yforward(arg));
+	else
+		extract_mapped<_tAssocCon>(*pr.first) = yforward(arg);
+	return pr;
+}
+
+} // namespace details;
 
 
 /*!
@@ -1208,7 +1249,10 @@ try_emplace_hint(_tAssocCon& con, typename _tAssocCon::const_iterator hint,
 }
 //@}
 
-//! \since build 681
+/*!
+\note 使用 ADL extract_mapped 。
+\since build 681
+*/
 //@{
 template<class _tAssocCon, typename _tKey, typename _tParam>
 inline std::pair<typename _tAssocCon::iterator, bool>

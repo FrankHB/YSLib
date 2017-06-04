@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3158
+\version r3164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-05-27 00:48 +0800
+	2017-06-03 11:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,12 +192,13 @@ public:
 	/*!
 	\brief 替换同名子节点。
 	\return 子节点引用。
+	\since build 792
 	*/
 	//@{
-	const ValueNode&
+	ValueNode&
 	operator%=(const ValueNode&);
-	const ValueNode&
-	operator%=(const ValueNode&&);
+	ValueNode&
+	operator%=(ValueNode&&);
 	//@}
 	//@}
 
@@ -261,9 +262,9 @@ public:
 		return *ystdex::try_emplace(container, str, NoContainer, yforward(str))
 			.first;
 	}
-	//! \since build 667
+	//! \since build 792
 	template<class _tCon>
-	const ValueNode&
+	ValueNode&
 	operator[](const ystdex::path<_tCon>& pth)
 	{
 		auto p(this);

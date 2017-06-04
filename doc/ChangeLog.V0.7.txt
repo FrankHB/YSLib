@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7505
+\version r7582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-06-01 14:17 +0800
+	2017-06-05 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,76 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ @ "%SHBuild-YSLib-common.sh" @ %Tools.Scripts $=
+	(
+		/ "prevented printing message for variables when target is skipped",
+		/ DLDI "simplified" ^ $dep_from
+			('$let*' @ %YFramework.NPL.Dependency)
+	),
+	/ %YBase.YStandardEx.Container $=
+	(
+		+ "function template %extract_mapped",
+		- "redundant trivial overload of function template %extract_key",
+		* "function template %insert_or_assign" $since b681
+	),
+	/ %YFramework $=
+	(
+		/ @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
+		(
+			- 'const' @ "return type" @ "function template %operator[]",
+			* $comp "function templates %insert_or_assign" $since b681 $dep_from
+				("%ystdex::insert_or_assign" @ %YBase.YStandardEx.Container),
+			/ @ "functions %operator%=" $=
+			(
+				/ "parameter type 'const ValueNode&&'"
+					@ "overload with rvalue reference" -> 'ValueNode&&';
+				/ $impl ^ $dep_from "%insert_or_assign" ~ "%operator[]";
+				- 'const' @ "return type",
+				* $comp "missing setting container" $mismatch $since b502
+			),
+			* $comp "missing setting container" @ "functions %operator/"
+				$dep_from "%operator%=" $mismatch $since b502
+		),
+		/ %NPL $=
+		(
+			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				+ "operative '$let*'",
+				/ DLDI "simplified operative '$let'" ^ '$defv!'
+					~ ('$def!', '$vau')
+			),
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					/ DD "grammar category for bodies",
+					* "%ParameterMismatch thrown uncoditionally to binding to \
+						empty list as formal parameter tree"
+						@ "function %DefineWithRecursion" $since b780,
+						// This would also cause '$letrec' with empty binding \
+							list cannot be implemented directly by '$defrec!'.
+					/ "exception message" @ "mismatch for empty operand tree"
+						@ "function %BindParameter" $=
+					(
+						* "wrong message of mismatched leaf term for empty \
+							operand tree" $since b772,
+						+ "subterm number and value type"
+					)
+				),
+				/ "specified %ValueToken::Unspecified as result when operand \
+					is empty" @ "function %ReduceOrdered"
+					// This has behavior more consistent with other functions \
+						for '$sequence', also easier for debugging.
+			)
+		),
+		+ "worked around GCC 7 compilation error" @ "class template %GHEvent"
+			@ %YSLib.Core.YEvent
+	)
+),
+
+b791
 (
 	/ %YFramework $=
 	(
@@ -71,9 +141,16 @@ $now
 					$dep_from %(SHBuild, YFramework.NPL.Dependency);
 				/ "switched NPL" @ "SHBuild-YSLib-common.sh";
 				/ $comp "command shown on error by exception thrown from NPL \
-					scripts"
+					scripts",
 					// It would be from 'system-check' routine called from \
 						%SHBuild.
+				/ $comp "probable more occurances like 'Cygwin WARNING' about \
+					'compute FAST_CWD pointer' since the shell is now \
+					reentered by %std::system call rather than 'bash'"
+					// The illustrated warning were once in Windows 10 Insider \
+						rs2 branch, but not in Windows 10 1703. However, other \
+						bug introduced during rs2 like CJK mojibake in console \
+						may remain.
 			);
 			/ $forced DLDI "simplified script invocation"
 				@ "%(SHBuild-YSLib-debug.sh, SHBuild-YSLib.sh)"

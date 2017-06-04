@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r681
+\version r697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-06-01 14:14 +0800
+	2017-06-04 04:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -320,7 +320,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				(
 					$seq2
 					(
-						$defrec! $aux $vaue! (() copy-environment) (head .tail)
+						$defrec! $aux $vaue (() copy-environment) (head .tail)
 							env
 						(
 							$if (null? tail)
@@ -332,7 +332,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 						)
 					)
 					(
-						$vaue! (() copy-environment) body env
+						$vaue (() copy-environment) body env
 						(
 							$if (null? body)
 							inert
@@ -345,7 +345,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		(
 			$vau (first second) env
 				(wrap ($vau #ignore #ignore (eval second env))) (eval first env)
-		)
+		);
 	)NPL");
 	context.Perform(u8R"NPL($def! list wrap ($vau x #ignore x))NPL");
 //	context.Perform(u8R"NPL($def! list $lambda x x)NPL");
@@ -360,13 +360,13 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			$if (null? tail) head
 				(cons head (apply list* tail));
 		$defrec! $cond $vau clauses env $sequence
-			(
-				$def! aux $lambda ((test .body) .clauses)
-					$if (eval test env)
-				(apply (wrap $sequence) body env)
-				(apply (wrap $cond) clauses env)
-			)
-			($if (null? clauses) inert (apply aux clauses));
+		(
+			$def! aux $lambda ((test .body) .clauses)
+				$if (eval test env)
+					(apply (wrap $sequence) body env)
+					(apply (wrap $cond) clauses env)
+		)
+		($if (null? clauses) inert (apply aux clauses));
 		$def! $set! $vau (expr1 formals .expr2) env eval
 			(list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
 		$def! $defl! $vau (f formals .body) env eval
@@ -392,9 +392,13 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		$defl! foldr1 (kons knil l) accr l null? knil first rest kons;
 		$defw! map1 (appv l) env foldr1
 			($lambda (x xs) cons (apply appv (list x) env) xs) () l;
-		$def! $let $vau (bindings .body) env
+		$defv! $let (bindings .body) env
 			eval (list* () (list* $lambda (map1 first bindings) body)
 				(map1 list-rest bindings)) env;
+		$defrec! $let* $vau (bindings .body) env
+			eval ($if (null? bindings) (list* $let bindings body)
+				(list $let (list (first bindings))
+				(list* $let* (rest bindings) body))) env;
 	)NPL");
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	context.Perform(u8R"NPL(

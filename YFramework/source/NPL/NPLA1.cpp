@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4227
+\version r4241
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-05-30 01:20 +0800
+	2017-06-04 20:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,9 +301,6 @@ private:
 					store[n] = p_d));
 			});
 		}
-		else
-			// TODO: Merge with %MatchParameter?
-			throw ParameterMismatch("Invalid parameter value found.");
 	}
 
 	void
@@ -328,8 +325,6 @@ private:
 						std::move(p_strong));
 				}
 			});
-		else
-			YAssert(false, "Invalid parameter value found.");
 	}
 	//@}
 
@@ -656,7 +651,12 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	const auto res(ReduceChildrenOrdered(term, ctx));
 
 	if(IsBranch(term))
-		LiftTerm(term, *term.rbegin());
+	{
+		if(term.size() > 1)
+			LiftTerm(term, *term.rbegin());
+		else
+			term.Value = ValueToken::Unspecified;
+	}
 	return res;
 }
 
@@ -1155,8 +1155,10 @@ MatchParameter(const TermNode& t, TermNode& o,
 	else if(!t.Value)
 	{
 		if(o)
-			throw ParameterMismatch(
-				"Invalid branch term found for empty list parameter.");
+			throw ParameterMismatch(ystdex::sfmt(
+				"Invalid nonempty operand found for empty list parameter,"
+					" with %zu subterm(s) and value '#<unknown:%s>'.", o.size(),
+					o.Value.GetType().name()));
 	}
 	else if(const auto p = AccessPtr<TokenValue>(t))
 		bind_value(*p, std::move(o));
