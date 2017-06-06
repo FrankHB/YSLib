@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r542
+\version r548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2017-05-31 16:31 +0800
+	2017-06-05 02:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,8 +187,13 @@ private:
 	public:
 		using pointer = void*;
 
-		observer_ptr<Semaphore> Referent{};
+		observer_ptr<Semaphore> Referent;
 
+		/*!
+		\since build 793
+		\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58328.
+		*/
+		DefDeCtor(Deleter)
 		void
 		operator()(pointer) const ynothrowv;
 	};

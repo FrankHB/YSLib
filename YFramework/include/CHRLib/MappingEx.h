@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r418
+\version r420
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2016-12-29 12:18 +0800
+	2017-06-05 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,6 +162,7 @@ struct GUCSMapper<CharSet::GBK> : UCSMapperBase
 				Assign(uc, seq[0]);
 				break;
 			}
+			YB_ATTR_fallthrough;
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;

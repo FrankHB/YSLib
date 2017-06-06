@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1599
+\version r1601
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2017-01-26 21:53 +0800
+	2017-06-05 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,6 +95,7 @@ NPLUnescape(string& buf, const UnescapeContext& uctx, char ld)
 				buf += ld;
 				break;
 			}
+			YB_ATTR_fallthrough;
 		default:
 			return {};
 		}
@@ -199,6 +200,7 @@ LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
 					cbuf += ' ';
 					break;
 				}
+				YB_ATTR_fallthrough;
 			default:
 				cbuf += c;
 		}

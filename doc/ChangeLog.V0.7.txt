@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7582
+\version r7620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-06-05 00:10 +0800
+	2017-06-06 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,45 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	(
+	+ "macro %YB_ATTR_fallthrough" @ %YBase.YDefinition;
+	/ DLI "marked fallthrough" @ "switch statement" ^ ("%YB_ATTR_fallthrough"
+		@ %YBase.YDefinition) $effective @ (("function \
+		%DecomposeMakefileDepList" @ %Dependency, "functions %(NPLUnescape, \
+		LexicalAnalyzer::ParseByte)" @ %Lexical, "function %EvaluateLeafToken"
+		@ %NPLA1, "function %ConvertAttributeNodeString" @ %NPLA) @ %NPL,
+		"class specializations %GUCSMapper"
+		@ %CHRLib.(StaticMapping, MappingEx)) @ %YFramework
+		// To eliminate G++ 7 warning: [-Wimplicit-fallthrough=].
+	),
+	/ %YFramework $=
+	(
+		/ $dev @ !"%YCL_Win32" @ "class %Semaphore" @ %YCLib.Host $=
+		(
+			+ "default constructor %Deleter" ^ "%DefDeCtor",
+			- '{}' @ "data member %Referent"
+			// To make G++ 7 happy. Note this may be an unconfirmed CWG issue, \
+				see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58328.
+		),
+		/ %YSLib.Core.YObject $=
+		(
+			* "misspelled %HolerFromPointer" $since b789
+				$= (/ "%HolerFromPointer" => "%HolderFromPointer"),
+			/ "function %GetHolderPtr" @ "class template %PointerHolder"
+				=> "%GetHeld"
+				// To avoid confusion with %ValueObject::GetHolderPtr.
+		),
+		/ DLDI %NPL.NPLA1 $=
+		(
+			/ "%DefineWithRecursion" $dep_from
+				("%HolerFromPointer" @ %YSLib.Core.YObject),
+			/ "function %EvaluateIdentifier"
+		)
+	)
+),
+
+b792
 (
 	/ @ "%SHBuild-YSLib-common.sh" @ %Tools.Scripts $=
 	(

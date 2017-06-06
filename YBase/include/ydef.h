@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3022
+\version r3038
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2017-04-29 02:31 +0800
+	2017-06-05 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -364,6 +364,23 @@
 #	define YB_ATTR_STD(...) [[__VA_ARGS__]]
 #else
 #	define YB_ATTR_STD(...)
+#endif
+
+/*!
+\def YB_ATTR_fallthrough
+\brief 用于 switch 语句的 fallthrough 属性。
+\since build 793
+*/
+#if __has_cpp_attribute(fallthrough)
+#	define YB_ATTR_fallthrough YB_ATTR_STD(fallthrough)
+#elif __has_cpp_attribute(clang::fallthrough)
+#	define YB_ATTR_fallthrough YB_ATTR_STD(clang::fallthrough)
+#elif __has_cpp_attribute(gnu::fallthrough)
+#	define YB_ATTR_fallthrough YB_ATTR_STD(gnu::fallthrough)
+#elif __has_attribute(fallthrough)
+#	define YB_ATTR_fallthrough YB_ATTR(fallthrough)
+#else
+#	define YB_ATTR_fallthrough
 #endif
 
 /*!

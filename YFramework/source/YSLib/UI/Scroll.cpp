@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3788
+\version r3791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2016-02-12 00:39 +0800
+	2017-06-05 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,6 +219,7 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 				SetValue(value - val);
 				break;
 			}
+			YB_ATTR_fallthrough;
 		case ScrollCategory::First:
 			value = 0;
 			SetThumbPosition(0);
@@ -230,6 +231,7 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 				SetValue(value + val);
 				break;
 			}
+			YB_ATTR_fallthrough;
 		case ScrollCategory::Last:
 			value = max_value;
 			// XXX: Conversion to 'SPos' might be implementation-defined.
