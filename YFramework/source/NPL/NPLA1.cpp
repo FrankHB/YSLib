@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4241
+\version r4277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-06-04 20:36 +0800
+	2017-06-06 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,7 +297,7 @@ private:
 				// TODO: The symbol can be rebound?
 				env.GetMapRef()[n].SetContent(TermNode::Container(),
 					ValueObject(ystdex::any_ops::use_holder, ystdex::in_place<
-					HolerFromPointer<weak_ptr<ContextHandler>>>,
+					HolderFromPointer<weak_ptr<ContextHandler>>>,
 					store[n] = p_d));
 			});
 		}
@@ -321,7 +321,7 @@ private:
 
 					Deref(p_strong) = std::move(v.GetObject<ContextHandler>());
 					v = ValueObject(ystdex::any_ops::use_holder,
-						ystdex::in_place<HolerFromPointer<shared_ptr_t>>,
+						ystdex::in_place<HolderFromPointer<shared_ptr_t>>,
 						std::move(p_strong));
 				}
 			});
@@ -483,6 +483,23 @@ CreateFunction(TermNode& term, _func f, size_t n)
 		throw InvalidSyntax("Insufficient terms in function abstraction.");
 }
 
+
+//! \since build 793
+void
+ConvertLValue(TermNode& term, const TermNode& tm)
+{
+	// NOTE: The referenced term is lived through the evaluation, which is
+	//	guaranteed by the context. This is necessary since the ownership of
+	//	objects which are not temporaries in evaluated terms needs to be
+	//	always in the environment, not in AST. It would be safe if not
+	//	passed directly.
+	if(tm.empty())
+		LiftTermRef(term, tm.Value);
+	else
+		// XXX: Children are referenced.
+		term.SetContentIndirect(tm.GetContainer(), tm.Value);
+}
+
 } // unnamed namespace;
 
 GuardPasses&
@@ -599,13 +616,13 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	// TODO: Detect lifetime escape to perform copy elision.
 #if true
 	// NOTE: To keep lifetime of objects referenced by references introduced in
-	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough because
-	//	it will not copy object referenced in holders of %YSLib::RefHolder
-	//	instances). On the other hand, the references captured by vau handlers
-	//	(which requries recursive copy of vau handler members if forced) are
-	//	not blessed here to avoid leak abstraction of detailed implementation
-	//	of vau handlers; it can be checked by the vau handler itself, if
-	//	necessary.
+	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
+	//	because it will not copy object referenced in holders of
+	//	%YSLib::RefHolder instances). On the other hand, the references captured
+	//	by vau handlers (which requries recursive copy of vau handler members if
+	//	forced) are not blessed here to avoid leak abstraction of detailed
+	//	implementation of vau handlers; it can be checked by the vau handler
+	//	itself, if necessary.
 	term.Value = comp_term.Value.MakeMoveCopy();
 	term.SetChildren(comp_term.CreateWith(&ValueObject::MakeMoveCopy));
 #else
@@ -806,16 +823,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 	YAssertNonnull(id.data());
 	if(const auto p = ResolveName(ctx, id))
 	{
-		// NOTE: The referenced term is lived through the envaluation, which is
-		//	guaranteed by the context. This is necessary since the ownership of
-		//	objects which are not temporaries in evaluated terms needs to be
-		//	always in the environment, not in AST. It would be safe if not
-		//	passed directly.
-		if(p->empty())
-			LiftTermRef(term, p->Value);
-		else
-			// XXX: Children are referenced.
-			term.SetContentIndirect(p->GetContainer(), p->Value);
+		ConvertLValue(term, *p);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return (*p_handler)(ctx);
 		// NOTE: Unevaluated term shall be detected and evaluated. See also
@@ -847,6 +855,7 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			id = DeliteralizeUnchecked(id);
 			if(YB_UNLIKELY(id.empty()))
 				break;
+			YB_ATTR_fallthrough;
 		case LexemeCategory::Symbol:
 			return CheckReducible(InvokeLiteral(term, ctx, id))
 				? EvaluateIdentifier(term, ctx, id) : ReductionStatus::Clean;
@@ -857,6 +866,7 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 			//	%TermToNamePtr normally. This is guarded by normal form handling
 			//	in the loop in %Reduce.
 			term.Value.emplace<string>(Deliteralize(id));
+			YB_ATTR_fallthrough;
 		default:
 			break;
 			// TODO: Handle other categories of literal.

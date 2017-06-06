@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1136
+\version r1138
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-05-26 16:10 +0800
+	2017-06-05 02:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,6 +157,7 @@ ConvertAttributeNodeString(const TermNode& term)
 	{
 	default:
 		YTraceDe(Warning, "Invalid term with more than 2 children found.");
+		YB_ATTR_fallthrough;
 	case 2:
 		{
 			auto i(term.begin());
@@ -164,6 +165,7 @@ ConvertAttributeNodeString(const TermNode& term)
 
 			return n + '=' + Access<string>(Deref(++i));
 		}
+		YB_ATTR_fallthrough;
 	case 1:
 		return Access<string>(Deref(term.begin()));
 	case 0:

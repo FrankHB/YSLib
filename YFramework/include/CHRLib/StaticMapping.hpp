@@ -11,13 +11,13 @@
 /*!	\file StaticMapping.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2548
+\version r2565
 \author FrankHB <frankhb1989@gmail.com>
 \since build 587
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2017-01-16 11:47 +0800
+	2017-06-05 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,6 +256,7 @@ public:
 			}
 			if(YB_UNLIKELY(CheckInvalid(seq[0], 0xC0)))
 				return ConversionResult::Invalid;
+			YB_ATTR_fallthrough;
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -266,6 +267,7 @@ public:
 				Assign1(uc, seq);
 				break;
 			}
+			YB_ATTR_fallthrough;
 		case 2:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -276,6 +278,7 @@ public:
 				Assign2(uc, seq);
 				break;
 			}
+			YB_ATTR_fallthrough;
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -358,8 +361,10 @@ public:
 		{
 		case 6:
 			CHRLib_Impl_UTF8_Decode_Fill;
+			YB_ATTR_fallthrough;
 		case 3:
 			CHRLib_Impl_UTF8_Decode_Fill;
+			YB_ATTR_fallthrough;
 		case 2:
 			CHRLib_Impl_UTF8_Decode_Fill;
 			break;
@@ -449,6 +454,7 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 		case 0:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -456,6 +462,7 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 			{
 				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(seq[0])))
 					return ConversionResult::Invalid;
+				YB_ATTR_fallthrough;
 			}
 			else
 			{
@@ -465,6 +472,7 @@ struct GUCSMapper<CharSet::UTF_16BE> : UCSMapperBase
 		case 2:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -503,6 +511,7 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 		case 0:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -510,6 +519,7 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 			{
 				if(YB_UNLIKELY(!CHRLib::IsValidSurrogateHead(seq[1])))
 					return ConversionResult::Invalid;
+				YB_ATTR_fallthrough;
 			}
 			else
 			{
@@ -519,6 +529,7 @@ struct GUCSMapper<CharSet::UTF_16LE> : UCSMapperBase
 		case 2:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -557,12 +568,15 @@ struct GUCSMapper<CharSet::UTF_32BE> : UCSMapperBase
 		case 0:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 2:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
@@ -599,12 +613,15 @@ struct GUCSMapper<CharSet::UTF_32LE> : UCSMapperBase
 		case 0:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 2:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
+			YB_ATTR_fallthrough;
 		case 3:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;

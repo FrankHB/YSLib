@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r697
+\version r698
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-06-04 04:00 +0800
+	2017-06-05 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,6 +61,7 @@ DecomposeMakefileDepList(std::streambuf& sb)
 					{
 					case ' ':
 						spaces.insert(buf.size());
+						YB_ATTR_fallthrough;
 					case '\\':
 					case '#':
 						buf += escs[0];
