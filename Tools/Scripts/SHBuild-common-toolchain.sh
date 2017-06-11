@@ -132,6 +132,7 @@ SNSC_Common_='
 				-Wtrampolines")
 			($set-if-empty! CXXFLAGS_IMPL_WARNING
 				"-Wconditionally-supported
+				-Wno-noexcept-type
 				-Wstrict-null-sentinel
 				-Wzero-as-null-pointer-constant")
 			($set-if-empty! CXXFLAGS_IMPL_OPT

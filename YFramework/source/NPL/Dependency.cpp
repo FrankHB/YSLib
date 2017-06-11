@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r698
+\version r754
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-06-05 01:32 +0800
+	2017-06-09 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,6 +189,58 @@ LoadSequenceSeparators(ContextNode& ctx, EvaluationPasses& passes)
 	RegisterSequenceContextTransformer(passes, ctx, "$,", TokenValue(","));
 }
 
+//! \since build 794
+//@{
+void
+CopyEnvironmentDFS(Environment& d, const Environment& e)
+{
+	const auto copy_parent([&](Environment& dst, const Environment& parent){
+		auto p_env(make_shared<Environment>());
+
+		CopyEnvironmentDFS(*p_env, parent);
+		dst.ParentPtr = std::move(p_env);
+	});
+	const auto copy_parent_ptr(
+		[&](Environment& dst, const ValueObject& vo) -> bool{
+		if(const auto p = AccessPtr<weak_ptr<Environment>>(vo))
+		{
+			if(const auto p_parent = p->lock())
+				copy_parent(dst, *p_parent);
+			// XXX: Failure of locking is ignored.
+			return true;
+		}
+		else if(const auto p_e = AccessPtr<shared_ptr<Environment>>(vo))
+		{
+			if(const auto p_parent = *p_e)
+				copy_parent(dst, *p_parent);
+			// XXX: Empty parent is ignored.
+			return true;
+		}
+		return {};
+	});
+	auto& m(d.GetMapRef());
+
+	copy_parent_ptr(d, e.ParentPtr);
+	for(const auto& b : e.GetMapRef())
+		m.emplace(b.CreateWith([&](const ValueObject& vo) -> ValueObject{
+			Environment dst;
+
+			if(copy_parent_ptr(dst, vo))
+				return ValueObject(std::move(dst));
+			return vo;
+		}), b.GetName(), b.Value);
+}
+
+void
+CopyEnvironment(TermNode& term, ContextNode& ctx)
+{
+	auto p_env(make_shared<NPL::Environment>());
+
+	CopyEnvironmentDFS(*p_env, ctx.GetRecordRef());
+	term.Value = ValueObject(std::move(p_env));
+}
+//@}
+
 } // unnamed namespace;
 
 void
@@ -269,19 +321,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
 	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
-	RegisterStrict(root, "copy-environment",
-		[&](TermNode& term, ContextNode& ctx){
-		auto p_env(make_shared<NPL::Environment>());
-		auto& e(p_env->GetMapRef());
-
-		for(const auto& b : ctx.GetBindingsRef())
-			e.emplace(b.CreateWith(ystdex::id<>()), b.GetName(), b.Value);
-		if(const auto p = AccessPtr<weak_ptr<NPL::Environment>>(
-			ctx.GetRecordRef().ParentPtr))
-			if(const auto p_parent = p->lock())
-				p_env->ParentPtr = share_copy(*p_parent);
-		term.Value = ValueObject(std::move(p_env));
-	});
+	RegisterStrict(root, "copy-environment", CopyEnvironment);
 	RegisterStrict(root, "make-environment",
 		[](TermNode& term, ContextNode& ctx){
 		// FIXME: Parent environments?

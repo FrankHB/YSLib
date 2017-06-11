@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7620
+\version r7691
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-06-06 00:54 +0800
+	2017-06-11 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,78 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	+ "-Wno-noexcept-type" @ "variable %CXXFLAGS_IMPL_WARNING" @ "g++"
+		@ "%(SHBuild-common-toolchain.sh, SHBuild-common-options.sh)"
+		@ %Tools.Scripts,
+		// To eliminate G++ 7 warning: [-Wnoexcept-type] which is enabled \
+			default. Note G++ would ignore if it does not know it, while \
+			Clang++ complains it with [-Wunknown-warning-option] and \
+			cc1plus warns, too (but only on failing to compile).
+	/ %YBase.YStandardEx.Any $=
+	(
+		/ "supported holder type without member type %value_type"
+			@ "class template %holder_handler" $=
+		(
+			(
+			* "static function %manage wrongly ignored holder member" $since
+				b352
+				$= (/ $impl "switches %(get_ptr, get_type)"
+					^ "%holder member function");
+			- "static function %get_pointer";
+			),
+			* "non-local construction with %std::unique_ptr<_tHolder>" $since
+				b716;
+			- "member type %value_type"
+		),
+		(
+		/ @ "class %holder" $=
+		(
+			/ $dev $lib 'override' @ "destructor" -> 'virtual';
+			- "base class %cloneable, pure virtual function %clone"
+				@ "class %holder"
+				// It is not used by %any_ops::clone.
+		);
+		- $forced "overrider %clone"
+			@ "class templates %(value_holder, pointer_holder)"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.YObject $=
+		(
+			- "overrider %clone"
+				@ "class templates %(ValueHolder, PointerHolder, RefHolder)"
+				$dep_from ("%ystdex::any_ops::holder" @ %YBase.YStandardEx.Any);
+			* $comp $dev "missing polymorphic return type of %clone"
+				@ "interface %IValueHolder" $since b362
+		),
+		/ %NPL $=
+		(
+			* "insufficient recursive referencing" @ "applicative \
+				'copy-environment'" @ "loading forms" @ "function \
+				%LoadNPLContextForSHBuild" @ %Dependency $since b789,
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified function %ReduceCheckedClosure"
+					^ "%(ValueNode::CreateWith, ValueObject::MakeMoveCopy)",
+				/ @ "namespace %Forms" $=
+				(
+					+ "function template %CheckSymbol";
+					/ "supported return value and %string_view" @ "function \
+						template %CheckParameterLeafToken" ^ "%CheckSymbol"
+				)
+			)
+		)
+	),
+	* "missing exceptional condition of undefined behavior on invalid access \
+		of variable reference after rebinding subject to NPLA guarantees" $since
+		b767 $=
+		(+ "clearified condition of dangling reference in evaluated \
+			result after rebinding of corresponding variable")
+),
+
+b793
 (
 	(
 	+ "macro %YB_ATTR_fallthrough" @ %YBase.YDefinition;

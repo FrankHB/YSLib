@@ -77,6 +77,7 @@ elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
 		"}
 	: ${CXXFLAGS_IMPL_WARNING:=" \
 		-Wconditionally-supported \
+		-Wno-noexcept-type \
 		-Wstrict-null-sentinel \
 		-Wzero-as-null-pointer-constant \
 		"}
