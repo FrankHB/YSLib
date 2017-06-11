@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4277
+\version r4282
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-06-06 15:01 +0800
+	2017-06-10 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -492,7 +492,9 @@ ConvertLValue(TermNode& term, const TermNode& tm)
 	//	guaranteed by the context. This is necessary since the ownership of
 	//	objects which are not temporaries in evaluated terms needs to be
 	//	always in the environment, not in AST. It would be safe if not
-	//	passed directly.
+	//	passed directly and without rebinding. Note access objects denoted by
+	//	invalid reference after rebinding cause undefined behavior in the object
+	//	language.
 	if(tm.empty())
 		LiftTermRef(term, tm.Value);
 	else
@@ -623,8 +625,8 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	//	forced) are not blessed here to avoid leak abstraction of detailed
 	//	implementation of vau handlers; it can be checked by the vau handler
 	//	itself, if necessary.
-	term.Value = comp_term.Value.MakeMoveCopy();
-	term.SetChildren(comp_term.CreateWith(&ValueObject::MakeMoveCopy));
+	term.SetContent(comp_term.CreateWith(&ValueObject::MakeMoveCopy),
+		comp_term.Value.MakeMoveCopy());
 #else
 	// NOTE: The raw returning of term is the copy elision (unconditionally).
 	//	It is equivalent to returning by reference, which can be dangerous.

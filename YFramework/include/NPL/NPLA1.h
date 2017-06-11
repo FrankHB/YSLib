@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3247
+\version r3286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-06-04 21:02 +0800
+	2017-06-11 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -944,8 +944,36 @@ RetainN(const TermNode&, size_t = 1);
 //@}
 
 
+//! \throw ParameterMismatch 匹配失败。
+//@{
 /*!
-\throw ParameterMismatch 匹配失败。
+\pre 断言：字符串参数的数据指针非空。
+\since build 794
+*/
+//@{
+//! \brief 检查记号值是符合匹配条件的符号。
+template<typename _func>
+auto
+CheckSymbol(string_view n, _func f) -> decltype(f())
+{
+	if(!n.empty() && IsNPLASymbol(n))
+		return f();
+	else
+		throw ParameterMismatch(
+			"Invalid token found for symbol parameter.");
+}
+
+//! \brief 检查记号值是符合匹配条件的参数符号。
+template<typename _func>
+auto
+CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
+{
+	if(n != "#ignore")
+		CheckSymbol(n, f);
+}
+//@}
+
+/*!
 \note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
 \since build 776
 
@@ -953,24 +981,6 @@ RetainN(const TermNode&, size_t = 1);
 若匹配失败，则抛出异常。
 */
 //@{
-/*!
-\brief 检查记号值是符合匹配条件的符号。
-\since build 786
-*/
-template<typename _func>
-void
-CheckParameterLeafToken(const TokenValue& n, _func f)
-{
-	if(n != "#ignore")
-	{
-		if(!n.empty() && IsNPLASymbol(n))
-			f();
-		else
-			throw ParameterMismatch(
-				"Invalid token found for symbol parameter.");
-	}
-}
-
 /*!
 \brief 使用操作数结构化匹配并绑定参数。
 \throw ArityMismatch 子项数匹配失败。
@@ -1013,6 +1023,7 @@ YF_API void
 MatchParameter(const TermNode&, TermNode&,
 	std::function<void(TNIter, TNIter, const TokenValue&)>,
 	std::function<void(const TokenValue&, TermNode&&)>);
+//@}
 //@}
 //@}
 

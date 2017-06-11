@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4914
+\version r4922
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-06-07 00:33 +0800
+	2017-06-08 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -281,10 +281,6 @@ public:
 	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
 		ImplRet(1)
 
-	//! \since build 409
-	PDefH(ValueHolder*, clone, ) const ImplI(IValueHolder)
-		ImplRet(ystdex::try_new<ValueHolder>(*this))
-
 	//! \since build 348
 	PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(std::addressof(this->value))
@@ -436,9 +432,6 @@ public:
 	PDefH(size_t, OwnsCount, ) const ynothrow ImplI(IValueHolder)
 		ImplRet(traits::count_owner(p_held))
 
-	//! \since build 409
-	DefClone(const ImplI(IValueHolder), PointerHolder)
-
 	//! \since build 348
 	PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(traits::get(p_held))
@@ -505,8 +498,6 @@ private:
 		ImplRet(Deref(static_cast<lref<value_type>*>(base.get())).get())
 
 public:
-	DefClone(const ImplI(IValueHolder), RefHolder)
-
 	PDefH(void*, get, ) const ImplI(IValueHolder)
 		ImplRet(ystdex::pvoid(std::addressof(Ref())))
 
@@ -604,8 +595,8 @@ private:
 	\brief 构造：使用持有者和动态创建选项。
 	\since build 761
 	*/
-	ValueObject(const IValueHolder& holder, IValueHolder::Creation c)
-		: content(holder.Create(c))
+	ValueObject(const IValueHolder& h, IValueHolder::Creation c)
+		: content(h.Create(c))
 	{}
 
 public:

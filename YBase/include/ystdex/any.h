@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3040
+\version r3072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2017-01-11 14:00 +0800
+	2017-06-08 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,12 @@
 #ifndef YB_INC_ystdex_any_h_
 #define YB_INC_ystdex_any_h_ 1
 
-#include "typeinfo.h" // for "typeinfo.h", cloneable, type_info, exclude_self_t,
+#include "typeinfo.h" // for "typeinfo.h", type_info, exclude_self_t,
 //	ystdex::type_id, is_nothrow_move_constructible, and_, bool_, enable_if_t,
 //	remove_reference_t, cond_t, std::bad_cast, decay_t, _t, yconstraint;
 #include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
-//	std::unique_ptr, ystdex::clone_monomorphic_ptr, ystdex::clone_monomorphic,
-//	standard_layout_storage, aligned_storage_t, is_aligned_storable,
-//	ystdex::pvoid, default_init_t;
+//	std::unique_ptr, ystdex::clone_monomorphic_ptr, standard_layout_storage,
+//	aligned_storage_t, is_aligned_storable, ystdex::pvoid, default_init_t;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 #include <initializer_list> // for std::initializer_list;
@@ -64,7 +63,7 @@ struct with_handler_t
 \brief 抽象动态泛型持有者接口。
 \since build 454
 */
-class YB_API holder : public cloneable
+class YB_API holder
 {
 public:
 	//! \since build 586
@@ -72,15 +71,13 @@ public:
 	holder() = default;
 	holder(const holder&) = default;
 	//! \brief 虚析构：类定义外默认实现。
-	~holder() override;
+	virtual
+	~holder();
 	//@}
 
 	//! \since build 348
 	virtual void*
 	get() const = 0;
-
-	virtual holder*
-	clone() const override = 0;
 
 	//! \since build 683
 	virtual const type_info&
@@ -135,12 +132,6 @@ public:
 	value_holder&
 	operator=(value_holder&&) = default;
 	//@}
-
-	value_holder*
-	clone() const override
-	{
-		return ystdex::clone_monomorphic(*this);
-	}
 
 	//! \since build 348
 	void*
@@ -198,12 +189,6 @@ public:
 	operator=(const pointer_holder&) = default;
 	pointer_holder&
 	operator=(pointer_holder&&) = default;
-
-	pointer_holder*
-	clone() const override
-	{
-		return ystdex::clone_monomorphic(*this);
-	}
 
 	//! \since build 348
 	void*
@@ -546,7 +531,6 @@ class holder_handler : public value_handler<_tHolder>
 		"Invalid holder type found.");
 
 public:
-	using value_type = typename _tHolder::value_type;
 	using base = value_handler<_tHolder>;
 
 	//! \since build 595
@@ -556,21 +540,12 @@ public:
 		return base::get_pointer(s);
 	}
 
-	static value_type*
-	get_pointer(any_storage& s)
-	{
-		const auto p(get_holder_pointer(s));
-
-		yassume(p);
-		return static_cast<value_type*>(p->_tHolder::get());
-	}
-
 private:
 	//! \since build 729
 	static void
 	init(false_, any_storage& d, std::unique_ptr<_tHolder> p)
 	{
-		d.construct<value_type*>(p.release());
+		d.construct<_tHolder*>(p.release());
 	}
 	//! \since build 729
 	static void
@@ -596,10 +571,10 @@ public:
 		switch(op)
 		{
 		case get_type:
-			d = &ystdex::type_id<value_type>();
+			d = &get_holder_pointer(s)->type();
 			break;
 		case get_ptr:
-			d = ystdex::pvoid(get_pointer(s));
+			d = ystdex::pvoid(get_holder_pointer(s)->get());
 			break;
 		case get_holder_type:
 			d = &ystdex::type_id<_tHolder>();
@@ -916,8 +891,7 @@ public:
 	//! \since build 717
 	template<typename _tHolder, typename... _tParams>
 	inline
-	any(any_ops::use_holder_t, in_place_type_t<_tHolder>,
-		_tParams&&... args)
+	any(any_ops::use_holder_t, in_place_type_t<_tHolder>, _tParams&&... args)
 		: any(any_ops::with_handler_t<any_ops::holder_handler<_tHolder>>(),
 		yforward(args)...)
 	{}
