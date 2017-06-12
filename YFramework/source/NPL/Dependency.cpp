@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r754
+\version r783
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-06-09 18:14 +0800
+	2017-06-11 00:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <cctype> // for std::isdigit, std::tolower;
 #include <cerrno> // for errno, ERANGE;
 #include <cstdio> // for std::puts;
+#include <regex> // for std::regex, std::regex_match;
 
 using namespace YSLib;
 
@@ -496,6 +497,31 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<const string>(root, "string->symbol", StringToSymbol);
 	RegisterStrictUnary<const TokenValue>(root, "symbol->string",
 		SymbolToString);
+	RegisterStrictUnary<const string>(root, "string->regex",
+		[&](const string& str){
+		return std::regex(str);
+	});
+	RegisterStrict(root, "regex-match?", [](TermNode& term){
+		auto i(std::next(term.begin()));
+		const auto& str(Access<const string>(Deref(i)));
+		const auto& r(Access<const std::regex>(Deref(++i)));
+
+		term.ClearTo(std::regex_match(str, r));
+	}, ystdex::bind1(RetainN, 2));
+	// NOTE: Environments.
+	RegisterStrictUnary(root, "bound?",
+		[](TermNode& term, const ContextNode& ctx){
+		return ystdex::call_value_or([&](string_view id){
+			return CheckSymbol(id, [&](){
+				return bool(ResolveName(ctx, id));
+			});
+		}, AccessPtr<string>(term));
+	});
+	context.Perform(u8R"NPL(
+		$defv! $binds1? (expr s) env
+			eval (list (unwrap bound?) (symbol->string s)) (eval expr env);
+	)NPL");
+	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: Interoperation library.
 	RegisterStrictUnary<const string>(root, "env-get", [&](const string& var){
 		string res;
@@ -507,7 +533,6 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		$defl! env-empty? (n) string-empty? (env-get n);
 	)NPL");
 	RegisterStrict(root, "system", CallSystem);
-	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: SHBuild builtins.
 	root.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
@@ -521,6 +546,10 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			file{uopen(str.c_str(), IO::omode_convb(std::ios_base::in))})
 			return file->GetSize() > 0;
 		return {};
+	});
+	RegisterStrictUnary<const string>(root, "SHBuild_EnsureDirectory_",
+		[](const string& str){
+		EnsureDirectory(IO::Path(str));
 	});
 	RegisterStrictUnary<const string>(root, "SHBuild_BuildGCH_mkpdirp_",
 		[](const string& str){

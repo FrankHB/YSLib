@@ -45,7 +45,7 @@ BD_YFramework="$YSLib_BaseDir/YFramework"
 SHBuild_CheckUName
 if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
 	: ${SHBuild_YSLib_Platform:="MinGW32"}
-	: ${INCLUDES_freetype="-I$BD_3rdparty_freetype_inc"}
+	: ${INCLUDES_freetype="-I\"`SHBuild_2w $BD_3rdparty_freetype_inc`\""}
 	SR_DSO_Dest="$SR_Bin"
 	SR_DSO_Imp=".a"
 else
@@ -79,11 +79,20 @@ mkdir -p $SHBuild_S1_BuildDir
 SHBuild_S1_SHBuild="$SHBuild_S1_BuildDir/SHBuild"
 export SHBuild_PCH_stdinc_h="$SHBuild_S1_BuildDir/stdinc.h"
 
-if command -v "$SHBuild_S1_SHBuild" > /dev/null ; then
-	SHBuild_Puts Found stage 1 SHBuild \"$SHBuild_S1_SHBuild\", \
-		building skipped.
+if [[ "$SHBuild_Rebuild_S1" == '' ]]; then
+	if command -v "$SHBuild_S1_SHBuild" > /dev/null ; then
+		SHBuild_Puts Found stage 1 SHBuild \"$SHBuild_S1_SHBuild\", \
+			building skipped.
+	else
+		SHBuild_Puts Stage 1 SHBuild not found.
+		SHBuild_Rebuild_S1_=true
+	fi
 else
-	SHBuild_Puts Stage 1 SHBuild not found. Building ...
+	SHBuild_Puts Stage 1 SHBuild would be rebuilt.
+	SHBuild_Rebuild_S1_=true
+fi
+if [[ "$SHBuild_Rebuild_S1_" == 'true' ]]; then
+	SHBuild_Puts Building Stage 1 SHBuild ...
 	SHBuild_Output=$SHBuild_S1_SHBuild $SHBuild_ToolDir/SHBuild-build.sh
 	SHBuild_Puts Finished building stage 1 SHBuild.
 fi
@@ -91,14 +100,14 @@ fi
 SHBuild_Puts Building YSLib libraries ...
 if [[ "$SHBuild_UseDebug" != '' ]]; then
 	SHBuild_Puts Building debug libraries ...
-	$SHBuild_ToolDir/SHBuild-YSLib-debug.sh "$SHBuild_Opt"
+	$SHBuild_ToolDir/SHBuild-YSLib.sh true "$SHBuild_Opt"
 	SHBuild_Puts Finished building debug libraries.
 else
 	SHBuild_Puts Skipped building debug libraries.
 fi
 if [[ "$SHBuild_UseRelease" != '' ]]; then
 	SHBuild_Puts Building release libraries ...
-	$SHBuild_ToolDir/SHBuild-YSLib.sh "$SHBuild_Opt"
+	$SHBuild_ToolDir/SHBuild-YSLib.sh '' "$SHBuild_Opt"
 	SHBuild_Puts Finished building release libraries.
 else
 	SHBuild_Puts Skipped building release libraries.
