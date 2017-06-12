@@ -19,19 +19,43 @@ SHBuild_RunNPLs_()
 	$SHBuild -xcmd,RunNPL "$SHBuild_RunNPLs_cmd_"
 }
 
+# XXX: 'SHBuild_2*' depend on 'cygpath' optionally.
+# XXX: 'SHBuild_CheckUName_*' depend on 'uname'.
 # SNSC=SHBuild NPL String Components
 # declare -r SNSC_Common_
 SNSC_Common_='
 	$def! $redef! $def!;
+	$defl! rmatch? (x r) regex-match? x (string->regex r);
 	$defl! putss (.xs) puts (apply ++ xs);
+	$defl! cmd-error-msg_ (cmd) ++ "Failed to call command: " cmd ".";
 	$defl! system-ok (cmd) eqv? (system cmd) 0;
 	$defl! system-check (cmd) $unless (system-ok cmd)
-		(SHBuild_RaiseError_ (++ "Failed to call command: " cmd "."));
+		(SHBuild_RaiseError_ (cmd-error-msg_ cmd));
 	$defv! $set-if-empty! (var .vexpr) env $if (string-empty? (eval var env))
 		(eval (list $set! env var vexpr) env);
 	$defv! $env-de! (var .vexpr) env
 		$let ((t env-get (symbol->string var)))
 			eval (list $def! var ($if (string-empty? t) (list vexpr) t)) env;
+	$defv! $set-system-var! (var cmd) env $unless ($binds1? env var)
+	(
+		$let ((res system-get (eval cmd env))) $if (eqv? (first (rest (res))) 0)
+			(eval (list $set! env var (list first (list system-get cmd))) env)
+			(SHBuild_RaiseError_ (cmd-error-msg_ cmd))
+	);
+	$defv! $assert-nonempty (var) env $unless
+		($and? (eval (list $binds1? env var) env)
+			(not? (string-empty? (eval (list var) env))))
+		(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
+			(symbol->string var)) " should not be empty."));
+	$defl! SHBuild_CheckUName_Case_ (x) $cond
+		((rmatch? x ".*Darwin.*") "OS_X")
+		(($or? (rmatch? x ".*MSYS.*") (rmatch? x ".*MINGW.*")) "Win32")
+		((rmatch? x ".*Linux.*") "Linux")
+		(#t "unknown");
+	$defl! SHBuild_CheckUNameM_Case_ (x) $cond
+		((rmatch? x "x86_64|i.*86-64") x)
+		((rmatch? x "i.*86") x)
+		(#t "unknown");
 	$defl! SHBuild_GetLangFlags_
 		(var flags-pic flags-common flags-impl flags-dbg)
 		$let ((val env-get var))
@@ -62,7 +86,7 @@ SNSC_Common_='
 		$def! res system-get (++ cmd " \"" pth "\" 2> " (get-nul-dev env-os));
 		$if (eqv? (first (rest res)) 0) (first res) pth
 	);
-	$defl! SHBuild_2m (env-os pth) system-or-puts env-os "cygpath -n" pth;
+	$defl! SHBuild_2m (env-os pth) system-or-puts env-os "cygpath -m" pth;
 	$defl! SHBuild_2u (env-os pth) system-or-puts env-os "cygpath -au" pth;
 	$defl! SHBuild_2w (env-os pth) system-or-puts env-os "cygpath -w" pth;
 	$defl! compile-ok-silent (env-os src compile opt)

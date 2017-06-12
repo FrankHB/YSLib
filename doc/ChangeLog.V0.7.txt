@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7691
+\version r7766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-06-11 15:01 +0800
+	2017-06-12 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,81 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ $impl "common library" @ "%SHBuild-common-toolchain.sh" $=
+			(
+				* "path conversion routine %SHBuild_2u" $since b791,
+				+ "operative '$assert-nonempty'" ^ $dep_from ('$binds1?'
+					@ "%LoadNPLContextForSHBuild" @ %YFramework.NPL.Dependency),
+				+ "applicative 'rmatch?'; uname detection functions"
+					^ $dep_from (('regex->string', 'regex-match?')
+					@ "%LoadNPLContextForSHBuild" @ %YFramework.NPL.Dependency),
+				+ "operative '$set-system-var'" ^ $dep_from ('$binds1?'
+					@ "%LoadNPLContextForSHBuild" @ %YFramework.NPL.Dependency)
+			),
+			(
+			/ "reduced bash dependency" @ "%SHBuild-YSLib-common.sh" $=
+			(
+				/ DLDI "ensruing directories" ^ $dep_from
+					"%SHBuild_EnsureDirectory_" @ "%LoadNPLContextForSHBuild"
+					@ %YFramework.NPL.Dependency,
+				(
+				/ "fixed %SHBuild_Host_Platform internally";
+					// External settings of %SHBuild_Host_Platform is not \
+						supported now.
+				- "call of %SHBuild_CheckHostPlatform"
+				),
+				/ DLDI "simplified build strings as NPL scripts",
+				(
+				- 'unset CXXFLAGS_COMMON CXXFLAGS',
+				- 'export LANG=C',
+				- 'export CFLAGS CXXFLAGS CXXFLAGS_COMMON';
+				/ "all remained 'export' variables except for %SHBuild_Env_OS"
+					-> 'set -a'
+					// The remained options are not supported to change.
+				),
+				/ "initialized variables %(SHBuild_Env_OS, SHBuild_Env_Arch)"
+					^ $dep_from ('$set-system-var!', 'SHBuild_CheckUName_Case_',
+					'SHBuild_CheckUNameM_Case_')
+					@ "%SHBuild-common-toolchain.sh"
+					~ "call of %SHBuild_CheckUName",
+				- $lib "unused variable %SHBuild_BaseDir",
+				/ ("default value setting of variable %YSLib_BaseDir"
+					-> "assertion to ensure nonnull when not skipped",
+					"assertion for %YSLib_BuildDir)" ^ $dep_from
+					'$assert-nonnull' @ "%SHBuild-common-toolchain.sh"
+					// Variable %YSLib_BaseDir is now required set in \
+						environment as %YSLib_BuildDir.
+			),
+			/ "supported both %debug and %release configurations with new \
+				options" @ "%SHBuild-YSLib.sh";
+			- "build command calling" @ "%SHBuild-YSLib.sh"
+				// It is reserved now.
+			)
+		),
+		/ "install-sysroot.sh" $=
+		(
+			+ "support forcing rebuilding stage 1 SHBuild by specyfing non \
+				empty value of %SHBuild_Rebuild_S1",
+			/ "YSLib build command for both %debug and %release configurations \
+				with different arguments" ^ $dep_from "%SHBuild-YSLib.sh"
+		)
+	),
+	* %Documentation.NPL "use of %Check in handlers" $mismatch $since b773,
+	/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+		@ %YFramework.NPL.Dependency $=
+	(
+		+ "applicatives ('string->regex', 'regex-match?', \
+			%SHBuild_EnsureDirectory_, 'bound?')",
+		+ "operative '$binds?'" ^ $dep_from 'bound?'
+	)
+),
+
+b794
 (
 	+ "-Wno-noexcept-type" @ "variable %CXXFLAGS_IMPL_WARNING" @ "g++"
 		@ "%(SHBuild-common-toolchain.sh, SHBuild-common-options.sh)"
@@ -4025,7 +4100,7 @@ b732
 		/ @ "%SHBuild-common.sh" %Scripts $=
 		(
 			+ "function %SHBuild_Put" ^ 'printf',
-			+ "function %SHBuild_Puts allowing configurable line end by \
+			+ "function %SHBuild_Puts allowing configurable line ending by \
 				external %SHBuild_EOL with default detection with %COMSPEC"
 				^ 'printf'
 		),
