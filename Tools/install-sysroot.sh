@@ -22,7 +22,7 @@ SHBuild_CheckHostPlatform
 
 export YSLib_BaseDir
 # This directory will be created if not existed by following stage 1 process
-#	or by %SHBuild-YSLib-common.sh.
+#	or by %SHBuild-YSLib-build.txt.
 export YSLib_BuildDir="$YSLib_BaseDir/build/$SHBuild_Host_Platform"
 YSLib_DataDir="$YSLib_BaseDir/Data"
 

@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1526
+\version r1550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2017-02-05 21:11 +0800
+	2017-06-13 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,6 +108,14 @@ public:
 */
 YF_API bool
 HandleBackslashPrefix(char, string&);
+
+/*!
+\brief 忽略前缀。
+\sa LexicalAnalyzer::PrefixHandler
+\since build 794
+*/
+yconstfn PDefH(bool, IgnorePrefix, char, string&) ynothrow
+	ImplRet({})
 
 /*!
 \brief NPL 转义匹配算法。
@@ -315,26 +323,16 @@ Literalize(string_view, char = '"');
 //@}
 
 
-/*!
-\brief 判断是否为 NPL 图形分隔符。
-\since build 331
-*/
-yconstfn bool
-IsGraphicalDelimeter(char c)
-{
-//	return std::ispunct(c);
-	return c == '(' || c == ')' || c == ',' || c == ';';
-}
+//! \since build 796
+//@{
+//! \brief 判断参数是否为 NPL 图形分隔符。
+yconstfn PDefH(bool, IsGraphicalDelimeter, char c) ynothrow
+	ImplRet(c == '(' || c == ')' || c == ',' || c == ';')
 
-/*!
-\brief 判断是否为 NPL 分隔符。
-\since build 331
-*/
-yconstfn bool
-IsDelimeter(char c)
-{
-	return byte(c) < 0x80 && (!std::isgraph(c) || IsGraphicalDelimeter(c));
-}
+//! \brief 判断参数是否为 NPL 分隔符。
+yconstfn PDefH(bool, IsDelimeter, char c) ynothrow
+	ImplRet(byte(c) < 0x80 && (!std::isgraph(c) || IsGraphicalDelimeter(c)))
+//@}
 
 
 /*!

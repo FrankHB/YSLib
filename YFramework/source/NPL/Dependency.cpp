@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r783
+\version r817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-06-11 00:09 +0800
+	2017-06-13 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -467,12 +467,20 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	)NPL");
 	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
 		ystdex::bind1(std::mem_fn(&TermNode::Value))));
-	// NOTE: I/O library.
-	RegisterStrictUnary<const string>(root, "puts", [&](const string& str){
-		// FIXME: Use %EncodeArg.
-		// XXX: Error is ignored.
-		std::puts(str.c_str());
+	// NOTE: Environments.
+	RegisterStrictUnary(root, "bound?",
+		[](TermNode& term, const ContextNode& ctx){
+		return ystdex::call_value_or([&](string_view id){
+			return CheckSymbol(id, [&](){
+				return bool(ResolveName(ctx, id));
+			});
+		}, AccessPtr<string>(term));
 	});
+	context.Perform(u8R"NPL(
+		$defv! $binds1? (expr s) env
+			eval (list (unwrap bound?) (symbol->string s)) (eval expr env);
+	)NPL");
+	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: String library.
 	RegisterStrict(root, "++", std::bind(CallBinaryFold<string, ystdex::plus<>>,
 		ystdex::plus<>(), string(), _1));
@@ -508,20 +516,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 
 		term.ClearTo(std::regex_match(str, r));
 	}, ystdex::bind1(RetainN, 2));
-	// NOTE: Environments.
-	RegisterStrictUnary(root, "bound?",
-		[](TermNode& term, const ContextNode& ctx){
-		return ystdex::call_value_or([&](string_view id){
-			return CheckSymbol(id, [&](){
-				return bool(ResolveName(ctx, id));
-			});
-		}, AccessPtr<string>(term));
+	// NOTE: I/O library.
+	RegisterStrictUnary<const string>(root, "puts", [&](const string& str){
+		// FIXME: Use %EncodeArg.
+		// XXX: Error is ignored.
+		std::puts(str.c_str());
 	});
-	context.Perform(u8R"NPL(
-		$defv! $binds1? (expr s) env
-			eval (list (unwrap bound?) (symbol->string s)) (eval expr env);
-	)NPL");
-	RegisterStrict(root, "value-of", ValueOf);
 	// NOTE: Interoperation library.
 	RegisterStrictUnary<const string>(root, "env-get", [&](const string& var){
 		string res;
@@ -596,14 +596,27 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		return res;
 	});
 	RegisterStrictUnary<const string>(root, "SHBuild_TrimOptions_",
-		[](const string& str){
+		[](const string& src){
 		string res;
 
-		for(auto& s : Session(str,
-			&LexicalAnalyzer::ParseRaw).Lexer.Literalize())
+		for(const auto& str
+			: Session(src, [&](LexicalAnalyzer& lexer, char c){
+			lexer.ParseByte(c, NPLUnescape, IgnorePrefix);
+		}).Lexer.Literalize())
 		{
-			res += std::move(s);
-			res += ' ';
+			using iter_t = string::const_iterator;
+
+			ystdex::split_l(str.cbegin(), str.cend(), static_cast<int(&)(int)>(
+				std::isspace), [&](iter_t b, iter_t e){
+				string s(b, e);
+
+				ystdex::trim(s);
+				if(!s.empty())
+				{
+					res += s;
+					res += ' ';
+				}
+			});
 		}
 		if(!res.empty())
 			res.pop_back();
