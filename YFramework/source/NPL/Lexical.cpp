@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1601
+\version r1604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2017-06-05 02:10 +0800
+	2017-06-13 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,9 +381,11 @@ Decompose(string_view src)
 	YAssertNonnull(src.data());
 
 	list<string> dst;
+	using iter_type = typename string_view::const_iterator;
 
 	ystdex::split_l(src.cbegin(), src.cend(), IsDelimeter,
-		[&](const char* b, const char* e) YB_NONNULL(1, 2){
+		// TODO: Blocked. Use C++14 generic lambda expressions.
+		[&](iter_type b, iter_type e){
 		YAssert(e >= b, "Invalid split result found.");
 
 		string_view sv(b, size_t(e - b));

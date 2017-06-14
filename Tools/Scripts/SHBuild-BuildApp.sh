@@ -95,7 +95,7 @@ else
 fi
 export LDFLAGS
 
-# TODO: Merge with SHBuild-YSLib-common.sh.
+# TODO: Merge with logic in %SHBuild-YSLib-build.txt.
 SHBuild_CheckUName
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	: ${SHBuild_YSLib_Platform:='MinGW32'}

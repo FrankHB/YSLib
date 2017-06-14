@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7766
+\version r7809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-06-12 22:29 +0800
+	2017-06-14 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,49 @@ $now
 	(
 		/ %Scripts $=
 		(
-			/ $impl "common library" @ "%SHBuild-common-toolchain.sh" $=
+			/ ("%SHBuild-YSLib-common.sh", "NPL common library"
+				@ "%SHBuild-common-toolchain.sh") -> "NPLA1 script \
+				%SHBuild-YSLib-common.txt with CR+LF EOL" $dep_from
+				("%(SHBuild_TrimOptions_, load)" @ "%LoadNPLContextForSHBuild"
+				@ %YFramework.NPL.Dependency);
+			/ "%SHBuild-YSLib-debug.sh" -> "NPLA1 script \
+				%SHBuild-YSLib-build.txt with CR+LF EOL";
+			/ $forced "%SHBuild-build.sh"
+		),
+		/ %SHBuild.Main $=
+		(
+			+ "applicative %load" @ "loading forms"
+				@ "NPL REPL context initialization",
+			+ "nested exception with name of source"
+				@ "loading NPLA1 script failure"
+		)
+	),
+	/ %YFramework.NPL $=
+	(
+		/ %Lexical $=
+		(
+			* $lib $impl "wrongly depended on %string_view::const_iterator \
+				details" @ "function %Decompose" $since b659,
+			+ "%yconstfn function %IgnorePrefix",
+			/ @ "functions %(IsGraphicalDelimeter, IsDelimiter)" $=
+			(
+				+ 'ynothrow',
+				/ DLDI "simplified" ^ "%(PDefH, ImplExpr)"
+			)
+		),
+		* "applicative %SHBuild_TrimOptions_" @ "loading forms"
+			@ "function %LoadNPLContextForSHBuild" @ %Dependency $since b763
+			^ $dep_from ("%IgnorePrefix" @ %Lexical)
+	)
+),
+
+b795
+(
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ $impl "NPL common library" @ "%SHBuild-common-toolchain.sh" $=
 			(
 				* "path conversion routine %SHBuild_2u" $since b791,
 				+ "operative '$assert-nonempty'" ^ $dep_from ('$binds1?'
@@ -323,7 +365,7 @@ b791
 		(
 			/ "stage 2 YSLib self-hosting" ^ "NPL" $=
 			(
-				+ $impl "common library" @ "%SHBuild-common-toolchain.sh"
+				+ $impl "NPL common library" @ "%SHBuild-common-toolchain.sh"
 					$dep_from %(SHBuild, YFramework.NPL.Dependency);
 				/ "switched NPL" @ "SHBuild-YSLib-common.sh";
 				/ $comp "command shown on error by exception thrown from NPL \
