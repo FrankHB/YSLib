@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2484
+\version r2506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-11-27 00:04 +0800
+	2017-06-19 03:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -365,6 +365,32 @@ ClearSequence(_tOut dst, size_t n) ynothrowv
 
 	std::fill_n(dst, n, _type());
 }
+
+
+/*!
+\brief 参数字符串向量。
+\since build 797
+
+用于存储命令行参数等字符串向量。
+*/
+class YF_API ArgumentsVector final
+{
+public:
+	vector<string> Arguments{};
+
+	/*!
+	\brief 设置值。
+	\pre 间接断言： 第二参数的元素都是非空指针。
+	\exception LoggedEvent 输入的参数数小于 0 。
+	\sa CheckNonnegative
+	\since build 797
+
+	设置参数向量的值。
+	参数分别指定参数向量和表示 NTMBS 的指针数组。
+	*/
+	void
+	Reset(int, char*[]);
+};
 
 
 /*!

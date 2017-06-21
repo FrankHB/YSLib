@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r817
+\version r820
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-06-13 16:01 +0800
+	2017-06-19 10:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -432,6 +432,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			aux l
 		);
 		$defl! foldr1 (kons knil l) accr l null? knil first rest kons;
+		$defl! list-concat (x y) foldr1 cons y x;
+		$defl! append (.ls) foldr1 list-concat () ls;
 		$defw! map1 (appv l) env foldr1
 			($lambda (x xs) cons (apply appv (list x) env) xs) () l;
 		$defv! $let (bindings .body) env
@@ -465,6 +467,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		);
 		$defw! for-each-ltr ls env $sequence (apply map-reverse ls env) inert;
 	)NPL");
+	// NOTE: Object interoperation.
 	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
 		ystdex::bind1(std::mem_fn(&TermNode::Value))));
 	// NOTE: Environments.

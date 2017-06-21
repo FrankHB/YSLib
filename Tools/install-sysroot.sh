@@ -97,17 +97,33 @@ if [[ "$SHBuild_Rebuild_S1_" == 'true' ]]; then
 	SHBuild_Puts Finished building stage 1 SHBuild.
 fi
 
+SHB_BuildYSLib_()
+{
+	local L_AR="$AR"
+	local L_SHBuild="$SHBuild"
+	: ${L_AR:='gcc-ar'}
+	: ${L_SHBuild:="$SHBuild_S1_BuildDir/SHBuild"}
+	SHBuild_Pushd
+	cd "$YSLib_BuildDir"
+	debug="$1" AR="$L_AR" SHBuild="$L_SHBuild" \
+		SHBuild_Common="$SHBuild_ToolDir/SHBuild-YSLib-common.txt" \
+		"$L_SHBuild" -xcmd,RunNPLFile \
+		"$SHBuild_ToolDir/SHBuild-YSLib-build.txt" -- $SHBuild_Opt
+	SHBuild_Popd
+	SHBuild_Puts Done.
+}
+
 SHBuild_Puts Building YSLib libraries ...
 if [[ "$SHBuild_UseDebug" != '' ]]; then
 	SHBuild_Puts Building debug libraries ...
-	$SHBuild_ToolDir/SHBuild-YSLib.sh true "$SHBuild_Opt"
+	SHB_BuildYSLib_ true
 	SHBuild_Puts Finished building debug libraries.
 else
 	SHBuild_Puts Skipped building debug libraries.
 fi
 if [[ "$SHBuild_UseRelease" != '' ]]; then
 	SHBuild_Puts Building release libraries ...
-	$SHBuild_ToolDir/SHBuild-YSLib.sh '' "$SHBuild_Opt"
+	SHB_BuildYSLib_ ''
 	SHBuild_Puts Finished building release libraries.
 else
 	SHBuild_Puts Skipped building release libraries.

@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3517
+\version r3572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-06-14 04:51 +0800
+	2017-06-19 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,11 +198,10 @@ const struct Option
 		" implemented yet for OS other than Windows.",
 		"  RunNPL UNIT",
 		"    Read and execute NPLA1 translation unit specified by string"
-		" UNIT. This is experimental feature mainly for test purpose and no "
-		" detailed documentation is available currently.",
-		"  RunNPLFile SRC",
+		" UNIT.",
+		"  RunNPLFile SRC [ARGS...]",
 		"    Read and execute NPLA1 translation unit specified by file path"
-		" SRC. Notes are like 'RunNPL' command.", OPT_des_mul}},
+		" SRC with optional arguments ARGS.", OPT_des_mul}},
 	{"-xj,", "job max count", "MAX_JOB_COUNT", [](opt_uint uval){
 		PrintInfo("Set job max count = " + to_string(uval) + '.');
 		MaxJobs = size_t(uval);
@@ -335,6 +334,9 @@ CheckedLoad(const char* name, std::istream& is, NPL::A1::REPLContext& context)
 		ystdex::sfmt("Failed loading external unit '%s'.", name))));
 }
 
+//! \since build 797
+ArgumentsVector CommandArguments;
+
 //! \since build 796
 YB_NONNULL(1) void
 RunNPLFromStream(const char* name, std::istream&& is)
@@ -349,6 +351,13 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	RegisterStrictBinary<const string>(root, "env-set",
 		[&](const string& var, const string& val){
 		SetEnvironmentVariable(var.c_str(), val.c_str());
+	});
+	RegisterStrict(root, "cmd-get-args", [](TermNode& term){
+		RetainN(term, 0);
+		term.Clear();
+		for(const auto& s : CommandArguments.Arguments)
+			term.AddValue(MakeIndex(term), s);
+		return ReductionStatus::Retained;
 	});
 	RegisterStrict(root, "system-get", [](TermNode& term){
 		CallUnaryAs<const string>([&](const string& cmd){
@@ -850,15 +859,19 @@ main(int argc, char* argv[])
 		if(argc > 1)
 		{
 			vector<string> args;
+			bool opt_trans(true);
 
 			for(int i(1); i < argc; ++i)
 			{
 				string arg(DecodeArg(argv[i]));
 
-				if(!arg.empty() && std::none_of(begin(OptionsTable),
-					end(OptionsTable), [&](const Option& opt){
+				if(opt_trans && string(argv[i]) == "--")
+					opt_trans = {};
+				else if(!opt_trans || (!arg.empty()
+					&& std::none_of(begin(OptionsTable), end(OptionsTable),
+					[&](const Option& opt){
 						return opt(arg);
-				}))
+				})))
 					args.emplace_back(std::move(arg));
 			}
 
@@ -869,6 +882,12 @@ main(int argc, char* argv[])
 					if(sz != n)
 						throw std::runtime_error(sfmt("Wrong number %zu of"
 							" arguments (should be %zu) found.", sz, n));
+				});
+				const auto check_n_ge([sz](size_t n){
+					if(sz < n)
+						throw std::runtime_error(sfmt("Wrong number %zu of"
+							" arguments (should at least be %zu) found.", sz,
+							n));
 				});
 
 				try
@@ -909,14 +928,15 @@ main(int argc, char* argv[])
 					{
 						check_n(1);
 						RunNPLFromStream("<stdin>",
-							std::istringstream{DecodeArg(args[0])});
+							std::istringstream(args[0]));
 					}
 					else if(RequestedCommand == "RunNPLFile")
 					{
-						check_n(1);
+						check_n_ge(1);
 
-						const auto name(DecodeArg(args[0]));
+						const auto name(args[0]);
 
+						CommandArguments.Arguments = std::move(args);
 						RunNPLFromStream(name.c_str(),
 							ifstream{name, std::ios_base::in});
 					}
@@ -951,21 +971,37 @@ main(int argc, char* argv[])
 		else if(argc == 1)
 		{
 			std::printf("%s%s%s", "Usage: [ENV ...] ",
-				quote(string(*argv)).c_str(), " SRCPATH [OPTIONS ...]\n"
-				"\n[ENV ...]\n\tThe environment variables settings."
+				quote(string(*argv)).c_str(),
+				" SRCPATH [OPTIONS ... [-- ARGS...]]\n"
+				"\tThis program is a tool to build the source tree, with some"
+				" additional functionalities. It has two execution mode,"
+				" building mode and command requesting mode, exclusively. In"
+				" the former mode, tools for compiling (called building"
+				" backends) are called. The latter is only enabled when"
+				" provided some command introduced by specific options, see"
+				" below for details.\n"
+				"\n[ENV ...]\n\tThe environment variables settings in shell."
+				" (Note not all shells support this syntax, but the"
+				" environment variables are still effective.)"
 				" Currently accepted settings are listed below:\n\n");
 			for(const auto& env : DeEnvs)
 				std::printf("  %s\n\t%s Default value is %s.\n\n", env[0],
 					env[2], env[1][0] == '\0' ? "empty"
 					: Quote(string(env[1])).c_str());
 			std::puts("SRCPATH\n\tThe source directory to be recursively"
-				" searched.\n\nOPTIONS ...\n"
-				"\tThe options. This comes after values of environment"
-				" variables SHBuild_CFLAGS or SHBuild_FLAGS and one single"
-				" space character when CC or CXX is called, respectively. All"
-				" options including these prefixed values of SHBuild_CFLAGS or"
-				" SHBuild_FLAGS would be sent to the backends, except for"
-				" listed below:\n");
+				" searched.\n\nOPTIONS... [-- ARGS...]\n"
+				"\tThe options and arguments. After '--', if any, options"
+				" parsing is turned off and every remained token is interpreted"
+				" as an argument. Recognized options are handled by this"
+				" program, and the remained arguments would either be the"
+				" argument of the options when the commands are requested, or"
+				" as options come after values of environment variable"
+				" SHBuild_CFLAGS or SHBuild_CXXFLAGS and a single space"
+				" character when CC or CXX is called in the building mode,"
+				" respectively. In the building mode, all options including"
+				" these prefixed values of SHBuild_CFLAGS or SHBuild_CXXFLAGS"
+				" would be sent to the building backends, except for listed"
+				" below (handled by this program):\n");
 			for(const auto& opt : OptionsTable)
 			{
 				std::printf("  %s%s\n", opt.prefix, opt.option_arg);
