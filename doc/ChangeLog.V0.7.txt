@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7809
+\version r7864
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-06-14 12:15 +0800
+	2017-06-21 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,62 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ "removed building functionality" @ "%SHBuild-YSLib.sh"
+				$dep_from "%install-sysroot.sh"
+			/ "%SHBuild-YSLib-common.txt" $=
+			(
+				+ "applicative 'cons-cmd'" ^ $dep_from
+					("%append" @ %YFramework.NPL.Dependency);
+				/ DLDI "simplified command option construction"
+			),
+			/ DLDI "simplified command option construction"
+				@ %"%SHBuild-YSLib-build.txt" ^ $dep_from
+				('cons-cmd' @ "%SHBuild-YSLib-common.txt", 'cmd-get-args'
+				@ %SHBuild.Main) ~ "environment variable %args"
+		),
+		/ %SHBuild.Main $=
+		(
+			(
+			+ "applicative 'cmd-get-args'" @ "loading forms"
+				@ "NPL REPL context initialization";
+			+ "command line arguments initialization support"
+			),
+			* "duplicated decoding on command arguments 0 for commands \
+				%(RunNPL, RunNPLFile)" $since b758,
+			+ "optional options parsing controlled by '--'",
+				// This can be useful if passed options are for commands.
+			/ @ "help message" $=
+			(
+				+ "shell syntax descriptions of envionment variables",
+				+ "descriptions for exection modes",
+				* "misspelled variable %SHBuild_CXXFLAGS"
+					$= (/ "%SHBuild_FLAGS" -> "%SHBuild_CXXFLAGS")
+			)
+		),
+		/ $forced "stage 2 YSLib building" @ "%install-sysroot.sh" ^ $dep_from
+			("%SHBuild-YSLib-build.txt" @ %Scripts, ("command line arguments \
+			initialization support", "optional options parsing controlled by \
+			'--'") @ %SHBuild.Main) ~ "%SHBuild-YSLib.sh" 
+	),
+	/ %YFramework $=
+	(
+		+ "class %ArgumentsVector" @ %YSLib.Core.YCoreUtilities,
+		/ %NPL $=
+		(
+			+ "applicatives ('list-concat', %append)" @ "loading forms"
+				@ "function %LoadNPLContextForSHBuild" @ %Dependency,
+			* "missing arity check" @ "function %GetCurrentEnvironment"
+				@ "namespace %Forms" @ %NPLA1 $since b785
+		)
+	)
+),
+
+b796
 (
 	/ %Tools $=
 	(

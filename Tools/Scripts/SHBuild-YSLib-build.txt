@@ -69,27 +69,26 @@ $defl! skip-or-build (nskip dynamic) $let
 							(++ repo-base "/YBase/include/stdinc.h")
 							(++ outdir "/stdinc.h")
 							(++ CXX " -xc++-header " CXXFLAGS);
-						$def! SHBuild_IncPCH ++ "-include " outdir
-							"/stdinc.h"
+						$def! inc-pch list "-include"
+							(++ "\"" outdir "/stdinc.h" "\"")
 					)
 					(
 						puts "Skipped building precompiled file.";
-						$def! SHBuild_IncPCH ""
+						$def! inc-pch ()
 					);
 					$defl! libdname (lib) ++ lib ($if debug "d" "");
 					$def! DFLAG_B_YB $if dynamic "-DYB_BUILD_DLL" "";
-					$defl! build-lib (lib-name opt-str)
-						system-check (++ shbuild " " SHBOPT " -xn," LIBPFX
-						(libdname lib-name) " " (env-get "args") " "
-						repo-base "/" lib-name " " CXXFLAGS " " opt-str " "
-						SHBuild_IncPCH);
-					build-lib "YBase" (++ DFLAG_B_YB " " INCLUDES_YBase);
-					$if dynamic (env-set "LIBS" (++ "-L" outdir " -l"
-						(libdname "YBase") " " LIBS_YFramework));
+					$defl! build-lib (lib-name opt-list)
+						system-check (apply cons-cmd (append (list shbuild
+						SHBOPT (++ "-xn," LIBPFX (libdname lib-name))) (rest
+						(() cmd-get-args)) (list (++ repo-base "/" lib-name)
+						CXXFLAGS) opt-list inc-pch));
+					build-lib "YBase" (list DFLAG_B_YB INCLUDES_YBase);
+					$if dynamic (env-set "LIBS" (cons-cmd (++ "-L" outdir)
+						(++ "-l" (libdname "YBase")) LIBS_YFramework));
 					build-lib "YFramework"
-						(++ ($if debug ($if dynamic "-DYB_DLL" "")
-						DFLAG_B_YB) " " ($if dynamic "-DYF_BUILD_DLL" "")
-						" -DFREEIMAGE_LIB "
+						(list ($if debug ($if dynamic "-DYB_DLL" "") DFLAG_B_YB)
+						($if dynamic "-DYF_BUILD_DLL" "") "-DFREEIMAGE_LIB"
 						(SHBuild_TrimOptions_ INCLUDES_YFramework))
 				)
 			);

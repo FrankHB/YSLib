@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4282
+\version r4283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-06-10 11:10 +0800
+	2017-06-19 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1384,6 +1384,7 @@ EvaluateUnit(TermNode& term, const REPLContext& ctx)
 void
 GetCurrentEnvironment(TermNode& term, ContextNode& ctx)
 {
+	RetainN(term, 0);
 	term.Value = ValueObject(ctx.WeakenRecord());
 }
 
