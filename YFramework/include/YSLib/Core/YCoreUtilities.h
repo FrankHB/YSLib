@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2506
+\version r2510
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2017-06-19 03:08 +0800
+	2017-06-19 02:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -304,9 +304,12 @@ CheckUpperBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
 	using namespace ystdex;
 	// XXX: See WG21 N3387.
 	// TODO: Add and use safe %common_arithmetic_type interface instead?
+	// TODO: Add direct integer rank comparison?
 	using common_t = typename ystdex::common_int_type<_tDst, _type>::type;
-
-	if(!(common_t(std::numeric_limits<_tDst>::max()) < common_t(val)))
+	
+	if((std::is_signed<common_t>() && std::is_unsigned<_tDst>()
+		&& ystdex::integer_width<common_t>() <= ystdex::integer_width<_tDst>())
+		|| !(common_t(std::numeric_limits<common_t>::max()) < common_t(val)))
 		return _tDst(val);
 	throw LoggedEvent("Value of '" + name + "' is greater than upper boundary.",
 		lv);

@@ -18,9 +18,7 @@ SHBuild_Puts Configuring ...
 
 SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
-: ${AR:='gcc-ar'}
 . $SHBuild_ToolDir/SHBuild-common-toolchain.sh
-
 . $SHBuild_ToolDir/SHBuild-common-options.sh
 
 INCLUDE_PCH="$YSLib_BaseDir/YBase/include/stdinc.h"
@@ -73,18 +71,12 @@ if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 		"
 fi
 
-# Note '-fwhole-program' should not be used because there
-#	does exist multiple translation units when linking with YSLib source,
-#	otherwise there would be unresolved reference to names with external
-#	linkage which had been optimized away.
 export CXXFLAGS
 export LDFLAGS
 
 SHBuild_EchoVar_N 'SHBuild.BuildDir'
 SHBuild_EchoVar_N 'CXX'
 SHBuild_EchoVar_N 'CXXFLAGS'
-SHBuild_EchoVar_N 'AR'
-SHBuild_EchoVar_N 'LD'
 SHBuild_EchoVar_N 'LDFLAGS'
 SHBuild_EchoVar_N 'INCLUDES'
 SHBuild_EchoVar_N 'LIBS'

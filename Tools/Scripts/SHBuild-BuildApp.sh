@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# (C) 2014-2016 FrankHB.
+# (C) 2014-2017 FrankHB.
 # Script for build YSLib applications using SHBuild.
 
 : ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 : ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
+: ${SHBuild:="SHBuild"}
 . $SHBuild_Bin/SHBuild-common.sh
 
 SHBuild_PrintUsage()
@@ -106,9 +107,9 @@ else
 	SHBuild_YF_SystemLibs='-Wl,-dy -lxcb -lpthread'
 	SHBuild_YF_CFlags_freetype="`pkg-config --cflags freetype2 2> /dev/null`"
 	: ${SHBuild_YF_CFlags_freetype:='-I/usr/include'}
-	SHBuild_YF_Libs_freetype=" \
-		-Wl,-dy `pkg-config --libs freetype2 2> /dev/null`"
-	: ${SHBuild_YF_Libs_freetype:='-Wl,-dy -lfreetype'}
+	SHBuild_YF_Libs_freetype="`pkg-config --libs freetype2 2> /dev/null`"
+	: ${SHBuild_YF_Libs_freetype:='-lfreetype'}
+	SHBuild_YF_Libs_freetype="-Wl,-dy $SHBuild_YF_Libs_freetype"
 fi
 
 LIBS="$LIBS_RPATH -L\"`SHBuild_2w "$SHBuild_Bin/../lib"`\""
@@ -119,7 +120,7 @@ if [[ "$SHBuild_Static" == '' ]]; then
 	export LIBS="$LIBS $SHBuild_YSLib_LibNames"
 else
 	export SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \
-		-I$SHBuild_Bin/../include"
+		-I\"$SHBuild_Bin/../include\""
 	export SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
 		-lFreeImage $SHBuild_YF_Libs_freetype -L/usr/lib $SHBuild_YF_SystemLibs"
 	export LIBS="$LIBS -Wl,-dn $SHBuild_YSLib_LibNames"
@@ -131,8 +132,7 @@ SHBuild_BuildApp()
 {
 	SHBuild_AssertNonempty SHBuild_AppBaseDir
 	SHBuild_Puts Found application base directory \"$SHBuild_AppBaseDir\".
-	(cd $SHBuild_AppBaseDir; "$SHBuild_Bin/SHBuild" $SHBOPT $@ \
-		$SHBuild_YSLib_Flags)
+	(cd "$SHBuild_AppBaseDir"; "$SHBuild" $SHBOPT $@ $SHBuild_YSLib_Flags)
 }
 
 SHBuild_EchoVar_N 'CXXFLAGS'

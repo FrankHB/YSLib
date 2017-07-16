@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4283
+\version r4367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-06-19 19:58 +0800
+	2017-07-12 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,14 +150,6 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 namespace
 {
 
-//! \since build 779
-yconstfn_relaxed bool
-IsReservedName(string_view id) ynothrowv
-{
-	YAssertNonnull(id.data());
-	return ystdex::begins_with(id, "__");
-}
-
 //! \since build 736
 template<typename _func>
 TermNode
@@ -224,34 +216,6 @@ EqualTerm(TermNode& term, _func f)
 
 	term.Value = f(x.Value, Deref(++i).Value);
 }
-
-
-//! \since build 788
-//@{
-observer_ptr<Environment>
-ResolveShared(string_view id, const shared_ptr<Environment>& p_shared)
-{
-	if(p_shared)
-		return make_observer(get_raw(p_shared));
-	// TODO: Use concrete semantic failure exception.
-	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
-		" probably due to invalid context access by dangling reference.",
-		IsReservedName(id) ? " reserved" : "", id.data()));
-}
-
-//! \since build 790
-pair<shared_ptr<Environment>, bool>
-LockEnvironment(ValueObject& vo)
-{
-	// TODO: Merge with %ResolveName?
-	if(const auto p = vo.AccessPtr<weak_ptr<Environment>>())
-		return {p->lock(), {}};
-	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
-		return {*p, true};
-	throw NPLException(sfmt("Invalid environment type '%s' found.",
-		vo.GetType().name()));
-}
-//@}
 
 
 //! \since build 782
@@ -458,7 +422,7 @@ public:
 				formals.size());
 			// NOTE: Static environment is bound as base of local context by
 			//	setting parent environment pointer.
-			local.GetRecordRef().ParentPtr = p_parent;
+			local.GetRecordRef().Parent = p_parent;
 			// NOTE: Beta reduction.
 			// TODO: Implement accurate lifetime analysis rather than
 			//	'p_closure.unique()'.
@@ -919,37 +883,18 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 observer_ptr<const ValueNode>
 ResolveName(const ContextNode& ctx, string_view id)
 {
-	YAssertNonnull(id.data());
+	return ctx.GetRecordRef().Resolve(id);
+}
 
-	observer_ptr<const ValueNode> p;
-	auto env_ref(ystdex::ref(ystdex::as_const(ctx.GetRecordRef())));
-
-	ystdex::retry_on_cond(
-		[&](observer_ptr<const Environment> p_env) ynothrow -> bool{
-		if(p_env)
-		{
-			env_ref = ystdex::ref(Deref(p_env));
-			return true;
-		}
-		return {};
-	}, [&, id]() -> observer_ptr<const Environment>{
-		if((p = LookupName(env_ref, id)))
-			return {};
-
-		auto& parent(env_ref.get().ParentPtr);
-		const auto& tp(parent.GetType());
-
-		if(tp == ystdex::type_id<observer_ptr<const Environment>>())
-			return parent.GetObject<observer_ptr<const Environment>>();
-		if(tp == ystdex::type_id<weak_ptr<Environment>>())
-			return ResolveShared(id,
-				parent.GetObject<weak_ptr<Environment>>().lock());
-		if(tp == ystdex::type_id<shared_ptr<Environment>>())
-			return ResolveShared(id,
-				parent.GetObject<shared_ptr<Environment>>());
-		return {};
-	});
-	return p;
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(ValueObject& vo)
+{
+	if(const auto p = vo.AccessPtr<weak_ptr<Environment>>())
+		return {p->lock(), {}};
+	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
+		return {*p, true};
+	// TODO: Merge with %Environment::CheckParentEnvironment?
+	Environment::ThrowInvalidEnvironmentType(vo.GetType());
 }
 
 
@@ -1046,7 +991,7 @@ StringToSymbol(const string& s)
 	return s;
 }
 
-YF_API const string&
+const string&
 SymbolToString(const TokenValue& s) ynothrow
 {
 	return s;
@@ -1089,7 +1034,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 					std::move(b.Value));
 #endif
 			}
-			m.emplace(std::move(con), id);
+			m[id].SetContent(ValueNode(std::move(con)));
 		}
 	}, [&](const TokenValue& n, TermNode&& b){
 		CheckParameterLeafToken(n, [&]{
@@ -1294,7 +1239,7 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx)
 		ReduceChecked(Deref(++i), ctx);
 
 		// XXX: List components are ignored.
-		auto p_env_pr(LockEnvironment(Deref(i).Value));
+		auto p_env_pr(ResolveEnvironment(Deref(i).Value));
 		auto formals(share_move(Deref(++i)));
 		string eformal(CheckEnvFormal(Deref(++i)));
 
@@ -1367,7 +1312,8 @@ Eval(TermNode& term, ContextNode& ctx)
 	RetainN(term, 2);
 
 	const auto i(std::next(term.begin()));
-	ContextNode c(ctx, LockEnvironment(Deref(std::next(i)).Value).first);
+	// TODO: Support more environment types?
+	ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i)).Value).first);
 
 	LiftTerm(term, Deref(i));
 	return Reduce(term, c);
@@ -1379,6 +1325,28 @@ EvaluateUnit(TermNode& term, const REPLContext& ctx)
 	CallUnaryAs<const string>([ctx](const string& unit){
 		REPLContext(ctx).Perform(unit);
 	}, term);
+}
+
+void
+MakeEnvironment(TermNode& term)
+{
+	Retain(term);
+
+	if(term.size() > 1)
+	{
+		ValueObject parent;
+		const auto tr([&](TNCIter iter){
+			return ystdex::make_transform(iter, [&](TNCIter i){
+				return i->Value;
+			});
+		});
+
+		parent.emplace<EnvironmentList>(tr(std::next(term.begin())),
+			tr(term.end()));
+		term.Value = make_shared<Environment>(std::move(parent));
+	}
+	else
+		term.Value = make_shared<Environment>();
 }
 
 void

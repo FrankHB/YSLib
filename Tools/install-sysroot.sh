@@ -93,7 +93,7 @@ else
 fi
 if [[ "$SHBuild_Rebuild_S1_" == 'true' ]]; then
 	SHBuild_Puts Building Stage 1 SHBuild ...
-	SHBuild_Output=$SHBuild_S1_SHBuild $SHBuild_ToolDir/SHBuild-build.sh
+	SHBuild_Output="$SHBuild_S1_SHBuild" $SHBuild_ToolDir/SHBuild-build.sh
 	SHBuild_Puts Finished building stage 1 SHBuild.
 fi
 
@@ -134,7 +134,7 @@ SHBuild_Puts Finished building YSLib libraries.
 SHB_InstLibS()
 {
 	# TODO: Error handling.
-	$SHBuild_S1_SHBuild -xcmd,InstallHardLink "$2/lib$3.a" "$1/$LIBPFX$3.a"
+	"$SHBuild_S1_SHBuild" -xcmd,InstallHardLink "$2/lib$3.a" "$1/$LIBPFX$3.a"
 }
 
 SHB_InstLibD()
@@ -142,7 +142,7 @@ SHB_InstLibD()
 	declare -r target="$LIBPFX$2$DSOSFX"
 	declare -r dest="$SR_DSO_Dest/$target"
 	# TODO: Error handling.
-	$SHBuild_S1_SHBuild -xcmd,InstallHardLink "$dest" "$1/$target"
+	"$SHBuild_S1_SHBuild" -xcmd,InstallHardLink "$dest" "$1/$target"
 	if [[ "$SR_DSO_Imp" != "" ]]; then
 		SHBuild_Install_Link "$dest" "$SR_Lib/$target$SR_DSO_Imp"
 	fi
@@ -151,20 +151,20 @@ SHB_InstLibD()
 SHB_InstInc()
 {
 	# TODO: Error handling.
-	$SHBuild_S1_SHBuild -xcmd,InstallDirectory "$SR_Include" "$1"
+	"$SHBuild_S1_SHBuild" -xcmd,InstallDirectory "$SR_Include" "$1"
 }
 
 SHB_InstTool()
 {
 	# TODO: Error handling.
-	$SHBuild_S1_SHBuild -xcmd,InstallExecutable "$SR_Bin/$1" \
+	"$SHBuild_S1_SHBuild" -xcmd,InstallExecutable "$SR_Bin/$1" \
 		"$SHBuild_ToolDir/$1"
 }
 
 SHB_EnsureDirectory()
 {
 	# TODO: Error handling.
-	$SHBuild_S1_SHBuild -xcmd,EnsureDirectory "$1"
+	"$SHBuild_S1_SHBuild" -xcmd,EnsureDirectory "$1"
 }
 
 SHBuild_Puts Installing headers and libraries ...
@@ -244,7 +244,7 @@ export LIBS="$LIBS $LIBS_RPATH -L\"`SHBuild_2w $SR_Lib`\" -lYFramework \
 export LDFLAGS
 
 SHBuild_Puts Building Stage 2 SHBuild ...
-$SHBuild_S1_SHBuild $SHBuild_BaseDir "-xd,$SR_SHBuild" -xmode,2 \
+"$SHBuild_S1_SHBuild" $SHBuild_BaseDir "-xd,$SR_SHBuild" -xmode,2 \
 	$SHBuild_Opt $CXXFLAGS $INCLUDES
 SHBuild_Puts Finished building Stage 2 SHBuild.
 

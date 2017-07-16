@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1138
+\version r1228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-06-05 02:02 +0800
+	2017-07-12 21:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,6 +474,97 @@ ReduceToList(TermNode& term) ynothrow
 }
 
 
+//! \since build 798
+namespace
+{
+
+yconstfn_relaxed bool
+IsReserved(string_view id) ynothrowv
+{
+	YAssertNonnull(id.data());
+	return ystdex::begins_with(id, "__");
+}
+
+observer_ptr<Environment>
+RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
+{
+	if(p_shared)
+		return make_observer(get_raw(p_shared));
+	// TODO: Use concrete semantic failure exception.
+	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
+		" probably due to invalid context access by dangling reference.",
+		IsReserved(id) ? " reserved" : "", id.data()));
+}
+
+observer_ptr<const Environment>
+RedirectParent(const ValueObject& parent, string_view id)
+{
+	const auto& tp(parent.GetType());
+
+	if(tp == ystdex::type_id<EnvironmentList>())
+		for(const auto& vo : parent.GetObject<EnvironmentList>())
+		{
+			auto p(RedirectParent(vo, id));
+
+			if(p)
+				return p;
+		}
+	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
+		return parent.GetObject<observer_ptr<const Environment>>();
+	if(tp == ystdex::type_id<weak_ptr<Environment>>())
+		return RedirectToShared(id,
+			parent.GetObject<weak_ptr<Environment>>().lock());
+	if(tp == ystdex::type_id<shared_ptr<Environment>>())
+		return RedirectToShared(id,
+			parent.GetObject<shared_ptr<Environment>>());
+	return {};
+}
+
+} // unnamed namespace;
+
+void
+Environment::CheckParentEnvironment(const ValueObject& vo)
+{
+	const auto& tp(vo.GetType());
+
+	if(YB_UNLIKELY(tp != ystdex::type_id<EnvironmentList>()
+		&& tp != ystdex::type_id<observer_ptr<const Environment>>()
+		&& tp != ystdex::type_id<weak_ptr<Environment>>()
+		&& tp != ystdex::type_id<shared_ptr<Environment>>()))
+		ThrowInvalidEnvironmentType(tp);
+}
+
+observer_ptr<const Environment>
+Environment::DefaultRedirect(const Environment& env, string_view id)
+{
+	return RedirectParent(env.Parent, id);
+}
+
+observer_ptr<ValueNode>
+Environment::DefaultResolve(const Environment& e, string_view id)
+{
+	YAssertNonnull(id.data());
+
+	observer_ptr<ValueNode> p;
+	auto env_ref(ystdex::ref<const Environment>(e));
+
+	ystdex::retry_on_cond(
+		[&](observer_ptr<const Environment> p_env) ynothrow -> bool{
+		if(p_env)
+		{
+			env_ref = ystdex::ref(Deref(p_env));
+			return true;
+		}
+		return {};
+	}, [&, id]() -> observer_ptr<const Environment>{
+		auto& env(env_ref.get());
+
+		p = env.LookupName(id);
+		return p ? observer_ptr<const Environment>() : env.Redirect(id);
+	});
+	return p;
+}
+
 void
 Environment::Define(string_view id, ValueObject&& vo, bool forced)
 {
@@ -485,11 +576,17 @@ Environment::Define(string_view id, ValueObject&& vo, bool forced)
 		throw BadIdentifier(id, 2);
 }
 
+observer_ptr<ValueNode>
+Environment::LookupName(string_view id) const
+{
+	YAssertNonnull(id.data());
+	return AccessNodePtr(Bindings, id);
+}
+
 void
 Environment::Redefine(string_view id, ValueObject&& vo, bool forced)
 {
-	YAssertNonnull(id.data());
-	if(const auto p = AccessNodePtr(Bindings, id))
+	if(const auto p = LookupName(id))
 		swap(p->Value, vo);
 	else if(!forced)
 		throw BadIdentifier(id, 0);
@@ -504,6 +601,13 @@ Environment::Remove(string_view id, bool forced)
 	if(forced)
 		return {};
 	throw BadIdentifier(id, 0);
+}
+
+void
+Environment::ThrowInvalidEnvironmentType(const ystdex::type_info& tp)
+{
+	throw NPLException(ystdex::sfmt("Invalid environment type '%s' found.",
+		tp.name()));
 }
 
 

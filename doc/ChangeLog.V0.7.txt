@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r7864
+\version r8004
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-06-21 08:37 +0800
+	2017-07-16 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,134 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-bootstrap.sh" $=
+			(
+				- "('AR'. 'LD') settings"
+					// Since it is intended to be call by compiler driver \
+						directly, archiver and linker commands are redundant.
+				/ $dev "comments of notes for '-fwhole-program'"
+					>> "%SHBuild-build.sh"
+			),
+			/ $impl @ "%SHBuild-YSLib-common.txt" $=
+			(
+				/ DLD "lifted %SHBOPT construction",
+				/ "reordered user output of variable",
+					// To be consistent with %SHBuild-BuildApp.sh.
+				/ $forced DLDI "simplified applicative %build-with-conf-opt"
+					$dep_from %YFramework.NPL.Dependency
+			),
+			/ @ "%SHBuild-BuildApp.sh" $=
+			(
+				* "missing quotes around '$SHBuild_AppBaseDir'"
+					@ "function %SHBuild_BuildApp" $since b549,
+				+ "variable %SHBuild to specify %SHBuild path with default \
+					value 'SHBuild'",
+				/ @ "link options" $=
+				(
+					* "redundant '-Wl,dy' on 'pkg-config' failure"
+						@ "variable %SHBuild_YF_Libs_freetype"
+						@ !"platform %Win32" $since b,
+					* $re_add(b583) "missing quotes of inclusion path for \
+						static library builds to protect against spaces in \
+						%SHBuild_Bin" $since b561
+						// This was introduced in b549, but the requirement \
+							started from b561.
+				)
+			)
+		),
+		* "missing quotes around '$SHBuild_S1_SHBuild'" @ "%install-sysroot.sh"
+			$since b565,
+		+ $re_ex(b797) "command line arguments initialization support"
+			@ "command %RunNPL" @ %SHBuild.Main
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.YCoreUtilities $=
+		(
+			* "wrong result when the common type is a signed type not greater \
+				than destination" $since b575;
+			* "always failed to convert %int to %size_t where they have same \
+				width" @ "member function %ArgumentsVector::Reset" $since b797
+				// In general, all platform with 64-bit %size_t are effected.
+		),
+		/ %NPL $=
+		(
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				/ ("<expression>" -> "<body>" ) @ "<clause>"
+					@ "operative '$cond'" $=
+					(/ "supported direct evaluation for variadic terms"
+						^ "%eval" ~ "(%apply, '$sequence')"),
+				+ "applicative %SHBuild_RemovePrefix_",
+				/ DLDI "applicative %SHBuild_EchoVar"
+					^ ($dep_from "%Environment::Lookup", "%GetValuePtrOf")
+					@ %NPLA ~ "%FecthValuePtr",
+				/ $forced DLDI "applicative 'copy-ennvironment'" $dep_from
+					("%Environment::ParentPtr" @ %NPLA),
+				* "applicative 'make-environment'" $since b789 ^ $dep_from
+					("%MakeEnvironment" @ %NPLA1),
+				+ "applicative 'weaken-environment'"
+			),
+			/ %NPLA $=
+			(
+				+ 'using EnvironmentList = vector<ValueObject>;',
+				/ @ "class %Environment" $=
+				(
+					+ "function %LookupName",
+					- DLDI "redundant 'YF_API'"
+						@ "functions %(Define, Redefine, Remove)",
+					/ "support of host environment type" $=
+					(
+						(
+						/ "data member %ParentPtr" => "%Parent";
+						+ "static function DefaultRedirect";
+						+ "data member %Redirect"
+						),
+						(
+						+ "static function DefaultResolve"
+							^ $dep_from "%Lookup";
+						+ "data member %Resolve;
+						);
+						+ "more recursive parent environment support"
+							^ $dep_from "%EnvironmentList",
+						(
+						+ "static functions %(ThrowInvalidEnvironmentType; \
+							CheckParentEnvironment";
+						+ "2 constructors with parent environment parameter"
+						)
+					)
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified %ResolveName"
+					^ $dep_from ("%Environment::ResolveName" @ %NPLA)
+				/ @ "namespace %Forms" $=
+				(
+					- DLDI "redundant 'YF_API'" @ "function %SymbolToString",
+					/ $forced DLDI "vau handler" ^ ($dep_from
+						"%Environment::ParentPtr" @ %NPLA),
+					/ DLDI "functions %(VauWithEnvironment, Eval)"
+						^ $dep_from "%ResolveEnvironment",
+					+ "function %MakeEnvironment" ^ $dep_from
+						("(%EnvironmentList, Environment)" @ %NPLA)
+				),
+				+ "function %ResolveEnvironment" ^ $dep_from
+					("%Environment::ThrowInvalidEnvironmentType" @ %NPLA),
+				* "rebinding of variadic traling elements had no effect"
+					@ "function %BindParameter" $since b777
+			)
+		)
+	)
+),
+
+b797
 (
 	/ %Tools $=
 	(
@@ -55,6 +183,7 @@ $now
 			+ "applicative 'cmd-get-args'" @ "loading forms"
 				@ "NPL REPL context initialization";
 			+ "command line arguments initialization support"
+				@ "command %RunNPLFile"
 			),
 			* "duplicated decoding on command arguments 0 for commands \
 				%(RunNPL, RunNPLFile)" $since b758,
@@ -194,7 +323,7 @@ b795
 		)
 	),
 	* %Documentation.NPL "use of %Check in handlers" $mismatch $since b773,
-	/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+	/ "loading forms" @ "function %LoadNPLContextForSHBuild"
 		@ %YFramework.NPL.Dependency $=
 	(
 		+ "applicatives ('string->regex', 'regex-match?', \
@@ -348,7 +477,7 @@ b792
 		),
 		/ %NPL $=
 		(
-			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				+ "operative '$let*'",
@@ -388,7 +517,7 @@ b791
 (
 	/ %YFramework $=
 	(
-		/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+		/ "loading forms" @ "function %LoadNPLContextForSHBuild"
 			@ %NPL.Dependency $=
 		(
 			+ "applicatives ('list-rest', 'first-null?', %(accl, accr))";
@@ -448,7 +577,7 @@ b790
 	(
 		/ %NPL $=
 		(
-			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				* "missing applicative %wrap for '$cond' and alternative \
@@ -574,7 +703,7 @@ b789
 					@ "function %ResolveName"
 				)
 			),
-			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				+ "applicatives %('null?', cons, 'make-environment'; apply)",
@@ -620,12 +749,12 @@ b788
 						// For safety consideration. Now implicit captured \
 							reference would not cause dangling references.
 					(
-					/ $forced $revert_ex(b787) "exposed environment as \
-						%shared_ptr<Environment> or %weak_ptr<Environment> \
-						type (defaulted to weak pointer) instead of object \
-						reference on %Envrionment" @ "functions \
-						%(VauWithEnvironment, Eval, GetCurrentEnvironment), \
-						vau handler"
+					/ $forced $revert_ex(b787) "exposed environment reference \
+						in host as %shared_ptr<Environment> or \
+						%weak_ptr<Environment> (defaulted to weak pointer) \
+						instead of object reference on %Envrionment"
+						@ "functions %(VauWithEnvironment, Eval, \
+						GetCurrentEnvironment), vau handler"
 						$dep_from ("%(Environment, ContextNode)" @ %NPLA);
 					* $comp "environment leaked by cyclic references" $since
 						b787
@@ -845,7 +974,7 @@ b786
 						Vau, VauWithEnvironment)" $mismatch $since b769
 				)
 			),
-			/ @ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
 				(
