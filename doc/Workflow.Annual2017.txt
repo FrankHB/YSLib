@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r424
+\version r431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-05-23 14:02 +0800
+	2017-07-02 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -400,6 +400,15 @@ Names as replacement of 'car' and 'cdr' are considered.
 				In fact, it requires 2nd argument as a list in all major derivation of Lisp.
 				It is actually the right design choice to signal an error for 'cons 1 2' because '2' is not a list.
 			And anyway, cons pairs are still virtually supported in NPLA1 as well as in Clojure.
+
+$2017-07:
+
+report.impl:
+Code bloat of exception message is still not resolved in the devkitARM release 46 toolchain.
+	See $2015-12 for previous status.
+	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60936.
+		This is not backported for GCC 6.
+	This may be better in upcoming devkitARM release 47 since it would update to GCC 7.
 
 ////
 

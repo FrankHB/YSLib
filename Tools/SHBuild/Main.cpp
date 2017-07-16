@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3572
+\version r3589
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-06-19 19:58 +0800
+	2017-06-27 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -924,21 +924,20 @@ main(int argc, char* argv[])
 						check_n(2);
 						InstallExecutable(args[0], args[1]);
 					}
-					else if(RequestedCommand == "RunNPL")
-					{
-						check_n(1);
-						RunNPLFromStream("<stdin>",
-							std::istringstream(args[0]));
-					}
-					else if(RequestedCommand == "RunNPLFile")
+					else if(RequestedCommand == "RunNPL"
+						|| RequestedCommand == "RunNPLFile")
 					{
 						check_n_ge(1);
 
-						const auto name(args[0]);
-
 						CommandArguments.Arguments = std::move(args);
-						RunNPLFromStream(name.c_str(),
-							ifstream{name, std::ios_base::in});
+						const auto& arg0(CommandArguments.Arguments.front());
+
+						if(RequestedCommand == "RunNPL")
+							RunNPLFromStream("<stdin>",
+								std::istringstream(arg0));
+						else
+							RunNPLFromStream(arg0.c_str(),
+								ifstream{arg0, std::ios_base::in});
 					}
 					else
 						throw std::runtime_error(sfmt("Specified command name"
@@ -1011,8 +1010,8 @@ main(int argc, char* argv[])
 			}
 		}
 	}, {}, Err, [](const std::exception& e, RecordLevel l){
-		ExtractException([](const char* str, RecordLevel lv,
-			size_t level) YB_NONNULL(1){
+		ExtractException([](const char* str, RecordLevel lv, size_t level)
+			YB_NONNULL(1){
 			const auto print([=](const string& s){
 				PrintInfo(string(level, ' ') + s, lv, LogGroup::General);
 			});

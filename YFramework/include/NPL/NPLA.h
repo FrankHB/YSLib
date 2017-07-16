@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2003
+\version r2122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-05-27 00:45 +0800
+	2017-07-12 14:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -839,6 +839,15 @@ using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 
 
 /*!
+\brief 环境列表。
+\since build 798
+
+指定环境对象引用的有序集合。
+*/
+using EnvironmentList = vector<ValueObject>;
+
+
+/*!
 \brief 环境。
 \warning 非虚析构。
 \since build 787
@@ -852,13 +861,47 @@ public:
 	using BindingMap = ValueNode;
 
 	mutable BindingMap Bindings{};
-	//@}
-
 	/*!
-	\since build 789
-	\todo 扩展为列表。
+	\exception NPLException 对实现异常中立的未指定派生类型的异常。
+	\note 失败时若抛出异常，条件由实现定义。
+	\since build 798
 	*/
-	ValueObject ParentPtr{};
+	//@{
+	/*!
+	\brief 重定向解析环境：返回非局部名称引用的环境。
+	\return 符合条件的重定向后的环境指针，或无法重定向时的空值。
+
+	在局部解析失败时，尝试提供能进一步解析名称的环境。
+	若不支持重定向，总是返回空指针值。
+	*/
+	std::function<observer_ptr<const Environment>(string_view)> Redirect{
+		std::bind(DefaultRedirect, std::cref(*this), std::placeholders::_1)};
+	/*!
+	\brief 解析名称：处理保留名称并查找名称。
+	\return 查找到的名称，或查找失败时的空值。
+	\pre 实现断言：第二参数的数据指针非空。
+	\sa LookupName
+	\sa Redirect
+
+	解析指定环境中的名称。被解析的环境可对特定保留名称重定向。
+	实现名称解析的一般步骤包括：
+	局部解析：对被处理的上下文查找名称，若成功则返回；
+	否则，若支持重定向，尝试重定向解析：在重定向后的环境中重新查找名称；
+	否则，名称解析失败。
+	名称解析失败时默认返回空值。对特定的失败，实现可约定抛出异常。
+	保留名称的集合和是否支持重定向由实现约定。
+	只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
+	不保证对循环重定向进行检查。
+	*/
+	std::function<observer_ptr<ValueNode>(string_view)> Resolve{
+		std::bind(DefaultResolve, std::cref(*this), std::placeholders::_1)};
+	//@}
+	/*!
+	\brief 父环境：被解释的重定向目标。
+	\sa DefaultRedirect
+	\since build 798
+	*/
+	ValueObject Parent{};
 
 	//! \brief 无参数构造：初始化空环境。
 	DefDeCtor(Environment)
@@ -877,6 +920,20 @@ public:
 		: Bindings(std::move(m))
 	{}
 	//@}
+	/*!
+	\brief 构造：使用父环境。
+	\exception NPLException 异常中立：由 CheckParentEnvironment 抛出。
+	\todo 使用专用的异常类型。
+	*/
+	//@{
+	explicit
+	Environment(const ValueObject& vo)
+		: Parent((CheckParentEnvironment(vo), vo))
+	{}
+	explicit
+	Environment(ValueObject&& vo)
+		: Parent((CheckParentEnvironment(vo), std::move(vo)))
+	{}
 	//@}
 
 	friend PDefHOp(bool, ==, const Environment& x, const Environment& y)
@@ -889,27 +946,93 @@ public:
 	*/
 	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
 
+	//! \since build 798
+	//@{
+	/*!
+	\brief 检查可作为父环境的宿主对象。
+	\exception NPLException 异常中立：由 ThrowInvalidEnvironmentType 抛出。
+	\todo 使用专用的异常类型。
+	*/
+	static void
+	CheckParentEnvironment(const ValueObject&);
+
+	//! \pre 断言：第二参数的数据指针非空。
+	//@{
+	/*!
+	\brief 重定向解析环境：返回父环境。
+	\sa Parent
+
+	解析 Parent 储存的对象作为父环境的引用值。
+	被处理的保留名称应指定重定向名称到有限个不同的环境。
+	支持的重定向项的宿主值的类型包括：
+	EnvironmentList ：环境列表；
+	observer_ptr<const Environment> 无所有权的重定向环境；
+	weak_ptr<Environment> 可能具有共享所有权的重定向环境；
+	shared_ptr<Environment> 具有共享所有权的重定向环境。
+	若重定向可能具有共享所有权的失败，则表示资源访问错误，如构成循环引用；
+		可能涉及未定义行为。
+	以上支持的宿主值类型被依次检查。若检查成功，则使用此宿主值类型访问环境。
+	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
+	*/
+	static observer_ptr<const Environment>
+	DefaultRedirect(const Environment&, string_view);
+
+	/*!
+	\brief 解析名称：处理保留名称并查找名称。
+	\exception NPLException 访问共享重定向环境失败。
+	\sa Lookup
+	\sa Redirect
+	*/
+	static observer_ptr<ValueNode>
+	DefaultResolve(const Environment&, string_view);
+	//@}
+	//@}
+
 	/*!
 	\pre 字符串参数的数据指针非空。
 	\throw BadIdentifier 非强制调用时发现标识符不存在或冲突。
 	\note 最后一个参数表示强制调用。
 	\warning 应避免对被替换或移除的值的悬空引用。
+	\since build 787
 	*/
 	//@{
 	//! \brief 以字符串为标识符在指定上下文中定义值。
-	YF_API void
+	void
 	Define(string_view, ValueObject&&, bool);
 
+	/*!
+	\brief 查找名称。
+	\pre 断言：第二参数的数据指针非空。
+	\return 查找到的名称，或查找失败时的空值。
+	\since build 798
+
+	在环境中查找名称。
+	*/
+	observer_ptr<ValueNode>
+	LookupName(string_view) const;
+
+	//! \pre 间接断言：第一参数的数据指针非空。
+	//@{
 	//! \brief 以字符串为标识符在指定上下文中覆盖定义值。
-	YF_API void
+	void
 	Redefine(string_view, ValueObject&&, bool);
 
 	/*
 	\brief 以字符串为标识符在指定上下文移除对象。
 	\return 是否成功移除。
 	*/
-	YF_API bool
+	bool
 	Remove(string_view, bool);
+	//@}
+
+	/*!
+	\brief 对不符合环境要求的类型抛出异常。
+	\throw NPLException 环境类型检查失败。
+	\since build 798
+	\todo 使用专用的异常类型。
+	*/
+	YB_NORETURN static void
+	ThrowInvalidEnvironmentType(const ystdex::type_info&);
 };
 
 
@@ -946,7 +1069,6 @@ public:
 	\since build 788
 	*/
 	ContextNode(ContextNode&&);
-
 	DefDeCopyMoveAssignment(ContextNode)
 
 	//! \since build 788

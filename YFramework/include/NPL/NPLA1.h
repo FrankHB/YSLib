@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3286
+\version r3323
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-06-11 14:36 +0800
+	2017-07-10 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -782,23 +782,22 @@ ReduceLeafToken(TermNode&, ContextNode&);
 \brief 解析名称：处理保留名称并查找名称。
 \pre 断言：第二参数的数据指针非空。
 \exception NPLException 访问共享重定向上下文失败。
+\sa Environment::ResolveName
 \since build 777
 
-解析指定上下文中的名称。被解析的上下文可通过特定保留名称被重定向。
-名称解析对被处理的上下文查找名称，若成功则返回；
-否则，尝试重定向并在重定向后的上下文中重新查找名称；
-否则，名称解析失败。
-只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
-被处理的保留名称应指定重定向名称到有限个不同的上下文。解析时不对循环重定向进行检查。
-支持的重定向项的宿主值的类型包括：
-observer_ptr<const Environment> 指向无所有权的重定向上下文；
-weak_ptr<Environment> 指向可能具有共享所有权的重定向上下文；
-shared_ptr<Environment> 指向具有共享所有权的重定向上下文。
-若重定向可能具有共享所有权的上下文失败，则表示资源访问错误，如构成循环引用。
-抛出异常的类型为 NPLException 或派生类，其类型未指定。
+解析指定上下文中的名称。
 */
 YF_API observer_ptr<const ValueNode>
 ResolveName(const ContextNode&, string_view);
+
+/*!
+\brief 解析环境。
+\return 取得所有权的环境指针及是否具有所有权。
+\note 只支持宿主值类型 \c shared_ptr<Environment> 或 \c weak_ptr<Environment> 。
+\since build 798
+*/
+YF_API pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(ValueObject&);
 
 
 /*!
@@ -1426,9 +1425,10 @@ Vau(TermNode&, ContextNode&);
 
 /*!
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
+\sa ResolveEnvironment
 
 捕获的静态环境由环境参数 <env> 求值后指定。
-根据环境参数的类型为 \c shared_ptr<Environment> 或 \c weak_ptr<Envrionment> 
+根据环境参数的类型为 \c shared_ptr<Environment> 或 \c weak_ptr<Environment>
 	决定是否保留所有权。
 参考调用文法：
 $vaue <env> <formals> <eformal> <body>
@@ -1522,6 +1522,7 @@ EqualValue(TermNode&);
 /*!
 \brief 对指定项按指定的环境求值。
 \since build 787
+\sa ResolveEnvironment
 
 以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。
 环境以 ContextNode 的引用表示。
@@ -1538,6 +1539,21 @@ Eval(TermNode&, ContextNode&);
 YF_API void
 EvaluateUnit(TermNode&, const REPLContext&);
 //@}
+
+/*!
+\brief 创建以参数指定的环境列表作为父环境的新环境。
+\exception NPLException 异常中立：由 Environment 的构造函数抛出。
+\sa Environment::CheckParentEnvironment
+\sa EnvironmentList
+\since build 798
+\todo 使用专用的异常类型。
+
+取以指定的参数初始化新创建的父环境。
+参考调用文法：
+make-environment <environment>...
+*/
+YF_API void
+MakeEnvironment(TermNode&);
 
 /*!
 \brief 取包含当前环境的上下文引用。

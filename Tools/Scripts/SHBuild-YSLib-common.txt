@@ -71,7 +71,12 @@ $defl! compile-ok-silent (env-os src compile opt)
 	compile-ok src compile (get-tmp-nul env-os) opt (get-nul-dev env-os);
 $defl! get-thread-option-silent (env-os cxx)
 	get-thread-option cxx (get-nul-dev env-os);
-$defl! build-with-conf-opt (outdir env-os debug dynamic SHBOPT_IGN do-build)
+$defl! get-SHBOPT_ (outdir ignore dynamic)
+(
+	$def! opt cons-cmd (++ "-xd," outdir) ignore;
+	$if dynamic (cons-cmd opt "-xmode,2") opt
+);
+$defl! build-with-conf-opt (outdir env-os debug dynamic ignore do-build)
 (
 	$def! CXXFLAGS_OPT_DBG
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC") "";
@@ -105,24 +110,23 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic SHBOPT_IGN do-build)
 	$cond
 	(
 		(string-contains-ci? CXX "clang++")
-		($set-if-empty! C_CXXFLAGS_COMMON_IMPL_ "-fno-merge-all-constants")
-		($set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
-			"-Wno-deprecated-register" "-Wno-mismatched-tags"
-			"-Wno-missing-braces" "-Wshorten-64-to-32" "-Wweak-vtables")
-		("#", "CXXFLAGS_IMPL_OPT -flto")
-		($set-if-empty! LDFLAGS_IMPL_OPT CXXFLAGS_IMPL_OPT)
+		$set-if-empty! C_CXXFLAGS_COMMON_IMPL_ "-fno-merge-all-constants";
+		$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd "-Wno-deprecated-register"
+			"-Wno-mismatched-tags" "-Wno-missing-braces" "-Wshorten-64-to-32"
+			"-Wweak-vtables";
+		"#", "CXXFLAGS_IMPL_OPT -flto";
+		$set-if-empty! LDFLAGS_IMPL_OPT CXXFLAGS_IMPL_OPT
 	)
 	(
 		(string-contains-ci? CXX "g++")
-		($set-if-empty! C_CXXFLAGS_IMPL_WARNING cons-cmd "-Wdouble-promotion"
-			"-Wlogical-op" "-Wtrampolines")
-		($set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
+		$set-if-empty! C_CXXFLAGS_IMPL_WARNING cons-cmd "-Wdouble-promotion"
+			"-Wlogical-op" "-Wtrampolines";
+		$set-if-empty! CXXFLAGS_IMPL_WARNING cons-cmd
 			"-Wconditionally-supported" "-Wno-noexcept-type"
-			"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant")
-		($set-if-empty! CXXFLAGS_IMPL_OPT
-			"-s -fexpensive-optimizations -flto=jobserver")
-		($set-if-empty! LDFLAGS_IMPL_OPT
-			"-s -fexpensive-optimizations -flto")
+			"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
+		$set-if-empty! CXXFLAGS_IMPL_OPT
+			"-s -fexpensive-optimizations -flto=jobserver";
+		$set-if-empty! LDFLAGS_IMPL_OPT "-s -fexpensive-optimizations -flto"
 	);
 	$env-de! CFLAGS_STD "-std=c11";
 	$env-de! CFLAGS_WARNING cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING;
@@ -173,12 +177,11 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic SHBOPT_IGN do-build)
 	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd
 		(SHBuild_TrimOptions_ LDFLAGS) ($if dynamic LDFLAGS_DYN "-Wl,--dn"));
 	env-set "LDFLAGS" LDFLAGS;
-	$def! SHBOPT cons-cmd (++ "-xd," outdir) SHBOPT_IGN;
-	$if dynamic ($redef! SHBOPT cons-cmd SHBOPT "-xmode,2");
+	$def! SHBOPT get-SHBOPT_ outdir ignore dynamic;
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
-	echo-var "SHBOPT";
 	echo-var "CXXFLAGS";
 	echo-var "LDFLAGS";
+	echo-var "SHBOPT";
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
 );
 

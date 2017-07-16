@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r820
+\version r839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-06-19 10:31 +0800
+	2017-07-14 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 #include <cerrno> // for errno, ERANGE;
 #include <cstdio> // for std::puts;
 #include <regex> // for std::regex, std::regex_match;
+#include <ystdex/string.hpp> // for ystdex::begins_with, ystdex::erase_left;
 
 using namespace YSLib;
 
@@ -195,11 +196,12 @@ LoadSequenceSeparators(ContextNode& ctx, EvaluationPasses& passes)
 void
 CopyEnvironmentDFS(Environment& d, const Environment& e)
 {
+	// TODO: Support more implementations?
 	const auto copy_parent([&](Environment& dst, const Environment& parent){
 		auto p_env(make_shared<Environment>());
 
 		CopyEnvironmentDFS(*p_env, parent);
-		dst.ParentPtr = std::move(p_env);
+		dst.Parent = std::move(p_env);
 	});
 	const auto copy_parent_ptr(
 		[&](Environment& dst, const ValueObject& vo) -> bool{
@@ -221,7 +223,7 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 	});
 	auto& m(d.GetMapRef());
 
-	copy_parent_ptr(d, e.ParentPtr);
+	copy_parent_ptr(d, e.Parent);
 	for(const auto& b : e.GetMapRef())
 		m.emplace(b.CreateWith([&](const ValueObject& vo) -> ValueObject{
 			Environment dst;
@@ -321,12 +323,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "eval", Eval);
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
-	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
 	RegisterStrict(root, "copy-environment", CopyEnvironment);
-	RegisterStrict(root, "make-environment",
-		[](TermNode& term, ContextNode& ctx){
-		// FIXME: Parent environments?
-		GetCurrentEnvironment(term, ctx);
+	RegisterStrict(root, "make-environment", MakeEnvironment);
+	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
+	RegisterStrictUnary<shared_ptr<Environment>>(root, "weaken-environment",
+		[](const shared_ptr<Environment>& p){
+		return make_weak(p);
 	});
 	// NOTE: Environment mutation is optional in Kernel and supported here.
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
@@ -404,8 +406,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		$defrec! $cond $vau clauses env $sequence
 		(
 			$def! aux $lambda ((test .body) .clauses)
-				$if (eval test env)
-					(apply (wrap $sequence) body env)
+				$if (eval test env) (eval body env)
 					(apply (wrap $cond) clauses env)
 		)
 		($if (null? clauses) inert (apply aux clauses));
@@ -567,8 +568,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "SHBuild_EchoVar", [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
 		CallBinaryAs<const string>([&](const string& n, const string& val){
-			if(const auto p = FetchValuePtr(root.GetRecordRef(),
-				"SHBuild_BaseTerminalHook_"))
+			if(const auto p = GetValuePtrOf(root.GetRecordRef().LookupName(
+				"SHBuild_BaseTerminalHook_")))
 				if(const auto p_hook = AccessPtr<
 					std::function<void(const string&, const string&)>>(*p))
 					(*p_hook)(n, val);
@@ -588,6 +589,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<const string>(root, "SHBuild_RaiseError_",
 		[](const string& str) YB_NORETURN{
 		throw LoggedEvent(str);
+	});
+	RegisterStrictBinary<const string>(root, "SHBuild_RemovePrefix_",
+		[&](const string& str, const string& pfx) -> string{
+		if(ystdex::begins_with(str, pfx))
+			return str.substr(pfx.length());
+		return str;
 	});
 	RegisterStrictUnary<const string>(root, "SHBuild_SDot_",
 		[](const string& str){
