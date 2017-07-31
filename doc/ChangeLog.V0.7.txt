@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8004
+\version r8099
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-07-16 20:48 +0800
+	2017-07-31 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,102 @@ $import $HISTORY;
 // Scope: [b700, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				+ "operative '$quote'",
+					// See $2017-07 @ %Documentation::Workflow::Annual2017.
+				+ "operative '$setrec!'",
+				+ "operative '$vaue'",
+				/ $dev "alternative derivation" @ "operative '$sequence'" $=
+				(
+					* "used unbound operative" $since b789 $dep_from '$vaue',
+					/ "simplified" ^ ($dep_from '$setrec!' ~ 'copy-environment',
+						'$lambda' ~ '$vau')
+				)
+			),
+			/ %NPLA $=
+			(
+				/ @ "class %Environment" $=
+				(
+					/ "static function %CheckParentEnvironment"
+						-> "%CheckParent"
+						$= (* "missing check recursively for parent \
+							environments of environment list" $since b798),
+					/ "static function %ThrowInvalidEnvironmentType"
+						=> "%ThrowForInvalidType",
+				),
+				+ "function %LiftTermObject" ^ ($dep_From
+					"%YSLib::SetContentWith", "ValueObject::MakeIndirect")
+					@ %YSLib.Core.ValueNode,
+				* "copy instead of subterms indirection support"
+					@ "functions %LiftTermRef" $since b747 $=
+				(
+					+ 'const' @ "2nd parameter" @ "function %LiftTermRef#1",
+					/ $impl "functions %LiftTermRef#(1, 2)" ^ $dep_from
+						"%LiftTermObject"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* $comp "missing parent environment type check"
+					@ "function %MakeEnvironment" $since b798 $dep_from
+					("%Envrionment::CheckParent" @ %NPLA),
+				/ "exception message for wrong evironment formal parameter"
+					@ "functions %(Vau, VauWithEnvironment)",
+				/ @ "vau handler" $=
+				(
+					+ "type" @ "exception message for invalid environment \
+						formal parameter",
+					+ "parameter tree check",
+						// It is now necessary to keep stored parameter tree \
+							well-formed before matching. Note it was always \
+							consistent from the source, but API could still \
+							provide a bad parameter tree if there is no check.
+				),
+				/ @ "function %EvaluateIdentifier" $=
+				(
+					/ "assertion" @ "function %EvaluateIdentifier"
+						>> "function %ResolveName",
+					(
+					/ $impl "simplified" ^ "%EvaluateIdentifier" ^ $dep_from
+						"%ListTermRef" ~ "%ValueObject::SetContentIndirect";
+						// Note lvalue access of list is still not support as \
+							list cannot be replaced in a whole. New \
+							intermediate type is required to support 1st-class \
+							list lvalue.
+					* $comp "children referenced by copying associated \
+						children of variable stored in environment"
+						@ "variable referencing" $since b768
+						$dep_from ("parameter tree check" @ "vau handler")
+						// This also related to uncaught \
+							%ystdex::invalid_construction in referencing a \
+							list with move-only objects.
+					)
+				)
+			)
+		),
+		/ %YSLib.Core $=
+		(
+			/ %ValueNode $=
+			(
+				+ "function template %SetContentWith",
+				- $revert(b747) "all 2 member functions \
+					%ValueNode::SetContentIndirect" $dep_from (("%LiftTermRef"
+					@ %NPLA, "%EvaluateIdentifier" @ %NPLA1) @ %NPLA)
+			),
+			/ "function %GetType" @ "class %ValueObject" @ %YObject
+				=> "%type"
+		)
+	)
+),
+
+b798
 (
 	/ %Tools $=
 	(

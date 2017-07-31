@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3164
+\version r3190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-06-03 11:50 +0800
+	2017-07-30 02:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,19 +327,6 @@ public:
 		ImplExpr(SwapContent(node))
 	//@}
 	//@}
-
-	/*!
-	\brief 设置子节点容器，并设置值的内容为指定对象的内容引用。
-	\sa ValueObject::MakeIndirect
-	\since build 747
-	*/
-	//@{
-	void
-	SetContentIndirect(Container, const ValueObject&) ynothrow;
-	PDefH(void, SetContentIndirect, const ValueNode& node)
-		ImplExpr(SetContentIndirect(node.GetContainer(), node.Value))
-	//@}
-
 
 	//! \since build 667
 	PDefH(bool, Add, const ValueNode& node)
@@ -1171,10 +1158,24 @@ RemoveEmptyChildren(ValueNode::Container&) ynothrow;
 //@{
 YF_API void
 RemoveHead(ValueNode::Container&) ynothrowv;
-inline PDefH(void, RemoveHead, ValueNode& term) ynothrowv
-	ImplExpr(RemoveHead(term.GetContainerRef()))
+inline PDefH(void, RemoveHead, ValueNode& node) ynothrowv
+	ImplExpr(RemoveHead(node.GetContainerRef()))
 //@}
 //@}
+
+/*!
+\brief 根据节点和节点容器创建操作设置目标节点的值或子节点。
+\since build 799
+*/
+template<typename _tNode, typename _fCallable>
+void
+SetContentWith(ValueNode& dst, _tNode& node, _fCallable f)
+{
+	yunseq(
+	dst.Value = ystdex::invoke(f, node.Value),
+	dst.GetContainerRef() = node.CreateWith(f)
+	);
+}
 
 
 /*!

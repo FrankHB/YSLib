@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r2040
+\version r2044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2017-03-05 13:13 +0800
+	2017-07-30 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -373,10 +373,10 @@ lambda 表达式转换的函数指针具有 C++ 语言链接(@5.5.5.3) [CWG 1557
 例如，避免二元/和一元 * 连用导致错误的注释起始标志。
 
 @5.3.2 标识符命名风格：
-以下讨论内建特性相关的名称。其它参见 @4 。
+以下讨论内建特性相关的名称。其它参见 [Documentation::CommonRules @@4] 。
 
 @5.3.2.1 range-based for ：
-begin 和 end 被 range-based for 使用。
+注意适当使用 begin 和 end 重载函数配合 range-based for 的使用。
 
 @5.3.3 宏定义：
 有源代码兼容性和可读性良好替代方案的情况下，尽可能不使用宏。
@@ -867,7 +867,7 @@ member-declarator 的可选 brace-or-equal-initializer ，即类定义内的成�
 关于迭代条件的使用要点，参见 @5.8.3 和 @5.12.3.3 。
 
 @5.10.4.3 range-based for ：
-注意适当使用 begin 和 end 重载函数配合 range-based for 的使用。
+参见 @5.3.2.1 。
 
 @5.10.5 异常使用规则：
 理解 C++ 语言提供的异常是同步异常，此外存在体系结构和其它非同步异常，可能表示程序的设计和实现错误或非预期的运行环境，不由 C++ 异常处理机制解决。

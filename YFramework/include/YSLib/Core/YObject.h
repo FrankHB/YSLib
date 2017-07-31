@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4922
+\version r4931
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-06-08 16:55 +0800
+	2017-07-30 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -742,8 +742,6 @@ public:
 		return Deref(ystdex::unchecked_any_cast<const _type>(&content));
 	}
 	//@}
-	//! \since build 683
-	DefGetter(const ynothrow, const type_info&, Type, content.type())
 
 	/*!
 	\brief 访问指定类型对象。
@@ -907,6 +905,14 @@ public:
 	*/
 	friend PDefH(void, swap, ValueObject& x, ValueObject& y) ynothrow
 		ImplExpr(x.content.swap(y.content))
+
+	/*!
+	\brief 取持有的对象的类型。
+	\sa ystdex::any::type
+	\since build 799
+	*/
+	PDefH(const type_info&, type, ) const ynothrow
+		ImplRet(content.type())
 };
 
 /*!

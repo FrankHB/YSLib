@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r751
+\version r757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2017-06-02 11:49 +0800
+	2017-07-29 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,13 +42,6 @@ ValueNode&
 ValueNode::operator%=(ValueNode&& node)
 {
 	return Deref(insert_or_assign(node.name, std::move(node)).first);
-}
-
-void
-ValueNode::SetContentIndirect(Container con, const ValueObject& vo) ynothrow
-{
-	container.swap(con),
-	Value = vo.MakeIndirect();
 }
 
 ValueNode::Container

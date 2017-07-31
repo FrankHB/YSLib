@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4519
+\version r4522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2017-03-30 00:03 +0800
+	2017-07-30 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1046,7 +1046,7 @@ C 语言代码在必要时允许使用 ISO C 中以 _ 起始的关键字，但�
 在宏替换的 lambda 中使用后缀下划线的局部变量名以避免和嵌套作用域的变量重名引起实现警告（如 G++ [-Wshadow] ）。
 
 @4.1.7 惯用命名：
-优先使用以下命名。
+为便于实现泛型程序编码及利用语言内建特性（另见 [Documentation::LanguageConvention @@5.3.2]），适当优先使用以下约定的命名。
 
 @4.1.7.1 原语(primitive) ：
 动词原型表示的具有合理自然语义的操作，通常对用户程序来说是原子的(atomic) ，不通过任何进一步的接口名称拆分加以解释。
@@ -1087,6 +1087,7 @@ Set* ： * 不以 Of 结尾，为目标名称；修改特定目标的设置器(@
 Set*Of ： 同 Set* ，但通常为非成员函数或模板，第一参数为目标操作对象的非 const 引用。
 On* ： * 为描述事件及事件响应目标的名称；事件处理器。
 Check* ：尝试进行参数检查并非阻塞地调用，失败时可能抛出异常。
+Throw* ：总是抛出特定的异常。不返回，一般使用 [[noreturn]]([Documentation::LanguageConvention @@5.5.11.1]) 修饰。
 Try* ：尝试进行状态检查并非阻塞地调用，失败时可能对非预期状态进行原地处理或捕获异常并可能进行抛出其它异常或重新抛出。（类似 ISO C++ 标准库的 try_lock 等；可对应没有前缀的接口抛出异常表示这些错误。）
 除非另行约定，匹配 Get* 但匹配 *Ref 结尾的类成员名表示的获取器返回类型应为对象类型或 const 对象引用类型。
 
@@ -1103,6 +1104,7 @@ begin ：表示起始迭代器。
 end ：表示终止迭代器。
 at ：带有越界检查的访问函数，接受一个左值引用类型的参数，越界时抛出异常（如 std::out_of_range ）；参见 ISO C++ [sequence.reqmts] 和 ISO C++ [associative] 。
 swap ：交换函数，接受被交换的左值引用类型的参数，返回类型 void ；参见 ISO C++ [swappable.requirements] 。
+type ：返回表示存储类型的 const 对象引用，通常为 const std::type_info& 或相同目的的替代品。
 包括以下命名空间作用域函数或函数模板名：
 to_string ：转换为字符串（通常应为 std::string 类型或至少类型名为 string ）表示。
 make_* ：返回特定对象的助手函数（模板）。

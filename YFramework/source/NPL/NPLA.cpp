@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1228
+\version r1247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-07-12 21:20 +0800
+	2017-07-30 19:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@ ConvertDocumentNode(const TermNode& term, IndentGenerator igen, size_t depth,
 							return head + " />";
 						for(; i != con.cend(); ++i)
 						{
-							nl = Deref(i).Value.GetType()
+							nl = Deref(i).Value.type()
 								!= ystdex::type_id<string>();
 							if(nl)
 								res += '\n' + igen(depth + size_t(is_content));
@@ -457,6 +457,14 @@ LiftTerm(TermNode& term, TermNode& tm)
 	term.SetContent(std::move(t), std::move(tm.Value));
 }
 
+ValueObject
+LiftTermObject(const ValueObject& vo)
+{
+	if(vo.type() == ystdex::type_id<TokenValue>())
+		return vo;
+	return vo.MakeIndirect();
+}
+
 
 ReductionStatus
 ReduceHeadEmptyList(TermNode& term) ynothrow
@@ -499,7 +507,7 @@ RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
 observer_ptr<const Environment>
 RedirectParent(const ValueObject& parent, string_view id)
 {
-	const auto& tp(parent.GetType());
+	const auto& tp(parent.type());
 
 	if(tp == ystdex::type_id<EnvironmentList>())
 		for(const auto& vo : parent.GetObject<EnvironmentList>())
@@ -523,15 +531,19 @@ RedirectParent(const ValueObject& parent, string_view id)
 } // unnamed namespace;
 
 void
-Environment::CheckParentEnvironment(const ValueObject& vo)
+Environment::CheckParent(const ValueObject& vo)
 {
-	const auto& tp(vo.GetType());
+	const auto& tp(vo.type());
 
-	if(YB_UNLIKELY(tp != ystdex::type_id<EnvironmentList>()
-		&& tp != ystdex::type_id<observer_ptr<const Environment>>()
+	if(tp == ystdex::type_id<EnvironmentList>())
+	{
+		for(const auto& env : vo.GetObject<EnvironmentList>())
+			CheckParent(env);
+	}
+	else if(YB_UNLIKELY(tp != ystdex::type_id<observer_ptr<const Environment>>()
 		&& tp != ystdex::type_id<weak_ptr<Environment>>()
 		&& tp != ystdex::type_id<shared_ptr<Environment>>()))
-		ThrowInvalidEnvironmentType(tp);
+		ThrowForInvalidType(tp);
 }
 
 observer_ptr<const Environment>
@@ -604,7 +616,7 @@ Environment::Remove(string_view id, bool forced)
 }
 
 void
-Environment::ThrowInvalidEnvironmentType(const ystdex::type_info& tp)
+Environment::ThrowForInvalidType(const ystdex::type_info& tp)
 {
 	throw NPLException(ystdex::sfmt("Invalid environment type '%s' found.",
 		tp.name()));

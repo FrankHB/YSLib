@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1398
+\version r1399
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2017-02-02 11:03 +0800
+	2017-07-23 16:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,7 +401,7 @@ YSLib 库中，模块目录 YSLib::Adaptor([Documentation::YSLib @@2]) 以外其
 Adaptor 被 YSLib 的几乎所有其它部分依赖。 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能、有必要被足够多模块依赖的的外部依赖项，新增的部分应尽可能放在外部的 Helper 库(@2.7) 而不是 Adaptor 中。
 
 @2.1.6 预处理附加规则：
-对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.3])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
+对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.6])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
 指定限定平台集合(@2.1.4) 的宏（如 YF_Hosted ）不得被用于出现在 YSLib 中用于条件编译（关于依赖性限制，参见 @2.2.5）。
 
 @2.2 文件依赖性：

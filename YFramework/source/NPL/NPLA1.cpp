@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4367
+\version r4442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-07-12 21:16 +0800
+	2017-07-30 19:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -278,7 +278,7 @@ private:
 				const auto& n(*p);
 				auto& v(env.GetMapRef()[n].Value);
 
-				if(v.GetType() == ystdex::type_id<ContextHandler>())
+				if(v.type() == ystdex::type_id<ContextHandler>())
 				{
 					// XXX: The element should exist.
 					auto& p_strong(store.at(n));
@@ -326,22 +326,37 @@ DoDefine(TermNode& term, _func f)
 }
 
 
+//! \since build 799
+YB_NONNULL(2) void
+CheckVauSymbol(const TokenValue& s, const char* target)
+{
+	if(s != "#ignore")
+	{
+		if(!IsNPLASymbol(s))
+			throw InvalidSyntax(ystdex::sfmt("Token '%s' is not a symbol or"
+				" '#ignore' expected for %s.", s.data(), target));
+	}
+}
+
+//! \since build 799
+YB_NORETURN YB_NONNULL(2) void
+ThrowInvalidSymbolType(const TermNode& term, const char* n)
+{
+	throw InvalidSyntax(ystdex::sfmt("Invalid %s type '%s' found.", n,
+		term.Value.type().name()));
+}
+
 //! \since build 781
 string
 CheckEnvFormal(const TermNode& term)
 {
 	if(const auto p = TermToNamePtr(term))
 	{
-		if(*p != "#ignore")
-		{
-			if(!IsNPLASymbol(*p))
-				throw InvalidSyntax("Symbol or '#ignore' expected"
-					" for context parameter.");
-			return *p;
-		}
+		CheckVauSymbol(*p, "environment formal parameter");
+		return *p;
 	}
 	else
-		throw InvalidSyntax("Invalid context parameter found.");
+		ThrowInvalidSymbolType(term, "environment formal parameter");
 	return {};
 }
 
@@ -389,7 +404,9 @@ public:
 		local_prototype(ctx, make_shared<Environment>()), p_parent(p_env),
 		p_static(owning ? std::move(p_env) : nullptr),
 		p_closure(share_move(term))
-	{}
+	{
+		CheckParameterTree(*p_formals);
+	}
 
 	//! \since build 772
 	ReductionStatus
@@ -432,6 +449,21 @@ public:
 		else
 			throw LoggedEvent("Invalid composition found.", Alert);
 	}
+
+	//! \since build 799
+	static void
+	CheckParameterTree(const TermNode& term)
+	{
+		for(const auto& child : term)
+			CheckParameterTree(child);
+		if(term.Value)
+		{
+			if(const auto p = TermToNamePtr(term))
+				CheckVauSymbol(*p, "parameter in a parameter tree");
+			else
+				ThrowInvalidSymbolType(term, "parameter tree node");
+		}
+	}
 };
 
 
@@ -445,25 +477,6 @@ CreateFunction(TermNode& term, _func f, size_t n)
 		term.Value = ContextHandler(f(term.GetContainerRef()));
 	else
 		throw InvalidSyntax("Insufficient terms in function abstraction.");
-}
-
-
-//! \since build 793
-void
-ConvertLValue(TermNode& term, const TermNode& tm)
-{
-	// NOTE: The referenced term is lived through the evaluation, which is
-	//	guaranteed by the context. This is necessary since the ownership of
-	//	objects which are not temporaries in evaluated terms needs to be
-	//	always in the environment, not in AST. It would be safe if not
-	//	passed directly and without rebinding. Note access objects denoted by
-	//	invalid reference after rebinding cause undefined behavior in the object
-	//	language.
-	if(tm.empty())
-		LiftTermRef(term, tm.Value);
-	else
-		// XXX: Children are referenced.
-		term.SetContentIndirect(tm.GetContainer(), tm.Value);
 }
 
 } // unnamed namespace;
@@ -540,7 +553,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 			}
 		}
 
-		const auto& tp(term.Value.GetType());
+		const auto& tp(term.Value.type());
 
 		// NOTE: Empty list or special value token has no-op to do with.
 		// TODO: Handle special value token?
@@ -786,15 +799,22 @@ EvaluateDelayed(TermNode& term, DelayedTerm& delayed)
 ReductionStatus
 EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 {
-	YAssertNonnull(id.data());
 	if(const auto p = ResolveName(ctx, id))
 	{
-		ConvertLValue(term, *p);
+		// NOTE: This is conversion of lvalue in object to value of expression.
+		//	The referenced term is lived through the evaluation, which is
+		//	guaranteed by the context. This is necessary since the ownership of
+		//	objects which are not temporaries in evaluated terms needs to be
+		//	always in the environment, rather than in the tree. It would be safe
+		//	if not passed directly and without rebinding. Note access of objects
+		//	denoted by invalid reference after rebinding would cause undefined
+		//	behavior in the object language.
+		LiftTermRef(term, *p);
 		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
 			return (*p_handler)(ctx);
 		// NOTE: Unevaluated term shall be detected and evaluated. See also
 		//	$2017-05 @ %Documentation::Workflow::Annual2017.
-		return IsLeaf(term) ? (term.Value.GetType()
+		return IsLeaf(term) ? (term.Value.type()
 			!= ystdex::type_id<TokenValue>() ? EvaluateDelayed(term)
 			: ReductionStatus::Clean) : ReductionStatus::Retained;
 	}
@@ -864,7 +884,7 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 			ystdex::sfmt("No matching combiner '%s' for operand with %zu"
 				" argument(s) found.", [&](observer_ptr<const string> p){
 				return p ? *p : ystdex::sfmt("#<unknown:%s>",
-					fm.Value.GetType().name());
+					fm.Value.type().name());
 			}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
 	}
 	return ReductionStatus::Clean;
@@ -883,6 +903,7 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 observer_ptr<const ValueNode>
 ResolveName(const ContextNode& ctx, string_view id)
 {
+	YAssertNonnull(id.data());
 	return ctx.GetRecordRef().Resolve(id);
 }
 
@@ -893,8 +914,8 @@ ResolveEnvironment(ValueObject& vo)
 		return {p->lock(), {}};
 	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
 		return {*p, true};
-	// TODO: Merge with %Environment::CheckParentEnvironment?
-	Environment::ThrowInvalidEnvironmentType(vo.GetType());
+	// TODO: Merge with %Environment::CheckParent?
+	Environment::ThrowForInvalidType(vo.type());
 }
 
 
@@ -1096,7 +1117,7 @@ MatchParameter(const TermNode& t, TermNode& o,
 			{
 				const auto& lastv(Deref(last).Value);
 
-				YAssert(lastv.GetType() == ystdex::type_id<TokenValue>(),
+				YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
 					"Invalid ellipsis sequence token found.");
 				bind_trailing_seq(j, o.end(),
 					lastv.GetObject<TokenValue>());
@@ -1115,13 +1136,13 @@ MatchParameter(const TermNode& t, TermNode& o,
 			throw ParameterMismatch(ystdex::sfmt(
 				"Invalid nonempty operand found for empty list parameter,"
 					" with %zu subterm(s) and value '#<unknown:%s>'.", o.size(),
-					o.Value.GetType().name()));
+					o.Value.type().name()));
 	}
 	else if(const auto p = AccessPtr<TokenValue>(t))
 		bind_value(*p, std::move(o));
 	else
 		throw ParameterMismatch(ystdex::sfmt("Invalid parameter value found"
-			" with value '#<unknown:%s>'.", t.Value.GetType().name()));
+			" with value '#<unknown:%s>'.", t.Value.type().name()));
 }
 
 
