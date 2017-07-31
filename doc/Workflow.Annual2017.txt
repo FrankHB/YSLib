@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r431
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-07-02 12:45 +0800
+	2017-07-24 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,6 +409,16 @@ Code bloat of exception message is still not resolved in the devkitARM release 4
 	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60936.
 		This is not backported for GCC 6.
 	This may be better in upcoming devkitARM release 47 since it would update to GCC 7.
+Use of direct evaluation is general preferred, even '$quote' has been now introduced.
+	This is as the same style as in Kernel.
+	In general, there are no need to '$quote' since 'eval' handles lists well.
+		Lists are constructed by 'cons', 'list', 'list*' or other constructors.
+	However, when necessary, '$quote' can improve some readability by avoiding excessive nested 'list' applicative in the 1st operand of 'eval'.
+		This may also likely (but not guaranteed) provide some performance improvement if used properly.
+	Passing a symbol to be evaluated without knowledge of enclosing environment can be potentionally dangerous becuase access of dangling references denoted by symbol after rebinding will cause undefined behavior.
+		Direct 'eval' style has already prevent it largely.
+			Symbols to be bound can be specified as operand as '$vau', or derived modifying operatives based on it (e.g. '$set!' and '$setrec!'), with no need to construct symbols reflectively (e.g. passing a 'string->symbol' result as an operand).
+		The use of '$quote' also reduce necessity of reflective use of symbol further.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2122
+\version r2148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-07-12 14:07 +0800
+	2017-07-30 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -710,16 +710,27 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
 	ImplExpr(LiftTerm(term.Value, vo))
 //@}
 
+//! \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
+//@{
 /*!
-\brief 提升项：使用第二个参数指定的项的内容引用替换第一个项的内容。
-\warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
+\brief 提升项对象：设置作为项的 Value 数据成员的值对象为参数指定的值或值的引用值。
+\since build 799
+
+设置 TokenValue 对象的值和其它类型的间接值。
+*/
+YF_API ValueObject
+LiftTermObject(const ValueObject&);
+
+/*!
+\brief 提升项引用：使用第二个参数指定的项的内容引用替换第一个项的内容。
 \since build 747
 */
 //@{
-inline PDefH(void, LiftTermRef, TermNode& term, TermNode& tm)
-	ImplExpr(term.SetContentIndirect(tm))
+//! \since build 799
+inline PDefH(void, LiftTermRef, TermNode& term, const TermNode& tm)
+	ImplExpr(YSLib::SetContentWith(term, tm, LiftTermObject))
 inline PDefH(void, LiftTermRef, ValueObject& term_v, const ValueObject& vo)
-	ImplExpr(term_v = vo.MakeIndirect())
+	ImplExpr(term_v = LiftTermObject(vo))
 inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 	ImplExpr(LiftTermRef(term.Value, vo))
 //@}
@@ -836,6 +847,7 @@ using Guard = ystdex::any;
 */
 using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
 	YSLib::GDefaultLastValueInvoker<Guard>>;
+//@}
 
 
 /*!
@@ -861,6 +873,7 @@ public:
 	using BindingMap = ValueNode;
 
 	mutable BindingMap Bindings{};
+	//@}
 	/*!
 	\exception NPLException 对实现异常中立的未指定派生类型的异常。
 	\note 失败时若抛出异常，条件由实现定义。
@@ -922,17 +935,17 @@ public:
 	//@}
 	/*!
 	\brief 构造：使用父环境。
-	\exception NPLException 异常中立：由 CheckParentEnvironment 抛出。
+	\exception NPLException 异常中立：由 CheckParent 抛出。
 	\todo 使用专用的异常类型。
 	*/
 	//@{
 	explicit
 	Environment(const ValueObject& vo)
-		: Parent((CheckParentEnvironment(vo), vo))
+		: Parent((CheckParent(vo), vo))
 	{}
 	explicit
 	Environment(ValueObject&& vo)
-		: Parent((CheckParentEnvironment(vo), std::move(vo)))
+		: Parent((CheckParent(vo), std::move(vo)))
 	{}
 	//@}
 
@@ -950,11 +963,12 @@ public:
 	//@{
 	/*!
 	\brief 检查可作为父环境的宿主对象。
-	\exception NPLException 异常中立：由 ThrowInvalidEnvironmentType 抛出。
+	\note 若存在父环境，首先对父环境递归检查。
+	\exception NPLException 异常中立：由 ThrowForInvalidType 抛出。
 	\todo 使用专用的异常类型。
 	*/
 	static void
-	CheckParentEnvironment(const ValueObject&);
+	CheckParent(const ValueObject&);
 
 	//! \pre 断言：第二参数的数据指针非空。
 	//@{
@@ -1024,15 +1038,16 @@ public:
 	bool
 	Remove(string_view, bool);
 	//@}
+	//@}
 
 	/*!
 	\brief 对不符合环境要求的类型抛出异常。
 	\throw NPLException 环境类型检查失败。
-	\since build 798
+	\since build 799
 	\todo 使用专用的异常类型。
 	*/
 	YB_NORETURN static void
-	ThrowInvalidEnvironmentType(const ystdex::type_info&);
+	ThrowForInvalidType(const ystdex::type_info&);
 };
 
 
@@ -1139,7 +1154,6 @@ FetchValue(const Environment& env, const _tKey& name)
 {
 	return GetValueOf(NPL::LookupName(env, name));
 }
-//@}
 
 //! \brief 从指定上下文取指定名称指称的值的指针。
 template<typename _tKey>
@@ -1151,8 +1165,6 @@ FetchValuePtr(const Environment& env, const _tKey& name)
 //@}
 
 
-//! \since build 753
-//@{
 //! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
 //@{
 //! \since build 777

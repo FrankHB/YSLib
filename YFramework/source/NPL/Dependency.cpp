@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r839
+\version r883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-07-14 11:30 +0800
+	2017-07-26 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,58 +341,48 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterForm(root, "$defrec!", DefineWithRecursion);
 	RegisterForm(root, "$lambda", Lambda);
 	RegisterForm(root, "$vau", Vau);
+	RegisterForm(root, "$vaue", VauWithEnvironment);
 	RegisterStrictUnary<ContextHandler>(root, "wrap", Wrap);
 	RegisterStrictUnary<ContextHandler>(root, "unwrap", Unwrap);
 	// NOTE: Derived functions.
+#if true
+	RegisterStrict(root, "list", ReduceToList);
+#else
+	context.Perform(u8R"NPL($def! list wrap ($vau x #ignore x))NPL");
+//	context.Perform(u8R"NPL($def! list $lambda x x)NPL");
+#endif
+	context.Perform(u8R"NPL(
+		$def! $quote $vau (x) #ignore x;
+		$def! $set! $vau (expr1 formals .expr2) env eval
+			(list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
+		$def! $setrec! $vau (expr1 formals .expr2) env eval
+			(list $defrec! formals (unwrap eval) expr2 env) (eval expr1 env);
+	)NPL");
 #if true
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	RegisterForm(root, "$sequence", ReduceOrdered);
-	RegisterStrict(root, "list", ReduceToList);
 #else
 	// NOTE: They can be derived as Kernel does.
 	// XXX: The current environment is better to be saved by
 	//	'$lambda () () get-current-environment'.
 	// TODO: Avoid redundant environment copy.
+	// TODO: Support move-only types at end.
 	context.Perform(u8R"NPL(
 		$def! $sequence
 		(
-			wrap
-			(
-				$vau ($seq2) #ignore
-				(
-					$seq2
-					(
-						$defrec! $aux $vaue (() copy-environment) (head .tail)
-							env
-						(
-							$if (null? tail)
-							(eval head env)
-							(
-								$seq2 (eval head env)
-									(eval (cons $aux tail) env)
-							)
-						)
-					)
-					(
-						$vaue (() copy-environment) body env
-						(
-							$if (null? body)
-							inert
-							(eval (cons $aux body) env)
-						)
-					)
-				)
-			)
+			$lambda (cenv) ($lambda #ignore $vaue cenv body env
+				$if (null? body) inert (eval (cons $aux body) env))
+				($setrec! cenv $aux $vaue (weaken-environment cenv) (head .tail)
+					env
+					$if (null? tail) (eval head env) (($lambda #ignore
+						(eval (cons $aux tail) env)) (eval head env)))
 		)
 		(
-			$vau (first second) env
-				(wrap ($vau #ignore #ignore (eval second env))) (eval first env)
+			make-environment (() get-current-environment)
 		);
 	)NPL");
-	context.Perform(u8R"NPL($def! list wrap ($vau x #ignore x))NPL");
-//	context.Perform(u8R"NPL($def! list $lambda x x)NPL");
 #endif
 	context.Perform(u8R"NPL(
 		$def! first $lambda ((x .)) x;
@@ -410,8 +400,6 @@ LoadNPLContextForSHBuild(REPLContext& context)
 					(apply (wrap $cond) clauses env)
 		)
 		($if (null? clauses) inert (apply aux clauses));
-		$def! $set! $vau (expr1 formals .expr2) env eval
-			(list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
 		$def! $defl! $vau (f formals .body) env eval
 			(list $set! env f $lambda formals body) env;
 		$def! $defv! $vau ($f formals senv .body) env eval

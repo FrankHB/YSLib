@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3323
+\version r3327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-07-10 13:57 +0800
+	2017-07-29 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -705,13 +705,13 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 //@}
 
 /*!
-\pre 断言：第三参数的数据指针非空。
 \exception BadIdentifier 标识符未声明。
 \note 默认结果为 ReductionStatus::Clean 以保证强规范化性质。
 */
 //@{
 /*!
 \brief 求值标识符。
+\pre 间接断言：第三参数的数据指针非空。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa EvaluateDelayed
 \sa LiftTermRef
@@ -721,7 +721,7 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 
 依次进行以下求值操作：
 调用 ResolveName 根据指定名称查找值，若失败抛出未声明异常；
-调用 LiftTermRef 或 TermNode::SetContentIndirect 替换非列表或列表节点的值；
+调用 LiftTermRef 替换非列表或列表节点的值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
 若未返回，根据节点表示的值进一步处理：
 	对表示非 TokenValue 值的叶节点，调用 EvaluateDelayed 求值；
@@ -733,6 +733,7 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 
 /*!
 \brief 求值叶节点记号。
+\pre 断言：第三参数的数据指针非空。
 \sa CategorizeLexeme
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
@@ -1543,7 +1544,7 @@ EvaluateUnit(TermNode&, const REPLContext&);
 /*!
 \brief 创建以参数指定的环境列表作为父环境的新环境。
 \exception NPLException 异常中立：由 Environment 的构造函数抛出。
-\sa Environment::CheckParentEnvironment
+\sa Environment::CheckParent
 \sa EnvironmentList
 \since build 798
 \todo 使用专用的异常类型。
