@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1911
+\version r1943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2016-08-04 23:57 +0800
+	2017-08-11 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1096,6 +1096,7 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	case SE_ERR_SHARE:
 	case SE_ERR_DLLNOTFOUND:
 		res = SE_ERR_SHARE ? ERROR_SHARING_VIOLATION : ERROR_DLL_NOT_FOUND;
+		YB_ATTR_fallthrough;
 	case ERROR_FILE_NOT_FOUND: // NOTE: Same as %SE_ERR_FNF.
 	case ERROR_PATH_NOT_FOUND: // NOTE: Same as %SE_ERR_PNF.
 	case ERROR_ACCESS_DENIED: // NOTE: Same as %SE_ERR_ACCESSDENIED.
@@ -1106,32 +1107,35 @@ ExecuteShellCommand(const wchar_t* cmd, const wchar_t* args, bool use_admin,
 	case SE_ERR_DDETIMEOUT:
 	case SE_ERR_DDEFAIL:
 	case SE_ERR_DDEBUSY:
-	{
-		using boxed_exception = ystdex::wrap_mixin_t<std::runtime_error, int>;
-
-		TryExpr(throw boxed_exception{std::runtime_error("ShellExecuteW"), res})
-		catch(boxed_exception& e)
 		{
-			const auto throw_ex([=](int ec) YB_ATTR(noreturn){
-				std::throw_with_nested(Win32Exception(ErrorCode(ec),
-					ystdex::sfmt("ShellExecuteW: %d", res), Err));
-			});
+			using boxed_exception
+				= ystdex::wrap_mixin_t<std::runtime_error, int>;
 
-			switch(e.value)
+			TryExpr(throw
+				boxed_exception{std::runtime_error("ShellExecuteW"), res})
+			catch(boxed_exception& e)
 			{
-			case SE_ERR_ASSOCINCOMPLETE:
-			case SE_ERR_NOASSOC:
-				throw_ex(ERROR_NO_ASSOCIATION);
-			case SE_ERR_DDETIMEOUT:
-			case SE_ERR_DDEFAIL:
-			case SE_ERR_DDEBUSY:
-				throw_ex(ERROR_DDE_FAIL);
-			default:
-				break;
+				const auto throw_ex([=](int ec) YB_ATTR(noreturn){
+					std::throw_with_nested(Win32Exception(ErrorCode(ec),
+						ystdex::sfmt("ShellExecuteW: %d", res), Err));
+				});
+
+				switch(e.value)
+				{
+				case SE_ERR_ASSOCINCOMPLETE:
+				case SE_ERR_NOASSOC:
+					throw_ex(ERROR_NO_ASSOCIATION);
+				case SE_ERR_DDETIMEOUT:
+				case SE_ERR_DDEFAIL:
+				case SE_ERR_DDEBUSY:
+					throw_ex(ERROR_DDE_FAIL);
+				default:
+					break;
+				}
 			}
+			YAssert(false, "Invalid state found.");
 		}
-		YAssert(false, "Invalid state found.");
-	}
+		YB_ATTR_fallthrough;
 	default:
 		if(res > 32)
 			YTraceDe(Informative, "ExecuteShellCommand: ::ShellExecute call"

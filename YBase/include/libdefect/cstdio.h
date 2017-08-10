@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2014-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<cstdio\> 修正。
-\version r118
+\version r121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 580
 \par 创建时间:
 	2015-02-26 22:39:31 +0800
 \par 修改时间:
-	2015-02-26 23:36 +0800
+	2017-08-06 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,8 @@ vsscanf(const char *, const char *, __va_list)
 } // extern "C";
 #		endif
 #	elif defined(_NEWLIB_VERSION)
-#		if defined(__STRICT_ANSI__) && !(__STDC_VERSION__ >= 199901L)
+#		if defined(__STRICT_ANSI__) && !(__STDC_VERSION__ >= 199901L) \
+	&& !(__ISO_C_VISIBLE >= 1999)
 extern "C"
 {
 

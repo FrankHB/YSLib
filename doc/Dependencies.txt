@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1255
+\version r1329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2017-06-11 17:49 +0800
+	2017-08-06 02:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -265,11 +265,17 @@ mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼�
 升级包 mingw32/mingw-w64-i686-headers-git 和 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4531.49c7046-1 。
 升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 5.0.0.4538.78dca70-1 。
 升级包 mingw32/mingw-w64-i686-binutils 版本 2.25.1-1 。
-2015-06-11(build 700) 起：
+2016-06-11(build 700) 起：
 升级包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 5.4.0-1 。
 升级包 mingw32/mingw-w64-i686-headers-git 和 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4671.1b12b90-1 。
 升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 5.0.0.4670.00cda6f-1 。
 升级包 mingw32/mingw-w64-i686-binutils 版本 2.25.1-5 。
+2017-08-05(build 800) 起：
+升级包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 7.1.0-2 。
+升级包 mingw32/mingw-w64-i686-headers-git 版本 5.0.0.4853.2b3471ae-1 。
+升级包 mingw32/mingw-w64-i686-crt-git 版本 5.0.0.4851.c93248f0-1 。
+升级包 mingw32/mingw-w64-i686-winpthreads-git 和 mingw32/mingw-w64-i686-libwinpthread-git 版本 5.0.0.4850.d1662dc7-1 。
+升级包 mingw32/mingw-w64-i686-binutils 版本 2.28-2 。
 
 @1.5.1 MinGW32 库部署：
 YSLib 内部使用固定的相对路径，不依赖库的部署。
@@ -469,7 +475,7 @@ YSLib 实现对所有平台的 FreeType2 库添加检查。
 2016-06-11(build 700) 起：
 使用 FreeType 2.6.3 ，但部分文件使用 2.4.11 版本替换。
 对原始版本和配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
-DS 库文件： CFLAGS 加入以下配置 "-DFT_CONFIG_OPTION_OLD_INTERNALS" 重新编译。
+DS 库文件： CFLAGS 加入以下配置 "-DFT_CONFIG_OPTION_OLD_INTERNALS" （默认已在修改和替换的文件中）重新编译。
 此配置迁移自 "freetype/config/ftoption.h" 中的宏定义，而其它修改未影响当前使用的特性，因此不再需要替换此文件。
 因为缺少 TT_CONFIG_OPTION_MAX_RUNNABLE_OPCODES 宏的默认定义，构建之前的一些版本可能还需在 CFLAGS 加入 -DTT_CONFIG_OPTION_MAX_RUNNABLE_OPCODES=1000000L 。
 重新编译 MinGW32 和 Android 库文件。
@@ -901,6 +907,73 @@ ValueObject 使用 type_info 代替 std::type_info 。
 [YReader]
 调整关于界面：使用对话框和粗体标题，关闭按钮改为系统信息界面按钮。
 移除 TreeView 测试（使用关于面板中的系统信息界面代替）。
+
+@5.8 V0.8 ：
+2017-06-?(V0.8) ：
+[Test]
+构建和生成目录默认为 build 下特定宿主平台目录的 .test 目录。
+[Tools]
+构建和生成目录默认为 build 下特定宿主平台目录的子目录。
+[Tools.Scripts]
+在 stage 2 构建时使用 NPL 代码代替 shell 脚本中的部分命令。
+[YBase]
+[YBase.YStandardEx]
+添加允许在生存期结束前释放作用域守护的接口 dismiss 。
+添加可能缩小数值范围的显式转换 narrow_cast 。
+添加 volatile 左值交换 swap_volatile 。
+添加共享存储接口 pun_ref 。
+修复线程池实现。
+添加内存流模板 basic_membuf 。
+添加放置对象管理操作；添加 WG21 P0032R3 的原地标记构造类型。
+重构锁 API ，允许通过模板参数指定是否进行检查；添加共享互斥量和添加共享锁。
+添加 WG21 P0013R1 元编程逻辑操作。
+添加基于函数模板的变长序列操作。
+添加位段特征模板 bitseg_traits 和 ordered_bitseg_traits 。
+any_input_iterator 支持非引用的 reference 类型。
+添加模板 any_void_ref 作为 input_monomorphic_iterator 的返回类型。
+[YBase.LibDefect]
+修复 std::exception_ptr 和 std::rethrow_exception 在预构建 libsupc++ 不支持引用计数异常对象时引用生存期外对象导致的未定义行为。
+[YDE]
+构建和生成目录默认为前缀 . 的特定宿主平台目录。
+[YFramework]
+除兼容标准库的接口，使用 friend 启用 ADL swap 而不是成员 swap 和重载命名空间 swap 。
+[YFramework.Helper]
+锁定外部文件访问，避免竞争。
+[YFramework.NPL]
+添加节点规约公共实现。
+添加 REPL 实现。
+添加若干内建语法形式实现。
+引用名称时不复制。
+区分记号值和字符串值，修复规约的规范化性质，避免因为字符串值无条件作为标识符规约导致的无限递归。
+中间值类型使用类型别名代替节点类型。
+支持左值引用表达式。
+[YFramework.YCLib]
+修复访问文件目录内容时遗漏的错误处理。
+完善基于路径的文件系统访问接口。
+添加系统限制配置查询接口。
+内存映射文件支持写权限。
+添加调用环境提供的 C API 宏。
+移除 FileOperation 异常类，使用 std::system_error 代替；简化系统 API 和文件操作错误处理。
+添加文件锁接口。
+添加 atmoic 适配模板。
+完善终端接口。
+[YFramework.YSLib]
+[YFramework.YSLib.Core]
+移除 InPlaceTag ，复用 YBase.YStandardEx 中的标记类型。
+Application 提供 AddExit 等成员的线程安全保证。
+ValueNode 支持透明键比较。
+IValueHolder 成员添加和修改抽象方法。
+ValueObject 支持原地构造、间接值和无所有权引用。
+[YFramework.YSLib.Service]
+添加可移植的路径解析接口。
+添加独占和共享的锁定文件流。
+添加基于流缓冲的 BOM 探测 API 。
+[YFramework.YSLib.UI]
+FileBox 访问目录失败时不进入目录以避免无法恢复。
+[YFramework/Win32]
+修复窗口从到屏幕边缘移回后的更新错误。
+[YReader]
+构建和生成目录默认为 build 下特定宿主平台目录的子目录。
 
 */
 ////

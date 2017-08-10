@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3106
+\version r3110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2017-02-02 18:29 +0800
+	2017-08-09 08:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	platform_ex::cstat, platform_ex::estat, ::futimens, OpenMode,
 //	YCL_CallGlobal, ::close, ::fcntl, F_GETFL, ::setmode, ::fchmod, ::_chsize,
 //	::ftruncate, ::fsync, ::_wgetcwd, ::getcwd, ::chdir, ::rmdir, ::unlink,
-//	!defined(__STRICT_ANSI__) API, ::GetCurrentDirectoryW; 
+//	!defined(__STRICT_ANSI__) API, ::GetCurrentDirectoryW;
 #include YFM_YCLib_FileSystem // for NodeCategory::*, CategorizeNode;
 #include <ystdex/functional.hpp> // for ystdex::compose, ystdex::addrof;
 #include <ystdex/streambuf.hpp> // for ystdex::streambuf_equal;
@@ -829,10 +829,10 @@ omode_conv(std::ios_base::openmode mode) ynothrow
 	}
 	// XXX: Order is significant.
 	if(mode & ios_noreplace)
-		res |= OpenMode::Create | OpenMode::Exclusive;
+		res |= OpenMode::CreateExclusive;
 	// NOTE: %O_EXCL without %O_CREAT leads to undefined behavior in POSIX.
 	if(mode & ios_nocreate)
-		res &= ~OpenMode::Create | OpenMode::Exclusive;
+		res &= ~OpenMode::CreateExclusive;
 	return int(res);
 }
 
@@ -1015,7 +1015,7 @@ ugetcwd(char16_t* buf, size_t len) ynothrowv
 		errno = GetErrnoFromWin32();
 		return {};
 #else
-		// XXX: Alias by %char array is safe. 
+		// XXX: Alias by %char array is safe.
 		if(const auto cwd
 			= ::getcwd(ystdex::aligned_store_cast<char*>(buf), len))
 			try

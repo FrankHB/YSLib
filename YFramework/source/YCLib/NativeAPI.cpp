@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1057
+\version r1067
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2017-03-03 11:08 +0800
+	2017-08-07 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,9 +37,6 @@
 //#	include <nds/system.h> // for ::isDSiMode;
 
 
-// XXX: This may be better with %::isDSiMode in libfat 1.6.2.
-//! \since build 771
-extern "C" bool __dsimode;
 //! \since build 602
 extern "C" ::DLDI_INTERFACE _io_dldi_stub;
 #elif YCL_MinGW
@@ -103,6 +100,13 @@ estat(struct ::stat& st, const char* path, bool follow_link) ynothrowv
 
 
 #if YCL_DS
+//! \since build 800
+// NOTE: Stub to work around devkitARM r46 bug.
+//	See https://devkitpro.org/viewtopic.php?f=13&t=8643&start=10.
+extern "C" YB_ATTR(weak) void
+__sync_synchronize()
+{}
+
 namespace platform_ex
 {
 
@@ -142,7 +146,7 @@ FileSystem::FileSystem(size_t pages)
 		throw std::runtime_error("Failed initializing file system.");
 	}())
 {
-	// NOTE: No %ARGV_MAGIC here as libnds does.
+	// NOTE: No %ARGV_MAGIC here as libfat does.
 	// NOTE: Call of %::chdir also sets default device in I/O support code. This
 	//	enables relative paths available for %::GetDeviceOpTab and
 	//	%platform_ex::FAT::FetchPartitionFromPath for platform %DS.

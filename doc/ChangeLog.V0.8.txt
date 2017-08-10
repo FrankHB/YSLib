@@ -1,0 +1,225 @@
+﻿/*
+	© 2017 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ChangeLog.V0.8.txt
+\ingroup Documentation
+\brief 版本更新历史记录 - V0.8 。
+\version r224
+\author FrankHB <frankhb1989@gmail.com>
+\since build 800
+\par 创建时间:
+	2017-08-10 01:58:36 +0800
+\par 修改时间:
+	2017-08-10 12:44 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::ChangeLog::'V0.8'
+*/
+
+// See %Documentation::Meta for meta descriptions.
+
+$import $HISTORY;
+
+// Scope: [b800, $now];
+
+$now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "class %TermReference, 2 functions %ReferenceTerm; 2 \
+					function templates %(AccessTermPtr, AccessTerm), functions \
+					%(LiftTermOrRef; LiftToSelf; LiftToOther)",
+				/ "function %ReferenceValue" -> "%LiftToReference" $dep_from
+					"%LiftTermOrRef",
+				- "all 3 functions %LiftTermRef" $dep_from
+					("%EvaluateIdentifier" @ %NPLA1),
+			),
+			/ %NPLA1 $=
+			(
+				- 'const' @ "return type" @ "function %ResolveName",
+				/ @ "namespace %Forms" $=
+				(
+					+ "type" @ "exception message"
+						@ "functions %(WrapOnce, Unwrap)",
+					+ "function %ResolveEnvironment for %TermNode reference"
+						^ $dep_from ("%ReferenceTerm" @ %NPLA),
+					/ "handled %TermReference to allow reference value used as \
+						first-class object" $=
+					(
+						/ "function %(ReduceCombined, Forms::(And, Or, If))"
+							^ $dep_from ("%AccessTermPtr" @ %NPLA)
+							~ "%AccessPtr",
+						/ "functions %Forms::(VauWithEnvironment, Eval)"
+							^ $dep_from "%ResolveEnvironment",
+						/ "function templates %Forms::(CallUnaryAs, \
+							CallBinaryAs, CallBinaryFold)" ^ $dep_from
+							("%NPL::AccessTerm" @ %NPLA),
+						/ "functions %Forms::(Eval, ValueOf)" ^ $dep_from
+							("%LiftToOther" @ %NPLA) ~ "%LiftTerm"
+							// See $2017-08 @ \
+								%Documentation::Workflow::Annual2017.
+						/ "function %Forms(DefineLazy, DefineWithNoRecursion, \
+							DefineWithRecursion, Lambda, Vau, \
+							VauWithEnvironment)" ^ $dep_from "%LiftToSelf",
+						/ "functions %Forms::(EqualReference, \
+							EqualValue, MatchParameter, BindParameter, \
+							ReduceCheckedClosure)" ^ $dep_from
+							("%ReferenceTerm" @ %NPLA),
+						/ "handled reference term" @ "function %Forms::Cons"
+					);
+					* "list reference cannot be replaced as real lvalue"
+						@ "function %EvaluateIdentifier" $since b768 $dep_from
+						"%ResolveName"
+						$= (/ $revert_ex(b799) $impl ^ ($dep_from
+							"%(ReferenceTerm, TermReference)" @ %NPLA)
+							~ "%LiftTermRef")
+					),
+					/ $comp ("allowed returning list as last element"
+						~ "non-list value") @ "function %Or"
+				)
+			),
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				/ $forced DLDI "handled %TermReference" $dep_from
+					"%EvaluateIdentifier" $=
+				(
+					/ "%ref"
+						^ (("%LiftToReference" ~ "%ReferenceValue") @ %NPLA),
+					/ 'bound?' ^ $dep_from ("%AccessTermPtr" @ %NPLA)
+						~ "%AccessPtr"
+					/ ('string<-', 'regex-match?') ^ $dep_from
+						("%AccessTerm" @ %NPLA) ~ "%Access"
+				)
+			)
+		),
+		/ %YCLib $=
+		(
+			/ "limited %FAT::LFN::(MaxLength, MaxMBCSLength) value as '255'"
+				 @ FileSystem,
+				// See $2017-08 @ %Documentation::Workflow::Annual2017.
+			/ @ "platform %DS" @ %NativeAPI $=
+			(
+				+ "worked arounded missing %__sync_synchronize stub for \
+					devkitARM r46",
+					// See https://devkitpro.org/viewtopic.php?f=13&t=8643&start=10.
+				/ $impl ^ "%::isDSiMode" ~ "%::__dsimode" $dep_from
+					"libnds update"
+			),
+			/ @ "function %omode_conv with %std::ios_base::openmode parameter"
+				@ %FileIO $=
+			(
+				/ $impl "simplified" ^ "%OpenMode::CreateExclusive"
+					~ "%OpenMode::(Create, Exclusive)";
+				* "wrong result for %platform::ios_nocreate"  $since b722
+			),
+			/ $re_add(b793) "marked fallthrough" @ "function \
+				%ExecuteShellCommand" @ "platform %Win32" @ %HostedGUI
+				^ "%YB_ATTR_fallthrough"
+				// To eliminate G++ 7 warning: [-Wimplicit-fallthrough=].
+		),
+		/ @ "platform %DS" @ %'YCLib_(DS)'.DSIO $=
+		(
+			/ DLDI "member function %FileInfo::Read" ^ 'ythrow' ~ 'throw',
+				// Also to eliminate G++ warning: [-Wdeprecated].
+			/ $forced $impl "types of hanlders for %::devoptab_t members \
+				%(close_r, write_r, read_r, seek_r, fstat_r, ftruncate_r, \
+				fsync_r)" $dep_from "libsysbase interface",
+			/ $re_add(b793) DLI "marked fallthrough" @ "constructor %FileInfo"
+				^ "%YB_ATTR_fallthrough",
+				// To eliminate G++ 7 warning: [-Wimplicit-fallthrough=].
+			/ $lib $design "asserting string"
+				@ "class function %Partition::CreateFSInfo",
+			* "wrong check for exclusively creation flags"
+				@ "constructor %FileInfo" $since b722,
+			(
+			/ @ "class %DEntry" $=
+			(
+				/ DLDI "simplified function %QueryNextFrom"
+					$= (- "redundant volume check"),
+				/ @ "constructors" $=
+				(
+					* "name position not correctly initialized for all cases \
+						require the value" $since b656,
+					* "missing keeping last component name after check for path"
+						@ $since b656;
+					* $comp "%std::errc::not_a_directory thrown for leaf with \
+						%OpenMode::CreateExclusive" $since b721
+						// The value of %errno is overriden later.
+				)
+			);
+			* $comp "%Partition::IncrementPosition assertion failure"
+				@ "%debug configurations" $since b762
+			)
+		),
+		/ $re_add(b793) "marked fallthrough" @ "function \
+			%TryCategorizeNodeDevice" @ %'Helper_(Win32)'.MinGW32
+			^ "%YB_ATTR_fallthrough",
+			// To eliminate G++ 7 warning: [-Wimplicit-fallthrough=].
+		/ DLDI "cast to %SDst" @ %YSLib.Service.TextRenderer
+			// To eliminate warning: [-Wsign-conversion].
+	),
+	/ %Tools $=
+	(
+		/ @ "default value" @ "variable %CXXFLAGS_IMPL_WARNING"
+			@ "%Toolchain.options.mk" @ %Scripts $=
+		(
+			+ $re_add(b794) '-Wno-noexcept-type',
+			+ '-Wno-ignored-attributes'
+				// To eliminate G++ 7 warning: [-Wignored-attributes] which is \
+					enabled by default. It is at least offending to \
+					%PixelQuadruple in %YFramework.YCLib.Viedo and being hard \
+					to turned off by pragma in single file since it may \
+					propagate in template declarations.
+		),
+		/ %RevisionPatcher.Main $=
+		(
+			* "wrongly ignored newly added files"
+				@ %RevisionPatcher.Main $since b791
+				$= (/ $revert_ex(b791) $impl "detected prefix without 'a/'"),
+			/ $re_add(b793) "marked fallthrough" ^ "%YB_ATTR_fallthrough",
+				// To eliminate G++ 7 warning: [-Wimplicit-fallthrough=].
+			/ DLDI "simplified patched lines filtering"
+		)
+	),
+	/ %YBase.LibDefect $=
+	(
+		/ %String $=
+		(
+			+ "support of %_GLIBCXX_USE_CXX11_ABI detection",
+			+ "support of %_GLIBCXX_USE_C99_STDLIB detection"
+		),
+		+ "support of GCC greater than 7.0 which has bug 58938 fixed"
+			@ %Exception,
+			// NOTE: Other headers like %YBase.YStandard.Future are still to \
+				be updated. Currently these features are not required at lease \
+				on platform %DS.
+		+ "support of %__ISO_C_VISIBLE detection" @ 'defined(_NEWLIB_VERSION)'
+			@ %CStandardIO
+			// To eliminate GCC warning: [-Wredundant-decls].
+	),
+	* $comp "file creation failure with %errno value 138" @ "platform %DS"
+		@ "function %LoadNPLA1File" @ %Helper.Initialization $since b721
+		$dep_from ("constructors %DEntry" @ %'YCLib_(DS)'.DSIO)
+		// See also %'YCLib_(DS)'.DSIO correction for %FileInfo constructor \
+			which is hidden by this bug.
+	/ $re_ex(b700) "updated %SUBTITLE2 year" @ "makefile" @ "platform %DS"
+		@ "project %YSTest",
+	/ $re_ex(b700) "regenerated Code::Blocks projects"
+		^ ("%GenerateProjects.sh" @ %Tools.Scripts);
+);
+
+////
+

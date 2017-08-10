@@ -38,7 +38,7 @@ PROJECT_NAME           = YSTest
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = PreAlpha_b700_20160611
+PROJECT_NUMBER         = PreAlpha_b800_20170810
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a

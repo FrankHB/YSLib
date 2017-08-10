@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3565
+\version r3575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2016-09-16 04:51 +0800
+	2017-08-07 03:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -611,7 +611,6 @@ public:
 	/*!
 	\brief 迭代：向后遍历。
 	\exception std::system_error 读取目录失败。
-	\
 	*/
 	HDirectory&
 	operator++();
@@ -932,9 +931,17 @@ yconstexpr const size_t OffsetTable[]{0x01, 0x03, 0x05, 0x07, 0x09, 0x0E,
 enum : size_t
 {
 	//! \brief UCS-2 项最大长度。
+#if YCL_DS
+	MaxLength = 255,
+#else
 	MaxLength = 256,
+#endif
 	//! \brief UTF-8 项最大长度。
+#if YCL_DS
+	MaxMBCSLength = 255,
+#else
 	MaxMBCSLength = MaxLength * 3,
+#endif
 	EntryLength = size(OffsetTable),
 	AliasEntryLength = 11,
 	MaxAliasMainPartLength = 8,

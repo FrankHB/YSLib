@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4442
+\version r4543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-07-30 19:43 +0800
+	2017-08-05 20:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,14 +186,17 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 		else
 		{
 			ReduceChecked(*i, ctx);
-			if(ystdex::value_or(i->Value.AccessPtr<bool>(), is_and) == is_and)
+			if(ystdex::value_or(AccessTermPtr<bool>(*i), is_and) == is_and)
 				term.Remove(i);
 			else
 			{
 				if(is_and)
 					term.Value = false;
 				else
+					// TODO: Support preserving subterms.
 					LiftTerm(term, i->Value);
+					// NOTE: The following is not memory safe.
+				//	LiftTerm(term, *i);
 				term.Remove(i);
 				return ReductionStatus::Clean;
 			}
@@ -214,7 +217,7 @@ EqualTerm(TermNode& term, _func f)
 	auto i(term.begin());
 	const auto& x(Deref(++i));
 
-	term.Value = f(x.Value, Deref(++i).Value);
+	term.Value = f(ReferenceTerm(x).Value, ReferenceTerm(Deref(++i)).Value);
 }
 
 
@@ -255,7 +258,7 @@ private:
 		else if(const auto p = AccessPtr<TokenValue>(t))
 		{
 			const auto& n(*p);
- 
+
 			// XXX: This is served as addtional static environment.
 			Forms::CheckParameterLeafToken(n, [&]{
 				// TODO: The symbol can be rebound?
@@ -318,6 +321,7 @@ DoDefine(TermNode& term, _func f)
 		auto formals(std::move(Deref(term.begin())));
 
 		RemoveHead(term);
+		LiftToSelf(formals);
 		f(formals);
 	}
 	else
@@ -360,6 +364,14 @@ CheckEnvFormal(const TermNode& term)
 	return {};
 }
 
+//! \since build 800
+string
+ReferenceEnvFormal(TermNode& term)
+{
+	LiftToSelf(term);
+	return CheckEnvFormal(term);
+}
+
 
 //! \since build 767
 class VauHandler final
@@ -372,6 +384,7 @@ private:
 	string eformal{};
 	/*!
 	\brief 形式参数对象。
+	\invariant \t bool(p_formals) 。
 	\since build 771
 	*/
 	shared_ptr<TermNode> p_formals;
@@ -396,11 +409,15 @@ private:
 	shared_ptr<TermNode> p_closure;
 
 public:
-	//! \since build 790
+	/*!
+	\pre 形式参数对象指针非空。
+	\since build 790
+	*/
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		shared_ptr<Environment>&& p_env, bool owning,
 		const ContextNode& ctx, TermNode& term)
-		: eformal(std::move(ename)), p_formals(std::move(p_fm)),
+		: eformal(std::move(ename)), p_formals((LiftToSelf(Deref(p_fm)),
+		std::move(p_fm))),
 		local_prototype(ctx, make_shared<Environment>()), p_parent(p_env),
 		p_static(owning ? std::move(p_env) : nullptr),
 		p_closure(share_move(term))
@@ -602,6 +619,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	//	forced) are not blessed here to avoid leak abstraction of detailed
 	//	implementation of vau handlers; it can be checked by the vau handler
 	//	itself, if necessary.
+	LiftToSelf(comp_term);
 	term.SetContent(comp_term.CreateWith(&ValueObject::MakeMoveCopy),
 		comp_term.Value.MakeMoveCopy());
 #else
@@ -739,9 +757,8 @@ FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	}
 	CatchExpr(NPLException&, throw)
 	// TODO: Use semantic exceptions.
-	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(
-		ystdex::sfmt("Mismatched types ('%s', '%s') found.",
-		e.from(), e.to()), Warning))
+	CatchThrow(ystdex::bad_any_cast& e, LoggedEvent(ystdex::sfmt(
+		"Mismatched types ('%s', '%s') found.", e.from(), e.to()), Warning))
 	// TODO: Use nested exceptions?
 	CatchThrow(std::exception& e, LoggedEvent(e.what(), Err))
 	// XXX: Use distinct status for failure?
@@ -809,8 +826,20 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	if not passed directly and without rebinding. Note access of objects
 		//	denoted by invalid reference after rebinding would cause undefined
 		//	behavior in the object language.
-		LiftTermRef(term, *p);
-		if(const auto p_handler = AccessPtr<LiteralHandler>(term))
+		// NOTE: %Reference term is necessary here to implement reference
+		//	collapsing.
+		auto& sterm(ReferenceTerm(*p));
+
+		// TODO: Use other intermediate type to allow symbol in modifiable
+		//	reference?
+		if(sterm.empty() && (!sterm.Value
+			|| sterm.Value.type() == ystdex::type_id<TokenValue>()))
+			term.Value = sterm.Value;
+		else
+			term.Value = TermReference(sterm);
+		// NOTE: This is not guaranteed to be saved as %ContextHandler in
+		//	%ReduceCombined.
+		if(const auto p_handler = AccessTermPtr<LiteralHandler>(term))
 			return (*p_handler)(ctx);
 		// NOTE: Unevaluated term shall be detected and evaluated. See also
 		//	$2017-05 @ %Documentation::Workflow::Annual2017.
@@ -831,7 +860,8 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 		// NOTE: The term would be normalized by %ReduceCombined.
 		//	If necessary, there can be inserted some additional cleanup to
 		//	remove empty tokens, returning %ReductionStatus::Retrying.
-		//	Separators should have been handled in appropriate preprocess passes.
+		//	Separators should have been handled in appropriate preprocessing
+		//	passes.
 		const auto lcat(CategorizeBasicLexeme(id));
 
 		switch(lcat)
@@ -867,25 +897,30 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 	if(IsBranch(term))
 	{
 		const auto& fm(Deref(ystdex::as_const(term).begin()));
-
-		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
-		{
-			const auto handler(std::move(*p_handler));
-			const auto res(handler(term, ctx));
-
+		const auto ret([&](ReductionStatus res){
 			// NOTE: Normalization: Cleanup if necessary.
 			if(res == ReductionStatus::Clean)
 				term.ClearContainer();
 			return res;
+		});
+
+		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
+		{
+			const auto handler(std::move(*p_handler));
+
+			return ret(handler(term, ctx));
 		}
-		// TODO: Capture contextual information in error.
-		// TODO: Extract general form information extractor function.
-		throw ListReductionFailure(
-			ystdex::sfmt("No matching combiner '%s' for operand with %zu"
-				" argument(s) found.", [&](observer_ptr<const string> p){
-				return p ? *p : ystdex::sfmt("#<unknown:%s>",
-					fm.Value.type().name());
-			}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
+		if(const auto p_handler = AccessTermPtr<ContextHandler>(fm))
+			return ret((*p_handler)(term, ctx));
+		else
+			// TODO: Capture contextual information in error.
+			// TODO: Extract general form information extractor function.
+			throw ListReductionFailure(
+				ystdex::sfmt("No matching combiner '%s' for operand with %zu"
+					" argument(s) found.", [&](observer_ptr<const string> p){
+					return p ? *p : ystdex::sfmt("#<unknown:%s>",
+						fm.Value.type().name());
+				}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
 	}
 	return ReductionStatus::Clean;
 }
@@ -900,7 +935,7 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 }
 
 
-observer_ptr<const ValueNode>
+observer_ptr<ValueNode>
 ResolveName(const ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
@@ -1035,6 +1070,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
 	auto& m(ctx.GetBindingsRef());
 
+	LiftToSelf(o);
 	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
@@ -1079,6 +1115,8 @@ MatchParameter(const TermNode& t, TermNode& o,
 	std::function<void(TNIter, TNIter, const TokenValue&)> bind_trailing_seq,
 	std::function<void(const TokenValue&, TermNode&&)> bind_value)
 {
+	// TODO: Binding of reference support?
+	LiftToSelf(o);
 	if(IsBranch(t))
 	{
 		const auto n_p(t.size());
@@ -1119,8 +1157,7 @@ MatchParameter(const TermNode& t, TermNode& o,
 
 				YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
 					"Invalid ellipsis sequence token found.");
-				bind_trailing_seq(j, o.end(),
-					lastv.GetObject<TokenValue>());
+				bind_trailing_seq(j, o.end(), lastv.GetObject<TokenValue>());
 				YAssert(++last == t.end(), "Invalid state found.");
 			}
 		}
@@ -1207,7 +1244,7 @@ If(TermNode& term, ContextNode& ctx)
 		auto i(term.begin());
 
 		ReduceChecked(Deref(++i), ctx);
-		if(!ystdex::value_or(i->Value.AccessPtr<bool>()))
+		if(!ystdex::value_or(AccessTermPtr<bool>(*i)))
 			++i;
 		if(++i != term.end())
 		{
@@ -1243,7 +1280,7 @@ Vau(TermNode& term, ContextNode& ctx)
 		auto p_env(ctx.ShareRecord());
 		auto i(con.begin());
 		auto formals(share_move(Deref(++i)));
-		string eformal(CheckEnvFormal(Deref(++i)));
+		string eformal(ReferenceEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		return FormContextHandler(VauHandler(std::move(eformal),
@@ -1260,9 +1297,9 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx)
 		ReduceChecked(Deref(++i), ctx);
 
 		// XXX: List components are ignored.
-		auto p_env_pr(ResolveEnvironment(Deref(i).Value));
+		auto p_env_pr(ResolveEnvironment(Deref(i)));
 		auto formals(share_move(Deref(++i)));
-		string eformal(CheckEnvFormal(Deref(++i)));
+		string eformal(ReferenceEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		return FormContextHandler(VauHandler(std::move(eformal), std::move(
@@ -1297,22 +1334,38 @@ Cons(TermNode& term)
 	RetainN(term, 2);
 
 	auto i(std::next(term.begin(), 2));
+	const auto get_ins_idx([&]{
+		term.erase(i);
+		return GetLastIndexOf(term);
+	});
+	const auto ret([&]{
+		RemoveHead(term);
+		return ReductionStatus::Retained;
+	});
 
-	if(IsList(Deref(i)))
+	// TODO: Simplify?
+	if(const auto p = AccessPtr<TermReference>(Deref(i)))
+	{
+		if(IsList(*p))
+		{
+			const auto& tail(p->get());
+			auto idx(get_ins_idx());
+
+			for(auto& tm : tail)
+				term.AddChild(MakeIndex(++idx), tm);
+			return ret();
+		}
+	}
+	else if(IsList(Deref(i)))
 	{
 		auto tail(std::move(Deref(i)));
-
-		term.erase(i);
-
-		auto idx(GetLastIndexOf(term));
+		auto idx(get_ins_idx());
 
 		for(auto& tm : tail)
 			term.AddChild(MakeIndex(++idx), std::move(tm));
-		RemoveHead(term);
+		return ret();
 	}
-	else
-		throw InvalidSyntax("The tail argument shall be a list.");
-	return ReductionStatus::Retained;
+	throw InvalidSyntax("The tail argument shall be a list.");
 }
 
 void
@@ -1334,9 +1387,9 @@ Eval(TermNode& term, ContextNode& ctx)
 
 	const auto i(std::next(term.begin()));
 	// TODO: Support more environment types?
-	ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i)).Value).first);
+	ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i))).first);
 
-	LiftTerm(term, Deref(i));
+	LiftToOther(term, Deref(i));
 	return Reduce(term, c);
 }
 
@@ -1381,7 +1434,7 @@ ReductionStatus
 ValueOf(TermNode& term, const ContextNode& ctx)
 {
 	RetainN(term);
-	LiftTerm(term, Deref(std::next(term.begin())));
+	LiftToOther(term, Deref(std::next(term.begin())));
 	if(const auto p_id = AccessPtr<string>(term))
 		TryRet(EvaluateIdentifier(term, ctx, *p_id))
 		CatchIgnore(BadIdentifier&)
@@ -1401,7 +1454,8 @@ WrapOnce(const ContextHandler& h)
 {
 	if(const auto p = h.target<FormContextHandler>())
 		return ToContextHandler(*p);
-	throw NPLException("Wrapping failed.");
+	throw NPLException(ystdex::sfmt("Wrapping failed with type '%s'.",
+		h.target_type().name()));
 }
 
 ContextHandler
@@ -1409,7 +1463,8 @@ Unwrap(const ContextHandler& h)
 {
 	if(const auto p = h.target<StrictContextHandler>())
 		return ContextHandler(p->Handler);
-	throw NPLException("Unwrapping failed.");
+	throw NPLException(ystdex::sfmt("Unwrapping failed with type '%s'.",
+		h.target_type().name()));
 }
 
 } // namespace Forms;
