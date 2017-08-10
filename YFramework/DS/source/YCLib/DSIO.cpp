@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4194
+\version r4225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2017-01-31 13:11 +0800
+	2017-08-10 00:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -747,8 +747,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 
 		if(LFN::MaxMBCSLength < comp.length())
 			throw_error(errc::filename_too_long);
-		if(dclus == part.GetRootDirCluster()
-			&& (comp == "." || comp == ".."))
+		if(dclus == part.GetRootDirCluster() && (comp == "." || comp == ".."))
 		{
 			if(leaf && add_entry)
 				throw_error(errc::invalid_argument);
@@ -757,22 +756,24 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 		}
 		else
 		{
+			name = ystdex::rtrim(comp, ' ').to_string();
+			if(leaf && add_entry && act != LeafAction::ThrowExisted)
+				return true;
+			NamePos = GenerateBeforeFirstNamePos(dclus);
+
+			string comp_name;
+
 			if(leaf && add_entry)
-			{
-				if(act != LeafAction::ThrowExisted)
-				{
-					name = ystdex::rtrim(comp, ' ').to_string();
-					return true;
-				}
-			}
-			else
-				NamePos = GenerateBeforeFirstNamePos(dclus);
+				comp_name = name;
 			ystdex::retry_on_cond(ystdex::logical_not<>(),
 				[&, this](bool last_comp) -> bool{
 				if(!QueryNextFrom(part))
 				{
 					if(last_comp && add_entry)
+					{
+						name = comp_name;
 						return true;
+					}
 					throw_error(errc::no_such_file_or_directory);
 				}
 				return (last_comp || Data.IsDirectory())
@@ -781,8 +782,12 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 		}
 		if(leaf)
 		{
-			if(act == LeafAction::ThrowExisted && !add_entry)
+			if(act == LeafAction::ThrowExisted)
+			{
+				if(add_entry)
+					return true;
 				throw_error(errc::file_exists);
+			}
 			if(act == LeafAction::Return)
 				return true;
 		}
@@ -804,7 +809,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 	{
 		if(part.IsReadOnly())
 			throw_error(errc::read_only_file_system);
-#	if 0
+#	if false
 		ystdex::ltrim(name, ' ');
 #	endif
 		if(YB_UNLIKELY(LFN::MaxMBCSLength < name.length()))
@@ -980,8 +985,7 @@ DEntry::QueryNextFrom(Partition& part) ythrow(system_error)
 			;
 		else if(edata[0] == EntryData::Last)
 			break;
-		else if(edata[0] != EntryData::Free && edata[0] > 0x20
-			&& !edata.IsVolume())
+		else if(edata[0] != EntryData::Free && edata[0] > 0x20)
 		{
 			if(has_long_name
 				&& LFN::GenerateAliasChecksum(edata.data()) != chk_sum)
@@ -1197,6 +1201,7 @@ Partition::FindFirstValidPartition(byte* sec_buf) const ynothrowv
 ExtensionResult
 Partition::IncrementPosition(DEntryPosition& entry_pos) ynothrowv
 {
+	// FIXME: Wrong assertion on writing.
 	YAssert(Table.IsFreeOrValid(entry_pos.GetCluster()),
 		"Invalid allocated cluster found.");
 
@@ -1306,7 +1311,7 @@ Partition::Rename(string_view old, string_view new_name) ythrow(system_error)
 	{
 		if(FetchPartitionFromPath(new_name.data()) == this)
 		{
-			// FIXME: errc::invalid_argument: The old pathname names an
+			// FIXME: %errc::invalid_argument: The old pathname names an
 			//	ancestor directory of the new pathname.
 			DEntry old_dir_entry(*this, old);
 
@@ -1530,7 +1535,7 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 	lock_guard<mutex> lck(part.GetMutexRef());
 	const auto do_init([&, this](DEntry&& de){
 		file_size = de.Data.ReadFileSize();
-#	if 0
+#	if false
 		// NOTE: Allow LARGEFILEs with undefined results. Make sure that the
 		//	file size can fit in the available space.
 		if(!(flags & OpenMode::LargeFile) && file_size >= (1 << 31))
@@ -1570,10 +1575,10 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 		Deref(part.LockOpenFiles()).insert(*this);
 	});
 
-	DEntry dentry(part, path, bool(oflags & OpenMode::CreateExclusive)
-		? LeafAction::ThrowExisted : LeafAction::Return,
-		bool(oflags & OpenMode::Create) ? std::function<void(DEntry&)>(
-		[this](DEntry& de) ynothrow{
+	DEntry dentry(part, path, (oflags & OpenMode::CreateExclusive)
+		== OpenMode::CreateExclusive ? LeafAction::ThrowExisted
+		: LeafAction::Return, bool(oflags & OpenMode::Create)
+		? std::function<void(DEntry&)>([this](DEntry& de) ynothrow{
 		attr.set(ModifiedBit);
 		de.Data.Clear();
 		de.Data.WriteCDateTime();

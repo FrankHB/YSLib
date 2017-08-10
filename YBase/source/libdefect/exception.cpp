@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r624
+\version r626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 11:00:14 +0800
 \par 修改时间:
-	2016-09-16 04:18 +0800
+	2017-08-06 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #if defined(__GLIBCXX__) \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
-	&& ATOMIC_INT_LOCK_FREE < 2
+	&& (ATOMIC_INT_LOCK_FREE < 2 && __GNUC__ < 7)
 
 #	include "libdefect/exception.h"
 #	include <cxxabi.h> // for __cxxabiv1 and std::type_info;

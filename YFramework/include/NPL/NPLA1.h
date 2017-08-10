@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3327
+\version r3349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-07-29 21:02 +0800
+	2017-08-05 16:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
-//	YSLib::Access, ystdex::equality_comparable, ystdex::exclude_self_t,
+//	NPL::AccessTerm, ystdex::equality_comparable, ystdex::exclude_self_t,
 //	YSLib::AreEqualHeld, YSLib::GHEvent, ystdex::make_function_type_t,
 //	ystdex::make_parameter_tuple_t, ystdex::make_expanded,
 //	ystdex::invoke_nonvoid, ystdex::make_transform, std::accumulate,
@@ -716,17 +716,24 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 \sa EvaluateDelayed
 \sa LiftTermRef
 \sa LiteralHandler
+\sa ReferenceTerm
 \sa ResolveName
+\sa TermReference
 \since build 745
 
 依次进行以下求值操作：
 调用 ResolveName 根据指定名称查找值，若失败抛出未声明异常；
-调用 LiftTermRef 替换非列表或列表节点的值；
+初始化值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
 若未返回，根据节点表示的值进一步处理：
 	对表示非 TokenValue 值的叶节点，调用 EvaluateDelayed 求值；
 	对表示 TokenValue 值的叶节点，返回 ReductionStatus::Clean ；
 	对枝节点视为列表，返回 ReductionStatus::Retained 。
+初始化值的目标是第一参数的 Value 数据成员，包括以下操作：
+	调用 ReferenceTerm 确保进一步操作解析得到的（保存在环境中的）项对象不是引用；
+	若上一步得到的值是空列表或 TokenValue ，直接复制；
+	否则，目标初始化为引用上一步得到的值的新创建 TermReference 值。
+调用 ReferenceTerm 再初始化 TermReference 实现引用折叠，确保不构造引用的引用。
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
@@ -788,7 +795,7 @@ ReduceLeafToken(TermNode&, ContextNode&);
 
 解析指定上下文中的名称。
 */
-YF_API observer_ptr<const ValueNode>
+YF_API observer_ptr<ValueNode>
 ResolveName(const ContextNode&, string_view);
 
 /*!
@@ -797,8 +804,14 @@ ResolveName(const ContextNode&, string_view);
 \note 只支持宿主值类型 \c shared_ptr<Environment> 或 \c weak_ptr<Environment> 。
 \since build 798
 */
+//@{
 YF_API pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(ValueObject&);
+//! \since build 800
+inline PDefH(pair<shared_ptr<Environment> YPP_Comma bool>, ResolveEnvironment,
+	TermNode& term)
+	ImplRet(ResolveEnvironment(ReferenceTerm(term).Value))
+//@}
 
 
 /*!
@@ -975,10 +988,12 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 
 /*!
 \note 不具有强异常安全保证。匹配失败时，其它的绑定状态未指定。
+\sa LiftToSelf
 \since build 776
 
 递归遍历参数和操作数树进行结构化匹配。
 若匹配失败，则抛出异常。
+进行其它操作前，对操作数调用 LiftToSelf 处理，但不处理形式参数。
 */
 //@{
 /*!
@@ -1057,7 +1072,7 @@ CallUnaryAs(_func&& f, TermNode& term, _tParams&&... args)
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return ystdex::make_expanded<void(_type&, _tParams&&...)>(yforward(f))(
-			YSLib::Access<_type>(node), std::forward<_tParams&&>(args)...);
+			NPL::AccessTerm<_type>(node), std::forward<_tParams&&>(args)...);
 	}, term);
 }
 //@}
@@ -1088,11 +1103,11 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	RetainN(term, 2);
 
 	auto i(term.begin());
-	auto& x(YSLib::Access<_type>(YSLib::Deref(++i)));
+	auto& x(NPL::AccessTerm<_type>(YSLib::Deref(++i)));
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
 		ystdex::make_expanded<void(_type&, _type&, _tParams&&...)>(yforward(f)),
-		x, YSLib::Access<_type>(YSLib::Deref(++i)), yforward(args)...));
+		x, NPL::AccessTerm<_type>(YSLib::Deref(++i)), yforward(args)...));
 }
 //@}
 
@@ -1108,7 +1123,7 @@ CallBinaryFold(_func f, _type val, TermNode& term, _tParams&&... args)
 	const auto n(FetchArgumentN(term));
 	auto i(term.begin());
 	const auto j(ystdex::make_transform(++i, [](TNIter it){
-		return YSLib::Access<_type>(YSLib::Deref(it));
+		return NPL::AccessTerm<_type>(YSLib::Deref(it));
 	}));
 
 	YSLib::EmplaceCallResult(term.Value, std::accumulate(j, std::next(j,

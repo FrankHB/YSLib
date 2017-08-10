@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2148
+\version r2268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-07-30 03:39 +0800
+	2017-08-05 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode,
-//	LoggedEvent, ystdex::equality_comparable, shared_ptr, weak_ptr,
-//	ystdex::as_const;
+//	LoggedEvent, ystdex::lref, ystdex::equality_comparable, shared_ptr,
+//	weak_ptr, ystdex::as_const;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -527,8 +527,6 @@ public:
 //@}
 
 
-//! \since build 770
-//@{
 /*!
 \brief 字面量类别。
 \since build 734
@@ -546,6 +544,8 @@ enum class LexemeCategory
 };
 
 
+//! \since build 770
+//@{
 //! \sa LexemeCategory
 //@{
 /*!
@@ -627,18 +627,6 @@ TokenizeTerm(TermNode& term);
 
 
 /*!
-\brief 对表示值的 ValueObject 进行基于所有权的生存期检查并取表示其引用的间接值。
-\throw NPLException 检查失败：参数不具有对象的唯一所有权，不能被外部引用保存。
-\throw ystdex::invalid_construction 参数不持有值。
-\warning 创建的间接值无所有权，应注意在生存期内使用以保证内存安全。
-\since build 760
-\todo 使用具体的语义错误异常类型。
-*/
-YF_API ValueObject
-ReferenceValue(const ValueObject&);
-
-
-/*!
 \brief 规约状态：一遍规约可能的中间结果。
 \since build 730
 */
@@ -666,6 +654,85 @@ enum class ReductionStatus : yimpl(size_t)
 直接作为项的值对象包装被延迟求值的项。
 */
 using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
+
+
+/*!
+\ingroup ThunkType
+\brief 项引用。
+\warning 非虚析构。
+\since build 800
+
+表示列表项的引用的中间求值结果的项。
+*/
+class YF_API TermReference
+{
+private:
+	ystdex::lref<TermNode> term_ref;
+
+public:
+	yconstfn
+	TermReference(TermNode& term)
+		: term_ref(term)
+	{}
+	DefDeCopyCtor(TermReference)
+
+	DefDeCopyAssignment(TermReference)
+
+	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
+		ImplRet(&x.term_ref.get() == &y.term_ref.get())
+
+	yconstfn DefCvtMem(const ynothrow, TermNode&, term_ref)
+
+	yconstfn PDefH(TermNode&, get, ) const ynothrow
+		ImplRet(term_ref.get())
+};
+
+
+//! \since build 800
+//@{
+/*!
+\brief 访问项并取解析 TermReference 间接值后的引用。
+\return 若项的 Value 数据成员为 TermReference 则为其中的引用，否则为参数。
+\sa TermReference
+*/
+YF_API TermNode&
+ReferenceTerm(TermNode&);
+YF_API const TermNode&
+ReferenceTerm(const TermNode&);
+
+/*!
+\brief 访问解析 TermReference 后的项的指定类型对象。
+\exception std::bad_cast 异常中立：空实例或类型检查失败。
+*/
+template<typename _type>
+inline _type&
+AccessTerm(ValueNode& term)
+{
+	return ReferenceTerm(term).Value.Access<_type>();
+}
+template<typename _type>
+inline const _type&
+AccessTerm(const ValueNode& term)
+{
+	return ReferenceTerm(term).Value.Access<_type>();
+}
+
+//! \brief 访问解析 TermReference 后的项的指定类型对象指针。
+//@{
+template<typename _type>
+inline observer_ptr<_type>
+AccessTermPtr(TermNode& term) ynothrow
+{
+	return ReferenceTerm(term).Value.AccessPtr<_type>();
+}
+template<typename _type>
+inline observer_ptr<const _type>
+AccessTermPtr(const TermNode& term) ynothrow
+{
+	return ReferenceTerm(term).Value.AccessPtr<_type>();
+}
+//@}
+//@}
 
 
 /*!
@@ -700,6 +767,7 @@ CheckedReduceWith(_func f, _tParams&&... args)
 
 //! \brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
 //@{
+//! \since build 676
 YF_API void
 LiftTerm(TermNode&, TermNode&);
 //! \since build 745
@@ -714,12 +782,30 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
 //@{
 /*!
 \brief 提升项对象：设置作为项的 Value 数据成员的值对象为参数指定的值或值的引用值。
+\sa ValueObject::MakeIndirect
 \since build 799
 
-设置 TokenValue 对象的值和其它类型的间接值。
+设置 TokenValue 对象的值和其它类型的间接值作为引用值。
 */
 YF_API ValueObject
 LiftTermObject(const ValueObject&);
+
+/*!
+\since build 800
+\todo 支持消亡值和复制。
+*/
+//@{
+/*!
+\brief 提升项或创建引用项。
+\sa LiftTerm
+\sa LiftTermRef
+\sa TermReference
+
+项的 Value 数据成员为 TermReference 类型的值同 LiftTermRef；
+否则，同 LiftTerm 。
+*/
+YF_API void
+LiftTermOrRef(TermNode&, TermNode&);
 
 /*!
 \brief 提升项引用：使用第二个参数指定的项的内容引用替换第一个项的内容。
@@ -733,6 +819,35 @@ inline PDefH(void, LiftTermRef, ValueObject& term_v, const ValueObject& vo)
 	ImplExpr(term_v = LiftTermObject(vo))
 inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 	ImplExpr(LiftTermRef(term.Value, vo))
+//@}
+
+/*!
+\brief 提升项对象为引用。
+\throw NPLException 检查失败：非左值且不具有对象的唯一所有权，不能被外部引用保存。
+\throw ystdex::invalid_construction 参数不持有值。
+\sa LiftTerm
+\since build 800
+\todo 使用具体的语义错误异常类型。
+*/
+YF_API void
+LiftToReference(TermNode&, TermNode&);
+
+/*!
+\brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到自身。
+\sa LiftTermOrRef
+*/
+YF_API void
+LiftToSelf(TermNode&);
+
+/*!
+\brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到其它项。
+\sa LiftTerm
+\sa LiftToSelf
+
+以第二参数调用 LiftToSelf 后再调用 LiftTerm 。
+*/
+YF_API void
+LiftToOther(TermNode&, TermNode&);
 //@}
 //@}
 

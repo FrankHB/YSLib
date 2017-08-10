@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2176
+\version r2178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2016-09-17 21:31 +0800
+	2017-08-11 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -396,6 +396,7 @@ TryCategorizeNodeDevice(UniqueHandle::pointer h)
 			if(err != NO_ERROR)
 				throw Win32Exception(err, "GetFileType", Err);
 		}
+		YB_ATTR_fallthrough;
 	default:
 		res = NodeCategory::Unknown;
 	}

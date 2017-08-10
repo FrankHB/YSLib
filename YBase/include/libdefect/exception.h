@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2015 FrankHB.
+	© 2014-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r369
+\version r378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 00:13:53 +0800
 \par 修改时间:
-	2015-12-10 11:51 +0800
+	2017-08-06 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,11 +35,12 @@
 // NOTE: It seems there are no these 2 C++11 'get_*' routines before libstdc++
 //	4.9. So here just adds them.
 // NOTE: No exception propagation and nested exception supported by libstdc++
-//	when 'ATOMIC_INT_LOCK_FREE < 2'. This module is mainly for workaround it.
-//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58938.
-// NOTE: It is initially intended to be binary-compatible with libstdc++ 4.8 +
-//	with '-std=c++11' enabled, except for deprecated std::copy_exception. (See
-//	LWG1170, also notes below for std::make_exception_ptr.)
+//	when 'ATOMIC_INT_LOCK_FREE < 2'. This module is mainly to work it around.
+//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58938. This has been fixed
+//	in GCC 7.0.
+// NOTE: It is initially intended to be binary-compatible with libstdc++ in GCC
+//	4.8 and '-std=c++11' enabled, except for deprecated std::copy_exception.
+//	(See LWG 1170, also notes below for std::make_exception_ptr.)
 //	However, the implementation of nested exception in libstdc++ previous than
 //	5.0 is not conforming to the formal standard, so 5.0 trunk code is adapted.
 //	See http://stackoverflow.com/questions/25324262/stdthrow-with-nested-expects-polymorphic-type-in-c11.
@@ -73,7 +74,7 @@ get_unexpected() noexcept;
 
 #if defined(__GLIBCXX__) \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
-	&& ATOMIC_INT_LOCK_FREE < 2
+	&& (ATOMIC_INT_LOCK_FREE < 2 && __GNUC__ < 7)
 
 #	pragma GCC visibility push(default)
 
@@ -113,7 +114,7 @@ class exception_ptr
 	void* _M_exception_object = {};
 
 	explicit
-	exception_ptr(void* __e) noexcept;
+	exception_ptr(void*) noexcept;
 
 	void
 	_M_addref() noexcept;

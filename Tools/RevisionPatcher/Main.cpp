@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 版本补丁工具。
-\version r227
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2015-01-11 14:20:05 +0800
 \par 修改时间:
-	2017-05-31 02:34 +0800
+	2017-08-11 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ Analyze(std::istream& in)
 	{
 		if(line.empty())
 			continue;
-		if(begins_with(line, "--- a/"))
+		if(begins_with(line, "---"))
 			yunseq(at_a = n, name_a = cond_prefix(rtrcrlf(line, 3), " a/"));
 		else if(n == at_a + 1 && begins_with(line, "+++ b/"))
 		{
@@ -75,13 +75,13 @@ Analyze(std::istream& in)
 		else if(!name_b.empty() && at_blk != size_t(-1))
 		{
 			auto& entry(res[name_b].second[at_blk]);
-			auto cont(line.substr(1));
 
-			switch(line[0])
+			switch(line.front())
 			{
 			case ' ':
 				if(!entry.empty() && entry.back()[0] == ' ')
 					break;
+				YB_ATTR_fallthrough;
 			case '-':
 				if(line.length() > 2 && res[name_b].first == 0)
 				{
@@ -93,6 +93,7 @@ Analyze(std::istream& in)
 						CatchIgnore(std::invalid_argument&)
 						CatchIgnore(std::out_of_range&)
 				}
+				YB_ATTR_fallthrough;
 			case '+':
 				entry.emplace_back(std::move(line));
 				break;

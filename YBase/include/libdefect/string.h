@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<string\> 修正。
-\version r650
+\version r673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2015-04-28 02:19 +0800
+	2017-08-06 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,22 +34,23 @@
 #define YB_INC_libdefect_string_h_ 1
 
 #include <string>
-#include <cwchar>
+#include <cwchar> // for std::vswprintf;
 #include "cstdio.h" // for std::vsnprintf;
 
-// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .
+// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015.
 // NOTE: Fixed @ 4.8 for MinGW-W64.
 
 #if defined(__GLIBCXX__) \
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
-	&& !(defined(_GLIBCXX_USE_C99) && !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF))
+	&& !(defined(_GLIBCXX_USE_C99) || defined(_GLIBCXX_USE_C99_STDLIB)) \
+	&& !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF)
 
 #	include <ext/string_conversions.h>
 
 namespace std _GLIBCXX_VISIBILITY(default)
 {
 
-#	ifndef _GLIBCXX_USE_C99
+#	if !(defined(_GLIBCXX_USE_C99) || defined(_GLIBCXX_USE_C99_STDLIB))
 
 #		ifndef __BIONIC__
 extern "C" long long int
@@ -79,6 +80,9 @@ using ::wcstold;
 
 
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
+#	if _GLIBCXX_USE_CXX11_ABI
+_GLIBCXX_BEGIN_NAMESPACE_CXX11
+#	endif
 
 // 21.4 Numeric Conversions [string.conversions].
 
@@ -99,7 +103,8 @@ YB_LibDefect_String_stoi(string, stol, long, std::strtol)
 YB_LibDefect_String_stoi(string, stoul, unsigned long, std::strtoul)
 YB_LibDefect_String_stoi(string, stoll, long long, std::strtoll)
 YB_LibDefect_String_stoi(string, stoull, unsigned long long, std::strtoull)
-#	ifdef _GLIBCXX_USE_WCHAR_T
+#	if defined(_GLIBCXX_USE_WCHAR_T) \
+	&& (!defined(_GLIBCXX_USE_C99_WCHAR) || _GLIBCXX_USE_C99_WCHAR)
 inline int
 stoi(const wstring& __str, size_t* __idx = {}, int __base = 10)
 {
@@ -133,7 +138,9 @@ YB_LibDefect_String_stof(string, stod, double, std::strtod)
 #	if !defined(__BIONIC__)
 YB_LibDefect_String_stof(string, stold, long double, std::strtold)
 #	endif
-#	if defined(_GLIBCXX_USE_WCHAR_T) && !defined(__BIONIC__)
+#	if defined(_GLIBCXX_USE_WCHAR_T) \
+	&& (!defined(_GLIBCXX_USE_C99_WCHAR) || _GLIBCXX_USE_C99_WCHAR) \
+	&& !defined(__BIONIC__)
 // NOTE: wcstof vs wcstod.
 YB_LibDefect_String_stof(wstring, stof, float, std::wcstof)
 YB_LibDefect_String_stof(wstring, stod, double, std::wcstod)
@@ -159,7 +166,9 @@ YB_LibDefect_String_tostri(string, long, "%ld", std::vsnprintf)
 YB_LibDefect_String_tostri(string, unsigned long, "%lu", std::vsnprintf)
 YB_LibDefect_String_tostri(string, long long, "%lld", std::vsnprintf)
 YB_LibDefect_String_tostri(string, unsigned long long, "%llu", std::vsnprintf)
-#	if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) && defined(_GLIBCXX_USE_WCHAR_T)
+#	if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) \
+	&& defined(_GLIBCXX_USE_WCHAR_T) \
+	&& (!defined(_GLIBCXX_USE_C99_WCHAR) || _GLIBCXX_USE_C99_WCHAR)
 YB_LibDefect_String_tostri(wstring, int, L"%d", std::vswprintf)
 YB_LibDefect_String_tostri(wstring, unsigned, L"%u", std::vswprintf)
 YB_LibDefect_String_tostri(wstring, long, L"%ld", std::vswprintf)
@@ -183,7 +192,9 @@ YB_LibDefect_String_tostri(wstring, unsigned long long, L"%llu", std::vswprintf)
 YB_LibDefect_String_tostrf(string, float, "%f", std::vsnprintf)
 YB_LibDefect_String_tostrf(string, double, "%f", std::vsnprintf)
 YB_LibDefect_String_tostrf(string, long double, "%f", std::vsnprintf)
-#	if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) && defined(_GLIBCXX_USE_WCHAR_T)
+#	if !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF) \
+	&& defined(_GLIBCXX_USE_WCHAR_T) \
+	&& (!defined(_GLIBCXX_USE_C99_WCHAR) || _GLIBCXX_USE_C99_WCHAR)
 YB_LibDefect_String_tostrf(wstring, float, L"%f", std::vswprintf)
 YB_LibDefect_String_tostrf(wstring, double, L"%f", std::vswprintf)
 YB_LibDefect_String_tostrf(wstring, long double, L"%f", std::vswprintf)
@@ -191,6 +202,9 @@ YB_LibDefect_String_tostrf(wstring, long double, L"%f", std::vswprintf)
 
 #	undef YB_LibDefect_String_tostrf
 
+#	if _GLIBCXX_USE_CXX11_ABI
+_GLIBCXX_END_NAMESPACE_CXX11
+#	endif
 _GLIBCXX_END_NAMESPACE_VERSION
 
 } // namespace std;

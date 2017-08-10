@@ -11,7 +11,7 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8099
+\version r8128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
@@ -98,8 +98,8 @@ $now
 						"%ListTermRef" ~ "%ValueObject::SetContentIndirect";
 						// Note lvalue access of list is still not support as \
 							list cannot be replaced in a whole. New \
-							intermediate type is required to support 1st-class \
-							list lvalue.
+							intermediate type is required to support \
+							first-class list lvalue.
 					* $comp "children referenced by copying associated \
 						children of variable stored in environment"
 						@ "variable referencing" $since b768
@@ -433,7 +433,7 @@ b794
 	+ "-Wno-noexcept-type" @ "variable %CXXFLAGS_IMPL_WARNING" @ "g++"
 		@ "%(SHBuild-common-toolchain.sh, SHBuild-common-options.sh)"
 		@ %Tools.Scripts,
-		// To eliminate G++ 7 warning: [-Wnoexcept-type] which is enabled \
+		// To eliminate G++ 7 warning: [-Wnoexcept-type] which is enabled by \
 			default. Note G++ would ignore if it does not know it, while \
 			Clang++ complains it with [-Wunknown-warning-option] and \
 			cc1plus warns, too (but only on failing to compile).
@@ -4832,7 +4832,7 @@ b727
 					'std::ios_base::openmode' same to 'int'" $since b724
 					// For example, Microsoft VC++ 2015.
 					$= (/ "swapped first two parmeters" @ "constructor#2")
-			)
+			),
 			/ DLDI "type conversion for font metrics range check" %Adaptor.Font,
 				// To eliminate G++ warning: [-Wsign-compare].
 			- DLDI "inclusion condition \
@@ -5357,6 +5357,8 @@ b722
 
 b721
 (
+	/ %YFramework $=
+	(
 		/ %YCLib $=
 		(
 			+ "function template %RetryOnInterrupted" @ %YCommon,
@@ -7866,9 +7868,8 @@ b700
 					resolve http://savannah.nongnu.org/bugs/index.php?45097.
 			/ DLP "updated library %freetype" @ "library using"
 				$= (^ $re_ex(b493) "updated freetype 2.6.3 with several files \
-					remained from freetype 2.4.11" ~ "freetype 2.5.3");
+					remained from freetype 2.4.11" ~ "freetype 2.5.3")
 				// See [Documentation::Dependencies @@2.2.3].
-			/ "rebuilt"
 		),
 		/ $re_ex(b600) "updated library %FreeImage" $=
 		(
@@ -7886,7 +7887,6 @@ b700
 			),
 			^ "libpng 1.6.23" ~ "libpng 1.6.17" @ "%Source/LibPNG";
 				// With official prebuilt %pnglibconf.h.
-			/ "rebuilt"
 		)
 	),
 	/ %YFramework $=
@@ -7909,9 +7909,27 @@ b700
 	);
 	/ $re_ex(b600) "regenerated Code::Blocks projects"
 		^ ("%GenerateProjects.sh" @ %Tools.Scripts);
+	),
+	/ $dev $build "toolchain and library using"
+	(
+		/ DLP "platform %MinGW32" $=
+		(
+			^ $re_ex(b622) "MinGW[gcc version 5.4.0 (Rev1, Built by MSYS2 \
+				project)] mingw32/mingw-w64-i686-gcc-5.4.0-1" ~ "MinGW[gcc \
+				version 5.2.0 (Rev3, Built by MSYS2 project)] \
+				mingw32/mingw-w64-i686-gcc-5.2.0-3" @ "platform %MinGW32",
+				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+					Exceptions implementation: Dwarf2.
+			^ $re_ex(b622) "mingw-w64-i686-binutils 2.25.1-5 from MSYS2"
+				~ "mingw-w64-i686-binutils 2.25.1-1"
+		);
+		/ DLP "toolchain and library using" $dep_from "3rdparty libraries" $=
+		(
+			/ $re_ex(b520) "rebuilt library %(FreeImage, FreeType)"
+				@ "platform %(MinGW32, DS)",
+			/ "rebuilt library %FreeType" @ "platform %Android"
+		)
 	)
-),
-
 );
 
 ////

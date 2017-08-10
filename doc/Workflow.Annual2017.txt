@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r441
+\version r490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-07-24 14:57 +0800
+	2017-08-07 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,14 +314,14 @@ libfat 1.1.0: reviewed, partially merged, partially shelved.
 		No change has to be ported as https://github.com/devkitPro/libfat/commit/b7c4d38b320b8da0c9e318dbbdc2cc0ad966a93b.
 			The change is still conforming to POSIX, but unnecessary for conformance.
 			The change reduced QoI since it made client code less probable to detect the error.
-	Change https://github.com/devkitPro/libfat/commit/9e2f91dee6c27e797bb510320bb359cce11c1015 is delayed to be evaluated.
+	Change https://github.com/devkitPro/libfat/commit/9e2f91dee6c27e797bb510320bb359cce11c1015 is deferred to be evaluated.
 		The change on type of internal file descriptor may be required by new toolchain in devkitPro r46.
 			However, it is not planned to be updated immediately.
 	Change https://github.com/devkitPro/libfat/commit/78ca2bd297f59b617fb1d0241e9f32393aa9f1ca is not applicable.
 		The '-ffunction-sections -fdata-sections' has been used on whole YFramework compliation for years.
 	Change https://github.com/devkitPro/libfat/commit/b7450524b18118df693870f64242cabf5d62234b is to be ported.
 		It may be better delayed, waiting for '::isDSiMode' brought by libnds 1.6.2.
-		However, it is trivial, so the port is done directly using interal '::__dsimode' currently.
+		However, it is trivial, so the port is done directly using internal '::__dsimode' currently.
 
 $2017-04:
 
@@ -419,6 +419,56 @@ Use of direct evaluation is general preferred, even '$quote' has been now introd
 		Direct 'eval' style has already prevent it largely.
 			Symbols to be bound can be specified as operand as '$vau', or derived modifying operatives based on it (e.g. '$set!' and '$setrec!'), with no need to construct symbols reflectively (e.g. passing a 'string->symbol' result as an operand).
 		The use of '$quote' also reduce necessity of reflective use of symbol further.
+
+$2017-08:
+
+report.impl:
+Transformation of lvalue expressions support in NPLA1 implemented carefully.
+	There are multiple purposes to add such support by an intermediate layer (i.e. 'TermReference') with massive update in implementation of evaluation routines.
+		One is to add support of modifiable reference in specific operations like '$set-first!', without mandatory reference for each first-class objects.
+		The second is to add support of list reference as well as other reference to terms.
+		Another is to make it extensible for more metadata, esp. type tags like 'const' qualifiers or rvalue references, and new value categories like xvalue.
+	Basically, well-formed code should need no modification to function well.
+		The only exception is that varibles (implictly) captured by vau abstractions would now get reference semantics and this feature is explicitly documented.
+	In general, to support lvalue reference with such backward compatibility kept, a universal conversion on the operand tree is needed.
+		This is 'NPL::LiftToOther'.
+	Every term of const lvalue that would be evaluated should be considered.
+		Since the operand tree does not support lvalue references as binding source yet, each instance also needs to be handled properly.
+			This is simplified as 'NPL::LiftToSelf' before other operations.
+		The parameter tree is not so special.
+			It still needs to be handled similarily since it might be evaluated as well, though not common when directly used (in vau abstractions).
+	For terms that are not to be evaluated, direct 'LiftTerm' call is still OK.
+	There are also other simpler operations provided by NPLA.
+		For example, if no recursion is needed, 'NPL::LiftTermOrRef' can be used to replace 'NPL::LiftToOther' or 'NPL::LiftToSelf'.
+			There is no real instance to use it currently.
+		Direct access like 'NPL::ReferenceTerm' is more efficient for operations like equality test.
+		Call of 'NPL::AccessTermPtr' can also be used to replace 'YSLib::AccessPtr'.
+			This is not necessary after call of 'NPL::LiftTermOrRef' or similar functions.
+	For operations only require immutable reference, new underline expression categories are to be introduced.
+		They are not in schedule.
+Update of devkitARM is carefully handled.
+	The build system is modified a little to adapt to devkitARM r47.
+		The command 'objcopy -O binary' would not work properly.
+			It would produce a large binary with all sections and made it failed to link.
+		This would actually not work since devkitARM r46 after update of linker script and crt0 objects.
+	In FAT implementation in YFramework on platform DS, max lengths of name have been changed.
+		This is caused by upstream change of value of 'NAME_MAX' macro in header <sys/syslimit.h>.
+			The value previously in devkitARM r44 (as used by b611) is 768, and was changed to 255.
+			See https://github.com/devkitPro/newlib/commit/770821c9e4745d69c2df69624f0e4b1f759ecfb6.
+		The value of 'platform::FAT::LFN::MaxMBCSLength' is adapted in 'YCLib.FileSystem' for 2 reasons:
+			To make the static assertion in 'YCLib_(DS).DSIO' happy, otherwise it does not compile.
+			To make the actual limitation sane, otherwise the length error condition is wrong.
+		The value of 'platform::FAT::LFN::MaxLength' (for UCS-2 sequence) is also changed to keep it not greater than length of converted MBCS.
+		As a result, length of FAT long filename greater than 255 now does not work.
+	The upstream newlib libsystem file descriptor change need 'YCLib_(DS).DSIO' to be updated now.
+		See also the deferred change in $2017-03 dep.merge.
+
+dep.merge:
+libfat 1.1.0: reviewed, partially merged, partially shelved.
+	Change https://github.com/devkitPro/libfat/commit/9e2f91dee6c27e797bb510320bb359cce11c1015 is ported.
+		Actually it is adjusted manually independent to the commit.
+	Change https://github.com/devkitPro/libfat/commit/b7450524b18118df693870f64242cabf5d62234b is ported.
+		The function '::isDSiMode' is used instead of internal '::__dsimode'.
 
 ////
 

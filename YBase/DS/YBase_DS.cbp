@@ -54,6 +54,7 @@
 		<Unit filename="../include/ystdex/cstdint.hpp" />
 		<Unit filename="../include/ystdex/cstdio.h" />
 		<Unit filename="../include/ystdex/cstring.h" />
+		<Unit filename="../include/ystdex/ctime.h" />
 		<Unit filename="../include/ystdex/cwctype.h" />
 		<Unit filename="../include/ystdex/deref_op.hpp" />
 		<Unit filename="../include/ystdex/enum.hpp" />
@@ -74,6 +75,7 @@
 		<Unit filename="../include/ystdex/operators.hpp" />
 		<Unit filename="../include/ystdex/optional.h" />
 		<Unit filename="../include/ystdex/path.hpp" />
+		<Unit filename="../include/ystdex/placement.hpp" />
 		<Unit filename="../include/ystdex/pointer.hpp" />
 		<Unit filename="../include/ystdex/pseudo_mutex.h" />
 		<Unit filename="../include/ystdex/range.hpp" />

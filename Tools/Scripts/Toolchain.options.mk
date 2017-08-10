@@ -1,5 +1,5 @@
 #
-#	(C) 2014-2015 FrankHB.
+#	(C) 2014-2015, 2017 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Makefile specifying common toolchain options
-# Version = r72
+# Version = r75
 # Created = 2014-12-06 17:24:04 +0800
-# Updated = 2015-05-28 21:07 +0800
+# Updated = 2017-08-06 14:39 +0800
 # Encoding = ANSI
 
 
@@ -30,8 +30,8 @@ CFLAGS_STD ?= -std=c11
 
 # TODO: Detect implementation.
 C_CXXFLAGS_IMPL_WARNING ?= -Wdouble-promotion -Wlogical-op -Wtrampolines
-CXXFLAGS_IMPL_WARNING ?= -Wconditionally-supported -Wstrict-null-sentinel \
-	-Wzero-as-null-pointer-constant
+CXXFLAGS_IMPL_WARNING ?= -Wconditionally-supported -Wno-ignored-attributes \
+	-Wno-noexcept-type -Wstrict-null-sentinel -Wzero-as-null-pointer-constant
 
 CFLAGS_WARNING ?= $(C_CXXFLAGS_WARNING) $(C_CXXFLAGS_IMPL_WARNING)
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2755
+\version r2757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2015-10-02 18:49 +0800
+	2017-08-11 01:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ ClipChar(const Graphics& g, const Point& pen, const CharBitmap& cbmp, Rect r)
 SDst
 FetchBMPSrcWidth(const CharBitmap& cbmp)
 {
-	const SDst abs_pitch(std::abs(cbmp.GetPitch()));
+	const SDst abs_pitch(SDst(std::abs(cbmp.GetPitch())));
 
 	switch(cbmp.GetFormat())
 	{

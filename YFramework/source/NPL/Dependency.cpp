@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r883
+\version r894
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-07-26 23:03 +0800
+	2017-08-05 14:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -457,8 +457,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		$defw! for-each-ltr ls env $sequence (apply map-reverse ls env) inert;
 	)NPL");
 	// NOTE: Object interoperation.
-	RegisterStrictUnary(root, "ref", ystdex::compose(ReferenceValue,
-		ystdex::bind1(std::mem_fn(&TermNode::Value))));
+	RegisterStrict(root, "ref", [](TermNode& term){
+		CallUnary([&](TermNode& tm){
+			LiftToReference(term, tm);
+		}, term);
+		return CheckNorm(term);
+	});
 	// NOTE: Environments.
 	RegisterStrictUnary(root, "bound?",
 		[](TermNode& term, const ContextNode& ctx){
@@ -466,7 +470,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			return CheckSymbol(id, [&](){
 				return bool(ResolveName(ctx, id));
 			});
-		}, AccessPtr<string>(term));
+		}, AccessTermPtr<string>(term));
 	});
 	context.Perform(u8R"NPL(
 		$defv! $binds1? (expr s) env
@@ -479,7 +483,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<const string>(root, "string-empty?",
 		std::mem_fn(&string::empty));
 	RegisterStrictBinary(root, "string<-", [](TermNode& x, const TermNode& y){
-		Access<string>(x) = Access<string>(y);
+		AccessTerm<string>(x) = AccessTerm<string>(y);
 		return ValueToken::Unspecified;
 	});
 	RegisterStrictBinary<string>(root, "string-contains-ci?",
@@ -503,14 +507,14 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	});
 	RegisterStrict(root, "regex-match?", [](TermNode& term){
 		auto i(std::next(term.begin()));
-		const auto& str(Access<const string>(Deref(i)));
-		const auto& r(Access<const std::regex>(Deref(++i)));
+		const auto& str(AccessTerm<const string>(Deref(i)));
+		const auto& r(AccessTerm<const std::regex>(Deref(++i)));
 
 		term.ClearTo(std::regex_match(str, r));
 	}, ystdex::bind1(RetainN, 2));
 	// NOTE: I/O library.
 	RegisterStrictUnary<const string>(root, "puts", [&](const string& str){
-		// FIXME: Use %EncodeArg.
+		// FIXME: Use %EncodeArg?
 		// XXX: Error is ignored.
 		std::puts(str.c_str());
 	});

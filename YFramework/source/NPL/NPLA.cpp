@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1247
+\version r1301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-07-30 19:42 +0800
+	2017-08-05 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -420,18 +420,21 @@ TokenizeTerm(TermNode& term)
 }
 
 
-ValueObject
-ReferenceValue(const ValueObject& vo)
+TermNode&
+ReferenceTerm(TermNode& term)
 {
-	if(vo)
-	{
-		if(!vo.OwnsUnique())
-			return vo.MakeIndirect();
-		else
-			throw NPLException("Value of a temporary shall not be referenced.");
-	}
-	else
-		ystdex::throw_invalid_construction();
+	return ystdex::call_value_or(
+		[&](const TermReference& term_ref) ynothrow -> TermNode&{
+		return term_ref.get();
+	}, AccessPtr<TermReference>(term), term);
+}
+const TermNode&
+ReferenceTerm(const TermNode& term)
+{
+	return ystdex::call_value_or(
+		[&](const TermReference& term_ref) ynothrow -> const TermNode&{
+		return term_ref.get();
+	}, AccessPtr<TermReference>(term), term);
 }
 
 
@@ -450,10 +453,11 @@ CheckReducible(ReductionStatus status)
 void
 LiftTerm(TermNode& term, TermNode& tm)
 {
-	// NOTE: This is required to avoid cyclic reference when the 2nd parameter
-	//	is owned by the 1st parameter.
+	// NOTE: This is required to avoid cyclic reference when the object
+	//	referenced by the 2nd parameter is owned by the object referenced by the
+	//	1st parameter.
 	auto t(std::move(tm.GetContainerRef()));
-	
+
 	term.SetContent(std::move(t), std::move(tm.Value));
 }
 
@@ -463,6 +467,47 @@ LiftTermObject(const ValueObject& vo)
 	if(vo.type() == ystdex::type_id<TokenValue>())
 		return vo;
 	return vo.MakeIndirect();
+}
+
+void
+LiftTermOrRef(TermNode& term, TermNode& tm)
+{
+	if(const auto p = AccessPtr<TermReference>(tm))
+		LiftTermRef(term, p->get());
+	else
+		LiftTerm(term, tm);
+}
+
+void
+LiftToReference(TermNode& term, TermNode& tm)
+{
+	if(tm)
+	{
+		if(const auto p = AccessPtr<TermReference>(tm))
+			LiftTermRef(term, p->get());
+		else if(!tm.Value.OwnsUnique())
+			LiftTerm(term, tm);
+		else
+			throw NPLException(
+				"Value of a temporary shall not be referenced.");
+	}
+	else
+		ystdex::throw_invalid_construction();
+}
+
+void
+LiftToSelf(TermNode& term)
+{
+	for(auto& child : term)
+		LiftToSelf(child);
+	LiftTermOrRef(term, term);
+}
+
+void
+LiftToOther(TermNode& term, TermNode& tm)
+{
+	LiftToSelf(tm);
+	LiftTerm(term, tm);
 }
 
 
