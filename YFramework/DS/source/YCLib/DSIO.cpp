@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4225
+\version r4327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2017-08-10 00:15 +0800
+	2017-08-11 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,7 +91,7 @@ SectorCache::GetPage(::sec_t key) ynothrowv
 		return &ystdex::cache_lookup(entries, key, [=]{
 			const auto size(bytes_per_sector << sectors_per_page_shift);
 			// TODO: Use aligned allocation for cache implementation.
-			// NOTE: Intentionally uninitialized as libfat.
+			// NOTE: Intentionally uninitialized as LibFAT.
 			ystdex::block_buffer entry(make_unique_default_init<byte[]>(size));
 			const auto n(GetBlockCount(key));
 
@@ -377,7 +377,7 @@ CompareEntryNames(EntryData& data, string_view comp, const string& name)
 //! \since build 656
 void
 AssignValidCluster(Partition& part, FilePosition& pos, ClusterIndex next_start)
-	throw(system_error)
+	ythrow(system_error)
 {
 	CheckThrowEIO(part.Table.IsValid(next_start));
 	pos = {next_start, 0, pos.GetByte()};
@@ -1013,29 +1013,38 @@ DEntry::QueryNextFrom(Partition& part) ythrow(system_error)
 Partition::Partition(Disc d, size_t pages, size_t sectors_per_page_shift,
 	::sec_t start_sector)
 	// TODO: Use aligned allocation.
-	// NOTE: Uninitialized intentionally here to make it behave as libfat.
+	// NOTE: Uninitialized intentionally here to make it behave as LibFAT.
+	// TODO: Pool allocation? Use temporary buffer?
 	: Partition(make_unique_default_init<byte[]>(MaxSectorSize).get(), d, pages,
 	sectors_per_page_shift, start_sector)
 {}
 Partition::Partition(byte* sec_buf, Disc d, size_t pages,
 	size_t sectors_per_page_shift, ::sec_t start_sector)
 	: disc(d), Table([&, sec_buf]{
-		if(!ReadSector(start_sector, sec_buf))
-			throw std::runtime_error("Failed reading sectors.");
-		if(sec_buf[Signature_word] != 0x55
-			|| sec_buf[Signature_word + 1] != 0xAA)
-			throw std::runtime_error("Invalid MBR or boot sector found.");
-		if(start_sector == 0 && !MatchFATSig(sec_buf + FAT16::BS_FilSysType)
-			&& !MatchFATSig(sec_buf + FAT32::BS_FilSysType))
+		// NOTE: LibFAT uses uncached reading here.
+		// NOTE: LibFAT ignores the error and return sector number as 0 here.
+		try
 		{
-			start_sector = FindFirstValidPartition(sec_buf);
-			if(!ReadSector(start_sector, sec_buf))
-				throw std::runtime_error(
-					"Failed reading sectors for finding start sector.");
+			CheckThrowEIO(ReadSector(start_sector, sec_buf));
+			if(sec_buf[Signature_word] != 0x55
+				|| sec_buf[Signature_word + 1] != 0xAA)
+				throw std::runtime_error("Invalid MBR or boot sector found in"
+					" start sector specified for partition.");
+			if(start_sector == 0 && !MatchFATSig(sec_buf + FAT16::BS_FilSysType)
+				&& !MatchFATSig(sec_buf + FAT32::BS_FilSysType))
+			{
+				start_sector = FindFirstValidPartition(sec_buf);
+				CheckThrowEIO(ReadSector(start_sector, sec_buf));
+			}
+			if(!MatchFATSig(sec_buf + FAT16::BS_FilSysType)
+				&& !MatchFATSig(sec_buf + FAT32::BS_FilSysType))
+				throw std::runtime_error("Failed verifying FAT partition.");
 		}
-		if(!MatchFATSig(sec_buf + FAT16::BS_FilSysType)
-			&& !MatchFATSig(sec_buf + FAT32::BS_FilSysType))
-			throw std::runtime_error("Failed verifying FAT part.");
+		catch(...)
+		{
+			std::throw_with_nested(
+				std::runtime_error("Failed reading partition."));
+		}
 		GetMutexRef().lock();
 		ystdex::ntctsncpy(label.data(), sec_buf + (MatchFATSig(sec_buf
 			+ FAT16::BS_FilSysType) ? size_t(FAT16::BS_VolLab)
@@ -1100,7 +1109,7 @@ void
 Partition::CreateFSInfo()
 {
 	YAssert(GetFileSystemType() == FileSystemType::FAT32,
-		"Only FAT32 supported.");
+		"Only FAT32 is supported.");
 	if(!read_only)
 	{
 		// TODO: Use aligned allocation.
@@ -1145,54 +1154,52 @@ Partition::ExtendPosition(DEntryPosition& entry_pos) ythrow(system_error)
 }
 
 ::sec_t
-Partition::FindFirstValidPartition(byte* sec_buf) const ynothrowv
+Partition::FindFirstValidPartition(byte* sec_buf) const
+	ythrow(std::system_error)
 {
-	if(ReadSector(0, sec_buf))
+	CheckThrowEIO(ReadSector(0, sec_buf));
+
+	byte part_table[16 * 4];
+	byte* ptr(part_table);
+
+	// TODO: Resolve magic numbers.
+	ystdex::trivially_copy_n(sec_buf + 0x1BE, sizeof(part_table),
+		part_table);
+	for(size_t i(0); i < 4; yunseq(++i, ptr += 16))
 	{
-		byte part_table[16 * 4];
-		byte* ptr(part_table);
+		const ::sec_t part_lba(read_uint_le<32>(ptr + 0x8));
 
-		// TODO: Resolve magic numbers.
-		ystdex::trivially_copy_n(sec_buf + 0x1BE, 16 * 4, part_table);
-		for(size_t i(0); i < 4; yunseq(++i, ptr += 16))
+		if(MatchFATSig(sec_buf + FAT16::BS_FilSysType)
+			|| MatchFATSig(sec_buf + FAT32::BS_FilSysType))
+			return part_lba;
+		if(ptr[4] == 0)
+			continue;
+		if(ptr[4] == 0x0F)
 		{
-			::sec_t part_lba = read_uint_le<32>(ptr + 0x8);
+			::sec_t part_lba2(part_lba), next_lba2(0);
 
+			// NOTE: Up to 8 logic partitions.
+			for(size_t n(0); n < 8; ++n)
+			{
+				CheckThrowEIO(ReadSector(part_lba + next_lba2, sec_buf));
+				// TODO: Resolve magic numbers.
+				part_lba2 = part_lba + next_lba2
+					+ read_uint_le<32>(sec_buf + 0x1C6);
+				next_lba2 = read_uint_le<32>(sec_buf + 0x1D6);
+				CheckThrowEIO(ReadSector(part_lba2, sec_buf));
+				if(MatchFATSig(sec_buf + FAT16::BS_FilSysType)
+					|| MatchFATSig(sec_buf + FAT32::BS_FilSysType))
+					return part_lba2;
+				if(next_lba2 == 0)
+					break;
+			}
+		}
+		else
+		{
+			CheckThrowEIO(ReadSector(part_lba, sec_buf));
 			if(MatchFATSig(sec_buf + FAT16::BS_FilSysType)
 				|| MatchFATSig(sec_buf + FAT32::BS_FilSysType))
 				return part_lba;
-			if(ptr[4] == 0)
-				continue;
-			if(ptr[4] == 0x0F)
-			{
-				::sec_t part_lba2(part_lba), next_lba2(0);
-
-				// NOTE: Up to 8 logic partitions.
-				for(size_t n = 0; n < 8; ++n)
-				{
-					if(!ReadSector(part_lba + next_lba2, sec_buf))
-						return 0;
-					// TODO: Resolve magic numbers.
-					part_lba2 = part_lba + next_lba2
-						+ read_uint_le<32>(sec_buf + 0x1C6);
-					next_lba2 = read_uint_le<32>(sec_buf + 0x1D6);
-					if(!ReadSector(part_lba2, sec_buf))
-						return 0;
-					if(MatchFATSig(sec_buf + FAT16::BS_FilSysType)
-						|| MatchFATSig(sec_buf + FAT32::BS_FilSysType))
-						return part_lba2;
-					if(next_lba2 == 0)
-						break;
-				}
-			}
-			else
-			{
-				if(ReadSector(part_lba, sec_buf))
-					return 0;
-				if(MatchFATSig(sec_buf + FAT16::BS_FilSysType)
-					|| MatchFATSig(sec_buf + FAT32::BS_FilSysType))
-					return part_lba;
-			}
 		}
 	}
 	return 0;
@@ -1519,6 +1526,7 @@ FileInfo::FileInfo(Partition& part, string_view path, int flags)
 	{
 	case OpenMode::ReadWrite:
 		attr.set(WriteBit);
+		YB_ATTR_fallthrough;
 	case OpenMode::Read:
 		attr.set(ReadBit);
 		break;
@@ -2059,16 +2067,16 @@ template<typename _func>
 auto
 FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 {
-	using fresult = decltype(f());
-	using result = ystdex::common_nonvoid_t<fresult, int>;
+	using fres_t = decltype(f());
+	using res_t = ystdex::common_nonvoid_t<fres_t, int>;
 	static yconstexpr const auto
-		def_val(std::is_pointer<fresult>::value ? result() : result(-1));
+		de_val(std::is_pointer<fres_t>::value ? res_t() : res_t(-1));
 
 	TryRet(ystdex::call_for_value(0, f))
 	CatchExpr(std::system_error& e, seterr(r, e.code().value()))
 	CatchExpr(std::bad_alloc&, seterr(r, ENOMEM))
 	CatchExpr(..., YAssert(false, "Invalid exception found."))
-	return def_val;
+	return de_val;
 }
 
 //! \since build 702
@@ -2190,7 +2198,7 @@ const ::devoptab_t dotab_fat{
 		//	when the reference count in handle decreased to zero. Since this
 		//	pointer would not be null for non-predefined streams unless
 		//	corrupted, check for null (yield %EBADF) is not performed, as same
-		//	as libfat did. Also the name is %fd, not POSIX %filedes.
+		//	as LibFAT did. Also the name is %fd, not POSIX %filedes.
 		return FilterDevOps(r, [=]{
 			auto& file_info(Deref(reinterpret_cast<FileInfo*>(fd)));
 			auto& part(file_info.GetPartitionRef());
@@ -2288,6 +2296,7 @@ Mount(string_view name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 				yunseq(ystdex::trivially_copy_n(&dotab_fat, 1, p.get()),
 					ystdex::ntctscpy(p_name, name.data(), name.length()),
 					p->name = p_name, p->deviceData = p_part.get());
+				// NOTE: LibFAT has no error handling here.
 				if(YB_UNLIKELY(::AddDevice(p.get())) == -1)
 					throw std::runtime_error("Adding device failed.");
 				p_part.release();

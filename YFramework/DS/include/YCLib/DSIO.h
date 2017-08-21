@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1419
+\version r1442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2016-07-26 16:35 +0800
+	2017-08-11 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,8 +147,8 @@ private:
 	template<typename _func>
 	bool
 	PerformPartialSectorIO(_func f, ::sec_t sec, size_t offset, size_t n)
-		ynoexcept_spec(f(
-		std::declval<ystdex::block_buffer&>(), (sec - size_t(0)) * bytes_per_sector))
+		ynoexcept_spec(f(std::declval<ystdex::block_buffer&>(),
+		(sec - size_t(0)) * bytes_per_sector))
 	{
 		if(!(bytes_per_sector < offset + n))
 		{
@@ -635,10 +635,19 @@ private:
 	OpenFilesSet open_files{};
 
 	/*!
+	\note 起始扇区指定分区位置，为 0 且校验失败时尝试搜索 FAT 位置。
+	\note 和 LibFAT 不同，校验扇区的读取也是全缓冲的。
+	\excetpion std::runtime_error 嵌套异常：初始化或校验失败。
+	*/
+	//@{
+	/*!
 	\brief 构造：使用临时缓冲区、底层存储接口、分页数、每页扇区数的二进制位数
 		和起始扇区。
+	\pre 临时缓冲区指针非空且指向至少能存储 MaxSectorSize 的空间。
 	\note 锁定读写。
+	\sa MaxSectorSize
 	*/
+	YB_NONNULL(2)
 	Partition(byte*, Disc, size_t, size_t, ::sec_t);
 
 public:
@@ -648,6 +657,7 @@ public:
 	\note 锁定读写。
 	*/
 	Partition(Disc, size_t, size_t, ::sec_t);
+	//@}
 	//! \brief 析构：刷新并关闭打开的文件。
 	~Partition();
 
@@ -686,8 +696,16 @@ public:
 	CreateFSInfo();
 
 private:
+	/*!
+	\brief 查找符合校验条件的第一个分区。
+	\note 和 LibFAT 不同，读错误抛出异常而不是返回 0 。
+	\exception std::system_error 调用失败。
+		\li std::errc::io_error 查询项时读错误。
+	\return 找到的分区扇区，或 0 。
+	\since build 801
+	*/
 	YB_NONNULL(1) ::sec_t
-	FindFirstValidPartition(byte*) const ynothrowv;
+	FindFirstValidPartition(byte*) const ythrow(std::system_error);
 
 public:
 	/*!
@@ -1073,6 +1091,7 @@ public:
 \brief 挂载 FAT 分区。
 \pre 断言：第一参数的数据指针非空。
 \note 参数为分区名、接口、起始扇区、分页数和每页扇区数的二进制位数。
+\note 和 LibFAT 不同，不检查分区名长度超过 8 。
 \since build 643
 
 读取并装载 FAT 分区，设置 ::devoptab 操作。

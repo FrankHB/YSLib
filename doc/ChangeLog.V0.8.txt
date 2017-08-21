@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r224
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-08-10 12:44 +0800
+	2017-08-21 15:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,93 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	+ $re_add(b705) $dev $repo "tag 'V0.8' to revision 672",
+	/ %YFramework $=
+	(
+		/ @ "platform %DS" @ %'YCLib_(DS)'.DSIO $=
+		(
+			/ DLDI "member function %FileInfo::Read" ^ 'ythrow' ~ 'throw',
+				// Also to eliminate G++ warning: [-Wdeprecated].
+			/ $re_add(b793) DLI "marked fallthrough" @ "constructor %FileInfo"
+				^ "%YB_ATTR_fallthrough",
+				// To eliminate G++ 7 warning: [-Wimplicit-fallthrough=].
+			/ @ "class %Partition" $=
+			(
+				/ @ "private constructor" $=
+				(
+					+ DLDI "'YB_NONNULL' attribute for 1st parameter",
+					/ "exception messages",
+					^ "nested exceptions with %std::errc::io_error on reading \
+						failure for verification and finding"
+					* "partition initialzation faliure on verifying FAT \
+						partition when the 0 sector is not ready and the \
+						master partition is valid and readable" $since b611
+						// $2017-08 @ %Documentation::Workflow::Annual2017.
+				),
+				/ $lib $design "asserting string" @ "function %CreateFSInfo",
+			)
+		),
+		/ %NPL $=
+		(
+			/ @ "namespace %Forms" @ %NPLA1 $=
+			(
+				/ DLDI "simplified subterms cleanup"
+					!^ "%TermNode::LiftTerm" @ "functions %(And, Or)",
+				(
+				/ @ "exception messages"
+					@ "functions %(ReduceCombined, MatchParameter)" $=
+				(
+					/ $impl ^ $dep_from ("%TermToString" @ %NPLA);
+					/ $comp "compressed external representation of term \
+						with subnode number",
+				);
+				/ $comp "term represented as name if possible"
+					@ "exception messages" @ "function %MatchParameter"
+				)
+			),
+			+ "functor %ReferenceTermOp; function template \
+				%ComposeReferencedTermOp" @ %NPLA,
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				+ "applicative 'null?'" => 'nullv?';
+				+ "applicative 'null?'" ^ $dep_from
+					("%ComposeReferencedTermOp" @ %NPLA)
+			)
+		),
+		* "missing %release call on %UniqueFile after initialization success"
+			@ '!__GLIBCXX__' @ "constructor %basic_filebuf with %UniqueFile \
+			parameter" @  %YCLib.FileIO $since b709
+			// This bug would leave a bad file descriptor in the stream buffer \
+				after the constructor call.
+	),
+	/ %Tools $=
+	(
+		/ %ProjectGenerator.Main $=
+		(
+			+ $re_add(b794) '-Wno-noexcept-type' @ "options",
+				// To eliminate G++ 7 warning: [-Wnoexcept-type].
+			* "wrong prefixes for paths in link creation destinations for \
+				generatoed .cbp file of YSTest %debug_DLL configurations" $since
+				b739
+				// This would cause correct .dll files not found on running \
+					the built executable files.
+		);
+		/ $re_ex(b700) "regenerated Code::Blocks projects"
+			^ ("%GenerateProjects.sh" @ %Scripts)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* "wrong allocator for internal map violated allocator-aware container \
+			requirement on %value_type" @ "class template %mapped_set"
+			@ %Set $since b665,
+		/ "supported forwarding reference parameters"
+			@ "all 3 function templates %quote" @ %String
+	)
+),
+
+b800
 (
 	/ %YFramework $=
 	(
@@ -90,19 +177,15 @@ $now
 						~ "non-list value") @ "function %Or"
 				)
 			),
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
-				@ %Dependency $=
+			/ $forced DLDI "handled %TermReference" @ "loading forms"
+				@ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $dep_from ("%EvaluateIdentifier" @ %NPLA1) $=
 			(
-				/ $forced DLDI "handled %TermReference" $dep_from
-					"%EvaluateIdentifier" $=
-				(
-					/ "%ref"
-						^ (("%LiftToReference" ~ "%ReferenceValue") @ %NPLA),
-					/ 'bound?' ^ $dep_from ("%AccessTermPtr" @ %NPLA)
-						~ "%AccessPtr"
-					/ ('string<-', 'regex-match?') ^ $dep_from
-						("%AccessTerm" @ %NPLA) ~ "%Access"
-				)
+				/ "%ref" ^ (("%LiftToReference" ~ "%ReferenceValue") @ %NPLA),
+				/ 'bound?' ^ $dep_from ("%AccessTermPtr" @ %NPLA)
+					~ "%AccessPtr",
+				/ ('string<-', 'regex-match?') ^ $dep_from
+					("%AccessTerm" @ %NPLA) ~ "%Access"
 			)
 		),
 		/ %YCLib $=
@@ -132,16 +215,6 @@ $now
 		),
 		/ @ "platform %DS" @ %'YCLib_(DS)'.DSIO $=
 		(
-			/ DLDI "member function %FileInfo::Read" ^ 'ythrow' ~ 'throw',
-				// Also to eliminate G++ warning: [-Wdeprecated].
-			/ $forced $impl "types of hanlders for %::devoptab_t members \
-				%(close_r, write_r, read_r, seek_r, fstat_r, ftruncate_r, \
-				fsync_r)" $dep_from "libsysbase interface",
-			/ $re_add(b793) DLI "marked fallthrough" @ "constructor %FileInfo"
-				^ "%YB_ATTR_fallthrough",
-				// To eliminate G++ 7 warning: [-Wimplicit-fallthrough=].
-			/ $lib $design "asserting string"
-				@ "class function %Partition::CreateFSInfo",
 			* "wrong check for exclusively creation flags"
 				@ "constructor %FileInfo" $since b722,
 			(
@@ -177,6 +250,7 @@ $now
 			@ "%Toolchain.options.mk" @ %Scripts $=
 		(
 			+ $re_add(b794) '-Wno-noexcept-type',
+				// To eliminate G++ 7 warning: [-Wnoexcept-type].
 			+ '-Wno-ignored-attributes'
 				// To eliminate G++ 7 warning: [-Wignored-attributes] which is \
 					enabled by default. It is at least offending to \
