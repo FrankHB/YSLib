@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r765
+\version r769
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2016-06-11 08:52 +0800
+	2017-08-14 17:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,7 +99,8 @@ MakeExtraCommandLiteral(bool debug, const string& proj, const spath& prefix)
 	});
 	const auto create([&](const string& name) -> string{
 		const auto& qd(quo(name));
-		const auto& qs(QuoteCommandPath(prefix / GetLibPath(name, debug)));
+		const auto& qs(QuoteCommandPath(prefix / ".." / ".."
+			/ GetLibPath(name, debug)));
 		const auto& qds(qd + qs);
 
 		return C_CMD + "MKLINK" + qds + " || MKLINK /H" + qds
@@ -469,7 +470,7 @@ MakeCBDocNode(const string& project, const string& platform, bool exe,
 			"-Wdeprecated", "-Wdeprecated-declarations", "-Wformat=2",
 			"-Wmultichar", "-Wno-format-nonliteral", "-Wdouble-promotion",
 			"-Wfloat-equal", "-Wlogical-op", "-Wsign-conversion",
-			"-Wtrampolines", "-Wconditionally-supported",
+			"-Wtrampolines", "-Wconditionally-supported", "-Wno-noexcept-type",
 			"-Wstrict-null-sentinel", "-fdata-sections", "-ffunction-sections",
 			"-mthreads", "-pipe");
 		if(project == "YFramework")

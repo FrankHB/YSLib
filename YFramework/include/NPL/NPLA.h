@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2268
+\version r2304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-08-05 20:16 +0800
+	2017-08-19 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -618,6 +618,18 @@ YF_API observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode&);
 
 /*!
+\brief 访问项的值并转换为字符串形式的外部表示。
+\return 转换得到的字符串。
+\sa TermToNamePtr
+\since build 801
+
+访问项的值作为名称转换为字符串，若失败则提取值的类型和子项数作为构成值的表示。
+除名称外的外部表示方法未指定；结果可能随实现变化。
+*/
+YF_API string
+TermToString(const TermNode&);
+
+/*!
 \brief 标记记号节点：递归变换节点，转换其中的词素为记号值。
 \note 先变换子节点。
 \since build 753
@@ -735,6 +747,30 @@ AccessTermPtr(const TermNode& term) ynothrow
 //@}
 
 
+//! \since build 801
+//@{
+//! \brief 引用项操作。
+struct ReferenceTermOp
+{
+	template<typename _type>
+	auto
+	operator()(_type&& term) const -> decltype(ReferenceTerm(yforward(term)))
+	{
+		return ReferenceTerm(yforward(term));
+	}
+};
+
+//! \relates ReferenceTermOp
+template<typename _func>
+auto
+ComposeReferencedTermOp(_func f)
+	-> decltype(ystdex::compose(f, ReferenceTermOp()))
+{
+	return ystdex::compose(f, ReferenceTermOp());
+}
+//@}
+
+
 /*!
 \brief 检查视为范式的节点并提取规约状态。
 \since build 769
@@ -781,11 +817,14 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
 //! \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
 //@{
 /*!
-\brief 提升项对象：设置作为项的 Value 数据成员的值对象为参数指定的值或值的引用值。
+\brief 提升项对象。
+\return 参数指定的值或持有值的间接值。
 \sa ValueObject::MakeIndirect
 \since build 799
 
-设置 TokenValue 对象的值和其它类型的间接值作为引用值。
+根据指定参数中宿主值的类型设置用于作为项中的 Value 数据成员的值：
+若宿主值为 TokenValue 类型，则结果为对象自身；
+否则，结果为持有宿主值对象的间接值。
 */
 YF_API ValueObject
 LiftTermObject(const ValueObject&);

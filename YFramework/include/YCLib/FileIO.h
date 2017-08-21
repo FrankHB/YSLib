@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2581
+\version r2588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2016-09-17 12:42 +0800
+	2017-08-13 17:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -725,7 +725,13 @@ public:
 #	else
 			if(!this->is_open())
 				if(const auto mode_str = ystdex::openmode_conv(mode))
-					return open_file_ptr(::_fdopen(*p.get(), mode_str));
+				{
+					const auto fp(open_file_ptr(::_fdopen(*p.get(), mode_str)));
+
+					if(fp)
+						p.release();
+					return fp;
+				}
 #	endif
 		}
 		return {};

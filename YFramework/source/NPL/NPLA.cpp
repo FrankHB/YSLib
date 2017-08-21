@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1301
+\version r1308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-08-05 20:16 +0800
+	2017-08-14 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -408,6 +408,14 @@ observer_ptr<const TokenValue>
 TermToNamePtr(const TermNode& term)
 {
 	return AccessPtr<TokenValue>(term);
+}
+
+string
+TermToString(const TermNode& term)
+{
+	if(const auto p = TermToNamePtr(term))
+		return *p;
+	return sfmt("#<unknown{%zu}:%s>", term.size(), term.Value.type().name());
 }
 
 void

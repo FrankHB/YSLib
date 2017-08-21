@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r894
+\version r896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-08-05 14:29 +0800
+	2017-08-19 13:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,7 +313,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: Like Scheme but not Kernel, %'$if' treats non-boolean value as
 	//	'#f', for zero overhead principle.
 	RegisterForm(root, "$if", If);
-	RegisterStrictUnary(root, "null?", IsEmpty);
+	RegisterStrictUnary(root, "null?", ComposeReferencedTermOp(IsEmpty));
+	RegisterStrictUnary(root, "nullv?", IsEmpty);
 	// NOTE: Though NPLA does not use cons pairs, corresponding primitives are
 	//	still necessary.
 	// NOTE: Since NPL has no con pairs, it only added head to existed list.

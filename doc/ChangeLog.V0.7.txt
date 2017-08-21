@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8128
+\version r8147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-07-31 19:05 +0800
+	2017-08-21 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -7910,25 +7910,16 @@ b700
 	/ $re_ex(b600) "regenerated Code::Blocks projects"
 		^ ("%GenerateProjects.sh" @ %Tools.Scripts);
 	),
-	/ $dev $build "toolchain and library using"
+	/ DLP "platform %MinGW32 toolchain"
 	(
-		/ DLP "platform %MinGW32" $=
-		(
-			^ $re_ex(b622) "MinGW[gcc version 5.4.0 (Rev1, Built by MSYS2 \
-				project)] mingw32/mingw-w64-i686-gcc-5.4.0-1" ~ "MinGW[gcc \
-				version 5.2.0 (Rev3, Built by MSYS2 project)] \
-				mingw32/mingw-w64-i686-gcc-5.2.0-3" @ "platform %MinGW32",
-				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
-					Exceptions implementation: Dwarf2.
-			^ $re_ex(b622) "mingw-w64-i686-binutils 2.25.1-5 from MSYS2"
-				~ "mingw-w64-i686-binutils 2.25.1-1"
-		);
-		/ DLP "toolchain and library using" $dep_from "3rdparty libraries" $=
-		(
-			/ $re_ex(b520) "rebuilt library %(FreeImage, FreeType)"
-				@ "platform %(MinGW32, DS)",
-			/ "rebuilt library %FreeType" @ "platform %Android"
-		)
+		^ $re_ex(b622) "MinGW[gcc version 5.4.0 (Rev1, Built by MSYS2 \
+			project)] mingw32/mingw-w64-i686-gcc-5.4.0-1" ~ "MinGW[gcc \
+			version 5.2.0 (Rev3, Built by MSYS2 project)] \
+			mingw32/mingw-w64-i686-gcc-5.2.0-3" @ "platform %MinGW32",
+			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+				Exceptions implementation: Dwarf2.
+		^ $re_ex(b622) "mingw-w64-i686-binutils 2.25.1-5 from MSYS2"
+			~ "mingw-w64-i686-binutils 2.25.1-1"
 	)
 );
 

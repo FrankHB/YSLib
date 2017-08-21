@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1072
+\version r1075
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2017-03-28 00:04 +0800
+	2017-08-14 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,9 +171,9 @@ public:
 private:
 	using mapped_key_type = details::wrapped_key<_type>;
 	using mapped_key_compare = details::tcompare<mapped_key_type, _fComp>;
-	using umap_type
-		= std::map<mapped_key_type, value_type, mapped_key_compare, _tAlloc>;
-	using umap_pair = typename umap_type::value_type;
+	using umap_pair = std::pair<const mapped_key_type, value_type>;
+	using umap_type = std::map<mapped_key_type, value_type, mapped_key_compare,
+		typename _tAlloc::template rebind<umap_pair>::other>;
 	// NOTE: Here %get_second cannot be used directory due to possible
 	//	incomplete value type and requirement on conversion between
 	//	'const_iterator' and 'iterator'.

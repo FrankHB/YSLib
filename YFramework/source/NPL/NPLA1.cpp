@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4543
+\version r4571
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-08-05 20:19 +0800
+	2017-08-15 02:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,14 +190,7 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 				term.Remove(i);
 			else
 			{
-				if(is_and)
-					term.Value = false;
-				else
-					// TODO: Support preserving subterms.
-					LiftTerm(term, i->Value);
-					// NOTE: The following is not memory safe.
-				//	LiftTerm(term, *i);
-				term.Remove(i);
+				term.Value = !is_and;
 				return ReductionStatus::Clean;
 			}
 		}
@@ -334,12 +327,9 @@ DoDefine(TermNode& term, _func f)
 YB_NONNULL(2) void
 CheckVauSymbol(const TokenValue& s, const char* target)
 {
-	if(s != "#ignore")
-	{
-		if(!IsNPLASymbol(s))
-			throw InvalidSyntax(ystdex::sfmt("Token '%s' is not a symbol or"
-				" '#ignore' expected for %s.", s.data(), target));
-	}
+	if(s != "#ignore" && !IsNPLASymbol(s))
+		throw InvalidSyntax(ystdex::sfmt("Token '%s' is not a symbol or"
+			" '#ignore' expected for %s.", s.data(), target));
 }
 
 //! \since build 799
@@ -494,6 +484,13 @@ CreateFunction(TermNode& term, _func f, size_t n)
 		term.Value = ContextHandler(f(term.GetContainerRef()));
 	else
 		throw InvalidSyntax("Insufficient terms in function abstraction.");
+}
+
+//! \since build 801
+std::string
+TermToValueString(const TermNode& term)
+{
+	return ystdex::quote(std::string(TermToString(ReferenceTerm(term))), '\''); 
 }
 
 } // unnamed namespace;
@@ -916,11 +913,9 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 			// TODO: Capture contextual information in error.
 			// TODO: Extract general form information extractor function.
 			throw ListReductionFailure(
-				ystdex::sfmt("No matching combiner '%s' for operand with %zu"
-					" argument(s) found.", [&](observer_ptr<const string> p){
-					return p ? *p : ystdex::sfmt("#<unknown:%s>",
-						fm.Value.type().name());
-				}(TermToNamePtr(fm)).c_str(), FetchArgumentN(term)));
+				ystdex::sfmt("No matching combiner %s for operand with %zu"
+					" argument(s) found.", TermToValueString(fm).c_str(),
+					FetchArgumentN(term)));
 	}
 	return ReductionStatus::Clean;
 }
@@ -1172,14 +1167,13 @@ MatchParameter(const TermNode& t, TermNode& o,
 		if(o)
 			throw ParameterMismatch(ystdex::sfmt(
 				"Invalid nonempty operand found for empty list parameter,"
-					" with %zu subterm(s) and value '#<unknown:%s>'.", o.size(),
-					o.Value.type().name()));
+					" with value %s.", TermToValueString(o).c_str()));
 	}
 	else if(const auto p = AccessPtr<TokenValue>(t))
 		bind_value(*p, std::move(o));
 	else
 		throw ParameterMismatch(ystdex::sfmt("Invalid parameter value found"
-			" with value '#<unknown:%s>'.", t.Value.type().name()));
+			" with value %s.", TermToValueString(t).c_str()));
 }
 
 

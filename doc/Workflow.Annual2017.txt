@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r490
+\version r499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-08-07 09:52 +0800
+	2017-08-11 14:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -462,9 +462,17 @@ Update of devkitARM is carefully handled.
 		As a result, length of FAT long filename greater than 255 now does not work.
 	The upstream newlib libsystem file descriptor change need 'YCLib_(DS).DSIO' to be updated now.
 		See also the deferred change in $2017-03 dep.merge.
+FAT initialization error has been tested and revisited.
+	The error is the failure to initialization FAT partition and the FAT mounting is thus aborted.
+	The error is caused by a wrong condition check after successful reading of master partition table entry.
+		It returns 0 as error, so sector 0 is still to be verified (whether it contains the FAT signature).
+			This would fail because sector 0 is checked to has no signature.
+	This error does not occur on DeSmuME because the bootcode ensure the sector 0 has valid FAT signatures.
+	It would occur on real DS with a typical real card. It could be shown clearly since some revision between b656 to b669.
+		Before that revision, the error message is incomplete (for other minor bugs in message printing routines during initialization), but it was believed to be this error.
 
 dep.merge:
-libfat 1.1.0: reviewed, partially merged, partially shelved.
+libfat 1.1.0: reviewed, partially merged, partially shelved, tested but not merged into master branch for some issues (e.g. binary code bloating).
 	Change https://github.com/devkitPro/libfat/commit/9e2f91dee6c27e797bb510320bb359cce11c1015 is ported.
 		Actually it is adjusted manually independent to the commit.
 	Change https://github.com/devkitPro/libfat/commit/b7450524b18118df693870f64242cabf5d62234b is ported.
