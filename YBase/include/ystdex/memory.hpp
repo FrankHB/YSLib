@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2527
+\version r2532
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2017-04-29 10:05 +0800
+	2017-08-25 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 #include "pointer.hpp" // for "pointer.hpp";
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "exception.h" // for throw_invalid_construction;
-#include "ref.hpp" // for is_reference_wrapper;
+#include "ref.hpp" // for is_reference_wrapper, std::hash;
 
 #if YB_IMPL_MSCPP >= 1800
 /*!
@@ -1188,10 +1188,6 @@ namespace std
 \see ISO WG21 N4529 8.12.7[memory.observer.ptr.hash] 。
 \since build 674
 */
-//@{
-template<typename>
-struct hash;
-
 template<typename _type>
 struct hash<ystdex::observer_ptr<_type>>
 {
@@ -1201,7 +1197,6 @@ struct hash<ystdex::observer_ptr<_type>>
 		return hash<_type*>(p.get());
 	}
 };
-//@}
 
 } // namespace std;
 

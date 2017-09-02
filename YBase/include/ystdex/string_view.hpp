@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r471
+\version r477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2016-03-17 14:54 +0800
+	2017-08-25 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 #include "operators.hpp" // for totally_ordered;
 #include <limits> // for std::numeric_limits;
 #include <stdexcept> // for std::out_of_range;
-#include "hash.hpp" // for ystdex::hash_range;
+#include "hash.hpp" // for std::hash, ystdex::hash_range;
 
 namespace ystdex
 {
@@ -429,10 +429,6 @@ namespace std
 \see WG21 N4480 5.11[optional.hash] 。
 \since build 640
 */
-//@{
-template<typename>
-struct hash;
-
 template<typename _tChar, class _tTraits>
 struct hash<ystdex::basic_string_view<_tChar, _tTraits>>
 {
@@ -442,7 +438,6 @@ struct hash<ystdex::basic_string_view<_tChar, _tTraits>>
 		return ystdex::hash_range(k.data(), k.data() + k.size());
 	}
 };
-//@}
 
 } // namespace std;
 

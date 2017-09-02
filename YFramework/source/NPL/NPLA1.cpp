@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4571
+\version r4650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-08-15 02:05 +0800
+	2017-09-02 17:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,7 +210,8 @@ EqualTerm(TermNode& term, _func f)
 	auto i(term.begin());
 	const auto& x(Deref(++i));
 
-	term.Value = f(ReferenceTerm(x).Value, ReferenceTerm(Deref(++i)).Value);
+	term.Value = f(ReferenceTerm(x).Value,
+		ReferenceTerm(ystdex::as_const(Deref(++i))).Value);
 }
 
 
@@ -438,6 +439,8 @@ public:
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
+			// NOTE: Forming beta using parameter binding, to substitute them
+			//	as arguments for later closure reducation.
 			BindParameter(local, formals, term);
 			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld %s"
 				" shared static environment(s), %zu parameter(s).",
@@ -447,11 +450,9 @@ public:
 			// NOTE: Static environment is bound as base of local context by
 			//	setting parent environment pointer.
 			local.GetRecordRef().Parent = p_parent;
-			// NOTE: Beta reduction.
-			// TODO: Implement accurate lifetime analysis rather than
-			//	'p_closure.unique()'.
-			ReduceCheckedClosure(term, local, {}, *p_closure);
-			return CheckNorm(term);
+			// TODO: Implement accurate lifetime analysis
+			//	depending on 'p_closure.unique()'?
+			return ReduceCheckedClosure(term, local, {}, *p_closure);
 		}
 		else
 			throw LoggedEvent("Invalid composition found.", Alert);
@@ -593,7 +594,7 @@ ReduceChecked(TermNode& term, ContextNode& ctx)
 	CheckedReduceWith(Reduce, term, ctx);
 }
 
-void
+ReductionStatus
 ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	TermNode& closure)
 {
@@ -624,6 +625,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	//	It is equivalent to returning by reference, which can be dangerous.
 	term.SetContent(std::move(comp_term));
 #endif
+	return CheckNorm(term);
 }
 
 void
@@ -825,15 +827,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	behavior in the object language.
 		// NOTE: %Reference term is necessary here to implement reference
 		//	collapsing.
-		auto& sterm(ReferenceTerm(*p));
-
-		// TODO: Use other intermediate type to allow symbol in modifiable
-		//	reference?
-		if(sterm.empty() && (!sterm.Value
-			|| sterm.Value.type() == ystdex::type_id<TokenValue>()))
-			term.Value = sterm.Value;
-		else
-			term.Value = TermReference(sterm);
+		term.Value = TermReference(ReferenceTerm(*p));
 		// NOTE: This is not guaranteed to be saved as %ContextHandler in
 		//	%ReduceCombined.
 		if(const auto p_handler = AccessTermPtr<LiteralHandler>(term))
@@ -972,58 +966,64 @@ REPLContext::REPLContext(bool trace)
 		SetupTraceDepth(Root);
 }
 
+TermNode
+REPLContext::Perform(string_view unit, ContextNode& ctx)
+{
+	YAssertNonnull(unit.data());
+	if(!unit.empty())
+		return Process(Session(unit), ctx);
+	throw LoggedEvent("Empty token list found.", Alert);
+}
+
 void
-REPLContext::LoadFrom(std::istream& is)
+REPLContext::Prepare(TermNode& term) const
+{
+	TokenizeTerm(term);
+	Preprocess(term);
+}
+TermNode
+REPLContext::Prepare(const TokenList& token_list) const
+{
+	auto term(SContext::Analyze(token_list));
+
+	Prepare(term);
+	return term;
+}
+TermNode
+REPLContext::Prepare(const Session& session) const
+{
+	auto term(SContext::Analyze(session));
+
+	Prepare(term);
+	return term;
+}
+
+void
+REPLContext::Process(TermNode& term, ContextNode& ctx) const
+{
+	Prepare(term);
+	Reduce(term, ctx);
+}
+
+TermNode
+REPLContext::ReadFrom(std::istream& is) const
 {
 	if(is)
 	{
 		if(const auto p = is.rdbuf())
-			LoadFrom(*p);
+			return ReadFrom(*p);
 		else
 			throw std::invalid_argument("Invalid stream buffer found.");
 	}
 	else
 		throw std::invalid_argument("Invalid stream found.");
 }
-void
-REPLContext::LoadFrom(std::streambuf& buf)
+TermNode
+REPLContext::ReadFrom(std::streambuf& buf) const
 {
 	using s_it_t = std::istreambuf_iterator<char>;
 
-	Process(Session(s_it_t(&buf), s_it_t()));
-}
-
-TermNode
-REPLContext::Perform(string_view unit)
-{
-	YAssertNonnull(unit.data());
-	if(!unit.empty())
-		return Process(Session(unit));
-	throw LoggedEvent("Empty token list found.", Alert);
-}
-
-void
-REPLContext::Process(TermNode& term)
-{
-	TokenizeTerm(term);
-	Preprocess(term);
-	Reduce(term, Root);
-}
-TermNode
-REPLContext::Process(const TokenList& token_list)
-{
-	auto term(SContext::Analyze(token_list));
-
-	Process(term);
-	return term;
-}
-TermNode
-REPLContext::Process(const Session& session)
-{
-	auto term(SContext::Analyze(session));
-
-	Process(term);
-	return term;
+	return Prepare(Session(s_it_t(&buf), s_it_t()));
 }
 
 
@@ -1338,7 +1338,7 @@ Cons(TermNode& term)
 	});
 
 	// TODO: Simplify?
-	if(const auto p = AccessPtr<TermReference>(Deref(i)))
+	if(const auto p = AccessPtr<TermReference>(ystdex::as_const(Deref(i))))
 	{
 		if(IsList(*p))
 		{
@@ -1384,7 +1384,7 @@ Eval(TermNode& term, ContextNode& ctx)
 	ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i))).first);
 
 	LiftToOther(term, Deref(i));
-	return Reduce(term, c);
+	return ReduceCheckedClosure(term, c, true, term);
 }
 
 void
@@ -1405,7 +1405,7 @@ MakeEnvironment(TermNode& term)
 		ValueObject parent;
 		const auto tr([&](TNCIter iter){
 			return ystdex::make_transform(iter, [&](TNCIter i){
-				return i->Value;
+				return ReferenceTerm(*i).Value;
 			});
 		});
 

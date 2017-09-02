@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r327
+\version r409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-08-21 15:04 +0800
+	2017-09-02 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,89 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				* "empty lists and symbols could not be referenced" $since b800
+					// They are now true first-class objects.
+					$= (/ $impl "simplified by referencing term directly"
+						@ "function %EvaluateIdentifier"),
+				/ @ "namespace %Forms" $=
+				(
+					* "missing lvalue support" @ "function %MakeEnvironment"
+						$since b800 ^ "%ReferenceTerm",
+					/ DLDI "protected term reference against unexpected \
+						modification on %ReferenceTerm result" @ "functions \
+						%(EqualReference, EqualValue, Cons)"
+						^ "%ystdex::as_const",
+					/ DLDI "simplified vau handlers" $dep_from
+						^ "%ReduceCheckedClosure" ~ "%CheckNorm",
+					* "unsafe evaluation" @ "function %Eval"
+						$since b772 ^ "%ReduceCheckedClosure" ~ "%Reduce"
+						// $2017-09 @ %Documentation::Workflow::Annual2017.
+				),
+				/ $lib "supported external contexts" @ "class %REPLContext" $=
+				(
+					(
+					+ "3 functions %Prepare";
+					(
+					+ "2 functions %ReadFrom";
+					/ "all 2 functions %LoadFrom" -> "function templates"
+						^ "%ReadFrom" ~ "%Process"
+					),
+					/ "all 2 function without term node" -> "function templates"
+						^ "%ReadFrom" ~ "%Reduce"
+					),
+					(
+					+ "function %Process with term node and context parameter";
+					/ $dev $design $impl "simplified function %Process with \
+						term node parameter" ^ "newly added overload"
+					)
+				),
+				/ "function %ReduceCheckedClosure returned %ReductionStatus \
+					value based on resulted term" ^ "%CheckNorm"
+			),
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				+ "operative '$lambdae'",
+				+ "applicatives 'lock-environment'; \
+					'make-standard-environment'",
+					// Alternative implementation of standard environment \
+						construction without dependency on environment locking \
+						is also provided. Nevertheless, with environment \
+						locking, it is simpler a lot.
+				/ $dev $impl "simplified alternative derivation"
+					@ "operative '$sequence'" ^ $dep_from
+					'make-standard-environment',
+				/ $impl @ "applicative 'map-reverse'" $=
+				(
+					* "invalid exposure of %cxrs" $since b791 ^ ('$let',
+						$dep_from 'make-standard-environment'),
+					/ "simplified" ^ $dep_from '$lambdae'
+				),
+				+ $impl 'ynothrow' @ "handler"
+					@ "applicative 'weaken-environment'"
+			),
+			/ @ "function template %ComposeReferencedTermOp" @ %NPLA $=
+			(
+				/ $dev "trailing-return-type" ^ 'yimpl';
+				/ "accepted non-unary functions" ^ "%ystdex::compose_n"
+					~ "%ystdex::compose"
+			)
+		)
+	),
+	* "strict ISO C++ conformance on declaration of primary template" $effective
+		@ "using of %std::hash" @ %YBase.YStandardEx.(Memory, Optional, \
+		Rational, StringView) $since b590
+		// This behavior was undefined. For clarification, see https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/6VNskbSBRIs.
+),
+
+b801
 (
 	+ $re_add(b705) $dev $repo "tag 'V0.8' to revision 672",
 	/ %YFramework $=
