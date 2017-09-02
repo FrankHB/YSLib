@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2304
+\version r2310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-08-19 13:02 +0800
+	2017-09-01 10:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -760,13 +760,16 @@ struct ReferenceTermOp
 	}
 };
 
-//! \relates ReferenceTermOp
+/*!
+\relates ReferenceTermOp
+\since build 802
+*/
 template<typename _func>
 auto
 ComposeReferencedTermOp(_func f)
-	-> decltype(ystdex::compose(f, ReferenceTermOp()))
+	-> yimpl(decltype(ystdex::compose_n(f, ReferenceTermOp())))
 {
-	return ystdex::compose(f, ReferenceTermOp());
+	return ystdex::compose_n(f, ReferenceTermOp());
 }
 //@}
 

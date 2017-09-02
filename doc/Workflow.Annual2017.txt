@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r499
+\version r509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-08-11 14:10 +0800
+	2017-09-02 17:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -477,6 +477,18 @@ libfat 1.1.0: reviewed, partially merged, partially shelved, tested but not merg
 		Actually it is adjusted manually independent to the commit.
 	Change https://github.com/devkitPro/libfat/commit/b7450524b18118df693870f64242cabf5d62234b is ported.
 		The function '::isDSiMode' is used instead of internal '::__dsimode'.
+
+$2017-09:
+
+report.impl:
+Safety of 'eval' should be carefully maintained in NPL.
+	The memory safety should be kept like local closure reduction like beta-reduction of vau abstractions, unless it is proved no local references would escape.
+		The memory safe is broken when the result references a subexpression of the expression being evaluted.
+	The reevaluation should be limited in one environment.
+		Or simply be forbidden, if different evaluations are not guanteed to be in the same environment.
+	These security wholes prsented since build 772 in function 'NPL::A1::Forms::Eval'.
+		Both defects have been fixed in build 802 by using 'NPL::A1::ReduceCheckedClosure' with addtional call to 'NPL::CheckNorm'.
+	The fix makes Kernel-style applicative 'get-module' can now work properly (though it is not provided in YFramework yet).
 
 ////
 

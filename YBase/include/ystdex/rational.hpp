@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2190
+\version r2198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2017-01-27 15:45 +0805
+	2017-08-25 18:00 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,10 @@
 #ifndef YB_INC_ystdex_rational_hpp_
 #define YB_INC_ystdex_rational_hpp_ 1
 
-#include "cstdint.hpp" // for true_, false_, make_width_int, std::common_type,
-//	common_type_t, std::numeric_limits;
-#include "operators.hpp" // for operators;
+#include "cstdint.hpp" // for operators, true_, false_, make_width_int,
+//	std::common_type, common_type_t, std::numeric_limits;
 #include <libdefect/cmath.h> // for std::llround;
+#include <functional> // for std::hash;
 
 namespace ystdex
 {
@@ -670,10 +670,6 @@ struct common_type<_type, ystdex::YB_Impl_Rational_fp_T>
 \brief ystdex::fixed_point 散列支持。
 \since build 590
 */
-//@{
-template<typename>
-struct hash;
-
 template<YB_Impl_Rational_fp_PList>
 struct hash<ystdex::YB_Impl_Rational_fp_T>
 {
@@ -684,7 +680,6 @@ struct hash<ystdex::YB_Impl_Rational_fp_T>
 		return hash<_tBase>{}(k.get());
 	}
 };
-//@}
 
 
 /*!

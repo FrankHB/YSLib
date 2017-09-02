@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3349
+\version r3434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-08-05 16:34 +0800
+	2017-09-02 17:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -288,29 +288,31 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 	ImplRet(ReduceArguments(term.GetContainerRef(), ctx))
 //@}
 
-/*!
-\since build 735
-\note 失败视为重规约。
-*/
+//! \note 失败视为重规约。
 //@{
 /*!
 \brief 规约并检查成功：调用 Reduce 并检查结果。
 \sa CheckedReduceWith
 \sa Reduce
+\since build 735
 */
 YF_API void
 ReduceChecked(TermNode&, ContextNode&);
 
 /*!
 \brief 规约闭包。
+\return 根据规约后剩余项确定的规约结果。
+\sa CheckNorm
 \sa ReduceChecked
+\since build 802
 
 构造规约项，规约后替换到第一参数指定项。
 规约项的内容由第四参数的闭包指定。第三参数指定是否通过转移构造而不保留原项。
 规约后转移闭包规约的结果：子项以及引用的值的目标被转移到第一参数指定的项。
 结果中子项和值之间被转移的相对顺序未指定。
+规约闭包可作为 β 规约或动态环境中求值的尾调用。
 */
-YF_API void
+YF_API ReductionStatus
 ReduceCheckedClosure(TermNode&, ContextNode&, bool, TermNode&);
 //@}
 
@@ -723,7 +725,7 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 
 依次进行以下求值操作：
 调用 ResolveName 根据指定名称查找值，若失败抛出未声明异常；
-初始化值；
+初始化值，进行引用折叠后重新引用为左值；
 以 LiteralHandler 访问字面量处理器，若成功调用并返回字面量处理器的处理结果。
 若未返回，根据节点表示的值进一步处理：
 	对表示非 TokenValue 值的叶节点，调用 EvaluateDelayed 求值；
@@ -733,7 +735,7 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 	调用 ReferenceTerm 确保进一步操作解析得到的（保存在环境中的）项对象不是引用；
 	若上一步得到的值是空列表或 TokenValue ，直接复制；
 	否则，目标初始化为引用上一步得到的值的新创建 TermReference 值。
-调用 ReferenceTerm 再初始化 TermReference 实现引用折叠，确保不构造引用的引用。
+引用折叠通过调用 ReferenceTerm 再初始化 TermReference 实现，确保不构造引用的引用。
 */
 YF_API ReductionStatus
 EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
@@ -857,15 +859,26 @@ public:
 
 	/*!
 	\brief 加载：从指定参数指定的来源读取并处理源代码。
-	\sa Process
-	\since build 758
+	\exception std::invalid_argument 异常中立：由 ReadFrom 抛出。
+	\sa ReadFrom
+	\sa Reduce
+	\since build 802
 	*/
 	//@{
-	//! \throw std::invalid_argument 流状态错误或缓冲区不存在。
+	template<class _type>
 	void
-	LoadFrom(std::istream&);
+	LoadFrom(_type& input)
+	{
+		LoadFrom(input, Root);
+	}
+	template<class _type>
 	void
-	LoadFrom(std::streambuf&);
+	LoadFrom(_type& input, ContextNode& ctx) const
+	{
+		auto term(ReadFrom(input));
+
+		Reduce(term, ctx);
+	}
 	//@}
 
 	/*!
@@ -874,24 +887,77 @@ public:
 	\throw LoggedEvent 输入为空串。
 	\sa Process
 	*/
+	//@{
+	PDefH(TermNode, Perform, string_view unit)
+		ImplRet(Perform(unit, Root))
 	TermNode
-	Perform(string_view);
+	Perform(string_view, ContextNode&);
+	//@}
 
 	/*!
-	\brief 处理：分析输入并标记记号节点，预处理后进行规约。
-	\sa SContext::Analyze
+	\brief 准备规约项：分析输入并标记记号节点和预处理。
 	\sa Preprocess
-	\sa Reduce
 	\sa TokenizeTerm
-	\since build 742
+	\since build 802
 	*/
 	//@{
 	void
-	Process(TermNode&);
+	Prepare(TermNode&) const;
+	/*!
+	\return 从参数输入读取的准备的项。
+	\sa SContext::Analyze
+	*/
+	//@{
 	TermNode
-	Process(const TokenList&);
+	Prepare(const TokenList&) const;
 	TermNode
-	Process(const Session&);
+	Prepare(const Session&) const;
+	//@}
+	//@}
+
+	/*!
+	\brief 处理：准备规约项并进行规约。
+	\sa Prepare
+	\sa Reduce
+	\since build 742
+	*/
+	//@{
+	PDefH(void, Process, TermNode& term)
+		ImplExpr(Process(term, Root))
+	//! \since build 802
+	//@{
+	void
+	Process(TermNode&, ContextNode&) const;
+	template<class _type>
+	TermNode
+	Process(const _type& input)
+	{
+		return Process(input, Root);
+	}
+	template<class _type>
+	TermNode
+	Process(const _type& input, ContextNode& ctx) const
+	{
+		auto term(Prepare(input));
+
+		Reduce(term, ctx);
+		return term;
+	}
+	//@}
+	//@}
+
+	/*!
+	\brief 读取：从指定参数指定的来源输入源代码并准备规约项。
+	\return 从参数输入读取的准备的项。
+	\sa Prepare
+	\since build 802
+	*/
+	//@{
+	//! \throw std::invalid_argument 流状态错误或缓冲区不存在。
+	TermNode
+	ReadFrom(std::istream&) const;
+	TermNode
+	ReadFrom(std::streambuf&) const;
 	//@}
 };
 
@@ -1422,6 +1488,7 @@ Lambda(TermNode&, ContextNode&);
 \note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
 \note 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
 \throw InvalidSyntax <eformal> 不符合要求。
+\sa ReduceCheckedClosure
 \since build 790
 
 上下文中环境以外的数据成员总是被复制而不被转移，
@@ -1538,6 +1605,7 @@ EqualValue(TermNode&);
 /*!
 \brief 对指定项按指定的环境求值。
 \since build 787
+\sa ReduceCheckedClosure
 \sa ResolveEnvironment
 
 以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。

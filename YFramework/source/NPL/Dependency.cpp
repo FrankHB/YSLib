@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r896
+\version r946
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-08-19 13:00 +0800
+	2017-08-31 10:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -300,6 +300,10 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: This is named after '#inert' in Kernel, but essentially
 	//	unspecified in NPLA.
 	root.GetRecordRef().Define("inert", ValueToken::Unspecified, {});
+	// NOTE: This is like '#ignore' in Kernel, but with the symbol type. An
+	//	alternative definition is by evaluating '$def! ignore $quote #ignore'
+	//	(see below for '$def' and '$quote').
+	root.GetRecordRef().Define("ignore", TokenValue("#ignore"), {});
 	// NOTE: Primitive features, listed as RnRK, except mentioned above.
 /*
 	The primitives are provided here to maintain acyclic dependencies on derived
@@ -310,7 +314,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	See $2017-02 @ %Documentation::Workflow::Annual2017.
 */
 	RegisterStrict(root, "eqv?", EqualValue);
-	// NOTE: Like Scheme but not Kernel, %'$if' treats non-boolean value as
+	// NOTE: Like Scheme but not Kernel, '$if' treats non-boolean value as
 	//	'#f', for zero overhead principle.
 	RegisterForm(root, "$if", If);
 	RegisterStrictUnary(root, "null?", ComposeReferencedTermOp(IsEmpty));
@@ -328,9 +332,11 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "make-environment", MakeEnvironment);
 	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
 	RegisterStrictUnary<shared_ptr<Environment>>(root, "weaken-environment",
-		[](const shared_ptr<Environment>& p){
+		[](const shared_ptr<Environment>& p) ynothrow{
 		return make_weak(p);
 	});
+	RegisterStrictUnary<const weak_ptr<Environment>>(root, "lock-environment",
+		std::mem_fn(&weak_ptr<Environment>::lock));
 	// NOTE: Environment mutation is optional in Kernel and supported here.
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
 	//	parameter as unevaluated operands. For zero overhead principle, the form
@@ -360,15 +366,29 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			(list $defrec! formals (unwrap eval) expr2 env) (eval expr1 env);
 	)NPL");
 #if true
+	context.Perform(u8R"NPL(
+		$def! make-standard-environment
+			$lambda () lock-environment (() get-current-environment);
+	)NPL");
+#else
+	context.Perform(u8R"NPL(
+		$def! make-standard-environment
+		(
+			$lambda (cenv env)
+				($lambda #ignore $vaue cenv () #ignore (make-environment senv))
+				($set! cenv senv env)
+		)
+		(make-environment (() get-current-environment))
+		(() get-current-environment);
+	)NPL");
+#endif
+#if true
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
 	RegisterForm(root, "$sequence", ReduceOrdered);
 #else
 	// NOTE: They can be derived as Kernel does.
-	// XXX: The current environment is better to be saved by
-	//	'$lambda () () get-current-environment'.
-	// TODO: Avoid redundant environment copy.
 	// TODO: Support move-only types at end.
 	context.Perform(u8R"NPL(
 		$def! $sequence
@@ -380,9 +400,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 					$if (null? tail) (eval head env) (($lambda #ignore
 						(eval (cons $aux tail) env)) (eval head env)))
 		)
-		(
-			make-environment (() get-current-environment)
-		);
+		(make-environment (() get-current-environment));
 	)NPL");
 #endif
 	context.Perform(u8R"NPL(
@@ -407,6 +425,20 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			(list $set! env $f $vau formals senv body) env;
 		$def! $defw! $vau (f formals senv .body) env eval
 			(list $set! env f wrap (list* $vau formals senv body)) env;
+		$defv! $lambdae (e formals .body) env
+			(wrap (eval (list* $vaue e formals ignore body) env));
+	)NPL");
+	// NOTE: Use of 'eqv?' is more efficient than '$if'.
+	context.Perform(u8R"NPL(
+		$defl! not? (x) eqv? x #f;
+		$defv! $when (test .vexpr) env $if (eval test env)
+			(eval (list* $sequence vexpr) env);
+		$defv! $unless (test .vexpr) env $if (not? (eval test env))
+			(eval (list* $sequence vexpr) env);
+	)NPL");
+	RegisterForm(root, "$and?", And);
+	RegisterForm(root, "$or?", Or);
+	context.Perform(u8R"NPL(
 		$defl! first-null? (l) null? (first l);
 		$defl! list-rest (x) list (rest x);
 		$defl! accl (l pred? base head tail sum)
@@ -434,26 +466,16 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				(list $let (list (first bindings))
 				(list* $let* (rest bindings) body))) env;
 	)NPL");
-	// NOTE: Use of 'eqv?' is more efficient than '$if'.
-	context.Perform(u8R"NPL(
-		$defl! not? (x) eqv? x #f;
-		$defv! $when (test .vexpr) env $if (eval test env)
-			(eval (list* $sequence vexpr) env);
-		$defv! $unless (test .vexpr) env $if (not? (eval test env))
-			(eval (list* $sequence vexpr) env);
-	)NPL");
-	RegisterForm(root, "$and?", And);
-	RegisterForm(root, "$or?", Or);
 	context.Perform(u8R"NPL(
 		$defl! unfoldable? (l) accr l null? (first-null? l) first-null? rest
 			$or?;
-		$def! map-reverse wrap
+		$def! map-reverse $let ((cenv () make-standard-environment)) wrap
 		(
-			$defl! cxrs (ls cxr) accl ls null? () ($lambda (l) cxr (first l))
-				rest cons;
-			$vau (appv .ls) env accl ls unfoldable? ()
+			$set! cenv cxrs $lambdae (weaken-environment cenv) (ls cxr)
+				accl ls null? () ($lambda (l) cxr (first l)) rest cons;
+			$vaue cenv (appv .ls) env accl ls unfoldable? ()
 				($lambda (ls) cxrs ls first) ($lambda (ls) cxrs ls rest)
-				($lambda (x xs) cons (apply appv x env) xs)
+					($lambda (x xs) cons (apply appv x env) xs)
 		);
 		$defw! for-each-ltr ls env $sequence (apply map-reverse ls env) inert;
 	)NPL");

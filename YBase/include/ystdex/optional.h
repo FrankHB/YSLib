@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r797
+\version r806
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2016-08-08 11:57 +0800
+	2017-08-25 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@
 #include <stdexcept> // for std::logic_error;
 #include "placement.hpp" // for tagged_value;
 #include <initializer_list> // for std::initializer_list;
-#include "functional.hpp" // for default_last_value, std::accumulate;
+#include "functional.hpp" // for default_last_value, std::accumulate, std::hash;
 
 namespace ystdex
 {
@@ -55,7 +55,7 @@ namespace ystdex
 yconstexpr const struct nullopt_t
 {
 	/*!
-	\see http://wg21.cmeerw.net/lwg/issue2510 。
+	\see LWG 2510 。
 	\since build 718
 	*/
 	yimpl(yconstfn
@@ -117,8 +117,7 @@ public:
 template<typename _type>
 class optional_base<_type, true> : protected tagged_value<bool, _type>
 {
-	// NOTE: See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3770.html#FI15.
-	//	Also http://wg21.cmeerw.net/cwg/issue1776.
+	// NOTE: See WG21 N3770 comment FI 15, also CWG 1776.
 	static_assert(!is_cv<_type>(), "Cv-qualified type found.");
 
 protected:
@@ -589,10 +588,6 @@ namespace std
 \see WG21 N4606 20.6.10[optional.hash] 。
 \since build 591
 */
-//@{
-template<typename>
-struct hash;
-
 template<typename _type>
 struct hash<ystdex::optional<_type>>
 {
@@ -604,7 +599,6 @@ struct hash<ystdex::optional<_type>>
 		return k ? hash<_type>{}(*k) : yimpl(-4242);
 	}
 };
-//@}
 
 } // namespace std;
 
