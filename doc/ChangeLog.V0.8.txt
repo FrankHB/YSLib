@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r409
+\version r522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-09-02 17:54 +0800
+	2017-09-12 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,120 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "function templates %(TraverseSubnodes, PrintContainedNodes; \
+					TraverseNodeChildAndPrint)",
+				/ DLDI "simplified function %PrintNode" ^ $dep_from
+					"%TraverseSubnodes",
+				(
+				/ DLDI "simplified function %PrintNodeChild" ^ $dep_from
+					"%TraverseNodeChildAndPrint" ~ "%PrintNodeChild";
+				- "function %PrintNodeChild"
+				),
+				- "all 2 function templates %InvokePasses",
+				+ "data member 'YSLib::Logger Trace;'" @ "class %ContextNode"
+					$dep_from ("class %Logger" @ %YCLib.Debug),
+				(
+				+ "function %LiftTermOrRefToSelf";
+				/ DLDI "function %(LiftTermToSelf, LiftToOther)"
+					^ "%LiftTermRefToSelf" ~ "%LiftTermOrRef"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				(
+				/ DLDI "function %Reduce" ^ "%ContextNode members"
+					~ "functions %(InvokeGuard, InvokeList, InvokeLeaf)";
+				- "functions %(InvokeGuard, InvokeList, InvokeLeaf)"
+				),
+				- "function %AccessLiteralPassesRef" $dep_from %Dependency,
+				(
+				/ DLDI "function %EvaluateLeafToken"
+					^ "%ContextNode::EvaluateLiteral"
+					~ "function %InvokeLiteral";
+				- "function %InvokeLiteral"
+				),
+				(
+				/ DLDI ^ "%ContextNode members"
+					~ "functions %(AccessListPassesRef, AccessLeafPassesRef)"
+					@ "function %SetupDefaultInterpretation";
+				- "functions %(AccessListPassesRef, AccessLeafPassesRef)"
+				),
+				(
+				/ DLDI ^ "%ContextNode::Guard" ~ "function \
+					%AccessGuardPassesRef" @ "function %SetupTraceDepth";
+				- "function %AccessGuardPassesRef"
+				),
+				/ @ "namespace %Forms" $=
+				(
+					/ "simplified trace" ^ $dep_from ("%ContextNode::Trace"
+						@ %NPLA) ~ "%YTraceDe",
+					/ "all non boolean condition treated as #t"
+						@ "function %If",
+					* "function %Eval always convert lvalue operands to \
+						rvalues recursively" $since b800
+						// The fix also reduces performance penalty on deep \
+							tree transformation of the operand.
+						$= (/ $impl ^ "%AccessPtr" ~ "%LiftToOther"),
+					/ DLDI "simplified functions %(Vau, VauWithEnvironment)"
+						^ "%ReferenceTerm" ~ "%LiftToSelf",
+					/ "operands handling"
+						@ "functions %(MatchParameter, BindParameter)" $=
+					(
+						/ $impl ^ $dep_from ("%LiftTermRefToSelf" @ %NPLA)
+							~ "%LiftToSelf";
+						* $comp "redundant lvalue-to-rvalue conversion on \
+							unbound recursive terms" $since b800
+					)
+				)
+			),
+			/ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+			(
+				/ DLDI ^ "%ContextNode::EvaluateLiteral"
+					~ "function %AccessLiteralPassesRef",
+				/ DLDI @ "loading forms" $=
+				(
+					+ $doc "guarantee of no evaluation of bodies"
+						@ "operatives '$vau', '$vaue', '$lambda', '$lambdae'";
+					/ "simplified alternative derivation"
+						@ "operative '$sequence'" ^ '$set!' ~ '$setrec!',
+					/ "simplified operatives ('$defl!', '$defw!')" ^ '$defv!'
+						~ ('$def!', '$vau'),
+					/ "simplified applicatives %(first, rest, apply)" ^ '$defl!'
+						~ ('$def!', '$lambda'),
+					/ "simplified applicatives ('list*', %(accl, accr))"
+						^ '$defl!' ~ ('$defrec!', '$lambda'),
+					/ "simplified operatives ('$cond', '$let*')" ^ '$defv!'
+						~ ('$defrec!', '$vau')
+				)
+			)
+		),
+		/ %YCLib.Debug $=
+		(
+			/ @ "class %Logger" $=
+			(
+				+ DLDI "brace-initializer '{}'" @ "mutex member";
+				+ $lib 'DefDeCtor(Logger)';
+				+ "constructors allowing specifying filter and sender",
+				+ "(copy, move) (constructors; %operator=)"
+			),
+			/ DLDI "simplified destructor %AndroidLogSender"
+				@ "platform %Android" ^ "%ImplDeDtor"
+		)
+	),
+	* "'$if' applicative" @ %Documentation.NPL $since b792
+		$dep_from ("%Forms::If" @ %YFramework.NPL.NPLA1)
+		// The text contradicted with Scheme RnRS, but was consistent with \
+			implementation. This is now corrected after %Forms::If modification.
+),
+
+b802
 (
 	/ %YFramework $=
 	(
