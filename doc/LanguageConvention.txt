@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r2044
+\version r2050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2017-07-30 19:33 +0800
+	2017-09-05 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -548,7 +548,7 @@ inline 对 ODR(@5.1.8) 发生影响。
 
 @5.5.6.4 省略：
 在类定义中的成员函数声明中省略 inline 关键字，参见 ISO C++03 7.1.2/3 ；另见 @5.9.1.1 。
-注意 constexpr(@5.5.10) 隐含 inline 。 
+注意 constexpr(@5.5.10) 隐含 inline 。
 若类的成员函数声明和定义分离，在完整定义而不是声明处使用 inline 。
 函数模板在 ODR 上隐含和 inline 类似的效果，但一般不论是否需要被内联都使用相同的定义方式（参见 @5.9.1.2 ），不省略 inline 以明示目的。
 
@@ -1548,9 +1548,11 @@ decltype(*c.end()) 或 decltype(*c.rend()) 。
 注意当前标准库算法不支持 invoke 调用，对成员指针需要使用进一步的函数对象包装，参见 @6.10 。
 
 @6.15 C++ 标准 I/O
-可以同时使用 C++ 标准流和 printf/scanf 函数族进行格式化输入/输出处理，但在考虑效率（以及目标文件大小）时应尽可能避免使用 C++ 标准流。
-应注意 nifty counter idiom(http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter) 对多翻译单元程序大小的影响。
-正确使用 printf/scanf 函数族格式化输入输出的控制字符。
+选择 C++ 标准流或 C 标准流的操作或标准库对象由具体的程序按需决定；除非有充足的理由，库不对此进行假设。
+可以同时使用 C++ 标准流和 C 标准流（ printf/scanf 函数族）进行格式化输入/输出处理。但在考虑目标文件大小及其附加性能开销时，一般避免使用 C++ 标准流。
+在同一个程序中，仅在能保证同步的前提下，允许混用 C++ 标准流对象（ std::cout 等）和 C 标准流对象（由 stdout 等指定）的 I/O 操作。
+应注意实现 C++ 标准库流对象惯用的 nifty counter idiom(http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter) 对多翻译单元程序大小的影响。
+应注意正确使用 printf/scanf 函数族格式化输入输出的控制字符，避免格式不匹配造成未定义行为（如 %p 应严格对应 void* ）。
 
 */
 ////

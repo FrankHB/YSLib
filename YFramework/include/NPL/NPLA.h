@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2310
+\version r2434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-09-01 10:57 +0800
+	2017-09-12 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,35 +221,92 @@ DefaultGenerateIndent(size_t);
 YF_API void
 PrintIndent(std::ostream&, IndentGenerator = DefaultGenerateIndent, size_t = 1);
 
+//! \since build 803
+//@{
+/*!
+\brief 遍历子节点。
+\note 使用 ADL AccessPtr 。
+
+遍历节点容器中的子节点。
+首先调用 AccessPtr 尝试访问 NodeSequence ，否则直接作为节点容器访问。
+*/
+template<typename _fCallable, class _type>
+void
+TraverseSubnodes(_fCallable f, const _type& node)
+{
+	using YSLib::AccessPtr;
+
+	// TODO: Null coalescing or variant value?
+	if(const auto p = AccessPtr<NodeSequence>(node))
+		for(const auto& nd : *p)
+			ystdex::invoke(f, nd);
+	else
+		for(const auto& nd : node)
+			ystdex::invoke(f, nd);
+}
+
+//! \brief 打印容器边界和其中的 NPLA 节点，且在打印边界前调用前置操作。
+template<typename _fCallable>
+void
+PrintContainedNodes(std::ostream& os, std::function<void()> pre, _fCallable f)
+{
+	pre();
+	os << '(' << '\n';
+	TryExpr(ystdex::invoke(f))
+	CatchIgnore(std::out_of_range&)
+	pre();
+	os << ')' << '\n';
+}
+
+/*!
+\brief 打印有索引前缀的节点或遍历子节点并打印。
+\note 使用 ADL IsPrefixedIndex 。
+\sa IsPrefixedIndex
+\sa TraverseSubnodes
+
+以第三参数作为边界前置操作，调用 PrintContainedNodes 逐个打印子节点内容。
+调用第四参数输出最后一个参数决定的缩进作为前缀，然后打印子节点内容。
+对满足 IsPrefixedIndex 的节点调用第四参数作为节点字符串打印；
+否则，调用第五参数递归打印子节点，忽略此过程中的 std::out_of_range 异常。
+其中，遍历子节点通过调用 TraverseSubnodes 实现。
+*/
+template<typename _fCallable, typename _fCallable2>
+void
+TraverseNodeChildAndPrint(std::ostream& os, const ValueNode& node,
+	std::function<void()> pre, _fCallable print_node_str,
+	_fCallable2 print_term_node)
+{
+	using YSLib::IsPrefixedIndex;
+
+	TraverseSubnodes([&](const ValueNode& nd){
+		if(IsPrefixedIndex(nd.GetName()))
+		{
+			pre();
+			ystdex::invoke(print_node_str, nd);
+		}
+		else
+			PrintContainedNodes(os, pre, [&]{
+				ystdex::invoke(print_term_node, nd);
+			});
+	}, node);
+}
+//@}
+
 /*!
 \brief 打印 NPLA 节点。
 \sa PrintIdent
 \sa PrintNodeChild
 \sa PrintNodeString
+\sa TraverseNodeChildAndPrint
 
 调用第四参数输出最后一个参数决定的缩进作为前缀和一个空格，然后打印节点内容：
 先尝试调用 PrintNodeString 打印节点字符串，若成功直接返回；
-否则打印换行，然后尝试调用 PrintNodeChild 打印 NodeSequence ；
-再次失败则调用 PrintNodeChild 打印子节点。
-调用 PrintNodeChild 打印后输出回车。
+否则打印换行，对非空节点调用 TraverseNodeChildAndPrint 打印子节点内容。
+其中，使用的边界前置操作为调用第四参数输出最后一个参数决定的缩进作为前缀输出。
 */
 YF_API void
 PrintNode(std::ostream&, const ValueNode&, NodeToString = EscapeNodeLiteral,
 	IndentGenerator = DefaultGenerateIndent, size_t = 0);
-
-/*!
-\brief 打印作为子节点的 NPLA 节点。
-\sa IsPrefixedIndex
-\sa PrintIdent
-\sa PrintNodeString
-
-调用第四参数输出最后一个参数决定的缩进作为前缀，然后打印子节点内容。
-对满足 IsPrefixedIndex 的节点调用 PrintNodeString 作为节点字符串打印；
-否则，调用 PrintNode 递归打印子节点，忽略此过程中的 std::out_of_range 异常。
-*/
-YF_API void
-PrintNodeChild(std::ostream&, const ValueNode&, NodeToString
-	= EscapeNodeLiteral, IndentGenerator = DefaultGenerateIndent, size_t = 0);
 
 /*!
 \brief 打印节点字符串。
@@ -806,7 +863,10 @@ CheckedReduceWith(_func f, _tParams&&... args)
 
 //! \brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
 //@{
-//! \since build 676
+/*!
+\note 参数相同时作用为空，但可能有额外开销。
+\since build 676
+*/
 YF_API void
 LiftTerm(TermNode&, TermNode&);
 //! \since build 745
@@ -838,16 +898,32 @@ LiftTermObject(const ValueObject&);
 */
 //@{
 /*!
-\brief 提升项或创建引用项。
+\note 用于支持实现对象语言中的左值到右值转换。
 \sa LiftTerm
 \sa LiftTermRef
 \sa TermReference
+*/
+//@{
+/*!
+\brief 提升项或创建引用项。
 
-项的 Value 数据成员为 TermReference 类型的值同 LiftTermRef；
+项的 Value 数据成员为 TermReference 类型的值时调用 LiftTermRef；
 否则，同 LiftTerm 。
 */
 YF_API void
 LiftTermOrRef(TermNode&, TermNode&);
+
+/*!
+\brief 提升自身引用项。
+\sa LiftTermOrRef
+\since build 803
+
+作用同以相同参数调用 LiftTermOrRef 。
+仅可能调用 LiftTermRef ，不调用 LiftTerm 以节约不必要的开销。
+*/
+YF_API void
+LiftTermRefToSelf(TermNode&);
+//@}
 
 /*!
 \brief 提升项引用：使用第二个参数指定的项的内容引用替换第一个项的内容。
@@ -1026,11 +1102,10 @@ class YF_API Environment : private ystdex::equality_comparable<Environment>,
 {
 public:
 	//! \since build 788
-	//@{
 	using BindingMap = ValueNode;
 
+	//! \since build 788
 	mutable BindingMap Bindings{};
-	//@}
 	/*!
 	\exception NPLException 对实现异常中立的未指定派生类型的异常。
 	\note 失败时若抛出异常，条件由实现定义。
@@ -1227,6 +1302,11 @@ public:
 	EvaluationPasses EvaluateList{};
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
+	/*!
+	\brief 上下文追踪日志。
+	\since build 803
+	*/
+	YSLib::Logger Trace;
 
 	DefDeCtor(ContextNode)
 	/*!
@@ -1318,33 +1398,6 @@ observer_ptr<const ValueObject>
 FetchValuePtr(const Environment& env, const _tKey& name)
 {
 	return GetValuePtrOf(NPL::LookupName(env, name));
-}
-//@}
-
-
-//! \brief 调用处理遍：从指定名称的节点中访问指定类型的遍并以指定上下文调用。
-//@{
-//! \since build 777
-template<class _tPasses, typename... _tParams>
-typename _tPasses::result_type
-InvokePasses(observer_ptr<const ValueNode> p, TermNode& term, ContextNode& ctx,
-	_tParams&&... args)
-{
-	return ystdex::call_value_or([&](const _tPasses& passes){
-		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
-		//	error: Segmentation fault.
-		return passes(term, ctx, std::forward<_tParams>(args)...);
-	}, YSLib::AccessPtr<const _tPasses>(p));
-}
-//! \since build 738
-template<class _tPasses, typename... _tParams>
-inline typename _tPasses::result_type
-InvokePasses(const string& name, TermNode& term, ContextNode& ctx,
-	_tParams&&... args)
-{
-	return NPL::InvokePasses<_tPasses>(YSLib::AccessNodePtr(
-		ystdex::as_const(ctx.GetBindingsRef()), name), term, ctx,
-		yforward(args)...);
 }
 //@}
 

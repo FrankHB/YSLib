@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3434
+\version r3500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-09-02 17:37 +0800
+	2017-09-11 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,63 +173,6 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 //@}
 
 
-//! \since build 685
-//@{
-//! \brief 访问守护遍。
-YF_API GuardPasses&
-AccessGuardPassesRef(ContextNode&);
-
-//! \brief 访问叶遍。
-YF_API EvaluationPasses&
-AccessLeafPassesRef(ContextNode&);
-
-//! \brief 访问列表遍。
-YF_API EvaluationPasses&
-AccessListPassesRef(ContextNode&);
-//@}
-
-/*!
-\brief 访问字面量遍。
-\since build 738
-*/
-YF_API LiteralPasses&
-AccessLiteralPassesRef(ContextNode&);
-
-//! \sa InvokePasses
-//@{
-/*!
-\brief 调用守护遍。
-\sa GuardPasses
-\since build 726
-*/
-YF_API Guard
-InvokeGuard(TermNode& term, ContextNode&);
-
-/*!
-\sa EvaluationPasses
-\since build 730
-*/
-//@{
-//! \brief 调用叶遍。
-YF_API ReductionStatus
-InvokeLeaf(TermNode& term, ContextNode&);
-
-//! \brief 调用列表遍。
-YF_API ReductionStatus
-InvokeList(TermNode& term, ContextNode&);
-//@}
-
-/*!
-\brief 调用字面量遍。
-\pre 断言：字符串参数的数据指针非空。
-\sa LiteralPasses
-\since build 738
-*/
-YF_API ReductionStatus
-InvokeLiteral(TermNode&, ContextNode&, string_view);
-//@}
-
-
 /*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
 \return 规约状态。
@@ -238,20 +181,20 @@ InvokeLiteral(TermNode&, ContextNode&, string_view);
 \note 可被求值遍调用以实现递归求值。
 \note 异常安全取决于调用遍的最低异常安全保证。
 \sa CheckReducible
-\sa InvokeGuard
-\sa InvokeLeaf
-\sa InvokeList
+\sa ContextNode::EvaluateLeaf
+\sa ContextNode::EvaluateList
+\sa ContextNode::Guard
 \sa ValueToken
 \since build 730
 \todo 实现 ValueToken 保留处理。
 
 规约顺序如下：
-调用 InvokeGuard 进行必要的上下文重置；
+调用 ContextNode::Guard 进行必要的上下文重置；
 迭代规约，直至不需要进行重规约。
 对应不同的节点次级结构分类，一次迭代按以下顺序选择以下分支之一，按需规约子项：
-对枝节点调用 InvokeList 求值；
+对枝节点调用 ContextNode::EvaluateList 求值；
 对空节点或值为 ValueToken 的叶节点不进行操作；
-对其它叶节点调用 InvokeLeaf 求值。
+对其它叶节点调用 ContextNode::EvaluateList 求值。
 迭代结束调用 CheckReducible ，根据结果判断是否进行重规约。
 此处约定的迭代中对节点的具体结构分类默认也适用于其它 NPLA1 实现 API ；
 例外情况应单独指定明确的顺序。
@@ -386,7 +329,7 @@ ReduceTail(TermNode&, ContextNode&, TNIter);
 /*!
 \brief 设置跟踪深度节点：调用规约时显示深度和上下文等信息。
 \note 主要用于调试。
-\sa InvokeGuard
+\sa ContextNode::Guard
 \since build 685
 */
 YF_API void
@@ -690,7 +633,7 @@ inline PDefH(size_t, FetchArgumentN, const TermNode& term) ynothrowv
 \brief 求值以节点数据结构间接表示的项。
 \since build 752
 
-以 TermNode 按项访问值，若成功调用 LiftTermRef 替换值并返回要求重规约。
+以 TermNode 按项访问值，若成功调用 LiftDelayed 替换值并返回要求重规约。
 以项访问对规约以项转移的可能未求值的操作数是必要的。
 */
 YF_API ReductionStatus
@@ -716,7 +659,6 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 \pre 间接断言：第三参数的数据指针非空。
 \note 不验证标识符是否为字面量；仅以字面量处理时可能需要重规约。
 \sa EvaluateDelayed
-\sa LiftTermRef
 \sa LiteralHandler
 \sa ReferenceTerm
 \sa ResolveName
@@ -744,9 +686,9 @@ EvaluateIdentifier(TermNode&, const ContextNode&, string_view);
 \brief 求值叶节点记号。
 \pre 断言：第三参数的数据指针非空。
 \sa CategorizeLexeme
+\sa ContextNode::EvaluateLiteral
 \sa DeliteralizeUnchecked
 \sa EvaluateIdentifier
-\sa InvokeLiteral
 \since build 736
 
 处理非空字符串表示的节点记号。
@@ -1059,7 +1001,6 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 
 递归遍历参数和操作数树进行结构化匹配。
 若匹配失败，则抛出异常。
-进行其它操作前，对操作数调用 LiftToSelf 处理，但不处理形式参数。
 */
 //@{
 /*!
@@ -1070,6 +1011,7 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
+进行其它操作前，对操作数调用 LiftToSelf 处理，但不处理形式参数。
 进行匹配的算法递归搜索形式参数及其子项，要求参见 MatchParameter 。
 若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的项。
 对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
@@ -1450,6 +1392,8 @@ Undefine(TermNode&, ContextNode&, bool);
 \since build 750
 
 求值第一子项作为测试条件，成立时取第二子项，否则当第三子项时取第三子项。
+测试条件成立，当且仅当 <test> 非 #f 。
+和 Kernel 不同而和 Scheme 类似，求值结果非 #f 的条件都成立，且支持省略第三操作数。
 参考调用文法：
 $if <test> <consequent> <alternate>
 $if <test> <consequent>
@@ -1468,7 +1412,7 @@ If(TermNode&, ContextNode&);
 使用 ExtractParameters 检查参数列表并捕获和绑定变量，
 然后设置节点的值为表示 λ 抽象的上下文处理器。
 可使用 RegisterForm 注册上下文处理器。
-和 Scheme 等不同参数以项而不是位置的形式被转移，在函数应用时可能进一步求值。
+和 Scheme 等不同，参数以项而不是位置的形式被转移，函数应用时可能有副作用。
 按引用捕获上下文中的绑定。被捕获的上下文中的绑定依赖宿主语言的生存期规则。
 */
 //@{
@@ -1640,11 +1584,10 @@ YF_API void
 MakeEnvironment(TermNode&);
 
 /*!
-\brief 取包含当前环境的上下文引用。
-\warning 返回的值无所有权，应注意在生存期内使用以保证内存安全。
+\brief 取当前环境的引用。
 \since build 785
 
-取指向当前环境的指针。取得的宿主值类型为 weak_ptr<Environment> 。
+取得的宿主值类型为 weak_ptr<Environment> 。
 参考调用文法：
 () get-current-environment
 */

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1308
+\version r1340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-08-14 23:46 +0800
+	2017-09-12 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,35 +106,13 @@ PrintNode(std::ostream& os, const ValueNode& node, NodeToString node_to_str,
 		return;
 	os << '\n';
 	if(node)
-	{
-		const auto nested_call(std::bind(PrintNodeChild, std::ref(os),
-			std::placeholders::_1, node_to_str, igen, depth));
-
-		// TODO: Null coalescing or variant value?
-		if(const auto p = AccessPtr<NodeSequence>(node))
-			for(const auto& nd : *p)
-				nested_call(nd);
-		else
-			for(const auto& nd : node)
-				nested_call(nd);
-	}
-}
-
-void
-PrintNodeChild(std::ostream& os, const ValueNode& node,
-	NodeToString node_to_str, IndentGenerator igen, size_t depth)
-{
-	PrintIndent(os, igen, depth);
-	if(IsPrefixedIndex(node.GetName()))
-		PrintNodeString(os, node, node_to_str);
-	else
-	{
-		os << '(' << '\n';
-		TryExpr(PrintNode(os, node, node_to_str, igen, depth + 1))
-		CatchIgnore(std::out_of_range&)
-		PrintIndent(os, igen, depth);
-		os << ')' << '\n';
-	}
+		TraverseNodeChildAndPrint(os, node, [&]{
+			PrintIndent(os, igen, depth);
+		}, [&](const ValueNode& nd){
+			return PrintNodeString(os, nd, node_to_str);
+		}, [&](const ValueNode& nd){
+			return PrintNode(os, nd, node_to_str, igen, depth + 1);
+		});
 }
 
 bool
@@ -487,6 +465,13 @@ LiftTermOrRef(TermNode& term, TermNode& tm)
 }
 
 void
+LiftTermRefToSelf(TermNode& term)
+{
+	if(const auto p = AccessPtr<TermReference>(term))
+		LiftTermRef(term, p->get());
+}
+
+void
 LiftToReference(TermNode& term, TermNode& tm)
 {
 	if(tm)
@@ -508,13 +493,13 @@ LiftToSelf(TermNode& term)
 {
 	for(auto& child : term)
 		LiftToSelf(child);
-	LiftTermOrRef(term, term);
+	LiftTermRefToSelf(term);
 }
 
 void
 LiftToOther(TermNode& term, TermNode& tm)
 {
-	LiftToSelf(tm);
+	LiftTermRefToSelf(tm);
 	LiftTerm(term, tm);
 }
 

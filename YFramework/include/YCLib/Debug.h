@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r736
+\version r761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2016-11-19 14:12 +0800
+	2017-09-08 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,9 +106,9 @@ public:
 #endif
 
 private:
-	//! \invariant <tt>bool(filter)</tt> 。
+	//! \invariant \c bool(filter) 。
 	Filter filter{DefaultFilter};
-	//! \invariant <tt>bool(Sender)</tt> 。
+	//! \invariant \c bool(Sender) 。
 	Sender sender{FetchDefaultSender()};
 	/*!
 	\brief 日志记录锁。
@@ -117,9 +117,29 @@ private:
 	仅 DoLog 和 DoLogException 在发送日志时使用的锁。
 	使用递归锁以允许用户在发送器中间接递归调用 DoLog 和 DoLogException 。
 	*/
-	Concurrency::recursive_mutex record_mutex;
+	Concurrency::recursive_mutex record_mutex{};
 
 public:
+	//! \since build 803
+	//@{
+	/*!
+	\brief 无参数构造：使用过滤器和发送器。
+	\note 异常中立：同 FetchDefaultSender 。
+	\note 由 std::function 的构造模板提供的保证确保无其它异常抛出。
+	*/
+	DefDeCtor(Logger)
+	//! \brief 复制构造：复制过滤器和发送器，使用新创建的锁。
+	Logger(const Logger&);
+	/*!
+	\brief 转移构造：转移过滤器和发送器，使用新创建的锁。
+	\post 被转移的日志对象具有默认的过滤器和发送器。
+	\see LWG 2062 。
+	*/
+	Logger(Logger&&) ynothrow;
+
+	DefDeCopyMoveAssignment(Logger)
+	//@}
+
 	//! \since build 628
 	DefGetter(const ynothrow, const Sender&, Sender, sender)
 
@@ -212,6 +232,7 @@ public:
 	/*!
 	\brief 取新建的平台相关的默认发送：按指定的标签取平台相关实现。
 	\pre 断言：参数的数据指针非空。
+	\note 非 Android 平台：无异常抛出。
 	\since build 658
 	*/
 	static Sender
@@ -377,6 +398,7 @@ MapAndroidLogLevel(platform::Descriptions::RecordLevel);
 
 /*!
 \brief 使用 Android 日志 API 实现 YCLib 日志发送。
+\warning 非虚析构。
 \sa platform::Logger
 \since build 298
 */
@@ -397,6 +419,7 @@ public:
 	AndroidLogSender(string_view);
 	//! \since build 560
 	DefDeCopyMoveCtorAssignment(AndroidLogSender)
+	//! \brief 非虚析构：类定义外默认实现。
 	~AndroidLogSender();
 
 	//! \pre 间接断言：字符串非空。

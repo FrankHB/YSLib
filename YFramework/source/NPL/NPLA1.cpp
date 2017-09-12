@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4650
+\version r4728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-09-02 17:37 +0800
+	2017-09-12 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,8 +343,10 @@ ThrowInvalidSymbolType(const TermNode& term, const char* n)
 
 //! \since build 781
 string
-CheckEnvFormal(const TermNode& term)
+CheckEnvFormal(const TermNode& eterm)
 {
+	const auto& term(ReferenceTerm(eterm));
+
 	if(const auto p = TermToNamePtr(term))
 	{
 		CheckVauSymbol(*p, "environment formal parameter");
@@ -353,14 +355,6 @@ CheckEnvFormal(const TermNode& term)
 	else
 		ThrowInvalidSymbolType(term, "environment formal parameter");
 	return {};
-}
-
-//! \since build 800
-string
-ReferenceEnvFormal(TermNode& term)
-{
-	LiftToSelf(term);
-	return CheckEnvFormal(term);
 }
 
 
@@ -442,11 +436,13 @@ public:
 			// NOTE: Forming beta using parameter binding, to substitute them
 			//	as arguments for later closure reducation.
 			BindParameter(local, formals, term);
-			YTraceDe(Debug, "Function called, with %ld shared term(s), %ld %s"
-				" shared static environment(s), %zu parameter(s).",
-				p_closure.use_count(), p_parent.use_count(),
-				p_static.use_count() != 0 ? "owning" : "nonowning",
-				formals.size());
+			local.Trace.Log(Debug, [&]{
+				return sfmt("Function called, with %ld shared term(s), %ld %s"
+					" shared static environment(s), %zu parameter(s).",
+					p_closure.use_count(), p_parent.use_count(),
+					p_static.use_count() != 0 ? "owning" : "nonowning",
+					formals.size());
+			});
 			// NOTE: Static environment is bound as base of local context by
 			//	setting parent environment pointer.
 			local.GetRecordRef().Parent = p_parent;
@@ -496,60 +492,11 @@ TermToValueString(const TermNode& term)
 
 } // unnamed namespace;
 
-GuardPasses&
-AccessGuardPassesRef(ContextNode& ctx)
-{
-	return ctx.Guard;
-}
-
-EvaluationPasses&
-AccessLeafPassesRef(ContextNode& ctx)
-{
-	return ctx.EvaluateLeaf;
-}
-
-EvaluationPasses&
-AccessListPassesRef(ContextNode& ctx)
-{
-	return ctx.EvaluateList;
-}
-
-LiteralPasses&
-AccessLiteralPassesRef(ContextNode& ctx)
-{
-	return ctx.EvaluateLiteral;
-}
-
-Guard
-InvokeGuard(TermNode& term, ContextNode& ctx)
-{
-	return ctx.Guard(term, ctx);
-}
-
-ReductionStatus
-InvokeLeaf(TermNode& term, ContextNode& ctx)
-{
-	return ctx.EvaluateLeaf(term, ctx);
-}
-
-ReductionStatus
-InvokeList(TermNode& term, ContextNode& ctx)
-{
-	return ctx.EvaluateList(term, ctx);
-}
-
-ReductionStatus
-InvokeLiteral(TermNode& term, ContextNode& ctx, string_view id)
-{
-	YAssertNonnull(id.data());
-	return ctx.EvaluateLiteral(term, ctx, id);
-}
-
 
 ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
-	const auto gd(InvokeGuard(term, ctx));
+	const auto gd(ctx.Guard(term, ctx));
 
 	// NOTE: Rewriting loop until the normal form is got.
 	return ystdex::retry_on_cond(CheckReducible, [&]() -> ReductionStatus{
@@ -558,7 +505,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 			YAssert(term.size() != 0, "Invalid node found.");
 			if(term.size() != 1)
 				// NOTE: List evaluation.
-				return InvokeList(term, ctx);
+				return ctx.EvaluateList(term, ctx);
 			else
 			{
 				// NOTE: List with single element shall be reduced as the
@@ -572,8 +519,9 @@ Reduce(TermNode& term, ContextNode& ctx)
 
 		// NOTE: Empty list or special value token has no-op to do with.
 		// TODO: Handle special value token?
-		return tp != ystdex::type_id<void>() && tp != ystdex::type_id<
-			ValueToken>() ? InvokeLeaf(term, ctx) : ReductionStatus::Clean;
+		return tp != ystdex::type_id<void>()
+			&& tp != ystdex::type_id<ValueToken>() ? ctx.EvaluateLeaf(term, ctx)
+			: ReductionStatus::Clean;
 	});
 }
 
@@ -688,7 +636,7 @@ SetupTraceDepth(ContextNode& root, const string& name)
 {
 	yunseq(
 	root.GetBindingsRef().Place<size_t>(name),
-	AccessGuardPassesRef(root) = [name](TermNode& term, ContextNode& ctx){
+	root.Guard = [name](TermNode& term, ContextNode& ctx){
 		using ystdex::pvoid;
 		auto& depth(AccessChild<size_t>(ctx.GetBindingsRef(), name));
 
@@ -864,7 +812,8 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 				break;
 			YB_ATTR_fallthrough;
 		case LexemeCategory::Symbol:
-			return CheckReducible(InvokeLiteral(term, ctx, id))
+			YAssertNonnull(id.data());
+			return CheckReducible(ctx.EvaluateLiteral(term, ctx, id))
 				? EvaluateIdentifier(term, ctx, id) : ReductionStatus::Clean;
 			// XXX: Empty token is ignored.
 			// XXX: Remained reducible?
@@ -951,8 +900,8 @@ SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
 	// TODO: Insert more optional optimized lifted form evaluation passes:
 	//	macro expansion, etc.
 	passes += ReduceCombined;
-	AccessListPassesRef(root) = std::move(passes);
-	AccessLeafPassesRef(root) = ReduceLeafToken;
+	root.EvaluateList = std::move(passes);
+	root.EvaluateLeaf = ReduceLeafToken;
 }
 
 
@@ -1065,7 +1014,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
 	auto& m(ctx.GetBindingsRef());
 
-	LiftToSelf(o);
+	// TODO: Binding of reference support here, or in %MatchParameter?
 	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
@@ -1077,6 +1026,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 			{
 				auto& b(Deref(first));
 
+				LiftTermRefToSelf(b);
 #if true
 				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
 					MakeIndex(con), b.Value.MakeMoveCopy());
@@ -1090,6 +1040,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 		}
 	}, [&](const TokenValue& n, TermNode&& b){
 		CheckParameterLeafToken(n, [&]{
+			LiftTermRefToSelf(b);
 #if true
 			// NOTE: The operands should have been evaluated. Children nodes in
 			//	arguments retained are also transferred.
@@ -1111,7 +1062,7 @@ MatchParameter(const TermNode& t, TermNode& o,
 	std::function<void(const TokenValue&, TermNode&&)> bind_value)
 {
 	// TODO: Binding of reference support?
-	LiftToSelf(o);
+	LiftTermRefToSelf(o);
 	if(IsBranch(t))
 	{
 		const auto n_p(t.size());
@@ -1238,7 +1189,7 @@ If(TermNode& term, ContextNode& ctx)
 		auto i(term.begin());
 
 		ReduceChecked(Deref(++i), ctx);
-		if(!ystdex::value_or(AccessTermPtr<bool>(*i)))
+		if(!ystdex::value_or(AccessTermPtr<bool>(*i), true))
 			++i;
 		if(++i != term.end())
 		{
@@ -1274,7 +1225,7 @@ Vau(TermNode& term, ContextNode& ctx)
 		auto p_env(ctx.ShareRecord());
 		auto i(con.begin());
 		auto formals(share_move(Deref(++i)));
-		string eformal(ReferenceEnvFormal(Deref(++i)));
+		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		return FormContextHandler(VauHandler(std::move(eformal),
@@ -1293,7 +1244,7 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx)
 		// XXX: List components are ignored.
 		auto p_env_pr(ResolveEnvironment(Deref(i)));
 		auto formals(share_move(Deref(++i)));
-		string eformal(ReferenceEnvFormal(Deref(++i)));
+		string eformal(CheckEnvFormal(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
 		return FormContextHandler(VauHandler(std::move(eformal), std::move(
@@ -1382,9 +1333,11 @@ Eval(TermNode& term, ContextNode& ctx)
 	const auto i(std::next(term.begin()));
 	// TODO: Support more environment types?
 	ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i))).first);
+	auto& closure(Deref(i));
 
-	LiftToOther(term, Deref(i));
-	return ReduceCheckedClosure(term, c, true, term);
+	if(const auto p = AccessPtr<TermReference>(ystdex::as_const(closure)))
+		return ReduceCheckedClosure(term, c, {}, *p);
+	return ReduceCheckedClosure(term, c, true, closure);
 }
 
 void
@@ -1399,7 +1352,6 @@ void
 MakeEnvironment(TermNode& term)
 {
 	Retain(term);
-
 	if(term.size() > 1)
 	{
 		ValueObject parent;

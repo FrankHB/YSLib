@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r946
+\version r979
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-08-31 10:38 +0800
+	2017-09-10 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,7 +253,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	auto& root(context.Root);
 
 	LoadSequenceSeparators(root, context.ListTermPreprocess),
-	AccessLiteralPassesRef(root)
+	root.EvaluateLiteral
 		= [](TermNode& term, ContextNode&, string_view id) -> ReductionStatus{
 		YAssertNonnull(id.data());
 		if(!id.empty())
@@ -395,38 +395,34 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		(
 			$lambda (cenv) ($lambda #ignore $vaue cenv body env
 				$if (null? body) inert (eval (cons $aux body) env))
-				($setrec! cenv $aux $vaue (weaken-environment cenv) (head .tail)
-					env
-					$if (null? tail) (eval head env) (($lambda #ignore
+				($set! cenv $aux $vaue (weaken-environment cenv) (head .tail)
+					env $if (null? tail) (eval head env) (($lambda #ignore
 						(eval (cons $aux tail) env)) (eval head env)))
 		)
 		(make-environment (() get-current-environment));
 	)NPL");
 #endif
 	context.Perform(u8R"NPL(
-		$def! first $lambda ((x .)) x;
-		$def! rest $lambda ((#ignore .x)) x;
-		$def! apply $lambda (appv arg .opt)
-			eval (cons () (cons (unwrap appv) arg))
-				($if (null? opt) (() make-environment) (first opt));
-		$defrec! list* $lambda (head .tail)
-			$if (null? tail) head
-				(cons head (apply list* tail));
-		$defrec! $cond $vau clauses env $sequence
-		(
-			$def! aux $lambda ((test .body) .clauses)
-				$if (eval test env) (eval body env)
-					(apply (wrap $cond) clauses env)
-		)
-		($if (null? clauses) inert (apply aux clauses));
-		$def! $defl! $vau (f formals .body) env eval
-			(list $set! env f $lambda formals body) env;
 		$def! $defv! $vau ($f formals senv .body) env eval
 			(list $set! env $f $vau formals senv body) env;
-		$def! $defw! $vau (f formals senv .body) env eval
+		$defv! $defl! (f formals .body) env eval
+			(list $set! env f $lambda formals body) env;
+		$defl! first ((x .)) x;
+		$defl! rest ((#ignore .x)) x;
+		$defl! apply (appv arg .opt)
+			eval (cons () (cons (unwrap appv) arg))
+				($if (null? opt) (() make-environment) (first opt));
+		$defl! list* (head .tail)
+			$if (null? tail) head (cons head (apply list* tail));
+		$defv! $defw! (f formals senv .body) env eval
 			(list $set! env f wrap (list* $vau formals senv body)) env;
 		$defv! $lambdae (e formals .body) env
 			(wrap (eval (list* $vaue e formals ignore body) env));
+		$defv! $cond clauses env $sequence
+			($def! aux $lambda ((test .body) .clauses)
+				$if (eval test env) (eval body env)
+					(apply (wrap $cond) clauses env))
+			($if (null? clauses) inert (apply aux clauses));
 	)NPL");
 	// NOTE: Use of 'eqv?' is more efficient than '$if'.
 	context.Perform(u8R"NPL(
@@ -443,25 +439,24 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		$defl! list-rest (x) list (rest x);
 		$defl! accl (l pred? base head tail sum)
 		(
-			$defrec! aux $lambda (l base)
+			$defl! aux (l base)
 				$if (pred? l) base (aux (tail l) (sum (head l) base));
 			aux l base
 		);
 		$defl! accr (l pred? base head tail sum)
 		(
-			$defrec! aux $lambda (l)
-				$if (pred? l) base (sum (head l) (aux (tail l)));
+			$defl! aux (l) $if (pred? l) base (sum (head l) (aux (tail l)));
 			aux l
 		);
 		$defl! foldr1 (kons knil l) accr l null? knil first rest kons;
-		$defl! list-concat (x y) foldr1 cons y x;
-		$defl! append (.ls) foldr1 list-concat () ls;
 		$defw! map1 (appv l) env foldr1
 			($lambda (x xs) cons (apply appv (list x) env) xs) () l;
+		$defl! list-concat (x y) foldr1 cons y x;
+		$defl! append (.ls) foldr1 list-concat () ls;
 		$defv! $let (bindings .body) env
 			eval (list* () (list* $lambda (map1 first bindings) body)
 				(map1 list-rest bindings)) env;
-		$defrec! $let* $vau (bindings .body) env
+		$defv! $let* (bindings .body) env
 			eval ($if (null? bindings) (list* $let bindings body)
 				(list $let (list (first bindings))
 				(list* $let* (rest bindings) body))) env;
