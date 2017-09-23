@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r761
+\version r771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2017-09-08 10:55 +0800
+	2017-09-23 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,6 +99,7 @@ public:
 	//! \note 传递的第三参数非空。
 	using Sender = std::function<void(Level, Logger&, const char*)>;
 
+	//! \brief 过滤等级：可用于参照以决定是否过滤的阈值。
 #ifdef NDEBUG
 	Level FilterLevel = Descriptions::Informative;
 #else
@@ -111,7 +112,7 @@ private:
 	//! \invariant \c bool(Sender) 。
 	Sender sender{FetchDefaultSender()};
 	/*!
-	\brief 日志记录锁。
+	\brief 日志记录互斥量。
 	\since build 551
 
 	仅 DoLog 和 DoLogException 在发送日志时使用的锁。
@@ -128,10 +129,10 @@ public:
 	\note 由 std::function 的构造模板提供的保证确保无其它异常抛出。
 	*/
 	DefDeCtor(Logger)
-	//! \brief 复制构造：复制过滤器和发送器，使用新创建的锁。
+	//! \brief 复制构造：复制过滤等级、过滤器和发送器，使用新创建的互斥量。
 	Logger(const Logger&);
 	/*!
-	\brief 转移构造：转移过滤器和发送器，使用新创建的锁。
+	\brief 转移构造：转移过滤等级、转移过滤器和发送器，使用新创建的互斥量。
 	\post 被转移的日志对象具有默认的过滤器和发送器。
 	\see LWG 2062 。
 	*/
@@ -260,6 +261,13 @@ public:
 	static YB_NONNULL(1, 4) void
 	SendLogToFile(std::FILE*, Level, Logger&, const char*) ynothrowv;
 	//@}
+
+	/*!
+	\brief 交换：交换所有互斥量以外的数据成员。
+	\since build 804
+	*/
+	YF_API friend void
+	swap(Logger&, Logger&) ynothrow;
 };
 
 

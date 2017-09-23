@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3500
+\version r3523
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-09-11 09:48 +0800
+	2017-09-11 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1033,7 +1033,7 @@ BindParameter(ContextNode&, const TermNode&, TermNode&);
 
 进行匹配的算法递归搜索形式参数及其子项。
 若匹配成功，调用参数指定的匹配处理器。
-处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配 . 起始的项和非列表项。
+处理器为参数列表结尾的结尾序列处理器和值处理器，分别匹配以 . 起始的项和非列表项。
 结尾序列处理器传入的字符串参数表示需绑定的表示结尾序列的列表标识符。
 匹配要求如下：
 若项是非空列表，则操作数的对应的项应为满足确定子项数的列表：
@@ -1522,20 +1522,42 @@ cons <object> <list>
 YF_API ReductionStatus
 Cons(TermNode&);
 
-//! \since build 748
-//@{
 /*!
-\brief 比较两个子项的值相等。
+\brief 比较两个子项表示的值引用相同的对象。
 \sa YSLib::HoldSame
+\since build 804
 
 参考调用文法：
 eq? <object1> <object2>
 */
 YF_API void
-EqualReference(TermNode&);
+Equal(TermNode&);
 
 /*!
 \brief 比较两个子项的值相等。
+\sa YSLib::ValueObject
+\since build 804
+
+参考调用文法：
+eql? <object1> <object2>
+*/
+YF_API void
+EqualLeaf(TermNode&);
+
+//! \since build 748
+//@{
+/*!
+\brief 比较两个子项的值引用相同的对象。
+\sa YSLib::HoldSame
+
+参考调用文法：
+eqr? <object1> <object2>
+*/
+YF_API void
+EqualReference(TermNode&);
+
+/*!
+\brief 比较两个子项表示的值相等。
 \sa YSLib::ValueObject
 
 参考调用文法：

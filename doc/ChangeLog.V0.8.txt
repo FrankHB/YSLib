@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r522
+\version r663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-09-12 09:34 +0800
+	2017-09-23 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,135 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					+ "functions %(Equal, EqualLeaf)",
+					/ "extended %EqualValue of list comparison for object \
+						language"
+				),
+				/ DLDI "simplified" ^ '<const TermReference>'
+					~ "%ystdex::as_const" $effective
+					"functions %Forms::(Cons, Eval)"
+			),
+			/ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+			(
+				/ DLDI @ "loading forms" $=
+				(
+					* $comp "applicative 'eqv?' always resulted in #t for lists"
+						$since b789 $dep_from ("%Forms::EqualValue" @ %NPLA1),
+					(
+					+ "applicative 'eql'?" $dep_from
+						("%Forms::EqualLeaf" @ %NPLA1);
+					/ DLDI "applicative 'not?'" ^ 'eql?' ~ 'eqv?'
+						// This is efficient as before.
+					),
+					+ "applicative 'eq?'" $dep_from ("%Forms::Equal" @ %NPLA1),
+					+ "applicative 'eqr?'"
+				)
+			),
+			/ %NPLA $=
+			(
+				/ DLDI "explicitly qualified 'const'" ^ '<const TermReference>'
+					$effective "functions %(ReferenceTerm#1, LiftTermOrRef, \
+					LiftTermRefToSelf, LiftToReference)",
+				(
+				/ "avoided special handling for %TokenValue"
+					@ "lifting routines" $=
+				(
+				/ "functions %LiftTermRef#(1, 2)" ^ "%ValueObject"
+					~ "%LiftTermObject";
+				/ $comp "all type of values are treated the same"
+				);
+				- "function %LiftTermObject"
+				),
+				/ @ "class %ContextNode" $=
+				(
+					+ DLDI "brace-initializer '{}'" @ "data member %Trace",
+					+ "copying %Trace" @ "copy constructor" $dep_from
+						%YFramework.YCLib.Debug,
+					(
+					* "missing swapping of %Trace" @ "function %swap" $since
+						b803 ^ $dep_from ("%swap" @ %YCLib.Debug);
+					* $comp "missing moving of %Trace" @ "move constructor"
+						$since b803
+					)
+				)
+			)
+		),
+		* "deleted move constructor" @ "class %SharedInputMappedFileStream"
+			@ %YSLib.Service.File $since b724 $=
+		(
+			(
+			/ $impl ^ "%SharedIndirectLock" ~ "%SharedIndirectLockGuard";
+			/ $forced DLDI "constructor with 1 parameter",
+			),
+			+ "move constructor"
+				// Implicit one would still does not work for %std::basic_ios. \
+					It is still not necessary to initialize the base \
+					%std::basic_ios instance explicitly for semantic reasons.
+		),
+		/ @ "class %Logger" $=
+		(
+			* "missing copying %FilterLevel" @ "(copy, move) constructors"
+				@ %YCLib.Debug $since b803,
+			(
+			+ "friend function %swap";
+			/ DLDI "simplified move constructor" ^ "%swap"
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		/ "main function" @ %SHBuild.Main $=
+		(
+			/ @ "command 'RunNPLFile'" $=
+			(
+				+ "shared input stream support" ^ "%SharedInputMappedFileStream"
+					~ "%ifstream",
+				+ "support for ignoring UTF BOM" $dep_from
+					%YFramework.YSLib.Service.File
+			)
+			* "unexpected NPLA1 tracing messages" @ "running command 'RunNPL' \
+				or 'RunNPLFile'" @ "stage 1 execution" $since b803 $dep_from
+				("copy constructor %ContextNode" @ %YFramework.NPL.NPLA)
+				// See $2017-09 @ %Documentation::Workflow::Annual2017.
+				$= (/ $impl "setting filter level to %Informative" ~ "%Debug")
+		),
+		/ %Scripts $=
+		(
+			/ @ "%(SHBuild-YSLib-common.txt, SHBuild-YSLib-build.txt)" $=
+			(
+				/ $lib $design "normalized *.txt with CR+LF EOL",
+				/ "saved *.txt as UTF-8 + BOM" $dep_from %SHBuild.Main
+			),
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				* "operatives ('$assert-nonempty', '$set-system-var!')"
+					$orig (@ "%SHBuild-common-toolchain.sh" $since b795),
+				* "operative '$env-de!'"
+					$orig (@ "%SHBuild-common-toolchain.sh" $since b791)
+			)
+		),
+		* $comp "failed 1st stage boostraping caused by exception raised by \
+			mismatched type of unevaluated symbols" $since b803 $dep_from
+			(('$assert-nonempt', '$set-system-var!', '$env-de!')
+			@ "%SHBuild-YSLib-common.txt" @ %Scripts)
+			// Mangled type names \
+				'N6ystdex14derived_entityINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEJN3NPL7NPLATagEEEE' \
+				and 'NSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE' are \
+				shown in exception message (of %ystdex::bad_any_cast) in case \
+				using libstdc++.
+	)
+),
+
+b803
 (
 	/ %YFramework $=
 	(
@@ -87,11 +216,18 @@ $now
 						@ %NPLA) ~ "%YTraceDe",
 					/ "all non boolean condition treated as #t"
 						@ "function %If",
-					* "function %Eval always convert lvalue operands to \
-						rvalues recursively" $since b800
+					/ "%function %Eval" $=
+					(
+						/ $impl ^ "%AccessPtr" ~ "%LiftToOther";
+						* "unexpected recursive evluations on symbol terms"
+							$since b772;
+							// The fix would break some code which wrongly \
+								assumed it to work.
+						* $comp "always convert lvalue operands to \
+							rvalues recursively" $since b800,
 						// The fix also reduces performance penalty on deep \
 							tree transformation of the operand.
-						$= (/ $impl ^ "%AccessPtr" ~ "%LiftToOther"),
+					),
 					/ DLDI "simplified functions %(Vau, VauWithEnvironment)"
 						^ "%ReferenceTerm" ~ "%LiftToSelf",
 					/ "operands handling"
@@ -111,7 +247,7 @@ $now
 				/ DLDI @ "loading forms" $=
 				(
 					+ $doc "guarantee of no evaluation of bodies"
-						@ "operatives '$vau', '$vaue', '$lambda', '$lambdae'";
+						@ "operatives ('$vau', '$vaue', '$lambda', '$lambdae')";
 					/ "simplified alternative derivation"
 						@ "operative '$sequence'" ^ '$set!' ~ '$setrec!',
 					/ "simplified operatives ('$defl!', '$defw!')" ^ '$defv!'
@@ -168,7 +304,7 @@ b802
 						^ "%ReduceCheckedClosure" ~ "%CheckNorm",
 					* "unsafe evaluation" @ "function %Eval"
 						$since b772 ^ "%ReduceCheckedClosure" ~ "%Reduce"
-						// $2017-09 @ %Documentation::Workflow::Annual2017.
+						// See $2017-09 @ %Documentation::Workflow::Annual2017.
 				),
 				/ $lib "supported external contexts" @ "class %REPLContext" $=
 				(
@@ -250,7 +386,7 @@ b801
 					* "partition initialzation faliure on verifying FAT \
 						partition when the 0 sector is not ready and the \
 						master partition is valid and readable" $since b611
-						// $2017-08 @ %Documentation::Workflow::Annual2017.
+						// See $2017-08 @ %Documentation::Workflow::Annual2017.
 				),
 				/ $lib $design "asserting string" @ "function %CreateFSInfo",
 			)

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2434
+\version r2455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-09-12 09:12 +0800
+	2017-09-22 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -877,22 +877,8 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
 	ImplExpr(LiftTerm(term.Value, vo))
 //@}
 
-//! \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
-//@{
 /*!
-\brief 提升项对象。
-\return 参数指定的值或持有值的间接值。
-\sa ValueObject::MakeIndirect
-\since build 799
-
-根据指定参数中宿主值的类型设置用于作为项中的 Value 数据成员的值：
-若宿主值为 TokenValue 类型，则结果为对象自身；
-否则，结果为持有宿主值对象的间接值。
-*/
-YF_API ValueObject
-LiftTermObject(const ValueObject&);
-
-/*!
+\warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
 \since build 800
 \todo 支持消亡值和复制。
 */
@@ -927,14 +913,15 @@ LiftTermRefToSelf(TermNode&);
 
 /*!
 \brief 提升项引用：使用第二个参数指定的项的内容引用替换第一个项的内容。
+\sa ValueObject::MakeIndirect
 \since build 747
 */
 //@{
 //! \since build 799
 inline PDefH(void, LiftTermRef, TermNode& term, const TermNode& tm)
-	ImplExpr(YSLib::SetContentWith(term, tm, LiftTermObject))
+	ImplExpr(YSLib::SetContentWith(term, tm, &ValueObject::MakeIndirect))
 inline PDefH(void, LiftTermRef, ValueObject& term_v, const ValueObject& vo)
-	ImplExpr(term_v = LiftTermObject(vo))
+	ImplExpr(term_v = vo.MakeIndirect())
 inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 	ImplExpr(LiftTermRef(term.Value, vo))
 //@}
@@ -966,7 +953,6 @@ LiftToSelf(TermNode&);
 */
 YF_API void
 LiftToOther(TermNode&, TermNode&);
-//@}
 //@}
 
 /*!
@@ -1303,14 +1289,15 @@ public:
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
 	/*!
-	\brief 上下文追踪日志。
+	\brief 上下文日志追踪。
 	\since build 803
 	*/
-	YSLib::Logger Trace;
+	YSLib::Logger Trace{};
 
 	DefDeCtor(ContextNode)
 	/*!
 	\throw std::invalid_argument 参数指针为空。
+	\note 遍和日志追踪对象被复制。
 	\since build 788
 	*/
 	ContextNode(const ContextNode&, shared_ptr<Environment>&&);
@@ -1339,7 +1326,8 @@ public:
 	friend PDefH(void, swap, ContextNode& x, ContextNode& y) ynothrow
 		ImplExpr(swap(x.p_record, y.p_record), swap(x.EvaluateLeaf,
 			y.EvaluateLeaf), swap(x.EvaluateList, y.EvaluateList),
-			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard))
+			swap(x.EvaluateLiteral, y.EvaluateLiteral), swap(x.Guard, y.Guard),
+			swap(x.Trace, y.Trace))
 	//@}
 };
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4728
+\version r4772
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-09-12 09:07 +0800
+	2017-09-21 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,19 +200,38 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 	return ReductionStatus::Clean;
 }
 
-//! \since build 748
-template<typename _func>
+//! \since build 804
+//@{
+template<typename _fComp, typename _func>
 void
-EqualTerm(TermNode& term, _func f)
+EqualTerm(TermNode& term, _fComp f, _func g)
 {
 	Forms::RetainN(term, 2);
 
 	auto i(term.begin());
 	const auto& x(Deref(++i));
 
-	term.Value = f(ReferenceTerm(x).Value,
-		ReferenceTerm(ystdex::as_const(Deref(++i))).Value);
+	term.Value = f(g(x), g(ystdex::as_const(Deref(++i))));
 }
+
+template<typename _func>
+void
+EqualTermValue(TermNode& term, _func f)
+{
+	EqualTerm(term, f, [](const TermNode& node) -> const ValueObject&{
+		return ReferenceTerm(node).Value;
+	});
+}
+
+template<typename _func>
+void
+EqualTermReference(TermNode& term, _func f)
+{
+	EqualTerm(term, f, [](const TermNode& node) -> const TermNode&{
+		return ReferenceTerm(node);
+	});
+}
+//@}
 
 
 //! \since build 782
@@ -1032,6 +1051,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 					MakeIndex(con), b.Value.MakeMoveCopy());
 #else
 				// XXX: Moved. This is copy elision in object language.
+				// NOTE: This is not supported since it should be moved instead.
 				con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
 					std::move(b.Value));
 #endif
@@ -1050,6 +1070,7 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 			// NOTE: The symbol can be rebound.
 			// FIXME: Correct key of node when not bound?
 			// XXX: Moved. This is copy elision in object language.
+			// NOTE: This is not supported since it should be moved instead.
 			m[n].SetContent(std::move(b.GetContainerRef()), std::move(b.Value));
 #endif
 		});
@@ -1289,7 +1310,7 @@ Cons(TermNode& term)
 	});
 
 	// TODO: Simplify?
-	if(const auto p = AccessPtr<TermReference>(ystdex::as_const(Deref(i))))
+	if(const auto p = AccessPtr<const TermReference>(Deref(i)))
 	{
 		if(IsList(*p))
 		{
@@ -1314,15 +1335,35 @@ Cons(TermNode& term)
 }
 
 void
+Equal(TermNode& term)
+{
+	EqualTermReference(term, [](const TermNode& x, const TermNode& y){
+		const bool lx(IsLeaf(x)), ly(IsLeaf(y));
+
+		return lx && ly ? YSLib::HoldSame(x.Value, y.Value) : &x == &y;
+	});
+}
+
+void
+EqualLeaf(TermNode& term)
+{
+	EqualTermValue(term, ystdex::equal_to<>());
+}
+
+void
 EqualReference(TermNode& term)
 {
-	EqualTerm(term, YSLib::HoldSame);
+	EqualTermValue(term, YSLib::HoldSame);
 }
 
 void
 EqualValue(TermNode& term)
 {
-	EqualTerm(term, ystdex::equal_to<>());
+	EqualTermReference(term, [](const TermNode& x, const TermNode& y){
+		const bool lx(IsLeaf(x)), ly(IsLeaf(y));
+
+		return lx && ly ? x.Value == y.Value : &x == &y;
+	});
 }
 
 ReductionStatus
@@ -1335,7 +1376,7 @@ Eval(TermNode& term, ContextNode& ctx)
 	ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i))).first);
 	auto& closure(Deref(i));
 
-	if(const auto p = AccessPtr<TermReference>(ystdex::as_const(closure)))
+	if(const auto p = AccessPtr<const TermReference>(closure))
 		return ReduceCheckedClosure(term, c, {}, *p);
 	return ReduceCheckedClosure(term, c, true, closure);
 }

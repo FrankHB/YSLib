@@ -1,4 +1,4 @@
-"#", "(C) 2014-2017 FrankHB.",
+﻿"#", "(C) 2014-2017 FrankHB.",
 "NPLA1 script as common library.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -15,14 +15,15 @@ $defv! $set-if-empty! (var .vexpr) env $if (string-empty? (eval var env))
 	(eval (list $set! env var vexpr) env);
 $defv! $env-de! (var .vexpr) env
 	$let ((t env-get (symbol->string var)))
-		eval (list $def! var ($if (string-empty? t) (list vexpr) t)) env;
-$defv! $set-system-var! (var cmd) env $unless ($binds1? env var)
-	($let ((res system-get (eval cmd env))) $if (eqv? (first (rest (res))) 0)
-		(eval (list $set! env var (list first (list system-get cmd))) env)
+		eval (list $def! var
+			($if (string-empty? t) (list (unwrap eval) vexpr env) t)) env;
+$defv! $set-system-var! (var arg) env $unless (eval (list $binds1? env var) env)
+	($let* ((cmd eval arg env) ((rstr code .) system-get cmd)) $if (eqv? code 0)
+		(eval (list $def! var rstr) env)
 		(SHBuild_RaiseError_ (cmd-error-msg_ cmd)));
 $defv! $assert-nonempty (var) env $unless
 	($and? (eval (list $binds1? env var) env)
-		(not? (string-empty? (eval (list var) env))))
+		(not? (string-empty? (eval var env))))
 	(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
 		(symbol->string var)) " should not be empty."));
 $defl! cons-cmd (.xs) apply ++ (map1 ($lambda (s) ++ s " ") xs);
@@ -183,5 +184,6 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic ignore do-build)
 	echo-var "LDFLAGS";
 	echo-var "SHBOPT";
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
+
 );
 

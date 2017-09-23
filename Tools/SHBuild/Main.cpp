@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3589
+\version r3618
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-06-27 15:39 +0800
+	2017-09-22 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,18 +29,23 @@ See readme file for details.
 
 
 #include <YSBuild.h>
-#include YFM_YSLib_Core_YStorage // for YSLib::FetchStaticRef,
-//	ystdex::raise_exception;
-#include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;
-#include YFM_YSLib_Service_FileSystem
+#include YFM_YSLib_Service_FileSystem // for namespace YSLib,
+//	namespace YSLib::IO, namespace std::placeholders;
+#include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal,
+//	platform_ex::EncodeArg, platform_ex::DecodeArg,
+//	platform_ex::SetEnvironmentVariable;
+#include YFM_YSLib_Service_YTimer // for namespace std::chrono,
+//	YSLib::Timers::FetchElapsed;
 #include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
+#include YFM_YSLib_Core_YStorage // for ystdex::raise_exception,
+//	YSLib::FetchStaticRef;
 #include YFM_NPL_Dependency // for NPL::DepsEventType,
 //	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
 //	NPL::Install*;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
-#include YFM_YCLib_Host // for platform_ex::EncodeArg, platform_ex::DecodeArg,
-//	platform_ex::Terminal, platform_ex::SetEnvironmentVariable;
+#include YFM_YSLib_Service_TextFile // for YSLib::SharedInputMappedFileStream,
+//	YSLib::Text::CheckBOM;
 
 using namespace YSLib;
 using namespace IO;
@@ -337,6 +342,20 @@ CheckedLoad(const char* name, std::istream& is, NPL::A1::REPLContext& context)
 //! \since build 797
 ArgumentsVector CommandArguments;
 
+//! \since build 804
+YB_NONNULL(1) SharedInputMappedFileStream
+OpenNPLStream(const char* src)
+{
+	SharedInputMappedFileStream sifs(src);
+
+	if(sifs && !Text::CheckBOM(sifs, Text::BOM_UTF_8))
+	{
+		sifs.clear();
+		sifs.seekg(0);
+	}
+	return sifs;
+}
+
 //! \since build 796
 YB_NONNULL(1) void
 RunNPLFromStream(const char* name, std::istream&& is)
@@ -347,6 +366,9 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	REPLContext context;
 	auto& root(context.Root);
 
+	// NOTE: Force filter level to avoid uninterested NPLA messages. This is
+	//	necessary at least in stage 1.
+	root.Trace.FilterLevel = Logger::Level::Informative;
 	LoadNPLContextForSHBuild(context);
 	RegisterStrictBinary<const string>(root, "env-set",
 		[&](const string& var, const string& val){
@@ -370,9 +392,9 @@ RunNPLFromStream(const char* name, std::istream&& is)
 		return ReductionStatus::Retained;
 	});
 	RegisterStrictUnary<const string>(root, "load", [&](const string& src){
-		platform::ifstream ifs(src, std::ios_base::in);
+		auto sifs(OpenNPLStream(src.c_str()));
 
-		CheckedLoad(src.c_str(), ifs, context);
+		CheckedLoad(src.c_str(), sifs, context);
 	});
 	// XXX: Overriding.
 	root.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
@@ -937,7 +959,7 @@ main(int argc, char* argv[])
 								std::istringstream(arg0));
 						else
 							RunNPLFromStream(arg0.c_str(),
-								ifstream{arg0, std::ios_base::in});
+								OpenNPLStream(arg0.c_str()));
 					}
 					else
 						throw std::runtime_error(sfmt("Specified command name"
