@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1340
+\version r1353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-09-12 09:12 +0800
+	2017-09-23 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -412,7 +412,7 @@ ReferenceTerm(TermNode& term)
 	return ystdex::call_value_or(
 		[&](const TermReference& term_ref) ynothrow -> TermNode&{
 		return term_ref.get();
-	}, AccessPtr<TermReference>(term), term);
+	}, AccessPtr<const TermReference>(term), term);
 }
 const TermNode&
 ReferenceTerm(const TermNode& term)
@@ -447,18 +447,10 @@ LiftTerm(TermNode& term, TermNode& tm)
 	term.SetContent(std::move(t), std::move(tm.Value));
 }
 
-ValueObject
-LiftTermObject(const ValueObject& vo)
-{
-	if(vo.type() == ystdex::type_id<TokenValue>())
-		return vo;
-	return vo.MakeIndirect();
-}
-
 void
 LiftTermOrRef(TermNode& term, TermNode& tm)
 {
-	if(const auto p = AccessPtr<TermReference>(tm))
+	if(const auto p = AccessPtr<const TermReference>(tm))
 		LiftTermRef(term, p->get());
 	else
 		LiftTerm(term, tm);
@@ -467,7 +459,7 @@ LiftTermOrRef(TermNode& term, TermNode& tm)
 void
 LiftTermRefToSelf(TermNode& term)
 {
-	if(const auto p = AccessPtr<TermReference>(term))
+	if(const auto p = AccessPtr<const TermReference>(term))
 		LiftTermRef(term, p->get());
 }
 
@@ -476,7 +468,7 @@ LiftToReference(TermNode& term, TermNode& tm)
 {
 	if(tm)
 	{
-		if(const auto p = AccessPtr<TermReference>(tm))
+		if(const auto p = AccessPtr<const TermReference>(tm))
 			LiftTermRef(term, p->get());
 		else if(!tm.Value.OwnsUnique())
 			LiftTerm(term, tm);
@@ -670,12 +662,12 @@ ContextNode::ContextNode(const ContextNode& ctx,
 			"Invalid environment record pointer found.");
 	}()),
 	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
-	EvaluateLiteral(ctx.EvaluateLiteral)
+	EvaluateLiteral(ctx.EvaluateLiteral), Trace(ctx.Trace)
 {}
 ContextNode::ContextNode(ContextNode&& ctx)
 	: ContextNode()
 {
-	swap(*this, ctx);
+	swap(ctx, *this);
 }
 
 } // namespace NPL;

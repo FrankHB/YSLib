@@ -1,8 +1,8 @@
-"#", "(C) 2014-2017 FrankHB.",
+﻿"#", "(C) 2014-2017 FrankHB.",
 "NPLA1 script for build YSLib using SHBuild.";
 
-"XXX:", "'SHBuild_2*' depend on 'cygpath' optionally.";
-"XXX:", "'SHBuild_CheckUName_*' depend on 'uname'";
+"XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
+"XXX", "'SHBuild_CheckUName_*' depend on 'uname'";
 
 load (env-get "SHBuild_Common");
 

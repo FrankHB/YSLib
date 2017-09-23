@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r979
+\version r984
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-09-10 14:57 +0800
+	2017-09-17 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,6 +313,9 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	There are some difference of listed primitives.
 	See $2017-02 @ %Documentation::Workflow::Annual2017.
 */
+	RegisterStrict(root, "eq?", Equal);
+	RegisterStrict(root, "eql?", EqualLeaf);
+	RegisterStrict(root, "eqr?", EqualReference);
 	RegisterStrict(root, "eqv?", EqualValue);
 	// NOTE: Like Scheme but not Kernel, '$if' treats non-boolean value as
 	//	'#f', for zero overhead principle.
@@ -424,9 +427,9 @@ LoadNPLContextForSHBuild(REPLContext& context)
 					(apply (wrap $cond) clauses env))
 			($if (null? clauses) inert (apply aux clauses));
 	)NPL");
-	// NOTE: Use of 'eqv?' is more efficient than '$if'.
+	// NOTE: Use of 'eql?' is more efficient than '$if'.
 	context.Perform(u8R"NPL(
-		$defl! not? (x) eqv? x #f;
+		$defl! not? (x) eql? x #f;
 		$defv! $when (test .vexpr) env $if (eval test env)
 			(eval (list* $sequence vexpr) env);
 		$defv! $unless (test .vexpr) env $if (not? (eval test env))

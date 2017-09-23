@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r821
+\version r843
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2017-09-08 12:39 +0800
+	2017-09-23 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,22 +117,13 @@ Echo(string_view sv) ynoexcept(YF_Platform == YF_Platform_DS)
 
 
 Logger::Logger(const Logger& logger)
-	: filter(logger.filter), sender(logger.sender)
+	: FilterLevel(logger.FilterLevel), filter(logger.filter),
+	sender(logger.sender)
 {}
 Logger::Logger(Logger&& logger) ynothrow
 	: Logger()
 {
-	// TODO: Wait for C++17.
-	// XXX: See discussion in LWG 2062.
-#if !__GLIBCXX__
-	ynoexcept_assert("Unsupported luanguage implementation found.",
-		filter.swap(logger.filter));
-	ynoexcept_assert("Unsupported luanguage implementation found.",
-		sender.swap(logger.sender));
-#endif
-
-	filter.swap(logger.filter);
-	sender.swap(logger.sender);
+	swap(logger, *this);
 }
 
 void
@@ -275,6 +266,23 @@ Logger::SendLogToFile(std::FILE* stream, Level lv, Logger&, const char* str)
 #endif
 		std::fprintf(stream, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
 	std::fflush(stream);
+}
+
+void
+swap(Logger& x, Logger& y) ynothrow
+{
+	// TODO: Wait for C++17.
+	// XXX: See discussion in LWG 2062.
+#if !__GLIBCXX__
+	ynoexcept_assert("Unsupported luanguage implementation found.",
+		x.filter.swap(y.filter));
+	ynoexcept_assert("Unsupported luanguage implementation found.",
+		x.sender.swap(y.sender));
+#endif
+
+	std::swap(x.FilterLevel, y.FilterLevel);
+	x.filter.swap(y.filter);
+	x.sender.swap(y.sender);
 }
 
 
