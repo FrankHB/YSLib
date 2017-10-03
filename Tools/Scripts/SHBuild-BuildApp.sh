@@ -59,8 +59,6 @@ if [[ "$SHBuild_Conf" =~ .*static ]]; then
 	SHBuild_Puts Static mode turned on by configuration.
 	SHBuild_Static=$SHBuild_Conf
 fi
-export SHBuild_Debug
-export SHBuild_Static
 
 SHBuild_Dest="$SHBuild_BuildPrefix.$SHBuild_Conf"
 SHBOPT="-xd,$SHBuild_Dest -xid,include -xmode,2 $@"
@@ -79,7 +77,7 @@ if [[ "$SHBuild_Debug" != '' ]]; then
 	unset CXXFLAGS
 	LDFLAGS_OPT_DBG=' '
 	. $SHBuild_Bin/SHBuild-common-options.sh
-	export SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
+	SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
 else
 	SHBuild_Puts Use release configuration $SHBuild_Conf.
 	unset CXXFLAGS_OPT_DBG
@@ -92,7 +90,7 @@ else
 		LDFLAGS="$LDFLAGS -mwindows"
 		SHBuild_Puts Added \"-mwindows\" to LDFLAGS.
 	fi
-	export SHBuild_YSLib_LibNames='-lYFramework -lYBase'
+	SHBuild_YSLib_LibNames='-lYFramework -lYBase'
 fi
 export LDFLAGS
 
@@ -115,13 +113,13 @@ fi
 LIBS="$LIBS_RPATH -L\"`SHBuild_2w "$SHBuild_Bin/../lib"`\""
 
 if [[ "$SHBuild_Static" == '' ]]; then
-	export SHBuild_YSLib_Flags="-DYF_DLL -DYB_DLL \
+	SHBuild_YSLib_Flags="-DYF_DLL -DYB_DLL \
 		$SHBuild_YF_CFlags_freetype -I\"$SHBuild_Bin/../include\""
 	export LIBS="$LIBS $SHBuild_YSLib_LibNames"
 else
-	export SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \
+	SHBuild_YSLib_Flags="$SHBuild_YF_CFlags_freetype \
 		-I\"$SHBuild_Bin/../include\""
-	export SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
+	SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
 		-lFreeImage $SHBuild_YF_Libs_freetype -L/usr/lib $SHBuild_YF_SystemLibs"
 	export LIBS="$LIBS -Wl,-dn $SHBuild_YSLib_LibNames"
 fi

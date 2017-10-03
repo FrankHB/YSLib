@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3190
+\version r3222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-07-30 02:46 +0800
+	2017-09-28 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,7 @@ yconstexpr const struct NoContainerTag{} NoContainer{};
 \brief 值类型节点。
 \warning 非虚析构。
 \warning 作为子节点时应保证修改操作不影响键（名称）的等价性，否则访问容器行为未定义。
+\warning 若操作引入循环引用，可能造成资源泄漏，且不保证容器行为满足 C++ 容器要求。
 \since build 330
 
 包含名称字符串和值类型对象的对象节点。
@@ -85,12 +86,17 @@ public:
 
 	DefDeCtor(ValueNode)
 	/*!
-	\brief 构造：使用容器对象。
-	\since build 502
+	\brief 构造：使用容器对象引用。
+	\since build 805
 	*/
-	ValueNode(Container con)
+	//@{
+	ValueNode(const Container& con)
+		: container(con)
+	{}
+	ValueNode(Container&& con)
 		: container(std::move(con))
 	{}
+	//@}
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
 	\note 不使用容器。
@@ -102,14 +108,21 @@ public:
 		: name(yforward(str)), Value(yforward(args)...)
 	{}
 	/*!
-	\brief 构造：使用容器对象、字符串引用和值类型对象构造参数。
-	\since build 502
+	\brief 构造：使用容器对象引用、字符串引用和值类型对象构造参数。
+	\since build 805
 	*/
+	//@{
 	template<typename _tString, typename... _tParams>
-	ValueNode(Container con, _tString&& str, _tParams&&... args)
+	ValueNode(const Container& con, _tString&& str, _tParams&&... args)
+		: name(yforward(str)), container(con),
+		Value(yforward(args)...)
+	{}
+	template<typename _tString, typename... _tParams>
+	ValueNode(Container&& con, _tString&& str, _tParams&&... args)
 		: name(yforward(str)), container(std::move(con)),
 		Value(yforward(args)...)
 	{}
+	//@}
 	/*!
 	\brief 构造：使用输入迭代器对。
 	\since build 337
@@ -162,6 +175,10 @@ public:
 	//! \brief 复制赋值：使用复制和交换。
 	PDefHOp(ValueNode&, =, const ValueNode& node)
 		ImplRet(ystdex::copy_and_swap(*this, node))
+	/*!
+	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
+	\warning 违反前置条件的转移可能引起循环引用。
+	*/
 	DefDeMoveAssignment(ValueNode)
 	//@}
 
@@ -287,8 +304,8 @@ public:
 	DefGetter(const ynothrow, const string&, Name, name)
 
 	/*!
-	\warning 设置子节点的容器可能导致未定义行为。
-	\warning 被转移的内容不应被覆盖，否则行为未定义。
+	\pre 被转移的参数不是被子节点容器直接或间接所有的其它节点。
+	\warning 违反前置条件的转移可能引起循环引用。
 	*/
 	//@{
 	/*!
@@ -584,7 +601,7 @@ public:
 		return res;
 	}
 
-	//! \warning 不检查容器之间的所有权，保持循环引用状态析构引起未定义行为。
+	//! \warning 不检查容器之间的所有权关系，可能引起循环引用。
 	//@{
 	//! \brief 交换容器。
 	PDefH(void, SwapContainer, ValueNode& node) ynothrow
@@ -720,7 +737,7 @@ public:
 //@{
 /*!
 \brief 访问节点的指定类型对象。
-\exception std::bad_cast 空实例或类型检查失败 。
+\exception std::bad_cast 空实例或类型检查失败。
 */
 //@{
 template<typename _type>
@@ -869,7 +886,7 @@ AccessNode(const ValueNode& node, const _tKey& name)
 }
 //! \since build 670
 //@{
-//! \note 使用 ADL \c AccessNode 。
+//! \note 使用 ADL AccessNode 。
 template<class _tNode, typename _tIn>
 _tNode&&
 AccessNode(_tNode&& node, _tIn first, _tIn last)
@@ -879,7 +896,7 @@ AccessNode(_tNode&& node, _tIn first, _tIn last)
 		return ystdex::ref(AccessNode(nd, c));
 	});
 }
-//! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
+//! \note 使用 ADL begin 和 end 指定范围迭代器。
 template<class _tNode, typename _tRange,
 	yimpl(typename = typename ystdex::enable_if_t<
 	!std::is_constructible<const string&, const _tRange&>::value>)>
@@ -966,7 +983,7 @@ AccessNodePtr(const ValueNode& node, const _tKey& name)
 }
 //! \since build 670
 //@{
-//! \note 使用 ADL \c AccessNodePtr 。
+//! \note 使用 ADL AccessNodePtr 。
 template<class _tNode, typename _tIn>
 auto
 AccessNodePtr(_tNode&& node, _tIn first, _tIn last)
@@ -978,7 +995,7 @@ AccessNodePtr(_tNode&& node, _tIn first, _tIn last)
 		p = AccessNodePtr(*p, *first);
 	return first;
 }
-//! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
+//! \note 使用 ADL begin 和 end 指定范围迭代器。
 template<class _tNode, typename _tRange,
 	yimpl(typename = typename ystdex::enable_if_t<
 	!std::is_constructible<const string&, const _tRange&>::value>)>
@@ -1001,7 +1018,7 @@ AccessNodePtr(_tNode&& node, const _tRange& c)
 //@{
 /*!
 \brief 访问子节点的指定类型对象。
-\note 使用 ADL \c AccessNode 。
+\note 使用 ADL AccessNode 。
 */
 //@{
 template<typename _type, typename... _tParams>

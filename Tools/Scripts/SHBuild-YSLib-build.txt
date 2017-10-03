@@ -6,7 +6,6 @@
 
 load (env-get "SHBuild_Common");
 
-$env-de! AR "gcc-ar";
 $def! YSLib_BuildDir env-get "YSLib_BuildDir";
 $assert-nonempty YSLib_BuildDir;
 SHBuild_EnsureDirectory_ YSLib_BuildDir;
@@ -53,14 +52,14 @@ $defl! skip-or-build (nskip dynamic) $let
 			"INCLUDES_YFramework" "LIBS_YFramework");
 		$let
 		(
-			(shbuild env-get "SHBuild")
+			(shbuild env-get (system-quote "SHBuild"))
 			(outdir ++ ".shbuild" ($if dynamic "-dll" "")
 				($if debug "-debug" ""))
 		)
 		(
 			putss "Building " lname " ...";
 			build-with-conf-opt outdir env-os debug dynamic
-				"-xid,alternative -xid,data -xid,include -xid,Android"
+				"-xid,alternative -xid,data -xid,include -xid,Android" #f
 				($lambda (CXX CXXFLAGS SHBOPT LIBPFX)
 				(
 					$if (env-empty? "SHBuild_NoPCH")

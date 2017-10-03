@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3618
+\version r3642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-09-22 23:07 +0800
+	2017-09-25 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -330,30 +330,15 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 }
 //@}
 
-//! \since build 796
-YB_NONNULL(1) void
-CheckedLoad(const char* name, std::istream& is, NPL::A1::REPLContext& context)
-{
-	TryExpr(context.LoadFrom(is))
-	CatchExpr(..., std::throw_with_nested(NPL::NPLException(
-		ystdex::sfmt("Failed loading external unit '%s'.", name))));
-}
-
 //! \since build 797
 ArgumentsVector CommandArguments;
 
-//! \since build 804
-YB_NONNULL(1) SharedInputMappedFileStream
+//! \since build 805
+YB_NONNULL(1) unique_ptr<SharedInputMappedFileStream>
 OpenNPLStream(const char* src)
 {
-	SharedInputMappedFileStream sifs(src);
-
-	if(sifs && !Text::CheckBOM(sifs, Text::BOM_UTF_8))
-	{
-		sifs.clear();
-		sifs.seekg(0);
-	}
-	return sifs;
+	return Text::OpenSkippedBOMtream<SharedInputMappedFileStream>(
+		Text::BOM_UTF_8, src);
 }
 
 //! \since build 796
@@ -392,9 +377,9 @@ RunNPLFromStream(const char* name, std::istream&& is)
 		return ReductionStatus::Retained;
 	});
 	RegisterStrictUnary<const string>(root, "load", [&](const string& src){
-		auto sifs(OpenNPLStream(src.c_str()));
+		auto p_sifs(OpenNPLStream(src.c_str()));
 
-		CheckedLoad(src.c_str(), sifs, context);
+		TryLoadSouce(context, src.c_str(), static_cast<std::istream&>(*p_sifs));
 	});
 	// XXX: Overriding.
 	root.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
@@ -417,7 +402,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 			}
 			std::puts("\"");
 	})), true);
-	CheckedLoad(name, is, context);
+	TryLoadSouce(context, name, is);
 }
 
 } // unnamed namespace;
@@ -896,7 +881,6 @@ main(int argc, char* argv[])
 				})))
 					args.emplace_back(std::move(arg));
 			}
-
 			if(!RequestedCommand.empty())
 			{
 				const auto sz(args.size());
@@ -958,8 +942,11 @@ main(int argc, char* argv[])
 							RunNPLFromStream("<stdin>",
 								std::istringstream(arg0));
 						else
-							RunNPLFromStream(arg0.c_str(),
-								OpenNPLStream(arg0.c_str()));
+						{
+							const auto p(OpenNPLStream(arg0.c_str()));
+
+							RunNPLFromStream(arg0.c_str(), std::move(*p));
+						}
 					}
 					else
 						throw std::runtime_error(sfmt("Specified command name"
