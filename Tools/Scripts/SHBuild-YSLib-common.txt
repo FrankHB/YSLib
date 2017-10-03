@@ -60,11 +60,9 @@ $defl! win32? (env-os) eqv? env-os "Win32";
 $defl! get-nul-dev (env-os) $if (win32? env-os) "NUL" "/dev/null";
 $defl! get-tmp-dir (env-os) $if (win32? env-os) "%TEMP%" "/tmp";
 $defl! get-tmp-nul (env-os) ++ (get-tmp-dir env-os) "/null";
-$defl! system-or-puts (env-os cmd pth)
-(
-	$def! res system-get (++ cmd " \"" pth "\" 2> " (get-nul-dev env-os));
-	$if (eqv? (first (rest res)) 0) (first res) pth
-);
+$defl! system-or-puts (env-os cmd pth) $let (((rstr code .)
+	system-get (++ cmd " \"" pth "\" 2> " (get-nul-dev env-os))))
+	$if (eqv? code 0) rstr pth;
 $defl! SHBuild_2m (env-os pth) system-or-puts env-os "cygpath -m" pth;
 $defl! SHBuild_2u (env-os pth) system-or-puts env-os "cygpath -au" pth;
 $defl! SHBuild_2w (env-os pth) system-or-puts env-os "cygpath -w" pth;
@@ -72,12 +70,12 @@ $defl! compile-ok-silent (env-os src compile opt)
 	compile-ok src compile (get-tmp-nul env-os) opt (get-nul-dev env-os);
 $defl! get-thread-option-silent (env-os cxx)
 	get-thread-option cxx (get-nul-dev env-os);
-$defl! get-SHBOPT_ (outdir ignore dynamic)
+$defl! get-SHBOPT_ (outdir shbopt-ext use-ld)
 (
-	$def! opt cons-cmd (++ "-xd," outdir) ignore;
-	$if dynamic (cons-cmd opt "-xmode,2") opt
+	$def! opt cons-cmd (++ "-xd," outdir) shbopt-ext;
+	$if use-ld (cons-cmd opt "-xmode,2") opt
 );
-$defl! build-with-conf-opt (outdir env-os debug dynamic ignore do-build)
+$defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app do-build)
 (
 	$def! CXXFLAGS_OPT_DBG
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC") "";
@@ -175,15 +173,35 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic ignore do-build)
 	$def! LDFLAGS $if debug
 		(cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_)
 		(cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_ LDFLAGS_OPT_DBG);
+	"TODO", "Allow disabling 'puts' output.";
 	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd
-		(SHBuild_TrimOptions_ LDFLAGS) ($if dynamic LDFLAGS_DYN "-Wl,--dn"));
+		(SHBuild_TrimOptions_ LDFLAGS) ($if dynamic LDFLAGS_DYN "-Wl,--dn")
+		($if ($and? app (win32? env-os)
+		(string-empty? (env-get "SHBuild_NoAdjustSubsystem")))
+		(puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows") ""));
 	env-set "LDFLAGS" LDFLAGS;
-	$def! SHBOPT get-SHBOPT_ outdir ignore dynamic;
+	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext ($or? dynamic app);
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
 	echo-var "CXXFLAGS";
 	echo-var "LDFLAGS";
 	echo-var "SHBOPT";
 	do-build CXX CXXFLAGS SHBOPT LIBPFX
-
+);
+$defl! SHBuild_EchoVar_N (var) SHBuild_EchoVar var
+	(env-get (SHBuild_SDot_ var));
+"NOTE", "Params of %SHBuild_BuildGCH:", "header = path of header to be copied",
+	"inc = path of header to be included", "cmd = tool to build header";
+$defl! SHBuild_BuildGCH (header inc cmd)
+(
+	$def! pch (++ inc ".gch");
+	$if (SHBuild_BuildGCH_existed_ pch)
+		(puts (++ "PCH file \"" pch "\" exists, skipped building."))
+		(
+			SHBuild_BuildGCH_mkpdirp_ pch;
+			puts (++ "Building precompiled file \"" pch "\" ...");
+			SHBuild_Install_HardLink inc header;
+			system (++ cmd " \"" header "\" -o" pch);
+			puts (++ "Building precompiled file \"" pch "\" done.")
+		)
 );
 

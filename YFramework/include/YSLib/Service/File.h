@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1619
+\version r1632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2017-09-23 02:44 +0800
+	2017-09-25 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,22 +92,18 @@ Unlink(const _tChar* path)
 //@{
 //! \brief 共享锁定的文件映射输入流。
 class YF_API SharedInputMappedFileStream : private MappedFile,
-	private SharedIndirectLock<const UniqueFile>, private ystdex::membuf,
+	private SharedIndirectLockGuard<const UniqueFile>, private ystdex::membuf,
 	public std::istream
 {
 public:
 	YB_NONNULL(1)
 	SharedInputMappedFileStream(const char*);
-	//! \since build 804
-	SharedInputMappedFileStream(SharedInputMappedFileStream&& sifs)
-		: MappedFile(static_cast<MappedFile&&>(sifs)),
-		SharedIndirectLock<const UniqueFile>(static_cast<
-		SharedIndirectLock<const UniqueFile>&&>(sifs)),
-		ystdex::membuf(static_cast<ystdex::membuf&&>(sifs)),
-		std::istream(static_cast<std::istream&&>(sifs))
-	{}
 
-	explicit DefCvt(const ynothrow, bool, !fail())
+	//! \since build 805
+	using basic_ios::operator!;
+
+	//! \since build 805
+	using basic_ios::operator bool;
 
 	//! \brief 虚析构：类定义外默认实现。
 	~SharedInputMappedFileStream() override;

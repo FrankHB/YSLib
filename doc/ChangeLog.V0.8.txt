@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r663
+\version r765
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-09-23 23:47 +0800
+	2017-10-03 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,109 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Service $=
+			(
+				+ "function templates %(SkipBOM; OpenSkippedBOMtream)"
+					@ %TextFile,
+				/ @ "class %SharedInputMappedFileStream" @ %File $=
+				(
+					/ $revert(b804) "reverted as nonmovable class" $=
+					(
+						- "move constructor";
+						* $comp "invalid state of lock after move"
+							@ "move constructor" $since b804,
+							// This would cause invalid reference on \
+								%UniqueFile.
+						/ "base class %SharedIndirectLock<const UniqueFile>"
+							-> "%SharedIndirectLockGuard<const UniqueFile>"
+					),
+					/ "%operator bool" -> ('using basic_ios::operator!;',
+						'using basic_ios::operator bool;'),
+					* $comp "seeking did not work" $since b724 $dep_from
+						("%basic_membuf" @ %YBase.YStandardEx.StreamBuffer)
+				)
+			),
+			/ $re_add(b774) @ "class %ValueNode" @ %Core.ValueNode $=
+			(
+				// Avoid redundant object creation like unifying assignment. \
+					Note even with WG21 P0135R1, the construction of parameter \
+					will still not be elided.
+				/ "constructor with 1 container parameter"
+					-> "2 constructors with container reference parameter"
+				/ "constructor template with container parameter as 1st \
+					parameter" -> "2 constructors template with container \
+					reference parameter as 1st parameter"
+			)
+		),
+		/ %NPL $=
+		(
+			+ "function template %TryLoadSouce" @ %NPLA1,
+			/ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+			(
+				/ DLDI @ "loading forms" $=
+				(
+					/ "applicative 'nullv?'" => 'nullrv?',
+						// To be consistent with 'eqv?' and 'eqr?'.
+					+ "applicative 'system-quote'",
+					/ "applicatives %(SHBuild_EchoVar_N, SHBuild_BuildGCH)"
+						>> ("%SHBuild-YSLib-common.txt" @ %Tools.Scripts)
+				)
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		/ %SHBuld.Main $=
+		(
+			/ $forced DLDI "simplified command 'RunNPLFile'" $dep_from
+				("move constructor %SharedInputMappedFileStream"
+				@ %YFramework.YSLib.Service.File)
+				$= (/ DLDI ^ $dep_from ("%OpenSkippedBOMtream"
+					@ %YFramework.YSLib.Service.TextFile)),
+			/ DLDI "simplified command 'RunNPL', 'RunNPLFile'" ^ $dep_from
+				("%TryLoadSouce" @ %YFramework.NPL.NPLA1)
+		),
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-YSLib-build.txt" $=
+			(
+				* DLDI "redundant %AR assignment"
+					$orig (@ "SHBuild-YSLib-common.sh" $since b795),
+				/ $forced DLDI $dep_from
+					('build-with-conf-opt' @ "%SHBuild-YSLib-common.txt"),
+				* "missing quotes for %SHBuild commond from environment \
+					%SHBuild" $orig (@ "%SHBuild-YSLib-common.sh"$since b791)
+					// This should not cause troble normally because it was \
+						mostly only used internally, although it was a real bug.
+					$= (/ $impl ^ $dep_from
+						('system-quote' %YFramework.NPL.Dependency))
+			),
+			/ @ "applicative 'build-with-conf-opt'"
+				@ "%SHBuild-YSLib-common.txt" $=
+			(
+				(
+				+ "application mode support";
+				+ "'-mwindows' and detection output" @ "%LDFLAGS"
+					@ "application mode and %SHBuild_NoAdjustSubsystem is not \
+					set" @ "platform %Win32"
+				),
+				/ DLDI "simplified applicative 'system-or-puts'"
+			),
+			- "exports %(SHBuild_YSLib_LibNames, SHBuild_YSLib_Flags, \
+				SHBuild_Debug, SHBuild_Static)" @ "%SHBuild-YSLib-BuildApp.sh"
+		)
+	),
+	* "missing protected overrider %(seekoff, seekpos)"
+		@ "class template %basic_membuf" @ %YBase.YStandardEx.StreamBuffer
+		$since b711
+),
+
+b804
 (
 	/ %YFramework $=
 	(

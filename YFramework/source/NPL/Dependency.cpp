@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r984
+\version r1010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-09-17 21:00 +0800
+	2017-10-02 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -321,7 +321,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	//	'#f', for zero overhead principle.
 	RegisterForm(root, "$if", If);
 	RegisterStrictUnary(root, "null?", ComposeReferencedTermOp(IsEmpty));
-	RegisterStrictUnary(root, "nullv?", IsEmpty);
+	RegisterStrictUnary(root, "nullpr?", IsEmpty);
 	// NOTE: Though NPLA does not use cons pairs, corresponding primitives are
 	//	still necessary.
 	// NOTE: Since NPL has no con pairs, it only added head to existed list.
@@ -557,6 +557,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			// XXX: Error from 'std::printf' is ignored.
 			std::printf("%s = \"%s\"\n", n.c_str(), val.c_str());
 	})), {});
+	RegisterStrictUnary<const string>(root, "system-quote", [](const string& w){
+		return !w.empty() ? ((CheckLiteral(w) == char() && (w.find(' ')
+			!= string::npos || w.find('\t') != string::npos))
+			|| (w.front() == '\'' || w.front() == '"' || w.back() == '\''
+			|| w.back() == '"') ? ystdex::quote(w, '"') : w) : "\"\"";
+	});
 	RegisterStrictUnary<const string>(root, "SHBuild_BuildGCH_existed_",
 		[](const string& str) -> bool{
 		if(IO::UniqueFile
@@ -645,25 +651,6 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			res.pop_back();
 		return res;
 	});
-	// NOTE: Params of %SHBuild_BuildGCH: header = path of header to be copied,
-	//	inc = path of header to be included, cmd = tool to build header.
-	context.Perform(u8R"NPL(
-		$defl! SHBuild_EchoVar_N (var) SHBuild_EchoVar var
-			(env-get (SHBuild_SDot_ var));
-		$defl! SHBuild_BuildGCH (header inc cmd)
-		(
-			$def! pch (++ inc ".gch");
-			$if (SHBuild_BuildGCH_existed_ pch)
-				(puts (++ "PCH file \"" pch "\" exists, skipped building."))
-				(
-					SHBuild_BuildGCH_mkpdirp_ pch;
-					puts (++ "Building precompiled file \"" pch "\" ...");
-					SHBuild_Install_HardLink inc header;
-					system (++ cmd " \"" header "\" -o" pch);
-					puts (++ "Building precompiled file \"" pch "\" done.")
-				)
-		);
-	)NPL");
 }
 
 } // namespace Forms;

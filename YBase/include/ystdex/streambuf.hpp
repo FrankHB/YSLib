@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file streambuf.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准库标准流缓冲扩展。
-\version r85
+\version r146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 636
 \par 创建时间:
 	2015-09-22 11:19:27 +0800
 \par 修改时间:
-	2016-07-18 17:48 +0800
+	2017-09-26 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,7 @@ streambuf_equal(std::basic_streambuf<_tChar, _tTraits>& a,
 /*!
 \brief 内存中储存不具有所有权的只读流缓冲。
 \warning 流操作不写缓冲区，否则行为未定义。
+\todo 提供 setbuf 。
 */
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
 class basic_membuf : public std::basic_streambuf<_tChar, _tTraits>
@@ -77,6 +78,73 @@ public:
 
 		this->setg(p, p, p + size);
 	}
+
+	//! \since build 805
+	//@{
+protected:
+	pos_type
+	seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode
+		which = std::ios_base::in | std::ios_base::out) override
+	{
+		if(bool(which & std::ios_base::in) && !bool(which & std::ios_base::out))
+		{
+			const char_type* beg(this->eback());
+
+			if(beg || off == off_type())
+			{
+				update_egptr();
+				if(way == std::ios_base::cur)
+					off += this->gptr() - beg;
+				else if(way == std::ios_base::end)
+					off += this->egptr() - beg;
+				if(off >= off_type() && this->egptr() - beg >= off)
+				{
+					set_input_area(off);
+					return pos_type(off);
+				}
+			}
+		}
+		return pos_type(off_type(-1));
+	}
+
+	pos_type
+	seekpos(pos_type sp, std::ios_base::openmode which
+		= std::ios_base::in | std::ios_base::out) override
+	{
+		if(bool(which & std::ios_base::in) && !bool(which & std::ios_base::out))
+		{
+			const char_type* beg(this->eback());
+
+			if(beg || off_type(sp) == off_type())
+			{
+				update_egptr();
+
+				const auto pos(sp);
+
+				if(pos_type() <= pos && pos <= pos_type(this->egptr() - beg))
+				{
+					set_input_area(off_type(pos));
+					return sp;
+				}
+			}
+		}
+		return pos_type(off_type(-1));
+	}
+
+private:
+	void
+	set_input_area(off_type off)
+	{
+		this->setg(this->eback(), this->eback() + off, this->egptr());
+	}
+
+	void
+	update_egptr()
+	{
+		if(this->pptr() && this->pptr() > this->egptr())
+			this->setg(this->eback(), this->gptr(), this->pptr());
+	}
+	//@}
 };
 
 using membuf = basic_membuf<char>;

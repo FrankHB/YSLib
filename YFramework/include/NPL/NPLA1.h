@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3523
+\version r3538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-09-11 21:19 +0800
+	2017-09-25 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -902,6 +902,22 @@ public:
 	ReadFrom(std::streambuf&) const;
 	//@}
 };
+
+/*!
+\brief 尝试加载源代码。
+\exception NPLException 嵌套异常：加载失败。
+\note 第二个参数表示来源，仅用于诊断消息。
+\relates REPLContext
+\since build 805
+*/
+template<typename... _tParams>
+YB_NONNULL(2) void
+TryLoadSouce(REPLContext& context, const char* name, _tParams&&... args)
+{
+	TryExpr(context.LoadFrom(yforward(args)...))
+	CatchExpr(..., std::throw_with_nested(NPLException(
+		ystdex::sfmt("Failed loading external unit '%s'.", name))));
+}
 
 
 /*!

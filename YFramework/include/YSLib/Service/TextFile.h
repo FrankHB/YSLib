@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1035
+\version r1067
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2016-11-21 16:24 +0800
+	2017-09-26 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,6 +158,41 @@ DetectBOM(std::istream&, size_t, Encoding = CS_Default);
 */
 YF_API size_t
 WriteBOM(std::ostream&, Text::Encoding);
+
+
+/*!
+\brief 跳过可选的 BOM 的流。
+\sa Text::CheckBOM
+\since build 805
+*/
+template<class _type, typename _tBOM>
+void
+SkipBOM(_type& is, const _tBOM& bom)
+{
+	if(bool(is))
+	{
+		if(!Text::CheckBOM(is, bom))
+			// NOTE: EOF bit is cleared implicitly since WG21 N3168.
+			is.seekg(0);
+		else
+			is.clear();
+	}
+}
+
+/*!
+\brief 打开跳过可选的 BOM 的流。
+\sa Text::CheckBOM
+\since build 805
+*/
+template<class _type, typename _tBOM, typename... _tParams>
+unique_ptr<_type>
+OpenSkippedBOMtream(const _tBOM& bom, _tParams&&... args)
+{
+	auto p(make_unique<_type>(yforward(args)...));
+
+	SkipBOM(*p, bom);
+	return p;
+}
 
 } // namespace Text;
 
