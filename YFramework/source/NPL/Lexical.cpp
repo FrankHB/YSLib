@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1604
+\version r1609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2017-06-13 15:53 +0800
+	2017-10-07 07:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,9 +105,7 @@ NPLUnescape(string& buf, const UnescapeContext& uctx, char ld)
 }
 
 
-LexicalAnalyzer::LexicalAnalyzer()
-	: unescape_context(), ld(), cbuf(), qlist()
-{}
+LexicalAnalyzer::DefDeCtor(LexicalAnalyzer)
 
 bool
 LexicalAnalyzer::CheckEscape(byte b, Unescaper unescape)
@@ -176,6 +174,7 @@ LexicalAnalyzer::ParseByte(char c, Unescaper unescape,
 				if(ld == char())
 				{
 					ld = c;
+					left_qset.insert(cbuf.size()),
 					qlist.push_back(cbuf.size());
 					cbuf += c;
 				}
@@ -411,7 +410,7 @@ Tokenize(const list<string>& src)
 	for(const auto& str : src)
 		if(!str.empty())
 		{
-			if(str[0] != '\'' && str[0] != '"')
+			if(str.front() != '\'' && str.front() != '"')
 				dst.splice(dst.end(), Decompose(str));
 			else
 				dst.push_back(str);

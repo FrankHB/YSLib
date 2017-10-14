@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1931
+\version r1942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2017-06-03 12:39 +0800
+	2017-10-05 03:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -309,7 +309,7 @@ make_container(_tIter first, _tIter last)
 {
 	return _tCon(first, last);
 }
-//! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
+//! \note 使用 ADL begin 和 end 指定范围迭代器。
 //@{
 template<class _tCon, typename _tRange>
 inline _tCon
@@ -377,7 +377,7 @@ range_size(const _tRange& c, false_)
 \since build 546
 
 对 std::initializer_list 的实例直接返回大小，否则：
-若可调用结果可转换为 \c size_t 的 ADL 函数 \c size 则使用 ADL \c size ；
+若可调用结果可转换为 size_t 的 ADL 函数 size 则使用 ADL size ；
 否则使用 std::distance 计算范围迭代器确定范围大小。
 */
 //@{
@@ -602,6 +602,7 @@ erase_all_if_in_seq(_tSeqCon& con, _fPred pred, false_)
 	details::erase_remove_if(con, begin(con), end(con), pred);
 }
 
+//! \pre 调用 erase 之后的迭代器不失效。
 template<typename _tCon, typename _type>
 void
 erase_all(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
@@ -633,6 +634,7 @@ erase_all(_tCon& con, const _type& value, false_)
 	details::erase_all_in_seq(con, value, has_mem_remove<_tCon>());
 }
 
+//! \pre 调用 erase 之后的迭代器不失效。
 template<typename _tCon, typename _fPred>
 void
 erase_all_if(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
@@ -672,7 +674,7 @@ erase_all_if(_tCon& con, _fPred pred, false_)
 /*!
 \brief 判断指定的容器中存在指定的键。
 \note 当容器对象右值可使用返回以整数初始化的类型的成员 \c count 时使用
-	成员 \c count 实现；否则使用 ADL \c end 指定的容器迭代器，
+	成员 \c count 实现；否则使用 ADL end 指定的容器迭代器，
 	使用成员 \c find 实现。
 \since build 488
 */
@@ -718,8 +720,11 @@ erase_all(_tCon& con, const _type& value)
 
 /*!
 \brief 删除指定容器中指定区间中的或全部满足谓词的元素。
-\note 对整个序列容器使用 ystdex::remove_if 移除元素范围。
-\note 对序列容器中的部分序列使用 std::remove_if 移除元素范围。
+
+检查容器是否具有键类型，否则视为序列容器。
+对整个序列容器优先使用成员 remove_if 移除元素范围。
+对序列容器中的部分序列或不存在成员 remove_if 的序列容器，
+	使用 std::remove_if 移除元素范围。
 */
 //@{
 template<typename _tCon, typename _tIter, typename _fPred>
@@ -912,7 +917,7 @@ pop_front_val(_tCon& con, const typename _tCon::value_type& value)
 
 /*!
 \brief 插入元素到 \c vector 末尾。
-\note 使用 ADL \c size 。
+\note 使用 ADL size 。
 \since build 546
 */
 //@{
@@ -1089,7 +1094,7 @@ extract_key(const _type& val)
 template<class _tAssocCon, typename _type,
 	yimpl(typename = enable_if_convertible_t<_type&,
 	typename _tAssocCon::value_type&>)>
-inline const auto
+inline auto
 extract_mapped(_type& val)
 	-> decltype(details::assoc_con_traits<_tAssocCon>::extract_mapped(
 		is_detected<details::mapped_type_t, _tAssocCon>(), val))

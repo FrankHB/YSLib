@@ -2,17 +2,13 @@
 "NPLA1 script for build YSLib using SHBuild.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
-"XXX", "'SHBuild_CheckUName_*' depend on 'uname'";
 
 load (env-get "SHBuild_Common");
 
 $def! YSLib_BuildDir env-get "YSLib_BuildDir";
 $assert-nonempty YSLib_BuildDir;
 SHBuild_EnsureDirectory_ YSLib_BuildDir;
-$env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
-	SHBuild_CheckUName_Case_ SHBuild_Env_uname);
-$env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
-	SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
+$def! (env-os env-arch) () SHBuild_GetPlatformStrings;
 $defl! SHBuild_EchoVar_E (env var) SHBuild_EchoVar var
 	(eval (string->symbol (SHBuild_SDot_ var)) env);
 $defl! skip-or-build (nskip dynamic) $let
@@ -26,15 +22,14 @@ $defl! skip-or-build (nskip dynamic) $let
 	$if debug ($redef! lname ++ "debug " lname);
 	$if nskip ($let*
 	(
-		(env-os SHBuild_Env_OS)
 		(SHBuild_Host_Platform $if (win32? env-os) "MinGW32" env-os)
 		(repo-base SHBuild_2m env-os YSLib_BaseDir)
 		(YF_SystemLibs
 			$if (win32? env-os) "-lgdi32 -limm32" "-lxcb -lpthread")
 		(DIR_YFramework ++ repo-base "/YFramework")
 		(LIBS_YFramework SHBuild_TrimOptions_ (++ " -L\"" (SHBuild_2m env-os
-			(++ DIR_YFramework "/" SHBuild_Host_Platform "/lib-"
-			SHBuild_Env_Arch)) "\" -lFreeImage -lfreetype " YF_SystemLibs))
+			(++ DIR_YFramework "/" SHBuild_Host_Platform "/lib-" env-arch))
+			"\" -lFreeImage -lfreetype " YF_SystemLibs))
 	)
 	(
 		$defl! incsub (dir) ++ "-I\"" (SHBuild_2m env-os dir) "\"";

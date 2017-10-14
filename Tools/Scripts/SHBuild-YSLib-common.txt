@@ -79,8 +79,11 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app do-build)
 (
 	$def! CXXFLAGS_OPT_DBG
 		$if debug ("-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC") "";
-	$env-de! CXX "";
-	"TODO", "Add compiler sanity check.";
+	($env-de! CXX "g++"; env-set "CXX" CXX),
+	($env-de! AR "ar"; env-set "AR" AR),
+	($env-de! ARFLAGS "rcs"; env-set "ARFLAGS" ARFLAGS),
+	($env-de! LD "g++"; env-set "LD" LD);
+	"TODO", "Add sanity checks.";
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
 	$env-de! LDFLAGS_GC
 		($if (eqv? env-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
@@ -175,10 +178,10 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app do-build)
 		(cons-cmd C_CXXFLAGS_PIC cxxflags_impl_common_thrd_ LDFLAGS_OPT_DBG);
 	"TODO", "Allow disabling 'puts' output.";
 	$redef! LDFLAGS SHBuild_TrimOptions_ (cons-cmd
-		(SHBuild_TrimOptions_ LDFLAGS) ($if dynamic LDFLAGS_DYN "-Wl,--dn")
-		($if ($and? app (win32? env-os)
+		(SHBuild_TrimOptions_ LDFLAGS) ($if app ($if ($and? (win32? env-os)
 		(string-empty? (env-get "SHBuild_NoAdjustSubsystem")))
-		(puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows") ""));
+		(puts "Added \"-mwindows\" to LDFLAGS."; "-mwindows") "")
+		($if dynamic LDFLAGS_DYN "-Wl,--dn")));
 	env-set "LDFLAGS" LDFLAGS;
 	$def! SHBOPT get-SHBOPT_ outdir shbopt-ext ($or? dynamic app);
 	$defl! echo-var (var) SHBuild_EchoVar var (value-of var);
@@ -203,5 +206,14 @@ $defl! SHBuild_BuildGCH (header inc cmd)
 			system (++ cmd " \"" header "\" -o" pch);
 			puts (++ "Building precompiled file \"" pch "\" done.")
 		)
+);
+$defl! SHBuild_GetPlatformStrings ()
+(
+	"XXX", "'SHBuild_CheckUName_*' depend on 'uname'";
+	$env-de! SHBuild_Env_OS ($set-system-var! SHBuild_Env_uname "uname";
+		SHBuild_CheckUName_Case_ SHBuild_Env_uname),
+	$env-de! SHBuild_Env_Arch ($set-system-var! SHBuild_Env_uname_m "uname -m";
+		SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
+	list SHBuild_Env_OS SHBuild_Env_Arch
 );
 

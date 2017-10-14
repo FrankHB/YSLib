@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1010
+\version r1045
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-10-02 13:04 +0800
+	2017-10-07 14:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,6 +251,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 {
 	using namespace std::placeholders;
 	auto& root(context.Root);
+	auto& root_env(root.GetRecordRef());
 
 	LoadSequenceSeparators(root, context.ListTermPreprocess),
 	root.EvaluateLiteral
@@ -299,11 +300,11 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	};
 	// NOTE: This is named after '#inert' in Kernel, but essentially
 	//	unspecified in NPLA.
-	root.GetRecordRef().Define("inert", ValueToken::Unspecified, {});
+	root_env.Define("inert", ValueToken::Unspecified, {});
 	// NOTE: This is like '#ignore' in Kernel, but with the symbol type. An
 	//	alternative definition is by evaluating '$def! ignore $quote #ignore'
 	//	(see below for '$def' and '$quote').
-	root.GetRecordRef().Define("ignore", TokenValue("#ignore"), {});
+	root_env.Define("ignore", TokenValue("#ignore"), {});
 	// NOTE: Primitive features, listed as RnRK, except mentioned above.
 /*
 	The primitives are provided here to maintain acyclic dependencies on derived
@@ -551,7 +552,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	)NPL");
 	RegisterStrict(root, "system", CallSystem);
 	// NOTE: SHBuild builtins.
-	root.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
+	root_env.Define("SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
 		[](const string& n, const string& val) ynothrow{
 			// XXX: Error from 'std::printf' is ignored.
@@ -587,7 +588,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "SHBuild_EchoVar", [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
 		CallBinaryAs<const string>([&](const string& n, const string& val){
-			if(const auto p = GetValuePtrOf(root.GetRecordRef().LookupName(
+			if(const auto p = GetValuePtrOf(root_env.LookupName(
 				"SHBuild_BaseTerminalHook_")))
 				if(const auto p_hook = AccessPtr<
 					std::function<void(const string&, const string&)>>(*p))
@@ -627,26 +628,42 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<const string>(root, "SHBuild_TrimOptions_",
 		[](const string& src){
 		string res;
-
-		for(const auto& str
-			: Session(src, [&](LexicalAnalyzer& lexer, char c){
+		Session sess(src, [&](LexicalAnalyzer& lexer, char c){
 			lexer.ParseByte(c, NPLUnescape, IgnorePrefix);
-		}).Lexer.Literalize())
-		{
-			using iter_t = string::const_iterator;
+		});
+		const auto& lexer(sess.Lexer);
+		const auto& left_qset(lexer.GetLeftQuotes());
+		typename string::size_type l(0);
 
-			ystdex::split_l(str.cbegin(), str.cend(), static_cast<int(&)(int)>(
-				std::isspace), [&](iter_t b, iter_t e){
-				string s(b, e);
+		for(const auto& str : lexer.Literalize())
+			if(!str.empty())
+			{
+				using iter_t = string::const_iterator;
 
-				ystdex::trim(s);
-				if(!s.empty())
+				// XXX: As %NPL::Tokenize.
+				if(str.front() != '\'' && str.front() != '"')
+					ystdex::split_l(str.cbegin(), str.cend(),
+						static_cast<int(&)(int)>(std::isspace),
+						[&](iter_t b, iter_t e){
+						string s(b, e);
+
+						ystdex::trim(s);
+						if(!s.empty())
+						{
+							res += s;
+							res += ' ';
+						}
+					});
+				else
 				{
-					res += s;
+					if(!res.empty() && l != 0 && left_qset.count(l) != 0
+						&& !bool(std::isspace(src[l - 1])))
+						res.pop_back();
+					res += str;
 					res += ' ';
 				}
-			});
-		}
+				l += str.length();
+			}
 		if(!res.empty())
 			res.pop_back();
 		return res;

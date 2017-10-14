@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1353
+\version r1383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-09-23 23:27 +0800
+	2017-10-12 09:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -437,17 +437,6 @@ CheckReducible(ReductionStatus status)
 
 
 void
-LiftTerm(TermNode& term, TermNode& tm)
-{
-	// NOTE: This is required to avoid cyclic reference when the object
-	//	referenced by the 2nd parameter is owned by the object referenced by the
-	//	1st parameter.
-	auto t(std::move(tm.GetContainerRef()));
-
-	term.SetContent(std::move(t), std::move(tm.Value));
-}
-
-void
 LiftTermOrRef(TermNode& term, TermNode& tm)
 {
 	if(const auto p = AccessPtr<const TermReference>(tm))
@@ -668,6 +657,35 @@ ContextNode::ContextNode(ContextNode&& ctx)
 	: ContextNode()
 {
 	swap(ctx, *this);
+}
+
+ReductionStatus
+ContextNode::ApplyTail(TermNode& term)
+{
+	YAssert(bool(TailAction), "No tail action found.");
+
+	decltype(TailAction) act;
+
+	std::swap(act, TailAction);
+	return act(term, *this);
+}
+ReductionStatus
+ContextNode::Rewrite(TermNode& term, Reducer reduce)
+{
+//	const auto gd(Guard(term, *this));
+
+	// NOTE: Rewriting loop until the normal form is got.
+	return ystdex::retry_on_cond(CheckReducible, [&]{
+		return TailAction ? ApplyTail(term) : reduce(term, *this);
+	});
+}
+
+ReductionStatus
+ContextNode::RewriteGuarded(TermNode& term, Reducer reduce)
+{
+	const auto gd(Guard(term, *this));
+
+	return Rewrite(term, reduce);
 }
 
 } // namespace NPL;

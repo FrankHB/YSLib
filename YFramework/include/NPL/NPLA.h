@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2455
+\version r2521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-09-22 23:27 +0800
+	2017-10-12 09:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -861,19 +861,17 @@ CheckedReduceWith(_func f, _tParams&&... args)
 }
 
 
-//! \brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
-//@{
 /*!
-\note 参数相同时作用为空，但可能有额外开销。
-\since build 676
+\brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
+\since build 805
 */
-YF_API void
-LiftTerm(TermNode&, TermNode&);
-//! \since build 745
-inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo)
+//@{
+//! \note 参数相同时作用为空，但可能有额外开销。
+inline PDefH(void, LiftTerm, TermNode& term, TermNode& tm) ynothrow
+	ImplExpr(term.MoveContent(std::move(tm)))
+inline PDefH(void, LiftTerm, ValueObject& term_v, ValueObject& vo) ynothrow
 	ImplExpr(term_v = std::move(vo))
-//! \since build 745
-inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo)
+inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 	ImplExpr(LiftTerm(term.Value, vo))
 //@}
 
@@ -1276,6 +1274,13 @@ public:
 */
 class YF_API ContextNode
 {
+public:
+	/*!
+	\brief 规约函数类型。
+	\since build 806
+	*/
+	using Reducer = typename EvaluationPasses::HandlerType;
+
 private:
 	/*!
 	\brief 环境记录指针。
@@ -1288,6 +1293,12 @@ public:
 	EvaluationPasses EvaluateList{};
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
+	/*!
+	\brief 尾调用动作。
+	\note 为便于确保释放，不使用 ystdex::one_shot 。
+	\since build 806
+	*/
+	Reducer TailAction{};
 	/*!
 	\brief 上下文日志追踪。
 	\since build 803
@@ -1315,6 +1326,56 @@ public:
 	DefGetter(const ynothrow, Environment::BindingMap&, BindingsRef,
 		GetRecordRef().GetMapRef())
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
+
+	//! \since build 806
+	//@{
+	/*!
+	\brief 转移并应用尾调用。
+	\pre 断言检查： TailAction 。
+	*/
+	ReductionStatus
+	ApplyTail(TermNode&);
+
+	//! \exception std::bad_function_call 第二参数为空。
+	//@{
+	/*!
+	\brief 重写项。
+	\sa ApplyTail
+	\sa CheckReducible
+
+	迭代规约重写，直至通过 CheckReducible 检查不需要进行重规约。
+	若 TailAction 非空，每一次迭代调用 ApplyTail ；否则调用第二参数指定的规约函数。
+	*/
+	ReductionStatus
+	Rewrite(TermNode&, Reducer);
+
+	/*!
+	\brief 构造作用域守护并重写项。
+	\sa Guard
+	\sa Rewrite
+
+	重写逻辑包括以下顺序的步骤：
+	调用 ContextNode::Guard 进行必要的上下文重置；
+	调用 Rewrite 。
+	*/
+	ReductionStatus
+	RewriteGuarded(TermNode&, Reducer);
+	//@}
+	//@}
+
+	/*!
+	\brief 设置尾调用动作以重规约。
+	\return ReductionStatus::Retrying
+	\since build 806
+	*/
+	template<typename _func>
+	ReductionStatus
+	SetupTail(_func f)
+	{
+		YAssert(!TailAction, "Old continuation is overriden.");
+		TailAction = f;
+		return ReductionStatus::Retrying;
+	}
 
 	PDefH(shared_ptr<Environment>, ShareRecord, ) const
 		ImplRet(GetRecordRef().shared_from_this())

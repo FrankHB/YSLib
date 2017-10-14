@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3222
+\version r3229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-09-28 11:56 +0800
+	2017-10-08 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -507,6 +507,14 @@ public:
 		return CreateRecursively(container, f);
 	}
 	//@}
+
+	/*!
+	\brief 转移参数内容。
+	\note 允许被转移的参数是被子节点容器直接或间接所有的其它节点。
+	\since build 806
+	*/
+	void
+	MoveContent(ValueNode&&) ynothrow;
 
 	/*!
 	\brief 若指定名称子节点不存在则按指定值初始化。
