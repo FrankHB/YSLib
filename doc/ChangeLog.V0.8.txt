@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r765
+\version r884
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-10-03 13:53 +0800
+	2017-10-14 12:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,126 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				* "wrong toolchain default value"
+					$orig (@ "%SHBuild-common-toolchain.sh" $since b791) $=
+				(
+					* "missing setting default value 'g++' for variable %CXX",
+					* "missing setting variables %(AR, ARFLAGS, LD)",
+						// This can occasionally work for %SHBuild except %LD \
+							which has value in the script different than \
+							default value in %SHBuild.
+					* "missing export variables %(CXX, AR, ARFLAGS, LD)"
+				),
+				* "missing filtered out dynamic library build options for \
+					application executable building" @ "%LDFLAGS" $since b805,
+				+ "applicative %SHBuild_GetPlatformStrings"
+			),
+			/ DLDI "simplified %SHBuild-YSLib-build.txt" ^ $dep_from
+				("%SHBuild_GetPlatformStrings" @ "%SHBuild-YSLib-common.txt")
+		)
+	),
+	* $impl "ill-formed 'const auto' as function declarator"
+		@ "function template %extract_mapped with traling-return-type"
+		@ %YBase.YStandard.Container $since b792
+		// This was a typo. As per N4687 [dcl.fct]/2, only a single 'auto' is \
+			allowed here. Though G++ accepts it, Microsoft VC++ 2017 complains \
+			it correctly with (one case which is not well-documented of) error \
+			C3551.
+	/ %YFramework $=
+	(
+		/ %YSLib.Core $=
+		(
+			+ "function %MoveContent" @ "class %ValueNode" @ %ValueNode,
+			+ "friend function %swap" @ "class template %GHEvent" @ %YEvent
+		),
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				+ 'using YSLib::set',
+				/ @ "class %LexicalAnalyzer" $=
+				(
+					/ DLDI "simplified" ^ "brace-initializer '{}', \
+						defaulted constructor",
+					+ "function %GetLeftQuotes",
+					/ "stored left quote positions" @ "function %ParseByte"
+				),
+				/ DLDI "function %Tokenize" ^ "%string::front" ~ '[0]'
+			),
+			/ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+			(
+				/ "applicative %SHBuild_TrimOptions_" @ "loading forms" $=
+				(
+					* "subsequent spaces in quoted string wrongly replaced \
+						as single space" $since b796,
+					* "redundant spaces wrongly added token containing \
+						left quote" ^ $dep_from
+						("%LexicalAnalyzer::GetLeftQuotes" @ %Lexical)
+						// This has efffect on '-I"path"', which would be \
+							wrongly converted to deprecated form \
+							'-I "path"' (though it still worked).
+				),
+				/ DLDI "simplified recored getting by cacheing result of \
+					%ContextNode::GetRecordRef"
+			),
+			/ %NPLA $=
+			(
+				(
+				/ DLDI "simplified function %LiftTerm with 2 %TermNode \
+					reference parameters" -> "inline function" ^ $dep_from
+					("%ValueNode::MoveContent" @ %YSLib.Core.ValueNode);
+				+ 'ynothrow' @ "all 3 functions %LiftTerm"
+				),
+				/ @ "class %ContextNode" $=
+				(
+					+ "alias %Reducer";
+					+ "data member %TailAction";
+					+ "function template %SetupTail",
+					+ "functions %(ApplyTail; Rewrite, RewriteGuarded)"
+						^ $dep_from "%TailAction"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified %ContextNode::GetBindingsRef call"
+					@ "vau handler" @ "namespace %Forms",
+				/ "direct reduction for proper tail call"
+					@ "functions %ReduceTail" ^ "%ReductionStatus::Retrying"
+					~ "recursive %Reduce call",
+				(
+				+ "function %ReduceOnce with perper tail calls" $=
+				(
+					// This is exact the %Reduce without outer loop, with some \
+						tail call considerations. The calls of tail contexts \
+						now use parent context directly, which should be \
+						equivalent to previous implementation.
+					/ $impl "direct proper tail call"
+						^ "%ReductionStatus::Retrying",
+					/ $impl "reduction of evaluation passes for perper tail \
+						call" ^ $dep_from ("%ContextNode::SetupTail" @ %NPLA)
+				);
+				/ DLDI "simplified function %Reduce" ^ $dep_from
+					("%ReduceOnce", "%ContextNodeRewrite" @ %NPLA),
+					// Now the loop is implemented in %ContextNode::Rewrite. \
+						It is easier to implement proper tail calls.
+				/ $forced $impl "functions %(ReduceFirst, ReduceChecked, \
+					ReduceChildren, ReduceChildrenOrdered, \
+					 REPLContext::(LoadFrom#2, Process#3))"
+					^ $dep_from "%ReduceContextGuarded"
+				)
+			)
+		)
+	)
+),
+
+b805
 (
 	/ %YFramework $=
 	(

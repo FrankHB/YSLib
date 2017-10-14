@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1550
+\version r1568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2017-06-13 15:41 +0800
+	2017-10-06 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,17 +31,19 @@
 #include "YModules.h"
 #include YFM_NPL_NPL // for byte;
 #include YFM_YSLib_Adaptor_YTextBase // for ystdex::byte, YSLib::list,
-//	YSLib::string, YSLib::string_view, YSLib::vector, YSLib::begin, YSLib::end;
+//	YSLib::set, YSLib::string, YSLib::string_view, YSLib::vector, YSLib::begin,
+//	YSLib::end;
 #include <cctype> // for std::isgraph;
 
 namespace NPL
 {
 
 //! \since build 329
-//@{
 using YSLib::list;
+//! \since build 806
+using YSLib::set;
+//! \since build 329
 using YSLib::string;
-//@}
 //! \since build 659
 using YSLib::string_view;
 //! \since build 545
@@ -183,21 +185,26 @@ private:
 	\note 若前缀非空表示正在处理反转义。
 	\since build 545
 	*/
-	UnescapeContext unescape_context;
+	UnescapeContext unescape_context{};
 	/*!
 	\brief 字面分隔符状态：表示正在处理字面量中的有效字符。
 	\note 值为空字符时表示当前不处理字面量。
 	*/
-	char ld;
+	char ld = {};
 	/*!
 	\brief 字符解析中间结果。
 	*/
-	string cbuf;
+	string cbuf{};
 	/*!
 	\brief 字符解析中间结果中非转义的引号出现的位置的有序列表。
 	\since build 545
 	*/
-	vector<size_t> qlist;
+	vector<size_t> qlist{};
+	//! \since build 806
+	//@{
+	//! \brief 字符解析中间结果中非转义的左侧引号出现的位置的集合。
+	YSLib::set<size_t> left_qset{};
+	//@}
 
 public:
 	LexicalAnalyzer();
@@ -205,6 +212,8 @@ public:
 	DefDeCopyMoveCtorAssignment(LexicalAnalyzer)
 
 	DefGetter(const ynothrow, const string&, Buffer, cbuf)
+	//! \since build 806
+	DefGetter(const ynothrow, const set<size_t>&, LeftQuotes, left_qset)
 	//! \since build 545
 	//@{
 	DefGetter(const ynothrow, const vector<size_t>&, Quotes, qlist)

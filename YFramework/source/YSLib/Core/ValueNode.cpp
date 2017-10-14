@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r757
+\version r766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800
 \par 修改时间:
-	2017-07-29 21:03 +0800
+	2017-10-08 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,17 @@ ValueNode::Container
 ValueNode::CreateRecursively(const Container& con, IValueHolder::Creation c)
 {
 	return CreateRecursively(con, ystdex::bind1(&ValueObject::Create, c));
+}
+
+void
+ValueNode::MoveContent(ValueNode&& node) ynothrow
+{
+	// NOTE: This is required to avoid cyclic reference when the object
+	//	referenced by the 2nd parameter is owned by the object referenced by the
+	//	1st parameter.
+	auto t(std::move(node.GetContainerRef()));
+
+	SetContent(std::move(t), std::move(node.Value));
 }
 
 void

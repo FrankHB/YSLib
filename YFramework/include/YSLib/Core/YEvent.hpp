@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5301
+\version r5315
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2017-06-04 23:55 +0800
+	2017-10-10 18:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,7 +95,7 @@ private:
 		static bool
 		AreEqual(const GHEvent& x, const GHEvent& y)
 			// TODO: Verify if it is a GCC bug. Since the resolution of CWG
-			//	1330 is in the working draft M4659, it likes to be. See also
+			//	1330 is in the working draft N4659, it likes to be. See also
 			//	https://stackoverflow.com/questions/35790350/noexcept-inheriting-constructors-and-the-invalid-use-of-an-incomplete-type-that.
 #if !(YB_IMPL_GNUC >= 70000)
 			ynoexcept_spec(
@@ -183,6 +183,21 @@ public:
 
 	//! \since build 516
 	using BaseType::operator bool;
+
+	friend void
+	swap(GHEvent& x, GHEvent& y) ynothrow
+	{
+		using std::swap;
+	// TODO: Wait for C++17.
+	// XXX: See discussion in LWG 2062.
+#if !__GLIBCXX__
+		ynoexcept_assert("Unsupported luanguage implementation found.",
+			x.swap(y));
+#endif
+
+		swap(static_cast<BaseType&>(x), static_cast<BaseType&>(y));
+		swap(x.comp_eq, y.comp_eq);
+	}
 
 	//! \since build 773
 	using BaseType::target;

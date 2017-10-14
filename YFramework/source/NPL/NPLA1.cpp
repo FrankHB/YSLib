@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4772
+\version r4827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-09-21 00:37 +0800
+	2017-10-14 10:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -437,18 +437,18 @@ public:
 		{
 			using namespace Forms;
 			const auto& formals(Deref(p_formals));
-			// NOTE: Local context: active record frame with outer scope
+			// NOTE: Local context: activation record frame with outer scope
 			//	bindings.
 			// XXX: Referencing escaped variables (now only parameters need
 			//	to be cared) form the context would cause undefined behavior
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
 			ContextNode local(local_prototype, make_shared<Environment>());
-			auto& local_m(local.GetBindingsRef());
 
 			// NOTE: Bound dynamic context.
 			if(!eformal.empty())
-				local_m.AddValue(eformal, ValueObject(ctx.WeakenRecord()));
+				local.GetBindingsRef().AddValue(eformal,
+					ValueObject(ctx.WeakenRecord()));
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
@@ -515,33 +515,7 @@ TermToValueString(const TermNode& term)
 ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
-	const auto gd(ctx.Guard(term, ctx));
-
-	// NOTE: Rewriting loop until the normal form is got.
-	return ystdex::retry_on_cond(CheckReducible, [&]() -> ReductionStatus{
-		if(IsBranch(term))
-		{
-			YAssert(term.size() != 0, "Invalid node found.");
-			if(term.size() != 1)
-				// NOTE: List evaluation.
-				return ctx.EvaluateList(term, ctx);
-			else
-			{
-				// NOTE: List with single element shall be reduced as the
-				//	element.
-				LiftFirst(term);
-				return Reduce(term, ctx);
-			}
-		}
-
-		const auto& tp(term.Value.type());
-
-		// NOTE: Empty list or special value token has no-op to do with.
-		// TODO: Handle special value token?
-		return tp != ystdex::type_id<void>()
-			&& tp != ystdex::type_id<ValueToken>() ? ctx.EvaluateLeaf(term, ctx)
-			: ReductionStatus::Clean;
-	});
+	return ctx.RewriteGuarded(term, ReduceOnce);
 }
 
 void
@@ -602,7 +576,8 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	evaluation can be potentionally parallel, though the simplest one is
 	//	left-to-right.
 	// TODO: Use excetion policies to be evaluated concurrently?
-	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
+	std::for_each(first, last,
+		ystdex::bind1(Reduce, std::ref(ctx)));
 }
 
 ReductionStatus
@@ -626,6 +601,33 @@ ReduceFirst(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
+ReduceOnce(TermNode& term, ContextNode& ctx)
+{
+	if(IsBranch(term))
+	{
+		YAssert(term.size() != 0, "Invalid node found.");
+		if(term.size() != 1)
+			// NOTE: List evaluation.
+			return ctx.SetupTail(std::cref(ctx.EvaluateList));
+		else
+		{
+			// NOTE: List with single element shall be reduced as the
+			//	element.
+			LiftFirst(term);
+			return ReductionStatus::Retrying;
+		}
+	}
+
+	const auto& tp(term.Value.type());
+
+	// NOTE: Empty list or special value token has no-op to do with.
+	// TODO: Handle special value token?
+	return tp != ystdex::type_id<void>()
+		&& tp != ystdex::type_id<ValueToken>() ? ctx.SetupTail(
+		std::cref(ctx.EvaluateLeaf)) : ReductionStatus::Clean;
+}
+
+ReductionStatus
 ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
 	const auto res(ReduceChildrenOrdered(term, ctx));
@@ -641,12 +643,12 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
+ReduceTail(TermNode& term, ContextNode&, TNIter i)
 {
 	auto& con(term.GetContainerRef());
 
 	con.erase(con.begin(), i);
-	return Reduce(term, ctx);
+	return ReductionStatus::Retrying;
 }
 
 
@@ -839,7 +841,7 @@ EvaluateLeafToken(TermNode& term, ContextNode& ctx, string_view id)
 		case LexemeCategory::Data:
 			// XXX: This should be prevented being passed to second pass in
 			//	%TermToNamePtr normally. This is guarded by normal form handling
-			//	in the loop in %Reduce.
+			//	in the loop in %ContextNode::Rewrite with %ReduceOnce.
 			term.Value.emplace<string>(Deliteralize(id));
 			YB_ATTR_fallthrough;
 		default:
