@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r532
+\version r567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-09-23 23:13 +0800
+	2017-10-25 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,7 +106,7 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 		NPL has more focus on composition of abstraction.
 			In general, NPL would prefer lower-level implementation-dependent features to abstract.
 				This is often to avoid to violate the philosophy of zero overhead principle.
-					If such lower-level features are not provided, users may have to fight against low usability with portability of the code. 
+					If such lower-level features are not provided, users may have to fight against low usability with portability of the code.
 				The feasibility to introduce required functionalities should be kept. The usability should not be effected significantly.
 			Some notable (global to the language design) examples as listed here.
 				NPL prefers 'eqv?' than 'equal?', which is opposite to Kernel.
@@ -168,7 +168,7 @@ Style of the Kernel language can be compared with current NPL, esp. NPLA1.
 				Althoug there needs additional treatment to variadic parameters.
 			The syntatic element is either a list or an atom (a non-list), though the latter can have a list value.
 				Others (non-list linked data structure including cyclic) are considered irregular.
-			Combiners do not support irregular data structure. 
+			Combiners do not support irregular data structure.
 			The 'apply' applicative accepts only list as in Lisp, not as it in Kenerl.
 				This loses no exresiveness since underlying operative also does not support irregular data structure for simplicity.
 		NPL mandates no encapsulation.
@@ -512,6 +512,41 @@ Tracing output for NPLA is reimplemented. Changes are dealt with cautions.
 		Since build 804, SHBuild is aware of issue and it set filter level explicitly to resolve the problem.
 			If the tracing messages are needed again in future, it can read configurations to change the behavior.
 		User programs are still need to make change when assertions are enabled through 'CXXFLAGS_OPT_UseAssert' or in debug configurations to get old behavior, since build 803.
+
+$2017-10:
+
+report.impl:
+Proper tail calls are considered to be implemented.
+	The main purpose is to guarantee no stack overflow would be caused by nested calls in the object language.
+		There may be some other ways, but this is most intuitive.
+		It also provide some benefits on computation complexity of function calls.
+	Since the host language does not support proper tail calls, it needs to be implemented in the object language translator.
+		Here it is in the reduction.
+		This is implemented by using trampolines of CPS(continuation passing style) to make the implementation portable among host implementations.
+			It is in general not efficient, but choosed for some other reasons.
+				it can get rid of platform dependencies.
+				And it is expected to be not too inefficient by having predictable additional overhead in normal cases compared to the non-CPS'd direct style.
+			Conditional CPS has been considered.
+				See https://news.ycombinator.com/item?id=3961466 for example.
+				This is not planned to be done because the host language does not support proper tail calls, so it is necessary anyway, unless some platform-dependent factors (like stack size) are also considered to provide information allowing it configuarable in API.
+			The general way adopted is to setup a continuation of type that doing one-pass reduction in the NPLA context (called tail action) and then to translate direct style calls using the tail action object.
+				Each sequence evaluation of combined evaluation with multiple passes is transformed into a sequence of CPS calls as the tail action, with at most one active pass to be called.
+					Combination of reduction status is also rewritten and shared implementation with result combiner function object type 'PassesCombiner'.
+				The evolution of code base should be from top to bottom, to remain compatibility of non-CPS'd code.
+				It should be cautious that tail action is not to be overriden randomly.
+					So when needed, guard is used to hold the old one and recover the state when necessary (e.g. on exception).
+				Host exceptions in loops are not guaranteed being handled like them in direct style (esp. stack unwinding), except that basic exception guarantee is still held.
+					Anyway, this is unspecified previously, and can be adjusted later.
+	First-class continutation is still not supported, but it can be implemented based on current work.
+	The top-level loop is adjusted to these changes.
+		Now the loop is flat for all descendant reductions of subnodes previously introduced recursively.
+		The loop now comes after setting of default tail action to make it more natural with CPS.
+			It is necessary to avoid overriding tail action before entering the loop when the function is called again.
+				Otherwise, redundant tail action left by previous call would clash with new one set before entering the loop.
+		The return value is the last step of reduction in the loop.
+			Any intermediate status handled by tail action is not cared by the returning value directly.
+			It can now be in retrying status when there is no sufficient tail action to handle it.
+				This indicates it should be probably handled in the caller which could handle the reduction of the parent term.
 
 ////
 

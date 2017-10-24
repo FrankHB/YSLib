@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2521
+\version r2626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-10-12 09:11 +0800
+	2017-10-24 23:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,9 @@
 #define NPL_INC_NPLA_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_SContext // for string, NPLTag, ValueNode, TermNode,
+#include YFM_NPL_SContext // for NPLTag, ValueNode, TermNode, string,
 //	LoggedEvent, ystdex::lref, ystdex::equality_comparable, shared_ptr,
-//	weak_ptr, ystdex::as_const;
+//	weak_ptr, ystdex::type_info, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
 //	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -696,7 +696,7 @@ TokenizeTerm(TermNode& term);
 
 
 /*!
-\brief 规约状态：一遍规约可能的中间结果。
+\brief 规约状态：某个项上的一遍规约可能的中间结果。
 \since build 730
 */
 enum class ReductionStatus : yimpl(size_t)
@@ -845,6 +845,8 @@ inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
 
 只根据输入状态确定结果。当且仅当规约成功时不视为继续规约。
 若发现不支持的状态视为不成功，输出警告。
+不直接和 ReductionStatus::Retrying 比较以分离依赖 ReductionStatus 的具体值的实现。
+派生实现可使用类似的接口指定多个不同的状态。
 */
 YB_PURE YF_API bool
 CheckReducible(ReductionStatus);
@@ -1004,10 +1006,38 @@ ReduceToList(TermNode&) ynothrow;
 //@}
 
 
+/*!
+\since build 807
+\note 一般第一参数用于指定被合并的之前的规约结果，第二参数指定用于合并的结果。
+\return 合并后的规约结果。
+*/
+/*!
+\brief 合并规约结果。
+
+若第二参数指定保留项，则合并后的规约结果为第二参数；否则为第一参数。
+*/
+yconstfn PDefH(ReductionStatus, CombineReductionResult, ReductionStatus res,
+	ReductionStatus r) ynothrow
+	ImplRet(r == ReductionStatus::Retained ? r : res)
+
+/*!
+\brief 合并序列规约结果。
+\sa CheckReducible
+
+若第二参数指定可继续规约的项，则合并后的规约结果为第二参数；
+	否则同 CombineReductionResult 。
+若可继续规约，则指定当前规约的项的规约已终止，不合并第一参数指定的结果。
+下一轮序列的规约可能使用或忽略合并后的结果。
+*/
+inline PDefH(ReductionStatus, CombineSequenceReductionResult,
+	ReductionStatus res, ReductionStatus r) ynothrow
+	ImplRet(CheckReducible(r) ? r : CombineReductionResult(res, r))
+
+
 //! \since build 676
 //@{
 /*!
-\brief 遍合并器：逐次调用直至成功。
+\brief 遍合并器：逐次调用序列中的遍直至成功。
 \note 合并遍结果用于表示及早判断是否应继续规约，可在循环中实现再次规约一个项。
 */
 struct PassesCombiner
@@ -1023,8 +1053,8 @@ struct PassesCombiner
 		auto res(ReductionStatus::Clean);
 
 		return ystdex::fast_any_of(first, last, [&](ReductionStatus r) ynothrow{
-			if(r == ReductionStatus::Retained)
-				res = r;
+			res = CombineReductionResult(res, r);
+			// XXX: Currently %CheckReducible is not used.
 			return r == ReductionStatus::Retrying;
 		}) ? ReductionStatus::Retrying : res;
 	}
@@ -1276,7 +1306,7 @@ class YF_API ContextNode
 {
 public:
 	/*!
-	\brief 规约函数类型。
+	\brief 规约函数类型：和求值遍的处理器等价。
 	\since build 806
 	*/
 	using Reducer = typename EvaluationPasses::HandlerType;
@@ -1327,24 +1357,66 @@ public:
 		GetRecordRef().GetMapRef())
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
 
-	//! \since build 806
-	//@{
 	/*!
 	\brief 转移并应用尾调用。
+	\note 调用前脱离 TailAction 以允许调用 SetupTail 设置新的尾调用。
 	\pre 断言检查： TailAction 。
+	\since build 806
 	*/
 	ReductionStatus
 	ApplyTail(TermNode&);
 
-	//! \exception std::bad_function_call 第二参数为空。
+	//! \since build 807
+	//@{
+	//! \brief 保存绑定参数的规约函数的副本。
+	ReductionStatus
+	Push(const EvaluationPasses&, TermNode&, ContextNode&);
+
+	//! \brief 保存连续调用的规约函数序列。
+	template<typename _tIn>
+	ReductionStatus
+	PushRange(_tIn first, _tIn last, TermNode& term, ContextNode& ctx,
+		ReductionStatus res = ReductionStatus::Clean)
+	{
+		YAssert(!CheckReducible(res), "Invalid initial result found.");
+		if(first != last)
+		{
+			const auto& f(first->second);
+
+			++first;
+			return SetupTail([=, &term, &ctx]() -> ReductionStatus{
+				// XXX: The result is ignored.
+				PushRange(first, last, term, ctx, res);
+				// NOTE: If reducible, %TailAction should have been properly
+				//	set or cleared. The returning value informs propably
+				//	existed enclosing caller to retry a new turn of reduction if
+				//	%TailAction is empty, otherwise it is to be ignored as
+				//	per the loop condition of %Rewrite.
+				return CombineSequenceReductionResult(res, ystdex::expand_proxy<
+					Reducer::FuncType>::call(f, term, ctx));
+			});
+		}
+		return res;
+	}
+	//@}
+
+	/*!
+	\exception std::bad_function_call 第二参数为空。
+	\since build 806
+	*/
 	//@{
 	/*!
 	\brief 重写项。
+	\pre !TailAction 。
+	\post !TailAction 。
 	\sa ApplyTail
-	\sa CheckReducible
+	\sa CheckNorm
+	\sa SetupBoundedTail
 
-	迭代规约重写，直至通过 CheckReducible 检查不需要进行重规约。
-	若 TailAction 非空，每一次迭代调用 ApplyTail ；否则调用第二参数指定的规约函数。
+	当 TailAction 非空时循环调用 ApplyTail 迭代规约重写。
+	因为递归重写平摊到单一的循环， CheckReducible 不用于判断是否需要继续重写循环。
+	返回值为最后一次 TailAction 调用结果。
+	当返回需要重规约时不继续在循环内规约，需由调用方处理。
 	*/
 	ReductionStatus
 	Rewrite(TermNode&, Reducer);
@@ -1361,11 +1433,29 @@ public:
 	ReductionStatus
 	RewriteGuarded(TermNode&, Reducer);
 	//@}
-	//@}
+
+	/*!
+	\pre TailAction 为空。
+	\return ReductionStatus::Retrying 。
+	*/
+	//@{
+	/*!
+	\brief 设置尾调用动作和绑定的参数以重规约。
+	\sa SetupTail
+	\since build 807
+	*/
+	template<typename _func>
+	ReductionStatus
+	SetupBoundedTail(_func f, TermNode& term, ContextNode& ctx)
+	{
+		return SetupTail([=, &term, &ctx]{
+			return ystdex::expand_proxy<typename Reducer::FuncType>::call(f,
+				term, ctx);
+		});
+	}
 
 	/*!
 	\brief 设置尾调用动作以重规约。
-	\return ReductionStatus::Retrying
 	\since build 806
 	*/
 	template<typename _func>
@@ -1376,6 +1466,14 @@ public:
 		TailAction = f;
 		return ReductionStatus::Retrying;
 	}
+	//@}
+
+	/*!
+	\brief 切换尾调用动作。
+	\since build 807
+	*/
+	PDefH(Reducer, Switch, Reducer f = {})
+		ImplRet(ystdex::exchange(TailAction, std::move(f)))
 
 	PDefH(shared_ptr<Environment>, ShareRecord, ) const
 		ImplRet(GetRecordRef().shared_from_this())

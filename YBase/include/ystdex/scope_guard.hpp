@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r507
+\version r517
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2016-04-05 14:57 +0800
+	2017-10-25 02:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,6 @@ struct guard
 /*!
 \brief 创建作用域守护。
 \relates guard
-\since build 606
 */
 //@{
 //! \since build 649
@@ -78,6 +77,7 @@ make_guard(_tParams&&... args) ynoexcept_spec(guard<_type, _bNoThrow>(
 {
 	return guard<_type, _bNoThrow>(yforward(args)...);
 }
+//! \since build 606
 template<bool _bNoThrow = true, typename _type>
 guard<_type>
 make_guard(_type f)
@@ -87,31 +87,26 @@ make_guard(_type f)
 }
 //@}
 
-//! \since build 779
+//! \since build 807
 //@{
 template<typename _tState = bool, bool _bNoThrow = true, typename _func>
-guard<one_shot<_func, void, _tState>>
+guard<one_shot<_func, void, _tState>, _bNoThrow>
 unique_guard(_func f, _tState s = {}) ynoexcept_spec(
 	guard<one_shot<_func, void, _tState>, _bNoThrow>(
 	guard<one_shot<_func, void, _tState>, _bNoThrow>(f)))
 {
-	using guarded_type = one_shot<_func, void, _tState>;
-
-	return guard<guarded_type, _bNoThrow>(f, s);
+	return guard<one_shot<_func, void, _tState>, _bNoThrow>(f, s);
 }
 
 template<typename _tRes, typename _tState = bool, bool _bNoThrow = true,
 	typename _func>
-guard<one_shot<_func, _tRes, _tState>>
+guard<one_shot<_func, _tRes, _tState>, _bNoThrow>
 unique_state_guard(_func f, _tRes r = {}, _tState s = {}) ynoexcept_spec(
 	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(
 	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f)))
 {
-	using guarded_type = one_shot<_func, _tRes, _tState>;
-
-	return guard<guarded_type, _bNoThrow>(f, r, s);
+	return guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f, r, s);
 }
-
 //@}
 
 
@@ -145,7 +140,7 @@ dismiss(const one_shot<_func, _tRes, _tState>& gd)
 {
 	gd.fresh = {};
 }
-//! \brief 使用 ADL \c dismiss 。
+//! \brief 使用 ADL dismiss 。
 template<typename _func, bool _bNoThrow>
 yconstfn auto
 dismiss(guard<_func, _bNoThrow>& gd) -> decltype(dismiss(gd.func))

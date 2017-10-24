@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12177
+\version r12197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2017-05-21 06:03 +0800
+	2017-10-25 02:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -827,7 +827,7 @@ b690
 		/ %Helper $=
 		(
 			/ @ "class %GUIHost" @ %GUIApplication $=
-			(		
+			(
 				/ @ "platform %Win32" @ "constructor" $=
 				(
 					/ DLDI "simplified" $dep_from %YCLib.HostedUI;
@@ -1478,7 +1478,7 @@ b684
 						@ "end of template parameter list",
 					+ "primary template forwarding default argument to \
 						'when<true>'"
-				);			
+				);
 				/ $forced DLDI "simplified %(defer, defer_i)",
 				/ $forced $impl "primary templates as default implementation \
 					%(at, back, clear, split_n, pop_back, erase, find, \
@@ -5166,10 +5166,11 @@ b657
 				/ @ "function %IncrementPosition" $=
 				(
 					/ "treated invalid cluster as EOF cluster",
-					+ $comp "cluster component of parameter as invariant"
+					+ "cluster component of parameter as invariant"
+						$dep_to "assertion for invalid clusters"
 				),
-				+ "indirect assertion" @ "function %ExtendPosition" $dep_from
-					"assertion for invalid clusters",
+				+ $comp "indirect assertion" @ "function %ExtendPosition"
+					$dep_from "assertion for invalid clusters",
 				/ "function %EntryGetCluster" -> "%TryGetClusterFromEntry"
 					^ $dep_from "%AllocationTable::IsFreeOrValid",
 				/ "allowed %StatFromEntry to report when read cluster is \
@@ -5348,8 +5349,8 @@ b656
 			(
 			/ $impl "treated allocation failure as conversion failure"
 				~ "%ENOMEM" @ "member function %Partition::EntryExists";
-			/ $forced DLDI "simplified constructor %DEntry, member function \
-				Partition::EntryExists" $dep_from %YCLib.FileSystem
+			/ $forced DLDI "simplified (constructor %DEntry, member function \
+				Partition::EntryExists)" $dep_from %YCLib.FileSystem
 			),
 			/ DLDI "simplified by merging throwing %std::system_error with \
 				%std::errc::io_error",
@@ -6504,7 +6505,8 @@ b648
 			/ DLDI "rule API parameters" ^ "%string_view" ~ "%string",
 			/ "quoted all paths in messages by '\''" ^ "%ystdex::quote"
 				// To be clear with spaces.
-			/ DLDI "simplified quoted all paths in commands by '"'" ^ "%ystdex::quote"
+			/ DLDI "simplified quoted all paths in commands by '"'"
+				^ "%ystdex::quote"
 		),
 		/ $forced DLDI "path traverse" @ %ProjectGenerator.Main $dep_from
 			%YFramework.YSLib.Service.YFramework
@@ -9366,15 +9368,15 @@ b622
 	),
 	/ DLP "platform %MinGW32" $=
 	(
-		^ $re_ex(b520) "MinGW[gcc version 5.2.0 (Rev3, Built by MSYS2 \
+		^ $re_ex(b600) "MinGW[gcc version 5.2.0 (Rev3, Built by MSYS2 \
 			project)] mingw32/mingw-w64-i686-gcc-5.2.0-3" ~ "MinGW[gcc \
 			version 4.9.2 (Rev5, Built by MSYS2 project)] \
 			mingw32/mingw-w64-i686-gcc-4.9.2-5" @ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 				Exceptions implementation: Dwarf2.
-		^ "mingw-w64-i686-binutils 2.25.1-1 from MSYS2"
+		^ $re_ex(b600) "mingw-w64-i686-binutils 2.25.1-1 from MSYS2"
 			~ "mingw-w64-i686-binutils 2.25-4"
-		// Old ABI is still compatible. Libraries are not recompiled currently.
+		// Old ABI is still compatible. Libraries are not rebuilt currently.
 	)
 ),
 
@@ -9845,7 +9847,7 @@ b615
 				+ 'using any::target'
 			),
 		),
-		+ "macro %YB_ATTR_gnu_printf" @ %YDefinition;
+		+ "macro %YB_ATTR_gnu_printf" @ %YDefinition
 	),
 	/ $dev DLDI "'YB_ATTR(format (gnu_printf, ...))'" -> $dep_from
 		("%YB_ATTR_gnu_printf" @ %YBase.YDefinition)
@@ -11514,18 +11516,16 @@ b600
 				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 					Exceptions implementation: Dwarf2.
 			^ "mingw-w64-i686-binutils 2.25-4 from MSYS2",
-			/ $re_ex(b520) "recompiled library %FreeImage" $dep_from
+			/ $re_ex(b520) "rebuilt library %FreeImage" $dep_from
 				"updated library %FreeImage"
 		),
-		/ DLP "toolchain and library using" @ "platform %DS" $=
+		/ DLP @ "platform %DS" $=
 		(
 			^ $re_ex(b558) "updated devkitARM release 44"
 				~ "devkitARM release 43",
 			^ $re_ex(b558) "updated libnds 1.5.10" ~ "libnds 1.5.9",
-			^ $re_ex(b558) "updated default arm7 0.5.27"
-				~ "default arm7 0.5.26",
 			^ $re_ex(b558) "updated libfat 1.0.12" ~ "libfat 1.0.11";
-			/ $re_ex(b520) "recompiled library %FreeImage" $dep_from
+			/ $re_ex(b520) "rebuilt library %FreeImage" $dep_from
 				"updated library %FreeImage"
 		)
 	),

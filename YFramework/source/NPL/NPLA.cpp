@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1383
+\version r1407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-10-12 09:13 +0800
+	2017-10-24 13:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,10 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA
+#include YFM_NPL_NPLA // for ystdex::value_or, ystdex::write,
+//	ystdex::bad_any_cast, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
+//	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, ystdex::ref,
+//	ystdex::retry_on_cond, ystdex::type_info;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -663,21 +666,36 @@ ReductionStatus
 ContextNode::ApplyTail(TermNode& term)
 {
 	YAssert(bool(TailAction), "No tail action found.");
-
-	decltype(TailAction) act;
-
-	std::swap(act, TailAction);
-	return act(term, *this);
+	return Switch()(term, *this);
 }
+
+ReductionStatus
+ContextNode::Push(const EvaluationPasses& passes, TermNode& term,
+	ContextNode& ctx)
+{
+	return PushRange(passes.cbegin(), passes.cend(), term, ctx);
+}
+
 ReductionStatus
 ContextNode::Rewrite(TermNode& term, Reducer reduce)
 {
-//	const auto gd(Guard(term, *this));
+	SetupBoundedTail(std::move(reduce), term, *this);
+#if true
 
+	// NOTE: Rewriting loop until no tail action exists.
+	return ystdex::retry_on_cond([&](ReductionStatus) ynothrow{
+		return bool(TailAction);
+	}, [&]{
+		return ApplyTail(term);
+	});
+#else
+	// NOTE: Following is improper for the case of descendant reductions
+	//	flatterned into the single loop.
 	// NOTE: Rewriting loop until the normal form is got.
 	return ystdex::retry_on_cond(CheckReducible, [&]{
-		return TailAction ? ApplyTail(term) : reduce(term, *this);
+		return TailAction ? ApplyTail(term) : CheckNorm(term);
 	});
+#endif
 }
 
 ReductionStatus

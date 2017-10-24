@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r884
+\version r968
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-10-14 12:11 +0800
+	2017-10-25 03:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,91 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "functions %(CombineReductionResult; \
+					CombineSequenceReductionResult)",
+				/ DLDI "simplified member function %PassesCombiner::operator()"
+					^ $dep_from "%CombineReductionResult",
+				/ @ "class %ContextNode" $=
+				(
+					(
+					+ "function %Switch";
+					/ DLDI "simplified function %ApplyTail" ^ "%Switch",
+					),
+					(
+						+ "function template %SetupBoundedTail",
+						+ "function template %PushRange" ^ $dep_from
+							"%(CombineSequenceReductionResult, Switch)";
+						+ "function function %Push" ^ "%PushRange"
+					),
+					/ @ "function %Rewrite" $=
+					(
+						/ "lifted reduce parameter out of loop"
+							^ "%SetupTail" $dep_from "decoupling reduction \
+							status",
+							// This depends on correct state management on \
+								tail action.
+						(
+						/ "loop invariant" ^ "%TailAction" ~ "%CheckReducible";
+							// See $2017-10 @ \
+								%Documentation::Workflow::Annual2017.
+						/ $forced "return value determination" ^ "%CheckNorm"
+							~ "%TailAction call results"
+							// This is consistent to new loop invariant.
+						)
+					)
+				)
+			),
+			/ %NPLA1 $=
+			(
+				(
+				+ "function %ReduceNested";
+				/ @ "function %ReductionFirst" $=
+				(
+					/ DLDI "function %ReduceFirst" ^ "%ReduceNested" $dep_to
+						"direct nested reduction";
+					/ $impl "deferred reduction" ^ "%ContextNode::SetupTail"
+						~ "%ReduceNested"
+						// This does not require %ReduceNested but it is \
+							preserved for reference.
+				)
+				),
+				/ @ "function %ReduceOnce" $=
+				(
+					/ "expanded handlers as tail calls" ^ ($dep_from
+						("%ContextNode::Push" ~ "%ContextNode::SetupTail")
+						@ %NPLA) $dep_from "direct nested reduction";
+					* $comp "local term and context parameter not bound in \
+						continuations" @ "function %CallOnce" $since b806
+						// Thus it could be wrong when not in the loop of \
+							%Context::Rewrite directly.
+				),
+				(
+				+ "function %ReduceAgain" ^ $dep_from
+					("%ContextNode::PrependTail" @ %NPLA);
+				/ "trivial retrying" ^ "%ReduceAgain" @ %NPLA1 $effective
+					@ ("functions %(ReduceOnce, ReduceTail, ReduceLeafToken, \
+					Forms::(And, Or, If))") $dep_to
+					"decoupling reduction status"
+					// This decouples reduction status as condition of loop in \
+						rewriting and as jump action to specific target. Now \
+						no %ReduceOnce is implicitly depended as the default \
+						reduction action.
+				)
+			),
+		),
+	),
+	* "wrong template argument" @ "return type" @ "function templates \
+		%unique_guard" @ %YBase.YStandardEx.ScopeGuard $since b686
+),
+
+b806
 (
 	/ %Tools $=
 	(
