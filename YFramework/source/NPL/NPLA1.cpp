@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4827
+\version r4877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-10-14 10:29 +0800
+	2017-10-25 02:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #include YFM_NPL_NPLA1 // for ystdex::bind1, unordered_map, ystdex::pvoid,
 //	ystdex::call_value_or, ystdex::as_const, ystdex::ref;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard;
+#include <ystdex/scope_guard.hpp> // for ystdex::swap_guard,
+//	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
 
 using namespace YSLib;
@@ -194,7 +195,7 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 				return ReductionStatus::Clean;
 			}
 		}
-		return ReductionStatus::Retrying;
+		return ReduceAgain(term, ctx);
 	}
 	term.Value = is_and;
 	return ReductionStatus::Clean;
@@ -518,6 +519,14 @@ Reduce(TermNode& term, ContextNode& ctx)
 	return ctx.RewriteGuarded(term, ReduceOnce);
 }
 
+ReductionStatus
+ReduceAgain(TermNode& term, ContextNode& ctx)
+{
+	return ctx.SetupTail([&]{
+		return ReduceOnce(term, ctx);
+	});
+}
+
 void
 ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 {
@@ -576,8 +585,7 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	evaluation can be potentionally parallel, though the simplest one is
 	//	left-to-right.
 	// TODO: Use excetion policies to be evaluated concurrently?
-	std::for_each(first, last,
-		ystdex::bind1(Reduce, std::ref(ctx)));
+	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
 }
 
 ReductionStatus
@@ -596,8 +604,37 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceFirst(TermNode& term, ContextNode& ctx)
 {
-	return IsBranch(term) ? Reduce(Deref(term.begin()), ctx)
+#if true
+	return IsBranch(term) ? ctx.SetupTail(std::bind(
+		// TODO: Blocked. Use C++14 lambda initializers to implement
+		//	move initialization.
+		[&](ContextNode::Reducer& act){
+			const auto gd(ystdex::unique_guard([&]() ynothrow{
+				// XXX: Failure is ignored.
+				FilterExceptions([&]{
+					ctx.SetupTail(std::move(act));
+				});
+			}));
+
+			// TODO: Enable CPS calls without nest loop.
+			return Reduce(Deref(term.begin()), ctx);
+		}, ctx.Switch())) : ReductionStatus::Clean;
+#else
+	// NOTE: This does not use CPS calls.
+	return IsBranch(term) ? ReduceNested(Deref(term.begin()), ctx)
 		: ReductionStatus::Clean;
+#endif
+}
+
+ReductionStatus
+ReduceNested(TermNode& term, ContextNode& ctx)
+{
+	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.TailAction);
+	const auto res(Reduce(term, ctx));
+
+	if(CheckReducible(res))
+		gd.dismiss();
+	return res;
 }
 
 ReductionStatus
@@ -608,13 +645,13 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 		YAssert(term.size() != 0, "Invalid node found.");
 		if(term.size() != 1)
 			// NOTE: List evaluation.
-			return ctx.SetupTail(std::cref(ctx.EvaluateList));
+			return ctx.Push(ctx.EvaluateList, term, ctx);
 		else
 		{
 			// NOTE: List with single element shall be reduced as the
 			//	element.
 			LiftFirst(term);
-			return ReductionStatus::Retrying;
+			return ReduceAgain(term, ctx);
 		}
 	}
 
@@ -622,9 +659,8 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 
 	// NOTE: Empty list or special value token has no-op to do with.
 	// TODO: Handle special value token?
-	return tp != ystdex::type_id<void>()
-		&& tp != ystdex::type_id<ValueToken>() ? ctx.SetupTail(
-		std::cref(ctx.EvaluateLeaf)) : ReductionStatus::Clean;
+	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
+		? ctx.Push(ctx.EvaluateLeaf, term, ctx) : ReductionStatus::Clean;
 }
 
 ReductionStatus
@@ -643,12 +679,12 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 }
 
 ReductionStatus
-ReduceTail(TermNode& term, ContextNode&, TNIter i)
+ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	auto& con(term.GetContainerRef());
 
 	con.erase(con.begin(), i);
-	return ReductionStatus::Retrying;
+	return ReduceAgain(term, ctx);
 }
 
 
@@ -887,10 +923,12 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceLeafToken(TermNode& term, ContextNode& ctx)
 {
-	return ystdex::call_value_or([&](string_view id){
+	const auto res(ystdex::call_value_or([&](string_view id){
 		return EvaluateLeafToken(term, ctx, id);
 	// XXX: A term without token is ignored.
-	}, TermToNamePtr(term), ReductionStatus::Clean);
+	}, TermToNamePtr(term), ReductionStatus::Clean));
+
+	return CheckReducible(res) ? ReduceAgain(term, ctx) : res;
 }
 
 
@@ -1217,7 +1255,7 @@ If(TermNode& term, ContextNode& ctx)
 		if(++i != term.end())
 		{
 			LiftTerm(term, *i);
-			return ReductionStatus::Retrying;
+			return ReduceAgain(term, ctx);
 		}
 	}
 	else
