@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3600
+\version r3608
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-10-22 15:48 +0800
+	2017-10-27 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,7 +173,7 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 //@}
 
 
-//! \pre 间接断言：参数指定的上下文中的尾调用动作为空。
+//! \pre 间接断言：参数指定的上下文中的尾动作为空。
 //@{
 /*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
@@ -189,7 +189,7 @@ Reduce(TermNode&, ContextNode&);
 
 /*!
 \brief 再次规约。
-\sa ContextNode::SetupTail
+\sa ContextNode::SetupBoundedTail
 \sa ReduceOnce
 \return ReductionStatus::Retrying
 \since build 807
@@ -229,7 +229,8 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 //! \note 失败视为重规约。
 //@{
 /*!
-\brief 规约并检查成功：调用 Reduce 并检查结果。
+\brief 规约并检查成功：等效调用 Reduce 并检查结果直至不需重规约。
+\note 支持尾调用优化，不直接使用 CheckedReduceWith 和 Reduce 。
 \sa CheckedReduceWith
 \sa Reduce
 \since build 735
@@ -303,16 +304,16 @@ ReduceFirst(TermNode&, ContextNode&);
 \sa Reduce
 \since build 807
 
-保存上下文的尾调用动作并调用 Reduce 。
-若调用返回且不需要重规约则重置尾调用动作，并放弃规约时可能设置的动作尾调用动作；
-否则，放弃保存的尾调用动作，保留规约时可能设置的尾调用动作。
+保存上下文的尾动作并调用 Reduce 。
+若调用返回且不需要重规约则重置尾动作，并放弃规约时可能设置的动作尾动作；
+否则，放弃保存的尾动作，保留规约时可能设置的尾动作。
 */
 YF_API ReductionStatus
 ReduceNested(TermNode&, ContextNode&);
 
 /*!
 \brief NPLA1 表达式节点规约：调用求值例程规约子表达式。
-\pre 间接断言：参数指定的上下文中的尾调用动作为空。
+\pre 间接断言：参数指定的上下文中的尾动作为空。
 \return 规约状态。
 \note 异常安全为调用遍的最低异常安全保证。
 \note 可能使参数中容器的迭代器失效。

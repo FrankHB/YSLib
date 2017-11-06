@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5315
+\version r5324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2017-10-10 18:31 +0800
+	2017-10-25 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,24 +126,25 @@ public:
 	{}
 	/*!
 	\brief 使用函数对象。
-	\since build 494
+	\since build 808
 	*/
-	template<class _fCallable>
+	template<class _fCallable,
+		yimpl(typename = ystdex::exclude_self_t<GHEvent, _fCallable>)>
 	yconstfn
-	GHEvent(_fCallable f, ystdex::enable_if_t<
-		std::is_constructible<BaseType, _fCallable>::value, int> = 0)
-		: BaseType(f),
+	GHEvent(_fCallable&& f, ystdex::enable_if_t<std::is_constructible<BaseType,
+		ystdex::decay_t<_fCallable>>::value, int> = 0)
+		: BaseType(yforward(f)),
 		comp_eq(GEquality<ystdex::decay_t<_fCallable>>::AreEqual)
 	{}
 	/*!
 	\brief 使用扩展函数对象。
-	\since build 447
+	\since build 808
 	\todo 推断比较相等操作。
 	*/
 	template<class _fCallable>
 	yconstfn
-	GHEvent(_fCallable&& f, ystdex::enable_if_t<
-		!std::is_constructible<BaseType, _fCallable>::value, int> = 0)
+	GHEvent(_fCallable&& f, ystdex::enable_if_t<!std::is_constructible<BaseType,
+		ystdex::decay_t<_fCallable>>::value, int> = 0)
 		: BaseType(ystdex::make_expanded<_tRet(_tParams...)>(yforward(f))),
 		comp_eq([](const GHEvent&, const GHEvent&) ynothrow{
 			return true;
