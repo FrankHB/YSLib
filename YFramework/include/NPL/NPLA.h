@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2626
+\version r2675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-10-24 23:22 +0800
+	2017-11-05 08:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1324,7 +1324,7 @@ public:
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
 	/*!
-	\brief 尾调用动作。
+	\brief 尾动作。
 	\note 为便于确保释放，不使用 ystdex::one_shot 。
 	\since build 806
 	*/
@@ -1360,7 +1360,7 @@ public:
 	/*!
 	\brief 转移并应用尾调用。
 	\note 调用前脱离 TailAction 以允许调用 SetupTail 设置新的尾调用。
-	\pre 断言检查： TailAction 。
+	\pre 断言： \c TailAction 。
 	\since build 806
 	*/
 	ReductionStatus
@@ -1388,7 +1388,11 @@ public:
 				// XXX: The result is ignored.
 				PushRange(first, last, term, ctx, res);
 				// NOTE: If reducible, %TailAction should have been properly
-				//	set or cleared. The returning value informs propably
+				//	set or cleared. It cannot be cleared here because there is
+				//	no simple way to guarantee the action is the last one for
+				//	specified term (e.g. call of %SetupTail would introduce
+				//	reducible but not to be cleared term in general).
+				// NOTE: The returning value informs propably
 				//	existed enclosing caller to retry a new turn of reduction if
 				//	%TailAction is empty, otherwise it is to be ignored as
 				//	per the loop condition of %Rewrite.
@@ -1440,7 +1444,7 @@ public:
 	*/
 	//@{
 	/*!
-	\brief 设置尾调用动作和绑定的参数以重规约。
+	\brief 设置尾动作和绑定的参数以重规约。
 	\sa SetupTail
 	\since build 807
 	*/
@@ -1455,7 +1459,7 @@ public:
 	}
 
 	/*!
-	\brief 设置尾调用动作以重规约。
+	\brief 设置尾动作以重规约。
 	\since build 806
 	*/
 	template<typename _func>
@@ -1469,7 +1473,7 @@ public:
 	//@}
 
 	/*!
-	\brief 切换尾调用动作。
+	\brief 切换尾动作。
 	\since build 807
 	*/
 	PDefH(Reducer, Switch, Reducer f = {})
@@ -1489,6 +1493,49 @@ public:
 			swap(x.Trace, y.Trace))
 	//@}
 };
+
+
+/*!
+\pre 间接断言：参数指定的上下文中的尾动作为空。
+\since build 808
+*/
+//@{
+//! \brief 规约当前和后继动作。
+template<typename _func, typename _type>
+ReductionStatus
+ReduceWithNextActions(TermNode& term, ContextNode& ctx, _func extr_tail,
+	ContextNode::Reducer&& cur, _type&& next)
+{
+	// TODO: Blocked. Use C++14 lambda initializers to implement
+	//	move initialization.
+	return ctx.SetupTail(std::bind(
+		[&, extr_tail](ContextNode::Reducer& act, _type& acts){
+		const auto res(act(term, ctx));
+
+		ctx.TailAction ? void(NPL::ReduceWithNextActions(term, ctx, extr_tail,
+			ctx.Switch(), std::move(acts))) : void(ystdex::expand_proxy<
+				void(ContextNode&, _type&, const ReductionStatus&)>::call(
+				extr_tail, ctx, acts, res));
+		return res;
+	}, std::move(cur), std::move(next)));
+}
+
+//! \brief 规约当前和嵌套调用中的后继动作。
+template<typename _func, typename _type>
+ReductionStatus
+ReduceWithNestedNextActions(TermNode& term, ContextNode& ctx, _func extr_tail,
+	ContextNode::Reducer&& cur, _type&& next)
+{
+	// XXX: Assume it is always reducing the same term and the next actions are
+	//	safe to be dropped.
+	return NPL::ReduceWithNextActions(term, ctx,
+		[&, extr_tail](ContextNode& c, _type& acts, ReductionStatus res){
+		if(!CheckReducible(res))
+			ystdex::expand_proxy<void(ContextNode&, _type&,
+				const ReductionStatus&)>::call(extr_tail, c, acts, res);
+	}, std::move(cur), std::move(next));
+}
+//@}
 
 
 //! \since build 674

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1039
+\version r1041
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2016-12-14 22:41 +0800
+	2017-10-31 10:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,7 +162,7 @@ for_each_if(_tIn first, _tIn last, _fPred pred, _func f)
 {
 	for(; first != last; ++first)
 	{
-		first = std::find_if(++first, last, pred);
+		first = std::find_if(first, last, pred);
 		f(*first);
 	}
 	return f;

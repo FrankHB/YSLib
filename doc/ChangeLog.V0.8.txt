@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r968
+\version r1055
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-10-25 03:04 +0800
+	2017-11-06 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,94 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ "function templates %(unique_guard, unique_state_guard)"
+		%YBase.YStandard.ScopeGuard $=
+	(
+		* $revert_ex(b779) "empty state forwarded by default" $since b779
+			$dep_to "invalid guard initialization",
+			// This broke compatibility as well as consistency with \
+				%ystdex::make_guard.
+		* "missing arguments" @ "exception specification" $since b779
+	),
+	* $comp "guard disabled without non-empty state passed to \
+		%ystdex::unique_ptr" $since b779 $dep_from
+		"invalid guard initialization" $effective @ ("function template \
+		%AddExitGuard" @ %YSLib.Core.YApplication, "static member function \
+		%WindowThread::DefaultGenerateGuard" @ %Helper.HostRenderer,
+		"member function %DirectoryFindData::GetNodeCategory"
+		@ %YCLib_(Win32).MinGW32) @ %YFramework,
+	/ %YFramework $=
+	(
+		/ @ "constructor templates with function object"
+			@ "class template specialization %GHEvent" @ %YSLib.Core.YEvent $=
+		(
+			(
+			/ $revert(b494) "direct '_fCallable'"
+				-> "rvalue references for callable type '_fCallable&&'"
+				@ "constructor %GHEvent with precisely matched callable object \
+				parameter";
+				// Move-only functions are now supported by a style of \
+					forwarding call wrapper. See $2014-04 @ \
+					%Documentation::Workflow::Annual2014. This is also \
+					consistent to avoid the bug below.
+			* $comp "ambiguity for imprecisely match function object as 1st \
+				argument to construct" $since b494
+				// For example, an instance of %std::bind result.
+			),
+			* "missing decaying target type" @ "%enable_if_t test" $since b494
+		),
+		/ %NPL $=
+		(
+			+ "function templates %(ReduceWithNextActions; \
+				ReduceWithNestedNextActions)" @ %NPLA,
+			/ %NPLA1 $=
+			(
+				/ "supported proper tail calls" $=
+				(
+					/ @ "functions %ReduceNested"
+						^ $dep_from ("%ReduceWithNestedNextActions" @ %NPLA),
+					/ @ "functions %((Forms::(If, And, Or)), ReduceCombined)"
+						^ $dep_from ("%ReduceWithNextActions" @ %NPLA)
+				),
+				/ @ "function %ReduceFirst" $=
+				(
+					/ DLDI ^ $dep_from "%ReduceNested";
+					* "invalid state set for branch node"
+						@ "function %ReduceFirst" $since b807
+						// The wrong behavior was caused by the bug of \
+							%ystdex::unique_guard. However, the real bug here \
+							is originally a typo to misuse 'unique_guard' \
+							instead of 'make_guard', even if now it should \
+							dismiss the guard to cleanup the tail action in \
+							time when retrying is needed. This is also \
+							corrected in an inactive referential implementaion \
+							protected by 'false' conditional inclusion in \
+							%ReduceNested.
+				),
+				/ "function %ReduceChecked" ^ "%ReduceNested" ~ "%Reduce",
+				/ DLDI "simplified function %ReduceAgain"
+					^ "%ContextNode::SetupBoundedTail",
+				/ "reduced directly on term parameter"
+					~ "reduced in new term and copied back the result"
+					@ "function %ReduceCheckedClosure"
+					// This makes it easy to transform to CPS style, also \
+						more efficient for direct-style calls.
+			)
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* $re_ex(b750) "missing check for first element in non empty sequence"
+			@ "function templates %for_each_if" @ %Algorithm
+			$since b531,
+			// The bug fix was still wrong since b750 because of typo.
+		* "missing wrapping to move iterator" @ "function template %concat#2"
+			@ %Container $since b546
+	)
+),
+
+b808
 (
 	/ %YFramework $=
 	(

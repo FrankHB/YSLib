@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1942
+\version r1945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2017-10-05 03:03 +0800
+	2017-11-02 03:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -442,7 +442,8 @@ template<class _tCon, typename _tRange>
 void
 concat(_tCon& con, _tRange&& c)
 {
-	con.insert(end(con), begin(yforward(c)), end(yforward(c)));
+	con.insert(end(con), std::make_move_iterator(begin(yforward(c))),
+		std::make_move_iterator(end(yforward(c))));
 }
 //@}
 
@@ -795,7 +796,7 @@ erase_multi(_tAssocCon& con, const _tKey& k)
 /*!
 \brief 删除指定容器中指定迭代器起始指定数量的元素。
 \pre 指定的迭代器是指定容器的迭代器。
-\pre 断言检查：删除的范围不超出容器。
+\pre 断言：删除的范围不超出容器。
 \since build 531
 */
 //@{

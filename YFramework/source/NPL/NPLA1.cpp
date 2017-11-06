@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r4878
+\version r5030
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-10-25 02:51 +0800
+	2017-11-06 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,6 +172,45 @@ TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
 	return res;
 }
 
+//! \since build 808
+//@{
+bool
+ExtractBool(TermNode& term, bool is_and) ynothrow
+{
+	return ystdex::value_or(AccessTermPtr<bool>(term), is_and) == is_and;
+}
+
+void
+ExtractTail(ContextNode& ctx, ContextNode::Reducer& acts)
+{
+	ctx.SetupTail(std::move(acts));
+}
+
+template<typename _func, typename _type>
+ReductionStatus
+ReduceWithCheckedNestedNextActions(TermNode& term, ContextNode& ctx,
+	_func extr_tail, ContextNode::Reducer&& cur, _type&& next)
+{
+	// XXX: Assume it is always reducing the same term and the next actions are
+	//	safe to be dropped.
+	return NPL::ReduceWithNextActions(term, ctx,
+		[&, extr_tail](ContextNode& c, _type& acts, ReductionStatus res){
+		if(!CheckReducible(res))
+			ystdex::expand_proxy<void(ContextNode&, _type&,
+				const ReductionStatus&)>::call(extr_tail, c, acts, res);
+		else
+			c.SetupBoundedTail(ReduceOnce, term, ctx);
+	}, std::move(cur), std::move(next));
+}
+
+ReductionStatus
+ReduceCheckedNested(TermNode& term, ContextNode& ctx)
+{
+	return ReduceWithCheckedNestedNextActions(term, ctx, ExtractTail,
+		ReduceOnce, ctx.Switch());
+}
+//@}
+
 //! \since build 753
 ReductionStatus
 AndOr(TermNode& term, ContextNode& ctx, bool is_and)
@@ -183,19 +222,31 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 	if(++i != term.end())
 	{
 		if(std::next(i) == term.end())
-			LiftTerm(term, *i);
-		else
 		{
-			ReduceChecked(*i, ctx);
-			if(ystdex::value_or(AccessTermPtr<bool>(*i), is_and) == is_and)
+			LiftTerm(term, *i);
+			return ReduceAgain(term, ctx);
+		}
+
+		const auto and_or_next([&, i, is_and]{
+			if(ExtractBool(*i, is_and))
 				term.Remove(i);
 			else
 			{
 				term.Value = !is_and;
 				return ReductionStatus::Clean;
 			}
-		}
-		return ReduceAgain(term, ctx);
+			return ReduceAgain(term, ctx);
+		});
+
+#if true
+		return ReduceWithNextActions(term, ctx, ExtractTail,
+			std::bind(ReduceCheckedNested, std::ref(*i), std::ref(ctx)),
+			ContextNode::Reducer(and_or_next));
+#else
+		// NOTE: This does not support proper tail calls.
+		ReduceChecked(*i, ctx);
+		return and_or_next();
+#endif
 	}
 	term.Value = is_and;
 	return ReductionStatus::Clean;
@@ -522,9 +573,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
-	return ctx.SetupTail([&]{
-		return ReduceOnce(term, ctx);
-	});
+	return ctx.SetupBoundedTail(ReduceOnce, term, ctx);
 }
 
 void
@@ -541,40 +590,39 @@ ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 void
 ReduceChecked(TermNode& term, ContextNode& ctx)
 {
+	// TODO: Replace implementation with CPS'd implementation.
+#if false
+	ReduceCheckedNested(term, ctx, ReduceOnce, ctx.Switch());
+#else
+	// NOTE: This does not support proper tail calls.
 	CheckedReduceWith(Reduce, term, ctx);
+#endif
 }
 
 ReductionStatus
 ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	TermNode& closure)
 {
-	TermNode comp_term(NoContainer, term.GetName());
-
 	if(move)
-		LiftTerm(comp_term, closure);
+		LiftTerm(term, closure);
 	else
-		comp_term.SetContent(closure);
-	// TODO: Test for normal form?
+		term.SetContent(closure);
 	// XXX: Term reused.
-	ReduceChecked(comp_term, ctx);
+	ReduceChecked(term, ctx);
 	// TODO: Detect lifetime escape to perform copy elision.
-#if true
 	// NOTE: To keep lifetime of objects referenced by references introduced in
 	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
-	//	because it will not copy object referenced in holders of
+	//	because it will not copy objects referenced in holders of
 	//	%YSLib::RefHolder instances). On the other hand, the references captured
 	//	by vau handlers (which requries recursive copy of vau handler members if
 	//	forced) are not blessed here to avoid leak abstraction of detailed
 	//	implementation of vau handlers; it can be checked by the vau handler
 	//	itself, if necessary.
-	LiftToSelf(comp_term);
-	term.SetContent(comp_term.CreateWith(&ValueObject::MakeMoveCopy),
-		comp_term.Value.MakeMoveCopy());
-#else
-	// NOTE: The raw returning of term is the copy elision (unconditionally).
+	LiftToSelf(term);
+	// NOTE: The no-op returning of term is the copy elision (unconditionally).
 	//	It is equivalent to returning by reference, which can be dangerous.
-	term.SetContent(std::move(comp_term));
-#endif
+	term.SetContent(term.CreateWith(&ValueObject::MakeMoveCopy),
+		term.Value.MakeMoveCopy());
 	return CheckNorm(term);
 }
 
@@ -604,37 +652,40 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceFirst(TermNode& term, ContextNode& ctx)
 {
-#if true
-	return IsBranch(term) ? ctx.SetupTail(std::bind(
-		// TODO: Blocked. Use C++14 lambda initializers to implement
-		//	move initialization.
-		[&](ContextNode::Reducer& act){
-			const auto gd(ystdex::unique_guard([&]() ynothrow{
-				// XXX: Failure is ignored.
-				FilterExceptions([&]{
-					ctx.SetupTail(std::move(act));
-				});
-			}));
-
-			// TODO: Enable CPS calls without nest loop.
-			return Reduce(Deref(term.begin()), ctx);
-		}, ctx.Switch())) : ReductionStatus::Clean;
-#else
-	// NOTE: This does not use CPS calls.
 	return IsBranch(term) ? ReduceNested(Deref(term.begin()), ctx)
 		: ReductionStatus::Clean;
-#endif
 }
 
 ReductionStatus
 ReduceNested(TermNode& term, ContextNode& ctx)
 {
+#if true
+	return ReduceWithNestedNextActions(term, ctx, ExtractTail, ReduceOnce,
+		ctx.Switch());
+#elif false
+	// NOTE: This is not full capable for proper tail calls.
+	return ctx.SetupTail(std::bind([&](ContextNode::Reducer& act){
+		auto gd(ystdex::unique_guard([&]() ynothrow{
+			// XXX: Failure is ignored.
+			FilterExceptions([&]{
+				ctx.SetupTail(std::move(act));
+			});
+		}));
+		const auto res(Reduce(term, ctx));
+
+		if(CheckReducible(res))
+			ystdex::dismiss(gd);
+		return res;
+	}, ctx.Switch()));
+#else
+	// NOTE: This does not support proper tail calls.
 	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.TailAction);
 	const auto res(Reduce(term, ctx));
 
 	if(CheckReducible(res))
 		gd.dismiss();
 	return res;
+#endif
 }
 
 ReductionStatus
@@ -900,7 +951,28 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 				term.ClearContainer();
 			return res;
 		});
+#if true
+		const auto cleanup_and_extract(
+			[ret](ContextNode& c, ContextNode::Reducer& acts,
+				ReductionStatus res){
+			ret(res);
+			ExtractTail(c, acts);
+		});
 
+		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
+			return ReduceWithNextActions(term, ctx, cleanup_and_extract,
+				[&, p_handler]{
+				const auto handler(std::move(*p_handler));
+
+				return handler(term, ctx);
+			}, ctx.Switch());
+		if(const auto p_handler = AccessTermPtr<ContextHandler>(fm))
+			return ReduceWithNextActions(term, ctx, cleanup_and_extract,
+				[&, p_handler]{
+				return (*p_handler)(term, ctx);
+			}, ctx.Switch());
+#else
+		// NOTE: This does not support proper tail calls.
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
 		{
 			const auto handler(std::move(*p_handler));
@@ -909,6 +981,7 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 		}
 		if(const auto p_handler = AccessTermPtr<ContextHandler>(fm))
 			return ret((*p_handler)(term, ctx));
+#endif
 		else
 			// TODO: Capture contextual information in error.
 			// TODO: Extract general form information extractor function.
@@ -1247,20 +1320,32 @@ If(TermNode& term, ContextNode& ctx)
 
 	if(size == 3 || size == 4)
 	{
-		auto i(term.begin());
+		auto i(std::next(term.begin()));
+		const auto if_next([&, i]() -> ReductionStatus{
+			auto j(i);
 
-		ReduceChecked(Deref(++i), ctx);
-		if(!ystdex::value_or(AccessTermPtr<bool>(*i), true))
-			++i;
-		if(++i != term.end())
-		{
-			LiftTerm(term, *i);
-			return ReduceAgain(term, ctx);
-		}
+			if(!ExtractBool(*j, true))
+				++j;
+			if(++j != term.end())
+			{
+				LiftTerm(term, *j);
+				return ReduceAgain(term, ctx);
+			}
+			return ReductionStatus::Clean;
+		});
+
+#if true
+		return ReduceWithNextActions(term, ctx, ExtractTail,
+			std::bind(ReduceCheckedNested, std::ref(*i), std::ref(ctx)),
+			ContextNode::Reducer(if_next));
+#else
+		// NOTE: This does not support proper tail calls.
+		ReduceChecked(*i, ctx);
+		return if_next();
+#endif
 	}
 	else
 		throw InvalidSyntax("Syntax error in conditional form.");
-	return ReductionStatus::Clean;
 }
 
 void

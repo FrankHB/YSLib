@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守护。
-\version r517
+\version r522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2017-10-25 02:52 +0800
+	2017-10-25 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,13 +87,13 @@ make_guard(_type f)
 }
 //@}
 
-//! \since build 807
+//! \since build 808
 //@{
 template<typename _tState = bool, bool _bNoThrow = true, typename _func>
 guard<one_shot<_func, void, _tState>, _bNoThrow>
-unique_guard(_func f, _tState s = {}) ynoexcept_spec(
+unique_guard(_func f, _tState s = true) ynoexcept_spec(
 	guard<one_shot<_func, void, _tState>, _bNoThrow>(
-	guard<one_shot<_func, void, _tState>, _bNoThrow>(f)))
+	guard<one_shot<_func, void, _tState>, _bNoThrow>(f, s)))
 {
 	return guard<one_shot<_func, void, _tState>, _bNoThrow>(f, s);
 }
@@ -101,9 +101,9 @@ unique_guard(_func f, _tState s = {}) ynoexcept_spec(
 template<typename _tRes, typename _tState = bool, bool _bNoThrow = true,
 	typename _func>
 guard<one_shot<_func, _tRes, _tState>, _bNoThrow>
-unique_state_guard(_func f, _tRes r = {}, _tState s = {}) ynoexcept_spec(
+unique_state_guard(_func f, _tRes r = {}, _tState s = true) ynoexcept_spec(
 	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(
-	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f)))
+	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f, r, s)))
 {
 	return guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f, r, s);
 }
