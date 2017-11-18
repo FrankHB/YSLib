@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1399
+\version r1400
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2017-07-23 16:18 +0800
+	2017-11-19 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 引用标记参见 [Documentation::CommonRules @@0.1] 。
 项目范围参见 [Documentation::ProjectRules @@1] 。
 本文档适用于 YFramework 。
+除非另行约定， 其它未指定单独文档的目标为程序库和应用的 YSLib 顶级子项目([Documentation::Projects @@1.3]) 也适用本文档。
 部分编码细节和其它规范和 YBase 共享，参见 [Documentation::Designation] 。
 
 @1 整体设计：

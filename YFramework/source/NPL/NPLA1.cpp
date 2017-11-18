@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5029
+\version r5122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-11-06 21:44 +0800
+	2017-11-18 11:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,11 @@ using namespace YSLib;
 
 namespace NPL
 {
+
+#define YF_Impl_NPLA1_Enable_TCO true
+// NOTE: The delayed TCO does not allow capture of first-class continuations in
+//	general, but still intended in most cases currently, see $2017-11
+//	@ %Documentation::Workflow::Annual2017.
 
 namespace A1
 {
@@ -173,41 +178,34 @@ TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
 }
 
 //! \since build 808
-//@{
 bool
 ExtractBool(TermNode& term, bool is_and) ynothrow
 {
 	return ystdex::value_or(AccessTermPtr<bool>(term), is_and) == is_and;
 }
 
-void
-ExtractTail(ContextNode& ctx, ContextNode::Reducer& acts)
-{
-	ctx.SetupTail(std::move(acts));
-}
-
+//! \since build 809
+//@{
 template<typename _func, typename _type>
-ReductionStatus
+void
 ReduceWithCheckedNestedNextActions(TermNode& term, ContextNode& ctx,
 	_func extr_tail, ContextNode::Reducer&& cur, _type&& next)
 {
 	// XXX: Assume it is always reducing the same term and the next actions are
 	//	safe to be dropped.
-	return NPL::ReduceWithNextActions(term, ctx,
+	NPL::ReduceWithNextActions(term, ctx,
 		[&, extr_tail](ContextNode& c, _type& acts, ReductionStatus res){
-		if(!CheckReducible(res))
-			ystdex::expand_proxy<void(ContextNode&, _type&,
-				const ReductionStatus&)>::call(extr_tail, c, acts, res);
-		else
+		if(NPL::ResumeCall(c, extr_tail, acts, res))
+			// NOTE: Drop next tail actions.
 			c.SetupBoundedTail(ReduceOnce, term, ctx);
 	}, std::move(cur), std::move(next));
 }
 
-ReductionStatus
+void
 ReduceCheckedNested(TermNode& term, ContextNode& ctx)
 {
-	return ReduceWithCheckedNestedNextActions(term, ctx, ExtractTail,
-		ReduceOnce, ctx.Switch());
+	ReduceWithCheckedNestedNextActions(term, ctx, SetupAction, ReduceOnce,
+		ctx.Switch());
 }
 //@}
 
@@ -238,10 +236,12 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 			return ReduceAgain(term, ctx);
 		});
 
-#if true
-		return ReduceWithNextActions(term, ctx, ExtractTail,
-			std::bind(ReduceCheckedNested, std::ref(*i), std::ref(ctx)),
-			ContextNode::Reducer(and_or_next));
+#if YF_Impl_NPLA1_Enable_TCO
+		ReduceWithNextActions(term, ctx, SetupAction, [&, i]{
+			ReduceCheckedNested(*i, ctx);
+			return ReductionStatus::Retrying;
+		}, ContextNode::Reducer(and_or_next));
+		return ReductionStatus::Retrying;
 #else
 		// NOTE: This does not support proper tail calls.
 		ReduceChecked(*i, ctx);
@@ -573,7 +573,8 @@ Reduce(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
-	return ctx.SetupBoundedTail(ReduceOnce, term, ctx);
+	ctx.SetupBoundedTail(ReduceOnce, term, ctx);
+	return ReductionStatus::Retrying;
 }
 
 void
@@ -633,15 +634,24 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	evaluation can be potentionally parallel, though the simplest one is
 	//	left-to-right.
 	// TODO: Use excetion policies to be evaluated concurrently?
-	std::for_each(first, last, ystdex::bind1(Reduce, std::ref(ctx)));
+	// NOTE: This does not support proper tail calls, but allow it to be called
+	//	in routines which expect proper tail actions, given the guarnatee that
+	//	the precondition of %Reduce is not violated.
+	// XXX: The remained tail action would be dropped.
+	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.TailAction);
+
+	std::for_each(first, last, ystdex::bind1(ReduceChecked, std::ref(ctx)));
 }
 
 ReductionStatus
 ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 {
+	// NOTE: This does not support proper tail calls.
 	const auto tr([&](TNIter iter){
 		return ystdex::make_transform(iter, [&](TNIter i){
-			return Reduce(*i, ctx);
+			ReduceChecked(*i, ctx);
+			// TODO: Simplify?
+			return CheckNorm(*i);
 		});
 	});
 
@@ -652,6 +662,7 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceFirst(TermNode& term, ContextNode& ctx)
 {
+	// NOTE: This is neutral to TCO.
 	return IsBranch(term) ? ReduceNested(Deref(term.begin()), ctx)
 		: ReductionStatus::Clean;
 }
@@ -659,9 +670,15 @@ ReduceFirst(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceNested(TermNode& term, ContextNode& ctx)
 {
-#if true
-	return ReduceWithNestedNextActions(term, ctx, ExtractTail, ReduceOnce,
+#if YF_Impl_NPLA1_Enable_TCO
+	ReduceWithNestedNextActions(term, ctx, SetupAction, ReduceOnce,
 		ctx.Switch());
+	// NOTE: This is not valid since the boundary of current delimited
+	//	contutation would be wrong thus %ReduceCombined would wrongly reduce
+	//	more than needed actions. It may also clash with other call of
+	//	%ReduceNestedActions.
+//	ReduceNestedActions(term, ctx, ExtractAction, ReduceOnce, ctx.Switch());
+	return ReductionStatus::Retrying;
 #elif false
 	// NOTE: This is not full capable for proper tail calls.
 	return ctx.SetupTail(std::bind([&](ContextNode::Reducer& act){
@@ -674,6 +691,7 @@ ReduceNested(TermNode& term, ContextNode& ctx)
 		const auto res(Reduce(term, ctx));
 
 		if(CheckReducible(res))
+			// NOTE: Drop saved tail action.
 			ystdex::dismiss(gd);
 		return res;
 	}, ctx.Switch()));
@@ -695,8 +713,15 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 	{
 		YAssert(term.size() != 0, "Invalid node found.");
 		if(term.size() != 1)
+		{
 			// NOTE: List evaluation.
-			return ctx.Push(ctx.EvaluateList, term, ctx);
+#if YF_Impl_NPLA1_Enable_TCO
+			PushActions(ctx.EvaluateList, term, ctx);
+			return ReductionStatus::Retrying;
+#else
+			return ctx.EvaluateList(term, ctx);
+#endif
+		}
 		else
 		{
 			// NOTE: List with single element shall be reduced as the
@@ -710,23 +735,33 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 
 	// NOTE: Empty list or special value token has no-op to do with.
 	// TODO: Handle special value token?
+#if YF_Impl_NPLA1_Enable_TCO
+	// NOTE: The reduction relies on proper handling of reduction status.
 	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
-		? ctx.Push(ctx.EvaluateLeaf, term, ctx) : ReductionStatus::Clean;
+		? (PushActions(ctx.EvaluateLeaf, term, ctx), ReductionStatus::Retrying)
+		: ReductionStatus::Clean;
+#else
+	// NOTE: The reduction relies on proper tail action.
+	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
+		? ctx.EvaluateLeaf(term, ctx) : ReductionStatus::Clean;
+#endif
 }
 
 ReductionStatus
 ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
-	const auto res(ReduceChildrenOrdered(term, ctx));
-
 	if(IsBranch(term))
 	{
+		// NOTE: This is neutral to TCO.
+		const auto res(ReduceChildrenOrdered(term, ctx));
+
 		if(term.size() > 1)
 			LiftTerm(term, *term.rbegin());
 		else
 			term.Value = ValueToken::Unspecified;
+		return res;
 	}
-	return res;
+	return ReductionStatus::Clean;
 }
 
 ReductionStatus
@@ -735,6 +770,7 @@ ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 	auto& con(term.GetContainerRef());
 
 	con.erase(con.begin(), i);
+	// NOTE: This is neutral to TCO.
 	return ReduceAgain(term, ctx);
 }
 
@@ -861,6 +897,7 @@ EvaluateDelayed(TermNode& term)
 ReductionStatus
 EvaluateDelayed(TermNode& term, DelayedTerm& delayed)
 {
+	// NOTE: This does not rely on tail action.
 	// NOTE: The referenced term is lived through the envaluation, which is
 	//	guaranteed by the evaluated parent term.
 	LiftDelayed(term, delayed);
@@ -951,26 +988,27 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 				term.ClearContainer();
 			return res;
 		});
-#if true
-		const auto cleanup_and_extract(
-			[ret](ContextNode& c, ContextNode::Reducer& acts,
-				ReductionStatus res){
-			ret(res);
-			ExtractTail(c, acts);
+#if YF_Impl_NPLA1_Enable_TCO
+		const auto reduce_next([&, ret](ContextNode::Reducer next){
+			ReduceWithNextActions(term, ctx,
+				[&, ret](ContextNode& c, ContextNode::Reducer& acts,
+					ReductionStatus res){
+				ret(res);
+				SetupAction(c, acts);
+			}, std::move(next), ctx.Switch());
+			return ReductionStatus::Retrying;
 		});
 
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
-			return ReduceWithNextActions(term, ctx, cleanup_and_extract,
-				[&, p_handler]{
+			return reduce_next([&, p_handler]{
 				const auto handler(std::move(*p_handler));
 
 				return handler(term, ctx);
-			}, ctx.Switch());
+			});
 		if(const auto p_handler = AccessTermPtr<ContextHandler>(fm))
-			return ReduceWithNextActions(term, ctx, cleanup_and_extract,
-				[&, p_handler]{
+			return reduce_next([&, p_handler]{
 				return (*p_handler)(term, ctx);
-			}, ctx.Switch());
+			});
 #else
 		// NOTE: This does not support proper tail calls.
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
@@ -1334,10 +1372,12 @@ If(TermNode& term, ContextNode& ctx)
 			return ReductionStatus::Clean;
 		});
 
-#if true
-		return ReduceWithNextActions(term, ctx, ExtractTail,
-			std::bind(ReduceCheckedNested, std::ref(*i), std::ref(ctx)),
-			ContextNode::Reducer(if_next));
+#if YF_Impl_NPLA1_Enable_TCO
+		ReduceWithNextActions(term, ctx, SetupAction, [&, i]{
+			ReduceCheckedNested(*i, ctx);
+			return ReductionStatus::Retrying;
+		}, ContextNode::Reducer(if_next));
+		return ReductionStatus::Retrying;
 #else
 		// NOTE: This does not support proper tail calls.
 		ReduceChecked(*i, ctx);

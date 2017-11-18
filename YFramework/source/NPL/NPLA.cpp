@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1407
+\version r1416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-10-24 13:16 +0800
+	2017-11-18 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -670,13 +670,6 @@ ContextNode::ApplyTail(TermNode& term)
 }
 
 ReductionStatus
-ContextNode::Push(const EvaluationPasses& passes, TermNode& term,
-	ContextNode& ctx)
-{
-	return PushRange(passes.cbegin(), passes.cend(), term, ctx);
-}
-
-ReductionStatus
 ContextNode::Rewrite(TermNode& term, Reducer reduce)
 {
 	SetupBoundedTail(std::move(reduce), term, *this);
@@ -704,6 +697,13 @@ ContextNode::RewriteGuarded(TermNode& term, Reducer reduce)
 	const auto gd(Guard(term, *this));
 
 	return Rewrite(term, reduce);
+}
+
+
+void
+PushActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
+{
+	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx);
 }
 
 } // namespace NPL;
