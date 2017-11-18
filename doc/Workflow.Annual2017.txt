@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r567
+\version r601
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-10-25 01:49 +0800
+	2017-11-15 10:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -547,6 +547,42 @@ Proper tail calls are considered to be implemented.
 			Any intermediate status handled by tail action is not cared by the returning value directly.
 			It can now be in retrying status when there is no sufficient tail action to handle it.
 				This indicates it should be probably handled in the caller which could handle the reduction of the parent term.
+
+$2017-11:
+
+To implement asynchronous CPS by trampolines, there are different ways to deal with tail action.
+	The traditional way is to save the contination as the tail action and then to call the captured current action directly.
+		This is general safe, though not very efficient.
+		It is now delimited for current activation record frame to allow operate on the end of sequence of asynchronous operations for frame cleanup.
+			The current action representing current continuation is detached from the context before being invoked.
+			The next continuation is set (by current continuation dynamically, or setup before the invocation) as the tail action in the context, being the pending continuation.
+		This allows reifying delimited continuations in future.
+			This is like to introduce control effects as of static delimited continuation control operator like "shift" and "reset".
+			Since the current action is always detached before invoked, it is not the same as of dynamic delimited continuation control operator like "control" and "prompt".
+			Further reading for the general topic of delimited contuations: http://okmij.org/ftp/continuations/.
+	A variant is to defer the call of setup tail action after (rather than before) the call of current action.
+		This deferred way is slightly more effecient with less memory allocation and deallocation operations compared to traditional ones.
+			The performance has been verified by profiling using Valgrind.
+		This is the canonical way to switch current control (represented by current tail action) to out-of-bound action after current action is finished.
+			However, since compatibility with synchronous calls is required, it can only assume the action contain no boundary in limited cases.
+			The capture of out-of-bound action as continuations is still not implemented yet.
+				This needs some extra data structures allocated in the context.
+			Even when extra storage of continuations is implemented, the variant can be still useful for administrative continuations which are not intended to be first-class in object language.
+		To replace normal TCO with it may misbehave in general if tail action interoperations are performed, so it should be used with cautious.
+			Since the continuation is not set, any try to capture next actions by saving the tail action would not work.
+				Even if 'ContextNode::Switch' is called, the return value would be empty, thus all next tail actions are effectively lost.
+			It is safe only when no continuation is need to be captured and saved.
+				There should not be nested calls, for example, because activation records delimited in the boundary are also maintained in tail actions asynchronously.
+	In general, the apply of asynchrounous CPS with 2 consecutive actions reduced directly can be optimized to sequent direct-style calls instead, when CPS is not needed.
+		The only remained difference is the call binds the term reference and context reference again, which is not cared here.
+			The parameters here are only indicating the initial values of the synchrounous call (e.g. toplevel reduction).
+			The actual reduced parameters for subterms should be bound previously.
+		So the call is avoided for performance and simplicity of implementation for usual cases where no recursively called handlers occurs.
+			The recursive calls rely on client code to guarantee proper tail calls, so it is not acceptable in general.
+			The known depth of host activation record would almost always smaller enough.
+			It is even more precise (and efficient) with the difference being taken into account.
+				The parameters are not altered by rebinding of parameters of next actions here.
+				So it would be correct parameters for next actions when it is a toplevel reduction.
 
 ////
 

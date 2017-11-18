@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2675
+\version r2801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-11-05 08:36 +0800
+	2017-11-19 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1366,44 +1366,6 @@ public:
 	ReductionStatus
 	ApplyTail(TermNode&);
 
-	//! \since build 807
-	//@{
-	//! \brief 保存绑定参数的规约函数的副本。
-	ReductionStatus
-	Push(const EvaluationPasses&, TermNode&, ContextNode&);
-
-	//! \brief 保存连续调用的规约函数序列。
-	template<typename _tIn>
-	ReductionStatus
-	PushRange(_tIn first, _tIn last, TermNode& term, ContextNode& ctx,
-		ReductionStatus res = ReductionStatus::Clean)
-	{
-		YAssert(!CheckReducible(res), "Invalid initial result found.");
-		if(first != last)
-		{
-			const auto& f(first->second);
-
-			++first;
-			return SetupTail([=, &term, &ctx]() -> ReductionStatus{
-				// XXX: The result is ignored.
-				PushRange(first, last, term, ctx, res);
-				// NOTE: If reducible, %TailAction should have been properly
-				//	set or cleared. It cannot be cleared here because there is
-				//	no simple way to guarantee the action is the last one for
-				//	specified term (e.g. call of %SetupTail would introduce
-				//	reducible but not to be cleared term in general).
-				// NOTE: The returning value informs propably
-				//	existed enclosing caller to retry a new turn of reduction if
-				//	%TailAction is empty, otherwise it is to be ignored as
-				//	per the loop condition of %Rewrite.
-				return CombineSequenceReductionResult(res, ystdex::expand_proxy<
-					Reducer::FuncType>::call(f, term, ctx));
-			});
-		}
-		return res;
-	}
-	//@}
-
 	/*!
 	\exception std::bad_function_call 第二参数为空。
 	\since build 806
@@ -1411,14 +1373,15 @@ public:
 	//@{
 	/*!
 	\brief 重写项。
-	\pre !TailAction 。
-	\post !TailAction 。
+	\pre \c !TailAction 。
+	\post \c !TailAction 。
 	\sa ApplyTail
 	\sa CheckNorm
 	\sa SetupBoundedTail
 
 	当 TailAction 非空时循环调用 ApplyTail 迭代规约重写。
 	因为递归重写平摊到单一的循环， CheckReducible 不用于判断是否需要继续重写循环。
+	每次调用 TailAction 的结果同步到 TailResult 。
 	返回值为最后一次 TailAction 调用结果。
 	当返回需要重规约时不继续在循环内规约，需由调用方处理。
 	*/
@@ -1440,35 +1403,30 @@ public:
 
 	/*!
 	\pre TailAction 为空。
-	\return ReductionStatus::Retrying 。
+	\since build 809
 	*/
 	//@{
 	/*!
 	\brief 设置尾动作和绑定的参数以重规约。
 	\sa SetupTail
-	\since build 807
 	*/
 	template<typename _func>
-	ReductionStatus
-	SetupBoundedTail(_func f, TermNode& term, ContextNode& ctx)
+	void
+	SetupBoundedTail(_func&& f, TermNode& term, ContextNode& ctx)
 	{
-		return SetupTail([=, &term, &ctx]{
-			return ystdex::expand_proxy<typename Reducer::FuncType>::call(f,
+		SetupTail(std::bind([&](ystdex::decay_t<_func>& act){
+			return ystdex::expand_proxy<typename Reducer::FuncType>::call(act,
 				term, ctx);
-		});
+		}, yforward(f)));
 	}
 
-	/*!
-	\brief 设置尾动作以重规约。
-	\since build 806
-	*/
+	//! \brief 设置尾动作以重规约。
 	template<typename _func>
-	ReductionStatus
-	SetupTail(_func f)
+	void
+	SetupTail(_func&& f)
 	{
 		YAssert(!TailAction, "Old continuation is overriden.");
-		TailAction = f;
-		return ReductionStatus::Retrying;
+		TailAction = yforward(f);
 	}
 	//@}
 
@@ -1495,45 +1453,101 @@ public:
 };
 
 
-/*!
-\pre 间接断言：参数指定的上下文中的尾动作为空。
-\since build 808
-*/
+//! \since build 809
 //@{
-//! \brief 规约当前和后继动作。
+/*!
+\brief 检查规约结果，不可继续规约则调用。
+\return 可继续规约。
+*/
 template<typename _func, typename _type>
-ReductionStatus
-ReduceWithNextActions(TermNode& term, ContextNode& ctx, _func extr_tail,
+bool
+ResumeCall(ContextNode& ctx, _func&& setup_tail, _type& acts,
+	ReductionStatus res)
+{
+	if(!CheckReducible(res))
+	{
+		ystdex::expand_proxy<void(ContextNode&, _type&,
+			const ReductionStatus&)>::call(yforward(setup_tail), ctx, acts,
+				res);
+		return {};
+	}
+	return true;
+}
+
+//! \pre 间接断言：参数指定的上下文中的尾动作为空。
+//@{
+//! \brief 规约当前和延迟提供的后继动作。
+template<typename _func, typename _type>
+void
+ReduceWithNextActions(TermNode& term, ContextNode& ctx, _func setup_tail,
 	ContextNode::Reducer&& cur, _type&& next)
 {
-	// TODO: Blocked. Use C++14 lambda initializers to implement
-	//	move initialization.
-	return ctx.SetupTail(std::bind(
-		[&, extr_tail](ContextNode::Reducer& act, _type& acts){
+	// TODO: Blocked. Use C++14 lambda initializers to implement move
+	//	initialization.
+	ctx.SetupTail(std::bind(
+		[&, setup_tail](const ContextNode::Reducer& act, _type& acts){
 		const auto res(act(term, ctx));
 
-		ctx.TailAction ? void(NPL::ReduceWithNextActions(term, ctx, extr_tail,
-			ctx.Switch(), std::move(acts))) : void(ystdex::expand_proxy<
+		ctx.TailAction ? NPL::ReduceWithNextActions(term, ctx, setup_tail,
+			ctx.Switch(), std::move(acts)) : void(ystdex::expand_proxy<
 				void(ContextNode&, _type&, const ReductionStatus&)>::call(
-				extr_tail, ctx, acts, res));
+				setup_tail, ctx, acts, res));
 		return res;
 	}, std::move(cur), std::move(next)));
 }
 
-//! \brief 规约当前和嵌套调用中的后继动作。
+//! \brief 规约当前和延迟提供的嵌套调用中的后继动作。
 template<typename _func, typename _type>
-ReductionStatus
-ReduceWithNestedNextActions(TermNode& term, ContextNode& ctx, _func extr_tail,
+void
+ReduceWithNestedNextActions(TermNode& term, ContextNode& ctx, _func setup_tail,
 	ContextNode::Reducer&& cur, _type&& next)
 {
 	// XXX: Assume it is always reducing the same term and the next actions are
 	//	safe to be dropped.
-	return NPL::ReduceWithNextActions(term, ctx,
-		[&, extr_tail](ContextNode& c, _type& acts, ReductionStatus res){
-		if(!CheckReducible(res))
-			ystdex::expand_proxy<void(ContextNode&, _type&,
-				const ReductionStatus&)>::call(extr_tail, c, acts, res);
-	}, std::move(cur), std::move(next));
+	NPL::ReduceWithNextActions(term, ctx,
+		[&, setup_tail](ContextNode& c, _type& acts, ReductionStatus res){
+		// NOTE: Drop next tail actions otherwise.
+		NPL::ResumeCall(c, setup_tail, acts, res);
+	}, std::move(cur), yforward(next));
+}
+//@}
+
+//! \brief 设置动作。
+inline PDefH(void, SetupAction, ContextNode& ctx, ContextNode::Reducer& acts)
+	ynothrowv
+	ImplRet(ctx.SetupTail(std::move(acts)))
+
+//! \brief 保存绑定参数的规约函数的副本。
+YF_API void
+PushActions(const EvaluationPasses&, TermNode&, ContextNode&);
+
+//! \brief 保存连续调用的规约函数序列。
+template<typename _tIn>
+void
+PushActionsRange(_tIn first, _tIn last, TermNode& term, ContextNode& ctx)
+{
+	if(first != last)
+	{
+		const auto& f(first->second);
+
+		++first;
+		ReduceWithNestedNextActions(term, ctx, SetupAction, [=, &term, &ctx]{
+			NPL::PushActionsRange(first, last, term, ctx);
+			// NOTE: If reducible, %TailAction should have been properly
+			//	set or cleared. It cannot be cleared here because there is
+			//	no simple way to guarantee the action is the last one for
+			//	specified term (e.g. call of %SetupTail and then retrying would
+			//	introduce reducible but not to be cleared term in general).
+			// NOTE: The returning value would inform propably
+			//	existed enclosing caller to retry a new turn of reduction if
+			//	%TailAction is empty, otherwise it is to be ignored as
+			//	per the loop condition of %Rewrite. Like synchronous case, it
+			//	cannot be handled just here (as the enclosed operation)
+			//	by unconditionally retrying some specific operation.
+			return ystdex::expand_proxy<ContextNode::Reducer::FuncType>::call(f,
+				term, ctx);
+		}, ctx.Switch());
+	}
 }
 //@}
 

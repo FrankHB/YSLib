@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1055
+\version r1142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-11-06 21:53 +0800
+	2017-11-19 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,86 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			(
+			+ "function template %ResumeCall",
+			+ DLDI 'const' @ "reducer parameter type" @ "setup tail action"
+				@ "function template %ReduceWithNextActions",
+			/ "return type 'ReductionStatus'" -> 'void' @ ("function templates \
+				%(ReduceWithNestedNextActions; ReduceWithNextActions)"
+				^ $dep_from "%ResumeCall"), "(function template %PushRange; \
+				function %Push), function template %SetupBoundedTail; function \
+				template %SetupTail",
+				// Since this is not always returns across term boundries, \
+					it should better not imply a default status.
+			+ "function %SetupAction";
+			/ "member function %ContextNode::Push, member function \
+				template %PushRange)" -> "(function %PushActions, function \
+				template %PushActionsRange) which saving current tail \
+				action before next reduction"
+				^ "%(ReduceWithNestedNextActions, SetupAction)")
+			),
+			* "wrong use of 'std::move' on next action" @ "function template \
+				%ReduceWithNestedNextActions" $since b808,
+			+ '&&' @ "parameter" @ "function template %(SetupTail, \
+				SetupBoundedTail)" @ "class %ContextNode"
+				// To avoid excessive memory allocation, also better \
+					performance for debugging.
+		),
+		/ %NPLA1 $=
+		(
+			/ DLDI "avoided call of %ReduceChildrenOrdered for leaf node"
+				@ "function %ReduceOrdered",
+				// A minor optimization.
+			* "stray retrying status possibly left not reduced"
+				@ "functions %(ReduceChildrenOrdered; ReduceOrdered)" $since
+				b807 ^ "%ReduceChecked" ~ "%Reduce",
+				// Other functions are not effected since only these ones \
+					are intended to be bound to forms like '$sequence' \
+					directly.
+			/ $forced DLDI "functions %(ReduceCombined, ReduceChecked, \
+				Forms::(And, Or, If))" $dep_from
+				("%ReduceWithNextActions" @ %NPLA),
+			/ $forced DLDI "function %ReduceAgain" $dep_from
+				("%ContextNode::SetupBoundedTail" @ %NPLA),
+			/ @ "function %ReduceChildren#1" $=
+			(
+				* "missing keeping precondition for %Reduce" $since b807
+					^ "%ystdex::swap_guard" $dep_to
+					"saved tail action before children reduction",
+				* "missing keeping full reduction on retrying status"
+					$since b807 ^ "%ReduceChecked" ~ "%Reduce"
+			),
+			(
+			/ "function %ReduceOnce" $=
+			(
+				/ $forced DLDI $dep_from ("%ContextNode::Push" @ %NPLA);
+				/ $comp "saved current tail action before leaf and branch \
+					reduction"
+			);
+			/ $forced DLDI $dep_from @ "function %ReduceNested"
+				("%ReduceWithNestedNextActions" @ %NPLA),
+				// Some tail actions are still lost. This is to be resolved \
+					with more actions differentiated for different activation \
+					records.
+			/ "function %ReduceCombined" $=
+			(
+				/ $impl "simplified";
+				/ $comp $forced DLDI $dep_from
+					("%ReduceWithNextActions" @ %NPLA)
+			)
+			),
+			/ DLDI "internal extractor" ^ "non-throwing exception \
+				specifications" @ "function %ReduceCombined"
+		)
+	)
+),
+
+b808
 (
 	/ "function templates %(unique_guard, unique_state_guard)"
 		%YBase.YStandard.ScopeGuard $=
@@ -96,7 +176,6 @@ $now
 							protected by 'false' conditional inclusion in \
 							%ReduceNested.
 				),
-				/ "function %ReduceChecked" ^ "%ReduceNested" ~ "%Reduce",
 				/ DLDI "simplified function %ReduceAgain"
 					^ "%ContextNode::SetupBoundedTail",
 				/ "reduced directly on term parameter"
@@ -118,7 +197,7 @@ $now
 	)
 ),
 
-b808
+b807
 (
 	/ %YFramework $=
 	(
@@ -195,9 +274,11 @@ b808
 						rewriting and as jump action to specific target. Now \
 						no %ReduceOnce is implicitly depended as the default \
 						reduction action.
-				)
-			),
-		),
+				),
+				/ $comp "%Reduce allowed returning %ReductionStatus::Retrying"
+					$dep_from ("%ContextNode::Rewrite" @ %NPLA)
+			)
+		)
 	),
 	* "wrong template argument" @ "return type" @ "function templates \
 		%unique_guard" @ %YBase.YStandardEx.ScopeGuard $since b686
@@ -610,7 +691,7 @@ b803
 				(
 					/ "simplified trace" ^ $dep_from ("%ContextNode::Trace"
 						@ %NPLA) ~ "%YTraceDe",
-					/ "all non boolean condition treated as #t"
+					/ "all non boolean condition treated as '#t'"
 						@ "function %If",
 					/ "%function %Eval" $=
 					(

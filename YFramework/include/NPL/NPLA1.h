@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3608
+\version r3609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-10-27 13:03 +0800
+	2017-11-07 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -272,6 +272,7 @@ inline PDefH(void, ReduceChildren, TermNode& term, ContextNode& ctx)
 /*!
 \brief 有序规约子项。
 \return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
+\sa ReduceChecked
 \since build 773
 */
 //@{

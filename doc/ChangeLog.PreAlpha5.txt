@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15340
+\version r15351
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2017-05-21 06:03 +0800
+	2017-11-19 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1051,7 +1051,7 @@ b594
 		(
 			/ %StaticMapping $=
 			(
-				/ DLD "implemented 'yconstfn' functions %(IsSurrogateHead, \
+				/ DLD "implemented %yconstfn functions %(IsSurrogateHead, \
 					IsValidSurrogateHead, IsValidSurrogateTail)"
 					^ "macros %(PDefH, ImplExpr)",
 				* $dev "missing prventing ADL use of %(IsSurrogateHead, \
@@ -2366,7 +2366,7 @@ b588
 		(
 			* "reduced precision caused wrong result" @ "function %operator/="
 				@ "class template %fixed_point" $since b586,
-			+ "'yconstfn' function templates %((2 is_zero, round_in_nocheck; \
+			+ "%yconstfn function templates %((2 is_zero, round_in_nocheck; \
 				round_in), pow_int, square, cube, quad)"
 		),
 		/ %Memory $=
@@ -3577,8 +3577,9 @@ b583
 (
 	/ @ "%build-YSTest.sh" @ %YStest $=
 	(
-		/ "quoted path for source and include directory at command line",
-			// Not necessary at now but good to be consistent.
+		* "missing quotes around path for source and include directory at \
+			command line" $since b561,
+			// Not necessary since b549 but now it is required to be consistent.
 		- ($re_ex(b561) @ %Tools) "unnecessary curly braces around variables"
 	),
 	/ "quoted path for include directory" @ "exported variable \
@@ -4220,7 +4221,7 @@ b578
 			),
 			/ @ %Core.YGDIBase $=
 			(
-				/ DLDI "simplified 'yconstfn' functions"
+				/ DLDI "simplified %yconstfn functions"
 					^ ("%(min, max)" $dep_from %Adaptor.YAdaptor),
 				+ 'ScaleMin' @ "function template %ScaleMin"
 			),
@@ -4507,7 +4508,7 @@ b575
 				+ "functions %(RotateCW, RotateCCW)",
 				/ "missing 'const'" @ "parameter"
 					@ "function template %Transpose" $since b319,
-				+ "'yconstfn' function %Transpose with parameter 'const Size&'"
+				+ "%yconstfn function %Transpose with parameter 'const Size&'"
 			),
 			+ "function template %UpdateTransposedPixels" @ %Service.YBrush
 				^ $dep_from %("class template %transposed_iterator"
@@ -4849,9 +4850,9 @@ b572
 							^ "macros %(PDefHOp, ImplRet)",
 						+ "function %operator(-=, *=)"
 					),
-					/ DLD "implemented 'yconstfn' function %operator+"
+					/ DLD "implemented %yconstfn function %operator+"
 						^ "macros %(PDefHOp, ImplRet)",
-					+ "'yconstfn' functions (unary and binary %operator-, \
+					+ "%yconstfn functions (unary and binary %operator-, \
 						%operator*) for %Padding",
 					+ "function %operator- for %Rect and %Padding"
 				)
@@ -11720,8 +11721,8 @@ b520
 			project)] mingw32/mingw-w64-i686-gcc-4.8.2-7" @ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 				Exceptions implementation: Dwarf2.
-		/ "recompiled library %FreeType",
-		/ "recompiled library %FreeImage" $=
+		/ "rebuilt library %FreeType",
+		/ "rebuilt library %FreeImage" $=
 		(
 			/ "updated base library 3.16.0" ~ "3.15.4";
 			/ "merged old modification",
