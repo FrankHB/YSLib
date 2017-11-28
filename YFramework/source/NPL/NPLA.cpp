@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1416
+\version r1449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-11-18 09:54 +0800
+	2017-11-28 21:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -380,8 +380,7 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 	const char f(id.front());
 
 	return (id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(f)
-		&& id.find_first_not_of("+-") != string_view::npos)
-		|| std::isdigit(f);
+		&& id.find_first_not_of("+-") != string_view::npos) || std::isdigit(f);
 }
 
 
@@ -663,32 +662,38 @@ ContextNode::ContextNode(ContextNode&& ctx)
 }
 
 ReductionStatus
-ContextNode::ApplyTail(TermNode& term)
+ContextNode::ApplyTail()
 {
-	YAssert(bool(TailAction), "No tail action found.");
-	return Switch()(term, *this);
+	YAssert(bool(Current), "No tail action found.");
+	return Switch()();
+}
+
+void
+ContextNode::Pop()
+{
+	YAssert(!Delimited.empty(), "No continuation is delimited.");
+	SetupTail(std::move(Delimited.front()));
+	Delimited.pop_front();
+}
+
+void
+ContextNode::Push()
+{
+	YAssert(Current, "No continuation can be captured.");
+	Delimited.push_front(Reducer());
+	std::swap(Current, Delimited.front());
 }
 
 ReductionStatus
-ContextNode::Rewrite(TermNode& term, Reducer reduce)
+ContextNode::Rewrite(Reducer reduce)
 {
-	SetupBoundedTail(std::move(reduce), term, *this);
-#if true
-
+	SetupTail(reduce);
 	// NOTE: Rewriting loop until no tail action exists.
 	return ystdex::retry_on_cond([&](ReductionStatus) ynothrow{
-		return bool(TailAction);
+		return bool(Current);
 	}, [&]{
-		return ApplyTail(term);
+		return ApplyTail();
 	});
-#else
-	// NOTE: Following is improper for the case of descendant reductions
-	//	flatterned into the single loop.
-	// NOTE: Rewriting loop until the normal form is got.
-	return ystdex::retry_on_cond(CheckReducible, [&]{
-		return TailAction ? ApplyTail(term) : CheckNorm(term);
-	});
-#endif
 }
 
 ReductionStatus
@@ -696,7 +701,7 @@ ContextNode::RewriteGuarded(TermNode& term, Reducer reduce)
 {
 	const auto gd(Guard(term, *this));
 
-	return Rewrite(term, reduce);
+	return Rewrite(reduce);
 }
 
 

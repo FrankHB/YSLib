@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5122
+\version r5210
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-11-18 11:02 +0800
+	2017-11-28 21:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,30 +184,49 @@ ExtractBool(TermNode& term, bool is_and) ynothrow
 	return ystdex::value_or(AccessTermPtr<bool>(term), is_and) == is_and;
 }
 
-//! \since build 809
+#if YF_Impl_NPLA1_Enable_TCO
+//! \since build 810
 //@{
 template<typename _func, typename _type>
-void
+ReductionStatus
 ReduceWithCheckedNestedNextActions(TermNode& term, ContextNode& ctx,
 	_func extr_tail, ContextNode::Reducer&& cur, _type&& next)
 {
 	// XXX: Assume it is always reducing the same term and the next actions are
 	//	safe to be dropped.
-	NPL::ReduceWithNextActions(term, ctx,
+	return NPL::RelayNextActions(ctx,
 		[&, extr_tail](ContextNode& c, _type& acts, ReductionStatus res){
-		if(NPL::ResumeCall(c, extr_tail, acts, res))
+		if(NPL::ResumeCall(c, extr_tail, res, acts))
 			// NOTE: Drop next tail actions.
+			// FIXME: Wrong delimited boundary.
 			c.SetupBoundedTail(ReduceOnce, term, ctx);
 	}, std::move(cur), std::move(next));
 }
 
-void
+ReductionStatus
 ReduceCheckedNested(TermNode& term, ContextNode& ctx)
 {
-	ReduceWithCheckedNestedNextActions(term, ctx, SetupAction, ReduceOnce,
-		ctx.Switch());
+	return ReduceWithCheckedNestedNextActions(term, ctx, SetupAction,
+		std::bind(ReduceOnce, std::ref(term), std::ref(ctx)), ctx.Switch());
+}
+
+ReductionStatus
+ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
+{
+	// TODO: Merge implementation with %PushActionsRange?
+	if(first != last)
+	{
+		auto& term(*first);
+
+		++first;
+		return RelayNextActions(ctx, SetupAction, std::bind(ReduceCheckedNested,
+			std::ref(term), std::ref(ctx)), ContextNode::Reducer(std::bind(
+			ReduceChildrenOrderedAsync, first, last, std::ref(ctx))));
+	}
+	return ReductionStatus::Clean;
 }
 //@}
+#endif
 
 //! \since build 753
 ReductionStatus
@@ -237,11 +256,9 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 		});
 
 #if YF_Impl_NPLA1_Enable_TCO
-		ReduceWithNextActions(term, ctx, SetupAction, [&, i]{
-			ReduceCheckedNested(*i, ctx);
-			return ReductionStatus::Retrying;
-		}, ContextNode::Reducer(and_or_next));
-		return ReductionStatus::Retrying;
+		return RelayNextActions(ctx, SetupAction,
+			std::bind(ReduceCheckedNested, std::ref(*i), std::ref(ctx)),
+			ContextNode::Reducer(and_or_next));
 #else
 		// NOTE: This does not support proper tail calls.
 		ReduceChecked(*i, ctx);
@@ -567,7 +584,8 @@ TermToValueString(const TermNode& term)
 ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
-	return ctx.RewriteGuarded(term, ReduceOnce);
+	return ctx.RewriteGuarded(term,
+		std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
 }
 
 ReductionStatus
@@ -581,6 +599,7 @@ void
 ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 {
 	if(first != last)
+		// NOTE: This is neutral to TCO.
 		// NOTE: The order of evaluation is unspecified by the language
 		//	specification. It should not be depended on.
 		ReduceChildren(++first, last, ctx);
@@ -638,7 +657,8 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	in routines which expect proper tail actions, given the guarnatee that
 	//	the precondition of %Reduce is not violated.
 	// XXX: The remained tail action would be dropped.
-	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.TailAction);
+	// FIXME: Is it correctly delimited?
+	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.Current);
 
 	std::for_each(first, last, ystdex::bind1(ReduceChecked, std::ref(ctx)));
 }
@@ -646,6 +666,9 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 {
+#if YF_Impl_NPLA1_Enable_TCO
+	return ReduceChildrenOrderedAsync(first, last, ctx);
+#else
 	// NOTE: This does not support proper tail calls.
 	const auto tr([&](TNIter iter){
 		return ystdex::make_transform(iter, [&](TNIter i){
@@ -657,6 +680,7 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 
 	return ystdex::default_last_value<ReductionStatus>()(tr(first), tr(last),
 		ReductionStatus::Clean);
+#endif
 }
 
 ReductionStatus
@@ -671,14 +695,10 @@ ReductionStatus
 ReduceNested(TermNode& term, ContextNode& ctx)
 {
 #if YF_Impl_NPLA1_Enable_TCO
-	ReduceWithNestedNextActions(term, ctx, SetupAction, ReduceOnce,
-		ctx.Switch());
-	// NOTE: This is not valid since the boundary of current delimited
-	//	contutation would be wrong thus %ReduceCombined would wrongly reduce
-	//	more than needed actions. It may also clash with other call of
-	//	%ReduceNestedActions.
-//	ReduceNestedActions(term, ctx, ExtractAction, ReduceOnce, ctx.Switch());
-	return ReductionStatus::Retrying;
+	if(ctx.Current)
+		ctx.Push();
+	return RelayNestedNextActions(ctx, &ContextNode::Pop,
+		std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
 #elif false
 	// NOTE: This is not full capable for proper tail calls.
 	return ctx.SetupTail(std::bind([&](ContextNode::Reducer& act){
@@ -697,7 +717,7 @@ ReduceNested(TermNode& term, ContextNode& ctx)
 	}, ctx.Switch()));
 #else
 	// NOTE: This does not support proper tail calls.
-	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.TailAction);
+	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.Current);
 	const auto res(Reduce(term, ctx));
 
 	if(CheckReducible(res))
@@ -752,7 +772,18 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
 	if(IsBranch(term))
 	{
-		// NOTE: This is neutral to TCO.
+#if YF_Impl_NPLA1_Enable_TCO
+		return RelayNextActions(ctx, SetupAction, [&]{
+			return ReduceChildrenOrdered(term, ctx);
+		}, ContextNode::Reducer([&]{
+			if(term.size() > 1)
+				LiftTerm(term, *term.rbegin());
+			else
+				term.Value = ValueToken::Unspecified;
+			return CheckNorm(term);
+		}));
+#else
+		// NOTE: This does not support proper tail calls.
 		const auto res(ReduceChildrenOrdered(term, ctx));
 
 		if(term.size() > 1)
@@ -760,6 +791,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 		else
 			term.Value = ValueToken::Unspecified;
 		return res;
+#endif
 	}
 	return ReductionStatus::Clean;
 }
@@ -865,12 +897,6 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 	YAssert(IsBranch(term), "Invalid state found.");
 	// NOTE: Matching function calls.
 	return Handler(term, ctx);
-#if false
-	// TODO: Use other exception type with more precise information for this
-	//	error? Also consider capture of contextual information in error.
-	throw ListReductionFailure(ystdex::sfmt("Invalid list form with"
-		" %zu term(s) not reduced found.", n), YSLib::Warning);
-#endif
 }
 
 
@@ -990,13 +1016,11 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 		});
 #if YF_Impl_NPLA1_Enable_TCO
 		const auto reduce_next([&, ret](ContextNode::Reducer next){
-			ReduceWithNextActions(term, ctx,
-				[&, ret](ContextNode& c, ContextNode::Reducer& acts,
-					ReductionStatus res){
+			return RelayNextActions(ctx, [&, ret](ContextNode& c,
+				ContextNode::Reducer& acts, ReductionStatus res){
 				ret(res);
 				SetupAction(c, acts);
 			}, std::move(next), ctx.Switch());
-			return ReductionStatus::Retrying;
 		});
 
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
@@ -1373,11 +1397,8 @@ If(TermNode& term, ContextNode& ctx)
 		});
 
 #if YF_Impl_NPLA1_Enable_TCO
-		ReduceWithNextActions(term, ctx, SetupAction, [&, i]{
-			ReduceCheckedNested(*i, ctx);
-			return ReductionStatus::Retrying;
-		}, ContextNode::Reducer(if_next));
-		return ReductionStatus::Retrying;
+		return RelayNextActions(ctx, SetupAction, std::bind(ReduceCheckedNested,
+			std::ref(*i), std::ref(ctx)), ContextNode::Reducer(if_next));
 #else
 		// NOTE: This does not support proper tail calls.
 		ReduceChecked(*i, ctx);
@@ -1537,13 +1558,23 @@ Eval(TermNode& term, ContextNode& ctx)
 	RetainN(term, 2);
 
 	const auto i(std::next(term.begin()));
-	// TODO: Support more environment types?
-	ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i))).first);
-	auto& closure(Deref(i));
+	const auto eval_next([&, i]{
+		// TODO: Support more environment types?
+		ContextNode c(ctx, ResolveEnvironment(Deref(std::next(i))).first);
+		auto& closure(Deref(i));
 
-	if(const auto p = AccessPtr<const TermReference>(closure))
-		return ReduceCheckedClosure(term, c, {}, *p);
-	return ReduceCheckedClosure(term, c, true, closure);
+		if(const auto p = AccessPtr<const TermReference>(closure))
+			return ReduceCheckedClosure(term, c, {}, *p);
+		return ReduceCheckedClosure(term, c, true, closure);
+	});
+
+#if YF_Impl_NPLA1_Enable_TCO
+	ctx.SetupTail(eval_next);
+	return ReductionStatus::Retrying;
+#else
+	// NOTE: This does not support proper tail calls.
+	return eval_next();
+#endif
 }
 
 void

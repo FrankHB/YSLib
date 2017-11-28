@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3791
+\version r3798
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2017-04-18 09:59 +0800
+	2017-11-28 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2062,11 +2062,8 @@ b237
 
 b236
 (
-	/ DLP "library using" $=
-	(
-		^ $re_ex(b223) "updated libnds 1.5.4" ~ "libnds 1.5.1",
-		^ $re_ex(b223) "updated default arm7 0.5.23" ~ "default arm7 0.5.21"
-	),
+	/ DLP "library using"
+		$= (^ $re_ex(b223) "updated libnds 1.5.4" ~ "libnds 1.5.1"),
 	/ %YFramework.YSLib.UI.GUI $=
 	(
 		+ "controllers",
@@ -2367,8 +2364,7 @@ b223
 	/ DLP "toolchain and library using" $=
 	(
 		^ $re_ex(b221) "updated devkitARM release 34" ~ "devkitARM release 33",
-		^ $re_ex(b221) "updated libnds 1.5.1" ~ "libnds 1.5.0",
-		^ $re_ex(b221) "updated default arm7 0.5.21" ~ "default arm7 0.5.20"
+		^ $re_ex(b221) "updated libnds 1.5.1" ~ "libnds 1.5.0"
 	)
 ),
 

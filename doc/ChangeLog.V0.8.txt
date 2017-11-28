@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1142
+\version r1222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-11-19 01:02 +0800
+	2017-11-28 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,87 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ "supported proper tail calls" @ (("function %ReduceOrdered"
+					^ "%CheckNorm"; "function %ReduceChildrenOrdered")
+					^ "%RelayNextActions", "function %Forms::Eval"
+					^ "%ContextNode::SetupTail"),
+				/ $forced DLDI "functions %(Forms::(If, And, Or), Reduce, \
+					ReduceNested)" $dep_from ("%ContextNode::Reducer" @ %NPLA),
+				/ $forced DLDI "functions %(ReduceOrdered, ReduceCombined, \
+					Forms::(And, Or, If), /*StrictContextHandler::operator()*/)"
+					$dep_from ("%RelayNextActions" @ %NPLA),
+				/ @ "function %ReduceNested" $=
+				(
+					/ $forced DLDI $dep_from
+						("%RelayNestedNextActions" @ %NPLA),
+					/ DLDI ^ $dep_from "%ContextNode::(Push, Pop)";
+					* "trailing actions wrongly dropped" $since b808
+						^ $dep_from ("%ContextNode::Push" @ %NPLA),
+				)
+			),
+			/ %NPLA $=
+			(
+				/ @ "class %ContextNode" $=
+				(
+					- "parameters" @ "type %Reducer, function %ApplyTail";
+					(
+					- $foced "1st parameter" @ "functions %(ApplyTail; \
+						Rewrite)";
+					/ $forced DLDI "function %RewriteGuarded"
+					),
+					/ $forced DLDI "function template %SetupBoundedTail",
+					/ "%TailAction" => "%Current",
+					+ "data member %Delimited; functions %(Push, Pop)"
+				),
+				/ "supported variadic arguments"
+					@ "function template %ResumeCall",
+				(
+				/ $forced "function templates %(ReduceWithNextActions, \
+					ReduceWithNestedNextActions)"
+					-> "%RelayNextActions, RelayNestedNextActions" $dep_from
+					"%(ContextNode::Reducer, ResumeCall)";
+				/ $forced DLDI "function template %PushActionsRange" $dep_from
+					"%ContextNode::Reducer"
+				),
+				/ "all forwarding function templates" ^ "%invoke" ~ "%call"
+					$effective @ "%(ResumeCall, RelayNextActions, \
+					PushActionsRange)" $dep_from %YBase.YStandardEx.Functional
+			)
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		- DLDI "unused parameter" @ "function templates %(owns_any, \
+			owns_nonnull)#1" @ %Memory
+			// To eliminate Clang++ warning: [-Wunused-parameter].
+		/ %Functional $=
+		(
+			/ @ "class template %call_projection" $=
+			(
+				/ $dev "trailing-return-type"
+					@ "all static member function templates" ^ 'yimpl',
+				/ "static member function templates %(call, invoke) for tuple \
+					instances" => "%(apply_call, apply_invoke)"
+					// To reduce potential ambiguity.
+			);
+			/ "disambiguated %(invoke, apply_call, apply_invoke)"
+				@ "class template %expand_proxy" $=
+			(
+				+ "using-declaration",
+				+ "function template"
+			)
+		)
+	)
+),
+
+b809
 (
 	/ %YFramework.NPL $=
 	(
