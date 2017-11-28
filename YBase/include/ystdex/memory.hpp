@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2532
+\version r2534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2017-08-25 17:54 +0800
+	2017-11-21 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -574,7 +574,7 @@ get_raw(const std::weak_ptr<_type>& p) ynothrow
 //@{
 template<typename _type>
 yconstfn bool
-owns_any(_type* const& p) ynothrow
+owns_any(_type* const&) ynothrow
 {
 	return {};
 }
@@ -606,7 +606,7 @@ owns_any(const std::weak_ptr<_type>& p) ynothrow
 //@{
 template<typename _type>
 yconstfn bool
-owns_nonnull(_type* const& p) ynothrow
+owns_nonnull(_type* const&) ynothrow
 {
 	return {};
 }

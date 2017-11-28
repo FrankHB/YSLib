@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3178
+\version r3273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2017-04-05 15:08 +0800
+	2017-11-28 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -983,44 +983,46 @@ struct call_projection;
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
-	//! \since build 751
+	//! \since build 810
+	//@{
 	template<typename _func>
 	static yconstfn auto
-	call(_func&& f, std::tuple<_tParams...>&& args, yimpl(decay_t<
+	apply_call(_func&& f, std::tuple<_tParams...>&& args, yimpl(decay_t<
 		decltype(yforward(f)(std::get<_vSeq>(yforward(args))...))>* = {}))
 		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
 	{
 		return yforward(f)(std::get<_vSeq>(yforward(args))...);
 	}
-	//! \since build 634
-	template<typename _func>
-	static yconstfn auto
-	call(_func&& f, _tParams&&... args)
-		-> decltype(call_projection::call(yforward(f),
-		std::forward_as_tuple(yforward(args)...)))
-	{
-		return call_projection::call(yforward(f),
-			std::forward_as_tuple(yforward(args)...));
-	}
 
-	//! \since build 751
 	template<typename _fCallable>
 	static yconstfn auto
-	invoke(_fCallable&& f, std::tuple<_tParams...>&& args,
+	apply_invoke(_fCallable&& f, std::tuple<_tParams...>&& args,
 		yimpl(decay_t<decltype(ystdex::invoke(yforward(f),
 		std::get<_vSeq>(yforward(args))...))>* = {})) -> yimpl(decltype(
 		ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...)))
 	{
 		return ystdex::invoke(yforward(f), std::get<_vSeq>(yforward(args))...);
 	}
-	//! \since build 634
+	//@}
+
 	template<typename _func>
 	static yconstfn auto
-	invoke(_func&& f, _tParams&&... args)
-		-> decltype(call_projection::invoke(yforward(f),
-		std::forward_as_tuple(yforward(args)...)))
+	call(_func&& f, _tParams&&... args)
+		-> yimpl(decltype(call_projection::apply_call(yforward(f),
+		std::forward_as_tuple(yforward(args)...))))
 	{
-		return call_projection::invoke(yforward(f),
+		return call_projection::apply_call(yforward(f),
+			std::forward_as_tuple(yforward(args)...));
+	}
+
+	//! \since build 810
+	template<typename _fCallable>
+	static yconstfn auto
+	invoke(_fCallable&& f, _tParams&&... args)
+		-> yimpl(decltype(call_projection::apply_invoke(yforward(f),
+		std::forward_as_tuple(yforward(args)...))))
+	{
+		return call_projection::apply_invoke(yforward(f),
 			std::forward_as_tuple(yforward(args)...));
 	}
 };
@@ -1031,11 +1033,16 @@ struct call_projection<std::function<_tRet(_tParams...)>,
 	index_sequence<_vSeq...>> : private
 	call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>
 {
+	//! \since build 810
+	using call_projection<_tRet(_tParams...),
+		index_sequence<_vSeq...>>::apply_call;
+	//! \since build 810
+	using call_projection<_tRet(_tParams...),
+		index_sequence<_vSeq...>>::apply_invoke;
 	//! \since build 589
 	using call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>::call;
 	//! \since build 634
-	using
-		call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>::invoke;
+	using call_projection<_tRet(_tParams...), index_sequence<_vSeq...>>::invoke;
 };
 
 /*!
@@ -1045,40 +1052,43 @@ struct call_projection<std::function<_tRet(_tParams...)>,
 template<typename... _tParams, size_t... _vSeq>
 struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 {
-	//! \since build 751
+	//! \since build 810
 	template<typename _func>
 	static yconstfn auto
-	call(_func&& f, std::tuple<_tParams...>&& args)
+	apply_call(_func&& f, std::tuple<_tParams...>&& args)
 		-> yimpl(decltype(yforward(f)(std::get<_vSeq>(yforward(args))...)))
 	{
 		return yforward(f)(std::get<_vSeq>(yforward(args))...);
+	}
+
+	//! \since build 810
+	template<typename _fCallable>
+	static yconstfn auto
+	apply_invoke(_fCallable&& f, std::tuple<_tParams...>&& args) -> yimpl(
+		decltype(ystdex::invoke(yforward(f), std::get<_vSeq>(args)...)))
+	{
+		return ystdex::invoke(yforward(f), std::get<_vSeq>(args)...);
 	}
 
 	//! \since build 751
 	template<typename _func>
 	static yconstfn auto
 	call(_func&& f, _tParams&&... args)
-		-> decltype(call_projection::call(yforward(f),
+		-> decltype(call_projection::apply_call(yforward(f),
 		std::forward_as_tuple(yforward(yforward(args))...)))
 	{
-		return call_projection::call(yforward(f),
+		return call_projection::apply_call(yforward(f),
 			std::forward_as_tuple(yforward(yforward(args))...));
 	}
 
-	//! \since build 634
+	//! \since build 810
 	template<typename _fCallable>
 	static yconstfn auto
-	invoke(_fCallable&& f, std::tuple<_tParams...>&& args) -> yimpl(
-		decltype(ystdex::invoke(yforward(f), std::get<_vSeq>(args)...)))
+	invoke(_fCallable&& f, _tParams&&... args)
+		-> yimpl(decltype(call_projection::apply_invoke(
+		yforward(f), std::forward_as_tuple(yforward(args)...))))
 	{
-		return ystdex::invoke(yforward(f), std::get<_vSeq>(args)...);
-	}
-	template<typename _func>
-	static yconstfn auto
-	invoke(_func&& f, _tParams&&... args) -> decltype(call_projection::invoke(
-		yforward(f), std::forward_as_tuple(yforward(args)...)))
-	{
-		return call_projection::invoke(yforward(f),
+		return call_projection::apply_invoke(yforward(f),
 			std::forward_as_tuple(yforward(args)...));
 	}
 };
@@ -1112,14 +1122,36 @@ struct expand_proxy : private call_projection<_fCallable,
 	make_index_sequence<_vLen>>, private expand_proxy<_fCallable, _vLen - 1>
 {
 	/*!
+	\note 为避免歧义，不直接使用 using 声明。
 	\see CWG 1393 。
 	\see EWG 102 。
 	*/
+	//@{
+	//! \since build 810
+	//@{
+	using call_projection<_fCallable, make_index_sequence<_vLen>>::apply_call;
+	template<typename... _tParams>
+	static auto
+	apply_call(_tParams&&... args) -> decltype(
+		expand_proxy<_fCallable, _vLen - 1>::apply_call(yforward(args)...))
+	{
+		return expand_proxy<_fCallable, _vLen - 1>::apply_call(
+			yforward(args)...);
+	}
+
+	using call_projection<_fCallable, make_index_sequence<_vLen>>::apply_invoke;
+	template<typename... _tParams>
+	static auto
+	apply_invoke(_tParams&&... args) -> decltype(
+		expand_proxy<_fCallable, _vLen - 1>::apply_invoke(yforward(args)...))
+	{
+		return expand_proxy<_fCallable, _vLen - 1>::apply_invoke(
+			yforward(args)...);
+	}
+	//@}
+
 	using call_projection<_fCallable, make_index_sequence<_vLen>>::call;
-	/*!
-	\note 为避免歧义，不直接使用 using 声明。
-	\since build 657
-	*/
+	//! \since build 657
 	template<typename... _tParams>
 	static auto
 	call(_tParams&&... args) -> decltype(
@@ -1127,6 +1159,19 @@ struct expand_proxy : private call_projection<_fCallable,
 	{
 		return expand_proxy<_fCallable, _vLen - 1>::call(yforward(args)...);
 	}
+
+	//! \since build 810
+	//@{
+	using call_projection<_fCallable, make_index_sequence<_vLen>>::invoke;
+	template<typename... _tParams>
+	static auto
+	invoke(_tParams&&... args) -> decltype(
+		expand_proxy<_fCallable, _vLen - 1>::invoke(yforward(args)...))
+	{
+		return expand_proxy<_fCallable, _vLen - 1>::invoke(yforward(args)...);
+	}
+	//@}
+	//@}
 };
 
 template<typename _fCallable>

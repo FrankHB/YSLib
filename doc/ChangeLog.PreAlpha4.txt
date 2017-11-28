@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9265
+\version r9272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2017-04-18 09:59 +0800
+	2017-11-28 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -660,7 +660,7 @@ b494
 			%YSLib.UI.TabControl
 	),
 	/ "rvalue references for callable type like '_fCallable&&'"
-		-> "directly '_fCallable'" @ "all function templates unless \
+		-> "direct type like '_fCallable'" @ "all function templates unless \
 		underlying forwarding call objects used";
 		// Only transformer parameter @ %ystdex::(transformed_iterator, \
 			make_transform) and one of constructor templates of \
@@ -2880,7 +2880,7 @@ b456
 			+ "-pipe" @ "%(CFLAGS, CXXFLAGS)" @ "(DS, MinGW32) makefiles",
 			- "-fpermissive" @ "%(CFLAGS, CXXFLAGS)" @ "DS makefile"
 		);
-		/ "recompiled"
+		/ "rebuilt"
 	),
 	/ %YFramework $=
 	(
@@ -3272,7 +3272,7 @@ b453
 			@ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix. \
 				Changed exceptions implementation: Dwarf2.
-		/ "recompiled library %FreeImage" $=
+		/ "rebuilt library %FreeImage" $=
 		(
 			^ "libpng 1.6.6 with old libpng 1.6.3 standard configuration \
 				header file %Source/LibPNG/pnglibconf.h" ~ "libpng 1.6.3",
@@ -4455,7 +4455,7 @@ b434
 		/ @ "class %GUIState" @ %YGUI $=
 		(
 			// Check of offset for touch held event now is removed for client \
-				hanlders.
+				handlers.
 			- "invalid offset check" @ "basic cursor handler for %TouchHeld",
 			+ "function %CheckOffset"
 		);
@@ -4716,7 +4716,7 @@ b431
 				FreeImage_JPEGCropU"),
 			/ "excluded files ('Source/FreeImageToolkit/JPEGTransform.cpp',
 				'Source/MetaData/XTIFF.cpp')" @ "source list";
-			/ "recompiled library %FreeImage" $=
+			/ "rebuilt library %FreeImage" $=
 			(
 				^ "libjpeg-turbo 1.3.0" ~ "libjpeg-8d" $=
 				(
@@ -5778,7 +5778,7 @@ b412
 				@ "constructor template %Widget" @ %UI.YWidget $since b293
 		)
 	)
-	+ DLD "'const' for 'yconstfn' functions and function templates" $effective
+	+ DLD "'const' for %yconstfn functions and function templates" $effective
 		@ "functions %operator(++, --)" @ "class templates %(pointer_iterator, \
 		pseudo_iterator)" @ %YBase.YStandardEx.Iterator
 		// To eliminate Clang++ warning: [-Wno-constexpr-not-const].
@@ -6096,7 +6096,7 @@ b406
 			/ "'modules.cfg' adjusted to fit actual library and rebuilt",
 			- '-g' "compiler option" @ "platform %DS"
 		);
-		^ "recompiled library freetype,
+		^ "rebuilt library freetype,
 			// See $known_issue_b406.
 	),
 ),
