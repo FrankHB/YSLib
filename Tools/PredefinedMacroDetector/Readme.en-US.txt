@@ -12,9 +12,9 @@ The generated file requires ISO C++98/03/11 implementations, which is the target
 
 = Source configuration
 Several macro in the source file can be passed from command line. They are mainly used to specifying names of generated/output files.
-The default input file name is "predefined-macro-detector.txt".
-The default generated file name is "__gen_predefined-macro-detector.cc".
-The default output file name is "predefined-macro-detector.log".
+The default input filename is "predefined-macro-detector.txt".
+The default generated filename is "__gen_predefined-macro-detector.cc".
+The default output filename is "predefined-macro-detector.log".
 
 = Use for hosted environment
 Compile the source, then run the generator with the input file to get the generated file.

@@ -19,7 +19,7 @@ SHBuild_Puts Building ...
 SHBuild_CheckPCH "$INCLUDE_PCH" "$SHBuild_PCH_stdinc_h"
 
 # Note '-fwhole-program' should not be used because there
-#	does exist multiple translation units when linking with YSLib source,
+#	do exist multiple translation units when linking with YSLib source,
 #	otherwise there would be unresolved reference to names with external
 #	linkage which had been optimized away.
 "$CXX" Main.cpp -o"$SHBuild_Output" $CXXFLAGS $LDFLAGS $SHBuild_IncPCH \

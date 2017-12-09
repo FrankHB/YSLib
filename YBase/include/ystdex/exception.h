@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r296
+\version r299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2016-12-10 00:46 +0800
+	2017-12-09 11:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,9 @@
 
 #include <libdefect/exception.h> // for std::exception_ptr,
 //	std::nested_exception;
-#include "deref_op.hpp" // for call_value_or;
+#include "deref_op.hpp" // for call_value_or, remove_cv_t;
 #include <functional> // for std::mem_fn;
 #include <memory> // for std::addressof;
-#include "type_traits.hpp" // for remove_cv_t;
 #include <stdexcept> // for std::logic_error;
 #include <system_error> // for std::system_error, std::generic_category,
 //	std::error_category;

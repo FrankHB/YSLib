@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3614
+\version r3629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-11-21 02:12 +0800
+	2017-12-02 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -290,32 +290,19 @@ inline PDefH(ReductionStatus, ReduceChildrenOrdered, TermNode& term,
 /*!
 \brief 规约第一个子项。
 \return 规约状态。
-\sa ReduceNested
+\sa ReduceOnce
 \see https://en.wikipedia.org/wiki/Fexpr 。
 \since build 730
 
 快速严格性分析：
 无条件求值枝节点第一项以避免非确定性推断子表达式求值的附加复杂度。
-调用 ReduceNested 规约子项。
+调用 ReduceOnce 规约子项。
 */
 YF_API ReductionStatus
 ReduceFirst(TermNode&, ContextNode&);
 
 /*!
-\brief 规约可能嵌套规约的项。
-\sa Reduce
-\since build 807
-
-保存上下文的尾动作并调用 Reduce 。
-若调用返回且不需要重规约则重置尾动作，并放弃规约时可能设置的动作尾动作；
-否则，放弃保存的尾动作，保留规约时可能设置的尾动作。
-*/
-YF_API ReductionStatus
-ReduceNested(TermNode&, ContextNode&);
-
-/*!
 \brief NPLA1 表达式节点规约：调用求值例程规约子表达式。
-\pre 间接断言：参数指定的上下文中的尾动作为空。
 \return 规约状态。
 \note 异常安全为调用遍的最低异常安全保证。
 \note 可能使参数中容器的迭代器失效。
@@ -344,7 +331,7 @@ ReduceOnce(TermNode&, ContextNode&);
 
 /*!
 \brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
-\pre 断言：参数指定的范围不存在子项或参数指定的上下文中的尾动作为空。
+\pre 间接断言：参数指定的范围不存在子项或参数指定的上下文中的尾动作为空。
 \return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
 \sa ReduceChildrenOrdered
 \since build 764
@@ -590,6 +577,7 @@ public:
 	\brief 处理函数。
 	\return Handler 调用的返回值。
 	\throw ListReductionFailure 列表子项不大于一项。
+	\warning 要求异步实现中对 Handler 调用时保证此对象生存期，否则行为未定义。
 	\sa ReduceArguments
 	\since build 751
 

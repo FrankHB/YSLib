@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1222
+\version r1292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-11-28 23:51 +0800
+	2017-12-09 17:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,75 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ @ "class %ContextNode" $=
+				(
+					* "missing 'ynothrow'" @ "move constructor" $since b788,
+						// This is also needed allow capture of local context \
+							in vau handler in %NPLA1.
+					(
+					+ $doc "precondition to enure nonthrowing \
+						move construction on assigned function object type \
+						except for %Reduce";
+						// This is not a static assertion to allow functors \
+							with %Reducer object captured.
+					+ $doc "requirement of nonthrowing move \
+						construction on %Reducer type";
+					+ 'ynothrow' @ "function %Pop";
+					+ "function %Transit";
+					/ "changed termination condition" @ "function %Rewrite"
+					)
+				),
+				/ "moved passed by value parameter" @ "function templates \
+					%(RelayNextActions, RelayNestedNextActions)",
+					// This ensures the parameter not to be copied \
+						unnecessarily, while still capable to have stored \
+						value bound during the whole call.
+				(
+				+ "class tmplate %RelaySetupTest; function templates \
+					%RelaySetup";
+				/ "supported overriding result by setup routines"
+					@ "function template %RelayNextActions"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* $doc "redundant precondition" @ "function %ReduceOnce" $since
+					b809,
+				(
+				/ DLDI "function %ReduceFirst" ^ "%ReduceOnce"
+					~ "%ReduceNested";
+				- $revert(b807) "function %ReduceNested"
+				),
+				* $comp $re_add(b810) "trailing actions wrongly dropped"
+					@ "functions %Forms::(If, And, Or)" $since b808
+					^ ("%ContextNode::Push" @ %NPLA)
+				),
+				(
+				/ "kept handler in setup function to make it live long enough"
+					@ "function %ReduceCombined with asynchrnous call";
+				/ "supported proper tail calls"
+					@ "function %StrictContextHandler::operator()";
+				/ "setup current action" @ "vau handler calls"
+				)
+			),
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* $doc "spelling error" @ "comments" @ "function template %general_cast"
+			@ %Cast $orig (@ %YCast $since b175),
+		- DLDI "redundant inclusion %TypeTraits" @ %Exception
+	)
+),
+
+b810
 (
 	/ %YFramework $=
 	(
@@ -53,7 +122,7 @@ $now
 						("%RelayNestedNextActions" @ %NPLA),
 					/ DLDI ^ $dep_from "%ContextNode::(Push, Pop)";
 					* "trailing actions wrongly dropped" $since b808
-						^ $dep_from ("%ContextNode::Push" @ %NPLA),
+						^ $dep_from ("%ContextNode::Push" @ %NPLA)
 				)
 			),
 			/ %NPLA $=
@@ -70,6 +139,7 @@ $now
 					/ "%TailAction" => "%Current",
 					+ "data member %Delimited; functions %(Push, Pop)"
 				),
+				/ $doc "tail actions" => "current actions",
 				/ "supported variadic arguments"
 					@ "function template %ResumeCall",
 				(
