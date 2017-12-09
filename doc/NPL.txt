@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r3808
+\version r3814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2017-11-26 15:03 +0800
+	2017-11-29 21:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1425,7 +1425,6 @@ A1::ReduceFirst 对可能存在的第一个子项进行规约。
 在某些其它语言中，符合类似求值规则的构造也称为 fexpr ，但语源不尽相同。
 可组合使用 fexpr 的求值以及其它显式对 fexpr 子表达式的求值实现非严格求值(@4.4.4.5) 。
 因为避免判断未指定子表达式是否需要规约（实现即非确定性求值(@4.4.4.5) ）， A1::ReduceFirst 一般具有较小的解释开销。
-A1::ReduceNested 规约嵌套子项，用于实现 A1::ReduceFirst 的枝节点情形。
 A1::ReduceOrdered 移除第一个子项并顺序规约余下的子项，使用最后一个子项的值。
 A1::ReduceTail 移除第一个子项并规约余下的项。
 A1::SetupTraceDepth 设置跟踪深度节点，主要用于调试。
@@ -1671,9 +1670,9 @@ A1::Reduce 的当前实现依赖 Context::RewriteGuarded ，总是使用 TCO 。
 A1::ReduceAgain
 A1::ReduceChildrenOrdered
 A1::ReduceCombined
-A1::ReduceNested
 A1::ReduceOnce
 A1::ReduceOrdered
+A1::StrictContextHandler::operator()
 以下 NPLA1 API 不依赖当前动作而 TCO 中立：
 A1::EvaluateDelayed
 以下 NPLA1 API 对 TCO 中立而支持 TCO ：
@@ -1692,10 +1691,10 @@ A1::Forms::Or
 @6.6.5 当前动作前置条件：
 为减小不必要判断和重复维护当前动作开销，公开 API 中只有特定规约函数支持保存当前动作，包括：
 NPL::PushActions
-A1::ReduceFirst
-A1::ReduceNested
 A1::ReduceCombined
-其它 API 以关联的上下文中的当前动作为空作为前置条件以允许直接调用 ContextNode::SetupTail(@5.5.8.3) 等设置当前动作。
+A1::ReduceFirst
+A1::ReduceOnce
+其它 API 若支持 TCO ，以关联的上下文中的当前动作为空作为前置条件以允许直接调用 ContextNode::SetupTail(@5.5.8.3) 等设置当前动作。
 对具有前置条件的 API ，调用者应按需在其他操作前保存当前动作以维护符合预期的作用顺序。
 
 @6.7 语法形式对应功能的实现：

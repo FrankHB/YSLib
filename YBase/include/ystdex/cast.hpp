@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2017 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1417
+\version r1419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2016-11-12 13:37 +0800
+	2017-12-09 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -448,7 +448,7 @@ struct general_cast_type_helper : is_convertible<_tFrom, _tTo>
 \todo 扩展接受右值引用参数。
 
 能确保安全隐式转换时使用 static_cast ；
-除此之外非虚基类向派生类转换使用 polymophic_downcast；
+除此之外非虚基类向派生类转换使用 polymorphic_downcast ；
 否则使用 dynamic_cast。
 */
 //@{

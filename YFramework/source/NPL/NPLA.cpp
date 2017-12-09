@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1449
+\version r1468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-11-28 21:01 +0800
+	2017-12-09 11:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 //	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, ystdex::ref,
 //	ystdex::retry_on_cond, ystdex::type_info;
 #include YFM_NPL_SContext
+#include <ystdex/scope_guard.hpp> // for ystdex::share_guard;
 
 using namespace YSLib;
 
@@ -655,7 +656,7 @@ ContextNode::ContextNode(const ContextNode& ctx,
 	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
 	EvaluateLiteral(ctx.EvaluateLiteral), Trace(ctx.Trace)
 {}
-ContextNode::ContextNode(ContextNode&& ctx)
+ContextNode::ContextNode(ContextNode&& ctx) ynothrow
 	: ContextNode()
 {
 	swap(ctx, *this);
@@ -669,7 +670,7 @@ ContextNode::ApplyTail()
 }
 
 void
-ContextNode::Pop()
+ContextNode::Pop() ynothrow
 {
 	YAssert(!Delimited.empty(), "No continuation is delimited.");
 	SetupTail(std::move(Delimited.front()));
@@ -688,10 +689,8 @@ ReductionStatus
 ContextNode::Rewrite(Reducer reduce)
 {
 	SetupTail(reduce);
-	// NOTE: Rewriting loop until no tail action exists.
-	return ystdex::retry_on_cond([&](ReductionStatus) ynothrow{
-		return bool(Current);
-	}, [&]{
+	// NOTE: Rewriting loop until no actions remain.
+	return ystdex::retry_on_cond(std::bind(&ContextNode::Transit, this), [&]{
 		return ApplyTail();
 	});
 }
@@ -702,6 +701,19 @@ ContextNode::RewriteGuarded(TermNode& term, Reducer reduce)
 	const auto gd(Guard(term, *this));
 
 	return Rewrite(reduce);
+}
+
+bool
+ContextNode::Transit() ynothrow
+{
+	if(!Current)
+	{
+		if(!Delimited.empty())
+			Pop();
+		else
+			return {};
+	}
+	return true;
 }
 
 

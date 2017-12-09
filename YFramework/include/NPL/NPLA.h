@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2907
+\version r2981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-11-28 23:44 +0800
+	2017-12-09 11:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1307,6 +1307,7 @@ class YF_API ContextNode
 public:
 	/*!
 	\brief 规约函数类型：和绑定所有参数的求值遍的处理器等价。
+	\warning 假定转移不抛出异常。
 	\since build 806
 	*/
 	using Reducer = YSLib::GHEvent<ReductionStatus()>;
@@ -1351,9 +1352,9 @@ public:
 	/*!
 	\brief 转移构造。
 	\post <tt>p_record && p_record->Bindings.empty()</tt> 。
-	\since build 788
+	\since build 811
 	*/
-	ContextNode(ContextNode&&);
+	ContextNode(ContextNode&&) ynothrow;
 	DefDeCopyMoveAssignment(ContextNode)
 
 	//! \since build 788
@@ -1388,7 +1389,7 @@ public:
 	\since build 810
 	*/
 	void
-	Pop();
+	Pop() ynothrow;
 
 	/*!
 	\brief 转移当前动作为首个定界动作。
@@ -1407,13 +1408,14 @@ public:
 	\post \c Current 。
 	\sa ApplyTail
 	\sa SetupBoundedTail
+	\sa Transit
+	\note 不处理重规约。
 	\since build 810
 
-	当 Current 非空时循环调用 ApplyTail 迭代规约重写。
+	调用 Transit 转变状态，当可规约时调用 ApplyTail 迭代规约重写。
 	因为递归重写平摊到单一的循环， CheckReducible 不用于判断是否需要继续重写循环。
 	每次调用 Current 的结果同步到 TailResult 。
 	返回值为最后一次 Current 调用结果。
-	当返回需要重规约时不继续在循环内规约，需由调用方处理。
 	*/
 	ReductionStatus
 	Rewrite(Reducer);
@@ -1448,11 +1450,22 @@ public:
 		SetupTail(std::bind(yforward(f), std::ref(term), std::ref(ctx)));
 	}
 
-	//! \brief 设置当前动作以重规约。
+	/*!
+	\brief 设置当前动作以重规约。
+	\pre 动作转移无异常抛出。
+	*/
 	template<typename _func>
 	void
 	SetupTail(_func&& f)
 	{
+#if false
+		// XXX: Not applicable for functor with %Reducer is captured.
+		using func_t = ystdex::decay_t<_func> ;
+		static_assert(ystdex::or_<std::is_same<func_t, Reducer>,
+			ystdex::is_nothrow_move_constructible<func_t>>(),
+			"Invalid type found.");
+#endif
+
 		YAssert(!Current, "Old continuation is overriden.");
 		Current = yforward(f);
 	}
@@ -1464,6 +1477,16 @@ public:
 	*/
 	PDefH(Reducer, Switch, Reducer f = {})
 		ImplRet(ystdex::exchange(Current, std::move(f)))
+
+	/*!
+	\brief 按需转移首个定界动作为当前动作。
+	\pre 间接断言： \c !Current 。
+	\return 是否可继续规约。
+	\sa Pop
+	\since build 811
+	*/
+	bool
+	Transit() ynothrow;
 
 	//! \since build 788
 	//@{
@@ -1502,6 +1525,52 @@ ResumeCall(ContextNode& ctx, _fCallable&& f, ReductionStatus res,
 	return true;
 }
 
+
+//! \since build 811
+//@{
+//! \brief 中继调用测试类型。
+template<typename _fCallable, typename... _tParams>
+struct RelaySetupTest
+{
+	template<typename _tRes>
+	yimpl(RelaySetupTest)(_tRes*, decltype(ystdex::expand_proxy<_tRes(
+		ContextNode&, _tParams&..., const ReductionStatus&)>::invoke(
+		std::declval<_fCallable&>(), std::declval<ContextNode&>(),
+		std::declval<_tParams&>()..., ReductionStatus::Clean))* = {});
+};
+
+
+//! \brief 中继调用：自动决定使用的返回值，若为空则为第一参数。
+//@{
+template<typename _fCallable, typename... _tParams>
+inline ReductionStatus
+RelaySetup(ReductionStatus res, ystdex::true_, ContextNode& ctx,
+	_fCallable&& setup_tail, _tParams&... acts)
+{
+	ystdex::expand_proxy<void(ContextNode&, _tParams&...,
+		const ReductionStatus&)>::invoke(setup_tail, ctx, acts..., res);
+	return res;
+}
+template<typename _fCallable, typename... _tParams>
+inline ReductionStatus
+RelaySetup(ReductionStatus res, ystdex::false_, ContextNode& ctx,
+	_fCallable&& setup_tail, _tParams&... acts)
+{
+	return ystdex::expand_proxy<ReductionStatus(ContextNode&, _tParams&...,
+		const ReductionStatus&)>::invoke(setup_tail, ctx, acts..., res);
+}
+template<typename _fCallable, typename... _tParams>
+inline ReductionStatus
+RelaySetup(ReductionStatus res, ContextNode& ctx, _fCallable&& setup_tail,
+	_tParams&... acts)
+{
+	return NPL::RelaySetup(res, std::is_constructible<RelaySetupTest<
+		_fCallable, _tParams...>, ReductionStatus*>(), ctx,
+		yforward(setup_tail), acts...);
+}
+//@}
+//@}
+
 //! \since build 809
 //@{
 //! \pre 间接断言：参数指定的上下文中的当前动作为空。
@@ -1524,11 +1593,10 @@ RelayNextActions(ContextNode& ctx, _fCallable setup_tail,
 		const auto res(act());
 
 		if(ctx.Current)
-			NPL::RelayNextActions(ctx, setup_tail, ctx.Switch(),
+			NPL::RelayNextActions(ctx, std::move(setup_tail), ctx.Switch(),
 				std::move(acts)...);
 		else
-			ystdex::expand_proxy<void(ContextNode&, _tParams&...,
-				const ReductionStatus&)>::invoke(setup_tail, ctx, acts..., res);
+			return NPL::RelaySetup(res, ctx, setup_tail, acts...);
 		return res;
 	}, std::move(cur), std::move(args)...));
 	return ReductionStatus::Retrying;
@@ -1545,7 +1613,7 @@ RelayNestedNextActions(ContextNode& ctx, _fCallable f,
 	return NPL::RelayNextActions(ctx,
 		[&, f](ContextNode& c, _tParams&... acts, ReductionStatus res){
 		// NOTE: Drop next tail actions otherwise.
-		NPL::ResumeCall(c, f, res, acts...);
+		NPL::ResumeCall(c, std::move(f), res, acts...);
 	}, std::move(cur), yforward(args)...);
 }
 //@}
