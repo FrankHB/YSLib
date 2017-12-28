@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1292
+\version r1670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-12-09 17:10 +0800
+	2017-12-29 01:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,63 +32,108 @@ $import $HISTORY;
 
 $now
 (
-	/ %YFramework $=
+	/ %YFramework.NPL $=
 	(
-		/ %NPL $=
+		/ %NPLA $=
 		(
-			/ %NPLA $=
+			/ @ "class %ContextNode" $=
 			(
-				/ @ "class %ContextNode" $=
+				+ "2 functions %Push with reducer parameter";
+				/ DLDI "simplified function %Push without parameter"
+			),
+			* $doc "redundant precondition" @ "function template \
+				%PushActionsRange"; "function %PushActions") $since b809,
+				// The current action would be saved by %Switch before the \
+					call to %ContextNode::SetupTail, so it is safe to \
+					setup the action.
+			/ DLDI "function %SetupAction" ^ "%ImplExpr" ~ "%ImplRet",
+			+ "function %MoveAction",
+			/ @ "function %PushActions" $=
+			(
 				(
-					* "missing 'ynothrow'" @ "move constructor" $since b788,
-						// This is also needed allow capture of local context \
-							in vau handler in %NPLA1.
-					(
-					+ $doc "precondition to enure nonthrowing \
-						move construction on assigned function object type \
-						except for %Reduce";
-						// This is not a static assertion to allow functors \
-							with %Reducer object captured.
-					+ $doc "requirement of nonthrowing move \
-						construction on %Reducer type";
-					+ 'ynothrow' @ "function %Pop";
-					+ "function %Transit";
-					/ "changed termination condition" @ "function %Rewrite"
-					)
+				* "failed to relay original action" $since b809,
+				- "function templates %(PushActionsRange; \
+					RelayNestedNextActions)" !^ "%PushActionsRange";
+				/ "exposed inner actions to %Delimited" ^ $dep_from
+					"%MoveAction" 
+					// See the comments on implementation for the purpose.
 				),
-				/ "moved passed by value parameter" @ "function templates \
-					%(RelayNextActions, RelayNestedNextActions)",
-					// This ensures the parameter not to be copied \
-						unnecessarily, while still capable to have stored \
-						value bound during the whole call.
+				/ "avoided copy of handlers when captured to actions"
+			)
+		),
+		/ %NPLA1 $=
+		(
+			* $revert(b811) "functions %(Forms::(If, And, Or), Reduce, \
+				ReduceNested) set wrong trailing actions for subterm \
+				evaluation" $since b811,
+				// Trailing evaluation passes should be bypassed in the \
+					case. The original case was proved correct, guaranteed \
+					by the reset operation of each action setup by \
+					%NPL::ReduceWithNextActions.
+			/ DLDI "simplified function %ReduceOnce",
+			* DLDI "ill-formed synchrnous referential code" @ "vau handler"
+				$since b811,
+				// Redundant 'const' would cause it ill-formed.
+			* DLDI "unexpected modification on current action for \
+				synchrnous referential code" @ ("function %ReduceAgain"
+				$since b807, "function %ReduceChildren" $since 809)
+		)
+	)
+),
+
+b811
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			/ @ "class %ContextNode" $=
+			(
+				* "missing 'ynothrow'" @ "move constructor" $since b788,
+					// This is also needed allow capture of local context \
+						in vau handler in %NPLA1.
 				(
-				+ "class tmplate %RelaySetupTest; function templates \
-					%RelaySetup";
-				/ "supported overriding result by setup routines"
-					@ "function template %RelayNextActions"
+				+ $doc "precondition to enure nonthrowing move construction on \
+					assigned function object type except for %Reduce";
+					// This is not a static assertion to allow functors with \
+						%Reducer object captured.
+				+ $doc "requirement of nonthrowing move \
+					construction on %Reducer type";
+				+ 'ynothrow' @ "function %Pop";
+				+ "function %Transit";
+				/ "changed termination condition" @ "function %Rewrite"
 				)
 			),
-			/ %NPLA1 $=
+			/ "moved passed by value parameter" @ "function templates \
+				%(RelayNextActions, RelayNestedNextActions)",
+				// This ensures the parameter not to be copied unnecessarily, \
+					while still capable to have stored value bound during the \
+					whole call.
 			(
-				* $doc "redundant precondition" @ "function %ReduceOnce" $since
-					b809,
-				(
-				/ DLDI "function %ReduceFirst" ^ "%ReduceOnce"
-					~ "%ReduceNested";
-				- $revert(b807) "function %ReduceNested"
-				),
-				* $comp $re_add(b810) "trailing actions wrongly dropped"
-					@ "functions %Forms::(If, And, Or)" $since b808
-					^ ("%ContextNode::Push" @ %NPLA)
-				),
-				(
-				/ "kept handler in setup function to make it live long enough"
-					@ "function %ReduceCombined with asynchrnous call";
-				/ "supported proper tail calls"
-					@ "function %StrictContextHandler::operator()";
-				/ "setup current action" @ "vau handler calls"
-				)
+			+ "class tmplate %RelaySetupTest; function templates \
+				%RelaySetup";
+			/ "supported overriding result by setup routines"
+				@ "function template %RelayNextActions"
+			)
+		),
+		/ %NPLA1 $=
+		(
+			* $doc "redundant precondition" @ "function %ReduceOnce" $since
+				b809,
+			(
+			/ DLDI "function %ReduceFirst" ^ "%ReduceOnce" ~ "%ReduceNested";
+			- $revert(b807) "function %ReduceNested"
 			),
+			/ $comp $revert(b810) "avoided trailing actions exposed as actions"
+				// See $2017-12 @ %Documentation::Workflow::Annual2017.
+			),
+			(
+			/ "kept handler in setup function to make it live long enough"
+				@ "function %ReduceCombined with asynchrnous call";
+			/ "supported proper tail calls"
+				@ "function %StrictContextHandler::operator()";
+			/ "setup current action" @ "vau handler calls"
+			)
 		)
 	),
 	/ %YBase.YStandardEx $=
@@ -101,59 +146,53 @@ $now
 
 b810
 (
-	/ %YFramework $=
+	/ %YFramework.NPL $=
 	(
-		/ %NPL $=
+		/ %NPLA1 $=
 		(
-			/ %NPLA1 $=
+			/ "supported proper tail calls" @ (("function %ReduceOrdered"
+				^ "%CheckNorm"; "function %ReduceChildrenOrdered")
+				^ "%RelayNextActions", "function %Forms::Eval"
+				^ "%ContextNode::SetupTail"),
+			/ $forced DLDI "functions %(Forms::(If, And, Or), Reduce, \
+				ReduceNested)" $dep_from ("%ContextNode::Reducer" @ %NPLA),
+			/ $forced DLDI "functions %(ReduceOrdered, ReduceCombined, \
+				Forms::(And, Or, If))" $dep_from
+				("%RelayNextActions" @ %NPLA),
+			/ @ "function %ReduceNested" $=
 			(
-				/ "supported proper tail calls" @ (("function %ReduceOrdered"
-					^ "%CheckNorm"; "function %ReduceChildrenOrdered")
-					^ "%RelayNextActions", "function %Forms::Eval"
-					^ "%ContextNode::SetupTail"),
-				/ $forced DLDI "functions %(Forms::(If, And, Or), Reduce, \
-					ReduceNested)" $dep_from ("%ContextNode::Reducer" @ %NPLA),
-				/ $forced DLDI "functions %(ReduceOrdered, ReduceCombined, \
-					Forms::(And, Or, If), /*StrictContextHandler::operator()*/)"
-					$dep_from ("%RelayNextActions" @ %NPLA),
-				/ @ "function %ReduceNested" $=
-				(
-					/ $forced DLDI $dep_from
-						("%RelayNestedNextActions" @ %NPLA),
-					/ DLDI ^ $dep_from "%ContextNode::(Push, Pop)";
-					* "trailing actions wrongly dropped" $since b808
-						^ $dep_from ("%ContextNode::Push" @ %NPLA)
-				)
-			),
-			/ %NPLA $=
-			(
-				/ @ "class %ContextNode" $=
-				(
-					- "parameters" @ "type %Reducer, function %ApplyTail";
-					(
-					- $foced "1st parameter" @ "functions %(ApplyTail; \
-						Rewrite)";
-					/ $forced DLDI "function %RewriteGuarded"
-					),
-					/ $forced DLDI "function template %SetupBoundedTail",
-					/ "%TailAction" => "%Current",
-					+ "data member %Delimited; functions %(Push, Pop)"
-				),
-				/ $doc "tail actions" => "current actions",
-				/ "supported variadic arguments"
-					@ "function template %ResumeCall",
-				(
-				/ $forced "function templates %(ReduceWithNextActions, \
-					ReduceWithNestedNextActions)"
-					-> "%RelayNextActions, RelayNestedNextActions" $dep_from
-					"%(ContextNode::Reducer, ResumeCall)";
-				/ $forced DLDI "function template %PushActionsRange" $dep_from
-					"%ContextNode::Reducer"
-				),
-				/ "all forwarding function templates" ^ "%invoke" ~ "%call"
-					$effective @ "%(ResumeCall, RelayNextActions, \
-					PushActionsRange)" $dep_from %YBase.YStandardEx.Functional
+				/ $forced DLDI $dep_from ("%RelayNestedNextActions" @ %NPLA),
+				/ DLDI ^ $dep_from "%ContextNode::(Push, Pop)";
+				* "trailing actions exposed as actions" $since b808
+					^ $dep_from ("%ContextNode::Push" @ %NPLA)
 			)
+		),
+		/ %NPLA $=
+		(
+			/ @ "class %ContextNode" $=
+			(
+				- "parameters" @ "type %Reducer, function %ApplyTail";
+				(
+				- $foced "1st parameter" @ "functions %(ApplyTail; Rewrite)";
+				/ $forced DLDI "function %RewriteGuarded"
+				),
+				/ $forced DLDI "function template %SetupBoundedTail",
+				/ "%TailAction" => "%Current",
+				+ "data member %Delimited; functions %(Push, Pop)"
+			),
+			/ $doc "tail actions" => "current actions",
+			/ "supported variadic arguments" @ "function template %ResumeCall",
+			(
+			/ $forced "function templates %(ReduceWithNextActions, \
+				ReduceWithNestedNextActions)"
+				-> "%RelayNextActions, RelayNestedNextActions" $dep_from
+				"%(ContextNode::Reducer, ResumeCall)";
+			/ $forced DLDI "function template %PushActionsRange" $dep_from
+				"%ContextNode::Reducer"
+			),
+			/ "all forwarding function templates" ^ "%invoke" ~ "%call"
+				$effective @ "%(ResumeCall, RelayNextActions, \
+				PushActionsRange)" $dep_from %YBase.YStandardEx.Functional
 		)
 	),
 	/ %YBase.YStandardEx $=
@@ -350,85 +389,80 @@ b808
 
 b807
 (
-	/ %YFramework $=
+	/ %YFramework.NPL $=
 	(
-		/ %NPL $=
+		/ %NPLA $=
 		(
-			/ %NPLA $=
+			+ "functions %(CombineReductionResult; \
+				CombineSequenceReductionResult)",
+			/ DLDI "simplified member function %PassesCombiner::operator()"
+				^ $dep_from "%CombineReductionResult",
+			/ @ "class %ContextNode" $=
 			(
-				+ "functions %(CombineReductionResult; \
-					CombineSequenceReductionResult)",
-				/ DLDI "simplified member function %PassesCombiner::operator()"
-					^ $dep_from "%CombineReductionResult",
-				/ @ "class %ContextNode" $=
 				(
+				+ "function %Switch";
+				/ DLDI "simplified function %ApplyTail" ^ "%Switch",
+				),
+				(
+					+ "function template %SetupBoundedTail",
+					+ "function template %PushRange" ^ $dep_from
+						"%(CombineSequenceReductionResult, Switch)";
+					+ "function function %Push" ^ "%PushRange"
+				),
+				/ @ "function %Rewrite" $=
+				(
+					/ "lifted reduce parameter out of loop"
+						^ "%SetupTail" $dep_from "decoupling reduction status",
+						// This depends on correct state management on tail \
+							action.
 					(
-					+ "function %Switch";
-					/ DLDI "simplified function %ApplyTail" ^ "%Switch",
-					),
-					(
-						+ "function template %SetupBoundedTail",
-						+ "function template %PushRange" ^ $dep_from
-							"%(CombineSequenceReductionResult, Switch)";
-						+ "function function %Push" ^ "%PushRange"
-					),
-					/ @ "function %Rewrite" $=
-					(
-						/ "lifted reduce parameter out of loop"
-							^ "%SetupTail" $dep_from "decoupling reduction \
-							status",
-							// This depends on correct state management on \
-								tail action.
-						(
-						/ "loop invariant" ^ "%TailAction" ~ "%CheckReducible";
-							// See $2017-10 @ \
-								%Documentation::Workflow::Annual2017.
-						/ $forced "return value determination" ^ "%CheckNorm"
-							~ "%TailAction call results"
-							// This is consistent to new loop invariant.
-						)
+					/ "loop invariant" ^ "%TailAction" ~ "%CheckReducible";
+						// See $2017-10 @ \
+							%Documentation::Workflow::Annual2017.
+					/ $forced "return value determination" ^ "%CheckNorm"
+						~ "%TailAction call results"
+						// This is consistent to new loop invariant.
 					)
 				)
-			),
-			/ %NPLA1 $=
-			(
-				(
-				+ "function %ReduceNested";
-				/ @ "function %ReductionFirst" $=
-				(
-					/ DLDI "function %ReduceFirst" ^ "%ReduceNested" $dep_to
-						"direct nested reduction";
-					/ $impl "deferred reduction" ^ "%ContextNode::SetupTail"
-						~ "%ReduceNested"
-						// This does not require %ReduceNested but it is \
-							preserved for reference.
-				)
-				),
-				/ @ "function %ReduceOnce" $=
-				(
-					/ "expanded handlers as tail calls" ^ ($dep_from
-						("%ContextNode::Push" ~ "%ContextNode::SetupTail")
-						@ %NPLA) $dep_from "direct nested reduction";
-					* $comp "local term and context parameter not bound in \
-						continuations" @ "function %CallOnce" $since b806
-						// Thus it could be wrong when not in the loop of \
-							%Context::Rewrite directly.
-				),
-				(
-				+ "function %ReduceAgain" ^ $dep_from
-					("%ContextNode::PrependTail" @ %NPLA);
-				/ "trivial retrying" ^ "%ReduceAgain" @ %NPLA1 $effective
-					@ ("functions %(ReduceOnce, ReduceTail, ReduceLeafToken, \
-					Forms::(And, Or, If))") $dep_to
-					"decoupling reduction status"
-					// This decouples reduction status as condition of loop in \
-						rewriting and as jump action to specific target. Now \
-						no %ReduceOnce is implicitly depended as the default \
-						reduction action.
-				),
-				/ $comp "%Reduce allowed returning %ReductionStatus::Retrying"
-					$dep_from ("%ContextNode::Rewrite" @ %NPLA)
 			)
+		),
+		/ %NPLA1 $=
+		(
+			(
+			+ "function %ReduceNested";
+			/ @ "function %ReductionFirst" $=
+			(
+				/ DLDI "function %ReduceFirst" ^ "%ReduceNested" $dep_to
+					"direct nested reduction";
+				/ $impl "deferred reduction" ^ "%ContextNode::SetupTail"
+					~ "%ReduceNested"
+					// This does not require %ReduceNested but it is \
+						preserved for reference.
+			)
+			),
+			/ @ "function %ReduceOnce" $=
+			(
+				/ "expanded handlers as tail calls" ^ ($dep_from
+					("%ContextNode::Push" ~ "%ContextNode::SetupTail")
+					@ %NPLA) $dep_from "direct nested reduction";
+				* $comp "local term and context parameter not bound in \
+					continuations" @ "function %CallOnce" $since b806
+					// Thus it could be wrong when not in the loop of \
+						%Context::Rewrite directly.
+			),
+			(
+			+ "function %ReduceAgain" ^ $dep_from
+				("%ContextNode::PrependTail" @ %NPLA);
+			/ "trivial retrying" ^ "%ReduceAgain" @ %NPLA1 $effective
+				@ ("functions %(ReduceOnce, ReduceTail, ReduceLeafToken, \
+				Forms::(And, Or, If))") $dep_to "decoupling reduction status"
+				// This decouples reduction status as condition of loop in \
+					rewriting and as jump action to specific target. Now no \
+					%ReduceOnce is implicitly depended as the default \
+					reduction action.
+			),
+			/ $comp "%Reduce allowed returning %ReductionStatus::Retrying"
+				$dep_from ("%ContextNode::Rewrite" @ %NPLA)
 		)
 	),
 	* "wrong template argument" @ "return type" @ "function templates \
@@ -437,29 +471,26 @@ b807
 
 b806
 (
-	/ %Tools $=
+	/ %Tools.Scripts $=
 	(
-		/ %Scripts $=
+		/ @ "%SHBuild-YSLib-common.txt" $=
 		(
-			/ @ "%SHBuild-YSLib-common.txt" $=
+			* "wrong toolchain default value"
+				$orig (@ "%SHBuild-common-toolchain.sh" $since b791) $=
 			(
-				* "wrong toolchain default value"
-					$orig (@ "%SHBuild-common-toolchain.sh" $since b791) $=
-				(
-					* "missing setting default value 'g++' for variable %CXX",
-					* "missing setting variables %(AR, ARFLAGS, LD)",
-						// This can occasionally work for %SHBuild except %LD \
-							which has value in the script different than \
-							default value in %SHBuild.
-					* "missing export variables %(CXX, AR, ARFLAGS, LD)"
-				),
-				* "missing filtered out dynamic library build options for \
-					application executable building" @ "%LDFLAGS" $since b805,
-				+ "applicative %SHBuild_GetPlatformStrings"
+				* "missing setting default value 'g++' for variable %CXX",
+				* "missing setting variables %(AR, ARFLAGS, LD)",
+					// This can occasionally work for %SHBuild except %LD \
+						which has value in the script different than default \
+						value in %SHBuild.
+				* "missing export variables %(CXX, AR, ARFLAGS, LD)"
 			),
-			/ DLDI "simplified %SHBuild-YSLib-build.txt" ^ $dep_from
-				("%SHBuild_GetPlatformStrings" @ "%SHBuild-YSLib-common.txt")
-		)
+			* "missing filtered out dynamic library build options for \
+				application executable building" @ "%LDFLAGS" $since b805,
+			+ "applicative %SHBuild_GetPlatformStrings"
+		),
+		/ DLDI "simplified %SHBuild-YSLib-build.txt" ^ $dep_from
+			("%SHBuild_GetPlatformStrings" @ "%SHBuild-YSLib-common.txt")
 	),
 	* $impl "ill-formed 'const auto' as function declarator"
 		@ "function template %extract_mapped with traling-return-type"
@@ -733,10 +764,10 @@ b804
 					It is still not necessary to initialize the base \
 					%std::basic_ios instance explicitly for semantic reasons.
 		),
-		/ @ "class %Logger" $=
+		/ @ "class %Logger" @ %YCLib.Debug $=
 		(
 			* "missing copying %FilterLevel" @ "(copy, move) constructors"
-				@ %YCLib.Debug $since b803,
+				$since b803,
 			(
 			+ "friend function %swap";
 			/ DLDI "simplified move constructor" ^ "%swap"
@@ -910,79 +941,74 @@ b803
 
 b802
 (
-	/ %YFramework $=
+	/ %YFramework.NPL $=
 	(
-		/ %NPL $=
+		/ %NPLA1 $=
 		(
-			/ %NPLA1 $=
+			* "empty lists and symbols could not be referenced" $since b800
+				// They are now true first-class objects.
+				$= (/ $impl "simplified by referencing term directly"
+					@ "function %EvaluateIdentifier"),
+			/ @ "namespace %Forms" $=
 			(
-				* "empty lists and symbols could not be referenced" $since b800
-					// They are now true first-class objects.
-					$= (/ $impl "simplified by referencing term directly"
-						@ "function %EvaluateIdentifier"),
-				/ @ "namespace %Forms" $=
-				(
-					* "missing lvalue support" @ "function %MakeEnvironment"
-						$since b800 ^ "%ReferenceTerm",
-					/ DLDI "protected term reference against unexpected \
-						modification on %ReferenceTerm result" @ "functions \
-						%(EqualReference, EqualValue, Cons)"
-						^ "%ystdex::as_const",
-					/ DLDI "simplified vau handlers" $dep_from
-						^ "%ReduceCheckedClosure" ~ "%CheckNorm",
-					* "unsafe evaluation" @ "function %Eval"
-						$since b772 ^ "%ReduceCheckedClosure" ~ "%Reduce"
-						// See $2017-09 @ %Documentation::Workflow::Annual2017.
-				),
-				/ $lib "supported external contexts" @ "class %REPLContext" $=
-				(
-					(
-					+ "3 functions %Prepare";
-					(
-					+ "2 functions %ReadFrom";
-					/ "all 2 functions %LoadFrom" -> "function templates"
-						^ "%ReadFrom" ~ "%Process"
-					),
-					/ "all 2 function without term node" -> "function templates"
-						^ "%ReadFrom" ~ "%Reduce"
-					),
-					(
-					+ "function %Process with term node and context parameter";
-					/ $dev $design $impl "simplified function %Process with \
-						term node parameter" ^ "newly added overload"
-					)
-				),
-				/ "function %ReduceCheckedClosure returned %ReductionStatus \
-					value based on resulted term" ^ "%CheckNorm"
+				* "missing lvalue support" @ "function %MakeEnvironment"
+					$since b800 ^ "%ReferenceTerm",
+				/ DLDI "protected term reference against unexpected \
+					modification on %ReferenceTerm result" @ "functions \
+					%(EqualReference, EqualValue, Cons)"
+					^ "%ystdex::as_const",
+				/ DLDI "simplified vau handlers" $dep_from
+					^ "%ReduceCheckedClosure" ~ "%CheckNorm",
+				* "unsafe evaluation" @ "function %Eval"
+					$since b772 ^ "%ReduceCheckedClosure" ~ "%Reduce"
+					// See $2017-09 @ %Documentation::Workflow::Annual2017.
 			),
-			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
-				@ %Dependency $=
+			/ $lib "supported external contexts" @ "class %REPLContext" $=
 			(
-				+ "operative '$lambdae'",
-				+ "applicatives 'lock-environment'; \
-					'make-standard-environment'",
-					// Alternative implementation of standard environment \
-						construction without dependency on environment locking \
-						is also provided. Nevertheless, with environment \
-						locking, it is simpler a lot.
-				/ $dev $impl "simplified alternative derivation"
-					@ "operative '$sequence'" ^ $dep_from
-					'make-standard-environment',
-				/ $impl @ "applicative 'map-reverse'" $=
 				(
-					* "invalid exposure of %cxrs" $since b791 ^ ('$let',
-						$dep_from 'make-standard-environment'),
-					/ "simplified" ^ $dep_from '$lambdae'
+				+ "3 functions %Prepare";
+				(
+				+ "2 functions %ReadFrom";
+				/ "all 2 functions %LoadFrom" -> "function templates"
+					^ "%ReadFrom" ~ "%Process"
 				),
-				+ $impl 'ynothrow' @ "handler"
-					@ "applicative 'weaken-environment'"
+				/ "all 2 function without term node" -> "function templates"
+					^ "%ReadFrom" ~ "%Reduce"
+				),
+				(
+				+ "function %Process with term node and context parameter";
+				/ $dev $design $impl "simplified function %Process with \
+					term node parameter" ^ "newly added overload"
+				)
 			),
-			/ @ "function template %ComposeReferencedTermOp" @ %NPLA $=
+			/ "function %ReduceCheckedClosure returned %ReductionStatus \
+				value based on resulted term" ^ "%CheckNorm"
+		),
+		/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+			@ %Dependency $=
+		(
+			+ "operative '$lambdae'",
+			+ "applicatives 'lock-environment'; 'make-standard-environment'",
+				// Alternative implementation of standard environment \
+					construction without dependency on environment locking is \
+					also provided. Nevertheless, with environment locking, it \
+					is simpler a lot.
+			/ $dev $impl "simplified alternative derivation" @ "operative \
+				'$sequence'" ^ $dep_from 'make-standard-environment',
+			/ $impl @ "applicative 'map-reverse'" $=
 			(
-				/ $dev "trailing-return-type" ^ 'yimpl';
-				/ "accepted non-unary functions" ^ "%ystdex::compose_n"
-					~ "%ystdex::compose"
-			)
+				* "invalid exposure of %cxrs" $since b791 ^ ('$let',
+					$dep_from 'make-standard-environment'),
+				/ "simplified" ^ $dep_from '$lambdae'
+			),
+			+ $impl 'ynothrow' @ "handler"
+				@ "applicative 'weaken-environment'"
+		),
+		/ @ "function template %ComposeReferencedTermOp" @ %NPLA $=
+		(
+			/ $dev "trailing-return-type" ^ 'yimpl';
+			/ "accepted non-unary functions" ^ "%ystdex::compose_n"
+				~ "%ystdex::compose"
 		)
 	),
 	* "strict ISO C++ conformance on declaration of primary template" $effective

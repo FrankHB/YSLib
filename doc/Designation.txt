@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9882
+\version r9884
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2017-03-24 10:06 +0800
+	2017-12-19 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -441,10 +441,10 @@ __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::
 使用 ystdex::retry_on_cond 代替 do-while （特别是每次迭代都更新最后需要返回的值的）循环，避免不必要的中间变量。
 
 @6.2.3 限定名称：
-在建议 [Documentation::LanguageConvention @@5.2.4.1] 的基础上强制要求全局名称保留前缀 :: 规则。
+除非另行约定（参见本节以下规则及 [ProjectRules @@3.5]），在建议 [Documentation::LanguageConvention @@5.2.4.1] 的基础上强制要求全局名称保留前缀 :: 规则。
 全局 operator new/delete 使用前缀 :: 以强调确定使用全局版本（对应非名称的 new/delete 表达式也同样使用）。
 SFINAE(@3.3.2) 的需要以外的其它一般全局名称的使用总是保留前缀 :: 以便移植。
-同理，除非另有约定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
+同理，除非另行约定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
 推论：包含使全局名称和不省略 :: 形式不一致的声明的头文件不能在其它作用域中使用。这已被 ISO C++ [using.headers] 涵盖，遵守 [Documentation::LanguageConvention @@6.2] 。
 
 @6.2.4 限制使用标识符：

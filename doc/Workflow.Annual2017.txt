@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2017.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2017 年度。
-\version r601
+\version r612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 763
 \par 创建时间:
 	2017-01-27 16:01:59 +0800
 \par 修改时间:
-	2017-11-15 10:56 +0800
+	2017-12-11 23:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -550,6 +550,7 @@ Proper tail calls are considered to be implemented.
 
 $2017-11:
 
+report.impl:
 To implement asynchronous CPS by trampolines, there are different ways to deal with tail action.
 	The traditional way is to save the contination as the tail action and then to call the captured current action directly.
 		This is general safe, though not very efficient.
@@ -583,6 +584,18 @@ To implement asynchronous CPS by trampolines, there are different ways to deal w
 			It is even more precise (and efficient) with the difference being taken into account.
 				The parameters are not altered by rebinding of parameters of next actions here.
 				So it would be correct parameters for next actions when it is a toplevel reduction.
+
+$2017-12:
+
+report.impl:
+Implementation of delimited continuation supported has been considered.
+	It is designed independently, but similar to the referenced abstract machine of Chapter 2.1 in http://www.brics.dk/RS/05/2/BRICS-RS-05-2.pdf.
+		The context and meta-context in NPLA is mapped to function objects in form of current action and delimited actions.
+	Delimited continuation is not supported previously, including the evaluation pass handlers.
+		Asynchronous transformation of the handlers imposes no need of continuation capture currently.
+			So it should be neutral to existence of delimited actions.
+	The transition of last cont2 transition rule is now implemented by 'ContextNode::Transit', rather than 'ContextNode::Pop' directly.
+		The transition is to be implictly called when no current exists in the rewriting loop.
 
 ////
 

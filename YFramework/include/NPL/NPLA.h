@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r2981
+\version r3044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-12-09 11:48 +0800
+	2017-12-24 01:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1394,10 +1394,19 @@ public:
 	/*!
 	\brief 转移当前动作为首个定界动作。
 	\pre 断言： \c Current 。
-	\pre \c !Current 。
 	*/
+	//@{
+	//! \since build 812
+	//@{
 	void
-	Push();
+	Push(const Reducer&);
+	void
+	Push(Reducer&&);
+	//@}
+	//! \pre \c !Current 。
+	PDefH(void, Push, )
+		ImplExpr(Push(Reducer()))
+	//@}
 	//@}
 
 	//! \exception std::bad_function_call Reducer 参数为空。
@@ -1601,61 +1610,25 @@ RelayNextActions(ContextNode& ctx, _fCallable setup_tail,
 	}, std::move(cur), std::move(args)...));
 	return ReductionStatus::Retrying;
 }
-
-//! \brief 异步规约当前和延迟提供的嵌套调用中的后继动作。
-template<typename _fCallable, typename... _tParams>
-ReductionStatus
-RelayNestedNextActions(ContextNode& ctx, _fCallable f,
-	ContextNode::Reducer&& cur, _tParams&&... args)
-{
-	// XXX: Assume it is always reducing the same term and the next actions are
-	//	safe to be dropped.
-	return NPL::RelayNextActions(ctx,
-		[&, f](ContextNode& c, _tParams&... acts, ReductionStatus res){
-		// NOTE: Drop next tail actions otherwise.
-		NPL::ResumeCall(c, std::move(f), res, acts...);
-	}, std::move(cur), yforward(args)...);
-}
 //@}
 
 //! \brief 设置动作。
-inline PDefH(void, SetupAction, ContextNode& ctx, ContextNode::Reducer& acts)
+inline PDefH(void, SetupAction, ContextNode& ctx, ContextNode::Reducer& act)
 	ynothrowv
-	ImplRet(ctx.SetupTail(std::move(acts)))
+	ImplExpr(ctx.SetupTail(std::move(act)))
+
+/*!
+\brief 转移动作到当前动作及定界动作。
+\since build 812
+*/
+inline PDefH(void, MoveAction, ContextNode& ctx, ContextNode::Reducer&& act)
+	ImplExpr(!ctx.Current ? ctx.SetupTail(std::move(act))
+		: ctx.Push(std::move(act)))
+//@}
 
 //! \brief 保存绑定参数的规约函数的副本。
 YF_API void
 PushActions(const EvaluationPasses&, TermNode&, ContextNode&);
-
-//! \brief 保存连续调用的规约函数序列。
-template<typename _tIn>
-void
-PushActionsRange(_tIn first, _tIn last, TermNode& term, ContextNode& ctx)
-{
-	if(first != last)
-	{
-		const auto& f(first->second);
-
-		++first;
-		RelayNestedNextActions(ctx, SetupAction, [=, &term, &ctx]{
-			NPL::PushActionsRange(first, last, term, ctx);
-			// NOTE: If reducible, %Current should have been properly
-			//	set or cleared. It cannot be cleared here because there is
-			//	no simple way to guarantee the action is the last one for
-			//	specified term (e.g. call of %SetupTail and then retrying would
-			//	introduce reducible but not to be cleared term in general).
-			// NOTE: The returning value would inform propably
-			//	existed enclosing caller to retry a new turn of reduction if
-			//	%Current is empty, otherwise it is to be ignored as
-			//	per the loop condition of %Rewrite. Like synchronous case, it
-			//	cannot be handled just here (as the enclosed operation)
-			//	by unconditionally retrying some specific operation.
-			return ystdex::expand_proxy<EvaluationPasses::HandlerType::FuncType>
-				::invoke(f, term, ctx);
-		}, ctx.Switch());
-	}
-}
-//@}
 //@}
 
 
