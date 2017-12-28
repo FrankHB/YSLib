@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1468
+\version r1512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-12-09 11:48 +0800
+	2017-12-24 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,6 +314,37 @@ InitBadIdentifierExceptionString(string&& id, size_t n)
 {
 	return (n != 0 ? (n == 1 ? "Bad identifier: '" : "Duplicate identifier: '")
 		: "Unknown identifier: '") + std::move(id) + "'.";
+}
+
+//! \since buld 812
+ContextNode::Reducer
+ExpandActionsRange(EvaluationPasses::const_iterator first,
+	EvaluationPasses::const_iterator last, TermNode& term, ContextNode& ctx)
+{
+	YAssert(first != last, "Invalid range found.");
+
+	const auto& f(first->second);
+
+	++first;
+	return [=, &term, &ctx, &f]{
+		// NOTE: If reducible, %Current should have been properly
+		//	set or cleared. It cannot be cleared here because there is
+		//	no simple way to guarantee the action is the last one for
+		//	specified term (e.g. call of %SetupTail and then retrying would
+		//	introduce reducible but not to be cleared term in general).
+		if(first != last)
+			// NOTE: This is not needed to support first-class delimited
+			//	continuations but it saves many memory allocations compared to
+			//	the %RelayNextActions calls.
+			MoveAction(ctx, ExpandActionsRange(first, last, term, ctx));
+		// NOTE: The returning value would inform propably
+		//	existed enclosing caller to retry a new turn of reduction if
+		//	%Current is empty, otherwise it is to be ignored as
+		//	per the loop condition of %Rewrite. Like synchronous case, it
+		//	cannot be handled just here (as the enclosed operation)
+		//	by unconditionally retrying some specific operation.
+		return f(term, ctx);
+	};
 }
 
 } // unnamed namespace;
@@ -678,10 +709,17 @@ ContextNode::Pop() ynothrow
 }
 
 void
-ContextNode::Push()
+ContextNode::Push(const Reducer& reducer)
 {
 	YAssert(Current, "No continuation can be captured.");
-	Delimited.push_front(Reducer());
+	Delimited.push_front(reducer);
+	std::swap(Current, Delimited.front());
+}
+void
+ContextNode::Push(Reducer&& reducer)
+{
+	YAssert(Current, "No continuation can be captured.");
+	Delimited.push_front(std::move(reducer));
 	std::swap(Current, Delimited.front());
 }
 
@@ -720,7 +758,13 @@ ContextNode::Transit() ynothrow
 void
 PushActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 {
-	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx);
+	if(!passes.empty())
+		// NOTE: Different to inner calls, the outermost one is needed to
+		//	support continuation capture, but it is not ready yet since the call
+		//	is not graranteed in the tail positon of current action and capture
+		//	would lead to wrong order of action calls.
+		RelayNextActions(ctx, SetupAction, ExpandActionsRange(passes.cbegin(),
+			passes.cend(), term, ctx), ctx.Switch());
 }
 
 } // namespace NPL;

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5327
+\version r5346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-12-09 11:49 +0800
+	2017-12-16 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,6 +185,14 @@ ExtractBool(TermNode& term, bool is_and) ynothrow
 }
 
 #if YF_Impl_NPLA1_Enable_TCO
+//! \since build 812
+ReductionStatus
+DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
+{
+	PushActions(passes, term, ctx);
+	return ReductionStatus::Retrying;
+}
+
 //! \since build 810
 //@{
 ReductionStatus
@@ -196,7 +204,7 @@ ReduceCheckedNested(TermNode& term, ContextNode& ctx)
 		ContextNode::Reducer& act, ReductionStatus res){
 		if(NPL::ResumeCall(c, SetupAction, res, act))
 			// NOTE: Drop next tail actions.
-			c.SetupTail(std::move(act));
+			c.SetupBoundedTail(ReduceOnce, term, ctx);
 	}, std::bind(ReduceOnce, std::ref(term), std::ref(ctx)), ctx.Switch());
 }
 
@@ -502,7 +510,7 @@ public:
 			//	to be cared) form the context would cause undefined behavior
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
-			const auto apply_next(std::bind([&](ContextNode& local){
+			auto apply_next(std::bind([&](ContextNode& local){
 				// NOTE: Bound dynamic context.
 				if(!eformal.empty())
 					local.GetBindingsRef().AddValue(eformal,
@@ -588,8 +596,12 @@ Reduce(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
+#if YF_Impl_NPLA1_Enable_TCO
 	ctx.SetupBoundedTail(ReduceOnce, term, ctx);
 	return ReductionStatus::Retrying;
+#else
+	return Reduce(term, ctx);
+#endif
 }
 
 void
@@ -655,8 +667,10 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	the precondition of %Reduce is not violated.
 	// XXX: The remained tail action would be dropped.
 	// FIXME: Is it correctly delimited?
+#if YF_Impl_NPLA1_Enable_TCO
 	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.Current);
 
+#endif
 	std::for_each(first, last, ystdex::bind1(ReduceChecked, std::ref(ctx)));
 }
 
@@ -698,8 +712,7 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 		{
 			// NOTE: List evaluation.
 #if YF_Impl_NPLA1_Enable_TCO
-			PushActions(ctx.EvaluateList, term, ctx);
-			return ReductionStatus::Retrying;
+			return DelimitActions(ctx.EvaluateList, term, ctx);
 #else
 			return ctx.EvaluateList(term, ctx);
 #endif
@@ -720,8 +733,7 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 #if YF_Impl_NPLA1_Enable_TCO
 	// NOTE: The reduction relies on proper handling of reduction status.
 	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
-		? (PushActions(ctx.EvaluateLeaf, term, ctx), ReductionStatus::Retrying)
-		: ReductionStatus::Clean;
+		? DelimitActions(ctx.EvaluateLeaf, term, ctx) : ReductionStatus::Clean;
 #else
 	// NOTE: The reduction relies on proper tail action.
 	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
