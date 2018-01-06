@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5347
+\version r5365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2017-12-16 13:50 +0800
+	2018-01-07 04:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,9 +217,11 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 		auto& term(*first);
 
 		++first;
-		return RelayNextActions(ctx, SetupAction, std::bind(ReduceCheckedNested,
-			std::ref(term), std::ref(ctx)), ContextNode::Reducer(std::bind(
-			ReduceChildrenOrderedAsync, first, last, std::ref(ctx))));
+		return RelaySwitched(ctx, [&, first, last]{
+			RelaySwitched(ctx, std::bind(ReduceChildrenOrderedAsync, first,
+				last, std::ref(ctx)));
+			return ReduceCheckedNested(term, ctx);
+		});
 	}
 	return ReductionStatus::Clean;
 }
@@ -747,15 +749,16 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 	if(IsBranch(term))
 	{
 #if YF_Impl_NPLA1_Enable_TCO
-		return RelayNextActions(ctx, SetupAction, [&]{
+		return RelayNext(ctx, [&]{
 			return ReduceChildrenOrdered(term, ctx);
-		}, ContextNode::Reducer([&]{
+		}, std::bind([&](ContextNode::Reducer& act){
+			RelaySwitched(ctx, std::move(act));
 			if(term.size() > 1)
 				LiftTerm(term, *term.rbegin());
 			else
 				term.Value = ValueToken::Unspecified;
 			return CheckNorm(term);
-		}));
+		}, ctx.Switch()));
 #else
 		// NOTE: This does not support proper tail calls.
 		const auto res(ReduceChildrenOrdered(term, ctx));
@@ -869,20 +872,15 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	// NOTE: This implementes arguments evaluation in applicative order.
 #if YF_Impl_NPLA1_Enable_TCO
-	// NOTE: This implementes arguments evaluation in applicative order.
-	const auto call_first([&]{
+	return RelayNext(ctx, [&]{
 		ReduceArguments(term, ctx);
 		return ReductionStatus::Retrying;
-	});
-
-	return RelayNextActions(ctx, SetupAction, call_first,
-		// TODO: Blocked. Use C++14 lambda initializers to implement move
-		//	initialization.
-		ContextNode::Reducer([&]{
+	}, std::bind([&](ContextNode::Reducer& act){
+		RelaySwitched(ctx, std::move(act));
 		YAssert(IsBranch(term), "Invalid state found.");
 		// NOTE: Matching function calls.
 		return Handler(term, ctx);
-	}));
+	}, ctx.Switch()));
 #else
 	// NOTE: This does not support proper tail calls.
 	ReduceArguments(term, ctx);

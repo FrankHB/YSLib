@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3044
+\version r3061
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2017-12-24 01:22 +0800
+	2018-01-06 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1336,6 +1336,12 @@ public:
 	*/
 	YSLib::deque<Reducer> Delimited{};
 	/*!
+	\brief 最后一次规约状态。
+	\sa ApplyTail
+	\since build 813
+	*/
+	ReductionStatus LastStatus = ReductionStatus::Clean;
+	/*!
 	\brief 上下文日志追踪。
 	\since build 803
 	*/
@@ -1364,9 +1370,10 @@ public:
 	DefGetter(const ynothrow, Environment&, RecordRef, *p_record)
 
 	/*!
-	\brief 转移并应用尾调用。
+	\brief 转移并应用尾调用，更新规约状态。
 	\note 调用前脱离 Current 以允许调用 SetupTail 设置新的尾调用。
 	\pre 断言： \c Current 。
+	\sa LastStatus
 	\since build 810
 	*/
 	ReductionStatus
@@ -1589,6 +1596,10 @@ RelaySetup(ReductionStatus res, ContextNode& ctx, _fCallable&& setup_tail,
 \since build 810
 */
 //@{
+//! \since build 813
+YF_API ReductionStatus
+RelayNext(ContextNode&, ContextNode::Reducer&&, ContextNode::Reducer&&);
+
 //! \brief 异步规约当前和延迟提供的后继动作。
 template<typename _fCallable, typename... _tParams>
 ReductionStatus
@@ -1625,6 +1636,12 @@ inline PDefH(void, MoveAction, ContextNode& ctx, ContextNode::Reducer&& act)
 	ImplExpr(!ctx.Current ? ctx.SetupTail(std::move(act))
 		: ctx.Push(std::move(act)))
 //@}
+
+//! \since build 813
+inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx,
+	ContextNode::Reducer&& cur)
+	ImplRet(ctx.Current ? RelayNext(ctx, std::move(cur), ctx.Switch())
+		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
 
 //! \brief 保存绑定参数的规约函数的副本。
 YF_API void

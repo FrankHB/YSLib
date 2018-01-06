@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2017 FrankHB.
+	© 2016-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8161
+\version r8164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2017-09-22 09:19 +0800
+	2018-01-07 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1514,7 +1514,7 @@ b779
 		(
 			* "invalid argument 'true' passed for initialization of guard"
 				$since b686;
-			+ "trailing parameters support as constructor of %one_shot \
+			+ "trailing parameters supported as constructor of %one_shot \
 				instances",
 			/ "template parameter order"
 		)
@@ -1789,7 +1789,7 @@ b774
 		),
 		/ @ "class %ValueNode" @ %YSLib.Core.ValueNode $=
 		(
-			/ "function %SetChildren"  -> "2 overloads avoiding copy on move",
+			/ "function %SetChildren" -> "2 overloads avoiding copy on move",
 				// This is simlilar to avoid unifying move assignment for \
 					containers since they can be swapped without copy.
 			+ "2 function templates %AddChild"

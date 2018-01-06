@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r5646
+\version r5648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2017-05-17 01:11 +0800
+	2018-01-07 06:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2176,7 +2176,7 @@ b337
 					@ "class %ValueObject"
 			) $dep_to DLD "removal use of static default graphical objects",
 			- "static const member objects %(GBinaryObject::Zero, Size::Zero, \
-				RectEmpty)" @ %YGDIBase ($dep_all_from
+				RectEmpty)" @ %YGDIBase ($dep_from
 				"brace init default arguments", $dep_from
 				"removal use of static default graphical objects")
 		),
