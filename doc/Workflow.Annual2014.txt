@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r942
+\version r945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2017-03-24 10:07 +0800
+	2018-01-07 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,7 +190,7 @@ $2014-03:
 report.impl:
 Now for YSLib::UI, the default UI event handlers treat the senders to be processed instead of destination widgets where the identity of the sender and the destination widget is true.
 	The old rules mean 'this == e.GetSender()' is always true for calling of some events in implementation of YSLib::UI.
-		There is no guarantee or guidelines to specify either sender or destination widgets to be used actually in the hanlders in or not in implementation of YSLib::UI.
+		There is no guarantee or guidelines to specify either sender or destination widgets to be used actually in the handlers in or not in implementation of YSLib::UI.
 	The new rules mean senders should always to be considered to be processed at first.
 		Actually, the senders are the widgets to be process as possible as it can, i.e. if no dynamic cast needed, 'e.GetSender()' is used instead of '*this' in implementation of YSLib::UI.
 	User-provided handlers now can use this assumption to transfer different senders.
@@ -370,7 +370,7 @@ There are multiple issues for IME(Input Method Editor) support in Windows.
 					Text fields (e.g. combo box to input path, text box to rename a file, etc.) in Windows Explorer except the search box (see below);
 					Editor of Notepad;
 					Editor of Visual Studio 2013.
-					wxWidgets text boxes of Code::Blocks svn9778 in Windows 2012 R2;
+					Text boxes of Code::Blocks svn9778 implemented by wxWidgets in Windows 2012 R2;
 				In most other editors, it doesn't. These at least include:
 					wxScintilla editor Code::Blocks 13.12 in Windows 7;
 					wxWidgets text boxes of Code::Blocks 13.12 in Windows 7;

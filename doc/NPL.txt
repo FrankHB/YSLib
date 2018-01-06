@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r3820
+\version r3823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2017-12-23 08:28 +0800
+	2018-01-07 06:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1321,6 +1321,8 @@ NPL::DefineValue 、NPL::RedefineValue 和 NPL::RemoveIdentifier 修改上下文
 以下 API 集中实现基于当前动作的复合中继操作，用于异步规约(@6.6.1) ：
 NPL::RelayNextActions 规约当前和后继动作。
 NPL::RelayNestedNextActions 规约当前和嵌套调用中的后继动作。
+NPL::RelayNext 规约后继动作，在后继动作起始设置当前动作。
+NPL::RelaySwitched 规约当前动作作为后继动作，在后继动作起始设置当前动作。
 函数 NPL::PushActions 和函数模板 NPL::PushActionsRange 以序列（特别是求值合并遍(@5.5.7.2) ）为输入设置当前动作。
 后者对 ReductionStatus::Retrying 进行处理：清除当前动作。
 作为前置条件和 ContextNode::SetupTail 相同，这些 API 要求被设置的上下文中的当前动作为空。

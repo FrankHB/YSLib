@@ -1,5 +1,5 @@
 ﻿/*
-	© 2017 FrankHB.
+	© 2017-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1670
+\version r1713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2017-12-29 01:36 +0800
+	2018-01-07 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,49 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				+ "functions %(RelayNext, RelaySwitched)";
+				/ $revert_ex(b812) $impl "function %PushActions"
+					^ "%RelaySwitched",
+					// To simplify frame escape. This only has a little \
+						overhead shown by times of allocation compared to \
+						%MoveAction calls, but far less than with \
+						%RelayNextActions.
+				/ @ "class %ContextNode" $=
+				(
+					+ "data member %LastStatus";
+					/ "assigned status to %LastStatus in each call"
+						@ "function %ApplyTail"
+				)
+			),
+			/ %NPLA1 $=
+			(
+				* $comp "multiple frames not skipped on retrying" $since b812
+					$dep_from ("function %PushAction" @ %NPLA),
+					// This can also be achived with delimited marker frame, \
+						but it is more complicated.
+				(
+					/ DLI "simplified functions \
+						%(StrictContextHandler::operator(), \
+						(ReduceChildrenOrdered; ReduceOrdered; ReduceCombined))"
+						^ $dep_from ("%RelayNext" ~ "%RelayNextActions")
+						@ %NPLA;
+					/ $comp "supported saving current action" @ "functions \
+						%(StrictContextHandler::operator(), \
+						(ReduceChildrenOrdered; ReduceOrdered))""
+				)
+			)
+		)
+	)
+),
+
+b812
 (
 	/ %YFramework.NPL $=
 	(

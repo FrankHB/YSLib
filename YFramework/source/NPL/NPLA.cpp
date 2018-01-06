@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1512
+\version r1566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2017-12-24 01:51 +0800
+	2018-01-07 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -316,35 +316,37 @@ InitBadIdentifierExceptionString(string&& id, size_t n)
 		: "Unknown identifier: '") + std::move(id) + "'.";
 }
 
-//! \since buld 812
-ContextNode::Reducer
-ExpandActionsRange(EvaluationPasses::const_iterator first,
+//! \since buld 813
+void
+PushActionsRange(EvaluationPasses::const_iterator first,
 	EvaluationPasses::const_iterator last, TermNode& term, ContextNode& ctx)
 {
-	YAssert(first != last, "Invalid range found.");
+	if(first != last)
+	{
+		const auto& f(first->second);
 
-	const auto& f(first->second);
-
-	++first;
-	return [=, &term, &ctx, &f]{
-		// NOTE: If reducible, %Current should have been properly
-		//	set or cleared. It cannot be cleared here because there is
-		//	no simple way to guarantee the action is the last one for
-		//	specified term (e.g. call of %SetupTail and then retrying would
-		//	introduce reducible but not to be cleared term in general).
-		if(first != last)
-			// NOTE: This is not needed to support first-class delimited
-			//	continuations but it saves many memory allocations compared to
-			//	the %RelayNextActions calls.
-			MoveAction(ctx, ExpandActionsRange(first, last, term, ctx));
-		// NOTE: The returning value would inform propably
-		//	existed enclosing caller to retry a new turn of reduction if
-		//	%Current is empty, otherwise it is to be ignored as
-		//	per the loop condition of %Rewrite. Like synchronous case, it
-		//	cannot be handled just here (as the enclosed operation)
-		//	by unconditionally retrying some specific operation.
-		return f(term, ctx);
-	};
+		++first;
+		// NOTE: The returning value would inform propably existed enclosing
+		//	caller to retry a new turn of reduction if the current action is
+		//	cleared, otherwise it is to be ignored as per the condition of
+		//	enclosing rewriting loop. Like synchronous case, the returning value
+		//	cannot be handled just (as the enclosed operation) by
+		//	unconditionally retrying some specific operation.
+		RelaySwitched(ctx, [=, &f, &term, &ctx]{
+			PushActionsRange(first, last, term, ctx);
+			// NOTE: If reducible, the current action should have been properly
+			//	set or cleared. It cannot be cleared here because there is
+			//	no simple way to guarantee the action is the last one for
+			//	specified term (e.g. call of %SetupTail and then retrying would
+			//	introduce reducible but not to be cleared term in general). The
+			//	next tail actions would be dropped by reducer which requests
+			//	retrying, which assumes it is always reducing the same term and
+			//	the next actions are safe to be dropped. It should be treated as
+			//	attempt to switch to new action, which should be in turn already
+			//	properly set or cleared as the current action.
+			return f(term, ctx);
+		});
+	}
 }
 
 } // unnamed namespace;
@@ -696,8 +698,9 @@ ContextNode::ContextNode(ContextNode&& ctx) ynothrow
 ReductionStatus
 ContextNode::ApplyTail()
 {
+	// TODO: Avoid stack overflow when current action is called.
 	YAssert(bool(Current), "No tail action found.");
-	return Switch()();
+	return LastStatus = Switch()();
 }
 
 void
@@ -755,16 +758,33 @@ ContextNode::Transit() ynothrow
 }
 
 
+ReductionStatus
+RelayNext(ContextNode& ctx, ContextNode::Reducer&& cur,
+	ContextNode::Reducer&& next)
+{
+	// TODO: Blocked. Use C++14 lambda initializers to implement move
+	//	initialization.
+	ctx.SetupTail(std::bind(
+		[&](const ContextNode::Reducer& act, ContextNode::Reducer& act2){
+		RelaySwitched(ctx, std::move(act2));
+		return act();
+	}, std::move(cur), std::move(next)));
+	return ReductionStatus::Retrying;
+}
+
 void
 PushActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 {
-	if(!passes.empty())
-		// NOTE: Different to inner calls, the outermost one is needed to
-		//	support continuation capture, but it is not ready yet since the call
-		//	is not graranteed in the tail positon of current action and capture
-		//	would lead to wrong order of action calls.
-		RelayNextActions(ctx, SetupAction, ExpandActionsRange(passes.cbegin(),
-			passes.cend(), term, ctx), ctx.Switch());
+	// NOTE: Now both outermost call and inner ones need to support continuation
+	//	capture. The difference is that the boundary is implied in the outermost
+	//	case, which is addressed by the separation of current action and
+	//	delimited actions in the context. The implementation here does not use
+	//	deleimited actions and they are reserved to external control primitive
+	//	like shift/reset operations, to avoid need of unwinding which introduce
+	//	the necessary of delimited frame mark and frame walking in delimieted
+	//	actions. (But be cautious with overflow risks in call of
+	//	%ContextNode::ApplyTail.)
+	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx);
 }
 
 } // namespace NPL;
