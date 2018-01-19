@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r3822
+\version r3833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2018-01-07 06:38 +0800
+	2018-01-18 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1674,7 +1674,7 @@ NPLA 中，这通过以上下文中的当前动作(@5.4.4) 作为 CPS(@5.4.4) �
 NPLA 的 API 中，依赖可能包括通过回调等方式引入。仅在完全确定不涉及引入这些依赖时，操作被视为 TCO 中立的。
 
 @6.6.3 TCO 支持：
-A1::Reduce 的当前实现依赖 Context::RewriteGuarded ，总是使用 TCO 。
+A1::Reduce 当前实现依赖 Context::RewriteGuarded ，总是使用 TCO 。
 以下 NPLA1 API 直接依赖当前动作支持和实现 TCO ：
 A1::ReduceAgain
 A1::ReduceChildrenOrdered
@@ -1698,12 +1698,21 @@ A1::Forms::If
 A1::Forms::Or
 
 @6.6.5 当前动作前置条件：
-为减小不必要判断和重复维护当前动作开销，公开 API 中只有特定规约函数支持保存当前动作，包括：
+为减小不必要判断和重复维护当前动作开销，公开 API 中只有特定规约函数(@5.5.4.5) 及其调用的 API 支持保存当前动作，包括：
 NPL::PushActions
 A1::ReduceCombined
+A1::ReduceChecked
+A1::ReduceChildren
+A1::ReduceChildrenOrdered
 A1::ReduceFirst
 A1::ReduceOnce
+A1::StrictContextHandler::operator()
+A1::Forms::And
+A1::Forms::Or
+A1::Forms::Eval
+A1::Forms 下 API 引入的 vau 处理器的 operator()
 其它 API 若支持 TCO ，以关联的上下文中的当前动作为空作为前置条件以允许直接调用 ContextNode::SetupTail(@5.5.8.3) 等设置当前动作。
+此外， A1::ReduceAgain 直接覆盖当前动作。
 对具有前置条件的 API ，调用者应按需在其他操作前保存当前动作以维护符合预期的作用顺序。
 
 @6.7 语法形式对应功能的实现：

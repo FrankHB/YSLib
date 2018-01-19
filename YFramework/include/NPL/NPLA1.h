@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3629
+\version r3641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2017-12-02 21:35 +0800
+	2018-01-18 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,8 +173,6 @@ LoadNodeSequence(_type&& tree, _tParams&&... args)
 //@}
 
 
-//! \pre 间接断言：参数指定的上下文中的尾动作为空。
-//@{
 /*!
 \brief NPLA1 表达式节点规约：调用至少一次求值例程规约子表达式。
 \return 规约状态。
@@ -189,8 +187,9 @@ Reduce(TermNode&, ContextNode&);
 
 /*!
 \brief 再次规约。
-\sa ContextNode::SetupBoundedTail
+\sa ContextNode::SetupTail
 \sa ReduceOnce
+\sa RelayNext
 \return ReductionStatus::Retrying
 \since build 807
 
@@ -198,7 +197,6 @@ Reduce(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceAgain(TermNode&, ContextNode&);
-//@}
 
 /*!
 \note 可能使参数中容器的迭代器失效。
@@ -955,7 +953,7 @@ TryLoadSouce(REPLContext& context, const char* name, _tParams&&... args)
 
 /*!
 \brief NPLA1 语法形式对应的功能实现。
-\pre 若存在子项，关联的上下文中的尾动作为空。
+\pre 除非另行约定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
 \since build 732
 */
 namespace Forms
@@ -1438,6 +1436,7 @@ Undefine(TermNode&, ContextNode&, bool);
 
 /*!
 \brief 条件判断：根据求值的条件取表达式。
+\note 支持保存当前动作。
 \sa ReduceChecked
 \since build 750
 
@@ -1481,6 +1480,7 @@ Lambda(TermNode&, ContextNode&);
 /*!
 \note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
 \note 初始化的 <eformal> 表示动态环境的上下文参数，应为一个符号或 #ignore 。
+\note 引入的处理器的 operator() 支持保存当前动作。
 \throw InvalidSyntax <eformal> 不符合要求。
 \sa ReduceCheckedClosure
 \since build 790
@@ -1517,6 +1517,7 @@ VauWithEnvironment(TermNode&, ContextNode&);
 
 
 /*!
+\note 支持保存当前动作。
 \sa ReduceChecked
 \since build 754
 */
@@ -1620,9 +1621,10 @@ EqualValue(TermNode&);
 //@{
 /*!
 \brief 对指定项按指定的环境求值。
-\since build 787
+\note 支持保存当前动作。
 \sa ReduceCheckedClosure
 \sa ResolveEnvironment
+\since build 787
 
 以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。
 环境以 ContextNode 的引用表示。
