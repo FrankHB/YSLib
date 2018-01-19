@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1713
+\version r1776
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-01-07 06:40 +0800
+	2018-01-20 02:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,62 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1 $=
+		(
+			(
+			/ DLI "supported saving current action" $=
+			(
+				/ "function %Forms::Eval and vau handlers"
+					^ ("%RelayNext" ~ "%ContextNode::SetupTail") @ %NPLA,
+				/ "function %Forms::(If, And, Or)" ^ ("%RelayNext"
+					~ "%RelayNextActions") @ %NPLA $dep_from "%ReduceAgain"
+			);
+			/ DLI "simplified function %ReduceCombined"
+				^ ("%RelayNext" ~ "%RelayNextActions") ~ @ %NPLA
+			),
+			(
+			/ "supported of proper tail calls" @ "function %Reduce" $=
+			(
+				/ "saved and restored current action and skip state"
+					$dep_from 
+					("%ContextNode::SkipToNextEvaluation" @ %NPLA);
+				- "precondition"
+				// This is needed, otherwise %REPL::LoadFrom would fail for \
+					assertion when worked with following implementation.
+			);
+			/ $impl "function %ReduceAgain" ^ $dep_from
+				("%(ContextNode::SkipToNextEvaluation, RelayNext)"
+				~ "%ContextNode::SetupBoundedTail" @ %NPLA);
+			/ "function %ReduceOnce" !^ ("%PushActions" @ %NPLA),
+			* $comp "state not restored" @ "exited by native exception" $since
+				b813 $=
+			(
+				* "some resources hold by current action not cleared",
+				* "assertion failure when entered a new round of reduction \
+					immediately"
+					// So reduction would fail immediately after a previous \
+						failed REPL session.
+			)
+			)
+		),
+		/ %NPLA $=
+		(
+			/ @ "class %ContextNode" $=
+			(
+				+ "data member %SkipToNextEvaluation",
+				- "function template %SetupBoundedTail" $dep_from
+					("%RecduceAgain" @ %NPLA1)
+			),
+			- $revert(b809) "function %PushActions" $dep_from
+				("%ReduceOnce" @ %NPLA1)
+		)
+	)
+),
+
+b813
 (
 	/ %YFramework $=
 	(
@@ -59,14 +115,14 @@ $now
 					// This can also be achived with delimited marker frame, \
 						but it is more complicated.
 				(
-					/ DLI "simplified functions \
-						%(StrictContextHandler::operator(), \
-						(ReduceChildrenOrdered; ReduceOrdered; ReduceCombined))"
-						^ $dep_from ("%RelayNext" ~ "%RelayNextActions")
-						@ %NPLA;
-					/ $comp "supported saving current action" @ "functions \
-						%(StrictContextHandler::operator(), \
-						(ReduceChildrenOrdered; ReduceOrdered))""
+				/ DLI "simplified functions \
+					%(StrictContextHandler::operator(), \
+					(ReduceChildrenOrdered; ReduceOrdered; ReduceCombined))"
+					^ $dep_from ("%RelayNext" ~ "%RelayNextActions")
+					@ %NPLA;
+				/ $comp "supported saving current action"
+					@ "functions %(StrictContextHandler::operator(), \
+					(ReduceChildrenOrdered; ReduceOrdered))"
 				)
 			)
 		)

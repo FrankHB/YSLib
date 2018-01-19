@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5364
+\version r5506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-01-07 04:14 +0800
+	2018-01-20 02:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,11 +185,105 @@ ExtractBool(TermNode& term, bool is_and) ynothrow
 }
 
 #if YF_Impl_NPLA1_Enable_TCO
+//! \since build 814
+//@{
+void
+RelaySwitchedPasses(ContextNode& ctx, ContextNode::Reducer&& act)
+{
+	if(ctx.Current)
+		// TODO: Blocked. Use C++14 lambda initializers to implement move
+		//	initialization.
+		ctx.SetupTail(std::bind([&](const ContextNode::Reducer& cur,
+			ContextNode::Reducer& next){
+			if(!ctx.SkipToNextEvaluation)
+			{
+				RelaySwitched(ctx, std::move(next));
+				return cur();
+			}
+			else
+			{
+				ctx.SkipToNextEvaluation = {};
+				return next();
+			}
+		}, std::move(act), ctx.Switch()));
+	else if(!ctx.SkipToNextEvaluation)
+		ctx.SetupTail(std::move(act));
+	else
+		ctx.SkipToNextEvaluation = {};
+}
+
+void
+PushActionsRange(EvaluationPasses::const_iterator first,
+	EvaluationPasses::const_iterator last, TermNode& term, ContextNode& ctx,
+	shared_ptr<ReductionStatus> p_res)
+{
+	if(first != last)
+	{
+		const auto& f(first->second);
+
+		++first;
+		// NOTE: The returning value would inform propably existed enclosing
+		//	caller to retry a new turn of reduction if the current action is
+		//	cleared, otherwise it is to be ignored as per the condition of
+		//	enclosing rewriting loop. Like synchronous case, the returning value
+		//	cannot be handled just (as the enclosed operation) by
+		//	unconditionally retrying some specific operation.
+		RelaySwitchedPasses(ctx, [=, &f, &term, &ctx]{
+			// NOTE: The skip mark is requested by some other action, e.g. in
+			//	%ReduceAgain.The next tail actions would be dropped by reducer
+			//	which requests retrying, which assumes it is always reducing the
+			//	same term and the next actions are safe to be dropped. It should
+			//	be treated as attempt to switch to new action, which should be
+			//	in turn already properly set or cleared as the current action.
+			PushActionsRange(first, last, term, ctx, p_res);
+			// NOTE: If reducible, the current action should have been
+			//	properly set or cleared. It cannot be cleared here because
+			//	there is no simple way to guarantee the action is the last
+			//	one for evaluation of specified term merely by last
+			//	reduction status, and %ContextNode::Current needs to be
+			//	exposed to allow capture of current continuation.
+			return *p_res
+				= CombineSequenceReductionResult(*p_res, f(term, ctx));
+		});
+	}
+	else
+		ctx.SkipToNextEvaluation = {};
+}
+//@}
+
 //! \since build 812
 ReductionStatus
 DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 {
-	PushActions(passes, term, ctx);
+	// NOTE: Now both outermost call and inner ones need to support continuation
+	//	capture. The difference is that the boundary is implied in the outermost
+	//	case, which is addressed by the separation of current action and
+	//	delimited actions in the context. The implementation here does not use
+	//	deleimited actions and they are reserved to external control primitive
+	//	like shift/reset operations, to avoid need of unwinding which introduce
+	//	the necessary of delimited frame mark and frame walking in delimieted
+	//	actions. (But be cautious with overflow risks in call of
+	//	%ContextNode::ApplyTail.)
+	PushActionsRange(passes.cbegin(), passes.cend(), term, ctx,
+		make_shared<ReductionStatus>(ReductionStatus::Clean));
+	return ReductionStatus::Retrying;
+}
+
+//! \since build 814
+ReductionStatus
+ReduceAgainExplicit(TermNode& term, ContextNode& ctx,
+	ContextNode::Reducer&& next)
+{
+	// NOTE: See also %NPL::RelayNext.
+	// TODO: Blocked. Use C++14 lambda initializers to implement move
+	//	initialization.
+	ctx.SetupTail(std::bind([&](ContextNode::Reducer& act){
+		RelaySwitched(ctx, std::move(act));
+		return ReduceOnce(term, ctx);
+	}, ContextNode::Reducer(std::bind([&](ContextNode::Reducer& act){
+		ctx.SkipToNextEvaluation = true;
+		return act();
+	}, std::move(next)))));
 	return ReductionStatus::Retrying;
 }
 
@@ -200,12 +294,11 @@ ReduceCheckedNested(TermNode& term, ContextNode& ctx)
 {
 	// XXX: Assume it is always reducing the same term and the next actions are
 	//	safe to be dropped.
-	return NPL::RelayNextActions(ctx, [&](ContextNode& c,
-		ContextNode::Reducer& act, ReductionStatus res){
-		if(NPL::ResumeCall(c, SetupAction, res, act))
-			// NOTE: Drop next tail actions.
-			c.SetupBoundedTail(ReduceOnce, term, ctx);
-	}, std::bind(ReduceOnce, std::ref(term), std::ref(ctx)), ctx.Switch());
+	return RelayNext(ctx, std::bind(ReduceOnce, std::ref(term), std::ref(ctx)),
+		std::bind([&](ContextNode::Reducer& next){
+		return CheckReducible(ctx.LastStatus)
+			? ReduceAgainExplicit(term, ctx, std::move(next)) : next();
+	}, ctx.Switch()));
 }
 
 ReductionStatus
@@ -256,9 +349,12 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 		});
 
 #if YF_Impl_NPLA1_Enable_TCO
-		return RelayNextActions(ctx, SetupAction,
-			std::bind(ReduceCheckedNested, std::ref(*i), std::ref(ctx)),
-			ContextNode::Reducer(and_or_next));
+		return RelayNext(ctx, std::bind(ReduceCheckedNested, std::ref(*i),
+			std::ref(ctx)),
+			std::bind([&, and_or_next](ContextNode::Reducer& act){
+			RelaySwitched(ctx, std::move(act));
+			return and_or_next();
+		}, ctx.Switch()));
 #else
 		// NOTE: This does not support proper tail calls.
 		ReduceChecked(*i, ctx);
@@ -538,7 +634,7 @@ public:
 				return ReduceCheckedClosure(term, local, {}, *p_closure);
 			}, ContextNode(local_prototype, make_shared<Environment>())));
 #if YF_Impl_NPLA1_Enable_TCO
-			ctx.SetupTail(apply_next);
+			RelaySwitched(ctx, apply_next);
 			return ReductionStatus::Retrying;
 #else
 			// NOTE: This does not support proper tail calls.
@@ -591,6 +687,12 @@ TermToValueString(const TermNode& term)
 ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
+#if YF_Impl_NPLA1_Enable_TCO
+	// TODO: Support other states.
+	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.Current);
+	ystdex::swap_guard<bool> gd2_skip(true, ctx.SkipToNextEvaluation);
+
+#endif
 	return ctx.RewriteGuarded(term,
 		std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
 }
@@ -599,7 +701,11 @@ ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
 #if YF_Impl_NPLA1_Enable_TCO
-	ctx.SetupBoundedTail(ReduceOnce, term, ctx);
+	auto next(std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
+
+	if(ctx.Current)
+		return ReduceAgainExplicit(term, ctx, ctx.Switch());
+	ctx.SetupTail(std::move(next));
 	return ReductionStatus::Retrying;
 #else
 	return Reduce(term, ctx);
@@ -625,6 +731,10 @@ ReduceChecked(TermNode& term, ContextNode& ctx)
 #if false
 	ReduceCheckedNested(term, ctx, ReduceOnce, ctx.Switch());
 #else
+	// TODO: Support other states.
+	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.Current);
+	ystdex::swap_guard<bool> gd_skip(true, ctx.SkipToNextEvaluation);
+
 	// NOTE: This does not support proper tail calls.
 	CheckedReduceWith(Reduce, term, ctx);
 #endif
@@ -1005,6 +1115,7 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 				term.ClearContainer();
 			return res;
 		});
+
 #if YF_Impl_NPLA1_Enable_TCO
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
 		{
@@ -1013,22 +1124,22 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 			//	%ContextHandler overloads for ref-qualifier '&&'.
 			auto p_shrd(share_move(*p_handler));
 
-			return RelayNextActions(ctx, [&, ret, p_shrd](ContextNode& c,
-				ContextNode::Reducer& acts, ReductionStatus res){
-				ret(res);
-				SetupAction(c, acts);
-			}, [&, p_shrd]{
+			return RelayNext(ctx, [&, p_shrd]{
 				return (*p_shrd)(term, ctx);
-			}, ctx.Switch());
+			}, std::bind([&, ret, p_shrd](ContextNode::Reducer& act){
+				ret(ctx.LastStatus);
+				RelaySwitched(ctx, std::move(act));
+				return ctx.LastStatus;
+			}, ctx.Switch()));
 		}
 		if(const auto p_handler = AccessTermPtr<ContextHandler>(fm))
-			return RelayNextActions(ctx, [&, ret](ContextNode& c,
-				ContextNode::Reducer& acts, ReductionStatus res){
-				ret(res);
-				SetupAction(c, acts);
-			}, [&, p_handler]{
+			return RelayNext(ctx, [&, p_handler]{
 				return (*p_handler)(term, ctx);
-			}, ctx.Switch());
+			}, std::bind([&, ret](ContextNode::Reducer& act){
+				ret(ctx.LastStatus);
+				RelaySwitched(ctx, std::move(act));
+				return ctx.LastStatus;
+			}, ctx.Switch()));
 #else
 		// NOTE: This does not support proper tail calls.
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
@@ -1393,8 +1504,11 @@ If(TermNode& term, ContextNode& ctx)
 		});
 
 #if YF_Impl_NPLA1_Enable_TCO
-		return RelayNextActions(ctx, SetupAction, std::bind(ReduceCheckedNested,
-			std::ref(*i), std::ref(ctx)), ContextNode::Reducer(if_next));
+		return RelayNext(ctx, std::bind(ReduceCheckedNested, std::ref(*i),
+			std::ref(ctx)), std::bind([&, if_next](ContextNode::Reducer& act){
+			RelaySwitched(ctx, std::move(act));
+			return if_next();
+		}, ctx.Switch()));
 #else
 		// NOTE: This does not support proper tail calls.
 		ReduceChecked(*i, ctx);
@@ -1565,7 +1679,7 @@ Eval(TermNode& term, ContextNode& ctx)
 	});
 
 #if YF_Impl_NPLA1_Enable_TCO
-	ctx.SetupTail(eval_next);
+	RelaySwitched(ctx, eval_next);
 	return ReductionStatus::Retrying;
 #else
 	// NOTE: This does not support proper tail calls.

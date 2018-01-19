@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3061
+\version r3087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-01-06 16:35 +0800
+	2018-01-17 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1324,12 +1324,23 @@ public:
 	EvaluationPasses EvaluateList{};
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
+	//! \note 为便于确保释放，不使用 ystdex::one_shot 。
+	//@{
 	/*!
 	\brief 当前动作。
 	\note 为便于确保释放，不使用 ystdex::one_shot 。
 	\since build 806
 	*/
 	Reducer Current{};
+	/*!
+	\brief 跳过表达式求值标记。
+	\since build 814
+
+	不影响 Current 状态而直接支持取消特定求值规约的共享标记。
+	用于派生实现在单一表达式内的逃逸控制流。
+	*/
+	bool SkipToNextEvaluation{};
+	//@}
 	/*!
 	\brief 定界动作：边界外的剩余动作。
 	\since build 810
@@ -1423,7 +1434,7 @@ public:
 	\pre 间接断言：\c !Current 。
 	\post \c Current 。
 	\sa ApplyTail
-	\sa SetupBoundedTail
+	\sa SetupTail
 	\sa Transit
 	\note 不处理重规约。
 	\since build 810
@@ -1451,24 +1462,10 @@ public:
 	//@}
 
 	/*!
-	\pre 断言：\c !Current 。
-	\since build 809
-	*/
-	//@{
-	/*!
-	\brief 设置当前动作和绑定的参数以重规约。
-	\sa SetupTail
-	*/
-	template<typename _func>
-	void
-	SetupBoundedTail(_func&& f, TermNode& term, ContextNode& ctx)
-	{
-		SetupTail(std::bind(yforward(f), std::ref(term), std::ref(ctx)));
-	}
-
-	/*!
 	\brief 设置当前动作以重规约。
+	\pre 断言：\c !Current 。
 	\pre 动作转移无异常抛出。
+	\since build 809
 	*/
 	template<typename _func>
 	void
@@ -1485,7 +1482,6 @@ public:
 		YAssert(!Current, "Old continuation is overriden.");
 		Current = yforward(f);
 	}
-	//@}
 
 	/*!
 	\brief 切换当前动作。
@@ -1642,10 +1638,6 @@ inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx,
 	ContextNode::Reducer&& cur)
 	ImplRet(ctx.Current ? RelayNext(ctx, std::move(cur), ctx.Switch())
 		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
-
-//! \brief 保存绑定参数的规约函数的副本。
-YF_API void
-PushActions(const EvaluationPasses&, TermNode&, ContextNode&);
 //@}
 
 
