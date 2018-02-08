@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1776
+\version r1815
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-01-20 02:29 +0800
+	2018-02-08 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,45 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			(
+			- "function templates %(RelayNextActions; RelaySetup)";
+			- "class template %RelaySetupTest"
+			),
+			- "function %SetupAction",
+			- "function template %ResumeCall",
+			/ @ "class %ContextNode" $=
+			(
+				+ "functions %(SwitchEnvironmentUnchecked; \
+					SwitcEnvironment)";
+				/ DLDI "simplified constructor"
+			)
+		),
+		/ %NPLA1 $=
+		(
+			/ DLI "simplified function %ReduceOnce",
+			(
+			/ "supported proper tail calls" @ ("function %operator()"
+				@ "vau handler", "function Forms::Eval"; "function \
+				%ReduceCheckedClosure) ^ ($dep_from
+				("%ContextNode::SwitchEnvironmentUnchecked" @ %NPLA),
+				"%ystdex::unique_guard") ~ "creation of new local context";
+			/ $comp "supported saving current action"
+				@ "function %ReduceCheckedClosure"
+			),
+			/ DLI "evaluated subexpressions with deferred term"
+				@ "function %(ReduceChildrenOrdered, Forms::(And, Or, If))"
+				// Not all case allow combining next continuation even \
+					if %ContextNode::LastStatus is maintained correctly.
+		)
+	)
+),
+
+b814
 (
 	/ %YFramework.NPL $=
 	(
@@ -48,7 +87,7 @@ $now
 				^ ("%RelayNext" ~ "%RelayNextActions") ~ @ %NPLA
 			),
 			(
-			/ "supported of proper tail calls" @ "function %Reduce" $=
+			/ "supported proper tail calls" @ "function %Reduce" $=
 			(
 				/ "saved and restored current action and skip state"
 					$dep_from 

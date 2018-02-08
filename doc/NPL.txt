@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r3834
+\version r3837
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2018-01-18 01:16 +0800
+	2018-02-03 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1677,6 +1677,7 @@ NPLA 的 API 中，依赖可能包括通过回调等方式引入。仅在完全�
 A1::Reduce 当前实现依赖 Context::RewriteGuarded ，总是使用 TCO 。
 以下 NPLA1 API 直接依赖当前动作支持和实现 TCO ：
 A1::ReduceAgain
+A1::ReduceCheckedClosure
 A1::ReduceChildrenOrdered
 A1::ReduceCombined
 A1::ReduceOnce
@@ -1696,12 +1697,14 @@ A1::Forms::And
 A1::Forms::Eval
 A1::Forms::If
 A1::Forms::Or
+A1::Forms 下 API 引入的 vau 处理器的 operator()
 
 @6.6.5 当前动作前置条件：
 为减小不必要判断和重复维护当前动作开销，公开 API 中只有特定规约函数(@5.5.4.5) 及其调用的 API 支持保存当前动作，包括：
 NPL::PushActions
 A1::ReduceCombined
 A1::ReduceChecked
+A1::ReduceCheckedClosure
 A1::ReduceChildren
 A1::ReduceChildrenOrdered
 A1::ReduceFirst
