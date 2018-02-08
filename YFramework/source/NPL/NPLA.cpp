@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1611
+\version r1632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-01-08 02:17 +0800
+	2018-02-03 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,6 +314,13 @@ InitBadIdentifierExceptionString(string&& id, size_t n)
 {
 	return (n != 0 ? (n == 1 ? "Bad identifier: '" : "Duplicate identifier: '")
 		: "Unknown identifier: '") + std::move(id) + "'.";
+}
+
+//! \since build 815
+YB_NORETURN void
+ThrowInvalidEnvironment()
+{
+	throw std::invalid_argument("Invalid environment record pointer found.");
 }
 
 } // unnamed namespace;
@@ -650,8 +657,7 @@ ContextNode::ContextNode(const ContextNode& ctx,
 	: p_record([&]{
 		if(p_rec)
 			return std::move(p_rec);
-		throw std::invalid_argument(
-			"Invalid environment record pointer found.");
+		ThrowInvalidEnvironment();
 	}()),
 	EvaluateLeaf(ctx.EvaluateLeaf), EvaluateList(ctx.EvaluateList),
 	EvaluateLiteral(ctx.EvaluateLiteral), Trace(ctx.Trace)
@@ -709,6 +715,21 @@ ContextNode::RewriteGuarded(TermNode& term, Reducer reduce)
 	const auto gd(Guard(term, *this));
 
 	return Rewrite(reduce);
+}
+
+shared_ptr<Environment>
+ContextNode::SwitchEnvironment(shared_ptr<Environment> p_env)
+{
+	if(p_env)
+		return SwitchEnvironmentUnchecked(std::move(p_env));
+	ThrowInvalidEnvironment();
+}
+
+shared_ptr<Environment>
+ContextNode::SwitchEnvironmentUnchecked(shared_ptr<Environment> p_env) ynothrowv
+{
+	YAssertNonnull(p_env);
+	return ystdex::exchange(p_record, p_env);
 }
 
 bool

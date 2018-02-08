@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3087
+\version r3206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-01-17 12:31 +0800
+	2018-02-03 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1109,6 +1109,7 @@ using EnvironmentList = vector<ValueObject>;
 /*!
 \brief 环境。
 \warning 非虚析构。
+\warning 避免 shared_ptr 析构方式不兼容的初始化。
 \since build 787
 */
 class YF_API Environment : private ystdex::equality_comparable<Environment>,
@@ -1315,6 +1316,7 @@ public:
 private:
 	/*!
 	\brief 环境记录指针。
+	\invariant p_record 。
 	\since build 788
 	*/
 	shared_ptr<Environment> p_record{make_shared<Environment>()};
@@ -1324,8 +1326,6 @@ public:
 	EvaluationPasses EvaluateList{};
 	LiteralPasses EvaluateLiteral{};
 	GuardPasses Guard{};
-	//! \note 为便于确保释放，不使用 ystdex::one_shot 。
-	//@{
 	/*!
 	\brief 当前动作。
 	\note 为便于确保释放，不使用 ystdex::one_shot 。
@@ -1340,7 +1340,6 @@ public:
 	用于派生实现在单一表达式内的逃逸控制流。
 	*/
 	bool SkipToNextEvaluation{};
-	//@}
 	/*!
 	\brief 定界动作：边界外的剩余动作。
 	\since build 810
@@ -1368,7 +1367,7 @@ public:
 	DefDeCopyCtor(ContextNode)
 	/*!
 	\brief 转移构造。
-	\post <tt>p_record && p_record->Bindings.empty()</tt> 。
+	\post <tt>p_record->Bindings.empty()</tt> 。
 	\since build 811
 	*/
 	ContextNode(ContextNode&&) ynothrow;
@@ -1491,6 +1490,23 @@ public:
 		ImplRet(ystdex::exchange(Current, std::move(f)))
 
 	/*!
+	\brief 切换环境。
+	\since build 815
+	*/
+	//@{
+	/*!
+	\throw std::invalid_argument 参数指针为空。
+	\sa SwitchEnvironmentUnchecked
+	*/
+	shared_ptr<Environment>
+	SwitchEnvironment(shared_ptr<Environment>);
+
+	//! \pre 断言：参数指针非空。
+	shared_ptr<Environment>
+	SwitchEnvironmentUnchecked(shared_ptr<Environment>) ynothrowv;
+	//@}
+
+	/*!
 	\brief 按需转移首个定界动作为当前动作。
 	\pre 间接断言： \c !Current 。
 	\return 是否可继续规约。
@@ -1519,110 +1535,19 @@ public:
 
 
 /*!
-\brief 检查规约结果，不可继续规约则调用。
-\return 可继续规约。
-\since build 810
-*/
-template<typename _fCallable, typename... _tParams>
-bool
-ResumeCall(ContextNode& ctx, _fCallable&& f, ReductionStatus res,
-	_tParams&... args)
-{
-	if(!CheckReducible(res))
-	{
-		ystdex::expand_proxy<void(ContextNode&, _tParams&...,
-			const ReductionStatus&)>::invoke(yforward(f), ctx, args..., res);
-		return {};
-	}
-	return true;
-}
-
-
-//! \since build 811
-//@{
-//! \brief 中继调用测试类型。
-template<typename _fCallable, typename... _tParams>
-struct RelaySetupTest
-{
-	template<typename _tRes>
-	yimpl(RelaySetupTest)(_tRes*, decltype(ystdex::expand_proxy<_tRes(
-		ContextNode&, _tParams&..., const ReductionStatus&)>::invoke(
-		std::declval<_fCallable&>(), std::declval<ContextNode&>(),
-		std::declval<_tParams&>()..., ReductionStatus::Clean))* = {});
-};
-
-
-//! \brief 中继调用：自动决定使用的返回值，若为空则为第一参数。
-//@{
-template<typename _fCallable, typename... _tParams>
-inline ReductionStatus
-RelaySetup(ReductionStatus res, ystdex::true_, ContextNode& ctx,
-	_fCallable&& setup_tail, _tParams&... acts)
-{
-	ystdex::expand_proxy<void(ContextNode&, _tParams&...,
-		const ReductionStatus&)>::invoke(setup_tail, ctx, acts..., res);
-	return res;
-}
-template<typename _fCallable, typename... _tParams>
-inline ReductionStatus
-RelaySetup(ReductionStatus res, ystdex::false_, ContextNode& ctx,
-	_fCallable&& setup_tail, _tParams&... acts)
-{
-	return ystdex::expand_proxy<ReductionStatus(ContextNode&, _tParams&...,
-		const ReductionStatus&)>::invoke(setup_tail, ctx, acts..., res);
-}
-template<typename _fCallable, typename... _tParams>
-inline ReductionStatus
-RelaySetup(ReductionStatus res, ContextNode& ctx, _fCallable&& setup_tail,
-	_tParams&... acts)
-{
-	return NPL::RelaySetup(res, std::is_constructible<RelaySetupTest<
-		_fCallable, _tParams...>, ReductionStatus*>(), ctx,
-		yforward(setup_tail), acts...);
-}
-//@}
-//@}
-
-//! \since build 809
-//@{
-//! \pre 间接断言：参数指定的上下文中的当前动作为空。
-//@{
-/*!
+\brief 异步规约当前和后继动作。
+\pre 间接断言：参数指定的上下文中的当前动作为空。
 \return ReductionStatus::Retrying 。
-\since build 810
+\since build 813
 */
-//@{
-//! \since build 813
 YF_API ReductionStatus
 RelayNext(ContextNode&, ContextNode::Reducer&&, ContextNode::Reducer&&);
 
-//! \brief 异步规约当前和延迟提供的后继动作。
-template<typename _fCallable, typename... _tParams>
-ReductionStatus
-RelayNextActions(ContextNode& ctx, _fCallable setup_tail,
-	ContextNode::Reducer&& cur, _tParams&&... args)
-{
-	// TODO: Blocked. Use C++14 lambda initializers to implement move
-	//	initialization.
-	ctx.SetupTail(std::bind(
-		[&, setup_tail](const ContextNode::Reducer& act, _tParams&... acts){
-		const auto res(act());
-
-		if(ctx.Current)
-			NPL::RelayNextActions(ctx, std::move(setup_tail), ctx.Switch(),
-				std::move(acts)...);
-		else
-			return NPL::RelaySetup(res, ctx, setup_tail, acts...);
-		return res;
-	}, std::move(cur), std::move(args)...));
-	return ReductionStatus::Retrying;
-}
-//@}
-
-//! \brief 设置动作。
-inline PDefH(void, SetupAction, ContextNode& ctx, ContextNode::Reducer& act)
-	ynothrowv
-	ImplExpr(ctx.SetupTail(std::move(act)))
+//! \since build 813
+inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx,
+	ContextNode::Reducer&& cur)
+	ImplRet(ctx.Current ? RelayNext(ctx, std::move(cur), ctx.Switch())
+		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
 
 /*!
 \brief 转移动作到当前动作及定界动作。
@@ -1631,14 +1556,6 @@ inline PDefH(void, SetupAction, ContextNode& ctx, ContextNode::Reducer& act)
 inline PDefH(void, MoveAction, ContextNode& ctx, ContextNode::Reducer&& act)
 	ImplExpr(!ctx.Current ? ctx.SetupTail(std::move(act))
 		: ctx.Push(std::move(act)))
-//@}
-
-//! \since build 813
-inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx,
-	ContextNode::Reducer&& cur)
-	ImplRet(ctx.Current ? RelayNext(ctx, std::move(cur), ctx.Switch())
-		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
-//@}
 
 
 //! \since build 674
