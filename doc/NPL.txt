@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r3837
+\version r3840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2018-02-03 22:21 +0800
+	2018-02-08 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1677,6 +1677,7 @@ NPLA 的 API 中，依赖可能包括通过回调等方式引入。仅在完全�
 A1::Reduce 当前实现依赖 Context::RewriteGuarded ，总是使用 TCO 。
 以下 NPLA1 API 直接依赖当前动作支持和实现 TCO ：
 A1::ReduceAgain
+A1::ReduceChecked
 A1::ReduceCheckedClosure
 A1::ReduceChildrenOrdered
 A1::ReduceCombined
@@ -1998,7 +1999,8 @@ NPLA1 当前不提供可移植的互操作接口（包括 I/O 操作），也不
 ($define! (f g) (list ($lambda (x) (g (- x 1))) ($lambda (x) (f (- x 1)))))
 对应 NPLA1 程序（设 - 是保证能终止计算的减法）
 $defrec! (f g) (list ($lambda (x) (g (- x 1))) ($lambda (x) (f (- x 1))))
-使用任意数值作为参数调用 f 时，会导致未定义行为而不是不终止求值。
+使用任意数值作为参数调用 f 时，可能导致未定义行为而不是不终止求值。
+虽然不保证真尾调用(@6.6) ，当前的实现一般支持使用自由存储分配，以尽可能地避免宿主实现的未定义行为：当存储不够分配活动记录时，引起 std::bad_alloc 异常而非特定体系结构或其它 C++ 意义上不可预测或不可移植的行为。
 
 @7.3.9 驻留(interning) ：
 出现在表达式中多个位置的值在实现中可共享一个对象作为内部表示。这个对象被驻留(interned) 。
