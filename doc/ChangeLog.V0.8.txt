@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1815
+\version r1845
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-02-08 13:04 +0800
+	2018-02-16 03:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,37 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL.NPLA1 $=
+	(
+		* "missing restoring environment at current context on exit by \
+			exception" @ "%operator()" @ "vau handlers" $since b815,
+		- DLI "redundant guard" @ "functions %(ReduceChecked, ReduceChildren)",
+		* "missing saving %Context::SkipToNextEvaluation in guard"
+			@ "function %ReduceChildren" $since b814,
+		/ @ "function %ReduceOnce" $=
+		(
+			/ DLDI "simplified",
+			* "forwarding nested evaluation of subexpressions"
+				$dep_to "nested evaluation forwarding fix"
+				// This would cause nested evaluation terminate unexpectedly \
+					if %ReduceOnce (rather than %Reduce or with a loop) is \
+					used in %RelayNext as the first action.
+		),
+		(
+		/ "supported proper tail calls" @ "function %ReduceCheckedClosure"
+			$dep_from "nested evaluation forwarding fix";
+		/ $comp "allocated activation records on free store" @ "vau handlers"
+			// The memory would still grow due to recursive construction of \
+				handlers in %RelayNext. Nevertheless, it would (hopefully) \
+				incur no stack overflow in typical host implementations.
+		),
+		/ DLDI "simplified function %ReduceAgain" $dep_from
+			"nested evaluation forwarding fix"
+	)
+),
+
+b815
 (
 	/ %YFramework.NPL $=
 	(
