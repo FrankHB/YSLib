@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5736
+\version r5837
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-02-16 03:36 +0800
+	2018-02-18 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1 // for ystdex::bind1, unordered_map, ystdex::pvoid,
-//	ystdex::call_value_or, ystdex::as_const, ystdex::ref;
+//	ystdex::call_value_or, ystdex::as_const, pair;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss,
 //	ystdex::swap_guard;
@@ -254,10 +254,9 @@ DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retrying;
 }
 
-//! \since build 810
-//@{
+//! \since build 817
 ReductionStatus
-ReduceCheckedNested(TermNode& term, ContextNode& ctx)
+ReduceCheckedAsync(TermNode& term, ContextNode& ctx)
 {
 	// XXX: Assume it is always reducing the same term and the next actions are
 	//	safe to be dropped.
@@ -268,6 +267,7 @@ ReduceCheckedNested(TermNode& term, ContextNode& ctx)
 	}, ctx.Switch()));
 }
 
+//! \since build 810
 ReductionStatus
 ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 {
@@ -279,13 +279,33 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 		return RelaySwitched(ctx, [&, first, last]{
 			RelaySwitched(ctx, std::bind(ReduceChildrenOrderedAsync, first,
 				last, std::ref(ctx)));
-			return ReduceCheckedNested(term, ctx);
+			return ReduceCheckedAsync(term, ctx);
 		});
 	}
 	return ReductionStatus::Clean;
 }
-//@}
 #endif
+
+//! \since build 817
+void
+ReduceCheckedSync(TermNode& term, ContextNode& ctx)
+{
+	CheckedReduceWith(Reduce, term, ctx);
+}
+
+//! \since build 817
+ReductionStatus
+ReduceSubsequent(TermNode& term, ContextNode& ctx, ContextNode::Reducer&& next)
+{
+#if YF_Impl_NPLA1_Enable_TCO
+	return RelayNext(ctx, std::bind(ReduceCheckedAsync, std::ref(term),
+		std::ref(ctx)), CombineActions(ctx, std::move(next), ctx.Switch()));
+#else
+	// NOTE: This does not support proper tail calls.
+	ReduceCheckedSync(term, ctx);
+	return next();
+#endif
+}
 
 //! \since build 753
 ReductionStatus
@@ -302,8 +322,7 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 			LiftTerm(term, *i);
 			return ReduceAgain(term, ctx);
 		}
-
-		const auto and_or_next([&, i, is_and]{
+		return ReduceSubsequent(*i, ctx, [&, i, is_and]{
 			if(ExtractBool(*i, is_and))
 				term.Remove(i);
 			else
@@ -313,19 +332,6 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 			}
 			return ReduceAgain(term, ctx);
 		});
-
-#if YF_Impl_NPLA1_Enable_TCO
-		return RelayNext(ctx, std::bind(ReduceCheckedNested, std::ref(*i),
-			std::ref(ctx)),
-			std::bind([&, and_or_next](ContextNode::Reducer& act){
-			RelaySwitched(ctx, std::move(act));
-			return and_or_next();
-		}, ctx.Switch()));
-#else
-		// NOTE: This does not support proper tail calls.
-		ReduceChecked(*i, ctx);
-		return and_or_next();
-#endif
 	}
 	term.Value = is_and;
 	return ReductionStatus::Clean;
@@ -507,23 +513,25 @@ CheckEnvFormal(const TermNode& eterm)
 	return {};
 }
 
-//! \since build 816
+//! \since build 817
 template<typename _func, class _tGuard>
 ReductionStatus
-RelayOnNextEnvironment(ContextNode& ctx, _func next_action,
-	shared_ptr<Environment>&& p_saved, _tGuard& gd)
+RelayOnNextEnvironmentGuarded(ContextNode& ctx, _func next_action, _tGuard& gd)
 {
 #if YF_Impl_NPLA1_Enable_TCO
-	RelayNext(ctx, next_action, std::bind(
-		[&](const ContextNode::Reducer& act, shared_ptr<Environment>& p_env){
-		// TODO: On exception?
-		ctx.SwitchEnvironmentUnchecked(std::move(p_env));
-		return act();
-	}, ctx.Switch(), std::move(p_saved)));
-	ystdex::dismiss(gd);
-	return ReductionStatus::Retrying;
+	// NOTE: The destruction order of captured component is significant.
+	using args_t = pair<const ContextNode::Reducer, shared_ptr<_tGuard>>;
+
+	// TODO: Blocked. Use C++14 lambda initializers to implement move
+	//	initialization.
+	return RelayNext(ctx, next_action, std::bind([&](args_t& args){
+		{
+			auto gd_act(std::move(*args.second));
+		}
+		return args.first();
+	}, args_t(ctx.Switch(), make_shared<_tGuard>(std::move(gd)))));
 #else
-	yunused(ctx), yunused(p_saved);
+	yunused(ctx), yunused(p_saved), yunused(gd);
 	// NOTE: This does not support proper tail calls.
 	return next_action();
 #endif
@@ -534,12 +542,11 @@ ReductionStatus
 RelayOnNextEnvironment(ContextNode& ctx, _func next_action,
 	shared_ptr<Environment>&& p_saved)
 {
-	auto gd(ystdex::unique_guard([&]() ynothrowv{
+	auto gd(ystdex::unique_guard([&, p_saved]() ynothrowv{
 		ctx.SwitchEnvironmentUnchecked(std::move(p_saved));
 	}));
 
-	return RelayOnNextEnvironment(ctx, std::move(next_action),
-		std::move(p_saved), gd);
+	return RelayOnNextEnvironmentGuarded(ctx, std::move(next_action), gd);
 }
 
 
@@ -609,8 +616,9 @@ public:
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
 			auto wenv(ctx.WeakenRecord());
-			auto p_saved(ctx.SwitchEnvironment(make_shared<Environment>()));
-			auto gd(ystdex::unique_guard([&]() ynothrowv{
+			const auto
+				p_saved(ctx.SwitchEnvironment(make_shared<Environment>()));
+			auto gd(ystdex::unique_guard([&, p_saved]() ynothrowv{
 				ctx.SwitchEnvironmentUnchecked(std::move(p_saved));
 			}));
 
@@ -636,9 +644,9 @@ public:
 			ctx.GetRecordRef().Parent = p_parent;
 			// TODO: Implement accurate lifetime analysis depending on
 			//	'p_closure.unique()'?
-			return RelayOnNextEnvironment(ctx, std::bind(
+			return RelayOnNextEnvironmentGuarded(ctx, std::bind(
 				ReduceCheckedClosure, std::ref(term), std::ref(ctx), false,
-				std::ref(*p_closure)), std::move(p_saved), gd);
+				std::ref(*p_closure)), gd);
 		}
 		else
 			throw LoggedEvent("Invalid composition found.", Alert);
@@ -729,15 +737,15 @@ ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 		throw InvalidSyntax("Invalid function application found.");
 }
 
-void
+ReductionStatus
 ReduceChecked(TermNode& term, ContextNode& ctx)
 {
-	// TODO: Replace implementation with CPS'd implementation.
-#if false
-	ReduceCheckedNested(term, ctx);
+#if YF_Impl_NPLA1_Enable_TCO
+	return ReduceCheckedAsync(term, ctx);
 #else
 	// NOTE: This does not support proper tail calls.
-	CheckedReduceWith(Reduce, term, ctx);
+	ReduceCheckedSync(term, ctx);
+	return CheckNorm(term);
 #endif
 }
 
@@ -758,7 +766,8 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	//	forced) are not blessed here to avoid leak abstraction of detailed
 	//	implementation of vau handlers; it can be checked by the vau handler
 	//	itself, if necessary.
-	const auto reduce_checked_closure_next([&]{
+	// XXX: Term reused.
+	return ReduceSubsequent(term, ctx, [&]{
 		LiftToSelf(term);
 		// NOTE: The no-op returning of term is the copy elision
 		//	(unconditionally). It is equivalent to returning by reference, which
@@ -767,21 +776,6 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 			term.Value.MakeMoveCopy());
 		return CheckNorm(term);
 	});
-
-	// XXX: Term reused.
-#if YF_Impl_NPLA1_Enable_TCO
-	return RelayNext(ctx, [&]{
-		// TODO: Use %ReduceChecked or other function?
-		ReduceCheckedNested(term, ctx);
-		return ReductionStatus::Retrying;
-	}, std::bind([&, reduce_checked_closure_next](ContextNode::Reducer& act){
-		RelaySwitched(ctx, std::move(act));
-		return reduce_checked_closure_next();
-	}, ctx.Switch()));
-#else
-	ReduceChecked(term, ctx);
-	return reduce_checked_closure_next();
-#endif
 }
 
 void
@@ -795,8 +789,11 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	in routines which expect proper tail actions, given the guarnatee that
 	//	the precondition of %Reduce is not violated.
 	// XXX: The remained tail action would be dropped.
-	// FIXME: Is it correctly delimited?
-	std::for_each(first, last, ystdex::bind1(ReduceChecked, std::ref(ctx)));
+#if YF_Impl_NPLA1_Enable_TCO
+	ReduceChildrenOrderedAsync(first, last, ctx);
+#else
+	std::for_each(first, last, ystdex::bind1(ReduceCheckedSync, std::ref(ctx)));
+#endif
 }
 
 ReductionStatus
@@ -808,7 +805,7 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 	// NOTE: This does not support proper tail calls.
 	const auto tr([&](TNIter iter){
 		return ystdex::make_transform(iter, [&](TNIter i){
-			ReduceChecked(*i, ctx);
+			ReduceCheckedSync(*i, ctx);
 			// TODO: Simplify?
 			return CheckNorm(*i);
 		});
@@ -1456,7 +1453,7 @@ void
 DefineWithNoRecursion(TermNode& term, ContextNode& ctx)
 {
 	DoDefine(term, [&](TermNode& formals){
-		ReduceChecked(term, ctx);
+		ReduceCheckedSync(term, ctx);
 		BindParameter(ctx, formals, term);
 	});
 }
@@ -1467,7 +1464,7 @@ DefineWithRecursion(TermNode& term, ContextNode& ctx)
 	DoDefine(term, [&](TermNode& formals){
 		RecursiveThunk gd(ctx.GetRecordRef(), formals);
 
-		ReduceChecked(term, ctx);
+		ReduceCheckedSync(term, ctx);
 		BindParameter(ctx, formals, term);
 		gd.Commit();
 	});
@@ -1503,7 +1500,8 @@ If(TermNode& term, ContextNode& ctx)
 	if(size == 3 || size == 4)
 	{
 		auto i(std::next(term.begin()));
-		const auto if_next([&, i]() -> ReductionStatus{
+
+		return ReduceSubsequent(*i, ctx, [&, i]() -> ReductionStatus{
 			auto j(i);
 
 			if(!ExtractBool(*j, true))
@@ -1515,18 +1513,6 @@ If(TermNode& term, ContextNode& ctx)
 			}
 			return ReductionStatus::Clean;
 		});
-
-#if YF_Impl_NPLA1_Enable_TCO
-		return RelayNext(ctx, std::bind(ReduceCheckedNested, std::ref(*i),
-			std::ref(ctx)), std::bind([&, if_next](ContextNode::Reducer& act){
-			RelaySwitched(ctx, std::move(act));
-			return if_next();
-		}, ctx.Switch()));
-#else
-		// NOTE: This does not support proper tail calls.
-		ReduceChecked(*i, ctx);
-		return if_next();
-#endif
 	}
 	else
 		throw InvalidSyntax("Syntax error in conditional form.");
@@ -1569,7 +1555,7 @@ VauWithEnvironment(TermNode& term, ContextNode& ctx)
 	CreateFunction(term, [&](TermNode::Container& con){
 		auto i(con.begin());
 
-		ReduceChecked(Deref(++i), ctx);
+		ReduceCheckedSync(Deref(++i), ctx);
 
 		// XXX: List components are ignored.
 		auto p_env_pr(ResolveEnvironment(Deref(i)));
@@ -1683,8 +1669,7 @@ Eval(TermNode& term, ContextNode& ctx)
 	const auto i(std::next(term.begin()));
 
 	// TODO: Support more environment types?
-	return RelayOnNextEnvironment(ctx,
-		[&, i]() -> ReductionStatus{
+	return RelayOnNextEnvironment(ctx, [&, i]() -> ReductionStatus{
 		const auto reduce_closure([&](bool move, TermNode& closure){
 			return ReduceCheckedClosure(term, ctx, move, closure);
 		});

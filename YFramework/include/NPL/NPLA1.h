@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3641
+\version r3644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-01-18 01:11 +0800
+	2018-02-16 18:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,11 +229,12 @@ inline PDefH(void, ReduceArguments, TermNode& term, ContextNode& ctx)
 /*!
 \brief 规约并检查成功：等效调用 Reduce 并检查结果直至不需重规约。
 \note 支持尾调用优化，不直接使用 CheckedReduceWith 和 Reduce 。
+\return ReductionStatus::Retrying 。
 \sa CheckedReduceWith
 \sa Reduce
-\since build 735
+\since build 817
 */
-YF_API void
+YF_API ReductionStatus
 ReduceChecked(TermNode&, ContextNode&);
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1632
+\version r1651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-02-03 17:49 +0800
+	2018-02-16 02:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include YFM_NPL_NPLA // for ystdex::value_or, ystdex::write,
 //	ystdex::bad_any_cast, ystdex::unimplemented, ystdex::type_id, ystdex::quote,
 //	ystdex::call_value_or, ystdex::begins_with, ystdex::sfmt, ystdex::ref,
-//	ystdex::retry_on_cond, ystdex::type_info;
+//	ystdex::retry_on_cond, ystdex::type_info, pair;
 #include YFM_NPL_SContext
 #include <ystdex/scope_guard.hpp> // for ystdex::share_guard;
 
@@ -746,17 +746,26 @@ ContextNode::Transit() ynothrow
 }
 
 
+ContextNode::Reducer
+CombineActions(ContextNode& ctx, ContextNode::Reducer&& cur,
+	ContextNode::Reducer&& next)
+{
+	// NOTE: The destruction order of captured component is significant.
+	using args_t = pair<ContextNode::Reducer, const ContextNode::Reducer>;
+
+	// TODO: Blocked. Use C++14 lambda initializers to implement move
+	//	initialization.
+	return std::bind([&](args_t& args){
+		RelaySwitched(ctx, std::move(args.first));
+		return args.second();
+	}, args_t(std::move(next), std::move(cur)));
+}
+
 ReductionStatus
 RelayNext(ContextNode& ctx, ContextNode::Reducer&& cur,
 	ContextNode::Reducer&& next)
 {
-	// TODO: Blocked. Use C++14 lambda initializers to implement move
-	//	initialization.
-	ctx.SetupTail(std::bind(
-		[&](const ContextNode::Reducer& act, ContextNode::Reducer& act2){
-		RelaySwitched(ctx, std::move(act2));
-		return act();
-	}, std::move(cur), std::move(next)));
+	ctx.SetupTail(CombineActions(ctx, std::move(cur), std::move(next)));
 	return ReductionStatus::Retrying;
 }
 
