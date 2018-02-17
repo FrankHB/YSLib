@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r3839
+\version r3842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2018-02-08 23:37 +0800
+	2018-02-16 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1679,6 +1679,7 @@ A1::Reduce 当前实现依赖 Context::RewriteGuarded ，总是使用 TCO 。
 A1::ReduceAgain
 A1::ReduceChecked
 A1::ReduceCheckedClosure
+A1::ReduceChildren
 A1::ReduceChildrenOrdered
 A1::ReduceCombined
 A1::ReduceOnce
@@ -1687,10 +1688,9 @@ A1::StrictContextHandler::operator()
 以下 NPLA1 API 不依赖当前动作而 TCO 中立：
 A1::EvaluateDelayed
 以下 NPLA1 API 对 TCO 中立而支持 TCO ：
+A1::ReduceArguments
 A1::ReduceFirst
 A1::ReduceTail
-以下 NPLA1 API 对 TCO 中立但当前未实现支持 TCO ：
-A1::ReduceArguments
 
 @6.6.4 TCO 派生支持：
 以下 NPLA1 API 直接依赖当前动作支持和实现 TCO ：
