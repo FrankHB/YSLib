@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1882
+\version r1955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-02-18 02:41 +0800
+	2018-03-01 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,23 +32,88 @@ $import $HISTORY;
 
 $now
 (
+	/ %YBase.YStandardEx $=
+	(
+		+ "function template %move_and_swap" @ %Utilities,
+		+ "move %operator=" @ "class template %one_shot specializations with \
+			explicitly defined move constructor" @ %Functional ^ $dep_from
+			("%move_and_swap" @ %Utilities),
+			// To support functions without workable move %operator= but with \
+				move constructor (e.g. some closure objects), and for better \
+				diagnostics of %unique_guard result, etc.
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ DLI "function %CombineActions" @ %NPLA ^ "custom functor"
+				~ "lambda expression"
+				// For better performance. This can have effect scale of \
+					about 8% in allocation counts.
+			/ %NPLA1 $=
+			(
+				/ DLI "function %Forms::Eval, %operator() of vau handlers"
+					^ "custom functor" ~ "lambda expression",
+					// For better performance. This can have effect scale of \
+						about 230% (i.e. only about 30% of old one) in \
+						allocation counts, mostly contributed by elision of \
+						%shared_ptr, and now it is almost equal to revisions \
+						before b816 where also no %shared_ptr is introduced in \
+						evaluation failure (but buggy).
+				/ "merged call of term lifting for only outermost tail context \
+					for vau and evaluation calls"
+					@ "function %ReduceCheckedClosure",
+					// See $2018-02 @ %Documentation::Workflow::Annual2018.
+				/ DLI "resolved term before guard construction"
+					@ "function %Forms::Eval"
+					// This makes it possible to receive term reference for \
+						TCO action in future.
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		/ @ "%install-sysroot.sh" $=
+		(
+			+ "deployment of NPLA1 library module %SHBuild-YSLib-common.txt in \
+				'bin' directory",
+			+ "exported variable %CFLAGS_freetype_other with default value \
+				provided by attempt of call 'pkg-config --cflags-only-other'"
+		);
+		/ "building command for library %YFramework"
+			@ "%SHBuild-YSLib-build.txt" @ %Scripts $=
+		(
+			+ "flags from variable %CFLAGS_freetype_other";
+			* $comp "missing non-header flags in commands when 'pkg-config' \
+				call of 'freetype2' provides other flags"
+				$orig (@ "%install-sysroot.sh" @ %Tools $since b563)
+				// This did not occur in tested platforms, though. Note \
+					'-mms-bitfields' may be provided by MSYS2's \
+					mingw-w64-{i686, x86_64}-freetype package, but it was not \
+					used supported platforms in YSLib by default.
+		)
+	)
+),
+
+b817
+(
 	/ %YFramework.NPL $=
 	(
 		/ %NPLA1 $=
 		(
 			/ DLDI "simplified function %ReduceCheckedClosure" ^ "%std::bind",
 			(
-			/ "supported proper tail calls" @ "function %ReduceChildren";
+			/ "supported thunked tail calls" @ "function %ReduceChildren";
 				// This now reuse the implementation of \
 					%ReduceChildrenOrdered, although it still does not expose \
 					the guarantee of order in the API level.
-			/ $comp "supported proper tail calls" @ "function %ReduceArguments"
+			/ $comp "supported thunked tail calls" @ "function %ReduceArguments"
 			),
 			(
 			/ DLDI "synchronized use of %ReduceChecked";
 			/ @ "functions %ReduceChecked" $=
 			(
-				/ "supported proper tail calls",
+				/ "supported thunked tail calls",
 				+ "return value %ReductionStatus::Retrying"
 			);
 			/ DLI "simplified functions (%Forms::(And, Or, Eval, If), \
@@ -87,7 +152,7 @@ b816
 					used in %RelayNext as the first action.
 		),
 		(
-		/ "supported proper tail calls" @ "function %ReduceCheckedClosure"
+		/ "supported thunked tail calls" @ "function %ReduceCheckedClosure"
 			$dep_from "nested evaluation forwarding fix";
 		/ $comp "allocated activation records on free store" @ "vau handlers"
 			// The memory would still grow due to recursive construction of \
@@ -122,7 +187,7 @@ b815
 		(
 			/ DLI "simplified function %ReduceOnce",
 			(
-			/ "supported proper tail calls" @ ("function %operator()"
+			/ "supported thunked tail calls" @ ("function %operator()"
 				@ "vau handler", "function Forms::Eval"; "function \
 				%ReduceCheckedClosure) ^ ($dep_from
 				("%ContextNode::SwitchEnvironmentUnchecked" @ %NPLA),
@@ -156,7 +221,7 @@ b814
 				^ ("%RelayNext" ~ "%RelayNextActions") ~ @ %NPLA
 			),
 			(
-			/ "supported proper tail calls" @ "function %Reduce" $=
+			/ "supported thunked tail calls" @ "function %Reduce" $=
 			(
 				/ "saved and restored current action and skip state"
 					$dep_from 
@@ -337,7 +402,7 @@ b811
 			(
 			/ "kept handler in setup function to make it live long enough"
 				@ "function %ReduceCombined with asynchrnous call";
-			/ "supported proper tail calls"
+			/ "supported thunked tail calls"
 				@ "function %StrictContextHandler::operator()";
 			/ "setup current action" @ "vau handler calls"
 			)
@@ -357,7 +422,7 @@ b810
 	(
 		/ %NPLA1 $=
 		(
-			/ "supported proper tail calls" @ (("function %ReduceOrdered"
+			/ "supported thunked tail calls" @ (("function %ReduceOrdered"
 				^ "%CheckNorm"; "function %ReduceChildrenOrdered")
 				^ "%RelayNextActions", "function %Forms::Eval"
 				^ "%ContextNode::SetupTail"),
@@ -551,7 +616,7 @@ b808
 				ReduceWithNestedNextActions)" @ %NPLA,
 			/ %NPLA1 $=
 			(
-				/ "supported proper tail calls" $=
+				/ "supported thunked tail calls" $=
 				(
 					/ @ "functions %ReduceNested"
 						^ $dep_from ("%ReduceWithNestedNextActions" @ %NPLA),

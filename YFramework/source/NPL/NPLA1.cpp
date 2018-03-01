@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r5837
+\version r5953
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-02-18 02:34 +0800
+	2018-03-01 17:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,10 +38,10 @@ using namespace YSLib;
 namespace NPL
 {
 
+// NOTE: For exposition only. The code without TCO or thunk works without
+//	several guarantees in the specification.
 #define YF_Impl_NPLA1_Enable_TCO true
-// NOTE: The delayed TCO does not allow capture of first-class continuations in
-//	general, but still intended in most cases currently, see $2017-11
-//	@ %Documentation::Workflow::Annual2017.
+#define YF_Impl_NPLA1_Enable_Thunked true
 
 namespace A1
 {
@@ -184,7 +184,7 @@ ExtractBool(TermNode& term, bool is_and) ynothrow
 	return ystdex::value_or(AccessTermPtr<bool>(term), is_and) == is_and;
 }
 
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 //! \since build 815
 inline /*[[nodiscard]]*/
 #if true
@@ -297,7 +297,7 @@ ReduceCheckedSync(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceSubsequent(TermNode& term, ContextNode& ctx, ContextNode::Reducer&& next)
 {
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	return RelayNext(ctx, std::bind(ReduceCheckedAsync, std::ref(term),
 		std::ref(ctx)), CombineActions(ctx, std::move(next), ctx.Switch()));
 #else
@@ -306,6 +306,18 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, ContextNode::Reducer&& next)
 	return next();
 #endif
 }
+
+//! \since build 818
+ReductionStatus
+ReduceForClosureResult(TermNode& term)
+{
+	LiftToSelf(term);
+	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
+	term.SetContent(term.CreateWith(&ValueObject::MakeMoveCopy),
+		term.Value.MakeMoveCopy());
+	return CheckNorm(term);
+}
+
 
 //! \since build 753
 ReductionStatus
@@ -513,23 +525,82 @@ CheckEnvFormal(const TermNode& eterm)
 	return {};
 }
 
+//! \since build 818
+#if YF_Impl_NPLA1_Enable_TCO
+//! \since build 818
+struct TCOAction final
+{
+	lref<ContextNode> Context;
+	lref<TermNode> Term;
+	mutable ContextNode::Reducer Next;
+
+	TCOAction(ContextNode& ctx, TermNode& term)
+		: Context(ctx), Term(term), Next(ctx.Switch())
+	{}
+	DefDeCopyMoveCtor(TCOAction)
+
+	DefDeMoveAssignment(TCOAction)
+
+	ReductionStatus
+	operator()() const
+	{
+		RelaySwitched(Context, std::move(Next));
+		// TODO: Support conditional term lifting. See $2018-02
+		//	@ %Documentation::Workflow::Annual2018.
+		return ReduceForClosureResult(Term);
+	}
+};
+
+
+observer_ptr<TCOAction>
+AccessTCOAction(ContextNode& ctx, const TermNode& term)
+{
+	auto& current(ctx.Current);
+
+	if(const auto p = current.target<TCOAction>())
+		if(&p->Term.get() == &term)
+			return make_observer(p);
+	return {};
+}
+#endif
+
 //! \since build 817
 template<typename _func, class _tGuard>
 ReductionStatus
 RelayOnNextEnvironmentGuarded(ContextNode& ctx, _func next_action, _tGuard& gd)
 {
-#if YF_Impl_NPLA1_Enable_TCO
-	// NOTE: The destruction order of captured component is significant.
-	using args_t = pair<const ContextNode::Reducer, shared_ptr<_tGuard>>;
+	// TODO: Merge guard in TCO action.
+#if YF_Impl_NPLA1_Enable_Thunked
+	// NOTE: Lambda is not used to avoid unspecified destruction order of
+	//	captured component and better performance (compared to the case of
+	//	%pair used to keep the order and %shared_ptr to hold the guard).
+	struct Action
+	{
+		// NOTE: The destruction order of captured component is significant.
+		ContextNode::Reducer Current;
+		mutable _tGuard Guard;
+		Action(ContextNode& ctx, _tGuard& gd)
+			// XXX: The guard is moved. It is only safe when newly constructed
+			//	object always live longer than the older one.
+			: Current(ctx.Switch()), Guard(std::move(gd))
+		{}
+		Action(const Action& a)
+			: Current(a.Current), Guard(std::move(Guard))
+		{}
+		DefDeMoveCtor(Action)
+		DefDeMoveAssignment(Action)
 
-	// TODO: Blocked. Use C++14 lambda initializers to implement move
-	//	initialization.
-	return RelayNext(ctx, next_action, std::bind([&](args_t& args){
+		ReductionStatus
+		operator()() const
 		{
-			auto gd_act(std::move(*args.second));
+			{
+				const auto gd(std::move(Guard));
+			}
+			return Current();
 		}
-		return args.first();
-	}, args_t(ctx.Switch(), make_shared<_tGuard>(std::move(gd)))));
+	};
+
+	return RelayNext(ctx, next_action, Action(ctx, gd));
 #else
 	yunused(ctx), yunused(p_saved), yunused(gd);
 	// NOTE: This does not support proper tail calls.
@@ -694,7 +765,7 @@ TermToValueString(const TermNode& term)
 ReductionStatus
 Reduce(TermNode& term, ContextNode& ctx)
 {
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	// TODO: Support other states?
 	ystdex::swap_guard<ContextNode::Reducer> gd(true, ctx.Current);
 	ystdex::swap_guard<bool> gd_skip(true, ctx.SkipToNextEvaluation);
@@ -707,7 +778,7 @@ Reduce(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	auto reduce(std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
 
 	if(ctx.Current)
@@ -729,7 +800,7 @@ void
 ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 {
 	if(first != last)
-		// NOTE: This is neutral to TCO.
+		// NOTE: This is neutral to thunks.
 		// NOTE: The order of evaluation is unspecified by the language
 		//	specification. It should not be depended on.
 		ReduceChildren(++first, last, ctx);
@@ -740,7 +811,7 @@ ReduceArguments(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceChecked(TermNode& term, ContextNode& ctx)
 {
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	return ReduceCheckedAsync(term, ctx);
 #else
 	// NOTE: This does not support proper tail calls.
@@ -767,15 +838,16 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	//	implementation of vau handlers; it can be checked by the vau handler
 	//	itself, if necessary.
 	// XXX: Term reused.
-	return ReduceSubsequent(term, ctx, [&]{
-		LiftToSelf(term);
-		// NOTE: The no-op returning of term is the copy elision
-		//	(unconditionally). It is equivalent to returning by reference, which
-		//	can be dangerous.
-		term.SetContent(term.CreateWith(&ValueObject::MakeMoveCopy),
-			term.Value.MakeMoveCopy());
-		return CheckNorm(term);
-	});
+#if YF_Impl_NPLA1_Enable_TCO
+	ContextNode::Reducer
+		next(std::bind(ReduceCheckedAsync, std::ref(term), std::ref(ctx)));
+
+	return AccessTCOAction(ctx, term) ? RelaySwitched(ctx, std::move(next))
+		: RelayNext(ctx, std::move(next), TCOAction(ctx, term));
+#else
+	return ReduceSubsequent(term, ctx,
+		std::bind(ReduceForClosureResult, std::ref(term)));
+#endif
 }
 
 void
@@ -789,7 +861,7 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 	//	in routines which expect proper tail actions, given the guarnatee that
 	//	the precondition of %Reduce is not violated.
 	// XXX: The remained tail action would be dropped.
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	ReduceChildrenOrderedAsync(first, last, ctx);
 #else
 	std::for_each(first, last, ystdex::bind1(ReduceCheckedSync, std::ref(ctx)));
@@ -799,7 +871,7 @@ ReduceChildren(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 {
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	return ReduceChildrenOrderedAsync(first, last, ctx);
 #else
 	// NOTE: This does not support proper tail calls.
@@ -819,7 +891,7 @@ ReduceChildrenOrdered(TNIter first, TNIter last, ContextNode& ctx)
 ReductionStatus
 ReduceFirst(TermNode& term, ContextNode& ctx)
 {
-	// NOTE: This is neutral to TCO.
+	// NOTE: This is neutral to thunks.
 	return IsBranch(term) ? ReduceOnce(Deref(term.begin()), ctx)
 		: ReductionStatus::Clean;
 }
@@ -833,7 +905,7 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 		if(term.size() != 1)
 		{
 			// NOTE: List evaluation.
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 			return DelimitActions(ctx.EvaluateList, term, ctx);
 #else
 			return ctx.EvaluateList(term, ctx);
@@ -852,7 +924,7 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 
 	// NOTE: Empty list or special value token has no-op to do with.
 	// TODO: Handle special value token?
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	// NOTE: The reduction relies on proper handling of reduction status.
 	return tp != ystdex::type_id<void>() && tp != ystdex::type_id<ValueToken>()
 		? DelimitActions(ctx.EvaluateLeaf, term, ctx) : ReductionStatus::Clean;
@@ -868,7 +940,7 @@ ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
 	if(IsBranch(term))
 	{
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 		return RelayNext(ctx, [&]{
 			return ReduceChildrenOrdered(term, ctx);
 		}, std::bind([&](ContextNode::Reducer& act){
@@ -899,7 +971,7 @@ ReduceTail(TermNode& term, ContextNode& ctx, TNIter i)
 	auto& con(term.GetContainerRef());
 
 	con.erase(con.begin(), i);
-	// NOTE: This is neutral to TCO.
+	// NOTE: This is neutral to thunks.
 	return ReduceAgain(term, ctx);
 }
 
@@ -968,7 +1040,7 @@ ReductionStatus
 FormContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	// TODO: Is it worth matching specific builtin special forms here?
-	// FIXME: Exception filtering does not work well with TCO.
+	// FIXME: Exception filtering does not work well with thunks.
 	try
 	{
 		if(!Check || Check(term))
@@ -991,7 +1063,7 @@ ReductionStatus
 StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 {
 	// NOTE: This implementes arguments evaluation in applicative order.
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 	return RelayNext(ctx, [&]{
 		ReduceArguments(term, ctx);
 		return ReductionStatus::Retrying;
@@ -999,6 +1071,7 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 		RelaySwitched(ctx, std::move(act));
 		YAssert(IsBranch(term), "Invalid state found.");
 		// NOTE: Matching function calls.
+		// FIXME: Multiple wrapped handlers are not sufficiently thunked.
 		return Handler(term, ctx);
 	}, ctx.Switch()));
 #else
@@ -1055,7 +1128,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	if not passed directly and without rebinding. Note access of objects
 		//	denoted by invalid reference after rebinding would cause undefined
 		//	behavior in the object language.
-		// NOTE: %Reference term is necessary here to implement reference
+		// NOTE: %ReferenceTerm is necessary here to implement reference
 		//	collapsing.
 		term.Value = TermReference(ReferenceTerm(*p));
 		// NOTE: This is not guaranteed to be saved as %ContextHandler in
@@ -1126,7 +1199,7 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 			return res;
 		});
 
-#if YF_Impl_NPLA1_Enable_TCO
+#if YF_Impl_NPLA1_Enable_Thunked
 		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
 		{
 			// TODO: Optimize for performance using context-dependent store.
@@ -1667,17 +1740,16 @@ Eval(TermNode& term, ContextNode& ctx)
 	RetainN(term, 2);
 
 	const auto i(std::next(term.begin()));
+	const auto term_args([](TermNode& expr) -> pair<bool, lref<TermNode>>{
+		if(const auto p = AccessPtr<const TermReference>(expr))
+			return {{}, p->get()};
+		return {true, expr};
+	}(Deref(i)));
 
 	// TODO: Support more environment types?
-	return RelayOnNextEnvironment(ctx, [&, i]() -> ReductionStatus{
-		const auto reduce_closure([&](bool move, TermNode& closure){
-			return ReduceCheckedClosure(term, ctx, move, closure);
-		});
-
-		if(const auto p = AccessPtr<const TermReference>(Deref(i)))
-			return reduce_closure({}, *p);
-		return reduce_closure(true, Deref(i));
-	}, ctx.SwitchEnvironment(ResolveEnvironment(Deref(std::next(i))).first));
+	return RelayOnNextEnvironment(ctx, std::bind(ReduceCheckedClosure,
+		std::ref(term), std::ref(ctx), term_args.first, term_args.second),
+		ctx.SwitchEnvironment(ResolveEnvironment(Deref(std::next(i))).first));
 }
 
 void
