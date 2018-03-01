@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3273
+\version r3287
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2017-11-28 23:24 +0800
+	2018-02-18 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 //	common_nonvoid_t, is_nothrow_swappable, make_index_sequence, exclude_self_t;
 #include "functor.hpp" // for "ref.hpp", <functional>, std::function,
 //	__cpp_lib_invoke, less, addressof_op, mem_get;
+#include "utility.hpp" // for ystdex::move_and_swap;
 #include "cassert.h" // for yconstraint;
 #include <numeric> // for std::accumulate;
 
@@ -818,6 +819,13 @@ struct one_shot
 		swap(fresh, f.fresh);
 	}
 
+	//! \since build 818
+	one_shot&
+	operator=(one_shot&& f) ynothrow
+	{
+		return ystdex::move_and_swap(*this, std::move(f));
+	}
+
 	template<typename... _tParams>
 	yconstfn_relaxed auto
 	operator()(_tParams&&... args) const
@@ -855,6 +863,13 @@ struct one_shot<_func, void, _tState>
 		swap(fresh, f.fresh);
 	}
 
+	//! \since build 818
+	one_shot&
+	operator=(one_shot&& f) ynothrow
+	{
+		return ystdex::move_and_swap(*this, std::move(f));
+	}
+
 	template<typename... _tParams>
 	yconstfn_relaxed void
 	operator()(_tParams&&... args) const
@@ -875,7 +890,6 @@ struct one_shot<_func, _tRes, void>
 		"Invalid target type found.");
 	static_assert(is_nothrow_move_constructible<_tRes>(),
 		"Invalid result type found.");
-
 
 	mutable _func func;
 	mutable _tRes result;

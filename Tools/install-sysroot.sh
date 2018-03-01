@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2017 FrankHB.
+# (C) 2014-2018 FrankHB.
 # SHBuild installation script.
 
 set -e
@@ -50,14 +50,21 @@ if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
 	SR_DSO_Imp=".a"
 else
 	: ${SHBuild_YSLib_Platform:=$SHBuild_Env_OS}
-	# TODO: Merge with SHBuild-BuildApp.sh?
+	# NOTE: This is explicit different to %SHBuild-BuildApp.sh where header
+	#	directories of the dependency need not to be used saparatedly for
+	#	'INCLUDES_*'. Also note no flag like '-D' is needed for use of freetype2
+	#	(unless it is been built, where 'module.cfg' is used instead) normally,
+	#	so it is safe here.
 	INCLUDES_freetype="`pkg-config --cflags-only-I freetype2 2> /dev/null \
 		|| true`"
 	: ${INCLUDES_freetype:="-I/usr/include"}
+	CFLAGS_freetype_other="`pkg-config --cflags-only-other freetype2 \
+		2> /dev/null || true`"
 	SR_DSO_Dest="$SR_Lib"
 	SR_DSO_Imp=""
 fi
 export INCLUDES_freetype
+export CFLAGS_freetype_other
 
 SHBuild_YSLib_LibArch="$SHBuild_YSLib_Platform/lib-$SHBuild_Env_Arch"
 BD_YFramework_Lib="$BD_YFramework/$SHBuild_YSLib_LibArch"
@@ -154,6 +161,13 @@ SHB_InstInc()
 	"$SHBuild_S1_SHBuild" -xcmd,InstallDirectory "$SR_Include" "$1"
 }
 
+# TODO: Use other location for NPLA1 library?
+SHB_InstNPLA1Module_()
+{
+	# TODO: Error handling.
+	"$SHBuild_S1_SHBuild" -xcmd,InstallFile "$SR_Bin/$1" "$SHBuild_ToolDir/$1"
+}
+
 SHB_InstTool()
 {
 	# TODO: Error handling.
@@ -237,6 +251,7 @@ fi
 
 SHBuild_Puts Finished installing headers and libraries.
 
+# NOTE: The name 'INCLUDES' is used likely to that in legacy makefiles.
 export INCLUDES="$INCLUDES -I$SR_Include"
 export LIBS="$LIBS $LIBS_RPATH -L\"`SHBuild_2w $SR_Lib`\" -lYFramework \
 	-lYBase"
@@ -250,6 +265,7 @@ SHBuild_Puts Finished building Stage 2 SHBuild.
 
 SHBuild_Puts Installing Stage 2 SHBuild ...
 SHBuild_Install_HardLink_Exe "$SR_SHBuild/SHBuild.exe" "$SR_Bin/SHBuild$EXESFX"
+SHB_InstNPLA1Module_ "SHBuild-YSLib-common.txt"
 SHB_InstTool "SHBuild-common.sh"
 SHB_InstTool "SHBuild-common-options.sh"
 SHB_InstTool "SHBuild-common-toolchain.sh"

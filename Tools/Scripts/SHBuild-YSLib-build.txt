@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2017 FrankHB.",
+﻿"#", "(C) 2014-2018 FrankHB.",
 "NPLA1 script for build YSLib using SHBuild.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -83,7 +83,8 @@ $defl! skip-or-build (nskip dynamic) $let
 					build-lib "YFramework"
 						(list ($if debug ($if dynamic "-DYB_DLL" "") DFLAG_B_YB)
 						($if dynamic "-DYF_BUILD_DLL" "") "-DFREEIMAGE_LIB"
-						(SHBuild_TrimOptions_ INCLUDES_YFramework))
+						(SHBuild_TrimOptions_ (++ INCLUDES_YFramework " "
+						(env-get "CFLAGS_freetype_other"))))
 				)
 			);
 			putss "Finished building " lname "."

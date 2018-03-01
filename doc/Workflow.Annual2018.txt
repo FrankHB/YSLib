@@ -1,0 +1,61 @@
+﻿/*
+	© 2017 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Workflow.Annual2018.txt
+\ingroup Documentation
+\brief 工作流汇总报告 - 2018 年度。
+\version r60
+\author FrankHB <frankhb1989@gmail.com>
+\since build 818
+\par 创建时间:
+	2018-02-27 22:36:36 +0800
+\par 修改时间:
+	2018-03-01 01:43 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::Workflow::Annual2018
+*/
+
+// See "Meta.cpp" for meta descriptions.
+
+$import $WORKFLOW;
+$LINE-WIDTH-RESTRICT 0;
+
+$WORKFLOW:
+// Following lines are only for logging informal project information.
+// See Meta.txt for formal project information.
+// See ChangeLog.*.txt for accepted contents.
+
+$2018-02:
+
+report.impl:
+Term lifting at end of returning from closure is reconsidered.
+	The no-op (instead of lifting) returning of term is the copy elision (unconditionally).
+		It is equivalent to returning by reference, which can be dangerous.
+		It is not always detectable reliably without tracing lifetime of all objects since the referenced term may be not hold by 'shared_ptr', etc.
+	Term lifting is necessary to be kept to maintain the return value of lvalues sane without introducing dangling references.
+		Removing lifting would change too much.
+		This is a breaking change. The code would behave wrongly if no value copy is added.
+		To remove with well-behaved code, it needs explicitly using value copy function to reintroduce the lifting again for returned value.
+			Keeping same semantics by calling value copy may be verbose, so new combiner constructor variants which exactly retain the old behavior may be introduced in future for convenience.
+	Term lifting needs some magic to work with tail call optimization.
+		Becuase the inserted lifting operation is the tail context, direct switching to next continuation will change the semantics.
+		Since it is idempotent operation, it need only occur before the next continuation only once.
+			If it has already existed, it should be already in the tail context.
+	The conbiners '$and?' and '$or?' can not be directly implemented without new conbiner constructor.
+		Since lvalue reference is always be lifted (i.e. lvalue-to-rvalue conversion), the result would not be reference, even the reference here is safe.
+			Here all retained reference can only be from the operand, which is safe for lvalues, so lifting would be overkill.
+		Without lifting, it can be expressed by other primitives like in Kernel.
+			Even the G1b guideline is not enforced in NPLA1, consistency is still important.
+		This is to be changed in future by providing conbiner constructor other than '$vau'.
+
+////
+

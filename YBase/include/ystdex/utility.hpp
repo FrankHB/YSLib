@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3265
+\version r3285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2017-05-10 23:10 +0800
+	2018-02-18 11:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ vswap(_type&& x, _type2&& y)
 //! \note 使用 ADL swap_volatile 或 ystdex::swap_volatile 。
 //@{
 template<typename _type, typename _type2>
-inline auto	
+inline auto
 vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 	details::swap_volatile_noexcept, _type, _type2>())
 	-> yimpl(enable_if_t)<details::swap_volatile_avail<_type, _type2>::value>
@@ -160,9 +160,10 @@ vswap(_type&& x, _type2&& y) ynoexcept(detected_or_t<false_,
 //@}
 
 
+//! \note 使用 ADL swap 或 std::swap 。
+//@{
 /*!
 \brief 复制后交换。
-\note 使用 ADL swap 或 std::swap 。
 \since build 768
 */
 template<typename _type, typename _type2 = _type>
@@ -175,6 +176,22 @@ copy_and_swap(_type& obj, const _type2& new_val)
 	swap(t, obj);
 	return obj;
 }
+
+/*!
+\brief 转移后交换。
+\since build 818
+*/
+template<typename _type, typename _type2 = _type>
+inline _type&
+move_and_swap(_type& obj, _type2&& new_val)
+{
+	using std::swap;
+	auto t(std::move(new_val));
+
+	swap(t, obj);
+	return obj;
+}
+//@}
 
 /*!
 \brief 按参数复制或转移。
@@ -328,6 +345,7 @@ parameterize_static_object()
 }
 /*!
 \brief 非类型参数化静态对象。
+\note 适合代替参数重复出现或需要作为公开接口的块作用域 static 声明。
 \warning 不可重入。
 \warning 非线程安全。
 \since build 301
