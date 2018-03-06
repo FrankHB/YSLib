@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YApplication.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1773
+\version r1778
 \author FrankHB <frankhb1989@gmail.com>
 \since build 577
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2016-09-03 10:18 +0800
+	2018-03-03 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,12 +47,12 @@ class YF_API Application : public Shell
 {
 private:
 	/*!
-	\brief 初始化守护。
+	\brief 初始化守卫。
 	\since build 693
 	*/
 	stack<ystdex::any> on_exit{};
 	/*
-	\brief 初始化守护互斥锁。
+	\brief 初始化守卫互斥锁。
 	\since build 725
 	*/
 	recursive_mutex on_exit_mutex{};
@@ -130,8 +130,8 @@ public:
 	}
 
 	/*!
-	\brief 锁定添加的初始化守护。
-	\note 线程安全：全局初始化守护互斥访问。
+	\brief 锁定添加的初始化守卫。
+	\note 线程安全：全局初始化守卫互斥访问。
 	\since build 481
 	*/
 	template<typename _tParam>

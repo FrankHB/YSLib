@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r548
+\version r552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2017-06-05 02:09 +0800
+	2018-03-03 17:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -261,7 +261,7 @@ yconstexpr const size_t DefaultCommandBufferSize(yimpl(4096));
 /*!
 \brief 取命令在标准输出上的执行结果。
 \pre 间接断言：第一参数非空。
-\return 读取的二进制存储和关闭管道的返回值（可来自于被调用命令）。
+\return 读取的二进制存储和关闭管道的返回值（可来自被调用的命令）。
 \exception std::system_error 读取失败。
 \exception std::system_error 管道打开失败。
 \throw std::invalid_argument 第二参数的值等于 \c 0 。
@@ -374,13 +374,13 @@ class TerminalData;
 \note 非 Win32 平台使用 \c tput 实现，多终端改变当前屏幕时可能引起未预期的行为。
 \warning 非虚析构。
 
-对底层控制台接口封装的设备接口。当不存在可用的底层接口时，操作无效果。
+对底层控制台接口封装的设备接口。当不存在可用的底层接口时，操作无作用。
 */
 class YF_API Terminal
 {
 public:
 	/*!
-	\brief 终端界面状态守护。
+	\brief 终端界面状态守卫。
 	\since build 624
 	*/
 	class YF_API Guard final

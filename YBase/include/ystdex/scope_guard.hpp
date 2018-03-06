@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,20 +10,20 @@
 
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
-\brief 作用域守护。
-\version r522
+\brief 作用域守卫。
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2017-10-25 10:55 +0800
+	2018-03-03 17:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::ScopeGuard
 
-提供作用域守护的便利接口。
+提供作用域守卫的便利接口。
 */
 
 
@@ -39,7 +39,7 @@ namespace ystdex
 {
 
 /*!
-\brief 作用域守护：析构时调用保存的函数对象或引用。
+\brief 作用域守卫：析构时调用保存的函数对象或引用。
 \note 不可复制，不提供其它状态。
 \since build 605
 */
@@ -65,7 +65,7 @@ struct guard
 };
 
 /*!
-\brief 创建作用域守护。
+\brief 创建作用域守卫。
 \relates guard
 */
 //@{
@@ -111,7 +111,7 @@ unique_state_guard(_func f, _tRes r = {}, _tState s = true) ynoexcept_spec(
 
 
 /*!
-\brief 创建共享作用域守护。
+\brief 创建共享作用域守卫。
 \since build 676
 */
 template<typename _func, typename _type = void>
@@ -256,7 +256,7 @@ struct state_guard_impl : public tagged_value<_tToken, _type>,
 } // namespace details;
 
 /*!
-\brief 使用临时状态暂存对象的作用域守护。
+\brief 使用临时状态暂存对象的作用域守卫。
 \since build 569
 \warning 非虚析构。
 \todo 支持分配器。
@@ -359,7 +359,7 @@ public:
 
 
 /*!
-\brief 使用 ystdex::vswap 调用暂存对象的作用域守护。
+\brief 使用 ystdex::vswap 调用暂存对象的作用域守卫。
 \since build 569
 \todo 支持分配器。
 \todo 支持有限的复制和转移。

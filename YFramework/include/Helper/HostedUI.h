@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r479
+\version r483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2016-12-10 00:56 +0800
+	2018-03-03 17:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ ShowTopLevelDraggable(UI::Widget&);
 \note 第二参数指定显示为顶级窗口的部件。
 \since build 567
 
-使用空窗口守护创建窗口。
+使用空窗口守卫创建窗口。
 不需要设置窗口销毁的回调操作复位默认渲染器来保证销毁其它顶层窗口退出程序时，
 同时使顶层部件宿主线程终止。
 */
@@ -173,7 +173,7 @@ ActOnHover_ShowTopLevel(UI::IWidget& sender, UI::Widget& wgt, _func f,
 #	endif
 /*!
 \brief 设置悬停操作时在指定位置显示指定部件为顶级窗口。
-\note 使用 ADL \c SetLocationOf 设置部件位置。
+\note 使用 ADL SetLocationOf 设置部件位置。
 \todo 非 Win32 宿主平台实现。
 */
 template<typename _func>
@@ -215,7 +215,7 @@ BindTimedTips(UI::TimedHoverState&, UI::IWidget&, UI::Widget&);
 \todo 非 Win32 宿主平台实现。
 
 关联菜单宿主和菜单部件并设置菜单为具有适合显式为菜单的样式的宿主顶级窗口。
-使用空窗口守护创建窗口，同 ActOnHover_ShowTopLevel 。
+使用空窗口守卫创建窗口，同 ActOnHover_ShowTopLevel 。
 */
 YF_API void
 PrepareTopLevelPopupMenu(UI::Menu&, UI::Panel&);

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r1056
+\version r1060
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2017-12-19 21:06 +0800
+	2018-03-03 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -374,8 +374,8 @@ static_assert 声明可独立加注版本，以记号序列等价性确定版本
 
 @2.2.9 头文件包含：
 基本规则参见 [Documentation::CommonRules @@3.13.2.1] 。
-头文件包含守护宏名可能包含模块命名空间(@3.2) 的名称。
-不使用实现相关的方式如 #pragma([LanguageConvention @@5.3.7]) 等代替头文件包含守护宏，以避免影响可移植性。
+头文件包含守卫宏名可能包含模块命名空间(@3.2) 的名称。
+不使用实现相关的方式如 #pragma([LanguageConvention @@5.3.7]) 等代替头文件包含守卫宏，以避免影响可移植性。
 注意 #pragma once 无法保证可移植，因为无法确定代码所在的文件在不同实现环境（操作系统和文件系统等）中唯一性的精确含义。
 
 @2.2.10 变更日志：
@@ -555,7 +555,7 @@ build 275 前在此之上有更强的保证：支持 8.3 文件名兼容性，�
 @3.4.5 基础文件依赖规则：
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::LanguageConvention @@5.25.2] 。
 禁止依赖（包括包含）头文件以外的文件。
-除非另行约定（如 [Documentation::YBase @@2.5.7.3] ），禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏(@2.2.9) 。
+除非另行约定（如 [Documentation::YBase @@2.5.7.3] ），禁止显式重复包含同一文件或循环依赖；头文件应具有守卫宏(@2.2.9) 。
 实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 
 @3.5 命名空间：
