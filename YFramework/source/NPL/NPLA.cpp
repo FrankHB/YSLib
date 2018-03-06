@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1675
+\version r1678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-02-24 22:13 +0800
+	2018-03-05 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -752,7 +752,7 @@ CombineActions(ContextNode& ctx, ContextNode::Reducer&& cur,
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
 	//	%pair used to keep the order).
-	struct Action
+	struct Action final
 	{
 		lref<ContextNode> Context;
 		// NOTE: The destruction order of captured component is significant.
@@ -763,6 +763,7 @@ CombineActions(ContextNode& ctx, ContextNode::Reducer&& cur,
 			ContextNode::Reducer& next)
 			: Context(ctx), Next(std::move(next)), Current(std::move(cur))
 		{}
+		// XXX: Copy is not intended used directly, but for well-formness.
 		DefDeCopyMoveCtor(Action)
 
 		DefDeMoveAssignment(Action)
@@ -775,7 +776,7 @@ CombineActions(ContextNode& ctx, ContextNode::Reducer&& cur,
 		}
 	};
 
-	return Action(ctx, cur, next);
+	return cur ? Action(ctx, cur, next) : std::move(next);
 }
 
 ReductionStatus

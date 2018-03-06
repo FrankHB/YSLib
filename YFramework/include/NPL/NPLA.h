@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3219
+\version r3224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-02-18 01:51 +0800
+	2018-03-06 20:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1086,10 +1086,10 @@ using LiteralPasses = GPasses<TermNode&, ContextNode&, string_view>;
 //@}
 
 
-//! \brief 作用域守护类型。
+//! \brief 作用域守卫类型。
 using Guard = ystdex::any;
 /*!
-\brief 作用域守护遍：用于需在规约例程的入口和出口关联执行的操作。
+\brief 作用域守卫遍：用于需在规约例程的入口和出口关联执行的操作。
 \todo 支持迭代使用旧值。
 */
 using GuardPasses = YSLib::GEvent<Guard(TermNode&, ContextNode&),
@@ -1447,7 +1447,7 @@ public:
 	Rewrite(Reducer);
 
 	/*!
-	\brief 构造作用域守护并重写项。
+	\brief 构造作用域守卫并重写项。
 	\sa Guard
 	\sa Rewrite
 	\since build 806
@@ -1541,6 +1541,7 @@ public:
 //@{
 /*!
 \brief 合并规约动作：创建指定上下文中的连续异步规约当前和后继动作的规约动作。
+\note 若当前动作为空，则直接使用后继动作作为结果。
 \since build 817
 */
 YF_API ContextNode::Reducer
@@ -1548,7 +1549,6 @@ CombineActions(ContextNode&, ContextNode::Reducer&&, ContextNode::Reducer&&);
 
 /*!
 \brief 异步规约当前和后继动作。
-\pre 间接断言：参数指定的上下文中的当前动作为空。
 \return ReductionStatus::Retrying 。
 \sa CombineActions
 \since build 813

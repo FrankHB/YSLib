@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r1955
+\version r2011
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-03-01 18:45 +0800
+	2018-03-06 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,59 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ $dev DD $term "all" ('守护' -> '守卫'),
+		// To prevent from confusion of guards with demons.
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			/ "supported directly using of next action if current action \
+				provided by the parameter is empty" @ "functions"
+				("%CombineActions"; $comp "%RelayNext"),
+			* $doc "wrong '\pre' command" @ "Doxygen comment"
+				@ "function %RelayNext" $since b815
+		),
+		/ %NPLA1 $=
+		(
+			/ "supported proper tail call" @ "vau and evaluation calls" $=
+			(
+				/ $impl "entended capability of internal action type \
+					specific to TCO with states for both guards and \
+					lifting operations";
+				/ "merged call of environment resetting guard for only \
+					outermost tail context"
+			),
+			/ "subterm reduction" @ "functions %(ReduceAgain, ReduceChecked, \
+				ReduceChildrenOrdered, ReduceCheckedClosure, \
+				Forms::(And, Or, If))" $=
+			(
+				/ "separated %ContextNode::SkipToNextEvaluation update and \
+					next action",
+				* "missing guaranteed retrying as %RecuceChecked with \
+					direct style implementation" @ "functions other than \
+					%ReduceAgain" $since b817,
+				/ DLI "simplified with tail recursion" ^ "%RelaySwitched"
+					~ "%RelayNext"
+			),
+			(
+			* "missing clearing %ContextNode::SkipToNextEvaluation before \
+				entering evaluation passes" @ "function %ReduceOnce" $since
+				b814;
+				// For several cases like in %ReduceOnce, setting the flag \
+					always to 'true' may skip a whole turn of evaluation of a \
+					term. This is not significant when there is an enclosing \
+					trampoline to reduce the term again because all the effect \
+					remained is %ReductionStatus::Retrying.
+			/ DLI "simplified function %ReduceAgain"
+				// This would add some overhead when there is an empty current \
+					action, which should be rare.
+			)
+		)
+	)
+),
+
+b818
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -50,9 +103,9 @@ $now
 				~ "lambda expression"
 				// For better performance. This can have effect scale of \
 					about 8% in allocation counts.
-			/ %NPLA1 $=
+			/ DLI %NPLA1 $=
 			(
-				/ DLI "function %Forms::Eval, %operator() of vau handlers"
+				/ "function %Forms::Eval, %operator() of vau handlers"
 					^ "custom functor" ~ "lambda expression",
 					// For better performance. This can have effect scale of \
 						about 230% (i.e. only about 30% of old one) in \
@@ -61,10 +114,10 @@ $now
 						before b816 where also no %shared_ptr is introduced in \
 						evaluation failure (but buggy).
 				/ "merged call of term lifting for only outermost tail context \
-					for vau and evaluation calls"
+					for vau and evaluation calls specifically as TCO action"
 					@ "function %ReduceCheckedClosure",
 					// See $2018-02 @ %Documentation::Workflow::Annual2018.
-				/ DLI "resolved term before guard construction"
+				/ "resolved term before guard construction"
 					@ "function %Forms::Eval"
 					// This makes it possible to receive term reference for \
 						TCO action in future.

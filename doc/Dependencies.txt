@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1329
+\version r1333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2017-08-06 02:42 +0800
+	2018-03-03 17:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -854,7 +854,7 @@ GotFocus 和 LostFocus 可被所在的直接或间接容器部件焦点的改变
 添加缓冲区中按布局读写整数的接口。
 添加对齐特征和基于对齐检查的显式转换。
 添加兼容非特定字符类型转换的接口。
-添加作用域守护接口。
+添加作用域守卫接口。
 线程池修复直接调用 wait 无限等待。
 添加只读字符串视图 string_view 等。
 扩展和修复部分字符串操作。
@@ -893,7 +893,7 @@ any 使用 type_info 代替 std::type_info 。
 提供 ValueObject 原地构造，减少不必要的冗余初始化。
 扩充 ValueNode 接口，使用 observer_ptr 代替内建指针；使用 ystdex::mapped_set 代替标准库容器以改善 const 类型检查；添加原地构造和插入支持。
 GEvent 支持通过调用器模板参数指定不同的调用逻辑。
-Application 使用守护对象栈代替退出回调。
+Application 使用守卫对象栈代替退出回调。
 ValueObject 使用 type_info 代替 std::type_info 。
 [YFramework.YSLib.Service]
 简化路径实现，默认只使用 UTF-8 作为外部编码。
@@ -918,7 +918,7 @@ ValueObject 使用 type_info 代替 std::type_info 。
 在 stage 2 构建时使用 NPL 代码代替 shell 脚本中的部分命令。
 [YBase]
 [YBase.YStandardEx]
-添加允许在生存期结束前释放作用域守护的接口 dismiss 。
+添加允许在生存期结束前释放作用域守卫的接口 dismiss 。
 添加可能缩小数值范围的显式转换 narrow_cast 。
 添加 volatile 左值交换 swap_volatile 。
 添加共享存储接口 pun_ref 。

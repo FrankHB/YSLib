@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r530
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2016-09-01 08:43 +0800
+	2018-03-03 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,7 +99,7 @@ private:
 
 public:
 	/*!
-	\brief 在进入线程时取守护对象。
+	\brief 在进入线程时取守卫对象。
 	\since build 589
 	*/
 	GuardGenerator GenerateGuard{};
@@ -130,10 +130,10 @@ public:
 		make_observer(static_cast<Window*>(p_window)))
 
 	/*!
-	\brief 默认生成守护对象。
+	\brief 默认生成守卫对象。
 	\since build 589
 
-	生成的守护对象在构造和析构时分别调用 EnterWindowThread 和 LeaveWindowThread 。
+	生成的守卫对象在构造和析构时分别调用 EnterWindowThread 和 LeaveWindowThread 。
 	*/
 	static Guard
 	DefaultGenerateGuard(Window&);

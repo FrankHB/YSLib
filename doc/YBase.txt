@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1022
+\version r1024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2017-07-23 16:18 +0800
+	2018-03-03 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -394,7 +394,7 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 @2.5.8.10 间接和惰性求值 Thunk ：
 提供组合惰性求值的可调用对象。
 
-@2.5.8.11 作用域守护 ScopeGuard
+@2.5.8.11 作用域守卫 ScopeGuard
 
 @2.5.8.12 有理数运算 Rational ：
 提供定点数模板等有理数算术类型接口。

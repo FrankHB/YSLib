@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2534
+\version r2536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2017-11-21 12:48 +0800
+	2018-03-03 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,7 +179,7 @@ public:
 
 
 /*!
-\brief 构造分配器守护。
+\brief 构造分配器守卫。
 \since build 595
 */
 template<typename _tAlloc>
