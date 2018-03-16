@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3287
+\version r3297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2018-02-18 11:28 +0800
+	2018-03-15 17:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -808,8 +808,11 @@ struct one_shot
 	mutable _tRes result;
 	mutable _tState fresh{};
 
-	one_shot(_func f, _tRes r = {}, _tState s = {})
-		: func(f), result(r), fresh(s)
+	//! \since build 820
+	template<typename _type, typename _type2 = _tState,
+		yimpl(typename = exclude_self_t<one_shot, _type>)>
+	one_shot(_type&& f, _tRes r = {}, _type2&& s = {})
+		: func(yforward(f)), result(r), fresh(yforward(s))
 	{}
 	one_shot(one_shot&& f) ynothrow
 		: func(std::move(f.func)), result(std::move(f.result))
@@ -852,8 +855,11 @@ struct one_shot<_func, void, _tState>
 	_func func;
 	mutable _tState fresh{};
 
-	one_shot(_func f, _tState s = {})
-		: func(f), fresh(s)
+	//! \since build 820
+	template<typename _type, typename _type2 = _tState,
+		yimpl(typename = exclude_self_t<one_shot, _type>)>
+	one_shot(_type&& f, _type2&& s = {})
+		: func(yforward(f)), fresh(yforward(s))
 	{}
 	one_shot(one_shot&& f) ynothrow
 		: func(std::move(f.func))

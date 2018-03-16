@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6108
+\version r6327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-03-06 20:28 +0800
+	2018-03-17 01:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,11 +26,10 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for ystdex::bind1, unordered_map, ystdex::pvoid,
-//	ystdex::call_value_or, ystdex::as_const, pair;
-#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
-#include <ystdex/scope_guard.hpp> // for ystdex::unique_guard, ystdex::dismiss,
-//	ystdex::swap_guard;
+#include YFM_NPL_NPLA1 // for ystdex::bind1, shared_ptr, lref, unordered_map,
+//	ystdex::pvoid, ystdex::call_value_or, ystdex::as_const, pair;
+#include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::dismiss,
+//	ystdex::swap_guard, ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
 
 using namespace YSLib;
@@ -43,6 +42,10 @@ namespace NPL
 //	%RelayNext as possible to be more friendly to TCO.
 #define YF_Impl_NPLA1_Enable_TCO true
 #define YF_Impl_NPLA1_Enable_Thunked true
+
+//! \since build 820
+static_assert(!YF_Impl_NPLA1_Enable_TCO || YF_Impl_NPLA1_Enable_Thunked,
+	"Invalid combination of build options found.");
 
 namespace A1
 {
@@ -185,16 +188,52 @@ ExtractBool(TermNode& term, bool is_and) ynothrow
 	return ystdex::value_or(AccessTermPtr<bool>(term), is_and) == is_and;
 }
 
-//! \since build 818
+//! \since build 820
 ReductionStatus
-ReduceForClosureResult(TermNode& term)
+NormalizeTerm(TermNode& term, ReductionStatus res)
 {
+	// NOTE: Cleanup if and only if necessary.
+	if(res == ReductionStatus::Clean)
+		term.ClearContainer();
+	return res;
+}
+
+//! \since build 820
+ReductionStatus
+ReduceForClosureResult(TermNode& term, const ContextNode& ctx)
+{
+	NormalizeTerm(term, ctx.LastStatus);
 	LiftToSelf(term);
 	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
 	term.SetContent(term.CreateWith(&ValueObject::MakeMoveCopy),
 		term.Value.MakeMoveCopy());
 	return CheckNorm(term);
 }
+
+//! \since build 820
+struct SwitchEnvironmentGuard final
+{
+	lref<ContextNode> Context;
+	mutable shared_ptr<Environment> SavedPtr;
+
+	SwitchEnvironmentGuard(ContextNode& ctx,
+		shared_ptr<Environment>&& p_saved = {})
+		: Context(ctx), SavedPtr(std::move(p_saved))
+	{}
+	DefDeMoveCtor(SwitchEnvironmentGuard)
+
+	DefDeMoveAssignment(SwitchEnvironmentGuard)
+
+	void
+	operator()() const ynothrowv
+	{
+		if(SavedPtr)
+			Context.get().SwitchEnvironmentUnchecked(std::move(SavedPtr));
+	}
+};
+
+//! \since build 820
+using EnvironmentGuard = ystdex::guard<SwitchEnvironmentGuard>;
 
 #if YF_Impl_NPLA1_Enable_Thunked
 //! \since build 815
@@ -267,29 +306,35 @@ DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 	return ReductionStatus::Retrying;
 }
 
+#	if YF_Impl_NPLA1_Enable_TCO
 //! \since build 818
-#if YF_Impl_NPLA1_Enable_TCO
 struct TCOAction final
 {
-	lref<ContextNode> Context;
 	lref<TermNode> Term;
 	mutable ContextNode::Reducer Next;
-	//! \since build 819
+	//! \since build 820
 	//@{
-	bool LiftCurrent = {};
-	mutable stack<ystdex::any> Guards{};
+	bool ReduceNestedAsync = {};
+	bool LiftCallResult = {};
+	mutable stack<ystdex::any> XGuards{};
+	mutable EnvironmentGuard EnvGuard;
+	mutable list<shared_ptr<Environment>> EnvPtrList{};
+	bool ReduceCombined = {};
+	//@}
 
+	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
-		: Context(ctx), Term(term), Next(ctx.Switch()), LiftCurrent(lift)
+		: Term(term), Next(ctx.Switch()), LiftCallResult(lift), EnvGuard(ctx)
 	{}
 	// XXX: Not used, but provided for well-formness.
+	//! \since build 819
 	TCOAction(const TCOAction& a)
-		// XXX: Guards are moved. This is only safe when newly constructed
+		// XXX: %EnvGuard is moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
-		: Context(a.Context), Term(a.Term), Next(a.Next),
-		LiftCurrent(a.LiftCurrent), Guards(std::move(a.Guards))
+		: Term(a.Term), Next(a.Next), ReduceNestedAsync(a.ReduceNestedAsync),
+		LiftCallResult(a.LiftCallResult), XGuards(std::move(a.XGuards)),
+		EnvGuard(std::move(a.EnvGuard)), ReduceCombined(a.ReduceCombined)
 	{}
-	//@}
 	DefDeMoveCtor(TCOAction)
 
 	DefDeMoveAssignment(TCOAction)
@@ -297,23 +342,32 @@ struct TCOAction final
 	ReductionStatus
 	operator()() const
 	{
-		auto& ctx(Context.get());
+		auto& ctx(EnvGuard.func.Context.get());
 
 		RelaySwitched(ctx, std::move(Next));
 
 		// TODO: Support conditional term lifting in user code. See $2018-02
 		//	@ %Documentation::Workflow::Annual2018.
-		const auto res(LiftCurrent ? ReduceForClosureResult(Term)
+		const auto res(LiftCallResult ? ReduceForClosureResult(Term, ctx)
 			: ctx.LastStatus);
 
 		// NOTE: The order here is significant. The environment in the guards
 		//	should be hold until lifting is completed.
-		while(!Guards.empty())
-			Guards.pop();
+		while(!EnvPtrList.empty())
+			EnvPtrList.pop_back();
+		{
+			const auto egd(std::move(EnvGuard));
+		}
+		while(!XGuards.empty())
+			XGuards.pop();
+		if(ReduceCombined)
+			NormalizeTerm(Term, res);
+		if(ReduceNestedAsync)
+			ctx.SkipToNextEvaluation = true;
 		return res;
 	}
 };
-#endif
+#	endif
 
 //! \since build 817
 ReductionStatus
@@ -580,24 +634,38 @@ CheckEnvFormal(const TermNode& eterm)
 	return {};
 }
 
-//! \since build 819
-template<typename _func, class _tGuard>
+//! \since build 820
 ReductionStatus
-RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, _func next_action,
-	_tGuard& gd)
+RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
+	TermNode& closure, EnvironmentGuard&& gd)
 {
+	auto next_action(std::bind(ReduceCheckedClosure, std::ref(term),
+		std::ref(ctx), move, std::ref(closure)));
+
 	// TODO: Merge guard in TCO action.
 #if YF_Impl_NPLA1_Enable_TCO
+	const auto update_fused_act([&](TCOAction& fused_act){
+		fused_act.EnvGuard = std::move(gd);
+	});
+
 	if(const auto p = ctx.Current.target<TCOAction>())
 	{
-		p->Guards.push(std::move(gd));
-		return RelaySwitched(ctx, next_action);
+		// TODO: Remove variables in parent environments which are also in the
+		//	current tail environment. If the resulted parent environment is
+		//	empty, relink the parent environment of the tail environment and
+		//	remove the old parent environment from the chain to reclaim the
+		//	inactive record space.
+		if(p->EnvGuard.func.SavedPtr)
+			p->EnvPtrList.push_back(std::move(gd.func.SavedPtr));
+		else
+			update_fused_act(*p);
+		return RelaySwitched(ctx, std::move(next_action));
 	}
 
 	TCOAction fused_act(ctx, term, {});
 
-	fused_act.Guards.push(std::move(gd));
-	return RelayNext(ctx, next_action, std::move(fused_act));
+	update_fused_act(fused_act);
+	return RelayNext(ctx, std::move(next_action), std::move(fused_act));
 #elif YF_Impl_NPLA1_Enable_Thunked
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
@@ -606,11 +674,11 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, _func next_action,
 	{
 		// NOTE: The destruction order of captured component is significant.
 		mutable ContextNode::Reducer Next;
-		mutable _tGuard Guard;
-		Action(ContextNode& ctx, _tGuard& gd)
+		mutable EnvironmentGuard Guard;
+		Action(ContextNode& ctx, EnvironmentGuard& egd)
 			// XXX: Several members are moved. It is only safe when newly
 			//	constructed object always live longer than the older one.
-			: Next(ctx.Switch()), Guard(std::move(gd))
+			: Next(ctx.Switch()), Guard(std::move(egd))
 		{}
 		Action(const Action& a)
 			: Next(std::move(a.Next)), Guard(std::move(Guard))
@@ -629,10 +697,9 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, _func next_action,
 		}
 	};
 
-	yunused(term);
-	return RelayNext(ctx, next_action, Action(ctx, gd));
+	return RelayNext(ctx, std::move(next_action), Action(ctx, gd));
 #else
-	yunused(ctx), yunused(term), yunused(gd);
+	yunused(gd);
 	// NOTE: This does not support proper tail calls.
 	return next_action();
 #endif
@@ -705,10 +772,8 @@ public:
 			//	(e.g. returning a reference to automatic object in the host
 			//	language). See %BindParameter.
 			auto wenv(ctx.WeakenRecord());
-			auto p_saved(ctx.SwitchEnvironment(make_shared<Environment>()));
-			auto gd(ystdex::unique_guard([&, p_saved]() ynothrowv{
-				ctx.SwitchEnvironmentUnchecked(std::move(p_saved));
-			}));
+			EnvironmentGuard
+				gd(ctx, ctx.SwitchEnvironment(make_shared<Environment>()));
 
 			// NOTE: Bound dynamic context.
 			if(!eformal.empty())
@@ -732,9 +797,8 @@ public:
 			ctx.GetRecordRef().Parent = p_parent;
 			// TODO: Implement accurate lifetime analysis depending on
 			//	'p_closure.unique()'?
-			return RelayOnNextEnvironment(ctx, term,
-				std::bind(ReduceCheckedClosure, std::ref(term), std::ref(ctx),
-				false, std::ref(*p_closure)), gd);
+			return RelayOnNextEnvironment(ctx, term, {}, *p_closure,
+				std::move(gd));
 		}
 		else
 			throw LoggedEvent("Invalid composition found.", Alert);
@@ -776,6 +840,48 @@ TermToValueString(const TermNode& term)
 	return ystdex::quote(std::string(TermToString(ReferenceTerm(term))), '\''); 
 }
 
+//! \since build 820
+template<typename _tHandler, typename... _tParams>
+ReductionStatus
+CombinerReturnThunk(_tHandler p_shrd, TermNode& term, ContextNode& ctx,
+	_tParams&&... args)
+{
+#if YF_Impl_NPLA1_Enable_Thunked
+	auto call([&, p_shrd]{
+		return (*p_shrd)(term, ctx);
+	});
+#	if YF_Impl_NPLA1_Enable_TCO
+	const auto update_fused_act([&](TCOAction& fused_act){
+		fused_act.ReduceCombined = true;
+		yunseq(0, (fused_act.XGuards.push(args), 0)...);
+	});
+
+	if(const auto p = ctx.Current.target<TCOAction>())
+		if(&p->Term.get() == &term)
+		{
+			update_fused_act(*p);
+			return RelaySwitched(ctx, std::move(call));
+		}
+
+	TCOAction fused_act(ctx, term, {});
+
+	update_fused_act(fused_act);
+	return RelayNext(ctx, std::move(call), std::move(fused_act));
+#	else
+	return RelayNext(ctx, std::move(call),
+		std::bind([&](ContextNode::Reducer& act, _tParams&...){
+		// NOTE: Captured %p_shared is only needed when %p_shrd actually shares.
+		RelaySwitched(ctx, std::move(act));
+		return NormalizeTerm(term, ctx.LastStatus);
+	}, ctx.Switch(), std::move(args)...));
+#	endif
+#else
+	yunseq(0, args...);
+	// NOTE: This does not support proper tail calls.
+	return NormalizeTerm(term, (*p_shrd)(term, ctx));
+#endif
+}
+
 } // unnamed namespace;
 
 
@@ -796,13 +902,29 @@ ReductionStatus
 ReduceAgain(TermNode& term, ContextNode& ctx)
 {
 #if YF_Impl_NPLA1_Enable_Thunked
-	// TODO: Blocked. Use C++14 lambda initializers to implement move
-	//	initialization.
-	return RelayNext(ctx, std::bind(ReduceOnce, std::ref(term), std::ref(ctx)),
-		CombineActions(ctx, [&]{
+	auto reduce_again(std::bind(ReduceOnce, std::ref(term), std::ref(ctx)));
+#	if YF_Impl_NPLA1_Enable_TCO
+	const auto update_fused_act([&](TCOAction& fused_act){
+		fused_act.ReduceNestedAsync = true;
+	});
+
+	if(const auto p = ctx.Current.target<TCOAction>())
+		if(&p->Term.get() == &term)
+		{
+			update_fused_act(*p);
+			return RelaySwitched(ctx, std::move(reduce_again));
+		}
+
+	TCOAction fused_act(ctx, term, {});
+
+	update_fused_act(fused_act);
+	return RelayNext(ctx, std::move(reduce_again), std::move(fused_act));
+#	else
+	return RelayNext(ctx, std::move(reduce_again), CombineActions(ctx, [&]{
 		ctx.SkipToNextEvaluation = true;
 		return ctx.LastStatus;
 	}, ctx.Switch()));
+#	endif
 #else
 	return Reduce(term, ctx);
 #endif
@@ -857,13 +979,13 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	if(const auto p = ctx.Current.target<TCOAction>())
 		if(&p->Term.get() == &term)
 		{
-			p->LiftCurrent = true;
+			p->LiftCallResult = true;
 			return RelaySwitched(ctx, std::move(next));
 		}
 	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, true));
 #else
 	return ReduceSubsequent(term, ctx,
-		std::bind(ReduceForClosureResult, std::ref(term)));
+		std::bind(ReduceForClosureResult, std::ref(term), std::ref(ctx)));
 #endif
 }
 
@@ -1209,62 +1331,31 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 	if(IsBranch(term))
 	{
 		const auto& fm(Deref(ystdex::as_const(term).begin()));
-		const auto ret([&](ReductionStatus res){
-			// NOTE: Normalization: Cleanup if necessary.
-			if(res == ReductionStatus::Clean)
-				term.ClearContainer();
-			return res;
-		});
 
+		// NOTE: This is neutral to thunks.
+		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
+		{
 #if YF_Impl_NPLA1_Enable_Thunked
-		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
-		{
-			// TODO: Optimize for performance using context-dependent store.
-			// TODO: This should be moved. However, this makes no sense before
-			//	%ContextHandler overloads for ref-qualifier '&&'.
-			auto p_shrd(share_move(*p_handler));
-			auto call([&, p_shrd]{
-				return (*p_shrd)(term, ctx);
-			});
-			auto next(std::bind([&, ret, p_shrd](ContextNode::Reducer& act){
-				ret(ctx.LastStatus);
-				RelaySwitched(ctx, std::move(act));
-				return ctx.LastStatus;
-			}, ctx.Switch()));
+			// TODO: Optimize for performance using context-dependent store?
+			// TODO: This should be moved instead of shared. However, it makes
+			//	no sense before %ContextHandler overloads for ref-qualifier
+			//	'&&'.
+			auto p_shared(share_move(*p_handler));
 
-			return RelayNext(ctx, std::move(call), std::move(next));
-		}
-		if(const auto p_handler = AccessTermPtr<ContextHandler>(fm))
-		{
-			auto call([&, p_handler]{
-				return (*p_handler)(term, ctx);
-			});
-			auto next(std::bind([&, ret](ContextNode::Reducer& act){
-				ret(ctx.LastStatus);
-				RelaySwitched(ctx, std::move(act));
-				return ctx.LastStatus;
-			}, ctx.Switch()));
-
-			return RelayNext(ctx, std::move(call), std::move(next));
-		}
+			return CombinerReturnThunk(p_shared, term, ctx, p_shared);
 #else
-		// NOTE: This does not support proper tail calls.
-		if(const auto p_handler = AccessPtr<ContextHandler>(fm))
-		{
 			const auto handler(std::move(*p_handler));
 
-			return ret(handler(term, ctx));
+			return CombinerReturnThunk(&handler, term, ctx, &handler);
+#endif
 		}
 		if(const auto p_handler = AccessTermPtr<ContextHandler>(fm))
-			return ret((*p_handler)(term, ctx));
-#endif
-		else
-			// TODO: Capture contextual information in error.
-			// TODO: Extract general form information extractor function.
-			throw ListReductionFailure(
-				ystdex::sfmt("No matching combiner %s for operand with %zu"
-					" argument(s) found.", TermToValueString(fm).c_str(),
-					FetchArgumentN(term)));
+			return CombinerReturnThunk(p_handler, term, ctx);
+		// TODO: Capture contextual information in error.
+		// TODO: Extract general form information extractor function.
+		throw ListReductionFailure(ystdex::sfmt("No matching combiner %s for"
+			" operand with %zu argument(s) found.",
+			TermToValueString(fm).c_str(), FetchArgumentN(term)));
 	}
 	return ReductionStatus::Clean;
 }
@@ -1307,6 +1398,8 @@ SetupDefaultInterpretation(ContextNode& root, EvaluationPasses passes)
 	passes += ReduceFirst;
 	// TODO: Insert more optional optimized lifted form evaluation passes:
 	//	macro expansion, etc.
+	// NOTE: This should be the last of list pass for current TCO
+	//	implementation.
 	passes += ReduceCombined;
 	root.EvaluateList = std::move(passes);
 	root.EvaluateLeaf = ReduceLeafToken;
@@ -1769,16 +1862,11 @@ Eval(TermNode& term, ContextNode& ctx)
 			return {{}, p->get()};
 		return {true, expr};
 	}(Deref(i)));
-	// TODO: Support more environment types?
-	auto p_saved(
-		ctx.SwitchEnvironment(ResolveEnvironment(Deref(std::next(i))).first));
-	auto gd(ystdex::unique_guard([&, p_saved]() ynothrowv{
-		ctx.SwitchEnvironmentUnchecked(std::move(p_saved));
-	}));
 
-	return RelayOnNextEnvironment(ctx, term_args.second,
-		std::bind(ReduceCheckedClosure, std::ref(term), std::ref(ctx),
-		term_args.first, term_args.second), gd);
+	// TODO: Support more environment types?
+	return RelayOnNextEnvironment(ctx, term, term_args.first, term_args.second,
+		EnvironmentGuard(ctx,
+		ctx.SwitchEnvironment(ResolveEnvironment(Deref(std::next(i))).first)));
 }
 
 void

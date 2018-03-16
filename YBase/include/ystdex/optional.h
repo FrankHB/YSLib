@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r806
+\version r816
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2017-08-25 17:56 +0800
+	2018-03-15 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,12 +90,16 @@ public:
 namespace details
 {
 
-template<typename _type, bool = std::is_trivially_destructible<_type>::value>
+template<typename _type, bool = is_trivially_destructible<_type>::value>
 class optional_base : public optional_base<_type, true>
 {
 public:
 	//! \since build 601
 	using optional_base<_type, true>::optional_base;
+	//! \since build 820
+	optional_base(const optional_base&) = default;
+	//! \since build 820
+	optional_base(optional_base&&) = default;
 	~optional_base()
 	{
 		if(this->has_value())
@@ -227,6 +231,7 @@ public:
 \warning 非虚析构。
 \see WG21 N4606 20.6.3[optional.object] 。
 \todo allocator_arg 支持。
+\todo 符合 WG21 N4700 要求的 explicit 重载。
 */
 template<typename _type>
 class optional : private details::optional_base<remove_cv_t<_type>>, yimpl(
@@ -276,8 +281,9 @@ public:
 		: base(in_place, il, yforward(args)...)
 	{}
 	optional(const optional&) yimpl(= default);
-	optional(optional&&) ynoexcept(is_nothrow_move_constructible<_type>())
-		yimpl(= default);
+	optional(optional&& o) ynoexcept(is_nothrow_move_constructible<_type>())
+		: base(std::move(o))
+	{}
 	~optional() yimpl(= default);
 
 	optional&

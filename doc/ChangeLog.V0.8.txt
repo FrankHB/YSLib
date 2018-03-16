@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r2011
+\version r2053
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-03-06 20:33 +0800
+	2018-03-17 01:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,49 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ "constructor" @ "all specializations" @ "function template %one_shot"
+			@ %Functional -> "constructor supporting forwarding",
+		/ %ScopeGuard $=
+		(
+			/ "supported function and state arguments forwarding" @ "function \
+				templates %(unique_guard, unique_state_guard)" $dep_from
+				("%one_shot" @ %Functional),
+			/ @ "constructor template class templatee %guard" $=
+			(
+				* "missing exclusion of 'guard&'" $since b605
+				* "wrong exception-specification" $since b606
+					^ "%is_nothrow_constructible" ~ "%is_contructible"
+			)
+		),
+		* "deleted copy and move constructors for trivially destructible types \
+			as parameter" @ "class template %optional" $since b591
+	),
+	/ %YFramework.NPL.NPLA1 $=
+	(
+		+ DLDI "internal static assertion to ensure thunked implementation as \
+			the premise of TCO",
+		* $re_add(b755) "missing subterm cleanup before moving result"
+			@ "function %ReduceCheckedClosure" $since b735,
+			// This would led to redundant term retained when the last \
+				reduction status is %ReductionStatus::Clean.
+		+ DLI "fused TCO action support" @ "functions %(ReduceCombiner, \
+			ReduceAgain)" $dep_from %YBase.StandardEx,
+			// Note this still does not guarantee proper tail call.
+		/ DLDI "guard for switching environment"
+			@ "function %Forms::Eval, %operator() of vau handlers"
+			// To reduce redundancy.
+		(
+			^ "user-defined type of guard function"
+				~ "lambda-expressions",
+			^ "non-templated guard types"
+		)
+	)
+),
+
+b819
 (
 	/ $dev DD $term "all" ('守护' -> '守卫'),
 		// To prevent from confusion of guards with demons.
