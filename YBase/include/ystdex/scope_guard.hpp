@@ -11,13 +11,13 @@
 /*!	\file scope_guard.hpp
 \ingroup YStandardEx
 \brief 作用域守卫。
-\version r530
+\version r560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:54:19 +0800
 \par 修改时间:
-	2018-03-03 17:25 +0800
+	2018-03-15 20:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 #ifndef YB_INC_ystdex_scope_guard_hpp_
 #define YB_INC_ystdex_scope_guard_hpp_ 1
 
-#include "utility.hpp" // for is_constructible, is_reference,
-//	is_nothrow_swappable, ystdex::vswap, std::declval, is_nothrow_copyable;
+#include "utility.hpp" // for exclude_self_t, is_nothrow_constructible,
+//	is_reference, is_nothrow_swappable, ystdex::vswap, std::declval,
+//	is_nothrow_copyable;
 #include "base.h" // for noncopyable;
 #include "placement.hpp" // for tagged_value;
 
@@ -48,11 +49,18 @@ struct guard
 {
 	_func func;
 
-	//! \since build 606
-	template<typename... _tParams>
-	guard(_tParams&&... args)
-		ynoexcept(is_constructible<_func, _tParams&&...>::value)
-		: func(yforward(args)...)
+	//! \since build 820
+	template<typename _tParam, yimpl(typename = exclude_self_t<guard, _tParam>)>
+	guard(_tParam&& arg)
+		ynoexcept(is_nothrow_constructible<_func, _tParam&&>::value)
+		: func(yforward(arg))
+	{}
+	//! \since build 820
+	template<typename _tParam1, typename _tParam2, typename... _tParams>
+	guard(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
+		ynoexcept(is_nothrow_constructible<_func, _tParam1&&, _tParam2&&,
+		_tParams&&...>::value)
+		: func(yforward(arg1), yforward(arg2), yforward(args)...)
 	{}
 	guard(guard&&) = default;
 	~guard() ynoexcept_spec(!_bNoThrow)
@@ -87,25 +95,29 @@ make_guard(_type f)
 }
 //@}
 
-//! \since build 808
+//! \since build 820
 //@{
 template<typename _tState = bool, bool _bNoThrow = true, typename _func>
-guard<one_shot<_func, void, _tState>, _bNoThrow>
-unique_guard(_func f, _tState s = true) ynoexcept_spec(
-	guard<one_shot<_func, void, _tState>, _bNoThrow>(
-	guard<one_shot<_func, void, _tState>, _bNoThrow>(f, s)))
+guard<one_shot<decay_t<_func>, void, decay_t<_tState>>, _bNoThrow>
+unique_guard(_func&& f, _tState&& s = true) ynoexcept_spec(
+	guard<one_shot<decay_t<_func>, void, decay_t<_tState>>, _bNoThrow>(
+	guard<one_shot<decay_t<_func>, void, decay_t<_tState>>,
+	_bNoThrow>(yforward(f), yforward(s))))
 {
-	return guard<one_shot<_func, void, _tState>, _bNoThrow>(f, s);
+	return guard<one_shot<decay_t<_func>, void, decay_t<_tState>>, _bNoThrow>(
+		yforward(f), yforward(s));
 }
 
 template<typename _tRes, typename _tState = bool, bool _bNoThrow = true,
 	typename _func>
-guard<one_shot<_func, _tRes, _tState>, _bNoThrow>
-unique_state_guard(_func f, _tRes r = {}, _tState s = true) ynoexcept_spec(
-	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(
-	guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f, r, s)))
+guard<one_shot<_func, _tRes, decay_t<_tState>>, _bNoThrow>
+unique_state_guard(_func&& f, _tRes r = {}, _tState&& s = true) ynoexcept_spec(
+	guard<one_shot<decay_t<_func>, _tRes, decay_t<_tState>>, _bNoThrow>(
+	guard<one_shot<decay_t<_func>, _tRes, decay_t<_tState>>, _bNoThrow>(
+	yforward(f), r, s)))
 {
-	return guard<one_shot<_func, _tRes, _tState>, _bNoThrow>(f, r, s);
+	return guard<one_shot<decay_t<_func>, _tRes, decay_t<_tState>>, _bNoThrow>(
+		yforward(f), r, yforward(s));
 }
 //@}
 
