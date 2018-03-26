@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r2053
+\version r2159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-03-17 01:59 +0800
+	2018-03-26 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,113 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ DLI "function %ReduceCombined" $=
+				(
+					/ "avoided shared handler" ^ "%make_unique"
+						~ "%shared_move",
+						// The handler is still shared, but not stored in \
+							multiple actions with shared semantics. As the \
+							order of ending of lifetime is bounded \
+							determinately, it should be safe.
+					/ "kept combining reduction mark untouched when adding \
+						guard failed" @ "TCO action",
+						// This should have no much effect since the action \
+							would normally just be destructor. However, it is \
+							better to move torwards the strong exception \
+							guarantee (even if this is not guaranteed yet).
+					* $comp "rvalue combiner unexpectedly copied" $orig
+						(@ "function %ReduceContextFirst" $since b772)
+				),
+				* "missing cleanup before TCO action"
+					@ "function %ReduceCheckedClosure" $since b819,
+					// This has significant memory overhead. Any way, it \
+						should be.
+				(
+				/ $forced "return type" @ "function %ResolveName" -> $dep_from
+					"%Environment::NameResolution" @ %NPLA
+					~ 'observer_ptr<ValueNode>' $dep_from
+					("%Environment::Resolve" @ %NPLA);
+				/ "stored environment pointer" @ "term reference"
+					@ "function %EvaluateIdentifier" $dep_from
+					("%TermReference" @ %NPLA)
+				),
+				/ "vau and evaluation TCO" $=
+				(
+					/ "improved to support PTC for specific cases" $dep_from
+						("ContextNode::IsNotReferenced" @ %NPLA),
+						// If the frame is not be lexically hidden, the frame \
+							is one of the known dynamic environment pointer \
+							before leaving the tail context, or there is some \
+							non trivially destructible object lied in the \
+							frame, it would not be collected. However, this \
+							already serves typical direct or mutual recursive \
+							cases in other languages.
+					/ DLDI "simplified" ^ $dep_from
+						("%EnvironmentSwitcher" @ %NPLA)
+				),
+				/ @ "function %Forms::BindParameter" $=
+				(
+					* "missing lifiting of bound list terms" $since b803,
+						// This would cause list processed by '$lambda x x' \
+							with reference elements for lvalues.
+					/ DLDI "simplified" ^ $dep_from
+						("%LiftTermIndirection" @ %NPLA)
+				),
+				/ DLDI "simplified function %ReduceCheckedClosure" ^ $dep_from
+					("%LiftToSelfSafe" @ %NPLA)
+			),
+			/ %NPLA $=
+			(
+				/ @ "class %TermReference" $=
+				(
+					+ "data member %AnchorPtr";
+					+ "constructor template",
+					- $forced 'yconstfn' @ "constructor, conversion functions"
+				),
+				/ @ "class %Environment" $=
+				(
+					(
+					+ "alias %NameResolution";
+					/ "return type" @ ("function type"
+						@ "data member %Resolve", "function %DefaultResolve")
+						-> "%NameResolution" ~ 'observer_ptr<ValueNode>'
+					),
+					+ "functions %(Anchor, IsNotReferenced)"
+				),
+				+ "class %EnvironmentSwitcher",
+				/ "alias %Reducer" @ "class %ContextNode" >> "namespace %NPL",
+				/ DLDI "simplified function %ReduceToListValue",
+				+ "functions %(LiftTermIndirection; LiftToSelfSafe; \
+					ReduceToListValue)"
+			),
+			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				* "unsafe %list" $since b800 ^ ($dep_from
+					"%ReduceToListValue" ~ "%ReduceToList") @ %NPLA,
+					// This is now also consistent with lifting behavior in \
+						implemention by vau.
+				+ "applicative 'list&'" ^ ("%ReduceToList" @ %NPLA)
+			)
+		),
+		* "unsequenced %errno access" @ "function %LoadNPLA1File"
+			@ %Helper.Initialization $since b506,
+			// It would lead to undefined behavior when %errno is implemented \
+				as backed by a volatile lvalue (currently at least on platform \
+				%Android).
+		+ 'ynothrow' @ "constructor" @ "class template %RefHolder"
+			@ %YSLib.YObject
+	)
+),
+
+b820
 (
 	/ %YBase.YStandardEx $=
 	(

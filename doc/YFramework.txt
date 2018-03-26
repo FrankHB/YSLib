@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1400
+\version r1409
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2017-11-19 01:07 +0800
+	2018-03-24 09:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -763,13 +763,14 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽可能使用 YFramework::YBaseM
 @5.2 基本配置：
 基本配置是必要的。
 自 build 300 起，配置不再硬编码，初始化时读取框架公共配置文件的内容。
+不被支持的配置在读取时出错，但以下说明外具体形式未指定。
 读取行为、配置文件格式和默认配置见以下说明。
 关于当前支持的配置，另见 https://bitbucket.org/FrankHB/yslib/wiki/Run.zh-CN.md 。
 
 @5.2.1 build 343 前：
 配置文件路径 "config.txt" 。
 若配置不存在则首先生成，以文本模式输出： Windows 使用 CR+LF ，其它使用 LF 换行。
-要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
+要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 MBCS 编码的文本），否则出错。
 读取的默认配置内容和之前硬编码项相同。
 DS 生成的默认配置如下：
 //[
@@ -791,6 +792,7 @@ H:\NDS\EFSRoot\Font\
 若配置不存在则首先使用 NPL 生成，以文本模式输出： Windows 使用 CR+LF ，其它使用 LF 换行。
 要求配置文件为 UTF-8 编码，否则出错。
 读取的默认配置内容中项的值和之前相同。
+生成的默认配置带 BOM 。
 DS 生成的默认配置如下：
 //[
 YFramework
@@ -885,14 +887,17 @@ YFramework
 //]
 以上配置仅用于开发时配置测试使用。实际构建需要修改源代码。
 
-@5.2.6 build 693 起：
+@5.2.6 build 619 起：
+不再支持不带 BOM 的 UTF-8 编码。
+
+@5.2.7 build 693 起：
 Win32 框架公共配置文件中，默认配置生成的 FontFile 的值修改为以运行时取得的 Windows 字体文件安装目录而不是硬编码的 "C:\Windows\Fonts" 作为目录。
 典型安装下值仍然一致。
 
-@5.2.6 build 694 起：
+@5.2.8 build 694 起：
 Win32 框架公共配置文件路径修改为以程序映像所在的目录下的 yconf.txt 的绝对路径（不再是依赖初始化时当前工作目录的相对路径）。
 
-@5.2.7 build 710 起：
+@5.2.9 build 710 起：
 Linux 框架公共配置文件路径修改为以程序映像所在的目录下的 yconf.txt 的绝对路径（不再是依赖初始化时当前工作目录的相对路径）。
 
 @5.3 附加配置：

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3453
+\version r3456
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2017-01-23 09:51 +0800
+	2018-03-24 09:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -394,8 +394,10 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 				WriteNPLA1Stream(uofs, Nonnull(creator)());
 			else
 			{
+				int err(errno);
+
 				YTraceDe(Warning, "Cannot create file, possible error"
-					" (from errno) = %d: %s.", errno, std::strerror(errno));
+					" (from errno) = %d: %s.", err, std::strerror(err));
 				YTraceDe(Warning,"Creating default file failed.");
 				return {};
 			}

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1045
+\version r1049
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2017-10-07 14:56 +0800
+	2018-03-26 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -357,11 +357,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<ContextHandler>(root, "unwrap", Unwrap);
 	// NOTE: Derived functions.
 #if true
-	RegisterStrict(root, "list", ReduceToList);
+	RegisterStrict(root, "list", ReduceToListValue);
 #else
 	context.Perform(u8R"NPL($def! list wrap ($vau x #ignore x))NPL");
 //	context.Perform(u8R"NPL($def! list $lambda x x)NPL");
 #endif
+	RegisterStrict(root, "list&", ReduceToList);
 	context.Perform(u8R"NPL(
 		$def! $quote $vau (x) #ignore x;
 		$def! $set! $vau (expr1 formals .expr2) env eval
@@ -490,7 +491,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		[](TermNode& term, const ContextNode& ctx){
 		return ystdex::call_value_or([&](string_view id){
 			return CheckSymbol(id, [&](){
-				return bool(ResolveName(ctx, id));
+				return bool(ResolveName(ctx, id).first);
 			});
 		}, AccessTermPtr<string>(term));
 	});

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1678
+\version r1718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-03-05 22:57 +0800
+	2018-03-26 19:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -436,8 +436,7 @@ ReferenceTerm(const TermNode& term)
 bool
 CheckReducible(ReductionStatus status)
 {
-	if(status == ReductionStatus::Clean
-		|| status == ReductionStatus::Retained)
+	if(status == ReductionStatus::Clean || status == ReductionStatus::Retained)
 		return {};
 	if(YB_UNLIKELY(status != ReductionStatus::Retrying))
 		YTraceDe(Warning, "Unexpected status found.");
@@ -487,6 +486,22 @@ LiftToSelf(TermNode& term)
 }
 
 void
+LiftToSelfSafe(TermNode& term)
+{
+	// TODO: Detect lifetime escape to perform copy elision?
+	// NOTE: To keep lifetime of objects referenced by references introduced in
+	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
+	//	because it will not copy objects referenced in holders of
+	//	%YSLib::RefHolder instances). On the other hand, the references captured
+	//	by vau handlers (which requries recursive copy of vau handler members if
+	//	forced) are not blessed here to avoid leaking abstraction of detailed
+	//	implementation of vau handlers; it can be checked by the vau handler
+	//	itself, if necessary.
+	LiftToSelf(term);
+	LiftTermIndirection(term, term);
+}
+
+void
 LiftToOther(TermNode& term, TermNode& tm)
 {
 	LiftTermRefToSelf(tm);
@@ -505,8 +520,16 @@ ReduceHeadEmptyList(TermNode& term) ynothrow
 ReductionStatus
 ReduceToList(TermNode& term) ynothrow
 {
-	return IsBranch(term) ? (void(RemoveHead(term)), ReductionStatus::Retained)
+	return IsBranch(term) ? (RemoveHead(term), ReductionStatus::Retained)
 		: ReductionStatus::Clean;
+}
+
+ReductionStatus
+ReduceToListValue(TermNode& term) ynothrow
+{
+	return IsBranch(term) ? (RemoveHead(term),
+		std::for_each(term.begin(), term.end(), LiftToSelfSafe),
+		ReductionStatus::Retained) : ReductionStatus::Clean;
 }
 
 
@@ -580,7 +603,7 @@ Environment::DefaultRedirect(const Environment& env, string_view id)
 	return RedirectParent(env.Parent, id);
 }
 
-observer_ptr<ValueNode>
+Environment::NameResolution
 Environment::DefaultResolve(const Environment& e, string_view id)
 {
 	YAssertNonnull(id.data());
@@ -600,9 +623,9 @@ Environment::DefaultResolve(const Environment& e, string_view id)
 		auto& env(env_ref.get());
 
 		p = env.LookupName(id);
-		return p ? observer_ptr<const Environment>() : env.Redirect(id);
+		return p ? nullptr : env.Redirect(id);
 	});
-	return p;
+	return {p, env_ref};
 }
 
 void
@@ -745,9 +768,8 @@ ContextNode::Transit() ynothrow
 }
 
 
-ContextNode::Reducer
-CombineActions(ContextNode& ctx, ContextNode::Reducer&& cur,
-	ContextNode::Reducer&& next)
+Reducer
+CombineActions(ContextNode& ctx, Reducer&& cur, Reducer&& next)
 {
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
@@ -756,13 +778,15 @@ CombineActions(ContextNode& ctx, ContextNode::Reducer&& cur,
 	{
 		lref<ContextNode> Context;
 		// NOTE: The destruction order of captured component is significant.
-		mutable ContextNode::Reducer Next;
-		ContextNode::Reducer Current;
+		//! \since build 821
+		//@{
+		mutable Reducer Next;
+		Reducer Current;
 
-		Action(ContextNode& ctx, ContextNode::Reducer& cur,
-			ContextNode::Reducer& next)
+		Action(ContextNode& ctx, Reducer& cur, Reducer& next)
 			: Context(ctx), Next(std::move(next)), Current(std::move(cur))
 		{}
+		//@}
 		// XXX: Copy is not intended used directly, but for well-formness.
 		DefDeCopyMoveCtor(Action)
 
@@ -780,8 +804,7 @@ CombineActions(ContextNode& ctx, ContextNode::Reducer&& cur,
 }
 
 ReductionStatus
-RelayNext(ContextNode& ctx, ContextNode::Reducer&& cur,
-	ContextNode::Reducer&& next)
+RelayNext(ContextNode& ctx, Reducer&& cur, Reducer&& next)
 {
 	ctx.SetupTail(CombineActions(ctx, std::move(cur), std::move(next)));
 	return ReductionStatus::Retrying;
