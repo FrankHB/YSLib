@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3644
+\version r3646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-02-16 18:10 +0800
+	2018-03-26 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -767,11 +767,11 @@ ReduceLeafToken(TermNode&, ContextNode&);
 \pre 断言：第二参数的数据指针非空。
 \exception NPLException 访问共享重定向上下文失败。
 \sa Environment::ResolveName
-\since build 777
+\since build 821
 
 解析指定上下文中的名称。
 */
-YF_API observer_ptr<ValueNode>
+YF_API Environment::NameResolution
 ResolveName(const ContextNode&, string_view);
 
 /*!

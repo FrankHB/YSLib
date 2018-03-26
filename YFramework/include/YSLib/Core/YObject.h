@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4931
+\version r4939
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2017-07-30 19:41 +0800
+	2018-03-26 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,8 +86,8 @@ template<class _tHolder, typename... _tParams>
 ystdex::any
 CreateHolderInPlace(ystdex::true_, _tParams&&... args)
 {
-	return ystdex::any(ystdex::any_ops::use_holder,
-		ystdex::in_place<_tHolder>, yforward(args)...);
+	return ystdex::any(ystdex::any_ops::use_holder, ystdex::in_place<_tHolder>,
+		yforward(args)...);
 }
 //! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
 template<class _tHolder, typename... _tParams>
@@ -473,8 +473,11 @@ private:
 	ValueHolder<lref<value_type>> base; 
 
 public:
-	//! \brief 不取得所有权。
-	RefHolder(_type& r)
+	/*!
+	\brief 不取得所有权。
+	\since build 821
+	*/
+	RefHolder(_type& r) ynothrow
 		: base(r)
 	{}
 	DefDeCopyMoveCtorAssignment(RefHolder)

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3224
+\version r3378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-03-06 20:17 +0800
+	2018-03-26 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -725,38 +725,6 @@ enum class ReductionStatus : yimpl(size_t)
 using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
 
 
-/*!
-\ingroup ThunkType
-\brief 项引用。
-\warning 非虚析构。
-\since build 800
-
-表示列表项的引用的中间求值结果的项。
-*/
-class YF_API TermReference
-{
-private:
-	ystdex::lref<TermNode> term_ref;
-
-public:
-	yconstfn
-	TermReference(TermNode& term)
-		: term_ref(term)
-	{}
-	DefDeCopyCtor(TermReference)
-
-	DefDeCopyAssignment(TermReference)
-
-	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
-		ImplRet(&x.term_ref.get() == &y.term_ref.get())
-
-	yconstfn DefCvtMem(const ynothrow, TermNode&, term_ref)
-
-	yconstfn PDefH(TermNode&, get, ) const ynothrow
-		ImplRet(term_ref.get())
-};
-
-
 //! \since build 800
 //@{
 /*!
@@ -878,6 +846,14 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 //@}
 
 /*!
+\brief 提升项间接引用：复制或转移间接引用项使项不含间接值。
+\since build 821
+*/
+inline PDefH(void, LiftTermIndirection, TermNode& term, const TermNode& tm)
+	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
+	ImplExpr(YSLib::SetContentWith(term, tm, &ValueObject::MakeMoveCopy))
+
+/*!
 \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。
 \since build 800
 \todo 支持消亡值和复制。
@@ -893,7 +869,7 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 /*!
 \brief 提升项或创建引用项。
 
-项的 Value 数据成员为 TermReference 类型的值时调用 LiftTermRef；
+项的 Value 数据成员为 TermReference 类型的值时调用 LiftTermRef ；
 否则，同 LiftTerm 。
 */
 YF_API void
@@ -939,10 +915,21 @@ LiftToReference(TermNode&, TermNode&);
 
 /*!
 \brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到自身。
-\sa LiftTermOrRef
+\sa LiftTermRefToSelf
 */
 YF_API void
 LiftToSelf(TermNode&);
+
+/*!
+\brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的间接引用项到自身。
+\sa LiftToSelf
+\sa LiftTermIndirection
+\since build 821
+
+调用 LiftToSelf ，然后以相同参数调用 LiftTermIndirection 复制或转移自身。
+*/
+YF_API void
+LiftToSelfSafe(TermNode&);
 
 /*!
 \brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到其它项。
@@ -997,12 +984,20 @@ inline PDefH(void, LiftLast, TermNode& term)
 YF_API ReductionStatus
 ReduceHeadEmptyList(TermNode&) ynothrow;
 
-/*!
-\brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
-\return 若成功移除项 ReductionStatus::Retained ，否则为 ReductionStatus::Clean。
-*/
+//! \return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Clean。
+//@{
+//! \brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
 YF_API ReductionStatus
 ReduceToList(TermNode&) ynothrow;
+
+/*!
+\brief 规约为列表值：对枝节点移除第一个子项，保留余下的子项提升后作为列表的值。
+\sa LiftToSelfSafe
+\since build 821
+*/
+YF_API ReductionStatus
+ReduceToListValue(TermNode&) ynothrow;
+//@}
 //@}
 
 
@@ -1118,7 +1113,37 @@ class YF_API Environment : private ystdex::equality_comparable<Environment>,
 public:
 	//! \since build 788
 	using BindingMap = ValueNode;
+	//! \since build 821
+	using NameResolution
+		= pair<observer_ptr<ValueNode>, ystdex::lref<const Environment>>;
 
+private:
+	/*!
+	\brief 锚对象类型：提供被引用计数。
+	\since build 821
+	*/
+	struct SharedAnchor final
+	{
+		shared_ptr<const void> Ptr{make_shared<uintptr_t>()};
+
+		DefDeCtor(SharedAnchor)
+		SharedAnchor(const SharedAnchor&) ynothrow
+			: SharedAnchor()
+		{}
+		SharedAnchor(SharedAnchor&& a) ynothrow
+			: Ptr(a.Ptr)
+		{}
+
+		PDefHOp(SharedAnchor&, =, const SharedAnchor& a)
+			ImplRet(ystdex::copy_and_swap(*this, a))
+		PDefHOp(SharedAnchor&, =, SharedAnchor&& a)
+			ImplRet(ystdex::move_and_swap(*this, a))
+
+		friend PDefH(void, swap, SharedAnchor& x, SharedAnchor& y) ynothrow
+			ImplRet(swap(x.Ptr, y.Ptr))
+	};
+
+public:
 	//! \since build 788
 	mutable BindingMap Bindings{};
 	/*!
@@ -1142,6 +1167,7 @@ public:
 	\pre 实现断言：第二参数的数据指针非空。
 	\sa LookupName
 	\sa Redirect
+	\since build 821
 
 	解析指定环境中的名称。被解析的环境可对特定保留名称重定向。
 	实现名称解析的一般步骤包括：
@@ -1153,7 +1179,7 @@ public:
 	只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
 	不保证对循环重定向进行检查。
 	*/
-	std::function<observer_ptr<ValueNode>(string_view)> Resolve{
+	std::function<NameResolution(string_view)> Resolve{
 		std::bind(DefaultResolve, std::cref(*this), std::placeholders::_1)};
 	//@}
 	/*!
@@ -1163,6 +1189,14 @@ public:
 	*/
 	ValueObject Parent{};
 
+private:
+	/*!
+	\brief 锚对象指针：提供被引用计数。
+	\since build 821
+	*/
+	SharedAnchor anchor{};
+
+public:
 	//! \brief 无参数构造：初始化空环境。
 	DefDeCtor(Environment)
 	DefDeCopyMoveCtorAssignment(Environment)
@@ -1201,10 +1235,23 @@ public:
 		ImplRet(x.Bindings == y.Bindings)
 
 	/*!
+	\brief 判断锚对象未被外部引用。
+	\since build 821
+	*/
+	DefPred(const ynothrow, NotReferenced, anchor.Ptr.unique())
+
+	/*!
 	\brief 取名称绑定映射。
 	\since build 788
 	*/
 	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
+
+	/*!
+	\brief 引用锚对象。
+	\since build 821
+	*/
+	PDefH(shared_ptr<const void>, Anchor, ) const
+		ImplRet(anchor.Ptr)
 
 	//! \since build 798
 	//@{
@@ -1243,8 +1290,9 @@ public:
 	\exception NPLException 访问共享重定向环境失败。
 	\sa Lookup
 	\sa Redirect
+	\since build 821
 	*/
-	static observer_ptr<ValueNode>
+	static NameResolution
 	DefaultResolve(const Environment&, string_view);
 	//@}
 	//@}
@@ -1299,20 +1347,62 @@ public:
 
 
 /*!
+\ingroup ThunkType
+\brief 项引用。
+\warning 非虚析构。
+\since build 800
+
+表示列表项的引用的中间求值结果的项。
+*/
+class YF_API TermReference
+{
+private:
+	ystdex::lref<TermNode> term_ref;
+
+public:
+	/*!
+	\brief 引用的锚对象指针。
+	\since build 821
+	*/
+	shared_ptr<const void> AnchorPtr{};
+
+	TermReference(TermNode& term)
+		: term_ref(term)
+	{}
+	//! \since build 821
+	template<typename _tParam, typename... _tParams>
+	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
+		: term_ref(term), AnchorPtr(yforward(arg), yforward(args)...)
+	{}
+	DefDeCopyCtor(TermReference)
+
+	DefDeCopyAssignment(TermReference)
+
+	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
+		ImplRet(&x.term_ref.get() == &y.term_ref.get())
+
+	DefCvtMem(const ynothrow, TermNode&, term_ref)
+
+	PDefH(TermNode&, get, ) const ynothrow
+		ImplRet(term_ref.get())
+};
+
+
+/*!
+\brief 规约函数类型：和绑定所有参数的求值遍的处理器等价。
+\warning 假定转移不抛出异常。
+\since build 806
+*/
+using Reducer = YSLib::GHEvent<ReductionStatus()>;
+
+
+/*!
 \brief 上下文节点。
 \warning 非虚析构。
 \since build 782
 */
 class YF_API ContextNode
 {
-public:
-	/*!
-	\brief 规约函数类型：和绑定所有参数的求值遍的处理器等价。
-	\warning 假定转移不抛出异常。
-	\since build 806
-	*/
-	using Reducer = YSLib::GHEvent<ReductionStatus()>;
-
 private:
 	/*!
 	\brief 环境记录指针。
@@ -1535,6 +1625,33 @@ public:
 
 
 /*!
+\brief 环境切换器。
+\warning 非虚析构。
+\since build 821
+*/
+struct EnvironmentSwitcher
+{
+	ystdex::lref<ContextNode> Context;
+	mutable shared_ptr<Environment> SavedPtr;
+
+	EnvironmentSwitcher(ContextNode& ctx,
+		shared_ptr<Environment>&& p_saved = {})
+		: Context(ctx), SavedPtr(std::move(p_saved))
+	{}
+	DefDeMoveCtor(EnvironmentSwitcher)
+
+	DefDeMoveAssignment(EnvironmentSwitcher)
+
+	void
+	operator()() const ynothrowv
+	{
+		if(SavedPtr)
+			Context.get().SwitchEnvironmentUnchecked(std::move(SavedPtr));
+	}
+};
+
+
+/*!
 \note 参数分别为上下文、捕获的当前动作和捕获的后继动作。
 \note 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
 */
@@ -1542,24 +1659,23 @@ public:
 /*!
 \brief 合并规约动作：创建指定上下文中的连续异步规约当前和后继动作的规约动作。
 \note 若当前动作为空，则直接使用后继动作作为结果。
-\since build 817
+\since build 821
 */
-YF_API ContextNode::Reducer
-CombineActions(ContextNode&, ContextNode::Reducer&&, ContextNode::Reducer&&);
+YF_API Reducer
+CombineActions(ContextNode&, Reducer&&, Reducer&&);
 
 /*!
 \brief 异步规约当前和后继动作。
 \return ReductionStatus::Retrying 。
 \sa CombineActions
-\since build 813
+\since build 821
 */
 YF_API ReductionStatus
-RelayNext(ContextNode&, ContextNode::Reducer&&, ContextNode::Reducer&&);
+RelayNext(ContextNode&, Reducer&&, Reducer&&);
 //@}
 
-//! \since build 813
-inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx,
-	ContextNode::Reducer&& cur)
+//! \since build 821
+inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx, Reducer&& cur)
 	ImplRet(ctx.Current ? RelayNext(ctx, std::move(cur), ctx.Switch())
 		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
 
@@ -1567,7 +1683,7 @@ inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx,
 \brief 转移动作到当前动作及定界动作。
 \since build 812
 */
-inline PDefH(void, MoveAction, ContextNode& ctx, ContextNode::Reducer&& act)
+inline PDefH(void, MoveAction, ContextNode& ctx, Reducer&& act)
 	ImplExpr(!ctx.Current ? ctx.SetupTail(std::move(act))
 		: ctx.Push(std::move(act)))
 

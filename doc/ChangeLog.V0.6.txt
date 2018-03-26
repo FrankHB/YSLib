@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.6.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.6 。
-\version r12197
+\version r12205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-21 01:17:08 +0800
 \par 修改时间:
-	2017-10-25 02:03 +0800
+	2018-03-24 09:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1306,7 +1306,7 @@ b686
 			* "constructor template" @ "class templates %(any_forward_iterator, \
 				any_bidirectional_iterator)" $since b400 $=
 			(
-				* $re_add(b675) "missing excluding of self type",
+				* $re_add(b675) "missing exclusion of self type",
 				* "wrong initialization of handlers" $dep_from
 					"handler initialization"
 			)
@@ -2492,8 +2492,7 @@ b675
 			(
 				/ DLDI "static assertion" ^ ("%unwrap_reference_t" @ %Reference)
 					~ "%wrapped_traits",
-				* $re_add(b376) "missing excluding of 'input_any_iterator&'"
-					$since b356,
+				* $re_add(b376) "missing exclusion of self type" $since b356,
 				/ $re_add(b595) "handled reference types" ^ "%decay_t"
 					~ "%remove_rcv_t"
 			)
@@ -9546,12 +9545,13 @@ b619
 				^ $dep_from
 					("%ystdex::write_literal" @ %YBase.YStandardEx.String)
 			),
-			/ DLDI @ "function %LoadNPLA1File" $=
+			/ @ "function %LoadNPLA1File" $=
 			(
 				^ $dep_from ("%ifstream" @ %YSLib.Adaptor.YAdaptor)
 					~ "%TextFile",
 				^ $dep_from
-					("function template %CheckBOM" @ %YSLib.Service.TextFile)
+					("function template %CheckBOM" @ %YSLib.Service.TextFile);
+				- $comp "UTF-8 without BOM support"
 			)
 		),
 		/ %NPL.Configuration $=
@@ -10375,7 +10375,7 @@ b610
 			@ CStandardInteger,
 			// To eliminate warning: [-Wshadow] to 'uint_t' on platform
 				%Android. Note the global '::*_t' is reserved by POSIX.
-		* "missing excluding non class string type for function template \
+		* "missing exclusion non-class string type for function template \
 			%ntctsncpy" @ %String,
 			// These function templates would be used instead of %ntctsncpy in
 				%CString for non class type, which cause ill-formed programs.
