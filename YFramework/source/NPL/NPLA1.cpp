@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6489
+\version r6752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-03-26 19:18 +0800
+	2018-04-05 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -563,7 +563,7 @@ private:
 	YB_NORETURN static ReductionStatus
 	ThrowInvalidCyclicReference(TermNode&, ContextNode&)
 	{
-		throw NPLException("Invalid cyclic reference found.");
+		throw InvalidReference("Invalid cyclic reference found.");
 	}
 
 public:
@@ -637,20 +637,62 @@ MergeTCOFrames(Environment& parent, Environment& saved)
 	// XXX: Dynamic environment can be lost as lifetime
 	//	of weak pointer is not guaranteed.
 	for(const auto& binding : saved.GetMapRef())
-		// FIXME: Non-trivially destructible objects.
+		// XXX: Non-trivially destructible objects is treated same.
 		// NOTE: Redirection is not needed here.
 		parent.Remove(binding.GetName(), true);
 	return parent.GetMapRef().empty();
 }
 #endif
 
-//! \since build 820
+//! \since build 822
+//@{
+ReductionStatus
+ReduceCheckedClosureImpl(TermNode& term, ContextNode& ctx, bool move,
+	TermNode& closure, bool lift_result)
+{
+	if(move)
+		LiftTerm(term, closure);
+	else
+		term.SetContent(closure);
+	// XXX: Term reused.
+#if YF_Impl_NPLA1_Enable_TCO
+
+	Reducer next(std::bind(ReduceCheckedAsync, std::ref(term), std::ref(ctx)));
+
+	if(const auto p = ctx.Current.target<TCOAction>())
+	// XXX: It should be same to saved enclosing term currently.
+//	if(&p->Term.get() == &term)
+	{
+		if(lift_result)
+		{
+			if(p->LiftCallResult)
+				next = std::bind([&, p](const Reducer& act){
+					ReduceForClosureResult(term, ctx);
+					return act();
+				}, std::move(next));
+			else
+				p->LiftCallResult = true;
+		}
+		return RelaySwitched(ctx, std::move(next));
+	}
+	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, lift_result));
+#else
+	if(lift_result)
+		return ReduceSubsequent(term, ctx,
+			std::bind(ReduceForClosureResult, std::ref(term), std::ref(ctx)));
+	// TODO: Optimize.
+	return ReduceSubsequent(term, ctx, [&]{
+		return ctx.LastResult;
+	});
+#endif
+}
+
 ReductionStatus
 RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
-	TermNode& closure, EnvironmentGuard&& gd)
+	TermNode& closure, EnvironmentGuard&& gd, bool no_lift)
 {
-	auto next_action(std::bind(ReduceCheckedClosure, std::ref(term),
-		std::ref(ctx), move, std::ref(closure)));
+	auto next_action(std::bind(ReduceCheckedClosureImpl, std::ref(term),
+		std::ref(ctx), move, std::ref(closure), !no_lift));
 
 	// TODO: Merge guard in TCO action.
 #if YF_Impl_NPLA1_Enable_TCO
@@ -677,7 +719,10 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 				{
 					const auto& p_back(env_list.back());
 
-					if(p_back.unique() && p_back->IsNotReferenced()
+					// XXX: Needed for tail context in %eval form.
+					if(!p_back.unique())
+						env_list.pop_back();
+					else if(p_back->IsNotReferenced()
 						&& p->CheckToRemove(p_back)
 						&& MergeTCOFrames(Deref(p_back), *p_saved))
 					{
@@ -737,6 +782,26 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 #endif
 }
 
+ReductionStatus
+EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	Forms::RetainN(term, 2);
+
+	const auto i(std::next(term.begin()));
+	const auto term_args([](TermNode& expr) -> pair<bool, lref<TermNode>>{
+		if(const auto p = AccessPtr<const TermReference>(expr))
+			return {{}, p->get()};
+		return {true, expr};
+	}(Deref(i)));
+
+	// TODO: Support more environment types?
+	return RelayOnNextEnvironment(ctx, term, term_args.first, term_args.second,
+		EnvironmentGuard(ctx, ctx.SwitchEnvironment(
+		ResolveEnvironment(Deref(std::next(i))).first)), no_lift);
+}
+
+//@}
+
 
 //! \since build 767
 class VauHandler final
@@ -774,18 +839,21 @@ private:
 	shared_ptr<TermNode> p_closure;
 
 public:
+	//! \brief 返回时不提升项以允许返回引用。
+	bool NoLifting = {};
+
 	/*!
 	\pre 形式参数对象指针非空。
-	\since build 790
+	\since build 822
 	*/
 	VauHandler(string&& ename, shared_ptr<TermNode>&& p_fm,
 		shared_ptr<Environment>&& p_env, bool owning,
-		const ContextNode& ctx, TermNode& term)
+		const ContextNode& ctx, TermNode& term, bool no_lift)
 		: eformal(std::move(ename)), p_formals((LiftToSelf(Deref(p_fm)),
 		std::move(p_fm))),
 		local_prototype(ctx, make_shared<Environment>()), p_parent(p_env),
 		p_static(owning ? std::move(p_env) : nullptr),
-		p_closure(share_move(term))
+		p_closure(share_move(term)), NoLifting(no_lift)
 	{
 		CheckParameterTree(*p_formals);
 	}
@@ -841,7 +909,7 @@ public:
 			// TODO: Implement accurate lifetime analysis depending on
 			//	'p_closure.unique()'?
 			return RelayOnNextEnvironment(ctx, term, {}, *p_closure,
-				std::move(gd));
+				std::move(gd), NoLifting);
 		}
 		else
 			throw LoggedEvent("Invalid composition found.", Alert);
@@ -893,16 +961,19 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	auto call(std::bind(std::ref(h), std::ref(term), std::ref(ctx)));
 #	if YF_Impl_NPLA1_Enable_TCO
 	const auto update_fused_act([&](TCOAction& fused_act){
+		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
+		//	error: Segmentation fault.
 		yunseq(0, (fused_act.XGuards.push(std::forward<_tParams>(args)), 0)...);
 		fused_act.ReduceCombined = true;
 	});
 
 	if(const auto p = ctx.Current.target<TCOAction>())
-		if(&p->Term.get() == &term)
-		{
-			update_fused_act(*p);
-			return RelaySwitched(ctx, std::move(call));
-		}
+	// XXX: See %ReduceCheckedClosureImpl.
+//	if(&p->Term.get() == &term)
+	{
+		update_fused_act(*p);
+		return RelaySwitched(ctx, std::move(call));
+	}
 
 	TCOAction fused_act(ctx, term, {});
 
@@ -922,6 +993,105 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	return NormalizeTerm(term, h(term, ctx));
 #endif
 }
+
+//! \since build 822
+//@{
+ReductionStatus
+ConsImpl(TermNode& term, bool by_val)
+{
+	using namespace Forms;
+
+	RetainN(term, 2);
+
+	const auto i(std::next(term.begin(), 2));
+	const auto get_ins_idx([&, i]{
+		term.erase(i);
+		return GetLastIndexOf(term);
+	});
+	const auto ret([&]{
+		RemoveHead(term);
+		if(by_val)
+			LiftSubtermsToSelfSafe(term);
+		return ReductionStatus::Retained;
+	});
+	auto& item(Deref(i));
+
+	// TODO: Simplify?
+	if(const auto p = AccessPtr<const TermReference>(item))
+	{
+		if(IsList(*p))
+		{
+			const auto& tail(p->get());
+			auto idx(get_ins_idx());
+
+			for(const auto& tm : tail)
+				term.AddChild(MakeIndex(++idx), tm);
+			return ret();
+		}
+	}
+	else if(IsList(item))
+	{
+		auto tail(std::move(item));
+		auto idx(get_ins_idx());
+
+		for(auto& tm : tail)
+			term.AddChild(MakeIndex(++idx), std::move(tm));
+		return ret();
+	}
+	throw InvalidSyntax("The tail argument shall be a list.");
+}
+
+void
+LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	CreateFunction(term, [&, no_lift](TermNode::Container& con){
+		auto p_env(ctx.ShareRecord());
+		auto i(con.begin());
+		auto formals(share_move(Deref(++i)));
+
+		con.erase(con.cbegin(), ++i);
+		// NOTE: %ToContextHandler implies strict evaluation of arguments in
+		//	%StrictContextHandler::operator().
+		return ToContextHandler(VauHandler({}, std::move(formals),
+			std::move(p_env), {}, ctx, term, no_lift));
+	}, 1);
+}
+
+void
+VauImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	CreateFunction(term, [&, no_lift](TermNode::Container& con){
+		auto p_env(ctx.ShareRecord());
+		auto i(con.begin());
+		auto formals(share_move(Deref(++i)));
+		string eformal(CheckEnvFormal(Deref(++i)));
+
+		con.erase(con.cbegin(), ++i);
+		return FormContextHandler(VauHandler(std::move(eformal),
+			std::move(formals), std::move(p_env), {}, ctx, term, no_lift));
+	}, 2);
+}
+
+void
+VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	CreateFunction(term, [&, no_lift](TermNode::Container& con){
+		auto i(con.begin());
+
+		ReduceCheckedSync(Deref(++i), ctx);
+
+		// XXX: List components are ignored.
+		auto p_env_pr(ResolveEnvironment(Deref(i)));
+		auto formals(share_move(Deref(++i)));
+		string eformal(CheckEnvFormal(Deref(++i)));
+
+		con.erase(con.cbegin(), ++i);
+		return FormContextHandler(VauHandler(std::move(eformal), std::move(
+			formals), std::move(p_env_pr.first), p_env_pr.second, ctx, term,
+			no_lift));
+	}, 3);
+}
+//@}
 
 } // unnamed namespace;
 
@@ -950,11 +1120,12 @@ ReduceAgain(TermNode& term, ContextNode& ctx)
 	});
 
 	if(const auto p = ctx.Current.target<TCOAction>())
-		if(&p->Term.get() == &term)
-		{
-			update_fused_act(*p);
-			return RelaySwitched(ctx, std::move(reduce_again));
-		}
+	// XXX: See %ReduceCheckedClosureImpl.
+//	if(&p->Term.get() == &term)
+	{
+		update_fused_act(*p);
+		return RelaySwitched(ctx, std::move(reduce_again));
+	}
 
 	TCOAction fused_act(ctx, term, {});
 
@@ -999,32 +1170,7 @@ ReductionStatus
 ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 	TermNode& closure)
 {
-	if(move)
-		LiftTerm(term, closure);
-	else
-		term.SetContent(closure);
-	// XXX: Term reused.
-#if YF_Impl_NPLA1_Enable_TCO
-
-	Reducer next(std::bind(ReduceCheckedAsync, std::ref(term), std::ref(ctx)));
-
-	if(const auto p = ctx.Current.target<TCOAction>())
-		if(&p->Term.get() == &term)
-		{
-			if(p->LiftCallResult)
-				next = std::bind([&, p](const Reducer& act){
-					ReduceForClosureResult(term, ctx);
-					return act();
-				}, std::move(next));
-			else
-				p->LiftCallResult = true;
-			return RelaySwitched(ctx, std::move(next));
-		}
-	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, true));
-#else
-	return ReduceSubsequent(term, ctx,
-		std::bind(ReduceForClosureResult, std::ref(term), std::ref(ctx)));
-#endif
+	return ReduceCheckedClosureImpl(term, ctx, move, closure, {});
 }
 
 void
@@ -1311,8 +1457,8 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	denoted by invalid reference after rebinding would cause undefined
 		//	behavior in the object language.
 		// NOTE: Reference collapsed.
-		if(const auto p_term_ref = AccessPtr<const TermReference>(node))
-			term.Value = *p_term_ref;
+		if(const auto p_tref = AccessPtr<const TermReference>(node))
+			term.Value = *p_tref;
 		else
 			term.Value = TermReference(node, pr.second.get().Anchor());
 		// NOTE: This is not guaranteed to be saved as %ContextHandler in
@@ -1563,45 +1709,65 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
 	auto& m(ctx.GetBindingsRef());
 
-	// TODO: Binding of reference support here, or in %MatchParameter?
+	// NOTE: The symbol can be rebound.
 	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
 		if(!id.empty())
 		{
+			const bool by_val(id.front() != '&');
 			TermNode::Container con;
 
+			if(!by_val)
+				id.remove_prefix(1);
 			for(; first != last; ++first)
 			{
 				auto& b(Deref(first));
 
-				LiftTermRefToSelf(b);
-#if true
-				con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
-					MakeIndex(con), b.Value.MakeMoveCopy());
-#else
+				if(by_val)
+				{
+					LiftToSelf(b);
+					con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
+						MakeIndex(con), b.Value.MakeMoveCopy());
+				}
+				// TODO: Support xvalue?
+				// TODO: Check value ownership?
 				// XXX: Moved. This is copy elision in object language.
-				// NOTE: This is not supported since it should be moved instead.
-				con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
-					std::move(b.Value));
-#endif
+				else
+					// TODO: Other value ownership checks?
+					// XXX: Moved. This is copy elision in object language.
+					con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
+						std::move(b.Value));
 			}
 			m[id].SetContent(ValueNode(std::move(con)));
 		}
 	}, [&](const TokenValue& n, TermNode&& b){
 		CheckParameterLeafToken(n, [&]{
-			LiftToSelf(b);
-#if true
-			// NOTE: The operands should have been evaluated. Children nodes in
-			//	arguments retained are also transferred.
-			LiftTermIndirection(m[n], b);
-#else
-			// NOTE: The symbol can be rebound.
-			// FIXME: Correct key of node when not bound?
-			// XXX: Moved. This is copy elision in object language.
-			// NOTE: This is not supported since it should be moved instead.
-			m[n].SetContent(std::move(b.GetContainerRef()), std::move(b.Value));
-#endif
+			if(!n.empty())
+			{
+				// NOTE: No duplication check here. The symbol can be rebound.
+
+				const bool by_val(n.front() != '&');
+
+				// NOTE: The operand should have been evaluated. Subnodes in
+				//	arguments retained are also transferred.
+				if(by_val)
+				{
+					LiftToSelf(b);
+					LiftTermIndirection(m[n], b);
+				}
+				else
+				{
+					string_view id(n);
+
+					id.remove_prefix(1);
+					// TODO: Support xvalue?
+					// TODO: Check value ownership?
+					// XXX: Moved. This is copy elision in object language.
+					m[id].SetContent(std::move(b.GetContainerRef()),
+						std::move(b.Value));
+				}
+			}
 		});
 	});
 }
@@ -1611,10 +1777,10 @@ MatchParameter(const TermNode& t, TermNode& o,
 	std::function<void(TNIter, TNIter, const TokenValue&)> bind_trailing_seq,
 	std::function<void(const TokenValue&, TermNode&&)> bind_value)
 {
-	// TODO: Binding of reference support?
-	LiftTermRefToSelf(o);
 	if(IsBranch(t))
 	{
+		LiftTermRefToSelf(o);
+
 		const auto n_p(t.size());
 		const auto n_o(o.size());
 		auto last(t.end());
@@ -1627,14 +1793,13 @@ MatchParameter(const TermNode& t, TermNode& o,
 			{
 				if(const auto p = AccessPtr<TokenValue>(back))
 				{
-					YAssert(!p->empty(), "Invalid token value found.");
-					if(p->front() == '.')
+					if(!p->empty() && p->front() == '.')
 						--last;
 				}
 				else
-					// TODO: Merge with %CheckParameterLeafToken?
-					throw ParameterMismatch(
-						"Invalid token found for symbol parameter.");
+					throw ParameterMismatch(ystdex::sfmt(
+						"Invalid term %s found for symbol parameter.",
+						TermToValueString(back).c_str()));
 			}
 		}
 		if(n_p == n_o || (last != t.end() && n_o >= n_p - 1))
@@ -1758,51 +1923,37 @@ If(TermNode& term, ContextNode& ctx)
 void
 Lambda(TermNode& term, ContextNode& ctx)
 {
-	CreateFunction(term, [&](TermNode::Container& con){
-		auto p_env(ctx.ShareRecord());
-		auto i(con.begin());
-		auto formals(share_move(Deref(++i)));
+	LambdaImpl(term, ctx, {});
+}
 
-		con.erase(con.cbegin(), ++i);
-		// NOTE: %ToContextHandler implies strict evaluation of arguments in
-		//	%StrictContextHandler::operator().
-		return ToContextHandler(VauHandler({}, std::move(formals),
-			std::move(p_env), {}, ctx, term));
-	}, 1);
+void
+LambdaRef(TermNode& term, ContextNode& ctx)
+{
+	LambdaImpl(term, ctx, true);
 }
 
 void
 Vau(TermNode& term, ContextNode& ctx)
 {
-	CreateFunction(term, [&](TermNode::Container& con){
-		auto p_env(ctx.ShareRecord());
-		auto i(con.begin());
-		auto formals(share_move(Deref(++i)));
-		string eformal(CheckEnvFormal(Deref(++i)));
+	VauImpl(term, ctx, {});
+}
 
-		con.erase(con.cbegin(), ++i);
-		return FormContextHandler(VauHandler(std::move(eformal),
-			std::move(formals), std::move(p_env), {}, ctx, term));
-	}, 2);
+void
+VauRef(TermNode& term, ContextNode& ctx)
+{
+	VauImpl(term, ctx, true);
 }
 
 void
 VauWithEnvironment(TermNode& term, ContextNode& ctx)
 {
-	CreateFunction(term, [&](TermNode::Container& con){
-		auto i(con.begin());
+	VauWithEnvironmentImpl(term, ctx, {});
+}
 
-		ReduceCheckedSync(Deref(++i), ctx);
-
-		// XXX: List components are ignored.
-		auto p_env_pr(ResolveEnvironment(Deref(i)));
-		auto formals(share_move(Deref(++i)));
-		string eformal(CheckEnvFormal(Deref(++i)));
-
-		con.erase(con.cbegin(), ++i);
-		return FormContextHandler(VauHandler(std::move(eformal), std::move(
-			formals), std::move(p_env_pr.first), p_env_pr.second, ctx, term));
-	}, 3);
+void
+VauWithEnvironmentRef(TermNode& term, ContextNode& ctx)
+{
+	VauWithEnvironmentImpl(term, ctx, true);
 }
 
 
@@ -1829,41 +1980,13 @@ CallSystem(TermNode& term)
 ReductionStatus
 Cons(TermNode& term)
 {
-	RetainN(term, 2);
+	return ConsImpl(term, true);
+}
 
-	auto i(std::next(term.begin(), 2));
-	const auto get_ins_idx([&]{
-		term.erase(i);
-		return GetLastIndexOf(term);
-	});
-	const auto ret([&]{
-		RemoveHead(term);
-		return ReductionStatus::Retained;
-	});
-
-	// TODO: Simplify?
-	if(const auto p = AccessPtr<const TermReference>(Deref(i)))
-	{
-		if(IsList(*p))
-		{
-			const auto& tail(p->get());
-			auto idx(get_ins_idx());
-
-			for(auto& tm : tail)
-				term.AddChild(MakeIndex(++idx), tm);
-			return ret();
-		}
-	}
-	else if(IsList(Deref(i)))
-	{
-		auto tail(std::move(Deref(i)));
-		auto idx(get_ins_idx());
-
-		for(auto& tm : tail)
-			term.AddChild(MakeIndex(++idx), std::move(tm));
-		return ret();
-	}
-	throw InvalidSyntax("The tail argument shall be a list.");
+ReductionStatus
+ConsRef(TermNode& term)
+{
+	return ConsImpl(term, {});
 }
 
 void
@@ -1901,19 +2024,13 @@ EqualValue(TermNode& term)
 ReductionStatus
 Eval(TermNode& term, ContextNode& ctx)
 {
-	RetainN(term, 2);
+	return EvalImpl(term, ctx, {});
+}
 
-	const auto i(std::next(term.begin()));
-	const auto term_args([](TermNode& expr) -> pair<bool, lref<TermNode>>{
-		if(const auto p = AccessPtr<const TermReference>(expr))
-			return {{}, p->get()};
-		return {true, expr};
-	}(Deref(i)));
-
-	// TODO: Support more environment types?
-	return RelayOnNextEnvironment(ctx, term, term_args.first, term_args.second,
-		EnvironmentGuard(ctx,
-		ctx.SwitchEnvironment(ResolveEnvironment(Deref(std::next(i))).first)));
+ReductionStatus
+EvalRef(TermNode& term, ContextNode& ctx)
+{
+	return EvalImpl(term, ctx, true);
 }
 
 void
