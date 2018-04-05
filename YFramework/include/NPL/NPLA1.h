@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3646
+\version r3723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-03-26 19:18 +0800
+	2018-04-04 01:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1026,11 +1026,10 @@ template<typename _func>
 auto
 CheckSymbol(string_view n, _func f) -> decltype(f())
 {
-	if(!n.empty() && IsNPLASymbol(n))
+	if(IsNPLASymbol(n))
 		return f();
-	else
-		throw ParameterMismatch(
-			"Invalid token found for symbol parameter.");
+	throw ParameterMismatch(ystdex::sfmt(
+		"Invalid token '%s' found for symbol parameter.", n.data()));
 }
 
 //! \brief 检查记号值是符合匹配条件的参数符号。
@@ -1057,6 +1056,7 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 \throw ArityMismatch 子项数匹配失败。
 \note 第一参数指定的上下文决定绑定的环境。
 \sa MatchParameter
+\sa TermReference
 
 形式参数和操作数为项指定的表达式树。
 第二参数指定形式参数，第三参数指定操作数。
@@ -1065,12 +1065,14 @@ CheckParameterLeafToken(string_view n, _func f) -> decltype(f())
 若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的项。
 对结尾序列总是匹配前缀为 . 的符号为目标按以下规则忽略或绑定：
 子项为 . 时，对应操作数的结尾序列被忽略；
-否则，绑定项的目标为移除前缀 . 后的符号。
+否则，绑定项的目标为移除前缀 . 和后续可选前缀 & 后的符号。
 非列表项的绑定使用以下规则：
 若匹配成功，在第一参数指定的环境内绑定未被忽略的匹配的非列表项。
 匹配要求如下：
 若项是 #ignore ，则忽略操作数对应的项；
 若项的值是符号，则操作数的对应的项应为非列表项。
+若被绑定的目标有 & ，则以按引用传递的方式绑定；否则以按值传递的方式绑定。
+按引用传递绑定直接转移该项的内容。
 */
 YF_API void
 BindParameter(ContextNode&, const TermNode&, TermNode&);
@@ -1409,8 +1411,10 @@ DefineWithNoRecursion(TermNode&, ContextNode&);
 
 /*!
 \note 支持直接递归和互相递归绑定。
+\sa InvalidReference
 
 解析可能递归绑定的名称，剩余表达式视为一个表达式进行求值后绑定到 <definiend> 。
+循环引用以此引入的名称可能抛出 InvalidReference 异常。
 $defrec! <definiend> <expressions>
 */
 YF_API void
@@ -1468,15 +1472,31 @@ If(TermNode&, ContextNode&);
 //@{
 /*!
 \brief λ 抽象：求值为一个捕获当前上下文的严格求值的函数。
-\since build 735
 
 捕获的静态环境由当前动态环境隐式确定。
 不保留环境的所有权。
+*/
+//@{
+/*!
+\since build 735
+
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
 参考调用文法：
 $lambda <formals> <body>
 */
 YF_API void
 Lambda(TermNode&, ContextNode&);
+
+/*!
+\since build 822
+
+在返回时不提升项，允许返回引用。
+参考调用文法：
+$lambda& <formals> <body>
+*/
+YF_API void
+LambdaRef(TermNode&, ContextNode&);
+//@}
 
 /*!
 \note 动态环境的上下文参数被捕获为一个 ystdex::ref<ContextNode> 对象。
@@ -1495,11 +1515,26 @@ Lambda(TermNode&, ContextNode&);
 
 捕获的静态环境由当前动态环境隐式确定。
 不保留环境的所有权。
+*/
+//@{
+/*!
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
 参考调用文法：
 $vau <formals> <eformal> <body>
 */
 YF_API void
 Vau(TermNode&, ContextNode&);
+
+/*!
+\since build 822
+
+在返回时不提升项，允许返回引用。
+参考调用文法：
+$vau& <formals> <eformal> <body>
+*/
+YF_API void
+VauRef(TermNode&, ContextNode&);
+//@}
 
 /*!
 \brief 带环境的 vau 抽象：求值为一个捕获当前上下文的非严格求值的函数。
@@ -1508,11 +1543,26 @@ Vau(TermNode&, ContextNode&);
 捕获的静态环境由环境参数 <env> 求值后指定。
 根据环境参数的类型为 \c shared_ptr<Environment> 或 \c weak_ptr<Environment>
 	决定是否保留所有权。
+*/
+//@{
+/*!
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
 参考调用文法：
 $vaue <env> <formals> <eformal> <body>
 */
 YF_API void
 VauWithEnvironment(TermNode&, ContextNode&);
+
+/*!
+\since build 822
+
+在返回时不提升项，允许返回引用。
+参考调用文法：
+$vaue& <env> <formals> <eformal> <body>
+*/
+YF_API void
+VauWithEnvironmentRef(TermNode&, ContextNode&);
+//@}
 //@}
 //@}
 
@@ -1566,13 +1616,28 @@ CallSystem(TermNode&);
 \return ReductionStatus::Retained 。
 \throw InvalidSyntax 第二个参数不是列表。
 \note NPLA 无 cons 对，所以要求创建的总是列表。
+*/
+//@{
+/*!
+\sa LiftSubtermsToSelfSafe
 \since build 779
 
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
 参考调用文法：
 cons <object> <list>
 */
 YF_API ReductionStatus
 Cons(TermNode&);
+
+/*!
+\since build 822
+
+在返回时不提升项，允许返回引用。
+参考调用文法：
+cons& <object> <list>
+*/
+YF_API ReductionStatus
+ConsRef(TermNode&);
 
 /*!
 \brief 比较两个子项表示的值引用相同的对象。
@@ -1619,21 +1684,36 @@ YF_API void
 EqualValue(TermNode&);
 //@}
 
-//@{
 /*!
 \brief 对指定项按指定的环境求值。
 \note 支持保存当前动作。
 \sa ReduceCheckedClosure
 \sa ResolveEnvironment
-\since build 787
 
 以表达式 <expression> 和环境 <environment> 为指定的参数进行求值。
 环境以 ContextNode 的引用表示。
+*/
+//@{
+/*!
+\since build 787
+按值传递返回值：提升项以避免返回引用造成内存安全问题。
+
 参考调用文法：
 eval <expression> <environment>
 */
 YF_API ReductionStatus
 Eval(TermNode&, ContextNode&);
+
+/*!
+\since build 822
+
+在返回时不提升项，允许返回引用。
+参考调用文法：
+eval& <expression> <environment>
+*/
+YF_API ReductionStatus
+EvalRef(TermNode&, ContextNode&);
+//@}
 
 /*!
 \brief 创建参数指定的 REPL 的副本并在其中对翻译单元规约以求值。

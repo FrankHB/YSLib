@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1718
+\version r1736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-03-26 19:17 +0800
+	2018-04-01 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -346,20 +346,23 @@ ImplDeDtor(ArityMismatch)
 
 
 BadIdentifier::BadIdentifier(const char* id, size_t n, RecordLevel lv)
-	: NPLException(InitBadIdentifierExceptionString(id, n), lv),
+	: InvalidSyntax(InitBadIdentifierExceptionString(id, n), lv),
 	p_identifier(make_shared<string>(id))
 {}
 BadIdentifier::BadIdentifier(string_view id, size_t n, RecordLevel lv)
-	: NPLException(InitBadIdentifierExceptionString(string(id), n), lv),
+	: InvalidSyntax(InitBadIdentifierExceptionString(string(id), n), lv),
 	p_identifier(make_shared<string>(id))
 {}
 ImplDeDtor(BadIdentifier)
 
 
+ImplDeDtor(InvalidReference)
+
+
 LexemeCategory
 CategorizeBasicLexeme(string_view id) ynothrowv
 {
-	YAssertNonnull(id.data() && !id.empty());
+	YAssertNonnull(id.data());
 
 	const auto c(CheckLiteral(id));
 
@@ -382,12 +385,17 @@ CategorizeLexeme(string_view id) ynothrowv
 bool
 IsNPLAExtendedLiteral(string_view id) ynothrowv
 {
-	YAssertNonnull(id.data() && !id.empty());
+	YAssertNonnull(id.data());
 
-	const char f(id.front());
+	if(!id.empty())
+	{
+		const char f(id.front());
 
-	return (id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(f)
-		&& id.find_first_not_of("+-") != string_view::npos) || std::isdigit(f);
+		return (id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(f)
+			&& id.find_first_not_of("+-") != string_view::npos)
+			|| std::isdigit(f);
+	}
+	return {};
 }
 
 
@@ -470,7 +478,7 @@ LiftToReference(TermNode& term, TermNode& tm)
 		else if(!tm.Value.OwnsUnique())
 			LiftTerm(term, tm);
 		else
-			throw NPLException(
+			throw InvalidReference(
 				"Value of a temporary shall not be referenced.");
 	}
 	else
@@ -480,9 +488,10 @@ LiftToReference(TermNode& term, TermNode& tm)
 void
 LiftToSelf(TermNode& term)
 {
+	// NOTE: The order is significant.
+	LiftTermRefToSelf(term);
 	for(auto& child : term)
 		LiftToSelf(child);
-	LiftTermRefToSelf(term);
 }
 
 void
@@ -527,8 +536,7 @@ ReduceToList(TermNode& term) ynothrow
 ReductionStatus
 ReduceToListValue(TermNode& term) ynothrow
 {
-	return IsBranch(term) ? (RemoveHead(term),
-		std::for_each(term.begin(), term.end(), LiftToSelfSafe),
+	return IsBranch(term) ? (RemoveHead(term), LiftSubtermsToSelfSafe(term),
 		ReductionStatus::Retained) : ReductionStatus::Clean;
 }
 

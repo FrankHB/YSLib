@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3378
+\version r3405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-03-26 18:19 +0800
+	2018-04-01 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,10 @@
 //	LoggedEvent, ystdex::lref, ystdex::equality_comparable, shared_ptr,
 //	weak_ptr, ystdex::type_info, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
-#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent, ystdex::fast_any_of,
-//	ystdex::indirect, YSLib::GEvent, YSLib::GCombinerInvoker,
+#include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
+//	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
 //	YSLib::GDefaultLastValueInvoker;
+#include <algorithm> // for std::for_each;
 #include <ystdex/any.h> // for ystdex::any;
 
 namespace NPL
@@ -554,7 +555,7 @@ public:
 \brief 标识符错误。
 \since build 726
 */
-class YF_API BadIdentifier : public NPLException
+class YF_API BadIdentifier : public InvalidSyntax
 {
 private:
 	shared_ptr<string> p_identifier;
@@ -581,6 +582,21 @@ public:
 	DefGetter(const ynothrow, const string&, Identifier,
 		YSLib::Deref(p_identifier))
 };
+
+
+/*!
+\brief 无效引用错误。
+\since build 822
+*/
+class YF_API InvalidReference : public NPLException
+{
+public:
+	using NPLException::NPLException;
+	DefDeCtor(InvalidReference)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~InvalidReference() override;
+};
 //@}
 
 
@@ -606,13 +622,13 @@ enum class LexemeCategory
 //! \sa LexemeCategory
 //@{
 /*!
-\pre 断言：字符串参数的数据指针非空且字符串非空。
+\pre 断言：字符串参数的数据指针非空。
 \return 判断的非扩展字面量分类。
 */
 //@{
 /*!
 \brief 对排除扩展字面量的词素分类。
-\note 扩展字面量视为非字面量。
+\note 空字符串和扩展字面量视为非字面量。
 */
 YF_API LexemeCategory
 CategorizeBasicLexeme(string_view) ynothrowv;
@@ -915,6 +931,7 @@ LiftToReference(TermNode&, TermNode&);
 
 /*!
 \brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到自身。
+\note 先提升项的值再提升子项以确保子项表示引用值时被提升。
 \sa LiftTermRefToSelf
 */
 YF_API void
@@ -926,7 +943,7 @@ LiftToSelf(TermNode&);
 \sa LiftTermIndirection
 \since build 821
 
-调用 LiftToSelf ，然后以相同参数调用 LiftTermIndirection 复制或转移自身。
+调用 LiftToSelf ，然后递归地以相同参数调用 LiftTermIndirection 复制或转移自身。
 */
 YF_API void
 LiftToSelfSafe(TermNode&);
@@ -941,6 +958,13 @@ LiftToSelfSafe(TermNode&);
 YF_API void
 LiftToOther(TermNode&, TermNode&);
 //@}
+
+/*!
+\brief 对每个子项调用 LiftToSelfSafe 。
+\since build 822
+*/
+inline PDefH(void, LiftSubtermsToSelfSafe, TermNode& term)
+	ImplExpr(std::for_each(term.begin(), term.end(), LiftToSelfSafe))
 
 /*!
 \brief 提升延迟求值项的引用。
@@ -992,7 +1016,7 @@ ReduceToList(TermNode&) ynothrow;
 
 /*!
 \brief 规约为列表值：对枝节点移除第一个子项，保留余下的子项提升后作为列表的值。
-\sa LiftToSelfSafe
+\sa LiftSubtermsToSelfSafe
 \since build 821
 */
 YF_API ReductionStatus

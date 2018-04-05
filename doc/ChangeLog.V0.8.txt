@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r2159
+\version r2299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-03-26 19:26 +0800
+	2018-04-05 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,144 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA $=
+		(
+			/ $revert(b771) "accepted empty symbol" @ ("functions \
+				%(CategorizeBasicLexeme, IsNPLAExtendedLiteral)";
+				$comp "functions %(CategorizeLexeme; IsNPLASymbol)") $=
+			(
+				- "precondition for empty lexeme";
+				/ "categorized empty lexeme as symbol"
+			),
+			+ "class %InvalidReference",
+			/ "base class %NPLException" @ "class %BadIdentifier"
+				-> "class %InvalidSyntax",
+			(
+			+ "function %LiftSubtermsToSelfSafe";
+			/ DLDI "simplified function %ReduceToListValue"
+				^ "%LiftSubtermsToSelfSafe" ~ "%LiftToSelfSafe"
+			),
+			* "missing recursive call" @ "function %LiftToSelfSafe" $since b821,
+			* "missing lifting reference value of top-level subterm"
+				@ "function %LiftToSelf" $since b800
+		),
+		/ %NPLA1 $=
+		(
+			/ @ "vau abstraction" $=
+			(
+				/ "supported empty symbol" $=
+				(
+					* "assertion failure on empty symbol" $since b771 $=
+					(
+						/ $comp @ "vau abstraction" $dep_from
+							("%IsNPLASymbol" @ %NPLA)
+							// Empty symobl should be first-class object and \
+								it can be constructed by 'string->symbol ""'.
+						/ $revert(b790) "supported empty symbol"
+							@ "function %Forms::MatchParameter" $=
+						(
+							- "precondition for empty lexeme";
+							/ "treated empty string not as '.' prefixed symbol"
+						)
+					),
+					/ "accepted empty symbol" @ "function template %CheckSymbol"
+						$dep_from ("%IsNPLASymbol" @ %NPLA)
+				),
+				+ $impl "support of mark for avoiding lifting" $dep_to
+					"no lifting mark"
+			)
+			/ @ "namespace %Forms" $=
+			(
+				/ "supported reference binding" $dep_to
+					"'&' support for reference binding" $=
+				(
+					- "lifting for leaves" @ "function %MatchParameter",
+					/ @ "function %BindParameter" $=
+					(
+						* $re_add(b821) "missing lifting of bound trailing \
+							terms" $since b803 ^ "%LiftToSelf"
+							~ "%LiftTermRefToSelf",
+						/ "supported binding by reference for symbols with \
+							'&' prefix" ^ $dep_from
+							("%InvalidReference" @ %NPLA),
+						/ "ignored empty leaf symbol"
+							// To be consistent with trailing terms binding.
+					)
+				),
+				/ $lib "exception type" @ "cyclic reference detection"
+					@ "recursive vau abstraction introduced by \
+					%DefineWithRecursion" -> ($dep_from "%InvalidReference"
+					~ "%NPLException" @ %NPLA)
+				+ "token name" @ "exception message"
+					@ "function template %CheckSymbol",
+				+ "term value" @ "exception message for invalid last term of \
+					parameter" @ "function %MatchParameter",
+				+ "functions %(ConsRef, LambdaRef, VauRef, \
+					VauWithEnvironmentRef, EvalRef)" $dep_from "no lifting mark"
+			),
+			- DLI "term check" @ "TCO action construction" $effective
+				@ "functions %(ReduceAgain, ReduceCombined, \
+				ReduceCheckedClosure, Forms::Eval), %operator() of vau \
+				handlers",
+			/ $re_add(b821) "elimiated shared frame" @ "TCO action" $dep_to
+				"shared frame TCO"
+		),
+		/ "derivated loading forms"
+			@ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+		(
+			* $re_add(b821) $comp "unsafe applicative %cons" $since b800,
+				// This is now also consistent with 'list'.
+			+ "applicative 'cons&'" ^ $dep_from ("%ConsRef" @ %NPLA1),
+				// Similar to 'list&'.
+			/ $dev $lib "rearranged alternative derivation of forms" $=
+			(
+				+ "macros to control forms with conditional inclusion",
+				+ "derivation of operative '$lambda'" ^ $dep_from
+					("%cons", "'&' support for reference binding")
+			),
+			* "wrong dynamic environment for arguments after 1st argument"
+				@ "operative '$sequence'" $since b799,
+				// This would cause '$let ((x 2)) $let () $sequence 1 x' to \
+					fail as well as make Kernel-style of implementation of \
+					'$letrec' wrong.
+			/ DLDI "simplified operative '$lambdae'",
+			/ DLI "all infix ';' inside combiner definitionss"
+				-> "'$sequence' form" $effective
+				@ "applicatives %(accl, accr, map-reverse)",
+				// To be consistent in style. Note this would make it slightly \
+					inefficent for interpretion overhead on symbol \
+					'$sequence', and significant addtional cost when native \
+					form '$sequence' not used.
+			/ "all symbols being bound directly except '#ignore'"
+				@ "all derived combiners" ^ $dep_from "'&' support for \
+				reference binding" $dep_from ("%LiftToSelf" @ %NPLA) $effective
+				@ "%list, '$quote', '$set!', '$defv!', '$setrec!', '$defl!', \
+				%(first, rest, apply), 'list*', '$defw!', '$lambdae', \
+				'$sequence', '$cond', 'not?', '$when', '$unless', \
+				'first-null?', 'list-rest', %(accl, accr, foldr1, map1), \
+				'list-concat', %append, '$let', '$let*', 'unfoldable?', \
+				'map-reverse', 'for-each-ltr', '$binds1?', 'env-empty?'",
+				// This allows modification exposed, so not merely an \
+					optimiation. Indirect binidngs in 'eval' expressions \
+					are not supported yet.
+			/ DLI "simplified operative '$cond'" !^ '$sequence',
+			+ "operative ('$vau&'; '$defv&!')" ^ $dep_from
+				("%Forms::VauRef" @ %NPLA),
+			+ "operative ('$vaue&'; '$lambdae&')" ^ $dep_from
+				("%Forms::VauWithEnvironmentRef" @ %NPLA),
+			+ "operatives ('$lambda&'; '$defl&!')" ^ $dep_from
+				("%Forms::LambdaRef" @ %NPLA),
+			+ "operative 'eval&'" ^ $dep_from ("%Forms::EvalRef" @ %NPLA),
+			/ $comp "supported PTC of evaluated expression"
+				@ "applicative %eval" $dep_from "shared frame TCO"
+		)
+	)
+),
+
+b821
 (
 	/ %YFramework $=
 	(
@@ -84,7 +222,8 @@ $now
 				),
 				/ @ "function %Forms::BindParameter" $=
 				(
-					* "missing lifiting of bound list terms" $since b803,
+					* "missing lifting of bound leaf terms" $since b803
+						^ "%LiftToSelf" ~ "%LiftTermRefToSelf",
 						// This would cause list processed by '$lambda x x' \
 							with reference elements for lvalues.
 					/ DLDI "simplified" ^ $dep_from
@@ -120,7 +259,7 @@ $now
 			/ "loading forms" @ "function %LoadNPLContextForSHBuild"
 				@ %Dependency $=
 			(
-				* "unsafe %list" $since b800 ^ ($dep_from
+				* "unsafe applicative %list" $since b800 ^ ($dep_from
 					"%ReduceToListValue" ~ "%ReduceToList") @ %NPLA,
 					// This is now also consistent with lifting behavior in \
 						implemention by vau.
