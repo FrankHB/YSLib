@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1568
+\version r1570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2017-10-06 16:55 +0800
+	2018-04-15 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -340,7 +340,7 @@ yconstfn PDefH(bool, IsGraphicalDelimeter, char c) ynothrow
 
 //! \brief 判断参数是否为 NPL 分隔符。
 yconstfn PDefH(bool, IsDelimeter, char c) ynothrow
-	ImplRet(byte(c) < 0x80 && (!std::isgraph(c) || IsGraphicalDelimeter(c)))
+	ImplRet(c >= 0 && (!std::isgraph(c) || IsGraphicalDelimeter(c)))
 //@}
 
 

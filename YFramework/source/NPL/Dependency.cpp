@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1173
+\version r1206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-04-05 01:46 +0800
+	2018-04-15 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,12 +26,12 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Dependency // for std::placeholders, ystdex::bind1;
+#include YFM_NPL_Dependency // for ystdex::isspace, std::placeholders,
+//	ystdex::isdigit, std::tolower, ystdex::bind1;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <iterator> // for std::istreambuf_iterator;
 #include <limits> // for std::numeric_limits;
-#include <cctype> // for std::isdigit, std::tolower;
 #include <cerrno> // for errno, ERANGE;
 #include <cstdio> // for std::puts;
 #include <regex> // for std::regex, std::regex_match;
@@ -42,8 +42,11 @@ using namespace YSLib;
 namespace NPL
 {
 
-// NOTE: For exposition only, although it shall not change the conformance.
-//	Native implementation of forms should provide better performance.
+// NOTE: The following options provide documented alternative implementations.
+//	Except implementation of '$sequence', they shall still be conforming. Native
+//	implementation of forms should provide better performance in general.
+
+// NOTE: For general native implementations.
 #define YF_Impl_NPLA1_Enable_NativeForms true
 // NOTE: For awareness of strong ownership of environments.
 #define YF_Impl_NPLA1_Enable_LockEnvironment true
@@ -96,8 +99,8 @@ DecomposeMakefileDepList(std::streambuf& sb)
 	}).GetBuffer());
 	vector<string> lst;
 
-	ystdex::split_if(sbuf.begin(), sbuf.end(), static_cast<int(&)(int)>(
-		std::isspace), [&](string::const_iterator b, string::const_iterator e){
+	ystdex::split_if(sbuf.begin(), sbuf.end(), ystdex::isspace,
+		[&](string::const_iterator b, string::const_iterator e){
 		lst.push_back(string(b, e));
 	}, [&](string::const_iterator i){
 		return !ystdex::exists(spaces, size_t(i - sbuf.cbegin()));
@@ -189,12 +192,12 @@ namespace Forms
 namespace
 {
 
+//! \since build 823
 void
-LoadSequenceSeparators(ContextNode& ctx, EvaluationPasses& passes)
+LoadSequenceSeparators(EvaluationPasses& passes)
 {
-	RegisterSequenceContextTransformer(passes, ctx, "$;", TokenValue(";"),
-		true),
-	RegisterSequenceContextTransformer(passes, ctx, "$,", TokenValue(","));
+	RegisterSequenceContextTransformer(passes, TokenValue(";"), true),
+	RegisterSequenceContextTransformer(passes, TokenValue(","));
 }
 
 //! \since build 794
@@ -211,9 +214,9 @@ CopyEnvironmentDFS(Environment& d, const Environment& e)
 	});
 	const auto copy_parent_ptr(
 		[&](Environment& dst, const ValueObject& vo) -> bool{
-		if(const auto p = AccessPtr<weak_ptr<Environment>>(vo))
+		if(const auto p = AccessPtr<EnvironmentReference>(vo))
 		{
-			if(const auto p_parent = p->lock())
+			if(const auto p_parent = p->Lock())
 				copy_parent(dst, *p_parent);
 			// XXX: Failure of locking is ignored.
 			return true;
@@ -259,7 +262,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	auto& root(context.Root);
 	auto& root_env(root.GetRecordRef());
 
-	LoadSequenceSeparators(root, context.ListTermPreprocess),
+	LoadSequenceSeparators(context.ListTermPreprocess),
 	root.EvaluateLiteral
 		= [](TermNode& term, ContextNode&, string_view id) -> ReductionStatus{
 		YAssertNonnull(id.data());
@@ -284,7 +287,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				else
 					return ReductionStatus::Retrying;
 			}
-			else if(std::isdigit(f))
+			else if(ystdex::isdigit(f))
 			{
 				errno = 0;
 
@@ -345,10 +348,10 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
 	RegisterStrictUnary<shared_ptr<Environment>>(root, "weaken-environment",
 		[](const shared_ptr<Environment>& p) ynothrow{
-		return make_weak(p);
+		return EnvironmentReference(p);
 	});
-	RegisterStrictUnary<const weak_ptr<Environment>>(root, "lock-environment",
-		std::mem_fn(&weak_ptr<Environment>::lock));
+	RegisterStrictUnary<const EnvironmentReference>(root, "lock-environment",
+		std::mem_fn(&EnvironmentReference::Lock));
 	// NOTE: Environment mutation is optional in Kernel and supported here.
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
 	//	parameter as unevaluated operands. For zero overhead principle, the form
@@ -368,12 +371,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary<ContextHandler>(root, "unwrap", Unwrap);
 	// NOTE: Derived core functions.
 #if YF_Impl_NPLA1_Enable_NativeForms
-	RegisterStrict(root, "list", ReduceToListValue);
+	RegisterStrict(root, "list", ReduceBranchToListValue);
 #else
 	context.Perform(u8R"NPL($def! list wrap ($vau &x #ignore x))NPL");
 //	context.Perform(u8R"NPL($def! list $lambda &x x)NPL");
 #endif
-	RegisterStrict(root, "list&", ReduceToList);
+	RegisterStrict(root, "list&", ReduceBranchToList);
 	context.Perform(u8R"NPL(
 		$def! $quote $vau (&x) #ignore x;
 		$def! $set! $vau (&expr1 &formals .&expr2) env eval
@@ -409,6 +412,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			$if (null? tail) head (cons head (apply list* tail));
 		$defv! $defw! (&f &formals &senv .&body) env eval
 			(list $set! env f wrap (list* $vau formals senv body)) env;
+		$defv! $defw&! (&f &formals &senv .&body) env eval
+			(list $set! env f wrap (list* $vau& formals senv body)) env;
 		$defv! $lambdae (&e &formals .&body) env
 			wrap (eval (list* $vaue e formals ignore body) env);
 		$defv! $lambdae& (&e &formals .&body) env
@@ -418,10 +423,10 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
-	RegisterForm(root, "$sequence", ReduceOrdered);
+	RegisterForm(root, "$sequence", Sequence);
 #else
-	// NOTE: They can be derived as Kernel does.
-	// TODO: Support move-only types at end.
+	// TODO: Support move-only types at end?
+	// TODO: PTC support.
 	context.Perform(u8R"NPL(
 		$def! $sequence
 			($lambda (&cenv)
@@ -535,7 +540,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		// TODO: Extract 'strlwr'.
 		const auto to_lwr([](string& s){
 			for(auto& c : s)
-				c = std::tolower(c);
+				if(c >= 0)
+					c = std::tolower(c);
 		});
 
 		to_lwr(x),
@@ -664,8 +670,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 
 				// XXX: As %NPL::Tokenize.
 				if(str.front() != '\'' && str.front() != '"')
-					ystdex::split_l(str.cbegin(), str.cend(),
-						static_cast<int(&)(int)>(std::isspace),
+					ystdex::split_l(str.cbegin(), str.cend(), ystdex::isspace,
 						[&](iter_t b, iter_t e){
 						string s(b, e);
 
@@ -679,7 +684,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				else
 				{
 					if(!res.empty() && l != 0 && left_qset.count(l) != 0
-						&& !bool(std::isspace(src[l - 1])))
+						&& !ystdex::isspace(src[l - 1]))
 						res.pop_back();
 					res += str;
 					res += ' ';

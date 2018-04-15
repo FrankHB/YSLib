@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r195
+\version r245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2016-11-12 17:26 +0800
+	2018-04-15 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,14 @@
 namespace ystdex
 {
 
-//! \since build 738
+/*!
+\note 区域无关默认行为即使用 C 区域。
+\note 保证此处引入声明的函数没有其它重载，以便直接用于 lambda 表达式等上下文。
+\note 保证适当检查参数的值以避免引起 ISO C 未定义行为而要求 narrow constraint 。
+\see ISO C11 7.4/1 。
+\see ISO C11 7.30.1/5 。
+\since build 738
+*/
 //@{
 //! \brief 判断指定字符是否为 ISO/IEC 2022 定义的 C0 控制字符。
 yconstfn bool
@@ -56,7 +63,7 @@ iscntrl_C1(char c) ynothrow
 }
 
 /*!
-\brief 使用 US-ASCII 字符集的 std::isprint 实现。
+\brief 使用 US-ASCII 字符集的 std::isprint 。
 \see ISO C11 7.4/3 脚注。
 */
 yconstfn bool
@@ -65,7 +72,7 @@ iscntrl_ASCII(char c) ynothrow
 	return iscntrl_C0(c) || c == 0x7F;
 }
 
-//! \brief 使用 ISO/IEC 8859-11(Latin/Thai) 字符集的 std::iscntrl 实现。
+//! \brief 使用 ISO/IEC 8859-11(Latin/Thai) 字符集的 std::iscntrl 。
 yconstfn bool
 iscntrl_ISO8859_11(char c) ynothrow
 {
@@ -73,7 +80,7 @@ iscntrl_ISO8859_11(char c) ynothrow
 		|| ((unsigned(c) & 0xFFU) >= 0x7F && (unsigned(c) & 0xFFU) <= 0xA0);
 }
 
-//! \brief 使用 ISO/IEC 8859-1 字符集的 std::iscntrl 实现。
+//! \brief 使用 ISO/IEC 8859-1 字符集的 std::iscntrl 。
 yconstfn bool
 iscntrl_ISO8859_1(char c) ynothrow
 {
@@ -82,7 +89,7 @@ iscntrl_ISO8859_1(char c) ynothrow
 
 
 /*!
-\brief 使用 US-ASCII 字符集的 std::isprint 实现。
+\brief 使用 US-ASCII 字符集的 std::isprint 。
 \see ISO C11 7.4/3 脚注。
 */
 yconstfn bool
@@ -91,7 +98,7 @@ isprint_ASCII(char c) ynothrow
 	return c >= 0x20 && c < 0x7F;
 }
 
-//! \brief 使用 ISO/IEC 8859-1 字符集的 std::isprint 实现。
+//! \brief 使用 ISO/IEC 8859-1 字符集的 std::isprint 。
 yconstfn bool
 isprint_ISO8859_1(char c) ynothrow
 {
@@ -99,7 +106,7 @@ isprint_ISO8859_1(char c) ynothrow
 }
 
 /*!
-\brief 区域无关的 std::isprint 实现。
+\brief 区域无关的 std::isprint 。
 \note 当前使用基于 ISO/IEC 8859-1 的 Unicode 方案实现。
 \note 可作为替代 MSVCRT 的实现的部分变通。
 \sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
@@ -111,7 +118,7 @@ isprint(char c) ynothrow
 }
 
 /*!
-\brief 区域无关的 std::isdigit 实现。
+\brief 区域无关的 std::isdigit 。
 \note ISO C 和 ISO C++ 保证基本字符集中的数字字符具有从小到大连续的整数值表示。
 \note 可作为替代 MSVCRT 的实现的变通。
 \sa http://stackoverflow.com/questions/2898228/can-isdigit-legitimately-be-locale-dependent-in-c 。
@@ -124,6 +131,17 @@ isdigit(char c) ynothrow
 	return (unsigned(c) - '0') < 10U;
 }
 
+/*!
+\brief 区域无关的 std::isspace 。
+\see ISO C11 7.4.1.10 。
+\since build 823
+*/
+yconstfn bool
+isspace(char c) ynothrow
+{
+	return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v';
+}
+
 
 /*!
 \brief 转换大小写字符。
@@ -131,29 +149,33 @@ isdigit(char c) ynothrow
 	参数和返回值是字符类型而不是对应的整数类型。
 */
 //@{
-template<typename _tChar>
-inline _tChar
-tolower(_tChar c) ynothrow
-{
-	return _tChar(std::towupper(wint_t(c)));
-}
 inline char
 tolower(char c) ynothrow
 {
-	return char(std::tolower(c));
+	return c >= 0 && char(std::tolower(c));
 }
 
-
+//! \since build 823
 template<typename _tChar>
 inline _tChar
-toupper(_tChar c) ynothrow
+towlower(_tChar c) ynothrow
 {
-	return _tChar(std::towlower(wint_t(c)));
+	return c >= 0 && _tChar(std::towupper(wint_t(c)));
 }
+
+
 inline char
 toupper(char c) ynothrow
 {
-	return char(std::toupper(c));
+	return c >= 0 && char(std::toupper(c));
+}
+
+//! \since build 823
+template<typename _tChar>
+inline _tChar
+towupper(_tChar c) ynothrow
+{
+	return c >= 0 && _tChar(std::towlower(wint_t(c)));
 }
 //@}
 //@}

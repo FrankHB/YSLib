@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3723
+\version r3751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-04-04 01:46 +0800
+	2018-04-13 18:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -330,15 +330,8 @@ ReduceOnce(TermNode&, ContextNode&);
 
 /*!
 \brief 规约有序序列：顺序规约子项，结果为最后一个子项的规约结果。
-\pre 间接断言：参数指定的范围不存在子项或参数指定的上下文中的尾动作为空。
-\return 当存在子项时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
 \sa ReduceChildrenOrdered
 \since build 764
-
-可直接实现顺序求值。
-对空参数返回未指定值。
-参考调用文法：
-$sequence <object>...
 */
 YF_API ReductionStatus
 ReduceOrdered(TermNode&, ContextNode&);
@@ -625,26 +618,16 @@ RegisterStrict(ContextNode& ctx, const string& name, _tParams&&... args)
 \sa ReduceChildren
 \sa ReduceOrdered
 \sa ReplaceSeparatedChildren
-\since build 753
+\since build 823
 
-变换带有中缀形式的分隔符记号的表达式为指定名称的前缀表达式并去除分隔符，
-然后注册前缀语法形式。
+变换带有中缀形式的分隔符记号的表达式为指定前缀对象并去除分隔符。
 最后一个参数指定是否有序，选择语法形式为 ReduceOrdered 或 ReduceChildren 之一。
 前缀名称不需要是记号支持的标识符。
 */
 YF_API void
-RegisterSequenceContextTransformer(EvaluationPasses&, ContextNode&,
-	const TokenValue&, const ValueObject&, bool = {});
+RegisterSequenceContextTransformer(EvaluationPasses&, const ValueObject&,
+	bool = {});
 
-
-/*!
-\brief 断言枝节点。
-\pre 断言：参数指定的项是枝节点。
-\since build 761
-*/
-inline PDefH(void, AssertBranch, const TermNode& term,
-	const char* msg = "Invalid term found.") ynothrowv
-	ImplExpr(yunused(msg), YAssert(IsBranch(term), msg))
 
 /*!
 \brief 取项的参数个数：子项数减 1 。
@@ -1568,6 +1551,21 @@ VauWithEnvironmentRef(TermNode&, ContextNode&);
 
 
 /*!
+\brief 序列有序参数规约：移除第一项后顺序规约子项，结果为最后一个子项的规约结果。
+\return 子项被规约时为最后一个子项的规约状态，否则为 ReductionStatus::Clean 。
+\note 可直接实现顺序求值。在对象语言中，若参数为空，返回未指定值。
+\sa ReduceOrdered
+\sa RemoveHead
+\since build 823
+
+参考调用文法：
+$sequence <object>...
+*/
+YF_API ReductionStatus
+Sequence(TermNode&, ContextNode&);
+
+
+/*!
 \note 支持保存当前动作。
 \sa ReduceChecked
 \since build 754
@@ -1787,7 +1785,7 @@ YF_API ContextHandler
 WrapOnce(const ContextHandler&);
 
 /*!
-\brief 从应用子中取操作子。
+\brief 解包装应用子为合并子。
 
 参考调用文法：
 unwrap <applicative>

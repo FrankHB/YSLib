@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3405
+\version r3488
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-04-01 20:05 +0800
+	2018-04-15 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_NPL_SContext // for NPLTag, ValueNode, TermNode, string,
-//	LoggedEvent, ystdex::lref, ystdex::equality_comparable, shared_ptr,
-//	weak_ptr, ystdex::type_info, ystdex::exchange;
+//	LoggedEvent, ystdex::isdigit, ystdex::equality_comparable, ystdex::lref,
+//	shared_ptr, ystdex::type_info, weak_ptr, ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -659,7 +659,7 @@ yconstfn PDefH(bool, IsNPLAExtendedLiteralNonDigitPrefix, char c) ynothrow
 
 //! \brief 判断字符是否为 NPLA 扩展字面量前缀。
 inline PDefH(bool, IsNPLAExtendedLiteralPrefix, char c) ynothrow
-	ImplRet(std::isdigit(c) || IsNPLAExtendedLiteralNonDigitPrefix(c))
+	ImplRet(ystdex::isdigit(c) || IsNPLAExtendedLiteralNonDigitPrefix(c))
 
 /*!
 \brief 判断词素是否为 NPLA 符号。
@@ -993,9 +993,27 @@ inline PDefH(void, LiftLast, TermNode& term)
 
 
 /*!
+\pre 间接断言：参数为枝节点。
+\return ReductionStatus::Retained 。
+\since build 823
+*/
+//@{
+//! \brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
+YF_API ReductionStatus
+ReduceBranchToList(TermNode&) ynothrowv;
+
+/*!
+\brief 规约为列表值：对枝节点移除第一个子项，保留余下的子项提升后作为列表的值。
+\sa LiftSubtermsToSelfSafe
+*/
+YF_API ReductionStatus
+ReduceBranchToListValue(TermNode&) ynothrowv;
+//@}
+
+
+/*!
 \since build 774
 \sa RemoveHead
-\note 使用 ADL RemoveHead 。
 */
 //@{
 /*!
@@ -1010,13 +1028,16 @@ ReduceHeadEmptyList(TermNode&) ynothrow;
 
 //! \return 移除项时 ReductionStatus::Retained ，否则 ReductionStatus::Clean。
 //@{
-//! \brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
+/*!
+\brief 规约为列表：对枝节点移除第一个子项，保留余下的子项作为列表。
+\sa ReduceBranchToList
+*/
 YF_API ReductionStatus
 ReduceToList(TermNode&) ynothrow;
 
 /*!
 \brief 规约为列表值：对枝节点移除第一个子项，保留余下的子项提升后作为列表的值。
-\sa LiftSubtermsToSelfSafe
+\sa ReduceBranchToListValue
 \since build 821
 */
 YF_API ReductionStatus
@@ -1299,7 +1320,7 @@ public:
 	支持的重定向项的宿主值的类型包括：
 	EnvironmentList ：环境列表；
 	observer_ptr<const Environment> 无所有权的重定向环境；
-	weak_ptr<Environment> 可能具有共享所有权的重定向环境；
+	EnvironmentReference 可能具有共享所有权的重定向环境；
 	shared_ptr<Environment> 具有共享所有权的重定向环境。
 	若重定向可能具有共享所有权的失败，则表示资源访问错误，如构成循环引用；
 		可能涉及未定义行为。
@@ -1371,6 +1392,40 @@ public:
 
 
 /*!
+\brief 环境引用。
+\since build 823
+
+可能共享所有权环境的引用。
+*/
+class YF_API EnvironmentReference
+{
+private:
+	weak_ptr<Environment> p_weak;
+	//! \brief 引用的锚对象指针。
+	shared_ptr<const void> p_anchor;
+
+public:
+	//! \brief 构造：使用指定的环境指针和此环境的锚对象指针。
+	EnvironmentReference(const shared_ptr<Environment>&);
+	//! \brief 构造：使用指定的环境指针和锚对象指针。
+	//@{
+	template<typename _tParam1, typename _tParam2>
+	EnvironmentReference(_tParam1&& arg1, _tParam2&& arg2)
+		: p_weak(yforward(arg1)), p_anchor(yforward(arg2))
+	{}
+	//@}
+	DefDeCopyMoveCtorAssignment(EnvironmentReference)
+
+	DefGetter(const ynothrow, const weak_ptr<Environment>&, Ptr, p_weak)
+	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
+		p_anchor)
+
+	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
+		ImplRet(p_weak.lock())
+};
+
+
+/*!
 \ingroup ThunkType
 \brief 项引用。
 \warning 非虚析构。
@@ -1382,21 +1437,20 @@ class YF_API TermReference
 {
 private:
 	ystdex::lref<TermNode> term_ref;
-
-public:
 	/*!
 	\brief 引用的锚对象指针。
-	\since build 821
+	\since build 823
 	*/
-	shared_ptr<const void> AnchorPtr{};
+	shared_ptr<const void> p_anchor{};
 
+public:
 	TermReference(TermNode& term)
 		: term_ref(term)
 	{}
 	//! \since build 821
 	template<typename _tParam, typename... _tParams>
 	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
-		: term_ref(term), AnchorPtr(yforward(arg), yforward(args)...)
+		: term_ref(term), p_anchor(yforward(arg), yforward(args)...)
 	{}
 	DefDeCopyCtor(TermReference)
 
@@ -1406,6 +1460,10 @@ public:
 		ImplRet(&x.term_ref.get() == &y.term_ref.get())
 
 	DefCvtMem(const ynothrow, TermNode&, term_ref)
+
+	//! \since build 823
+	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
+		p_anchor)
 
 	PDefH(TermNode&, get, ) const ynothrow
 		ImplRet(term_ref.get())
@@ -1635,9 +1693,9 @@ public:
 	PDefH(shared_ptr<Environment>, ShareRecord, ) const
 		ImplRet(GetRecordRef().shared_from_this())
 
-	PDefH(weak_ptr<Environment>, WeakenRecord, ) const
-		// TODO: Blocked. Use C++1z %weak_from_this and throw-expression.
-		ImplRet(make_weak(ShareRecord()))
+	//! \since build 823
+	PDefH(EnvironmentReference, WeakenRecord, ) const
+		ImplRet(ShareRecord())
 
 	friend PDefH(void, swap, ContextNode& x, ContextNode& y) ynothrow
 		ImplExpr(swap(x.p_record, y.p_record), swap(x.EvaluateLeaf,
@@ -1688,9 +1746,10 @@ struct EnvironmentSwitcher
 YF_API Reducer
 CombineActions(ContextNode&, Reducer&&, Reducer&&);
 
+//! \return ReductionStatus::Retrying 。
+//@{
 /*!
 \brief 异步规约当前和后继动作。
-\return ReductionStatus::Retrying 。
 \sa CombineActions
 \since build 821
 */
@@ -1698,10 +1757,25 @@ YF_API ReductionStatus
 RelayNext(ContextNode&, Reducer&&, Reducer&&);
 //@}
 
-//! \since build 821
+/*!
+\brief 异步规约指定动作和非空的当前动作。
+\since build 823
+\pre 断言： \tt ctx.Current 。
+*/
+inline PDefH(ReductionStatus, RelaySwitchedUnchecked, ContextNode& ctx,
+	Reducer&& cur)
+	ImplRet(YAssert(ctx.Current, "No action found to be the next action."),
+		RelayNext(ctx, std::move(cur), ctx.Switch()))
+
+/*!
+\brief 异步规约指定动作和当前动作。
+\sa RelaySwitchedUnchecked
+\since build 821
+*/
 inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx, Reducer&& cur)
-	ImplRet(ctx.Current ? RelayNext(ctx, std::move(cur), ctx.Switch())
+	ImplRet(ctx.Current ? RelaySwitchedUnchecked(ctx, std::move(cur))
 		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
+//@}
 
 /*!
 \brief 转移动作到当前动作及定界动作。

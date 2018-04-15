@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6753
+\version r6893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-04-05 22:19 +0800
+	2018-04-15 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,11 +37,16 @@ using namespace YSLib;
 namespace NPL
 {
 
-// NOTE: For exposition only. The code without TCO or thunk works without
-//	several guarantees in the specification. Use %RelaySwitched instead of
-//	%RelayNext as possible to be more friendly to TCO.
+// NOTE: The following options provide documented alternative implementations.
+//	They are for exposition only. The code without TCO or thunk works without
+//	several guarantees in the specification, so it is not conforming.
+
 #define YF_Impl_NPLA1_Enable_TCO true
+#define YF_Impl_NPLA1_Enable_TailRewriting true
 #define YF_Impl_NPLA1_Enable_Thunked true
+
+// NOTE: Use %RelaySwitched instead of %RelayNext as possible to be more
+//	friendly to TCO.
 
 //! \since build 820
 static_assert(!YF_Impl_NPLA1_Enable_TCO || YF_Impl_NPLA1_Enable_Thunked,
@@ -297,8 +302,8 @@ struct TCOAction final
 	mutable list<shared_ptr<Environment>> EnvPtrList{};
 	bool ReduceCombined = {};
 	//@}
-	//! \since build 821
-	list<weak_ptr<Environment>> DynEnvPtrList{};
+	//! \since build 823
+	vector<shared_ptr<const void>> DynamicAnchors{};
 
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
@@ -332,7 +337,7 @@ struct TCOAction final
 		// NOTE: The order here is significant. The environment in the guards
 		//	should be hold until lifting is completed.
 		while(!EnvPtrList.empty())
-			EnvPtrList.pop_back();
+			EnvPtrList.pop_front();
 		{
 			const auto egd(std::move(EnvGuard));
 		}
@@ -343,21 +348,6 @@ struct TCOAction final
 		if(ReduceNestedAsync)
 			ctx.SkipToNextEvaluation = true;
 		return res;
-	}
-
-	//! \since build 821
-	bool
-	CheckToRemove(const shared_ptr<Environment>& senv)
-	{
-		// XXX: What if too many unused weak pointer here?
-		for(auto i(DynEnvPtrList.begin()); i != DynEnvPtrList.end(); ++i)
-		{
-			if(i->expired())
-				DynEnvPtrList.erase(i);
-			else if(i->lock() == senv)
-				return {};
-		}
-		return true;
 	}
 };
 #	endif
@@ -386,13 +376,13 @@ ReduceChildrenOrderedAsync(TNIter first, TNIter last, ContextNode& ctx)
 {
 	if(first != last)
 	{
-		auto& term(*first);
+		auto& subterm(*first);
 
 		++first;
 		return RelaySwitched(ctx, [&, first, last]{
 			RelaySwitched(ctx, std::bind(ReduceChildrenOrderedAsync, first,
 				last, std::ref(ctx)));
-			return ReduceCheckedAsync(term, ctx);
+			return ReduceCheckedAsync(subterm, ctx);
 		});
 	}
 	return ReductionStatus::Clean;
@@ -419,6 +409,25 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, Reducer&& next)
 	return next();
 #endif
 }
+
+#if YF_Impl_NPLA1_Enable_Thunked
+#	if YF_Impl_NPLA1_Enable_TailRewriting
+//! \since build 823
+ReductionStatus
+ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
+{
+	YAssert(i != term.end(), "Invalid iterator found for sequence reduction.");
+	if(std::next(i) == term.end())
+	{
+		LiftTerm(term, *i);
+		return ReduceAgain(term, ctx);
+	}
+	return ReduceSubsequent(*i, ctx, [&, i]{
+		return ReduceSequenceOrderedAsync(term, ctx, term.erase(i));
+	});
+}
+#	endif
+#endif
 
 
 //! \since build 753
@@ -673,7 +682,7 @@ ReduceCheckedClosureImpl(TermNode& term, ContextNode& ctx, bool move,
 			else
 				p->LiftCallResult = true;
 		}
-		return RelaySwitched(ctx, std::move(next));
+		return RelaySwitchedUnchecked(ctx, std::move(next));
 	}
 	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, lift_result));
 #else
@@ -682,7 +691,7 @@ ReduceCheckedClosureImpl(TermNode& term, ContextNode& ctx, bool move,
 			std::bind(ReduceForClosureResult, std::ref(term), std::ref(ctx)));
 	// TODO: Optimize.
 	return ReduceSubsequent(term, ctx, [&]{
-		return ctx.LastResult;
+		return ctx.LastStatus;
 	});
 #endif
 }
@@ -714,28 +723,49 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 			if(p_saved)
 			{
 				auto& env_list(p->EnvPtrList);
+				auto i(env_list.begin());
 
-				if(!env_list.empty())
+				while(i != env_list.end())
 				{
-					const auto& p_back(env_list.back());
+					const auto& p_frame(*i);
 
-					// XXX: Needed for tail context in %eval form.
-					if(!p_back.unique())
-						env_list.pop_back();
-					else if(p_back->IsNotReferenced()
-						&& p->CheckToRemove(p_back)
-						&& MergeTCOFrames(Deref(p_back), *p_saved))
+					// NOTE: If the frame is hold elsewhere, it does not need
+					//	to be owned here.
+					if(!p_frame.unique())
+						i = env_list.erase(i);
+					else if(p_frame->IsNotReferenced()
+						&& MergeTCOFrames(Deref(p_frame), *p_saved))
 					{
-						p_saved->Parent = p_back->Parent;
-						env_list.pop_back();
+						auto& saved_parent(p_saved->Parent);
+						const auto compress([&](Environment* p_e) noexcept{
+							if(p_e == p_frame.get())
+							{
+								saved_parent = std::move(p_frame->Parent);
+								i = env_list.erase(i);
+							}
+						});
+
+						if(p_frame->Parent == saved_parent)
+							compress(p_frame.get());
+						else if(const auto p_wenv
+							= saved_parent.AccessPtr<EnvironmentReference>())
+							compress(p_wenv->Lock().get());
+						else if(const auto p_env
+							= saved_parent.AccessPtr<shared_ptr<Environment>>())
+							compress(p_env->get());
+						// TODO: Compress parent environment for more cases.
+						else
+							++i;
 					}
+					else
+						++i;
 				}
-				env_list.push_back(std::move(p_saved));
+				env_list.push_front(std::move(p_saved));
 			}
 		}
 		else
 			update_fused_act(*p);
-		return RelaySwitched(ctx, std::move(next_action));
+		return RelaySwitchedUnchecked(ctx, std::move(next_action));
 	}
 
 	TCOAction fused_act(ctx, term, {});
@@ -826,14 +856,15 @@ private:
 	ContextNode local_prototype;
 	/*!
 	\note 共享所有权用于检查循环引用。
-	\since build 790
+	\since build 823
 	\todo 优化。考虑使用区域推断代替。
 	*/
 	//@{
-	//! \brief 捕获静态环境作为父环境的指针，包含引入抽象时的静态环境。
-	weak_ptr<Environment> p_parent;
-	//! \brief 可选保持所有权的静态环境指针。
-	shared_ptr<Environment> p_static;
+	//! \brief 捕获静态环境作为父环境的引用，包含引入抽象时的静态环境。
+	EnvironmentReference parent;
+	bool owning_static;
+	//! \brief 可选保持所有权的静态环境指针或父环境锚对象指针。
+	shared_ptr<const void> p_static;
 	//@}
 	//! \brief 闭包求值构造。
 	shared_ptr<TermNode> p_closure;
@@ -851,9 +882,9 @@ public:
 		const ContextNode& ctx, TermNode& term, bool no_lift)
 		: eformal(std::move(ename)), p_formals((LiftToSelf(Deref(p_fm)),
 		std::move(p_fm))),
-		local_prototype(ctx, make_shared<Environment>()), p_parent(p_env),
-		p_static(owning ? std::move(p_env) : nullptr),
-		p_closure(share_move(term)), NoLifting(no_lift)
+		local_prototype(ctx, make_shared<Environment>()), parent(p_env),
+		owning_static(owning), p_static(owning ? std::move(p_env)
+		: p_env->Anchor()), p_closure(share_move(term)), NoLifting(no_lift)
 	{
 		CheckParameterTree(*p_formals);
 	}
@@ -884,7 +915,8 @@ public:
 			{
 #if YF_Impl_NPLA1_Enable_TCO
 				if(const auto p = ctx.Current.target<TCOAction>())
-					p->DynEnvPtrList.push_back(wenv);
+					if(const auto p_env = wenv.Lock())
+						p->DynamicAnchors.push_back(p_env->Anchor());
 #endif
 				ctx.GetBindingsRef().AddValue(eformal,
 					ValueObject(std::move(wenv)));
@@ -899,13 +931,12 @@ public:
 			ctx.Trace.Log(Debug, [&]{
 				return sfmt("Function called, with %ld shared term(s), %ld"
 					" %s shared static environment(s), %zu parameter(s).",
-					p_closure.use_count(), p_parent.use_count(),
-					p_static.use_count() != 0 ? "owning" : "nonowning",
-					p_formals->size());
+					p_closure.use_count(), parent.GetPtr().use_count(),
+					owning_static ? "owning" : "nonowning", p_formals->size());
 			});
 			// NOTE: Static environment is bound as base of local context by
 			//	setting parent environment pointer.
-			ctx.GetRecordRef().Parent = p_parent;
+			ctx.GetRecordRef().Parent = parent;
 			// TODO: Implement accurate lifetime analysis depending on
 			//	'p_closure.unique()'?
 			return RelayOnNextEnvironment(ctx, term, {}, *p_closure,
@@ -972,7 +1003,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 //	if(&p->Term.get() == &term)
 	{
 		update_fused_act(*p);
-		return RelaySwitched(ctx, std::move(call));
+		return RelaySwitchedUnchecked(ctx, std::move(call));
 	}
 
 	TCOAction fused_act(ctx, term, {});
@@ -1124,7 +1155,7 @@ ReduceAgain(TermNode& term, ContextNode& ctx)
 //	if(&p->Term.get() == &term)
 	{
 		update_fused_act(*p);
-		return RelaySwitched(ctx, std::move(reduce_again));
+		return RelaySwitchedUnchecked(ctx, std::move(reduce_again));
 	}
 
 	TCOAction fused_act(ctx, term, {});
@@ -1261,31 +1292,34 @@ ReduceOnce(TermNode& term, ContextNode& ctx)
 ReductionStatus
 ReduceOrdered(TermNode& term, ContextNode& ctx)
 {
-	if(IsBranch(term))
-	{
 #if YF_Impl_NPLA1_Enable_Thunked
-		return RelayNext(ctx, [&]{
-			return ReduceChildrenOrdered(term, ctx);
-		}, std::bind([&](Reducer& act){
-			RelaySwitched(ctx, std::move(act));
-			if(term.size() > 1)
-				LiftTerm(term, *term.rbegin());
-			else
-				term.Value = ValueToken::Unspecified;
-			return CheckNorm(term);
-		}, ctx.Switch()));
-#else
-		// NOTE: This does not support PTC.
-		const auto res(ReduceChildrenOrdered(term, ctx));
-
-		if(term.size() > 1)
+#	if YF_Impl_NPLA1_Enable_TailRewriting
+	if(!term.empty())
+		return ReduceSequenceOrderedAsync(term, ctx, term.begin());
+	term.Value = ValueToken::Unspecified;
+	return ReductionStatus::Retained;
+#	else
+	return RelayNext(ctx, [&]{
+		return ReduceChildrenOrdered(term, ctx);
+	}, std::bind([&](Reducer& act){
+		RelaySwitched(ctx, std::move(act));
+		if(!term.empty())
 			LiftTerm(term, *term.rbegin());
 		else
 			term.Value = ValueToken::Unspecified;
-		return res;
+		return CheckNorm(term);
+	}, ctx.Switch()));
+#	endif
+#else
+	// NOTE: This does not support PTC.
+	const auto res(ReduceChildrenOrdered(term, ctx));
+
+	if(!term.empty())
+		LiftTerm(term, *term.rbegin());
+	else
+		term.Value = ValueToken::Unspecified;
+	return res;
 #endif
-	}
-	return ReductionStatus::Clean;
 }
 
 ReductionStatus
@@ -1348,12 +1382,12 @@ TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
 }
 
 ReductionStatus
-ReplaceSeparatedChildren(TermNode& term, const ValueObject& name,
+ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim)
 {
 	if(std::find_if(term.begin(), term.end(),
 		ystdex::bind1(HasValue<ValueObject>, std::ref(delim))) != term.end())
-		term = TransformForSeparator(term, name, delim,
+		term = TransformForSeparator(term, pfx, delim,
 			TokenValue(term.GetName()));
 	return ReductionStatus::Clean;
 }
@@ -1392,7 +1426,7 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 		return ReductionStatus::Retrying;
 	}, std::bind([&](Reducer& act){
 		RelaySwitched(ctx, std::move(act));
-		YAssert(IsBranch(term), "Invalid state found.");
+		AssertBranch(term, "Invalid state found.");
 		// NOTE: Matching function calls.
 		// FIXME: Multiple wrapped handlers are not sufficiently thunked.
 		return Handler(term, ctx);
@@ -1400,7 +1434,7 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 #else
 	// NOTE: This does not support PTC.
 	ReduceArguments(term, ctx);
-	YAssert(IsBranch(term), "Invalid state found.");
+	AssertBranch(term, "Invalid state found.");
 	// NOTE: Matching function calls.
 	return Handler(term, ctx);
 #endif
@@ -1408,15 +1442,12 @@ StrictContextHandler::operator()(TermNode& term, ContextNode& ctx) const
 
 
 void
-RegisterSequenceContextTransformer(EvaluationPasses& passes, ContextNode& node,
-	const TokenValue& name, const ValueObject& delim, bool ordered)
+RegisterSequenceContextTransformer(EvaluationPasses& passes,
+	const ValueObject& delim, bool ordered)
 {
-	passes += ystdex::bind1(ReplaceSeparatedChildren, name, delim);
-	RegisterForm(node, name,
-		ordered ? ReduceOrdered : [](TermNode& term, ContextNode& ctx){
-		ReduceChildren(term, ctx);
-		return ReductionStatus::Retained;
-	});
+	passes += ystdex::bind1(ReplaceSeparatedChildren,
+		ordered ? ContextHandler(Forms::Sequence)
+		: ContextHandler(StrictContextHandler(ReduceBranchToList)), delim);
 }
 
 
@@ -1576,8 +1607,8 @@ ResolveName(const ContextNode& ctx, string_view id)
 pair<shared_ptr<Environment>, bool>
 ResolveEnvironment(ValueObject& vo)
 {
-	if(const auto p = vo.AccessPtr<weak_ptr<Environment>>())
-		return {p->lock(), {}};
+	if(const auto p = vo.AccessPtr<EnvironmentReference>())
+		return {p->Lock(), {}};
 	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
 		return {*p, true};
 	// TODO: Merge with %Environment::CheckParent?
@@ -1954,6 +1985,15 @@ void
 VauWithEnvironmentRef(TermNode& term, ContextNode& ctx)
 {
 	VauWithEnvironmentImpl(term, ctx, true);
+}
+
+
+ReductionStatus
+Sequence(TermNode& term, ContextNode& ctx)
+{
+	Retain(term);
+	RemoveHead(term);
+	return ReduceOrdered(term, ctx);
 }
 
 
