@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1736
+\version r1762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-04-01 20:02 +0800
+	2018-04-15 22:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -393,7 +393,7 @@ IsNPLAExtendedLiteral(string_view id) ynothrowv
 
 		return (id.size() > 1 && IsNPLAExtendedLiteralNonDigitPrefix(f)
 			&& id.find_first_not_of("+-") != string_view::npos)
-			|| std::isdigit(f);
+			|| ystdex::isdigit(f);
 	}
 	return {};
 }
@@ -519,6 +519,23 @@ LiftToOther(TermNode& term, TermNode& tm)
 
 
 ReductionStatus
+ReduceBranchToList(TermNode& term) ynothrowv
+{
+	AssertBranch(term);
+	RemoveHead(term);
+	return ReductionStatus::Retained;
+}
+
+ReductionStatus
+ReduceBranchToListValue(TermNode& term) ynothrowv
+{
+	RemoveHead(term);
+	LiftSubtermsToSelfSafe(term);
+	return ReductionStatus::Retained;
+}
+
+
+ReductionStatus
 ReduceHeadEmptyList(TermNode& term) ynothrow
 {
 	if(term.size() > 1 && IsEmpty(Deref(term.begin())))
@@ -529,15 +546,14 @@ ReduceHeadEmptyList(TermNode& term) ynothrow
 ReductionStatus
 ReduceToList(TermNode& term) ynothrow
 {
-	return IsBranch(term) ? (RemoveHead(term), ReductionStatus::Retained)
-		: ReductionStatus::Clean;
+	return IsBranch(term) ? ReduceBranchToList(term) : ReductionStatus::Clean;
 }
 
 ReductionStatus
 ReduceToListValue(TermNode& term) ynothrow
 {
-	return IsBranch(term) ? (RemoveHead(term), LiftSubtermsToSelfSafe(term),
-		ReductionStatus::Retained) : ReductionStatus::Clean;
+	return IsBranch(term) ? ReduceBranchToListValue(term)
+		: ReductionStatus::Clean;
 }
 
 
@@ -578,9 +594,9 @@ RedirectParent(const ValueObject& parent, string_view id)
 		}
 	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
 		return parent.GetObject<observer_ptr<const Environment>>();
-	if(tp == ystdex::type_id<weak_ptr<Environment>>())
+	if(tp == ystdex::type_id<EnvironmentReference>())
 		return RedirectToShared(id,
-			parent.GetObject<weak_ptr<Environment>>().lock());
+			parent.GetObject<EnvironmentReference>().Lock());
 	if(tp == ystdex::type_id<shared_ptr<Environment>>())
 		return RedirectToShared(id,
 			parent.GetObject<shared_ptr<Environment>>());
@@ -600,7 +616,7 @@ Environment::CheckParent(const ValueObject& vo)
 			CheckParent(env);
 	}
 	else if(YB_UNLIKELY(tp != ystdex::type_id<observer_ptr<const Environment>>()
-		&& tp != ystdex::type_id<weak_ptr<Environment>>()
+		&& tp != ystdex::type_id<EnvironmentReference>()
 		&& tp != ystdex::type_id<shared_ptr<Environment>>()))
 		ThrowForInvalidType(tp);
 }
@@ -680,6 +696,12 @@ Environment::ThrowForInvalidType(const ystdex::type_info& tp)
 	throw NPLException(ystdex::sfmt("Invalid environment type '%s' found.",
 		tp.name()));
 }
+
+
+EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
+	// TODO: Blocked. Use C++1z %weak_from_this and throw-expression?
+	: EnvironmentReference(p_env, p_env ? p_env->Anchor() : nullptr)
+{}
 
 
 ContextNode::ContextNode(const ContextNode& ctx,

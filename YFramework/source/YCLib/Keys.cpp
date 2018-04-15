@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1249
+\version r1252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2016-07-11 18:07 +0800
+	2018-04-15 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1134,7 +1134,8 @@ switch_key(char s) ynothrow
 {
 	using namespace KeyCodes;
 
-	return std::isalpha(s) && FetchLockState(CapsLock) ? s ^ 0x20 : s;
+	// TODO: Extract as 'ystdex::isalpha'?
+	return s > 0 && std::isalpha(s) && FetchLockState(CapsLock) ? s ^ 0x20 : s;
 }
 #endif
 

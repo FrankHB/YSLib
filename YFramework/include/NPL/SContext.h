@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1537
+\version r1546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2017-03-12 12:40 +0800
+	2017-04-13 10:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,6 +82,16 @@ inline PDefH(ValueNode&, MapToValueNode, ValueNode& node)
 inline PDefH(const ValueNode&, MapToValueNode, const ValueNode& node)
 	ImplRet(node)
 //@}
+
+
+/*!
+\brief 断言枝节点。
+\pre 断言：参数指定的项是枝节点。
+\since build 761
+*/
+inline PDefH(void, AssertBranch, const TermNode& term,
+	const char* msg = "Invalid term found.") ynothrowv
+	ImplExpr(yunused(msg), YAssert(IsBranch(term), msg))
 
 
 /*!
@@ -191,7 +201,7 @@ Analyze(TermNode&, const TokenList&);
 YF_API void
 Analyze(TermNode&, const Session&);
 //@}
-//! \note 调用 ADL \c Analyze 分析节点。
+//! \note 调用 ADL Analyze 分析节点。
 template<typename _type>
 TermNode
 Analyze(const _type& arg)
