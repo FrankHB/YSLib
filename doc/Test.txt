@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r279
+\version r303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2017-04-06 23:43 +0800
+	2018-05-08 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,9 +60,13 @@ DS debug 配置限制，参见 @5.1.1.2 。
 项目起始添加 DS 平台第一类支持。
 build 132 区分 DS 平台的 debug 和 release 配置的第一类支持。
 build 299 添加 MinGW32 的 debug 和 release 配置的第一类支持。
-build 300 降低 DS 平台的 debug 和 release 配置为第二类支持。
-build 492 添加 Android 的 debug 和 release 配置的第二类待定支持。
+build 304 降低 DS 平台的 debug 和 release 配置分别为第三类和第二类支持。
+build 308 提升 DS 和 MinGW32 平台的 debug 和 release 配置为第一类支持。
+build 457 降低 DS 平台的 debug 和 release 配置为第二类支持。
+build 492 添加 Android 的 debug 配置的第二类待定支持。
+build 494 添加 Android 的 release 配置的第二类待定支持。
 build 598 降低 DS 平台的 debug 配置为第三类支持。
+build 824 降低 Android 平台的 debug 和 release 配置为第三类待定支持。
 
 @1.4.3 非正式支持的平台配置：
 以下平台不保证存在可通过可构建和正确性测试的配置，但不否定未来计划支持的可能性：
@@ -72,9 +76,23 @@ build 561 起 OS X 平台（未完整实现）被保留平台占位符。
 build 561 起 MSYS2 平台为区分 MinGW32 被保留平台占位符。
 
 @1.4.4 最小构建数：
-提交版本的最小构建数 X ([Documentation::ProjectRules @@3.2.1]) 和配置相关。
-对现有配置， A(DS) = 4 ； A(MinGW32) = 3 ； A(Android) = 3 ； 所有 B(i) 默认为 2 （ debug 和 release 配置） 。因此 X = 12 。
-因为 DS debug 的第一类支持被移除，自 b598 起 X = 11 。
+自 build 308 起，提交版本的最小构建数 X ([Documentation::ProjectRules @@3.2.1]) 和配置相关。
+当前正式支持([Documentation::ProjectRules @@2.1.1]) 的平台集合：
+I = {DS, MinGW32, Android}
+对各个正式支持的平台，构建数：
+A(DS) = 4 ，非第一类支持取 2 ；
+A(MinGW32) = 3 ；
+A(Android) = 3 ，非第一类支持取 1。
+所有 B(i) 默认为 2 （ debug 和 release 配置） 。
+build 132 起 X = 8 。
+build 299 起 ΣA(i) = 7 ， ΣB(i) = 4 ， X = 11 。实际最小构建数为 13 。
+build 304 起 ΣA(i) = 5 ， ΣB(i) = 3 ， X = 8 。
+build 308 起 ΣA(i) = 7 ， ΣB(i) = 4 ， X = 11 。实际使用更严格的 X = card(I) * 8 = 16 。
+build 457 起 ΣA(i) = 5 ， ΣB(i) = 4 ， X = 9 。
+build 492 起 ΣA(i) = 6 ， ΣB(i) = 5 ， X = 11 。
+build 494 起 ΣA(i) = 6 ， ΣB(i) = 6 ， X = 12 。
+build 598 起 ΣA(i) = 6 ， ΣB(i) = 5 ， X = 11 。
+build 824 起 ΣA(i) = 6 ， ΣB(i) = 3 ， X = 9 。
 
 @2 测试项目 Test ：
 测试项目 Test 位于目录 /test ，依赖 YBase::Test 和 Tools::Scripts 的构建脚本。

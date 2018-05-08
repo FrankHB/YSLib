@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3488
+\version r3496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-04-15 22:32 +0800
+	2018-04-30 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "YModules.h"
 #include YFM_NPL_SContext // for NPLTag, ValueNode, TermNode, string,
 //	LoggedEvent, ystdex::isdigit, ystdex::equality_comparable, ystdex::lref,
-//	shared_ptr, ystdex::type_info, weak_ptr, ystdex::exchange;
+//	shared_ptr, ystdex::type_info, weak_ptr, ystdex::get_equal_to,
+//	ystdex::exchange;
 #include <ystdex/base.h> // for ystdex::derived_entity;
 #include YFM_YSLib_Core_YEvent // for ystdex::indirect, ystdex::fast_any_of,
 //	YSLib::GHEvent, YSLib::GEvent, YSLib::GCombinerInvoker,
@@ -1398,6 +1399,7 @@ public:
 可能共享所有权环境的引用。
 */
 class YF_API EnvironmentReference
+	: private ystdex::equality_comparable<EnvironmentReference>
 {
 private:
 	weak_ptr<Environment> p_weak;
@@ -1422,6 +1424,11 @@ public:
 
 	PDefH(shared_ptr<Environment>, Lock, ) const ynothrow
 		ImplRet(p_weak.lock())
+
+	//! \since build 824
+	friend PDefHOp(bool, ==, const EnvironmentReference& x,
+		const EnvironmentReference& y) ynothrow
+		ImplRet(x.p_weak.lock() == y.p_weak.lock())
 };
 
 
@@ -1457,7 +1464,7 @@ public:
 	DefDeCopyAssignment(TermReference)
 
 	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
-		ImplRet(&x.term_ref.get() == &y.term_ref.get())
+		ImplRet(ystdex::get_equal_to<>()(x.term_ref, y.term_ref))
 
 	DefCvtMem(const ynothrow, TermNode&, term_ref)
 

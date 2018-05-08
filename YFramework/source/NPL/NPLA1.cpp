@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r6892
+\version r7078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-04-15 23:47 +0800
+	2018-04-30 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,9 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for ystdex::bind1, shared_ptr, lref, unordered_map,
-//	ystdex::pvoid, ystdex::call_value_or, ystdex::as_const, pair;
+#include YFM_NPL_NPLA1 // for ystdex::bind1, std::make_move_iterator,
+//	ystdex::id, shared_ptr, lref, unordered_map, ystdex::ref_eq,
+//	ystdex::call_value_or, ystdex::as_const, pair, ystdex::equality_comparable;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::dismiss,
 //	ystdex::swap_guard, ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -165,26 +166,74 @@ TransformNodeSequence(const TermNode& term, NodeMapper mapper, NodeMapper
 namespace
 {
 
-//! \since build 736
-template<typename _func>
+//! \since build 824
+//@{
+template<typename _func, class _tTerm>
 TermNode
-TransformForSeparatorTmpl(_func f, const TermNode& term, const ValueObject& pfx,
+TransformForSeparatorCore(_func trans, _tTerm&& term, const ValueObject& pfx,
 	const ValueObject& delim, const string& name)
 {
 	using namespace std::placeholders;
+	using it_t = decltype(std::make_move_iterator(term.end()));
 	// NOTE: Explicit type 'TermNode' is intended.
-	TermNode res(AsNode(name, term.Value));
+	TermNode res(AsNode(name, yforward(term).Value));
 
 	if(IsBranch(term))
 	{
 		// NOTE: Explicit type 'TermNode' is intended.
 		res += TermNode(AsIndexNode(res, pfx));
-		ystdex::split(term.begin(), term.end(),
-			ystdex::bind1(HasValue<ValueObject>, std::ref(delim)),
-			std::bind(f, std::ref(res), _1, _2));
+		ystdex::split(std::make_move_iterator(term.begin()),
+			std::make_move_iterator(term.end()), ystdex::bind1(
+			HasValue<ValueObject>, std::ref(delim)), [&](it_t b, it_t e){
+				const auto add([&](TermNode& node, it_t i){
+					const auto& k(MakeIndex(node));
+
+					node.AddChild(k, trans(Deref(i), k));
+				});
+
+				// XXX: The implementation is depended on the fact that
+				//	%TermNode is simply an alias of %ValueNode currently. It
+				//	should be optimized.
+				if(std::distance(b, e) == 1)
+					// XXX: This guarantees a single element is converted with
+					//	no redundant parentheses according to NPLA1 syntax,
+					//	consistent to the trivial reduction for term with one
+					//	subnode in %ReduceOnce.
+					add(res, b);
+				else
+				{
+					// NOTE: Explicit type 'TermNode' is intended.
+					TermNode child(AsIndexNode(res));
+
+					while(b != e)
+						add(child, b++);
+					res += std::move(child);
+				}
+			});
 	}
 	return res;
 }
+
+template<class _tTerm>
+TermNode
+TransformForSeparatorTmpl(_tTerm&& term, const ValueObject& pfx,
+	const ValueObject& delim, const TokenValue& name)
+{
+	return TransformForSeparatorCore([&](_tTerm&& tm, const string&) ynothrow{
+		return yforward(tm);
+	}, yforward(term), pfx, delim, name);
+}
+
+template<class _tTerm>
+TermNode
+TransformForSeparatorRecursiveTmpl(_tTerm&& term, const ValueObject& pfx,
+	const ValueObject& delim, const TokenValue& name)
+{
+	return TransformForSeparatorCore([&](_tTerm&& tm, const string& k){
+		return TransformForSeparatorRecursiveTmpl(yforward(tm), pfx, delim, k);
+	}, yforward(term), pfx, delim, name);
+}
+//@}
 
 //! \since build 808
 bool
@@ -297,7 +346,8 @@ struct TCOAction final
 	//@{
 	bool ReduceNestedAsync = {};
 	bool LiftCallResult = {};
-	mutable stack<ystdex::any> XGuards{};
+	//! \since build 824
+	mutable vector<ValueObject> XGuards{};
 	mutable EnvironmentGuard EnvGuard;
 	mutable list<shared_ptr<Environment>> EnvPtrList{};
 	bool ReduceCombined = {};
@@ -342,12 +392,26 @@ struct TCOAction final
 			const auto egd(std::move(EnvGuard));
 		}
 		while(!XGuards.empty())
-			XGuards.pop();
+			XGuards.pop_back();
 		if(ReduceCombined)
 			NormalizeTerm(Term, res);
 		if(ReduceNestedAsync)
 			ctx.SkipToNextEvaluation = true;
 		return res;
+	}
+
+	//! \since build 824
+	lref<const ContextHandler>
+	AddXGuard(ContextHandler&& h)
+	{
+		return [&]() -> const ValueObject&{
+
+			for(const auto& gd : XGuards)
+				if(gd == h)
+					return ystdex::as_const(gd);
+			XGuards.push_back(std::move(h));
+			return ystdex::as_const(XGuards.back());
+		}().GetObject<ContextHandler>();
 	}
 };
 #	endif
@@ -410,6 +474,14 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, Reducer&& next)
 #endif
 }
 
+//! \since build 824
+ReductionStatus
+ReduceAgainLifted(TermNode& term, ContextNode& ctx, TermNode& tm)
+{
+	LiftTerm(term, tm);
+	return ReduceAgain(term, ctx);
+}
+
 #if YF_Impl_NPLA1_Enable_Thunked
 #	if YF_Impl_NPLA1_Enable_TailRewriting
 //! \since build 823
@@ -417,12 +489,8 @@ ReductionStatus
 ReduceSequenceOrderedAsync(TermNode& term, ContextNode& ctx, TNIter i)
 {
 	YAssert(i != term.end(), "Invalid iterator found for sequence reduction.");
-	if(std::next(i) == term.end())
-	{
-		LiftTerm(term, *i);
-		return ReduceAgain(term, ctx);
-	}
-	return ReduceSubsequent(*i, ctx, [&, i]{
+	return std::next(i) == term.end() ? ReduceAgainLifted(term, ctx, *i)
+		: ReduceSubsequent(*i, ctx, [&, i]{
 		return ReduceSequenceOrderedAsync(term, ctx, term.erase(i));
 	});
 }
@@ -439,13 +507,8 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 	auto i(term.begin());
 
 	if(++i != term.end())
-	{
-		if(std::next(i) == term.end())
-		{
-			LiftTerm(term, *i);
-			return ReduceAgain(term, ctx);
-		}
-		return ReduceSubsequent(*i, ctx, [&, i, is_and]{
+		return std::next(i) == term.end() ? ReduceAgainLifted(term, ctx, *i)
+			: ReduceSubsequent(*i, ctx, [&, i, is_and]{
 			if(ExtractBool(*i, is_and))
 				term.Remove(i);
 			else
@@ -455,7 +518,6 @@ AndOr(TermNode& term, ContextNode& ctx, bool is_and)
 			}
 			return ReduceAgain(term, ctx);
 		});
-	}
 	term.Value = is_and;
 	return ReductionStatus::Clean;
 }
@@ -636,23 +698,6 @@ CheckEnvFormal(const TermNode& eterm)
 	return {};
 }
 
-#if YF_Impl_NPLA1_Enable_TCO
-//! \since build 821
-bool
-MergeTCOFrames(Environment& parent, Environment& saved)
-{
-	// TODO: Make the frames reused as possible.
-	// TODO: Allow not pinned objects?
-	// XXX: Dynamic environment can be lost as lifetime
-	//	of weak pointer is not guaranteed.
-	for(const auto& binding : saved.GetMapRef())
-		// XXX: Non-trivially destructible objects is treated same.
-		// NOTE: Redirection is not needed here.
-		parent.Remove(binding.GetName(), true);
-	return parent.GetMapRef().empty();
-}
-#endif
-
 //! \since build 822
 //@{
 ReductionStatus
@@ -724,35 +769,51 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 			{
 				auto& env_list(p->EnvPtrList);
 				auto i(env_list.begin());
+				const auto erase_frame([&]{
+					i = env_list.erase(i);
+				});
 
 				while(i != env_list.end())
 				{
-					const auto& p_frame(*i);
+					auto& frame(Deref(*i));
 
 					// NOTE: If the frame is hold elsewhere, it does not need
 					//	to be owned here.
-					if(!p_frame.unique())
-						i = env_list.erase(i);
-					else if(p_frame->IsNotReferenced()
-						&& MergeTCOFrames(Deref(p_frame), *p_saved))
+					if(!i->unique())
+						erase_frame();
+					else if(frame.IsNotReferenced() && [&]{
+						// TODO: Make the frames reused as possible.
+						// TODO: Allow not pinned objects?
+						// XXX: Dynamic environment can be lost as lifetime
+						//	of weak pointer is not guaranteed.
+						for(const auto& binding : p_saved->GetMapRef())
+							// XXX: Non-trivially destructible objects is
+							//	treated same.
+							// NOTE: Redirection is not needed here.
+							frame.Remove(binding.GetName(), true);
+						return frame.GetMapRef().empty();
+					}())
 					{
 						auto& saved_parent(p_saved->Parent);
-						const auto compress([&](Environment* p_e) noexcept{
-							if(p_e == p_frame.get())
-							{
-								saved_parent = std::move(p_frame->Parent);
-								i = env_list.erase(i);
-							}
+						const auto compress([&]() ynoexcept{
+							saved_parent = std::move(frame.Parent);
+							erase_frame();
+						});
+						const auto compress_eq([&](Environment* p_e) ynoexcept{
+							if(p_e == i->get())
+								compress();
+							else
+								++i;
 						});
 
-						if(p_frame->Parent == saved_parent)
-							compress(p_frame.get());
+						if(frame.Parent == saved_parent)
+							compress();
 						else if(const auto p_wenv
 							= saved_parent.AccessPtr<EnvironmentReference>())
-							compress(p_wenv->Lock().get());
+							compress_eq(p_wenv->Lock().get());
 						else if(const auto p_env
 							= saved_parent.AccessPtr<shared_ptr<Environment>>())
-							compress(p_env->get());
+							compress_eq(p_env->get());
 						// TODO: Compress parent environment for more cases.
 						else
 							++i;
@@ -835,6 +896,7 @@ EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 
 //! \since build 767
 class VauHandler final
+	: private ystdex::equality_comparable<VauHandler>
 {
 private:
 	/*!
@@ -884,7 +946,8 @@ public:
 		std::move(p_fm))),
 		local_prototype(ctx, make_shared<Environment>()), parent(p_env),
 		owning_static(owning), p_static(owning ? std::move(p_env)
-		: p_env->Anchor()), p_closure(share_move(term)), NoLifting(no_lift)
+		: p_env->Anchor()), p_closure(share_move(ystdex::exchange(term,
+		TermNode(NoContainer, term.GetName())))), NoLifting(no_lift)
 	{
 		CheckParameterTree(*p_formals);
 	}
@@ -960,6 +1023,16 @@ public:
 				ThrowInvalidSymbolType(term, "parameter tree node");
 		}
 	}
+
+	//! \since build 824
+	friend bool
+	operator==(const VauHandler& x, const VauHandler& y)
+	{
+		return x.eformal == y.eformal && x.p_formals == y.p_formals
+			&& ystdex::ref_eq<>()(x.local_prototype, y.local_prototype)
+			&& x.parent == y.parent && x.owning_static == y.owning_static
+			&& x.p_static == y.p_static && x.NoLifting == y.NoLifting;
+	}
 };
 
 
@@ -988,14 +1061,20 @@ ReductionStatus
 CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	_tParams&&... args)
 {
+	static_assert(sizeof...(args) < 2, "Unsupported owner arguments found.");
 #if YF_Impl_NPLA1_Enable_Thunked
-	auto call(std::bind(std::ref(h), std::ref(term), std::ref(ctx)));
 #	if YF_Impl_NPLA1_Enable_TCO
+	lref<const ContextHandler> h_ref(h);
 	const auto update_fused_act([&](TCOAction& fused_act){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
-		yunseq(0, (fused_act.XGuards.push(std::forward<_tParams>(args)), 0)...);
+		yunseq(0,
+			(h_ref = fused_act.AddXGuard(std::forward<_tParams>(args)), 0)...);
 		fused_act.ReduceCombined = true;
+	});
+
+	const auto get_next([&]{
+		return std::bind(h_ref, std::ref(term), std::ref(ctx));
 	});
 
 	if(const auto p = ctx.Current.target<TCOAction>())
@@ -1003,15 +1082,15 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 //	if(&p->Term.get() == &term)
 	{
 		update_fused_act(*p);
-		return RelaySwitchedUnchecked(ctx, std::move(call));
+		return RelaySwitchedUnchecked(ctx, get_next());
 	}
 
 	TCOAction fused_act(ctx, term, {});
 
 	update_fused_act(fused_act);
-	return RelayNext(ctx, std::move(call), std::move(fused_act));
+	return RelayNext(ctx, get_next(), std::move(fused_act));
 #	else
-	return RelayNext(ctx, std::move(call),
+	return RelayNext(ctx, std::bind(std::ref(h), std::ref(term), std::ref(ctx)),
 		std::bind([&](Reducer& act, const _tParams&...){
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		RelaySwitched(ctx, std::move(act));
@@ -1357,28 +1436,27 @@ TermNode
 TransformForSeparator(const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const TokenValue& name)
 {
-	return TransformForSeparatorTmpl([&](TermNode& res, TNCIter b, TNCIter e){
-		// NOTE: Explicit type 'TermNode' is intended.
-		TermNode child(AsIndexNode(res));
-
-		while(b != e)
-		{
-			child.emplace(b->GetContainer(), MakeIndex(child), b->Value);
-			++b;
-		}
-		res += std::move(child);
-	}, term, pfx, delim, name);
+	return TransformForSeparatorTmpl(term, pfx, delim, name);
+}
+TermNode
+TransformForSeparator(TermNode&& term, const ValueObject& pfx,
+	const ValueObject& delim, const TokenValue& name)
+{
+	return TransformForSeparatorTmpl(std::move(term), pfx, delim, name);
 }
 
 TermNode
 TransformForSeparatorRecursive(const TermNode& term, const ValueObject& pfx,
 	const ValueObject& delim, const TokenValue& name)
 {
-	return TransformForSeparatorTmpl([&](TermNode& res, TNCIter b, TNCIter e){
-		while(b != e)
-			res += TransformForSeparatorRecursive(*b++, pfx, delim,
-				MakeIndex(res));
-	}, term, pfx, delim, name);
+	return TransformForSeparatorRecursiveTmpl(term, pfx, delim, name);
+}
+TermNode
+TransformForSeparatorRecursive(TermNode&& term, const ValueObject& pfx,
+	const ValueObject& delim, const TokenValue& name)
+{
+	return
+		TransformForSeparatorRecursiveTmpl(std::move(term), pfx, delim, name);
 }
 
 ReductionStatus
@@ -1387,7 +1465,7 @@ ReplaceSeparatedChildren(TermNode& term, const ValueObject& pfx,
 {
 	if(std::find_if(term.begin(), term.end(),
 		ystdex::bind1(HasValue<ValueObject>, std::ref(delim))) != term.end())
-		term = TransformForSeparator(term, pfx, delim,
+		term = TransformForSeparator(std::move(term), pfx, delim,
 			TokenValue(term.GetName()));
 	return ReductionStatus::Clean;
 }
@@ -1559,16 +1637,17 @@ ReduceCombined(TermNode& term, ContextNode& ctx)
 #if YF_Impl_NPLA1_Enable_Thunked
 		{
 #	if YF_Impl_NPLA1_Enable_TCO
+			return CombinerReturnThunk(*p_handler, term, ctx,
+				std::move(*p_handler));
+#	else
 			// TODO: Optimize for performance using context-dependent store?
 			// TODO: This should ideally be a member of handler. However, it
-			//	makes no sense before %ContextHandler overloads for
+			//	makes no sense before allowing %ContextHandler overload for
 			//	ref-qualifier '&&'.
-			auto p(make_unique<ContextHandler>(std::move(*p_handler)));
-#	else
 			auto p(share_move(*p_handler));
-#	endif
 
 			return CombinerReturnThunk(*p, term, ctx, std::move(p));
+#	endif
 		}
 #else
 			return CombinerReturnThunk(ContextHandler(std::move(*p_handler)),
@@ -1939,12 +2018,8 @@ If(TermNode& term, ContextNode& ctx)
 
 			if(!ExtractBool(*j, true))
 				++j;
-			if(++j != term.end())
-			{
-				LiftTerm(term, *j);
-				return ReduceAgain(term, ctx);
-			}
-			return ReductionStatus::Clean;
+			return ++j != term.end() ? ReduceAgainLifted(term, ctx, *j)
+				: ReductionStatus::Clean;
 		});
 	}
 	else

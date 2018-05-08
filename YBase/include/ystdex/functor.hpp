@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r851
+\version r881
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2017-05-18 09:41 +0800
+	2018-04-30 18:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,9 @@
 #ifndef YB_INC_ystdex_functor_hpp_
 #define YB_INC_ystdex_functor_hpp_ 1
 
-#include "ref.hpp" // for enable_if_t, is_detected, ystdex::constfn_addressof,
-//	not_, or_, is_reference_wrapper, and_, std::greater, std::less,
-//	std::greater_equal, std::less_equal, addrof_t, indirect_t;
+#include "ref.hpp" // for <functional>, enable_if_t, is_detected,
+//	ystdex::constfn_addressof, not_, or_, is_reference_wrapper, and_,
+//	ystdex::addrof_t, ystdex::indirect_t;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
 
@@ -237,18 +237,8 @@ struct is_equal
 	//@}
 };
 
-//! \brief 引用相等关系仿函数。
-template<typename _type>
-struct ref_eq
-{
-	yconstfn bool
-	operator()(const _type& _x, const _type& _y) const
-	{
-		return &_x == &_y;
-	}
-};
-
-// NOTE: There is 'constexpr' in WG21 N3936; but it is in ISO/IEC 14882:2014.
+// NOTE: There is no 'constexpr' in WG21 N3936; but it is in ISO/IEC 14882:2014
+//	and drafts later.
 #define YB_Impl_Functor_Ops_Primary(_n, _tRet, _using_stmt, _expr, ...) \
 	template<typename _type = void> \
 	struct _n \
@@ -293,7 +283,7 @@ struct ref_eq
 		} \
 	};
 
-#define YB_Impl_Functor_Ops_using(_tRet) using second_argument_type = _tRet;
+#define YB_Impl_Functor_Ops_using(_type2) using second_argument_type = _type2;
 
 #define YB_Impl_Functor_Ops1(_n, _op, _tRet) \
 	YB_Impl_Functor_Ops_Primary(_n, _tRet, , _op x, const _type& x) \
@@ -301,9 +291,8 @@ struct ref_eq
 	YB_Impl_Functor_Ops_Spec(_n, typename _type, _type&& x, _op yforward(x))
 
 #define YB_Impl_Functor_Ops2(_n, _op, _tRet) \
-	YB_Impl_Functor_Ops_Primary(_n, _tRet, \
-		YB_Impl_Functor_Ops_using(_tRet), x _op y, const _type& x, \
-		const _type& y) \
+	YB_Impl_Functor_Ops_Primary(_n, _tRet, YB_Impl_Functor_Ops_using(_type), \
+		x _op y, const _type& x, const _type& y) \
 	\
 	YB_Impl_Functor_Ops_Spec(_n, typename _type1 YPP_Comma typename \
 		_type2, _type1&& x YPP_Comma _type2&& y, yforward(x) _op yforward(y))
@@ -438,6 +427,19 @@ YB_Impl_Functor_Ops1(addrof, &, addrof_t<const _type&>)
 
 //! \brief 一元 * 操作。
 YB_Impl_Functor_Ops1(indirect, *, indirect_t<const _type&>)
+
+//! \brief 引用等价关系仿函数。
+//@{
+YB_Impl_Functor_Ops_Primary(ref_eq, bool, YB_Impl_Functor_Ops_using(_type), \
+	ystdex::constfn_addressof(x) == ystdex::constfn_addressof(y), \
+	const _type& x, const _type& y)
+
+///! \since build 824
+YB_Impl_Functor_Ops_Spec(ref_eq, typename _type1 YPP_Comma typename \
+	_type2, _type1&& x YPP_Comma _type2&& y, \
+	ystdex::constfn_addressof(yforward(x)) \
+	== ystdex::constfn_addressof(yforward(y)))
+//@}
 //@}
 
 #undef YB_Impl_Functor_bool_Ordered
