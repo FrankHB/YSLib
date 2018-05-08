@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r2506
+\version r2626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-04-15 23:58 +0800
+	2018-05-08 14:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,124 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Functor $=
+		(
+			* "wrong %second_argument_type as %result_type" @ "binary functors"
+				@ %Functor $since b
+			/ "functor %ref_eq" $=
+			(
+				(
+				/ $impl ^ "macro";
+				+ $comp "specialization for %void",
+				+ $comp "types %(first_argument_type, second_type, result_type)"
+					@ "primary template"
+				),
+				* "parameter type wrongly qualified by 'const'" $since b,
+				* "possibly wrong result for types with overloaded %operator&"
+					^ "ystdex::constfn_addressof" $since b
+			)
+		),
+		/ %Functional $=
+		(
+			/ @ "functor %get_less" $=
+			(
+				/ $impl "alias template" -> "template"
+				+ "default temlate argument 'void'",
+				+ "specialization for %void"
+			),
+			+ "functor %get_equal_to"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				/ DLDI "simplified friend function %operator=="
+					@ "class %TermValue" ^ $dep_from
+					("%ystdex::ref_eq" @ %YBase.YStandardEx.Functor),
+				+ "equality comparison operations"
+					@ "class %EnvironmentReference" $=
+				(
+					+ "friend function %operator==";
+					+ "private base class \
+						%ystdex::equality_comparable<EnvironmentReference>"
+				),
+				+ "function %GetAnchorPtr" @ "class %Environment"
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified functions %(ReduceOrdered, Forms::(And, Or, \
+					If))",
+				* "dead loop" @ "compressing frames" @ "TCO" $since b823
+				* "clousre construction moved name of term" @ "vau handler"
+					$since b769,
+					// This would cause empty name violating the convention of \
+						term,
+				* "missing leaf element transformation"
+					@ "function %TransformForSeparatorRecursive" $since b,
+				/ @ "functions %(TransformForSeparator, \
+					TransformForSeparatorRecursive)" $=
+				(
+					/ "transformed terms with \
+						single subterm directly as a single subterm without \
+						enclosing list term"
+						// This guarantees the transformed result is \
+							optimized, consistent with the term after lifted \
+							like in %ReduceOnce. For example, 'f; f n' is \
+							transformed as '$sequence n (f n)', rather than \
+							'$sequence (n) (f n)'.
+					+ "overloads with 'TermNode&&' parameter" $dep_to
+						"destructive separator transformation",
+					/ DLDI "simplified" ^ "%ValueNode::AddChild"
+						~ "%ValueNode::emplace"
+				),
+				/ "optimized function %ReplaceSeparatedChildren to \
+					guanrantee no redundant copy of values" $dep_from
+					"destructive separator transformation",
+				/ "vau handlers allows equality comparison" $dep_from
+					("%EnvironmentReference" @ %NPLA) $dep_to "vau equality",
+					// This provides more precise beta-eta equivalence of vau \
+						abstraction.
+				/ "improved TCO" @ "function %ReduceCombiner" $=
+				(
+					/ DLI "optimized" !^ "%unique_ptr",
+					/ "avoided keep duplicate combiner prvalue in guard"
+						$dep_from "vau equality"
+				)
+			),
+			/ @ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+			(
+				/ "derivated loading forms" $=
+				(
+					(
+					* $comp "operatives with prefixes ('$vau', '$lambda') \
+						constructed invalid term with no name" $since b769
+						$dep_from ("vau handler" @ %NPLA1);
+						// It can fail to be evaluated later, see below.
+					* $comp "failed evaluating nested function returning \
+						forms as parameter of list constructor" $since b769
+						// Like 'cons (apply ($lambda (i) $def! f $lambda \
+							(x) ()) (list 7)) ()' would never be supported \
+							smoothly before the fix, even many operations \
+							are not provided then.
+					)
+				),
+				/ $comp "ensured PTC from result of ';' transformation"
+					$dep_from ("%ReduceCombiner" @ %NPLA1)
+					// Only b823 would result in non-PTC compliant \
+						separator combiner prvalues.
+			)
+		),
+		- DLDI "redundant 'typename'" @ "class %ValueNode" @ %YSLib.Core.ValueNode
+	)
+),
+
+b823
 (
 	/ %YBase.YStandardEx.CCharacterType $=
 	(
@@ -186,10 +304,6 @@ $now
 							$since b758
 							// See ISO C11 7.4/1.
 					)
-				//	/ DLDI "operative '$setrec!'" ^ '$defv!' ~ '$def!'
-				//	/ "improved performance"
-				//	/ "operatives ('$set!', '$setrec!')" ^ 'list&' ~ 'list',
-
 				),
 				* "missing exclusion of invalid value for %std::isspace"
 					@ "functions %(DecomposeMakefileDepList, \

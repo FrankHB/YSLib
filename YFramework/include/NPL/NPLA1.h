@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3751
+\version r3765
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-04-13 18:52 +0800
+	2018-04-23 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -367,23 +367,37 @@ SetupTraceDepth(ContextNode& ctx, const string& name = yimpl("$__depth"));
 \since build 753
 
 移除子项中值和指定分隔符指定的项，并以 AsIndexNode 添加指定前缀值作为子项。
+被添加的子项若是只有一个子项的列表项，该项被提升直接加入转换后的项作为子项。
 最后一个参数指定返回值的名称。
 */
 //@{
 //! \note 非递归变换。
+//@{
 YF_API TermNode
 TransformForSeparator(const TermNode&, const ValueObject&, const ValueObject&,
 	const TokenValue& = {});
+//! \since build 824
+YF_API TermNode
+TransformForSeparator(TermNode&&, const ValueObject&, const ValueObject&,
+	const TokenValue& = {});
+//@}
 
 //! \note 递归变换。
+//@{
 YF_API TermNode
 TransformForSeparatorRecursive(const TermNode&, const ValueObject&,
 	const ValueObject&, const TokenValue& = {});
+//! \since build 824
+YF_API TermNode
+TransformForSeparatorRecursive(TermNode&&, const ValueObject&,
+	const ValueObject&, const TokenValue& = {});
+//@}
 //@}
 
 /*!
 \brief 查找项中的指定分隔符，若找到则替换项为去除分隔符并添加替换前缀的形式。
 \return 是否找到并替换了项。
+\note 子项的内容在替换时被转移。
 \sa EvaluationPasses
 \sa TransformForSeparator
 \since build 730

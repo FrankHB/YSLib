@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3297
+\version r3325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2018-03-15 17:55 +0800
+	2018-04-30 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -632,7 +632,8 @@ inline auto
 bind1(_func&& f, _tParams&&... args) -> decltype(
 	std::bind<_tRes>(yforward(f), std::placeholders::_1, yforward(args)...))
 {
-	return std::bind<_tRes>(yforward(f), std::placeholders::_1, yforward(args)...);
+	return
+		std::bind<_tRes>(yforward(f), std::placeholders::_1, yforward(args)...);
 }
 //@}
 
@@ -948,12 +949,35 @@ struct one_shot<_func, void, void>
 
 /*!
 \ingroup functors
-\brief get 成员小于仿函数。
-\since build 672
+\since build 824
 */
-template<typename _type>
-using get_less
-	= composed_n<less<_type*>, composed<addressof_op<_type>, mem_get<>>>;
+//@{
+//! \brief get 成员等于仿函数。
+//@{
+template<typename _type = void>
+struct get_equal_to
+	: composed_n<equal_to<_type*>, composed<addressof_op<_type>, mem_get<>>>
+{};
+
+template<>
+struct get_equal_to<void>
+	: composed_n<equal_to<>, composed<addressof_op<>, mem_get<>>>
+{};
+//@}
+
+//! \brief get 成员小于仿函数。
+//@{
+template<typename _type = void>
+struct get_less
+	: composed_n<less<_type*>, composed<addressof_op<_type>, mem_get<>>>
+{};
+
+template<>
+struct get_less<void>
+	: composed_n<less<>, composed<addressof_op<>, mem_get<>>>
+{};
+//@}
+//@}
 
 
 //! \since build 606
