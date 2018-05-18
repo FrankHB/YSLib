@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1206
+\version r1209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-04-15 22:52 +0800
+	2018-05-09 02:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_Dependency // for ystdex::isspace, std::placeholders,
-//	ystdex::isdigit, std::tolower, ystdex::bind1;
+//	ystdex::isdigit, ystdex::tolower, ystdex::bind1;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
 #include <iterator> // for std::istreambuf_iterator;
@@ -540,8 +540,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		// TODO: Extract 'strlwr'.
 		const auto to_lwr([](string& s){
 			for(auto& c : s)
-				if(c >= 0)
-					c = std::tolower(c);
+				c = ystdex::tolower(c);
 		});
 
 		to_lwr(x),

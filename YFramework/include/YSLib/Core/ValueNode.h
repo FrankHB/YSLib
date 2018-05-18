@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3229
+\version r3231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2017-10-08 22:42 +0800
+	2018-05-09 13:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ class YF_API ValueNode : private ystdex::totally_ordered<ValueNode>,
 public:
 	using Container = ystdex::mapped_set<ValueNode, ystdex::less<>>;
 	//! \since build 678
-	using key_type = typename Container::key_type;
+	using key_type = Container::key_type;
 	//! \since build 460
 	using iterator = Container::iterator;
 	//! \since build 460

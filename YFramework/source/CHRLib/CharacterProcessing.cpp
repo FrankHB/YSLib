@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1634
+\version r1650
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2015-10-12 11:22 +0800
+	2018-05-09 04:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,31 +28,20 @@
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_CharacterProcessing
 #include YFM_CHRLib_MappingEx
-#include <cctype>
-#include <cstdlib>
-#include <cwchar>
-#include <ystdex/cstdio.h>
-#include <ystdex/memory.hpp> // for ystdex::make_unique;
+#include <ystdex/cstdio.h> // for ystdex::ifile_iterator;
 #include YFM_CHRLib_Convert
-#include <ystdex/algorithm.hpp> // for ystdex::copy_when,
-//	ystdex::transform_when;
+#include <ystdex/algorithm.hpp> // for ystdex::copy_when, ystdex::transform_when;
 
 namespace CHRLib
 {
 
-using std::malloc;
-using std::size_t;
-using std::tolower;
 using ystdex::is_null;
-using ystdex::ntctslen;
-//! \since build 476
-using ystdex::make_unique;
 
 ConversionResult
 MBCToUC(char16_t& uc, const char*& c, Encoding enc, ConversionState&& st)
 {
-	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&, const char*&,
-		ConversionState&&>(enc))
+	if(const auto pfun = FetchMapperPtr<ConversionResult, char16_t&,
+		const char*&, ConversionState&&>(enc))
 		return pfun(uc, c, std::move(st));
 	return ConversionResult::Unhandled;
 }

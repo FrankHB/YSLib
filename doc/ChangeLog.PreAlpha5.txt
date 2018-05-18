@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r15351
+\version r15360
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2017-11-19 01:07 +0800
+	2018-05-09 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -7261,8 +7261,8 @@ b556
 						/ @ "function %operator[]" $=
 						(
 							/ 'ynothrow' -> 'ynothrowv',
-							* "missing assertion to ensure nonnull bitmap pointer as \
-								documentation" $since b
+							* "missing direct assertion to ensure nonnull \
+								bitmap pointer" $mismatch $since b553
 						),
 						+ "function %Release"
 					),
@@ -8270,9 +8270,9 @@ b551
 				- $design "redundant screen pointer check and sleep"
 			),
 			(
-			$dep_from "%AndroidManifest.xml" @ "platform %Android",
-			- "%ANativeActivity_finish call" @ "native main thread";
-			* $comp "LogCat warning 'Duplicate finish request'" $since b
+			- "%ANativeActivity_finish call" @ "native main thread" $dep_from
+				"%AndroidManifest.xml" @ "platform %Android";
+			* $comp "LogCat warning 'Duplicate finish request'" $since b523
 			),
 			+ "atomic pause state handling"
 				@ "callbacks for %(onPause, onRessume)",
@@ -9726,9 +9726,8 @@ b539
 		),
 		/ @ "function template %boxed_value" @ %Utilities $=
 		(
-			* "missing excluding of 'boxed_value&'"
-				@ "constructor template with 1 function parameter"
-				$since b477
+			* "missing exclusion of self type"
+				@ "constructor template with 1 function parameter" $since b477
 				$= (/ "constructor template" -> "explicitly defaulted \
 					(default, copy, move) constructors and 2 constructor \
 					templates"),

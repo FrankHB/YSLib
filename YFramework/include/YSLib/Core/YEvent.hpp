@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5324
+\version r5369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2017-10-25 23:55 +0800
+	2018-05-18 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,8 +85,11 @@ private:
 	template<class _tFunctor>
 	struct GEquality
 	{
+		//! \since build 825
+		static_assert(ystdex::is_decayed<_tFunctor>(), 
+			"Decayed functor expected.");
 		//! \since build 748
-		using Decayed = ystdex::decay_t<_tFunctor>;
+		using Decayed = _tFunctor;
 
 		/*!
 		\pre 参数储存的对象为 Decayed 类型。
@@ -108,6 +111,29 @@ private:
 				Deref(y.template target<Decayed>()));
 		}
 	};
+	// XXX: See below in constructor implementation.
+#define YSL_Impl_Wknd_GNU_LTO_GHEvent YB_IMPL_GNUCPP >= 45000
+#if YSL_Impl_Wknd_GNU_LTO_GHEvent
+	//! \since build 825
+	template<typename _fCallable>
+	struct GEqualityExpanded
+	{
+		static bool
+		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept_spec(
+			ystdex::examiners::equal_examiner::are_equal(std::declval<const
+			_fCallable&>(), std::declval<const _fCallable&>()))
+		{
+			const auto get_ref([](const GHEvent& h) ynothrowv
+				-> const ystdex::decay_t<_fCallable>&{
+				return Deref(h.template target<ystdex::expanded_caller<
+					_tRet(_tParams...), ystdex::decay_t<_fCallable>>>()).caller;
+			});
+
+			return ystdex::examiners::equal_examiner::are_equal(get_ref(x),
+				get_ref(y));
+		}
+	};
+#endif
 
 	/*!
 	\brief 比较函数：相等关系。
@@ -122,7 +148,7 @@ public:
 	*/
 	yconstfn
 	GHEvent(FuncType* f = {})
-		: BaseType(f), comp_eq(GEquality<FuncType>::AreEqual)
+		: BaseType(f), comp_eq(GEquality<ystdex::decay_t<FuncType>>::AreEqual)
 	{}
 	/*!
 	\brief 使用函数对象。
@@ -139,16 +165,30 @@ public:
 	/*!
 	\brief 使用扩展函数对象。
 	\since build 808
-	\todo 推断比较相等操作。
 	*/
 	template<class _fCallable>
 	yconstfn
 	GHEvent(_fCallable&& f, ystdex::enable_if_t<!std::is_constructible<BaseType,
 		ystdex::decay_t<_fCallable>>::value, int> = 0)
 		: BaseType(ystdex::make_expanded<_tRet(_tParams...)>(yforward(f))),
-		comp_eq([](const GHEvent&, const GHEvent&) ynothrow{
-			return true;
+		// TODO: Exception specification.
+#if YSL_Impl_Wknd_GNU_LTO_GHEvent
+		comp_eq(GEqualityExpanded<ystdex::decay_t<_fCallable>>::AreEqual)
+#else
+		// XXX: Blocked. The following code caused LTO failure of multiple
+		//	definitions on G++ 7.1.0.
+		comp_eq([](const GHEvent& x, const GHEvent& y) ynoexcept_spec(
+			ystdex::examiners::equal_examiner::are_equal(f, f)){
+			const auto get_ref([](const GHEvent& h) ynothrowv
+				-> const ystdex::decay_t<_fCallable>&{
+				return Deref(h.template target<ystdex::expanded_caller<
+					_tRet(_tParams...), ystdex::decay_t<_fCallable>>>()).caller;
+			});
+
+			return ystdex::examiners::equal_examiner::are_equal(get_ref(x),
+				get_ref(y));
 		})
+#endif
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。

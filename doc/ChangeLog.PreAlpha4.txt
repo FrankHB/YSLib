@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2017 FrankHB.
+	© 2013-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r9272
+\version r9283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2017-11-28 23:49 +0800
+	2018-05-18 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -750,10 +750,10 @@ b493
 	/ $dev $build $re_ex(b431) "merged directories for %YSTest platform builds"
 		$=
 	(
-		/ "project %YSText_DS" >> "directory 'YSTest/DS'",
-		/ "project %YSText_ARM7" >> "directory 'YSTest/DS_ARM7'",
-		/ "project %YSText_ARM9" >> "directory 'YSTest/DS_ARM9'",
-		/ "project %YSText_MinGW32" >> "directory 'YSTest/MinGW32'"
+		/ "project %YSTest_DS" >> "directory 'YSTest/DS'",
+		/ "project %YSTest_ARM7" >> "directory 'YSTest/DS_ARM7'",
+		/ "project %YSTest_ARM9" >> "directory 'YSTest/DS_ARM9'",
+		/ "project %YSTest_MinGW32" >> "directory 'YSTest/MinGW32'"
 	)
 ),
 
@@ -3140,8 +3140,8 @@ b454
 						// Microsoft VC++ 2013 complains about explicitly \
 							defaulted move constructor.
 				),
-				* $dev "missing excluding of 'pod_storage&'" @ "member \
-					(constructor template, function template %operator=)"
+				* $dev "missing exclusion of self type" @ "member (constructor \
+					template, function template %operator=)"
 					@ "class template %pod_storage" $since b352
 			),
 			+ "defaulted operator=" @ "class templates %(any_input_iterator, \
@@ -4610,9 +4610,9 @@ b432
 						'const ValueNode*'",
 					+ "2 function templates %AccessChildPtr"
 				),
-				* $dev "missing excluding of 'GEvent&'" @ %GEvent
+				* $dev "missing exclusion of self type"
 					@ "template %operator= with 1 function parameter"
-					@ "class template %GEvent" $since b293
+					@ "class template %GEvent" @ %GEvent $since b293
 					// This would cause recursive calls by self.
 			),
 			/ DLD "throwing exceptions" ^ "different exception level"
@@ -4635,7 +4635,7 @@ b432
 				// For %::NTSTATUS error 'STATUS_CONTROL_C_EXIT'(0xC000013A), \
 					it is expected when console window closed or Ctrl+C pressed.
 		),
-		* $comp "missing excluding of 'ValueNode&'"
+		* $comp "missing exclusion of self type"
 			@ "constructor template with 1 function parameter"
 			@ "class %Configuration" @ %NPL.Configuration $since b376,
 		+ "class %WindowClass" @ %'YCLib_(MinGW32)'.Win32GUI
@@ -5912,7 +5912,7 @@ b409
 				(
 					+ "non-function template %swap for specification of \
 						%GEvent",
-					* $dev "missing excluding of 'GEvent&'"
+					* "missing exclusion of self type"
 						@ "constructor template with 1 function parameter"
 						@ "class template %GEvent" $since b293
 				),

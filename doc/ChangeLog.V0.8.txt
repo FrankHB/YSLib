@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r2626
+\version r2867
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-05-08 14:26 +0800
+	2018-05-18 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,10 +34,146 @@ $now
 (
 	/ %YBase.YStandardEx $=
 	(
+		+ $revert_ex(b823)  "'CHAR_MIN < 0' detection"
+			@ "functions %(tolower, toupper)" @ %CCharacterType,
+			// To eliminate G++ warning: [-Wtype-limits], as in %iscntrl_C0.
+		* "potential wrong comparison results" @ "function template %ntctsicmp"
+			@ %CString $since b823 ^ "%ystdex::towlower" ~ "%ystdex::tolower",
+		/ DLDI "simplified unary trait %is_decayed" @ %TypeTraits
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				- DLDI "redundant 'typename'" @ "class %ValueNode"
+					@ %ValueNode,
+				/ @ "class template %GHEvent" @ %YEvent $=
+				(
+					/ DLDI ^ "static assertion to ensure decayed functor type \
+						for equality",
+					/ "constructor with function type of \
+						%ystdex::make_expanded handled equality" $dep_to
+						"expanded equality of handlers"
+				)
+			),
+			+ DLDI "workaround for nonconforming %ftell return type"
+				@ %Adaptor.Image
+				// Both ISO C and POSIX require the %ftell returning 'long'. \
+					However, the newlib declaration from devkitARM r48 breaks \
+					the conformance by using %off_t and it is equivalent to \
+					'long long' rather than 'long' in devkitARM r48. See also \
+					https://github.com/devkitPro/newlib/issues/5.
+		),
+		(
+		* $comp "potential wrong case insensitive filename comparison results"
+			@ %YCLib.FileSystem $since b823 $dep_from
+			("%ntctsicmp" @ %YBase.YStandardEx.String);
+		* $comp "failed to load typefaces" @ "platform %DS"
+			@ %Helper.Initialization $since b823
+		),
+		/ DLDI "simplified alias declarations and inclusion directives"
+			@ %CHRLib.CharacterProcessing,
+		/ %NPL $=
+		(
+			/ %Lexical $=
+			(
+				+ $revert_ex(b823) "'CHAR_MIN < 0' detection"
+					@ "function %IsDelimeter";
+					// Also to eliminate G++ warning: [-Wtype-limits].
+				/ "functions %(IsGraphicalDelimeter, IsDelimeter)"
+					-> "%(IsGraphicalDelimiter, IsDelimiter)";
+				/ $forced DLDI "function %Decompose"
+			),
+			/ @ "class %Environment" @ %NPLA $=
+			(
+				+ "member function %GetAnchorPtr",
+					// Similar to %EnvironmentReference::GetAnchorPtr.
+				+ "static member function %Deduplicate"
+			),
+			/ %NPLA1 $=
+			(
+				* "lifetime of dynamic environments unnecessarily kept" $since
+					b823
+					// For PTC of invocation of 'f' in \
+						'$defl! f (n) $seq2 n (f n);', while '$seq2' is from \
+						'$defv! $seq2 (x y) env eval (list $sequence x y) env'.
+					$= (- "TCO dynamic anchors" @ "vau handlers"),
+				* "wrong result of %Forms::EqualValue result for functors"
+					$dep_from "expanded equality of handlers" $since b748,
+				/ DLDI "simplified type of guards" @ "TCO action"
+					^ "%ContextHandler" ~ "%ValueObject",
+				/ "improved TCO" @ "environment switching" $=
+				(
+					* "prvalue function value compression dropped order \
+						guarantee" $since b824 ^ "%ystdex::erase_all" $dep_from
+						"TCO action",
+						// The old handler was kept. This is corrected by \
+							always emplacement at end, deduplication and then \
+							adding the new value by swapping (with respect to \
+							strong exception guarantee).
+					/ DLDI "simplified" !^ "lambda-expression",
+					* "unexpected copying of handlers" $since b824,
+					(
+					/ "allocated function prvalue of head term in frame of \
+						activation records";
+					/ $comp "allowed optimized lifetime adjust of function \
+						prvalues"
+					* $comp "lifetime of temporary object introduced by \
+						function prvalues interleaved across call boundaries"
+						$mismatch $since b821
+					),
+					* "impossible parent weak pointers compression" $since b823
+						^ $dep_from ("%Environment::GetAnchorPtr" @ %NPLA),
+						// The reference count would never meet the condition \
+							of %Environment::IsNotReferenced.
+					/ DLDI "simplified frame merging" ^ $dep_from
+						("%Environment::Deduplicate" @ %NPLA),
+					/ "supported collection of fram with more than one level \
+						parent indirection"
+						// It still allows one frame per collection turn only, \
+							so cyclic references of environment are not \
+							collected; however, this is alread undefined \
+							behavior in object language.
+				),
+				/ "removed environment term to cleanup reference counter"
+					@ "functions %Forms::(Eval, EvalRef)"
+			),
+			/ @ "function %LoadNPLContextForSHBuild" @ "derivated loading forms"
+				@ %Dependency $=
+			(
+				/ $revert_ex(b823) DLB $impl "simplified for 'CHAR_MIN < 0' \
+					detection" ^ "%ystdex::tolower" ~ "%std::to_lower"
+					@ "applicative 'string-contains-ci?'",
+					// To eliminate G++ warning: [-Wtype-limits].
+				* $comp "wrong 'eqv?' result of comparison on functions"
+					$since b759 $dep_from ("%Forms::EqualValue" @ %NPLA1)
+					// For instance, the value of 'eqv? eq? eqv?' was \
+						'#t'.
+			)
+		)
+	),
+	* $re_ex(b823) "contract violated by missing exclusion of invalid value \
+		for %std::tolower" @ "extension comparison for files"
+		@ "getting entry type" @ %YReader.ShlExplorer $since b390
+		^ "%ystdex::tolower" ~ "%std::tolower",
+		// See ISO C11 7.4/1.
+	* "missing commented out redundant '-ldswifi7 -lmm7'" @ "variable %LIBS"
+		@ "ARM7 makefile" @ "project %YSTest" @ "platform %DS" $orig
+		(@ "project makefile") $mismatch $since b132
+		// The library DS Wifi and MaxMod were never publicly used as \
+			dependencies.
+),
+
+/ b824
+(
+	/ %YBase.YStandardEx $=
+	(
 		/ %Functor $=
 		(
 			* "wrong %second_argument_type as %result_type" @ "binary functors"
-				@ %Functor $since b
+				@ %Functor $since b656,
 			/ "functor %ref_eq" $=
 			(
 				(
@@ -46,9 +182,10 @@ $now
 				+ $comp "types %(first_argument_type, second_type, result_type)"
 					@ "primary template"
 				),
-				* "parameter type wrongly qualified by 'const'" $since b,
+				* "parameter type wrongly qualified by 'const'" $orig
+					(@ %Utilities $since b193),
 				* "possibly wrong result for types with overloaded %operator&"
-					^ "ystdex::constfn_addressof" $since b
+					^ "ystdex::constfn_addressof" (@ %Utilities $since b193)
 			)
 		),
 		/ %Functional $=
@@ -62,89 +199,80 @@ $now
 			+ "functor %get_equal_to"
 		)
 	),
-	/ %YFramework $=
+	/ %YFramework.NPL $=
 	(
-		/ %NPL $=
+		/ %NPLA $=
 		(
-			/ %NPLA $=
+			/ DLDI "simplified friend function %operator==" @ "class %TermValue"
+				^ $dep_from ("%ystdex::ref_eq" @ %YBase.YStandardEx.Functor),
+			+ "equality comparison operations" @ "class %EnvironmentReference"
+				$=
 			(
-				/ DLDI "simplified friend function %operator=="
-					@ "class %TermValue" ^ $dep_from
-					("%ystdex::ref_eq" @ %YBase.YStandardEx.Functor),
-				+ "equality comparison operations"
-					@ "class %EnvironmentReference" $=
-				(
-					+ "friend function %operator==";
-					+ "private base class \
-						%ystdex::equality_comparable<EnvironmentReference>"
-				),
-				+ "function %GetAnchorPtr" @ "class %Environment"
+				+ "friend function %operator==";
+				+ "private base class \
+					%ystdex::equality_comparable<EnvironmentReference>"
 			),
-			/ %NPLA1 $=
+			+ "function %GetAnchorPtr" @ "class %Environment"
+		),
+		/ %NPLA1 $=
+		(
+			/ DLDI "simplified functions %(ReduceOrdered, Forms::(And, Or, \
+				If))",
+			/ "TCO" @ "function %ReduceCombiner" $=
 			(
-				/ DLDI "simplified functions %(ReduceOrdered, Forms::(And, Or, \
-					If))",
-				* "dead loop" @ "compressing frames" @ "TCO" $since b823
-				* "clousre construction moved name of term" @ "vau handler"
-					$since b769,
-					// This would cause empty name violating the convention of \
-						term,
-				* "missing leaf element transformation"
-					@ "function %TransformForSeparatorRecursive" $since b,
-				/ @ "functions %(TransformForSeparator, \
-					TransformForSeparatorRecursive)" $=
-				(
-					/ "transformed terms with \
-						single subterm directly as a single subterm without \
-						enclosing list term"
-						// This guarantees the transformed result is \
-							optimized, consistent with the term after lifted \
-							like in %ReduceOnce. For example, 'f; f n' is \
-							transformed as '$sequence n (f n)', rather than \
-							'$sequence (n) (f n)'.
-					+ "overloads with 'TermNode&&' parameter" $dep_to
-						"destructive separator transformation",
-					/ DLDI "simplified" ^ "%ValueNode::AddChild"
-						~ "%ValueNode::emplace"
-				),
-				/ "optimized function %ReplaceSeparatedChildren to \
-					guanrantee no redundant copy of values" $dep_from
+				* "dead loop" @ "compressing frames" @ "TCO" $since b823,
+				/ DLI "optimized" !^ "%unique_ptr",
+				/ "avoided keep duplicate combiner prvalue in guard" $dep_from
+					"vau equality"
+			),
+			* "clousre construction moved name of term" @ "vau handler" $since
+				b769,
+				// This would cause empty name violating the convention of term.
+			* "missing leaf element transformation"
+				@ "function %TransformForSeparatorRecursive" $since b736,
+			/ @ "functions %(TransformForSeparator, \
+				TransformForSeparatorRecursive)" $=
+			(
+				/ "transformed terms with single subterm directly as a single \
+					subterm without enclosing list term"
+					// This guarantees the transformed result is optimized, \
+						consistent with the term after lifted like in \
+						%ReduceOnce. For example, 'f; f n' is transformed as \
+						'$sequence n (f n)', rather than '$sequence (n) (f n)'.
+				+ "overloads with 'TermNode&&' parameter" $dep_to
 					"destructive separator transformation",
-				/ "vau handlers allows equality comparison" $dep_from
-					("%EnvironmentReference" @ %NPLA) $dep_to "vau equality",
-					// This provides more precise beta-eta equivalence of vau \
-						abstraction.
-				/ "improved TCO" @ "function %ReduceCombiner" $=
+				/ DLDI "simplified" ^ "%ValueNode::AddChild"
+					~ "%ValueNode::emplace"
+			),
+			/ "optimized function %ReplaceSeparatedChildren to guanrantee no \
+				redundant copy of values" $dep_from
+				"destructive separator transformation",
+			/ "vau handlers allows equality comparison" $dep_from
+				("%EnvironmentReference" @ %NPLA) $dep_to "vau equality",
+				// This provides more precise beta-eta equivalence of vau \
+					abstraction.
+		),
+		/ @ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+		(
+			/ "derivated loading forms" $=
+			(
 				(
-					/ DLI "optimized" !^ "%unique_ptr",
-					/ "avoided keep duplicate combiner prvalue in guard"
-						$dep_from "vau equality"
+				* $comp "operatives with prefixes ('$vau', '$lambda') \
+					constructed invalid term with no name" $since b769 $dep_from
+					("vau handler" @ %NPLA1);
+					// It can fail to be evaluated later, see below.
+				* $comp "failed evaluating nested function returning forms as \
+					parameter of list constructor" $since b769
+					// Like 'cons (apply ($lambda (i) $def! f $lambda (x) ()) \
+						(list 7)) ()' would never be supported smoothly before \
+						the fix, even many operations are not provided then.
 				)
 			),
-			/ @ "function %LoadNPLContextForSHBuild" @ %Dependency $=
-			(
-				/ "derivated loading forms" $=
-				(
-					(
-					* $comp "operatives with prefixes ('$vau', '$lambda') \
-						constructed invalid term with no name" $since b769
-						$dep_from ("vau handler" @ %NPLA1);
-						// It can fail to be evaluated later, see below.
-					* $comp "failed evaluating nested function returning \
-						forms as parameter of list constructor" $since b769
-						// Like 'cons (apply ($lambda (i) $def! f $lambda \
-							(x) ()) (list 7)) ()' would never be supported \
-							smoothly before the fix, even many operations \
-							are not provided then.
-					)
-				),
-				/ $comp "ensured PTC from result of ';' transformation"
-					$dep_from ("%ReduceCombiner" @ %NPLA1)
-					// Only b823 would result in non-PTC compliant \
-						separator combiner prvalues.
-			)
-		),
-		- DLDI "redundant 'typename'" @ "class %ValueNode" @ %YSLib.Core.ValueNode
+			/ $comp "ensured PTC from result of ';' transformation" $dep_from
+				("%ReduceCombiner" @ %NPLA1)
+				// Only b823 would result in non-PTC compliant separator \
+					combiner prvalues.
+		)
 	)
 ),
 

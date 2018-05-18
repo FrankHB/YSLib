@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1225
+\version r1228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2016-07-27 19:04 +0800
+	2018-05-18 15:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,8 @@ FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 		return std::fseek(static_cast<std::FILE*>(h), offset, whence);
 	},
 	[](::fi_handle h) ynothrow{
-		return std::ftell(static_cast<std::FILE*>(h));
+		// XXX: The case is a workaround for newlib, e.g. with devkitARM r48.
+		return long(std::ftell(static_cast<std::FILE*>(h)));
 	}
 };
 
