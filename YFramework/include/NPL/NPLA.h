@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3496
+\version r3506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-04-30 20:49 +0800
+	2018-05-17 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1291,6 +1291,9 @@ public:
 	\since build 788
 	*/
 	DefGetter(const ynothrow, BindingMap&, MapRef, Bindings)
+	//! \since build 825
+	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
+		anchor.Ptr)
 
 	/*!
 	\brief 引用锚对象。
@@ -1309,6 +1312,14 @@ public:
 	*/
 	static void
 	CheckParent(const ValueObject&);
+
+	/*!
+	\brief 移除第一参数中名称和第二参数中重复的绑定项。
+	\return 移除后的目的结果中没有绑定。
+	\since build 825
+	*/
+	static bool
+	Deduplicate(BindingMap&, const BindingMap&);
 
 	//! \pre 断言：第二参数的数据指针非空。
 	//@{

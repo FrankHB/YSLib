@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7078
+\version r7247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-04-30 21:43 +0800
+	2018-05-17 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,9 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1 // for ystdex::bind1, std::make_move_iterator,
-//	ystdex::id, shared_ptr, lref, unordered_map, ystdex::ref_eq,
-//	ystdex::call_value_or, ystdex::as_const, pair, ystdex::equality_comparable;
+//	ystdex::id, shared_ptr, lref, pair, ystdex::erase_all, std::find_if,
+//	unordered_map, ystdex::ref_eq, ystdex::call_value_or, ystdex::as_const,
+//	ystdex::concat, ystdex::equality_comparable, ystdex::make_transform;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::dismiss,
 //	ystdex::swap_guard, ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -346,15 +347,20 @@ struct TCOAction final
 	//@{
 	bool ReduceNestedAsync = {};
 	bool LiftCallResult = {};
-	//! \since build 824
-	mutable vector<ValueObject> XGuards{};
+
+private:
+	//! \since build 825
+	mutable vector<ContextHandler> xgds{};
+
+public:
+	//! \since build 825
+	mutable observer_ptr<const ContextHandler> LastFunction{};
 	mutable EnvironmentGuard EnvGuard;
-	mutable list<shared_ptr<Environment>> EnvPtrList{};
+	//! \since build 825
+	mutable list<pair<ContextHandler, shared_ptr<Environment>>> RecordList{};
 	bool ReduceCombined = {};
 	//@}
-	//! \since build 823
-	vector<shared_ptr<const void>> DynamicAnchors{};
-
+ 
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
 		: Term(term), Next(ctx.Switch()), LiftCallResult(lift), EnvGuard(ctx)
@@ -365,7 +371,7 @@ struct TCOAction final
 		// XXX: %EnvGuard is moved. This is only safe when newly constructed
 		//	object always live longer than the older one.
 		: Term(a.Term), Next(a.Next), ReduceNestedAsync(a.ReduceNestedAsync),
-		LiftCallResult(a.LiftCallResult), XGuards(std::move(a.XGuards)),
+		LiftCallResult(a.LiftCallResult), xgds(std::move(a.xgds)),
 		EnvGuard(std::move(a.EnvGuard)), ReduceCombined(a.ReduceCombined)
 	{}
 	DefDeMoveCtor(TCOAction)
@@ -386,13 +392,13 @@ struct TCOAction final
 
 		// NOTE: The order here is significant. The environment in the guards
 		//	should be hold until lifting is completed.
-		while(!EnvPtrList.empty())
-			EnvPtrList.pop_front();
+		while(!RecordList.empty())
+			RecordList.pop_front();
 		{
 			const auto egd(std::move(EnvGuard));
 		}
-		while(!XGuards.empty())
-			XGuards.pop_back();
+		while(!xgds.empty())
+			xgds.pop_back();
 		if(ReduceCombined)
 			NormalizeTerm(Term, res);
 		if(ReduceNestedAsync)
@@ -400,18 +406,39 @@ struct TCOAction final
 		return res;
 	}
 
-	//! \since build 824
+	//! \since build 825
 	lref<const ContextHandler>
-	AddXGuard(ContextHandler&& h)
+	AttachFunction(ContextHandler&& h)
 	{
-		return [&]() -> const ValueObject&{
+		// NOTE: This scans guards to hold function prvalues, which are safe to
+		//	be removed as per the equivalence (hopefully, of beta reduction)
+		//	defined by %operator== of the handler, no new instance is to be
+		//	added.
+		xgds.emplace_back();
+		ystdex::erase_all(xgds, h);
+		// NOTE: Strong exception guarantee is kept here.
+		swap(xgds.back(), h);
+		return ystdex::as_const(xgds.back());
+	}
 
-			for(const auto& gd : XGuards)
-				if(gd == h)
-					return ystdex::as_const(gd);
-			XGuards.push_back(std::move(h));
-			return ystdex::as_const(XGuards.back());
-		}().GetObject<ContextHandler>();
+	//! \since build 825
+	ContextHandler
+	MoveFunction()
+	{
+		ContextHandler res;
+
+		if(!xgds.empty())
+		{
+			const auto i(std::find_if(xgds.rbegin(), xgds.rend(),
+				[this](const ContextHandler& h) ynothrow{
+				return make_observer(&h) == LastFunction;
+			}));
+
+			if(i != xgds.rend())
+				res = std::move(*i);
+		}
+		LastFunction = {};
+		return res;
 	}
 };
 #	endif
@@ -741,6 +768,17 @@ ReduceCheckedClosureImpl(TermNode& term, ContextNode& ctx, bool move,
 #endif
 }
 
+#if YF_Impl_NPLA1_Enable_TCO
+//! \since build 825
+bool
+DeduplicateBindings(Environment& dst, const Environment& src)
+{
+	// TODO: Make the frames reused as possible.
+	// TODO: Allow objects not pinned?
+	return Environment::Deduplicate(dst.GetMapRef(), src.GetMapRef());
+}
+#endif
+
 ReductionStatus
 RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 	TermNode& closure, EnvironmentGuard&& gd, bool no_lift)
@@ -756,72 +794,101 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 
 	if(const auto p = ctx.Current.target<TCOAction>())
 	{
-		// TODO: Remove variables in parent environments which are also in the
-		//	current tail environment. If the resulted parent environment is
-		//	empty, relink the parent environment of the tail environment and
-		//	remove the old parent environment from the chain to reclaim the
-		//	inactive record space.
+		// NOTE: The following code checks and tries to move (inactive)
+		//	activation record frames (if any) to be removed, which is the core
+		//	of TCO. It works by testing whether the saved frames can be safely
+		//	removed when the provided new guard %gd lives long enough until the
+		//	%TCOAction object is reduced via its %operator(), as per the
+		//	semantic rules of the object language. The guard would live as the
+		//	member %EnvGuard in the %TCOAction. If there has been already one,
+		//	it is to be merged; otherwise, the guard is simply installed.
 		if(p->EnvGuard.func.SavedPtr)
 		{
 			auto& p_saved(gd.func.SavedPtr);
 
+			// NOTE: If no guard is found to be added, do nothing.
 			if(p_saved)
 			{
-				auto& env_list(p->EnvPtrList);
-				auto i(env_list.begin());
+				// NOTE: The list in %TCOAction holds all frames after previous
+				//	merging (if any).
+				auto& record_list(p->RecordList);
+				// NOTE: The new frame would be inserted at the beginning of the
+				//	list.
+				auto i(record_list.begin());
 				const auto erase_frame([&]{
-					i = env_list.erase(i);
+					i = record_list.erase(i);
 				});
+				auto& saved_parent(p_saved->Parent);
 
-				while(i != env_list.end())
+				// NOTE: The following code scans the frames to be removed, in
+				//	the order from new to old. The frames are then compressed on
+				//	success. After merging, the guard slot %EnvGuard owns the
+				//	resources of the expression (and its enclosed
+				//	subexpressions) being TCO'd.
+				while(i != record_list.end())
 				{
-					auto& frame(Deref(*i));
+					// NOTE: Each turn one candidate is checked.
+					auto& frame_env(Deref(i->second));
 
-					// NOTE: If the frame is hold elsewhere, it does not need
+					// NOTE: If the frame is held elsewhere, it does not need
 					//	to be owned here.
-					if(!i->unique())
+					if(!i->second.unique())
 						erase_frame();
-					else if(frame.IsNotReferenced() && [&]{
-						// TODO: Make the frames reused as possible.
-						// TODO: Allow not pinned objects?
-						// XXX: Dynamic environment can be lost as lifetime
-						//	of weak pointer is not guaranteed.
-						for(const auto& binding : p_saved->GetMapRef())
-							// XXX: Non-trivially destructible objects is
-							//	treated same.
-							// NOTE: Redirection is not needed here.
-							frame.Remove(binding.GetName(), true);
-						return frame.GetMapRef().empty();
-					}())
-					{
-						auto& saved_parent(p_saved->Parent);
-						const auto compress([&]() ynoexcept{
-							saved_parent = std::move(frame.Parent);
-							erase_frame();
-						});
-						const auto compress_eq([&](Environment* p_e) ynoexcept{
-							if(p_e == i->get())
-								compress();
-							else
-								++i;
-						});
+					// NOTE: Only frames held uniquely is safe to be compressed.
+					// XXX: This does not fit for the situation that the same
+					//	parent is referenced in multiple inactive frames.
+					// TODO: Compress multiple inactive frames in one turn?
+					else if([&]() -> bool{
+						lref<ValueObject> saved(saved_parent);
+						auto n(frame_env.GetAnchorPtr().use_count());
 
-						if(frame.Parent == saved_parent)
-							compress();
-						else if(const auto p_wenv
-							= saved_parent.AccessPtr<EnvironmentReference>())
-							compress_eq(p_wenv->Lock().get());
-						else if(const auto p_env
-							= saved_parent.AccessPtr<shared_ptr<Environment>>())
-							compress_eq(p_env->get());
-						// TODO: Compress parent environment for more cases.
-						else
-							++i;
+						YAssert(n > 0, "Invalid weak count of frame found.");
+						--n;
+						// NOTE: The condition is 'frame_env.IsNotReferenced()'
+						//	when n is 0.
+						while(n != 0)
+						{
+							if(const auto p_pwenv{
+								saved.get().AccessPtr<EnvironmentReference>()})
+							{
+								if(const auto p_env{p_pwenv->Lock()})
+								{
+									saved = p_env->Parent;
+									--n;
+								}
+								else
+									// TODO: Report weak reference failure?
+									return {};
+							}
+							// XXX: This cannot have cyclic references.
+							else if(const auto p_penv{saved.get().AccessPtr<
+								shared_ptr<Environment>>()})
+								saved = (*p_penv)->Parent;
+							else
+								// TODO: Compress parent environment for more
+								//	cases.
+								return {};
+						}
+						// TODO: Trace.
+						return frame_env.IsNotReferenced()
+							&& frame_env.Parent == saved.get();
+					}() && DeduplicateBindings(frame_env, *p_saved))
+					{
+						// NOTE: This removes variables in parent environments
+						//	which are also in the current tail environment by
+						//	relinking the parent environment of the tail
+						//	environment and remove the old parent environment
+						//	from the chain to reclaim the inactive record space.
+						saved_parent = std::move(frame_env.Parent);
+						erase_frame();
 					}
 					else
+						// NOTE: If the attempt of compression fails, the frame
+						//	is still saved.
 						++i;
 				}
-				env_list.push_front(std::move(p_saved));
+				record_list.emplace_front(p->MoveFunction(),
+					std::move(p_saved));
 			}
 		}
 		else
@@ -878,17 +945,20 @@ EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 {
 	Forms::RetainN(term, 2);
 
-	const auto i(std::next(term.begin()));
+	auto i(std::next(term.begin()));
 	const auto term_args([](TermNode& expr) -> pair<bool, lref<TermNode>>{
 		if(const auto p = AccessPtr<const TermReference>(expr))
 			return {{}, p->get()};
 		return {true, expr};
 	}(Deref(i)));
+	auto p_env(ResolveEnvironment(Deref(++i)).first);
 
+	// NOTE: This is necessary to cleanup reference count (if any).
+	i->Value = {};
 	// TODO: Support more environment types?
 	return RelayOnNextEnvironment(ctx, term, term_args.first, term_args.second,
-		EnvironmentGuard(ctx, ctx.SwitchEnvironment(
-		ResolveEnvironment(Deref(std::next(i))).first)), no_lift);
+		EnvironmentGuard(ctx, ctx.SwitchEnvironment(std::move(p_env))),
+		no_lift);
 }
 
 //@}
@@ -975,15 +1045,8 @@ public:
 
 			// NOTE: Bound dynamic context.
 			if(!eformal.empty())
-			{
-#if YF_Impl_NPLA1_Enable_TCO
-				if(const auto p = ctx.Current.target<TCOAction>())
-					if(const auto p_env = wenv.Lock())
-						p->DynamicAnchors.push_back(p_env->Anchor());
-#endif
-				ctx.GetBindingsRef().AddValue(eformal,
-					ValueObject(std::move(wenv)));
-			}
+ 				ctx.GetBindingsRef().AddValue(eformal,
+ 					ValueObject(std::move(wenv)));
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
@@ -1064,17 +1127,20 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	static_assert(sizeof...(args) < 2, "Unsupported owner arguments found.");
 #if YF_Impl_NPLA1_Enable_Thunked
 #	if YF_Impl_NPLA1_Enable_TCO
-	lref<const ContextHandler> h_ref(h);
 	const auto update_fused_act([&](TCOAction& fused_act){
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
-		yunseq(0,
-			(h_ref = fused_act.AddXGuard(std::forward<_tParams>(args)), 0)...);
+		auto& lf(fused_act.LastFunction);
+
+		lf = {};
+		yunseq(0, (lf = make_observer(&fused_act.AttachFunction(
+			std::forward<_tParams>(args)).get()), 0)...);
 		fused_act.ReduceCombined = true;
 	});
 
-	const auto get_next([&]{
-		return std::bind(h_ref, std::ref(term), std::ref(ctx));
+	const auto get_next([&](TCOAction& fused_act){
+		return std::bind(std::ref(fused_act.LastFunction
+			? *fused_act.LastFunction : h), std::ref(term), std::ref(ctx));
 	});
 
 	if(const auto p = ctx.Current.target<TCOAction>())
@@ -1082,13 +1148,13 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 //	if(&p->Term.get() == &term)
 	{
 		update_fused_act(*p);
-		return RelaySwitchedUnchecked(ctx, get_next());
+		return RelaySwitchedUnchecked(ctx, get_next(*p));
 	}
 
 	TCOAction fused_act(ctx, term, {});
 
 	update_fused_act(fused_act);
-	return RelayNext(ctx, get_next(), std::move(fused_act));
+	return RelayNext(ctx, get_next(fused_act), std::move(fused_act));
 #	else
 	return RelayNext(ctx, std::bind(std::ref(h), std::ref(term), std::ref(ctx)),
 		std::bind([&](Reducer& act, const _tParams&...){

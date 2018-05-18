@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1762
+\version r1773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-04-15 22:35 +0800
+	2018-04-17 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -619,6 +619,18 @@ Environment::CheckParent(const ValueObject& vo)
 		&& tp != ystdex::type_id<EnvironmentReference>()
 		&& tp != ystdex::type_id<shared_ptr<Environment>>()))
 		ThrowForInvalidType(tp);
+}
+
+bool
+Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
+{
+	for(const auto& binding : src)
+		// XXX: Non-trivially destructible objects is treated same.
+		// NOTE: Redirection is not needed here.
+		dst.Remove(binding.GetName());
+	// NOTE: If the resulted parent environment is empty, it is safe to be
+	//	removed.
+	return dst.empty();
 }
 
 observer_ptr<const Environment>

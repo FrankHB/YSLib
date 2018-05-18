@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r2569
+\version r2572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2016-05-23 04:55 +0800
+	2018-05-14 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,9 +215,9 @@ ntctsicmp(const _tChar* s1, const _tChar* s2) ynothrowv
 	yconstraint(s1),
 	yconstraint(s2);
 
-	while(ystdex::tolower(*s1) == ystdex::tolower(*s2) && !ystdex::is_null(s2))
+	while(ystdex::towlower(*s1) == ystdex::towlower(*s2) && !ystdex::is_null(s2))
 		yunseq(++s1, ++s2);
-	return int(ystdex::tolower(*s1) - ystdex::tolower(*s2));
+	return int(ystdex::towlower(*s1) - ystdex::towlower(*s2));
 }
 /*!
 \brief 按字典序比较不超过指定长度的简单 NTCTS （忽略大小写）。

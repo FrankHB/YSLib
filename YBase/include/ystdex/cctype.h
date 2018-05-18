@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r245
+\version r253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2018-04-15 23:07 +0800
+	2018-05-09 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,7 +152,11 @@ isspace(char c) ynothrow
 inline char
 tolower(char c) ynothrow
 {
+#if CHAR_MIN < 0
 	return c >= 0 && char(std::tolower(c));
+#else
+	return char(std::tolower(c));
+#endif
 }
 
 //! \since build 823
@@ -167,7 +171,11 @@ towlower(_tChar c) ynothrow
 inline char
 toupper(char c) ynothrow
 {
+#if CHAR_MIN < 0
 	return c >= 0 && char(std::toupper(c));
+#else
+	return char(std::toupper(c));
+#endif
 }
 
 //! \since build 823

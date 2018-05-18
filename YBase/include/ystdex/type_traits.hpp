@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1158
+\version r1160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2016-12-29 12:10 +0800
+	2018-05-13 09:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -903,7 +903,7 @@ struct is_decomposable<_gOp<_types...>> : true_
 \since build 529
 */
 template<typename _type>
-struct is_decayed : or_<is_same<decay_t<_type>, _type>>
+struct is_decayed : is_same<decay_t<_type>, _type>
 {};
 
 

@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2014, 2016 FrankHB.
+#	(C) 2009-2014, 2016, 2018 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM7
-# Version = r1381
+# Version = r1383
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2016-04-01 12:04 +0800
+# Updated = 2018-05-18 15:35 +0800
 # Encoding = ANSI
 
 
@@ -62,7 +62,7 @@ CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM7) $(CXXFLAGS_COMMON) \
 LDFLAGS := $(LDFLAGS_OPT_DBG) -specs=ds_arm7.specs $(ARCH) -Wl,--gc-sections
 
 # any extra libraries we wish to link with the project
-LIBS := -ldswifi7 -lmm7 -lnds7
+LIBS := -lnds7 # -ldswifi7 -lmm7
 
 # List of directories containing libraries, this must be the top level
 #	containing include and lib.

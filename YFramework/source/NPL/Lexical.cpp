@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1609
+\version r1612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2017-10-07 07:22 +0800
+	2018-05-09 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,7 +382,7 @@ Decompose(string_view src)
 	list<string> dst;
 	using iter_type = typename string_view::const_iterator;
 
-	ystdex::split_l(src.cbegin(), src.cend(), IsDelimeter,
+	ystdex::split_l(src.cbegin(), src.cend(), IsDelimiter,
 		// TODO: Blocked. Use C++14 generic lambda expressions.
 		[&](iter_type b, iter_type e){
 		YAssert(e >= b, "Invalid split result found.");
@@ -390,7 +390,7 @@ Decompose(string_view src)
 		string_view sv(b, size_t(e - b));
 
 		YAssert(!sv.empty(), "Null token found.");
-		if(IsGraphicalDelimeter(*b))
+		if(IsGraphicalDelimiter(*b))
 		{
 			dst.push_back({sv.front()});
 			sv.remove_prefix(1);

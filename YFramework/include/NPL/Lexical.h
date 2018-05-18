@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1570
+\version r1582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2018-04-15 22:24 +0800
+	2018-05-09 02:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,9 @@
 #define YF_INC_NPL_Lexical_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPL // for byte;
-#include YFM_YSLib_Adaptor_YTextBase // for ystdex::byte, YSLib::list,
-//	YSLib::set, YSLib::string, YSLib::string_view, YSLib::vector, YSLib::begin,
-//	YSLib::end;
+#include YFM_NPL_NPL // for byte, CHAR_MIN;
+#include YFM_YSLib_Adaptor_YTextBase // for YSLib::list, YSLib::set, YSLib::string,
+//	YSLib::string_view, YSLib::vector, YSLib::begin, YSLib::end;
 #include <cctype> // for std::isgraph;
 
 namespace NPL
@@ -332,15 +331,19 @@ Literalize(string_view, char = '"');
 //@}
 
 
-//! \since build 796
+//! \since build 825
 //@{
 //! \brief 判断参数是否为 NPL 图形分隔符。
-yconstfn PDefH(bool, IsGraphicalDelimeter, char c) ynothrow
+yconstfn PDefH(bool, IsGraphicalDelimiter, char c) ynothrow
 	ImplRet(c == '(' || c == ')' || c == ',' || c == ';')
 
 //! \brief 判断参数是否为 NPL 分隔符。
-yconstfn PDefH(bool, IsDelimeter, char c) ynothrow
-	ImplRet(c >= 0 && (!std::isgraph(c) || IsGraphicalDelimeter(c)))
+yconstfn PDefH(bool, IsDelimiter, char c) ynothrow
+#if CHAR_MIN < 0
+	ImplRet(c >= 0 && (!std::isgraph(c) || IsGraphicalDelimiter(c)))
+#else
+	ImplRet(!std::isgraph(c) || IsGraphicalDelimiter(c))
+#endif
 //@}
 
 
