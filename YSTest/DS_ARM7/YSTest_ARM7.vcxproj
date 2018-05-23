@@ -14,7 +14,7 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\Main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{42310096-8CB9-462A-B097-CF4A682E2536}</ProjectGuid>

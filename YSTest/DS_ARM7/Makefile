@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM7
-# Version = r1383
+# Version = r1390
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2018-05-18 15:35 +0800
+# Updated = 2018-05-22 15:57 +0800
 # Encoding = ANSI
 
 
@@ -70,8 +70,7 @@ LIBDIRS	:=	$(LIBNDS)
 
 ifneq ($(CONF),$(notdir $(CURDIR)))
 
-export ARM7BIN	:=	$(RELEASEDIR)/$(PROJNAME).arm7
-export ARM7ELF	:=	$(BUILDDIR)/$(PROJNAME).arm7.elf
+export ARM7ELF	:=	$(RELEASEDIR)/$(PROJNAME).arm7.elf
 export DEPSDIR	:=	$(BUILDDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -140,7 +139,6 @@ clean:
 	@echo Cleaning $(TARGET) ...
 	@rm -f $(BUILDDIR)/*.d
 	@rm -f $(BUILDDIR)/*.o
-	@rm -f $(ARM7BIN)
 	@rm -f $(ARM7ELF)
 
 rebuild: all
@@ -156,13 +154,10 @@ DEPENDS	:= $(OFILES:.o=.d)
 # main targets
 #----
 
-$(ARM7BIN)	:	$(ARM7ELF)
-	@$(OBJCOPY) -O binary $< $@
-	@echo Built $(notdir $@) .
-
 $(ARM7ELF)	:	$(OFILES)
 	@echo Linking $(notdir $@) ...
 	$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+	@echo Built $(notdir $@) .
 # IMPORTANT: the order of files is significant.
 
 #----

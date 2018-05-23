@@ -1,7 +1,11 @@
 ﻿== Modified files
 Several files are modified based on official FreeType version.
 Each file is licensed as same as the original project.
-Modifications are listed below.
+Incremental modifications are listed below.
+
+= Since build 826:
+Based on official version 2.9.1.
+The modifications are same to previous version.
 
 = Since build 700:
 Based on official version 2.6.3:
@@ -12,6 +16,10 @@ In "src/smooth/ftgrays.c":
 Note: The macro "FT_RENDER_POOL_SIZE" is not modified in "include/freetype/config/ftoption.h". It is not fit here because it also change behavior of other modules. This file in "devel" directory in the source repository also has comments about it should be greater than 4096, which can work but is still considerably too large on platform DS with a stack in ".dtcm" section of only 32KiB specified by devkitARM linker script by default.
 
 == Additional source replacement
+
+= Since build 826:
+Source file modification is now based on FreeType 2.9.1.
+The modifications are same to previous version.
 
 = Since build 700:
 Source file modification is now based on FreeType 2.6.3.
@@ -41,6 +49,11 @@ Contentes of source directory "src/cache" of 2.4.5 are replaced of those in vers
 == Custom configuration
 The configuration file "modules.cfg" in "build" will make the built library only containing with needed modules by YFramework, with a much smaller binary image size than the default build.
 All versions are tested with platform DS of YFramework official build (with same options for every configurations), initially with 'CFLAGS ?= -c -g -O3 -Wall' in makefile.
+
+= Since build 826
+Option '-DNDEBUG' is added to DS build script "config.mk".
+The following 'make' command line is used with following options for platform MinGW32:
+	CFLAGS="-c -pipe -fdata-sections -ffunction-sections -Wl,--gc-sections -Wall -O3 -DNDEBUG -s"
 
 = Since build 700
 Based on previous revision b459 and official version of "modules.cfg" in the FreeType 2.6.3 source tree, one effective line is appended removed compared with the official version:
@@ -124,7 +137,8 @@ See "Additional source replacement" and "Custom configuration" sections above.
 
 = DS
 Currently only building on Windows is tested.
-MSYS (providing a POSIX-compatible shell) and devkitARM are required.
+MSYS or MSYS2 (providing a POSIX-compatible shell) and devkitARM are required.
+Since build 826, official devkitPro instructions are used on a preinstalled MSYS2 environment. See release note https://github.com/devkitPro/pacman/releases/tag/devkitpro-pacman-1.0.1 for steps.
 The environment variable "DEVKITARM" should be set properly like "/C/devkitPro/devkitARM", to make sure the toolchain files can be found.
 Copy the directory "builds" to the freetype source directory, change current working directory to "builds" and run the script "build-ds" to build the static library.
 The script "build-ds.sh" is for UNIX shell. Alternatively, use "build-ds.cmd" with Windows command shell.
@@ -139,10 +153,11 @@ Note that if "PATH" is too long or UNIX shell (e.g. from MSYS) can be found in t
 Copy the file "builds/ds/modules.cfg" to "objs" in FreeType source directory.
 Then run "mingw32-make" (optionally with "-j" to build concurrently) with proper options using official makefile to build static library for MinGW32.
 The working directory should be FreeType source directory.
-Currently, YSLib uses:
+Basically, YSLib uses:
 
 	mingw32-make CFLAGS="-c -O3 -Wall -fomit-frame-pointer -DNDEBUG"
 
+See history above for actually used CFLAGS.
 The output is "objs/freetype.a" in the freetype source directory. To use in YSLib, rename it to "libfreetype.a".
 Run "mingw32-make clean" to cleanup built files.
 

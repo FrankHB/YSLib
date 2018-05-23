@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r2867
+\version r2953
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-05-18 18:13 +0800
+	2018-05-23 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,89 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	+ $dev $impl "workaround of GCC issue 85792" @ "class template %optional"
+		@ %YBase.YStandardEx.Optional,
+		// To eliminate G++ 8.1.0 warning: [-Wctor-dtor-privacy]. See \
+			https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85792.
+	/ DLB "file %3rdparty/freetype/build/config.mk" $=
+	(
+		+ "support of non-Windows toolchains"
+			$= (- "removed '.exe' postfix on commands"),
+		/ $impl ^ "prefix"
+	),
+	/ %YFramework $=
+	(
+		/ $dev $impl "local type name" @ "static member function %is_parent"
+			@ "trait %PathTraits" @ %YSLib.Core.FileSystem,
+			// To eliminate G++ 8.1.0 warning: [-Wshadow].
+		/ $forced DLDI ^ ('void*' ~ 'int') @ "opaque file information descriptor"
+			@ "device operation table" @ "platform %DS" @ %'YCLib_(DS)'.DSIO
+			$dep_from "devkitARM r48",
+			// NOTE: The %DSIO implementation change is required since \
+				devkitARM r46 (otherwise it would not compile).
+		/ DLB $impl @ "platform %DS" @ %YCLib.NativeAPI $=
+		(
+			+ $forced "declaration %__io_dsisd",
+			/ $forced ^ ("%::isDSiMode" ~ "%::__dsimode") $dep_from
+				"devkitARM r48",
+				// NOTE: %::get_io_dsisd is not used due to linking problem. \
+					The %DSIO implementation change is required since \
+					devkitARM r46 (otherwise it would not compile).
+			+ 'const' @ "declaration %_io_dldi_stub",
+			+ "weak definition %__secure_area__"
+		)
+	),
+	(
+	(
+	/ DLB "removed targets generated from 'objcopy -O binary'"
+		@ "all DS makefiles";
+		// See $2018-02 @ %Documentation::Workflow::Annual2018.
+	+ $forced $build '-h 0x200' @ "%ndstool command" @ "makefile"
+		@ "platform %DS" @ %YSTest,
+		// See $2018-02 @ %Documentation::Workflow::Annual2018.
+	),
+	+ "touch screen initialization" @ "main function" @ %YReader.Main_ARM7
+		@ "project %YSTest_ARM7";
+		// Otherwise the touch screen would not be responsible after devkitARM \
+			and libnds update.
+	/ DLP "toolchain and library using" $=
+	(
+		/ @ "platform %DS" $=
+		(
+			/ "installing source" ^ "devkitPro official pacman repositories";
+				// See %Documentation::Dependencies. See \
+					https://devkitpro.org/viewtopic.php?f=13&t=8711&sid=b0e9dc739b08dc00b42a5be10a7ef61e for annoucement.
+			^ $re_ex(b662) "updated devkitARM release 48"
+				~ "devkitARM release 45" $dep_to "devkitARM r48",
+			^ $re_ex(b662) "updated libnds 1.5.12" ~ "libnds 1.5.10"
+		),
+	)
+	),
+	/ @ "%.clang-format" $=
+	(
+		+ $re_ex(b665) $fmt 'SpaceAfterTemplate: false',
+			// This requires newer 'clang-foramt' since then. See wiki page \
+				%Development.zh-CN.md for update.
+		+ "copyright notice"
+	),
+	/ $dev $repo $re_add(b688) "all edited file with module name not the same \
+		as base filename" ^ 'hg mv' $effective
+		@ %YReader.Main_ARM7.("%main.cpp" => "%Main.cpp"),
+	/ @ "3rdparty libraries" $=
+	(
+		(
+		/ DLB "optimized %CFLAGS" @ "freetype";
+		/ DLP "updated library %freetype" @ "library using"
+			$= (^ $re_ex(b700) "updated freetype 2.9.1 with several files \
+				remained from freetype 2.4.11" ~ "freetype 2.6.3")
+			// See [Documentation::Dependencies @@2.2.3].
+		),
+		- "unused freetype headers"
+	)
+),
+
+b825
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -159,10 +242,10 @@ $now
 		@ "getting entry type" @ %YReader.ShlExplorer $since b390
 		^ "%ystdex::tolower" ~ "%std::tolower",
 		// See ISO C11 7.4/1.
-	* "missing commented out redundant '-ldswifi7 -lmm7'" @ "variable %LIBS"
-		@ "ARM7 makefile" @ "project %YSTest" @ "platform %DS" $orig
-		(@ "project makefile") $mismatch $since b132
-		// The library DS Wifi and MaxMod were never publicly used as \
+	* $build "missing commented out redundant '-ldswifi7 -lmm7'"
+		@ "variable %LIBS" @ "ARM7 makefile" @ "project %YSTest"
+		@ "platform %DS" $orig (@ "project makefile") $mismatch $since b132
+		// The libraries DS Wifi and MaxMod were never publicly used as \
 			dependencies.
 ),
 

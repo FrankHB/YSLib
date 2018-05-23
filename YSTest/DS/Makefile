@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2017 FrankHB.
+#	(C) 2009-2018 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,10 +8,11 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YSTest by FrankHB
-# Version = r1215
+# Version = r1223
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2017-08-11 01:22 +0800
+# Updated = 2018-05-23 15:34 +0800
 # Encoding = ANSI
+
 
 # This makefile is written based on devkitPro example template.
 
@@ -45,11 +46,11 @@ export OUTPUT		=	$(RELEASEDIR)/$(TARGET)
 
 TITLE		:= $(PROJNAME)
 SUBTITLE1 	:= FrankHB
-SUBTITLE2 	:= 2009-2017
+SUBTITLE2 	:= 2009-2018
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
-ARM7BIN := $(BUILDDIR)/../../$(TARGET)_ARM7/$(CONF)/$(TARGET)_ARM7.arm7
-ARM9BIN := $(BUILDDIR)/../../$(TARGET)_ARM9/$(CONF)/$(TARGET)_ARM9.arm9
+ARM7ELF := $(BUILDDIR)/../../$(TARGET)_ARM7/$(CONF)/$(TARGET)_ARM7.arm7.elf
+ARM9ELF := $(BUILDDIR)/../../$(TARGET)_ARM9/$(CONF)/$(TARGET)_ARM9.arm9.elf
 
 .PHONY: $(CONF) clean rebuild
 
@@ -63,14 +64,14 @@ all : $(CONF)
 #	@cp $(RELEASEDIR)/$(notdir $@) $(BUILDDIR)/$(notdir $(OUTPUT)).sc.nds
 #	@echo Built: $(notdir $(OUTPUT)).sc.nds .
 
-$(ARM7BIN) $(ARM9BIN) :
+$(ARM7ELF) $(ARM9ELF) :
 	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
 	@[ -d $(RELEASEDIR) ] || mkdir -p $(RELEASEDIR)
 
-$(OUTPUT).nds : $(ARM7BIN) $(ARM9BIN)
+$(OUTPUT).nds : $(ARM7ELF) $(ARM9ELF)
 	@echo Building configuration: $(notdir $@) ...
 	@echo Building $(notdir $@) ...
-	ndstool -c $(OUTPUT).nds -7 $(ARM7BIN) -9 $(ARM9BIN) $(ICON) "$(TITLE);$(SUBTITLE1);$(SUBTITLE2)"
+	ndstool -c $(OUTPUT).nds -h 0x200 -7 $(ARM7ELF) -9 $(ARM9ELF) $(ICON) "$(TITLE);$(SUBTITLE1);$(SUBTITLE2)"
 	@echo Built $(notdir $@) .
 
 $(CONF) : $(OUTPUT).nds
