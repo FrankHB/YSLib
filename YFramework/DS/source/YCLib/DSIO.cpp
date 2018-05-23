@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4327
+\version r4358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2017-08-11 14:12 +0800
+	2018-05-22 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2141,17 +2141,19 @@ op_dir_locked(::_reent* r, ::DIR_ITER* dir_state, _fCallable f,
 			std::forward<_tParams&&>(args)...);
 	});
 }
+//@}
 
+//! \since build 826
 template<typename _fCheck, typename _fCallable, typename... _tParams>
 YB_NONNULL(1) auto
-op_file_checked(::_reent* r, int fd, _fCheck check, _fCallable f,
+op_file_checked(::_reent* r, void* fh, _fCheck check, _fCallable f,
 	_tParams&&... args) ynothrowv
 	-> FilterRes<_fCallable, FileInfo&, _tParams&&...>
 {
-	auto& file(Deref(reinterpret_cast<FileInfo*>(fd)));
+	auto& file(Deref(static_cast<FileInfo*>(fh)));
 
-	return FilterDevOps(r, [&, fd, check, f]{
-		// NOTE: Check of %fd is similar to %::close_r.
+	return FilterDevOps(r, [&, check, f]{
+		// NOTE: Check of %file is similar to %::close_r.
 		if(ystdex::invoke(check, file))
 			// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 			//	error: Segmentation fault.
@@ -2161,20 +2163,20 @@ op_file_checked(::_reent* r, int fd, _fCheck check, _fCallable f,
 	});
 }
 
+//! \since build 826
 template<typename _fCallable, typename... _tParams>
 YB_NONNULL(1) auto
-op_file_locked(::_reent* r, int fd, _fCallable f, _tParams&&... args)
+op_file_locked(::_reent* r, void* fh, _fCallable f, _tParams&&... args)
 	ynothrowv -> FilterRes<_fCallable, FileInfo&, _tParams&&...>
 {
-	auto& file(Deref(reinterpret_cast<FileInfo*>(fd)));
+	auto& file(Deref(static_cast<FileInfo*>(fh)));
 
-	return FilterDevOps(r, [&, fd, f]{
+	return FilterDevOps(r, [&, f]{
 		// XXX: Blocked. 'yforward' cause G++ 5.3 crash: internal compiler
 		//	error: Segmentation fault.
 		return locked_invoke(file, f, file, std::forward<_tParams&&>(args)...);
 	});
 }
-//@}
 
 // NOTE: %REENTRANT_SYSCALLS_PROVIDED is configured for libgloss for
 //	arm-*-*-eabi targets in devkitPro ports. See source
@@ -2192,7 +2194,7 @@ const ::devoptab_t dotab_fat{
 
 			return int(file_struct);
 		});
-	}, [](::_reent* r, int fd) YB_NONNULL(1) ynothrowv{
+	}, [](::_reent* r, void* fh) YB_NONNULL(1) ynothrowv{
 		// NOTE: The parameter %fd is actually cast from the file structure
 		//	pointer stored by %devoptab_t::open_r. This function is called
 		//	when the reference count in handle decreased to zero. Since this
@@ -2200,30 +2202,30 @@ const ::devoptab_t dotab_fat{
 		//	corrupted, check for null (yield %EBADF) is not performed, as same
 		//	as LibFAT did. Also the name is %fd, not POSIX %filedes.
 		return FilterDevOps(r, [=]{
-			auto& file_info(Deref(reinterpret_cast<FileInfo*>(fd)));
-			auto& part(file_info.GetPartitionRef());
+			auto& file(Deref(static_cast<FileInfo*>(fh)));
+			auto& part(file.GetPartitionRef());
 			const auto gd(ystdex::make_guard([&]() ynothrow{
-				Deref(part.LockOpenFiles()).erase(file_info);
-				file_info.~FileInfo();
+				Deref(part.LockOpenFiles()).erase(file);
+				file.~FileInfo();
 			}));
 			lock_guard<mutex> lck(part.GetMutexRef());
 
-			file_info.SyncToDisc();
+			file.SyncToDisc();
 		});
-	}, [](::_reent* r, int fd, const char* buf, size_t nbyte) YB_NONNULL(2, 4)
+	}, [](::_reent* r, void* fh, const char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_checked(r, fd, &FileInfo::CanWrite, &FileInfo::Write,
+		return op_file_checked(r, fh, &FileInfo::CanWrite, &FileInfo::Write,
 			buf, nbyte);
-	}, [](::_reent* r, int fd, char* buf, size_t nbyte) YB_NONNULL(2, 4)
+	}, [](::_reent* r, void* fh, char* buf, size_t nbyte) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_checked(r, fd, &FileInfo::CanRead, &FileInfo::Read, buf,
+		return op_file_checked(r, fh, &FileInfo::CanRead, &FileInfo::Read, buf,
 			nbyte);
-	}, [](::_reent* r, int fd, ::off_t offset, int whence) YB_NONNULL(1)
+	}, [](::_reent* r, void* fh, ::off_t offset, int whence) YB_NONNULL(1)
 		ynothrowv{
-		return op_file_locked(r, fd, &FileInfo::Seek, offset, whence);
-	}, [](::_reent* r, int fd, struct ::stat* buf) YB_NONNULL(2, 4)
+		return op_file_locked(r, fh, &FileInfo::Seek, offset, whence);
+	}, [](::_reent* r, void* fh, struct ::stat* buf) YB_NONNULL(2, 4)
 		ynothrowv{
-		return op_file_locked(r, fd, &FileInfo::Stat, Deref(buf));
+		return op_file_locked(r, fh, &FileInfo::Stat, Deref(buf));
 	}, [](::_reent* r, const char* path, struct ::stat* buf) YB_NONNULL(1, 2, 3)
 		ynothrowv{
 		return op_path_locked(r, path, &Partition::Stat, Deref(buf), path);
@@ -2261,13 +2263,12 @@ const ::devoptab_t dotab_fat{
 	}, [](::_reent* r, const char* path, struct ::statvfs* buf)
 		YB_NONNULL(1, 2, 3) ynothrowv{
 		return op_path_locked(r, path, &Partition::StatFS, Deref(buf));
-	}, [](::_reent* r, int fd, ::off_t length) YB_NONNULL(1) ynothrowv -> int{
+	}, [](::_reent* r, void* fh, ::off_t length) YB_NONNULL(1) ynothrowv -> int{
 		return length >= 0 ? (sizeof(length) <= 4 || length <= ::off_t(
-			MaxFileSize) ? op_file_checked(r, fd, &FileInfo::CanWrite,
-			&FileInfo::Truncate, std::uint32_t(length)) : EFBIG)
-			: EINVAL;
-	}, [](::_reent* r, int fd) YB_NONNULL(1) ynothrowv -> int{
-		return op_file_locked(r, fd, &FileInfo::SyncToDisc);
+			MaxFileSize) ? op_file_checked(r, fh, &FileInfo::CanWrite,
+			&FileInfo::Truncate, std::uint32_t(length)) : EFBIG) : EINVAL;
+	}, [](::_reent* r, void* fh) YB_NONNULL(1) ynothrowv -> int{
+		return op_file_locked(r, fh, &FileInfo::SyncToDisc);
 	}, nullptr, nullptr, nullptr, nullptr
 };
 

@@ -1,5 +1,7 @@
+# (C) 2016, 2018 FrankHB.
 # See http://clang.llvm.org/docs/ClangFormatStyleOptions.html.
 # NOTE: http://clangformat.com/ may be outdated.
+
 # BasedOnStyle: None
 Language: Cpp
 Standard: Auto # Cpp11 is preferred in general.
@@ -59,6 +61,7 @@ PenaltyExcessCharacter: 320
 PenaltyReturnTypeOnItsOwnLine: 0
 PointerAlignment: Left
 SpaceAfterCStyleCast: false
+SpaceAfterTemplate: false # Requires > r278121.
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: Never
 SpaceInEmptyParentheses: false

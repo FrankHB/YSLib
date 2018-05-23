@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r1333
+\version r1355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2018-03-03 17:24 +0800
+	2018-05-23 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,6 +187,20 @@ devkitARM release 44 / libnds 1.5.10 / libfat 1.0.14 。
 2015-12-22(build 662) 起：
 devkitARM release 45 / libnds 1.5.12 。
 升级 G++ 5.3.0 ， binutils 2.25.1 。
+2018-05-23(build 826) 起：
+改用 devkitPro 官方 pacman 源提供的 Windows 工具链。
+使用 devkitPro 官方提供的 /etc/pacman.conf 配置如下：
+[dkp-libs]
+Server = http://downloads.devkitpro.org/packages
+[dkp-windows]
+Server = http://downloads.devkitpro.org/packages/windows
+使用以下包：
+dkp-windows/tool-dlls 1.0-1
+dkp-windows/devkitARM r48-2
+dkp-windows/ndstool 2.1.1-2
+dkp-windows/general-tools 1.0.2-2
+dkp-libs/libnds 1.7.2-1
+升级 G++ 8.1.0 ， binutils 2.30 。
 
 @1.4.1 DS 平台构建说明：
 需要使用宏 DEVKITARM 指定 devkitARM 的路径。
@@ -479,6 +493,14 @@ DS 库文件： CFLAGS 加入以下配置 "-DFT_CONFIG_OPTION_OLD_INTERNALS" （
 此配置迁移自 "freetype/config/ftoption.h" 中的宏定义，而其它修改未影响当前使用的特性，因此不再需要替换此文件。
 因为缺少 TT_CONFIG_OPTION_MAX_RUNNABLE_OPCODES 宏的默认定义，构建之前的一些版本可能还需在 CFLAGS 加入 -DTT_CONFIG_OPTION_MAX_RUNNABLE_OPCODES=1000000L 。
 重新编译 MinGW32 和 Android 库文件。
+2018-05-23(build 826) 起：
+从这个版本起，移除 3rdparty 目录下没有在任一配置中被直接依赖的头文件，且忽略头文件中仅有非字面量空白符、注释以及严格证明不影响翻译后程序行为的等价语法（如 extern "C" {} 替换为修饰 {} 中每个声明的语义等价的变换）的差异。
+使用 FreeType 2.9.1 ，替换文件同上。
+相对之前的版本变化（被默认的替换和文档中说明覆盖）如下：
+DS 的 "builds/ds/config.mk" 中的 CFLAGS 默认值添加了 -DNDEBUG ；
+MinGW32 的默认 CFLAGS 移除 -fomit-frame-pointer （因为被 -O3 隐含），添加 -pipe 和一些链接器选项。
+具体选项和对原始版本和配置 "modules.cfg" 的修改参见 "3rdparty/freetype/Readme.en-US.txt" 中的历史记录。
+重新编译 DS 和 MinGW32 库文件，方法同之前的版本。
 
 @2.3 Anti-Grain Geometry ：
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。

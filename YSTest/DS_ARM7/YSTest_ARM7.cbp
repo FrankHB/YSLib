@@ -32,6 +32,6 @@
 			</Target>
 		</Build>
 		<Unit filename="Makefile" />
-		<Unit filename="source/main.cpp" />
+		<Unit filename="source/Main.cpp" />
 	</Project>
 </CodeBlocks_project_file>

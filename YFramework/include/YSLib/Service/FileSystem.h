@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3280
+\version r3291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2016-09-23 22:13 +0800
+	2018-05-21 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,10 +106,10 @@ struct PathTraits
 	static yconstfn bool
 	is_parent(const _tString& str) ynothrow
 	{
-		using value_type = decltype(str[0]);
+		using char_value_t = decltype(str[0]);
 
-		return ystdex::string_length(str) == 2 && str[0] == value_type('.')
-			&& str[1] == value_type('.');
+		return ystdex::string_length(str) == 2 && str[0] == char_value_t('.')
+			&& str[1] == char_value_t('.');
 	}
 
 	//! \since build 706
@@ -664,7 +664,7 @@ TraverseChildren(const Path& pth, _func f)
 /*!
 \brief 递归遍历目录树。
 \warning 不检查无限递归调用。
-\note 使用 ADL \c TraverseChildren 遍历子目录。
+\note 使用 ADL TraverseChildren 遍历子目录。
 \note 函数传入的路径参数可以被修改。
 \since build 657
 */
@@ -701,11 +701,12 @@ using CopyFileHandler = std::function<void(FileDescriptor, FileDescriptor)>;
 //! \sa CopyFileHandler
 //@{
 //! \brief 保持修改时间。
-const auto PreserveModificationTime(ystdex::bind_forward(
-	&FileDescriptor::SetModificationTime, &FileDescriptor::GetModificationTime));
+const auto PreserveModificationTime(
+	ystdex::bind_forward(&FileDescriptor::SetModificationTime,
+	&FileDescriptor::GetModificationTime));
 //! \brief 保持修改和访问时间。
-const auto PreserveModificationAndAccessTime(ystdex::bind_forward(
-	&FileDescriptor::SetModificationAndAccessTime,
+const auto PreserveModificationAndAccessTime(
+	ystdex::bind_forward(&FileDescriptor::SetModificationAndAccessTime,
 	&FileDescriptor::GetModificationAndAccessTime));
 //@}
 //@}
@@ -766,7 +767,7 @@ CopyFile(const char*, const char*, CopyFileHandler, mode_t = DefaultPMode(),
 /*!
 \brief 复制目录树。
 \warning 不检查无限递归调用。
-\note 使用 ADL \c TraverseChildren 递归遍历。
+\note 使用 ADL TraverseChildren 递归遍历。
 \since build 648
 */
 template<typename... _tParams>

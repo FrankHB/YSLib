@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1067
+\version r1097
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2017-08-07 10:20 +0800
+	2018-05-23 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,13 +32,29 @@
 #endif
 #if YCL_DS
 #	include YFM_DS_YCLib_DSIO // for ::DISC_INTERFACE, Disc,
-//	platform_ex::FAT::Mount, ::__io_dsisd;
+//	platform_ex::FAT::Mount;
 #	include <arm9/dldi.h> // for ::DLDI_INTERFACE;
 //#	include <nds/system.h> // for ::isDSiMode;
 
 
-//! \since build 602
-extern "C" ::DLDI_INTERFACE _io_dldi_stub;
+//! \since build 826
+extern "C" const ::DLDI_INTERFACE _io_dldi_stub;
+
+//! \since build 826
+extern const ::DISC_INTERFACE __io_dsisd;
+
+//! \since build 800
+// NOTE: Stub to work around devkitARM r46 bug.
+//	See https://devkitpro.org/viewtopic.php?f=13&t=8643&start=10.
+extern "C" YB_ATTR(weak) void
+__sync_synchronize()
+{}
+
+/*!
+\see https://github.com/devkitPro/libnds/commit/6070d310d08429eed8df14a7695c28fae04f6a35 。
+\since build 826
+*/
+extern "C" YB_ATTR(weak) const yimpl(int) __secure_area__ = 0;
 #elif YCL_MinGW
 #	include <ctime> // for std::gmtime;
 #elif YCL_Android
@@ -100,13 +116,6 @@ estat(struct ::stat& st, const char* path, bool follow_link) ynothrowv
 
 
 #if YCL_DS
-//! \since build 800
-// NOTE: Stub to work around devkitARM r46 bug.
-//	See https://devkitpro.org/viewtopic.php?f=13&t=8643&start=10.
-extern "C" YB_ATTR(weak) void
-__sync_synchronize()
-{}
-
 namespace platform_ex
 {
 
@@ -128,8 +137,19 @@ FileSystem::FileSystem(size_t pages)
 			return {};
 		});
 
-		if(::__dsimode && init("sd", ::__io_dsisd))
-			return RootKind::SD;
+#if false
+		// XXX: This would cause "undefined reference to `get_io_dsisd()'" with
+		//	devkitARM r48. It should be defined in LibNDS, though.
+		if(const auto p = ::get_io_dsisd())
+			if(init("sd", *p))
+#else
+		// XXX: Nevertheless, this is same to the call in previous revisions. It
+		//	just requires one more magic number.
+		if(::isDSiMode()
+			&& reinterpret_cast<::tNDSHeader*>(0x02FFFE00)->unitCode != 0)
+			if(init("sd", ::__io_dsisd))
+#endif
+				return RootKind::SD;
 		// NOTE: As %::dldiGetInternal.
 		if((::_io_dldi_stub.ioInterface.features
 			& (FEATURE_SLOT_GBA | FEATURE_SLOT_NDS)) != 0)

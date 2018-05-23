@@ -6,9 +6,10 @@ PLATFORM  := arm-eabi
 
 LIB_DIR := $(OBJ_DIR)
 LIBRARY := lib$(PROJECT)
+PREFIX := $(DEVKITARM)/bin/arm-none-eabi-
 
-CC := $(DEVKITARM)/bin/arm-none-eabi-gcc.exe
-AR := $(DEVKITARM)/bin/arm-none-eabi-ar.exe
+CC := $(PREFIX)gcc
+AR := $(PREFIX)ar
 COMPILER_SEP := /
 O  := o
 SO := o
@@ -19,7 +20,7 @@ D := -D
 L := -l
 T := -o$(space)
 CFLAGS ?= -c -Os -Wall -fdata-sections -ffunction-sections \
-	-DFT_CONFIG_OPTION_OLD_INTERNALS
+	-DFT_CONFIG_OPTION_OLD_INTERNALS -DNDEBUG
 ANSIFLAGS :=
 CLEAN_LIBRARY  = $(DELETE) $(OBJ_DIR)/*
 LINK_LIBRARY   = $(AR) -r $@ $(OBJECTS_LIST)

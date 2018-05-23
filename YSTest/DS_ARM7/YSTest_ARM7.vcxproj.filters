@@ -21,7 +21,7 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\main.cpp">
+    <ClCompile Include="source\Main.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
