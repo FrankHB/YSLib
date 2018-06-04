@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r2953
+\version r3007
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-05-23 20:10 +0800
+	2018-06-05 02:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,39 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ DLB "3rdparty files" @ "Microsoft VC++ project" $=
+	(
+		* "wrong directorie in paths" $since b700,
+		* "missing removing unused files" $since b826
+			// On the other hand, Code::Blocks project files would be regenerated \
+				on release.
+	),
+	/ %YFramework.NPL $=
+	(
+		/ %NPLA1 $=
+		(
+			/ DLI "avoided redundant anchor reference of weakly held parent \
+				environment" @ "vau handlers",
+			/ "improved TCO" @ "environment switching" $=
+			(
+				* "missing remove entry for newly added temporary object"
+					$since b825,
+				// See $2018-06 @ %Documentation::Workflow::Annual2018.
+				/ $revert_ex(b886) "refactored entry of TCO frame checking";
+				/ "suppored collection of indirect referenced environments by \
+					separated record compressor"
+					~ ("check loop" @ "basic frame record list traverse")
+			),
+			/ "all functions %(ResolveName, 2 ResolveEnvironment)" >> %NPLA
+		),
+		/ $comp "supported PTC" @ "alternative derivation"
+			@ "operative '$sequence'" @ "derivated loading forms"
+			@ "function %LoadNPLContextForSHBuild" @ %Dependency
+	)
+),
+
+b826
 (
 	+ $dev $impl "workaround of GCC issue 85792" @ "class template %optional"
 		@ %YBase.YStandardEx.Optional,
@@ -47,9 +80,9 @@ $now
 		/ $dev $impl "local type name" @ "static member function %is_parent"
 			@ "trait %PathTraits" @ %YSLib.Core.FileSystem,
 			// To eliminate G++ 8.1.0 warning: [-Wshadow].
-		/ $forced DLDI ^ ('void*' ~ 'int') @ "opaque file information descriptor"
-			@ "device operation table" @ "platform %DS" @ %'YCLib_(DS)'.DSIO
-			$dep_from "devkitARM r48",
+		/ $forced DLDI ^ ('void*' ~ 'int') @ "opaque file information \
+			descriptor" @ "device operation table" @ "platform %DS"
+			@ %'YCLib_(DS)'.DSIO $dep_from "devkitARM r48",
 			// NOTE: The %DSIO implementation change is required since \
 				devkitARM r46 (otherwise it would not compile).
 		/ DLB $impl @ "platform %DS" @ %YCLib.NativeAPI $=
@@ -86,8 +119,23 @@ $now
 					https://devkitpro.org/viewtopic.php?f=13&t=8711&sid=b0e9dc739b08dc00b42a5be10a7ef61e for annoucement.
 			^ $re_ex(b662) "updated devkitARM release 48"
 				~ "devkitARM release 45" $dep_to "devkitARM r48",
-			^ $re_ex(b662) "updated libnds 1.5.12" ~ "libnds 1.5.10"
+			^ $re_ex(b662) "updated libnds 1.7.2" ~ "libnds 1.5.12"
 		),
+		(
+		(
+		/ DLB "optimized %CFLAGS" @ "freetype";
+		/ DLP "updated library %freetype" @ "library using"
+			$= (^ $re_ex(b700) "updated freetype 2.9.1 with several files \
+				remained from freetype 2.4.11" ~ "freetype 2.6.3")
+			// See [Documentation::Dependencies @@2.2.3].
+		),
+		- "unused freetype headers";
+		/ "updated library %freetype" @ "platforms %(DS, MinGW32)"
+			$dep_from "3rdparty libraries"
+			$= (^ $re_ex(b700) "updated freetype 2.9.1 with several files \
+				remained from freetype 2.4.11" ~ "freetype 2.6.3")
+			// See [Documentation::Dependencies @@2.2.4].
+		)
 	)
 	),
 	/ @ "%.clang-format" $=
@@ -99,18 +147,7 @@ $now
 	),
 	/ $dev $repo $re_add(b688) "all edited file with module name not the same \
 		as base filename" ^ 'hg mv' $effective
-		@ %YReader.Main_ARM7.("%main.cpp" => "%Main.cpp"),
-	/ @ "3rdparty libraries" $=
-	(
-		(
-		/ DLB "optimized %CFLAGS" @ "freetype";
-		/ DLP "updated library %freetype" @ "library using"
-			$= (^ $re_ex(b700) "updated freetype 2.9.1 with several files \
-				remained from freetype 2.4.11" ~ "freetype 2.6.3")
-			// See [Documentation::Dependencies @@2.2.3].
-		),
-		- "unused freetype headers"
-	)
+		@ %YReader.Main_ARM7.("%main.cpp" => "%Main.cpp")
 ),
 
 b825

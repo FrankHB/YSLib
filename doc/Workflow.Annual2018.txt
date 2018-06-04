@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r91
+\version r299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-05-23 15:22 +0800
+	2018-06-05 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,6 +89,216 @@ Several DS buidling problem concerned with compatibility issues in devkitPro has
 			The good news is it would eventually make the binary size in resulted ROM file smaller.
 				It would bloat ~35KiB by removal 'objcopy -O binary' (though much smaller than raw images with devkitARM r46).
 				But with recompilation of FreeType2 with new toolchain, it would save ~80 KiB.
+
+$2018-06:
+
+$report.impl:
+TCO algorithm in NPLA1 has been carefully revised and further enhanced.
+	TCO operates on active record frames.
+		The representation of a frame is not necessarily always same.
+			But for simplicity, all frames preserved in a TCO action are in two forms.
+				The first form is like other non-TCO frames, called guarded frame, representing the continuation of the TCO action.
+					It is stored in a guard object of type 'NPL::A1::EnvironmentGuard', providing strong exception safety.
+				The other is the frame solely stores the resources.
+					These resource include environment and the function prvalue (as the temporary object).
+				There is most one valid guarded frame in one TCO action.
+					There is exactly one valid guarded frame if the action initialized with a valid next action (in 'Context::Current') as well as a different environment (always true in case of TCO) for the next action.
+				There are zero or more valid non-guarded frame when there is a valid guarded frame. They are stored in the frame record list.
+				During the reduction performed in the TCO action (implemented in 'operator()' of the action), non-guarded frames would be removed in the reverse order of insertion. Guarded frame would be switched and destroyed after all non-guarded frames have been removed.
+					This process resembles the LIFO stack frames built by environment switching during ordinary nested function calls (as well as evaluation of 'eval' with operands).
+					Conventionally, the frame record list pops the front frame at first. Environment to be added into the list caused by environment switching is also insert in the front place if the guarded frame exists (otherwise it should be placed as the guarded frame).
+						Thus old frames lives longer are place in back. Guarded frame is the last frame (living logest) and it is virtually the one-past-end element of the list in sense of lifetime (although it is actually held out of the list).
+			No other frame representations for other cases are specified yet.
+		During TCO, zero or more incative frames would be found and removed, with the permission of nondeterminism about lifetime of objects in the inactive frames granted by the semantic rules of the object language.
+			During the removal of an inactive frame, if the environment is previously uniquely referenced, the environment in the frame is destroyed, so resources are reclaimed.
+				The objects held in the binding within the environment of the frame shall be destroyed to enforce there is no resource leak.
+					This is ensured implictly by the destruction of the environment.
+				The parantage of remained object shall also be maintained to avoid behavior not allowed by the semantic rules of the object language.
+					This needs additional explicit operations before the destruction.
+				This indicates the environment is collected.
+				Not all environments in inactive frames are to be collected, because they may have reachable objects, i.e. objects referenced by active frame.
+			The candidate inactive frames to be removed are found by the check operation against inactive frames specifically.
+				The check is performed each time when there is a new frame being activated.
+					Zero or more old frames are to be removed as the result of the check.
+					The resources of these frames are thus collected when needed, i.e. when there is no object not owned by the environment holding the reference of the environment.
+			The removal of TCO frames shall keep the parentage of environments properly as per the language rules.
+	Routine containing TCO is entered once during some operations at tail contexts with environment switching.
+		Currently, function calls in vau handlers and 'eval' reductions are the direct audience.
+			Other PTC can be composited with these cases.
+		The input contains a guard object holding the environment of previous action in the context.
+			The environment was switched before enter of the routine and the old one would be the one stored in the guard.
+			This guarantees strong exception safety.
+		The operation initiates TCO shall create a TCO action if it is not existed as the next action; otherwise it shall maintain the members of an existed TCO action properly, especially the frames stored in the action.
+			Only when the next action is a TCO action and the input guard is valid (holding an environment), TCO can be performed.
+			The operation shall make the guard object stored in the TCO action to be the input guard on creation of the TCO action, or add it in the frame record list of existed TCO action after TCO.
+		If there has been already a valid guarded frame in the stored guard object, TCO check is needed; otherwise, the input guard is simply installed by assignment to the stored guard object.
+		TCO check and recource removal are performed immediately before the insertion of the guard object for an existed TCO action.
+			Each time it performs only one turn of check. It shall colloect more resources as possible, to prevent them leaked before tail contexts are met later again.
+				The guard object would not be collected before the next turn of check, as it holds the newly deactivated frame.
+				It can be collected only after the frame switch would not be rollback by an exception.
+				The strong exception safety of the collection for it is difficult to achieve, so keep it as-is, and it can be collected in next turn if necessary.
+			The frame record list holds all frames after previous turns of collection (if any).
+			The new frame would held by the input guard be inserted at the beginning of the list.
+		In order to check frames, TCO tests whether the frames saved in the frame record list can be safely removed when the provided guard object lives long enough until the TCO action is reduced via its 'operator()'.
+			This is done by searching environments with no reference from others in active frames on the frame record list.
+			The objects being seached is a set of environment, called candidate search set, defined by following rules:
+				The environment in the guard object is the root of search.
+				All direct and indirect parents of the root which can be determined in finite time is also in the set.
+					The determination dependes on module 'NPLA'. In current design, there is no nondeterminism in parantage, and all search operations shall terminate in finite time.
+				No other object are in the set.
+			The operation to determine the candidate search set is tracing.
+			After tracing determine the objects to be collected in the candidate search set, objects are collected if necessary.
+			Both tracing and collection of environent objects not in the frame record list are handled by record compressor.
+				Record compressor maintains a common state, called trace record, upon the candidate search set.
+					Trace record consists of three parts.
+						The first is reachable set indicating the known active objects not to be collected.
+							It is represented as a set of refereces to environment objects, with initial value of single root environment, i.e. the reference to environment object as the active frame.
+						The second is the universe standing for candidate search set and correspoinding tracing reference count used by tracing for each candidate.
+							It is represented as a map from reference to environment object to a count.
+							It is initially empty and will be updated by the process of search.
+							All other references to the searched environment objects are considered exteranl references of the environment.
+						The last is a list holding the ownership of objects to be collected.
+							The collection would be finally in the destruction of the compressor.
+							It is represented as a vector of shared pointers to environment object.
+								If it is needed to specify order of destruction in future, it can be a deque.
+				Once an environment is finally searched, the tracing references held in trace record and the reference counts provided by the references are used to be determined whether it is safe to be removed.
+					There are two kinds of reference provided by the environment are considered.
+						Strong reference is represented in type of 'shared_ptr<Environment>', or the reference shared ownership with the weak pointer in an 'EnvironmentReference' object.
+							It is allowed to be 0 because the environment object can keep alive to use 'shared_from_this' to get a new strong reference.
+						Weak reference is the reference holding an anchor object of the environment object, in type 'NPL::EnvironmentReference'.
+							The weak reference count is the reference count of the anchor object, which equals to the number of live weak references plus the one in environment object itself, so the minimum value is 1.
+					Total reference count to an object is defined as sum of strong and weak reference count minus 1, or the sum minus 2 when there is a temporary strong reference is retained (to get the strong reference count) via 'shared_from_this' call.
+					All reference counts except 'use_count' result of 'shared_ptr<Environment>' are not exposed as public features of object language.
+						However, they are steday for the purpose here to illustrate the algorithms involved in TCO.
+					The trace state would be sufficient to determine whether a candidate in candidate search set is an external reference or not in search.
+					When the strong reference count reaches to zero, the object would be automatically destroyed.
+						So simply avoid to keep redundant strong reference away would be sufficient to make objects collected.
+						Otherwise, if the strong reference shows the object is not uniquely held by the frame record list, the environment reference is removed.
+							As the environment reference is also held elsewhere, the environment is not collected. 
+					Otherwise, if no external objects hold (weak) reference to the environment, the environment reference is needed to be removed.
+						The environment is then collected once.
+						The trace is used to maintain the data determining whether objects being traced are held externally.
+						The referent (the referenced object) is to be collected in following 2 cases:
+							When the weak reference count is 1 and the strong reference count is 0 or 1, the environment is not shared. If it is not also reachable (i.e. referenced directly or indirectly by some external objects), it is an orphan.
+							When the weak reference count is same to the weak count in the universe but not the reachable set, there is no external references, i.e. no external objects are known to hold reference to the environment.
+				Each basic operation of collection is concerned with 2 environment objects: the destination and the source.
+					The destination is the environment object to be collected.
+					Before the collection, the parent of environment should be settled so the parantage can be maintained.
+					The source is the object to receive new parent. All other members of source are not touched.
+					Sometimes, before setting the parent of source object, bindidngs lived both in source and destination are deduplicated.
+						The deduplication is simply to remove all bindings in the destination with same names in source.
+							The object lifetime would be altered. It shall be only used following the semantic rules of object language.
+						Sometimes the source and destination can have same bindings when the destination is the only parent of the source. If deduplicated, destination can be empty and be then collected.
+							This typically exists like frames created by recursive function calls, which is a majority source of need of TCO.
+							It is necessary for elements in the frame record list because the referent cannot be removed otherwise.
+								The result of emptiness is important because an nonempty environment cannot be removed.
+								Also note moving destination bindings to merge to the source is not feasible in general.
+									The only exception is the case that name resolution can be proved not effected (in search order, etc.) by it, which is too complicated and not worthy in general.
+				The compressor provides methods to add references before further operations.
+					The methods are to determine the universe.
+					A count is set to each entry of universe as the total reference to the object.
+					The parameters are called roots, as the entry of traverse described below.
+						The first root is strong and other roots are weak.
+						The first root shall be the reference to active frame.
+						Only strong root is considered reachable initially. Weak roots are specifically interested because they are held internally and addtional reference count fixes are needed, see the description of tracing algorithm below.
+				The compressor provides a "compress" method to be called after added all interested reference.
+					The interested references forms the universe. All references out of universe are considered external, and the object referenced by an external reference is not to be collected.
+					The method compresses frames by tracing and removal of orphaned environment objects (defined below).
+						An orphaned environment object is an environment object not referenced by any external references. It is safe to be collected.
+						The orphaned environment object is determined by traverse of specified environment objects (called roots) and their parent environment objects directly and indirectly.
+						The search is basically performed in depth-first manner, from the roots specified previously as the parameter of adding operations before the compression.
+					Each step of search enumerates the parent of current searched environment using the order same to name resolution and update the common state.
+						As environment object and their parents are in a acyclic data structure, there is no cycle during the traverse.
+						The traverse enumerates parents of environments by types as they provide different ownership of environment objects.
+					The compression consists of 2 stages, tracing and moving.
+					There are following steps of tracing operations to be performed as the 1st stage of compression:
+						All objects in the universe is traversed once and the corresponding count is decremented.
+							The value of counts before decrement operations shall be positive.
+						For the roots specified in adding operations previously, further decrement the corresponding count.
+							The value of counts before decrement operations shall still be positive.
+							The roots are intended as the uniquely held environment in the frame record list. The value shall precisely decremented by 1.
+						All resulted counts of 0 indicate the corresponding environment are orphaned (even with cycles across strong and weak references) and they are candidates to be collected unless they are otherwise reachable.
+							For objects with count greater than 0, correspoinding references are moved to reachable set.
+						All objects as direct or indirect parents of objects referenced in reachable set are also considered reachable. The correspoinding refrences are moved to reachable set.
+							This process loops till there is no new references to reachable object found.
+					There are following steps of moving operations to be performed as the 2nd stage of compression:
+						Strong reference of remained references in universe are added to the collected set.
+							This is used to keep the ownership of objects to be collected tentatively.
+						The strong root is finally traversed and all remained objects fixes their parent properly to avoid collected objects occur in the parantage.
+							During the operations of assignment parents, objects to be collected are still alive due to the collected set.
+							After the traverse, object in the collected set would have reference count value 1.
+				During destruction of the compressor, collected set would be destroyed eventually.
+					The objects except the weak roots (if any) are finally collected here.
+			For each turn of check, an object of record comprocessor is created using the reference to environment object in the active frame as root.
+			The adding operation is then entered at least once by call of "collect" method.
+				The first call using the reference to environment in the guard object as the parameter to specify the strong root.
+				The successive calls traverse frame record list to provide weak roots.
+			After the adding operations, there is a try in loop for further compression operations, which traverses the frame record list.
+				The order is from front to back, so the recently inserted frame is first to try.
+				Each try in loop targets the current iterated reference as the referenced to be processed and consists of several operations:
+					If the strong refrence count is not equal to 1 (either 0 or more), it is held elsewhere.
+						The frame in the list is removed and the referent should remain alive.
+					Otherwise, if the referent is orphaned, the frame is removed and the referent is collected.
+					Otherwise, compression is performed with the reference being processed as the parameter.
+						After compression, if the weak reference count is 2, it can be the processed reference and its sole parent.
+							Note the compressor does not process the element of frame record list.
+								Although The compressor should know the object because it is the parameter, it is hold by strong reference, so it should be never collected by the compressor.
+								This is also the reason of cleanup of orphaned referent referenced by element of frame record list should exist above.
+								Moreover, if the the environment is duplicated (e.g. from function call), it cannot removed by the compressor as it is designed without deduplication of bindings.
+								So they are further compressed by taking the processed referent as destination and the referent held by guard object as source.
+							All duplication of source environment bindings in the destination environment are removed.
+							If the resulted parent environment is empty, it is to be collected.
+								The parent of destination environment is moved to the source 
+				The condition is based on size of frame record list.
+					If the size changed, there is at least one object in frame record list is collected.
+					The try would be continued as there can be new orphaned object not in the list due to the removal of object in the list.
+			After the above fist try of loop, the first component of front element of frame record list is set to empty.
+				This is a hack that avoiding improper tail calls caused by a false positive external reference to the static environment object held in the temporary function object which is or is similar to a vau handler.
+				Ideally, multiple temporary objects are allowed coexisted.
+					Otherwise, the first element of frame is also useless, which is the status quo.
+				However, there is no simple way to implement this keeping the vau handler interface hidden under the type-erased context handler API, whose object can be wrapped more than once, to precisely know which object of vau handler appertains the frame.
+				There shall be no undefined behavior if correctly implemented.
+					The static environment is still accessible after destroying the function object if referenced when the object kept alive (by one ore more strong reference).
+					Otherwise, it is a program error of ill-use of weak reference.
+			Then the "compress" method is called.
+			The newly frame element is based on the function object determined by implementation of 'NPL::A1::ReduceCombined' and the guard object after the compression.
+				The function object here is the context handler representing the optional function prvalue of the combining form.
+				If the prvalue is not existed (when the function is a lvalue stroed elsewhere), the context handler is empty.
+			Finally, during the destruction of compressor, remained objects are collected.
+	The process of TCO tracing, check and collection is somewhat like tracing GC, but not the same.
+		The design here is conservative but accurate in collection.
+			It always collect in certain points of execution. All information used by the collection is depending only on the external program state. The timing of collection is determinstic.
+			It always achieve space complexity of activation records no worse than conventional stack-based memory allocation stratigies in implementations of ALGOL-like languages, while tracing GC do not have such guarantees.
+			It does not move objects in memory, while some kinds of tracing GC may move objects, so there is no special operations needed for interoperations as object pinning provided by some kinds of tracing GC.
+			The design here is always local, against to global GC used by default in some language implementations.
+			The design here is specifically for frames, not arbitrary objects to be collected.
+			The algorithm used for tracing can be similar to GC based on reference counts, but collecting with multiple roots and counting down to 1 rather than 0 (as the anchor always holds an instance contributing to the weak count).
+				For example, see http://arctrix.com/nas/python/gc/.
+		The design here does not offer optimized throughput by default, which is often aimed by a tracing GC.
+		The design here is deterministic like pure reference counting GC, rather than tracing GC.
+		The trace here is lightweight comparing to the traces used by traditional tracing GCs.
+			It is necessary to determine the universe (the set of all the objects can be collected) and as well as the lived object set, not only the live object subset in a traditional tracing GC.
+			It is used to locally determine the candidate search set, not the reachable set to determine the state of arbitrary set of objects to be avoiding from collection.
+				It remains valid in one turn of collection, and can be generated frequently. This also requires it to be lightweight to avoid overhead of collection.
+			There is no need to have granulated trace as it is already local to particular set of operations, and thus substantially efficient unless the control hardly terminate and already consume a lot of resources in some deep nested tail context.
+				This worst sort of cases should be very rare (at least far rarer than cases need PTC for ALGOL-style programs) in reality, although there is room to optimize in future.
+	By adding tracing, indirectly referenced frames can be collected, notably, for cases of recursively creation and call of vau abstraction would still leak leak slowly of the created function objects, like:
+		Case 1:
+			$defl! f (n) ($vau (x y) env eval (list $sequence x y) (lock-environment env)) n (f (- n 1)); f 1;
+		Case 2:
+			$defl! f (n) ($vau (x y) env eval (list $sequence x y) env) n (f (- n 1)); f 1;
+		Case 3 (derivation of '$sequence'):
+			$def! $sequence
+				($lambda (&cenv)
+					($lambda #ignore $vaue cenv &body env
+						$if (null? body) inert (eval (cons $aux body) env))
+					($set! cenv $aux $vaue (weaken-environment cenv) (&head .&tail)
+						env $if (null? tail) (eval head env)
+							(($vau (&t) e ($lambda #ignore (eval t e))
+								(eval head env)) (eval (cons $aux tail) env))))
+				(make-environment (() get-current-environment));
+			$defl! f (n) $sequence n (f (- n 1)); f 1;
+			Note that this would not work even with growing instance of environment objects, before the tracing and collecting of indirect referent is supported here by the design above.
 
 ////
 

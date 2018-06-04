@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1773
+\version r1789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-04-17 12:13 +0800
+	2018-06-04 10:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -850,6 +850,25 @@ RelayNext(ContextNode& ctx, Reducer&& cur, Reducer&& next)
 {
 	ctx.SetupTail(CombineActions(ctx, std::move(cur), std::move(next)));
 	return ReductionStatus::Retrying;
+}
+
+
+Environment::NameResolution
+ResolveName(const ContextNode& ctx, string_view id)
+{
+	YAssertNonnull(id.data());
+	return ctx.GetRecordRef().Resolve(id);
+}
+
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(ValueObject& vo)
+{
+	if(const auto p = vo.AccessPtr<EnvironmentReference>())
+		return {p->Lock(), {}};
+	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
+		return {*p, true};
+	// TODO: Merge with %Environment::CheckParent?
+	Environment::ThrowForInvalidType(vo.type());
 }
 
 } // namespace NPL;

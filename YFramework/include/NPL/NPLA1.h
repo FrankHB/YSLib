@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3765
+\version r3789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-04-23 01:07 +0800
+	2018-06-04 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -756,34 +756,6 @@ ReduceCombined(TermNode&, ContextNode&);
 */
 YF_API ReductionStatus
 ReduceLeafToken(TermNode&, ContextNode&);
-//@}
-
-
-/*!
-\brief 解析名称：处理保留名称并查找名称。
-\pre 断言：第二参数的数据指针非空。
-\exception NPLException 访问共享重定向上下文失败。
-\sa Environment::ResolveName
-\since build 821
-
-解析指定上下文中的名称。
-*/
-YF_API Environment::NameResolution
-ResolveName(const ContextNode&, string_view);
-
-/*!
-\brief 解析环境。
-\return 取得所有权的环境指针及是否具有所有权。
-\note 只支持宿主值类型 \c shared_ptr<Environment> 或 \c weak_ptr<Environment> 。
-\since build 798
-*/
-//@{
-YF_API pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(ValueObject&);
-//! \since build 800
-inline PDefH(pair<shared_ptr<Environment> YPP_Comma bool>, ResolveEnvironment,
-	TermNode& term)
-	ImplRet(ResolveEnvironment(ReferenceTerm(term).Value))
 //@}
 
 
