@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1209
+\version r1210
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-05-09 02:43 +0800
+	2018-06-05 01:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -426,7 +426,6 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterForm(root, "$sequence", Sequence);
 #else
 	// TODO: Support move-only types at end?
-	// TODO: PTC support.
 	context.Perform(u8R"NPL(
 		$def! $sequence
 			($lambda (&cenv)

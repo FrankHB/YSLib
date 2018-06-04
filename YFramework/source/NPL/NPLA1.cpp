@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7247
+\version r7541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-05-17 12:15 +0800
+	2018-06-05 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,11 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_NPLA1 // for ystdex::bind1, std::make_move_iterator,
-//	ystdex::id, shared_ptr, lref, pair, ystdex::erase_all, std::find_if,
-//	unordered_map, ystdex::ref_eq, ystdex::call_value_or, ystdex::as_const,
-//	ystdex::concat, ystdex::equality_comparable, ystdex::make_transform;
+#include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
+//	shared_ptr, pair, list, lref, vector, observer_ptr, set, owner_less,
+//	ystdex::erase_all, ystdex::as_const, std::find_if, unordered_map, deque,
+//	ystdex::id, ystdex::equality_comparable, ystdex::ref_eq,
+//	ystdex::make_transform, ystdex::call_value_or;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::dismiss,
 //	ystdex::swap_guard, ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -337,6 +338,9 @@ DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 }
 
 #	if YF_Impl_NPLA1_Enable_TCO
+//! \since build 827
+using FrameRecordList = list<pair<ContextHandler, shared_ptr<Environment>>>;
+
 //! \since build 818
 struct TCOAction final
 {
@@ -349,17 +353,21 @@ struct TCOAction final
 	bool LiftCallResult = {};
 
 private:
-	//! \since build 825
-	mutable vector<ContextHandler> xgds{};
+	//! \since build 827
+	mutable list<ContextHandler> xgds{};
 
 public:
+	// See $2018-06 @ %Documentation::Workflow::Annual2018 for details.
 	//! \since build 825
 	mutable observer_ptr<const ContextHandler> LastFunction{};
 	mutable EnvironmentGuard EnvGuard;
 	//! \since build 825
-	mutable list<pair<ContextHandler, shared_ptr<Environment>>> RecordList{};
+	mutable FrameRecordList RecordList{};
 	bool ReduceCombined = {};
 	//@}
+	//! \since build 827
+	mutable set<weak_ptr<Environment>, owner_less<weak_ptr<Environment>>>
+		WeakEnvs{};
  
 	//! \since build 819
 	TCOAction(ContextNode& ctx, TermNode& term, bool lift)
@@ -426,16 +434,15 @@ public:
 	MoveFunction()
 	{
 		ContextHandler res;
+		const auto i(std::find_if(xgds.rbegin(), xgds.rend(),
+			[this](const ContextHandler& h) ynothrow{
+			return make_observer(&h) == LastFunction;
+		}));
 
-		if(!xgds.empty())
+		if(i != xgds.rend())
 		{
-			const auto i(std::find_if(xgds.rbegin(), xgds.rend(),
-				[this](const ContextHandler& h) ynothrow{
-				return make_observer(&h) == LastFunction;
-			}));
-
-			if(i != xgds.rend())
-				res = std::move(*i);
+			res = std::move(*i);
+			xgds.erase(std::next(i).base());
 		}
 		LastFunction = {};
 		return res;
@@ -777,6 +784,180 @@ DeduplicateBindings(Environment& dst, const Environment& src)
 	// TODO: Allow objects not pinned?
 	return Environment::Deduplicate(dst.GetMapRef(), src.GetMapRef());
 }
+
+//! \since build 827
+struct RecordCompressor final
+{
+	using Tracer = std::function<bool(Environment&, Environment&)>;
+	using RecordInfo = map<lref<Environment>, size_t, ystdex::get_less<>>;
+	using ReferenceSet = set<lref<Environment>, ystdex::get_less<>>;
+
+	// XXX: The order of destruction is unspecified.
+	vector<shared_ptr<Environment>> Collected{};
+	lref<Environment> Root;
+	ReferenceSet Reachable, NewlyReachable{}, WeakRoots{};
+	RecordInfo Universe{};
+
+	RecordCompressor(Environment& root)
+		: Root(root), Reachable{root}
+	{}
+
+	// NOTE: All checks rely on recursive calls do not support PTC currently.
+	void
+	Add(Environment& e)
+	{
+		AddForRoot(e);
+		Universe.emplace(e, CountReferences(e));
+		// XXX: There shall be exact one (strong or weak) reference shared %e
+		//	externally.
+		WeakRoots.insert(e);
+	}
+
+	void
+	AddForRoot(Environment& e)
+	{
+		Traverse(e, e.Parent, [this](Environment& dst, Environment&) -> bool{
+			return Universe.emplace(dst, CountReferences(dst)).second;
+		});
+	}
+
+	void
+	AddWeakRoot(const weak_ptr<Environment>& p)
+	{
+		if(const auto p_env = p.lock())
+			Add(*p_env);
+	}
+
+	void
+	Compress()
+	{
+		// NOTE: This is need to keep the root as external reference.
+		const auto p_root(Root.get().shared_from_this());
+
+		// NOTE: Trace.
+		for(auto& pr : Universe)
+		{
+			auto& e(pr.first.get());
+
+			Traverse(e, e.Parent,
+				[this](Environment& dst, Environment&) -> bool{
+				auto& count(Universe.at(dst));
+
+				YAssert(count > 0, "Invalid count found in trace record.");
+				--count;
+				return {};
+			});
+		}
+		for(const auto& e : WeakRoots)
+		{
+			auto& count(Universe.at(e));
+
+			if(count > 0)
+				--count;
+		}
+		for(auto i(Universe.cbegin()); i != Universe.cend(); )
+			if(i->second > 0)
+			{
+				NewlyReachable.insert(i->first);
+				i = Universe.erase(i);
+			}
+			else
+				++i;
+		while(!NewlyReachable.empty())
+		{
+			ReferenceSet rs;
+
+			for(const auto& e : NewlyReachable)
+				Traverse(e, e.get().Parent,
+					[&](Environment& dst, Environment&) ynothrow -> bool{
+					rs.insert(dst);
+					Universe.erase(dst);
+					return {};
+				});
+			Reachable.insert(std::make_move_iterator(NewlyReachable.begin()),
+				std::make_move_iterator(NewlyReachable.end()));
+			for(auto i(rs.cbegin()); i != rs.cend(); )
+				if(ystdex::exists(Reachable, *i))
+					i = rs.erase(i);
+				else
+					++i;
+			NewlyReachable = std::move(rs);
+		}
+		// NOTE: Move to collect.
+		for(const auto& pr : Universe)
+			// XXX: The envionment would be finally collected after the last
+			//	reference is destroyed.
+			Collected.push_back(pr.first.get().shared_from_this());
+
+		// TODO: Simplified by direct DFS traverse?
+		ReferenceSet accessed;
+
+		ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+			size_t collected(0);
+
+			Traverse(Root, Root.get().Parent,
+				[&](Environment& dst, Environment& src) -> bool{
+				if(accessed.insert(src).second)
+				{
+					if(!ystdex::exists(Universe, ystdex::ref(dst)))
+						return true;
+					src.Parent = dst.Parent;
+					++collected;
+				}
+				return {};
+			});
+			return collected != 0;
+		});
+	}
+
+	static size_t
+	CountReferences(const Environment& e) ynothrowv
+	{
+		const long acnt(e.GetAnchorPtr().use_count());
+
+		YAssert(acnt > 0, "Zero anchor count found for environment.");
+		// TODO: Use C++17 %weak_from_this to get more efficient
+		//	implementation?
+		return CountStrong(e.shared_from_this()) + size_t(acnt) - 2;
+	}
+
+	static size_t
+	CountStrong(const shared_ptr<const Environment>& p) ynothrowv
+	{
+		const long scnt(p.use_count());
+
+		YAssert(scnt > 0, "Zero shared count found for environment.");
+		return size_t(scnt);
+	}
+
+	static void
+	Traverse(Environment& e, const ValueObject& parent, Tracer trace)
+	{
+		const auto& tp(parent.type());
+
+		if(tp == ystdex::type_id<EnvironmentList>())
+		{
+			for(const auto& vo : parent.GetObject<EnvironmentList>())
+				Traverse(e, vo, trace);
+		}
+		else if(tp == ystdex::type_id<EnvironmentReference>())
+		{
+			// XXX: The shared pointer should not be locked to ensure it neutral
+			//	to nested call levels.
+			if(const auto p
+				= parent.GetObject<EnvironmentReference>().Lock().get())
+				if(trace(*p, e))
+					Traverse(*p, p->Parent, trace);
+		}
+		else if(tp == ystdex::type_id<shared_ptr<Environment>>())
+		{
+			// NOTE: The reference count should not be effected here.
+			if(const auto p = parent.GetObject<shared_ptr<Environment>>().get())
+				if(trace(*p, e))
+					Traverse(*p, p->Parent, trace);
+		}
+	}
+};
 #endif
 
 ReductionStatus
@@ -786,107 +967,82 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 	auto next_action(std::bind(ReduceCheckedClosureImpl, std::ref(term),
 		std::ref(ctx), move, std::ref(closure), !no_lift));
 
-	// TODO: Merge guard in TCO action.
 #if YF_Impl_NPLA1_Enable_TCO
+	// See $2018-06 @ %Documentation::Workflow::Annual2018 for details.
 	const auto update_fused_act([&](TCOAction& fused_act){
 		fused_act.EnvGuard = std::move(gd);
 	});
 
 	if(const auto p = ctx.Current.target<TCOAction>())
 	{
-		// NOTE: The following code checks and tries to move (inactive)
-		//	activation record frames (if any) to be removed, which is the core
-		//	of TCO. It works by testing whether the saved frames can be safely
-		//	removed when the provided new guard %gd lives long enough until the
-		//	%TCOAction object is reduced via its %operator(), as per the
-		//	semantic rules of the object language. The guard would live as the
-		//	member %EnvGuard in the %TCOAction. If there has been already one,
-		//	it is to be merged; otherwise, the guard is simply installed.
 		if(p->EnvGuard.func.SavedPtr)
 		{
 			auto& p_saved(gd.func.SavedPtr);
 
-			// NOTE: If no guard is found to be added, do nothing.
 			if(p_saved)
 			{
-				// NOTE: The list in %TCOAction holds all frames after previous
-				//	merging (if any).
 				auto& record_list(p->RecordList);
-				// NOTE: The new frame would be inserted at the beginning of the
-				//	list.
-				auto i(record_list.begin());
+				auto i(record_list.cbegin());
 				const auto erase_frame([&]{
 					i = record_list.erase(i);
 				});
-				auto& saved_parent(p_saved->Parent);
+				RecordCompressor compressor(ctx.GetRecordRef());
 
-				// NOTE: The following code scans the frames to be removed, in
-				//	the order from new to old. The frames are then compressed on
-				//	success. After merging, the guard slot %EnvGuard owns the
-				//	resources of the expression (and its enclosed
-				//	subexpressions) being TCO'd.
-				while(i != record_list.end())
-				{
-					// NOTE: Each turn one candidate is checked.
-					auto& frame_env(Deref(i->second));
+				for(const auto& p_weak : p->WeakEnvs)
+					compressor.AddWeakRoot(p_weak);
+				compressor.AddForRoot(ctx.GetRecordRef());
+				compressor.Add(*p_saved);
+				// NOTE: This does not support PTC currently.
+				ystdex::retry_on_cond(ystdex::id<>(), [&]() -> bool{
+					const auto orig_size(record_list.size());
 
-					// NOTE: If the frame is held elsewhere, it does not need
-					//	to be owned here.
-					if(!i->second.unique())
-						erase_frame();
-					// NOTE: Only frames held uniquely is safe to be compressed.
-					// XXX: This does not fit for the situation that the same
-					//	parent is referenced in multiple inactive frames.
-					// TODO: Compress multiple inactive frames in one turn?
-					else if([&]() -> bool{
-						lref<ValueObject> saved(saved_parent);
-						auto n(frame_env.GetAnchorPtr().use_count());
-
-						YAssert(n > 0, "Invalid weak count of frame found.");
-						--n;
-						// NOTE: The condition is 'frame_env.IsNotReferenced()'
-						//	when n is 0.
-						while(n != 0)
+					// NOTE: The following code searches the frames to be
+					//	removed, in the order from new to old. After merging,
+					//	the guard slot %EnvGuard owns the resources of the
+					//	expression (and its enclosed subexpressions) being
+					//	TCO'd.
+					i = record_list.cbegin();
+					while(i != record_list.cend())
+					{
+						if(!i->second.unique())
+							erase_frame();
+						else
 						{
-							if(const auto p_pwenv{
-								saved.get().AccessPtr<EnvironmentReference>()})
+							auto& frame_env(Deref(i->second));
+
+							if(frame_env.IsNotReferenced())
+								erase_frame();
+							else
 							{
-								if(const auto p_env{p_pwenv->Lock()})
+								compressor.Add(frame_env);
+								// XXX: This does not fit for the situation that
+								//	the same parent is referenced in multiple
+								//	inactive frames. However, they should be
+								//	already compressed.
+								if(frame_env.GetAnchorPtr().use_count() == 2
+									&& [](Environment& dst,
+									const Environment& src) -> bool{
+									if(const auto p_env = AccessPtr<
+										EnvironmentReference>(dst.Parent))
+										return p_env->Lock().get() == &src
+											&& DeduplicateBindings(dst, src);
+									return {};
+								}(frame_env, *p_saved))
 								{
-									saved = p_env->Parent;
-									--n;
+									p_saved->Parent
+										= std::move(frame_env.Parent);
+									erase_frame();
 								}
 								else
-									// TODO: Report weak reference failure?
-									return {};
+									++i;
 							}
-							// XXX: This cannot have cyclic references.
-							else if(const auto p_penv{saved.get().AccessPtr<
-								shared_ptr<Environment>>()})
-								saved = (*p_penv)->Parent;
-							else
-								// TODO: Compress parent environment for more
-								//	cases.
-								return {};
 						}
-						// TODO: Trace.
-						return frame_env.IsNotReferenced()
-							&& frame_env.Parent == saved.get();
-					}() && DeduplicateBindings(frame_env, *p_saved))
-					{
-						// NOTE: This removes variables in parent environments
-						//	which are also in the current tail environment by
-						//	relinking the parent environment of the tail
-						//	environment and remove the old parent environment
-						//	from the chain to reclaim the inactive record space.
-						saved_parent = std::move(frame_env.Parent);
-						erase_frame();
 					}
-					else
-						// NOTE: If the attempt of compression fails, the frame
-						//	is still saved.
-						++i;
-				}
+					return record_list.size() != orig_size;
+				});
+				if(!record_list.empty())
+					record_list.front().first = {};
+				compressor.Compress();
 				record_list.emplace_front(p->MoveFunction(),
 					std::move(p_saved));
 			}
@@ -1016,10 +1172,20 @@ public:
 		std::move(p_fm))),
 		local_prototype(ctx, make_shared<Environment>()), parent(p_env),
 		owning_static(owning), p_static(owning ? std::move(p_env)
-		: p_env->Anchor()), p_closure(share_move(ystdex::exchange(term,
+		: nullptr), p_closure(share_move(ystdex::exchange(term,
 		TermNode(NoContainer, term.GetName())))), NoLifting(no_lift)
 	{
 		CheckParameterTree(*p_formals);
+	}
+
+	//! \since build 824
+	friend bool
+	operator==(const VauHandler& x, const VauHandler& y)
+	{
+		return x.eformal == y.eformal && x.p_formals == y.p_formals
+			&& ystdex::ref_eq<>()(x.local_prototype, y.local_prototype)
+			&& x.parent == y.parent && x.owning_static == y.owning_static
+			&& x.p_static == y.p_static && x.NoLifting == y.NoLifting;
 	}
 
 	//! \since build 772
@@ -1043,10 +1209,13 @@ public:
 			EnvironmentGuard
 				gd(ctx, ctx.SwitchEnvironment(make_shared<Environment>()));
 
-			// NOTE: Bound dynamic context.
+			// NOTE: Bound dynamic environment.
 			if(!eformal.empty())
  				ctx.GetBindingsRef().AddValue(eformal,
  					ValueObject(std::move(wenv)));
+			// NOTE: The dynamic environment is either out of TCO action or
+			//	referenced by other environments already in TCO action, so there
+			//	is no need to treat as root.
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to reduce directly.
 			RemoveHead(term);
@@ -1085,16 +1254,6 @@ public:
 			else
 				ThrowInvalidSymbolType(term, "parameter tree node");
 		}
-	}
-
-	//! \since build 824
-	friend bool
-	operator==(const VauHandler& x, const VauHandler& y)
-	{
-		return x.eformal == y.eformal && x.p_formals == y.p_formals
-			&& ystdex::ref_eq<>()(x.local_prototype, y.local_prototype)
-			&& x.parent == y.parent && x.owning_static == y.owning_static
-			&& x.p_static == y.p_static && x.NoLifting == y.NoLifting;
 	}
 };
 
@@ -1739,25 +1898,6 @@ ReduceLeafToken(TermNode& term, ContextNode& ctx)
 	}, TermToNamePtr(term), ReductionStatus::Clean));
 
 	return CheckReducible(res) ? ReduceAgain(term, ctx) : res;
-}
-
-
-Environment::NameResolution
-ResolveName(const ContextNode& ctx, string_view id)
-{
-	YAssertNonnull(id.data());
-	return ctx.GetRecordRef().Resolve(id);
-}
-
-pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(ValueObject& vo)
-{
-	if(const auto p = vo.AccessPtr<EnvironmentReference>())
-		return {p->Lock(), {}};
-	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
-		return {*p, true};
-	// TODO: Merge with %Environment::CheckParent?
-	Environment::ThrowForInvalidType(vo.type());
 }
 
 
