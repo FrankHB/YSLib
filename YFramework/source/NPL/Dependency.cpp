@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1210
+\version r1280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-06-05 01:48 +0800
+	2018-06-17 14:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -332,15 +332,17 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterForm(root, "$if", If);
 	RegisterStrictUnary(root, "null?", ComposeReferencedTermOp(IsEmpty));
 	RegisterStrictUnary(root, "nullpr?", IsEmpty);
+	RegisterStrictUnary(root, "reference?", IsReferenceTerm);
+	RegisterStrictUnary(root, "lvalue?", IsLValueTerm);
 	// NOTE: Though NPLA does not use cons pairs, corresponding primitives are
 	//	still necessary.
 	// NOTE: Since NPL has no con pairs, it only added head to existed list.
 	RegisterStrict(root, "cons", Cons);
-	RegisterStrict(root, "cons&", ConsRef);
+	RegisterStrict(root, "cons%", ConsRef);
 	// NOTE: The applicative 'copy-es-immutable' is unsupported currently due to
 	//	different implementation of control primitives.
 	RegisterStrict(root, "eval", Eval);
-	RegisterStrict(root, "eval&", EvalRef);
+	RegisterStrict(root, "eval%", EvalRef);
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
 	RegisterStrict(root, "copy-environment", CopyEnvironment);
@@ -364,37 +366,68 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: 'eqv? (() get-current-environment) (() ($vau () e e))' shall
 	//	be evaluated to '#t'.
 	RegisterForm(root, "$vau", Vau);
-	RegisterForm(root, "$vau&", VauRef);
+	RegisterForm(root, "$vau%", VauRef);
 	RegisterForm(root, "$vaue", VauWithEnvironment);
-	RegisterForm(root, "$vaue&", VauWithEnvironmentRef);
+	RegisterForm(root, "$vaue%", VauWithEnvironmentRef);
 	RegisterStrictUnary<ContextHandler>(root, "wrap", Wrap);
 	RegisterStrictUnary<ContextHandler>(root, "unwrap", Unwrap);
 	// NOTE: Derived core functions.
 #if YF_Impl_NPLA1_Enable_NativeForms
+	RegisterStrict(root, "id", [](TermNode& term){
+		RetainN(term);
+		LiftTerm(term, Deref(std::next(term.begin())));
+		return CheckNorm(term);
+	});
+	RegisterStrict(root, "idv", [](TermNode& term){
+		RetainN(term);
+		LiftTerm(term, Deref(std::next(term.begin())));
+		LiftToReturn(term);
+		return CheckNorm(term);
+	});
 	RegisterStrict(root, "list", ReduceBranchToListValue);
+	RegisterStrict(root, "list%", ReduceBranchToList);
+#elif true
+	// NOTE: The parameter shall be in list explicitly as '(.x)' to lift
+	//	elements by value rather than by reference (as '&x'), otherwise resulted
+	//	'list' is wrongly implemented as 'list%' with undefined behavior becuase
+	//	it is not guaranteed the operand is alive to access without lifting.
+	//	This is not required in Kernel as it does not differentiate lvalues
+	//	(first-class referents) from prvalues and all terms can be accessed as
+	//	objects with arbitrary longer lifetime.
+	context.Perform(u8R"NPL(
+		$def! id wrap ($vau% (%x) #ignore x);
+		$def! idv wrap ($vau (&x) #ignore x);
+		$def! list wrap ($vau (.x) #ignore x);
+		$def! list% wrap ($vau &x #ignore x);
+	)NPL");
 #else
-	context.Perform(u8R"NPL($def! list wrap ($vau &x #ignore x))NPL");
-//	context.Perform(u8R"NPL($def! list $lambda &x x)NPL");
+	RegisterForm(root, "$lambda", Lambda);
+	RegisterForm(root, "$lambda%", LambdaRef);
+	context.Perform(u8R"NPL(
+		$def! id $lambda% (%x) x;
+		$def! idv $lambda (&x) x;
+		$def! list $lambda (.x) x;
+		$def! list% $lambda% &x x;
+	)NPL");
 #endif
-	RegisterStrict(root, "list&", ReduceBranchToList);
 	context.Perform(u8R"NPL(
 		$def! $quote $vau (&x) #ignore x;
 		$def! $set! $vau (&expr1 &formals .&expr2) env eval
 			(list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
 		$def! $defv! $vau (&$f &formals &senv .&body) env eval
 			(list $set! env $f $vau formals senv body) env;
-		$def! $defv&! $vau (&$f &formals &senv .&body) env eval
-			(list $set! env $f $vau& formals senv body) env;
+		$def! $defv%! $vau (&$f &formals &senv .&body) env eval
+			(list $set! env $f $vau% formals senv body) env;
 	)NPL");
 #if YF_Impl_NPLA1_Enable_NativeForms
 	RegisterForm(root, "$lambda", Lambda);
-	RegisterForm(root, "$lambda&", LambdaRef);
+	RegisterForm(root, "$lambda%", LambdaRef);
 #else
 	context.Perform(u8R"NPL(
 		$defv! $lambda (&formals .&body) env
 			wrap (eval (cons $vau (cons formals (cons ignore body))) env);
-		$defv! $lambda& (&formals .&body) env
-			wrap (eval (cons $vau& (cons formals (cons ignore body))) env);
+		$defv! $lambda% (&formals .&body) env
+			wrap (eval (cons $vau% (cons formals (cons ignore body))) env);
 	)NPL");
 #endif
 	context.Perform(u8R"NPL(
@@ -402,22 +435,28 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			(list $defrec! formals (unwrap eval) expr2 env) (eval expr1 env);
 		$defv! $defl! (&f &formals .&body) env eval
 			(list $set! env f $lambda formals body) env;
-		$defv! $defl&! (&f &formals .&body) env eval
-			(list $set! env f $lambda& formals body) env;
+		$defv! $defl%! (&f &formals .&body) env eval
+			(list $set! env f $lambda% formals body) env;
+		$defl%! forward (%x) $if (lvalue? x) x (idv x);
 		$defl! first ((&x .)) x;
-		$defl! rest ((#ignore .&x)) x;
-		$defl! apply (&appv &arg .&opt) eval (cons () (cons (unwrap appv) arg))
-			($if (null? opt) (() make-environment) (first opt));
+		$defl%! first% ((%x .)) forward x;
+		$defl%! first& ((&x .)) x;
+		$defl! rest ((#ignore .x)) x;
+		$defl! rest% ((#ignore .%x)) x;
+		$defl! rest& ((#ignore .&x)) x;
+		$defl%! apply (&appv &arg .&opt)
+			eval% (cons% () (cons% (unwrap appv) arg))
+				($if (null? opt) (() make-environment) (first& opt));
 		$defl! list* (&head .&tail)
 			$if (null? tail) head (cons head (apply list* tail));
 		$defv! $defw! (&f &formals &senv .&body) env eval
 			(list $set! env f wrap (list* $vau formals senv body)) env;
-		$defv! $defw&! (&f &formals &senv .&body) env eval
-			(list $set! env f wrap (list* $vau& formals senv body)) env;
+		$defv! $defw%! (&f &formals &senv .&body) env eval
+			(list $set! env f wrap (list* $vau% formals senv body)) env;
 		$defv! $lambdae (&e &formals .&body) env
 			wrap (eval (list* $vaue e formals ignore body) env);
-		$defv! $lambdae& (&e &formals .&body) env
-			wrap (eval (list* $vaue& e formals ignore body) env);
+		$defv! $lambdae% (&e &formals .&body) env
+			wrap (eval (list* $vaue% e formals ignore body) env);
 	)NPL");
 #if YF_Impl_NPLA1_Enable_NativeForms
 	// NOTE: Some combiners are provided here as host primitives for
@@ -429,19 +468,19 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	context.Perform(u8R"NPL(
 		$def! $sequence
 			($lambda (&cenv)
-				($lambda #ignore $vaue cenv &body env
-					$if (null? body) inert (eval (cons $aux body) env))
-				($set! cenv $aux $vaue (weaken-environment cenv) (&head .&tail)
-					env $if (null? tail) (eval head env)
-						(($vau (&t) e ($lambda #ignore (eval t e))
-							(eval head env)) (eval (cons $aux tail) env))))
+				($lambda #ignore $vaue% cenv &body env
+					$if (null? body) inert (eval% (cons% $aux body) env))
+				($set! cenv $aux $vaue% (weaken-environment cenv) (&head .&tail)
+					env $if (null? tail) (eval% head env)
+						(($vau% (&t) e ($lambda% #ignore (eval% t e))
+							(eval% head env)) (eval% (cons% $aux tail) env))))
 			(make-environment (() get-current-environment));
 	)NPL");
 #endif
 	context.Perform(u8R"NPL(
-		$defv! $cond &clauses env
-			$if (null? clauses) inert (apply ($lambda ((&test .&body) .clauses)
-				$if (eval test env) (eval body env)
+		$defv%! $cond &clauses env
+			$if (null? clauses) inert (apply ($lambda% ((&test .&body) .clauses)
+				$if (eval test env) (eval% body env)
 					(apply (wrap $cond) clauses env)) clauses);
 	)NPL");
 #if YF_Impl_NPLA1_Enable_LockEnvironment

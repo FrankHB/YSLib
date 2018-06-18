@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1789
+\version r1903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-06-04 10:04 +0800
+	2018-06-15 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,6 +322,49 @@ ThrowInvalidEnvironment()
 	throw std::invalid_argument("Invalid environment record pointer found.");
 }
 
+
+bool
+IsReserved(string_view id) ynothrowv
+{
+	YAssertNonnull(id.data());
+	return ystdex::begins_with(id, "__");
+}
+
+observer_ptr<Environment>
+RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
+{
+	if(p_shared)
+		return make_observer(get_raw(p_shared));
+	// TODO: Use concrete semantic failure exception.
+	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
+		" probably due to invalid context access by dangling reference.",
+		IsReserved(id) ? " reserved" : "", id.data()));
+}
+
+observer_ptr<const Environment>
+RedirectParent(const ValueObject& parent, string_view id)
+{
+	const auto& tp(parent.type());
+
+	if(tp == ystdex::type_id<EnvironmentList>())
+		for(const auto& vo : parent.GetObject<EnvironmentList>())
+		{
+			auto p(RedirectParent(vo, id));
+
+			if(p)
+				return p;
+		}
+	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
+		return parent.GetObject<observer_ptr<const Environment>>();
+	if(tp == ystdex::type_id<EnvironmentReference>())
+		return RedirectToShared(id,
+			parent.GetObject<EnvironmentReference>().Lock());
+	if(tp == ystdex::type_id<shared_ptr<Environment>>())
+		return RedirectToShared(id,
+			parent.GetObject<shared_ptr<Environment>>());
+	return {};
+}
+
 } // unnamed namespace;
 
 
@@ -423,6 +466,19 @@ TokenizeTerm(TermNode& term)
 }
 
 
+bool
+IsReferenceTerm(const TermNode& term) ynothrow
+{
+	return term.Value.type() == ystdex::type_id<TermReference>();
+}
+
+bool
+IsLValueTerm(const TermNode& term) ynothrow
+{
+	return ystdex::call_value_or(std::mem_fn(&TermReference::IsTermReferenced),
+		AccessPtr<const TermReference>(term));
+}
+
 TermNode&
 ReferenceTerm(TermNode& term)
 {
@@ -451,21 +507,25 @@ CheckReducible(ReductionStatus status)
 	return true;
 }
 
-
-void
-LiftTermOrRef(TermNode& term, TermNode& tm)
+ReductionStatus
+RegularizeTerm(TermNode& term, ReductionStatus res)
 {
-	if(const auto p = AccessPtr<const TermReference>(tm))
-		LiftTermRef(term, p->get());
-	else
-		LiftTerm(term, tm);
+	// NOTE: Cleanup if and only if necessary.
+	if(res == ReductionStatus::Clean)
+		term.ClearContainer();
+	return res;
 }
 
-void
-LiftTermRefToSelf(TermNode& term)
+
+bool
+LiftTermOnRef(TermNode& term, TermNode& tm)
 {
-	if(const auto p = AccessPtr<const TermReference>(term))
+	if(const auto p = AccessPtr<const TermReference>(tm))
+	{
 		LiftTermRef(term, p->get());
+		return true;
+	}
+	return {};
 }
 
 void
@@ -473,13 +533,14 @@ LiftToReference(TermNode& term, TermNode& tm)
 {
 	if(tm)
 	{
-		if(const auto p = AccessPtr<const TermReference>(tm))
-			LiftTermRef(term, p->get());
-		else if(!tm.Value.OwnsUnique())
-			LiftTerm(term, tm);
-		else
-			throw InvalidReference(
-				"Value of a temporary shall not be referenced.");
+		if(!LiftTermOnRef(term, tm))
+		{
+			if(!tm.Value.OwnsUnique())
+				LiftTerm(term, tm);
+			else
+				throw InvalidReference(
+					"Value of a temporary shall not be referenced.");
+		}
 	}
 	else
 		ystdex::throw_invalid_construction();
@@ -497,15 +558,6 @@ LiftToSelf(TermNode& term)
 void
 LiftToSelfSafe(TermNode& term)
 {
-	// TODO: Detect lifetime escape to perform copy elision?
-	// NOTE: To keep lifetime of objects referenced by references introduced in
-	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
-	//	because it will not copy objects referenced in holders of
-	//	%YSLib::RefHolder instances). On the other hand, the references captured
-	//	by vau handlers (which requries recursive copy of vau handler members if
-	//	forced) are not blessed here to avoid leaking abstraction of detailed
-	//	implementation of vau handlers; it can be checked by the vau handler
-	//	itself, if necessary.
 	LiftToSelf(term);
 	LiftTermIndirection(term, term);
 }
@@ -515,6 +567,23 @@ LiftToOther(TermNode& term, TermNode& tm)
 {
 	LiftTermRefToSelf(tm);
 	LiftTerm(term, tm);
+}
+
+void
+LiftToReturn(TermNode& term)
+{
+	// TODO: Detect lifetime escape to perform copy elision?
+	// NOTE: Only outermost one level is referenced.
+	LiftTermRefToSelf(term);
+	// NOTE: To keep lifetime of objects referenced by references introduced in
+	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
+	//	because it will not copy objects referenced in holders of
+	//	%YSLib::RefHolder instances). On the other hand, the references captured
+	//	by vau handlers (which requries recursive copy of vau handler members if
+	//	forced) are not blessed here to avoid leaking abstraction of detailed
+	//	implementation of vau handlers; it can be checked by the vau handler
+	//	itself, if necessary.
+	LiftTermIndirection(term, term);
 }
 
 
@@ -533,7 +602,6 @@ ReduceBranchToListValue(TermNode& term) ynothrowv
 	LiftSubtermsToSelfSafe(term);
 	return ReductionStatus::Retained;
 }
-
 
 ReductionStatus
 ReduceHeadEmptyList(TermNode& term) ynothrow
@@ -557,53 +625,14 @@ ReduceToListValue(TermNode& term) ynothrow
 }
 
 
-//! \since build 798
-namespace
+ReductionStatus
+ReduceForClosureResult(TermNode& term, const ContextNode& ctx)
 {
-
-yconstfn_relaxed bool
-IsReserved(string_view id) ynothrowv
-{
-	YAssertNonnull(id.data());
-	return ystdex::begins_with(id, "__");
+	RegularizeTerm(term, ctx.LastStatus);
+	LiftToReturn(term);
+	return CheckNorm(term);
 }
 
-observer_ptr<Environment>
-RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
-{
-	if(p_shared)
-		return make_observer(get_raw(p_shared));
-	// TODO: Use concrete semantic failure exception.
-	throw NPLException(ystdex::sfmt("Invalid reference found for%s name '%s',"
-		" probably due to invalid context access by dangling reference.",
-		IsReserved(id) ? " reserved" : "", id.data()));
-}
-
-observer_ptr<const Environment>
-RedirectParent(const ValueObject& parent, string_view id)
-{
-	const auto& tp(parent.type());
-
-	if(tp == ystdex::type_id<EnvironmentList>())
-		for(const auto& vo : parent.GetObject<EnvironmentList>())
-		{
-			auto p(RedirectParent(vo, id));
-
-			if(p)
-				return p;
-		}
-	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
-		return parent.GetObject<observer_ptr<const Environment>>();
-	if(tp == ystdex::type_id<EnvironmentReference>())
-		return RedirectToShared(id,
-			parent.GetObject<EnvironmentReference>().Lock());
-	if(tp == ystdex::type_id<shared_ptr<Environment>>())
-		return RedirectToShared(id,
-			parent.GetObject<shared_ptr<Environment>>());
-	return {};
-}
-
-} // unnamed namespace;
 
 void
 Environment::CheckParent(const ValueObject& vo)
@@ -714,6 +743,22 @@ EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
 	// TODO: Blocked. Use C++1z %weak_from_this and throw-expression?
 	: EnvironmentReference(p_env, p_env ? p_env->Anchor() : nullptr)
 {}
+
+
+TermReference
+Collapse(TermNode& node)
+{
+	if(const auto p_tref = AccessPtr<const TermReference>(node))
+		return {true, *p_tref};
+	return {false, node};
+}
+TermReference
+Collapse(TermNode& node, const Environment& env)
+{
+	if(const auto p_tref = AccessPtr<const TermReference>(node))
+		return {true, *p_tref};
+	return {false, node, env.Anchor()};
+}
 
 
 ContextNode::ContextNode(const ContextNode& ctx,

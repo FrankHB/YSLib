@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3530
+\version r3633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-06-04 10:04 +0800
+	2018-06-16 07:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -742,6 +742,17 @@ enum class ReductionStatus : yimpl(size_t)
 using DelayedTerm = ystdex::derived_entity<TermNode, NPLATag>;
 
 
+//! \since build 828
+//@{
+//! \brief 判断项是否为引用项。
+YF_API bool
+IsReferenceTerm(const TermNode&) ynothrow;
+
+//! \brief 判断项是否表示左值引用。
+YF_API bool
+IsLValueTerm(const TermNode&) ynothrow;
+//@}
+
 //! \since build 800
 //@{
 /*!
@@ -760,13 +771,13 @@ ReferenceTerm(const TermNode&);
 */
 template<typename _type>
 inline _type&
-AccessTerm(ValueNode& term)
+AccessTerm(TermNode& term)
 {
 	return ReferenceTerm(term).Value.Access<_type>();
 }
 template<typename _type>
 inline const _type&
-AccessTerm(const ValueNode& term)
+AccessTerm(const TermNode& term)
 {
 	return ReferenceTerm(term).Value.Access<_type>();
 }
@@ -847,6 +858,14 @@ CheckedReduceWith(_func f, _tParams&&... args)
 	ystdex::retry_on_cond(CheckReducible, f, yforward(args)...);
 }
 
+/*!
+\brief 按规约结果正规化项。
+\return 第二参数。
+\since build 828
+*/
+YF_API ReductionStatus
+RegularizeTerm(TermNode&, ReductionStatus);
+
 
 /*!
 \brief 提升项：使用第二个参数指定的项的内容替换第一个项的内容。
@@ -884,24 +903,24 @@ inline PDefH(void, LiftTermIndirection, TermNode& term, const TermNode& tm)
 */
 //@{
 /*!
-\brief 提升项或创建引用项。
+\brief 提升引用项。
+\return 项为引用项。
+\since build 828
 
-项的 Value 数据成员为 TermReference 类型的值时调用 LiftTermRef ；
-否则，同 LiftTerm 。
+项的 Value 数据成员为 TermReference 类型的值时调用 LiftTermRef 。
 */
-YF_API void
-LiftTermOrRef(TermNode&, TermNode&);
+YF_API bool
+LiftTermOnRef(TermNode&, TermNode&);
 
 /*!
 \brief 提升自身引用项。
-\sa LiftTermOrRef
-\since build 803
+\sa LiftTermOnRef
+\since build 828
 
-作用同以相同参数调用 LiftTermOrRef 。
-仅可能调用 LiftTermRef ，不调用 LiftTerm 以节约不必要的开销。
+作用同以相同参数调用 LiftTermOnRef 。
 */
-YF_API void
-LiftTermRefToSelf(TermNode&);
+inline PDefH(bool, LiftTermRefToSelf, TermNode& term)
+	ImplRet(LiftTermOnRef(term, term))
 //@}
 
 /*!
@@ -921,7 +940,7 @@ inline PDefH(void, LiftTermRef, TermNode& term, const ValueObject& vo)
 
 /*!
 \brief 提升项对象为引用。
-\throw NPLException 检查失败：非左值且不具有对象的唯一所有权，不能被外部引用保存。
+\throw InvalidReference 被提升的值非引用。
 \throw ystdex::invalid_construction 参数不持有值。
 \sa LiftTerm
 \since build 800
@@ -958,6 +977,15 @@ LiftToSelfSafe(TermNode&);
 */
 YF_API void
 LiftToOther(TermNode&, TermNode&);
+
+/*!
+\brief 提升自身引用项后提升间接引用项以满足返回值的内存安全要求。
+\sa LiftTermRefToSelf
+\sa LiftTermIndirection
+\since build 828
+*/
+YF_API void
+LiftToReturn(TermNode&);
 //@}
 
 /*!
@@ -1010,7 +1038,6 @@ ReduceBranchToList(TermNode&) ynothrowv;
 YF_API ReductionStatus
 ReduceBranchToListValue(TermNode&) ynothrowv;
 //@}
-
 
 /*!
 \since build 774
@@ -1104,6 +1131,24 @@ struct PassesCombiner
 
 //! \since build 782
 class ContextNode;
+
+
+/*!
+\brief 规约闭包结果处理：提升结果。
+\return 根据规约后剩余项确定的规约结果。
+\sa CheckNorm
+\sa LiftToReturn
+\sa RegularizeTerm
+\since build 828
+
+对规约闭包结果进行处理，依次进行以下操作：
+调用 RegularizeTerm 根据当前上下文保存的规约结果对项进行正规化；
+调用 LiftToReturn 提升最外一级的引用项后递归提升间接值；
+最后调用 CheckNorm 确定返回值。
+*/
+YF_API ReductionStatus
+ReduceForClosureResult(TermNode&, const ContextNode&);
+
 
 /*!
 \note 结果表示判断是否应继续规约。
@@ -1456,26 +1501,60 @@ class YF_API TermReference
 private:
 	ystdex::lref<TermNode> term_ref;
 	/*!
+	\brief 指定是否以引用值初始化。
+	\since build 828
+	*/
+	bool is_ref;
+	/*!
 	\brief 引用的锚对象指针。
 	\since build 823
 	*/
 	shared_ptr<const void> p_anchor{};
 
 public:
+	//! \brief 构造：使用参数指定的引用和空锚对象并自动判断是否使用引用值初始化。
 	TermReference(TermNode& term)
-		: term_ref(term)
+		: TermReference(IsReferenceTerm(term), term)
 	{}
-	//! \since build 821
+	/*!
+	\brief 构造：使用参数指定的引用和锚对象并自动判断是否使用引用值初始化。
+	\since build 821
+	*/
 	template<typename _tParam, typename... _tParams>
 	TermReference(TermNode& term, _tParam&& arg, _tParams&&... args)
-		: term_ref(term), p_anchor(yforward(arg), yforward(args)...)
+		: TermReference(IsReferenceTerm(term), term, yforward(arg),
+		yforward(args)...)
 	{}
+	//! \since build 828
+	//@{
+	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和空锚对象。
+	TermReference(bool r, TermNode& term)
+		: term_ref(term), is_ref(r)
+	{}
+	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及指定引用和指定锚对象。
+	template<typename _tParam, typename... _tParams>
+	TermReference(bool r, TermNode& term, _tParam&& arg, _tParams&&... args)
+		: term_ref(term), is_ref(r),
+		p_anchor(yforward(arg), yforward(args)...)
+	{}
+	//! \brief 构造：使用参数指定的是否使用引用值初始化的标记及现有的项引用。
+	TermReference(bool r, TermReference t_ref)
+		: term_ref(t_ref.term_ref), is_ref(r), p_anchor(t_ref.p_anchor)
+	{}
+	//@}
 	DefDeCopyCtor(TermReference)
 
 	DefDeCopyAssignment(TermReference)
 
+	//! \brief 等于：当且仅当引用的项同一时相等。
 	friend PDefHOp(bool, ==, const TermReference& x, const TermReference& y)
 		ImplRet(ystdex::get_equal_to<>()(x.term_ref, y.term_ref))
+
+	/*!
+	\brief 判断被引用项在初始化时是否表示引用值。
+	\since build 828
+	*/
+	DefPred(const ynothrow, TermReferenced, is_ref)
 
 	DefCvtMem(const ynothrow, TermNode&, term_ref)
 
@@ -1486,6 +1565,20 @@ public:
 	PDefH(TermNode&, get, ) const ynothrow
 		ImplRet(term_ref.get())
 };
+
+/*!
+\brief 折叠项引用。
+\return 当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
+\note 可选提供环境关联锚对象指针。
+\relates TermReference
+\since build 828
+*/
+//@{
+YF_API TermReference
+Collapse(TermNode&);
+YF_API TermReference
+Collapse(TermNode&, const Environment&);
+//@}
 
 
 /*!

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2017 FrankHB.
+# (C) 2014-2018 FrankHB.
 # Common source script: bootstrap configuration.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
@@ -32,7 +32,7 @@ INCLUDES=" \
 	-I$YSLib_BaseDir/YBase/include \
 	"
 
-# Coordinated with build 758.
+# Coordinated at build 828.
 LIBS=" \
 	$YSLib_BaseDir/YBase/source/ystdex/cassert.cpp \
 	$YSLib_BaseDir/YBase/source/ystdex/cstdio.cpp \
@@ -68,6 +68,7 @@ if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 		$YSLib_BaseDir/YFramework/Win32/source/YCLib/MinGW32.cpp \
 		$YSLib_BaseDir/YFramework/Win32/source/YCLib/Consoles.cpp \
 		$YSLib_BaseDir/YFramework/Win32/source/YCLib/NLS.cpp \
+		$YSLib_BaseDir/YFramework/Win32/source/YCLib/Registry.cpp \
 		"
 fi
 

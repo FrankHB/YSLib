@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r3007
+\version r3234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-06-05 02:46 +0800
+	2018-06-18 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,234 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				* $impl "invalid 'yconstfn_relaxed' used" @ "static member \
+					function %Environment::DefaultRedirect" $since b798,
+				(
+				+ "function %LiftTermOnRef";
+				/ "function %LiftTermRefToSelf" $=
+				(
+					/ DLDI "simplified" ^ "%LiftTermOnRef";
+					/ "return type" -> 'bool' ~ 'void'
+				),
+				/ DLDI "simplified function %LiftToReference" ^ "%LiftTermOnRef"
+				),
+				- $revert(b800) "function %LiftTermOrRef",
+				* DD "'\throw' command" @ "Doxygen comment"
+					@ "function %LiftToReference" $mismatch $since b822,
+				+ "functions %((LiftToReturn, RegularizeTerm; \
+					ReduceForClosureResult), IsReferenceTerm)",
+				/ DLI "referent of parameter type" @ "all 2 function templates \
+					%AccessTerm" -> "%TermNode" ~ "%ValueNode",
+				(
+				/ @ "class %TermReference" $=
+				(
+					+ $impl "data member to distinguish value initialized from \
+						a reference term";
+						// Now lvalue reference and rvalue reference can be \
+							distinguished.
+					+ "member function %IsTermReferenced",
+					(
+					+ "2 constructors with explicit mark of reference term";
+					/ DLDI "simplified all 2 constructors without explicit \
+						mark of reference term" ^ "%IsReferenceTerm"
+					),
+					+ "constructor with explicit mark of reference term and \
+						%TermReference value"
+				);
+				+ "2 functions %Collapse respecting to mark of reference term"
+				),
+				+ "function %IsLValueTerm" ^ $dep_from
+					"%TermReference::IsTermReferenced"
+			),
+			/ %NPLA1 $=
+			(
+				* "invlaid container access" @ "function prvalue handling"
+					@ "TCO" @ "environment switching" since b825,
+				/ @ "namespace %Forms"=
+				(
+					/ @ "function %BindParameter" $=
+					(
+						* "empty name bound for parameter '.&', or '&'" $since
+							b822,
+						/ "trailing sequence binding" $=
+						(
+							/ DLDI "avoided unnecessary container from \
+								creation",
+							+ "parameter of copy",
+								// This allows copy by reference.
+							/ $revert_ex(b821) "symbol binding" !^ "%LiftToSelf",
+								// See above. %LiftToSelf now only remains \
+									using in parameter tree.
+						),
+						/ "object binding" $=
+						(
+							(
+							+ $forced "copy parameter" $dep_from
+								"object copy parameter";
+							/ $impl "optimized passed by value"
+								^ "%(YSLib::SetContentWith, \
+								ValueObject::MakeCopy, ValueObject::MakeMove)"
+								~ "%(LiftToSelf, LiftTermIndirection)";
+							+ "copy for object passed by reference" $dep_from
+								"object copy parameter",
+							/ "supported one level indirection" ~ "recursive \
+								lifting" $dep_to "object value lifting",
+							* $comp "reference almost always passed by move \
+								instead of copy" $since b803,
+								// %ValueObject::MakeMoveCopy basically does \
+									not work because the object can be in the \
+									environment (as a lvalue or part of it to \
+									be accessed by name), or there can be \
+									other referece unknown by the object.
+							),
+							/ $forced DLDI "simplified handler parameter type"
+								$dep_from "simplified object parameter handler \
+								type"
+						),
+						/ $forced DLDI "explicitly set '{}' for copy" $dep_from
+							"top-level parameter copy control",
+						/ DLDI "simplified with extracted templated code of \
+							both handlers",
+						/ "support of prefixed '&'" -> "sigils ('&', '%')"
+							$dep_to "sigils bindings" $=
+						(
+							/ "supported bindings of nested lvalues by '&'",
+								// This ensures accessors can handle \
+									subobjects of lists properly (i.e. getting \
+									reference values without undefined \
+									behavior) without lifting the results.
+							+ "prefix '%'"
+								// The sigil '%' is different to '&' as it \
+									remains the value category.
+						)
+					),
+					/ @ "function %MatchParameter" $=
+					(
+						/ "list parameter matching" $=
+						(
+							/ "deferred indirection access after traling \
+								parameter check",
+							* "desructive binding" $since b800
+								!^ "%LiftTermRefToSelf" $dep_to
+								"fixed invalid reference binding in list",
+							(
+							/ "aforehand recursive binding of list element"
+								-> "explicit resolution of one level \
+									indirection of %TermReference copy"
+									$dep_from "object value lifting",
+								// This is more similar to both C++ and 'box' \
+									in Scheme-like dialects, though it may be \
+									unsafe to binding multiple level of \
+									reference when the indirection is \
+									performed only once.
+							+ $forced "copy parameter" @ "sequence parameter \
+								handler" $dep_from ("parameter of copy"
+								@ "trailing sequence binding"
+								@ "function %BindParameter");
+							/ $comp "supported binding of referenced list \
+								subnodes by copy"
+							)
+						),
+						+ "copy parameter to protected operand being moved"
+							$dep_to "top-level parameter copy control",
+						/ @ "function type" @ "object parameter handler" $=
+						(
+							+ "copy parameter 'bool'" $dep_to
+								"object copy parameter",
+							/ "simplified 2nd parameter" ^ 'TermNode&'
+								~ 'TermNode&&' $dep_to
+								"simplified object parameter handler type"
+						)
+					)
+				),
+				/ "result lifting" @ "end of closure" $dep_to
+					"result regulation" $=
+				(
+					(
+					/ $impl "simplified" ^ "%ReduceForClosureResult"
+						~ "%LiftToSelfSafe";
+					/ $comp "resoved only outermost one level reference \
+						instead of recursive resolution on reference"
+						// Similar to parameter matching, result of a call now \
+							also reserves indirect references.
+					),
+					/ DLDI "simplified" ^ ("%RegularizeTerm" @ %NPLA)
+				),
+				+ "5th parameter 'bool' specifying whether to lift the result"
+					@ "function %ReduceCheckedClosure",
+				/ @ "function %EvaluateIdentifier" $=
+				(
+					/ $impl "simplified %EvaluateIdentifier" ^ $dep_from
+						("%Collapse#2" @ %NPLA);
+					/ $comp "supported tracking of value category represented \
+						by term"
+				)
+			),
+			/ @ "derivated loading forms" @ "function %LoadNPLContextForSHBuild"
+				@ %Dependency $=
+			(
+				(
+				/ "combiners ('$vau&', '$vaue&', '$lambda&', '$lambdae&', \
+					'$defv&!', '$defl&!', '$defw&!', 'eval&', 'cons&', 'list%')"
+					=> ('$vau%', '$vaue%', '$lambda%', '$lambdae%', '$defv%!',
+					'$defl%!', '$defw%!', 'eval%', 'cons%', 'list%');
+				* "references not kept in result" @ "alternative derivation"
+					@ "operative '$seqence'" $since b789 ^ $impl ('cons&',
+					'eval%', 'vaue%', 'vau%'),
+				/ DLI "operative '$quote'" ^ '$vau%' ~ '$vau',
+				+ "alternative derivation" @ "applicative 'list%'" ^ '$vau%',
+				+ "alternative derivations" @ "applicatives (%list, 'list%')"
+					^ "('$lambda', '$lambda%')"
+				),
+				/ $forced DLDI "alternative derivation" @ "applicative %list"
+					$dep_from ("result regulation", "%BindParameter" @ %NPLA1),
+					// The single symbol for lifting does not work any longer \
+						to behave as %NPL::ReduceBranchToListValue.
+				+ "applicatives %(id, idv)"
+					^ ($dep_from ("%LiftToReturn" @ %NPLA), "sigils bindings"),
+				+ "applicative 'reference?'" ^ $dep_from
+					("%IsReferenceTerm" @ %NPLA),
+				+ "applicative 'lvalue?'" ^ $dep_from ("%IsLValueTerm" @ %NPLA),
+				+ "applicatives ('rest%', 'rest&')" $dep_from ("fixed invalid \
+					reference binding in list", "%BindParameter" @ %NPLA1),
+				(
+				+ "applicative 'first&'",
+				+ "applicative (%forward; 'first%')" ^ $dep_from
+					('lvalue?', "%idv"),
+				/ "supported passing reference result" $dep_from ("fixed \
+					invalid reference binding in list", "sigils bindings") $=
+				(
+					// Without the dependency, the behavior is undefined \
+						because it would access the object was destructed by \
+						binding.
+					/ "applicative %apply" ^ $dep_from ('$defl%!', 'eval%',
+						'cons%', 'first&') ~ ('$defl!', "%(eval, cons, first)");
+					/ "operative '$cond'" ^ $dep_from ('$defv%!', '$lambda%',
+						'eval%') ~ ('$defv!', '$lambda', "%eval")
+				)
+			)
+		)
+	),
+	/ %Tools $=
+	(
+		* $comp "stage 1 SHBuild would crash on build" $since b725
+			$dep_from ("environment switching" @ %YFramework.NPL.NPLA1),
+		* $re_ex(b739) "missing Win32 source file" @ "%SHBuild-bootstrap.sh"
+			@ %Scripts $since b735
+			// Though %Registry.cpp is not directly used by default (being \
+				optimized), it would go wrong if called by custom script \
+				with debug options.
+	)
+),
+
+b827
 (
 	/ DLB "3rdparty files" @ "Microsoft VC++ project" $=
 	(
