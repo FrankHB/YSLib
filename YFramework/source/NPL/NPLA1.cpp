@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7541
+\version r7744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-06-05 01:49 +0800
+	2018-06-13 13:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,25 +245,6 @@ ExtractBool(TermNode& term, bool is_and) ynothrow
 }
 
 //! \since build 820
-ReductionStatus
-NormalizeTerm(TermNode& term, ReductionStatus res)
-{
-	// NOTE: Cleanup if and only if necessary.
-	if(res == ReductionStatus::Clean)
-		term.ClearContainer();
-	return res;
-}
-
-//! \since build 820
-ReductionStatus
-ReduceForClosureResult(TermNode& term, const ContextNode& ctx)
-{
-	NormalizeTerm(term, ctx.LastStatus);
-	LiftToSelfSafe(term);
-	return CheckNorm(term);
-}
-
-//! \since build 820
 using EnvironmentGuard = ystdex::guard<EnvironmentSwitcher>;
 
 #if YF_Impl_NPLA1_Enable_Thunked
@@ -408,7 +389,7 @@ public:
 		while(!xgds.empty())
 			xgds.pop_back();
 		if(ReduceCombined)
-			NormalizeTerm(Term, res);
+			RegularizeTerm(Term, res);
 		if(ReduceNestedAsync)
 			ctx.SkipToNextEvaluation = true;
 		return res;
@@ -422,8 +403,8 @@ public:
 		//	be removed as per the equivalence (hopefully, of beta reduction)
 		//	defined by %operator== of the handler, no new instance is to be
 		//	added.
-		xgds.emplace_back();
 		ystdex::erase_all(xgds, h);
+		xgds.emplace_back();
 		// NOTE: Strong exception guarantee is kept here.
 		swap(xgds.back(), h);
 		return ystdex::as_const(xgds.back());
@@ -734,47 +715,6 @@ CheckEnvFormal(const TermNode& eterm)
 
 //! \since build 822
 //@{
-ReductionStatus
-ReduceCheckedClosureImpl(TermNode& term, ContextNode& ctx, bool move,
-	TermNode& closure, bool lift_result)
-{
-	if(move)
-		LiftTerm(term, closure);
-	else
-		term.SetContent(closure);
-	// XXX: Term reused.
-#if YF_Impl_NPLA1_Enable_TCO
-
-	Reducer next(std::bind(ReduceCheckedAsync, std::ref(term), std::ref(ctx)));
-
-	if(const auto p = ctx.Current.target<TCOAction>())
-	// XXX: It should be same to saved enclosing term currently.
-//	if(&p->Term.get() == &term)
-	{
-		if(lift_result)
-		{
-			if(p->LiftCallResult)
-				next = std::bind([&, p](const Reducer& act){
-					ReduceForClosureResult(term, ctx);
-					return act();
-				}, std::move(next));
-			else
-				p->LiftCallResult = true;
-		}
-		return RelaySwitchedUnchecked(ctx, std::move(next));
-	}
-	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, lift_result));
-#else
-	if(lift_result)
-		return ReduceSubsequent(term, ctx,
-			std::bind(ReduceForClosureResult, std::ref(term), std::ref(ctx)));
-	// TODO: Optimize.
-	return ReduceSubsequent(term, ctx, [&]{
-		return ctx.LastStatus;
-	});
-#endif
-}
-
 #if YF_Impl_NPLA1_Enable_TCO
 //! \since build 825
 bool
@@ -964,7 +904,7 @@ ReductionStatus
 RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 	TermNode& closure, EnvironmentGuard&& gd, bool no_lift)
 {
-	auto next_action(std::bind(ReduceCheckedClosureImpl, std::ref(term),
+	auto next_action(std::bind(ReduceCheckedClosure, std::ref(term),
 		std::ref(ctx), move, std::ref(closure), !no_lift));
 
 #if YF_Impl_NPLA1_Enable_TCO
@@ -1303,7 +1243,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 	});
 
 	if(const auto p = ctx.Current.target<TCOAction>())
-	// XXX: See %ReduceCheckedClosureImpl.
+	// XXX: See %ReduceCheckedClosure.
 //	if(&p->Term.get() == &term)
 	{
 		update_fused_act(*p);
@@ -1319,13 +1259,13 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 		std::bind([&](Reducer& act, const _tParams&...){
 		// NOTE: Captured argument pack is only needed when %h actually shares.
 		RelaySwitched(ctx, std::move(act));
-		return NormalizeTerm(term, ctx.LastStatus);
+		return RegularizeTerm(term, ctx.LastStatus);
 	}, ctx.Switch(), std::move(args)...));
 #	endif
 #else
 	yunseq(0, args...);
 	// NOTE: This does not support PTC.
-	return NormalizeTerm(term, h(term, ctx));
+	return RegularizeTerm(term, h(term, ctx));
 #endif
 }
 
@@ -1428,6 +1368,42 @@ VauWithEnvironmentImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 }
 //@}
 
+//! \since build 828
+struct BindParameterObject
+{
+	template<typename _fCopy, typename _fMove>
+	void
+	operator()(char sigil, bool copy, TermNode& b, _fCopy cp, _fMove mv) const
+	{
+		// NOTE: The operand should have been evaluated. Subnodes in arguments
+		//	retained are also transferred.
+		if(const auto p = AccessPtr<const TermReference>(b))
+		{
+			if(sigil == char())
+				// NOTE: Since it is passed by value copy, direct destructive
+				//	lifting cannot be used.
+				cp(p->get().GetContainer(), p->get().Value);
+			else
+				mv(std::move(b.GetContainerRef()), *p);
+		}
+		else if(copy)
+		{
+			if(sigil == char())
+				cp(b.GetContainer(), b.Value);
+			else if(sigil != '%')
+				// XXX: Currently only this is only occurred in indirect
+				//	accesses from reference lvalues. So it is assumed that
+				//	lvalues have propagated to its subnodes.
+				cp(TermNode::Container(), TermReference(b));
+			else
+				cp(b.GetContainerRef(), b.Value);
+		}
+		else
+			// XXX: Moved. This is copy elision in object language.
+			mv(std::move(b.GetContainerRef()), std::move(b.Value));
+	}
+};
+
 } // unnamed namespace;
 
 
@@ -1455,7 +1431,7 @@ ReduceAgain(TermNode& term, ContextNode& ctx)
 	});
 
 	if(const auto p = ctx.Current.target<TCOAction>())
-	// XXX: See %ReduceCheckedClosureImpl.
+	// XXX: See %ReduceCheckedClosure.
 //	if(&p->Term.get() == &term)
 	{
 		update_fused_act(*p);
@@ -1503,9 +1479,43 @@ ReduceChecked(TermNode& term, ContextNode& ctx)
 
 ReductionStatus
 ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
-	TermNode& closure)
+	TermNode& closure, bool lift_result)
 {
-	return ReduceCheckedClosureImpl(term, ctx, move, closure, {});
+	if(move)
+		LiftTerm(term, closure);
+	else
+		term.SetContent(closure);
+	// XXX: Term reused.
+#if YF_Impl_NPLA1_Enable_TCO
+
+	Reducer next(std::bind(ReduceCheckedAsync, std::ref(term), std::ref(ctx)));
+
+	if(const auto p = ctx.Current.target<TCOAction>())
+	// XXX: It should be same to saved enclosing term currently.
+//	if(&p->Term.get() == &term)
+	{
+		if(lift_result)
+		{
+			if(p->LiftCallResult)
+				next = std::bind([&, p](const Reducer& act){
+					ReduceForClosureResult(term, ctx);
+					return act();
+				}, std::move(next));
+			else
+				p->LiftCallResult = true;
+		}
+		return RelaySwitchedUnchecked(ctx, std::move(next));
+	}
+	return RelayNext(ctx, std::move(next), TCOAction(ctx, term, lift_result));
+#else
+	if(lift_result)
+		return ReduceSubsequent(term, ctx,
+			std::bind(ReduceForClosureResult, std::ref(term), std::ref(ctx)));
+	// TODO: Optimize.
+	return ReduceSubsequent(term, ctx, [&]{
+		return ctx.LastStatus;
+	});
+#endif
 }
 
 void
@@ -1790,11 +1800,7 @@ EvaluateIdentifier(TermNode& term, const ContextNode& ctx, string_view id)
 		//	if not passed directly and without rebinding. Note access of objects
 		//	denoted by invalid reference after rebinding would cause undefined
 		//	behavior in the object language.
-		// NOTE: Reference collapsed.
-		if(const auto p_tref = AccessPtr<const TermReference>(node))
-			term.Value = *p_tref;
-		else
-			term.Value = TermReference(node, pr.second.get().Anchor());
+		term.Value = Collapse(node, pr.second);
 		// NOTE: This is not guaranteed to be saved as %ContextHandler in
 		//	%ReduceCombined.
 		if(const auto p_handler = AccessTermPtr<LiteralHandler>(term))
@@ -2024,81 +2030,76 @@ void
 BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 {
 	auto& m(ctx.GetBindingsRef());
+	const auto check_sigil([&](string_view& id){
+		char sigil(id.front());
 
-	// NOTE: The symbol can be rebound.
-	MatchParameter(t, o, [&](TNIter first, TNIter last, string_view id){
+		if(sigil != '&' && sigil != '%')
+			sigil = char();
+		else
+			id.remove_prefix(1);
+		return sigil;
+	});
+
+	// NOTE: No duplication check here. The symbol can be rebound.
+	// TODO: Support xvalue?
+	// TODO: Check value ownership?
+	// TODO: Other value ownership checks?
+	MatchParameter(t, o,
+		[&, check_sigil](TNIter first, TNIter last, string_view id, bool copy){
 		YAssert(ystdex::begins_with(id, "."), "Invalid symbol found.");
 		id.remove_prefix(1);
 		if(!id.empty())
 		{
-			const bool by_val(id.front() != '&');
-			TermNode::Container con;
+			const char sigil(check_sigil(id));
 
-			if(!by_val)
-				id.remove_prefix(1);
-			for(; first != last; ++first)
+			if(!id.empty())
 			{
-				auto& b(Deref(first));
+				TermNode::Container con;
 
-				if(by_val)
-				{
-					LiftToSelf(b);
-					con.emplace(b.CreateWith(&ValueObject::MakeMoveCopy),
-						MakeIndex(con), b.Value.MakeMoveCopy());
-				}
-				// TODO: Support xvalue?
-				// TODO: Check value ownership?
-				// XXX: Moved. This is copy elision in object language.
-				else
-					// TODO: Other value ownership checks?
-					// XXX: Moved. This is copy elision in object language.
-					con.emplace(std::move(b.GetContainerRef()), MakeIndex(con),
-						std::move(b.Value));
+				for(; first != last; ++first)
+					BindParameterObject()(sigil, copy, Deref(first), [&](const
+						TermNode::Container& c, const ValueObject& vo){
+						con.emplace(c, MakeIndex(con), vo);
+					}, [&](TermNode::Container&& c, ValueObject&& vo){
+						con.emplace(std::move(c), MakeIndex(con),
+							std::move(vo));
+					});
+
+				auto& term(m[id]);
+
+				// XXX: This relies on the assumption that %ValueNode has same
+				//	container type with %TermNode.
+				term.SetContent(ValueNode(std::move(con)));
 			}
-			m[id].SetContent(ValueNode(std::move(con)));
 		}
-	}, [&](const TokenValue& n, TermNode&& b){
+	}, [&](const TokenValue& n, TermNode& b, bool copy){
 		CheckParameterLeafToken(n, [&]{
 			if(!n.empty())
 			{
-				// NOTE: No duplication check here. The symbol can be rebound.
+				string_view id(n);
+				const char sigil(check_sigil(id));
 
-				const bool by_val(n.front() != '&');
-
-				// NOTE: The operand should have been evaluated. Subnodes in
-				//	arguments retained are also transferred.
-				if(by_val)
-				{
-					LiftToSelf(b);
-					LiftTermIndirection(m[n], b);
-				}
-				else
-				{
-					string_view id(n);
-
-					id.remove_prefix(1);
-					// TODO: Support xvalue?
-					// TODO: Check value ownership?
-					// XXX: Moved. This is copy elision in object language.
-					m[id].SetContent(std::move(b.GetContainerRef()),
-						std::move(b.Value));
-				}
+				if(!id.empty())
+					BindParameterObject()(sigil, copy, b, [&](const
+						TermNode::Container& c, const ValueObject& vo){
+						m[id].SetContent(c, vo);
+					}, [&](TermNode::Container&& c, ValueObject&& vo){
+						m[id].SetContent(std::move(c), std::move(vo));
+					});
 			}
 		});
-	});
+	}, {});
 }
 
 void
-MatchParameter(const TermNode& t, TermNode& o,
-	std::function<void(TNIter, TNIter, const TokenValue&)> bind_trailing_seq,
-	std::function<void(const TokenValue&, TermNode&&)> bind_value)
+MatchParameter(const TermNode& t, TermNode& o, std::function<void(TNIter,
+	TNIter, const TokenValue&, bool)> bind_trailing_seq,
+	std::function<void(const TokenValue&, TermNode&, bool)> bind_value,
+	bool o_copy)
 {
 	if(IsBranch(t))
 	{
-		LiftTermRefToSelf(o);
-
 		const auto n_p(t.size());
-		const auto n_o(o.size());
 		auto last(t.end());
 
 		if(n_p > 0)
@@ -2118,31 +2119,47 @@ MatchParameter(const TermNode& t, TermNode& o,
 						TermToValueString(back).c_str()));
 			}
 		}
-		if(n_p == n_o || (last != t.end() && n_o >= n_p - 1))
-		{
-			auto j(o.begin());
 
-			for(auto i(t.begin()); i != last; yunseq(++i, ++j))
+		const auto match_branch(
+			[&, n_p](TermNode& a, bool ellipsis, bool copy) -> bool{
+			const auto n_o(a.size());
+
+			if(n_p == n_o || (ellipsis && n_o >= n_p - 1))
 			{
-				YAssert(j != o.end(), "Invalid state of operand found.");
-				MatchParameter(Deref(i), Deref(j), bind_trailing_seq,
-					bind_value);
+				auto j(a.begin());
+
+				for(auto i(t.begin()); i != last; yunseq(++i, ++j))
+				{
+					YAssert(j != a.end(), "Invalid state of operand found.");
+					MatchParameter(Deref(i), Deref(j), bind_trailing_seq,
+						bind_value, o_copy || copy);
+				}
+				if(ellipsis)
+				{
+					const auto& lastv(Deref(last).Value);
+
+					YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
+						"Invalid ellipsis sequence token found.");
+					bind_trailing_seq(j, a.end(),
+						lastv.GetObject<TokenValue>(), copy);
+					return true;
+				}
+				return {};
 			}
-			if(last != t.end())
-			{
-				const auto& lastv(Deref(last).Value);
-
-				YAssert(lastv.type() == ystdex::type_id<TokenValue>(),
-					"Invalid ellipsis sequence token found.");
-				bind_trailing_seq(j, o.end(), lastv.GetObject<TokenValue>());
+			else if(!ellipsis)
+				throw ArityMismatch(n_p, n_o);
+			else
+				throw ParameterMismatch(
+					"Insufficient term found for list parameter.");
+		});
+		const auto match_operand_branch([&](TermNode& a, bool copy){
+			if(match_branch(a, last != t.end(), copy))
 				YAssert(++last == t.end(), "Invalid state found.");
-			}
-		}
-		else if(last == t.end())
-			throw ArityMismatch(n_p, n_o);
+		});
+		if(const auto p = AccessPtr<const TermReference>(o))
+			match_operand_branch(p->get(), true);
 		else
-			throw ParameterMismatch(
-				"Insufficient term found for list parameter.");
+			match_operand_branch(o, o_copy);
 	}
 	else if(!t.Value)
 	{
@@ -2152,7 +2169,7 @@ MatchParameter(const TermNode& t, TermNode& o,
 					" with value %s.", TermToValueString(o).c_str()));
 	}
 	else if(const auto p = AccessPtr<TokenValue>(t))
-		bind_value(*p, std::move(o));
+		bind_value(*p, o, o_copy);
 	else
 		throw ParameterMismatch(ystdex::sfmt("Invalid parameter value found"
 			" with value %s.", TermToValueString(t).c_str()));
