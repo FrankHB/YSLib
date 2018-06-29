@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3804
+\version r3805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-06-12 15:36 +0800
+	2018-06-24 06:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -680,7 +680,7 @@ EvaluateDelayed(TermNode&, DelayedTerm&);
 //@}
 
 /*!
-\exception BadIdentifier 标识符未声明。
+\exception BadIdentifier 未在环境中找到指定标识符的绑定。
 \note 默认结果为 ReductionStatus::Clean 以保证强规范化性质。
 */
 //@{

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3633
+\version r3657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-06-16 07:56 +0800
+	2018-06-25 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1556,7 +1556,7 @@ public:
 	*/
 	DefPred(const ynothrow, TermReferenced, is_ref)
 
-	DefCvtMem(const ynothrow, TermNode&, term_ref)
+	explicit DefCvtMem(const ynothrow, TermNode&, term_ref)
 
 	//! \since build 823
 	DefGetter(const ynothrow, const shared_ptr<const void>&, AnchorPtr,
@@ -1568,15 +1568,19 @@ public:
 
 /*!
 \brief 折叠项引用。
-\return 当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
+\return 引用值及初始化时是否表示引用值。
 \note 可选提供环境关联锚对象指针。
 \relates TermReference
-\since build 828
+\since build 829
+
+返回引用由以下方式确定：
+当参数的 Value 表示项引用时，返回值；否则为通过参数初始化的项引用。
+这种方式避免初始化引用的引用。
 */
 //@{
-YF_API TermReference
+YF_API pair<TermReference, bool>
 Collapse(TermNode&);
-YF_API TermReference
+YF_API pair<TermReference, bool>
 Collapse(TermNode&, const Environment&);
 //@}
 
@@ -1955,10 +1959,11 @@ FetchValuePtr(const Environment& env, const _tKey& name)
 //@}
 
 
+//! \exception NPLException 访问共享重定向上下文失败。
+//@{
 /*!
 \brief 解析名称：处理保留名称并查找名称。
 \pre 断言：第二参数的数据指针非空。
-\exception NPLException 访问共享重定向上下文失败。
 \sa Environment::ResolveName
 \since build 821
 
@@ -1966,6 +1971,21 @@ FetchValuePtr(const Environment& env, const _tKey& name)
 */
 YF_API Environment::NameResolution
 ResolveName(const ContextNode&, string_view);
+
+/*!
+\brief 解析标识符：解析名称并折叠引用。
+\pre 间接断言：第二参数的数据指针非空。
+\return 标识符指称的实体的引用及初始化时是否表示引用值。
+\throw BadIdentifier 标识符未在环境中找到。
+\sa Collapse
+\sa ResolveName
+\since build 829
+
+解析指定上下文中的标识符，若不存在绑定则抛出异常。
+*/
+YF_API pair<TermReference, bool>
+ResolveIdentifier(const ContextNode&, string_view);
+//@}
 
 /*!
 \brief 解析环境。

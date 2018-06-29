@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1280
+\version r1334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-06-17 14:50 +0800
+	2018-06-29 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -334,6 +334,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary(root, "nullpr?", IsEmpty);
 	RegisterStrictUnary(root, "reference?", IsReferenceTerm);
 	RegisterStrictUnary(root, "lvalue?", IsLValueTerm);
+	RegisterStrict(root, "move", [](TermNode& term){
+		RetainN(term);
+		LiftTerm(term, ReferenceTerm(Deref(std::next(term.begin()))));
+		LiftToReturn(term);
+		return CheckNorm(term);
+	});
 	// NOTE: Though NPLA does not use cons pairs, corresponding primitives are
 	//	still necessary.
 	// NOTE: Since NPL has no con pairs, it only added head to existed list.
@@ -348,12 +354,18 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrict(root, "copy-environment", CopyEnvironment);
 	RegisterStrict(root, "make-environment", MakeEnvironment);
 	RegisterStrict(root, "get-current-environment", GetCurrentEnvironment);
-	RegisterStrictUnary<shared_ptr<Environment>>(root, "weaken-environment",
-		[](const shared_ptr<Environment>& p) ynothrow{
+	RegisterStrictUnary<const shared_ptr<Environment>>(root,
+		"weaken-environment", [](const shared_ptr<Environment>& p) ynothrow{
 		return EnvironmentReference(p);
 	});
 	RegisterStrictUnary<const EnvironmentReference>(root, "lock-environment",
 		std::mem_fn(&EnvironmentReference::Lock));
+	RegisterStrictUnary<const TokenValue>(root, "resolve-identifier",
+		[](string_view id, const ContextNode& ctx){
+		return CheckSymbol(id, [&]{
+			return ResolveIdentifier(ctx, id).first;
+		});
+	});
 	// NOTE: Environment mutation is optional in Kernel and supported here.
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
 	//	parameter as unevaluated operands. For zero overhead principle, the form
@@ -412,12 +424,12 @@ LoadNPLContextForSHBuild(REPLContext& context)
 #endif
 	context.Perform(u8R"NPL(
 		$def! $quote $vau (&x) #ignore x;
-		$def! $set! $vau (&expr1 &formals .&expr2) env eval
-			(list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
-		$def! $defv! $vau (&$f &formals &senv .&body) env eval
-			(list $set! env $f $vau formals senv body) env;
-		$def! $defv%! $vau (&$f &formals &senv .&body) env eval
-			(list $set! env $f $vau% formals senv body) env;
+		$def! $set! $vau (&expr1 &formals .&expr2) env
+			eval (list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
+		$def! $defv! $vau (&$f &formals &senv .&body) env
+			eval (list $set! env $f $vau formals senv body) env;
+		$def! $defv%! $vau (&$f &formals &senv .&body) env
+			eval (list $set! env $f $vau% formals senv body) env;
 	)NPL");
 #if YF_Impl_NPLA1_Enable_NativeForms
 	RegisterForm(root, "$lambda", Lambda);
@@ -437,7 +449,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			(list $set! env f $lambda formals body) env;
 		$defv! $defl%! (&f &formals .&body) env eval
 			(list $set! env f $lambda% formals body) env;
-		$defl%! forward (%x) $if (lvalue? x) x (idv x);
+		$defl%! forward (&x)
+			$if (lvalue? (resolve-identifier ($quote x))) x (idv x);
 		$defl! first ((&x .)) x;
 		$defl%! first% ((%x .)) forward x;
 		$defl%! first& ((&x .)) x;
@@ -449,6 +462,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 				($if (null? opt) (() make-environment) (first& opt));
 		$defl! list* (&head .&tail)
 			$if (null? tail) head (cons head (apply list* tail));
+		$defl%! list*% (%head .%tail) $if (null? tail) (forward head)
+			(idv (cons% (forward head) (apply list*% tail)));
 		$defv! $defw! (&f &formals &senv .&body) env eval
 			(list $set! env f wrap (list* $vau formals senv body)) env;
 		$defv! $defw%! (&f &formals &senv .&body) env eval
@@ -501,39 +516,38 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	// NOTE: Use of 'eql?' is more efficient than '$if'.
 	context.Perform(u8R"NPL(
 		$defl! not? (&x) eql? x #f;
-		$defv! $when (&test .&vexpr) env $if (eval test env)
-			(eval (list* $sequence vexpr) env);
-		$defv! $unless (&test .&vexpr) env $if (not? (eval test env))
-			(eval (list* $sequence vexpr) env);
+		$defv%! $when (&test .&vexpr) env
+			$if (eval test env) (eval% (list*% $sequence vexpr) env);
+		$defv%! $unless (&test .&vexpr) env
+			$if (not? (eval test env)) (eval% (list*% $sequence vexpr) env);
 	)NPL");
 	RegisterForm(root, "$and?", And);
 	RegisterForm(root, "$or?", Or);
 	context.Perform(u8R"NPL(
-		$defl! first-null? (&l) null? (first l);
-		$defl! list-rest (&x) list (rest x);
-		$defl! accl (&l &pred? &base &head &tail &sum) $sequence
-			($defl! aux (&l &base)
-				$if (pred? l) base (aux (tail l) (sum (head l) base)))
-			(aux l base);
-		$defl! accr (&l &pred? &base &head &tail &sum) $sequence
-			($defl! aux (&l) $if (pred? l) base (sum (head l) (aux (tail l))))
-			(aux l);
-		$defl! foldr1 (&kons &knil &l) accr l null? knil first rest kons;
-		$defw! map1 (&appv &l) env foldr1
-			($lambda (&x &xs) cons (apply appv (list x) env) xs) () l;
-		$defl! list-concat (&x &y) foldr1 cons y x;
+		$defl! first-null? (&l) null? (first% l);
+		$defl%! accl (&l &pred? &base &head &tail &sum) $sequence
+			($defl%! aux (&l &base) $if (pred? l) (forward base)
+				(aux (tail l) (sum (head l) (forward base))))
+			(forward (aux l base));
+		$defl%! accr (&l &pred? &base &head &tail &sum) $sequence
+			($defl%! aux (&l) $if (pred? l) (forward base)
+				(sum (head l) (aux (tail l))))
+			(forward (aux l));
+		$defl%! foldr1 (&kons &knil &l)
+			forward (accr l null? (forward knil) first% rest% kons);
+		$defw%! map1 (&appv &l) env forward (foldr1
+			($lambda (&x &xs) cons% (apply appv (list% x) env) xs) () l);
+		$defl! list-concat (&x &y) foldr1 cons% y x;
 		$defl! append (.&ls) foldr1 list-concat () ls;
-		$defv! $let (&bindings .&body) env
-			eval (list* () (list* $lambda (map1 first bindings) body)
-				(map1 list-rest bindings)) env;
-		$defv! $let* (&bindings .&body) env
-			eval ($if (null? bindings) (list* $let bindings body)
-				(list $let (list (first bindings))
-				(list* $let* (rest bindings) body))) env;
-	)NPL");
-	context.Perform(u8R"NPL(
-		$defl! unfoldable? (&l) accr l null? (first-null? l) first-null? rest
-			$or?;
+		$defv%! $let (&bindings .&body) env forward (eval% (list*% ()
+			(list*% $lambda% (map1 first% bindings) forward (list body))
+			(map1 ($lambda (&x) list% (rest% x)) bindings)) env);
+		$defv%! $let* (&bindings .&body) env forward
+			(eval% ($if (null? bindings) (list*% $let bindings (idv body))
+				(list% $let (list (first% bindings))
+				(list*% $let* (rest% bindings) body))) env);
+		$defl! unfoldable? (&l)
+			forward (accr l null? (first-null? l) first-null? rest% $or?);
 		$def! map-reverse $let ((&cenv () make-standard-environment)) wrap
 			($sequence
 				($set! cenv cxrs $lambdae (weaken-environment cenv) (&ls &cxr)
@@ -554,7 +568,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	RegisterStrictUnary(root, "bound?",
 		[](TermNode& term, const ContextNode& ctx){
 		return ystdex::call_value_or([&](string_view id){
-			return CheckSymbol(id, [&](){
+			return CheckSymbol(id, [&]{
 				return bool(ResolveName(ctx, id).first);
 			});
 		}, AccessTermPtr<string>(term));

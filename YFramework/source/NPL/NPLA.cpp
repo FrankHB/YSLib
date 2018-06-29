@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1903
+\version r1918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-06-15 11:41 +0800
+	2018-06-26 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -590,7 +590,6 @@ LiftToReturn(TermNode& term)
 ReductionStatus
 ReduceBranchToList(TermNode& term) ynothrowv
 {
-	AssertBranch(term);
 	RemoveHead(term);
 	return ReductionStatus::Retained;
 }
@@ -745,19 +744,19 @@ EnvironmentReference::EnvironmentReference(const shared_ptr<Environment>& p_env)
 {}
 
 
-TermReference
+pair<TermReference, bool>
 Collapse(TermNode& node)
 {
 	if(const auto p_tref = AccessPtr<const TermReference>(node))
-		return {true, *p_tref};
-	return {false, node};
+		return {*p_tref, true};
+	return {node, {}};
 }
-TermReference
+pair<TermReference, bool>
 Collapse(TermNode& node, const Environment& env)
 {
 	if(const auto p_tref = AccessPtr<const TermReference>(node))
-		return {true, *p_tref};
-	return {false, node, env.Anchor()};
+		return {*p_tref, true};
+	return {{node, env.Anchor()}, {}};
 }
 
 
@@ -903,6 +902,16 @@ ResolveName(const ContextNode& ctx, string_view id)
 {
 	YAssertNonnull(id.data());
 	return ctx.GetRecordRef().Resolve(id);
+}
+
+pair<TermReference, bool>
+ResolveIdentifier(const ContextNode& ctx, string_view id)
+{
+	auto pr(ResolveName(ctx, id));
+
+	if(pr.first)
+		return Collapse(*pr.first, pr.second);
+	throw BadIdentifier(id);
 }
 
 pair<shared_ptr<Environment>, bool>
