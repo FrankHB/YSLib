@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r299
+\version r338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-06-05 02:49 +0800
+	2018-06-29 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,13 +94,29 @@ $2018-06:
 
 $report.impl:
 TCO algorithm in NPLA1 has been carefully revised and further enhanced.
-	TCO operates on active record frames.
+	TCO operates on potentially active record frames.
+		A record frame consists of an environment and optional other components.
+		The active frame is the frame whose environment is introduced by active call (i.e. the call still not return).
+			The environment component of the active frame is the emvironment object in the current context object.
+			The optional components include the function prvalue (as the temporary object) and the additional environment holding the temporary operand object, which are saved in the TCO action.
+				The function prvalue is based on the function object determined by implementation of 'NPL::A1::ReduceCombined' and the guard object after the compression.
+					The function object here is the context handler representing the optional function prvalue of the combining form.
+					If the prvalue is not existed (when the function is a lvalue stroed elsewhere), the context handler is empty.
+				Similarly, the operand has to be saved to avoid danling reference binding to it.
+					The difference to the function prvalue is it would be added immediately after the frame switch and before the next action of actual function call.
+					The operand is transferred in the form of environment object so it can be collected, see below.
+		Other frames are owned by the TCO action, which are inactive.
+			The frames are basically introced by other formerly active calls.
+				Some of them are definitely inactive, and they are the targets to be safely removed during TCO.
+			However, some frames can own objects referenced by the active frame so they cannot be definitely inactive.
+				They have to be preserved to keep the memory safety.
 		The representation of a frame is not necessarily always same.
 			But for simplicity, all frames preserved in a TCO action are in two forms.
 				The first form is like other non-TCO frames, called guarded frame, representing the continuation of the TCO action.
 					It is stored in a guard object of type 'NPL::A1::EnvironmentGuard', providing strong exception safety.
 				The other is the frame solely stores the resources.
-					These resource include environment and the function prvalue (as the temporary object).
+					These resources make the frame having the correspondence to the active frame, which also has 3 components. But the storage form and the order of them are not required to be same.
+					The components are the function prvalue, the frame environment and the additional environment holding the temporary operand object.
 				There is most one valid guarded frame in one TCO action.
 					There is exactly one valid guarded frame if the action initialized with a valid next action (in 'Context::Current') as well as a different environment (always true in case of TCO) for the next action.
 				There are zero or more valid non-guarded frame when there is a valid guarded frame. They are stored in the frame record list.
@@ -199,7 +215,7 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 					A count is set to each entry of universe as the total reference to the object.
 					The parameters are called roots, as the entry of traverse described below.
 						The first root is strong and other roots are weak.
-						The first root shall be the reference to active frame.
+						The first root shall be the reference to the environment of active frame.
 						Only strong root is considered reachable initially. Weak roots are specifically interested because they are held internally and addtional reference count fixes are needed, see the description of tracing algorithm below.
 				The compressor provides a "compress" method to be called after added all interested reference.
 					The interested references forms the universe. All references out of universe are considered external, and the object referenced by an external reference is not to be collected.
@@ -230,8 +246,13 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 				During destruction of the compressor, collected set would be destroyed eventually.
 					The objects except the weak roots (if any) are finally collected here.
 			For each turn of check, an object of record comprocessor is created using the reference to environment object in the active frame as root.
-			The adding operation is then entered at least once by call of "collect" method.
-				The first call using the reference to environment in the guard object as the parameter to specify the strong root.
+			The adding operation is then entered at least once to add all collectable environment into the universe.
+				For strong root, it is not added in the universe set directly as it is not collectable, only the direct and indirect parents are added into the universe.
+				For weak roots, the root itself is added into the universe as well as its direct and indirect parents.
+				The first call using the reference to the environment in the current context object (as the active frame) to specify the strong root, thus its direct and indirect parents can be added into universe.
+				The reference to environment in the guard object as the parameter then added.
+				The temporary environment holding the operand is also added.
+				Additional weak roots handling can be enabled by conditionally inclusion. As they are not used by default, they are disabled.
 				The successive calls traverse frame record list to provide weak roots.
 			After the adding operations, there is a try in loop for further compression operations, which traverses the frame record list.
 				The order is from front to back, so the recently inserted frame is first to try.
@@ -252,18 +273,18 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 				The condition is based on size of frame record list.
 					If the size changed, there is at least one object in frame record list is collected.
 					The try would be continued as there can be new orphaned object not in the list due to the removal of object in the list.
-			After the above fist try of loop, the first component of front element of frame record list is set to empty.
-				This is a hack that avoiding improper tail calls caused by a false positive external reference to the static environment object held in the temporary function object which is or is similar to a vau handler.
-				Ideally, multiple temporary objects are allowed coexisted.
-					Otherwise, the first element of frame is also useless, which is the status quo.
-				However, there is no simple way to implement this keeping the vau handler interface hidden under the type-erased context handler API, whose object can be wrapped more than once, to precisely know which object of vau handler appertains the frame.
-				There shall be no undefined behavior if correctly implemented.
-					The static environment is still accessible after destroying the function object if referenced when the object kept alive (by one ore more strong reference).
-					Otherwise, it is a program error of ill-use of weak reference.
+			After the above fist try of loop, components of frome element are processed if necessary.
+				The environment component holding temporary object is cleanup if it is uniquely referenced. 
+				The function prvalue component of front element of frame record list is then set to empty.
+					This is a hack that avoiding improper tail calls caused by a false positive external reference to the static environment object held in the temporary function object which is or is similar to a vau handler.
+					Ideally, multiple temporary objects are allowed coexisted.
+						Otherwise, the first element of frame is also useless, which is the status quo.
+					However, there is no simple way to implement this keeping the vau handler interface hidden under the type-erased context handler API, whose object can be wrapped more than once, to precisely know which object of vau handler appertains the frame.
+					There shall be no undefined behavior if correctly implemented.
+						The static environment is still accessible after destroying the function object if referenced when the object kept alive (by one ore more strong reference).
+						Otherwise, it is a program error of ill-use of weak reference.
 			Then the "compress" method is called.
-			The newly frame element is based on the function object determined by implementation of 'NPL::A1::ReduceCombined' and the guard object after the compression.
-				The function object here is the context handler representing the optional function prvalue of the combining form.
-				If the prvalue is not existed (when the function is a lvalue stroed elsewhere), the context handler is empty.
+			A new element is then inserted into the frame record list. The newly inserted frame element is the active frame components except the envrionment, and the environment stored in the guard object.
 			Finally, during the destruction of compressor, remained objects are collected.
 	The process of TCO tracing, check and collection is somewhat like tracing GC, but not the same.
 		The design here is conservative but accurate in collection.
