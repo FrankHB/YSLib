@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r1442
+\version r1447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 03:01:27 +0800
 \par 修改时间:
-	2017-08-11 13:51 +0800
+	2018-07-09 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -612,13 +612,13 @@ class FileInfo;
 /*!
 \brief FAT 分区。
 \note 成员函数参数路径默认相对此分区，无根前缀，空串路径视为当前工作目录。
-\warning 除非另行约定，不保证并发读写安全。
+\warning 除非另行指定，不保证并发读写安全。
 \todo 添加修改卷标的接口。
 */
 class Partition final : private ystdex::noncopyable, private ystdex::nonmovable
 {
 public:
-	using OpenFilesSet = set<lref<FileInfo>, ystdex::get_less<FileInfo>>;
+	using OpenFilesSet = set<lref<FileInfo>, ystdex::get_less<>>;
 
 private:
 	Disc disc;
@@ -886,7 +886,7 @@ FetchPartitionFromPath(const char*) ynothrowv;
 
 /*!
 \brief 目录状态。
-\warning 除非另行约定，不保证并发读写安全。
+\warning 除非另行指定，不保证并发读写安全。
 */
 class DirState final
 {
@@ -941,7 +941,7 @@ public:
 
 /*!
 \brief 文件信息。
-\warning 除非另行约定，不保证并发读写安全。
+\warning 除非另行指定，不保证并发读写安全。
 */
 class FileInfo final
 {

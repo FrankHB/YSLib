@@ -6,32 +6,49 @@
 Language: Cpp
 Standard: Auto # Cpp11 is preferred in general.
 AccessModifierOffset: -4
-# AlignAfterOpenBracket: true # 'DontAlign' for clang 3.8+.
+# AlignAfterOpenBracket: true
+AlignAfterOpenBracket: DontAlign # Requires Clang > 3.8.
 AlignConsecutiveAssignments: false
-# AlignConsecutiveDeclarations: false
-AlignEscapedNewlinesLeft: false
+AlignConsecutiveDeclarations: false
+# AlignEscapedNewlinesLeft: false
+AlignEscapedNewlines: DontAlign
 AlignOperands: false
-AlignTrailingComments: true
+AlignTrailingComments: false
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine:  false
-AlwaysBreakAfterDefinitionReturnType: All # Deprecated.
-# AlwaysBreakAfterReturnType: All # http://reviews.llvm.org/D10774
+# AlwaysBreakAfterDefinitionReturnType: All # Deprecated.
+AlwaysBreakAfterReturnType: All # http://reviews.llvm.org/D10774
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: true
 BinPackArguments: false
 BinPackParameters: false
-# BraceWrapping # Overriden by 'BreakBeforeBraces'.
 # BreakAfterJavaFieldAnnotations: true
 BreakBeforeBinaryOperators: All
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterExternBlock: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
 ColumnLimit: 80
 CommentPragmas: ''
+CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
@@ -42,6 +59,7 @@ DisableFormat: false
 ForEachMacros: [ 'BOOST_FOREACH' ]
 # IncludeCategories: # Unused.
 IndentCaseLabels: false
+IndentPPDirectives: AfterHash
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: true # This seems to also apply to namespaces.
@@ -60,8 +78,9 @@ PenaltyBreakString: 160
 PenaltyExcessCharacter: 320
 PenaltyReturnTypeOnItsOwnLine: 0
 PointerAlignment: Left
+SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
-SpaceAfterTemplate: false # Requires > r278121.
+SpaceAfterTemplateKeyword: false # Requires > r278121.
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: Never
 SpaceInEmptyParentheses: false

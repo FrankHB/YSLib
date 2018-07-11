@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7915
+\version r7952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-06-29 23:18 +0800
+	2018-07-03 10:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,10 +27,10 @@
 
 #include "NPL/YModules.h"
 #include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
-//	shared_ptr, tuple, list, lref, vector, observer_ptr, set, owner_less,
-//	ystdex::erase_all, ystdex::as_const, std::find_if, unordered_map, deque,
-//	ystdex::id, pair, ystdex::equality_comparable, ystdex::ref_eq,
-//	ystdex::make_transform, ystdex::call_value_or;
+//	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
+//	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
+//	unordered_map, deque, ystdex::id, pair, ystdex::equality_comparable,
+//	ystdex::ref_eq, ystdex::make_transform, ystdex::call_value_or;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::dismiss,
 //	ystdex::swap_guard, ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -442,6 +442,12 @@ public:
 		return res;
 	}
 };
+
+//! \since build 830
+inline PDefH(TCOAction*, AccessTCOAction, ContextNode& ctx)
+	ImplRet(ctx.Current.target<TCOAction>())
+// NOTE: There is no need to check term like 'if(&p->Term.get() == &term)'. It
+//	should be same to saved enclosing term currently.
 #	endif
 
 //! \since build 817
@@ -930,7 +936,7 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 		fused_act.EnvGuard = std::move(gd);
 	});
 
-	if(const auto p = ctx.Current.target<TCOAction>())
+	if(const auto p = AccessTCOAction(ctx))
 	{
 		if(p->EnvGuard.func.SavedPtr)
 		{
@@ -974,7 +980,7 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 						{
 							auto& frame_env(Deref(p_frame_env_ref));
 
-							if(frame_env.IsNotReferenced())
+							if(frame_env.IsOrphan())
 								erase_frame();
 							else
 							{
@@ -1206,17 +1212,14 @@ public:
 			//	arguments for later closure reducation.
 			// XXX: Do not lift terms if provable to be safe?
 #if YF_Impl_NPLA1_Enable_TCO
-			if(const auto& p_env_operand = [&]() -> shared_ptr<Environment>{
-				if(const auto p = ctx.Current.target<TCOAction>())
-				{
-					auto& p_env_t(p->TemporaryPtr);
+			if(const auto& p_env_operand
+				= ystdex::call_value_or([&](TCOAction& a){
+				auto& p_env_t(a.TemporaryPtr);
 
-					(p_env_t = make_shared<Environment>())
-						->Bindings[OperandName].SetContent(std::move(term));
-					return p_env_t;
-				}
-				return {};
-			}())
+				(p_env_t = make_shared<Environment>())
+					->Bindings[OperandName].SetContent(std::move(term));
+				return p_env_t;
+			}, AccessTCOAction(ctx)))
 				BindParameter(ctx, Deref(p_formals),
 					p_env_operand->Bindings[OperandName]);
 			else
@@ -1303,9 +1306,7 @@ CombinerReturnThunk(const ContextHandler& h, TermNode& term, ContextNode& ctx,
 			? *fused_act.LastFunction : h), std::ref(term), std::ref(ctx));
 	});
 
-	if(const auto p = ctx.Current.target<TCOAction>())
-	// XXX: See %ReduceCheckedClosure.
-//	if(&p->Term.get() == &term)
+	if(const auto p = AccessTCOAction(ctx))
 	{
 		update_fused_act(*p);
 		return RelaySwitchedUnchecked(ctx, get_next(*p));
@@ -1347,7 +1348,7 @@ ConsImpl(TermNode& term, bool by_val)
 	const auto ret([&]{
 		RemoveHead(term);
 		if(by_val)
-			LiftSubtermsToSelfSafe(term);
+			LiftSubtermsToReturn(term);
 		return ReductionStatus::Retained;
 	});
 	auto& item(Deref(i));
@@ -1493,9 +1494,7 @@ ReduceAgain(TermNode& term, ContextNode& ctx)
 		fused_act.ReduceNestedAsync = true;
 	});
 
-	if(const auto p = ctx.Current.target<TCOAction>())
-	// XXX: See %ReduceCheckedClosure.
-//	if(&p->Term.get() == &term)
+	if(const auto p = AccessTCOAction(ctx))
 	{
 		update_fused_act(*p);
 		return RelaySwitchedUnchecked(ctx, std::move(reduce_again));
@@ -1553,9 +1552,7 @@ ReduceCheckedClosure(TermNode& term, ContextNode& ctx, bool move,
 
 	Reducer next(std::bind(ReduceCheckedAsync, std::ref(term), std::ref(ctx)));
 
-	if(const auto p = ctx.Current.target<TCOAction>())
-	// XXX: It should be same to saved enclosing term currently.
-//	if(&p->Term.get() == &term)
+	if(const auto p = AccessTCOAction(ctx))
 	{
 		if(lift_result)
 		{
@@ -2094,13 +2091,10 @@ BindParameter(ContextNode& ctx, const TermNode& t, TermNode& o)
 	});
 	const auto p_anchor([&]() -> shared_ptr<const void>{
 #if YF_Impl_NPLA1_Enable_TCO
-		if(const auto p = ctx.Current.target<TCOAction>())
-		{
-			const auto& p_env_t(p->TemporaryPtr);
-
-			if(p_env_t)
-				return p_env_t->GetAnchorPtr();
-		}
+		return ystdex::call_value_or([&](TCOAction& a){
+			return ystdex::call_value_or(
+				std::mem_fn(&Environment::GetAnchorPtr), a.TemporaryPtr);
+		}, AccessTCOAction(ctx));
 #endif
 		return {};
 	}());

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YDraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1251
+\version r1255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2015-03-25 21:24 +0800
+	2018-07-09 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ namespace Drawing
 	Plot* 以 BitmapPtr 为首参数，为绘制操作；
 	Draw* 以 const Graphics& 为首参数，为描画操作，
 	Fill* 参数同 Draw* ，为填充操作。
-	以上接口的第二个参数若为 const Rect& ，除非另行约定，否则表示绘制边界，
+	以上接口的第二个参数若为 const Rect& ，除非另行指定，否则表示绘制边界，
 	运行时忽略越界的状态修改；若首参数同时为 const Graphics& ，
 	则断言此边界包含于 Graphics 指定缓冲区的边界。
 */
@@ -169,7 +169,7 @@ inline PDefH(void, DrawLineSeg, const Graphics& g, const Rect& bounds,
 \pre 间接断言：图形接口上下文有效。
 */
 //@{
-//! \note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
+//! \note 右下角顶点坐标 <tt>(r.GetRight() - 1, r.GetBottom() - 1)</tt> 。
 YF_API void
 DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c);
 //! \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
@@ -180,7 +180,7 @@ inline PDefH(void, DrawRect, const Graphics& g, const Rect& bounds,
 
 /*!
 \brief 填充标准矩形。
-\note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
+\note 右下角顶点坐标 <tt>(r.GetRight() - 1, r.GetBottom() - 1)</tt> 。
 \pre 断言：图形接口上下文有效。
 */
 //@{

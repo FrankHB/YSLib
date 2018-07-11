@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1160
+\version r1168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2018-05-13 09:03 +0800
+	2018-07-11 09:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1008,7 +1008,6 @@ using identity_t = _t<identity<_type>>;
 
 
 /*!
-\ingroup transformation_traits
 \note 保证不依赖非推导上下文实现简单类型操作，可用于可推导的转换函数的名称。
 \sa CWG 395
 \since build 756
@@ -1040,6 +1039,16 @@ using indirect_t = decltype(*std::declval<_type>());
 //! \since build 671
 template<typename _type>
 using indirect_element_t = remove_reference_t<indirect_t<_type>>;
+
+
+//! \since build 830
+//@{
+template<typename _type>
+using first_t = decltype(std::declval<_type>().first);
+
+template<typename _type>
+using second_t = decltype(std::declval<_type>().second);
+//@}
 
 
 /*!

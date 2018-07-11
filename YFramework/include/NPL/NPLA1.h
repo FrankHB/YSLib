@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3805
+\version r3807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-06-24 06:42 +0800
+	2018-07-09 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -925,7 +925,7 @@ TryLoadSouce(REPLContext& context, const char* name, _tParams&&... args)
 
 /*!
 \brief NPLA1 语法形式对应的功能实现。
-\pre 除非另行约定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
+\pre 除非另行指定支持保存当前动作，若存在子项，关联的上下文中的尾动作为空。
 \since build 732
 */
 namespace Forms
@@ -1613,7 +1613,7 @@ CallSystem(TermNode&);
 */
 //@{
 /*!
-\sa LiftSubtermsToSelfSafe
+\sa LiftSubtermsToReturn
 \since build 779
 
 按值传递返回值：提升项以避免返回引用造成内存安全问题。

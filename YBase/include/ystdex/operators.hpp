@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,21 +11,28 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2827
+\version r2838
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2016-09-21 15:42 +0800
+	2018-07-09 09:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Operators
 \see http://www.boost.org/doc/libs/1_60_0/boost/operators.hpp 。
 \see https://github.com/taocpp/operators 。
+\see https://en.wikipedia.org/wiki/Barton–Nackman_trick 。
 
 用法同 Boost.Operators ，但不公开带数字后缀的接口。
+使用基类引入操作符重载，而非其子对象。不保证子对象合式。
+通常使用 private 基类，但以成员形式引入的操作符例外，需要使用 public 以被外部访问。
+以成员形式引入的操作符仅出现 ISO C++ 不允许以非成员形式引入的操作符的情形中，包括：
+operator-> ；
+operator[] ；
+使用具有上述操作符引入迭代器操作。
 */
 
 
@@ -100,7 +107,7 @@ template<class... _types>
 struct ebases : _types...
 {};
 
-template<size_t _vN, class _type, typename _type2, class _tOpt> \
+template<size_t _vN, class _type, typename _type2, class _tOpt>
 struct bin_ops;
 
 template<class, typename, class, class>
@@ -269,8 +276,7 @@ YB_Impl_Operators_Compare(less_than_comparable, 0 YPP_Comma 1 YPP_Comma 2
 	YPP_Comma 3 YPP_Comma 4 YPP_Comma 5, 2 YPP_Comma 4 YPP_Comma 1)
 
 
-YB_Impl_Operators_Compare(equality_comparable, 6 YPP_Comma 7 YPP_Comma 8,
-	7)
+YB_Impl_Operators_Compare(equality_comparable, 6 YPP_Comma 7 YPP_Comma 8, 7)
 
 
 YB_Impl_Operators_Compare(equivalent, 9, 10)
@@ -392,7 +398,7 @@ yimpl(struct) indexable
 #define YB_Impl_Operators_FlatAlias2_de(_name, ...) \
 	YB_Impl_Operators_H2_Alias_de(_name, details::flat_ops<_type, _type2, \
 		_tOpt, __VA_ARGS__>)
-	
+
 YB_Impl_Operators_FlatAlias2_de(totally_ordered, less_than_comparable,
 	equality_comparable)
 

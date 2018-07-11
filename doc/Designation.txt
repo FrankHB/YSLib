@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 项目设计规则指定和说明。
-\version r9884
+\version r9895
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2017-12-19 21:03 +0800
+	2018-07-10 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 
 @2.3.2.1 文本编码：
 和环境交互的外部编码默认 UTF-8 ，按需检查 BOM 。库的接口和实现使用的内部编码以本节规则决定。
-必要时的转换编码或保证成功转换时未被文档另行约定的隐式行为一致的特定平台的实现。
+必要时的转换编码或保证成功转换时未被文档另行指定的隐式行为一致的特定平台的实现。
 
 @2.3.2.2 二进制互操作：
 格式化输出及结构对齐时注意平台字长差异。
@@ -146,7 +146,7 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 @2.3.6 目标代码兼容性：
 基本内容参见 [Documentation::CommonRules @@2.2.4] 。
 关于开发和测试版本判断依赖开发阶段的定义，参见 [Documentation::ProjectRules @@2] 。
-除非顶级子项目([Documentation::ProjectRules @@1.3]) 的文档另行约定， YSLib 项目不依赖具体体系结构和不同语言实现之间的互操作性。
+除非顶级子项目([Documentation::ProjectRules @@1.3]) 的文档另行指定， YSLib 项目不依赖具体体系结构和不同语言实现之间的互操作性。
 
 @2.3.6.1 默认二进制依赖策略：
 整个项目中，任意组件在相同平台配置的二进制兼容性保证由以下规则决定。
@@ -233,9 +233,10 @@ YSLib 基于基本的底层系统接口（由 YFramework/YCLib[Documentation::YC
 使用以下固定含义的模板形式参数名称（前缀参见 @4.1.1.2 ），同时表示对应的类型要求（模板参数引用作为函数参数时可以是对应的对象类型引用）：
 _type ：一般类型参数（对应标准库的 T ）；
 _type2 ：第二类型参数（对应标准库的 U ）；
+_tObj ：强调应为对象类型的参数（但对象类型的参数也可以使用 _type 等，或优先使用其它更明确的类型限定方式）；
 _bCond ：表示选择结果的条件的 bool 参数。
 _tElem ：元素类型（如 std::initializer_list 的模板参数等，对应标准库的 E ）；
-_tEx ：异常类型（除非另行约定，应为类类型）；
+_tEx ：异常类型（除非另行指定，应为类类型）；
 _tSeq ：表示序列的类型参数（一般需要是类类型；注意可以是元类型的实例，而不一定是容器类型）。
 _tScalar ：纯量类型（和向量类型相对；注意不一定是 ISO C++ 定义的纯量类型，即不需要保证满足 std::is_scalar 类型特征）；
 _func ：函数对象类型；
@@ -252,6 +253,9 @@ _tRange ：一般范围类型；
 _tCon ：容器类型（符合 ISO C++11 约定的容器要求的类型，或类似的在特定上下文中通过文档约定的类型如 std::string ，下同）；
 _tSeqCon ：序列容器类型；
 _tAssocCon ：关联容器和无序关联容器类型；
+_tKey ：关联容器和无序关联容器的键类型；
+_tTransKey ：关联容器和无序关联容器的透明键类型（用于查找时替代键的不同类型）；
+_fComp ：关联容器或算法使用的基于序关系比较的二元操作类型；
 _tChar ：适合作为 std::char_traits 的第一参数的字符类型。
 以上非数字结尾的类型参数加后缀 s 表示可变模板参数中的多个类型。
 使用以下非 ISO C++11 的要求中出现的其它成员名称：
@@ -309,7 +313,7 @@ YSLib 保留宏名以 "YSL" 起始，其基础库使用保留宏名以 "YCL" 起
 YSLib 项目的依赖项都是库，其中一部分是不由 YSLib 项目维护的第三方的外部依赖项。
 外部依赖项中，系统库（ system library ，符合 GNU GPL v2 和 v3 条例定义）在平台配置中描述，可被所有非外部依赖项。
 其它外部依赖项都被 YFramework 引用，如 FreeType2(@5.4.1) 。
-以下除非另行约定，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
+以下除非另行指定，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 平台配置：
 关于平台的详细含义参见 [Documentation::ProjectRules @@1.2] 。
@@ -441,10 +445,10 @@ __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::
 使用 ystdex::retry_on_cond 代替 do-while （特别是每次迭代都更新最后需要返回的值的）循环，避免不必要的中间变量。
 
 @6.2.3 限定名称：
-除非另行约定（参见本节以下规则及 [ProjectRules @@3.5]），在建议 [Documentation::LanguageConvention @@5.2.4.1] 的基础上强制要求全局名称保留前缀 :: 规则。
+除非另行指定（参见本节以下规则及 [ProjectRules @@3.5]），在建议 [Documentation::LanguageConvention @@5.2.4.1] 的基础上强制要求全局名称保留前缀 :: 规则。
 全局 operator new/delete 使用前缀 :: 以强调确定使用全局版本（对应非名称的 new/delete 表达式也同样使用）。
 SFINAE(@3.3.2) 的需要以外的其它一般全局名称的使用总是保留前缀 :: 以便移植。
-同理，除非另行约定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
+同理，除非另行指定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
 推论：包含使全局名称和不省略 :: 形式不一致的声明的头文件不能在其它作用域中使用。这已被 ISO C++ [using.headers] 涵盖，遵守 [Documentation::LanguageConvention @@6.2] 。
 
 @6.2.4 限制使用标识符：

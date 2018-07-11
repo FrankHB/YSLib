@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3285
+\version r3297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-02-18 11:44 +0800
+	2018-07-11 09:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,20 @@ as_const(_type& t)
 	return t;
 }
 
+
+/*!
+\brief 支持基于 std::swap 的 ADL 的左值交换。
+\since build 830
+\sa std::iter_swap
+*/
+template<typename _type>
+yconstfn_relaxed void
+swap_dependent(_type& x, _type& y)
+{
+	using std::swap;
+
+	swap(x, y);
+}
 
 /*!
 \brief 交换非 volatile 左值和 volatile 左值。

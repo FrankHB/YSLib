@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r820
+\version r828
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2016-01-11 11:18 +0800
+	2018-07-11 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 #include <forward_list>
 #include <list>
 #include <vector>
-#include <map>
+#include <ystdex/map.hpp>
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
@@ -72,7 +72,12 @@ using std::forward_list;
 using std::list;
 using std::vector;
 
-using std::map;
+// NOTE: Since ISO C++17 node extraction of standard containers is not otherwise
+//	supported, solely using of %ystdex::map does not lead to troubles about
+//	extracted node handle incompatibilities. This also makes less templates need
+//	to be instantiated, in the expense of no debug support in libstdc++, which
+//	is an implementation detail.
+using ystdex::map;
 using std::multimap;
 using std::multiset;
 using std::set;
