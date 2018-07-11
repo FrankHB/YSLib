@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r520
+\version r529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2017-03-30 00:01 +0800
+	2018-07-10 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ inline platform_ex::Windows ： Windows 平台内联命名空间。
 一般地，若指称的是被设计为不易转换或开销较大的对象类型（如 string ）被作为参数时优先使用 YSLib 中的名称，以减少用户代码适配的困难；否则优先使用 platform 内的名称以简化（特别是头文件内无法用 using 声明或指令简化的）声明。
 另见 [Documentation::YSLib @@3.5] 。
 
-@1.4 调用安全性：
+@1.4 安全性：
 一般规则参见 [Documentation::YFramework @@1.4.1.4] 。
 
 @1.5 平台扩展使用：
@@ -95,7 +95,7 @@ inline platform_ex::Windows ： Windows 平台内联命名空间。
 @1.6.1 平台兼容性：
 
 @1.6.1.1 platform 命名空间实体：
-platform 命名空间中的实体保证构建时在每个独立平台上都可用（但运行时可因为特定目标平台不支持而出错），因此仅被排除限定平台集合支持模块([Documentation::YFramework @@2.1.4]) 的非平台扩展扩充；除本节另行约定外的实体和宏保持各个平台中可用且语义一致。
+platform 命名空间中的实体保证构建时在每个独立平台上都可用（但运行时可因为特定目标平台不支持而出错），因此仅被排除限定平台集合支持模块([Documentation::YFramework @@2.1.4]) 的非平台扩展扩充；除本节另行指定外的实体和宏保持各个平台中可用且语义一致。
 platform 中可提供平台中立的程序模拟 API([Documentation::Designation @@2.3.1.2]) ，需对所有独立平台提供实现。
 platform 中 API 的实现一般平台相关。
 
@@ -187,14 +187,14 @@ DS 平台文件系统实现中，允许表示 EIO 实现定义含义的错误涵
 
 @3.2 文本编码：
 和环境交互的外部编码默认 UTF-8 ，按需检查 BOM 。库的接口和实现使用的内部编码以本节规则决定。
-必要时的转换编码或保证成功转换时未被文档另行约定的隐式行为一致的特定平台的实现。
+必要时的转换编码或保证成功转换时未被文档另行指定的隐式行为一致的特定平台的实现。
 文件系统路径(@1.6.3) 符合本节约定。
 
 @3.2.1 接口约定：
-除非另行约定，使用 UTF-8 作为窄字符串的编码，使用 UCS-2LE 作为 char16_t 字符串的编码，使用 UCS4-LE 作为 char32_t 字符串的编码。
+除非另行指定，使用 UTF-8 作为窄字符串的编码，使用 UCS-2LE 作为 char16_t 字符串的编码，使用 UCS4-LE 作为 char32_t 字符串的编码。
 注意 CHRLib 和 YCLib 相关接口中 UCS-2 在 Win32 平台下即为 UCS-2LE 。
 Windows 平台使用的 char16_t 同时互相兼容 wchar_t 的严格别名，即便为了可移植性和 ABI 兼容性，不使用方言扩展提供的特性（如 __attribute__((may_alias)) ）标记类型。
-但为了可移植性，除非另行约定，用户代码（包括直接使用别名声明引入接口的 YSLib 库([Documentation::YSLib]) ）应避免依赖此项特性；例外见 @5.4.5 和 @7.2 。
+但为了可移植性，除非另行指定，用户代码（包括直接使用别名声明引入接口的 YSLib 库([Documentation::YSLib]) ）应避免依赖此项特性；例外见 @5.4.5 和 @7.2 。
 
 @3.2.2 内部实现：
 Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
@@ -203,7 +203,7 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 注意 Win32 下由于严格别名限制(@4.1.4) ，使用 wchar_t 的左值使用 Windows API 而不是 CHRLib API 转换。
 
 @3.3 文件路径解析：
-除非另行约定，接口对底层文件系统解析过程透明，不附加验证文件系统路径的操作。
+除非另行指定，接口对底层文件系统解析过程透明，不附加验证文件系统路径的操作。
 具体解析行为取决于使用的底层系统 API 。
 注意和 POSIX 不同，基于 Windows 内核的路径解析不保证解析相对路径时验证父路径的项的存在性。
 除 Win32 ，这也涉及 Cygwin 等，参见 https://cygwin.com/ml/cygwin/2013-01/msg00173.html 。
@@ -233,7 +233,7 @@ Win32 平台直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到
 不使用当前最新版本 Win32 SDK 中被标记为过时的 API 如 IsBadReadPtr 。
 
 @4.1.2 二进制依赖：
-Win32 API 使用受本节的 Win32 DLL 使用限制。 
+Win32 API 使用受本节的 Win32 DLL 使用限制。
 允许典型 MinGW GCC -dumpspec 时默认隐含链接库被直接依赖：
 advapi32
 shell32
@@ -328,7 +328,7 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引入外部名称。
 
 @5.3.3 互斥量 Mutex ：
-基于 YBase 的 YStandardEx::PseudoMutex([Documentation::YBase @@2.5.7.23]) 为多线程和单线程环境提供统一的同步接口。
+基于 YBase 的 YStandardEx::PseudoMutex([Documentation::YBase @@2.5.7.25]) 为多线程和单线程环境提供统一的同步接口。
 在命名空间 platform 中提供 Concurrency 和 Threading 两个子命名空间，再在其中引入外部名称。
 
 @5.4 平台相关的公共组件无关函数与宏定义集合 YCommon ：

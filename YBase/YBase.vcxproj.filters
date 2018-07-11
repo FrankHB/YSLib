@@ -239,6 +239,12 @@
     <ClInclude Include="include\ystdex\placement.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\map.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\tree.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
@@ -275,6 +281,9 @@
       <Filter>source\test</Filter>
     </ClCompile>
     <ClCompile Include="source\ystdex\csignal.cpp">
+      <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\tree.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>

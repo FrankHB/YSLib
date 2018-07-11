@@ -1,5 +1,5 @@
 ﻿/*
-	© 2016-2017 FrankHB.
+	© 2016-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1075
+\version r1104
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2017-08-14 23:30 +0800
+	2018-07-10 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include "iterator.hpp" // for transformed_iterator,
 //	iterator_transformation::second, ystdex::make_transform,
 //	std::forward_as_tuple;
-#include <map> // for std::map, std::initializer_list;
+#include "map.hpp" // for map, std::initializer_list;
 
 namespace ystdex
 {
@@ -52,13 +52,16 @@ set_value_move(const _type& x) ynothrow
 }
 
 
+// NOTE: This is always true now since %ystdex::map is used.
 // XXX: G++ 5.2.0 rejects generic associative lookup in debug mode of %std::map.
 // TODO: Find precise version supporting debug mode.
-#if (__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L) \
-	&& !(defined(__GLIBCXX__) && defined(_GLIBCXX_DEBUG))
-#	define YB_Impl_Set_UseGenericLookup 1
+#if true \
+	|| ((__cpp_lib_generic_associative_lookup >= 201304 \
+	|| __cplusplus >= 201402L) && !(defined(__GLIBCXX__) \
+	&& defined(_GLIBCXX_DEBUG)))
+#	define YB_Impl_Set_UseGenericLookup true
 #else
-#	define YB_Impl_Set_UseGenericLookup 0
+#	define YB_Impl_Set_UseGenericLookup false
 #endif
 
 //! \since build 679
@@ -172,8 +175,8 @@ private:
 	using mapped_key_type = details::wrapped_key<_type>;
 	using mapped_key_compare = details::tcompare<mapped_key_type, _fComp>;
 	using umap_pair = std::pair<const mapped_key_type, value_type>;
-	using umap_type = std::map<mapped_key_type, value_type, mapped_key_compare,
-		typename _tAlloc::template rebind<umap_pair>::other>;
+	using umap_type = map<mapped_key_type, value_type, mapped_key_compare,
+		typename allocator_traits<_tAlloc>::template rebind_alloc<umap_pair>>;
 	// NOTE: Here %get_second cannot be used directory due to possible
 	//	incomplete value type and requirement on conversion between
 	//	'const_iterator' and 'iterator'.
@@ -186,9 +189,8 @@ public:
 	using const_iterator = yimpl(wrap_iter<typename umap_type::const_iterator>);
 	using size_type = yimpl(typename umap_type::size_type);
 	using difference_type = yimpl(typename umap_type::difference_type);
-	using pointer = typename std::allocator_traits<_tAlloc>::pointer;
-	using const_pointer
-		= typename std::allocator_traits<_tAlloc>::const_pointer;
+	using pointer = typename allocator_traits<_tAlloc>::pointer;
+	using const_pointer = typename allocator_traits<_tAlloc>::const_pointer;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -262,13 +264,11 @@ public:
 		amend_all();
 		return *this;
 	}
+	//! \since build 830
 	mapped_set&
 	operator=(mapped_set&& s)
-#if false
-	// TODO: Blocked. Apply exception specification after published ISO C++17.
-		ynoexcept(std::allocator_traits<_tAlloc>::is_always_equal()
-		&& is_nothrow_move_assignable<_fComp>())
-#endif
+		ynoexcept_spec(and_<typename allocator_traits<_tAlloc>::is_always_equal,
+		is_nothrow_move_assignable<_fComp>>::value)
 	{
 		s.swap(*this);
 		return *this;
@@ -483,13 +483,11 @@ public:
 		return iterator(m_map.erase(first.get(), last.get()));
 	}
 
+	//! \since build 830
 	void
 	swap(mapped_set& s)
-#if false
-	// TODO: Blocked. Apply exception specification after published ISO C++17.
-		ynoexcept(std::allocator_traits<_tAlloc>::is_always_equal()
-		&& is_nothrow_swappable<_fComp>())
-#endif
+		ynoexcept_spec(and_<typename allocator_traits<_tAlloc>::is_always_equal,
+		is_nothrow_move_assignable<_fComp>>::value)
 	{
 		m_map.swap(s.m_map);
 	}
@@ -513,10 +511,10 @@ public:
 	}
 
 #define YB_Impl_Set_GenericLookupHead(_n, _r) \
-	template<typename _tKey, \
-		yimpl(typename = enable_if_transparent_t<_fComp, _tKey>)> \
+	template<typename _tTransKey, \
+		yimpl(typename = enable_if_transparent_t<_fComp, _tTransKey>)> \
 	_r \
-	_n(const _tKey& x)
+	_n(const _tTransKey& x)
 
 	iterator
 	find(const key_type& x)

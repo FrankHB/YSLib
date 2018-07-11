@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r881
+\version r893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2018-04-30 18:15 +0800
+	2018-07-11 11:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 
 #include "ref.hpp" // for <functional>, enable_if_t, is_detected,
 //	ystdex::constfn_addressof, not_, or_, is_reference_wrapper, and_,
-//	ystdex::addrof_t, ystdex::indirect_t;
+//	ystdex::addrof_t, ystdex::indirect_t, ystdex::first_t, ystdex::second_t;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
 
@@ -440,6 +440,21 @@ YB_Impl_Functor_Ops_Spec(ref_eq, typename _type1 YPP_Comma typename \
 	ystdex::constfn_addressof(yforward(x)) \
 	== ystdex::constfn_addressof(yforward(y)))
 //@}
+//@}
+
+//! \since build 830
+//@{
+YB_Impl_Functor_Ops_Primary(first_of, first_t<_type&>, , x.first, _type& x)
+
+// NOTE: More parentheses are needed to keep the correct value category.
+YB_Impl_Functor_Ops_Spec(first_of, typename _type, _type&& x,
+	yforward((x.first)))
+
+YB_Impl_Functor_Ops_Primary(second_of, second_t<_type&>, , x.second, _type& x)
+
+// NOTE: More parentheses are needed to keep the correct value category.
+YB_Impl_Functor_Ops_Spec(second_of, typename _type, _type&& x,
+	yforward((x.second)))
 //@}
 
 #undef YB_Impl_Functor_bool_Ordered

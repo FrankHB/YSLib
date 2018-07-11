@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGraphics.h
 \ingroup Core
 \brief 平台无关的基础图形接口。
-\version r225
+\version r229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 18:03:31 +0800
 \par 修改时间:
-	2016-01-10 03:26 +0800
+	2018-07-09 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ protected:
 	SizeType sGraphics{};
 
 public:
-	//! \brief 默认构造：使用空指针和大小。
+	//! \brief 无参数构造：使用空指针和大小。
 	DefDeCtor(GGraphics)
 	//! \brief 构造：使用指定位图指针和大小。
 	explicit yconstfn
@@ -189,14 +189,14 @@ struct YF_API PaintContext
 	\brief 参考位置。
 
 	指定渲染目标关联的参考点的位置的偏移坐标。
-	除非另行约定，选取渲染目标左上角为原点的屏幕坐标系。
+	除非另行指定，选取渲染目标左上角为原点的屏幕坐标系。
 	*/
 	Point Location;
 	/*!
 	\brief 剪切区域。
 
 	相对图形接口上下文的标准矩形，指定需要保证被刷新的边界区域。
-	除非另行约定，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
+	除非另行指定，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
 	*/
 	Rect ClipArea;
 };

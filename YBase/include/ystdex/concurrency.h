@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r537
+\version r542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2016-08-27 15:58 +0800
+	2018-07-09 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,7 @@ get_this_thread_id()
 	&& defined(_GLIBCXX_USE_C99_STDINT_TR1) && (ATOMIC_INT_LOCK_FREE > 1))
 /*!
 \brief 线程池。
-\note 除非另行约定，所有公开成员函数线程安全。
+\note 除非另行指定，所有公开成员函数线程安全。
 \note 未控制线程队列的长度。
 \since build 520
 */
@@ -106,7 +106,7 @@ private:
 
 public:
 	/*!
-	\brief 初始化：使用指定的初始化和退出回调指定数量的工作线程。
+	\brief 构造：使用指定的初始化和退出回调指定数量的工作线程。
 	\note 若回调为空则忽略。
 	\note 线程数为 0 时无任务，不提供特别的检查。
 	\warning 回调的执行不提供顺序和并发安全保证。
@@ -190,7 +190,7 @@ public:
 
 /*!
 \brief 任务池：带有队列大小限制的线程池。
-\note 除非另行约定，所有公开成员函数线程安全。
+\note 除非另行指定，所有公开成员函数线程安全。
 \since build 538
 \todo 允许调整队列大小限制。
 */
@@ -202,7 +202,7 @@ private:
 
 public:
 	/*!
-	\brief 初始化：使用指定的初始化和退出回调指定数量的工作线程和最大任务数。
+	\brief 构造：使用指定的初始化和退出回调指定数量的工作线程和最大任务数。
 	\sa thread_pool::thread_pool
 	\since build 543
 	*/

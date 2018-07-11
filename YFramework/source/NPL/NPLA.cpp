@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1918
+\version r1938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-06-26 18:20 +0800
+	2018-07-02 00:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -547,6 +547,23 @@ LiftToReference(TermNode& term, TermNode& tm)
 }
 
 void
+LiftToReturn(TermNode& term)
+{
+	// TODO: Detect lifetime escape to perform copy elision?
+	// NOTE: Only outermost one level is referenced.
+	LiftTermRefToSelf(term);
+	// NOTE: To keep lifetime of objects referenced by references introduced in
+	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
+	//	because it will not copy objects referenced in holders of
+	//	%YSLib::RefHolder instances). On the other hand, the references captured
+	//	by vau handlers (which requries recursive copy of vau handler members if
+	//	forced) are not blessed here to avoid leaking abstraction of detailed
+	//	implementation of vau handlers; it can be checked by the vau handler
+	//	itself, if necessary.
+	LiftTermIndirection(term, term);
+}
+
+void
 LiftToSelf(TermNode& term)
 {
 	// NOTE: The order is significant.
@@ -569,23 +586,6 @@ LiftToOther(TermNode& term, TermNode& tm)
 	LiftTerm(term, tm);
 }
 
-void
-LiftToReturn(TermNode& term)
-{
-	// TODO: Detect lifetime escape to perform copy elision?
-	// NOTE: Only outermost one level is referenced.
-	LiftTermRefToSelf(term);
-	// NOTE: To keep lifetime of objects referenced by references introduced in
-	//	%EvaluateIdentifier sane, %ValueObject::MakeMoveCopy is not enough
-	//	because it will not copy objects referenced in holders of
-	//	%YSLib::RefHolder instances). On the other hand, the references captured
-	//	by vau handlers (which requries recursive copy of vau handler members if
-	//	forced) are not blessed here to avoid leaking abstraction of detailed
-	//	implementation of vau handlers; it can be checked by the vau handler
-	//	itself, if necessary.
-	LiftTermIndirection(term, term);
-}
-
 
 ReductionStatus
 ReduceBranchToList(TermNode& term) ynothrowv
@@ -598,7 +598,7 @@ ReductionStatus
 ReduceBranchToListValue(TermNode& term) ynothrowv
 {
 	RemoveHead(term);
-	LiftSubtermsToSelfSafe(term);
+	LiftSubtermsToReturn(term);
 	return ReductionStatus::Retained;
 }
 
@@ -915,11 +915,11 @@ ResolveIdentifier(const ContextNode& ctx, string_view id)
 }
 
 pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(ValueObject& vo)
+ResolveEnvironment(const ValueObject& vo)
 {
-	if(const auto p = vo.AccessPtr<EnvironmentReference>())
+	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
 		return {p->Lock(), {}};
-	if(const auto p = vo.AccessPtr<shared_ptr<Environment>>())
+	if(const auto p = vo.AccessPtr<const shared_ptr<Environment>>())
 		return {*p, true};
 	// TODO: Merge with %Environment::CheckParent?
 	Environment::ThrowForInvalidType(vo.type());

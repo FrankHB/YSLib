@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1060
+\version r1065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2016-02-12 00:23 +0800
+	2018-07-02 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,17 +197,17 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 class YF_API MenuHost : private noncopyable
 {
 private:
-	//! \since build 672
-	set<lref<Menu>, ystdex::get_less<Menu>> menus{};
+	//! \since build 830
+	set<lref<Menu>, ystdex::get_less<>> menus{};
 
 public:
 	/*!
 	\brief 根菜单关联映射。
-	\since build 672
+	\since build 830
 
 	指定向指定部件转移焦点时不进行隐藏的菜单的映射。
 	*/
-	map<lref<IWidget>, observer_ptr<Menu>, ystdex::get_less<IWidget>> Roots{};
+	map<lref<IWidget>, observer_ptr<Menu>, ystdex::get_less<>> Roots{};
 
 	//! \since build 574
 	DefDeCtor(MenuHost)

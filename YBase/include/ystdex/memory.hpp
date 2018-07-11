@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2536
+\version r2635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-03-03 17:21 +0800
+	2018-07-08 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,8 @@
 
 #include "placement.hpp" // for "placement.hpp", <memory>, and_,
 //	is_copy_constructible, is_class_type, cond_t, is_detected, vdefer,
-//	std::declval, detected_t, conditional, indirect_element_t,
-//	remove_reference_t, detected_or_t, not_, is_void, remove_pointer_t,
+//	std::declval, detected_or_t, detected_t, conditional, indirect_element_t,
+//	remove_reference_t, not_, is_void, remove_pointer_t,
 //	yconstraint, is_pointer, enable_if_t, is_array, extent, remove_extent_t,
 //	ystdex::construct_within, is_polymorphic;
 #include "pointer.hpp" // for "pointer.hpp";
@@ -60,6 +60,14 @@
 
 namespace ystdex
 {
+
+//! \since build 830
+#if __cpp_lib_allocator_traits_is_always_equal >= 201411 \
+	|| __cplusplus >= 201703L
+#	define YB_Impl_Has_allocator_traits_is_always_equal true
+#else
+#	define YB_Impl_Has_allocator_traits_is_always_equal false
+#endif
 
 //! \since build 595
 //@{
@@ -98,6 +106,50 @@ using mem_delete_t
 	= decltype(_type::operator delete(std::declval<_tParams>()...));
 //@}
 
+//! \since build 830
+//@{
+#if !YB_Impl_Has_allocator_traits_is_always_equal
+template<typename _type, typename... _tParams>
+using mem_is_always_equal_t = typename _type::is_always_equal;
+#endif
+
+
+template<typename _tAlloc>
+inline void
+do_alloc_on_copy(_tAlloc& x, const _tAlloc& y, true_)
+{
+	x = y;
+}
+template<typename _tAlloc>
+inline void
+do_alloc_on_copy(_tAlloc&, const _tAlloc&, false_)
+{}
+
+template<typename _tAlloc>
+inline void
+do_alloc_on_move(_tAlloc& x, _tAlloc& y, true_)
+{
+	x = std::move(y);
+}
+template<typename _tAlloc>
+inline void
+do_alloc_on_move(_tAlloc&, _tAlloc&, false_)
+{}
+
+template<typename _tAlloc>
+inline void
+do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
+{
+	using std::swap;
+
+	swap(x, y);
+}
+template<typename _tAlloc>
+inline void
+do_alloc_on_swap(_tAlloc&, _tAlloc&, false_)
+{}
+//@}
+
 } // namespace details;
 
 
@@ -124,6 +176,23 @@ struct has_mem_delete : is_detected<details::mem_delete_t, _type, _tParams...>
 template<typename _type>
 struct is_allocatable : is_nonconst_object<_type>
 {};
+
+
+inline namespace cpp2017
+{
+
+#if YB_Impl_Has_allocator_traits_is_always_equal
+using std::allocator_traits;
+#else
+template<class _tAlloc>
+struct allocator_traits : std::allocator_traits<_tAlloc>
+{
+	using is_always_equal = detected_or_t<is_empty<_tAlloc>,
+		details::mem_is_always_equal_t, _tAlloc>;
+};
+#endif
+
+} // inline namespace cpp2017;
 
 
 /*!
@@ -253,6 +322,45 @@ using local_allocator = cond_t<and_<has_mem_new<_type, size_t>,
 //@}
 
 
+//! \since build 830
+//@{
+//! \brief 按分配器特征在传播容器时复制赋值分配器。
+template<typename _tAlloc>
+inline void
+alloc_on_copy(_tAlloc& x, const _tAlloc& y)
+{
+	details::do_alloc_on_copy(x, y, typename std::allocator_traits<
+		_tAlloc>::propagate_on_container_copy_assignment());
+}
+//! \brief 按分配器特征在传播容器时复制分配器。
+template<typename _tAlloc>
+inline _tAlloc
+alloc_on_copy(const _tAlloc& a)
+{
+	return std::allocator_traits<
+		_tAlloc>::select_on_container_copy_construction(a);
+}
+
+//! \brief 按分配器特征在传播容器时转移分配器。
+template<typename _tAlloc>
+inline void
+alloc_on_move(_tAlloc& x, _tAlloc& y)
+{
+	details::do_alloc_on_move(x, y, typename std::allocator_traits<
+		_tAlloc>::propagate_on_container_move_assignment());
+}
+
+//! \brief 按分配器特征在传播容器时交换分配器。
+template<typename _tAlloc>
+inline void
+alloc_on_swap(_tAlloc& x, _tAlloc& y)
+{
+	details::do_alloc_on_swap(x, y,
+		typename std::allocator_traits<_tAlloc>::propagate_on_container_swap());
+}
+//@}
+
+
 namespace details
 {
 
@@ -327,7 +435,7 @@ struct pack_obj_impl<std::shared_ptr<_type>>
 } // namespace details;
 
 
-//! \throw invalid_construction 调用非合式。
+//! \throw invalid_construction 初始化非合式。
 //@{
 /*!
 \brief 尝试调用 new 表达式创建对象。
@@ -895,12 +1003,12 @@ make_unique_default_init(_tParams&&...) = delete;
 \ingroup helper_functions
 \brief 使用指定类型的初始化列表构造指定类型的 std::unique_ptr 对象。
 \tparam _type 被指向类型。
-\tparam _tValue 初始化列表的元素类型。
+\tparam _tElem 初始化列表的元素类型。
 \since build 574
 */
-template<typename _type, typename _tValue>
+template<typename _type, typename _tElem>
 yconstfn std::unique_ptr<_type>
-make_unique(std::initializer_list<_tValue> il)
+make_unique(std::initializer_list<_tElem> il)
 {
 	return ystdex::make_unique<_type>(il);
 }

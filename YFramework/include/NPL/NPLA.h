@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3657
+\version r3676
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-06-25 00:46 +0800
+	2018-07-02 00:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -950,6 +950,15 @@ YF_API void
 LiftToReference(TermNode&, TermNode&);
 
 /*!
+\brief 提升自身引用项后提升间接引用项以满足返回值的内存安全要求。
+\sa LiftTermRefToSelf
+\sa LiftTermIndirection
+\since build 828
+*/
+YF_API void
+LiftToReturn(TermNode&);
+
+/*!
 \brief 递归提升项及其子项或递归创建项和子项对应的包含间接值的引用项到自身。
 \note 先提升项的值再提升子项以确保子项表示引用值时被提升。
 \sa LiftTermRefToSelf
@@ -977,16 +986,14 @@ LiftToSelfSafe(TermNode&);
 */
 YF_API void
 LiftToOther(TermNode&, TermNode&);
+//@}
 
 /*!
-\brief 提升自身引用项后提升间接引用项以满足返回值的内存安全要求。
-\sa LiftTermRefToSelf
-\sa LiftTermIndirection
-\since build 828
+\brief 对每个子项调用 LiftToReturn 。
+\since build 830
 */
-YF_API void
-LiftToReturn(TermNode&);
-//@}
+inline PDefH(void, LiftSubtermsToReturn, TermNode& term)
+	ImplExpr(std::for_each(term.begin(), term.end(), LiftToReturn))
 
 /*!
 \brief 对每个子项调用 LiftToSelfSafe 。
@@ -1033,7 +1040,7 @@ ReduceBranchToList(TermNode&) ynothrowv;
 
 /*!
 \brief 规约为列表值：对枝节点移除第一个子项，保留余下的子项提升后作为列表的值。
-\sa LiftSubtermsToSelfSafe
+\sa LiftSubtermsToReturn
 */
 YF_API ReductionStatus
 ReduceBranchToListValue(TermNode&) ynothrowv;
@@ -1327,9 +1334,9 @@ public:
 
 	/*!
 	\brief 判断锚对象未被外部引用。
-	\since build 821
+	\since build 830
 	*/
-	DefPred(const ynothrow, NotReferenced, anchor.Ptr.unique())
+	DefPred(const ynothrow, Orphan, anchor.Ptr.unique())
 
 	/*!
 	\brief 取名称绑定映射。
@@ -1991,11 +1998,11 @@ ResolveIdentifier(const ContextNode&, string_view);
 \brief 解析环境。
 \return 取得所有权的环境指针及是否具有所有权。
 \note 只支持宿主值类型 \c shared_ptr<Environment> 或 \c weak_ptr<Environment> 。
-\since build 798
 */
 //@{
+//! \since build 830
 YF_API pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(ValueObject&);
+ResolveEnvironment(const ValueObject&);
 //! \since build 800
 inline PDefH(pair<shared_ptr<Environment> YPP_Comma bool>, ResolveEnvironment,
 	TermNode& term)

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r674
+\version r678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2016-03-17 14:57 +0800
+	2018-07-09 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_cstdio_h_
 #define YB_INC_ystdex_cstdio_h_ 1
 
-#include "cassert.h" // for <cstdio> and yconstraint;
+#include "cassert.h" // for <cstdio>, yconstraint;
 #include <cstdarg> // for std::va_list;
 #include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
@@ -90,7 +90,7 @@ using unique_file_ptr = std::unique_ptr<std::FILE, decltype(std::fclose)&>;
 /*!
 \see ISO C++11 Table 132 。
 \note 忽略 std::ios_base::ate 。
-\see http://wg21.cmeerw.net/lwg/issue596 。
+\see LWG 596 。
 */
 YB_API YB_PURE const char*
 openmode_conv(std::ios_base::openmode) ynothrow;
@@ -112,7 +112,7 @@ openmode_conv(const char*) ynothrow;
 \since build 245
 */
 class YB_API ifile_iterator
-	: private input_iteratable<ifile_iterator, const byte&>
+	: public input_iteratable<ifile_iterator, const byte&>
 {
 protected:
 	using traits_type = std::iterator<std::input_iterator_tag, byte, ptrdiff_t,

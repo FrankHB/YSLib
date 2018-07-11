@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r3633
+\version r3810
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-06-29 23:37 +0800
+	2018-07-11 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,180 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA $=
+			(
+				(
+				+ "function %LiftSubtermsToReturn";
+				/ "function %ReduceBranchToListValue lifted only top-level \
+					elements" ^ "%LiftSubtermsToReturn"
+					~ "%LiftSubtermsToSelfSafe",
+				),
+				/ "member function %Environment::IsNotReferenced"
+					=> "%IsOrphan",
+					// This sounds more reasonable.
+				+ 'const' @ "parameter" @ "function %ResolveEnvironment#1"
+			),
+			/ %NPLA1 $=
+			(
+				/ "function %Forms::Cons lifted only top-level elements"
+					^ $dep_from ("%LiftSubtermsToReturn"
+					~ "%LiftSubtermsToSelfSafe") @ %NPLA,
+				/ DLDI "simplified TCO action access",
+				/ DLDI "simplified" ^ "%call_value_or"
+					@ "function %Forms::%BindParamete, vau handlers"
+			),
+			/ $comp @ "derivated loading forms"
+				@ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+			(
+				/ "applicative %list would lift only top-level elements"
+					$dep_from ("%ReduceBranchToListValue" @ %NPLA),
+				/ "applicative %cons would lift only top-level elements"
+					$dep_from ("%Forms::Cons" @ %NPLA)
+			)
+		),
+		/ $forced ('#include <map>'; 'using std::map;')
+			-> ('#include <ystdex/map.hpp>', 'using ystdex::map;')
+			@ %YSLib.YAdaptor.Container $dep_from %YBase.YStandardEx.MappedSet
+			// This is needed for avoiding ambiguity for client code (e.g. in \
+				%Tools.RevisionPatcher.Main), even though it is not a \
+				recommend style. This also makes template code less bloating.
+	),
+	/ DLDI "removed all explicit argument" @ "%ystdex::get_less instances"
+		$effective @ ("class %Partition" @ "platform %DS" @ %'YCLib_(DS)'.DSIO,
+		"class %MenuHost" @ %YSLib.UI.Menu),
+	/ $fmt @ "%.clang-format" $=
+	(
+		* "invalid keyword 'SpaceAfterTemplate'" $since b826
+			$= (/ 'SpaceAfterTemplate' -> 'SpaceAfterTemplateKeyword'),
+			// See also https://reviews.llvm.org/D23317.
+		+ $re_ex(b826) 'IndentPPDirectives: AfterHash',
+			// This is also supported by Clang 6.
+		(
+		+ $re_ex(b826) 'AlignEscapedNewlines: DontAlign';
+		/ $lib "commented out 'AlignEscapedNewlinesLeft: false"
+		),
+		+ 'SortUsingDeclarations: false',
+		+ 'AlignAfterOpenBracket: DontAlign',
+		/ "uncommented 'AlignConsecutiveDeclarations: false'",
+		/ 'AlignTrailingComments: true' -> 'AlignTrailingComments: false',
+		(
+		/ "uncommented 'AlwaysBreakAfterReturnType: All'";
+		/ $lib "commented 'AlwaysBreakAfterDefinitionReturnType: All'"
+		),
+		(
+		/ 'BreakBeforeBraces: Allman' -> 'BreakBeforeBraces: Custom';
+		+ 'BraceWrapping:';
+		+ '  AfterClass: true',
+		+ '  AfterControlStatement: true',
+		+ '  AfterEnum: true',
+		+ '  AfterExternBlock: true',
+		+ '  AfterFunction: true',
+		+ '  AfterNamespace: true',
+		+ '  AfterStruct: true',
+		+ '  AfterUnion: true',
+		+ '  BeforeCatch: true',
+		+ '  BeforeElse: true',
+		+ '  IndentBraces: false',
+		+ '  SplitEmptyFunction: false',
+		+ '  SplitEmptyRecord: false',
+		+ '  SplitEmptyNamespace: false'
+		),
+		+ 'CompactNamespaces: false'
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* "missing avoiding overloaded %operator& being used for user-provided \
+			template argument" @ "all 2 function template %access" @ "class \
+			template %standard_layout_storage" @ %YBase.YStandardEx.TypePun
+			$since b692
+			$= (/ $impl ^ "%ystdex::constfn_addressof"),
+		/ %Memory $=
+		(
+			+ "2 function templates %alloc_on_copy",
+			+ "function template %alloc_on_move",
+			+ "function template %alloc_on_swap",
+			+ "inline namespace %cpp2017" $=
+			(
+				+ "traits template %allocator_traits same to \
+					%std::allocator_traits" $=
+				(
+					// The availability condition is \
+						'__cpp_lib_allocator_traits_is_always_equal >= 201411 \
+						|| __cplusplus >= 201703L.
+					+ "'using std::allocator_traits'"
+						@ "ISO C++17 %std::allocator_traits availble",
+					+ "custom implementation for %is_always_equal based on \
+						%std::allocator_traits otherwise"
+				)
+			),
+			/ DLDI "template parameter '_tValue'" @ "function template \
+				%make_unique with instance of %std::initializer_list parameter"
+				=> '_tElem'
+				// To be consistent in conventional use in \
+					%Documentation::Designation.
+		),
+		(
+		+ "transformation traits %(first_t, second_t)" @ %TypeTraits;
+		+ "functors %(first_of, second_of)" @ %Functor
+		),
+		(
+		+ %Tree;
+		+ %Map
+			$= (+ "class template %map" ^ $dep_from (%Memory,
+				"%swap_dependent" @ %Utilities, "%first_of" @ %Functor))
+				// Some performance increase about 10%~20% is implied by \
+					underlying "friend" swapping, supposed in respect of \
+					inlining.
+		),
+		/ "class template %mapped_set" @ %Set $=
+		(
+			(
+			/ $impl ^ $dep_from ("%map" @ %Map) ~ "%std::map";
+			/ $comp "supported incomplete key types without \
+				implementation-dependent extensions",
+				// Previously libstdc++ supported this but libc++ not.
+			/ $comp "libstdc++ debug not enabled for %mapped_set underlying \
+				containers",
+				// As %ystdex::map does not support debug interface. However, \
+					this makes it more efficient in client code (e.g. roughly \
+					30% increase in NPL measured by root environment \
+					loading time).
+			/ "enabled transparent key lookup support unconditionally"
+			),
+			/ DLDI "simplified aliases" ^ ("%alloctor_traits" @ %Memory)
+				~ "%std::allcator_tratis"
+			/ "supported exception specification" @ "member functions \
+				%(operator=, swap)" ^ ("%alloctor_traits" @ %Memory)
+		),
+		/ "relaxed internal allcator type" @ "class template %mapped_set" @ %Set
+			^ 'std::allocator_traits<_tAlloc>::template rebind_alloc',
+		+ $doc $impl "need of 'public' when a member function is used"
+			@ %Operators,
+		* "unaccessible %operator->" @ "class %ifile_iterator" @ %CStandardIO
+			$since b678
+			/ $impl $revert(b678)
+				"base class %input_iteratable<ifile_iterator, const byte&>"
+				^ 'public' ~ 'private',
+		+ "function template %swap_dependent" @ %Utilities
+	),
+	/ DD $re_ex(b534) "all '另行约定' -> '另行指定'" $effective
+		@ %(YBase.Concurrency, YFramework.'YCLib_(DS)'.DSIO, YCLib.(FileIO,
+		Platform), NPL.NPLA1, YSLib.(Core.YGraphics, Service.YDraw),
+		Documentation.(CHRLib, CommonRules, Dependencies, Designation,
+		LanguageConvention, NPL, ProjectRules, Test, YBase, YCLib, YFramework,
+		YSLib)),
+		// "Unless otherwise specified", not "unless otherwise agreed" \
+			which is not used currently.
+	* "updated %LIBS for %YBase.YStandardEx.Tree"
+		@ "%SHBuild-bootstrap.sh" @ %Scripts $dep_from %YBase.YStandardEx.Set
+),
+
+b829
 (
 	/ %YFramework.NPL $=
 	(
@@ -1073,7 +1247,7 @@ b822
 					inefficent for interpretion overhead on symbol \
 					'$sequence', and significant addtional cost when native \
 					form '$sequence' not used.
-			/ "all symbols being bound directly except '#ignore'"
+			/ "all symbols bounded directly except '#ignore'"
 				@ "all derived combiners" ^ $dep_from "'&' support for \
 				reference binding" $dep_from ("%LiftToSelf" @ %NPLA) $effective
 				@ "%list, '$quote', '$set!', '$defv!', '$setrec!', '$defl!', \
@@ -1082,14 +1256,15 @@ b822
 				'first-null?', 'list-rest', %(accl, accr, foldr1, map1), \
 				'list-concat', %append, '$let', '$let*', 'unfoldable?', \
 				'map-reverse', 'for-each-ltr', '$binds1?', 'env-empty?'",
-				// This allows modification exposed, so not merely an \
-					optimiation. Indirect binidngs in 'eval' expressions \
+				// This allows modification being exposed, so not merely an \
+					optimization. Indirect binidngs in 'eval' expressions \
 					are not supported yet.
 			/ DLI "simplified operative '$cond'" !^ '$sequence',
 			+ "operative ('$vau&'; '$defv&!')" ^ $dep_from
 				("%Forms::VauRef" @ %NPLA),
 			+ "operative ('$vaue&'; '$lambdae&')" ^ $dep_from
 				("%Forms::VauWithEnvironmentRef" @ %NPLA),
+			/ DLDI "operative '$setrec!'" ^ '$defv!' ~ '$def!',
 			+ "operatives ('$lambda&'; '$defl&!')" ^ $dep_from
 				("%Forms::LambdaRef" @ %NPLA),
 			+ "operative 'eval&'" ^ $dep_from ("%Forms::EvalRef" @ %NPLA),

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2588
+\version r2591
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2017-08-13 17:55 +0800
+	2018-07-09 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,9 +133,9 @@ CategorizeNode(mode_t) ynothrow;
 
 /*!
 \brief 文件描述符包装类。
-\note 除非另行约定，具有无异常抛出保证的操作失败时可能设置 errno 。
+\note 除非另行指定，具有无异常抛出保证的操作失败时可能设置 errno 。
 \note 不支持的平台操作失败设置 errno 为 ENOSYS 。
-\note 除非另行约定，无异常抛出的操作使用值初始化的返回类型表示失败结果。
+\note 除非另行指定，无异常抛出的操作使用值初始化的返回类型表示失败结果。
 \note 以 \c int 为返回值的操作返回 \c -1 表示失败。
 \note 满足 NullablePointer 要求。
 \note 满足共享锁要求。

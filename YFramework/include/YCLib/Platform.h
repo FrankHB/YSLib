@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r833
+\version r836
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2016-08-13 19:23 +0800
+	2018-07-09 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@
 */
 /*!	\defgroup PlatformAPIs Platform APIs
 \brief 平台 API 支持。
-\note 若未另行约定，仅当定义为非零整数值表示有效。
+\note 若未另行指定，仅当定义为非零整数值表示有效。
 \since build 553
 */
 /*!	\defgroup PlatformEmulation Platforms Emulation
@@ -87,7 +87,7 @@
 /*!	\defgroup PlatformOptionalFeatures Platform Optional Features
 \brief 平台可选特性支持。
 \note 仅当未被定义时 YCLib 提供定义。
-\note 若未另行约定，仅当定义为非零整数值表示有效。
+\note 若未另行指定，仅当定义为非零整数值表示有效。
 \since build 552
 */
 
