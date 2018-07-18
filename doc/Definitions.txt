@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13987
+\version r13995
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2018-03-03 17:24 +0800
+	2018-07-12 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ $region $synopsis $begin
 
 // 保留名称规则参照 https://bitbucket.org/FrankHB/yslib/wiki/Development.zh-CN.md 。另见 [Documentation::Designation @@4.2] 。
 // 以下为既定宏名和生成标识符污染列表。
-// ! 默认由外部（如预定义标识符或编译器命令行）提供。
+// ! 默认由外部（如预定义标识符、编译器命令行或标准库头）提供。
 // # 可能由外部提供。
 // ~ 由宏替换生成而不是宏定义引入的标识符。
 // 非外部提供的非头文件守卫宏的保留宏名可能被 #undef 取消定义。
@@ -73,10 +73,14 @@ YB_IMPL_GNUC
 YB_IMPL_MSCPP
 YB_IMPL_GNUCPP
 YB_IMPL_CLANGPP
-#__has_feature(...)
-#__has_extension(...)
+#__has_attribute(...)
 #__has_builtin(...)
+#__has_cpp_attribute(...)
+#__has_extension(...)
+#__has_feature(...)
+#__has_include(...)
 #__cpp_constexpr
+#__cpp_inline_variables
 #__cpp_lib_bool_constant
 #__cpp_lib_void_t
 #__cpp_lib_integer_sequence
@@ -118,6 +122,7 @@ YB_API
 #YB_Use_StrictNoThrow @ !defined(NDEBUG) && !defined(YB_Use_StrictNoThrow)
 yalignof(_type)
 yconstexpr
+yconstexpr_inline
 yconstfn
 yfname
 yfsig

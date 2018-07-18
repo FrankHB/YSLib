@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3038
+\version r3089
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2017-06-05 01:25 +0800
+	2018-07-13 11:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,6 +54,7 @@
 \def YB_IMPL_MSCPP
 \brief Microsoft C++ 实现支持版本。
 \since build 313
+\see https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros 。
 
 定义为 _MSC_VER 描述的版本号。
 */
@@ -132,12 +133,17 @@
 #	define __has_cpp_attribute(...) 0
 #endif
 
+#ifndef __has_extension
+#	define __has_extension(...) 0
+#endif
+
 #ifndef __has_feature
 #	define __has_feature(...) 0
 #endif
 
-#ifndef __has_extension
-#	define __has_extension(...) 0
+//! \since build 831
+#ifndef __has_include
+#	define __has_include(...) 0
 #endif
 //@}
 
@@ -154,6 +160,24 @@
 #	elif __has_feature(cxx_constexpr) || __cplusplus >= 201103L \
 	|| YB_IMPL_GNUCPP >= 40600 || YB_IMPL_MSCPP >= 1900
 #		define __cpp_constexpr 200704
+#	endif
+#endif
+//@}
+//! \since build 831
+//@{
+// NOTE: See https://reviews.llvm.org/D32950.
+// NOTE: Microsoft VC++ compiler has support the feature since version 15.5, see
+//	https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance.
+//	However,  the %__cplusplus can only work after 15.7 Preview 3 with
+//	additional option, see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/.
+//	It can be more precise when %_MSC_FULL_VER is incorperated, but there is
+//	lack of documentation so additional test work is needed to make the
+//	improvement.
+#ifndef __cpp_inline_variables
+#	if __has_feature(cxx_inline_variables) || \
+	__has_extension(cxx_inline_variables) || YB_IMPL_MSCPP > 1912 \
+	|| __cplusplus >= 201703L
+#		define __cpp_inline_variables 201606
 #	endif
 #endif
 //@}
@@ -267,7 +291,6 @@
 \since build 294
 */
 //@{
-
 /*!
 \def YB_HAS_ALIGNAS
 \brief 内建 alignas 支持。
@@ -681,6 +704,18 @@
 #endif
 
 /*!
+\def yconstexpr_inline
+\brief 可选的内联 constexpr 变量。
+\warning 不应依赖变量的链接以避免可能造成违反 ODR 。
+\since build 831
+*/
+#if __cpp_inline_variables >= 201606 || __cplusplus >= 201703L
+#	define yconstexpr_inline inline yconstexpr
+#else
+#	define yconstexpr_inline yconstexpr
+#endif
+
+/*!
 \def yconstfn_relaxed
 \brief 指定编译时没有 C++11 限制和隐式成员 const 的常量函数。
 \note 同 C++14 constepxr 作用于编译时常量函数的语义。
@@ -769,12 +804,12 @@
 /*!
 \def ynothrowv
 \brief YSLib 无异常抛出保证验证：有条件地使用无异常抛出规范。
-\note 指定 ynothrowv 的函数具有 narrow constraint ，
+\note 指定 ynothrowv 的函数具有 narrow contract 形式的约束条件，
 	即不保证违反前置条件时不引起未定义行为。
 \sa ynothrow
 \since build 461
 
-按 WG21/N3248 要求，表示 narrow constraint 的无异常抛出接口。
+按 WG21 N3248 要求，表示 narrow contract 形式的约束条件的无异常抛出接口。
 对应接口违反约束可引起未定义行为。
 因为可能显著改变程序的可观察行为，需要允许抛出异常进行验证时不适用。
 除非能静态验证不抛出异常，一般只应直接或间接调用 ynothrow 安全修饰的函数。
@@ -824,12 +859,16 @@ namespace ystdex
 
 /*!
 \brief 字节类型。
-\note ISO C++ 对访问存储的 glvalue 的类型有严格限制，当没有对象生存期保证时，
-	仅允许（可能 cv 修饰的） char 和 unsigned char 及其指针/引用或 void* ，
-	而不引起未定义行为(undefined behavior) 。
-	由于 char 的算术操作行为是否按有符号处理未指定，使用 unsigned char
-	表示字节以便获得确定的行为，同时对字符处理（如 std::fgetc ）保持较好的兼容性。
+\see WG21 P0298R2 。
 \since build 209
+\todo 优先使用 std::byte 。
+
+专用于表示字节的类型，不保证为整数类型或字符类型。
+注意 ISO C++ 对访问存储的 glvalue 的类型有严格限制，当没有对象生存期保证时，
+仅允许（可能 cv 修饰的） char 和 unsigned char 及其指针/引用或 void* ，
+而不引起未定义行为(undefined behavior) 。
+由于 char 的算术操作行为是否按有符号处理未指定，使用 unsigned char
+表示字节以便获得确定的行为，同时对字符处理（如 std::fgetc ）保持较好的兼容性。
 */
 using byte = unsigned char;
 

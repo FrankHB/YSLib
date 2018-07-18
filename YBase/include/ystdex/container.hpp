@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1945
+\version r1952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2017-11-02 03:22 +0800
+	2018-07-12 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,13 @@
 #ifndef YB_INC_ystdex_container_hpp_
 #define YB_INC_ystdex_container_hpp_ 1
 
-#include "iterator.hpp" // for begin, end, make_transform, size, std::distance,
-//	std::make_move_iterator, cbegin, cend, std::piecewise_construct_t,
-//	std::piecewise_construct;
-#include "functional.hpp" // for std::declval, is_detected_convertible;
-#include "utility.hpp" // for std::initializer_list, ystdex::as_const;
+#include "iterator.hpp" // for begin, end, make_transform, std::declval, size,
+//	is_detected_convertible, std::distance, std::make_move_iterator, cbegin,
+//	cend, std::piecewise_construct_t, std::piecewise_construct;
+#include <initializer_list> // for std::initializer_list;
+#include "functional.hpp" // for ystdex::seq_apply;
 #include "algorithm.hpp" // for is_undereferenceable, sort_unique;
+#include "utility.hpp" // for ystdex::as_const;
 
 namespace ystdex
 {

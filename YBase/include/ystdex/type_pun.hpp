@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r537
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2018-07-06 23:11 +0800
+	2018-07-14 23:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "placement.hpp" // for "placement.hpp", bool_, yalignof,
 //	and_, is_trivial, enable_if_t, is_object_pointer, remove_pointer_t,
 //	is_object, aligned_storage_t, is_reference, remove_reference_t,
-//	exclude_self_t, decay_t, constfn_addressof;
+//	exclude_self_t, decay_t, ystdex::addressof;
 #include <new> // for placement ::operator new from standard library;
 
 namespace ystdex
@@ -334,12 +334,12 @@ struct standard_layout_storage
 	yconstfn_relaxed YB_PURE void*
 	access() ynothrow
 	{
-		return ystdex::constfn_addressof(object);
+		return ystdex::addressof(object);
 	}
 	yconstfn YB_PURE const void*
 	access() const ynothrow
 	{
-		return ystdex::constfn_addressof(object);
+		return ystdex::addressof(object);
 	}
 	//! \warning 应注意避免违反严格别名分析规则。
 	//@{

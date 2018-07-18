@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5369
+\version r5374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2018-05-18 10:27 +0800
+	2018-07-12 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@
 #include <ystdex/operators.hpp> // for ystdex::equality_comparable;
 #include <ystdex/functional.hpp> // for ystdex::make_expanded,
 //	ystdex::default_last_value;
+#include <ystdex/swap.hpp> // for ystdex::swap_dependent;
 #include <ystdex/optional.h> // for ystdex::optional_last_value;
 
 namespace YSLib
@@ -228,7 +229,6 @@ public:
 	friend void
 	swap(GHEvent& x, GHEvent& y) ynothrow
 	{
-		using std::swap;
 	// TODO: Wait for C++17.
 	// XXX: See discussion in LWG 2062.
 #if !__GLIBCXX__
@@ -236,8 +236,9 @@ public:
 			x.swap(y));
 #endif
 
-		swap(static_cast<BaseType&>(x), static_cast<BaseType&>(y));
-		swap(x.comp_eq, y.comp_eq);
+		ystdex::swap_dependent(static_cast<BaseType&>(x),
+			static_cast<BaseType&>(y));
+		ystdex::swap_dependent(x.comp_eq, y.comp_eq);
 	}
 
 	//! \since build 773

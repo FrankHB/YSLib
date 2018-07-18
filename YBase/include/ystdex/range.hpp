@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r345
+\version r354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2016-01-18 11:23 +0800
+	2018-07-11 17:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,8 +61,9 @@ end(_type(&&array)[_vN]) ynothrow
 inline namespace cpp2014
 {
 
-#if (__cplusplus >= 201402L && (!defined(__GLIBCXX__) \
-	|| __GLIBCXX__ >= 20150119)) || (_LIBCXX_VERSION >= 1101 \
+#if (__cpp_lib_nonmember_container_access__cplusplus >= 201411 \
+	|| (__cplusplus >= 201402L && (!defined(__GLIBCXX__) \
+	|| __GLIBCXX__ >= 20150119))) || (_LIBCXX_VERSION >= 1101 \
 	&& _LIBCPP_STD_VER > 11) || YB_IMPL_MSCPP >= 1800
 using std::cbegin;
 using std::cend;
@@ -184,7 +185,7 @@ rend(_type(&&array)[_vN])
 }
 
 #if __cplusplus <= 201402L
-//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+//! \see CWG 1591 。
 //@{
 template<typename _tElem>
 yconstfn const _tElem*
@@ -193,7 +194,7 @@ cbegin(std::initializer_list<_tElem> il) ynothrow
 	return il.begin();
 }
 
-//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+//! \see CWG 1591 。
 template<typename _tElem>
 yconstfn const _tElem*
 cend(std::initializer_list<_tElem> il) ynothrow
@@ -223,8 +224,8 @@ crend(std::initializer_list<_tElem> il) ynothrow
 
 /*!
 \brief 类容器访问。
-\see WG21/N4280 。
-\see WG21/N4567 24.8[iterator.container] 。
+\see WG21 N4280 。
+\see WG21 N4567 24.8[iterator.container] 。
 \since build 663
 */
 //@{
@@ -241,7 +242,7 @@ size(const _type(&)[_vN]) ynothrow
 	return _vN;
 }
 #if __cplusplus <= 201402L
-//! \see http://wg21.cmeerw.net/cwg/issue1591 。
+//! \see CWG 1591 。
 template<typename _tElem>
 yconstfn size_t
 size(std::initializer_list<_tElem> il) ynothrow

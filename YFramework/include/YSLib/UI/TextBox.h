@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r419
+\version r427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2017-02-02 18:36 +0800
+	2018-07-12 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,20 +87,15 @@ public:
 	SwapLabel(_tControl& ctl)
 	{
 		SwapText(ctl);
-
-		using std::swap;
-
-		swap(ctl.Font, Font),
-		swap(ctl.ForeColor, ForeColor);
+		ystdex::swap_dependent(ctl.Font, Font),
+		ystdex::swap_dependent(ctl.ForeColor, ForeColor);
 	}
 
 	template<class _tControl>
 	void
 	SwapText(_tControl& ctl)
 	{
-		using std::swap;
-
-		swap(ctl.Text, Text);
+		ystdex::swap_dependent(ctl.Text, Text);
 	}
 
 	template<class _tControl>
@@ -108,10 +103,7 @@ public:
 	SwapTextBox(_tControl& ctl)
 	{
 		SwapLabel(ctl);
-
-		using std::swap;
-
-		swap(ctl.MaskChar, MaskChar);
+		ystdex::swap_dependent(ctl.MaskChar, MaskChar);
 	}
 };
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r126
+\version r151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2016-04-16 11:19 +0800
+	2018-07-15 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 
 提供和一元操作符 & 相关的接口：
 检查是否重载 operator& 的特征；
-以及非重载时能有 constexpr 的 std::addressof 替代 ystdex::constfn_addressof 。
+非重载时能有 constexpr 替代 ISO C++17 前 std::addressof 的 ystdex::addressof 。
 */
 
 
@@ -68,31 +68,48 @@ struct has_overloaded_addressof
 
 /*!
 \brief 尝试对非重载 operator& 提供 constexpr 的 std::addressof 替代。
-\note 当前 ISO C++ 的 std::addressof 无 constexpr 。
-\since build 591
-\see http://wg21.cmeerw.net/lwg/issue2296 。
+\since build 831
+\see LWG 2296 。
+\todo 检查 __has_builtin(addressof) 并使用 __builtin_addressof 实现。
 */
+//@{
+// XXX: There is no feature test macro provided yet. See http://www.open-std.org/pipermail/features/2016-March/000399.html.
+#if __cplusplus >= 201703L
+using std::addressof;
+#else
+//! \todo 添加 [[nodiscard]] 。
 //@{
 template<typename _type>
 yconstfn yimpl(enable_if_t)<!has_overloaded_addressof<_type>::value, _type*>
-constfn_addressof(_type& r)
+addressof(_type& r)
 {
 	return &r;
 }
-//! \note 因为可移植性需要，不能直接提供 constexpr 。
+/*!
+\note 因为可移植性需要，不能直接提供 constexpr 。
+\warning ISO C++17 前无 constexpr 支持。
+*/
 template<typename _type,
 	yimpl(typename = enable_if_t<has_overloaded_addressof<_type>::value>)>
 inline _type*
-constfn_addressof(_type& r)
+addressof(_type& r)
 {
 	return std::addressof(r);
 }
+//@}
+//! \see LWG 2598 。
+template<class _type>
+const _type*
+addressof(const _type&&) = delete;
+#endif
 //@}
 
 
 /*!
 \brief 取 \c void* 类型的指针。
 \note 适合 std::fprintf 等的 \c %p 转换规格。
+\warning 若参数指向 const 对象，使用返回值修改指向的左值，或在占据的存储上
+	重新分配对象，会引起未定义行为。
 \since build 563
 */
 //@{

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1041
+\version r1046
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2017-10-31 10:53 +0800
+	2018-07-12 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -463,9 +463,7 @@ stable_unique(_tFwd first, _tFwd last)
 	for(_tFwd i(first); i != last; ++i)
 		if(std::find(first, result, *i) == result)
 		{
-			using std::swap;
-
-			swap(*i, *result);
+			std::iter_swap(i, result);
 			++result;
 		}
 	return result;
@@ -481,9 +479,7 @@ stable_unique(_tFwd first, _tFwd last, _fPred pred)
 		if(std::find_if(first, result,
 			std::bind(pred, std::ref(*i), std::placeholders::_1)) == result)
 		{
-			using std::swap;
-
-			swap(*i, *result);
+			std::iter_swap(i, result);
 			++result;
 		}
 	return result;

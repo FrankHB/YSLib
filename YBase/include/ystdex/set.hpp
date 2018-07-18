@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1104
+\version r1105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-07-10 10:30 +0800
+	2018-07-11 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,6 +155,7 @@ public:
 /*!
 \brief 允许指定不同于值类型的键的集合。
 \note 和 std::set 类似，但迭代器可修改，且插入操作要求参数满足 CopyInsertable 。
+\note 基于 ystdex::map ，支持不完整类型的键。
 \see WG21 N3456 23.2.4 [associative.reqmts] 。
 \since build 665
 */

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r394
+\version r399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2016-10-01 23:31 +0800
+	2018-07-14 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 #ifndef YB_INC_ystdex_ref_hpp_
 #define YB_INC_ystdex_ref_hpp_ 1
 
-#include "addressof.hpp" // for "addressof.hpp", ystdex::constfn_addressof,
-//	false_, true_, exclude_self_t, cond_t, not_, is_object;
+#include "addressof.hpp" // for "addressof.hpp", ystdex::addressof, false_,
+//	true_, exclude_self_t, cond_t, not_, is_object;
 #include <functional> // for std::reference_wrapper;
 
 /*!
@@ -63,6 +63,7 @@ namespace ystdex
 \tparam _type 被包装的类型。
 \note 满足 TrivialCopyable 要求。
 \see WG21 N4277 。
+\see WG21 P0357R1 。
 
 类似 std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
 	引用包装类实现。
@@ -82,7 +83,7 @@ private:
 public:
 	yconstfn
 	lref(_type& t) ynothrow
-		: ptr(ystdex::constfn_addressof(t))
+		: ptr(ystdex::addressof(t))
 	{}
 	//! \since build 661
 	lref(_type&&) = delete;

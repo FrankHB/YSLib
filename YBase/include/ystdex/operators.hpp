@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r2838
+\version r2841
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2018-07-09 09:13 +0800
+	2018-07-14 22:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ operator[] ；
 #define YB_INC_ystdex_operators_hpp_ 1
 
 #include "addressof.hpp" // for "type_traits.hpp", false_, true_, _t,
-//	empty_base, ystdex::constfn_addressof;
+//	empty_base, ystdex::addressof;
 #include "integer_sequence.hpp" // for index_sequence, vseq::defer_apply_t,
 //	vseq::_a, vseq::fold_t;
 
@@ -374,10 +374,10 @@ yimpl(struct) dereferenceable
 {
 	// TODO: Add non-const overloaded version? SFINAE?
 	// TODO: Use '_tOpt'.
-	yconstfn decltype(ystdex::constfn_addressof(std::declval<const _type2&>()))
+	yconstfn decltype(ystdex::addressof(std::declval<const _type2&>()))
 	operator->() const ynoexcept_spec(*std::declval<const _type&>())
 	{
-		return ystdex::constfn_addressof(*static_cast<const _type&>(*this));
+		return ystdex::addressof(*static_cast<const _type&>(*this));
 	}
 };
 

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2635
+\version r2638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-07-08 10:18 +0800
+	2018-07-12 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 //	remove_reference_t, not_, is_void, remove_pointer_t,
 //	yconstraint, is_pointer, enable_if_t, is_array, extent, remove_extent_t,
 //	ystdex::construct_within, is_polymorphic;
-#include "pointer.hpp" // for "pointer.hpp";
+#include "pointer.hpp" // for "pointer.hpp", ystdex::swap_dependent;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, std::hash;
@@ -140,9 +140,7 @@ template<typename _tAlloc>
 inline void
 do_alloc_on_swap(_tAlloc& x, _tAlloc& y, true_)
 {
-	using std::swap;
-
-	swap(x, y);
+	ystdex::swap_dependent(x, y);
 }
 template<typename _tAlloc>
 inline void

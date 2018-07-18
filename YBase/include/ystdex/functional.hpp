@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3325
+\version r3332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2018-04-30 18:34 +0800
+	2018-07-15 05:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 //	common_nonvoid_t, is_nothrow_swappable, make_index_sequence, exclude_self_t;
 #include "functor.hpp" // for "ref.hpp", <functional>, std::function,
 //	__cpp_lib_invoke, less, addressof_op, mem_get;
-#include "utility.hpp" // for ystdex::move_and_swap;
+#include "swap.hpp" // for ystdex::swap_dependent, ystdex::move_and_swap;
 #include "cassert.h" // for yconstraint;
 #include <numeric> // for std::accumulate;
 
@@ -818,9 +818,7 @@ struct one_shot
 	one_shot(one_shot&& f) ynothrow
 		: func(std::move(f.func)), result(std::move(f.result))
 	{
-		using std::swap;
-
-		swap(fresh, f.fresh);
+		ystdex::swap_dependent(fresh, f.fresh);
 	}
 
 	//! \since build 818
@@ -865,9 +863,7 @@ struct one_shot<_func, void, _tState>
 	one_shot(one_shot&& f) ynothrow
 		: func(std::move(f.func))
 	{
-		using std::swap;
-
-		swap(fresh, f.fresh);
+		ystdex::swap_dependent(fresh, f.fresh);
 	}
 
 	//! \since build 818
@@ -1151,11 +1147,11 @@ template<typename _func, class _tTuple>
 yconstfn auto
 apply(_func&& f, _tTuple&& args)
 	-> yimpl(decltype(call_projection<_tTuple, make_index_sequence<
-	std::tuple_size<decay_t<_tTuple>>::value>>::call(yforward(f),
+	std::tuple_size<decay_t<_tTuple>>::value>>::apply_call(yforward(f),
 	yforward(args))))
 {
 	return call_projection<_tTuple, make_index_sequence<std::tuple_size<
-		decay_t<_tTuple>>::value>>::call(yforward(f), yforward(args));
+		decay_t<_tTuple>>::value>>::apply_call(yforward(f), yforward(args));
 }
 
 

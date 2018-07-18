@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,19 +11,19 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r580
+\version r679
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2016-09-20 09:58 +0800
+	2018-07-14 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Placement
 
-提供放置对象分配和释放操作，包括 WG21 P0040R3 提议的部分接口。
+提供放置对象分配和释放操作，包括 WG21 P0040R3 提议和 ISO C++17 兼容的标签接口。
 */
 
 
@@ -31,12 +31,33 @@
 #define YB_INC_ystdex_placement_hpp_ 1
 
 #include "addressof.hpp" // for "addressof.hpp", empty_base, size_t_,
-//	YB_ASSUME, ystdex::constfn_addressof, yforward, is_lvalue_reference,
-//	std::pair, std::unique_ptr;
+//	YB_ASSUME, ystdex::addressof, yforward, is_lvalue_reference,
+//	std::pair, std::allocator, std::allocator_traits, std::unique_ptr;
 #include <new> // for placement ::operator new from standard library;
 #include <iterator> // for std::iterator_traits;
 #include "deref_op.hpp" // for is_undereferenceable;
 #include "cassert.h" // for yconstraint;
+// NOTE: The following code is necessary to check for <optional> header to
+//	ensure it have %in_place_t consistently. Other implementation is in
+//	"optional.hpp". 
+// NOTE: Check of %__cplusplus is needed because SD-6 issues are not resolved in
+//	mainstream implementations yet. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/1rO2FiqWgtI
+//	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433 for details. For
+//	feature-test marcos, see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations.
+#if __cplusplus >= 201703L && __has_include(<optional>)
+#	include <optional>
+// NOTE: See also P0941R0 with minor fixes of the specification about P0032R3.
+#	if __cpp_lib_optional >= 201606
+#		define YB_Impl_Has_optional 1
+#	endif
+// NOTE: As per the specification, single <optional> without may indicate WG21 N3672 <optional>, which is WG21
+//	N3793 <experimental/optional> without some minor bug fixes. This is not supported.
+#elif __cplusplus > 201402L && __has_include(<experimental/optional>)
+#	include <experimental/optional>
+#	if __cpp_lib_experimental_optional >= 201411
+#		define YB_Impl_Has_optional 2
+#	endif
+#endif
 
 namespace ystdex
 {
@@ -55,8 +76,20 @@ yconstexpr const struct value_init_t{} value_init{};
 
 
 /*!
+\brief 对非模板和不同模板参数相同的类型标签接口。
+\since build 831
+
+提供兼容原地放置操作标记类型的命名空间。
+*/
+namespace uniformed_tags
+{
+
+/*!
 \see WG21 P0032R3 。
 \see WG21 N4606 20.2.7[utility.inplace] 。
+\see https://stackoverflow.com/questions/40923097/stdin-place-t-and-friends-in-c17 。
+\see https://github.com/cplusplus/draft/commit/d2d23690a253b91fb7ccb1631581bd9c8f2937d2 。
+\since build 717
 */
 //@{
 //! \brief 原地标记类型。
@@ -65,21 +98,25 @@ struct in_place_tag
 	in_place_tag() = delete;
 };
 
+//! \note 使用指针代替引用避免退化问题导致无法按值传递。
+//{@
 //! \brief 原地空标记类型。
-using in_place_t = in_place_tag(&)(yimpl(empty_base<>));
+using in_place_t = in_place_tag(*)(yimpl(empty_base<>));
 
 //! \brief 原地类型标记模板。
 template<typename _type>
-using in_place_type_t = in_place_tag(&)(yimpl(empty_base<_type>));
+using in_place_type_t = in_place_tag(*)(yimpl(empty_base<_type>));
 
 //! \brief 原地索引标记模板。
 template<size_t _vIdx>
-using in_place_index_t = in_place_tag(&)(yimpl(size_t_<_vIdx>));
+using in_place_index_t = in_place_tag(*)(yimpl(size_t_<_vIdx>));
+//@}
 
 /*!
 \ingroup helper_functions
 \brief 原地标记函数。
 \warning 调用引起未定义行为。
+\note 注意 std::optional 不需要支持 std::in_place 作为值存储。
 */
 yimpl(YB_NORETURN) inline in_place_tag
 in_place(yimpl(empty_base<>))
@@ -100,6 +137,53 @@ in_place(yimpl(size_t_<_vIdx>))
 }
 //@}
 
+} // namespace uniformed_tags;
+
+/*!
+\see ISO C++17 [utility.inplace] 。
+\since build 831
+*/
+inline namespace cpp2017
+{
+
+#if YB_Impl_Has_optional == 1
+using std::in_place_t;
+using std::in_place;
+using std::in_place_type_t;
+using std::in_place_type;
+using std::in_place_index_t;
+using std::in_place_index;
+#else
+#	if YB_Impl_Has_optional == 2
+using std::experimental::in_place_t;
+using std::experimental::in_place;
+#	else
+using uniformed_tags::in_place_t;
+// XXX: Using instead of %in_place_type and %in_place_index is not supported
+//	here, even it is supported by %uniformed_tags::in_place;
+using uniformed_tags::in_place;
+#	endif
+
+using uniformed_tags::in_place_type_t;
+using uniformed_tags::in_place_index_t;
+
+template<size_t _vIdx>
+yimpl(YB_NORETURN) yimpl(uniformed_tags::in_place_tag)
+in_place_type(yimpl(size_t_<_vIdx>))
+{
+	YB_ASSUME(false);
+}
+
+template<typename _type>
+yimpl(YB_NORETURN) yimpl(uniformed_tags::in_place_tag)
+in_place_index(yimpl(empty_base<_type>))
+{
+	YB_ASSUME(false);
+}
+#endif
+
+} // inline namespace cpp2017;
+
 
 /*!
 \tparam _type 构造的对象类型。
@@ -109,11 +193,11 @@ in_place(yimpl(size_t_<_vIdx>))
 //@{
 //! \brief 以默认初始化在对象中构造。
 template<typename _type, typename _tObj>
-inline _type*
+yconstfn _type*
 construct_default_within(_tObj& obj)
 {
-	return ::new(static_cast<void*>(static_cast<_tObj*>(
-		ystdex::constfn_addressof(obj)))) _type;
+	return ::new(
+		static_cast<void*>(static_cast<_tObj*>(ystdex::addressof(obj)))) _type;
 }
 
 /*!
@@ -122,11 +206,11 @@ construct_default_within(_tObj& obj)
 \param args 用于构造对象的参数包。
 */
 template<typename _type, typename _tObj, typename... _tParams>
-inline _type*
+yconstfn _type*
 construct_within(_tObj& obj, _tParams&&... args)
 {
-	return ::new(static_cast<void*>(static_cast<_tObj*>(
-		ystdex::constfn_addressof(obj)))) _type(yforward(args)...);
+	return ::new(static_cast<void*>(
+		static_cast<_tObj*>(ystdex::addressof(obj)))) _type(yforward(args)...);
 }
 //@}
 
@@ -137,7 +221,7 @@ construct_within(_tObj& obj, _tParams&&... args)
 \since build 716
 */
 template<typename _type>
-inline void
+yconstfn_relaxed void
 construct_default_in(_type& obj)
 {
 	ystdex::construct_default_within<_type>(obj);
@@ -150,7 +234,7 @@ construct_default_in(_type& obj)
 \since build 692
 */
 template<typename _type, typename... _tParams>
-inline void
+yconstfn_relaxed void
 construct_in(_type& obj, _tParams&&... args)
 {
 	ystdex::construct_within<_type>(obj, yforward(args)...);
@@ -222,7 +306,7 @@ construct_range(_tIter first, _tIter last, _tParams&&... args)
 	_Destroy 模板。
 */
 template<typename _type>
-inline void
+yconstfn_relaxed void
 destroy_at(_type* location)
 {
 	yconstraint(location);
@@ -231,7 +315,7 @@ destroy_at(_type* location)
 
 //! \see libstdc++ 5 标准库在命名空间 std 内对迭代器范围的实现： _Destroy 模板。
 template<typename _tFwd>
-inline void
+yconstfn_relaxed void
 destroy(_tFwd first, _tFwd last)
 {
 	for(; first != last; ++first)
@@ -239,7 +323,7 @@ destroy(_tFwd first, _tFwd last)
 }
 
 template<typename _tFwd, typename _tSize>
-inline _tFwd
+yconstfn_relaxed _tFwd
 destroy_n(_tFwd first, _tSize n)
 {
 	// XXX: To reduce dependency on resolution of LWG 2598.
@@ -263,7 +347,7 @@ destroy_n(_tFwd first, _tSize n)
 \sa destroy_at
 */
 template<typename _type>
-inline void
+yconstfn_relaxed void
 destruct_in(_type& obj)
 {
 	obj.~_type();
@@ -291,7 +375,7 @@ destruct(_tIter i)
 \sa destroy
 */
 template<typename _tIter>
-void
+yconstfn_relaxed void
 destruct_range(_tIter first, _tIter last)
 {
 	for(; first != last; ++first)
@@ -455,7 +539,7 @@ class default_init_allocator : public _tAlloc
 {
 public:
 	using allocator_type = _tAlloc;
-	using traits_type = std::allocator_traits<allocator_type>; 
+	using traits_type = std::allocator_traits<allocator_type>;
 	template<typename _tOther>
 	struct rebind
 	{
@@ -558,19 +642,19 @@ struct tagged_value
 	{}
 
 	template<typename... _tParams>
-	void
+	yconstfn_relaxed void
 	construct(_tParams&&... args)
 	{
 		ystdex::construct_in(value, yforward(args)...);
 	}
 
-	void
+	yconstfn_relaxed void
 	destroy() ynoexcept(is_nothrow_destructible<value_type>())
 	{
 		ystdex::destruct_in(value);
 	}
 
-	void
+	yconstfn_relaxed void
 	destroy_nothrow() ynothrow
 	{
 		ynoexcept_assert("Invalid type found.", value.~value_type());

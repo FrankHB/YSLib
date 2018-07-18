@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r630
+\version r634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2017-01-03 10:45 +0800
+	2018-07-15 04:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,7 +219,7 @@ t_constfn() ynothrow
 		"Type check failed.");
 	_type x;
 
-	return constfn_addressof(x) == std::addressof(x);
+	return ystdex::addressof(x) == std::addressof(x);
 }
 
 } // namespace memory_test;
@@ -336,8 +336,8 @@ main()
 	seq_apply(make_guard("YStandard.IntegerSequence").get(pass, fail),
 		std::fabs(vseq_test::f() - 3.F) < numeric_limits<float>::epsilon()
 	);
-	// 2 cases covering: ystdex::constfn_addressof.
-	seq_apply(make_guard("YStandard.Memory").get(pass, fail),
+	// 2 cases covering: ystdex::addressof.
+	seq_apply(make_guard("YStandard.AddressOf").get(pass, fail),
 		memory_test::t_constfn<memory_test::t1>(),
 		memory_test::t_constfn<memory_test::t2>()
 	);
