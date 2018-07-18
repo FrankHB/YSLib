@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r893
+\version r903
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2018-07-11 11:42 +0800
+	2018-07-14 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #define YB_INC_ystdex_functor_hpp_ 1
 
 #include "ref.hpp" // for <functional>, enable_if_t, is_detected,
-//	ystdex::constfn_addressof, not_, or_, is_reference_wrapper, and_,
+//	ystdex::addressof, not_, or_, is_reference_wrapper, and_,
 //	ystdex::addrof_t, ystdex::indirect_t, ystdex::first_t, ystdex::second_t;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
@@ -141,7 +141,7 @@ struct id<void>
 
 
 /*!
-\brief std::addressof 仿函数。
+\brief ystdex::addressof 仿函数。
 \since build 660
 */
 //@{
@@ -151,7 +151,7 @@ struct addressof_op
 	yconstfn _type*
 	operator()(_type& x) const ynothrow
 	{
-		return ystdex::constfn_addressof(x);
+		return ystdex::addressof(x);
 	}
 };
 
@@ -162,7 +162,7 @@ struct addressof_op<void>
 	yconstfn _type*
 	operator()(_type& x) const ynothrow
 	{
-		return ystdex::constfn_addressof(x);
+		return ystdex::addressof(x);
 	}
 };
 //@}
@@ -218,21 +218,21 @@ struct is_equal
 		not_<is_reference_wrapper<_type2>>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
-		return std::addressof(x.get()) == std::addressof(y);
+		return ystdex::addressof(x.get()) == ystdex::addressof(y);
 	}
 	template<typename _type1, typename _type2>
 	yconstfn yimpl(enable_if_t)<and_<not_<is_reference_wrapper<_type1>>,
 		is_reference_wrapper<_type2>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
-		return std::addressof(x) == std::addressof(y.get());
+		return ystdex::addressof(x) == ystdex::addressof(y.get());
 	}
 	template<typename _type1, typename _type2>
 	yconstfn yimpl(enable_if_t)<and_<is_reference_wrapper<_type1>,
 		is_reference_wrapper<_type2>>::value, bool>
 	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
-		return std::addressof(x.get()) == std::addressof(y.get());
+		return ystdex::addressof(x.get()) == ystdex::addressof(y.get());
 	}
 	//@}
 };
@@ -431,14 +431,14 @@ YB_Impl_Functor_Ops1(indirect, *, indirect_t<const _type&>)
 //! \brief 引用等价关系仿函数。
 //@{
 YB_Impl_Functor_Ops_Primary(ref_eq, bool, YB_Impl_Functor_Ops_using(_type), \
-	ystdex::constfn_addressof(x) == ystdex::constfn_addressof(y), \
+	ystdex::addressof(x) == ystdex::addressof(y), \
 	const _type& x, const _type& y)
 
 ///! \since build 824
 YB_Impl_Functor_Ops_Spec(ref_eq, typename _type1 YPP_Comma typename \
 	_type2, _type1&& x YPP_Comma _type2&& y, \
-	ystdex::constfn_addressof(yforward(x)) \
-	== ystdex::constfn_addressof(yforward(y)))
+	ystdex::addressof(yforward(x)) \
+	== ystdex::addressof(yforward(y)))
 //@}
 //@}
 

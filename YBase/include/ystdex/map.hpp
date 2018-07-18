@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r787
+\version r797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2018-07-11 15:03 +0800
+	2018-07-18 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,9 +47,7 @@ namespace ystdex
 #if (__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L) \
 	&& ((__cpp_lib_allocator_traits_is_always_equal >= 201411 \
 	&& __cpp_lib_map_try_emplace >= 201411 \
-	&& __cpp_lib_node_extract >= 201606 \
-	&& __cpp_lib_nonmember_container_access >= 201411) \
-	|| __cplusplus >= 201703L)
+	&& __cpp_lib_node_extract >= 201606) || __cplusplus >= 201703L)
 #	define YB_Impl_Has_Cpp17_map true
 #else
 #	define YB_Impl_Has_Cpp17_map false
@@ -122,11 +120,12 @@ public:
 	using insert_return_type = typename rep_type::insert_return_type;
 
 	map() = default;
-	explicit map(const _fComp& comp, const allocator_type& a = allocator_type())
+	explicit
+	map(const _fComp& comp, const allocator_type& a = allocator_type())
 		: tree(comp, pair_alloc_type(a))
 	{}
-
-	explicit map(const allocator_type& a)
+	explicit
+	map(const allocator_type& a)
 		: tree(_fComp(), pair_alloc_type(a))
 	{}
 	template<typename _tIn>
@@ -451,6 +450,7 @@ public:
 	{
 		return tree.insert_unique(x);
 	}
+	//! \see LWG 2354 。
 	std::pair<iterator, bool>
 	insert(value_type&& x)
 	{
@@ -473,6 +473,7 @@ public:
 	{
 		return tree.insert_hint_unique(position, x);
 	}
+	//! \see LWG 2354 。
 	iterator
 	insert(const_iterator position, value_type&& x)
 	{
@@ -565,6 +566,7 @@ public:
 		return i;
 	}
 
+	//! \see LWG 2059 。
 	iterator
 	erase(iterator position)
 	{

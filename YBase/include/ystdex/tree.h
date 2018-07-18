@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2286
+\version r2302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-07-11 11:31 +0800
+	2018-07-12 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,16 +28,18 @@
 #ifndef YB_INC_ystdex_tree_hpp_
 #define YB_INC_ystdex_tree_hpp_ 1
 
-#include "optional.h" // for allocator_traits, optional, is_move_assignable,
-//	yassume, yconstraint, is_nothrow_copy_constructible, aligned_storage_t,
-//	standard_layout_storage, std::allocator, bidirectional_iteratable,
-//	equality_comparable,  std::bidirectional_iterator_tag, totally_ordered,
-//	std::reverse_iterator, is_same, cond_t, is_nothrow_move_assignable, or_,
-//	and_, ystdex::alloc_on_copy, ystdex::alloc_on_move, ystdex::alloc_on_swap,
-//	std::pointer_traits, has_mem_is_transparent, enable_if_t, ystdex::as_const,
-//	true_, false_, std::move_if_noexcept, std::equal,
-//	std::lexicographical_compare;
+#include "memory.hpp" // for allocator_traits, is_move_assignable,
+//	ystdex::swap_dependent, yassume, yconstraint, is_nothrow_copy_constructible,
+//	aligned_storage_t, standard_layout_storage, std::allocator,
+//	std::bidirectional_iterator_tag, std::reverse_iterator, is_same, cond_t,
+//	is_nothrow_move_assignable, or_, and_, ystdex::alloc_on_copy,
+//	ystdex::alloc_on_move, ystdex::alloc_on_swap, std::pointer_traits,
+//	enable_if_t, true_, false_, std::move_if_noexcept;
+#include "optional.h" // for optional, bidirectional_iteratable,
+//	equality_comparable, totally_ordered, has_mem_is_transparent,
+//	ystdex::as_const, std::equal, std::lexicographical_compare;
 #include "base.h" // for noncopyable;
+#include "utility.hpp" // for ystdex::as_const;
 
 namespace ystdex
 {
@@ -106,9 +108,7 @@ protected:
 	void
 	swap_base(node_handle_base& nh) ynothrow
 	{
-		using std::swap;
-
-		swap(ptr, nh.ptr);
+		ystdex::swap_dependent(ptr, nh.ptr);
 		if(alloc_traits::propagate_on_container_swap::value || !alloc
 			|| !nh.alloc)
 			alloc.swap(nh.alloc);
@@ -236,11 +236,8 @@ public:
 	swap(node_handle& nh) ynothrow
 	{
 		this->swap_base(nh);
-
-		using std::swap;
-
-		swap(p_key, nh.p_key);
-		swap(p_mapped, nh.p_mapped);
+		ystdex::swap_dependent(p_key, nh.p_key);
+		ystdex::swap_dependent(p_mapped, nh.p_mapped);
 	}
 
 	friend void

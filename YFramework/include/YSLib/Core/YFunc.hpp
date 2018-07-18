@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1285
+\version r1288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2016-06-21 04:15 +0800
+	2018-07-11 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,12 +40,12 @@ namespace YSLib
 \note 用于构建依赖项。
 \since build 545
 */
-template<typename _tKey, typename _tValue>
+template<typename _tKey, typename _type>
 class GRecursiveCallContext
 {
 public:
 	using KeyType = _tKey;
-	using ValueType = _tValue;
+	using ValueType = _type;
 	using CallerType = std::function<ValueType(const GRecursiveCallContext&)>;
 
 private:

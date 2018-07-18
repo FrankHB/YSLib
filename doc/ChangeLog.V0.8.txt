@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r3810
+\version r3990
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-07-11 12:06 +0800
+	2018-07-18 21:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,186 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ $re_add(b830) DLDI "all template parameter '_tValue' not designating \
+		container elements" => '_type' $effective @ ("all 3 %any_cast \
+		overloads with reference parameter" @ %YBase.YStandardEx.Any,
+		("member function %ValueNode::SetContent" @ %ValueNode,
+		"class template %GRecursiveCallContext" @ %YFunc) @ %YFramework.Core),
+		// To be consistent in conventional use in \
+			%Documentation::Designation.
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			* DLDI "misleading '__cpp_lib_nonmember_container_access >= 201411'"
+				@ "condition for hint" @ %Map $since b830,
+			+ "allowed using ISO C++14 declarations with condition \
+				'__cpp_lib_nonmember_container_access__cplusplus >= 201411'"
+				@ %Range,
+			+ $doc "explicit incomplete key type support"
+				@ "class template %mapped_set",
+				// It is supported since b830. Previously it was transparent \
+					to implentation of %std::map. It worked for client code \
+					with recursive type as %YSLib::ValueNode because libstdc++ \
+					can support incomplete key. Now there is no such \
+					requirement of implemenation assumption.
+			/ %TypeTraits $=
+			(
+				+ "condition '__cplusplus >= 201703L' for %void_t"
+				(
+				+ "inline namespace %cpp2017";
+				/ $lib "type trait %void_t" >> "inline namespace %cpp2017"
+				),
+				/ "namespace %dep_swap"
+					-> "top-level namespace %ystdex_dep_swap"
+					// To avoid potentional ambiguity caused by %swap in \
+						%ystdex.
+			),
+			/ DLDI "all 2 function template %stable_unique" @ %Algorithm
+				^ "%std::iter_swap" ~ "ADL swap",
+			* $revert(b576) "missing header inclusion '<initialization_list>'"
+				@ %Container $since b576,
+			(
+			+ DLDI "header %Memory"
+				@ %(Any, Tree $dep_all_to "tree header dependencies"),
+			/ "header %Memory" @ %Utilities -> %Placement
+			),
+			+ DLDI "header %Utilities" @ %Tree $dep_all_to
+				"tree header dependencies",
+			(
+			+ %Swap;
+			/ "function template %swap_dependent" -> ("%swap" @ %Swap)
+				^ "%is_nothrow_swappable",
+			/ "function templates %(all 2 vswap, \
+				copy_and_swap, move_and_swap)" @ %Utilities >> %Swap,
+			/ "function templates %(all 3 swap_volatile, swap_underlying, \
+				cpp2014::exchange)" @ %Utilities >> %Swap
+			),
+			/ %Functional $=
+			(
+				- "header %Memory",
+				/ "header %Utilities" @ %Functional -> $dep_from %Swap $dep_from
+					"tree header dependencies"
+				* "ill-formed call" @ "function template %apply" $since b810
+			),
+			(
+			/ %Placement $=
+			(
+				+ "namespace %uniformed_tags";
+				/ "struct %in_place_tag, alias %in_place_t, alias templates \
+					%(in_place_type_t, in_place_index_t), all 3 function \
+					overloads %in_place" >> "namespace %uniformed_tags" $dep_to
+					"independent uniformed tags"
+				+ "inline namespace %cpp2017" $=
+				(
+					+ "<optional> and <experimental/optional> detection";
+					+ $forced "entities %(in_place_t, in_place_type_t, \
+						in_place_index_t, in_place, in_place_type, \
+						inplace_index)" $dep_from "independent uniformed tags"
+				),
+				/ 'inline' @ "function templates %(construct_default_within, \
+					construct_within)" -> 'yconstfn'
+				/ 'inline' @ "function templates %(construct_default_in, \
+					construct_in, destroy_at, destroy, destroy_n, destruct_in)"
+					-> 'yconstfn_relaxed',
+				+ 'yconstfn_relaxed' @ ("function template %destruct_range"
+					$dep_from "%ystdex::destruct", ("function template \
+					%construct" $dep_from "%ystdex::construct_in";
+					"functions %(destroy; destroy_nothrow)" $dep_from
+					"%ystdex::destruct_in") @ "class template %tagged_value")
+			);
+			/ %Optional $=
+			(
+				/ "adapted to ISO C++17 %std::optional except for features \
+					depending on core language (i.e. deduction guides) \
+					specializations for other library components"
+					~ "%std::experimental::optional" $=
+				(
+					// The not changed specialized interface include LWG 2766 \
+						(swap) and P0513R0 (std::hash).
+					/ $lib "object %nullopt" ^ $dep_from
+						("%yconstexpr_inline" @ %YDefinition) ~ "%yconstexpr",
+					(
+						+ $lib "overrder %what";
+							// To keep 'what()' result unchanged.
+						/ "base class %std::logic_error"
+							@ "class %bad_optional_access" -> "%std::exception",
+							// LWG 2806, LEWG 72.
+					)
+					/ "returned newly constructed value"
+						@ "all 2 member function templates %emplace",
+						// LWG 2857.
+					+ 'constfn' @ "(copy, move) constructors" $dep_from
+						("%construct" @ "%tagged_value" @ %Placement)
+						// LWG 2900.
+					(
+					+ "metafunction %optional_relop_t";
+					* "rational operation definitions in terms of underlying \
+						rational operations" !^ "%totally_ordered" $since b,
+						// WG21 N3765.
+					),
+					+ "(copy, move) (constructors, operator=) with conditonal \
+						'explicit'",
+						// LWG 2756.
+					+ DLI "conditional 'yconstfn', 'yconstfn_relaxed'"
+						@ "internal object access functions"
+				),
+				+ "inline namespace %cpp2017";
+				/ $lib "type %nullopt_t, object %nullopt, class %optional"
+					>> "inline namespace %cpp2017"
+				+ "conditional inclusion with feature tests"
+					// See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/1rO2FiqWgtI, \
+						and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433.
+			)
+			),
+			// It should be noted %ystdex::any is different and not a direct
+			//	replacement of %std::any, no action is taken now like %Optional.
+			(
+			/ ("function templates %constfn_addressof"
+				-> "function templates %addressof") @ %AddressOf
+			(
+				/ "adapted ISO C++11 %std::addressof"
+					@ '__cplusplus >= 201703L',
+				+ "overload to avoid prvalue arguments"
+					!@ '__cplusplus >= 201703L'
+			);
+			/ "functor %is_equal" @ %Functor ^ "%ystdex::addressof"
+				~ "%std::addressof"
+			)
+		),
+		/ %YDefinition $=
+		(
+			+ $re_add(b628) "conditionally-defined macro %__has_include",
+			(
+			+ $re_add(b628) "conditionally-defined macro \
+				%__cpp_inline_variables";
+			+ $re_add(b246) "pseudo keyword %yconstexpr_inline",
+			)
+		)
+	),
+	/ DLDI "simplified ADL swap" ^ ("%ystdex::swap_dependent" @ %Swap)
+		~ "explicit 'using std::swap' and ADL swap call", $effective
+		@ (("move constructor" @ "all 2 class template specializations \
+		%one_shot" @ %Functional, "constructor %indirect_input_iterator"
+		@ %Iterator, "function templates %(vswap#1, copy_and_swap, \
+		move_and_swap)" @ %Swap, "function template %alloc_on_swap" @ %Memory,
+		"function %swap" @ ("class template %optional" @ %Optional, "class \
+		template %nptr" @ %Pointer), "node handle base swap" @ %Tree) @ %YBase,
+		("friend function %swap" @ "class template %GHEvent" @ %Core.YEvent,
+		"function templates %(SwapLabel, SwapText, SwapTextBox)"
+		@ "class %TextPlaceholder" @ %UI.TextBox) @ %YFramework.YSLib),
+	/ %Test.YBase $=
+	(
+		/ $forced "2 case for %ystdex::constfn_addressof"
+			-> "%ystdex::addressof" $dep_from
+			("%ystdex::constfn_addressof" @ %YBase.AddressOf),
+		* $comp "ill-formed 1 case for %ystdex::apply" $since b810 $dep_from
+			("%ystdex::apply" @ %YBase.YStandardEx.Functional)
+	)
+),
+
+b830
 (
 	/ %YFramework $=
 	(
@@ -133,7 +313,7 @@ $now
 				+ "traits template %allocator_traits same to \
 					%std::allocator_traits" $=
 				(
-					// The availability condition is \
+					// The availability inclusion condition is \
 						'__cpp_lib_allocator_traits_is_always_equal >= 201411 \
 						|| __cplusplus >= 201703L.
 					+ "'using std::allocator_traits'"

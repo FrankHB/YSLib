@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6023
+\version r6029
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2017-05-27 00:42 +0800
+	2018-07-12 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "pointer.hpp" // for "iterator_op.hpp", iterator_operators_t,
 //	std::iterator_traits, _t, pointer_classify, cond_t, and_,
-//	exclude_self_t, enable_if_inconvertible_t, *_tag, yassume,
+//	exclude_self_t, *_tag, ystdex::swap_dependent, yassume,
 //	is_undereferenceable, yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
@@ -600,7 +600,7 @@ yconstexpr const struct get_get_t{} get_get{};
 
 /*!
 \brief 管道匹配操作符。
-\note 使用 ADL \c make_transform 。
+\note 使用 ADL make_transform 。
 \since build 650
 */
 //@{
@@ -844,13 +844,11 @@ public:
 		++*this;
 	}
 	indirect_input_iterator(const indirect_input_iterator&) = default;
-	//! \note 使用 std::swap 和 ADL 。
+	//! \note 使用 ADL swap 或 std::swap 。
 	indirect_input_iterator(indirect_input_iterator&& i) ynothrow
 		: iter()
 	{
-		using std::swap;
-
-		swap(iter, i.iter);
+		ystdex::swap_dependent(iter, i.iter);
 	}
 
 	indirect_input_iterator&

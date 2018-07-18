@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3231
+\version r3235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2018-05-09 13:41 +0800
+	2018-07-11 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -328,13 +328,13 @@ public:
 	*/
 	//@{
 	//! \since build 776
-	template<class _tCon, class _tValue>
+	template<class _tCon, class _type>
 	yimpl(ystdex::enable_if_t)<
 		ystdex::and_<std::is_assignable<Container, _tCon&&>,
-		std::is_assignable<ValueObject, _tValue&&>>::value>
-	SetContent(_tCon&& con, _tValue&& val) ynoexcept(ystdex::and_<
+		std::is_assignable<ValueObject, _type&&>>::value>
+	SetContent(_tCon&& con, _type&& val) ynoexcept(ystdex::and_<
 		std::is_nothrow_assignable<Container, _tCon&&>,
-		std::is_nothrow_assignable<ValueObject, _tValue&&>>())
+		std::is_nothrow_assignable<ValueObject, _type&&>>())
 	{
 		yunseq(container = yforward(con), Value = yforward(val));
 	}

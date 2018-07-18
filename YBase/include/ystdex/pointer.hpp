@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r495
+\version r503
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2017-01-02 01:37 +0800
+	2018-07-12 18:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 //	nullptr_t, equality_comparable, add_ptr_t, add_ref_t, yconstraint,
 //	iterator_operators_t, std::iterator_traits;
 #include <functional> // for std::equal_to, std::less;
+#include "swap.hpp" // ystdex::swap_dependent;
 
 namespace ystdex
 {
@@ -168,13 +169,14 @@ public:
 		return ptr;
 	}
 
-	//! \since build 628
+	/*!
+	\note 使用 ADL swap 或 std::swap 。
+	\since build 628
+	*/
 	void
 	swap(nptr& np) ynothrow
 	{
-		using std::swap;
-
-		swap(ptr, np.ptr);
+		ystdex::swap_dependent(ptr, np.ptr);
 	}
 };
 

@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r529
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2018-07-10 10:51 +0800
+	2018-07-12 17:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -328,7 +328,7 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引入外部名称。
 
 @5.3.3 互斥量 Mutex ：
-基于 YBase 的 YStandardEx::PseudoMutex([Documentation::YBase @@2.5.7.25]) 为多线程和单线程环境提供统一的同步接口。
+基于 YBase 的 YStandardEx::PseudoMutex([Documentation::YBase @@2.5.7.26]) 为多线程和单线程环境提供统一的同步接口。
 在命名空间 platform 中提供 Concurrency 和 Threading 两个子命名空间，再在其中引入外部名称。
 
 @5.4 平台相关的公共组件无关函数与宏定义集合 YCommon ：

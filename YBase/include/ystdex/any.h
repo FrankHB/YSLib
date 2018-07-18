@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,19 +11,19 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3072
+\version r3096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2017-06-08 16:46 +0800
+	2018-07-11 15:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Any
 
-\see WG21 N4606 20.8[any] 。throw_invalid_construction
+\see WG21 N4606 20.8[any] 。
 \see http://www.boost.org/doc/libs/1_60_0/doc/html/any/reference.html 。
 */
 
@@ -34,9 +34,10 @@
 #include "typeinfo.h" // for "typeinfo.h", type_info, exclude_self_t,
 //	ystdex::type_id, is_nothrow_move_constructible, and_, bool_, enable_if_t,
 //	remove_reference_t, cond_t, std::bad_cast, decay_t, _t, yconstraint;
-#include "utility.hpp" // "utility.hpp", for boxed_value, std::addressof,
-//	std::unique_ptr, ystdex::clone_monomorphic_ptr, standard_layout_storage,
+#include "utility.hpp" // for "utility.hpp", boxed_value, std::addressof,
+//	std::unique_ptr, standard_layout_storage,
 //	aligned_storage_t, is_aligned_storable, ystdex::pvoid, default_init_t;
+#include "memory.hpp" // for ystdex::clone_monomorphic_ptr;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 #include <initializer_list> // for std::initializer_list;
@@ -1124,42 +1125,42 @@ any_cast(const any* p) ynothrow
 //@}
 /*!
 \throw bad_any_cast 当 <tt>x.type()
-	!= ystdex::type_id<remove_reference_t<_tValue>>()</tt> 。
+	!= ystdex::type_id<remove_reference_t<_type>>()</tt> 。
 */
 //@{
-template<typename _tValue>
-_tValue
+template<typename _type>
+_type
 any_cast(any& x)
 {
-	static_assert(is_any_cast_dest<_tValue>(),
+	static_assert(is_any_cast_dest<_type>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = x.template target<remove_reference_t<_tValue>>())
-		return static_cast<_tValue>(*p);
-	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
+	if(const auto p = x.template target<remove_reference_t<_type>>())
+		return static_cast<_type>(*p);
+	throw bad_any_cast(x.type(), ystdex::type_id<_type>());
 }
-template<typename _tValue>
-_tValue
+template<typename _type>
+_type
 any_cast(const any& x)
 {
-	static_assert(is_any_cast_dest<_tValue>(),
+	static_assert(is_any_cast_dest<_type>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = x.template target<const remove_reference_t<_tValue>>())
-		return static_cast<_tValue>(*p);
-	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
+	if(const auto p = x.template target<const remove_reference_t<_type>>())
+		return static_cast<_type>(*p);
+	throw bad_any_cast(x.type(), ystdex::type_id<_type>());
 }
 //! \since build 671
-template<typename _tValue>
-_tValue
+template<typename _type>
+_type
 any_cast(any&& x)
 {
-	static_assert(is_any_cast_dest<_tValue>(),
+	static_assert(is_any_cast_dest<_type>(),
 		"Invalid cast destination type found.");
 
-	if(const auto p = x.template target<remove_reference_t<_tValue>>())
-		return static_cast<_tValue>(*p);
-	throw bad_any_cast(x.type(), ystdex::type_id<_tValue>());
+	if(const auto p = x.template target<remove_reference_t<_type>>())
+		return static_cast<_type>(*p);
+	throw bad_any_cast(x.type(), ystdex::type_id<_type>());
 }
 //@}
 //@}

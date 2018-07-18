@@ -11,84 +11,97 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r821
+\version r1271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2018-05-21 12:44 +0800
+	2018-07-18 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Optonal
+\see ISO C++17 [optional] 。
 \see WG21 N4606 20.6[optional] 。
 \see http://www.boost.org/doc/libs/1_57_0/libs/optional/doc/html/optional/reference.html 。
 
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明外，
-其它接口除命名空间成员扩展外，同 std::experimental::optional 。
+其它接口除命名空间成员扩展外，同 std::optional 。
+注意因为一些兼容问题， std::experimental::optional 不被可选地使用，
+	即使在 placement.hpp 中仍然会被检查而使用其中的标签类型。
+和 std::experimental::optional 有以下不同：
+LWG 2451 ：支持可选 explicit 的重载构造函数和赋值操作符。
+LWG 2806 ：异常 bad_optional_access 的基类从 std::logic_error
+	修改为 std::exception 。
+LWG 2857 ： optional 的成员函数模板 emplace 不返回值修改为返回新构造的引用。
+（另见 LEWG 72 ：https://issues.isocpp.org/show_bug.cgi?id=72 。）
+WG21 N3765 ：支持不同的比较操作。
+此外，限于核心语言特性的支持， LWG 2740 的解不被支持；
+即 ystedex::operator-> 不总是提供和 ISO C++17 对 std::optional 相同的保证；
+参见 ystdex::optional 成员 operator-> 的说明。
 */
 
 
 #ifndef YB_INC_ystdex_optional_h_
 #define YB_INC_ystdex_optional_h_ 1
 
-#include "operators.hpp" // for nullptr_t, is_trivially_destructible, is_cv,
-//	std::move, empty_base, is_nothrow_moveable, and_, std::addressof,
-//	remove_cv_t, totally_ordered, or_, is_reference, is_same,
-//	is_nothrow_destructible, is_object, enable_if_t, is_constructible, decay_t,
-//	is_nothrow_swappable, ystdex::constfn_addressof, is_copyable;
-#include <stdexcept> // for std::logic_error;
-#include "placement.hpp" // for tagged_value;
-#include <initializer_list> // for std::initializer_list;
-#include "functional.hpp" // for default_last_value, std::accumulate, std::hash;
+#include "placement.hpp" // for <optional> conditionally, tagged_value;
+#if YB_Impl_Has_optional != 1
+#	include "operators.hpp" // for nullptr_t, is_trivially_destructible, is_cv,
+//	std::move, empty_base, is_nothrow_moveable, and_, remove_cv_t,
+//	totally_ordered, or_, is_reference, is_same, is_nothrow_destructible,
+//	is_object, enable_if_t, is_constructible, decay_t, is_nothrow_swappable,
+//	ystdex::addressof, is_copyable;
+#	include "functional.hpp" // for ystdex::swap_dependent, default_last_value,
+#	include <initializer_list> // for std::initializer_list;
+#	include <stdexcept> // for std::logic_error;
+//	std::accumulate, std::hash;
+#endif
 
 namespace ystdex
 {
 
-//! \since build 590
-//@{
-//! \see WG21 N4606 20.6.4[optional.nullopt] 。
-//@{
-//! \brief 无值状态指示。
-//@{
-yconstexpr const struct nullopt_t
-{
-	/*!
-	\see LWG 2510 。
-	\since build 718
-	*/
-	yimpl(yconstfn
-	nullopt_t(nullptr_t)
-	{})
-} nullopt{yimpl(nullptr)};
-
-static_assert(std::is_literal_type<nullopt_t>(),
-	"Invalid implementation found.");
-//@}
-
-
 /*!
-\ingroup exceptions
-\brief 可选值操作失败异常。
-\note 实现定义：<tt>what()</tt> 返回 "bad optional access" 。
-\see WG21 N4606 20.6.5[optional.bad_optional_access] 。
+\ingroup metafunctions
+\brief 保留可选的比较操作对象类型的比较操作结果类型。
+\note YBase optional 扩展。
+\since build 831
 */
-class YB_API bad_optional_access : public std::logic_error
-{
-public:
-	bad_optional_access()
-		: logic_error("bad optional access")
-	{}
+template<typename _type>
+using optional_relop_t = enable_if_t<is_convertible<_type, bool>::value, bool>;
 
-	~bad_optional_access() override;
-};
-//@}
+#if YB_Impl_Has_optional != 1
+//! \since build 831
+inline namespace cpp2017
+{
+
+template<typename>
+class optional;
+
+} // inline namespace 2017;
 
 //! \since build 591
 //@{
 namespace details
 {
+
+//! \since build 831
+//@{
+template<typename _type, typename _tOther>
+using converts_from_optional = or_<is_constructible<_type,
+	const optional<_tOther>&>, is_constructible<_type, optional<_tOther>&>,
+	is_constructible<_type, const optional<_tOther>&&>, is_constructible<_type,
+	optional<_tOther>&&>, is_convertible<const optional<_tOther>&, _type>,
+	is_convertible<optional<_tOther>&, _type>, is_convertible<const
+	optional<_tOther>&&, _type>, is_convertible<optional<_tOther>&&, _type>>;
+
+template<typename _type, typename _tOther>
+using assigns_from_optional = or_<is_assignable<_type&, const
+	optional<_tOther>&>, is_assignable<_type&, optional<_tOther>&>,
+	is_assignable<_type&, const optional<_tOther>&&>,
+	is_assignable<_type&, optional<_tOther>&&>>;
+//@}
 
 template<typename _type, bool = is_trivially_destructible<_type>::value>
 class optional_base : public optional_base<_type, true>
@@ -102,8 +115,10 @@ public:
 	//! \since build 601
 	using optional_base<_type, true>::optional_base;
 	//! \since build 820
+	yconstfn
 	optional_base(const optional_base&) = default;
 	//! \since build 820
+	yconstfn
 	optional_base(optional_base&&) = default;
 	~optional_base()
 	{
@@ -144,6 +159,7 @@ public:
 	optional_base(in_place_t, _tParams&&... args)
 		: base(true, in_place, yforward(args)...)
 	{}
+	yconstfn_relaxed
 	optional_base(const optional_base& s)
 		: base(s)
 	{
@@ -151,6 +167,7 @@ public:
 			base::construct(s.value);
 	}
 	//! \since build 718
+	yconstfn_relaxed
 	optional_base(optional_base&& s)
 		: base(s)
 	{
@@ -205,8 +222,14 @@ public:
 		base::destroy_nothrow();
 	}
 
-	_type&
+	yconstfn_relaxed _type&
 	get() ynothrow
+	{
+		return value;
+	}
+	//! \since build 831
+	yconstfn const _type&
+	get() const ynothrow
 	{
 		return value;
 	}
@@ -227,6 +250,78 @@ public:
 };
 
 } // namespace details;
+#endif
+
+
+//! \since build 831
+inline namespace cpp2017
+{
+
+#if YB_Impl_Has_optional == 1
+//! \since build 831
+//@{
+using std::optional;
+using std::bad_optional_access;
+using std::nullopt_t;
+using std::nullopt;
+using std::make_optional;
+//@}
+#elif YB_Impl_Has_optional == 2
+//! \since build 831
+//@{
+using std::experimental::optional;
+using std::experimental::bad_optional_access;
+using std::experimental::nullopt_t;
+using std::experimental::nullopt;
+using std::experimental::make_optional;
+//@}
+#else
+//! \since build 590
+//@{
+//! \see WG21 N4606 20.6.4[optional.nullopt] 。
+//@{
+//! \brief 无值状态指示。
+//@{
+yconstexpr_inline const struct nullopt_t
+{
+	/*!
+	\see LWG 2510 。
+	\since build 718
+	*/
+	yimpl(yconstfn
+	nullopt_t(nullptr_t)
+	{})
+} nullopt{yimpl(nullptr)};
+
+static_assert(std::is_literal_type<nullopt_t>(),
+	"Invalid implementation found.");
+//@}
+
+
+/*!
+\ingroup exceptions
+\brief 可选值操作失败异常。
+\see ISO C++17 [optional.bad_optional_access] 。
+\see LWG 2806 。
+\see LEWG 72 ：https://issues.isocpp.org/show_bug.cgi?id=72 。
+*/
+class YB_API bad_optional_access : public std::exception
+{
+public:
+	bad_optional_access()
+		: exception()
+	{}
+
+	~bad_optional_access() override;
+
+	/*!
+	\return 实现定义："bad optional access" 。
+	\since build 831
+	*/
+	YB_PURE YB_ATTR_returns_nonnull virtual const char*
+	what() const ynothrow override;
+};
+//@}
 
 
 /*!
@@ -240,8 +335,7 @@ public:
 */
 template<typename _type>
 class optional : private details::optional_base<remove_cv_t<_type>>, yimpl(
-	private totally_ordered<optional<_type>>, public totally_ordered<optional<
-	_type>, _type>, private totally_ordered<optional<_type>, nullopt_t>)
+	private totally_ordered<optional<_type>, nullopt_t>)
 {
 	//! \see WG21 N4606 20.6.2[optional.synopsis]/1 。
 	static_assert(!or_<is_reference<_type>, is_same<remove_cv_t<_type>,
@@ -265,15 +359,75 @@ public:
 	yconstfn
 	optional(nullopt_t) ynothrow
 	{}
+	/*!
+	\since build 831
+	\see LWG 2756 。
+	*/
+	//@{
+	template<typename _tOther = _type, yimpl(enable_if_t<and_<not_<is_same<
+		optional<_type>, decay_t<_tOther>>>, not_<is_same<in_place_t,
+		decay_t<_tOther>>>, is_constructible<_type, _tOther&&>,
+		is_convertible<_tOther&&, _type>>::value, bool> = true)>
 	yconstfn
-	optional(const _type& v)
-		: base(in_place, v)
+	optional(_tOther&& v)
+		: base(in_place, yforward(v))
 	{}
-	yconstfn
-	optional(_type&& v)
-		: base(in_place, std::move(v))
+	template<typename _tOther = _type, yimpl(enable_if_t<and_<not_<is_same<
+		optional<_type>, decay_t<_tOther>>>, not_<is_same<in_place_t,
+		decay_t<_tOther>>>, is_constructible<_type, _tOther&&>, not_<
+		is_convertible<_tOther&&, _type>>>::value, bool> = false)>
+	explicit yconstfn
+	optional(_tOther&& v)
+		: base(in_place, yforward(v))
 	{}
-	template<typename... _tParams>
+	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
+		_tOther>>, is_constructible<_type, const _tOther&>, is_convertible<const 
+		_tOther&, _type>, not_<
+		details::converts_from_optional<_type, _tOther>>>::value, bool> = true)>
+	yconstfn_relaxed
+	optional(const optional<_tOther>& t)
+	{
+		// XXX: Need to support non copyable and movable objects before mandated
+		//	copy ellision available in ISO C++17.
+		if(t)
+			emplace(*t);
+	}
+	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
+		_tOther>>, is_constructible<_type, const _tOther&>, not_<is_convertible<
+		const _tOther&, _type>>, not_<details::converts_from_optional<_type,
+		_tOther>>>::value, bool> = false)>
+	explicit yconstfn_relaxed
+	optional(const optional<_tOther>& t)
+	{
+		// XXX: Ditto.
+		if(t)
+			emplace(*t);
+	}
+	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
+		_tOther>>, is_constructible<_type, _tOther&&>, is_convertible<_tOther&&,
+		_type>, not_<details::converts_from_optional<_type, _tOther>>>::value,
+		bool> = true)>
+	yconstfn_relaxed
+	optional(optional<_tOther>&& t)
+	{
+		// XXX: Ditto.
+		if(t)
+			emplace(std::move(*t));
+	}
+	template<typename _tOther, yimpl(enable_if_t<and_<not_<is_same<_type,
+		_tOther>>, is_constructible<_type, _tOther&&>, not_<is_convertible<
+		_tOther&&, _type>>, not_<details::converts_from_optional<_type,
+		_tOther>>>::value, bool> = false)>
+	explicit yconstfn_relaxed
+	optional(optional<_tOther>&& t)
+	{
+		// XXX: Ditto.
+		if(t)
+			emplace(std::move(*t));
+	}
+	//@}
+	template<typename... _tParams, yimpl(
+		typename = enable_if_t<is_constructible<_type, _tParams&&...>::value>)>
 	explicit yconstfn
 	optional(in_place_t, _tParams&&... args)
 		: base(in_place, yforward(args)...)
@@ -285,7 +439,9 @@ public:
 	optional(in_place_t, std::initializer_list<_tOther> il, _tParams&&... args)
 		: base(in_place, il, yforward(args)...)
 	{}
+	yconstfn
 	optional(const optional&) yimpl(= default);
+	yconstfn
 	optional(optional&& o) ynoexcept(is_nothrow_move_constructible<_type>())
 		: base(std::move(o))
 	{}
@@ -310,8 +466,16 @@ public:
 		get_base() = std::move(o.get_base());
 		return *this;
 	}
-	template<typename _tOther>
-	yimpl(enable_if_t)<is_same<decay_t<_tOther>, _type>::value, optional&>
+	/*!
+	\see LWG 2756 。
+	\since build 831
+	*/
+	//@{
+	template<typename _tOther = _type>
+	enable_if_t<and_<not_<is_same<optional<_type>, decay_t<_tOther>>>,
+		is_constructible<_type, _tOther>, not_<and_<is_scalar<_type>,
+		is_same<_type, decay_t<_tOther>>>>,
+		is_assignable<_type&, _tOther>>::value, optional&>
 	operator=(_tOther&& v)
 	{
 		if(has_value())
@@ -320,21 +484,66 @@ public:
 			this->construct(yforward(v));
 		return *this;
 	}
+	template<typename _tOther>
+	yimpl(enable_if_t)<and_<not_<is_same<_type, _tOther>>,
+		is_constructible<_type, const _tOther&>, is_assignable<_type&, _tOther>,
+		not_<details::converts_from_optional<_type, _tOther>>,
+		not_<details::assigns_from_optional<_type, _tOther>>>::value, optional&>
+	operator=(const optional<_tOther>& u)
+	{
+		if(u)
+		{
+			if(this->has_value())
+				this->get() = *u;
+			else
+				this->construct(*u);
+		}
+		else
+			this->reset();
+		return *this;
+	}
+	template<typename _tOther>
+	enable_if_t<and_<not_<is_same<_type, _tOther>>,
+		is_constructible<_type, _tOther>, is_assignable<_type&, _tOther>,
+		not_<details::converts_from_optional< _type, _tOther>>,
+		not_<details::assigns_from_optional<_type, _tOther>>>::value, optional&>
+	operator=(optional<_tOther>&& u)
+	{
+		if(u)
+		{
+			if(this->has_value())
+				this->get() = std::move(*u);
+			else
+				this->construct(std::move(*u));
+		}
+		else
+			this->reset();
+		return *this;
+	}
+	//@}
 
+	/*!
+	\since build 831
+	\see LWG 2857 。
+	*/
+	//{@
 	template<typename... _tParams>
-	void
+	_type&
 	emplace(_tParams&&... args)
 	{
 		reset();
 		this->construct(yforward(args)...);
+		return this->get();
 	}
 	template<typename _tOther, typename... _tParams>
-	void
+	_type&
 	emplace(std::initializer_list<_tOther> il, _tParams&&... args)
 	{
 		reset();
 		this->construct(il, yforward(args)...);
+		return this->get();
 	}
+	//@}
 
 private:
 	base&
@@ -353,10 +562,8 @@ public:
 	swap(optional& o) ynoexcept(and_<is_nothrow_move_constructible<value_type>,
 		is_nothrow_swappable<value_type>>())
 	{
-		using std::swap;
-
 		if(has_value() && o.has_value())
-			swap(this->get(), o.get());
+			ystdex::swap_dependent(this->get(), o.get());
 		else if(has_value())
 		{
 			o.construct(std::move(this->get()));
@@ -369,16 +576,22 @@ public:
 		}
 	}
 
+	/*!
+	\warning ISO C++17 前不保证常量表达式要求。
+	\see LWG 2740 。
+	*/
+	//@{
 	yconstfn_relaxed _type*
 	operator->()
 	{
-		return std::addressof(this->get());
+		return ystdex::addressof(this->get());
 	}
 	yconstfn const _type*
 	operator->() const
 	{
-		return ystdex::constfn_addressof(this->get());
+		return ystdex::addressof(this->get());
 	}
+	//@}
 
 	yconstfn_relaxed _type&
 	operator*() &
@@ -461,40 +674,198 @@ public:
 	using base::reset;
 };
 
-//! \relates optional
-//@{
 /*!
-\brief 关系和比较操作。
-\note 未显式声明的部分由 \c operators 提供实现。
-\see WG21 N4606 20.6.6[optional.relops] 。
-\see WG21 N4606 20.6.7[optional.nullops] 。
-\see WG21 N4606 20.6.8[optional.comp_with_t] 。
+\relates optional
+\since build 831
 */
 //@{
-template<typename _type>
-yconstfn bool
-operator==(const optional<_type>& x, const optional<_type>& y)
+//! \brief 关系和比较操作。
+//@{
+//! \see ISO C++17 [optional.relops] 。
+//@{
+template<typename _type, typename _tOther>
+yconstfn auto
+operator==(const optional<_type>& x, const optional<_tOther>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() == std::declval<_tOther>())>
 {
 	return bool(x) == bool(y) && (!x || *x == *y);
 }
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator!=(const optional<_type>& x, const optional<_tOther>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() != std::declval<_tOther>())>
+{
+	return bool(x) != bool(y) || (bool(x) && *x != *y);
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator<(const optional<_type>& x, const optional<_tOther>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() < std::declval<_tOther>())>
+{
+	return bool(y) && (!x || *x < *y);
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator>(const optional<_type>& x, const optional<_tOther>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() > std::declval<_tOther>())>
+{
+	return bool(x) && (!y || *x > *y);
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator<=(const optional<_type>& x, const optional<_tOther>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() <= std::declval<_tOther>())>
+{
+	return !x || (bool(y) && *x <= *y);
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator>=(const optional<_type>& x, const optional<_tOther>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() >= std::declval<_tOther>())>
+{
+	return !y || (bool(x) && *x >= *y);
+}
+//@}
+
+/*!
+\note 未显式声明的部分由 \c operators 提供实现。
+\see ISO C++17 [optional.nullops] 。
+*/
+//@{
 template<typename _type>
 yconstfn bool
 operator==(const optional<_type>& x, nullopt_t) ynothrow
 {
 	return !x;
 }
-template<typename _type>
-yconstfn bool
-operator==(const optional<_type>& x, const _type& v)
-{
-	return bool(x) ? *x == v : false;
-}
 
 template<typename _type>
 yconstfn bool
-operator<(const optional<_type>& x, const optional<_type>& y)
+operator<(const optional<_type>&, nullopt_t) ynothrow
 {
-	return bool(y) && (!x || *x < *y);
+	return {};
+}
+template<typename _type>
+yconstfn bool
+operator<(nullopt_t, const optional<_type>& y) ynothrow
+{
+	return bool(y);
+}
+//@}
+
+//! \see ISO C++17 [optional.comp_with_t] 。
+//@{
+template<typename _type, typename _tOther>
+yconstfn auto
+operator==(const optional<_type>& x, const _tOther& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() == std::declval<_tOther>())>
+{
+	return x && *x == y;
+}
+template<typename _type, typename _tOther>
+yconstfn auto
+operator==(const _tOther& x, const optional<_type>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_tOther>() == std::declval<_type>())>
+{
+	return y && x == *y;
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator!=(const optional<_type>& x, const _tOther& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() != std::declval<_tOther>())>
+{
+	return !x || *x != y;
+}
+template<typename _type, typename _tOther>
+yconstfn auto
+operator!=(const _tOther& x, const optional<_type>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_tOther>() != std::declval<_type>())>
+{
+	return !y || x != *y;
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator<(const optional<_type>& x, const _tOther& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() < std::declval<_tOther>())>
+{
+	return !x || *x < y;
+}
+template<typename _type, typename _tOther>
+yconstfn auto
+operator<(const _tOther& x, const optional<_type>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_tOther>() < std::declval<_type>())>
+{
+	return y && x < *y;
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator>(const optional<_type>& x, const _tOther& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() > std::declval<_tOther>())>
+{
+	return x && *x > y;
+}
+template<typename _type, typename _tOther>
+yconstfn auto
+operator>(const _tOther& x, const optional<_type>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_tOther>() > std::declval<_type>())>
+{
+	return !y || x > *y;
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator<=(const optional<_type>& x, const _tOther& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() <= std::declval<_tOther>())>
+{
+	return !x || *x <= y;
+}
+template<typename _type, typename _tOther>
+yconstfn auto
+operator<=(const _tOther& x, const optional<_type>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_tOther>() <= std::declval<_type>())>
+{
+	return y && x <= *y;
+}
+
+template<typename _type, typename _tOther>
+yconstfn auto
+operator>=(const optional<_type>& x, const _tOther& y)
+	-> optional_relop_t<decltype(
+	std::declval<_type>() >= std::declval<_tOther>())>
+{
+	return x && *x >= y;
+}
+template<typename _type, typename _tOther>
+yconstfn auto
+operator>=(const _tOther& x, const optional<_type>& y)
+	-> optional_relop_t<decltype(
+	std::declval<_tOther>() >= std::declval<_type>())>
+{
+	return !y || x >= *y;
 }
 //@}
 
@@ -587,10 +958,14 @@ struct optional_last_value<void> : default_last_value<void>
 {};
 //@}
 //@}
+#endif
+
+} // inline namespace cpp2017;
 
 } // namespace ystdex;
 
 
+#if YB_Impl_Has_optional != 1
 namespace std
 {
 
@@ -612,6 +987,7 @@ struct hash<ystdex::optional<_type>>
 };
 
 } // namespace std;
+#endif
 
 #endif
 

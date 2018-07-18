@@ -11,13 +11,13 @@
 /*!	\file type_traits.hpp
 \ingroup YStandardEx
 \brief ISO C++ 类型特征扩展。
-\version r1168
+\version r1180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2015-11-04 09:34:17 +0800
 \par 修改时间:
-	2018-07-11 09:36 +0800
+	2018-07-16 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -492,9 +492,9 @@ struct any_constructible;
 //! \since build 686
 struct nonesuch;
 
-
 /*!
 \brief 引入 std::swap 实现为 ADL 提供重载的命名空间。
+\note 在这个命名空间中 swap 不应指称 ystdex 中的名称以避免歧义。
 \since build 682
 */
 namespace dep_swap
@@ -509,8 +509,8 @@ swap(any_constructible, any_constructible);
 template<typename _type, typename _type2>
 struct yimpl(helper)
 {
-	static yconstexpr const bool value = !is_same<decltype(swap(std::declval<
-		_type>(), std::declval<_type2>())), nonesuch>::value;
+	static yconstexpr const bool value = !is_same<decltype(
+		swap(std::declval<_type>(), std::declval<_type2>())), nonesuch>::value;
 
 	//! \since build 694
 	helper()
@@ -519,7 +519,6 @@ struct yimpl(helper)
 };
 
 } // namespace dep_swap;
-
 
 /*!
 \ingroup type_traits_operations
@@ -531,7 +530,8 @@ struct yimpl(helper)
 //@{
 //! \ingroup binary_type_traits
 template<typename _type, typename _type2>
-struct is_swappable_with : bool_<yimpl(dep_swap::helper<_type, _type2>::value)>
+struct is_swappable_with
+	: bool_<yimpl(dep_swap::helper<_type, _type2>::value)>
 {};
 
 
@@ -546,8 +546,8 @@ struct is_swappable
 //! \brief 判断是否可以无抛出地调用 \c swap 。
 //@{
 template<typename _type, typename _type2>
-struct is_nothrow_swappable_with
-	: is_nothrow_default_constructible<yimpl(dep_swap::helper<_type, _type2>)>
+struct is_nothrow_swappable_with : is_nothrow_default_constructible<
+	yimpl(dep_swap::helper<_type, _type2>)>
 {};
 
 
@@ -593,18 +593,25 @@ template<typename _type, typename... _types>
 using well_formed_t = typename always<_type>::template apply<_types...>::type;
 #endif
 
+//! \since build 831
+inline namespace cpp2017
+{
+
 /*!
 \see WG21 N3911 。
 \see WG21 N4296 20.10.2[meta.type.synop] 。
 \since build 591
 */
 // TODO: Blocked. Wait for upcoming ISO C++17 for %__cplusplus.
-#if __cpp_lib_void_t >= 201411
+#if __cpp_lib_void_t >= 201411 || __cplusplus >= 201703L
 using std::void_t;
 #else
 template<typename... _types>
 using void_t = well_formed_t<void, _types...>;
 #endif
+
+} // inline namespace cpp2017;
+
 
 /*!
 \brief 类似 void_t 的元函数，具有较低匹配优先级，避免偏特化歧义；但使用条件表达式。
