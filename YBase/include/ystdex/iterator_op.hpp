@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r230
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2016-03-19 09:25 +0800
+	2018-07-21 05:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,10 @@
 #ifndef YB_INC_ystdex_iterator_op_hpp_
 #define YB_INC_ystdex_iterator_op_hpp_ 1
 
-#include "range.hpp" // for std::next, std::prev, std::make_move_iterator,
-//	std::reverse_iterator, std::make_pair, begin, end;
+#include "range.hpp" // for "range.hpp", std::next, std::prev,
+//	std::make_move_iterator, std::reverse_iterator, std::make_pair, begin, end;
 #include "cassert.h" // for yconstraint;
-#include "deref_op.hpp" // for is_undereferenceable;
+#include "deref_op.hpp" // for "deref_op.hpp", is_undereferenceable;
 #include "operators.hpp" // for input_iteratable, output_iteratable,
 //	forward_iteratable, bidirectional_iteratable, random_access_iteratable, _t;
 
@@ -96,10 +96,10 @@ prev_if_eq(_tBi i, const _type& val,
 /*!
 \brief 构造反向迭代器。
 \see WG21 N3936 24.5.1.3.21[reverse.iter.make] 。
-\see http://wg21.cmeerw.net/lwg/issue2285 。
+\see LWG 2285 。
 \since build 531
 */
-#if __cpp_lib_make_reverse_iterator >= 201402 || __cplusplus >= 201402L
+#if __cpp_lib_make_reverse_iterator >= 201402
 using std::make_reverse_iterator;
 #else
 template<typename _tIter>
@@ -124,7 +124,7 @@ make_move_iterator_pair(_tIter1 it1, _tIter2 it2) -> decltype(
 }
 /*!
 \brief 构造指定序列范围（包含序列容器及内建数组等）的转移迭代器对。
-\note 使用 ADL \c begin 和 \c end 指定范围迭代器。
+\note 使用 ADL begin 和 end 指定范围迭代器。
 \bug decltype 指定的返回类型不能使用 ADL 。
 \since build 337
 */

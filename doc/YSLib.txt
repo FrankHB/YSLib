@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3147
+\version r3149
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2018-07-09 10:06 +0800
+	2018-07-23 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,7 +141,7 @@ YWindow 依赖 YPanel 、 YRenderer 和 Service::YResource ；
 YDesktop 依赖 YWindow 和 Core::YDevice 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
-@1.3 调用安全性：
+@1.3 安全性：
 除非具体 API 另行指定， YSLib 严格不依赖多线程执行环境： YSLib API 同时支持单线程和多线程环境并保持一致的语义。
 一般规则参见 [Documentation::YFramework @@1.4.1.4] 。
 可重入性和线程安全性参见 @2 、 @2.2 、 @3 、 @4 和 @5 ，优先于一般规则。
@@ -207,7 +207,7 @@ Shell 定义 YShell ；
 
 @3.2 平台无关的基础对象 YObject ：
 包括值类型对象 ValueObject 类和相关接口。
-ValueObject 是以 ystdex::any([Documentation::YBase @@2.5.8.6]) 为基础实现的动态泛型值类型([Documentation::YFramework @@3.5.4]) ，增加了比较相等的泛型操作。
+ValueObject 是以 ystdex::any([Documentation::YBase @@2.5.7.5]) 为基础实现的动态泛型值类型([Documentation::YFramework @@3.5.4]) ，增加了比较相等的泛型操作。
 
 @3.3 对象计数器 YCounter
 

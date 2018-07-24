@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r151
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2018-07-15 00:43 +0800
+	2018-07-23 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,26 @@
 #ifndef YB_INC_ystdex_addressof_hpp_
 #define YB_INC_ystdex_addressof_hpp_ 1
 
-#include "type_traits.hpp" // for "type_traits.hpp", std::declval, or_,
-//	is_detected;
+#include "meta.hpp" // for "meta.hpp", std::declval, is_detected, or_;
 #include <memory> // for std::addressof;
+
+/*!
+\brief \<memory\> 特性测试宏。
+\see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations 。
+\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
+\since build 832
+*/
+//@{
+// XXX: There was once no feature test macro provided. See http://www.open-std.org/pipermail/features/2016-March/000399.html.
+// XXX: It is known 'std::addressof' has 'constexpr' in VC++ 15.6.4. Not sure
+//	which is the initial version as it seems undocumented.
+// TODO: Get more accurate version.
+#ifndef __cpp_lib_addressof_constexpr
+#	if (YB_IMPL_MSCPP >= 1913 && _MSVC_LANG >= 201606) || __cplusplus >= 201703L
+#		define __cpp_lib_addressof_constexpr 201606
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {
@@ -73,8 +90,7 @@ struct has_overloaded_addressof
 \todo 检查 __has_builtin(addressof) 并使用 __builtin_addressof 实现。
 */
 //@{
-// XXX: There is no feature test macro provided yet. See http://www.open-std.org/pipermail/features/2016-March/000399.html.
-#if __cplusplus >= 201703L
+#if __cpp_lib_addressof_constexpr >= 201606
 using std::addressof;
 #else
 //! \todo 添加 [[nodiscard]] 。

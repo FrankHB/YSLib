@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2771
+\version r2791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2016-09-20 10:10 +0800
+	2018-07-24 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,22 +145,6 @@ using mem_value_t = decltype(std::declval<_type>().value);
 template<typename _type>
 using mem_value_type_t = typename _type::value_type;
 
-
-//! \since build 612
-//@{
-template<typename _type>
-struct member_target_type_impl
-{
-	using type = void;
-};
-
-template<class _tClass, typename _type>
-struct member_target_type_impl<_type _tClass::*>
-{
-	using type = _tClass;
-};
-//@}
-
 } // namespace details;
 
 
@@ -285,14 +269,6 @@ struct remove_rp : remove_pointer<remove_reference_t<_type>>
 template<typename _type>
 struct remove_rpcv : remove_cv<_t<remove_rp<_type>>>
 {};
-
-
-/*!
-\brief 取成员指针类型指向的类类型。
-\since build 612
-*/
-template<typename _type>
-using member_target_type_t = _t<details::member_target_type_impl<_type>>;
 //@}
 
 

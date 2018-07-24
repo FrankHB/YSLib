@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r354
+\version r369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2018-07-11 17:31 +0800
+	2018-07-21 05:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,21 @@
 
 #include "../ydef.h"
 #include <iterator> // for std::begin, std::end;
+
+/*!
+\brief \<iterator\> 特性测试宏。
+\see LWG 2285 。
+\see WG21 P0941R2 2.2 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/01/22/vs-2015-update-2s-stl-is-c17-so-far-feature-complete/ 。
+\since build 832
+*/
+//@{
+#ifndef __cpp_lib_make_reverse_iterator
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201402L
+#		define __cpp_lib_make_reverse_iterator 201210
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {
@@ -61,7 +76,7 @@ end(_type(&&array)[_vN]) ynothrow
 inline namespace cpp2014
 {
 
-#if (__cpp_lib_nonmember_container_access__cplusplus >= 201411 \
+#if (__cpp_lib_nonmember_container_access >= 201411 \
 	|| (__cplusplus >= 201402L && (!defined(__GLIBCXX__) \
 	|| __GLIBCXX__ >= 20150119))) || (_LIBCXX_VERSION >= 1101 \
 	&& _LIBCPP_STD_VER > 11) || YB_IMPL_MSCPP >= 1800

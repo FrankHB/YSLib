@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6029
+\version r6034
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2018-07-12 18:19 +0800
+	2018-07-25 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,11 @@
 
 #include "pointer.hpp" // for "iterator_op.hpp", iterator_operators_t,
 //	std::iterator_traits, _t, pointer_classify, cond_t, and_,
-//	exclude_self_t, *_tag, ystdex::swap_dependent, yassume,
-//	is_undereferenceable, yconstraint, random_access_iteratable;
+//	exclude_self_t, enable_if_convertible_t, *_tag, ystdex::swap_dependent,
+//	yassume, is_undereferenceable, yconstraint, random_access_iteratable;
 #include "type_op.hpp" // for first_tag, second_tag, std::tuple,
 //	make_index_sequence, index_sequence, std::get;
-#include "ref.hpp" // for lref;
+#include "ref.hpp" // for invoke_result_t, ystdex::invoke, lref;
 
 namespace ystdex
 {
@@ -186,7 +186,7 @@ struct transit_traits
 	using iterator_type = _t<pointer_classify<_tIter>>;
 	using iterator_category
 		= typename std::iterator_traits<iterator_type>::iterator_category;
-	using transformed_type = result_of_t<_fTrans&(_tIter&)>;
+	using transformed_type = invoke_result_t<_fTrans&, _tIter&>;
 	using difference_type
 		= typename std::iterator_traits<iterator_type>::difference_type;
 	using reference
@@ -350,7 +350,7 @@ public:
 		ynoexcept_spec(reference(std::declval<transformed_iterator&>().
 		transformer(std::declval<transformed_iterator&>().get())))
 	{
-		return transformer(get());
+		return ystdex::invoke(transformer, get());
 	}
 
 	//! \since build 665

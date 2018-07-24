@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.7.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.7 。
-\version r8164
+\version r8170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 700
 \par 创建时间:
 	2016-06-11 03:16:46 +0800
 \par 修改时间:
-	2018-01-07 06:40 +0800
+	2018-07-20 11:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,7 +158,7 @@ b798
 				(
 					* "redundant '-Wl,dy' on 'pkg-config' failure"
 						@ "variable %SHBuild_YF_Libs_freetype"
-						@ !"platform %Win32" $since b,
+						@ !"platform %Win32" $since b564,
 					* $re_add(b583) "missing quotes of inclusion path for \
 						static library builds to protect against spaces in \
 						%SHBuild_Bin" $since b561
@@ -2478,7 +2478,8 @@ b751
 						/ $revert_ex(b736)
 							"avoided delayed term wrapping for moved term"
 							$= (/ $revert(b757) $impl !^ "%DelayedTerm");
-							// Now delayed term have to be explicity constructed.
+							// Now delayed term have to be explicity \
+								constructed.
 						* $comp "self-referenced term referenced invalid \
 							binding" $since b736
 					),
@@ -5935,7 +5936,7 @@ b717
 			* $impl "wrong excluding type" @ "constructor template"
 				@ ("class template %any_input_iterator" $since b675,
 				"class template %any_forward_iterator" $since b686),
-			* $re_add(b686) "missing excluding of self type"
+			* $re_add(b686) "missing exclusion of self type"
 				@ "class template %any_bidirectional_iterator" $since b400,
 			/ $forced DLDI "friend functions %(operator==, \
 				is_undereferenceable)" @ "class template %is_undereferenceable"
@@ -6777,7 +6778,7 @@ b709
 	(
 		/ @ "class template %transformed_iterator" @ %Iterator $=
 		(
-			* "missing excluding nested %transformed_iterator instances"
+			* "missing exclusion of nested %transformed_iterator instances"
 				@ "constructor templates with single \
 				parameter of %transformed_iterator instances of other template \
 				parameters" @ !'YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 50000' $since
@@ -7869,7 +7870,7 @@ b700
 			/ DLP "updated library %freetype" @ "library using"
 				$= (^ $re_ex(b493) "updated freetype 2.6.3 with several files \
 					remained from freetype 2.4.11" ~ "freetype 2.5.3")
-				// See [Documentation::Dependencies @@2.2.3].
+				// See [Documentation::Dependencies @@2.2.4].
 		),
 		/ $re_ex(b600) "updated library %FreeImage" $=
 		(

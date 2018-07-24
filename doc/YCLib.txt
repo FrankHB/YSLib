@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r530
+\version r532
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2018-07-12 17:05 +0800
+	2018-07-24 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,7 +157,7 @@ platform::KeyCodes 中使用单一 using 指令支持本机名称。
 @1.6.3 文件系统接口：
 文件系统的一般概念（包括路径等）同 WG21 N4594 [filesystems] ，但不假定必须存在操作系统支持，也不适用对符合性(conformance) 和路径编码及转换的要求。
 YCLib 同时使用字符类型 char 和 char16_t 的 NTCTS 表示文件系统路径，路径涉及的编码转换的实现可能和平台相关；约定编码和相关支持 @3.2.1 。
-YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.8.15]) 提供的抽象路径，后者由上层用户代码协调使用。
+YCLib 不直接使用 YBase.YStandardEx.Path([Documentation::YBase @@2.5.8.12]) 提供的抽象路径，后者由上层用户代码协调使用。
 文件访问和文件系统相关接口分别位于模块 FileIO(@5.6.2) 和 FileSystem(@5.6.3) 。前者提供依赖文件系统一般特性或具体文件系统的操作；后者提供和具体文件相关的其它操作。
 和 POSIX 不同，和特定文件关联的文件系统元数据（如文件修改时间）视为从属文件本身。因此相关操作位于 FileIO 而非 FileSystem 。注意其它项的操作（如创建新的符号链接）不属于此范围，仍位于 YCLib.FileSystem 。
 另见 @3.3 、 @4.1.6 和 @4.2.1 。
@@ -328,7 +328,7 @@ build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引�
 build 593 起从 YSLib::Adaptor 迁移至 YCLib ，在 platform 命名空间引入外部名称。
 
 @5.3.3 互斥量 Mutex ：
-基于 YBase 的 YStandardEx::PseudoMutex([Documentation::YBase @@2.5.7.26]) 为多线程和单线程环境提供统一的同步接口。
+基于 YBase 的 YStandardEx::PseudoMutex([Documentation::YBase @@2.5.7.28]) 为多线程和单线程环境提供统一的同步接口。
 在命名空间 platform 中提供 Concurrency 和 Threading 两个子命名空间，再在其中引入外部名称。
 
 @5.4 平台相关的公共组件无关函数与宏定义集合 YCommon ：

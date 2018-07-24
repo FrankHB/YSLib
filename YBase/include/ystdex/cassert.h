@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r209
+\version r221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2016-11-12 15:56 +0800
+	2018-07-24 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_cassert_h_ 1
 
 #include "../ydef.h"
-#include <cstdio>
+#include <cstdio> // for std::FILE;
 
 namespace ystdex
 {
@@ -73,20 +73,24 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 
 /*!
 \ingroup YBase_pseudo_keyword
+\note 类型为 void ，以避免重载 operator, 改变表达式的求值。
+*/
+//@{
+/*!
 \def yconstraint
 \brief 约束：接口语义。
 \note 和普通断言相比强调接口契约。对移植特定的平台实现时应予以特别注意。
-\note 保证兼容 ISO C++11 constexpr 模板。
+\note 使用常量表达式在 ISO C++11 constexpr 模板中合式。
 \see $2015-10 @ %Documentation::Workflow::Annual2015.
 \since build 535
 
 运行时检查的接口语义约束断言。不满足此断言的行为是接口明确地未定义的，行为不可预测。
 */
 #ifdef NDEBUG
-#	define yconstraint(_expr) YB_ASSUME(_expr)
+#	define yconstraint(_expr) (YB_ASSUME(_expr), void())
 #else
 #	define yconstraint(_expr) \
-	((_expr) ? void(0) : ystdex::yassert(#_expr, __FILE__, __LINE__, \
+	((_expr) ? void() : ystdex::yassert(#_expr, __FILE__, __LINE__, \
 		"Constraint violation."))
 #endif
 
@@ -100,10 +104,11 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 运行时检查的环境条件约束断言。用于明确地非 yconstraint 适用的情形。
 */
 #ifdef NDEBUG
-#	define yassume(_expr) YB_ASSUME(_expr)
+#	define yassume(_expr) (YB_ASSUME(_expr), void())
 #else
-#	define yassume(_expr) assert(_expr)
+#	define yassume(_expr) (assert(_expr), void())
 #endif
+//@}
 
 
 #ifndef YAssert

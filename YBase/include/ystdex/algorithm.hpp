@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1046
+\version r1047
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-07-12 00:27 +0800
+	2018-07-20 02:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,7 +175,7 @@ inline namespace cpp2014
 {
 
 using std::equal;
-#if !(__cpp_lib_robust_nonmodifying_seq_ops >= 201304 || __cplusplus > 201103L)
+#if !(__cpp_lib_robust_nonmodifying_seq_ops >= 201304)
 template<typename _tIn1, typename _tIn2, typename _fBiPred>
 inline bool
 equal(_tIn1 first1, _tIn1 last1, _tIn2 first2, _tIn2 last2,
