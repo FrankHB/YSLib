@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3110
+\version r3117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2017-08-09 08:57 +0800
+	2018-07-25 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #undef __STRICT_ANSI__ // for ::fileno, ::pclose, ::popen, ::_wfopen;
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileIO // for std::is_same, ystdex::underlying_type_t,
-//	RetryOnInterrupted, std::errc::function_not_supported, YCL_CallF_CAPI,
-//	std::is_integral, ystdex::invoke, Nonnull, ystdex::temporary_buffer;
+//	ystdex::invoke_result_t, ystdex::invoke, RetryOnInterrupted,
+//	std::errc::function_not_supported, YCL_CallF_CAPI, std::is_integral,
+//	ystdex::invoke, Nonnull, ystdex::temporary_buffer;
 #include YFM_YCLib_NativeAPI // for Mode, ::HANDLE, struct ::stat,
 //	platform_ex::cstat, platform_ex::estat, ::futimens, OpenMode,
 //	YCL_CallGlobal, ::close, ::fcntl, F_GETFL, ::setmode, ::fchmod, ::_chsize,
@@ -240,9 +241,9 @@ template<typename _func, typename... _tParams>
 auto
 FetchFileTime(_func f, _tParams... args)
 #if YCL_Win32
-	-> ystdex::result_of_t<_func(_tParams&...)>
+	-> ystdex::invoke_result_t<_func, _tParams&...>
 #else
-	-> ystdex::result_of_t<_func(struct ::stat&)>
+	-> ystdex::invoke_result_t<_func, struct ::stat&>
 #endif
 {
 #if YCL_Win32
@@ -254,7 +255,7 @@ FetchFileTime(_func f, _tParams... args)
 	struct ::stat st;
 
 	cstat(st, args..., yfsig);
-	return f(st);
+	return ystdex::invoke(f, st);
 #endif
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 201?-2018 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r231
+\version r236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2018-07-16 14:39 +0800
+	2018-07-23 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,9 @@
 #include "type_pun.hpp" // for "type_pun.hpp", std::swap,
 //	is_nothrow_constructible, is_nothrow_assignable, std::move, add_volatile_t,
 //	std::addressof, bool_, is_standard_layout, pun_storage_t,
-//	is_nothrow_swappable_with, aligned_replace_cast;
+//	aligned_replace_cast;
+#include "type_traits.hpp" // for is_nothrow_swappable,
+//	is_nothrow_swappable_with;
 
 namespace ystdex
 {
@@ -203,7 +205,7 @@ move_and_swap(_type& obj, _type2&& new_val)
 inline namespace cpp2014
 {
 
-#if __cpp_lib_exchange_function >= 201304 || __cplusplus > 201103L
+#if __cpp_lib_exchange_function >= 201304
 using std::exchange;
 #else
 /*!

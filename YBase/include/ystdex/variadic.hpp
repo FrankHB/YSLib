@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2015 FrankHB.
+	© 2012-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r1384
+\version r1386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2016-09-21 15:49 +0800
+	2018-07-23 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_variadic_hpp_
 #define YB_INC_ystdex_variadic_hpp_ 1
 
-#include "type_traits.hpp" // for "type_traits.hpp", _t, size_t, empty_base,
+#include "meta.hpp" // for "type_traits.hpp", _t, size_t, empty_base,
 //	false_, size_t_, is_same, false_, true_, are_same, integral_constant,
 //	conditional_t, cond_t;
 

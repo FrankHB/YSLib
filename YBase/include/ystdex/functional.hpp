@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3332
+\version r3498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2018-07-15 05:02 +0800
+	2018-07-23 15:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,10 +32,9 @@
 //	is_convertible, vseq::at, bool_, index_sequence_for, member_target_type_t,
 //	false_, is_void, _t, size_t_, std::tuple_size, vseq::join_n_t, std::swap,
 //	common_nonvoid_t, is_nothrow_swappable, make_index_sequence, exclude_self_t;
-#include "functor.hpp" // for "ref.hpp", <functional>, std::function,
-//	__cpp_lib_invoke, less, addressof_op, mem_get;
+#include "functor.hpp" // for "ref.hpp", "invoke.hpp", <functional>,
+//	std::function, addressof_op, less, mem_get;
 #include "swap.hpp" // for ystdex::swap_dependent, ystdex::move_and_swap;
-#include "cassert.h" // for yconstraint;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex
@@ -244,171 +243,6 @@ unseq_apply(_func&& f, _tParams&&... args)
 	yunseq((void(yforward(f)(yforward(args))), 0)...);
 }
 //@}
-//@}
-
-// TODO: Blocked. Wait for upcoming ISO C++17 for %__cplusplus.
-#if __cpp_lib_invoke >= 201411
-//! \since build 617
-using std::invoke;
-#else
-//! \since build 612
-namespace details
-{
-
-template<typename _type, typename _tCallable>
-struct is_callable_target
-	: is_base_of<member_target_type_t<_tCallable>, decay_t<_type>>
-{};
-
-template<typename _fCallable, typename _type>
-struct is_callable_case1 : and_<is_member_function_pointer<_fCallable>,
-	is_callable_target<_type, _fCallable>>
-{};
-
-template<typename _fCallable, typename _type>
-struct is_callable_case2 : and_<is_member_function_pointer<_fCallable>,
-	not_<is_callable_target<_type, _fCallable>>>
-{};
-
-template<typename _fCallable, typename _type>
-struct is_callable_case3 : and_<is_member_object_pointer<_fCallable>,
-	is_callable_target<_type, _fCallable>>
-{};
-
-template<typename _fCallable, typename _type>
-struct is_callable_case4 : and_<is_member_object_pointer<_fCallable>,
-	not_<is_callable_target<_type, _fCallable>>>
-{};
-
-//! \since build 763
-template<typename _fCallable, typename _type, typename... _tParams>
-yconstfn auto
-invoke_impl(_fCallable&& f, _type&& obj, _tParams&&... args)
-	-> enable_if_t<is_callable_case1<decay_t<_fCallable>, _type>::value,
-	decltype((yforward(obj).*f)(yforward(args)...))>
-{
-	return yconstraint(f), (yforward(obj).*f)(yforward(args)...);
-}
-template<typename _fCallable, typename _type, typename... _tParams>
-yconstfn auto
-invoke_impl(_fCallable&& f, _type&& obj, _tParams&&... args)
-	-> enable_if_t<is_callable_case2<decay_t<_fCallable>, _type>::value,
-	decltype(((*yforward(obj)).*f)(yforward(args)...))>
-{
-	return yconstraint(f), ((*yforward(obj)).*f)(yforward(args)...);
-}
-//! \since build 763
-template<typename _fCallable, typename _type>
-yconstfn auto
-invoke_impl(_fCallable&& f, _type&& obj)
-	-> enable_if_t<is_callable_case3<decay_t<_fCallable>, _type>::value,
-	decltype(yforward(obj).*f)>
-{
-	return yconstraint(f), yforward(obj).*f;
-}
-template<typename _fCallable, typename _type>
-yconstfn auto
-invoke_impl(_fCallable&& f, _type&& obj)
-	-> enable_if_t<is_callable_case4<decay_t<_fCallable>, _type>::value,
-	decltype((*yforward(obj)).*f)>
-{
-	return yconstraint(f), (*yforward(obj)).*f;
-}
-template<typename _func, typename... _tParams>
-yconstfn auto
-invoke_impl(_func&& f, _tParams&&... args)
-	-> enable_if_t<!is_member_pointer<decay_t<_func>>::value,
-	decltype(yforward(f)(yforward(args)...))>
-{
-	return yforward(f)(yforward(args)...);
-}
-
-} // namespace details;
-
-/*!
-\brief 调用可调用对象。
-\sa http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4169.html
-\see WG21 N4527 20.9.2[func.require] ， WG21 N4527 20.9.3[func.invoke] 。
-\see LWG 2013 。
-\see CWG 1581 。
-\see https://llvm.org/bugs/show_bug.cgi?id=23141 。
-\since build 612
-\todo 支持引用包装。
-*/
-template<typename _fCallable, typename... _tParams>
-yimpl(yconstfn) result_of_t<_fCallable&&(_tParams&&...)>
-invoke(_fCallable&& f, _tParams&&... args)
-{
-	return details::invoke_impl(yforward(f), yforward(args)...);
-}
-#endif
-
-namespace details
-{
-
-//! \since build 729
-template<typename _fCallable, typename... _tParams>
-yconstfn pseudo_output
-invoke_nonvoid_impl(true_, _fCallable&& f, _tParams&&... args)
-{
-	return ystdex::invoke(yforward(f), yforward(args)...), pseudo_output();
-}
-//! \since build 729
-template<typename _fCallable, typename... _tParams>
-inline result_of_t<_fCallable&&(_tParams&&...)>
-invoke_nonvoid_impl(false_, _fCallable&& f, _tParams&&... args)
-{
-	return ystdex::invoke(yforward(f), yforward(args)...);
-}
-
-} // namespace details;
-
-/*!
-\brief 调用可调用对象，保证返回值非空。
-\since build 635
-\todo 支持引用包装。
-*/
-template<typename _fCallable, typename... _tParams>
-yimpl(yconstfn) nonvoid_result_t<result_of_t<_fCallable&&(_tParams&&...)>>
-invoke_nonvoid(_fCallable&& f, _tParams&&... args)
-{
-	return details::invoke_nonvoid_impl(is_void<result_of_t<
-		_fCallable&&(_tParams&&...)>>(), yforward(f), yforward(args)...);
-}
-
-
-/*!
-\brief 使用 invoke 调用非空值或取默认值。
-\sa ystdex::call_value_or
-\sa ystdex::invoke
-\since build 767
-*/
-//@{
-template<typename _type, typename _func>
-yconstfn auto
-invoke_value_or(_func f, _type&& p)
-	-> decay_t<decltype(ystdex::invoke(f, *yforward(p)))>
-{
-	return p ? ystdex::invoke(f, *yforward(p))
-		: decay_t<decltype(ystdex::invoke(f, *yforward(p)))>();
-}
-template<typename _tOther, typename _type, typename _func>
-yconstfn auto
-invoke_value_or(_func f, _type&& p, _tOther&& other)
-	-> yimpl(decltype(p ? ystdex::invoke(f, *yforward(p)) : yforward(other)))
-{
-	return p ? ystdex::invoke(f, *yforward(p)) : yforward(other);
-}
-template<typename _tOther, typename _type, typename _func,
-	typename _tSentinal = nullptr_t>
-yconstfn auto
-invoke_value_or(_func f, _type&& p, _tOther&& other, _tSentinal&& last)
-	-> yimpl(decltype(!bool(p == yforward(last))
-	? ystdex::invoke(f, *yforward(p)) : yforward(other)))
-{
-	return !bool(p == yforward(last)) ? ystdex::invoke(f, *yforward(p))
-		: yforward(other);
-}
 //@}
 
 
@@ -980,18 +814,20 @@ struct get_less<void>
 namespace details
 {
 
+//! \since build 832
 template<typename _type, typename _fCallable, typename... _tParams>
 _type
-call_for_value(true_, _type&& val, _fCallable&& f, _tParams&&... args)
+invoke_for_value(true_, _type&& val, _fCallable&& f, _tParams&&... args)
 {
 	ystdex::invoke(yforward(f), yforward(args)...);
 	return yforward(val);
 }
 
+//! \since build 832
 template<typename _type, typename _fCallable, typename... _tParams>
 auto
-call_for_value(false_, _type&&, _fCallable&& f, _tParams&&... args)
-	-> result_of_t<_fCallable&&(_tParams&&...)>
+invoke_for_value(false_, _type&&, _fCallable&& f, _tParams&&... args)
+	-> invoke_result_t<_fCallable, _tParams...>
 {
 	return ystdex::invoke(yforward(f), yforward(args)...);
 }
@@ -1000,15 +836,15 @@ call_for_value(false_, _type&&, _fCallable&& f, _tParams&&... args)
 
 /*!
 \brief 调用第二个参数起指定的函数对象，若返回空类型则使用第一个参数的值为返回值。
-\since build 606
+\since build 832
 */
 template<typename _type, typename _fCallable, typename... _tParams>
 auto
-call_for_value(_type&& val, _fCallable&& f, _tParams&&... args)
-	-> common_nonvoid_t<result_of_t<_fCallable&&(_tParams&&...)>, _type>
+invoke_for_value(_type&& val, _fCallable&& f, _tParams&&... args)
+	-> common_nonvoid_t<invoke_result_t<_fCallable, _tParams...>, _type>
 {
-	return details::call_for_value(is_void<result_of_t<_fCallable&&(
-		_tParams&&...)>>(), yforward(val), yforward(f), yforward(args)...);
+	return details::invoke_for_value(is_void<invoke_result_t<_fCallable,
+		_tParams...>>(), yforward(val), yforward(f), yforward(args)...);
 }
 
 
@@ -1229,14 +1065,14 @@ struct expand_proxy<_fCallable, 0>
 \tparam _fCallable 可调用对象类型。
 \tparam _tParams 参数类型。
 \note 条件接受调用结果或没有参数。
-\since build 634
+\since build 832
 \sa object_result_t
 */
 template<typename _fCond, typename _fCallable, typename... _tParams>
-result_of_t<_fCallable&&(_tParams&&...)>
+invoke_result_t<_fCallable, _tParams...>
 retry_on_cond(_fCond cond, _fCallable&& f, _tParams&&... args)
 {
-	using res_t = result_of_t<_fCallable&&(_tParams&&...)>;
+	using res_t = invoke_result_t<_fCallable, _tParams...>;
 	using obj_t = object_result_t<res_t>;
 	obj_t res;
 

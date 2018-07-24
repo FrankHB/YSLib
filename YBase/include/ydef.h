@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3089
+\version r3158
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-07-13 11:43 +0800
+	2018-07-22 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,7 @@
 \brief Microsoft C++ 实现支持版本。
 \since build 313
 \see https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/05/visual-c-compiler-version/ 。
 
 定义为 _MSC_VER 描述的版本号。
 */
@@ -149,7 +150,7 @@
 
 /*!
 \brief \c constexpr 特性测试宏。
-\see WG21 P0096R1 3.5 和 3.6 。
+\see WG21 P0941R2 2.2 。
 \since build 628
 */
 //! \since build 628
@@ -182,7 +183,8 @@
 #endif
 //@}
 
-#include <cstddef> // for std::nullptr_t, std::size_t, std::ptrdiff_t, offsetof;
+#include <cstddef> // for __cpp_lib_byte, std::byte, std::nullptr_t,
+//	std::size_t, std::ptrdiff_t, offsetof;
 #include <cstdlib> // for std::abort;
 #include <climits> // for CHAR_BIT;
 #include <cassert> // for assert;
@@ -191,40 +193,82 @@
 #include <utility> // for std::forward;
 #include <type_traits> // for std::is_class, std::is_standard_layout;
 
-#if YB_IMPL_MSCPP >= 1900
-//! \see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
-//@{
 /*!
-\brief \<type_traits\> 特性测试宏。
-\see WG21 P0096R1 3.4 。
-\since build 679
+\see WG21 P0941R2 2.2 。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 */
 //@{
-#	ifndef __cpp_lib_bool_constant
+/*!
+\brief \<cstddef\> 特性测试宏。
+\since build 832
+\see https://blogs.msdn.microsoft.com/vcblog/2017/05/10/c17-features-in-vs-2017-3/ 。
+*/
+//@{
+#ifndef __cpp_lib_byte
+#	if ((YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703) \
+	|| __cplusplus >= 201703L) && !(YB_IMPL_MSCPP >= 1911 \
+	&& _MSVC_LANG >= 201703 && _HAS_STD_BYTE != 0)
+#		define __cpp_lib_byte 201603
+#	endif
+#endif
+//@}
+/*!
+\brief \<type_traits\> 特性测试宏。
+\since build 679
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+*/
+//@{
+#ifndef __cpp_lib_bool_constant
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
 #		define __cpp_lib_bool_constant 201505
 #	endif
-#	ifndef __cpp_lib_void_t
+#endif
+//! \since build 832
+//@{
+#ifndef __cpp_lib_is_invocable
+#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703) || __cplusplus >= 201703L
+#		define __cpp_lib_is_invocable 201703
+#	endif
+#endif
+#ifndef __cpp_lib_is_null_pointer
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201402L
+#		define __cpp_lib_is_null_pointer 201309
+#	endif
+#endif
+#ifndef __cpp_lib_transformation_trait_aliases
+#	if YB_IMPL_MSCPP >= 1600 || __cplusplus >= 201402L
+#		define __cpp_lib_transformation_trait_aliases 201304
+#	endif
+#endif
+//@}
+#ifndef __cpp_lib_void_t
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
 #		define __cpp_lib_void_t 201411
 #	endif
+#endif
 //@}
 /*!
 \brief \<utility\> 特性测试宏。
-\see WG21 P0096R1 3.5 。
 \since build 628
 */
 //@{
-#	ifndef __cpp_lib_integer_sequence
-#		define __cpp_lib_integer_sequence 201304
-#	endif
-#	ifndef __cpp_lib_exchange_function
+#ifndef __cpp_lib_exchange_function
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
 #		define __cpp_lib_exchange_function 201304
 #	endif
-#	ifndef __cpp_lib_tuple_element_t
+#endif
+#ifndef __cpp_lib_integer_sequence
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
+#		define __cpp_lib_integer_sequence 201304
+#	endif
+#endif
+#ifndef __cpp_lib_tuple_element_t
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
 #		define __cpp_lib_tuple_element_t 201402
 #	endif
-//@}
-//@}
 #endif
+//@}
+//@}
 
 
 /*!	\defgroup preprocessor_helpers Perprocessor Helpers
@@ -709,7 +753,7 @@
 \warning 不应依赖变量的链接以避免可能造成违反 ODR 。
 \since build 831
 */
-#if __cpp_inline_variables >= 201606 || __cplusplus >= 201703L
+#if __cpp_inline_variables >= 201606
 #	define yconstexpr_inline inline yconstexpr
 #else
 #	define yconstexpr_inline yconstexpr
@@ -861,16 +905,23 @@ namespace ystdex
 \brief 字节类型。
 \see WG21 P0298R2 。
 \since build 209
-\todo 优先使用 std::byte 。
+\todo 检查 maybe_unused 属性，允许时使用和标准库定义一致的形式。
 
 专用于表示字节的类型，不保证为整数类型或字符类型。
 注意 ISO C++ 对访问存储的 glvalue 的类型有严格限制，当没有对象生存期保证时，
 仅允许（可能 cv 修饰的） char 和 unsigned char 及其指针/引用或 void* ，
 而不引起未定义行为(undefined behavior) 。
+ISO C++17 核心语言特性对 std::byte 别名存储提供支持，其它情形只有 char 、
+	signed char 和 unsigned char 满足可移植地支持别名。
 由于 char 的算术操作行为是否按有符号处理未指定，使用 unsigned char
 表示字节以便获得确定的行为，同时对字符处理（如 std::fgetc ）保持较好的兼容性。
+使用 unsigned char 仍是实现细节。依赖此类型上不在 std::byte 的操作不被支持。
 */
+#if __cpp_lib_byte >= 201603
+using std::byte;
+#else
 using byte = unsigned char;
+#endif
 
 #if CHAR_BIT == 8
 /*!

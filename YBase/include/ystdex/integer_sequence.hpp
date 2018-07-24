@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016 FrankHB.
+	© 2012-2013, 2015-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r592
+\version r595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2016-09-21 23:58 +0800
+	2018-07-20 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ inline namespace cpp2014
 \since build 589
 */
 //@{
-#if __cpp_lib_integer_sequence >= 201304 || __cplusplus > 201103L
+#if __cpp_lib_integer_sequence >= 201304
 using std::integer_sequence;
 using std::index_sequence;
 #else
@@ -289,7 +289,7 @@ inline namespace cpp2014
 \since build 589
 */
 //@{
-#if __cpp_lib_integer_sequence >= 201304 || __cplusplus > 201103L
+#if __cpp_lib_integer_sequence >= 201304
 using std::make_integer_sequence;
 using std::make_index_sequence;
 

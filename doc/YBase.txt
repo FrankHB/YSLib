@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1078
+\version r1184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2018-07-16 10:56 +0800
+	2018-07-25 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,16 +180,21 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 扩展的标准库头（及 LibDefect(@2.6) 对应的头文件）被直接或间接地包含。
 
 @2.5.1.2 头文件直接依赖性：
-基本头文件扩展(@2.5.5) 的头文件依赖 "type_traits.hpp" ；
-"integer_sequence.hpp" 依赖 "variadic.hpp" ；
+"meta.hpp" 依赖 "type_inspection.hpp" 和 "integral_constant.hpp" ；
+"deref_op.hpp" 、 "variadic.hpp" 、 "addressof.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
+"type_traits.hpp" 依赖 "invoke.hpp" ；
+"ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
+"functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
 "tuple.hpp" 依赖 "integer_sequence.hpp" ；
 "type_op.hpp" 依赖 "tuple.hpp" ；
-"ref.hpp" 和 "placement.hpp" 依赖 "addressof.hpp" ；
+"integer_sequence.hpp" 依赖 "variadic.hpp" ；
+"opeators.hpp" 依赖 "addressof.hpp" ；
+"iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
+"pointer.hpp" 依赖 "iterator_op.hpp" ；
 "memory.hpp" 和 "type_pun.hpp" 依赖 "placement.hpp" ；
 "memory.hpp" 依赖 "pointer.hpp" ；
 "swap.hpp" 依赖 "type_pun.hpp" ；
 "utility.hpp" 依赖 "swap.hpp" ；
-"iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
 "functional.hpp" 、 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
 "functional.hpp" 依赖 "ref.hpp" ；
@@ -241,136 +246,163 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 @2.5.4 不依赖其它 YStandardEx 文件的基本头文件：
 这些头文件只直接依赖 YDefinition ，不依赖其它 YStandardEx 文件，且尽可能少地直接依赖标准库头。
 
-@2.5.4.1 ISO C++ 类型特征扩展 TypeTraits ：
-扩展了标准库头 <type_traits> ，包括元编程设施等。
+@2.5.4.1 整数类型常量 IntegralConstant ：
+部分扩展标准库头 <type_traits> ，提供整数类型相关的元编程设施。
 
-@2.5.4.2 范围操作 Range ：
-扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
+@2.5.4.2 类型检查元编程设施 TypeInspection ：
+部分扩展标准库头 <type_traits> ，提供确定类型属性或关系的类型特征。
 
-@2.5.4.3 基类实用设施 Base ：
+@2.5.4.3 范围操作 Range ：
+部分扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
+
+@2.5.4.4 基类实用设施 Base ：
 提供适合被作为基类的通用接口。
 
 @2.5.5 基本头文件扩展：
 用于构建其它库但不提供标准库头的整体替代或扩展。
 除标准库头外只直接依赖上述 YDefinition 的头文件或本节内前述的头文件，可被以下其它 YStandardEx 头文件依赖。
 
-@2.5.5.1 解引用操作 DereferenceOperation ：
+@2.5.5.1 类型检查元编程设施 Meta ：
+部分扩展标准库头 <type_traits> ，提供基本的类型特征和扩展的其它相关操作。
+
+@2.5.5.2 解引用操作 DereferenceOperation ：
 提供解引用操作检查的模板，作为迭代器操作的基础。
 同时也提供空（引用值）联合(null coalescing) 相关操作的模板。
 
-@2.5.5.2 C++ 变长参数相关操作 Variadic ：
+@2.5.5.3 C++ 变长参数相关操作 Variadic ：
 使用 ISO C++11 起提供的变长参数包(pack) 的特性提供序列等基本接口的模板库。
 
-@2.5.5.3 一元操作符 & 和取指针的相关接口 AddressOf
+@2.5.5.4 一元操作符 & 和取指针的相关接口 AddressOf
+提供 std::addressof 相关的接口。
+ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证支持。
 
-@2.5.5.4 放置对象管理操作 Placement
+@2.5.5.5 可调用对象和调用包装接口 Invoke ：
+间接扩展标准库头 <type_traits> 和 <functional> ，提供 std::invoke_result 等相关接口的替代实现。
 
-@2.5.5.5 共享存储和直接转换 TypePun ：
+@2.5.5.6 引用包装 Ref ：
+间接扩展标准库头 <functional> ，提供 std::wrapper_reference 相关接口及 ystdex::lref 等替代接口。
+
+@2.5.5.7 ISO C++ 类型特征扩展 TypeTraits ：
+间接扩展标准库头 <type_traits> ，包括元编程设施等。
+
+@2.5.5.8 放置对象管理操作 Placement
+
+@2.5.5.9 共享存储和直接转换 TypePun ：
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
-@2.5.5.6 整数序列元编程接口 IntegerSequence ：
-扩展了 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
+@2.5.5.10 整数序列元编程接口 IntegerSequence ：
+扩展 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
 
-@2.5.5.7 重载操作符 Operators
+@2.5.5.11 重载操作符 Operators
 
-@2.5.5.8 迭代器操作 IteratorOperation ：
-扩展了标准库头 <iterator> 中的部分接口。
+@2.5.5.12 迭代器操作 IteratorOperation ：
+扩展标准库头 <iterator> 中的部分接口。
 
-@2.5.5.9 通用指针 Pointer ：
+@2.5.5.13 通用指针 Pointer ：
 间接扩展标准库头 <iterator> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
 
 @2.5.6 ISO C++ 语言支持库扩展：
 以下头文件扩展 ISO C++ 标准定义的语言支持库([support.general]) 中的至少一个并可能扩展其它标准库头，提供对应的相似接口，不依赖以上文件外的 YStandardEx 头文件。
 
 @2.5.6.1 ISO C 标准整数类型操作 CStandardInteger ：
-头文件间接扩展了标准库头 <cstdint> ，提供一些类型操作和一些整数类型的模板特化以及模算术的基本支持。
+头文件间接扩展标准库头 <cstdint> ，提供一些类型操作和一些整数类型的模板特化以及模算术的基本支持。
 
 @2.5.6.2 标准库异常扩展接口 Exception ：
-扩展了标准库头 <exception> 、 <stdexcept> 和 <system_error> ，提供便利接口和若干异常基类。
+扩展标准库头 <exception> 、 <stdexcept> 和 <system_error> ，提供便利接口和若干异常基类。
 
 @2.5.6.3 ISO C++ 类型信息扩展 TypeInfo ：
-扩展了标准库头 <typeinfo> ，提供了无 RTTI 开销的静态类型信息类和兼容接口。
+扩展标准库头 <typeinfo> ，提供了无 RTTI 开销的静态类型信息类和兼容接口。
 
 @2.5.7 其它 ISO C++ 标准库扩展和替代：
 扩展或替代标准库文件，提供和标准库对应的相似接口，除 @2.5.1.2 外，不依赖之前提及以外的 YStandardEx 头文件。
-TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
+@2.5.5 中的扩展标准库头的同属此类别。
 
 @2.5.7.1 C++ 类型操作 TypeOperation
 
 @2.5.7.2 ISO C 标准信号扩展操作 CSignal ：
-头文件扩展了标准库头 <csignal> ，提供一些便利接口。
+头文件扩展标准库头 <csignal> ，提供一些便利接口。
 
 @2.5.7.3 ISO C 断言/调试跟踪扩展 CAssert ：
-头文件扩展了标准库头 <cassert> ，提供若干断言函数。这些函数提供无异常抛出保证的异常规范以便在隐式指定异常规范的无异常抛出的析构函数([Documentation::LanguageConvention @@5.10.5.6]) 中使用。
+头文件扩展标准库头 <cassert> ，提供若干断言函数。这些函数提供无异常抛出保证的异常规范以便在隐式指定异常规范的无异常抛出的析构函数([Documentation::LanguageConvention @@5.10.5.6]) 中使用。
 在库使用约定([Documentation::CommonRules @@3.13.2]) 和语言使用规约([Documentation::LanguageConvention @@6.3.3]) 的基础上使用方式同 <cassert> 和 <assert.h> （允许定义宏控制重复包含的内容）。
 
-@2.5.7.4 存储和智能指针特性 Memory
-扩展了标准库头 <memory> 并提供一些附加的接口。
+@2.5.7.4 可选对象类型 Optional ：
+提供 Boost.Optional 和 WG21 N4081 提议的 ISO C++ std::experiment::optional 的类似的可选值包装。
+
+@2.5.7.5 动态泛型类型 Any ：
+主要提供 Boost.Any 和提议的 ISO C++ std::experiment::any 的类似的基于类型擦除实现的用于保存运行时确定类型的值的对象，默认使用和 libstdc++ 5 类似的小对象优化实现。
+命名空间 any_ops 提供更多可供用户调整的内部接口。
+提供了一些其它不和 any 类直接相关的类型擦除接口。
+使用非零宏 YB_Use_LightweightTypeID 指定不依赖 RTTI 的 type_info 。
+
+@2.5.7.6 存储和智能指针特性 Memory ：
+扩展标准库头 <memory> 并提供一些附加的接口。
 其中，分配器 local_allocator 类似 std::allocator 可解除直接 new 调用的限制，和 std::allocator 不同的是同时也支持类作用域 operator new 覆盖默认行为。
 
-@2.5.7.5 交换操作 Swap ：
-扩展了标准库头 <utility> ，提供一些基于 std::swap 的交换操作，以及 std::exchange 的替代实现。
+@2.5.7.7 交换操作 Swap ：
+扩展标准库头 <utility> ，提供一些基于 std::swap 的交换操作，以及 std::exchange 的替代实现。
 
-@2.5.7.6 实用设施 Utilities ：
-间接扩展了标准库头 <utility> ，提供一些常用杂项功能。
+@2.5.7.8 实用设施 Utilities ：
+间接扩展标准库头 <utility> ，提供一些常用杂项功能。
 
-@2.5.7.7 ISO C 字符分类操作扩展 CCharacterCtype ：
-头文件扩展了标准库头 <cctype> ，提供一些扩展和替代实现。
+@2.5.7.9 ISO C 字符分类操作扩展 CCharacterCtype ：
+头文件扩展标准库头 <cctype> ，提供一些扩展和替代实现。
 
-@2.5.7.8 ISO C 标准字符串扩展 CString
+@2.5.7.10 ISO C 标准字符串扩展 CString
 
-@2.5.7.9 引用包装 Ref
+@2.5.7.11 只读字符串视图 StringView ：
+提供 WG21 N4081 提议的 ISO C++ std::experiment:: 的类似的可选值包装。
 
-@2.5.7.10 通用仿函数 Functor
+@2.5.7.12 通用仿函数 Functor
 
-@2.5.7.11 元组类型和操作 Tuple ：
-扩展了标准库头 <tuple> ，提供类型特征和序列相关的特化操作等。
+@2.5.7.13 元组类型和操作 Tuple ：
+扩展标准库头 <tuple> ，提供类型特征和序列相关的特化操作等。
 
-@2.5.7.12 函数和可调用对象 Functional ：
-扩展了标准库头 <functional> ，提供函数类型操作和各种一般调用的实现。
+@2.5.7.14 函数和可调用对象 Functional ：
+扩展标准库头 <functional> ，提供函数类型操作和各种一般调用的实现。
 
-@2.5.7.13 通用迭代器 Iterator ：
-间接扩展了标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
+@2.5.7.15 通用迭代器 Iterator ：
+间接扩展标准库头 <iterator> ，提供若干迭代器适配器和相关操作。
 
-@2.5.7.14 迭代器特征 IteratorTrait ：
+@2.5.7.16 迭代器特征 IteratorTrait ：
 扩展标准库头 <iterator> ，提供迭代器相关的类型特征。
 
-@2.5.7.15 泛型算法 Algorithm ：
-扩展了标准库头 <algorithm> ，提供一些泛型算法。
+@2.5.7.17 泛型算法 Algorithm ：
+扩展标准库头 <algorithm> ，提供一些泛型算法。
 除非另行指定，使用 first 和 last 为名称的参数指定同一个范围，否则不保证结果正确，可能引起未定义行为。
 
-@2.5.7.16 ISO C++ 标准字符串扩展 String ：
-间接扩展了标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
+@2.5.7.18 ISO C++ 标准字符串扩展 String ：
+间接扩展标准库头 <string> ，提供 std::char_traits 的扩展功能和对 std::basic_string 及类似类型的操作。
 
-@2.5.7.17 ISO C 宽字符分类操作扩展 CWideCharacterType ：
-头文件扩展了标准库头 <cwctype> ，提供一些替代实现。
+@2.5.7.19 ISO C 宽字符分类操作扩展 CWideCharacterType ：
+头文件扩展标准库头 <cwctype> ，提供一些替代实现。
 
-@2.5.7.18 数组操作 Array ：
-扩展了标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
+@2.5.7.20 数组操作 Array ：
+扩展标准库头 <array> ，提供内建数组和 std::array 相关类型的操作。
 
-@2.5.7.19 作为关联容器实现的树 Tree ：
+@2.5.7.21 作为关联容器实现的树 Tree ：
 提供一些例程用于作为关联容器实现的基础。
-当前暂时不公开 API ，但其中的 API 已被 Map(@2.5.7.B) 和 Set(@2.5.7.20) 中的容器二进制依赖。未来可能会提供基于树实现关联容器公共 API 。
+当前暂时不公开 API ，但其中的 API 已被 Map(@2.5.7.23) 和 Set(@2.5.7.24) 中的容器二进制依赖。未来可能会提供基于树实现关联容器公共 API 。
 
-@2.5.7.20 映射容器 Map ：
+@2.5.7.22 映射容器 Map ：
 和标准库头 <map> 类似，提供类模板作为和 ISO C++17 std::map 一致且支持不完整的键类型的实现。这些附加 ISO C++11 不保证的附加特性不依赖 ISO C++17 及其具体实现。
 
-@2.5.7.21 集合容器 Set ：
+@2.5.7.23 集合容器 Set ：
 扩展标准库头 <map> ，但提供和 std::set 类似的容器。
 
-@2.5.7.22 ISO C++ 标准流缓冲扩展 StreamBuffer ：
-扩展了标准库头 <streambuf> 。
+@2.5.7.24 ISO C++ 标准流缓冲扩展 StreamBuffer ：
+扩展标准库头 <streambuf> 。
 
-@2.5.7.23 ISO C++ 标准输入流扩展 InputStream ：
-扩展了标准库头 <istream> 。
+@2.5.7.25 ISO C++ 标准输入流扩展 InputStream ：
+扩展标准库头 <istream> 。
 
-@2.5.7.24 ISO C 标准输入/输出扩展 CStandardIO ：
-头文件扩展了标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
+@2.5.7.26 ISO C 标准输入/输出扩展 CStandardIO ：
+头文件扩展标准库头 <cstdio> ，提供 C/C++ 流操作模式参数的转换和 C 标准库输入的迭代器包装。
 
-@2.5.7.25 ISO C++ <future> 扩展 Future ：
-扩展了标准库头 <future> ，提供一些别名模板和便利接口。
+@2.5.7.27 ISO C++ <future> 扩展 Future ：
+扩展标准库头 <future> ，提供一些别名模板和便利接口。
 
-@2.5.7.26 伪互斥量 PseudoMutex ：
+@2.5.7.28 伪互斥量 PseudoMutex ：
 提供单线程环境下互斥量和锁接口，作为标准库 <mutex> 的替代。
 
 @2.5.8 其它扩展接口：
@@ -389,42 +421,30 @@ TypeTraits(@2.5.4.1) 和 Range(@2.5.4.2) 同属此类别。
 @2.5.8.4 枚举相关操作 Enum ：
 提供枚举相关操作和类型。
 
-@2.5.8.5 可选值包装类型 Optional ：
-提供 Boost.Optional 和 WG21 N4081 提议的 ISO C++ std::experiment::optional 的类似的可选值包装。
+@2.5.8.5 动态泛型迭代器 AnyIterator ：
+基于 ystdex::any(@2.5.7.B) 实现的用于保存运行时确定类型迭代器的对象。
 
-@2.5.8.6 动态泛型类型 Any ：
-主要提供 Boost.Any 和提议的 ISO C++ std::experiment::any 的类似的基于类型擦除实现的用于保存运行时确定类型的值的对象，默认使用和 libstdc++ 5 类似的小对象优化实现。
-命名空间 any_ops 提供更多可供用户调整的内部接口。
-提供了一些其它不和 any 类直接相关的类型擦除接口。
-使用非零宏 YB_Use_LightweightTypeID 指定不依赖 RTTI 的 type_info 。
-
-@2.5.8.7 动态泛型迭代器 AnyIterator ：
-基于 ystdex::any(@2.5.8.6) 实现的用于保存运行时确定类型迭代器的对象。
-
-@2.5.8.8 只读字符串视图 StringView ：
-提供 WG21 N4081 提议的 ISO C++ std::experiment:: 的类似的可选值包装。
-
-@2.5.8.9 基于类继承的混入接口 Mixin ：
+@2.5.8.6 基于类继承的混入接口 Mixin ：
 提供基本的混入接口类型。
 
-@2.5.8.10 间接和惰性求值 Thunk ：
+@2.5.8.7 间接和惰性求值 Thunk ：
 提供组合惰性求值的可调用对象。
 
-@2.5.8.11 作用域守卫 ScopeGuard
+@2.5.8.8 作用域守卫 ScopeGuard
 
-@2.5.8.12 有理数运算 Rational ：
+@2.5.8.9 有理数运算 Rational ：
 提供定点数模板等有理数算术类型接口。
 
-@2.5.8.13 位段数据结构和访问 BitSegment ：
+@2.5.8.10 位段数据结构和访问 BitSegment ：
 提供访问位集合的类型和操作。
 
-@2.5.8.14 并发操作 Concurrency ：
+@2.5.8.11 并发操作 Concurrency ：
 提供线程池等实用并发特性。
 
-@2.5.8.15 抽象路径模板 Path ：
+@2.5.8.12 抽象路径模板 Path ：
 提供抽象的路径模板及操作。
 
-@2.5.8.16 高速缓冲容器模板 Cache ：
+@2.5.8.13 高速缓冲容器模板 Cache ：
 提供抽象的缓冲容器模板及操作。
 
 @2.6 LibDefect ：

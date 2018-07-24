@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2638
+\version r2649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-07-12 18:20 +0800
+	2018-07-23 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,23 +31,24 @@
 #define YB_INC_ystdex_memory_hpp_ 1
 
 #include "placement.hpp" // for "placement.hpp", <memory>, and_,
-//	is_copy_constructible, is_class_type, cond_t, is_detected, vdefer,
-//	std::declval, detected_or_t, detected_t, conditional, indirect_element_t,
-//	remove_reference_t, not_, is_void, remove_pointer_t,
-//	yconstraint, is_pointer, enable_if_t, is_array, extent, remove_extent_t,
+//	is_copy_constructible, cond_t, is_detected, std::declval, detected_or_t,
+//	detected_t, conditional, enable_if_convertible_t, indirect_element_t,
+//	remove_reference_t, not_, is_void, remove_pointer_t, yconstraint,
+//	is_pointer, enable_if_t, is_array, extent, remove_extent_t,
 //	ystdex::construct_within, is_polymorphic;
-#include "pointer.hpp" // for "pointer.hpp", ystdex::swap_dependent;
+#include "integer_sequence.hpp" // for is_class_type, vdefer;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
+#include "pointer.hpp" // for "pointer.hpp", ystdex::swap_dependent;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, std::hash;
 
-#if YB_IMPL_MSCPP >= 1800
 /*!
 \brief \<memory\> 特性测试宏。
-\see WG21 P0096R1 3.5 。
+\see WG21 P0941R2 2.2 。
 \since build 628
 */
-#	ifndef __cpp_lib_make_unique
+#ifndef __cpp_lib_make_unique
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus > 201103L
 #		define __cpp_lib_make_unique 201304
 #	endif
 #endif
@@ -935,7 +936,7 @@ share_raw(nullptr_t, _tParams&&... args) ynothrow
 inline namespace cpp2014
 {
 
-#if __cpp_lib_make_unique >= 201304 || __cplusplus > 201103L
+#if __cpp_lib_make_unique >= 201304
 //! \since build 617
 using std::make_unique;
 #else

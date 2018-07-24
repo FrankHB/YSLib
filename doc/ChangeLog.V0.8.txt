@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r3990
+\version r4205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-07-18 21:50 +0800
+	2018-07-25 01:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,221 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ $re_add(b831) "conditionally-defined macros %(__cpp_lib_byte, \
+				__cpp_lib_transformation_trait_aliases, \
+				__cpp_lib_is_invocable, __cpp_lib_is_null_pointer)",
+			/ "alias %byte" ^ 'using std::byte;' @ '__cpp_lib_byte >= 201603'
+				$dep_from "%__cpp_lib_byte",
+			- DLDI "'|| __cplusplus >= 201703L'" @ "condition"
+				@ "macro %yconstexpr_inline",
+				// As SD-6 feature testing recommendations, '__cplusplus' \
+					often gives wrong answer. Also cleaner.
+			+ ' || __cplusplus > 201103L' @ "condition" @ "macros \
+				%(__cpp_lib_integer_sequence, __cpp_lib_exchange_function, \
+				__cpp_lib_tuple_element_t)",
+			+ ' || __cplusplus >= 201703L' @ "condition"
+				@ "macros %(__cpp_lib_bool_constant, __cpp_lib_void_t)"
+		),
+		/ %YStandardEx $=
+		(
+			(
+			+ %(IntegralConstant, (TypeInspection; Meta)) "from %TypeTraits" $=
+			(
+				/ $doc "Doxygen groups %(template_meta_programing, meta_types, \
+					meta_operations, metafunctions)" >> %IntegralConstant,
+				/ $doc "Doxygen groups %(type_traits_operations, \
+					unary_type_traits, binary_type_traits, \
+					transformation_traits)" >> %Meta,
+				/ "aliases %(integral_constant, true_type, false_type), types \
+					'*_'" >> %IntegralConstants,
+				/ "meta type %bool_constant"
+					>> ("inline namespace %cpp2017" @ %IntegralConstant),
+				(
+				/ "metafunctions %(and_, or_, not_, conjunction, disjunction, \
+					negation)" >> %IntegralConstant,
+				/ "type traits with name pattern 'is_*' except %is_literal_type"
+					@ "inline namespaces" >> %TypeInspection,
+				+ "inclusion %(IntegralConstant, TypeInspection)" @ %Meta;
+				+ "binary type traits %(is_explicitly_constructible, \
+					is_explicitly_nothrow_constructible, \
+					is_implicitly_constructible, \
+					is_implicitly_nothrow_constructible)" @ %Meta
+				),
+				/ "type traits %(has_virtual_destructor, alignment_of, rank, \
+					extent)" >> %TypeInspection,
+				+ "unary type trait %is_null_pointer"
+					@ "inline namespace %cpp2014" @ %TypeInspection ^ $dep_from
+					("%__cpp_lib_is_null_pointer" @ %YDefiniton),
+				(
+				/ "transformation traits" @ "inline namespaces" >> %Meta,
+				/ "unary and binary type traits" @ "namespace %ystdex" >> %Meta;
+				/ "metafunctions %(always; well_formed_t, void_t, (when; \
+					when_valid, enable_when), cond_t, exclude_self_t, \
+					'enable_if_*')" >> %Meta,
+				),
+				/ "types %(nonsuch, any_constructible); metafunctions \
+					('_*detected', 'detected_*')" >> %Meta,
+			),
+			+ DLDI "inclusion %TypeTraits" @ %(Functor, Swap),
+			+ DLDI "inclusion %IntegerSequence" @ %Memory; 
+			/ DLDI "inclusion %TypeTraits" @ %AddressOf
+				-> "%(IntegralConstant, Meta)",
+			/ DLDI "inclusion %TypeTraits"
+				@ %(DereferenceOperation, Future, TypeInfo, Variadic)
+				-> "%Meta",
+			- DLDI "inclusion %TypeTraits" @ %Thunk
+			),
+			- DLDI "static assertion for %nullopt type" @ %Optional,
+			/ %TypeTraits $=
+			(
+				// These traits are deprecated in ISO C++17.
+				- "type trait %is_literal_type" $dep_from %Optional,
+				- "type traits %(result_of_t; result_of)" $dep_from
+					(%(Ref, Iterator), "removal of result_of",
+					%YFramework.YSLib.Core.YFunc)
+			),
+			/ %Memory $=
+			(
+				+ "conditionally defined macro %__cpp_lib_addressof_constexpr";
+				/ "condition for 'using std::addressof';"
+					-> '__cpp_lib_addressof_constexpr >= 201606'
+					~ '__cplusplus >= 201703L'
+			),
+			/ %Ref $=
+			(
+				+ "condition '|| __cplusplus >= 201402L'"
+					@ "macro %__cpp_lib_transparent_operators",
+				+ "condition '|| __cplusplus >= 201703L'"
+					@ "macro %__cpp_lib_invoke",
+				(
+				+ "inclusion %Invoke" $dep_from %Invoke;
+				/ @ "function %operator()" @ "class template %lref"
+					$dep_from %Invoke $=
+				(
+					/ "return type" ^ "%invoke_result_t" ~ "%result_of_t";
+					/ "call" ^ "%invoke"
+				)
+				)
+			),
+			- DLDI '|| __cplusplus >= 201402L' @ "condition"
+				@ "inline namespace %cpp2014" @ %Functor $dep_from
+				("%__cpp_lib_transparent_operators" @ %Ref),
+			(
+			+ "condition '|| __cplusplus > 201103L'" @ "macro \
+				%__cpp_lib_robust_nonmodifying_seq_ops" @ %Functor;
+			- DLDI '__cplusplus > 201103L' @ "condition"
+				@ "function template %equal"
+			),
+			- DLDI '|| __cplusplus > 201103L' @ "conditions" @ %IntegerSequence
+				$dep_from ("%__cpp_lib_integer_sequence" @ %YDefinition),
+			/ %Memory $=
+			(
+				+ '|| __cplusplus > 201103L' @ "condition"
+					@ "macro %__cpp_lib_make_unique";
+				- DLDI '|| __cplusplus > 201103L' @ "condition"
+					@ 'using std::make_unique;'
+			),
+			/ %Range $=
+			(
+				* "wrong feature testing macro \
+					'__cpp_lib_nonmember_container_access__cplusplus'"
+					$since b831,
+				+ "conditionally defined macro %__cpp_lib_make_reverse_iterator"
+			),
+			- '|| __cplusplus > 201103L' @ "condition" @ "%std::exchange"
+				@ %Swap $dep_from ("%__cpp_lib_exchange_function"
+				@ %YDefinition),
+			- DLDI '|| __cplusplus > 201103L' @ "condition"
+				@ 'using std::tuple_element_t;' @ %Tuple
+				$dep_from ("%__cpp_lib_tuple_element_t" @ %YDefinition),
+			- DLDI '|| __cplusplus > 201103L' @ "condition"
+				@ 'using std::make_reverse_iterator;' @ %IteratorOperation
+				$dep_from ("%__cpp_lib_make_reverse_iterator" @ %Range),
+			+ %Invoke "from %Functional" $dep_from %Meta $=
+			(
+				/ $dep_from "macros %(__cpp_lib_transparent_operators, \
+					__cpp_lib_invoke)" @ %Ref >> %Invoke,
+				+ "transformation traits %(invoke_mem_fn_ref_t, \
+					invoke_mem_fn_deref_t, invoke_mem_obj_ref_t, \
+					invoke_mem_obj_deref_t, invoke_other_t)",
+				+ "unary type trait %is_std_reference_wrapper";
+				+ "traits %(is_invocable, is_invocable_r, \
+					is_nothrow_invocable, is_nothrow_invocable_r, \
+					invoke_result, invoke_result_t)"
+					@ "inline namespace %cpp2017" ^ $dep_from
+					("%__cpp_lib_is_invocable" @ %YDefinition,
+					"%is_implicitly_nothrow_constructible" @ %Meta),
+					// P0604R0.
+				/ "transformation trait %member_target_type_t" @ %TypeOperation
+					>> %Invoke;
+				(
+				/ "struct pseudo_output; metafunctions %(nonvoid_result_t, \
+					object_result_t)" @ %Ref >> %Invoke;
+				/ "function templates %(invoke, invoke_nonvoid)" >> %Invoke $=
+					// P0604R0.
+				(
+					/ "return type" ^ "%invoke_result_t" ~ "%result_of_t",
+					+ "noexcept-specification" ^ $dep_from
+						"%is_nothrow_invocable",
+					/ "supported overloads specific to %reference_wrapper \
+						instances"
+				)
+			),
+			/ "function template %call_value_for" -> "%invoke_value_for"
+				@ %Functional ^ $dep_from "%invoke_result_t" ~ "%result_of_t",
+			/ "guaranteed type %void" @ "macros %(yconstraint, yassume)"
+				@ %CAssert,
+			/ %Iterator $=
+			(
+				/ "%transformed_iterator traits" @ %Iterator
+					^ "%invoke_result_t" ~ "%result_of_t";
+				/ "call" @ "function %operator*"
+					@ "class template %transformed_iterator" @ %Iterator
+					^ $dep_from ("%ystdex::invoke" @ %Invoke)
+			)
+		)
+	),
+	/ @ "all Microsoft VC++ projects" @ "platform %Win32" $=
+	(
+		/ $re_ex(b617) DLB "updated 'WindowsTargetPlatformVersion' value to \
+			'10.0.17134.0'" ~ '8.1',
+			// This makes them use project default settings defaulted by \
+				toolchain settings.
+		/ "specified 'PlatformToolset' value to 'v141'"
+			// This defaults VS 2010.
+		/ "specified language option '/std:c++latest'"
+	),
+	* $comp "probable wrong behavior with overloaded %operator, on parameters"
+		$effective % $dep_from %YBase.YStandardEx.CAssert $effective
+		@ %YBase.YStandardEx.(Algorithm, CString, Functional, $dep_from Invoke,
+		Pointer, String, StringView) $since b612,
+		// This only occurs as 'return yconstraint', first in \
+			%YBase.YStandardEx.Functional.
+	/ $dev "all remained use of %ystdex::result_of_t" -> $dep_from
+		("%ystdex::invoke_result_t" @ %YBase.YStandard.Invoke)
+		$effective @ (%("function templates %retry_on_cond" @ %Functional,
+		"alias templates %(future_result_t, packed_task_t)" @ %Future,
+		"return type" @ "all 2 function templates %make_thunk" @ %Thunk)
+		@ %YBase.YStandardEx, (DLDI %'YCLib_(DS)'.DSIO),
+		("function templates %(CallNothrow, RetryOnError, RetryOnInterrupted)"
+		@ %YCommon, DLDI %FileIO) @ %YCLib, "return type" @ "%TryInvoke"
+		@ %YSLib.Core.YException) @ %YFramework) $dep_to "removal of result_of",
+	/ %YFramework.YSLib $=
+	(
+		/ "function template %Call" -> "%Invoke" @ "class template \
+			%GHandlerRegisterBase" @ Core.YFunc
+			^ "%ystdex::(invoke_result_t, invoke)" ~ "%ystdex::result_of_t";
+		/ $forced DLDI
+			"member functions WidgetLoader::(DetectWidgetNode, LoadUILayout)"
+	)
+),
+
+b831
 (
 	/ $re_add(b830) DLDI "all template parameter '_tValue' not designating \
 		container elements" => '_type' $effective @ ("all 3 %any_cast \
@@ -147,7 +362,7 @@ $now
 					(
 					+ "metafunction %optional_relop_t";
 					* "rational operation definitions in terms of underlying \
-						rational operations" !^ "%totally_ordered" $since b,
+						rational operations" !^ "%totally_ordered" $since b591,
 						// WG21 N3765.
 					),
 					+ "(copy, move) (constructors, operator=) with conditonal \

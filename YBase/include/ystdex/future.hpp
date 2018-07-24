@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file future.hpp
 \ingroup YStandardEx
 \brief 标准库\c \<future\> 扩展。
-\version r120
+\version r125
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 10:12:00 +0800
 \par 修改时间:
-	2016-09-21 15:40 +0800
+	2018-07-25 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_future_hpp_
 #define YB_INC_ystdex_future_hpp_ 1
 
-#include "type_traits.hpp" // for false_, true_, decay_t, result_of_t;
+#include "invoke.hpp" // for false_, true_, decay_t, invoke_result_t;
 #include <future> // for std::future, std::packaged_task_t;
 #include <libdefect/exception.h> // for std::exception_ptr;
 #include <memory> // for std::shared_ptr;
@@ -82,13 +82,12 @@ make_ready_future(std::exception_ptr p)
 
 //! \since build 623
 template<typename _fCallable, typename... _tParams>
-using future_result_t
-	= std::future<result_of_t<_fCallable&&(_tParams&&...)>>;
+using future_result_t = std::future<invoke_result_t<_fCallable, _tParams...>>;
 
 //! \since build 358
 template<typename _fCallable, typename... _tParams>
 using packed_task_t
-	= std::packaged_task<result_of_t<_fCallable&&(_tParams&&...)>()>;
+	= std::packaged_task<invoke_result_t<_fCallable, _tParams...>()>;
 
 
 //! \since build 359

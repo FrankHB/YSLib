@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r735
+\version r737
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2016-10-23 22:14 +0800
+	2018-07-20 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ inline namespace cpp2014
 \since build 477
 */
 //@{
-#if __cpp_lib_tuple_element_t >= 201402 || __cplusplus > 201103L
+#if __cpp_lib_tuple_element_t >= 201402
 using std::tuple_element_t;
 #else
 template<size_t _vIdx, typename _type>

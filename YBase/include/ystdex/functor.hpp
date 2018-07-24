@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r903
+\version r911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2018-07-14 23:00 +0800
+	2018-07-25 00:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,18 +31,19 @@
 #define YB_INC_ystdex_functor_hpp_ 1
 
 #include "ref.hpp" // for <functional>, enable_if_t, is_detected,
-//	ystdex::addressof, not_, or_, is_reference_wrapper, and_,
-//	ystdex::addrof_t, ystdex::indirect_t, ystdex::first_t, ystdex::second_t;
+//	ystdex::addressof, not_, or_, is_reference_wrapper, and_;
+#include "type_traits.hpp" // for ystdex::addrof_t, ystdex::indirect_t,
+//	ystdex::first_t, ystdex::second_t;
 #include <string> // for std::char_traits;
 #include <algorithm> // for std::lexicographical_compare;
 
-#if YB_IMPL_MSCPP >= 1900
 /*!
 \brief \<algorithm\> 特性测试宏。
-\see WG21 P0096R1 3.5 。
+\see WG21 P0941R2 2.2 。
 \since build 628
 */
-#	ifndef __cpp_lib_robust_nonmodifying_seq_ops
+#ifndef __cpp_lib_robust_nonmodifying_seq_ops
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus > 201103L
 #		define __cpp_lib_robust_nonmodifying_seq_ops 201304
 #	endif
 #endif
@@ -307,7 +308,7 @@ struct is_equal
 inline namespace cpp2014
 {
 
-#if __cpp_lib_transparent_operators >= 201210 || __cplusplus >= 201402L
+#if __cpp_lib_transparent_operators >= 201210
 using std::plus;
 using std::minus;
 using std::multiplies;

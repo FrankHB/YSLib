@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="debug|Win32">
       <Configuration>debug</Configuration>
@@ -45,6 +45,8 @@
     <ClInclude Include="include\ystdex\future.hpp" />
     <ClInclude Include="include\ystdex\hash.hpp" />
     <ClInclude Include="include\ystdex\integer_sequence.hpp" />
+    <ClInclude Include="include\ystdex\integral_constant.hpp" />
+    <ClInclude Include="include\ystdex\invoke.hpp" />
     <ClInclude Include="include\ystdex\ios.hpp" />
     <ClInclude Include="include\ystdex\istream.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
@@ -52,6 +54,7 @@
     <ClInclude Include="include\ystdex\iterator_trait.hpp" />
     <ClInclude Include="include\ystdex\map.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />
+    <ClInclude Include="include\ystdex\meta.hpp" />
     <ClInclude Include="include\ystdex\mixin.hpp" />
     <ClInclude Include="include\ystdex\operators.hpp" />
     <ClInclude Include="include\ystdex\optional.h" />
@@ -73,6 +76,7 @@
     <ClInclude Include="include\ystdex\tstring_view.hpp" />
     <ClInclude Include="include\ystdex\tuple.hpp" />
     <ClInclude Include="include\ystdex\typeinfo.h" />
+    <ClInclude Include="include\ystdex\type_inspection.hpp" />
     <ClInclude Include="include\ystdex\type_op.hpp" />
     <ClInclude Include="include\ystdex\type_pun.hpp" />
     <ClInclude Include="include\ystdex\type_traits.hpp" />
@@ -100,7 +104,7 @@
     <ProjectGuid>{0D1961C7-0E8F-47CD-A2FB-D7920A469E51}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
     <ProjectName>YBase</ProjectName>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
@@ -155,6 +159,8 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <BuildLog>
       <Path>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\$(MSBuildProjectName).log</Path>
@@ -169,6 +175,8 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <BuildLog>
       <Path>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\$(MSBuildProjectName).log</Path>

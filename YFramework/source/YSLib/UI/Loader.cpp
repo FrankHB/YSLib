@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r358
+\version r364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2016-02-24 10:26 +0800
+	2018-07-25 01:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,10 +86,10 @@ WidgetLoader::DetectWidgetNode(const ValueNode& node)
 			{
 				const Rect& bounds(ParseRect(*p_bounds_str));
 
-				return Bounds.Call(*p_type_str, bounds);
+				return Bounds.Invoke(*p_type_str, bounds);
 			}
 			CatchIgnore(std::invalid_argument&)
-		return Default.Call(*p_type_str);
+		return Default.Invoke(*p_type_str);
 	}
 	return {};
 }
@@ -145,10 +145,10 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 								auto& wgt(*wgt_ptr);
 
 								if(insz && (p_z || !ins))
-									InsertZOrdered.Call(key, *p_new_widget, wgt,
-										z);
+									InsertZOrdered.Invoke(key, *p_new_widget,
+										wgt, z);
 								else
-									Insert.Call(key, *p_new_widget, wgt);
+									Insert.Invoke(key, *p_new_widget, wgt);
 							}
 						}
 					}

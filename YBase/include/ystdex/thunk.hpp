@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file thunk.hpp
 \ingroup YStandardEx
 \brief 间接和惰性求值。
-\version r221
+\version r231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:32:13 +0800
 \par 修改时间:
-	2016-10-01 23:50 +0800
+	2018-07-25 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,10 @@
 #ifndef YB_INC_ystdex_thunk_hpp_
 #define YB_INC_ystdex_thunk_hpp_ 1
 
-#include "type_traits.hpp" // for decay_t, std::forward, exclude_self_t,
-//	enable_if_t, is_same, remove_reference_t, enable_if_convertible_t,
-//	std::move, result_of_t;
-#include "functional.hpp" // for is_reference_wrapper, unwrap_reference_t,
-//	ystdex::invoke;
+#include "functional.hpp" // for unwrap_reference_t, decay_t, std::forward,
+//	is_reference_wrapper, enable_if_t, exclude_self_t, is_same,
+//	remove_reference_t, std::move, enable_if_convertible_t, ystdex::invoke,
+//	invoke_result_t;
 
 namespace ystdex
 {
@@ -160,18 +159,18 @@ public:
 /*!
 \brief 构造延迟调用对象。
 \relates thunk
-\since build 526
+\since build 832
 */
 //@{
 template<typename _fCallable>
-thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>
+thunk<invoke_result_t<_fCallable>, decay_t<_fCallable>>
 make_thunk(_fCallable&& f)
 {
-	return thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>(yforward(f));
+	return thunk<invoke_result_t<_fCallable>, decay_t<_fCallable>>(yforward(f));
 }
 //! \todo 使用 ISO C++14 返回值推导，直接以 lambda 表达式实现。
 template<typename _type>
-yimpl(enable_if_t<sizeof(result_of_t<_type()>) != 0,
+yimpl(enable_if_t<sizeof(invoke_result_t<_type>) != 0,
 	details::thunk_call_proxy<_type>>)
 make_thunk(const _type& obj)
 {

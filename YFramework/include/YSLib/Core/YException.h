@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YException.h
 \ingroup Core
 \brief 异常处理模块。
-\version r619
+\version r624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2016-08-28 14:51 +0800
+	2018-07-25 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,8 @@
 #include <stdexcept> // for mandated header;
 #include YFM_YSLib_Adaptor_YTextBase // for string_view;
 #include <string> // for std::string;
-#include <ystdex/functional.hpp> // for ystdex::non_void_result_t,
-//	ystdex::result_of_t, ystdex::invoke_nonvoid;
+#include <ystdex/functional.hpp> // for ystdex::nonvoid_result_t,
+//	ystdex::invoke_result_t, ystdex::invoke_nonvoid;
 
 namespace YSLib
 {
@@ -182,7 +182,7 @@ TryExecute(std::function<void()>, const char* = {}, RecordLevel = Alert,
 \since build 702
 */
 template<typename _fCallable, typename... _tParams>
-ystdex::nonvoid_result_t<ystdex::result_of_t<_fCallable&&(_tParams&&...)>>
+ystdex::nonvoid_result_t<ystdex::invoke_result_t<_fCallable, _tParams...>>
 TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 {
 	TryRet(ystdex::invoke_nonvoid(yforward(f), yforward(args)...))
@@ -193,7 +193,7 @@ TryInvoke(_fCallable&& f, _tParams&&... args) ynothrow
 
 /*!
 \brief 调用函数并过滤宿主异常。
-\note 使用 ADL \c TryInvoke 和 \c TryExecute 。
+\note 使用 ADL TryInvoke 和 TryExecute 。
 \since build 624
 
 对参数指定的函数求值，并捕获和跟踪记录所有异常。

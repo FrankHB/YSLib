@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3822
+\version r3834
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2016-09-17 17:36 +0800
+	2018-07-25 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Platform
-#include <ystdex/functional.hpp> // for ystdex::decay_t, ystdex::result_of_t,
-//	ystdex::retry_on_cond;
+#include <ystdex/functional.hpp> // for ystdex::decay_t,
+//	ystdex::invoke_result_t, ystdex::retry_on_cond;
 #include <ystdex/cassert.h> // yconstraint, yassume for other headers;
 #include <ystdex/cwctype.h> // for ystdex::isprint, ystdex::iswprint;
 #include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
@@ -224,11 +224,11 @@ wcast(_tChar* p) ynothrow
 
 /*!
 \brief 调用并捕获异常。
-\since build 720
+\since build 832
 */
 template<typename _func, typename... _tParams>
-ystdex::result_of_t<_func(_tParams&&...)>
-CallNothrow(const ystdex::result_of_t<_func(_tParams&&...)>& v, _func f,
+ystdex::invoke_result_t<_func, _tParams...>
+CallNothrow(const ystdex::invoke_result_t<_func, _tParams...>& v, _func f,
 	_tParams&&... args) ynothrowv
 {
 	TryRet(f(yforward(args)...))
@@ -239,11 +239,11 @@ CallNothrow(const ystdex::result_of_t<_func(_tParams&&...)>& v, _func f,
 
 /*!
 \brief 循环重复操作。
-\since build 625
+\since build 832
 */
 template<typename _func, typename _tErrorRef,
 	typename _tError = ystdex::decay_t<_tErrorRef>,
-	typename _type = ystdex::result_of_t<_func&()>>
+	typename _type = ystdex::invoke_result_t<_func&>>
 _type
 RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
 {
@@ -254,9 +254,9 @@ RetryOnError(_func f, _tErrorRef&& err, _tError e = _tError())
 
 /*!
 \brief 循环可能被中断的操作。
-\since build 721
+\since build 832
 */
-template<typename _func, typename _type = ystdex::result_of_t<_func&()>>
+template<typename _func, typename _type = ystdex::invoke_result_t<_func&>>
 inline _type
 RetryOnInterrupted(_func f)
 {
@@ -302,8 +302,8 @@ enum class SystemOption
 /*!
 \brief 取限制配置。
 \return 选项存在且值能被返回类型表示时为转换后的对应选项值，否则为默认常数值。
-\note 若无 YB_STATELESS 修饰，当找不到项时，可能使用跟踪输出警告。
-\note 若无 YB_STATELESS 修饰，当找不到项时，可能设置 errno 为 EINVAL 。
+\note 除非 YB_STATELESS 修饰，当找不到项时，可能使用跟踪输出警告。
+\note 除非 YB_STATELESS 修饰，当找不到项时，可能设置 errno 为 EINVAL 。
 \sa SystemOption
 \sa YTraceDe
 

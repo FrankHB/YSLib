@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4358
+\version r4362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2018-05-22 15:55 +0800
+	2018-07-24 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 #	include YFM_YSLib_Core_YException // for YSLib::TryInvoke,
 //	YSLib::FilterExceptions;
 #	include <ystdex/functional.hpp> // for std::all_of,
-//	ystdex::common_nonvoid_t, ystdex::call_for_value;
+//	ystdex::common_nonvoid_t, ystdex::invoke_result_t, ystdex::invoke_for_value;
 #	include "CHRLib/YModules.h"
 #	include YFM_CHRLib_CharacterProcessing // for ystdex::read_uint_le,
 //	ystdex::write_uint_le, CHRLib::MakeUCS2LE, ystdex::ntctsicmp,
@@ -2053,8 +2053,8 @@ namespace
 {
 
 template<typename _func, typename... _tParams>
-using FilterRes = ystdex::common_nonvoid_t<ystdex::result_of_t<
-	_func(_tParams&&...)>, int>;
+using FilterRes = ystdex::common_nonvoid_t<
+	ystdex::invoke_result_t<_func, _tParams...>, int>;
 
 inline PDefH(int, seterr, int& re, int e) ynothrow
 	ImplRet(re = e, -1)
@@ -2072,7 +2072,7 @@ FilterDevOps(::_reent* r, _func f) ynothrowv -> FilterRes<_func>
 	static yconstexpr const auto
 		de_val(std::is_pointer<fres_t>::value ? res_t() : res_t(-1));
 
-	TryRet(ystdex::call_for_value(0, f))
+	TryRet(ystdex::invoke_for_value(0, f))
 	CatchExpr(std::system_error& e, seterr(r, e.code().value()))
 	CatchExpr(std::bad_alloc&, seterr(r, ENOMEM))
 	CatchExpr(..., YAssert(false, "Invalid exception found."))

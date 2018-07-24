@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r399
+\version r463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2018-07-14 22:57 +0800
+	2018-07-25 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,26 +32,8 @@
 
 #include "addressof.hpp" // for "addressof.hpp", ystdex::addressof, false_,
 //	true_, exclude_self_t, cond_t, not_, is_object;
-#include <functional> // for std::reference_wrapper;
-
-/*!
-\brief \<functional\> 特性测试宏。
-\see WG21 P0096R1 3.5 。
-\see https://blogs.msdn.microsoft.com/vcblog/2015/06/19/c111417-features-in-vs-2015-rtm/ 。
-\since build 679
-*/
-//@{
-#if YB_IMPL_MSCPP >= 1800
-#	ifndef __cpp_lib_transparent_operators
-#		define __cpp_lib_transparent_operators 201210
-#	endif
-#endif
-#if YB_IMPL_MSCPP >= 1900
-#	ifndef __cpp_lib_invoke
-#		define __cpp_lib_invoke 201411
-#	endif
-#endif
-//@}
+#include "invoke.hpp" // for "invoke.hpp", std::reference_wrapper,
+//	invoke_result_t, ystdex::invoke;
 
 namespace ystdex
 {
@@ -113,13 +95,13 @@ public:
 
 	/*!
 	\pre 要求对象是完整类型。
-	\since build 731
+	\since build 832
 	*/
 	template<typename... _tParams>
-	yconstfn result_of_t<_type&(_tParams&&...)>
+	yconstfn invoke_result_t<_type&, _tParams...>
 	operator()(_tParams&&... args) const
 	{
-		return (*ptr)(yforward(args)...);
+		return ystdex::invoke(*ptr, yforward(args)...);
 	}
 };
 
@@ -153,7 +135,7 @@ cref(const _type&&) = delete;
 
 /*!
 \ingroup unary_type_traits
-\brief 判断模板参数指定的类型是否。
+\brief 判断模板参数指定的类型是否为引用包装的实例。
 \note 接口含义类似 boost::is_reference_wrapper 。
 \since build 675
 */
@@ -298,53 +280,6 @@ public:
 		return const_cast<void*>(ptr);
 	}
 };
-
-
-/*!
-\brief 伪输出对象。
-\note 吸收所有赋值操作。
-\since build 273
-*/
-struct pseudo_output
-{
-	//! \since build 690
-	//@{
-	template<typename... _tParams>
-	yconstfn
-	pseudo_output(_tParams&&...) ynothrow
-	{}
-
-	template<typename _tParam,
-		yimpl(exclude_self_t<pseudo_output, _tParam>)>
-	yconstfn const pseudo_output&
-	operator=(_tParam&&) const ynothrow
-	{
-		return *this;
-	}
-	template<typename... _tParams>
-	yconstfn const pseudo_output&
-	operator()(_tParams&&...) const ynothrow
-	{
-		return *this;
-	}
-	//@}
-};
-
-
-/*!
-\ingroup metafunctions
-\since build 636
-\see 关于相关的核心语言特性： WG21 P0146R0 。
-*/
-//@{
-//! \brief 若类型不是空类型则取后备结果类型（默认为 pseudo_output ）。
-template<typename _type, typename _tRes = pseudo_output>
-using nonvoid_result_t = cond_t<not_<is_void<_type>>, _type, pseudo_output>;
-
-//! \brief 若类型不是对象类型则取后备结果类型（默认为 pseudo_output ）。
-template<typename _type, typename _tRes = pseudo_output>
-using object_result_t = cond_t<is_object<_type>, _type, pseudo_output>;
-//@}
 
 } // namespace ystdex;
 
