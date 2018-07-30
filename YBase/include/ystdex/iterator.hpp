@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6034
+\version r6041
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2018-07-25 01:09 +0800
+	2018-07-30 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,16 +38,6 @@
 
 namespace ystdex
 {
-
-/*!	\defgroup iterators Iterators
-\brief 迭代器。
-*/
-
-/*!	\defgroup iterator_adaptors Iterator Adaptors
-\ingroup iterators
-\brief 迭代器适配器。
-*/
-
 
 /*!
 \ingroup iterator_adaptors

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2000
+\version r2761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2017-08-15 01:58 +0800
+	2018-07-30 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,14 +28,15 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "memory.hpp" // for remove_rcv_t, false_, is_object, decay_t,
-//	std::declval, true_, nested_allocator, is_enum, is_class;
-#include <libdefect/string.h> // for std::char_traits, std::initializer_list,
-//	std::to_string;
+#include "memory.hpp" // for allocator_traits, enable_if_t, remove_cvref_t,
+//	false_, is_object, decay_t, std::declval, true_, nested_allocator, or_,
+//	is_same, is_enum, is_class;
+#include "string_view.hpp" // for "string_view.hpp" (implying "range.hpp"),
+//	basic_string_view, std::char_traits, std::initializer_list, std::to_string,
+//	ntctslen;
 #include "container.hpp" // for "container.hpp", make_index_sequence,
-//	index_sequence, begin, end, size, sort_unique, underlying;
+//	index_sequence, begin, end, size, sort_unique, underlying, std::hash;
 #include "cstdio.h" // for yconstraint, vfmtlen;
-#include "cstring.h" // for ntctslen;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
 #include <istream> // for std::basic_istream;
 #include "ios.hpp" // for rethrow_badstate;
@@ -46,16 +47,654 @@
 namespace ystdex
 {
 
+//! \since build 833
+//@{
+// XXX: Although adopted features like P0254R2 have significant concerns on
+//	compatibility, there is no feature testing macro yet. See https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations#model.
+inline namespace cpp2017
+{
+
+#if __cplusplus >= 201703L
+using std::basic_string;
+#else
+/*!
+\note 所有 find 相关的函数的 noexcept 异常规范同 std::basic_string 。
+\note 支持和 std::basic_string 转换以避免修改多数用户代码。
+*/
+template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
+	class _tAlloc = std::allocator<_tChar>>
+class basic_string : yimpl(public) std::basic_string<_tChar, _tTraits, _tAlloc>
+{
+private:
+	using base = std::basic_string<_tChar, _tTraits, _tAlloc>;
+	using alloc_traits = allocator_traits<_tAlloc>;
+	template<typename _tTrait>
+	using equal_alloc_or = or_<_tTrait, typename alloc_traits::is_always_equal>;
+	using equal_alloc_or_pocma = equal_alloc_or<typename
+		alloc_traits::propagate_on_container_move_assignment>;
+	using sv_type = basic_string_view<_tChar, _tTraits>;
+	template<class _type, class _tRes = void>
+	// XXX: Ready for LWG 2946, which is not adopted here yet as it is not in
+	//	ISO C++17.
+	using enable_if_sv_t = enable_if_t<and_<is_convertible<const _type&,
+		sv_type>, not_<is_convertible<const _type*, const base*>>,
+		not_<is_convertible<const _type&, const _tChar*>>>::value, _tRes>;
+
+public:
+	using size_type = typename base::size_type;
+	using iterator = typename base::iterator;
+	using const_iterator = typename base::const_iterator;
+
+	static yconstexpr const auto npos{static_cast<size_type>(-1)};
+
+	// NOTE: All signatures in ISO C++17 different from ISO C++11 are addressed
+	//	here explicitly. Note the parameter has %base type which reflects the
+	//	original %basic_string type, and the return type %basic_string is this
+	//	class.
+
+	//! \see LWG 2193 。
+	basic_string() ynoexcept_spec(_tAlloc())
+		: base()
+	{}
+	//! \see LWG 2193 。
+	explicit
+	basic_string(const _tAlloc& a) ynothrow
+		: base(a)
+	{}
+	//! \see LWG 2583 。
+	basic_string(const base& str, size_type pos,
+		const _tAlloc& a = _tAlloc())
+		: base(str, pos, base::npos, a)
+	{}
+	basic_string(const base& str, size_type pos, size_type n,
+		const _tAlloc& a = _tAlloc())
+		: base(str, pos, n, a)
+	{}
+	// NOTE: See $2018-07 @ %Documentation::Workflow::Annual2018.
+	// XXX: This is accidentally equivalent without the condition
+	//	'__cpp_inheriting_constructors > 201511' even with conditionally enabled
+	//	constructors from ISO C++17.
+	using base::base;
+	//! \see LWG 2742 。
+	template<class _type, yimpl(typename = enable_if_sv_t<_type>)>
+	basic_string(const _type& t, size_type pos, size_type n,
+		const _tAlloc& a = _tAlloc())
+		: basic_string(sv_type(t).substr(pos, n), a)
+	{}
+	//! \see WG21 P0254R2 。
+	explicit
+	basic_string(sv_type sv, const _tAlloc& a = _tAlloc())
+		: basic_string(sv.data(), sv.size(), a)
+	{}
+	basic_string(const base& str)
+		: base(str)
+	{}
+	basic_string(base&& str)
+		: base(std::move(str))
+	{}
+	basic_string(const basic_string&) = default;
+	basic_string(basic_string&&) ynothrow = default;
+
+	//! \see WG21 P0254R2 。
+	basic_string&
+	operator=(sv_type sv)
+	{
+		return assign(sv);
+	}
+	YB_NONNULL(2) basic_string&
+	operator=(const _tChar* s)
+	{
+		return *this = basic_string(s);
+	}
+	basic_string&
+	operator=(_tChar c)
+	{
+		return *this = basic_string(1, c);
+	}
+	basic_string&
+	operator=(std::initializer_list<_tChar> il)
+	{
+		return *this = basic_string(il);
+	}
+	basic_string&
+	operator=(const base& str)
+	{
+		static_cast<base&>(*this) = str;
+		return *this;
+	}
+	basic_string&
+	operator=(base&& str) ynoexcept(equal_alloc_or_pocma::value)
+	{
+		static_cast<base&>(*this) = std::move(str);
+		return *this;
+	}
+	basic_string&
+	operator=(const basic_string&) = default;
+	basic_string&
+	operator=(basic_string&&) ynoexcept(equal_alloc_or_pocma::value) = default;
+
+	basic_string&
+	operator+=(const base& str)
+	{
+		static_cast<base&>(*this) += str;
+		return *this;
+	}
+	basic_string&
+	operator+=(const basic_string& str)
+	{
+		return *this += static_cast<const base&>(str);
+	}
+	//! \see WG21 P0254R2 。
+	basic_string&
+	operator+=(sv_type sv)
+	{
+		static_cast<base&>(*this) += sv;
+		return *this;
+	}
+	YB_NONNULL(2) basic_string&
+	operator+=(const _tChar* s)
+	{
+		static_cast<base&>(*this) += s;
+		return *this;
+	}
+	basic_string&
+	operator+=(_tChar c)
+	{
+		static_cast<base&>(*this) += c;
+		return *this;
+	}
+	basic_string&
+	operator+=(std::initializer_list<_tChar> il)
+	{
+		static_cast<base&>(*this) += il;
+		return *this;
+	}
+
+	//! \see WG21 P0254R2 。
+	operator sv_type() const ynothrow
+	{
+		return sv_type(this->data(), this->size());
+	}
+
+	basic_string&
+	append(const base& str)
+	{
+		base::append(str);
+		return *this;
+	}
+	basic_string&
+	append(const base& str, size_type pos, size_type n = npos)
+	{
+		base::append(str, pos, n);
+		return *this;
+	}
+	//! \see WG21 P0254R2 。
+	//@{
+	basic_string&
+	append(sv_type sv)
+	{
+		return append(sv.data(), sv.size());
+	}
+	//! \see LWG 2758 。
+	template<typename _type>
+	yimpl(enable_if_sv_t)<_type, basic_string&>
+	append(const _type& t, size_type pos, size_type n = npos)
+	{
+		sv_type sv = t;
+
+		if(!(pos > sv.size()))
+		{
+			const size_type r(sv.size() - pos);
+
+			return append(sv.data() + pos, n < r ? n : r);
+		}
+		throw std::out_of_range("basic_string::append");
+	}
+	//@}
+	YB_NONNULL(2) basic_string&
+	append(const _tChar* s)
+	{
+		base::append(s);
+		return *this;
+	}
+	YB_NONNULL(2) basic_string&
+	append(const _tChar* s, size_type n)
+	{
+		base::append(s, n);
+		return *this;
+	}
+	basic_string&
+	append(size_type n, _tChar c)
+	{
+		base::append(n, c);
+		return *this;
+	}
+	template<typename _tIn>
+	basic_string&
+	append(_tIn first, _tIn last)
+	{
+		base::append(first, last);
+		return *this;
+	}
+	basic_string&
+	append(std::initializer_list<_tChar> il)
+	{
+		base::append(il);
+		return *this;
+	}
+
+	basic_string&
+	assign(const base& str)
+	{
+		return *this = str;
+	}
+	basic_string&
+	assign(base&& str) ynoexcept(equal_alloc_or_pocma::value)
+	{
+		return *this = std::move(str);
+	}
+	basic_string&
+	assign(const base& str, size_type pos, size_type n = npos)
+	{
+		base::assign(str, pos, n);
+		return *this;
+	}
+	//! \see WG21 P0254R2 。
+	//@{
+	basic_string&
+	assign(sv_type sv)
+	{
+		return assign(sv.data(), sv.size());
+	}
+	//! \see LWG 2758 。
+	template<typename _type>
+	yimpl(enable_if_sv_t)<_type, basic_string&>
+	assign(const _type& t, size_type pos, size_type n = npos)
+	{
+		sv_type sv = t;
+
+		if(!(pos > sv.size()))
+		{
+			const size_type r(sv.size() - pos);
+
+			return assign(sv.data() + pos, n < r ? n : r);
+		}
+		throw std::out_of_range("basic_string::assign");
+	}
+	//@}
+	YB_NONNULL(2) basic_string&
+	assign(const _tChar* s)
+	{
+		base::assign(s);
+		return *this;
+	}
+	YB_NONNULL(2) basic_string&
+	assign(const _tChar* s, size_type n)
+	{
+		base::assign(s, n);
+		return *this;
+	}
+	basic_string&
+	assign(size_type n, _tChar c)
+	{
+		base::assign(n, c);
+		return *this;
+	}
+	template<typename _tIn>
+	basic_string&
+	assign(_tIn first, _tIn last)
+	{
+		base::assign(first, last);
+		return *this;
+	}
+	basic_string&
+	assign(std::initializer_list<_tChar> il)
+	{
+		base::assign(il);
+		return *this;
+	}
+
+	basic_string&
+	insert(size_type pos, const base& str)
+	{
+		base::insert(pos, str);
+		return *this;
+	}
+	basic_string&
+	insert(size_type pos1, const base& str, size_type pos2, size_type n = npos)
+	{
+		base::insert(pos1, str, pos2, n);
+		return *this;
+	}
+	//! \see WG21 P0254R2 。
+	//@{
+	basic_string&
+	insert(size_type pos, sv_type sv)
+	{
+		return insert(pos, sv.data(), sv.size());
+	}
+	//! \see LWG 2758 。
+	template<typename _type>
+	yimpl(enable_if_sv_t)<_type, basic_string&>
+	insert(size_type pos1, const _type& t, size_type pos2, size_type n = npos)
+	{
+		sv_type sv = t;
+
+		if(!(pos1 > sv.size() || pos2 > sv.size()))
+		{
+			const size_type r(sv.size() - pos2);
+
+			return insert(pos1, sv.data() + pos2, n < r ? n : r);
+		}
+		throw std::out_of_range("basic_string::insert");
+	}
+	//@}
+	YB_NONNULL(3) basic_string&
+	insert(size_type pos, const _tChar* s)
+	{
+		base::insert(pos, s);
+		return *this;
+	}
+
+	YB_NONNULL(3) basic_string&
+	insert(size_type pos, const _tChar* s, size_type n)
+	{
+		base::insert(pos, s, n);
+		return *this;
+	}
+	basic_string&
+	insert(size_type pos, size_type n, _tChar c)
+	{
+		base::insert(pos, n, c);
+		return *this;
+	}
+	iterator
+	insert(const_iterator p, _tChar c)
+	{
+		return base::insert(p, c);
+	}
+	iterator
+	insert(const_iterator p, size_type n, _tChar c)
+	{
+		return base::insert(p, n, c);
+	}
+	template<typename _tIn>
+	iterator
+	insert(const_iterator p, _tIn first, _tIn last)
+	{
+		return base::insert(p, first, last);
+	}
+	iterator
+	insert(const_iterator p, std::initializer_list<_tChar> il)
+	{
+		return base::insert(p, il);
+	}
+
+	basic_string&
+	replace(size_type pos1, size_type n1, const base& str)
+	{
+		base::replace(pos1, n1, str);
+		return *this;
+	}
+	basic_string&
+	replace(size_type pos1, size_type n1, const base& str,
+		size_type pos2, size_type n2 = npos)
+	{
+		base::replace(pos1, n1, str, pos2, n2);
+		return *this;
+	}
+	//! \see WG21 P0254R2 。
+	//@{
+	basic_string&
+	replace(size_type pos1, size_type n1, sv_type sv)
+	{
+		return replace(pos1, n1, sv.data(), sv.size());
+	}
+	//! \see LWG 2758 。
+	template<typename _type>
+	yimpl(enable_if_sv_t)<_type, basic_string&>
+	replace(size_type pos1, size_type n1, const _type& t, size_type pos2,
+		size_type n2 = npos)
+	{
+		sv_type sv = t;
+
+		if(!(pos1 > sv.size() || pos2 > sv.size()))
+		{
+			const size_type r(sv.size() - pos2);
+
+			return replace(pos1, n1, sv.data() + pos2, n2 < r ? n2 : r);
+		}
+		throw std::out_of_range("basic_string::replace");
+	}
+	//@}
+	YB_NONNULL(4) basic_string&
+	replace(size_type pos, size_type n, const _tChar* s)
+	{
+		base::replace(pos, n, s);
+		return *this;
+	}
+	YB_NONNULL(4) basic_string&
+	replace(size_type pos1, size_type n1, const _tChar* s, size_type n2 = npos)
+	{
+		base::replace(pos1, n1, s, n2);
+		return *this;
+	}
+	basic_string&
+	replace(size_type pos1, size_type n1, size_type n2, _tChar c)
+	{
+		base::replace(pos1, n1, base(n2, c));
+		return *this;
+	}
+	basic_string&
+	replace(const_iterator i1, const_iterator i2, const base& str)
+	{
+		base::replace(i1, i2, str);
+		return *this;
+	}
+	//! \see WG21 P0254R2 。
+	basic_string&
+	replace(const_iterator i1, const_iterator i2, sv_type sv)
+	{
+		return replace(i1 - this->begin(), i2 - i1, sv);
+	}
+	YB_NONNULL(4) basic_string&
+	replace(const_iterator i1, const_iterator i2, const _tChar* s, size_type n)
+	{
+		base::replace(i1, i2, s, n);
+		return *this;
+	}
+	basic_string&
+	replace(const_iterator i1, const_iterator i2, size_type n, _tChar c)
+	{
+		base::replace(i1, i2, n, c);
+		return *this;
+	}
+	template<typename _tIn>
+	basic_string&
+	replace(const_iterator i1, const_iterator i2, _tIn j1, _tIn j2)
+	{
+		base::replace(i1, i2, j1, j2);
+		return *this;
+	}
+	basic_string&
+	replace(const_iterator i1, const_iterator i2,
+		std::initializer_list<_tChar> il)
+	{
+		base::replace(i1, i2, il);
+		return *this;
+	}
+
+	void
+	swap(basic_string& s) ynoexcept(equal_alloc_or<typename
+		alloc_traits::propagate_on_container_swap>::value)
+	{
+		base::swap(s);
+	}
+
+	// XXX: For simplicity, 'find*' and 'compare' funtions are not reworded as
+	//	the standard by dispatching to %basic_string_view overloads. This
+	//	simplifies the implementation and speed-up translation time.
+
+	//! \see WG21 P0254R2 。
+	size_type
+	find(sv_type sv, size_type pos = 0) const
+		ynothrow
+	{
+		return find(sv.data(), sv.size(), pos);
+	}
+	using base::find;
+
+	//! \see WG21 P0254R2 。
+	size_type
+	rfind(sv_type sv, size_type pos = npos) const ynothrow
+	{
+		return rfind(sv.data(), sv.size(), pos);
+	}
+	using base::rfind;
+
+	//! \see WG21 P0254R2 。
+	size_type
+	find_first_of(sv_type sv, size_type pos = 0) const ynothrow
+	{
+		return find_first_of(sv.data(), sv.size(), pos);
+	}
+	using base::find_first_of;
+
+	//! \see WG21 P0254R2 。
+	size_type
+	find_last_of(sv_type sv, size_type pos = npos) const ynothrow
+	{
+		return find_last_of(sv.data(), sv.size(), pos);
+	}
+	using base::find_last_of;
+
+	//! \see WG21 P0254R2 。
+	size_type
+	find_first_not_of(sv_type sv, size_type pos = 0) const ynothrow
+	{
+		return find_first_not_of(sv.data(), sv.size(), pos);
+	}
+	using base::find_first_not_of;
+
+	//! \see WG21 P0254R2 。
+	size_type
+	find_last_not_of(sv_type sv, size_type pos = npos) const ynothrow
+	{
+		return find_last_not_of(sv.data(), sv.size(), pos);
+	}
+	using base::find_last_not_of;
+
+	//! \see WG21 P0254R2 。
+	//@{
+	int
+	compare(sv_type sv) const ynothrow
+	{
+		return sv_type(this->data(), this->size()).compare(sv);
+	}
+	//! \see LWG 2771 。
+	//@{
+	int
+	compare(size_type pos1, size_type n1, sv_type sv) const
+	{
+		return sv_type(this->data(), this->size()).substr(pos1, n1).compare(sv);
+	}
+	//! \see LWG 2758 。
+	template<typename _type>
+	yimpl(enable_if_sv_t)<_type, int>
+	compare(size_type pos1, size_type n1, const _type& t, size_type pos2,
+		size_type n2 = npos) const
+	{
+		sv_type sv = t;
+
+		return sv_type(this->data(), this->size()).substr(pos1, n1)
+			.compare(sv.substr(pos2, n2));
+	}
+	//@}
+	//@}
+	using base::compare;
+
+	friend basic_string
+	operator+(const basic_string& lhs, const basic_string& rhs)
+	{
+		return basic_string(lhs).append(rhs);
+	}
+	friend basic_string
+	operator+(basic_string&& lhs, const basic_string& rhs)
+	{
+		return std::move(lhs.append(rhs));
+	}
+	friend basic_string
+	operator+(const basic_string& lhs, basic_string&& rhs)
+	{
+		return std::move(rhs.insert(0, lhs));
+	}
+	friend basic_string
+	operator+(basic_string&& lhs, basic_string&& rhs)
+	{
+		return std::move(lhs.append(rhs));
+	}
+	YB_NONNULL(1) friend basic_string
+	operator+(const _tChar* lhs, const basic_string& rhs)
+	{
+		return basic_string(lhs) + rhs;
+	}
+	YB_NONNULL(1) friend basic_string
+	operator+(const _tChar* lhs, basic_string&& rhs)
+	{
+		return std::move(rhs.insert(0, lhs));
+	}
+	friend basic_string
+	operator+(_tChar lhs, const basic_string& rhs)
+	{
+		return basic_string(1, lhs) + rhs;
+	}
+	friend basic_string
+	operator+(_tChar lhs, basic_string&& rhs)
+	{
+		return std::move(rhs.insert(0, 1, lhs));
+	}
+	YB_NONNULL(2) friend basic_string
+	operator+(const basic_string& lhs, const _tChar* rhs)
+	{
+		return lhs + basic_string(rhs);
+	}
+	YB_NONNULL(2) friend basic_string
+	operator+(basic_string&& lhs, const _tChar* rhs)
+	{
+		return std::move(lhs.append(rhs));
+	}
+	friend basic_string
+	operator+(const basic_string& lhs, _tChar rhs)
+	{
+		return lhs + basic_string(1, rhs);
+	}
+	friend basic_string
+	operator+(basic_string&& lhs, _tChar rhs)
+	{
+		return std::move(lhs.append(1, rhs));
+	}
+};
+#endif
+//@}
+
+using string = basic_string<char>;
+using u16string = basic_string<char16_t>;
+using u32string = basic_string<char32_t>;
+using wstring = basic_string<wchar_t>;
+
+} // inline namesapce cpp2017;
+
+
 /*!
 \brief 字符串特征。
-\note 支持字符类型指针表示的 C 风格字符串和随机序列容器及 std::basic_string 。
+\note 支持字符类型指针表示的 C 风格字符串和随机序列容器及 basic_string 。
 \since build 304
 */
 template<typename _tString>
 struct string_traits
 {
-	using string_type = remove_rcv_t<_tString>;
-	using value_type = remove_rcv_t<decltype(std::declval<string_type>()[0])>;
+	using string_type = remove_cvref_t<_tString>;
+	using value_type = remove_cvref_t<decltype(std::declval<string_type>()[0])>;
 	using traits_type = typename std::char_traits<value_type>;
 	//! \since build 592
 	//@{
@@ -298,7 +937,7 @@ string_begin(const _tRange& c) -> decltype(c.begin())
 //! \since build 664
 //@{
 template<typename _tChar>
-yconstfn _tChar*
+YB_NONNULL(1) yconstfn _tChar*
 string_begin(_tChar* str) ynothrow
 {
 	return yconstraint(str), str;
@@ -329,7 +968,7 @@ string_end(const _tRange& c) -> decltype(c.end())
 //! \since build 664
 //@{
 template<typename _tChar>
-yconstfn _tChar*
+YB_NONNULL(1) yconstfn _tChar*
 string_end(_tChar* str) ynothrow
 {
 	return str + ystdex::ntctslen(str);
@@ -554,7 +1193,7 @@ concat(_tString& str, size_t n)
 	}
 }
 
-//! \pre 字符串类型满足 std::basic_string 或 basic_string_view 的操作及异常规范。
+//! \pre 字符串类型满足 basic_string 或 basic_string_view 的操作及异常规范。
 //@{
 //! \since build 592
 //@{
@@ -856,7 +1495,7 @@ std::basic_istream<_tChar, _tTraits>&
 extract(std::basic_istream<_tChar, _tTraits>& is,
 	std::basic_string<_tChar, _tTraits, _tAlloc>& str, _func f)
 {
-	std::string::size_type n(0);
+	typename std::basic_string<_tChar, _tTraits, _tAlloc>::size_type n(0);
 	auto st(std::ios_base::goodbit);
 
 	if(const auto k
@@ -1012,38 +1651,79 @@ write_literal(std::basic_ostream<_tChar, _tTraits>& os, const _tChar(&s)[_vN])
 }
 //@}
 
+//! \since build 833
+template<class _tStream>
+using stream_str_t = decltype(std::declval<_tStream&>().str());
+
+//! \since build 833
+namespace details
+{
+
+template<class _tStream, class _tString, typename = void>
+struct stream_str_det;
+
+template<class _tStream, class _tString>
+struct stream_str_det<_tStream, _tString, void_t<stream_str_t<_tStream>>>
+{
+	using result_type = stream_str_t<_tStream>;
+	using type = cond_t<is_convertible<result_type, _tString>,
+		result_type, _tString>;
+};
+
+template<typename _type>
+using excluded_tostr
+	= or_<is_same<_type, unsigned short>, is_same<_type, unsigned char>>;
+
+template<typename _type>
+inline auto
+arithmetic_to_string(_type val, false_) -> decltype(std::to_string(val))
+{
+	return std::to_string(val);
+}
+inline string
+arithmetic_to_string(unsigned val, true_)
+{
+	return std::to_string(val);
+}
+
+template<typename _type>
+inline auto
+arithmetic_to_wstring(_type val, false_) -> decltype(std::to_wstring(val))
+{
+	return std::to_wstring(val);
+}
+inline wstring
+arithmetic_to_wstring(unsigned val, true_)
+{
+	return std::to_wstring(val);
+}
+
+} // namespace details;
 
 /*!
-\brief 转换为字符串： std::basic_string 的实例对象。
+\brief 转换为字符串： basic_string 的实例对象。
 \note 可与标准库的同名函数共用以避免某些类型转换警告，如 G++ 的 [-Wsign-promo] 。
+\since build 833
 */
 //@{
-//! \since build 308
-//@{
-inline std::string
-to_string(unsigned char val)
-{
-	return std::to_string(unsigned(val));
-}
-inline std::string
-to_string(unsigned short val)
-{
-	return std::to_string(unsigned(val));
-}
-//! \since build 538
 template<typename _type>
-inline yimpl(enable_if_t)<is_enum<_type>::value, std::string>
+inline yimpl(enable_if_t)<is_arithmetic<_type>::value, string>
 to_string(_type val)
 {
-	using std::to_string;
+	return details::arithmetic_to_string(val, details::excluded_tostr<_type>());
+}
+template<typename _type>
+inline yimpl(enable_if_t)<is_enum<_type>::value, string>
+to_string(_type val)
+{
 	using ystdex::to_string;
 
 	return to_string(ystdex::underlying(val));
 }
-//! \since build 664
-template<typename _type, class _tStream = std::ostringstream>
+template<typename _type, class _tStream = std::ostringstream,
+	class _tString = string>
 yimpl(enable_if_t)<is_class<_type>::value,
-	decltype(std::declval<_tStream&>().str())>
+	_t<details::stream_str_det<_tStream, _tString>>>
 to_string(const _type& x)
 {
 	_tStream oss;
@@ -1051,33 +1731,25 @@ to_string(const _type& x)
 	oss << x;
 	return oss.str();
 }
-//@}
 
-//! \since build 565
-//@{
-inline std::wstring
-to_wstring(unsigned char val)
-{
-	return std::to_wstring(unsigned(val));
-}
-inline std::wstring
-to_wstring(unsigned short val)
-{
-	return std::to_wstring(unsigned(val));
-}
-//! \since build 664
 template<typename _type>
-inline yimpl(enable_if_t)<is_enum<_type>::value, std::wstring>
+inline yimpl(enable_if_t)<is_arithmetic<_type>::value, wstring>
 to_wstring(_type val)
 {
-	using std::to_wstring;
+	return details::arithmetic_to_wstring(val, details::excluded_tostr<_type>());
+}
+template<typename _type>
+inline yimpl(enable_if_t)<is_enum<_type>::value, wstring>
+to_wstring(_type val)
+{
 	using ystdex::to_wstring;
 
 	return to_wstring(ystdex::underlying(val));
 }
-template<typename _type, class _tStream = std::wostringstream>
+template<typename _type, class _tStream = std::wostringstream,
+	class _tString = wstring>
 yimpl(enable_if_t)<is_class<_type>::value,
-	decltype(std::declval<_tStream&>().str())>
+	_t<details::stream_str_det<_tStream, _tString>>>
 to_wstring(const _type& x)
 {
 	_tStream oss;
@@ -1086,19 +1758,27 @@ to_wstring(const _type& x)
 	return oss.str();
 }
 //@}
-//@}
 
 
 //! \since build 542
 namespace details
 {
 
-template<typename _tString, typename _type>
+//! \since build 833
+//@{
+template<typename _tString, typename _type, typename = void>
 struct ston_dispatcher;
+
+template<typename _tChar, typename _type, class _tTraits, class _tAlloc>
+struct ston_dispatcher<basic_string<_tChar, _tTraits, _tAlloc>, _type,
+	enable_if_t<not_<is_same<basic_string<_tChar, _tTraits, _tAlloc>,
+	std::basic_string<_tChar, _tTraits, _tAlloc>>>::value>>
+	: ston_dispatcher<std::basic_string<_tChar, _tTraits, _tAlloc>, _type>
+{};
 
 #define YB_Impl_String_ston_begin(_tString, _type, _n, ...) \
 	template<> \
-	struct ston_dispatcher<_tString, _type> \
+	struct ston_dispatcher<_tString, _type, void> \
 	{ \
 		static _type \
 		cast(const _tString& str, __VA_ARGS__) \
@@ -1108,6 +1788,7 @@ struct ston_dispatcher;
 			); \
 		} \
 	};
+//@}
 
 #define YB_Impl_String_ston_i(_tString, _type, _n) \
 	YB_Impl_String_ston_begin(_tString, _type, _n, size_t* idx = {}, \
@@ -1156,18 +1837,19 @@ ston(const _tString& str, _tParams&&... args)
 }
 
 
+//! \since build 833
+//@{
 /*!
 \pre 间接断言：第一参数非空。
-\since build 640
 \bug \c char 以外的模板参数非正确实现。
 */
 //@{
 /*!
-\brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
+\brief 以 C 标准输出格式的输出 basic_string 实例的对象。
 \throw std::runtime_error 格式化字符串输出失败。
 \note 对 _tString 构造异常中立。
 */
-template<typename _tChar, class _tString = std::basic_string<_tChar>>
+template<typename _tChar, class _tString = basic_string<_tChar>>
 YB_NONNULL(1) _tString
 vsfmt(const _tChar* fmt, std::va_list args)
 {
@@ -1192,7 +1874,7 @@ vsfmt(const _tChar* fmt, std::va_list args)
 }
 
 /*!
-\brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
+\brief 以 C 标准输出格式的输出 basic_string 实例的对象。
 \note 使用 ADL 访问可变参数。
 \note Clang++ 对模板声明 attribute 直接提示格式字符串类型错误。
 */
@@ -1220,12 +1902,12 @@ sfmt(const _tChar* fmt, ...)
 //@}
 
 /*!
-\brief 显式实例化：以 C 标准输出格式的输出 std::string 对象。
+\brief 显式实例化：以 C 标准输出格式的输出 string 对象。
 \sa ystdex::sfmt
-\since build 350
 */
-template YB_ATTR_gnu_printf(1, 2) YB_NONNULL(1) std::string
+template YB_ATTR_gnu_printf(1, 2) YB_NONNULL(1) string
 sfmt<char>(const char*, ...);
+//@}
 
 
 /*!
@@ -1265,6 +1947,24 @@ cond_prefix(const _tString& str, const _type& prefix, _tString&& val = {})
 }
 
 } // namespace ystdex;
+
+
+#if !(__cplusplus >= 201703L)
+//! \since build 833
+namespace std
+{
+
+/*!
+\brief ystdex::basic_string 散列支持。
+\since build 833
+*/
+template<typename _tChar, class _tTraits, class _tAlloc>
+struct hash<ystdex::basic_string<_tChar, _tTraits, _tAlloc>>
+	: hash<basic_string<_tChar, _tTraits, _tAlloc>>
+{};
+
+} // namespace std;
+#endif
 
 #endif
 

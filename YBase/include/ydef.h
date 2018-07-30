@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3158
+\version r3238
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-07-22 19:00 +0800
+	2018-07-30 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,19 +164,39 @@
 #	endif
 #endif
 //@}
-//! \since build 831
+/*!
+\since build 833
+\see https://clang.llvm.org/docs/LanguageExtensions.html 。
+\see https://gcc.gnu.org/projects/cxx-status.html 。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://msdn.microsoft.com/en-us/library/hh409293.aspx 。
+*/
+//@{
+#ifndef __cpp_inheriting_constructors
+#	if YB_IMPL_MSCPP >= 1914 || __cplusplus >= 201703L
+#		define __cpp_inheriting_constructors 201511
+#	elif __has_feature(cxx_inheriting_constructors) || YB_IMPL_MSCPP > 1900 \
+	|| __cplusplus >= 201103L
+#		define __cpp_inheriting_constructors 200802
+#	endif
+#endif
+//@}
+/*!
+\since build 831
+\see https://reviews.llvm.org/D32950 。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/ 。
+*/
 //@{
 // NOTE: See https://reviews.llvm.org/D32950.
-// NOTE: Microsoft VC++ compiler has support the feature since version 15.5, see
-//	https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance.
+// NOTE: Microsoft VC++ compiler has support the feature since version 15.5.
 //	However,  the %__cplusplus can only work after 15.7 Preview 3 with
-//	additional option, see https://blogs.msdn.microsoft.com/vcblog/2018/04/09/msvc-now-correctly-reports-__cplusplus/.
-//	It can be more precise when %_MSC_FULL_VER is incorperated, but there is
-//	lack of documentation so additional test work is needed to make the
-//	improvement.
+//	additional option It can be more precise when %_MSC_FULL_VER is
+//	incorperated, but there is lack of documentation so additional test work is
+//	needed to make the improvement.
 #ifndef __cpp_inline_variables
-#	if __has_feature(cxx_inline_variables) || \
-	__has_extension(cxx_inline_variables) || YB_IMPL_MSCPP > 1912 \
+#	if __has_feature(cxx_inline_variables) \
+	|| __has_extension(cxx_inline_variables) || YB_IMPL_MSCPP > 1912 \
 	|| __cplusplus >= 201703L
 #		define __cpp_inline_variables 201606
 #	endif
@@ -236,7 +256,7 @@
 #	endif
 #endif
 #ifndef __cpp_lib_transformation_trait_aliases
-#	if YB_IMPL_MSCPP >= 1600 || __cplusplus >= 201402L
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201402L
 #		define __cpp_lib_transformation_trait_aliases 201304
 #	endif
 #endif
@@ -249,11 +269,20 @@
 //@}
 /*!
 \brief \<utility\> 特性测试宏。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \since build 628
 */
 //@{
+//! \since build 833
+//@{
+#ifndef __cpp_lib_as_const
+#	if YB_IMPL_MSCPP >= 1911 || __cplusplus > 201402L
+#		define __cpp_lib_as_const 201510
+#	endif
+#endif
+//@}
 #ifndef __cpp_lib_exchange_function
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus > 201103L
 #		define __cpp_lib_exchange_function 201304
 #	endif
 #endif
@@ -437,6 +466,7 @@
 \def YB_ATTR_fallthrough
 \brief 用于 switch 语句的 fallthrough 属性。
 \since build 793
+\see WG21 P0188R1 。
 */
 #if __has_cpp_attribute(fallthrough)
 #	define YB_ATTR_fallthrough YB_ATTR_STD(fallthrough)
@@ -463,6 +493,44 @@
 #	define YB_ATTR_gnu_printf(...) YB_ATTR(__format__ (__printf__, __VA_ARGS__))
 #else
 #	define YB_ATTR_gnu_printf(...)
+#endif
+
+/*!
+\def YB_ATTR_maybe_unused
+\brief 标记可被忽略的属性。
+\since build 833
+\see WG21 P0212R1 。
+\see https://clang.llvm.org/docs/AttributeReference.html#maybe-unused-unused-gnu-unused 。
+\see https://gcc.gnu.org/projects/cxx-status.html 。
+*/
+#if __has_cpp_attribute(maybe_unused)
+#	define YB_ATTR_maybe_unused YB_ATTR_STD(maybe_unused)
+#elif __has_cpp_attribute(gnu::unused)
+#	define YB_ATTR_maybe_unused YB_ATTR_STD(gnu::unused)
+#elif __has_attribute(unused)
+#	define YB_ATTR_maybe_unused YB_ATTR(unused)
+#else
+#	define YB_ATTR_maybe_unused
+#endif
+
+/*!
+\def YB_ATTR_nodiscard
+\brief 标记返回值不被忽略的属性。
+\since build 833
+\see WG21 P0189R1 。
+\see https://clang.llvm.org/docs/AttributeReference.html#nodiscard-warn-unused-result-clang-warn-unused-result-gnu-warn-unused-result 。
+\see https://gcc.gnu.org/projects/cxx-status.html 。
+*/
+#if __has_cpp_attribute(nodiscard)
+#	define YB_ATTR_nodiscard YB_ATTR_STD(nodiscard)
+#elif __has_cpp_attribute(clang::warn_unused_result)
+#	define YB_ATTR_nodiscard YB_ATTR_STD(clang::warn_unused_result)
+#elif __has_cpp_attribute(gnu::warn_unused_result)
+#	define YB_ATTR_nodiscard YB_ATTR_STD(gnu::warn_unused_result)
+#elif __has_attribute(warn_unused_result)
+#	define YB_ATTR_nodiscard YB_ATTR(warn_unused_result)
+#else
+#	define YB_ATTR_nodiscard
 #endif
 
 /*!
@@ -1053,6 +1121,7 @@ class offsetof_check
 \ingroup YBase_pseduo_keyword
 \brief 标记未使用的表达式。
 \note 显式转换为 void 类型以标记表达式未被作为子表达式使用，可避免某些实现的警告。
+\warning 避免在表达式中误用逗号。
 \since build 435
 */
 #define yunused(...) static_cast<void>(__VA_ARGS__)

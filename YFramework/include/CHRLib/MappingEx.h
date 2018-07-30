@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MappingEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r420
+\version r425
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2017-06-05 02:13 +0800
+	2018-07-30 06:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,13 +244,13 @@ struct GUCSMapper<CharSet::Big5> : UCSMapperBase
 //! \since build 756
 //@{
 template<Encoding, typename _tRet, typename... _tParams>
-yconstfn YB_STATELESS ystdex::add_ptr_t<_tRet(_tParams...)>
+YB_STATELESS yconstfn ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(...) ynothrow
 {
 	return {};
 }
 template<Encoding _vEnc, typename _tRet, typename... _tParams>
-yconstfn YB_ATTR_returns_nonnull YB_STATELESS
+YB_ATTR_returns_nonnull YB_STATELESS yconstfn
 	ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	decltype(GUCSMapper<_vEnc>::Decode(std::declval<_tParams>()...)), _tRet>*
@@ -259,7 +259,7 @@ FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	return GUCSMapper<_vEnc>::Decode;
 }
 template<Encoding _vEnc, typename _tRet, typename... _tParams>
-yconstfn YB_ATTR_returns_nonnull YB_STATELESS
+YB_ATTR_returns_nonnull YB_STATELESS yconstfn
 	ystdex::add_ptr_t<_tRet(_tParams...)>
 FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 	decltype(GUCSMapper<_vEnc>::Encode(std::declval<_tParams>()...)), _tRet,
@@ -273,7 +273,7 @@ FetchMapperPtr_TryUCSMapper(yimpl(ystdex::enable_if_convertible_t<
 #endif
 
 template<typename _tRet, typename... _tParams>
-yconstfn YB_STATELESS ystdex::add_ref_t<_tRet(_tParams...)>
+YB_STATELESS yconstfn ystdex::add_ref_t<_tRet(_tParams...)>
 FetchMapper_Default() ynothrow
 {
 	return *FetchMapperPtr_TryUCSMapper<CS_Default, _tRet, _tParams...>(nullptr);

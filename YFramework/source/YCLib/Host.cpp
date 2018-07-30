@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r667
+\version r670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2017-05-31 23:47 +0800
+	2018-07-30 01:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ Exception::Exception(std::error_code ec, const char* str, RecordLevel lv)
 	level(lv)
 {}
 Exception::Exception(std::error_code ec, string_view sv, RecordLevel lv)
-	: system_error(ec, (Nonnull(sv.data()), std::string(sv))),
+	: system_error(ec, (Nonnull(sv.data()), string(sv))),
 	level(lv)
 {}
 Exception::Exception(int ev, const std::error_category& ecat, const char* str,
@@ -73,7 +73,7 @@ Exception::Exception(int ev, const std::error_category& ecat, const char* str,
 {}
 Exception::Exception(int ev, const std::error_category& ecat, string_view sv,
 	RecordLevel lv)
-	: system_error(ev, ecat, (Nonnull(sv.data()), std::string(sv))),
+	: system_error(ev, ecat, (Nonnull(sv.data()), string(sv))),
 	level(lv)
 {}
 ImplDeDtor(Exception)

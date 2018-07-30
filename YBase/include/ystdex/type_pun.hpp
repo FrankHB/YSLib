@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r540
+\version r548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2018-07-14 23:02 +0800
+	2018-07-30 06:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_type_pun_hpp_
 #define YB_INC_ystdex_type_pun_hpp_ 1
 
-#include "placement.hpp" // for "placement.hpp", bool_, yalignof,
+#include "placement.hpp" // for internal "placement.hpp", bool_, yalignof,
 //	and_, is_trivial, enable_if_t, is_object_pointer, remove_pointer_t,
 //	is_object, aligned_storage_t, is_reference, remove_reference_t,
 //	exclude_self_t, decay_t, ystdex::addressof;
@@ -126,7 +126,7 @@ using pun_storage_t = aligned_storage_t<sizeof(_type), _vAlign>;
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(ystdex::enable_if_t)<and_<is_object_pointer<_pDst>,
+inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_aligned_compatible<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 aligned_cast(_tSrc* v) ynothrow
 {
@@ -150,7 +150,7 @@ aligned_cast(_tSrc&& v) ynothrow
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(ystdex::enable_if_t)<and_<is_object_pointer<_pDst>,
+inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_aligned_storable<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 aligned_store_cast(_tSrc* v) ynothrow
 {
@@ -174,7 +174,7 @@ aligned_store_cast(_tSrc&& v) ynothrow
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(ystdex::enable_if_t)<and_<is_object_pointer<_pDst>,
+inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_aligned_replaceable<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 aligned_replace_cast(_tSrc* v) ynothrow
 {
@@ -199,7 +199,7 @@ aligned_replace_cast(_tSrc&& v) ynothrow
 */
 //@{
 template<typename _pDst, typename _tSrc>
-inline yimpl(ystdex::enable_if_t)<and_<is_object_pointer<_pDst>,
+inline yimpl(enable_if_t)<and_<is_object_pointer<_pDst>,
 	is_trivially_replaceable<_tSrc, remove_pointer_t<_pDst>>>::value, _pDst>
 replace_cast(_tSrc* v) ynothrow
 {
@@ -336,7 +336,7 @@ struct standard_layout_storage
 	{
 		return ystdex::addressof(object);
 	}
-	yconstfn YB_PURE const void*
+	YB_PURE yconstfn const void*
 	access() const ynothrow
 	{
 		return ystdex::addressof(object);
@@ -353,7 +353,7 @@ struct standard_layout_storage
 		return *static_cast<_type*>(access());
 	}
 	template<typename _type>
-	yconstfn YB_PURE const _type&
+	YB_PURE yconstfn const _type&
 	access() const ynothrow
 	{
 		static_assert(is_aligned_storable<standard_layout_storage, _type>(),
@@ -406,7 +406,7 @@ struct standard_layout_storage
 	{
 		return static_cast<byte*>(access());
 	}
-	yconstfn YB_PURE const byte*
+	YB_PURE yconstfn const byte*
 	data() const ynothrow
 	{
 		return static_cast<const byte*>(access());

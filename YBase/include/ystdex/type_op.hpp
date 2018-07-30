@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2791
+\version r2808
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2018-07-24 15:07 +0800
+	2018-07-28 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,8 @@
 #ifndef YB_INC_ystdex_type_op_hpp_
 #define YB_INC_ystdex_type_op_hpp_ 1
 
-#include "tuple.hpp" // for is_class, std::declval, is_detected, vseq::apply,
-//	_t, bool_, is_void, is_same, remove_reference_t, and_, cond_t,
+#include "integer_sequence.hpp" // for is_class, std::declval, is_detected,
+//	vseq::apply, _t, bool_, is_void, is_same, remove_reference_t, and_, cond_t,
 //	is_enum, vdefer, underlying_type_t, common_type_t;
 
 namespace ystdex
@@ -232,24 +232,6 @@ template<class _type1, class _type2>
 struct have_common_nonempty_virtual_base : bool_<!is_same<_type1, _type2>::value
 	&& details::have_common_nonempty_virtual_base<_type1, _type2>::value>
 {};
-
-
-//! \ingroup transformation_traits
-//@{
-/*!
-\brief 移除可能被 cv-qualifier 修饰的引用类型。
-\note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
-\since build 376
-*/
-//@{
-template<typename _type>
-struct remove_rcv : remove_cv<remove_reference_t<_type>>
-{};
-
-//! \since build 448
-template<typename _type>
-using remove_rcv_t = _t<remove_rcv<_type>>;
-//@}
 
 
 /*!

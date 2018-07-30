@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1184
+\version r1243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2018-07-25 00:28 +0800
+	2018-07-29 22:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,29 +179,60 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 其中扩展 ISO C 标准库接口的部分不依赖扩展其它接口的头文件。
 扩展的标准库头（及 LibDefect(@2.6) 对应的头文件）被直接或间接地包含。
 
-@2.5.1.2 头文件直接依赖性：
+@2.5.1.2 头文件依赖性：
+因标准库头的对应关系，以下依赖性作为接口公开：
+"type_traits.hpp" 依赖 "type_inspection.hpp" 、 "integral_constant.hpp" 和 "invoke.hpp" ；
+"ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
+"iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
+"utility.hpp" 依赖 "swap.hpp" ；
+"iterator.hpp" 依赖 "iterator_op.hpp" ；
+"functional.hpp" 依赖 "functor.hpp" 和 "swap.hpp" ；
+"string.hpp" 、 "string_view" 、 "map.hpp" 和 "set.hpp" 依赖 "range.hpp" 。
+因其它接口设计原因，以下依赖性作为接口公开：
 "meta.hpp" 依赖 "type_inspection.hpp" 和 "integral_constant.hpp" ；
-"deref_op.hpp" 、 "variadic.hpp" 、 "addressof.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
+"variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
+"range.hpp" 依赖 "addressof.hpp" ；
+"functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
+"integer_sequence.hpp" 依赖 "variadic.hpp" ；
+"type_op.hpp" 依赖 "integer_sequence.hpp" ；
+"opeators.hpp" 依赖 "addressof.hpp" ；
+"pointer.hpp" 和 "memory.hpp" 依赖 "iterator_op.hpp" ；
+"hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
+"any_iterator.hpp" 依赖 "any.h" ；
+"tree.hpp" 和 "container.hpp" 依赖 "range.hpp" ；
+"string.hpp" 依赖 "container.hpp" ；
+"map.hpp" 和 "set.hpp" 依赖 "tree.hpp" 。
+另见 @2.5.4 、 @2.5.5 、 @2.5.6 和 @2.5.7 。
+
+@2.5.1.2 内部头文件依赖性：
+在满足 @2.5.1.1 的基础上，当前实现保持以下内部依赖供实现参考（不在 @2.5.1.1 中要求的标记为内部依赖），可简化头文件包含和避免循环引用：
+"meta.hpp" 依赖 "type_inspection.hpp" 和 "integral_constant.hpp" ；
+"variadic.hpp" 和 "invoke.hpp" 依赖 "meta.hpp" ；
+"deref_op.hpp" 和 "addressof.hpp" 内部依赖 "meta.hpp" ；
 "type_traits.hpp" 依赖 "invoke.hpp" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
 "functor.hpp" 依赖 "ref.hpp" 和 "type_traits.hpp" ；
-"tuple.hpp" 依赖 "integer_sequence.hpp" ；
-"type_op.hpp" 依赖 "tuple.hpp" ；
 "integer_sequence.hpp" 依赖 "variadic.hpp" ；
-"opeators.hpp" 依赖 "addressof.hpp" ；
+"type_op.hpp" 依赖 "integer_sequence.hpp" ；
+"opeators.hpp" 和 "range.hpp" 依赖 "addressof.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
-"pointer.hpp" 依赖 "iterator_op.hpp" ；
-"memory.hpp" 和 "type_pun.hpp" 依赖 "placement.hpp" ；
-"memory.hpp" 依赖 "pointer.hpp" ；
-"swap.hpp" 依赖 "type_pun.hpp" ；
+"pointer.hpp" 和 "memory.hpp" 依赖 "iterator_op.hpp" ；
+"memory.hpp" 内部依赖 "placement.hpp" 和 "pointer.hpp" ；
+"type_pun.hpp" 内部依赖 "placement.hpp" ；
+"swap.hpp" 内部依赖 "type_pun.hpp" ；
 "utility.hpp" 依赖 "swap.hpp" ；
 "iterator.hpp" 依赖 "iterator_op.hpp" ；
-"functional.hpp" 、 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
-"functional.hpp" 依赖 "ref.hpp" ；
-"any.h" 依赖 "typeinfo.h" 和 "utility.hpp" ；
+"hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
+"functional.hpp" 依赖 "functor.hpp" 和 "swap.hpp" ；
+"functional.hpp" 内部依赖 "type_op.hpp" ；
+"tuple.hpp" 依赖 "functional.hpp" ；
+"any.h" 内部依赖 "typeinfo.h" 和 "utility.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
-"string.hpp" 依赖 "container.hpp" 。
-另见 @2.5.4 、 @2.5.5 、 @2.5.6 和 @2.5.7 。
+"container.hpp" 依赖 "range.hpp" ；
+"tree.hpp" 和 "string_view.hpp" 依赖 "range.hpp" ；
+"string.hpp" 依赖 "container.hpp" ；
+"string.hpp" 内部依赖 "string_view.hpp" （蕴含公开依赖 "range.hpp" ）；
+"map.hpp" 和 "set.hpp" 依赖 "tree.hpp" （蕴含公开依赖 "range.hpp" ）。
 
 @2.5.2 命名空间和模板特化：
 除在块作用域、非公开的实现命名空间和此处列明的例外，禁止其它的别名声明引入 std 成员命名空间：
@@ -252,10 +283,7 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 @2.5.4.2 类型检查元编程设施 TypeInspection ：
 部分扩展标准库头 <type_traits> ，提供确定类型属性或关系的类型特征。
 
-@2.5.4.3 范围操作 Range ：
-部分扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
-
-@2.5.4.4 基类实用设施 Base ：
+@2.5.4.3 基类实用设施 Base ：
 提供适合被作为基类的通用接口。
 
 @2.5.5 基本头文件扩展：
@@ -276,29 +304,32 @@ YStandard 的一些公开接口实体和标准库命名空间 std 或 TS （技�
 提供 std::addressof 相关的接口。
 ISO C++17 支持下的 std::addressof 具有的 constexpr 修饰符不被保证支持。
 
-@2.5.5.5 可调用对象和调用包装接口 Invoke ：
+@2.5.5.5 范围操作 Range ：
+部分扩展标准库头 <iterator> ，提供兼容 ISO C++14 的范围操作等扩展。
+
+@2.5.5.6 可调用对象和调用包装接口 Invoke ：
 间接扩展标准库头 <type_traits> 和 <functional> ，提供 std::invoke_result 等相关接口的替代实现。
 
-@2.5.5.6 引用包装 Ref ：
+@2.5.5.7 引用包装 Ref ：
 间接扩展标准库头 <functional> ，提供 std::wrapper_reference 相关接口及 ystdex::lref 等替代接口。
 
-@2.5.5.7 ISO C++ 类型特征扩展 TypeTraits ：
+@2.5.5.8 ISO C++ 类型特征扩展 TypeTraits ：
 间接扩展标准库头 <type_traits> ，包括元编程设施等。
 
-@2.5.5.8 放置对象管理操作 Placement
+@2.5.5.9 放置对象管理操作 Placement
 
-@2.5.5.9 共享存储和直接转换 TypePun ：
+@2.5.5.10 共享存储和直接转换 TypePun ：
 提供的基于存储布局的存储转换设施，作为实现类型擦除等的基础。
 
-@2.5.5.10 整数序列元编程接口 IntegerSequence ：
+@2.5.5.11 整数序列元编程接口 IntegerSequence ：
 扩展 ISO C++14 标准库头 <utility> 的 std::integer_sequence 等的元编程相关接口，并在 ISO C++14 前提供这些接口和实现。
 
-@2.5.5.11 重载操作符 Operators
+@2.5.5.12 重载操作符 Operators
 
-@2.5.5.12 迭代器操作 IteratorOperation ：
+@2.5.5.13 迭代器操作 IteratorOperation ：
 扩展标准库头 <iterator> 中的部分接口。
 
-@2.5.5.13 通用指针 Pointer ：
+@2.5.5.14 通用指针 Pointer ：
 间接扩展标准库头 <iterator> ，提供指针的迭代器适配器包装及其它和指针类型相关的模板。
 
 @2.5.6 ISO C++ 语言支持库扩展：

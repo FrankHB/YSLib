@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013, 2015-2016 FrankHB.
+	© 2012-2013, 2015-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r408
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2016-11-27 00:56 +0800
+	2018-07-30 06:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ native_byte_order()
 }
 
 //! \brief 测试本机位序。
-yconstfn YB_STATELESS bool
+YB_STATELESS yconstfn bool
 native_little_bit_order()
 {
 	return bool(details::bit_order_tester{1}.le & 1);
@@ -312,7 +312,7 @@ unpack_uint(typename ystdex::make_width_int<_vWidth>::unsigned_type value,
 \since build 623
 */
 template<size_t _vWidth>
-inline YB_NONNULL(1) typename make_width_int<_vWidth>::unsigned_type
+YB_NONNULL(1) inline typename make_width_int<_vWidth>::unsigned_type
 read_uint_be(const byte* buf) ynothrowv
 {
 	yconstraint(buf);
@@ -324,7 +324,7 @@ read_uint_be(const byte* buf) ynothrowv
 //@{
 //! \brief 从字节缓冲区读取指定宽的小端序无符号整数。
 template<size_t _vWidth>
-inline YB_NONNULL(1) typename make_width_int<_vWidth>::unsigned_type
+YB_NONNULL(1) inline typename make_width_int<_vWidth>::unsigned_type
 read_uint_le(const byte* buf) ynothrowv
 {
 	yconstraint(buf);
@@ -338,7 +338,7 @@ read_uint_le(const byte* buf) ynothrowv
 \since build 623
 */
 template<size_t _vWidth>
-inline YB_NONNULL(1) void
+YB_NONNULL(1) inline void
 write_uint_be(byte* buf, typename make_width_int<_vWidth>::unsigned_type
 	val) ynothrowv
 {
@@ -348,7 +348,7 @@ write_uint_be(byte* buf, typename make_width_int<_vWidth>::unsigned_type
 
 //! \brief 向字节缓冲区写入指定宽的小端序无符号整数。
 template<size_t _vWidth>
-inline YB_NONNULL(1) void
+YB_NONNULL(1) inline void
 write_uint_le(byte* buf, typename make_width_int<_vWidth>::unsigned_type
 	val) ynothrowv
 {

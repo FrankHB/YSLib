@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1552
+\version r1575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-07-24 21:50 +0800
+	2018-07-25 20:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -236,6 +236,31 @@ using underlying_type_t = typename underlying_type<_type>::type;
 //@}
 
 } // inline namespace cpp2014;
+
+//! \ingroup transformation_traits
+//@{
+//! \since build 833
+//@{
+#if __cplusplus > 201703L
+using std::remove_cvref;
+using std::remove_cvref_t;
+#else
+/*!
+\brief 移除可能被 cv-qualifier 修饰的引用类型。
+\note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
+\see WG21 P0550R2 。
+*/
+//@{
+template<typename _type>
+struct remove_cvref : remove_cv<remove_reference_t<_type>>
+{};
+
+//! \since build 833
+template<typename _type>
+using remove_cvref_t = _t<remove_cvref<_type>>;
+#endif
+//@}
+//@}
 
 
 //! \ingroup metafunctions

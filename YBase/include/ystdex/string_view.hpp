@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,38 +11,57 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r477
+\version r546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2017-08-25 18:01 +0800
+	2018-07-30 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::StringView
+\see ISO C++17 [string.view] 。
 \see WG21 N4480 7[string_view] 。
-\bug 关系操作使用 operators 导致不必要的 ODR-used 。
 
 除了部分关系操作使用 operators 实现而不保留命名空间内的声明及散列支持提供偏特化外，
-其它接口同 std::experimental::string_view 。
+其它接口同 std::string_view 。
 */
 
 
 #ifndef YB_INC_ystdex_string_view_hpp_
 #define YB_INC_ystdex_string_view_hpp_ 1
 
-#include "string.hpp" // for std::char_traits, std::basic_string,
-//	std::allocator, 'str_find*', 'str_rfind*', std::basic_ostream;
-#include "operators.hpp" // for totally_ordered;
-#include <limits> // for std::numeric_limits;
-#include <stdexcept> // for std::out_of_range;
-#include "hash.hpp" // for std::hash, ystdex::hash_range;
+#include "range.hpp" // "range.hpp", ystdex::reverse_iterator;
+#if __cplusplus >= 201703L && __has_include(<string_view>)
+#	include <string_view>
+// NOTE: See also P0941R0 with minor fixes of the specification about P0032R3.
+#	if __cpp_lib_string_view >= 201603
+#		define YB_Impl_Has_string_view 1
+#	endif
+#endif
+#if YB_Impl_Has_string_view != 1
+#	include "cstring.h" // for std::char_traits, std::allocator, 'str_find*',
+//	'str_rfind*', std::basic_ostream, std::basic_string;
+#	include "operators.hpp" // for totally_ordered;
+#	include <limits> // for std::numeric_limits;
+#	include <stdexcept> // for std::out_of_range;
+#	include "hash.hpp" // for std::hash, ystdex::hash_range;
+#endif
 
 namespace ystdex
 {
 
+
+//! \since build 833
+inline namespace cpp2017
+{
+
+#if YB_Impl_Has_optional == 1
+//! \since build 833
+using std::basic_string_view;
+#else
 //! \since build 640
 //@{
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
@@ -58,7 +77,7 @@ public:
 	using const_reference = const _tChar&;
 	using const_iterator = yimpl(const _tChar*);
 	using iterator = const_iterator;
-	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator>;
 	using reverse_iterator = const_reverse_iterator;
 	using size_type = size_t;
 	using difference_type = ptrdiff_t;
@@ -73,23 +92,18 @@ public:
 	basic_string_view() ynothrow
 		: data_(), size_()
 	{}
-	yconstfn YB_NONNULL(2)
+	YB_NONNULL(2) yconstfn
 	basic_string_view(const _tChar* str)
 		: data_(str), size_(traits_type::length(str))
 	{}
-	yconstfn YB_NONNULL(2)
+	YB_NONNULL(2) yconstfn
 	basic_string_view(const _tChar* str, size_type len)
 		: data_(str), size_(len)
-	{}
-	template<class _tAlloc>
-	basic_string_view(const std::basic_string<_tChar, _tTraits, _tAlloc>& str)
-		ynothrow
-		: data_(str.data()), size_(str.size())
 	{}
 	yconstfn
 	basic_string_view(const basic_string_view&) ynothrow = default;
 
-	basic_string_view&
+	yconstfn_relaxed basic_string_view&
 	operator=(const basic_string_view&) ynothrow = default;
 
 	yconstfn const_iterator
@@ -116,25 +130,25 @@ public:
 		return data_ + size_;
 	}
 
-	const_reverse_iterator
+	yconstfn const_reverse_iterator
 	rbegin() const ynothrow
 	{
 		return const_reverse_iterator(end());
 	}
 
-	const_reverse_iterator
+	yconstfn const_reverse_iterator
 	rend() const ynothrow
 	{
 		return const_reverse_iterator(begin());
 	}
 
-	const_reverse_iterator
+	yconstfn const_reverse_iterator
 	crbegin() const ynothrow
 	{
 		return const_reverse_iterator(cend());
 	}
 
-	const_reverse_iterator
+	yconstfn const_reverse_iterator
 	crend() const ynothrow
 	{
 		return const_reverse_iterator(cbegin());
@@ -159,7 +173,7 @@ public:
 		return std::numeric_limits<size_type>::max();
 	}
 
-	yconstfn bool
+	YB_ATTR_nodiscard yconstfn bool
 	empty() const ynothrow
 	{
 		return size_ == 0;
@@ -215,25 +229,6 @@ public:
 		std::swap(size_, s.size_);
 	}
 
-	//! \pre 断言：数据指针非空。
-	//@{
-	template<class _tAlloc>
-	explicit
-	operator std::basic_string<_tChar, _tTraits, _tAlloc>() const
-	{
-		yconstraint(data_);
-		return {data_, size_};
-	}
-
-	template<class _tAlloc = std::allocator<_tChar>>
-	std::basic_string<_tChar, _tTraits, _tAlloc>
-	to_string(const _tAlloc& a = _tAlloc()) const
-	{
-		yconstraint(data_);
-		return {data_, size_, a};
-	}
-	//@}
-
 	YB_NONNULL(2) size_type
 	copy(_tChar* s, size_type n, size_type pos = 0) const
 	{
@@ -273,17 +268,17 @@ public:
 	{
 		return substr(pos1, n1).compare(s.substr(pos2, n2));
 	}
-	yconstfn YB_NONNULL(2) int
+	YB_NONNULL(2) yconstfn int
 	compare(const _tChar* s) const
 	{
 		return compare(basic_string_view(s));
 	}
-	yconstfn YB_NONNULL(4) int
+	YB_NONNULL(4) yconstfn int
 	compare(size_type pos1, size_type n1, const _tChar* s) const
 	{
 		return substr(pos1, n1).compare(basic_string_view(s));
 	}
-	yconstfn YB_NONNULL(4) int
+	YB_NONNULL(4) yconstfn int
 	compare(size_type pos1, size_type n1, const _tChar* s, size_type n2) const
 	{
 		return substr(pos1, n1).compare(basic_string_view(s, n2));
@@ -407,26 +402,29 @@ operator<<(std::basic_ostream<_tChar, _tTraits>& os,
 	basic_string_view<_tChar, _tTraits> str)
 {
 	// XXX: Better implementation?
-	return os << str.to_string();
+	return os << std::basic_string<_tChar, _tTraits>(str.data(), str.size());
 }
 //@}
-
+//@}
+#endif
 
 using string_view = basic_string_view<char>;
 using u16string_view = basic_string_view<char16_t>;
 using u32string_view = basic_string_view<char32_t>;
 using wstring_view = basic_string_view<wchar_t>;
-//@}
+
+} // inline namespace cpp2017;
 
 } // namespace ystdex;
 
 
+#if YB_Impl_Has_optional != 1
 namespace std
 {
 
 /*!
-\brief ystdex::optional 散列支持。
-\see WG21 N4480 5.11[optional.hash] 。
+\brief ystdex::basic_string_view 散列支持。
+\see WG21 N4480 5.11[basic_string_view.hash] 。
 \since build 640
 */
 template<typename _tChar, class _tTraits>
@@ -440,6 +438,7 @@ struct hash<ystdex::basic_string_view<_tChar, _tTraits>>
 };
 
 } // namespace std;
+#endif
 
 #endif
 

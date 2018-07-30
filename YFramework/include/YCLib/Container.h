@@ -11,13 +11,13 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r828
+\version r841
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2018-07-11 10:16 +0800
+	2018-07-30 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YCLib_YCommon
 //#include <ext/vstring.h>
 #include <ystdex/tstring_view.hpp>
+#include <ystdex/string.hpp>
 #include <ystdex/array.hpp>
 #include <deque>
 #include <forward_list>
@@ -100,7 +101,7 @@ using std::queue;
 */
 template<typename _tChar, typename _tTraits = std::char_traits<_tChar>,
 	class _tAlloc = std::allocator<_tChar>>
-using basic_string = std::basic_string<_tChar, _tTraits, _tAlloc>;
+using basic_string = ystdex::basic_string<_tChar, _tTraits, _tAlloc>;
 // using versa_string = __gnu_cxx::__versa_string<_tChar>;
 
 using string = basic_string<char>;
@@ -127,6 +128,15 @@ using ystdex::u16tstring_view;
 using ystdex::wtstring_view;
 //@}
 
+//! \since build 833
+static_assert(ystdex::is_implicitly_nothrow_constructible<const std::string&,
+	const string&>(), "Invalid string type (which is incompatible to exception"
+	" the standard string type in exception types) found.");
+//! \since build 833
+static_assert(ystdex::is_implicitly_nothrow_constructible<string_view,
+	string>(), "Invalid string view type found.");
+
+
 using ystdex::sfmt;
 using ystdex::vsfmt;
 //@}
@@ -134,11 +144,9 @@ using ystdex::vsfmt;
 //! \since build 664
 using ystdex::size;
 //! \since build 308
-using std::to_string;
-//! \since build 308
 using ystdex::to_string;
-//! \since build 593
-using std::to_wstring;
+//! \since build 833
+using ystdex::to_wstring;
 
 } // inline namespace containers;
 

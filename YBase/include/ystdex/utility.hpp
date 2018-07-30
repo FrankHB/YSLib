@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3460
+\version r3477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-07-12 17:03 +0800
+	2018-07-30 17:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_utility_hpp_ 1
 
 #include "swap.hpp" // for "swap.hpp", add_const_t, std::move,
-//	is_nothrow_constructible, is_nothrow_swappable_with, exclude_self_t;
+//	enable_if_convertible_t, is_nothrow_constructible, exclude_self_t;
 #include <functional> // for std::bind, std::ref
 #include "placement.hpp" // for yassume, ystdex::construct_in,
 //	ystdex::destruct_in;
@@ -38,18 +38,32 @@
 namespace ystdex
 {
 
+inline namespace cpp2017
+{
+
 /*!
 \brief 转换 const 引用。
-\see WG21 N4380 。
-\since build 593
+\see WG21 P0007R1 。
 */
+//@{
+#if __cpp_lib_as_const >= 201510
+using std::as_const;
+#else
+//! \since build 593
 template<typename _type>
 inline add_const_t<_type>&
 as_const(_type& t)
 {
 	return t;
 }
+//! \since build 833
+template<class _type>
+void
+as_const(const _type&&) = delete;
+#endif
+//@}
 
+} // inline namespace cpp2017;
 
 /*!
 \brief 按参数复制或转移。

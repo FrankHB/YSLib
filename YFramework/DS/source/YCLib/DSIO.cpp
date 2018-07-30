@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 底层输入输出接口。
-\version r4362
+\version r4365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 604
 \par 创建时间:
 	2015-06-06 06:25:00 +0800
 \par 修改时间:
-	2018-07-24 01:15 +0800
+	2018-07-31 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -756,7 +756,7 @@ DEntry::DEntry(Partition& part, string_view sv, LeafAction act,
 		}
 		else
 		{
-			name = ystdex::rtrim(comp, ' ').to_string();
+			name = string(ystdex::rtrim(comp, ' '));
 			if(leaf && add_entry && act != LeafAction::ThrowExisted)
 				return true;
 			NamePos = GenerateBeforeFirstNamePos(dclus);
@@ -2058,7 +2058,7 @@ using FilterRes = ystdex::common_nonvoid_t<
 
 inline PDefH(int, seterr, int& re, int e) ynothrow
 	ImplRet(re = e, -1)
-inline YB_NONNULL(1) PDefH(int, seterr, ::_reent* r, int e) ynothrow
+YB_NONNULL(1) inline PDefH(int, seterr, ::_reent* r, int e) ynothrow
 	// NOTE: The newlib reentrant environment pointer shall not be null in a
 	//	%::devoptab_t operation.
 	ImplRet(Deref(r)._errno = e, -1)
@@ -2281,7 +2281,7 @@ Mount(string_view name, const ::DISC_INTERFACE& intf, ::sec_t start_sector,
 	YAssertNonnull(name.data());
 	if(intf.startup() && intf.isInserted())
 	{
-		const auto devname(name.to_string() + ':');
+		const auto devname(string(name) + ':');
 
 		if(::FindDevice(devname.c_str()) >= 0)
 			return true;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2005
+\version r2014
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2016-08-25 21:06 +0800
+	2018-07-29 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -595,43 +595,43 @@ MakeFile(const wchar_t*, FileAccessRights = AccessRights::None,
 	= CreationDisposition::OpenExisting,
 	FileAttributesAndFlags = FileAttributesAndFlags::NormalAll) ynothrowv;
 //! \since build 660
-inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAccessRights desired_access, FileShareMode shared_mode,
 	FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, desired_access, shared_mode,
 		CreationDisposition::OpenExisting, attributes_and_flags))
-inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAccessRights desired_access, CreationDisposition creation_disposition,
 	FileAttributesAndFlags attributes_and_flags
 	= FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
 		creation_disposition, attributes_and_flags))
 //! \since build 637
-inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAccessRights desired_access,
 	FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, desired_access, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
 //! \since build 660
 //@{
-inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileShareMode shared_mode, CreationDisposition creation_disposition
 	= CreationDisposition::OpenExisting, FileAttributesAndFlags
 	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, shared_mode,
 		creation_disposition, attributes_and_flags))
 //! \since build 701
-inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	CreationDisposition creation_disposition, FileAttributesAndFlags
 	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
 		creation_disposition, attributes_and_flags))
-inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileShareMode shared_mode, FileAttributesAndFlags
 	attributes_and_flags = FileAttributesAndFlags::NormalAll) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, shared_mode,
 		CreationDisposition::OpenExisting, attributes_and_flags))
-inline YB_NONNULL(1) PDefH(UniqueHandle, MakeFile, const wchar_t* path,
+YB_NONNULL(1) inline PDefH(UniqueHandle, MakeFile, const wchar_t* path,
 	FileAttributesAndFlags attributes_and_flags) ynothrowv
 	ImplRet(MakeFile(path, AccessRights::None, FileShareMode::All,
 		CreationDisposition::OpenExisting, attributes_and_flags))
@@ -696,7 +696,7 @@ public:
 	*/
 	//@{
 	DirectoryFindData(wstring_view sv)
-		: DirectoryFindData(sv.to_string())
+		: DirectoryFindData(wstring(sv))
 	{}
 	//! \since build 705
 	DirectoryFindData(u16string_view sv)

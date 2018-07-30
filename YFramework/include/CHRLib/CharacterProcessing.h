@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2015 FrankHB.
+	© 2009-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2221
+\version r2227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 565
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2015-10-12 14:30 +0800
+	2018-07-28 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define INC_CHRLib_CharacterProcessing_h_ 1
 
 #include "YModules.h"
-#include YFM_CHRLib_CharacterMapping // for ystdex::is_null,
-//	ystdex::ntctslen ystdex::string_traits;
+#include YFM_CHRLib_CharacterMapping
+#include <ystdex/string.hpp> // for ystdex::is_null, ystdex::ntctslen,
+//	ystdex::string_traits;
 #include <cstdio> // for std::FILE;
 #include <memory> // for std::move;
 
@@ -113,7 +114,7 @@ inline PDefH(ConversionResult, MBCToUC, const char*& c, const char* e,
 //@{
 YF_API YB_NONNULL(1) ConversionResult
 MBCToUC(std::FILE*, Encoding, ConversionState&& = {});
-inline YB_NONNULL(1) PDefH(ConversionResult, MBCToUC, std::FILE* fp,
+YB_NONNULL(1) inline PDefH(ConversionResult, MBCToUC, std::FILE* fp,
 	Encoding enc, ConversionState& st)
 	ImplRet(MBCToUC(fp, enc, std::move(st)))
 //@}
@@ -592,7 +593,7 @@ MakeUCS4LE(u32string_view sv, Encoding = CharSet::ISO_10646_UCS_4)
 //@{
 //! \since build 544
 template<class _tDst = std::string>
-inline YB_NONNULL(1) _tDst
+YB_NONNULL(1) inline _tDst
 MakeMBCS(const char* s, Encoding enc)
 {
 	return enc = CS_Default ? MakeMBCS<_tDst>(s)

@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2649
+\version r2653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-07-23 19:50 +0800
+	2018-07-28 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "placement.hpp" // for "placement.hpp", <memory>, and_,
+#include "placement.hpp" // for internal "placement.hpp", <memory>, and_,
 //	is_copy_constructible, cond_t, is_detected, std::declval, detected_or_t,
 //	detected_t, conditional, enable_if_convertible_t, indirect_element_t,
 //	remove_reference_t, not_, is_void, remove_pointer_t, yconstraint,
@@ -38,7 +38,8 @@
 //	ystdex::construct_within, is_polymorphic;
 #include "integer_sequence.hpp" // for is_class_type, vdefer;
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
-#include "pointer.hpp" // for "pointer.hpp", ystdex::swap_dependent;
+#include "pointer.hpp" // for interal "pointer.hpp", "iterator_op.hpp",
+//	ystdex::swap_dependent;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, std::hash;
 
@@ -293,7 +294,7 @@ struct class_allocator : std::allocator<_type>
 	using std::allocator<_type>::allocator;
 	class_allocator(const class_allocator&) = default;
 
-	_type*
+	YB_ATTR_nodiscard _type*
 	allocate(size_t n)
 	{
 		return _type::operator new(n * sizeof(_type));

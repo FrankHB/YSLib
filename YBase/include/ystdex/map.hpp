@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r797
+\version r802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2018-07-18 14:59 +0800
+	2018-07-26 19:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,10 @@
 #ifndef YB_INC_ystdex_map_hpp_
 #define YB_INC_ystdex_map_hpp_ 1
 
-#include "tree.h" // for "tree.h", less, std::pair, std::allocator, std::pair,
-//	totally_ordered, std::is_same, allocator_traits, first_of,
-//	is_nothrow_copy_constructible, and_, is_constructible, enable_if_t,
-//	ystdex::swap_dependent;
+#include "tree.h" // for "tree.hpp" (implying "range.hpp"), less, std::pair,
+//	std::allocator, std::pair, totally_ordered, std::is_same, allocator_traits,
+//	first_of, is_nothrow_copy_constructible, and_, is_constructible,
+//	enable_if_t, ystdex::swap_dependent;
 #include <map> // for <map>, std::initializer_list;
 #include <tuple> // for std::piecewise_construct, std::tuple;
 
@@ -259,7 +259,7 @@ public:
 		return tree.rend();
 	}
 
-	bool
+	YB_ATTR_nodiscard bool
 	empty() const ynothrow
 	{
 		return tree.empty();

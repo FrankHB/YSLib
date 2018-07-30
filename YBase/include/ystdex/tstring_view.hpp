@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2016 FrankHB.
+	© 2015-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tstring_view.hpp
 \ingroup YStandardEx
 \brief 指定结束字符的只读字符串视图。
-\version r314
+\version r321
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-10-01 22:56:52 +0800
 \par 修改时间:
-	2016-03-17 14:55 +0800
+	2018-07-30 06:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,9 +47,9 @@ template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
 class basic_tstring_view;
 
 template<typename _tChar, class _tTraits>
-class basic_tstring_view<_tChar, _tTraits, 0> : private
-	basic_string_view<_tChar, _tTraits>, yimpl(private
-	totally_ordered<basic_tstring_view<_tChar, _tTraits, 0>>)
+class basic_tstring_view<_tChar, _tTraits, 0>
+	: private basic_string_view<_tChar, _tTraits>,
+	yimpl(private totally_ordered<basic_tstring_view<_tChar, _tTraits, 0>>)
 {
 public:
 	using traits_type = _tTraits;
@@ -70,11 +70,11 @@ public:
 
 	yconstfn
 	basic_tstring_view() = default;
-	yconstfn YB_NONNULL(2)
+	YB_NONNULL(2) yconstfn
 	basic_tstring_view(const _tChar* str)
 		: base(str)
 	{}
-	yconstfn YB_NONNULL(2)
+	YB_NONNULL(2) yconstfn
 	basic_tstring_view(const _tChar* str, size_type len)
 		: base(verify(str, len) ? str
 		: (throw std::invalid_argument("Invalid string found."), str), len)
@@ -148,8 +148,6 @@ public:
 	{
 		return *this;
 	}
-
-	using base::to_string;
 
 	using base::copy;
 
