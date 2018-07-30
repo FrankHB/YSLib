@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2591
+\version r2602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2018-07-09 10:06 +0800
+	2018-07-30 06:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ namespace platform
 */
 //@{
 //! \pre 间接断言：参数非空。
-inline YB_NONNULL(1) PDefH(string, MakePathString, const char* s)
+YB_NONNULL(1) inline PDefH(string, MakePathString, const char* s)
 	ImplRet(Nonnull(s))
 inline PDefH(const string&, MakePathString, const string& s)
 	ImplRet(s)
@@ -198,13 +198,13 @@ public:
 	explicit DefCvt(const ynothrow, bool, desc != -1)
 
 	//! \since build 639
-	friend yconstfn YB_PURE PDefHOp(bool,
-		==, const FileDescriptor& x, const FileDescriptor& y) ynothrow
+	friend YB_PURE yconstfn PDefHOp(bool, ==, const FileDescriptor& x,
+		const FileDescriptor& y) ynothrow
 		ImplRet(x.desc == y.desc)
 
 	//! \since build 639
-	friend yconstfn YB_PURE PDefHOp(bool,
-		<, const FileDescriptor& x, const FileDescriptor& y) ynothrow
+	friend YB_PURE yconstfn PDefHOp(bool, <, const FileDescriptor& x,
+		const FileDescriptor& y) ynothrow
 		ImplRet(x.desc < y.desc)
 
 	//! \exception std::system_error 参数无效或调用失败。
@@ -1275,7 +1275,7 @@ FetchCurrentWorkingDirectory(size_t);
 \since build 631
 */
 //@{
-inline YB_NONNULL(1) PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
+YB_NONNULL(1) inline PDefH(FileTime, GetFileAccessTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetAccessTime())
 /*!
 \pre 断言：第一参数非空。
@@ -1294,7 +1294,7 @@ GetFileAccessTimeOf(const char16_t*, bool = {});
 \since build 628
 */
 //@{
-inline YB_NONNULL(1) PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
+YB_NONNULL(1) inline PDefH(FileTime, GetFileModificationTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetModificationTime())
 
 /*!
@@ -1314,7 +1314,7 @@ GetFileModificationTimeOf(const char16_t*, bool = {});
 \since build 631
 */
 //@{
-inline YB_NONNULL(1) PDefH(array<FileTime YPP_Comma 2>,
+YB_NONNULL(1) inline PDefH(array<FileTime YPP_Comma 2>,
 	GetFileModificationAndAccessTimeOf, std::FILE* fp)
 	ImplRet(FileDescriptor(fp).GetModificationAndAccessTime())
 /*!
@@ -1393,7 +1393,7 @@ HaveSameContents(UniqueFile, UniqueFile, const char*, const char*);
 \nsince build 638
 */
 //@{
-yconstfn YB_PURE PDefH(bool, IsNodeShared, const FileNodeID& x,
+YB_PURE yconstfn PDefH(bool, IsNodeShared, const FileNodeID& x,
 	const FileNodeID& y) ynothrow
 	ImplRet(x != FileNodeID() && x == y)
 /*!
@@ -1429,7 +1429,7 @@ namespace platform_ex
 */
 //@{
 //! \pre 间接断言：参数非空。
-inline YB_NONNULL(1) PDefH(wstring, MakePathStringW, const wchar_t* s)
+YB_NONNULL(1) inline PDefH(wstring, MakePathStringW, const wchar_t* s)
 	ImplRet(platform::Nonnull(s))
 inline PDefH(const wstring&, MakePathStringW, const wstring& s)
 	ImplRet(s)
@@ -1446,7 +1446,7 @@ inline PDefH(wstring, MakePathStringW, string_view sv)
 */
 //@{
 //! \pre 间接断言：参数非空。
-inline YB_NONNULL(1) PDefH(u16string, MakePathStringU, const char16_t* s)
+YB_NONNULL(1) inline PDefH(u16string, MakePathStringU, const char16_t* s)
 	ImplRet(platform::Nonnull(s))
 inline PDefH(const u16string&, MakePathStringU, const u16string& s)
 	ImplRet(s)

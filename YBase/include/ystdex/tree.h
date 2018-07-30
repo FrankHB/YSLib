@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2302
+\version r2319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-07-12 18:22 +0800
+	2018-07-30 22:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,13 @@
 #define YB_INC_ystdex_tree_hpp_ 1
 
 #include "memory.hpp" // for allocator_traits, is_move_assignable,
-//	ystdex::swap_dependent, yassume, yconstraint, is_nothrow_copy_constructible,
-//	aligned_storage_t, standard_layout_storage, std::allocator,
-//	std::bidirectional_iterator_tag, std::reverse_iterator, is_same, cond_t,
-//	is_nothrow_move_assignable, or_, and_, ystdex::alloc_on_copy,
-//	ystdex::alloc_on_move, ystdex::alloc_on_swap, std::pointer_traits,
-//	enable_if_t, true_, false_, std::move_if_noexcept;
+//	ystdex::swap_dependent, yassume, yconstraint, true_, false_,
+//	std::pointer_traits, is_nothrow_copy_constructible, aligned_storage_t,
+//	standard_layout_storage, std::allocator, std::bidirectional_iterator_tag,
+//	ystdex::reverse_iterator, is_same, cond_t, is_nothrow_move_assignable, or_,
+//	and_, is_invocable, ystdex::alloc_on_copy, is_nothrow_swappable,
+//	ystdex::alloc_on_swap, enable_if_t, std::move_if_noexcept,
+//	ystdex::alloc_on_move;
 #include "optional.h" // for optional, bidirectional_iteratable,
 //	equality_comparable, totally_ordered, has_mem_is_transparent,
 //	ystdex::as_const, std::equal, std::lexicographical_compare;
@@ -137,9 +138,7 @@ public:
 		return allocator_type(*alloc);
 	}
 
-
-	// TODO: Support nodiscard as pseudo keyword in %ydef.h.
-	/*[[nodiscard]]*/ bool
+	YB_ATTR_nodiscard bool
 	empty() const ynothrow
 	{
 		return !ptr;
@@ -460,7 +459,7 @@ public:
 	{
 		return static_cast<_type*>(storage.access());
 	}
-	yconstfn YB_PURE const _type*
+	YB_PURE yconstfn const _type*
 	access_ptr() const
 	{
 		return static_cast<const _type*>(storage.access());
@@ -645,15 +644,12 @@ template<typename _tKey, typename _type, typename _fKeyOfValue, typename _fComp,
 class tree : private
 	totally_ordered<tree<_tKey, _type, _fKeyOfValue, _fComp, _tAlloc>>
 {
-	// TODO: Check with %is_invocable.
-#if false
 	static_assert(is_invocable<_fComp&, const _tKey&, const _tKey&>(),
 		"Invalid comparison object type found.");
 	// XXX: LWG 2542.
 	static_assert(is_invocable<const _fComp&, const _tKey&, const _tKey&>(),
 		"Invalid comparison object type found.");
 
-#endif
 	template<typename, typename>
 	friend class tree_merge_helper;
 
@@ -792,8 +788,8 @@ protected:
 public:
 	using iterator = tree_iterator<value_type>;
 	using const_iterator = tree_const_iterator<value_type>;
-	using reverse_iterator = std::reverse_iterator<iterator>;
-	using const_reverse_iterator = std::reverse_iterator<const_iterator> ;
+	using reverse_iterator = ystdex::reverse_iterator<iterator>;
+	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator> ;
 	using node_type = node_handle<_tKey, _type, node_allocator>;
 	using insert_return_type = node_insert_return<
 		cond_t<is_same<_tKey, _type>, const_iterator, iterator>, node_type>;
@@ -921,7 +917,7 @@ public:
 		return const_reverse_iterator(begin());
 	}
 
-	bool
+	YB_ATTR_nodiscard bool
 	empty() const ynothrow
 	{
 		return objects.node_count == 0;
@@ -983,7 +979,7 @@ public:
 	}
 
 protected:
-	link_type
+	YB_ATTR_nodiscard link_type
 	get_node()
 	{
 		return alloc_traits::allocate(get_node_allocator(), 1);

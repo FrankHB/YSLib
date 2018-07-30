@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r237
+\version r249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2018-07-21 05:41 +0800
+	2018-07-31 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,25 +91,33 @@ prev_if_eq(_tBi i, const _type& val,
 //@}
 
 
-//! \ingroup helper_functions
-//@{
+//! \since build 833
+inline namespace cpp2014
+{
+
 /*!
 \brief 构造反向迭代器。
 \see WG21 N3936 24.5.1.3.21[reverse.iter.make] 。
 \see LWG 2285 。
 \since build 531
 */
-#if __cpp_lib_make_reverse_iterator >= 201402
+#if __cpp_lib_make_reverse_iterator >= 201402 \
+	&& YB_Impl_use_std_reverse_iterator
 using std::make_reverse_iterator;
 #else
+//! \since build 833
 template<typename _tIter>
-std::reverse_iterator<_tIter>
+reverse_iterator<_tIter>
 make_reverse_iterator(_tIter i)
 {
-	return std::reverse_iterator<_tIter>(i);
+	return reverse_iterator<_tIter>(i);
 }
 #endif
 
+} // inline namespace cpp2014;
+
+//! \ingroup helper_functions
+//@{
 /*!
 \brief 构造转移迭代器对。
 \since build 337
@@ -183,7 +191,7 @@ struct iterator_operators<_tIter, _tTraits, std::random_access_iterator_tag>
 /*!
 \ingroup metafunctions
 \brief 按迭代器类别取可实现迭代器的重载操作符集合的实现。
-\note 仅使用第二参数的特定成员，可以是兼容 std::iterator 的实例的类型。
+\note 仅使用第二参数的特定成员，可以是兼容 std::iterator_tratis 的实例的类型。
 \warning 实例作为实现迭代器的基类时不应使用默认参数，因为此时无法访问成员类型。
 \since build 576
 */

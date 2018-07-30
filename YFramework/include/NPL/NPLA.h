@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3676
+\version r3678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-07-02 00:14 +0800
+	2018-07-26 00:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -844,7 +844,7 @@ inline PDefH(ReductionStatus, CheckNorm, const TermNode& term) ynothrow
 不直接和 ReductionStatus::Retrying 比较以分离依赖 ReductionStatus 的具体值的实现。
 派生实现可使用类似的接口指定多个不同的状态。
 */
-YB_PURE YF_API bool
+YF_API YB_PURE bool
 CheckReducible(ReductionStatus);
 
 /*!
@@ -1817,6 +1817,7 @@ public:
 
 	//! \since build 823
 	PDefH(EnvironmentReference, WeakenRecord, ) const
+		// TODO: Use C++17 %weak_from_this to get more efficient implementation.
 		ImplRet(ShareRecord())
 
 	friend PDefH(void, swap, ContextNode& x, ContextNode& y) ynothrow

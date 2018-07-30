@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1067
+\version r1069
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2017-09-26 00:45 +0800
+	2018-07-26 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ inline YB_NONNULL(1, 2) PDefH(bool, CheckBOM, const char* buf, const char* str,
 	size_t n)
 	ImplRet(std::char_traits<char>::compare(Nonnull(buf), str, n) == 0)
 template<size_t _vN>
-inline YB_NONNULL(1) bool
+YB_NONNULL(1) inline bool
 CheckBOM(const char* buf, const char(&str)[_vN])
 {
 	return CheckBOM(buf, str, _vN - 1);

@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r678
+\version r682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2018-07-09 09:19 +0800
+	2018-07-31 00:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,10 +114,6 @@ openmode_conv(const char*) ynothrow;
 class YB_API ifile_iterator
 	: public input_iteratable<ifile_iterator, const byte&>
 {
-protected:
-	using traits_type = std::iterator<std::input_iterator_tag, byte, ptrdiff_t,
-		const byte*, const byte&>;
-
 public:
 	//! \since build 676
 	//@{
@@ -284,7 +280,7 @@ public:
 		content.reset();
 	}
 
-	bool
+	YB_ATTR_nodiscard bool
 	empty() ynothrow
 	{
 		return !content;

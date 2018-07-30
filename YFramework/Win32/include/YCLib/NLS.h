@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r120
+\version r123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-25 17:30:48 +0800
 \par 修改时间:
-	2016-07-25 12:36 +0800
+	2018-07-26 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,14 +69,14 @@ YF_API string
 WCSToMBCS(wstring_view, unsigned = CP_ACP);
 
 //! \pre 间接断言：字符串指针参数非空。
-inline YB_NONNULL(1) PDefH(wstring, UTF8ToWCS, const char* str)
+YB_NONNULL(1) inline PDefH(wstring, UTF8ToWCS, const char* str)
 	ImplRet(MBCSToWCS(str, CP_UTF8))
 //! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
 inline PDefH(wstring, UTF8ToWCS, string_view sv)
 	ImplRet(MBCSToWCS(sv, CP_UTF8))
 
 //! \pre 间接断言：字符串指针参数非空。
-inline YB_NONNULL(1) PDefH(string, WCSToUTF8, const wchar_t* str)
+YB_NONNULL(1) inline PDefH(string, WCSToUTF8, const wchar_t* str)
 	ImplRet(WCSToMBCS(str, CP_UTF8))
 //! \pre 长度参数非零且不上溢 \c int 时间接断言：字符串指针参数非空。
 inline PDefH(string, WCSToUTF8, wstring_view sv)

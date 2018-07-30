@@ -11,13 +11,13 @@
 /*!	\file ref.hpp
 \ingroup YStandardEx
 \brief 引用包装。
-\version r463
+\version r464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-28 22:29:20 +0800
 \par 修改时间:
-	2018-07-25 00:59 +0800
+	2018-07-30 06:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -268,7 +268,7 @@ public:
 	{}
 
 	template<typename _type>
-	yconstfn YB_PURE
+	YB_PURE yconstfn
 	operator _type&() const
 	{
 		return *static_cast<_type*>(&*this);

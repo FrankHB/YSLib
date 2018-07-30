@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1070
+\version r1074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2016-09-30 14:57 +0800
+	2018-07-31 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_path_hpp_
 #define YB_INC_ystdex_path_hpp_ 1
 
-#include "string_view.hpp" // for std::basic_string, string_view,
+#include "string.hpp" // for basic_string, string_view,
 //	sequence_container_adaptor, dividable, totally_ordered,
 //	ystdex::erase_all_if, to_array, string_traits;
 
@@ -48,11 +48,11 @@ class path_traits
 
 //! \brief 文件字符串路径特征。
 template<typename _tChar, class _tAlloc>
-class path_traits<std::basic_string<_tChar, _tAlloc>>
+class path_traits<basic_string<_tChar, _tAlloc>>
 {
 public:
 	using char_type = _tChar;
-	using value_type = std::basic_string<_tChar, _tAlloc>;
+	using value_type = basic_string<_tChar, _tAlloc>;
 	using view_type = basic_string_view<char_type>;
 
 	static yconstfn bool

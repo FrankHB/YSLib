@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1105
+\version r1112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-07-11 17:39 +0800
+	2018-07-26 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,10 @@
 //	std::allocator_traits, std::piecewise_construct, enable_if_transparent,
 //	std::count, std::lower_bound, std::upper_bound, std::equal_range;
 #include "iterator.hpp" // for transformed_iterator,
-//	iterator_transformation::second, ystdex::make_transform,
-//	std::forward_as_tuple;
-#include "map.hpp" // for map, std::initializer_list;
+//	iterator_transformation::second, ystdex::reverse_iterator,
+//	ystdex::make_transform, std::forward_as_tuple;
+#include "map.hpp" // for "tree.hpp" (implying "range.hpp"), map,
+//	std::initializer_list;
 
 namespace ystdex
 {
@@ -192,8 +193,8 @@ public:
 	using difference_type = yimpl(typename umap_type::difference_type);
 	using pointer = typename allocator_traits<_tAlloc>::pointer;
 	using const_pointer = typename allocator_traits<_tAlloc>::const_pointer;
-	using reverse_iterator = std::reverse_iterator<iterator>;
-	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+	using reverse_iterator = ystdex::reverse_iterator<iterator>;
+	using const_reverse_iterator = ystdex::reverse_iterator<const_iterator>;
 
 private:
 	// XXX: It is undefined behavior when %value_type is incomplete, however
@@ -355,7 +356,7 @@ public:
 		return const_reverse_iterator(begin());
 	}
 
-	bool
+	YB_ATTR_nodiscard bool
 	empty() const ynothrow
 	{
 		return m_map.empty();

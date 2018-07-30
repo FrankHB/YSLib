@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1548
+\version r1552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2018-05-09 05:01 +0800
+	2018-07-30 05:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,10 +251,9 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 	fpsCounter(std::chrono::milliseconds(500)),
 	btnSwitchMain(*this, {234, 170}), btnSwitchSub(*this, {234, 170})
 {
-	using namespace std;
-	using namespace placeholders;
+	using namespace std::placeholders;
 	using ystdex::bind1;
-	static struct Init
+	static const struct Init
 	{
 		Init()
 		{
@@ -487,7 +486,7 @@ ShlExplorer::ShlExplorer(const IO::Path& pth,
 		else
 			lblTitle.Background = SolidBrush(GenerateRandomColor());
 		lblInfo.Text = btn.Text + u", " + String(to_string(
-			FetchImageLoadTime())) + u";\n" + String(k.to_string());
+			FetchImageLoadTime())) + u";\n" + String(string(k.to_string()));
 		InvalidateWidgets(lblTitle, lblInfo);
 	},
 	FetchEvent<Click>(btnTestAni) += [&]{

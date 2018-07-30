@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r3575
+\version r3578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2017-08-07 03:33 +0800
+	2018-07-30 06:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ IsColon(_tChar c) ynothrow
 }
 
 template<typename _tChar>
-inline YB_NONNULL(1) const _tChar*
+YB_NONNULL(1) inline const _tChar*
 FindColon(const _tChar* p) ynothrowv
 {
 	return ystdex::ntctschr(Nonnull(p), _tChar(':'));
@@ -86,7 +86,7 @@ FetchSeparator_P(IDTagBase) ynothrow
 }
 
 template<typename _tChar>
-yconstfn YB_STATELESS _tChar
+YB_STATELESS yconstfn _tChar
 FetchSeparator() ynothrow
 {
 	return FetchSeparator_P<_tChar>(IDTag<YF_Platform>());

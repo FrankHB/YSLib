@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3291
+\version r3292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2018-05-21 12:55 +0800
+	2018-07-26 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -604,7 +604,7 @@ Traverse(HDirectory& dir, _func f)
 //@{
 //! \pre 间接断言：指针参数非空。
 template<typename _func>
-inline YB_NONNULL(1) void
+YB_NONNULL(1) inline void
 Traverse(const char* path, _func f)
 {
 	// NOTE: Separators at end of path is allowed by %HDirectory::HDirectory.

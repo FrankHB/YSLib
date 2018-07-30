@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r338
+\version r356
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-06-29 22:15 +0800
+	2018-07-29 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -320,6 +320,26 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 				(make-environment (() get-current-environment));
 			$defl! f (n) $sequence n (f (- n 1)); f 1;
 			Note that this would not work even with growing instance of environment objects, before the tracing and collecting of indirect referent is supported here by the design above.
+
+$2018-07:
+
+$report.impl:
+Currently, 'ystdex::basic_string' is modeled on 'std::experimental::basic_string'.
+	Moving towards ISO C++ need to rebase 'std::basic_string' to reflect the modification in WG21 P0254R2.
+	There have to be a 'ystdex::basic_string' to provide the changes instead of 'std::basic_string' to keep no ISO C++17 fetures are unconditionally relied on.
+Use of inherited constructors are rechecked to interact without resolution from WG21 P0136R1.
+	This is searched using regular expression pattern 'using (.+)\:\:\1' in the editor in VS 2017.
+	Currently, resolution of WG21 P0136R1 (esp. for CWG 1941) is not relied on.
+		Some of the inherited constructors may be effected with dependent types from template parameters.
+			Currently, these class names matching the pattern are 'derived_entity', 'default_init_allocator' and 'path' in module 'YBase::YStandardEx'.
+			The only use of 'derived_entity' in user code is 'NPL::TokenValue' in module 'YFramework::NPL::NPLA'.
+				This is not considered relying on P0136R1 because it is based on interface like 'std::basic_string', where there no issue is related directly.
+				This changes after adoption of C++17 whose 'std::basic_string' having conditionally enabled constructor targetting to 'std::basic_string_view' instances.
+					This should ideally be resolved before adapting 'string_view' on the new 'ystdex::basic_string', but nothing is required to be done yet, since new constructors of 'std::basic_string' is still compatible in semantics with substitution failure.
+			No use of 'default_init_allocator' in user code is found.
+			Class name 'path' is safe because due to 'ystdex::sequence_container_adaptor'. 
+		All other use are safe except 'using u16string::u16string;' in class 'String' in 'YFramework::YSLib::Core::YString'.
+			This should also be handled like 'ystdex::basic_string' and 'NPL::TokenValue'.
 
 ////
 

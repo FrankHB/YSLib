@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5374
+\version r5375
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2018-07-12 20:11 +0800
+	2018-07-26 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -647,7 +647,7 @@ public:
 		ImplRet(handlers.crend())
 	//@}
 
-	PDefH(bool, empty, ) const ynothrow
+	YB_ATTR_nodiscard PDefH(bool, empty, ) const ynothrow
 		ImplRet(handlers.empty())
 
 	PDefH(iterator, end, ) ynothrow

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r4205
+\version r4574
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-07-25 01:46 +0800
+	2018-07-31 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,373 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			* "condition" @ "macro %__cpp_lib_transformation_trait_aliases"
+				$since b832
+				$= (/ 'YB_IMPL_MSCPP >= 1600' -> 'YB_IMPL_MSCPP >= 1800'),
+			+ "macro %YB_ATTR_nodiscard for ISO C++17 '[[nodiscard]]'"
+				// WG21 P0189R1. Also with names %clang::warn_unused_result, \
+					%gnu::warn_unused_result and %warn_unused_result.
+			+ "macro %YB_ATTR_maybe_unused for ISO C++17 '[[maybe_unused]]'",
+				// WG21 P0189R1. Also with names %gnu::unused and %unused.
+			+ $re_add(b832) "conditionally-defined macros \
+				%(__cpp_lib_as_const, __cpp_inheriting_constructors)",
+			* "condition" @ "macro %__cpp_lib_exchange_function" $since b832
+				$= (/ '__cplusplus >= 201703L' -> '__cplusplus > 201103L'),
+			/ "macro %yunused" ^ 'void' ~ 'static_cast<void>'
+				// This is a breaking change. It aims to avoid comma \
+					expressions to be used unconciously.
+		),
+		/ %YStandardEx $=
+		(
+			/ %Tree $=
+			(
+				+ DLI "enabled static assertions" ^ "%is_invocable"
+					@ "tree class template",
+				(
+				+ "inclusion %Range" @ %Tree;
+				/ $comp "ensured inclusion %Range" @ %(Map, Set, Tree),
+					// As the standard library.
+				/ $forced $impl "%(reverse_iteartor, const_reverse_iterator)"
+					@ "tree class template" ^ $dep_from
+					("%ystdex::reverse_iterator" @ %Range)
+					~ "%std::reverse_iterator" $dep_from
+					("%ystdex::make_reverse_iterator" @ %IteratorOperation)
+					// The return type should be same, otherwise user code \
+						would actually be broken.
+				)
+			),
+			(
+			/ "transformation traits %(remove_rcv, remove_rcv_t)"
+				@ %TypeOperation -> ("%(remove_cvref, remove_cvref_t)" @ %Meta);
+			/ "transformation traits %(remove_cvref, remove_cvref_t)"
+				@ '__cplusplus > 201703L' -> ('using std::remove_cvref;',
+				'using std::remove_cvref_t;') @ %Meta
+			),
+			/ "function templates %ystdex::addressof without '= delete'"
+				@ %AddressOf $=
+			(
+				+ $dep_from '%YB_ATTR_nodiscard' @ %YDefinition,
+					// As extension of WG21 P0600R1. Microsof VC++ is also \
+						using [[nodiscard]] in current version on \
+						%std::addressof.
+				+ "single template" "%__builtin_addressof"
+					@ '__has_builtin(addressof)',
+				* "missing 'ynothrow'" $orig
+					(@ "%constfn_addressof" $since b660)
+			),
+			/ ("metafunctions %(conjunction, disjunction, negation)"
+				>> "inline namespace %cpp2017") @ "namespace %ystdex"
+				@ %IntegralConstant,
+			(
+			/ DLDI "inclusion %Tuple" @ %TypeOperations -> "%IntegerSequence",
+			/ %Functional $=
+			(
+				/ "metafunction %parameter_of" ^ "%std::tuple_element_t"
+					~ "%tuple_element_t";
+				/ DLDI "inclusion %TypeOperations" -> (%Tuple, '<tuple>'),
+			);
+			/ "function template %apply" >> "inline namespace %cpp2017"
+				!@ '__cpp_lib_apply >= 201603' @ %Tuple
+			),
+			/ %Tuple $=
+			(
+				+ $re_add(b832) "conditionally-defined macros \
+					%(__cpp_lib_apply, __cpp_lib_make_from_tuple)",
+				/ "function template %make_from_tuple" >> "inline namespace \
+					%cpp2017" !@ '__cpp_lib_make_from_tuple >= 201606',
+				/ @ "inline namespace %cpp2017" $=
+				(
+					+ 'using std::apply;' @ '__cpp_lib_apply >= 201603',
+						// WG21 N3915.
+					+ 'using std::make_from_tuple;'
+						@ '__cpp_lib_make_from_tuple >= 201606'
+						// WG21 P0209R2.
+				)
+			),
+			/ %Utilities $=
+			(
+				+ 'using std::as_const;' @ '__cpp_lib_as_const >= 201510',
+					// WG21 P0007R1.
+				/ !@ '__cpp_lib_as_const >= 201510' $=
+				(
+					/ "function template %as_const"
+						>> "inline namespace %cpp2017"
+					+ "defaulted as deleted function template overload \
+						%as_const with 'const' forwarding reference parameter"
+				)
+			),
+			/ $doc "Doxygen groups %(iterators, iterator_adaptors)" @ %Iterator
+				>> %Range,
+			(
+			/ %Range $=
+			(
+				/ "inclusion %YDefinition" -> "%AddressOf";
+				+ @ "inline namespace %cpp2017" $=
+				(
+					+ 'using std::reverse_iterator;'
+						@ '__cplusplus >= 201703L && !__GLIBCXX__ \
+						&& !YB_IMPL_MSCPP'
+					+ "class template %reverse_iterator"
+						!@ '__cplusplus >= 201703L && !__GLIBCXX__ && \
+						!YB_IMPL_MSCPP'
+				);
+				/ "all remained 'std::reverse_iterator'"
+					@ "inline namespace %cpp2014" -> 'reverse_iterator'
+			);
+			/ @ %IteratorOperation $=
+			(
+				+ "inline namespace %cpp2014",
+				/ "refined 'using std::make_reverse_iterator;' with condition \
+					'__cplusplus >= 201703L && !__GLIBCXX__ && !YB_IMPL_MSCPP'",
+				/ "%make_reverse_iterator" ^ "%reverse_iterator"
+					~ "%std::reverse_iterator";
+				/ "all %make_reverse_iterator" >> "inline namespace %cpp2014"
+			)
+			),
+			(
+			// Refelecting dependencies of WG21 P0254R2.
+			/ "inclusion '<string>'" @ %CString -> '<libdefect/string.h>';
+			/ "inclusion %String" @ %StringView -> %CString $dep_from
+				%(YFramework.(CHRLib.CharacterProcessing, YCLib.Container),
+				"cleanup string test"),
+			/ "inclusions (%CString, '<libdefect/string.h>')" @ %String
+				-> %StringView;
+			/ %String $=
+			(
+				+ "metafunction %stream_str_t",
+				/ @ "inline namespace %cpp2017"
+				(
+					// See also $2018-07 @ %Documentation::Workflow::Annual2018.
+					+ 'using std::basic_string' @ '__cplusplus >= 201703L',
+					+ "class template %basic_string"
+						!@ '__cplusplus >= 201703L';
+						// With LWG 2193, WG21 P0254R2, LWG 2583, LWG 2757, \
+							LWG 2758, LWG 2771. LWG 2836 and other 'noexcept' \
+							for 'find'-like functions instance are not \
+							implemented as the cases seem still changing as \
+							active LWG issues.
+					+ "template specialization %std::hash for %basic_string"
+						!@ '__cplusplus >= 201703L',
+					+ 'using string = basic_string<char>;',
+					+ 'using u16string = basic_string<char16_t>;',
+					+ 'using u32string = basic_string<char32_t>;',
+					+ 'using wstring = basic_string<wchar_t>;'
+				),
+				// NOTE: Only returned strings are necessary to be the new \
+					type. Some of return values can be implicitly converted \
+					and using new types is complicated (e.g. %to_string), so \
+					not touched for simplicity.
+				/ "function template %vsfmt" ^ "%basic_string"
+					~ "%std::basic_string",
+				/ "function template specialization %sfmt" ^ "%string"
+					~ "%std::string",
+				/ $forced $lib $impl "function template %ston supported cases \
+					of %basic_string different to %std::basic_string",
+				/ $forced @ "%to_string" $=
+				(
+					/ "return type" ^ $dep_from "%(string, wstring, \
+						stream_str_t)" ~ "%std::(string, wstring)",
+					+ "overloads with arithmetic types supported by \
+						%std::to_string"
+				)
+				),
+				* "wrong %size_type" @ "function template %extract" $since b565,
+					// This would mismatch with actual type if allocator does \
+						not use %size_t as its %size_type.
+				+ $dev $lib 'YB_NONNULL(1)' @ "function templates \
+					%(string_begin, string_end) with pointer parameter"
+			),
+			- 'using base::to_string;' @ "class template %basic_tstring_view"
+				@ %TStringView,
+			/ %StringView $=
+			(
+				(
+				+ "inclusion %Range";
+				/ $comp "ensured inclusion %Range" @ %(String, StringView)
+					$dep_to "string view range access"
+					// LWG 2812.
+				),
+				/ "adapted to ISO C++17 %std::basic_string_view except for \
+					features depending on core language (i.e. deduction \
+					guides) specializations for other library components"
+					~ "%std::experimental::basic_string_view" $=
+				(
+					// WG21 P0254R2.
+					(
+					/ "%operator<< with %basic_string_view instances"
+						^ "explicit string cast" ~ "%to_string";
+					- "function template %to_string"
+						@ "class template %basic_string_view" $dep_from
+						"avoiding string_view to_string"
+					),
+					- $forced "constructor, conversion operator with \
+						%std::basic_string instances" $dep_from
+						(("%basic_string" @ %YFramework.YCLib.Container),
+						%TStringView),
+					/ @ "class template %basic_string_view" $=
+					(
+						// LWG 2778.
+						+ 'yconstfn_relaxed' @ "functions %operator=",
+						(
+						/ ("const_reverse_iterator"; $comp "reverse_iterator")
+							^ $dep_from ("string view range access";
+							("%ystdex::reverse_iterator" @ %Range))
+							~ "%std::reverse_iterator";
+						+ 'yconstfn'
+							@ "functions %(rbegin, rend, crbegin, crend)"
+						)
+					);
+					+ "inline namespace %cpp2017";
+					/ $lib "class template %basic_string_view"
+						>> "inline namespace %cpp2017"
+					+ "conditional inclusion with feature tests"
+						// See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/1rO2FiqWgtI, \
+							and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433.
+				)
+			)
+			),
+			/ "%(reverse_iteartor, const_reverse_iterator)" @ "class template \
+				%mapped_set" ^ $dep_from ("%ystdex::reverse_iterator"
+				@ %Range) ~ "%std::reverse_iterator",
+			/ %Path $=
+			(
+				/ $dev $lib "inclusion %StringView" -> "%String";
+				/ $forced "all 'std::basic_string'" -> 'basic_string'
+					$dep_from %String
+			),
+			/ @ "class template %ifile_iterator" @ %CStandardIO $=
+			(
+				- "protected alias %traits_type";
+				* $comp "wrong traits with deprecated %std::iterator used"
+					$since b245
+			)
+		)
+	),
+	+ ($dep_from "%YB_ATTR_nodiscard" @ %YDefinition) "as standard library"
+		$effective @ ((("function %empty" @ ("class %block_buffer"
+		@ %CStdandardIO, "class teamplate %map" @ %Map, "class template \
+		%set" @ %Set, "class template %basic_string_view" @ %StringView), "all \
+		4 function templates %size" @ %Range, "function %allocate" @ "class \
+		template %class_allocator" @ %Memory, "detailed" @ %Tree)
+		@ %YBase.YStandardEx), "function %empty" @ ("class template %GEvent"
+		@ %YEvent, "class %ValueNode" @ %ValueNode) @ %YFramework.YSLib.Core),
+		// As WG21 P0600R1.
+	/ $dev $lib "normailized attribute in lexicographic order even with linkage"
+		$effective %(Documentation.LanguageConvention, ("function \
+		%CheckReducible" @ %NPL.NPLA, ("functions %(MBCSToWCS, WCSToMBCS)"
+		@ %NLS, "functions %MakeFile" @ %MinGW32) @ 'YCLib_(Win32)',
+		(("function template %CheckBOM" @ TextFile, "function template \
+		%Traverse" @ %FileSystem) @ %Service, "function templates %(FetchSign, \
+		FetchSignFromInterval, HalfDifference)" @ %Core.YCoreUtilities)
+		@ %YSLib, ("function templates %(FindColon, FetchSeparator)"
+		@ %FileSystem, ("functions %(GetFileAccessTimeOf, \
+		GetFileModificationTimeOf, GetFileModificationAndAccessTimeOf, \
+		MakePathStringW, MakePathStringU)", "friend %operator==" @ "class \
+		%FileDescriptor") @ %FileIO) @ %YCLib, ("function %MBCToUC, function \
+		template %MakeMBCS" @ %CharacterProcessing,
+		"%(FetchMapperPtr_TryUCSMapper, FetchMapper_Default)" @ %MappingEx)
+		@ %CHRLib, "details" @ %'YCLib_(DS)'.DSIO) @ %YFramework, ("function \
+		templates %(read_uint_be, read_uint_le, write_uint_be, write_uint_le"
+		@ %CStandardInteger, "function templates %(ntctscmp, ntctschr, \
+		const_ntctscmp, const_ntctsfind, is_null)" @ CString, "function \
+		%native_little_bit_order" @ %CStandardInteger, "constructors #(1, 2)"
+		@ "class template specialization %basic_tstring_view" @ %TStringView,
+		"functions %data, function templates %access" @ "class template \
+		%standard_layout_storage" @ %TypePun, "details" @ %Tree, "conversion \
+		operator template" @ "class template %lref" @ %Ref, "constructors #(2, \
+		3), functions %compare#(4, 5, 6)" @ "class template %basic_string_view"
+		@ %StringView, "static function template %are_equal" @ "classes \
+		%examiners::(equal, always_equal)" @ %Examiner) @ %YBase.YStandardEx),
+		// Syntax rules now comes first.
+	/ %YFramework $=
+	(
+		(
+		* "missing inclusion %YBase.YStandardEx.String"
+			@ (%CHRLib.CharacterProcessing $since b641,
+			%YCLib.Container $since b640);
+			// The use of internal header dependency was not guaranteed then.
+		/ @ "inline namespace %containers" @ %YCLib.Container $=
+		(
+			/ "%basic_string" ^ $dep_from ("%ystdex::basic_string"
+				@ %YBase.YStandardEx.String) ~ "%std::basic_string" $dep_from
+				($forced %YBase.YStandardEx.StringView, %(YFramework.(YSLib.(
+				Core.(YException, YCoreUtilities), Adaptor.Font), YCLib.Host,
+				'YCLib_(Win32)'.NLS)), YReader.(BookmarkUI, ShlExplorer),
+				Tools.ProjectGenerator.Main),
+				// Modification of %StringView is required to avoid ambiguity.
+			+ $dev $lib "2 static assertion to ensure santiy among \
+				%(std::string, string, string_view) types",
+			- $forced 'using std::to_string;' $dep_from
+				("%to_string" @ %YBase.YStandardEx.String),
+				// Now %to_string returns %ystdex::string when introduced from \
+					namespace %ystdex. This should be consistent to \
+					%YSLib::to_string.
+			/ 'using std::to_wstring' -> 'using ystdex::to_wstring;'
+				// Same to %to_wstring.
+		)
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ $lib "constructor"
+					-> 'using MessageException::MessageException;'
+					@ "class %MessageSignal" @ %YException,
+				/ $forced "2nd parameter 'const std::string& = {}'"
+					-> 'const string& = {}' @ "function templates \
+					%(CheckLowerBound, CheckUpperBound, CheckArithmetic, \
+					CheckNonnegative, CheckPositive)" @ %YCoreUtilities
+					$dep_from ("%basic_string" @ %YCLib.Container)
+			),
+			/ "constructor" ^ "%string_view" ~ "%std::string"
+				@ "class %FontException" @ %Adaptor.Font,
+		),
+		/ $forced DLDI "constructor" @ ("class %platform_ex::Exception"
+			@ %YCLib.Host, "class %LoggedEvent" @ %YSLib.Core.YException)
+			!^ "%std::string constructor initialized from %string_view"
+			$dep_from ("%basic_string" @ %YCLib.Container),
+			// ISO C++17 is not guaranteed available here.
+		* $lib "wrong return type" @ "definition" @ "function \
+			%FetchNLSItemFromRegistry" @ %'YCLib_(Win32)'.NLS $since b556,
+		/ DLDI "platform %DS" @ %'YCLib_DS'.DSIO ^ "%string"
+			~ "%string_view::to_string" $effective
+			@ "constructor %DEntry#4, function %Mount"
+	),
+	/ $dev $lib %Test.YBase $=
+	(
+		/ "cleanup %string" $dep_to "cleanup string test" $=
+		(
+			/ "inclusion '<ystdex/container.hpp>'" -> '<ystdex/string.hpp>',
+			(
+			/ "avoided 'using namespace std;'";
+			/ "%std::string" -> "%string"
+			),
+			/ "%to_string calls" @ "%basic_string_view test"
+				-> "%string constructions"
+		),
+		* "'YB_HAS_CONSTEXPR' test had no effect" @ "main function" $since b628
+			$= ('YB_HAS_CONSTEXPR' -> '__cpp_constexpr >= 200704')
+	),
+	/ "%basic_string_view" ^ "explicit string cast" ~ "%to_string"
+		$effective @ ("constructor %DirectoryFindData#1"
+		@ %'YCLib_(Win32)'.MinGW32, "function %InitializeKeyModule"
+		@ %Helper.Initialization) @ %YFramework $dep_to
+		"avoiding string_view to_string",
+	/ DLDI %YReader $=
+	(
+		/ "avoided 'using namespace std;'" @ %(BookmarkUI, ShlExplorer),
+		/ "avoided %to_string relying on distinction between %ystdex::string \
+			and %std::string" @ "constructor %ShlExplorer" @ %ShlExplorer
+	),
+	/ "avoided 'using namespace std;'" @ %Tools.ProjectGenerator.Main
+),
+
+b832
 (
 	/ %YBase $=
 	(
@@ -180,14 +547,14 @@ $now
 					@ "inline namespace %cpp2017" ^ $dep_from
 					("%__cpp_lib_is_invocable" @ %YDefinition,
 					"%is_implicitly_nothrow_constructible" @ %Meta),
-					// P0604R0.
+					// WG21 P0604R0.
 				/ "transformation trait %member_target_type_t" @ %TypeOperation
 					>> %Invoke;
 				(
 				/ "struct pseudo_output; metafunctions %(nonvoid_result_t, \
 					object_result_t)" @ %Ref >> %Invoke;
 				/ "function templates %(invoke, invoke_nonvoid)" >> %Invoke $=
-					// P0604R0.
+					// WG21 P0604R0.
 				(
 					/ "return type" ^ "%invoke_result_t" ~ "%result_of_t",
 					+ "noexcept-specification" ^ $dep_from
@@ -343,7 +710,7 @@ b831
 					~ "%std::experimental::optional" $=
 				(
 					// The not changed specialized interface include LWG 2766 \
-						(swap) and P0513R0 (std::hash).
+						(swap) and WG21 P0513R0 (std::hash).
 					/ $lib "object %nullopt" ^ $dep_from
 						("%yconstexpr_inline" @ %YDefinition) ~ "%yconstexpr",
 					(

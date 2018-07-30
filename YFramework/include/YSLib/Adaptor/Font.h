@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3507
+\version r3511
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2016-05-25 20:06 +0800
+	2018-07-30 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,8 @@ private:
 	FontError err;
 
 public:
-	FontException(FontError e, const std::string& msg = {})
+	//! \since build 833
+	FontException(FontError e, const string_view msg = "")
 		: LoggedEvent(msg),
 		err(e)
 	{}
@@ -599,7 +600,7 @@ private:
 
 public:
 	/*!
-	\brief 默认构造：使用默认字型家族、大小和样式的字体对象。
+	\brief 无参数构造：使用默认字型家族、大小和样式的字体对象。
 	\since build 351
 	*/
 	Font()

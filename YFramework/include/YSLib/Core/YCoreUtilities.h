@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2510
+\version r2523
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2017-06-19 02:11 +0800
+	2018-07-30 06:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ namespace YSLib
 \since build 633
 */
 template<typename _type>
-yconstfn YB_STATELESS std::int_fast8_t
+YB_STATELESS yconstfn std::int_fast8_t
 FetchSign(_type a, _type b = _type(0)) ynothrow
 {
 	return a < b ? -1 : !(a == b);
@@ -57,7 +57,7 @@ FetchSign(_type a, _type b = _type(0)) ynothrow
 \since build 633
 */
 template<typename _type>
-yconstfn YB_STATELESS std::int_fast8_t
+YB_STATELESS yconstfn std::int_fast8_t
 FetchSignFromInterval(_type d, _type a, _type b) ynothrow
 {
 	return FetchSign(a, d) * FetchSign(d, b);
@@ -68,7 +68,7 @@ FetchSignFromInterval(_type d, _type a, _type b) ynothrow
 \since build 554
 */
 template<typename _type>
-yconstfn YB_STATELESS _type
+YB_STATELESS yconstfn _type
 HalfDifference(_type x, _type y)
 {
 	return (x - y) / 2;
@@ -274,16 +274,14 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 \throw LoggedEvent 范围检查失败。
 \note 对运行时由外部引入数值的检查，失败抛出运行时异常。
 \note 不依赖运行时引入数值的检查可使用 ystdex::narrow 代替。
-\since build 624
+\since build 833
 \sa ystdex::narrow
 */
-//@{
-//! \since build 703
 //@{
 //! \brief 检查算术类型数值不小于指定类型的下界。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckLowerBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
+CheckLowerBound(_type val, const string& name = {}, RecordLevel lv = Err)
 {
 	using namespace ystdex;
 	// XXX: See WG21 N3387.
@@ -299,7 +297,7 @@ CheckLowerBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
 //! \brief 检查算术类型数值不大于指定类型的上界。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckUpperBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
+CheckUpperBound(_type val, const string& name = {}, RecordLevel lv = Err)
 {
 	using namespace ystdex;
 	// XXX: See WG21 N3387.
@@ -318,17 +316,16 @@ CheckUpperBound(_type val, const std::string& name = {}, RecordLevel lv = Err)
 //! \brief 检查算术类型数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckArithmetic(_type val, const std::string& name = {}, RecordLevel lv = Err)
+CheckArithmetic(_type val, const string& name = {}, RecordLevel lv = Err)
 {
 	return
 		CheckUpperBound<_tDst>(CheckLowerBound<_tDst>(val, name, lv), name, lv);
 }
-//@}
 
 //! \brief 检查非负算术类型数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckNonnegative(_type val, const std::string& name = {}, RecordLevel lv = Err)
+CheckNonnegative(_type val, const string& name = {}, RecordLevel lv = Err)
 {
 	if(val < 0)
 		// XXX: Use more specified exception type.
@@ -339,7 +336,7 @@ CheckNonnegative(_type val, const std::string& name = {}, RecordLevel lv = Err)
 //! \brief 检查正算术类型数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckPositive(_type val, const std::string& name = {}, RecordLevel lv = Err)
+CheckPositive(_type val, const string& name = {}, RecordLevel lv = Err)
 {
 	if(!(0 < val))
 		// XXX: Use more specified exception type.

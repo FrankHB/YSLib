@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r3498
+\version r3524
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2018-07-23 15:48 +0800
+	2018-07-28 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,14 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "type_op.hpp" // for "tuple.hpp", true_, std::tuple,
-//	is_convertible, vseq::at, bool_, index_sequence_for, member_target_type_t,
-//	false_, is_void, _t, size_t_, std::tuple_size, vseq::join_n_t, std::swap,
-//	common_nonvoid_t, is_nothrow_swappable, make_index_sequence, exclude_self_t;
+#include "type_op.hpp" // for "type_op.hpp", index_sequence, true_, std::tuple,
+//	is_convertible, vseq::at, bool_, index_sequence_for, _t, std::tuple_element,
+//	std::tuple_size, size_t_, false_, is_void, vseq::join_n_t,
+//	is_nothrow_swappable, common_nonvoid_t, make_index_sequence, exclude_self_t;
 #include "functor.hpp" // for "ref.hpp", "invoke.hpp", <functional>,
 //	std::function, addressof_op, less, mem_get;
-#include "swap.hpp" // for ystdex::swap_dependent, ystdex::move_and_swap;
+#include "swap.hpp" // for "swap.hpp", ystdex::swap_dependent,
+//	ystdex::move_and_swap;
 #include <numeric> // for std::accumulate;
 
 namespace ystdex
@@ -381,8 +382,8 @@ struct return_of<std::function<_tRet(_tParams...)>>
 template<size_t _vIdx, typename _fCallable>
 struct parameter_of
 {
-	using type = tuple_element_t<_vIdx,
-		_t<make_parameter_tuple<_fCallable>>>;
+	using type
+		= _t<std::tuple_element<_vIdx, _t<make_parameter_tuple<_fCallable>>>>;
 };
 
 //! \since build 447
@@ -969,26 +970,6 @@ struct call_projection<std::tuple<_tParams...>, index_sequence<_vSeq...>>
 	}
 };
 //@}
-
-
-/*!
-\brief 应用函数对象和参数元组。
-\tparam _func 函数对象及其引用类型。
-\tparam _tTuple 元组及其引用类型。
-\see WG21 N4606 20.5.2.5[tuple.apply]/1 。
-\see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4023.html#tuple.apply 。
-\since build 547
-*/
-template<typename _func, class _tTuple>
-yconstfn auto
-apply(_func&& f, _tTuple&& args)
-	-> yimpl(decltype(call_projection<_tTuple, make_index_sequence<
-	std::tuple_size<decay_t<_tTuple>>::value>>::apply_call(yforward(f),
-	yforward(args))))
-{
-	return call_projection<_tTuple, make_index_sequence<std::tuple_size<
-		decay_t<_tTuple>>::value>>::apply_call(yforward(f), yforward(args));
-}
 
 
 //! \since build 634

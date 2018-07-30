@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r737
+\version r813
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2018-07-20 02:47 +0800
+	2018-07-28 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,30 @@
 #ifndef YB_INC_ystdex_tuple_hpp_
 #define YB_INC_ystdex_tuple_hpp_ 1
 
-#include "integer_sequence.hpp" // for "integer_sequence.hpp", vseq::defer,
-//	index_sequence, size_t_;
-#include <tuple>
+#include "functional.hpp" // for "functional.hpp", <tuple>, vseq::defer,
+//	index_sequence, integral_constant, call_projection, make_index_sequence,
+//	size_t_;
+#include <tuple> // for <tuple>, std::tuple, std::tuple_element,
+//	std::tuple_element_t;
+
+/*!
+\brief \<tuple\> 特性测试宏。
+\see WG21 P0941R2 2.2 。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\since build 833
+*/
+//@{
+#ifndef __cpp_lib_apply
+#	if YB_IMPL_MSCPP >= 1910 || __cplusplus > 201402L
+#		define __cpp_lib_apply 201603
+#	endif
+#endif
+#ifndef __cpp_lib_make_from_tuple
+#	if YB_IMPL_MSCPP >= 1910 || __cplusplus > 201402L
+#		define __cpp_lib_make_from_tuple 201606
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {
@@ -101,29 +122,62 @@ struct vec_subtract<std::tuple<integral_constant<_tInt, _vSeq1>...>,
 } // namespace vseq;
 //@}
 
+#if !(__cpp_lib_make_from_tuple >= 201606)
+//! \since build 833
+namespace details
+{
+
+template<typename _type, typename _tTuple, size_t... _vIdx>
+yconstfn _type
+make_from_tuple_impl(_tTuple&& t, index_sequence<_vIdx...>)
+{
+	return _type(std::get<_vIdx>(yforward(t))...);
+}
+
+} // namespace details;
+#endif
+
+inline namespace cpp2017
+{
 
 /*!
-\note 使用 ADL get 。
+\tparam _tTuple 元组及其引用类型。
+\see ISO C++17 [tuple.apply] 。
+*/
+//@{
+#if __cpp_lib_apply >= 201603
+using std::apply;
+#else
+/*!
+\brief 应用函数对象和参数元组。
+\tparam _func 函数对象及其引用类型。
+\see WG21 N3915 。
+\see WG21 N4606 20.5.2.5[tuple.apply]/1 。
+\see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4023.html#tuple.apply 。
+\since build 547
+*/
+template<typename _func, class _tTuple>
+yconstfn auto
+apply(_func&& f, _tTuple&& t)
+	-> yimpl(decltype(call_projection<_tTuple, make_index_sequence<
+	std::tuple_size<decay_t<_tTuple>>::value>>::apply_call(yforward(f),
+	yforward(t))))
+{
+	return call_projection<_tTuple, make_index_sequence<std::tuple_size<
+		decay_t<_tTuple>>::value>>::apply_call(yforward(f), yforward(t));
+}
+#endif
+
+#if __cpp_lib_make_from_tuple >= 201606
+using std::make_from_tuple;
+#else
+/*!
+\brief 从元组构造指定类型的值。
+\tparam _type 被构造的对象类型。
 \see WG21 N4606 20.5.2.5[tuple.apply]/2 。
 \see WG21 P0209R2 。
 \since build 735
 */
-//@{
-namespace details
-{
-
-template<typename _type, class _tTuple, size_t... _vIdx>
-yconstfn _type
-make_from_tuple_impl(_tTuple&& t, index_sequence<_vIdx...>)
-{
-	using std::get;
-
-	return _type(get<_vIdx>(yforward(t))...);
-}
-
-} // namespace details;
-
-//! \brief 从元组构造指定类型的值。
 template<typename _type, class _tTuple>
 yconstfn _type
 make_from_tuple(_tTuple&& t)
@@ -131,7 +185,10 @@ make_from_tuple(_tTuple&& t)
 	return details::make_from_tuple_impl<_type>(yforward(t),
 		make_index_sequence<std::tuple_size<decay_t<_tTuple>>::value>());
 }
+#endif
 //@}
+
+} // inline namespace cpp2017;
 
 
 /*!

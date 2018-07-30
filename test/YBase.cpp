@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r634
+\version r660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2018-07-15 04:56 +0800
+	2018-07-30 05:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #include <sstream>
 #include <iomanip>
 #include <ystdex/algorithm.hpp>
-#include <ystdex/container.hpp>
+#include <ystdex/string.hpp>
 #include <ystdex/tstring_view.hpp>
 #include <ystdex/mixin.hpp>
 #include <ystdex/bitseg.hpp>
@@ -51,10 +51,10 @@ show_result(std::ostream& out, const std::string& name, size_t pass_n,
 		<< std::endl;
 }
 
-using namespace std;
-using namespace placeholders;
 using namespace ystdex;
 using namespace ytest;
+//! \since build 833
+using std::vector;
 
 //! \since build 664
 struct cwam
@@ -123,6 +123,8 @@ static_assert(at_t<integer_sequence<int, 3>, 0>() == 3,
 static_assert(at_t<make_peano_sequence_t<int, -3, 4>, 2>() == -1,
 	"Peano sequence check failed.");
 
+//! \since build 833
+using namespace std;
 using test_t = tuple<int, int, void, void, int>;
 static_assert(is_same<front_t<test_t>, int>(), "");
 static_assert(is_same<back_t<test_t>, int>(), "");
@@ -237,6 +239,7 @@ expect(const string& str, vector<byte>&& seq)
 	if(seq.empty())
 		return str.empty();
 
+	using namespace std;
 	const bit e(&seq[0] + seq.size());
 	ostringstream oss;
 
@@ -254,6 +257,13 @@ expect(const string& str, vector<byte>&& seq)
 int
 main()
 {
+	using std::cout;
+	using std::endl;
+	using std::make_pair;
+	using std::make_tuple;
+	using std::numeric_limits;
+	using std::deque;
+	using std::list;
 	const auto make_guard([](const string& subject){
 		return group_guard(subject, [](group_guard& printer){
 			cout << "CASES: " << printer.subject << ':' << endl;
@@ -361,6 +371,7 @@ main()
 			})(42, 32);
 		}),
 		expect(make_pair(8, 2), []{
+			using namespace std;
 			using ftype = int(random_access_iterator_tag, double);
 			const int i(-1);
 
@@ -408,7 +419,7 @@ main()
 			}, r.begin(), 5, a.cbegin(), b.cbegin());
 			return r;
 		}),
-#if YB_HAS_CONSTEXPR
+#if __cpp_constexpr >= 200704
 		1 == sizeof(char[ystdex::min(1, 2)]),
 #else
 		1 == ystdex::min(1, 2),
@@ -443,16 +454,16 @@ main()
 		"abcd" == erase_right(3, string("abcde")),
 		"ab" == erase_right(string("abcde"), 'b'),
 		string("de") == erase_left(3, string("abcde")),
-		string("cde") == erase_left(string_view("abcde"), "c").to_string(),
+		string("cde") == string(erase_left(string_view("abcde"), "c")),
 		string("abcd") == erase_right(3, string("abcde")),
-		string("ab") == erase_right(string_view("abcde"), 'b').to_string(),
+		string("ab") == string(erase_right(string_view("abcde"), 'b')),
 		ltrim(string("aabcbaa"), 'a') == "bcbaa",
-		ltrim(string_view("aabcbaa"), 'a').to_string() == "bcbaa",
+		string(ltrim(string_view("aabcbaa"), 'a')) == "bcbaa",
 		rtrim(string("aabcbaa"), 'a') == "aabcb",
-		rtrim(string_view("aabcbaa"), 'a').to_string() == "aabcb",
+		string(rtrim(string_view("aabcbaa"), 'a')) == "aabcb",
 		trim(string("aabcbaa"), 'a') == "bcb",
 		trim(string("\v\nabcde\t\n")) == "abcde",
-		trim(string_view("aabcbaa"), 'a').to_string() == "bcb",
+		string(trim(string_view("aabcbaa"), 'a')) == "bcb",
 		trim(string_view("\v\nabcde\t\n")) == "abcde"
 	);
 	// 4 cases covering: ystdex::range_size.
@@ -465,6 +476,7 @@ main()
 			return range_size(a);
 		}),
 		expect(size_t(6), []{
+			using std::initializer_list;
 			struct no_size_function : initializer_list<int>
 			{
 				no_size_function(initializer_list<int> il)
@@ -481,7 +493,7 @@ main()
 	);
 	// 4 cases covering: ystdex::string_view.
 	seq_apply(make_guard("YStandard.StringView").get(pass, fail),
-		string_view("????") == std::string(4, '?'),
+		string_view("????") == string(4, '?'),
 		string_view("///a/b/c").find_first_not_of('/') == 3,
 		string_view("///a/b/c/").find_last_not_of('/') == 7,
 		expect(true, []{
@@ -499,7 +511,7 @@ main()
 	);
 	// 4 cases covering: ystdex::tstring_view.
 	seq_apply(make_guard("YStandard.TStringView").get(pass, fail),
-		tstring_view("????") == std::string(4, '?'),
+		tstring_view("????") == string(4, '?'),
 		tstring_view("///a/b/c").find_first_not_of('/') == 3,
 		tstring_view("///a/b/c/").find_last_not_of('/') == 7,
 		expect(true, []{
@@ -518,6 +530,8 @@ main()
 	// 1 case covering: mixin interface.
 	seq_apply(make_guard("YStandard.Mixin").get(pass, fail),
 		expect(make_pair(string("e"), boxed_value<int>(3)), []{
+			using namespace std;
+			using ystdex::string;
 			using int_exception = wrap_mixin_t<runtime_error, int>;
 			using exception_tuple = typename int_exception::tuple_type;
 			using type_0 = tuple_element_t<0, exception_tuple>;

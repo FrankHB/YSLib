@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r2105
+\version r2114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2018-07-09 10:07 +0800
+	2018-07-30 05:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -516,17 +516,22 @@ const 或 constexpr 静态数据成员可直接在类定义内初始化。在没
 ISO C++ 指定实现需要支持 extern "C" （ C 语言链接）和 extern "C++" （ C++ 语言链接），默认隐式为后者。
 特定的 C++ 语言构造要求使用 C 语言链接（如 @6.3.2.3 ）。除此之外，使用 C 语言链接以兼容 C 实现，并在 C++ 实现之间的互操作时取得一般较好的兼容性。
 
-@5.5.6 inline 和 constexpr ：
+@5.5.6 指示符(specifier) 和属性(attribute) ：
 注意 constexpr 隐含 inline 。
 inline 对 namespace 的使用参见 @5.5.8.3 。
 
 @5.5.6.1 语法：
 在必要时使用 inline 关键字。
 类定义内不使用冗余的 inline （类模板的成员不适用）。
+注意属性应在指示符之前出现。
 使用 static inline 而不是 inline static ，使用 thread_local inline 而不是 inline thread_local ；原因参见 @5.5.4.5 。
-保持和 static inline 风格一致性，一般使用 explicit inline ，而不是 inline explicit （但和 https://github.com/cplusplus/draft/issues/119 不同）。
-friend 及修饰整个声明的属性（如 [[noreturn]] ）和 explicit 类似。
-constexpr 及表示链接的扩展标签和其它关键字连用的顺序和 inline 类似。
+保持和 static inline 风格一致性，一般使用 explicit inline ，而不是 inline explicit 。
+满足其它语法和语义规则下，顺序由以下规则确定：
+修饰整个声明的属性（如 [[noreturn]] ）、 explicit 和 friend 为第一组；
+constexpr 和 inline 为第二组；
+第一组中的记号在第二组前出现；
+第一组和第二组内部各自以字典序（兼容以 [ 、 _ 和其它标识符字符的顺序）排列。
+注意和 https://github.com/cplusplus/draft/issues/119 不同。
 
 @5.5.6.2 语义：
 注意 ISO C++ 规定一个 inline 函数总是应被声明为 inline ，这和 ISO C 不同。

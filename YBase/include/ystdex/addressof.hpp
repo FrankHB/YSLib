@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r172
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2018-07-23 20:47 +0800
+	2018-07-28 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #ifndef YB_INC_ystdex_addressof_hpp_
 #define YB_INC_ystdex_addressof_hpp_ 1
 
-#include "meta.hpp" // for "meta.hpp", std::declval, is_detected, or_;
+#include "meta.hpp" // for internal "meta.hpp", std::declval, is_detected, or_;
 #include <memory> // for std::addressof;
 
 /*!
@@ -87,32 +87,48 @@ struct has_overloaded_addressof
 \brief 尝试对非重载 operator& 提供 constexpr 的 std::addressof 替代。
 \since build 831
 \see LWG 2296 。
-\todo 检查 __has_builtin(addressof) 并使用 __builtin_addressof 实现。
+
+提供和 ISO C++17 的 std::addressof 尽可能相同的接口。
+在 ISO C++17 前， constexpr 需要扩展支持。
+返回值的 nodiscard 标记是类似 P0600R1 理由的兼容扩展。
+Microsoft VC++ 15.7.5 也使用 [[nodiscard]] 。
 */
 //@{
 #if __cpp_lib_addressof_constexpr >= 201606
 using std::addressof;
 #else
-//! \todo 添加 [[nodiscard]] 。
-//@{
+#	if __has_builtin(addressof)
+//! \since build 833
 template<typename _type>
-yconstfn yimpl(enable_if_t)<!has_overloaded_addressof<_type>::value, _type*>
-addressof(_type& r)
+YB_ATTR_nodiscard yconstfn _type*
+addressof(_type& r) ynothrow
+{
+	return __builtin_addressof(r);
+}
+#	else
+//@{
+//! \since build 833
+template<typename _type>
+YB_ATTR_nodiscard yconstfn
+	yimpl(enable_if_t)<!has_overloaded_addressof<_type>::value, _type*>
+addressof(_type& r) ynothrow
 {
 	return &r;
 }
 /*!
 \note 因为可移植性需要，不能直接提供 constexpr 。
 \warning ISO C++17 前无 constexpr 支持。
+\since build 833
 */
 template<typename _type,
 	yimpl(typename = enable_if_t<has_overloaded_addressof<_type>::value>)>
-inline _type*
-addressof(_type& r)
+YB_ATTR_nodiscard inline _type*
+addressof(_type& r) ynothrow
 {
 	return std::addressof(r);
 }
 //@}
+#	endif
 //! \see LWG 2598 。
 template<class _type>
 const _type*

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2015, 2017 FrankHB.
+	© 2010-2015, 2017-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YNew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1197
+\version r1202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2017-03-30 14:31 +0800
+	2018-07-26 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,13 +57,13 @@
 \brief 调试用重载 ::operator new 和 ::operator delete 。
 \since build 173
 */
-YF_API YB_ALLOCATOR void*
+YF_API YB_ALLOCATOR YB_ATTR_nodiscard void*
 operator new(std::size_t, const char*, int) ythrow(std::bad_alloc);
-YF_API YB_ALLOCATOR void*
+YF_API YB_ALLOCATOR YB_ATTR_nodiscard void*
 operator new[](std::size_t, const char*, int) ythrow(std::bad_alloc);
-YF_API YB_ALLOCATOR void*
+YF_API YB_ALLOCATOR YB_ATTR_nodiscard void*
 operator new(std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
-YF_API YB_ALLOCATOR void*
+YF_API YB_ALLOCATOR YB_ATTR_nodiscard void*
 operator new[](std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
 YF_API void
 operator delete(void*, const char*, int) ynothrow;

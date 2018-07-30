@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 项目生成和更新工具。
-\version r769
+\version r774
 \author FrankHB <frankhb1989@gmail.com>
 \since build 599
 \par 创建时间:
 	2015-05-18 20:45:11 +0800
 \par 修改时间:
-	2017-08-14 17:24 +0800
+	2018-07-31 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -550,7 +550,10 @@ MakeCBDocNode(const Path& pth, const Path& opth, const string& platform,
 int
 main(int argc, char* argv[])
 {
-	using namespace std;
+	using std::cerr;
+	using std::clog;
+	using std::cout;
+	using std::endl;
 	using namespace platform_ex;
 
 	if(argc > 2)

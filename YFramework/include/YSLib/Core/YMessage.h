@@ -11,13 +11,13 @@
 /*!	\file YMessage.h
 \ingroup Core
 \brief 消息处理。
-\version r2042
+\version r2047
 \author FrankHB <frankhb1989@gmail.com>
 \since build 586
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2017-02-20 17:43 +0800
+	2018-07-30 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,12 +283,10 @@ public:
 class YF_API MessageSignal : public MessageException
 {
 public:
+	//! \since build 833
+	using MessageException::MessageException;
 	//! \since build 586
 	//@{
-	MessageSignal(const std::string& msg = {})
-		: MessageException(msg)
-	{}
-
 	DefDeCopyCtor(MessageSignal)
 	//! \brief 虚析构：类定义外默认实现。
 	~MessageSignal() override;

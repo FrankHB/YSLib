@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2016 FrankHB.
+	© 2014-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r322
+\version r326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2016-07-27 08:53 +0800
+	2018-07-30 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ inline namespace Windows
 {
 
 //! \see https://technet.microsoft.com/en-us/library/cc976084.aspx 。
-YB_NONNULL(1) std::wstring
+YB_NONNULL(1) wstring
 FetchNLSItemFromRegistry(const wchar_t* name)
 {
 	return FetchRegistryString(HKEY_LOCAL_MACHINE,
@@ -167,6 +167,8 @@ public:
 };
 
 NLSTableEntry::NLSTableEntry(int cp)
+	// FIXME: Some NLS files are missing from SysWOW64 directory in some
+	//	versions of 64-bit Windows 10.
 	: mapped(WCSToMBCS(FetchSystemPath() + FetchCPFileNameFromRegistry(cp)))
 {
 	const auto base(reinterpret_cast<unsigned short*>(mapped.GetPtr()));

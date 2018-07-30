@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r220
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2015-05-29 21:21 +0800
+	2018-07-30 03:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,8 +34,6 @@ namespace YReader
 namespace
 {
 
-using namespace std;
-
 //! \since build 397
 string
 ConvertToUIString(Bookmark::PositionType pos, ShlTextReader& shl)
@@ -51,7 +49,7 @@ ConvertToUIString(Bookmark::PositionType pos, ShlTextReader& shl)
 			line.erase(i);
 		if(b)
 			// XXX: Use cbegin after libstdc++ bug resolved.
-			//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278 .
+			//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278.
 			line.erase(line.begin());
 	}
 	return to_string(pos) + "  " + std::move(line);
