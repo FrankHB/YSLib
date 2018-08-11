@@ -11,13 +11,13 @@
 /*!	\file optional.cpp
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r48
+\version r49
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 22:33:28 +0800
 \par 修改时间:
-	2018-07-13 18:32 +0800
+	2018-08-06 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 namespace ystdex
 {
 
-#if YB_Impl_Has_optional != 1
+#if YB_Has_optional != 1
 inline namespace cpp2017
 {
 

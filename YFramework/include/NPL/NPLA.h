@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3678
+\version r3730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-07-26 00:53 +0800
+	2018-08-06 07:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -483,15 +483,67 @@ public:
 
 
 /*!
-\brief 列表规约失败。
-\since build 692
-\todo 捕获并保存上下文信息。
+\since build 834
+\todo 捕获并保存类型信息。
 */
-class YF_API ListReductionFailure : public NPLException
+//@{
+//! \brief 类型错误。
+class YF_API TypeError : public NPLException
 {
 public:
 	//! \since build 692
 	using NPLException::NPLException;
+	DefDeCtor(TypeError)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~TypeError() override;
+};
+
+
+/*!
+\brief 值类别不匹配。
+\note 预期左值或右值。
+*/
+class YF_API ValueCategoryMismatch : public TypeError
+{
+public:
+	//! \since build 834
+	using TypeError::TypeError;
+	DefDeCtor(ValueCategoryMismatch)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~ValueCategoryMismatch() override;
+};
+
+
+/*!
+\brief 列表类型错误。
+\note 预期列表或列表引用。
+*/
+class YF_API ListTypeError : public TypeError
+{
+public:
+	//! \since build 834
+	using TypeError::TypeError;
+	DefDeCtor(ListTypeError)
+
+	//! \brief 虚析构：类定义外默认实现。
+	~ListTypeError() override;
+};
+//@}
+
+
+/*!
+\brief 列表规约失败。
+\note 预期 ContextHandler 或引用。
+\since build 692
+\todo 捕获并保存上下文信息。
+*/
+class YF_API ListReductionFailure : public TypeError
+{
+public:
+	//! \since build 834
+	using TypeError::TypeError;
 	DefDeCtor(ListReductionFailure)
 
 	//! \brief 虚析构：类定义外默认实现。
@@ -512,7 +564,7 @@ public:
 
 
 /*!
-\brief 参数匹配失败。
+\brief 参数不匹配。
 \since build 771
 */
 class YF_API ParameterMismatch : public InvalidSyntax
@@ -883,11 +935,12 @@ inline PDefH(void, LiftTerm, TermNode& term, ValueObject& vo) ynothrow
 
 /*!
 \brief 提升项间接引用：复制或转移间接引用项使项不含间接值。
-\since build 821
+\since build 834
 */
-inline PDefH(void, LiftTermIndirection, TermNode& term, const TermNode& tm)
+inline PDefH(void, LiftTermIndirection, TermNode& term)
 	// NOTE: See $2018-02 @ %Documentation::Workflow::Annual2018.
-	ImplExpr(YSLib::SetContentWith(term, tm, &ValueObject::MakeMoveCopy))
+	ImplExpr(YSLib::SetContentWith(term, std::move(term),
+		&ValueObject::MakeMoveCopy))
 
 /*!
 \warning 引入的间接值无所有权，应注意在生存期内使用以保证内存安全。

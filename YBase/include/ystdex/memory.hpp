@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2653
+\version r2669
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-07-28 11:31 +0800
+	2018-08-06 23:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,11 +48,26 @@
 \see WG21 P0941R2 2.2 。
 \since build 628
 */
+//@{
+/*!
+\see LWG 2108 。
+\see LWG 2467 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/01/22/vs-2015-update-2s-stl-is-c17-so-far-feature-complete/ 。
+\since build 834
+*/
+//@{
+#ifndef __cpp_lib_allocator_traits_is_always_equal
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus > 201402L
+#		define __cpp_lib_allocator_traits_is_always_equal 201411
+#	endif
+#endif
+//@}
 #ifndef __cpp_lib_make_unique
 #	if YB_IMPL_MSCPP >= 1800 || __cplusplus > 201103L
 #		define __cpp_lib_make_unique 201304
 #	endif
 #endif
+//@}
 
 /*!	\defgroup allocators Allcators
 \brief 分配器。
@@ -1284,6 +1299,8 @@ public:
 	}
 };
 //@}
+
+#undef YB_Impl_Has_allocator_traits_is_always_equal
 
 } // namespace ystdex;
 

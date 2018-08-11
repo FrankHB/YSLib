@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015, 2017 FrankHB.
+	© 2013-2015, 2017-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file base.h
 \ingroup YStandardEx
 \brief 基类实用设施。
-\version r207
+\version r236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2014-11-28 11:59:15 +0800
 \par 修改时间:
-	2017-01-01 23:46 +0800
+	2018-08-02 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,14 @@
 #include "../ydef.h"
 
 namespace ystdex
+{
+
+/*!
+\brief 隔离 ADL 的基类命名空间。
+\note 避免基类在 ADL 时引入 ystdex 命名空间下的名称。
+\since build 834
+*/
+namespace bases
 {
 
 /*!
@@ -119,11 +127,6 @@ class YB_API cloneable
 public:
 	//! \since build 503
 	cloneable() = default;
-#if YB_IMPL_MSCPP
-	//! \since build 483 as workaround for Visual C++ 2013
-	cloneable(cloneable&&)
-	{}
-#endif
 	//! \since build 503
 	cloneable(const cloneable&) = default;
 	//! \brief 虚析构：类定义外默认实现。
@@ -180,6 +183,11 @@ public:
 	using base = _tBase;
 
 	derived_entity() = default;
+	/*!
+	\warning 语义视基类对象构造函数的形式可能不同。
+	\sa __cpp_inheriting_constructors
+	\see WG21 P0136R1 。
+	*/
 	using base::base;
 	derived_entity(const base& b) ynoexcept_spec(base(b))
 		: base(b)
@@ -195,6 +203,23 @@ public:
 	derived_entity&
 	operator=(derived_entity&&) = default;
 };
+
+} // namespace bases;
+
+//! \since build 834
+//@{
+using noncopyable = bases::noncopyable;
+
+using nonmovable = bases::nonmovable;
+
+using cloneable = bases::cloneable;
+
+template<typename _type>
+using deref_self = bases::deref_self<_type>;
+
+template<class _tBase, typename... _tParams>
+using derived_entity = bases::derived_entity<_tBase, _tParams...>;
+//@}
 
 } // namespace ystdex;
 

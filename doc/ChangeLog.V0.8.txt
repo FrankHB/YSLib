@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r4574
+\version r4876
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-07-31 00:58 +0800
+	2018-07-11 07:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,288 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			* "rational operators parameters with other iterators"
+				@ "class template %reverse_iterator" @ %Range,
+				// This did not resolve LWG 2858, either. Now keeping LWG \
+					280, until LWG 2858 is adopted. This is not needed in \
+					%ystdex since there is nothing like %std::rel_ops which is \
+					deprecated in C++20.
+			/ DLDI "simplified noexcept-specifications" @ "member functions"
+				@ "tree class template" @ %Tree,
+			/ %Container $=
+			(
+				^ "%ystdex::(begin, end)" ~ "ADL %(begin, end)" $effective
+					@ "%function templates %(make_container, range_size, \
+					erase_all_if, sort_unique, (search_map; search_map_by, \
+					try_emplace, try_emplace_hint, insert_or_assign))";
+				- "function template %make_container for %initializer_list \
+					instances"
+			),
+			/ %String $=
+			(
+				^ "%ystdex::(begin, end)" ~ "ADL %(begin, end)" $effective
+					@ "%function templates %(string_begin, string_end)",
+				+ "friend function %swap" @ "class template %basic_string"
+			),
+			/ "adapted to ISO C++17" @ %Range $=
+			(
+				- $revert(b664) "%(empty, cbegin, cend) overloads for array \
+					rvalues",
+					// To be consistent with the standard. Anyway the result \
+						can be handled by 'const&' parameter version with no \
+						difference (in case of %empty) or there is no sense \
+						(for cases of %(cbegin, cend)).
+				(
+				+ $re_add(b833) "conditionally-defined macros \
+					%(__cpp_lib_nonmember_container_access, \
+					__cpp_lib_array_constexpr)",
+				+ "inline namespace %cpp2017" $=
+				(
+					+ ('using std::size;', 'using std::empty;',
+						'using std::data;')
+						@ '__cpp_lib_nonmember_container_access >= 201411',
+					+ "3 function templates %(begin, end)" $dep_all_from
+						("disambiguity of end", %(Container, String))
+						!@ '__cpp_lib_array_constexpr >= 201603'
+						// WG21 P0031.
+				);
+				(
+				/ $comp "supported previously probably missing 'constexpr' on \
+					%(begin, end) for array lvalues"
+				),
+				(
+				/ ('using std::begin;', 'using std::end;')
+					@ "inline namespace %cpp2011" >> "namespace %cpp2017"
+					@ '__cpp_lib_array_constexpr >= 201603',
+					// WG21 P0031.
+				- "inline namespace %cpp2011"
+				),
+				/ "all function templates for array rvalues" @ "inline \
+					namespace %(cpp2011, cpp2014)" >> "namespace %ystdex",
+					// As extensions.
+				/ ('using std::rbegin;', 'using std::rend;',
+					'using std::crbegin;', 'using std::crend;')
+					@ "inline namespace %cpp2014"
+					>> ('__cpp_lib_array_constexpr >= 201603'
+					@ "inline namespace %cpp2017"),
+				/ ("function templates %(rbegin, rend, crbegin, crend)")
+					@ "inline namespace %cpp2014" -> ("function templates with \
+					'yconstfn'" @ !'__cpp_lib_array_constexpr >= 201603'
+					@ "inline namespace %cpp2017"),
+				/ "%(cbegin, cend)" ^ "%ystdex::(begin, end)"
+					~ "%std::(begin, end)",
+				/ "function templates %(empty, data, size) except for %data \
+					overload for array rvalues" >> "inline namespace %cpp2017"
+					!@ '__cpp_lib_nonmember_container_access >= 201411'
+					// N4080.
+				)
+			),
+			* "missing 'const'" @ "return type" @ "%operator* with 'const&&'"
+				@ "class template %optional" @ %Optional $since b675
+			/ %Base $=
+			(
+				+ "namespace %base";
+				/ "all base classes, class templates %(noncopyable, \
+					nonmovable, cloneable, deref_self, derived_entity)"
+					-> ("entities" @ "namespace %base",
+					"declarations of names" @ "%namespace %ystdex")
+					// To avoid unintended ADL.
+			),
+			/ %BitSegment $=
+			(
+				+ "namespace %nodep";
+				/ "traits %(bitseg_traits, ordered_bitseg_traits)"
+					-> ("entities" @ "namespace %nodep", "alias template \
+					declarations of names" @ "%namespace %ystdex")
+					// To avoid unintended ADL.
+			),
+			/ %Swap $=
+			(
+				+ "type traits %((is_swap_movable; enable_if_swap_movable_t), \
+					is_nothrow_swap_movable)",
+				+ "namespace ystdex_swap";
+				+ "2 function templates %swap" $dep_from (%(YBase.(Base,
+					BitSegment), YFramework.YSLib.Core.(YEvent, YString)),
+					"moving swapping traits")
+			),
+			(
+			/ %TypeTraits $=
+			(
+				/ "type traits %(is_swappable_with, is_swappable, \
+					is_nothrow_swappable_with, is_nothrow_swappable)"
+					>> "inline namespace %ystdex::cpp2017" @ %Swap
+					$dep_to "moving swapping traits";
+				/ "namespace %dep_swap" >> "namespace %ystdex_swap" @ $dep_from
+					("namespace %ystdex_swap" @ %Swap);
+				+ "inclusion %Swap" $dep_from %Swap
+			);
+			/ $forced DLDI "inclusion %Swap" @ "%Pointer" -> "%TypeTraits"
+			),
+			(
+			/ $dev "exposed macro %YB_Use_std_reverse_iterator" @ %Range;
+			/ $forced DLDI ^ "%YB_Use_std_reverse_iterator" %IteratorOperation
+			),
+			(
+			/ $dev "exposed macro %YB_Has_optional" @ %Placement;
+			/ $forced DLDI ^ "%YB_Has_optional" %Optional
+			),
+			/ %StringView $=
+			(
+				/ $dev "exposed macro %YB_Has_string_view";
+				/ $forced DLDI ^ "%YB_Has_string_view",
+				* $comp "wrong string view inclusion check" $since b833
+			),
+			+ $re_add(b833) "conditionally-defined macro \
+				%__cpp_lib_allocator_traits_is_always_equal" @ %Memory
+		),
+		/ %YDefinition $=
+		(
+			* "condition" @ "macro %__cpp_inheriting_constructors" $since b833
+				$= (/ 'YB_IMPL_MSCPP >= 1914'
+					-> '(YB_IMPL_MSCPP >= 1914 && _MSVC_LANG >= 201511)'),
+			+ $re_add(b833)
+				"conditionally-defined macro %__cpp_lib_is_swappable"
+		),
+		- $revert(b454, b458, b483, b503, b575) DLB "workarounds for Microsoft \
+			VC++ 2013" $effective @ ("class templates %(container_adaptor, \
+			sequence_container_adaptor)" @ %Container, "metafunction \
+			specialization %project" @ %Tuple, "class %cloneable" @ %Base,
+			"class templates %(pseudo_iterator, transformed_iterator, \
+			indirect_input_iterator, transposed_iterator)" @ %Iterator)
+			@ %YStandardEx
+			// NOTE: Microsoft VC++ is not supported yet since the support was \
+				revoked. Currently, with VC++ 15.7 (compiler version 19.14), \
+				the remained error in compilation of %YBase are all in \
+				%YStandardEx.Operators, which is due to known preprocessor \
+				bugs (acknowledged officially, see \
+				https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance#note_D).
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ "class %TextFileBuffer::iterator" @ %Service.TextManager
+				^ "iterator traits members"
+				~ "%std::iterator instance as base class",
+			/ %Core $=
+			(
+				/ %ValueNode $=
+				(
+					/ "%AccessNodePtr#(1, 2, 5, 6)" ^ "%ystdex::end" ~ "ADL %end"
+						$dep_to "disambiguity of end",
+					/ @ "class %ValueNode" $=
+					(
+						/ DLI "forwarded key parameter"
+							@ "friend function %set_value_move",
+							// This improves performance a bit in NPLA.
+						/ "function templates (static %CreateRecursively; \
+							CreateWith) supported overloads with full 4 \
+							orthogonal overloads of ref-qualifiers and 'const'",
+						/ DLDI "renamed key parameter"
+							@ "static function template %AddValueTo"
+							// To be consistent with %AddValue.
+					),
+					/ "function template %SetContentWith supported forwarding \
+						node parameter" $dep_from "%ValueNode::CreateWith"
+				),
+				+ "friend function %swap for %Comparer parameters"
+					@ "class template specialization %GHEvent" @ %YEvent
+					^ $dep_from("%DefSwp" @ %YBaseMacro),
+					// To avoid ambiguity due to ADL when %ystdex introduces \
+						generaic %swap function template.
+				+ "friend function" @ "class %String" @ %YString ^ $dep_from
+					("%DefSwp" @ %YBaseMacro,
+					"friend function %swap" @ "class template %basic_string"
+					@ %YBase.YStandardEx.String)
+					// Ditto.
+			)
+		),
+		/ $impl "function %ValidateName" @ %YCLib.FileSystem
+			^ "%ystdex::(begin, end)" ~ "ADL %(begin, end)" $dep_to
+			"disambiguity of end"
+		/ %NPL $=
+		(
+			/ "constructor %Session#3" @ %SContext ^ "%ystdex::(begin, end)"
+				~ "ADL %(begin, end)" $dep_to "disambiguity of end"
+			/ %NPLA $=
+			(
+				/ "function %LiftTermIndirection" $=
+				(
+					- "2nd parameter",
+					/ "moved source term" $dep_from
+						("%SetContentWith" @ %YSLib.Core.ValueNode),
+						// This reduces copy of key of nodes.
+				),
+				/ $forced DLI "function call of %LiftTermIndirection"
+					@ "functions %(LiftToReturn, LiftToSelfSafe)",
+				(
+				+ "exception class %TypeError";
+				/ "base class %NPLException" @ "class %ListReductionFailure"
+					-> "%TypeError",
+				+ "exception classes %(ValueCategoryMismatch, ListTypeError)"
+				)
+			),
+			/ %Dependency $=
+			(
+				+ "function %LoadNPLContextGround with all operations except \
+					registration of 'SHBuild_*' objects of \
+					%LoadNPLContextForSHBuild";
+				/ DLDI "simplified function %LoadNPLContextForSHBuild"
+					^ "%LoadNPLContextGround",
+				/ @ "loaded derived functions"
+					@ "function %LoadNPLContextGround" $=
+				(
+					+ "appicative 'set-first!'" ^ $dep_from
+						("%SetFirst" @ %NPLA1),
+					+ "appicative 'set-first%!'" ^ $dep_from
+						("%SetFirstRef" @ %NPLA1),
+					+ "appicative 'set-rest!'" ^ $dep_from
+						("%SetRest" @ %NPLA1),
+					+ "appicative 'set-rest%!'" ^ $dep_from
+						("%SetRestRef" @ %NPLA1),
+					/ "returned %ValueToken::Unspecified" @ "applicative %puts",
+					+ "appicative 'make-encapsulation-type'" ^ $dep_from
+						("%MakeEncapsulationType" @ %NPLA1)
+				)
+			),
+			/ @ %NPLA1 $=
+			(
+				/ @ "namespace %Forms" $=
+				(
+					+ "functions %(SetFirst, SetFirstRef, SetRest, SetRestRef)"
+						^ $dep_from
+						("%(ValueCategoryMismatch, ListTypeError)" @ %NPLA),
+					/ "exception type for failure of list check"
+						@ "functions %(Cons, ConsRef)" -> $dep_from
+						("%ListTypeError" @ %NPLA) ~ "%InvalidSyntax",
+					+ "function %MakeEncapsulationType"
+				),
+				+ "friend function %swap" @ "classes %(FormContextHandler; \
+					StrictContextHandler), class template \
+					%WrappedContextHandler" ^ $dep_from
+					("%DefSwap" @ %YBaseMacro) %dep_from %Core.YEvent,
+				/ DLDI "class-key" @ "class template %WrappedContextHandler"
+					-> 'class' ~ 'struct'
+					// To be consistent with other similar types.
+			)
+		),
+		/ %YBaseMacro $=
+		(
+			/ "macro %DefSwap" => "%DefSwapMem";
+			+ "macro %DefSwap";
+			/ DLDI "simplified %DefSwapMem" ^ "%DefSwap" ~ "%PDefH"
+		)
+	),
+	* "missing strong exception safety" @ "applicative 'system-get'"
+		@ "loaded derived functions" @ %Tools.SHBuild.Main $since b791
+),
+
+b833
 (
 	/ %YBase $=
 	(
@@ -476,7 +758,7 @@ b832
 					(%(Ref, Iterator), "removal of result_of",
 					%YFramework.YSLib.Core.YFunc)
 			),
-			/ %Memory $=
+			/ %AddressOf $=
 			(
 				+ "conditionally defined macro %__cpp_lib_addressof_constexpr";
 				/ "condition for 'using std::addressof';"
@@ -809,7 +1091,11 @@ b830
 				/ "member function %Environment::IsNotReferenced"
 					=> "%IsOrphan",
 					// This sounds more reasonable.
-				+ 'const' @ "parameter" @ "function %ResolveEnvironment#1"
+				+ 'const' @ "parameter" @ "function %ResolveEnvironment#1",
+				/ $comp DLI "performance of name lookup with %string_view \
+					parameter like function %LookupName improved significantly"
+					@ "class %Environment" $dep_from
+					("%AccessNodePtr" @ %YSLib.Core.ValueNode)
 			),
 			/ %NPLA1 $=
 			(
@@ -820,7 +1106,7 @@ b830
 				/ DLDI "simplified" ^ "%call_value_or"
 					@ "function %Forms::%BindParamete, vau handlers"
 			),
-			/ $comp @ "derivated loading forms"
+			/ $comp @ "loaded derived functions"
 				@ "function %LoadNPLContextForSHBuild" @ %Dependency $=
 			(
 				/ "applicative %list would lift only top-level elements"
@@ -829,12 +1115,16 @@ b830
 					$dep_from ("%Forms::Cons" @ %NPLA)
 			)
 		),
+		(
 		/ $forced ('#include <map>'; 'using std::map;')
-			-> ('#include <ystdex/map.hpp>', 'using ystdex::map;')
+			-> ('#include <ystdex/map.hpp>', 'using ystdex::map;');
 			@ %YSLib.YAdaptor.Container $dep_from %YBase.YStandardEx.MappedSet
 			// This is needed for avoiding ambiguity for client code (e.g. in \
 				%Tools.RevisionPatcher.Main), even though it is not a \
 				recommend style. This also makes template code less bloating.
+		/ $comp "supported transparent keys lookup" @ "function templates \
+			%(ValueNode::AccessPtr; AccessNodePtr)" @ %ValueNode
+		)
 	),
 	/ DLDI "removed all explicit argument" @ "%ystdex::get_less instances"
 		$effective @ ("class %Partition" @ "platform %DS" @ %'YCLib_(DS)'.DSIO,
@@ -1048,7 +1338,7 @@ b829
 				(@ "%Forms::Lambda" $since b735)
 			)
 		),
-		/ @ "derivated loading forms" @ "function %LoadNPLContextForSHBuild"
+		/ @ "loaded derived functions" @ "function %LoadNPLContextForSHBuild"
 			@ %Dependency $=
 		(
 			(
@@ -1270,7 +1560,7 @@ b828
 					by term"
 			)
 		),
-		/ @ "derivated loading forms" @ "function %LoadNPLContextForSHBuild"
+		/ @ "loaded derived functions" @ "function %LoadNPLContextForSHBuild"
 			@ %Dependency $=
 		(
 			(
@@ -1354,7 +1644,7 @@ b827
 			/ "all functions %(ResolveName, 2 ResolveEnvironment)" >> %NPLA
 		),
 		/ $comp "supported PTC" @ "alternative derivation"
-			@ "operative '$sequence'" @ "derivated loading forms"
+			@ "operative '$sequence'" @ "loaded derived functions"
 			@ "function %LoadNPLContextForSHBuild" @ %Dependency
 	)
 ),
@@ -1556,8 +1846,8 @@ b825
 				/ "removed environment term to cleanup reference counter"
 					@ "functions %Forms::(Eval, EvalRef)"
 			),
-			/ @ "function %LoadNPLContextForSHBuild" @ "derivated loading forms"
-				@ %Dependency $=
+			/ @ "function %LoadNPLContextForSHBuild"
+				@ "loaded derived functions" @ %Dependency $=
 			(
 				/ $revert_ex(b823) DLB $impl "simplified for 'CHAR_MIN < 0' \
 					detection" ^ "%ystdex::tolower" ~ "%std::to_lower"
@@ -1670,7 +1960,7 @@ b825
 		),
 		/ @ "function %LoadNPLContextForSHBuild" @ %Dependency $=
 		(
-			/ "derivated loading forms" $=
+			/ "loaded derived functions" $=
 			(
 				(
 				* $comp "operatives with prefixes ('$vau', '$lambda') \
@@ -1798,7 +2088,7 @@ b823
 			(
 				/ @ "function %LoadNPLContextForSHBuild" $=
 				(
-					/ "derivated loading forms" $=
+					/ "loaded derived functions" $=
 					(
 						/ "operative '$sequence'"
 							^ ($dep_from "%Sequence" ~ "%ReduceOrdered" @ %NPLA)
@@ -1983,8 +2273,8 @@ b822
 			/ $re_add(b821) "elimiated shared frame" @ "TCO action" $dep_to
 				"shared frame TCO"
 		),
-		/ "derivated loading forms"
-			@ "function %LoadNPLContextForSHBuild" @ %Dependency $=
+		/ "loaded derived functions" @ "function %LoadNPLContextForSHBuild"
+			@ %Dependency $=
 		(
 			* $re_add(b821) $comp "unsafe applicative %cons" $since b800,
 				// This is now also consistent with 'list'.

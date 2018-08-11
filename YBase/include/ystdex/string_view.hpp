@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r546
+\version r550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2018-07-30 22:50 +0800
+	2018-08-06 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,10 +38,10 @@
 #	include <string_view>
 // NOTE: See also P0941R0 with minor fixes of the specification about P0032R3.
 #	if __cpp_lib_string_view >= 201603
-#		define YB_Impl_Has_string_view 1
+#		define YB_Has_string_view 1
 #	endif
 #endif
-#if YB_Impl_Has_string_view != 1
+#if YB_Has_string_view != 1
 #	include "cstring.h" // for std::char_traits, std::allocator, 'str_find*',
 //	'str_rfind*', std::basic_ostream, std::basic_string;
 #	include "operators.hpp" // for totally_ordered;
@@ -58,7 +58,7 @@ namespace ystdex
 inline namespace cpp2017
 {
 
-#if YB_Impl_Has_optional == 1
+#if YB_Has_string_view == 1
 //! \since build 833
 using std::basic_string_view;
 #else
@@ -418,7 +418,7 @@ using wstring_view = basic_string_view<wchar_t>;
 } // namespace ystdex;
 
 
-#if YB_Impl_Has_optional != 1
+#if YB_Has_string_view != 1
 namespace std
 {
 

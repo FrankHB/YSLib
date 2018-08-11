@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3236
+\version r3290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2018-07-26 19:05 +0800
+	2018-08-10 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -421,12 +421,12 @@ public:
 	\sa emplace_hint
 	\since build 674
 	*/
-	template<typename _tString, typename... _tParams>
+	template<typename _tKey, typename... _tParams>
 	static bool
-	AddValueTo(Container& con, _tString&& str, _tParams&&... args)
+	AddValueTo(Container& con, _tKey&& k, _tParams&&... args)
 	{
-		return ystdex::try_emplace(con, str,
-			NoContainer, yforward(str), yforward(args)...).second;
+		return ystdex::try_emplace(con, k, NoContainer, yforward(k),
+			yforward(args)...).second;
 	}
 
 	//! \note 清理容器和修改值的操作之间的顺序未指定。
@@ -488,24 +488,63 @@ public:
 				ystdex::invoke(f, tm.Value));
 		return res;
 	}
+	//! \since build 834
+	template<typename _fCallable>
+	static Container
+	CreateRecursively(Container&& con, _fCallable f)
+	{
+		Container res;
+
+		for(auto& tm : con)
+			res.emplace(CreateRecursively(std::move(tm.GetContainerRef()), f),
+				std::move(tm.GetName()),
+				ystdex::invoke(f, std::move(tm.Value)));
+		return res;
+	}
+	//! \since build 834
+	template<typename _fCallable>
+	static Container
+	CreateRecursively(const Container&& con, _fCallable f)
+	{
+		Container res;
+
+		for(auto& tm : con)
+			res.emplace(CreateRecursively(std::move(tm.GetContainer()), f),
+				std::move(tm.GetName()),
+				ystdex::invoke(f, std::move(tm.Value)));
+		return res;
+	}
 
 	//! \since build 767
 	PDefH(Container, CreateWith, IValueHolder::Creation c) const
 		ImplRet(CreateRecursively(container, c))
-	//! \since build 787
+	//! \since build 834
+	//@{
 	template<typename _fCallable>
 	Container
-	CreateWith(_fCallable f)
+	CreateWith(_fCallable f) &
 	{
 		return CreateRecursively(container, f);
 	}
-	//! \since build 785
 	template<typename _fCallable>
 	Container
-	CreateWith(_fCallable f) const
+	CreateWith(_fCallable f) const&
 	{
 		return CreateRecursively(container, f);
 	}
+	template<typename _fCallable>
+	Container
+	CreateWith(_fCallable f) &&
+	{
+		return CreateRecursively(std::move(container), f);
+	}
+	template<typename _fCallable>
+	Container
+	CreateWith(_fCallable f) const&&
+	{
+		return CreateRecursively(std::move(container), f);
+	}
+	//@}
 	//@}
 
 	/*!
@@ -707,7 +746,7 @@ public:
 	\since build 681
 	*/
 	friend PDefH(ValueNode, set_value_move, ValueNode& node)
-		ImplRet({std::move(node.GetContainerRef()), node.GetName(),
+		ImplRet({std::move(node.GetContainerRef()), std::move(node.GetName()),
 			std::move(node.Value)})
 
 	//! \since build 598
@@ -930,14 +969,14 @@ observer_ptr<ValueNode>
 AccessNodePtr(ValueNode::Container& con, const _tKey& name) ynothrow
 {
 	return make_observer(ystdex::call_value_or<ValueNode*>(ystdex::addrof<>(),
-		con.find(name), {}, end(con)));
+		con.find(name), {}, ystdex::end(con)));
 }
 template<typename _tKey>
 observer_ptr<const ValueNode>
 AccessNodePtr(const ValueNode::Container& con, const _tKey& name) ynothrow
 {
 	return make_observer(ystdex::call_value_or<const ValueNode*>(
-		ystdex::addrof<>(), con.find(name), {}, end(con)));
+		ystdex::addrof<>(), con.find(name), {}, ystdex::end(con)));
 }
 template<typename _tKey>
 inline observer_ptr<ValueNode>
@@ -1190,15 +1229,15 @@ inline PDefH(void, RemoveHead, ValueNode& node) ynothrowv
 
 /*!
 \brief 根据节点和节点容器创建操作设置目标节点的值或子节点。
-\since build 799
+\since build 834
 */
 template<typename _tNode, typename _fCallable>
 void
-SetContentWith(ValueNode& dst, _tNode& node, _fCallable f)
+SetContentWith(ValueNode& dst, _tNode&& node, _fCallable f)
 {
 	yunseq(
-	dst.Value = ystdex::invoke(f, node.Value),
-	dst.GetContainerRef() = node.CreateWith(f)
+	dst.Value = ystdex::invoke(f, yforward(node).Value),
+	dst.GetContainerRef() = yforward(node).CreateWith(f)
 	);
 }
 

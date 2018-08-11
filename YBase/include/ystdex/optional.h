@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1273
+\version r1280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2018-07-25 01:29 +0800
+	2018-08-06 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ WG21 N3765 ：支持不同的比较操作。
 #define YB_INC_ystdex_optional_h_ 1
 
 #include "placement.hpp" // for <optional> conditionally, tagged_value;
-#if YB_Impl_Has_optional != 1
+#if YB_Has_optional != 1
 #	include "operators.hpp" // for nullptr_t, is_trivially_destructible, is_cv,
 //	std::move, empty_base, is_nothrow_moveable, and_, remove_cv_t,
 //	totally_ordered, or_, is_reference, is_same, is_nothrow_destructible,
@@ -71,7 +71,7 @@ namespace ystdex
 template<typename _type>
 using optional_relop_t = enable_if_t<is_convertible<_type, bool>::value, bool>;
 
-#if YB_Impl_Has_optional != 1
+#if YB_Has_optional != 1
 //! \since build 831
 inline namespace cpp2017
 {
@@ -257,7 +257,7 @@ public:
 inline namespace cpp2017
 {
 
-#if YB_Impl_Has_optional == 1
+#if YB_Has_optional == 1
 //! \since build 831
 //@{
 using std::optional;
@@ -266,7 +266,7 @@ using std::nullopt_t;
 using std::nullopt;
 using std::make_optional;
 //@}
-#elif YB_Impl_Has_optional == 2
+#elif YB_Has_optional == 2
 //! \since build 831
 //@{
 using std::experimental::optional;
@@ -606,8 +606,8 @@ public:
 	{
 		return std::move(this->get());
 	}
-	//! \since build 675
-	yconstfn _type&&
+	//! \since build 834
+	yconstfn const _type&&
 	operator*() const&&
 	{
 		return std::move(this->get());
@@ -962,7 +962,7 @@ struct optional_last_value<void> : default_last_value<void>
 } // namespace ystdex;
 
 
-#if YB_Impl_Has_optional != 1
+#if YB_Has_optional != 1
 namespace std
 {
 

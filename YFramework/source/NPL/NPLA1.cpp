@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r7951
+\version r8171
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-07-03 10:10 +0800
+	2018-08-11 07:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,7 +313,7 @@ DelimitActions(const EvaluationPasses& passes, TermNode& term, ContextNode& ctx)
 	//	delimited actions in the context. The implementation here does not use
 	//	deleimited actions and they are reserved to external control primitive
 	//	like shift/reset operations, to avoid need of unwinding which introduce
-	//	the necessary of delimited frame mark and frame walking in delimieted
+	//	the necessity of delimited frame marks and frame walking in delimieted
 	//	actions. (But be cautious with overflow risks in call of
 	//	%ContextNode::ApplyTail.)
 	ctx.SkipToNextEvaluation = {};
@@ -1376,8 +1376,95 @@ ConsImpl(TermNode& term, bool by_val)
 			term.AddChild(MakeIndex(++idx), std::move(tm));
 		return ret();
 	}
-	throw InvalidSyntax("The tail argument shall be a list.");
+	throw ListTypeError("The 2nd argument shall be a list.");
 }
+
+//! \since build 834
+//@{
+template<typename _func>
+void
+SetFirstRest(_func f, TermNode& term)
+{
+	Forms::RetainN(term, 2);
+
+	auto i(term.begin());
+
+	if(const auto p = AccessPtr<TermReference>(Deref(++i)))
+	{
+		auto& node(p->get());
+
+		if(IsList(node) && !node.empty())
+		{
+			auto& nd(Deref(++i));
+
+			f(node, nd, AccessPtr<const TermReference>(nd));
+		}
+		else
+			throw ListTypeError("The 1st argument shall be a non-empty list.");
+	}
+	else
+		throw ValueCategoryMismatch("The 1st argument shall be a lvalue.");
+	term.Value = ValueToken::Unspecified;
+}
+
+void
+SetFirstImpl(TermNode& term, bool by_val)
+{
+	SetFirstRest([by_val](TermNode& node, TermNode& nd,
+		observer_ptr<const TermReference> p){
+		auto& head(Deref(node.begin()));
+
+		// XXX: How to simplify? Merge with %BindParameterObject?
+		if(p)
+		{
+			if(by_val)
+				head.SetContent(p->get());
+			else
+				// XXX: No cyclic reference check.
+				head.SetContent(TermNode::Container(), *p);
+		}
+		else
+			head.SetContent(std::move(nd));
+	}, term);
+}
+
+//! \since build 834
+void
+SetRestImpl(TermNode& term, bool by_val)
+{
+	SetFirstRest([by_val](TermNode& node, TermNode& nd,
+		observer_ptr<const TermReference> p){
+		const auto set_node([&](TermNode& tail, bool copy){
+			if(IsList(tail))
+			{
+				TermNode nd_new({TermNode()}, node.GetName());
+				size_t idx(0);
+
+				if(copy)
+					for(const auto& tm : tail)
+						nd_new.AddChild(MakeIndex(++idx), tm);
+				else
+					for(const auto& tm : tail)
+						// XXX: No cyclic reference check.
+						nd_new.AddChild(MakeIndex(++idx), std::move(tm));
+				if(by_val)
+					LiftSubtermsToReturn(nd_new);
+				// XXX: The order is significant.
+				Deref(nd_new.begin()) = std::move(Deref(node.begin()));
+				swap(node, nd_new);
+			}
+			else
+				throw ListTypeError("The 2nd argument shall be a list.");
+		});
+
+		// XXX: How to simplify? Merge with %BindParameterObject?
+		if(p)
+			set_node(p->get(), true);
+		else
+			set_node(nd, {});
+	}, term);
+}
+//@}
 
 void
 LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
@@ -1467,6 +1554,133 @@ struct BindParameterObject
 			mv(std::move(b.GetContainerRef()), std::move(b.Value));
 	}
 };
+
+
+//! \since build 834
+//@{
+class EncapsulationBase
+{
+private:
+	// XXX: Is it possible to support %TermReference safety check here?
+	// TODO: Add naming scheme and persistence interoperations?
+	shared_ptr<void> p_type;
+
+public:
+	EncapsulationBase(shared_ptr<void> p)
+		: p_type(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(EncapsulationBase)
+
+	friend PDefHOp(bool, ==, const EncapsulationBase& x,
+		const EncapsulationBase& y) ynothrow
+		ImplRet(x.p_type == y.p_type)
+
+	DefGetter(const ynothrow, const EncapsulationBase&, , *this)
+	DefGetter(ynothrow, EncapsulationBase&, Ref, *this)
+	DefGetter(const ynothrow, const shared_ptr<void>&, Type, p_type)
+
+	friend DefSwap(ynothrow, EncapsulationBase, swap(_x.p_type, _y.p_type))
+};
+
+class Encapsulation final : private EncapsulationBase
+{
+public:
+	mutable TermNode Term;
+
+	Encapsulation(shared_ptr<void> p, TermNode term)
+		: EncapsulationBase(std::move(p)), Term(std::move(term))
+	{}
+	DefDeCopyMoveCtorAssignment(Encapsulation)
+
+	friend PDefHOp(bool, ==, const Encapsulation& x, const Encapsulation& y)
+		ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	using EncapsulationBase::Get;
+	using EncapsulationBase::GetType;
+
+	friend DefSwap(ynothrow, Encapsulation, swap(_x.GetRef(), _y.GetRef()))
+};
+
+class Encapsulate final : private EncapsulationBase
+{
+public:
+	Encapsulate(shared_ptr<void> p)
+		: EncapsulationBase(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(Encapsulate)
+
+	friend PDefHOp(bool, ==, const Encapsulate& x, const Encapsulate& y)
+		ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	void
+	operator()(TermNode& term) const
+	{
+		Forms::CallUnary([this](TermNode& tm) -> Encapsulation{
+
+			if(const auto p = AccessPtr<const TermReference>(tm))
+				return Encapsulation(GetType(), p->get());
+			return Encapsulation(GetType(), std::move(tm));
+		}, term);
+	}
+
+	friend DefSwap(ynothrow, Encapsulate, swap(_x.GetRef(), _y.GetRef()))
+};
+
+
+class Encapsulated final : private EncapsulationBase
+{
+public:
+	Encapsulated(shared_ptr<void> p)
+		: EncapsulationBase(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(Encapsulated)
+
+	friend PDefHOp(bool, ==, const Encapsulated& x, const Encapsulated& y)
+		ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	void
+	operator()(TermNode& term) const
+	{
+		Forms::CallUnary([this](TermNode& tm) -> bool{
+			return ystdex::call_value_or(
+				[this](const Encapsulation& enc) ynothrow{
+				return Get() == enc.Get();
+			}, AccessTermPtr<Encapsulation>(tm));
+		}, term);
+	}
+
+	friend DefSwap(ynothrow, Encapsulated, swap(_x.GetRef(), _y.GetRef()))
+};
+
+
+class Decapsulate final : private EncapsulationBase
+{
+public:
+	Decapsulate(shared_ptr<void> p)
+		: EncapsulationBase(std::move(p))
+	{}
+	DefDeCopyMoveCtorAssignment(Decapsulate)
+
+	friend PDefHOp(bool, ==, const Decapsulate& x, const Decapsulate& y)
+		ynothrow
+		ImplRet(x.Get() == y.Get())
+
+	void
+	operator()(TermNode& term) const
+	{
+		Forms::CallUnaryAs<const Encapsulation>(
+			[this](const Encapsulation& enc){
+			// XXX: No environment is captured as the owner is shared.
+			return TermReference(enc.Term);
+		}, term);
+	}
+
+	friend DefSwap(ynothrow, Decapsulate, swap(_x.GetRef(), _y.GetRef()))
+};
+//@}
 
 } // unnamed namespace;
 
@@ -2388,6 +2602,30 @@ ConsRef(TermNode& term)
 }
 
 void
+SetFirst(TermNode& term)
+{
+	SetFirstImpl(term, true);
+}
+
+void
+SetFirstRef(TermNode& term)
+{
+	SetFirstImpl(term, {});
+}
+
+void
+SetRest(TermNode& term)
+{
+	SetRestImpl(term, true);
+}
+
+void
+SetRestRef(TermNode& term)
+{
+	SetRestImpl(term, {});
+}
+
+void
 Equal(TermNode& term)
 {
 	EqualTermReference(term, [](const TermNode& x, const TermNode& y){
@@ -2440,6 +2678,29 @@ EvaluateUnit(TermNode& term, const REPLContext& ctx)
 }
 
 void
+GetCurrentEnvironment(TermNode& term, ContextNode& ctx)
+{
+	RetainN(term, 0);
+	term.Value = ValueObject(ctx.WeakenRecord());
+}
+
+ReductionStatus
+MakeEncapsulationType(TermNode& term)
+{
+	TermNode::Container con;
+	shared_ptr<void> p_type;
+
+	TermNode::AddValueTo(con, MakeIndex(0),
+		ToContextHandler(Encapsulate(p_type)));
+	TermNode::AddValueTo(con, MakeIndex(1),
+		ToContextHandler(Encapsulated(p_type)));
+	TermNode::AddValueTo(con, MakeIndex(2),
+		ToContextHandler(Decapsulate(p_type)));
+	swap(con, term.GetContainerRef());
+	return ReductionStatus::Retained;
+}
+
+void
 MakeEnvironment(TermNode& term)
 {
 	Retain(term);
@@ -2458,13 +2719,6 @@ MakeEnvironment(TermNode& term)
 	}
 	else
 		term.Value = make_shared<Environment>();
-}
-
-void
-GetCurrentEnvironment(TermNode& term, ContextNode& ctx)
-{
-	RetainN(term, 0);
-	term.Value = ValueObject(ctx.WeakenRecord());
 }
 
 ReductionStatus

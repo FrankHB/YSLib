@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3807
+\version r3887
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-07-09 10:06 +0800
+	2018-08-10 06:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -417,9 +417,10 @@ ReplaceSeparatedChildren(TermNode&, const ValueObject&, const ValueObject&);
 \warning 非虚析构。
 */
 template<typename _func>
-struct WrappedContextHandler
+class WrappedContextHandler
 	: private ystdex::equality_comparable<WrappedContextHandler<_func>>
 {
+public:
 	_func Handler;
 
 	//! \since build 757
@@ -453,6 +454,10 @@ struct WrappedContextHandler
 	friend PDefHOp(bool, ==, const WrappedContextHandler& x,
 		const WrappedContextHandler& y)
 		ImplRet(YSLib::AreEqualHeld(x.Handler, y.Handler))
+
+	//! \since build 834
+	friend DefSwap(ynothrow, WrappedContextHandler,
+		swap(_x.Handler, _y.Handler))
 };
 
 template<class _tDst, typename _func>
@@ -546,6 +551,9 @@ public:
 	*/
 	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
+
+	//! \since build 834
+	friend DefSwap(ynothrow, FormContextHandler, swap(_x.Handler, _y.Handler))
 };
 
 
@@ -593,6 +601,9 @@ public:
 	*/
 	ReductionStatus
 	operator()(TermNode&, ContextNode&) const;
+
+	//! \since build 834
+	friend DefSwap(ynothrow, StrictContextHandler, swap(_x.Handler, _y.Handler))
 };
 //@}
 
@@ -1348,11 +1359,6 @@ RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 
 //! \pre 间接断言：第一参数指定的项是枝节点。
 //@{
-/*
-\note 实现特殊形式。
-\throw InvalidSyntax 语法错误。
-*/
-//@{
 /*!
 \brief 定义。
 \exception ParameterMismatch 绑定匹配失败。
@@ -1591,7 +1597,6 @@ $or? <test>...
 YF_API ReductionStatus
 Or(TermNode&, ContextNode&);
 //@}
-//@}
 
 
 /*!
@@ -1606,9 +1611,9 @@ YF_API void
 CallSystem(TermNode&);
 
 /*!
-\brief 接受两个参数，返回以第一个参数作为首项插入第二个参数创建的新的列表。
+\brief 接受两个参数，返回以第一参数作为第一个元素插入第二参数创建的新的列表。
 \return ReductionStatus::Retained 。
-\throw InvalidSyntax 第二个参数不是列表。
+\throw ListTypeError 第二参数不是列表。
 \note NPLA 无 cons 对，所以要求创建的总是列表。
 */
 //@{
@@ -1628,10 +1633,11 @@ Cons(TermNode&);
 
 在返回时不提升项，允许返回引用。
 参考调用文法：
-cons& <object> <list>
+cons% <object> <list>
 */
 YF_API ReductionStatus
 ConsRef(TermNode&);
+//@}
 
 /*!
 \brief 比较两个子项表示的值引用相同的对象。
@@ -1715,7 +1721,32 @@ EvalRef(TermNode&, ContextNode&);
 */
 YF_API void
 EvaluateUnit(TermNode&, const REPLContext&);
-//@}
+
+/*!
+\brief 取当前环境的引用。
+\since build 785
+
+取得的宿主值类型为 weak_ptr<Environment> 。
+参考调用文法：
+() get-current-environment
+*/
+YF_API void
+GetCurrentEnvironment(TermNode&, ContextNode&);
+
+/*!
+\brief 创建封装类型。
+\return ReductionStatus::Retained 。
+\since build 834
+
+创建封装类型操作的应用子。基本语义同 Kernel 的 make-encapsulation-type 。
+构造器传递值：转移右值参数，或转换左值参数到右值并复制值进行封装。
+访问器取得的是引用值。
+用户代码需自行确定封装对象的生存期以避免访问取得的引用值引起未定义行为。
+参考调用文法：
+() make-encapsulation-type
+*/
+YF_API ReductionStatus
+MakeEncapsulationType(TermNode&);
 
 /*!
 \brief 创建以参数指定的环境列表作为父环境的新环境。
@@ -1733,15 +1764,56 @@ YF_API void
 MakeEnvironment(TermNode&);
 
 /*!
-\brief 取当前环境的引用。
-\since build 785
-
-取得的宿主值类型为 weak_ptr<Environment> 。
+\throw ListTypeError 第一参数不是非空列表。
+\throw ValueCategoryMismatch 第一参数不是左值。
+\since build 834
+*/
+//@{
+//! \brief 修改第一参数指定的列表以第二参数作为第一个元素。
+//@{
+/*!
+第二个参数转换为右值。
 参考调用文法：
-() get-current-environment
+set-first! <list> <object>
 */
 YF_API void
-GetCurrentEnvironment(TermNode&, ContextNode&);
+SetFirst(TermNode&);
+
+/*!
+\warning 不检查循环引用。
+
+保留第二个参数引用值。
+参考调用文法：
+set-first%! <list> <object>
+*/
+YF_API void
+SetFirstRef(TermNode&);
+//@}
+
+/*!
+\brief 修改第一参数指定的列表以第二参数作为第一个元素外的列表。
+\throw ListTypeError 第二参数不是列表。
+*/
+//@{
+/*!
+第二个参数的元素转换为右值。
+参考调用文法：
+set-rest! <list> <object>
+*/
+YF_API void
+SetRest(TermNode&);
+
+/*!
+\warning 不检查循环引用。
+
+保留第二个参数元素中的引用值。
+参考调用文法：
+set-rest%! <list> <object>
+*/
+YF_API void
+SetRestRef(TermNode&);
+//@}
+//@}
 
 /*!
 \brief 求值标识符得到指称的实体。

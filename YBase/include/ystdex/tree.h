@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2319
+\version r2354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-07-30 22:28 +0800
+	2018-07-31 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -674,6 +674,10 @@ private:
 	using node_allocator = typename allocator_traits<_tAlloc>::template
 		rebind_alloc<tree_node<_type>>;
 	using alloc_traits = allocator_traits<node_allocator>;
+	//! \since build 834
+	using equal_alloc_or
+		= or_<typename alloc_traits::propagate_on_container_move_assignment,
+		typename alloc_traits::is_always_equal>;
 	struct alloc_node
 	{
 		tree& tree_ref;
@@ -835,8 +839,9 @@ public:
 		{
 			if(typename alloc_traits::propagate_on_container_copy_assignment())
 			{
-				auto& this_alloc = this->get_node_allocator();
-				auto& that_alloc = x.get_node_allocator();
+				auto& this_alloc(get_node_allocator());
+				auto& that_alloc(x.get_node_allocator());
+
 				if(!typename alloc_traits::is_always_equal()
 					&& this_alloc != that_alloc)
 				{
@@ -856,14 +861,10 @@ public:
 	}
 	tree&
 	operator=(tree&& x) ynoexcept_spec(
-		and_<or_<typename alloc_traits::propagate_on_container_move_assignment, 
-		typename alloc_traits::is_always_equal>,
-		is_nothrow_move_assignable<_fComp>>::value)
+		and_<equal_alloc_or, is_nothrow_move_assignable<_fComp>>::value)
 	{
 		objects.key_compare = std::move(x.objects.key_compare);
-		move_assign_elements(x, or_<
-			typename alloc_traits::propagate_on_container_move_assignment,
-			typename alloc_traits::is_always_equal>());
+		move_assign_elements(x, equal_alloc_or());
 		return *this;
 	}
 
@@ -876,23 +877,23 @@ public:
 	iterator
 	begin() ynothrow
 	{
-		return iterator(this->objects.header.left);
+		return iterator(objects.header.left);
 	}
 	const_iterator
 	begin() const ynothrow
 	{
-		return const_iterator(this->objects.header.left);
+		return const_iterator(objects.header.left);
 	}
 
 	iterator
 	end() ynothrow
 	{
-		return iterator(&this->objects.header);
+		return iterator(&objects.header);
 	}
 	const_iterator
 	end() const ynothrow
 	{
-		return const_iterator(&this->objects.header);
+		return const_iterator(&objects.header);
 	}
 
 	reverse_iterator
@@ -970,12 +971,12 @@ public:
 	node_allocator&
 	get_node_allocator() ynothrow
 	{
-		return this->objects;
+		return objects;
 	}
 	const node_allocator&
 	get_node_allocator() const ynothrow
 	{
-		return this->objects;
+		return objects;
 	}
 
 protected:
@@ -1036,56 +1037,56 @@ protected:
 	base_ptr&
 	root() ynothrow
 	{
-		return this->objects.header.parent;
+		return objects.header.parent;
 	}
 	const_base_ptr
 	root() const ynothrow
 	{
-		return this->objects.header.parent;
+		return objects.header.parent;
 	}
 
 	base_ptr&
 	leftmost() ynothrow
 	{
-		return this->objects.header.left;
+		return objects.header.left;
 	}
 	const_base_ptr
 	leftmost() const ynothrow
 	{
-		return this->objects.header.left;
+		return objects.header.left;
 	}
 
 	base_ptr&
 	rightmost() ynothrow
 	{
-		return this->objects.header.right;
+		return objects.header.right;
 	}
 	const_base_ptr
 	rightmost() const ynothrow
 	{
-		return this->objects.header.right;
+		return objects.header.right;
 	}
 
 	link_type
 	node_begin() ynothrow
 	{
-		return link_type(this->objects.header.parent);
+		return link_type(objects.header.parent);
 	}
 	const_link_type
 	node_begin() const ynothrow
 	{
-		return const_link_type(this->objects.header.parent);
+		return const_link_type(objects.header.parent);
 	}
 
 	base_ptr
 	node_end() ynothrow
 	{
-		return &this->objects.header;
+		return &objects.header;
 	}
 	const_base_ptr
 	node_end() const ynothrow
 	{
-		return &this->objects.header;
+		return &objects.header;
 	}
 
 	static const _tKey&
@@ -1163,7 +1164,7 @@ private:
 			|| objects.key_compare(_fKeyOfValue()(v), select_key(p))));
 		link_type nd(node_gen(yforward(v)));
 
-		tree_insert_and_rebalance(insert_left, nd, p, this->objects.header);
+		tree_insert_and_rebalance(insert_left, nd, p, objects.header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1173,7 +1174,7 @@ private:
 	{
 		tree_insert_and_rebalance(x || p == node_end()
 			|| objects.key_compare(select_key(nd), select_key(p)), nd, p,
-			this->objects.header);
+			objects.header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1185,7 +1186,7 @@ private:
 		const auto nd(create_node(yforward(v)));
 
 		tree_insert_and_rebalance(p == node_end() || !objects.key_compare(
-			select_key(p), _fKeyOfValue()(v)), nd, p, this->objects.header);
+			select_key(p), _fKeyOfValue()(v)), nd, p, objects.header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1213,7 +1214,7 @@ private:
 			|| !objects.key_compare(select_key(p), select_key(nd))));
 
 		tree_insert_and_rebalance(
-			insert_left, nd, p, this->objects.header);
+			insert_left, nd, p, objects.header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1727,7 +1728,7 @@ private:
 	erase_node_aux(const_iterator position)
 	{
 		const auto y(link_type(tree_rebalance_for_erase(
-			const_cast<base_ptr>(position.p_node), this->objects.header)));
+			const_cast<base_ptr>(position.p_node), objects.header)));
 
 		drop_node(y);
 		--objects.node_count;
@@ -1964,8 +1965,8 @@ public:
 	{
 		if(objects.node_count == 0 || begin() == end())
 			return objects.node_count == 0 && begin() == end()
-				&& this->objects.header.left == node_end()
-				&& this->objects.header.right == node_end();
+				&& objects.header.left == node_end()
+				&& objects.header.right == node_end();
 
 		const auto len(tree_black_count(leftmost(), root()));
 

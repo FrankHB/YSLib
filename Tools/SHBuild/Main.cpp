@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014-2017 FrankHB.
+	© 2014-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3642
+\version r3649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2017-09-25 21:06 +0800
+	2018-08-10 02:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -368,11 +368,14 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	});
 	RegisterStrict(root, "system-get", [](TermNode& term){
 		CallUnaryAs<const string>([&](const string& cmd){
+			TermNode::Container con;
 			auto res(FetchCommandOutput(cmd.c_str()));
 
-			term.Clear();
-			term.AddValue(MakeIndex(0), ystdex::trim(std::move(res.first)));
-			term.AddValue(MakeIndex(1), res.second);
+			TermNode::AddValueTo(con, MakeIndex(0),
+				ystdex::trim(std::move(res.first)));
+			TermNode::AddValueTo(con, MakeIndex(1),
+				res.second);
+			swap(con, term.GetContainerRef());
 		}, term);
 		return ReductionStatus::Retained;
 	});

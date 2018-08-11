@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2017 FrankHB.
+	© 2012-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1546
+\version r1548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2017-04-13 10:23 +0800
+	2018-08-01 03:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ public:
 	template<typename _tRange,
 		yimpl(typename = ystdex::exclude_self_t<Session, _tRange>)>
 	Session(const _tRange& c, CharParser parse = DefaultParseByte)
-		: Session(begin(c), end(c), parse)
+		: Session(ystdex::begin(c), ystdex::end(c), parse)
 	{}
 	DefDeCopyMoveCtorAssignment(Session)
 

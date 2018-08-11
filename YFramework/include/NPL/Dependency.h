@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015-2017 FrankHB.
+	© 2015-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r152
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2017-01-04 12:52 +0800
+	2018-08-04 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,10 +140,20 @@ namespace Forms
 {
 
 /*!
-\brief 加载 SHBuild 使用的 NPL 上下文。
-\todo 语法形式文档。
+\brief 加载基础 NPL 上下文。
+\sa LoadSequenceSeparators
+\since build 834
 
-加载 SHBuild 自举使用的公共语法形式。
+加载 NPL 基础环境使用的公共语法形式。
+*/
+YF_API void
+LoadNPLContextGround(REPLContext&);
+
+/*!
+\brief 加载 SHBuild 使用的 NPL 上下文。
+\sa LoadNPLContextGround
+
+调用 LoadNPLContextGround 并加载 SHBuild 自举使用的其它公共语法形式。
 */
 YF_API void
 LoadNPLContextForSHBuild(REPLContext&);

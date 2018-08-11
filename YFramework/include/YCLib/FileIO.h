@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2602
+\version r2605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2018-07-30 06:10 +0800
+	2018-08-02 23:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -903,7 +903,7 @@ public:
 };
 
 template<typename _tChar, class _tTraits>
-inline DefSwap(, basic_ifstream<_tChar YPP_Comma _tTraits>)
+inline DefSwapMem(, basic_ifstream<_tChar YPP_Comma _tTraits>)
 
 
 template<typename _tChar, class _tTraits = std::char_traits<_tChar>>
@@ -996,7 +996,7 @@ public:
 };
 
 template<typename _tChar, class _tTraits>
-inline DefSwap(, basic_ofstream<_tChar YPP_Comma _tTraits>)
+inline DefSwapMem(, basic_ofstream<_tChar YPP_Comma _tTraits>)
 //@}
 
 
@@ -1090,7 +1090,7 @@ public:
 };
 
 template<typename _tChar, class _tTraits>
-inline DefSwap(, basic_fstream<_tChar YPP_Comma _tTraits>)
+inline DefSwapMem(, basic_fstream<_tChar YPP_Comma _tTraits>)
 
 
 //extern template class YF_API basic_fstream<char>;

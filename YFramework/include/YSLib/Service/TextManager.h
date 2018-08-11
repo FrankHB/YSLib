@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3951
+\version r3963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2017-04-18 10:02 +0800
+	2018-07-31 03:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,12 +66,17 @@ public:
 	\since build 460
 	*/
 	//@{
-	class YF_API iterator : public std::iterator<
-		std::bidirectional_iterator_tag, char16_t, ptrdiff_t, const char16_t*,
-		const char16_t&>, public ystdex::bidirectional_iteratable<
-		TextFileBuffer::iterator, const char16_t&>
+	class YF_API iterator
+		: public ystdex::bidirectional_iteratable<iterator, const char16_t&>
 	{
 		friend class TextFileBuffer;
+
+	public:
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = char16_t;
+		using difference_type = ptrdiff_t;
+		using pointer = const char16_t*;
+		using reference = const char16_t&;
 
 	private:
 		//! \since build 460
@@ -203,7 +208,7 @@ public:
 	GetPosition(iterator);
 
 	/*!
-	\brief 使用相对于文本位置的（跳过 BOM ）偏移指定的参数设置流缓冲读取位置。
+	\brief 使用相对文本位置的（跳过 BOM ）偏移指定的参数设置流缓冲读取位置。
 	\throw LoggedEvent 操作失败。
 	\since build 744
 	*/

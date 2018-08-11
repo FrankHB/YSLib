@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2764
+\version r2777
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2016-10-04 01:59 +0800
+	2018-08-02 23:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -296,19 +296,24 @@ _t type
 		ImplRet(new _t(*this))
 
 
+//! \since build 834
+//@{
+//! \brief 定义交换函数。
+#define DefSwap(_q, _t, ...) \
+	PDefH(void, swap, _t& _x, _t& _y) _q \
+		ImplExpr(__VA_ARGS__)
+
 /*!
-\brief 交换成员。
+\brief 定义交换成员。
 \note 需要对应类型具有接受两个左值引用的 swap 成员函数。
 \since build 409
 */
-#define DefSwap(_q, _t) \
-	PDefH(void, swap, _t& _x, _t& _y) _q \
-		ImplExpr(_x.swap(_y))
+#define DefSwapMem(_q, _t) DefSwap(_q, YPP_Args(_t), _x.swap(_y))
+//@}
 
 
-//成员函数和模板映射。
-
-
+//! \note 成员函数和模板映射。
+//@{
 /*!
 \brief 传递函数。
 \since build 266
@@ -339,6 +344,7 @@ _t type
 #define DefFwdTmplAuto(_n, ...) \
 	DefFwdTmpl(ynoexcept_spec(decltype(__VA_ARGS__)(__VA_ARGS__)) \
 		-> decltype(__VA_ARGS__), auto, _n, __VA_ARGS__)
+//@}
 
 
 /*!	\defgroup InterfaceTypeMacros Interface Type Macros

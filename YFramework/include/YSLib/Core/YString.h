@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2273
+\version r2277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2016-09-23 22:13 +0800
+	2018-08-02 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,6 +137,10 @@ public:
 	*/
 	String&
 	operator*=(size_t);
+
+	//! \since build 834
+	friend DefSwap(ynothrow, String, ystdex::swap_dependent(
+		static_cast<u16string&>(_x), static_cast<u16string&>(_y)))
 
 	/*!
 	\brief 取指定编码的多字节字符串。
