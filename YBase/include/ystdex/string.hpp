@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2761
+\version r2780
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2018-07-30 23:03 +0800
+	2018-08-03 00:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,6 +222,7 @@ public:
 		base::append(str);
 		return *this;
 	}
+	//! \see LWG 2268 。
 	basic_string&
 	append(const base& str, size_type pos, size_type n = npos)
 	{
@@ -293,6 +294,7 @@ public:
 	{
 		return *this = std::move(str);
 	}
+	//! \see LWG 2268 。
 	basic_string&
 	assign(const base& str, size_type pos, size_type n = npos)
 	{
@@ -360,6 +362,7 @@ public:
 		base::insert(pos, str);
 		return *this;
 	}
+	//! \see LWG 2268 。
 	basic_string&
 	insert(size_type pos1, const base& str, size_type pos2, size_type n = npos)
 	{
@@ -436,6 +439,7 @@ public:
 		base::replace(pos1, n1, str);
 		return *this;
 	}
+	//! \see LWG 2268 。
 	basic_string&
 	replace(size_type pos1, size_type n1, const base& str,
 		size_type pos2, size_type n2 = npos)
@@ -530,10 +534,19 @@ public:
 	{
 		base::swap(s);
 	}
+	//! \since build 834
+	friend void
+	swap(basic_string& lhs, basic_string& rhs) ynoexcept_spec(lhs.swap(rhs))
+	{
+		lhs.swap(rhs);
+	}
 
 	// XXX: For simplicity, 'find*' and 'compare' funtions are not reworded as
 	//	the standard by dispatching to %basic_string_view overloads. This
 	//	simplifies the implementation and speed-up translation time.
+	// TODO: The overloads with noexcept exception (even changed in ISO C++ 14)
+	//	are also not explicitly specified here to simplify the evolution because
+	//	they are still open to be resolved, e.g. LWG 2836.
 
 	//! \see WG21 P0254R2 。
 	size_type
@@ -611,6 +624,7 @@ public:
 	}
 	//@}
 	//@}
+	//! \see LWG 2268 。
 	using base::compare;
 
 	friend basic_string
@@ -915,7 +929,7 @@ using enable_for_string_class_t
 
 /*!
 \note 使用 ADL 访问字符串范围。
-\note 同 std::begin 和 std::end ，但字符数组除外。
+\note 同 ystdex::begin 和 ystdex::end ，但字符数组除外。
 \note 此处 string_end 语义和 boost::end 相同，但对数组类型不同于 std::end 。
 \bug decltype 指定的返回类型不能使用 ADL 。
 \see WG21 N3936 20.4.7[iterator.range] 。
@@ -926,13 +940,13 @@ template<class _tRange>
 yconstfn auto
 string_begin(_tRange& c) -> decltype(c.begin())
 {
-	return begin(c);
+	return ystdex::begin(c);
 }
 template<class _tRange>
 yconstfn auto
 string_begin(const _tRange& c) -> decltype(c.begin())
 {
-	return begin(c);
+	return ystdex::begin(c);
 }
 //! \since build 664
 //@{
@@ -957,13 +971,13 @@ template<class _tRange>
 yconstfn auto
 string_end(_tRange& c) -> decltype(c.end())
 {
-	return end(c);
+	return ystdex::end(c);
 }
 template<class _tRange>
 yconstfn auto
 string_end(const _tRange& c) -> decltype(c.end())
 {
-	return end(c);
+	return ystdex::end(c);
 }
 //! \since build 664
 //@{

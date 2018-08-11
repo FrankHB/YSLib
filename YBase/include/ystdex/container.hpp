@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1952
+\version r2038
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2018-07-12 15:41 +0800
+	2018-08-01 03:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef YB_INC_ystdex_container_hpp_
 #define YB_INC_ystdex_container_hpp_ 1
 
-#include "iterator.hpp" // for begin, end, make_transform, std::declval, size,
-//	is_detected_convertible, std::distance, std::make_move_iterator, cbegin,
-//	cend, std::piecewise_construct_t, std::piecewise_construct;
-#include <initializer_list> // for std::initializer_list;
+#include "iterator.hpp" // for "range.hpp", std::initializer_list,
+//	ystdex::begin, ystdex::end, make_transform, std::declval, size,
+//	is_detected_convertible, std::distance, std::make_move_iterator,
+//	ystdex::cbegin, ystdex::cend, std::piecewise_construct_t,
+//	std::piecewise_construct, enable_if_convertible_t;
 #include "functional.hpp" // for ystdex::seq_apply;
 #include "algorithm.hpp" // for is_undereferenceable, sort_unique;
 #include "utility.hpp" // for ystdex::as_const;
@@ -81,14 +82,7 @@ public:
 		: base(std::move(first), std::move(last))
 	{}
 	container_adaptor(const container_adaptor&) = default;
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	container_adaptor(container_adaptor&& con)
-		: base(static_cast<base&&>(con))
-	{}
-#else
 	container_adaptor(container_adaptor&&) = default;
-#endif
 	//@}
 	container_adaptor(std::initializer_list<value_type> il)
 		: base(il)
@@ -99,16 +93,7 @@ public:
 	container_adaptor&
 	operator=(const container_adaptor&) = default;
 	container_adaptor&
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	operator=(container_adaptor&& con)
-	{
-		static_cast<base&>(*this) = static_cast<base&&>(con);
-		return *this;
-	}
-#else
 	operator=(container_adaptor&&) = default;
-#endif
 	//@}
 	container_adaptor&
 	operator=(std::initializer_list<value_type> il)
@@ -220,14 +205,7 @@ public:
 		: base(std::move(first), std::move(last))
 	{}
 	sequence_container_adaptor(const sequence_container_adaptor&) = default;
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	sequence_container_adaptor(sequence_container_adaptor&& con)
-		: base(static_cast<base&&>(con))
-	{}
-#else
 	sequence_container_adaptor(sequence_container_adaptor&&) = default;
-#endif
 	sequence_container_adaptor(std::initializer_list<value_type> il)
 		: base(il)
 	{}
@@ -235,16 +213,7 @@ public:
 	sequence_container_adaptor&
 	operator=(const sequence_container_adaptor&) = default;
 	sequence_container_adaptor&
-#if YB_IMPL_MSCPP
-	//! \since build 454 as workaround for Visual C++ 2013
-	operator=(sequence_container_adaptor&& con)
-	{
-		static_cast<base&>(*this) = static_cast<base&&>(con);
-		return *this;
-	}
-#else
 	operator=(sequence_container_adaptor&&) = default;
-#endif
 	sequence_container_adaptor&
 	operator=(std::initializer_list<value_type> il)
 	{
@@ -310,28 +279,22 @@ make_container(_tIter first, _tIter last)
 {
 	return _tCon(first, last);
 }
-//! \note 使用 ADL begin 和 end 指定范围迭代器。
+//! \note 使用 ystdex::begin 和 ystdex::end 指定范围迭代器。
 //@{
 template<class _tCon, typename _tRange>
 inline _tCon
 make_container(_tRange&& c)
 {
-	return _tCon(begin(yforward(c)), end(yforward(c)));
+	return _tCon(ystdex::begin(yforward(c)), ystdex::end(yforward(c)));
 }
 template<class _tCon, typename _tRange, typename _func>
 inline _tCon
 make_container(_tRange&& c, _func f)
 {
-	return _tCon(ystdex::make_transform(begin(c), f),
-		ystdex::make_transform(end(c), f));
+	return _tCon(ystdex::make_transform(ystdex::begin(c), f),
+		ystdex::make_transform(ystdex::end(c), f));
 }
 //@}
-template<class _tCon, typename _tElem>
-inline _tCon
-make_container(std::initializer_list<_tElem> il)
-{
-	return _tCon(il.begin(), il.end());
-}
 //@}
 
 
@@ -358,9 +321,9 @@ range_size(const _tRange& c, true_) -> decltype(size(c))
 template<typename _tRange>
 inline auto
 range_size(const _tRange& c, false_)
-	-> decltype(std::distance(begin(c), end(c)))
+	-> decltype(std::distance(ystdex::begin(c), ystdex::end(c)))
 {
-	return std::distance(begin(c), end(c));
+	return std::distance(ystdex::begin(c), ystdex::end(c));
 }
 
 } // namespace details;
@@ -369,8 +332,8 @@ range_size(const _tRange& c, false_)
 \ingroup algorithms
 \pre 参数指定的迭代器范围（若存在）有效。
 \note 参数 \c first 和 \c last 指定迭代器范围。
-\note 对不以迭代器指定的范围，使用 ADL begin 和 end 取迭代器的值及其类型，
-	但确定为 const 迭代器时使用 ADL cbegin 和 cend 代替。
+\note 对不以迭代器指定的范围，使用 ystdex::begin 和 ystdex::end 取迭代器。
+\note 确定为 const 迭代器时使用 ystdex::cbegin 和 ystdex::cend 代替。
 */
 //@{
 /*!
@@ -427,7 +390,7 @@ assign(_tCon& con, const _type(&arr)[_vN])
 /*!
 \brief 插入元素到容器末尾。
 \pre 指定元素的范围和容器不重叠。
-\note 使用 ADL end 。
+\note 使用 ystdex::end 。
 \since build 546
 \todo 返回非 \c void 。
 */
@@ -436,15 +399,15 @@ template<class _tCon, typename _tIn>
 void
 concat(_tCon& con, _tIn first, _tIn last)
 {
-	con.insert(end(con), std::make_move_iterator(first),
+	con.insert(ystdex::end(con), std::make_move_iterator(first),
 		std::make_move_iterator(last));
 }
 template<class _tCon, typename _tRange>
 void
 concat(_tCon& con, _tRange&& c)
 {
-	con.insert(end(con), std::make_move_iterator(begin(yforward(c))),
-		std::make_move_iterator(end(yforward(c))));
+	con.insert(ystdex::end(con), std::make_move_iterator(ystdex::begin(
+		yforward(c))), std::make_move_iterator(ystdex::end(yforward(c))));
 }
 //@}
 
@@ -532,7 +495,7 @@ template<class _tCon, typename _tKey>
 bool
 exists(const _tCon& con, const _tKey& key, ...)
 {
-	return con.find(key) != end(con);
+	return con.find(key) != ystdex::end(con);
 }
 
 
@@ -561,16 +524,16 @@ using has_mem_key_type = is_detected<key_type_t, _type>;
 
 template<typename _tSeqCon, typename _type>
 inline void
-erase_remove(_tSeqCon& con, decltype(begin(con)) first,
-	decltype(end(con)) last, const _type& value)
+erase_remove(_tSeqCon& con, decltype(ystdex::begin(con)) first,
+	decltype(ystdex::end(con)) last, const _type& value)
 {
 	con.erase(std::remove(first, last, value), last);
 }
 
 template<typename _tSeqCon, typename _fPred>
 inline void
-erase_remove_if(_tSeqCon& con, decltype(begin(con)) first,
-	decltype(end(con)) last, _fPred pred)
+erase_remove_if(_tSeqCon& con, decltype(ystdex::begin(con)) first,
+	decltype(ystdex::end(con)) last, _fPred pred)
 {
 	con.erase(std::remove_if(first, last, pred), last);
 }
@@ -588,7 +551,7 @@ template<typename _tSeqCon, typename _type>
 inline void
 erase_all_in_seq(_tSeqCon& con, const _type& value, false_)
 {
-	details::erase_remove(con, begin(con), end(con), value);
+	details::erase_remove(con, ystdex::begin(con), ystdex::end(con), value);
 }
 
 template<typename _tSeqCon, typename _fPred>
@@ -601,13 +564,13 @@ template<typename _tSeqCon, typename _fPred>
 inline void
 erase_all_if_in_seq(_tSeqCon& con, _fPred pred, false_)
 {
-	details::erase_remove_if(con, begin(con), end(con), pred);
+	details::erase_remove_if(con, ystdex::begin(con), ystdex::end(con), pred);
 }
 
 //! \pre 调用 erase 之后的迭代器不失效。
 template<typename _tCon, typename _type>
 void
-erase_all(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
+erase_all(_tCon& con, decltype(ystdex::cbegin(con)) first, decltype(ystdex::cend(con)) last,
 	const _type& value, true_)
 {
 	while(first != last)
@@ -620,11 +583,11 @@ template<typename _tCon, typename _type>
 inline void
 erase_all(_tCon& con, const _type& value, true_)
 {
-	details::erase_all(con, cbegin(con), cend(con), value, true_());
+	details::erase_all(con, ystdex::cbegin(con), ystdex::cend(con), value, true_());
 }
 template<typename _tCon, typename _type>
 inline void
-erase_all(_tCon& con, decltype(begin(con)) first, decltype(end(con)) last,
+erase_all(_tCon& con, decltype(ystdex::begin(con)) first, decltype(ystdex::end(con)) last,
 	const _type& value, false_)
 {
 	details::erase_remove(con, first, last, value);
@@ -639,8 +602,8 @@ erase_all(_tCon& con, const _type& value, false_)
 //! \pre 调用 erase 之后的迭代器不失效。
 template<typename _tCon, typename _fPred>
 void
-erase_all_if(_tCon& con, decltype(cbegin(con)) first, decltype(cend(con)) last,
-	_fPred pred, true_)
+erase_all_if(_tCon& con, decltype(ystdex::cbegin(con)) first,
+	decltype(ystdex::cend(con)) last, _fPred pred, true_)
 {
 	while(first != last)
 		if(pred(*first))
@@ -652,12 +615,13 @@ template<typename _tCon, typename _fPred>
 inline void
 erase_all_if(_tCon& con, _fPred pred, true_)
 {
-	details::erase_all_if(con, cbegin(con), cend(con), pred, true_());
+	details::erase_all_if(con, ystdex::cbegin(con), ystdex::cend(con), pred,
+		true_());
 }
 template<typename _tCon, typename _fPred>
 inline void
-erase_all_if(_tCon& con, decltype(begin(con)) first, decltype(end(con)) last,
-	_fPred pred, false_)
+erase_all_if(_tCon& con, decltype(ystdex::begin(con)) first,
+	decltype(ystdex::end(con)) last, _fPred pred, false_)
 {
 	details::erase_remove_if(con, first, last, pred);
 }
@@ -676,7 +640,7 @@ erase_all_if(_tCon& con, _fPred pred, false_)
 /*!
 \brief 判断指定的容器中存在指定的键。
 \note 当容器对象右值可使用返回以整数初始化的类型的成员 \c count 时使用
-	成员 \c count 实现；否则使用 ADL end 指定的容器迭代器，
+	成员 \c count 实现；否则使用 ystdex::end 指定的容器迭代器，
 	使用成员 \c find 实现。
 \since build 488
 */
@@ -757,7 +721,7 @@ erase_first(_tAssocCon& con, const _tKey& k)
 {
 	const auto i(con.find(k));
 
-	if(i != end(con))
+	if(i != ystdex::end(con))
 	{
 		con.erase(i);
 		return true;
@@ -806,7 +770,7 @@ typename _tCon::const_iterator
 erase_n(_tCon& con, typename _tCon::const_iterator i,
 	typename _tCon::difference_type n)
 {
-	yassume(n <= std::distance(i, cend(con)));
+	yassume(n <= std::distance(i, ystdex::cend(con)));
 	return con.erase(i, std::next(i, n));
 }
 //! \since build 532
@@ -815,7 +779,7 @@ typename _tCon::iterator
 erase_n(_tCon& con, typename _tCon::iterator i,
 	typename _tCon::difference_type n)
 {
-	yassume(n <= std::distance(i, end(con)));
+	yassume(n <= std::distance(i, ystdex::end(con)));
 	return con.erase(i, std::next(i, n));
 }
 //@}
@@ -851,7 +815,8 @@ template<class _tCon>
 inline void
 sort_unique(_tCon& con)
 {
-	con.erase(ystdex::sort_unique(begin(con), end(con)), end(con));
+	con.erase(ystdex::sort_unique(ystdex::begin(con), ystdex::end(con)),
+		ystdex::end(con));
 }
 
 
@@ -965,7 +930,7 @@ retry_for_vector(typename _tVector::size_type s, _func f)
 /*!
 \ingroup helper_functions
 \brief 替换关联容器的值。
-\note 使用 \c end 指定范围迭代器。
+\note 使用 \c ystdex::end 指定范围迭代器。
 \since build 531
 \todo 支持没有 \c emplace_hint 成员的关联容器。
 */
@@ -976,7 +941,7 @@ replace_value(_tAssocCon& con, const _tKey& k, _func f)
 {
 	auto i(con.find(k));
 
-	return i != end(con) ? con.emplace_hint(con.erase(i), f(*i)) : i;
+	return i != ystdex::end(con) ? con.emplace_hint(con.erase(i), f(*i)) : i;
 }
 
 
@@ -1133,7 +1098,7 @@ insert_or_assign(std::pair<typename _tAssocCon::iterator, bool> pr,
 /*!
 \return 一个用于表示结果的 std::pair 值，其成员 \c first 为迭代器，
 	\c second 表示是否没有找到。
-\note 使用 ADL cend 和 extract_key 。
+\note 使用 ystdex::cend 和 extract_key 。
 */
 //@{
 /*!
@@ -1147,7 +1112,8 @@ search_map(const _tAssocCon& con, const _tKey& k)
 {
 	const auto i(con.lower_bound(k));
 
-	return {i, i == end(con) || con.key_comp()(k, extract_key<_tAssocCon>(*i))};
+	return {i, i == ystdex::end(con)
+		|| con.key_comp()(k, extract_key<_tAssocCon>(*i))};
 }
 template<class _tAssocCon, typename _tKey>
 inline std::pair<typename _tAssocCon::iterator, bool>
@@ -1162,7 +1128,7 @@ search_map(_tAssocCon& con, const _tKey& k)
 /*!
 \brief 按指定键和提示的迭代器位置搜索指定关联容器。
 \pre 容器非空或提示的迭代器位置指向尾部。
-\note 使用 ADL cbegin 。
+\note 使用 ystdex::cbegin 。
 */
 //@{
 template<class _tAssocCon, typename _tKey>
@@ -1173,16 +1139,16 @@ search_map(const _tAssocCon& con, typename _tAssocCon::const_iterator hint,
 	if(!con.empty())
 	{
 		const auto& comp(con.key_comp());
-		const bool fit_before(hint == cbegin(con)
+		const bool fit_before(hint == ystdex::cbegin(con)
 			|| bool(comp(extract_key(*std::prev(hint)), k))),
-			fit_after(hint == cend(con)
+			fit_after(hint == ystdex::cend(con)
 			|| bool(comp(k, extract_key(*std::next(hint)))));
 
 		if(fit_before == fit_after)
 			return {hint, fit_before && fit_after};
 		return ystdex::search_map(con, k);
 	}
-	yconstraint(hint == cend(con));
+	yconstraint(hint == ystdex::cend(con));
 	return {hint, true};
 }
 template<class _tAssocCon, typename _tKey>

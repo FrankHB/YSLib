@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5375
+\version r5379
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2018-07-26 19:05 +0800
+	2018-08-03 03:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,6 +226,9 @@ public:
 	//! \since build 516
 	using BaseType::operator bool;
 
+	//! \since build 834
+	friend yconstfn_relaxed
+		DefSwap(ynothrow, Comparer, std::swap(_x, _y))
 	friend void
 	swap(GHEvent& x, GHEvent& y) ynothrow
 	{
@@ -238,7 +241,7 @@ public:
 
 		ystdex::swap_dependent(static_cast<BaseType&>(x),
 			static_cast<BaseType&>(y));
-		ystdex::swap_dependent(x.comp_eq, y.comp_eq);
+		swap(x.comp_eq, y.comp_eq);
 	}
 
 	//! \since build 773

@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r679
+\version r683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2018-07-14 22:57 +0800
+	2018-08-06 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,14 +48,14 @@
 #	include <optional>
 // NOTE: See also P0941R0 with minor fixes of the specification about P0032R3.
 #	if __cpp_lib_optional >= 201606
-#		define YB_Impl_Has_optional 1
+#		define YB_Has_optional 1
 #	endif
 // NOTE: As per the specification, single <optional> without may indicate WG21 N3672 <optional>, which is WG21
 //	N3793 <experimental/optional> without some minor bug fixes. This is not supported.
 #elif __cplusplus > 201402L && __has_include(<experimental/optional>)
 #	include <experimental/optional>
 #	if __cpp_lib_experimental_optional >= 201411
-#		define YB_Impl_Has_optional 2
+#		define YB_Has_optional 2
 #	endif
 #endif
 
@@ -146,7 +146,7 @@ in_place(yimpl(size_t_<_vIdx>))
 inline namespace cpp2017
 {
 
-#if YB_Impl_Has_optional == 1
+#if YB_Has_optional == 1
 using std::in_place_t;
 using std::in_place;
 using std::in_place_type_t;
@@ -154,7 +154,7 @@ using std::in_place_type;
 using std::in_place_index_t;
 using std::in_place_index;
 #else
-#	if YB_Impl_Has_optional == 2
+#	if YB_Has_optional == 2
 using std::experimental::in_place_t;
 using std::experimental::in_place;
 #	else

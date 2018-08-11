@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r553
+\version r567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2016-09-27 21:07 +0800
+	2018-08-03 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,13 @@
 #include "cstdint.hpp" // for ystdex::make_width_int;
 
 namespace ystdex
+{
+
+/*!
+\brief 隔离 ADL 的基类以外的命名空间。
+\since build 836
+*/
+namespace nodep
 {
 
 /*!
@@ -188,6 +195,16 @@ struct ordered_bitseg_traits : _tTraits
 	//@}
 };
 //@}
+
+} // namespace nodep;
+
+//! \since build 834
+template<size_t... _vSize>
+using bitseg_traits = nodep::bitseg_traits<_vSize...>;
+
+//! \since build 834
+template<class _tTraits, size_t... _vSeq>
+using ordered_bitseg_traits = nodep::ordered_bitseg_traits<_tTraits, _vSeq...>;
 
 
 /*!

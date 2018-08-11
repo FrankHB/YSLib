@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3238
+\version r3248
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-07-30 19:48 +0800
+	2018-08-03 02:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,6 +166,7 @@
 //@}
 /*!
 \since build 833
+\see P0136R1 。
 \see https://clang.llvm.org/docs/LanguageExtensions.html 。
 \see https://gcc.gnu.org/projects/cxx-status.html 。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
@@ -173,7 +174,7 @@
 */
 //@{
 #ifndef __cpp_inheriting_constructors
-#	if YB_IMPL_MSCPP >= 1914 || __cplusplus >= 201703L
+#	if (YB_IMPL_MSCPP >= 1914 && _MSVC_LANG >= 201511) || __cplusplus >= 201703L
 #		define __cpp_inheriting_constructors 201511
 #	elif __has_feature(cxx_inheriting_constructors) || YB_IMPL_MSCPP > 1900 \
 	|| __cplusplus >= 201103L
@@ -255,6 +256,14 @@
 #		define __cpp_lib_is_null_pointer 201309
 #	endif
 #endif
+//! \since build 834
+//@{
+#ifndef __cpp_lib_is_swappable
+#	if YB_IMPL_MSCPP > 1900 || __cplusplus >= 201703L
+#		define __cpp_lib_is_swappable 201603
+#	endif
+#endif
+//@}
 #ifndef __cpp_lib_transformation_trait_aliases
 #	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201402L
 #		define __cpp_lib_transformation_trait_aliases 201304

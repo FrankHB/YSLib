@@ -11,13 +11,13 @@
 /*!	\file pointer.hpp
 \ingroup YStandardEx
 \brief 通用指针。
-\version r503
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 600
 \par 创建时间:
 	2015-05-24 14:38:11 +0800
 \par 修改时间:
-	2018-07-12 18:17 +0800
+	2018-08-03 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,11 @@
 #ifndef YB_INC_ystdex_pointer_hpp_
 #define YB_INC_ystdex_pointer_hpp_ 1
 
-#include "iterator_op.hpp" // for bool_, true_, totally_ordered,
-//	nullptr_t, equality_comparable, add_ptr_t, add_ref_t, yconstraint,
+#include "iterator_op.hpp" // for "iterator_op.hpp", bool_, true_,
+//	totally_ordered, nullptr_t, equality_comparable, yconstraint,
 //	iterator_operators_t, std::iterator_traits;
 #include <functional> // for std::equal_to, std::less;
-#include "swap.hpp" // ystdex::swap_dependent;
+#include "type_traits.hpp" // for add_ptr_t, add_ref_t, ystdex::swap_dependent;
 
 namespace ystdex
 {
@@ -197,7 +197,7 @@ swap(nptr<_type>& x, nptr<_type>& y) ynothrow
 //@{
 /*!
 \brief 观察者指针：无所有权的智能指针。
-\see WG21 N4529 8.12[memory.observer.ptr] 。
+\see WG21 N4562 8.12[memory.observer.ptr] 。
 */
 template<typename _type>
 class observer_ptr : private totally_ordered<observer_ptr<_type>>,

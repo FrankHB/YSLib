@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r6041
+\version r6084
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2018-07-30 19:48 +0800
+	2018-08-01 04:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,28 +73,12 @@ public:
 	yconstfn
 	pseudo_iterator(const pseudo_iterator&) = default;
 	yconstfn
-#if YB_IMPL_MSCPP
-	//! \since build 458 as workaround for Visual C++ 2013
-	pseudo_iterator(pseudo_iterator&& i)
-		: value(std::move(i.value))
-	{}
-#else
 	pseudo_iterator(pseudo_iterator&&) = default;
-#endif
 
 	pseudo_iterator&
 	operator=(const pseudo_iterator&) = default;
 	pseudo_iterator&
-#if YB_IMPL_MSCPP
-	//! \since build 458 as workaround for Visual C++ 2013
-	operator=(pseudo_iterator&& i)
-	{
-		value = std::move(i.value);
-		return *this;
-	}
-#else
 	operator=(pseudo_iterator&&) = default;
-#endif
 
 	//! \since build 585
 	//@{
@@ -297,17 +281,9 @@ public:
 		: transformer(std::move(i.transformer)), transformed(i.get())
 	{}
 	//! \since build 415
-	//@{
 	transformed_iterator(const transformed_iterator&) = default;
-#if YB_IMPL_MSCPP
-	//! \since build 503 as workaround for Visual C++ 2013
-	transformed_iterator(transformed_iterator&& i)
-		: transformer(std::move(i.transformer))
-	{}
-#else
+	//! \since build 415
 	transformed_iterator(transformed_iterator&&) = default;
-#endif
-	//@}
 
 	//! \since build 529
 	transformed_iterator&
@@ -844,16 +820,7 @@ public:
 	indirect_input_iterator&
 	operator=(const indirect_input_iterator&) = default;
 	indirect_input_iterator&
-#if YB_IMPL_MSCPP
-	//! \since build 458 as workaround for Visual C++ 2013
-	operator=(indirect_input_iterator&& i)
-	{
-		iter = std::move(i.iter);
-		return *this;
-	}
-#else
 	operator=(indirect_input_iterator&&) = default;
-#endif
 
 	/*!
 	\brief 间接操作。
@@ -956,16 +923,7 @@ public:
 	{}
 	//@}
 	transposed_iterator(const transposed_iterator&) = default;
-#if YB_IMPL_MSCPP
-	//! \since build 575 as workaround for Visual C++ 2013
-	transposed_iterator(transposed_iterator&& i)
-		: iter(std::move(i.iter)), width(std::move(i.width)),
-		height(std::move(i.height)), row(std::move(i.row)),
-		col(std::move(i.col))
-	{}
-#else
 	transposed_iterator(transposed_iterator&&) = default;
-#endif
 	//@}
 
 	transposed_iterator&

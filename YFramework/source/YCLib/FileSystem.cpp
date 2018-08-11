@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r4302
+\version r4310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2017-01-27 17:01 +0800
+	2018-08-07 07:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,9 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_YCLib_FileSystem // for basic_string, ystdex::pun_storage_t,
-//	default_delete, make_observer, std::min, std::accumulate, std::tm,
-//	ystdex::read_uint_le, YAssertNonnull, ystdex::write_uint_le, std::bind,
-//	std::ref, ystdex::retry_on_cond;
+#include YFM_YCLib_FileSystem // for basic_string, default_delete, make_observer, std::min,
+//	std::accumulate, std::tm, ystdex::read_uint_le, YAssertNonnull, ystdex::write_uint_le,
+//	std::bind, std::ref, ystdex::retry_on_cond;
 #include YFM_YCLib_FileIO // for platform_ex::MakePathStringW,
 //	platform_Ex::MakePathStringU, MakePathString, Deref, ystdex::throw_error,
 //	std::invalid_argument, std::errc::function_not_supported, YCL_CallF_CAPI,
@@ -590,7 +589,8 @@ bool
 ValidateName(string_view name) ynothrowv
 {
 	YAssertNonnull(name.data());
-	return std::all_of(begin(name), end(name), [](char c) ynothrow{
+	return std::all_of(ystdex::begin(name), ystdex::end(name),
+		[](char c) ynothrow{
 		// TODO: Use interval arithmetic.
 		return c >= 0x20 && static_cast<unsigned char>(c) < 0xF0;
 	});
@@ -758,7 +758,7 @@ EntryData::GenerateAlias() const
 		const auto conv([&](size_t i){
 			const auto c((*this)[i]);
 
-			return char(case_info ? std::tolower(int(c)) : c);
+			return char(case_info ? EntryDataUnit(std::tolower(c)) : c);
 		});
 		string res;
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1938
+\version r1943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-07-02 00:14 +0800
+	2018-07-02 07:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -371,6 +371,15 @@ RedirectParent(const ValueObject& parent, string_view id)
 ImplDeDtor(NPLException)
 
 
+ImplDeDtor(TypeError)
+
+
+ImplDeDtor(ValueCategoryMismatch)
+
+
+ImplDeDtor(ListTypeError)
+
+
 ImplDeDtor(ListReductionFailure)
 
 
@@ -560,7 +569,7 @@ LiftToReturn(TermNode& term)
 	//	forced) are not blessed here to avoid leaking abstraction of detailed
 	//	implementation of vau handlers; it can be checked by the vau handler
 	//	itself, if necessary.
-	LiftTermIndirection(term, term);
+	LiftTermIndirection(term);
 }
 
 void
@@ -576,7 +585,7 @@ void
 LiftToSelfSafe(TermNode& term)
 {
 	LiftToSelf(term);
-	LiftTermIndirection(term, term);
+	LiftTermIndirection(term);
 }
 
 void
