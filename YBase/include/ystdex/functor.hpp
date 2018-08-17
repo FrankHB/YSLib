@@ -11,13 +11,13 @@
 /*!	\file functor.hpp
 \ingroup YStandardEx
 \brief 通用仿函数。
-\version r911
+\version r914
 \author FrankHB <frankhb1989@gmail.com>
 \since build 588
 \par 创建时间:
 	2015-03-29 00:35:44 +0800
 \par 修改时间:
-	2018-07-25 00:23 +0800
+	2018-08-17 03:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,8 +43,8 @@
 \since build 628
 */
 #ifndef __cpp_lib_robust_nonmodifying_seq_ops
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus > 201103L
-#		define __cpp_lib_robust_nonmodifying_seq_ops 201304
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
+#		define __cpp_lib_robust_nonmodifying_seq_ops 201304L
 #	endif
 #endif
 
@@ -308,7 +308,7 @@ struct is_equal
 inline namespace cpp2014
 {
 
-#if __cpp_lib_transparent_operators >= 201210
+#if __cpp_lib_transparent_operators >= 201210L
 using std::plus;
 using std::minus;
 using std::multiplies;

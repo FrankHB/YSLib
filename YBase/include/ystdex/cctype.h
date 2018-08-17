@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r253
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2018-05-09 01:34 +0800
+	2018-08-17 07:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ inline char
 tolower(char c) ynothrow
 {
 #if CHAR_MIN < 0
-	return c >= 0 && char(std::tolower(c));
+	return c >= 0 ? char(std::tolower(c)) : c;
 #else
 	return char(std::tolower(c));
 #endif
@@ -164,7 +164,7 @@ template<typename _tChar>
 inline _tChar
 towlower(_tChar c) ynothrow
 {
-	return c >= 0 && _tChar(std::towupper(wint_t(c)));
+	return c >= 0 ? _tChar(std::towlower(wint_t(c))) : c;
 }
 
 
@@ -172,7 +172,7 @@ inline char
 toupper(char c) ynothrow
 {
 #if CHAR_MIN < 0
-	return c >= 0 && char(std::toupper(c));
+	return c >= 0 ? char(std::toupper(c)) : c;
 #else
 	return char(std::toupper(c));
 #endif
@@ -183,7 +183,7 @@ template<typename _tChar>
 inline _tChar
 towupper(_tChar c) ynothrow
 {
-	return c >= 0 && _tChar(std::towlower(wint_t(c)));
+	return c >= 0 ? _tChar(std::towupper(wint_t(c))) : c;
 }
 //@}
 //@}

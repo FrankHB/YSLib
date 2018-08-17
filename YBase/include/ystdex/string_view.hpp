@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r550
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2018-08-06 18:39 +0800
+	2018-08-17 03:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 #if __cplusplus >= 201703L && __has_include(<string_view>)
 #	include <string_view>
 // NOTE: See also P0941R0 with minor fixes of the specification about P0032R3.
-#	if __cpp_lib_string_view >= 201603
+#	if __cpp_lib_string_view >= 201603L
 #		define YB_Has_string_view 1
 #	endif
 #endif

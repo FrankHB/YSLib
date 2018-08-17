@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r819
+\version r827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2018-08-01 04:33 +0800
+	2018-08-17 03:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,13 +42,13 @@
 */
 //@{
 #ifndef __cpp_lib_apply
-#	if YB_IMPL_MSCPP >= 1910 || __cplusplus > 201402L
-#		define __cpp_lib_apply 201603
+#	if YB_IMPL_MSCPP >= 1910 || __cplusplus >= 201603L
+#		define __cpp_lib_apply 201603L
 #	endif
 #endif
 #ifndef __cpp_lib_make_from_tuple
-#	if YB_IMPL_MSCPP >= 1910 || __cplusplus > 201402L
-#		define __cpp_lib_make_from_tuple 201606
+#	if YB_IMPL_MSCPP >= 1910 || __cplusplus >= 201606L
+#		define __cpp_lib_make_from_tuple 201606L
 #	endif
 #endif
 //@}
@@ -64,7 +64,7 @@ inline namespace cpp2014
 \since build 477
 */
 //@{
-#if __cpp_lib_tuple_element_t >= 201402
+#if __cpp_lib_tuple_element_t >= 201402L
 using std::tuple_element_t;
 #else
 template<size_t _vIdx, typename _type>
@@ -116,7 +116,7 @@ struct vec_subtract<std::tuple<integral_constant<_tInt, _vSeq1>...>,
 } // namespace vseq;
 //@}
 
-#if !(__cpp_lib_make_from_tuple >= 201606)
+#if !(__cpp_lib_make_from_tuple >= 201606L)
 //! \since build 833
 namespace details
 {
@@ -139,7 +139,7 @@ inline namespace cpp2017
 \see ISO C++17 [tuple.apply] 。
 */
 //@{
-#if __cpp_lib_apply >= 201603
+#if __cpp_lib_apply >= 201603L
 using std::apply;
 #else
 /*!
@@ -162,7 +162,7 @@ apply(_func&& f, _tTuple&& t)
 }
 #endif
 
-#if __cpp_lib_make_from_tuple >= 201606
+#if __cpp_lib_make_from_tuple >= 201606L
 using std::make_from_tuple;
 #else
 /*!

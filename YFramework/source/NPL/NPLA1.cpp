@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8172
+\version r8212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-08-11 07:36 +0800
+	2018-08-13 05:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,8 +31,8 @@
 //	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
 //	unordered_map, deque, ystdex::id, pair, ystdex::equality_comparable,
 //	ystdex::ref_eq, ystdex::make_transform, ystdex::call_value_or;
-#include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::dismiss,
-//	ystdex::swap_guard, ystdex::unique_guard;
+#include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
+//	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
 
 using namespace YSLib;
@@ -974,7 +974,7 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 					{
 						const auto& p_frame_env_ref(get<1>(*i));
 
-						if(!p_frame_env_ref.unique())
+						if(p_frame_env_ref.use_count() != 1)
 							erase_frame();
 						else
 						{
@@ -1015,7 +1015,7 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 					auto& frame(record_list.front());
 					auto& temporary_ptr(get<2>(frame));
 
-					if(temporary_ptr.unique())
+					if(temporary_ptr.use_count() == 1)
 						temporary_ptr = {};
 					get<0>(frame) = {};
 				}
@@ -1085,11 +1085,10 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 #endif
 }
 
+//! \since build 835
 ReductionStatus
-EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+EvalImplUnchecked(TermNode& term, ContextNode& ctx, bool no_lift)
 {
-	Forms::RetainN(term, 2);
-
 	auto i(std::next(term.begin()));
 	const auto term_args([](TermNode& expr) -> pair<bool, lref<TermNode>>{
 		if(const auto p = AccessPtr<const TermReference>(expr))
@@ -1106,7 +1105,26 @@ EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		no_lift);
 }
 
+ReductionStatus
+EvalImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	Forms::RetainN(term, 2);
+	return EvalImplUnchecked(term, ctx, no_lift);
+}
 //@}
+
+//! \since build 835
+ReductionStatus
+EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
+{
+	Forms::RetainN(term, 2);
+
+	auto& expr(Deref(std::next(term.begin())));
+	auto unit(SContext::Analyze(Session(AccessTerm<const string>(expr))));
+
+	unit.SwapContainer(expr);
+	return EvalImplUnchecked(term, ctx, no_lift);
+}
 
 
 //! \since build 767
@@ -1582,6 +1600,7 @@ public:
 	friend DefSwap(ynothrow, EncapsulationBase, swap(_x.p_type, _y.p_type))
 };
 
+
 class Encapsulation final : private EncapsulationBase
 {
 public:
@@ -1601,6 +1620,7 @@ public:
 
 	friend DefSwap(ynothrow, Encapsulation, swap(_x.GetRef(), _y.GetRef()))
 };
+
 
 class Encapsulate final : private EncapsulationBase
 {
@@ -2485,7 +2505,8 @@ Undefine(TermNode& term, ContextNode& ctx, bool forced)
 	Retain(term);
 	if(term.size() == 2)
 	{
-		const auto& n(Access<TokenValue>(Deref(std::next(term.begin()))));
+		const auto&
+			n(AccessTerm<const TokenValue>(Deref(std::next(term.begin()))));
 
 		if(IsNPLASymbol(n))
 			term.Value = ctx.GetRecordRef().Remove(n, forced);
@@ -2669,12 +2690,26 @@ EvalRef(TermNode& term, ContextNode& ctx)
 	return EvalImpl(term, ctx, true);
 }
 
-void
-EvaluateUnit(TermNode& term, const REPLContext& ctx)
+ReductionStatus
+EvalString(TermNode& term, ContextNode& ctx)
 {
-	CallUnaryAs<const string>([ctx](const string& unit){
-		REPLContext(ctx).Perform(unit);
+	return EvalStringImpl(term, ctx, {});
+}
+
+ReductionStatus
+EvalStringRef(TermNode& term, ContextNode& ctx)
+{
+	return EvalStringImpl(term, ctx, true);
+}
+
+ReductionStatus
+EvalUnit(TermNode& term)
+{
+	CallBinaryAs<const string, REPLContext>(
+		[&](const string& unit, REPLContext& rctx){
+		term.SetContent(rctx.Perform(unit));
 	}, term);
+	return ReductionStatus::Retained;
 }
 
 void

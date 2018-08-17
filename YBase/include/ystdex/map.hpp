@@ -11,13 +11,13 @@
 /*!	\file map.hpp
 \ingroup YStandardEx
 \brief 映射容器。
-\version r802
+\version r810
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:12:51 +0800
 \par 修改时间:
-	2018-07-26 19:07 +0800
+	2018-08-17 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,14 +44,15 @@ namespace ystdex
 // NOTE: For exposition only. Since %ystdex::map has incomplete type support
 //	which is not guaranteed by ISO C++17 (even if guaranteed by libstdc++), it
 //	should not be in %cpp2017 inline namespace.
-#if (__cpp_lib_generic_associative_lookup >= 201304 || __cplusplus >= 201402L) \
-	&& ((__cpp_lib_allocator_traits_is_always_equal >= 201411 \
-	&& __cpp_lib_map_try_emplace >= 201411 \
-	&& __cpp_lib_node_extract >= 201606) || __cplusplus >= 201703L)
-#	define YB_Impl_Has_Cpp17_map true
+#if (__cpp_lib_generic_associative_lookup >= 201304L || __cplusplus >= 201402L) \
+	&& ((__cpp_lib_allocator_traits_is_always_equal >= 201411L \
+	&& __cpp_lib_map_try_emplace >= 201411L \
+	&& __cpp_lib_node_extract >= 201606L) || __cplusplus >= 201703L)
+#	define YB_Has_Cpp17_map true
 #else
-#	define YB_Impl_Has_Cpp17_map false
+#	define YB_Has_Cpp17_map false
 #endif
+#undef YB_Has_Cpp17_map
 #endif
 
 //! \todo 在其它头文件中提供实现。
@@ -68,7 +69,7 @@ template<typename _tKey, typename _type, typename _fComp = less<_tKey>,
 class map : private totally_ordered<map<_tKey, _type, _fComp, _tAlloc>>
 {
 	template<typename, typename>
-	friend class details::rb_tree::tree_merge_helper;
+	friend struct details::rb_tree::tree_merge_helper;
 
 public:
 	using key_type = _tKey;

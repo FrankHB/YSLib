@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r5337
+\version r5348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2018-08-11 07:43 +0800
+	2018-08-12 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1888,6 +1888,7 @@ A1::REPLContext 以 ContextNode::EvaluateList(@5.5.8.3) 为第二参数调用 A1
 若项是具有一个子项的列表节点，则规约为这个子项；
 若项是具有多个子项的列表节点，依次调用 NPL::ReduceHeadEmptyList(@5.5.6) 、 A1::ReduceFirst(@6.2.6) 和 A1::ReduceCombined(@6.4.5.1) 规约列表项；
 否则调用 A1::ReduceLeafToken(@6.4.5) 规约叶节点。
+REPL 对象内部保存求值表达式一次预处理的处理器作为数据成员。这在 @6.5.1 的算法前生效，不处理子表达式。
 
 @6.5.1 NPLA1 规范(canonical) 求值算法：
 A1::REPLContext 配置的主规约函数具有的求值算法(@6.2.6) 称为 NPLA1 规范求值算法。和 [RnRK] 中定义的 Kernel 语言求值算法类似，差异为：
@@ -2286,9 +2287,10 @@ Forms::Unwrap 解包装(@4.5.3.2) 应用子为合并子。
 
 @6.9 依赖管理模块：
 模块 NPL::Dependency 基于 NPLA1 提供 SHBuild 使用的一些 API 。
-其中，函数 Forms::LoadNPLContextGround 提供 SHBuild 初始 REPL 环境，其中支持：
+函数 Forms::LoadNPLContextGround 提供 SHBuild 初始 REPL 环境，其中支持：
 字面量初始化，支持 #t 、 #f 和整数等字面量；
 使用 A1::RegisterSequenceContextTransformer(@6.4.3) 启用预处理的分号和逗号转换，分别为有序和无序列表求值的语法糖。
+上述语法糖实现为 REPL 对象内部的无状态的预处理器，仅包含 @6.4.3 添加的中缀变换。
 相关对象语言的相关接口参见 @7.4 。
 NPL::Dependency 还提供其它一些供 SHBuild 间接调用的操作，通过调用 Forms::LoadNPLContextGround 的函数 Forms::LoadNPLContextForSHBuild 提供。
 
@@ -2352,7 +2354,7 @@ NPLA1 和 Kernel 语言（参见 Revised Report on the Kernel Programming Langua
 @7.3 基本语义规则和约定：
 除非另行指定， NPLA1 对象语言的求值总是使用规范求值算法(@6.5.1) 。
 和 Scheme 及 Kernel 不同，求值算法决定求值为函数合并的应用表达式(@4.5.3) 不需要括号，且具有不同的函数合并形式(@6.5.1) 。
-在输入求值算法接受的语法形式之前，求值可使用基于中缀变换的 ; 和 , 分隔符，分别表示对被分隔的序列参数进行有序和无序列表求值（替换后合并子功能对应参考实现环境中的 $sequence(@7.4.6.1) 和 list%(@7.4.5.3) ），实现参见 @6.9 。
+在 REPL(@6.5) 中输入求值算法接受的语法形式之前，求值可使用基于中缀变换的 ; 和 , 分隔符，分别表示对被分隔的序列参数进行有序和无序列表求值（替换后合并子功能对应参考实现环境中的 $sequence(@7.4.6.1) 和 list%(@7.4.5.3) ），实现参见 @6.9 。
 为避免可能引入非真合并子(@7.3.4.4)，参考实现对分隔符的使用附加限制，参见 @7.4 。
 以下使用 ...(@7.1) 作为函数的操作数时，可支持没有操作数的应用。此情形下应用表达式仍需要前缀 () ，但不在以下规约文法中显式地表示。
 和 Scheme 不同而和 Kernel 类似，求值显式的风格（详见 Fexprs as the basis of Lisp function application or $vau : the ultimate abstraction by John N. Shutt ），这和不需要括号的语法特性无关。
@@ -2489,7 +2491,7 @@ $defrec! (f g) (list ($lambda (x) (g (- x 1))) ($lambda (x) (f (- x 1))))
 注意尾上下文中被求值的子表达式中的对象生存期可被调整(@5.2.4) ，是否调整和具体调整的方式未指定，不同的实现可能不同。
 提供 PTC 保证的尾上下文和 Kernel 类似，当前仅包括 PTC 不改变可观察行为时的：
 对 <body> 的求值；
-函数 eval(@7.4.5.4) 、 eval%(@7.4.5.4) 和 $quote(@7.4.6.2) 对 <expression> 的求值或替换；
+函数 eval(@7.4.5.4) 、 eval%(@7.4.5.4) 、 $quote(@7.4.6.2) 、 eval-string(@7.4.6.4) 和 eval-string%(@7.4.6.4) 对 <expression> 的求值或替换；
 函数 apply(@7.4.5.4) 对 <applicative> 和 <object> 在 <environment> 或默认的动态环境中的应用；
 条件表达式或连续求值多个表达式中最后被求值的子表达式求值，包括 $if(@7.4.5.2) 、 $sequence(@7.4.6.1) 、 $and?(@7.4.6.2) 和 $or?(@7.4.6.2) 。
 
@@ -2669,8 +2671,8 @@ set-rest! <list> <object> ：修改列表的第一个元素。和 Kernel 的 set
 set-rest%! <list> <object> ：修改列表的第一个元素。和 Kernel 的 set-cdr! 类似，但要求列表是左值。不检查修改操作导致循环引用，用户应自行避免未定义行为(@5.2) 。
 
 @7.4.5.4 环境：
-eval <expression> <environment> ：在动态环境中求值，结果作为返回值。注意按 @7.3 ，列表中的引用不会被特殊处理，没有左值到右值转换。
-eval% <expression> <environment> ：在动态环境中求值，结果作为返回值。类似 eval ，但允许返回引用。
+eval <expression> <environment> ：在参数指定的环境中求值，结果作为返回值。注意按 @7.3 ，列表中的引用不会被特殊处理，没有左值到右值转换。
+eval% <expression> <environment> ：在参数指定的环境中求值，结果作为返回值。类似 eval ，但允许返回引用。
 resolve-identifier <symbol> ：解析标识符。直接保留解析结果中项的类型，不按成员访问规则确定值类别(@5.4.7.4.1) 。
 () copy-environment ：递归复制当前环境。当前忽略父环境中的环境列表(@5.4.3) 。结果为新创建的环境，具有宿主值类型 shared_ptr<Environment> 。
 make-environment <environment>... ：创建环境。和 Kernel 不同，除对象类型外，没有对列表和绑定的附加检查。结果为新创建的环境，具有宿主值类型 shared_ptr<Environment> 。
@@ -2759,6 +2761,10 @@ ref <object> ：取引用。以 NPL::LiftToReference(@5.5.5.2) 实现。
 bound? <symbol> ：判断指定符号是否被绑定。
 $binds1? <expression> <symbol> ：判断指定符号是否在指定表达式求值后指称的环境中绑定。和 Kernel 中的 $binds? 类似但只支持判断一个符号。
 value-of <object> ：若操作数是字符串，求值标识符得到指称的实体。
+() get-current-repl ：取表示当前 REPL 环境的引用值。
+eval-string <string> <environment> ：在参数指定的环境中求值作为外部表示的字符串。类似 Klisp 的同名操作，参见 http://klisp.org/docs/Environments.html#Environments 。
+eval-string% <string> <environment> ：在参数指定的环境中求值作为外部表示的字符串。类似 eval-string ，但允许返回引用。
+eval-unit <string> <object> ：在参数指定的 REPL 环境中规约字符串表示的翻译单元以求值
 
 @7.4.6.5 封装：
 () make-encapsulation-type ：创建封装类型。和 Kernel 类似，但构造器传递值，访问器取得的是引用值。

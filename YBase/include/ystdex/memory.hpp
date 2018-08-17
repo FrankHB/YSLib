@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2669
+\version r2757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-08-06 23:22 +0800
+	2018-08-17 03:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@
 #include "type_op.hpp" // for has_mem_value_type, cond_or;
 #include "pointer.hpp" // for interal "pointer.hpp", "iterator_op.hpp",
 //	ystdex::swap_dependent;
+#include <limits> // for std::numeric_limits;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, std::hash;
 
@@ -57,14 +58,14 @@
 */
 //@{
 #ifndef __cpp_lib_allocator_traits_is_always_equal
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus > 201402L
-#		define __cpp_lib_allocator_traits_is_always_equal 201411
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
+#		define __cpp_lib_allocator_traits_is_always_equal 201411L
 #	endif
 #endif
 //@}
 #ifndef __cpp_lib_make_unique
-#	if YB_IMPL_MSCPP >= 1800 || __cplusplus > 201103L
-#		define __cpp_lib_make_unique 201304
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201304L
+#		define __cpp_lib_make_unique 201304L
 #	endif
 #endif
 //@}
@@ -79,7 +80,7 @@ namespace ystdex
 {
 
 //! \since build 830
-#if __cpp_lib_allocator_traits_is_always_equal >= 201411 \
+#if __cpp_lib_allocator_traits_is_always_equal >= 201411L \
 	|| __cplusplus >= 201703L
 #	define YB_Impl_Has_allocator_traits_is_always_equal true
 #else
@@ -553,7 +554,95 @@ struct free_delete<_type[]>
 
 
 /*!
-\brief 使用显式 std::return_temporary_buffer 的删除器。
+\since build 834
+\see ISO C++17 [depr.temporary.buffer] 。
+\see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0174r2.html#3.2 。
+*/
+//@{
+namespace details
+{
+
+#if __cpp_aligned_new >= 201606L
+#	define YB_Impl_aligned_new true
+#endif
+template<typename _type>
+using over_aligned_t
+#if YB_Impl_aligned_new
+	= bool_<(yalignof(_type) > __STDCPP_DEFAULT_NEW_ALIGNMENT__)>;
+#else
+	= false_;
+#endif
+
+YB_ATTR_nodiscard inline void*
+new_aligned(size_t size, size_t, false_) ynothrow
+{
+	return ::operator new(size, std::nothrow);
+}
+#if YB_Impl_aligned_new
+YB_ATTR_nodiscard inline void*
+new_aligned(size_t size, size_t alignment, true_) ynothrow
+{
+	return ::operator new(size, std::align_val_t(alignment), std::nothrow);
+}
+#endif
+
+inline void
+delete_aligned(void* ptr, size_t, false_) ynothrow
+{
+	// NOTE: No %std::nothrow is needed here. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86954.
+	::operator delete(ptr);
+}
+#if YB_Impl_aligned_new
+inline void
+delete_aligned(void* ptr, size_t alignment, true_) ynothrow
+{
+	::operator delete(ptr, std::align_val_t(alignment));
+}
+#endif
+#undef YB_Impl_aligned_new
+
+} // namespace details;
+
+
+#if (YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606) || (__GLIBCXX__ \
+	&& (__GLIBCXX__ <= 20150815 || YB_IMPL_GNUCPP < 90000)) \
+	|| __cplusplus >= 201611L
+template<typename _type>
+inline std::pair<_type*, ptrdiff_t>
+get_temporary_buffer(ptrdiff_t n) ynothrow
+{
+	const ptrdiff_t m(std::numeric_limits<ptrdiff_t>::max() / sizeof(_type));
+
+	// NOTE: Like libstdc++ but not Microsoft VC++ 2017, this does not fail
+	//	fast.
+	if(n > m)
+		n = m;
+	while(n > 0)
+	{
+		if(const auto p = details::new_aligned(static_cast<size_t>(n)
+			* sizeof(_type), yalignof(_type), details::over_aligned_t<_type>()))
+			return {static_cast<_type*>(p), n};
+		n /= 2;
+	}
+	return {nullptr, 0};
+}
+
+template<typename _type>
+inline void
+return_temporary_buffer(_type* p) ynothrow
+{
+	details::delete_aligned(p, yalignof(_type),
+		details::over_aligned_t<_type>());
+}
+#else
+using std::get_temporary_buffer;
+using std::return_temporary_buffer;
+#endif
+//@}
+
+
+/*!
+\brief 使用显式 ystdex::return_temporary_buffer 调用释放存储的删除器。
 \note 非数组类型的特化无定义。
 \since build 627
 */
@@ -569,7 +658,7 @@ struct temporary_buffer_delete<_type[]>
 	void
 	operator()(_type* p) const ynothrowv
 	{
-		std::return_temporary_buffer(p);
+		ystdex::return_temporary_buffer(p);
 	}
 };
 //@}
@@ -597,7 +686,7 @@ public:
 	temporary_buffer(size_t n)
 		: buf([n]{
 			// NOTE: See LWG 2072.
-			const auto pr(std::get_temporary_buffer<_type>(ptrdiff_t(n)));
+			const auto pr(ystdex::get_temporary_buffer<_type>(ptrdiff_t(n)));
 
 			if(pr.first)
 				return std::pair<pointer, size_t>(pointer(pr.first),
@@ -952,7 +1041,7 @@ share_raw(nullptr_t, _tParams&&... args) ynothrow
 inline namespace cpp2014
 {
 
-#if __cpp_lib_make_unique >= 201304
+#if __cpp_lib_make_unique >= 201304L
 //! \since build 617
 using std::make_unique;
 #else

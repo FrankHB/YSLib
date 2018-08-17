@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4891
+\version r4896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2016-09-17 12:40 +0800
+	2018-08-17 06:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,6 +210,7 @@ ShlReader::LoadBookmarks(const string& group)
 	try
 	{
 		// TODO: Complete unexpected input handling.
+		// XXX: It is intended to throw %std::out_of_range... More exact type?
 		const auto& value(Access<string>(AccessNode(AccessNode(FetchRoot(),
 			"YReader")["Bookmarks"], ystdex::quote(group))));
 
@@ -234,8 +235,8 @@ ShlReader::LoadBookmarks(const string& group)
 ReaderSetting
 ShlReader::LoadGlobalConfiguration()
 {
-	TryRet(ReaderSetting(AccessNode(FetchRoot() %= AccessNode(LoadConfiguration(),
-		"YReader"), "ReaderSetting").GetContainer()))
+	TryRet(ReaderSetting(AccessNode(FetchRoot() %= AccessNode(
+		LoadConfiguration(), "YReader"), "ReaderSetting").GetContainer()))
 	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.
 		"Loading global configuration failed, type = [%s].", typeid(e).name()))
@@ -504,7 +505,7 @@ ShlTextReader::~ShlTextReader()
 	}, yfsig);
 }
 
-string
+String
 ShlTextReader::GetSlice(Bookmark::PositionType pos, string::size_type len)
 {
 	return CopySliceFrom(reader.GetTextBufferRef(), pos, len);

@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r223
+\version r229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2018-07-30 03:07 +0800
+	2018-08-17 06:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,16 +34,16 @@ namespace YReader
 namespace
 {
 
-//! \since build 397
-string
+//! \since build 835
+String
 ConvertToUIString(Bookmark::PositionType pos, ShlTextReader& shl)
 {
 	auto line(shl.GetSlice(pos, 48U));
 
 	if(line.size() > 1)
 	{
-		const bool b(line[0] == '\n');
-		const auto i(line.find("\r\n", b));
+		const bool b(line[0] == u'\n');
+		const auto i(line.find(u"\r\n", b));
 
 		if(i != string::npos)
 			line.erase(i);
@@ -52,7 +52,8 @@ ConvertToUIString(Bookmark::PositionType pos, ShlTextReader& shl)
 			//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278.
 			line.erase(line.begin());
 	}
-	return to_string(pos) + "  " + std::move(line);
+	// TODO: Use %to_u16string or %to_chars?
+	return String(to_string(pos)) + u"  " + std::move(line);
 }
 //! \since build 397
 vector<String>

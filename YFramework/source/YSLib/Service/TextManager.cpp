@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextManager.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4105
+\version r4113
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2016-11-26 23:25 +0800
+	2018-08-17 07:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,26 +343,26 @@ TextFileBuffer::end() ynothrow
 }
 
 
-string
+u16string
 CopySliceFrom(TextFileBuffer& buf, size_t pos, size_t len)
 {
 	const auto i_end(buf.end());
-	auto i_beg(buf.GetIterator(pos));
+	auto i(buf.GetIterator(pos));
 
-	if(i_beg == i_end)
+	if(i == i_end)
 		throw std::out_of_range("Wrong offset found.");
 	if(len == 0)
 		return {};
 
 	YAssert(pos < pos + len, "Unexpected unsigned integer round up.");
 
-	string str;
+	u16string str;
 
 	str.reserve(len * 2);
-	while(len != 0 && i_beg != i_end)
+	while(len != 0 && i != i_end)
 	{
-		str.push_back(*i_beg);
-		yunseq(++i_beg, --len);
+		str.push_back(*i);
+		yunseq(++i, --len);
 	}
 	return str;
 }

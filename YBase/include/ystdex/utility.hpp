@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r3477
+\version r3478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-07-30 17:03 +0800
+	2018-08-17 03:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ inline namespace cpp2017
 \see WG21 P0007R1 。
 */
 //@{
-#if __cpp_lib_as_const >= 201510
+#if __cpp_lib_as_const >= 201510L
 using std::as_const;
 #else
 //! \since build 593

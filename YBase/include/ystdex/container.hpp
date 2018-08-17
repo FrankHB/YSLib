@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r2038
+\version r2044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2018-08-01 03:46 +0800
+	2018-08-13 10:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -833,13 +833,16 @@ trail(_tCon&& con, const typename decay_t<_tCon>::value_type& value = {})
 		con.push_back(value);
 	return static_cast<_tCon&&>(con);
 }
-template<class _tCon, typename... _tParams>
+//! \since build 835
+template<class _tCon, typename _tParam1, typename _tParam2,
+	typename... _tParams>
 _tCon&&
-trail(_tCon&& con, _tParams&&... args)
+trail(_tCon&& con, _tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
 {
 	if(!con.empty())
 	{
-		typename decay_t<_tCon>::value_type val(yforward(args)...);
+		typename decay_t<_tCon>::value_type
+			val(yforward(arg1), yforward(arg2), yforward(args)...);
 
 		if(!(con.back() == val))
 			con.emplace_back(std::move(val));

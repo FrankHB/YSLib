@@ -11,13 +11,13 @@
 /*!	\file addressof.hpp
 \ingroup YStandardEx
 \brief 一元操作符 & 和取指针的相关接口。
-\version r195
+\version r198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 660
 \par 创建时间:
 	2015-12-17 10:07:56 +0800
 \par 修改时间:
-	2018-07-28 11:30 +0800
+	2018-08-17 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,8 +47,8 @@
 //	which is the initial version as it seems undocumented.
 // TODO: Get more accurate version.
 #ifndef __cpp_lib_addressof_constexpr
-#	if (YB_IMPL_MSCPP >= 1913 && _MSVC_LANG >= 201606) || __cplusplus >= 201703L
-#		define __cpp_lib_addressof_constexpr 201606
+#	if (YB_IMPL_MSCPP >= 1913 && _MSVC_LANG >= 201606) || __cplusplus >= 201606L
+#		define __cpp_lib_addressof_constexpr 201606L
 #	endif
 #endif
 //@}
@@ -94,7 +94,7 @@ struct has_overloaded_addressof
 Microsoft VC++ 15.7.5 也使用 [[nodiscard]] 。
 */
 //@{
-#if __cpp_lib_addressof_constexpr >= 201606
+#if __cpp_lib_addressof_constexpr >= 201606L
 using std::addressof;
 #else
 #	if __has_builtin(addressof)

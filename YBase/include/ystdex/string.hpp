@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2780
+\version r2781
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2018-08-03 00:13 +0800
+	2018-08-17 03:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ public:
 	{}
 	// NOTE: See $2018-07 @ %Documentation::Workflow::Annual2018.
 	// XXX: This is accidentally equivalent without the condition
-	//	'__cpp_inheriting_constructors > 201511' even with conditionally enabled
+	//	'__cpp_inheriting_constructors > 201511L' even with conditionally enabled
 	//	constructors from ISO C++17.
 	using base::base;
 	//! \see LWG 2742 。
