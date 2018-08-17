@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3730
+\version r3731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-08-06 07:46 +0800
+	2018-08-13 04:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1389,7 +1389,7 @@ public:
 	\brief 判断锚对象未被外部引用。
 	\since build 830
 	*/
-	DefPred(const ynothrow, Orphan, anchor.Ptr.unique())
+	DefPred(const ynothrow, Orphan, anchor.Ptr.use_count() == 1)
 
 	/*!
 	\brief 取名称绑定映射。

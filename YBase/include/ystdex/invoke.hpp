@@ -11,13 +11,13 @@
 /*!	\file invoke.hpp
 \ingroup YStandardEx
 \brief 可调用对象和调用包装接口。
-\version r4492
+\version r4499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-24 05:03:12 +0800
 \par 修改时间:
-	2018-07-25 00:57 +0800
+	2018-08-17 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,13 +42,13 @@
 */
 //@{
 #ifndef __cpp_lib_transparent_operators
-#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201402L
-#		define __cpp_lib_transparent_operators 201210
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201210L
+#		define __cpp_lib_transparent_operators 201210L
 #	endif
 #endif
 #ifndef __cpp_lib_invoke
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
-#		define __cpp_lib_invoke 201411
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
+#		define __cpp_lib_invoke 201411L
 #	endif
 #endif
 //@}
@@ -179,7 +179,7 @@ struct is_std_reference_wrapper<std::reference_wrapper<_type>> : true_type
 //@}
 
 
-#if !(__cpp_lib_is_invocable >= 201703)
+#if !(__cpp_lib_is_invocable >= 201703L)
 //! \since build 832
 namespace details
 {
@@ -319,7 +319,7 @@ inline namespace cpp2017
 
 //! \since build 832
 //@{
-#if __cpp_lib_is_invocable >= 201703
+#if __cpp_lib_is_invocable >= 201703L
 using std::is_invocable;
 using std::is_invocable_r;
 using std::is_nothrow_invocable;
@@ -362,7 +362,7 @@ using invoke_result_t = _t<invoke_result<_fCallable, _tParams...>>;
 } // inline namespace cpp2017;
 
 
-#if __cpp_lib_invoke >= 201411
+#if __cpp_lib_invoke >= 201411L
 //! \since build 617
 using std::invoke;
 #else

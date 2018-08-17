@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3649
+\version r3650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2018-08-10 02:29 +0800
+	2018-08-12 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -355,7 +355,7 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	//	necessary at least in stage 1.
 	root.Trace.FilterLevel = Logger::Level::Informative;
 	LoadNPLContextForSHBuild(context);
-	RegisterStrictBinary<const string>(root, "env-set",
+	RegisterStrictBinary<const string, const string>(root, "env-set",
 		[&](const string& var, const string& val){
 		SetEnvironmentVariable(var.c_str(), val.c_str());
 	});

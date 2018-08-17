@@ -11,13 +11,13 @@
 /*!	\file set.hpp
 \ingroup YStandardEx
 \brief 集合容器。
-\version r1112
+\version r1113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 665
 \par 创建时间:
 	2016-01-23 20:13:53 +0800
 \par 修改时间:
-	2018-07-26 19:04 +0800
+	2018-08-17 03:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ set_value_move(const _type& x) ynothrow
 // XXX: G++ 5.2.0 rejects generic associative lookup in debug mode of %std::map.
 // TODO: Find precise version supporting debug mode.
 #if true \
-	|| ((__cpp_lib_generic_associative_lookup >= 201304 \
+	|| ((__cpp_lib_generic_associative_lookup >= 201304L \
 	|| __cplusplus >= 201402L) && !(defined(__GLIBCXX__) \
 	&& defined(_GLIBCXX_DEBUG)))
 #	define YB_Impl_Set_UseGenericLookup true

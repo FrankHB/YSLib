@@ -11,13 +11,13 @@
 /*!	\file range.hpp
 \ingroup YStandardEx
 \brief 范围操作。
-\version r890
+\version r906
 \author FrankHB <frankhb1989@gmail.com>
 \since build 624
 \par 创建时间:
 	2015-08-18 22:33:54 +0800
 \par 修改时间:
-	2018-08-06 18:37 +0800
+	2018-08-17 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,8 +45,8 @@
 */
 //@{
 #ifndef __cpp_lib_array_constexpr
-#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603) || __cplusplus >= 201703L
-#		define __cpp_lib_array_constexpr 201603
+#	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603) || __cplusplus >= 201603L
+#		define __cpp_lib_array_constexpr 201603L
 #	endif
 #endif
 //@}
@@ -58,19 +58,19 @@
 //@{
 #ifndef __cpp_lib_make_reverse_iterator
 #	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201402L
-#		define __cpp_lib_make_reverse_iterator 201210
+#		define __cpp_lib_make_reverse_iterator 201210L
 #	endif
 #endif
 //@}
 /*!
-\see N4280 。
+\see WG21 N4280 。
 \see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 \since build 834
 */
 //@{
 #ifndef __cpp_lib_nonmember_container_access
-#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201703L
-#		define __cpp_lib_nonmember_container_access 201411
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201411L
+#		define __cpp_lib_nonmember_container_access 201411L
 #	endif
 #endif
 //@}
@@ -93,13 +93,15 @@ namespace ystdex
 inline namespace cpp2017
 {
 
-// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86734.
 // XXX: If resolution from LWG 1052 is adopted, Microsoft VC++ 15.7 would be
 //	conforming.
-// NOTE: '__cpp_lib_array_constexpr >= 201603' is not enough as LWG issues are
+// NOTE: '__cpp_lib_array_constexpr >= 201603L' is not enough as LWG issues are
 //	not respected, including (at least) LWG 2188 and LWG 2438. Note LWG 2188 is
 //	adopted by WG21 N3936, it is effective since ISO C++14.
-#if __cplusplus >= 201703L && !__GLIBCXX__ && !YB_IMPL_MSCPP
+// NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86734.
+// XXX: Assume non-GCC would not use libstdc++ old branch earlier for GCC 6.
+#if __cplusplus >= 201703L && !YB_IMPL_MSCPP && !(__GLIBCXX__ && \
+	(__GLIBCXX__ <= 20180808 || YB_IMPL_GNUCPP < 60800))
 #	define YB_Use_std_reverse_iterator true
 #endif
 #if YB_Use_std_reverse_iterator
@@ -306,7 +308,7 @@ public:
 #endif
 
 
-#if __cpp_lib_array_constexpr >= 201603
+#if __cpp_lib_array_constexpr >= 201603L
 //! \since build 624
 using std::begin;
 //! \since build 624
@@ -399,9 +401,9 @@ rend(_type(&&array)[_vN])
 inline namespace cpp2014
 {
 
-#if (__cpp_lib_nonmember_container_access >= 201411 \
+#if (__cpp_lib_nonmember_container_access >= 201411L \
 	|| (__cplusplus >= 201402L && (!defined(__GLIBCXX__) \
-	|| __GLIBCXX__ >= 20150119))) || (_LIBCXX_VERSION >= 1101 \
+	|| __GLIBCXX__ > 20150119))) || (_LIBCPP_VERSION >= 1101 \
 	&& _LIBCPP_STD_VER > 11) || YB_IMPL_MSCPP >= 1800
 using std::cbegin;
 using std::cend;
@@ -434,7 +436,7 @@ inline namespace cpp2017
 
 //! \since build 624
 //@{
-#if __cpp_lib_array_constexpr >= 201603
+#if __cpp_lib_array_constexpr >= 201603L
 using std::rbegin;
 using std::rend;
 using std::crbegin;
@@ -523,7 +525,7 @@ crend(const _tRange& c) -> decltype(ystdex::rend(c))
 inline namespace cpp2017
 {
 
-#if __cpp_lib_nonmember_container_access >= 201411
+#if __cpp_lib_nonmember_container_access >= 201411L
 using std::size;
 using std::empty;
 using std::data;

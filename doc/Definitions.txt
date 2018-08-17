@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r14045
+\version r14049
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2018-08-06 23:23 +0800
+	2018-08-17 03:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,6 +191,10 @@ $header Memory
 $header Functor
 {
 #__cpp_lib_robust_nonmodifying_seq_ops
+}
+$header Algorithm
+{
+#__cpp_lib_clamp
 }
 $header StringView
 {

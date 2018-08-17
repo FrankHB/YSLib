@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1623
+\version r1643
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-08-11 07:40 +0800
+	2018-08-13 05:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,9 +257,11 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 //@{
 class Loader final
 {
-public:
+private:
+	//! \since build 835
 	lref<REPLContext> context;
 
+public:
 	Loader(REPLContext& ctx)
 		: context(ctx)
 	{}
@@ -671,6 +673,14 @@ LoadEnvironments(Loader& loader)
 			eval (list (unwrap bound?) (symbol->string s)) (eval expr env);
 	)NPL");
 	RegisterStrict(loader, "value-of", ValueOf);
+	RegisterStrict(loader, "get-current-repl",
+		ystdex::bind1([](TermNode& term, REPLContext& rctx){
+		RetainN(term, 0);
+		term.Value = ValueObject(rctx, OwnershipTag<>());
+	}, std::ref(static_cast<REPLContext&>(loader))));
+	RegisterStrict(loader, "eval-string", EvalString);
+	RegisterStrict(loader, "eval-string%", EvalStringRef);
+	RegisterStrict(loader, "eval-unit", EvalUnit);
 }
 
 void
@@ -688,10 +698,10 @@ LoadStrings(Loader& loader)
 	RegisterStrictUnary<const string>(loader, "string-empty?",
 		std::mem_fn(&string::empty));
 	RegisterStrictBinary(loader, "string<-", [](TermNode& x, const TermNode& y){
-		AccessTerm<string>(x) = AccessTerm<string>(y);
+		AccessTerm<string>(x) = AccessTerm<const string>(y);
 		return ValueToken::Unspecified;
 	});
-	RegisterStrictBinary<string>(loader, "string-contains-ci?",
+	RegisterStrictBinary<string, string>(loader, "string-contains-ci?",
 		[](string x, string y){
 		// TODO: Extract 'strlwr'.
 		const auto to_lwr([](string& s){
@@ -826,7 +836,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 	});
 	RegisterStrict(loader, "SHBuild_EchoVar", [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
-		CallBinaryAs<const string>([&](const string& n, const string& val){
+		CallBinaryAs<const string, const string>(
+			[&](const string& n, const string& val){
 			if(const auto p
 				= GetValuePtrOf(context.Root.GetRecordRef().LookupName(
 				"SHBuild_BaseTerminalHook_")))
@@ -836,7 +847,8 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		}, term);
 	});
 	RegisterStrict(loader, "SHBuild_Install_HardLink", [&](TermNode& term){
-		CallBinaryAs<const string>([](const string& dst, const string& src){
+		CallBinaryAs<const string, const string>(
+			[](const string& dst, const string& src){
 			InstallHardLink(dst.c_str(), src.c_str());
 		}, term);
 	});
@@ -847,10 +859,11 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		throw NPLException("Error in quoted string.");
 	});
 	RegisterStrictUnary<const string>(loader, "SHBuild_RaiseError_",
-		[](const string& str) YB_NORETURN{
+		[](const string& str) YB_ATTR(noreturn){
 		throw LoggedEvent(str);
 	});
-	RegisterStrictBinary<const string>(loader, "SHBuild_RemovePrefix_",
+	RegisterStrictBinary<const string, const string>(loader,
+		"SHBuild_RemovePrefix_",
 		[&](const string& str, const string& pfx) -> string{
 		if(ystdex::begins_with(str, pfx))
 			return str.substr(pfx.length());

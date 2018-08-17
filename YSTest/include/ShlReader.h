@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1833
+\version r1836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2015-08-05 09:51 +0800
+	2018-08-17 06:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,8 +322,8 @@ public:
 	DefGetter(const ynothrow, Bookmark::PositionType, ReaderPosition,
 		reader.GetTopPosition())
 
-	//! \since build 397
-	string
+	//! \since build 835
+	String
 	GetSlice(Bookmark::PositionType, string::size_type);
 
 private:

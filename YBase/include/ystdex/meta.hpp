@@ -11,13 +11,13 @@
 /*!	\file meta.hpp
 \ingroup YStandardEx
 \brief 通用元编程设施。
-\version r1575
+\version r1577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:28 +0800
 \par 修改时间:
-	2018-07-25 20:09 +0800
+	2018-08-17 03:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ inline namespace cpp2014
 \brief ISO C++ 14 兼容类型操作别名。
 */
 //@{
-#if __cpp_lib_transformation_trait_aliases >= 201304
+#if __cpp_lib_transformation_trait_aliases >= 201304L
 using std::remove_const_t;
 using std::remove_volatile_t;
 using std::remove_cv_t;
@@ -306,7 +306,7 @@ inline namespace cpp2017
 \see WG21 N4296 20.10.2[meta.type.synop] 。
 \since build 591
 */
-#if __cpp_lib_void_t >= 201411
+#if __cpp_lib_void_t >= 201411L
 using std::void_t;
 #else
 template<typename... _types>

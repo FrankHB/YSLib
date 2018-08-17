@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r398
+\version r400
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2018-08-03 03:00 +0800
+	2018-08-17 03:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //	std::addressof, bool_, is_standard_layout, pun_storage_t,
 //	aligned_replace_cast;
 
-#if __cpp_lib_bool_constant >= 201505
+#if __cpp_lib_is_swappable >= 201603L
 #	define YB_Impl_Swap_Traits true
 #	define YB_Impl_Swap_ns std
 #else
@@ -389,7 +389,7 @@ move_and_swap(_type& obj, _type2&& new_val)
 inline namespace cpp2014
 {
 
-#if __cpp_lib_exchange_function >= 201304
+#if __cpp_lib_exchange_function >= 201304L
 using std::exchange;
 #else
 /*!

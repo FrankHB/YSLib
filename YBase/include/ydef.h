@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3248
+\version r3311
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-08-03 02:04 +0800
+	2018-08-17 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@
 	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 #ifdef __cplusplus
-#	ifdef _MSC_VER
+#	if defined(_MSC_VER) && !defined(__clang__)
 #		undef YB_IMPL_MSCPP
 #		define YB_IMPL_MSCPP _MSC_VER
 #	elif defined(__clang__)
@@ -111,6 +111,8 @@
 #if YB_IMPL_MSCPP >= 1400
 //! \since build 454
 #	define _CRT_SECURE_NO_WARNINGS
+//! \since build 835
+#	define _SCL_SECURE_NO_WARNINGS
 #endif
 //@}
 
@@ -156,11 +158,11 @@
 //! \since build 628
 //@{
 #ifndef __cpp_constexpr
-#	if __has_feature(cxx_relaxed_constexpr) || __cplusplus >= 201402L
-#		define __cpp_constexpr 201304
-#	elif __has_feature(cxx_constexpr) || __cplusplus >= 201103L \
+#	if __has_feature(cxx_relaxed_constexpr) || __cplusplus >= 201304L
+#		define __cpp_constexpr 201304L
+#	elif __has_feature(cxx_constexpr) || __cplusplus >= 200704L \
 	|| YB_IMPL_GNUCPP >= 40600 || YB_IMPL_MSCPP >= 1900
-#		define __cpp_constexpr 200704
+#		define __cpp_constexpr 200704L
 #	endif
 #endif
 //@}
@@ -174,11 +176,11 @@
 */
 //@{
 #ifndef __cpp_inheriting_constructors
-#	if (YB_IMPL_MSCPP >= 1914 && _MSVC_LANG >= 201511) || __cplusplus >= 201703L
-#		define __cpp_inheriting_constructors 201511
+#	if (YB_IMPL_MSCPP >= 1914 && _MSVC_LANG >= 201511) || __cplusplus >= 201511L
+#		define __cpp_inheriting_constructors 201511L
 #	elif __has_feature(cxx_inheriting_constructors) || YB_IMPL_MSCPP > 1900 \
-	|| __cplusplus >= 201103L
-#		define __cpp_inheriting_constructors 200802
+	|| __cplusplus >= 200802L
+#		define __cpp_inheriting_constructors 200802L
 #	endif
 #endif
 //@}
@@ -198,8 +200,8 @@
 #ifndef __cpp_inline_variables
 #	if __has_feature(cxx_inline_variables) \
 	|| __has_extension(cxx_inline_variables) || YB_IMPL_MSCPP > 1912 \
-	|| __cplusplus >= 201703L
-#		define __cpp_inline_variables 201606
+	|| __cplusplus >= 201606L
+#		define __cpp_inline_variables 201606L
 #	endif
 #endif
 //@}
@@ -223,13 +225,14 @@
 \brief \<cstddef\> 特性测试宏。
 \since build 832
 \see https://blogs.msdn.microsoft.com/vcblog/2017/05/10/c17-features-in-vs-2017-3/ 。
+\see https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2017 。
 */
 //@{
 #ifndef __cpp_lib_byte
-#	if ((YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703) \
-	|| __cplusplus >= 201703L) && !(YB_IMPL_MSCPP >= 1911 \
-	&& _MSVC_LANG >= 201703 && _HAS_STD_BYTE != 0)
-#		define __cpp_lib_byte 201603
+#	if ((YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603) \
+	|| YB_IMPL_GCC >= 70100 || __cplusplus >= 201603L) \
+	&& !(YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201603 && _HAS_STD_BYTE != 0)
+#		define __cpp_lib_byte 201603L
 #	endif
 #endif
 //@}
@@ -240,39 +243,39 @@
 */
 //@{
 #ifndef __cpp_lib_bool_constant
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
-#		define __cpp_lib_bool_constant 201505
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201505L
+#		define __cpp_lib_bool_constant 201505L
 #	endif
 #endif
 //! \since build 832
 //@{
 #ifndef __cpp_lib_is_invocable
 #	if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201703) || __cplusplus >= 201703L
-#		define __cpp_lib_is_invocable 201703
+#		define __cpp_lib_is_invocable 201703L
 #	endif
 #endif
 #ifndef __cpp_lib_is_null_pointer
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201402L
-#		define __cpp_lib_is_null_pointer 201309
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201309L
+#		define __cpp_lib_is_null_pointer 201309L
 #	endif
 #endif
 //! \since build 834
 //@{
 #ifndef __cpp_lib_is_swappable
-#	if YB_IMPL_MSCPP > 1900 || __cplusplus >= 201703L
-#		define __cpp_lib_is_swappable 201603
+#	if YB_IMPL_MSCPP > 1900 || __cplusplus >= 201603L
+#		define __cpp_lib_is_swappable 201603L
 #	endif
 #endif
 //@}
 #ifndef __cpp_lib_transformation_trait_aliases
-#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201402L
-#		define __cpp_lib_transformation_trait_aliases 201304
+#	if YB_IMPL_MSCPP >= 1800 || __cplusplus >= 201304L
+#		define __cpp_lib_transformation_trait_aliases 201304L
 #	endif
 #endif
 //@}
 #ifndef __cpp_lib_void_t
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
-#		define __cpp_lib_void_t 201411
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201411L
+#		define __cpp_lib_void_t 201411L
 #	endif
 #endif
 //@}
@@ -285,24 +288,24 @@
 //! \since build 833
 //@{
 #ifndef __cpp_lib_as_const
-#	if YB_IMPL_MSCPP >= 1911 || __cplusplus > 201402L
-#		define __cpp_lib_as_const 201510
+#	if YB_IMPL_MSCPP >= 1911 || __cplusplus >= 201510L
+#		define __cpp_lib_as_const 201510L
 #	endif
 #endif
 //@}
 #ifndef __cpp_lib_exchange_function
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus > 201103L
-#		define __cpp_lib_exchange_function 201304
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
+#		define __cpp_lib_exchange_function 201304L
 #	endif
 #endif
 #ifndef __cpp_lib_integer_sequence
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
-#		define __cpp_lib_integer_sequence 201304
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201304L
+#		define __cpp_lib_integer_sequence 201304L
 #	endif
 #endif
 #ifndef __cpp_lib_tuple_element_t
-#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201703L
-#		define __cpp_lib_tuple_element_t 201402
+#	if YB_IMPL_MSCPP >= 1900 || __cplusplus >= 201402L
+#		define __cpp_lib_tuple_element_t 201402L
 #	endif
 #endif
 //@}
@@ -465,7 +468,7 @@
 \warning 不检查指令。用户应验证可能使用的指令中的标识符在宏替换后能保持正确。
 \since build 605
 */
-#if __cpp_attributes >= 200809 || __has_feature(cxx_attributes)
+#if __cpp_attributes >= 200809L || __has_feature(cxx_attributes)
 #	define YB_ATTR_STD(...) [[__VA_ARGS__]]
 #else
 #	define YB_ATTR_STD(...)
@@ -636,16 +639,25 @@
 /*!
 \def YB_NORETURN
 \brief 指定无返回值函数。
-\note 不保证适用修饰 lambda 。
+\note 不保证适用修饰 lambda 。这种情况可使用 YB_ATTR(noreturn) 代替。
 \warning 当指定的函数调用实际返回时行为未定义。
+\see https://msdn.microsoft.com/en-us/library/hh567368.aspx 。
 \since build 396
 */
-#if __has_cpp_attribute(noreturn) >= 200809 || YB_IMPL_GNUCPP >= 40800
+#if __has_cpp_attribute(noreturn) >= 200809 || YB_IMPL_MSCPP >= 1900 \
+	|| YB_IMPL_GNUCPP >= 40800 || __cplusplus >= 201103L
 #	define YB_NORETURN [[noreturn]]
 #elif __has_attribute(__noreturn__) || YB_IMPL_GNUCPP >= 20296
 #	define YB_NORETURN YB_ATTR(__noreturn__)
+#elif YB_IMPL_MSCPP >= 1200
+#	define YB_NORETURN __declspec(noreturn)
 #else
 #	define YB_NORETURN
+#endif
+
+#if YB_IMPL_MSCPP >= 1200
+//! \since build 454
+#	pragma warning(disable: 4646)
 #endif
 
 /*!
@@ -816,7 +828,7 @@
 \note 同 C++11 constepxr 作用于编译时常量函数的语义。
 \since build 266
 */
-#if __cpp_constexpr >= 200704
+#if __cpp_constexpr >= 200704L
 #	define yconstexpr constexpr
 #	define yconstfn constexpr
 #else
@@ -830,7 +842,7 @@
 \warning 不应依赖变量的链接以避免可能造成违反 ODR 。
 \since build 831
 */
-#if __cpp_inline_variables >= 201606
+#if __cpp_inline_variables >= 201606L
 #	define yconstexpr_inline inline yconstexpr
 #else
 #	define yconstexpr_inline yconstexpr
@@ -842,7 +854,7 @@
 \note 同 C++14 constepxr 作用于编译时常量函数的语义。
 \since build 591
 */
-#if __cpp_constexpr >= 201304
+#if __cpp_constexpr >= 201304L
 #	define yconstfn_relaxed constexpr
 #else
 #	define yconstfn_relaxed inline
@@ -965,7 +977,9 @@
 /*!
 \def ythrow
 \brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
-\note ythrow = "yielded throwing" 。
+\note 动态异常规范已从 ISO C++17 移除，用户代码不应假定支持。
+\note 主要为可读性保留， ythrow = "yielded throwing" 。
+\see WG21 P0003R5 。
 */
 #if YB_Use_DynamicExceptionSpecification
 #	define ythrow throw
@@ -994,7 +1008,7 @@ ISO C++17 核心语言特性对 std::byte 别名存储提供支持，其它情�
 表示字节以便获得确定的行为，同时对字符处理（如 std::fgetc ）保持较好的兼容性。
 使用 unsigned char 仍是实现细节。依赖此类型上不在 std::byte 的操作不被支持。
 */
-#if __cpp_lib_byte >= 201603
+#if __cpp_lib_byte >= 201603L
 using std::byte;
 #else
 using byte = unsigned char;
@@ -1016,11 +1030,8 @@ using std::size_t;
 using std::wint_t;
 
 #if YB_HAS_BUILTIN_NULLPTR
-
 using std::nullptr_t;
-
 #else
-
 /*!
 \brief 空指针类。
 \see https://en.wikibooks.org/wiki/More_C++_Idioms/nullptr 。
@@ -1030,7 +1041,7 @@ const class nullptr_t
 public:
 	//! \brief 转换任意类型至空非成员或静态成员指针。
 	template<typename _type>
-	inline
+	yconstfn
 	operator _type*() const
 	{
 		return 0;
@@ -1038,14 +1049,14 @@ public:
 
 	//! \brief 转换任意类型至空非静态成员指针。
 	template<class _tClass, typename _type>
-	inline
+	yconstfn
 	operator _type _tClass::*() const
 	{
 		return 0;
 	}
 	//! \brief 支持关系运算符重载。
 	template<typename _type>
-	bool
+	yconstfn bool
 	equals(const _type& rhs) const
 	{
 		return rhs == 0;
@@ -1058,32 +1069,31 @@ public:
 //! \since build 316
 //@{
 template<typename _type>
-inline bool
+yconstfn bool
 operator==(nullptr_t lhs, const _type& rhs)
 {
 	return lhs.equals(rhs);
 }
 template<typename _type>
-inline bool
+yconstfn bool
 operator==(const _type& lhs, nullptr_t rhs)
 {
 	return rhs.equals(lhs);
 }
 
 template<typename _type>
-inline bool
+yconstfn bool
 operator!=(nullptr_t lhs, const _type& rhs)
 {
 	return !lhs.equals(rhs);
 }
 template<typename _type>
-inline bool
+yconstfn bool
 operator!=(const _type& lhs, nullptr_t rhs)
 {
 	return !rhs.equals(lhs);
 }
 //@}
-
 #endif
 
 

@@ -11,13 +11,13 @@
 /*!	\file integer_sequence.hpp
 \ingroup YStandardEx
 \brief 整数序列元编程接口。
-\version r595
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 589
 \par 创建时间:
 	2013-03-30 00:55:06 +0800
 \par 修改时间:
-	2018-07-20 02:31 +0800
+	2018-08-17 03:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ inline namespace cpp2014
 \since build 589
 */
 //@{
-#if __cpp_lib_integer_sequence >= 201304
+#if __cpp_lib_integer_sequence >= 201304L
 using std::integer_sequence;
 using std::index_sequence;
 #else
@@ -289,7 +289,7 @@ inline namespace cpp2014
 \since build 589
 */
 //@{
-#if __cpp_lib_integer_sequence >= 201304
+#if __cpp_lib_integer_sequence >= 201304L
 using std::make_integer_sequence;
 using std::make_index_sequence;
 

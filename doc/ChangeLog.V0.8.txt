@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r4876
+\version r5146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-07-11 07:51 +0800
+	2018-08-17 08:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,275 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ @ "namespace %Forms" @ %NPLA1 $=
+			(
+				/ "(function template %CallBinaryAs; class tmeplate \
+					%BinaryAsExpansion; function template \
+					%RegisterStrictBinary) supported and required separated \
+					template parameters for arguments",
+				/ "function %EvaluateUnit" -> "%EvalUnit" ^ $dep_from
+					"%CallBinaryAs" $=
+				(
+					(
+					/ DLI "removed redundant capture by copy of %REPLContext";
+					/ "avoided explicit copy of %REPLContext",
+					)
+					/ "reserved evaluation result"
+						$= (/ "returned %ReductionStatus::Retained")
+						// Though not clarified, the old function would only \
+							preserve the side effects.
+				),
+				+ "functions %(EvalString, EvalStringRef)",
+				/ "supported term reference" @ "function %Undefine",
+				/ DLI "vau and evaluation TCO" ^ "%shared_ptr::use_count"
+					~ "%shared_ptr::unique"
+					// WG21 P0521R0. Although it is safe in current \
+						assumption, deprecated feature should not used. This \
+						is implemented since Microsoft VC++ 15.5, see https://docs.microsoft.com/en-us/visualstudio/releasenotes/vs2017-relnotes-v15.5.
+			),
+			/ %Dependency $=
+			(
+				/ @ "loaded derived functions"
+					@ "function %LoadNPLContextGround" $=
+				(
+					+ "applicative 'eval-string'" ^ $dep_from
+						("%EvalString" @ %NPLA1),
+					+ "applicative 'eval-string%'" ^ $dep_from
+						("%EvalStringRef" @ %NPLA1),
+					+ "applicative 'eval-unit'" ^ $dep_from
+						("%EvalUnit" @ %NPLA1),
+					/ $forced DLDI "applicative 'string-contains-ci?'" $dep_from
+						("%CallBinaryAs" @ %NPLA1)
+				),
+				/ $forced DLDI "loaded derived applicatives %(SHBuild_EchoVar, \
+					SHBuild_Install_HardLink)" @ "function \
+					%LoadNPLContextForSHBuild" $dep_from
+					("%CallBinaryAs" @ %NPLA1)
+			),
+			/ DLI "member function %Environment::IsOrphan"
+				^ "%shared_ptr::use_count" ~ "%shared_ptr::unique"
+				// WG21 P0521R0. See comment of similar use case in %NPLA1.
+		),
+		/ %YSLib $=
+		(
+			* "ambiguous constructor overloads %String" @ %Core.String $since
+				b645
+				$= (/ "enabled overloads with paramaters of \
+					%(basic_string, basic_string_view) instances only when \
+					the character type is not %char16_t"),
+			/ "function %CopySliceFrom" %Service.TextManager $=
+			(
+				/ "returned %u16string" ~ "%string";
+				* $comp "narrowed string without conversion" $since b397
+			)
+		),
+	),
+	/ $forced DLDI "loaded derived applicative 'env-set'" @ %Tools.SHBuild.Main
+		$dep_from ("%CallBinaryAs" @ %YFramework.NPL.NPLA1),
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			/ 'inline' @ "%nullptr_t" @ '!YB_HAS_BUILTIN_NULLPTR'
+				-> 'yconstfn',
+			/ @ "macro %YB_NORETURN" $=
+			(
+				+ "condition 'YB_IMPL_MSCPP >= 1900' and \
+					'__cplusplus >= 201103L' as acceptable option of condition \
+					to enable '[[noreturn]]'",
+				+ "fallback conditional definition '__declspec(noreturn)'"
+					@ 'YB_IMPL_MSCPP >= 1200'
+			),
+			+ $dev $lib '#pragma warning(disable: 4646)'
+				@ 'YB_IMPL_MSCPP >= 1200',
+				// C4646 warns about non void return type with 'noreturn' \
+					(effective with both '[[noreturn]]' and \
+					'__declspec(noreturn)'). However, such type can be \
+					sometimes intended, e.g. in implementation of %in_place in \
+					%YStandardEx.Placement.
+			+ "conjunction conditon '!defined(__clang__)'"
+				@ "macro %YB_IMPL_MSCPP",
+				// To excluded Clang/C2. Note only frontend featrues of \
+					compiler are used directly now.
+			+ $re_add(b454) $dev "macro %_SCL_SECURE_NO_WARNINGS"
+				@ 'YB_IMPL_MSCPP >= 1400',
+				// Similar to %_CRT_SECURE_NO_WARNINGS.
+			+ $doc "explicit support note" @ "pseudo keyword %ythrow",
+			* $comp "wrong value checked for %__cplusplus" @ "macros \
+				%(__cpp_lib_integer_sequence, __cpp_lib_integer_sequence)"
+				$since b832 $dep_from "feature macro dates",
+				// These features should be available in ISO C++14 (as \
+					previous revisions of the checks), so the lower boundary \
+					should not be '201702'.
+			/ "accepted condition 'YB_IMPL_GCC >= 70100'" @ "check"
+				@ "macro %__cpp_lib_byte"
+				// See note in https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2017.
+		),
+		/ %YStandardEx $=
+		(
+			/ DLDI "friend class template declarations" @ %(Tree, Map),
+				// To eliminate Microsoft VC++ 2017 warning: C4099.
+			/ %Optional $=
+			(
+				+ $lib 'explicit' @ "constructor" @ "class %nullopt_t",
+				/ $dev $lib "split class and object definition"
+					@ "definitions %(nullopt_t, nullopt)" @ 'YB_IMPL_MSCPP',
+					// This is an effective workaround, even <optional> is \
+						provided by Microsoft VC++ 2017.
+			),
+			* "ambiguous overloads %trail" @ %Container $since b567
+				$= (/ "refined overloads with pack parameter only effetive for \
+					calls more than 1 argument to initialize the value"),
+					// Note %emplace_back is not fit for %basic_string, so \
+						overload using %push_back should be preserved.
+			/ $lib "alias %used_cache_type" @ "all 2 class template \
+				specializations %used_list_cache_traits" @ %Cache
+				^ "%allocator_traits" ~ "allocator member %rebind",
+				// WG21 P0174R2.
+			/ %Placement $=
+			(
+				/ "accepted condition 'YB_IMPL_MSCPP >= 1910'"
+					@ "check of <optional> availability",
+				(
+				(
+				+ "inline namespace %cpp2017";
+				+ ('using std::destroy_at;', 'using std::destroy;', \
+					'using std::destroy_n;') @ '(YB_IMPL_MSCPP >= 1911 \
+					&& _MSVC_LANG >= 201606) || (((YB_IMPL_GNUCPP >= 80000 \
+					&& __GLIBCXX__ > 20160914) || _LIBCPP_VERSION > 4000) \
+					&& __cplusplus >= 201606L) \
+					|| __cpp_lib_raw_memory_algorithms >= 201606L',
+				+ ('using std::uninitialized_default_construct;',
+					'using std::uninitialized_default_construct_n;',
+					'using std::uninitialized_value_construct;',
+					'using std::uninitialized_value_construct_n;',
+					'using std::uninitialized_move;',
+					'using std::uninitialized_move_n;')
+					@ '(YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606) \
+					|| (((YB_IMPL_GNUCPP >= 80000 && __GLIBCXX__ > 20160920) \
+					|| _LIBCPP_VERSION > 4000) && __cplusplus >= 201606L) \
+					|| __cpp_lib_raw_memory_algorithms >= 201606L'
+				),
+				/ DLI "%(destroy, destroy_n)" ^ "%ystdex::addressof"
+					~ "%std::addressof";
+					// For more probable 'constexpr'.
+				/ "function templates %(destroy_at, destroy, destroy_n, \
+					uninitialized_default_construct, \
+					uninitialized_default_construct_n, \
+					uninitialized_value_construct, \
+					uninitialized_value_construct_n, uninitialized_move, \
+					uninitialized_move_n)" >> "inline namespace cpp2017"
+					@ "no clashing names from %std used"
+				),
+				/ "function %operator()" @ "class template %placement_delete"
+					^ "%ystdex::destroy_at" ~ "ADL %destroy_at"
+			),
+			/ %Memory $=
+			(
+				+ "function templates %(get_temporary_buffer, \
+					return_temporary_buffer) with condition check \
+					'__cpp_aligned_new >= 201606L' for over aligned types")
+					@ '(YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606) \
+					|| (__GLIBCXX__ && (__GLIBCXX__ <= 20150815 \
+					|| YB_IMPL_GNUCPP < 90000)) || __cplusplus >= 201611L'
+					// WG21 P0174R2.
+				+ ('using std::get_temporary_buffer;', \
+					'using std::return_temporary_buffer;')
+					!@ '(YB_IMPL_MSCPP >= 1912 && _MSVC_LANG >= 201606)\
+					|| (__GLIBCXX__ && (__GLIBCXX__ <= 20150815 \
+					|| YB_IMPL_GNUCPP < 90000)) || __cplusplus >= 201611L';
+				/ "class %temporary_buffer_delete"
+					^ "%ystdex::return_temporary_buffer"
+					~ "%std::return_temporary_buffer",
+				/ "constructor %temporary_buffer"
+					^ "%ystdex::get_temporary_buffer"
+					~ "%std::get_temporary_buffer"
+			),
+			/ %Range $=
+			(
+				/ $lib "loosed condition '__GLIBCXX__'" @ "macro \
+					%YB_Use_std_reverse_iterator" -> '!(__GLIBCXX__ && \
+					(__GLIBCXX__ < 20180808 || YB_IMPL_GNUCPP < 60800))',
+				/ "condition check" @ "inline namespace %cpp2014" $=
+				(
+					/ '__GLIBCXX__ >= 20150119' -> '__GLIBCXX__ > 20150119',
+					* "wrong libc++ version macro" $since b624
+						$= (/ '_LIBCXX_VERSION' -> '_LIBCPP_VERSION')
+				),
+				/ '__GLIBCXX__ < 20180808' @ "negative condition check"
+					@ "inline namespace %cpp2017" -> '__GLIBCXX__ <= 20180808'
+			),
+			/ %Algorithm $=
+			(
+				+ "inline namespace %cpp2017";
+				(
+				/ "adjusted function template %clamp"
+					-> "2 function template overloads as WG21 P0025R1";
+					// As WG21 P0025R0, rage is preferred to %clamp_range. \
+						However, this is preserved here for now as no range \
+						interface is adopted.
+				+ $re_add(b834) "conditionally-defined macro %__cpp_lib_clamp",
+				);
+				/ "all 2 function templates %clamp"
+					>> "inline namespace %cpp2017"
+					@ !'__cpp_lib_clamp >= 201603L',
+				+ 'using std::clamp;' @ "inline namespace %cpp2017"
+					@ '__cpp_lib_clamp >= 201603L'
+			),
+			* "wrong use of condition check for swapping traits" @ %Swap $since
+				b834
+				$= (/ $impl '__cpp_lib_bool_constant >= 201505'
+					-> '__cpp_lib_is_swappable >= 201603L'),
+			/ %CCharacterType $=
+			(
+				* "wrong call of underlying %std function templates"
+					@ "%(towlower, towupper)" $since b823,
+				* "wrong result" @ "functions %(tolower, toupper), functions \
+					%(towlower, towupper)" $since b823
+			)
+		),
+		/ $dev "checked %__cplusplus value with '>=' and lower boundary \
+			exactly with defined value equal to the date in definition"
+			@ "macros '__cpp_*'" @ $effective @ %(YDefinition,
+			YStandardEx.(AddressOf, Functor, Invoke, Memory, Range, Tuple)),
+			$dep_to "feature macro dates",
+		+ $dev "suffix 'L'" @ "defined values" @ "feature testing macros"
+			$effective @ %(YDefinition,
+			YStandardEx.(AddressOf, Functor, Invoke, Memory, Range, Tuple)),
+			// See $2018-08 @ %Documentation::Workflow::Annual2018.
+		+ $dev "suffix 'L'" @ "condition expression with feature testing macros"
+			@ "condition inclusions" $effective @ %(YDefinition, YStandardEx.(
+			AddressOf, Algorithm, Functor, IntegerSequence, IntegralConstant,
+			Invoke, IteratorOperation, Map, Meta, Memory, Placement, Set, Swap,
+			String, StringView, Tuple, TypeInspection, Utilities)
+			// Ditto.
+	),
+	* $comp "deprecation features avoidence of WG21 P0174R2" $mismatch $since
+		b834 $dep_from %YBase.YStandardEx.Cache,
+		// See https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md.
+	/ %YReader $=
+	(
+		* "narrowed string result" @ "member function %ShlTextReader::GetSlice"
+			@ %ShlReader $since b397 $dep_from
+			%YFramework.YSLib.Service.TextManager
+			$= (/ "returned %String" ~ "%string");
+		/ @ "constructor, function %LoadBookmarks" @ "class %BookmarkPanel" $=
+		(
+			/ $impl "simplified string loading" ^ "%String" ~ "%string";
+			* $comp "narrowed string loaded for bookmarks" $since b397 
+		),
+		* $comp "ineffective enabled state caused by wrong extension comparison"
+			@ %ShlExplorer $since b825 $dep_from
+			%YBase.YStandardEx.CCharacterType
+	)
+),
+
+b834
 (
 	/ %YBase $=
 	(
@@ -203,8 +472,8 @@ $now
 			(
 				/ %ValueNode $=
 				(
-					/ "%AccessNodePtr#(1, 2, 5, 6)" ^ "%ystdex::end" ~ "ADL %end"
-						$dep_to "disambiguity of end",
+					/ "%AccessNodePtr#(1, 2, 5, 6)" ^ "%ystdex::end"
+						~ "ADL %end" $dep_to "disambiguity of end",
 					/ @ "class %ValueNode" $=
 					(
 						/ DLI "forwarded key parameter"

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3887
+\version r3934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-08-10 06:45 +0800
+	2018-08-10 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1145,7 +1145,8 @@ CallBinary(_func&& f, TermNode& term, _tParams&&... args)
 		yforward(f)), x, YSLib::Deref(++i), yforward(args)...));
 }
 
-template<typename _type, typename _func, typename... _tParams>
+//! \since build 835
+template<typename _type, typename _type2, typename _func, typename... _tParams>
 void
 CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 {
@@ -1155,8 +1156,9 @@ CallBinaryAs(_func&& f, TermNode& term, _tParams&&... args)
 	auto& x(NPL::AccessTerm<_type>(YSLib::Deref(++i)));
 
 	YSLib::EmplaceCallResult(term.Value, ystdex::invoke_nonvoid(
-		ystdex::make_expanded<void(_type&, _type&, _tParams&&...)>(yforward(f)),
-		x, NPL::AccessTerm<_type>(YSLib::Deref(++i)), yforward(args)...));
+		ystdex::make_expanded<void(_type&, _type2&, _tParams&&...)>(
+		yforward(f)), x, NPL::AccessTerm<_type2>(YSLib::Deref(++i)),
+		yforward(args)...));
 }
 //@}
 
@@ -1286,10 +1288,13 @@ struct BinaryExpansion
 };
 
 
-//! \sa Forms::CallBinaryAs
-template<typename _type, typename _func>
-struct BinaryAsExpansion
-	: private ystdex::equality_comparable<BinaryAsExpansion<_type, _func>>
+/*!
+\sa Forms::CallBinaryAs
+\since build 835
+*/
+template<typename _type, typename _type2, typename _func>
+struct BinaryAsExpansion : private
+	ystdex::equality_comparable<BinaryAsExpansion<_type, _type2, _func>>
 {
 	_func Function;
 
@@ -1311,7 +1316,7 @@ struct BinaryAsExpansion
 	inline void
 	operator()(_tParams&&... args) const
 	{
-		Forms::CallBinaryAs<_type>(Function, yforward(args)...);
+		Forms::CallBinaryAs<_type, _type2>(Function, yforward(args)...);
 	}
 };
 //@}
@@ -1348,11 +1353,12 @@ RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 {
 	RegisterStrict(ctx, name, BinaryExpansion<_func>(f));
 }
-template<typename _type, typename _func>
+//! \since build 835
+template<typename _type, typename _type2, typename _func>
 void
 RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
 {
-	RegisterStrict(ctx, name, BinaryAsExpansion<_type, _func>(f));
+	RegisterStrict(ctx, name, BinaryAsExpansion<_type, _type2, _func>(f));
 }
 //@}
 
@@ -1709,18 +1715,49 @@ Eval(TermNode&, ContextNode&);
 
 在返回时不提升项，允许返回引用。
 参考调用文法：
-eval& <expression> <environment>
+eval% <expression> <environment>
 */
 YF_API ReductionStatus
 EvalRef(TermNode&, ContextNode&);
 //@}
 
 /*!
-\brief 创建参数指定的 REPL 的副本并在其中对翻译单元规约以求值。
-\since build 772
+\since build 835
+\return ReductionStatus::Retained 。
 */
-YF_API void
-EvaluateUnit(TermNode&, const REPLContext&);
+//@{
+/*!
+\brief 在参数指定的环境中求值作为外部表示的字符串。
+\note 没有 REPL 中的预处理过程。
+\sa Eval
+
+eval-string <string> <environment>
+*/
+YF_API ReductionStatus
+EvalString(TermNode&, ContextNode&);
+
+/*!
+\brief 在参数指定的环境中求值作为外部表示的字符串。
+\note 没有 REPL 中的预处理过程。
+\sa EvalRef
+
+在返回时不提升项，允许返回引用。
+eval-string% <string> <environment>
+*/
+YF_API ReductionStatus
+EvalStringRef(TermNode&, ContextNode&);
+
+/*!
+\brief 在参数指定的 REPL 环境中规约字符串表示的翻译单元以求值。
+\exception LoggedEvent 翻译单元为空串。
+\sa Reduce
+\since build 835
+
+eval-unit <string> <object>
+*/
+YF_API ReductionStatus
+EvalUnit(TermNode&);
+//@}
 
 /*!
 \brief 取当前环境的引用。

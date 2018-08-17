@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r683
+\version r754
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2018-08-06 18:38 +0800
+	2018-08-17 03:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,30 +31,33 @@
 #define YB_INC_ystdex_placement_hpp_ 1
 
 #include "addressof.hpp" // for "addressof.hpp", empty_base, size_t_,
-//	YB_ASSUME, ystdex::addressof, yforward, is_lvalue_reference,
-//	std::pair, std::allocator, std::allocator_traits, std::unique_ptr;
+//	YB_ASSUME, ystdex::addressof, is_lvalue_reference, std::pair,
+//	std::allocator, std::allocator_traits, enable_if_convertible_t,
+//	std::unique_ptr;
 #include <new> // for placement ::operator new from standard library;
 #include <iterator> // for std::iterator_traits;
 #include "deref_op.hpp" // for is_undereferenceable;
 #include "cassert.h" // for yconstraint;
 // NOTE: The following code is necessary to check for <optional> header to
 //	ensure it have %in_place_t consistently. Other implementation is in
-//	"optional.hpp". 
+//	"optional.h". 
 // NOTE: Check of %__cplusplus is needed because SD-6 issues are not resolved in
 //	mainstream implementations yet. See https://groups.google.com/a/isocpp.org/forum/#!topic/std-discussion/1rO2FiqWgtI
 //	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433 for details. For
 //	feature-test marcos, see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations.
-#if __cplusplus >= 201703L && __has_include(<optional>)
+//	See also https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance.
+#if YB_IMPL_MSCPP >= 1910 \
+	|| (__cplusplus >= 201703L && __has_include(<optional>))
 #	include <optional>
 // NOTE: See also P0941R0 with minor fixes of the specification about P0032R3.
-#	if __cpp_lib_optional >= 201606
+#	if __cpp_lib_optional >= 201606L
 #		define YB_Has_optional 1
 #	endif
 // NOTE: As per the specification, single <optional> without may indicate WG21 N3672 <optional>, which is WG21
 //	N3793 <experimental/optional> without some minor bug fixes. This is not supported.
 #elif __cplusplus > 201402L && __has_include(<experimental/optional>)
 #	include <experimental/optional>
-#	if __cpp_lib_experimental_optional >= 201411
+#	if __cpp_lib_experimental_optional >= 201411L
 #		define YB_Has_optional 2
 #	endif
 #endif
@@ -296,15 +299,33 @@ construct_range(_tIter first, _tIter last, _tParams&&... args)
 //@}
 
 
+//! \since build 835
+inline namespace cpp2017
+{
+
 /*!
 \brief 原地销毁。
-\see WG21 N4606 20.10.10.7[specialized.destroy] 。
+\note 不保证支持带有执行策略的重载。
+\see ISO C++17[specialized.destroy] 。
+\see WG21 P0040R3 。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
 */
 //@{
 /*!
 \see libstdc++ 5 和 Microsoft VC++ 2013 标准库在命名空间 std 内对指针类型的实现：
 	_Destroy 模板。
 */
+#if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606) \
+	|| (((YB_IMPL_GNUCPP >= 80000 && __GLIBCXX__ > 20160914) \
+	|| _LIBCPP_VERSION > 4000) && __cplusplus >= 201606L) \
+	|| __cpp_lib_raw_memory_algorithms >= 201606L
+//! \since build 835
+//@{
+using std::destroy_at;
+using std::destroy;
+using std::destroy_n;
+//@}
+#else
 template<typename _type>
 yconstfn_relaxed void
 destroy_at(_type* location)
@@ -319,7 +340,7 @@ yconstfn_relaxed void
 destroy(_tFwd first, _tFwd last)
 {
 	for(; first != last; ++first)
-		ystdex::destroy_at(std::addressof(*first));
+		ystdex::destroy_at(ystdex::addressof(*first));
 }
 
 template<typename _tFwd, typename _tSize>
@@ -330,13 +351,18 @@ destroy_n(_tFwd first, _tSize n)
 	static_assert(is_lvalue_reference<decltype(*first)>(),
 		"Invalid iterator reference type found.");
 
+	// NOTE: There can be improved diagnostics as https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80553,
+	//	which is not required for conforming. Note WG21 P0411R0 is not adopted.
 	// XXX: Excessive order refinment by ','?
 	for(; n > 0; static_cast<void>(++first), --n)
-		ystdex::destroy_at(std::addressof(*first));
+		ystdex::destroy_at(ystdex::addressof(*first));
 	return first;
 }
+#endif
 //@}
 //@}
+
+} // inline namespace cpp2017;
 
 
 /*!
@@ -384,6 +410,10 @@ destruct_range(_tIter first, _tIter last)
 //@}
 
 
+//! \since build 835
+inline namespace cpp2017
+{
+
 #define YB_Impl_UninitGuard_Begin \
 	auto i = first; \
 	\
@@ -399,12 +429,34 @@ destruct_range(_tIter first, _tIter last)
 		throw; \
 	}
 
+/*!
+\note 不保证支持带有执行策略的重载。
+\see WG21 P0040R3 。
+\see https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance 。
+\see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=77619 。
+\see http://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20161010/173499.html 。
+*/
+//@{
+#if (YB_IMPL_MSCPP >= 1911 && _MSVC_LANG >= 201606) \
+	|| (((YB_IMPL_GNUCPP >= 80000 && __GLIBCXX__ > 20160920) \
+	|| _LIBCPP_VERSION > 4000) && __cplusplus >= 201606L) \
+	|| __cpp_lib_raw_memory_algorithms >= 201606L
+//! \since build 835
+//@{
+using std::uninitialized_default_construct;
+using std::uninitialized_default_construct_n;
+using std::uninitialized_value_construct;
+using std::uninitialized_value_construct_n;
+using std::uninitialized_move;
+using std::uninitialized_move_n;
+//@}
 //! \since build 716
 //@{
 //! \brief 在范围内未初始化放置构造。
 //@{
-//! \see WG21 N4606 20.10.2[uninitialized.construct.default] 。
+//! \see ISO C++17[uninitialized.construct.default] 。
 //@{
+#else
 template<typename _tFwd>
 inline void
 uninitialized_default_construct(_tFwd first, _tFwd last)
@@ -427,7 +479,7 @@ uninitialized_default_construct_n(_tFwd first, _tSize n)
 }
 //@}
 
-//! \see WG21 N4606 20.10.3[uninitialized.construct.value] 。
+//! \see ISO C++17[uninitialized.construct.value] 。
 template<typename _tFwd>
 inline void
 uninitialized_value_construct(_tFwd first, _tFwd last)
@@ -453,7 +505,7 @@ uninitialized_value_construct_n(_tFwd first, _tSize n)
 
 /*!
 \brief 转移初始化范围。
-\see WG21 N4606 20.10.10.5[uninitialized.move] 。
+\see ISO C++17[uninitialized.move] 。
 \since build 716
 */
 //@{
@@ -480,6 +532,10 @@ uninitialized_move_n(_tIn first, _tSize n, _tFwd result)
 	return {first, result};
 }
 //@}
+#endif
+//@}
+
+} // inline namespace cpp2017;
 
 
 /*!
@@ -547,6 +603,11 @@ public:
 			typename traits_type::template rebind_alloc<_tOther>>;
 	};
 
+	/*!
+	\warning 语义视基类对象构造函数的形式可能不同。
+	\sa __cpp_inheriting_constructors
+	\see WG21 P0136R1 。
+	*/
 	using allocator_type::allocator_type;
 
 	template<typename _tOther>
@@ -582,11 +643,10 @@ struct placement_delete
 	placement_delete(const placement_delete<_type2>&) ynothrow
 	{}
 
-	//! \note 使用 ADL destroy_at 。
 	void
 	operator()(pointer p) const ynothrowv
 	{
-		destroy_at(p);
+		ystdex::destroy_at(p);
 	}
 };
 

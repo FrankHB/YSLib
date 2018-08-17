@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2354
+\version r2355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-07-31 23:21 +0800
+	2018-08-13 07:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -651,7 +651,7 @@ class tree : private
 		"Invalid comparison object type found.");
 
 	template<typename, typename>
-	friend class tree_merge_helper;
+	friend struct tree_merge_helper;
 
 public:
 	using key_type = _tKey;

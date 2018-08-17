@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1280
+\version r1290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2018-08-06 18:38 +0800
+	2018-08-16 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -282,16 +282,26 @@ using std::experimental::make_optional;
 //@{
 //! \brief 无值状态指示。
 //@{
+#if YB_IMPL_MSCPP
+struct nullopt_t
+#else
 yconstexpr_inline const struct nullopt_t
+#endif
 {
 	/*!
 	\see LWG 2510 。
 	\since build 718
 	*/
-	yimpl(yconstfn
+	yimpl(yconstfn explicit
 	nullopt_t(nullptr_t)
 	{})
+#if YB_IMPL_MSCPP
+};
+
+yconstexpr_inline const nullopt_t nullopt{yimpl(nullptr)};
+#else
 } nullopt{yimpl(nullptr)};
+#endif
 //@}
 
 

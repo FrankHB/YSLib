@@ -11,13 +11,13 @@
 /*!	\file iterator_op.hpp
 \ingroup YStandardEx
 \brief 迭代器操作。
-\version r251
+\version r252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 576
 \par 创建时间:
 	2015-02-09 11:28:52 +0800
 \par 修改时间:
-	2018-07-31 18:28 +0800
+	2018-08-17 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ inline namespace cpp2014
 \see LWG 2285 。
 \since build 531
 */
-#if __cpp_lib_make_reverse_iterator >= 201402 && YB_Use_std_reverse_iterator
+#if __cpp_lib_make_reverse_iterator >= 201402L && YB_Use_std_reverse_iterator
 using std::make_reverse_iterator;
 #else
 //! \since build 833

@@ -11,17 +11,17 @@
 /*!	\file type_inspection.hpp
 \ingroup YStandardEx
 \brief 类型检查元编程设施。
-\version r1934
+\version r1936
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:54:58 +0800
 \par 修改时间:
-	2018-07-25 01:28 +0800
+	2018-08-17 03:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YStandardEx::Meta
+	YStandardEx::TypeInspection
 */
 
 
@@ -141,7 +141,7 @@ inline namespace cpp2014
 {
 
 //! \since build 832
-#if __cpp_lib_is_null_pointer >= 201309
+#if __cpp_lib_is_null_pointer >= 201309L
 using std::is_null_pointer;
 #else
 template<typename _type>

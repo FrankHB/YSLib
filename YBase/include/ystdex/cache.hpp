@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r568
+\version r578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2016-02-11 16:27 +0800
+	2018-08-13 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,7 @@
 #ifndef YB_INC_ystdex_cache_hpp_
 #define YB_INC_ystdex_cache_hpp_ 1
 
-#include "deref_op.hpp" // for std::pair, is_undereferenceable;
-#include "cassert.h" // for yassume;
-#include "type_op.hpp" // for are_same;
+#include "memory.hpp" // for std::pair, yassume, allocator_traits, are_same;
 #include <list> // for std::list;
 #include <unordered_map> // for std::unordered_map;
 #include <map> // for std::map;
@@ -143,8 +141,9 @@ struct used_list_cache_traits
 		std::equal_to<_tKey>, _tAlloc>;
 	using used_list_type = _tList;
 	using used_cache_type = std::unordered_map<_tKey, typename _tList::iterator,
-		_fHash, typename map_type::key_equal, typename _tAlloc::template
-		rebind<std::pair<const _tKey, typename _tList::iterator>>::other>;
+		_fHash, typename map_type::key_equal,
+		typename allocator_traits<_tAlloc>::template
+		rebind_alloc<std::pair<const _tKey, typename _tList::iterator>>>;
 };
 
 template<typename _tKey, typename _tMapped, class _tAlloc, class _tList>
@@ -153,8 +152,9 @@ struct used_list_cache_traits<_tKey, _tMapped, void, _tAlloc, _tList>
 	using map_type = std::map<_tKey, _tMapped, std::less<_tKey>, _tAlloc>;
 	using used_list_type = _tList;
 	using used_cache_type = std::map<_tKey, typename _tList::iterator,
-		typename map_type::key_compare, typename _tAlloc::template
-		rebind<std::pair<const _tKey, typename _tList::iterator>>::other>;
+		typename map_type::key_compare,
+		typename allocator_traits<_tAlloc>::template
+		rebind_alloc<std::pair<const _tKey, typename _tList::iterator>>>;
 };
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file integral_constant.hpp
 \ingroup YStandardEx
 \brief 整数类型常量。
-\version r1908
+\version r1909
 \author FrankHB <frankhb1989@gmail.com>
 \since build 832
 \par 创建时间:
 	2018-07-23 17:22:36 +0800
 \par 修改时间:
-	2018-07-27 14:39 +0800
+	2018-08-17 03:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,7 +124,7 @@ inline namespace cpp2017
 \see WG21 N4527 20.10.3[meta.help] 。
 \since build 617
 */
-#if __cpp_lib_bool_constant >= 201505
+#if __cpp_lib_bool_constant >= 201505L
 using std::bool_constant;
 #else
 template<bool _b>

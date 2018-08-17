@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1047
+\version r1083
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-07-20 02:24 +0800
+	2018-08-17 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,20 @@
 #include "cassert.h" // for yconstraint;
 #include "deref_op.hpp" // for is_undereferenceable;
 #include <cstring> // for std::memcpy, std::memmove;
+
+/*!
+\brief \<algorithm\> 特性测试宏。
+\see WG21 P0941R2 2.2 。
+\see https://blogs.msdn.microsoft.com/vcblog/2016/10/11/c1417-features-and-stl-fixes-in-vs-15-preview-5/ 。
+\since build 835
+*/
+//@{
+#ifndef __cpp_lib_clamp
+#	if YB_IMPL_MSCPP > 1900 || __cpp_lib_clamp >= 201603L
+#		define __cpp_lib_clamp 201603L
+#	endif
+#endif
+//@}
 
 namespace ystdex
 {
@@ -175,7 +189,7 @@ inline namespace cpp2014
 {
 
 using std::equal;
-#if !(__cpp_lib_robust_nonmodifying_seq_ops >= 201304)
+#if !(__cpp_lib_robust_nonmodifying_seq_ops >= 201304L)
 template<typename _tIn1, typename _tIn2, typename _fBiPred>
 inline bool
 equal(_tIn1 first1, _tIn1 last1, _tIn2 first2, _tIn2 last2,
@@ -558,16 +572,37 @@ max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 
 /*!
 \brief 取约束范围的值。
-\sa http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4536.html
+\see WG21 N4536 。
 \since build 612
 */
 //@{
-template<typename _type, typename _fComp = less<>>
+/*!
+\see ISO C++17[alg.clamp] 。
+\see WG21 P0025R1 。
+*/
+//@{
+inline namespace cpp2017
+{
+
+#if __cpp_lib_clamp >= 201603L
+using std::clamp;
+#else
+template<typename _type, typename _fComp>
 yconstfn const _type&
-clamp(const _type& v, const _type& lo, const _type& hi, _fComp comp = _fComp())
+clamp(const _type& v, const _type& lo, const _type& hi, _fComp comp)
 {
 	return yconstraint(!comp(hi, lo)), comp(v, lo) ? lo : comp(hi, v) ? hi : v;
 }
+template<typename _type>
+yconstfn const _type&
+clamp(const _type& v, const _type& lo, const _type& hi)
+{
+    return ystdex::clamp(v, lo, hi, less<_type>());
+}
+#endif
+
+} // inline namespace cpp2017;
+//@}
 
 template<typename _tIn, typename _tOut, typename _fComp = less<>>
 yconstfn _tOut

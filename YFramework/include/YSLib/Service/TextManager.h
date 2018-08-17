@@ -11,13 +11,13 @@
 /*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3963
+\version r3965
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2018-07-31 03:22 +0800
+	2018-08-17 05:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -239,9 +239,9 @@ public:
 \return 不越界时，第三参数为零则为空串，否则为尽可能长但不大于指定长度的缓冲区内容。
 \throw std::out_of_range 起始位置越界无法访问。
 \note 可能刷新缓冲。
-\since build 563
+\since build 835
 */
-YF_API string
+YF_API u16string
 CopySliceFrom(TextFileBuffer&, size_t, size_t);
 
 } // namespace Text;
