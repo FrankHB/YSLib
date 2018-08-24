@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r5146
+\version r5418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-08-17 08:12 +0800
+	2018-08-24 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,273 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %TypeOperation $=
+		(
+			* "invalid result of defered metafunction instead of applying \
+				result" @ ("metafunction %underlying_cond_type_t" $since b671,
+				"%cond_or" $since b723),
+			/ $forced DLDI "metafunction %cond_or_t" $dep_from "%cond_or",
+			* "metafunction %common_underlying_t" $dep_from
+				"%underlying_cond_type_t" $since b671
+		),
+		* $comp "wrong result" @ "metafunction %cond_or_t" @ %Memory $since b723
+			$dep_from ("%cond_or" @ %TypeOperation),
+		+ "alias template %string_view_t" @ %StringView,
+		/ %Algorithm $=
+		(
+			// Parts of LWG 2350.
+			+ "inline namespace %cpp2014";
+			+ ('using std::min;', 'using std::max') @ '__cplusplus >= 201402L'
+				@ "inline namespace %cpp2014",
+			/ "function template %(min, max)" @ "namespace %ystdex"
+				>> "inline namespace %cpp2014"
+		),
+		/ %String $=
+		(
+			+ "3 function templates %string_empty",
+			+ 'YB_ATTR_nodiscard YB_PURE'
+				@ "all 3 function template overloads %string_length",
+			/ "exception specification 'ynothrow'"
+				@ "function template %string_length#1" -> 'ynothrowv'
+		),
+		/ %Path $=
+		(
+			+ DD "Doxygen comments for rationale",
+			/ @ "class template %path_traits" $=
+			(
+				+ DD "Doxygen comments for rationale",
+				/ $dev "class-key 'class'" -> 'struct',
+					// To be consistent with %std::char_traits and other \
+						traits classes.
+				- "definition" @ "primary template",
+				+ "specialization for %void",
+				/ @ "specialization for %basic_string_view instances" $=
+				(
+					/ "parameter type 'const value_type&'"
+						@ "static function %is_self" -> "%view_type",
+						// This was missed to change.
+					+ "static functions %(has_root_name, has_root_path, \
+						have_same_root_names)"
+				),
+				/ "static functions or function templates %is_root"
+					=> "%is_absolute"
+			),
+			/ @ "class template %path" $=
+			(
+				+ DD "Doxygen comments for rationale",
+				+ "function %root_diverged" $dep_from "%path_traits",
+				/ @ "operator/= with path parameter" $=
+				(
+					/ "switched path when the parameter is not relative path \
+						or it is has different root name as per the traits"
+						^ $dep_from "%root_diverged",
+						// WG21 P0492R2 US 77, CA 6.
+					* "missing strong exception guarantee exception"
+						$mismatch(Documentation.YBase) $since b651
+						$= (+ "'\warning' command" @ "Doxygen comments")
+				),
+				+ "2 rvalue reference overloads for %operator/="
+			);
+			/ $forced "avoided separation character sequence at end of root"
+				@ "function template %(to_string, to_string_d)"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ "class %String" @ %Core.YString $=
+			(
+				/ $re_add(b835) "enabled overloads with paramaters of \
+					character pointers only when the character type is not \
+					%char16_t",
+					// This is never ambiguous as there is no constructor \
+						overload of pointer types. However it is still \
+						preferred to using inherited constructor instead.
+				- "constructor with parameter %u16string_view"
+					// This is now inherited from base. It also caused \
+						ambiguity resolved at b835.
+			),
+			/ %Service.FileSystem $=
+			(
+				/ @ "class %Path" $=
+				(
+					* "wrong non-throwing exception specification"
+						@ "constructor with 'const u16string&' parameter"
+						$orig (@ "constructor with 'const ucs2string&'" $since
+						b403),
+					/ "function template %ParsePath with 3 parameters"
+						-> "function template %ParsePathWith" ^ $dep_from
+						("%string_view_t" @ %Adaptor.YAdaptor),
+					/ @ "function templates %(ParsePath, \
+						ResolvePathWithBase)" $=
+					(
+						(
+						/ $forced $impl ^ "%ParsePathWith";
+						* $comp "ambiguity when passed 2 arguments for \
+							%ParsePath" $since b708
+						),
+						(
+						/ $impl ^ "%IO::ParsePathWith"
+							~ "%PathTraits::AdjustForRoot" $dep_to
+							"simplified root adjustment";
+						/ $comp "avoided absolute paths overriden when input \
+							path parameter is not empty",
+						/ "supported UNC paths" @ "platform %Win32" $dep_to
+							"UNC path support"
+						)
+					),
+					/ "simplified struct %PathTraits" $=
+					(
+						/ "static function template %is_root" $=
+						(
+							- "overload with parameter of %basic_string_view \
+								instances";
+							/ "return type" @ "overload for string" ^ 'bool',
+							(
+							/ $forced DLDI "call of 'FetchRootNameLength'"
+								-> 'IO::FetchRootPathLength' ^ $dep_from
+								("%IO::FetchRootPathLength" @ %YAdaptor.Adaptor)
+								$dep_from ("%IO::FetchRootNameLength"
+								@ %YAdaptor.Adaptor);
+							/ "unexpected ADL %FetchRootNameLength call" $since
+								b654
+							);
+							/ $forced -> "%is_absolute"
+								$dep_from ("%path" @ %YBase.YStandardEx.Path),
+							/ $impl ^ $dep_from ("%ystdex::string_empty"
+								@ %YBase.StandardEx.String)
+						),
+						(
+						+ $dep_from "base class %ystdex::path_traits<void>"
+							@ %YBase.YStandardEx.Path;
+						- "static function templates %(is_parent, is_self)"
+						),
+						- "static function template %AdjustForRoot"
+							$dep_all_from "simplified root adjustment",
+						+ $forced "static function templates %(has_root_name, \
+							has_root_path)" $dep_from ("%path::operator/="
+							@ %YBase.YStandardEx.Path ^ $dep_from
+							("%ystdex::string_empty" @ %YBase.StandardEx.String)
+					)
+				),
+				/ "function template %ResolvePathWithBase" $=
+				(
+					/ "cleared base path at first if the path to be resolved \
+						is absolute",
+						// Like %Path::operator/= with path parameter now.
+					/ ^ $dep_from ("%string_view_t" @ %Adaptor.YAdaptor),
+					/ "simplified and supported underlying paths"
+						^ "%Path::operator/=" ~ "%ParthTraits::AdjustRoot"
+						$dep_from ("%operator/= with path parameter" @ "%path"
+						@ %YBase.YStandardEx.Path, "%PathTraits") $dep_to
+						"simplified root adjustment"
+				)
+			),
+			/ @ "namespace %YSLib" @ %YAdaptor.Adaptor $=
+			(
+				- $forced 'namespace ColorSpace = platform::ColorSpace;'
+					@ "namespace %Drawing" $dep_from
+					%YCLib.Video,
+				/ @ "namespace %IO" $=
+				(
+					+ 'using platform::FetchRootPathLength;' $dep_from
+						("%FetchRootPathLength" @ %YCLib.FileSystem),
+					+ 'using platform::FetchRootNameEnd;' $dep_from
+						("%FetchRootNameEnd" @ %YCLib.FileSystem),
+					/ "alias %NativePathView" >> %Service.FileSystem
+				),
+				- DLDI "condition branch of '__cplusplus >= 201402L'"
+					$dep_from %Algorithm,
+				+ 'using platform::string_view_t;' $dep_from %YCLib.Container
+			),
+			/ $forced DLDI %Core.YConsole $dep_from ("%ColorSpace"
+				@ %YAdaptor.Adaptor)
+		),
+		(
+		/ %Helper $=
+		(
+			/ DLDI "DS console initialization" @ "platform %DS"
+				@ "constructor %Environment" @ %Environment
+				!^ "default argument",
+			/ $comp "supported UNC path as intialization module path"
+				@ %Initialization @ "platform %Win32" $dep_from
+				"UNC path support"
+		),
+		- "all 2 color default arguments" @ "platform %DS"
+			@ %'YCLib_(DS)'.DSVideo $dep_from %Helper.Environment
+		/ %YCLib $=
+		(
+			/ %Video $=
+			(
+				/ @ !"platforms %(Win32, DS)" $=
+				(
+					* "red and blue components inversed"
+						@ "function %FetchOpaque" $since b507,
+					* "wrong parameter type" @ "function %FetchPixel" $since
+						b417
+						$= (/ "all parameter type %AlphaType" -> "%MonoType")
+				),
+				/ "namespace %ColorSpace" @ "namespace %platform"
+					>> ("namespace %YSLib::Drawing" @ %YGDIBase) $dep_from
+					%'YCLib_(DS)'.DSVideo;
+				/ $forced @ "class %Color" $=
+				(
+					/ "constructor with %ColorSet parameter" -> "constructor \
+						with enumeration parameter with same underlying type \
+						to %Pixel" ^ $dep_from "%ystdex::underlying_cond_t"
+						@ %YBase.YStandardEx.TypeOperation;
+					- "alias %ColorSet"
+				)
+			),
+			+ 'using ystdex::string_view_t;' @ "inline namespace \
+				%platform::containers" @ %Container $dep_from
+				%YBase.StandardEx.StringView,
+			/ %FileSystem $=
+			(
+				+ "function templates %(FetchRootNameEnd_P; FetchRootNameEnd)"
+					^ $dep_from ("string_view_t" @ %Container),
+				+ "function templates %(FetchRootPathLength_P; \
+					FetchRootPathLength)" ^ $dep_from
+					("string_view_t" @ %Container),
+					// As %FetchRootNameLength in previous revisions.
+				(
+				* "wrong results for cases with subsequent colons or cases of \
+					colon not found" @ "function template \
+					%FetchRootPathLength_P with parameters of \
+					%IDTag<YF_Platform_DS> and %basic_string_view instance"
+					$since b693;
+				/ "function tmeplates %(FetchRootNameLength_P; \
+					FetchRootNameLength) returned before first slash not in \
+					root name" ^ $dep_from "%FetchRootNameEnd_P"
+				),
+				/ DLDI "simplified %FetchRootName",
+				+ "overload to support string class cast to %basic_string_view \
+					instance" @ "function templates %FetchRootNameLength_P"
+					^ $dep_from ("string_view_t" @ %Container);
+				/ "support UNC roots detection for %IDTag<YF_Platform_Win32> \
+					parameter overloads" @ "function templates \
+					%(FetchRootNameLength_P, FetchRootPathLength_P)"
+					// See $2018-08 @ %Documentation::Workflow::Annual2018.
+			)
+		),
+		/ $forced DLDI "namespaces" @ "platform %DS" @ %(Helper.Environment,
+			YReader.Main) $dep_from ("namespace %ColorSpace"
+			@ "namespace %platform" @ %YCLib.Video)
+	),
+	/ $re_add(b833) $dev $lib "normailized attribute in lexicographic order"
+		$effective @ %(YBase.YStandardEx.(CStandardInteger, Tree, TypePun,
+		CString), YFramework.(YCLib.(Keys, Debug, FileSystem, FileIO),
+		YSLib.(Core.YCoreUtilities, Service.TextFile), NPL.Dependency),
+		'YCLib_(Win32)'.(MinGW32, Registry))
+		// Mainly for ('yconftn_relaxed', 'inline') %(YB_PURE, YB_STATELESS, \
+			YB_NONNULL).
+),
+
+b835
 (
 	/ %YFramework $=
 	(
@@ -682,7 +949,7 @@ b833
 						%as_const with 'const' forwarding reference parameter"
 				)
 			),
-			/ $doc "Doxygen groups %(iterators, iterator_adaptors)" @ %Iterator
+			/ DD "Doxygen groups %(iterators, iterator_adaptors)" @ %Iterator
 				>> %Range,
 			(
 			/ %Range $=
@@ -974,9 +1241,9 @@ b832
 			(
 			+ %(IntegralConstant, (TypeInspection; Meta)) "from %TypeTraits" $=
 			(
-				/ $doc "Doxygen groups %(template_meta_programing, meta_types, \
+				/ DD "Doxygen groups %(template_meta_programing, meta_types, \
 					meta_operations, metafunctions)" >> %IntegralConstant,
-				/ $doc "Doxygen groups %(type_traits_operations, \
+				/ DD "Doxygen groups %(type_traits_operations, \
 					unary_type_traits, binary_type_traits, \
 					transformation_traits)" >> %Meta,
 				/ "aliases %(integral_constant, true_type, false_type), types \
@@ -3134,11 +3401,11 @@ b811
 					// This is also needed allow capture of local context \
 						in vau handler in %NPLA1.
 				(
-				+ $doc "precondition to enure nonthrowing move construction on \
-					assigned function object type except for %Reduce";
+				+ $doc "precondition to enure non-throwing move construction \
+					on assigned function object type except for %Reduce";
 					// This is not a static assertion to allow functors with \
 						%Reducer object captured.
-				+ $doc "requirement of nonthrowing move \
+				+ $doc "requirement of non-throwing move \
 					construction on %Reducer type";
 				+ 'ynothrow' @ "function %Pop";
 				+ "function %Transit";

@@ -11,13 +11,13 @@
 /*!	\file string_view.hpp
 \ingroup YStandardEx
 \brief 只读字符串视图。
-\version r551
+\version r558
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-09-28 12:04:58 +0800
 \par 修改时间:
-	2018-08-17 03:56 +0800
+	2018-08-23 10:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,6 @@
 
 namespace ystdex
 {
-
 
 //! \since build 833
 inline namespace cpp2017
@@ -414,6 +413,14 @@ using u32string_view = basic_string_view<char32_t>;
 using wstring_view = basic_string_view<wchar_t>;
 
 } // inline namespace cpp2017;
+
+/*!
+\brief 取字符串类类型的值类型对应的字符串视图类型。
+\note YStandardEx 扩展。
+\since build 836
+*/
+template<class _tString>
+using string_view_t = basic_string_view<typename _tString::value_type>;
 
 } // namespace ystdex;
 

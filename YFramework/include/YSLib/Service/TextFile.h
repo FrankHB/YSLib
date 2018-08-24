@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r1069
+\version r1070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2018-07-26 21:57 +0800
+	2018-08-20 07:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ yconstexpr const char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 \since build 619
 */
 //@{
-inline YB_NONNULL(1, 2) PDefH(bool, CheckBOM, const char* buf, const char* str,
+YB_NONNULL(1, 2) inline PDefH(bool, CheckBOM, const char* buf, const char* str,
 	size_t n)
 	ImplRet(std::char_traits<char>::compare(Nonnull(buf), str, n) == 0)
 template<size_t _vN>

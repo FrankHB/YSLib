@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2017 FrankHB.
+	© 2011-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r771
+\version r775
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2017-09-23 23:45 +0800
+	2018-08-21 20:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -492,14 +492,14 @@ Deref(_type&& p) -> decltype(*p)
 \since build 714
 */
 //@{
-inline YB_NONNULL(2) PDefH(string, ComposeMessageWithSignature,
+YB_NONNULL(2) inline PDefH(string, ComposeMessageWithSignature,
 	const string& msg, const char* sig)
 	ImplRet(msg + " @ " + Nonnull(sig))
-inline YB_NONNULL(1, 2) PDefH(string, ComposeMessageWithSignature,
+YB_NONNULL(1, 2) inline PDefH(string, ComposeMessageWithSignature,
 	const char* msg, const char* sig)
 	ImplRet(string(Nonnull(msg)) + " @ " + Nonnull(sig))
 template<class _type>
-inline YB_NONNULL(2) string
+YB_NONNULL(2) inline string
 ComposeMessageWithSignature(const _type& msg, const char* sig)
 {
 	using ystdex::to_string;

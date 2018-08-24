@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2017 FrankHB.
+	© 2010-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2005
+\version r2028
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2017-04-29 10:06 +0800
+	2018-08-23 10:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,14 +30,13 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Adaptor_YNew // for <cstddef>, <cstdint>, <climits>,
-//	mandated <new>, mandated <initializer_list>, <string>, <list>, <map>,
-//	mandated <utility>;
+//	<new>, <initializer_list>, <string>, <list>, <map>, <utility>;
 #include <libdefect/cmath.h> // for <cmath>, std::round;
-#include <ystdex/algorithm.hpp> // for mandated header, mandated <type_traits>,
-//	mandated <algorithm>, ystdex::min, ystdex::max;
-#include <ystdex/functional.hpp> // for mandated header, mandated <functional>,
+#include <ystdex/algorithm.hpp> // for <type_traits>, <algorithm>, ystdex::min,
+//	ystdex::max;
+#include <ystdex/functional.hpp> // for <functional>,
 //	ystdex::seq_apply, ystdex::unseq_apply;
-#include YFM_YCLib_Keys // for platform::basic_types, mandated <bitset>,
+#include YFM_YCLib_Keys // for platform::basic_types, <bitset>,
 //	YCLib key space;
 #include YFM_YCLib_Timer
 #include YFM_YCLib_Mutex // for ystdex::noncopyable, ystdex::nonmovable,
@@ -100,15 +99,11 @@ using std::round;
 //@{
 //! \note 要求支持 \c constexpr 。
 //@{
-#if __cplusplus >= 201402L
-using std::min;
-using std::max;
-#else
 //! \since build 578
+//@{
 using ystdex::min;
-//! \since build 578
 using ystdex::max;
-#endif
+//@}
 //@}
 //@}
 
@@ -172,6 +167,8 @@ using platform::string_view;
 using platform::u16string_view;
 using platform::wstring_view;
 //@}
+//! \since build 836
+using platform::string_view_t;
 
 using platform::bad_weak_ptr;
 using platform::const_pointer_cast;
@@ -384,7 +381,6 @@ using platform::MonoType;
 using platform::AlphaType;
 //@}
 using platform::Color;
-namespace ColorSpace = platform::ColorSpace;
 
 } // namespace Drawing;
 
@@ -441,13 +437,15 @@ using platform::FetchSeparator;
 using platform::IsSeparator;
 //! \since build 171
 using platform::IsAbsolute;
+//! \since build 836
+using platform::FetchRootNameEnd;
 //! \since build 654
 using platform::FetchRootNameLength;
+//! \since build 836
+using platform::FetchRootPathLength;
 //! \since build 707
 using platform::TrimTrailingSeperator;
 //@}
-//! \since build 648
-using NativePathView = basic_string_view<HDirectory::NativeChar>;
 
 } // namespace IO;
 

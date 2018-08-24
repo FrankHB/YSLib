@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1893
+\version r1898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2016-09-04 22:55 +0800
+	2018-08-19 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #	include YFM_YCLib_NativeAPI // for ::powerOn, ::defaultExceptionHandler,
 //	platform_ex::InitializeFileSystem;
 #	include YFM_DS_YCLib_DSVideo // for platform_ex::DSConsoleInit;
-#	include YFM_YCLib_Video // for platform::ColorSpace;
+#	include YFM_YSLib_Core_YGDIBase // for Drawing::ColorSpace;
 #elif YCL_Win32
 #	include YFM_Win32_YCLib_Consoles // for platform_ex::FixConsoleHandler;
 #	include YFM_Win32_YCLib_MinGW32 // for platform_ex::Win32Exception;
@@ -55,17 +55,18 @@ Environment::Environment(Application& app)
 #if YCL_DS
 
 	using namespace platform;
+	namespace ColorSpace = Drawing::ColorSpace;
 
 	::powerOn(POWER_ALL);
 	::defaultExceptionHandler();
-	DSConsoleInit(true, ColorSpace::Lime);
+	DSConsoleInit(true, ColorSpace::Lime, ColorSpace::Black);
 	FetchCommonLogger().SetSender([&](Logger::Level lv, Logger&,
 		const char* str) YB_NONNULL(4) ynothrowv{
 		if(ShowInitializedLog || lv <= Descriptions::Alert)
 		{
 			if(!ShowInitializedLog)
 			{
-				static struct Init
+				static const struct Init
 				{
 					Init()
 					{

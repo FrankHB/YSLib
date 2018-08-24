@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r365
+\version r383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-08-17 04:00 +0800
+	2018-08-23 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -351,6 +351,24 @@ Type of feature testing macro values are adjusted as WG21 P0941R2.
 		There are 27 matched cases.
 	This is then done in use sites using regular expression pattern '__cpp_([a-z_]+) ((<|>)\=?) (\d{6})(?!L)' replaced by '__cpp_$1 $2 $4L' in the editor in VS 2017.
 		There are 27 matched cases.
+UNC (universal name convention) paths support is reconsidered.
+	It is considered necessary to be a part of complete file system path implementation for Windows based on the fact that symbolic links in Windows should be able to handle UNC paths.
+	The lack of UNC path support also makes YFramework initialization failure if the executable module is in remote host in LAN.
+	The ISO C++17 <filesystem> does not mention any sorts of UNC paths, but implemenation in Windows can support smoothly.
+		As the difference is conforming, relying on UNC paths cannot be portable in the sense of ISO C++.
+			However, YSLib paths does rely on more abstract 'ystdex::path' templates, rather than <filesystem> API. Thus there is no such portability problems.
+		The <filesystem> implementation in Microsoft VC++ 2017 seems has most complete support in current mainstream implementations.
+			From the comments, root path prefixes '\\server\', '\\?\', '\\.\' and '\??\' are all explicitly supported.
+		In contrast, current libstdc++ only handle double slash prefixes, while libc++ seems to have no support of special handling of root prefixes at all.
+	Some other implementation may have different strategy of support feature sets.
+		For example, DMD standard library does not handle some cases like NT device namespace (prefix '\\.\') as per the installed documentation.
+	YSLib follows the complete implementation like Microsoft VC++ 2017 <filesystem>.
+		However, the abstract 'ystdex::path' does not distinguish root directory from root path, so there are several other caveats.
+			The root directory are direcly attached following the root name. The root path consist of optional root name and root directory.
+			As the separater, root directory is omitted in the internal representation. Paths I/O (parsing and printing) should handle it properly.
+		With aid of 'YSLib::IO::PathTraits', 'YSLib::IO::Path' has overriding settings over the 'ystdex::path' with default traits.
+			To keep backward compability, as the special case, 'YSLib::IO::Path' allows empty root name which indicates an implicit root directory.
+		No tilde expansion is performed (like UNIX implementation in DMD).
 
 ////
 

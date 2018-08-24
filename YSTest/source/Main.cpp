@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1973
+\version r1976
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2016-11-05 12:13 +0800
+	2018-08-19 13:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,8 +88,9 @@ void
 OnExit_DebugMemory()
 {
 	using namespace platform;
-
 #if YCL_DS
+	namespace ColorSpace = Drawing::ColorSpace;
+
 	platform_ex::DSConsoleInit({}, ColorSpace::White, ColorSpace::Blue);
 #endif
 	std::puts("Normal exit;");

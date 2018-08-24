@@ -11,17 +11,17 @@
 /*!	\file Container.h
 \ingroup YCLib
 \brief 容器、拟容器和适配器。
-\version r841
+\version r844
 \author FrankHB <frankhb1989@gmail.com>
 \since build 593
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2018-07-30 03:39 +0800
+	2018-08-23 10:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib::YContainer
+	YCLib::Container
 */
 
 
@@ -120,6 +120,8 @@ using ystdex::string_view;
 using ystdex::u16string_view;
 using ystdex::wstring_view;
 //@}
+//! \since build 836
+using ystdex::string_view_t;
 //! \since build 641
 //@{
 using ystdex::basic_tstring_view;

@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3117
+\version r3119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2018-07-25 01:20 +0800
+	2018-08-22 20:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,11 +227,11 @@ inline PDefH(FileNodeID, get_file_node_id, struct ::stat& st) ynothrow
 	ImplRet({std::uint64_t(st.st_dev), std::uint64_t(st.st_ino)})
 //@}
 //! \since build 719
-inline YB_NONNULL(2, 4) PDefH(void, cstat, struct ::stat& st,
+YB_NONNULL(2, 4) inline PDefH(void, cstat, struct ::stat& st,
 	const char16_t* path, bool follow_link, const char* sig)
 	ImplRet(cstat(st, MakePathString(path).c_str(), follow_link, sig))
 //! \since build 632
-inline YB_NONNULL(2) PDefH(int, estat, struct ::stat& st, const char16_t* path,
+YB_NONNULL(2) inline PDefH(int, estat, struct ::stat& st, const char16_t* path,
 	bool follow_link)
 	ImplRet(estat(st, MakePathString(path).c_str(), follow_link))
 #endif

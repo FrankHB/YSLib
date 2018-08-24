@@ -11,13 +11,13 @@
 /*!	\file Test.txt
 \ingroup Documentation
 \brief 测试项目说明。
-\version r304
+\version r307
 \author FrankHB <frankhb1989@gmail.com>
 \since build 597
 \par 创建时间:
 	2015-05-09 13:10:21 +0800
 \par 修改时间:
-	2018-07-09 10:07 +0800
+	2018-08-24 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,6 +158,7 @@ Start （对 MinGW32 ，映射为 P 键）开启自动滚屏（可在设置界�
 b429 起选择文件界面支持按组合键 L+R 或右下角按钮切换上下屏幕。
 
 @4.1.3 设置和配置：
+设置和配置的路径为各平台的本机(native) 形式，以 NPL 字符串字面量([Documentation::NPL @@3.3.3]) 的形式表示（需按 NPL 要求对 \ 等字符转义([Documentation::NPL @@3.3.4]) ）。
 
 @4.1.3.1 build 345 起：
 支持选择设置保存为配置项到配置文件。
@@ -215,6 +216,9 @@ Bookmarks
 
 @4.1.3.5 build 720 起：
 对外部文件的内容访问添加有限的共享保护。
+
+@4.1.3.6 build 836 起：
+MinGW32 平台支持 UNC 路径，可以在局域网中远程启动。
 
 @5 测试注记：
 以下注记仅适用提交版本([Documentation::ProjectRules @@3.2.1.2]) ，对已提交的版本为测试记录，未提交的版本为测试计划。

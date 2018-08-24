@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r414
+\version r415
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2018-07-30 06:07 +0800
+	2018-08-20 07:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ union byte_order_tester
 } // namespace details;
 
 //! \brief 测试本机字节序。
-yconstfn_relaxed YB_STATELESS byte_order
+YB_STATELESS yconstfn_relaxed byte_order
 native_byte_order()
 {
 	yconstexpr const details::byte_order_tester x = {0x01020304};

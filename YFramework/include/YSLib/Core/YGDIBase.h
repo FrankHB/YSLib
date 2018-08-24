@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2016 FrankHB.
+	© 2011-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2256
+\version r2297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2016-04-27 23:57 +0800
+	2018-08-19 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,50 @@ namespace YSLib
 
 namespace Drawing
 {
+
+/*!
+\brief 系统默认颜色空间。
+\since build 165
+*/
+namespace ColorSpace
+{
+
+#define YSL_Impl_YSL_Impl_DefColorH_(hex, name) \
+	name = Pixel::IntegerType(Pixel(Color(MonoType(((hex) >> 16) & 0xFF), \
+		MonoType(((hex) >> 8) & 0xFF), MonoType((hex) & 0xFF))))
+#define	YSL_Impl_0x(hex) 0x##hex
+#define YSL_Impl_DefColorH(hex_, name) \
+	YSL_Impl_YSL_Impl_DefColorH_(YSL_Impl_0x(hex_), name)
+
+/*!
+\brief 默认颜色集。
+\see http://www.w3schools.com/html/html_colornames.asp 。
+\since build 416
+*/
+enum ColorSet : Pixel::IntegerType
+{
+	YSL_Impl_DefColorH(00FFFF, Aqua),
+	YSL_Impl_DefColorH(000000, Black),
+	YSL_Impl_DefColorH(0000FF, Blue),
+	YSL_Impl_DefColorH(FF00FF, Fuchsia),
+	YSL_Impl_DefColorH(808080, Gray),
+	YSL_Impl_DefColorH(008000, Green),
+	YSL_Impl_DefColorH(00FF00, Lime),
+	YSL_Impl_DefColorH(800000, Maroon),
+	YSL_Impl_DefColorH(000080, Navy),
+	YSL_Impl_DefColorH(808000, Olive),
+	YSL_Impl_DefColorH(800080, Purple),
+	YSL_Impl_DefColorH(FF0000, Red),
+	YSL_Impl_DefColorH(C0C0C0, Silver),
+	YSL_Impl_DefColorH(008080, Teal),
+	YSL_Impl_DefColorH(FFFFFF, White),
+	YSL_Impl_DefColorH(FFFF00, Yellow)
+};
+
+#undef YSL_Impl_DefColorH
+#undef YSL_Impl_YSL_Impl_DefColorH_
+#undef YSL_Impl_0x
+} // namespace ColorSpace;
 
 class Size;
 class Rect;
