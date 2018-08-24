@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief YCLib MinGW32 平台公共扩展。
-\version r2014
+\version r2016
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2018-07-29 23:52 +0800
+	2018-08-22 20:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,13 +229,13 @@ using ModuleProc
 YF_API YB_ATTR_returns_nonnull YB_NONNULL(2) ModuleProc*
 LoadProc(::HMODULE, const char*);
 template<typename _func>
-inline YB_NONNULL(2) _func&
+YB_NONNULL(2) inline _func&
 LoadProc(::HMODULE h_module, const char* proc)
 {
 	return platform::Deref(reinterpret_cast<_func*>(LoadProc(h_module, proc)));
 }
 template<typename _func>
-YB_NONNULL(1, 2) _func&
+YB_NONNULL(1, 2) inline _func&
 LoadProc(const wchar_t* module, const char* proc)
 {
 	return LoadProc<_func>(YCL_CallF_Win32(GetModuleHandleW, module), proc);

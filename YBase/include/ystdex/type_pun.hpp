@@ -11,13 +11,13 @@
 /*!	\file type_pun.hpp
 \ingroup YStandardEx
 \brief 共享存储和直接转换。
-\version r548
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 629
 \par 创建时间:
 	2015-09-04 12:16:27 +0800
 \par 修改时间:
-	2018-07-30 06:10 +0800
+	2018-08-20 07:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -331,7 +331,7 @@ struct standard_layout_storage
 		return *this;
 	}
 
-	yconstfn_relaxed YB_PURE void*
+	YB_PURE yconstfn_relaxed void*
 	access() ynothrow
 	{
 		return ystdex::addressof(object);
@@ -344,7 +344,7 @@ struct standard_layout_storage
 	//! \warning 应注意避免违反严格别名分析规则。
 	//@{
 	template<typename _type>
-	yconstfn_relaxed YB_PURE _type&
+	YB_PURE yconstfn_relaxed _type&
 	access() ynothrow
 	{
 		static_assert(is_aligned_storable<standard_layout_storage, _type>(),
@@ -401,7 +401,7 @@ struct standard_layout_storage
 	//@}
 	//@}
 
-	yconstfn_relaxed YB_PURE byte*
+	YB_PURE yconstfn_relaxed byte*
 	data() ynothrow
 	{
 		return static_cast<byte*>(access());

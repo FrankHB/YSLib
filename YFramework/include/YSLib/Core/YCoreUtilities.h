@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2523
+\version r2531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-07-30 06:12 +0800
+	2018-08-23 12:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ HalfDifference(_type x, _type y)
 \since build 319
 */
 template<typename _type>
-inline YB_STATELESS bool
+YB_STATELESS inline bool
 IsInInterval(_type i, _type b) ynothrow
 {
 	YAssert(_type(0) < b,
@@ -93,7 +93,7 @@ IsInInterval(_type i, _type b) ynothrow
 \since build 319
 */
 template<typename _type>
-inline YB_STATELESS bool
+YB_STATELESS inline bool
 IsInInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
@@ -106,7 +106,7 @@ IsInInterval(_type i, _type a, _type b) ynothrow
 \since build 470
 */
 template<typename _type>
-inline YB_STATELESS bool
+YB_STATELESS inline bool
 IsInClosedInterval(_type i, _type b) ynothrow
 {
 	YAssert(_type(0) < b,
@@ -119,7 +119,7 @@ IsInClosedInterval(_type i, _type b) ynothrow
 \since build 470
 */
 template<typename _type>
-inline YB_STATELESS bool
+YB_STATELESS inline bool
 IsInClosedInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
@@ -132,7 +132,7 @@ IsInClosedInterval(_type i, _type a, _type b) ynothrow
 \since build 319
 */
 template<typename _type>
-inline YB_STATELESS bool
+YB_STATELESS inline bool
 IsInOpenInterval(_type i, _type b) ynothrow
 {
 	YAssert(_type(0) < b,
@@ -145,7 +145,7 @@ IsInOpenInterval(_type i, _type b) ynothrow
 \since build 319
 */
 template<typename _type>
-inline YB_STATELESS bool
+YB_STATELESS inline bool
 IsInOpenInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
@@ -349,8 +349,8 @@ CheckPositive(_type val, const string& name = {}, RecordLevel lv = Err)
 /*!
 \brief 清除指定的连续对象。
 \pre 设类型 T 为 <tt>ystdex::decay_t<decltype(*dst)></tt>， 则应满足
-	<tt>std::is_pod<T>() || (std::is_nothrow_default_constructible<T>()
-		&& std::is_nothrow_assignable<T, T>())</tt> 。
+	<tt>std::is_pod\<T\>() || (std::is_nothrow_default_constructible\<T\>()
+		&& std::is_nothrow_assignable\<T, T\>())</tt> 。
 \since build 624
 */
 template<typename _tOut>

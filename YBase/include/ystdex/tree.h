@@ -11,13 +11,13 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2355
+\version r2356
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-08-13 07:15 +0800
+	2018-08-20 07:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -454,7 +454,7 @@ private:
 		yalignof(_type)>> storage;
 
 public:
-	yconstfn_relaxed YB_PURE _type*
+	YB_PURE yconstfn_relaxed _type*
 	access_ptr()
 	{
 		return static_cast<_type*>(storage.access());

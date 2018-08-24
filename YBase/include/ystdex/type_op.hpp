@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r2808
+\version r2812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2018-07-28 00:37 +0800
+	2018-08-19 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -262,8 +262,8 @@ struct remove_rpcv : remove_cv<_t<remove_rp<_type>>>
 \since build 671
 */
 template<typename _type>
-using underlying_cond_type_t
-	= cond_t<is_enum<_type>, vdefer<underlying_type_t, _type>, _type>;
+using underlying_cond_type_t = _t<
+	cond_t<is_enum<_type>, vdefer<underlying_type_t, _type>, identity<_type>>>;
 
 /*!
 \brief 条件判断，若失败使用默认类型。
@@ -274,11 +274,11 @@ using underlying_cond_type_t
 //@{
 template<class _tCond, typename _tDefault, template<typename...> class _gOp,
 	typename... _tParams>
-using cond_or = cond_t<_tCond, vdefer<_gOp, _tParams...>, _tDefault>;
+using cond_or = cond_t<_tCond, vdefer<_gOp, _tParams...>, identity<_tDefault>>;
 
 template<class _tCond, typename _tDefault, template<typename...> class _gOp,
 	typename... _tParams>
-using cond_or_t = _t<cond_or<_tCond, identity<_tDefault>, _gOp, _tParams...>>;
+using cond_or_t = _t<cond_or<_tCond, _tDefault, _gOp, _tParams...>>;
 //@}
 
 /*!

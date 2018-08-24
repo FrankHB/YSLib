@@ -11,13 +11,13 @@
 /*!	\file YString.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2300
+\version r2329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 594
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2018-08-14 06:32 +0800
+	2018-08-18 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,55 +61,62 @@ public:
 	String(u16string&& s)
 		: u16string(std::move(s))
 	{}
-	explicit
-	String(u16string_view sv)
-		: u16string(sv)
-	{}
 	//@}
 	/*!
-	\brief 构造：使用指针表示的 NTCTS 和指定编码。
 	\pre 间接断言：指针参数非空。
-	\since build 281
+	\since build 836
 	*/
+	//@{
+	//! \brief 构造：使用非 char16_t 的指针类型表示的 NTCTS 和默认编码。
+	template<typename _tChar, yimpl(typename
+		= ystdex::enable_if_t<!std::is_same<_tChar, char16_t>::value>)>
+	YB_NONNULL(2)
+	String(const _tChar* s)
+		: u16string(MakeUCS2LE<u16string>(s, CS_Default))
+	{}
+	//! \brief 构造：使用指针表示的 NTCTS 和指定编码。
 	template<typename _tChar>
 	YB_NONNULL(2)
-	String(const _tChar* s, Encoding enc = CS_Default)
+	String(const _tChar* s, Encoding enc)
 		: u16string(MakeUCS2LE<u16string>(s, enc))
 	{}
-	/*!
-	\brief 构造：使用指针表示的字符范围和指定编码。
-	\pre 间接断言：指针参数非空。
-	\since build 641
-	*/
+	//! \brief 构造：使用非 char16_t 的指针类型表示的 NTCTS 和默认编码。
+	template<typename _tChar, yimpl(typename
+		= ystdex::enable_if_t<!std::is_same<_tChar, char16_t>::value>)>
+	YB_NONNULL(2)
+	String(const _tChar* s, size_t n)
+		: String(basic_string_view<_tChar>(s, n), CS_Default)
+	{}
+	//! \brief 构造：使用指针表示的字符范围和指定编码。
 	template<typename _tChar>
 	YB_NONNULL(2)
-	String(const _tChar* s, size_t n, Encoding enc = CS_Default)
+	String(const _tChar* s, size_t n, Encoding enc)
 		: String(basic_string_view<_tChar>(s, n), enc)
 	{}
+	//@}
 	//! \since build 835
 	//@{
-	//! \brief 构造：使用指定字符类型的 basic_string_view 和指定编码。
-	//@{
+	//! \brief 构造：使用非 char16_t 的字符类型的 basic_string_view 和默认编码。
 	template<typename _tChar, yimpl(typename
 		= ystdex::enable_if_t<!std::is_same<_tChar, char16_t>::value>)>
 	explicit
 	String(basic_string_view<_tChar> sv)
 		: u16string(MakeUCS2LE<u16string>(sv, CS_Default))
 	{}
+	//! \brief 构造：使用指定字符类型的 basic_string_view 和指定编码。
 	template<typename _tChar>
 	explicit
 	String(basic_string_view<_tChar> sv, Encoding enc)
 		: u16string(MakeUCS2LE<u16string>(sv, enc))
 	{}
-	//@}
-	//! \brief 构造：使用指定字符类型的 basic_string 和指定编码。
-	//@{
+	//! \brief 构造：使用非 char16_t 的字符类型的 basic_string 和默认编码。
 	template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
 		class _tAlloc = std::allocator<_tChar>, yimpl(typename
 		= ystdex::enable_if_t<!std::is_same<_tChar, char16_t>::value>)>
 	String(const basic_string<_tChar, _tTraits, _tAlloc>& s)
 		: String(basic_string_view<_tChar>(s), CS_Default)
 	{}
+	//! \brief 构造：使用指定字符类型的 basic_string 和指定编码。
 	template<typename _tChar, class _tTraits = std::char_traits<_tChar>,
 		class _tAlloc = std::allocator<_tChar>>
 	String(const basic_string<_tChar, _tTraits, _tAlloc>& s,

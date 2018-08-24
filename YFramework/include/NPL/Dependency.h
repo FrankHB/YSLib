@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r163
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2018-08-04 19:02 +0800
+	2018-08-20 07:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ inline PDefH(void, InstallFile, const string& dst, const string& src)
 //! \since build 659
 YF_API void
 InstallDirectory(const string&, const string&);
-inline YB_NONNULL(1, 2) PDefH(void, InstallDirectory, const char* dst,
+YB_NONNULL(1, 2) inline PDefH(void, InstallDirectory, const char* dst,
 	const char* src)
 	ImplExpr(InstallDirectory(string(dst), string(src)))
 //@}

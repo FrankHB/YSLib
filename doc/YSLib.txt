@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r3149
+\version r3150
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2018-07-23 20:38 +0800
+	2018-08-19 11:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,7 @@ YSLib 默认显式依赖库 YCLib ，在 Adaptor 引入 YCLib 中的名称。
 @1.1.5 命名空间分配：
 YSLib::Devices ：设备抽象。
 YSLib::Drawing ：图形处理。
+YSLib::Drawing::ColorSpace ：颜色空间。
 YSLib::Drawing::Shaders ：着色器。
 YSLib::Messaging ：消息机制。
 YSLib::Host ：宿主环境支持，仅在宿主实现的 Helper 库([Documentation::Designation @@7.5]) 使用 。

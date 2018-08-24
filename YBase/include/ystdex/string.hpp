@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2781
+\version r2822
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2018-08-17 03:57 +0800
+	2018-08-24 15:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 //	ntctslen;
 #include "container.hpp" // for "container.hpp", make_index_sequence,
 //	index_sequence, begin, end, size, sort_unique, underlying, std::hash;
-#include "cstdio.h" // for yconstraint, vfmtlen;
+#include "cstdio.h" // for yconstraint, vfmtlen, ystdex::is_null;
 #include "array.hpp" // for std::bidirectional_iterator_tag, to_array;
 #include <istream> // for std::basic_istream;
 #include "ios.hpp" // for rethrow_badstate;
@@ -102,8 +102,7 @@ public:
 		: base(a)
 	{}
 	//! \see LWG 2583 。
-	basic_string(const base& str, size_type pos,
-		const _tAlloc& a = _tAlloc())
+	basic_string(const base& str, size_type pos, const _tAlloc& a = _tAlloc())
 		: base(str, pos, base::npos, a)
 	{}
 	basic_string(const base& str, size_type pos, size_type n,
@@ -1008,18 +1007,51 @@ string_end(std::initializer_list<_tElem> il) -> decltype(il.end())
 */
 //@{
 /*!
+\brief 判断字符串是否为空。
+\since build 835
+*/
+//@{
+//! \pre 指针指定的字符串为 NTCTS 。
+template<typename _tChar>
+YB_ATTR_nodiscard YB_PURE yconstfn bool
+string_empty(const _tChar* str) ynothrowv
+{
+	return ystdex::is_null(*str);
+}
+template<typename _type>
+YB_ATTR_nodiscard YB_PURE yconstfn auto
+string_empty(const _type& str) -> decltype(size(str))
+{
+	return empty(str);
+}
+#if __cplusplus <= 201402L
+//! \see CWG 1591 。
+template<typename _tElem>
+YB_ATTR_nodiscard YB_PURE yconstfn size_t
+string_empty(std::initializer_list<_tElem> il)
+{
+	return il.empty();
+}
+#endif
+//@}
+
+/*!
 \brief 计算字符串长度。
 \since build 664
 */
 //@{
-template<typename _type>
-inline size_t
-string_length(const _type* str) ynothrow
+/*!
+\pre 指针指定的字符串为 NTCTS 。
+\since build 835
+*/
+template<typename _tChar>
+YB_ATTR_nodiscard YB_PURE inline size_t
+string_length(const _tChar* str) ynothrowv
 {
-	return std::char_traits<_type>::length(str);
+	return std::char_traits<_tChar>::length(str);
 }
 template<typename _type>
-yconstfn auto
+YB_ATTR_nodiscard YB_PURE yconstfn auto
 string_length(const _type& str) -> decltype(size(str))
 {
 	return size(str);
@@ -1027,7 +1059,7 @@ string_length(const _type& str) -> decltype(size(str))
 #if __cplusplus <= 201402L
 //! \see CWG 1591 。
 template<typename _tElem>
-yconstfn size_t
+YB_ATTR_nodiscard YB_PURE yconstfn size_t
 string_length(std::initializer_list<_tElem> il)
 {
 	return il.size();

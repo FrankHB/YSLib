@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2015 FrankHB.
+	© 2011-2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1623
+\version r1689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2015-09-21 11:27 +0800
+	2018-08-19 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -291,9 +291,6 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 	ynothrow
 	ImplRet(r >> 3 | std::uint16_t(g >> 3) << 5 | std::uint16_t(b >> 3) << 10)
 
-#	define DefColorH_(hex, name) name = \
-	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
-	| 1 << 15)
 #elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
 // TODO: Real implementation for X11.
 #	if YCL_Win32
@@ -307,7 +304,7 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 /*!
 \brief Windows DIB 格式兼容像素。
 \note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
-	即小端序整数 ARGB8888 （存储序 BGRA8888 ），兼容 \c ::AlphaBlend 使用的格式。
+	即整数 ARGB8888 （小端序存储序 BGRA8888 ），兼容 \c ::AlphaBlend 使用的格式。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
 \warning 仅用于屏幕绘制，不保证无条件兼容所有 DIB 。
 \see https://msdn.microsoft.com/en-us/library/windows/desktop/dd183352(v=vs.85).aspx 。
@@ -318,7 +315,7 @@ using Pixel = BGRA<8, 8, 8, 8>;
 #	else
 /*!
 \brief 标识 XYZ888 像素格式。
-\note 值表示按整数表示的顺序从高位到低位为 ABGR 。
+\note 值表示按整数表示的顺序从高位到低位为 ABGR8888 （小端序存储序 RGBA8888 ）。
 \since build 506
 */
 #		define YCL_PIXEL_FORMAT_XYZ888 0xAABBCCDD
@@ -347,7 +344,7 @@ yconstfn PDefH(Pixel, FetchOpaque, Pixel px) ynothrow
 #	if YCL_Win32
 	ImplRet({px.GetB(), px.GetG(), px.GetR(), 0xFF})
 #	else
-	ImplRet({px.GetB(), px.GetG(), px.GetR(), 0xFF})
+	ImplRet({px.GetR(), px.GetG(), px.GetB(), 0xFF})
 #	endif
 
 /*!
@@ -355,69 +352,17 @@ yconstfn PDefH(Pixel, FetchOpaque, Pixel px) ynothrow
 \relates Pixel
 \since build 417
 */
-yconstfn PDefH(std::uint32_t, FetchPixel,
-	AlphaType r, AlphaType g, AlphaType b) ynothrow
+yconstfn PDefH(std::uint32_t, FetchPixel, MonoType r, MonoType g, MonoType b)
+	ynothrow
 	ImplRet(std::uint32_t(r) | std::uint32_t(g) << 8 | std::uint32_t(b) << 16)
-
-/*!
-\brief 定义 Windows DIB 格式兼容像素。
-\note 得到的 32 位整数和 ::RGBQUAD 在布局上兼容。
-\note Alpha 值为 0xFF 。
-\relates Pixel
-\since build 296
-*/
-#	define DefColorH_(hex, name) \
-	name = (FetchPixel(((hex) >> 16) & 0xFF, \
-		((hex) >> 8) & 0xFF, (hex) & 0xFF) << 8 | 0xFF)
 #else
 #	error "Unsupported platform found."
 #endif
 
 
-//! \brief 系统默认颜色空间。
-namespace ColorSpace
-{
-//	#define DefColorA(r, g, b, name) name = ARGB16(1, r, g, b),
-#define	HexAdd0x(hex) 0x##hex
-#define DefColorH(hex_, name) DefColorH_(HexAdd0x(hex_), name)
-
-/*!
-\brief 默认颜色集。
-\see http://www.w3schools.com/html/html_colornames.asp 。
-\since build 416
-*/
-enum ColorSet : Pixel::Traits::integer
-{
-	DefColorH(00FFFF, Aqua),
-	DefColorH(000000, Black),
-	DefColorH(0000FF, Blue),
-	DefColorH(FF00FF, Fuchsia),
-	DefColorH(808080, Gray),
-	DefColorH(008000, Green),
-	DefColorH(00FF00, Lime),
-	DefColorH(800000, Maroon),
-	DefColorH(000080, Navy),
-	DefColorH(808000, Olive),
-	DefColorH(800080, Purple),
-	DefColorH(FF0000, Red),
-	DefColorH(C0C0C0, Silver),
-	DefColorH(008080, Teal),
-	DefColorH(FFFFFF, White),
-	DefColorH(FFFF00, Yellow)
-};
-
-#undef DefColorH
-#undef DefColorH_
-#undef HexAdd0x
-} // namespace ColorSpace;
-
-
 //! \brief 颜色。
 class YF_API Color
 {
-public:
-	using ColorSet = ColorSpace::ColorSet;
-
 private:
 	/*!
 	\brief RGB 分量。
@@ -451,17 +396,15 @@ public:
 #endif
 	{}
 	/*!
-	\brief 构造：使用默认颜色。
-	\since build 319
+	\brief 构造：使用颜色枚举。
+	\since build 853
 	*/
+	template<typename _type, typename = yimpl(
+		ystdex::enable_if_t<ystdex::and_<std::is_enum<_type>, std::is_same<
+		ystdex::underlying_cond_type_t<_type>, Pixel::IntegerType>>::value>)>
 	yconstfn
-	Color(ColorSet cs) ynothrow
-#if YCL_DS
+	Color(_type cs) ynothrow
 		: Color(Pixel(cs))
-#elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
-		: r((cs & 0xFF00) >> 8), g((cs & 0xFF0000) >> 16),
-		b((cs & 0xFF000000) >> 24), a(0xFF)
-#endif
 	{}
 	/*!
 	\brief 构造：使用 RGB 值和 alpha 位。

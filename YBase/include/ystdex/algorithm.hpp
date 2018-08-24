@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1083
+\version r1096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-08-17 03:51 +0800
+	2018-08-22 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -527,6 +527,18 @@ sort_unique(_tRandom first, _tRandom last)
 
 
 /*!
+\see LWG 2350 。
+\since build 836
+*/
+inline namespace cpp2014
+{
+
+// XXX: No feature testing macro available yet.
+#if __cplupslus >= 201402L
+using std::min;
+using std::max;
+#else
+/*!
 \brief 取较小的元素。
 \note 语义同 ISO C++14 std::min 的带 constexpr 的重载。
 \since build 578
@@ -569,6 +581,9 @@ max(std::initializer_list<_type> t, _fComp comp = less<_type>(),
 		ystdex::max(t, comp, n + 1)) : *(t.begin() + n);
 }
 //@}
+#endif
+
+} // inline namespace cpp2014;
 
 /*!
 \brief 取约束范围的值。

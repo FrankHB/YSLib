@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3292
+\version r3381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2018-07-26 21:58 +0800
+	2018-08-24 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,6 +38,9 @@ namespace YSLib
 
 namespace IO
 {
+
+//! \since build 648
+using NativePathView = basic_string_view<HDirectory::NativeChar>;
 
 /*!
 \brief 默认目录路径长度。
@@ -74,8 +77,12 @@ IsRelative(const _type& arg)
 /*!
 \brief 文件路径特征。
 \since build 647
+
+本特征约定：
+分隔符由 IO::IsSeparator 决定。
+第一个元素是空串时为绝对路径，其含义和根目录为一个分隔符的情形一致。
 */
-struct PathTraits
+struct PathTraits : ystdex::path_traits<void>
 {
 	using value_type = YSLib::String;
 
@@ -86,55 +93,30 @@ struct PathTraits
 		return IO::IsSeparator(c);
 	}
 
-	/*!
-	\brief 调整绝对路径的第一组件。
-	\note 使用 ADL cbegin 。
-	\since build 708
-	\todo 支持更多根路径模式（如 Windows UNC ）。
-	*/
-	template<class _tPath, class _tString>
-	static void
-	AdjustForRoot(_tPath& pth, const _tString& sv)
+	//! \since build 836
+	//@{
+	template<class _tString>
+	static yconstfn bool
+	is_absolute(const _tString& str) ynothrow
 	{
-		using ystdex::cbegin;
-
-		if(!pth.empty() && IsRelative(pth.front()) && IsAbsolute(sv.data()))
-			pth.insert(cbegin(pth), {{}});
+		return has_root_path(str) && (ystdex::string_empty(str)
+			|| IO::IsSeparator(str[ystdex::string_length(str) - 1]));
 	}
 
 	template<class _tString>
 	static yconstfn bool
-	is_parent(const _tString& str) ynothrow
+	has_root_path(const _tString& str) ynothrow
 	{
-		using char_value_t = decltype(str[0]);
-
-		return ystdex::string_length(str) == 2 && str[0] == char_value_t('.')
-			&& str[1] == char_value_t('.');
-	}
-
-	//! \since build 706
-	template<class _tString>
-	static yconstfn auto
-	is_root(const _tString& str) ynothrow
-		-> decltype(ystdex::string_length(str) == FetchRootNameLength(str))
-	{
-		return ystdex::string_length(str) == FetchRootNameLength(str);
-	}
-	//! \since build 706
-	template<typename _tChar, class _tTraits, class _tAlloc>
-	static bool
-	is_root(const basic_string<_tChar, _tTraits, _tAlloc>& str) ynothrow
-	{
-		return str.length() == FetchRootNameLength(str.c_str());
+		return ystdex::string_length(str) == IO::FetchRootPathLength(str);
 	}
 
 	template<class _tString>
 	static yconstfn bool
-	is_self(const _tString& str) ynothrow
+	has_root_name(const _tString& str) ynothrow
 	{
-		return
-			ystdex::string_length(str) == 1 && str[0] == decltype(str[0])('.');
+		return !ystdex::string_empty(str) && IO::FetchRootNameLength(str) != 0;
 	}
+	//@}
 };
 
 
@@ -165,40 +147,44 @@ NormalizeDirectoryPathTail(_tString&& str, typename
 \since build 708
 */
 //@{
+//! \since build 836
 template<class _tPath, typename _func,
-	class _tString = typename _tPath::value_type,
+	class _tStringView = string_view_t<typename _tPath::value_type>,
 	class _tTraits = typename _tPath::traits_type>
 _tPath
-ParsePath(const _tString& sv, _func f, _tPath res = {})
+ParsePathWith(_tStringView sv, _func f, _tPath res = {})
 {
 	using ystdex::cbegin;
 	using ystdex::cend;
 
+	YAssertNonnull(sv.data());
 	ystdex::split(cbegin(sv), cend(sv), [](decltype(*cbegin(sv)) c){
 		return _tTraits::IsDelimiter(c);
 	}, [&](decltype(cbegin(sv)) b, decltype(cend(sv)) e){
 		if(b != e)
-		{
 			f(res, b, e);
-			if(res.size() == 1)
-				_tTraits::AdjustForRoot(res,
-					typename _tPath::value_type(cbegin(sv), e));
-		}
 	});
 	return res;
 }
-template<class _tPath, class _tString = typename _tPath::value_type,
+
+//! \note 检查根路径。若存在跟路径且提供的 Path 参数为空则覆盖。
+template<class _tPath,
+	class _tStringView = string_view_t<typename _tPath::value_type>,
 	class _tTraits = typename _tPath::traits_type>
 _tPath
-ParsePath(const _tString& sv, _tPath res = {})
+ParsePath(_tStringView sv, _tPath res = {})
 {
 	using ystdex::cbegin;
 	using ystdex::cend;
+	const auto l(IO::FetchRootPathLength(sv));
 
-	return IO::ParsePath<_tPath>(sv,
-		[](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
+	if(l != 0 && res.empty())
+		res.push_back(sv.substr(0, l));
+	res = IO::ParsePathWith<_tPath>(sv.substr(l),
+		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
 		pth.push_back(typename _tPath::value_type(b, e));
 	}, std::move(res));
+	return std::move(res);
 }
 //@}
 
@@ -209,7 +195,10 @@ using ypath = ystdex::path<vector<String>, PathTraits>;
 
 /*!
 \brief 路径。
+\note 基于 ystdex::path 。
+\note 不直接支持非单一分隔符的外部表示（如 OpenVMS 文件），需另行预解析转换。
 \warning 非虚析构。
+\sa ypath
 */
 class YF_API Path : private ypath, private ystdex::totally_ordered<Path>,
 	private ystdex::dividable<Path, String>, private ystdex::dividable<Path>
@@ -232,9 +221,9 @@ public:
 	Path(ypath pth) ynothrow
 		: ypath(std::move(pth))
 	{}
-	//! \since build 641
+	//! \since build 836
 	explicit
-	Path(const u16string& str) ynothrow
+	Path(const u16string& str)
 		: Path(ParsePath<ypath>(str))
 	{}
 	//! \since build 730
@@ -525,41 +514,33 @@ inline PDefH(void, EnsureDirectory, const String& path)
 /*!
 \note 第二参数指定起始路径。
 \note 第三参数指定解析链接的次数上限。
+\since build 836
 */
-template<class _tPath = Path, class _tString = typename _tPath::value_type,
+template<class _tPath = Path,
+	class _tStringView = string_view_t<typename _tPath::value_type>,
 	class _tTraits = typename _tPath::traits_type>
 _tPath
-ResolvePathWithBase(const _tString& sv, _tPath base,
+ResolvePathWithBase(_tStringView sv, _tPath base,
 	size_t n = FetchLimit(SystemOption::MaxSymlinkLoop))
 {
 	using ystdex::cbegin;
 	using ystdex::cend;
 
-	return IO::ParsePath<_tPath>(sv,
+	if(IsAbsolute(sv.data()))
+		base.clear();
+	return IO::ParsePathWith<_tPath>(sv,
 		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
-		pth /= typename _tPath::value_type(b, e);
-		if(pth.size() == 1)
-			_tTraits::AdjustForRoot(pth,
-				typename _tPath::value_type(cbegin(sv), e));
-
-		auto str(to_string(pth));
+		// NOTE: Since the underlying call would resolve the path of the link,
+		//	there is no need to resolve it using %operator/= here.
+		pth.push_back(typename _tPath::value_type(b, e));
 
 		// XXX: This may be not efficient because underlying calls will resolve
 		//	the path prefix repeatedly.
+		auto str(to_string(pth));
+
 		// FIXME: Blocked. TOCTTOU access.
 		if(IO::IterateLink(str, n))
-		{
-			// XXX: Handle absolute device path, etc?
-			if(IsAbsolute(str))
-				pth = IO::ParsePath<_tPath>(std::move(str));
-			else
-			{
-				// TODO: Check condition?
-				if(!pth.empty())
-					pth.pop_back();
-				pth /= str;
-			}
-		}
+			pth = IO::ParsePath<_tPath>(std::move(str));
 	}, std::move(base));
 }
 

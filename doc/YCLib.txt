@@ -11,13 +11,13 @@
 /*!	\file YCLib.txt
 \ingroup Documentation
 \brief YCLib 说明。
-\version r533
+\version r537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 651
 \par 创建时间:
 	2015-11-19 09:05:02 +0800
 \par 修改时间:
-	2018-08-03 00:31 +0800
+	2018-08-19 11:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,16 +58,15 @@ platform 命名空间包含平台无关([Documentation::CommonRules @@2.2.2.1]) 
 inline platform::basic_types ：基本类型声明内联命名空间。
 inline platform::containers ：容器声明内联命名空间。
 inline platform::references ：引用声明内联命名空间。
-platform::ColorSpace ：颜色空间。
-platform::Concurrency ： 平台并发操作接口。
-platform::FAT ： 文件分配表接口。
+platform::Concurrency ：平台并发操作接口。
+platform::FAT ：文件分配表接口。
 inline platform::FAT::FAT16 ： FAT16 接口（ FAT12 共享实现）。
 inline platform::FAT::FAT32 ： FAT32 接口。
 platform::FAT::Clusters ：簇接口。
 platform::FAT::LFN ：长文件名接口。
 platform::KeyCategory ：按键类别。
 platform::KeyCodes ：本机按键编码（参见 @1.6.2 ）。
-platform::Threading ： 平台线程操作接口。
+platform::Threading ：平台线程操作接口。
 
 @1.3.1.2 命名空间 platform_ex ：
 platform_ex 命名空间包含可能和特定平台相关的底层 API ，包括以下子命名空间：

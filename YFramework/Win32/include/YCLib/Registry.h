@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2016 FrankHB.
+	© 2013-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Win32
 \brief 注册表。
-\version r143
+\version r145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2015-09-12 19:33:37 +0800
 \par 修改时间:
-	2016-07-30 19:44 +0800
+	2018-08-21 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,7 +124,7 @@ public:
 //@{
 YF_API YB_NONNULL(2) wstring
 FetchRegistryString(const RegistryKey&, const wchar_t*);
-inline YB_NONNULL(2, 3) PDefH(wstring, FetchRegistryString,
+YB_NONNULL(2, 3) inline PDefH(wstring, FetchRegistryString,
 	::HKEY h_parent, const wchar_t* key_name, const wchar_t* name)
 	ImplRet(FetchRegistryString(RegistryKey(h_parent, key_name), name))
 //@}
