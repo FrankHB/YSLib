@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3834
+\version r3848
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2018-07-25 01:18 +0800
+	2018-09-02 22:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,7 +140,9 @@ struct IDTagSet : virtual IDTag<_vN>...
 
 
 /*!
-\brief 异常终止函数。
+\brief 终止函数。
+\note DS 平台：循环调用 \c ::swiWaitForVBlank 。
+\note 其它平台：调用 \c std::abort 。
 \since build 319
 */
 YB_NORETURN YF_API void
@@ -266,7 +268,18 @@ RetryOnInterrupted(_func f)
 
 /*!
 \brief 执行 UTF-8 字符串的环境命令。
-\note 使用 std::system 实现；若参数为空则和 std::system 行为一致。
+\note Win32 平台：使用 ::CreateProcessW 实现。标准输出不指定使用 Unicode 字符。
+\note 非 Win32 平台：当前实现同 usystem 。
+\sa usystem
+\since build 837
+*/
+YF_API int
+uspawn(const char*);
+
+/*!
+\brief 执行 UTF-8 字符串的环境命令。
+\note Win32 平台：使用 ::_wsystem 实现。标准输出不指定使用 Unicode 字符。
+\note 非 Win32 平台：使用 std::system 实现；若参数为空则和 std::system 行为一致。
 \since build 539
 */
 YF_API int

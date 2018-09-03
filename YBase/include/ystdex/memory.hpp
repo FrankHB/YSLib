@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r2757
+\version r2758
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2018-08-17 03:55 +0800
+	2018-08-26 22:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ namespace ystdex
 
 //! \since build 830
 #if __cpp_lib_allocator_traits_is_always_equal >= 201411L \
-	|| __cplusplus >= 201703L
+	|| __cplusplus >= 201411L
 #	define YB_Impl_Has_allocator_traits_is_always_equal true
 #else
 #	define YB_Impl_Has_allocator_traits_is_always_equal false

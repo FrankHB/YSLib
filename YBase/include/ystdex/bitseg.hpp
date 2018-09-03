@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r567
+\version r569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2018-08-03 23:07 +0800
+	2018-09-04 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -286,8 +286,8 @@ public:
 	operator*() const ynothrowv
 	{
 		yconstraint(base);
-		return value = *base >> seg_width * (lsb ? seg_n - 1 - shift : shift)
-			& ((1 << seg_width) - 1);
+		return value = byte(std::uintptr_t(*base) >> seg_width
+			* (lsb ? seg_n - 1 - shift : shift) & ((1 << seg_width) - 1));
 	}
 
 	inline bitseg_iterator&

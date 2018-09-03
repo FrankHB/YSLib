@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r682
+\version r684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2018-07-31 00:34 +0800
+	2018-09-03 16:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -220,7 +220,8 @@ public:
 	sputbackc(char_type c)
 	{
 		yconstraint(stream);
-		return std::ungetc(c, stream);
+		// XXX: Assume the resule is always in the range of %char.
+		return std::ungetc(char(c), stream);
 	}
 	/*!
 	\pre 断言： <tt>!stream || steram == s</tt> 。

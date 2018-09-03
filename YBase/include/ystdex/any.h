@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r3096
+\version r3103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2018-07-11 15:40 +0800
+	2018-09-03 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,14 @@
 #ifndef YB_INC_ystdex_any_h_
 #define YB_INC_ystdex_any_h_ 1
 
-#include "typeinfo.h" // for "typeinfo.h", type_info, exclude_self_t,
+#include "typeinfo.h" // for internal "typeinfo.h", type_info, exclude_self_t,
 //	ystdex::type_id, is_nothrow_move_constructible, and_, bool_, enable_if_t,
 //	remove_reference_t, cond_t, std::bad_cast, decay_t, _t, yconstraint;
-#include "utility.hpp" // for "utility.hpp", boxed_value, std::addressof,
-//	std::unique_ptr, standard_layout_storage,
+#include "utility.hpp" // for internal "utility.hpp", boxed_value,
+//	std::addressof, std::unique_ptr, standard_layout_storage,
 //	aligned_storage_t, is_aligned_storable, ystdex::pvoid, default_init_t;
-#include "memory.hpp" // for ystdex::clone_monomorphic_ptr;
+#include "memory.hpp" // for ystdex::clone_monomorphic_ptr, in_place_type_t,
+//	in_place_type;
 #include "exception.h" // for throw_invalid_construction;
 #include "ref.hpp" // for is_reference_wrapper, unwrap_reference_t;
 #include <initializer_list> // for std::initializer_list;
@@ -1089,13 +1090,13 @@ template<typename _type, typename... _tParams>
 any
 make_any(_tParams&&... args)
 {
-	return any(in_place<_type>, yforward(args)...);
+	return any(in_place_type<_type>, yforward(args)...);
 }
 template<typename _type, typename _tOther, typename... _tParams>
 any
 make_any(std::initializer_list<_tOther> il, _tParams&&... args)
 {
-	return any(in_place<_type>, il, yforward(args)...);
+	return any(in_place_type<_type>, il, yforward(args)...);
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2028
+\version r2030
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2018-08-23 10:43 +0800
+	2018-09-02 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,6 +244,8 @@ using namespace platform::Descriptions;
 \since build 704
 */
 //@{
+//! \since build 837
+using platform::uspawn;
 //! \since build 547
 using platform::usystem;
 

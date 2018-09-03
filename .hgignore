@@ -42,7 +42,6 @@ UpgradeLog.XML
 *.idc
 *.cccc/
 *.cscope_file_list
-Tools/SHBuild/SHBuild*
 Tools/*.tar.*
 test/*.exe
 sysroot/*

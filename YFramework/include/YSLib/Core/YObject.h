@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r4939
+\version r4953
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2018-03-26 19:16 +0800
+	2018-08-27 04:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,8 +86,8 @@ template<class _tHolder, typename... _tParams>
 ystdex::any
 CreateHolderInPlace(ystdex::true_, _tParams&&... args)
 {
-	return ystdex::any(ystdex::any_ops::use_holder, ystdex::in_place<_tHolder>,
-		yforward(args)...);
+	return ystdex::any(ystdex::any_ops::use_holder,
+		ystdex::in_place_type<_tHolder>, yforward(args)...);
 }
 //! \exception ystdex::invalid_construction 参数类型无法用于初始化持有者。
 template<class _tHolder, typename... _tParams>
@@ -115,13 +115,13 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 		/*!
 		\brief 创建不具有所有权的间接持有者。
 		\warning 应适当维护所有权避免未定义行为。
-		
+
 		派生实现应保证持有对应的 lref<T> 类型的值引用当前持有的 T 类型的值。
 		*/
 		Indirect,
 		/*!
 		\brief 创建引用的值的副本。
-		
+
 		使用当前持有者引用的值创建副本。
 		派生实现应保证持有对应的值是当前持有值的不同副本，
 			或和当前持有值共享所有权的同一副本。
@@ -130,7 +130,7 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 		Copy,
 		/*!
 		\brief 创建引用的值转移的副本。
-		
+
 		使用当前持有者引用的值创建转移的副本。
 		派生实现应保证持有对应的值从当前持有的值转移。
 		若当前持有者是引用，从引用的值转移。
@@ -470,7 +470,7 @@ public:
 		= ystdex::remove_reference_t<ystdex::unwrap_reference_t<_type>>;
 
 private:
-	ValueHolder<lref<value_type>> base; 
+	ValueHolder<lref<value_type>> base;
 
 public:
 	/*!
@@ -567,8 +567,8 @@ public:
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
-		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place<ValueHolder<ystdex::decay_t<_type>>>, yforward(obj))
+		: content(ystdex::any_ops::use_holder, ystdex::in_place_type<
+		ValueHolder<ystdex::decay_t<_type>>>, yforward(obj))
 	{}
 	/*!
 	\brief 构造：使用对象初始化参数。
@@ -580,7 +580,7 @@ public:
 	template<typename _type, typename... _tParams>
 	ValueObject(ystdex::in_place_type_t<_type>, _tParams&&... args)
 		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place<ValueHolder<_type>>, yforward(args)...)
+		ystdex::in_place_type<ValueHolder<_type>>, yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用持有者。
@@ -590,7 +590,7 @@ public:
 	ValueObject(ystdex::any_ops::use_holder_t,
 		ystdex::in_place_type_t<_tHolder>, _tParams&&... args)
 		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place<_tHolder>, yforward(args)...)
+		ystdex::in_place_type<_tHolder>, yforward(args)...)
 	{}
 
 private:
@@ -610,7 +610,7 @@ public:
 	template<typename _type>
 	ValueObject(_type& obj, OwnershipTag<>)
 		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place<RefHolder<_type>>, ystdex::ref(obj))
+		ystdex::in_place_type<RefHolder<_type>>, ystdex::ref(obj))
 	{}
 	/*!
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
@@ -624,7 +624,7 @@ public:
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
 		: content(ystdex::any_ops::use_holder,
-		ystdex::in_place<PointerHolder<_type>>, p)
+		ystdex::in_place_type<PointerHolder<_type>>, p)
 	{}
 	/*!
 	\brief 构造：使用对象 unique_ptr 指针。
@@ -793,7 +793,7 @@ public:
 	PDefH(void, Clear, ) ynothrow
 		ImplExpr(content.reset())
 
- 	/*!
+	/*!
 	\brief 取自身的复制初始化转移结果：按是否具有唯一所有权选择转移或复制值对象。
 	\since build 787
 	*/
@@ -839,28 +839,28 @@ public:
 	EqualsUnchecked(const void*) const;
 	//@}
 
- 	/*!
+	/*!
 	\brief 取引用的值对象的副本。
 	\since build 761
 	*/
 	PDefH(ValueObject, MakeCopy, ) const
 		ImplRet(Create(IValueHolder::Copy))
 
- 	/*!
+	/*!
 	\brief 取引用的值对象的转移副本。
 	\since build 761
 	*/
 	PDefH(ValueObject, MakeMove, ) const
 		ImplRet(Create(IValueHolder::Move))
 
- 	/*!
+	/*!
 	\brief 取引用的值对象的初始化副本：按是否具有唯一所有权选择转移或复制对象副本。
 	\since build 764
 	*/
 	PDefH(ValueObject, MakeMoveCopy, ) const
 		ImplRet(Create(OwnsUnique() ? IValueHolder::Move : IValueHolder::Copy))
 
- 	/*!
+	/*!
 	\brief 取间接引用的值对象。
 	\since build 747
 	*/

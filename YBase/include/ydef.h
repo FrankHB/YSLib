@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3311
+\version r3330
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2018-08-17 03:51 +0800
+	2018-09-03 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,8 +210,8 @@
 //	std::size_t, std::ptrdiff_t, offsetof;
 #include <cstdlib> // for std::abort;
 #include <climits> // for CHAR_BIT;
+#include <cstdint> // for std::uint8_t;
 #include <cassert> // for assert;
-#include <cstdint>
 #include <cwchar> // for std::wint_t;
 #include <utility> // for std::forward;
 #include <type_traits> // for std::is_class, std::is_standard_layout;
@@ -371,6 +371,16 @@
 #define yimpl(...) __VA_ARGS__
 
 
+/*!	\defgroup YBase_replacement_features YBase Replacement features
+\brief YBase 替代特性。
+\since build 837
+*/
+
+/*!	\defgroup YBase_replacement_extensions YBase Replacement extensions
+\brief YBase 替代扩展。
+\since build 837
+*/
+
 /*!	\defgroup lang_impl_features Language Implementation Features
 \brief 语言实现的特性。
 \since build 294
@@ -442,9 +452,16 @@
 #endif
 
 
-/*!	\defgroup lang_impl_hints Language Implementation Hints
+/*!	\defgroup language_compatibility_features Language Compatibility Features
+\ingroup YBase_replacement_features
+\ingroup YBase_replacement_extensions
+\brief 语言兼容特性。
+\since build 835
+*/
+
+/*!	\defgroup language_implementation_hints Language Implementation Hints
 \brief 语言实现的提供的附加提示。
-\since build 294
+\since build 837
 
 保证忽略时不导致运行时语义差异的提示，主要用于便于实现可能的优化。
 */
@@ -1020,7 +1037,7 @@ using byte = unsigned char;
 \note 一字节不保证等于 8 位，但一个八位组保证等于 8 位。
 \since build 417
 */
-using octet = byte;
+using octet = std::uint8_t;
 #	else
 using octet = void;
 #endif

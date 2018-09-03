@@ -11,13 +11,13 @@
 /*!	\file swap.hpp
 \ingroup YStandardEx
 \brief 交换操作。
-\version r400
+\version r433
 \author FrankHB <frankhb1989@gmail.com>
 \since build 831
 \par 创建时间:
 	2018-07-12 16:38:36 +0800
 \par 修改时间:
-	2018-08-17 03:56 +0800
+	2018-09-03 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef YB_INC_ystdex_swap_hpp_
 #define YB_INC_ystdex_swap_hpp_ 1
 
-#include "type_pun.hpp" // for internal "type_pun.hpp", std::swap,
-//	is_nothrow_constructible, is_nothrow_assignable, std::move, add_volatile_t,
-//	std::addressof, bool_, is_standard_layout, pun_storage_t,
+#include "type_pun.hpp" // for internal "type_pun.hpp", std::move, bool_,
+//	false_, true_, is_class, is_nothrow_constructible, is_nothrow_assignable,
+//	add_volatile_t, std::addressof, is_standard_layout, pun_storage_t,
 //	aligned_replace_cast;
 
 #if __cpp_lib_is_swappable >= 201603L
@@ -161,6 +161,18 @@ swap(_type(&a)[_vN], _type(&b)[_vN])
 		swap(a[n], b[n]);
 }
 //@}
+/*!
+\note 因为 std 和 ystdex 中并没有特化版本，需要此重载提供避免歧义。
+\since build 837
+*/
+yconstfn_relaxed void
+swap(ystdex::byte& x, ystdex::byte& y) ynothrow
+{
+	auto t(x);
+
+	x = y;
+	y = t;
+}
 
 } // namespace ystdex_swap;
 
@@ -222,6 +234,27 @@ struct is_nothrow_swappable
 } // inline namespace cpp2017;
 
 
+//! \since build 837
+namespace details
+{
+
+template<typename _type>
+yconstfn_relaxed void
+swap_dep(_type& x, _type& y, false_)
+{
+	ystdex_swap::swap(x, y);
+}
+template<typename _type>
+yconstfn_relaxed void
+swap_dep(_type& x, _type& y, true_)
+{
+	using ystdex_swap::swap;
+
+	swap(x, y);
+}
+
+} // namespace details;
+
 /*!
 \brief 支持基于 ystdex_swap::swap 的 ADL 的左值交换。
 \since build 831
@@ -241,14 +274,13 @@ struct is_nothrow_swappable
 	限定）的用户代码中引起歧义导致无法使用（没有更特定的 swap 函数作为候选时），
 	或失去使用 ystdex::swap 模板代理 ADL 调用的意义（对每个类型都另行声明 swap 函数
 	作为重载候选时），本模板不使用 ystdex::swap 作为名称。
+非类类型不使用 ADL ，以免 std 或其它命名空间中的 swap 调用的歧义。
 */
 template<typename _type>
 yconstfn_relaxed void
 swap_dependent(_type& x, _type& y) ynothrow(is_nothrow_swappable<_type>())
 {
-	using ystdex_swap::swap;
-
-	swap(x, y);
+	details::swap_dep(x, y, is_class<_type>());
 }
 
 /*!

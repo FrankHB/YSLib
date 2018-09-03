@@ -11,13 +11,13 @@
 /*!	\file placement.hpp
 \ingroup YStandardEx
 \brief 放置对象管理操作。
-\version r754
+\version r770
 \author FrankHB <frankhb1989@gmail.com>
 \since build 715
 \par 创建时间:
 	2016-08-03 18:56:31 +0800
 \par 修改时间:
-	2018-08-17 03:55 +0800
+	2018-08-27 05:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,15 +46,21 @@
 //	and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79433 for details. For
 //	feature-test marcos, see https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations.
 //	See also https://docs.microsoft.com/en-us/cpp/visual-cpp-language-conformance.
-#if YB_IMPL_MSCPP >= 1910 \
-	|| (__cplusplus >= 201703L && __has_include(<optional>))
+#if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+	|| (__cplusplus >= 201603L && __has_include(<optional>))
 #	include <optional>
-// NOTE: See also P0941R0 with minor fixes of the specification about P0032R3.
-#	if __cpp_lib_optional >= 201606L
+// NOTE: See also WG21 P0941R0 with minor fixes of the specification about WG21
+//	P0032R3. Since WG21 P0941R2, the macro value is combined as '201606L' with
+//	WG21 P0504R0 support which is not used here, so the check remains the value
+//	in WG21 P0941R1.
+#	if (YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201603) \
+	|| __cpp_lib_optional >= 201603L
 #		define YB_Has_optional 1
 #	endif
-// NOTE: As per the specification, single <optional> without may indicate WG21 N3672 <optional>, which is WG21
-//	N3793 <experimental/optional> without some minor bug fixes. This is not supported.
+// NOTE: As per the specification, single <optional> without may indicate WG21
+//	N3672 <optional>, which is WG21 N3793 <experimental/optional> without some
+//	minor bug fixes. This is not fully supported to suppress YStandardEx
+//	replacement (see "optional.hpp").
 #elif __cplusplus > 201402L && __has_include(<experimental/optional>)
 #	include <experimental/optional>
 #	if __cpp_lib_experimental_optional >= 201411L
@@ -170,16 +176,16 @@ using uniformed_tags::in_place;
 using uniformed_tags::in_place_type_t;
 using uniformed_tags::in_place_index_t;
 
-template<size_t _vIdx>
+template<typename _type>
 yimpl(YB_NORETURN) yimpl(uniformed_tags::in_place_tag)
-in_place_type(yimpl(size_t_<_vIdx>))
+in_place_type(yimpl(empty_base<_type>))
 {
 	YB_ASSUME(false);
 }
 
-template<typename _type>
+template<size_t _vIdx>
 yimpl(YB_NORETURN) yimpl(uniformed_tags::in_place_tag)
-in_place_index(yimpl(empty_base<_type>))
+in_place_index(yimpl(size_t_<_vIdx>))
 {
 	YB_ASSUME(false);
 }

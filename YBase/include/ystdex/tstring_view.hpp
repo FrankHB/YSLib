@@ -11,13 +11,13 @@
 /*!	\file tstring_view.hpp
 \ingroup YStandardEx
 \brief 指定结束字符的只读字符串视图。
-\version r321
+\version r325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 640
 \par 创建时间:
 	2015-10-01 22:56:52 +0800
 \par 修改时间:
-	2018-07-30 06:08 +0800
+	2018-08-27 05:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,10 @@
 #define YB_INC_ystdex_tstring_view_hpp_ 1
 
 #include "string_view.hpp" // for std::char_traits, basic_string_view,
-//	totally_ordered, std::basic_string, std::allocator, std::out_of_range,
-//	ntctsncmp;
+//	std::basic_string;
+#include "operators.hpp" // for totally_ordered;
+#include <memory>// for std::allocator;
+#include <stdexcept> // for std::out_of_range
 
 namespace ystdex
 {

@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1297
+\version r1363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2018-08-24 21:41 +0800
+	2018-08-29 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,10 @@ namespace ystdex
 
 //! \since build 647
 //@{
-//! \note 允许被按路径语义特化。
+/*!
+\note 允许被按路径语义特化。
+\note 要求用户特化提供 \c void 特化相同的签名的成员（包括一致的异常规范）。
+*/
 //@{
 /*!
 \brief 路径特征。
@@ -319,7 +322,7 @@ public:
 	{
 		if(!empty() && traits_type::is_parent(s))
 		{
-			if(!traits_type::is_absolute(front()) || 1U < size())
+			if(has_leaf_nonempty())
 			{
 				if(!(traits_type::is_parent(back())
 					|| traits_type::is_self(back())))
@@ -492,6 +495,72 @@ public:
 			i = erase(i, ++j);
 		}
 	}
+
+	//! \since build 837
+	//@{
+	//! \brief 判断移除最后元素是否保持根路径不变。
+	//@{
+	YB_ATTR_nodiscard bool
+	has_leaf() const ynothrow
+	{
+		return !empty() && has_leaf_nonempty();
+	}
+
+	//! \pre 断言：路径非空。
+	YB_ATTR_nodiscard bool
+	has_leaf_nonempty() const ynothrowv
+	{
+		yconstraint(!empty());
+		return !traits_type::has_root_path(front()) || 1U < size();
+	}
+	//@}
+
+	/*!
+	\brief 重定向路径
+
+	同以路径为参数的 \c operator/= ，但若不替换路径，先调用 remove_leaf 。
+	*/
+	//@{
+	path&
+	redirect(const path& pth)
+	{
+		if(!root_diverged(pth))
+		{
+			remove_leaf();
+			for(const auto& s : pth)
+				*this /= s;
+		}
+		else
+			*this = pth;
+		return *this;
+	}
+	path&
+	redirect(path&& pth) ynothrow
+	{
+		if(!root_diverged(pth))
+		{
+			remove_leaf();
+			for(auto& s : pth)
+				*this /= std::move(s);
+		}
+		else
+			*this = std::move(pth);
+		return *this;
+	}
+	//@}
+
+	//! \brief 若移除最后元素不会改变根路径，则移除最后的元素。
+	bool
+	remove_leaf() ynothrow
+	{
+		if(has_leaf())
+		{
+			pop_back();
+			return true;
+		}
+		return {};
+	}
+	//@}
 
 	/*!
 	\brief 判断参数指定的路径是否和 \c *this 不同而无法直接作为相对路径追加。

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3381
+\version r3443
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2018-08-24 21:19 +0800
+	2018-08-29 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Service_File // for Remove;
+#include YFM_YSLib_Service_File // for YSLib::CheckNonnegative, IO::Remove;
 #include YFM_YSLib_Core_YString
 #include <ystdex/path.hpp> // for ystdex::path;
 
@@ -78,6 +78,9 @@ IsRelative(const _type& arg)
 \brief 文件路径特征。
 \since build 647
 
+在文件系统中使用的路径的特征，扩展抽象路径特征 ystdex::path_traits 。
+ystdex::path_traits 中的操作名称仍然保留，部分被在本特征中覆盖实现；
+	在本特征添加的特征操作名称使用框架命名风格，并附带接口兼容要求。
 本特征约定：
 分隔符由 IO::IsSeparator 决定。
 第一个元素是空串时为绝对路径，其含义和根目录为一个分隔符的情形一致。
@@ -86,6 +89,7 @@ struct PathTraits : ystdex::path_traits<void>
 {
 	using value_type = YSLib::String;
 
+	//! \note 要求无异常抛出。
 	template<typename _tChar>
 	static yconstfn bool
 	IsDelimiter(_tChar c) ynothrow
@@ -142,12 +146,16 @@ NormalizeDirectoryPathTail(_tString&& str, typename
 
 /*!
 \brief 解析字符串为路径。
-\note 忽略空路径组件。
 \note 使用 ADL cbegin 和 cend 。
+\note 忽略空路径组件。
+\note 检查根路径。若存在根路径且提供的 Path 参数为空则覆盖。
 \since build 708
 */
 //@{
-//! \since build 836
+/*!
+\pre 断言：路径参数的数据指针非空。
+\since build 836
+*/
 template<class _tPath, typename _func,
 	class _tStringView = string_view_t<typename _tPath::value_type>,
 	class _tTraits = typename _tPath::traits_type>
@@ -158,7 +166,14 @@ ParsePathWith(_tStringView sv, _func f, _tPath res = {})
 	using ystdex::cend;
 
 	YAssertNonnull(sv.data());
-	ystdex::split(cbegin(sv), cend(sv), [](decltype(*cbegin(sv)) c){
+
+	const auto l(IO::FetchRootPathLength(sv));
+
+	if(l != 0 && res.empty())
+		res.push_back(typename _tPath::value_type(sv.substr(0, l)));
+	// XXX: Conversion to 'ptrdiff_t' might be implementation-defined.
+	ystdex::split(cbegin(sv) + YSLib::CheckNonnegative<ptrdiff_t>(l), cend(sv),
+		[](decltype(*cbegin(sv)) c) ynothrow{
 		return _tTraits::IsDelimiter(c);
 	}, [&](decltype(cbegin(sv)) b, decltype(cend(sv)) e){
 		if(b != e)
@@ -167,7 +182,6 @@ ParsePathWith(_tStringView sv, _func f, _tPath res = {})
 	return res;
 }
 
-//! \note 检查根路径。若存在跟路径且提供的 Path 参数为空则覆盖。
 template<class _tPath,
 	class _tStringView = string_view_t<typename _tPath::value_type>,
 	class _tTraits = typename _tPath::traits_type>
@@ -176,15 +190,11 @@ ParsePath(_tStringView sv, _tPath res = {})
 {
 	using ystdex::cbegin;
 	using ystdex::cend;
-	const auto l(IO::FetchRootPathLength(sv));
 
-	if(l != 0 && res.empty())
-		res.push_back(sv.substr(0, l));
-	res = IO::ParsePathWith<_tPath>(sv.substr(l),
+	return IO::ParsePathWith<_tPath>(sv,
 		[&](_tPath& pth, decltype(cbegin(sv)) b, decltype(cend(sv)) e){
 		pth.push_back(typename _tPath::value_type(b, e));
 	}, std::move(res));
-	return std::move(res);
 }
 //@}
 
@@ -221,24 +231,23 @@ public:
 	Path(ypath pth) ynothrow
 		: ypath(std::move(pth))
 	{}
-	//! \since build 836
-	explicit
-	Path(const u16string& str)
-		: Path(ParsePath<ypath>(str))
-	{}
-	//! \since build 730
+	/*!
+	\pre 间接断言：初始化的视图的路径参数的数据指针非空。
+	\since build 837
+	*/
 	template<typename _type, yimpl(typename = ystdex::enable_if_t<
-		!std::is_constructible<const u16string&, _type&&>::value>,
+		ystdex::or_<std::is_constructible<u16string_view, _type&&>,
+		std::is_constructible<String, _type&&>>::value>,
 		typename = ystdex::exclude_self_t<Path, _type>)>
 	explicit
 	Path(_type&& arg)
-		: ypath(ParsePath<ypath>(String(yforward(arg))))
+		: ypath(ParsePath<ypath>(u16string_view(AsStringArg(yforward(arg)))))
 	{}
 	//! \since build 730
 	template<typename _type>
 	explicit
 	Path(_type&& arg, Text::Encoding enc)
-		: ypath(ParsePath<ypath>(String(yforward(arg), enc)))
+		: ypath(ParsePath<ypath>(u16string_view(String(yforward(arg), enc))))
 	{}
 	//! \since build 599
 	template<typename _tIn>
@@ -317,6 +326,29 @@ public:
 	String
 	GetString(char16_t = FetchSeparator<char16_t>()) const;
 	//@}
+
+private:
+	//! \since build 837
+	//@{
+	template<typename _tParam>
+	auto
+	AsStringArg(_tParam&& arg) -> yimpl(ystdex::enable_if_t)<
+		std::is_constructible<u16string_view, _tParam&&>::value, u16string_view>
+	{
+		return u16string_view(yforward(arg));
+	}
+	template<typename _tParam, yimpl(typename = ystdex::enable_if_t<
+		ystdex::and_<ystdex::not_<std::is_constructible<u16string_view,
+		_tParam&&>>, std::is_constructible<String, _tParam&&>>::value
+	>)>
+	String
+	AsStringArg(_tParam&& arg)
+	{
+		return String(yforward(arg));
+	}
+	//@}
+
+public:
 	/*!
 	\brief 正规化：去除自指和父节点的路径成员。
 	\since build 410
@@ -365,6 +397,12 @@ public:
 
 	using ypath::front;
 
+	//! \since build 837
+	using ypath::has_leaf;
+
+	//! \since build 837
+	using ypath::has_leaf_nonempty;
+
 	using ypath::insert;
 
 	using ypath::is_absolute;
@@ -382,6 +420,12 @@ public:
 
 	//! \since build 473
 	using ypath::push_back;
+
+	//! \since build 837
+	using ypath::redirect;
+
+	//! \since build 837
+	using ypath::remove_leaf;
 
 	//! \since build 599
 	using ypath::size;
@@ -540,7 +584,7 @@ ResolvePathWithBase(_tStringView sv, _tPath base,
 
 		// FIXME: Blocked. TOCTTOU access.
 		if(IO::IterateLink(str, n))
-			pth = IO::ParsePath<_tPath>(std::move(str));
+			pth.redirect(IO::ParsePath<_tPath>(std::move(str)));
 	}, std::move(base));
 }
 
@@ -779,7 +823,7 @@ inline PDefH(void, ClearTree, const string& pth)
 //! \brief 删除参数指定路径的目录树。
 //@{
 inline PDefH(void, DeleteTree, const Path& pth)
-	ImplExpr(ClearTree(pth), Remove(string(pth).c_str()))
+	ImplExpr(ClearTree(pth), IO::Remove(string(pth).c_str()))
 //! \since build 593
 inline PDefH(void, DeleteTree, const string& pth)
 	ImplExpr(DeleteTree(Path(pth)))

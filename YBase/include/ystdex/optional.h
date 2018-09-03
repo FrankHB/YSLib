@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1290
+\version r1293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2018-08-16 17:38 +0800
+	2018-08-27 04:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,11 +53,11 @@ WG21 N3765 ：支持不同的比较操作。
 //	totally_ordered, or_, is_reference, is_same, is_nothrow_destructible,
 //	is_object, enable_if_t, is_constructible, decay_t, is_nothrow_swappable,
 //	ystdex::addressof, is_copyable;
-#	include "functional.hpp" // for ystdex::swap_dependent, default_last_value,
 #	include <initializer_list> // for std::initializer_list;
 #	include <stdexcept> // for std::logic_error;
 //	std::accumulate, std::hash;
 #endif
+#include "functional.hpp" // for ystdex::swap_dependent, default_last_value,
 
 namespace ystdex
 {
@@ -905,6 +905,7 @@ make_optional(std::initializer_list<_tOther> il, _tParams&&... args)
 }
 //@}
 //@}
+#endif
 
 /*!
 \note YBase optional 扩展。
@@ -965,7 +966,6 @@ struct optional_last_value<void> : default_last_value<void>
 {};
 //@}
 //@}
-#endif
 
 } // inline namespace cpp2017;
 

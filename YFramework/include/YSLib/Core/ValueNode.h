@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r3290
+\version r3291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2018-08-10 02:47 +0800
+	2018-08-27 05:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -593,7 +593,7 @@ public:
 	PlaceValue(_tString&& str, _tParams&&... args)
 	{
 		return try_emplace(str, NoContainer, yforward(str),
-			ystdex::in_place<_type>, yforward(args)...).first->Value;
+			ystdex::in_place_type<_type>, yforward(args)...).first->Value;
 	}
 	//@}
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3934
+\version r3943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-08-10 16:35 +0800
+	2018-08-28 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1769,6 +1769,17 @@ EvalUnit(TermNode&);
 */
 YF_API void
 GetCurrentEnvironment(TermNode&, ContextNode&);
+
+/*!
+\brief 锁定当前环境的引用。
+\since build 837
+
+取得的宿主值类型为 shared_ptr<Environment> 。
+参考调用文法：
+() lock-current-environment
+*/
+YF_API void
+LockCurrentEnvironment(TermNode&, ContextNode&);
 
 /*!
 \brief 创建封装类型。

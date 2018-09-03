@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r5418
+\version r5757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-08-24 23:51 +0800
+	2018-09-04 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,341 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %Placement $=
+			(
+				/ "condition for <optional> inclusion" $=
+				(
+					// For %YB_Has_optional.
+					* "missing check of %_MSVC_LANG" @ 'YB_IMPL_MSCPP >= 1910'
+						$since b835,
+					* "over-strict value of '__cpp_lib_string_view >= 201603L'"
+						$since b831,
+						// This is particular significant since P0032R3 is \
+							explicitly avoided, see https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md.
+						$= (/ '201606L' -> '201603L'),
+					/ $re_add(b835) "loosed '__cplusplus >= 201703L'"
+						-> "'__cplusplus >= 201603L'"
+				),
+				* "wrong type of %(in_place_type, in_place_index)"
+					@ "inline namespace %ystdex::cpp2017" @ "<optional> or \
+					<experimental/optional> not used"
+					$since b831
+					// This is now condition 'YB_Has_optional == 0'.
+			),
+			/ %StringView $=
+			(
+				/ "condition for <string_view> inclusion" @ 
+					// For %YB_Has_string_view.
+					$= (+ 'YB_IMPL_MSCPP >= 1910 && _MSVC_LANG >= 201706'),
+				+ "conditionally defined macro %__cpp_lib_string_view"
+			),
+			/ $re_add(b835)  "loosed '__cplusplus >= 201703L'"
+				-> "'__cplusplus >= 201411L'" @ %Memory,
+			/ $re_ex(b835) "condition '__cplusplus >= 201703L' for \
+				'using std::basic_string;', excluding %std::hash specialization \
+				for %ystdex::basic_string templates" @ %String
+				-> '__cpp_lib_string_view >= 201606L || __cplusplus >= 201606L'
+				$dep_from ("%__cpp_lib_string_view" @ %StringView),
+			* "missing extensions %(make_optional_inplace, ref_opt, \
+				optional_last_value)" @ 'YB_Has_optional == 1' @ %Optional $since
+				b831,
+			/ %TStringView $=
+			(
+				* "missing headers" @ "<string_view> used" $since b831
+					// This is now condition 'YB_Has_string_view == 1'.
+			),
+			/ %Path $=
+			(
+				+ $doc "requirements of specializations" @ "Doxygen comments"
+					@ "class template %type_traits";
+				/ @ "class template %path" $=
+				(
+					+ "function %has_leaf_nonempty";
+					* "missing rooted relative path support" @ "%operator/="
+						$since b836 ^ "%has_leaf_nonempty",
+					+ "functions %(has_leaf; remove_leaf); 2 functions \
+						%redirect"
+				)
+			),
+			/ %Swap $=
+			(
+				// These would not work if %std::byte is used.
+				* "missing overload for %ystdex::byte" @ "%ystdex_swap::swap"
+					$since b834,
+				* "missing disabled ADL for non-class type"
+					@ "function template %swap_dependent"
+			),
+			* "missing explicit cast to integer type from %byte or other \
+				incompatible operations with %byte" $effecitve @ (("member \
+				function %ifile_iterator::(sputbackc, operator++)"
+				@ %CStandardIO $since b607, ("function %native_byte_order"
+				$since b695, "function template %pack_uint" $since b603)
+				@ %CStandardInteger, "function template %trivially_fill_n"
+				$since b603, "function operator*"
+				@ "class template %bitseg_traits" @ %BitSegment $since b507))
+				// This would be ill-formed once the %byte is %std::byte or \
+					other types not implicitly convertible to %char.
+		),
+		/ %YDefinition $=
+		(
+			/ "%octet" @ 'CHAR_BIT' ^ "%std::uint8_t" ~ "%byte",
+			+ DD "Doxygen groups %(YBase_replacement_features, \
+				YBase_replacement_extensions; language_compatibility_features)",
+			/ DD "Doxygen groups %lang_impl_hints"
+				=> "%language_implementation_hints"
+		)
+	),
+	* "ill-formed in-place tags" @ "<optional> or <experimental/optional> not \
+		used" $since b831 $effecitve @ ("all 2 function templates %make_any"
+		@ %YBase.YStandardEx.Any, ("function template %CreateHolderInPlace, 5 \
+		constructor templates %ValueObject using in-place tag argument"
+		@ %YObject, "function template %PlaceValue" @ "class %ValueNode"
+		@ %ValueNode) @ %YSLib.Core, "function %Forms::DefineWithRecursion"
+		@ %NPL.NPLA1, "platform %DS" @ "constructor %Environment"
+		@ %Helper.Environment)
+		$= (/ $impl ^ "%in_place_type" ~ "%in_place"),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core.YEvent $=
+			(
+				/ DLDI "simplified" @ "class template specialization %GHEvent"
+					^ "member %FuncType",
+				* "missing inclusion %YBase.YStandardEx.Tuple"
+					@ "<string_view> used" @ %Core.YEvent $since b831
+			),
+			/ %Service.FileSystem $=
+			(
+				(
+				+ $doc "traits operation requirements" @ "struct %PathTraits";
+				+ DLDI 'ynothrow' @ "lambda-expression"
+					@ "function template %ParsePathWith";
+				),
+				* "missing explicit cast to path value type" @ "root path \
+					construction" @ "function template %ParsePath" $since b836
+					$dep_to "root path construction parsing",
+				/ @ "class %Path" $=
+				(
+					(
+					/ "merged constructors %Path of single string path"
+						^ "%ParsePath<u16string_view>" ~ "%ParsePath<String>"
+						$dep_from "root path construction parsing";
+					/ $comp DLI "decreased %String constructions",
+					* $comp "constructor with parameter of \
+						%std::initializer_list instance ineffective" $since
+						b599
+					),
+					+ ('using ypath::has_leaf;',
+						'using ypath::has_leaf_nonempty',
+						'using ypath::redirect;', 'using ypath::remove_leaf')
+						^ $dep_from "%path::(has_root, has_root_nonempty")
+						@ %YBase.YStandardEx.Path
+				),
+				(
+				/ "handled root path" @ "function template ParsePathWidth";
+				/ $forced DLDI "simplified function template %ParsePath";
+				* "wrong root path handling"
+					@ "function template %ResolvePathWithBase" $since b836
+					$dep_from "%Path::redirect"
+				),
+				/ @ "function %DeleteTree" $=
+				(
+					* $impl "missing qualifying underlying function call by \
+						'IO::'" $orig $since b639;
+					* $comp $impl "missing qualifying %Remove by 'IO::'"
+						 $since b711
+				)
+			),
+			/ %Adaptor $=
+			(
+				+ 'using platform::uspawn;' @ "namespace %YSLib" @ %YAdaptor
+					$dep_from %YCLib.YCommon,
+				+ "debug logs" @ "member function %FontCache::LoadTypefaces"
+					@ %Font
+			)
+		),
+		/ %NPL $=
+		(
+			/ @ "namespace %Forms" @ %NPLA1 $=
+			(
+				+ "function %LockCurrentEnvironment",
+				/ @ "function %MatchParameter" $=
+				(
+					* "missing support of reference term for empty list \
+						parameter" $since b803,
+						// Empty list arguments as lvalues would be never \
+							matched without this fix. Some functions like \
+							derivation of '$provide!' rely on this fix.
+					* "missing excluding of empty list"
+						@ "ellipsed symbol check for last term" $since b777
+						// The last '()' parameter would always not work \
+							without this fix.
+				)
+			),
+			/ %Dependency $=
+			(
+				/ @ "loaded derived functions"
+					@ "function %LoadNPLContextGround" $=
+				(
+					(
+					+ "applicative 'lock-current-environment'" ^ $dep_from
+						("%LockCurrentEnvironment" @ %NPLA1);
+						// This cannot be derived from \
+							'get-current-environent' and 'lock-environment' \
+							because lifetime of a uniquely referenced \
+							environment is not guaranteed.
+					+ "alternative derivation of applicative \
+						'get-current-environment'" ^ 'lock-current-environment',
+					/ DLDI "reordered alternative operatives ('$lambda', \
+						'$lambda%', '$sequence')",
+					+ "operative '$provide!'"
+					),
+					* "2nd alternative derivation" @ "applicative 'list%'"
+						$since b828
+						$= (/ $impl ^ '$lambda' ~ '$lambda%'),
+					+ "alternative derivations" @ "operatives ('$vau', '$vau%')"
+						// These derivatives depend on primitive \
+							'get-current-environment' to avoid infinite \
+							recursion.
+				),
+				+ "applicative for testing path absolute predicate"
+					@ "loaded derived functions"
+					@ "function %LoadNPLContextForSHBuild",
+				/ DLDI "all names %(expr1, expr2, expr)" @ "derivations"
+					-> "%(e, expr, e)" $effective
+					@ "function %LoadNPLContextGround"
+					// This is consistent to type description in \
+						%Documentation.NPL.
+			)
+		),
+		* $comp "failed initialization of root path caused by failure of \
+			following symbolic link '/proc/self/exe'" @ "platform %Linux"
+			@ %Helper.Initialization $dep_from ("%ResolvePath"
+			@ %YFramework.YSLib.FileSystem) $since b836,
+		/ %YCLib $=
+		(
+			+ "function %uspawn" @ %.YCommon,
+			* $comp "missing explicit cast to integer type from %byte or other \
+				incompatible operations with %byte by missing guaranteed as \
+				integer types with capabilities of arithmetic operations"
+				@ "%(MonoType, AlphaType) aliaes" @ %Video $since b417 $dep_from
+				("%octet" @ %YBase.YDefinition)
+		)
+	),
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			/ "help message" $=
+			(
+				+ "clearer description of ignored subdirectories in SRCPATH"
+				/ "clarified option '-xd,' accepted paths"
+			),
+			/ "command calls" $=
+			(
+				+ "class %Command" ^ $dep_from
+					("%uspwan" @ %YFramework.YSLib.Adaptor.YAdaptor);
+				/ DLD "member functions %BuildContext::(RunTask; \
+					CallWithException; Call)" ^ "%Command" ~ "%string";
+				/ $comp DLDI "simplified message output",
+				/ $comp "command line call" @ "platform %Win32" $dep_to
+					"loosed SHBuild command line length limit" $=
+				(
+					- $comp "dependencies on '%COMSPEC%' and 'cmd.exe'",
+					/ $comp "loosed constraint of command line length in bytes \
+						to 32767" ~ "8192"
+				)
+			),
+			(
+			+ "namespace %SHBuild";
+			/ "all declarations except %::main" >> "namespace %SHBuild";
+			/ $forced DLDI "function %::main"
+			),
+			/ DLD ("parameter type" @ "member function %BuildContext";
+				"return type" @ "member function %Rule::GetCommandType")
+				-> 'string_view' ~ 'const string&'",
+			+ $lib "assertion to ensure nonnull data pointer in %string_view \
+				parameter" $effective
+				@ "member functions %Rule::(GetCommandType, LookupCommand)",
+			/ $re_ex(b634) "spelling error" @ "waiting message"
+				@ "concurrent tasks run" $since b624
+		),
+		/ %Scripts $=
+		(
+			/ "%SHBuild-YSLib-common.txt" $=
+			(
+				+ "operative '$assert'";
+				(
+				/ $dev $impl "simplified operative '$assert-nonempty'"
+					^ '$assert';
+				/ $comp "more precise error message" @ '$assert-nonempty',
+					// It still does not support non-string types, though.
+				),
+				+ "operative '$assert-absolute-path'" ^ $dep_from ('$assert',
+					"applicative for testing path absolute predicate"
+					@ "loaded derived functions" @ "function \
+					%LoadNPLContextForSHBuild" @ %YFramework.NPL.Dependency),
+				+ "applicative %SHB_GetToolPath"
+			),
+			/ "%SHBuild-YSLib-build.txt" $=
+			(
+				/ $dev "refined loading to preserve only export symbols"
+					^ $dep_from ('$provide!' @ %YFramework.NPL.Dependency),
+				(
+				/ $build "ensured absolute paths used" $dep_from
+					"loosed SHBuild command line length limit" $=
+				(
+					// The command line is length and easily grow longer than \
+						8192 which is limited by 'cmd.exe' in platform %Win32.
+					/ "attached output path with prefix from environment \
+						variable %YSLib_BuildDir";
+					/ "asserted for absolute paths of values" $effective
+						@ "variables %(YSLib_BaseDir, YSLib_BuildDir)"
+						^ $dep_from (('$assert-absolute-path'
+						~ '$assert-nonempty') @ "%SHBuild-YSLib-common.txt")
+						// These paths are enough to determine all absolte \
+							paths in commands.
+				);
+				/ $comp "absolute path shown" @ "platform %Win32"
+					// Now slashes are same for root and non-root paths.
+				),
+				- "public interface of applicative 'skip-or-build'" $dep_from
+					"libraries build merging"
+				(
+				/ $impl "simplified" ^ $dep_from "%SHB_GetToolPath"
+					@ "%SHBuild-YSLib-common.txt";
+				* $revert_ex(b805) "wrong 'system-quote' call on \
+					%SHBuild environment variable" $since b805
+				)
+			)
+		),
+		/ @ "%install-sysroot.sh" $=
+		(
+			- "%(SHBuild_Pushd, SHBuild_Popd) call for building YSLib libraries"
+				$dep_from ("ensured absolute paths used"
+				@ "%SHBuild-YSLib-build.txt" @ %Scripts);
+			/ "simplified building stage 2 libraries" $=
+			(
+				/ $lib "simplified libraries building code"
+					>> "%SHBuild-YSLib-build.txt";
+				/ $lib "merged all libraries building as one pass of NPL"
+					$dep_to "libraries build merging",
+				- $comp "'Done.' messages after build of debug or release \
+					configrations completed"
+			)
+		)
+	),
+	- $repo $revert(b563) "glob pattern'Tools/SHBuild/SHBuild*'"
+		@ "file %.hgignore"
+),
+
+b836
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -160,9 +495,9 @@ $now
 							(
 							/ $forced DLDI "call of 'FetchRootNameLength'"
 								-> 'IO::FetchRootPathLength' ^ $dep_from
-								("%IO::FetchRootPathLength" @ %YAdaptor.Adaptor)
+								("%IO::FetchRootPathLength" @ %Adaptor.YAdaptor)
 								$dep_from ("%IO::FetchRootNameLength"
-								@ %YAdaptor.Adaptor);
+								@ %Adaptor.YAdaptor);
 							/ "unexpected ADL %FetchRootNameLength call" $since
 								b654
 							);
@@ -197,7 +532,7 @@ $now
 						"simplified root adjustment"
 				)
 			),
-			/ @ "namespace %YSLib" @ %YAdaptor.Adaptor $=
+			/ @ "namespace %YSLib" @ %Adaptor.YAdaptor $=
 			(
 				- $forced 'namespace ColorSpace = platform::ColorSpace;'
 					@ "namespace %Drawing" $dep_from
@@ -215,7 +550,7 @@ $now
 				+ 'using platform::string_view_t;' $dep_from %YCLib.Container
 			),
 			/ $forced DLDI %Core.YConsole $dep_from ("%ColorSpace"
-				@ %YAdaptor.Adaptor)
+				@ %Adaptor.YAdaptor)
 		),
 		(
 		/ %Helper $=
@@ -3083,7 +3418,7 @@ b818
 		/ %NPL $=
 		(
 			/ DLI "function %CombineActions" @ %NPLA ^ "custom functor"
-				~ "lambda expression"
+				~ "lambda-expression"
 				// For better performance. This can have effect scale of \
 					about 8% in allocation counts.
 			/ DLI %NPLA1 $=
