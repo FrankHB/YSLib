@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5379
+\version r5383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2018-08-03 03:38 +0800
+	2018-08-27 05:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@
 //	ystdex::default_last_value;
 #include <ystdex/swap.hpp> // for ystdex::swap_dependent;
 #include <ystdex/optional.h> // for ystdex::optional_last_value;
+#include <ystdex/tuple.hpp> // for ystdex::tuple_element_t;
 
 namespace YSLib
 {
@@ -127,7 +128,7 @@ private:
 			const auto get_ref([](const GHEvent& h) ynothrowv
 				-> const ystdex::decay_t<_fCallable>&{
 				return Deref(h.template target<ystdex::expanded_caller<
-					_tRet(_tParams...), ystdex::decay_t<_fCallable>>>()).caller;
+					FuncType, ystdex::decay_t<_fCallable>>>()).caller;
 			});
 
 			return ystdex::examiners::equal_examiner::are_equal(get_ref(x),
@@ -171,7 +172,7 @@ public:
 	yconstfn
 	GHEvent(_fCallable&& f, ystdex::enable_if_t<!std::is_constructible<BaseType,
 		ystdex::decay_t<_fCallable>>::value, int> = 0)
-		: BaseType(ystdex::make_expanded<_tRet(_tParams...)>(yforward(f))),
+		: BaseType(ystdex::make_expanded<FuncType>(yforward(f))),
 		// TODO: Exception specification.
 #if YSL_Impl_Wknd_GNU_LTO_GHEvent
 		comp_eq(GEqualityExpanded<ystdex::decay_t<_fCallable>>::AreEqual)
@@ -183,7 +184,7 @@ public:
 			const auto get_ref([](const GHEvent& h) ynothrowv
 				-> const ystdex::decay_t<_fCallable>&{
 				return Deref(h.template target<ystdex::expanded_caller<
-					_tRet(_tParams...), ystdex::decay_t<_fCallable>>>()).caller;
+					FuncType, ystdex::decay_t<_fCallable>>>()).caller;
 			});
 
 			return ystdex::examiners::equal_examiner::are_equal(get_ref(x),

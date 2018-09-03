@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r242
+\version r248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2016-02-04 10:18 +0800
+	2018-09-03 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,15 +159,15 @@ ifile_iterator::operator++()
 {
 	yassume(stream);
 
-	const auto val(std::fgetc(stream));
+	const int val(std::fgetc(stream));
 
-	if(YB_UNLIKELY(val == EOF))
-		stream = {};
-	else
+	if(val != EOF)
 	{
-		yassume(byte(val) == val);
+		yassume(int(byte(val)) == val);
 		value = byte(val);
 	}
+	else
+		stream = {};
 	return *this;
 }
 

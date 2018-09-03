@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3650
+\version r3742
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2018-08-12 05:37 +0800
+	2018-09-03 04:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@ See readme file for details.
 
 #include <YSBuild.h>
 #include YFM_YSLib_Service_FileSystem // for namespace YSLib,
-//	namespace YSLib::IO, namespace std::placeholders;
+//	namespace YSLib::IO, namespace std::placeholders, uspawn;
 #include YFM_YCLib_Host // for namespace platform_ex, platform_ex::Terminal,
 //	platform_ex::EncodeArg, platform_ex::DecodeArg,
 //	platform_ex::SetEnvironmentVariable;
@@ -46,6 +46,10 @@ See readme file for details.
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include YFM_YSLib_Service_TextFile // for YSLib::SharedInputMappedFileStream,
 //	YSLib::Text::CheckBOM;
+
+//! \since build 837
+namespace SHBuild
+{
 
 using namespace YSLib;
 using namespace IO;
@@ -170,7 +174,7 @@ const struct Option
 	PDefHOp(bool, (), const string& arg) const
 		ImplRet(filter(arg))
 } OptionsTable[]{
-	{"-xd,", "output directory", "DIR_NAME", [](string&& val){
+	{"-xd,", "output directory path", "DIR_PATH", [](string&& val){
 		PrintInfo("Output directory is switched to " + Quote(val) + '.');
 		OutputDir = std::move(val);
 	}, {"The name of output directory. Default value is '" OPT_build_path "'.",
@@ -411,6 +415,39 @@ RunNPLFromStream(const char* name, std::istream&& is)
 } // unnamed namespace;
 
 
+/*!
+\brief 被调用的外部命令。
+\since build 837
+*/
+class Command final
+{
+private:
+	string cmdname;
+	vector<string> args{};
+
+public:
+	Command(const string& cmd)
+		: cmdname(cmd)
+	{}
+	DefDeCopyMoveCtorAssignment(Command)
+
+	const string&
+	GetString() const
+	{
+		return cmdname;
+	}
+
+	static int
+	Call(const Command& cmd)
+	{
+		const auto& cmd_str(cmd.GetString());
+
+		PrintInfo(cmd_str, Debug, LogGroup::Command);
+		return uspawn(cmd_str.c_str());
+	}
+};
+
+
 //! \since build 520
 //@{
 class BuildContext final : private ystdex::noncopyable
@@ -445,9 +482,12 @@ public:
 
 	//! \since build 545
 	DefGetter(const ynothrow, const string&, Flags, flags)
-	//! \since build 596
+	/*!
+	\pre 断言：参数的数据指针非空。
+	\since build 837
+	*/
 	string
-	GetFlags(const string&) const;
+	GetFlags(string_view) const;
 
 	//! \since build 538
 	int
@@ -459,22 +499,21 @@ public:
 	void
 	Build();
 
-	//! \since build 540
+	//! \since build 837
 	int
-	Call(const string&, size_t n = 0) const;
+	Call(const Command&, size_t n = 0) const;
 
-	//! \since build 539
-	//@{
-	PDefH(void, CallWithException, const string& cmd, size_t n = 0) const
+	//! \since build 837
+	PDefH(void, CallWithException, const Command& cmd, size_t n = 0) const
 		ImplExpr(CheckResult(Call(cmd, n)))
 
+	//! \since build 539
 	static PDefH(void, CheckResult, int ret)
 		ImplExpr(ret == 0 ? void() : raise_exception(ret))
-	//@}
 
-	//! \since build 540
+	//! \since build 837
 	int
-	RunTask(const string&) const;
+	RunTask(const Command&) const;
 };
 
 
@@ -491,11 +530,16 @@ public:
 	BuildContext& Context;
 	Key Source;
 
-	//! \since build 648
+	/*!
+	\pre 断言：参数的数据指针非空。
+	\since build 648
+	*/
 	//@{
 	PDefH(string, GetCommand, string_view ext) const
 		ImplRet(LookupCommand(GetCommandType(ext)))
-	static string
+
+	//! \since build 837
+	static string_view
 	GetCommandType(string_view);
 
 	string
@@ -503,18 +547,22 @@ public:
 	//@}
 };
 
-string
+string_view
 Rule::GetCommandType(string_view ext)
 {
+	YAssertNonnull(ext.data());
+
 	if(ext == "c")
 		return "CC";
 	if(ext == "cc" || ext == "cpp" || ext == "cxx")
 		return "CXX";
-	return {};
+	return "";
 }
 string
 Rule::LookupCommand(string_view name) const
 {
+	YAssertNonnull(name.data());
+
 	return name.empty() ? string() : Context.GetEnv(string(name));
 }
 
@@ -643,8 +691,10 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 
 
 string
-BuildContext::GetFlags(const string& cmd_type) const
+BuildContext::GetFlags(string_view cmd_type) const
 {
+	YAssertNonnull(cmd_type.data());
+
 	string res;
 
 	if(cmd_type == "CC")
@@ -677,7 +727,8 @@ BuildContext::Build()
 	const auto in(NormalizeDirectoryPathTail(Options[0]));
 	const auto ipath(MakeNormalizedAbsolute(Path(in)));
 
-	PrintInfo("Absolute path " + Quote(to_string(ipath).GetMBCS()) + " recognized.");
+	PrintInfo("Absolute path " + Quote(to_string(ipath).GetMBCS())
+		+ " recognized.");
 	if(!VerifyDirectory(in))
 		raise_exception(1, "SRCPATH is not existed.");
 	EnsureOutputDirectory(OutputDir);
@@ -709,7 +760,7 @@ BuildContext::Build()
 		// TODO: Optimize for job dependency.
 		if(jobs.get_max_task_num() > 1)
 		{
-			print("Wait for unfinished tasks before linking ...", Notice);
+			print("Waiting for unfinished tasks before linking ...", Notice);
 			jobs.reset();
 		}
 		CheckResult(GetLastResult());
@@ -776,7 +827,7 @@ BuildContext::Build()
 		FilterExceptions([print, this]{
 			size_t succ(0), fail(1);
 
-			print("Wating unfinished tasks ...", Warning);
+			print("Waiting for unfinished tasks ...", Warning);
 			for(auto& fut : futures)
 				if(FilterExceptions([&]{
 					if(fut.get() == 0)
@@ -795,16 +846,21 @@ BuildContext::Build()
 }
 
 int
-BuildContext::Call(const string& cmd, size_t n) const
+BuildContext::Call(const Command& cmd, size_t n) const
 {
 	if(n == 0)
 		n = jobs.get_max_task_num();
-	PrintInfo(n <= 1 ? cmd : "Task enqueued.", Debug, LogGroup::Command);
-	return n <= 1 ? usystem(cmd.c_str()) : RunTask(cmd);
+	if(n <= 1)
+		return Command::Call(cmd);
+	else
+	{
+		PrintInfo("Task enqueued.", Debug, LogGroup::Command);
+		return RunTask(cmd);
+	}
 }
 
 int
-BuildContext::RunTask(const string& cmd) const
+BuildContext::RunTask(const Command& cmd) const
 {
 	{
 		std::lock_guard<std::mutex> lck(job_mtx);
@@ -817,8 +873,7 @@ BuildContext::RunTask(const string& cmd) const
 	//	implementation and optimize copy of %cmd.
 	// TODO: Reduce memory footprint.
 	futures.push_back(jobs.wait([&, cmd]{
-		PrintInfo(cmd, Debug, LogGroup::Command);
-		const int res(usystem(cmd.c_str()));
+		const int res(Command::Call(cmd));
 		{
 			std::lock_guard<std::mutex> lck(job_mtx);
 
@@ -831,10 +886,13 @@ BuildContext::RunTask(const string& cmd) const
 }
 //@}
 
+} // namespace SHBuild;
+
 
 int
 main(int argc, char* argv[])
 {
+	using namespace SHBuild;
 	Terminal te, te_err(stderr);
 
 	return FilterExceptions([&]{
@@ -1000,19 +1058,22 @@ main(int argc, char* argv[])
 					env[2], env[1][0] == '\0' ? "empty"
 					: Quote(string(env[1])).c_str());
 			std::puts("SRCPATH\n\tThe source directory to be recursively"
-				" searched.\n\nOPTIONS... [-- ARGS...]\n"
-				"\tThe options and arguments. After '--', if any, options"
-				" parsing is turned off and every remained token is interpreted"
-				" as an argument. Recognized options are handled by this"
-				" program, and the remained arguments would either be the"
-				" argument of the options when the commands are requested, or"
-				" as options come after values of environment variable"
-				" SHBuild_CFLAGS or SHBuild_CXXFLAGS and a single space"
-				" character when CC or CXX is called in the building mode,"
-				" respectively. In the building mode, all options including"
-				" these prefixed values of SHBuild_CFLAGS or SHBuild_CXXFLAGS"
-				" would be sent to the building backends, except for listed"
-				" below (handled by this program):\n");
+				" searched. A subdirectory thereof would be ignored implicitly "
+				" if its name is beginned with a dot ('.') character. A"
+				" subdirectory whose name is same to one of the names specified"
+				" by '-xid,' option (see below) would also be ignored.\n\n"
+				"OPTIONS... [-- ARGS...]\n\tThe options and arguments. After"
+				" '--', if any, options parsing is turned off and every"
+				" remained token is interpreted as an argument. Recognized"
+				" options are handled by this program, and the remained"
+				" arguments would either be the argument of the options when"
+				" the commands are requested, or as options come after values"
+				" of environment variable SHBuild_CFLAGS or SHBuild_CXXFLAGS"
+				" and a single space character when CC or CXX is called in the"
+				" building mode, respectively. In the building mode, all"
+				" options including these prefixed values of SHBuild_CFLAGS or"
+				" SHBuild_CXXFLAGS would be sent to the building backends,"
+				" except for listed below (handled by this program):\n");
 			for(const auto& opt : OptionsTable)
 			{
 				std::printf("  %s%s\n", opt.prefix, opt.option_arg);

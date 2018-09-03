@@ -110,32 +110,13 @@ SHB_BuildYSLib_()
 	local L_SHBuild="$SHBuild"
 	: ${L_AR:='gcc-ar'}
 	: ${L_SHBuild:="$SHBuild_S1_BuildDir/SHBuild"}
-	SHBuild_Pushd
-	cd "$YSLib_BuildDir"
-	debug="$1" AR="$L_AR" SHBuild="$L_SHBuild" \
+	AR="$L_AR" SHBuild="$L_SHBuild" \
 		SHBuild_Common="$SHBuild_ToolDir/SHBuild-YSLib-common.txt" \
 		"$L_SHBuild" -xcmd,RunNPLFile \
 		"$SHBuild_ToolDir/SHBuild-YSLib-build.txt" -- $SHBuild_Opt
-	SHBuild_Popd
-	SHBuild_Puts Done.
 }
 
-SHBuild_Puts Building YSLib libraries ...
-if [[ "$SHBuild_UseDebug" != '' ]]; then
-	SHBuild_Puts Building debug libraries ...
-	SHB_BuildYSLib_ true
-	SHBuild_Puts Finished building debug libraries.
-else
-	SHBuild_Puts Skipped building debug libraries.
-fi
-if [[ "$SHBuild_UseRelease" != '' ]]; then
-	SHBuild_Puts Building release libraries ...
-	SHB_BuildYSLib_ ''
-	SHBuild_Puts Finished building release libraries.
-else
-	SHBuild_Puts Skipped building release libraries.
-fi
-SHBuild_Puts Finished building YSLib libraries.
+SHB_BuildYSLib_ x
 
 # Installation functions.
 SHB_InstLibS()

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r1291
+\version r1295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2018-08-06 23:01 +0800
+	2018-09-03 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,10 +180,10 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 @2.5.1.1 标准库扩展：
 部分头文件以一对一或多对一的形式在相似接口意义上扩展（或替代） ISO C++ 标准库，参见 @2.5.6 和 @2.5.7 。
 其中扩展 ISO C 标准库接口的部分不依赖扩展其它接口的头文件。
-扩展的标准库头（及 LibDefect(@2.6) 对应的头文件）被直接或间接地包含。
+扩展的标准库头及 LibDefect(@2.6) 对应的头文件被直接或间接地包含。若已包含 LibDefect 头文件，不直接包含对应的标准库头。
 
 @2.5.1.2 头文件依赖性：
-因标准库头的对应关系，以下依赖性作为接口公开：
+因标准库头及其中被 YStandard 替换特性与 YStandardEx 对应头文件和 API 的对应关系，以下依赖性作为接口公开：
 "type_traits.hpp" 依赖 "type_inspection.hpp" 、 "integral_constant.hpp" 、 "invoke.hpp" 和  "swap.hpp" ；
 "ref.hpp" 依赖 "addressof.hpp" 和 "invoke.hpp" ；
 "iterator_op.hpp" 依赖 "range.hpp" 和 "deref_op.hpp" ；
@@ -203,6 +203,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "hash.hpp" 和 "mixin.hpp" 依赖 "tuple.hpp" ；
 "any_iterator.hpp" 依赖 "any.h" ；
 "tree.hpp" 和 "container.hpp" 依赖 "range.hpp" ；
+"string_view.hpp" 依赖 <libdefect/string.h> ；
 "string.hpp" 依赖 "container.hpp" ；
 "map.hpp" 和 "set.hpp" 依赖 "tree.hpp" 。
 另见 @2.5.4 、 @2.5.5 、 @2.5.6 和 @2.5.7 。
@@ -234,7 +235,7 @@ YStandardEx 及其实现保持兼容 ISO C++11 。
 "container.hpp" 依赖 "range.hpp" ；
 "tree.hpp" 和 "string_view.hpp" 依赖 "range.hpp" ；
 "string.hpp" 依赖 "container.hpp" ；
-"string.hpp" 内部依赖 "string_view.hpp" （蕴含公开依赖 "range.hpp" ）；
+"string.hpp" 内部依赖 "string_view.hpp" （蕴含公开依赖 "range.hpp" 和 <libdefect/string.h> ）；
 "map.hpp" 和 "set.hpp" 依赖 "tree.hpp" （蕴含公开依赖 "range.hpp" ）。
 
 @2.5.2 命名空间和模板特化：

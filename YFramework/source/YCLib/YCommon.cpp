@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2854
+\version r2886
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2016-08-14 13:12 +0800
+	2016-09-02 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,10 @@
 #include <limits.h> // for _POSIX_SEM_NSEMS_MAX, _POSIX_SYMLOOP_MAX,
 //	_POSIX_SEM_VALUE_MAX;
 #if YCL_Win32
-#	include YFM_Win32_YCLib_MinGW32
+#	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS, ::STARTUPINFOW,
+//	::PROCESS_INFORMATION, ::CreateProcessW, CREATE_UNICODE_ENVIRONMENT,
+//	platform_ex::WaitUnique, ::GetExitCodeProcess;
 #	include <stdlib.h> // for ::_wsystem;
-#	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS;
 #endif
 
 namespace platform
@@ -51,6 +52,38 @@ terminate() ynothrow
 		::swiWaitForVBlank();
 #else
 	std::abort();
+#endif
+}
+
+int
+uspawn(const char* cmd)
+{
+#if YCL_Win32
+	auto wcmd(platform_ex::UTF8ToWCS(cmd));
+	// NOTE: See https://blogs.msdn.microsoft.com/oldnewthing/20031210-00/?p=41553/.
+	// XXX: With inspection of UCRT source (SDK version 10.0.17134.0), some MSDN
+	//	documents seems to be wrong of the limit, e.g. https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/spawnvpe-wspawnvpe?view=vs-2017.
+	//	The actual limit should be same to %::_wexecvp and %::CreateProcessW in
+	//	current versions of Windows, i.e. 32767.
+	::STARTUPINFOW startup_info{};
+	::PROCESS_INFORMATION process_info{};
+
+	startup_info.cb = sizeof(::STARTUPINFOW);
+	if(::CreateProcessW(nullptr, &wcmd[0], {}, {}, true,
+		CREATE_UNICODE_ENVIRONMENT, {}, {}, &startup_info, &process_info))
+	{
+		platform_ex::WaitUnique(process_info.hProcess);
+
+		unsigned long exit_code(0);
+
+		if(::GetExitCodeProcess(process_info.hProcess, &exit_code))
+			// XXX: Cast expexted.
+			return int(exit_code);
+		YCL_Raise_Win32E("GetExitCodeProcess", yfsig);
+	}
+	YCL_Raise_Win32E("CreateProcessW", yfsig);
+#else
+	return std::system(cmd);
 #endif
 }
 

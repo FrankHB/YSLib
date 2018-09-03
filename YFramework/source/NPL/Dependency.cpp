@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1643
+\version r1745
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-08-13 05:36 +0800
+	2018-09-03 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,10 +46,17 @@ namespace NPL
 //	Except implementation of '$sequence', they shall still be conforming. Native
 //	implementation of forms should provide better performance in general.
 
+//! \since build 837
+//@{
 // NOTE: For general native implementations.
-#define YF_Impl_NPLA1_Enable_NativeForms true
+#define YF_Impl_NPLA1_Native_Forms true
+// NOTE: For environment primitive native implemantations.
+#define YF_Impl_NPLA1_Native_EnvironmentPrimitives true
+// NOTE: For '$vau' in 'id' derivations instead of '$lambda'.
+#define YF_Impl_NPLA1_Use_Id_Vau true
 // NOTE: For awareness of strong ownership of environments.
-#define YF_Impl_NPLA1_Enable_LockEnvironment true
+#define YF_Impl_NPLA1_Use_LockEnvironment true
+//@}
 
 vector<string>
 DecomposeMakefileDepList(std::streambuf& sb)
@@ -407,14 +414,13 @@ LoadEnvironments(ContextNode& ctx)
 	// NOTE: This is now be primitive since in NPL environment capture is more
 	//	basic than vau.
 	RegisterStrict(ctx, "copy-environment", CopyEnvironment);
+	RegisterStrictUnary<const EnvironmentReference>(ctx, "lock-environment",
+		std::mem_fn(&EnvironmentReference::Lock));
 	RegisterStrict(ctx, "make-environment", MakeEnvironment);
-	RegisterStrict(ctx, "get-current-environment", GetCurrentEnvironment);
 	RegisterStrictUnary<const shared_ptr<Environment>>(ctx,
 		"weaken-environment", [](const shared_ptr<Environment>& p) ynothrow{
 		return EnvironmentReference(p);
 	});
-	RegisterStrictUnary<const EnvironmentReference>(ctx, "lock-environment",
-		std::mem_fn(&EnvironmentReference::Lock));
 	// NOTE: Environment mutation is optional in Kernel and supported here.
 	// NOTE: Lazy form '$deflazy!' is the basic operation, which may bind
 	//	parameter as unevaluated operands. For zero overhead principle, the form
@@ -429,10 +435,9 @@ LoadEnvironments(ContextNode& ctx)
 void
 LoadCombiners(ContextNode& ctx)
 {
-	// NOTE: 'eqv? (() get-current-environment) (() ($vau () e e))' shall
-	//	be evaluated to '#t'.
-	RegisterForm(ctx, "$vau", Vau);
-	RegisterForm(ctx, "$vau%", VauRef);
+	// NOTE: For ground environment applicatives (see below for
+	//	'get-current-environment'), the result of evaluation of expression
+	//	'eqv? (() get-current-environment) (() ($vau () e e))' shall be '#t'.
 	RegisterForm(ctx, "$vaue", VauWithEnvironment);
 	RegisterForm(ctx, "$vaue%", VauWithEnvironmentRef);
 	RegisterStrictUnary<ContextHandler>(ctx, "wrap", Wrap);
@@ -466,7 +471,17 @@ namespace Derived
 void
 LoadPrimitive(Loader& loader)
 {
-#if YF_Impl_NPLA1_Enable_NativeForms
+	// NOTE: Some combiners are provided here as host primitives for
+	//	more efficiency and less dependencies.
+#if YF_Impl_NPLA1_Native_Forms || YF_Impl_NPLA1_Native_EnvironmentPrimitives
+	RegisterStrict(loader, "get-current-environment", GetCurrentEnvironment);
+	RegisterStrict(loader, "lock-current-environment", LockCurrentEnvironment);
+#endif
+#if YF_Impl_NPLA1_Native_Forms || !YF_Impl_NPLA1_Native_EnvironmentPrimitives
+	RegisterForm(loader, "$vau", Vau);
+	RegisterForm(loader, "$vau%", VauRef);
+#endif
+#if YF_Impl_NPLA1_Native_Forms
 	RegisterStrict(loader, "id", [](TermNode& term){
 		RetainN(term);
 		LiftTerm(term, Deref(std::next(term.begin())));
@@ -480,7 +495,31 @@ LoadPrimitive(Loader& loader)
 	});
 	RegisterStrict(loader, "list", ReduceBranchToListValue);
 	RegisterStrict(loader, "list%", ReduceBranchToList);
-#elif true
+	RegisterForm(loader, "$lambda", Lambda);
+	RegisterForm(loader, "$lambda%", LambdaRef);
+	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
+	RegisterForm(loader, "$sequence", Sequence);
+#else
+#	if YF_Impl_NPLA1_Native_EnvironmentPrimitives
+	loader.Perform(u8R"NPL(
+		$def! $vau $vaue (() get-current-environment) (&formals &e .&body) env
+			eval (cons $vaue (cons env (cons formals (cons e body)))) env;
+		$def! $vau% $vau (&formals &senv .&body) env
+			eval (cons $vaue% (cons env (cons formals (cons senv body)))) env;
+	)NPL");
+	RegisterForm(loader, "$vau%", VauRef);
+#	else
+	loader.Perform(u8R"NPL(
+		$def! get-current-environment (wrap ($vau () e e));
+		$def! lock-current-environment (wrap ($vau () e lock-environment e));
+	)NPL");
+#	endif
+	// XXX: The operative '$set!' is same to following derivations.
+	loader.Perform(u8R"NPL(
+		$def! $set! $vau (&e &formals .&expr) env
+			eval (list $def! formals (unwrap eval) expr env) (eval e env);
+	)NPL");
+#	if YF_Impl_NPLA1_Use_Id_Vau
 	// NOTE: The parameter shall be in list explicitly as '(.x)' to lift
 	//	elements by value rather than by reference (as '&x'), otherwise resulted
 	//	'list' is wrongly implemented as 'list%' with undefined behavior becuase
@@ -494,14 +533,36 @@ LoadPrimitive(Loader& loader)
 		$def! list wrap ($vau (.x) #ignore x);
 		$def! list% wrap ($vau &x #ignore x);
 	)NPL");
-#else
+	// XXX: The operative '$defv!' is same to following derivations.
+	loader.Perform(u8R"NPL(
+		$def! $defv! $vau (&$f &formals &senv .&body) env
+			eval (list $set! env $f $vau formals senv body) env;
+		$defv! $lambda (&formals .&body) env
+			wrap (eval (cons $vau (cons formals (cons ignore body))) env);
+		$defv! $lambda% (&formals .&body) env
+			wrap (eval (cons $vau% (cons formals (cons ignore body))) env);
+	)NPL");
+#	else
 	RegisterForm(loader, "$lambda", Lambda);
 	RegisterForm(loader, "$lambda%", LambdaRef);
 	loader.Perform(u8R"NPL(
 		$def! id $lambda% (%x) x;
 		$def! idv $lambda (&x) x;
 		$def! list $lambda (.x) x;
-		$def! list% $lambda% &x x;
+		$def! list% $lambda &x x;
+	)NPL");
+#	endif
+	// TODO: Support move-only types at end?
+	loader.Perform(u8R"NPL(
+		$def! $sequence
+			($lambda (&cenv)
+				($lambda #ignore $vaue% cenv &body env
+					$if (null? body) inert (eval% (cons% $aux body) env))
+				($set! cenv $aux $vaue% (weaken-environment cenv) (&head .&tail)
+					env $if (null? tail) (eval% head env)
+						(($vau% (&t) e ($lambda% #ignore (eval% t e))
+							(eval% head env)) (eval% (cons% $aux tail) env))))
+			(make-environment (() get-current-environment));
 	)NPL");
 #endif
 }
@@ -511,27 +572,14 @@ LoadCore(Loader& loader)
 {
 	loader.Perform(u8R"NPL(
 		$def! $quote $vau (&x) #ignore x;
-		$def! $set! $vau (&expr1 &formals .&expr2) env
-			eval (list $def! formals (unwrap eval) expr2 env) (eval expr1 env);
+		$def! $set! $vau (&e &formals .&expr) env
+			eval (list $def! formals (unwrap eval) expr env) (eval e env);
 		$def! $defv! $vau (&$f &formals &senv .&body) env
 			eval (list $set! env $f $vau formals senv body) env;
 		$def! $defv%! $vau (&$f &formals &senv .&body) env
 			eval (list $set! env $f $vau% formals senv body) env;
-	)NPL");
-#if YF_Impl_NPLA1_Enable_NativeForms
-	RegisterForm(loader, "$lambda", Lambda);
-	RegisterForm(loader, "$lambda%", LambdaRef);
-#else
-	loader.Perform(u8R"NPL(
-		$defv! $lambda (&formals .&body) env
-			wrap (eval (cons $vau (cons formals (cons ignore body))) env);
-		$defv! $lambda% (&formals .&body) env
-			wrap (eval (cons $vau% (cons formals (cons ignore body))) env);
-	)NPL");
-#endif
-	loader.Perform(u8R"NPL(
-		$defv! $setrec! (&expr1 &formals .&expr2) env eval
-			(list $defrec! formals (unwrap eval) expr2 env) (eval expr1 env);
+		$defv! $setrec! (&e &formals .&expr) env eval
+			(list $defrec! formals (unwrap eval) expr env) (eval e env);
 		$defv! $defl! (&f &formals .&body) env eval
 			(list $set! env f $lambda formals body) env;
 		$defv! $defl%! (&f &formals .&body) env eval
@@ -560,35 +608,16 @@ LoadCore(Loader& loader)
 		$defv! $lambdae% (&e &formals .&body) env
 			wrap (eval (list* $vaue% e formals ignore body) env);
 	)NPL");
-#if YF_Impl_NPLA1_Enable_NativeForms
-	// NOTE: Some combiners are provided here as host primitives for
-	//	more efficiency and less dependencies.
-	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
-	RegisterForm(loader, "$sequence", Sequence);
-#else
-	// TODO: Support move-only types at end?
-	loader.Perform(u8R"NPL(
-		$def! $sequence
-			($lambda (&cenv)
-				($lambda #ignore $vaue% cenv &body env
-					$if (null? body) inert (eval% (cons% $aux body) env))
-				($set! cenv $aux $vaue% (weaken-environment cenv) (&head .&tail)
-					env $if (null? tail) (eval% head env)
-						(($vau% (&t) e ($lambda% #ignore (eval% t e))
-							(eval% head env)) (eval% (cons% $aux tail) env))))
-			(make-environment (() get-current-environment));
-	)NPL");
-#endif
 	loader.Perform(u8R"NPL(
 		$defv%! $cond &clauses env
 			$if (null? clauses) inert (apply ($lambda% ((&test .&body) .clauses)
 				$if (eval test env) (eval% body env)
 					(apply (wrap $cond) clauses env)) clauses);
 	)NPL");
-#if YF_Impl_NPLA1_Enable_LockEnvironment
+#if YF_Impl_NPLA1_Use_LockEnvironment
 	loader.Perform(u8R"NPL(
 		$def! make-standard-environment
-			$lambda () lock-environment (() get-current-environment);
+			$lambda () () lock-current-environment;
 	)NPL");
 #else
 	loader.Perform(u8R"NPL(
@@ -633,6 +662,11 @@ LoadCore(Loader& loader)
 			(eval% ($if (null? bindings) (list*% $let bindings (idv body))
 				(list% $let (list (first% bindings))
 				(list*% $let* (rest% bindings) body))) env);
+		$defv! $provide! (&symbols .&body) env $sequence
+			(eval (list% $def! symbols (list $let () $sequence (list% $set!
+				(() get-current-environment) ($quote res) (list% ()
+				lock-current-environment)) body (list* () list symbols))) env)
+			res;
 		$defl! unfoldable? (&l)
 			forward (accr l null? (first-null? l) first-null? rest% $or?);
 		$def! map-reverse $let ((&cenv () make-standard-environment)) wrap
@@ -669,8 +703,8 @@ LoadEnvironments(Loader& loader)
 		}, AccessTermPtr<string>(term));
 	});
 	loader.Perform(u8R"NPL(
-		$defv! $binds1? (&expr &s) env
-			eval (list (unwrap bound?) (symbol->string s)) (eval expr env);
+		$defv! $binds1? (&e &s) env
+			eval (list (unwrap bound?) (symbol->string s)) (eval e env);
 	)NPL");
 	RegisterStrict(loader, "value-of", ValueOf);
 	RegisterStrict(loader, "get-current-repl",
@@ -877,6 +911,10 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			if(c == '.')
 				c = '_';
 		return res;
+	});
+	RegisterStrictUnary<const string>(loader, "SHBuild_String_absolute_path?_",
+		[](const string& str){
+		return IO::IsAbsolute(str);
 	});
 	RegisterStrictUnary<const string>(loader, "SHBuild_TrimOptions_",
 		[](const string& src){

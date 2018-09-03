@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1096
+\version r1097
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-08-22 12:01 +0800
+	2018-09-03 16:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -385,7 +385,7 @@ trivially_fill_n(_type* first, size_t n = 1, byte value = {}) ynothrowv
 	static_assert(is_trivial<_type>(), "Non-trivial type found.");
 
 	yconstraint(!is_undereferenceable(first));
-	std::memset(first, value, sizeof(_type) * n);
+	std::memset(first, int(value), sizeof(_type) * n);
 	return first + n;
 }
 

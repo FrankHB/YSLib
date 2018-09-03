@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8212
+\version r8224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-08-13 05:02 +0800
+	2018-08-28 15:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -632,9 +632,9 @@ private:
 			Forms::CheckParameterLeafToken(n, [&]{
 				// XXX: The symbol can be rebound.
 				env.GetMapRef()[n].SetContent(TermNode::Container(),
-					ValueObject(ystdex::any_ops::use_holder, ystdex::in_place<
-					HolderFromPointer<weak_ptr<ContextHandler>>>,
-					store[n] = p_d));
+					ValueObject(ystdex::any_ops::use_holder,
+					ystdex::in_place_type<HolderFromPointer<weak_ptr<
+					ContextHandler>>>, store[n] = p_d));
 			});
 		}
 	}
@@ -657,7 +657,7 @@ private:
 
 					Deref(p_strong) = std::move(v.GetObject<ContextHandler>());
 					v = ValueObject(ystdex::any_ops::use_holder,
-						ystdex::in_place<HolderFromPointer<shared_ptr_t>>,
+						ystdex::in_place_type<HolderFromPointer<shared_ptr_t>>,
 						std::move(p_strong));
 				}
 			});
@@ -2398,7 +2398,7 @@ MatchParameter(const TermNode& t, TermNode& o, std::function<void(TNIter,
 		{
 			const auto& back(Deref(std::prev(last)));
 
-			if(IsLeaf(back))
+			if(IsLeaf(back) && ReferenceTerm(back))
 			{
 				if(const auto p = AccessPtr<TokenValue>(back))
 				{
@@ -2457,7 +2457,7 @@ MatchParameter(const TermNode& t, TermNode& o, std::function<void(TNIter,
 	}
 	else if(!t.Value)
 	{
-		if(o)
+		if(ReferenceTerm(o))
 			throw ParameterMismatch(ystdex::sfmt(
 				"Invalid nonempty operand found for empty list parameter,"
 					" with value %s.", TermToValueString(o).c_str()));
@@ -2717,6 +2717,13 @@ GetCurrentEnvironment(TermNode& term, ContextNode& ctx)
 {
 	RetainN(term, 0);
 	term.Value = ValueObject(ctx.WeakenRecord());
+}
+
+void
+LockCurrentEnvironment(TermNode& term, ContextNode& ctx)
+{
+	RetainN(term, 0);
+	term.Value = ValueObject(ctx.ShareRecord());
 }
 
 ReductionStatus

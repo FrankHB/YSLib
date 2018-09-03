@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2822
+\version r2836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2018-08-24 15:16 +0800
+	2018-08-27 03:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,9 @@
 #include "memory.hpp" // for allocator_traits, enable_if_t, remove_cvref_t,
 //	false_, is_object, decay_t, std::declval, true_, nested_allocator, or_,
 //	is_same, is_enum, is_class;
-#include "string_view.hpp" // for "string_view.hpp" (implying "range.hpp"),
-//	basic_string_view, std::char_traits, std::initializer_list, std::to_string,
-//	ntctslen;
+#include "string_view.hpp" // for internal "string_view.hpp" (implying
+//	"range.hpp" and "<libdefect/string.h>"), basic_string_view,
+//	std::char_traits, std::initializer_list, std::to_string, ntctslen;
 #include "container.hpp" // for "container.hpp", make_index_sequence,
 //	index_sequence, begin, end, size, sort_unique, underlying, std::hash;
 #include "cstdio.h" // for yconstraint, vfmtlen, ystdex::is_null;
@@ -49,12 +49,17 @@ namespace ystdex
 
 //! \since build 833
 //@{
-// XXX: Although adopted features like P0254R2 have significant concerns on
-//	compatibility, there is no feature testing macro yet. See https://isocpp.org/std/standing-documents/sd-6-sg10-feature-test-recommendations#model.
 inline namespace cpp2017
 {
 
-#if __cplusplus >= 201703L
+// XXX: Although adopted features from LWG issues have some concerns on
+//	compatibility, there is already feature testing macro for the major feature,
+//	i.e. WG21 P0254R2 (see WG21 P0941R2).
+#if __cpp_lib_string_view >= 201606L || __cplusplus >= 201606L
+#	define YB_Impl_String_has_P0254R2 true
+#endif
+
+#if YB_Impl_String_has_P0254R2
 using std::basic_string;
 #else
 /*!
@@ -1995,7 +2000,7 @@ cond_prefix(const _tString& str, const _type& prefix, _tString&& val = {})
 } // namespace ystdex;
 
 
-#if !(__cplusplus >= 201703L)
+#if !YB_Impl_String_has_P0254R2
 //! \since build 833
 namespace std
 {
@@ -2011,6 +2016,8 @@ struct hash<ystdex::basic_string<_tChar, _tTraits, _tAlloc>>
 
 } // namespace std;
 #endif
+
+#undef YB_Impl_String_has_P0254R2
 
 #endif
 

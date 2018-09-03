@@ -1,4 +1,4 @@
-﻿"#", "(C) 2014-2017 FrankHB.",
+﻿"#", "(C) 2014-2018 FrankHB.",
 "NPLA1 script as common library.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
@@ -21,11 +21,18 @@ $defv! $set-system-var! (var arg) env $unless (eval (list $binds1? env var) env)
 	($let* ((cmd eval arg env) ((rstr code .) system-get cmd)) $if (eqv? code 0)
 		(eval (list $def! var rstr) env)
 		(SHBuild_RaiseError_ (cmd-error-msg_ cmd)));
-$defv! $assert-nonempty (var) env $unless
+$defv! $assert (var pred? msg) env $unless
 	($and? (eval (list $binds1? env var) env)
-		(not? (string-empty? (eval var env))))
+		(pred? (eval var env)))
 	(SHBuild_RaiseError_ (++ "Variable " (SHBuild_QuoteS_
-		(symbol->string var)) " should not be empty."));
+		(symbol->string var)) " shall " msg "."));
+"TODO", "Use 'string?'.";
+$defv! $assert-nonempty (var) env
+	eval (list $assert var ($lambda (str) not? (string-empty? str))
+		"be a string of nonempty value") env;
+$defv! $assert-absolute-path (var) env
+	eval (list $assert var SHBuild_String_absolute_path?_
+		"be a string of absolute path") env;
 $defl! cons-cmd (.xs) apply ++ (map1 ($lambda (s) ++ s " ") xs);
 $defl! SHBuild_CheckUName_Case_ (x) $cond
 	((rmatch? x ".*Darwin.*") "OS_X")
@@ -216,4 +223,6 @@ $defl! SHBuild_GetPlatformStrings ()
 		SHBuild_CheckUNameM_Case_ SHBuild_Env_uname_m);
 	list SHBuild_Env_OS SHBuild_Env_Arch
 );
+"#", "Following private environment variables are used: SHBuild.";
+$defl! SHB_GetToolPath () system-quote (env-get "SHBuild");
 

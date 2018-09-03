@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型和相关扩展操作。
-\version r415
+\version r419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2018-08-20 07:47 +0800
+	2018-09-03 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,8 +78,9 @@ native_byte_order()
 {
 	yconstexpr const details::byte_order_tester x = {0x01020304};
 
-	return x.p[0] == 4 ? byte_order::little : (x.p[0] == 1 ? byte_order::big
-		: (x.p[0] == 2 ? byte_order::PDP : byte_order::unknown));
+	return x.p[0] == byte(4) ? byte_order::little : (x.p[0] == byte(1)
+		? byte_order::big
+		: (x.p[0] == byte(2) ? byte_order::PDP : byte_order::unknown));
 }
 
 //! \brief 测试本机位序。
@@ -278,7 +279,7 @@ pack_uint(_tIn first, _tIn last) ynothrowv
 
 	yconstraint(!is_undereferenceable(first));
 	return std::accumulate(first, last, utype(), [](utype x, byte y){
-		return utype(x << std::numeric_limits<byte>::digits | y);
+		return utype(x << std::numeric_limits<byte>::digits | utype(y));
 	});
 }
 

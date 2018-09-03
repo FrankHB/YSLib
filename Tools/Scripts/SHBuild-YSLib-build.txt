@@ -1,24 +1,36 @@
 ﻿"#", "(C) 2014-2018 FrankHB.",
-"NPLA1 script for build YSLib using SHBuild.";
+"NPLA1 script for building YSLib using SHBuild.";
 
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
 
-load (env-get "SHBuild_Common");
+$def! env_SHBuild_Common_ $provide! (
+	$assert-absolute-path
+	$redef!
+	SHBuild_2m
+	SHBuild_BuildGCH
+	SHBuild_EchoVar_N
+	SHBuild_GetPlatformStrings
+	SHB_GetToolPath
+	build-with-conf-opt
+	cons-cmd
+	system-check
+	putss
+	win32?
+) load (env-get "SHBuild_Common");
 
 $def! YSLib_BuildDir env-get "YSLib_BuildDir";
-$assert-nonempty YSLib_BuildDir;
+$assert-absolute-path YSLib_BuildDir;
 SHBuild_EnsureDirectory_ YSLib_BuildDir;
 $def! (env-os env-arch) () SHBuild_GetPlatformStrings;
 $defl! SHBuild_EchoVar_E (env var) SHBuild_EchoVar var
 	(eval (string->symbol (SHBuild_SDot_ var)) env);
-$defl! skip-or-build (nskip dynamic) $let
+$defl! skip-or-build_ (nskip dynamic debug) $let
 (
-	(debug not? (env-empty? "debug"))
 	(lname ++ ($if dynamic "dynamic " "static ") "libraries")
 )
 (
 	$def! YSLib_BaseDir env-get "YSLib_BaseDir";
-	$assert-nonempty YSLib_BaseDir;
+	$assert-absolute-path YSLib_BaseDir;
 	$if debug ($redef! lname ++ "debug " lname);
 	$if nskip ($let*
 	(
@@ -47,8 +59,8 @@ $defl! skip-or-build (nskip dynamic) $let
 			"INCLUDES_YFramework" "LIBS_YFramework");
 		$let
 		(
-			(shbuild env-get (system-quote "SHBuild"))
-			(outdir ++ ".shbuild" ($if dynamic "-dll" "")
+			(shbuild () SHB_GetToolPath)
+			(outdir ++ YSLib_BuildDir "/.shbuild" ($if dynamic "-dll" "")
 				($if debug "-debug" ""))
 		)
 		(
@@ -92,6 +104,28 @@ $defl! skip-or-build (nskip dynamic) $let
 	))
 	(putss "Skipped " lname ".")
 );
-skip-or-build (env-empty? "SHBuild_NoStatic") #f;
-skip-or-build (env-empty? "SHBuild_NoDynamic") #t;
+
+puts "Building YSLib libraries ...";
+$let (
+	(has-static env-empty? "SHBuild_NoStatic")
+	(has-dynamic env-empty? "SHBuild_NoDynamic")
+) $let ((
+		build-conf $lambda (debug)
+		(
+			$def! conf-name $if debug "debug" "release";
+			$if (env-empty? ($if debug "SHBuild_UseDebug" "SHBuild_UseRelease"))
+			(putss "Skipped building " conf-name " libraries.")
+			(
+				putss "Building " conf-name " libraries ...";
+				skip-or-build_ has-static #f debug;
+				skip-or-build_ has-dynamic #t debug;
+				putss "Finished building " conf-name " libraries."
+			)
+		)
+	))
+(
+	build-conf #t;
+	build-conf #f
+);
+puts "Finished building YSLib libraries.";
 
