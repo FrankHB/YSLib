@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2017 FrankHB.
+	© 2009-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台中立的文件抽象。
-\version r1632
+\version r1656
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2017-09-25 20:56 +0800
+	2018-09-06 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,27 +117,33 @@ private:
 	FileDescriptor desc;
 	unique_lock<FileDescriptor> lock;
 
-	UniqueLockedOutputFileStream(int);
+	//! \since build 838
+	UniqueLockedOutputFileStream(int, std::ios_base::openmode);
 
 public:
-	UniqueLockedOutputFileStream(UniqueFile);
-	//! \pre 间接断言：指针参数非空。
-	//@{
-	template<typename _tChar>
-	YB_NONNULL(1)
-	UniqueLockedOutputFileStream(const _tChar* filename, int omode,
-		mode_t pmode = DefaultPMode())
-		: UniqueLockedOutputFileStream(uopen(filename, omode, pmode))
-	{}
+	//! \since build 838
+	UniqueLockedOutputFileStream(UniqueFile, std::ios_base::openmode);
 	/*!
-	\note std::ios_base::openmode 可能是 int 。
-	\since build 727
+	\pre 间接断言：指针参数非空。
+	\since build 838
+	*/
+	//@{
+	/*!
+	\pre 指定打开模式的参数兼容。
+	\note 为避免误用，打开模式不提供默认参数。
 	*/
 	template<typename _tChar>
 	YB_NONNULL(1)
-	UniqueLockedOutputFileStream(std::ios_base::openmode mode,
-		const _tChar* filename, mode_t pmode = DefaultPMode())
-		: UniqueLockedOutputFileStream(filename, omode_conv(mode), pmode)
+	UniqueLockedOutputFileStream(int omode, const _tChar* filename,
+		std::ios_base::openmode mode, mode_t pmode = DefaultPMode())
+		: UniqueLockedOutputFileStream(uopen(filename, omode, pmode), mode)
+	{}
+	//! \note std::ios_base::openmode 可能是 int 。
+	template<typename _tChar>
+	YB_NONNULL(1)
+	UniqueLockedOutputFileStream(const _tChar* filename,
+		std::ios_base::openmode mode, mode_t pmode = DefaultPMode())
+		: UniqueLockedOutputFileStream(omode_convb(mode), filename, mode, pmode)
 	{}
 	//@}
 

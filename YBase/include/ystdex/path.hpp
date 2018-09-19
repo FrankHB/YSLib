@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r1363
+\version r1392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2018-08-29 19:33 +0800
+	2018-09-06 15:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -309,6 +309,7 @@ public:
 	\since build 600
 
 	按特征中的谓词判断路径元素类别并处理路径元素。
+	忽略空路径元素。
 	特定类别的路径元素按特定行为修改当前路径：
 		谓词 is_parent 指定切换当前路径到父目录，若不能满足则被忽略；
 		谓词 is_self 指定不切换当前目录，被无条件忽略。
@@ -320,37 +321,43 @@ public:
 	path&
 	operator/=(const value_type& s)
 	{
-		if(!empty() && traits_type::is_parent(s))
+		if(!empty())
 		{
-			if(has_leaf_nonempty())
+			if(traits_type::is_parent(s))
 			{
-				if(!(traits_type::is_parent(back())
-					|| traits_type::is_self(back())))
-					pop_back();
-				else
-					push_back(s);
+				if(has_leaf_nonempty())
+				{
+					if(!(traits_type::is_parent(back())
+						|| traits_type::is_self(back())))
+						pop_back();
+					else
+						push_back(s);
+				}
 			}
+			else if(!traits_type::is_self(s))
+				push_back(s);
 		}
-		else if(!traits_type::is_self(s))
-			push_back(s);
 		return *this;
 	}
 	path&
 	operator/=(value_type&& s) ynothrow
 	{
-		if(!empty() && traits_type::is_parent(s))
+		if(!empty())
 		{
-			if(!traits_type::is_absolute(front()) || 1U < size())
+			if(traits_type::is_parent(s))
 			{
-				if(!(traits_type::is_parent(back())
-					|| traits_type::is_self(back())))
-					pop_back();
-				else
-					push_back(std::move(s));
+				if(!traits_type::is_absolute(front()) || 1U < size())
+				{
+					if(!(traits_type::is_parent(back())
+						|| traits_type::is_self(back())))
+						pop_back();
+					else
+						push_back(std::move(s));
+				}
 			}
+			else if(!traits_type::is_self(s))
+				push_back(std::move(s));
 		}
-		else if(!traits_type::is_self(s))
-			push_back(std::move(s));
 		return *this;
 	}
 	//@}

@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3731
+\version r3862
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-08-13 04:58 +0800
+	2018-09-13 06:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1350,7 +1350,6 @@ private:
 public:
 	//! \brief 无参数构造：初始化空环境。
 	DefDeCtor(Environment)
-	DefDeCopyMoveCtorAssignment(Environment)
 	/*!
 	\brief 构造：使用包含绑定节点的指针。
 	\note 不检查绑定的名称。
@@ -1380,6 +1379,7 @@ public:
 		: Parent((CheckParent(vo), std::move(vo)))
 	{}
 	//@}
+	DefDeCopyMoveCtorAssignment(Environment)
 
 	friend PDefHOp(bool, ==, const Environment& x, const Environment& y)
 		ynothrow
@@ -1881,108 +1881,51 @@ public:
 	//@}
 };
 
-
 /*!
-\brief 环境切换器。
-\warning 非虚析构。
-\since build 821
+\brief 切换到参数指定的新创建的环境。
+\relates ContextNode
+\since build 838
 */
-struct EnvironmentSwitcher
+template<typename... _tParams>
+inline shared_ptr<Environment>
+SwitchToFreshEnvironment(ContextNode& ctx, _tParams&&... args) ynothrow
 {
-	ystdex::lref<ContextNode> Context;
-	mutable shared_ptr<Environment> SavedPtr;
-
-	EnvironmentSwitcher(ContextNode& ctx,
-		shared_ptr<Environment>&& p_saved = {})
-		: Context(ctx), SavedPtr(std::move(p_saved))
-	{}
-	DefDeMoveCtor(EnvironmentSwitcher)
-
-	DefDeMoveAssignment(EnvironmentSwitcher)
-
-	void
-	operator()() const ynothrowv
-	{
-		if(SavedPtr)
-			Context.get().SwitchEnvironmentUnchecked(std::move(SavedPtr));
-	}
-};
+	return ctx.SwitchEnvironmentUnchecked(
+		make_shared<Environment>(yforward(args)...));
+}
 
 
 /*!
-\note 参数分别为上下文、捕获的当前动作和捕获的后继动作。
-\note 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
+\brief 构造并向绑定目标添加叶节点值。
+\return 对应的值在构造前不存在。
+\pre 断言：第二参数的数据指针非空。
+\since build 838
 */
 //@{
-/*!
-\brief 合并规约动作：创建指定上下文中的连续异步规约当前和后继动作的规约动作。
-\note 若当前动作为空，则直接使用后继动作作为结果。
-\since build 821
-*/
-YF_API Reducer
-CombineActions(ContextNode&, Reducer&&, Reducer&&);
-
-//! \return ReductionStatus::Retrying 。
-//@{
-/*!
-\brief 异步规约当前和后继动作。
-\sa CombineActions
-\since build 821
-*/
-YF_API ReductionStatus
-RelayNext(ContextNode&, Reducer&&, Reducer&&);
+template<typename _type, typename... _tParams>
+inline bool
+EmplaceLeaf(Environment::BindingMap& m, string_view name, _tParams&&... args)
+{
+	YAssertNonnull(name.data());
+	return m.insert_or_assign(name, TermNode(YSLib::NoContainer, name,
+		ystdex::in_place_type<_type>, yforward(args)...)).second;
+	// NOTE: The following code is incorrect because the subterms are not
+	//	cleared, as well as lacking of %bool return value of insertion result.
+//	m[name].Value.emplace<_type>(yforward(args)...);
+}
+template<typename _type, typename... _tParams>
+inline bool
+EmplaceLeaf(Environment& env, string_view name, _tParams&&... args)
+{
+	return NPL::EmplaceLeaf<_type>(env.Bindings, name, yforward(args)...);
+}
+template<typename _type, typename... _tParams>
+inline bool
+EmplaceLeaf(ContextNode& ctx, string_view name, _tParams&&... args)
+{
+	return NPL::EmplaceLeaf<_type>(ctx.GetRecordRef(), name, yforward(args)...);
+}
 //@}
-
-/*!
-\brief 异步规约指定动作和非空的当前动作。
-\since build 823
-\pre 断言： \tt ctx.Current 。
-*/
-inline PDefH(ReductionStatus, RelaySwitchedUnchecked, ContextNode& ctx,
-	Reducer&& cur)
-	ImplRet(YAssert(ctx.Current, "No action found to be the next action."),
-		RelayNext(ctx, std::move(cur), ctx.Switch()))
-
-/*!
-\brief 异步规约指定动作和当前动作。
-\sa RelaySwitchedUnchecked
-\since build 821
-*/
-inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx, Reducer&& cur)
-	ImplRet(ctx.Current ? RelaySwitchedUnchecked(ctx, std::move(cur))
-		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
-//@}
-
-/*!
-\brief 转移动作到当前动作及定界动作。
-\since build 812
-*/
-inline PDefH(void, MoveAction, ContextNode& ctx, Reducer&& act)
-	ImplExpr(!ctx.Current ? ctx.SetupTail(std::move(act))
-		: ctx.Push(std::move(act)))
-
-
-//! \since build 674
-//@{
-//! \ingroup ThunkType
-//@{
-//! \brief 上下文处理器类型。
-using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
-//! \brief 字面量处理器类型。
-using LiteralHandler = YSLib::GHEvent<ReductionStatus(const ContextNode&)>;
-//@}
-
-//! \brief 注册上下文处理器。
-inline PDefH(void, RegisterContextHandler, ContextNode& ctx, const string& name,
-	ContextHandler f)
-	ImplExpr(ctx.GetBindingsRef()[name].Value = std::move(f))
-
-//! \brief 注册字面量处理器。
-inline PDefH(void, RegisterLiteralHandler, ContextNode& ctx, const string& name,
-	LiteralHandler f)
-	ImplExpr(ctx.GetBindingsRef()[name].Value = std::move(f))
-//@}
-
 
 //! \since build 788
 //@{
@@ -2018,7 +1961,6 @@ FetchValuePtr(const Environment& env, const _tKey& name)
 	return GetValuePtrOf(NPL::LookupName(env, name));
 }
 //@}
-
 
 //! \exception NPLException 访问共享重定向上下文失败。
 //@{
@@ -2062,6 +2004,86 @@ inline PDefH(pair<shared_ptr<Environment> YPP_Comma bool>, ResolveEnvironment,
 	TermNode& term)
 	ImplRet(ResolveEnvironment(ReferenceTerm(term).Value))
 //@}
+
+
+/*!
+\brief 环境切换器。
+\warning 非虚析构。
+\since build 821
+*/
+struct EnvironmentSwitcher
+{
+	ystdex::lref<ContextNode> Context;
+	mutable shared_ptr<Environment> SavedPtr;
+
+	EnvironmentSwitcher(ContextNode& ctx,
+		shared_ptr<Environment>&& p_saved = {})
+		: Context(ctx), SavedPtr(std::move(p_saved))
+	{}
+	DefDeMoveCtor(EnvironmentSwitcher)
+
+	DefDeMoveAssignment(EnvironmentSwitcher)
+
+	void
+	operator()() const ynothrowv
+	{
+		if(SavedPtr)
+			Context.get().SwitchEnvironmentUnchecked(std::move(SavedPtr));
+	}
+};
+
+
+/*!
+\note 参数分别为上下文、捕获的当前动作和捕获的后继动作。
+\note 以参数声明的相反顺序捕获参数作为动作，结果以参数声明的顺序析构捕获的动作。
+*/
+//@{
+/*!
+\brief 组合规约动作：创建指定上下文中的连续异步规约当前和后继动作的规约动作。
+\note 若当前动作为空，则直接使用后继动作作为结果。
+\since build 838
+*/
+YF_API Reducer
+ComposeActions(ContextNode&, Reducer&&, Reducer&&);
+
+//! \return ReductionStatus::Retrying 。
+//@{
+/*!
+\brief 异步规约当前和后继动作。
+\sa ComposeActions
+\since build 821
+*/
+YF_API ReductionStatus
+RelayNext(ContextNode&, Reducer&&, Reducer&&);
+//@}
+
+/*!
+\brief 异步规约指定动作和非空的当前动作。
+\since build 823
+\pre 断言： \tt ctx.Current 。
+*/
+inline PDefH(ReductionStatus, RelaySwitchedUnchecked, ContextNode& ctx,
+	Reducer&& cur)
+	ImplRet(YAssert(ctx.Current, "No action found to be the next action."),
+		RelayNext(ctx, std::move(cur), ctx.Switch()))
+
+/*!
+\brief 异步规约指定动作和当前动作。
+\sa RelaySwitchedUnchecked
+\since build 821
+*/
+inline PDefH(ReductionStatus, RelaySwitched, ContextNode& ctx, Reducer&& cur)
+	ImplRet(ctx.Current ? RelaySwitchedUnchecked(ctx, std::move(cur))
+		: (ctx.SetupTail(std::move(cur)), ReductionStatus::Retrying))
+//@}
+
+/*!
+\brief 转移动作到当前动作及定界动作。
+\since build 812
+*/
+inline PDefH(void, MoveAction, ContextNode& ctx, Reducer&& act)
+	ImplExpr(!ctx.Current ? ctx.SetupTail(std::move(act))
+		: ctx.Push(std::move(act)))
 
 } // namespace NPL;
 

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r3943
+\version r4006
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2018-08-28 18:57 +0800
+	2018-09-12 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,13 @@
 #define NPL_INC_NPLA1_h_ 1
 
 #include "YModules.h"
-#include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, LoggedEvent,
-//	NPL::AccessTerm, ystdex::equality_comparable, ystdex::exclude_self_t,
-//	YSLib::AreEqualHeld, YSLib::GHEvent, ystdex::make_function_type_t,
-//	ystdex::make_parameter_tuple_t, ystdex::make_expanded,
-//	ystdex::invoke_nonvoid, ystdex::make_transform, std::accumulate,
-//	ystdex::bind1, std::placeholders::_2, ystdex::examiners::equal_examiner;
+#include YFM_NPL_NPLA // for NPLATag, ValueNode, TermNode, YSLib::GHEvent,
+//	LoggedEvent, NPL::AccessTerm, ystdex::equality_comparable,
+//	ystdex::exclude_self_t, YSLib::AreEqualHeld, YSLib::GHEvent,
+//	ystdex::make_function_type_t, ystdex::make_parameter_tuple_t,
+//	ystdex::make_expanded, ystdex::invoke_nonvoid, ystdex::make_transform,
+//	std::accumulate, ystdex::bind1, std::placeholders::_2,
+//	ystdex::examiners::equal_examiner;
 
 namespace NPL
 {
@@ -50,6 +51,17 @@ namespace A1
 */
 struct YF_API NPLA1Tag : NPLATag
 {};
+
+
+//! \ingroup ThunkType
+//@{
+//! \since build 674
+//@{
+//! \brief 上下文处理器类型。
+using ContextHandler = YSLib::GHEvent<ReductionStatus(TermNode&, ContextNode&)>;
+//! \brief 字面量处理器类型。
+using LiteralHandler = YSLib::GHEvent<ReductionStatus(const ContextNode&)>;
+//@}
 
 
 /*!
@@ -72,6 +84,7 @@ enum class ValueToken
 	GroupingAnchor,
 	OrderedAnchor
 };
+//@}
 
 /*!
 \brief 取值记号的字符串表示。
@@ -608,34 +621,27 @@ public:
 //@}
 
 
-//! \since build 733
+/*!
+\pre 间接断言：第二参数的数据指针非空。
+\since build 838
+*/
 //@{
-template<typename... _tParams>
+//! \brief 注册一般形式上下文处理器。
+template<class _tTarget, typename... _tParams>
 inline void
-RegisterForm(ContextNode& ctx, const string& name, _tParams&&... args)
+RegisterForm(_tTarget& target, string_view name, _tParams&&... args)
 {
-	NPL::RegisterContextHandler(ctx, name,
+	NPL::EmplaceLeaf<ContextHandler>(target, name,
 		FormContextHandler(yforward(args)...));
 }
 
-//! \brief 转换上下文处理器。
-template<typename... _tParams>
-inline ContextHandler
-ToContextHandler(_tParams&&... args)
-{
-	return StrictContextHandler(yforward(args)...);
-}
-
-/*!
-\brief 注册严格上下文处理器。
-\note 使用 ADL ToContextHandler 。
-\since build 754
-*/
-template<typename... _tParams>
+//! \brief 注册严格上下文处理器。
+template<class _tTarget, typename... _tParams>
 inline void
-RegisterStrict(ContextNode& ctx, const string& name, _tParams&&... args)
+RegisterStrict(_tTarget& target, string_view name, _tParams&&... args)
 {
-	NPL::RegisterContextHandler(ctx, name, ToContextHandler(yforward(args)...));
+	NPL::EmplaceLeaf<ContextHandler>(target, name,
+		StrictContextHandler(yforward(args)...));
 }
 //@}
 
@@ -922,11 +928,11 @@ public:
 \exception NPLException 嵌套异常：加载失败。
 \note 第二个参数表示来源，仅用于诊断消息。
 \relates REPLContext
-\since build 805
+\since build 838
 */
 template<typename... _tParams>
 YB_NONNULL(2) void
-TryLoadSouce(REPLContext& context, const char* name, _tParams&&... args)
+TryLoadSource(REPLContext& context, const char* name, _tParams&&... args)
 {
 	TryExpr(context.LoadFrom(yforward(args)...))
 	CatchExpr(..., std::throw_with_nested(NPLException(
@@ -1324,42 +1330,43 @@ struct BinaryAsExpansion : private
 
 
 /*!
-\brief 注册一元严格求值上下文处理器。
-\since build 754
+\pre 间接断言：第二参数的数据指针非空。
+\since build 838
 */
 //@{
-template<typename _func>
+//! \brief 注册一元严格求值上下文处理器。
+//@{
+template<typename _func, class _tTarget>
 void
-RegisterStrictUnary(ContextNode& ctx, const string& name, _func f)
+RegisterStrictUnary(_tTarget& target, string_view name, _func f)
 {
-	RegisterStrict(ctx, name, UnaryExpansion<_func>(f));
+	A1::RegisterStrict(target, name, UnaryExpansion<_func>(f));
 }
-template<typename _type, typename _func>
+template<typename _type, typename _func, class _tTarget>
 void
-RegisterStrictUnary(ContextNode& ctx, const string& name, _func f)
+RegisterStrictUnary(_tTarget& target, string_view name, _func f)
 {
-	RegisterStrict(ctx, name, UnaryAsExpansion<_type, _func>(f));
+	A1::RegisterStrict(target, name, UnaryAsExpansion<_type, _func>(f));
 }
 //@}
 
-/*!
-\brief 注册二元严格求值上下文处理器。
-\since build 760
-*/
+//! \brief 注册二元严格求值上下文处理器。
 //@{
-template<typename _func>
+template<typename _func, class _tTarget>
 void
-RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
+RegisterStrictBinary(_tTarget& target, string_view name, _func f)
 {
-	RegisterStrict(ctx, name, BinaryExpansion<_func>(f));
+	A1::RegisterStrict(target, name, BinaryExpansion<_func>(f));
 }
 //! \since build 835
-template<typename _type, typename _type2, typename _func>
+template<typename _type, typename _type2, typename _func, class _tTarget>
 void
-RegisterStrictBinary(ContextNode& ctx, const string& name, _func f)
+RegisterStrictBinary(_tTarget& target, string_view name, _func f)
 {
-	RegisterStrict(ctx, name, BinaryAsExpansion<_type, _type2, _func>(f));
+	A1::RegisterStrict(target, name,
+		BinaryAsExpansion<_type, _type2, _func>(f));
 }
+//@}
 //@}
 
 

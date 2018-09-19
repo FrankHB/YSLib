@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r5757
+\version r6058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-09-04 01:39 +0800
+	2018-09-19 08:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,305 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ DLI @ "class %task_pool" @ %Concurrency $=
+		(
+			+ 'ynothrow' @ "lambda-expression" @ "function templates %(wait, \
+				wait_for, wait_until)",
+			+ $design "simplified" @ "member function template %wait_to_enqueue"
+				!^ "lambda-expression"
+		),
+		/ "constructors" !@ '__cpp_inheriting_constructors >= 201511L' $=
+		(
+			// As per https://gcc.gnu.org/projects/cxx-status.html, P0136R1 is \
+				implemented since GCC 7. So the older versions would not work. \
+				Lacking of the change would break builds in platform %Android.
+			* "ambiguous constructors" 
+				@ "class template %basic_string" @ %String $since b833
+				$= (/ "inherited constructor" -> "7 explicitly declared \
+				constructors"),
+			* $impl "missing default constructor" @ "underlying %optional data"
+				@ %Optional $since b591
+				// The defaulted constructor would not be provided by \
+					the implementation in derived classes without P0136R1.
+		),
+		* $comp "ill-formed node handle data when instantiated" \
+			!@ '__cpp_inheriting_constructors >= 201511L'
+			@ %Tree $since b830 $dep_from %Optional,
+			// This would be instantiated in %YFramework.YSLib.UI.Menu, for \
+				example.
+		/ "ignored empty path elements" @ "all 2 funtions %operator/="
+			@ "class template %path" @ %Path
+			// This is consistent with %std::filesystem::path in general. Note \
+				empty elements can still be accepted by %push_back.
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib.Keys $=
+		(
+			* "missing explicit cast to integer type from %byte"
+				@ "function %MapKeyChar#2" @ "platform %Win32" $since b489,
+			* "missing implementation support" @ '_GLIBCXX_BITSET'
+				@ ("function %FindFirstKey" $since b486,
+				"function %FindNextKey" $since b487) $mismatch
+				// See https://bitbucket.org/FrankHB/yslib/wiki/Developments.zh-CN.md.
+		),
+		/ %NPL $=
+		(
+			/ %Dependency $=
+			(
+				+ "operatives ('$letrec', '$import!')"
+					@ "loaded derived functions"
+					@ "function %LoadNPLContextGround",
+				/ @ "function %LoadNPLContextForSHBuild" $=
+				(
+					/ "loaded derived functions" $=
+					(
+						+ "applicative to avoid duplicate double quotes" $dep_to
+							"added applicative for protected quotes"
+						* $revert(b834) "environment captured failed to work \
+							after switched in the context"
+							@ "applicative %SHBuild_EchoVar" $since b834
+					),
+					(
+					/ "did not call %LoadNPLContextGround";
+					/ 'REPLContext' @ "parameter"
+						@ "function %LoadNPLContextForSHBuild" -> 'ContextNode',
+					)
+				),
+				/ DLDI "avoided implicit conversion to %ContextNode reference"
+					@ "loading" @ "functions %(LoadNPLContextGround, \
+					LoadNPLContextForSHBuild)" $dep_from ("%(RegisterForm, \
+					RegisterStrict, RegisterStrictUnary, RegisterStrictBinary)"
+					@ %NPLA1) $dep_to "loader disambiguity",
+				* $lib "redundant 'YF_API'" @ "definition"
+					@ "function %LoadNPLContextGround" $since b834,
+				+ "function template %GetModuleFor"
+			),
+			/ %NPLA $=
+			(
+				+ "function template %SwitchToFreshEnvironment" @ %NPLA,
+				+ "3 function templates %EmplaceLeaf"
+					^ "%ValueNode::insert_or_assign",
+				(
+				- $revert(b674) "function templates %(RegisterContextHandler, \
+					RegisterLiteralHandler)";
+				/ "aliases %(ContextHandler, LiteralHandler)"
+					>> ("namespace %NPL::A1" @ %NPLA1)
+				),
+				/ $revert_ex(b817) "function %CombineActions"
+					=> "%ComposeActions",
+					// To avoid confusion with concept of combiners in the \
+						object language.
+			),
+			/ %NPLA1 $=
+			(
+				* "spelling error" @ %NPLA1 $since b806
+					(/ "%TryLoadSouce" => "%TryLoadSource"),
+				/ DLDI "simplified environment switching" @ "vau handlers"
+					^ ("%SwitchToFreshEnvironment" @ %NPLA),
+				(
+				/ "function template %RegisterStrict" ^ "%StrictContextHandler"
+					~ "ADL %ToContextHandler",
+				/ $impl ^ "%StrictContextHandler" ~ "%ToContextHandler"
+					$effective @ "functions %Forms::(Lambda, LambdaRef, \
+					MakeEncapsulationType, Wrap, WrapOnce)";
+				- $revert(b733) "function template %ToContextHandler"
+				),
+				(
+				/ $impl "function templates %(RegisterForm, RegisterStrict)"
+					^ (($dep_from "%NPL::EmplaceLeaf"
+					~ "%NPL::RegisterContextHandler") @ %NPLA)
+					$dep_to "removal of RegisterContextHandler call";
+				* $comp "subterms of bound object not cleared" $orig
+					(@ "function template %RegisterFunction" @ $since b696)
+				),
+				/ "function templates %(RegisterForm, RegisterStrict; \
+					RegisterStrictUnary, RegisterStrictBinary)" $=
+				(
+					/ 'ContextNode' @ "1st parameter type"
+						-> "template argument" $dep_from "loader disambiguity",
+					/ 'string' @ "2nd parameter" -> 'string_view',
+				),
+				/ @ "function %MakeEncapsulationType" $=
+				(
+					* "missing unique type creation" $since b834
+					/ "simplified" ^ "%ystdex::exchange, temporary object"
+						~ "%(swap, TermNode::AddValueTo"
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			* $comp "ill-formed conflict %String constructors" \
+				!@ '__cpp_inheriting_constructors >= 201511L' @ %Core.String
+				$since b833 $dep_from %YBase.YStandardEx.String,
+			* $comp "ill-formed instantiations" \
+				!@ '__cpp_inheriting_constructors >= 201511L' @ %UI.Menu
+				$since b833 $dep_from %YBase.YStandardEx.Tree,
+			/ %Service $=
+			(
+				/ ("overload for %String parameter"
+					-> "2 overloads with %ypath and templated path parameter")
+					@ "%operator/=" @ "class %Path" @ %FileSystem,
+					// Now %string_view can be used as parameter type of \
+						%operator/=, being consistent as the constructors.
+				/ @ "constructors %UniqueLockedOutputFileStream" @ %File $=
+				(
+					(
+					* $impl "missing parameter for specifiying stream open \
+						mode to guarantee open mode synchonization between \
+						underlying system stream and output stream"
+						@ "underying constructors" $since b724;
+					+ "binary open mode as 3rd parameter"
+						@ "constructor template#1",
+					* "missing parameter for specifiying binary and other \
+						stream open modes" @ "all 2 constructor templates"
+						$since b724
+					),
+					/ $revert_ex(b727) "swapped 1st and 2nd parameter"
+						@ "all 2 constructor templates",
+						// This is consistent with %std::ofstream constructors.
+				)
+			)
+		),
+		/ %Helper $=
+		(
+			/ "avoided setting termination handler" @ 'YF_Hosted'
+				@ %Environment,
+				// This provides better debug experience with various hosted \
+					implementations.
+			/ %Initialization $=
+			(
+				/ $forced DLDI "functions %(LoadNPLA1File, SaveConfiguration)"
+					$dep_from %YSLib.Service.File,
+				* $re_add(b837) $impl "missing explicit cast to %size_t type \
+					from %byte" @ "platform %Win32" @ "function %LoadComponents"
+					$since b725
+					// This would not work when %byte is %std::byte.
+			)
+		)
+	),
+	* $comp "build failure" @ "platform %Android" $dep_from
+		%YFramework.YSLib.(Core.String, UI.Tree) $since b830,
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			/ "%SHBuild-YSLib-common.txt" $=
+			(
+				+ $design "installation functions",
+				/ @ "applicatives ('compile-ok', 'get-thread-option',
+					'system-or-puts')" $=
+				(
+					* "possibly missing quotes on paths" $since b796
+						^ 'system-quote',
+					/ $impl "simplified" ^ 'cons-cmd'
+				),
+				/ "applicative 'build-with-conf-opt' accepted separated \
+					argument to specify loader extra arguments adjustment",
+			),
+			/ "%SHBuild-YSLib-build.txt" $=
+			(
+				(
+				+ "variables ('env-os', 'env-arch'; %SHBuild_Host_Platform; \
+					'env-host-lib')";
+				(
+				/ $impl "simplified stage 1 library build code"
+					!^ "%SHBuild_BuildGCH" $dep_to
+					"avoided SHBuild_Install_HardLink";
+				/ "imporved robustness of quoted on path and tools in command"
+					^ 'system-quote'
+				),
+				/ "imported installation functions" @ "%SHBuild-YSLib-build.txt"
+					^ $dep_from (('$import!' @ %YFramework.NPL.Dependency),
+					"installation functions" @ "%SHBuild-YSLib-build.txt"),
+				/ $impl "imported stagee 1 SHBuild path"
+					~ "%SHB_GetToolPath call" $dep_to "avoided SHB_GetToolPath"
+				),
+				/ "proteced user environment variables %(INCLUDES, LIBS, \
+					LIBS_RPATH) at first" $dep_to
+					"proteced user environment variables",
+				/ "improved quotes" $dep_from
+					"added applicative for protected quotes"
+			),
+			+ $forced DLDI "importing statement from SHBuild environment \
+				%env_SHBuild_ at first" $dep_from "encapsulated SHBuild \
+				environment" ^ ('$import!' @ %YFramework.NPL.Dependency)
+		),
+		/ @ "%install-sysroot.sh" $=
+		(
+			/ "simplified" $=
+			(
+				/ DLD "all stage 1 installation code"
+					>> ("%SHBuild-YSLib-build.txt" @ %Scripts);
+				+ DLD "passed environment variables %(SHBuild_ToolDir, \
+					SHBuild_BaseDir, SHBuild_UseDebug, SHBuild_UseRelease, \
+					SHBuild_NoStatic, SHBuild_NoDynamic) to stage 1 SHBuild \
+					call";
+				/ DLD "stage 2 SHBuild building code"
+					>> ("%SHBuild-YSLib-build.txt" @ %Scripts) $dep_from
+					"proteced user environment variables" ^ $dep_from
+					'build-with-conf-opt' @ "%SHBuild-YSLib-common.txt";
+				+ $comp "stage 2 builds output %(CXXFLAGS, LDFLAGS, SHBOPT) \
+					before calling build command" $dep_from ("%SHBuild_EchoVar"
+					@ "%LoadNPLContextForSHBuild" @ %YFramework.NPL.Dependency),
+				/ $dev "simplified variable names" $=
+				(
+					/ "%SHBuild_S1_BuildDir" => "%S1_BuildDir",
+					/ "%SHBuild_S1_SHBuild" => "%S1_SHBuild",
+					/ $revert_ex(b740) "exported variable %SHBuild_PCH_stdinc_h"
+						-> "specified only for call of %SHBuild-build.sh",
+					- "variable %SHBuild_YSLib_Platform",
+						// Use %SHBuild_Host_Platform instead.
+					- "exported variables %(INCLUDES_freetype, \
+						CFLAGS_freetype_other, SHBuild_NoStatic, \
+						SHBuild_NoDynamic)"
+						// They are not used in stage 1.
+				),
+				/ DLI "simplified source inclusion" ^ "%SHBuild-common.sh"
+					~ "%SHBuild-common-options.sh"
+			),
+			+ $lib $comp "assertions for nonnull arguments in installation",
+			(
+			- $revert(b563) "all 'SHB_*' functions";
+			* $comp "missing fallback in installation of hard links" $since
+				b659 $dep_from "avoided SHBuild_Install_HardLink"
+			),
+			/ "avoided silence errors when installing 3rd libaray files",
+			- "applicative %SHBuild_BuildGCH" $dep_from
+				"avoided SHBuild_Install_HardLink",
+			- $revert(b837) "applicative %SHB_GetToolPath" $dep_from
+				"avoided SHB_GetToolPath",
+			/ $forced DLDI "stage 1 build" $dep_from 'build-with-conf-opt'
+				@ "%SHBuild-YSLib-common.txt"
+		),
+		/ "NPL source loading" @ %SHBuild.Main $=
+		(
+			/ $forced DLDI ("%TryLoadSouce" @ %YFramework.NPL.NPLA1),
+			/ "NPL environment initialization" $dep_to
+				"encapsulated SHBuild environment" $=
+			(
+				/ "saved NPL ground environment after registration of \
+					applicatives %('env-get', system-get, 'cmd-get-args', \
+					'load')" ^ $dep_from
+					("%EnvironmentSwitcher" @ %YFramework.NPL.NPLA1),
+					// Now ground environment bindings are not mutable.
+				+ "environment object %env_SHBuild_",
+				/ $forced $impl "loading environment for SHBuild initialization"
+					$dep_from
+					("%LoadNPLContextForSHBuild" @ %YFramework.NPL.Dependency)
+					$= (/ "all variables initialized specifically for SHBuild"
+						>> $dep_from "environment object %env_SHBuild_"
+						^ "%GetModuleFor" @ %YFramework.NPL.Dependency)
+			)
+		)
+	)
+),
+
+b837
 (
 	/ %YBase $=
 	(
@@ -293,7 +592,7 @@ $now
 			+ $lib "assertion to ensure nonnull data pointer in %string_view \
 				parameter" $effective
 				@ "member functions %Rule::(GetCommandType, LookupCommand)",
-			/ $re_ex(b634) "spelling error" @ "waiting message"
+			* $re_ex(b634) "spelling error" @ "waiting message"
 				@ "concurrent tasks run" $since b624
 		),
 		/ %Scripts $=
@@ -881,7 +1180,7 @@ b835
 			String, StringView, Tuple, TypeInspection, Utilities)
 			// Ditto.
 	),
-	* $comp "deprecation features avoidence of WG21 P0174R2" $mismatch $since
+	* $comp "deprecated features avoidence of WG21 P0174R2" $mismatch $since
 		b834 $dep_from %YBase.YStandardEx.Cache,
 		// See https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md.
 	/ %YReader $=
@@ -4451,7 +4750,7 @@ b804
 		),
 		* $comp "failed 1st stage boostraping caused by exception raised by \
 			mismatched type of unevaluated symbols" $since b803 $dep_from
-			(('$assert-nonempt', '$set-system-var!', '$env-de!')
+			(('$assert-nonempty', '$set-system-var!', '$env-de!')
 			@ "%SHBuild-YSLib-common.txt" @ %Scripts)
 			// Mangled type names \
 				'N6ystdex14derived_entityINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEJN3NPL7NPLATagEEEE' \

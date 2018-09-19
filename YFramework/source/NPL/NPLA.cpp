@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1943
+\version r1973
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-07-02 07:46 +0800
+	2018-09-13 06:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -863,8 +863,38 @@ ContextNode::Transit() ynothrow
 }
 
 
+Environment::NameResolution
+ResolveName(const ContextNode& ctx, string_view id)
+{
+	YAssertNonnull(id.data());
+	return ctx.GetRecordRef().Resolve(id);
+}
+
+pair<TermReference, bool>
+ResolveIdentifier(const ContextNode& ctx, string_view id)
+{
+	auto pr(ResolveName(ctx, id));
+
+	if(pr.first)
+		return Collapse(*pr.first, pr.second);
+	throw BadIdentifier(id);
+}
+
+pair<shared_ptr<Environment>, bool>
+ResolveEnvironment(const ValueObject& vo)
+{
+	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
+		return {p->Lock(), {}};
+	if(const auto p = vo.AccessPtr<const shared_ptr<Environment>>())
+		return {*p, true};
+	// TODO: Merge with %Environment::CheckParent?
+	Environment::ThrowForInvalidType(vo.type());
+}
+
+
+
 Reducer
-CombineActions(ContextNode& ctx, Reducer&& cur, Reducer&& next)
+ComposeActions(ContextNode& ctx, Reducer&& cur, Reducer&& next)
 {
 	// NOTE: Lambda is not used to avoid unspecified destruction order of
 	//	captured component and better performance (compared to the case of
@@ -901,37 +931,8 @@ CombineActions(ContextNode& ctx, Reducer&& cur, Reducer&& next)
 ReductionStatus
 RelayNext(ContextNode& ctx, Reducer&& cur, Reducer&& next)
 {
-	ctx.SetupTail(CombineActions(ctx, std::move(cur), std::move(next)));
+	ctx.SetupTail(ComposeActions(ctx, std::move(cur), std::move(next)));
 	return ReductionStatus::Retrying;
-}
-
-
-Environment::NameResolution
-ResolveName(const ContextNode& ctx, string_view id)
-{
-	YAssertNonnull(id.data());
-	return ctx.GetRecordRef().Resolve(id);
-}
-
-pair<TermReference, bool>
-ResolveIdentifier(const ContextNode& ctx, string_view id)
-{
-	auto pr(ResolveName(ctx, id));
-
-	if(pr.first)
-		return Collapse(*pr.first, pr.second);
-	throw BadIdentifier(id);
-}
-
-pair<shared_ptr<Environment>, bool>
-ResolveEnvironment(const ValueObject& vo)
-{
-	if(const auto p = vo.AccessPtr<const EnvironmentReference>())
-		return {p->Lock(), {}};
-	if(const auto p = vo.AccessPtr<const shared_ptr<Environment>>())
-		return {*p, true};
-	// TODO: Merge with %Environment::CheckParent?
-	Environment::ThrowForInvalidType(vo.type());
 }
 
 } // namespace NPL;

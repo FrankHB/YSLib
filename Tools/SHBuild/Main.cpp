@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3742
+\version r3788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2018-09-03 04:15 +0800
+	2018-09-17 04:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,9 +39,10 @@ See readme file for details.
 #include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #include YFM_YSLib_Core_YStorage // for ystdex::raise_exception,
 //	YSLib::FetchStaticRef;
-#include YFM_NPL_Dependency // for NPL::DepsEventType,
-//	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
-//	NPL::Install*;
+#include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, EnvironmentSwitcher,
+//	NPL::SwitchToFreshEnvironment, NPL::DecomposeMakefileDepList,
+//	NPL::FilterMakefileDependencies, NPL::Install*;
+#include <ystdex/scope_guard.hpp> // for ystdex::guard;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include YFM_YSLib_Service_TextFile // for YSLib::SharedInputMappedFileStream,
@@ -353,24 +354,26 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	using namespace A1;
 	using namespace Forms;
 	REPLContext context;
-	auto& root(context.Root);
 
 	// NOTE: Force filter level to avoid uninterested NPLA messages. This is
 	//	necessary at least in stage 1.
-	root.Trace.FilterLevel = Logger::Level::Informative;
-	LoadNPLContextForSHBuild(context);
-	RegisterStrictBinary<const string, const string>(root, "env-set",
+	context.Root.Trace.FilterLevel = Logger::Level::Informative;
+	LoadNPLContextGround(context);
+
+	auto& gctx(context.Root);
+
+	RegisterStrictBinary<const string, const string>(gctx, "env-set",
 		[&](const string& var, const string& val){
 		SetEnvironmentVariable(var.c_str(), val.c_str());
 	});
-	RegisterStrict(root, "cmd-get-args", [](TermNode& term){
+	RegisterStrict(gctx, "cmd-get-args", [](TermNode& term){
 		RetainN(term, 0);
 		term.Clear();
 		for(const auto& s : CommandArguments.Arguments)
 			term.AddValue(MakeIndex(term), s);
 		return ReductionStatus::Retained;
 	});
-	RegisterStrict(root, "system-get", [](TermNode& term){
+	RegisterStrict(gctx, "system-get", [](TermNode& term){
 		CallUnaryAs<const string>([&](const string& cmd){
 			TermNode::Container con;
 			auto res(FetchCommandOutput(cmd.c_str()));
@@ -383,33 +386,38 @@ RunNPLFromStream(const char* name, std::istream&& is)
 		}, term);
 		return ReductionStatus::Retained;
 	});
-	RegisterStrictUnary<const string>(root, "load", [&](const string& src){
+	RegisterStrictUnary<const string>(gctx, "load", [&](const string& src){
 		auto p_sifs(OpenNPLStream(src.c_str()));
 
-		TryLoadSouce(context, src.c_str(), static_cast<std::istream&>(*p_sifs));
+		TryLoadSource(context, src.c_str(),
+			static_cast<std::istream&>(*p_sifs));
 	});
-	// XXX: Overriding.
-	root.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
-		ValueObject(std::function<void(const string&, const string&)>(
-		[](const string& n, const string& val){
-			// XXX: Errors from 'std::printf' and 'std::puts' are ignored.
-			using namespace Consoles;
+	context.Root.GetRecordRef().Define("env_SHBuild_", GetModuleFor(gctx, [&]{
+		LoadNPLContextForSHBuild(gctx);
+		// XXX: Overriding.
+		gctx.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
+			ValueObject(std::function<void(const string&, const string&)>(
+			[](const string& n, const string& val){
+				// XXX: Errors from 'std::printf' and 'std::puts' are
+				//	ignored.
+				using namespace Consoles;
 
-			Terminal te;
-			{
-				const auto gd(te.LockForeColor(DarkCyan));
+				Terminal te;
+				{
+					const auto t_gd(te.LockForeColor(DarkCyan));
 
-				std::printf("%s", n.c_str());
-			}
-			std::printf(" = \"");
-			{
-				const auto gd(te.LockForeColor(DarkRed));
+					std::printf("%s", n.c_str());
+				}
+				std::printf(" = \"");
+				{
+					const auto t_gd(te.LockForeColor(DarkRed));
 
-				std::printf("%s", val.c_str());
-			}
-			std::puts("\"");
-	})), true);
-	TryLoadSouce(context, name, is);
+					std::printf("%s", val.c_str());
+				}
+				std::puts("\"");
+		})), true);
+	}), {});
+	TryLoadSource(context, name, is);
 }
 
 } // unnamed namespace;
@@ -1018,23 +1026,23 @@ main(int argc, char* argv[])
 			}
 			else
 			{
-				BuildContext ctx(MaxJobs);
+				BuildContext bctx(MaxJobs);
 
 				for(const auto& env : DeEnvs)
 				{
 					const string name(env[0]);
 
-					FetchEnvironmentVariable(ctx.Envs[name], env[0]);
-					PrintInfo(name + " = " + ctx.GetEnv(name));
+					FetchEnvironmentVariable(bctx.Envs[name], env[0]);
+					PrintInfo(name + " = " + bctx.GetEnv(name));
 				}
 				if(!OutputDir.empty())
-					ctx.OutputDir = std::move(OutputDir);
-				yunseq(ctx.IgnoredDirs = std::move(IgnoredDirs),
-					ctx.Options = std::move(args), ctx.Mode = Mode);
+					bctx.OutputDir = std::move(OutputDir);
+				yunseq(bctx.IgnoredDirs = std::move(IgnoredDirs),
+					bctx.Options = std::move(args), bctx.Mode = Mode);
 				if(!TargetName.empty())
-					ctx.TargetName = std::move(TargetName);
-				PrintInfo("OutputDir = " + ctx.OutputDir);
-				ctx.Build();
+					bctx.TargetName = std::move(TargetName);
+				PrintInfo("OutputDir = " + bctx.OutputDir);
+				bctx.Build();
 			}
 		}
 		else if(argc == 1)
