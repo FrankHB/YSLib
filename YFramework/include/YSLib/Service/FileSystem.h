@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r3443
+\version r3463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2018-08-29 19:33 +0800
+	2018-09-06 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -282,11 +282,25 @@ public:
 
 	//! \brief 追加路径。
 	//@{
-	//! \since build 410
-	PDefHOp(Path&, /=, const String& fname)
-		ImplRet(GetBaseRef() /= fname, *this)
 	PDefHOp(Path&, /=, const Path& pth)
 		ImplRet(GetBaseRef() /= pth, *this)
+	//! \since build 838
+	PDefHOp(Path&, /=, const ypath& pth)
+		ImplRet(GetBaseRef() /= pth, *this)
+	//! \since build 838
+	template<typename _type, yimpl(typename = ystdex::enable_if_t<
+		ystdex::or_<std::is_constructible<u16string_view, _type&&>,
+		std::is_constructible<String, _type&&>>::value>,
+		typename = ystdex::exclude_self_t<Path, _type>,
+		typename = ystdex::exclude_self_t<ypath, _type>)>
+	Path&
+	operator/=(_type&& arg)
+	{
+		// NOTE: Since effective insertion of path needs %value_type, the
+		//	conversion to %String is always required here. No other string view
+		//	type is needed to be handled specially.
+		return GetBaseRef() /= String(AsStringArg(yforward(arg))), *this;
+	}
 	//@}
 
 	friend PDefHOp(bool, ==, const Path& x, const Path& y)

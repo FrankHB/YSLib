@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2836
+\version r2871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2018-08-27 03:28 +0800
+	2018-09-05 03:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,11 +114,6 @@ public:
 		const _tAlloc& a = _tAlloc())
 		: base(str, pos, n, a)
 	{}
-	// NOTE: See $2018-07 @ %Documentation::Workflow::Annual2018.
-	// XXX: This is accidentally equivalent without the condition
-	//	'__cpp_inheriting_constructors > 201511L' even with conditionally enabled
-	//	constructors from ISO C++17.
-	using base::base;
 	//! \see LWG 2742 。
 	template<class _type, yimpl(typename = enable_if_sv_t<_type>)>
 	basic_string(const _type& t, size_type pos, size_type n,
@@ -130,6 +125,38 @@ public:
 	basic_string(sv_type sv, const _tAlloc& a = _tAlloc())
 		: basic_string(sv.data(), sv.size(), a)
 	{}
+	// NOTE: See $2018-07 @ %Documentation::Workflow::Annual2018.
+	// XXX: Names would not be safely hidden.
+#if __cpp_inheriting_constructors >= 201511L
+	using base::base;
+#else
+	//! \since build 838
+	//@{
+	YB_NONNULL(2)
+	basic_string(const _tChar* s, size_type n, const _tAlloc& a = _tAlloc())
+		: base(s, n, a)
+	{}
+	YB_NONNULL(2)
+	basic_string(const _tChar* s, const _tAlloc& a = _tAlloc())
+		: base(s, a)
+	{}
+	basic_string(size_type n, _tChar c, const _tAlloc& a = _tAlloc())
+		: base(n, c, a)
+	{}
+	template<typename _tIn>
+	basic_string(_tIn begin, _tIn end, const _tAlloc& a = _tAlloc())
+		: base(begin, end, a)
+	{}
+	basic_string(std::initializer_list<_tChar>, const _tAlloc& = _tAlloc())
+	{}
+	basic_string(const base& str, const _tAlloc& a)
+		: base(str, a)
+	{}
+	basic_string(base&& str, const _tAlloc& a)
+		: base(std::move(str), a)
+	{}
+	//@}
+#endif
 	basic_string(const base& str)
 		: base(str)
 	{}

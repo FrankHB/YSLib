@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 框架初始化。
-\version r3457
+\version r3464
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2018-07-29 23:32 +0800
+	2018-09-06 16:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include <ystdex/string.hpp> // for ystdex::write_literal, ystdex::sfmt;
 #include <ystdex/scope_guard.hpp> // for ystdex::swap_guard;
 #include <cerrno> // for errno;
-#include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren;
+#include YFM_YSLib_Service_FileSystem // for IO::TraverseChildren,
+//	NativePathView;
 #include YFM_Helper_GUIApplication // for FetchEnvironment, FetchAppInstance,
 //	Application::AddExit, Application::AddExitGuard;
 #include YFM_Helper_Environment // for Environment;
@@ -145,7 +146,7 @@ FetchWorkingRoot()
 				if(!image.empty())
 				{
 					image.pop_back();
-				
+
 					const auto& dir(IO::VerifyDirectoryPathTail(
 						ystdex::to_string_d(image)));
 
@@ -252,7 +253,8 @@ public:
 				cp113_lkp_backup = CHRLib::cp113_lkp;
 				CHRLib::cp113_lkp = [](byte seq0, byte seq1) ynothrowv
 					-> char16_t{
-					return p_dbcs_off_936[p_dbcs_off_936[seq0] + seq1];
+					return p_dbcs_off_936[size_t(p_dbcs_off_936[size_t(seq0)])
+						+ size_t(seq1)];
 				};
 			}
 			if(p_dbcs_off_936)
@@ -389,8 +391,8 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 			ystdex::swap_guard<int, void, decltype(errno)&> gd(errno, 0);
 
 			// XXX: Failed on race condition detected.
-			if(UniqueLockedOutputFileStream uofs{std::ios_base::out
-				| std::ios_base::trunc | platform::ios_noreplace, path})
+			if(UniqueLockedOutputFileStream uofs{path, std::ios_base::out
+				| std::ios_base::trunc | platform::ios_noreplace})
 				WriteNPLA1Stream(uofs, Nonnull(creator)());
 			else
 			{
@@ -465,7 +467,7 @@ void
 SaveConfiguration(const ValueNode& node)
 {
 	if(UniqueLockedOutputFileStream
-		uofs{std::ios_base::out | std::ios_base::trunc, CONF_PATH})
+		uofs{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
 	{
 		YTraceDe(Debug, "Writing configuration...");
 		WriteNPLA1Stream(uofs, ValueNode(node.GetContainer()));

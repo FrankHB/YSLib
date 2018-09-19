@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r542
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2018-07-09 10:08 +0800
+	2018-09-04 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,12 +172,7 @@ public:
 			if(waiter(lck))
 			{
 				yassume(lck.owns_lock());
-				// TODO: Blocked. Use C++14 lambda initializers to reduce
-				//	initialization cost by directly moving from %bound.
-				tasks.push(std::packaged_task<void()>(
-					std::bind([](decltype(bound)& tsk){
-					tsk();
-				}, std::move(bound))));
+				tasks.push(std::packaged_task<void()>(std::move(bound)));
 			}
 			else
 				return {};
@@ -291,7 +286,7 @@ public:
 	inline future_result_t<_fCallable, _tParams...>
 	wait(_fCallable&& f, _tParams&&... args)
 	{
-		return poll([]{
+		return poll([]() ynothrow{
 			return true;
 		}, yforward(f), yforward(args)...);
 	}
@@ -300,7 +295,7 @@ public:
 	inline future_result_t<_fCallable, _tParams...>
 	wait_for(const _tDuration& duration, _fCallable&& f, _tParams&&... args)
 	{
-		return poll_for([]{
+		return poll_for([]() ynothrow{
 			return true;
 		}, duration, yforward(f), yforward(args)...);
 	}
@@ -329,7 +324,7 @@ public:
 	inline future_result_t<_fCallable, _tParams...>
 	wait_until(const _tTimePoint& abs_time, _fCallable&& f, _tParams&&... args)
 	{
-		return poll_until([]{
+		return poll_until([]() ynothrow{
 			return true;
 		}, abs_time, yforward(f), yforward(args)...);
 	}

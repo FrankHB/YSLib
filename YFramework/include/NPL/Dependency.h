@@ -11,13 +11,13 @@
 /*!	\file Dependency.h
 \ingroup NPL
 \brief 依赖管理。
-\version r164
+\version r186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:12:37 +0800
 \par 修改时间:
-	2018-08-20 07:53 +0800
+	2018-09-18 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define NPL_INC_Dependency_h_
 
 #include "YModules.h"
-#include YFM_NPL_NPLA1 // for string, vector, REPLContext;
+#include YFM_NPL_NPLA1 // for string, vector, REPLContext, ystdex::invoke;
 #include <istream> // for std::istream;
+#include <ystdex/scope_guard.hpp> // for ystdex::guard;
 
 namespace NPL
 {
@@ -151,12 +152,33 @@ LoadNPLContextGround(REPLContext&);
 
 /*!
 \brief 加载 SHBuild 使用的 NPL 上下文。
+\pre 已调用 LoadNPLContextGround 或等价方式初始化。
+\exception NPLException 异常中立：初始化失败。
 \sa LoadNPLContextGround
 
-调用 LoadNPLContextGround 并加载 SHBuild 自举使用的其它公共语法形式。
+加载 SHBuild 自举使用的其它公共语法形式。
+用于内部使用。加载的环境的具体内容未指定。
 */
 YF_API void
-LoadNPLContextForSHBuild(REPLContext&);
+LoadNPLContextForSHBuild(ContextNode&);
+
+/*!
+\brief 加载代码作为模块。
+\return 作为环境模块的环境对象强引用。
+\post 返回值非空。
+\since build 838
+*/
+template<typename _fCallable>
+shared_ptr<Environment>
+GetModuleFor(ContextNode& ctx, _fCallable&& f)
+{
+	ystdex::guard<EnvironmentSwitcher> gd(ctx,
+		NPL::SwitchToFreshEnvironment(ctx, ValueObject(ctx.WeakenRecord())));
+
+	ystdex::invoke(f);
+	return ctx.ShareRecord();
+}
+
 
 } // namespace Forms;
 

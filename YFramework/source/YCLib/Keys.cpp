@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1252
+\version r1276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2018-04-15 23:07 +0800
+	2018-09-14 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,23 +34,47 @@
 namespace platform
 {
 
+// XXX: If SGI extension is available, the %std::bitset can have fast bit test
+//	operations. Currently only libstdc++ is known with the feature in the
+//	supported platforms. The API is documented here: https://gcc.gnu.org/onlinedocs/gcc-8.2.0/libstdc++/api/a01459.html#ga6e02d58f0dc8e29529bc5bb4bda868c9.
+#if !_GLIBCXX_BITSET
+namespace
+{
+
+// TODO: Improve performance.
+// XXX: Both Microsoft VC++ 2017 15.8.2 and libcxx 6 have no optimized
+//	implementation with builtins.
+KeyIndex
+find_key(const KeyInput& keys, KeyIndex i = 0) ynothrow
+{
+	for(; i < KeyBitsetWidth; ++i)
+		if(keys[i])
+			return i;
+	return KeyBitsetWidth;
+}
+
+} // unnamed namespace;
+#endif
+
 KeyIndex
 FindFirstKey(const KeyInput& keys) ynothrow
 {
+	// NOTE: See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_containers.html#manual.ext.containers.sgi.
 #if _GLIBCXX_BITSET
 	return keys._Find_first();
 #else
-#	error "Only libstdc++ is currently supported."
+	return find_key(keys);
 #endif
 }
 
 KeyIndex
 FindNextKey(const KeyInput& keys, KeyIndex key) ynothrow
 {
+	// NOTE: See https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_containers.html#manual.ext.containers.sgi.
 #if _GLIBCXX_BITSET
 	return keys._Find_next(key);
 #else
-#	error "Only libstdc++ is currently supported."
+	return find_key(keys, ++key);
 #endif
 }
 
@@ -1150,7 +1174,7 @@ MapKeyChar(KeyIndex code) ynothrow
 char
 MapKeyChar(const KeyInput& keys, KeyIndex code) ynothrow
 {
-	byte state[256];
+	octet state[256];
 	unsigned short s;
 
 	// NOTE: See implementation of %UpdateKeyStates.

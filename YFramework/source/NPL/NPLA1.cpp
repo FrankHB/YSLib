@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8223
+\version r8245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-08-28 15:27 +0800
+	2018-09-14 08:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 //	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
 //	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
 //	unordered_map, deque, ystdex::id, pair, ystdex::equality_comparable,
-//	ystdex::ref_eq, ystdex::make_transform, ystdex::call_value_or;
+//	ystdex::ref_eq, NPL::SwitchToFreshEnvironment, ystdex::make_transform,
+//	ystdex::call_value_or;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
 #include YFM_NPL_SContext // for Session;
@@ -500,7 +501,7 @@ ReduceSubsequent(TermNode& term, ContextNode& ctx, Reducer&& next)
 {
 #if YF_Impl_NPLA1_Enable_Thunked
 	return RelayNext(ctx, std::bind(ReduceCheckedAsync, std::ref(term),
-		std::ref(ctx)), CombineActions(ctx, std::move(next), ctx.Switch()));
+		std::ref(ctx)), ComposeActions(ctx, std::move(next), ctx.Switch()));
 #else
 	// NOTE: This does not support PTC.
 	ReduceCheckedSync(term, ctx);
@@ -1128,8 +1129,7 @@ EvalStringImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 
 
 //! \since build 767
-class VauHandler final
-	: private ystdex::equality_comparable<VauHandler>
+class VauHandler final : private ystdex::equality_comparable<VauHandler>
 {
 private:
 	/*!
@@ -1213,8 +1213,7 @@ public:
 			//	all bindings would behave as in the old environment, which is
 			//	too expensive for direct execution of programs with first-class
 			//	environments.
-			EnvironmentGuard
-				gd(ctx, ctx.SwitchEnvironment(make_shared<Environment>()));
+			EnvironmentGuard gd(ctx, NPL::SwitchToFreshEnvironment(ctx));
 
 			// NOTE: Bound dynamic environment.
 			if(!eformal.empty())
@@ -1493,10 +1492,10 @@ LambdaImpl(TermNode& term, ContextNode& ctx, bool no_lift)
 		auto formals(share_move(Deref(++i)));
 
 		con.erase(con.cbegin(), ++i);
-		// NOTE: %ToContextHandler implies strict evaluation of arguments in
+		// NOTE: %StrictContextHandler implies strict evaluation of arguments in
 		//	%StrictContextHandler::operator().
-		return ToContextHandler(VauHandler({}, std::move(formals),
-			std::move(p_env), {}, ctx, term, no_lift));
+		return ContextHandler(StrictContextHandler(VauHandler({},
+			std::move(formals), std::move(p_env), {}, ctx, term, no_lift)));
 	}, 1);
 }
 
@@ -1739,7 +1738,7 @@ ReduceAgain(TermNode& term, ContextNode& ctx)
 	update_fused_act(fused_act);
 	return RelayNext(ctx, std::move(reduce_again), std::move(fused_act));
 #	else
-	return RelayNext(ctx, std::move(reduce_again), CombineActions(ctx, [&]{
+	return RelayNext(ctx, std::move(reduce_again), ComposeActions(ctx, [&]{
 		ctx.SkipToNextEvaluation = true;
 		return ctx.LastStatus;
 	}, ctx.Switch()));
@@ -2729,16 +2728,14 @@ LockCurrentEnvironment(TermNode& term, ContextNode& ctx)
 ReductionStatus
 MakeEncapsulationType(TermNode& term)
 {
-	TermNode::Container con;
-	shared_ptr<void> p_type;
+	shared_ptr<void> p_type(new yimpl(byte));
+	const auto& tag(ystdex::in_place_type<ContextHandler>);
 
-	TermNode::AddValueTo(con, MakeIndex(0),
-		ToContextHandler(Encapsulate(p_type)));
-	TermNode::AddValueTo(con, MakeIndex(1),
-		ToContextHandler(Encapsulated(p_type)));
-	TermNode::AddValueTo(con, MakeIndex(2),
-		ToContextHandler(Decapsulate(p_type)));
-	swap(con, term.GetContainerRef());
+	ystdex::exchange(term.GetContainerRef(), TermNode::Container{TermNode(
+		NoContainer, MakeIndex(0), tag, StrictContextHandler(
+		Encapsulate(p_type))), TermNode(NoContainer, MakeIndex(1), tag,
+		StrictContextHandler(Encapsulated(p_type))), TermNode(NoContainer,
+		MakeIndex(2), tag, StrictContextHandler(Decapsulate(p_type)))});
 	return ReductionStatus::Retained;
 }
 
@@ -2779,14 +2776,14 @@ ValueOf(TermNode& term, const ContextNode& ctx)
 ContextHandler
 Wrap(const ContextHandler& h)
 {
-	return ToContextHandler(h);
+	return StrictContextHandler(h);
 }
 
 ContextHandler
 WrapOnce(const ContextHandler& h)
 {
 	if(const auto p = h.target<FormContextHandler>())
-		return ToContextHandler(*p);
+		return StrictContextHandler(*p);
 	throw NPLException(ystdex::sfmt("Wrapping failed with type '%s'.",
 		h.target_type().name()));
 }

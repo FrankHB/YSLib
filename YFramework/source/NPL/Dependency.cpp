@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1745
+\version r1763
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-09-03 15:49 +0800
+	2018-09-12 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -277,9 +277,8 @@ public:
 
 	DefCvt(const ynothrow, ContextNode&, context.get().Root)
 
-	DefCvt(const ynothrow, Environment&, context.get().Root.GetRecordRef())
-
-	DefGetter(const ynothrow, Environment&, EnvironmentRef, *this)
+	DefGetter(const ynothrow, Environment&, EnvironmentRef,
+		context.get().Root.GetRecordRef())
 
 	DefFwdTmpl(const ynothrow, TermNode, Perform,
 		context.get().Perform(yforward(args)...))
@@ -662,11 +661,16 @@ LoadCore(Loader& loader)
 			(eval% ($if (null? bindings) (list*% $let bindings (idv body))
 				(list% $let (list (first% bindings))
 				(list*% $let* (rest% bindings) body))) env);
+		$defv%! $letrec (&bindings .&body) env forward
+			(eval% (list $let () $sequence (list% $def! (map1 first% bindings)
+				(list*% () list (map1 rest% bindings))) body) env);
 		$defv! $provide! (&symbols .&body) env $sequence
 			(eval (list% $def! symbols (list $let () $sequence (list% $set!
 				(() get-current-environment) ($quote res) (list% ()
 				lock-current-environment)) body (list* () list symbols))) env)
 			res;
+		$defv! $import! (&e .&symbols) env
+			eval% (list $set! env symbols (list* () list symbols)) (eval e env);
 		$defl! unfoldable? (&l)
 			forward (accr l null? (first-null? l) first-null? rest% $or?);
 		$def! map-reverse $let ((&cenv () make-standard-environment)) wrap
@@ -814,7 +818,7 @@ Load(Loader& loader)
 void
 Load(Loader& loader)
 {
-	LoadObjects(loader);
+	LoadObjects(loader.GetEnvironmentRef());
 	Primitive::Load(loader);
 	Derived::Load(loader);
 }
@@ -824,7 +828,7 @@ Load(Loader& loader)
 
 } // unnamed namespace;
 
-YF_API void
+void
 LoadNPLContextGround(REPLContext& context)
 {
 	Loader loader(context);
@@ -835,13 +839,13 @@ LoadNPLContextGround(REPLContext& context)
 }
 
 void
-LoadNPLContextForSHBuild(REPLContext& context)
+LoadNPLContextForSHBuild(ContextNode& ctx)
 {
-	Loader loader(context);
+	auto& loader(ctx);
+	auto& root_env(ctx.GetRecordRef());
 
-	LoadNPLContextGround(context);
 	// NOTE: SHBuild builtins.
-	loader.GetEnvironmentRef().Define("SHBuild_BaseTerminalHook_",
+	root_env.Define("SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
 		[](const string& n, const string& val) ynothrow{
 			// XXX: Error from 'std::printf' is ignored.
@@ -872,8 +876,9 @@ LoadNPLContextForSHBuild(REPLContext& context)
 		// XXX: To be overriden if %Terminal is usable (platform specific).
 		CallBinaryAs<const string, const string>(
 			[&](const string& n, const string& val){
-			if(const auto p
-				= GetValuePtrOf(context.Root.GetRecordRef().LookupName(
+			// NOTE: Since root environment can be switched, reference to the
+			//	initial instance is necessary to be captured explicitly.
+			if(const auto p = GetValuePtrOf(root_env.LookupName(
 				"SHBuild_BaseTerminalHook_")))
 				if(const auto p_hook = AccessPtr<
 					std::function<void(const string&, const string&)>>(*p))
@@ -886,6 +891,7 @@ LoadNPLContextForSHBuild(REPLContext& context)
 			InstallHardLink(dst.c_str(), src.c_str());
 		}, term);
 	});
+	// TODO: Implement by derivations instead?
 	RegisterStrictUnary<const string>(loader, "SHBuild_QuoteS_",
 		[](const string& str){
 		if(str.find('\'') == string::npos)

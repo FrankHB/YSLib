@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1898
+\version r1905
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2018-08-19 13:39 +0800
+	2018-09-06 16:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,13 @@ using namespace Host;
 
 Environment::Environment(Application& app)
 {
+#if !YF_Hosted
+	// NOTE: This only effects freestanding implementations now, which may need
+	//	different behavior than default implementation. Hosted implemenations
+	//	are expected to have termination handlers friendly to debug, which can
+	//	be overriden before the construction of %Environment if needed.
 	std::set_terminate(terminate);
+#endif
 #if YCL_DS
 
 	using namespace platform;
@@ -79,7 +85,7 @@ Environment::Environment(Application& app)
 		}
 	});
 	InitializeKeyModule([&]{
-		app.AddExit(ystdex::any(ystdex::in_place<FileSystem>));
+		app.AddExit(ystdex::any(ystdex::in_place_type<FileSystem>));
 	}, yfsig, "         LibFAT Failure         ",
 		" An error is preventing the\n"
 		" program from accessing\n"

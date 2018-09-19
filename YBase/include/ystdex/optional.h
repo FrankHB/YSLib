@@ -11,13 +11,13 @@
 /*!	\file optional.h
 \ingroup YStandardEx
 \brief 可选值包装类型。
-\version r1293
+\version r1295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 590
 \par 创建时间:
 	2015-04-09 21:35:21 +0800
 \par 修改时间:
-	2018-08-27 04:38 +0800
+	2018-09-05 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,8 @@ template<typename _type, bool = is_trivially_destructible<_type>::value>
 class optional_base : public optional_base<_type, true>
 {
 public:
-#if YB_IMPL_GNUCPP >= 80000
+#if __cpp_inheriting_constructors < 201511L \
+	|| (YB_IMPL_GNUCPP >= 80000 && YB_IMPL_GNUCPP < 80200)
 	// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85792.
 	yconstfn
 	optional_base() = default;
