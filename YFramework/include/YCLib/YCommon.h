@@ -11,13 +11,13 @@
 /*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3848
+\version r3951
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2018-09-02 22:37 +0800
+	2018-09-29 14:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,13 +31,15 @@
 #include "YModules.h"
 #include YFM_YCLib_Platform
 #include <ystdex/functional.hpp> // for ystdex::decay_t,
-//	ystdex::invoke_result_t, ystdex::retry_on_cond;
+//	ystdex::invoke_result_t, ystdex::retry_on_cond, yfsig;
 #include <ystdex/cassert.h> // yconstraint, yassume for other headers;
+#include <cerrno> // for errno, ENOMEM;
+#include <ystdex/exception.h> // for ystdex::throw_error;
+#include <cstring> // for std::strerror;
 #include <ystdex/cwctype.h> // for ystdex::isprint, ystdex::iswprint;
 #include <ystdex/cstring.h> // for ystdex::uchar_t, ystdex::replace_cast;
 #include YFM_YBaseMacro // for TryRet, CatchIgnore;
 #include <exception> // for std::bad_alloc;
-#include <cerrno> // for errno, ENOMEM;
 
 //! \brief 默认平台命名空间。
 namespace platform
@@ -175,6 +177,102 @@ enum RecordLevel : std::uint8_t
 } // namespace Descriptions;
 
 
+//! \since build 714
+//@{
+//! \note 省略第一参数时为 std::system_error 。
+//@{
+/*!
+\brief 按错误值和指定参数抛出第一参数指定类型的对象。
+\note 先保存可能是左值的 errno 以避免参数中的副作用影响结果。
+\pre platform::ComposeMessageWithSignature 已声明（需要包含 Debug.h ）。
+*/
+#define YCL_Raise_SysE(_t, _msg, _sig) \
+	do \
+	{ \
+		const auto err_(errno); \
+	\
+		ystdex::throw_error<_t>(err_, \
+			platform::ComposeMessageWithSignature(_msg YPP_Comma _sig)); \
+	}while(false)
+
+//! \note 按表达式求值，检查是否为零初始化的值。
+#define YCL_RaiseZ_SysE(_t, _expr, _msg, _sig) \
+	do \
+	{ \
+		const auto err_(_expr); \
+	\
+		if(err_ != decltype(err_)()) \
+			ystdex::throw_error<_t>(err_, \
+				platform::ComposeMessageWithSignature(_msg YPP_Comma _sig)); \
+	}while(false)
+//@}
+
+/*!
+\brief 跟踪 errno 取得的调用状态结果。
+\since build 691
+*/
+#define YCL_Trace_SysE(_lv, _fn, _sig) \
+	do \
+	{ \
+		const int err_(errno); \
+	\
+		YTraceDe(_lv, "Failed calling " #_fn " @ %s with error %d: %s.", \
+			_sig, err_, std::strerror(err_)); \
+	}while(false)
+
+/*!
+\brief 调用系统 C API 或其它可用 errno 取得调用状态的例程。
+\pre 系统 C API 返回结果类型满足 DefaultConstructible 和 LessThanComparable 要求。
+\note 比较返回默认构造的结果值，相等表示成功，小于表示失败且设置 errno 。
+\note 调用时直接使用实际参数，可指定非标识符的表达式，不保证是全局名称。
+*/
+//@{
+/*!
+\note 若失败抛出第一参数指定类型的对象。
+\note 省略第一参数时为 std::system_error 。
+\sa YCL_Raise_SysE
+*/
+//@{
+#define YCL_WrapCall_CAPI(_t, _fn, ...) \
+	[&](const char* sig_) YB_NONNULL(1){ \
+		const auto res_(_fn(__VA_ARGS__)); \
+	\
+		if(YB_UNLIKELY(res_ < decltype(res_)())) \
+			YCL_Raise_SysE(_t, #_fn, sig_); \
+		return res_; \
+	}
+
+#define YCL_Call_CAPI(_t, _fn, _sig, ...) \
+	YCL_WrapCall_CAPI(_t, _fn, __VA_ARGS__)(_sig)
+
+#define YCL_CallF_CAPI(_t, _fn, ...) YCL_Call_CAPI(_t, _fn, yfsig, __VA_ARGS__)
+//@}
+
+/*!
+\note 若失败跟踪 errno 的结果。
+\note 格式转换说明符置于最前以避免宏参数影响结果。
+\sa YCL_Trace_SysE
+*/
+//@{
+#define YCL_TraceWrapCall_CAPI(_fn, ...) \
+	[&](const char* sig_) YB_NONNULL(1){ \
+		const auto res_(_fn(__VA_ARGS__)); \
+	\
+		if(YB_UNLIKELY(res_ < decltype(res_)())) \
+			YCL_Trace_SysE(platform::Descriptions::Warning, _fn, sig_); \
+		return res_; \
+	}
+
+#define YCL_TraceCall_CAPI(_fn, _sig, ...) \
+	YCL_TraceWrapCall_CAPI(_fn, __VA_ARGS__)(_sig)
+
+#define YCL_TraceCallF_CAPI(_fn, ...) \
+	YCL_TraceCall_CAPI(_fn, yfsig, __VA_ARGS__)
+//@}
+//@}
+//@}
+
+
 /*!
 \brief 检查默认区域下指定字符是否为可打印字符。
 \note MSVCRT 的 isprint/iswprint 实现缺陷的变通。
@@ -284,6 +382,21 @@ uspawn(const char*);
 */
 YF_API int
 usystem(const char*);
+
+
+/*!
+\brief 设置环境变量。
+\pre 断言：参数非空。
+\note DS 平台：不支持操作。
+\warning 不保证线程安全。
+\throw std::system_error 设置失败。
+\since build 762
+*/
+#if YCL_DS
+YB_NORETURN
+#endif
+YF_API YB_NONNULL(1, 2) void
+SetEnvironmentVariable(const char*, const char*);
 
 
 //! \since build 704

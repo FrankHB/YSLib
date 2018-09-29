@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief NPLA1 公共接口。
-\version r8246
+\version r8280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2018-09-14 08:32 +0800
+	2018-09-27 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #include YFM_NPL_NPLA1 // for YSLib, ystdex::bind1, std::make_move_iterator,
 //	ystdex::value_or, shared_ptr, tuple, list, lref, vector, observer_ptr, set,
 //	owner_less, ystdex::erase_all, ystdex::as_const, std::find_if,
-//	unordered_map, deque, ystdex::id, pair, ystdex::equality_comparable,
-//	ystdex::ref_eq, NPL::SwitchToFreshEnvironment, ystdex::make_transform,
+//	unordered_map, deque, ystdex::id, ystdex::cast_mutable, pair,
+//	ystdex::equality_comparable, ystdex::exchange, ystdex::ref_eq,
+//	NPL::SwitchToFreshEnvironment, ystdex::make_transform,
 //	ystdex::call_value_or;
 #include <ystdex/scope_guard.hpp> // for ystdex::guard, ystdex::swap_guard,
 //	ystdex::unique_guard;
@@ -954,7 +955,7 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 
 				compressor.AddForRoot(ctx.GetRecordRef());
 				compressor.Add(*p_saved);
-				// XXX: This usually is not empty.
+				// XXX: This is usually not empty.
 				if(p->TemporaryPtr)
 					compressor.Add(*p->TemporaryPtr);
 #	if YF_Impl_NPLA1_Enable_WeakExternalRoots
@@ -973,10 +974,28 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 					i = record_list.cbegin();
 					while(i != record_list.cend())
 					{
-						const auto& p_frame_env_ref(get<1>(*i));
+						auto& p_frame_env_ref(
+							get<1>(*ystdex::cast_mutable(record_list, i)));
 
 						if(p_frame_env_ref.use_count() != 1)
-							erase_frame();
+						{
+							const auto& p_frame_operand(get<2>(*i));
+
+							if(p_frame_operand.use_count() != 1)
+								// NOTE: The whole frame is to be removed. The
+								//	prvalue function is expected to live only in
+								//	the subexpression evaluation. This has
+								//	equivalent effects of evlis tail recursion.
+								erase_frame();
+							else
+							{
+								// NOTE: The frame is alive to ensure proper
+								//	lifetime of operand, but the frame
+								//	environment should be compressed away.
+								p_frame_env_ref.reset();
+								++i;
+							}
+						}
 						else
 						{
 							auto& frame_env(Deref(p_frame_env_ref));
@@ -1018,7 +1037,7 @@ RelayOnNextEnvironment(ContextNode& ctx, TermNode& term, bool move,
 
 					if(temporary_ptr.use_count() == 1)
 						temporary_ptr = {};
-					get<0>(frame) = {};
+				//	get<0>(frame) = {};
 				}
 				compressor.Compress();
 				record_list.emplace_front(p->MoveFunction(),
@@ -1225,10 +1244,13 @@ public:
 			// NOTE: Since first term is expected to be saved (e.g. by
 			//	%ReduceCombined), it is safe to be removed directly.
 			RemoveHead(term);
-			// NOTE: Forming beta using parameter binding, to substitute them as
-			//	arguments for later closure reducation.
+			// NOTE: Forming beta-reducible terms using parameter binding, to
+			//	substitute them as arguments for later closure reducation.
 			// XXX: Do not lift terms if provable to be safe?
 #if YF_Impl_NPLA1_Enable_TCO
+			// NOTE: The arguments have be saved for extension of lifetime of
+			//	bound reference parameters. An environment object is introduced
+			//	to make it collectable.
 			if(const auto& p_env_operand
 				= ystdex::call_value_or([&](TCOAction& a){
 				auto& p_env_t(a.TemporaryPtr);
@@ -2731,11 +2753,11 @@ MakeEncapsulationType(TermNode& term)
 	shared_ptr<void> p_type(new yimpl(byte));
 	const auto& tag(ystdex::in_place_type<ContextHandler>);
 
-	ystdex::exchange(term.GetContainerRef(), TermNode::Container{TermNode(
-		NoContainer, MakeIndex(0), tag, StrictContextHandler(
-		Encapsulate(p_type))), TermNode(NoContainer, MakeIndex(1), tag,
-		StrictContextHandler(Encapsulated(p_type))), TermNode(NoContainer,
-		MakeIndex(2), tag, StrictContextHandler(Decapsulate(p_type)))});
+	term.GetContainerRef() = {TermNode(NoContainer, MakeIndex(0), tag,
+		StrictContextHandler(Encapsulate(p_type))), TermNode(NoContainer,
+		MakeIndex(1), tag, StrictContextHandler(Encapsulated(p_type))),
+		TermNode(NoContainer, MakeIndex(2), tag,
+		StrictContextHandler(Decapsulate(p_type)))};
 	return ReductionStatus::Retained;
 }
 

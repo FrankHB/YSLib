@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# (C) 2014-2017 FrankHB.
+# (C) 2014-2018 FrankHB.
 # Build script for SHBuild.
 
 set -e
 : ${SHBuild_ToolDir:=$(cd `dirname "$0"`; pwd)}
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 CXXFLAGS_OPT_UseAssert=true
+C_CXXFLAGS_GC=''
+LD_CXXFLAGS_GC=''
+C_CXXFLAGS_STRIP=''
+LD_CXXFLAGS_STRIP=''
+CXXFLAGS_OPT_DBG='-Og -g'
 . $SHBuild_ToolDir/SHBuild-bootstrap.sh
 
 : ${SHBuild_Output:=SHBuild}

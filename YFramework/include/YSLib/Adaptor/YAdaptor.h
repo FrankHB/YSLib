@@ -11,13 +11,13 @@
 /*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2030
+\version r2044
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2018-09-02 22:55 +0800
+	2018-09-20 11:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,6 +249,9 @@ using platform::uspawn;
 //! \since build 547
 using platform::usystem;
 
+//! \since build 839
+using platform::SetEnvironmentVariable;
+
 using platform::SystemOption;
 using platform::FetchLimit;
 //@}
@@ -287,6 +290,10 @@ using platform::uaccess;
 using platform::uopen;
 using platform::ufopen;
 using platform::ufexists;
+//! \since build 839
+using platform::upopen;
+//! \since build 839
+using platform::upclose;
 //! \since build 313
 using platform::uchdir;
 //! \since build 475
@@ -382,7 +389,14 @@ using platform::FetchOpaque;
 using platform::MonoType;
 using platform::AlphaType;
 //@}
-using platform::Color;
+//! \since build 839
+//@{
+using platform::PixelToAlpha;
+using platform::PixelToBlue;
+using platform::PixelToGreen;
+using platform::PixelToRed;
+using platform::ColorComponentsToPixel;
+//@}
 
 } // namespace Drawing;
 

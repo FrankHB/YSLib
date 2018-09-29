@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2016 FrankHB.
+	© 2009-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YCommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2886
+\version r2905
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2016-09-02 22:42 +0800
+	2018-09-29 14:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,8 @@
 #	include YFM_Win32_YCLib_NLS // for platform_ex::UTF8ToWCS, ::STARTUPINFOW,
 //	::PROCESS_INFORMATION, ::CreateProcessW, CREATE_UNICODE_ENVIRONMENT,
 //	platform_ex::WaitUnique, ::GetExitCodeProcess;
-#	include <stdlib.h> // for ::_wsystem;
 #endif
+#include <stdlib.h> // for ::_wsystem, ::_putenv, ::setenv;
 
 namespace platform
 {
@@ -94,6 +94,24 @@ usystem(const char* cmd)
 	return ::_wsystem(platform_ex::UTF8ToWCS(cmd).c_str());
 #else
 	return std::system(cmd);
+#endif
+}
+
+
+void
+SetEnvironmentVariable(const char* envname, const char* envval)
+{
+#if YCL_DS
+	ystdex::throw_error(std::errc::function_not_supported, yfsig);
+#elif YCL_Win32
+	// TODO: Use %::_wputenv_s when available.
+	// NOTE: Only narrow enviornment is used.
+	// XXX: Though not documented, %::putenv actually copies the argument.
+	//	Confirmed in ucrt source. See also https://patchwork.ozlabs.org/patch/127453/.
+	YCL_CallF_CAPI(, ::_putenv,
+		(string(Nonnull(envname)) + '=' + Nonnull(envval)).c_str());
+#else
+	YCL_CallF_CAPI(, ::setenv, Nonnull(envname), Nonnull(envval), 1);
 #endif
 }
 

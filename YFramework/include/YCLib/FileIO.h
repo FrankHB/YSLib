@@ -11,13 +11,13 @@
 /*!	\file FileIO.h
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r2605
+\version r2730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 616
 \par 创建时间:
 	2015-07-14 18:50:35 +0800
 \par 修改时间:
-	2018-08-02 23:53 +0800
+	2018-09-26 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -547,7 +547,10 @@ uopen(const char16_t* filename, int oflag, mode_t pmode = DefaultPMode())
 	ynothrowv;
 //@}
 
-//! \param filename 文件名，意义同 std::fopen 。
+/*!
+\param filename 文件名，意义同 std::fopen 。
+\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
+*/
 //@{
 /*!
 \param mode 打开模式，基本语义同 ISO C11 ，具体行为取决于实现。
@@ -580,13 +583,42 @@ ufexists(const char*) ynothrowv;
 YF_API YB_NONNULL(1) bool
 ufexists(const char16_t*) ynothrowv;
 //@}
+
+/*!
+\param filename 文件名，意义同 POSIX \c ::popen 。
+\param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
+\pre 断言：\c filename 。
+\pre 间接断言： \c mode 。
+\note 不支持的平台操作失败设置 errno 为 ENOSYS 。
+\warning 应使用 upclose 而不是 ::close 关闭管道流，否则可能引起未定义行为。
+\sa upclose
+\since build 566
+*/
+//@{
+//! \brief 以 UTF-8 文件名无缓冲打开管道流。
+YF_API YB_NONNULL(1, 2) std::FILE*
+upopen(const char* filename, const char* mode) ynothrowv;
+//! \brief 以 UCS-2 文件名无缓冲打开管道流。
+YF_API YB_NONNULL(1, 2) std::FILE*
+upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
 //@}
+//@}
+
+/*!
+\brief 关闭管道流。
+\pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
+\note 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
+\since build 566
+*/
+YF_API YB_NONNULL(1) int
+upclose(std::FILE*) ynothrowv;
 
 /*!
 \brief 取当前工作目录复制至指定缓冲区中。
 \param size 缓冲区长。
 \return 若成功为第一参数，否则为空指针。
 \note 基本语义同 POSIX.1 2004 的 \c ::getcwd 。
+\note 若存储分配失败，设置 errno 为 \c ENOMEM 。
 \note Win32 平台：当且仅当结果为根目录时以分隔符结束。
 \note 其它平台：未指定结果是否以分隔符结束。
 \since build 699
@@ -786,14 +818,22 @@ private:
 		return {};
 	}
 #	else
-	//! \since build 709
+	//! \since build 837
 	YB_NONNULL(1) basic_filebuf<_tChar, _tTraits>*
-	open_file_ptr(::_Filet* p_file)
+	open_file_ptr(std::FILE* p_file)
 	{
+		// NOTE: %::_Filet and %std::_Filet were aliases of %::FILE in
+		//	<cstdio>. This is not available since Microsoft VC++ 2017 15.8.
 		if(p_file)
 		{
 			this->_Init(p_file, std::basic_filebuf<_tChar, _tTraits>::_Openfl);
-			this->_Initcvt(&std::use_facet<std::codecvt<_tChar, char,
+			this->_Initcvt(
+#		if YB_IMPL_MSCPP < 1914
+				// NOTE: At least this works in Microsoft VC++ 2017 15.6
+				//	(toolchain version 14.13.26128).
+				&
+#		endif
+				std::use_facet<std::codecvt<_tChar, char,
 				typename _tTraits::state_type>>(
 				std::basic_streambuf<_tChar, _tTraits>::getloc()));
 			return this;
@@ -1168,103 +1208,6 @@ YF_API u16string
 FetchCurrentWorkingDirectory(size_t);
 //@}
 #endif
-//@}
-
-
-//! \since build 714
-//@{
-/*!
-\note 省略第一参数时为 std::system_error 。
-*/
-//@{
-/*!
-\brief 按错误值和指定参数抛出第一参数指定类型的对象。
-\note 先保存可能是左值的 errno 以避免参数中的副作用影响结果。
-*/
-#define YCL_Raise_SysE(_t, _msg, _sig) \
-	do \
-	{ \
-		const auto err_(errno); \
-	\
-		ystdex::throw_error<_t>(err_, \
-			platform::ComposeMessageWithSignature(_msg YPP_Comma _sig)); \
-	}while(false)
-
-//! \note 按表达式求值，检查是否为零初始化的值。
-#define YCL_RaiseZ_SysE(_t, _expr, _msg, _sig) \
-	do \
-	{ \
-		const auto err_(_expr); \
-	\
-		if(err_ != decltype(err_)()) \
-			ystdex::throw_error<_t>(err_, \
-				platform::ComposeMessageWithSignature(_msg YPP_Comma _sig)); \
-	}while(false)
-//@}
-
-/*!
-\brief 跟踪 errno 取得的调用状态结果。
-\since build 691
-*/
-#define YCL_Trace_SysE(_lv, _fn, _sig) \
-	do \
-	{ \
-		const int err_(errno); \
-	\
-		YTraceDe(_lv, "Failed calling " #_fn " @ %s with error %d: %s.", \
-			_sig, err_, std::strerror(err_)); \
-	}while(false)
-
-/*!
-\brief 调用系统 C API 或其它可用 errno 取得调用状态的例程。
-\pre 系统 C API 返回结果类型满足 DefaultConstructible 和 LessThanComparable 要求。
-\note 比较返回默认构造的结果值，相等表示成功，小于表示失败且设置 errno 。
-\note 调用时直接使用实际参数，可指定非标识符的表达式，不保证是全局名称。
-*/
-//@{
-/*!
-\note 若失败抛出第一参数指定类型的对象。
-\note 省略第一参数时为 std::system_error 。
-\sa YCL_Raise_SysE
-*/
-//@{
-#define YCL_WrapCall_CAPI(_t, _fn, ...) \
-	[&](const char* sig_) YB_NONNULL(1){ \
-		const auto res_(_fn(__VA_ARGS__)); \
-	\
-		if(YB_UNLIKELY(res_ < decltype(res_)())) \
-			YCL_Raise_SysE(_t, #_fn, sig_); \
-		return res_; \
-	}
-
-#define YCL_Call_CAPI(_t, _fn, _sig, ...) \
-	YCL_WrapCall_CAPI(_t, _fn, __VA_ARGS__)(_sig)
-
-#define YCL_CallF_CAPI(_t, _fn, ...) YCL_Call_CAPI(_t, _fn, yfsig, __VA_ARGS__)
-//@}
-
-/*!
-\note 若失败跟踪 errno 的结果。
-\note 格式转换说明符置于最前以避免宏参数影响结果。
-\sa YCL_Trace_SysE
-*/
-//@{
-#define YCL_TraceWrapCall_CAPI(_fn, ...) \
-	[&](const char* sig_) YB_NONNULL(1){ \
-		const auto res_(_fn(__VA_ARGS__)); \
-	\
-		if(YB_UNLIKELY(res_ < decltype(res_)())) \
-			YCL_Trace_SysE(platform::Descriptions::Warning, _fn, sig_); \
-		return res_; \
-	}
-
-#define YCL_TraceCall_CAPI(_fn, _sig, ...) \
-	YCL_TraceWrapCall_CAPI(_fn, __VA_ARGS__)(_sig)
-
-#define YCL_TraceCallF_CAPI(_fn, ...) \
-	YCL_TraceCall_CAPI(_fn, yfsig, __VA_ARGS__)
-//@}
-//@}
 //@}
 
 

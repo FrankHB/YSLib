@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r139
+\version r146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:45:13 +0800
 \par 修改时间:
-	2018-08-19 11:25 +0800
+	2018-09-20 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,10 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Video
+#if YCL_DS
+#	include "YSLib/Core/YModules.h"
+#	include YFM_YSLib_Core_YGDIBase // for YSLib::Drawing::Color;
+#endif
 
 namespace platform_ex
 {
@@ -67,14 +71,14 @@ ScreenSynchronize(platform::Pixel*, const platform::Pixel*) ynothrow;
 \param use_customed 使用自定义而非 LibNDS 提供的默认例程初始化控制台。
 \param fc 前景色。
 \param bc 背景色。
-\since build 836
+\since build 839
 
 初始化 DS 控制台。第一参数为 \c true 指定初始化上屏，否则调用 ::consoleDemoInit
 初始化下屏。
 */
 YF_API void
-DSConsoleInit(bool use_customed, platform::Color fc, platform::Color bc)
-	ynothrow;
+DSConsoleInit(bool use_customed, YSLib::Drawing::Color fc,
+	YSLib::Drawing::Color bc) ynothrow;
 #endif
 
 

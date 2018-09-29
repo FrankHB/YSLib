@@ -11,13 +11,13 @@
 /*!	\file FileIO.cpp
 \ingroup YCLib
 \brief 平台相关的文件访问和输入/输出接口。
-\version r3119
+\version r3165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 615
 \par 创建时间:
 	2015-07-14 18:53:12 +0800
 \par 修改时间:
-	2018-08-22 20:43 +0800
+	2018-09-19 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -960,6 +960,55 @@ ufexists(const char16_t* filename) ynothrowv
 {
 	return ystdex::call_value_or(ystdex::compose(std::fclose,
 		ystdex::addrof<>()), ufopen(filename, u"rb"), yimpl(1)) == 0;
+}
+
+std::FILE*
+upopen(const char* filename, const char* mode) ynothrowv
+{
+	YAssertNonnull(filename);
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
+#if YCL_DS
+	errno = ENOSYS;
+	return {};
+#elif YCL_Win32
+	return CallNothrow({}, [=]{
+		return ::_wpopen(MakePathStringW(filename).c_str(),
+			MakePathStringW(mode).c_str());
+	});
+#else
+	return ::popen(filename, mode);
+#endif
+}
+std::FILE*
+upopen(const char16_t* filename, const char16_t* mode) ynothrowv
+{
+	using namespace platform;
+
+	YAssertNonnull(filename);
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
+#if YCL_DS
+	errno = ENOSYS;
+	return {};
+#elif YCL_Win32
+	return ::_wpopen(wcast(filename), wcast(mode));
+#else
+	return CallNothrow({}, [=]{
+		return ::popen(MakePathString(filename).c_str(),
+			MakePathString(mode).c_str());
+	});
+#endif
+}
+
+int
+upclose(std::FILE* fp) ynothrowv
+{
+	YAssertNonnull(fp);
+#if YCL_DS
+	errno = ENOSYS;
+	return -1;
+#else
+	return YCL_CallGlobal(pclose, fp);
+#endif
 }
 
 char*

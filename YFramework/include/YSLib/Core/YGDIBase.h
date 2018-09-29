@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2297
+\version r2389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2018-08-19 13:02 +0800
+	2018-08-20 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,103 @@ namespace YSLib
 
 namespace Drawing
 {
+
+/*!
+\brief 颜色。
+\since build 148
+*/
+class YF_API Color
+{
+private:
+	/*!
+	\brief RGB 分量。
+	\since build 276
+	*/
+	MonoType r = 0, g = 0, b = 0;
+	/*!
+	\brief Alpha 分量。
+	\since build 276
+	*/
+	AlphaType a = 0;
+
+public:
+	/*!
+	\brief 无参数构造：所有分量为 0 的默认颜色。
+	\since build 319
+	*/
+	yconstfn
+	Color() = default;
+	/*!
+	\brief 构造：使用本机颜色对象。
+	\since build 319
+	*/
+	yconstfn
+	Color(Pixel px) ynothrow
+		: r(PixelToRed(px)), g(PixelToGreen(px)), b(PixelToBlue(px)),
+		a(PixelToAlpha(px))
+	{}
+	/*!
+	\brief 构造：使用颜色枚举。
+	\since build 853
+	*/
+	template<typename _type, typename = yimpl(
+		ystdex::enable_if_t<ystdex::and_<std::is_enum<_type>, std::is_same<
+		ystdex::underlying_cond_type_t<_type>, Pixel::IntegerType>>::value>)>
+	yconstfn
+	Color(_type cs) ynothrow
+		: Color(Pixel(cs))
+	{}
+	/*!
+	\brief 构造：使用 RGB 值和 alpha 位。
+	\since build 319
+	*/
+	yconstfn
+	Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_ = 0xFF) ynothrow
+		: r(r_), g(g_), b(b_), a(a_)
+	{}
+	/*!
+	\brief 构造：使用相同类型转换为单色的 RGB 值和 alpha位。
+	\note 避免列表初始化时 narrowing 转换。
+	\since build 360
+	*/
+	template<typename _tScalar>
+	yconstfn
+	Color(_tScalar r_, _tScalar g_, _tScalar b_, AlphaType a_ = 0xFF) ynothrow
+		: Color(MonoType(r_), MonoType(g_), MonoType(b_), a_)
+	{}
+
+	/*!
+	\brief 转换：本机颜色对象。
+	\since build 319
+	*/
+	yconstfn
+	operator Pixel() const ynothrow
+	{
+		return ColorComponentsToPixel(r, g, b, a);
+	}
+
+	/*!
+	\brief 取 alpha 分量。
+	\since build 319
+	*/
+	yconstfn DefGetter(const ynothrow, MonoType, A, a)
+	/*!
+	\brief 取蓝色分量。
+	\since build 319
+	*/
+	yconstfn DefGetter(const ynothrow, MonoType, B, b)
+	/*!
+	\brief 取绿色分量。
+	\since build 319
+	*/
+	yconstfn DefGetter(const ynothrow, MonoType, G, g)
+	/*!
+	\brief 取红色分量。
+	\since build 319
+	*/
+	yconstfn DefGetter(const ynothrow, MonoType, R, r)
+};
+
 
 /*!
 \brief 系统默认颜色空间。

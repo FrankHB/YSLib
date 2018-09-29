@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2531
+\version r2572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2018-08-23 12:53 +0800
+	2018-09-20 00:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -392,6 +392,15 @@ public:
 	Reset(int, char*[]);
 };
 
+/*!
+\brief 锁定默认命令行参数对象。
+\return 静态对象的非空锁定指针。
+\relates ArgumentsVector
+\since build 839
+*/
+YF_API locked_ptr<ArgumentsVector, recursive_mutex>
+LockCommandArguments();
+
 
 /*!
 \brief 查询第二参数指定名称的环境变量写入第一参数。
@@ -402,6 +411,46 @@ public:
 */
 YF_API YB_NONNULL(2) bool
 FetchEnvironmentVariable(string&, const char*);
+
+
+//! \since build 567
+//@{
+//! \brief 默认命令缓冲区大小。
+yconstexpr const size_t DefaultCommandBufferSize(yimpl(4096));
+
+/*!
+\brief 取命令在标准输出上的执行结果。
+\pre 间接断言：第一参数非空。
+\return 读取的二进制存储和关闭管道的返回值（可来自被调用的命令）。
+\exception std::bad_alloc 缓冲区创建失败。
+\throw std::system_error 管道打开失败。
+\throw std::system_error 读取失败。
+\throw std::invalid_argument 第二参数的值等于 \c 0 。
+\note 第一参数指定命令；第二参数指定每次读取的缓冲区大小上限，先于执行命令进行检查。
+\since build 791
+*/
+YF_API YB_NONNULL(1) pair<string, int>
+FetchCommandOutput(const char*, size_t = DefaultCommandBufferSize);
+
+
+//! \brief 命令和命令执行结果的缓冲区类型。
+using CommandCache = unordered_map<string, string>;
+
+/*!
+\brief 锁定命令执行缓冲区。
+\return 静态对象的非空锁定指针。
+*/
+YF_API locked_ptr<CommandCache>
+LockCommandCache();
+//@}
+
+/*!
+\brief 取缓冲的命令执行结果。
+\pre 断言：第一参数的数据指针非空。
+\since build 839
+*/
+YF_API const string&
+FetchCachedCommandResult(string_view, size_t = DefaultCommandBufferSize);
 
 } // namespace YSLib;
 

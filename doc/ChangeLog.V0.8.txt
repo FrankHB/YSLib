@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.V0.8.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - V0.8 。
-\version r6058
+\version r6354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 800
 \par 创建时间:
 	2017-08-10 01:58:36 +0800
 \par 修改时间:
-	2018-09-19 08:32 +0800
+	2018-09-29 13:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,296 @@ $import $HISTORY;
 // Scope: [b800, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "function template %read_all_with_buffer" @ %CStandardIO,
+		* "different type returned" @ "%substr" @ "class template %basic_string"
+			@ %String $since b833
+			$= (+ "member function %substr")
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ $lib $impl "supported Microsoft VC++ 2017 15.8"
+				@ "class template %basic_filebuf" @ %FileIO,
+			/ %Host $=
+			(
+				/ "functions %platform_ex::(upopen, upclose)"
+					@ 'YF_Hosted' @ %Host
+					>> "namespace %platform" @ %FileIO,
+				(
+				/ DLI "simplified function %FetchCommandOutput"
+					^ "%ystdex::(temporary_buffer, throw_error)", $dep_from
+					("%ystdex::read_all_with_buffer"
+					@ %YBase.YStandardEx.CStandardIO) ~ "%YCL_Raise_SysE";
+				/ "function %FetchCommandOutput; object \
+					%DefaultCommandBufferSize" >> ("namespace %YSLib"
+					@ %YSLib.Core.YCoreUtilities) $dep_from
+					"%YSLib::(upopen, upclose)" %YSLib.Adaptor.YAdaptor
+				),
+				(
+				- "function %FetchCachedCommandString";
+				/ "functions %FetchCachedCommandResult" ^ "%string_view"
+					~ "%string",
+				/ "functions %LockCommandCache, FetchCachedCommandResult; \
+					type %CommandCache"
+					>> ("namespace %YSLib" @ %YSLib.Core.YCoreUtilities),
+				),
+				/ $forced DLDI "improved internal terminal data interface"
+					@ !"plaform %Win32" ^ "%(FetchCachedCommandResult, \
+					string_view）" ~ "%（FetchCachedCommandString, string)"
+					$dep_from "%FetchCachedCommandString",
+				(
+				/ "function %SetEnvironmentVariable" @ 'YF_Hosted' >> %YCommon
+					$dep_from ("%YCL_CallF_CAPI" @ %FileIO);
+				+ $comp "function %SetEnvironmentVariable" @ "platform %DS"
+				)
+			),
+			* $comp $doc $re_ex(b693) "missing closing '//@}' for %upclose"
+				$since b721 $dep_from
+				("%platform_ex::(upopen, upclose)" @ %Host),
+			/ %Video $=
+			(
+				+ "functions %(PixelToAlpha, PixelToBlue, PixelToGreen, \
+					PixelToRed, ColorComponentsToPixel)";
+				/ DLDI "simplified class %Color"
+					^ "%(PixelToAlpha, PixelToBlue, PixelToGreen, PixelToRed, \
+					ColorComponentsToPixel)";
+				/ "class %Color" >> "namespace %YSLib::Drawing"
+					@ %YSLib.Core.YGDIBase $dep_from
+					("%YSLib::Drawing::(PixelToAlpha, PixelToBlue, \
+					PixelToGreen, PixelToRed, ColorComponentsToPixel)"
+					@ %YSLib.Adaptor.YAdaptor)
+			),
+			/ "macros %(YCL_Raise_SysE, YCL_RaiseZ_SysE, YCL_Trace_SysE, \
+				YCL_WrapCall_CAPI, YCL_Call_CAPI, YCL_CallF_CAPI, \
+				YCL_TraceWrapCall_CAPI, YCL_TraceCall_CAPI, \
+				YCL_TraceCallF_CAPI)" @ %FileIO >> %YCommon
+		),
+		/ $forced "function %DSConsoleInit" @ "platform %DS"
+			@ %'YCLib_(DS)'.DSVideo $dep_from ("%Color" @ %YCLib.Video)
+		/ %NPL $=
+		(
+			/ "namespace %A1" @ %Dependency $=
+			(
+				/ "namespace %Forms" $=
+				(
+					/ "function %LoadNPLContextGround" -> ("functions \
+						%(LoadGroundContext, (LoadModule_std_strings; \
+						LoadModule_std_environments, LoadModule_std_system), \
+						LoadModule_std_io") $dep_to "NPLA1 loader functions" $=
+					(
+						/ "split system module function registration",
+						/ "reproduced original input"
+							@ "error message for invalid literals",
+						/ "loaded derived functions" $=
+						(
+							// See $2018-09 @ \
+								%Documentation::Workflow::Annual2018.
+							/ "renamed function name with phrases 'lambdae', \
+								'vaue'" -> ('lambda/e', 'vau/e')
+								$effective @ ('$lambdae', '$lambdae%', '$vaue',
+								'$vaue%'),
+							/ DLDI "simplified operative '$defv%!'" ^ '$defv!',
+							+ "operatives ('$defv/e!', '$defv/e%!', \
+								'$defw/e!', '$defw/e%!', '$defl/e!', \
+								'$defl/e%!')",
+							/ DLDI "simplified operative '$binds1?'"
+								^ $dep_from '$defv/e!',
+							/ DLDI "simplified applicative 'env-get?'"
+								^ $dep_from '$defl/e!',
+							+ "applicative 'list-rest%'; operative '$let/e'",
+							/ DLDI "simplified operative '$let'" ^ 'list-rest%',
+							+ "operatives ('$bindings/p->environment'; \
+								'$bindings->environment')"
+						)
+					),
+					/ "function %LoadNPLContextForSHBuild"
+						-> "function %LoadModule_SHBuild" $=
+					(
+						/ "parameter" ^ "%REPLContext" ~ "%ContextNode",
+						/ DLDI "simplified applicative 'SHBuild_RemovePrefix_'"
+							$dep_from %YBase.YStandardEx.String
+					),
+					/ DLDI $revert_ex(b834) "simplified loading code without \
+						polymorphic loader",
+					+ "function template %LoadModule"
+				),
+				+ "function %OpenFile"
+			),
+			/ %NPLA1 $=
+			(
+				/ DLDI "simplified function %Forms::MakeEncapsulationType"
+					!^ "%ystdex::exchange",
+				/ @ "vau and evaluation TCO" $=
+				(
+					// See $2018-09 @ %Documentation::Workflow::Annual2018.
+					- "function prvalues collection";
+					* "environment for operand wrongly removed when \
+						environment frame is removed from the record list"
+						$since b827
+				)
+			),
+			/ %NPLA $=
+			(
+				/ DLDI "optimized %ContextNode::Rewrite" ^ "%std::move",
+					// Since %Reducer is copyable and passed by value, moving \
+						on the parameter is not reliable in general. However, \
+						moving should be still more optimal here.
+				/ @ "class %Environment" $=
+				(
+					/ "static member function %DefaultRedirect" $=
+					(
+						- "assertion" @ "static function %DefaultResolve",
+							// Indirect call of %Environment::LookupName would \
+								account.
+						(
+						/ "supported unbound calls" ^ "thunked call"
+							~ "%Redirect";
+						* "ignored environments other than front element in an \
+							environment list" $since b798,
+							// This bug of missing backtracking only occurs \
+								for list with more than one element and the \
+								name cannot be look up successfully in the \
+								first one.
+						- $revert(b798) "static function %DefaultRedirect; \
+							data member %Redirect, "
+						)
+					)
+				)
+			)
+		),
+		/ %YSLib $=
+		(
+			/ @ "namespace %YSLib" @ %Adaptor.YAdaptor $=
+			(
+				+ ('using platform::upopen;', 'using platform::upclose;')
+					$dep_from "%platform_ex::(upopen, upclose)"
+					@ %YCLib.Host,
+				/ @ "namespace %Drawing" $=
+				(
+					+ ('using platform::PixelToAlpha;',
+						'using platform::PixelToBlue;',
+						'using platform::PixelToGreen;',
+						'using platform::PixelToRed;'
+						'using platform::ColorComponentsToPixel;')
+						$dep_from ("%platform::(PixelToAlpha, PixelToBlue, \
+						PixelToGreen, PixelToRed, ColorComponentsToPixel)"
+						@ %YCLib.Video),
+					- DLDI "redundant 'using platform::Pixel;'"
+				),
+				+ 'using platform::SetEnvironmentVariable;' $dep_from
+					("%SetEnvironmentVariable" @ %YCLib.Host)
+			),
+			/ DLDI %Service.YPixel $=
+			(
+				/ $forced "header inclusion" $dep_from %Video,
+				/ "possibly truncated cast to %AlphaType"
+					@ "function templates %(Blend, BlendAlpha, Composite"
+					@ "class template specialization %GBlender"
+					// To eliminate Microsoft VC++ 2017 warning: C4244.
+				/ "possibly truncated cast to '_tDstInt'" @ "function \
+					templates %(BlendComponent, CompositeComponent)",
+					// To eliminate Microsoft VC++ 2017 warning: C4244.
+				* $re_add(b691) DD "missing '!'" @ "end of '/*'"
+					@ "multiline Doxygen comment" $orig
+					(@ "function templates %Blend" $since b561
+			),
+			+ "function %LockCommandArguments" @ %Core.YCoreUtilities
+				$dep_from ("%CommandArguments" @ %YCLib.Host)
+		)
+	),
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			/ "NPLA1 context initialization" $=
+			(
+				/ $forced DLDI $dep_from ("%Forms::(LoadNPLContextGround, \
+					LoadNPLContextForSHBuild)"
+					@ %YFramework.NPL.Dependency),
+				(
+				/ "applicative %load returned %ValueToken::Unspecified";
+					// This is consistent with current klisp. See http://klisp.org/docs/Ports.html#Ports.
+				/ "applicative %load" >> (("derived functions"
+					@ "%LoadGroundContext") ^ $dep_from "%A1::OpenFile"
+					@ %YFramework.NPL.Dependency)
+				),
+				(
+				/ "applicative 'system-get'" >> ("derived functions"
+					@ "%LoadModule_std_system" @ %YFramework.NPL.Dependency),
+				/ "applicative 'env-set'" >> ("derived functions"
+					@ "%LoadModule_std_system" @ %YFramework.NPL.Dependency)
+					$dep_from ("%SetEnvironmentVariable"
+					@ %YFramework.YSLib.Adaptor.YAdaptor),
+				(
+				/ "saved monostate" @ "applicative 'cmd-get-arg'" ^ $dep_from
+					("%LockCommandArguments"
+					@ %YFramework.YSLib.Core.YCoreUtilities);
+				/ "applicative 'cmd-get-args'" >> ("derived functions"
+					@ "%LoadModule_std_system" @ %YFramework.NPL.Dependency)
+				);
+				/ "called loader functions to load in separated environments \
+					%std.(environments, strings, io, system)"
+					$dep_from "NPLA1 loader functions" $dep_to
+					"importing from standard environments" ^ $dep_from
+					("%LoadModule" @ %YFramework.NPL.Dependency)
+				),
+				/ "saved NPL ground environment before registration of \
+					%env_SHBuild_"
+					// Now ground environment bindings are not mutable.
+			),
+			/ DLDI "simplified" ^ ("%A1::OpenFile" @ %YFramework.NPL.Dependency)
+		),
+		/ %Scripts $=
+		(
+			/ "%SHBuild-common-options.sh" %=
+			(
+				+ "variables %(C_CXXFLAGS_STRIP, LDFLAGS_STRIP) with default \
+					value '-s'";
+				/ "split '-s' from default values"
+					@ "variables %(CXXFLAGS_IMPL_OPT, LDFLAGS_IMPL_OPT)",
+				+ '$C_CXXFLAGS_STRIP' @ "default value"
+					@ "variable %C_CXXFLAGS_COMMON",
+				+ '$LDFLAGS_STRIP' @ "default value"
+					@ "variable %LDFLAGS_OPT_DBG";
+				* "missing '-s' as strip option when the tool is not 'g++'"
+					$since b547
+			),
+			/ $build "%SHBuild-build.sh" $=
+			(
+				/ "set %(C_CXXFLAGS_GC, LDFLAGS_GC' to '' to prevent section \
+					removal",
+				/ "set %(C_CXXFLAGS_STRIP, LDFLAGS_STRIP) to '' to prevent \
+					stripping" $dep_from ("%(C_CXXFLAGS_STRIP, LDFLAGS_STRIP)"
+					@ "%SHBuild-common-options.sh"),
+					// Preserving symbol would make debugging easier.
+				/ "set %CXXFLAGS_OPT_DBG with value '-Og -g'"
+			),
+			/ @ "%SHBuild-YSLib-common.txt" $=
+			(
+				/ "'$import!' statement" $=
+				(
+					* "missing ('SHBuild_QuoteS_!', 'SHBuild_RaiseError_', \
+						'SHBuild_BuildGCH_mkpdirp_')" $since b839,
+					- "redundant 'SHBuild_EnsureDirectory_'"
+				),
+				/ "applicative 'build-with-conf-opt' detected variables \
+					%(C_CXXFLAGS_STRIP, LDFLAGS_STRIP) separated '-s' option \
+					as %SHBuild-common-options.sh"
+			),
+			/ $forced DLDI "importing" $dep_from "loader functions"
+				$= (/ "imported names from modules %std.(environments, \
+					strings, io, system)" @ "%(SHBuild-YSLib-common.txt, \
+					SHBuild-YSLib-build.txt)" 
+					$dep_from "importing from standard environments")
+		)
+	)
+),
+
+b838
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -256,8 +546,8 @@ $now
 					"added applicative for protected quotes"
 			),
 			+ $forced DLDI "importing statement from SHBuild environment \
-				%env_SHBuild_ at first" $dep_from "encapsulated SHBuild \
-				environment" ^ ('$import!' @ %YFramework.NPL.Dependency)
+				%env_SHBuild_ at first" $dep_from "SHBuild environment object"
+				^ ('$import!' @ %YFramework.NPL.Dependency)
 		),
 		/ @ "%install-sysroot.sh" $=
 		(
@@ -310,13 +600,8 @@ $now
 		(
 			/ $forced DLDI ("%TryLoadSouce" @ %YFramework.NPL.NPLA1),
 			/ "NPL environment initialization" $dep_to
-				"encapsulated SHBuild environment" $=
+				"SHBuild environment object" $=
 			(
-				/ "saved NPL ground environment after registration of \
-					applicatives %('env-get', system-get, 'cmd-get-args', \
-					'load')" ^ $dep_from
-					("%EnvironmentSwitcher" @ %YFramework.NPL.NPLA1),
-					// Now ground environment bindings are not mutable.
 				+ "environment object %env_SHBuild_",
 				/ $forced $impl "loading environment for SHBuild initialization"
 					$dep_from

@@ -4,8 +4,14 @@
 "XXX", "'SHBuild_2*' depend on 'cygpath' optionally.";
 "XXX", "'SHBuild_CheckUName_*' depend on 'uname'.";
 
-$import! env_SHBuild_ SHBuild_String_absolute_path?_ SHBuild_EnsureDirectory_
-	SHBuild_EchoVar SHBuild_SDot_ SHBuild_BuildGCH_existed_;
+$import! std.strings regex-match? string->regex ++ symbol->string string-empty?
+	string<- string-contains-ci?,
+$import! std.environments $binds1? value-of,
+$import! std.io puts,
+$import! std.system system env-get system-get system-quote env-set env-empty?,
+$import! env_SHBuild_ SHBuild_String_absolute_path?_ SHBuild_QuoteS_
+	SHBuild_RaiseError_ SHBuild_EchoVar SHBuild_SDot_ SHBuild_BuildGCH_existed_
+	SHBuild_BuildGCH_mkpdirp_;
 
 $def! $redef! $def!;
 $defl! rmatch? (x r) regex-match? x (string->regex r);
@@ -123,6 +129,8 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 	$env-de! C_CXXFLAGS_GC "-fdata-sections -ffunction-sections";
 	$env-de! LDFLAGS_GC
 		($if (eqv? env-os "OS_X") "-Wl,--dead-strip" "-Wl,--gc-sections");
+	$env-de! C_CXXFLAGS_STRIP "-s";
+	$env-de! LDFLAGS_STRIP "-s";
 	"#", "-Wl,--print-gc-sections";
 	$unless (compile-ok-silent env-os "int main(){}" CXX
 		(cons-cmd C_CXXFLAGS_GC LDFLAGS_GC))
@@ -131,7 +139,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 		$redef! LDFLAGS_GC ""
 	);
 	$env-de! C_CXXFLAGS_PIC $if (win32? env-os) "" "-fPIC";
-	$env-de! C_CXXFLAGS_COMMON cons-cmd "-pipe" C_CXXFLAGS_GC
+	$env-de! C_CXXFLAGS_COMMON cons-cmd "-pipe" C_CXXFLAGS_GC C_CXXFLAGS_STRIP
 		(env-get "C_CXXFLAGS_ARCH") "-pedantic-errors";
 	$env-de! C_CXXFLAGS_OPT_LV "-O3";
 	$env-de! C_CXXFLAGS_WARNING cons-cmd "-Wall" "-Wcast-align" "-Wdeprecated"
@@ -163,8 +171,8 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 			"-Wconditionally-supported" "-Wno-noexcept-type"
 			"-Wstrict-null-sentinel" "-Wzero-as-null-pointer-constant";
 		$set-if-empty! CXXFLAGS_IMPL_OPT
-			"-s -fexpensive-optimizations -flto=jobserver";
-		$set-if-empty! LDFLAGS_IMPL_OPT "-s -fexpensive-optimizations -flto"
+			"-fexpensive-optimizations -flto=jobserver";
+		$set-if-empty! LDFLAGS_IMPL_OPT "-fexpensive-optimizations -flto"
 	);
 	$env-de! CFLAGS_STD "-std=c11";
 	$env-de! CFLAGS_WARNING cons-cmd C_CXXFLAGS_WARNING C_CXXFLAGS_IMPL_WARNING;
@@ -185,7 +193,7 @@ $defl! build-with-conf-opt (outdir env-os debug dynamic shbopt-ext app
 				C_CXXFLAGS_COMMON_IMPL_ CXXFLAGS_OPT_DBG);
 	$def! CFLAGS get-lang-flags "CFLAGS" CFLAGS_COMMON;
 	$def! CXXFLAGS get-lang-flags "CXXFLAGS" CXXFLAGS_COMMON;
-	$env-de! LDFLAGS_OPT_DBG cons-cmd LDFLAGS_IMPL_OPT LDFLAGS_GC;
+	$env-de! LDFLAGS_OPT_DBG cons-cmd LDFLAGS_STRIP LDFLAGS_IMPL_OPT LDFLAGS_GC;
 	$def! LDFLAGS_DYN_BASE env-get "LDFLAGS_DYN_BASE";
 	$def! LIBS_RPATH env-get "LIBS_RPATH";
 	$if (win32? env-os) ($set-if-empty! LDFLAGS_DYN_BASE "-shared -Wl,--dll")

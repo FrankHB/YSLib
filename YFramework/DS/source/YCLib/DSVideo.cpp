@@ -1,5 +1,5 @@
 ﻿/*
-	© 2015 FrankHB.
+	© 2015, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup DS
 \brief DS 视频输出接口。
-\version r197
+\version r200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 585
 \par 创建时间:
 	2015-03-17 12:46:32 +0800
 \par 修改时间:
-	2015-09-08 08:50 +0800
+	2018-09-20 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,7 +118,8 @@ ScreenSynchronize(platform::Pixel* buf, const platform::Pixel* src)
 }
 
 void
-DSConsoleInit(bool use_customed, Color fc, Color bc) ynothrow
+DSConsoleInit(bool use_customed, YSLib::Drawing::Color fc,
+	YSLib::Drawing::Color bc) ynothrow
 {
 	if(YB_LIKELY(use_customed ? []{
 		::videoSetMode(MODE_0_2D);

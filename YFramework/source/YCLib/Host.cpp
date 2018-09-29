@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r670
+\version r799
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2018-07-30 01:27 +0800
+	2018-09-20 11:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,12 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host // for make_observer, platform::CallNothrow;
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib, FetchCachedCommandResult,
+//	ystdex::underlying, FilterExceptions;
 #include YFM_YCLib_NativeAPI // for YCL_TraceCallF_CAPI, ::sem_open,
 //	::sem_close, ::sem_unlink, ::pipe, ToHandle, YCL_CallGlobal, isatty;
 #include YFM_YCLib_FileIO // for MakePathStringW, YCL_Raise_SysE,
-//	MakePathString, YCL_CallF_CAPI;
-#include YFM_YSLib_Core_YException // for YSLib::FilterExceptions;
+//	MakePathString;
 #include <stdlib.h> // for ::putenv, ::setenv;
 #if YCL_Win32
 #	include <limits> // for std::numeric_limits;
@@ -53,8 +54,16 @@ using YSLib::string;
 //! \since build 659
 using platform::string_view;
 
-#if YF_Hosted
+namespace platform
+{
 
+using namespace platform_ex;
+
+
+
+} // namespace platform;
+
+#if YF_Hosted
 namespace platform_ex
 {
 
@@ -87,65 +96,6 @@ HandleDelete::operator()(pointer h) const ynothrowv
 }
 #endif
 
-
-int
-upclose(std::FILE* fp) ynothrowv
-{
-	YAssertNonnull(fp);
-#if YCL_DS
-	errno = ENOSYS;
-	return -1;
-#else
-	return YCL_CallGlobal(pclose, fp);
-#endif
-}
-
-std::FILE*
-upopen(const char* filename, const char* mode) ynothrowv
-{
-	YAssertNonnull(filename);
-	YAssert(Deref(mode) != char(), "Invalid argument found.");
-#if YCL_Win32
-	return platform::CallNothrow({}, [=]{
-		return ::_wpopen(MakePathStringW(filename).c_str(),
-			MakePathStringW(mode).c_str());
-	});
-#else
-	return ::popen(filename, mode);
-#endif
-}
-std::FILE*
-upopen(const char16_t* filename, const char16_t* mode) ynothrowv
-{
-	using namespace platform;
-
-	YAssertNonnull(filename);
-	YAssert(Deref(mode) != char(), "Invalid argument found.");
-#if YCL_Win32
-	return ::_wpopen(wcast(filename), wcast(mode));
-#else
-	return CallNothrow({}, [=]{
-		return ::popen(MakePathString(filename).c_str(),
-			MakePathString(mode).c_str());
-	});
-#endif
-}
-
-
-void
-SetEnvironmentVariable(const char* envname, const char* envval)
-{
-#if YCL_Win32
-	// TODO: Use %::_wputenv_s when available.
-	// NOTE: Only narrow enviornment is used.
-	// XXX: Though not documented, %::putenv actually copies the argument.
-	//	Confirmed in ucrt source. See also https://patchwork.ozlabs.org/patch/127453/.
-	YCL_CallF_CAPI(, ::_putenv,
-		(string(Nonnull(envname)) + '=' + Nonnull(envval)).c_str());
-#else
-	YCL_CallF_CAPI(, ::setenv, Nonnull(envname), Nonnull(envval), 1);
-#endif
-}
 
 #if !YCL_Win32
 void
@@ -249,65 +199,6 @@ Semaphore::unlock() ynothrow
 	YAssert(res == 0, "Invalid semaphore found.");
 #endif
 	yunused(res);
-}
-
-
-pair<string, int>
-FetchCommandOutput(const char* cmd, size_t buf_size)
-{
-	if(YB_UNLIKELY(buf_size == 0))
-		throw std::invalid_argument("Zero buffer size found.");
-
-	string str;
-	int exit_code(0);
-
-	// TODO: Improve Win32 implementation?
-	if(const auto fp = ystdex::unique_raw(upopen(cmd, "r"), [&](std::FILE* p){
-		exit_code = upclose(p);
-	}))
-	{
-		ystdex::setnbuf(fp.get());
-
-		// TODO: Improve performance?
-		const auto p_buf(make_unique_default_init<char[]>(buf_size));
-
-		for(size_t n; (n = std::fread(&p_buf[0], 1, buf_size, fp.get())) != 0; )
-			str.append(&p_buf[0], n);
-	}
-	else
-		YCL_Raise_SysE(, "::popen", yfsig);
-	return {std::move(str), exit_code};
-}
-
-
-YSLib::locked_ptr<CommandCache>
-LockCommandCache()
-{
-	static CommandCache cache;
-	static YSLib::mutex mtx;
-
-	return {&cache, mtx};
-}
-
-const string&
-FetchCachedCommandResult(const string& cmd, size_t buf_size)
-{
-	auto p_locked(LockCommandCache());
-	auto& cache(Deref(p_locked));
-
-	try
-	{
-		// TODO: Blocked. Use %string_view as argument using C++14 heterogeneous
-		//	%find template.
-		const auto i_entry(cache.find(cmd));
-
-		return (i_entry != cache.cend() ? i_entry : (cache.emplace(cmd,
-			YB_UNLIKELY(cmd.empty()) ? string()
-			: FetchCommandOutput(cmd.c_str(), buf_size).first)).first)->second;
-	}
-	CatchExpr(std::system_error& e,
-		YTraceDe(Err, "Failed execution of command."), ExtractAndTrace(e, Err))
-	return cache[string()];
 }
 
 
@@ -417,34 +308,44 @@ public:
 	TerminalData(std::FILE* fp)
 		: stream(fp)
 	{}
-private:
-	//! \since build 567
-	bool
-	ExecuteCommand(const string&) const;
 
-public:
+	/*!
+	\brief 输出缓存的命令结果。
+	\pre 断言：参数的数据指针非空。
+	\since build 839
+	*/
+	bool
+	ExecuteCachedCommand(string_view) const;
+
 	//! \since build 755
 	PDefH(bool, Clear, ) ynothrow
-		ImplRet(ExecuteCommand("tput clear"))
+		ImplRet(ExecuteCachedCommand("tput clear"))
 
 	PDefH(bool, RestoreAttributes, ) ynothrow
-		ImplRet(ExecuteCommand("tput sgr0"))
+		ImplRet(ExecuteCachedCommand("tput sgr0"))
 
 	PDefH(bool, UpdateForeColor, std::uint8_t c) ynothrow
-		ImplRet(ExecuteCommand("tput setaf " + to_string(cmap[c & 7]))
+		ImplRet(ExecuteCachedCommand("tput setaf " + to_string(cmap[c & 7]))
 			&& (c < ystdex::underlying(YSLib::Consoles::DarkGray)
-			|| ExecuteCommand("tput bold")))
+			|| ExecuteCachedCommand("tput bold")))
 };
 
 bool
-TerminalData::ExecuteCommand(const string& cmd) const
+TerminalData::ExecuteCachedCommand(string_view cmd) const
 {
-	const auto& str(FetchCachedCommandString(cmd));
+	YAssertNonnull(cmd.data());
 
-	if(str.empty())
-		return {};
-	std::fprintf(Nonnull(stream), "%s", str.c_str());
-	return true;
+	if(!cmd.empty())
+	{
+		const auto& str(FetchCachedCommandResult(cmd));
+
+		if(!str.empty())
+		{
+			std::fprintf(Nonnull(stream), "%s", str.c_str());
+			return true;
+		}
+	}
+	return {};
 }
 #	endif
 
