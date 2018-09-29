@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (C) 2014-2017 FrankHB.
+# (C) 2014-2018 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
 : ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
@@ -28,7 +28,10 @@ if [[ "$SHBuild_Env_OS" != 'Win32' ]]; then
 	: ${C_CXXFLAGS_PIC:='-fPIC'}
 fi
 
-: ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC $C_CXXFLAGS_ARCH -pedantic-errors"}
+: ${C_CXXFLAGS_STRIP:='-s'}
+: ${LDFLAGS_STRIP:='-s'}
+
+: ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC $C_CXXFLAGS_STRIP $C_CXXFLAGS_ARCH -pedantic-errors"}
 : ${C_CXXFLAGS_OPT_LV:='-O3'}
 : ${C_CXXFLAGS_WARNING:=" \
 	-Wall \
@@ -81,8 +84,8 @@ elif SHBuild_Put "$CXX" | grep g++ > /dev/null; then
 		-Wstrict-null-sentinel \
 		-Wzero-as-null-pointer-constant \
 		"}
-	: ${CXXFLAGS_IMPL_OPT:='-s -fexpensive-optimizations -flto=jobserver'}
-	: ${LDFLAGS_IMPL_OPT:='-s -fexpensive-optimizations -flto'}
+	: ${CXXFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto=jobserver"}
+	: ${LDFLAGS_IMPL_OPT:="-fexpensive-optimizations -flto"}
 fi
 
 : ${CFLAGS_STD:='-std=c11'}
@@ -130,7 +133,7 @@ CFLAGS="${CFLAGS//	/ }"
 	$CXXFLAGS_OPT_DBG"}
 CXXFLAGS="${CXXFLAGS//	/ }"
 
-: ${LDFLAGS_OPT_DBG:="$LDFLAGS_IMPL_OPT $LDFLAGS_GC"}
+: ${LDFLAGS_OPT_DBG:="$LDFLAGS_STRIP $LDFLAGS_IMPL_OPT $LDFLAGS_GC"}
 
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	: ${LDFLAGS_DYN_BASE:="-shared -Wl,--dll"}

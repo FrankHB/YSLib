@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2016 FrankHB.
+	© 2010-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r1174
+\version r1192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2016-09-21 15:34 +0800
+	2018-09-20 02:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_Service_YPixel_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_Core_YShellDefinition
+#include YFM_YSLib_Core_YGDIBase // for Color;
 #include <ystdex/rational.hpp>
 
 namespace YSLib
@@ -473,8 +473,10 @@ BlendComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa)
 		"Invalid integer source alpha type found.");
 	using pix = make_fixed_t<_vSrcAlphaBits>;
 
-	return GPixelCompositor<1, _vSrcAlphaBits>::CompositeComponentOver(
-		pix(d, raw_tag()), pix(s, raw_tag()), pix(sa, raw_tag()), pix(1)).get();
+	// TODO: Handle truncation properly.
+	return _tDstInt(
+		GPixelCompositor<1, _vSrcAlphaBits>::CompositeComponentOver(pix(d,
+		raw_tag()), pix(s, raw_tag()), pix(sa, raw_tag()), pix(1)).get());
 }
 
 /*!
@@ -500,9 +502,10 @@ CompositeComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa, _tAlphaInt a)
 	using pixd = make_fixed_t<_vDstAlphaBits>;
 	using pix = make_fixed_t<_vSrcAlphaBits>;
 
-	return GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>
+	// TODO: Handle truncation properly.
+	return _tDstInt(GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>
 		::CompositeComponentOver(pix(d, raw_tag()), pix(s, raw_tag()),
-		pix(sa, raw_tag()), pixd(a, raw_tag())).get();
+		pix(sa, raw_tag()), pixd(a, raw_tag())).get());
 }
 
 
@@ -540,7 +543,7 @@ BlendCore(std::uint32_t d, std::uint32_t s, std::uint8_t a)
 }
 
 
-/*
+/*!
 \note 使用引用传递像素类型以便优化。
 \todo 支持浮点数。
 \since build 442
@@ -582,10 +585,11 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 		static_assert(std::is_integral<_tSrcAlphaInt>(),
 			"Invalid integer source alpha type found.");
 
+		// TODO: Use pixel instead of %Color to avoid truncation.
 		return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
 			BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa),
 			BlendComponent<_vSrcAlphaBits>(d.GetB(), s.GetB(), sa),
-			(1 << _vSrcAlphaBits) - 1);
+			AlphaType((1 << _vSrcAlphaBits) - 1));
 	}
 
 	template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits,
@@ -599,12 +603,13 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 		using pixd = make_fixed_t<_vDstAlphaBits>;
 		using pix = make_fixed_t<_vSrcAlphaBits>;
 
+		// TODO: Use pixel instead of %Color to avoid truncation.
 		return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
 			BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa),
 			BlendComponent<_vSrcAlphaBits>(d.GetB(), s.GetB(), sa),
-			GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>
+			AlphaType(GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>
 			::CompositeAlphaOver(pixd(d.GetA(), raw_tag()),
-			pix(sa, raw_tag())).get());
+			pix(sa, raw_tag())).get()));
 	}
 	//@}
 
@@ -623,10 +628,12 @@ struct GBlender<_tPixel, ystdex::when<_bCond>>
 		static_assert(std::is_integral<_tAlphaInt>(),
 			"Invalid integer result alpha type found.");
 
+		// TODO: Use pixel instead of %Color to avoid truncation.
 		return Color(CompositeComponent<_vDstAlphaBits, _vSrcAlphaBits>(
 			d.GetR(), s.GetR(), sa, a), CompositeComponent<_vDstAlphaBits,
 			_vSrcAlphaBits>(d.GetG(), s.GetG(), sa, a), CompositeComponent<
-			_vDstAlphaBits, _vSrcAlphaBits>(d.GetB(), s.GetB(), sa, a), a);
+			_vDstAlphaBits, _vSrcAlphaBits>(d.GetB(), s.GetB(), sa, a),
+			AlphaType(a));
 	}
 };
 

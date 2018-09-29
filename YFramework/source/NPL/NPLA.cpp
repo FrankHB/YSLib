@@ -11,13 +11,13 @@
 /*!	\file NPLA.cpp
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r1973
+\version r2022
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:45 +0800
 \par 修改时间:
-	2018-09-13 06:09 +0800
+	2018-09-25 08:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,19 +341,43 @@ RedirectToShared(string_view id, const shared_ptr<Environment>& p_shared)
 		IsReserved(id) ? " reserved" : "", id.data()));
 }
 
+//! \since build 839
+//@{
+// XXX: Use other type without overhead of check on call of %operator()?
+using Redirector = std::function<observer_ptr<const Environment>()>;
+
 observer_ptr<const Environment>
-RedirectParent(const ValueObject& parent, string_view id)
+RedirectParent(const ValueObject&, string_view, Redirector&);
+
+observer_ptr<const Environment>
+RedirectEnvironmentList(EnvironmentList::const_iterator first,
+	EnvironmentList::const_iterator last, string_view id, Redirector& cont)
+{
+	if(first != last)
+	{
+		cont = std::bind([=, &cont](EnvironmentList::const_iterator i,
+			Redirector& c){
+			cont = std::move(c);
+			return RedirectEnvironmentList(i, last, id, cont);
+		}, std::next(first), std::move(cont));
+		if(const auto p = RedirectParent(*first, id, cont))
+			return p;
+	}
+	return {};
+}
+
+observer_ptr<const Environment>
+RedirectParent(const ValueObject& parent, string_view id,
+	Redirector& cont)
 {
 	const auto& tp(parent.type());
 
 	if(tp == ystdex::type_id<EnvironmentList>())
-		for(const auto& vo : parent.GetObject<EnvironmentList>())
-		{
-			auto p(RedirectParent(vo, id));
+	{
+		auto& envs(parent.GetObject<EnvironmentList>());
 
-			if(p)
-				return p;
-		}
+		return RedirectEnvironmentList(envs.cbegin(), envs.cend(), id, cont);
+	}
 	if(tp == ystdex::type_id<observer_ptr<const Environment>>())
 		return parent.GetObject<observer_ptr<const Environment>>();
 	if(tp == ystdex::type_id<EnvironmentReference>())
@@ -364,6 +388,7 @@ RedirectParent(const ValueObject& parent, string_view id)
 			parent.GetObject<shared_ptr<Environment>>());
 	return {};
 }
+//@}
 
 } // unnamed namespace;
 
@@ -670,33 +695,32 @@ Environment::Deduplicate(BindingMap& dst, const BindingMap& src)
 	return dst.empty();
 }
 
-observer_ptr<const Environment>
-Environment::DefaultRedirect(const Environment& env, string_view id)
-{
-	return RedirectParent(env.Parent, id);
-}
-
 Environment::NameResolution
 Environment::DefaultResolve(const Environment& e, string_view id)
 {
-	YAssertNonnull(id.data());
-
 	observer_ptr<ValueNode> p;
 	auto env_ref(ystdex::ref<const Environment>(e));
+	Redirector cont;
 
-	ystdex::retry_on_cond(
-		[&](observer_ptr<const Environment> p_env) ynothrow -> bool{
+	ystdex::retry_on_cond([&](observer_ptr<const Environment> p_env) ynothrow{
 		if(p_env)
-		{
 			env_ref = ystdex::ref(Deref(p_env));
-			return true;
-		}
-		return {};
+		return p_env || cont;
 	}, [&, id]() -> observer_ptr<const Environment>{
 		auto& env(env_ref.get());
 
 		p = env.LookupName(id);
-		return p ? nullptr : env.Redirect(id);
+		if(p)
+			cont = Redirector();
+		else
+		{
+			const auto p_env(RedirectParent(env.Parent, id, cont));
+
+			// NOTE: This is like asynchronously called %ContextNode::ApplyTail.
+			return p_env ? p_env
+				: (cont ? ystdex::exchange(cont, Redirector())() : nullptr);
+		}
+		return {};
 	});
 	return {p, env_ref};
 }
@@ -819,7 +843,7 @@ ContextNode::Push(Reducer&& reducer)
 ReductionStatus
 ContextNode::Rewrite(Reducer reduce)
 {
-	SetupTail(reduce);
+	SetupTail(std::move(reduce));
 	// NOTE: Rewriting loop until no actions remain.
 	return ystdex::retry_on_cond(std::bind(&ContextNode::Transit, this), [&]{
 		return ApplyTail();

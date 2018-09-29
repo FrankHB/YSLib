@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r2871
+\version r2877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2018-09-05 03:11 +0800
+	2018-09-19 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -557,6 +557,13 @@ public:
 	{
 		base::replace(i1, i2, il);
 		return *this;
+	}
+
+	//! \since build 839
+	basic_string
+	substr(size_type pos = 0, size_type n = npos) const
+	{
+		return basic_string(base::substr(pos, n));
 	}
 
 	void

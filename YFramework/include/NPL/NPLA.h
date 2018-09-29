@@ -11,13 +11,13 @@
 /*!	\file NPLA.h
 \ingroup NPL
 \brief NPLA 公共接口。
-\version r3862
+\version r3908
 \author FrankHB <frankhb1989@gmail.com>
 \since build 663
 \par 创建时间:
 	2016-01-07 10:32:34 +0800
 \par 修改时间:
-	2018-09-13 06:09 +0800
+	2018-09-25 08:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1264,7 +1264,12 @@ class YF_API Environment : private ystdex::equality_comparable<Environment>,
 public:
 	//! \since build 788
 	using BindingMap = ValueNode;
-	//! \since build 821
+	/*!
+	\brief 名称解析结果。
+	\since build 821
+
+	名称解析的返回结果是环境中的绑定目标的对象指针和直接保存绑定目标的环境的引用。
+	*/
 	using NameResolution
 		= pair<observer_ptr<ValueNode>, ystdex::lref<const Environment>>;
 
@@ -1298,44 +1303,34 @@ public:
 	//! \since build 788
 	mutable BindingMap Bindings{};
 	/*!
-	\exception NPLException 对实现异常中立的未指定派生类型的异常。
-	\note 失败时若抛出异常，条件由实现定义。
-	\since build 798
-	*/
-	//@{
-	/*!
-	\brief 重定向解析环境：返回非局部名称引用的环境。
-	\return 符合条件的重定向后的环境指针，或无法重定向时的空值。
-
-	在局部解析失败时，尝试提供能进一步解析名称的环境。
-	若不支持重定向，总是返回空指针值。
-	*/
-	std::function<observer_ptr<const Environment>(string_view)> Redirect{
-		std::bind(DefaultRedirect, std::cref(*this), std::placeholders::_1)};
-	/*!
 	\brief 解析名称：处理保留名称并查找名称。
 	\return 查找到的名称，或查找失败时的空值。
 	\pre 实现断言：第二参数的数据指针非空。
+	\exception NPLException 对实现异常中立的未指定派生类型的异常。
+	\note 失败时若抛出异常，条件由实现定义。
 	\sa LookupName
-	\sa Redirect
+	\sa NameResolution
+	\sa Parent
 	\since build 821
 
-	解析指定环境中的名称。被解析的环境可对特定保留名称重定向。
+	解析指定环境中的名称。
+	被解析的环境可重定向：解析失败时，尝试提供能进一步解析名称的环境。
+	重定向通常在局部解析失败时进行，也可对特定保留名称进行。
+	重定向的目标通常是父环境。
 	实现名称解析的一般步骤包括：
 	局部解析：对被处理的上下文查找名称，若成功则返回；
 	否则，若支持重定向，尝试重定向解析：在重定向后的环境中重新查找名称；
 	否则，名称解析失败。
-	名称解析失败时默认返回空值。对特定的失败，实现可约定抛出异常。
+	名称解析失败时默认返回空值和未指定的环境引用值。对特定的失败，实现可约定抛出异常。
 	保留名称的集合和是否支持重定向由实现约定。
 	只有和名称解析的相关保留名称被处理。其它保留名称被忽略。
 	不保证对循环重定向进行检查。
 	*/
 	std::function<NameResolution(string_view)> Resolve{
 		std::bind(DefaultResolve, std::cref(*this), std::placeholders::_1)};
-	//@}
 	/*!
 	\brief 父环境：被解释的重定向目标。
-	\sa DefaultRedirect
+	\sa DefaultResolve
 	\since build 798
 	*/
 	ValueObject Parent{};
@@ -1426,14 +1421,19 @@ public:
 	static bool
 	Deduplicate(BindingMap&, const BindingMap&);
 
-	//! \pre 断言：第二参数的数据指针非空。
-	//@{
 	/*!
-	\brief 重定向解析环境：返回父环境。
+	\brief 解析名称：处理保留名称并查找名称。
+	\pre 断言：第二参数的数据指针非空。
+	\exception NPLException 访问共享重定向环境失败。
+	\sa Lookup
 	\sa Parent
+	\sa Resolve
+	\since build 821
 
-	解析 Parent 储存的对象作为父环境的引用值。
-	被处理的保留名称应指定重定向名称到有限个不同的环境。
+	按默认环境解析规则解析名称。
+	局部解析失败时，重定向解析 Parent 储存的对象作为父环境的引用值。
+	不在其它条件下重定向。不重定向到其它目标。
+	重定向的候选目标是到有限个不同的环境。
 	支持的重定向项的宿主值的类型包括：
 	EnvironmentList ：环境列表；
 	observer_ptr<const Environment> 无所有权的重定向环境；
@@ -1444,19 +1444,8 @@ public:
 	以上支持的宿主值类型被依次检查。若检查成功，则使用此宿主值类型访问环境。
 	对列表，使用 DFS （深度优先搜索）依次递归检查其元素。
 	*/
-	static observer_ptr<const Environment>
-	DefaultRedirect(const Environment&, string_view);
-
-	/*!
-	\brief 解析名称：处理保留名称并查找名称。
-	\exception NPLException 访问共享重定向环境失败。
-	\sa Lookup
-	\sa Redirect
-	\since build 821
-	*/
 	static NameResolution
 	DefaultResolve(const Environment&, string_view);
-	//@}
 	//@}
 
 	/*!
@@ -1675,7 +1664,8 @@ public:
 	GuardPasses Guard{};
 	/*!
 	\brief 当前动作。
-	\note 为便于确保释放，不使用 ystdex::one_shot 。
+	\note 为便于确保资源释放和异常安全，不使用 ystdex::one_shot 。
+	\sa Switch
 	\since build 806
 	*/
 	Reducer Current{};

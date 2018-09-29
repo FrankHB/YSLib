@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r684
+\version r703
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2018-09-03 16:07 +0800
+	2018-09-19 00:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,6 +80,28 @@ fexists(const char*) ynothrow;
 \since build 566
 */
 using unique_file_ptr = std::unique_ptr<std::FILE, decltype(std::fclose)&>;
+
+
+/*!
+\brief 使用指定缓冲区和缓冲区处理函数从流中顺序读取所有内容。
+\pre 断言：指针参数非空。
+\note 假定文件可读。
+\note 读取前设置关闭源缓冲。
+\sa ystdex::setnbuf
+\since build 839
+*/
+template<typename _func>
+static void
+read_all_with_buffer(std::FILE* fp, char* p_buf, size_t len, _func append)
+{
+	yconstraint(fp);
+	yconstraint(p_buf);
+	yconstraint(len > 0);
+
+	ystdex::setnbuf(fp);
+	for(size_t n; (n = std::fread(p_buf, 1, len, fp)) != 0; )
+		append(p_buf, n);
+}
 
 
 /*!

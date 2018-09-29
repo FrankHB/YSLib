@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 宿主构建工具：递归查找源文件并编译和静态链接。
-\version r3788
+\version r3860
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2018-09-17 04:46 +0800
+	2018-09-29 13:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,10 +39,9 @@ See readme file for details.
 #include <ystdex/mixin.hpp> // for ystdex::wrap_mixin_t;
 #include YFM_YSLib_Core_YStorage // for ystdex::raise_exception,
 //	YSLib::FetchStaticRef;
-#include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, EnvironmentSwitcher,
-//	NPL::SwitchToFreshEnvironment, NPL::DecomposeMakefileDepList,
-//	NPL::FilterMakefileDependencies, NPL::Install*;
-#include <ystdex/scope_guard.hpp> // for ystdex::guard;
+#include YFM_NPL_Dependency // for NPL::DepsEventType, NPL, A1, Forms,
+//	NPL::DecomposeMakefileDepList, NPL::FilterMakefileDependencies,
+//	NPL::Install*;
 #include YFM_YSLib_Core_YConsole // for YSLib::Consoles;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include YFM_YSLib_Service_TextFile // for YSLib::SharedInputMappedFileStream,
@@ -335,17 +334,6 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 }
 //@}
 
-//! \since build 797
-ArgumentsVector CommandArguments;
-
-//! \since build 805
-YB_NONNULL(1) unique_ptr<SharedInputMappedFileStream>
-OpenNPLStream(const char* src)
-{
-	return Text::OpenSkippedBOMtream<SharedInputMappedFileStream>(
-		Text::BOM_UTF_8, src);
-}
-
 //! \since build 796
 YB_NONNULL(1) void
 RunNPLFromStream(const char* name, std::istream&& is)
@@ -358,66 +346,48 @@ RunNPLFromStream(const char* name, std::istream&& is)
 	// NOTE: Force filter level to avoid uninterested NPLA messages. This is
 	//	necessary at least in stage 1.
 	context.Root.Trace.FilterLevel = Logger::Level::Informative;
-	LoadNPLContextGround(context);
+	LoadGroundContext(context);
 
-	auto& gctx(context.Root);
-
-	RegisterStrictBinary<const string, const string>(gctx, "env-set",
-		[&](const string& var, const string& val){
-		SetEnvironmentVariable(var.c_str(), val.c_str());
+	auto& rctx(context.Root);
+	const auto load_std_module([&](string_view module_name,
+		void(&load_module)(REPLContext&)){
+		LoadModule(rctx, "std." + string(module_name),
+			std::bind(load_module, std::ref(context)));
 	});
-	RegisterStrict(gctx, "cmd-get-args", [](TermNode& term){
-		RetainN(term, 0);
-		term.Clear();
-		for(const auto& s : CommandArguments.Arguments)
-			term.AddValue(MakeIndex(term), s);
-		return ReductionStatus::Retained;
+
+	load_std_module("strings", LoadModule_std_strings);
+	load_std_module("environments", LoadModule_std_environments),
+	load_std_module("io", LoadModule_std_io),
+	load_std_module("system", LoadModule_std_system);
+	GetModuleFor(rctx, [&]{
+		context.Root.GetRecordRef().Define("env_SHBuild_",
+			GetModuleFor(rctx, [&]{
+			LoadModule_SHBuild(context);
+			// XXX: Overriding.
+			rctx.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
+				ValueObject(std::function<void(const string&, const string&)>(
+				[](const string& n, const string& val){
+					// XXX: Errors from 'std::printf' and 'std::puts' are
+					//	ignored.
+					using namespace Consoles;
+
+					Terminal te;
+					{
+						const auto t_gd(te.LockForeColor(DarkCyan));
+
+						std::printf("%s", n.c_str());
+					}
+					std::printf(" = \"");
+					{
+						const auto t_gd(te.LockForeColor(DarkRed));
+
+						std::printf("%s", val.c_str());
+					}
+					std::puts("\"");
+			})), true);
+		}), {});
+		TryLoadSource(context, name, is);
 	});
-	RegisterStrict(gctx, "system-get", [](TermNode& term){
-		CallUnaryAs<const string>([&](const string& cmd){
-			TermNode::Container con;
-			auto res(FetchCommandOutput(cmd.c_str()));
-
-			TermNode::AddValueTo(con, MakeIndex(0),
-				ystdex::trim(std::move(res.first)));
-			TermNode::AddValueTo(con, MakeIndex(1),
-				res.second);
-			swap(con, term.GetContainerRef());
-		}, term);
-		return ReductionStatus::Retained;
-	});
-	RegisterStrictUnary<const string>(gctx, "load", [&](const string& src){
-		auto p_sifs(OpenNPLStream(src.c_str()));
-
-		TryLoadSource(context, src.c_str(),
-			static_cast<std::istream&>(*p_sifs));
-	});
-	context.Root.GetRecordRef().Define("env_SHBuild_", GetModuleFor(gctx, [&]{
-		LoadNPLContextForSHBuild(gctx);
-		// XXX: Overriding.
-		gctx.GetRecordRef().Define("SHBuild_BaseTerminalHook_",
-			ValueObject(std::function<void(const string&, const string&)>(
-			[](const string& n, const string& val){
-				// XXX: Errors from 'std::printf' and 'std::puts' are
-				//	ignored.
-				using namespace Consoles;
-
-				Terminal te;
-				{
-					const auto t_gd(te.LockForeColor(DarkCyan));
-
-					std::printf("%s", n.c_str());
-				}
-				std::printf(" = \"");
-				{
-					const auto t_gd(te.LockForeColor(DarkRed));
-
-					std::printf("%s", val.c_str());
-				}
-				std::puts("\"");
-		})), true);
-	}), {});
-	TryLoadSource(context, name, is);
 }
 
 } // unnamed namespace;
@@ -1004,15 +974,18 @@ main(int argc, char* argv[])
 					{
 						check_n_ge(1);
 
-						CommandArguments.Arguments = std::move(args);
-						const auto& arg0(CommandArguments.Arguments.front());
+						const auto p_cmd_args(LockCommandArguments());
+
+						p_cmd_args->Arguments = std::move(args);
+
+						const auto& arg0(p_cmd_args->Arguments.front());
 
 						if(RequestedCommand == "RunNPL")
 							RunNPLFromStream("<stdin>",
 								std::istringstream(arg0));
 						else
 						{
-							const auto p(OpenNPLStream(arg0.c_str()));
+							const auto p(A1::OpenFile(arg0.c_str()));
 
 							RunNPLFromStream(arg0.c_str(), std::move(*p));
 						}

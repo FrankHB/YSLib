@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r552
+\version r623
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2018-03-03 17:22 +0800
+	2018-09-20 11:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,6 @@ using HANDLE = void*;
 #endif
 
 #if YF_Hosted
-
 namespace platform_ex
 {
 
@@ -90,47 +89,6 @@ public:
 	//! \since build 624
 	DefGetter(const ynothrow, YSLib::RecordLevel, Level, level)
 };
-
-
-//! \since build 566
-//@{
-/*!
-\brief 关闭管道流。
-\pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
-\note 基本语义同 POSIX.1 2004 的 \c ::pclose ，具体行为取决于实现。
-*/
-YF_API YB_NONNULL(1) int
-upclose(std::FILE*) ynothrowv;
-
-//! \note 若存储分配失败，设置 errno 为 \c ENOMEM 。
-//@{
-/*!
-\param filename 文件名，意义同 POSIX \c ::popen 。
-\param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
-\pre 断言：\c filename 。
-\pre 间接断言： \c mode 。
-\warning 应使用 upclose 而不是 ::close 关闭管道流，否则可能引起未定义行为。
-*/
-//@{
-//! \brief 以 UTF-8 文件名无缓冲打开管道流。
-YF_API YB_NONNULL(1, 2) std::FILE*
-upopen(const char* filename, const char* mode) ynothrowv;
-//! \brief 以 UCS-2 文件名无缓冲打开管道流。
-YF_API YB_NONNULL(1, 2) std::FILE*
-upopen(const char16_t* filename, const char16_t* mode) ynothrowv;
-//@}
-//@}
-
-
-/*!
-\brief 设置环境变量。
-\pre 断言：参数非空。
-\warning 不保证线程安全。
-\throw std::system_error 设置失败。
-\since build 762
-*/
-YF_API YB_NONNULL(1, 2) void
-SetEnvironmentVariable(const char*, const char*);
 
 
 #	if YCL_Win32
@@ -252,48 +210,6 @@ public:
 		ImplRet(h_sem.get())
 };
 
-
-//! \since build 567
-//@{
-//! \brief 默认命令缓冲区大小。
-yconstexpr const size_t DefaultCommandBufferSize(yimpl(4096));
-
-/*!
-\brief 取命令在标准输出上的执行结果。
-\pre 间接断言：第一参数非空。
-\return 读取的二进制存储和关闭管道的返回值（可来自被调用的命令）。
-\exception std::system_error 读取失败。
-\exception std::system_error 管道打开失败。
-\throw std::invalid_argument 第二参数的值等于 \c 0 。
-\note 第一参数指定命令；第二参数指定每次读取的缓冲区大小，先于执行命令进行检查。
-\since build 791
-*/
-YF_API YB_NONNULL(1) pair<string, int>
-FetchCommandOutput(const char*, size_t = DefaultCommandBufferSize);
-
-
-//! \brief 命令和命令执行结果的缓冲区类型。
-using CommandCache = unordered_map<string, string>;
-
-/*!
-\brief 锁定命令执行缓冲区。
-\return 静态对象的非空锁定指针。
-*/
-YF_API YSLib::locked_ptr<CommandCache>
-LockCommandCache();
-
-//! \since build 593
-//@{
-//! \brief 取缓冲的命令执行结果。
-YF_API const string&
-FetchCachedCommandResult(const string&, size_t = DefaultCommandBufferSize);
-
-//! \brief 取缓冲的命令执行结果字符串。
-inline PDefH(string, FetchCachedCommandString, const string& cmd,
-	size_t buf_size = DefaultCommandBufferSize)
-	ImplRet(ystdex::trail(string(FetchCachedCommandResult(cmd, buf_size))))
-//@}
-//@}
 
 /*!
 \brief 创建管道。
@@ -463,7 +379,6 @@ UpdateForeColorByLevel(Terminal&, YSLib::RecordLevel);
 #	endif
 
 } // namespace platform_ex;
-
 #endif
 
 #endif

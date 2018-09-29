@@ -11,13 +11,13 @@
 /*!	\file Dependency.cpp
 \ingroup NPL
 \brief 依赖管理。
-\version r1763
+\version r2024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 623
 \par 创建时间:
 	2015-08-09 22:14:45 +0800
 \par 修改时间:
-	2018-09-12 01:29 +0800
+	2018-09-29 11:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,16 +26,20 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Dependency // for ystdex::isspace, std::placeholders,
-//	ystdex::isdigit, ystdex::tolower, ystdex::bind1;
+#include YFM_NPL_Dependency // for ystdex::isspace, std::istream,
+//	YSLib::unique_ptr, ystdex::isdigit, ystdex::bind1, std::placeholders,
+//	ystdex::tolower;
 #include YFM_NPL_SContext
 #include YFM_YSLib_Service_FileSystem // for YSLib::IO::*;
-#include <iterator> // for std::istreambuf_iterator;
-#include <limits> // for std::numeric_limits;
+#include <ystdex/iterator.hpp> // for std::istreambuf_iterator,
+//	ystdex::make_transform;
+#include YFM_YSLib_Service_TextFile // for IO::SharedInputMappedFileStream,
+//	Text::OpenSkippedBOMtream;
 #include <cerrno> // for errno, ERANGE;
 #include <cstdio> // for std::puts;
 #include <regex> // for std::regex, std::regex_match;
-#include <ystdex/string.hpp> // for ystdex::begins_with, ystdex::erase_left;
+#include YFM_YSLib_Core_YCoreUtilities // for FetchCommandOutput;
+#include <ystdex/string.hpp> // for ystdex::begins_with;
 
 using namespace YSLib;
 
@@ -192,6 +196,13 @@ InstallExecutable(const char* dst, const char* src)
 namespace A1
 {
 
+YB_NONNULL(1) YSLib::unique_ptr<std::istream>
+OpenFile(const char* filename)
+{
+	return Text::OpenSkippedBOMtream<IO::SharedInputMappedFileStream>(
+		Text::BOM_UTF_8, filename);
+}
+
 namespace Forms
 {
 
@@ -262,29 +273,6 @@ CopyEnvironment(TermNode& term, ContextNode& ctx)
 
 //! \since build 834
 //@{
-class Loader final
-{
-private:
-	//! \since build 835
-	lref<REPLContext> context;
-
-public:
-	Loader(REPLContext& ctx)
-		: context(ctx)
-	{}
-
-	DefCvt(const ynothrow, REPLContext&, context)
-
-	DefCvt(const ynothrow, ContextNode&, context.get().Root)
-
-	DefGetter(const ynothrow, Environment&, EnvironmentRef,
-		context.get().Root.GetRecordRef())
-
-	DefFwdTmpl(const ynothrow, TermNode, Perform,
-		context.get().Perform(yforward(args)...))
-};
-
-
 void
 LoadBasicProcessing(ContextNode& ctx)
 {
@@ -307,8 +295,9 @@ LoadBasicProcessing(ContextNode& ctx)
 					term.Value = nullptr;
 				// XXX: Redundant test?
 				else if(IsNPLAExtendedLiteral(id))
-					throw InvalidSyntax(f == '#' ? "Invalid literal found."
-						: "Unsupported literal prefix found.");
+					throw InvalidSyntax(sfmt(f != '#' ? "Unsupported literal"
+						" prefix found in literal '%s'."
+						: "Invalid literal '%s' found.", id.data()));
 				else
 					return ReductionStatus::Retrying;
 			}
@@ -437,8 +426,8 @@ LoadCombiners(ContextNode& ctx)
 	// NOTE: For ground environment applicatives (see below for
 	//	'get-current-environment'), the result of evaluation of expression
 	//	'eqv? (() get-current-environment) (() ($vau () e e))' shall be '#t'.
-	RegisterForm(ctx, "$vaue", VauWithEnvironment);
-	RegisterForm(ctx, "$vaue%", VauWithEnvironmentRef);
+	RegisterForm(ctx, "$vau/e", VauWithEnvironment);
+	RegisterForm(ctx, "$vau/e%", VauWithEnvironmentRef);
 	RegisterStrictUnary<ContextHandler>(ctx, "wrap", Wrap);
 	RegisterStrictUnary<ContextHandler>(ctx, "unwrap", Unwrap);
 }
@@ -467,54 +456,58 @@ Load(ContextNode& ctx)
 namespace Derived
 {
 
+//! \since build 839
+//@{
 void
-LoadPrimitive(Loader& loader)
+LoadPrimitive(REPLContext& context)
 {
+	auto& renv(context.Root.GetRecordRef());
+
 	// NOTE: Some combiners are provided here as host primitives for
 	//	more efficiency and less dependencies.
 #if YF_Impl_NPLA1_Native_Forms || YF_Impl_NPLA1_Native_EnvironmentPrimitives
-	RegisterStrict(loader, "get-current-environment", GetCurrentEnvironment);
-	RegisterStrict(loader, "lock-current-environment", LockCurrentEnvironment);
+	RegisterStrict(renv, "get-current-environment", GetCurrentEnvironment);
+	RegisterStrict(renv, "lock-current-environment", LockCurrentEnvironment);
 #endif
 #if YF_Impl_NPLA1_Native_Forms || !YF_Impl_NPLA1_Native_EnvironmentPrimitives
-	RegisterForm(loader, "$vau", Vau);
-	RegisterForm(loader, "$vau%", VauRef);
+	RegisterForm(renv, "$vau", Vau);
+	RegisterForm(renv, "$vau%", VauRef);
 #endif
 #if YF_Impl_NPLA1_Native_Forms
-	RegisterStrict(loader, "id", [](TermNode& term){
+	RegisterStrict(renv, "id", [](TermNode& term){
 		RetainN(term);
 		LiftTerm(term, Deref(std::next(term.begin())));
 		return CheckNorm(term);
 	});
-	RegisterStrict(loader, "idv", [](TermNode& term){
+	RegisterStrict(renv, "idv", [](TermNode& term){
 		RetainN(term);
 		LiftTerm(term, Deref(std::next(term.begin())));
 		LiftToReturn(term);
 		return CheckNorm(term);
 	});
-	RegisterStrict(loader, "list", ReduceBranchToListValue);
-	RegisterStrict(loader, "list%", ReduceBranchToList);
-	RegisterForm(loader, "$lambda", Lambda);
-	RegisterForm(loader, "$lambda%", LambdaRef);
+	RegisterStrict(renv, "list", ReduceBranchToListValue);
+	RegisterStrict(renv, "list%", ReduceBranchToList);
+	RegisterForm(renv, "$lambda", Lambda);
+	RegisterForm(renv, "$lambda%", LambdaRef);
 	// NOTE: The sequence operator is also available as infix ';' syntax sugar.
-	RegisterForm(loader, "$sequence", Sequence);
+	RegisterForm(renv, "$sequence", Sequence);
 #else
 #	if YF_Impl_NPLA1_Native_EnvironmentPrimitives
-	loader.Perform(u8R"NPL(
-		$def! $vau $vaue (() get-current-environment) (&formals &e .&body) env
-			eval (cons $vaue (cons env (cons formals (cons e body)))) env;
+	context.Perform(u8R"NPL(
+		$def! $vau $vau/e (() get-current-environment) (&formals &e .&body) env
+			eval (cons $vau/e (cons env (cons formals (cons e body)))) env;
 		$def! $vau% $vau (&formals &senv .&body) env
-			eval (cons $vaue% (cons env (cons formals (cons senv body)))) env;
+			eval (cons $vau/e% (cons env (cons formals (cons senv body)))) env;
 	)NPL");
-	RegisterForm(loader, "$vau%", VauRef);
+	RegisterForm(renv, "$vau%", VauRef);
 #	else
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$def! get-current-environment (wrap ($vau () e e));
 		$def! lock-current-environment (wrap ($vau () e lock-environment e));
 	)NPL");
 #	endif
 	// XXX: The operative '$set!' is same to following derivations.
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$def! $set! $vau (&e &formals .&expr) env
 			eval (list $def! formals (unwrap eval) expr env) (eval e env);
 	)NPL");
@@ -526,14 +519,14 @@ LoadPrimitive(Loader& loader)
 	//	This is not required in Kernel as it does not differentiate lvalues
 	//	(first-class referents) from prvalues and all terms can be accessed as
 	//	objects with arbitrary longer lifetime.
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$def! id wrap ($vau% (%x) #ignore x);
 		$def! idv wrap ($vau (&x) #ignore x);
 		$def! list wrap ($vau (.x) #ignore x);
 		$def! list% wrap ($vau &x #ignore x);
 	)NPL");
 	// XXX: The operative '$defv!' is same to following derivations.
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$def! $defv! $vau (&$f &formals &senv .&body) env
 			eval (list $set! env $f $vau formals senv body) env;
 		$defv! $lambda (&formals .&body) env
@@ -542,9 +535,9 @@ LoadPrimitive(Loader& loader)
 			wrap (eval (cons $vau% (cons formals (cons ignore body))) env);
 	)NPL");
 #	else
-	RegisterForm(loader, "$lambda", Lambda);
-	RegisterForm(loader, "$lambda%", LambdaRef);
-	loader.Perform(u8R"NPL(
+	RegisterForm(renv, "$lambda", Lambda);
+	RegisterForm(renv, "$lambda%", LambdaRef);
+	context.Perform(u8R"NPL(
 		$def! id $lambda% (%x) x;
 		$def! idv $lambda (&x) x;
 		$def! list $lambda (.x) x;
@@ -552,12 +545,12 @@ LoadPrimitive(Loader& loader)
 	)NPL");
 #	endif
 	// TODO: Support move-only types at end?
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$def! $sequence
 			($lambda (&cenv)
-				($lambda #ignore $vaue% cenv &body env
+				($lambda #ignore $vau/e% cenv &body env
 					$if (null? body) inert (eval% (cons% $aux body) env))
-				($set! cenv $aux $vaue% (weaken-environment cenv) (&head .&tail)
+				($set! cenv $aux $vau/e% (weaken-environment cenv) (&head .&tail)
 					env $if (null? tail) (eval% head env)
 						(($vau% (&t) e ($lambda% #ignore (eval% t e))
 							(eval% head env)) (eval% (cons% $aux tail) env))))
@@ -567,16 +560,22 @@ LoadPrimitive(Loader& loader)
 }
 
 void
-LoadCore(Loader& loader)
+LoadCore(REPLContext& context)
 {
-	loader.Perform(u8R"NPL(
+	auto& renv(context.Root.GetRecordRef());
+
+	context.Perform(u8R"NPL(
 		$def! $quote $vau (&x) #ignore x;
 		$def! $set! $vau (&e &formals .&expr) env
 			eval (list $def! formals (unwrap eval) expr env) (eval e env);
 		$def! $defv! $vau (&$f &formals &senv .&body) env
 			eval (list $set! env $f $vau formals senv body) env;
-		$def! $defv%! $vau (&$f &formals &senv .&body) env
+		$defv! $defv%! (&$f &formals &senv .&body) env
 			eval (list $set! env $f $vau% formals senv body) env;
+		$defv! $defv/e! (&$f &e &formals &senv .&body) env
+			eval (list $set! env $f $vau/e e formals senv body) env;
+		$defv! $defv/e%! (&$f &e &formals &senv .&body) env
+			eval (list $set! env $f $vau/e% e formals senv body) env;
 		$defv! $setrec! (&e &formals .&expr) env eval
 			(list $defrec! formals (unwrap eval) expr env) (eval e env);
 		$defv! $defl! (&f &formals .&body) env eval
@@ -602,44 +601,53 @@ LoadCore(Loader& loader)
 			(list $set! env f wrap (list* $vau formals senv body)) env;
 		$defv! $defw%! (&f &formals &senv .&body) env eval
 			(list $set! env f wrap (list* $vau% formals senv body)) env;
-		$defv! $lambdae (&e &formals .&body) env
-			wrap (eval (list* $vaue e formals ignore body) env);
-		$defv! $lambdae% (&e &formals .&body) env
-			wrap (eval (list* $vaue% e formals ignore body) env);
+		$defv! $defw/e! (&f &e &formals &senv .&body) env eval
+			(list $set! env f wrap (list* $vau/e e formals senv body)) env;
+		$defv! $defw/e%! (&f &e &formals &senv .&body) env eval
+			(list $set! env f wrap (list* $vau/e% e formals senv body)) env;
+		$defv! $lambda/e (&e &formals .&body) env
+			wrap (eval (list* $vau/e e formals ignore body) env);
+		$defv! $lambda/e% (&e &formals .&body) env
+			wrap (eval (list* $vau/e% e formals ignore body) env);
+		$defv! $defl/e! (&f &e &formals .&body) env eval
+			(list $set! env f $lambda/e e formals body) env;
+		$defv! $defl/e%! (&f &e &formals .&body) env eval
+			(list $set! env f $lambda/e% e formals body) env;
 	)NPL");
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$defv%! $cond &clauses env
 			$if (null? clauses) inert (apply ($lambda% ((&test .&body) .clauses)
 				$if (eval test env) (eval% body env)
 					(apply (wrap $cond) clauses env)) clauses);
 	)NPL");
 #if YF_Impl_NPLA1_Use_LockEnvironment
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$def! make-standard-environment
 			$lambda () () lock-current-environment;
 	)NPL");
 #else
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$def! make-standard-environment
 			($lambda (&cenv &env)
-				($lambda #ignore $vaue cenv () #ignore (make-environment senv))
+				($lambda #ignore $vau/e cenv () #ignore (make-environment senv))
 				($set! cenv senv env))
 			(make-environment (() get-current-environment))
 			(() get-current-environment);
 	)NPL");
 #endif
 	// NOTE: Use of 'eql?' is more efficient than '$if'.
-	loader.Perform(u8R"NPL(
+	context.Perform(u8R"NPL(
 		$defl! not? (&x) eql? x #f;
 		$defv%! $when (&test .&vexpr) env
 			$if (eval test env) (eval% (list*% $sequence vexpr) env);
 		$defv%! $unless (&test .&vexpr) env
 			$if (not? (eval test env)) (eval% (list*% $sequence vexpr) env);
 	)NPL");
-	RegisterForm(loader, "$and?", And);
-	RegisterForm(loader, "$or?", Or);
-	loader.Perform(u8R"NPL(
+	RegisterForm(renv, "$and?", And);
+	RegisterForm(renv, "$or?", Or);
+	context.Perform(u8R"NPL(
 		$defl! first-null? (&l) null? (first% l);
+		$defl! list-rest% (&x) list% (rest% x);
 		$defl%! accl (&l &pred? &base &head &tail &sum) $sequence
 			($defl%! aux (&l &base) $if (pred? l) (forward base)
 				(aux (tail l) (sum (head l) (forward base))))
@@ -656,7 +664,10 @@ LoadCore(Loader& loader)
 		$defl! append (.&ls) foldr1 list-concat () ls;
 		$defv%! $let (&bindings .&body) env forward (eval% (list*% ()
 			(list*% $lambda% (map1 first% bindings) forward (list body))
-			(map1 ($lambda (&x) list% (rest% x)) bindings)) env);
+			(map1 list-rest% bindings)) env);
+		$defv%! $let/e (&e &bindings .&body) env forward (eval% (list*% ()
+			(list*% $lambda/e% e (map1 first% bindings) forward (list body))
+			(map1 list-rest% bindings)) env);
 		$defv%! $let* (&bindings .&body) env forward
 			(eval% ($if (null? bindings) (list*% $let bindings (idv body))
 				(list% $let (list (first% bindings))
@@ -664,6 +675,15 @@ LoadCore(Loader& loader)
 		$defv%! $letrec (&bindings .&body) env forward
 			(eval% (list $let () $sequence (list% $def! (map1 first% bindings)
 				(list*% () list (map1 rest% bindings))) body) env);
+		$defv! $bindings/p->environment (&parents .&bindings) denv $sequence
+			($def! res apply make-environment (map1 ($lambda% (x) eval% x denv)
+				parents))
+			(eval% (list% $set! res (map1 first% bindings)
+				(list*% () list (map1 rest% bindings))) denv)
+			res;
+		$defv! $bindings->environment (.&bindings) denv
+			eval (list*% $bindings/p->environment
+				(list (() make-standard-environment)) bindings) denv;
 		$defv! $provide! (&symbols .&body) env $sequence
 			(eval (list% $def! symbols (list $let () $sequence (list% $set!
 				(() get-current-environment) ($quote res) (list% ()
@@ -675,9 +695,9 @@ LoadCore(Loader& loader)
 			forward (accr l null? (first-null? l) first-null? rest% $or?);
 		$def! map-reverse $let ((&cenv () make-standard-environment)) wrap
 			($sequence
-				($set! cenv cxrs $lambdae (weaken-environment cenv) (&ls &cxr)
+				($set! cenv cxrs $lambda/e (weaken-environment cenv) (&ls &cxr)
 					accl ls null? () ($lambda (&l) cxr (first l)) rest cons)
-				($vaue cenv (&appv .&ls) env accl ls unfoldable? ()
+				($vau/e cenv (&appv .&ls) env accl ls unfoldable? ()
 					($lambda (&ls) cxrs ls first) ($lambda (&ls) cxrs ls rest)
 						($lambda (&x &xs) cons (apply appv x env) xs)));
 		$defw! for-each-ltr &ls env $sequence (apply map-reverse ls env) inert;
@@ -685,9 +705,9 @@ LoadCore(Loader& loader)
 }
 
 void
-LoadObjectInteroperations(Loader& loader)
+LoadObjectInteroperations(REPLContext& context)
 {
-	RegisterStrict(loader, "ref", [](TermNode& term){
+	RegisterStrict(context.Root, "ref", [](TermNode& term){
 		CallUnary([&](TermNode& tm){
 			LiftToReference(term, tm);
 		}, term);
@@ -696,9 +716,54 @@ LoadObjectInteroperations(Loader& loader)
 }
 
 void
-LoadEnvironments(Loader& loader)
+LoadEncapsulations(REPLContext& context)
 {
-	RegisterStrictUnary(loader, "bound?",
+	RegisterStrict(context.Root, "make-encapsulation-type",
+		MakeEncapsulationType);
+}
+
+void
+Load(REPLContext& context)
+{
+	LoadPrimitive(context);
+	LoadCore(context);
+	LoadObjectInteroperations(context);
+	LoadEncapsulations(context);
+}
+//@}
+
+} // namespace Derived;
+
+//! \since build 839
+void
+Load(REPLContext& context)
+{
+	auto& rctx(context.Root);
+
+	LoadObjects(rctx.GetRecordRef());
+	Primitive::Load(rctx);
+	Derived::Load(context);
+}
+
+} // namespace Ground;
+//@}
+
+} // unnamed namespace;
+
+void
+LoadGroundContext(REPLContext& context)
+{
+	LoadSequenceSeparators(context.ListTermPreprocess),
+	LoadBasicProcessing(context.Root);
+	Ground::Load(context);
+}
+
+void
+LoadModule_std_environments(REPLContext& context)
+{
+	auto& renv(context.Root.GetRecordRef());
+
+	RegisterStrictUnary(renv, "bound?",
 		[](TermNode& term, const ContextNode& ctx){
 		return ystdex::call_value_or([&](string_view id){
 			return CheckSymbol(id, [&]{
@@ -706,40 +771,37 @@ LoadEnvironments(Loader& loader)
 			});
 		}, AccessTermPtr<string>(term));
 	});
-	loader.Perform(u8R"NPL(
-		$defv! $binds1? (&e &s) env
+	context.Perform(u8R"NPL(
+		$defv/e! $binds1? (make-environment
+			(() get-current-environment) std.strings) (&e &s) env
 			eval (list (unwrap bound?) (symbol->string s)) (eval e env);
 	)NPL");
-	RegisterStrict(loader, "value-of", ValueOf);
-	RegisterStrict(loader, "get-current-repl",
+	RegisterStrict(renv, "value-of", ValueOf);
+	RegisterStrict(renv, "get-current-repl",
 		ystdex::bind1([](TermNode& term, REPLContext& rctx){
 		RetainN(term, 0);
 		term.Value = ValueObject(rctx, OwnershipTag<>());
-	}, std::ref(static_cast<REPLContext&>(loader))));
-	RegisterStrict(loader, "eval-string", EvalString);
-	RegisterStrict(loader, "eval-string%", EvalStringRef);
-	RegisterStrict(loader, "eval-unit", EvalUnit);
+	}, std::ref(static_cast<REPLContext&>(context))));
+	RegisterStrict(renv, "eval-string", EvalString);
+	RegisterStrict(renv, "eval-string%", EvalStringRef);
+	RegisterStrict(renv, "eval-unit", EvalUnit);
 }
 
 void
-LoadEncapsulations(Loader& loader)
+LoadModule_std_strings(REPLContext& context)
 {
-	RegisterStrict(loader, "make-encapsulation-type", MakeEncapsulationType);
-}
+	auto& renv(context.Root.GetRecordRef());
 
-void
-LoadStrings(Loader& loader)
-{
-	RegisterStrict(loader, "++",
+	RegisterStrict(renv, "++",
 		std::bind(CallBinaryFold<string, ystdex::plus<>>, ystdex::plus<>(),
 		string(), std::placeholders::_1));
-	RegisterStrictUnary<const string>(loader, "string-empty?",
+	RegisterStrictUnary<const string>(renv, "string-empty?",
 		std::mem_fn(&string::empty));
-	RegisterStrictBinary(loader, "string<-", [](TermNode& x, const TermNode& y){
+	RegisterStrictBinary(renv, "string<-", [](TermNode& x, const TermNode& y){
 		AccessTerm<string>(x) = AccessTerm<const string>(y);
 		return ValueToken::Unspecified;
 	});
-	RegisterStrictBinary<string, string>(loader, "string-contains-ci?",
+	RegisterStrictBinary<string, string>(renv, "string-contains-ci?",
 		[](string x, string y){
 		// TODO: Extract 'strlwr'.
 		const auto to_lwr([](string& s){
@@ -751,14 +813,14 @@ LoadStrings(Loader& loader)
 		to_lwr(y);
 		return x.find(y) != string::npos;
 	});
-	RegisterStrictUnary<const string>(loader, "string->symbol", StringToSymbol);
-	RegisterStrictUnary<const TokenValue>(loader, "symbol->string",
+	RegisterStrictUnary<const string>(renv, "string->symbol", StringToSymbol);
+	RegisterStrictUnary<const TokenValue>(renv, "symbol->string",
 		SymbolToString);
-	RegisterStrictUnary<const string>(loader, "string->regex",
+	RegisterStrictUnary<const string>(renv, "string->regex",
 		[](const string& str){
 		return std::regex(str);
 	});
-	RegisterStrict(loader, "regex-match?", [](TermNode& term){
+	RegisterStrict(renv, "regex-match?", [](TermNode& term){
 		auto i(std::next(term.begin()));
 		const auto& str(AccessTerm<const string>(Deref(i)));
 		const auto& r(AccessTerm<const std::regex>(Deref(++i)));
@@ -768,30 +830,72 @@ LoadStrings(Loader& loader)
 }
 
 void
-LoadInputOutputOperations(Loader& loader)
+LoadModule_std_io(REPLContext& context)
 {
-	RegisterStrictUnary<const string>(loader, "puts", [](const string& str){
+	auto& renv(context.Root.GetRecordRef());
+
+	RegisterStrictUnary<const string>(renv, "puts", [](const string& str){
 		// FIXME: Use %EncodeArg?
 		// XXX: Error is ignored.
 		std::puts(str.c_str());
 		return ValueToken::Unspecified;
 	});
+	RegisterStrictUnary<const string>(renv, "load", [&](const string& filename){
+		auto p_is(OpenFile(filename.c_str()));
+
+		TryLoadSource(context, filename.c_str(), *p_is);
+		return ValueToken::Unspecified;
+	});
 }
 
 void
-LoadSystem(Loader& loader)
+LoadModule_std_system(REPLContext& context)
 {
-	RegisterStrictUnary<const string>(loader, "env-get", [](const string& var){
+	auto& renv(context.Root.GetRecordRef());
+
+	RegisterStrict(renv, "cmd-get-args", [](TermNode& term){
+		RetainN(term, 0);
+		term.GetContainerRef() = []{
+			const auto p_cmd_args(LockCommandArguments());
+			TermNode::Container con{};
+
+			for(const auto& arg : p_cmd_args->Arguments)
+				TermNode::AddValueTo(con, MakeIndex(con),
+					ystdex::in_place_type<string>, arg);
+			return con;
+		}();
+		return ReductionStatus::Retained;
+	});
+	RegisterStrictUnary<const string>(renv, "env-get", [](const string& var){
 		string res;
 
 		FetchEnvironmentVariable(res, var.c_str());
 		return res;
 	});
-	loader.Perform(u8R"NPL(
-		$defl! env-empty? (&n) string-empty? (env-get n);
+	RegisterStrictBinary<const string, const string>(renv, "env-set",
+		[&](const string& var, const string& val){
+		SetEnvironmentVariable(var.c_str(), val.c_str());
+	});
+	context.Perform(u8R"NPL(
+		$defl/e! env-empty?
+			(make-environment (() get-current-environment) std.strings) (&n)
+			string-empty? (env-get n);
 	)NPL");
-	RegisterStrict(loader, "system", CallSystem);
-	RegisterStrictUnary<const string>(loader, "system-quote",
+	RegisterStrict(renv, "system", CallSystem);
+	RegisterStrict(renv, "system-get", [](TermNode& term){
+		CallUnaryAs<const string>([&](const string& cmd){
+			TermNode::Container con;
+			auto res(FetchCommandOutput(cmd.c_str()));
+
+			TermNode::AddValueTo(con, MakeIndex(0),
+				ystdex::trim(std::move(res.first)));
+			TermNode::AddValueTo(con, MakeIndex(1),
+				res.second);
+			swap(con, term.GetContainerRef());
+		}, term);
+		return ReductionStatus::Retained;
+	});
+	RegisterStrictUnary<const string>(renv, "system-quote",
 		[](const string& w){
 		return !w.empty() ? ((CheckLiteral(w) == char() && (w.find(' ')
 			!= string::npos || w.find('\t') != string::npos))
@@ -801,68 +905,29 @@ LoadSystem(Loader& loader)
 }
 
 void
-Load(Loader& loader)
+LoadModule_SHBuild(REPLContext& context)
 {
-	LoadPrimitive(loader);
-	LoadCore(loader);
-	LoadObjectInteroperations(loader);
-	LoadEnvironments(loader);
-	LoadEncapsulations(loader);
-	LoadStrings(loader);
-	LoadInputOutputOperations(loader);
-	LoadSystem(loader);
-}
-
-} // namespace Derived;
-
-void
-Load(Loader& loader)
-{
-	LoadObjects(loader.GetEnvironmentRef());
-	Primitive::Load(loader);
-	Derived::Load(loader);
-}
-
-} // namespace Ground;
-//@}
-
-} // unnamed namespace;
-
-void
-LoadNPLContextGround(REPLContext& context)
-{
-	Loader loader(context);
-
-	LoadSequenceSeparators(context.ListTermPreprocess),
-	LoadBasicProcessing(loader);
-	Ground::Load(loader);
-}
-
-void
-LoadNPLContextForSHBuild(ContextNode& ctx)
-{
-	auto& loader(ctx);
-	auto& root_env(ctx.GetRecordRef());
+	auto& renv(context.Root.GetRecordRef());
 
 	// NOTE: SHBuild builtins.
-	root_env.Define("SHBuild_BaseTerminalHook_",
+	renv.Define("SHBuild_BaseTerminalHook_",
 		ValueObject(std::function<void(const string&, const string&)>(
 		[](const string& n, const string& val) ynothrow{
 			// XXX: Error from 'std::printf' is ignored.
 			std::printf("%s = \"%s\"\n", n.c_str(), val.c_str());
 	})), {});
-	RegisterStrictUnary<const string>(loader, "SHBuild_BuildGCH_existed_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_BuildGCH_existed_",
 		[](const string& str) -> bool{
 		if(IO::UniqueFile
 			file{uopen(str.c_str(), IO::omode_convb(std::ios_base::in))})
 			return file->GetSize() > 0;
 		return {};
 	});
-	RegisterStrictUnary<const string>(loader, "SHBuild_EnsureDirectory_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_EnsureDirectory_",
 		[](const string& str){
 		EnsureDirectory(IO::Path(str));
 	});
-	RegisterStrictUnary<const string>(loader, "SHBuild_BuildGCH_mkpdirp_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_BuildGCH_mkpdirp_",
 		[](const string& str){
 		IO::Path pth(str);
 
@@ -872,44 +937,42 @@ LoadNPLContextForSHBuild(ContextNode& ctx)
 			EnsureDirectory(pth);
 		}
 	});
-	RegisterStrict(loader, "SHBuild_EchoVar", [&](TermNode& term){
+	RegisterStrict(renv, "SHBuild_EchoVar", [&](TermNode& term){
 		// XXX: To be overriden if %Terminal is usable (platform specific).
 		CallBinaryAs<const string, const string>(
 			[&](const string& n, const string& val){
 			// NOTE: Since root environment can be switched, reference to the
 			//	initial instance is necessary to be captured explicitly.
-			if(const auto p = GetValuePtrOf(root_env.LookupName(
+			if(const auto p = GetValuePtrOf(renv.LookupName(
 				"SHBuild_BaseTerminalHook_")))
 				if(const auto p_hook = AccessPtr<
 					std::function<void(const string&, const string&)>>(*p))
 					(*p_hook)(n, val);
 		}, term);
 	});
-	RegisterStrict(loader, "SHBuild_Install_HardLink", [&](TermNode& term){
+	RegisterStrict(renv, "SHBuild_Install_HardLink", [&](TermNode& term){
 		CallBinaryAs<const string, const string>(
 			[](const string& dst, const string& src){
 			InstallHardLink(dst.c_str(), src.c_str());
 		}, term);
 	});
 	// TODO: Implement by derivations instead?
-	RegisterStrictUnary<const string>(loader, "SHBuild_QuoteS_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_QuoteS_",
 		[](const string& str){
 		if(str.find('\'') == string::npos)
 			return ystdex::quote(str, '\'');
 		throw NPLException("Error in quoted string.");
 	});
-	RegisterStrictUnary<const string>(loader, "SHBuild_RaiseError_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_RaiseError_",
 		[](const string& str) YB_ATTR(noreturn){
 		throw LoggedEvent(str);
 	});
-	RegisterStrictBinary<const string, const string>(loader,
+	RegisterStrictBinary<const string, const string>(renv,
 		"SHBuild_RemovePrefix_",
-		[&](const string& str, const string& pfx) -> string{
-		if(ystdex::begins_with(str, pfx))
-			return str.substr(pfx.length());
-		return str;
+		[&](const string& str, const string& pfx){
+		return ystdex::begins_with(str, pfx) ? str.substr(pfx.length()) : str;
 	});
-	RegisterStrictUnary<const string>(loader, "SHBuild_SDot_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_SDot_",
 		[](const string& str){
 		auto res(str);
 
@@ -918,11 +981,11 @@ LoadNPLContextForSHBuild(ContextNode& ctx)
 				c = '_';
 		return res;
 	});
-	RegisterStrictUnary<const string>(loader, "SHBuild_String_absolute_path?_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_String_absolute_path?_",
 		[](const string& str){
 		return IO::IsAbsolute(str);
 	});
-	RegisterStrictUnary<const string>(loader, "SHBuild_TrimOptions_",
+	RegisterStrictUnary<const string>(renv, "SHBuild_TrimOptions_",
 		[](const string& src){
 		string res;
 		Session sess(src, [&](LexicalAnalyzer& lexer, char c){

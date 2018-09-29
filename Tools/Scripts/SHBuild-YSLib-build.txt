@@ -1,6 +1,9 @@
 ﻿"#", "(C) 2014-2018 FrankHB.",
 "NPLA1 script for building YSLib using SHBuild.";
 
+$import! std.strings ++ string->symbol string-empty?,
+$import! std.io load puts,
+$import! std.system env-get env-set system-quote env-empty? cmd-get-args,
 $import! env_SHBuild_ SHBuild_EnsureDirectory_ SHBuild_TrimOptions_
 	SHBuild_EchoVar SHBuild_SDot_;
 

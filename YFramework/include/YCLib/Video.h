@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1689
+\version r1789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2018-08-19 12:40 +0800
+	2018-09-20 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -360,109 +360,57 @@ yconstfn PDefH(std::uint32_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 #endif
 
 
-//! \brief 颜色。
-class YF_API Color
+/*!
+\brief 像素分量转换。
+\since build 839
+*/
+//@{
+yconstfn AlphaType
+PixelToAlpha(Pixel px) ynothrow
 {
-private:
-	/*!
-	\brief RGB 分量。
-	\since build 276
-	*/
-	MonoType r = 0, g = 0, b = 0;
-	/*!
-	\brief Alpha 分量。
-	\since build 276
-	*/
-	AlphaType a = 0;
-
-public:
-	/*!
-	\brief 无参数构造：所有分量为 0 的默认颜色。
-	\since build 319
-	*/
-	yconstfn
-	Color() = default;
-	/*!
-	\brief 构造：使用本机颜色对象。
-	\since build 319
-	*/
-	yconstfn
-	Color(Pixel px) ynothrow
 #if YCL_DS
-		: r(px.GetR() << 3), g(px.GetG() << 3), b(px.GetB() << 3),
-		a(FetchAlpha(px) ? 0xFF : 0x00)
+	return FetchAlpha(px) ? 0xFF : 0x00;
 #elif YCL_Win32 || YCL_Linux || YCL_OS_X
-		: r(px.GetR()), g(px.GetG()), b(px.GetB()), a(px.GetA())
+	return px.GetA();
 #endif
-	{}
-	/*!
-	\brief 构造：使用颜色枚举。
-	\since build 853
-	*/
-	template<typename _type, typename = yimpl(
-		ystdex::enable_if_t<ystdex::and_<std::is_enum<_type>, std::is_same<
-		ystdex::underlying_cond_type_t<_type>, Pixel::IntegerType>>::value>)>
-	yconstfn
-	Color(_type cs) ynothrow
-		: Color(Pixel(cs))
-	{}
-	/*!
-	\brief 构造：使用 RGB 值和 alpha 位。
-	\since build 319
-	*/
-	yconstfn
-	Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_ = 0xFF) ynothrow
-		: r(r_), g(g_), b(b_), a(a_)
-	{}
-	/*!
-	\brief 构造：使用相同类型转换为单色的 RGB 值和 alpha位。
-	\note 避免列表初始化时 narrowing 转换。
-	\since build 360
-	*/
-	template<typename _tScalar>
-	yconstfn
-	Color(_tScalar r_, _tScalar g_, _tScalar b_, AlphaType a_ = 0xFF) ynothrow
-		: Color(MonoType(r_), MonoType(g_), MonoType(b_), a_)
-	{}
+}
 
-	/*!
-	\brief 转换：本机颜色对象。
-	\since build 319
-	*/
-	yconstfn
-	operator Pixel() const ynothrow
-	{
 #if YCL_DS
-		return int(a != 0) << 15 | FetchPixel(r, g, b);
-#elif YCL_Win32
-		return {b, g, r, a};
-#elif YCL_Android || YCL_Linux || YCL_OS_X
-		return {r, g, b, a};
+#	define YCL_Impl_RGB_Shift << 3
+#elif YCL_Win32 || YCL_Linux || YCL_OS_X
+#	define YCL_Impl_RGB_Shift
 #endif
-	}
+yconstfn MonoType
+PixelToBlue(Pixel px) ynothrow
+{
+	return px.GetB() YCL_Impl_RGB_Shift;
+}
 
-	/*!
-	\brief 取 alpha 分量。
-	\since build 319
-	*/
-	yconstfn DefGetter(const ynothrow, MonoType, A, a)
-	/*!
-	\brief 取蓝色分量。
-	\since build 319
-	*/
-	yconstfn DefGetter(const ynothrow, MonoType, B, b)
-	/*!
-	\brief 取绿色分量。
-	\since build 319
-	*/
-	yconstfn DefGetter(const ynothrow, MonoType, G, g)
-	/*!
-	\brief 取红色分量。
-	\since build 319
-	*/
-	yconstfn DefGetter(const ynothrow, MonoType, R, r)
-};
+yconstfn MonoType
+PixelToGreen(Pixel px) ynothrow
+{
+	return px.GetG() YCL_Impl_RGB_Shift;
+}
 
+yconstfn MonoType
+PixelToRed(Pixel px) ynothrow
+{
+	return px.GetR() YCL_Impl_RGB_Shift;
+}
+#undef YCL_Impl_RGB_Shift
+
+yconstfn Pixel
+ColorComponentsToPixel(MonoType r, MonoType g, MonoType b, AlphaType a) ynothrow
+{
+#if YCL_DS
+	return int(a != 0) << 15 | FetchPixel(r, g, b);
+#elif YCL_Win32
+	return {b, g, r, a};
+#elif YCL_Android || YCL_Linux || YCL_OS_X
+	return {r, g, b, a};
+#endif
+}
+//@}
 
 /*!
 \brief 初始化视频输出。

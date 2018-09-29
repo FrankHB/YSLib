@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2018.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2018 年度。
-\version r383
+\version r407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 818
 \par 创建时间:
 	2018-02-27 22:36:36 +0800
 \par 修改时间:
-	2018-08-23 10:55 +0800
+	2018-09-26 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,13 +96,13 @@ $report.impl:
 TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 	TCO operates on potentially active record frames.
 		A record frame consists of an environment and optional other components.
-		The active frame is the frame whose environment is introduced by active call (i.e. the call still not return).
+		The active frame is the frame whose environment is introduced by active call (i.e. the call still not returned).
 			The environment component of the active frame is the emvironment object in the current context object.
 			The optional components include the function prvalue (as the temporary object) and the additional environment holding the temporary operand object, which are saved in the TCO action.
-				The function prvalue is based on the function object determined by implementation of 'NPL::A1::ReduceCombined' and the guard object after the compression.
+				The function prvalue is based on the function object determined by implementation of 'NPL::A1::ReduceCombined' and the guard object after the compression (see below).
 					The function object here is the context handler representing the optional function prvalue of the combining form.
-					If the prvalue is not existed (when the function is a lvalue stroed elsewhere), the context handler is empty.
-				Similarly, the operand has to be saved to avoid danling reference binding to it.
+					If the prvalue does not exist (when the function is a lvalue stored elsewhere), the context handler is empty.
+				Similarly, the operand has to be saved to avoid dangling references binding to it.
 					The difference to the function prvalue is it would be added immediately after the frame switch and before the next action of actual function call.
 					The operand is transferred in the form of environment object so it can be collected, see below.
 		Other frames are owned by the TCO action, which are inactive.
@@ -119,7 +119,7 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 					The components are the function prvalue, the frame environment and the additional environment holding the temporary operand object.
 				There is most one valid guarded frame in one TCO action.
 					There is exactly one valid guarded frame if the action initialized with a valid next action (in 'Context::Current') as well as a different environment (always true in case of TCO) for the next action.
-				There are zero or more valid non-guarded frame when there is a valid guarded frame. They are stored in the frame record list.
+				There are zero or more valid non-guarded frames when there is a valid guarded frame. They are stored in the frame record list.
 				During the reduction performed in the TCO action (implemented in 'operator()' of the action), non-guarded frames would be removed in the reverse order of insertion. Guarded frame would be switched and destroyed after all non-guarded frames have been removed.
 					This process resembles the LIFO stack frames built by environment switching during ordinary nested function calls (as well as evaluation of 'eval' with operands).
 					Conventionally, the frame record list pops the front frame at first. Environment to be added into the list caused by environment switching is also insert in the front place if the guarded frame exists (otherwise it should be placed as the guarded frame).
@@ -140,7 +140,7 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 			The removal of TCO frames shall keep the parentage of environments properly as per the language rules.
 	Routine containing TCO is entered once during some operations at tail contexts with environment switching.
 		Currently, function calls in vau handlers and 'eval' reductions are the direct audience.
-			Other PTC can be composited with these cases.
+			Other PTC can be composed with these cases.
 		The input contains a guard object holding the environment of previous action in the context.
 			The environment was switched before enter of the routine and the old one would be the one stored in the guard.
 			This guarantees strong exception safety.
@@ -265,7 +265,7 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 							Note the compressor does not process the element of frame record list.
 								Although The compressor should know the object because it is the parameter, it is hold by strong reference, so it should be never collected by the compressor.
 								This is also the reason of cleanup of orphaned referent referenced by element of frame record list should exist above.
-								Moreover, if the the environment is duplicated (e.g. from function call), it cannot removed by the compressor as it is designed without deduplication of bindings.
+								Moreover, if the environment is duplicate (e.g. from a function call), it cannot be removed by the compressor as it is designed without deduplication of bindings.
 								So they are further compressed by taking the processed referent as destination and the referent held by guard object as source.
 							All duplication of source environment bindings in the destination environment are removed.
 							If the resulted parent environment is empty, it is to be collected.
@@ -273,8 +273,8 @@ TCO algorithm in NPLA1 has been carefully revised and further enhanced.
 				The condition is based on size of frame record list.
 					If the size changed, there is at least one object in frame record list is collected.
 					The try would be continued as there can be new orphaned object not in the list due to the removal of object in the list.
-			After the above fist try of loop, components of frome element are processed if necessary.
-				The environment component holding temporary object is cleanup if it is uniquely referenced. 
+			After the above first try of loop, components of the frame element are processed if necessary.
+				The environment component holding temporary object is cleaned up if it is uniquely referenced. 
 				The function prvalue component of front element of frame record list is then set to empty.
 					This is a hack that avoiding improper tail calls caused by a false positive external reference to the static environment object held in the temporary function object which is or is similar to a vau handler.
 					Ideally, multiple temporary objects are allowed coexisted.
@@ -369,6 +369,23 @@ UNC (universal name convention) paths support is reconsidered.
 		With aid of 'YSLib::IO::PathTraits', 'YSLib::IO::Path' has overriding settings over the 'ystdex::path' with default traits.
 			To keep backward compability, as the special case, 'YSLib::IO::Path' allows empty root name which indicates an implicit root directory.
 		No tilde expansion is performed (like UNIX implementation in DMD).
+
+$2018-09:
+
+Functions to introduce abstraction forms in NPLA1 have been revised.
+	The variants of "with environment" (or "with static environment" where "static" is always inferrable) are renamed.
+		The new '/e' postfix is clearer to the previously used 'e' due to more explicit boundary with the word it follows.
+		This follows the design of the Kernel language, which inturns follows practice of "call/cc" as short for "call-with-currect-continuation" in the Scheme language.
+			The Kernel language chooses the short form. It is more preferred here as '/e' occurs more frequently in the codebase in derivation of fundamental functions.
+		The change actually does not break the code in the project besides the YSLib implementation itself, since these low-level function names are not directly used in known user code (i.e. SHBuild installation scripts).
+PTC implementation in NPLA1 has been revisited.
+	A bug of scanning the shared frame environment in the loop is fixed.
+		The bug wrongly removed other components in the frame.
+			This would cause undefined behavior with environment locking, e.g. in evaluation of expression '$let/e (() make-environment) () 42'.
+		The resolution of the bug also relies on removing the hack of collecting function prvalues (see below).
+	Now hack of prvalue function collection is also removed.
+		It seems at current it does not effect PTC typically.
+		See $2018-06 for descriptions of original design.
 
 ////
 
