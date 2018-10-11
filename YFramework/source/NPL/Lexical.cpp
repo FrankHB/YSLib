@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1612
+\version r1615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2018-05-09 02:47 +0800
+	2018-10-12 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "NPL/YModules.h"
-#include YFM_NPL_Lexical
+#include YFM_NPL_Lexical // for YSLib::octet;
 #include <ystdex/string.hpp> // for ystdex::get_mid;
 
 namespace NPL
@@ -110,7 +110,7 @@ LexicalAnalyzer::DefDeCtor(LexicalAnalyzer)
 bool
 LexicalAnalyzer::CheckEscape(byte b, Unescaper unescape)
 {
-	if(!(b < 0x80))
+	if(!(YSLib::octet(b) < 0x80))
 	{
 		// NOTE: Stop unescaping. The escaped sequence should have no
 		//	multibyte characters.
@@ -387,7 +387,7 @@ Decompose(string_view src)
 		[&](iter_type b, iter_type e){
 		YAssert(e >= b, "Invalid split result found.");
 
-		string_view sv(b, size_t(e - b));
+		string_view sv(&*b, size_t(e - b));
 
 		YAssert(!sv.empty(), "Null token found.");
 		if(IsGraphicalDelimiter(*b))

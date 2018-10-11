@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014, 2016-2017 FrankHB.
+	© 2014, 2016-2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup Clock
 \brief 主界面。
-\version r117
+\version r119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-16 15:16:03 +0800
 \par 修改时间:
-	2017-04-24 23:16 +0800
+	2018-10-12 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,6 +104,7 @@ main()
 			old = now;
 		}
 	});
+	std::time(&now);
 	ShowTopLevelDraggable(pnl);
 	// TODO: Port to other hosted platforms.
 #if YCL_Win32

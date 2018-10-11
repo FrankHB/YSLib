@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2016 FrankHB.
+	© 2012-2016, 2018 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r503
+\version r520
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2016-11-12 13:41 +0800
+	2018-10-02 15:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,8 +45,10 @@ namespace platform
 
 #if !YCL_DS
 void
-UnmapDelete::operator()(pointer p) const ynothrow
+UnmapDelete::operator()(pointer p) const ynothrowv
 {
+	YAssertNonnull(p);
+
 	// XXX: Error ignored.
 #if YCL_Win32
 	::UnmapViewOfFile(p);
@@ -61,9 +63,9 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 	FileMappingOption opt, FileMappingKey key)
 	: option(opt), file(std::move(f)), mapped(
 #if YCL_DS
-	new byte[len]
+	len != 0 ? new byte[len] : nullptr
 #else
-	[=](){
+	[=]() -> byte*{
 		try
 		{
 			if(len != 0)
@@ -73,8 +75,8 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 
 				if(h != INVALID_HANDLE_VALUE)
 				{
-					platform_ex::UniqueHandle fm(YCL_CallF_Win32(
-						CreateFileMapping, h, {},
+					platform_ex::UniqueHandle fm(
+						YCL_CallF_Win32(CreateFileMappingW, h, {},
 						opt != FileMappingOption::ReadWrite ? PAGE_READONLY
 						: PAGE_READWRITE, 0, 0, wcast(key)));
 
@@ -101,7 +103,8 @@ MappedFile::MappedFile(std::uint64_t off, size_t len, UniqueFile f,
 				YCL_Raise_SysE(, "::mmap", yfsig);
 #	endif
 			}
-			throw std::invalid_argument("Empty file found.");
+			else
+				return {};
 		}
 		// TODO: Create specific exception type?
 		CatchExpr(...,
@@ -154,7 +157,7 @@ MappedFile::MappedFile(const char* path, FileMappingOption opt,
 {}
 MappedFile::~MappedFile()
 {
-	if(*this)
+	if(*this && GetSize() != 0)
 	{
 		// NOTE: At least POSIX specifiy nothing about mandontory of flush on
 		//	unmapping.
@@ -194,11 +197,14 @@ MappedFile::FlushFile()
 {
 	YAssertNonnull(file);
 
+	// XXX: This can be irrelevant in DS. However, keeping same to make it
+	//	simpler.
 	if(option != FileMappingOption::ReadOnly)
-		// XXX: In POSIX this is perhapers not required, but keeping uniformed
-		//	behavior is better. See https://groups.google.com/forum/#!topic/comp.unix.programmer/pIiaQ6CUKjU
-		// XXX: This would cause bad performance for some versions of Windows
-		//	supported by this project, see https://jira.mongodb.org/browse/SERVER-12401.
+		// XXX: In POSIX this is perhaps not required, but keeping uniformed
+		//	behavior is better. See https://groups.google.com/forum/#!topic/comp.unix.programmer/pIiaQ6CUKjU.
+		// TODO: Improve performance on Windows?
+		// XXX: This would cause bad performance in Windows until Windows 8 and
+		//	Windows 2012, see https://jira.mongodb.org/browse/SERVER-12401.
 		file->Flush();
 }
 

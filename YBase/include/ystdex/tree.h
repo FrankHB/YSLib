@@ -11,17 +11,28 @@
 /*!	\file tree.h
 \ingroup YStandardEx
 \brief 作为关联容器实现的树。
-\version r2356
+\version r2411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 830
 \par 创建时间:
 	2018-07-06 21:15:48 +0800
 \par 修改时间:
-	2018-08-20 07:47 +0800
+	2018-10-01 16:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	YStandardEx::Tree
+
+关联容器的内部实现的搜索树接口。
+设计和 libstdc++ 的 <bits/stl_tree.h> 中非公开接口类似，以红黑树作为内部数据结构，
+	可同时兼容 std::map 、 std::set 、 std::multimap 和 std::multiset 的容器。
+接口支持 ISO C++17 模式下的容器功能，且支持不完整类型作为关联容器的键。
+同时，提供了 ISO C++17 节点句柄(node handle) 兼容接口的基本实现。
+实现语言的特性要求和 YBase.YStandardEx 要求一致。
+为便于参照和测试，实现也和 libstdc++ 在 ISO C++17 模式下的相似，
+	但充分利用了其它 YBase.YStandardEx 特性。
+因为用于内部实现，接口主要在用于实现的特定命名空间内。
+除另行指定的兼容性策略外，作为实现的接口不保证对外稳定。
 */
 
 
@@ -1156,13 +1167,31 @@ protected:
 	}
 
 private:
+	//! \since build 840
+	template<typename _tParam>
+	bool
+	is_insert_left(base_ptr p, const _tParam& arg)
+	{
+		return p == node_end() || !objects.key_compare(select_key(p), arg);
+	}
+
+	//! \since build 840
+	template<typename _tParam>
+	bool
+	is_insert_left_strict(base_ptr p, const _tParam& arg)
+	{
+		return p == node_end() || objects.key_compare(arg, select_key(p));
+	}
+
 	template<typename _tParam, typename _tNodeGen>
 	iterator
 	insert_with(base_ptr x, base_ptr p, _tParam&& v, const _tNodeGen& node_gen)
 	{
-		const bool insert_left((bool(x) || p == node_end()
-			|| objects.key_compare(_fKeyOfValue()(v), select_key(p))));
-		link_type nd(node_gen(yforward(v)));
+		// NOTE: This is checked first to avoid stray node allocated when the
+		//	key comparation throws.
+		const bool insert_left(bool(x)
+			|| is_insert_left_strict(p, _fKeyOfValue()(v)));
+		const link_type nd(node_gen(yforward(v)));
 
 		tree_insert_and_rebalance(insert_left, nd, p, objects.header);
 		++objects.node_count;
@@ -1172,9 +1201,8 @@ private:
 	iterator
 	insert_node(base_ptr x, base_ptr p, link_type nd)
 	{
-		tree_insert_and_rebalance(x || p == node_end()
-			|| objects.key_compare(select_key(nd), select_key(p)), nd, p,
-			objects.header);
+		tree_insert_and_rebalance(bool(x)
+			|| is_insert_left_strict(p, select_key(nd)), nd, p, objects.header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1183,10 +1211,12 @@ private:
 	iterator
 	insert_lower(base_ptr p, _tParam&& v)
 	{
+		// NOTE: This is checked first to avoid stray node allocated when the
+		//	key comparation throws.
+		const bool insert_left(is_insert_left(p, _fKeyOfValue()(v)));
 		const auto nd(create_node(yforward(v)));
 
-		tree_insert_and_rebalance(p == node_end() || !objects.key_compare(
-			select_key(p), _fKeyOfValue()(v)), nd, p, objects.header);
+		tree_insert_and_rebalance(insert_left, nd, p, objects.header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1195,8 +1225,7 @@ private:
 	iterator
 	insert_equal_lower(_tParam&& v)
 	{
-		auto x(node_begin());
-		auto y(node_end());
+		auto x(node_begin()), y(node_end());
 
 		while(x)
 		{
@@ -1210,11 +1239,9 @@ private:
 	iterator
 	insert_lower_node(base_ptr p, link_type nd)
 	{
-		const bool insert_left((p == node_end()
-			|| !objects.key_compare(select_key(p), select_key(nd))));
+		const bool insert_left(is_insert_left(p, select_key(nd)));
 
-		tree_insert_and_rebalance(
-			insert_left, nd, p, objects.header);
+		tree_insert_and_rebalance(insert_left, nd, p, objects.header);
 		++objects.node_count;
 		return iterator(nd);
 	}
@@ -1222,8 +1249,7 @@ private:
 	iterator
 	insert_equal_lower_node(link_type nd)
 	{
-		auto x(node_begin());
-		auto y(node_end());
+		auto x(node_begin()), y(node_end());
 
 		while(x)
 		{
@@ -1238,8 +1264,7 @@ private:
 	link_type
 	copy_node(const_link_type x, base_ptr p, const _tNodeGen& node_gen)
 	{
-		yassume(x);
-		yassume(p);
+		yassume(x), yassume(p);
 
 		const auto clone_node([&](const_link_type s){
 			link_type res(node_gen(*s->access_ptr()));
@@ -1350,9 +1375,10 @@ private:
 		return lower_bound_impl<_tIter>(t, t.node_begin(), t.node_end(), k);
 	}
 
+	//! \since build 840
 	template<typename _tIter, class _tTree>
 	std::pair<_tIter, _tIter>
-	equal_rang_impl(_tTree& t, const key_type& k)
+	equal_range_impl(_tTree& t, const key_type& k)
 	{
 		using pr_t = std::pair<_tIter, _tIter>;
 		auto x(t.node_begin());
@@ -1450,8 +1476,7 @@ public:
 	std::pair<base_ptr, base_ptr>
 	get_insert_equal_pos(const key_type& k)
 	{
-		auto x(node_begin());
-		auto y(node_end());
+		auto x(node_begin()), y(node_end());
 
 		while(x)
 		{
@@ -1842,12 +1867,12 @@ public:
 	std::pair<iterator, iterator>
 	equal_range(const key_type& k)
 	{
-		return equal_rang_impl<iterator>(*this, k);
+		return equal_range_impl<iterator>(*this, k);
 	}
 	std::pair<const_iterator, const_iterator>
 	equal_range(const key_type& k) const
 	{
-		return equal_rang_impl<iterator>(*this, k);
+		return equal_range_impl<iterator>(*this, k);
 	}
 
 	template<typename _tTransKey,
@@ -1891,8 +1916,7 @@ public:
 	const_iterator
 	lower_bound_tr(const _tTransKey& k) const
 	{
-		auto x(node_begin());
-		auto y(node_end());
+		auto x(node_begin()), y(node_end());
 
 		while(x)
 			if(!objects.key_compare(select_key(x), k))
